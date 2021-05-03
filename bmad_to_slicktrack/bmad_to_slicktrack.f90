@@ -62,12 +62,13 @@ endif
 
 call file_suffixer (bmad_name, slick_name, '.slick', .true.)
 open (1, file = slick_name)
+print *, 'Creating slicktrack file: ' // trim(slick_name)
 
 ! Get the lattice
 
 call bmad_parser (bmad_name, lat)
 
-!------------------------------
+!-------------------------------------------------------
 ! Write element defs
 
 write (1, '(a)') '    1 IP        0.00000000  0.00000000  0.00000000    1   0.000000    0'
@@ -96,7 +97,7 @@ do i = 1, lat%n_ele_track
   write (1, '(i5, 1x, a8, 3f12.8, a)') slick_class, name, slick_params, '    1   0.000000    0'
 enddo
 
-!------------------------------
+!-----------------------------------------------------
 ! Write inserted element defs
 
 write (1, *)
@@ -108,6 +109,7 @@ nq = 0
 
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
+  if (i == lat%n_ele_track .and. ele%name == 'END') cycle   ! will be handled after do loop
 
   select case (ele%key)
   case (sbend$)
@@ -134,7 +136,7 @@ enddo
 
 write (1, '(a)') '    1 END'
 
-!------------------------------
+!-----------------------------------------------------
 ! Write lattice element positions
 
 write (1, *)
@@ -149,6 +151,7 @@ write (1, '(a)') 'IP              0'
 
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
+  if (i == lat%n_ele_track .and. ele%name == 'END') cycle   ! will be handled after do loop
 
   select case (ele%key)
   case (sbend$)
@@ -216,7 +219,11 @@ do i = 1, lat%n_ele_track
 
   case (sextupole$, rfcavity$, beambeam$, hkicker$, vkicker$, kicker$)
     call write_ele_position (line, ne, ele%name, ele%s_start + 0.5_rp * ele%value(l$))
+
+  case (marker$)
+    call write_ele_position (line, ne, ele%name, ele%s)
   end select
+
 enddo
 
 call write_ele_position (line, ne, 'IP', lat%ele(lat%n_ele_track)%s)
@@ -317,6 +324,10 @@ case (hkicker$, vkicker$, kicker$)
     slick_class = 7
     slick_params = [scale*knl(0)*sign_of(tilt(0)), 0.0_rp, scale*ele%value(l$)]    
   endif
+
+case (marker$)
+  slick_class = 1
+  slick_params = 0
 
 case (drift$)
   ! Ignore
