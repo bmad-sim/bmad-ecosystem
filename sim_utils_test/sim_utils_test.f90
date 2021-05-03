@@ -42,6 +42,17 @@ character(16) :: extrap(0:3) = [character(16):: 'ZERO', 'LINEAR', 'CONSTANT', 'S
 
 open (1, file = 'output.now')
 
+! random
+
+call ran_seed_put (123)
+call ran_gauss(array, sigma_cut = 0.5_rp)
+write (1, '(a, 4f14.8)') '"Ran-Gauss-pseudo" ABS 1e-10 ', array
+call ran_engine (set = 'quasi')
+do i = 1, size(array)
+  call ran_gauss(array(i), sigma_cut = 0.5_rp)
+enddo
+write (1, '(a, 4f14.8)') '"Ran-Gauss-quasi" ABS 1e-10 ', array
+
 ! anom mag moment
 
 species = species_id('#3He--')

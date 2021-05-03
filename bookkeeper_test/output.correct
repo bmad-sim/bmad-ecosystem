@@ -1,3 +1,11 @@
+"Expression-val1" ABS 1E-10     0.58849050
+"Expression-str1" STR  "atan2(1,2)+ran()"
+"Expression-val2" ABS 1E-10     0.78539816
+"Expression-str2" STR  "atan2(atan2(1,2),atan(0.5))"
+"Expression-val3" ABS 1E-10     0.14095604
+"Expression-str3" STR  "atan(atan(1/(3+4)))"
+"Expression-val4" ABS 1E-10    -3.29766961
+"Expression-str4" STR  "ran_gauss(0.3*2)+ran_gauss()"
 "Sort"  STR   ";0;3;35;36;21;6;27;48;29;22;5;25;38;16;1;31;37"
 "Loc1" STR  "DR;DR1;DR2;"
 "Loc2" STR  "SB;SB;SB;SB;"
