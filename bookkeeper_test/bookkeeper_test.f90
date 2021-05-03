@@ -2,6 +2,7 @@ program bookkeeper_test
 
 use bmad
 use mad_mod
+use random_mod
 
 implicit none
 
@@ -12,23 +13,38 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct) orb
 type (control_struct), pointer :: ctl
 type (nametable_struct) ntab
+type (expression_atom_struct), allocatable :: stack(:)
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(40) :: loc_str(12) = [character(40):: &
           '1>>drift::3:15', 'sb', '3:15:3', '1>>quad::*', 'octupole::1>>*', &
           'sb##2', 'type::*', 'alias::"q*t"', 'descrip::"So Long"', 'sb%', &
           '0>>drift::qu1:qu2', '1>>drift::qu1:qu2']
-character(100) str
+character(40) :: exp_str(4) = [character(40):: &
+                      'atan2(1,2) + ran()', &
+                      'atan2(atan2(1,2), atan(0.5))', &
+                      'atan(atan((1/(3+4))))', &
+                      'ran_gauss(0.3*2) + ran_gauss()']
+
+character(100) str, err_str
 
 real(rp), allocatable :: save(:)
-real(rp) m1(6,6), m2(6,6), r0(6), vec1(6), vec2(6)
-integer :: i, j, k, n, ie, nargs, n_loc
+real(rp) m1(6,6), m2(6,6), r0(6), vec1(6), vec2(6), val
+integer :: i, j, k, n, ie, nargs, n_loc, n_stack
 logical print_extra, err
 
 !
 
 print_extra = .false.
 nargs = cesr_iargc()
+
+if (nargs > 0) then
+  call cesr_getarg(1, lat_file)
+  val = expression_value(lat_file, err)
+  print *, val
+  stop
+endif
+
 if (nargs == 1)then
    call cesr_getarg(1, lat_file)
    print *, 'Using ', trim(lat_file)
@@ -41,6 +57,17 @@ endif
 !-------------
 
 open (1, file = 'output.now', recl = 200)
+
+!
+
+call ran_seed_put (1234)
+do i = 1, size(exp_str)
+  val = expression_value(exp_str(i), err)
+  write (1, '(a, i0, a, f14.8)') '"Expression-val', i, '" ABS 1E-10 ', val
+  call expression_string_to_stack (exp_str(i), stack, n_stack, err, err_str)
+  str = expression_stack_to_string(stack)
+  write (1, '(a, i0, 2a)') '"Expression-str', i, '" STR  ', quote(str)
+enddo
 
 !
 

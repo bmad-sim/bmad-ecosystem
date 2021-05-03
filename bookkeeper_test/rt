@@ -1,1 +1,1 @@
-totalview ../../debug/bin/bookkeeper_test
+totalview ../../debug/bin/bookkeeper_test -a "$@"

@@ -214,7 +214,10 @@ character(*) :: instr
 ! There can be differences between debug and non-debug output.
 
   select case (instr)
+    case("RFCAVITY1: Time_Runge_Kutta")                 ; tolerance = 'ABS 2E-12'
+    case("RFCAVITY1-Anti_D: Time_Runge_Kutta")          ; tolerance = 'ABS 1E-12'
     case("RFCAVITY1-Anti_O: Time_Runge_Kutta")          ; tolerance = 'ABS 4E-10'
+    case("RFCAVITY1-Anti_OD: Time_Runge_Kutta")         ; tolerance = 'ABS 1E-12'
     case("WIGGLER_HELI1-Anti_D: Runge_Kutta")           ; tolerance = 'ABS 4e-13'
     case("WIGGLER_HELI1-Anti_O: Runge_Kutta")           ; tolerance = 'ABS 4e-13'                  
     case("WIGGLER_HELI1-Anti_O: Time_Runge_Kutta")      ; tolerance = 'ABS 4e-13'                  
