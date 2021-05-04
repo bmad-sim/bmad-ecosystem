@@ -4300,7 +4300,7 @@ n_func = 0
 i_lev = 0
 i_op = 0
 
-stk = tao_eval_stack1_struct()
+stk = tao_eval_stack1_struct(0, '', 1, null(), null(), null())
 
 ! parsing loop to build up the stack.
 
