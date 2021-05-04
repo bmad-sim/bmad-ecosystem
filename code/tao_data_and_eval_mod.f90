@@ -4228,15 +4228,22 @@ subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, in
 use random_mod
 use expression_mod
 
+type expression_func_struct
+  character(12) :: name = ''      ! Name of function
+  integer :: n_arg_target = 0     ! Number of arguments the function should have. -1 => 0 or 1 arg
+  integer :: n_arg_count = 0      ! Number of arguments found.
+end type
+
 type (tao_eval_stack1_struct), save :: stk(100)
 type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (coord_struct), optional :: dflt_orbit
 type (tao_expression_info_struct), allocatable :: info(:)
+type (expression_func_struct) func(0:20)
 
 integer, optional :: dflt_uni, dflt_eval_point
-integer i_lev, i_op, i, ios, n, n_size, ix0, ix1, ix2
-integer op(100), n_comma(100), ix_word, i_delim, i2, ix, ix_word2
+integer i_lev, i_op, i, ios, n, n_size, ix0, ix1, ix2, n_func
+integer op(100), ix_word, i_delim, i2, ix, ix_word2
 
 real(rp), allocatable :: value(:)
 real(rp), optional :: dflt_s_offset
@@ -4251,7 +4258,7 @@ character(80) default_source
 character(*), parameter :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
 
-logical delim_found, split, ran_function_pending, use_good_user
+logical delim_found, split, use_good_user
 logical err_flag, err, wild, printit, found
 logical, optional :: print_err
 
@@ -4289,15 +4296,11 @@ endif
 
 ! init
 
+n_func = 0
 i_lev = 0
 i_op = 0
-ran_function_pending = .false.
 
-do i = 1, size(stk)
-  stk(i)%name = ''
-  if (allocated(stk(i)%info)) deallocate (stk(i)%info)
-  if (allocated(stk(i)%value_ptr)) deallocate (stk(i)%value_ptr)
-enddo
+stk = tao_eval_stack1_struct()
 
 ! parsing loop to build up the stack.
 
@@ -4307,9 +4310,10 @@ parsing_loop: do
 
   call word_read (phrase, '+-*/()^,}[ ', word, ix_word, delim, delim_found, phrase)
 
-  if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
-    call out_io (s_warn$, r_name, 'RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT')
-    return
+  ! Args are counted counted at the beginning of the function and at each comma.
+
+  if (n_func > 0 .and. ix_word /= 0) then
+    if (func(n_func)%n_arg_count == 0) func(n_func)%n_arg_count = func(n_func)%n_arg_count + 1
   endif
 
   !--------------------------
@@ -4444,10 +4448,11 @@ parsing_loop: do
 
   if (delim == '(') then
 
-    ran_function_pending = .false.
     if (ix_word /= 0) then
       word2 = word
       call downcase_string (word2)
+      n_func = n_func + 1
+      func(n_func) = expression_func_struct(word2, 1, 0)
       select case (word2)
       case ('sin')
         call pushit (op, i_op, sin$)
@@ -4465,7 +4470,7 @@ parsing_loop: do
         call pushit (op, i_op, atan$)
       case ('atan2') 
         call pushit (op, i_op, atan2$)
-        n_comma(i_op) = 0
+        func(n_func)%n_arg_target = 2
       case ('abs') 
         call pushit (op, i_op, abs$)
       case ('rms') 
@@ -4484,10 +4489,10 @@ parsing_loop: do
         call pushit (op, i_op, factorial$)
       case ('ran') 
         call pushit (op, i_op, ran$)
-        ran_function_pending = .true.
+        func(n_func)%n_arg_target = 0
       case ('ran_gauss')
         call pushit (op, i_op, ran_gauss$)
-        ran_function_pending = .true.
+        func(n_func)%n_arg_target = -1      ! 0 or 1 args
       case ('int')
         call pushit (op, i_op, int$)
       case ('nint')
@@ -4500,9 +4505,13 @@ parsing_loop: do
         call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS BEFORE "(": ', 'IN EXPRESSION: ' // expression)
         return
       end select
+
+      call pushit (op, i_op, l_func_parens$)
+
+    else
+      call pushit (op, i_op, l_parens$)
     endif
 
-    call pushit (op, i_op, l_parens$)
     cycle parsing_loop
 
   ! for a unary "-"
@@ -4521,8 +4530,9 @@ parsing_loop: do
 
   elseif (delim == ')') then
     if (ix_word == 0) then
-      if (.not. ran_function_pending) then
-        call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING BEFORE ")"', 'IN EXPRESSION: ' // expression)
+      if (n_func == 0 .or. (func(n_func)%n_arg_target /= 0 .and. func(n_func)%n_arg_target /= -1)) then
+        if (printit) call out_io (s_error$, r_name, 'CONSTANT OR VARIABLE MISSING BEFORE ")"', &
+                                                    'IN EXPRESSION: ' // expression)
         return
       endif
     else
@@ -4537,11 +4547,9 @@ parsing_loop: do
       endif
     endif
 
-    ran_function_pending = .false.
-
     do
       do i = i_op, 1, -1       ! release pending ops
-        if (op(i) == l_parens$) exit            ! break do loop
+        if (op(i) == l_parens$ .or. op(i) == l_func_parens$) exit            ! break do loop
         call pushit2 (stk, i_lev, op(i))
       enddo
 
@@ -4552,9 +4560,33 @@ parsing_loop: do
 
       i_op = i - 1
 
+      if (op(i) == l_func_parens$) then
+        if (func(n_func)%n_arg_target == -1) then
+          if (func(n_func)%n_arg_count /= 0 .and. func(n_func)%n_arg_count /= 1) then
+            if (printit) call out_io(s_error$, r_name, &
+                            'FUNCTION: ' // trim(func(n_func)%name) // ' DOES NOT HAVE 0 OR 1 ARGUMENTS.', &
+                            'IN EXPRESSION: ' // expression)
+            return
+          endif
+          call pushit2 (stk, i_lev, arg_count$)
+          call re_allocate (stk(i_lev)%value, 1)
+          stk(i_lev)%value(1) = func(n_func)%n_arg_count
+
+        else
+          if (func(n_func)%n_arg_count /= func(n_func)%n_arg_target) then
+            if (printit) call out_io(s_error$, r_name, &
+                          'FUNCTION: ' // trim(func(n_func)%name) // ' DOES NOT HAVE THE CORRECT NUMBER OF ARGUMENTS.', &
+                          'IN EXPRESSION: ' // expression)
+            return
+          endif
+        endif
+
+        n_func = n_func - 1
+      endif
+
       call word_read (phrase, '+-*/()^,}', word, ix_word, delim, delim_found, phrase)
       if (ix_word /= 0) then
-        call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS AFTER ")" IN EXPRESSION: ' // expression)
+        if (printit) call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS AFTER ")" IN EXPRESSION: ' // expression)
         return
       endif
 
@@ -4563,7 +4595,7 @@ parsing_loop: do
 
 
     if (delim == '(') then
-      call out_io (s_warn$, r_name, '")(" CONSTRUCT DOES NOT MAKE SENSE IN EXPRESSION: ' // expression)
+      if (printit) call out_io (s_warn$, r_name, '")(" CONSTRUCT DOES NOT MAKE SENSE IN EXPRESSION: ' // expression)
       return
     endif
 
@@ -4602,6 +4634,7 @@ parsing_loop: do
     i_delim = power$
   case (',')
     i_delim = comma$
+    func(n_func)%n_arg_count = func(n_func)%n_arg_count + 1
   case ('}')
     i_delim = no_delim$
     call out_io (s_error$, r_name, &
@@ -4611,7 +4644,7 @@ parsing_loop: do
   case default
     if (delim_found) then
       if (delim == ' ') then
-        call out_io (s_error$, r_name, 'MALFORMED EXPRESSION: ' // expression)
+        if (printit) call out_io (s_error$, r_name, 'MALFORMED EXPRESSION: ' // expression)
         return
       endif
 
@@ -4621,30 +4654,26 @@ parsing_loop: do
     i_delim = no_delim$
   end select
 
-  ! now see if there are operations on the OP stack that need to be transferred
+  ! Now see if there are operations on the OP stack that need to be transferred
   ! to the STK stack
 
   do i = i_op, 1, -1
     if (expression_eval_level(op(i)) < expression_eval_level(i_delim)) exit
 
     if (op(i) == l_parens$) then
-      if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. i_delim == comma$) then
-        if (n_comma(i-1) /= 0) then
-          call out_io (s_warn$, r_name, 'TOO MANY COMMAS IN ATAN2 CONSTRUCT IN EXPRESSION: ' // expression)
-          return
-        endif
-        n_comma(i-1) = n_comma(i-1) + 1
-        i_op = i
-        cycle parsing_loop
-      endif
-      call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
+      if (printit) call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
       return
     endif
 
-    if (op(i) == atan2$ .and. n_comma(i) /= 1) then
-      call out_io (s_warn$, r_name, 'MALFORMED ATAN2 ARGUMENT IN EXPRESSION: ' // expression)
-      return
+    if (op(i) == l_func_parens$) then
+      if (i_delim /= comma$) then
+        if (printit) call out_io (s_error$, r_name, 'UNMATCHED "("', 'IN EXPRESSION: ' // expression)
+        return
+      endif
+      i_op = i
+      cycle parsing_loop
     endif
+
     call pushit2 (stk, i_lev, op(i))
   enddo
 
@@ -4654,7 +4683,7 @@ parsing_loop: do
   select case (i_delim)
   case (no_delim$);    exit parsing_loop
   case (comma$)
-    call out_io (s_error$, r_name, 'COMMA AT END OF EXPRESSION IS OUT OF place: ' // expression, &
+    if (printit) call out_io (s_error$, r_name, 'COMMA AT END OF EXPRESSION IS OUT OF place: ' // expression, &
                                    '(NEEDS "[...]" OUTER BRACKETS IF AN ARRAY.)')
     return
   case default;        call pushit (op, i_op, i_delim)
@@ -4700,9 +4729,9 @@ endif
 !-------------------------------------------------------------------------
 contains
 
-subroutine pushit (int_stack, i_lev, value)
+subroutine pushit (int_stack, i_lev, this_type)
 
-integer int_stack(:), i_lev, value
+integer int_stack(:), i_lev, this_type
 
 character(*), parameter :: r_name = "pushit"
 
@@ -4715,17 +4744,17 @@ if (i_lev > size(int_stack)) then
   call err_exit
 endif
 
-int_stack(i_lev) = value
+int_stack(i_lev) = this_type
 
 end subroutine pushit
 
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine pushit2 (stack, i_lev, value)
+subroutine pushit2 (stack, i_lev, this_type)
 
 type (tao_eval_stack1_struct) stack(:)
-integer i_lev, value
+integer i_lev, this_type
 
 character(*), parameter :: r_name = "pushit2"
 
@@ -4738,8 +4767,8 @@ if (i_lev > size(stack)) then
   call err_exit
 endif
 
-stack(i_lev)%type = value
-stack(i_lev)%name = expression_op_name(value)
+stack(i_lev)%type = this_type
+stack(i_lev)%name = expression_op_name(this_type)
 
 end subroutine pushit2
                        
@@ -5170,6 +5199,7 @@ subroutine tao_evaluate_stack (stack, n_size_in, use_good_user, value, info, err
 use expression_mod
 
 type (tao_eval_stack1_struct), target :: stack(:)
+type (tao_eval_stack1_struct), pointer :: ss
 type (tao_eval_stack1_struct), pointer :: s(:)
 type (tao_eval_stack1_struct) stk2(20)
 type (tao_expression_info_struct), allocatable :: info(:)
@@ -5189,20 +5219,34 @@ character(*), parameter :: r_name = 'tao_evaluate_stack'
 s => stack   ! For debugging purposes
 err_flag = .true.
 if (allocated(info)) deallocate(info)
+n_size = max(1, n_size_in)
 
 do i = 1, size(stack)
-  if (allocated(stack(i)%value_ptr)) then
-    if (associated(stack(i)%value_ptr(1)%good_value)) then    
-      do j = 1, size(stack(i)%value_ptr)
+  ss => stack(i)
+
+  if (allocated(ss%value)) then
+    if (size(ss%value) > 1 .and. n_size > 1 .and. size(ss%value) /= n_size) then
+      if (print_err) call out_io (s_error$, r_name, 'Array sizes mismatch in expression')
+      err_flag = .true.
+      return
+    endif
+    n_size = max(n_size, size(ss%value))
+  endif
+
+  if (allocated(ss%value_ptr)) then
+    if (associated(ss%value_ptr(1)%good_value)) then    
+      do j = 1, size(ss%value_ptr)
         if (use_good_user) then
-          stack(i)%info(j)%good = stack(i)%value_ptr(j)%good_value .and. stack(i)%value_ptr(j)%good_user
+          ss%info(j)%good = ss%value_ptr(j)%good_value .and. ss%value_ptr(j)%good_user
         else
-          stack(i)%info(j)%good = stack(i)%value_ptr(j)%good_value
+          ss%info(j)%good = ss%value_ptr(j)%good_value
         endif
       enddo
     endif
   endif
 enddo
+
+call tao_re_allocate_expression_info(info, n_size)
 
 ! Go through the stack and perform the operations...
 
@@ -5235,6 +5279,9 @@ do i = 1, size(stack)
   !
 
   select case (stack(i)%type)
+  case (arg_count$)
+    cycle
+
   case (numeric$) 
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)
@@ -5392,17 +5439,30 @@ do i = 1, size(stack)
 
   case (ran$) 
     i2 = i2 + 1
-    n_size = 1
-    if (n_size_in /= 0) n_size = n_size_in
     call re_allocate(stk2(i2)%value, n_size)
     call ran_uniform(stk2(i2)%value)
 
+    if (size(info) == 1) then
+      call tao_re_allocate_expression_info(info, n_size)
+      info%good = info(1)%good
+    endif
+
   case (ran_gauss$) 
-    i2 = i2 + 1
-    n_size = 1
-    if (n_size_in /= 0) n_size = n_size_in
-    call re_allocate(stk2(i2)%value, n_size)
-    call ran_gauss(stk2(i2)%value)
+    if (nint(stack(i-1)%value(1)) == 0) then
+      i2 = i2 + 1
+      call re_allocate(stk2(i2)%value, n_size)
+      call ran_gauss(stk2(i2)%value)
+    else
+      call re_allocate(value, n_size)
+      call ran_gauss(value, sigma_cut = stk2(i2)%value(1))
+      call re_allocate(stk2(i2)%value, n_size)
+      stk2(i2)%value = value
+    endif
+
+    if (size(info) == 1) then
+      call tao_re_allocate_expression_info(info, n_size)
+      info%good = info(1)%good
+    endif
 
   case (int$)
     stk2(i2)%value = int(stk2(i2)%value)
