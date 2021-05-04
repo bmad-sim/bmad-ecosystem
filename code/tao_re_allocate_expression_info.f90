@@ -1,11 +1,7 @@
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
 !+
 ! Subroutine tao_re_allocate_expression_info (info, n, exact, init_val)
 !
 ! Routine to reallocate an array of tao_expression_info_struct structs.
-! This is modeled after the reallocate functions in Numerical Recipes.
 ! Note: The data of the array is preserved but data at the end of the
 ! array will be lost if n is less than the original size of the array
 !
