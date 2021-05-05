@@ -275,6 +275,14 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   call rk_adaptive_time_step (ele, param, orb, dt_ref, t_dir, rf_time, dt, dt_did, dt_next, err)
   if (err) return
+  if (ele%key == patch$) then
+    s_stop_fwd = 0  ! By convention.
+  elseif (orb%direction*ele%orientation == -1) then
+    s_stop_fwd = 0
+  else
+    s_stop_fwd = ele%value(l$)
+  endif
+
   edge_kick_applied = .false.
 
   if (stop_time_limited) then
