@@ -85,8 +85,12 @@ do i = 1, lat%n_ele_track
 
   select case (ele%key)
   case (sbend$, quadrupole$)
-    j = min(lat%n_ele_track, i+1)
-    if ((lat%ele(j)%name == ele%name .and. i /= lat%n_ele_track) .or. lat%ele(i-1)%name == ele%name) then
+    if (i == lat%n_ele_track) then
+      if (lat%ele(i-1)%name /= ele%name) then
+        name = trim(ele%name) // 'H'
+        scale = 0.5_rp
+      endif
+    elseif (lat%ele(i+1)%name /= ele%name .and. lat%ele(i-1)%name /= ele%name) then
       name = trim(ele%name) // 'H'
       scale = 0.5_rp
     endif
