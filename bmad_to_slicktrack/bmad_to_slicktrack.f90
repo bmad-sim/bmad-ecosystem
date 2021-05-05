@@ -8,10 +8,11 @@
 ! (or whatever suffix is there) replaced by '.slick'.
 !
 ! General rule:
-! Bends and quadrupoles will be split into two pieces in the slicktrack file. 
+! Bends and quadrupoles will be split into two pieces in the slicktrack file and the
+! resulting elements with have an ending "H" suffix applied.
 ! Exception: If two bends or two quadrupoles have the same name and are next to each other 
-! then they will will be considered to be split elements and will not be further split. 
-! In this case an ending "H" suffix will still be applied.
+! then they will will be considered to be split elements and will not be further split
+! and will have have their names mangled.
 !-
 
 program bmad_to_slicktrack
@@ -26,8 +27,8 @@ type (coord_struct), allocatable :: orbit(:)
 type (ele_struct), pointer :: ele
 type (nametable_struct) nametab
 
-real(rp) slick_params(3), s_start, length
-integer i, ix, n_arg, slick_class, nb, nq, ne
+real(rp) slick_params(3), s_start, length, scale
+integer i, j, ix, n_arg, slick_class, nb, nq, ne, n_count
 
 logical end_here, added
 
@@ -73,25 +74,28 @@ call bmad_parser (bmad_name, lat)
 
 write (1, '(a)') '    1 IP        0.00000000  0.00000000  0.00000000    1   0.000000    0'
 
+
 call nametable_init(nametab)
 
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
-  call find_indexx(ele%name, nametab, ix, add_to_list = .true., has_been_added = added)
-  if (.not. added) cycle   ! To avoid duplicates.
+
+  name = trim(ele%name)
+  scale = 1.0_rp
 
   select case (ele%key)
   case (sbend$, quadrupole$)
-    if (lat%ele(i+1)%name == ele%name) then  ! Element already split in MAD file
-      call ele_to_slick_params(ele, slick_class, slick_params, 1.0_rp)
-    else
-      call ele_to_slick_params(ele, slick_class, slick_params, 0.5_rp)
+    j = min(lat%n_ele_track, i+1)
+    if ((lat%ele(j)%name == ele%name .and. i /= lat%n_ele_track) .or. lat%ele(i-1)%name == ele%name) then
+      name = trim(ele%name) // 'H'
+      scale = 0.5_rp
     endif
-    name = trim(ele%name) // 'H'
-  case default
-    call ele_to_slick_params(ele, slick_class, slick_params, 1.0_rp)
-    name = ele%name
   end select
+
+  call find_indexx(name, nametab, ix, add_to_list = .true., has_been_added = added)
+  if (.not. added) cycle   ! To avoid duplicates.
+
+  call ele_to_slick_params(ele, slick_class, slick_params, scale)
 
   if (slick_class == -1) cycle
   write (1, '(i5, 1x, a8, 3f12.8, a)') slick_class, name, slick_params, '    1   0.000000    0'
@@ -111,9 +115,15 @@ do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (i == lat%n_ele_track .and. ele%name == 'END') cycle   ! will be handled after do loop
 
+  if (lat%ele(i-1)%name == ele%name) then
+    n_count = n_count + 1
+  else
+    n_count = 1
+  endif
+
   select case (ele%key)
   case (sbend$)
-    if (lat%ele(i+1)%name == ele%name) cycle  ! Element already split in MAD file
+    if (mod(n_count, 2) == 0) cycle
     if (ele%select) then  ! If k1 /= 0
       if (2*i < lat%n_ele_track) then
         call write_insert_ele_def (nq, ['HC', 'VC', 'HQ', 'VQ', 'RQ', 'CQ'])    
@@ -125,7 +135,7 @@ do i = 1, lat%n_ele_track
     endif
 
   case (quadrupole$)
-    if (lat%ele(i+1)%name == ele%name) cycle  ! Element already split in MAD file
+    if (mod(n_count, 2) == 0) cycle    ! Skip second element in pair
     if (2*i < lat%n_ele_track) then
       call write_insert_ele_def (nq, ['HC', 'VC', 'HQ', 'VQ', 'RQ', 'CQ'])    
     else
@@ -153,19 +163,25 @@ do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (i == lat%n_ele_track .and. ele%name == 'END') cycle   ! will be handled after do loop
 
+  if (lat%ele(i-1)%name == ele%name) then
+    n_count = n_count + 1
+  else
+    n_count = 1
+  endif
+
   select case (ele%key)
   case (sbend$)
-    if (lat%ele(i+1)%name == ele%name) cycle  ! Element already split in MAD file
+    if (lat%ele(i+1)%name == ele%name .and. mod(n_count, 2) == 1) cycle  ! Skip first element in pair
 
-    if (lat%ele(i-1)%name == ele%name) then
+    if (mod(n_count, 2) == 0) then   ! If second element in pair
       s_start = lat%ele(i-1)%s_start
       length = 2 * ele%value(l$)
+      name = trim(ele%name)
     else
       s_start = ele%s_start
       length = ele%value(l$)
+      name = trim(ele%name) // 'H'
     endif
-
-    name = trim(ele%name) // 'H'
 
     if (ele%select) then  ! If k1 /= 0
       nq = nq + 1
@@ -189,17 +205,18 @@ do i = 1, lat%n_ele_track
     endif
 
   case (quadrupole$)
-    if (lat%ele(i+1)%name == ele%name) cycle  ! Element already split in MAD file
+    if (lat%ele(i+1)%name == ele%name .and. mod(n_count, 2) == 1) cycle  ! Skip first element in pair
 
-    if (lat%ele(i-1)%name == ele%name) then
+    if (mod(n_count, 2) == 0) then   ! If second element in pair
       s_start = lat%ele(i-1)%s_start
       length = 2 * ele%value(l$)
+      name = trim(ele%name)
     else
       s_start = ele%s_start
       length = ele%value(l$)
+      name = trim(ele%name) // 'H'
     endif
 
-    name = trim(ele%name) // 'H'
     nq = nq + 1
 
     if (2*i < lat%n_ele_track) then
