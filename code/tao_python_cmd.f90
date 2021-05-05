@@ -508,7 +508,7 @@ case ('branch1')
 !   One of: "model", "base" or "design"
 ! ix_bunch : default=1
 ! coordinate : optional
-!   If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
+!   If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
 !
 !  
 ! Returns
@@ -516,7 +516,9 @@ case ('branch1')
 ! string_list
 !   if not coordinate
 ! real_array
-!   if coordinate
+!   if coordinate and coordinate != 'state'
+! integer_array
+!   if coordinate == 'state'
 !
 !
 ! Examples
@@ -4401,14 +4403,14 @@ case ('lat_calc_done')
 ! Notes
 ! -----
 ! Command syntax:
-!   python lat_ele {branch_name}
+!   python lat_ele_list {branch_name}
 ! {branch_name} should have the form:
 !   {ix_uni}@{ix_branch}
 ! 
 !
 ! Parameters
 ! ----------
-! branch_name
+! branch_name : default=0
 !
 !    
 ! Returns

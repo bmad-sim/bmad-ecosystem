@@ -2073,14 +2073,14 @@ Lattice element list.
 Notes
 -----
 Command syntax:
-  python lat_ele {branch_name}
+  python lat_ele_list {branch_name}
 {branch_name} should have the form:
   {ix_uni}@{ix_branch}
 
 
 Parameters
 ----------
-branch_name
+branch_name : default=0
 
    
 Returns
@@ -2164,6 +2164,7 @@ where:
     ele.s, ele.l
     ele.e_tot, ele.p0c
     ele.mat6, ele.vec0
+    ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (ele.beta_a, etc.)
 
   {elements} is a string to match element names to.
     Use "*" to match to all elements.
