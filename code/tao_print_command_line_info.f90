@@ -26,6 +26,7 @@ call out_io (s_blank$, r_name, [ &
         '  -data_file <file_name>               # Define data for plotting and optimization              ', &
         '  -debug                               # Debug mode for Wizards                                 ', &
         '  -disable_smooth_line_calc            # Disable the smooth line calc used in plotting          ', &
+        '  -external_plotting                   # Tells Tao that plotting is done externally to Tao.     ', &
         '  -geometry <width>x<height>           # Plot window geometry (pixels)                          ', &
         '  -help                                # Display this list of command line options              ', &
         '  -hook_init_file <file_name>          # Init file for hook routines (Default = tao_hook.init)  ', &
