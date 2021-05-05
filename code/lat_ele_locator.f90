@@ -117,7 +117,7 @@ integer in_range, step, ix_word, key
 integer, parameter :: ele_name$ = -1
 
 logical, optional :: above_ubound_is_err, err, order_by_index
-logical err2, delim_found, above_ub_is_err, s_ordered, negate
+logical err2, delim_found, above_ub_is_err, s_ordered, negate, names_are_integers
 
 ! init
 
@@ -225,6 +225,11 @@ do
     else
       call lat_ele1_locator (branch_str, 0, name, match_name_to, lat, eles2, n_loc2, err2, &
                                                        above_ub_is_err, ix_dflt_branch, s_ordered)
+      if (in_range == 1) then
+        names_are_integers = (is_integer(name))
+      else
+        names_are_integers = (is_integer(name) .and. names_are_integers)
+      endif
     endif
     if (err2) return
   endif
@@ -274,10 +279,16 @@ do
   endif
 
   ! if we have the range then add it to the eles list.
+  ! Normally a range "A:B" (for example, "Q1:Q2") is interpreted so that if "A" or "B" is a lord, 
+  ! use the corresponding slave To construct a range.
+  ! Exception: Something like "1:100" where integers are used is interpreted as elements 1 through 100.
 
   ele_end => eles2(1)%ele
-  ele_start => find_this_end(ele_start, entrance_end$, err2); if (err2) return
-  ele_end => find_this_end(ele_end, exit_end$, err2);  if (err2) return
+
+  if (.not. names_are_integers) then
+    ele_start => find_this_end(ele_start, entrance_end$, err2); if (err2) return
+    ele_end => find_this_end(ele_end, exit_end$, err2);  if (err2) return
+  endif
 
   if (ele_start%ix_branch /= ele_end%ix_branch) then
     call out_io (s_error$, r_name, 'ELEMENTS NOT OF THE SAME BRANCH IN RANGE: ' // loc_str)
