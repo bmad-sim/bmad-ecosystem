@@ -5066,7 +5066,6 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            c%units
   nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;I;',                      c%why_invalid
   nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             c%y_axis_scale_factor
-  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               c%s
   nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        c%z_color0
   nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        c%z_color1
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     c%ix_universe
