@@ -1060,7 +1060,7 @@ character(6)  :: extra
 
 select case (species)
 case (invalid$)
-  name = "Invalid!"
+  name = invalid_name
   return
 case (not_set$)
   name = "Not_Set!"
@@ -1075,6 +1075,11 @@ if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
 endif
 
 pp = mod(abs(species), int(z'1000000')) / int(z'10000') 
+if (pp == 0) then
+  name = invalid_name
+  return
+endif
+
 mmmm = mod(abs(species), int(z'10000'))
 name = ''
 
