@@ -478,7 +478,7 @@ case ('scale')
   i = 1
   do
     if (cmd_word(i) == '') exit
-    call match_word (cmd_word(i), [character(16):: '-y', '-y2', '-nogang', '-gang', 'include_wall'], ix, .true., matched_name=switch)
+    call match_word (cmd_word(i), [character(16):: '-y', '-y2', '-nogang', '-gang', '-include_wall'], ix, .true., matched_name=switch)
 
     select case (switch)
     case ('-y', '-y2');         axis_name = switch(2:)
