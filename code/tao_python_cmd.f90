@@ -6404,10 +6404,10 @@ case ('species_to_int')
 
 case ('species_to_str')
 
-  n = string_to_int (line, 0, err)
+  n = string_to_int (line, invalid$, err)
   name = species_name(n)
 
-  if (err .or. line == '' .or. name == invalid_name) then
+  if (err .or. name == invalid_name) then
     call invalid ('Not a valid species integer id number.')
     return
   endif
@@ -7676,8 +7676,11 @@ type (tao_d1_data_array_struct), allocatable :: d1_array(:)
 type (tao_universe_struct), pointer :: u
 
 integer i, j, ix_d2, i1, i2, n1, n_delta
+logical err
 
 character(*) d2_name
+
+!
 
 call tao_find_data (err, d2_name, d2_array = d2_array)
 if (err .or. .not. allocated(d2_array)) then
