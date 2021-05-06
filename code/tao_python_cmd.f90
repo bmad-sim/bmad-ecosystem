@@ -654,7 +654,7 @@ case ('building_wall_list')
     enddo
 
   else
-    ib = parse_int (line, err, 0, size(s%building_wall%section)); if (err) return
+    ib = parse_int (line, err, 1, size(s%building_wall%section)); if (err) return
     if (allocated(s%building_wall%section(ib)%point)) then
       bwp => s%building_wall%section(ib)%point
       do ip = 1, size(bwp)
@@ -2443,7 +2443,7 @@ case ('ele:cartesian_map')
     call invalid ('cartesian_map not allocated')
     return
   endif
-  ix = parse_int (tail_str, err, 0, size(ele%cartesian_map));  if (err) return
+  ix = parse_int (tail_str, err, 1, size(ele%cartesian_map));  if (err) return
   ct_map => ele%cartesian_map(ix)
 
   select case (tail_str)
@@ -2595,7 +2595,7 @@ case ('ele:cylindrical_map')
     call invalid ('cylindrical_map not allocated')
     return
   endif
-  ix = parse_int (tail_str, err, 0, size(ele%cylindrical_map));  if (err) return
+  ix = parse_int (tail_str, err, 1, size(ele%cylindrical_map));  if (err) return
   cy_map => ele%cylindrical_map(ix)
 
   select case (tail_str)
@@ -2896,7 +2896,7 @@ case ('ele:wall3d')
     call invalid ('wall3d not allocated')
     return
   endif
-  ix = parse_int (tail_str, err, 0, size(ele%wall3d));  if (err) return
+  ix = parse_int (tail_str, err, 1, size(ele%wall3d));  if (err) return
   wall3d => ele%wall3d(ix)
 
   select case (tail_str)
@@ -3199,7 +3199,7 @@ case ('ele:taylor_field')
     call invalid ('taylor_field not allocated')
     return
   endif
-  ix = parse_int (tail_str, err, 0, size(ele%taylor_field));  if (err) return
+  ix = parse_int (tail_str, err, 1, size(ele%taylor_field));  if (err) return
   t_field => ele%taylor_field(ix)
 
   select case (tail_str)
@@ -3280,7 +3280,7 @@ case ('ele:grid_field')
     call invalid ('grid_field not allocated')
     return
   endif
-  ix = parse_int (tail_str, err, 0, size(ele%grid_field));  if (err) return
+  ix = parse_int (tail_str, err, 1, size(ele%grid_field));  if (err) return
   g_field => ele%grid_field(ix)
 
   select case (tail_str)
