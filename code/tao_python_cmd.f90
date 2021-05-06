@@ -2794,14 +2794,19 @@ case ('ele:wake')
 
   wake => ele%wake
 
-  select case (line)
+  select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), rmt) 'sr%z_max;REAL;T;',         wake%sr%z_max
-    nl=incr(nl); write (li(nl), rmt) 'lr%freq_spread;REAL;T;',   wake%lr%freq_spread
-    nl=incr(nl); write (li(nl), lmt) 'lr%self_wake_on;REAL;T;',  wake%lr%self_wake_on
-    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',     allocated(wake%sr%long)
-    nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',    allocated(wake%sr%trans)
-    nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',     allocated(wake%lr%mode)
+    nl=incr(nl); write (li(nl), rmt) 'sr%z_max;REAL;T;',             wake%sr%z_max
+    nl=incr(nl); write (li(nl), rmt) 'sr%amp_scale;REAL;T;',         wake%sr%amp_scale
+    nl=incr(nl); write (li(nl), rmt) 'sr%z_scale;REAL;T;',           wake%sr%z_scale
+    nl=incr(nl); write (li(nl), lmt) 'sr%scale_with_length;REAL;T;', wake%sr%scale_with_length
+    nl=incr(nl); write (li(nl), rmt) 'lr%freq_spread;REAL;T;',       wake%lr%freq_spread
+    nl=incr(nl); write (li(nl), rmt) 'lr%amp_scale;REAL;T;',         wake%lr%amp_scale
+    nl=incr(nl); write (li(nl), rmt) 'lr%time_scale;REAL;T;',        wake%lr%time_scale
+    nl=incr(nl); write (li(nl), lmt) 'lr%self_wake_on;REAL;T;',      wake%lr%self_wake_on
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',         allocated(wake%sr%long)
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',        allocated(wake%sr%trans)
+    nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',         allocated(wake%lr%mode)
 
   case ('sr_long')
     nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr%z_ref_long
