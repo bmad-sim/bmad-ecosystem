@@ -2050,7 +2050,7 @@ case ('history')
   n_print = 50
 
   do 
-    call tao_next_switch (what2, [character(8):: '-no_num', '-all'], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(8):: '-no_num', '-all', '-filed'], .true., switch, err, ix_s2)
 
     if (err) return
     if (switch == '') exit
@@ -3733,12 +3733,14 @@ case ('spin')
 
   ! what_to_print = standard
 
+  r = anomalous_moment_of(branch%param%particle) * ele%value(e_tot$) / mass_of(branch%param%particle)
+  nl=nl+1; lines(nl) = 'a_anomalous_moment * gamma = ' // real_str(r, 6)
+  nl=nl+1; lines(nl) = 'E_tot = ' // real_str(ele%value(e_tot$), 6)
+
   if (what_to_print == 'standard') then
     if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, ix_branch)
     ele => branch%ele(0)
 
-    r = anomalous_moment_of(branch%param%particle) * ele%value(e_tot$) / mass_of(branch%param%particle)
-    nl=nl+1; lines(nl) = 'a_anomalous_moment * gamma = ' // real_str(r, 6)
     nl=nl+1; lines(nl) = 'bmad_com components:'
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
 !!!    nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
