@@ -804,7 +804,7 @@ if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
   if (is_bend) then
     n = int(100*abs(ele%value(angle$))/pi) + int(100 * graph%floor_plan%orbit_scale * &
                   (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4))))
-    n = min(n, ubound(dx_orbit, 1))
+    n = max(min(n, ubound(dx_orbit, 1)), 1)
     do j = 0, n
       s_here = j * ele%value(l$) / n
       call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
