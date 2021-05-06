@@ -2595,10 +2595,10 @@ case ('ele:cylindrical_map')
     call invalid ('cylindrical_map not allocated')
     return
   endif
-  ix = parse_int (line, err, 0, size(ele%cylindrical_map));  if (err) return
+  ix = parse_int (tail_str, err, 0, size(ele%cylindrical_map));  if (err) return
   cy_map => ele%cylindrical_map(ix)
 
-  select case (line)
+  select case (tail_str)
   case ('base')
     nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          cy_map%ptr%file
     nl=incr(nl); write (li(nl), imt) 'm;INT;T;',                              cy_map%m
@@ -2896,10 +2896,10 @@ case ('ele:wall3d')
     call invalid ('wall3d not allocated')
     return
   endif
-  ix = parse_int (line, err, 0, size(ele%wall3d));  if (err) return
+  ix = parse_int (tail_str, err, 0, size(ele%wall3d));  if (err) return
   wall3d => ele%wall3d(ix)
 
-  select case (line)
+  select case (tail_str)
   case ('base')
     nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                   wall3d%name
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',         anchor_pt_name(wall3d%ele_anchor_pt)
@@ -3199,10 +3199,10 @@ case ('ele:taylor_field')
     call invalid ('taylor_field not allocated')
     return
   endif
-  ix = parse_int (line, err, 0, size(ele%taylor_field));  if (err) return
+  ix = parse_int (tail_str, err, 0, size(ele%taylor_field));  if (err) return
   t_field => ele%taylor_field(ix)
 
-  select case (line)
+  select case (tail_str)
   case ('base')
     nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          t_field%ptr%file
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   t_field%field_scale
@@ -3280,10 +3280,10 @@ case ('ele:grid_field')
     call invalid ('grid_field not allocated')
     return
   endif
-  ix = parse_int (line, err, 0, size(ele%grid_field));  if (err) return
+  ix = parse_int (tail_str, err, 0, size(ele%grid_field));  if (err) return
   g_field => ele%grid_field(ix)
 
-  select case (line)
+  select case (tail_str)
   case ('base')
     nl=incr(nl); write (li(nl), ramt) 'dr;REAL_ARR;T;',                        (';', g_field%dr(i), i = 1, 3)
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
@@ -3479,7 +3479,7 @@ case ('ele:photon')
   endif
 
   ph => ele%photon
-  select case (line)
+  select case (tail_str)
   case ('base')
     nl=incr(nl); write (li(nl), lmt) 'has#surface;LOGIC;F;',  (attribute_name(ele, surface_attrib$) == 'SURFACE')
     nl=incr(nl); write (li(nl), lmt) 'has#material;LOGIC;F;', &
