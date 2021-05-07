@@ -37,10 +37,17 @@ m2: marker, wall = {superimpose = T,
 l1: line[multipass] = (q1, q2)
 l2: line = (l1, l1, m2)
 l4: line = (qq)
+l4[geometry] = open
+l4[beta_a] = 1
+l4[beta_b] = 1
 use, l2, l3, l4
 
 l3: line = (bnd, a, b, c)
 l3[e_tot] = 1e9
+l3[geometry] = open
+l3[beta_a] = 1
+l3[beta_b] = 1
+
 
 qq: quadrupole, wall = {
       section = {s = 1, x0 = 1, y0 = 2,
