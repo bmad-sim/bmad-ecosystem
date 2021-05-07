@@ -3702,7 +3702,7 @@ case ('evaluate')
 ! Notes
 ! -----
 ! Command syntax:
-!   python em_field {ele_id}|{which} {x}, {y}, {z}, {t_or_z}
+!   python em_field {ele_id}|{which} {x} {y} {z} {t_or_z}
 ! where {which} is one of:
 !   model
 !   base
