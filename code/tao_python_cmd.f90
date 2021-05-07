@@ -148,6 +148,7 @@ type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_model_element_struct), pointer :: tao_ele
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (all_pointer_struct) a_ptr
+type (controller_var1_struct), pointer :: cvar
 
 real(rp) z, s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy
@@ -233,7 +234,7 @@ call match_word (cmd, [character(40) :: &
           'datum_create', 'datum_has_ele', 'derivative', &
           'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', &
           'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
-          'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
+          'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control_var', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
@@ -2986,8 +2987,9 @@ case ('ele:twiss')
   call xy_disp_out (ele%x, 'x', can_vary = free)
   call xy_disp_out (ele%y, 'y', can_vary = free)
 
-!%% ele:control -----------------------
-! Element control
+!%% ele:control_var -----------------------
+! List element control variables.
+! Used for group, overlay and ramper type elements
 !
 ! Notes
 ! -----
@@ -3022,7 +3024,7 @@ case ('ele:twiss')
 !   ele_id: 1@0>>1
 !   which: model
 
-case ('ele:control')
+case ('ele:control_var')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
@@ -3033,8 +3035,19 @@ case ('ele:control')
     return
   endif
 
-  do i = 1, size(ele%control%var)
-  enddo
+  ! Group controller var has an old_value. Overlay and ramper vars do not.
+
+  if (ele%key == group$) then
+    do i = 1, size(ele%control%var)
+      cvar => ele%control%var(i)
+      nl=incr(nl); write (li(nl), '(i0, 2a, 2(a, es22.14))') i, ';', trim(cvar%name), ';', cvar%value, ';', cvar%old_value
+    enddo
+  else
+    do i = 1, size(ele%control%var)
+      cvar => ele%control%var(i)
+      nl=incr(nl); write (li(nl), '(i0, 2a, 2(a, es22.14))') i, ';', trim(cvar%name), ';', cvar%value
+    enddo
+  endif
 
 !%% ele:orbit -----------------------
 ! Element orbit
