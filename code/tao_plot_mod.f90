@@ -1884,6 +1884,7 @@ if (any(graph%text_legend_out /= ' ')) call qp_draw_text_legend (graph%text_lege
 
 ! Draw the curve legend if needed
 
+if (.not. allocated(graph%curve)) return
 n = size(graph%curve)
 allocate (text(n), symbol(n), line(n))
 
