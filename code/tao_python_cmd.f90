@@ -2994,13 +2994,13 @@ case ('ele:twiss')
 ! Notes
 ! -----
 ! Command syntax:
-!   python ele:control {ele_id}|{which}
+!   python ele:control_var {ele_id}|{which}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
 ! Example:
-!   python ele:control 3@1>>7|model
+!   python ele:control_var 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
 !
