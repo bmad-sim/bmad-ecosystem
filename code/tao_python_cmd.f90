@@ -2924,8 +2924,8 @@ case ('ele:wall3d')
       endif
       nl=incr(nl); write (li(nl), imt) 'vertex;INT;F;',    i
       do j = 1, size(sec%v)
-        nl=incr(nl); write (li(nl), '(i0, 5(a, es22.14))') j, ';', &
-                                        sec%v%x, ';', sec%v%y, ';', sec%v%radius_x, ';', sec%v%radius_y, ';', sec%v%tilt
+        nl=incr(nl); write (li(nl), '(i0, 5(a, es22.14))') j, ';', sec%v(i)%x, ';', sec%v(i)%y, ';', &
+                                              sec%v(i)%radius_x, ';', sec%v(i)%radius_y, ';', sec%v(i)%tilt
       enddo
     enddo
 
