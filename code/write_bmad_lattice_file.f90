@@ -83,8 +83,8 @@ character(*) bmad_file
 character(4000) line
 character(2000) line2
 character(200) file_name, path, basename
-character(100), allocatable :: list(:)
-character(100) string
+character(120), allocatable :: list(:)
+character(120) string
 character(60) alias
 character(40) name, look_for, attrib_name
 character(40), allocatable :: names(:)
@@ -958,12 +958,12 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
         line = trim(line) // trim(ctl%slave_name) // ' [' // trim(ctl%attribute) // ']'
 
         if (allocated(ctl%stack)) then
-          call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
-          write (line, '(3a)') trim(line), ':', trim(list(1))
-          if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
+          call split_expression_string(expression_stack_to_string(ctl%stack), 120, -min(len_trim(line), 60), list)
+          write (line, '(3a)') trim(line), ': ', trim(list(1))
+          if (size(list) > 1) call write_lat_line(line, iu, .false., .false.)
           do ixs = 2, size(list)
             line = trim(line) // list(ixs)
-            call write_lat_line(line, iu, .false.)
+            call write_lat_line(line, iu, .false., (ixs == size(list)))
           enddo
         else
           if (j > 1) then
@@ -975,6 +975,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
           call write_lat_line(line, iu, .false.)
         endif
       enddo
+
     else
       j_loop: do j = 1, ele%n_slave
         slave => pointer_to_slave(ele, j, ctl)
@@ -993,13 +994,13 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
         if (name /= ele%control%var(1)%name) line = trim(line) // '[' // trim(name) // ']'
 
         if (allocated(ctl%stack)) then
-          call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
+          call split_expression_string(expression_stack_to_string(ctl%stack), 120, -min(len_trim(line), 60), list)
           if (size(list) /= 1 .or. list(1) /= ele%control%var(1)%name) then
-            write (line, '(3a)') trim(line), ':', trim(list(1))
-            if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
+            write (line, '(3a)') trim(line), ': ', trim(list(1))
+            if (size(list) > 1) call write_lat_line(line, iu, .false., .false.)
             do ixs = 2, size(list)
-              line = trim(line) // list(ixs)
-              call write_lat_line(line, iu, .false.)
+              line = trim(line) // ' ' // list(ixs)
+              call write_lat_line(line, iu, .false., (ixs == size(list)))
             enddo
           endif
         else

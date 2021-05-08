@@ -45,7 +45,7 @@ else
   endif
 endif
 
-if (len_trim(line) > 80) call write_lat_line(line, iu, .false.)
+if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
 
 end subroutine write_line_element
 
@@ -100,7 +100,7 @@ function array_re_str(arr, parens_in) result (str_out)
 
 real(rp) arr(:)
 integer i
-character(100) str_out
+character(120) str_out
 character(*), optional :: parens_in
 character(2) parens
 
@@ -170,7 +170,7 @@ end function rchomp
 !-------------------------------------------------------
 !-------------------------------------------------------
 !+
-! Subroutine write_lat_line (line, iu, end_is_neigh)
+! Subroutine write_lat_line (line, iu, end_is_neigh, do_split)
 !
 ! Routine to write strings to a lattice file.
 ! This routine will break the string up into multiple lines
@@ -181,24 +181,45 @@ end function rchomp
 !
 ! Input:
 !   line          -- character(*): String of text.
-!   iu            -- Integer: Unit number to write to.
-!   end_is_neigh  -- Logical: If true then write out everything.
+!   iu            -- integer: Unit number to write to.
+!   end_is_neigh  -- logical: If true then write out everything.
 !                      Otherwise wait for a full line of max_char characters or so.
+!   do_split      -- logical, optional: Split line if overlength? Default is True.
+!                      False is used when line has already been split for expressions since
+!                      the expression splitting routine does a much better job of it.
 !
 ! Output:
-!   line          -- Character(*): part of the string not written. 
+!   line          -- character(*): part of the string not written. 
 !                       If end_is_neigh = T then line will be blank.
 !-
 
-subroutine write_lat_line (line, iu, end_is_neigh)
+subroutine write_lat_line (line, iu, end_is_neigh, do_split)
 
 implicit none
 
 character(*) line
-integer i, iu
+integer i, iu, n
+integer, parameter :: max_char = 105
 logical end_is_neigh
 logical, save :: init = .true.
-integer, parameter :: max_char = 105
+logical, optional :: do_split
+
+!
+
+if (.not. logic_option(.true., do_split)) then
+  n = len_trim(line)
+  if (end_is_neigh) then
+    call write_this (line)
+    init = .true.
+  elseif (index(',[{(=', line(n:n)) /= 0) then
+    call write_this (line)
+  else
+    call write_this (trim(line) // ' &')
+  endif
+
+  line = ''
+  return
+endif
 
 !
 
