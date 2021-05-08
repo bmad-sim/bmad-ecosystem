@@ -870,9 +870,9 @@ function expression_stack_to_string (stack, polish) result (str)
 type (expression_atom_struct), target :: stack(:)
 type (expression_atom_struct), pointer :: atom, atom2
 type (expression_atom_struct) s2(size(stack))
+type (var_length_string_struct) s2_name(size(stack))
 
 character(:), allocatable :: str
-character(200) s2_name(size(stack))
 
 integer i, i2, ix
 logical, optional :: polish
@@ -916,22 +916,22 @@ else
       s2(i2)%type = variable$
 
       if (atom%name == '') then
-        s2_name(i2) = real_to_string(atom%value, 20, 14)
+        s2_name(i2)%str = real_to_string(atom%value, 20, 14)
       else
-        s2_name(i2) = trim(atom%name)
+        s2_name(i2)%str = trim(atom%name)
       endif
       cycle
     endif
 
     select case (atom%type)
     case (plus$, minus$, times$, divide$, power$)
-      if (expression_eval_level(s2(i2-1)%type) < expression_eval_level(atom%type)) s2_name(i2-1) = '(' // trim(s2_name(i2-1)) // ')'
+      if (expression_eval_level(s2(i2-1)%type) < expression_eval_level(atom%type)) s2_name(i2-1)%str = '(' // trim(s2_name(i2-1)%str) // ')'
       if (atom%type == minus$ .or. atom%type == divide$) then
-        if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
+        if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2)%str = '(' // trim(s2_name(i2)%str) // ')'
       else
-        if (expression_eval_level(s2(i2)%type) < expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
+        if (expression_eval_level(s2(i2)%type) < expression_eval_level(atom%type)) s2_name(i2)%str = '(' // trim(s2_name(i2)%str) // ')'
       endif
-      s2_name(i2-1) = trim(s2_name(i2-1)) // trim(expression_op_name(atom%type)) // s2_name(i2)
+      s2_name(i2-1)%str = trim(s2_name(i2-1)%str) // trim(expression_op_name(atom%type)) // s2_name(i2)%str
       s2(i2-1)%type = atom%type
       i2 = i2 - 1
 
@@ -939,52 +939,51 @@ else
       i2 = i2 + 1
       s2(i2)%type = atom%type
       if (atom%name == '') then
-        s2_name(i2) = real_to_string(atom%value, 20, 14)
+        s2_name(i2)%str = real_to_string(atom%value, 20, 14)
       else
-        s2_name(i2) = atom%name
+        s2_name(i2)%str = atom%name
       endif
 
     case (unary_minus$, unary_plus$)
-      if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
-      s2_name(i2) = '-' // s2_name(i2)
+      if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2)%str = '(' // trim(s2_name(i2)%str) // ')'
+      s2_name(i2)%str = '-' // s2_name(i2)%str
  
     case (ran$)
       i2 = i2 + 1
-      s2_name(i2) = trim(expression_op_name(atom%type)) // '()'
+      s2_name(i2)%str = trim(expression_op_name(atom%type)) // '()'
       s2%type = atom%type
 
     case (ran_gauss$)
       if (nint(stack(i-1)%value) == 0) then
         i2 = i2 + 1
-        s2_name(i2) = trim(expression_op_name(atom%type)) // '()'
+        s2_name(i2)%str = trim(expression_op_name(atom%type)) // '()'
       else
-        s2_name(i2) = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)) // ')'
+        s2_name(i2)%str = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)%str) // ')'
       endif
       s2%type = atom%type
 
     case (atan2$)
       i2 = i2 - 1
-      s2_name(i2) = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)) // ',' // trim(s2_name(i2+1)) // ')'
+      s2_name(i2)%str = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)%str) // ',' // trim(s2_name(i2+1)%str) // ')'
       s2%type = atom%type
 
     case (factorial$)
-      if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
-      s2_name(i2) = trim(s2_name(i2)) // '!'
+      if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2)%str = '(' // trim(s2_name(i2)%str) // ')'
+      s2_name(i2)%str = trim(s2_name(i2)%str) // '!'
       s2%type = atom%type
 
     case (arg_count$)
       cycle
 
     case default ! Function
-      s2_name(i2) = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)) // ')'
+      s2_name(i2)%str = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)%str) // ')'
       s2%type = atom%type
 
     end select
 
   enddo
 
-  str = s2_name(i2)
-
+  str = s2_name(i2)%str
 endif
 
 end function expression_stack_to_string
@@ -1001,7 +1000,8 @@ end function expression_stack_to_string
 ! Input:
 !   expr      -- character(*): String containing the expression.
 !   width     -- integer: Maximum width of split expression.
-!   indent    -- integer: Indent for every line after the first.
+!   indent    -- integer: If positive: Number of spaces to indent for every line after the first.
+!                         If negative: No indentation but first line is shortened by |indent|.
 !
 ! Output:
 !   lines(:)  -- character(*), allocatable: Split expression.
@@ -1019,17 +1019,18 @@ character(*) expr
 character(*), allocatable :: lines(:)
 character(len(expr)) ex
 character(width), allocatable :: li(:)
-character(1), parameter :: ch_split(11) = ['+', '-', ',', '*', '/', ')', ']', '}', '(', '[', '{']
+character(1) ch, ch0
+character(11), parameter :: ch_split = '+-,*/)]}([{'
 
 !
 
-ex = expr
-ind = 0  ! zero indent for first line.
-nl = 0
+ind = max(0, -indent) ! Indent for first line.
 nn = len_trim(expr)
-n0 = 1 + 2*nn/(width-indent)
+n0 = 1 + 2*nn/(width-abs(indent))
 call re_allocate (li, n0, .true., '')
 
+ex = expr
+nl = 0
 do
   nl = nl + 1
   nn = len_trim(ex)
@@ -1041,18 +1042,25 @@ do
 
   i_split = ww
   score = 0
-  do i = 1, size(ch_split)
-    j = index(ex(1:ww), ch_split(i), back = .true.)
-    if (j == 0) cycle
+  do j = ww, 2, -1
+    ch = ex(j:j)
+    ch0 = ex(j-1:j-1)
+    i = index(ch_split, ch)
+    if (i == 0) cycle
+    if ((ch == '-' .or. ch == '+') .and. (ch0 == 'e' .or. ch0 == 'E' .or. index(ch_split, ch0) /= 0)) cycle
     if (j * weight(i) < score) cycle
     i_split = j
     score = j * weight(i)
   enddo
 
-  li(nl)(ind+1:) = ex(1:i_split)  
-  ex = adjustl(ex(i_split+1:))
+  if (nl == 1) then
+    li(nl) = ex(1:i_split)
+  else
+    li(nl)(ind+1:) = ex(1:i_split)
+  endif
+  ind = max(0, indent)  ! Indent for lines after first.
 
-  ind = indent
+  ex = adjustl(ex(i_split+1:))
 enddo
 
 call re_allocate (lines, nl)

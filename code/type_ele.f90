@@ -790,8 +790,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       end select
 
       if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
-      nl=nl+1; write (li(nl), '(i8, 3x, a32, a18, 2x, a21, a)') &
-            lord%ix_ele, lord%name, a_name, str1, trim(li2(1))
+      nl=nl+1; write (li(nl), '(i8, 3x, a32, a18, 2x, a21, a)') lord%ix_ele, lord%name, a_name, str1, trim(li2(1))
       do j = 2, size(li2)
         nl=nl+1; li(nl) = ''; li(nl)(84:) = trim(li2(j))
       enddo
