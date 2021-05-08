@@ -682,10 +682,9 @@ do  ! Loop over plot files
           stop
         endif
 
-
         i_uni = tao_universe_number (crv%ix_universe)
         if (i_uni > ubound(s%u, 1)) then
-          call out_io (s_error$, r_name, &
+          call out_io (s_warn$, r_name, &
                           'CURVE OF PLOT: ' // plot%name, &
                           'HAS UNIVERSE INDEX OUT OF RANGE: \I0\ ', 'IN FILE: ' // plot_file, &
                           i_array = [i_uni] )
