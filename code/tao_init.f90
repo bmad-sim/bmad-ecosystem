@@ -245,11 +245,11 @@ do i = 1, s%n_var_used
                           s%var(i2)%slave(j2)%model_value)) then
           write (name1, '(2a, i0, a)') trim(s%var(i)%v1%name), '[', s%var(i)%ix_v1, ']'  
           write (name2, '(2a, i0, a)') trim(s%var(i2)%v1%name), '[', s%var(i2)%ix_v1, ']'  
-          call out_io (s_error$, r_name, &
+          call out_io (s_important$, r_name, &
                'ERROR: VARIABLE:     ' // name1, &
                '       AND VARIABLE: ' // name2, &
                '       CONTROL THE SAME EXACT THING!', &
-               '       YOU HAVE BEEN WARNED!!!')            
+               '       THIS CAN CAUSE STRANGE BEHAVIOR. YOU HAVE BEEN WARNED!!!')            
         endif
       enddo
     enddo
