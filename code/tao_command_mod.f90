@@ -266,7 +266,7 @@ nw_loop: do
     return
   endif
 
-  call out_io (s_fatal$, r_name, 'INTERNAL ERROR!')
+  call out_io (s_abort$, r_name, 'INTERNAL ERROR!')
   call err_exit
 
 enddo nw_loop
