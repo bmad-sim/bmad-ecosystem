@@ -691,7 +691,7 @@ case ('building_wall_list')
 ! Example: 1
 !  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
 !  args:
-!    graph:
+!    graph: floor_plan.g
 
 case ('building_wall_graph')
 
@@ -988,11 +988,6 @@ case ('constraints')
 !
 ! Examples
 ! --------
-!
-! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
-!  args:
-!    ix_uni:1
 
 case ('da_aperture')
 
@@ -1032,11 +1027,6 @@ case ('da_aperture')
 !
 ! Examples
 ! --------
-!
-! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
-!  args:
-!    ix_uni:1
 
 case ('da_params')
 
@@ -1093,7 +1083,7 @@ case ('da_params')
 !    ix_universe:
 !    d2_name: twiss
 !    d1_datum: end 
-!    dat_index: 
+!    dat_index: 1  
 !
 ! Example: 2
 !  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
@@ -1334,10 +1324,9 @@ case ('data_d2_create')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
-!    ix_uni: 1
-!    d2_datum: orbit
+!    d2_datum: 1@eta.x
 
 case ('data_d2_destroy')
 
@@ -2717,7 +2706,7 @@ case ('ele:taylor')
 ! Example: 1
 !  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
-!   ele_id: 1@0>>1
+!   ele_id: 1@0>>2
 !   which: model
  
 
@@ -3021,7 +3010,7 @@ case ('ele:twiss')
 ! Example: 1
 !  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
-!   ele_id: 1@0>>1
+!   ele_id: 1@0>>873
 !   which: model
 
 case ('ele:control_var')
@@ -3385,7 +3374,7 @@ case ('ele:grid_field')
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
-!   where 
+!   where: 
 !
 ! Example: 2
 !  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -3747,12 +3736,12 @@ case ('evaluate')
 ! Example: 1
 !  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
-!    ele_id: 1@0>>1
+!    ele_id: 1@0>>22
 !    which: model
 !    x: 0
 !    y: 0
 !    z: 0
-!    t_or_z: z
+!    t_or_z: 0
 
 case ('em_field')
 
@@ -3963,9 +3952,9 @@ case ('enum')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
-!    graph:
+!    graph: r13.g
 
 case ('floor_plan')
 
@@ -4056,9 +4045,9 @@ case ('floor_plan')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
-!    graph: 
+!    graph: r33.g 
 
 case ('floor_orbit')
 
@@ -4888,7 +4877,7 @@ case ('lat_param_units')
 ! Example: 1
 !  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
-!    ele1_id: 2@1>>q01w|design
+!    ele1_id: 1@0>>q01w|design
 !    ele2_id: q02w
 
 
@@ -5051,9 +5040,9 @@ case ('place_buffer')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
-!    curve_name: top.x.c1
+!    curve_name: r13.g.a
 
 case ('plot_curve')
 
@@ -5240,9 +5229,9 @@ case ('plot_list')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
-!    graph_name: r13.g
+!    graph_name: beta.g
 
 case ('plot_graph')
 
@@ -5348,7 +5337,7 @@ case ('plot_graph')
 ! Notes
 ! -----
 ! Command syntax:
-!   python plot_histograph {curve_name}
+!   python plot_histogram {curve_name}
 ! 
 !
 ! Parameters
@@ -5365,9 +5354,9 @@ case ('plot_graph')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
-!    curve_name: c1
+!    curve_name: r33.g.x
 
 case ('plot_histogram')
 
@@ -5477,7 +5466,7 @@ case ('plot_plot_manage')
 ! Notes
 ! -----
 ! Command syntax:
-!   pyton plot_curve_manage {graph_name}^^{curve_index}^^{curve_name}
+!   python plot_curve_manage {graph_name}^^{curve_index}^^{curve_name}
 ! If {curve_index} corresponds to an existing curve then this curve is deleted.
 ! In this case the {curve_name} is ignored and does not have to be present.
 ! If {curve_index} does not not correspond to an existing curve, {curve_index}
@@ -5493,18 +5482,18 @@ case ('plot_plot_manage')
 !    
 ! Returns
 ! -------
-! string_list
+! None
 !
 !
 ! Examples
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
-!    graph_name: g
+!    graph_name: beta.g
 !    curve_index: 1
-!    curve_name: c1
+!    curve_name: r13.g.a
 
 case ('plot_curve_manage')
 
@@ -5553,7 +5542,7 @@ case ('plot_curve_manage')
 ! Notes
 ! -----
 ! Command syntax:
-!   pyton plot_graph_manage {plot_name}^^{graph_index}^^{graph_name}
+!   python plot_graph_manage {plot_name}^^{graph_index}^^{graph_name}
 ! If {graph_index} corresponds to an existing graph then this graph is deleted.
 ! In this case the {graph_name} is ignored and does not have to be present.
 ! If {graph_index} does not not correspond to an existing graph, {graph_index}
@@ -5569,18 +5558,18 @@ case ('plot_curve_manage')
 !    
 ! Returns
 ! -------
-! string_list
+! None
 !
 !
 ! Examples
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    plot_name: beta
 !    graph_index: 1
-!    graph_name: g
+!    graph_name: beta.g
 
 case ('plot_graph_manage')
 
@@ -5826,17 +5815,17 @@ case ('plot_symbol')
 !    
 ! Returns
 ! -------
-! string_list
+! None
 !
 !
 ! Examples
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    from_plot: r13
-!    to_plot: 
+!    to_plot: r23 
 
 case ('plot_transfer')
 
@@ -5900,9 +5889,9 @@ case ('plot_transfer')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
-!    name: r11
+!    name: beta
 
 case ('plot1')
 
@@ -6378,7 +6367,7 @@ case ('show')
 ! Example: 1
 !  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
-!    species_str: CO2++
+!    species_str: electron
 
 case ('species_to_int')
 
@@ -6735,10 +6724,10 @@ case ('var')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
-!    var_name: kick[5]
-!    ele_name: Q01W
+!    var_name: quad[1]
+!    ele_name: Q1
 !    attribute: L
 !    universes: 1
 !    weight: 0.001
@@ -6746,7 +6735,7 @@ case ('var')
 !    low_lim: -10
 !    high_lim: 10
 !    merit_type: 
-!    good_user: 1
+!    good_user: T
 !    key_bound: T
 !    key_delta: 0.01 
 
