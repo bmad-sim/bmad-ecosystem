@@ -162,7 +162,7 @@ character(*) cmd_line
 character(*), optional :: separator
 character(*) cmd_word(:)
 character(16) :: r_name = 'tao_cmd_split'
-character(len(cmd_line)) line
+character(len(cmd_line)+1) line           ! Make sure there is a space at end of line.
 character(1), parameter :: tab = char(9)
 
 logical err
