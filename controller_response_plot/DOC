@@ -1,0 +1,41 @@
+Overview
+--------
+
+Program to plot the response to variations in a set of one or more controllers.
+Optionally, a postscript file can be generated of the plot.
+Optionally, a table of the response can be generated.
+
+A controller is a Bmad Group, Overlay, Girder, or Ramper element.
+The "response" is either controller slave values or the RF voltage or RF potential. 
+Plotting is expecially useful for controllers that use knot points to define the slave functions.
+
+Example. In the lattice file:
+  ov: overlay = {q1[k1]:t^2}, var = {t}
+In this example, the response when varying the controller variable "t" of the slave parameter q1[k1]
+is the quadratic t^2.
+
+
+Running
+-------
+
+On the command line:
+  > controller_response_plot {param-file-name}
+
+The file param-file-name sets parameters used by the program.
+If param-file-name is not specified, the default is:
+  controller_response_plot.init
+
+There are two examples in the directory (relative to a Bmad Distribution or Release):
+  util_programs/controller_response_plot/example1
+  util_programs/controller_response_plot/example2
+
+Note: If a postscript file is generated, to generate a pdf file after running the program, use
+the ps2pdf program.
+
+
+Input parameters
+----------------
+
+See the controller_response_plot.init files in the examples for documentation on the input parameters.
+
+

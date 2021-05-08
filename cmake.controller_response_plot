@@ -1,7 +1,7 @@
-set (EXENAME controller_function_plot)
+set (EXENAME controller_response_plot)
 
 set (SRC_FILES
-  controller_function_plot/controller_function_plot.f90
+  controller_response_plot/controller_response_plot.f90
 )
 
 set (LINK_LIBS

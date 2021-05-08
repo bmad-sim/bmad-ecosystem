@@ -1,0 +1,24 @@
+&params
+  lat_file = "ramped_small_ring.bmad"    ! Lattice file.
+  controller_name = "ramper::*"          ! Controller to use.
+
+  input_var = "z"               ! What variable to vary? "" -> Vary first controller variable.
+                                !   Use "z" to vary particle phase space z-position
+  input_var_min = -0.8          ! Range to vary the input variable over.
+  input_var_max = 0.2           ! var_max = var_min for knot type controllers -> autoscale.
+  input_var_n_points = 201      ! Input variable number of points.
+
+  curve_list = "rf::potential"  ! List curves to plot. "slave::..." is list of slaves parameters,
+                                !   "slave::*" means all slaves.
+                                !   "var::numeric" means generating a set of curves with each curve
+                                !   constructed with the controller variable set to a particular value.
+  curve_min  = 0.0              ! When using "var::numeric": Minimum value of the controller variable.
+  curve_max  = 0.2              ! When using "var::numeric": Maximum value of the controller variable.
+  curve_n_points = 5            ! When using "var::numeric": Number of curves.
+
+  plot_size = 500, 400          ! Plot window and/or postscript size in points (Nomally 72 points = 1 inch).
+  table_file_name = "table.dat" ! Generate a table values? If set to "" (blank) no table is generated.
+  make_plot = T                 ! Plot the function(s)? Use False if only a table is wanted.
+  draw_knot_points = T          ! Only used when controller uses knots to define the slave functions.
+  postscript_file = "p.ps"          ! Generate postscript? "" -> No file generated.
+/
