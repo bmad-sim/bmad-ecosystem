@@ -5613,7 +5613,7 @@ case ('plot_graph_manage')
   endif
 
 !%% plot_line -----------------------
-! Points used to construct a smooth line for a plot curve.
+! Output points used to construct the "line" associated with a plot curve.
 !
 ! Notes
 ! -----

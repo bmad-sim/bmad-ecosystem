@@ -14,7 +14,8 @@ character(40), parameter :: r_name = 'tao_print_command_line_info'
 
 !
 
-call out_io (s_blank$, r_name, [ &
+
+call out_io (s_abort$, r_name, [ &
         'Syntax:                                                                                         ', &
         '  <path-to-tao-exe-directory>/tao {OPTIONS}                                                     ', &
         'Options are:                                                                                    ', &
