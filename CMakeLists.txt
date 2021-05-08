@@ -5,7 +5,7 @@ set (EXE_SPECS
   ## cmake.converter_simulation
   ## cmake.converter_fitter
   cmake.beam_file_translate_format
-  cmake.controller_function_plot
+  cmake.controller_response_plot
   cmake.ptc_flat_file_to_bmad
   cmake.make_a_matching_knob
   cmake.wake_fit
