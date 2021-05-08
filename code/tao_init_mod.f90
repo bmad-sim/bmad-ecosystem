@@ -209,7 +209,7 @@ call out_io (s_blank$, r_name, '*Init: Opening Beam File: ' // init_file)
 call tao_open_file (init_file, iu, file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'CANNOT OPEN BEAM INIT FILE: ' // init_file)
-  call err_exit
+  return
 endif
 
 do
@@ -302,7 +302,7 @@ do
   else
     if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
       call out_io (s_error$, r_name, 'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
-      call err_exit
+      return
     endif
     s%u(ix_universe)%beam%dump_file = beam_dump_file
     call init_beam(s%u(ix_universe), beam_init)

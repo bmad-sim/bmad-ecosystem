@@ -101,7 +101,7 @@ endif
 
 if (iu == 0 .and. (s%com%lattice_file_arg == '' .and. s%com%hook_lat_file == '')) then
   call output_direct (-1, print_and_capture=s%com%print_to_terminal)
-  call out_io (s_blank$, r_name, &
+  call out_io (s_abort$, r_name, &
           'Note: To run Tao, you either need a Tao initialization file or', &
           '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
           '  See the Tao manual for more details...')
