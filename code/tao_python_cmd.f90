@@ -395,7 +395,7 @@ case ('beam_init')
 ! -------- 
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 
 case ('bmad_com')
@@ -469,7 +469,7 @@ case ('bmad_com')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_universe: 1
 !    ix_branch: 0
@@ -526,7 +526,7 @@ case ('branch1')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
 !  args:
 !    ele_id: end
 !    which: model
@@ -534,7 +534,7 @@ case ('branch1')
 !    coordinate:
 !
 !Example: 2
-!  init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
 !  args:
 !    ele_id: end
 !    which: model
@@ -631,12 +631,12 @@ case ('bunch1')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  init: -init $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
 !  args:
 !    ix_section:
 !
 ! Example: 2
-!  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  init: -init $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
 !  args:
 !    ix_section: 1
 
@@ -689,7 +689,7 @@ case ('building_wall_list')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  init: -init $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
 !  args:
 !    graph: floor_plan.g
 
@@ -755,7 +755,7 @@ case ('building_wall_graph')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  init: -init $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
 !  args:
 !    ix_section: 1
 !    ix_point: 1
@@ -837,7 +837,7 @@ case ('building_wall_point')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_section: 1
 !    sec_name: test
@@ -918,12 +918,12 @@ case ('building_wall_section')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    who: data
 !
 ! Example: 2
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    who:var
 
@@ -1078,7 +1078,7 @@ case ('da_params')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    ix_universe:
 !    d2_name: twiss
@@ -1086,7 +1086,7 @@ case ('da_params')
 !    dat_index: 1  
 !
 ! Example: 2
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    ix_universe: 1
 !    d2_name: twiss
@@ -1192,7 +1192,7 @@ case ('data')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    ix_uni: 1
 !    d2_name: orbit
@@ -1324,7 +1324,7 @@ case ('data_d2_create')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    d2_datum: 1@eta.x
 
@@ -1358,7 +1358,7 @@ call destroy_this_data_d2(line)
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    ix_uni: 1
 !    d2_datum: twiss
@@ -1414,7 +1414,7 @@ case ('data_d2')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    ix_uni: 1 
 !    d1_datum: twiss.end
@@ -1467,7 +1467,7 @@ case ('data_d_array')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    ix_uni: 1 
 !    d2_datum: twiss
@@ -1515,7 +1515,7 @@ case ('data_d1_array')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    data_array: twiss.end 
 !    parameter: model_value
@@ -1661,7 +1661,7 @@ case ('data_parameter')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_universe : 1 
 
@@ -1701,7 +1701,7 @@ case ('data_d2_array')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 
 case ('data_set_design_value')
@@ -1795,7 +1795,7 @@ case ('data_set_design_value')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    datum_name: twiss.end[6]
 !    data_type: beta.y
@@ -1922,7 +1922,7 @@ case ('datum_create')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    datum_type: twiss.end 
 
@@ -1958,7 +1958,7 @@ case ('datum_has_ele')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 
 case ('derivative')
@@ -2007,7 +2007,7 @@ case ('derivative')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -2095,7 +2095,7 @@ case ('ele:head')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -2185,7 +2185,7 @@ case ('ele:methods')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -2265,7 +2265,7 @@ case ('ele:gen_attribs')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -2352,7 +2352,7 @@ case ('ele:multipoles')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -2494,7 +2494,7 @@ case ('ele:cartesian_map')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  init: -lat $ACC_ROOT_DIR/regression_tests/wall3d_test/wall3d_test.bmad
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -2568,11 +2568,11 @@ case ('ele:chamber_wall')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -lat $ACC_ROOT_DIR/regression_tests/parse_test/em_field.bmad
 !  args:
-!   ele_id: 1@0>>1
+!   ele_id: 1@0>>5
 !   which: model
-!   index: 1
+!   index: 0
 !   who: base
 
 case ('ele:cylindrical_map')
@@ -2645,9 +2645,9 @@ case ('ele:cylindrical_map')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -lat $ACC_ROOT_DIR/regression_tests/taylor_test/taylor_test.bmad
 !  args:
-!   ele_id: 1@0>>1
+!   ele_id: 1@0>>34
 !   which: model
 
 case ('ele:taylor')
@@ -2704,7 +2704,7 @@ case ('ele:taylor')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -lat $ACC_ROOT_DIR/regression_tests/spin_test/spin_test.bmad
 !  args:
 !   ele_id: 1@0>>2
 !   which: model
@@ -2765,11 +2765,11 @@ case ('ele:spin_taylor')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: $ACC_ROOT_DIR/regression_tests/wake_test/wake_test.bmad
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
-!   who: base
+!   who: sr_long
 
 case ('ele:wake')
 
@@ -2869,7 +2869,7 @@ case ('ele:wake')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -lat $ACC_ROOT_DIR/regression_tests/wall3d_test/wall3d_test.bmad
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -2955,7 +2955,7 @@ case ('ele:wall3d')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -3008,7 +3008,7 @@ case ('ele:twiss')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>873
 !   which: model
@@ -3069,7 +3069,7 @@ case ('ele:control_var')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -3118,7 +3118,7 @@ case ('ele:orbit')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -3184,12 +3184,12 @@ case ('ele:mat6')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -lat $ACC_ROOT_DIR/regression_tests/parse_test/em_field.bmad
 !  args:
-!   ele_id: 1@0>>1
+!   ele_id: 1@0>>9
 !   which: model
 !   index: 1
-!   who: base
+!   who: terms
 
 case ('ele:taylor_field')
 
@@ -3265,11 +3265,11 @@ case ('ele:taylor_field')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -lat $ACC_ROOT_DIR/regression_tests/parse_test/parse_test.bmad
 !  args:
-!   ele_id: 1@0>>1
+!   ele_id: 1@0>>11
 !   which: model
-!   index: 1
+!   index: 0
 !   who: base 
 
 case ('ele:grid_field')
@@ -3370,14 +3370,14 @@ case ('ele:grid_field')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
 !   where: 
 !
 ! Example: 2
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -3462,9 +3462,9 @@ case ('ele:floor')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -lat $ACC_ROOT_DIR/regression_tests/mat6_calc_method_test/mat6_calc_method_test.bmad
 !  args:
-!   ele_id: 1@0>>1
+!   ele_id: 1@3>>1
 !   which: model
 !   who: base
  
@@ -3540,7 +3540,7 @@ case ('ele:photon')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -3604,7 +3604,7 @@ case ('ele:lord_slave')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -3666,7 +3666,7 @@ case ('ele:elec_multipoles')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    expression: data::cbar.11[1:10]|model
  
@@ -3734,7 +3734,7 @@ case ('evaluate')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ele_id: 1@0>>22
 !    which: model
@@ -3789,7 +3789,7 @@ case ('em_field')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    enum_name: tracking_method
 
@@ -3952,7 +3952,7 @@ case ('enum')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    graph: r13.g
 
@@ -4045,7 +4045,7 @@ case ('floor_plan')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    graph: r33.g 
 
@@ -4208,7 +4208,7 @@ case ('floor_orbit')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 
 case ('global')
@@ -4285,7 +4285,7 @@ case ('global')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 
 case ('help')
@@ -4329,7 +4329,7 @@ case ('help')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    who: ix_universe
 
@@ -4395,7 +4395,7 @@ case ('inum')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    branch_name: 1@0
 
@@ -4429,7 +4429,7 @@ case ('lat_calc_done')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    branch_name: 1@0
 
@@ -4469,7 +4469,7 @@ case ('lat_ele_list')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_universe: 1
 case ('lat_general')
@@ -4551,7 +4551,7 @@ case ('lat_general')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_uni: 1  
 !    ix_branch: 0 
@@ -4833,7 +4833,7 @@ case ('lat_list')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    param_name: L   
 
@@ -4875,7 +4875,7 @@ case ('lat_param_units')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ele1_id: 1@0>>q01w|design
 !    ele2_id: q02w
@@ -4925,7 +4925,7 @@ case ('matrix')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 
 case ('merit')
@@ -4964,7 +4964,7 @@ case ('merit')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_uni: 1
 !    ix_branch: 0
@@ -5003,7 +5003,7 @@ case ('orbit_at_s')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 
 case ('place_buffer')
@@ -5040,7 +5040,7 @@ case ('place_buffer')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    curve_name: r13.g.a
 
@@ -5120,7 +5120,7 @@ case ('plot_curve')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_universe: 1
 !    ix_branch: 0 
@@ -5173,7 +5173,7 @@ case ('plot_lat_layout')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    r_or_g: r
 
@@ -5229,7 +5229,7 @@ case ('plot_list')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    graph_name: beta.g
 
@@ -5354,7 +5354,7 @@ case ('plot_graph')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    curve_name: r33.g.x
 
@@ -5409,7 +5409,7 @@ case ('plot_histogram')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    plot_location: r11
 !    plot_name: beta
@@ -5489,7 +5489,7 @@ case ('plot_plot_manage')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    graph_name: beta.g
 !    curve_index: 1
@@ -5565,7 +5565,7 @@ case ('plot_curve_manage')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    plot_name: beta
 !    graph_index: 1
@@ -5646,7 +5646,7 @@ case ('plot_graph_manage')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    region_name: r11
 !    graph_name: g
@@ -5739,7 +5739,7 @@ endif
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    region_name: r11
 !    graph_name: g
@@ -5822,7 +5822,7 @@ case ('plot_symbol')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    from_plot: r13
 !    to_plot: r23 
@@ -5889,7 +5889,7 @@ case ('plot_transfer')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    name: beta
 
@@ -5947,7 +5947,7 @@ case ('plot1')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    who: floor_plan  
 
@@ -6011,7 +6011,7 @@ case ('shape_list')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    who: floor_plan
 !    index: 1
@@ -6074,12 +6074,12 @@ case ('shape_manage')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_pattern: 
 !
 ! Example: 2
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_pattern: 1 
 
@@ -6130,7 +6130,7 @@ case ('shape_pattern_list')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_pattern : 5
 !    pat_name : new_pat
@@ -6192,7 +6192,7 @@ case ('shape_pattern_manage')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_pattern: 1
 !    ix_point: 1
@@ -6263,7 +6263,7 @@ case ('shape_pattern_point_manage')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    who: floor_plan
 !    shape_index: 1
@@ -6332,7 +6332,7 @@ case ('shape_set')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    line: -python
 
@@ -6365,7 +6365,7 @@ case ('show')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    species_str: electron
 
@@ -6404,7 +6404,7 @@ case ('species_to_int')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    species_int: -1
 
@@ -6453,7 +6453,7 @@ case ('species_to_str')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args: 
 !    ix_uni: 1
 !    ix_branch: 0
@@ -6501,7 +6501,7 @@ case ('spin_polarization')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args: 
 
 case ('super_universe')
@@ -6540,7 +6540,7 @@ case ('super_universe')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args: 
 !    ix_uni: 1
 !    ix_branch: 0
@@ -6582,7 +6582,7 @@ case ('twiss_at_s')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args: 
 !    ix_universe: 1
 
@@ -6619,7 +6619,7 @@ case ('universe')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args: 
 !    var: quad_k1[1]
 
@@ -6724,7 +6724,7 @@ case ('var')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
 !    var_name: quad[1]
 !    ele_name: Q1
@@ -6848,7 +6848,7 @@ case ('var_create')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 
 case ('var_general')
@@ -6885,7 +6885,7 @@ case ('var_general')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    v1_var: quad_k1
 
@@ -6930,7 +6930,7 @@ case ('var_v_array')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    v1_var: quad_k1 
 
@@ -6998,7 +6998,7 @@ case ('var_v1_array')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    v1_name: quad_k1 
 !    n_var_min: 0 
@@ -7080,7 +7080,7 @@ case ('var_v1_create')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    v1_datum: quad_k1
 
@@ -7116,7 +7116,7 @@ case ('var_v1_destroy')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    what: params
 
