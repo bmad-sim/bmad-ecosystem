@@ -298,7 +298,7 @@ select case (command)
 ! -------- 
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
 !  args:
 !    ix_universe: 1
 
@@ -339,7 +339,7 @@ case ('beam')
 ! -------- 
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  init: -init /$ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
 !  args:
 !    ix_universe: 1
 
@@ -2416,7 +2416,7 @@ case ('ele:ac_kicker')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -lat $ACC_ROOT_DIR/regression_tests/parse_test/em_field.bmad
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
