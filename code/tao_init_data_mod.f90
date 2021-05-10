@@ -362,12 +362,6 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%meas_value       = datum(ix1:ix2)%meas
   u%data(n1:n2)%error_rms        = datum(ix1:ix2)%error_rms
 
-  where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was not set
-    u%data(n1:n2)%meas_value = 0  
-  elsewhere
-    u%data(n1:n2)%good_meas = .true.
-  end where
-
   ! If given, use the default_data_type. If not, auto-generate the data_type.
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
   where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
@@ -500,13 +494,6 @@ else
   u%data(n1:n2)%spin_axis        = datum(ix1:ix2)%spin_axis
   u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
 
-  u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas
-  where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was not set
-    u%data(n1:n2)%meas_value = 0  
-  elsewhere
-    u%data(n1:n2)%good_meas = .true.
-  end where
-
   ! use default_data_type if given, if not, auto-generate the data_type
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
   where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
@@ -527,8 +514,14 @@ else
     call find_this_element (u%data(j)%ele_ref_name,   'ELE_REF ELEMENT',   u, u%data(j), u%data(j)%ix_ele_ref)
     call find_this_element (u%data(j)%ele_start_name, 'ELE_START ELEMENT', u, u%data(j), u%data(j)%ix_ele_start)
   enddo
-
 endif
+
+u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas
+where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was not set
+  u%data(n1:n2)%meas_value = 0  
+elsewhere
+  u%data(n1:n2)%good_meas = .true.
+end where
 
 !------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------

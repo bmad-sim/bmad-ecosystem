@@ -678,8 +678,7 @@ else
   useit_str = '! Not used in optimizing'
 endif
 
-n_line = n_line + 1
-if (n_line >= size(str)) call re_allocate (str, 2*n_line)
+if (n_line+1 >= size(str)) call re_allocate (str, 2*n_line)
 
 ! A potential problem is that the variable may not control all elements named var%ele_name in a universe.
 ! If this is the case, must use ele name order index to qualify the name.
@@ -687,12 +686,12 @@ if (n_line >= size(str)) call re_allocate (str, 2*n_line)
 ! Tao "set" format.
 
 if (logic_option(.false., tao_format)) then
-  write (str(n_line), '(3a, i0, a, es22.15)') 'set var ', trim(var%v1%name), '[', var%ix_v1, ']|model =', var%model_value
+  n_line=n_line+1; write (str(n_line), '(3a, i0, a, es22.15)') 'set var ', trim(var%v1%name), '[', var%ix_v1, ']|model =', var%model_value
 
 ! Controlling non-element parameter.
 
 elseif (slave(1)%ix_ele == -1) then
-  write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
+  n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
 
 ! Universe independent.
 
@@ -701,7 +700,7 @@ elseif (ix_uni == 0) then
   u => s%u(i_uni)
   lat => u%model%lat
   ele => lat%branch(slave(1)%ix_branch)%ele(slave(1)%ix_ele)
-  write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(ele_unique_name(ele, u%ele_order)), &
+  n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(ele_unique_name(ele, u%ele_order)), &
                                                             '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
 
 ! Universe is given.
@@ -712,7 +711,7 @@ else
 
   ix = nametable_bracket_indexx(lat%nametable, var%ele_name, n_ele)
   if (n_ele == count(slave%ix_uni == ix_uni)) then
-    write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
+    n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
   else
     ! Qualified names can only be used after an expand_lattice command.
     if (str(1) /= 'expand_lattice') then
@@ -720,12 +719,11 @@ else
       str(1) = 'expand_lattice'
     endif
 
+    if (n_line+size(slave) >= size(str)) call re_allocate (str, 2*(n_line+size(slave)))
     do ix = 1, size(slave)
-      n_line = n_line + 1
-      if (n_line >= size(str)) call re_allocate (str, 2*n_line)
       if (slave(ix)%ix_uni /= ix_uni) cycle
       ele => lat%branch(slave(ix)%ix_branch)%ele(slave(ix)%ix_ele)
-      write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(ele_unique_name(ele, u%ele_order)), &
+      n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(ele_unique_name(ele, u%ele_order)), &
                                                               '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
     enddo
   endif

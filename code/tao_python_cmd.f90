@@ -6201,30 +6201,33 @@ case ('shape_pattern_manage')
 
 case ('shape_pattern_point_manage')
 
-    call split_this_line (line, name1, 4, err); if (err) return
+  call split_this_line (line, name1, 4, err); if (err) return
 
-    is = parse_int(name1(1), err, 1, size(s%plot_page%pattern));  if (err) return
-    pattern => s%plot_page%pattern(is)
-    n = size(pattern%pt)
+  is = parse_int(name1(1), err, 1, size(s%plot_page%pattern));  if (err) return
+  pattern => s%plot_page%pattern(is)
+  n = 0
+  if (allocated(pattern%pt)) n = size(pattern%pt)
 
-    select case (name1(3))
-    case ('delete')
-      ip = parse_int(name1(2), err, 1, n)
-      call move_alloc(pattern%pt, pat_pt_temp)
-      allocate (pattern%pt(n-1))
-      pattern%pt(1:ip-1) = pat_pt_temp(1:ip-1)
-      pattern%pt(ip:) = pat_pt_temp(ip+1:)
+  select case (name1(3))
+  case ('delete')
+    ip = parse_int(name1(2), err, 1, n)
+    call move_alloc(pattern%pt, pat_pt_temp)
+    allocate (pattern%pt(n-1))
+    pattern%pt(1:ip-1) = pat_pt_temp(1:ip-1)
+    pattern%pt(ip:) = pat_pt_temp(ip+1:)
 
-    case default
-      ip = parse_int(name1(2), err, 1, n+1)
-      call move_alloc(pattern%pt, pat_pt_temp)
-      allocate (pattern%pt(n+1))
+  case default
+    ip = parse_int(name1(2), err, 1, n+1)
+    call move_alloc(pattern%pt, pat_pt_temp)
+    allocate (pattern%pt(n+1))
+    if (n > 0) then
       pattern%pt(1:ip-1) = pat_pt_temp(1:ip-1)
       pattern%pt(ip+1:) = pat_pt_temp(ip:)
+    endif
 
-      pattern%pt(ip)%s = parse_real(name1(3), err);  if (err) return
-      pattern%pt(ip)%x = parse_real(name1(4), err);  if (err) return
-    end select
+    pattern%pt(ip)%s = parse_real(name1(3), err);  if (err) return
+    pattern%pt(ip)%x = parse_real(name1(4), err);  if (err) return
+  end select
 
 !%% shape_set -----------------------
 ! lat_layout or floor_plan shape set
