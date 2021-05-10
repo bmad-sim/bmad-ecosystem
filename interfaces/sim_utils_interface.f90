@@ -345,8 +345,8 @@ subroutine linear_fit (x, y, n_data, a, b, sig_a, sig_b)
   import
   implicit none
   integer n_data
-  real(rp) x(*)
-  real(rp) y(*)
+  real(rp) x(:)
+  real(rp) y(:)
   real(rp) a
   real(rp) b
   real(rp) sig_a
