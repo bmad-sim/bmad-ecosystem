@@ -3733,9 +3733,9 @@ case ('spin')
 
   ! what_to_print = standard
 
-  r = anomalous_moment_of(branch%param%particle) * ele%value(e_tot$) / mass_of(branch%param%particle)
+  r = anomalous_moment_of(branch%param%particle) * branch%ele(1)%value(e_tot$) / mass_of(branch%param%particle)
   nl=nl+1; lines(nl) = 'a_anomalous_moment * gamma = ' // real_str(r, 6)
-  nl=nl+1; lines(nl) = 'E_tot = ' // real_str(ele%value(e_tot$), 6)
+  nl=nl+1; lines(nl) = 'E_tot = ' // real_str(branch%ele(1)%value(e_tot$), 6)
 
   if (what_to_print == 'standard') then
     if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, ix_branch)
