@@ -1,0 +1,5 @@
+place r12 floor_plan
+place r22 orbit
+
+!set graph r11 floor_plan_orbit%scale = 2
+!set graph r11 floor_plan_orbit%color = 'purple'

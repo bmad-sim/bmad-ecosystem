@@ -1,0 +1,31 @@
+no_digested
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[geometry] = open
+
+parameter[p0c] = 1e12
+
+
+!parameter[abc] = 17
+
+!bmad_com[max_aperture_limit] = 23.5
+!bmad_com[ptc_max_fringe_order] = -1
+!bmad_com[convert_to_kinetic_momentum] = T
+!bmad_com[conserve_taylor_maps] = False
+
+!parameter[custom_attribute1] = quadrupole::my_custom
+
+
+sbend0: sbend, r_custom(3) = 4, lr_self_wake_on = F, superimpose = F, offset = 3.2, field_calc = fieldmap,
+    grid_field = {
+        geometry = xyz,
+        curved_coords = T,
+        r0 = (0, 0, 0),
+        dr = (0.001, 0.001, 0.002),
+        pt(1,2,3) = (1, 2, 3, 4, 5, 6)}
+
+!!sbend0[grid_field(1)%field_scale] = 0.7
+
+g_line: line = (sbend0)
+
+use, g_line
