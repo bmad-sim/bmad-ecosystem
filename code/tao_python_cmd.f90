@@ -232,7 +232,7 @@ call match_word (cmd, [character(40) :: &
           'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
           'data_d2', 'data_d2_array', 'data_set_design_value', 'data_parameter', &
           'datum_create', 'datum_has_ele', 'derivative', &
-          'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', &
+          'ele:head', 'ele:genattribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', &
           'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control_var', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
@@ -631,12 +631,12 @@ case ('bunch1')
 ! --------
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
 !  args:
 !    ix_section:
 !
 ! Example: 2
-!  init: -init $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
 !  args:
 !    ix_section: 1
 
@@ -689,7 +689,7 @@ case ('building_wall_list')
 ! --------
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
 !  args:
 !    graph: floor_plan.g
 
@@ -748,14 +748,14 @@ case ('building_wall_graph')
 !    
 ! Returns
 ! -------
-! string_list 
+! None 
 !
 !
 ! Examples
 ! --------
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
 !  args:
 !    ix_section: 1
 !    ix_point: 1
@@ -2416,7 +2416,7 @@ case ('ele:ac_kicker')
 ! --------
 !
 ! Example: 1
-!  init: -lat $ACC_ROOT_DIR/regression_tests/parse_test/em_field.bmad
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -2494,7 +2494,7 @@ case ('ele:cartesian_map')
 ! --------
 !
 ! Example: 1
-!  init: -lat $ACC_ROOT_DIR/regression_tests/wall3d_test/wall3d_test.bmad
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall3d
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -2568,11 +2568,11 @@ case ('ele:chamber_wall')
 ! --------
 !
 ! Example: 1
-!  init: -lat $ACC_ROOT_DIR/regression_tests/parse_test/em_field.bmad
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
 !  args:
 !   ele_id: 1@0>>5
 !   which: model
-!   index: 0
+!   index: 1
 !   who: base
 
 case ('ele:cylindrical_map')
@@ -2645,7 +2645,7 @@ case ('ele:cylindrical_map')
 ! --------
 !
 ! Example: 1
-!  init: -lat $ACC_ROOT_DIR/regression_tests/taylor_test/taylor_test.bmad
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_taylor
 !  args:
 !   ele_id: 1@0>>34
 !   which: model
@@ -2704,7 +2704,7 @@ case ('ele:taylor')
 ! --------
 !
 ! Example: 1
-!  init: -lat $ACC_ROOT_DIR/regression_tests/spin_test/spin_test.bmad
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_spin
 !  args:
 !   ele_id: 1@0>>2
 !   which: model
@@ -2765,7 +2765,7 @@ case ('ele:spin_taylor')
 ! --------
 !
 ! Example: 1
-!  init: $ACC_ROOT_DIR/regression_tests/wake_test/wake_test.bmad
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wake
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
@@ -2869,12 +2869,12 @@ case ('ele:wake')
 ! --------
 !
 ! Example: 1
-!  init: -lat $ACC_ROOT_DIR/regression_tests/wall3d_test/wall3d_test.bmad
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall3d
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
 !   index: 1
-!   who: base
+!   who: table
 
 case ('ele:wall3d')
 
@@ -3184,7 +3184,7 @@ case ('ele:mat6')
 ! --------
 !
 ! Example: 1
-!  init: -lat $ACC_ROOT_DIR/regression_tests/parse_test/em_field.bmad
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
 !  args:
 !   ele_id: 1@0>>9
 !   which: model
@@ -3265,11 +3265,11 @@ case ('ele:taylor_field')
 ! --------
 !
 ! Example: 1
-!  init: -lat $ACC_ROOT_DIR/regression_tests/parse_test/parse_test.bmad
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_grid
 !  args:
-!   ele_id: 1@0>>11
+!   ele_id: 1@0>>1
 !   which: model
-!   index: 0
+!   index: 1
 !   who: base 
 
 case ('ele:grid_field')
@@ -3462,9 +3462,9 @@ case ('ele:floor')
 ! --------
 !
 ! Example: 1
-!  init: -lat $ACC_ROOT_DIR/regression_tests/mat6_calc_method_test/mat6_calc_method_test.bmad
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
 !  args:
-!   ele_id: 1@3>>1
+!   ele_id: 1@0>>1
 !   which: model
 !   who: base
  
@@ -4045,7 +4045,7 @@ case ('floor_plan')
 ! --------
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_floor_orbit
 !  args:
 !    graph: r33.g 
 
@@ -5383,10 +5383,11 @@ case ('plot_histogram')
 ! Notes
 ! -----
 ! Command syntax:
-!   pyton plot_plot_manage {plot_location}^^{plot_name}^^
-!                          {n_graph}^^{graph1_name}^^{graph2_name}...{graphN_name}
+!   python plot_plot_manage {plot_location}^^{plot_name}^^
+!                          {n_graph}^^{graph1_name}^^{graph2_name}^^{graphN_name}
 ! Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a 
 ! spot where there is already a template.
+! Extra graph names can be included with ^^ connection. 
 ! If {n_graph} is set to -1 then just delete the plot.
 ! 
 !
@@ -5402,21 +5403,21 @@ case ('plot_histogram')
 !    
 ! Returns
 ! -------
-! string_list
+! None
 !
 !
 ! Examples
 ! --------
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args:
-!    plot_location: r11
+!    plot_location: @T1
 !    plot_name: beta
 !    n_graph: 1
-!    graph1_name: g
-!    graph2_name:
-!    graphN_name:
+!    graph1_name: g1
+!    graph2_name: g2
+!    graphN_name: gN
 
 case ('plot_plot_manage')
 
@@ -5634,7 +5635,7 @@ case ('plot_graph_manage')
 ! region_name
 ! graph_name
 ! curve_name
-! x_or_y
+! x_or_y : optional
 !
 !    
 ! Returns
@@ -5646,12 +5647,12 @@ case ('plot_graph_manage')
 ! --------
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -external_plotting -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line 
 !  args:
-!    region_name: r11
+!    region_name: beta
 !    graph_name: g
 !    curve_name: a
-!    x_or_y: x
+!    x_or_y:
 
 case ('plot_line')
 
@@ -6123,7 +6124,7 @@ case ('shape_pattern_list')
 !    
 ! Returns
 ! -------
-! string_list
+! None
 !
 !
 ! Examples
@@ -6132,7 +6133,7 @@ case ('shape_pattern_list')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
-!    ix_pattern : 5
+!    ix_pattern : 1
 !    pat_name : new_pat
 !    pat_line_width : 1
 
@@ -6259,7 +6260,7 @@ case ('shape_pattern_point_manage')
 !    
 ! Returns
 ! -------
-! string_list
+! None
 !
 !
 ! Examples
@@ -6271,7 +6272,7 @@ case ('shape_pattern_point_manage')
 !    who: floor_plan
 !    shape_index: 1
 !    ele_name: Q1
-!    shape:
+!    shape: circle
 !    color:
 !    shape_size:
 !    type_label:
@@ -6604,13 +6605,13 @@ case ('universe')
 ! Notes
 ! -----
 ! Command syntax:
-!   python var {var}        or
 !   python var {var} slaves
 ! 
 !
 ! Parameters
 ! ----------
 ! var
+! slaves : optional
 !
 !    
 ! Returns
@@ -6622,9 +6623,16 @@ case ('universe')
 ! --------
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
 !  args: 
-!    var: quad_k1[1]
+!    var: quad[1]
+!    slaves:
+!
+! Example: 2
+!  init: -init $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args: 
+!    var: quad[1]
+!    slaves: slaves
 
 case ('var')
 
