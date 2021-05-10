@@ -1,0 +1,13 @@
+! Lattice File: building_wall_optimization/lat.bmad
+
+parameter[geometry] = open
+beginning[p0c] =   1e8
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+
+particle_start[pz] = 0.1
+
+b: sbend, l = 1
+
+ll: line = (b)
+use, ll
