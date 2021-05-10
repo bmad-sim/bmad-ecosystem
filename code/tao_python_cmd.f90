@@ -5760,7 +5760,7 @@ case ('plot_symbol')
 
   c => curves(1)%c
   if (.not. allocated(c%x_symb)) then
-    call invalid ('No line associated with curve.')
+    call invalid ('No symbol array associated with curve.')
     return
   endif
 
