@@ -28,7 +28,7 @@ type (ele_struct), pointer :: ele
 type (nametable_struct) nametab
 
 real(rp) slick_params(3), s_start, length, scale
-integer i, j, ix, n_arg, slick_class, nb, nq, ne, n_count
+integer i, j, ix, n_arg, slick_class, nb, nq, ne, n_count, n_edge
 
 logical end_here, added
 
@@ -114,6 +114,7 @@ write (1, *)
 
 nb = 0
 nq = 0
+n_edge = 0
 
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
@@ -138,6 +139,9 @@ do i = 1, lat%n_ele_track
       call write_insert_ele_def (nb, ['VD'])
     endif
 
+    if (ele%value(e1$) /= 0) call write_insert_ele_def (n_edge, ['EE'], -tan(ele%value(e1$)) * ele%value(g$))
+    if (ele%value(e2$) /= 0) call write_insert_ele_def (n_edge, ['EE'], -tan(ele%value(e2$)) * ele%value(g$))
+
   case (quadrupole$)
     if (mod(n_count, 2) == 0) cycle    ! Skip second element in pair
     if (2*i < lat%n_ele_track) then
@@ -160,6 +164,7 @@ write (1, *)
 nb = 0
 nq = 0
 ne = 0
+n_edge = 0
 
 write (1, '(a)') 'IP              0'
 
@@ -188,24 +193,27 @@ do i = 1, lat%n_ele_track
     endif
 
     if (ele%select) then  ! If k1 /= 0
-      nq = nq + 1
-
       if (2*i < lat%n_ele_track) then
-        call write_insert_ele_position (line, ne, nq, ['HC', 'VC'], s_start)
+        call write_insert_ele_position (line, ne, nq, ['HC', 'VC'], s_start, .true.)
+        if (ele%value(e1$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], s_start, .true.)
         call write_ele_position (line, ne, name, s_start + 0.25_rp * length)
         call write_insert_ele_position (line, ne, nq, ['HQ', 'VQ', 'RQ', 'CQ'], s_start + 0.5_rp * length)
         call write_ele_position (line, ne, name, s_start + 0.75_rp * length)
+        if (ele%value(e2$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
       else
+        if (ele%value(e1$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], s_start, .true.)
         call write_ele_position (line, ne, name, s_start + 0.25_rp * length)
-        call write_insert_ele_position (line, ne, nq, ['CQ', 'RQ', 'VQ', 'HQ'], s_start + 0.5_rp * length)
+        call write_insert_ele_position (line, ne, nq, ['CQ', 'RQ', 'VQ', 'HQ'], s_start + 0.5_rp * length, .true.)
         call write_ele_position (line, ne, name, s_start + 0.75_rp * length)
+        if (ele%value(e2$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
         call write_insert_ele_position (line, ne, nq, ['VC', 'HC'], ele%s)
       endif
     else
-      nb = nb + 1
+      if (ele%value(e1$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], s_start, .true.)
       call write_ele_position (line, ne, name, s_start + 0.25_rp * length)
-      call write_insert_ele_position (line, ne, nb, ['VD'], s_start + 0.5_rp * length)
+      call write_insert_ele_position (line, ne, nb, ['VD'], s_start + 0.5_rp * length, .true.)
       call write_ele_position (line, ne, name, s_start + 0.75_rp * length)
+      if (ele%value(e2$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
     endif
 
   case (quadrupole$)
@@ -221,16 +229,14 @@ do i = 1, lat%n_ele_track
       name = trim(ele%name) // 'H'
     endif
 
-    nq = nq + 1
-
     if (2*i < lat%n_ele_track) then
-      call write_insert_ele_position (line, ne, nq, ['HC', 'VC'], s_start)
+      call write_insert_ele_position (line, ne, nq, ['HC', 'VC'], s_start, .true.)
       call write_ele_position (line, ne, name, s_start + 0.25_rp * length)
       call write_insert_ele_position (line, ne, nq, ['HQ', 'VQ', 'RQ', 'CQ'], s_start + 0.5_rp * length)
       call write_ele_position (line, ne, name, s_start + 0.75_rp * length)
     else
       call write_ele_position (line, ne, name, s_start + 0.25_rp * length)
-      call write_insert_ele_position (line, ne, nq, ['CQ', 'RQ', 'VQ', 'HQ'], s_start + 0.5_rp * length)
+      call write_insert_ele_position (line, ne, nq, ['CQ', 'RQ', 'VQ', 'HQ'], s_start + 0.5_rp * length, .true.)
       call write_ele_position (line, ne, name, s_start + 0.75_rp * length)
       call write_insert_ele_position (line, ne, nq, ['VC', 'HC'], ele%s)
     endif
@@ -274,9 +280,6 @@ call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt, magnetic$, includ
 select case (ele%key)
 
 case (sbend$)
-  if (ele%value(e1$) /= 0 .or. ele%value(e2$) /= 0) then
-    print *, 'Note: Bend edge angles not translated for bend: ' // trim(ele%name)
-  endif
   if (ele%value(ref_tilt$) == 0) then
     if (knl(1) == 0) then
       slick_class = 2
@@ -362,8 +365,9 @@ end subroutine ele_to_slick_params
 !---------------------------------------------------------------------------
 ! contains
 
-subroutine write_insert_ele_def (nn, names)
+subroutine write_insert_ele_def (nn, names, edge_kl)
 
+real(rp), optional :: edge_kl
 integer nn
 integer i, j
 character(*) names(:)
@@ -384,6 +388,8 @@ do i = 1, size(names)
   case ('RQ'); line = '    4 RQ______  0.00000000  0.00000000  0.00000000    1   0.000000    0'
   case ('CQ'); line = '    3 CQ______  0.00000000  0.00000000  0.00000000    1   0.000000    0'
   case ('VD'); line = '    7 VD______  0.00000000  0.00000000  0.10000000    1   0.000000    0'
+  case ('EE'); write (line, '(a, 2f12.8, a)') &
+                      '   97 EE______', edge_kl, edge_kl,    ' 0.00000000    1   0.000000    0'
   end select
 
   line(15-j:14) = nc(1:j)
@@ -396,7 +402,7 @@ end subroutine write_insert_ele_def
 !---------------------------------------------------------------------------
 ! contains
 
-subroutine write_insert_ele_position (line, ne, nn, names, s)
+subroutine write_insert_ele_position (line, ne, nn, names, s, increment)
 
 real(rp) s
 integer ne, nn
@@ -404,8 +410,11 @@ integer i, j
 character(*) line, names(:)
 character(8) ele_name
 character(4) nc
+logical, optional :: increment
 
 !
+
+if (logic_option(.false., increment)) nn = nn + 1
 
 do i = 1, size(names)
   ne = ne + 1
