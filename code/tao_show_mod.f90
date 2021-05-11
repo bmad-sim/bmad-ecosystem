@@ -2671,6 +2671,9 @@ case ('lattice')
       ix = index(name, ']')-1
       col_info(i)%attrib_name = upcase(name(8:ix))
       col_info(i)%attrib_type = attribute_type(col_info(i)%attrib_name)
+    else
+      col_info(i)%attrib_name = upcase(name)
+      col_info(i)%attrib_type = attribute_type(col_info(i)%attrib_name)
     endif
   enddo
 
@@ -2985,7 +2988,7 @@ case ('lattice')
 
       if (column(i)%remove_line_if_zero) n_remove = n_remove + 1
 
-      if (name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) then
+      if ((name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) .or. col_info(i)%attrib_type == is_string$) then
         sub_name = col_info(i)%attrib_name
         a_type = col_info(i)%attrib_type
 
