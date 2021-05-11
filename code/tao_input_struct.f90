@@ -296,8 +296,8 @@ plot_input%draw_graph_title_suffix      = plot_page%draw_graph_title_suffix
 
 ! Plot window geometry specified on cmd line?
 
-if (use_cmd_line_geom .and. s%com%geometry_arg /= '') then
-   str = s%com%geometry_arg
+if (use_cmd_line_geom .and. s%init%geometry_arg /= '') then
+   str = s%init%geometry_arg
    ix = index(str, 'x')
    if (ix == 0) then
      call out_io (s_error$, r_name, 'Malformed -geometry argument. No "x" present: ' // str)

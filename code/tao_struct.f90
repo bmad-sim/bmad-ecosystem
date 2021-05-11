@@ -683,24 +683,23 @@ end type
 ! tao_common_struct is for the global parameters that the user should not have direct access to.
 ! Also see tao_global_struct.
 
+integer, parameter :: n_uni_init$ = 1, dflt_uni_init$ = 1, dflt_branch_init$ = 0
+
 type tao_common_struct
-  type (tao_alias_struct) alias(200)
-  type (tao_alias_struct) key(100)
-  type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
+  type (tao_alias_struct) :: alias(200) = tao_alias_struct()
+  type (tao_alias_struct) :: key(100) = tao_alias_struct()
+  type (tao_universe_struct), pointer :: u_working => null()         ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   type (named_number_struct), allocatable :: symbolic_num(:)    ! Named numbers
   type (tao_plot_region_struct), allocatable :: plot_place_buffer(:)  ! Used when %external_plotting is on.
   real(rp), allocatable :: covar(:,:), alpha(:,:)
   real(rp) :: dummy_target = 0           ! Dummy varaible
-  integer ix_ref_taylor, ix_ele_taylor   ! Taylor map end points
+  integer :: ix_ref_taylor = -1, ix_ele_taylor = -1  ! Taylor map end points
   integer :: n_alias = 0
-  integer :: cmd_file_level = 0          ! For nested command files. 0 -> no command file.
-  integer :: ix_key_bank = 0             ! For single mode.
-  integer :: n_universes = 1   
-  integer :: default_universe = 1        ! Default universe to work with.
-  integer :: default_branch = 0          ! Default lattice branch to work with.
-  integer :: ix_history = 0 ! present index to command history array
-  integer :: n_history      ! present history index
+  integer :: cmd_file_level = 0                 ! For nested command files. 0 -> no command file.
+  integer :: ix_key_bank = 0                    ! For single mode.
+  integer :: ix_history = 0                     ! present index to command history array
+  integer :: n_history = 0                      ! present history index
   integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
   logical :: initialized = .false.              ! Does tao_init() need to be called?
   logical :: cmd_file_paused
@@ -708,7 +707,7 @@ type tao_common_struct
   logical :: cmd_from_cmd_file = .false.        ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
-  logical :: combine_consecutive_elements_of_like_name
+  logical :: combine_consecutive_elements_of_like_name = .false.
   logical :: common_lattice = .false.      
   logical :: have_tracked_beam = .false.      ! Used to catch error when beam plotting without having tracked a beam.
   logical :: init_plot_needed      = .true.   ! reinitialize plotting?
@@ -723,8 +722,19 @@ type tao_common_struct
   logical :: add_measurement_noise = .true.        ! Turn off to take data derivatives.
   logical :: is_err_message_printed(2) = .false.   ! Used by tao_set_invalid
   logical :: command_arg_has_been_executed = .false. ! Has the -command command line argument been executed?
-  character(100) :: cmd                            ! Used for the cmd history
-  character(16) :: init_name = 'Tao'               ! label for initialization          
+  character(100) :: cmd = ''                       ! Used for the cmd history
+  character(16) :: valid_plot_who(10)              ! model, base, ref etc...
+  character(200) :: saved_cmd_line = ''            ! Saved part of command line when there are mulitple commands on a line
+  character(80) :: single_mode_buffer = ''
+  integer :: n_universes = n_uni_init$   
+  integer :: default_universe = dflt_uni_init$     ! Default universe to work with.
+  integer :: default_branch = dflt_branch_init$    ! Default lattice branch to work with.
+end type
+
+! Initialization parameters
+
+type tao_init_struct
+  character(16) :: init_name = 'Tao'               ! label for initialization
   character(200) :: hook_init_file = ''            ! 
   character(200) :: hook_lat_file = ''             ! To be set by tao_hook_parse_command_args
   character(200) :: hook_beam_file = ''            ! To be set by tao_hook_parse_command_args
@@ -733,7 +743,6 @@ type tao_common_struct
   character(200) :: hook_startup_file = ''         ! To be set by tao_hook_parse_command_args
   character(200) :: hook_var_file = ''             ! To be set by tao_hook_parse_command_args
   character(200) :: hook_building_wall_file = ''   ! To be set by tao_hook_parse_command_args
-  character(200) :: saved_cmd_line = ''            ! Saved part of command line when there are mulitple commands on a line
   character(200) :: init_file_arg_path = ''        ! Path part of init_tao_file
   character(200) :: lattice_file_arg = ''          ! -lattice_file        command line argument.
   character(200) :: hook_init_file_arg = ''        ! -hook_init_file      command line argument
@@ -759,9 +768,7 @@ type tao_common_struct
   character(12) :: prompt_color_arg = ''           ! -prompt_color        command line argument
   character(12) :: quiet_arg = ''                  ! -quiet               command line argument
   character(12) :: noinit_arg = ''                 ! -noinit              command line argument
-  character(80) :: single_mode_buffer = ''
-  character(100) :: unique_name_suffix
-  character(16) :: valid_plot_who(10)            ! model, base, ref etc...
+  character(100) :: unique_name_suffix = ''
 end type
 
 !-----------------------------------------------------------------------
@@ -1041,7 +1048,8 @@ end type
 
 type tao_super_universe_struct
   type (tao_global_struct) global                          ! User accessible global variables.
-  type (tao_common_struct) :: com
+  type (tao_init_struct) :: init = tao_init_struct()       ! Initialization parameters
+  type (tao_common_struct) :: com                          ! Non-initialization common parameters
   type (tao_plot_page_struct) :: plot_page                 ! Defines the plot window.
   type (tao_v1_var_struct), allocatable :: v1_var(:)       ! The variable types
   type (tao_var_struct), allocatable :: var(:)             ! array of all variables.
