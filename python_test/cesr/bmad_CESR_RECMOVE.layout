@@ -1,0 +1,1148 @@
+ B01: SBEND, L = 6.574262, ANGLE = 0.074799746, E1=0.018699937, E2=0.018699937
+ B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! RHO =  31.65434
+ B03: RBEND, L = 2.945314, ANGLE = 0.020944245 ! RHO = 140.6264
+ B04: RBEND, L = 1.643524, ANGLE = 0.018699330 ! RHO =  87.8915
+ B06: RBEND, L = 3.287171, ANGLE = 0.037400530 ! RHO =  87.8915
+ B07: SBEND, L = 3.177222, ANGLE = 0.091254660 ! RHO =  34.81718
+ B08: SBEND, L = 6.575289, ANGLE = 0.112200220, E1=0.02805, E2=0.02805 ! 58.60
+ 
+IP_L0: MARKER 
+DET_00W: MARKER, ALIAS = "0W" 
+Q00W: QUAD, L =  1.524800, ALIAS = "Q00W" 
+DET_01W: MARKER, ALIAS = "1W" 
+Q01W: QUAD, L =  0.950000, ALIAS = "Q01W", Type = "CSR QUAD CUR   1" 
+HV01W: KICKER, L =  0.172700 
+Q02W: QUAD, L =  0.600000, ALIAS = "Q02W", Type = "CSR QUAD CUR   2" 
+DET_02W: MARKER, ALIAS = "2W" 
+SK_Q02W: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "2W", &
+        Type = "CSR SQEWQUAD   2" 
+SK_Q03W: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "3W", &
+        Type = "CSR SQEWQUAD   3" 
+B03W:  B03, ALIAS = "B03W" 
+B03AW: B04, ALIAS = "B03AW" 
+DET_03W: MARKER, ALIAS = "3W" 
+Q03W: QUAD, L =  0.600000, ALIAS = "Q03W", Type = "CSR QUAD CUR   3" 
+B04W:  B02, ALIAS = "B04W" 
+SK_Q04W: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "4W", &
+        Type = "CSR SQEWQUAD   4" 
+Q04W: QUAD, L =  0.600000, ALIAS = "Q04W", Type = "CSR QUAD CUR   4" 
+DET_04W: MARKER, ALIAS = "4W" 
+B05W:  B02, ALIAS = "B05W" 
+SK_Q05W: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "5W", &
+        Type = "CSR SQEWQUAD   5" 
+Q05W: QUAD, L =  0.600000, ALIAS = "Q05W", Type = "CSR QUAD CUR   5" 
+DET_05W: MARKER, ALIAS = "5W" 
+B06W:  B02, ALIAS = "B06W" 
+SK_Q06W: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "6W", &
+        Type = "CSR SQEWQUAD   6" 
+Q06W: QUAD, L =  0.600000, ALIAS = "Q06W", Type = "CSR QUAD CUR   6" 
+DET_06W: MARKER, ALIAS = "6W" 
+B07W:  B02, ALIAS = "B07W" 
+Q07W: QUAD, L =  0.600000, ALIAS = "Q07W", Type = "CSR QUAD CUR   7" 
+DET_07W: MARKER, ALIAS = "7W" 
+VKICK_07W: KICKER, L =  0.127000 
+WIG_W: WIGGLER, B_MAX = 1.17, N_POLE = 24, L =  2.355000, &
+        Type = "CHS WIGL CUR   1" 
+HKICK_08W: KICKER, L =  0.250000 
+SK_Q07W: QUAD, TILT = PI/4, L =  0.152400, ALIAS = "7W", &
+        Type = "CSR SQEWQUAD   7" 
+H_SEP_08W: ELSEP, L =  2.442000, Type = "CSR HSP VOLT   1" 
+Q08W: QUAD, L =  0.600000, ALIAS = "Q08W", Type = "CSR QUAD CUR   8" 
+SEX_08W: SEXT, L =  0.272000, ALIAS = "X08W", Type = "CSR SEXT CUR   8" 
+DET_08W: MARKER, ALIAS = "8W" 
+RF_W1: RF, L =  1.800000 
+RF_W2: RF, L =  1.800000 
+DET_09W: MARKER, ALIAS = "9W" 
+Q09W: QUAD, L =  0.600000, ALIAS = "Q09W", Type = "CSR QUAD CUR   9" 
+SEX_09W: SEXT, L =  0.272000, ALIAS = "X09W", Type = "CSR SEXT CUR   9" 
+VKICK_10W: KICKER, L =  0.255000 
+VKICK_09W: KICKER, L =  0.102000 
+Q10W: QUAD, L =  0.600000, ALIAS = "Q10W", Type = "CSR QUAD CUR  10" 
+SEX_10W: SEXT, L =  0.272000, ALIAS = "X10W", Type = "CSR SEXT CUR  10" 
+DET_10W: MARKER, ALIAS = "10W" 
+B11W:  B01, ALIAS = "B11W" 
+DET_11W: MARKER, ALIAS = "11W" 
+Q11W: QUAD, L =  0.600000, ALIAS = "Q11W", Type = "CSR QUAD CUR  11" 
+SEX_11W: SEXT, L =  0.272000, ALIAS = "X11W", Type = "CSR SEXT CUR  11" 
+B12W:  B01, ALIAS = "B12W" 
+Q12W: QUAD, L =  0.600000, ALIAS = "Q12W", Type = "CSR QUAD CUR  12" 
+SEX_12W: SEXT, L =  0.272000, ALIAS = "X12W", Type = "CSR SEXT CUR  12" 
+DET_12W: MARKER, ALIAS = "12W" 
+B13W:  B01, ALIAS = "B13W" 
+Q13W: QUAD, L =  0.600000, ALIAS = "Q13W", Type = "CSR QUAD CUR  13" 
+SEX_13W: SEXT, L =  0.272000, ALIAS = "X13W", Type = "CSR SEXT CUR  13" 
+DET_13W: MARKER, ALIAS = "13W" 
+B14W:  B01, ALIAS = "B14W" 
+Q14W: QUAD, L =  0.600000, ALIAS = "Q14W", Type = "CSR QUAD CUR  14" 
+SEX_14W: SEXT, L =  0.272000, ALIAS = "X14W", Type = "CSR SEXT CUR  14" 
+DET_14W: MARKER, ALIAS = "14W" 
+B15W:  B01, ALIAS = "B15W" 
+Q15W: QUAD, L =  0.600000, ALIAS = "Q15W", Type = "CSR QUAD CUR  15" 
+SEX_15W: SEXT, L =  0.272000, ALIAS = "X15W", Type = "CSR SEXT CUR  15" 
+DET_15W: MARKER, ALIAS = "15W" 
+B16W:  B01, ALIAS = "B16W" 
+Q16W: QUAD, L =  0.600000, ALIAS = "Q16W", Type = "CSR QUAD CUR  16" 
+SEX_16W: SEXT, L =  0.272000, ALIAS = "X16W", Type = "CSR SEXT CUR  16" 
+DET_16W: MARKER, ALIAS = "16W" 
+VKICK_16W: KICKER, L =  0.250000 
+B17W:  B01, ALIAS = "B17W" 
+Q17W: QUAD, L =  0.600000, ALIAS = "Q17W", Type = "CSR QUAD CUR  17" 
+SEX_17W: SEXT, L =  0.272000, ALIAS = "X17W", Type = "CSR SEXT CUR  17" 
+DET_17W: MARKER, ALIAS = "17W" 
+B18W:  B01, ALIAS = "B18W" 
+Q18W: QUAD, L =  0.600000, ALIAS = "Q18W", Type = "CSR QUAD CUR  18" 
+SEX_18W: SEXT, L =  0.272000, ALIAS = "X18W", Type = "CSR SEXT CUR  18" 
+DET_18W: MARKER, ALIAS = "18W" 
+Q19W: QUAD, L =  0.600000, ALIAS = "Q19W", Type = "CSR QUAD CUR  19" 
+SEX_19W: SEXT, L =  0.272000, ALIAS = "X19W", Type = "CSR SEXT CUR  19" 
+DET_19W: MARKER, ALIAS = "19W" 
+B20W:  B01, ALIAS = "B20W" 
+Q20W: QUAD, L =  0.600000, ALIAS = "Q20W", Type = "CSR QUAD CUR  20" 
+SEX_20W: SEXT, L =  0.272000, ALIAS = "X20W", Type = "CSR SEXT CUR  20" 
+DET_20W: MARKER, ALIAS = "20W" 
+B21W:  B01, ALIAS = "B21W" 
+Q21W: QUAD, L =  0.600000, ALIAS = "Q21W", Type = "CSR QUAD CUR  21" 
+SEX_21W: SEXT, L =  0.272000, ALIAS = "X21W", Type = "CSR SEXT CUR  21" 
+DET_21W: MARKER, ALIAS = "21W" 
+B22W:  B01, ALIAS = "B22W" 
+Q22W: QUAD, L =  0.600000, ALIAS = "Q22W", Type = "CSR QUAD CUR  22" 
+SEX_22W: SEXT, L =  0.272000, ALIAS = "X22W", Type = "CSR SEXT CUR  22" 
+DET_22W: MARKER, ALIAS = "22W" 
+B23W:  B01, ALIAS = "B23W" 
+Q23W: QUAD, L =  0.600000, ALIAS = "Q23W", Type = "CSR QUAD CUR  23" 
+SEX_23W: SEXT, L =  0.272000, ALIAS = "X23W", Type = "CSR SEXT CUR  23" 
+DET_23W: MARKER, ALIAS = "23W" 
+SK_SEX_23W: SEXT, TILT = PI/6, L =  0.128500, ALIAS = "23W", &
+        Type = "CSR SQEWSEXT   2" 
+B24W:  B01, ALIAS = "B24W" 
+Q24W: QUAD, L =  0.600000, ALIAS = "Q24W", Type = "CSR QUAD CUR  24" 
+SEX_24W: SEXT, L =  0.272000, ALIAS = "X24W", Type = "CSR SEXT CUR  24" 
+DET_24W: MARKER, ALIAS = "24W" 
+B25W:  B01, ALIAS = "B25W" 
+Q25W: QUAD, L =  0.600000, ALIAS = "Q25W", Type = "CSR QUAD CUR  25" 
+SEX_25W: SEXT, L =  0.272000, ALIAS = "X25W", Type = "CSR SEXT CUR  25" 
+DET_25W: MARKER, ALIAS = "25W" 
+B26W:  B01, ALIAS = "B26W" 
+Q26W: QUAD, L =  0.600000, ALIAS = "Q26W", Type = "CSR QUAD CUR  26" 
+SEX_26W: SEXT, L =  0.272000, ALIAS = "X26W", Type = "CSR SEXT CUR  26" 
+DET_26W: MARKER, ALIAS = "26W" 
+BUMP_26W: KICKER, L =  0.229500 
+B27W:  B01, ALIAS = "B27W" 
+Q27W: QUAD, L =  0.600000, ALIAS = "Q27W", Type = "CSR QUAD CUR  27" 
+SEX_27W: SEXT, L =  0.272000, ALIAS = "X27W", Type = "CSR SEXT CUR  27" 
+DET_27W: MARKER, ALIAS = "27W" 
+B28W:  B01, ALIAS = "B28W" 
+Q28W: QUAD, L =  0.600000, ALIAS = "Q28W", Type = "CSR QUAD CUR  28" 
+SEX_28W: SEXT, L =  0.272000, ALIAS = "X28W", Type = "CSR SEXT CUR  28" 
+DET_28W: MARKER, ALIAS = "28W" 
+BUMP_28W: KICKER, L =  0.229500 
+B29W:  B01, ALIAS = "B29W" 
+Q29W: QUAD, L =  0.600000, ALIAS = "Q29W", Type = "CSR QUAD CUR  29" 
+SEX_29W: SEXT, L =  0.272000, ALIAS = "X29W", Type = "CSR SEXT CUR  29" 
+DET_29W: MARKER, ALIAS = "29W" 
+SK_Q29W: QUAD, TILT = PI/4, L =  0.408000, ALIAS = "29W", &
+        Type = "CSR SQEWQUAD  29" 
+B30W:  B01, ALIAS = "B30W" 
+Q30W: QUAD, L =  0.600000, ALIAS = "Q30W", Type = "CSR QUAD CUR  30" 
+SEX_30W: SEXT, L =  0.272000, ALIAS = "X30W", Type = "CSR SEXT CUR  30" 
+DET_30W: MARKER, ALIAS = "30W" 
+B31W:  B01, ALIAS = "B31W" 
+Q31W: QUAD, L =  0.600000, ALIAS = "Q31W", Type = "CSR QUAD CUR  31" 
+SEX_31W: SEXT, L =  0.272000, ALIAS = "X31W", Type = "CSR SEXT CUR  31" 
+DET_31W: MARKER, ALIAS = "31W" 
+B32W:  B01, ALIAS = "B32W" 
+Q32W: QUAD, L =  0.600000, ALIAS = "Q32W", Type = "CSR QUAD CUR  32" 
+SEX_32W: SEXT, L =  0.272000, ALIAS = "X32W", Type = "CSR SEXT CUR  32" 
+DET_32W: MARKER, ALIAS = "32W" 
+B33W:  B01, ALIAS = "B33W" 
+Q33W: QUAD, L =  0.600000, ALIAS = "Q33W", Type = "CSR QUAD CUR  33" 
+SEX_33W: SEXT, L =  0.272000, ALIAS = "X33W", Type = "CSR SEXT CUR  33" 
+DET_33W: MARKER, ALIAS = "33W" 
+DET_34W: MARKER, ALIAS = "34W" 
+Q34W: QUAD, L =  0.600000, ALIAS = "Q34W", Type = "CSR QUAD CUR  34" 
+SEX_34W: SEXT, L =  0.272000, ALIAS = "X34W", Type = "CSR SEXT CUR  34" 
+B35W:  B01, ALIAS = "B35W" 
+Q35W: QUAD, L =  0.600000, ALIAS = "Q35W", Type = "CSR QUAD CUR  35" 
+SEX_35W: SEXT, L =  0.272000, ALIAS = "X35W", Type = "CSR SEXT CUR  35" 
+DET_35W: MARKER, ALIAS = "35W" 
+B36W:  B01, ALIAS = "B36W" 
+PINGER_36W: KICKER, L =  0.229000 
+BUMP_36W: KICKER, L =  0.225000 
+Q36W: QUAD, L =  0.600000, ALIAS = "Q36W", Type = "CSR QUAD CUR  36" 
+SEX_36W: SEXT, L =  0.272000, ALIAS = "X36W", Type = "CSR SEXT CUR  36" 
+DET_36W: MARKER, ALIAS = "36W" 
+B37W:  B01, ALIAS = "B37W" 
+Q37W: QUAD, L =  0.600000, ALIAS = "Q37W", Type = "CSR QUAD CUR  37" 
+SEX_37W: SEXT, L =  0.272000, ALIAS = "X37W", Type = "CSR SEXT CUR  37" 
+DET_37W: MARKER, ALIAS = "37W" 
+B38W:  B01, ALIAS = "B38W" 
+Q38W: QUAD, L =  0.600000, ALIAS = "Q38W", Type = "CSR QUAD CUR  38" 
+SEX_38W: SEXT, L =  0.272000, ALIAS = "X38W", Type = "CSR SEXT CUR  38" 
+DET_38W: MARKER, ALIAS = "38W" 
+B39W:  B01, ALIAS = "B39W" 
+Q39W: QUAD, L =  0.600000, ALIAS = "Q39W", Type = "CSR QUAD CUR  39" 
+SEX_39W: SEXT, L =  0.272000, ALIAS = "X39W", Type = "CSR SEXT CUR  39" 
+DET_39W: MARKER, ALIAS = "39W" 
+B40W:  B01, ALIAS = "B40W" 
+Q40W: QUAD, L =  0.600000, ALIAS = "Q40W", Type = "CSR QUAD CUR  40" 
+SEX_40W: SEXT, L =  0.272000, ALIAS = "X40W", Type = "CSR SEXT CUR  40" 
+DET_40W: MARKER, ALIAS = "40W" 
+B41W:  B01, ALIAS = "B41W" 
+Q41W: QUAD, L =  0.600000, ALIAS = "Q41W", Type = "CSR QUAD CUR  41" 
+SEX_41W: SEXT, L =  0.272000, ALIAS = "X41W", Type = "CSR SEXT CUR  41" 
+DET_41W: MARKER, ALIAS = "41W" 
+B42W:  B01, ALIAS = "B42W" 
+Q42W: QUAD, L =  0.600000, ALIAS = "Q42W", Type = "CSR QUAD CUR  42" 
+SEX_42W: SEXT, L =  0.272000, ALIAS = "X42W", Type = "CSR SEXT CUR  42" 
+DET_42W: MARKER, ALIAS = "42W" 
+B43W:  B01, ALIAS = "B43W" 
+Q43W: QUAD, L =  0.600000, ALIAS = "Q43W", Type = "CSR QUAD CUR  43" 
+SEX_43W: SEXT, L =  0.272000, ALIAS = "X43W", Type = "CSR SEXT CUR  43" 
+DET_43W: MARKER, ALIAS = "43W" 
+Q43AW: QUAD, L =  0.600000, ALIAS = "Q43AW", Type = "CSR QADD CUR   5" 
+B44W:  B08, ALIAS = "B44W" 
+Q44W: QUAD, L =  0.600000, ALIAS = "Q44W", Type = "CSR QUAD CUR  44" 
+SEX_44W: SEXT, L =  0.272000, ALIAS = "X44W", Type = "CSR SEXT CUR  44" 
+DET_44W: MARKER, ALIAS = "44W" 
+H_SEP_45W: ELSEP, L =  2.389400, Type = "CSR HSP VOLT   3" 
+OCT_45W: OCTUPOLE, L =  0.381000, Type = "CSR OCTU CUR   1" 
+DET_45W: MARKER, ALIAS = "45W" 
+Q45W: QUAD, L =  0.600000, ALIAS = "Q45W", Type = "CSR QUAD CUR  45" 
+SEX_45W: SEXT, L =  0.272000, ALIAS = "X45W", Type = "CSR SEXT CUR  45" 
+B46W:  B08, ALIAS = "B46W" 
+Q46W: QUAD, L =  0.600000, ALIAS = "Q46W", Type = "CSR QUAD CUR  46" 
+DET_46W: MARKER, ALIAS = "46W" 
+B47W:  B06, ALIAS = "B47W" 
+Q47W: QUAD, L =  0.600000, ALIAS = "Q47W", Type = "CSR QUAD CUR  47" 
+SK_Q47W: QUAD, TILT = PI/4, L =  0.128000, ALIAS = "47W", &
+        Type = "CSR SQEWQUAD  47" 
+B47AW: B07, ALIAS = "B47AW" 
+Q47AW: QUAD, L =  0.600000, ALIAS = "Q47AW", Type = "CSR QADD CUR   2" 
+DET_47W: MARKER, ALIAS = "47W" 
+VKICK_47W: KICKER, L =  0.254000 
+B48W:  B03, ALIAS = "B48W" 
+V_SEP_48W: ELSEP, L =  2.647000, Type = "CSR VSP VOLT   1" 
+DET_48W: MARKER, ALIAS = "48W" 
+Q48W: QUAD, L =  0.600000, ALIAS = "Q48W", Type = "CSR QUAD CUR  48" 
+VKICK_48W: KICKER, L =  0.203000 
+HKICK_49W: KICKER, L =  0.127000 
+OCT_48W: OCTUPOLE, L =  0.381000, Type = "CSR OCTU CUR   2" 
+VKICK_49W: KICKER, L =  0.127000 
+SK_Q48W: QUAD, TILT = PI/4, L =  0.254000, ALIAS = "48W", &
+        Type = "CSR SQEWQUAD  48" 
+Q49W: QUAD, L =  0.950000, ALIAS = "Q49W", Type = "CSR QUAD CUR  49" 
+DET_49W: MARKER, ALIAS = "49W" 
+Q49AW: QUAD, L =  0.440000, ALIAS = "Q49AW", Type = "CSR QADD CUR   1" 
+IP_L3: MARKER 
+Q49AE: QUAD, L =  0.440000, ALIAS = "Q49AE", Type = "CSR QADD CUR   4" 
+DET_49E: MARKER, ALIAS = "49E" 
+Q49E: QUAD, L =  0.950000, ALIAS = "Q49E", Type = "CSR QUAD CUR  50" 
+SK_Q48E: QUAD, TILT = PI/4, L =  0.254000, ALIAS = "48E", &
+        Type = "CSR SQEWQUAD  51" 
+VKICK_49E: KICKER, L =  0.127000 
+OCT_48E: OCTUPOLE, L =  0.381000, Type = "CSR OCTU CUR   3" 
+HKICK_49E: KICKER, L =  0.127000 
+VKICK_48E: KICKER, L =  0.203000 
+Q48E: QUAD, L =  0.600000, ALIAS = "Q48E", Type = "CSR QUAD CUR  51" 
+DET_48E: MARKER, ALIAS = "48E" 
+V_SEP_48E: ELSEP, L =  2.647000, Type = "CSR VSP VOLT   2" 
+B48E:  B03, ALIAS = "B48E" 
+VKICK_47E: KICKER, L =  0.254000 
+DET_47E: MARKER, ALIAS = "47E" 
+Q47AE: QUAD, L =  0.600000, ALIAS = "Q47AE", Type = "CSR QADD CUR   3" 
+B47AE: B07, ALIAS = "B47AE" 
+SK_Q47E: QUAD, TILT = PI/4, L =  0.125000, ALIAS = "47E", &
+        Type = "CSR SQEWQUAD  52" 
+Q47E: QUAD, L =  0.600000, ALIAS = "Q47E", Type = "CSR QUAD CUR  52" 
+B47E:  B06, ALIAS = "B47E" 
+DET_46E: MARKER, ALIAS = "46E" 
+Q46E: QUAD, L =  0.600000, ALIAS = "Q46E", Type = "CSR QUAD CUR  53" 
+B46E:  B08, ALIAS = "B46E" 
+SEX_45E: SEXT, L =  0.272000, ALIAS = "X45E", Type = "CSR SEXT CUR  54" 
+Q45E: QUAD, L =  0.600000, ALIAS = "Q45E", Type = "CSR QUAD CUR  54" 
+DET_45E: MARKER, ALIAS = "45E" 
+OCT_45E: OCTUPOLE, L =  0.381000, Type = "CSR OCTU CUR   4" 
+H_SEP_45E: ELSEP, L =  2.389400, Type = "CSR HSP VOLT   4" 
+DET_44E: MARKER, ALIAS = "44E" 
+SEX_44E: SEXT, L =  0.272000, ALIAS = "X44E", Type = "CSR SEXT CUR  55" 
+Q44E: QUAD, L =  0.600000, ALIAS = "Q44E", Type = "CSR QUAD CUR  55" 
+B44E:  B08, ALIAS = "B44E" 
+Q43AE: QUAD, L =  0.600000, ALIAS = "Q43AE", Type = "CSR QADD CUR   6" 
+DET_43E: MARKER, ALIAS = "43E" 
+SEX_43E: SEXT, L =  0.272000, ALIAS = "X43E", Type = "CSR SEXT CUR  56" 
+Q43E: QUAD, L =  0.600000, ALIAS = "Q43E", Type = "CSR QUAD CUR  56" 
+B43E:  B01, ALIAS = "B43E" 
+DET_42E: MARKER, ALIAS = "42E" 
+SEX_42E: SEXT, L =  0.272000, ALIAS = "X42E", Type = "CSR SEXT CUR  57" 
+Q42E: QUAD, L =  0.600000, ALIAS = "Q42E", Type = "CSR QUAD CUR  57" 
+B42E:  B01, ALIAS = "B42E" 
+DET_41E: MARKER, ALIAS = "41E" 
+SEX_41E: SEXT, L =  0.272000, ALIAS = "X41E", Type = "CSR SEXT CUR  58" 
+Q41E: QUAD, L =  0.600000, ALIAS = "Q41E", Type = "CSR QUAD CUR  58" 
+B41E:  B01, ALIAS = "B41E" 
+DET_40E: MARKER, ALIAS = "40E" 
+SEX_40E: SEXT, L =  0.272000, ALIAS = "X40E", Type = "CSR SEXT CUR  59" 
+Q40E: QUAD, L =  0.600000, ALIAS = "Q40E", Type = "CSR QUAD CUR  59" 
+B40E:  B01, ALIAS = "B40E" 
+DET_39E: MARKER, ALIAS = "39E" 
+SEX_39E: SEXT, L =  0.272000, ALIAS = "X39E", Type = "CSR SEXT CUR  60" 
+Q39E: QUAD, L =  0.600000, ALIAS = "Q39E", Type = "CSR QUAD CUR  60" 
+B39E:  B01, ALIAS = "B39E" 
+BUMP_38E: KICKER, L =  0.229000 
+DET_38E: MARKER, ALIAS = "38E" 
+SEX_38E: SEXT, L =  0.272000, ALIAS = "X38E", Type = "CSR SEXT CUR  61" 
+Q38E: QUAD, L =  0.600000, ALIAS = "Q38E", Type = "CSR QUAD CUR  61" 
+B38E:  B01, ALIAS = "B38E" 
+DET_37E: MARKER, ALIAS = "37E" 
+SEX_37E: SEXT, L =  0.272000, ALIAS = "X37E", Type = "CSR SEXT CUR  62" 
+Q37E: QUAD, L =  0.600000, ALIAS = "Q37E", Type = "CSR QUAD CUR  62" 
+B37E:  B01, ALIAS = "B37E" 
+DET_36E: MARKER, ALIAS = "36E" 
+SEX_36E: SEXT, L =  0.272000, ALIAS = "X36E", Type = "CSR SEXT CUR  63" 
+Q36E: QUAD, L =  0.600000, ALIAS = "Q36E", Type = "CSR QUAD CUR  63" 
+BUMP_36E: KICKER, L =  0.230200 
+PINGER_36E: KICKER, L =  0.511200 
+B36E:  B01, ALIAS = "B36E" 
+DET_35E: MARKER, ALIAS = "35E" 
+SEX_35E: SEXT, L =  0.272000, ALIAS = "X35E", Type = "CSR SEXT CUR  64" 
+Q35E: QUAD, L =  0.600000, ALIAS = "Q35E", Type = "CSR QUAD CUR  64" 
+B35E:  B01, ALIAS = "B35E" 
+SEX_34E: SEXT, L =  0.272000, ALIAS = "X34E", Type = "CSR SEXT CUR  65" 
+Q34E: QUAD, L =  0.600000, ALIAS = "Q34E", Type = "CSR QUAD CUR  65" 
+DET_33E: MARKER, ALIAS = "33E" 
+SEX_33E: SEXT, L =  0.272000, ALIAS = "X33E", Type = "CSR SEXT CUR  66" 
+Q33E: QUAD, L =  0.600000, ALIAS = "Q33E", Type = "CSR QUAD CUR  66" 
+B33E:  B01, ALIAS = "B33E" 
+DET_32E: MARKER, ALIAS = "32E" 
+SEX_32E: SEXT, L =  0.272000, ALIAS = "X32E", Type = "CSR SEXT CUR  67" 
+Q32E: QUAD, L =  0.600000, ALIAS = "Q32E", Type = "CSR QUAD CUR  67" 
+B32E:  B01, ALIAS = "B32E" 
+DET_31E: MARKER, ALIAS = "31E" 
+SEX_31E: SEXT, L =  0.272000, ALIAS = "X31E", Type = "CSR SEXT CUR  68" 
+Q31E: QUAD, L =  0.600000, ALIAS = "Q31E", Type = "CSR QUAD CUR  68" 
+B31E:  B01, ALIAS = "B31E" 
+DET_30E: MARKER, ALIAS = "30E" 
+SEX_30E: SEXT, L =  0.272000, ALIAS = "X30E", Type = "CSR SEXT CUR  69" 
+Q30E: QUAD, L =  0.600000, ALIAS = "Q30E", Type = "CSR QUAD CUR  69" 
+B30E:  B01, ALIAS = "B30E" 
+SK_Q29E: QUAD, TILT = PI/4, L =  0.407700, ALIAS = "29E", &
+        Type = "CSR SQEWQUAD  70" 
+DET_29E: MARKER, ALIAS = "29E" 
+SEX_29E: SEXT, L =  0.272000, ALIAS = "X29E", Type = "CSR SEXT CUR  70" 
+Q29E: QUAD, L =  0.600000, ALIAS = "Q29E", Type = "CSR QUAD CUR  70" 
+B29E:  B01, ALIAS = "B29E" 
+BUMP_28E: KICKER, L =  0.228600 
+DET_28E: MARKER, ALIAS = "28E" 
+SEX_28E: SEXT, L =  0.272000, ALIAS = "X28E", Type = "CSR SEXT CUR  71" 
+Q28E: QUAD, L =  0.600000, ALIAS = "Q28E", Type = "CSR QUAD CUR  71" 
+B28E:  B01, ALIAS = "B28E" 
+DET_27E: MARKER, ALIAS = "27E" 
+SEX_27E: SEXT, L =  0.272000, ALIAS = "X27E", Type = "CSR SEXT CUR  72" 
+Q27E: QUAD, L =  0.600000, ALIAS = "Q27E", Type = "CSR QUAD CUR  72" 
+B27E:  B01, ALIAS = "B27E" 
+BUMP_26E: KICKER, L =  0.228600 
+DET_26E: MARKER, ALIAS = "26E" 
+SEX_26E: SEXT, L =  0.272000, ALIAS = "X26E", Type = "CSR SEXT CUR  73" 
+Q26E: QUAD, L =  0.600000, ALIAS = "Q26E", Type = "CSR QUAD CUR  73" 
+B26E:  B01, ALIAS = "B26E" 
+DET_25E: MARKER, ALIAS = "25E" 
+SEX_25E: SEXT, L =  0.272000, ALIAS = "X25E", Type = "CSR SEXT CUR  74" 
+Q25E: QUAD, L =  0.600000, ALIAS = "Q25E", Type = "CSR QUAD CUR  74" 
+B25E:  B01, ALIAS = "B25E" 
+DET_24E: MARKER, ALIAS = "24E" 
+SEX_24E: SEXT, L =  0.272000, ALIAS = "X24E", Type = "CSR SEXT CUR  75" 
+Q24E: QUAD, L =  0.600000, ALIAS = "Q24E", Type = "CSR QUAD CUR  75" 
+B24E:  B01, ALIAS = "B24E" 
+SK_SEX_23E: SEXT, TILT = PI/6, L =  0.126200, ALIAS = "23E", &
+        Type = "CSR SQEWSEXT   3" 
+DET_23E: MARKER, ALIAS = "23E" 
+SEX_23E: SEXT, L =  0.272000, ALIAS = "X23E", Type = "CSR SEXT CUR  76" 
+Q23E: QUAD, L =  0.600000, ALIAS = "Q23E", Type = "CSR QUAD CUR  76" 
+B23E:  B01, ALIAS = "B23E" 
+DET_22E: MARKER, ALIAS = "22E" 
+SEX_22E: SEXT, L =  0.272000, ALIAS = "X22E", Type = "CSR SEXT CUR  77" 
+Q22E: QUAD, L =  0.600000, ALIAS = "Q22E", Type = "CSR QUAD CUR  77" 
+B22E:  B01, ALIAS = "B22E" 
+DET_21E: MARKER, ALIAS = "21E" 
+SEX_21E: SEXT, L =  0.272000, ALIAS = "X21E", Type = "CSR SEXT CUR  78" 
+Q21E: QUAD, L =  0.600000, ALIAS = "Q21E", Type = "CSR QUAD CUR  78" 
+B21E:  B01, ALIAS = "B21E" 
+DET_20E: MARKER, ALIAS = "20E" 
+SEX_20E: SEXT, L =  0.272000, ALIAS = "X20E", Type = "CSR SEXT CUR  79" 
+Q20E: QUAD, L =  0.600000, ALIAS = "Q20E", Type = "CSR QUAD CUR  79" 
+B20E:  B01, ALIAS = "B20E" 
+DET_19E: MARKER, ALIAS = "19E" 
+SEX_19E: SEXT, L =  0.272000, ALIAS = "X19E", Type = "CSR SEXT CUR  80" 
+Q19E: QUAD, L =  0.600000, ALIAS = "Q19E", Type = "CSR QUAD CUR  80" 
+DET_18E: MARKER, ALIAS = "18E" 
+SEX_18E: SEXT, L =  0.272000, ALIAS = "X18E", Type = "CSR SEXT CUR  81" 
+Q18E: QUAD, L =  0.600000, ALIAS = "Q18E", Type = "CSR QUAD CUR  81" 
+B18E:  B01, ALIAS = "B18E" 
+DET_17E: MARKER, ALIAS = "17E" 
+SEX_17E: SEXT, L =  0.272000, ALIAS = "X17E", Type = "CSR SEXT CUR  82" 
+Q17E: QUAD, L =  0.600000, ALIAS = "Q17E", Type = "CSR QUAD CUR  82" 
+B17E:  B01, ALIAS = "B17E" 
+DET_16E: MARKER, ALIAS = "16E" 
+SEX_16E: SEXT, L =  0.272000, ALIAS = "X16E", Type = "CSR SEXT CUR  83" 
+Q16E: QUAD, L =  0.600000, ALIAS = "Q16E", Type = "CSR QUAD CUR  83" 
+B16E:  B01, ALIAS = "B16E" 
+DET_15E: MARKER, ALIAS = "15E" 
+SEX_15E: SEXT, L =  0.272000, ALIAS = "X15E", Type = "CSR SEXT CUR  84" 
+Q15E: QUAD, L =  0.600000, ALIAS = "Q15E", Type = "CSR QUAD CUR  84" 
+B15E:  B01, ALIAS = "B15E" 
+DET_14E: MARKER, ALIAS = "14E" 
+SEX_14E: SEXT, L =  0.272000, ALIAS = "X14E", Type = "CSR SEXT CUR  85" 
+Q14E: QUAD, L =  0.600000, ALIAS = "Q14E", Type = "CSR QUAD CUR  85" 
+B14E:  B01, ALIAS = "B14E" 
+DET_13E: MARKER, ALIAS = "13E" 
+SEX_13E: SEXT, L =  0.272000, ALIAS = "X13E", Type = "CSR SEXT CUR  86" 
+Q13E: QUAD, L =  0.600000, ALIAS = "Q13E", Type = "CSR QUAD CUR  86" 
+B13E:  B01, ALIAS = "B13E" 
+DET_12E: MARKER, ALIAS = "12E" 
+SEX_12E: SEXT, L =  0.272000, ALIAS = "X12E", Type = "CSR SEXT CUR  87" 
+Q12E: QUAD, L =  0.600000, ALIAS = "Q12E", Type = "CSR QUAD CUR  87" 
+B12E:  B01, ALIAS = "B12E" 
+DET_11E: MARKER, ALIAS = "11E" 
+SEX_11E: SEXT, L =  0.272000, ALIAS = "X11E", Type = "CSR SEXT CUR  88" 
+Q11E: QUAD, L =  0.600000, ALIAS = "Q11E", Type = "CSR QUAD CUR  88" 
+B11E:  B01, ALIAS = "B11E" 
+DET_10E: MARKER, ALIAS = "10E" 
+SEX_10E: SEXT, L =  0.272000, ALIAS = "X10E", Type = "CSR SEXT CUR  89" 
+Q10E: QUAD, L =  0.600000, ALIAS = "Q10E", Type = "CSR QUAD CUR  89" 
+VKICK_09E: KICKER, L =  0.102000 
+SEX_09E: SEXT, L =  0.272000, ALIAS = "X09E", Type = "CSR SEXT CUR  90" 
+Q09E: QUAD, L =  0.600000, ALIAS = "Q09E", Type = "CSR QUAD CUR  90" 
+DET_09E: MARKER, ALIAS = "9E" 
+RF_E1: RF, L =  1.800000 
+RF_E2: RF, L =  1.800000 
+HKICK_08E: KICKER, L =  0.255000 
+VKICK_08E: KICKER, L =  0.102000 
+DET_08E: MARKER, ALIAS = "8E" 
+SEX_08E: SEXT, L =  0.272000, ALIAS = "X08E", Type = "CSR SEXT CUR  91" 
+Q08E: QUAD, L =  0.600000, ALIAS = "Q08E", Type = "CSR QUAD CUR  91" 
+H_SEP_08E: ELSEP, L =  2.442000, Type = "CSR HSP VOLT   6" 
+SK_Q07E: QUAD, TILT = PI/4, L =  0.152000, ALIAS = "7E", &
+        Type = "CSR SQEWQUAD  92" 
+HKICK_07E: KICKER, L =  0.245000 
+WIG_E: WIGGLER, B_MAX = 1.17, N_POLE = 24, L =  2.355000 
+VKICK_07E: KICKER, L =  0.254000 
+SK_SEX_07E: SEXT, TILT = PI/6, L =  0.126200, ALIAS = "7E", &
+        Type = "CSR SQEWSEXT   4" 
+DET_07E: MARKER, ALIAS = "7E" 
+Q07E: QUAD, L =  0.600000, ALIAS = "Q07E", Type = "CSR QUAD CUR  92" 
+B07E:  B02, ALIAS = "B07E" 
+Q06E: QUAD, L =  0.600000, ALIAS = "Q06E", Type = "CSR QUAD CUR  93" 
+DET_06E: MARKER, ALIAS = "6E" 
+SK_Q06E: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "6E", &
+        Type = "CSR SQEWQUAD  93" 
+B06E:  B02, ALIAS = "B06E" 
+Q05E: QUAD, L =  0.600000, ALIAS = "Q05E", Type = "CSR QUAD CUR  94" 
+DET_05E: MARKER, ALIAS = "5E" 
+SK_Q05E: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "5E", &
+        Type = "CSR SQEWQUAD  94" 
+B05E:  B02, ALIAS = "B05E" 
+Q04E: QUAD, L =  0.600000, ALIAS = "Q04E", Type = "CSR QUAD CUR  95" 
+DET_04E: MARKER, ALIAS = "4E" 
+SK_Q04E: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "4E", &
+        Type = "CSR SQEWQUAD  95" 
+B04E:  B02, ALIAS = "B04E" 
+Q03E: QUAD, L =  0.600000, ALIAS = "Q03E", Type = "CSR QUAD CUR  96" 
+DET_03E: MARKER, ALIAS = "3E" 
+B03AE: B04, ALIAS = "B03AE" 
+B03E:  B03, ALIAS = "B03E" 
+SK_Q03E: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "3E", &
+        Type = "CSR SQEWQUAD  96" 
+SK_Q02E: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "2E", &
+        Type = "CSR SQEWQUAD  97" 
+DET_02E: MARKER, ALIAS = "2E" 
+Q02E: QUAD, L =  0.600000, ALIAS = "Q02E", Type = "CSR QUAD CUR  97" 
+HV01E: KICKER, L =  0.172700 
+Q01E: QUAD, L =  0.950000, ALIAS = "Q01E", Type = "CSR QUAD CUR  98" 
+DET_01E: MARKER, ALIAS = "1E" 
+Q00E: QUAD, L =  1.524800, ALIAS = "Q00E" 
+DET_00E: MARKER, ALIAS = "0E" 
+ 
+ ! Drifts
+d001: drift, l =   0.622301
+d002: drift, l =   0.017700-0.002045
+d003: drift, l =   0.328620+0.002045
+d004: drift, l =   0.431580-0.00104
+d005: drift, l =   1.062380+0.00104
+d006: drift, l =   0.222320
+d007: drift, l =   0.094320
+d008: drift, l =   2.092000
+d009: drift, l =   0.107300
+d010: drift, l =   0.432280
+d011: drift, l =   0.377210
+d012: drift, l =   0.550070
+d013: drift, l =   0.059400
+d014: drift, l =   0.235380
+d015: drift, l =   0.227200
+d016: drift, l =   0.312400
+d017: drift, l =   0.162400
+d018: drift, l =   0.332750
+d019: drift, l =   0.227200
+d020: drift, l =   0.312400
+d021: drift, l =   0.170400
+d022: drift, l =   0.324751
+d023: drift, l =   0.227199
+d024: drift, l =   0.312400
+d025: drift, l =   0.176400
+d026: drift, l =   0.318751
+d027: drift, l =   0.298009
+d028: drift, l =   0.092400
+d029: drift, l =   0.065000
+d030: drift, l =   0.889000
+d031: drift, l =   0.110000
+d032: drift, l =   0.087000
+d033: drift, l =   0.355250
+d034: drift, l =   0.498400
+d035: drift, l =   0.061400
+d036: drift, l =   0.292000
+d037: drift, l =   1.052000
+d038: drift, l =   2.091530
+d039: drift, l =   1.442000
+d040: drift, l =   0.023400
+d041: drift, l =   0.069400
+d042: drift, l =   0.318000
+d043: drift, l =   0.837000
+d044: drift, l =   4.057170
+d045: drift, l =   0.064400
+d046: drift, l =   0.050900
+d047: drift, l =   0.485740
+d048: drift, l =   0.220970
+d049: drift, l =   0.205400
+d050: drift, l =   0.063400
+d051: drift, l =   0.268411
+d052: drift, l =   0.157140
+d053: drift, l =   0.064150
+d054: drift, l =   0.026550
+d055: drift, l =   0.970340
+d056: drift, l =   0.157140
+d057: drift, l =   0.068500
+d058: drift, l =   0.045800
+d059: drift, l =   0.486740
+d060: drift, l =   0.157140
+d061: drift, l =   0.065150
+d062: drift, l =   0.026850
+d063: drift, l =   2.429040
+d064: drift, l =   0.157140
+d065: drift, l =   0.064900
+d066: drift, l =   0.047600
+d067: drift, l =   0.488540
+d068: drift, l =   0.157140
+d069: drift, l =   0.066650
+d070: drift, l =   0.047450
+d071: drift, l =  -0.006700
+d072: drift, l =   0.243640
+d073: drift, l =   0.157139
+d074: drift, l =   0.063300
+d075: drift, l =   0.050200
+d076: drift, l =   0.487540
+d077: drift, l =   0.157140
+d078: drift, l =   0.057600
+d079: drift, l =   0.031500
+d080: drift, l =   5.698900
+d081: drift, l =   0.062900
+d082: drift, l =   0.041500
+d083: drift, l =   0.496640
+d084: drift, l =   0.157140
+d085: drift, l =   0.066350
+d086: drift, l =   0.046150
+d087: drift, l =   0.488540
+d088: drift, l =   0.157140
+d089: drift, l =   0.063850
+d090: drift, l =   0.048650
+d091: drift, l =   0.488540
+d092: drift, l =   0.157140
+d093: drift, l =   0.066100
+d094: drift, l =   0.045600
+d095: drift, l =   0.489340
+d096: drift, l =   0.157140
+d097: drift, l =   0.065400
+d098: drift, l =   0.025200
+d099: drift, l =   0.554800
+d100: drift, l =   1.827141
+d101: drift, l =   0.157140
+d102: drift, l =   0.063550
+d103: drift, l =   0.048550
+d104: drift, l =   0.488940
+d105: drift, l =   0.157140
+d106: drift, l =   0.064900
+d107: drift, l =   0.047200
+d108: drift, l =   0.488940
+d109: drift, l =   0.157140
+d110: drift, l =   0.066900
+d111: drift, l =   0.023800
+d112: drift, l =   0.141300
+d113: drift, l =   0.364540
+d114: drift, l =   0.157140
+d115: drift, l =   0.067150
+d116: drift, l =   0.047950
+d117: drift, l =   0.485940
+d118: drift, l =   0.157140
+d119: drift, l =   0.065900
+d120: drift, l =   0.026700
+d121: drift, l =   0.143200
+d122: drift, l =   0.360741
+d123: drift, l =   0.157139
+d124: drift, l =   0.064650
+d125: drift, l =   0.026550
+d126: drift, l =   0.703200
+d127: drift, l =   0.478640
+d128: drift, l =   0.157140
+d129: drift, l =   0.064400
+d130: drift, l =   0.025800
+d131: drift, l =   0.735840
+d132: drift, l =   0.157140
+d133: drift, l =   0.066400
+d134: drift, l =   0.047200
+d135: drift, l =   0.487440
+d136: drift, l =   0.157140
+d137: drift, l =   0.061150
+d138: drift, l =   0.025250
+d139: drift, l =   0.739640
+d140: drift, l =   0.157140
+d141: drift, l =   0.064400
+d142: drift, l =   0.026800
+d143: drift, l =   3.070700
+d144: drift, l =   1.936100
+d145: drift, l =   0.036900
+d146: drift, l =   0.259400
+d147: drift, l =   0.157140
+d148: drift, l =   0.064150
+d149: drift, l =   0.031950
+d150: drift, l =   0.657401
+d151: drift, l =   1.713100
+d152: drift, l =   0.178400
+d153: drift, l =   0.425400
+d154: drift, l =   0.065150
+d155: drift, l =   0.025050
+d156: drift, l =   0.321340
+d157: drift, l =   0.157140
+d158: drift, l =   0.065400
+d159: drift, l =   0.045700
+d160: drift, l =   0.489940
+d161: drift, l =   0.157140
+d162: drift, l =   0.063400
+d163: drift, l =   0.026800
+d164: drift, l =   0.735840
+d165: drift, l =   0.157140
+d166: drift, l =   0.063400
+d167: drift, l =   0.048700
+d168: drift, l =   0.488940
+d169: drift, l =   0.157140
+d170: drift, l =   0.064900
+d171: drift, l =   0.047700
+d172: drift, l =   0.488440
+d173: drift, l =   0.157141
+d174: drift, l =   0.065400
+d175: drift, l =   0.046200
+d176: drift, l =   0.489440
+d177: drift, l =   0.157140
+d178: drift, l =   0.065900
+d179: drift, l =   0.023800
+d180: drift, l =   0.511340
+d181: drift, l =   0.157140
+d182: drift, l =   0.061400
+d183: drift, l =   0.030300
+d184: drift, l =   2.232072
+d185: drift, l =   0.449827
+d186: drift, l =   0.182599
+d187: drift, l =   0.063100
+d188: drift, l =   0.027100
+d189: drift, l =   0.853000
+d190: drift, l =   0.711810
+d191: drift, l =   0.982000
+d192: drift, l =   0.060400
+d193: drift, l =   0.064500
+d194: drift, l =   0.536540
+d195: drift, l =   0.182599
+d196: drift, l =   0.092500
+d197: drift, l =   1.233500
+d198: drift, l =   0.853800
+d199: drift, l =   0.134400
+d200: drift, l =   0.843240
+d201: drift, l =   0.501750
+d202: drift, l =   0.113747
+d203: drift, l =  -0.058000
+d204: drift, l =   0.480383
+d205: drift, l =   0.336671
+d206: drift, l =   0.189000
+d207: drift, l =   0.199320
+d208: drift, l =   0.126320
+d209: drift, l =   0.234222
+d210: drift, l =   0.048500
+d211: drift, l =   0.126500
+d212: drift, l =   0.038500
+d213: drift, l =   0.361958
+d214: drift, l =   0.260958
+d215: drift, l =   1.192000
+d216: drift, l =   0.129078
+d217: drift, l =   0.136054
+d218: drift, l =   1.179000
+d219: drift, l =   0.266958
+d220: drift, l =   0.307958
+d221: drift, l =   0.045500
+d222: drift, l =   0.123500
+d223: drift, l =   0.063500
+d224: drift, l =   0.269222
+d225: drift, l =   0.126320
+d226: drift, l =   0.190320
+d227: drift, l =   0.198000
+d228: drift, l =   0.336671
+d229: drift, l =   0.469383
+d230: drift, l =  -0.053800
+d231: drift, l =   0.120547
+d232: drift, l =   0.501750
+d233: drift, l =   0.846240
+d234: drift, l =   0.134400
+d235: drift, l =   0.853800
+d236: drift, l =   1.237301
+d237: drift, l =   0.088700
+d238: drift, l =   0.182600
+d239: drift, l =   0.537139
+d240: drift, l =   0.063900
+d241: drift, l =   0.071400
+d242: drift, l =   1.176000
+d243: drift, l =   0.520300
+d244: drift, l =   0.839610
+d245: drift, l =   0.026000
+d246: drift, l =   0.064100
+d247: drift, l =   0.182599
+d248: drift, l =   0.450737
+d249: drift, l =   2.223463
+d250: drift, l =   0.035400
+d251: drift, l =   0.064000
+d252: drift, l =   0.157140
+d253: drift, l =   0.502640
+d254: drift, l =   0.037400
+d255: drift, l =   0.061000
+d256: drift, l =   0.157140
+d257: drift, l =   0.488540
+d258: drift, l =   0.048700
+d259: drift, l =   0.063800
+d260: drift, l =   0.157140
+d261: drift, l =   0.488740
+d262: drift, l =   0.047400
+d263: drift, l =   0.064900
+d264: drift, l =   0.157140
+d265: drift, l =   0.488740
+d266: drift, l =   0.047000
+d267: drift, l =   0.065300
+d268: drift, l =   0.157140
+d269: drift, l =   0.363640
+d270: drift, l =   0.129000
+d271: drift, l =   0.042700
+d272: drift, l =   0.061700
+d273: drift, l =   0.157140
+d274: drift, l =   0.488440
+d275: drift, l =   0.048500
+d276: drift, l =   0.064100
+d277: drift, l =   0.157140
+d278: drift, l =   0.321640
+d279: drift, l =   0.026200
+d280: drift, l =   0.063700
+d281: drift, l =   0.322700
+d282: drift, l =   0.119000
+d283: drift, l =   1.587800
+d284: drift, l =   0.655401
+d285: drift, l =   0.036550
+d286: drift, l =   0.061550
+d287: drift, l =   0.157140
+d288: drift, l =   0.253500
+d289: drift, l =   0.042800
+d290: drift, l =   5.008300
+d291: drift, l =   0.025400
+d292: drift, l =   0.064300
+d293: drift, l =   0.157140
+d294: drift, l =   0.735140
+d295: drift, l =   0.029500
+d296: drift, l =   0.061400
+d297: drift, l =   0.157140
+d298: drift, l =   0.489040
+d299: drift, l =   0.047700
+d300: drift, l =   0.064300
+d301: drift, l =   0.157140
+d302: drift, l =   0.735140
+d303: drift, l =   0.025900
+d304: drift, l =   0.065000
+d305: drift, l =   0.157140
+d306: drift, l =   0.507040
+d307: drift, l =   0.674900
+d308: drift, l =   0.026700
+d309: drift, l =   0.064700
+d310: drift, l =   0.157140
+d311: drift, l =   0.358940
+d312: drift, l =   0.148600
+d313: drift, l =   0.024900
+d314: drift, l =   0.065000
+d315: drift, l =   0.157140
+d316: drift, l =   0.486440
+d317: drift, l =   0.050200
+d318: drift, l =   0.064400
+d319: drift, l =   0.157140
+d320: drift, l =   0.360940
+d321: drift, l =   0.145300
+d322: drift, l =   0.027700
+d323: drift, l =   0.063500
+d324: drift, l =   0.157140
+d325: drift, l =   0.486240
+d326: drift, l =   0.050600
+d327: drift, l =   0.064200
+d328: drift, l =   0.157140
+d329: drift, l =   0.487740
+d330: drift, l =   0.048200
+d331: drift, l =   0.065100
+d332: drift, l =   0.157140
+d333: drift, l =   1.856341
+d334: drift, l =   0.526000
+d335: drift, l =   0.028900
+d336: drift, l =   0.063600
+d337: drift, l =   0.157140
+d338: drift, l =   0.486940
+d339: drift, l =   0.050100
+d340: drift, l =   0.064000
+d341: drift, l =   0.157140
+d342: drift, l =   0.488540
+d343: drift, l =   0.045500
+d344: drift, l =   0.067000
+d345: drift, l =   0.157140
+d346: drift, l =   0.487040
+d347: drift, l =   0.046800
+d348: drift, l =   0.067200
+d349: drift, l =   0.157140
+d350: drift, l =   0.514640
+d351: drift, l =   0.023400
+d352: drift, l =   0.063000
+d353: drift, l =   5.697100
+d354: drift, l =   0.028200
+d355: drift, l =   0.062700
+d356: drift, l =   0.157140
+d357: drift, l =   0.489340
+d358: drift, l =   0.044800
+d359: drift, l =   0.066900
+d360: drift, l =   0.157141
+d361: drift, l =   0.487239
+d362: drift, l =   0.050000
+d363: drift, l =   0.063800
+d364: drift, l =   0.157140
+d365: drift, l =   0.489540
+d366: drift, l =   0.049300
+d367: drift, l =   0.062200
+d368: drift, l =   0.157140
+d369: drift, l =   2.431440
+d370: drift, l =   0.026200
+d371: drift, l =   0.063400
+d372: drift, l =   0.157140
+d373: drift, l =   0.486840
+d374: drift, l =   0.049850
+d375: drift, l =   0.064350
+d376: drift, l =   0.157140
+d377: drift, l =   0.969440
+d378: drift, l =   0.028450
+d379: drift, l =   0.063150
+d380: drift, l =   0.157140
+d381: drift, l =   0.486841
+d382: drift, l =   0.049450
+d383: drift, l =   0.064750
+d384: drift, l =   0.157140
+d385: drift, l =   0.486840
+d386: drift, l =   0.050200
+d387: drift, l =   0.064000
+d388: drift, l =   5.105170
+d389: drift, l =   0.367500
+d390: drift, l =   0.063900
+d391: drift, l =   0.109400
+d392: drift, l =   1.342000
+d393: drift, l =   2.096000
+d394: drift, l =   0.686530
+d395: drift, l =   0.063000
+d396: drift, l =   0.180000
+d397: drift, l =   0.063800
+d398: drift, l =   0.064600
+d399: drift, l =   0.499400
+d400: drift, l =   0.404650
+d401: drift, l =   0.046000
+d402: drift, l =   0.030000
+d403: drift, l =   0.374000
+d404: drift, l =   0.230800
+d405: drift, l =   0.048000
+d406: drift, l =   0.216400
+d407: drift, l =   0.298010
+d408: drift, l =   0.495151
+d409: drift, l =   0.067400
+d410: drift, l =   0.229000
+d411: drift, l =   0.243201
+d412: drift, l =   0.495150
+d413: drift, l =   0.061400
+d414: drift, l =   0.250700
+d415: drift, l =   0.227501
+d416: drift, l =   0.495151
+d417: drift, l =   0.054100
+d418: drift, l =   0.242300
+d419: drift, l =   0.243199
+d420: drift, l =   0.235381
+d421: drift, l =   0.058900
+d422: drift, l =   0.550570
+d423: drift, l =   0.377210
+d424: drift, l =   0.431280
+d425: drift, l =   0.108300
+d426: drift, l =   2.096000
+d427: drift, l =   0.090320
+d428: drift, l =   0.213320
+d429: drift, l =   1.071380+0.00104
+d430: drift, l =   0.434580-0.00104
+d431: drift, l =   0.325620+0.002045
+d432: drift, l =   0.017700-0.002045
+d433: drift, l =   0.622324
+ 
+ 
+ ! CESR Ring
+ 
+cesr: line = (IP_L0, d001, DET_00W, d002, Q00W, d003, DET_01W, d004, &
+ Q01W, d005, HV01W, d006, Q02W, d007, DET_02W, d008, SK_Q02W, d009, &
+ SK_Q03W, d010, B03W, d011, B03AW, d012, DET_03W, d013, Q03W, d014, &
+ B04W, d015, SK_Q04W, d016, Q04W, d017, DET_04W, d018, B05W, d019, &
+ SK_Q05W, d020, Q05W, d021, DET_05W, d022, B06W, d023, SK_Q06W, d024, &
+ Q06W, d025, DET_06W, d026, B07W, d027, Q07W, d028, DET_07W, d029, &
+ VKICK_07W, d030, WIG_W, d031, HKICK_08W, d032, SK_Q07W, d033, H_SEP_08W, &
+ d034, Q08W, d035, SEX_08W, d036, DET_08W, d037, RF_W1, d038, RF_W2, &
+ d039, DET_09W, d040, Q09W, d041, SEX_09W, d042, VKICK_10W, d043, &
+ VKICK_09W, d044, Q10W, d045, SEX_10W, d046, DET_10W, d047, B11W, &
+ d048, DET_11W, d049, Q11W, d050, SEX_11W, d051, B12W, d052, Q12W, &
+ d053, SEX_12W, d054, DET_12W, d055, B13W, d056, Q13W, d057, SEX_13W, &
+ d058, DET_13W, d059, B14W, d060, Q14W, d061, SEX_14W, d062, DET_14W, &
+ d063, B15W, d064, Q15W, d065, SEX_15W, d066, DET_15W, d067, B16W, &
+ d068, Q16W, d069, SEX_16W, d070, DET_16W, d071, VKICK_16W, d072, &
+ B17W, d073, Q17W, d074, SEX_17W, d075, DET_17W, d076, B18W, d077, &
+ Q18W, d078, SEX_18W, d079, DET_18W, d080, Q19W, d081, SEX_19W, d082, &
+ DET_19W, d083, B20W, d084, Q20W, d085, SEX_20W, d086, DET_20W, d087, &
+ B21W, d088, Q21W, d089, SEX_21W, d090, DET_21W, d091, B22W, d092, &
+ Q22W, d093, SEX_22W, d094, DET_22W, d095, B23W, d096, Q23W, d097, &
+ SEX_23W, d098, DET_23W, d099, SK_SEX_23W, d100, B24W, d101, Q24W, &
+ d102, SEX_24W, d103, DET_24W, d104, B25W, d105, Q25W, d106, SEX_25W, &
+ d107, DET_25W, d108, B26W, d109, Q26W, d110, SEX_26W, d111, DET_26W, &
+ d112, BUMP_26W, d113, B27W, d114, Q27W, d115, SEX_27W, d116, DET_27W, &
+ d117, B28W, d118, Q28W, d119, SEX_28W, d120, DET_28W, d121, BUMP_28W, &
+ d122, B29W, d123, Q29W, d124, SEX_29W, d125, DET_29W, d126, SK_Q29W, &
+ d127, B30W, d128, Q30W, d129, SEX_30W, d130, DET_30W, d131, B31W, &
+ d132, Q31W, d133, SEX_31W, d134, DET_31W, d135, B32W, d136, Q32W, &
+ d137, SEX_32W, d138, DET_32W, d139, B33W, d140, Q33W, d141, SEX_33W, &
+ d142, DET_33W, d143, DET_34W, d144, Q34W, d145, SEX_34W, d146, B35W, &
+ d147, Q35W, d148, SEX_35W, d149, DET_35W, d150, B36W, d151, PINGER_36W, &
+ d152, BUMP_36W, d153, Q36W, d154, SEX_36W, d155, DET_36W, d156, B37W, &
+ d157, Q37W, d158, SEX_37W, d159, DET_37W, d160, B38W, d161, Q38W, &
+ d162, SEX_38W, d163, DET_38W, d164, B39W, d165, Q39W, d166, SEX_39W, &
+ d167, DET_39W, d168, B40W, d169, Q40W, d170, SEX_40W, d171, DET_40W, &
+ d172, B41W, d173, Q41W, d174, SEX_41W, d175, DET_41W, d176, B42W, &
+ d177, Q42W, d178, SEX_42W, d179, DET_42W, d180, B43W, d181, Q43W, &
+ d182, SEX_43W, d183, DET_43W, d184, Q43AW, d185, B44W, d186, Q44W, &
+ d187, SEX_44W, d188, DET_44W, d189, H_SEP_45W, d190, OCT_45W, d191, &
+ DET_45W, d192, Q45W, d193, SEX_45W, d194, B46W, d195, Q46W, d196, &
+ DET_46W, d197, B47W, d198, Q47W, d199, SK_Q47W, d200, B47AW, d201, &
+ Q47AW, d202, DET_47W, d203, VKICK_47W, d204, B48W, d205, V_SEP_48W, &
+ d206, DET_48W, d207, Q48W, d208, VKICK_48W, d209, HKICK_49W, d210, &
+ OCT_48W, d211, VKICK_49W, d212, SK_Q48W, d213, Q49W, d214, DET_49W, &
+ d215, Q49AW, d216, IP_L3, d217, Q49AE, d218, DET_49E, d219, Q49E, &
+ d220, SK_Q48E, d221, VKICK_49E, d222, OCT_48E, d223, HKICK_49E, d224, &
+ VKICK_48E, d225, Q48E, d226, DET_48E, d227, V_SEP_48E, d228, B48E, &
+ d229, VKICK_47E, d230, DET_47E, d231, Q47AE, d232, B47AE, d233, SK_Q47E, &
+ d234, Q47E, d235, B47E, d236, DET_46E, d237, Q46E, d238, B46E, d239, &
+ SEX_45E, d240, Q45E, d241, DET_45E, d242, OCT_45E, d243, H_SEP_45E, &
+ d244, DET_44E, d245, SEX_44E, d246, Q44E, d247, B44E, d248, Q43AE, &
+ d249, DET_43E, d250, SEX_43E, d251, Q43E, d252, B43E, d253, DET_42E, &
+ d254, SEX_42E, d255, Q42E, d256, B42E, d257, DET_41E, d258, SEX_41E, &
+ d259, Q41E, d260, B41E, d261, DET_40E, d262, SEX_40E, d263, Q40E, &
+ d264, B40E, d265, DET_39E, d266, SEX_39E, d267, Q39E, d268, B39E, &
+ d269, BUMP_38E, d270, DET_38E, d271, SEX_38E, d272, Q38E, d273, B38E, &
+ d274, DET_37E, d275, SEX_37E, d276, Q37E, d277, B37E, d278, DET_36E, &
+ d279, SEX_36E, d280, Q36E, d281, BUMP_36E, d282, PINGER_36E, d283, &
+ B36E, d284, DET_35E, d285, SEX_35E, d286, Q35E, d287, B35E, d288, &
+ SEX_34E, d289, Q34E, d290, DET_33E, d291, SEX_33E, d292, Q33E, d293, &
+ B33E, d294, DET_32E, d295, SEX_32E, d296, Q32E, d297, B32E, d298, &
+ DET_31E, d299, SEX_31E, d300, Q31E, d301, B31E, d302, DET_30E, d303, &
+ SEX_30E, d304, Q30E, d305, B30E, d306, SK_Q29E, d307, DET_29E, d308, &
+ SEX_29E, d309, Q29E, d310, B29E, d311, BUMP_28E, d312, DET_28E, d313, &
+ SEX_28E, d314, Q28E, d315, B28E, d316, DET_27E, d317, SEX_27E, d318, &
+ Q27E, d319, B27E, d320, BUMP_26E, d321, DET_26E, d322, SEX_26E, d323, &
+ Q26E, d324, B26E, d325, DET_25E, d326, SEX_25E, d327, Q25E, d328, &
+ B25E, d329, DET_24E, d330, SEX_24E, d331, Q24E, d332, B24E, d333, &
+ SK_SEX_23E, d334, DET_23E, d335, SEX_23E, d336, Q23E, d337, B23E, &
+ d338, DET_22E, d339, SEX_22E, d340, Q22E, d341, B22E, d342, DET_21E, &
+ d343, SEX_21E, d344, Q21E, d345, B21E, d346, DET_20E, d347, SEX_20E, &
+ d348, Q20E, d349, B20E, d350, DET_19E, d351, SEX_19E, d352, Q19E, &
+ d353, DET_18E, d354, SEX_18E, d355, Q18E, d356, B18E, d357, DET_17E, &
+ d358, SEX_17E, d359, Q17E, d360, B17E, d361, DET_16E, d362, SEX_16E, &
+ d363, Q16E, d364, B16E, d365, DET_15E, d366, SEX_15E, d367, Q15E, &
+ d368, B15E, d369, DET_14E, d370, SEX_14E, d371, Q14E, d372, B14E, &
+ d373, DET_13E, d374, SEX_13E, d375, Q13E, d376, B13E, d377, DET_12E, &
+ d378, SEX_12E, d379, Q12E, d380, B12E, d381, DET_11E, d382, SEX_11E, &
+ d383, Q11E, d384, B11E, d385, DET_10E, d386, SEX_10E, d387, Q10E, &
+ d388, VKICK_09E, d389, SEX_09E, d390, Q09E, d391, DET_09E, d392, &
+ RF_E1, d393, RF_E2, d394, HKICK_08E, d395, VKICK_08E, d396, DET_08E, &
+ d397, SEX_08E, d398, Q08E, d399, H_SEP_08E, d400, SK_Q07E, d401, &
+ HKICK_07E, d402, WIG_E, d403, VKICK_07E, d404, SK_SEX_07E, d405, &
+ DET_07E, d406, Q07E, d407, B07E, d408, Q06E, d409, DET_06E, d410, &
+ SK_Q06E, d411, B06E, d412, Q05E, d413, DET_05E, d414, SK_Q05E, d415, &
+ B05E, d416, Q04E, d417, DET_04E, d418, SK_Q04E, d419, B04E, d420, &
+ Q03E, d421, DET_03E, d422, B03AE, d423, B03E, d424, SK_Q03E, d425, &
+ SK_Q02E, d426, DET_02E, d427, Q02E, d428, HV01E, d429, Q01E, d430, &
+ DET_01E, d431, Q00E, d432, DET_00E, d433)                       
+ 
+ ! steering overlays
+ 
+H01W: overlay = {HV01W}, HKICK, Alias = "1W", Type = "CSR HORZ CUR   1" 
+V01W: overlay = {HV01W}, VKICK, Alias = "1W", Type = "CSR VERT CUR   1" 
+HB01: overlay = {B04W: 0.5, B05W: 0.5}, HKICK, Alias = "HB1", &
+        Type = "CSR HBND CUR   1" 
+H02W: overlay = {B03W}, HKICK, Alias = "2W", Type = "CSR HORZ CUR   2" 
+V02W: overlay = {SK_Q03W}, VKICK, Alias = "2W", Type = "CSR VERT CUR   2" 
+HB02: overlay = {B06W: 0.5, B07W: 0.5}, HKICK, Alias = "HB2", &
+        Type = "CSR HBND CUR   2" 
+H03W: overlay = {B03AW}, HKICK, Alias = "3W", Type = "CSR HORZ CUR   3" 
+HB03: overlay = {B47AW}, HKICK, Alias = "HB3", Type = "CSR HBND CUR   3" 
+H04W: overlay = {B04W}, HKICK, Alias = "4W", Type = "CSR HORZ CUR   4" 
+V04W: overlay = {SK_Q04W}, VKICK, Alias = "4W", Type = "CSR VERT CUR   4" 
+HB04: overlay = {B47AE}, HKICK, Alias = "HB4", Type = "CSR HBND CUR   4" 
+V05W: overlay = {SK_Q05W}, VKICK, Alias = "5W", Type = "CSR VERT CUR   5" 
+HB05: overlay = {B07E: 0.5, B06E: 0.5}, HKICK, Alias = "HB5", &
+        Type = "CSR HBND CUR   5" 
+V06W: overlay = {SK_Q06W}, VKICK, Alias = "6W", Type = "CSR VERT CUR   6" 
+HB06: overlay = {B05E: 0.5, B04E: 0.5}, HKICK, Alias = "HB6", &
+        Type = "CSR HBND CUR   6" 
+V07W: overlay = {VKICK_07W}, VKICK, Alias = "7W", Type = "CSR VERT CUR   7" 
+H08W: overlay = {HKICK_08W}, HKICK, Alias = "8W", Type = "CSR HORZ CUR   8" 
+V08W: overlay = {SEX_08W}, VKICK, Alias = "8W", Type = "CSR VERT CUR   8" 
+V09W: overlay = {VKICK_09W}, VKICK, Alias = "9W", Type = "CSR VERT CUR   9" 
+H10W: overlay = {B11W}, HKICK, Alias = "10W", Type = "CSR HORZ CUR  10" 
+V10W: overlay = {VKICK_10W}, VKICK, Alias = "10W", Type = "CSR VERT CUR  10" 
+V11W: overlay = {SEX_11W}, VKICK, Alias = "11W", Type = "CSR VERT CUR  11" 
+H12W: overlay = {B12W: 0.5, B13W: 0.5}, HKICK, Alias = "12W", &
+        Type = "CSR HORZ CUR  12" 
+V13W: overlay = {SEX_13W}, VKICK, Alias = "13W", Type = "CSR VERT CUR  13" 
+H14W: overlay = {B14W: 0.5, B15W: 0.5}, HKICK, Alias = "14W", &
+        Type = "CSR HORZ CUR  14" 
+V15W: overlay = {SEX_15W}, VKICK, Alias = "15W", Type = "CSR VERT CUR  15" 
+H16W: overlay = {B16W: 0.5, B17W: 0.5}, HKICK, Alias = "16W", &
+        Type = "CSR HORZ CUR  16" 
+V16W: overlay = {VKICK_16W}, VKICK, Alias = "16W", Type = "CSR VERT CUR  16" 
+V17W: overlay = {SEX_17W}, VKICK, Alias = "17W", Type = "CSR VERT CUR  17" 
+H18W: overlay = {B18W}, HKICK, Alias = "18W", Type = "CSR HORZ CUR  18" 
+V19W: overlay = {SEX_19W}, VKICK, Alias = "19W", Type = "CSR VERT CUR  19" 
+H20W: overlay = {B20W: 0.5, B21W: 0.5}, HKICK, Alias = "20W", &
+        Type = "CSR HORZ CUR  20" 
+V21W: overlay = {SEX_21W}, VKICK, Alias = "21W", Type = "CSR VERT CUR  21" 
+H22W: overlay = {B22W: 0.5, B23W: 0.5}, HKICK, Alias = "22W", &
+        Type = "CSR HORZ CUR  22" 
+V23W: overlay = {SEX_23W}, VKICK, Alias = "23W", Type = "CSR VERT CUR  23" 
+H24W: overlay = {B24W: 0.5, B25W: 0.5}, HKICK, Alias = "24W", &
+        Type = "CSR HORZ CUR  24" 
+V25W: overlay = {SEX_25W}, VKICK, Alias = "25W", Type = "CSR VERT CUR  25" 
+H26W: overlay = {B26W: 0.5, B27W: 0.5}, HKICK, Alias = "26W", &
+        Type = "CSR HORZ CUR  26" 
+V27W: overlay = {SEX_27W}, VKICK, Alias = "27W", Type = "CSR VERT CUR  27" 
+H28W: overlay = {B28W: 0.5, B29W: 0.5}, HKICK, Alias = "28W", &
+        Type = "CSR HORZ CUR  28" 
+V29W: overlay = {SEX_29W}, VKICK, Alias = "29W", Type = "CSR VERT CUR  29" 
+H30W: overlay = {B30W: 0.5, B31W: 0.5}, HKICK, Alias = "30W", &
+        Type = "CSR HORZ CUR  30" 
+V31W: overlay = {SEX_31W}, VKICK, Alias = "31W", Type = "CSR VERT CUR  31" 
+H32W: overlay = {B32W: 0.5, B33W: 0.5}, HKICK, Alias = "32W", &
+        Type = "CSR HORZ CUR  32" 
+V33W: overlay = {SEX_33W}, VKICK, Alias = "33W", Type = "CSR VERT CUR  33" 
+H34W: overlay = {B35W}, HKICK, Alias = "34W", Type = "CSR HORZ CUR  34" 
+V35W: overlay = {SEX_35W}, VKICK, Alias = "35W", Type = "CSR VERT CUR  35" 
+H36W: overlay = {B36W: 0.5, B37W: 0.5}, HKICK, Alias = "36W", &
+        Type = "CSR HORZ CUR  36" 
+V37W: overlay = {SEX_37W}, VKICK, Alias = "37W", Type = "CSR VERT CUR  37" 
+H38W: overlay = {B38W: 0.5, B39W: 0.5}, HKICK, Alias = "38W", &
+        Type = "CSR HORZ CUR  38" 
+V39W: overlay = {SEX_39W}, VKICK, Alias = "39W", Type = "CSR VERT CUR  39" 
+H40W: overlay = {B40W: 0.5, B41W: 0.5}, HKICK, Alias = "40W", &
+        Type = "CSR HORZ CUR  40" 
+V41W: overlay = {SEX_41W}, VKICK, Alias = "41W", Type = "CSR VERT CUR  41" 
+H42W: overlay = {B42W: 0.5, B43W: 0.5}, HKICK, Alias = "42W", &
+        Type = "CSR HORZ CUR  42" 
+V43W: overlay = {SEX_43W}, VKICK, Alias = "43W", Type = "CSR VERT CUR  43" 
+H44W: overlay = {B44W}, HKICK, Alias = "44W", Type = "CSR HORZ CUR  44" 
+V45W: overlay = {SEX_45W}, VKICK, Alias = "45W", Type = "CSR VERT CUR  45" 
+H46W: overlay = {B46W}, HKICK, Alias = "46W", Type = "CSR HORZ CUR  46" 
+H47W: overlay = {B48W}, HKICK, Alias = "47W", Type = "CSR HORZ CUR  47" 
+V47W: overlay = {VKICK_47W}, VKICK, Alias = "47W", Type = "CSR VERT CUR  47" 
+V48W: overlay = {VKICK_48W}, VKICK, Alias = "48W", Type = "CSR VERT CUR  48" 
+H49W: overlay = {HKICK_49W}, HKICK, Alias = "49W", Type = "CSR HORZ CUR  49" 
+V49W: overlay = {VKICK_49W}, VKICK, Alias = "49W", Type = "CSR VERT CUR  49" 
+H49E: overlay = {HKICK_49E}, HKICK, Alias = "49E", Type = "CSR HORZ CUR  50" 
+V49E: overlay = {VKICK_49E}, VKICK, Alias = "49E", Type = "CSR VERT CUR  50" 
+V48E: overlay = {VKICK_48E}, VKICK, Alias = "48E", Type = "CSR VERT CUR  51" 
+H47E: overlay = {B48E}, HKICK, Alias = "47E", Type = "CSR HORZ CUR  52" 
+V47E: overlay = {VKICK_47E}, VKICK, Alias = "47E", Type = "CSR VERT CUR  52" 
+H46E: overlay = {B46E}, HKICK, Alias = "46E", Type = "CSR HORZ CUR  53" 
+V45E: overlay = {SEX_45E}, VKICK, Alias = "45E", Type = "CSR VERT CUR  54" 
+H44E: overlay = {B44E}, HKICK, Alias = "44E", Type = "CSR HORZ CUR  55" 
+V43E: overlay = {SEX_43E}, VKICK, Alias = "43E", Type = "CSR VERT CUR  56" 
+H42E: overlay = {B43E: 0.5, B42E: 0.5}, HKICK, Alias = "42E", &
+        Type = "CSR HORZ CUR  57" 
+V41E: overlay = {SEX_41E}, VKICK, Alias = "41E", Type = "CSR VERT CUR  58" 
+H40E: overlay = {B41E: 0.5, B40E: 0.5}, HKICK, Alias = "40E", &
+        Type = "CSR HORZ CUR  59" 
+V39E: overlay = {SEX_39E}, VKICK, Alias = "39E", Type = "CSR VERT CUR  60" 
+H38E: overlay = {B39E: 0.5, B38E: 0.5}, HKICK, Alias = "38E", &
+        Type = "CSR HORZ CUR  61" 
+V37E: overlay = {SEX_37E}, VKICK, Alias = "37E", Type = "CSR VERT CUR  62" 
+H36E: overlay = {B37E: 0.5, B36E: 0.5}, HKICK, Alias = "36E", &
+        Type = "CSR HORZ CUR  63" 
+V35E: overlay = {SEX_35E}, VKICK, Alias = "35E", Type = "CSR VERT CUR  64" 
+H34E: overlay = {B35E}, HKICK, Alias = "34E", Type = "CSR HORZ CUR  65" 
+V34E: overlay = {SEX_34E}, VKICK, Alias = "34E", Type = "CSR VERT CUR  65" 
+V33E: overlay = {SEX_33E}, VKICK, Alias = "33E", Type = "CSR VERT CUR  66" 
+H32E: overlay = {B33E: 0.5, B32E: 0.5}, HKICK, Alias = "32E", &
+        Type = "CSR HORZ CUR  67" 
+V31E: overlay = {SEX_31E}, VKICK, Alias = "31E", Type = "CSR VERT CUR  68" 
+H30E: overlay = {B31E: 0.5, B30E: 0.5}, HKICK, Alias = "30E", &
+        Type = "CSR HORZ CUR  69" 
+V29E: overlay = {SEX_29E}, VKICK, Alias = "29E", Type = "CSR VERT CUR  70" 
+H28E: overlay = {B29E: 0.5, B28E: 0.5}, HKICK, Alias = "28E", &
+        Type = "CSR HORZ CUR  71" 
+V27E: overlay = {SEX_27E}, VKICK, Alias = "27E", Type = "CSR VERT CUR  72" 
+H26E: overlay = {B27E: 0.5, B26E: 0.5}, HKICK, Alias = "26E", &
+        Type = "CSR HORZ CUR  73" 
+V25E: overlay = {SEX_25E}, VKICK, Alias = "25E", Type = "CSR VERT CUR  74" 
+H24E: overlay = {B25E: 0.5, B24E: 0.5}, HKICK, Alias = "24E", &
+        Type = "CSR HORZ CUR  75" 
+V23E: overlay = {SEX_23E}, VKICK, Alias = "23E", Type = "CSR VERT CUR  76" 
+H22E: overlay = {B23E: 0.5, B22E: 0.5}, HKICK, Alias = "22E", &
+        Type = "CSR HORZ CUR  77" 
+V21E: overlay = {SEX_21E}, VKICK, Alias = "21E", Type = "CSR VERT CUR  78" 
+H20E: overlay = {B21E: 0.5, B20E: 0.5}, HKICK, Alias = "20E", &
+        Type = "CSR HORZ CUR  79" 
+V19E: overlay = {SEX_19E}, VKICK, Alias = "19E", Type = "CSR VERT CUR  80" 
+H18E: overlay = {B18E}, HKICK, Alias = "18E", Type = "CSR HORZ CUR  81" 
+V17E: overlay = {SEX_17E}, VKICK, Alias = "17E", Type = "CSR VERT CUR  82" 
+H16E: overlay = {B17E: 0.5, B16E: 0.5}, HKICK, Alias = "16E", &
+        Type = "CSR HORZ CUR  83" 
+V15E: overlay = {SEX_15E}, VKICK, Alias = "15E", Type = "CSR VERT CUR  84" 
+H14E: overlay = {B15E: 0.5, B14E: 0.5}, HKICK, Alias = "14E", &
+        Type = "CSR HORZ CUR  85" 
+V13E: overlay = {SEX_13E}, VKICK, Alias = "13E", Type = "CSR VERT CUR  86" 
+H12E: overlay = {B13E: 0.5, B12E: 0.5}, HKICK, Alias = "12E", &
+        Type = "CSR HORZ CUR  87" 
+V11E: overlay = {SEX_11E}, VKICK, Alias = "11E", Type = "CSR VERT CUR  88" 
+H10E: overlay = {B11E}, HKICK, Alias = "10E", Type = "CSR HORZ CUR  89" 
+V09E: overlay = {VKICK_09E}, VKICK, Alias = "9E", Type = "CSR VERT CUR  90" 
+H08E: overlay = {HKICK_08E: 0.5, HKICK_07E: 0.5}, HKICK, Alias = "8E", &
+        Type = "CSR HORZ CUR  91" 
+V08E: overlay = {VKICK_08E}, VKICK, Alias = "8E", Type = "CSR VERT CUR  91" 
+V07E: overlay = {VKICK_07E}, VKICK, Alias = "7E", Type = "CSR VERT CUR  92" 
+V06E: overlay = {SK_Q06E}, VKICK, Alias = "6E", Type = "CSR VERT CUR  93" 
+V05E: overlay = {SK_Q05E}, VKICK, Alias = "5E", Type = "CSR VERT CUR  94" 
+H04E: overlay = {B04E}, HKICK, Alias = "4E", Type = "CSR HORZ CUR  95" 
+V04E: overlay = {SK_Q04E}, VKICK, Alias = "4E", Type = "CSR VERT CUR  95" 
+H03E: overlay = {B03AE}, HKICK, Alias = "3E", Type = "CSR HORZ CUR  96" 
+H02E: overlay = {B03E}, HKICK, Alias = "2E", Type = "CSR HORZ CUR  97" 
+V02E: overlay = {SK_Q03E}, VKICK, Alias = "2E", Type = "CSR VERT CUR  97" 
+H01E: overlay = {HV01E}, HKICK, Alias = "1E", Type = "CSR HORZ CUR  98" 
+V01E: overlay = {HV01E}, VKICK, Alias = "1E", Type = "CSR VERT CUR  98" 
+ 
+ return

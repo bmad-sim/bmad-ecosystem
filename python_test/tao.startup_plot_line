@@ -1,6 +1,3 @@
-!place r12 floor_plan
-!place r22 orbit
-
 
 !set graph r33 floor_plan%orbit_scale = 1 
 place -no_buffer r13 beta

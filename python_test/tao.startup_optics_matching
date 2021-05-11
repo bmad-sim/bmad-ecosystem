@@ -1,0 +1,50 @@
+!-------- tao.startup : commands to execute after initilaization ----
+!veto data *
+veto var *
+set universe * on
+
+!---Aliases 
+alias vim sp vim [[1]]
+
+! legacy view command
+alias view set default uni = [[1]]
+
+alias vv veto var *
+alias vd veto dat *@*
+alias vk set var *|key_bound = F
+
+alias ode set global optimizer = de
+alias olm set global optimizer = lm
+alias osvd set global optimizer = svd
+alias olmdif set global optimizer = lmdif
+
+alias ogeo set global optimizer = geodesic_lm
+alias sgeo set geodesic_lm
+set geodesic_lm print_level = 2
+
+alias scycles set global n_opti_cycles = [[1]]
+alias sloops  set global n_opti_loops = [[1]] 
+alias sde     set global de_lm_step_ratio = [[1]]
+alias spop set global de_var_to_population_factor = [[1]]
+alias SLD set lattice model=design
+
+alias sfloor set graph floor.plan floor_plan_view = [[1]]
+
+alias beamoff set global track_type = single
+alias beamon set global track_type = beam
+
+alias snparticle set beam_init n_particle = [[1]]
+
+alias timeron  set global beam_timer_on = true
+alias timeroff  set global beam_timer_on = false
+
+alias plotoff set global plot_on = false
+alias ploton set global plot_on = true
+alias clearplots place floor none;place top none;place middle none;place bottom none
+alias phaseplots place r11 zphase;place r12 xphase;place r21 zhist;place r22 yphase;place bottom layout
+
+alias mat6on  set universe * twiss_calc on
+alias mat6off set universe * twiss_calc off
+
+x-a all s
+sc

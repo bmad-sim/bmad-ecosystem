@@ -1,0 +1,272 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = 'tao_plot.init'
+/
+
+!------------------------------------------------------------------------
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1) = "bmad_L9A18A000-_MOVEREC.lat"
+/
+
+
+!------------------------------------------------------------------------
+
+&tao_params
+  global%plot_on = T
+/
+
+!------------------------------------------------------------------------
+! Data
+
+&tao_d2_data
+  d2_data%name = "orbit" 
+  universe = '*'  ! apply to all universes
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "x"  
+  default_weight = 1e6
+  ix_min_data = 0 
+  ix_max_data = 99  
+  datum(0)%ele_name = "DET_00W"
+  datum(1:99)%ele_name =
+          "DET_01W", "DET_02W", "DET_03W", "DET_04W", "DET_05W", "DET_06W", 
+          "DET_07W", "DET_08W", "DET_09W", "DET_10W", "DET_11W", "DET_12W", 
+          "DET_13W", "DET_14W", "DET_15W", "DET_16W", "DET_17W", "DET_18W", 
+          "DET_19W", "DET_20W", "DET_21W", "DET_22W", "DET_23W", "DET_24W", 
+          "DET_25W", "DET_26W", "DET_27W", "DET_28W", "DET_29W", "DET_30W", 
+          "DET_31W", "DET_32W", "DET_33W", "DET_34W", "DET_35W", "DET_36W", 
+          "DET_37W", "DET_38W", "DET_39W", "DET_40W", "DET_41W", "DET_42W", 
+          "DET_43W", "DET_44W", "DET_45W", "DET_46W", "DET_47W", "DET_48W", 
+          "DET_49W", "DET_49E", "DET_48E", "DET_47E", "DET_46E", "DET_45E", 
+          "DET_44E", "DET_43E", "DET_42E", "DET_41E", "DET_40E", "DET_39E", 
+          "DET_38E", "DET_37E", "DET_36E", "DET_35E", "DET_33E", "DET_32E", 
+          "DET_31E", "DET_30E", "DET_29E", "DET_28E", "DET_27E", "DET_26E", 
+          "DET_25E", "DET_24E", "DET_23E", "DET_22E", "DET_21E", "DET_20E", 
+          "DET_19E", "DET_18E", "DET_17E", "DET_16E", "DET_15E", "DET_14E", 
+          "DET_13E", "DET_12E", "DET_11E", "DET_10E", "DET_09E", "DET_08E", 
+          "DET_07E", "DET_06E", "DET_05E", "DET_04E", "DET_03E", "DET_02E", 
+          "DET_01E", "DET_00E"
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "y"  
+  default_weight = 1e6
+  use_same_lat_eles_as = "orbit.x"
+/
+
+!---------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = "phase" 
+  universe = '*'  ! apply to all universes
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "a"  
+  default_weight = 1e6
+  use_same_lat_eles_as = "orbit.x"
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "b"  
+  default_weight = 1e6
+  use_same_lat_eles_as = "orbit.x"
+/
+
+
+!---------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = "eta" 
+  universe = '*'  ! apply to all universes
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "x"  
+  default_weight = 0
+  use_same_lat_eles_as = "orbit.x"
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "y"  
+  default_weight = 200
+  use_same_lat_eles_as = "orbit.x"
+/
+
+!---------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = "beta" 
+  universe = '*'  ! apply to all universes
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "a"  
+  default_weight = 1
+  use_same_lat_eles_as = "orbit.x"
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "b"  
+  default_weight = 1
+  use_same_lat_eles_as = "orbit.x"
+/
+
+!---------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = "cbar"
+  universe = '*'  ! apply to all universes
+  n_d1_data = 4
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "11"
+  default_weight = 1e3
+  use_same_lat_eles_as = "orbit.x"
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "12"
+  default_weight = 1e3
+  use_same_lat_eles_as = "orbit.x"
+/
+
+&tao_d1_data
+  ix_d1_data = 3
+  d1_data%name = "21"
+  default_weight = 1e3
+  use_same_lat_eles_as = "orbit.x"
+/
+
+&tao_d1_data
+	ix_d1_data = 4
+  d1_data%name = "22"
+  default_weight = 1e3
+  use_same_lat_eles_as = "orbit.x"
+/
+
+!---------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = "k"  ! coupling 
+  universe = '*'  ! apply to all universes
+  n_d1_data = 4
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "11b"  
+  default_weight = 1e3
+  use_same_lat_eles_as = "orbit.x"
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "12a"  
+  default_weight = 1e3
+  use_same_lat_eles_as = "orbit.x"
+/
+
+&tao_d1_data
+  ix_d1_data = 3
+  d1_data%name = "12b"  
+  default_weight = 1e3
+  use_same_lat_eles_as = "orbit.x"
+/
+
+&tao_d1_data
+  ix_d1_data = 4
+  d1_data%name = "22a"  
+  default_weight = 1e3
+  use_same_lat_eles_as = "orbit.x"
+/
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+! variables
+
+&tao_var
+  v1_var%name  = "quad_k1"
+  default_attribute = "k1"
+  default_weight = 1e5
+  default_step = 1e-4
+  ix_min_var = 0
+  ix_max_var = 120
+  var(0)%ele_name = "Q00W"
+  var(1:115)%ele_name = 
+            "    ", "    ", "Q03W", "Q04W", "Q05W", "Q06W", "Q07W", "Q08W", "Q09W", 
+    "Q10W", "Q11W", "Q12W", "Q13W", "Q14W", "Q15W", "Q16W", "Q17W", "Q18W", "Q19W", 
+    "Q20W", "Q21W", "Q22W", "Q23W", "Q24W", "Q25W", "Q26W", "Q27W", "Q28W", "Q29W", 
+    "Q30W", "Q31W", "Q32W", "Q33W", "Q34W", "Q35W", "Q36W", "Q37W", "Q38W", "Q39W", 
+    "Q40W", "Q41W", "Q42W", "Q43W", "Q44W", "Q45W", "Q46W", "Q47W", "Q48W", "Q49W", 
+    "Q49E", "Q48E", "Q47E", "Q46E", "Q45E", "Q44E", "Q43E", "Q42E", "Q41E", "Q40E", 
+    "Q39E", "Q38E", "Q37E", "Q36E", "Q35E", "Q34E", "Q33E", "Q32E", "Q31E", "Q30E", 
+    "Q29E", "Q28E", "Q27E", "Q26E", "Q25E", "Q24E", "Q23E", "Q22E", "Q21E", "Q20E", 
+    "Q19E", "Q18E", "Q17E", "Q16E", "Q15E", "Q14E", "Q13E", "Q12E", "Q11E", "Q10E", 
+    "Q09E", "Q08E", "Q07E", "Q06E", "Q05E", "Q04E", "Q03E", "    ", "    ", "Q00E", 
+    "    ", "Q49AW", "Q47AW", "Q47AE", "Q49AE", "Q43AW", "Q43AE", "     ", "     "
+/
+
+
+&tao_var
+  v1_var%name  = "h_steer"
+  default_attribute = "HKICK"
+  default_weight = 1e3
+  default_step = 1e-5
+  ix_min_var = 0
+  ix_max_var = 120
+  var(1:106)%ele_name = 
+     "H01W", "H02W", "H03W", "H04W", "    ", "    ", "    ", "    ", "    ", "H10W",
+     "    ", "H12W", "    ", "H14W", "    ", "H16W", "    ", "H18W", "    ", "H20W",
+     "    ", "H22W", "    ", "H24W", "    ", "H26W", "    ", "H28W", "    ", "H30W",
+     "    ", "H32W", "    ", "H34W", "    ", "H36W", "    ", "H38W", "    ", "H40W", 
+     "    ", "H42W", "    ", "H44W", "    ", "H46W", "H47W", "    ", "H49W", "H49E",
+     "    ", "H47E", "H46E", "    ", "H44E", "    ", "H42E", "    ", "H40E", "    ", 
+     "H38E", "    ", "H36E", "    ", "H34E", "    ", "H32E", "    ", "H30E", "    ",
+     "H28E", "    ", "H26E", "    ", "H24E", "    ", "H22E", "    ", "H20E", "    ",
+     "H18E", "    ", "H16E", "    ", "H14E", "    ", "H12E", "    ", "H10E", "    ",
+     "H08E", "    ", "    ", "    ", "H04E", "H03E", "H02E", "H01E", "    ", "    ",
+     "HB01", "HB02", "HB03", "HB04", "HB05", "HB06"
+/
+
+
+&tao_var
+  v1_var%name  = "v_steer"
+  default_attribute = "vkick"
+  default_weight = 1e3
+  default_step = 1e-5
+  ix_min_var = 0
+  ix_max_var = 120
+  var(1:98)%ele_name =
+     "V01W", "V02W", "    ", "V04W", "V05W", "V06W", "V07W", "V08W", "V09W", "V10W", 
+     "V11W", "    ", "V13W", "    ", "V15W", "    ", "V17W", "    ", "V19W", "    ", 
+     "V21W", "    ", "V23W", "    ", "V25W", "    ", "V27W", "    ", "V29W", "    ", 
+     "V31W", "    ", "V33W", "    ", "V35W", "    ", "V37W", "    ", "V39W", "    ", 
+     "V41W", "    ", "V43W", "    ", "V45W", "    ", "V47W", "V48W", "V49W", "V49E", 
+     "V48E", "V47E", "    ", "V45E", "    ", "V43E", "    ", "V41E", "    ", "V39E", 
+     "    ", "V37E", "    ", "V35E", "V34E", "V33E", "    ", "V31E", "    ", "V29E", 
+     "    ", "V27E", "    ", "V25E", "    ", "V23E", "    ", "V21E", "    ", "V19E", 
+     "    ", "V17E", "    ", "V15E", "    ", "V13E", "    ", "V11E", "    ", "V09E", 
+     "V08E", "V07E", "V06E", "V05E", "V04E", "    ", "V02E", "V01E"
+/
+
