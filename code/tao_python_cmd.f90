@@ -306,12 +306,12 @@ case ('beam')
 
   u => point_to_uni(line, .false., err); if (err) return
 
-  nl=incr(nl); write (li(nl), amt) 'beam_track_data_file;STR;T;',           u%beam%track_data_file
-  nl=incr(nl); write (li(nl), amt) 'beam_track_start;STR;T;',               u%model_branch(0)%beam%track_start
-  nl=incr(nl); write (li(nl), amt) 'beam_track_end;STR;T;',                 u%model_branch(0)%beam%track_end
-  nl=incr(nl); write (li(nl), amt) 'beam_saved_at;STR;T;',                  u%beam%saved_at
-  nl=incr(nl); write (li(nl), amt) 'beam_dump_at;STR;T;',                   u%beam%dump_at
-  nl=incr(nl); write (li(nl), amt) 'beam_dump_file;STR;T;',                 u%beam%dump_file
+  nl=incr(nl); write (li(nl), amt) 'beam_track_data_file;STR;T;',           trim(u%beam%track_data_file)
+  nl=incr(nl); write (li(nl), amt) 'beam_track_start;STR;T;',               trim(u%model_branch(0)%beam%track_start)
+  nl=incr(nl); write (li(nl), amt) 'beam_track_end;STR;T;',                 trim(u%model_branch(0)%beam%track_end)
+  nl=incr(nl); write (li(nl), amt) 'beam_saved_at;STR;T;',                  trim(u%beam%saved_at)
+  nl=incr(nl); write (li(nl), amt) 'beam_dump_at;STR;T;',                   trim(u%beam%dump_at)
+  nl=incr(nl); write (li(nl), amt) 'beam_dump_file;STR;T;',                 trim(u%beam%dump_file)
 
 !%% beam_init -----------------------
 ! Output beam_init parameters.
@@ -348,14 +348,14 @@ case ('beam_init')
   u => point_to_uni(line, .false., err); if (err) return
   beam_init => u%model_branch(0)%beam%beam_init
 
-  nl=incr(nl); write (li(nl), amt) 'position_file;FILE;T;',                    beam_init%position_file
+  nl=incr(nl); write (li(nl), amt) 'position_file;FILE;T;',                    trim(beam_init%position_file)
   nl=incr(nl); write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
   nl=incr(nl); write (li(nl), rmt) 'sig_pz_jitter;REAL;T;',                    beam_init%sig_pz_jitter
   nl=incr(nl); write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
   nl=incr(nl); write (li(nl), lmt) 'renorm_center;LOGIC;T;',                   beam_init%renorm_center
   nl=incr(nl); write (li(nl), lmt) 'renorm_sigma;LOGIC;T;',                    beam_init%renorm_sigma
-  nl=incr(nl); write (li(nl), amt) 'random_engine;ENUM;T;',                    beam_init%random_engine
-  nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;ENUM;T;',           beam_init%random_gauss_converter
+  nl=incr(nl); write (li(nl), amt) 'random_engine;ENUM;T;',                    trim(beam_init%random_engine)
+  nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;ENUM;T;',           trim(beam_init%random_gauss_converter)
   nl=incr(nl); write (li(nl), rmt) 'random_sigma_cutoff;REAL;T;',              beam_init%random_sigma_cutoff
   nl=incr(nl); write (li(nl), rmt) 'a_norm_emit;REAL;T;',                      beam_init%a_norm_emit
   nl=incr(nl); write (li(nl), rmt) 'b_norm_emit;REAL;T;',                      beam_init%b_norm_emit
@@ -367,7 +367,7 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), rmt) 'sig_pz;REAL;T;',                           beam_init%sig_pz
   nl=incr(nl); write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
   nl=incr(nl); write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
-  nl=incr(nl); write (li(nl), amt) 'species;SPECIES;T;',                       beam_init%species
+  nl=incr(nl); write (li(nl), amt) 'species;SPECIES;T;',                       trim(beam_init%species)
   nl=incr(nl); write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
   nl=incr(nl); write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
   nl=incr(nl); write (li(nl), lmt) 'use_particle_start_for_center;LOGIC;T;',   beam_init%use_particle_start_for_center
@@ -480,7 +480,7 @@ case ('branch1')
   ix_branch = parse_branch(line, .false., err); if (err) return
   branch => u%model%lat%branch(ix_branch)
 
-  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                               branch%name
+  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                               trim(branch%name)
   nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;F;',                          branch%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_from_branch;INT;F;',                     branch%ix_from_branch
   nl=incr(nl); write (li(nl), imt) 'ix_from_ele;INT;F;',                        branch%ix_from_ele
@@ -488,9 +488,9 @@ case ('branch1')
   nl=incr(nl); write (li(nl), rmt) 'param.n_part;REAL;F;',                      branch%param%n_part
   nl=incr(nl); write (li(nl), rmt) 'param.total_length;REAL;F;',                branch%param%total_length
   nl=incr(nl); write (li(nl), rmt) 'param.unstable_factor;REAL;F;',             branch%param%unstable_factor
-  nl=incr(nl); write (li(nl), amt) 'param.particle;SPECIES;T;',                 species_name(branch%param%particle)
-  nl=incr(nl); write (li(nl), amt) 'param.default_tracking_species;SPECIES;T;', species_name(branch%param%default_tracking_species)
-  nl=incr(nl); write (li(nl), amt) 'param.geometry;ENUM;T;',                    geometry_name(branch%param%geometry)
+  nl=incr(nl); write (li(nl), amt) 'param.particle;SPECIES;T;',                 trim(species_name(branch%param%particle))
+  nl=incr(nl); write (li(nl), amt) 'param.default_tracking_species;SPECIES;T;', trim(species_name(branch%param%default_tracking_species))
+  nl=incr(nl); write (li(nl), amt) 'param.geometry;ENUM;T;',                    trim(geometry_name(branch%param%geometry))
   nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                     branch%param%stable
 
 !%% bunch1 -----------------------
@@ -597,8 +597,8 @@ case ('bunch1')
   nl=incr(nl); write (li(nl), rmt) 'centroid_beta;REAL;F;',                    bunch_params%centroid%beta
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                            bunch_params%centroid%ix_ele
   nl=incr(nl); write (li(nl), imt) 'direction;INT;F;',                         bunch_params%centroid%direction
-  nl=incr(nl); write (li(nl), amt) 'species;SPECIES;F;',                       species_name(bunch_params%centroid%species)
-  nl=incr(nl); write (li(nl), amt) 'location;ENUM;F;',                         location_name(bunch_params%centroid%location)
+  nl=incr(nl); write (li(nl), amt) 'species;SPECIES;F;',                       trim(species_name(bunch_params%centroid%species))
+  nl=incr(nl); write (li(nl), amt) 'location;ENUM;F;',                         trim(location_name(bunch_params%centroid%location))
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
   nl=incr(nl); write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
   nl=incr(nl); write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
@@ -1108,10 +1108,10 @@ case ('data')
   nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         trim(d_ptr%ele_name)
   nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   trim(d_ptr%ele_start_name)
   nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(d_ptr%ele_ref_name)
-  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   d_ptr%data_type
-  nl=incr(nl); write (li(nl), amt) 'data^merit_type;ENUM;T;',                 d_ptr%merit_type
-  nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     d_ptr%data_source
-  nl=incr(nl); write (li(nl), amt) 'eval_point;ENUM;T;',                      anchor_pt_name(d_ptr%eval_point)
+  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   trim(d_ptr%data_type)
+  nl=incr(nl); write (li(nl), amt) 'data^merit_type;ENUM;T;',                 trim(d_ptr%merit_type)
+  nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     trim(d_ptr%data_source)
+  nl=incr(nl); write (li(nl), amt) 'eval_point;ENUM;T;',                      trim(anchor_pt_name(d_ptr%eval_point))
   nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               d_ptr%ix_bunch
   nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              d_ptr%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                           d_ptr%ix_ele
@@ -1376,11 +1376,11 @@ case ('data_d2')
 
   nl=incr(nl); write (li(nl), imt) 'n_d1;INT;F;',                             size(d2_ptr%d1)
   nl=incr(nl); write (li(nl), imt) 'ix_d2_data;INT;F;',                       d2_ptr%ix_d2_data
-  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             d2_ptr%name
-  nl=incr(nl); write (li(nl), amt) 'data_file_name;FILE;F;',                  d2_ptr%data_file_name
-  nl=incr(nl); write (li(nl), amt) 'ref_file_name;FILE;F;',                   d2_ptr%ref_file_name
-  nl=incr(nl); write (li(nl), amt) 'data_date;STR;T;',                        d2_ptr%data_date
-  nl=incr(nl); write (li(nl), amt) 'ref_date;STR;T;',                         d2_ptr%ref_date
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             trim(d2_ptr%name)
+  nl=incr(nl); write (li(nl), amt) 'data_file_name;FILE;F;',                  trim(d2_ptr%data_file_name)
+  nl=incr(nl); write (li(nl), amt) 'ref_file_name;FILE;F;',                   trim(d2_ptr%ref_file_name)
+  nl=incr(nl); write (li(nl), amt) 'data_date;STR;T;',                        trim(d2_ptr%data_date)
+  nl=incr(nl); write (li(nl), amt) 'ref_date;STR;T;',                         trim(d2_ptr%ref_date)
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     d2_ptr%ix_universe
   nl=incr(nl); write (li(nl), imt) 'ix_ref;INT;F;',                           d2_ptr%ix_ref
   nl=incr(nl); write (li(nl), lmt) 'data_read_in;LOGIC;F;',                   d2_ptr%data_read_in
@@ -2024,7 +2024,7 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                   ele%ix_ele
 
-  nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                     key_name(ele%key)
+  nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                     trim(key_name(ele%key))
   nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                     trim(ele%name)
   nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       ele%type
   nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      ele%alias
@@ -2107,15 +2107,15 @@ case ('ele:methods')
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
-    nl=incr(nl); write (li(nl), amt) 'crystal_type;STR;T;', ele%component_name
+    nl=incr(nl); write (li(nl), amt) 'crystal_type;STR;T;', trim(ele%component_name)
   endif
 
   if (attribute_name(ele, material_type$) == 'MATERIAL_TYPE') then
-    nl=incr(nl); write (li(nl), amt) 'material_type;STR;T;', ele%component_name
+    nl=incr(nl); write (li(nl), amt) 'material_type;STR;T;', trim(ele%component_name)
   endif
 
   if (attribute_name(ele, origin_ele$) == 'ORIGIN_ELE') then
-    nl=incr(nl); write (li(nl), amt) 'origin_ele;STR;T;', '"', trim(ele%component_name)
+    nl=incr(nl); write (li(nl), amt) 'origin_ele;STR;T;', trim('"', trim(ele%component_name))
   endif
 
   if (attribute_name(ele, physical_source$) == 'PHYSICAL_SOURCE') then
@@ -2123,31 +2123,31 @@ case ('ele:methods')
   endif
 
   if (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD') then
-    nl=incr(nl); write (li(nl), amt) 'mat6_calc_method;ENUM;T;', mat6_calc_method_name(ele%mat6_calc_method)
+    nl=incr(nl); write (li(nl), amt) 'mat6_calc_method;ENUM;T;', trim(mat6_calc_method_name(ele%mat6_calc_method))
   endif
 
   if (attribute_name(ele, tracking_method$) == 'TRACKING_METHOD') then
-    nl=incr(nl); write (li(nl), amt) 'tracking_method;ENUM;T;', tracking_method_name(ele%tracking_method)
+    nl=incr(nl); write (li(nl), amt) 'tracking_method;ENUM;T;', trim(tracking_method_name(ele%tracking_method))
   endif
 
   if (attribute_name(ele, spin_tracking_method$) == 'SPIN_TRACKING_METHOD') then
-    nl=incr(nl); write (li(nl), amt) 'spin_tracking_method;ENUM;T;', spin_tracking_method_name(ele%spin_tracking_method)
+    nl=incr(nl); write (li(nl), amt) 'spin_tracking_method;ENUM;T;', trim(spin_tracking_method_name(ele%spin_tracking_method))
   endif
 
   if (attribute_name(ele, csr_method$) == 'CSR_METHOD') then
-    nl=incr(nl); write (li(nl), amt) 'csr_method;ENUM;T;', csr_method_name(ele%csr_method)
+    nl=incr(nl); write (li(nl), amt) 'csr_method;ENUM;T;', trim(csr_method_name(ele%csr_method))
   endif
 
   if (attribute_name(ele, space_charge_method$) == 'SPACE_CHARGE_METHOD') then
-    nl=incr(nl); write (li(nl), amt) 'space_charge_method;ENUM;T;', space_charge_method_name(ele%space_charge_method)
+    nl=incr(nl); write (li(nl), amt) 'space_charge_method;ENUM;T;', trim(space_charge_method_name(ele%space_charge_method))
   endif
 
   if (attribute_name(ele, ptc_integration_type$) == 'PTC_INTEGRATION_TYPE') then
-    nl=incr(nl); write (li(nl), amt) 'ptc_integration_type;ENUM;T;', ptc_integration_type_name(ele%ptc_integration_type)
+    nl=incr(nl); write (li(nl), amt) 'ptc_integration_type;ENUM;T;', trim(ptc_integration_type_name(ele%ptc_integration_type))
   endif
 
   if (attribute_name(ele, field_calc$) == 'FIELD_CALC') then
-    nl=incr(nl); write (li(nl), amt) 'field_calc;ENUM;T;', field_calc_name(ele%field_calc)
+    nl=incr(nl); write (li(nl), amt) 'field_calc;ENUM;T;', trim(field_calc_name(ele%field_calc))
   endif
 
   if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$) then
@@ -2222,12 +2222,12 @@ case ('ele:gen_attribs')
   enddo
 
   if (attribute_name(ele, aperture_at$) == 'APERTURE_AT') then
-    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', aperture_at_name(ele%aperture_at)
+    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', trim(aperture_at_name(ele%aperture_at))
     nl=incr(nl); write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
   endif
 
   if (attribute_name(ele, aperture_type$) == 'APERTURE_TYPE') then
-    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;', aperture_type_name(ele%aperture_type)
+    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;', trim(aperture_type_name(ele%aperture_type))
   endif
 
   if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
@@ -2438,14 +2438,14 @@ case ('ele:cartesian_map')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          ct_map%ptr%file
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(ct_map%ptr%file)
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   ct_map%field_scale
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', ct_map%r0(i), i = 1, 3)
     name = attribute_name(ele, ct_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(ct_map%ele_anchor_pt)
-    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            em_field_type_name(ct_map%field_type)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(ct_map%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(ct_map%field_type))
 
   case ('terms')
     do i = 1, size(ct_map%ptr%term)
@@ -2590,7 +2590,7 @@ case ('ele:cylindrical_map')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          cy_map%ptr%file
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(cy_map%ptr%file)
     nl=incr(nl); write (li(nl), imt) 'm;INT;T;',                              cy_map%m
     nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       cy_map%harmonic
     nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 cy_map%phi0_fieldmap
@@ -2600,8 +2600,8 @@ case ('ele:cylindrical_map')
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', cy_map%r0(i), i = 1, 3)
     name = attribute_name(ele, cy_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(cy_map%ele_anchor_pt)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(cy_map%ele_anchor_pt))
 
   case ('terms')
     do i = 1, size(cy_map%ptr%term)
@@ -2891,14 +2891,14 @@ case ('ele:wall3d')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                   wall3d%name
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',         anchor_pt_name(wall3d%ele_anchor_pt)
+    nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                   trim(wall3d%name)
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',         trim(anchor_pt_name(wall3d%ele_anchor_pt))
     select case (ele%key)
     case (capillary$)
     case (diffraction_plate$, mask$)
       nl=incr(nl); write (li(nl), rmt) 'thickness;REAL;T',            wall3d%thickness
-      nl=incr(nl); write (li(nl), amt) 'clear_material;REAL;T',       wall3d%clear_material
-      nl=incr(nl); write (li(nl), amt) 'opaque_material;REAL;T',      wall3d%opaque_material
+      nl=incr(nl); write (li(nl), amt) 'clear_material;REAL;T',       trim(wall3d%clear_material)
+      nl=incr(nl); write (li(nl), amt) 'opaque_material;REAL;T',      trim(wall3d%opaque_material)
     case default
       nl=incr(nl); write (li(nl), lmt) 'superimpose;REAL;T',          wall3d%superimpose
     end select
@@ -2910,7 +2910,7 @@ case ('ele:wall3d')
       nl=incr(nl); write (li(nl), rmt) 's;REAL;T;',         sec%s
       nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T;',    (';', sec%r0(j), j = 1, size(sec%r0))
       if (ele%key /= capillary$) then
-        nl=incr(nl); write (li(nl), amt) 'wall3d_section^type;ENUM;T;',    wall3d_section_type_name(sec%type)
+        nl=incr(nl); write (li(nl), amt) 'wall3d_section^type;ENUM;T;',    trim(wall3d_section_type_name(sec%type))
       endif
       nl=incr(nl); write (li(nl), imt) 'vertex;INT;F;',    i
       do j = 1, size(sec%v)
@@ -3206,15 +3206,15 @@ case ('ele:taylor_field')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          t_field%ptr%file
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(t_field%ptr%file)
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   t_field%field_scale
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', t_field%r0(i), i = 1, 3)
     nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            t_field%dz
     name = attribute_name(ele, t_field%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(t_field%ele_anchor_pt)
-    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            em_field_type_name(t_field%field_type)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(t_field%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(t_field%field_type))
     nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             t_field%curved_ref_frame
     nl=incr(nl); write (li(nl), lmt) 'canonical_tracking;LOGIC;T;',           t_field%canonical_tracking
 
@@ -3291,16 +3291,16 @@ case ('ele:grid_field')
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
     name = attribute_name(ele, g_field%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(g_field%ele_anchor_pt)
-    nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    em_field_type_name(g_field%field_type)
-    nl=incr(nl); write (li(nl), amt) 'grid_field^geometry;ENUM;T;',           grid_field_geometry_name(g_field%geometry)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(g_field%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    trim(em_field_type_name(g_field%field_type))
+    nl=incr(nl); write (li(nl), amt) 'grid_field^geometry;ENUM;T;',           trim(grid_field_geometry_name(g_field%geometry))
     nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       g_field%harmonic
     nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 g_field%phi0_fieldmap
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   g_field%field_scale
     nl=incr(nl); write (li(nl), imt) 'interpolation_order;INUM;T;',           g_field%interpolation_order
     nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             g_field%curved_ref_frame
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          g_field%ptr%file
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(g_field%ptr%file)
 
   case ('points')
     do i = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)
@@ -4225,19 +4225,19 @@ case ('global')
   nl=incr(nl); write (li(nl), rmt) 'delta_e_chrom;REAL;T;',                   s%global%delta_e_chrom
   nl=incr(nl); write (li(nl), imt) 'n_opti_cycles;INT;T;',                    s%global%n_opti_cycles
   nl=incr(nl); write (li(nl), imt) 'n_opti_loops;INT;T;',                     s%global%n_opti_loops
-  nl=incr(nl); write (li(nl), amt) 'phase_units;ENUM;T;',                     angle_units_name(s%global%phase_units)
+  nl=incr(nl); write (li(nl), amt) 'phase_units;ENUM;T;',                     trim(angle_units_name(s%global%phase_units))
   nl=incr(nl); write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
   nl=incr(nl); write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
   nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
   nl=incr(nl); write (li(nl), imt) 'srdt_gen_n_slices;INT;T;',                s%global%srdt_gen_n_slices
   nl=incr(nl); write (li(nl), imt) 'srdt_sxt_n_slices;INT;T;',                s%global%srdt_sxt_n_slices
   nl=incr(nl); write (li(nl), lmt) 'srdt_use_cache;LOGIC;T;',                 s%global%srdt_use_cache
-  nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                    s%global%random_engine
-  nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',           s%global%random_gauss_converter
-  nl=incr(nl); write (li(nl), amt) 'track_type;ENUM;T;',                      s%global%track_type
-  nl=incr(nl); write (li(nl), amt) 'optimizer;ENUM;T;',                       s%global%optimizer
-  nl=incr(nl); write (li(nl), amt) 'print_command;STR;T;',                    s%global%print_command
-  nl=incr(nl); write (li(nl), amt) 'var_out_file;FILE;T;',                    s%global%var_out_file
+  nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                    trim(s%global%random_engine)
+  nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',           trim(s%global%random_gauss_converter)
+  nl=incr(nl); write (li(nl), amt) 'track_type;ENUM;T;',                      trim(s%global%track_type)
+  nl=incr(nl); write (li(nl), amt) 'optimizer;ENUM;T;',                       trim(s%global%optimizer)
+  nl=incr(nl); write (li(nl), amt) 'print_command;STR;T;',                    trim(s%global%print_command)
+  nl=incr(nl); write (li(nl), amt) 'var_out_file;FILE;T;',                    trim(s%global%var_out_file)
   nl=incr(nl); write (li(nl), lmt) 'external_plotting;LOGIC;I;',              s%global%external_plotting
   nl=incr(nl); write (li(nl), lmt) 'opt_with_ref;LOGIC;T;',                   s%global%opt_with_ref
   nl=incr(nl); write (li(nl), lmt) 'opt_with_base;LOGIC;T;',                  s%global%opt_with_base
@@ -5056,17 +5056,17 @@ case ('plot_curve')
   c => curves(1)%c
   ix_uni = c%ix_universe
 
-  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             c%name
-  nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     c%data_source
-  nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE_Z;T;',               c%data_type_x
-  nl=incr(nl); write (li(nl), amt) 'data_type_z;ENUM;T;',                     c%data_type_z
-  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   c%data_type
-  nl=incr(nl); write (li(nl), amt) 'component;COMPONENT;T;',                  c%component
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             trim(c%name)
+  nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     trim(c%data_source)
+  nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE_Z;T;',               trim(c%data_type_x)
+  nl=incr(nl); write (li(nl), amt) 'data_type_z;ENUM;T;',                     trim(c%data_type_z)
+  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   trim(c%data_type)
+  nl=incr(nl); write (li(nl), amt) 'component;COMPONENT;T;',                  trim(c%component)
   nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(c%ele_ref_name)
-  nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      c%legend_text
-  nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     c%message_text
-  nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            c%units
-  nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;I;',                      c%why_invalid
+  nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      trim(c%legend_text)
+  nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     trim(c%message_text)
+  nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            trim(c%units)
+  nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;I;',                      trim(c%why_invalid)
   nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             c%y_axis_scale_factor
   nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        c%z_color0
   nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        c%z_color1
@@ -5260,12 +5260,12 @@ case ('plot_graph')
     nl=incr(nl); write (li(nl), vamt) 'curve[', i, '];STR;T;',                g%curve(i)%name
   enddo
 
-  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                               g%name
-  nl=incr(nl); write (li(nl), amt) 'graph^type;ENUM;T;',                        g%type
-  nl=incr(nl); write (li(nl), amt) 'title;STR;T;',                              g%title
-  nl=incr(nl); write (li(nl), amt) 'title_suffix;STR;F;',                       g%title_suffix
-  nl=incr(nl); write (li(nl), amt) 'component;COMPONENT;T;',                    g%component
-  nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;F;',                        g%why_invalid
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                               trim(g%name)
+  nl=incr(nl); write (li(nl), amt) 'graph^type;ENUM;T;',                        trim(g%type)
+  nl=incr(nl); write (li(nl), amt) 'title;STR;T;',                              trim(g%title)
+  nl=incr(nl); write (li(nl), amt) 'title_suffix;STR;F;',                       trim(g%title_suffix)
+  nl=incr(nl); write (li(nl), amt) 'component;COMPONENT;T;',                    trim(g%component)
+  nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;F;',                        trim(g%why_invalid)
   nl=incr(nl); write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',               g%x_axis_scale_factor
   nl=incr(nl); write (li(nl), rmt) 'symbol_size_scale;REAL;T;',                 g%symbol_size_scale
   nl=incr(nl); write (li(nl), jmt) g%ix_universe, '^ix_branch;INUM;T;',         g%ix_branch
@@ -5912,9 +5912,9 @@ case ('plot1')
     nl=incr(nl); write (li(nl), vamt) 'graph[', i, '];STR;T;',              p%graph(i)%name
   enddo
 
-  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             p%name
-  nl=incr(nl); write (li(nl), amt) 'description;STR;T;',                      p%description
-  nl=incr(nl); write (li(nl), amt) 'x_axis_type;ENUM;T;',                     p%x_axis_type
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             trim(p%name)
+  nl=incr(nl); write (li(nl), amt) 'description;STR;T;',                      trim(p%description)
+  nl=incr(nl); write (li(nl), amt) 'x_axis_type;ENUM;T;',                     trim(p%x_axis_type)
   nl=incr(nl); write (li(nl), lmt) 'autoscale_x;LOGIC;T;',                    p%autoscale_x
   nl=incr(nl); write (li(nl), lmt) 'autoscale_y;LOGIC;T;',                    p%autoscale_y
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_x;LOGIC;T;',               p%autoscale_gang_x
@@ -6086,7 +6086,7 @@ case ('shape_pattern_list')
   if (line == '') then
     do i = 1, size(s%plot_page%pattern)
       pattern => s%plot_page%pattern(i)
-      nl=incr(nl); write (li(nl), '(2a, i0)') pattern%name, ';', pattern%line%width
+      nl=incr(nl); write (li(nl), '(2a, i0)') trim(pattern%name), ';', pattern%line%width
     enddo
 
   else
@@ -6650,7 +6650,7 @@ case ('var')
     nl=incr(nl); write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
 
     nl=incr(nl); write (li(nl), amt) 'ele_name;STR;F;',                         trim(v_ptr%ele_name)
-    nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;F;',                      v_ptr%attrib_name
+    nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;F;',                      trim(v_ptr%attrib_name)
     nl=incr(nl); write (li(nl), imt) 'ix_v1;INT;F;',                            v_ptr%ix_v1
     nl=incr(nl); write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
     nl=incr(nl); write (li(nl), imt) 'ix_dvar;INT;F;',                          v_ptr%ix_dvar
@@ -6672,7 +6672,7 @@ case ('var')
     nl=incr(nl); write (li(nl), rmt) 'key_val0;REAL;F;',                        v_ptr%key_val0
     nl=incr(nl); write (li(nl), rmt) 'key_delta;REAL;T;',                       v_ptr%key_delta
     nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               v_ptr%s
-    nl=incr(nl); write (li(nl), amt) 'var^merit_type;ENUM;T;',                  v_ptr%merit_type
+    nl=incr(nl); write (li(nl), amt) 'var^merit_type;ENUM;T;',                  trim(v_ptr%merit_type)
     nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         v_ptr%exists
     nl=incr(nl); write (li(nl), lmt) 'good_var;LOGIC;F;',                       v_ptr%good_var
     nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      v_ptr%good_user
@@ -7133,7 +7133,7 @@ case ('wave')
   select case (line)
   case ('params')
 
-    nl=incr(nl); write (li(nl), amt) 'wave_data_type;ENUM;T;',          s%wave%data_type
+    nl=incr(nl); write (li(nl), amt) 'wave_data_type;ENUM;T;',          trim(s%wave%data_type)
     nl=incr(nl); write (li(nl), imt) 'ix_a1;INT;T;',                    s%wave%ix_a1
     nl=incr(nl); write (li(nl), imt) 'ix_a2;INT;T;',                    s%wave%ix_a2
     nl=incr(nl); write (li(nl), imt) 'ix_b1;INT;T;',                    s%wave%ix_b1
@@ -7537,10 +7537,10 @@ nl=incr(nl); write (li(nl), rmt) 'path_len;REAL;F;',                         orb
 nl=incr(nl); write (li(nl), rmt) 'p0c;REAL;F;',                              orbit%p0c
 nl=incr(nl); write (li(nl), rmt) 'beta;REAL;F;',                             orbit%beta
 nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                            orbit%ix_ele
-nl=incr(nl); write (li(nl), amt) 'state;STR;F;',                             coord_state_name(orbit%state)
+nl=incr(nl); write (li(nl), amt) 'state;STR;F;',                             trim(coord_state_name(orbit%state))
 nl=incr(nl); write (li(nl), imt) 'direction;INT;F;',                         orbit%direction
-nl=incr(nl); write (li(nl), amt) 'species;SPECIES;F;',                       species_name(orbit%species)
-nl=incr(nl); write (li(nl), amt) 'location;STR;F;',                          location_name(orbit%location)
+nl=incr(nl); write (li(nl), amt) 'species;SPECIES;F;',                       trim(species_name(orbit%species))
+nl=incr(nl); write (li(nl), amt) 'location;STR;F;',                          trim(location_name(orbit%location))
 
 end subroutine orbit_out
 
