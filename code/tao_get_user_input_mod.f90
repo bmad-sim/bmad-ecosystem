@@ -245,8 +245,8 @@ endif
 if (cmd_out == '') then
   if (present(cmd_in)) then
     cmd_out = cmd_in
-  elseif (s%com%command_arg /= '' .and. .not. s%com%command_arg_has_been_executed) then
-    cmd_out = s%com%command_arg
+  elseif (s%init%command_arg /= '' .and. .not. s%com%command_arg_has_been_executed) then
+    cmd_out = s%init%command_arg
     s%com%command_arg_has_been_executed = .true.
   else
     s%com%cmd_from_cmd_file = .false.

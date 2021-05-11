@@ -742,7 +742,7 @@ The \vn{reinitialize} command reinitializes various things. Format:
 \begin{example}
   reinitialize beam
   reinitialize data
-  reinitialize tao \{command line optional arguments\}
+  reinitialize tao \{-clear\} \{command line optional arguments\}
 \end{example}
 
 \vskip 10pt 
@@ -759,12 +759,17 @@ conditions or to perform analysis with more than one initialization file. See th
 Initialization section (\sref{s:command.line}) for a list of the optional arguments. If an argument
 is not set, the \vn{reinitialize} command uses the same argument value that were used in the last
 \vn{reinitialize} command, or, if this is the first reinitialization, what was used to start \tao.
+Exception: If the \vn{-clear} switch is present, all initalization parameters are set to their
+default state before the command line arguments specified in the \vn{reinitialize} command are
+parsed. The \vn{-clear} switch, if used, should come before any command line arguments since if
+there are command line arguments before the \vn{-clear} switch, these argumnets will be cleared.
 
 Examples:
 \begin{example}
   reinit tao                         ! Reinit using previous arguments
-  reinit tao -init tao_special.init  ! Reinitializes \tao with the initialization file 
-                                     !   tao_special.init
+  reinit tao -init special.init      ! Reinitializes \tao with the initialization file 
+                                     !   special.init.
+  reinit -clear -start my_start      ! Use default init values except for the start file.                    
 \end{example}
 
 

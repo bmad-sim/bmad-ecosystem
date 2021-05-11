@@ -174,8 +174,8 @@ forall (i = 1:size(s%plot_page%title), (s%plot_page%title(i)%string /= '')) s%pl
 
 ! Plot window geometry specified on cmd line?
 
-if (s%com%geometry_arg /= '') then
-  str = s%com%geometry_arg
+if (s%init%geometry_arg /= '') then
+  str = s%init%geometry_arg
   ix = index(str, 'x')
   if (ix == 0) then
     call out_io (s_error$, r_name, 'MALFORMED -geometry ARGUMENT. NO "x" PRESENT: ' // str, 'IN FILE: ' // plot_file)

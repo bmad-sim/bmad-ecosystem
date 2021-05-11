@@ -99,7 +99,7 @@ subroutine end_bookkeeping ()
 ! Tao does its own bookkeeping
 
 bmad_com%auto_bookkeeper = .false.
-s%com%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
+s%com%valid_plot_who(1:5) = ['model ', 'base  ', 'ref   ', 'design', 'meas  ']
 
 ! Seed random number generator
 
@@ -107,13 +107,13 @@ call ran_seed_put (s%global%random_seed)
 call ran_engine (s%global%random_engine)
 call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
-call set_this_logical_command_arg (s%com%rf_on_arg, .false., s%global%rf_on)
-call set_this_logical_command_arg (s%com%no_stopping_arg, .true., s%global%stop_on_error)
-call set_this_logical_command_arg (s%com%noplot_arg, .true., s%global%plot_on)
-call set_this_logical_command_arg (s%com%no_rad_int_arg, .true., s%global%rad_int_calc_on)
-call set_this_logical_command_arg (s%com%disable_smooth_line_calc_arg, .false., s%global%disable_smooth_line_calc)
-if (s%com%prompt_color_arg /= '')  s%global%prompt_color = s%com%prompt_color_arg
-if (s%com%quiet_arg /= '')         s%global%quiet = s%com%quiet_arg
+call set_this_logical_command_arg (s%init%rf_on_arg, .false., s%global%rf_on)
+call set_this_logical_command_arg (s%init%no_stopping_arg, .true., s%global%stop_on_error)
+call set_this_logical_command_arg (s%init%noplot_arg, .true., s%global%plot_on)
+call set_this_logical_command_arg (s%init%no_rad_int_arg, .true., s%global%rad_int_calc_on)
+call set_this_logical_command_arg (s%init%disable_smooth_line_calc_arg, .false., s%global%disable_smooth_line_calc)
+if (s%init%prompt_color_arg /= '')  s%global%prompt_color = s%init%prompt_color_arg
+if (s%init%quiet_arg /= '')         s%global%quiet = s%init%quiet_arg
 
 s%com%n_alias = 0
 s%com%ix_key_bank = 0             ! For single mode.
@@ -192,12 +192,12 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   bb => s%u(i)%model_branch(0)%beam
   bb%beam_init = beam_init_struct()
   bb%beam_init%file_name = ''
-  bb%beam_init%position_file = s%com%beam_init_position_file_arg
+  bb%beam_init%position_file = s%init%beam_init_position_file_arg
   bb%track_start    = ''
   bb%track_end      = ''
   bb%ix_track_start = not_set$
   bb%ix_track_end   = not_set$
-  s%u(i)%beam%track_data_file = s%com%beam_track_data_file_arg
+  s%u(i)%beam%track_data_file = s%init%beam_track_data_file_arg
   s%u(i)%beam%track_beam_in_universe = .false.
 enddo
 
@@ -269,14 +269,14 @@ do
           'PLEASE MODIFY YOUR INPUT FILE. This is just a warning. Tao will run normally...')
   endif
 
-  if (s%com%beam_init_position_file_arg /= '') beam_init%position_file = s%com%beam_init_position_file_arg
+  if (s%init%beam_init_position_file_arg /= '') beam_init%position_file = s%init%beam_init_position_file_arg
 
   if (beam_init%sig_e /= 0 .and. beam_init%sig_pz /= 0) then   ! sig_e is superceeded by sig_pz
     beam_init%sig_pz = beam_init%sig_e
     beam_init%sig_e = 0
   endif
 
-  if (s%com%beam_track_data_file_arg /= '') beam_track_data_file = s%com%beam_track_data_file_arg  ! From the command line
+  if (s%init%beam_track_data_file_arg /= '') beam_track_data_file = s%init%beam_track_data_file_arg  ! From the command line
   if (track_start /= '') beam_track_start = track_start   ! For backwards compatibility
   if (track_end /= '')   beam_track_end   = track_end     ! For backwards compatibility
 

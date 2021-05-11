@@ -47,7 +47,7 @@ namelist / tao_design_lattice / design_lattice, &
 design_lattice = tao_design_lat_input()
 design_lattice(0)%file = 'Garbage!!!'
 
-alternative_lat_file_exists = (s%com%hook_lat_file /= '' .or. s%com%lattice_file_arg /= '')
+alternative_lat_file_exists = (s%init%hook_lat_file /= '' .or. s%init%lattice_file_arg /= '')
 
 ! Read lattice info
 
@@ -87,7 +87,7 @@ if (s%com%init_read_lat_info) then
   s%com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
   s%com%common_lattice = common_lattice
   s%com%n_universes = n_universes
-  s%com%unique_name_suffix = trim(unique_name_suffix)
+  s%init%unique_name_suffix = trim(unique_name_suffix)
 endif
 
 !
@@ -138,12 +138,12 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   !
 
-  if (s%com%lattice_file_arg /= '') then
-    design_lat%file = s%com%lattice_file_arg
+  if (s%init%lattice_file_arg /= '') then
+    design_lat%file = s%init%lattice_file_arg
     design_lat%language = ''
     design_lat%file2 = ''
-  elseif (s%com%hook_lat_file /= '' .and. design_lat%file == '') then
-    design_lat%file = s%com%hook_lat_file
+  elseif (s%init%hook_lat_file /= '' .and. design_lat%file == '') then
+    design_lat%file = s%init%hook_lat_file
     design_lat%language = ''
     design_lat%file2 = ''
   endif
@@ -181,7 +181,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
   ! is relative, then it is relative to the directory where the tao init file is.
 
   if (.not. alternative_lat_file_exists .and. file_name_is_relative(design_lat%file)) &
-                design_lat%file = trim(s%com%init_file_arg_path) // design_lat%file 
+                design_lat%file = trim(s%init%init_file_arg_path) // design_lat%file 
 
   ! Read in the design lattice. 
   ! A blank means use the lattice form universe 1.
@@ -225,7 +225,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
     if (s%com%combine_consecutive_elements_of_like_name) call combine_consecutive_elements(u%design%lat)
 
-    unique_name_suffix = s%com%unique_name_suffix
+    unique_name_suffix = s%init%unique_name_suffix
     do
       if (unique_name_suffix == '') exit
       call string_trim(unique_name_suffix, unique_name_suffix, ix)
@@ -246,7 +246,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       endif
     enddo
 
-    if (s%com%slice_lattice_arg /= '') design_lat%slice_lattice = s%com%slice_lattice_arg
+    if (s%init%slice_lattice_arg /= '') design_lat%slice_lattice = s%init%slice_lattice_arg
 
     if (design_lat%slice_lattice /= '') then
       call slice_lattice (u%design%lat, design_lat%slice_lattice, err)
