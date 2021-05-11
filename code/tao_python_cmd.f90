@@ -2115,11 +2115,11 @@ case ('ele:methods')
   endif
 
   if (attribute_name(ele, origin_ele$) == 'ORIGIN_ELE') then
-    nl=incr(nl); write (li(nl), amt) 'origin_ele;STR;T;', trim('"', trim(ele%component_name))
+    nl=incr(nl); write (li(nl), amt) 'origin_ele;STR;T;', trim(ele%component_name)
   endif
 
   if (attribute_name(ele, physical_source$) == 'PHYSICAL_SOURCE') then
-    nl=incr(nl); write (li(nl), amt) 'physical_source;STR;T;', '"', trim(ele%component_name)
+    nl=incr(nl); write (li(nl), amt) 'physical_source;STR;T;', trim(ele%component_name)
   endif
 
   if (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD') then
