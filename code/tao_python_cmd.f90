@@ -6052,13 +6052,15 @@ case ('shape_manage')
   end select
 
 !%% shape_pattern_list -----------------------
-! List of shape patterns
+! List of shape patterns or shape pattern points
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python shape_pattern_list {ix_pattern}
-! If optional {ix_pattern} index is omitted then list all the patterns
+!
+! If optional {ix_pattern} index is omitted then list all the patterns.
+! If {ix_pattern} is present, list points of given pattern.
 ! 
 !
 ! Parameters
