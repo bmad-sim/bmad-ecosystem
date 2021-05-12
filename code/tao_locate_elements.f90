@@ -14,7 +14,7 @@
 !
 ! Input:
 !   ele_list       -- Character(*): String with element names using element list format.
-!   ix_universe    -- Integer: Universe to search. -1 => search s%com%default_universe. -2 (all unis) => error.
+!   ix_universe    -- Integer: Universe to search. -1 => search s%global%default_universe. -2 (all unis) => error.
 !   lat_type       -- Integer, optional: model$ (default), design$, or base$.
 !   ignore_blank   -- Logical, optional: If present and true then do nothing if
 !                     ele_list is blank. otherwise treated as an error.

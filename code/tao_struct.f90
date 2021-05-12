@@ -194,7 +194,7 @@ type tao_curve_struct
   real(rp) :: z_color0 = 0, z_color1 = 0 ! Min and max values for mapping z-axis to color.
   type (qp_line_struct) line             ! Line attributes
   type (qp_symbol_struct) symbol         ! Symbol attributes
-  integer :: ix_universe = -1            ! Universe where data is. -1 => use s%com%default_universe
+  integer :: ix_universe = -1            ! Universe where data is. -1 => use s%global%default_universe
   integer :: symbol_every = 1            ! Symbol every how many points.
   integer :: ix_branch = 0
   integer :: ix_ele_ref = -1             ! Index in lattice of reference element.
@@ -614,6 +614,8 @@ type tao_global_struct
   real(rp) :: dmerit_stop_value = 0      ! Fractional Merit change below which an optimizer will stop.
   real(rp) :: random_sigma_cutoff = -1   ! Cut-off in sigmas.
   real(rp) :: delta_e_chrom = 0          ! Delta E used from chrom calc.
+  integer :: default_universe = 1        ! Default universe to work with.
+  integer :: default_branch = 0          ! Default lattice branch to work with.
   integer :: n_opti_cycles = 20          ! Number of optimization cycles
   integer :: n_opti_loops = 1            ! Number of optimization loops
   integer :: phase_units = radians$      ! Phase units on output.
@@ -683,7 +685,7 @@ end type
 ! tao_common_struct is for the global parameters that the user should not have direct access to.
 ! Also see tao_global_struct.
 
-integer, parameter :: n_uni_init$ = 1, dflt_uni_init$ = 1, dflt_branch_init$ = 0
+integer, parameter :: n_uni_init$ = 1
 
 type tao_common_struct
   type (tao_alias_struct) :: alias(200) = tao_alias_struct()
@@ -714,7 +716,6 @@ type tao_common_struct
   logical :: init_beam             = .true.   ! Used by custom programs to control Tao init
   logical :: init_var              = .true.   ! Used by custom programs to control Tao init
   logical :: init_read_lat_info    = .true.   ! Used by custom programs to control Tao init
-  logical :: parse_cmd_args        = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running     = .false. 
   logical :: have_datums_using_expressions = .false.
   logical :: print_to_terminal = .true.            ! Print command prompt to the terminal? For use with GUIs.
@@ -727,13 +728,14 @@ type tao_common_struct
   character(200) :: saved_cmd_line = ''            ! Saved part of command line when there are mulitple commands on a line
   character(80) :: single_mode_buffer = ''
   integer :: n_universes = n_uni_init$   
-  integer :: default_universe = dflt_uni_init$     ! Default universe to work with.
-  integer :: default_branch = dflt_branch_init$    ! Default lattice branch to work with.
 end type
 
 ! Initialization parameters
 
 type tao_init_struct
+  logical :: parse_cmd_args = .true.               ! Used by custom programs to control Tao init
+  logical :: debug_switch = .false.                ! Is the "-debug" switch present?
+  logical :: external_plotting_switch = .false.    ! Is "-external_plotting" switch present?
   character(16) :: init_name = 'Tao'               ! label for initialization
   character(200) :: hook_init_file = ''            ! 
   character(200) :: hook_lat_file = ''             ! To be set by tao_hook_parse_command_args
@@ -1047,7 +1049,7 @@ end type
 ! Essentially this holds all the information known to the program.
 
 type tao_super_universe_struct
-  type (tao_global_struct) global                          ! User accessible global variables.
+  type (tao_global_struct) :: global                       ! User accessible global variables.
   type (tao_init_struct) :: init = tao_init_struct()       ! Initialization parameters
   type (tao_common_struct) :: com                          ! Non-initialization common parameters
   type (tao_plot_page_struct) :: plot_page                 ! Defines the plot window.
@@ -1064,6 +1066,7 @@ type tao_super_universe_struct
 end type
 
 type (tao_super_universe_struct), save, target :: s
+type (tao_common_struct), save :: tao_common0   ! Used to get around gfortran bug
 
 !-----------------------------------------------------------------------
 contains

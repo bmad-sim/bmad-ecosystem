@@ -25,7 +25,7 @@ use random_mod
 use opti_de_mod, only: opti_de_param
 use input_mod
 
-type (tao_global_struct), save :: global, default_global
+type (tao_global_struct) :: global
 
 integer ios, iu, i, j, k, ix, num
 integer n_data_max, n_var_max
@@ -40,7 +40,6 @@ character(40) name, universe
 character(100) line
 
 logical err, xxx
-logical, save :: init_needed = .true.
 
 namelist / tao_params / global, bmad_com, csr_param, opti_de_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
@@ -48,12 +47,7 @@ namelist / tao_params / global, bmad_com, csr_param, opti_de_param, &
 !-----------------------------------------------------------------------
 ! First time through capture the default global (could have been set via command line arg.)
 
-if (init_needed) then
-  default_global = s%global
-  init_needed = .false.
-endif
-
-global = default_global         ! establish defaults
+global = s%global    ! establish defaults
 
 call tao_hook_init_global (init_file, global)
 

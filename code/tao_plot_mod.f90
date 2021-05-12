@@ -42,7 +42,7 @@ logical found, err, beam_source
 
 ! inits
 
-if (.not. s%global%plot_on .or. s%global%external_plotting) return
+if (.not. s%global%plot_on) return
 call tao_create_plot_window () ! This routine knows not to create multiple windows.
 if (logic_option(.true., do_clear)) call qp_clear_page
 
@@ -67,7 +67,7 @@ enddo
 ! Draw view universe
 
 if (size(s%u) > 1 .and. s%plot_page%draw_graph_title_suffix) then
-  write (default_uni, '(i3)') s%com%default_universe
+  write (default_uni, '(i3)') s%global%default_universe
   call qp_draw_text ('Default Universe:' // default_uni, -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
 endif
 
@@ -1898,7 +1898,7 @@ do i = 1, n
   if (size(s%u) > 1 .and. .not. all(graph%curve%ix_universe == graph%curve(1)%ix_universe)) then
     iu = curve%ix_universe
     if (iu == -1) iu = graph%ix_universe
-    if (iu == -1) iu = s%com%default_universe
+    if (iu == -1) iu = s%global%default_universe
     text(i) = int_str(iu) // '@' // text(i)
   endif
   if (.not. all(graph%curve%component == graph%curve(1)%component)) then
