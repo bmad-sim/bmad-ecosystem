@@ -1,0 +1,32 @@
+alias snparticle set beam_init n_particle = [[1]]
+alias csrbins set csr_param n_bin = [[1]]
+alias csrstep set csr_param ds_track_step =
+alias csron  set bmad_com coherent_synch_rad_on  = T
+alias csroff set bmad_com coherent_synch_rad_on  = F
+alias showcsr show global -csr_param
+alias szpz  set curve zphase.z.c1 ele_ref_name = [[1]]
+alias beamoff set global track_type = single
+alias beamon set global track_type = beam
+
+!---CSR---
+
+set csr_param beam_chamber_height = 0.0254 !1 inch full height
+set csr_param n_shield_images = 0
+set csr_param ds_track_step = 0.01
+set csr_param n_bin = 40
+set csr_param particle_bin_span = 2
+set csr_param sigma_cutoff = 0.1 ! Cutoff for the lsc calc. If a bin sigma is < cutoff * sigma_ave then ignore.
+set csr_param write_csr_wake = T
+
+set bmad_com csr_and_space_charge_on = T
+
+set ele * csr_method = 1_dim
+set ele * space_charge_method = off
+
+beamon
+place r00 zphase
+szpz Mar.END
+sc all -.03 .03
+
+
+
