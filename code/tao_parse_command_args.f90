@@ -94,6 +94,9 @@ do
     s%com%n_universes = n_uni_init$   
     s%com%default_universe = dflt_uni_init$     ! Default universe to work with.
     s%com%default_branch = dflt_branch_init$    ! Default lattice branch to work with.
+    s%global%debug_on = .false.
+    s%global%stop_on_error = .true.
+    s%global%external_plotting = .false.
 
   case ('-command')
     call get_next_arg (arg0, s%init%command_arg, i_arg, n_arg, .true.)
