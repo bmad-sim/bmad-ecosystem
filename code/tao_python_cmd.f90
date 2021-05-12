@@ -298,7 +298,7 @@ select case (command)
 ! -------- 
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
 !    ix_universe: 1
 
@@ -339,7 +339,7 @@ case ('beam')
 ! -------- 
 !
 ! Example: 1
-!  init: -init /$ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  init: -init /$ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
 !    ix_universe: 1
 
@@ -526,7 +526,7 @@ case ('branch1')
 ! --------
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
 !    ele_id: end
 !    which: model
@@ -534,7 +534,7 @@ case ('branch1')
 !    coordinate:
 !
 !Example: 2
-!  init: -init $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
 !    ele_id: end
 !    which: model
@@ -5647,7 +5647,7 @@ case ('plot_graph_manage')
 ! --------
 !
 ! Example: 1
-!  init: -external_plotting -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line 
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line -external_plotting
 !  args:
 !    region_name: beta
 !    graph_name: g
@@ -5740,7 +5740,7 @@ endif
 ! --------
 !
 ! Example: 1
-!  init: -external_plotting -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line 
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line -external_plotting
 !  args:
 !    region_name: r11
 !    graph_name: g
