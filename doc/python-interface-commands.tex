@@ -26,7 +26,7 @@ Examples
 -------- 
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+ init: -init $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
  args:
    ix_universe: 1
 
@@ -57,7 +57,7 @@ Examples
 -------- 
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+ init: -init /$ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
  args:
    ix_universe: 1
 
@@ -83,7 +83,7 @@ Examples
 -------- 
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
 
 \end{example}
@@ -114,7 +114,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    ix_universe: 1
    ix_branch: 0
@@ -153,7 +153,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+ init: -init $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
  args:
    ele_id: end
    which: model
@@ -161,7 +161,7 @@ Example: 1
    coordinate:
 
 Example: 2
- init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+ init: -init $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
  args:
    ele_id: end
    which: model
@@ -195,12 +195,12 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
  args:
    ix_section:
 
 Example: 2
- init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
  args:
    ix_section: 1
 
@@ -229,9 +229,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
  args:
-   graph:
+   graph: floor_plan.g
 
 \end{example}
 \item[building_wall_point] \Newline\begin{example}
@@ -262,14 +262,14 @@ x_center
    
 Returns
 -------
-string_list 
+None 
 
 
 Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
  args:
    ix_section: 1
    ix_point: 1
@@ -314,7 +314,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    ix_section: 1
    sec_name: test
@@ -370,12 +370,12 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    who: data
 
 Example: 2
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    who:var
 
@@ -402,11 +402,6 @@ string_list
 Examples
 --------
 
-Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
- args:
-   ix_uni:1
-
 \end{example}
 \item[da_params] \Newline\begin{example}
 Dynamic aperture input parameters
@@ -429,11 +424,6 @@ string_list
 
 Examples
 --------
-
-Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
- args:
-   ix_uni:1
 
 \end{example}
 \item[data] \Newline\begin{example}
@@ -467,15 +457,15 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    ix_universe:
    d2_name: twiss
    d1_datum: end 
-   dat_index: 
+   dat_index: 1  
 
 Example: 2
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    ix_universe: 1
    d2_name: twiss
@@ -529,7 +519,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    ix_uni: 1
    d2_name: orbit
@@ -562,10 +552,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
-   ix_uni: 1
-   d2_datum: orbit
+   d2_datum: 1@eta.x
 
 \end{example}
 \item[data_d2] \Newline\begin{example}
@@ -594,7 +583,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    ix_uni: 1
    d2_datum: twiss
@@ -628,7 +617,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    ix_uni: 1 
    d1_datum: twiss.end
@@ -660,7 +649,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    ix_uni: 1 
    d2_datum: twiss
@@ -692,7 +681,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    data_array: twiss.end 
    parameter: model_value
@@ -723,7 +712,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    ix_universe : 1 
 
@@ -753,7 +742,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
 
 \end{example}
@@ -813,7 +802,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    datum_name: twiss.end[6]
    data_type: beta.y
@@ -857,7 +846,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    datum_type: twiss.end 
 
@@ -885,7 +874,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
 
 \end{example}
@@ -920,7 +909,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
@@ -957,7 +946,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
@@ -994,7 +983,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
@@ -1031,7 +1020,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
@@ -1068,7 +1057,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
@@ -1110,7 +1099,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
  args:
   ele_id: 1@0>>1
   which: model
@@ -1152,7 +1141,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall3d
  args:
   ele_id: 1@0>>1
   which: model
@@ -1197,9 +1186,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
  args:
-  ele_id: 1@0>>1
+  ele_id: 1@0>>5
   which: model
   index: 1
   who: base
@@ -1236,9 +1225,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_taylor
  args:
-  ele_id: 1@0>>1
+  ele_id: 1@0>>34
   which: model
 
 \end{example}
@@ -1273,9 +1262,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_spin
  args:
-  ele_id: 1@0>>1
+  ele_id: 1@0>>2
   which: model
 
 \end{example}
@@ -1316,11 +1305,11 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wake
  args:
   ele_id: 1@0>>1
   which: model
-  who: base
+  who: sr_long
 
 \end{example}
 \item[ele:wall3d] \Newline\begin{example}
@@ -1360,12 +1349,12 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall3d
  args:
   ele_id: 1@0>>1
   which: model
   index: 1
-  who: base
+  who: table
 
 \end{example}
 \item[ele:twiss] \Newline\begin{example}
@@ -1399,25 +1388,26 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
 
 \end{example}
-\item[ele:control] \Newline\begin{example}
-Element control
+\item[ele:control_var] \Newline\begin{example}
+List element control variables.
+Used for group, overlay and ramper type elements
 
 Notes
 -----
 Command syntax:
-  python ele:control {ele_id}|{which}
+  python ele:control_var {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
   design
 Example:
-  python ele:control 3@1>>7|model
+  python ele:control_var 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
 
 
@@ -1436,9 +1426,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
-  ele_id: 1@0>>1
+  ele_id: 1@0>>873
   which: model
 
 \end{example}
@@ -1473,7 +1463,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
@@ -1515,7 +1505,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
@@ -1559,12 +1549,12 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
  args:
-  ele_id: 1@0>>1
+  ele_id: 1@0>>9
   which: model
   index: 1
-  who: base
+  who: terms
 
 \end{example}
 \item[ele:grid_field] \Newline\begin{example}
@@ -1601,7 +1591,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_grid
  args:
   ele_id: 1@0>>1
   which: model
@@ -1647,14 +1637,14 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
-  where 
+  where: 
 
 Example: 2
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
@@ -1697,7 +1687,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
  args:
   ele_id: 1@0>>1
   which: model
@@ -1741,7 +1731,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
@@ -1778,7 +1768,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
   ele_id: 1@0>>1
   which: model
@@ -1813,7 +1803,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    expression: data::cbar.11[1:10]|model
 
@@ -1824,7 +1814,7 @@ EM field at a given point generated by a given element.
 Notes
 -----
 Command syntax:
-  python em_field {ele_id}|{which} {x}, {y}, {z}, {t_or_z}
+  python em_field {ele_id}|{which} {x} {y} {z} {t_or_z}
 where {which} is one of:
   model
   base
@@ -1854,14 +1844,14 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
-   ele_id: 1@0>>1
+   ele_id: 1@0>>22
    which: model
    x: 0
    y: 0
    z: 0
-   t_or_z: z
+   t_or_z: 0
 
 \end{example}
 \item[enum] \Newline\begin{example}
@@ -1889,7 +1879,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    enum_name: tracking_method
 
@@ -1917,9 +1907,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
-   graph:
+   graph: r13.g
 
 \end{example}
 \item[floor_orbit] \Newline\begin{example}
@@ -1945,9 +1935,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_floor_orbit
  args:
-   graph: 
+   graph: r33.g 
 
 \end{example}
 \item[global] \Newline\begin{example}
@@ -1980,7 +1970,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
 
 \end{example}
@@ -2006,7 +1996,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
 
 \end{example}
@@ -2033,7 +2023,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    who: ix_universe
 
@@ -2062,7 +2052,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    branch_name: 1@0
 
@@ -2092,7 +2082,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    branch_name: 1@0
 
@@ -2123,7 +2113,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    ix_universe: 1
 
@@ -2197,7 +2187,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    ix_uni: 1  
    ix_branch: 0 
@@ -2231,7 +2221,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    param_name: L   
 
@@ -2268,9 +2258,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
-   ele1_id: 2@1>>q01w|design
+   ele1_id: 1@0>>q01w|design
    ele2_id: q02w
 
 \end{example}
@@ -2296,7 +2286,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
 
 \end{example}
@@ -2332,7 +2322,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    ix_uni: 1
    ix_branch: 0
@@ -2363,7 +2353,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
 
 \end{example}
@@ -2391,9 +2381,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
-   curve_name: top.x.c1
+   curve_name: r13.g.a
 
 \end{example}
 \item[plot_lat_layout] \Newline\begin{example}
@@ -2422,7 +2412,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    ix_universe: 1
    ix_branch: 0 
@@ -2454,7 +2444,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    r_or_g: r
 
@@ -2488,9 +2478,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
-   graph_name: r13.g
+   graph_name: beta.g
 
 \end{example}
 \item[plot_histogram] \Newline\begin{example}
@@ -2499,7 +2489,7 @@ Plot Histogram
 Notes
 -----
 Command syntax:
-  python plot_histograph {curve_name}
+  python plot_histogram {curve_name}
 
 
 Parameters
@@ -2516,9 +2506,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
-   curve_name: c1
+   curve_name: r33.g.x
 
 \end{example}
 \item[plot_plot_manage] \Newline\begin{example}
@@ -2527,10 +2517,11 @@ Template plot creation or destruction.
 Notes
 -----
 Command syntax:
-  pyton plot_plot_manage {plot_location}^^{plot_name}^^
-                         {n_graph}^^{graph1_name}^^{graph2_name}...{graphN_name}
+  python plot_plot_manage {plot_location}^^{plot_name}^^
+                         {n_graph}^^{graph1_name}^^{graph2_name}^^{graphN_name}
 Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a 
 spot where there is already a template.
+Extra graph names can be included with ^^ connection. 
 If {n_graph} is set to -1 then just delete the plot.
 
 
@@ -2546,21 +2537,21 @@ graphN_name
    
 Returns
 -------
-string_list
+None
 
 
 Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
-   plot_location: r11
+   plot_location: @T1
    plot_name: beta
    n_graph: 1
-   graph1_name: g
-   graph2_name:
-   graphN_name:
+   graph1_name: g1
+   graph2_name: g2
+   graphN_name: gN
 
 \end{example}
 \item[plot_curve_manage] \Newline\begin{example}
@@ -2569,7 +2560,7 @@ Template plot curve creation/destruction
 Notes
 -----
 Command syntax:
-  pyton plot_curve_manage {graph_name}^^{curve_index}^^{curve_name}
+  python plot_curve_manage {graph_name}^^{curve_index}^^{curve_name}
 If {curve_index} corresponds to an existing curve then this curve is deleted.
 In this case the {curve_name} is ignored and does not have to be present.
 If {curve_index} does not not correspond to an existing curve, {curve_index}
@@ -2585,18 +2576,18 @@ curve_name
    
 Returns
 -------
-string_list
+None
 
 
 Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
-   graph_name: g
+   graph_name: beta.g
    curve_index: 1
-   curve_name: c1
+   curve_name: r13.g.a
 
 \end{example}
 \item[plot_graph_manage] \Newline\begin{example}
@@ -2605,7 +2596,7 @@ Template plot graph creation/destruction
 Notes
 -----
 Command syntax:
-  pyton plot_graph_manage {plot_name}^^{graph_index}^^{graph_name}
+  python plot_graph_manage {plot_name}^^{graph_index}^^{graph_name}
 If {graph_index} corresponds to an existing graph then this graph is deleted.
 In this case the {graph_name} is ignored and does not have to be present.
 If {graph_index} does not not correspond to an existing graph, {graph_index}
@@ -2621,22 +2612,22 @@ graph_name
    
 Returns
 -------
-string_list
+None
 
 
 Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    plot_name: beta
    graph_index: 1
-   graph_name: g
+   graph_name: beta.g
 
 \end{example}
 \item[plot_line] \Newline\begin{example}
-Points used to construct a smooth line for a plot curve.
+Output points used to construct the "line" associated with a plot curve.
 
 Notes
 -----
@@ -2657,7 +2648,7 @@ Parameters
 region_name
 graph_name
 curve_name
-x_or_y
+x_or_y : optional
 
    
 Returns
@@ -2669,12 +2660,12 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -external_plotting -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line 
  args:
-   region_name: r11
+   region_name: beta
    graph_name: g
    curve_name: a
-   x_or_y: x
+   x_or_y:
 
 \end{example}
 \item[plot_symbol] \Newline\begin{example}
@@ -2713,12 +2704,12 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -external_plotting -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line 
  args:
    region_name: r11
    graph_name: g
    curve_name: a
-   x_or_y: x 
+   x_or_y: 
 
 \end{example}
 \item[plot_transfer] \Newline\begin{example}
@@ -2742,17 +2733,17 @@ to_plot
    
 Returns
 -------
-string_list
+None
 
 
 Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
    from_plot: r13
-   to_plot: 
+   to_plot: r23 
 
 \end{example}
 \item[plot1] \Newline\begin{example}
@@ -2780,9 +2771,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
-   name: r11
+   name: beta
 
 \end{example}
 \item[shape_list] \Newline\begin{example}
@@ -2811,7 +2802,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    who: floor_plan  
 
@@ -2855,7 +2846,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    who: floor_plan
    index: 1
@@ -2863,13 +2854,15 @@ Example: 1
 
 \end{example}
 \item[shape_pattern_list] \Newline\begin{example}
-List of shape patterns
+List of shape patterns or shape pattern points
 
 Notes
 -----
 Command syntax:
   python shape_pattern_list {ix_pattern}
-If optional {ix_pattern} index is omitted then list all the patterns
+
+If optional {ix_pattern} index is omitted then list all the patterns.
+If {ix_pattern} is present, list points of given pattern.
 
 
 Parameters
@@ -2886,14 +2879,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_shape
  args:
    ix_pattern: 
-
-Example: 2
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
- args:
-   ix_pattern: 1 
 
 \end{example}
 \item[shape_pattern_manage] \Newline\begin{example}
@@ -2920,16 +2908,16 @@ pat_line_width
    
 Returns
 -------
-string_list
+None
 
 
 Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_shape
  args:
-   ix_pattern : 5
+   ix_pattern : 1
    pat_name : new_pat
    pat_line_width : 1
 
@@ -2958,14 +2946,14 @@ x
    
 Returns
 -------
-string_list
+None
 
 
 Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_shape
  args:
    ix_pattern: 1
    ix_point: 1
@@ -3003,19 +2991,19 @@ line_width
    
 Returns
 -------
-string_list
+None
 
 
 Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    who: floor_plan
    shape_index: 1
    ele_name: Q1
-   shape:
+   shape: circle
    color:
    shape_size:
    type_label:
@@ -3050,7 +3038,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    line: -python
 
@@ -3080,9 +3068,9 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
-   species_str: CO2++
+   species_str: electron
 
 \end{example}
 \item[species_to_str] \Newline\begin{example}
@@ -3110,7 +3098,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    species_int: -1
 
@@ -3148,7 +3136,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args: 
    ix_uni: 1
    ix_branch: 0
@@ -3177,7 +3165,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args: 
 
 \end{example}
@@ -3211,7 +3199,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args: 
    ix_uni: 1
    ix_branch: 0
@@ -3243,7 +3231,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args: 
    ix_universe: 1
 
@@ -3254,13 +3242,13 @@ Info on an individual variable
 Notes
 -----
 Command syntax:
-  python var {var}        or
   python var {var} slaves
 
 
 Parameters
 ----------
 var
+slaves : optional
 
    
 Returns
@@ -3272,9 +3260,16 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args: 
-   var: quad_k1[1]
+   var: quad[1]
+   slaves:
+
+Example: 2
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
+ args: 
+   var: quad[1]
+   slaves: slaves
 
 \end{example}
 \item[var_create] \Newline\begin{example}
@@ -3316,10 +3311,10 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
  args:
-   var_name: kick[5]
-   ele_name: Q01W
+   var_name: quad[1]
+   ele_name: Q1
    attribute: L
    universes: 1
    weight: 0.001
@@ -3327,7 +3322,7 @@ Example: 1
    low_lim: -10
    high_lim: 10
    merit_type: 
-   good_user: 1
+   good_user: T
    key_bound: T
    key_delta: 0.01 
 
@@ -3356,7 +3351,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
 
 \end{example}
@@ -3385,7 +3380,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    v1_var: quad_k1
 
@@ -3413,7 +3408,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    v1_var: quad_k1 
 
@@ -3460,7 +3455,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    v1_name: quad_k1 
    n_var_min: 0 
@@ -3490,7 +3485,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    v1_datum: quad_k1
 
@@ -3523,7 +3518,7 @@ Examples
 --------
 
 Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
  args:
    what: params
 
