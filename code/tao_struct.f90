@@ -641,7 +641,7 @@ type tao_global_struct
   logical :: debug_on = .false.                       ! For debugging.
   logical :: derivative_recalc = .true.               ! Recalc before each optimizer run?
   logical :: derivative_uses_design = .false.         ! Derivative calc uses design lattice instead of model?
-  logical :: disable_smooth_line_calc                 ! Global disable of the smooth line calculation.
+  logical :: disable_smooth_line_calc = .false.       ! Global disable of the smooth line calculation.
   logical :: draw_curve_off_scale_warn = .true.       ! Display warning on graphs?
   logical :: external_plotting = .false.              ! Used with matplotlib and gui.
   logical :: label_lattice_elements = .true.          ! For lat_layout plots
@@ -702,7 +702,7 @@ type tao_common_struct
   integer :: n_history = 0                      ! present history index
   integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
   logical :: initialized = .false.              ! Does tao_init() need to be called?
-  logical :: cmd_file_paused
+  logical :: cmd_file_paused = .false.
   logical :: use_cmd_here  = .false.            ! Used for commands recalled from the cmd history stack
   logical :: cmd_from_cmd_file = .false.        ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
@@ -723,7 +723,7 @@ type tao_common_struct
   logical :: is_err_message_printed(2) = .false.   ! Used by tao_set_invalid
   logical :: command_arg_has_been_executed = .false. ! Has the -command command line argument been executed?
   character(100) :: cmd = ''                       ! Used for the cmd history
-  character(16) :: valid_plot_who(10)              ! model, base, ref etc...
+  character(16) :: valid_plot_who(10) = ''         ! model, base, ref etc...
   character(200) :: saved_cmd_line = ''            ! Saved part of command line when there are mulitple commands on a line
   character(80) :: single_mode_buffer = ''
   integer :: n_universes = n_uni_init$   
