@@ -310,7 +310,7 @@ amt  = '(9a)'
 iamt = '(a, i0, 2x, 9a)'
 ramt = '(a, f0.3, 2x, 9a)'
 
-ix_branch = s%com%default_branch
+ix_branch = s%global%default_branch
 u => tao_pointer_to_universe(-1)
 lat => u%model%lat
 branch => lat%branch(ix_branch)
@@ -1729,9 +1729,9 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
     nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
+    nl=nl+1; write(lines(nl), lmt) '  %rad_int_calc_on               = ', s%global%rad_int_calc_on
     nl=nl+1; write(lines(nl), amt) '  %history_file                  = ', s%global%history_file
     nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
-    nl=nl+1; write(lines(nl), lmt) '  %rad_int_calc_on               = ', s%global%rad_int_calc_on
     nl=nl+1; write(lines(nl), lmt) '  %external_plotting             = ', s%global%external_plotting
     nl=nl+1; write(lines(nl), amt) '  %print_command                 = ', quote(s%global%print_command)
     nl=nl+1; write(lines(nl), amt) '  %prompt_string                 = ', quote(s%global%prompt_string)
@@ -1755,8 +1755,8 @@ case ('global')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Tao Parameters:'
     nl=nl+1; write(lines(nl), imt) '  Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
-    nl=nl+1; write(lines(nl), amt) '  default_universe:            = ', int_str(s%com%default_universe), '  ! Set using: "set default universe = ..."'
-    nl=nl+1; write(lines(nl), amt) '  default_branch:              = ', int_str(s%com%default_branch),   '  ! Set using: "set default branch = ..."'
+    nl=nl+1; write(lines(nl), amt) '  default_universe:            = ', int_str(s%global%default_universe), '  ! Set using: "set default universe = ..."'
+    nl=nl+1; write(lines(nl), amt) '  default_branch:              = ', int_str(s%global%default_branch),   '  ! Set using: "set default branch = ..."'
 !!!!    nl=nl+1; write(lines(nl), lmt) '  common_lattice               = ', s%com%common_lattice
     nl=nl+1; write(lines(nl), imt) '  Number paused command files  = ', count(s%com%cmd_file%paused)
     nl=nl+1; write(lines(nl), amt) '  unique_name_suffix           = ', quote(s%init%unique_name_suffix)
@@ -2225,7 +2225,7 @@ case ('lattice')
   print_header_lines = .true.
   print_tail_lines = .true.
   replacement_for_blank = ''
-  ix_branch = s%com%default_branch
+  ix_branch = s%global%default_branch
   undef_str = '---'
   print_lords = maybe$
   what_to_print = 'standard'
@@ -3304,7 +3304,7 @@ case ('orbit')
 case ('particle')
 
   nb = s%global%bunch_to_plot
-  ix_branch = s%com%default_branch
+  ix_branch = s%global%default_branch
   show_all = .false.
   show_lost = .false.
   ele_name = ''
@@ -3978,7 +3978,7 @@ case ('symbolic_numbers')
 
 case ('taylor_map', 'matrix')
 
-  ix_branch = s%com%default_branch
+  ix_branch = s%global%default_branch
   by_s = .false.
   print_ptc = .false.
   print_eigen = .false.
@@ -4218,7 +4218,7 @@ case ('track')
   s2 = branch%ele(branch%n_ele_track)%s
   n_print = s%plot_page%n_curve_pts
   tao_lat => u%model
-  branch => tao_lat%lat%branch(s%com%default_branch)
+  branch => tao_lat%lat%branch(s%global%default_branch)
   lat_type = model$
 
   do 
@@ -4376,7 +4376,7 @@ case ('tune')
 case ('twiss_and_orbit')
 
   tao_lat => u%model
-  branch => tao_lat%lat%branch(s%com%default_branch)
+  branch => tao_lat%lat%branch(s%global%default_branch)
   lat_type = model$
   attrib0 = ''
 
@@ -4517,7 +4517,7 @@ case ('twiss_and_orbit')
   
 case ('universe')
 
-  ix_u = s%com%default_universe
+  ix_u = s%global%default_universe
   ele_name = ''
 
   do

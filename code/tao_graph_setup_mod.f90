@@ -1247,7 +1247,7 @@ if (allocated(graph%curve)) then
     elseif (graph%ix_universe /= -1) then
       graph%title_suffix = trim(graph%title_suffix) // ' uni:' // int_str(graph%ix_universe)
     else
-      graph%title_suffix = trim(graph%title_suffix) // ' uni:' // int_str(s%com%default_universe)
+      graph%title_suffix = trim(graph%title_suffix) // ' uni:' // int_str(s%global%default_universe)
     endif
   endif
 
@@ -1734,7 +1734,7 @@ case ('var')
     v_ptr => v1_ptr%v(iv)
     if (.not. v_ptr%exists) cycle
     do jj = 1, size(v_ptr%slave)
-      if (v_ptr%slave(jj)%ix_uni .eq. s%com%default_universe) then
+      if (v_ptr%slave(jj)%ix_uni .eq. s%global%default_universe) then
         ix_this = jj
         exit v_loop
       endif

@@ -6,7 +6,7 @@
 !   "*@..."           -- Choose all universes.
 !   "3@..."           -- Choose universe 3. 
 !   "[1:30,34]@..."   -- Choose universes 1 through 30 and 34
-!   No "@" in name    -- Choose dflt_uni if it is present. Otherwise pick s%com%default_universe.
+!   No "@" in name    -- Choose dflt_uni if it is present. Otherwise pick s%global%default_universe.
 !
 ! Also see:
 !   tao_pointer_to_universe
@@ -52,7 +52,7 @@ picked = .false.
 p = .false.
 if (present(ix_uni)) ix_uni = -1
 
-! No "@" then simply choose s%com%default_universe.
+! No "@" then simply choose s%global%default_universe.
 
 ix = index (name_in, '@')
 ic = index (name_in, '::')
@@ -60,7 +60,7 @@ ic = index (name_in, '::')
 if (present(explicit_uni)) explicit_uni = (ix /= 0)
 
 if (ix == 0 .or. (ic /= 0 .and. ix > ic)) then
-  iu_dflt = integer_option(s%com%default_universe, dflt_uni)
+  iu_dflt = integer_option(s%global%default_universe, dflt_uni)
   if (iu_dflt < 0) then
     call out_io (s_error$, r_name, 'NO UNIVERSE NUMBER GIVEN')
     err = .true.
@@ -93,7 +93,7 @@ endif
 ! "show var" uses a blank universe to correspond to the default universe.
 
 if (uni == '') then
-  iu_dflt = integer_option(s%com%default_universe, dflt_uni)
+  iu_dflt = integer_option(s%global%default_universe, dflt_uni)
   picked (iu_dflt) = .true.
   if (present(ix_uni)) ix_uni = iu_dflt
   return

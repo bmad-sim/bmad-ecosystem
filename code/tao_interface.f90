@@ -29,7 +29,7 @@ use tao_struct
 !
 ! Input:
 !   ix_uni          -- Integer: Index to the s%u(:) array
-!                        If ix_uni is -1 -> u(s%com%default_universe) will be used.
+!                        If ix_uni is -1 -> u(s%global%default_universe) will be used.
 !   string          -- character(*): String in the form "<ix_uni>@..." or, if 
 !                        no "@" is present, u will point to the default universe.
 !   neg2_to_default -- logical, optional: i_uni = -2 (all universes) maps to the default uni?

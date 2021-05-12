@@ -22,7 +22,7 @@ contains
 !   silent   -- Logical: If True then do not print any info.
 !
 ! Output:
-!    %u(s%com%default_universe)%model -- model lattice where the variable lives.
+!    %u(s%global%default_universe)%model -- model lattice where the variable lives.
 !-
 
 subroutine tao_change_var (name, num_str, silent)
@@ -159,7 +159,7 @@ end subroutine
 !                                A 'd' signifies a set relative design.        
 !
 ! Output:
-!    %u(s%com%default_universe)%model -- model lattice where the variable lives.
+!    %u(s%global%default_universe)%model -- model lattice where the variable lives.
 !-
 
 subroutine tao_change_ele (ele_name, attrib_name, num_str, update)

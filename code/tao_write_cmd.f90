@@ -106,7 +106,7 @@ case ('beam')
     case ('-hdf5'); file_format = hdf5$
     case ('-at')
       ix_word = ix_word + 1
-      call tao_locate_elements (word(ix_word), s%com%default_universe, eles, err)
+      call tao_locate_elements (word(ix_word), s%global%default_universe, eles, err)
       if (err .or. size(eles) == 0) return
       at_switch = .true.
     case default
@@ -305,7 +305,7 @@ case ('curve')
 
   if (c%g%type == "phase_space") then
     i_uni = c%ix_universe
-    if (i_uni == 0) i_uni = s%com%default_universe
+    if (i_uni == 0) i_uni = s%global%default_universe
     beam => s%u(i_uni)%model_branch(c%ix_branch)%ele(c%ix_ele_ref_track)%beam
     call file_suffixer (file_name, file_name, 'particle_dat', .true.)
     open (iu, file = file_name)

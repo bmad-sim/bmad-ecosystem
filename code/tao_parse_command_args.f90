@@ -25,13 +25,18 @@ character(*), parameter :: r_name = 'tao_parse_command_args'
 integer n_arg, i_arg, ix
 logical error, negate
 
+! Init global and common structs.
+
+s%global = tao_global_struct()
+s%com = tao_common0
+
 ! Get command line input
 
 error = .false.
 s%com%command_arg_has_been_executed = .false.
 
 call tao_hook_parse_command_args()
-if (.not. s%com%parse_cmd_args) return
+if (.not. s%init%parse_cmd_args) return
 
 if (present(cmd_line)) then
   call tao_cmd_split(cmd_line, 12, cmd_words, .false., error)
@@ -91,12 +96,8 @@ do
 
   case ('-clear')
     s%init = tao_init_struct()
-    s%com%n_universes = n_uni_init$   
-    s%com%default_universe = dflt_uni_init$     ! Default universe to work with.
-    s%com%default_branch = dflt_branch_init$    ! Default lattice branch to work with.
-    s%global%debug_on = .false.
-    s%global%stop_on_error = .true.
-    s%global%external_plotting = .false.
+    s%com = tao_common0
+    s%global = tao_global_struct()
 
   case ('-command')
     call get_next_arg (arg0, s%init%command_arg, i_arg, n_arg, .true.)
@@ -108,12 +109,10 @@ do
     s%init%disable_smooth_line_calc_arg = '<present>'
 
   case ('-debug')
-    s%init%debug_arg = '<present>'
-    s%global%debug_on = .true.
-    s%global%stop_on_error = .false.
+    s%init%debug_switch = .true.
 
   case ('-external_plotting')
-    s%global%external_plotting = .true.
+    s%init%external_plotting_switch = .true.
 
   case ('-geometry')
     call get_next_arg (arg0, s%init%geometry_arg, i_arg, n_arg, .true.)
@@ -193,8 +192,8 @@ do
   case ('--command');                             s%init%command_arg = ''
   case ('--data_file');                           s%init%data_file_arg = ''
   case ('--disable_smooth_line_calc');            s%init%disable_smooth_line_calc_arg = '<negated>'
-  case ('--debug');        s%init%debug_arg = '<negated>';  s%global%debug_on = .false.;  s%global%stop_on_error = .true.
-  case ('--external_plotting');                   s%global%external_plotting = .false.
+  case ('--debug');                               s%init%debug_switch = .false.
+  case ('--external_plotting');                   s%init%external_plotting_switch = .false.
   case ('--geometry');                            s%init%geometry_arg = ''
   case ('--hook_init_file');                      s%init%hook_init_file_arg = ''
   case ('--init_file');                           s%init%init_file_arg = ''; s%init%init_file_arg_path = ''
@@ -212,8 +211,16 @@ do
   case ('--startup_file');                        s%init%startup_file_arg = ''
   case ('--var_file');                            s%init%var_file_arg = ''
   end select
-
 enddo
+
+!
+
+if (s%init%debug_switch) then
+  s%global%debug_on = .true.
+  s%global%stop_on_error = .false.
+endif
+
+s%global%external_plotting = s%init%external_plotting_switch
 
 !-----------------------------
 contains
