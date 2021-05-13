@@ -46,12 +46,12 @@ if (present(errcode)) errcode = 1   ! Assume error
 
 ! And init everything.
 
-if (.not. s%com%initialized) then
+if (.not. s%init%initialized) then
   call tao_parse_command_args (err, command)
   if (err) return
   call tao_init (err)
   if (err) return
-  s%com%initialized = .true.
+  s%init%initialized = .true.
   n_lev = s%com%cmd_file_level
   need_input = (s%com%saved_cmd_line == '' .and. (n_lev == 0 .or. s%com%cmd_file(n_lev)%paused) .and. &
                                                                                   .not. s%com%single_mode)

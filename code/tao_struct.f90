@@ -703,7 +703,6 @@ type tao_common_struct
   integer :: ix_history = 0                     ! present index to command history array
   integer :: n_history = 0                      ! present history index
   integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
-  logical :: initialized = .false.              ! Does tao_init() need to be called?
   logical :: cmd_file_paused = .false.
   logical :: use_cmd_here  = .false.            ! Used for commands recalled from the cmd history stack
   logical :: cmd_from_cmd_file = .false.        ! was command from a command file?
@@ -733,6 +732,7 @@ end type
 ! Initialization parameters
 
 type tao_init_struct
+  logical :: initialized = .false.                 ! Does tao_init() need to be called?
   logical :: parse_cmd_args = .true.               ! Used by custom programs to control Tao init
   logical :: debug_switch = .false.                ! Is the "-debug" switch present?
   logical :: external_plotting_switch = .false.    ! Is "-external_plotting" switch present?
