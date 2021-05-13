@@ -1571,25 +1571,24 @@ for the \vn{a}, \vn{b}, and \vn{c} modes respectively.
   %----------------------
   \item[unstable.lattice] \Newline \hlabel{unstable.lat}
 
-The value of \vn{unstable.lattice} will always be zero or positive.
+\vn{unstable.lattice} is used in an optimization to avoid unstable solutions (\sref{s:opt.main}).
+Also see \vn{unstable.orbit} and \vn{unstable.eigen}.  The value of \vn{unstable.lattice} will
+always be zero or positive.
 
-For lattices with a closed geometry such as a storage ring: The value \vn{unstable.lattice} is zero
-if the ring is stable and, if the ring is unstable, the value is set to the largest growth rate of
-the transverse (but not longitudinal) normal modes of oscillation. \vn{unstable.lattice} is used in
-an optimization to avoid unstable solutions (\sref{s:opt.main}). Also see
-\vn{unstable.eigen}.
+For lattices with a \vn{closed} geometry such as a storage ring: The value \vn{unstable.lattice} is
+zero if the ring is stable. If the closed orbit cannot be found, the value of \vn{unstable.lattice}
+is set 1. And if the ring is unstable, the value is set to the largest growth rate of the transverse
+(but not longitudinal) normal modes of oscillation.
 
 At the borderline between stability and instability the growth rate is zero. This means that an
-optimizer may find an optimum that is close to the borderline and unstable. To prevent this,
-the value of \vn{global%unstable_penalty}, which has a default value of 0.001, is added to the 
-computed growth rate when the lattice is unstable.
+optimizer may find an optimum that is close to the borderline and unstable. To prevent this, the
+value of \vn{global%unstable_penalty}, which has a default value of 0.001, is added to the computed
+growth rate when the lattice is unstable.
 
-For lattices with an open geometry: The value of \vn{unstable.lattice} will be non-zero if there is
+For lattices with an \vn{open} geometry: The value of \vn{unstable.lattice} will be non-zero if there is
 a problem computing the reference energy. This can happen, for example, if the accelerating voltage
 of an \vn{lcavity} is set large and negative such that the reference particle is cannot make it to
 the exit end.
-
-Note: \vn{unstable.lattice} replaces \vn{unstable.ring}.
 
   %----------------------
   \item[unstable.orbit] \Newline \hlabel{unstable.orbit}
