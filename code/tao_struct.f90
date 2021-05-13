@@ -732,7 +732,6 @@ end type
 ! Initialization parameters
 
 type tao_init_struct
-  logical :: initialized = .false.                 ! Does tao_init() need to be called?
   logical :: parse_cmd_args = .true.               ! Used by custom programs to control Tao init
   logical :: debug_switch = .false.                ! Is the "-debug" switch present?
   logical :: external_plotting_switch = .false.    ! Is "-external_plotting" switch present?
@@ -1063,6 +1062,7 @@ type tao_super_universe_struct
   integer :: n_var_used = 0
   integer :: n_v1_var_used = 0
   type (tao_cmd_history_struct) :: history(1000) ! command history
+  logical :: initialized = .false.                 ! Does tao_init() need to be called?
 end type
 
 type (tao_super_universe_struct), save, target :: s
