@@ -3249,9 +3249,15 @@ case ('unstable.')
 
   case ('unstable.ring', 'unstable.lattice')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    datum_value = lat%param%unstable_factor
-    ! unstable_penalty is needed since at the metastable borderline the growth rate is zero.
-    if (.not. lat%param%stable) datum_value = datum_value + s%global%unstable_penalty
+
+    if (lat%param%geometry == closed$ .and. tao_branch%track_state /= moving_forward$) then
+      datum_value = 1
+    else
+      datum_value = lat%param%unstable_factor
+      ! unstable_penalty is needed since at the metastable borderline the growth rate is zero.
+      if (.not. lat%param%stable) datum_value = datum_value + s%global%unstable_penalty
+    endif
+
     valid_value = .true.
 
   case default

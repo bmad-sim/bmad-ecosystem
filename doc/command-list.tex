@@ -61,13 +61,14 @@ substituted. A possible
   exit          & \sref{s:exit}     & single_mode   & \sref{s:sing}     \\ 
   flatten       & \sref{s:flatten}  & spawn         & \sref{s:spawn}    \\ 
   help          & \sref{s:help}     & timer         & \sref{s:timer}    \\
-  misalign      & \sref{s:misalign} & use           & \sref{s:use}      \\ 
-  pause         & \sref{s:pause}    & veto          & \sref{s:veto}     \\ 
-  place         & \sref{s:place}    & wave          & \sref{s:wave}     \\
-  plot          & \sref{s:plot}     & write         & \sref{s:write}    \\ 
-  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
-  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
-  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\ \bottomrule
+  ls            & \sref{s:ls}       & use           & \sref{s:use}      \\ 
+  misalign      & \sref{s:misalign} & veto          & \sref{s:veto}     \\ 
+  pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\
+  place         & \sref{s:place}    & write         & \sref{s:write}    \\ 
+  plot          & \sref{s:plot}     & x_axis        & \sref{s:x.axis}   \\ 
+  ptc           & \sref{s:ptc}      & x_scale       & \sref{s:x.scale}  \\ 
+  python        & \sref{s:python}   & xy_scale      & \sref{s:xy.scale} \\
+  quit          & \sref{s:quit}     &               &                   \\  \bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -414,49 +415,14 @@ reference should be made to the \tao manual if there is a problem in the transla
 \section{misalign}\index{command!misalign}
 \label{s:misalign}
 
-The \vn{misalign} command misaligns a set of lattice elements. Format:
-\begin{example}
-   misalign <wrt> <ele_type> <range> <ele_attrib> <misalign_value>
-\end{example}
+%% ls --------------------------------------------------------------
+\section{ls}\index{command!ls}
+\label{s:ls}
 
-\vskip 10pt 
+The \vn{ls} command is the same as the standard UNIX \vn{ls} command to display a list of files and
+directories. The standard ls switches are accepted.
 
-\vn{<ele_type>} is the type of element to misalign.  Only elements of type \vn{<ele_type>} will be
-misaligned within the range.  If \vn{<ele_type>} begins with "*@" then choose all universes. If
-\vn{<ele_type>} begin with "n@" then choose universe n. Otherwise the default universe
-(\sref{s:universe})) is used.
-
-A lattice element will only be misaligned if its lattice index falls within a range given by
-\vn{<range>}. \vn{<range>} is of the form \vn{nnn:mmm} or the word \vn{ALL}.
-
-The element attribute \vn{<ele_attrib>} is ``misaligned'' by the rms value \vn{<misalign_value>}
-with respect to the setting of \vn{<wrt>}. Any element attribute can be misaligned provided the
-attribute is free to vary.
-
-If \vn{<misalign_value>} is prepended by 'x' then the misalignment value will be a relative
-misalignment with respect to the \vn{<wrt>} value. Otherwise, it's an absolute rms value about the
-\vn{<wrt>} value.
-
-In the special case where sbend strengths are misaligned then use \vn{<ele_attrib> = dg}. However,
-if a relative error is specified it will be relative to 'g'.
-
-The possible values of \vn{<wrt>} are:
-\begin{example}
-  wrt_model          ! Misalign about the current model value
-  wrt_design         ! Misalign about the design value
-  wrt_survey         ! Misalign about the zero value
-\end{example}
-
-Examples
-\begin{example}
-   ! The following will misalign all quadrupole vertical positions in the default
-   ! universe within the lattice element range 100:250 with respect to the zero 
-   ! value by 300 microns
-  misalign wrt_survey quadrupole 100:250 y_offset 300e-6
-   ! The following will misalign all quadrupole strengths in all universes for
-   ! the entire lattice with respect to the design value by 1%.
-  misalign wrt_design *@quadrupole ALL k1 x0.01
-\end{example}
+This is equivalent to the \vn{spawn ls} command.
 
 %% pause --------------------------------------------------------------
 \section{pause}\index{commands!pause}
