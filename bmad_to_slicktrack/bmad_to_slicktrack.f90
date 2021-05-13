@@ -139,8 +139,8 @@ do i = 1, lat%n_ele_track
       call write_insert_ele_def (nb, ['VD'])
     endif
 
-    if (ele%value(e1$) /= 0) call write_insert_ele_def (n_edge, ['EE'], -tan(ele%value(e1$)) * ele%value(g$))
-    if (ele%value(e2$) /= 0) call write_insert_ele_def (n_edge, ['EE'], -tan(ele%value(e2$)) * ele%value(g$))
+    if (ele%value(e1$) /= 0) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e1$)) * ele%value(g$))
+    if (ele%value(e2$) /= 0) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e2$)) * ele%value(g$))
 
   case (quadrupole$)
     if (mod(n_count, 2) == 0) cycle    ! Skip second element in pair
