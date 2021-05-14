@@ -339,7 +339,7 @@ case ('beam')
 ! -------- 
 !
 ! Example: 1
-!  init: -init /$ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
 !    ix_universe: 1
 
@@ -5742,7 +5742,7 @@ endif
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line -external_plotting
 !  args:
-!    region_name: r11
+!    region_name: r13
 !    graph_name: g
 !    curve_name: a
 !    x_or_y: 
