@@ -177,7 +177,7 @@ def search_f90 (file_name, search_com):
   if sys.version_info[0] < 3:
     f90_file = open(file_name, 'r')
   else:
-    f90_file = open(file_name, 'r', encoding = 'utf-8')
+    f90_file = open(file_name, 'r', encoding = 'ISO-8859-1')
 
   while True:
     line = f90_file.readline()
