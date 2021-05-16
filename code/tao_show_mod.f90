@@ -3993,14 +3993,15 @@ case ('taylor_map', 'matrix')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, [character(16):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(16):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format', '-running'], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
+
     select case (switch)
-    case ('-lattice_format') 
-      disp_fmt = 'BMAD'
     case ('-eigen_modes')
       print_eigen = .true.
+    case ('-lattice_format')
+      disp_fmt = 'BMAD'
     case ('-order')
       read (what2(:ix), *, iostat = ios) n_order
       if (ios /= 0) then
@@ -4016,6 +4017,8 @@ case ('taylor_map', 'matrix')
       endif
     case ('-ptc')
       print_ptc = .true.
+    case ('-running')
+      disp_fmt = 'RUNNING'
     case ('-s')
       by_s = .true.
     case default
@@ -4037,6 +4040,7 @@ case ('taylor_map', 'matrix')
     return
   endif
 
+  !---------------------------------------
   ! By s
 
   if (by_s) then
@@ -4137,7 +4141,7 @@ case ('taylor_map', 'matrix')
       endif
     endif
 
-    if (ele2_name == '') then
+    if (disp_fmt /= 'RUNNING' .and. ele2_name == '') then
       nl=nl+1; lines(nl) = 'From: ' // trim(branch%ele(ix1)%name)
       nl=nl+1; lines(nl) = 'To:   ' // trim(branch%ele(ix2)%name)
     endif
@@ -4160,42 +4164,57 @@ case ('taylor_map', 'matrix')
 
   ! Print results
 
-  if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
-
-  if (n_order > 1 .or. disp_fmt == 'BMAD') then
-    call type_taylors (taylor, lines = lines, n_lines = nl, out_style = disp_fmt, clean = .true.)
-    if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
-  else
-    vec_in = 0
-    if (n_order == 0) then 
-      nl = nl+1; write(lines(nl), '(6f11.6)') vec0
-    else
-      if (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
-        fmt = '(6es15.7, a, es12.4)'
-      else
-        fmt = '(6f15.8, a, es12.4)'
-      endif
-
-      nl=nl+1; write (lines(nl), '(a, es10.2)') 'Symplectic Error:', mat_symp_error(mat6)
+  if (disp_fmt == 'RUNNING') then
+    call transfer_matrix_calc (lat, mat6, vec0, 0, ix1, ix_branch, one_turn = .false.)    
+    do i = ix1, ix2
+      ele => branch%ele(i)
+      if (i /= ix1) mat6 = matmul(ele%mat6, mat6)
+      if (nl+10 > size(lines)) call re_allocate (lines, 2*nl, .false.)
       nl=nl+1; lines(nl) = ''
-      do i = 1, 6
-        nl=nl+1; write(lines(nl), fmt) mat6(i,:), '   : ', vec0(i)
+      nl=nl+1; write (lines(nl), '(a, i6, 2x, a40, f18.9)') '#', i, ele%name, ele%s
+      do j = 1, 6
+        nl=nl+1; write (lines(nl), '(f14.8, 4x, 6f14.8, 4x, 6f14.8)') ele%map_ref_orb_out%vec(j), ele%mat6(j,:), mat6(j,:)
       enddo
-    endif
-  endif
-
-  if (print_eigen) then
-    call mat_eigen (mat6, eigen_val, eigen_vec, err)
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), '(75x, a)') 'eVector'
-    nl=nl+1; write(lines(nl), '(t11, a, t29, a, 3(15x, a, 14x, a))') '|eValue|', 'eValue', 'x', 'px', 'y', 'py', 'z', 'pz'
-    do i = 1, 6
-      nl=nl+1; write (lines(nl), '(a, 8es16.8)') 're', abs(eigen_val(i)), real(eigen_val(i), rp), real(eigen_vec(i,:), rp)
-      nl=nl+1; write (lines(nl), '(a, 16x, 8es16.8)') 'im',              aimag(eigen_val(i)), aimag(eigen_vec(i,:))
-      nl=nl+1; lines(nl) = ''
     enddo
-    nl = nl-1
-  endif  
+
+  else
+    if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
+
+    if (n_order > 1 .or. disp_fmt == 'BMAD') then
+      call type_taylors (taylor, lines = lines, n_lines = nl, out_style = disp_fmt, clean = .true.)
+      if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
+    else
+      vec_in = 0
+      if (n_order == 0) then 
+        nl = nl+1; write(lines(nl), '(6f11.6)') vec0
+      else
+        if (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
+          fmt = '(6es15.7, a, es12.4)'
+        else
+          fmt = '(6f15.8, a, es12.4)'
+        endif
+
+        nl=nl+1; write (lines(nl), '(a, es10.2)') 'Symplectic Error:', mat_symp_error(mat6)
+        nl=nl+1; lines(nl) = ''
+        do i = 1, 6
+          nl=nl+1; write(lines(nl), fmt) mat6(i,:), '   : ', vec0(i)
+        enddo
+      endif
+    endif
+
+    if (print_eigen) then
+      call mat_eigen (mat6, eigen_val, eigen_vec, err)
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; write(lines(nl), '(75x, a)') 'eVector'
+      nl=nl+1; write(lines(nl), '(t11, a, t29, a, 3(15x, a, 14x, a))') '|eValue|', 'eValue', 'x', 'px', 'y', 'py', 'z', 'pz'
+      do i = 1, 6
+        nl=nl+1; write (lines(nl), '(a, 8es16.8)') 're', abs(eigen_val(i)), real(eigen_val(i), rp), real(eigen_vec(i,:), rp)
+        nl=nl+1; write (lines(nl), '(a, 16x, 8es16.8)') 'im',              aimag(eigen_val(i)), aimag(eigen_vec(i,:))
+        nl=nl+1; lines(nl) = ''
+      enddo
+      nl = nl-1
+    endif  
+  endif
 
 !----------------------------------------------------------------------
 ! track

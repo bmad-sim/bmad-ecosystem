@@ -443,12 +443,13 @@ type (all_pointer_struct) a_ptr
 type (tao_spin_map_struct), pointer :: spin_map
 type (rad_int_branch_struct), pointer :: rad_int_branch
 type (c_taylor), pointer :: phase_map
+type (twiss_struct), pointer :: z0, z1, z2
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
-real(rp) zz_center, xx_center, xx_wall, phase, amp
+real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
@@ -1148,6 +1149,27 @@ case ('chrom.')
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
+
+  case ('chrom.w.a', 'chrom.w.b')
+    if (data_source == 'lat') then
+      do i = ix_start, ix_ele
+        if (datum%data_type == 'chrom.wa') then
+          z2 => tao_branch%high_E_lat%ele(i)%a
+          z1 => tao_branch%low_E_lat%ele(i)%a
+          z0 => branch%ele(i)%a
+        else
+          z2 => tao_branch%high_E_lat%ele(i)%b
+          z1 => tao_branch%low_E_lat%ele(i)%b
+          z0 => branch%ele(i)%b
+        endif
+        dalpha = (z2%alpha - z1%alpha) / dE
+        dbeta  = (z2%beta - z1%beta) / dE
+        aa = dalpha - z0%alpha * dbeta / z0%beta
+        bb = dbeta / z0%beta
+        value_vec(i) = sqrt(aa**2 + bb**2)
+      end do
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif      
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
@@ -4318,8 +4340,8 @@ parsing_loop: do
 
   ! Args are counted counted at the beginning of the function and at each comma.
 
-  if (n_func > 0 .and. ix_word /= 0) then
-    if (func(n_func)%n_arg_count == 0) func(n_func)%n_arg_count = func(n_func)%n_arg_count + 1
+  if (n_func > 0 .and. (ix_word /= 0 .or. delim /= ')')) then
+    if (func(n_func)%n_arg_count == 0) func(n_func)%n_arg_count = 1
   endif
 
   !--------------------------
@@ -5229,6 +5251,8 @@ n_size = max(1, n_size_in)
 
 do i = 1, size(stack)
   ss => stack(i)
+
+  if (ss%type == average$ .or. ss%type == sum$ .or. ss%type == rms$) n_size = 1
 
   if (allocated(ss%value)) then
     if (size(ss%value) > 1 .and. n_size > 1 .and. size(ss%value) /= n_size) then

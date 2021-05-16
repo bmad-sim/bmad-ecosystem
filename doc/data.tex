@@ -773,6 +773,22 @@ chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evalu
 individual elements.
 
   %----------------------
+  \item[chrom.w.a, chrom.w.b] \Newline \hlabel{chrom.w}
+The \vn{chrom.w.a} and \vn{chrom.w.b} data types are the so called chromatic amplitude
+\vn{W}-functions introduced by Montague\cite{b:w}. \vn{chrom.w.a} is the W-function amplitude for
+the $a$-mode and \vn{chrom.w.b} is the W-funciton for the $b$-mode. Dropping the mode subscript,
+the W-function amplitude is defined by 
+\begin{equation}
+  W = \sqrt{A^2 + B^2}
+\end{equation}
+where
+\begin{equation}
+  A = \frac{\partial\alpha}{\partial p_z} - \frac{\alpha}{\beta} \, \frac{\partial\beta}{\partial p_z},
+  \qquad
+  B = \frac{1}{\beta} \, \frac{\partial\beta}{\partial p_z}
+\end{equation}
+
+  %----------------------
   \item[chrom_ptc.a.$N$, chrom_ptc.b.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{chrom.ptc}
 Terms in the Taylor expansion of the chromaticity which is a function of phase space $p_z$ as
 calculated from Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $.a$
@@ -1763,6 +1779,7 @@ See the previous section for a description of the data types.
   \pref{chrom.deta}       & chrom.deta.x, .deta.y               & Chromatic dispersions                     & lat         & No  \\ \hline
   \pref{chrom.detap}      & chrom.detap.x, .detap.y             & Chromatic dispersion slopes               & lat         & No  \\ \hline
   \pref{chrom.dphi}       & chrom.dphi.a, .dphi.b               & Chromatic betatron phase                  & lat         & No  \\ \hline
+  \pref{chrom.w}          & chrom.w.a, .w.b                     & Chromatic W-functions                     & lat         & No  \\ \hline
   \pref{chrom.ptc}        & \begin{tabular}{@{}l}
                               chrom_ptc.a.$N$, \\
                               chrom_ptc.b.$N$, \\
