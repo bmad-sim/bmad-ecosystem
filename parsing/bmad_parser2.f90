@@ -269,6 +269,16 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
+  ! START_BRANCH_AT
+
+  if (word_1(:ix_word) == 'START_BRANCH_AT') then
+    call start_branch_at (lat, trim(bp_com%parse_line), err)
+    if (err) call parser_error ('ERROR STARTING BRANCH AT: ' // bp_com%parse_line)
+    bp_com%parse_line = ''
+    cycle parsing_loop    
+  endif
+
+  !-------------------------------------------
   ! Superimpose statement
 
   if (word_1(:ix_word) == 'SUPERIMPOSE') then

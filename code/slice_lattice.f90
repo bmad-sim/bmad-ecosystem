@@ -24,7 +24,6 @@
 !   do_bookkeeping -- logical, optional: Default is True. If false, the calling routine is responsible for:
 !                       Modifying lat%particle_start if needed.
 !                       Calculating Twiss functions.
-!                       Calling lattice_bookkeeper.
 !
 ! Output:
 !   lat           -- lat_struct: Lattice with unwanted elements sliced out.
@@ -61,15 +60,15 @@ if (n_loc == 0) then
   return
 endif
 
-! Use ele%ixx = -1 to tag elements to be deleted which is everything not in eles list.
+! Use ele%izz = -1 to tag elements to be deleted which is everything not in eles list.
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  branch%ele(1:)%ixx = -1
+  branch%ele(1:)%izz = -1
 enddo
 
 do ie = 1, n_loc
-  eles(ie)%ele%ixx = 0  ! Do not delete
+  eles(ie)%ele%izz = 0  ! Do not delete
 enddo
 
 ! Now go through and save all controllers that can be saved.
@@ -79,7 +78,7 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   do ie = 1, branch%n_ele_max
     ele => branch%ele(ie)
-    if (ele%ixx == -1) cycle
+    if (ele%izz == -1) cycle
     call add_back_controllers(ele)
     ele%iyy = 0
     if (ele%lord_status /= multipass_lord$) cycle
@@ -101,7 +100,7 @@ if (logic_option(.true., do_bookkeeping)) then
   call twiss_and_track(lat, orbit, status, 0, .true.)
   if (status == ok$) then
     do ie = 1, lat%n_ele_track
-      if (lat%ele(ie)%ixx == -1) cycle
+      if (lat%ele(ie)%izz == -1) cycle
       if (ie == 1) exit      ! No need to do anything if branch beginning is preserved.
       if (orbit(ie-1)%state /= alive$) exit
       lat%particle_start = orbit(ie-1)
@@ -115,7 +114,7 @@ endif
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   do ie = 1, branch%n_ele_track
-    if (branch%ele(ie)%ixx == -1) cycle
+    if (branch%ele(ie)%izz == -1) cycle
     if (ie == 1) exit        ! No need to do anything if branch beginning is preserved.
     ele0 => branch%ele(0)
     ele1 => branch%ele(ie-1)
@@ -132,7 +131,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele0%a%phi = 0
     ele0%b%phi = 0
     ele0%z%phi = 0
-    call set_flags_for_changed_attribute(ele0, ele1%value(p0c$))
+    call set_flags_for_changed_attribute(ele0, ele0%value(p0c$))
     branch%param%geometry = open$
     exit
   enddo
@@ -143,7 +142,7 @@ enddo
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   do ie = 1, branch%n_ele_max
-    if (branch%ele(ie)%ixx == -1) branch%ele(ie)%ix_ele = -1
+    if (branch%ele(ie)%izz == -1) branch%ele(ie)%ix_ele = -1
   enddo
 enddo
 
@@ -199,7 +198,7 @@ integer i
 
 do i = 1, ele%n_lord
   ele2 => pointer_to_lord (ele, i)
-  ele2%ixx = 0
+  ele2%izz = 0
   call add_back_controllers(ele2)
 enddo
 

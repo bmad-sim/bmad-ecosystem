@@ -4397,7 +4397,7 @@ endif
 ! Bmad an and bn are integrated fields. PTC uses just the field.
 ! Exception is multipole element.
 
-if (associated(ele%a_pole) .and. add_multipoles) then
+if (add_multipoles) then
   call multipole_ele_to_ab (ele, .false., ix_pole_max, an0, bn0)
 
   if (leng /= 0) then

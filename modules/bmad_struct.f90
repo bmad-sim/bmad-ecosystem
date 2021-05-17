@@ -1199,7 +1199,7 @@ type ele_struct
   type (controller_struct), pointer :: control => null()                 ! group & overlay variables.
   type (converter_struct), pointer :: converter => null()                ! EG: Positron converter in linac.
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
-  type (fibre), pointer :: ptc_fibre => null()                           ! PTC tracking.
+  type (fibre), pointer :: ptc_fibre => null()                           ! PTC track corresponding to this ele.
   type (floor_position_struct) :: floor = floor_position_struct(r0_vec$, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
                                                                       ! Global coords reference position
   type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
@@ -1245,14 +1245,14 @@ type ele_struct
   integer :: ix_branch = 0                        ! Index in lat%branch(:) array. Note: lat%ele => lat%branch(0).
   integer :: lord_status = not_a_lord$            ! Type of lord element this is. overlay_lord$, etc.
   integer :: n_slave = 0                          ! Number of slaves (except field slaves) of this element.
-  integer :: n_slave_field = 0                    ! Number of field slaves of this element
+  integer :: n_slave_field = 0                    ! Number of field slaves of this element.
   integer :: ix1_slave = 0                        ! Pointer index to this element's slaves.
   integer :: slave_status = free$                 ! Type of slave element this is. multipass_slave$, slice_slave$, etc.
   integer :: n_lord = 0                           ! Number of lords (except field lords).
-  integer :: n_lord_field = 0                     ! Number of field lords of this element
+  integer :: n_lord_field = 0                     ! Number of field lords of this element.
   integer :: ic1_lord = 0                         ! Pointer index to this element's lords.
   integer :: ix_pointer = 0                       ! For general use. Not used by Bmad.
-  integer :: ixx = 0, iyy = 0                     ! Index for Bmad internal use
+  integer :: ixx = 0, iyy = 0, izz = 0            ! Index for Bmad internal use.
   integer :: mat6_calc_method = bmad_standard$    ! taylor$, symp_lie_ptc$, etc.
   integer :: tracking_method = bmad_standard$     ! taylor$, linear$, etc.
   integer :: spin_tracking_method = tracking$     ! symp_lie_ptc$, etc.
