@@ -1328,6 +1328,7 @@ maps. Otherwise the zero orbit is used as the reference orbit.
 
 %--------------------------------------------------------------------------
 \section{Slice_Lattice Statement}
+\label{s:slice}
 
 The \vn{slice_lattice} statement is used to remove elements from the lattice. The \vn{slice_lattice}
 is useful when analysis of only part of the lattice is desired and the analysis of the entire
@@ -1368,6 +1369,41 @@ branch. Example:
   parameter[geometry] = closed  ! Change the geometry.
   ... etc ...
 \end{example}
+
+Also see the \vn{start_branch_at} statement (\sref{s:start.branch}).
+
+%--------------------------------------------------------------------------
+\section{Start_Branch_At}
+\label{s:start.branch
+
+The \vn{start_branch_at} statement is used to shift the starting point of a lattice branch while
+keeping the relative order of the elements the same. This shifting only applies to elements in the
+tracking part of the lattice (\sref{s:lord.slave}). The \vn{BEGGINING} element of the branch
+(\sref{s:use}) and any lord elements are unaffected. The \vn{start_branch_at} statement must come
+after lattice expansion (\sref{s:expand}). The syntax of the \vn{start_branch_at} statement is
+\begin{example}
+  start_branch_at <lattice-element>
+\end{example}
+where \vn{<lattice-element>} is the name or index of a lattice element to be moved to the start
+of the branch the element is in. For example
+\begin{example}
+  expand_lattice           ! Lattice expansion must happen first
+  start_branch_at Q3
+\end{example}
+In this example, the elements in the lattice branch containing \vn{Q3} would be shifted so that the
+\vn{Q3} element is the first element in the branch. Thus, if the lattice branch orignally consisted
+of the elements
+\begin{example}
+  Q1,  Q2,  Q3,  Q4,  Q5,  Q6
+\end{example}
+then the shifted lattice would be
+\begin{example}
+  Q3,  Q4,  Q5,  Q6, Q1,  Q2
+\end{example}
+Elements that orignally come before the new starting point are always wrapped around to the end of
+the branch. 
+
+Also see the \vn{slice_lattice} statement (\sref{s:slice}).
 
 %--------------------------------------------------------------------------
 \section{Debugging Statements}

@@ -1,7 +1,7 @@
 !+
 ! Subroutine allocate_branch_array (lat, upper_bound)
 !
-! Subroutine to allocate or re-allocate an branch array.
+! Subroutine to allocate or re-allocate a branch array.
 ! The old information is saved.
 ! The lower bound is always 0.
 !
@@ -28,7 +28,7 @@ type (branch_struct), pointer :: temp_branch(:)
 integer :: upper_bound
 integer curr_ub, ub, i, j
 
-character(20) :: r_name = 'allocate_branch_array'
+character(*), parameter :: r_name = 'allocate_branch_array'
 
 !  save branch if present
 

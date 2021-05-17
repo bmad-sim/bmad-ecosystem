@@ -1976,6 +1976,14 @@ subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix,
   logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag, choose_max
 end subroutine
 
+subroutine start_branch_at (lat, ele_start, error)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  character(*) ele_start
+  logical error
+end subroutine
+
 function stream_ele_end (physical_end, ele_orientation) result (stream_end)
   import
   implicit none
