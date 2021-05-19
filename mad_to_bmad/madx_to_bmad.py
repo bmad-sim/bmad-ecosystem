@@ -30,7 +30,6 @@ class seq_struct:
     self.refer = 'centre'
     self.refpos = ''
     self.seq_ele_dict = OrderedDict()
-    self.drift_count = 0
     self.last_ele_offset = ''
     self.line = ''                   # For when turning a sequence into a line
 
@@ -52,6 +51,7 @@ class common_struct:
     self.f_out = []        # Bmad output files
     self.use = ''
     self.command = ''    # Scratch storage for read_madx_command routine.
+    self.drift_count = 0
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -204,6 +204,22 @@ def order_var_def_list():
     if not moved: ix += 1
 
   common.var_def_list = new_def_list
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+# Is an expression zero (to within 1e-11)?
+
+def is_zero(input):
+  if isinstance(input, str):
+    try:
+      v = eval(input)
+      return abs(v) < 1e-11
+    except:
+      return False
+
+  else:
+    return abs(v) < 1e-11
+  
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -739,10 +755,16 @@ def parse_command(command, dlist):
     seq = common.last_seq
     common.seq_dict[seq.name] = seq
     offset = f'{seq.l} - {add_parens(seq.last_ele_offset, False)}'
+
     if not common.superimpose_eles:
-      drift_name = f'drft{seq.drift_count}_{seq.name}'
-      f_out.write(f'{drift_name}: drift, l = {offset}\n')
-      wrap_write (f'{seq.name}: line = ({seq.line}{drift_name})', f_out)
+      if is_zero(offset):
+        wrap_write (f'{seq.name}: line = ({seq.line[:-2]})', f_out)
+      else:
+        drift_name = f'drft{common.drift_count}'
+        f_out.write(f'{drift_name}: drift, l = {offset}\n')
+        wrap_write (f'{seq.name}: line = ({seq.line}{drift_name})', f_out)
+        common.drift_count += 1
+
     return
 
   # Everything below has at least 3 words
@@ -832,9 +854,7 @@ def parse_command(command, dlist):
 
       else:
         last_offset = f'{offset}'
-        drift_name = f'drft{seq.drift_count}_{seq.name}'
-        drift_line = f'{drift_name}: drift, l = {offset}'
-        seq.drift_count += 1
+        this_offset = f'{offset}'
         length = ''
         if 'l' in ele.param: 
           length = ele.param['l']
@@ -846,15 +866,23 @@ def parse_command(command, dlist):
         if seq.refer == 'entry':
           if length != '': last_offset += f' + {length}'
         elif seq.refer == 'centre':
-          if length != '': drift_line += f' - {length}/2'
+          if length != '': this_offset += f' - {length}/2'
           if length != '': last_offset += f' + {length}/2'
         else:
-          if length != '': drift_line += f' - {length}'
+          if length != '': this_offset += f' - {length}'
 
-        if seq.last_ele_offset != '': drift_line += f' - {add_parens(seq.last_ele_offset, False)}'
-        f_out.write(drift_line + '\n')
-        seq.line += f'{drift_name}, {ele_name}, '
-        seq.last_ele_offset = last_offset
+        if seq.last_ele_offset != '': this_offset += f' - {add_parens(seq.last_ele_offset, False)}'
+
+        if is_zero(this_offset):
+          seq.line += f'{ele_name}, '
+          seq.last_ele_offset = last_offset
+        else:
+          drift_name = f'drft{common.drift_count}'
+          drift_line = f'{drift_name}: drift, l = {this_offset}'
+          f_out.write(drift_line + '\n')
+          seq.line += f'{drift_name}, {ele_name}, '
+          seq.last_ele_offset = last_offset
+          common.drift_count += 1
 
       return
 
@@ -877,10 +905,7 @@ def parse_command(command, dlist):
 
     last_offset = offset
     length = add_parens(bmad_expression(seq2.l, ''), False)
-
-    drift_name = f'drft{seq.drift_count}_{seq.name}'
-    drift_line = f'{drift_name}: drift, l = {offset}'
-    seq.drift_count += 1
+    this_offset = f'{offset}'
 
     if seq2.refpos != '':
       refpos_ele = seq2.ele_dict[seq2.refpos]
@@ -890,17 +915,21 @@ def parse_command(command, dlist):
       if length != '': last_offset += f' + {length}'
     elif seq.refer == 'centre':
       offset += f' - {add_parens(length, False)}/2'
-      if length != '': drift_line += f' - {length}/2'
+      if length != '': this_offset += f' - {length}/2'
       if length != '': last_offset += f' + {length}/2'
     else:
       offset += f' - {add_parens(length, False)}'
-      if length != '': drift_line += f' - {length}'
+      if length != '': this_offset += f' - {length}'
 
     if common.superimpose_eles:
       common.super_list.append(f'superimpose, element = {ele.name}_mark, ref = {seq.name}_mark, offset = {offset}\n')
       f_out.write (f'!!** superimpose, element = {ele.name}_mark, ref = {seq.name}_mark, offset = {offset}\n')
 
-    else:
+    elif not is_zero(this_offset):
+      drift_name = f'drft{common.drift_count}'
+      drift_line = f'{drift_name}: drift, l = {this_offset}'
+      common.drift_count += 1
+
       if seq.last_ele_offset != '': drift_line += f' - {add_parens(seq.last_ele_offset, False)}'
       f_out.write(drift_line + '\n')
       seq.line += f'{drift_name}, {ele_name}, '
@@ -910,9 +939,12 @@ def parse_command(command, dlist):
 
 
   #-----------------------------------------------
-  # Line
+  # Line.
+  # Nonstandard "a: line = -b" must be converted to "a: line = (-b)"
 
   if ix_colon > 0 and dlist[ix_colon+1] == 'line':
+    words = command.split('=')
+    if words[1].strip()[0] != '(': command = words[0] + '= (' + words[1].strip() + ')'
     wrap_write(command, f_out)
     return
 
