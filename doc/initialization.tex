@@ -3509,15 +3509,24 @@ The \vn{qp_axis_struct} structure defines the properties of a graph axis
   end type
 \end{example}
 
-The \vn{%bounds} parameter sets how the axes min and max values are calculated.
-Possible settings are:
+The \vn{%bounds} parameter sets how the axes min and max values are calculated when plots are initially
+instantiated and when \vn{scale}, \vn{x_scale}, and \vn{xy_scale} commands are used. Possible settings
+are:
 \begin{example}
   "ZERO_AT_END"      ! Min or max value is set to zero.
   "ZERO_SYMMETRIC"   ! Min and max chosen so that max = -min.
-  "GENERAL"          ! No restrictions.
+  "GENERAL"          ! No restrictions (default).
   "EXACT"            ! The User min/max is used.
 \end{example}
-Example \tao session:
+If input min and max values are specified by the User, \tao will take the specified values as the starting
+point to find ``nice'' min and max values to use. For example, with the command
+\begin{example}
+  scale all 0 19
+\end{example}
+and with \vn{bounds} set to \vn{"GENERAL"}, the min and max values will be set to 0 and 20. The exception is when
+\vn{bounds} is set to \vn{"EXACT"}. In this case the User supplied min and max values will be used as is.
+
+Examples:
 \begin{example}
 Tao> set graph r13 y%bounds = "zero_at_end"
 Tao> scale r13 200 280   ! Graph bounds set to [0, 300]
@@ -3528,8 +3537,8 @@ Tao> scale r13 200 280   ! Graph bounds set to [-300, 300]
 Tao> set graph r13 y%bounds = "general"
 Tao> scale r13 20 190    ! Graph bounds set to [0, 200]
 
-Tao> set graph r13 y%bounds = "exact"
-Tao> scale r13 20 190    ! Graph bounds set to [20, 190]
+Tao> set graph r13 y2%bounds = "exact"
+Tao> scale r13 -y2 20 190    ! Y2 graph bounds set to [20, 190]
 \end{example}
 
 \begin{table}

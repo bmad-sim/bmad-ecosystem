@@ -779,7 +779,8 @@ Examples:
 
 The \vn{scale} command scales the vertical axis of a graph or set of graphs.  Format:
 \begin{example}
-  scale \{-gang\} \{-include_wall\} \{-nogang\} \{-y\} \{-y2\} \{<where> \{<value1> \{<value2>\}\}\}
+  scale \{-exact\} \{-gang\} \{-include_wall\} \{-nogang\} 
+             \{-y\} \{-y2\} \{<where> \{<value1> \{<value2>\}\}\}
 \end{example}
 
 Which graphs are scaled is determined by the \vn{<where>} switch. If \vn{<where>} is not present or
@@ -800,6 +801,14 @@ If both are present than the scale is from \vn{<value1>} to \vn{<value2>}.
 A graph can have a \vn{y2} (left) axis scale that is separate from the \vn{y} (right)
 axis. Normally, the \vn{scale} command will scale both axes.  Scaling of just one of these axes can
 be achieved by using the \vn{-y} or \vn{-y2} switches.
+
+How a graph is scaled is determined in part by the setting of the \vn{bounds} parameter in the
+\vn{y} and \vn{y2} components of the graph. See \vn{s:line.symb} for more details. The \vn{-exact}
+switch, if present, will set \vn{bounds} to \vn{"EXACT"} which means that \tao will use the min and
+max bounds as given by \vn{<value1>} and \vn{<value2>} and not try to find ``nice'' values near the
+given ones. If \vn{<value1>} and \vn{<value2>} are not given, and if \vn{bounds} is set to
+\vn{"EXACT"}, \tao will set \vn{bounds} to \vn{"GENERAL"}. Note: To set the axis \vn{bounds}
+directly, use the \vn{set graph} command.
 
 For scaling \vn{floor_plan} plots where there is a building wall to be drawn, if \vn{-include_wall}
 is present and autoscaling is being done, then the plot bounds are extended to include the extent of
@@ -1271,11 +1280,11 @@ For setting the \vn{component} attribute see also the commands:
 
 Example:
 \begin{example}
-  set graph orbit.x component = model - design  
-                                      ! Plot model orbit - design orbit in the graph
-  set graph orbit component = model - design  ! Applies to all graphs of orbit plot.
-  set graph T::orbit.x component = model - design  ! Set template plot
-  set graph r11 floor_plan%orbit_scale = 100  ! To display an orbit.
+  set graph orbit.x component = model - design  ! Plot orbit (model - design).
+  set graph orbit component = model - design    ! Applies to all graphs of orbit plot.
+  set graph T::orbit.x component = design       ! Set template plot
+  set graph r11 floor_plan%orbit_scale = 100    ! To display an orbit.
+  set graph beta y%bounds = "zero_at_end"       ! \sref{s:line.symb}.
 \end{example}
 
 %% set key --------------------------------------------------------------
@@ -3641,15 +3650,13 @@ Examples:
 
 The \vn{x_scale} command scales the horizontal axis of a graph or set of graphs. Format:
 \begin{example}
-  x_scale \{-gang\} \{-nogang\} \{-include_wall\} \{<where> \{<value1> <value2>\}\}
+  x_scale \{-exact\} \{-gang\} \{-nogang\} \{-include_wall\} \{<where> \{<value1> <value2>\}\}
 \end{example}
 
 Which graphs are scaled is determined by the \vn{<where>} switch. If \vn{<where>} is not present or
 \vn{<where>} is \vn{*} then all graphs are scaled. \vn{<where>} can be a plot name or the name of an
 individual graph withing a plot. If \vn{<where>} is \vn{s} then the scaling is done only for the
 plots where the x-axis scale is the longitudinal s-position.
-
-\vskip 7pt 
 
 \vn{x_scale} sets the lower and upper bounds for the horizontal axis.  If \vn{<bound1>} and
 \vn{<bound2>} are present, \vn{<bound1>} is taken to be the lower (left) bound and \vn{<bound2>} is
@@ -3659,6 +3666,14 @@ case where there is an autoscale, if \vn{plot%autoscale_gang_x} (\sref{s:templat
 the chosen scales will be the same for all graphs. That is, a single scale is calculated so that all
 the data of all the graphs is within the plot region. The affect of \vn{plot%autoscale_gang_x} can
 be overridden by using the \vn{-gang} or \vn{-nogang} switches.
+
+How a graph is scaled is determined in part by the setting of the \vn{bounds} parameter in the
+\vn{x} component of the graph. See \vn{s:line.symb} for more details. The \vn{-exact} switch, if
+present, will set \vn{bounds} to \vn{"EXACT"}. which means that \tao will use the min and
+max bounds as given by \vn{<value1>} and \vn{<value2>} and not try to find ``nice'' values near the
+given ones. If \vn{<value1>} and \vn{<value2>} are not given, and if \vn{bounds} is set to
+\vn{"EXACT"}, \tao will set \vn{bounds} to \vn{"GENERAL"}. Note: To set the axis \vn{bounds}
+directly, use the \vn{set graph} command.
 
 Note: The \vn{x_scale} command will vary the number of major divisions (set by
 plot%x%major_divisions (\sref{s:template})) to try to give a nice looking axis. The result can be
