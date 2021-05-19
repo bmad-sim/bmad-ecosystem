@@ -9,29 +9,33 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_scale_cmd (where, y_min_in, y_max_in, axis, include_wall, gang, turn_autoscale_off)
+! Subroutine tao_scale_cmd (where, y_min_in, y_max_in, axis, include_wall, gang, exact, turn_autoscale_off)
 !
 ! Routine to scale a plot. 
 ! If y_min = y_max, the scales will be chosen to show all the data.
 ! 
 ! Input:
-!   where              -- Character(*): Region to scale. Eg: "top:x"
-!   y_min_in           -- Real(rp): Plot y-axis min value.
-!   y_max_in           -- Real(rp): Plot y-axis max value.
-!   axis               -- Character(*), optional: 'y', 'y2', or '' (both). Default = ''.
+!   where              -- character(*): Region to scale. Eg: "top:x"
+!   y_min_in           -- real(rp): Plot y-axis min value.
+!   y_max_in           -- real(rp): Plot y-axis max value.
+!   axis               -- character(*), optional: 'y', 'y2', or '' (both). Default = ''.
 !   include_wall       -- logical, optional: Used for floor_plan plots where a building wall is drawn and y_min_in = y_max_in.
 !                           If present and True include the building wall position will be included in determining the the scale.
 !   gang               -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
-!   turn_autoscale_off -- Logical, optional: If True (default) then turn off plot%autoscale_y logical
-!                         for all plots that are scaled.
+!   exact              -- logical, optional: Exact plot y_max, y_min to correspond to y_min_in, y_max_in?
+!                           Default is False. Only relavent when y_min_in /= y_max_in.
+!   turn_autoscale_off -- logical, optional: If True (default) then turn off plot%autoscale_y logical
+!                           for all plots that are scaled.
 !-
 
-subroutine tao_scale_cmd (where, y_min_in, y_max_in, axis, include_wall, gang, turn_autoscale_off)
+subroutine tao_scale_cmd (where, y_min_in, y_max_in, axis, include_wall, gang, exact, turn_autoscale_off)
 
 implicit none
 
-type (tao_plot_array_struct), allocatable, save :: plot(:)
-type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (tao_plot_array_struct), allocatable, target :: plot(:)
+type (tao_plot_struct), pointer :: plt
+type (tao_graph_array_struct), allocatable, target :: graph(:)
+type (tao_graph_struct), pointer :: gph
 
 real(rp) y_min_in, y_max_in, y_min, y_max
 
@@ -39,10 +43,9 @@ integer i, j, ix, places, p1, p2
 
 character(*) where
 character(*), optional :: axis, gang
-character(8) this_axis, this_gang
-character(20) :: r_name = 'tao_scale_cmd'
+character(*), parameter :: r_name = 'tao_scale_cmd'
 
-logical, optional :: turn_autoscale_off, include_wall
+logical, optional :: turn_autoscale_off, include_wall, exact
 logical err
 
 ! Error check
@@ -64,9 +67,14 @@ y_max = y_max_in
 ! Exception: lat_layout
 
 if (len_trim(where) == 0 .or. where == '*' .or. where == 'all') then
-  do j = 1, size(s%plot_page%region)
-    if (.not. s%plot_page%region(j)%visible) cycle
-    call tao_scale_plot (s%plot_page%region(j)%plot, y_min, y_max, axis, include_wall, gang, .true.)
+  do i = 1, size(s%plot_page%region)
+    plt => s%plot_page%region(i)%plot
+    if (.not. s%plot_page%region(i)%visible)cycle
+    if (.not. allocated (plt%graph)) cycle
+    do j = 1, size(plt%graph)
+      call set_this_exact(plt%graph(j), y_min_in, y_max_in, exact, axis)
+    enddo
+    call tao_scale_plot (plt, y_min, y_max, axis, include_wall, gang, .true.)
   enddo
   return
 endif
@@ -79,15 +87,69 @@ if (err) return
 
 if (size(graph) > 0) then                ! If all the graphs of a plot...
   do j = 1, size(graph)
-    call tao_scale_graph (graph(j)%g, y_min, y_max, axis, include_wall)
-    if (logic_option(.true., turn_autoscale_off)) graph(j)%g%p%autoscale_y = .false.
+    gph => graph(j)%g
+    call set_this_exact (gph, y_min_in, y_max_in, exact, axis)
+    call tao_scale_graph (gph, y_min, y_max, axis, include_wall)
+    if (logic_option(.true., turn_autoscale_off)) gph%p%autoscale_y = .false.
   enddo
 else                          ! else just the one graph...
   do i = 1, size(plot)
-    call tao_scale_plot (plot(i)%p, y_min, y_max, axis, include_wall, gang)
-    if (logic_option(.true., turn_autoscale_off)) plot(i)%p%autoscale_y = .false.
+    plt => plot(i)%p
+    if (.not. allocated (plt%graph)) cycle
+    do j = 1, size(plt%graph)
+      call set_this_exact(plt%graph(j), y_min_in, y_max_in, exact, axis)
+    enddo
+    call tao_scale_plot (plt, y_min, y_max, axis, include_wall, gang)
+    if (logic_option(.true., turn_autoscale_off)) plt%autoscale_y = .false.
   enddo
 endif
+
+!---------------------------------------------------------
+contains
+
+subroutine set_this_exact (graph, y_min_in, y_max_in, exact, axis)
+
+type (tao_graph_struct) graph
+real(rp) y_min_in, y_max_in
+logical, optional :: exact
+character(*), optional :: axis
+
+!
+
+if (.not. present(axis)) then
+  call set_this_bounds (graph%y, y_min_in, y_max_in, exact)
+  call set_this_bounds (graph%y2, y_min_in, y_max_in, exact)
+  return
+endif
+
+select case (axis)
+case ('')
+  call set_this_bounds (graph%y, y_min_in, y_max_in, exact)
+  call set_this_bounds (graph%y2, y_min_in, y_max_in, exact)
+case ('y');     call set_this_bounds (graph%y, y_min_in, y_max_in, exact)
+case ('y2');    call set_this_bounds (graph%y2, y_min_in, y_max_in, exact)
+end select
+
+end subroutine set_this_exact
+
+!---------------------------------------------------------
+! contains
+
+subroutine set_this_bounds (axis, y_min_in, y_max_in, exact)
+
+type (qp_axis_struct) axis
+real(rp) y_min_in, y_max_in
+logical, optional :: exact
+
+!
+
+if (y_min_in == y_max_in) then
+  if (axis%bounds == 'EXACT') axis%bounds = 'GENERAL'
+else
+  if (logic_option(.false., exact)) axis%bounds = 'EXACT'
+endif
+
+end subroutine set_this_bounds
 
 end subroutine tao_scale_cmd
 
@@ -133,7 +195,7 @@ real(rp) y_range(2), y2_range(2)
 
 character(*), optional :: axis, gang
 character(16) this_axis
-character(16) :: r_name = 'tao_scale_plot'
+character(*), parameter :: r_name = 'tao_scale_plot'
 integer i, p1, p2
 
 logical, optional :: include_wall, skip_lat_layout
@@ -266,7 +328,6 @@ logical found_data, found_data2
 character(*), optional :: axis
 character(4) this_axis
 character(*), parameter :: r_name = 'tao_scale_graph'
-
 
 ! If specific min/max values are given then life is easy.
 

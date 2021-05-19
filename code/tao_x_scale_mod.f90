@@ -10,7 +10,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, include_wall, gang, turn_autoscale_off)
+! Subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, include_wall, gang, exact, turn_autoscale_off)
 !
 ! Routine to scale a plot. If x_min = x_max
 ! Then the scales will be chosen to show all the data.
@@ -22,13 +22,15 @@ contains
 !   include_wall       -- logical, optional: Used for floor_plan plots where a building wall is drawn and y_min_in = y_max_in.
 !                           If present and True include the building wall position will be included in determining the the scale.
 !   gang               -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
+!   exact              -- logical, optional: Exact plot y_max, y_min to correspond to y_min_in, y_max_in?
+!                           Default is False. Only relavent when y_min_in /= y_max_in.
 !   turn_autoscale_off -- Logical, optional: If True (default) then turn off plot%autoscale_x logical for all plots that are scaled.
 !
 !  Output:
 !   err                -- Logical: Set to True if the plot cannot be found. False otherwise.
 !-
 
-subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, include_wall, gang, turn_autoscale_off)
+subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, include_wall, gang, exact, turn_autoscale_off)
 
 implicit none
 
@@ -44,7 +46,7 @@ character(*) where
 character(*), optional :: gang
 character(20) :: r_name = 'tao_x_scale_cmd'
 
-logical, optional :: include_wall, turn_autoscale_off
+logical, optional :: include_wall, exact, turn_autoscale_off
 logical err, all_same, have_scaled
 
 ! Use local vars for x_min and x_max in case the actual args are something 
@@ -84,6 +86,7 @@ all_same = .true.
 if (size(graph) > 0) then
   i0 = -1
   do i = 1, size(graph)
+    call set_this_exact (graph(i)%g, x_min_in, x_max_in, exact)
     call tao_x_scale_graph (graph(i)%g, x_min, x_max, include_wall, have_scaled)
     if (.not. have_scaled) cycle
     if (graph(i)%g%p%type == 'floor_plan') cycle
@@ -95,6 +98,11 @@ if (size(graph) > 0) then
 else
   i0 = -1
   do i = 1, size(plot)
+    if (.not. allocated(plot(i)%p%graph)) cycle
+    do j = 1, size(plot(i)%p%graph)
+      call set_this_exact (plot(i)%p%graph(j), x_min_in, x_max_in, exact)
+      call tao_x_scale_graph (plot(i)%p%graph(j), x_min, x_max, include_wall, have_scaled)
+    enddo
     call tao_x_scale_plot (plot(i)%p, x_min, x_max, include_wall, gang, have_scaled)
     if (.not. have_scaled) cycle
     if (plot(i)%p%type == 'floor_plan') cycle
@@ -110,6 +118,25 @@ endif
 if (.not. all_same) call out_io (s_warn$, r_name, &
       'Note: Not all plots have the same min/max due to different ', &
       '      x-axis major_div or major_div_nominal values.')
+
+!---------------------------------------------------------------------------
+contains
+
+subroutine set_this_exact (graph, x_min_in, x_max_in, exact)
+
+type (tao_graph_struct) graph
+real(rp) x_min_in, x_max_in
+logical, optional :: exact
+
+!
+
+if (x_min_in == x_max_in) then
+  if (graph%x%bounds == 'EXACT') graph%x%bounds = 'GENERAL'
+else
+  if (logic_option(.false., exact)) graph%x%bounds = 'EXACT'
+endif
+
+end subroutine set_this_exact
 
 end subroutine tao_x_scale_cmd
 
@@ -242,7 +269,7 @@ real(rp) this_min, this_max, del
 logical, optional :: include_wall, have_scaled
 logical curve_here
 
-character(24) :: r_name = 'tao_x_scale_graph'
+character(*), parameter :: r_name = 'tao_x_scale_graph'
 
 ! If specific min/max values are given then life is easy.
 
