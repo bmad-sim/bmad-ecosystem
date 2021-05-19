@@ -4095,8 +4095,6 @@ elseif (use_offsets) then
 
   if (ele%key == sbend$) then
     sagitta = ele%value(l_sagitta$)
-
-!!    orient = ptc_fibre%mag%p%f%ent
     orient = ptc_fibre%chart%f%ent
     if (ele%value(ref_tilt$) == 0) then
       call geo_rot(orient, [0.0_rp, ele%value(angle$)/2.0_rp, 0.0_rp], 1, orient)
@@ -4193,6 +4191,25 @@ elseif (use_offsets) then
     ptc_fibre%patch%energy = 4   ! Entrance energy patch
     ptc_fibre%patch%p0b = ele%value(p0c_start$) * 1d-9
     ptc_fibre%patch%b0b = ele%value(p0c_start$) / ele%value(E_tot_start$)  ! beta velocity
+  endif
+
+  ! Put misalignmnets in patches?
+
+  if (bmad_com%orientation_to_ptc_design) then
+    call find_patch(ptc_fibre%t1%a,ptc_fibre%t1%ent,ptc_fibre%t1%next%a,ptc_fibre%t1%next%ent, &
+                                                                 ptc_fibre%patch%a_d,ptc_fibre%patch%a_ang)
+    call find_patch(ptc_fibre%t2%previous%b,ptc_fibre%t2%previous%exi,ptc_fibre%t2%b,ptc_fibre%t2%exi, &
+                                                                 ptc_fibre%patch%b_d,ptc_fibre%patch%b_ang)
+    ptc_fibre%patch%patch=3
+
+    ptc_fibre%mag%p%tiltd=0
+    ptc_fibre%magp%p%tiltd=0
+    ptc_fibre%chart%d_in=0
+    ptc_fibre%chart%d_out=0
+    ptc_fibre%chart%ang_in=0
+    ptc_fibre%chart%ang_out=0
+    ptc_fibre%mag%mis=.false.
+    ptc_fibre%magp%mis=.false.
   endif
 
 endif

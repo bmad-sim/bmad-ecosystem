@@ -411,6 +411,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%l, bmad_com%sr_wakes_on))                    bp_com%extra%sr_wakes_on_set                     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%mat6_track_symmetric))           bp_com%extra%mat6_track_symmetric_set            = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%orientation_to_ptc_design))      bp_com%extra%orientation_to_ptc_design_set       = .true.
     if (associated(a_ptrs(1)%l, bmad_com%auto_bookkeeper))                bp_com%extra%auto_bookkeeper_set                 = .true.
     if (associated(a_ptrs(1)%l, bmad_com%csr_and_space_charge_on))        bp_com%extra%csr_and_space_charge_on_set         = .true.
     if (associated(a_ptrs(1)%l, bmad_com%spin_tracking_on))               bp_com%extra%spin_tracking_on_set                = .true.
