@@ -1,7 +1,7 @@
 !+
-! Function probability_funct (x)
+! Function probability_funct (x) result (p_func)
 !
-! Routine compute the normal probability function PROBABILITY_FUNCT.
+! Routine compute the normal probability function probability_funct.
 !
 ! Defining relation:
 !     probability_funct(x) = integral_{0, x} dt exp(-t^2/2) / sqrt(2*pi)
@@ -13,32 +13,23 @@
 !
 ! In terms of the error function:
 !     probability_funct(x) = erf(x/sqrt(2)) / 2
+!
+! Input:
+!   x         -- real(rp): Function argument.
+!
+! Output:
+!   p_func    -- real(rp): Function value.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.4  2003/07/09 01:29:31  dcs
-!new bmad
-!
-!Revision 1.3  2002/02/23 20:34:50  dcs
-!Modified for Single/Double Real Toggle
-!
-!Revision 1.2  2001/09/27 17:47:10  rwh24
-!UNIX compatibility updates
-!
+function probability_funct(x) result (p_func)
 
+use nr
+use precision_def
 
-function probability_funct(x)
+implicit none
 
-  use nr
+real(rp) p_func, x
 
-
-  use precision_def
-
-  implicit none
-
-  real(rp) probability_funct, x
-
-  probability_funct = erf(x/sqrt(2.0)) / 2
+p_func = erf(x/sqrt(2.0)) / 2
 
 end function

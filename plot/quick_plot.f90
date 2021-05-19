@@ -1080,15 +1080,6 @@ if (axis%bounds == 'EXACT' .and. &
   return
 endif
 
-! First error check.
-
-if (axis%bounds == 'ZERO_AT_END' .and. data_max*data_min < 0) then
-  call out_io (s_error$, r_name, 'DATA ABOVE AND BELOW ZERO!', &
-                                 'WITH "ZERO_AT_END"')
-  niceness_score = -1
-  return
-endif
-
 ! Find width of data
 
 select case (axis%bounds)
@@ -1097,7 +1088,7 @@ case ('ZERO_AT_END')
   a_min = 0
 case ('ZERO_SYMMETRIC')
   a_max = max(abs(data_max), abs(data_min))
-  a_min = 0
+  a_min = -a_max
 case ('GENERAL', 'EXACT')
   ! Nothing to do
 case default
@@ -1116,12 +1107,7 @@ a_max = a_max - 0.3_rp * data_width / max(4, axis%major_div)
 min_width = axis%major_div * max(abs(a_max)*1e-5, abs(a_min)*1e-5, 1e-29_rp)
 data_width = max(data_width, min_width)
 data_width10 = 10d0**(floor(log10(data_width))-1)
-              
-if (axis%bounds == 'ZERO_SYMMETRIC') then
-  div_eff = axis%major_div / 2
-else
-  div_eff = axis%major_div
-endif
+div_eff = axis%major_div
 
 if (axis%bounds == 'ZERO_AT_END') then
   i1_min = 0
@@ -1162,7 +1148,7 @@ if (present(niceness_score)) niceness_score = max_score
 
 ! adjust the scale if necessary
 
-if (axis%bounds == 'ZERO_AT_END' .and. (data_min < 0 .or. data_max < 0)) then
+if (axis%bounds == 'ZERO_AT_END' .and. data_min + data_max < 0) then
   axis%tick_min = -axis%tick_max
   axis%tick_max = 0
 elseif (axis%bounds == 'ZERO_SYMMETRIC') then
@@ -1170,8 +1156,6 @@ elseif (axis%bounds == 'ZERO_SYMMETRIC') then
 endif
 
 ! find number of places needed
-
-call qp_calc_axis_places (axis)
 
 axis%min = min(axis%tick_min, data_min, data_max)
 axis%max = max(axis%tick_max, data_min, data_max)
@@ -1181,6 +1165,8 @@ if (axis%tick_min == axis%tick_max) then
 else
   axis%dtick = (axis%tick_max - axis%tick_min) / axis%major_div
 endif
+
+call qp_calc_axis_places (axis)
 
 end subroutine qp_calc_axis_scale
 
