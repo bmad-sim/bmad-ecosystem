@@ -310,6 +310,7 @@ if (found_it) then
   if (extra%sr_wakes_on_set)                      bmad_com%sr_wakes_on                     = bmad_com_read%sr_wakes_on
   if (extra%lr_wakes_on_set)                      bmad_com%lr_wakes_on                     = bmad_com_read%lr_wakes_on
   if (extra%mat6_track_symmetric_set)             bmad_com%mat6_track_symmetric            = bmad_com_read%mat6_track_symmetric
+  if (extra%orientation_to_ptc_design_set)        bmad_com%orientation_to_ptc_design       = bmad_com_read%orientation_to_ptc_design
   if (extra%auto_bookkeeper_set)                  bmad_com%auto_bookkeeper                 = bmad_com_read%auto_bookkeeper
   if (extra%csr_and_space_charge_on_set)          bmad_com%csr_and_space_charge_on         = bmad_com_read%csr_and_space_charge_on
   if (extra%spin_tracking_on_set)                 bmad_com%spin_tracking_on                = bmad_com_read%spin_tracking_on

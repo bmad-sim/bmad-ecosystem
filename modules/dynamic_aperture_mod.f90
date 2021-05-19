@@ -37,6 +37,7 @@ subroutine dynamic_aperture_scan(branch, aperture_scan, parallel)
 type (branch_struct) :: branch
 type (aperture_scan_struct), target :: aperture_scan
 type (aperture_data_struct) :: aperture
+type (aperture_data_struct), allocatable :: apertures(:)
 type (aperture_param_struct), pointer :: ap_param
 
 real(rp), allocatable  :: angle_list(:)
@@ -96,17 +97,24 @@ if (.not. allocated(aperture_scan%aperture)) allocate(aperture_scan%aperture(ap_
 call run_timer('ABS', time0)
 call out_io (s_info$, r_name, 'Angle scan setup...')
 
+!$OMP parallel sections
+!$OMP section
+
 if (ap_param%x_init == 0) then
   ap_param%x_init = 0.001_rp
   call dynamic_aperture1 (branch, aperture_scan%ref_orb, 0.0_rp, aperture_scan%S_xy, ap_param, aperture, .false.)
   ap_param%x_init = aperture%x
 endif
 
+!$OMP section
+
 if (ap_param%y_init == 0) then
   ap_param%y_init = 0.001_rp
   call dynamic_aperture1 (branch, aperture_scan%ref_orb, pi/2, aperture_scan%S_xy, ap_param, aperture, .false.)
   ap_param%y_init = aperture%y
 endif
+
+!$OMP end parallel sections
 
 call run_timer('ABS', time1)
 call out_io (s_info$, r_name, 'Angle scale factors calculated. dTime(min): \f8.2\ ', &
@@ -116,8 +124,18 @@ call out_io (s_info$, r_name, 'Angle scale factors calculated. dTime(min): \f8.2
 
 omp_n = 1
 !$ omp_n = omp_get_max_threads()
+
 if (logic_option(.false., parallel) .and. omp_n > 1) then
-  call dynamic_aperture1_parallel(branch, aperture_scan%ref_orb, angle_list, aperture_scan%S_xy, ap_param, aperture_scan%aperture)
+  allocate (apertures(ap_param%n_angle))
+  !$OMP parallel do
+  do i = 1, ap_param%n_angle
+    call dynamic_aperture1 (branch, aperture_scan%ref_orb, angle_list(i), aperture_scan%S_xy, ap_param, apertures(i))
+  end do  
+  !$OMP end parallel do
+
+  aperture_scan%aperture = apertures
+  deallocate (apertures)
+
 else
   do i = 1, ap_param%n_angle
     call dynamic_aperture1 (branch, aperture_scan%ref_orb, angle_list(i), aperture_scan%S_xy, ap_param, aperture_scan%aperture(i))
@@ -289,56 +307,5 @@ function sinphi(th,S_xy) result(x)
 end function sinphi
 
 end subroutine dynamic_aperture1
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine dynamic_aperture1_parallel (branch, orb0, theta_xy_list, aperture_param, aperture_list)
-!
-! Parallel version of subroutine dynamic_aperture using OpenMP  
-! to process a list of angles theta_xy_list(:) 
-! and return a list of apertures aperture_list(:) 
-!
-! See subroutine dynamic_aperture
-!-
-
-
-subroutine dynamic_aperture1_parallel(branch, orb0, angle_list, S_xy, aperture_param, aperture_list)
-
-!$ use omp_lib
-
-type (branch_struct) :: branch
-type (coord_struct) :: orb0
-type (aperture_param_struct) :: aperture_param
-type (aperture_data_struct) :: aperture
-type (aperture_data_struct) :: aperture_list(:)
-type (aperture_data_struct), allocatable :: omp_aperture(:)
-
-real(rp) :: angle_list(:), S_xy
-
-integer :: i
-integer :: omp_n, omp_i
-
-character(40) :: r_name = 'dynamic_aperture1_parallel'
-
-! Parallel memory setup
-
-!$OMP parallel &
-!$OMP default(private), &
-!$OMP shared(branch, orb0, omp_aperture, angle_list, aperture_list, aperture_param, S_xy)
-!$OMP do schedule(dynamic)
-do i=lbound(angle_list, 1), ubound(angle_list, 1)
-  omp_i = 1
-  !$ omp_i = omp_get_thread_num()+1
-  call dynamic_aperture1 (branch, orb0, angle_list(i), S_xy, aperture_param, omp_aperture(omp_i))
-  aperture_list(i) = omp_aperture(omp_i)
-end do  
-!$OMP end do
-!$OMP end parallel
-  
-deallocate(omp_aperture)
-  
-end subroutine dynamic_aperture1_parallel
 
 end module

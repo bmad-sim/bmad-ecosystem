@@ -206,6 +206,7 @@ call write_if_logic_param_changed (bmad_com%rf_phase_below_transition_ref, bmad_
 call write_if_logic_param_changed (bmad_com%sr_wakes_on, bmad_com_default%sr_wakes_on, 'bmad_com[sr_wakes_on]')
 call write_if_logic_param_changed (bmad_com%lr_wakes_on, bmad_com_default%lr_wakes_on, 'bmad_com[lr_wakes_on]')
 call write_if_logic_param_changed (bmad_com%mat6_track_symmetric, bmad_com_default%mat6_track_symmetric, 'bmad_com[mat6_track_symmetric]')
+call write_if_logic_param_changed (bmad_com%orientation_to_ptc_design, bmad_com_default%orientation_to_ptc_design, 'bmad_com[orientation_to_ptc_design]')
 call write_if_logic_param_changed (bmad_com%auto_bookkeeper, bmad_com_default%auto_bookkeeper, 'bmad_com[auto_bookkeeper]')
 call write_if_logic_param_changed (bmad_com%csr_and_space_charge_on, bmad_com_default%csr_and_space_charge_on, 'bmad_com[csr_and_space_charge_on]')
 call write_if_logic_param_changed (bmad_com%spin_tracking_on, bmad_com_default%spin_tracking_on, 'bmad_com[spin_tracking_on]')

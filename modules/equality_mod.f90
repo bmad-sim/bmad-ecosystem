@@ -2299,6 +2299,8 @@ is_eq = is_eq .and. (f1%lr_wakes_on .eqv. f2%lr_wakes_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%mat6_track_symmetric .eqv. f2%mat6_track_symmetric)
 !! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%orientation_to_ptc_design .eqv. f2%orientation_to_ptc_design)
+!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%auto_bookkeeper .eqv. f2%auto_bookkeeper)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%csr_and_space_charge_on .eqv. f2%csr_and_space_charge_on)

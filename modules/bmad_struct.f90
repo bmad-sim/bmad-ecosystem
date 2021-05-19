@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 260
+integer, parameter :: bmad_inc_version$ = 261
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1953,6 +1953,7 @@ type extra_parsing_info_struct
   logical :: sr_wakes_on_set                        = .false.
   logical :: lr_wakes_on_set                        = .false.
   logical :: mat6_track_symmetric_set               = .false.
+  logical :: orientation_to_ptc_design_set          = .false.
   logical :: auto_bookkeeper_set                    = .false.
   logical :: csr_and_space_charge_on_set            = .false.
   logical :: spin_tracking_on_set                   = .false.
@@ -2018,6 +2019,7 @@ type bmad_common_struct
   logical :: sr_wakes_on = .true.                      ! Short range wakefields?
   logical :: lr_wakes_on = .true.                      ! Long range wakefields
   logical :: mat6_track_symmetric = .true.             ! symmetric offsets
+  logical :: orientation_to_ptc_design = .false.       ! offset, pitch, and tilt attributes are put in ptc patch?
   logical :: auto_bookkeeper = .true.                  ! Automatic bookkeeping?
   logical :: csr_and_space_charge_on = .false.         ! Space charge switch
   logical :: spin_tracking_on = .false.                ! spin tracking?
