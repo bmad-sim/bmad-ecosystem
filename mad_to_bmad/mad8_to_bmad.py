@@ -131,7 +131,7 @@ ele_type_translate = {
 }
 
 ignore_mad8_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'assembly_id', 
-                     'mech_sep', 'betrf', 'tfill', 'shunt', 'pg', 'eloss']
+                     'mech_sep', 'betrf', 'tfill', 'shunt', 'pg', 'eloss', 'lfile', 'tfile']
 
 bmad_param_name = {
     'deltae':   'voltage',
