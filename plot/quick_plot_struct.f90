@@ -106,29 +106,29 @@ type qp_rect_struct     ! Rectangular: A structure with 4 numbers
 end type
 
 type qp_text_struct
-  real(rp) :: height = 12   ! in points
-  character(16) :: color = 'black'
+  real(rp) :: height         = 12   ! in points
+  character(16) :: color     = 'black'
   logical :: uniform_spacing = .false.
 end type
 
 type qp_line_struct
-  integer :: width = 1
-  character(16) :: color = 'black'
+  integer :: width         = 3
+  character(16) :: color   = 'black'
   character(16) :: pattern = 'solid'
 end type
 
 type qp_symbol_struct
-  character(16) :: type = 'circle_dot'
-  real(rp) :: height      = 10d0  ! in points (same as text height)
+  character(16) :: type         = 'circle_dot'
+  real(rp) :: height            = 10d0  ! in points (same as text height)
   character(16) :: color        = 'black'
   character(16) :: fill_pattern = 'solid_fill'
-  integer :: line_width   = 1
+  integer :: line_width         = 3
 end type
 
 type qp_arrow_struct
   real(rp) :: head_angle = 30      ! Acute angle of the arrow point in degrees.
   real(rp) :: head_barb  = 0.4     ! Fraction of triangular arrow head that is cut away from the back.
-  real(rp) :: head_size = 1.0
+  real(rp) :: head_size  = 1.0
   character(16) :: head_type   = 'filled_arrow_head'    ! Or 'outline_arrow_head'
   character(16) :: color       = 'black'
 end type
@@ -147,12 +147,12 @@ type qp_state_struct
   type (qp_text_struct) :: axis_number= qp_text_struct(12.0, 'black', .false.)
   type (qp_text_struct) :: axis_label = qp_text_struct(15.0, 'black', .false.)
   type (qp_text_struct) :: this_text  ! current settings.
-  type (qp_symbol_struct) :: symbol 
-  type (qp_arrow_struct) :: arrow
-  type (qp_line_struct) :: std_line  = qp_line_struct (2, 'black', 'solid')
-  type (qp_line_struct) :: plot_line = qp_line_struct (2, 'black', 'solid')
-  type (qp_line_struct) :: axis_line = qp_line_struct (2, 'black', 'solid')
-  type (qp_line_struct) :: legend_line = qp_line_struct (2, 'black', 'solid')
+  type (qp_symbol_struct) :: symbol = qp_symbol_struct()
+  type (qp_arrow_struct) :: arrow = qp_arrow_struct()
+  type (qp_line_struct) :: std_line  = qp_line_struct()
+  type (qp_line_struct) :: plot_line = qp_line_struct()
+  type (qp_line_struct) :: axis_line = qp_line_struct()
+  type (qp_line_struct) :: legend_line = qp_line_struct()
   type (qp_line_struct) :: grid_line = qp_line_struct(1, 'light_grey', 'solid')
   real(rp) :: text_scale = 1
   real(rp) :: text_spacing_factor = 0.6
