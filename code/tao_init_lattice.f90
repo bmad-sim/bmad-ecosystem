@@ -190,7 +190,8 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
   dl0 => design_lattice(i_uni-1)
   if (design_lat%file == dl0%file .and. design_lat%slice_lattice == dl0%slice_lattice .and. &
             design_lat%file2 == dl0%file2 .and. design_lat%use_line == dl0%use_line .and. &
-           (design_lat%reverse_lattice .eqv. dl0%reverse_lattice)) then
+           (design_lat%reverse_lattice .eqv. dl0%reverse_lattice) .and. &
+            design_lat%start_branch_at == dl0%start_branch_at) then
     u%design_same_as_previous = .true.
     u%design%lat = s%u(i_uni-1)%design%lat
   else
@@ -246,7 +247,12 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       endif
     enddo
 
+    if (s%init%start_branch_at_arg /= '') design_lat%start_branch_at = s%init%start_branch_at_arg
     if (s%init%slice_lattice_arg /= '') design_lat%slice_lattice = s%init%slice_lattice_arg
+
+    if (design_lat%start_branch_at /= '') then
+      call start_branch_at (u%design%lat, design_lat%start_branch_at, err)
+    endif
 
     if (design_lat%slice_lattice /= '') then
       call slice_lattice (u%design%lat, design_lat%slice_lattice, err)

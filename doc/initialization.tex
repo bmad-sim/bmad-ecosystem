@@ -133,7 +133,13 @@ frequency changes then you will need to set \vn{parameter[absolute_time_tracking
 %
 \item[\vn{-slice_lattice <element_list>}]
 If present, discard from the lattice all lattice elements that are not in the \vn{<element_list>}.
-Overrides the setting of \vn{design_lattice(i)%slice_lattice}.
+Overrides the setting of \vn{design_lattice(i)%slice_lattice}. Note: A \vn{slice_lattice} command
+may also be put directly in the lattice file. See the \bmad manual for more documentation.
+%
+\item[\vn{-start_branch_at <element>}]
+If present, shift the starting point of a lattice branch while keeping the relative order of the
+elements the same. This is useful, for example, in storage rings. Note A \vn{start_branch_at}
+command may also be put directly in the lattice file. See the \bmad manual for more documentation.
 %
 \item[\vn{-startup_file <file_name>}]
 Overrides the \vn{startup_file} (\sref{s:init.global}) specified in the

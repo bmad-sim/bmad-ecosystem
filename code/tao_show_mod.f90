@@ -1787,6 +1787,7 @@ case ('global')
     call write_this_arg (nl, lines, '  -rf_on', s%init%rf_on_arg)
     call write_this_arg (nl, lines, '  -quiet', s%init%quiet_arg)
     call write_this_arg (nl, lines, '  -slice_lattice', s%init%slice_lattice_arg)
+    call write_this_arg (nl, lines, '  -start_branch_at', s%init%start_branch_at_arg)
     call write_this_arg (nl, lines, '  -startup_file', s%init%startup_file_arg)
     call write_this_arg (nl, lines, '  -var_file', s%init%var_file_arg)
 
@@ -1836,6 +1837,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %mat6_track_symmetric            = ', bmad_com%mat6_track_symmetric
+    nl=nl+1; write(lines(nl), lmt) '  %orientation_to_ptc_design       = ', bmad_com%orientation_to_ptc_design
     nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                 = ', bmad_com%auto_bookkeeper
     nl=nl+1; write(lines(nl), lmt) '  %csr_and_space_charge_on         = ', bmad_com%csr_and_space_charge_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on

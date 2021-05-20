@@ -68,7 +68,7 @@ do
         '-noplot', '-lattice_file', '-log_startup', '-beam_file', '-var_file', '-data_file', '-building_wall_file', &
         '-startup_file', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', '-beam_track_data_file', &
-        '-beam_init_file_name', '-slice_lattice', '-prompt_color', '-beam_init_position_file', &
+        '-beam_init_file_name', '-slice_lattice', '-start_branch_at', '-prompt_color', '-beam_init_position_file', &
         '-plot_file', '-external_plotting', '-quiet', '-no_rad_int', '-command'], ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
@@ -169,6 +169,9 @@ do
   case ('-slice_lattice')
     call get_next_arg (arg0, s%init%slice_lattice_arg, i_arg, n_arg, .true.)
 
+  case ('-start_branch_at')
+    call get_next_arg (arg0, s%init%start_branch_at_arg, i_arg, n_arg)
+
   case ('-startup_file')
     call get_next_arg (arg0, s%init%startup_file_arg, i_arg, n_arg)
 
@@ -208,6 +211,7 @@ do
   case ('--rf_on');                               s%init%rf_on_arg = '<negated>'
   case ('--quiet', '--silent_run');               s%init%quiet_arg = 'off'
   case ('--slice_lattice');                       s%init%slice_lattice_arg = ''
+  case ('--start_branch_at');                     s%init%start_branch_at_arg = ''
   case ('--startup_file');                        s%init%startup_file_arg = ''
   case ('--var_file');                            s%init%var_file_arg = ''
   end select
