@@ -913,26 +913,30 @@ With \vn{cavity_type} set to \vn{standing_wave}, and with \vn{longitudinal_mode}
 default), the field in a cavity, in cylindrical coordinates, is modeled by
 \begin{align}
   E_z    &=           2 \, G \,      \sin(k \, s) \, \sin(2 \, \pi \, (f \, t + \phi_\text{ref})) \CRNO
-  E_r    &=               -G \, k \, \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \\
-  B_\phi &= \frac{1}{c} \, G \, k \, \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \nonumber
+  E_r    &=          -r \, G \, k \, \cos(k \, s) \, \sin(2 \, \pi \, (f \, t + \phi_\text{ref})) \\
+  B_\phi &= \frac{r}{c} \, G \, k \, \sin(k \, s) \, \cos(2 \, \pi \, (f \, t + \phi_\text{ref})) \nonumber
 \end{align}
-where $G$ is the voltage gradient, $k$ is the wave number. $\omega$ is frequency, 
-and with \vn{lognitudinal_mode} set to 1:
+where $G$ is the voltage gradient, $r$ is the radius, $f$ is the frequency, $\phi_\text{ref}$ is the
+reference phase, and $k$ is the wave number
+\begin{equation}
+  k = \frac{2 \, \pi \, f}{c}
+\end{equation}
+
+With \vn{cavity_type} set to \vn{standing_wave} and with \vn{lognitudinal_mode} set to 1, the field is modeled as
 \begin{align}
-  E_z    &=            2 \, G \,      \cos(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \CRNO
-  E_r    &=            r \, G \, k \, \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \\
-  B_\phi &= -\frac{r}{c} \, G \, k \, \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \nonumber
+  E_z    &=            2 \, G \,      \cos(k \, s) \, \cos(2 \, \pi \, (f \, t + \phi_\text{ref})) \CRNO
+  E_r    &=            r \, G \, k \, \sin(k \, s) \, \cos(2 \, \pi \, (f \, t + \phi_\text{ref})) \\
+  B_\phi &= -\frac{r}{c} \, G \, k \, \cos(k \, s) \, \sin(2 \, \pi \, (f \, t + \phi_\text{ref})) \nonumber
 \end{align}
 
-With \vn{cavity_type} set to \vn{standing_wave}, the field is given by
+With \vn{cavity_type} set to \vn{traveling_wave}, the setting of \vn{longitudinal_mode} is ignored
+and the field is given by
 \begin{align}
-  \theta &= \omega \, t - k \, s + 2 \, \pi \, \phi_\text{ref} \CRNO
   E_z    &=                      G \,      \cos(\theta) \CRNO
   E_r    &= -\frac{r}{2}      \, G \, k \, \sin(\theta) \\
-  B_\phi &= -\frac{r}{2 \, c} \, G \, k \, \sin(\theta) \nonumber
+  B_\phi &= -\frac{r}{2 \, c} \, G \, k \, \sin(\theta) \CRNO
+  \theta &= 2 \, \pi \, (f \, t + \phi_\text{ref}) - k \, s \nonumber
 \end{align}
-
-\etcetc
 
 %---------------------------------------------------------------------------------
 \subsection{LCavity Fringe Fields}
@@ -966,14 +970,14 @@ traveling wave and standing wave cavities, is (cf. Rosenzweig\cite{b:rosenzweig}
 \end{equation}
 with a similar equation in the vertical. Here $\what E_z$ is the longitudinal electric field just inside
 the fringe, and $P_0$ is the reference momentum. At the exit end, the kick is the negative of
-\Eq{pqe2c}.
+\Eq{pqe2c}. This fringe kick is built into \vn{xxpc}.
 
 The integrated fringe fields, needed to calculate the spin precession, are at the entrance end
 \begin{align}
   \int E_r \, ds &= -\frac{r}{4} \, \what E_z \CRNO
   \int B_\phi \, ds &= \frac{r}{4 \, c} \, \what E_z
 \end{align}
-The integrated fields at the exit end are the negative of these quantities.
+The integrated fields at the exit end are obtained by negating the RHS of these equations.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
