@@ -8,24 +8,13 @@ through along with the attributes (length, strength, orientation, etc.) of the e
 file (or files) is a file that is used to describe an accelerator or storage ring.
 
 When \bmad was first developed, The \bmad lattice file syntax was modeled upon the format defined
-for the \mad program\cite{b:mad}. Since then, the \bmad format has been developed to meet ever
+for the \mad program\cite{b:maduser}. Since then, the \bmad format has been developed to meet ever
 increasing simulation needs so currently there are many differences between the two formats. One
 difference, which has been present from the very start, is that there are no ``action'' commands
 (action commands tell the program to calculate the Twiss parameters, do tracking, etc.) in a \bmad
 lattice file. The reason for this is due to the fact that \bmad is a software library and not a
 program. That is, interacting with the user to determine what actions a \bmad based program should
 take is left to the program itself and is not part of the \bmad standard.
-
-%---------------------------------------------------------------------------
-\section{MAD and SAD Lattice Files}
-\label{s:mad.sad}
-\index{MAD} 
-
-While \bmad cannot directly read in \mad\cite{b:maduser} or \vn{SAD}\cite{b:sad} files, translation
-between \mad and \bmad lattice files is possible using the \vn{Universal Accelerator Parser} as
-discussed in Chapter~\sref{c:lat.convert}.
-
-\newpage
 
 %---------------------------------------------------------------------------
 \section{File Example and Syntax}
@@ -1374,7 +1363,7 @@ Also see the \vn{start_branch_at} statement (\sref{s:start.branch}).
 
 %--------------------------------------------------------------------------
 \section{Start_Branch_At}
-\label{s:start.branch
+\label{s:start.branch}
 
 The \vn{start_branch_at} statement is used to shift the starting point of a lattice branch while
 keeping the relative order of the elements the same. This shifting only applies to elements in the

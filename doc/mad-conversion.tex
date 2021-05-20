@@ -1,6 +1,10 @@
-\chapter{MAD/SAD/PTC Lattice Conversion}
+\chapter{Lattice File Conversion}
 \label{c:lat.convert}
 \index{conversion to other lattice formats}
+
+A \bmad Distribution (\sref{s:tao.intro}) contains a number of translation programs between \bmad
+and other formats.
+
 
 %-----------------------------------------------------------------------------
 \section{MAD Conversion}
@@ -34,78 +38,30 @@ a variable's value to be zero if it is not defined.
 
 \index{wiggler!conversion to MAD}
 \index{sol_quad!conversion to MAD}
-To convert to MAD8 or MADX, there is a \bmad conversion routine called
-\Hyperref{r:write.lattice.in.foreign.format}{write_lattice_in_foreign_format}.  Since \mad does not
-have a \vn{wiggler} or a \vn{sol_quad} element, this conversion routine makes ``equivalent''
-substitution. For a \vn{sol_quad}, the equivalent substitution will be a drift-matrix-drift series
-of elements. For a \vn{wiggler}, a series of bend and drift elements will be used (the program can
-also use a drift-matrix-drift model here but that is not as accurate). The bends and drifts for the
+To convert to MAD8 or MADX, the \tao program can be used. Additionally, the program
+\vn{util_programs/bmad_to_mad_or_sad} is available. Since \mad does not have a \vn{wiggler} or a
+\vn{sol_quad} element, this conversion routine makes ``equivalent'' substitution. For a
+\vn{sol_quad}, the equivalent substitution will be a drift-matrix-drift series of elements. For a
+\vn{wiggler}, a series of bend and drift elements will be used (the program can also use a
+drift-matrix-drift model here but that is not as accurate). The bends and drifts for the
 \vn{wiggler} model are constructed so that the global geometry of the lattice does not
 change. Additionally the bends and drifts are constructed to most nearly match the wiggler's
 \begin{example}
   Transfer matrix
   $I_2$ and $I_3$ synchrotron radiation integrals (\sref{s:synch.ints})
 \end{example}
-Note that the resulting model will not have the vertical cubic
-nonlinearity that the actual wiggler has.
-
-The \vn{write_lattice_in_foreign_format} routine is embeded in the program
-\vn{util_programs/bmad_to_mad_or_sad}.
+Note that the resulting model will not have the vertical cubic nonlinearity that the actual wiggler
+has.
 
 %-----------------------------------------------------------------------------
-%\subsection{Convert MAD-X to Bmad Via PTC}
-%\label{s:mad.bmad.ptc}
-%
-%\mad-X lattices can be converted to \bmad by first using \mad-X to create a PTC ``flat''
-%file and then using \bmad to convert the flat file to a \bmad lattice file. 
-%
-%The advantage of converting via PTC rather than using UAP (\sref{s:mad.bmad.uap}) is that
-%one does not have to worry about removing action commands from the \mad-X file. The
-%disadvantages are:
-%  \begin{description}
-%  \item 
-%the conversion does not preserve any of the look and feel of the original \mad-X file. 
-%  \item
-%the conversion via PTC does not work with \mad8 lattices.
-%  \item
-%\mad-X does not correctly handle \vn{elseparator} and \vn{matrix} elements. These
-%elements become drifts in a flat file.
-%  \item
-%\mad-X does not transfer beginning Twiss and orbit information to the flat file needed for open lattices.
-%  \item
-%\mad-X does not transfer the zeroth (dipole) order multipoles of a multipole element to the flat file.
-%  \end{description}
-%
-%First, take a \mad-X lattice file and append the following to it:
-%\begin{example}
-%  use, period = LINE_NAME_HERE;
-%  ptc_create_universe;
-%  ptc_create_layout, model = 1, method = 2, nst = 1; 
-%  !! ptc_create_layout, model=1, method=2, nst=1, exact;  ! Use this if exact is wanted
-%  ptc_script, file="create_flat.ptc";
-%\end{example}
-%Substitute the actual sequence or line name for ``LINE_NAME_HERE''.
-%
-%Second, create a file called \vn{create_flat.ptc} with the following in it:
-%\begin{example}
-%  select layout
-%  1
-%  print flat file
-%  XXX.flat
-%  return
-%\end{example}
-%The flat file name \vn{XXX.flat} can be changed if desired.
-%
-%Now run \mad-X with the lattice file. A flat file will be created. This flat file can
-%converted to \bmad as documented in \sref{s:ptc.convert}
+\subsection{Convert to PTC}
+\label{s:to.ptc}
 
-%---------------------------------------------------------------------------
-%\section{PTC Conversion}
-%\label{s:ptc.convert}
-%\index{ptc!conversion}
-%
-%For a programmer, 
-%For conversion from \bmad to PTC there are two possibilites
+A PTC ``\vn{flatfile}'' can be constructed using the \tao program with the following commands:
+\begin{example}
+  Tao> ptc init
+  Tao> write ptc
+\end{example}
 
 %---------------------------------------------------------------------------
 \section{SAD Conversion}
@@ -116,37 +72,13 @@ Conversion from \vn{SAD}\cite{b:sad} to \bmad is accomplished using the Python s
 \begin{example}
   util_programs/sad_to_bmad/sad_to_bmad.py
 \end{example}
-Currently, a converter from \bmad to SAD is planned but has not been implemented.
-
 Currently, the following restrictions on SAD lattices apply:
   \begin{itemize}
   \item
-SAD must elements cannot have an associated RF field
+SAD \vn{mult} elements cannot have an associated RF field
   \item
 Misalignments in a \vn{sol} element with \vn{geo} = 1 cannot be handled.
   \end{itemize}
 
-%----------------------------------------------------------------------------
-\section{Translation Using the Universal Accelerator Parser}
-\label{s:aml}
-\index{Accelerator Markup Language (AML)}
-\index{Universal Accelerator Parser (UAP)}
-
-\index{MAD}
-The \vn{Accelerator Markup Language} (\vn{AML}) / \vn{Universal Accelerator Parser} (\vn{UAP})
-project\cite{b:aml} is a collaborative effort with the aim of 1) creating a lattice format (the
-\vn{AML} part) that can be used to fully describe accelerators and storage rings, and 2) producing
-software (the \vn{UAP} part) that can parse \vn{AML} lattice files. A side benefit of this project
-is that the \vn{UAP} code has been extended to be able to translate between \vn{AML}, \bmad, \mad-8,
-and \mad-X
-
-The program \vn{translate_driver} which comes with the \vn{UAP} code can be used for conversions. To
-get help with how to run this program use the command
-\begin{example}
-  path-to-uap-dir/bin/translate_driver -help
-\end{example}
-Example:
-\begin{example}
-  path-to-uap-dir/bin/translate_driver -constants_first -bmad xxx.madx
-\end{example}
-This will convert a \mad-X file \vn{xxx.madx} to \bmad format.
+\bmad to \vn{SAD} to conversion can be done with the \tao program or the program 
+\vn{util_programs/bmad_to_mad_or_sad}.
