@@ -57,10 +57,12 @@ bunch_start%particle%direction = integer_option(1, direction)
 wake_ele => pointer_to_wake_ele(ele, ds_wake)
 if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
+  !$OMP parallel do
   do j = 1, size(bunch_start%particle)
     if (bunch_start%particle(j)%state /= alive$) cycle
     call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
   enddo
+  !$OMP end parallel do
 
   bunch_end%charge_live = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
   return
@@ -72,10 +74,12 @@ endif
 ! For zero length elements just track the element.
 
 if (ele%value(l$) == 0) then
+  !$OMP parallel do
   do j = 1, size(bunch_start%particle)
     if (bunch_start%particle(j)%state /= alive$) cycle
     call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
   enddo
+  !$OMP end parallel do
 
 else
   call transfer_ele (ele, half_ele, .true.)
@@ -91,10 +95,12 @@ else
     return
   endif
 
+  !$OMP parallel do
   do j = 1, size(bunch_start%particle)
     if (bunch_start%particle(j)%state /= alive$) cycle
     call track1 (bunch_start%particle(j), half_ele, param, bunch_end%particle(j))
   enddo
+  !$OMP end parallel do
 endif
 
 ! Wakefields
@@ -121,10 +127,12 @@ else
   call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, param, .true., .false., err_flag)
 endif
 
+!$OMP parallel do
 do j = 1, size(bunch_end%particle)
   if (bunch_end%particle(j)%state /= alive$) cycle
   call track1 (bunch_end%particle(j), half_ele, param, bunch_end%particle(j))
 enddo
+!$OMP end parallel do
 
 bunch_end%charge_live = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
 
