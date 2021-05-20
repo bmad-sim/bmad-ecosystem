@@ -759,6 +759,7 @@ type tao_init_struct
   character(200) :: building_wall_file_arg = ''    ! -building_wtrack_data_file  command line argument.
   character(16) :: geometry_arg = ''               ! -geometry            command line argument.
   character(80) :: slice_lattice_arg = ''          ! -slice_lattice       command line argument.
+  character(40) :: start_branch_at_arg = ''        ! -start_branch_at     command line argument.
   character(12) :: log_startup_arg = ''            ! -log_startup         command line argument
   character(12) :: no_stopping_arg = ''            ! -no_stopping         command line argument
   character(12) :: noplot_arg = ''                 ! -noplot              command line argument
