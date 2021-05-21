@@ -717,6 +717,8 @@ call remove_eles_from_lat(lat)
 
 ! Some bookkeeping
 
+call drift_and_pipe_track_methods_adjustment(lat)
+
 do ib = 0, ubound(lat%branch, 1)
   ele => lat%branch(ib)%ele(0)
   call floor_angles_to_w_mat(ele%floor%theta, ele%floor%phi, ele%floor%psi, ele%floor%w)
