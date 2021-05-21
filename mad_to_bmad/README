@@ -138,21 +138,29 @@ Mailing Lists" button.
 Tips:
 -----
 
-If you have a lattice with a closed geometry, and the Bmad computed orbit or Twiss parameters are
+* As an alternative to translating the MAD file directly, a simplified MAD lattice file can be
+constructred by insterting a save statement at the end of the MAD file and then running MAD to
+create the new lattice file. MAD8 example:
+  save, file = "lattice.mad8"
+MADX example:
+  save, file = "lattice.madx", sequence = "cesr_ring"
+Note: USE and BEAM statements are not saved in the new file and so must be transfered by hand.
+
+* If you have a lattice with a closed geometry, and the Bmad computed orbit or Twiss parameters are
 different enough from the MAD ones where you suspect a conversion problem, one way to try to
 diagnose things is to track in MAD and Bmad as if the lattice had an open geometry to see if there
 are any particular spots in the lattice where differences suddenly become much larger. If you can
 spot such places, you can examine the lattice element at that location. 
 
-To track using an open geometry in Bmad, see the Notes section above. To track using an open
+* To track using an open geometry in Bmad, see the Notes section above. To track using an open
 geometry in MAD, define starting orbit and Twiss parameters in the appropriate twiss statement.
 
-If there are no spots where there is a jump in the differences, that is, the differences grow
+* If there are no spots where there is a jump in the differences, that is, the differences grow
 somewhat uniformly, it is probable that the differences are due to differing tracking algorithms
 between Bmad and MAD. For example, Bmad scales the strength of a magnet by a particle's energy. So
 tracking a particle in Bmad whose energy is very different from the reference energy is not a
 problem. When tracking in MAD using second order maps, however, the accuracy of the maps will
 be degraded for particles whose energy is far from the reference energy.
 
-Another diagnosis tool is to back translate the Bmad lattice to MAD. The resulting lattice can then
+* Another diagnosis tool is to back translate the Bmad lattice to MAD. The resulting lattice can then
 be compared to the original lattice.

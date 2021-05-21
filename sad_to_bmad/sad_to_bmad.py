@@ -1207,16 +1207,16 @@ parameter[custom_attribute4] = "patch::sad_fshift"
 #------------------------------------------------------------------
 # Write variable definitions
 
-if patch_for_fshift == None:
+if patch_for_fshift == 'MAYBE':
   if 'fshift' in sad_info.var_list:
     if float(sad_info.var_list['fshift']) == 0: 
-      patch_for_fshift = False
+      patch_for_fshift = 'FALSE'
     else:
-      patch_for_fshift = True
+      patch_for_fshift = 'TRUE'
   else:
-    patch_for_fshift = False
+    patch_for_fshift = 'FALSE'
 
-if patch_for_fshift and 'fshift' not in sad_info.var_list: sad_info.var_list['fshift'] = '0'
+if patch_for_fshift == 'TRUE' and 'fshift' not in sad_info.var_list: sad_info.var_list['fshift'] = '0'
 
 f_out.write ('\n')
 
@@ -1242,7 +1242,7 @@ print ('Execution time: ' + str(time.time() - start_time))
 #-------------------------------------------------------------------
 # Insert patches for finite fshift 
 
-if patch_for_fshift:
+if patch_for_fshift == 'TRUE':
   f_out.write ('\n' + 'expand_lattice\n')
   f_out.write ('t_scale = 1\n')
 
@@ -1272,7 +1272,7 @@ if patch_for_fshift:
 f_in.close()
 f_out.close()
 
-if patch_for_fshift:
+if patch_for_fshift == 'TRUE':
   command = sad_to_bmad_postprocess_exe + ' ' + bmad_lattice_file + ' ' + calc_fshift_for
   print (f'\nRunning sad_to_bmad_postprocess to complete the translation. Command is:\n   {command}')
   subprocess.call (command, shell = True)
