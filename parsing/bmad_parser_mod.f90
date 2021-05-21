@@ -6643,6 +6643,12 @@ case (rfcavity$)
 case (wiggler$, undulator$)
   if (ele%field_calc == int_garbage$) ele%field_calc = planar_model$
 
+  ! Default tracking_method for map type elements is Taylor. Bmad_standard is not possible.
+  if (ele%field_calc /= planar_model$ .and. ele%field_calc /= helical_model$) then
+    if (ele%tracking_method == bmad_standard$) ele%tracking_method = taylor$
+    if (ele%mat6_calc_method == bmad_standard$) ele%mat6_calc_method = taylor$
+  endif
+
   if (ele%value(l_period$) == 0 .and. ele%value(n_period$) /= 0) then
     ele%value(l_period$) = ele%value(l$) / ele%value(n_period$) 
   endif
