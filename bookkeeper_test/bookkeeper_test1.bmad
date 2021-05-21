@@ -35,4 +35,8 @@ ll2[p0c] = 1e3
 ll2[beta_a] = 1
 ll2[beta_b] = 1
 
-use, ll1, ll2
+use, ll1, ll2, ll2
+
+expand_lattice
+
+start_branch_at 2>>qu1

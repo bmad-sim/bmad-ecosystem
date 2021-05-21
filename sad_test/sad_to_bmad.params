@@ -1,4 +1,16 @@
-# Please see the DOC file for known limitations of this translation script.
+# This is an example input file for the Python based SAD to Bmad conversion script:
+#     util_programs/sad_to_bmad/sad_to_bmad.py
+# This file is at:
+#			util_programs/sad_to_bmad/sad_to_bmad.params
+# To use, copy this file to your working directory and modify appropriately.
+# Please see the util_programs/sad_to_bmad/DOC file for known limitations of the translation.
+#
+# To run the script, use the command:
+#			path-to-sad_to_bmad-directory/sad_to_bmad.py <param_file> <sad_lattice_file>
+
+# The <param_file> argument defaults to:
+#				sad_to_bmad.params
+# If not set on the command line, the <sad-file> defaults to the setting of sad_lattice_file set below.
 
 sad_lattice_file = "sler_1689.sad"    # Put here the name of the SAD lattice file.
 bmad_lattice_file = ""              # If blank then add .bmad suffix to the sad lattice file name.
@@ -8,10 +20,11 @@ lattice_geometry = "closed"               # Set to 'open' or 'closed' to set the
 #   This is done so that the closed orbit will have pz approximately zero.
 #   [pz shifts would show up in SuperKEKB where the reference orbit is through the center 
 #   of the solenoid but the on-energy particle orbit is displaced due to the crossing angle.] 
-#   Bmad patch elements can be inserted just before RF cavities to mimic this.
+#   To mimic this, the translation program can insert Bmad patch elements just before RF cavities.
+#   These patches have a t_offset to shift the time.
 
-patch_for_fshift = None    # None => Insert patches only if fshift is defined and nonzero in the sad file.
-                           # Set to True to always insert patches. False to always not insert.
+patch_for_fshift = "MAYBE"  # "MAYBE" => Insert patches only if fshift is defined and nonzero in the sad file.
+                            # Set to "TRUE" to insert patches irregardless. Set "FALSE" to not insert.
 
 # If there is an "fshift" defined in the sad lattice, the value of this needs to be modified
 # to take into account small variations in tracking between Bmad/PTC and SAD. In this case, the
@@ -24,11 +37,10 @@ if os.path.isfile("../../production/bin/sad_to_bmad_postprocess"):
 else:
   sad_to_bmad_postprocess_exe = "$ACC_ROOT_DIR/production/bin/sad_to_bmad_postprocess"
 
-
 # What the time shifts are needed depend upon whether PTC or Bmad will be used for
 # any simulations. 
 
-calc_fshift_for = 'ptc'        # Or 'bmad'
+calc_fshift_for = 'bmad'        # Or 'bmad'
 
 # SAD mark elements which have an offset are translated to a marker element that 
 #   is superimposed on the lattice. The ignore_marker_offsets switch means 
@@ -40,4 +52,3 @@ ignore_marker_offsets = False
 # For example, setting particle_start[...], etc.
 
 header_lines = ''' ''' 
-
