@@ -32,15 +32,9 @@ is_valid = .false.
 ! If tracking photons...
 
 if (species == photon$) then
-  select case (ele%key)
-  case (crystal$, mirror$, multilayer_mirror$, drift$, fork$, photon_fork$, capillary$)
-    select case (mat6_calc_method)
-    case (bmad_standard$, static$, tracking$, custom$)
-      is_valid = .true.
-    end select
-
-  case default
-    ! Nothing is valid
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, tracking$, custom$)
+    is_valid = .true.
   end select
 
   return
@@ -65,6 +59,12 @@ case (ac_kicker$)
 case (beambeam$)
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (beginning_ele$)
+  select case (mat6_calc_method)
+  case (bmad_standard$)
     is_valid = .true.
   end select
 

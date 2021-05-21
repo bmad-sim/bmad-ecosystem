@@ -33,20 +33,12 @@ is_valid = .false.
 ! If tracking photons...
 
 if (species == photon$) then
-
-  select case (ele%key)
-  case (crystal$, mirror$, multilayer_mirror$, drift$, fork$, photon_fork$, capillary$)
-    select case (tracking_method)
-    case (bmad_standard$, custom$)
-      is_valid = .true.
-    end select
-
-  case default
-    ! Nothing is valid
+  select case (tracking_method)
+  case (bmad_standard$, custom$)
+    is_valid = .true.
   end select
 
   return
-
 endif
 
 ! Save some writting since fixed_step_* versions are valid when non fixed_step_* versions are valid.
@@ -72,6 +64,12 @@ case (ac_kicker$)
 case (beambeam$)
   select case (method)
   case (bmad_standard$, linear$, custom$, symp_lie_ptc$, taylor$)
+    is_valid = .true.
+  end select
+
+case (beginning_ele$)
+  select case (method)
+  case (bmad_standard$)
     is_valid = .true.
   end select
 

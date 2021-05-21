@@ -274,6 +274,20 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
+    if (.not. valid_tracking_method(ele, ele%ref_species, ele%tracking_method)) then
+      call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS NON-VALID TRACKING_METHOD: ' // tracking_method_name(ele%tracking_method))
+      err_flag = .true.
+    endif
+
+    if (.not. valid_mat6_calc_method(ele, ele%ref_species, ele%mat6_calc_method)) then
+      call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS NON-VALID MAT6_CALC_METHOD: ' // mat6_calc_method_name(ele%mat6_calc_method))
+      err_flag = .true.
+    endif
+
     if (ele%ptc_integration_type < 1 .or. ele%ptc_integration_type > ubound(ptc_integration_type_name, 1)) then
       call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
@@ -683,7 +697,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
       endif
     endif
-
 
     ! photon elements with a surface must have ele%photon associated.
 

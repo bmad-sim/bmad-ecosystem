@@ -6363,6 +6363,77 @@ end subroutine parser_add_lord
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Subroutine drift_and_pipe_track_methods_adjustment(lat)
+!
+! Drift and pipe elements can be used in both photon and non-photon lines.
+! A problem occures if, for example, a lattice file with both photon and
+! non-photon lines contains a line like:
+!   drift::*[tracking_method] = taylor
+! So this routine resets drift and pipe tracking_method and mat6_calc_method
+! parameters in photon lines to bmad_standard if needed.
+!
+! Input:
+!   lat   -- lat_struct: Lattice
+!
+! Output:
+!   lat   -- lat_struct: Lattice with tracking methods adjusted if needed.
+!-
+
+subroutine drift_and_pipe_track_methods_adjustment(lat)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele, lord, lord2
+
+integer ib, ie, j
+
+! Only adjust for drift and pipe elements. 
+! If there is a problem with other types of elements we don't want to cover up a problem.
+
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  if (branch%param%particle /= photon$) cycle
+
+  do ie = 1, branch%n_ele_track
+    ele => branch%ele(ie)
+    if (ele%key /= drift$ .and. ele%key /= pipe$) cycle
+
+    if (.not. valid_tracking_method(ele, photon$, ele%tracking_method)) then
+      ele%tracking_method = bmad_standard$
+      do j = 1, ele%n_lord
+        lord => pointer_to_lord(ele, j)
+        if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
+        lord%tracking_method = bmad_standard$
+        if (lord%slave_status == multipass_slave$) then
+          lord2 => pointer_to_lord(lord, 1)
+          lord2%tracking_method = bmad_standard$
+        endif
+      enddo
+    endif
+
+    if (.not. valid_mat6_calc_method(ele, photon$, ele%mat6_calc_method)) then
+      ele%mat6_calc_method = bmad_standard$
+      do j = 1, ele%n_lord
+        lord => pointer_to_lord(ele, j)
+        if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
+        lord%mat6_calc_method = bmad_standard$
+        if (lord%slave_status == multipass_slave$) then
+          lord2 => pointer_to_lord(lord, 1)
+          lord2%mat6_calc_method = bmad_standard$
+        endif
+      enddo
+    endif
+  enddo
+enddo
+
+end subroutine drift_and_pipe_track_methods_adjustment
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! Subroutine settable_dep_var_bookkeeping (ele)
 !
 ! Subroutine to initialize dependent variables in an element.

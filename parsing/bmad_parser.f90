@@ -1177,6 +1177,8 @@ endif
 
 call cpu_time(bp_com%time1)
 
+call drift_and_pipe_track_methods_adjustment(lat)
+
 call set_flags_for_changed_attribute(lat)
 
 call s_calc(lat)
