@@ -1207,6 +1207,11 @@ parameter[custom_attribute4] = "patch::sad_fshift"
 #------------------------------------------------------------------
 # Write variable definitions
 
+if patch_for_fshift != 'MAYBE' and patch_for_fshift != 'TRUE' and patch_for_fshift != 'FALSE':
+  print (f'Possible settings for patch_for_fshift are: "MAYBE", "TRUE", or "FALSE".')
+  print (f'I suspect you are using an old version of of the sad_to_bmad.params file.')
+  sys.exit()
+
 if patch_for_fshift == 'MAYBE':
   if 'fshift' in sad_info.var_list:
     if float(sad_info.var_list['fshift']) == 0: 
