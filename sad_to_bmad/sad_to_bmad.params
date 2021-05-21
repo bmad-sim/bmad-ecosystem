@@ -6,12 +6,13 @@
 # Please see the util_programs/sad_to_bmad/DOC file for known limitations of the translation.
 #
 # To run the script, use the command:
-#			path-to-sad_to_bmad-directory/sad_to_bmad.py
-# The <param-file-name> argument defaults to 
-#				sad_to_bmad.params
-# The <sad-file-name> defaults to the setting of sad_lattice_file which is set below.
+#			path-to-sad_to_bmad-directory/sad_to_bmad.py <param_file> <sad_lattice_file>
 
-sad_lattice_file = "xxxxx"          # SAD lattice file. [Or specify argument on the command line.]
+# The <param_file> argument defaults to:
+#				sad_to_bmad.params
+# If not set on the command line, the <sad-file> defaults to the setting of sad_lattice_file set below.
+
+sad_lattice_file = "sler_1689.sad"  # SAD lattice file. [Or specify argument on the command line.]
 bmad_lattice_file = ""              # If blank then add .bmad suffix to the sad lattice file name.
 lattice_geometry = ""               # Set to 'open' or 'closed' to set the lattice geometry.
 
@@ -19,16 +20,17 @@ lattice_geometry = ""               # Set to 'open' or 'closed' to set the latti
 #   This is done so that the closed orbit will have pz approximately zero.
 #   [pz shifts would show up in SuperKEKB where the reference orbit is through the center 
 #   of the solenoid but the on-energy particle orbit is displaced due to the crossing angle.] 
-#   Bmad patch elements can be inserted just before RF cavities to mimic this.
+#   To mimic this, the translation program can insert Bmad patch elements just before RF cavities.
+#   These patches have a t_offset to shift the time.
 
-patch_for_fshift = None    # None => Insert patches only if fshift is defined and nonzero in the sad file.
-                           # Set to True to always insert patches. False to always not insert.
+patch_for_fshift = "MAYBE"  # "MAYBE" => Insert patches only if fshift is defined and nonzero in the sad file.
+                            # Set to "TRUE" to insert patches irregardless. Set "FALSE" to not insert.
 
 # If there is an "fshift" defined in the sad lattice, the value of this needs to be modified
 # to take into account small variations in tracking between Bmad/PTC and SAD. In this case, the
 # program sad_to_bmad_postprocess needs to be run. 
 
-sad_to_bmad_postprocess_exe = "../production/bin/sad_to_bmad_postprocess"
+sad_to_bmad_postprocess_exe = "sad_to_bmad_postprocess"
 
 # What the time shifts are needed depend upon whether PTC or Bmad will be used for
 # any simulations. 

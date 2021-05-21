@@ -68,8 +68,8 @@ if (calc_fshift_for == 'PTC') then
   do i = 1, lat%n_ele_track
     ele => lat%ele(i)
     if (ele%key == patch$) then
-      print '(a, i6, 2x, a20, i2, 2es13.4)', 'Patch:', i, ele%name, &
-                              ele%ptc_fibre%patch%time, ele%ptc_fibre%patch%a_t, ele%ptc_fibre%patch%b_t
+!      print '(a, i6, 2x, a20, i2, 2es13.4)', 'Patch:', i, ele%name, &
+!                              ele%ptc_fibre%patch%time, ele%ptc_fibre%patch%a_t, ele%ptc_fibre%patch%b_t
       if (ele%ptc_fibre%patch%time /= 0) then
         nn = nn + 1
         name(nn) = downcase(ele%name)
@@ -131,6 +131,7 @@ do
       endif
     enddo
     write (line, '(a, es16.8)') line(1:ix), t_shift(i)
+    print '(i4, 2x, a, 2x, a20, es16.8)', i, 'Time Patch:', pname, t_shift(i)
   endif
 
   write (2, '(a)') trim(line)    
