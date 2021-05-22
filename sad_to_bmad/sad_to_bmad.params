@@ -43,10 +43,8 @@ calc_fshift_for = 'ptc'        # Or 'bmad'
 
 ignore_marker_offsets = False
 
-# Header_lines is for putting in custom stuff into the Bmad lattice file.
-# For example, setting particle_start[...], etc.
+# Header_lines and footer_lines parameters are for putting in custom stuff into the Bmad lattice file.
+# For example, setting "particle_start[...]", etc.
 
-header_lines = ''' ''' 
-
-
-
+header_lines = ''' '''   # Lines put at top of Bmad lattice file.
+footer_lines = ''' '''   # Lines put at the bottom of the Bmad lattice file.
