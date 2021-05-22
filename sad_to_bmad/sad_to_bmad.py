@@ -1242,6 +1242,11 @@ output_lattice_line (sad_line, sad_info, sol_status, bz, rf_list)
 f_out.write ('\n')
 f_out.write ('use, ' + line0_name + '\n')
 
+#------------------------------------------------------------------
+# Footer
+
+f_out.write ('\n' + footer_lines)
+
 print ('Execution time: ' + str(time.time() - start_time))
 
 #-------------------------------------------------------------------
