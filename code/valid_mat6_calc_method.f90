@@ -17,7 +17,7 @@
 
 function valid_mat6_calc_method (ele, species, mat6_calc_method) result (is_valid)
 
-use bmad_interface, dummy => valid_tracking_method
+use bmad_interface, dummy => valid_mat6_calc_method
 
 implicit none
 
