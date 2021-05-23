@@ -17,11 +17,12 @@
 
 function valid_mat6_calc_method (ele, species, mat6_calc_method) result (is_valid)
 
-use bmad_struct
+use bmad_interface, dummy => valid_tracking_method
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: field_ele
 integer mat6_calc_method, species
 logical is_valid
 
@@ -267,27 +268,29 @@ case (vkicker$)
 
 case (wiggler$, undulator$)
   ! %field_calc = int_garbage during parsing. Must accept any possible mat6_calc_method in this case.
-  if (ele%field_calc == int_garbage$) then
+  field_ele => pointer_to_field_ele(ele, 1)
+  select case (field_ele%field_calc)
+  case (int_garbage$)
     select case (mat6_calc_method)
     case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
       is_valid = .true.
     end select
-  elseif (ele%field_calc == fieldmap$) then       ! Is map type
+  case (fieldmap$)       ! Is map type
     select case (mat6_calc_method)
     case (symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
       is_valid = .true.
     end select
-  elseif (ele%field_calc == planar_model$) then   ! Is periodic type
+  case (planar_model$)   ! Is periodic type
     select case (mat6_calc_method)
     case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
       is_valid = .true.
     end select
-  elseif (ele%field_calc == helical_model$) then  ! Is periodic type
+  case (helical_model$)  ! Is periodic type
     select case (mat6_calc_method)
     case (bmad_standard$, symp_lie_bmad$, static$, tracking$, custom$)
       is_valid = .true.
     end select
-  endif
+  end select
 
 case default
   call err_exit
