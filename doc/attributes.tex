@@ -261,7 +261,18 @@ distance outside the x_knot range equal to the difference between the value of t
 and its neighbor point. Thus in the above example, exterpolation will be allowed in the intervals
 $[-0.7, 0.0]$ and $[1.0, 1.7]$.
 
-an end point and the next nearest point.
+After a controller has been defined, the individual knot points may be referenced using the syntax
+\begin{example}
+  name[x_knot(i)]           ! I^th x_knot point
+  name[slave(j)%y_knot(i)]  ! I^th y_knot point of j^th slave.
+\end{example}
+For example:
+\begin{example}
+  ov: overlay = \{q1[k1]:\{-0.12, 0.23, 0.53\}, q2[tilt]:\{0.37, 0.12, 0.92\}\}, 
+                          var = {time}, x_knot = \{0.0, 0.7, 1.0\}
+  ov[x_knot(3)] = 2.0          ! Changes from 1.0 to 2.0
+  ov[slave(2)%y_knot(2) = 0.2  ! Changes q2[tilt] y_knot(2) from 0.12 to 0.2
+\end{example}
 
 If the \vn{gang} attribute is \vn{True} (which is the default) a \vn{controller} will control all
 elements of a given name. Thus, in the above example, if there are multiple elements named \vn{q1}
