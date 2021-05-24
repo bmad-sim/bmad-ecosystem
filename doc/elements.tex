@@ -167,8 +167,9 @@ Attributes specific to a \vn{ac_kicker} element are:
   t_offset        = <Real>              ! Time offset of field waveform.
   ref_time_offset = <Logic>             ! Relative to the ref time? (Default: True).
   interpolation   = <switch>            ! spline (default) or linear.
-  amp_vs_time = \{(<t1>, <A1>), (<t2>, <A2>), ...\}  ! Field amplitude vs Time.
-  frequencies = \{(<f1>, <A1>, <phi1>), (<f2>, <A2>, <phi2>), ...\} ! Freq. components.
+  amp_vs_time = \{(<time1>, <Amp1>), (<time2>, <Amp2>), ...\}  ! Field amp vs Time.
+  frequencies = \{(<freq1>, <Amp1>, <phi1>), 
+                              (<freq2>, <Amp2>, <phi2>), ...\} ! Freq components.
 \end{example}
 Note: The \vn{frequencies} attribute phases \vn{phi1}, \vn{phi2}, \vn{phi3}, etc., have units of
 \vn{radians/2pi}.
@@ -184,9 +185,8 @@ default), $\delta t = t - t_0 - t_\REF$ where $t$ is the time, $t_0$ is the valu
 the time $t$ here is always the absolute time (\sref{s:rf.time}) and not the relative time.
 \end{enumerate}
 
-There are two ways to specify the dimensionless time variation $A(\delta t)$ of the field. One way is to
-specify points on the $A(\delta t)$ curve using the \vn{amp_vs_time}
-attribute. Example:
+There are two ways to specify the dimensionless time variation $A(\delta t)$ of the field. One way
+is to specify points $(A, \delta t)$ using the \vn{amp_vs_time} attribute. Example:
 \begin{example}
   mk: ac_kicker, l = 0.3, scale_multipoles = F, b1 = 0.27, t_offset = 3.6e-8,
           amp_vs_time = \{(-1.2e-6, 0.02), ... \} 
@@ -202,19 +202,38 @@ For times outside of the range specified by \vn{amp_vs_time}, the amplitude will
 For the cubic spline, extrapolation is only permitted over a distance outside the time range equal
 to the time difference between an end point and the next nearest point.
 
-The second way to specify $A(\delta t)$ is to specify the frequencies in the $A(t)$ spectrum using the
+The second way to specify the waveform is to specify the frequencies in the spectrum using the
 \vn{frequencies} attribute. In this case the amplitude is:
 \begin{equation}
   A(t) = \sum_i \, A_i \, \cos( 2 \, \pi (f_i \, \delta t + \phi_i))
 \end{equation}
-where $\phi_i = 2 \, \pi \, \text{phiN}$
 Example:
 \begin{example}
   mk: ac_kicker, l = 0.3, field_calc = fieldmap, cartesian_map = \{...\},
           frequencies = \{(3.4e6, 0.34, 0.12), ...\}
 \end{example}
 When using a frequency spectrum, the \vn{interpolate} attribute is ignored. Note: The units of the
-phases \vn{phi} with the \vn{frequencies} attribute are \vn{radians/2pi}.
+phases \vn{phi} with the \vn{frequencies} attribute are \vn{rad/2pi}.
+
+To specify an \vn{amp_vs_time} component after an \vn{ac_kicker} element has been defined, use the
+syntax
+\begin{example}
+  name[AMP_VS_TIME(i)%time]      ! Time of i^th point.
+  name[AMP_VS_TIME(i)%amp]       ! Amplitude of i^th point.
+\end{example}
+where \vn{name} is the name of the element and \vn{i} is the index of the point.
+To specify a \vn{frequencies} component after an \vn{ac_kicker} element has been defined, use the
+syntax
+\begin{example}
+  name[FREQUENCIES(i)%freq]     ! Frequency of i^th spectrum point.
+  name[FREQUENCIES(i)%amp]      ! Amplitude of i^th spectrum point.
+  name[FREQUENCIES(i)%phi]      ! Phase (rad/2pi) of i^th spectrum point.
+\end{example}
+Example:
+\begin{example}
+  mk: ac_kicker, amp_vs_time = \{(-1.2e-6, 0.02), ... \} 
+  mk[amp_vs_time(2)%amp] = 0.03  ! Change 2nd point amplitude.
+\end{example}
 
 Note: The calculated field will only obey Maxwell's equations in the limit that the time variation
 of the field is ``slow'':

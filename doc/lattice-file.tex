@@ -127,13 +127,13 @@ If \bmad is not able to create a digested file (typically because it
 does not have write permission in the directory), an error message will
 be generated but otherwise program operation will be normal.
 
-\index{ran}
-\index{ran_gauss}
 Digested files contain the names of the lattice files used to create
 them. If a lattice file has been modified since the digested file has
 been created then the lattice files will be reread and a new
 digested file will be generated. 
 
+\index{ran}
+\index{ran_gauss}
 Note: If any of the random number functions (\sref{s:functions}) are
 used in the process of creating the lattice, the digested file will be
 ignored. In this case, each time the lattice is read into a program,
@@ -905,6 +905,7 @@ The following intrinsic functions are recognized by \bmad: \hfil\break
   \vn{log}(x)                   & Logarithm                                      \\
   \vn{exp}(x)                   & Exponential                                    \\
   \vn{sin}(x)                   & Sine                                           \\
+  \vn{sinc}(x)                  & Sin(x)/x Function                              \\
   \vn{cos}(x)                   & Cosine                                         \\
   \vn{tan}(x)                   & Tangent                                        \\
   \vn{asin}(x)                  & Arc sine                                       \\

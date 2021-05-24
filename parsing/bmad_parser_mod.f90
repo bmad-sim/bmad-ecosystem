@@ -187,10 +187,36 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. delim == '{' .and. word =
   return
 endif  ! Taylor term
 
-! Overlay, ramper, or group
+! Overlay, ramper, or group.
+! Redef of "slave(i)%y_knot(j)" must be handled here since the y_knot info is in pele (unlike the x_knot info).
 
-if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) then
+if ((ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) .and. (word /= 'X_KNOT' .or. how /= redef$)) then
   i = attribute_index(ele, word)       ! general attribute search
+
+  if (how == redef$ .and. word == 'SLAVE') then
+    if (.not. expect_this ('(', .true., .false., 'NO "(" AFTER: ' // word, ele, delim, delim_found)) return
+    call parser_get_integer (n, word, ix_word, delim, delim_found, err_flag, 'BAD INDEX');  if (err_flag) return
+    if (.not. expect_this (')', .true., .false., 'NO "(...)" AFTER: ' // word, ele, delim, delim_found)) return
+    if (n < 1 .or. n > size(pele%control)) then
+      call parser_error ('SLAVE INDEX OUT OF RANGE: ' // int_str(n))
+      return
+    endif
+    if (.not. expect_this ('%', .false., .false., 'NO "%" AFTER: ' // trim(word) // '()', ele, delim, delim_found)) return
+    call get_next_word (word2, ix_word, '(]=', delim, delim_found)
+    if (word2 /= 'Y_KNOT') THEN
+      call parser_error ('MALFORMED SLAVE PARAMETER REDEF')
+      return
+    endif
+    if (.not. expect_this ('(', .true., .false., 'MALFORMED SLAVE PARAMETER REDEF', ele, delim, delim_found)) return
+    call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag, 'BAD INDEX');  if (err_flag) return
+    if (.not. expect_this (')=', .true., .false., 'NO "(...)" AFTER: ' // word, ele, delim, delim_found)) return
+    if (ix < 1 .or. ix > size(pele%control(n)%y_knot)) then
+      call parser_error ('Y_KNOT INDEX OUT OF RANGE: ' // int_str(ix))
+      return
+    endif
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, pele%control(n)%y_knot(ix), lat, delim, delim_found, err_flag, ele = ele)
+    return
+  endif
 
   select case (i)
   case (type$, alias$, descrip$, gang$, is_on$, interpolation$)
@@ -1968,6 +1994,7 @@ contains
 function parser_find_ele_for_attrib_transfer (attribute, word) result (target_ele)
 
 type (ele_struct), pointer :: target_ele
+integer n
 character(*) attribute, word
 character(40) word2
 
@@ -8994,6 +9021,7 @@ end subroutine parser_get_logical
 !                      A blank character indicates end of command is expected.
 !   call_check    -- Logical: If True then check for 'call::<filename>' construct.
 !   err_str       -- character(*): String used for error messages.
+!   ele           -- ele_struct: Element parameters being parsed.
 !
 ! Output:
 !   delim         -- character(*): Final delim

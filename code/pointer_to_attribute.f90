@@ -101,6 +101,42 @@ if (associated (ele%control)) then
     return
   enddo
 
+  if (a_name(1:6) == 'SLAVE(') then
+    n = get_this_index(a_name, 6, err, 1, ele%n_slave); if (err) goto 9130
+    if (a_name(1:1) /= '%') goto 9000
+
+    if (ele%key == ramper$) then
+      ctl => ele%control%ramp(n)
+    else
+      slave => pointer_to_slave(ele, n, ctl)
+    endif
+
+    if (allocated(ctl%y_knot)) then
+      if (a_name(1:8) /= '%Y_KNOT(') goto 9300
+      n = get_this_index(a_name, 8, err, 1, size(ctl%y_knot)); if (err) goto 9130
+      a_ptr%r => ctl%y_knot(n)
+      err_flag = .false.
+      return
+    endif
+
+    a_name = a_name(2:)  ! Remove '%'
+    do i = 1, size(ctl%stack)
+      if (upcase(ctl%stack(i)%name) /= a_name) cycle
+      a_ptr%r => ctl%stack(i)%value
+      err_flag = .false.
+      return
+    enddo
+
+    goto 9310
+  endif
+
+  if (a_name(1:7) == 'X_KNOT(') then
+    if (.not. allocated(ele%control%x_knot)) goto 9320
+    n = get_this_index(a_name, 7, err, 1, size(ele%control%x_knot)); if (err) goto 9130
+    a_ptr%r => ele%control%x_knot(n)
+    err_flag = .false.
+    return
+  endif
 endif
 
 ! r_custom(...)
@@ -147,9 +183,9 @@ if (a_name(1:3) == 'LR(' .or. a_name(1:13) == 'LR_WAKE%MODE(') then
   endif
 
   if (a_name(1:3) == 'LR(') then
-    n = get_cross_index(a_name, 3, err, 1, 1000);  if (err) goto 9140
+    n = get_this_index(a_name, 3, err, 1, 1000);  if (err) goto 9140
   else
-    n = get_cross_index(a_name, 13, err, 1, 1000);  if (err) goto 9140
+    n = get_this_index(a_name, 13, err, 1, 1000);  if (err) goto 9140
   endif
 
   n_lr_mode = size(ele%wake%lr%mode)
@@ -184,7 +220,7 @@ endif
 
 if (a_name(1:14) == 'CARTESIAN_MAP(') then
   if (.not. associated(ele%cartesian_map)) goto 9130
-  n_cc = get_cross_index(a_name, 14, err, 1, size(ele%cartesian_map))
+  n_cc = get_this_index(a_name, 14, err, 1, size(ele%cartesian_map))
   if (err) goto 9140
   ct_map => ele%cartesian_map(n_cc)
 
@@ -207,7 +243,7 @@ endif
 
 if (a_name(1:16) == 'CYLINDRICAL_MAP(') then
   if (.not. associated(ele%cylindrical_map)) goto 9130
-  n_cc = get_cross_index(a_name, 16, err, 1, size(ele%cylindrical_map))
+  n_cc = get_this_index(a_name, 16, err, 1, size(ele%cylindrical_map))
   if (err) goto 9140
   cl_map => ele%cylindrical_map(n_cc)
 
@@ -233,7 +269,7 @@ endif
 
 if (a_name(1:11) == 'GRID_FIELD(') then
   if (.not. associated(ele%grid_field)) goto 9130
-  n_cc = get_cross_index(a_name, 11, err, 1, size(ele%grid_field))
+  n_cc = get_this_index(a_name, 11, err, 1, size(ele%grid_field))
   if (err) goto 9140
   g_field => ele%grid_field(n_cc)
 
@@ -264,7 +300,7 @@ endif
 
 if (a_name(1:13) == 'TAYLOR_FIELD(') then
   if (.not. associated(ele%taylor_field)) goto 9130
-  n_cc = get_cross_index(a_name, 13, err, 1, size(ele%taylor_field))
+  n_cc = get_this_index(a_name, 13, err, 1, size(ele%taylor_field))
   if (err) goto 9140
   t_field => ele%taylor_field(n_cc)
 
@@ -288,7 +324,7 @@ endif
 
 if (a_name(1:12) == 'WALL%SECTION') then
   if (.not. associated(ele%wall3d)) goto 9210
-  n_cc = get_cross_index(a_name, 13, err, 1, size(ele%wall3d(1)%section))
+  n_cc = get_this_index(a_name, 13, err, 1, size(ele%wall3d(1)%section))
   if (err) goto 9130
 
   if (a_name == 'S') then
@@ -305,7 +341,7 @@ if (a_name(1:12) == 'WALL%SECTION') then
   endif
 
   if (a_name(1:1) == 'V') then
-    n_v = get_cross_index(a_name, 2, err, 1, size(ele%wall3d(1)%section(n_cc)%v))
+    n_v = get_this_index(a_name, 2, err, 1, size(ele%wall3d(1)%section(n_cc)%v))
     if (err) goto 9130
 
     select case (a_name)
@@ -324,48 +360,41 @@ if (a_name(1:12) == 'WALL%SECTION') then
   goto 9130
 endif
 
-!--------------------
-! Controller slave
+!---------------
+! AC_kicker
 
-if (a_name(1:6) == 'SLAVE(') then
-  if (.not. associated(ele%control)) goto 9000
-  n = get_cross_index(a_name, 6, err, 1, ele%n_slave); if (err) goto 9130
-  if (a_name(1:1) /= '%') goto 9000
+if (a_name(1:12) == 'AMP_VS_TIME(') then
+  if (.not. associated(ele%ac_kick)) goto 9400
+  if (.not. allocated(ele%ac_kick%amp_vs_time)) goto 9410
+  n = get_this_index(a_name, 12, err, 1, size(ele%ac_kick%amp_vs_time)); if (err) goto 9420
 
-  if (ele%key == ramper$) then
-    ctl => ele%control%ramp(n)
-  else
-    slave => pointer_to_slave(ele, n, ctl)
-  endif
+  select case (a_name)
+  case ('%TIME');   a_ptr%r => ele%ac_kick%amp_vs_time(n)%time
+  case ('%AMP');    a_ptr%r => ele%ac_kick%amp_vs_time(n)%amp
+  case default;     goto 9430
+  end select
 
-  if (allocated(ctl%y_knot)) then
-    if (a_name(1:7) /= '%Y_KNOT(') goto 9300
-    n = get_cross_index(a_name, 7, err, 1, size(ctl%y_knot)); if (err) goto 9130
-    a_ptr%r => ctl%y_knot(n)
-    err_flag = .false.
-    return
-  endif
-
-  a_name = a_name(2:)  ! Remove '%'
-  do i = 1, size(ctl%stack)
-    if (upcase(ctl%stack(i)%name) /= a_name) cycle
-    a_ptr%r => ctl%stack(i)%value
-    err_flag = .false.
-    return
-  enddo
-
-  goto 9310
-endif
-
-if (a_name(1:7) == 'X_KNOT(') then
-  if (.not. associated(ele%control)) goto 9000
-  if (.not. allocated(ele%control%x_knot)) goto 9320
-  n = get_cross_index(a_name, 7, err, 1, size(ele%control%x_knot)); if (err) goto 9130
-  a_ptr%r => ele%control%x_knot(n)
   err_flag = .false.
   return
 endif
 
+if (a_name(1:12) == 'FREQUENCIES(') then
+  if (.not. associated(ele%ac_kick)) goto 9400
+  if (.not. allocated(ele%ac_kick%frequencies)) goto 9450
+  n = get_this_index(a_name, 12, err, 1, size(ele%ac_kick%frequencies)); if (err) goto 9460
+
+  select case (a_name)
+  case ('%FREQ'); a_ptr%r => ele%ac_kick%frequencies(n)%f
+  case ('%AMP');  a_ptr%r => ele%ac_kick%frequencies(n)%amp
+  case ('%PHI');  a_ptr%r => ele%ac_kick%frequencies(n)%phi
+  case default;   goto 9470
+  end select
+
+  err_flag = .false.
+  return
+endif
+
+!---------------
 ! Special cases
 
 if (ele%key == rbend$) then   ! Note: Rbend elements only exist during lattice parsing.
@@ -766,6 +795,54 @@ if (do_print) call out_io (s_error$, r_name, &
         'FOR THIS ELEMENT: ' // ele%name)
 return
 
+!----------------------------------------
+9400 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'ATTRIBUTE: ' // trim(attrib_name) // ' IS NOT VALID FOR THIS ELEMENT: ' // ele%name)
+return
+
+!----------------------------------------
+9410 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'ELEMENT: ' // trim(ele%name) // ' USES "FREQUENCIES" TO SPECIFY WAVEFORM. NOT "AMP_VS_TIME"')
+return
+
+!----------------------------------------
+9420 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'ATTRIBUTE: ' // trim(attrib_name) // ' HAS INDEX OUT OF RANGE. VALID RANGE IS FROM 1 TO ', &
+                                                                      int_str(size(ele%ac_kick%amp_vs_time)), &
+        'FOR ELEMENT: ' // ele%name)
+return
+
+!----------------------------------------
+9430 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'ATTRIBUTE: ' // trim(attrib_name) // ' IS NOT A VALID AMP_VS_TIME COMPONENT.', &
+        'FOR ELEMENT: ' // ele%name)
+return
+
+!----------------------------------------
+9450 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'ELEMENT: ' // trim(ele%name) // ' USES "AMP_VS_TIME" TO SPECIFY WAVEFORM. NOT "FREQUENCIES"')
+return
+
+!----------------------------------------
+9460 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'ATTRIBUTE: ' // trim(attrib_name) // ' HAS INDEX OUT OF RANGE. VALID RANGE IS FROM 1 TO ', &
+                                                                      int_str(size(ele%ac_kick%frequencies)), &
+        'FOR ELEMENT: ' // ele%name)
+return
+
+!----------------------------------------
+9470 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'ATTRIBUTE: ' // trim(attrib_name) // ' IS NOT A VALID FREQUENCIES COMPONENT.', &
+        'FOR ELEMENT: ' // ele%name)
+return
+
 !---------------------------------------------------------------
 contains
 
@@ -775,7 +852,7 @@ contains
 ! Function also chops "...(num)" from name.
 !-
 
-function get_cross_index(name, ix_name, err, n_min, n_max) result (ixc)
+function get_this_index(name, ix_name, err, n_min, n_max) result (ixc)
 
 character(*) name
 
