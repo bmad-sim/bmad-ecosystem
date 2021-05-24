@@ -1036,7 +1036,7 @@ do
   nn = len_trim(ex)
   ww = width - ind
   if (nn <= ww) then
-    li(nl)(ind+1:) = ex
+    li(nl) = ex
     exit
   endif
 
