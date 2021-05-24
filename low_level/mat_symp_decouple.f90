@@ -38,9 +38,7 @@ real(rp) gamma, det_H, det,  trace_t0_diff, denom, scalar
 logical type_out
 character(20), parameter :: r_name = 'mat_symp_decouple'
 
-! check input matrix
-
-! load submatrices
+! Load submatrices
 
 do i = 1, 2
   do j = 1, 2
@@ -51,32 +49,40 @@ do i = 1, 2
   enddo
 enddo
 
-! Construct H matrix (MGB eq 12)
+!--------------
 
-H = t0_12 + mat_symp_conj (t0_21)
+if (all(t0(1:2,3:4) == 0)) then  ! Uncoupled
+  gamma = 1
+  c = 0
 
-! Compute traces and
-! compute DET_H and determine if we are in a stop band (MGB Eq. 14)
+else
+  ! Construct H matrix (MGB eq 12)
 
-trace_t0_diff = (t0_11(1,1) + t0_11(2,2)) - (t0_22(1,1) + t0_22(2,2))
-det_h = determinant (H)
-denom = trace_t0_diff**2 + 4.0 * det_H
+  H = t0_12 + mat_symp_conj (t0_21)
 
-if (denom <= 0) then
-  stat = in_stop_band$
-  u(1,1) = 1 - denom   ! fake so matrix looks unstable
-  u(2,2) = 1 - denom
-  return
+  ! Compute traces and
+  ! Compute DET_H and determine if we are in a stop band (MGB Eq. 14)
+
+  trace_t0_diff = (t0_11(1,1) + t0_11(2,2)) - (t0_22(1,1) + t0_22(2,2))
+  det_h = determinant (H)
+  denom = trace_t0_diff**2 + 4.0 * det_H
+
+  if (denom <= 0) then
+    stat = in_stop_band$
+    u(1,1) = 1 - denom   ! fake so matrix looks unstable
+    u(2,2) = 1 - denom
+    return
+  endif
+
+  ! Compute GAMMA (MGB Eq. 14)
+
+  gamma = sqrt(0.5 + 0.5 * sqrt(trace_t0_diff**2 / denom))
+
+  ! Construct C matrix (MGB Eq. 13 with Eq. 14) and symplectic conjugate.
+
+  scalar = -sign(1.0_rp, trace_t0_diff) / (gamma * sqrt(denom))
+  c = scalar * H
 endif
-
-! Compute GAMMA (MGB Eq. 14)
-
-gamma = sqrt(0.5 + 0.5 * sqrt(trace_t0_diff**2 / denom))
-
-! Construct C matrix (MGB Eq. 13 with Eq. 14) and symplectic conjugate.
-
-scalar = -sign(1.0_rp, trace_t0_diff) / (gamma * sqrt(denom))
-c = scalar * H
 
 ! Compute matrix V (MGB Eq. 10)
 
