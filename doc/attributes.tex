@@ -288,6 +288,13 @@ if the number of instances in the lattice for a given slave name is different fr
 name. In this example, it would be an error if the number of \vn{q1} elements in the lattice is
 different from the number of \vn{q2} elements in the lattice.
 
+To vary coefficients in expressions, use variables in place of the coefficients and then variables
+can be varied. For example:
+\begin{example}
+  gr1: group = \{s1[k2]: 0.03+1.07*vv\}, var = \{vv\}                     ! Instead of this...
+  gr2: group = \{s1[k2]: a+b*vv\}, var = \{vv, a, b\}, a = 0.03, b = 1.07 !   Use this.
+\end{example}
+
 Wild card characters can be used in element names. Example:
 \begin{example}
   rf_control: overlay = \{rfcavity::*[voltage]:v\}, var = \{v\}

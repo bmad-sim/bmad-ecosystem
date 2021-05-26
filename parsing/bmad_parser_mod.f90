@@ -4126,10 +4126,11 @@ err_flag = .true.
 allocate (name(40), attrib_name(40), expression(40))
 
 call get_next_word (word_in, ix_word, '{,}', delim, delim_found, .true.)
-if (delim /= '{' .or. ix_word /= 0) call parser_error  &
-        ('BAD SYNTAX FOR ' // trim(upcase(control_name(ele%lord_status))), &
-         'EXPECTING A "{" AFTER "=")', &
-         'FOR ELEMENT: ' // ele%name)
+if (delim /= '{' .or. ix_word /= 0) then
+  call parser_error  ('BAD SYNTAX FOR ' // trim(upcase(control_name(ele%lord_status))), &
+                      'EXPECTING A "{" AFTER "=")', 'FOR ELEMENT: ' // ele%name)
+  return
+endif
 
 ele_names_only = (is_control_var_list .or. ele%key == girder$)
 
@@ -4138,10 +4139,10 @@ ele_names_only = (is_control_var_list .or. ele%key == girder$)
 n_slave = 0
 do 
 
-  call get_next_word (word_in, ix_word, '{,}/:', delim, delim_found, .true.)
+  call get_next_word (word_in, ix_word, '{,}/:=', delim, delim_found, .true.)
   if (bp_com%parse_line(1:1) == ':') then   ! Element is something like "rfcavity::*" in which case the break is in the wrong place
     bp_com%parse_line = bp_com%parse_line(2:)
-    call get_next_word (word, ix, '{,}/:', delim, delim_found, .true.)
+    call get_next_word (word, ix, '{,}/:=', delim, delim_found, .true.)
     word_in = trim(word_in) // '::' // word
     ix_word = ix_word + 2 + ix
   endif
@@ -4162,21 +4163,26 @@ do
     k = index(word, ']')
     if (k <= j+1) then
       call parser_error ('BAD ATTRIBUTE SYNTAX: ' // word_in, 'FOR: ' // ele%name)
-      word = word(:k-1) // word(j+1:)
-    else
-      attrib_name(n_slave) = word(j+1:k-1)
-      word = word(:j-1) // word(k+1:)
+      return
+    elseif (word(k+1:) /= '') then
+      call parser_error ('MALFORMED SLAVE NAME: ' // word_in, 'FOR: ' // ele%name)
+      return
     endif
+    attrib_name(n_slave) = word(j+1:k-1)
+    word = word(:j-1)
   else
     attrib_name(n_slave) = blank_name$
   endif
 
   name(n_slave) = word
 
-  if (is_control_var_list) then
-    if (word == '') call parser_error ('VARIABLE NAME MISSING WHEN PARSING LORD: ' // ele%name)
-  else
-    if (word == '') call parser_error ('SLAVE ELEMENT NAME MISSING WHEN PARSING LORD: ' // ele%name)
+  if (word == '') then
+    if (is_control_var_list) then
+      call parser_error ('VARIABLE NAME MISSING WHEN PARSING LORD: ' // ele%name)
+    else
+      call parser_error ('SLAVE ELEMENT NAME MISSING WHEN PARSING LORD: ' // ele%name)
+    endif
+    return
   endif
 
   ! If ele_names_only = True then evaluating "var = {...}" construct or is a girder.
@@ -4233,9 +4239,8 @@ do
     call get_next_word (word, ix_word, ',=:', delim, delim_found, .true.)
     exit
   elseif (delim /= ',' .and. .not. (delim == ':' .and. ele%key == girder$)) then
-    call parser_error ('BAD ' // control_name(ele%lord_status) //  &
-                       'SPEC: ' // word_in, 'FOR: ' // ele%name)
-    exit
+    call parser_error ('MALFORMED DEFINITION OF SLAVE: ' // word_in, 'FOR CONTROLLER: ' // ele%name)
+    return
   endif
                         
 enddo
@@ -4273,6 +4278,7 @@ else
       call expression_string_to_stack (expression(i)%str, pc%stack, pc%n_stk, err, err_str)
       if (err) then
         call parser_error (err_str, 'FOR ELEMENT: ' // ele%name, 'EXPRESSION: ' // trim(expression(i)%str))
+        return
       endif
     endif
   enddo
