@@ -21,7 +21,15 @@ bmad_com[conserve_taylor_maps] = False
 
 parameter[custom_attribute1] = quadrupole::my_custom
 
-aaa: ac_kicker, l = 0.3, hkick = 0.01, amp_vs_time = {(-1e-8, 1.0), (2e-8, 0.7)}
+aaa: ac_kicker, l = 0.3, hkick = 0.01, amp_vs_time = {(-1e-8, 0.0), (1e-8, 0.7)}
+aaa[amp_vs_time(1)%amp] = 1.0
+aaa[amp_vs_time(2)%time] = 2e-8
+
+bbb: ac_kicker, l = 0.3, hkick = 0.01, frequencies = {(1e7, 0.0, 0.0), (2e7, 0.7, 0.0)}
+bbb[frequencies(1)%freq] = 1.2e7
+bbb[frequencies(1)%amp] = 1.0
+bbb[frequencies(1)%phi] = 0.1
+bbb[frequencies(2)%phi] = 0.2
 
 gang0: group = {aa[tilt], bb[tilt]}, var = {t}, t = 3, old_t = 3
 gang1: group = {aa[tilt], bb[tilt]}, var = {t}, gang = false
@@ -121,7 +129,7 @@ q1: quad, L=0.1, superimpose, ref = pp, offset = -0.2
 q2: quad, L=0.1, superimpose, ref = pp, offset = 0.2
 
 
-ll: line = (aa, aa, bb, bb, cc, pp, sbend0, tt, m2, aaa)
+ll: line = (aa, aa, bb, bb, cc, pp, sbend0, tt, m2, aaa, bbb)
 call, file = sub_dir/sub.bmad;  abz2 = abz; phot: line = (ddd, cap, cry, ff)
 phot[E_tot] = 1e4
 phot[particle] = photon
