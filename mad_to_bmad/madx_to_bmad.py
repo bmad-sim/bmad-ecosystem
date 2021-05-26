@@ -264,7 +264,6 @@ def bmad_param(param, ele_name):
 # Return dictionary of "A = value" parameter definitions.
 
 def parameter_dictionary(word_lst):
-
   madx_logical = ['kill_ent_fringe', 'kill_exi_fringe', 'thick', 'no_cavity_totalpath']
 
   # Remove :, {, and } chars for something like "kn := {a, b, c}"
@@ -439,7 +438,7 @@ def negate(str):
 # Parse a lattice element
 # Assumed to be of the form dlist = ["name", ":", "type", ",", ...]
 
-def parse_element(dlist, write_to_file, command):
+def parse_and_write_element(dlist, write_to_file, command):
   global common, ele_type_translate, ignore_madx_param
 
   if dlist[2] == 'dipedge':
@@ -618,7 +617,6 @@ def parse_element(dlist, write_to_file, command):
   # Can happen in sequences that there are "name: name, at = X" constructs where name has already be defined.
 
   ele.param = params
-  if dlist[0] not in common.ele_dict: common.ele_dict[dlist[0]] = ele
 
   if write_to_file:
     line = ele.name + ': ' + ele.bmad_inherit
@@ -627,7 +625,16 @@ def parse_element(dlist, write_to_file, command):
       if ele.madx_base_type in ignore_madx_ele_param and param in ignore_madx_ele_param[ele.madx_base_type]: continue
       line += ', ' + bmad_param(param, ele.name) + ' = ' + bmad_expression(params[param], param)
     f_out = common.f_out[-1]
-    wrap_write(line, f_out)
+    # Can have situation where an element is defined outside of a sequence ("this_name: that_class") and
+    # inside of the sequence get the same definition.
+    if dlist[0] in common.ele_dict:
+      if ele.param != common.ele_dict[ele.name].param:
+        print (f'''ERROR: ELEMENT WITH NAME {ele.name} IS BEING REDEFINED. THIS MAY LEAD TO PROBLEMS.''')
+        wrap_write('!! Element redefined: ' + line, f_out)
+    else:
+      wrap_write(line, f_out)
+
+  if dlist[0] not in common.ele_dict: common.ele_dict[dlist[0]] = ele
 
   return ele
 
@@ -813,27 +820,27 @@ def parse_command(command, dlist):
     # This is an element in the sequence...
     # If "name: name, at = X" construct
     if dlist[0] == dlist[2] and dlist[1] == ':':
-      ele = parse_element(dlist, False, command)
+      ele = parse_and_write_element(dlist, False, command)
       offset = bmad_expression(ele.at, '')
       ele_name = ele.name
 
+    # "name: type, ..." construct
+    elif dlist[1] == ':':
+      ele = parse_and_write_element(dlist, True, command)
+      common.last_seq.seq_ele_dict[ele.name] = ele
+      ele_name = ele.name
+      offset = bmad_expression(ele.at, '')
+
     # If "name, at = X, ..." construct
     elif dlist[0] in common.ele_dict:
-      ele = parse_element([dlist[0], ':']+dlist, False, command)
+      ele = parse_and_write_element([dlist[0], ':']+dlist, False, command)
       offset = bmad_expression(ele.at, '')
       ele_name = ele.name
       # If element has modified parameters. Need to create a new element with a unique name with "__N" suffix.
       if len(ele.param) > 0:
         common.ele_dict[dlist[0]].count += 1
         ele_name = f'{dlist[0]}__{common.ele_dict[dlist[0]].count}'
-        ele = parse_element([ele_name, ':']+dlist, True, command)
-
-    # "name: type, ..." construct
-    elif dlist[1] == ':':
-      ele = parse_element(dlist, True, command)
-      common.last_seq.seq_ele_dict[ele.name] = ele
-      ele_name = ele.name
-      offset = bmad_expression(ele.at, '')
+        ele = parse_and_write_element([ele_name, ':']+dlist, True, command)
 
     else:
       is_ele_here = False
@@ -888,7 +895,7 @@ def parse_command(command, dlist):
 
     # Must be sequence within a sequence.
 
-    ele = parse_element([dlist[0], ':', 'sequence']+dlist[1:], False, command)
+    ele = parse_and_write_element([dlist[0], ':', 'sequence']+dlist[1:], False, command)
     ele_name = ele.name
 
     try:
@@ -1057,7 +1064,7 @@ def parse_command(command, dlist):
   # Element def
 
   if dlist[1] == ':':
-    parse_element(dlist, True, command)
+    parse_and_write_element(dlist, True, command)
     return
 
   # Unknown
