@@ -12,13 +12,14 @@ use bmad_parser_mod
 implicit none
 
 type (lat_struct), target :: lat, lat2
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, slave, lord
 type (ele_struct) ele2
 type (all_pointer_struct) a_ptr
 type (coord_struct), allocatable :: orbit(:)
 type (coord_struct) orb
 type (em_field_struct) field
 type (ele_pointer_struct), allocatable :: eles(:)
+type (control_struct), pointer :: ctl
 
 real(rp) value, a0(12), a1(12), b0(12), b1(12), ae0(12), ae1(12), be0(12), be1(12)
 integer i, j, inc_version, n_loc, nargs
@@ -113,6 +114,19 @@ do i = 1, 3
   ele => lat%ele(i)
   write (1, '(3a, f12.8)') '"Control-K1-', trim(ele%name), '"   ABS 0', ele%value(k1$)
   write (1, '(3a, f12.8)') '"Control-TILT-', trim(ele%name), '" ABS 0', ele%value(tilt$)
+enddo
+
+ele => lat%ele(5)
+do i = 1, ele%n_slave
+  slave => pointer_to_slave(ele, i, ctl)
+  write (1, '(a, i0, a, 9f10.4)') '"Slave-Y-Knot-', i, '"   ABS 0', ctl%y_knot
+enddo
+write (1, '(a, 9f10.4)') '"Lord-X-Knot" ABS 0', ele%control%x_knot
+
+ele => lat%ele(6)
+do i = 1, ele%n_slave
+  slave => pointer_to_slave(ele, i, ctl)
+  write (1, '(a, i0, 2a)') '"Slave-Attrib-', i, '"   STR ', quote(ctl%attribute)
 enddo
 
 !
