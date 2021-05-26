@@ -249,7 +249,7 @@ character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt
 character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = '', phase_units_str
-character(24) :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
+character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, aname
 character(40) replacement_for_blank
 character(60) nam, attrib_list(20), attrib
@@ -301,11 +301,14 @@ lines = " "
 nl = 0
 
 rmt  = '(a, 9es16.8)'
+rmt2 = '(a, es16.8, t40, es16.8)'
 f3mt = '(a, 9(f0.3, 2x))'
 irmt = '(a, i0, a, es16.8)'
 imt  = '(a, 9(i0, 2x))'
+imt2 = '(a, i0, t40, a, i0)'
 iimt = '(a, i0, a, i8)'
 lmt  = '(a, 9(l1, 2x))'
+lmt2 = '(a, l1, t40, a, l1)'
 amt  = '(9a)'
 iamt = '(a, i0, 2x, 9a)'
 ramt = '(a, f0.3, 2x, 9a)'
@@ -4580,18 +4583,18 @@ case ('universe')
   nl = 0
   nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', ix_u, '  of: ', ubound(s%u, 1)
   nl=nl+1; write(lines(nl), imt) 'Branch:   ', ix_branch
-  nl=nl+1; write(lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
-  nl=nl+1; write(lines(nl), imt) '%n_data_used           = ', u%n_data_used
-  nl=nl+1; write(lines(nl), lmt) ' do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
-  nl=nl+1; write(lines(nl), lmt) ' do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
-  nl=nl+1; write(lines(nl), lmt) ' do_beam_sigma_calc    = ', u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting
-  nl=nl+1; write(lines(nl), lmt) ' one_turn_map_calc     = ', u%calc%one_turn_map
-  nl=nl+1; write(lines(nl), lmt) ' twiss_calc            = ', u%calc%twiss
-  nl=nl+1; write(lines(nl), lmt) ' dynamic_aperture_calc = ', u%calc%dynamic_aperture
-  nl=nl+1; write(lines(nl), lmt) ' one_turn_map_calc     = ', u%calc%one_turn_map
-  nl=nl+1; write(lines(nl), lmt) ' track_calc            = ', u%calc%track
-  nl=nl+1; write(lines(nl), lmt) '%calc%spin_matrices    = ', u%calc%spin_matrices
-  nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
+  nl=nl+1; write(lines(nl), imt2) 'n_d2_data_used         = ', u%n_d2_data_used, &
+                                  'n_data_used            = ', u%n_data_used
+  nl=nl+1; write(lines(nl), lmt2) 'do_rad_int_calc        = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting, &
+                                  'do_chrom_calc          = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
+  nl=nl+1; write(lines(nl), lmt2) 'do_beam_sigma_calc     = ', u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting, &
+                                  'one_turn_map_calc      = ', u%calc%one_turn_map
+  nl=nl+1; write(lines(nl), lmt2) 'twiss_calc             = ', u%calc%twiss, &
+                                  'dynamic_aperture_calc  = ', u%calc%dynamic_aperture
+  nl=nl+1; write(lines(nl), lmt2) 'one_turn_map_calc      = ', u%calc%one_turn_map, &
+                                  'track_calc             = ', u%calc%track
+  nl=nl+1; write(lines(nl), lmt2) 'calc%spin_matrices     = ', u%calc%spin_matrices, &
+                                  'is_on                  = ', u%is_on
   nl=nl+1; write(lines(nl), amt) '%beam%track_data_file  = ', quote(trim(u%beam%track_data_file))
   nl=nl+1; write(lines(nl), amt) '%beam%saved_at:        = ', quote(trim(u%beam%saved_at))
   nl=nl+1; write(lines(nl), amt) '%beam%dump_at:         = ', quote(trim(u%beam%dump_at))
@@ -4610,6 +4613,9 @@ case ('universe')
   endif
   if (branch%param%particle == photon$) then
     nl=nl+1; write(lines(nl), amt) 'photon_type:                 ', photon_type_name(lat%photon_type)
+  else
+    species = branch%ele(0)%ref_species
+    nl=nl+1; write(lines(nl), rmt) 'a_anomalous_moment * gamma   ', anomalous_moment_of(species) * branch%ele(0)%value(e_tot$) / mass_of(species)
   endif
   nl=nl+1; write(lines(nl), rmt) 'Reference energy:            ', branch%ele(0)%value(e_tot$)
   nl=nl+1; write(lines(nl), rmt) 'Reference momentum:          ', branch%ele(0)%value(p0c$)
