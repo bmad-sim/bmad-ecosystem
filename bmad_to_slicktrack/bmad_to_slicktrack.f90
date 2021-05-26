@@ -247,7 +247,7 @@ do i = 1, lat%n_ele_track
   case (sextupole$, rfcavity$, beambeam$, hkicker$, vkicker$, kicker$)
     call write_ele_position (line, ne, ele%name, ele%s_start + 0.5_rp * ele%value(l$))
 
-  case (marker$)
+  case (marker$, monitor$)
     call write_ele_position (line, ne, ele%name, ele%s)
   end select
 
@@ -349,7 +349,7 @@ case (hkicker$, vkicker$, kicker$)
     slick_params = [scale*knl(0)*sign_of(tilt(0)), 0.0_rp, scale*ele%value(l$)]    
   endif
 
-case (marker$)
+case (marker$, monitor$)
   slick_class = 1
   slick_params = 0
 
