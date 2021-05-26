@@ -781,11 +781,10 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       case default
         if (allocated(ctl%stack)) then
           call split_expression_string (expression_stack_to_string(ctl%stack), 70, 5, li2)
-        else
-          call split_expression_string (knots_to_string(ele%control%x_knot, ctl%y_knot), 70, 5, li2)
+        else   ! Knots
+          call split_expression_string (knots_to_string(lord%control%x_knot, ctl%y_knot), 70, 5, li2)
         endif
-        iv = ctl%ix_attrib
-        a_name = attribute_name(ele, iv)
+        a_name = ctl%attribute
         if (lord%lord_status == overlay_lord$ .and. .not. lord%is_on) str1 = 'Overlay [IS_ON = F]'
       end select
 
