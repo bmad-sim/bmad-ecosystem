@@ -149,7 +149,7 @@ TYPE CAV_TRAV
    real(dp) , POINTER ::L => null()                    !  Storage space for computed
    real(dp), POINTER :: VOLT => null(), FREQ => null(),PHAS,DELTA_E => null(),phase0 => null()
    real(dp), POINTER :: PSI => null(),DPHAS => null(),DVDS => null()
-   logical, pointer :: always_on => null()
+   logical, pointer :: always_on => null(), implicit => null()
    integer, POINTER :: CAVITY_TOTALPATH => null()     ! Cavity information
 END  TYPE CAV_TRAV
 
@@ -161,7 +161,7 @@ TYPE CAV_TRAVP
    TYPE(REAL_8), POINTER :: VOLT => null(), FREQ => null(),PHAS => null()
    TYPE(REAL_8), POINTER :: PSI => null(),DPHAS => null(),DVDS => null()
    real(dp), POINTER :: DELTA_E  => null(),phase0 => null()
-   logical, pointer :: always_on => null()
+   logical, pointer :: always_on => null(), implicit => null()
    integer, POINTER :: CAVITY_TOTALPATH  => null()    ! Cavity information
 END  TYPE CAV_TRAVP
 
@@ -275,7 +275,7 @@ END  TYPE SSMIP
 
 TYPE TEAPOT
    TYPE(MAGNET_CHART), POINTER:: P => null()
-   real(dp),  POINTER ::L => null()
+   real(dp),  POINTER ::L => null(),b_sol=>null()
    real(dp),  DIMENSION(:), POINTER :: AN => null(), BN => null()         !Multipole component
    real(dp),  DIMENSION(:), POINTER :: bf_x => null(),bf_y => null()     ! B field polynomial
    !     INTEGER,POINTER :: SECTOR_NMUL => null()
@@ -292,7 +292,7 @@ END TYPE TEAPOT
 
 TYPE TEAPOTP
    TYPE(MAGNET_CHART), POINTER:: P => null()
-   TYPE(REAL_8),  POINTER ::L => null()
+   TYPE(REAL_8),  POINTER ::L => null(),b_sol=>null()
    TYPE(REAL_8),  DIMENSION(:), POINTER :: AN => null(), BN => null()         !Multipole component
    TYPE(REAL_8),  DIMENSION(:), POINTER :: bf_x => null(),bf_y => null()     ! B field polynomial
    !     INTEGER,POINTER :: SECTOR_NMUL => null()

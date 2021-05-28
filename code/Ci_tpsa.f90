@@ -8503,6 +8503,8 @@ end   SUBROUTINE  c_clean_yu_w
 
   END SUBROUTINE c_clean_vector_field
 
+
+!!!!  to change between coasting and focusing
   subroutine c_bmad_reinit(ndpt_bmad)  !,spin
     implicit none
     integer, intent(in) :: ndpt_bmad

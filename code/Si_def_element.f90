@@ -6,8 +6,8 @@ MODULE S_DEF_ELEMENT
  ! USE S_DEF_KIND
   !  USE USER_kind1
   !  USE USER_kind2
-  USE sagan_WIGGLER
-
+ ! USE sagan_WIGGLER
+   use S_DEF_KIND
   IMPLICIT NONE
   public
   logical(lp),PARAMETER::BERZ=.TRUE.,ETIENNE=.NOT.BERZ
@@ -1136,6 +1136,7 @@ CONTAINS
        ALLOCATE(EL%CAV21%cavity_totalpath);EL%CAV21%cavity_totalpath=cavity_totalpath
        ALLOCATE(EL%CAV21%phase0);EL%CAV21%phase0=phase0
        ALLOCATE(EL%CAV21%always_on);EL%CAV21%always_on=my_false;
+       ALLOCATE(EL%CAV21%implicit);EL%CAV21%implicit=my_false;
     CASE(KIND22)
        if(.not.ASSOCIATED(EL%HE22)) THEN
           ALLOCATE(EL%HE22)
@@ -1625,6 +1626,8 @@ CONTAINS
        ALLOCATE(EL%CAV21%DPHAS);CALL ALLOC(EL%CAV21%DPHAS);EL%CAV21%DPHAS=0.0_dp
        ALLOCATE(EL%CAV21%cavity_totalpath);EL%CAV21%cavity_totalpath=cavity_totalpath
        ALLOCATE(EL%CAV21%always_on);EL%CAV21%always_on=my_false;
+       ALLOCATE(EL%CAV21%implicit);EL%CAV21%implicit=my_false;
+
        ALLOCATE(EL%CAV21%phase0);EL%CAV21%phase0=phase0
     CASE(KIND22)
        if(.not.ASSOCIATED(EL%HE22)) THEN
@@ -2717,6 +2720,7 @@ nullify(EL%filef,el%fileb);
     TYPE(ELEMENTP), INTENT(INOUT)::EL
 
     nullify(EL%KNOB);
+    nullify(EL%probe);
     nullify(EL%KIND);
     nullify(EL%NAME);nullify(EL%vorname);nullify(EL%electric);
 
@@ -2777,6 +2781,7 @@ nullify(EL%filef,el%fileb);
        DEALLOCATE(EL%KIND);
        DEALLOCATE(EL%PLOT);
        DEALLOCATE(EL%recut);
+       DEALLOCATE(EL%probe);
        DEALLOCATE(EL%even);
        DEALLOCATE(EL%NAME);DEALLOCATE(EL%VORNAME);DEALLOCATE(EL%electric);
        DEALLOCATE(EL%L);
@@ -2956,6 +2961,7 @@ nullify(EL%filef,el%fileb);
        ALLOCATE(EL%KIND);EL%KIND=0;
        ALLOCATE(EL%PLOT);EL%PLOT=MY_TRUE;
        ALLOCATE(EL%RECUT);EL%RECUT=MY_TRUE;
+       ALLOCATE(EL%probe);EL%RECUT=my_false;
        ALLOCATE(EL%even);EL%even=MY_false;
        ALLOCATE(EL%NAME);ALLOCATE(EL%VORNAME);ALLOCATE(EL%electric);
        ALLOCATE(EL%filef,el%fileb);
@@ -3158,7 +3164,7 @@ nullify(EL%filef,el%fileb);
        !       ENDIF
 
 
-       DEALLOCATE(EL%KIND);DEALLOCATE(EL%KNOB);
+       DEALLOCATE(EL%KIND);DEALLOCATE(EL%KNOB);DEALLOCATE(EL%probe);
        DEALLOCATE(EL%NAME);DEALLOCATE(EL%VORNAME);DEALLOCATE(EL%electric);
 !       DEALLOCATE(EL%PERMFRINGE);
        CALL KILL(EL%L);DEALLOCATE(EL%L);
@@ -3245,7 +3251,7 @@ nullify(EL%filef,el%fileb);
 
        call alloc(el%P)
 
-       ALLOCATE(EL%KIND);EL%KIND=0;ALLOCATE(EL%KNOB);EL%KNOB=.FALSE.;
+       ALLOCATE(EL%KIND);EL%KIND=0;ALLOCATE(EL%KNOB);EL%KNOB=.FALSE.;ALLOCATE(EL%probe);EL%probe=.FALSE.;
        ALLOCATE(EL%NAME);ALLOCATE(EL%VORNAME);ALLOCATE(EL%electric);
        ALLOCATE(EL%skip_ptc_f);   EL%skip_ptc_f=0 ;   ALLOCATE(EL%skip_ptc_b);EL%skip_ptc_b=0  ;
        ALLOCATE(el%do1mapb);   el%do1mapb=.false. ;   ALLOCATE(el%do1mapf);el%do1mapf=.false.  ;
@@ -3309,6 +3315,8 @@ nullify(EL%filef,el%fileb);
     INTEGER J,i,N
 
 !    ELP%PERMFRINGE=EL%PERMFRINGE
+    ELP%probe=EL%probe
+
     ELP%NAME=EL%NAME
     ELP%electric=EL%electric
     ELP%vorname=EL%vorname
@@ -3540,6 +3548,8 @@ nullify(EL%filef,el%fileb);
        ELP%CAV21%cavity_totalpath = EL%CAV21%cavity_totalpath
        ELP%CAV21%phase0 = EL%CAV21%phase0
        ELP%CAV21%Always_on=EL%CAV21%Always_on
+       ELP%CAV21%implicit=EL%CAV21%implicit
+
     ENDIF
 
     IF(EL%KIND==KIND22) THEN         !
@@ -3728,6 +3738,8 @@ nullify(EL%filef,el%fileb);
     !    if(associated(el%siamese)) elp%siamese=>el%siamese
     !    if(associated(el%girder)) elp%girder=>el%girder
 !    ELP%PERMFRINGE=EL%PERMFRINGE
+    ELP%probe=EL%probe
+
     ELP%electric=EL%electric
     ELP%vorname=EL%vorname
     ELP%KIND=EL%KIND
@@ -3928,6 +3940,8 @@ nullify(EL%filef,el%fileb);
        ELP%CAV21%cavity_totalpath = EL%CAV21%cavity_totalpath
        ELP%CAV21%phase0 = EL%CAV21%phase0
        ELP%CAV21%Always_on=EL%CAV21%Always_on
+       ELP%CAV21%implicit=EL%CAV21%implicit
+
     ENDIF
 
     IF(EL%KIND==KIND22) THEN         !
@@ -4133,6 +4147,7 @@ nullify(EL%filef,el%fileb);
     ELP%electric=EL%electric
     ELP%vorname=EL%vorname
     ELP%RECUT=EL%RECUT
+    ELP%probe=EL%probe
     ELP%even=EL%even
     ELP%KIND=EL%KIND
     ELP%PLOT=EL%PLOT
@@ -4338,6 +4353,8 @@ nullify(EL%filef,el%fileb);
        ELP%CAV21%cavity_totalpath = EL%CAV21%cavity_totalpath
        ELP%CAV21%phase0 = EL%CAV21%phase0
        ELP%CAV21%Always_on=EL%CAV21%Always_on
+       ELP%CAV21%implicit=EL%CAV21%implicit
+
     ENDIF
 
     IF(EL%KIND==KIND22) THEN         !
