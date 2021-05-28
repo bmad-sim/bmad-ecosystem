@@ -168,7 +168,7 @@ END TYPE tilting
 !   Element
 TYPE ELEMENT
    INTEGER, POINTER :: KIND => null()
-   logical(lp), POINTER :: recut,even => null()
+   logical(lp), POINTER :: recut,even => null(),probe=>null()
    LOGICAL(LP), POINTER :: PLOT => null()
    LOGICAL(LP), POINTER :: electric => null()  !  type teapot can be electric
    character(120), pointer :: filef   ! maps replacing ptc
@@ -243,7 +243,7 @@ END TYPE  ELEMENT
 
 TYPE ELEMENTP
    INTEGER, POINTER :: KIND  => null()! WHAT IT IS
-   logical(lp), POINTER :: KNOB  => null()! FALSE IF NO KNOB
+   logical(lp), POINTER :: KNOB  => null(),probe=>null()! FALSE IF NO KNOB
    CHARACTER(nlp), POINTER ::  NAME  => null()   ! Identification
    CHARACTER(vp), POINTER ::  VORNAME  => null()   ! Identification
    LOGICAL(LP), POINTER :: electric => null()

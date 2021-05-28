@@ -3516,6 +3516,8 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  tcav0%PSI_DPHAS_DVDS_phase0(3)=F%cav21%dvds
  tcav0%PSI_DPHAS_DVDS_phase0(4)=F%cav21%phase0
  tcav0%always_on=F%cav21%always_on
+ tcav0%implicit=F%cav21%implicit
+
     if(present(mf)) then
      write(mf,NML=tCAVname)
     endif   
@@ -3530,6 +3532,8 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  F%cav21%dvds=tcav0%PSI_DPHAS_DVDS_phase0(3)
  F%cav21%phase0=tcav0%PSI_DPHAS_DVDS_phase0(4)
  F%cav21%always_on=tcav0%always_on
+ F%cav21%implicit=tcav0%implicit
+
 endif
 
 endif

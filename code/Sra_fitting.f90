@@ -189,8 +189,9 @@ contains
     deallocate(eq)
 
   end subroutine lattice_fit_TUNE_gmap_rad
- 
+ !!! my_default default0 (my units)
 subroutine find_time_patch(kekb,my_default,emax,bmadpatch,wipeout,kf,kb)
+! time patch for SAD
 implicit none
 type(layout), pointer :: kekb
 real(dp) closed_orbit(6),ee
