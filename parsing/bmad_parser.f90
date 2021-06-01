@@ -682,17 +682,12 @@ parsing_loop: do
   endif
 
   if (.not. match_found) then
-    if (word_2 == 'BRANCH') then
-      call parser_error ('"BRANCH" ELEMENT IS NOW NAMED A "FORK" ELEMENT.', &
-                         'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', level = s_warn$)
-      word_2 = 'FORK'
-    endif
-    if (word_2 == 'PHOTON_BRANCH') then
-      call parser_error ('"PHOTON_BRANCH" ELEMENT IS NOW NAMED A "PHOTON_FORK" ELEMENT.', &
-                         'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', level = s_warn$)
-      word_2 = 'PHOTON_FORK'
-    endif
     in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
+    if (key_name_to_key_index(word_1, .false.) > 0) then
+      call parser_error ('ELEMENT NAME: ' // word_1, &
+                         'IS NOT ALLOWED TO BE THE SAME AS AN ELEMENT CLASS: ' // word_2)
+    endif
+
     if (in_lat%ele(n_max)%key > 0) then
       call set_ele_defaults (in_lat%ele(n_max))
       match_found = .true.
