@@ -178,10 +178,10 @@ Instantaneously, the beam can be fully polarized but the average over many turns
 position $s$, cannot exceed $\left< \bfS \right>_{\max}$.
 
 Another quantity that can be computed from knowledge of $\bfn$ is the equilibrium polarization of a
-beam. The \vn{Sokolov-Ternov} polarization $P_{sk}$ is calulated by ignoring deviations of the beam
-from the closed orbit\cite{b:barber99}
+beam. The \vn{Baier-Katkov-Strakhovenko} (generalized \vn{Sokolov-Ternov}) polarization $P_{bks}$ is
+calulated by ignoring deviations of the beam from the closed orbit\cite{b:barber99}
 \begin{equation}
-  P_{sk} = \pm \frac{8}{5 \, \sqrt{3}}
+  P_{bks} = \pm \frac{8}{5 \, \sqrt{3}}
   \frac{\displaystyle \oint ds \, g^3 \, \what\bfb \dotproduct \bfn_0}
   {\displaystyle \oint ds \, g^3 \left( 1 - \frac{2}{9} (\bfn_0 \dotproduct \what\bfs)^2 \right)}
 \end{equation}
@@ -194,7 +194,14 @@ Notice that $\what\bfb$ is the direction of the magnetic field when $\what\bfs$ 
 the magnetic field and when there is no electric field. In the above equation, the plus sign is for
 positrons (polarized parallel to the field) and the minus sign is for electrons. Since the above
 formula neglects any non-radiative processes, it is generally only valid for positrons and
-electrons.
+electrons. 
+
+The corresponding BKS polarization build-up rate $\tau_{bks}^{-1}$ is
+\begin{equation}
+  \tau_{bks}^{-1} = \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m} \frac{1}{C} \,
+    \oint ds \, g^3 \, \left( 1 - \frac{2}{9} (\bfn \dotproduct \what\bfs)^2 \right)
+  \label{tbks}
+\end{equation}
 
 If the the finite emittance of the beam is taken into account, the generalized Sokolov-Ternov
 polarization is called the \vn{Derbenev-Kondratenko-Mane} formula
@@ -227,14 +234,21 @@ $\tau_{dk}^{-1}$ can be decomposed into two parts:
   \tau_{dk}^{-1} = \tau_{st}^{-1} + \tau_{dep}^{-1}
   \label{tdk}
 \end{equation}
-where $\tau_{st}^{-1}$ is the Sokolov-Ternov polarization rate given by the first two terms on the
+$\tau_{st}^{-1}$ is the Sokolov-Ternov polarization rate given by the first two terms on the
 RHS in \Eq{t583} and the depolarization rate $\tau_{dep}^{-1}$ is given by the the third term:
-\begin{equation}
-  \tau_{dep}^{-1} = \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m}
-  \frac{1}{C} \, \oint ds \, \left< g^3 \,
-  \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right>
-  \label{tdep}
-\end{equation}
+\begin{align}
+  \tau_{st}^{-1} &= \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m} \frac{1}{C} \,
+    \oint ds \, \left< g^3 \, \left( 1 - \frac{2}{9} (\bfn \dotproduct \what\bfs)^2 \right) \right> 
+    \CRNO
+  \tau_{dep}^{-1} &= \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m}
+    \frac{1}{C} \, \oint ds \, \left< g^3 \,
+    \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right>
+    \label{tdep}
+\end{align}
+$\tau_{st}^{-1}$ is generally well approximated by the
+\vn{Baier-Katkov-Strakhovenko} polarization rate (\Eq{tbsk}).
+The difference being that $\tau_{bks}^{-1}$ is evaluated along the closed orbit while $\tau_{st}^{-1}$ 
+takes into account the size of the beam.
 
 %-----------------------------------------------------------------   
 \section{Linear \texorpdfstring{$d\bfn/d\delta$}{dn/dpz} Calculation}

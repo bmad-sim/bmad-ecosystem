@@ -560,6 +560,11 @@ parsing_loop: do
 
   if (.not. found) then
     ele%key = key_name_to_key_index(word_2, .true.)
+    if (key_name_to_key_index(word_1, .false.) > 0) then
+      call parser_error ('ELEMENT NAME: ' // word_1, &
+                         'IS NOT ALLOWED TO BE THE SAME AS AN ELEMENT CLASS: ' // word_2)
+    endif
+
     if (ele%key > 0) then
       call set_ele_defaults (ele)
       found = .true.
