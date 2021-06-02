@@ -37,6 +37,12 @@ func_set_base_env () {
 	&& export GMAKE="gmake" \
 	|| export GMAKE="make"
 
+    # Set minimum versions of GNU and Build Utilities required by FGSL 1.4 - 01-Jun-2021 RT#58585
+    export AUTOCONF_UTIL=autoconf-2.71
+    export AUTOMAKE_UTIL=automake-1.16.3
+    export LIBTOOL_UTIL=libtool-2.4.6
+    export M4_UTIL=m4-1.4.18
+    export PKGCONFIG_UTIL=pkg-config-0.29.1
 }
 
 
@@ -426,12 +432,21 @@ func_install_utilities () {
 		&& export FTP_SERVER_NAME="cmake.org" \
 		|| export FTP_SERVER_NAME="ftp.gnu.org"
 
+            [ ${UTIL} == ${PKGCONFIG_UTIL} ] \
+		&& export FTP_SERVER_NAME="pkgconfig.freedesktop.org" \
+		|| export FTP_SERVER_NAME="ftp.gnu.org"
+
 	    ping -c1 ${FTP_SERVER_NAME} &> /dev/null 2>&1 \
 
 	    if [ $? -eq 0 ] ; then
 		[ ${UTIL_NAME} == "cmake" ] \
 		    && export CMAKE_VER_DIR=$(echo ${CMAKE_UTIL} | cut -d- -f2 | cut -d. -f1,2) \
 		    && curl https://${FTP_SERVER_NAME}/files/v${CMAKE_VER_DIR}/${UTIL}.tar.gz -v -o ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 \
+		    || curl http://${FTP_SERVER_NAME}/gnu/${UTIL_NAME}/${UTIL}.tar.gz -v -o ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 
+
+		[ ${UTIL_NAME} == "pkg-config" ] \
+		    && export PKGCONFIG_VER_DIR=$(echo ${PKGCONFIG_UTIL} | awk -F"-" ' { print $3 } ') \
+		    && curl https://${FTP_SERVER_NAME}/releases/${PKGCONFIG_UTIL}.tar.gz -v -o ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 \
 		    || curl http://${FTP_SERVER_NAME}/gnu/${UTIL_NAME}/${UTIL}.tar.gz -v -o ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 
 
 		if [ $? -ne 0 ] ; then
@@ -518,13 +533,16 @@ func_install_utilities () {
     if [ ! -e ${UTIL_DIR}/bin/.BUILDCOMPLETE ] ; then
 	echo -e "\nChecking minimium version of GNU Utility Programs needed...\n"
 
-#	UTIL_PROG=( "${CMAKE_UTIL}" "libtool-2.4.2" "m4-1.4.16" "autoconf-2.69" "automake-1.12.2" "makeinfo-4.8" )
-	UTIL_PROG=( "${CMAKE_UTIL}" "libtool-2.4.2" "m4-1.4.16" "autoconf-2.69" "automake-1.13.4" )
+	UTIL_PROG=( "${CMAKE_UTIL}" "${LIBTOOL_UTIL}" "${M4_UTIL}" "${AUTOCONF_UTIL}" "${AUTOMAKE_UTIL}" "${PKGCONFIG_UTIL}" )
 
 	for UTIL in "${UTIL_PROG[@]}"
 	do
-	    UTIL_NAME=$(echo ${UTIL} | cut -d- -f1)
-            UTIL_MIN_VERSION=$(echo ${UTIL} | cut -d- -f2)
+	    [ "${UTIL}" == "${PKGCONFIG_UTIL}" ] \
+		&& UTIL_NAME=$(echo ${UTIL} | awk -F"-" ' { print $1"-"$2  } ') \
+		|| UTIL_NAME=$(echo ${UTIL} | cut -d- -f1)
+            [ "${UTIL}" == "${PKGCONFIG_UTIL}" ] \
+		&& UTIL_MIN_VERSION=$(echo ${UTIL} | awk -F"-" ' { print $3  } ') \
+		|| UTIL_MIN_VERSION=$(echo ${UTIL} | cut -d- -f2)
 	    UTIL_MIN_MAJOR_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f1)
 	    UTIL_MIN_MINOR_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f2)
 	    UTIL_MIN_SUB_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f3)
@@ -538,7 +556,9 @@ func_install_utilities () {
 		    func_check_macports
 		fi
 		
-		UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version | head -1 | awk ' { print $4 } ')
+		[ ${UTIL_NAME} == "pkg-config" ] \
+		    && UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version) \
+		    || UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version | head -1 | awk ' { print $4 } ')
 		UTIL_INSTALLED_MAJOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f1)
 		UTIL_INSTALLED_MINOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f2)
 		UTIL_INSTALLED_SUB_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f3)
