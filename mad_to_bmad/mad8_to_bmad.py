@@ -373,16 +373,14 @@ def bmad_expression(line, target_param):
 
 def bmad_file_name(mad8_file):
 
-  if mad8_file.find('mad8') != -1:
-    return mad8_file.replace('mad8', 'bmad')
-  elif mad8_file.find('Mad8') != -1:
-    return mad8_file.replace('Mad8', 'bmad')
-  elif mad8_file.find('MAD8') != -1:
-    return mad8_file.replace('MAD8', 'bmad')
-  elif mad8_file.find('xsif') != -1:
-    return mad8_file.replace('xsif', 'bmad')
+  if madx_file.lower()[-5:] == '.mad8':
+    return madx_file[:-5] + '.bmad'
+  elif madx_file.lower()[-4:] == '.mad':
+    return madx_file[:-4] + '.bmad'
+  elif madx_file.lower()[-4:] == '.seq':
+    return madx_file[:-4] + '.bmad'
   else:
-    return mad8_file + '.bmad'
+    return madx_file + '.bmad'
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------

@@ -43,8 +43,8 @@ This example converts a MADX file called "lhc.madx".
 [Note: If you are setup to run Bmad based programs, the ACC_ROOT_DIR environmental variable will be
 set to the <bmad-dist-or-release> directory.]
 
-The Bmad output file name is the input file name with the .mad8 or .madx suffix removed (if it
-exists) and with a .bmad suffix appended.
+The Bmad output file name is the input file name with the ".mad", ".mad8", ".madx", or ".seq" suffix removed (if it
+exists) and with a ".bmad" suffix appended.
 
 The optional arguments are:
   -h, --help              Show a help message and exit
