@@ -14,6 +14,8 @@ use coord_mod
 use multipole_mod
 
 interface assignment (=)
+  module procedure damap_equal_bmad_taylor
+  module procedure bmad_taylor_equal_damap
   module procedure real_8_equal_bmad_taylor
   module procedure ptc_taylor_equal_bmad_taylor
   module procedure bmad_taylor_equal_real_8
@@ -22,8 +24,6 @@ interface assignment (=)
   module procedure bmad_taylors_equal_ptc_taylors
   module procedure complex_taylor_equal_c_taylor
   module procedure complex_taylors_equal_c_taylors
-  module procedure damap_equal_bmad_taylor
-  module procedure bmad_taylor_equal_damap
 end interface
 
 interface operator (+)
