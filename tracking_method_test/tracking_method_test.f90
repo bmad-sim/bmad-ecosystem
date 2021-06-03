@@ -122,11 +122,11 @@ do ib = 0, ubound(lat%branch, 1)
         ele%tracking_method = j
       endif
 
-      if (ele%key /= sbend$ .and. ele%key /= lcavity$ .and. ele%key /= rfcavity$) ele%orientation = ele_o_sign
+      if (ele%key /= sbend$ .and. ele%key /= lcavity$ .and. ele%key /= rfcavity$ .and. .not. debug_mode) ele%orientation = ele_o_sign
 
       start_orb = lat%particle_start
 
-      if (orb_dir_sign == -1) then
+      if (orb_dir_sign == -1 .and. .not. debug_mode) then
         start_orb%direction = -1
         lat%absolute_time_tracking = .true.
       endif
@@ -156,10 +156,10 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       if (ele%key == e_gun$) then
-        write (1,fmt) '"' // trim(out_str) // '"' , tolerance(out_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
+        write (1,fmt) quote(out_str), tolerance(out_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
         if (debug_mode) print '(a30, 3x, 7es18.10)', out_str,  end_orb%vec, c_light * (end_orb%t - start_orb%t)
       else
-        write (1,fmt) '"' // trim(out_str) // '"' , tolerance(out_str), end_orb%vec, (end_orb%vec(5) - start_orb%vec(5)) - &
+        write (1,fmt) quote(out_str), tolerance(out_str), end_orb%vec, (end_orb%vec(5) - start_orb%vec(5)) - &
                 c_light * (end_orb%beta * (ele%ref_time - end_orb%t) - start_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - start_orb%t))
         if (debug_mode) print '(a30, 3x, 7es18.10)', out_str,  end_orb%vec, (end_orb%vec(5) - start_orb%vec(5)) - &
                 c_light * (end_orb%beta * (ele%ref_time - end_orb%t) - start_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - start_orb%t))
@@ -170,13 +170,19 @@ do ib = 0, ubound(lat%branch, 1)
       else
         if (j == bmad_standard$) end_bs = end_orb
       endif
-      if (j == symp_lie_ptc$)  end_ptc = end_orb
+
+      if (j == symp_lie_ptc$ .and. .not. debug_mode) then
+        end_ptc = end_orb
+        bmad_com%orientation_to_ptc_design = .true.
+        call track1 (start_orb, ele, branch%param, end_orb)
+        bmad_com%orientation_to_ptc_design = .false.
+        write (1,fmt) quote(trim(out_str) // '-OD'), 'ABS 1e0', end_orb%vec - end_ptc%vec
+      endif
 
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$ .or. j == time_runge_kutta$ .or. j == taylor$) then
-        isn = isn + 1
         out_str = trim(out_str) // ' dSpin'
-        write (line(isn), '(a, t50, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
-              end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
+        isn=isn+1; write (line(isn), '(a, t50, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
+                                                                end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
         if (debug_mode) write(line_debug(isn), '(a40, 3f14.9, 4x, f14.9)') out_str, end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
       endif
 

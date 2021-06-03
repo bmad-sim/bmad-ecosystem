@@ -71,8 +71,9 @@ allocate (eles(n_methods$))
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  do i = 1, branch%n_ele_max - 1
+  do i = 1, branch%n_ele_max
     ele => branch%ele(i)
+    if (i == branch%n_ele_track .and. ele%name == 'END') cycle
     ns = len_trim(ele%name) + 28
 
     if (index(ele%name, 'ABS_TIME') /= 0) lat%absolute_time_tracking = .true.
