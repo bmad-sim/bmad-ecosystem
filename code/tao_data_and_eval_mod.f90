@@ -105,6 +105,7 @@ endif
 
 ! Get data type
 
+ele_name = ''
 use_dflt_ele = .true.
 has_assoc_ele = .true.
 ix1 = index(name, '[')
@@ -116,7 +117,9 @@ if (ix1 == 0) then
     return
   endif
   datum%data_type = name
-  ele_name = dflt_ele%name
+  if (present(dflt_ele)) then
+    if (associated(dflt_ele)) ele_name = dflt_ele%name
+  endif
 
 else
   datum%data_type = name(1:ix1-1)
