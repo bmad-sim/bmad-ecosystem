@@ -15,7 +15,7 @@
 
 subroutine map_to_angle_coords (t_canon, t_angle)
 
-use ptc_interface_mod
+use ptc_interface_mod, dummy => map_to_angle_coords
 use s_fibre_bundle
 
 implicit none
