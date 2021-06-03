@@ -194,13 +194,22 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
-  ! COMBINE_ELEMENTS
+  ! COMBINE_CONSECUTIVE_ELEMENTS
 
-  if (word_1(:ix_word) == 'COMBINE_ELEMENTS') then
+  if (word_1(:ix_word) == 'COMBINE_CONSECUTIVE_ELEMENTS') then
+    call combine_consecutive_elements (lat, err)
+    if (err) call parser_error ('ERROR COMBINING ELEMENTS.')
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
+  ! MERGE_ELEMENTS
+
+  if (word_1(:ix_word) == 'MERGE_ELEMENTS' .or. word_1(:ix_word) == 'COMBINE_ELEMENTS') then
     string = trim(bp_com%parse_line) // ', ' // trim(extra_ele_names)
     call lat_ele_locator(string, lat, eles, n_loc, err)
     if (err) then
-      call parser_error ('ERROR IN ELEMENT LIST FOR COMBINE_ELEMENTS: ' // bp_com%parse_line)
+      call parser_error ('ERROR IN ELEMENT LIST FOR MERGE_ELEMENTS: ' // bp_com%parse_line)
       bp_com%parse_line = ''
       cycle parsing_loop
     endif

@@ -22,6 +22,8 @@ interface assignment (=)
   module procedure bmad_taylors_equal_ptc_taylors
   module procedure complex_taylor_equal_c_taylor
   module procedure complex_taylors_equal_c_taylors
+  module procedure damap_equal_bmad_taylor
+  module procedure bmad_taylor_equal_damap
 end interface
 
 interface operator (+)
@@ -1215,6 +1217,79 @@ end subroutine get_ptc_params
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
+! Subroutine bmad_taylor_equal_damap (bmad_taylor, da)
+!
+! Routine to convert from PTC damap to Bmad Taylor map.
+! This routine does not do any units conversion
+!
+! Input
+!   da  -- damap: PTC damap.
+!
+! Output:
+!   bmad_taylor(:) -- Taylor_struct: Input taylor map.
+!-
+
+subroutine bmad_taylor_equal_damap (bmad_taylor, da)
+
+use s_fitting, only: alloc, kill, assignment(=), damap, real_8
+
+implicit none
+
+type (damap), intent(in) :: da
+type (taylor_struct), intent(inout) :: bmad_taylor(:)
+type (real_8) :: y8(size(bmad_taylor))
+
+!
+
+call alloc(y8)
+y8 = da
+bmad_taylor = y8
+call kill (y8)
+
+end subroutine bmad_taylor_equal_damap
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine damap_equal_bmad_taylor (da, bmad_taylor)
+!
+! Routine to convert from Bmad Taylor map to PTC damap.
+! This routine does not do any units conversion
+!
+! Input
+!   bmad_taylor(:) -- Taylor_struct: Input taylor map.
+!
+! Output:
+!   da  -- damap: PTC damap.
+!-
+
+subroutine damap_equal_bmad_taylor (da, bmad_taylor)
+
+use s_fitting, only: alloc, kill, assignment(=), damap, real_8
+
+implicit none
+
+type (damap), intent(inout) :: da
+type (taylor_struct), intent(in) :: bmad_taylor(:)
+type (real_8) :: y8(size(bmad_taylor))
+
+!
+
+call kill (da)
+call alloc(da)
+
+call alloc(y8)
+y8 = bmad_taylor
+da = y8
+call kill (y8)
+
+end subroutine damap_equal_bmad_taylor
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
 ! Subroutine bmad_taylor_equal_real_8 (bmad_taylor, y8)
 !
 ! Subroutine to convert from a real_8 taylor map in Etienne's PTC 
@@ -1806,9 +1881,9 @@ end subroutine
 !       y3 = y2(y1)
 ! This subroutine assumes that y1, y2, and y3 have been allocated.
 !
-! For any map "M", Bmad treats the argument of the map as M(r-r_ref) where
-! r are the coordinates and r_ref are the reference coordinates at the beginning of M.
-! The reference coordinates at the end of M is thus M(0).
+! In general Bmad treats a map y as being y(r-r_ref) where r 
+! are the coordinates and r_ref is the reference coordinates at the beginning of y.
+! The reference coordinates at the end of y is thus y(0).
 !
 ! If r2_ref is not present, it is assumed that the referece orbit at the end of 
 ! y1 (which is equal to y1(0)), is equal to the referene orbit at the beginning of y2.

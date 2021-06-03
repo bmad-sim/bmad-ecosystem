@@ -5,62 +5,50 @@
 \label{s:radiation}
 \index{synchrotron radiation!damping and excitation|hyperbf}
 
-Emission of synchrotron radiation by a particle can be decomposed into
-two parts. The deterministic average energy emitted produces damping
-while the stochastic fluctuating part of the energy spectrum produces excitation\cite{b:jowett}.
+Emission of synchrotron radiation by a particle can be decomposed into two parts. The deterministic
+average energy emitted produces damping while the stochastic fluctuating part of the energy spectrum
+produces excitation\cite{b:jowett}.
 
 \index{MAD!radiation}
-The treatment of radiation damping by \bmad essentially follows \mad.
-The average change in energy $\Delta E$ of a particle going through a
-section of magnet due to synchrotron radiation is
+The treatment of radiation damping by \bmad essentially follows \mad. The energy loss through and element is
 \begin{equation}
-  \frac{\Delta E}{E_0} = -k_d \, (1 + p_z)
+  \frac{\Delta E}{E_0} = -k_E \, (1 + p_z) = -(k_d + k_f \, \xi) \, (1 + p_z) 
 \end{equation}
-where
-\begin{equation}
-  k_d \equiv \frac{2 \, r_e}{3} \, \gamma_0^3 \, \ave{g_0^2} \, L_p \,  
-  (1 + p_z)
-  \label{k2r3g}
-\end{equation}
-$r_e$ is the classical electron radius, $L_p$ is the actual path
-length, $\gamma_0$ is the energy factor of an on-energy particle, $1/g_0$
-is the bending radius of an on--energy particle, and $\ave{g_0^2}$ is an
-average of $g_0^2$ over the actual path.
+where $k_d$ gives the deterministic part of the emission, $\xi$ is a Gaussian distributed random
+number with unit sigma and zero mean, and $k_f$ is the amplitude of the stochastic part of the
+emittsion. The deterministic and stochastic parts of the emission can be included or excluded from a
+tracking simulation by setting in a lattice file the \bmad global parameters (\sref{s:bmad.common})
+\begin{example}
+  bmad_com[radiation_damping_on]      = True or False  ! Deterministic part on/off
+  bmad_com[radiation_fluctuations_on] = True or False  ! Stochastic part on/off
+\end{example}
 
-The energy lost is given by
-\begin{equation}
-  \frac{\Delta E}{E_0} = -k_f \, (1 + p_z)
-\end{equation}
-where
-\begin{equation}
-  k_f \equiv \left( \frac{55 \, r_e \, \hbar}{24 \, \sqrt{3} \, m_e \, c} \, 
-  L_p \, \gamma_0^5 \ave{g_0^3} \right)^{1/2} \, (1 + p_z) \, \xi
-  \label{k55rh}
-\end{equation}
-$\xi$ is a Gaussian distributed random number with unit sigma and zero mean.
+Values for $k_d$ and $k_f$ are calculated via the equations
+\begin{align}
+  k_d &= \frac{2 \, r_e}{3} \, \gamma_0^3 \, \ave{g_0^2} \, L_p \,  (1 + p_z)
+    \label{k2r3g} \\
+  k_f &= \left( \frac{55 \, r_e \, \hbar}{24 \, \sqrt{3} \, m_e \, c} \, 
+    L_p \, \gamma_0^5 \ave{g_0^3} \right)^{1/2} \, (1 + p_z)
+    \label{k55rh}
+\end{align}
+where $r_e$ is the classical electron radius, $L_p$ is the actual path length, $\gamma_0$ is the energy
+factor of an on-energy particle, $1/g_0$ is the bending radius of an on--energy particle, and
+$\ave{g_0^2}$ is an average of $g_0^2$ over the actual path.
 
-Using \Eqs{k2r3g} and \eq{k55rh} the total change in $p_z$ can be written as
-\begin{equation}
-  \Delta p_z = \frac{\Delta E}{E_0} = -k_E \, (1 + p_z)
-\end{equation}
-where
-\begin{equation}
-  k_E = k_d + k_f
-\end{equation}
-Since the radiation is emitted in the forward direction the angles
-$x'$ and $y'$ are invariant which leads to the following equations for
-the changes in $p_x$ and $p_y$
+Since the radiation is emitted in the forward direction the angular orientation of the particle
+motion is invariant which leads to the following equations for the changes in momentum phase space
+coordinates
 \begin{align}
   \Delta p_x &= -k_E \, p_x \CRNO
   \Delta p_y &= -k_E \, p_y 
+  \Delta p_z &\approx \frac{\Delta E}{E_0} = -k_E \, (1 + p_z) \nonumber
 \end{align}
 
-The above formalism does not take into account the fact that radiation is 
-emitted with a $1/\gamma$ angular distribution. This means that the calculated
-vertical emittance for a lattice with
-bends only in the horizontal plane and without any coupling elements such as
-skew quadrupoles will be zero. Typically, in practice, the vertical emittance
-will be dominated by coupling so this approximation is generally a good one.
+The above formalism does not take into account the fact that radiation is emitted with a $1/\gamma$
+angular distribution. This means that the calculated vertical emittance for a lattice with bends
+only in the horizontal plane and without any coupling elements such as skew quadrupoles will be
+zero. However, in practice, the vertical emittance will be dominated by coupling so this
+approximation is generally a good one.
 
 %-----------------------------------------------------------------
 \section{Synchrotron Radiation Integrals}

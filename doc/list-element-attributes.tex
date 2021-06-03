@@ -563,9 +563,10 @@ dy_origin [m]                    & ref_tilt_tot [rad]               & x_pitch_to
  \label{s:list.group}
  
  \begin{tabular}{llll} \toprule
-accordion_edge [m]               & end_edge [m]                     & s_position [m]                   & var                              \\
-alias                            & gang                             & start_edge                       & x_knot                           \\
-descrip                          & interpolation                    & type                             &                                  \\
+accordion_edge [m]               & gang                             & start_edge                       & y_knot [???]                     \\
+alias                            & interpolation                    & type                             &                                  \\
+descrip                          & s_position [m]                   & var                              &                                  \\
+end_edge [m]                     & slave [???]                      & x_knot                           &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -921,8 +922,9 @@ field_overlaps                   & p0c [eV]                         & vkick     
  \label{s:list.overlay}
  
  \begin{tabular}{llll} \toprule
-alias                            & gang                             & is_on                            & var                              \\
-descrip                          & interpolation                    & type                             & x_knot                           \\
+alias                            & interpolation                    & type                             & y_knot [???]                     \\
+descrip                          & is_on                            & var                              &                                  \\
+gang                             & slave [???]                      & x_knot                           &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -1069,8 +1071,9 @@ ele_origin                       & n_cell                           & tilt_tot [
  \label{s:list.ramper}
  
  \begin{tabular}{llll} \toprule
-alias                            & interpolation                    & type                             & x_knot                           \\
-descrip                          & is_on                            & var                              &                                  \\
+alias                            & is_on                            & var                              &                                  \\
+descrip                          & slave [???]                      & x_knot                           &                                  \\
+interpolation                    & type                             & y_knot [???]                     &                                  \\
  \bottomrule
  \end{tabular}
  \vfill

@@ -114,38 +114,33 @@ one global instance (\sref{c:param.structs}) of this structure and this instance
   end type
 \end{example}
 
-Note: \vn{bmad_com} parameters may always be set in a lattice file as
-discussed in Section~\sref{s:bmad.com}. However, thought must be given
-to setting \vn{bmad_com} parameters in a lattice file since that will
-affect every program that uses the lattice.
+Note: \vn{bmad_com} parameters may always be set in a lattice file as discussed in
+Section~\sref{s:bmad.com}. However, thought must be given to setting \vn{bmad_com} parameters in a
+lattice file since that will affect every program that uses the lattice.
 
 Parameter description:
 \begin{description}
 \index{aperture_limit_on}
 \item[\vn{\%abs_tol_adaptive_tracking}] \Newline
-Absolute tolerance to use in adaptive tracking. This is used in
-\vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
+Absolute tolerance to use in adaptive tracking. This is used in \vn{runge-kutta} and
+\vn{time_runge_kutta} tracking (\sref{s:integ}).
 %
 \item[\vn{\%abs_tol_tracking}] \Newline
-Absolute tolerance to use in tracking. Specifically, Tolerance to use
-when finding the closed orbit.
+Absolute tolerance to use in tracking. Specifically, Tolerance to use when finding the closed orbit.
 %
 \item[\vn{\%absolute_time_tracking_default}] \Newline
-Default setting to be applied to a lattice if
-\vn{absolute_time_tracking} (\sref{s:param}) is not specified in a
-lattice file. Additionally, if an element that is not associated with a lattice
-is tracked, \vn{%absolute_time_tracking_default} will be used to
-determine whether absolute time tracking is used. 
+Default setting to be applied to a lattice if \vn{absolute_time_tracking} (\sref{s:param}) is not
+specified in a lattice file. Additionally, if an element that is not associated with a lattice is
+tracked, \vn{%absolute_time_tracking_default} will be used to determine whether absolute time
+tracking is used.
 
-To change between absolute and relative time tracking
-(\sref{s:rf.time}) after lattice file parsing, the
-\vn{%absolute_time_tracking} component of a \vn{lat_struct}
-(\sref{s:abs.time}) can be appropriately set.
+To change between absolute and relative time tracking (\sref{s:rf.time}) after lattice file parsing,
+the \vn{%absolute_time_tracking} component of a \vn{lat_struct} (\sref{s:abs.time}) can be
+appropriately set.
 %
 \item[\vn{\%aperture_limit_on]}] \Newline
-Aperture limits may be set for elements in the lattice
-(\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
-disable all set apertures. \vn{True} is the default.
+Aperture limits may be set for elements in the lattice (\sref{s:limit}). Setting
+\vn{aperture_limit_on} to \vn{False} will disable all set apertures. \vn{True} is the default.
 %
 \item[\vn{\%auto_bookkeeper}] \Newline
 Toggles automatic or intelligent bookkeeping. See
@@ -259,10 +254,20 @@ True, the reference phase will be taken to be at \vn{phi0} = 0.5 which is approp
 below transition. Default is False in which case autoscaling will be around the phase \vn{phi0} = 0.
 %
 \item[\vn{\%radiation_damping_on}] \Newline
-Toggle to turn on or off effects due to radiation damping in particle tracking.
+Toggle to turn on or off effects due to radiation damping in particle tracking
+(\sref{s:radiation}). The default is \vn{False}. Note: The standard \bmad emittance calculation,
+which involves calculating synchrotron radiation integrals (\sref{s:synch.ints}) can be done without
+a problem when \vn{radiation_damping_on} is set to False. However, since the closed orbit will be
+affected by whether \vn{radiation_damping_on} is set or not, the calculated emittances will depend
+upon the setting of \vn{radiation_damping_on}.
 %
 \item[\vn{\%radiation_fluctuations_on}] \Newline
-Toggle to turn on or off effects due to radiation fluctuations in particle tracking.
+Toggle to turn on or off effects due to radiation fluctuations in particle tracking
+(\sref{s:radiation}).  The default is \vn{False}. Note: The standard \bmad emittance calculation,
+which involves calculating synchrotron radiation integrals (\sref{s:synch.ints}) can be done without
+a problem when \vn{radiation_damping_on} is set to False. And since the calculation of the closed orbit
+ignores the fluctuating part of the radiation, the setting of \vn{radiation_damping_on}, unlike the
+setting of \vn{radiation_damping_on}, will not affect the emittance calculation.
 %
 \item[\vn{\%rel_tol_adaptive_tracking}] \Newline
 Relative tolerance to use in adaptive tracking. This is used in \vn{runge_kutta} and

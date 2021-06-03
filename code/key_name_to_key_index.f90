@@ -24,7 +24,7 @@ use attribute_mod, dummy => key_name_to_key_index
 implicit none
 
 character(*) key_str
-character(16) name, this_key
+character(40) name, this_key
 
 logical, optional :: abbrev_allowed
 logical abbrev
