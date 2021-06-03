@@ -222,7 +222,7 @@ do i = 1, s%n_var_used
     if (.not. attribute_free (var_slave%ix_ele, var_slave%ix_branch, var%attrib_name, &
                                                                 u%model%lat, dependent_attribs_free = .true.)) then
       call out_io (s_abort$, r_name, &
-                'ERROR: VARIABLE TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY.', &
+                '       VARIABLE TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY.', &
                 '       VARIABLE:  ' // tao_var1_name(var), &
                 '       ELEMENT:   ' // var%ele_name, &
                 '       ATTRIBUTE: ' // var%attrib_name)
@@ -246,7 +246,7 @@ do i = 1, s%n_var_used
           write (name1, '(2a, i0, a)') trim(s%var(i)%v1%name), '[', s%var(i)%ix_v1, ']'  
           write (name2, '(2a, i0, a)') trim(s%var(i2)%v1%name), '[', s%var(i2)%ix_v1, ']'  
           call out_io (s_important$, r_name, &
-               'ERROR: VARIABLE:     ' // name1, &
+               '       VARIABLE:     ' // name1, &
                '       AND VARIABLE: ' // name2, &
                '       CONTROL THE SAME EXACT THING!', &
                '       THIS CAN CAUSE STRANGE BEHAVIOR. YOU HAVE BEEN WARNED!!!')            

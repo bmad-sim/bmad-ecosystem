@@ -723,7 +723,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 enddo
 
 if (.not. found) then
-  call out_io (s_error$, r_name, &
+  call out_io (s_warn$, r_name, &
             'CANNOT FIND LATTICE ELEMENT WITH NAME: "' // trim(var%ele_name) // '"', &
             'FOR VARIABLE: ' // var%v1%name)
   return

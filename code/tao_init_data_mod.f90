@@ -617,7 +617,7 @@ call upcase_string (ele_name)
 call lat_ele_locator (ele_name, u%design%lat, eles, n_loc)
 
 if (n_loc == 0) then
-  call out_io (s_error$, r_name, who // ' NOT LOCATED: ' // ele_name, & 
+  call out_io (s_warn$, r_name, who // ' NOT LOCATED: ' // ele_name, & 
                                  'FOR DATUM: ' // tao_datum_name(datum), &
                                  'WILL MARK THIS DATUM AS NOT EXISTING')
   datum%exists = .false.
