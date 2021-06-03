@@ -3999,7 +3999,7 @@ case ('taylor_map', 'matrix')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, [character(16):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format', &
+    call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format', &
                                   '-running', '-angle_coordinates'], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
