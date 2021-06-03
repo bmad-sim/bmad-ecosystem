@@ -896,80 +896,69 @@ the value of $z$ for the particle at $s_1$ by
   \beta_2 \, c \, (\Delta t_2 - \Delta t_1)
   \label{zbbzb}
 \end{equation}
-$\Delta t_2 - \Delta t_1$ can be interpreted as the difference in
-transit time, between the particle and the reference particle, in going
-from $s_1$ to $s_2$.
+$\Delta t_2 - \Delta t_1$ can be interpreted as the difference in transit time, between the particle
+and the reference particle, in going from $s_1$ to $s_2$.
 
 The longitudinal phase space momentum $p_z$ is given by
 \begin{equation}
   p_z = \frac{\Delta P}{P_0} \equiv \frac{P - P_0}{P_0}
   \label{ppppp}
 \end{equation}
-where $P$ is the momentum of the particle. For ultra--relativistic particles
-$p_z$ can be approximated by
+where $P$ is the momentum of the particle. For ultra--relativistic particles $p_z$ can be
+approximated by
 \begin{equation}
   p_z = \frac{\Delta E}{E_0}
 \end{equation}
 \index{lcavity}
-where $E_0$ is the reference energy (energy here always refers to the
-total energy) and $\Delta E = E - E_0$ is the deviation of the
-particle's energy from the reference energy. For an \vn{Lcavity}
-element (\sref{s:lcav}) the reference momentum is {\it not} constant
-so the tracking for an \vn{Lcavity} is not canonical.
+where $E_0$ is the reference energy (energy here always refers to the total energy) and $\Delta E =
+E - E_0$ is the deviation of the particle's energy from the reference energy. For an \vn{Lcavity}
+element (\sref{s:lcav}) the reference momentum is {\it not} constant so the tracking for an
+\vn{Lcavity} is not canonical.
 
 \index{phase space coordinates!MAD convention}
 \index{MAD!phase space convention}
-\mad uses a different coordinate system where $(z, p_z)$ is
-replaced by $(-c\Delta t, p_t)$ where $p_t \equiv \Delta E / P_0
-c$. For highly relativistic particles the two coordinate systems are
+\mad uses a different coordinate system where $(z, p_z)$ is replaced by $(-c\Delta t, p_t)$ where
+$p_t \equiv \Delta E / P_0 c$. For highly relativistic particles the two coordinate systems are
 identical.
 
 \index{paraxial approximation}
 \index{bmad_standard!tracking method}
-\vn{Bmad_standard} (\sref{c:methods}) tracking and transfer matrix
-calculations use the small angle (paraxial) approximation where it is
-assumed that $p_x, p_y \ll 1$. With this approximation, the
-relationship, between the phase space momenta and the slopes $x' \equiv
-dx/ds$ and $y' \equiv dy/ds$ is
+The relationship, between the phase space momenta and the slopes $x' \equiv dx/ds$ and $y' \equiv dy/ds$
+is
 \begin{align}
-  x' &\approx \frac{p_x}{1 + p_z} (1 + g x) \\
-  y' &\approx \frac{p_y}{1 + p_z} (1 + g x) 
+  x' &= \frac{p_x}{\sqrt{(1 + p_z)^2 - p_x^2 - p_y^2}} \, (1 + g x) \\
+  y' &= \frac{p_y}{\sqrt{(1 + p_z)^2 - p_x^2 - p_y^2}} \, (1 + g x) 
   \label{xpa1p}
 \end{align}
-$g = 1/\rho$ is the curvature function with $\rho$ being the radius of
-curvature of the reference orbit and it has been assumed that the
-bending is in the $x$--$z$ plane. 
+$g = 1/\rho$ is the curvature function with $\rho$ being the radius of curvature of the reference
+orbit and it has been assumed that the bending is in the $x$--$z$ plane.
 
-With the paraxial approximation, and in the relativistic limit, the
-change in $z$ with position is
+With the paraxial approximation, and in the relativistic limit, the change in $z$ with position is
 \begin{equation}
   \frac{dz}{ds} = -g \, x - \frac{1}{2} (x'^2 + y'^2)
 \end{equation}
-This shows that in a linac, without any bends, the $z$ of a particle
-always decreases.
+This shows that in a linac, without any bends, the $z$ of a particle always decreases.
 
-A particle can also have a spin. The spin is characterized by the
-spinor $\Psi = \left( \psi_{1}, \psi_{2} \right)^{T}$ where
-$\psi_{1,2}$ are complex numbers (\sref{s:spin.dyn}).
+A particle can also have a spin. The spin is characterized by the spinor $\Psi = \left( \psi_{1},
+\psi_{2} \right)^{T}$ where $\psi_{1,2}$ are complex numbers (\sref{s:spin.dyn}).
 
 %-----------------------------------------------------------------------------
 \subsection{Time-based Phase Space Coordinates}
 \label{s:time.phase.space}
 \index{time!phase space coordinates|hyperbf}
 
-Some specialized routines (for example, time Runge Kutta tracking) use
-the time $t$ as the independent variable for charged particle
-tracking. This is useful when particles can reverse direction since the normal
-$z$ based tracking cannot handle this. Direction reversal can happen, for example,
-with low energy ``dark current'' electrons that are generated at the
-walls of the vacuum chamber.
+Some specialized routines (for example, time Runge Kutta tracking) use the time $t$ as the
+independent variable for charged particle tracking. This is useful when particles can reverse
+direction since the normal $z$ based tracking cannot handle this. Direction reversal can happen, for
+example, with low energy ``dark current'' electrons that are generated at the walls of the vacuum
+chamber.
 
 When the tracking is time based the phase space coordinates are:
 \begin{equation}
   (x, c \, p_x, y, c \, p_y, z, c \, p_s)
 \end{equation}
-The positions $x$, $y$, and $z$ are the same as with phase space
-coordinates (\sref{s:phase.space}). The momenta are defined as
+The positions $x$, $y$, and $z$ are the same as with phase space coordinates
+(\sref{s:phase.space}). The momenta are defined as
 \begin{align}
 c p_x &\equiv m c^2 \gamma \beta_x \CRNO
 c p_y &\equiv m c^2 \gamma \beta_y \\

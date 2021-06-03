@@ -436,10 +436,11 @@ subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, eps_rel, eps_abs,
   logical, optional :: err_flag
 end subroutine
 
-subroutine combine_consecutive_elements (lat)
+subroutine combine_consecutive_elements (lat, error)
   import
   implicit none
   type (lat_struct), target :: lat
+  logical error
 end subroutine
 
 subroutine control_bookkeeper (lat, ele, err_flag)
@@ -1113,6 +1114,12 @@ subroutine make_v_mats (ele, v_mat, v_inv_mat)
   type (ele_struct) ele
   real(rp), optional :: v_mat(4,4)
   real(rp), optional :: v_inv_mat(4,4)
+end subroutine
+
+subroutine map_to_angle_coords (t_canon, t_angle)
+  import
+  implicit none
+  type (taylor_struct) t_canon(6), t_angle(6)
 end subroutine
 
 function master_parameter_value (master_parameter, ele) result (value)

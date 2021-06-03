@@ -210,6 +210,18 @@ In this example, element \vn{QB} inherits the attributes of \vn{QA} which, in th
 length and tilt parameters of \vn{QA}. Once \vn{QB} is defined, the elements are separate so 
 modifications of the parameters of \vn{QA} after \vn{QB} is defined will not affect \vn{QB}.
 
+\bmad allows element names to be abbreviations of element types. For example, ``\vn{Q}'', \vn{QU}'',
+and ``\vn{QUADRUPOL}'' are all valid element names but ``\vn{QUADRUPOLE}'', being an exact match to
+the corresponding element type, is not. Care must be used when using elements that are abbreviations
+of element types since \bmad allows element type names to be abbreviated (but element names may not
+be abbreviated when using inheritance). For example:
+\begin{example}
+  q1: quad          ! Q1 is a quadrupole since it comes before the next line.
+  quad: sextupole   ! QUAD element is defined to be a sextupole.
+  q2: quad          ! Q2 is a sextupole as it inherits from QUAD.
+  q3: qua           ! Q3 is a quadrupole. Inherit from names cannot be abbreviated.
+\end{example}
+
 %---------------------------------------------------------------------------
 \section{Lattice Element Names}
 \label{s:ele.names}
@@ -834,7 +846,7 @@ has a \vn{redef:} prefix, a constant can be redefined
   my_const = 1
   redef: my_const = 2  ! OK!
 \end{example}
-It is advised not to use \vn{redef:} unless there a very good reason for its use.
+It is advised not to use \vn{redef} unless there a very good reason for its use.
 
 \index{group}\index{overlay}\index{lattice expansion}
 \vn{group} (\sref{s:group}) and \vn{overlay} (\sref{s:overlay}) controller elements are an
@@ -937,7 +949,7 @@ A \vn{value} of zero will set the seed using the system clock so that different 
 numbers will be generated each time a program is run.  The default behavior if
 \vn{parameter[ran_seed]} is not present is to use the system clock for the seed.
 
-The \vn{ran_gauss(cut)} function with an argument truncates the distribution so that no values are returnd
+The \vn{ran_gauss(cut)} function with an argument truncates the distribution so that no values are returned
 with an absolute value greater than \vn{cut}. If \vn{cut} is non-positive, it is ignored so that, for example,
 \vn{ran_gauss(-1)} is equivalent to \vn{ran_gauss()}.
 
@@ -1268,9 +1280,9 @@ which is defined to be the closed orbit if the geometry (set by \vn{parameter[ge
 (\sref{s:param})) is closed and which is defined to be the orbit as calculated from the starting
 position (set by any \vn{particle_start} statements (\sref{s:beam.start})) if the geometry is open.
 
-The \vn{calc_reference_orbit} statement is used before a \vn{combine_elements} statement
-(\sref{s:combine.eles}) to signal that the maps of the Taylor elements produced by the
-\vn{combine_elements} statement are computed from the standard reference orbit and not the zero
+The \vn{calc_reference_orbit} statement is used before a \vn{merge_elements} statement
+(\sref{s:merge.eles}) to signal that the maps of the Taylor elements produced by the
+\vn{merge_elements} statement are computed from the standard reference orbit and not the zero
 orbit.
 
 The \vn{calc_reference_orbit} statement must come after an \vn{expand_lattice} command
@@ -1286,13 +1298,13 @@ The \vn{calc_reference_orbit} statement has no arguments. Example:
 \end{example}
 
 %--------------------------------------------------------------------------
-\section{Combine_Elements Statement}
-\label{s:combine.eles}
+\section{Merge_Elements Statement}
+\label{s:merge.eles}
 
-The \vn{combine_elements} statement is used to merge groups of consecutive elements into single
+The \vn{merge_elements} statement is used to merge groups of consecutive elements into single
 taylor elements (\sref{s:taylor}) for faster tracking. The syntax of this statement is
 \begin{example}
-  combine_elements <list>
+  merge_elements <list>
 \end{example}
 where \vn{<list>} is a list of elements that are {\em not} to be combined.
 
@@ -1302,19 +1314,40 @@ Example:
   parameter[taylor_order] = 3   ! Set the taylor order for the maps
   expand_lattice                ! Expand the lattice
   calc_reference_orbit          ! ref orbit calc.
-  combine_elements sbend::*, bb ! Merge everything but sbend elements and 
+  merge_elements sbend::*, bb ! Merge everything but sbend elements and 
                                 !   any elements named BB.
 \end{example}
 In this example, groups of elements that are between bends (with the exception of any elements named
 ``BB''), are replaced by \vn{taylor} elements. The order of the Taylor maps is set by
 \vn{parameter[taylor_order]} (\sref{s:param}).
 
-The \vn{combine_elements} statement must come after an \vn{expand_lattice} command
+The \vn{merge_elements} statement must come after an \vn{expand_lattice} command
 (\sref{s:expand}).
 
-If there is a \vn{calc_reference_orbit} statement before the \vn{combine_elements} statement, the
+If there is a \vn{calc_reference_orbit} statement before the \vn{merge_elements} statement, the
 ``standard'' reference orbit (\sref{s:calc.ref.orbit}) is used for the computation of the Taylor
 maps. Otherwise the zero orbit is used as the reference orbit.
+
+%--------------------------------------------------------------------------
+\section{Combine_Consecutive_Elements Statement}
+\label{s:merge.ele}
+
+The \vn{combine_consecutive_elements} statement is used to combine consecutive elements with the same name into a
+single element. If a marker element has been placed inbetween two element with the same name, the
+marker element will be discarded. This can be a useful statement to add when given a lattice where
+elements have been split into two.\footnote
+  {
+This is common in lattices translated from MAD.
+  }
+The \vn{combine_consecutive_elements} statement must come after lattice expansion (\sref{s:expand}). Example:
+\begin{example}
+  m: marker
+  myline: line = (q1, m, q1)
+  use, myline
+  expand_lattice
+  combine_consecutive_elements
+\end{example}
+In this case the finished line will will have a single \vn{q1} element whose length will be twi
 
 %--------------------------------------------------------------------------
 \section{Slice_Lattice Statement}
@@ -1363,12 +1396,12 @@ branch. Example:
 Also see the \vn{start_branch_at} statement (\sref{s:start.branch}).
 
 %--------------------------------------------------------------------------
-\section{Start_Branch_At}
+\section{Start_Branch_At Statement}
 \label{s:start.branch}
 
 The \vn{start_branch_at} statement is used to shift the starting point of a lattice branch while
 keeping the relative order of the elements the same. This shifting only applies to elements in the
-tracking part of the lattice (\sref{s:lord.slave}). The \vn{BEGGINING} element of the branch
+tracking part of the lattice (\sref{s:lord.slave}). The \vn{BEGINNING} element of the branch
 (\sref{s:use}) and any lord elements are unaffected. The \vn{start_branch_at} statement must come
 after lattice expansion (\sref{s:expand}). The syntax of the \vn{start_branch_at} statement is
 \begin{example}
@@ -1381,7 +1414,7 @@ of the branch the element is in. For example
   start_branch_at Q3
 \end{example}
 In this example, the elements in the lattice branch containing \vn{Q3} would be shifted so that the
-\vn{Q3} element is the first element in the branch. Thus, if the lattice branch orignally consisted
+\vn{Q3} element is the first element in the branch. Thus, if the lattice branch originally consisted
 of the elements
 \begin{example}
   Q1,  Q2,  Q3,  Q4,  Q5,  Q6
@@ -1390,10 +1423,17 @@ then the shifted lattice would be
 \begin{example}
   Q3,  Q4,  Q5,  Q6, Q1,  Q2
 \end{example}
-Elements that orignally come before the new starting point are always wrapped around to the end of
+Elements that originally come before the new starting point are always wrapped around to the end of
 the branch. 
 
 Also see the \vn{slice_lattice} statement (\sref{s:slice}).
+
+%--------------------------------------------------------------------------
+%\section{Rename Statement}
+%\label{s:rename}
+%
+%The \vn{rename} statement is used to rename elements in the lattice to produce elements with unique names.
+%For example, suppose a lattice has a number of elements named ``
 
 %--------------------------------------------------------------------------
 \section{Debugging Statements}

@@ -893,20 +893,22 @@ end subroutine taylor_to_mat6
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine mat6_to_taylor (vec0, mat6, bmad_taylor)
+! Subroutine mat6_to_taylor (vec0, mat6, bmad_taylor, ref_orb)
 !
 ! Subroutine to form a first order Taylor map from the 6x6 transfer
 ! matrix and the 0th order transfer vector.
 !
 ! Input:
-!   vec0(6)   -- 0th order transfer vector.
-!   mat6(6,6) -- 6x6 transfer matrix.
+!   vec0(6)     -- real(rp): 0th order transfer vector.
+!   mat6(6,6)   -- real(rp): 6x6 transfer matrix.
+!   ref_orb(6)  -- real(rp), optional: Reference orbit at entrance to map. 
+!                   Default is zero orbit.
 !
 ! Output:
-!   bmad_taylor(6) -- Taylor_struct: first order taylor map.
+!   bmad_taylor(6) -- taylor_struct: first order taylor map.
 !-
 
-subroutine mat6_to_taylor (vec0, mat6, bmad_taylor)
+subroutine mat6_to_taylor (vec0, mat6, bmad_taylor, ref_orb)
 
 implicit none
 
@@ -914,11 +916,14 @@ type (taylor_struct) bmad_taylor(6)
 
 real(rp), intent(in) :: mat6(6,6)
 real(rp), intent(in) :: vec0(6)
+real(rp), optional :: ref_orb(6)
 
 integer i, j, n
+
 !
 
 call kill_taylor(bmad_taylor)
+if (present(ref_orb)) bmad_taylor%ref = ref_orb
 
 do i = 1, 6
   n = count(mat6(i,1:6) /= 0)
@@ -941,7 +946,6 @@ do i = 1, 6
       bmad_taylor(i)%term(n)%expn(j) = 1
     endif
   enddo
-
 enddo
 
 end subroutine mat6_to_taylor
