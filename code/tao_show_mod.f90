@@ -230,7 +230,7 @@ type (tao_expression_info_struct), allocatable, save :: info(:)
 
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z_in, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
-real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds
+real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now
 real(rp), allocatable :: value(:)
 
@@ -283,7 +283,7 @@ complex(rp) eigen_val(6), eigen_vec(6,6)
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
-logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag
+logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag, angle_units
 logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_mat, show_q, print_rms
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
@@ -3988,6 +3988,7 @@ case ('taylor_map', 'matrix')
   print_ptc = .false.
   print_eigen = .false.
   disp_fmt = ''
+  angle_units = .false.
 
   if (show_what == 'matrix') then
     n_order = 1
@@ -3998,11 +3999,14 @@ case ('taylor_map', 'matrix')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, [character(16):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format', '-running'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(16):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format', &
+                                  '-running', '-angle_coordinates'], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
 
     select case (switch)
+    case ('-angle_coordinates')
+      angle_units = .true.
     case ('-eigen_modes')
       print_eigen = .true.
     case ('-lattice_format')
@@ -4077,9 +4081,11 @@ case ('taylor_map', 'matrix')
       call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch, &
                                                         one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
+      ref_vec = orb%vec
 
     else
       call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, ix_branch, one_turn = .true.)
+      ref_vec = orb%vec
     endif
 
   ! By element
@@ -4160,20 +4166,24 @@ case ('taylor_map', 'matrix')
       endif
 
       call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
+      ref_vec = u%model%tao_branch(ix_branch)%orbit(ix1)%vec
 
     else
       call transfer_matrix_calc (lat, mat6, vec0, ix1, ix2, ix_branch, one_turn = .true.)
+      ref_vec = u%model%tao_branch(ix_branch)%orbit(ix1)%vec
     endif
 
   endif
 
   ! Print results
 
+  ! "RUNNING" is experimental and is not documented
   if (disp_fmt == 'RUNNING') then
     call transfer_matrix_calc (lat, mat6, vec0, 0, ix1, ix_branch, one_turn = .false.)    
     do i = ix1, ix2
       ele => branch%ele(i)
       if (i /= ix1) mat6 = matmul(ele%mat6, mat6)
+      if (angle_units) stop 
       if (nl+10 > size(lines)) call re_allocate (lines, 2*nl, .false.)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, i6, 2x, a40, f18.9)') '#', i, ele%name, ele%s
@@ -4183,12 +4193,19 @@ case ('taylor_map', 'matrix')
     enddo
 
   else
-    if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
-
     if (n_order > 1 .or. disp_fmt == 'BMAD') then
+      if (angle_units) call map_to_angle_coords (taylor, taylor)
+      if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
       call type_taylors (taylor, lines = lines, n_lines = nl, out_style = disp_fmt, clean = .true.)
       if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
+
     else
+      if (angle_units) then
+        call mat6_to_taylor (vec0, mat6, taylor, ref_vec)
+        call map_to_angle_coords (taylor, taylor)
+        call taylor_to_mat6 (taylor, ref_vec, vec0, mat6)
+      endif
+
       vec_in = 0
       if (n_order == 0) then 
         nl = nl+1; write(lines(nl), '(6f11.6)') vec0

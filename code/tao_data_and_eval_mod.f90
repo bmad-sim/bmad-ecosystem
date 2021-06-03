@@ -612,7 +612,7 @@ if (tao_branch%track_state /= moving_forward$ .and. ix_ele >= tao_branch%track_s
 endif
 
 if (data_source == 'beam' .and. .not. s%com%have_tracked_beam) then
-  call tao_set_invalid (datum, 'DATA_SOURCE FOR DATUM SET TO "beam" BUT NO BEAM TRACKING HAS BEEN DONE!', why_invalid)
+  call tao_set_invalid (datum, 'DATA_SOURCE FOR DATUM SET TO "beam". BUT NO BEAM TRACKING HAS BEEN DONE!', why_invalid, err_level = s_warn$)
   return
 endif
 
@@ -5612,7 +5612,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_set_invalid (datum, message, why_invalid, exterminate)
+! Subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level)
 !
 ! Routine to either print an error message to the terminal (if why_invalid
 ! is not present) or set the why_invalid string to the error message.
@@ -5628,17 +5628,19 @@ end subroutine
 !   message     -- character(*): Error message.
 !   exterminate -- logical, optional: Default is False. If True, set datum%exists
 !                   to False so that Tao will ignore this datum from now on.
+!   err_level   -- integer, optional: s_error$ (default), s_warn$, etc.
 !
 ! Output:
 !   why_invalid -- character(*), optional: Set to message if present.
 !-
 
-Subroutine tao_set_invalid (datum, message, why_invalid, exterminate)
+Subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level)
 
 type (tao_data_struct) datum
 
 logical, optional :: exterminate
 logical identified_err_found
+integer, optional :: err_level
 integer i
 character(*) message
 character(*), optional :: why_invalid
@@ -5673,7 +5675,7 @@ elseif (.not. datum%err_message_printed) then
   endif
   if (s%com%n_err_messages_printed > s%global%datum_err_messages_max) return
 
-  call out_io (s_error$, r_name, message, 'FOR DATUM: ' // tao_datum_name(datum))
+  call out_io (integer_option(s_error$, err_level), r_name, message, 'FOR DATUM: ' // tao_datum_name(datum))
   if (identified_err_found) then
     call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE OF THIS KIND OF DATUM ERROR MESSAGE FOR THIS EVALUATION CYCLE.')
   endif
