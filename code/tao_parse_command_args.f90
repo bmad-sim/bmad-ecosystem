@@ -17,6 +17,8 @@ use tao_command_mod, only: tao_cmd_split
 
 implicit none
 
+type (tao_common_struct) com_saved
+
 character(*), optional :: cmd_line
 character(200) :: cmd_words(12)
 character(80) arg0, arg1, base, switch
@@ -26,9 +28,23 @@ integer n_arg, i_arg, ix
 logical error, negate
 
 ! Init global and common structs.
+! If s%initialized = True then this is a reinit so save some param values in s%com.
 
-s%global = tao_global_struct()
-s%com = tao_common0
+if (s%initialized) then
+  com_saved = s%com
+  s%com = tao_common0
+  s%com%saved_cmd_line = com_saved%saved_cmd_line
+  s%com%ix_history     = com_saved%ix_history
+  s%com%n_history      = com_saved%n_history
+  s%com%cmd_file       = com_saved%cmd_file
+  s%com%cmd_file_level = com_saved%cmd_file_level
+else
+  s%com = tao_common0
+endif
+  
+s%global  = tao_global_struct()
+bmad_com  = bmad_common_struct()
+csr_param = csr_parameter_struct()
 
 ! Get command line input
 
