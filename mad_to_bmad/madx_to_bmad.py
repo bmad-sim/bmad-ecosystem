@@ -352,12 +352,12 @@ def bmad_expression(line, target_param):
 
 def bmad_file_name(madx_file):
 
-  if madx_file.find('madx') != -1:
-    return madx_file.replace('madx', 'bmad')
-  elif madx_file.find('Madx') != -1:
-    return madx_file.replace('Madx', 'bmad')
-  elif madx_file.find('MADX') != -1:
-    return madx_file.replace('MADX', 'bmad')
+  if madx_file.lower()[-5:] == '.madx':
+    return madx_file[:-5] + '.bmad'
+  elif madx_file.lower()[-4:] == '.mad':
+    return madx_file[:-4] + '.bmad'
+  elif madx_file.lower()[-4:] == '.seq':
+    return madx_file[:-4] + '.bmad'
   else:
     return madx_file + '.bmad'
 

@@ -264,14 +264,17 @@ contains
 
 ! Extract the element parameter valuse to be written to the slicktrack input file
 
-subroutine ele_to_slick_params(ele, slick_class, slick_params, scale)
+subroutine ele_to_slick_params(ele, slick_class, slick_params, len_scale)
 
 type (ele_struct) ele
-real(rp) slick_params(3), scale
+real(rp) slick_params(3), len_scale, strength_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 integer slick_class, ix_pole_max
 
 !
+
+strength_scale = len_scale
+if (.not. ele%is_on) strength_scale = 0
 
 slick_params = 0
 slick_class = -1
@@ -288,7 +291,7 @@ case (sbend$)
       slick_class = 15
       ele%select = .true.   ! Mark k1 /= 0
     endif
-    slick_params = [scale*ele%value(angle$), scale*knl(1), scale*ele%value(l$)]
+    slick_params = [len_scale*ele%value(angle$), strength_scale*knl(1), len_scale*ele%value(l$)]
 
   else
     if (abs(abs(ele%value(ref_tilt$)) - pi/2) > 1d-6) then
@@ -300,25 +303,25 @@ case (sbend$)
     else
       slick_class = 16
     endif
-    slick_params = [-scale*ele%value(angle$)*sign_of(ele%value(ref_tilt$)), scale*knl(1), scale*ele%value(l$)]
+    slick_params = [-len_scale*ele%value(angle$)*sign_of(ele%value(ref_tilt$)), strength_scale*knl(1), len_scale*ele%value(l$)]
   endif
 
 case (quadrupole$)
   if (ele%value(tilt$) == 0) then
     slick_class = 3
-    slick_params = [scale*knl(1), 0.0_rp, scale*ele%value(l$)]
+    slick_params = [strength_scale*knl(1), 0.0_rp, len_scale*ele%value(l$)]
 
   else
     if (abs(abs(tilt(1)) - pi/4) > 1d-6) then
       print *, 'Bend element has tilt that is not +/- pi/4! ' // trim(ele%name)
     endif
     slick_class = 4
-    slick_params = [scale*knl(1)*sign_of(tilt(1)), 0.0_rp, scale*ele%value(l$)]
+    slick_params = [strength_scale*knl(1)*sign_of(tilt(1)), 0.0_rp, len_scale*ele%value(l$)]
   endif
 
 case (rfcavity$)
   slick_class = 5
-  slick_params = [1d-6*ele%value(voltage$), 0.0_rp, 0.0_rp]
+  slick_params = [strength_scale*1d-6*ele%value(voltage$), 0.0_rp, 0.0_rp]
 
 case (sextupole$)
   if (ele%value(tilt$) /= 0) then
@@ -326,15 +329,15 @@ case (sextupole$)
     if (ele%value(l$) == 0) return
     print *, '   Will replace with a drift'
     slick_class = 1
-    slick_params = [ele%value(l$), 0.0_rp, 0.0_rp]
+    slick_params = [strength_scale*ele%value(l$), 0.0_rp, 0.0_rp]
   endif
 
   slick_class = 8
-  slick_params = [knl(2), 0.0_rp, ele%value(l$)]
+  slick_params = [strength_scale*knl(2), 0.0_rp, ele%value(l$)]
 
 case (solenoid$)
   slick_class = 10
-  slick_params = [scale*ele%value(ks$)*ele%value(l$), 0.0_rp, scale*ele%value(l$)]
+  slick_params = [strength_scale*ele%value(ks$)*ele%value(l$), 0.0_rp, len_scale*ele%value(l$)]
 
 case (beambeam$)
   slick_class = 17
@@ -343,10 +346,10 @@ case (beambeam$)
 case (hkicker$, vkicker$, kicker$)
   if (tilt(0) == 0) then
     slick_class = 6
-    slick_params = [scale*knl(0), 0.0_rp, scale*ele%value(l$)]    
+    slick_params = [strength_scale*knl(0), 0.0_rp, len_scale*ele%value(l$)]    
   else
     slick_class = 7
-    slick_params = [scale*knl(0)*sign_of(tilt(0)), 0.0_rp, scale*ele%value(l$)]    
+    slick_params = [strength_scale*knl(0)*sign_of(tilt(0)), 0.0_rp, len_scale*ele%value(l$)]    
   endif
 
 case (marker$)
