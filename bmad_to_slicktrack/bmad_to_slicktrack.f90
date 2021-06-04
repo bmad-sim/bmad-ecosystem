@@ -333,7 +333,7 @@ case (sextupole$)
   endif
 
   slick_class = 8
-  slick_params = [strength_scale*knl(2), 0.0_rp, ele%value(l$)]
+  slick_params = [strength_scale*knl(2), 0.0_rp, len_scale*ele%value(l$)]
 
 case (solenoid$)
   slick_class = 10

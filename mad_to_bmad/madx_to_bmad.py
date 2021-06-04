@@ -863,11 +863,20 @@ def parse_command(command, dlist):
         last_offset = f'{offset}'
         this_offset = f'{offset}'
         length = ''
-        if 'l' in ele.param: 
-          length = ele.param['l']
+        if 'l' in ele.param:
+          if ele.madx_base_type == 'rbend':
+            length = f'{ele.name}[l]/sinc({ele.name}[angle]/2)'
+          else:
+            length = ele.param['l']
+
         elif ele.madx_inherit in common.ele_dict:
-          madx_inherit = common.ele_dict[ele.madx_inherit]
-          if 'l' in madx_inherit.param: length = madx_inherit.param['l']
+          ele2 = common.ele_dict[ele.madx_inherit]
+          if 'l' in ele2.param: 
+            if ele2.madx_base_type == 'rbend':
+              length = f'{ele2.name}[l]/sinc({ele2.name}[angle]/2)'
+            else:
+              length = ele2.param['l']
+
         if length != '': length = add_parens(bmad_expression(length, ''), False)
 
         if seq.refer == 'entry':
