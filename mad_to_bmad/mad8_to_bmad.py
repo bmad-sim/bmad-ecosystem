@@ -130,7 +130,7 @@ ele_type_translate = {
     'mtwiss':       '???'
 }
 
-ignore_mad8_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'assembly_id', 
+ignore_mad8_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'assembly_id', 'removed',
                      'mech_sep', 'betrf', 'tfill', 'shunt', 'pg', 'eloss', 'lfile', 'tfile']
 
 bmad_param_name = {
@@ -373,14 +373,14 @@ def bmad_expression(line, target_param):
 
 def bmad_file_name(mad8_file):
 
-  if madx_file.lower()[-5:] == '.mad8':
-    return madx_file[:-5] + '.bmad'
-  elif madx_file.lower()[-4:] == '.mad':
-    return madx_file[:-4] + '.bmad'
-  elif madx_file.lower()[-4:] == '.seq':
-    return madx_file[:-4] + '.bmad'
+  if mad8_file.lower()[-5:] == '.mad8':
+    return mad8_file[:-5] + '.bmad'
+  elif mad8_file.lower()[-4:] == '.mad':
+    return mad8_file[:-4] + '.bmad'
+  elif mad8_file.lower()[-4:] == '.seq':
+    return mad8_file[:-4] + '.bmad'
   else:
-    return madx_file + '.bmad'
+    return mad8_file + '.bmad'
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
