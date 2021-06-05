@@ -9,9 +9,9 @@ MODULE touschek_background_mpi_mod
 USE precision_def
 USE bmad !needed for err_exit
 USE sim_utils !needed for milli_sleep
+use mpi
 
 IMPLICIT NONE
-INCLUDE 'mpif.h'
 
 INTEGER status(MPI_STATUS_SIZE)           ! stores return codes from MPI daemon
 INTEGER mpistatus(MPI_STATUS_SIZE)        ! also stores MPI daemon codes, used when overwriting status is not practical
@@ -160,24 +160,25 @@ END SUBROUTINE mympi_initialize
 !-
 SUBROUTINE mympi_register_derived_types()
   INTEGER mpierr
-  INTEGER oldtypes(0:1),blockcounts(0:1),offsets(0:1),extent
+  INTEGER oldtypes(0:1),blockcounts(0:1)
+  integer(mpi_address_kind) lb, extent, offsets(0:1)
 
   !Setup mpi type for TrackJob_struct
   offsets(0)=0
   oldtypes(0)=MPI_INTEGER
   blockcounts(0)=2
-  CALL mpi_type_extent(MPI_INTEGER,extent,mpierr)
+  CALL mpi_type_get_extent(MPI_INTEGER,lb,extent,mpierr)
   offsets(1)=2*extent
   oldtypes(1)=MPI_DOUBLE_PRECISION
   blockcounts(1)=1
-  CALL mpi_type_struct(2,blockcounts,offsets,oldtypes,TrackJob_type,mpierr)
+  CALL mpi_type_create_struct(2,blockcounts,offsets,oldtypes,TrackJob_type,mpierr)
   CALL mpi_type_commit(TrackJob_type,mpierr)
 
   !Setup mpi type for TrackResult_struct
   offsets(0)=0
   oldtypes(0)=MPI_INTEGER
   blockcounts(0)=5
-  CALL mpi_type_struct(1,blockcounts,offsets,oldtypes,TrackResult_type,mpierr)
+  CALL mpi_type_create_struct(1,blockcounts,offsets,oldtypes,TrackResult_type,mpierr)
   CALL mpi_type_commit(TrackResult_type,mpierr)
 END SUBROUTINE mympi_register_derived_types
 

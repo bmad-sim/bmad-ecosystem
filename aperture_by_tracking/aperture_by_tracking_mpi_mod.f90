@@ -9,9 +9,9 @@ MODULE aperture_by_tracking_mpi_mod
 USE precision_def
 USE bmad !needed for err_exit
 USE sim_utils !needed for milli_sleep
+use mpi
 
 IMPLICIT NONE
-INCLUDE 'mpif.h'
 
 integer, parameter :: aperture_by_tracking_mpi_mod_MAX_APERTURES = 360
 
@@ -177,28 +177,29 @@ END SUBROUTINE mympi_bmad_parser
 !-
 SUBROUTINE mympi_register_derived_types()
   INTEGER mpierr
-  INTEGER oldtypes(0:1),blockcounts(0:1),offsets(0:1),extent
+  INTEGER oldtypes(0:1),blockcounts(0:1)
+  integer(mpi_address_kind) lb, extent,offsets(0:1)
 
   !Setup mpi type for ApertureJob_struct
   offsets(0)=0
   oldtypes(0)=MPI_INTEGER
   blockcounts(0)=2
-  CALL mpi_type_extent(MPI_INTEGER,extent,mpierr)
+  CALL mpi_type_get_extent(MPI_INTEGER,lb,extent,mpierr)
   offsets(1)=2*extent
   oldtypes(1)=MPI_DOUBLE_PRECISION
   blockcounts(1)=7
-  CALL mpi_type_struct(2,blockcounts,offsets,oldtypes,ApertureJob_mpi_id,mpierr)
+  CALL mpi_type_create_struct(2,blockcounts,offsets,oldtypes,ApertureJob_mpi_id,mpierr)
   CALL mpi_type_commit(ApertureJob_mpi_id,mpierr)
 
   !Setup mpi type for ApertureResult_struct
   offsets(0)=0
   oldtypes(0)=MPI_INTEGER
   blockcounts(0)=2
-  CALL mpi_type_extent(MPI_INTEGER,extent,mpierr)
+  CALL mpi_type_get_extent(MPI_INTEGER,lb,extent,mpierr)
   offsets(1)=2*extent
   oldtypes(1)=MPI_DOUBLE_PRECISION
   blockcounts(1)=360
-  CALL mpi_type_struct(2,blockcounts,offsets,oldtypes,ApertureResult_mpi_id,mpierr)
+  CALL mpi_type_create_struct(2,blockcounts,offsets,oldtypes,ApertureResult_mpi_id,mpierr)
   CALL mpi_type_commit(ApertureResult_mpi_id,mpierr)
 END SUBROUTINE mympi_register_derived_types
 
