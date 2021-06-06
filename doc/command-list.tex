@@ -2642,13 +2642,13 @@ Syntax:
                                     \{-n_axis <nx>, <ny>, <nz>\} \{-l_axis <lx>, <ly>, <lz>\}
 \end{example}
 
-Show spin related information. 
-Note: To see the closed orbit invariant spin at any element, make sure spin tracking is on (if not,
-use: \vn{set bmad_com spin_tracking_on = T}), and then the \vn{show element} command will display $n_0$.
+Show spin related information.  Note: To see the closed orbit invariant spin at any element, make
+sure spin tracking is on (if not, use: \vn{set bmad_com spin_tracking_on = T}), and then the
+\vn{show element} command will display $n_0$.
 
-If \vn{-element} is not present, \vn{show spin} will show various quantities including the
-equilibrium polarization, polarization rates, and any G matrices needed to evaluate datums that have
-been defined of type \vn{spin_g_matrix.$ij$} (\sref{s:data.source}).
+If \vn{-element} is not present, \vn{show spin} will show various quantities including polarization
+limits and polarization rates. See the \vn{Spin Dynamics} chapter of the \bmad manual for a
+discussion of how these quantities are calculated.
 
 If \vn{-element} is present, the output will be the first order spin transfer map from the
 downstream end of the element given by \vn{<ref_ele_name>} to the downstream end of the element
