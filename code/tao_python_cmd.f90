@@ -6477,7 +6477,7 @@ case ('spin_polarization')
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm_partial_a;REAL;F;',  tao_branch%spin%pol_limit_dkm_partial(1)
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm_partial_b;REAL;F;',  tao_branch%spin%pol_limit_dkm_partial(2)
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm_partial_c;REAL;F;',  tao_branch%spin%pol_limit_dkm_partial(3)
-  nl=incr(nl); write (li(nl), rmt) 'polarization_rate;REAL;F;',                 tao_branch%spin%pol_rate
+  nl=incr(nl); write (li(nl), rmt) 'polarization_rate_bks;REAL;F;',             tao_branch%spin%pol_rate_bks
   nl=incr(nl); write (li(nl), rmt) 'depolarization_rate;REAL;F;',               tao_branch%spin%depol_rate
 
 !%% super_universe -----------------------

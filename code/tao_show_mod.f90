@@ -507,6 +507,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
     nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_zero_average      = ', bmad_com%radiation_zero_average
     nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
 
     nl=nl+1; lines(nl) = ''
@@ -1846,6 +1847,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
     nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_zero_average      = ', bmad_com%radiation_zero_average
     nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
     nl=nl+1; write(lines(nl), lmt) '  %conserve_taylor_maps            = ', bmad_com%conserve_taylor_maps
     nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking_default  = ', bmad_com%absolute_time_tracking_default
@@ -3749,30 +3751,27 @@ case ('spin')
     if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, ix_branch)
     ele => branch%ele(0)
 
-    nl=nl+1; lines(nl) = 'bmad_com components:'
-    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
-!!!    nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
+    nl=nl+1; write(lines(nl), lmt) 'bmad_com%spin_tracking_on                = ', bmad_com%spin_tracking_on
 
     if (branch%param%geometry == open$) then
       orb = tao_branch%orbit(0)
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Beginning spin:', orb%spin
+      nl=nl+1; write(lines(nl), '(a, 3f12.8)') 'Beginning spin:', orb%spin
     else
       ptc_nf => u%model%tao_branch(ix_branch)%ptc_normal_form
-      nl=nl+1; lines(nl) = 'Spin Tune Taylor Series:'
-      do i = 0, ptc_com%taylor_order_ptc
-        expo = [0, 0, 0, 0, 0, i]
-        nl=nl+1; write (lines(nl), '(a, i0, a, es18.7)') '  spin_tune_ptc.', i, ': ', real(ptc_nf%spin .sub. expo)
-      enddo
+      expo = [0, 0, 0, 0, 0, 0]   ! Use expo(6) = i to get the i^th Taylor coef in tune vs pz curve.
+      nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', real(ptc_nf%spin .sub. expo)
       call tao_spin_polarization_calc (branch, tao_branch)
       nl=nl+1; lines(nl) = ''
       if (tao_branch%spin_valid) then
         r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
-        nl=nl+1; write(lines(nl), '(2x, a, f12.8, es12.4)')  'Polarization Limit ST:                ', tao_branch%spin%pol_limit_st
-        nl=nl+1; write(lines(nl), '(2x, a, f12.8, es12.4)')  'Polarization Limit DKM:               ', tao_branch%spin%pol_limit_dkm
-        nl=nl+1; write(lines(nl), '(2x, a, f12.8, 3es12.4)') 'Partial Polarization Limits DKM:      ', tao_branch%spin%pol_limit_dkm_partial
-        nl=nl+1; write(lines(nl), '(2x, a, f12.2, es12.4)')  'Polarization Time (minutes, turns):   ', 1 / (60*tao_branch%spin%pol_rate), r / tao_branch%spin%pol_rate
-        nl=nl+1; write(lines(nl), '(2x, a, f12.2, es12.4)')  'Depolarization Time (minutes, turns): ', 1 / (60*tao_branch%spin%depol_rate), r / tao_branch%spin%depol_rate
+        nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                ', tao_branch%spin%pol_limit_st
+        nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DKM:               ', tao_branch%spin%pol_limit_dkm
+        nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Partial Polarization Limits DKM:      ', tao_branch%spin%pol_limit_dkm_partial
+        nl=nl+1; write(lines(nl), '(a, f12.2, es12.4)')  'Polarization Time BKS (minutes, turns): ', &
+                                                                     1 / (60*tao_branch%spin%pol_rate_bks), r / tao_branch%spin%pol_rate_bks
+        nl=nl+1; write(lines(nl), '(a, f12.2, es12.4)')  'Depolarization Time (minutes, turns):   ', &
+                                                                     1 / (60*tao_branch%spin%depol_rate), r / tao_branch%spin%depol_rate
       else
         nl=nl+1; lines(nl) = 'Polarization calc not valid since: ' // why_invalid
       endif
