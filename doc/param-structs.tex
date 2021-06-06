@@ -6,28 +6,23 @@
 \label{s:struct}
 \index{structure|hyperbf}
 
-A ``structure'' is a collection of parameters.  \bmad has various
-structures which can be used for various tasks. For example, the
-\vn{beam_init_struct} structure (\sref{s:beam.init.struct}) is used to set
-parameters used to initialize particle beams.
+A ``structure'' is a collection of parameters.  \bmad has various structures which can be used for
+various tasks. For example, the \vn{beam_init_struct} structure (\sref{s:beam.init.struct}) is used
+to set parameters used to initialize particle beams.
 
-A given program may give the user access to some of these structures
-so, in order to allow intelligent parameter setting, this chapter
-gives an in-depth description of the most common ones.
+A given program may give the user access to some of these structures so, in order to allow
+intelligent parameter setting, this chapter gives an in-depth description of the most common ones.
 
-Each structure has a \vn{``structure name''} (also called a \vn{``type
-name''}) which identifies the list of parameters (also called
-``components'') in the structure. Associated with a structure there
-will be an \vn{``instance''} of this structure and this instance will
-have an \vn{``instance name''} which is what the user uses to set
-parameters. It is possible to have multiple instances of a
-structure. For example, in the situation where a program is simulating
-multiple particle beams, there could be multiple \vn{beam_init_struct}
-(\sref{s:beam.init.struct}) instances with one for each beam.
+Each structure has a \vn{``structure name''} (also called a \vn{``type name''}) which identifies the
+list of parameters (also called ``components'') in the structure. Associated with a structure there
+will be an \vn{``instance''} of this structure and this instance will have an \vn{``instance name''}
+which is what the user uses to set parameters. It is possible to have multiple instances of a
+structure. For example, in the situation where a program is simulating multiple particle beams,
+there could be multiple \vn{beam_init_struct} (\sref{s:beam.init.struct}) instances with one for
+each beam.
 
-\bmad defines uses some structures to hold global parameters. That is,
-parameters that shared by all code. Each of these structures has
-a single associated instance. These are:
+\bmad defines uses some structures to hold global parameters. That is, parameters that shared by all
+code. Each of these structures has a single associated instance. These are:
 \begin{center}
   \begin{tabular}{ll} \toprule
   Structure           & Instance    \\
@@ -37,27 +32,37 @@ a single associated instance. These are:
   \bottomrule
   \end{tabular}
 \end{center}
-All other structures will have instance names that are program
-specific.  That is, see the program documentation for the instance
-name(s) used.
+All other structures will have instance names that are program specific. That is, see the program
+documentation for the instance name(s) used.
 
-To set a particular component of an instance use the syntax
+For historical reasons, There are two syntaxes used for setting structure components. The syntax when
+setting in a lattice file uses square brackets:
+\begin{example}
+  instance_name[parameter_name] = value
+\end{example}
+When setting a component in a program initialization file the syntax uses the percent ``\vn{%}'' character:
 \begin{example}
   instance_name%parameter_name = value
 \end{example}
-Example:
+Examples:
 \begin{example}
-  bmad_com%max_aperture_limit = 10
+  bmad_com[max_aperture_limit] = 10   ! Lattice file syntax.
+  bmad_com%max_aperture_limit = 10    ! Program initialization file syntax.
 \end{example}
-this sets the \vn{max_aperture_limit} parameter of \vn{bmad_com}.
+this sets the \vn{max_aperture_limit} parameter of \vn{bmad_com} which is an instance name of the
+\vn{bmad_common_struct}. Note: A program is free to set the instance name for any structure. This
+should be documented in the program manual.
+
+Note: Thought must be given to setting \vn{bmad_com} parameters in a lattice file (sref{s:bmad.com})
+since that will affect every program that uses the lattice.
 
 %-----------------------------------------------------------------
 \section{Bmad_Common_Struct}
 \label{s:bmad.common}
 \index{Bmad!general parameters|hyperbf}
 
-The \vn{bmad_common_struct} structure contains a set of global parameters. There is only
-one global instance (\sref{c:param.structs}) of this structure and this instance has the name
+The \vn{bmad_common_struct} structure contains a set of global parameters. There is only one global
+instance (\sref{c:param.structs}) of this structure and this instance has the name
 \vn{bmad_com}. The components of this structure along with the default values are:
 \index{max_aperture_limit}\index{d_orb(6)}
 \index{grad_loss_sr_wake}\index{default_ds_step}
@@ -67,7 +72,7 @@ one global instance (\sref{c:param.structs}) of this structure and this instance
 \index{sr_wakes_on}\index{lr_wakes_on}
 \index{mat6_track_symmetric}\index{auto_bookkeeper}\index{csr_and_space_charge_on}
 \index{spin_tracking_on}\index{radiation_damping_on}\index{spin_sokolov_ternov_flipping_on}
-\index{radiation_fluctuations_on}\index{be_thread_safe}
+\index{radiation_fluctuations_on}\index{radiation_zero_average}\index{be_thread_safe}
 \index{absolute_time_tracking_default}
 \index{bmad_common_struct|hyperbf}
 \begin{example}
@@ -104,8 +109,9 @@ one global instance (\sref{c:param.structs}) of this structure and this instance
     logical csr_and_space_charge_on = F         ! CSR and space charge (separate from HE SC).
     logical spin_tracking_on = F                ! spin tracking?
     logical spin_sokolov_ternov_flipping_on = F ! Spin flipping during radiation emission?
-    logical radiation_damping_on = F            ! Damping toggle.
-    logical radiation_fluctuations_on = F       ! Fluctuations toggle.
+    logical radiation_damping_on = F            ! Radiation damping toggle.
+    logical radiation_fluctuations_on = F       ! Radiation fluctuations toggle.
+    logical radiation_zero_average = F          ! Shift so that average radiation kick is zero?
     logical conserve_taylor_maps = T            ! Enable bookkeeper to set
                                                 ! ele%taylor_map_includes_offsets = F?
     logical absolute_time_tracking_default = F  ! Default for lat%absolute_time_tracking
@@ -114,108 +120,104 @@ one global instance (\sref{c:param.structs}) of this structure and this instance
   end type
 \end{example}
 
-Note: \vn{bmad_com} parameters may always be set in a lattice file as discussed in
-Section~\sref{s:bmad.com}. However, thought must be given to setting \vn{bmad_com} parameters in a
-lattice file since that will affect every program that uses the lattice.
-
 Parameter description:
 \begin{description}
 \index{aperture_limit_on}
-\item[\vn{\%abs_tol_adaptive_tracking}] \Newline
+\item[\vn{abs_tol_adaptive_tracking}] \Newline
 Absolute tolerance to use in adaptive tracking. This is used in \vn{runge-kutta} and
 \vn{time_runge_kutta} tracking (\sref{s:integ}).
 %
-\item[\vn{\%abs_tol_tracking}] \Newline
+\item[\vn{abs_tol_tracking}] \Newline
 Absolute tolerance to use in tracking. Specifically, Tolerance to use when finding the closed orbit.
 %
-\item[\vn{\%absolute_time_tracking_default}] \Newline
+\item[\vn{absolute_time_tracking_default}] \Newline
 Default setting to be applied to a lattice if \vn{absolute_time_tracking} (\sref{s:param}) is not
 specified in a lattice file. Additionally, if an element that is not associated with a lattice is
-tracked, \vn{%absolute_time_tracking_default} will be used to determine whether absolute time
+tracked, \vn{absolute_time_tracking_default} will be used to determine whether absolute time
 tracking is used.
 
 To change between absolute and relative time tracking (\sref{s:rf.time}) after lattice file parsing,
-the \vn{%absolute_time_tracking} component of a \vn{lat_struct} (\sref{s:abs.time}) can be
+the \vn{absolute_time_tracking} component of a \vn{lat_struct} (\sref{s:abs.time}) can be
 appropriately set.
 %
-\item[\vn{\%aperture_limit_on]}] \Newline
+\item[\vn{aperture_limit_on]}] \Newline
 Aperture limits may be set for elements in the lattice (\sref{s:limit}). Setting
 \vn{aperture_limit_on} to \vn{False} will disable all set apertures. \vn{True} is the default.
 %
-\item[\vn{\%auto_bookkeeper}] \Newline
+\item[\vn{auto_bookkeeper}] \Newline
 Toggles automatic or intelligent bookkeeping. See
 section~\sref{s:lat.bookkeeping} for more details.
 %
-\item[\vn{\%autoscale_amp_abs_tol}] \Newline
+\item[\vn{autoscale_amp_abs_tol}] \Newline
 Used when \bmad autoscales (\sref{s:autoscale}) an elements field amplitude. This parameter sets the
 absolute tolerance for the autoscale amplitude parameter.
 %
-\item[\vn{\%autoscale_amp_rel_tol}] \Newline
+\item[\vn{autoscale_amp_rel_tol}] \Newline
 Used when \bmad autoscales (\sref{s:autoscale}) an elements field amplitude. This parameter sets the
 relative tolerance for the autoscale amplitude parameter.
 %
 Used when \bmad autoscales (\sref{s:autoscale}) an elements AC phase. This parameter sets the
 absolute tolerance for the autoscale parameter.
 %
-\item[\vn{\%autoscale_phase_tol}] \Newline
-\item[\vn{\%init_ds_adaptive_tracking}] \Newline
+\item[\vn{autoscale_phase_tol}] \Newline
+\item[\vn{init_ds_adaptive_tracking}] \Newline
 Initial step to use for adaptive tracking. This is used in
 \vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
 %
-\item[\vn{\%conserve_taylor_maps}] \Newline
+\item[\vn{conserve_taylor_maps}] \Newline
 Toggle to determine if the Taylor map for an element include any
 element ``misalignments''.  See Section~\sref{s:mapoff} for more
 details.
 %
-\item[\vn{\%csr_and_space_charge_on}] \Newline
+\item[\vn{csr_and_space_charge_on}] \Newline
 Turn on or off the coherent synchrotron radiation and space charge calculations. (\sref{s:csr}).
 The space charge calculation here is not to be confused with the high energy space charge
 calculation (\sref{s:he.space.charge})
 %
-\item[\vn{\%d_orb}] \Newline 
+\item[\vn{d_orb}] \Newline 
 Sets the orbit displacement used in the routine that calculates the transfer matrix through an
 element via tracking. That is, when the \vn{mat6_calc_method} (\sref{s:xfer}) is set to
-\vn{tracking}. \vn{%d_orb} needs to be large enough to avoid significant round-off errors but not so
+\vn{tracking}. \vn{d_orb} needs to be large enough to avoid significant round-off errors but not so
 large that nonlinearities will affect the results. The default value is $10^{-5}$. Also see
-\vn{%mat6_track_symmetric}.
+\vn{mat6_track_symmetric}.
 %
-\item[\vn{\%debug}] \Newline
+\item[\vn{debug}] \Newline
 Used for communication between program units for debugging purposes.
 %
-\item[\vn{\%default_ds_step}] \Newline
+\item[\vn{default_ds_step}] \Newline
 Step size for tracking code \sref{c:methods} that uses a fixed step
 size. For example, \vn{symp_lie_ptc} tracking.
 %
-\item[\vn{\%default_integ_order}] \Newline
+\item[\vn{default_integ_order}] \Newline
 Order of the integrator used by \'Etienne Forest's PTC code (\sref{s:libs}).
 The order of the PTC integrator is like the order of a Newton-Cotes method.
 Higher order means the error term involves a higher order derivative of the field.
 %
-\item[\vn{\%electric_dipole_moment}] \Newline
+\item[\vn{electric_dipole_moment}] \Newline
 The electric dipole moment value used in tracking a particle's spin (\sref{s:spin.dyn}).
 %
-\item[\vn{\%fatal_ds_adaptive_tracking}] \Newline
+\item[\vn{fatal_ds_adaptive_tracking}] \Newline
 This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
 (\sref{s:integ}).  If the step size falls below the value set for
-\vn{%fatal_ds_adaptive_tracking}, a particle is considered lost.
+\vn{fatal_ds_adaptive_tracking}, a particle is considered lost.
 This prevents a program from ``hanging'' due to taking a large number
 of extremely small steps. The most common cause of small step size is
 an ``unphysical'' magnetic or electric field.
 %
-\item[\vn{\%lr_wakes_on}] \Newline
+\item[\vn{lr_wakes_on}] \Newline
 Toggle for turning on or off long-range higher order mode wakefield effects.
 %
-\item[\vn{\%mat6_track_symmetric}] \Newline
+\item[\vn{mat6_track_symmetric}] \Newline
 Toggle to turn off whether the transfer matrix from tracking routine
 (\Hyperref{r:twiss.from.tracking}{twiss_from_tracking}) tracks 12 particles at both plus and minus
-\vn{%d_orb} values or only tracks 7 particles to save time but is less accurate..
+\vn{d_orb} values or only tracks 7 particles to save time but is less accurate..
 %
-\item[\vn{\%max_aperture_limit}] \Newline 
+\item[\vn{max_aperture_limit}] \Newline 
 Sets the maximum amplitude a particle can have during tracking. If this amplitude is exceeded, the
 particle is lost even if there is no element aperture set. Having a maximum aperture limit helps
 prevent numerical overflow in the tracking calculations.
 %
-\item[\vn{\%max_num_runge_kutta_step}] \Newline 
+\item[\vn{max_num_runge_kutta_step}] \Newline 
 The maximum number of steps to take through an element with \vn{runge_kutta} or
 \vn{time_runge_kutta} tracking. The default value is 10,000. If the number of steps reaches this
 value, the particle being tracked is marked as lost and a warning message is issued. Under
@@ -224,10 +226,10 @@ particle is not through an element after 10,000 steps, it generally indicates th
 problem with how the field is defined. That is, the field does not obey Maxwell's
 Equations. Especially: discontinuities in the field can cause problems.
 %
-\item[\vn{\%min_ds_adaptive_tracking}] \Newline
+\item[\vn{min_ds_adaptive_tracking}] \Newline
 This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}). Minimum step
-size to use for adaptive tracking. If To be useful, \vn{%min_ds_adaptive_tracking} must be set
-larger than the value of \vn{%fatal_ds_adaptive_tracking}. In this case, particles are never lost
+size to use for adaptive tracking. If To be useful, \vn{min_ds_adaptive_tracking} must be set
+larger than the value of \vn{fatal_ds_adaptive_tracking}. In this case, particles are never lost
 due to taking too small a step.
 %
 \item{orientation_to_ptc_design} \Newline
@@ -247,13 +249,13 @@ PTC centric.
 \item{ptc_max_fringe_order} \Newline
 Maximum order for computing fringe field effects in PTC. 
 %
-\item[\vn{\%rf_phase_below_transition_ref}] \Newline
+\item[\vn{rf_phase_below_transition_ref}] \Newline
 Used when \bmad autoscales (\sref{s:autoscale}) an \vn{rfcavity} and when \bmad calculates the
 reference time through a cavity (which affects calculation of phase space $z$ via \Eq{zbctt}).  If
 True, the reference phase will be taken to be at \vn{phi0} = 0.5 which is appropriate for a ring
 below transition. Default is False in which case autoscaling will be around the phase \vn{phi0} = 0.
 %
-\item[\vn{\%radiation_damping_on}] \Newline
+\item[\vn{radiation_damping_on}] \Newline
 Toggle to turn on or off effects due to radiation damping in particle tracking
 (\sref{s:radiation}). The default is \vn{False}. Note: The standard \bmad emittance calculation,
 which involves calculating synchrotron radiation integrals (\sref{s:synch.ints}) can be done without
@@ -261,7 +263,7 @@ a problem when \vn{radiation_damping_on} is set to False. However, since the clo
 affected by whether \vn{radiation_damping_on} is set or not, the calculated emittances will depend
 upon the setting of \vn{radiation_damping_on}.
 %
-\item[\vn{\%radiation_fluctuations_on}] \Newline
+\item[\vn{radiation_fluctuations_on}] \Newline
 Toggle to turn on or off effects due to radiation fluctuations in particle tracking
 (\sref{s:radiation}).  The default is \vn{False}. Note: The standard \bmad emittance calculation,
 which involves calculating synchrotron radiation integrals (\sref{s:synch.ints}) can be done without
@@ -269,31 +271,30 @@ a problem when \vn{radiation_damping_on} is set to False. And since the calculat
 ignores the fluctuating part of the radiation, the setting of \vn{radiation_damping_on}, unlike the
 setting of \vn{radiation_damping_on}, will not affect the emittance calculation.
 %
-\item[\vn{\%rel_tol_adaptive_tracking}] \Newline
+\item[\vn{rel_tol_adaptive_tracking}] \Newline
 Relative tolerance to use in adaptive tracking. This is used in \vn{runge_kutta} and
 \vn{time_runge_kutta} tracking (\sref{s:integ}).
 %
-\item[\vn{\%rel_tol_tracking}] \Newline
-Relative tolerance to use in tracking. Specifically, Tolerance to use
-when finding the closed orbit.
+\item[\vn{rel_tol_tracking}] \Newline
+Relative tolerance to use in tracking. Specifically, Tolerance to use when finding the closed orbit.
 %
-\item[\vn{\%significant_length}] \Newline
+\item[\vn{significant_length}] \Newline
 Sets the scale to decide if two length values are significantly different. For example, The
 superposition code will not create any super_slave elements that have a length less then this.
 %
-\item[\vn{\%sr_wakes_on}] \Newline
+\item[\vn{sr_wakes_on}] \Newline
 Toggle for turning on or off short-range higher order mode wakefield effects.
 %
-\item[\vn{\%spin_sokolov_ternov_flipping_on}] \Newline
+\item[\vn{spin_sokolov_ternov_flipping_on}] \Newline
 This determines if the Sokolov-Ternov effect is included in a simulation.  The Sokolov-Ternov
 effect\cite{b:barber99} is the self-polarization of charged particle beams due to asymmetric flipping
 of a particle's spin when the particle is bent in a magnetic field. Also, spin flipping will {\em
 not} be done if spin tracking is off or both radiation damping and excitation are off.
 %
-\item[\vn{\%spin_tracking_on}] \Newline
+\item[\vn{spin_tracking_on}] \Newline
 Determines if spin tracking is performed or not.
 %
-\item[\vn{\%taylor_order}] \Newline
+\item[\vn{taylor_order}] \Newline
 Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
 \end{description}
 
@@ -314,14 +315,12 @@ where \vn{parm-name} is the name of a component of
   bmad_com[rel_tol_tracking] = 1e-7
 \end{example}
 
-Be aware that setting a \vn{bmad_com} parameter value in a lattice
-file will affect all computations of a program even if the program
-reads in additional lattice files. That is, setting of \vn{bmad_com}
-components is ``sticky'' and persists even when other lattice files
-are read in. There are two exceptions: A program is always free to
-override settings of \vn{bmad_com} parameters. Additionally, a second
-lattice file can also override the setting made in a prior lattice
-file.
+Be aware that setting a \vn{bmad_com} parameter value in a lattice file will affect all computations
+of a program even if the program reads in additional lattice files. That is, setting of
+\vn{bmad_com} components is ``sticky'' and persists even when other lattice files are read in. There
+are two exceptions: A program is always free to override settings of \vn{bmad_com}
+parameters. Additionally, a second lattice file can also override the setting made in a prior
+lattice file.
 
 %-----------------------------------------------------------------
 \section{CSR_Parameter_Struct}
