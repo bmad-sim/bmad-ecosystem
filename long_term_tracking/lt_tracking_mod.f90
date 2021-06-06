@@ -47,6 +47,7 @@ type ltt_params_struct
   character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: averages_output_file = ''
+  character(200) :: master_output_file = 'master.dat'
   type (ltt_column_struct) column(100)
   integer :: ix_particle_record = -1    ! Experimental
   integer :: ix_turn_record = -1        ! Experimental
@@ -414,7 +415,7 @@ subroutine ltt_print_inital_info (lttp, ltt_com)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
-integer i, nm
+integer i, nm, iu
 
 ! Print some info.
 
@@ -425,46 +426,75 @@ if (allocated(ltt_com%sec)) then
   enddo
 endif
 
-print *
-print '(a)', '--------------------------------------'
-print '(a, a)',    'ltt%lat_file:                       ', quote(lttp%lat_file)
-print '(a, a)',    'ltt%sigma_matrix_output_file:       ', quote(lttp%sigma_matrix_output_file)
-print '(a, a)',    'ltt%particle_output_file:           ', quote(lttp%particle_output_file)
-print '(a, a)',    'ltt%averages_output_file:           ', quote(lttp%averages_output_file)
-print '(a, a)',    'ltt%custom_output_file:             ', quote(lttp%custom_output_file)
-print '(a, a)',    'ltt%map_file_prefix:                ', quote(lttp%map_file_prefix)
-print '(a, a)',    'ltt%simulation_mode:                ', trim(lttp%simulation_mode)
-print '(a, a)',    'ltt%tracking_method:                ', trim(lttp%tracking_method)
+iu = lunget()
+open (iu, file = lttp%master_output_file)
+
+call ltt_write_master('--------------------------------------', iu = iu)
+call ltt_write_master('ltt%lat_file:                       ' // quote(lttp%lat_file), iu = iu)
+call ltt_write_master('ltt%sigma_matrix_output_file:       ' // quote(lttp%sigma_matrix_output_file), iu = iu)
+call ltt_write_master('ltt%particle_output_file:           ' // quote(lttp%particle_output_file), iu = iu)
+call ltt_write_master('ltt%averages_output_file:           ' // quote(lttp%averages_output_file), iu = iu)
+call ltt_write_master('ltt%custom_output_file:             ' // quote(lttp%custom_output_file), iu = iu)
+call ltt_write_master('ltt%map_file_prefix:                ' // quote(lttp%map_file_prefix), iu = iu)
+call ltt_write_master('ltt%simulation_mode:                ' // trim(lttp%simulation_mode), iu = iu)
+call ltt_write_master('ltt%tracking_method:                ' // trim(lttp%tracking_method), iu = iu)
 if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
-  print '(a, i0)', 'ltt%map_order:                      ', lttp%map_order
-  print '(a, a)',  'ltt%ele_start:                      ', quote(lttp%ele_start)
-  print '(a, a)',  'ltt%ele_stop:                       ', quote(lttp%ele_stop)
-  print '(a, a)',  'ltt%exclude_from_maps:              ', quote(lttp%exclude_from_maps)
-  print '(a, l1)', 'ltt%split_bends_for_radiation:      ', lttp%split_bends_for_radiation
-  print '(a, l1)', 'ltt%symplectic_map_tracking:        ', lttp%symplectic_map_tracking
-  print '(a, i0)', 'Number of maps:                     ', nm
+  call ltt_write_master('ltt%map_order:                      ' // int_str(lttp%map_order), iu = iu)
+  call ltt_write_master('ltt%ele_start:                      ' // quote(lttp%ele_start), iu = iu)
+  call ltt_write_master('ltt%ele_stop:                       ' // quote(lttp%ele_stop), iu = iu)
+  call ltt_write_master('ltt%exclude_from_maps:              ' // quote(lttp%exclude_from_maps), iu = iu)
+  call ltt_write_master('ltt%split_bends_for_radiation:      ' // logic_str(lttp%split_bends_for_radiation), iu = iu)
+  call ltt_write_master('ltt%symplectic_map_tracking:        ' // logic_str(lttp%symplectic_map_tracking), iu = iu)
+  call ltt_write_master('Number of maps:                     ' // int_str(nm), iu = iu)
 endif
-print '(a, l1)',   'bmad_com%radiation_damping_on:      ', bmad_com%radiation_damping_on
-print '(a, l1)',   'bmad_com%radiation_fluctuations_on: ', bmad_com%radiation_fluctuations_on
-print '(a, l1)',   'bmad_com%spin_tracking_on:          ', bmad_com%spin_tracking_on
-print '(a, l1)',   'bmad_com%sr_wakes_on:               ', bmad_com%sr_wakes_on
+call ltt_write_master('bmad_com%radiation_damping_on:      ' // logic_str(bmad_com%radiation_damping_on), iu = iu)
+call ltt_write_master('bmad_com%radiation_fluctuations_on: ' // logic_str(bmad_com%radiation_fluctuations_on), iu = iu)
+call ltt_write_master('bmad_com%spin_tracking_on:          ' // logic_str(bmad_com%spin_tracking_on), iu = iu)
+call ltt_write_master('bmad_com%sr_wakes_on:               ' // logic_str(bmad_com%sr_wakes_on), iu = iu)
 if (bmad_com%sr_wakes_on) then
-  print '(a, i8)',   'Number of wake elements:            ', size(ltt_com%ix_wake_ele)
+  call ltt_write_master('Number of wake elements:            ' // int_str(size(ltt_com%ix_wake_ele)), iu = iu)
 endif
-print '(a, i0)',   'ltt%n_turns:                        ', lttp%n_turns
-print '(a, i0)',   'ltt%particle_output_every_n_turns:  ', lttp%particle_output_every_n_turns
-print '(a, i0)',   'ltt%averages_output_every_n_turns:  ', lttp%averages_output_every_n_turns
-print '(a, l1)',   'ltt%ramping_on:                     ', lttp%ramping_on
-print '(2a)',      'ltt%ramping_start_time:             ', real_str(lttp%ramping_start_time, 6)
-print '(a, i0)',   'ltt%averaging_window:               ', lttp%averaging_window
-print '(a, i0)',   'ltt%random_seed:                    ', lttp%random_seed
+call ltt_write_master('ltt%n_turns:                        ' // int_str(lttp%n_turns), iu = iu)
+call ltt_write_master('ltt%particle_output_every_n_turns:  ' // int_str(lttp%particle_output_every_n_turns), iu = iu)
+call ltt_write_master('ltt%averages_output_every_n_turns:  ' // int_str(lttp%averages_output_every_n_turns), iu = iu)
+call ltt_write_master('ltt%ramping_on:                     ' // logic_str(lttp%ramping_on), iu = iu)
+call ltt_write_master('ltt%ramping_start_time:             ' // real_str(lttp%ramping_start_time, 6), iu = iu)
+call ltt_write_master('ltt%averaging_window:               ' // int_str(lttp%averaging_window), iu = iu)
+call ltt_write_master('ltt%random_seed:                    ' // int_str(lttp%random_seed), iu = iu)
 if (lttp%random_seed == 0) then
-  print '(a, i0)',   'random_seed_actual                  ', ltt_com%random_seed_actual
+  call ltt_write_master('random_seed_actual                  ' // int_str(ltt_com%random_seed_actual), iu = iu)
 endif
-print '(a)', '--------------------------------------'
-print *
+call ltt_write_master('--------------------------------------', iu = iu)
+
+close(iu)
 
 end subroutine ltt_print_inital_info
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_write_master (line, lttp, iu)
+
+type (ltt_params_struct), optional :: lttp
+integer, optional :: iu
+integer iv
+character(*) line
+
+!
+
+print '(a)', trim(line)
+
+if (present(iu)) then
+  write (iu, '(a)') trim(line)
+else
+  iv = lunget()
+  open (iv, file = lttp%master_output_file)
+  write (iv, '(a)') trim(line)
+  close(iv)
+endif
+
+end subroutine ltt_write_master
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -1899,7 +1929,7 @@ do i = 1, branch%n_ele_track+1
 enddo
 
 call run_timer ('ABS', time_now)
-print '(a, f8.2)', ' Map setup time (min)', (time_now-time0)/60
+call ltt_write_master(' Map setup time (min)' // real_str((time_now-time0)/60, 4), lttp)
 
 end subroutine ltt_make_map
 
