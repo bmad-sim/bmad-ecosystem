@@ -99,4 +99,6 @@ if (logic_option(.false., save_field)) then
   call em_field_calc (ele, param, s_lab, orb, local_ref_frame, tp%field, .false., rf_time = rf_time)
 endif
 
+track%n_ok = track%n_ok + 1
+
 end subroutine save_a_step

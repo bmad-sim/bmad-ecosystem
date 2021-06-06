@@ -197,7 +197,7 @@ case (bmad_standard$)
     if (ele%key == beambeam$) do_spin_tracking = .false.
   endif
 
-  if (present(track)) call add_to_track()
+  if (present(track)) call add_to_track(start2_orb, end_orb)
   if (err) return
 
 case (runge_kutta$, fixed_step_runge_kutta$) 
@@ -206,11 +206,11 @@ case (runge_kutta$, fixed_step_runge_kutta$)
 
 case (linear$) 
   call track1_linear (start2_orb, ele, param, end_orb)
-  if (present(track)) call add_to_track()
+  if (present(track)) call add_to_track(start2_orb, end_orb)
 
 case (taylor$) 
   call track1_taylor (start2_orb, ele, param, end_orb)
-  if (present(track)) call add_to_track()
+  if (present(track)) call add_to_track(start2_orb, end_orb)
 
 case (symp_lie_bmad$) 
   call symp_lie_bmad (ele, param, start2_orb, end_orb, track, mat6, make_matrix)
@@ -222,7 +222,7 @@ case (symp_lie_ptc$)
 
 case (mad$)
   call track1_mad (start2_orb, ele, param, end_orb)
-  if (present(track)) call add_to_track()
+  if (present(track)) call add_to_track(start2_orb, end_orb)
 
 case (custom$)
   call track1_custom (start2_orb, ele, param, end_orb, err, finished, track)
@@ -303,7 +303,12 @@ contains
 
 ! Add the the track. 
 
-subroutine add_to_track()
+subroutine add_to_track(start_orb, end_orb)
+
+type (coord_struct) start_orb, end_orb
+
+!
+
 if (start_orb%direction == 1) then
   call save_a_step(track, ele, param, .false., start_orb, 0.0_rp)
   call save_a_step(track, ele, param, .false., end_orb, ele%value(l$))

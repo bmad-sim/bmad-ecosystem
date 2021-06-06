@@ -343,6 +343,7 @@ do ib = 0, ubound(lat%branch, 1)
         ! This adjusts the RF phase and amplitude.
         ! Note: Any multipass lord element where the reference energy is not constant must have multipass_ref_energy = first_pass.
         if (lord_compute) then
+          lord%time_ref_orb_in = ele%time_ref_orb_in
           if (lord%lord_status == multipass_lord$ .and. nint(lord%value(multipass_ref_energy$)) == user_set$) then
             select case (ele%key)
             case (lcavity$, em_field$, custom$)
@@ -368,8 +369,9 @@ do ib = 0, ubound(lat%branch, 1)
           if (err) return
         endif
 
-        ! Compute energy/time for a combo super_lord/multipass_slave element 
+        ! Compute energy/time for a combo super_lord/multipass_slave element
         if (associated(lord2)) then
+          lord2%time_ref_orb_in = ele%time_ref_orb_in
           call ele_compute_ref_energy_and_time (ele0, lord2, branch%param, err)
           if (err) return
         endif
@@ -477,8 +479,9 @@ end subroutine lat_compute_ref_energy_and_time
 
 subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
 
-use autoscale_mod, dummy => ele_compute_ref_energy_and_time
-use bmad_interface, dummy2 => ele_compute_ref_energy_and_time
+use bmad_interface, dummy => ele_compute_ref_energy_and_time
+use autoscale_mod, only: autoscale_phase_and_amp
+use radiation_mod, only: track1_radiation
 
 implicit none
 
@@ -487,7 +490,8 @@ type (ele_struct), pointer :: lord
 type (branch_struct), pointer :: branch
 type (floor_position_struct) old_floor
 type (lat_param_struct) :: param
-type (coord_struct) orb_start, orb_end
+type (coord_struct) orb_start, orb_end, orb1, orb2
+type (bmad_common_struct) bmad_com_saved
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, abs_tol(2)
 real(rp) value_saved(num_ele_attrib$), beta0, ele_ref_time
@@ -497,9 +501,16 @@ logical err_flag, err, changed, saved_is_on, energy_stale
 
 character(*), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
-!
+! bmad_com%auto_bookkeeper is set False to prevent track1 calling attribute_bookkeeper 
+! which will overwrite ele%old_value.
 
 err_flag = .true.
+
+bmad_com_saved = bmad_com
+bmad_com%radiation_fluctuations_on = .false.
+bmad_com%radiation_damping_on = .false.
+bmad_com%radiation_zero_average = .false.
+bmad_com%auto_bookkeeper = .false.
 
 E_tot_start    = ele0%value(E_tot$)
 p0c_start      = ele0%value(p0c$)
@@ -531,7 +542,7 @@ case (converter$)
 
   if (ele%value(p0c$) == 0 .and. ele%value(E_tot$) == 0)  then
     call out_io (s_abort$, r_name, 'NEITHER P0C NOR E_TOT IS SET FOR CONVERTER ' // ele%name)
-    return
+    goto 9000
   elseif (ele%value(p0c$) == 0) then
     call convert_total_energy_to (ele%value(E_tot$), ele%converter%species_out, pc = ele%value(p0c$))
   else
@@ -551,17 +562,17 @@ case (lcavity$)
 
   if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
     call autoscale_phase_and_amp (ele, param, err, call_bookkeeper = .false.)
-    if (err) return
+    if (err) goto 9000
   endif
 
   ! Track. With runge_kutta (esp fixed step with only a few steps), a shift in the end energy can cause 
   ! small changes in the tracking. So if there has been a shift in the end energy, track again.
 
   do i = 1, 5
-    call track_this_ele (orb_start, orb_end, .false., err); if (err) return
+    call track_this_ele (orb_start, orb_end, .false., err); if (err) goto 9000
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
-    if (err) return
+    if (err) goto 9000
     if (abs(orb_end%vec(6)) < bmad_com%rel_tol_tracking) exit
   enddo
 
@@ -570,14 +581,14 @@ case (lcavity$)
 case (custom$, hybrid$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)   ! Delta_ref_time is an independent attrib here.
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
-  if (err) return
+  if (err) goto 9000
 
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
 case (taylor$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
-  if (err) return
+  if (err) goto 9000
 
   if (ele%value(l$) == 0) then
     ele%ref_time = ref_time_start + ele%value(delta_ref_time$)  ! Delta_ref_time is an independent attrib here.
@@ -598,7 +609,7 @@ case (e_gun$)
     endif
   endif
 
-  call track_this_ele (orb_start, orb_end, .true., err); if (err) return
+  call track_this_ele (orb_start, orb_end, .true., err); if (err) goto 9000
   call calc_time_ref_orb_out(orb_end)
 
 case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, photon_init$, mask$)
@@ -621,7 +632,7 @@ case (patch$)
       ele%value(E_tot$) = e_tot_start - ele%value(e_tot_offset$)
     endif
     call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
-    if (err) return
+    if (err) goto 9000
 
   elseif (ele%value(E_tot_set$) /= 0) then
     ele%value(E_tot$) = ele%value(E_tot_set$)
@@ -655,7 +666,7 @@ case default
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. &
                         ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
     call autoscale_phase_and_amp (ele, param, err, call_bookkeeper = .false.)
-    if (err) return
+    if (err) goto 9000
   endif
 
   if (ele_has_constant_ds_dt_ref(ele)) then
@@ -666,8 +677,18 @@ case default
     endif
 
   else
-    call track_this_ele (orb_start, orb_end, .false., err); if (err) return
+    call track_this_ele (orb_start, orb_end, .false., err); if (err) goto 9000
     call calc_time_ref_orb_out(orb_end)
+  endif
+
+  if (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$) then
+    bmad_com%radiation_damping_on = .true.
+    orb1 = ele%time_ref_orb_in
+    call track1_radiation (orb1, ele, param, start_edge$)
+    orb2 = ele%time_ref_orb_out
+    call track1_radiation (orb2, ele, param, end_edge$)
+    bmad_com%radiation_damping_on = .false.
+    ele%value(dpz_rad_damp_ave$) = (orb1%vec(6) - orb_start%vec(6)) + (orb2%vec(6) - orb_end%vec(6))
   endif
 end select
 
@@ -717,6 +738,9 @@ endif
 
 err_flag = .false.
 
+9000 continue
+bmad_com = bmad_com_saved
+
 !---------------------------------------------------------------------------------
 contains
 
@@ -724,13 +748,10 @@ subroutine track_this_ele (orb_start, orb_end, is_inside, error)
 
 type (coord_struct) orb_start, orb_end
 type (ele_struct), pointer :: lord
-logical error, is_inside, auto_bookkeeper_saved
+logical error, is_inside
 
-! Set auto_bookkeeper to prevent track1 calling attribute_bookkeeper which will overwrite
-! ele%old_value
+!
 
-auto_bookkeeper_saved = bmad_com%auto_bookkeeper
-bmad_com%auto_bookkeeper = .false.
 error = .true.
 
 call zero_errors_in_ele (ele, changed)
@@ -763,7 +784,6 @@ endif
 
 ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
-bmad_com%auto_bookkeeper = auto_bookkeeper_saved
 error = .false.
 
 end subroutine track_this_ele

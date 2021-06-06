@@ -148,7 +148,15 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
   else
     if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) then
       if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
-      ele%rad_int_cache%orb0 = ele%map_ref_orb_in%vec
+
+      ! If %map_ref_orb_in has not been set (can happen before the closed orbit is 
+      ! calculated or during optimization), use %time_ref_orb_in.
+      if (ele%map_ref_orb_in%state == not_set$ .or. ele%map_ref_orb_in%p0c /= ele%value(p0c$)) then
+        start0_orb = ele%time_ref_orb_in
+      else
+        start0_orb = ele%map_ref_orb_in
+      endif
+      ele%rad_int_cache%orb0 = start0_orb%vec
 
       if (global_com%be_thread_safe) then
         allocate(track)
@@ -159,11 +167,11 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
       track%n_pt = -1
       track_method_saved = ele%tracking_method
       if (ele%tracking_method == taylor$) ele%tracking_method = runge_kutta$
-      call track1 (ele%map_ref_orb_in, ele, param, end_orb, track, err_flag, .true.)
+      call track1 (start0_orb, ele, param, end_orb, track, err_flag, .true.)
       call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
 
       do j = 1, 4
-        start_orb = ele%map_ref_orb_in
+        start_orb = start0_orb
         start_orb%vec(j) = start_orb%vec(j) + del_orb
         track%n_pt = -1
         call track1 (start_orb, ele, param, end_orb, track, err_flag, .true.)
@@ -340,7 +348,7 @@ type (lat_param_struct) :: param
 integer :: edge
 
 real(rp) int_gx, int_gy, this_ran, mc2, int_g2, int_g3
-real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm
+real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm, rel_p
 real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
 real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
 real(rp), parameter :: damp_const = 2 * classical_radius_factor / 3
@@ -375,11 +383,17 @@ if (bmad_com%radiation_fluctuations_on) then
   fact_f = sqrt(rad_fluct_const * q_charge2 * gamma_0**5 * int_g3) * this_ran / mc2
 endif
 
-dE_p = (1 + orbit%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
+rel_p = 1 + orbit%vec(6)
+dE_p = rel_p * (fact_d + fact_f)
+if (bmad_com%radiation_zero_average) then
+  if (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$) dE_p = &
+                                                  dE_p + ele%value(dpz_rad_damp_ave$) / (2 * rel_p)
+endif
+dE_p = dE_p * synch_rad_com%scale 
 
 orbit%vec(2) = orbit%vec(2) * (1 - dE_p)
 orbit%vec(4) = orbit%vec(4) * (1 - dE_p)
-orbit%vec(6) = orbit%vec(6)  - dE_p * (1 + orbit%vec(6))
+orbit%vec(6) = orbit%vec(6) - dE_p * rel_p
 
 ! Sokolov-Ternov Spin flip
 ! The equation is not correct
@@ -428,7 +442,7 @@ type (ele_struct), target :: ele1, ele2
 type (lat_param_struct) :: param
 
 real(rp) int_gx, int_gy, this_ran, mc2, int_g2, int_g3, gxi, gyi, g2i, g3i
-real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm
+real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm, rel_p
 real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
 real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
 real(rp), parameter :: damp_const = 2 * classical_radius_factor / 3
@@ -469,11 +483,17 @@ if (bmad_com%radiation_fluctuations_on) then
   fact_f = sqrt(rad_fluct_const * q_charge2 * gamma_0**5 * int_g3) * this_ran / mc2
 endif
 
-dE_p = (1 + orbit%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
+rel_p = 1 + orbit%vec(6) 
+dE_p = rel_p * (fact_d + fact_f)
+if (bmad_com%radiation_zero_average) then
+  if (ele1%key == sbend$ .or. ele1%key == wiggler$ .or. ele1%key == undulator$) dE_p = &
+                                dE_p + (ele1%value(dpz_rad_damp_ave$) + ele2%value(dpz_rad_damp_ave$)) / rel_p
+endif
+dE_p = dE_p * synch_rad_com%scale 
 
 orbit%vec(2) = orbit%vec(2) * (1 - dE_p)
 orbit%vec(4) = orbit%vec(4) * (1 - dE_p)
-orbit%vec(6) = orbit%vec(6)  - dE_p * (1 + orbit%vec(6))
+orbit%vec(6) = orbit%vec(6) - dE_p * rel_p
 
 end subroutine track1_radiation_center 
 

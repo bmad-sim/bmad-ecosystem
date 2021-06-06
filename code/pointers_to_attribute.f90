@@ -147,6 +147,7 @@ case ('BMAD_COM')
   case ('BACKWARDS_TIME_TRACKING_ON');      ptr_array(1)%l => bmad_com%backwards_time_tracking_on
   case ('SPIN_SOKOLOV_TERNOV_FLIPPING_ON'); ptr_array(1)%l => bmad_com%spin_sokolov_ternov_flipping_on
   case ('RADIATION_DAMPING_ON');            ptr_array(1)%l => bmad_com%radiation_damping_on
+  case ('RADIATION_ZERO_AVERAGE');          ptr_array(1)%l => bmad_com%radiation_zero_average
   case ('RADIATION_FLUCTUATIONS_ON');       ptr_array(1)%l => bmad_com%radiation_fluctuations_on
   case ('CONSERVE_TAYLOR_MAPS');            ptr_array(1)%l => bmad_com%conserve_taylor_maps
   case ('ABSOLUTE_TIME_TRACKING_DEFAULT');  ptr_array(1)%l => bmad_com%absolute_time_tracking_default

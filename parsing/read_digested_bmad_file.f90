@@ -317,6 +317,7 @@ if (found_it) then
   if (extra%backwards_time_tracking_on_set)       bmad_com%backwards_time_tracking_on      = bmad_com_read%backwards_time_tracking_on
   if (extra%spin_sokolov_ternov_flipping_on_set)  bmad_com%spin_sokolov_ternov_flipping_on = bmad_com_read%spin_sokolov_ternov_flipping_on
   if (extra%radiation_damping_on_set)             bmad_com%radiation_damping_on            = bmad_com_read%radiation_damping_on
+  if (extra%radiation_zero_average_set)           bmad_com%radiation_zero_average          = bmad_com_read%radiation_zero_average
   if (extra%radiation_fluctuations_on_set)        bmad_com%radiation_fluctuations_on       = bmad_com_read%radiation_fluctuations_on
   if (extra%conserve_taylor_maps_set)             bmad_com%conserve_taylor_maps            = bmad_com_read%conserve_taylor_maps
   if (extra%absolute_time_tracking_default_set)   bmad_com%absolute_time_tracking_default  = bmad_com_read%absolute_time_tracking_default
