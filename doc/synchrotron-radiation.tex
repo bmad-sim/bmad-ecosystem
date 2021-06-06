@@ -12,23 +12,24 @@ produces excitation\cite{b:jowett}.
 \index{MAD!radiation}
 The treatment of radiation damping by \bmad essentially follows \mad. The energy loss through and element is
 \begin{equation}
-  \frac{\Delta E}{E_0} = -k_E \, (1 + p_z) = -(k_d + k_f \, \xi) \, (1 + p_z) 
+  \frac{\Delta E}{E_0} = -k_E \, (1 + p_z)^2 = -(k_d + k_f \, \xi) \, (1 + p_z)^2
 \end{equation}
 where $k_d$ gives the deterministic part of the emission, $\xi$ is a Gaussian distributed random
 number with unit sigma and zero mean, and $k_f$ is the amplitude of the stochastic part of the
 emittsion. The deterministic and stochastic parts of the emission can be included or excluded from a
 tracking simulation by setting in a lattice file the \bmad global parameters (\sref{s:bmad.common})
 \begin{example}
-  bmad_com[radiation_damping_on]      = True or False  ! Deterministic part on/off
-  bmad_com[radiation_fluctuations_on] = True or False  ! Stochastic part on/off
+  bmad_com[radiation_damping_on]      = True or False  ! Deterministic part on/off.
+  bmad_com[radiation_fluctuations_on] = True or False  ! Stochastic part on/off.
+  bmad_com[radiation_zero_average]    = True or False  ! Make average radiation kick zero.
 \end{example}
 
 Values for $k_d$ and $k_f$ are calculated via the equations
 \begin{align}
-  k_d &= \frac{2 \, r_e}{3} \, \gamma_0^3 \, \ave{g_0^2} \, L_p \,  (1 + p_z)
+  k_d &= \frac{2 \, r_e}{3} \, \gamma_0^3 \, \ave{g_0^2} \, L_p
     \label{k2r3g} \\
   k_f &= \left( \frac{55 \, r_e \, \hbar}{24 \, \sqrt{3} \, m_e \, c} \, 
-    L_p \, \gamma_0^5 \ave{g_0^3} \right)^{1/2} \, (1 + p_z)
+    L_p \, \gamma_0^5 \ave{g_0^3} \right)^{1/2}
     \label{k55rh}
 \end{align}
 where $r_e$ is the classical electron radius, $L_p$ is the actual path length, $\gamma_0$ is the energy
@@ -39,9 +40,9 @@ Since the radiation is emitted in the forward direction the angular orientation 
 motion is invariant which leads to the following equations for the changes in momentum phase space
 coordinates
 \begin{align}
-  \Delta p_x &= -k_E \, p_x \CRNO
-  \Delta p_y &= -k_E \, p_y 
-  \Delta p_z &\approx \frac{\Delta E}{E_0} = -k_E \, (1 + p_z) \nonumber
+  \Delta p_x &= -k_E \, p_x \, (1 + p_z) \CRNO
+  \Delta p_y &= -k_E \, p_y \, (1 + p_z) \\
+  \Delta p_z &\approx \frac{\Delta E}{E_0} = -k_E \, (1 + p_z)^2 \nonumber
 \end{align}
 
 The above formalism does not take into account the fact that radiation is emitted with a $1/\gamma$

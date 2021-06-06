@@ -70,8 +70,7 @@ type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 type (coord_struct) :: orbit2
 type (coord_struct) start0_orb, start_orb, end_orb
-type (track_struct), save, target :: track_save
-type (track_struct), pointer :: track
+type (track_struct) track
 
 real(rp) len2, int_gx, int_gy, int_g2, int_g3, kx, ky, kx_tot, ky_tot, s_here
 real(rp) eff_len, g2, g3, gx, gy, cos_t, sin_t, tilt
@@ -158,12 +157,6 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
       endif
       ele%rad_int_cache%orb0 = start0_orb%vec
 
-      if (global_com%be_thread_safe) then
-        allocate(track)
-      else
-        track => track_save
-      endif
-
       track%n_pt = -1
       track_method_saved = ele%tracking_method
       if (ele%tracking_method == taylor$) ele%tracking_method = runge_kutta$
@@ -182,10 +175,6 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
 
       ele%rad_int_cache%stale = .false.
       ele%tracking_method = track_method_saved
-
-      if (global_com%be_thread_safe) then
-        deallocate(track)
-      endif
     endif
 
     int_g2 = eff_len * (ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4)))
