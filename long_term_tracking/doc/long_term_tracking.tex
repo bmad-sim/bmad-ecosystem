@@ -913,10 +913,21 @@ number, the substituted string will be of the form
   \{bunch index\}-\{turn number\}
 \end{code}
 
-Nominally particle data is recorded every \vn{ltt%particle_output_every_n_turns} number of turns. However, if
-\vn{ltt%particle_output_every_n_turns} is set to 0, particle data is recorded only at the start and end of
-the tracking. If \vn{ltt%particle_output_every_n_turns} is set to -1, particle data is only recorded at the
-end of tracking.
+Nominally particle data is recorded every \vn{ltt%particle_output_every_n_turns} number of
+turns. However, if \vn{ltt%particle_output_every_n_turns} is set to 0, particle data is recorded
+only at the start and end of the tracking. If \vn{ltt%particle_output_every_n_turns} is set to -1,
+particle data is only recorded at the end of tracking.
+
+%------------------------------------------------------------------
+\Section{Spin Tracking Damping Time and Polarization Analysis}
+\label{s:spin.track}
+
+Long term tracking including spin is often used to calculate damping times and equilibrium
+polarizations. One common strategy is to first track a beam for a few damping times until it has
+reached equilibrium in the orbital phase space. The beam distribution is now saved and a new run
+is started with this saved orbital distribution and with all the spins alligned so that the
+beam is 100\% polarized. A plot \etcetc.
+
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}

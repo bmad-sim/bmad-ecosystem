@@ -274,7 +274,7 @@ if (ltt_com%mpi_rank == master_rank$) then
   ! And end
 
   call run_timer ('ABS', time_now)
-  print '(a, f8.2)', 'Tracking time (min):', (time_now - ltt_com%time_start) / 60
+  call ltt_write_master ('Tracking time (min):' // real_str((time_now - ltt_com%time_start) / 60, 4), lttp)
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
