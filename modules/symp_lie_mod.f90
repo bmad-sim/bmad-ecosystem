@@ -64,7 +64,7 @@ real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6), Ax_saved, Ay_sa
 real(rp) g_x, g_y, b1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3, ddAz__dx_dy
-real(rp) dE_p, dpx, dpy, mc2, z_offset, orient_dir, rel_tracking_charge, charge_dir
+real(rp) dpx, dpy, mc2, z_offset, orient_dir, rel_tracking_charge, charge_dir
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
@@ -1385,8 +1385,7 @@ end function ddAz_dy_dy
 
 subroutine radiation_kick()
 
-type (ele_struct) :: temp_ele
-type (ele_struct), pointer :: ele0
+real(rp) rel_p, dE_p
 
 ! Test if kick should be applied
 
@@ -1399,14 +1398,20 @@ g3 = g2 * sqrt(g2)
 
 ! synch_rad_com%scale is normally 1 but can be set by a program for testing purposes.
 
+rel_p = 1 + end_orb%vec(6)
 call ran_gauss (this_ran)
-dE_p = (1 + end_orb%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3) * this_ran) * synch_rad_com%scale 
+dE_p = rel_p * (fact_d * g2 + fact_f * sqrt(g3) * this_ran)
+if (bmad_com%radiation_zero_average) then
+  if (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$) dE_p = &
+                                         dE_p + ds * ele%value(dpz_rad_damp_ave$) / (ele%value(l$) * rel_p)
+endif
+dE_p = dE_p * synch_rad_com%scale 
 
 ! And kick the particle.
 
 end_orb%vec(2) = end_orb%vec(2) - (end_orb%vec(2) - Ax_saved) * dE_p
 end_orb%vec(4) = end_orb%vec(4) - (end_orb%vec(4) - Ay_saved) * dE_p
-end_orb%vec(6) = end_orb%vec(6) - dE_p * (1 + end_orb%vec(6))
+end_orb%vec(6) = end_orb%vec(6) - dE_p * rel_p
 
 end subroutine radiation_kick
 

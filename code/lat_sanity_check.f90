@@ -410,6 +410,15 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
+    if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%value(l_period$) == 0 .and. &
+                            (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$)) then
+      call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                    'WHICH IS A WIGGLER OR UNDULATOR WITH FIELD_CALC SET TO PLANAR_MODEL OR HELICAL_MODEL.', &
+                    'DOES NOT HAVE L_PERIOD NOR N_PERIOD SET.')
+      err_flag = .true.
+    endif      
+
     ! check fringe type
 
     if (ele%key == sbend$ .or. ele%key == rbend$) then

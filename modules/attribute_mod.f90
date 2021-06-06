@@ -1405,6 +1405,7 @@ call init_attribute_name1 (sbend$, grid_field$,                     'GRID_FIELD'
 call init_attribute_name1 (sbend$, taylor_field$,                   'TAYLOR_FIELD')
 call init_attribute_name1 (sbend$, ptc_canonical_coords$,           'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (sbend$, exact_multipoles$,               'EXACT_MULTIPOLES')
+call init_attribute_name1 (sbend$, dpz_rad_damp_ave$,               'dpz_rad_damp_ave', private$)
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
@@ -1545,6 +1546,7 @@ call init_attribute_name1 (wiggler$, grid_field$,                   'GRID_FIELD'
 call init_attribute_name1 (wiggler$, taylor_field$,                 'TAYLOR_FIELD')
 call init_attribute_name1 (wiggler$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (wiggler$, osc_amplitude$,                'OSC_AMPLITUDE')
+call init_attribute_name1 (wiggler$, dpz_rad_damp_ave$,             'dpz_rad_damp_ave', private$)
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
@@ -1859,7 +1861,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'BBI_CONSTANT', 'B_PARAM', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', &
       'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', &
       'ELECTRIC_DIPOLE_MOMENT', 'ETAP_X', 'ETAP_X0', 'ETAP_X1', 'ETAP_Y', 'ETAP_Y0', 'ETAP_Y1', &
-      'ETAP_X_OUT', 'ETAP_Y_OUT', 'EMIT_FRACTION', &
+      'ETAP_X_OUT', 'ETAP_Y_OUT', 'EMIT_FRACTION', 'Y_KNOT', 'SLAVE', &
       'FIELD_AUTOSCALE', 'FIELD_SCALE_FACTOR', 'FIELD_X', 'FIELD_Y', 'FINT', 'FINTX', 'GAP', 'HARMON', 'HKICK', &
       'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_PERIOD', 'N_SAMPLE', 'N_SLICE_SPLINE', &
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
