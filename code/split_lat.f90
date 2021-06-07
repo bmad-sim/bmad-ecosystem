@@ -57,9 +57,9 @@ real(rp) s_split, len_orig, len1, len2, ds_fudge
 real(rp) dl, w_inv(3,3)
 
 integer, optional :: ix_insert
-integer i, j, k, ix, ix_branch, ib, ie, n_slave
+integer i, j, k, ix, ix2, ix_branch, ib, ie, n_slave
 integer ix_split, ixc, ix_attrib, ix_super_lord, ix_start
-integer ix2, inc, nr, n_ic2, ct
+integer inc, nr, n_ic2, ct
 
 logical split_done, err, controls_need_removing, found, ix_insert_present
 logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag, choose_max
@@ -96,10 +96,18 @@ found = .false.
 
 if (branch%ele(ix_start)%s < s_split + 5*ds_fudge .or. &
           (abs(branch%ele(ix_start)%s - s_split) < 5*ds_fudge .and. logic_option(.false., choose_max))) then
-  do ix_split = ix_start, branch%n_ele_track
+  do ix = ix_start, branch%n_ele_track
+    ix_split = ix
+
     if (abs(branch%ele(ix_split)%s - s_split) < 5*ds_fudge) then
       if (.not. logic_option(.false., choose_max) .or. ix_split == branch%n_ele_track .or. ix_insert_present) then
         split_done = .false.
+        if (logic_option(.false., choose_max)) then
+          do ix_split = ix, branch%n_ele_track
+            if (ix_split == branch%n_ele_track) exit
+            if (branch%ele(ix_split+1)%value(l$) /= 0) exit
+          enddo
+        endif
         if (present(err_flag)) err_flag = .false.
         return
       else ! choose_max = True so check if next boundary is the correct choice
