@@ -27,6 +27,7 @@ set (EXE_SPECS
   cmake.patch_test
   cmake.photon_test
   cmake.ptc_test
+  cmake.radiation_test
   cmake.reverse_test
   cmake.sad_test
   cmake.sim_utils_test

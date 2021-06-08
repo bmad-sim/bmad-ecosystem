@@ -24,6 +24,7 @@ photon_test
 !ptc_test
 NOTE: SKIPPING REVERSE_TEST!
 ! reverse_test
+radiation_test
 sad_test
 sim_utils_test
 slice_test
