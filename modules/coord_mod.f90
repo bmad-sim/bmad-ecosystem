@@ -65,7 +65,7 @@ private reallocate_coord_n, reallocate_coord_lat
 ! Input:
 !   orb_in       -- coord_struct: Input orbit.
 !   vec(6)       -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
-!   ele          -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
+!   ele          -- ele_struct, optional: Particle is initialized to start at element_end of this ele.
 !   element_end  -- integer, optional: upstream_end$, downstream_end$, inside$, or start_end$.
 !                     Must be present if ele argument is present.
 !                     start_end$ -> upstream_end$ if dir = 1 and start_end$ -> downstream_end$ if dir = -1.

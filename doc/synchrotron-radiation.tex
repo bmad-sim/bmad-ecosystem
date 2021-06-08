@@ -11,8 +11,9 @@ produces excitation\cite{b:jowett}.
 
 \index{MAD!radiation}
 The treatment of radiation damping by \bmad essentially follows \mad. The energy loss through and element is
+modeled via 
 \begin{equation}
-  \frac{\Delta E}{E_0} = -k_E \, (1 + p_z)^2 = -(k_d + k_f \, \xi) \, (1 + p_z)^2
+  \frac{\Delta E}{E_0} = -k_E \equiv -(k_d + k_f \, \xi) \, (1 + p_z)^2
 \end{equation}
 where $k_d$ gives the deterministic part of the emission, $\xi$ is a Gaussian distributed random
 number with unit sigma and zero mean, and $k_f$ is the amplitude of the stochastic part of the
@@ -21,7 +22,7 @@ tracking simulation by setting in a lattice file the \bmad global parameters (\s
 \begin{example}
   bmad_com[radiation_damping_on]      = True or False  ! Deterministic part on/off.
   bmad_com[radiation_fluctuations_on] = True or False  ! Stochastic part on/off.
-  bmad_com[radiation_zero_average]    = True or False  ! Make average radiation kick zero.
+  bmad_com[radiation_zero_average]    = True or False  ! Make ave radiation kick zero.
 \end{example}
 
 Values for $k_d$ and $k_f$ are calculated via the equations
@@ -40,9 +41,9 @@ Since the radiation is emitted in the forward direction the angular orientation 
 motion is invariant which leads to the following equations for the changes in momentum phase space
 coordinates
 \begin{align}
-  \Delta p_x &= -k_E \, p_x \, (1 + p_z) \CRNO
-  \Delta p_y &= -k_E \, p_y \, (1 + p_z) \\
-  \Delta p_z &\approx \frac{\Delta E}{E_0} = -k_E \, (1 + p_z)^2 \nonumber
+  \Delta p_x &= -\frac{k_E}{1 + p_z} \, p_x , \qquad  
+    \Delta p_y = -\frac{k_E}{1 + p_z} \, p_y \CRNO
+  \Delta p_z &\approx \frac{\Delta E}{E_0} = -k_E 
 \end{align}
 
 The above formalism does not take into account the fact that radiation is emitted with a $1/\gamma$
@@ -50,6 +51,25 @@ angular distribution. This means that the calculated vertical emittance for a la
 only in the horizontal plane and without any coupling elements such as skew quadrupoles will be
 zero. However, in practice, the vertical emittance will be dominated by coupling so this
 approximation is generally a good one.
+
+Synchrotron radiation emmision involves energy loss and this energy loss leads to what is known as
+the energy ``sawtooth'' effect where the curve of particle energy on the closed orbit as a function
+of longitudinal position has a sawtooth shape. A sawtooth pattern can also be generally seen in the
+horizontal orbit. It is sometimes convenient in simulations to eliminate the sawtooth effect. This
+can be done by shifting the photon emission spectrum at any given element to have zero average
+energy loss along the closed orbit. For this calculation the closed orbit should be the closed orbit
+as calculated without radiation damping (in other words the closed orbit without the sawtooth). In
+this case, $k_E$ is calculated by
+\begin{equation}
+  k_E = (k_d + k_f \, \xi) \, (1 + p_z)^2 - k_{d0}
+\end{equation}
+where $k_{d0}$ is $k_d$ evaluated along the closed orbit. In practice, for the calculation, \bmad
+approximates the closed orbit as the zero orbit. 
+
+The global parameter \vn{bmad_com[radiation_zero_average]} controls the shifting of the photon
+spectrum to have zero average. Currently, the shifting of the spectrum only works for non PTC
+dependent tracking. That is, the shifting is not applicable to tracking with Taylor maps and with
+\vn{symp_lie_ptc} (\sref{s:tkm}) tracking.
 
 %-----------------------------------------------------------------
 \section{Synchrotron Radiation Integrals}
@@ -70,6 +90,8 @@ curvature (see \fig{f:local.coords}), does not lie in the
 horizontal plane. Similarly, the dispersion $\bfeta\two =
 (\eta_x, \eta_y)$ will not lie in the horizontal plane. With this
 notation, the synchrotron integrals for coupled motion are:
+  \begingroup
+  \allowdisplaybreaks
   \begin{align}
     I_0 &= \oint ds \, \gamma_0 \, g \\
     I_1 &= \oint ds \, \bfg \dotproduct \bfeta 
@@ -86,6 +108,7 @@ notation, the synchrotron integrals for coupled motion are:
     I_{5b} &= \oint ds \, g^3 \, \calH_b \\
     I_{6b} &= \oint ds \, g^3 \, \beta_b
   \end{align}
+  \endgroup
 where $\gamma_0$ is that usual relativistic factor and $\calH_a$ is 
   \begin{equation}
     \calH_a = \gamma_a \, \eta_a^2 + 2 \, \alpha_a \, \eta_a \, \eta_a' + 

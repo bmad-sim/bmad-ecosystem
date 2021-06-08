@@ -8,15 +8,17 @@
 ! A space or a comma delimits the elements.
 !
 ! An element name can be of the form
-!   {~}{branch>>}{key::}ele_id{##N}
+!   {~}{branch>>}{key::}ele_id{##N}{+/-offset}
 ! Where
-!   ~       -- Negation character. See below.
-!   key     -- Optional key name ("quadrupole", "sbend", etc.)
-!   branch  -- Name or index of branch. May contain the wild cards "*" and "%".
-!   ele_id  -- Name or index of element. May contain the wild cards "*" and "%".
-!               If a name and no branch is given, all branches are searched.
-!               If an index and no branch is given, branch 0 is assumed.
-!   ##N     -- N = integer. N^th instance of ele_id in the branch.
+!   ~         -- Negation character. See below.
+!   key       -- Optional key name ("quadrupole", "sbend", etc.)
+!   branch    -- Name or index of branch. May contain the wild cards "*" and "%".
+!   ele_id    -- Name or index of element. May contain the wild cards "*" and "%".
+!                 If a name and no branch is given, all branches are searched.
+!                 If an index and no branch is given, branch 0 is assumed.
+!   ##N       -- N = integer. N^th instance of ele_id in the branch.
+!   +/-offset -- Element offset. For example, "Q1+1" is the element after "Q1" and 
+!                 "Q1-2" is the second element before "Q1".
 ! Note: An old syntax that is still supported is:
 !   {key::}{branch>>}ele_id{##N}
 !
@@ -90,7 +92,7 @@
 !   n_loc         -- integer: Number of locations found.
 !                      Set to zero if no elements are found.
 !   err           -- logical, optional: Set True if there is a decode error.
-!                      Note: Not finding any element is not an error.
+!                      Note: Not finding any matching element is not an error.
 !-
 
 subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch, order_by_index)
@@ -373,7 +375,7 @@ character(*), parameter :: r_name = 'lat_ele1_locator'
 
 integer, optional :: ix_dflt_branch
 integer i, n, ib, ix, ix_branch, ix_branch_old, ixp, ios, ix_ele, n_loc, n_max, ix1, ix2
-integer key, target_instance, n_instance_found, match_name_to, ix_slave
+integer key, target_instance, n_instance_found, match_name_to, ix_slave, offset
 integer, allocatable :: ix_nt(:)
 
 logical above_ub_is_err, s_ordered
@@ -384,6 +386,28 @@ logical err, do_match_wild, Nth_instance_found
 err = .true.
 n_loc = 0
 name = name_in
+offset = 0
+
+! Look for "+N" or "-N" offset suffix.
+
+ix = index(name, '+')
+if (ix /= 0) then
+  if (.not. is_integer(name(ix+1:), offset)) then
+    call out_io (s_error$, r_name, 'INVALID OFFSET SYNTAX: ' // name_in)
+    return
+  endif
+  name = name(:ix-1)
+endif
+
+ix = index(name, '-')
+if (ix /= 0) then
+  if (.not. is_integer(name(ix+1:), offset)) then
+    call out_io (s_error$, r_name, 'INVALID OFFSET SYNTAX: ' // name_in)
+    return
+  endif
+  offset = -offset
+  name = name(:ix-1)
+endif
 
 ! Look for "##N" suffix to indicate which instance to choose from when there
 ! are multiple elements of a given name.
@@ -457,7 +481,7 @@ if (is_integer(name) .and. match_name_to == ele_name$) then
     eles(1)%ele => branch%ele(ix_ele)
   endif
 
-  err = .false.
+  call add_offset (eles, n_loc, offset, err)
   return
 endif
 
@@ -537,7 +561,7 @@ if (.not. do_match_wild .and. match_name_to == ele_name$) then
     enddo
   endif
 
-  err = .false.
+  call add_offset (eles, n_loc, offset, err)
   return
 endif
 
@@ -575,9 +599,56 @@ if (s_ordered .and. .not. Nth_instance_found .and. (ix_branch == -1 .or. ix_bran
   enddo
 endif
 
-err = .false.
+call add_offset (eles, n_loc, offset, err)
 
 end subroutine lat_ele1_locator
+
+!---------------------------------------------------------------------------
+! contains
+
+subroutine add_offset (eles, n_loc, offset, err)
+
+type (ele_pointer_struct), allocatable, target :: eles(:)
+type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
+integer n_loc, offset, ie, nl
+logical err
+
+!
+
+if (offset == 0) then
+  err = .false.
+  return
+endif
+
+!
+
+do ie = 1, n_loc
+  ele => eles(ie)%ele
+
+  if (ele%lord_status == multipass_lord$ .or. ele%lord_status == overlay_lord$ .or. ele%lord_status == group_lord$) then
+    call out_io (s_error$, r_name, 'OFFSET CANNOT BE APPLIED TO MULTIPASS, OVERLAY, OR GROUP LORD: ' // ele%name)
+    return
+  endif
+
+  if (ele%lord_status == super_lord$ .or. ele%lord_status == girder_lord$) then
+    if (offset > 0) then
+      ele => pointer_to_slave(ele, ele%n_slave)
+    else
+      ele => pointer_to_slave(ele, 1)
+    endif
+  endif
+
+  branch => ele%branch
+  nl = ele%ix_ele + offset
+  if (nl < 0) nl = ele%branch%n_ele_track + nl + 1
+  if (nl > branch%n_ele_track) nl = nl - branch%n_ele_track 
+  eles(ie)%ele => branch%ele(nl)
+enddo
+
+err = .false.
+
+end subroutine add_offset
 
 !---------------------------------------------------------------------------
 ! contains
