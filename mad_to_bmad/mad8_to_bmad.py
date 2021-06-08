@@ -375,10 +375,16 @@ def bmad_file_name(mad8_file):
 
   if mad8_file.lower()[-5:] == '.mad8':
     return mad8_file[:-5] + '.bmad'
+
+  elif mad8_file.lower()[-5:] == '.xsif':
+    return mad8_file[:-5] + '.bmad'
+
   elif mad8_file.lower()[-4:] == '.mad':
     return mad8_file[:-4] + '.bmad'
+
   elif mad8_file.lower()[-4:] == '.seq':
     return mad8_file[:-4] + '.bmad'
+
   else:
     return mad8_file + '.bmad'
 
