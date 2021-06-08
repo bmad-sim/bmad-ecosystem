@@ -53,8 +53,8 @@ this sets the \vn{max_aperture_limit} parameter of \vn{bmad_com} which is an ins
 \vn{bmad_common_struct}. Note: A program is free to set the instance name for any structure. This
 should be documented in the program manual.
 
-Note: Thought must be given to setting \vn{bmad_com} parameters in a lattice file (sref{s:bmad.com})
-since that will affect every program that uses the lattice.
+Note: Thought must be given to setting \vn{bmad_com} and other global parameters in a lattice file
+(sref{s:bmad.com}) since that will affect every program that uses the lattice.
 
 %-----------------------------------------------------------------
 \section{Bmad_Common_Struct}
@@ -270,6 +270,12 @@ which involves calculating synchrotron radiation integrals (\sref{s:synch.ints})
 a problem when \vn{radiation_damping_on} is set to False. And since the calculation of the closed orbit
 ignores the fluctuating part of the radiation, the setting of \vn{radiation_damping_on}, unlike the
 setting of \vn{radiation_damping_on}, will not affect the emittance calculation.
+%
+\item[\vn{radiation_zero_average}] \Newline
+As discussed in Section~\sref{s:radiation}, it is sometimes convenient to shift the emitted radiation
+spectrum so that the average energy emitted along the closed orbit is zero. This gets rid of the ``sawtooth''
+effect. To shift the average emitted energy to zero, set \vn{radiation_zero_average} to \vn{True}. The
+default is \vn{False}.
 %
 \item[\vn{rel_tol_adaptive_tracking}] \Newline
 Relative tolerance to use in adaptive tracking. This is used in \vn{runge_kutta} and

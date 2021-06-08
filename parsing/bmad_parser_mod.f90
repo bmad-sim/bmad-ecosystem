@@ -5474,15 +5474,15 @@ elseif (ref_ele%value(l$) == 0 .and. super_ele%value(l$) == 0 .and. pele%offset 
   elseif (pele%ref_pt == anchor_beginning$) then
     ix_insert = ref_ele%ix_ele - 1
   elseif (pele%ref_pt == anchor_end$) then
-    ix_insert = ref_ele%ix_ele 
+    ix_insert = ref_ele%ix_ele
   endif
 
 ! For elements with finite length just return the ref element index.
 ! This will be useful in superpositions near elements that have negative length (EG a patch).
 else
   slave => ref_ele
-  if (slave%n_slave /= 0) slave => pointer_to_slave(slave, 1) ! Does not matter which slave choisen
-  if (slave%n_slave /= 0) slave => pointer_to_slave(slave, 1) ! Does not matter which slave choisen
+  if (slave%n_slave /= 0) slave => pointer_to_slave(slave, 1) ! Does not matter which slave chosen
+  if (slave%n_slave /= 0) slave => pointer_to_slave(slave, 1) ! Does not matter which slave chosen
   ix_insert = slave%ix_ele
 endif
 
