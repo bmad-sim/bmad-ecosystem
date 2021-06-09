@@ -63,7 +63,7 @@ case (sad_mult$, patch$)
     is_valid = .true.
   end select
 
-case (group$, overlay$, girder$, ramper$)
+case (group$, overlay$, girder$, ramper$, null_ele$)
   ! No valid methods
 
 case default

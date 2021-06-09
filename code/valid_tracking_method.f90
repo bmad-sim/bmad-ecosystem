@@ -198,6 +198,9 @@ case (multipole$)
     is_valid = .true.
   end select
 
+case (null_ele$)
+  ! Nothing to do
+
 case (octupole$)
   select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)

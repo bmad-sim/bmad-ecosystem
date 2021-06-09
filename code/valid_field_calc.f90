@@ -33,6 +33,9 @@ case (group$, overlay$, girder$)
     is_valid = .true.
   end select
 
+case (null_ele$)
+  ! No valid calc
+
 case (wiggler$, undulator$)
   select case (field_calc)
   case (bmad_standard$, fieldmap$, planar_model$, refer_to_lords$, helical_model$, custom$)
