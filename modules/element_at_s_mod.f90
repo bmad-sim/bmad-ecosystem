@@ -8,8 +8,8 @@ use equal_mod
 ! Function to return the index of the element at position s.
 !
 ! element_at_s is an overloaded name for:
-!   function element_at_s_lat (lat, s, choose_max, ix_branch, err_flag, s_eff, position) result (ix_ele)
-!   function element_at_s_branch (branch, s, choose_max, err_flag, s_eff, position) result (ix_ele)
+!   function element_at_s_lat (lat, s, choose_max, ix_branch, err_flag, s_eff, position, print_err) result (ix_ele)
+!   function element_at_s_branch (branch, s, choose_max, err_flag, s_eff, position, print_err) result (ix_ele)
 !
 ! The differnce between these two routine is that with element_at_s_lat, the branch is given by the lat 
 !   and ix_ele arguments: branch = lat%branch(ix_ele). With element_at_s_branch, the branch is an argument.
@@ -42,6 +42,7 @@ use equal_mod
 !   s          -- real(rp): Longitudinal position.
 !   choose_max -- logical: See above
 !   ix_branch  -- integer, optional: Branch index. Default is 0.
+!   print_err  -- logical, optional: Print error message if there is an error? Default is True.
 !
 ! Output:
 !   ix_ele    -- integer: Index of element at s.
@@ -66,12 +67,12 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Function element_at_s_branch (branch, s, choose_max, err_flag, s_eff, position) result (ix_ele)
+! Function element_at_s_branch (branch, s, choose_max, err_flag, s_eff, position, print_err) result (ix_ele)
 !
 ! Overloaded routine. See element_at_s for more details.
 !-
 
-function element_at_s_branch (branch, s, choose_max, err_flag, s_eff, position) result (ix_ele)
+function element_at_s_branch (branch, s, choose_max, err_flag, s_eff, position, print_err) result (ix_ele)
 
 implicit none
 
@@ -83,14 +84,14 @@ real(rp), optional :: s_eff
 
 integer ix_ele, n1, n2, n3
 
-character(16), parameter :: r_name = 'element_at_s'
-logical, optional :: err_flag
+character(*), parameter :: r_name = 'element_at_s'
+logical, optional :: err_flag, print_err
 logical choose_max, err
 
 ! Get translated position and check for position out-of-bounds.
 
 ix_ele = 0
-call check_if_s_in_bounds (branch, s, err, ss)
+call check_if_s_in_bounds (branch, s, err, ss, print_err)
 if (present(err_flag)) err_flag = err
 if (err) then
   if (s > branch%ele(branch%n_ele_track)%s) ix_ele = branch%n_ele_track + 1
@@ -189,12 +190,12 @@ end function element_at_s_branch
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Function element_at_s_lat (lat, s, choose_max, ix_branch, err_flag, s_eff, position) result (ix_ele)
+! Function element_at_s_lat (lat, s, choose_max, ix_branch, err_flag, s_eff, position, print_err) result (ix_ele)
 !
 ! Overloaded routine. See element_at_s for more details.
 !-
 
-function element_at_s_lat (lat, s, choose_max, ix_branch, err_flag, s_eff, position) result (ix_ele)
+function element_at_s_lat (lat, s, choose_max, ix_branch, err_flag, s_eff, position, print_err) result (ix_ele)
 
 implicit none
 
@@ -208,13 +209,13 @@ real(rp), optional :: s_eff
 integer ix_ele, ib
 integer, optional :: ix_branch
 
-logical, optional :: err_flag
+logical, optional :: err_flag, print_err
 logical choose_max
 
 ! 
 
 ib = integer_option(0, ix_branch)
-ix_ele = element_at_s_branch (lat%branch(ib), s, choose_max, err_flag, s_eff, position)
+ix_ele = element_at_s_branch (lat%branch(ib), s, choose_max, err_flag, s_eff, position, print_err)
 
 end function element_at_s_lat
 
@@ -251,6 +252,7 @@ end function element_at_s_lat
 !   branch     -- branch_struct: Branch to use
 !   s          -- real(rp): Longitudinal position.
 !   choose_max -- logical: See above.
+!   print_err  -- logical, optional: Print error message if there is an error? Default is True.
 !
 ! Output:
 !   ele       -- ele_struct, pointer: Pointer to element at s.
@@ -262,7 +264,7 @@ end function element_at_s_lat
 !     %location  -- Location relative to element. Upstream_end$, downstream_end$, or inside$
 !-
 
-function pointer_to_element_at_s (branch, s, choose_max, err_flag, s_eff, position) result (ele)
+function pointer_to_element_at_s (branch, s, choose_max, err_flag, s_eff, position, print_err) result (ele)
 
 implicit none
 
@@ -275,12 +277,12 @@ real(rp), optional :: s_eff
 
 integer ix_ele
 
-logical, optional :: err_flag
+logical, optional :: err_flag, print_err
 logical choose_max, err
 
 !
 
-ix_ele = element_at_s_branch (branch, s, choose_max, err, s_eff, position)
+ix_ele = element_at_s_branch (branch, s, choose_max, err, s_eff, position, print_err)
 if (present(err_flag)) err_flag = err
 
 if (err) then

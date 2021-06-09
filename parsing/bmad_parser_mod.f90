@@ -5535,7 +5535,7 @@ if (err_flag) then
   endif
 endif
 
-ele2 => pointer_to_element_at_s (branch, super_ele%s - eps, .false., err_flag)
+ele2 => pointer_to_element_at_s (branch, super_ele%s - eps, .false., err_flag, print_err = wrap)
 if (err_flag) then
   if (wrap) then
     call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'DOWNSTREAM ELEMENT EDGE OUT OF BOUNDS.')
