@@ -2995,7 +2995,8 @@ case ('lattice')
 
       if (column(i)%remove_line_if_zero) n_remove = n_remove + 1
 
-      if ((name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) .or. col_info(i)%attrib_type == is_string$) then
+      if ((name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) .or. &
+              col_info(i)%attrib_type == is_string$ .or. col_info(i)%attrib_type == is_switch$) then
         sub_name = col_info(i)%attrib_name
         a_type = col_info(i)%attrib_type
 
