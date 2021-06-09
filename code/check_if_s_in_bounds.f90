@@ -1,5 +1,5 @@
 !+
-! Subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s)
+! Subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s, print_err)
 !
 ! Routine to check if a given longitudinal position s is within the bounds of a given branch of a lattice.
 ! For linear branches the bounds are normally [0, branch_length].
@@ -17,13 +17,14 @@
 ! Input:
 !   branch        -- branch_struct: Branch
 !   s             -- Real(rp): longitudinal position in the given branch.
+!   print_err     -- logical, optional: Print error message if there is an error? Default is True.
 !   
 ! Output:
 !   err_flag      -- Logical: Set True if s position is out-of-bounds. False otherwise.
 !   translated_s  -- Real(rp), optional: position translated to the range [0, branch_length]
 !-
 
-subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s)
+subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s, print_err)
 
 use bmad_struct
 
@@ -35,6 +36,7 @@ real(rp) s, ss, s_min, s_max, ds_fudge, s_bound
 real(rp), optional :: translated_s
 
 logical err_flag
+logical, optional :: print_err
 
 character(*), parameter :: r_name = 'check_if_s_in_bounds'
 
@@ -64,7 +66,7 @@ endif
 
 ! Finish
 
-if (err_flag) then
+if (err_flag .and. logic_option(.true., print_err)) then
   call out_io (s_fatal$, r_name, &
         'S-POSITION \es20.12\ PAST EDGE OF LATTICE. ' , &
         'PAST LATTICE EDGE AT: \es20.12\ ', r_array = [s, s_bound])

@@ -366,13 +366,14 @@ subroutine check_controller_controls (ele_key, contrl, name, err)
   character(*) name
 end subroutine
 
-subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s)
+subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s, print_err)
   import
   implicit none
   type (branch_struct) branch
   real(rp) s
   real(rp), optional :: translated_s
   logical err_flag
+  logical, optional :: print_err
 end subroutine
 
 subroutine choose_quads_for_set_tune (lat, dk1, regex_mask)

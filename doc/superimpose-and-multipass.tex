@@ -226,8 +226,31 @@ For example:
   S2: marker, superimpose, ref = Z, ref_origin = end
   Z: marker
 \end{example}
-This will place \vn{S1} upstream and \vn{S2} downstream of \vn{Z}.  If \vn{ref_origin} is not
-present or set to \vn{center}, the ordering of the elements will be arbitrary.
+The order of the elements in the lattice will be
+\begin{example}
+  S1, Z, S2
+\end{example}
+If \vn{ref_origin} is not present or set to \vn{center}, the ordering of the elements will be
+arbitrary.
+
+If a zero length element is being superimposed at a spot where there are other zero length elements,
+the general rule is that the element will be placed as close as possible to the reference element.
+For example:
+\begin{example}
+  S1: marker, superimpose, offset = 1
+  S2: marker, superimpose, offset = 1
+\end{example}
+In this case, after \vn{S1} is superimposed at $s = 1$ meter, the superposition of \vn{S2} will
+place it as close to the reference element, which in this case is the \vn{BEGINNING} elements at $s
+= 0$, as possible. Thus the final order of the superimposed elements is:
+\begin{example}
+  S2, S1
+\end{example}
+To switch the order while still superimposing \vn{S2} second one possibility is to use:
+\begin{example}
+  S1: marker, superimpose, offset = 1
+  S2: marker, superimpose, ref = S1, ref_origin = end
+\end{example}
 
 If a superposition uses a reference element, and there are $N$ elements in the lattice with the
 reference element name, there will be $N$ superpositions. For example, the following will split in
