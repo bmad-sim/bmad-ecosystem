@@ -995,8 +995,13 @@ endif
     if(present(node1)) n1=>node1
     if(present(node2)) n2=>node2
     if(present(fibre1)) n1=>fibre1%t1
-    if(present(fibre2)) n2=>fibre2%t1
-
+    if(present(fibre2)) then    
+      if(associated(fibre2)) then
+       n2=>fibre2%t1
+      else
+        nullify(n2)
+      endif
+    endif
     c=>n1
 
     if(associated(n2)) then
@@ -2572,16 +2577,16 @@ endif
     IF(ENTERING) THEN
        da=C%PATCH%A_ANG(1)+((C%PATCH%A_X1-1)/2)*pi
        call rot_spin_x(P,da)
-       call rot_spin_y(P,c%dir*C%PATCH%A_ANG(2)) ! 2016_5_9
+       call rot_spin_y(P,C%PATCH%A_ANG(2)) ! 2016_5_9
        call rot_spin_z(P,C%PATCH%A_ANG(3))
        da=((C%PATCH%A_X2-1)/2)*pi
        call rot_spin_x(P,da)
     ELSE
-       da=C%PATCH%B_ANG(1)+((C%PATCH%B_X1-1)/2)*pi
+       da=C%PATCH%B_ANG(1)+((C%PATCH%B_X2-1)/2)*pi
        call rot_spin_x(P,da)
        ! error etienne
        !      call rot_spin_y(P,C%PATCH%A_ANG(2))
-       call rot_spin_y(P,c%dir*C%PATCH%b_ANG(2)) ! 2016_5_9
+       call rot_spin_y(P,C%PATCH%b_ANG(2)) ! 2016_5_9
        call rot_spin_z(P,C%PATCH%b_ANG(3))
        da=((C%PATCH%B_X2-1)/2)*pi
        call rot_spin_x(P,da)
@@ -2602,29 +2607,24 @@ endif
     if(C%PATCH%track) then
     IF(ENTERING) THEN
        da=C%PATCH%A_ANG(1)+((C%PATCH%A_X1-1)/2)*pi
-
        call rot_spin_x(P,da)
-       call rot_spin_y(P,c%dir*C%PATCH%A_ANG(2)) ! 2016_5_9
+       call rot_spin_y(P,C%PATCH%A_ANG(2)) ! 2016_5_9
        call rot_spin_z(P,C%PATCH%A_ANG(3))
-
-
        da=((C%PATCH%A_X2-1)/2)*pi
-
        call rot_spin_x(P,da)
     ELSE
-       da=C%PATCH%B_ANG(1)+((C%PATCH%B_X1-1)/2)*pi
+       da=C%PATCH%B_ANG(1)+((C%PATCH%B_X2-1)/2)*pi
        call rot_spin_x(P,da)
        ! error etienne
-       !       call rot_spin_y(P,C%PATCH%A_ANG(2))
-       call rot_spin_y(P,c%dir*C%PATCH%b_ANG(2)) ! 2016_5_9
+       !      call rot_spin_y(P,C%PATCH%A_ANG(2))
+       call rot_spin_y(P,C%PATCH%b_ANG(2))  
        call rot_spin_z(P,C%PATCH%b_ANG(3))
-
-
        da=((C%PATCH%B_X2-1)/2)*pi
-
        call rot_spin_x(P,da)
     ENDIF
     endif
+
+
 
   END SUBROUTINE PATCH_SPINp
 

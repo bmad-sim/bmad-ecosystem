@@ -2961,7 +2961,7 @@ nullify(EL%filef,el%fileb);
        ALLOCATE(EL%KIND);EL%KIND=0;
        ALLOCATE(EL%PLOT);EL%PLOT=MY_TRUE;
        ALLOCATE(EL%RECUT);EL%RECUT=MY_TRUE;
-       ALLOCATE(EL%probe);EL%RECUT=my_false;
+       ALLOCATE(EL%probe);EL%probe=my_false;
        ALLOCATE(EL%even);EL%even=MY_false;
        ALLOCATE(EL%NAME);ALLOCATE(EL%VORNAME);ALLOCATE(EL%electric);
        ALLOCATE(EL%filef,el%fileb);
