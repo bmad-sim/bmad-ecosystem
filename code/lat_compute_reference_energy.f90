@@ -919,17 +919,15 @@ ele%time_ref_orb_out%location = downstream_end$
 ! Notice that here the delta_ref_time value (but not ele%value(p0c$)) the value used in tracking and not the 
 ! corrected value computed later.
 
-! Exception: bmad_standard lcavity tracking does not need a correction
-
-if (ele%tracking_method == bmad_standard$ .and. ele%key == lcavity$) return
-
 ! Note: zero length slice of e_gun can have orb_end%vec(6) = -1
 if (orb_end%vec(6) /= -1) then
   ele%time_ref_orb_out%vec(2) = ele%time_ref_orb_out%vec(2) / (1 + orb_end%vec(6))
   ele%time_ref_orb_out%vec(4) = ele%time_ref_orb_out%vec(4) / (1 + orb_end%vec(6))
 endif
 
-if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+if (ele%key == lcavity$) then
+  ele%time_ref_orb_out%vec(5) = 0
+elseif (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   lord => pointer_to_lord(ele, 1)
   beta0 = lord%value(l$) / (c_light * lord%value(delta_ref_time$))
   ele_ref_time = ele%value(ref_time_start$) + ele%value(l$) / (c_light * beta0)

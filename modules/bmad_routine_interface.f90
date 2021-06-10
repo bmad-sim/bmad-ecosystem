@@ -470,13 +470,13 @@ subroutine convert_particle_coordinates_t_to_s (particle, dt, ele, s_body)
   real(rp), optional :: s_body
 end subroutine
 
-subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, beta1, err_flag)
+subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, beta1, err_flag, print_err)
   import
   implicit none
   real(rp), intent(in) :: E_tot
   real(rp), intent(out), optional :: pc, kinetic, beta, brho, gamma, beta1
   integer, intent(in) :: particle
-  logical, optional :: err_flag
+  logical, optional :: err_flag, print_err
 end subroutine
 
 subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, beta1, err_flag)

@@ -120,8 +120,9 @@ if (ele%tracking_method == bmad_standard$) then
     phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$)) 
     e_tot = ele%value(e_tot_start$) + &
             ele%value(gradient$) * ele%value(field_autoscale$) * ele%value(l$) * cos(phi)
-    call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag)
+    call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
     if (err_flag) then
+      call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele%name)
       ! Unstable_factor is formulated to be usable for optimization when the lattice is not stable.
       param%unstable_factor = ele%ix_ele - e_tot / mass_of(param%particle)
       return
