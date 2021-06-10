@@ -1,4 +1,4 @@
- 2021-03-18 23:16:34 
+ 2021-06-04 21:09:47 
  
    1   Drift                 20   !Bmad_Com
    2   Sbend                 29   !Line
@@ -222,6 +222,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -315,6 +316,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -371,7 +373,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-       103  N_SLICE                                 
+       103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
@@ -384,6 +386,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  60  Beam_Init           
@@ -462,6 +465,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  28  Beginning_Ele       
@@ -546,6 +550,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  38  Converter           
@@ -603,6 +608,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  61  Crab_Cavity         
@@ -694,6 +700,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  43  Crystal             
@@ -774,6 +781,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       133  WRAP_SUPERIMPOSE                        
        140  CURVATURE_X0_Y2                         
  
  !---------------------------------
@@ -860,6 +868,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  55  Detector            
@@ -930,6 +939,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       133  WRAP_SUPERIMPOSE                        
        140  CURVATURE_X0_Y2                         
  
  !---------------------------------
@@ -987,6 +997,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       133  WRAP_SUPERIMPOSE                        
        140  CURVATURE_X0_Y2                         
  
  !---------------------------------
@@ -1055,6 +1066,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  10  ELseparator         
@@ -1145,6 +1157,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -1233,6 +1246,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  47  E_Gun               
@@ -1249,6 +1263,8 @@
         13  SPIN_FRINGE_ON                          
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
+        22  DT_MAX                                  
+        23  EMIT_FRACTION                           
         24  PHI0                                    
         25  PHI0_ERR                                
         26  phi0_multipass                            [private]
@@ -1326,6 +1342,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  36  Ecollimator         
@@ -1412,6 +1429,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  50  Fiducial            
@@ -1443,6 +1461,7 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  49  Floor_Shift         
@@ -1492,6 +1511,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  41  Fork                
@@ -1534,6 +1554,7 @@
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
        132  REF_SPECIES                             
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  37  Girder              
@@ -1573,6 +1594,8 @@
         75  check_sum                                 [private]
         81  X_KNOT                                  
         82  ALIAS                                   
+        83  Y_KNOT                                  
+        84  SLAVE                                   
         89  VAR                                     
        112  DESCRIP                                 
        117  TYPE                                    
@@ -1664,6 +1687,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -1704,6 +1728,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  32  Instrument          
@@ -1799,6 +1824,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  15  Kicker              
@@ -1889,6 +1915,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -1995,6 +2022,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  59  Lens                
@@ -2048,6 +2076,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  14  Marker              
@@ -2122,6 +2151,7 @@
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
        132  REF_SPECIES                             
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  57  Mask                
@@ -2173,6 +2203,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  30  Match               
@@ -2255,6 +2286,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  42  Mirror              
@@ -2312,6 +2344,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       133  WRAP_SUPERIMPOSE                        
        140  CURVATURE_X0_Y2                         
  
  !---------------------------------
@@ -2408,6 +2441,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  46  Multilayer_Mirror   
@@ -2470,6 +2504,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       133  WRAP_SUPERIMPOSE                        
        140  CURVATURE_X0_Y2                         
  
  !---------------------------------
@@ -2520,6 +2555,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  K0L                                     
  
  !---------------------------------
@@ -2534,6 +2570,7 @@
        120  SUPERIMPOSE                             
        121  OFFSET                                  
        122  REFERENCE                               
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  17  Octupole            
@@ -2624,6 +2661,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -2633,6 +2671,8 @@
         75  check_sum                                 [private]
         81  X_KNOT                                  
         82  ALIAS                                   
+        83  Y_KNOT                                  
+        84  SLAVE                                   
         89  VAR                                     
        105  IS_ON                                   
        112  DESCRIP                                 
@@ -2687,6 +2727,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  40  Photon_Fork         
@@ -2729,6 +2770,7 @@
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
        132  REF_SPECIES                             
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  53  Photon_Init         
@@ -2797,6 +2839,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  44  Pipe                
@@ -2892,6 +2935,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
   3  Quadrupole          
@@ -2984,6 +3028,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -3090,6 +3135,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  62  Ramper              
@@ -3097,6 +3143,8 @@
         75  check_sum                                 [private]
         81  X_KNOT                                  
         82  ALIAS                                   
+        83  Y_KNOT                                  
+        84  SLAVE                                   
         89  VAR                                     
        105  IS_ON                                   
        112  DESCRIP                                 
@@ -3215,6 +3263,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -3302,6 +3351,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  56  Sad_Mult            
@@ -3376,6 +3426,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -3435,6 +3486,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  CURVATURE_X0_Y2                         
  
  !---------------------------------
@@ -3550,6 +3602,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -3641,6 +3694,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -3734,6 +3788,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -3827,6 +3882,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -3893,6 +3949,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  51  Undulator           
@@ -3991,6 +4048,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -4076,6 +4134,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -4175,6 +4234,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
        140  A0                                      
  
  !---------------------------------
@@ -4201,8 +4261,8 @@
     19    12
     20    19
     21    19
-    22    17
-    23    18
+    22    18
+    23    19
     24    20
     25    16
     26    22
@@ -4262,8 +4322,8 @@
     80     0
     81    12
     82    59
-    83    33
-    84    37
+    83    36
+    84    40
     85    37
     86    26
     87    54
@@ -4312,7 +4372,7 @@
    130    38
    131    38
    132     6
-   133     0
+   133    52
    134     0
    135     0
    136     0
@@ -4994,6 +5054,7 @@ Index: 22
     Crystal             
     Pipe                
     Multilayer_Mirror   
+    E_Gun               
     Undulator           
     Photon_Init         
     Detector            
@@ -5015,6 +5076,7 @@ Index: 23
     Crystal             
     Pipe                
     Multilayer_Mirror   
+    E_Gun               
     Undulator           
     Photon_Init         
     Detector            
@@ -6879,7 +6941,9 @@ Index: 82
 Index: 83
     Sbend               
     Quadrupole          
+    Group               
     Sextupole           
+    Overlay             
     Custom              
     Taylor              
     RFcavity            
@@ -6910,12 +6974,15 @@ Index: 83
     AC_Kicker           
     Beam_Init           
     Crab_Cavity         
+    Ramper              
  
  !---------------------------------
 Index: 84
     Sbend               
     Quadrupole          
+    Group               
     Sextupole           
+    Overlay             
     Custom              
     Taylor              
     RFcavity            
@@ -6950,6 +7017,7 @@ Index: 84
     AC_Kicker           
     Beam_Init           
     Crab_Cavity         
+    Ramper              
  
  !---------------------------------
 Index: 85
@@ -8757,6 +8825,58 @@ Index: 132
  
  !---------------------------------
 Index: 133
+    Drift               
+    Sbend               
+    Quadrupole          
+    Sextupole           
+    Custom              
+    Taylor              
+    RFcavity            
+    ELseparator         
+    BeamBeam            
+    Wiggler             
+    Sol_Quad            
+    Marker              
+    Kicker              
+    Hybrid              
+    Octupole            
+    Rbend               
+    Multipole           
+    AB_multipole        
+    Solenoid            
+    Patch               
+    Lcavity             
+    Null_Ele            
+    Match               
+    Monitor             
+    Instrument          
+    Hkicker             
+    Vkicker             
+    Rcollimator         
+    Ecollimator         
+    Converter           
+    Photon_Fork         
+    Fork                
+    Mirror              
+    Crystal             
+    Pipe                
+    Capillary           
+    Multilayer_Mirror   
+    E_Gun               
+    EM_Field            
+    Floor_Shift         
+    Fiducial            
+    Undulator           
+    Diffraction_Plate   
+    Photon_Init         
+    Sample              
+    Detector            
+    Sad_Mult            
+    Mask                
+    AC_Kicker           
+    Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 134

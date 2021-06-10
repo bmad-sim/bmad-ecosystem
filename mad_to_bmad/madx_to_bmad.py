@@ -39,7 +39,9 @@ class common_struct:
     self.prepend_vars = True         # Command line argument.
     self.superimpose_eles = False    # Command line argument.
     self.one_file = True             # Command line argument.
-    self.in_seq = False
+    self.in_seq = False              # Inside a sequence/endsequence construct?
+    self.in_track = False            # Inside a track/endtrack construct?
+    self.in_match = False            # Inside a match/endmatch construct?
     self.seqedit_name = ''           # Name of sequence in seqedit construct.
     self.last_seq = seq_struct()     # Current sequence being parsed.
     self.seq_dict = OrderedDict()    # List of all sequences.
@@ -264,7 +266,7 @@ def bmad_param(param, ele_name):
 # Return dictionary of "A = value" parameter definitions.
 
 def parameter_dictionary(word_lst):
-  madx_logical = ['kill_ent_fringe', 'kill_exi_fringe', 'thick', 'no_cavity_totalpath']
+  madx_logical = ['kill_ent_fringe', 'kill_exi_fringe', 'thick', 'no_cavity_totalpath', 'chrom']
 
   # Remove :, {, and } chars for something like "kn := {a, b, c}"
   word_lst = list(filter(lambda a: a not in ['{', '}', ':'], word_lst))
@@ -275,21 +277,25 @@ def parameter_dictionary(word_lst):
   # Logical can be of the form: "<logical_name>" or "-<logical_name>".
   # Put this into dict
 
-  for logical in madx_logical:
-    if logical not in word_lst: continue
-    ix = word_lst.index(logical)
-    if ix == len(word_lst) - 1: continue
-    if word_lst[ix+1] == '=': continue
-    pdict[logical] = 'true'
-    word_lst.pop(ix)
+  pdict = OrderedDict()
 
   for logical in madx_logical:
-    if '-' + logical not in word_lst: continue
-    pdict[logical] = 'false'
+    if logical in word_lst:
+      ix = word_lst.index(logical)
+      if ix+1 < len(word_lst) and word_lst[ix+1] == '=': continue
+      pdict[logical] = 'true'
+    elif '-' + logical in word_lst:
+      ix = word_lst.index('-' + logical)
+      if ix+1 < len(word_lst) and word_lst[ix+1] == '=': continue
+      pdict[logical] = 'false'
+    else:
+      continue
+
     word_lst.pop(ix)
+    if ix < len(word_lst): word_lst.pop(ix)   # Must be comma
+
 
   # Fill dict
-  pdict = OrderedDict()
   while True:
     if len(word_lst) == 0: return pdict
 
@@ -664,6 +670,28 @@ def parse_command(command, dlist):
     if ix > len(dlist)-2: break
     if dlist[ix] == ':' and dlist[ix+1] == '=': dlist.pop(ix)
 
+  # track and match constructs
+
+  if dlist[0] == 'match': 
+    common.in_match = True
+    print ('Ignoring match construct: ' + command)
+    return
+
+  if dlist[0] == 'track': 
+    common.in_track = True
+    print ('Ignoring track construct: ' + command)
+    return
+
+  if dlist[0] == 'endmatch': 
+    common.in_match = False
+    return
+
+  if dlist[0] == 'endtrack': 
+    common.in_track = False
+    return
+
+  if common.in_match or common.in_track: return
+
   # The MADX parser takes a somewhat cavilier attitude towards commas and sometimes they can be omitted.
   # Examples: "call file" instead of  "call, file" and "q: quadrupole l = 7" instead of "q: quadrupole, l = 7
   # So put the comma back in to make things uniform for easier parsing.
@@ -687,7 +715,11 @@ def parse_command(command, dlist):
 
   if dlist[0] in ['aperture', 'show', 'value', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
                   'emit', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 'flatten', 
-                  'elseif', 'else', 'savebeta']:
+                  'elseif', 'else', 'savebeta', 'exec', 'makethin', 'save']:
+    print ('Note! Ignoring command: ' + command)
+    return
+
+  if dlist[0] in ['twiss'] and len(dlist) == 1:
     print ('Note! Ignoring command: ' + command)
     return
 
