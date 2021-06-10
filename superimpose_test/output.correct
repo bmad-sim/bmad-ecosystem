@@ -9,3 +9,5 @@
 "Reversed-S" ABS 1E-8   7.0000E-01
 "Reflected-Name" STR "SS"
 "Reflected-S" ABS 1E-8   7.0000E-01
+"M-markers" STR "M2 M3 M1"
+"P-markers" STR "P2 P1 P3"

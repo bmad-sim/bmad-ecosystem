@@ -31,4 +31,16 @@ ss: sextupole, l = 0.2, superimpose, ref = q2, offset = 0.3, ref_origin = end, e
 q1: quadrupole, l = 1, superimpose, ref = d3, wrap_superimpose = F, offset = -0.5
 q3: quadrupole, l = 1, superimpose, ref = d3, wrap_superimpose = F, offset = 0.7
 
-use, ll, b1, b2, b3
+use, ll, b1, b2, b3, lt
+
+dd: drift, l = 3
+lt: line = (dd)
+lt[geometry] = open
+
+m1: marker, superimpose, offset = 1, ref = lt>>beginning
+m2: marker, superimpose, offset = 1, ref = lt>>beginning
+m3: marker, superimpose, ref = m2, ref_origin = end
+
+p1: marker, superimpose, offset = 2, ref = lt>>beginning
+p2: marker, superimpose, ref = p1, ref_origin = beginning
+p3: marker, superimpose, ref = p1, ref_origin = end
