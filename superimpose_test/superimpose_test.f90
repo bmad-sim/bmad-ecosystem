@@ -11,6 +11,7 @@ use bmad
 implicit none
 
 type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orb(:)
 
@@ -42,5 +43,13 @@ write (1, '(a, es12.4)') '"Reversed-S" ABS 1E-8 ', ele%s
 ele => lat%branch(2)%ele(2)
 write (1, '(2a)') '"Reflected-Name" STR ', quote(ele%name)
 write (1, '(a, es12.4)') '"Reflected-S" ABS 1E-8 ', ele%s
+
+!--------------------------
+
+branch => pointer_to_branch('LT', lat)
+write (1, '(2a)') '"M-markers" STR ', quote(trim(branch%ele(2)%name) // ' ' // &
+                                          trim(branch%ele(3)%name) // ' ' // trim(branch%ele(4)%name))
+write (1, '(2a)') '"P-markers" STR ', quote(trim(branch%ele(6)%name) // ' ' // &
+                                          trim(branch%ele(7)%name) // ' ' // trim(branch%ele(8)%name))
 
 end program
