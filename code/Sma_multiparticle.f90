@@ -3703,12 +3703,17 @@ SUBROUTINE MOVE_FRAMES(S2,s1,OMEGA,BASIS)
        IF(ADDIN) THEN
 
                   call MOVE_FRAMES(S2,s1,OMEGA,BASIS)
-                  call survey_integration_fibre(s2)
+            !      call survey_integration_fibre(s2)
+                  call survey_integration_fibre(s2,s2%t1%ent,s2%t1%a) 
 
        ELSE
-          call survey_integration_fibre(s2)  !,previous=.false.)   
+          !call survey_integration_fibre(s2)  !,previous=.false.)  
+          call survey_integration_fibre(s2,s2%t1%ent,s2%t1%a) 
+ 
           call MOVE_FRAMES(S2,s1,OMEGA,BASIS)
-          call survey_integration_fibre(s2)
+     !     call survey_integration_fibre(s2)
+          call survey_integration_fibre(s2,s2%t1%ent,s2%t1%a) 
+
        ENDIF
  
 
@@ -3993,4 +3998,96 @@ SUBROUTINE MOVE_FRAMES(S2,s1,OMEGA,BASIS)
 
     end SUBROUTINE FIND_PATCH_0_survey
 
+subroutine convert_mis_to_patch(ptc_fibre,use_ptc)
+implicit none
+type(fibre), pointer :: ptc_fibre
+real(dp) ent(3,3),aent(3),d(3),ang(3)
+real(dp) ent0(3,3),aent0(3),exi0f(3,3),bexi0f(3)
+real(dp) exi0(3,3),pix(3),EXI(3,3),PREC
+logical use_ptc
+PREC=1.d-38
+
+    ptc_fibre%mag%p%tiltd=0
+    ptc_fibre%magp%p%tiltd=0
+    ptc_fibre%chart%d_in=0
+    ptc_fibre%chart%d_out=0
+    ptc_fibre%chart%ang_in=0
+    ptc_fibre%chart%ang_out=0
+    ptc_fibre%mag%mis=.false.
+    ptc_fibre%magp%mis=.false.
+    ptc_fibre%PATCH%A_X1=1
+    ptc_fibre%PATCH%B_X1=1
+    ptc_fibre%PATCH%A_X2=1
+    ptc_fibre%PATCH%B_X2=1
+    ptc_fibre%PATCH%PATCH=3
+
+
+
+ent=ptc_fibre%t1%next%ent
+aent=ptc_fibre%t1%next%a
+
+
+ent0=ptc_fibre%t1%ent
+aent0=ptc_fibre%t1%a
+exi0f=ptc_fibre%t2%exi
+bexi0f =ptc_fibre%t2%b
+ 
+call survey_integration_fibre(ptc_fibre,ptc_fibre%t1%ent,ptc_fibre%t1%a) 
+ 
+D=aent-ptc_fibre%t1%next%a
+ 
+CALL TRANSLATE_Fibre(ptc_fibre,D)
+CALL COMPUTE_ENTRANCE_ANGLE(ptc_fibre%t1%next%ent,ent,ANG)
+ 
+
+CALL ROTATE_FIBRE(ptc_fibre,aent,Ang,BASIS=ptc_fibre%t1%next%ent)  
+
+
+if(associated(ptc_fibre%previous).and.use_ptc) then
+   call find_patch(ptc_fibre%previous,ptc_fibre,NEXT=.true.,ENERGY_PATCH=.true.,PREC=prec)
+else
+    pix=0.0_dp
+    if(ptc_fibre%dir==-1) then
+     ptc_fibre%PATCH%A_X1=-1
+     ptc_fibre%PATCH%B_X1=-1
+     pix(1)=pi
+   endif 
+ 
+             EXI=ent0
+             exi0=exi
+             call geo_rot(exi,pix,1,basis=exi0)
+             ENT=ptc_fibre%t1%next%ent
+             exi0=ENT
+             call geo_rot(ent,pix,1,basis=exi0)
+
+ call find_patch(aent0,exi,ptc_fibre%t1%next%a,ent,ptc_fibre%patch%a_d,ptc_fibre%patch%a_ang)
+ 
+endif
+ 
+
+if(associated(ptc_fibre%next).and.use_ptc) then
+   call find_patch(ptc_fibre,ptc_fibre%next,NEXT=.false.,ENERGY_PATCH=.true.,PREC=prec)
+else
+
+    pix=0.0_dp
+    if(ptc_fibre%dir==-1) then
+    ptc_fibre%PATCH%A_X2=-1
+    ptc_fibre%PATCH%B_X2=-1
+     pix(1)=pi
+   endif 
+             EXI=exi0f
+             exi0=exi
+             call geo_rot(exi,pix,1,basis=exi0)
+             ENT=ptc_fibre%t2%previous%exi
+             exi0=ENT
+             call geo_rot(ent,pix,1,basis=exi0)
+
+ 
+ call find_patch(ptc_fibre%t2%previous%b,ent,bexi0f,exi,ptc_fibre%patch%b_d,ptc_fibre%patch%b_ang)
+endif
+ 
+ call survey_integration_fibre(ptc_fibre,ent0,aent0) 
+
+
+end subroutine convert_mis_to_patch
 end module ptc_multiparticle

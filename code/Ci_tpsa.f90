@@ -510,6 +510,7 @@ type(c_linear_map) q_phasor,qi_phasor
      MODULE PROCEDURE c_clean_yu_w
      MODULE PROCEDURE c_clean_quaternion
      MODULE PROCEDURE c_clean_taylors
+     MODULE PROCEDURE c_clean_vector_field_fourier
   end INTERFACE clean
   ! Exponential of Lie Operators
 
