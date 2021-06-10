@@ -4271,20 +4271,7 @@ elseif (use_offsets) then
   ! Put misalignmnets in patches?
 
   if (bmad_com%orientation_to_ptc_design) then
-    call find_patch(ptc_fibre%t1%a,ptc_fibre%t1%ent,ptc_fibre%t1%next%a,ptc_fibre%t1%next%ent, &
-                                                                 ptc_fibre%patch%a_d,ptc_fibre%patch%a_ang)
-    call find_patch(ptc_fibre%t2%previous%b,ptc_fibre%t2%previous%exi,ptc_fibre%t2%b,ptc_fibre%t2%exi, &
-                                                                 ptc_fibre%patch%b_d,ptc_fibre%patch%b_ang)
-    ptc_fibre%patch%patch=3
-
-    ptc_fibre%mag%p%tiltd=0
-    ptc_fibre%magp%p%tiltd=0
-    ptc_fibre%chart%d_in=0
-    ptc_fibre%chart%d_out=0
-    ptc_fibre%chart%ang_in=0
-    ptc_fibre%chart%ang_out=0
-    ptc_fibre%mag%mis=.false.
-    ptc_fibre%magp%mis=.false.
+    call convert_mis_to_patch(ptc_fibre, .true.)
   endif
 
 endif
