@@ -141,11 +141,19 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
     add_ds_safe = .true.
     if (orb%direction*ele%orientation == 1 .and. abs(s_fringe_edge - s_stop_fwd) < ds_safe) then
-      orb%location = downstream_end$
+      if (ele%orientation == 1) then
+        orb%location = downstream_end$
+      else
+        orb%location = upstream_end$
+      endif
       add_ds_safe = .false.
       exit_flag = .true.
     elseif (orb%direction*ele%orientation == -1 .and. abs(s_fringe_edge) < ds_safe) then
-      orb%location = upstream_end$
+      if (ele%orientation == 1) then
+        orb%location = upstream_end$
+      else
+        orb%location = downstream_end$
+      endif
       add_ds_safe = .false.
       exit_flag = .true.
     endif
