@@ -5,6 +5,9 @@
 #      include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
 # Found in CMakeLists.txt files in project directories.
 
+# Update - 15-Jun-2021 - formated line endings to Unix-style 
+# (vs Windows style) as requested by dcs16 in RT#58583.
+
 #-----------------------------------------------------------
 # Set link_directories relative path composition to use new
 # behvaior that appends relative path information to the
