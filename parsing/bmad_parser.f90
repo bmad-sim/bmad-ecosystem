@@ -143,7 +143,6 @@ if (present(digested_read_ok)) digested_read_ok = .false.
 
 call init_lat (lat, 1)
 call init_lat (in_lat, 1000)
-call nametable_init (in_lat%nametable, 0)
 
 call allocate_plat (plat, ubound(in_lat%ele, 1))
 

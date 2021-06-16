@@ -904,11 +904,12 @@ subroutine init_fringe_info (fringe_info, ele, orbit, leng_sign)
   integer, optional :: leng_sign
 end subroutine
 
-subroutine init_lat (lat, n)
+subroutine init_lat (lat, n, init_beginning_ele)
   import
   implicit none
   type (lat_struct)  lat
   integer, optional :: n
+  logical, optional :: init_beginning_ele
 end subroutine
 
 subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, always_allocate)
