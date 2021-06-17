@@ -153,6 +153,7 @@ type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct), pointer :: d_ptr
 type (tao_data_struct) datum
+type (tao_dynamic_aperture_struct), pointer :: da
 type (tao_building_wall_section_struct), pointer :: section
 type (tao_building_wall_point_struct), pointer :: pt
 type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
@@ -259,7 +260,7 @@ character(200), allocatable :: alloc_lines(:)
 
 character(2), parameter :: q_name(0:3) = ['q0', 'qx', 'qy', 'qz']
 
-character(16) :: show_what, show_names(41) = [ &
+character(16) :: show_what, show_names(42) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
@@ -268,7 +269,7 @@ character(16) :: show_what, show_names(41) = [ &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
    'matrix          ', 'field           ', 'wake_elements   ', 'history         ', 'symbolic_numbers', &
    'merit           ', 'track           ', 'spin            ', 'internal        ', 'control         ', &
-   'string          ']
+   'string          ', 'version         ']
 
 integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width, expo(6)
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv, stat, lat_type
@@ -776,7 +777,7 @@ case ('curve')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, ['-symbol   ', '-line     ', '-no_header'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(20):: '-symbol', '-line', '-no_header'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('');           exit
@@ -795,11 +796,14 @@ case ('curve')
   ! Find particular plot
 
   call tao_find_plots (err, attrib0, 'BOTH', curve = curve, blank_means_all = .true., only_visible = .false.)
-  if (err) return
+  if (err .or. size(curve) == 0) then
+    nl=1; lines(1) = 'THIS IS NOT A CURVE NAME'
+    return
+  endif
 
   ! print info on particular plot, graph, or curve
 
-  if (size(curve) > 0) then
+  if (size(curve) > 0 .and. .not. show_line .and. .not. show_sym) then
     c1 => curve(1)%c
 
     if (print_header) then
@@ -842,6 +846,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), imt)  'ix_universe          = ', c1%ix_universe
       nl=nl+1; write(lines(nl), imt)  'symbol_every         = ', c1%symbol_every
       nl=nl+1; write(lines(nl), rmt)  'y_axis_scale_factor  = ', c1%y_axis_scale_factor
+      nl=nl+1; write(lines(nl), rmt)  'scale                = ', c1%scale
       nl=nl+1; write(lines(nl), rmt)  'z_color0             = ', c1%z_color0
       nl=nl+1; write(lines(nl), rmt)  'z_color1             = ', c1%z_color1
       nl=nl+1; write(lines(nl), lmt)  'use_y2               = ', c1%use_y2
@@ -874,134 +879,142 @@ case ('curve')
       endif
     endif
 
-    ! Show symbol points
-    
-    if (show_sym) then
-      nc = 0
+    return
+  endif
+
+  ! Show symbol points
+  
+  if (show_sym) then
+    nc = 0
+    do j = 1, size(curve)
+      if (.not. allocated(curve(j)%c%x_symb)) cycle
+      nc = max(nc, size(curve(j)%c%x_symb))
+    enddo
+
+    if (print_header) then
+      nl=nl+1; lines(nl)   = ''
+      nl=nl+1; lines(nl)   = '# Symbol points:'
+      nl=nl+1; lines(nl)   = '#     i  ix_sym    x-axis '
       do j = 1, size(curve)
-        if (.not. allocated(curve(j)%c%x_symb)) cycle
-        nc = max(nc, size(curve(j)%c%x_symb))
+        str = curve(j)%c%name
+        lines(nl) = lines(nl)(1:28+(j-1)*14) // adjustr(str(1:14))
       enddo
 
-      if (print_header) then
-        nl=nl+1; lines(nl)   = ''
-        nl=nl+1; lines(nl)   = '# Symbol points:'
-        nl=nl+1; lines(nl)   = '#     i  ix_sym    x-axis '
-        do j = 1, size(curve)
-          str = curve(j)%c%name
-          lines(nl) = lines(nl)(1:28+(j-1)*14) // adjustr(str(1:14))
-        enddo
-
-        if (nc == 0) then
-          nl=nl+1; lines(nl) = '#     No Symbol Points'
-        endif
+      if (nc == 0) then
+        nl=nl+1; lines(nl) = '#     No Symbol Points'
       endif
-
-      n = size(curve)
-      allocate (ix_c(n), value(n), valid(n))
-      ix_c = 1
-      
-      id = 0
-      do
-        value_min = 1e30
-        valid = .false.
-        do i = 1, n
-          if (ix_c(i) > size(curve(i)%c%x_symb)) cycle
-          value(i) = curve(i)%c%x_symb(ix_c(i))
-          valid(i) = .true.
-          value_min = min(value_min, value(i))
-        enddo
-
-        if (all(.not. valid)) exit
-
-        ix_min = 100000
-        do i = 1, n
-          if (.not. valid(i) .or. value(i) /= value_min) cycle
-          ix_min = min(ix_min, curve(i)%c%ix_symb(ix_c(i)))
-        enddo
-
-        id = id + 1
-        nl=nl+1; write (lines(nl), '(2i7, 10es14.6)') id, ix_min, value_min
-        do i = 1, n
-          if (valid(i) .and. value(i) == value_min .and. curve(i)%c%ix_symb(ix_c(i)) == ix_min) then
-            write (lines(nl)(29+(i-1)*14:), '(es14.6)') curve(i)%c%y_symb(ix_c(i))
-            ix_c(i) = ix_c(i) + 1
-          endif
-        enddo
-
-        if (nl+10 > size(lines)) call re_allocate(lines, nl+100, .false.)
-      enddo
     endif
 
-    ! Show line points
+    n = size(curve)
+    allocate (ix_c(n), value(n), valid(n))
+    ix_c = 1
+    
+    id = 0
+    do
+      value_min = 1e30
+      valid = .false.
+      do i = 1, n
+        if (ix_c(i) > size(curve(i)%c%x_symb)) cycle
+        value(i) = curve(i)%c%x_symb(ix_c(i))
+        valid(i) = .true.
+        value_min = min(value_min, value(i))
+      enddo
 
-    if (show_line) then
+      if (all(.not. valid)) exit
 
-      nc = 0
-      ix0 = 0
-      aligned = .true.    ! True => can have one x column for all curves.
+      ix_min = 100000
+      do i = 1, n
+        if (.not. valid(i) .or. value(i) /= value_min) cycle
+        ix_min = min(ix_min, curve(i)%c%ix_symb(ix_c(i)))
+      enddo
+
+      id = id + 1
+      nl=nl+1; write (lines(nl), '(2i7, 10es14.6)') id, ix_min, value_min
+      do i = 1, n
+        if (valid(i) .and. value(i) == value_min .and. curve(i)%c%ix_symb(ix_c(i)) == ix_min) then
+          write (lines(nl)(29+(i-1)*14:), '(es14.6)') curve(i)%c%y_symb(ix_c(i))
+          ix_c(i) = ix_c(i) + 1
+        endif
+      enddo
+
+      if (nl+10 > size(lines)) call re_allocate(lines, nl+100, .false.)
+    enddo
+  endif
+
+  ! Show line points
+
+  if (show_line) then
+
+    nc = 0
+    ix0 = 0
+    aligned = .true.    ! True => can have one x column for all curves.
+    do j = 1, size(curve)
+      if (.not. allocated(curve(j)%c%x_line)) cycle
+      ! Physical aperture curves (part of dynamic_aperture plots) are not interesting and generate too many lines.
+      if (size(curve) > 1 .and. curve(j)%c%data_type == 'physical_aperture') cycle
+      nc = max(nc, size(curve(j)%c%x_line))
+      if (ix0 == 0) ix0 = j
+      if (size(curve(j)%c%x_line) /= size(curve(ix0)%c%x_line)) then
+        aligned = .false.
+      else
+        if (any(curve(j)%c%x_line /= curve(ix0)%c%x_line)) aligned = .false.
+      endif
+    enddo
+
+    n = nl + nc + 10
+    if (n > size(lines)) call re_allocate(lines, n, .false.)
+
+    if (print_header) then
+      nl=nl+1; lines(nl)   = ''
+      nl=nl+1; lines(nl)   = '# Smooth line points:'
+      if (aligned) then
+        nl=nl+1; lines(nl)   = '# index        x-axis'
+      else
+        nl=nl+1; lines(nl)   = '# index'
+      endif
+
+      nl0 = nl
+
+      if (nc == 0) then
+        nl=nl+1; lines(nl) = '#     No Line Points'
+      endif
+
+      k = 0
       do j = 1, size(curve)
         if (.not. allocated(curve(j)%c%x_line)) cycle
-        nc = max(nc, size(curve(j)%c%x_line))
-        if (ix0 == 0) ix0 = j
-        if (size(curve(j)%c%x_line) /= size(curve(ix0)%c%x_line)) then
-          aligned = .false.
-        else
-          if (any(curve(j)%c%x_line /= curve(ix0)%c%x_line)) aligned = .false.
-        endif
-      enddo
-
-      n = nl + nc + 10
-      if (n > size(lines)) call re_allocate(lines, n, .false.)
-
-      if (print_header) then
-        nl=nl+1; lines(nl)   = ''
-        nl=nl+1; lines(nl)   = '# Smooth line points:'
+        if (size(curve) > 1 .and. curve(j)%c%data_type == 'physical_aperture') cycle
+        k = k + 1
+        str = curve(j)%c%name
         if (aligned) then
-          nl=nl+1; lines(nl)   = '# index        x-axis'
+          lines(nl0) = lines(nl0)(1:21+(k-1)*14) // adjustr(str(1:14))
         else
-          nl=nl+1; lines(nl)   = '# index'
+          lines(nl0) = lines(nl0)(1:7+(k-1)*28) // '        x-axis' // adjustr(str(1:14))
         endif
-
-        nl0 = nl
-
-        if (nc == 0) then
-          nl=nl+1; lines(nl) = '#     No Line Points'
-        endif
-  
-        do j = 1, size(curve)
-          str = curve(j)%c%name
-          if (aligned) then
-            lines(nl0) = lines(nl0)(1:21+(j-1)*14) // adjustr(str(1:14))
-          else
-            lines(nl0) = lines(nl0)(1:7+(j-1)*28) // '        x-axis' // adjustr(str(1:14))
-          endif
-        enddo
-      endif
-
-      do i = 1, nc
-        if (aligned) then
-          nl=nl+1; write(lines(nl), '(i7, es14.6)') i, curve(ix0)%c%x_line(i)
-        else
-          nl=nl+1; write(lines(nl), '(i7, es14.6)') i
-        endif
-
-        do j = 1, size(curve)
-          if (.not. allocated(curve(j)%c%x_line)) cycle
-          if (size(curve(j)%c%x_line) < j) cycle
-          if (aligned) then
-            write(lines(nl)(22+(j-1)*14:), '(10es14.6)') curve(j)%c%y_line(i)
-          else
-            write(lines(nl)(8+(j-1)*28:), '(10es14.6)') curve(j)%c%x_line(i), curve(j)%c%y_line(i)
-          endif
-        enddo
-
       enddo
     endif
 
-  else
-    nl=1; lines(1) = 'THIS IS NOT A CURVE NAME'
-    return
+    do i = 1, nc
+      if (aligned) then
+        nl=nl+1; write(lines(nl), '(i7, es14.6)') i, curve(ix0)%c%x_line(i)
+      else
+        nl=nl+1; write(lines(nl), '(i7, es14.6)') i
+      endif
+
+      k = 0
+      do j = 1, size(curve)
+        if (.not. allocated(curve(j)%c%x_line)) cycle
+        if (size(curve(j)%c%x_line) < i) cycle
+        ! Physical aperture curves (part of dynamic_aperture plots) are not interesting and generate too many lines.
+        if (size(curve) > 1 .and. curve(j)%c%data_type == 'physical_aperture') cycle
+        k = k + 1
+        if (aligned) then
+          write(lines(nl)(22+(k-1)*14:), '(10es14.6)') curve(j)%c%y_line(i)
+        else
+          write(lines(nl)(8+(k-1)*28:), '(10es14.6)') curve(j)%c%x_line(i), curve(j)%c%y_line(i)
+        endif
+      enddo
+
+    enddo
   endif
 
 !----------------------------------------------------------------------
@@ -1321,37 +1334,40 @@ case ('derivative')
 ! dynamic_aperture
 
 case ('dynamic_aperture')
-  if (.not. allocated(u%dynamic_aperture%scan)) then
+  da => u%dynamic_aperture
+
+  if (.not. allocated(da%scan)) then
     nl=nl+1; lines(nl) ='No dynamic aperture specified for this universe'
     return
   endif
   
   ! Count lines needed
-  i1 = 0
-  do k = 1, size(u%dynamic_aperture%scan) 
-    i1 = i1 + u%dynamic_aperture%scan(k)%param%n_angle + 20
-  enddo
+  i1 = size(da%scan) * (da%param%n_angle + 20)
   call re_allocate (lines, nl+i1, .false.)
 
-  nl=nl+1; write(lines(nl), '(a, i10)')     'n_angle:   ', u%dynamic_aperture%param%n_angle
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   'min_angle: ', u%dynamic_aperture%param%min_angle
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   'max_angle: ', u%dynamic_aperture%param%max_angle
-  nl=nl+1; write(lines(nl), '(a, i10)')     'n_turn:    ', u%dynamic_aperture%param%n_turn
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   'x_init:    ', u%dynamic_aperture%param%x_init
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   'y_init:    ', u%dynamic_aperture%param%y_init
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   'accuracy:  ', u%dynamic_aperture%param%accuracy
+  nl=nl+1; write(lines(nl), '(a, a)')       'da_param%start_ele:     ', da%param%start_ele
+  nl=nl+1; write(lines(nl), '(a, i10)')     'da_param%n_angle:       ', da%param%n_angle
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'da_param%min_angle:     ', da%param%min_angle
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'da_param%max_angle:     ', da%param%max_angle
+  nl=nl+1; write(lines(nl), '(a, i10)')     'da_param%n_turn:        ', da%param%n_turn
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'da_param%x_init:        ', da%param%x_init
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'da_param%y_init:        ', da%param%y_init
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'da_param%rel_accuracy:  ', da%param%rel_accuracy
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'da_param%abs_accuracy:  ', da%param%abs_accuracy
+  nl=nl+1; write(lines(nl), rmt)            'a_emit                  ', da%a_emit
+  nl=nl+1; write(lines(nl), rmt)            'b_emit                  ', da%b_emit
 
-  do k = 1, size(u%dynamic_aperture%scan)
-    aperture_scan => u%dynamic_aperture%scan(k) 
+  do k = 1, size(da%scan)
+    aperture_scan => da%scan(k) 
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), '(a, 99f11.6)') 'pz:        ', u%dynamic_aperture%pz(k)
-    if (.not. allocated(aperture_scan%aperture)) then
+    nl=nl+1; write(lines(nl), '(a, 99f11.6)') 'pz:        ', da%pz(k)
+    if (.not. allocated(aperture_scan%point)) then
       nl=nl+1; write(lines(nl), '(a)') 'aperture not calculated for this universe'
     else
       nl=nl+1; write(lines(nl), '(a, 6es14.5)') 'ref_orb%vec:   ', aperture_scan%ref_orb%vec
       nl=nl+1; write(lines(nl), '(2a15)') 'aperture.x', 'aperture.y' 
-      do j = 1, size(aperture_scan%aperture)
-        nl=nl+1; write(lines(nl), '(2es15.7)')   aperture_scan%aperture(j)%x, aperture_scan%aperture(j)%y
+      do j = 1, size(aperture_scan%point)
+        nl=nl+1; write(lines(nl), '(2es15.7)')   aperture_scan%point(j)%x, aperture_scan%point(j)%y
       enddo
     endif
   enddo
@@ -5128,6 +5144,27 @@ case ('variable')
     nl=1; lines(1) = 'Cannot find variables matching: ' // attrib0
     result_id = 'variable:?'
   endif
+
+!----------------------------------------------------------------------
+! version
+
+case ('version')
+
+  name = '$TAO_DIR/VERSION'
+  call fullfilename (name, file_name)
+
+  iu = lunget()
+  open (iu, file = file_name, iostat = ios)
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // name, &
+                                   'SEE THE BMAD MANUAL FOR MORE DETAILS.')
+    return
+  endif
+
+  read (iu, '(a)') aname
+  close (iu)
+
+  nl=nl+1; lines(nl) = aname
 
 !----------------------------------------------------------------------
 ! wake_elements

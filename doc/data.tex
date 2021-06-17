@@ -776,7 +776,7 @@ individual elements.
   \item[chrom.w.a, chrom.w.b] \Newline \hlabel{chrom.w}
 The \vn{chrom.w.a} and \vn{chrom.w.b} data types are the so called chromatic amplitude
 \vn{W}-functions introduced by Montague\cite{b:w}. \vn{chrom.w.a} is the W-function amplitude for
-the $a$-mode and \vn{chrom.w.b} is the W-funciton for the $b$-mode. Dropping the mode subscript,
+the $a$-mode and \vn{chrom.w.b} is the W-function for the $b$-mode. Dropping the mode subscript,
 the W-function amplitude is defined by 
 \begin{equation}
   W = \sqrt{A^2 + B^2}
@@ -825,6 +825,23 @@ Damping partition numbers.
   %----------------------
   \item[dpx_dx, dpy_dy, etc.] \Newline \hlabel{dpx.dx}
 Bunch sigma matrix ratios, <x px> / <$x^2$> \& Etc.
+
+  %----------------------
+  \item[dynamic_aperture.$N$, $N = 1, 2, 3 \ldots$] \Newline \hlabel{da}
+The value of \vn{dynamic_aperture.$N$} is the ``size'' $S_e$ of the maximal ellipse that will fit
+within the $N$\Th dynamical aperture curve. The scan index starts at "1" for the first value in the
+\vn{pz} array set in the \vn{tao_daynamic_aperture} namelist (\sref{s:da.calc}). The maximal
+ellipse size is determined by the minimum of the size calculated for each point of the $N$\Th scan
+$S_e = \min(S_e(i))$ where the ellipse size $S_e(i)$ for the $i$\Th point is
+\begin{equation}
+  S_e(i) = \sqrt{ \frac{x^2(i)}{\beta_a \, \epsilon_a} + \frac{y^2(i)}{\beta_b \, \epsilon_b} }
+\end{equation} 
+where $x(i), y(i)$ is the $i$\Th scan point, $\beta_a$ and $\beta_b$ are the beta functions at the
+starting point, and $\epsilon_a$ and $\epsilon_b$ are the emittances set for the dynamic aperture
+calculation (\sref{s:da.calc}). The above equation is valid when there is no horizontal-vertical
+coupling at the starting point. If there is coupling, the above equation is modified and $x(i)$ and
+$y(i)$ are replaced by the corresponding $a$ and $b$ normal mode phase space coordinates (See the section
+on ``Coupling and Normal Modes'' in the \bmad manual).
 
   %----------------------
   \item[e_tot_ref] \Newline \hlabel{e.tot.ref}
@@ -993,7 +1010,7 @@ Particle momentum amplitude.
 Momentum compaction factor. Also see \vn{r56_compaction} and \vn{momentum_compaction_ptc}.
 
   %----------------------
-  \item[momentum_compaction_ptc.$N$, $N = 1, 2, 3, \ldots$ ] \Newline \hlabel{mom.comp.ptc}
+  \item[momentum_compaction_ptc.$N$, $N = 1, 2, 3, \ldots$] \Newline \hlabel{mom.comp.ptc}
 Momentum compaction factor. Also see \vn{r56_compaction}.
 
 Momentum compaction Taylor series, which is a function of phase space $p_z$, as calculated from
@@ -1057,9 +1074,9 @@ Energy normalized projected emittance. The normalization is the standard gamma f
 
   %----------------------
   \item[normal.h.<monomial>.\{r,i,a\}] \Newline \hlabel{normal.h}
-Resonance driving terms \`a la \cite{b:bengtsson}.  For example: \vn{h210000}.
-These are the coefficients of the complex polynomial $h$ in Eqn.~\ref{normalform1}.
-The suffix \vn{.r}, \rn{.i}, and \rn{.a} specifies the real part, imaginary part, or absolute value.
+Resonance driving terms \`a la \cite{b:bengtsson}.  For example: \vn{h210000}.  These are the
+coefficients of the complex polynomial $h$ in \Eq{normalform1}.  The suffix \vn{.r}, \rn{.i}, and
+\rn{.a} specifies the real part, imaginary part, or absolute value.
 
 The order of the term is the sum of the digits in its monomial.  For example, \vn{h210000} is 3rd
 order and \vn{h201100} is 4th order.  If the term order exceeds the map order, then the term will be
@@ -1647,11 +1664,6 @@ turn in a branch. This being the case, the geometry of the branch is not pertine
 over all particles in the bunch. In this case, if \vn{ele_name} is not specified, it is taken to be
 the bunch tracking end point (which may not be the end of the branch).
 
-  %----------------------
-  \item[unstable.ring] \Newline \hlabel{unstable.ring}
-Deprecated. Replaced by \vn{unstable.lattice}.
-
-
 \begin{figure}
   \centering
   \includegraphics[width=5in]{building-wall-constraint.pdf}
@@ -1722,7 +1734,7 @@ See the previous section for a description of the data types.
 \index{etap}\index{phase}\index{orbit}\index{wire}\index{building wall}\index{spin}
 \index{cbar}\index{coupling}\index{floor}\index{r}\index{t}\index{tt}
 \index{rad_int.i5a_e6}\index{rad_int.i5b_e6}\index{s_position}\index{e_tot}
-\index{unstable.ring}\index{emittance}\index{chrom}\index{norm_emittance}
+\index{emittance}\index{chrom}\index{norm_emittance}
 \index{sigma}\index{dpx_dx}\index{dpy_dy}\index{dpz_dz}\index{dpa_da}
 \index{dpb_db}\index{rad_int.i1}\index{rad_int.i2}\index{rad_int.i2_e4}
 \index{rad_int.i3}\index{rad_int.i3_e7}
@@ -1769,9 +1781,9 @@ See the previous section for a description of the data types.
                               bunch_max.x, .y, .z, \\ 
                               \hspace{4em} .px, .py, .pz  
                             \end{tabular}                       & Max relative to centroid                  & beam        & No  \\ \hline
-  \pref{bunch.min}        & \begin{tabular}{@{}l}   
+  \pref{bunch.min}        & \begin{tabular}{@{}l}
                               bunch_min.x, .y, .z, \\ 
-                              \hspace{4em} .px, .py, .pz  
+                              \hspace{4em} .px, .py, .pz
                             \end{tabular}                       & Min relative to centroid                  & beam        & No  \\ \hline
   \pref{cmat}             & cmat.11, .12, .21, .22              & Coupling matrix elements                  & lat         & Yes \\ \hline 
   \pref{cmat}             & cbar.11, .12, .21, .22              & Normalized coupling matrix                & lat         & Yes \\ \hline 
@@ -1784,7 +1796,7 @@ See the previous section for a description of the data types.
   \pref{chrom.ptc}        & \begin{tabular}{@{}l}
                               chrom_ptc.a.$N$, \\
                               chrom_ptc.b.$N$, \\
-                              \hspace{5em} $N = 0, 1, \ldots$
+                              \hspace{4em} $N = 0, 1, \ldots$
                             \end{tabular}                       & Chromaticity Taylor terms                 & lat         & no  \\ \hline
   \pref{curly.h}          & curly_h.a, .b                       & \begin{tabular}{@{}l}
                                                                     Radiation integrals \\
@@ -1792,6 +1804,10 @@ See the previous section for a description of the data types.
                                                                   \end{tabular}                             & lat         & Yes \\ \hline
   \pref{damp}             & damp.j_a, .j_b, .j_z                & Damping partition number                  & lat         & No  \\ \hline
   \pref{dpx.dx}           & dpx_dx, dpx_dy, etc.                & Bunch <x px> / <$x^2$> \& Etc...          & beam        & No  \\ \hline 
+  \pref{da}               & \begin{tabular}{@{}l}
+                              dynamic_aperture.$N$, \\
+                              \hspace{4em} $N = 1, 2, 3 \ldots$
+                            \end{tabular}                       & Dynamic aperture                          & lat         & No  \\ \hline
   \pref{e.tot.ref}        & e_tot_ref                           & Lattice reference energy (eV)             & lat         & No  \\ \hline
   \pref{element.attrib}   & element_attrib.<attr_name>          & lattice element attribute                 & lat         & No  \\ \hline
   \pref{emit.a}           & emit.a, .b, .c                      & Emittance                                 & lat, beam   & No  \\ \hline
@@ -1940,10 +1956,6 @@ See the previous section for a description of the data types.
   \pref{unstable.orbit}   & unstable.orbit                      & \begin{tabular}{@{}l}   
                                                                     Nonzero if particles are \\
                                                                     lost in tracking
-                                                                  \end{tabular}                             & lat        & No  \\ \hline
-  \pref{unstable.ring}    & unstable.ring                       & \begin{tabular}{@{}l}
-                                                                    Deprecated!           \\
-                                                                    Use unstable.lattice  
                                                                   \end{tabular}                             & lat        & No  \\ \hline
   \pref{velocity}         & velocity                            & Normalized velocity $v/c$                 & lat, beam  & Yes \\ \hline
   \pref{velocity}         & velocity.x, .y, .z                  & Normalized velocity component             & lat, beam  & Yes \\ \hline

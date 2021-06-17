@@ -576,6 +576,7 @@ do  ! Loop over plot files
         crv%z_color1             = curve(j)%z_color1
         crv%data_type            = curve(j)%data_type
         crv%y_axis_scale_factor  = curve(j)%y_axis_scale_factor
+        crv%scale                = curve(j)%scale
         crv%symbol_every         = curve(j)%symbol_every
         crv%ix_universe          = curve(j)%ix_universe
         crv%draw_line            = curve(j)%draw_line

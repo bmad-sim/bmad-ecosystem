@@ -43,10 +43,8 @@ type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
-type (aperture_scan_struct), pointer :: scan
+type (tao_dynamic_aperture_struct), pointer :: da
 type (beam_struct) beam
-
-real(rp) tt
 
 integer iuni, j, ib, ix, n_max, iu, it, id
 
@@ -198,38 +196,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         endif
       endif
 
-      ! Dynamic aperture calc. Only for rings
-
-      if (u%calc%dynamic_aperture .and. u%dynamic_aperture%ix_branch == ib) then  
-        if (.not. rf_is_on(branch)) call reallocate_coord (orb, branch%n_ele_track)
-        do j = 1, size(u%dynamic_aperture%pz)
-          scan => u%dynamic_aperture%scan(j)
-          scan%param = u%dynamic_aperture%param
-          ! Check for open lattice. Only 1 turn is allowed
-          if (branch%param%geometry == open$ .and. (scan%param%n_turn > 1))then
-            call out_io (s_fatal$, r_name, 'DYNAMIC APERTURE CALC n_turn > 1 FOR OPEN LATTICE')
-            call err_exit       
-          endif
-            
-          if (rf_is_on(branch)) then
-            ! pz surrounds the closed orbit
-            scan%ref_orb = tao_branch%orbit(0)
-            scan%ref_orb%vec(6) = scan%ref_orb%vec(6) + u%dynamic_aperture%pz(j)
-          else
-            ! If the RF is off, new fixed points will be calculated for various pz
-            orb(0)%vec(6) = u%dynamic_aperture%pz(j)
-            call  closed_orbit_calc (tao_lat%lat, orb, 4, ix_branch = ib)
-            scan%ref_orb = orb(0)
-          endif
-      
-          call out_io (s_info$, r_name, 'Starting Dynamic aperture scan for pz: \f10.6\ ... ', r_array = [u%dynamic_aperture%pz(j)])
-          call run_timer ('START')
-          call dynamic_aperture_scan(tao_lat%lat%branch(ib), scan, parallel = .true.)
-          call run_timer ('READ', tt)
-          call out_io (s_info$, r_name, 'Computation time for aperture scan at this energy (min): \f8.2\ ', tt/60)
-        enddo
-      endif
-
       ! Note: The SRDT calc does not involve PTC.
 
       if (u%calc%srdt_for_data > 0) then
@@ -255,6 +221,13 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call tao_hook_branch_calc (u, tao_lat, branch)
 
     enddo branch_loop
+
+    ! Dynamic aperture calc. Only for rings
+
+    if (u%calc%dynamic_aperture) then
+      da => u%dynamic_aperture
+      call dynamic_aperture_scan(da%scan, da%param, da%pz, tao_lat%lat, print_timing = (.not. s%com%optimizer_running))
+    endif
 
     ! If calc is on common model then transfer data to base of all other universes
 

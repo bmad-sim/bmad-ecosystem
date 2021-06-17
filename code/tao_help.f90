@@ -25,7 +25,7 @@ integer, optional :: n_lines
 integer i, iu, ios, n, ix, ix2, nl
 
 character(*) :: what1, what2
-character(16) :: r_name = "TAO_HELP"
+character(*), parameter :: r_name = "tao_help"
 character(40) start_tag, left_over_eliminate, left_over_sub
 character(200) line, file_name, full_file_name
 character(*), optional, allocatable :: lines(:)

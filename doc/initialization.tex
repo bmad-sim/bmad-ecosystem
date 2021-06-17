@@ -355,7 +355,7 @@ first file on the list. All files, however, can contain \vn{tao_template_plot} a
   \vn{tao_design_lattice}            & Lattice Files      & \sref{s:init.lat}          \\ 
   \vn{tao_d1_data}                   & Data               & \sref{s:init.data}         \\ 
   \vn{tao_d2_data}                   & Data               & \sref{s:init.data}         \\ 
-  \vn{tao_dynamic_aperture}          & Dynamic Aperture   & \sref{s:dynamicaperture}   \\
+  \vn{tao_dynamic_aperture}          & Dynamic Aperture   & \sref{s:da.calc}           \\
   \vn{tao_params}                    & Global Parameters  & \sref{s:globals}           \\ 
   \vn{tao_plot_page}                 & Plotting           & \sref{s:init.plot}         \\ 
   \vn{tao_template_graph}            & Plotting           & \sref{s:init.plot}         \\ 
@@ -456,8 +456,8 @@ calculation can be toggled on/off by using the \vn{set universe one_turn_map_cal
 (\sref{s:set}).
 
 The \vn{design_lattice(i)%dynamic_aperture} component sets whether the dynamic aperture calculation
-(\sref{s:dynamicaperture}) will be done. After startup, this calculation can be toggled on/off by
-using the \vn{set universe dynamic_aperture_calc} command (\sref{s:set}).
+(\sref{s:da.calc}) will be done. After startup, this calculation can be toggled on/off by using the
+\vn{set universe dynamic_aperture_calc} command (\sref{s:set}).
 
 Normally, a lattice file will specify which ``line'' will be used to specify the
 lattice. Occasionally, it is convenient to override this specification and to use a different
@@ -1054,7 +1054,7 @@ Section~\sref{s:globals}.
 
 \end{description}
 
-\tao retracks the beam through the lattice every time a lattice parameter is changed. For example,
+\tao tracks the beam through the lattice every time a lattice parameter is changed. For example,
 during optimizations or when the \vn{set} command (\sref{s:set}) is used. For the retracking, the
 particle distribution at the beginning of the lattice is fixed. That is, the a new random
 distribution is {\emph not} generated. This can be important during optimizations since variations of
@@ -1721,25 +1721,60 @@ to the global coordinate system is
 %-----------------------------------------------------------------
 \section{Dynamic Aperture Calculation Initialization}
 \index{dynamic aperture}
-\label{s:dynamicaperture}
+\label{s:da.calc}
 
 \begin{figure}
   \centering
   \includegraphics[width=5in]{dynamic-aperture-rays.pdf}
   \caption{
-The calculation of a dynamic aperture curve in the $x$-$y$ plane at a given \vn{pz} offset involves
-calculating aperture curve points (blue dots) along a set of ``rays'' (dashed lines) having a common
-origin point ($\cal O$). The aperture curve is then constructed using linear interpolation between
-points. The calculation of an aperture curve point along a given ray involves iteratively tracking
-particles with different starting $(x, y)$ position values to find the boundary between stable
-(green dots) and unstable (red dots) motion.
+The calculation of a dynamic aperture curve in the $x$-$y$ plane at a given initial $p_z$ value
+involves calculating aperture curve points (blue dots) along a set of ``rays'' (dashed lines) having
+a common origin point ($\cal O$) which is taken to be the reference orbit. The line segments between
+points is simply for visualization purposes. The calculation of an aperture curve point along a
+given ray involves iteratively tracking particles with different starting $(x, y)$ position values
+to find the boundary between stable (green dots) and unstable (red dots) motion.
   }
   \label{f:da-rays}
 \end{figure}
 
-For rings, the dynamic aperture can be calculated and plotted. To calculate the dynamic aperture for
-the $i$\Th universe, the \vn{design(i)%dynamic_aperture_calc} parameter must be set True in the
-\vn{tao_design_lattice} namelist (\sref{s:init.lat}. Example:
+In a storage ring, the ``\vn{dynamic aperture}'' is the region in phase space within which a
+particle will stably oscillate. That is, the region within which the motion is bounded. This is in
+contrast to the ``\vn{physical aperture}'' which is defined by the vacuum chamber walls. Since it
+may take many turns for particle motion to become unstable, calculating the stability region for the
+full six-dimensional phase space is a time intensive process.  In light of this, \tao uses a
+simplified calculation as discussed below.
+
+In \tao, the motion of a particle is taken to be ``stable'' if the particle survives (does not hit
+the physical aperture or does not diverge to large amplitude) in tracking over some set number of
+turns.\footnote
+  {
+If the dynamic aperture is larger than the physical aperture the calculated boundary curve will
+reflect the physical aperture and not the dynamic aperture. In practice, this possible confusion is
+not a concern since if the dynamic aperture is outside the physical aperture there is no worry that
+the dynamic aperture will limit machine performance.
+  }
+ A typical number is 1000 turns. A dynamic aperture ``scan'' is the calculation of the dynamic
+aperture in $(x, y)$ space at some given initial phase space $p_z$ as illustrated in
+\fig{f:da-plot}. An $(x, y)$ point represents the initial $x$ and $y$ phase space position of
+the particle with the initial $p_x$, $p_y$, and $z$ values being set equal to the closed orbit
+values. To calculate an aperture curve for a given initial $p_z$, a set of ``rays" (dashed lines in
+the figure) are constructed. The rays have a common origin point ($\cal O$) which is the closed
+orbit $(x, y)$ point. On each ray, the boundary point between stable and unstable motion (blue
+points in the figure) is found by iteratively tracking particles with initial $(x, y)$ points on the
+ray (red and green dots) until the boundary point is determined with the specified accuracy.
+
+The origin point of the rays is taken to be the closed orbit at the given $p_z$ and RF off. This is
+true even if the RF is on for the tracking. The reason for this is that with the RF on, there is no
+well defined closed orbit at constant $p_z$ (since $p_z$ is not a constant of the motion with the RF
+on).
+
+Having the RF off when tracking suppresses synchrotron oscillation effects which may be
+important. It is therefore recommended to have the RF on unless there is a good reason for ignoring
+synchrotron oscillations. It is also recommended that the lattice element at which the tracking
+begins be in a zero dispersion region.
+
+To calculate the dynamic aperture for the $i$\Th universe, the \vn{design(i)%dynamic_aperture_calc}
+parameter must be set True in the \vn{tao_design_lattice} namelist (\sref{s:init.lat}). Example:
 \begin{example}
   &tao_design_lattice
     design_lattice(1)%file = "lat.bmad"
@@ -1758,69 +1793,90 @@ be repeatedly done.
 The \vn{show dynamic_aperture} command (\sref{s:show.da}) shows parameter values and the
 \vn{set dynamic_aperture} command (\sref{s:set.da}) can be used to change parameter values.
 
-If Tao is compiled with the appropriate OpenMP flags, the dynamic aperture calculation will be done
-in parallel.
+If Tao is compiled with \vn{OpenMP} enabled (\sref{s:openmp}), the dynamic aperture calculation will
+be done in parallel.
 
-To plot the results, an appropriate plot must be defined (\sref{s:dynamic.ap.plot}) and
-\vn{placed} in the plotting window (\sref{s:init.plot}. An example dynamic aperture plot is
-shown in Fig.~\ref{f:da-plot}.
+Parameters for the dynamic aperture simulation are set in the \vn{tao_dynamic_aperture} namelist
+(\sref{s:init.global} in the \tao root initialization file. Multiple \vn{tao_dynamic_aperture}
+namelists may be present if different universes need different parameter values. Example:
+\begin{example}
+  &tao_dynamic_aperture
+    ix_universe = -1             ! Universe to apply to. -1 = all universes.
+    pz = 0, 0.01, 0.15           ! List of phase space pz to start scans at.
+    a_emit = 1e-11               ! A-mode emittance. Used for data calc.
+    b_emit = 1e-13               ! B-mode emittance. Used for data calc.
+    da_param%start_ele = ''      ! Lattice element to start tracking at.
+    da_param%n_angle = 21        ! Number of angles in scan of each energy
+    da_param%min_angle = 0       ! Starting scan angle (rad).
+    da_param%max_angle = 3.1416  ! Ending scan angle (rad).
+    da_param%n_turn = 2000       ! Number of turns a particle must survive
+    da_param%rel_accuracy = 1e-2 ! Relative accuracy of boundary point.
+    da_param%abs_accuracy = 1e-5 ! Absolute accuracy of boundary point (meters).
+    da_param%x_init = 1e-3       ! Initial horizontal aperture estimate. Default: 1e-3 meters.
+    da_param%y_init = 1e-3       ! Initial vertical aperture estimate. Default: 1e-3 meters.
+  /
+\end{example}
+Parameters:
+\begin{description}
+\item[ix_universe] \Newline
+The \vn{ix_universe} parameter set which universe the parameters are applied to. Any universe index
+below a value of one results in the parameter values being applied to all universes.
+%
+\item[pz] \Newline
+The \vn{pz} parameter array is a list of $p_z$ values to use. The number of scans (dynamic aperture curves)
+that are produced is equal to the number of \vn{pz} values.
+%
+\item[a_emit, b_emit] \Newline
+Emittance values for the $a$ (``horizontal like'') and $b$ (``vertical like'') normal modes. The
+emittance values do not affect particle tracking but are used to draw the beam sigma ellipse in
+dynamic aperture plots (\sref{s:da.plot}) and to calculate the \vn{dynamic_aperture.$N$} datum values
+(\sref{s:data.types}). 
+%
+\item[da_param\%start_ele] \Newline
+This parameter sets the starting element for tracking. If not set, the beginning element of the
+root branch is used. \vn{da_param%start_ele} may be set to either the element name or element index.
+%
+\item[da_param\%n_angle] \Newline
+The number of boundary points calculated for a scan is set by the \vn{da_param%n_angle} parameter. 
+%
+\item[da_param\%min_angle, da_param\%max_angle] \Newline
+These parameters set the ray minimum and maximum angles, labeled $\theta$ in \fig{f:da-plot}, in a
+scan. In the example above the angle ranges from 0 to $pi$.  That is, the upper half-plane. These
+are typical settings since typically storage rings are vertically symmetric so the aperture curves
+should vertically symmetric as well.
+
+The angles between adjacent rays is not uniform but are rather calculated to give a roughly
+equal spacing between boundary points. This is done by looking at the aperture
+points on a horizontal and a vertical ray and then scaling the ray angles appropriately).
+
+%
+\item[da_param\%rel_accuracy, da_param\%abs_accuracy] \Newline
+These parameters set the relative and absolute accuracies that determine when the search for a
+boundary point is considered accurate enough.
+
+If $r = \sqrt{(x-x_0)^2 + (y-y_0)^2}$ is the distance
+along any ray of the computed boundary point, where $(x_0, y_0)$ are the coordinates of the origin
+point, the search for the boundary point will stop then the accuracy of the boundary point is below
+the desired accuracy $\sigma_{cut}$ which is computed from
+\begin{equation}
+  \sigma_{cut} = \sigma_a + r \, \sigma_r
+\end{equation}
+with $\sigma_a$ begin the absolute accuracy and $\sigma_r$ being the relative accuracy.
+%
+\item[da_param\%x_init, da_param\%y_init] \Newline
+These parameters set the initial $x$ and $y$ values used in the first two boundary point searches.
+The values of these parameters will not affect significantly affect the computed curve but will
+affect the computation time. If not set, these parameters will default to 0.001 meter.
+\end{description}
+
+To plot the results, an appropriate plot must be defined (\sref{s:da.plot}) and \vn{placed} in the
+plotting window (\sref{s:init.plot}. An example dynamic aperture plot is shown in
+Fig.~\ref{f:da-plot}.
 
 Example input files for calculating and plotting the dynamic aperture are at (\sref{s:examples}):
 \begin{example}
   \$ACC_ROOT_DIR/tao/examples/dynamic_aperture
 \end{example}
-
-Parameters for the dynamic aperture simulation are set in the \vn{tao_dynamic_aperture}
-namelist (\sref{s:init.global} in the \tao root initialization file. Example:
-\begin{example}
-  ! This defines parameters for universe 1.
-  &tao_dynamic_aperture
-   da_init(1)%ix_branch = 0         ! Lattice branch to use. 0 = default value.
-   da_init(1)%pz = 0, 0.01, 0.15    ! List of particle phase space pz.
-   da_init(1)%n_angle = 64          ! Number of angles in scan of each energy
-   da_init(1)%min_angle = 0         ! Starting scan angle (rad).
-   da_init(1)%max_angle = 3.14159   ! Ending scan angle (rad).
-   da_init(1)%n_turn = 2000         ! Number of turns a particle must survive
-   da_init(1)%x_init = 1e-3         ! initial estimate for horizontal aperture (meters).
-   da_init(1)%y_init = 1e-3         ! initial estimate for vertical aperture (meters).
-   da_init(1)%accuracy = 1e-5       ! resolution of bracketed aperture (meters)
-  /
-\end{example}
-Dynamic aperture parameters can be defined for each universe. In the above example, parameters are
-defined for universe 1. The \vn{pz} parameter array is a list of relative momenta to calculate the
-aperture for. One dynamic aperture curve will be produced for each value of \vn{pz}. A dynamic
-aperture curve represents the boundary in the $x$-$y$ plane such that if a particle is started with
-$p_z$ equal to the given \vn{pz}, and with starting $p_x$, $p_y$, and $z$ set as
-described below, then starting the particle with $(x, y)$ coordinates outside of the aperture curve
-will result in particle loss and starting the particle with $(x, y)$ coordinates inside the curve
-will result in particle survival. Here loss (``unstable motion'') and survival (``stable motion'')
-is defined by whether the particle hits an aperture or not over the number of turns set by
-\vn{%n_turn} (which is set to 2000 in the above example). The \vn{%ix_branch} parameter sets 
-which branch in the lattice is used for tracking.
-
-The calculation of an aperture curve is illustrated in Fig.~\ref{f:da-plot}. To calculate an
-aperture curve, a set of ``rays" (dashed lines) having a common origin point ($\cal O$) are
-constructed. On each ray, the boundary point between stable and unstable motion (blue points in the
-figure) is found by iteratively tracking particles with initial $(x, y)$ points on the ray. The
-aperture curve is then constructed using linear interpolation between points. The accuracy with
-which the boundary points are calculated is set by the \vn{%accuracy} parameter. The \vn{%x_init}
-and \vn{%y_init} values are used as a staring point for the boundary point search. The computed
-boundary curve will not depend upon these parameters but having initial values close to the boundary
-will same some computation time.
-
-If the RF is off, the origin point of the rays is taken to be the closed orbit at the given
-$p_z$. In this case, initial $p_x$ and $p_y$ are set to the closed orbit values, and $z$ is set to
-zero (the motion is independent of $z$ so this set does not matter). If the RF is on, the origin
-point, along with initial $p_x$, $p_y$, and $z$, are taken equal to the closed orbit (which is not
-affected by the initial $p_z$).
-
-The number of rays used is set by the \vn{%n_angle} parameter. In the above example, \vn{n_angle} is
-set to 64. The angle of the rays with respect to the $x$-axis ($\theta$ in the figure) will range
-from \vn{%min_angle} to \vn{%max_angle}. In the example above the angle ranges from 0 to $pi$.  That
-is, the upper half-plane. These are typical settings since typically storage rings are vertically
-symmetric so the aperture curves should vertically symmetric as well. The angle between rays is not
-uniform but is adjusted to give roughly equally spaced points (this is done by looking at the aperture
-points on a horizontal and a vertical ray and then scaling the ray angles appropriately).
 
 %-----------------------------------------------------------------
 \section{Initializing Plotting}
@@ -2221,7 +2277,7 @@ following types:
 \index{floor_plan}\index{beam_chamber_wall}
 \begin{example}
   "data"               ! Lattice parameters, data and/or variable plots (default) (\sref{s:plot.data}).
-  "dynamic_aperture"   ! Dynamic aperture plot (\sref{s:dynamic.ap.plot}
+  "dynamic_aperture"   ! Dynamic aperture plot (\sref{s:da.plot}
   "floor_plan"         ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
   "histogram"          ! Histogram of plot (\sref{s:histogram}).
   "key_table"          ! Key binding table for single mode (\sref{s:key.table}).
@@ -2995,7 +3051,7 @@ To draw an aperture, a curve's \vn{data_source} parameter must be set to \vn{"ap
 \end{example}
 The apertures in the $+x$ and $+y$ directions will have positive values and the apertures in the
 $-x$ and $-y$ directions will have negative values. Set the curve's \vn{y_axis_scale_factor} to scale
-tye aperture curve if needed.
+the aperture curve if needed.
 
 The following example will graphs the horizontal orbit along with the horizontal apertures.
 \begin{example}
@@ -3023,19 +3079,23 @@ The following example will graphs the horizontal orbit along with the horizontal
 \end{example}
 Note: Aperture curves will ignore the \vn{curve%component} parameter.
 
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{dynamic-aperture.pdf}
+  \caption{Example dynamic aperture plot.}
+  \label{f:da-plot}
+\end{figure}
+
 %-----------------------------------------------------------------
 \subsection{Drawing Dynamic Aperture Curves}
 \index{dynamic aperture drawing}
-\label{s:dynamic.ap.plot}
+\label{s:da.plot}
 
-A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture
-calculation (\sref{s:dynamicaperture}). Example plot setup:
+A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture calculation (\sref{s:da.calc}).
+Example plot setup:
 \begin{example}
 &tao_template_plot
   plot%name = "da"
-  plot%x%min = -20
-  plot%x%max =  20
-  plot%x%major_div_nominal = 10
   plot%x%label = "x (mm)"
   plot%x_axis_type = "phase_space"
   plot%n_graph = 1
@@ -3045,46 +3105,45 @@ calculation (\sref{s:dynamicaperture}). Example plot setup:
   graph%name = "g1"
   graph%type = "dynamic_aperture"
   graph_index = 1
-  graph%title = "dynamic aperture"
-  graph%margin =  0.15, 0.06, 0.12, 0.12, "%BOX"
-  graph%x_axis_scale_factor = 1000
+  graph%x_axis_scale_factor = 1000  ! Plot in mm.
   graph%y%label = "y (mm)"
-  graph%y%label_offset = .2
-  graph%y%major_div = 4
-  graph%n_curve = 3
-  curve(1:3)%y_axis_scale_factor = 3*1000
-  curve(1:3)%draw_symbols = 3*F
-  curve(3)%data_type = "physical_aperture"
-  curve(3)%line%color = "red"
-  curve(3)%line%width = 5 
+  graph%n_curve = 10
+  curve(1)%line%color = "red"
+  curve(1)%data_type = 'beam_ellipse'
+  curve(1)%line%width = 5
+  curve(1)%scale = 10              ! Draw beam ellipse at 10 sigma
+  curve(1)%legend_text = '10 sigma beam ellipse'
+  curve(1)%draw_symbols = F
+  curve(1:10)%y_axis_scale_factor = 10*1000  ! Plot in mm.
+  curve(2:10)%draw_symbols = 9*T
+  curve(2:10)%data_type = 9*"dynamic_aperture"
+  curve(2:10)%data_index = 1, 2, 3, 4, 5, 6, 7, 8, 9
+  curve(3)%symbol%color = "purple"
+  curve(3)%line%color = "purple"
 /
 \end{example}
-This produces Fig.~\ref{f:da-plot}.  Each curve represents a single momentum
-calculation.  If there are more momenta than curves (as in this case), additional curves will
-automatically be created using the styles of the previous curves. Note that apertures are calculated
-at element 0.
+This will produce a plot similar to Fig.~\ref{f:da-plot}.  Each curve represents a dynamic aperture
+scan at fixed initial momentum $p_z$.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=5in]{dynamic-aperture.pdf}
-  \caption{Example dynamic aperture plot.}
-  \label{f:da-plot}
-\end{figure}
-
-If there is a curve with \vn{%data_type} set to \vn{"physical_aperture"}, and if there is a lattice
-element at $s = 0$ that has an aperture set, this physical aperture will be drawn. Example: In the
-\bmad lattice file define a marker element with an aperture and superimpose the marker at the
-beginning of the lattice:
+Dynamic aperture curves can have the following \vn{%data_type} parameters:
 \begin{example}
-  m: marker, x_limit = 0.045, y_limit = 0.025, superimpose
+  "dynamic_aperture"          ! Curve points include the reference orbit offset.
+  "dynamic_aperture_centered" ! Curve points are plotted relative to the reference orbit.
+  "beam_ellipse"              ! Draws the beam ellipse within the [min_angle, max_angle] range.
+  "beam_ellipse_full"         ! Draws the entire beam ellipse.
 \end{example}
 
-Dynamic aperture curves can have the following \vn{%data_type}:
-\begin{example}
-  "dynamic_aperture" or ""    ! (default) points include the reference orbit
-  "dynamic_aperture_centered" ! points are centered (relative to) the reference orbit
-  "physical_aperture"         ! draws the physical aperture based on x1_limit, etc. 
-\end{example}
+In the above example, the first curve has \vn{%data_type} set to \vn{"beam_ellipse"}. This results
+in the half ellipse in red since the [min_angle, max_angle] set in the \vn{tao_dynamic_aperture}
+namelist for this example was [0, pi]. If the entire ellipse is desired to be drawn, the
+\vn{%data_type} can be set to \vn{"beam_ellipse_full"}. The beam ellipse is set by the curve's
+\vn{%scale} value. In this example, the $10 \, \sigma$ ellipse is drawn. 
+
+There are 10 curves defined in the example. Curves 2 through 10 have \vn{%data_type} set to
+\vn{"dynamic_aperture"}. Each curve here represents one dynamic aperture scan. The scan index is set
+by a curve's \vn{%data_index} parameter. An index of "1" denotes the first scan with the initial
+momentum set by the first value in the \vn{pz} array set in the \vn{tao_dynamic_aperture} namelist
+(\sref{s:da.calc}). If a curve has an index that is greater than the number of scans, that curve is ignored.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Histogram}

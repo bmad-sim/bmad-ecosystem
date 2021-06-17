@@ -1000,9 +1000,9 @@ case ('da_aperture')
   endif
 
   do i = 1, size(da%scan)
-    do j = 1, size(da%scan(i)%aperture)
+    do j = 1, size(da%scan(i)%point)
       nl=incr(nl); write (li(nl), '(2(i0, a), 2(es14.6, a))') i, ';', j, ';', &
-                                                       da%scan(i)%aperture(j)%x, ';', da%scan(i)%aperture(j)%y
+                                                       da%scan(i)%point(j)%x, ';', da%scan(i)%point(j)%y
     enddo
   enddo
 
@@ -1038,14 +1038,15 @@ case ('da_params')
     return
   endif
 
-  nl=incr(nl); write (li(nl), rmt) 'min_angle;REAL;T;',    da%param%min_angle
-  nl=incr(nl); write (li(nl), rmt) 'max_angle;REAL;T;',    da%param%max_angle
-  nl=incr(nl); write (li(nl), rmt) 'n_angle;REAL;T;',      da%param%n_angle
-  nl=incr(nl); write (li(nl), rmt) 'n_turn;REAL;T;',       da%param%n_turn
-  nl=incr(nl); write (li(nl), rmt) 'x_init;REAL;T;',       da%param%x_init
-  nl=incr(nl); write (li(nl), rmt) 'y_init;REAL;T;',       da%param%y_init
-  nl=incr(nl); write (li(nl), rmt) 'accuracy;REAL;T;',     da%param%accuracy
-  nl=incr(nl); write (li(nl), ramt) 'pz;REAL_ARR;T',       (';', da%pz(i), i = 1, size(da%pz))
+  nl=incr(nl); write (li(nl), rmt)  'min_angle;REAL;T;',    da%param%min_angle
+  nl=incr(nl); write (li(nl), rmt)  'max_angle;REAL;T;',    da%param%max_angle
+  nl=incr(nl); write (li(nl), rmt)  'n_angle;REAL;T;',      da%param%n_angle
+  nl=incr(nl); write (li(nl), rmt)  'n_turn;REAL;T;',       da%param%n_turn
+  nl=incr(nl); write (li(nl), rmt)  'x_init;REAL;T;',       da%param%x_init
+  nl=incr(nl); write (li(nl), rmt)  'y_init;REAL;T;',       da%param%y_init
+  nl=incr(nl); write (li(nl), rmt)  'rel_accuracy;REAL;T;', da%param%rel_accuracy
+  nl=incr(nl); write (li(nl), rmt)  'abs_accuracy;REAL;T;', da%param%abs_accuracy
+  nl=incr(nl); write (li(nl), ramt) 'pz;REAL_ARR;T',        (';', da%pz(i), i = 1, size(da%pz))
 
 !%% data -----------------------
 ! Individual datum info.

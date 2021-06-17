@@ -5,12 +5,12 @@ the plot page) is broken up.
 
 &tao_plot_page
   include_default_plots = True
-  plot_page%size = 600, 450
+  plot_page%size = 600, 400
   plot_page%text_height = 12.0 
-  plot_page%border = 0, 0, 0, 0, '%PAGE'  
-  plot_page%title(1)%string = 'Dynamic Aperture Demo'
-  region(1) = 'all'    0.0, 1.0, 0.0, 0.95
-  place(1) = 'all', 'da'
+  plot_page%border = 0, 0, 0, 0, "%PAGE"  
+  plot_page%title(1)%string = "Dynamic Aperture Demo"
+  region(1) = "all"    0.0, 1.0, 0.0, 0.95
+  place(1) = "all", "da"
 /
 
 
@@ -19,40 +19,39 @@ Templates define the basics of, say, how to display an orbit.
 
 ! dynamic aperture
 &tao_template_plot
-  plot%name = 'da'
+  plot%name = "da"
   plot%x%min = 0
   plot%x%max = 0
   plot%x%major_div_nominal = 10
-  plot%x%label = 'x (mm)'
-  plot%x_axis_type = 'phase_space'
+  plot%x%label = "x (mm)"
+  plot%x_axis_type = "phase_space"
   plot%n_graph = 1
 /
 
 &tao_template_graph
-  graph%name = 'g1'
-  graph%type = 'dynamic_aperture'
+  graph%name = "g1"
+  graph%type = "dynamic_aperture"
   graph_index = 1
   !graph%box = 1, 2, 1, 2
-  graph%title = 'Dynamic Aperture'
-  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%title = "Dynamic Aperture"
+  graph%margin =  0.15, 0.06, 0.12, 0.12, "%BOX"
   graph%x_axis_scale_factor = 1000
-  graph%y%label = 'y (mm)'
+  graph%y%label = "y (mm)"
   graph%y%label_offset = .2
-  graph%y%max = 8
+  graph%y%max = 0
   graph%y%min = 0
   graph%y%major_div = 4
-  graph%n_curve = 4
+  graph%n_curve = 10
   curve(1)%line%color = "red"
-  curve(1)%data_type = 'physical_aperture'
+  curve(1)%data_type = "beam_ellipse"
   curve(1)%line%width = 5
-  curve(1)%y_axis_scale_factor = 1000
-  curve(2)%y_axis_scale_factor = 1000
-  curve(3)%y_axis_scale_factor = 1000
-  curve(4)%y_axis_scale_factor = 1000
+  curve(1)%scale = 10   ! Draw beam ellipse at 10 sigma
+  curve(1)%legend_text = "10 sigma beam ellipse"
   curve(1)%draw_symbols = F
-  curve(2)%draw_symbols = T
-  curve(3)%draw_symbols = T
-  curve(4)%draw_symbols = T
+  curve(1:10)%y_axis_scale_factor = 10*1000
+  curve(2:10)%draw_symbols = 9*T
+  curve(2:10)%data_type = 9*"dynamic_aperture"
+  curve(2:10)%data_index = 1, 2, 3, 4, 5, 6, 7, 8, 9
   curve(3)%symbol%color = "purple"
   curve(3)%line%color = "purple"
  /

@@ -86,6 +86,7 @@ type tao_curve_input
   character(40) :: units = ''
   character(60) :: component = ''
   real(rp) :: y_axis_scale_factor = 1
+  real(rp) :: scale = 1
   real(rp) :: z_color0 = 0, z_color1 = 0
   integer :: symbol_every = 1
   integer :: ix_universe = -1
@@ -217,17 +218,6 @@ type tao_ele_shape_input
   logical :: draw = .true.           ! Draw the shape?
   logical :: multi = .false.         ! Can be part of a multi-shape.
   integer :: line_width = 1          ! Width of lines used to draw the shape.
-end type
-
-type tao_dynamic_aperture_input
-  real(rp) :: min_angle = 0
-  real(rp) :: max_angle = pi
-  integer :: n_angle   = 9
-  integer :: n_turn = 100         ! Number of turns a particle must survive
-  real(rp) :: x_init = 1e-3_rp    ! Initial x coordinate to start with for theta_xy = 0.
-  real(rp) :: y_init = 1e-3_rp    ! Initial y coordinate to start with for theta_xy = pi/2.
-  real(rp) :: accuracy = 1e-5_rp  ! Resolution of bracketed aperture
-  real(rp) :: pz(100) = real_garbage$  
 end type
 
 contains

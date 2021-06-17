@@ -531,7 +531,7 @@ call tao_point_d1_to_data (d1_this, u%data(n1:n2), ix_min_data)
 
 ! In a d1_data array, not all the datums need to exist. 
 ! If a datum is not associated with an element, that generally means that
-! it does not exist. There are, however, a few exceptions. EG: unstable.ring, etc.
+! it does not exist. There are, however, a few exceptions. EG: unstable.lattice, etc.
 ! Here we mark data%exists for such datums.
 ! Also determine if we need to do the radiation integrals. This can save a lot of time.
 
