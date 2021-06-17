@@ -1289,12 +1289,14 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.sr_wakes_on == y.sr_wakes_on);
   is_eq = is_eq && (x.lr_wakes_on == y.lr_wakes_on);
   is_eq = is_eq && (x.mat6_track_symmetric == y.mat6_track_symmetric);
+  is_eq = is_eq && (x.orientation_to_ptc_design == y.orientation_to_ptc_design);
   is_eq = is_eq && (x.auto_bookkeeper == y.auto_bookkeeper);
   is_eq = is_eq && (x.csr_and_space_charge_on == y.csr_and_space_charge_on);
   is_eq = is_eq && (x.spin_tracking_on == y.spin_tracking_on);
   is_eq = is_eq && (x.backwards_time_tracking_on == y.backwards_time_tracking_on);
   is_eq = is_eq && (x.spin_sokolov_ternov_flipping_on == y.spin_sokolov_ternov_flipping_on);
   is_eq = is_eq && (x.radiation_damping_on == y.radiation_damping_on);
+  is_eq = is_eq && (x.radiation_zero_average == y.radiation_zero_average);
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
@@ -1438,6 +1440,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.ix_pointer == y.ix_pointer);
   is_eq = is_eq && (x.ixx == y.ixx);
   is_eq = is_eq && (x.iyy == y.iyy);
+  is_eq = is_eq && (x.izz == y.izz);
   is_eq = is_eq && (x.mat6_calc_method == y.mat6_calc_method);
   is_eq = is_eq && (x.tracking_method == y.tracking_method);
   is_eq = is_eq && (x.spin_tracking_method == y.spin_tracking_method);
@@ -1625,7 +1628,7 @@ template bool is_all_equal (const CPP_beam_MATRIX&, const CPP_beam_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_aperture_data& x, const CPP_aperture_data& y) {
+bool operator== (const CPP_aperture_point& x, const CPP_aperture_point& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.x == y.x);
   is_eq = is_eq && (x.y == y.y);
@@ -1635,8 +1638,8 @@ bool operator== (const CPP_aperture_data& x, const CPP_aperture_data& y) {
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_aperture_data_ARRAY&, const CPP_aperture_data_ARRAY&);
-template bool is_all_equal (const CPP_aperture_data_MATRIX&, const CPP_aperture_data_MATRIX&);
+template bool is_all_equal (const CPP_aperture_point_ARRAY&, const CPP_aperture_point_ARRAY&);
+template bool is_all_equal (const CPP_aperture_point_MATRIX&, const CPP_aperture_point_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -1648,7 +1651,9 @@ bool operator== (const CPP_aperture_param& x, const CPP_aperture_param& y) {
   is_eq = is_eq && (x.n_turn == y.n_turn);
   is_eq = is_eq && (x.x_init == y.x_init);
   is_eq = is_eq && (x.y_init == y.y_init);
-  is_eq = is_eq && (x.accuracy == y.accuracy);
+  is_eq = is_eq && (x.rel_accuracy == y.rel_accuracy);
+  is_eq = is_eq && (x.abs_accuracy == y.abs_accuracy);
+  is_eq = is_eq && (x.start_ele == y.start_ele);
   return is_eq;
 };
 
@@ -1659,10 +1664,9 @@ template bool is_all_equal (const CPP_aperture_param_MATRIX&, const CPP_aperture
 
 bool operator== (const CPP_aperture_scan& x, const CPP_aperture_scan& y) {
   bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.aperture, y.aperture);
-  is_eq = is_eq && (x.param == y.param);
+  is_eq = is_eq && is_all_equal(x.point, y.point);
   is_eq = is_eq && (x.ref_orb == y.ref_orb);
-  is_eq = is_eq && (x.s_xy == y.s_xy);
+  is_eq = is_eq && (x.pz_start == y.pz_start);
   return is_eq;
 };
 

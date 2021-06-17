@@ -91,7 +91,7 @@ call test1_f_lat(ok); if (.not. ok) all_ok = .false.
 call test1_f_bunch(ok); if (.not. ok) all_ok = .false.
 call test1_f_bunch_params(ok); if (.not. ok) all_ok = .false.
 call test1_f_beam(ok); if (.not. ok) all_ok = .false.
-call test1_f_aperture_data(ok); if (.not. ok) all_ok = .false.
+call test1_f_aperture_point(ok); if (.not. ok) all_ok = .false.
 call test1_f_aperture_param(ok); if (.not. ok) all_ok = .false.
 call test1_f_aperture_scan(ok); if (.not. ok) all_ok = .false.
 

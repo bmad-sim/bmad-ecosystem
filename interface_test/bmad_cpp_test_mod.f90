@@ -7543,31 +7543,35 @@ rhs = 27 + offset; F%lr_wakes_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 28 + offset; F%mat6_track_symmetric = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
+rhs = 29 + offset; F%orientation_to_ptc_design = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%csr_and_space_charge_on = (modulo(rhs, 2) == 0)
+rhs = 30 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 31 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
+rhs = 31 + offset; F%csr_and_space_charge_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 32 + offset; F%backwards_time_tracking_on = (modulo(rhs, 2) == 0)
+rhs = 32 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 33 + offset; F%spin_sokolov_ternov_flipping_on = (modulo(rhs, 2) == 0)
+rhs = 33 + offset; F%backwards_time_tracking_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 34 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
+rhs = 34 + offset; F%spin_sokolov_ternov_flipping_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 35 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
+rhs = 35 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 36 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
+rhs = 36 + offset; F%radiation_zero_average = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 37 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
+rhs = 37 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 38 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
+rhs = 38 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 39 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+rhs = 39 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 40 + offset; F%ptc_print_info_messages = (modulo(rhs, 2) == 0)
+rhs = 40 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 41 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 41 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 42 + offset; F%ptc_print_info_messages = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 43 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 
@@ -8259,49 +8263,51 @@ rhs = 81 + offset; F%ixx = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 82 + offset; F%iyy = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 83 + offset; F%mat6_calc_method = rhs
+rhs = 83 + offset; F%izz = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 84 + offset; F%tracking_method = rhs
+rhs = 84 + offset; F%mat6_calc_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 85 + offset; F%spin_tracking_method = rhs
+rhs = 85 + offset; F%tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 86 + offset; F%csr_method = rhs
+rhs = 86 + offset; F%spin_tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 87 + offset; F%space_charge_method = rhs
+rhs = 87 + offset; F%csr_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 88 + offset; F%ptc_integration_type = rhs
+rhs = 88 + offset; F%space_charge_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 89 + offset; F%field_calc = rhs
+rhs = 89 + offset; F%ptc_integration_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 90 + offset; F%aperture_at = rhs
+rhs = 90 + offset; F%field_calc = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 91 + offset; F%aperture_type = rhs
+rhs = 91 + offset; F%aperture_at = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 92 + offset; F%ref_species = rhs
+rhs = 92 + offset; F%aperture_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 93 + offset; F%orientation = rhs
+rhs = 93 + offset; F%ref_species = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 94 + offset; F%orientation = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 94 + offset; F%symplectify = (modulo(rhs, 2) == 0)
+rhs = 95 + offset; F%symplectify = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 95 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
+rhs = 96 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 96 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
+rhs = 97 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 97 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
+rhs = 98 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 98 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
+rhs = 99 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 99 + offset; F%field_master = (modulo(rhs, 2) == 0)
+rhs = 100 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 100 + offset; F%is_on = (modulo(rhs, 2) == 0)
+rhs = 101 + offset; F%is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 101 + offset; F%logic = (modulo(rhs, 2) == 0)
+rhs = 102 + offset; F%logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 102 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
+rhs = 103 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 103 + offset; F%select = (modulo(rhs, 2) == 0)
+rhs = 104 + offset; F%select = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 104 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
+rhs = 105 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
 
 end subroutine set_ele_test_pattern
 
@@ -9218,18 +9224,18 @@ end subroutine set_beam_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_aperture_data (ok)
+subroutine test1_f_aperture_point (ok)
 
 implicit none
 
-type(aperture_data_struct), target :: f_aperture_data, f2_aperture_data
+type(aperture_point_struct), target :: f_aperture_point, f2_aperture_point
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_aperture_data (c_aperture_data, c_ok) bind(c)
+  subroutine test_c_aperture_point (c_aperture_point, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_aperture_data
+    type(c_ptr), value :: c_aperture_point
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -9237,58 +9243,58 @@ end interface
 !
 
 ok = .true.
-call set_aperture_data_test_pattern (f2_aperture_data, 1)
+call set_aperture_point_test_pattern (f2_aperture_point, 1)
 
-call test_c_aperture_data(c_loc(f2_aperture_data), c_ok)
+call test_c_aperture_point(c_loc(f2_aperture_point), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_aperture_data_test_pattern (f_aperture_data, 4)
-if (f_aperture_data == f2_aperture_data) then
-  print *, 'aperture_data: C side convert C->F: Good'
+call set_aperture_point_test_pattern (f_aperture_point, 4)
+if (f_aperture_point == f2_aperture_point) then
+  print *, 'aperture_point: C side convert C->F: Good'
 else
-  print *, 'aperture_data: C SIDE CONVERT C->F: FAILED!'
+  print *, 'aperture_point: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_aperture_data
+end subroutine test1_f_aperture_point
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_aperture_data (c_aperture_data, c_ok) bind(c)
+subroutine test2_f_aperture_point (c_aperture_point, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_aperture_data
-type(aperture_data_struct), target :: f_aperture_data, f2_aperture_data
+type(c_ptr), value ::  c_aperture_point
+type(aperture_point_struct), target :: f_aperture_point, f2_aperture_point
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call aperture_data_to_f (c_aperture_data, c_loc(f_aperture_data))
+call aperture_point_to_f (c_aperture_point, c_loc(f_aperture_point))
 
-call set_aperture_data_test_pattern (f2_aperture_data, 2)
-if (f_aperture_data == f2_aperture_data) then
-  print *, 'aperture_data: F side convert C->F: Good'
+call set_aperture_point_test_pattern (f2_aperture_point, 2)
+if (f_aperture_point == f2_aperture_point) then
+  print *, 'aperture_point: F side convert C->F: Good'
 else
-  print *, 'aperture_data: F SIDE CONVERT C->F: FAILED!'
+  print *, 'aperture_point: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_aperture_data_test_pattern (f2_aperture_data, 3)
-call aperture_data_to_c (c_loc(f2_aperture_data), c_aperture_data)
+call set_aperture_point_test_pattern (f2_aperture_point, 3)
+call aperture_point_to_c (c_loc(f2_aperture_point), c_aperture_point)
 
-end subroutine test2_f_aperture_data
+end subroutine test2_f_aperture_point
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_aperture_data_test_pattern (F, ix_patt)
+subroutine set_aperture_point_test_pattern (F, ix_patt)
 
 implicit none
 
-type(aperture_data_struct) F
+type(aperture_point_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -9306,7 +9312,7 @@ rhs = 4 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 5 + offset; F%i_turn = rhs
 
-end subroutine set_aperture_data_test_pattern
+end subroutine set_aperture_point_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -9402,7 +9408,13 @@ rhs = 5 + offset; F%x_init = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 6 + offset; F%y_init = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%accuracy = rhs
+rhs = 7 + offset; F%rel_accuracy = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 8 + offset; F%abs_accuracy = rhs
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%start_ele)
+  F%start_ele(jd1:jd1) = char(ichar("a") + modulo(100+9+offset+jd1, 26))
+enddo
 
 end subroutine set_aperture_param_test_pattern
 
@@ -9490,19 +9502,17 @@ offset = 100 * ix_patt
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%aperture)) deallocate (F%aperture)
+  if (allocated(F%point)) deallocate (F%point)
 else
-  if (.not. allocated(F%aperture)) allocate (F%aperture(-1:1))
-  do jd1 = 1, size(F%aperture,1); lb1 = lbound(F%aperture,1) - 1
-    call set_aperture_data_test_pattern (F%aperture(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%point)) allocate (F%point(-1:1))
+  do jd1 = 1, size(F%point,1); lb1 = lbound(F%point,1) - 1
+    call set_aperture_point_test_pattern (F%point(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 !! f_side.test_pat[type, 0, NOT]
-call set_aperture_param_test_pattern (F%param, ix_patt)
-!! f_side.test_pat[type, 0, NOT]
 call set_coord_test_pattern (F%ref_orb, ix_patt)
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%s_xy = rhs
+rhs = 4 + offset; F%pz_start = rhs
 
 end subroutine set_aperture_scan_test_pattern
 

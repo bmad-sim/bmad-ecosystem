@@ -5121,43 +5121,49 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 28 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
+  rhs = 29 + offset; C.orientation_to_ptc_design = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.csr_and_space_charge_on = (rhs % 2 == 0);
+  rhs = 30 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.spin_tracking_on = (rhs % 2 == 0);
+  rhs = 31 + offset; C.csr_and_space_charge_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.backwards_time_tracking_on = (rhs % 2 == 0);
+  rhs = 32 + offset; C.spin_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 33 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
+  rhs = 33 + offset; C.backwards_time_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.radiation_damping_on = (rhs % 2 == 0);
+  rhs = 34 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
+  rhs = 35 + offset; C.radiation_damping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
+  rhs = 36 + offset; C.radiation_zero_average = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 37 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 37 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 38 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+  rhs = 38 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 39 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+  rhs = 39 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 40 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
+  rhs = 40 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 41 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 41 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 42 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 43 + offset; C.debug = (rhs % 2 == 0);
 
 
 }
@@ -5714,70 +5720,73 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   rhs = 82 + offset; C.iyy = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 83 + offset; C.mat6_calc_method = rhs;
+  rhs = 83 + offset; C.izz = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 84 + offset; C.tracking_method = rhs;
+  rhs = 84 + offset; C.mat6_calc_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 85 + offset; C.spin_tracking_method = rhs;
+  rhs = 85 + offset; C.tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 86 + offset; C.csr_method = rhs;
+  rhs = 86 + offset; C.spin_tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 87 + offset; C.space_charge_method = rhs;
+  rhs = 87 + offset; C.csr_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 88 + offset; C.ptc_integration_type = rhs;
+  rhs = 88 + offset; C.space_charge_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 89 + offset; C.field_calc = rhs;
+  rhs = 89 + offset; C.ptc_integration_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 90 + offset; C.aperture_at = rhs;
+  rhs = 90 + offset; C.field_calc = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 91 + offset; C.aperture_type = rhs;
+  rhs = 91 + offset; C.aperture_at = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 92 + offset; C.ref_species = rhs;
+  rhs = 92 + offset; C.aperture_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 93 + offset; C.orientation = rhs;
+  rhs = 93 + offset; C.ref_species = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 94 + offset; C.orientation = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 94 + offset; C.symplectify = (rhs % 2 == 0);
+  rhs = 95 + offset; C.symplectify = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 95 + offset; C.mode_flip = (rhs % 2 == 0);
+  rhs = 96 + offset; C.mode_flip = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 96 + offset; C.multipoles_on = (rhs % 2 == 0);
+  rhs = 97 + offset; C.multipoles_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 97 + offset; C.scale_multipoles = (rhs % 2 == 0);
+  rhs = 98 + offset; C.scale_multipoles = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 98 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
+  rhs = 99 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 99 + offset; C.field_master = (rhs % 2 == 0);
+  rhs = 100 + offset; C.field_master = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 100 + offset; C.is_on = (rhs % 2 == 0);
+  rhs = 101 + offset; C.is_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 101 + offset; C.logic = (rhs % 2 == 0);
+  rhs = 102 + offset; C.logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 102 + offset; C.bmad_logic = (rhs % 2 == 0);
+  rhs = 103 + offset; C.bmad_logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 103 + offset; C.select = (rhs % 2 == 0);
+  rhs = 104 + offset; C.select = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 104 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
+  rhs = 105 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
 
 
 }
@@ -6487,9 +6496,9 @@ extern "C" void test_c_beam (Opaque_beam_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_aperture_data (CPP_aperture_data&, bool&);
+extern "C" void test2_f_aperture_point (CPP_aperture_point&, bool&);
 
-void set_CPP_aperture_data_test_pattern (CPP_aperture_data& C, int ix_patt) {
+void set_CPP_aperture_point_test_pattern (CPP_aperture_point& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -6513,37 +6522,37 @@ void set_CPP_aperture_data_test_pattern (CPP_aperture_data& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_aperture_data (Opaque_aperture_data_class* F, bool& c_ok) {
+extern "C" void test_c_aperture_point (Opaque_aperture_point_class* F, bool& c_ok) {
 
-  CPP_aperture_data C, C2;
+  CPP_aperture_point C, C2;
 
   c_ok = true;
 
-  aperture_data_to_c (F, C);
-  set_CPP_aperture_data_test_pattern (C2, 1);
+  aperture_point_to_c (F, C);
+  set_CPP_aperture_point_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " aperture_data: C side convert F->C: Good" << endl;
+    cout << " aperture_point: C side convert F->C: Good" << endl;
   } else {
-    cout << " aperture_data: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " aperture_point: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_aperture_data_test_pattern (C2, 2);
+  set_CPP_aperture_point_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_aperture_data (C2, c_ok2);
+  test2_f_aperture_point (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_aperture_data_test_pattern (C, 3);
+  set_CPP_aperture_point_test_pattern (C, 3);
   if (C == C2) {
-    cout << " aperture_data: F side convert F->C: Good" << endl;
+    cout << " aperture_point: F side convert F->C: Good" << endl;
   } else {
-    cout << " aperture_data: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " aperture_point: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_aperture_data_test_pattern (C2, 4);
-  aperture_data_to_f (C2, F);
+  set_CPP_aperture_point_test_pattern (C2, 4);
+  aperture_point_to_f (C2, F);
 
 }
 
@@ -6575,8 +6584,15 @@ void set_CPP_aperture_param_test_pattern (CPP_aperture_param& C, int ix_patt) {
   rhs = 6 + offset; C.y_init = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.accuracy = rhs;
+  rhs = 7 + offset; C.rel_accuracy = rhs;
 
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 8 + offset; C.abs_accuracy = rhs;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.start_ele.resize(40);
+  for (unsigned int i = 0; i < C.start_ele.size(); i++)
+    {int rhs = 101 + i + 9 + offset; C.start_ele[i] = 'a' + rhs % 26;}
 
 }
 
@@ -6627,20 +6643,17 @@ void set_CPP_aperture_scan_test_pattern (CPP_aperture_scan& C, int ix_patt) {
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.aperture.resize(0);
+    C.point.resize(0);
   else {
-    C.aperture.resize(3);
-    for (unsigned int i = 0; i < C.aperture.size(); i++)  {set_CPP_aperture_data_test_pattern(C.aperture[i], ix_patt+i+1);}
+    C.point.resize(3);
+    for (unsigned int i = 0; i < C.point.size(); i++)  {set_CPP_aperture_point_test_pattern(C.point[i], ix_patt+i+1);}
   }
-
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_aperture_param_test_pattern(C.param, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_coord_test_pattern(C.ref_orb, ix_patt);
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.s_xy = rhs;
+  rhs = 4 + offset; C.pz_start = rhs;
 
 
 }

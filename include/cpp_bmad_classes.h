@@ -431,10 +431,10 @@ typedef valarray<CPP_beam>          CPP_beam_ARRAY;
 typedef valarray<CPP_beam_ARRAY>    CPP_beam_MATRIX;
 typedef valarray<CPP_beam_MATRIX>   CPP_beam_TENSOR;
 
-class CPP_aperture_data;
-typedef valarray<CPP_aperture_data>          CPP_aperture_data_ARRAY;
-typedef valarray<CPP_aperture_data_ARRAY>    CPP_aperture_data_MATRIX;
-typedef valarray<CPP_aperture_data_MATRIX>   CPP_aperture_data_TENSOR;
+class CPP_aperture_point;
+typedef valarray<CPP_aperture_point>          CPP_aperture_point_ARRAY;
+typedef valarray<CPP_aperture_point_ARRAY>    CPP_aperture_point_MATRIX;
+typedef valarray<CPP_aperture_point_MATRIX>   CPP_aperture_point_TENSOR;
 
 class CPP_aperture_param;
 typedef valarray<CPP_aperture_param>          CPP_aperture_param_ARRAY;
@@ -2982,12 +2982,14 @@ public:
   Bool sr_wakes_on;
   Bool lr_wakes_on;
   Bool mat6_track_symmetric;
+  Bool orientation_to_ptc_design;
   Bool auto_bookkeeper;
   Bool csr_and_space_charge_on;
   Bool spin_tracking_on;
   Bool backwards_time_tracking_on;
   Bool spin_sokolov_ternov_flipping_on;
   Bool radiation_damping_on;
+  Bool radiation_zero_average;
   Bool radiation_fluctuations_on;
   Bool conserve_taylor_maps;
   Bool absolute_time_tracking_default;
@@ -3025,12 +3027,14 @@ public:
     sr_wakes_on(true),
     lr_wakes_on(true),
     mat6_track_symmetric(true),
+    orientation_to_ptc_design(false),
     auto_bookkeeper(true),
     csr_and_space_charge_on(false),
     spin_tracking_on(false),
     backwards_time_tracking_on(false),
     spin_sokolov_ternov_flipping_on(false),
     radiation_damping_on(false),
+    radiation_zero_average(false),
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
     absolute_time_tracking_default(false),
@@ -3223,6 +3227,7 @@ public:
   Int ix_pointer;
   Int ixx;
   Int iyy;
+  Int izz;
   Int mat6_calc_method;
   Int tracking_method;
   Int spin_tracking_method;
@@ -3330,6 +3335,7 @@ public:
     ix_pointer(0),
     ixx(0),
     iyy(0),
+    izz(0),
     mat6_calc_method(Bmad::BMAD_STANDARD),
     tracking_method(Bmad::BMAD_STANDARD),
     spin_tracking_method(Bmad::BMAD_STANDARD),
@@ -3687,11 +3693,11 @@ bool operator== (const CPP_beam&, const CPP_beam&);
 
 
 //--------------------------------------------------------------------
-// CPP_aperture_data
+// CPP_aperture_point
 
-class Opaque_aperture_data_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_aperture_point_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_aperture_data {
+class CPP_aperture_point {
 public:
   Real x;
   Real y;
@@ -3699,7 +3705,7 @@ public:
   Int ix_ele;
   Int i_turn;
 
-  CPP_aperture_data() :
+  CPP_aperture_point() :
     x(0.0),
     y(0.0),
     plane(0),
@@ -3707,15 +3713,15 @@ public:
     i_turn(0)
     {}
 
-  ~CPP_aperture_data() {
+  ~CPP_aperture_point() {
   }
 
 };   // End Class
 
-extern "C" void aperture_data_to_c (const Opaque_aperture_data_class*, CPP_aperture_data&);
-extern "C" void aperture_data_to_f (const CPP_aperture_data&, Opaque_aperture_data_class*);
+extern "C" void aperture_point_to_c (const Opaque_aperture_point_class*, CPP_aperture_point&);
+extern "C" void aperture_point_to_f (const CPP_aperture_point&, Opaque_aperture_point_class*);
 
-bool operator== (const CPP_aperture_data&, const CPP_aperture_data&);
+bool operator== (const CPP_aperture_point&, const CPP_aperture_point&);
 
 
 //--------------------------------------------------------------------
@@ -3731,7 +3737,9 @@ public:
   Int n_turn;
   Real x_init;
   Real y_init;
-  Real accuracy;
+  Real rel_accuracy;
+  Real abs_accuracy;
+  string start_ele;
 
   CPP_aperture_param() :
     min_angle(0.0),
@@ -3740,7 +3748,9 @@ public:
     n_turn(100),
     x_init(0.0),
     y_init(0.0),
-    accuracy(0.0)
+    rel_accuracy(0.0),
+    abs_accuracy(0.0),
+    start_ele()
     {}
 
   ~CPP_aperture_param() {
@@ -3761,16 +3771,14 @@ class Opaque_aperture_scan_class {};  // Opaque class for pointers to correspond
 
 class CPP_aperture_scan {
 public:
-  CPP_aperture_data_ARRAY aperture;
-  CPP_aperture_param param;
+  CPP_aperture_point_ARRAY point;
   CPP_coord ref_orb;
-  Real s_xy;
+  Real pz_start;
 
   CPP_aperture_scan() :
-    aperture(CPP_aperture_data_ARRAY(CPP_aperture_data(), 0)),
-    param(),
+    point(CPP_aperture_point_ARRAY(CPP_aperture_point(), 0)),
     ref_orb(),
-    s_xy(1.0)
+    pz_start(0.0)
     {}
 
   ~CPP_aperture_scan() {

@@ -21,7 +21,7 @@ def searchit (file):
 
   f_in = open(file)
   for line in f_in:
-    line = line.partition('!')[0]   # Strip off comment
+    line = line.partition('!')[0].rstrip()   # Strip off comment
     line = line.upper()
     if '[' in line: continue                              # Skip parameter arrays
 
@@ -46,13 +46,15 @@ def searchit (file):
       sub = re_d_exp.search(line).group(0).replace('D', 'E')   # Replace "3D6" with "3E6"
       line = re_d_exp.sub(sub, line)
 
+    if '_RP' == line[-3:]: line = line[:-3]
+
     if '&' in line:
       line = line.replace('&', '')
       params_here = True
-      line = '  ' + line.rstrip() + '\n'
+      line = '  ' + line + '\n'
     else:
       params_here = False
-      line = '  ' + line.rstrip() + ';\n'
+      line = '  ' + line + ';\n'
 
     f_out.write(line)
 

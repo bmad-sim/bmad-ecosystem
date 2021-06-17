@@ -764,7 +764,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine aperture_data_to_f (C, Fp) bind(c)
+  subroutine aperture_point_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -8341,11 +8341,12 @@ interface
       z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max, z_sad_n_div_max, z_taylor_order, &
       z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, &
       z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, z_sr_wakes_on, &
-      z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_csr_and_space_charge_on, &
-      z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, &
-      z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, &
-      z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, &
-      z_ptc_print_info_messages, z_debug) bind(c)
+      z_lr_wakes_on, z_mat6_track_symmetric, z_orientation_to_ptc_design, z_auto_bookkeeper, &
+      z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
+      z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, &
+      z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
+      z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -8353,9 +8354,9 @@ interface
     real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
     real(c_double) :: z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max
     integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step
-    logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_csr_and_space_charge_on, z_spin_tracking_on
-    logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum
-    logical(c_bool) :: z_aperture_limit_on, z_ptc_print_info_messages, z_debug
+    logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_orientation_to_ptc_design, z_auto_bookkeeper, z_csr_and_space_charge_on
+    logical(c_bool) :: z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps
+    logical(c_bool) :: z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug
   end subroutine
 end interface
 
@@ -8379,10 +8380,11 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     F%sad_amp_max, F%sad_n_div_max, F%taylor_order, F%runge_kutta_order, F%default_integ_order, &
     F%ptc_max_fringe_order, F%max_num_runge_kutta_step, &
     c_logic(F%rf_phase_below_transition_ref), c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), &
-    c_logic(F%mat6_track_symmetric), c_logic(F%auto_bookkeeper), &
-    c_logic(F%csr_and_space_charge_on), c_logic(F%spin_tracking_on), &
-    c_logic(F%backwards_time_tracking_on), c_logic(F%spin_sokolov_ternov_flipping_on), &
-    c_logic(F%radiation_damping_on), c_logic(F%radiation_fluctuations_on), &
+    c_logic(F%mat6_track_symmetric), c_logic(F%orientation_to_ptc_design), &
+    c_logic(F%auto_bookkeeper), c_logic(F%csr_and_space_charge_on), &
+    c_logic(F%spin_tracking_on), c_logic(F%backwards_time_tracking_on), &
+    c_logic(F%spin_sokolov_ternov_flipping_on), c_logic(F%radiation_damping_on), &
+    c_logic(F%radiation_zero_average), c_logic(F%radiation_fluctuations_on), &
     c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
     c_logic(F%convert_to_kinetic_momentum), c_logic(F%aperture_limit_on), &
     c_logic(F%ptc_print_info_messages), c_logic(F%debug))
@@ -8412,11 +8414,12 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_autoscale_phase_tol, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, &
     z_sad_amp_max, z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, &
     z_ptc_max_fringe_order, z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, &
-    z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, &
-    z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
-    z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_fluctuations_on, &
-    z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, &
-    z_aperture_limit_on, z_ptc_print_info_messages, z_debug) bind(c)
+    z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_orientation_to_ptc_design, &
+    z_auto_bookkeeper, z_csr_and_space_charge_on, z_spin_tracking_on, &
+    z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, &
+    z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, &
+    z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, &
+    z_ptc_print_info_messages, z_debug) bind(c)
 
 
 implicit none
@@ -8429,9 +8432,9 @@ real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_signifi
 real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
 real(c_double) :: z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max
 integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step
-logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_csr_and_space_charge_on, z_spin_tracking_on
-logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum
-logical(c_bool) :: z_aperture_limit_on, z_ptc_print_info_messages, z_debug
+logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_orientation_to_ptc_design, z_auto_bookkeeper, z_csr_and_space_charge_on
+logical(c_bool) :: z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps
+logical(c_bool) :: z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug
 
 call c_f_pointer (Fp, F)
 
@@ -8492,6 +8495,8 @@ F%lr_wakes_on = f_logic(z_lr_wakes_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%mat6_track_symmetric = f_logic(z_mat6_track_symmetric)
 !! f_side.to_f2_trans[logical, 0, NOT]
+F%orientation_to_ptc_design = f_logic(z_orientation_to_ptc_design)
+!! f_side.to_f2_trans[logical, 0, NOT]
 F%auto_bookkeeper = f_logic(z_auto_bookkeeper)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%csr_and_space_charge_on = f_logic(z_csr_and_space_charge_on)
@@ -8503,6 +8508,8 @@ F%backwards_time_tracking_on = f_logic(z_backwards_time_tracking_on)
 F%spin_sokolov_ternov_flipping_on = f_logic(z_spin_sokolov_ternov_flipping_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%radiation_damping_on = f_logic(z_radiation_damping_on)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%radiation_zero_average = f_logic(z_radiation_zero_average)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%radiation_fluctuations_on = f_logic(z_radiation_fluctuations_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
@@ -8881,7 +8888,7 @@ interface
       z_ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, &
       z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, z_key, &
       z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field, z_ix1_slave, &
-      z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, &
+      z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, z_izz, &
       z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, &
       z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
       z_aperture_type, z_ref_species, z_orientation, z_symplectify, z_mode_flip, &
@@ -8903,8 +8910,8 @@ interface
     real(c_double) :: z_custom(*), z_r(*)
     integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field
     integer(c_int) :: z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx
-    integer(c_int) :: z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, z_space_charge_method, z_ptc_integration_type
-    integer(c_int) :: z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation
+    integer(c_int) :: z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, z_space_charge_method
+    integer(c_int) :: z_ptc_integration_type, z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation
     logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
     logical(c_bool) :: z_logic, z_bmad_logic, z_select, z_offset_moves_aperture
   end subroutine
@@ -9081,7 +9088,7 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     n1_b_pole_elec), n1_b_pole_elec, fvec2vec(F%custom, n1_custom), n1_custom, tensor2vec(F%r, &
     n1_r*n2_r*n3_r), n1_r, n2_r, n3_r, F%key, F%sub_key, F%ix_ele, F%ix_branch, F%lord_status, &
     F%n_slave, F%n_slave_field, F%ix1_slave, F%slave_status, F%n_lord, F%n_lord_field, &
-    F%ic1_lord, F%ix_pointer, F%ixx, F%iyy, F%mat6_calc_method, F%tracking_method, &
+    F%ic1_lord, F%ix_pointer, F%ixx, F%iyy, F%izz, F%mat6_calc_method, F%tracking_method, &
     F%spin_tracking_method, F%csr_method, F%space_charge_method, F%ptc_integration_type, &
     F%field_calc, F%aperture_at, F%aperture_type, F%ref_species, F%orientation, &
     c_logic(F%symplectify), c_logic(F%mode_flip), c_logic(F%multipoles_on), &
@@ -9118,7 +9125,7 @@ subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, 
     z_ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, &
     z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, z_key, &
     z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field, z_ix1_slave, &
-    z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, &
+    z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, z_izz, &
     z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, &
     z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
     z_aperture_type, z_ref_species, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
@@ -9154,8 +9161,8 @@ real(c_double) :: z_s_start, z_s, z_ref_time
 real(c_double), pointer :: f_a_pole(:), f_b_pole(:), f_a_pole_elec(:), f_b_pole_elec(:), f_custom(:), f_r(:)
 integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field
 integer(c_int) :: z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx
-integer(c_int) :: z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, z_space_charge_method, z_ptc_integration_type
-integer(c_int) :: z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation
+integer(c_int) :: z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, z_space_charge_method
+integer(c_int) :: z_ptc_integration_type, z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation
 logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
 logical(c_bool) :: z_logic, z_bmad_logic, z_select, z_offset_moves_aperture
 
@@ -9461,6 +9468,8 @@ F%ix_pointer = z_ix_pointer
 F%ixx = z_ixx
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%iyy = z_iyy
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%izz = z_izz
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%mat6_calc_method = z_mat6_calc_method
 !! f_side.to_f2_trans[integer, 0, NOT]
@@ -10635,24 +10644,24 @@ end subroutine beam_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine aperture_data_to_c (Fp, C) bind(c)
+! Subroutine aperture_point_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad aperture_data_struct to a C++ CPP_aperture_data structure
+! Routine to convert a Bmad aperture_point_struct to a C++ CPP_aperture_point structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad aperture_data_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad aperture_point_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_aperture_data struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_aperture_point struct.
 !-
 
-subroutine aperture_data_to_c (Fp, C) bind(c)
+subroutine aperture_point_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine aperture_data_to_c2 (C, z_x, z_y, z_plane, z_ix_ele, z_i_turn) bind(c)
+  subroutine aperture_point_to_c2 (C, z_x, z_y, z_plane, z_ix_ele, z_i_turn) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -10663,7 +10672,7 @@ end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(aperture_data_struct), pointer :: F
+type(aperture_point_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 
@@ -10673,33 +10682,33 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call aperture_data_to_c2 (C, F%x, F%y, F%plane, F%ix_ele, F%i_turn)
+call aperture_point_to_c2 (C, F%x, F%y, F%plane, F%ix_ele, F%i_turn)
 
-end subroutine aperture_data_to_c
+end subroutine aperture_point_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine aperture_data_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine aperture_point_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_aperture_data structure to a Bmad aperture_data_struct structure.
-! This routine is called by aperture_data_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_aperture_point structure to a Bmad aperture_point_struct structure.
+! This routine is called by aperture_point_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the aperture_data_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the aperture_point_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad aperture_data_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad aperture_point_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine aperture_data_to_f2 (Fp, z_x, z_y, z_plane, z_ix_ele, z_i_turn) bind(c)
+subroutine aperture_point_to_f2 (Fp, z_x, z_y, z_plane, z_ix_ele, z_i_turn) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(aperture_data_struct), pointer :: F
+type(aperture_point_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_x, z_y
@@ -10718,7 +10727,7 @@ F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%i_turn = z_i_turn
 
-end subroutine aperture_data_to_f2
+end subroutine aperture_point_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -10742,12 +10751,13 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine aperture_param_to_c2 (C, z_min_angle, z_max_angle, z_n_angle, z_n_turn, z_x_init, &
-      z_y_init, z_accuracy) bind(c)
+      z_y_init, z_rel_accuracy, z_abs_accuracy, z_start_ele) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_min_angle, z_max_angle, z_x_init, z_y_init, z_accuracy
+    real(c_double) :: z_min_angle, z_max_angle, z_x_init, z_y_init, z_rel_accuracy, z_abs_accuracy
     integer(c_int) :: z_n_angle, z_n_turn
+    character(c_char) :: z_start_ele(*)
   end subroutine
 end interface
 
@@ -10764,7 +10774,7 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call aperture_param_to_c2 (C, F%min_angle, F%max_angle, F%n_angle, F%n_turn, F%x_init, &
-    F%y_init, F%accuracy)
+    F%y_init, F%rel_accuracy, F%abs_accuracy, trim(F%start_ele) // c_null_char)
 
 end subroutine aperture_param_to_c
 
@@ -10785,7 +10795,7 @@ end subroutine aperture_param_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine aperture_param_to_f2 (Fp, z_min_angle, z_max_angle, z_n_angle, z_n_turn, z_x_init, &
-    z_y_init, z_accuracy) bind(c)
+    z_y_init, z_rel_accuracy, z_abs_accuracy, z_start_ele) bind(c)
 
 
 implicit none
@@ -10794,8 +10804,9 @@ type(c_ptr), value :: Fp
 type(aperture_param_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_min_angle, z_max_angle, z_x_init, z_y_init, z_accuracy
+real(c_double) :: z_min_angle, z_max_angle, z_x_init, z_y_init, z_rel_accuracy, z_abs_accuracy
 integer(c_int) :: z_n_angle, z_n_turn
+character(c_char) :: z_start_ele(*)
 
 call c_f_pointer (Fp, F)
 
@@ -10812,7 +10823,11 @@ F%x_init = z_x_init
 !! f_side.to_f2_trans[real, 0, NOT]
 F%y_init = z_y_init
 !! f_side.to_f2_trans[real, 0, NOT]
-F%accuracy = z_accuracy
+F%rel_accuracy = z_rel_accuracy
+!! f_side.to_f2_trans[real, 0, NOT]
+F%abs_accuracy = z_abs_accuracy
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_start_ele, F%start_ele)
 
 end subroutine aperture_param_to_f2
 
@@ -10837,15 +10852,14 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine aperture_scan_to_c2 (C, z_aperture, n1_aperture, z_param, z_ref_orb, z_s_xy) &
-      bind(c)
+  subroutine aperture_scan_to_c2 (C, z_point, n1_point, z_ref_orb, z_pz_start) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr) :: z_aperture(*)
-    integer(c_int), value :: n1_aperture
-    type(c_ptr), value :: z_param, z_ref_orb
-    real(c_double) :: z_s_xy
+    type(c_ptr) :: z_point(*)
+    integer(c_int), value :: n1_point
+    type(c_ptr), value :: z_ref_orb
+    real(c_double) :: z_pz_start
   end subroutine
 end interface
 
@@ -10854,25 +10868,25 @@ type(c_ptr), value :: C
 type(aperture_scan_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-type(c_ptr), allocatable :: z_aperture(:)
-integer(c_int) :: n1_aperture
+type(c_ptr), allocatable :: z_point(:)
+integer(c_int) :: n1_point
 
 !
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_aperture = 0
-if (allocated(F%aperture)) then
-  n1_aperture = size(F%aperture); lb1 = lbound(F%aperture, 1) - 1
-  allocate (z_aperture(n1_aperture))
-  do jd1 = 1, n1_aperture
-    z_aperture(jd1) = c_loc(F%aperture(jd1+lb1))
+ n1_point = 0
+if (allocated(F%point)) then
+  n1_point = size(F%point); lb1 = lbound(F%point, 1) - 1
+  allocate (z_point(n1_point))
+  do jd1 = 1, n1_point
+    z_point(jd1) = c_loc(F%point(jd1+lb1))
   enddo
 endif
 
 !! f_side.to_c2_call
-call aperture_scan_to_c2 (C, z_aperture, n1_aperture, c_loc(F%param), c_loc(F%ref_orb), F%s_xy)
+call aperture_scan_to_c2 (C, z_point, n1_point, c_loc(F%ref_orb), F%pz_start)
 
 end subroutine aperture_scan_to_c
 
@@ -10892,8 +10906,7 @@ end subroutine aperture_scan_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine aperture_scan_to_f2 (Fp, z_aperture, n1_aperture, z_param, z_ref_orb, z_s_xy) &
-    bind(c)
+subroutine aperture_scan_to_f2 (Fp, z_point, n1_point, z_ref_orb, z_pz_start) bind(c)
 
 
 implicit none
@@ -10902,33 +10915,31 @@ type(c_ptr), value :: Fp
 type(aperture_scan_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr) :: z_aperture(*)
-integer(c_int), value :: n1_aperture
-type(c_ptr), value :: z_param, z_ref_orb
-real(c_double) :: z_s_xy
+type(c_ptr) :: z_point(*)
+integer(c_int), value :: n1_point
+type(c_ptr), value :: z_ref_orb
+real(c_double) :: z_pz_start
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_aperture == 0) then
-  if (allocated(F%aperture)) deallocate(F%aperture)
+if (n1_point == 0) then
+  if (allocated(F%point)) deallocate(F%point)
 else
-  if (allocated(F%aperture)) then
-    if (n1_aperture == 0 .or. any(shape(F%aperture) /= [n1_aperture])) deallocate(F%aperture)
-    if (any(lbound(F%aperture) /= 1)) deallocate(F%aperture)
+  if (allocated(F%point)) then
+    if (n1_point == 0 .or. any(shape(F%point) /= [n1_point])) deallocate(F%point)
+    if (any(lbound(F%point) /= 1)) deallocate(F%point)
   endif
-  if (.not. allocated(F%aperture)) allocate(F%aperture(1:n1_aperture+1-1))
-  do jd1 = 1, n1_aperture
-    call aperture_data_to_f (z_aperture(jd1), c_loc(F%aperture(jd1+1-1)))
+  if (.not. allocated(F%point)) allocate(F%point(1:n1_point+1-1))
+  do jd1 = 1, n1_point
+    call aperture_point_to_f (z_point(jd1), c_loc(F%point(jd1+1-1)))
   enddo
 endif
 
 !! f_side.to_f2_trans[type, 0, NOT]
-call aperture_param_to_f(z_param, c_loc(F%param))
-!! f_side.to_f2_trans[type, 0, NOT]
 call coord_to_f(z_ref_orb, c_loc(F%ref_orb))
 !! f_side.to_f2_trans[real, 0, NOT]
-F%s_xy = z_s_xy
+F%pz_start = z_pz_start
 
 end subroutine aperture_scan_to_f2
 end module

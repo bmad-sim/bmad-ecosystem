@@ -102,7 +102,7 @@ struct_list = [
     'bunch_struct',
     'bunch_params_struct',
     'beam_struct',
-    'aperture_data_struct',
+    'aperture_point_struct',
     'aperture_param_struct',
     'aperture_scan_struct',
 ]
