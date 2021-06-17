@@ -376,8 +376,8 @@ expanded (\sref{s:expand}). Therefore an \vn{expand_lattice} statement is requir
 can be used in statements.
 
 After lattice expansion (\sref{s:expand}), when setting element attributes (\sref{s:lat.attribs}, a
-comma delimited list of names can be used. Each item in a list is either the name of an element or
-an element range. An element range has the syntax:
+comma delimited list of names can be used (the commas are actually optional). Each item in a list is
+either the name of an element or an element range. An element range has the syntax:
 \begin{example}
   \{branch>>\}\{class::\}ele1:ele2
 \end{example}
@@ -391,6 +391,7 @@ where
 For example:
 \begin{example}
   3,15:17          ! Elements with index 3, 15, 16, and 17 in branch 0.
+  3 15:17          ! Same as above (commas are optional).
   2>>45:51         ! Elements 45 through 51 of branch 2.
   q1:q5            ! Elements between q1 and q5.
   sbend::q1:q5     ! All sbend elements between q1 and q5. 
@@ -404,6 +405,13 @@ Adding and subtracting elements is done left to right. For example:
   b*, ~b1*, b13         ! All elements with names beginning with B except
                         !   elements with names beginning with B1. However,
                         !   elements named B13 are retained.
+\end{example}
+
+With a list of names, an ampersand ``\vn{\&}'' can be used to form the intersection of two sets.
+\begin{example}
+  100:200 \& sbend::*    ! All sbend elements whose index is between 100 and 200.
+  q* \& quad::*          ! Equivalent to "quadrupole::q*".
+  q* \& quad::* b1       ! Equivalent to "quadrupole::q*, b1".
 \end{example}
 
 %---------------------------------------------------------------------------
@@ -1333,7 +1341,7 @@ maps. Otherwise the zero orbit is used as the reference orbit.
 \label{s:merge.ele}
 
 The \vn{combine_consecutive_elements} statement is used to combine consecutive elements with the same name into a
-single element. If a marker element has been placed inbetween two element with the same name, the
+single element. If a marker element has been placed in between two element with the same name, the
 marker element will be discarded. This can be a useful statement to add when given a lattice where
 elements have been split into two.\footnote
   {
@@ -1347,7 +1355,7 @@ The \vn{combine_consecutive_elements} statement must come after lattice expansio
   expand_lattice
   combine_consecutive_elements
 \end{example}
-In this case the finished line will will have a single \vn{q1} element whose length will be twi
+In this case the finished line will will have a single \vn{q1} element whose length will be twice the length of q1
 
 %--------------------------------------------------------------------------
 \section{Slice_Lattice Statement}

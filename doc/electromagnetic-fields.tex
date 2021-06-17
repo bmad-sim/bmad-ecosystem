@@ -271,7 +271,7 @@ are finite. With this condition, all the $F_p$ can be constructed:
 In terms of implementing these functions on a computer, the exact $\rw$-dependent functions are
 problematical due to round off error near $\xw = 0$. For example, Evaluating $F_4(\rw)$ at $\xw =
 10^{-4}$ results in a complete loss of accuracy (no significant digits!) when using double precision
-numbers. In practice, \bmad uses a Pade approximant for $\xw$ small enough and then switches to the
+numbers. In practice, \bmad uses a Pad\'e approximant for $\xw$ small enough and then switches to the
 $\rw$-dependent formulas for $\xw$ away from zero.
 
 For magnetic fields, the ``real'' $\phi_n^r$ solutions will correspond to skew fields and the
@@ -653,7 +653,7 @@ $\theta$ and $\rho$ are expanded in a Taylor series in $x$ and $y$.
 \label{s:cylind.ac}
 \index{rf fields|hyperbf}
 
-For RF fields, the \vn{cylindrical} mode parameterization used by \bmad essentially
+For RF fields, the \vn{cylindrical} mode parametrization used by \bmad essentially
 follows Abell\cite{b:rf.abell}. The electric field is the real part of the complex field
 \begin{equation}
   \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, \exp[{-2\, \pi \, i \, (f_j \, t + \phi_{0j})}]
@@ -785,7 +785,7 @@ identity
 \bmad has a number of \vn{field map} models that can be used to model electric or magnetic fields
 (\sref{s:fieldmap}). One model involves a set of Taylor maps. This model is restricted to modeling
 DC fields. In a lattice file, the \vn{Taylor} field model is specified using the \vn{taylor_field}
-attribute as exaplined in Sec.~\sref{s:taylor.field}.
+attribute as explained in Sec.~\sref{s:taylor.field}.
 
 The Taylor field model specifies the field using a set of Taylor maps. Each map defines the field in
 the transverse $(x, y)$ plane at constant longitudinal $z$: That is, each Taylor map is comprised of
@@ -798,7 +798,7 @@ where the $B_x, B_y, B_z$ on the right hand side represent the tree Taylor serie
 denotes the Taylor map at $z_i = i \cdot dz$ where $dz$ is the spacing between maps. The
 maps are restricted to be equally spaced to enable higher order integration schemes in PTC
 (See \vn{default_integ_order} in \sref{s:bmad.com}).  [Note: Each Taylor field model
-specifes either an electric or magnetic field. In this section, the symbol $B$ can refer
+specifies either an electric or magnetic field. In this section, the symbol $B$ can refer
 to either magnetic or electric fields.]
 
 Interpolation of the field in \bmad is done using a cubic spline fit. Given a position
@@ -835,7 +835,7 @@ The traveling wave model for RF cavities the field, in cylindrical coordinates i
   B_\phi(r, \phi, s, t) &= \frac{1}{2 \, c} \, G \, k \, r \, \sin\bigl( k \, s - \omega \, t + 2 \, \pi \, \phi \bigr) \nonumber
   \label{egot}
 \end{align}
-where $G$ is the accelerating gradient, $k = \omega / c$ is the wave number with $\omega$ beging the
+where $G$ is the accelerating gradient, $k = \omega / c$ is the wave number with $\omega$ being the
 RF frequency.
 
 For standing wave cavities, the RF fields are modeled as $N$ half-wave cells, each having a length

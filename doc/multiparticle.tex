@@ -241,7 +241,7 @@ R=\frac{r_e^2 c\beta_x\beta_y\sigma_h N_p^2}{8\sqrt\pi\beta^2\gamma^4\sigma_{x\b
 where $\tau_m=\beta^2\delta_m^2$ and $\delta_m$ is the momentum aperture.  This formula gives the
 rate at which particles are scattered out of the bunch.  It is assumed that two particles are lost
 per scattering event, one with too much energy and one with too little energy.  If a machine with an
-unsymmetric momentum aperture is being studied, then the formula should be evaluated twice, once for
+asymmetric momentum aperture is being studied, then the formula should be evaluated twice, once for
 each aperture, and the results averaged.  Refer to \cite{b:piwinski} for definitions of the
 parameters involved.  This formula is implemented in BMAD as part of the {\tt touschek\_mod} module.
 
@@ -491,7 +491,7 @@ charge calculation uses code from the OpenSC package developed by Rob Ryne and C
 interpolating the field to the points where the particles are. This method will be able to handle
 lower energy bunches than the \vn{slice} method (\sref{s:sc.slice}) the disadvantage is that the
 \vn{fft_3d} method will be slower. Another point to keep in mind is that the \vn{fft_3d} method
-currently ignores image charge forces due to an emitting cathode and so will not be accruate for
+currently ignores image charge forces due to an emitting cathode and so will not be accurate for
 tracking at the very lowest energies near the emitter.
 
 Note: The mesh size is set by the \vn{csr_pram} parameter \vn{space_charge_mesh_size}

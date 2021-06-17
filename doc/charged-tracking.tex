@@ -357,7 +357,7 @@ These functions cannot be directly evaluated at $x = 0$ and are defined at $x = 
 \rightarrow 0$ limit. The point to keep in mind here is that these functions are well behaved and
 can be easily coded in software.
 
-Refering to Figure~\ref{f:bend.exact}, at point 1 where the particle enters a sector bend, the angle
+Referring to Figure~\ref{f:bend.exact}, at point 1 where the particle enters a sector bend, the angle
 $\phi_1$ of the particle trajectory in the $(x,s)$ plane with respect to the $s$ axis is
 \begin{equation}
   \sin(\phi_1) = \frac{p_{x1}}{\sqrt{(1+p_z)^2 - p_y^2}}
@@ -428,7 +428,7 @@ the initial particle trajectory $\Bf P$ and the vector $\bfL_c$
 \begin{equation}
   \theta_p = 2 \, \left( \theta + \phi_1 - \frac{\pi}{2} - \atantwo \left( L_{cv}, L_{cu} \right) \right)
 \end{equation}
-where $\atantwo(y, x)$ is the standard two argument arctan function.
+where $\atantwo(y, x)$ is the standard two argument arctangent function.
 
 Once $L_p$ is computed, $p_{x2}$, $y_2$ and $z_2$ are easily derived from
 \begin{align}
@@ -634,7 +634,7 @@ where $R_2$ is another random number with uniform distribution in the interval $
 with $p_\txt{out}$ being the momentum chosen for the particle and $r_\txt{max}$ being the maximum
 radius the probability table goes out to\footnote
   {
-The range $[0,r_\txt{max}]$ ecompases nearly all of the outgoing particles. In principle, the
+The range $[0,r_\txt{max}]$ encompasses nearly all of the outgoing particles. In principle, the
 integral could be extended by extrapolating the values in the table but this could potentially lead
 to inaccuracies in determining the outgoing orientation. Generally the inaccuracy in truncating the
 distribution at $r_\txt{max}$ should be small.
@@ -646,7 +646,7 @@ thicknesses the same random number needs to be used.
 
 Once $p_\txt{out}$ and $r$ have been chosen, the next steps are to choose values for the angular
 orientation of the outgoing particle. The angular orientation is characterized by the distribution
-parameters using the derivatives $x' = dx/ds$ and $y' = dy/ds$ in the form of a skewed Lorenzian
+parameters using the derivatives $x' = dx/ds$ and $y' = dy/ds$ in the form of a skewed Lorentzian
 probability distribution $P_d$
 \begin{equation}
   P_d\left( x', y' ; p_\txt{out}, r \right) =
@@ -922,7 +922,7 @@ reference phase, and $k$ is the wave number
   k = \frac{2 \, \pi \, f}{c}
 \end{equation}
 
-With \vn{cavity_type} set to \vn{standing_wave} and with \vn{lognitudinal_mode} set to 1, the field is modeled as
+With \vn{cavity_type} set to \vn{standing_wave} and with \vn{longitudinal_mode} set to 1, the field is modeled as
 \begin{align}
   E_z    &=            2 \, G \,      \cos(k \, s) \, \cos(2 \, \pi \, (f \, t + \phi_\text{ref})) \CRNO
   E_r    &=            r \, G \, k \, \sin(k \, s) \, \cos(2 \, \pi \, (f \, t + \phi_\text{ref})) \\
@@ -941,7 +941,7 @@ and the field is given by
 %---------------------------------------------------------------------------------
 \subsection{LCavity Fringe Fields}
 
-Assuming cylindrical symmetry, the radial and asimuthal fields near the axis 
+Assuming cylindrical symmetry, the radial and azimuthal fields near the axis 
 can be related to the longitudinal electric field via Maxwell's equations\cite{b:hartman}
 \begin{equation}
   E_r = -\frac{r}{2} \, \frac{\partial E_z}{\partial z}, \qquad

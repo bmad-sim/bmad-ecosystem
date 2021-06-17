@@ -10,7 +10,7 @@ with X-rays. Charged particles are handled in chapter~\sref{c:charged.track}.
 \label{s:coher.incoher}
 
 \index{coherent tracking}\index{incoherent tracking}
-\bmad can track photons either \vn{coherenly} or \vn{incoherently}.
+\bmad can track photons either \vn{coherently} or \vn{incoherently}.
 In both cases, the photon has a transverse electric field 
 \begin{equation}
   (E_x, E_y)
@@ -42,12 +42,12 @@ electric field is
 where $\alpha_p$ is a constant that can be chosen to fit the
 simulation against experimental results, and the sum is over photons
 who intersect the area. The factors of $N_0$ and $dA$ in the above
-equation make, within statistical flucuations, $S$ independent of
+equation make, within statistical fluctuations, $S$ independent of
 $N_0$ and, for $dA$ small enough, $S$ will be independent of $dA$ as
 it should be. The total power is just $S_x + S_y$.
 
 When traveling through vacuum, the electric field of a photon is a
-constant.  As an example, consider a point source raidiating uniformly
+constant.  As an example, consider a point source radiating uniformly
 in $4\pi$ solid angle with each photon having the same initial field
 $E_0$. An observation area $dA$ situated a distance $R$ from the
 source will intercept $N_0 \, dA / 4 \, \pi \, R^2$ photons which
@@ -93,7 +93,7 @@ to the simulation results. In this case, there are two channels.
 Channel 1 consists of all photons whose direction is within
 $\Omega_1$ and channel 2 is all the other photons. To limit the
 photons to channel 1, $P_1$ is taken to be 1 and $P_2$ is taken to be
-0. Additionaly, if the light, say, is being generated isotropically
+0. Additionally, if the light, say, is being generated isotropically
 from a surface into a $\Omega_0 = 2 \, \pi$ solid angle then
 \begin{equation}
   \what E_1 = \sqrt{\frac{\Omega_1}{\Omega_0}}
@@ -123,7 +123,7 @@ simulation against experimental results, and the sum is over photons
 who intersect the area. In the above equation $E(j)$ is either the $x$
 or $y$ component of the electric field as is appropriate. The factors
 of $N_0$ and $dA$ in the above equation make, within statistical
-flucuations, $E$ independent of $N_0$ and, for $dA$ small enough, $E$
+fluctuations, $E$ independent of $N_0$ and, for $dA$ small enough, $E$
 will be independent of $dA$ as it should be.
 
 When traveling through a a vacuum, the photons travel ballistically in
@@ -131,7 +131,7 @@ straight lines. This is justified by using the stationary phase
 approximation with Kirchhoff's integral. the electric field of a
 photon varies with the propagation length. There is nothing physical
 in this and is just a way to make the bookkeeping come out
-correctly. As an example, consider a point source raidiating uniformly
+correctly. As an example, consider a point source radiating uniformly
 in $4\pi$ solid angle with each photon having the same initial field
 component (either $x$ or $y$) $E_1$.  An observation area $dA$
 situated a distance $R$ from the source will intercept $N_0 \, dA / 4
@@ -158,11 +158,11 @@ propagation length will be the length starting at the aperture.
   \item
 Depending upon the program, the photon is is either given a random
 direction over $2 \, \pi$ solid angle or the photon's direction
-is restricted to be within some solid angle choosen to increase
+is restricted to be within some solid angle chosen to increase
 the probability that the photon will make it through some downstream aperture.
 
 If the photon is restricted to some aperture dependent solid angle of area $\Omega$,
-the photon's electric field is scalled by
+the photon's electric field is scaled by
 \begin{equation}
   E \rightarrow E \, \frac{\Omega}{4 \, \pi}
   \label{eeo4p}
@@ -174,7 +174,7 @@ The electric field components are scaled by
   E \rightarrow E \, \frac{k}{4 \, \pi \, i} \, (\cos\theta_1 + \cos\theta_2)
   \label{eek4p}
 \end{equation}
-where $\theta_1$ and $\theta_2$ are the dirction cosines of the
+where $\theta_1$ and $\theta_2$ are the direction cosines of the
 incoming and outgoing directions of the photon with respect to the
 longitudinal reference axis.
   \end{enumerate}
@@ -198,7 +198,7 @@ practice the aperture procedure increases the number of photons that
 must be tracked for a given resolution. Thus, from a practical standpoint
 the ballistic alternative should always be used.
 
-As explaned in \sref{s:incoher}, at some places the light may be split
+As explained in \sref{s:incoher}, at some places the light may be split
 into various ``channels''. With coherent photons, the analog to \Eq{rpss1} is
 \begin{equation}
   P_i \, \what E_i = \frac{E_i}{E_0}
@@ -207,14 +207,14 @@ into various ``channels''. With coherent photons, the analog to \Eq{rpss1} is
 where here $\what E_i$ can be complex to take into account phase shifts.
 The same considerations about choosing the $P_i$ and $\what E_i$ apply to
 coherent photons as incoherent photons. In particular, $\what E_1$ for the
-case of isotropic emission from a surface as in the equample in
+case of isotropic emission from a surface as in the example in
 \sref{s:incoher} (cf. \Eq{roo}) is
 \begin{equation}
   \what E_1 = \frac{\Omega_1}{\Omega_0}
 \end{equation}
 
 %-------------------------------------------------------------------------
-\subsection{Parially Coherent Photon Simulations}
+\subsection{Partially Coherent Photon Simulations}
 
 When there is partial coherence the photons must be divided into
 sets. All of the photons of a given set are considered coherent while
@@ -731,7 +731,7 @@ direction as the $z$ axis of the outgoing reference
 trajectory. Furthermore, by {\em definition}, the reference trajectory
 has the form given by \Eq{ustt} with the $\bfR_{z}(\theta_t)$ matrix
 depending only upon the \vn{ref_tilt} parameter (which is here taken
-to be zero). To satisfy \Eq{ustt}, the crystal must be reorientated to
+to be zero). To satisfy \Eq{ustt}, the crystal must be reoriented to
 keep the $\bfk_H$ vector in the $x$-$z$ plane of the laboratory
 entrance coordinates.  The reorientation is done by rotating the
 crystal about the laboratory entrance $\Bf z$ axis by an amount
@@ -815,7 +815,7 @@ where
   \end{pmatrix}
 \end{equation}
 with $t$ being the crystal thickness and the $z$-axis pointing into the crystal as illustrated in
-\fig{f:crystal.energy}. The $\bfS$ roatation matrix (\Eq{wws}) for the undiffracted beam referece
+\fig{f:crystal.energy}. The $\bfS$ rotation matrix (\Eq{wws}) for the undiffracted beam 
 will be the unit matrix.
 
 With the reference orbit following the \vn{forward_diffracted} or \vn{Bragg_diffracted} beam, the
@@ -823,7 +823,7 @@ displacement vector $\bfL$ follows the energy flow associated with the tie point
 in \fig{f:crystal.energy}. These tie points are defined by the intersection of the dispersion
 surfaces and the vector $\Bf n$ originating from the point $T$ as shown in the figure.  The energy
 flow is perpendicular to the dispersion surface and it can be shown that since, by construction,
-$\Bf n$ goes through the $Q$ point, and since the dispersion surfaces are hyperbolies, the energy
+$\Bf n$ goes through the $Q$ point, and since the dispersion surfaces are hyperboles, the energy
 flows from $A$ and $B$ tie points are colinear. The direction of the energy flow is given by:
 \begin{equation}
   \bfKbar_f = \xi_H \, \bfKbar_H + \xi_0 \, \bfKbar_0
@@ -847,7 +847,7 @@ orbit is following the \vn{Bragg diffracted} beam, $\bfS$ is the same as for Bra
 \end{equation}
 
 %-------------------------------------------------------------------------
-\subsection{Crystal Surface Reflections and Refractions}
+\subsection{Crystal Surface Reflection and Refraction}
 
 %%%\begin{figure}[tb]
 %%%  \centering
@@ -881,7 +881,7 @@ After the photons are reflected they will have some field $E_1$ and thus
 \begin{equation}
   \what E_1^2 = \frac{\alpha_p \, E_1^2 \, N}{dA_1}
 \end{equation}
-Where $dA_1$ is the area that the phtons flow through which is related
+Where $dA_1$ is the area that the photons flow through which is related
 to $dA_0$ via
 \begin{equation}
   \frac{dA_1}{dA_0} = \frac{\bfk_1 \dotproduct \bfz}{\bfk_0 \dotproduct \bfz} \equiv |b|
@@ -915,7 +915,7 @@ wave. Thus the two photons labeled $a$ and $b$ in
 $dA_0$ to $dA_1$. The difference in the phase advance for photon $b$
 relative to $a$ from $dA_0$ to the surface is $\bfk_0 \dotproduct \bfr$
 where $\bfr$ is the vector between where photon $b$ hits the surface
-relative to phton $a$. Similarly, the difference in the phase advance
+relative to photon $a$. Similarly, the difference in the phase advance
 for photon $b$ relative to $a$ from the surface to $dA_0$ is $-\bfk_1
 \dotproduct \bfr$. Since the total phase advance for both photons is the
 same from $dA_0$ to $dA_1$ the phase shift $d\phi_b$ of photon $b$ as
@@ -927,7 +927,7 @@ is
 \end{equation}
 
 This shift in the reflection phase can be related to the lattice
-diffration planes. The wave vector difference can be written
+diffraction planes. The wave vector difference can be written
 \begin{equation}
   \bfk_1 - \bfk_0 = \bfH + q \, \bfhat n
   \label{k1k0}
@@ -1025,7 +1025,7 @@ $\alpha$ or $\beta$ branches can be computed via (\cite{b:batterman} Eq.~(24))
   = \frac{- \, 2 \, \xi_0}{k \, P \, \Gamma \, F_{\bar H}} \,
   = \, \frac{- \, k \, P \, \Gamma \, F_H}{2 \, \xi_H} 
 \end{equation}
-where the $\alpha$ or $\beta$ subscript has been supressed.  The total field which is the sum of the
+where the $\alpha$ or $\beta$ subscript has been suppressed.  The total field which is the sum of the
 fields on the branches is computed using the boundary conditions
 \begin{equation}
   \bfE_0 = \bfE_{0\alpha} + \bfE_{0\beta}, \qquad\qquad 
@@ -1057,7 +1057,7 @@ tracking, a photon has some probability to be channeled to follow the $\alpha$ o
 branch. The electric field ratios $\what E_\alpha$ and $\what E_\beta$ (cf.~\Eq{rpss2}) are taken to
 be equal to each other. With this choice, the probabilities $P_\alpha$ and $P_\beta$ for being
 channeled to the $\alpha$ or $\beta$ branches are such that a branch with a greater intensity will
-have a greater number of photons chanelled down it.
+have a greater number of photons channeled down it.
 
 When a crystal's \vn{ref_orbit_follows} parameter is set to \vn{bragg_diffracted}, The branching
 probabilities are
@@ -1066,7 +1066,7 @@ probabilities are
   P_\beta = \frac{|E_{H\beta}|}{|E_{H\alpha}| + |E_{H\beta}|} , \qquad
   \what E_{H\alpha} = \what E_{H\beta}  = \frac{|E_{H\alpha}| + |E_{H\beta}|}{|E_0^i|}
 \end{equation}
-where (see Batermann and Cole\cite{b:batterman} Eqs~(42)), 
+where (see Battermann and Cole\cite{b:batterman} Eqs~(42)), 
 \begin{align}
   E_{H\alpha} &= -E_0^i \, \dsfrac{|b|^{1/2}}{2 \, \cosh v} \, 
     \frac{|P|}{P} \, 
@@ -1095,7 +1095,7 @@ channeled into the $\alpha$ branch and $E_{H\beta}$ if the photon is channeled i
 branch.
 
 When a crystal's \vn{ref_orbit_follows} parameter is set to \vn{forward_diffracted} or
-\vn{undefracted}, the algorithm is similar to the \vn{bragg_diffracted} case except $E_{0\alpha}$
+\vn{undiffracted}, the algorithm is similar to the \vn{bragg_diffracted} case except $E_{0\alpha}$
 and $E_{0\beta}$ are used in place of $E_{H\alpha}$ and $E_{H\beta}$ with
 \begin{align}
   E_{0\alpha} &= E_0^i \, \dsfrac{e^{-v}}{2 \, \cosh v} \, 

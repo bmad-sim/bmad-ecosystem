@@ -12,8 +12,8 @@ that calculations that involve both \bmad and PTC/FPP can be done in a fairly se
 The FPP (``Fully Polymorphic Package'') part of the code handles Taylor map manipulation
 and Lie algebraic operations. This is purely mathematical. FPP has no knowledge of accelerators,
 magnetic fields, particle tracking etc. PTC (``Polymorphic Tracking Code'') implements the physics
-and uses FPP to handle the Taylor map manimpulation. Since the distinction between \vn{FPP} and
-\vn{PTC} is irrelavent to the non-programmer, ``PTC'' will be used to refer to the entire package.
+and uses FPP to handle the Taylor map manipulation. Since the distinction between \vn{FPP} and
+\vn{PTC} is irrelevant to the non-programmer, ``PTC'' will be used to refer to the entire package.
 
 PTC is used by \bmad when constructing Taylor maps and when the \vn{tracking_method}
 \sref{s:tkm}) is set to \vn{symp_lie_ptc}. All Taylor maps above first order are calculated
@@ -28,7 +28,7 @@ For the programmer, see Chapter~\sref{c:ptc.program} for more information.
 While such things as magnet strengths will be the same, the model that PTC uses when it tracks
 through a lattice element is independent of \bmad. That is, what approximations are made can be
 different. Generally the agreement between PTC and \bmad tracking is quite good. But there are
-situations where there is a noticeble difference. In such cases, one thing to do is to vary
+situations where there is a noticeable difference. In such cases, one thing to do is to vary
 parameters that affect PTC tracking. Two parameters that affect PTC accuracy are the integration
 step size and the order of the integrator. The step size is set by each lattice element's \vn{ds_step}
 parameter (\sref{s:ds.step}). 

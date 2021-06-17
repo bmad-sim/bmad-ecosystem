@@ -119,13 +119,15 @@ integer in_range, step, ix_word, key
 integer, parameter :: ele_name$ = -1
 
 logical, optional :: above_ubound_is_err, err, order_by_index
-logical err2, delim_found, above_ub_is_err, s_ordered, negate, names_are_integers
+logical err2, delim_found, above_ub_is_err, s_ordered, negate, names_are_integers, intersection
 
 ! init
 
 if (present(err)) err = .true.
 n_loc = 0
+intersection = .false.
 branch_str = ''
+delim = ''
 str = loc_str
 call str_upcase (str, str)
 ! In_range:
@@ -142,7 +144,9 @@ do
   ! Get next item. 
   ! If the split is in between "::" then need to piece the two haves together.
 
-  call word_read (str, ':, ', name, ix_word, delim, delim_found, str, ignore_interior = .true.)
+  if (delim == '&') intersection = .true.
+
+  call word_read (str, ':, &', name, ix_word, delim, delim_found, str, ignore_interior = .true.)
 
   ! Need to handle old style "class::branch>>name" and new style "branch>>class::name" and not be
   ! confused by "name1:name2" range syntax
@@ -183,7 +187,7 @@ do
       return
     endif
 
-    call word_read (str(2:), ':, ', name, ix_word, delim, delim_found, str, ignore_interior = .true.)
+    call word_read (str(2:), ':, &', name, ix_word, delim, delim_found, str, ignore_interior = .true.)
     if (name == '') then
       call out_io (s_error$, r_name, '"CLASS::NAME" CONSTRUCT NOT VALID WITH BLANK NAME. IN: ' // loc_str, &
                                      'Note: USE "*" TO MATCH TO ALL NAMES')
@@ -241,6 +245,9 @@ do
   if (in_range == 0) then
     if (negate) then
       call negate_eles(eles, n_loc, eles2(1:n_loc2))
+    elseif (intersection) then
+      call intersection_eles (eles, n_loc, eles2(1:n_loc2))
+      intersection = .false.
     else
       if (.not. allocated(eles)) allocate(eles(n_loc+n_loc2))
       call re_allocate_eles(eles, n_loc+n_loc2, .true.)
@@ -307,7 +314,7 @@ do
     n_loc2 = (ele_end%ix_ele - ele_start%ix_ele) / step + 1
   endif
 
-  if (negate) then
+  if (negate .or. intersection) then
     call re_allocate_eles(eles2, n_loc2, .false.)
     n_loc2 = 0
     do i = ele_start%ix_ele, ele_end%ix_ele, step
@@ -316,7 +323,12 @@ do
       eles2(n_loc2)%ele => lat%branch(ib)%ele(i)
       eles2(n_loc2)%loc = lat_ele_loc_struct(i, ib)
     enddo
-    call negate_eles(eles, n_loc, eles2(1:n_loc2))
+    if (negate) then
+      call negate_eles(eles, n_loc, eles2(1:n_loc2))
+    else
+      call intersection_eles(eles, n_loc, eles2(1:n_loc2))
+      intersection = .false.
+    endif
 
   else
     call re_allocate_eles(eles, n_loc+n_loc2, .true.)
@@ -832,7 +844,6 @@ use nr
 type (ele_pointer_struct) eles(:), eles2(:)
 integer n_ele
 integer i, n
-integer :: remove(size(eles2))
 
 !
 
@@ -841,12 +852,12 @@ do i = 1, n_ele
 enddo
 
 do i = 1, size(eles2)
-  eles2(i)%ele%ix_ele = 0  ! Mark to remove
+  eles2(i)%ele%ixx = 0  ! Mark to remove
 enddo
 
 n = 0
 do i = 1, n_ele
-  if (eles(i)%ele%ix_ele == 0) cycle
+  if (eles(i)%ele%ixx == 0) cycle
   n = n + 1
   eles(n)%ele => eles(i)%ele
 enddo
@@ -854,5 +865,37 @@ enddo
 n_ele = n
 
 end subroutine negate_eles
+
+!---------------------------------------------------------------------------
+! contains
+
+subroutine intersection_eles(eles, n_ele, eles2)
+
+use nr
+
+type (ele_pointer_struct) eles(:), eles2(:)
+integer n_ele
+integer i, n
+
+!
+
+do i = 1, n_ele
+  eles(i)%ele%ixx = 0
+enddo
+
+do i = 1, size(eles2)
+  eles2(i)%ele%ixx = 1  ! Mark to keep
+enddo
+
+n = 0
+do i = 1, n_ele
+  if (eles(i)%ele%ixx == 0) cycle
+  n = n + 1
+  eles(n)%ele => eles(i)%ele
+enddo
+
+n_ele = n
+
+end subroutine intersection_eles
 
 end subroutine lat_ele_locator
