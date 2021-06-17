@@ -200,7 +200,7 @@ substituted for GROUP and there are no old values to set:
   name: OVERLAY = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
           VAR = \{var1, var2, ...\}, var1 = init_val1, GANG = logical, ...
 \end{example}
-For an expression based \vn{ramper} element, the sytax is identical to the \vn{overlay} element
+For an expression based \vn{ramper} element, the syntax is identical to the \vn{overlay} element
 except \vn{RAMPER} is used in place of \vn{OVERLAY} and there is no \vn{GANG} attribute.
 
 In the above, \vn{Name} is the name of the controller element, \vn{ele1}, \vn{ele2}, ... are the
@@ -235,7 +235,7 @@ For \vn{ramper} elements, the syntax is similar to the \vn{overlay} syntax excep
 is replaced by \vn{RAMPER} and there is no \vn{GANG} attribute. The \vn{x_knot} array is combined
 with a given \vn{y_knot} array to give a series of $N$ knot points where $N$ is the size of the
 \vn{x_knot} and \vn{y_knot} arrays. As such, the size of all knot arrays must be the same with the
-additional restriction that the \vn{x_knot} array must have values that are strickly ascending.
+additional restriction that the \vn{x_knot} array must have values that are strictly ascending.
 Example:
 \begin{example}
   ov: overlay = \{q1[k1]:\{-0.12, 0.23, 0.53\}, q2[k1], q3[k1], q4[k1]:\{0.37, 0.12, 0.92\}\}, 
@@ -253,12 +253,12 @@ The method used to interpolate between the knot points is determined by the sett
   linear      ! Linear interpolation.
   spline      ! Cubic spline interpolation (default).
 \end{example}
-For variable values outside of the range specified by \vn{x_knot}, the slave parmeter value will be
+For variable values outside of the range specified by \vn{x_knot}, the slave parameter value will be
 extrapolated using the interpolation function calculated from the three points nearest the end. That
 is, extrapolation will be linear if \vn{interpolate} is set to \vn{linear} and will be cubic if
 \vn{interpolate} is set to \vn{spline}. For the cubic spline, extrapolation is only permitted over a
 distance outside the x_knot range equal to the difference between the value of the x_knot end point
-and its neighbor point. Thus in the above example, exterpolation will be allowed in the intervals
+and its neighbor point. Thus in the above example, extrapolation will be allowed in the intervals
 $[-0.7, 0.0]$ and $[1.0, 1.7]$.
 
 After a controller has been defined, the individual knot points may be referenced using the syntax
@@ -1526,7 +1526,7 @@ specified, the cross-section is a rectangle. For example
   section = \{s = 0.3, v(1) = \{0.03, 0.01\}\}
 \end{example}
 
-The verticies are defined with respect to the local sector origin $r_0$ except if
+The vertices are defined with respect to the local sector origin $r_0$ except if
 \vn{absolute_vertices} is set to \vn{True} in which case the vertex numbers are taken as absolute.
 For example, the following two cross-sections are identical and describe a rectangle with edges at
 $x = 1$ and 5 and $y = -6$ and 6
@@ -1735,7 +1735,7 @@ need a different interpolation scheme since, \vn{leg1} and \vn{trunk1}, as well 
   \caption[Example mask wall]{
 A) The surface of a \vn{diffraction_plate} or \vn{mask} element is divided into ``clear'' (white)
 and ``opaque'' (black) areas. As explained in the text, these areas are defined by five
-\vn{sections} labelled $s_1$ through $s_5$. B) All wall sections must be star shaped with respect to
+\vn{sections} labeled $s_1$ through $s_5$. B) All wall sections must be star shaped with respect to
 the section's origin. In this example, The section is {\em not} star shaped since a line drawn from
 the origin point $o$ to the point $p$ on the boundary intersects the boundary twice in between. In
 this case the section can be made star shaped by moving the origin to $o'$.

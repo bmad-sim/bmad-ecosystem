@@ -3576,7 +3576,7 @@ transformation. This matters when the speed of the reference particle is less th
 reason, and due to complications involving PTC, it is recommended to use two patches in a row when
 both the orbit and energy are to be patched.
 
-Unfortunately, there is no intuative way to define the ``\vn{length}'' \vn{L} of a patch. This is
+Unfortunately, there is no intuitive way to define the ``\vn{length}'' \vn{L} of a patch. This is
 important since the transit time of the reference particle is the element length divided by the
 reference velocity. And the reference transit time will affect how the phase space $z$ coordinate
 changes through the patch via \Eq{zbctt}. To provide flexibility, a \vn{patch} has a \vn{ref_coords}
@@ -3590,7 +3590,7 @@ parameter which can be set which will affect how the length is calculated. Possi
 The default setting of \vn{ref_coords} is \vn{exit_end} and with this, the length is calculated as
 the perpendicular distance between the origin of the patch's entrance coordinate system and the exit
 face of the patch using as shown in \fig{f:patch}. If \vn{ref_coords} is set to \vn{entrance_end},
-the length is calulated as the perpendicular distance between the entrance face and the origin of
+the length is calculated as the perpendicular distance between the entrance face and the origin of
 the exit coordinate system. In this case, the length has the same value as \vn{z_offset}. Finally,
 if \vn{ref_coords} is set to \vn{no_end}, the length is taken to be zero. Example:
 \begin{example}
@@ -3995,7 +3995,7 @@ definition.  The ``\vn{*[e_tot]}'' construct in the definition of \vn{ramp_e} me
 will be applied to the \vn{e_tot} attribute (\sref{s:energy}) of all elements (since the wild card
 character ``\vn{*}'' (\sref{s:ele.match}) will match to all element names).
 
-The \vn{ramp_rf} ramper in the above example varias the \vn{voltage} and \vn{phase} (\vn{phi0})
+The \vn{ramp_rf} ramper in the above example varies the \vn{voltage} and \vn{phase} (\vn{phi0})
 attributes of all elements that match to \vn{rfcavity::*}. That is, all \vn{rfcavity} elements. Here mathematical
 expressions are used instead of knot points.
 

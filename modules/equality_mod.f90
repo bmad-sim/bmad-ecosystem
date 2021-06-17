@@ -30,7 +30,7 @@ interface operator (==)
   module procedure eq_normal_modes, eq_em_field, eq_track_point, eq_track, eq_synch_rad_common
   module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele
   module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat
-  module procedure eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data, eq_aperture_param
+  module procedure eq_bunch, eq_bunch_params, eq_beam, eq_aperture_point, eq_aperture_param
   module procedure eq_aperture_scan
 end interface
 
@@ -2313,6 +2313,8 @@ is_eq = is_eq .and. (f1%spin_sokolov_ternov_flipping_on .eqv. f2%spin_sokolov_te
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%radiation_damping_on .eqv. f2%radiation_damping_on)
 !! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%radiation_zero_average .eqv. f2%radiation_zero_average)
+!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuations_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
@@ -2626,6 +2628,8 @@ is_eq = is_eq .and. (f1%ix_pointer == f2%ix_pointer)
 is_eq = is_eq .and. (f1%ixx == f2%ixx)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%iyy == f2%iyy)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%izz == f2%izz)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%mat6_calc_method == f2%mat6_calc_method)
 !! f_side.equality_test[integer, 0, NOT]
@@ -3008,11 +3012,11 @@ end function eq_beam
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_aperture_data (f1, f2) result (is_eq)
+elemental function eq_aperture_point (f1, f2) result (is_eq)
 
 implicit none
 
-type(aperture_data_struct), intent(in) :: f1, f2
+type(aperture_point_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -3029,7 +3033,7 @@ is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%i_turn == f2%i_turn)
 
-end function eq_aperture_data
+end function eq_aperture_point
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -3057,7 +3061,11 @@ is_eq = is_eq .and. (f1%x_init == f2%x_init)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%y_init == f2%y_init)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%accuracy == f2%accuracy)
+is_eq = is_eq .and. (f1%rel_accuracy == f2%rel_accuracy)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%abs_accuracy == f2%abs_accuracy)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%start_ele == f2%start_ele)
 
 end function eq_aperture_param
 
@@ -3075,17 +3083,15 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%aperture) .eqv. allocated(f2%aperture))
+is_eq = is_eq .and. (allocated(f1%point) .eqv. allocated(f2%point))
 if (.not. is_eq) return
-if (allocated(f1%aperture)) is_eq = all(shape(f1%aperture) == shape(f2%aperture))
+if (allocated(f1%point)) is_eq = all(shape(f1%point) == shape(f2%point))
 if (.not. is_eq) return
-if (allocated(f1%aperture)) is_eq = all(f1%aperture == f2%aperture)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%param == f2%param)
+if (allocated(f1%point)) is_eq = all(f1%point == f2%point)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%ref_orb == f2%ref_orb)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%s_xy == f2%s_xy)
+is_eq = is_eq .and. (f1%pz_start == f2%pz_start)
 
 end function eq_aperture_scan
 end module

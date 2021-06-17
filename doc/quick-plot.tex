@@ -259,7 +259,7 @@ The first part \vn{unit_type} gives the type of units
   "INCH"    -- Inches. (Set default)
   "POINTS"  -- Printers points. NOT PIXELS. (72 points = 1 inch).
 \end{example}
-Note: For displays with a resolution of 72 pixes / inch, \vn{POINTS} corresponds to pixels but
+Note: For displays with a resolution of 72 pixels / inch, \vn{POINTS} corresponds to pixels but
 many displays have a higher resolution.
 The second and third parts give the reference point for a position.
 The second part specifies the reference object
@@ -566,9 +566,9 @@ The \vn{qp_axis_struct} defines how axes are drawn
 The \vn{%bounds} parameter sets how axis min and max values are calculated. Possible settings are:
 \begin{example}
   "ZERO_AT_END"      ! Min or max value is set to zero.
-  "ZERO_SYMMETRIC"   ! Min and max choisen so that max = -min.
+  "ZERO_SYMMETRIC"   ! Min and max chosen so that max = -min.
   "GENERAL"          ! No restrictions.
-  "EXACT"            ! The inputed data min/max is used.
+  "EXACT"            ! The inputted data min/max is used.
 \end{example}
 
 Finally, the \vn{qp_plot_struct} is a container for the axis that make up a plot

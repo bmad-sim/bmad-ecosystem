@@ -1842,8 +1842,8 @@ end type
 
 ! Dynamic aperture data point structure
 
-type aperture_data_struct
-  real(rp) x, y     ! (x,y) aperture point
+type aperture_point_struct
+  real(rp) x, y     ! (x,y) aperture point with respect to the reference orbit.
   integer plane     ! plane determining loss
   integer ix_ele    ! ele index particle lost at
   integer i_turn    ! turn particle lost at
@@ -1855,19 +1855,20 @@ type aperture_param_struct
   real(rp) :: min_angle = 0
   real(rp) :: max_angle = pi
   integer :: n_angle   = 9
-  integer :: n_turn = 100         ! Number of turns a particle must survive
-  real(rp) :: x_init = 1e-3_rp    ! Initial x coordinate to start with for theta_xy = 0.
-  real(rp) :: y_init = 1e-3_rp    ! Initial y coordinate to start with for theta_xy = pi/2.
-  real(rp) :: accuracy = 1e-5_rp  ! Resolution of bracketed aperture (meters.)
+  integer :: n_turn = 100             ! Number of turns a particle must survive.
+  real(rp) :: x_init = 1e-3_rp        ! Initial x coordinate to start with for theta_xy = 0.
+  real(rp) :: y_init = 1e-3_rp        ! Initial y coordinate to start with for theta_xy = pi/2.
+  real(rp) :: rel_accuracy = 1e-2_rp  ! Relative resolution of bracketed aperture.
+  real(rp) :: abs_accuracy = 1e-5_rp  ! Absolute resolution of bracketed aperture (meters).
+  character(40) :: start_ele = ''     ! Element to start tracking at.
 end type
 
 ! Structure for a single dynamic aperture scan over a set of angles.
 
 type aperture_scan_struct
-  type(aperture_data_struct), allocatable :: aperture(:) ! Set of apertures at different angles.
-  type(aperture_param_struct) :: param       ! Init parameters used for the scan.           
+  type (aperture_point_struct), allocatable :: point(:) ! Set of aperture points at different angles.
   type (coord_struct) :: ref_orb             ! Ref orbit around which the scan is made.
-  real(rp) :: S_xy = 1.0                     ! X/Y angle scale. Set by dynamic_aperture_scan.
+  real(rp) :: pz_start = 0                   ! Starting pz.
 end type
 
 !-------------------------------------------------------------------------

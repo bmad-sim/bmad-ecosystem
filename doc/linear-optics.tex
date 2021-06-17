@@ -5,22 +5,14 @@
 \label{s:coupling}
 \index{normal mode!Coupling}
 
-The coupling formalism used by \bmad is taken from the paper of Sagan and
-Rubin\cite{b:coupling}. The main equations are reproduced here with the notation change that $\bfA$
-and $\bfB$ is replaced by $\bfQ$ and $\bfW$\footnote{The reason why $q$ and $w$ are used here to
-denote the modes is to avoid confusion with the \bmad convention of using the labels $a$ and $b$ to
-represent the same modes throughout the lattice. At the start of the lattice, by convention, the $a$
-mode is the same as the $q$ mode and the $b$ mode is the same as the $w$ mode. If there is a ``mode
-flip'' (see Sagan and Rubin for an explanation of this term) at some spot in the lattice, the $a$
-mode before the mode flip will be the same physical mode after the mode flip (and similarly for the
-$b$ mode.  That is, after the mode flip the $a$ mode will be the same as the $w$ mode and the $b$
-mode will be the same as the $q$ mode.}
+The coupling formalism used by \bmad is taken from the paper of Sagan and Rubin\cite{b:coupling}.
+The main equations are reproduced here.
 
-The analysis starts with the map $\bfT(s)$ for the transverse two--dimensional phase space coordinates
-$\bfx = (x, x', y, y')$. In ring, with a closed geometry, this map will be a one-turn map starting
-and ending at some point $s$. For a machine with open geometry, $\bfT(0)$ can be computed from the
-initial Twiss and coupling parameters and $\bfT(s)$ can then be computed by propagating with the
-transfer map $\bfM_{0s}$ from $0$ to $s$:
+The analysis starts with the map $\bfT(s)$ for the transverse two--dimensional phase space
+coordinates $\bfx = (x, x', y, y')$. In ring, with a closed geometry, this map will be a one-turn
+map starting and ending at some point $s$. For a machine with open geometry, $\bfT(0)$ can be
+computed from the initial Twiss and coupling parameters and $\bfT(s)$ can then be computed by
+propagating with the transfer map $\bfM_{0s}$ from $0$ to $s$:
 \begin{equation}
     \bfT(s) = \bfM_{0s} \, \bfT(0) \, \bfM_{0s}^{-1}
 \end{equation}
@@ -35,27 +27,29 @@ where $\bfV$ is symplectic, and $\bfU$ is of the form
   \begin{equation}
     \bfU = 
     \begin{pmatrix}
-      \bfQ & \Bf0 \cr 
-      \Bf0 & \bfW \cr
+      \bfA & \Bf0 \cr 
+      \Bf0 & \bfB \cr
     \end{pmatrix}
     . \label{ua00b}
   \end{equation}
+The two normal modes are denoted $a$ and $b$ and the normal mode phase space coordinates are denoted
+$(a, p_a, b, p_b)$.
 \index{normal mode!a--mode}
 \index{normal mode!b--mode}
 Since $\bfU$ is uncoupled the standard Twiss analysis can be performed on the matrices
-$\bfQ$ and $\bfW$. The normal modes are labeled $q$ and $w$ and if the one--turn matrix
+$\bfA$ and $\bfB$. The normal modes are labeled $q$ and $w$ and if the one--turn matrix
 $\bfT$ is uncoupled then $w$ corresponds to the horizontal mode and $w$ corresponds to the
 vertical mode.
 
-The $\bfQ$ and $\bfW$ matrices can be parameterized using the standard 1-dimensional Twiss
-parametrization:
+The $\bfA$ and $\bfB$ matrices which propagate the $a$ and $b$ modes respectively can be
+parameterized using the standard 1-dimensional Twiss form:
 \begin{equation}
-  \bfQ = \begin{pmatrix}
-    \cos\theta_q + \alpha_q \, \sin\theta_q & \beta_q \, \sin\theta_q \\
-    -\gamma_q \, \sin\theta_q & \cos\theta_q - \alpha_q \, \sin\theta_q
+  \bfA = \begin{pmatrix}
+    \cos\theta_a + \alpha_a \, \sin\theta_a & \beta_a \, \sin\theta_a \\
+    -\gamma_a \, \sin\theta_a & \cos\theta_a - \alpha_a \, \sin\theta_a
     \end{pmatrix}
 \end{equation}
-and $\bfV$ is written in the form
+with a similar equation for $\bfB$. The $\bfV$ matrix is written in the form
   \begin{equation}
     \bfV = 
     \begin{pmatrix}
@@ -101,22 +95,22 @@ Where $\bfG$ is given by
   \begin{equation}
     \bfG \equiv 
     \begin{pmatrix}
-      \bfG_q & \Bf0 \cr 
-      \Bf0 & \bfG_w
+      \bfG_a & \Bf0 \cr 
+      \Bf0 & \bfG_b
     \end{pmatrix}
     , \label{gg00g}
   \end{equation}  
 with 
   \begin{equation}
-    \bfG_q = 
+    \bfG_a = 
     \begin{pmatrix}
-      \frac{\tstyle 1}{\tstyle \sqrt{\beta_q}} & 0 \cr
-      \frac{\tstyle \alpha_q}{\tstyle \sqrt{\beta_q}} & \sqrt{\beta_q}
+      \frac{\tstyle 1}{\tstyle \sqrt{\beta_a}} & 0 \cr
+      \frac{\tstyle \alpha_a}{\tstyle \sqrt{\beta_a}} & \sqrt{\beta_a}
     \end{pmatrix}
     , \label{g1b0a} 
   \end{equation}
-with a similar equation for $\bfG_w$. With this definition, the corresponding $\BAR\bfQ$ and
-$\BAR\bfW$ (cf.~\Eq{ua00b}) are just rotation matrices. The relationship between $\bfT$ and
+with a similar equation for $\bfG_b$. With this definition, the corresponding $\BAR\bfA$ and
+$\BAR\bfB$ (cf.~\Eq{ua00b}) are just rotation matrices. The relationship between $\bfT$ and
 $\BAR\bfU$ is
   \begin{equation}
     \bfT = \bfG\inv \, \BAR\bfV \, \BAR\bfU \, \BAR\bfV\inv \, \bfG
@@ -137,22 +131,22 @@ Using \Eq{gg00g}, $\BAR\bfV$ can be written in the form
   \end{equation}
 with the normalized matrix $\BAR\bfC$ given by
   \begin{equation}
-    \BAR\bfC = \bfG_q \, \bfC \, \bfG_w\inv
+    \BAR\bfC = \bfG_a \, \bfC \, \bfG_b\inv
     . \label{cgcg}
   \end{equation}
 
-The normal mode coordinates ${\bf q} = (q, q', w, w')$ are related to the laboratory frame via
+The normal mode coordinates ${\bf a} = (a, p_a, b, p_b)$ are related to the laboratory frame via
   \begin{equation}
-    {\bf q} = \bfV\inv \, {\bf x}
+    {\bf a} = \bfV\inv \, {\bf x}
     . \label{avx}
   \end{equation} 
-In particular the normal mode dispersion $\bfeta_q = (\eta_q, \eta'_q, \eta_w, \eta'_w)$ is related
+In particular the normal mode dispersion $\bfeta_a = (\eta_a, \eta'_a, \eta_b, \eta'_b)$ is related
 to the laboratory frame dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
   \begin{equation}
-    {\bfeta_q} = \bfV\inv \, {\bfeta_x}
+    {\bfeta_a} = \bfV\inv \, {\bfeta_x}
     . \label{etaavx}
   \end{equation} 
-When there is no coupling ($\bfC = 0$), $\bfeta_q$ and $\bfeta_x$ are
+When there is no coupling ($\bfC = 0$), $\bfeta_a$ and $\bfeta_x$ are
 equal to each other.
 
 %-----------------------------------------------------------------
