@@ -13,12 +13,10 @@ use dynamic_aperture_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (coord_struct), allocatable :: orbit(:)
-type (coord_struct) orb0
-type (branch_struct), pointer :: branch
 type (aperture_param_struct) :: da_param
-type (aperture_data_struct), pointer :: ddat
-type (aperture_scan_struct), target :: da
+type (aperture_point_struct), pointer :: da_point
+type (aperture_scan_struct), allocatable, target :: aperture_scan(:)
+type (aperture_scan_struct), pointer :: da
 
 real(rp) dpz(20)
 integer nargs, ios, i, j, n_dpz
@@ -59,14 +57,12 @@ read (1, nml = params)
 
 close (1)
 
-da%param = da_param
-da%param%min_angle = da%param%min_angle * pi / 180
-da%param%max_angle = da%param%max_angle * pi / 180
+da_param%min_angle = da_param%min_angle * pi / 180
+da_param%max_angle = da_param%max_angle * pi / 180
 
 ! Read in lattice
 
 call bmad_parser (lat_file, lat)
-branch => lat%branch(0)
 
 n_dpz = count(dpz /= real_garbage$)
 print *, 'Note: Number of dpz points: ', n_dpz
@@ -88,48 +84,31 @@ write (gnu_command, '(a, i0, 3a)') 'gnuplot plotting command: plot for [IDX=1:',
 ! Scan
 
 open (1, file = dat_file)
-write (1, '(2a)')        '# lat_file           = ', trim(lat_file)
-write (1, '(a, l1)')     '# set_rf_off         = ', set_rf_off
-write (1, '(a, f10.1)')  '# da_param%min_angle =', da_param%min_angle
-write (1, '(a, f10.1)')  '# da_param%max_angle =', da_param%max_angle
-write (1, '(a, es10.2)') '# da_param%accuracy  =', da_param%accuracy
-write (1, '(a, f10.5)')  '# da_param%x_init    =', da_param%x_init
-write (1, '(a, f10.5)')  '# da_param%y_init    =', da_param%y_init
-write (1, '(a, i0)')     '# da_param%n_turn    = ', da_param%n_turn
-write (1, '(a, i0)')     '# da_param%n_angle   = ', da_param%n_angle
+write (1, '(2a)')        '# lat_file              = ', trim(lat_file)
+write (1, '(a, l1)')     '# set_rf_off            = ', set_rf_off
+write (1, '(a, f10.1)')  '# da_param%min_angle    =', da_param%min_angle
+write (1, '(a, f10.1)')  '# da_param%max_angle    =', da_param%max_angle
+write (1, '(a, es10.2)') '# da_param%rel_accuracy =', da_param%rel_accuracy
+write (1, '(a, es10.2)') '# da_param%abs_accuracy =', da_param%abs_accuracy
+write (1, '(a, f10.5)')  '# da_param%x_init       =', da_param%x_init
+write (1, '(a, f10.5)')  '# da_param%y_init       =', da_param%y_init
+write (1, '(a, i0)')     '# da_param%n_turn       = ', da_param%n_turn
+write (1, '(a, i0)')     '# da_param%n_angle      = ', da_param%n_angle
 write (1, '(2a)')        '# ', trim(gnu_command)
 
-call reallocate_coord(orbit, lat, branch%ix_branch)
-if (rf_is_on(lat%branch(0))) then
-  call closed_orbit_calc (lat, orbit, 6)
-  orb0 = orbit(0)
-endif
+call dynamic_aperture_scan (aperture_scan, da_param, dpz(1:n_dpz), lat)
 
-do i = 1, size(dpz)
-  if (dpz(i) == real_garbage$) cycle
-  print *, 'Tracking at dpz:', dpz(i)
-
-  if (rf_is_on(lat%branch(0))) then
-    orbit = orb0
-    orbit%vec(6) = orbit%vec(6) + dpz(i)
-  else
-    orbit(0)%vec(6) = dpz(i)
-    call twiss_and_track (lat, orbit)
-!    call closed_orbit_calc (lat, orbit, 4)
-  endif
-
-  da%ref_orb = orbit(0)
-  call dynamic_aperture_scan (lat%branch(0), da)
+do i = 1, n_dpz
+  da => aperture_scan(i)
 
   write (1, *)
   write (1, *)
   write (1, '(a, f10.6)') '"Dpz =', dpz(i), '"'
   do j = 1, da_param%n_angle
-    ddat => da%aperture(j)
-    write (1, '(2f11.6, i7, 6x, a, 3x, a)') ddat%x, ddat%y, ddat%i_turn, &
-                              coord_state_name(ddat%plane), trim(lat%ele(ddat%ix_ele)%name)
+    da_point => da%point(j)
+    write (1, '(2f11.6, i7, 6x, a, 3x, a)') da_point%x, da_point%y, da_point%i_turn, &
+                              coord_state_name(da_point%plane), trim(lat%ele(da_point%ix_ele)%name)
   enddo
-
 enddo
 
 close (1)
