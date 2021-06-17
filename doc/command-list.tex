@@ -402,9 +402,9 @@ Examples:
 \end{example}
 
 The \vn{help} command works by parsing the file \vn{\$TAO_DIR/doc/command-list.tex} which is
-the LaTeX file for the \vn{Tao Commands} chapter of the \tao manual. Thus, for the \vn{help} command
+the LaTeX file for the \vn{Tao Commands} chapter of the \tao manual. For the \vn{help} command
 to work properly, the environmental variable \vn{TAO_DIR} must be appropriately defined. Generally,
-\vn{TAO_DIR} will be defined if the appropriate setup script has been run. For ``Distributions'',
+\vn{TAO_DIR} will be defined if the appropriate \bmad setup script has been run. For ``Distributions'',
 this is the same setup script used to setup a distribution. See your local \bmad guru for details.
 
 When the \vn{help} command parses the \vn{\$TAO_DIR/doc/command-list.tex} file, LaTeX syntax will
@@ -725,10 +725,10 @@ conditions or to perform analysis with more than one initialization file. See th
 Initialization section (\sref{s:command.line}) for a list of the optional arguments. If an argument
 is not set, the \vn{reinitialize} command uses the same argument value that were used in the last
 \vn{reinitialize} command, or, if this is the first reinitialization, what was used to start \tao.
-Exception: If the \vn{-clear} switch is present, all initalization parameters are set to their
+Exception: If the \vn{-clear} switch is present, all initialization parameters are set to their
 default state before the command line arguments specified in the \vn{reinitialize} command are
 parsed. The \vn{-clear} switch, if used, should come before any command line arguments since if
-there are command line arguments before the \vn{-clear} switch, these argumnets will be cleared.
+there are command line arguments before the \vn{-clear} switch, these arguments will be cleared.
 
 Examples:
 \begin{example}
@@ -1139,7 +1139,7 @@ Format:
 \end{example}
 
 The \vn{set dynamic_aperture} command sets parameters for dynamic aperture simulations
-(\sref{s:dynamicaperture}) Also see the \vn{set universe dynamic_aperture} (\sref{s:set.universe})
+(\sref{s:da.calc}) Also see the \vn{set universe dynamic_aperture} (\sref{s:set.universe})
 and \vn{show dynamic_aperture} (\sref{s:show.da}).
 
 To set the particle energy for the <n>\Th scan use \vn{pz(<n>)}. Use a value less than -1 to remove
@@ -1582,7 +1582,7 @@ parameters for that universe.
 
 The \vn{set universe <what_universe> dynamic_aperture_calc} command will enable the dynamic aperture
 calculation for a ring. See the \vn{Initializing Dynamic Aperture} section
-(\sref{s:dynamicaperture}) for more details. To enable the dynamic aperture calculation at startup,
+(\sref{s:da.calc}) for more details. To enable the dynamic aperture calculation at startup,
 set the \vn{design_lattice(i)%dynamic_aperture} component (\sref{s:init.lat}).
 
 The \vn{set universe <what_universe> one_turn_map_calc} command will enable a one-turn-map
@@ -1716,6 +1716,7 @@ Format:
   show use                   ! Show data and vars used in optimization \sref{s:show.use}.
   show value ...             ! Show value of an expression \sref{s:show.value}.
   show variable ...          ! Show optimization variable info \sref{s:show.variable}.
+  show version               ! Show Tao version.
   show wakes                 ! Show wake info \sref{s:show.wakes}.
   show wall ...              ! Show vacuum chamber wall info \sref{s:show.wall}.
   show wave                  ! Show wave analysis info \sref{s:show.wave}.
@@ -1962,7 +1963,7 @@ Syntax:
   show dynamic_aperture
 \end{example}
 
-Shows parameters and results of the dynamic aperture calculation (\sref{s:dynamicaperture}).
+Shows parameters and results of the dynamic aperture calculation (\sref{s:da.calc}).
 See also the commands \vn{set dynamic_aperture}, and \vn{set universe dynamic_aperture}.
 
 %% show element --------------------------------------------------------------
@@ -3004,6 +3005,34 @@ Examples:
   show var -uni 2      ! List all variables that control attributes in universe 2.
   show var -bmad       ! List variables in Bmad Lattice format.
 \end{example}
+
+%% show version --------------------------------------------------------------
+
+\subsection{show version}
+\label{s:show.version}
+
+Syntax:
+\begin{example}
+  show version 
+\end{example}
+
+The \vn{show version} command will show the ``version'' of \tao corresponding to \tao executable
+being run. Since \bmad and \tao are under continuous development, the standard semantic versioning
+scheme using major and minor numbers does not make sense. Instead, the version string associated
+with \tao is a date encoded in the form
+\begin{example}
+  YYYY_MMDD
+\end{example}
+where \vn{YYYY} is the four digit year, \vn{MM} is the two digit month, and \vn{DD} is the two digit
+day. The version string is stored in the file \vn{\$TAO_DIR/VERSION}.  For the \vn{show version}
+command to work properly, the environmental variable \vn{TAO_DIR} must be appropriately
+defined. Generally, \vn{TAO_DIR} will be defined if the appropriate \bmad setup script has been
+run. For ``Bmad Distributions'', this is the same setup script used to setup a distribution. See
+your local \bmad guru for details.\footnote
+  {
+For developers who use SVN to update their Distributions: The version string is not updated when
+you update your Distribution (the version file is not in the SVN repository). 
+  }
 
 %% show wakes --------------------------------------------------------------
 

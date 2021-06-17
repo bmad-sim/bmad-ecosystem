@@ -429,10 +429,12 @@ type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_lattice_struct), target :: tao_lat
 type (tao_expression_info_struct), allocatable :: info(:)
 type (lat_struct), pointer :: lat
+type (tao_dynamic_aperture_struct), pointer :: da
+type (aperture_scan_struct), pointer :: scan
 type (normal_modes_struct) mode
 type (ele_struct), pointer :: ele, ele_start, ele_ref, ele2
 type (coord_struct), pointer :: orb0, orbit(:), orb
-type (coord_struct) :: orb_at_s
+type (coord_struct) :: orb_at_s, orb1
 type (bpm_phase_coupling_struct) bpm_data
 type (taylor_struct), save :: taylor_save(6), taylor(6) ! Saved taylor map
 type (floor_position_struct) floor
@@ -453,7 +455,7 @@ real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
 real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb
-real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi
+real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi, amp_a, amp_b
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
@@ -465,7 +467,7 @@ complex(rp) temp_cplx
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
 integer i, j, jj, k, m, n, k_old, ix, ie, is, iz, ix_ele, ix_start, ix_ref, ie0, ie1
-integer n_size, ix0, which, expnt(6), n_track, n_max, ix_branch, expo(6)
+integer n_size, ix0, which, expnt(6), n_track, n_max, ix_branch, expo(6), n_da
 
 character(*), optional :: why_invalid
 character(6) expn_str
@@ -1340,32 +1342,50 @@ case ('dpz_dz')
     endif
   endif
 
-case ('e_tot')
+!-----------
 
-  call out_io (s_warn$, r_name, '"e_tot" has been renamed to "orbit.e_tot" to avoid confusion with lattice element referece energy parameter.', &
-                'Please modify your input file appropriately.')
-
-  if (ix_ref > -1) then
-    if (data_source == 'beam') then
-      orb => bunch_params(ix_ref)%centroid
-    else
-      orb => orbit(ix_ref)
+case ('dynamic_aperture.')
+  da => u%dynamic_aperture
+  if (allocated(da%scan)) then
+    if (.not. allocated(da%scan(1)%point)) then
+      call tao_set_invalid (datum, 'DYNAMIC APERTURE NOT CALCULATED', why_invalid)
+      return
     endif
-    if (orb%state == not_set$) goto 7000  ! Set error message and return
-    call convert_pc_to ((1 + orb%vec(6))*orb%p0c, orb%species, e_tot = value_vec(ix_ref))
+  else
+    call tao_set_invalid (datum, 'DYNAMIC APERTURE NOT CALCULATED', why_invalid)
+    return
   endif
 
-  do i = ix_start, ix_ele
-    if (data_source == 'beam') then
-      orb => bunch_params(i)%centroid
-    else
-      orb => orbit(i)
-    endif
-    if (orb%state == not_set$) goto 7000  ! Set error message and return
-    call convert_pc_to ((1 + orb%vec(6))*orb%p0c, orb%species, e_tot = value_vec(i))
+  if (da%a_emit == 0 .or. da%b_emit == 0) then
+    call tao_set_invalid (datum, 'A_EMIT OR B_EMIT NOT SET IN TAO_DYNAMIC_APERTURE STRUCTURE.', why_invalid)
+    return
+  endif
+
+  n_da = size(da%scan)
+
+  if (.not. is_integer(sub_data_type, n)) then
+    call tao_set_invalid (datum, 'MALFORMED DATA_TYPE: ' // quote(datum%data_type) // '. ' // quote(sub_data_type) // ' IS NOT AN INTEGER.', why_invalid, .true.)
+    return
+  endif
+
+  if (n < 1 .or. n > n_da) then
+    call tao_set_invalid (datum, 'SCAN INDEX OUT OF RANGE FOR DATA_TYPE: ' // quote(datum%data_type), why_invalid, .true.)
+    return
+  endif
+
+  scan => da%scan(n)
+  ele => branch%ele(0)
+
+  datum_value = 1d100   ! Something large
+  do j = 1, size(scan%point)
+    orb1 = scan%ref_orb
+    orb1%vec(1:4) = [scan%point(j)%x, 0.0_rp, scan%point(j)%y, 0.0_rp]
+    call orbit_amplitude_calc (ele, orb1, amp_a, amp_b)
+    amp = sqrt(2 * amp_a / da%a_emit + 2 * amp_b / da%b_emit)
+    datum_value = min(datum_value, amp)
   enddo
 
-  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  valid_value = .true.
 
 !-----------
 
@@ -3274,6 +3294,10 @@ case ('unstable.')
 
   case ('unstable.ring', 'unstable.lattice')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+
+    if (datum%data_type == 'unstable.ring') then
+      call out_io (s_error$, r_name, '"unstable.ring" has been replaced by "unstable.lattice". Please change this in your input file.')
+    endif
 
     if (lat%param%geometry == closed$ .and. tao_branch%track_state /= moving_forward$) then
       datum_value = 1

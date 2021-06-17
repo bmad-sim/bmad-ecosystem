@@ -117,6 +117,7 @@ do i = 1, size(s%plot_page%region)
       dy = -0.2
       do ic = 1, size(graph%curve)
         if (graph%curve(ic)%valid) cycle
+        if (graph%curve(ic)%why_invalid == 'IGNORE') cycle
         call qp_draw_text (graph%curve(ic)%why_invalid, 0.2_rp, dy, '%BOX/LT', color = 'red', justify = 'LC') 
         dy = dy - 0.15
       enddo
@@ -1686,7 +1687,9 @@ character(16) num_str
 
 !
 
+if (.not. curve%valid) return
 if (curve%use_y2) call qp_use_axis (y = 'Y2')
+
 call qp_set_symbol (curve%symbol)
 
 if (curve%draw_symbols .and. allocated(curve%x_symb)) then
@@ -1888,19 +1891,28 @@ if (.not. allocated(graph%curve)) return
 n = size(graph%curve)
 allocate (text(n), symbol(n), line(n))
 
+text = ''
+symbol%type = ''
+line%width = -1
+
 do i = 1, n
   ! Text
   curve => graph%curve(i)
-  text(i) = curve%legend_text
-  if (text(i) == '') then
-    text(i) = curve%data_type
+  if (.not. curve%valid) then
+    if (curve%why_invalid /= 'IGNORE') text(i) = curve%why_invalid
+    cycle
   endif
+
+  text(i) = curve%legend_text
+  if (text(i) == '') text(i) = curve%data_type
+
   if (size(s%u) > 1 .and. .not. all(graph%curve%ix_universe == graph%curve(1)%ix_universe)) then
     iu = curve%ix_universe
     if (iu == -1) iu = graph%ix_universe
     if (iu == -1) iu = s%global%default_universe
     text(i) = int_str(iu) // '@' // text(i)
   endif
+
   if (.not. all(graph%curve%component == graph%curve(1)%component)) then
     if (curve%component == '') then
       text(i) = trim(text(i)) // ' ' // trim(graph%component)
@@ -1908,12 +1920,12 @@ do i = 1, n
       text(i) = trim(text(i)) // ' ' // trim(curve%component)
     endif
   endif
+
   ! Symbol to display
   symbol(i) = curve%symbol
-  if (.not. curve%draw_symbols) symbol(i)%type = 'do_not_draw'
   line(i) = curve%line
-  if (size(curve%x_line) == 0) line(i)%width = -1 ! Do not draw
-  if (.not. curve%draw_line) line(i)%width = -1
+  if (size(curve%x_line) == 0 .or. .not. curve%draw_line) line(i)%width = -1 ! Do not draw
+  if (.not. curve%draw_symbols) symbol(i)%type = ''  ! Do not draw
 enddo
 
 if (graph%draw_curve_legend .and. n > 1) then

@@ -703,7 +703,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_dynamic_aperture_struct), pointer :: da
 type (aperture_scan_struct), pointer :: scan
 type (coord_struct), allocatable :: orbit(:)
-integer :: i, j, k, n_da, n_da_curve, n_pa_curve, n, nc
+integer :: i, j, k, n_da, n_da_curve, n, ix_ele_ref
 
 logical err
 
@@ -715,33 +715,30 @@ u => tao_pointer_to_universe (graph%ix_universe)
 
 da => u%dynamic_aperture
 n_da = size(da%scan)
-nc = size(graph%curve)
 
-! Count dynamic and physical aperture curves 
+! Count DA curves 
+
 n_da_curve = 0
-n_pa_curve = 0
-do i = 1, nc
+do i = 1, size(graph%curve)
   curve => graph%curve(i)
-  if (is_physical_aperture(curve)) then
-    n_pa_curve = n_pa_curve + 1
-  else
-     n_da_curve = n_da_curve + 1
-     ! Assign a default type 
-     if (curve%data_type =='') curve%data_type = 'dynamic_aperture'
-  endif
+  if (curve%data_type(1:12) == 'beam_ellipse') cycle
+  n_da_curve = n_da_curve + 1
+  ! Assign a default type 
+  if (curve%data_type == '') curve%data_type = 'dynamic_aperture'
+  if (curve%data_type /= 'dynamic_aperture' .and. curve%data_type /= 'dynamic_aperture_centered') then
+    call tao_set_curve_invalid (curve, 'BAD DATA_TYPE FOR DYNAMIC_APERTURE PLOT CURVE: ' // quote(curve%data_type))
+  endif 
 enddo 
 
-graph%is_valid = (n_da_curve /= 0 .and. nc /= n_pa_curve)
+graph%is_valid = (n_da_curve /= 0)
 if (.not. graph%is_valid) then
   write (graph%why_invalid, '(a, i0)') 'NO DYNAMIC APERTURES CURVES DEFINED FOR UNIVERSE ', u%ix_uni
   return
 endif
 
-err = .false.
+err = (.not. allocated(da%scan))
 if (allocated(da%scan)) then
-  if (.not. allocated(da%scan(1)%aperture)) err = .true.
-else
-  err = .true.
+  if (.not. allocated(da%scan(1)%point)) err = .true.
 endif
 
 if (err) then
@@ -750,46 +747,31 @@ if (err) then
   return
 endif
 
-! If there aren't enough da curves defined for all of the da scan,
-! automatically create more da curves based on defined curves,
-! looping over defined styles
+! Loop over curves.
+! It is allowed to have more curves than aperture scans. In this case, ignore unused curves.
 
-if (n_da > n_da_curve) then
-  allocate(temp_curve(nc))
-  call move_alloc(graph%curve, temp_curve)
-  allocate(graph%curve(n_da + n_pa_curve))
-  graph%curve(1:nc) = temp_curve(1:nc)
-  k = nc + 1
-  i = 0
-  do 
-    i = i+1
-    if(i>nc) i = 1
-    curve => graph%curve(i)
-    ! Skip pa curves
-    if (is_physical_aperture(curve)) cycle
-    graph%curve(k) = temp_curve(i)
-    ! Increment name
-    write (graph%curve(k)%name, '(a, i0)') 'c', k
-    if (k == n_da + n_pa_curve) exit
-    k = k+1
-  enddo
-endif
-
-! new number of curves
-nc = n_da_curve + n_pa_curve
-
-! loop over curves
-k=0
-do i = 1, nc
+do i = 1, size(graph%curve)
   curve => graph%curve(i)
-  if (is_physical_aperture(curve)) then
-    call tao_curve_physical_aperture_setup(curve)
+  if (curve%data_type(1:12) == 'beam_ellipse') then
+    call tao_curve_beam_ellipse_setup(curve)
     cycle
   endif
-  k = k + 1 
-  if (k > size(da%scan)) cycle
+
+  if (.not. curve%valid) cycle
+
+  if (.not. is_integer(curve%data_index, k)) then
+    call tao_set_curve_invalid (curve, 'DATA_INDEX IS NOT AN INTEGER: ' // quote(curve%data_index))
+    cycle
+  endif
+
+  if (k > size(da%scan)) then
+    curve%valid = .false.
+    curve%why_invalid = 'IGNORE'
+    cycle
+  endif
+
   scan => da%scan(k)
-  n = size(scan%aperture)
+  n = size(scan%point)
   
   call re_allocate (curve%x_line, n)
   call re_allocate (curve%y_line, n)
@@ -798,127 +780,67 @@ do i = 1, nc
 
   write(curve%legend_text, '(a, f6.2, a)') '\gd:', 100*da%pz(k), ' %'
 
-  ! propagate to ix_ele_ref
-  if (curve%ix_ele_ref > 0 ) then
-    if (curve%ix_ele_ref > u%model%lat%n_ele_track) then
-      call out_io (s_error$, r_name, 'IX_ELE_REF out of range for curve: ' // tao_curve_name(curve))  
-      return
-    endif 
-
-    call reallocate_coord(orbit, curve%ix_ele_ref)
-
-    do j = 1, n
-      orbit(0) = scan%ref_orb
-      orbit(0)%vec(1) = orbit(0)%vec(1) + scan%aperture(j)%x
-      orbit(0)%vec(3) = orbit(0)%vec(3) + scan%aperture(j)%y
-      call track_many (u%model%lat, orbit, 0, curve%ix_ele_ref, +1)
-    
-      curve%x_line(j) = orbit(curve%ix_ele_ref)%vec(1)
-      curve%y_line(j) = orbit(curve%ix_ele_ref)%vec(3)      
-    enddo
-    ! One more track of ref_orb if centered da is requested  
-    if (curve%data_type == 'dynamic_aperture_centered') then
-      orbit(0) = scan%ref_orb
-      call track_many (u%model%lat, orbit, 0, curve%ix_ele_ref, +1)
-      curve%x_line(:) = curve%x_line(:) - orbit(curve%ix_ele_ref)%vec(1)
-      curve%y_line(:) = curve%y_line(:) - orbit(curve%ix_ele_ref)%vec(3)
-    endif
-    
+  if (curve%data_type == 'dynamic_aperture_centered') then
+    curve%x_line(:) = scan%point(:)%x
+    curve%y_line(:) = scan%point(:)%y
   else
-  ! use data at ele 0 
-    if (curve%data_type == 'dynamic_aperture_centered') then
-      curve%x_line(:) = scan%aperture(:)%x
-      curve%y_line(:) = scan%aperture(:)%y
-    else
-      curve%x_line(:) = scan%aperture(:)%x + scan%ref_orb%vec(1)
-      curve%y_line(:) = scan%aperture(:)%y + scan%ref_orb%vec(3)
-    endif
+    curve%x_line(:) = scan%point(:)%x + scan%ref_orb%vec(1)
+    curve%y_line(:) = scan%point(:)%y + scan%ref_orb%vec(3)
   endif
+
   curve%x_symb = curve%x_line
   curve%y_symb = curve%y_line
 enddo
 
-!------------------------------------------------------------
-contains
-
-function is_physical_aperture(curve)
-logical :: is_physical_aperture
-type (tao_curve_struct) :: curve
-is_physical_aperture = (curve%data_type == 'physical_aperture')
-end function is_physical_aperture
-
 end subroutine tao_graph_dynamic_aperture_setup
-
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! routine for drawing the physical aperture for dynamic aperture plots.
 
-subroutine tao_curve_physical_aperture_setup (curve)
+subroutine tao_curve_beam_ellipse_setup (curve)
 
 use wall3d_mod
 
 type (tao_curve_struct) :: curve
 type (tao_universe_struct), pointer :: u
+type (tao_dynamic_aperture_struct), pointer :: da
+type (ele_pointer_struct), allocatable :: eles(:)
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
-type (wall3d_section_struct) sec
 
-real(rp) :: x1, x2, y1, y2, phi, min_angle, max_angle, angle, r_wall, dr_dtheta
-integer :: i, ap_type
+real(rp) :: phi, min_angle, max_angle, angle, xx, yy, dr_dtheta
+integer :: i, n_loc
 integer, parameter :: n = 25 ! points per elliptical quadrant
-character(*), parameter :: r_name = 'tao_curve_physical_aperture_setup'
+character(*), parameter :: r_name = 'tao_curve_beam_ellipse_setup'
 logical err
 
 ! Try to find a lattice element at s = 0 that has apertures defined
 
 u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 lat => u%model%lat
+da => u%dynamic_aperture
 
-do i = 1, lat%n_ele_track
-  ele => lat%ele(i)
-  if (ele%s /= lat%ele(0)%s) then
-    call out_io (s_warn$, r_name, 'Lattice element at s = 0 with defined aperture not found for curve: ' // tao_curve_name(curve), &
-                                  'Will not draw a physical aperture curve.')
-    if (allocated(curve%x_line)) deallocate (curve%x_line, curve%y_line)
-    if (allocated(curve%x_symb)) deallocate (curve%x_symb, curve%y_symb)
-    return
-  endif
-  x1 = -ele%value(x1_limit$)
-  x2 =  ele%value(x2_limit$)
-  y1 = -ele%value(y1_limit$)
-  y2 =  ele%value(y2_limit$)
-  ap_type = ele%aperture_type
-  if (x1 /= 0 .and. x2 /= 0 .and. x1 /= 0 .and. x2 /= 0) exit
-enddo
+if (da%param%start_ele == '') then
+  ele => lat%ele(0)
+else
+  call lat_ele_locator(da%param%start_ele, lat, eles, n_loc)
+  ele => eles(1)%ele
+endif
 
 !
 
-min_angle = u%dynamic_aperture%param%min_angle
-max_angle = u%dynamic_aperture%param%max_angle
+if (curve%data_type == 'beam_ellipse_full') then
+  min_angle = 0
+  max_angle = twopi
+else
+  min_angle = u%dynamic_aperture%param%min_angle
+  max_angle = u%dynamic_aperture%param%max_angle
+endif
 
-select case(ap_type)
-case(elliptical$)
-  allocate (sec%v(1))
-  sec%v(1)%x = (x1 + x2) / 2
-  sec%v(1)%y = (y1 + y2) / 2
-  sec%v(1)%radius_x = (x2 - x1) / 2
-  sec%v(1)%radius_y = (y2 - y1) / 2
-
-case(rectangular$)
-  allocate (sec%v(4))
-  sec%v(1)%x = x2;  sec%v(1)%y = y2
-  sec%v(2)%x = x1;  sec%v(2)%y = y2
-  sec%v(3)%x = x1;  sec%v(3)%y = y1
-  sec%v(4)%x = x2;  sec%v(4)%y = y1
-
-case default
-  return
-end select
-
-sec%n_vertex_input = size(sec%v)
-call wall3d_section_initializer(sec, err)
+xx = curve%scale * sqrt(ele%a%beta * da%a_emit)
+yy = curve%scale * sqrt(ele%b%beta * da%b_emit)
 
 call re_allocate (curve%x_line, 101)
 call re_allocate (curve%y_line, 101)
@@ -926,12 +848,11 @@ if (allocated(curve%x_symb)) deallocate (curve%x_symb, curve%y_symb)
 
 do i = 0, 100
   angle = (max_angle-min_angle) * i / 100.0_rp + min_angle
-  call calc_wall_radius (sec%v, cos(angle), sin(angle), r_wall, dr_dtheta)
-  curve%x_line(i+1) = cos(angle) * r_wall
-  curve%y_line(i+1) = sin(angle) * r_wall
+  curve%x_line(i+1) = xx * cos(angle) 
+  curve%y_line(i+1) = yy * sin(angle) 
 enddo
 
-end subroutine tao_curve_physical_aperture_setup
+end subroutine tao_curve_beam_ellipse_setup
 
 
 !----------------------------------------------------------------------------

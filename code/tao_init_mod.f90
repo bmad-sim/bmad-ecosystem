@@ -435,16 +435,18 @@ subroutine tao_init_dynamic_aperture(init_file)
 
 use tao_input_struct
 
-type (tao_dynamic_aperture_input) :: da_init(100)
+type (aperture_param_struct) :: da_param
 type (tao_universe_struct), pointer :: u
+type (tao_dynamic_aperture_struct), pointer :: da
 
-integer :: ios, iu, i, j, n_pz
+real(rp) pz(100), a_emit, b_emit
+integer :: ix_universe, ios, iu, i, j, n_pz, n_da
 
 character(*) init_file
 character(200) file_name
-character(40) :: r_name = 'tao_init_dynamic_aperture'
+character(*), parameter :: r_name = 'tao_init_dynamic_aperture'
 
-namelist / tao_dynamic_aperture / da_init
+namelist / tao_dynamic_aperture / ix_universe, da_param, pz, a_emit, b_emit
 
 !
 
@@ -456,46 +458,60 @@ if (iu == 0) then
   return
 endif
 
-! Read tao_dynamic_aperture
-call out_io (s_blank$, r_name, 'Init: Reading tao_dynamic_aperture namelist')
-read (iu, nml = tao_dynamic_aperture, iostat = ios)
-if (ios > 0) then
-  call out_io (s_error$, r_name, 'ERROR READING TAO_DYNAMIC_APERTURE NAMELIST.')
-  rewind (iu)
-  read (iu, nml = tao_dynamic_aperture)  ! To give error message
-endif
-
-close(iu)
-
-if (ios < 0) then
-  call out_io (s_blank$, r_name, 'Note: No tao_dynamic_aperture namelist found')
-  return
-endif
-
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  ! Count the list of pz
-  do n_pz = 0, size(da_init(i)%pz)-1
-    if (da_init(i)%pz(n_pz+1) == real_garbage$) exit
-  enddo
-
-  ! Default if no pz set
-  if (n_pz == 0) then
-    n_pz = 1
-    da_init(i)%pz(1) = 0
+do n_da = 1, 1000
+  ! Read tao_dynamic_aperture
+  call out_io (s_blank$, r_name, 'Init: Begin reading tao_dynamic_aperture namelist')
+  pz = real_garbage$
+  ix_universe = -1
+  da_param = aperture_param_struct()
+  read (iu, nml = tao_dynamic_aperture, iostat = ios)
+  if (ios > 0) then
+    call out_io (s_error$, r_name, 'ERROR READING TAO_DYNAMIC_APERTURE NAMELIST.', &
+                                   '[NOTE: THE SYNTAX WAS CHANGED 2021/6. PLEASE SEE THE TAO MANUAL.')
+    rewind (iu)
+    read (iu, nml = tao_dynamic_aperture)  ! To give error message
   endif
 
-  ! Set
-  u => s%u(i)
-  allocate(u%dynamic_aperture%scan(n_pz))
-  allocate(u%dynamic_aperture%pz(n_pz))
-  u%dynamic_aperture%param%n_turn    = da_init(i)%n_turn
-  u%dynamic_aperture%param%x_init    = da_init(i)%x_init
-  u%dynamic_aperture%param%y_init    = da_init(i)%y_init
-  u%dynamic_aperture%param%accuracy  = da_init(i)%accuracy
-  u%dynamic_aperture%param%min_angle = da_init(i)%min_angle
-  u%dynamic_aperture%param%max_angle = da_init(i)%max_angle
-  u%dynamic_aperture%param%n_angle   = da_init(i)%n_angle
-  u%dynamic_aperture%pz(1:n_pz)      = da_init(i)%pz(1:n_pz)  
+  if (ios < 0) then
+    if (n_da == 1) call out_io (s_blank$, r_name, 'Note: No tao_dynamic_aperture namelist found')
+    close(iu)
+    return
+  endif
+
+  ! Count the list of pz
+  ! Default if no pz set is 1 scan with pz = 0
+
+  if (ix_universe > 0) then
+    da => s%u(ix_universe)%dynamic_aperture
+  else
+    da => s%u(1)%dynamic_aperture
+  endif
+
+  do n_pz = 0, size(pz)-1
+    if (pz(n_pz+1) == real_garbage$) exit
+  enddo
+
+  if (allocated(da%pz)) deallocate(da%pz)
+
+  if (n_pz == 0) then
+    allocate (da%pz(1))
+    pz(1) = 0
+  else
+    allocate (da%pz(n_pz))
+    da%pz = pz(1:n_pz)
+  endif
+
+  da%a_emit = a_emit
+  da%b_emit = b_emit
+  da%param  = da_param
+
+  !
+
+  if (ix_universe < 1) then
+    do i = 2, size(s%u)
+      s%u(i)%dynamic_aperture = da
+    enddo
+  endif
 enddo
 
 end subroutine tao_init_dynamic_aperture

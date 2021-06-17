@@ -470,11 +470,4 @@ SYM_Q0 : group = {Q00W, Q00E}, tilt
 SYM_Q1 : group = {Q01W, Q01E}, tilt
 SYM_Q2 : group = {Q02W, Q02E}, tilt
 
-
-IP_L0[aperture_type] = elliptical
-IP_L0[x1_limit] = 20e-3
-IP_L0[x2_limit] = 20e-3
-IP_L0[y1_limit] = 5e-3
-IP_L0[y2_limit] = 5e-3
-
 use, cesr

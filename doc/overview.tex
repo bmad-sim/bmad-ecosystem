@@ -3,10 +3,20 @@
 
 %%----------------------------------------------------------------
 %\section{Running Tao with OpenMP}
-%
-%\tao by 
-%\etcetc
+\index{openMP}
+\label{s:openmp}
 
+\vn{OpenMP} is a standard that enables programs to run calculations with multiple threads which will
+reduce computation time. Certain calculations done by \tao, including beam tracking and dynamic
+aperture calculations, can be run multithreaded via OpenMP if the \tao executable file has been
+properly compiled.  Interested users should consult their local \bmad Guru for guidance. Note:
+\vn{OpenMP} multithreading involves using multiple cores of a single machine (unlike \vn{Open MPI}
+which involves multiple machines). Therefore, it is not necessary to have a cluster of machines to
+use \vn{OpenMP}
+
+To the local \bmad Guru: Compiling and linking of \tao with \vn{OpenMP} is documented on the \bmad
+web site. By default, \vn{OpenMP} is not enabled. Essentially, OpenMP is enabled by modifying
+the \vn{dist_prefs} file before compiling and linking.
 
 %----------------------------------------------------------------
 \section{Initializing Tao}

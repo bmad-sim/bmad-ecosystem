@@ -1,7 +1,7 @@
 !------------------------------------------------------------------------
 
 &tao_start
-  plot_file = 'tao_plot.init'
+  plot_file = "tao_plot.init"
 /
 
 !------------------------------------------------------------------------
@@ -18,13 +18,12 @@
   global%plot_on = T
 /
 
-
 &tao_dynamic_aperture
- da_init(1)%pz = 0, 0.01, 0.015
- da_init(1)%n_angle = 10
- da_init(1)%n_turn = 200 ! This is set low for demonstration purposes.
- da_init(1)%x_init = 0
- da_init(1)%y_init = 0
- da_init(1)%accuracy = 1e-5
+  a_emit = 2e-7
+  b_emit = 1e-8
+  pz = 0, 0.01, 0.015
+  da_param%n_angle = 10
+  da_param%n_turn = 200 ! This is set low for demonstration purposes.
+  da_param%abs_accuracy = 1e-5
 /
 

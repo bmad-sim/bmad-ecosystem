@@ -191,6 +191,7 @@ type tao_curve_struct
   real(rp), allocatable :: symb_size(:)  ! Symbol size. Used with symbol_size_scale. 
   integer, allocatable :: ix_symb(:)     ! Corresponding index in d1_data%d(:) array.
   real(rp) :: y_axis_scale_factor = 1    ! y-axis conversion from internal to plotting units.
+  real(rp) :: scale = 1                  ! Used by dynamic_aperture plotting.
   real(rp) :: z_color0 = 0, z_color1 = 0 ! Min and max values for mapping z-axis to color.
   type (qp_line_struct) line             ! Line attributes
   type (qp_symbol_struct) symbol         ! Symbol attributes
@@ -977,7 +978,7 @@ type tao_dynamic_aperture_struct
   type (aperture_param_struct) param
   type (aperture_scan_struct), allocatable :: scan(:) ! One scan for each pz.
   real(rp), allocatable :: pz(:)
-  integer :: ix_branch = 0
+  real(rp) :: a_emit, b_emit
 end type
 
 !-----------------------------------------------------------------------
