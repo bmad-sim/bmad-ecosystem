@@ -433,6 +433,7 @@ type (tao_dynamic_aperture_struct), pointer :: da
 type (aperture_scan_struct), pointer :: scan
 type (normal_modes_struct) mode
 type (ele_struct), pointer :: ele, ele_start, ele_ref, ele2
+type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct), pointer :: orb0, orbit(:), orb
 type (coord_struct) :: orb_at_s, orb1
 type (bpm_phase_coupling_struct) bpm_data
@@ -1374,14 +1375,19 @@ case ('dynamic_aperture.')
   endif
 
   scan => da%scan(n)
-  ele => branch%ele(0)
+  if (da%param%start_ele == '') then
+    ele => lat%ele(0)
+  else
+    call lat_ele_locator (da%param%start_ele, lat, eles, n)
+    ele => eles(1)%ele
+  endif
 
   datum_value = 1d100   ! Something large
   do j = 1, size(scan%point)
     orb1 = scan%ref_orb
     orb1%vec(1:4) = [scan%point(j)%x, 0.0_rp, scan%point(j)%y, 0.0_rp]
     call orbit_amplitude_calc (ele, orb1, amp_a, amp_b)
-    amp = sqrt(2 * amp_a / da%a_emit + 2 * amp_b / da%b_emit)
+    amp = sqrt(2 * (amp_a / da%a_emit + amp_b / da%b_emit))
     datum_value = min(datum_value, amp)
   enddo
 

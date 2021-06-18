@@ -44,7 +44,6 @@ if (present(calc_ok)) calc_ok = ok
 ! Merit contribution from the variables.
 
 do j = 1, s%n_var_used
-
   var => s%var(j)
   var%delta_merit = 0
   var%merit = 0
@@ -98,7 +97,6 @@ do j = 1, s%n_var_used
 
   var%merit = var%weight * var%delta_merit**2
   this_merit = this_merit + var%merit
-
 enddo
 
 !----------------------------------------------------------------------
@@ -107,7 +105,6 @@ enddo
 if (s%com%common_lattice) iu0 = ix_common_uni$
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-
   u => s%u(i)
   data => u%data
   data%merit = 0
@@ -209,7 +206,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   where (data%useit_opt) data%merit = data%weight * data%delta_merit**2
   this_merit = this_merit + sum (data%merit, mask = data%useit_opt)
-
 enddo
 
 !-------------------------------------------------------------------------------------------

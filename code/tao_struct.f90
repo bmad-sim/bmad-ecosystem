@@ -723,6 +723,7 @@ type tao_common_struct
   logical :: add_measurement_noise = .true.        ! Turn off to take data derivatives.
   logical :: is_err_message_printed(2) = .false.   ! Used by tao_set_invalid
   logical :: command_arg_has_been_executed = .false. ! Has the -command command line argument been executed?
+  logical :: all_merit_weights_positive = .true.  
   character(100) :: cmd = ''                       ! Used for the cmd history
   character(16) :: valid_plot_who(10) = ''         ! model, base, ref etc...
   character(200) :: saved_cmd_line = ''            ! Saved part of command line when there are mulitple commands on a line
