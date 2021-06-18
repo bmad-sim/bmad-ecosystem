@@ -32,7 +32,7 @@ contains
 ! This optimizer is based upon the work of Storn and Price: 
 !   R. Storn, and K. V. Price, 
 !   "Minimizing the real function of the ICEC'96 contest by differential evolution"
-!   IEEE conf. on Evolutionary  Computation, 842-844 (1996).
+!   IEEE conf. on Evolutionary Computation, 842-844 (1996).
 !
 ! Both arrays: v_best(:) and v_del(:) need to have the same size.
 !
@@ -220,7 +220,6 @@ do ng = 1, generations
   ! Loop over the entire population
 
   do i = 1, population
-
     do k = 1, population
       kk = mod (k + i, population) + 1
       p1 = i1(kk) 
@@ -240,7 +239,6 @@ do ng = 1, generations
     enddo
 
     if (opti_de_param%use_2nd_diff) then
-
       do k = 1, population
         kk = mod (k + i, population) + 1
         p4 = i4(kk) 
@@ -250,18 +248,15 @@ do ng = 1, generations
       do k = 1, population
         kk = mod (k + i, population) + 1
         p5 = i5(kk) 
-        if (p5 /= i .and. p5 /= p1 .and. p5 /= p2 .and. p5 /= p3 .and. &
-                                                             p5 /= p4) exit
+        if (p5 /= i .and. p5 /= p1 .and. p5 /= p2 .and. p5 /= p3 .and. p5 /= p4) exit
       enddo
-
     endif
 
     ! Find random vectors
 
     ! Construct the perturbed vector
 
-    v1 = trial(p1)%vec + opti_de_param%l_best * (v_best - trial(p1)%vec) + &
-                          F * (trial(p2)%vec - trial(p3)%vec)
+    v1 = trial(p1)%vec + opti_de_param%l_best * (v_best - trial(p1)%vec) + F * (trial(p2)%vec - trial(p3)%vec)
     if (opti_de_param%use_2nd_diff) v1 = v1 + F * (trial(p4)%vec - trial(p5)%vec)
 
     ! Perform crossover
@@ -282,7 +277,6 @@ do ng = 1, generations
         v2(ii) = v1(ii)
         ii = ii + 1
       enddo
-
     endif
 
     ! Compare
@@ -291,6 +285,7 @@ do ng = 1, generations
 
     this_better_merit = .false.
     this_best_merit = .false.
+
     if (opti_de_param%minimize_merit) then
       if (merit < trial(i)%merit) this_better_merit = .true.
       if (merit < best_merit) this_best_merit = .true.
@@ -310,7 +305,6 @@ do ng = 1, generations
     endif
 
     if (status /= 0) return
-
   enddo
 
 enddo
@@ -321,6 +315,6 @@ do i = 1, population
   deallocate (trial(i)%vec)
 enddo
 
-end function
+end function opti_de
 
 end module
