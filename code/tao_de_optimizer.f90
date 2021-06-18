@@ -16,8 +16,7 @@ subroutine tao_de_optimizer (abort)
 
 use tao_interface, dummy => tao_de_optimizer
 use tao_top10_mod, only: tao_var_write
-!use opti_de_mod, only: opti_de
-use opti_de_mod, only: opti_de !MPI , opti_de_mpi
+use opti_de_openmp_mod
 
 implicit none
 
@@ -62,13 +61,10 @@ merit_start = tao_merit ()
 write (line, '(a, i0)') 'Differential evolution optimizer, population: ', population
 call out_io (s_blank$, r_name, line)
 
-!MPI if (s%mpi%on) then
-!MPI  ! Turn off printing to screen for slaves
-!MPI  !if ( s%mpi%rank /= 0 ) call output_direct(print_and_capture = .false.)
-!MPI  merit = opti_de_mpi(var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
-!MPI else
-  merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
-!MPI endif
+!$ merit = opti_de_openmp (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
+!$ if (.false.) then
+     merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
+!$ endif
 
 print *, 'tao_de_optimizer merit for rank ', merit, s%mpi%rank
 
@@ -76,16 +72,16 @@ print *, 'tao_de_optimizer merit for rank ', merit, s%mpi%rank
 
 call tao_set_opt_vars (var_vec, s%global%optimizer_var_limit_warn)
 merit_end = tao_merit ()
+call tao_var_write (s%global%var_out_file)
 
 write (line, '(a, es14.6)') 'Merit start:', merit_start
 call out_io (s_blank$, r_name, line)
 write (line, '(a, es14.6)') 'Merit end:  ', merit_end
 call out_io (s_blank$, r_name, line)
 
-!MPI if (s%mpi%master) call tao_var_write (s%global%var_out_file)
 if (status /= 0) abort = .true.
 
-end subroutine
+end subroutine tao_de_optimizer
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -109,6 +105,7 @@ end subroutine
 function merit_wrapper (var_vec, status, iter_count) result (this_merit)
 
 use tao_interface
+use tao_top10_mod, only: tao_var_write
 use input_mod
 
 implicit none
@@ -155,9 +152,10 @@ if (iter_count == 1000) then
   t_delta = t_del(7) + 60*(t_del(6) + 60*(t_del(5) + 24*(t_del(3) + 30*t_del(2)))) 
 endif
 
-
 if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
   write (line, '(a, es14.6)') ' So far the minimum is ', merit_min
+  call tao_var_write (s%global%var_out_file)
+
   if (calc_ok) then
     call out_io (s_blank$, r_name, stars, line, stars)
   else
@@ -181,4 +179,4 @@ endif
 
 iter_count = mod(iter_count, 1000) + 1
 
-end function
+end function merit_wrapper

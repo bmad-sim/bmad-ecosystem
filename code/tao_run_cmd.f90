@@ -144,12 +144,12 @@ do i = 1, s%global%n_opti_loops
   if (abort) exit
 
   merit = tao_merit()
-  if (s%global%merit_stop_value > 0 .and. s%global%merit_stop_value > merit) then
+  if (s%global%merit_stop_value /= 0 .and. s%global%merit_stop_value > merit) then
     call out_io (s_info$, r_name, 'Merit value below global%merit_stop_value. Stopping Optimization.')
     exit
   endif
 
-  if (merit0 - merit <= merit * s%global%dmerit_stop_value) then
+  if (merit0 - merit <= abs(merit) * s%global%dmerit_stop_value) then
     call out_io (s_info$, r_name, 'Fractional change in Merit value in one loop below global%dmerit_stop_value. Stopping Optimization.')
     exit
   endif
@@ -168,7 +168,6 @@ call tao_turn_on_special_calcs_if_needed_for_plotting ()
 
 if (s%global%orm_analysis) s%u(:)%calc%twiss = .true.
 s%u(:)%calc%lattice = .true.
-
 
 end subroutine
 
