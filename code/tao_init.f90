@@ -18,6 +18,7 @@ use tao_plot_mod, dummy6 => tao_init
 use tao_data_and_eval_mod, dummy7 => tao_init
 use tao_command_mod, dummy8 => tao_init
 use tao_set_mod, dummy9 => tao_init
+!$ use omp_lib
 
 implicit none
 
@@ -72,7 +73,7 @@ endif
 ! OpenMP info
 
 !$ omp_n = omp_get_max_threads()
-!$ call out_io (s_important$, r_name, OpenMP active with number of threads: ' // int_str(omp_n))
+!$ call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(omp_n))
 
 ! Open the init file.
 ! If the init file name is *not* the default (that is, it has been set by
