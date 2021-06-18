@@ -1,18 +1,6 @@
-module opti_de_mod
+module opti_de_openmp_mod
 
-use output_mod
-
-type opti_de_param_struct
-  real(rp) :: CR = 0.8                    ! Crossover probability
-  real(rp) :: F  = 0.8                    ! Mixing number
-  real(rp) :: l_best = 0.0                ! Percentage of best vector.
-  logical :: use_2nd_diff   = .false.     ! use F * (x_4 - x_5) term
-  logical :: binomial_cross = .false.
-  logical :: randomize_F    = .false.
-  logical :: minimize_merit = .true.      ! Alternative is to maximize.
-end type
-
-type (opti_de_param_struct), save :: opti_de_param
+use opti_de_mod
 
 contains
 
@@ -20,7 +8,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function opti_de (v_best, generations, population, merit_func, 
+! Function opti_de_openmp (v_best, generations, population, merit_func, 
 !                                           v_del, status) result (best_merit)
 !    
 ! Differential Evolution for Optimal Control Problems.
@@ -88,9 +76,10 @@ contains
 !   best_merit -- Real(rp): Merit at minimum.
 !-
 
-function opti_de (v_best, generations, population, merit_func, v_del, status) result (best_merit)
+function opti_de_openmp (v_best, generations, population, merit_func, v_del, status) result (best_merit)
 
 use nr, only: indexx
+!$ use omp_lib
 
 implicit none
 
@@ -110,17 +99,19 @@ interface
 end interface
 
 type solution_struct
-  real(rp), pointer :: vec(:)
+  real(rp), allocatable :: vec(:)
   real(rp) merit
+  integer status
 end type
 
-type (solution_struct) :: trial(population) 
+type (solution_struct) :: solution(population) 
+type (solution_struct) :: try(population)
 
-real(rp) :: v1(size(v_best)), v2(size(v_best))
-real(rp) :: F, merit, r_ran, r_pop(population), r_vec(size(v_best))
+real(rp) :: v1(size(v_best)), r_vec(size(v_best))
+real(rp) :: F, r_ran, r_pop(population)
 
 integer status, iter_count
-integer :: i, ii, nd, ng, i_best, k, kk, n_vec
+integer :: i, ii, ng, nd, i_best, k, kk, n_vec
 integer :: i1(population), i2(population), i3(population)
 integer :: i4(population), i5(population)
 integer p1, p2, p3, p4, p5
@@ -129,13 +120,20 @@ logical this_better_merit, this_best_merit
 
 character(*), parameter :: r_name = 'opti_de'
 
-! Error check
+! Initialize
 
 nd = size(v_best)
+status = 0
+iter_count = 0
+
+n_vec = 3
+if (opti_de_param%use_2nd_diff) n_vec = 5
+
+! Error check
 
 if (size(v_del) /= nd) then
   call out_io (s_error$, r_name, 'ARRAY SIZES NOT THE SAME!', &
-                               'FOR V_DEL, AND V_BEST: \2i6\ ', i_array=[size(v_del), nd])
+                                 'FOR V_DEL, AND V_BEST: \2i6\ ', i_array=[size(v_del), nd])
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -149,44 +147,41 @@ if (population < 6 .and. opti_de_param%use_2nd_diff) then
   if (global_com%exit_on_error) call err_exit
 endif
 
-! Initialize
-
-status = 0
-iter_count = 0
-
-n_vec = 3
-if (opti_de_param%use_2nd_diff) n_vec = 5
-
 ! Find the best of the initial population
 
 do i = 1, population
-
-  allocate (trial(i)%vec(nd))
+  allocate (solution(i)%vec(nd), try(i)%vec(nd))
 
   if (i == 1) then
-    trial(1)%vec = v_best
+    solution(1)%vec = v_best
   else
     call random_number (v1)
-    trial(i)%vec = v_best + v_del * (2*v1 - 1)
+    solution(i)%vec = v_best + v_del * (2*v1 - 1)
   endif
+enddo
 
-  trial(i)%merit = merit_func(trial(i)%vec, status, iter_count)
+!$OMP parallel do
+do i = 1, population
+  solution(i)%merit = merit_func(solution(i)%vec, solution(i)%status, iter_count)
+enddo
+!$OMP end parallel do
 
+do i = 1, population
   if (i == 1) then
     i_best = 1
   elseif (opti_de_param%minimize_merit) then
-    if (trial(i)%merit < best_merit) i_best = i
+    if (solution(i)%merit < best_merit) i_best = i
   else
-    if (trial(i)%merit > best_merit) i_best = i
+    if (solution(i)%merit > best_merit) i_best = i
   endif
 
-  best_merit = trial(i_best)%merit
-  v_best = trial(i_best)%vec
+  best_merit = solution(i_best)%merit
+  v_best = solution(i_best)%vec
 
-  if (status /= 0) return
-
+  if (solution(i)%status /= 0) return
 enddo
 
+!---------------------------------
 ! Loop over all generations
 
 do ng = 1, generations
@@ -252,20 +247,18 @@ do ng = 1, generations
       enddo
     endif
 
-    ! Find random vectors
-
     ! Construct the perturbed vector
 
-    v1 = trial(p1)%vec + opti_de_param%l_best * (v_best - trial(p1)%vec) + F * (trial(p2)%vec - trial(p3)%vec)
-    if (opti_de_param%use_2nd_diff) v1 = v1 + F * (trial(p4)%vec - trial(p5)%vec)
+    v1 = solution(p1)%vec + opti_de_param%l_best * (v_best - solution(p1)%vec) + F * (solution(p2)%vec - solution(p3)%vec)
+    if (opti_de_param%use_2nd_diff) v1 = v1 + F * (solution(p4)%vec - solution(p5)%vec)
 
     ! Perform crossover
 
-    v2 = trial(i)%vec
+    try(i)%vec = solution(i)%vec
 
     if (opti_de_param%binomial_cross) then
       call random_number (r_vec)
-      where (r_vec < opti_de_param%CR) v2 = v1
+      where (r_vec < opti_de_param%CR) try(i)%vec = v1
 
     else  ! exponential crossover
       call random_number(r_ran) 
@@ -274,47 +267,42 @@ do ng = 1, generations
         call random_number(r_ran) 
         if (r_ran > opti_de_param%CR) exit
         ii = mod(ii, nd) + 1
-        v2(ii) = v1(ii)
+        try(i)%vec(ii) = v1(ii)
         ii = ii + 1
       enddo
     endif
-
-    ! Compare
-
-    merit = merit_func (v2, status, iter_count)
-
-    this_better_merit = .false.
-    this_best_merit = .false.
-
-    if (opti_de_param%minimize_merit) then
-      if (merit < trial(i)%merit) this_better_merit = .true.
-      if (merit < best_merit) this_best_merit = .true.
-    else
-      if (merit > trial(i)%merit) this_better_merit = .true.
-      if (merit > best_merit) this_best_merit = .true.
-    endif
-
-    if (this_better_merit) then
-      trial(i)%vec = v2
-      trial(i)%merit = merit
-    endif
-
-    if (this_best_merit) then
-      v_best = v2
-      best_merit = merit
-    endif
-
-    if (status /= 0) return
   enddo
 
+  ! Compute merit
+
+  !$OMP parallel do
+  do i = 1, population
+    try(i)%merit = merit_func (try(i)%vec, try(i)%status, iter_count)
+  enddo
+  !$OMP end parallel do
+
+  ! Compare solutions
+
+  do i = 1, population
+    if (opti_de_param%minimize_merit) then
+      this_better_merit = (try(i)%merit < solution(i)%merit)
+      this_best_merit   = (try(i)%merit < best_merit)
+    else
+      this_better_merit = (try(i)%merit > solution(i)%merit)
+      this_best_merit   = (try(i)%merit > best_merit)
+    endif
+
+    if (this_better_merit) solution(i) = try(i)
+
+    if (this_best_merit) then
+      v_best = try(i)%vec
+      best_merit = try(i)%merit
+    endif
+
+    if (try(i)%status /= 0) return
+  enddo
 enddo
 
-! Cleanup
-
-do i = 1, population
-  deallocate (trial(i)%vec)
-enddo
-
-end function opti_de
+end function opti_de_openmp
 
 end module
