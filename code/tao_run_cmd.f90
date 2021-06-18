@@ -63,6 +63,7 @@ endif
 ! Do not do radiation_integrals calc if not needed
 
 s%com%have_datums_using_expressions = .false.
+s%com%all_merit_weights_positive = (all(s%var%weight >= 0))
 
 iu0 = lbound(s%u, 1); iu1 = ubound(s%u, 1)
 do i = iu0, iu1
@@ -87,6 +88,8 @@ do i = iu0, iu1
     if (u%data(j)%data_type(1:11) == 'expression:') s%com%have_datums_using_expressions = .true.
     u%calc%srdt_for_data = max(tao_srdt_calc_needed(u%data(j)%data_type, u%data(j)%data_source), u%calc%srdt_for_data)
   enddo
+
+  s%com%all_merit_weights_positive = (s%com%all_merit_weights_positive .and. all(u%data%weight >= 0))
 enddo
 
 ! See if there are any constraints

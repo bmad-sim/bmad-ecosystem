@@ -42,9 +42,9 @@ real(rp), allocatable :: chi2(:)
 
 character(100) fmt, lines(100)
 character(40) name
-character(20) :: r_name = 'tao_top10_print'
+character(*), parameter :: r_name = 'tao_top10_print'
 
-!
+! Need to deal with the fact that the merit value of a datum or variable may be negative.
 
 n = 0
 do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -89,11 +89,11 @@ enddo
 allocate (tao_merit(num+s%n_v1_var_used))
 
 do i = 1, s%n_v1_var_used
-  call tao_to_top10 (tao_merit, sum(s%v1_var(i)%v(:)%merit), s%v1_var(i)%name, 0, 'max')
+  call tao_to_top10 (tao_merit, abs(sum(s%v1_var(i)%v(:)%merit)), s%v1_var(i)%name, -i, 'max')
 enddo
 
 do i = 1, num
-  call tao_to_top10 (tao_merit, temp_merit(i)%value, temp_merit(i)%name, i, 'max')
+  call tao_to_top10 (tao_merit, abs(temp_merit(i)%value), temp_merit(i)%name, i, 'max')
 enddo
 
 !
@@ -106,10 +106,10 @@ do i = 1, size(tao_merit)
   if (.not. tao_merit(i)%valid) exit
   if (tao_merit(i)%value == 0) exit
   m = tao_merit(i)%index
-  if (m == 0) then
-    nl=nl+1; write (lines(nl), '(a, 2es16.4)') tao_merit(i)%name, tao_merit(i)%value
+  if (m < 0) then
+    nl=nl+1; write (lines(nl), '(a, 2es16.4)') tao_merit(i)%name, sum(s%v1_var(-m)%v(:)%merit)
   else
-    nl=nl+1; write (lines(nl), '(a, 2es16.4)') tao_merit(i)%name, tao_merit(i)%value, sqrt(chi2(m)/n_points(m))
+    nl=nl+1; write (lines(nl), '(a, 2es16.4)') tao_merit(i)%name, temp_merit(m)%value, sqrt(chi2(m)/n_points(m))
   endif
 enddo
 
@@ -429,7 +429,8 @@ enddo
 !
 
 if (form == 'TOP10') then
-  call indexx(con(1:nc)%merit, ixm(1:nc))
+  ! Merit may be negative when trying to maximize a datum instead of minimizing it.
+  call indexx(abs(con(1:nc)%merit), ixm(1:nc))
   n_max = min(nc, s%global%n_top10_merit)
   ixm(1:n_max) = ixm(nc:nc-n_max+1:-1)
   line(1) = ' '

@@ -65,6 +65,11 @@ the value of $\delta V$ (\sref{s:del.v}) for a variable is put in the \vn{delta_
 the datum or variable. The contribution to the merit function, which is $[\delta D]^2$ for a datum
 and $[\delta V]^2$ for a variable, is put in the \vn{merit} component of the datum or variable.
 
+In some cases it might be desired a datum or variable's value. For example, maximizing the dynamic
+aperture. In this case, the datum or variable weight $w$ needs to be set negative and the
+contribution to the merit function will be negative. Note: The \vn{lmdif} optimizer
+(\sref{s:tao.opti}) will not function correctly if there are negative weights.
+
 In the case where it is not possible to calculate \vn{delta_merit} for a datum, for example, in the
 case where a datum is associated with a Twiss parameter but the lattice is unstable, the value of
 \vn{delta_merit} is set equal to the value of the datum's \vn{invalid} component. This is
