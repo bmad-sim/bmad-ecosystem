@@ -16,7 +16,7 @@ subroutine tao_de_optimizer (abort)
 
 use tao_interface, dummy => tao_de_optimizer
 use tao_top10_mod, only: tao_var_write
-use opti_de_openmp_mod
+use opti_de_mod
 
 implicit none
 
@@ -61,10 +61,7 @@ merit_start = tao_merit ()
 write (line, '(a, i0)') 'Differential evolution optimizer, population: ', population
 call out_io (s_blank$, r_name, line)
 
-!$ merit = opti_de_openmp (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
-!$ if (.false.) then
-     merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
-!$ endif
+merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
 
 print *, 'tao_de_optimizer merit for rank ', merit, s%mpi%rank
 
