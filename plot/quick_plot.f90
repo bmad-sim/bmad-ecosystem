@@ -4711,12 +4711,11 @@ enddo
 
 ! draw label
 
-if (ax2%draw_label) then
+if (ax2%draw_label .and. ax2%label /= '') then
   call qp_to_inch_rel (x_pos, 0.5_rp, x0, y0, '%GRAPH')
   dx = number_side * (ax1%number_offset + ax1%label_offset + number_len)
   call qp_set_text_attrib ('AXIS_LABEL', color = ax2%label_color)
-  call qp_draw_text_no_set (ax2%label, x0+dx, y0, 'INCH', 'CB', &
-                                       angle = -90.0_rp * number_side)
+  call qp_draw_text_no_set (ax2%label, x0+dx, y0, 'INCH', 'CB', angle = -90.0_rp * number_side)
 endif
 
 !
