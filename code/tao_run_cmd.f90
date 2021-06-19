@@ -28,7 +28,7 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (tao_universe_calc_struct) u_calc(lbound(s%u,1):ubound(s%u,1))
-real(rp), allocatable, save :: var_vec(:)
+real(rp), allocatable :: var_vec(:)
 real(rp) merit0, merit
 integer n_data, i, j, iu0, iu1
 

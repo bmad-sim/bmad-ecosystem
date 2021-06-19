@@ -27,7 +27,7 @@ type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 type (qp_rect_struct) border1, border2
-type (tao_data_array_struct), allocatable, save :: d_array(:)
+type (tao_data_array_struct), allocatable :: d_array(:)
 
 real(rp) location(4), dx, dy, h
 

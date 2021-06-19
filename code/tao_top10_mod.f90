@@ -306,7 +306,7 @@ real(rp) value, this_merit
 
 integer i, j, n, ix, iunit, nc, ir, n_max
 integer ir1, ir2, iu, ie, nl, ct
-integer, allocatable, save :: ixm(:)
+integer, allocatable :: ixm(:)
 integer n_name, n_d2_d1_name, n_loc_ele, n_loc_start, n_loc_ref, n_tot
 
 character(*) form
@@ -315,7 +315,7 @@ character(80) fmt, fmt2
 character(1) plane
 character(24) :: r_name = 'tao_show_constraints'
 character(400) name
-character(300), allocatable, save :: line(:)
+character(300), allocatable :: line(:)
 character(300) l1
 
 type constraint_struct
@@ -328,7 +328,7 @@ type constraint_struct
   logical :: expression = .false.
 end type
 
-type (constraint_struct), allocatable, save :: con(:)
+type (constraint_struct), allocatable :: con(:)
 
 ! Init
  

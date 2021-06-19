@@ -18,8 +18,8 @@ character(*) :: action
 character(*) :: var_name
 character(16) match
 
-type (tao_var_array_struct), allocatable, save :: var(:)
-type (tao_v1_var_array_struct), allocatable, save :: v1(:)
+type (tao_var_array_struct), allocatable :: var(:)
+type (tao_v1_var_array_struct), allocatable :: v1(:)
 
 logical, allocatable :: action_logic(:) !which elements do we take action on?
 

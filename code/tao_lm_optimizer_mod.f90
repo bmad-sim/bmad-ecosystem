@@ -32,15 +32,15 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (super_mrqmin_storage_struct) storage
 
-real(rp), allocatable, save :: y(:), weight(:), a(:)
-real(rp), allocatable, save :: y_fit(:)
-real(rp), allocatable, save :: dy_da(:, :)
-real(rp), allocatable, save :: var_value(:), var_weight(:)
+real(rp), allocatable :: y(:), weight(:), a(:)
+real(rp), allocatable :: y_fit(:)
+real(rp), allocatable :: dy_da(:, :)
+real(rp), allocatable :: var_value(:), var_weight(:)
 real(rp) a_lambda, chi_sq, merit0
 
 integer i, j, k, status, status2
 integer n_data, n_var
-integer, allocatable, save :: var_ix(:)
+integer, allocatable :: var_ix(:)
 
 logical :: finished, init_needed = .true.
 logical abort
@@ -175,7 +175,7 @@ real(rp), intent(in) :: a(:)
 real(rp), intent(out) :: y_fit(:)
 real(rp), intent(out) :: dy_da(:, :)
 real(rp) merit0
-real(rp), allocatable, save :: var_delta(:)
+real(rp), allocatable :: var_delta(:)
 
 integer i, j, k, n, nn, im, iv, n_var, nd
 integer status

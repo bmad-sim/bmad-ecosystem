@@ -296,8 +296,8 @@ use srdt_mod
 type (tao_universe_struct), target :: u
 type (tao_datum_input) :: datum(n_datum_min:)
 type (tao_d1_data_struct), pointer :: d1_this
-type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
-type (ele_pointer_struct), allocatable, save :: eles(:)
+type (tao_d1_data_array_struct), allocatable :: d1_array(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (tao_data_struct), pointer :: dat
 

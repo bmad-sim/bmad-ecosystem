@@ -60,7 +60,7 @@ implicit none
 type (ele_struct), pointer :: ele => null()
 type (ele_struct), pointer :: ele2 => null()
 type (ele_struct), pointer :: ref_ele => null()
-type (coord_struct), allocatable, save :: orb(:)
+type (coord_struct), allocatable :: orb(:)
 type (lat_struct), pointer :: lat
 type (all_pointer_struct) a_ptr
 
@@ -76,8 +76,8 @@ integer time_values(8), seed(1)
 integer :: ix_key(2), key_next, num_loc
 
 logical err, found, rel_error, found_double, rel_sbend_error_flag
-logical, allocatable, save :: which_univ(:)
-logical, allocatable, save :: action_logic(:)
+logical, allocatable :: which_univ(:)
+logical, allocatable :: action_logic(:)
 
 ! random number seeded dulat tao initialization
 

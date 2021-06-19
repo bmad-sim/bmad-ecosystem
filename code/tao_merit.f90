@@ -213,7 +213,7 @@ contains
 
 subroutine zero_phase_merit (who, ix_uni)
 
-type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
+type (tao_d1_data_array_struct), allocatable :: d1_array(:)
 character(*) who
 real(rp) ave
 integer ix_uni, n

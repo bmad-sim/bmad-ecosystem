@@ -17,8 +17,8 @@ use tao_interface, dummy => tao_use_data
 
 implicit none
 
-type (tao_d1_data_array_struct), allocatable, save :: d1_dat(:)
-type (tao_data_array_struct), allocatable, save :: d_dat(:)
+type (tao_d1_data_array_struct), allocatable :: d1_dat(:)
+type (tao_data_array_struct), allocatable :: d_dat(:)
 
 character(*) :: action
 character(*) :: data_name

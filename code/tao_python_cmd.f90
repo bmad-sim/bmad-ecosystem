@@ -71,15 +71,15 @@ type (tao_data_struct), pointer :: d_ptr
 type (tao_d2_data_struct), allocatable :: d2_temp(:)
 type (tao_d1_data_struct), allocatable :: d1_temp(:)
 type (tao_data_struct), allocatable :: d_temp(:)
-type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
+type (tao_v1_var_array_struct), allocatable, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr, var
-type (tao_var_array_struct), allocatable, save, target :: v_array(:)
+type (tao_var_array_struct), allocatable, target :: v_array(:)
 type (tao_v1_var_struct), allocatable :: v1_temp(:)
 type (tao_var_struct), allocatable :: v_temp(:)
-type (tao_plot_array_struct), allocatable, save :: plots(:)
-type (tao_graph_array_struct), allocatable, save :: graphs(:)
-type (tao_curve_array_struct), allocatable, save :: curves(:)
+type (tao_plot_array_struct), allocatable :: plots(:)
+type (tao_graph_array_struct), allocatable :: graphs(:)
+type (tao_curve_array_struct), allocatable :: curves(:)
 type (tao_plot_region_struct), pointer :: pr
 type (tao_plot_struct), allocatable :: plot_temp(:)
 type (tao_plot_struct), pointer :: p
@@ -90,9 +90,9 @@ type (tao_curve_struct), allocatable :: curve_temp(:)
 type (tao_curve_struct), pointer :: c
 type (tao_lattice_struct), pointer :: tao_lat
 type (tao_plot_region_struct), pointer :: region
-type (tao_d2_data_array_struct), allocatable, save :: d2_array(:)
-type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
-type (tao_data_array_struct), allocatable, save :: d_array(:)
+type (tao_d2_data_array_struct), allocatable :: d2_array(:)
+type (tao_d1_data_array_struct), allocatable :: d1_array(:)
+type (tao_data_array_struct), allocatable :: d_array(:)
 type (tao_data_struct), pointer :: data
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
@@ -104,7 +104,7 @@ type (coord_struct), pointer :: orbit
 type (coord_struct), target :: orb, orb_start, orb_end, orb_here
 type (bunch_params_struct), pointer :: bunch_params
 type (bunch_params_struct), pointer :: bunch_p
-type (ele_pointer_struct), allocatable, save :: eles(:), eles2(:)
+type (ele_pointer_struct), allocatable :: eles(:), eles2(:)
 type (branch_struct), pointer :: branch
 type (tao_model_branch_struct), pointer :: model_branch
 type (random_state_struct) ran_state
@@ -162,7 +162,7 @@ integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n,
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type, loc
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
 integer line_width, n_bend, ic, num_ele, n_arr, n_add, n1, n2, i0, i1, i2
-integer, allocatable, save :: index_arr(:), int_arr(:)
+integer, allocatable :: index_arr(:), int_arr(:)
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
 logical first_time, found_one, calc_ok, no_slaves, index_order
@@ -7746,7 +7746,7 @@ end subroutine destroy_this_data_d2
 
 subroutine destroy_this_var_v1(v1_name)
 
-type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
+type (tao_v1_var_array_struct), allocatable, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
 
 integer j, k, i1, i2, n_delta, n

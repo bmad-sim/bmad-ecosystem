@@ -24,7 +24,7 @@ use beam_mod
 
 implicit none
 
-type (tao_plot_array_struct), allocatable, save :: template(:)
+type (tao_plot_array_struct), allocatable :: template(:)
 type (qp_axis_struct), pointer :: ax
 type (tao_universe_struct), pointer :: u
 type (tao_plot_region_struct), pointer :: region, r2

@@ -39,7 +39,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_dat
 type (tao_d1_data_struct), pointer :: d1_dat
-type (coord_struct), allocatable, save :: orb(:)
+type (coord_struct), allocatable :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
@@ -546,7 +546,7 @@ integer what_lat, n_lost_old, ie_start, ie_end
 integer i, n, i_uni, ip, ig, ic, ie
 integer n_bunch, n_part, i_uni_to, ix_track
 integer n_lost, ix_branch
-integer, allocatable, save :: ix_ele(:)
+integer, allocatable :: ix_ele(:)
 
 character(*), parameter :: r_name = "tao_beam_track"
 
@@ -768,7 +768,7 @@ implicit none
 
 type (tao_universe_struct) u
 type (tao_lattice_struct), target :: model
-type (ele_struct), save :: extract_ele
+type (ele_struct) :: extract_ele
 type (ele_struct), pointer :: from_ele, ele0
 type (coord_struct) pos
 type (coord_struct), pointer :: orb_out, orb_in

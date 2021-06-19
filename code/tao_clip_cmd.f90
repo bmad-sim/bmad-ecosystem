@@ -26,8 +26,8 @@ use tao_interface, dummy => tao_clip_cmd
 implicit none
 
 type (tao_plot_struct), pointer :: p
-type (tao_plot_array_struct), allocatable, save :: plot(:)
-type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (tao_plot_array_struct), allocatable :: plot(:)
+type (tao_graph_array_struct), allocatable :: graph(:)
 type (tao_d2_data_struct), pointer :: d2_old
 
 real(rp) y_min, y_max
@@ -81,7 +81,7 @@ subroutine clip_graph (plot, graph)
 
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
-type (tao_d1_data_array_struct), allocatable, save, target :: d1_array(:)
+type (tao_d1_data_array_struct), allocatable, target :: d1_array(:)
 type (tao_d2_data_struct), pointer :: d2
 type (tao_curve_struct), pointer :: curve
 

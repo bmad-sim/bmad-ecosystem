@@ -118,7 +118,7 @@ use tao_var_mod, only: tao_get_opt_vars, tao_set_opt_vars
 
 implicit none
 
-real(rp), allocatable, save :: var_vec(:)
+real(rp), allocatable :: var_vec(:)
 
 integer, optional :: rank
 integer ::  master, mpierr, errorcode

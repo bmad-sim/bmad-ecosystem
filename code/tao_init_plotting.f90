@@ -42,7 +42,7 @@ type (tao_place_input) place(30)
 type (old_tao_ele_shape_struct) shape(30)
 type (tao_ele_shape_input) ele_shape(60)
 type (tao_ele_shape_struct), pointer :: e_shape
-type (ele_pointer_struct), allocatable, save :: eles(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 type (qp_axis_struct) init_axis
 
 real(rp) y1, y2

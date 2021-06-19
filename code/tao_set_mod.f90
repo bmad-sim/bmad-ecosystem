@@ -740,7 +740,7 @@ end subroutine tao_set_wave_cmd
 subroutine tao_set_beam_cmd (who, value_str)
 
 type (tao_universe_struct), pointer :: u
-type (ele_pointer_struct), allocatable, save, target :: eles(:)
+type (ele_pointer_struct), allocatable, target :: eles(:)
 type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
 type (tao_beam_branch_struct), pointer :: bb
@@ -861,7 +861,7 @@ contains
 
 subroutine set_this_track (track_ele, ix_track_ele)
 
-type (ele_pointer_struct), allocatable, save, target :: eles(:)
+type (ele_pointer_struct), allocatable, target :: eles(:)
 integer ix_track_ele, n_loc
 character(*) track_ele
 
@@ -1246,12 +1246,12 @@ subroutine tao_set_curve_cmd (curve_name, component, value_str)
 
 implicit none
 
-type (tao_curve_array_struct), allocatable, save :: curve(:)
-type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (tao_curve_array_struct), allocatable :: curve(:)
+type (tao_graph_array_struct), allocatable :: graph(:)
 type (lat_struct), pointer :: lat
 
 integer i, j, ios, i_uni
-integer, allocatable, save :: ix_ele(:)
+integer, allocatable :: ix_ele(:)
 
 character(*) curve_name, component, value_str
 character(20) :: r_name = 'tao_set_curve_cmd'
@@ -1490,7 +1490,7 @@ subroutine tao_set_plot_cmd (plot_name, component, value_str)
 
 implicit none
 
-type (tao_plot_array_struct), allocatable, save :: plot(:)
+type (tao_plot_array_struct), allocatable :: plot(:)
 type (tao_universe_struct), pointer :: u
 type (tao_plot_struct), pointer :: p
 
@@ -1611,8 +1611,8 @@ subroutine tao_set_graph_cmd (graph_name, component, value_str)
 
 implicit none
 
-type (tao_plot_array_struct), allocatable, save :: plot(:)
-type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (tao_plot_array_struct), allocatable :: plot(:)
+type (tao_graph_array_struct), allocatable :: graph(:)
 
 character(*) graph_name, component, value_str
 character(20) :: r_name = 'tao_set_graph_cmd'
@@ -1803,17 +1803,17 @@ subroutine tao_set_var_cmd (var_str, value_str)
 implicit none
 
 type (tao_v1_var_struct), pointer :: v1_ptr
-type (tao_real_pointer_struct), allocatable, save    :: r_var(:), r_set(:)
-type (tao_logical_array_struct), allocatable, save :: l_var(:), l_set(:)
-type (tao_var_array_struct), allocatable, save, target :: v_var(:)
-type (tao_string_array_struct), allocatable, save :: s_var(:), s_set(:)
-type (tao_expression_info_struct), allocatable, save :: info(:)
+type (tao_real_pointer_struct), allocatable    :: r_var(:), r_set(:)
+type (tao_logical_array_struct), allocatable :: l_var(:), l_set(:)
+type (tao_var_array_struct), allocatable, target :: v_var(:)
+type (tao_string_array_struct), allocatable :: s_var(:), s_set(:)
+type (tao_expression_info_struct), allocatable :: info(:)
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
 type (all_pointer_struct) a_ptr
 type (tao_var_struct), pointer :: v_ptr
 
-real(rp), allocatable, save :: r_value(:)
+real(rp), allocatable :: r_value(:)
 real(rp) value
 
 integer i, j, ix, np, n_loc

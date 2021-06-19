@@ -24,8 +24,8 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 
-real(rp), allocatable, save :: merit_vec(:), weight(:)
-real(rp), allocatable, save :: var_delta(:), var_value(:), var_at_min(:)
+real(rp), allocatable :: merit_vec(:), weight(:)
+real(rp), allocatable :: var_delta(:), var_value(:), var_at_min(:)
 real(rp) merit, merit_at_min
 
 integer i, j, k, n

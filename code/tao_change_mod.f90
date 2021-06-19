@@ -30,7 +30,7 @@ subroutine tao_change_var (name, num_str, silent)
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (tao_var_array_struct), allocatable, save :: v_array(:)
+type (tao_var_array_struct), allocatable :: v_array(:)
 type (tao_var_struct), pointer :: var
 
 real(rp), allocatable :: change_number(:)
@@ -43,7 +43,7 @@ character(*) name, num_str
 character(20) :: r_name = 'tao_change_var'
 character(20) abs_or_rel, component, str
 character(100) l1, num, fmt
-character(200), allocatable, save :: lines(:)
+character(200), allocatable :: lines(:)
 
 logical err, exists, silent
 
@@ -169,12 +169,12 @@ use attribute_mod, only: attribute_free
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (all_pointer_struct), allocatable, save :: d_ptr(:), m_ptr(:)
-type (ele_pointer_struct), allocatable, save :: eles(:)
+type (all_pointer_struct), allocatable :: d_ptr(:), m_ptr(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_dat
 
-real(rp), allocatable, save :: change_number(:), old_value(:)
+real(rp), allocatable :: change_number(:), old_value(:)
 real(rp) new_merit, old_merit, new_value, delta, max_val
 
 integer i, ix, iu, nl, len_name, nd
@@ -185,7 +185,7 @@ character(*) attrib_name
 character(*) num_str
 character(40) e_name, a_name, fmt, name
 character(20) :: r_name = 'tao_change_ele'
-character(len_lines), allocatable, save :: lines(:)
+character(len_lines), allocatable :: lines(:)
 character(20) abs_or_rel, str
 
 logical err, etc_added, update
@@ -350,7 +350,7 @@ subroutine tao_to_change_number (num_str, n_size, change_number, abs_or_rel, err
 
 implicit none
 
-type (tao_expression_info_struct), allocatable, save :: info(:)
+type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp), allocatable :: change_number(:)
 integer ix, ios, n_size
