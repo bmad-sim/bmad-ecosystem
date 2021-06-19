@@ -4673,7 +4673,6 @@ else ! Linear
       call qp_draw_polyline_no_set ([x0+dx11, x0+dx22], [y11, y11], 'INCH')
     enddo
   enddo
-
 endif
 
 ! draw axis numbers and major tick
@@ -4683,7 +4682,6 @@ call qp_set_text_attrib ('AXIS_NUMBERS')
 number_len = 0   ! length in inches
 
 do i = 0, divisions
-
   x1 = x0 + number_side * ax1%number_offset
   y1 = i*dy0 + y0_tick
 
@@ -4706,12 +4704,12 @@ do i = 0, divisions
   call qp_draw_text_no_set (str, x1, y1, 'INCH', justify)
 
   number_len = max (number_len, qp_text_len(str))
-
 enddo
 
 ! draw label
 
 if (ax2%draw_label .and. ax2%label /= '') then
+  if (.false.) print *, 'Here'   ! To get around ifort/production/openmp bomb when running Tao!
   call qp_to_inch_rel (x_pos, 0.5_rp, x0, y0, '%GRAPH')
   dx = number_side * (ax1%number_offset + ax1%label_offset + number_len)
   call qp_set_text_attrib ('AXIS_LABEL', color = ax2%label_color)
