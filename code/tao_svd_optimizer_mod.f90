@@ -28,10 +28,10 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 
-real(rp), allocatable, save :: weight(:), a(:), a_try(:), da(:), b(:), w(:)
-real(rp), allocatable, save :: y_fit(:)
-real(rp), allocatable, save :: dy_da(:, :), dy_da_old(:, :), dy_da_out(:, :), v(:, :)
-real(rp), allocatable, save :: var_value(:), var_weight(:)
+real(rp), allocatable :: weight(:), a(:), a_try(:), da(:), b(:), w(:)
+real(rp), allocatable :: y_fit(:)
+real(rp), allocatable :: dy_da(:, :), dy_da_old(:, :), dy_da_out(:, :), v(:, :)
+real(rp), allocatable :: var_value(:), var_weight(:)
 real(rp) merit0, merit
 
 integer i, j, k, status, status2
@@ -163,7 +163,7 @@ real(rp), intent(in) :: a(:)
 real(rp), intent(out) :: y_fit(:)
 real(rp), intent(out) :: dy_da(:, :)
 real(rp) merit0
-real(rp), allocatable, save :: var_delta(:)
+real(rp), allocatable :: var_delta(:)
 
 integer i, j, k, n, nn, im, iv, n_var, nd
 integer status

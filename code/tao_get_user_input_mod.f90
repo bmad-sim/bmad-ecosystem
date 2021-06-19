@@ -55,7 +55,7 @@ type do_loop_struct
   integer value
 end type
 
-type (do_loop_struct), allocatable, save :: loop(:)
+type (do_loop_struct), allocatable :: loop(:)
 
 integer i, j, ix, ix1, ix2
 integer, save :: lev_loop = 0 ! in loop nest level

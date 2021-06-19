@@ -14,8 +14,8 @@ use tao_interface, dummy => tao_plot_cmd
 
 implicit none
 
-type (tao_plot_array_struct), allocatable, save :: plot(:)
-type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (tao_plot_array_struct), allocatable :: plot(:)
+type (tao_graph_array_struct), allocatable :: graph(:)
 type (tao_plot_region_struct), pointer :: region
 integer i, j
 integer ix, ix_line, ix_cmd, which, n_word

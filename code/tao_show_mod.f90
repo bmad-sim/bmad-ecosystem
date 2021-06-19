@@ -46,7 +46,7 @@ integer :: n_write_file = 0            ! used for indexing 'show write' files
 character(*) what
 character(100) file_name, result_id
 character(len(what)) what2
-character(n_char_show), allocatable, save :: lines(:)
+character(n_char_show), allocatable :: lines(:)
 character(16) :: r_name = 'tao_show_cmd'
 character(20) switch
 
@@ -156,19 +156,19 @@ type (tao_data_struct) datum
 type (tao_dynamic_aperture_struct), pointer :: da
 type (tao_building_wall_section_struct), pointer :: section
 type (tao_building_wall_point_struct), pointer :: pt
-type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
+type (tao_v1_var_array_struct), allocatable, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
-type (tao_var_array_struct), allocatable, save, target :: v_array(:)
-type (tao_plot_array_struct), allocatable, save :: plot(:)
-type (tao_graph_array_struct), allocatable, save :: graph(:)
-type (tao_curve_array_struct), allocatable, save :: curve(:)
+type (tao_var_array_struct), allocatable, target :: v_array(:)
+type (tao_plot_array_struct), allocatable :: plot(:)
+type (tao_graph_array_struct), allocatable :: graph(:)
+type (tao_curve_array_struct), allocatable :: curve(:)
 type (tao_plot_struct), pointer :: p
 type (tao_graph_struct), pointer :: g
 type (tao_curve_struct), pointer :: cc, c1
 type (tao_plot_region_struct), pointer :: region
-type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
-type (tao_data_array_struct), allocatable, save :: d_array(:)
+type (tao_d1_data_array_struct), allocatable :: d1_array(:)
+type (tao_data_array_struct), allocatable :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), pointer :: shape
 type (tao_shape_pattern_struct), pointer :: pattern
@@ -227,7 +227,7 @@ end type
 
 type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
-type (tao_expression_info_struct), allocatable, save :: info(:)
+type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z_in, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2

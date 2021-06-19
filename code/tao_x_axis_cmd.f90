@@ -15,7 +15,7 @@ use tao_x_scale_mod, dummy2 => tao_x_axis_cmd
 
 implicit none
 
-type (tao_plot_array_struct), allocatable, save :: plot(:)
+type (tao_plot_array_struct), allocatable :: plot(:)
 
 integer i, j
 

@@ -12,7 +12,13 @@ aperture calculations, can be run multithreaded via OpenMP if the \tao executabl
 properly compiled.  Interested users should consult their local \bmad Guru for guidance. Note:
 \vn{OpenMP} multithreading involves using multiple cores of a single machine (unlike \vn{Open MPI}
 which involves multiple machines). Therefore, it is not necessary to have a cluster of machines to
-use \vn{OpenMP}
+use \vn{OpenMP}.
+
+To set the number of threads when running a program compiled with \vn{OpenMP}, set the environment variable
+\vn{OMP_NUM_THREADS}. Example:
+\begin{example}
+  export OMP_NUM_THREADS=8
+\end{example}
 
 To the local \bmad Guru: Compiling and linking of \tao with \vn{OpenMP} is documented on the \bmad
 web site. By default, \vn{OpenMP} is not enabled. Essentially, OpenMP is enabled by modifying

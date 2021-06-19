@@ -134,7 +134,7 @@ integer ix, jg
 
 real(rp) ax_min, ax_max, slop
 
-integer, allocatable, save :: ix_ele(:)
+integer, allocatable :: ix_ele(:)
 logical err
 
 !

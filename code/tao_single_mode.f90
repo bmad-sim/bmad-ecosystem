@@ -21,7 +21,7 @@ use tao_get_user_input_mod, only: tao_get_user_input
 implicit none
 
 type (lat_struct), pointer :: lat
-type (ele_pointer_struct), allocatable, save :: eles(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 type (tao_universe_struct), pointer :: u
 
 integer i, j, ix, ix2, ix_plot, ie, iv, factor, ix_key, ios, ir

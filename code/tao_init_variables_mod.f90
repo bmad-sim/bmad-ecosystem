@@ -38,7 +38,7 @@ type (ele_struct), pointer :: ele
 real(rp) default_weight        ! default merit function weight
 real(rp) default_step          ! default "small" step size
 real(rp) default_low_lim, default_high_lim, default_key_delta
-real(rp), allocatable, save :: default_key_d(:)
+real(rp), allocatable :: default_key_d(:)
 
 integer ios, iu, i, j, j1, j2, k, ix, num
 integer n, iostat, n_list, n_nml
@@ -53,10 +53,10 @@ character(200) file_name
 character(200) line, search_for_lat_eles
 
 logical default_key_bound
-logical, allocatable, save :: default_key_b(:)
+logical, allocatable :: default_key_b(:)
 logical err, free, gang
 logical searching, limited
-logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
+logical, allocatable :: dflt_good_unis(:), good_unis(:)
 
 namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
                     ix_min_var, ix_max_var, default_universe, default_attribute, &
@@ -332,11 +332,11 @@ use tao_input_struct
 
 implicit none
 
-type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
+type (tao_v1_var_array_struct), allocatable, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_var_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: var_ptr
-type (ele_pointer_struct), allocatable, save :: eles(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 type (tao_v1_var_input) v1_var
 type (tao_var_input) var(n_var_minn:n_var_maxx)
 
@@ -352,7 +352,7 @@ character(20) :: r_name = 'tao_var_stuffit1'
 
 integer i, iu, ip, j, jj, k, kk, n, nn, n1, n2, ix1, ix2, ix
 integer num_ele, ios, ix_uni, ixm, ix2m
-integer, allocatable, save :: an_indexx(:)
+integer, allocatable :: an_indexx(:)
 integer ix_min_var, ix_max_var
 
 logical :: dflt_good_unis(lbound(s%u,1):)

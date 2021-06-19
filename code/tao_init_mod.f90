@@ -318,7 +318,7 @@ use beam_file_io
 
 type (tao_universe_struct), target :: u
 type (beam_init_struct) beam_init
-type (ele_pointer_struct), allocatable, save, target :: eles(:)
+type (ele_pointer_struct), allocatable, target :: eles(:)
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 

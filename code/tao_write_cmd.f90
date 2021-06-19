@@ -22,7 +22,7 @@ use beam_file_io, only: write_beam_file
 
 implicit none
 
-type (tao_curve_array_struct), allocatable, save :: curve(:)
+type (tao_curve_array_struct), allocatable :: curve(:)
 type (tao_curve_struct), pointer :: c
 type (tao_plot_struct), pointer :: tp
 type (tao_plot_region_struct), pointer :: r
@@ -30,7 +30,7 @@ type (tao_universe_struct), pointer :: u
 type (beam_struct), pointer :: beam
 type (bunch_struct), pointer :: bunch
 type (branch_struct), pointer :: branch
-type (ele_pointer_struct), allocatable, save :: eles(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (coord_struct), pointer :: p
 type (tao_d2_data_struct), pointer :: d2

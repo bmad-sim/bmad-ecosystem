@@ -215,19 +215,19 @@ contains
 subroutine find_this_var (v1, name, this_err)
 
 type (tao_v1_var_struct) :: v1
-type (tao_var_array_struct), allocatable, save :: va(:)
-type (tao_real_pointer_struct), allocatable, save :: ra(:)
-type (tao_logical_array_struct), allocatable, save :: la(:)
-type (tao_string_array_struct), allocatable, save  :: sa(:)
+type (tao_var_array_struct), allocatable :: va(:)
+type (tao_real_pointer_struct), allocatable :: ra(:)
+type (tao_logical_array_struct), allocatable :: la(:)
+type (tao_string_array_struct), allocatable  :: sa(:)
 
 integer i, j, nd, nl, i1, i2, num, ix
 
 character(*) name
-character(40), allocatable, save :: names(:)
+character(40), allocatable :: names(:)
 character(80) v1_name, v_name
 
 logical this_err
-logical, allocatable, save :: list(:)
+logical, allocatable :: list(:)
 
 !
 

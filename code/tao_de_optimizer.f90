@@ -22,7 +22,7 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 
-real(rp), allocatable, save :: var_vec(:), var_step(:)
+real(rp), allocatable :: var_vec(:), var_step(:)
 real(rp) merit_start, merit_end, merit
 
 integer i, n, gen, pop, n_var, population, status

@@ -6,7 +6,7 @@ use tao_top10_mod
 use input_mod
 use geodesic_lm
 
-real(rp), allocatable, save :: dy_da(:, :)
+real(rp), allocatable :: dy_da(:, :)
 logical, save :: geolevmar_limit_flag = .false.
 
 contains
@@ -33,16 +33,16 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 
-real(rp), allocatable, save :: y(:), a(:)
-real(rp), allocatable, save :: y_fit(:)
-real(rp), allocatable, save :: var_value(:), var_weight(:)
+real(rp), allocatable :: y(:), a(:)
+real(rp), allocatable :: y_fit(:)
+real(rp), allocatable :: var_value(:), var_weight(:)
 real(rp) a_lambda, chi_sq, merit0
 
 real(rp), allocatable :: fjac(:,:), dtd(:,:)
 
 integer i, j, k
 integer n_data, n_var, info, niters, nfev, njev, naev, converged
-integer, allocatable, save :: var_ix(:)
+integer, allocatable :: var_ix(:)
 
 logical :: finished, init_needed = .true.
 logical abort
@@ -122,7 +122,7 @@ integer mm, nn
 real(rp) :: a(nn)
 real(rp) :: y_fit(mm)
 real(rp) merit0
-real(rp), allocatable, save :: var_delta(:)
+real(rp), allocatable :: var_delta(:)
 
 integer i, j, k, n, nv, im, iv, n_var, nd
 
@@ -196,7 +196,7 @@ type (tao_universe_struct), pointer :: u
 
 integer :: mm, nn, nd, k, i, j, im, iv, nv, n
 real(8) :: x(nn), fjac(mm, nn)
-real(rp), allocatable, save :: var_delta(:)
+real(rp), allocatable :: var_delta(:)
 logical err_flag
 
 !

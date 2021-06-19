@@ -1002,7 +1002,7 @@ implicit none
 
 
 type (tao_curve_struct) curve
-real(rp), allocatable, save :: f_com(:,:)
+real(rp), allocatable :: f_com(:,:)
 
 real(rp) f1(:), coef(:), rms(:)
 real(rp), optional :: f2(:), f3(:), f4(:)

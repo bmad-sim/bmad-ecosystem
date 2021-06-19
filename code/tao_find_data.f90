@@ -383,11 +383,11 @@ subroutine find_this_data (d1, name, this_err)
 
 type (tao_d1_data_struct), target :: d1
 type (tao_d1_data_array_struct), allocatable :: d1_temp(:)
-type (tao_data_array_struct), allocatable, save :: da(:)
-type (tao_real_pointer_struct), allocatable, save :: ra(:)
-type (tao_integer_array_struct), allocatable, save :: ia(:)
-type (tao_logical_array_struct), allocatable, save :: la(:)
-type (tao_string_array_struct), allocatable, save  :: sa(:)
+type (tao_data_array_struct), allocatable :: da(:)
+type (tao_real_pointer_struct), allocatable :: ra(:)
+type (tao_integer_array_struct), allocatable :: ia(:)
+type (tao_logical_array_struct), allocatable :: la(:)
+type (tao_string_array_struct), allocatable  :: sa(:)
 
 integer i, j, nd, nl, i1, i2, num
 
@@ -395,7 +395,7 @@ character(*) name
 character(80) d1_name, d_name
 
 logical this_err
-logical, allocatable, save :: list(:)
+logical, allocatable :: list(:)
 
 ! d1_array
 

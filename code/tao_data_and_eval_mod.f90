@@ -46,7 +46,7 @@ subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err, def
 
 type (tao_data_struct) datum
 type (tao_universe_struct), pointer :: u
-type (ele_pointer_struct), allocatable, save :: eles(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
 character(*) data_name
@@ -63,7 +63,7 @@ integer i, j, num, ix, ix1, ios, n_tot, n_loc, iu
 
 logical err, valid, err_flag
 logical print_err, use_dflt_ele, has_assoc_ele
-logical, allocatable, save :: this_u(:)
+logical, allocatable :: this_u(:)
 
 !
 
@@ -425,7 +425,7 @@ type (tao_lattice_branch_struct), pointer :: tao_branch
 type (tao_building_wall_section_struct), pointer :: section
 type (tao_building_wall_point_struct) :: pt
 type (tao_data_struct), pointer :: dp
-type (tao_data_array_struct), allocatable, save :: d_array(:)
+type (tao_data_array_struct), allocatable :: d_array(:)
 type (tao_lattice_struct), target :: tao_lat
 type (tao_expression_info_struct), allocatable :: info(:)
 type (lat_struct), pointer :: lat
@@ -457,8 +457,8 @@ real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
 real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi, amp_a, amp_b
-real(rp), allocatable, save :: value_vec(:)
-real(rp), allocatable, save :: expression_value_vec(:)
+real(rp), allocatable :: value_vec(:)
+real(rp), allocatable :: expression_value_vec(:)
 real(rp) theta, phi, psi
 
 complex(rp) eigen_val(6), eigen_vec(6,6)
@@ -479,7 +479,7 @@ character(300) str
 
 logical found, valid_value, err, taylor_is_complex, use_real_part, term_found
 logical particle_lost, exterminate, printit
-logical, allocatable, save :: good(:)
+logical, allocatable :: good(:)
 
 ! If does not exist
 
@@ -4093,7 +4093,7 @@ use random_mod
 type (ele_struct) ele
 type (beam_struct) beam
 
-real(rp), allocatable, save :: dist(:)
+real(rp), allocatable :: dist(:)
 real(rp) theta, theta_rad, moment, ran_num(2)
 real(rp) avg
 
@@ -4224,10 +4224,10 @@ subroutine tao_to_real (expression, value, err_flag)
 
 character(*) :: expression
 
-type (tao_expression_info_struct), allocatable, save :: info(:)
+type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) value
-real(rp), allocatable, save :: vec(:)
+real(rp), allocatable :: vec(:)
 
 logical err_flag
 
