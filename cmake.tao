@@ -1,6 +1,6 @@
 SET (EXENAME tao)
 
-FILE (GLOB SRC_FILES "program/*.f90")
+set (SRC_FILES "program/tao_program.f90")
 
 SET (LINK_FLAGS ${READLINE_LINK_FLAGS})
 
