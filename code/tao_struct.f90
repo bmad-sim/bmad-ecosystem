@@ -171,7 +171,7 @@ type tao_curve_struct
   character(100) :: data_index  = ''     ! Used for calculating %ix_symb(:).
   character(100) :: data_type_x = ''     ! Used for data slices and phase space plots.
   character(100) :: data_type_z = ''     ! Used for data phase space plots.
-  character(200) :: data_type   = ''     ! 'orbit.x', etc.
+  character(:), allocatable :: data_type ! 'orbit.x', etc.
   character(40) :: ele_ref_name = ''     ! Reference element.
   character(40) :: legend_text = ''      ! String to draw in a curve legend. 
   character(40) :: message_text = ''     ! Informational message to draw with graph.
