@@ -15,20 +15,20 @@ integer, private, save :: dummy = 0 ! So ranlib will not complain about no symbo
 ! data input structures
 
 type tao_d2_data_input
-  character(40) :: name = ''      ! name of data
+  character(40) :: name = ''         ! name of data
 end type
 
 type tao_d1_data_input
-  character(40) :: name = ''      ! type of data
+  character(40) :: name = ''         ! type of data
 end type
 
 type tao_datum_input
-  character(300) :: data_type = ''
+  character(400) :: data_type = ''   ! long due to expressions.
   character(40) :: ele_ref_name = ''
   character(40) :: ele_start_name = ''
   character(40) :: ele_name = ''
   character(20) :: merit_type = ''
-  real(rp) :: meas = real_garbage$  ! used to tag when %meas_value is set in file
+  real(rp) :: meas = real_garbage$   ! used to tag when %meas_value is set in file
   real(rp) :: weight = 0
   logical :: good_user = .true.
   logical :: good_opt = .true.
@@ -45,7 +45,7 @@ end type
 ! variable input structures
 
 type tao_v1_var_input
-  character(40) :: name           ! name of variable
+  character(40) :: name            ! name of variable
 end type
 
 type tao_var_input
