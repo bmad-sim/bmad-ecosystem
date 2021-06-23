@@ -256,8 +256,10 @@ var_loop: do
         endif
 
         if (count(good_unis) == 0) then
-          call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // quote(v1_var%name))
-          call err_exit
+          call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // quote(v1_var%name), &
+                                         'THIS V1_VARIABLE WILL NOT BE CREATED!')
+          s%n_v1_var_used = s%n_v1_var_used - 1
+          return
         endif
 
         call tao_var_stuffit2 (good_unis, v1_var_ptr%v(j), var_file)
@@ -371,9 +373,12 @@ if (use_same_lat_eles_as /= '') then
   call string_trim (use_same_lat_eles_as, name, ix)
   call tao_find_var (err, name, v1_array = v1_array)
   if (err .or. size(v1_array) /= 1) then
-    call out_io (s_abort$, r_name, 'CANNOT MATCH "USE_SAME_LAT_ELES_AS": ' // name)
-    call err_exit
+    call out_io (s_error$, r_name, 'CANNOT MATCH "USE_SAME_LAT_ELES_AS": ' // name, &
+                                   'THIS V1_VARIABLE WILL NOT BE CREATED!')
+    s%n_v1_var_used = s%n_v1_var_used - 1
+    return
   endif
+
   v1_ptr => v1_array(1)%v1
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + size(v1_ptr%v)
@@ -434,7 +439,6 @@ if (use_same_lat_eles_as /= '') then
   call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var)
 
   return
-
 endif
 
 !------------------------------
@@ -451,16 +455,18 @@ if (search_for_lat_eles /= '') then
   endif
 
   if (index(search_string, '-no_slaves') /= 0) then
-    call out_io (s_error$, r_name, &
-          'Note: The "-no_slaves" switch is not needed with search_for_lat_eles for *variables* since slaves are automaticall always rejected.')
+    call out_io (s_warn$, r_name, &
+          'Note: The "-no_slaves" switch is not needed with search_for_lat_eles for *variables* since all slaves are automatically rejected.')
   else
     search_string = '-no_slaves ' // trim(search_string)
   endif
 
   if (any(var%universe /= '')) then
-    call out_io (s_abort$, r_name, &
-           "CANNOT SPECIFY INDIVIDUAL UNIVERSES WHEN SEARCHING FOR VARIABLES")
-    call err_exit
+    call out_io (s_error$, r_name, &
+           'CANNOT SPECIFY INDIVIDUAL UNIVERSES WHEN SEARCHING FOR VARIABLES. FOR VAR: ' // v1_var%name, &
+           'THIS V1_VARIABLE WILL NOT BE CREATED!')
+    s%n_v1_var_used = s%n_v1_var_used - 1
+    return
   endif
 
   ! find matching elements...
@@ -564,8 +570,9 @@ else
   endif
 
   if (ix_max_var < ix_min_var) then
-    call out_io (s_abort$, r_name, 'NO ELEMENTS FOR: ' // quote(v1_var%name))
-    call err_exit
+    call out_io (s_abort$, r_name, 'NO ELEMENTS FOR: ' // quote(v1_var%name), 'THIS V1 VARIABLE ARRAY WILL NOT BE CREATED.')
+    s%n_v1_var_used = s%n_v1_var_used - 1
+    return
   endif
 
   n1 = s%n_var_used + 1
@@ -576,7 +583,6 @@ else
   call tao_allocate_var_array (n2)
 
   s%var(n1:n2)%ele_name = var(ix1:ix2)%ele_name
-
 endif
 
 !---------------------------------------------------------------
@@ -598,7 +604,6 @@ do n = n1, n2
 
   s%var(n)%ix_v1 = ix_min_var + n - n1
   s%var(n)%v1 => v1_var_ptr
-
 enddo
 
 call tao_point_v1_to_var (v1_var_ptr, s%var(n1:n2), ix_min_var)
