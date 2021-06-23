@@ -1841,7 +1841,7 @@ type (tao_curve_struct), pointer :: curve
 type (qp_line_struct), allocatable :: line(:)
 type (qp_symbol_struct), allocatable :: symbol(:)
 
-integer i, j, k, n, iu
+integer i, j, k, nc, iu
 real(rp) x, y, x1
 character(100), allocatable :: text(:)
 
@@ -1888,14 +1888,14 @@ if (any(graph%text_legend_out /= ' ')) call qp_draw_text_legend (graph%text_lege
 ! Draw the curve legend if needed
 
 if (.not. allocated(graph%curve)) return
-n = size(graph%curve)
-allocate (text(n), symbol(n), line(n))
+nc = size(graph%curve)
+allocate (text(nc), symbol(nc), line(nc))
 
 text = ''
 symbol%type = ''
 line%width = -1
 
-do i = 1, n
+do i = 1, nc
   ! Text
   curve => graph%curve(i)
   if (.not. curve%valid) then
@@ -1928,24 +1928,24 @@ do i = 1, n
   if (.not. curve%draw_symbols) symbol(i)%type = ''  ! Do not draw
 enddo
 
-if (graph%draw_curve_legend .and. n > 1) then
+if (graph%draw_curve_legend .and. nc > 1) then
   call qp_draw_curve_legend (graph%curve_legend_origin%x, graph%curve_legend_origin%y, &
             graph%curve_legend_origin%units, line, s%plot_page%curve_legend_line_len, &
             symbol, text, s%plot_page%curve_legend_text_offset)
-endif
 
-! Draw any curve info messages
+  ! Draw any curve info messages
 
-j = 0
-do i = 1, n
-  curve => graph%curve(i)
-  if (curve%message_text == '') cycle
-  j = j + 1
-  text(j) = curve%message_text
-enddo
+  j = 0
+  do i = 1, nc
+    curve => graph%curve(i)
+    if (curve%message_text == '') cycle
+    j = j + 1
+    text(j) = curve%message_text
+  enddo
 
-if (j > 1) then
-  call qp_draw_text_legend (text(1:j), 0.50_rp, 0.95_rp, '%GRAPH/LB')
+  if (j > 1) then
+    call qp_draw_text_legend (text(1:j), 0.50_rp, 0.95_rp, '%GRAPH/LB')
+  endif
 endif
 
 !
