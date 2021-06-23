@@ -23,7 +23,7 @@ type tao_d1_data_input
 end type
 
 type tao_datum_input
-  character(400) :: data_type = ''   ! long due to expressions.
+  character(600) :: data_type = ''   ! long due to expressions.
   character(40) :: ele_ref_name = ''
   character(40) :: ele_start_name = ''
   character(40) :: ele_name = ''
