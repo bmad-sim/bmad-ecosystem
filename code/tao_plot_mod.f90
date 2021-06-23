@@ -1932,9 +1932,12 @@ if (graph%draw_curve_legend .and. nc > 1) then
   call qp_draw_curve_legend (graph%curve_legend_origin%x, graph%curve_legend_origin%y, &
             graph%curve_legend_origin%units, line, s%plot_page%curve_legend_line_len, &
             symbol, text, s%plot_page%curve_legend_text_offset)
+endif
 
-  ! Draw any curve info messages
 
+! Draw any curve info messages
+
+if (graph%draw_curve_legend) then
   j = 0
   do i = 1, nc
     curve => graph%curve(i)
