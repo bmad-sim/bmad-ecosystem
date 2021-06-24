@@ -1,6 +1,6 @@
 module sim_utils
 
-  use sim_utils_struct
+  use var_length_string_mod
   use sim_utils_interface
   use modulo2_mod
   use indexx_mod
