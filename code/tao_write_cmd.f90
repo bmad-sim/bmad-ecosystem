@@ -48,14 +48,14 @@ character(200) file_name0, file_name, what2
 character(200) :: word(12)
 character(*), parameter :: r_name = 'tao_write_cmd'
 
-integer i, j, k, m, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
+integer i, j, k, m, n, ie, id, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word, ix_w2, file_format
 integer n_type, n_ref, n_start, n_ele, n_merit, n_meas, n_weight, n_good, n_bunch, n_eval, n_s
-integer i_min, i_max, n_len
+integer i_min, i_max, n_len, len_d_type
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
-logical write_high_lim, write_low_lim, tao_format
+logical write_high_lim, write_low_lim, tao_format, eq_d_type
 
 !
 
@@ -542,7 +542,15 @@ case ('namelist')
           write (iu, '(a, i0)')  '  ix_max_data    = ', i_max
 
           ! Data output parameter-by-parameter
-          if ((all(d1%d%data_type == d1%d(i_min)%data_type) .and. (size(d1%d) > 10)) .or. maxval(len_trim(d1%d%data_type)) > 30) then
+
+          len_d_type = 0
+          eq_d_type = .true.
+          do id = i_min, i_max
+            len_d_type = max(len_d_type, len_trim(d1%d(id)%data_type))
+            eq_d_type = eq_d_type .and. d1%d(id)%data_type == d1%d(i_min)%data_type
+          enddo
+
+          if ((eq_d_type .and. (size(d1%d) > 10)) .or. len_d_type > 30) then
             write_data_source = .true.
             if (all(d1%d%data_source == d1%d(i_min)%data_source)) then
               if (d1%d(i_min)%data_source /= tao_d2_d1_name(d1, .false.)) write (iu, '(2a)') '  default_data_source = ', quote(d1%d(i_min)%data_source)
@@ -550,7 +558,7 @@ case ('namelist')
             endif
 
             write_data_type = .true.
-            if (all(d1%d%data_type == d1%d(i_min)%data_type)) then
+            if (eq_d_type) then
               write (iu, '(2a)') '  default_data_type = ', quote(d1%d(i_min)%data_type)
               write_data_type = .false.
             endif
@@ -567,7 +575,7 @@ case ('namelist')
             endif
 
             if (write_data_source) call namelist_param_out ('d', 'data_source', i_min, i_max, d1%d%data_source)
-            if (write_data_type)   call namelist_param_out ('d', 'data_type', i_min, i_max, d1%d%data_type)
+            if (write_data_type)   call namelist_param_out ('d', 'data_type', i_min, i_max, data_type_arr = d1%d)
             call namelist_param_out ('d', 'ele_name', i_min, i_max, d1%d%ele_name)
             call namelist_param_out ('d', 'ele_start_name', i_min, i_max, d1%d%ele_start_name, '')
             call namelist_param_out ('d', 'ele_ref_name', i_min, i_max, d1%d%ele_ref_name, '')
@@ -591,7 +599,7 @@ case ('namelist')
 
           ! Data output datum-by-datum
           else
-            n_type   = max(11, maxval(len_trim(d1%d%data_type)))
+            n_type   = max(11, len_d_type)
             n_ref    = max(11, maxval(len_trim(d1%d%ele_ref_name)))
             n_start  = max(11, maxval(len_trim(d1%d%ele_start_name)))
             n_ele    = max(11, maxval(len_trim(d1%d%ele_name)))
@@ -963,9 +971,12 @@ end subroutine namelist_item_out
 !-----------------------------------------------------------------------------
 ! contains
 
-subroutine namelist_param_out (who, name, i_min, i_max, str_arr, str_dflt, re_arr, re_dflt, logic_arr, logic_dflt, int_arr, int_dflt)
+subroutine namelist_param_out (who, name, i_min, i_max, str_arr, str_dflt, data_type_arr, re_arr, re_dflt, logic_arr, logic_dflt, int_arr, int_dflt)
 
 integer i_min, i_max
+
+type (tao_data_struct), optional :: data_type_arr(i_min:)
+type (var_length_string_struct) :: out_str(i_min:i_max)
 
 real(rp), optional :: re_arr(i_min:), re_dflt
 
@@ -975,19 +986,23 @@ logical, optional :: logic_arr(i_min:), logic_dflt
 
 character(*) who, name
 character(*), optional :: str_arr(i_min:), str_dflt
-character(300) out_str(i_min:i_max)
-character(200) line
+character(600) line
 
 
 ! Encode values
 
-if (present(str_arr)) then
+if (present(data_type_arr)) then
+  do i = i_min, i_max
+    out_str(i)%str = quote(data_type_arr(i)%data_type)
+  enddo
+
+elseif (present(str_arr)) then
   if (present(str_dflt)) then
     if (all(str_arr == str_dflt)) return
   endif
 
   do i = i_min, i_max
-    out_str(i) = quote(str_arr(i))
+    out_str(i)%str = quote(str_arr(i))
   enddo
 
 elseif (present(re_arr)) then
@@ -996,7 +1011,7 @@ elseif (present(re_arr)) then
   endif
 
   do i = i_min, i_max
-    out_str(i) = real_to_string(re_arr(i), 15, 8)
+    out_str(i)%str = real_to_string(re_arr(i), 15, 8)
   enddo
 
 elseif (present(logic_arr)) then
@@ -1005,7 +1020,7 @@ elseif (present(logic_arr)) then
   endif
 
   do i = i_min, i_max
-    write (out_str(i), '(l1)') logic_arr(i)
+    write (out_str(i)%str, '(l1)') logic_arr(i)
   enddo
 
 elseif (present(int_arr)) then
@@ -1014,7 +1029,7 @@ elseif (present(int_arr)) then
   endif
 
   do i = i_min, i_max
-    write (out_str(i), '(i0)') int_arr(i) 
+    write (out_str(i)%str, '(i0)') int_arr(i) 
   enddo
 endif
 
@@ -1027,11 +1042,11 @@ else
   write (line, '(2x, 2(a, i0), 4a)') 'var(', i_min, ':', i_max, ')%', trim(name), ' = '
 endif
 
-if (all(out_str == out_str(i_min))) then
+if (all_equal_var_str(out_str, out_str(i_min)%str)) then
   if (present(str_arr)) then
-    write (iu, '(a, i0, 2a)') trim(line), i_max-i_min+1, '*', quote(out_str(i_min))
+    write (iu, '(a, i0, 2a)') trim(line), i_max-i_min+1, '*', quote(out_str(i_min)%str)
   else
-    write (iu, '(a, i0, 2a)') trim(line), i_max-i_min+1, '*', trim(out_str(i_min))
+    write (iu, '(a, i0, 2a)') trim(line), i_max-i_min+1, '*', trim(out_str(i_min)%str)
   endif
   return
 endif
@@ -1041,15 +1056,15 @@ line = ''
 
 do i = i_min, i_max
   if (line == '') then
-    line = out_str(i)
+    line = out_str(i)%str
   else
-    line = trim(line) // ', ' // out_str(i)
+    line = trim(line) // ', ' // out_str(i)%str
   endif
 
   if (i == i_max) then
     write (iu, '(6x, a)') trim(line)
     exit
-  elseif (len_trim(line) +len_trim(out_str(i+1)) > 100) then
+  elseif (len_trim(line) +len_trim(out_str(i+1)%str) > 100) then
     write (iu, '(6x, a)') trim(line)
     line = ''
   endif

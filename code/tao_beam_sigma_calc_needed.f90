@@ -20,6 +20,7 @@ logical do_beam_sigma
 do_beam_sigma = .false.
 
 if (data_source /= 'lat') return
+if (len(data_type) < 6) return
 if (data_type(1:6)  == 'sigma.') do_beam_sigma = .true. 
 
 end function tao_beam_sigma_calc_needed

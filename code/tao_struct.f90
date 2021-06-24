@@ -387,7 +387,7 @@ type tao_data_struct
   character(40) :: ele_name = ''           ! Name of the lattice element where datum is evaluated.
   character(40) :: ele_start_name = ''     ! Name of starting lattice element when there is a range 
   character(40) :: ele_ref_name = ''       ! Name of reference lattice element
-  character(300) :: data_type = ''         ! Type of data: 'orbit.x', etc.
+  character(:), allocatable :: data_type   ! Type of data: 'orbit.x', etc.
   character(40) :: merit_type = ''         ! Type of constraint: 'target', 'max', 'min', etc.
   character(40) :: id = ''                 ! Used by Tao extension code. Not used by Tao directly.
   character(20) :: data_source = ''        ! 'lat', 'beam', 'data' or 'var'. Last two used for expressions.
