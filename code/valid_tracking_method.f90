@@ -73,13 +73,19 @@ case (beginning_ele$)
     is_valid = .true.
   end select
 
+case (converter$)
+  select case (method)
+  case (bmad_standard$, custom$)
+    is_valid = .true.
+  end select
+
 case (crab_cavity$)
   select case (method)
   case (bmad_standard$, symp_lie_ptc$, linear$, custom$, runge_kutta$, time_runge_kutta$)
     is_valid = .true.
   end select
 
-case (converter$, crystal$, mirror$, multilayer_mirror$, capillary$)
+case (crystal$, mirror$, multilayer_mirror$, capillary$)
   if (species == not_set$) then
     select case (method)
     case (bmad_standard$, custom$)

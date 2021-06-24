@@ -69,6 +69,12 @@ case (beginning_ele$)
     is_valid = .true.
   end select
 
+case (converter$)
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, custom$)
+    is_valid = .true.
+  end select
+
 case (crab_cavity$)
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$, taylor$)
