@@ -37,7 +37,7 @@ contains
 !
 ! The crossover can be either "Exponential" or "Binary". 
 ! Exponential crossover is what is described in the paper.
-! With Exponential crossover the crossover parameters from a contiguous block
+! With Exponential crossover the crossover parameters form a contiguous block
 ! and the average number of crossover parameters is approximately
 !     average crossovers ~ min(D, CR / (1 - CR))
 ! where D is the total number of parameters.
