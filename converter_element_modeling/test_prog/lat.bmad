@@ -2,9 +2,7 @@ parameter[ran_seed] = 100
 no_digested
 parameter[particle] = electron
 parameter[geometry] = open
-parameter[taylor_order] = 1
-parameter[ptc_exact_model] = T
-beginning[p0c] =   400e6
+beginning[p0c] =   200e6
 beginning[beta_a] = 10 
 beginning[beta_b] = 10
 beginning[alpha_a] = 0
