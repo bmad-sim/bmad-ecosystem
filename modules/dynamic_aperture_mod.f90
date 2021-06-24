@@ -150,8 +150,6 @@ do ns = 1, size(pz_start)
   if (logic_option(.true., print_timing)) call out_io (s_blank$, r_name, '  Scale factors calculated. dTime(min): \f8.2\ ', &
                                                                                 r_array = [(time1-time0)/60])
 
-  !
-
   !$OMP parallel do
   do i = 1, ap_param%n_angle
     if (abs(angle_list(i)) < 1d-6) then
@@ -161,7 +159,7 @@ do ns = 1, size(pz_start)
     else
       call dynamic_aperture_point (branch, ele0, ap_scan%ref_orb, angle_list(i), ap_param, ap_points(i))
     endif
-  end do  
+  end do
   !$OMP end parallel do
 
   ap_scan%point = ap_points

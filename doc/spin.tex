@@ -263,7 +263,7 @@ can be written in the form
   \bfq_s(\bfr) = \bfq_0 + \overrightarrow{\bfq} \dotproduct \bfr
   \label{qqqr}
 \end{equation}
-The quaternion map $\bfq$, evaluated at the orbital phase space point $\bfr$, has a zeroth order
+The quaternion map $\bfq_s$, evaluated at the orbital phase space point $\bfr$, has a zeroth order
 part $\bfq_0$ (the spin rotation for a particle on the closed orbit) and the first order part
 $\overrightarrow{\bfq} = (\bfq_1, \ldots, \bfq_6)$ which is a vector of six quaternions and which is
 evaluated in \Eq{qqqr} by taking the dot product with the vector $\bfr$.
@@ -279,13 +279,13 @@ The solution to this equation, normalized to one, is
   \label{nkqqq}
 \end{equation}
 Since $\bfq_s$ is a rotation quaternion, the magnitude of $\bfq_s(\bfr)$ must remain one. Using
-\Eq{qqqr} in \Eq{1qqq}, to keep a unit magnitude to linear order gives the condition
+\Eq{qqqr} in \Eq{1qqq}, to keep the magnitude equal to one to linear order gives the condition
 \begin{equation}
   \bfq_0 \dotproduct \bfq_i = 0, \qquad i = 1, \ldots, 6
 \end{equation}
 for all $\bfq_i$ components of $\overrightarrow{\bfq}$.
 
-To calculate the linear $d\bfn/d\delta$, the first step is to compute the eigenvectors $\bfv_j$ and
+To calculate $d\bfn/d\delta$, the first step is to compute the eigenvectors $\bfv_j$ and
 eigenvalues $\lambda_j$, $j = 1, \ldots, 6$ of the 1-turn orbital matrix. The
 corresponding spin eigenvectors $\bfn_j$ are computed from the equation
 \begin{equation}
@@ -335,10 +335,44 @@ degenerate eigenvectors and the eigenvectors will not span all of phase space. T
 is to reduce the dimensionality of phase space to five by remove the $z$ coordinate. The above
 equations then can be used with the sums over $j$ ranging from 1 to 5. 
 
-It is sometimes informative to compute the contribution of ${\partial \bfn}/\partial \delta$ due to a single
-mode of oscillation. That is, to compute ${\partial \bfn}/\partial \delta$ with the sum in
+It is sometimes informative to compute the contribution of ${\partial \bfn}/\partial \delta$ due to
+a single mode of oscillation. That is, to compute ${\partial \bfn}/\partial \delta$ with the sum in
 \Eq{ndan} restricted to be over the two corresponding eigen states that comprise the oscillation
 mode of interest. This information can help guide lattice design.
+
+%-----------------------------------------------------------------   
+\section{Linear Resonance Analysis}
+\label{s:spin.lin.res}
+
+Resonances occur when the spin tune $\nu_s$ is an integer (``imperfection'' resonances) and when the spin
+tune in combination with the three orbital tunes $\nu_x$, $\nu_y$, and $\nu_z$ is an integer
+(``intrinsic'' or ``spin-orbit'' resonances)
+\begin{equation}
+  \nu_s + m_x \, \nu_x + m_y \, \nu_y + m_z \, \nu_z  = m
+\end{equation}
+where $m_x$, $m_y$, $m_z$, and $m$ are integers. In the linear approximaiton (\sref{s:dn.calc}),
+resonances only occur if one and exactly one of the $m_x$, $m_y$, or $m_z$ has a value of one and
+the other two are zero.
+
+In 
+
+In order to calculate the effect of a resonance it is helpful to know the resonance strength.  The
+resonance strength calculation can be motivated by considering the Single Resonance Model
+(SRM)\cite{b:spin.hoff}.
+
+
+
+Should the $\nu_s$ term be $m_s \, \nu_s$?
+ 
+Importance of resonances vs stochastic dephasing.
+
+How to calculate nonlinear resonance strengths.
+
+references.
+
+
+
+\etcetc 
 
 %-----------------------------------------------------------------   
 \section{SLIM Formalism}

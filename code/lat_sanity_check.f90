@@ -255,7 +255,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ! Tracking methods check
 
-    if (.not. any(ele%key == [group$, overlay$, girder$, ramper$])) then
+    if (.not. any(ele%key == [group$, overlay$, girder$, ramper$, null_ele$])) then
       if (ele%tracking_method < 1 .or. ele%tracking_method > ubound(tracking_method_name, 1)) then
         call out_io (s_fatal$, r_name, &
                         'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
