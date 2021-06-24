@@ -20,6 +20,7 @@ logical do_chrom
 do_chrom = .false.
 
 if (data_source /= 'lat') return
+if (len(data_type) < 6) return
 if (data_type(1:6)  == 'chrom.') do_chrom = .true. 
 
 end function tao_chrom_calc_needed

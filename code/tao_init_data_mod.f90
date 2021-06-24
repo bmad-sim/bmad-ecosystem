@@ -354,7 +354,6 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%ele_start_name   = datum(ix1:ix2)%ele_start_name
   u%data(n1:n2)%ele_ref_name     = datum(ix1:ix2)%ele_ref_name
   u%data(n1:n2)%ix_bunch         = datum(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_type        = datum(ix1:ix2)%data_type
   u%data(n1:n2)%merit_type       = datum(ix1:ix2)%merit_type
   u%data(n1:n2)%weight           = datum(ix1:ix2)%weight
   u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
@@ -363,8 +362,16 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%error_rms        = datum(ix1:ix2)%error_rms
 
   ! If given, use the default_data_type. If not, auto-generate the data_type.
+
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
-  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
+
+  do i = n1, n2
+    j = i - n1 + ix1
+    u%data(i)%data_type = trim(datum(j)%data_type)
+    if (u%data(i)%data_type == '') u%data(i)%data_type = trim(default_data_type)
+  enddo
+
+  !
 
   jj = n1
   do k = lbound(eles, 1), ubound(eles, 1)
@@ -426,22 +433,21 @@ elseif (use_same_lat_eles_as /= '') then
   u%data(n1:n2)%invalid_value = datum(ix1:ix2)%invalid_value
   u%data(n1:n2)%spin_axis     = datum(ix1:ix2)%spin_axis
 
-  if (default_data_type /= '')    u%data(n1:n2)%data_type = default_data_type
   if (default_data_source /= '')  u%data(n1:n2)%data_source = default_data_source
   if (default_merit_type /= '')   u%data(n1:n2)%merit_type = default_merit_type
   if (default_weight /= 0)        u%data(n1:n2)%weight = default_weight
 
   do n = n1, n2
     ix = ix_min_data + n - n1
+
+    if (default_data_type /= '')     u%data(n)%data_type   = trim(default_data_type)
+    if (datum(ix)%data_type /= '')   u%data(n)%data_type   = trim(datum(ix)%data_type)
+    if (u%data(n)%data_type == '')   u%data(n)%data_type   = trim(d2_data%name) // '.' // trim(d1_data%name)
+
     if (datum(ix)%weight /= 0)       u%data(n)%weight      = datum(ix)%weight
-    if (datum(ix)%data_type /= '')   u%data(n)%data_type   = datum(ix)%data_type
     if (datum(ix)%data_source /= '') u%data(n)%data_source = datum(ix)%data_source
     if (datum(ix)%merit_type /= '')  u%data(n)%merit_type  = datum(ix)%merit_type
   enddo
-
-  ! use default_data_type if given, if not, auto-generate the data_type
-  if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
-  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
 
 !-----------------------------------------
 ! Not SEARCH or SAME:
@@ -489,18 +495,19 @@ else
   u%data(n1:n2)%ele_start_name   = datum(ix1:ix2)%ele_start_name
   u%data(n1:n2)%ix_bunch         = datum(ix1:ix2)%ix_bunch
   u%data(n1:n2)%data_source      = datum(ix1:ix2)%data_source
-  u%data(n1:n2)%data_type        = datum(ix1:ix2)%data_type
   u%data(n1:n2)%merit_type       = datum(ix1:ix2)%merit_type
   u%data(n1:n2)%spin_axis        = datum(ix1:ix2)%spin_axis
   u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
 
-  ! use default_data_type if given, if not, auto-generate the data_type
-  if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
-  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
-
   ! Find elements associated with the data
 
   do j = n1, n2
+    ix = j - n1 + ix1
+    ! use default_data_type if given, if not, auto-generate the data_type
+    u%data(j)%data_type        = datum(ix)%data_type
+    if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // trim(d1_data%name)
+    if (u%data(j)%data_type == '') u%data(j)%data_type = trim(default_data_type)
+
     call match_word (datum(j+ix1-n1)%eval_point, anchor_pt_name(1:), ix, can_abbreviate = .false.)
     if (ix == 0) then
       call out_io (s_abort$, r_name, 'EVAL_POINT UNRECOGNIZED: ' // datum(j+ix1-n1)%eval_point)

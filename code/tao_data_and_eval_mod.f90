@@ -475,7 +475,8 @@ character(6) expn_str
 character(16) constraint
 character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
-character(300) str
+character(100) data_type, str
+character(:), allocatable :: e_str
 
 logical found, valid_value, err, taylor_is_complex, use_real_part, term_found
 logical particle_lost, exterminate, printit
@@ -509,6 +510,7 @@ if (found) return
 ! Note: To check that a start element was set, need to look at datum%ele_start_name, not ix_start.
 
 data_source = datum%data_source
+data_type = datum%data_type  ! Needed since %data_type is a var length str so evaluating something like %data_type(1:10) is problematical
 head_data_type = datum%data_type
 lat => tao_lat%lat
 
@@ -595,14 +597,14 @@ end select
 
 ! ele_start must not be specified for some data types. Check this.
 
-if (datum%data_type(1:11) == 'periodic.tt' .or. datum%data_type == 'sigma.pz') then
+if (data_type(1:11) == 'periodic.tt' .or. data_type == 'sigma.pz') then
   if (datum%ele_start_name /= '') then
     call tao_set_invalid (datum, 'SPECIFYING ELE_START NOT VALID', why_invalid, .true.)
     return
   endif
 endif
 
-if (datum%data_type(1:11) == 'periodic.tt') then
+if (data_type(1:11) == 'periodic.tt') then
   if (datum%ele_ref_name /= '') then
     call tao_set_invalid (datum, 'SPECIFYING ELE_REF NOT VALID', why_invalid, .true.)
     return
@@ -649,7 +651,7 @@ select case (head_data_type)
 
 case ('alpha.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('alpha.a')
     if (data_source == 'lat') then
@@ -674,7 +676,7 @@ case ('alpha.')
     call tao_load_this_datum (bunch_params(:)%z%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -683,7 +685,7 @@ case ('alpha.')
 
 case ('apparent_emit.', 'norm_apparent_emit.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('apparent_emit.x', 'norm_apparent_emit.x')
     do i = ix_start, ix_ele
@@ -704,7 +706,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
-    if (datum%data_type == 'norm_apparent_emit.x') then
+    if (data_type == 'norm_apparent_emit.x') then
       call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
       datum_value = datum_value * gamma
     endif
@@ -729,14 +731,14 @@ case ('apparent_emit.', 'norm_apparent_emit.')
     endif
 
 
-    if (datum%data_type == 'norm_apparent_emit.y') then
+    if (data_type == 'norm_apparent_emit.y') then
       call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
       datum_value = datum_value * gamma
     endif
 
 
   case default
-    call tao_set_invalid (datum, 'UNKNOWN DATUM TYPE: ' // datum%data_type, why_invalid, .true.)
+    call tao_set_invalid (datum, 'UNKNOWN DATUM TYPE: ' // data_type, why_invalid, .true.)
     return
 
   end select
@@ -745,7 +747,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
 case ('beta.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('beta.x')
     if (data_source == 'beam') then
@@ -811,7 +813,7 @@ case ('beta.')
     endif
     
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -820,13 +822,13 @@ case ('beta.')
 
 case ('bpm_orbit.')
 
-  select case (datum%data_type)
+  select case (data_type)
   case ('bpm_orbit.x')
     which = x_plane$
   case ('bpm_orbit.y')
     which = y_plane$
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
   end select
 
@@ -866,13 +868,13 @@ case ('bpm_orbit.')
 
 case ('bpm_eta.')
 
-  select case (datum%data_type)
+  select case (data_type)
   case ('bpm_eta.x')
     which = x_plane$
   case ('bpm_eta.y')
     which = y_plane$
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
   end select
 
@@ -888,13 +890,13 @@ case ('bpm_phase.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value, why_invalid, datum); if (.not. valid_value) return
 
-  select case (datum%data_type)
+  select case (data_type)
   case ('bpm_phase.a')
     datum_value = bpm_data%phi_a
   case ('bpm_phase.b')
     datum_value = bpm_data%phi_b
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     valid_value = .false.
     return
   end select
@@ -906,7 +908,7 @@ case ('bpm_k.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value, why_invalid, datum); if (.not. valid_value) return
 
-  select case (datum%data_type)
+  select case (data_type)
   case ('bpm_k.22a')
     datum_value = bpm_data%k_22a
   case ('bpm_k.12a')
@@ -916,7 +918,7 @@ case ('bpm_k.')
   case ('bpm_k.12b')
     datum_value = bpm_data%k_12b
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     valid_value = .false.
     return
   end select
@@ -928,7 +930,7 @@ case ('bpm_cbar.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value, why_invalid, datum); if (.not. valid_value) return
 
-  select case (datum%data_type)
+  select case (data_type)
   case ('bpm_cbar.22a')
     datum_value = bpm_data%cbar22_a
   case ('bpm_cbar.12a')
@@ -938,7 +940,7 @@ case ('bpm_cbar.')
   case ('bpm_cbar.12b')
     datum_value = bpm_data%cbar12_b
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     valid_value = .false.
     return
   end select
@@ -949,7 +951,7 @@ case ('bunch_charge.')
 
   call tao_load_this_datum (bunch_params(:)%charge_live, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
-  if (datum%data_type == 'bunch_charge.live_relative') then
+  if (data_type == 'bunch_charge.live_relative') then
     charge = bunch_params(ele%ix_ele)%charge_tot
     if (charge == 0) then
       call tao_set_invalid (datum, 'BUNCH HAS NO CHARGE FOR EVALUATING A DATUM OF TYPE "bunch_charge_live.percent')
@@ -958,8 +960,8 @@ case ('bunch_charge.')
     endif
     datum_value = datum_value / charge
 
-  elseif (datum%data_type /= 'bunch_charge.live') then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+  elseif (data_type /= 'bunch_charge.live') then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     valid_value = .false.
     return
   endif
@@ -968,7 +970,7 @@ case ('bunch_charge.')
 
 case ('bunch_max.', 'bunch_min.')
   if (data_source /= 'beam') goto 9000  ! Set error message and return
-  select case (datum%data_type(11:))
+  select case (data_type(11:))
   case ('x'); i=1
   case ('px');i=2
   case ('y'); i=3
@@ -976,29 +978,29 @@ case ('bunch_max.', 'bunch_min.')
   case ('z'); i=5
   case ('pz');i=6
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
   end select
   
-  select case (datum%data_type(1:10))
+  select case (data_type(1:10))
   case ('bunch_max.')
     call tao_load_this_datum (bunch_params(:)%rel_max(i), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
   case ('bunch_min.')
     call tao_load_this_datum (bunch_params(:)%rel_min(i), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   end select
 
 !-----------
 
 case ('c_mat.', 'cmat')
 
-  if (datum%data_type(1:5) == 'c_mat') then
-    datum%data_type = 'cmat' // datum%data_type(6:)
+  if (data_type(1:5) == 'c_mat') then
+    data_type = 'cmat' // data_type(6:)
     call out_io (s_warn$, r_name, 'Note: "c_mat" data type is now called "cmat"')
   endif
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('cmat.11')
     if (data_source == 'beam') goto 9000  ! Set error message and return
@@ -1017,7 +1019,7 @@ case ('c_mat.', 'cmat')
     call tao_load_this_datum (branch%ele(:)%c_mat(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -1031,7 +1033,7 @@ case ('cbar.')
     return
   endif
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('cbar.11')
     if (data_source == 'beam') goto 9000  ! Set error message and return
@@ -1054,7 +1056,7 @@ case ('cbar.')
     call tao_load_this_datum (scratch%cc%cbar(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -1067,7 +1069,7 @@ case ('chrom.')
 
   if (.not. associated(tao_branch%low_E_lat%ele)) then
     if (branch%param%geometry == open$) then
-      why_invalid = 'Cannot calc ' // trim(datum%data_type) // ' with an open geometry.'
+      why_invalid = 'Cannot calc ' // trim(data_type) // ' with an open geometry.'
     elseif (branch%param%unstable_factor == 0) then
       why_invalid = 'Chrom bookkeeping problem. Please contact DCS.'
     else
@@ -1080,15 +1082,15 @@ case ('chrom.')
 
   dE = 2 * s%global%delta_e_chrom  ! Actually this is the change in pz
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('chrom.dtune.a', 'chrom.a')
-    if (datum%data_type == 'chrom.dtune.a') call out_io (s_warn$, r_name, '"chrom.dtune.a" IS DEPRECATED. PLEASE CHANGE TO "chrom.a".')
+    if (data_type == 'chrom.dtune.a') call out_io (s_warn$, r_name, '"chrom.dtune.a" IS DEPRECATED. PLEASE CHANGE TO "chrom.a".')
     datum_value = tao_branch%a%chrom
     valid_value = .true.
 
   case ('chrom.dtune.b', 'chrom.b')
-    if (datum%data_type == 'chrom.dtune.b') call out_io (s_warn$, r_name, '"chrom.dtune.b" IS DEPRECATED. PLEASE CHANGE TO "chrom.b".')
+    if (data_type == 'chrom.dtune.b') call out_io (s_warn$, r_name, '"chrom.dtune.b" IS DEPRECATED. PLEASE CHANGE TO "chrom.b".')
     datum_value = tao_branch%b%chrom
     valid_value = .true.
 
@@ -1159,7 +1161,7 @@ case ('chrom.')
   case ('chrom.w.a', 'chrom.w.b')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        if (datum%data_type == 'chrom.wa') then
+        if (data_type == 'chrom.wa') then
           z2 => tao_branch%high_E_lat%ele(i)%a
           z1 => tao_branch%low_E_lat%ele(i)%a
           z0 => branch%ele(i)%a
@@ -1178,7 +1180,7 @@ case ('chrom.')
     endif      
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -1201,18 +1203,18 @@ case ('chrom_ptc.')
     return
   endif
 
-  select case (datum%data_type(1:12))
+  select case (data_type(1:12))
   case ('chrom_ptc.a.')
     phase_map => ptc_nf%phase(1)
   case ('chrom_ptc.b.')
     phase_map => ptc_nf%phase(2)
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
   end select
 
-  if (.not. is_integer(datum%data_type(13:), n)) then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+  if (.not. is_integer(data_type(13:), n)) then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
   endif
 
@@ -1228,7 +1230,7 @@ case ('curly_h.')
 
   if (data_source == 'beam')  goto 9000  ! Set error message and return
 
-  select case (datum%data_type)
+  select case (data_type)
   case ('curly_h.a')
     do i = ix_start, ix_ele
       ele => branch%ele(i)
@@ -1258,7 +1260,7 @@ case ('damp.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('damp.j_a')
     datum_value = tao_branch%modes%a%j_damp
@@ -1273,7 +1275,7 @@ case ('damp.')
     valid_value = .true.
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -1365,12 +1367,12 @@ case ('dynamic_aperture.')
   n_da = size(da%scan)
 
   if (.not. is_integer(sub_data_type, n)) then
-    call tao_set_invalid (datum, 'MALFORMED DATA_TYPE: ' // quote(datum%data_type) // '. ' // quote(sub_data_type) // ' IS NOT AN INTEGER.', why_invalid, .true.)
+    call tao_set_invalid (datum, 'MALFORMED DATA_TYPE: ' // quote(data_type) // '. ' // quote(sub_data_type) // ' IS NOT AN INTEGER.', why_invalid, .true.)
     return
   endif
 
   if (n < 1 .or. n > n_da) then
-    call tao_set_invalid (datum, 'SCAN INDEX OUT OF RANGE FOR DATA_TYPE: ' // quote(datum%data_type), why_invalid, .true.)
+    call tao_set_invalid (datum, 'SCAN INDEX OUT OF RANGE FOR DATA_TYPE: ' // quote(data_type), why_invalid, .true.)
     return
   endif
 
@@ -1403,7 +1405,7 @@ case ('e_tot_ref')
 
 case ('element_attrib.')
 
-  name = upcase(datum%data_type(16:))
+  name = upcase(data_type(16:))
   value_vec = 0
   good = .false.
 
@@ -1415,7 +1417,7 @@ case ('element_attrib.')
   enddo
 
   if (all(.not. good(ix_start:ix_ele))) then
-    call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM WITH DATA_TYPE = "' // trim(datum%data_type) // '" AT ASSOCIATED ELEMENT', why_invalid, .true.)
+    call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM WITH DATA_TYPE = "' // trim(data_type) // '" AT ASSOCIATED ELEMENT', why_invalid, .true.)
     return
   endif
 
@@ -1426,7 +1428,7 @@ case ('element_attrib.')
       good(ix_ref) = .true.
     else
       if (.not. good(ix_ref)) then
-        call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM WITH DATA_TYPE = "' // trim(datum%data_type) // '" AT REFERENCE ELEMENT', why_invalid, .true.)
+        call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM WITH DATA_TYPE = "' // trim(data_type) // '" AT REFERENCE ELEMENT', why_invalid, .true.)
         return
       endif
     endif
@@ -1444,7 +1446,7 @@ case ('emit.', 'norm_emit.')
     gamma = 0
   endif
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('emit.x', 'norm_emit.x')
     if (data_source == 'lat') then
@@ -1459,7 +1461,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%x%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (datum%data_type == 'norm_emit.x') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.x') datum_value = datum_value * gamma
 
   case ('emit.y', 'norm_emit.y')  
     if (data_source == 'lat') then
@@ -1474,7 +1476,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%y%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (datum%data_type == 'norm_emit.y') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.y') datum_value = datum_value * gamma
 
   case ('emit.z', 'norm_emit.z')
     if (data_source == 'lat') then
@@ -1483,7 +1485,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%z%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (datum%data_type == 'norm_emit.y') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.y') datum_value = datum_value * gamma
 
   case ('emit.a', 'norm_emit.a')
     if (data_source == 'lat') then
@@ -1503,7 +1505,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%a%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (datum%data_type == 'norm_emit.a') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.a') datum_value = datum_value * gamma
     
   case ('emit.b', 'norm_emit.b')  
     if (data_source == 'lat') then
@@ -1523,7 +1525,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%b%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (datum%data_type == 'norm_emit.b') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.b') datum_value = datum_value * gamma
 
   case ('emit.c', 'norm_emit.c')  
     if (data_source == 'lat') then
@@ -1532,10 +1534,10 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%c%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (datum%data_type == 'norm_emit.y') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.y') datum_value = datum_value * gamma
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -1544,7 +1546,7 @@ case ('emit.', 'norm_emit.')
 
 case ('eta.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('eta.a')
     if (data_source == 'beam') then
@@ -1587,7 +1589,7 @@ case ('eta.')
     endif
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -1596,7 +1598,7 @@ case ('eta.')
 
 case ('etap.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('etap.a')
     if (data_source == 'beam') then
@@ -1631,7 +1633,7 @@ case ('etap.')
     endif
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -1641,22 +1643,22 @@ case ('etap.')
 case ('expression:', 'expression.')
 
   write (dflt_dat_index, '(i0)') datum%ix_d1
-  str = datum%data_type(12:)
+  e_str = datum%data_type(12:)
   do
-    ix = index(str, 'ele::#[')
+    ix = index(e_str, 'ele::#[')
     if (ix == 0) exit
     if (ix_ele == -1) then
-      call tao_set_invalid (datum, 'NO ASSOCIATED ELEMENT' // datum%data_type(12:), why_invalid, .true.)
+      call tao_set_invalid (datum, 'NO ASSOCIATED ELEMENT' // e_str, why_invalid, .true.)
       return
     endif
-    str = str(1:ix+4) // trim(ele_loc_name(ele)) // str(ix+6:)
+    e_str = e_str(1:ix+4) // trim(ele_loc_name(ele)) // e_str(ix+6:)
   enddo
 
   printit = (s%com%n_err_messages_printed < s%global%datum_err_messages_max) 
-  call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, printit, datum%stack, tao_lat%name, &
+  call tao_evaluate_expression (e_str, 0, .false., expression_value_vec, info, err, printit, datum%stack, tao_lat%name, &
                  datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni, datum%eval_point, datum%s_offset)
   if (err) then
-    call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
+    call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // e_str, why_invalid)
     return
   endif
 
@@ -1677,7 +1679,7 @@ case ('expression:', 'expression.')
     if (j /= ele%ix_ele) then
       call out_io (s_error$, r_name, 'BOOKKEEPING ERROR IN EVALUATING INTEGRAL/AVERAGE OF EXPRESSION.', &
                                      'PLEASE REPORT!')
-      call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
+      call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type, why_invalid)
     endif
 
     datum_value = tao_datum_integrate(datum, branch, info(:)%s, expression_value_vec, valid_value, why_invalid)
@@ -1707,7 +1709,7 @@ case ('expression:', 'expression.')
     if (dp%d1%d2%ix_universe < u%ix_uni) cycle ! OK
     if (dp%d1%d2%ix_universe == u%ix_uni .and. dp%ix_data < datum%ix_data) cycle
     call out_io (s_error$, r_name, 'DATUM: ' // tao_datum_name(datum), &
-                    'WHICH IS OF TYPE EXPRESSION:' // datum%data_type(12:), &
+                    'WHICH IS OF TYPE EXPRESSION:' // datum%data_type, &
                     'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
                     'AND THIS COMPONENT IS EVALUATED AFTER THE EXPRESSION!', &
                     'TO FIX: MOVE THE EXPRESSION DATUM TO BE AFTER THE COMPONENT DATUM IN THE FILE THAT DEFINES THE DATA.')
@@ -1719,7 +1721,7 @@ case ('expression:', 'expression.')
 
 case ('floor.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('floor.x')
     call tao_load_this_datum (branch%ele(:)%floor%r(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -1740,7 +1742,7 @@ case ('floor.')
     call tao_load_this_datum (branch%ele(:)%floor%psi, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -1785,7 +1787,7 @@ case ('floor_orbit.')
 
 case ('gamma.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('gamma.a')
     if (data_source == 'lat') then
@@ -1810,7 +1812,7 @@ case ('gamma.')
     call tao_load_this_datum (bunch_params(:)%z%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -1819,7 +1821,7 @@ case ('gamma.')
 
 case ('k.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('k.11b')
     if (data_source == 'beam') goto 9000  ! Set error message and return
@@ -1839,7 +1841,7 @@ case ('k.')
     call tao_load_this_datum (scratch%cc%k_22b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -1900,8 +1902,8 @@ case ('momentum_compaction_ptc.')
     return
   endif
 
-  if (.not. is_integer(datum%data_type(25:), n)) then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+  if (.not. is_integer(data_type(25:), n)) then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
   endif
 
@@ -1931,7 +1933,7 @@ case ('normal.')
 
   ! Do nothing it the map wasn't made
   if (.not. ptc_nf%valid_map) then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  PTC one-turn map not calculated.')
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.  PTC one-turn map not calculated.')
     return
   endif
 
@@ -1966,19 +1968,19 @@ case ('normal.')
       case('a')
         datum_value = abs(temp_cplx)
       case default
-        call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', why_invalid, .true.)
+        call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', why_invalid, .true.)
         valid_value = .false.
         return
       end select
     else
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not found in normal_form_struct', why_invalid, .true.)
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.  data_type not found in normal_form_struct', why_invalid, .true.)
       valid_value = .false.
       return
     endif
   else
     i = tao_read_phase_space_index (sub_data_type, iz, .false.)
     if (i == 0) then
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.', why_invalid, .true.)
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.', why_invalid, .true.)
       return
     endif
     ! Point to taylor
@@ -2011,8 +2013,8 @@ case ('normal.')
    
     ! Check for second dot
     if (sub_data_type(iz+1:iz+1) /= '.') then
-     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
-     call out_io (s_error$, r_name, 'datum%data_type: '//trim(datum%data_type) )
+     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+     call out_io (s_error$, r_name, 'data_type: '//trim(data_type) )
      call out_io (s_error$, r_name, 'expect dot: ', sub_data_type(1:iz)//'.######' )
     endif
    
@@ -2047,7 +2049,7 @@ case ('orbit.')
     return
   endif
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('orbit.e_tot')
     if (ix_ref > -1) then
@@ -2135,7 +2137,7 @@ case ('orbit.')
     call tao_load_this_datum (scratch%cc%amp_nb, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0, orbit)
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -2167,13 +2169,13 @@ case ('pc')
 
 case ('periodic.')
 
-  ix = index(datum%data_type(10:), '.') + 9
-  select case (datum%data_type(1:ix))
+  ix = index(data_type(10:), '.') + 9
+  select case (data_type(1:ix))
 
   case ('periodic.tt.')
     if (data_source == 'beam') goto 9000  ! Set error message and return
     if (lat%param%geometry /= closed$ .and. .not. associated(ele_ref)) then
-      call tao_set_invalid (datum, 'LATTICE MUST BE CIRCULAR FOR A DATUM LIKE: ' // datum%data_type, why_invalid)
+      call tao_set_invalid (datum, 'LATTICE MUST BE CIRCULAR FOR A DATUM LIKE: ' // data_type, why_invalid)
       call err_exit
     endif
 
@@ -2194,17 +2196,17 @@ case ('periodic.')
     endif
 
     expnt = 0
-    i = tao_read_phase_space_index (datum%data_type, 13, .false.)
+    i = tao_read_phase_space_index (data_type, 13, .false.)
     if (i == 0) then
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
       return
     endif
 
     do j = 14, 24
-      if (datum%data_type(j:j) == ' ') exit
-      k = tao_read_phase_space_index (datum%data_type, j, .false.)
+      if (data_type(j:j) == ' ') exit
+      k = tao_read_phase_space_index (data_type, j, .false.)
       if (k == 0) then
-        call tao_set_invalid (datum, 'BAD DATA_TYPE = "' // trim(datum%data_type), why_invalid, .true.)
+        call tao_set_invalid (datum, 'BAD DATA_TYPE = "' // trim(data_type), why_invalid, .true.)
         return
       endif
       expnt(k) = expnt(k) + 1
@@ -2214,7 +2216,7 @@ case ('periodic.')
     valid_value = .true.
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -2223,7 +2225,7 @@ case ('periodic.')
 
 case ('phase.', 'phase_frac.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('phase.a', 'phase_frac.a')
     if (data_source == 'beam') goto 9000  ! Set error message and return
@@ -2235,7 +2237,7 @@ case ('phase.', 'phase_frac.')
         dphi = branch%ele(n_track)%a%phi - branch%ele(0)%a%phi
         if (2*datum_value < -dphi) datum_value = datum_value + dphi
       endif
-    if (datum%data_type == 'phase_frac.a') datum_value = modulo2(datum_value, pi)
+    if (data_type == 'phase_frac.a') datum_value = modulo2(datum_value, pi)
     endif
     valid_value = .true.
 
@@ -2250,11 +2252,11 @@ case ('phase.', 'phase_frac.')
         if (2*datum_value < -dphi) datum_value = datum_value + dphi
       endif
     endif
-    if (datum%data_type == 'phase_frac.b') datum_value = modulo2(datum_value, pi)
+    if (data_type == 'phase_frac.b') datum_value = modulo2(datum_value, pi)
     valid_value = .true.
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -2285,7 +2287,7 @@ case ('phase_frac_diff')
 
 case ('photon.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('photon.intensity_x')
     if (data_source == 'beam') then
@@ -2319,13 +2321,13 @@ case ('photon.')
     call tao_load_this_datum (orbit(:)%phase(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   end select
 
 !-----------
 
 case ('ping_a.')
-  select case (datum%data_type)
+  select case (data_type)
   case ('ping_a.amp_x')
     datum_value = ele%gamma_c * sqrt(ele%a%beta)
     if (associated(ele_ref)) datum_value = datum_value - ele%gamma_c * sqrt(ele_ref%a%beta)
@@ -2395,13 +2397,13 @@ case ('ping_a.')
     valid_value = .true.
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   end select
 
 !-----------
 
 case ('ping_b.')
-  select case (datum%data_type)
+  select case (data_type)
   case ('ping_b.amp_y')
     datum_value = ele%gamma_c * sqrt(ele%b%beta)
     if (associated(ele_ref)) datum_value = datum_value - ele%gamma_c * sqrt(ele_ref%b%beta)
@@ -2469,17 +2471,17 @@ case ('ping_b.')
     valid_value = .true.
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   end select
 
 !-----------
 
 case ('r.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
-  i = tao_read_phase_space_index (datum%data_type, 3, .false.)
-  j = tao_read_phase_space_index (datum%data_type, 4, .false.)
+  i = tao_read_phase_space_index (data_type, 3, .false.)
+  j = tao_read_phase_space_index (data_type, 4, .false.)
   if (i == 0 .or. j == 0) then
-    call tao_set_invalid (datum, 'BAD DATA_TYPE = "' // trim(datum%data_type), why_invalid, .true.)
+    call tao_set_invalid (datum, 'BAD DATA_TYPE = "' // trim(data_type), why_invalid, .true.)
     return
   endif
 
@@ -2535,7 +2537,7 @@ case ('rad_int.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
   if (.not. allocated(rad_int_branch%ele)) return
 
-  select case (datum%data_type)
+  select case (data_type)
   case ('rad_int.i0')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i0)
@@ -2635,7 +2637,7 @@ case ('rad_int.')
     endif
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -2650,7 +2652,7 @@ case ('rad_int1.')
   if (ix_ele < 0) return
   if (.not. allocated(rad_int_branch%ele)) return
 
-  select case (datum%data_type)
+  select case (data_type)
   case ('rad_int1.i0')
     datum_value = rad_int_branch%ele(ix_ele)%i0
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i0
@@ -2704,7 +2706,7 @@ case ('rad_int1.')
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i6b
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -2720,7 +2722,7 @@ case ('ref_time')
 
 case ('rel_floor.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
 
@@ -2733,7 +2735,7 @@ case ('rel_floor.')
       ele2 => branch%ele(i)
       vec3 = ele2%floor%r - ele_ref%floor%r
       vec3 = matmul (w0_mat, vec3)
-      select case (datum%data_type)
+      select case (data_type)
       case ('rel_floor.x')
         value_vec(i) = vec3(1)
       case ('rel_floor.y')
@@ -2761,7 +2763,7 @@ case ('rel_floor.')
       w_mat = matmul (w0_mat, w_mat)
       call floor_w_mat_to_angles (w_mat, theta, phi, psi)
 
-      select case (datum%data_type)
+      select case (data_type)
       case ('rel_floor.theta')
         value_vec(i) = theta
       case ('rel_floor.phi')
@@ -2777,7 +2779,7 @@ case ('rel_floor.')
     call tao_load_this_datum (value_vec, null(), ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -2798,8 +2800,8 @@ case ('s_position')
 case ('sigma.')
 
   ! Looks for numbers: e.g. sigma.13
-  i = index('123456', datum%data_type(7:7))
-  j = index('123456', datum%data_type(8:8))
+  i = index('123456', data_type(7:7))
+  j = index('123456', data_type(8:8))
   if (i > 0 .and. j > 0) then
     if (data_source == 'lat') then
       call tao_load_this_datum (tao_branch%linear%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
@@ -2809,7 +2811,7 @@ case ('sigma.')
     return
   endif
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('sigma.x')
     if (data_source == 'lat') then
@@ -2887,7 +2889,7 @@ case ('sigma.')
     endif
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -2901,7 +2903,7 @@ case ('spin.')
     return
   endif
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('spin.x', 'spin.y', 'spin.z', 'spin.amp')
     do i = ix_start, ix_ele
@@ -2911,7 +2913,7 @@ case ('spin.')
         vec3 = orbit(i)%spin
       endif
 
-      select case (datum%data_type)
+      select case (data_type)
       case ('spin.x');    value_vec(i) = vec3(1)
       case ('spin.y');    value_vec(i) = vec3(2)
       case ('spin.z');    value_vec(i) = vec3(3)
@@ -2926,7 +2928,7 @@ case ('spin.')
         vec3 = orbit(ix_ref)%spin
       endif
 
-      select case (datum%data_type)
+      select case (data_type)
       case ('spin.x');    value_vec(ix_ref) = vec3(1)
       case ('spin.y');    value_vec(ix_ref) = vec3(2)
       case ('spin.z');    value_vec(ix_ref) = vec3(3)
@@ -2944,7 +2946,7 @@ case ('spin.')
       call tao_set_invalid (datum, 'ERROR IN SPIN POLARIZAITON CALC.', why_invalid, .false.)
       return
     endif
-    select case (datum%data_type)
+    select case (data_type)
     case ('spin.depolarization_rate')
       datum_value = tao_branch%spin%depol_rate
     case ('spin.polarization_rate')
@@ -2954,7 +2956,7 @@ case ('spin.')
     end select
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -2977,7 +2979,7 @@ case ('spin_dn_dpz.')
      return
   endif
 
-  select case (datum%data_type)
+  select case (data_type)
   case ('spin_dn_dpz.x')
     do i = ix_start, ix_ele
       value_vec(i) = tao_branch%dn_dpz(i)%vec(1)
@@ -2999,7 +3001,7 @@ case ('spin_dn_dpz.')
     enddo
     value_vec(ix_ele) = norm2(tao_branch%dn_dpz(ix_ele)%vec)
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
   end select
 
@@ -3026,8 +3028,8 @@ case ('spin_tune_ptc.')
 
   phase_map => ptc_nf%spin
 
-  if (.not. is_integer(datum%data_type(15:), n)) then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+  if (.not. is_integer(data_type(15:), n)) then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
   endif
 
@@ -3044,7 +3046,7 @@ case ('spin_g_matrix.')
   call tao_spin_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
   if (.not. valid_value) return
 
-  select case (datum%data_type)
+  select case (data_type)
   case ('spin_g_matrix.11');  datum_value = spin_map%mat8(7,1)
   case ('spin_g_matrix.12');  datum_value = spin_map%mat8(7,2)
   case ('spin_g_matrix.13');  datum_value = spin_map%mat8(7,3)
@@ -3059,7 +3061,7 @@ case ('spin_g_matrix.')
   case ('spin_g_matrix.26');  datum_value = spin_map%mat8(8,6)
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     valid_value = .false.
     return
   end select
@@ -3090,7 +3092,7 @@ case ('srdt.')
   case('h31000');  temp_cplx = tao_branch%srdt%h31000
   case('h40000');  temp_cplx = tao_branch%srdt%h40000
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     term_found = .false.
     valid_value = .false.
     return
@@ -3105,7 +3107,7 @@ case ('srdt.')
   case('a')
     datum_value = abs(temp_cplx)
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST (DATA_TYPE NOT ENDING IN .r, .i, or .a).', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST (DATA_TYPE NOT ENDING IN .r, .i, or .a).', why_invalid, .true.)
     valid_value = .false.
   end select
 
@@ -3122,7 +3124,7 @@ case ('time')
 
 case ('tune.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('tune.a')
     if (data_source == 'beam') goto 9000  ! Set error message and return
@@ -3135,7 +3137,7 @@ case ('tune.')
     valid_value = .true.
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -3158,7 +3160,7 @@ case ('t.', 'tt.')
   enddo
 
   if (i == 0 .or. k == 0) then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
   endif
 
@@ -3215,7 +3217,7 @@ case ('t.', 'tt.')
 
 case ('unstable.')
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('unstable.eigen', 'unstable.eigen.a', 'unstable.eigen.b', 'unstable.eigen.c')
     call transfer_matrix_calc (lat, mat6, vec0, 0, branch%n_ele_track, branch%ix_branch, one_turn = .true.)
@@ -3225,7 +3227,7 @@ case ('unstable.')
       return
     endif
 
-    select case (datum%data_type)
+    select case (data_type)
     case ('unstable.eigen');    datum_value = maxval(abs(eigen_val))
     case ('unstable.eigen.a');  datum_value = max(abs(eigen_val(1)), abs(eigen_val(2)))
     case ('unstable.eigen.b');  datum_value = max(abs(eigen_val(3)), abs(eigen_val(4)))
@@ -3301,7 +3303,7 @@ case ('unstable.')
   case ('unstable.ring', 'unstable.lattice')
     if (data_source == 'beam') goto 9000  ! Set error message and return
 
-    if (datum%data_type == 'unstable.ring') then
+    if (data_type == 'unstable.ring') then
       call out_io (s_error$, r_name, '"unstable.ring" has been replaced by "unstable.lattice". Please change this in your input file.')
     endif
 
@@ -3316,7 +3318,7 @@ case ('unstable.')
     valid_value = .true.
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
 
   end select
@@ -3331,7 +3333,7 @@ case ('velocity', 'velocity.')
     return
   endif
 
-  select case (datum%data_type)
+  select case (data_type)
 
   case ('velocity')
     if (data_source == 'beam') then
@@ -3368,7 +3370,7 @@ case ('velocity', 'velocity.')
     endif
 
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   end select
 
 !-----------
@@ -3376,7 +3378,7 @@ case ('velocity', 'velocity.')
 case ('wall.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
-  constraint = datum%data_type(6:)
+  constraint = data_type(6:)
   zz0_pt = 0
   datum_value = 1e10   ! Something large
   found = .false.
@@ -3444,7 +3446,7 @@ case ('wall.')
           endif
         endif
 
-        if (datum%data_type =='wall.right_side')  xx_wall = -xx_wall
+        if (data_type =='wall.right_side')  xx_wall = -xx_wall
         datum_value = min(datum_value, xx_wall)
         valid_value = .true.
 
@@ -3461,12 +3463,12 @@ case ('wall.')
 
 case ('wire.')  
   if (data_source == 'lat') goto 9001  ! Error message and return
-  read (datum%data_type(6:), '(a)') angle
+  read (data_type(6:), '(a)') angle
   datum_value = tao_do_wire_scan (ele, angle, u%model_branch(branch%ix_branch)%ele(ix_ele)%beam)
   valid_value = .true.
   
 case default
-  call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+  call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   return
 end select
 
