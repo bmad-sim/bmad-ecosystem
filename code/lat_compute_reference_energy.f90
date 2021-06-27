@@ -445,7 +445,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   abs_tol(1) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * lord%value(p0c_start$)
   abs_tol(2) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * lord%value(p0c$)
 
-  if (ele_value_has_changed(lord, [p0c$, delta_ref_time$], abs_tol, .true.)) then
+  if (ele_value_has_changed(lord, [p0c$, e_tot$, delta_ref_time$], abs_tol, .true.)) then
     call set_ele_status_stale (lord, attribute_group$)
   endif
 
@@ -712,7 +712,7 @@ endif
 abs_tol(1) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * ele%value(p0c$)
 abs_tol(2) = bmad_com%significant_length/c_light
 
-energy_stale = ele_value_has_changed(ele, [p0c$, delta_ref_time$], abs_tol, .false.)
+energy_stale = ele_value_has_changed(ele, [p0c$, e_tot$, delta_ref_time$], abs_tol, .false.)
 if (energy_stale.or. ele%bookkeeping_state%control /= ok$ .or. ele%bookkeeping_state%floor_position /= ok$) then
   ! Transfer ref energy to super_lord before bookkeeping done. This is important for bends.
   if (ele%slave_status == super_slave$ .and. ele%key == sbend$) then
