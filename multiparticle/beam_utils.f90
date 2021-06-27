@@ -53,16 +53,26 @@ bunch_start%particle%direction = integer_option(1, direction)
 
 !------------------------------------------------
 ! Without wakefields just track through.
+! PTC is not not thread safe.
 
 wake_ele => pointer_to_wake_ele(ele, ds_wake)
 if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
-  !$OMP parallel do
-  do j = 1, size(bunch_start%particle)
-    if (bunch_start%particle(j)%state /= alive$) cycle
-    call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
-  enddo
-  !$OMP end parallel do
+  if (ele%tracking_method == symp_lie_ptc$ .or. &
+            (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term))) then
+    do j = 1, size(bunch_start%particle)
+      if (bunch_start%particle(j)%state /= alive$) cycle
+      call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
+    enddo
+
+  else
+    !$OMP parallel do
+    do j = 1, size(bunch_start%particle)
+      if (bunch_start%particle(j)%state /= alive$) cycle
+      call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
+    enddo
+    !$OMP end parallel do
+  endif
 
   bunch_end%charge_live = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
   return
