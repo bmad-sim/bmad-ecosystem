@@ -684,6 +684,7 @@ call adjust_super_slave_names (lat, lat%n_ele_track+1, lat%n_ele_max)
 bp_com%input_line_meaningful = .false.
 
 lat%input_taylor_order = bmad_com%taylor_order
+call set_ptc()   ! Will set Taylor_order
 
 call lat_ele_locator ('BEAM', lat, eles, n_loc, err)
 if (n_loc /= 1 .or. err) call err_exit
