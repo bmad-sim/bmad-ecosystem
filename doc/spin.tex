@@ -310,10 +310,12 @@ exist a set of values $A_j(\bfr)$, $j = 1, \ldots, 6$, such that
 Define the function $\bfn$ by
 \begin{equation}
   \bfn(\bfr) \equiv \bfn_0 + \sum_{j = 1}^6 A_j(\bfr) \, \bfn_j
+  \label{nrn0}
 \end{equation}
 This function obeys the T-BMT equation and is continuous and thus is the solution (up to a flip in
-sign) for the invariant spin field. From this, ${\partial \bfn}/\partial \delta$, which is computed
-taking the derivative at constant $x$, $p_x$, $y$, $p_y$, and $z$, is obtained via
+sign and a normalization constant) for the invariant spin field. From this, ${\partial
+\bfn}/\partial \delta$, which is computed taking the derivative at constant $x$, $p_x$, $y$, $p_y$,
+and $z$, is obtained via
 \begin{equation}
   \frac{\partial \bfn}{\partial \delta} = 
   \sum_{j = 1}^6 A_j \, \bfn_j
@@ -345,30 +347,105 @@ mode of interest. This information can help guide lattice design.
 \label{s:spin.lin.res}
 
 Resonances occur when the spin tune $\nu_s$ is an integer (``imperfection'' resonances) and when the spin
-tune in combination with the three orbital tunes $\nu_x$, $\nu_y$, and $\nu_z$ is an integer
+tune $\nu_s$ in combination with the three orbital tunes $\nu_x$, $\nu_y$, and $\nu_z$ is an integer
 (``intrinsic'' or ``spin-orbit'' resonances)
 \begin{equation}
-  \nu_s + m_x \, \nu_x + m_y \, \nu_y + m_z \, \nu_z  = m
+  \nu_s + m_x \, \nu_x + m_y \, \nu_y + m_z \, \nu_z = m_0
 \end{equation}
-where $m_x$, $m_y$, $m_z$, and $m$ are integers. In the linear approximaiton (\sref{s:dn.calc}),
+where $m_x$, $m_y$, $m_z$, and $m_0$ are integers. In the linear approximaiton (\sref{s:dn.calc}),
 resonances only occur if one and exactly one of the $m_x$, $m_y$, or $m_z$ has a value of one and
 the other two are zero.
 
-In order to calculate the effect of a resonance it is helpful to know the resonance strength. The
-resonance strength calculation can be motivated by considering the Single Resonance Model
-(SRM)\cite{b:spin.hoff} where it is assumed that there is a single linear resonance dominating the
-motion 
+Essentially, in rings where the synchrotron radiation is large (think electrons), the depolarization
+due to radiation will tend to dominate (\sref{s:isf}). For rings where the synchrotron radiation is
+small (think protons), resonances will be more important. Notice that synchrotron radiation, being a
+stochastic process results in depolarization. Resonances, on the other hand, are not stochastic and
+even if a resonance tilts the polarization there can be the possibility of recovery.
+
+In order to calculate the effect of a resonance it is helpful to know the resonance strength
+$\epsilon_r$. The resonance strength calculation can be motivated by considering the Single
+Resonance Model (SRM)\cite{b:spin.hoff} where it is assumed that only one orbital mode is excited
+and that there is a single dominating linear resonance so that the spin equation of motion is
+\begin{equation}
+  \frac{d \bfs}{d \theta} = \Bf\Omega \cross \bfs, \qquad 
+  \Bf\Omega = \begin{pmatrix}
+    \sqrt{J} \, \epsilon_r \, \cos \Phi \\
+    \sqrt{J} \, \epsilon_r \, \sin \Phi \\
+    \nu_0
+  \end{pmatrix}
+  \label{stos}
+\end{equation}
+where $\nu_0$ is the closed orbit spin tune and $\theta$ is the longitudinal angle with $\theta = 2 \, \pi$
+representing one turn in the circular accelerator. $J$ is the action for the excited mode and $\Phi$
+is the phase
+\begin{equation}
+  \Phi = (m_0 + Q) \, \theta + \Phi_0 \equiv \kappa \, \theta + \Phi_0
+\end{equation}
+with $Q$ being the mode orbital tune and $\Phi_0$ the phase at $\theta = 0$. 
+
+\Eq{stos} can be solved by transforming to a coordinate system rotating about the $z$-axis with a rotational
+frequency $Q$. In this frame, the spin vector $s_R$ is
+\begin{equation}
+  \bfs_R = \bfq_z(-\Phi) \,\, \bfs \,\, \bfq_z^*(-\Phi), \qquad \bfq_z(\phi) = (\cos \phi, 0, 0, \sin \phi)
+  \label{rqsq}
+\end{equation}
+Using \Eq{rqsq} in \Eq{stos} gives
+\begin{equation}
+  \frac{d \bfs_R}{d \theta} = \Bf\Omega_R \cross \bfs_R, \qquad
+  \Bf\Omega_R = \begin{pmatrix}
+    \sqrt{J} \, \epsilon_r \\
+    0 \\
+    \delta 
+  \end{pmatrix},
+  \qquad
+  \delta = \nu_0 - \kappa
+  \label{stos2}
+\end{equation}
+In the rotating coordinate system, a spin oriented parallel to $\Bf\Omega_R$ remains parallel to
+$\Bf\Omega_R$ so $\Bf\Omega_R$ is in the direction of the invariant spin field. Transforming back
+to the laboratory frame and normalizing to one, $\bfn$ is
+\begin{equation}
+  \bfn (\Phi) = \frac{\sign(\delta)}{\Lambda} \, 
+  \begin{pmatrix}
+    \sqrt{J} \, \epsilon_r \, \cos \Phi \\
+    \sqrt{J} \, \epsilon_r \, \sin \Phi \\
+    \delta
+  \end{pmatrix},
+  \qquad
+  \Lambda = \sqrt{\delta^2 + J \, \epsilon_r^2}
+  \label{nsdl}
+\end{equation}
+where the sign factor $\sign(\delta)$ is chosen so that on the closed orbit with $J = 0$ the $\bfn$
+axis is in the positive $z$-direction.
+
+The resonance strengths in a lattice can be calculated by comparing \Eq{nsdl} with the equations
+developed in \sref{s:dn.calc}. The eigen analysis in \sref{s:dn.calc} gives the closed orbit
+$\bfn_0$ along with the six eignvectors $(\bfv_j, \bfn_j)$ and corresponding eigenvalues
+$\lambda_j$, $j = 1, \ldots 6$ of the 1-turn spin-orbital transport. The orbital part of the $j$\Th
+eigenvector, $\bfv_j$, represents particle motion with some value of the action $J_j$ for that
+mode. Considering \Eq{ndan}, if only one mode is excited for some particular $j$, and if $A_j$ is
+taken to be one, 
+the invariant spin field on the $m$\Th turn
+\begin{equation}
+  \bfn(m) = \bfn_0 + \bfn_j \, \lambda_j^m
+  \label{nnav}
+\end{equation}
+Comparing this to \Eq{nsdl}, the constant part of the $\bfn$ vector in \Eq{nsdl} ($\bfn_z$) is
+associated with $\bfn_0$ in \Eq{nnav} and the time varying part of $\bfn$ vector in \Eq{nsdl}
+($\bfn_x$ and $\bfn_y$) is associated with $\bfv_j$ in \Eq{nnav}. Taking the ratio of
+constant to time varying parts in both equations and equating gives
+\begin{equation}
+  \epsilon_r = \frac{\delta}{\sqrt{J_j}} \, \frac{|\bfn_j|}{|\bfn_0|}
+\end{equation}
 
 
 
-Should the $\nu_s$ term be $m_s \, \nu_s$?
- 
-Importance of resonances vs stochastic dephasing.
 
-How to calculate nonlinear resonance strengths.
-
-references.
-
+%Should the $\nu_s$ term be $m_s \, \nu_s$?
+%Importance of resonances vs stochastic dephasing.
+%How to calculate nonlinear resonance strengths.
+%references.
+%FS resonance crossing formula.?
 
 
 \etcetc 
