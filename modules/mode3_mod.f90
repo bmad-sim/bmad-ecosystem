@@ -477,9 +477,7 @@ real(rp) check_mat_r(6,6)
 
 character(*), parameter :: r_name = 'eigen_decomp_6mat'
 
-!call mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, err_flag)
-!evec_r = transpose(evec_r)
-!evec_i = transpose(evec_i)
+!
 
 err_flag = .true.
 

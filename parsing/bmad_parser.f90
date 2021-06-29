@@ -545,11 +545,14 @@ parsing_loop: do
 
     bp_com%parse_line = '' ! Needed if last call to parser_set_attribute did not have a set.
 
-    if (.not. ele_found .and. .not. wild_here) then
+    if (index(name, '##') /= 0) then
+      call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
+    elseif (index(name, '>>') /= 0) then
+      call parser_error ('AN ELEMENT NAME WHICH CONTAINS ">>" NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name, &
+                         'THE REASON FOR THIS IS THAT LATTICE BRANCHES ARE NOT FORMED UNTIL LATTICE EXPANSION.')
+    elseif (.not. ele_found .and. .not. wild_here) then
       if (index(name, ':') /= 0) then
         call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
-      elseif (index(name, '##') /= 0) then
-        call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
       else
         call parser_error ('ELEMENT NOT FOUND: ' // name)
       endif
