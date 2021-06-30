@@ -9,6 +9,7 @@ use random_mod
 use nr
 use naff_mod
 use cubic_interpolation_mod
+use eigen_mod
 
 implicit none
 
@@ -19,7 +20,7 @@ type (field_at_2D_box_struct) box2_field
 type (bicubic_coef_struct) bi_coef
 type (tricubic_coef_struct) tri_coef
 
-real(rp) array(4), dE, freq(3)
+real(rp) array(4), dE, freq(3), m(6,6)
 real(rp) sig1, sig2, sig3, quat(0:3), omega(3), axis2(3), angle2
 real(rp) phi1, phi2, phi3, y1, dy1, y2, dy2, dx, dy, dz
 real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3), unit_mat(3,3)
@@ -29,7 +30,7 @@ real(rp) del, dff_dx, dff_dy, dff_dz, x, y, z, value
 integer i, j, k, ie, which, where, n_freq, mult, power, width, digits, species
 
 complex(rp) cdata(32)
-complex(rp) amp(3)
+complex(rp) amp(3), eval(6), evec(6,6)
 complex(rp) amp1, amp2, amp3
 
 logical match, ok, err
@@ -41,6 +42,21 @@ character(16) :: extrap(0:3) = [character(16):: 'ZERO', 'LINEAR', 'CONSTANT', 'S
 !
 
 open (1, file = 'output.now')
+
+! Eigen modes
+
+m(1,:) = [-0.98545332, -0.17845915, -0.02950643, -0.00003723, -0.00128464,  0.00169891]
+m(2,:) = [ 0.19413650, -0.97957165, -0.00719935,  0.00089198, -0.00589572, -0.03814434]
+m(3,:) = [-0.00085633,  0.00006026, -0.87618978, -0.00841354,  0.00001679,  0.00264910]
+m(4,:) = [ 0.01161089,  0.02967948, 26.62729191, -0.88564965,  0.00002272, -0.04043493]
+m(5,:) = [-0.08861524, -0.00613454,  0.03485868, -0.00268734,  0.94781760, -8.79515336]
+m(6,:) = [ 0.00530822, -0.00029320,  0.00010783, -0.00001597,  0.01159978,  0.94735510]
+
+call mat_eigen (m, eval, evec, err)
+do i = 1, 6
+  write (1, '(a, 6(2x, 2f12.8))') '"Eigen-val-' // int_str(i) // '" ABS 1e-10', eval(i)
+  write (1, '(a, 6(2x, 2f12.8))') '"Eigen-vec-' // int_str(i) // '" ABS 1e-10', evec(i,:)
+enddo
 
 ! random
 
