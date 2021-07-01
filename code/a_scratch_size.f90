@@ -2370,10 +2370,10 @@ contains
     INTEGER, INTENT (IN) :: N
 INTEGER I
 
-    POW=1.D0
+    POW=1.0_dp
 
     IF(N<0) THEN
-     T=1.D0/S1
+     T=1.0_dp/S1
      DO I=1,-N
  POW=POW*T
  ENDDO

@@ -103,7 +103,7 @@ MODULE S_DEF_KIND
   private INTER_STREX,INTEP_STREX,INTER_SOL5,INTEP_SOL5,INTER_KTK,INTEP_KTK
   private fringe_STRAIGHTr,fringe_STRAIGHTP
   private INTEr_dkd2,INTEP_dkd2,INTER_DRIFT1,INTEP_DRIFT1
-  private INTER_TKTF,INTEP_TKTF
+  private INTE_TKTFR,INTE_TKTFP
   private ADJUST_TIME_CAV_TRAV_OUTR,ADJUST_TIME_CAV_TRAV_OUTP
   private FRINGE_CAV_TRAVR,FRINGE_CAV_TRAVp,INTER_CAV_TRAV,INTEP_CAV_TRAV,INTEr_abell_SLICE,INTEP_abell_SLICE
   private INTER_PANCAKE,INTEP_PANCAKE,ADJUST_PANCAKER,ADJUST_PANCAKEP,ADJUST_ABELLR,ADJUST_ABELLP
@@ -174,14 +174,15 @@ PRIVATE get_Bfield_fringeR,get_Bfield_fringeP !,get_Bfield_fringe
 private GET_BZ_fringer,GET_BZ_fringep  !, GET_BZ_fringe
 PRIVATE get_BfieldR,get_BfieldP    !,get_Bfield
   private B_PANCAkEr,B_PANCAkEp,B_PANCAkE
-private B_PARA_PERP_qua_r,DIRECTION_qua_V
-private rk2_teapot_quar,feval_teapot_quar
+!private B_PARA_PERP_qua_r,DIRECTION_qua_V
+private rk2_teapot_prober,rk2_teapot_probep,feval_teapot_quar,feval_teapot_quap
+private rk4_teapot_prober,rk4_teapot_probep,rk6_teapot_prober,rk6_teapot_probep
 PRIVATE DIRECTION_VR,DIRECTION_VP   !,DIRECTION_V
   PRIVATE  B_PARA_PERPr,B_PARA_PERPp   !,B_PARA_PERP
-  PRIVATE push_quaternionr
+  PRIVATE push_quaternionr,push_quaternionP
   PRIVATE get_omega_spinR,get_omega_spinP   !,get_omega_spin 
   private radiate_2p,radiate_2r  !,radiate_2
-  private quaternion_8_to_matrix,crossp,dkd2_qua_PROBER
+  private quaternion_8_to_matrix,crossp,RAD_SPIN_qua_PROBER,RAD_SPIN_qua_PROBEP
   logical :: do_d_sij=.false.
   !  INTEGER, PRIVATE :: ISPIN0P=0,ISPIN1P=3
    ! oleksii 
@@ -192,34 +193,102 @@ PRIVATE DIRECTION_VR,DIRECTION_VP   !,DIRECTION_V
   real(dp) :: d_Sij(3,3)
   type(quaternion) :: q_ij,q_i
 type(work) w_bks
- private INTE_dkd2_prober
+ private INTE_dkd2_prober,INTE_dkd2_probep,INTE_STREX_prober,INTE_STREX_probep
+ private INTE_TEAPOT_prober,INTE_TEAPOT_probep
+ private RAD_SPIN_force_PROBER,RAD_SPIN_force_PROBEP
+ private radiate_2_forcer,radiate_2_forcep,INTE_TKTF_prober,INTE_TKTF_probep
+ PRIVATE INTE_CAV4_PROBER,INTE_CAV4_PROBEP
+ PRIVATE feval_CAV_bmad_prober,rk2bmad_cav_prober,rk4bmad_cav_prober
 
+  INTERFACE radiate_2_force
+     MODULE PROCEDURE radiate_2_forcer
+     MODULE PROCEDURE radiate_2_forcep
+  END INTERFACE
+
+  INTERFACE RAD_SPIN_qua_PROBE
+     MODULE PROCEDURE RAD_SPIN_qua_PROBER
+     MODULE PROCEDURE RAD_SPIN_qua_PROBEP
+  END INTERFACE
+
+  INTERFACE RAD_SPIN_force_PROBE
+     MODULE PROCEDURE RAD_SPIN_force_PROBER
+     MODULE PROCEDURE RAD_SPIN_force_PROBEP
+  END INTERFACE
 
 !!!!  tracking probe-
-  INTERFACE TRACK_SLICE
+  INTERFACE TRACK_SLICE_dkd2
      MODULE PROCEDURE INTE_dkd2_prober
+     MODULE PROCEDURE INTE_dkd2_probep
+  END INTERFACE 
+   INTERFACE TRACK_SLICE_dkd2_OLD
+     MODULE PROCEDURE INTER_dkd2
+     MODULE PROCEDURE INTEP_dkd2
   END INTERFACE 
 
+  INTERFACE TRACK_SLICE_TKTF
+     MODULE PROCEDURE INTE_TKTF_prober
+     MODULE PROCEDURE INTE_TKTF_probep
+  END INTERFACE 
+
+  INTERFACE TRACK_SLICE_CAV4
+     MODULE PROCEDURE INTE_CAV4_PROBER
+     MODULE PROCEDURE INTE_CAV4_PROBEP
+  END INTERFACE 
+
+  INTERFACE feval_CAV_bmad_probe
+     MODULE PROCEDURE feval_CAV_bmad_prober
+     MODULE PROCEDURE feval_CAV_bmad_probep
+  END INTERFACE 
+
+  INTERFACE rk2bmad_cav_probe
+     MODULE PROCEDURE rk2bmad_cav_prober
+     MODULE PROCEDURE rk2bmad_cav_probep
+  END INTERFACE 
+
+  INTERFACE rk4bmad_cav_probe
+     MODULE PROCEDURE rk4bmad_cav_prober
+!     MODULE PROCEDURE rk4bmad_cav_probep
+  END INTERFACE 
+
+
+  INTERFACE TRACK_SLICE_CAV4_OLD
+     MODULE PROCEDURE track_slice4r
+     MODULE PROCEDURE track_slice4p
+  END INTERFACE 
+
+
+  INTERFACE TRACK_SLICE_TEAPOT
+     MODULE PROCEDURE INTE_TEAPOT_prober
+     MODULE PROCEDURE INTE_TEAPOT_probep
+  END INTERFACE 
+  INTERFACE TRACK_SLICE_TEAPOT_OLD
+     MODULE PROCEDURE INTER_TEAPOT
+     MODULE PROCEDURE INTEP_TEAPOT
+  END INTERFACE 
+
+
+
+  INTERFACE TRACK_SLICE_STREX
+     MODULE PROCEDURE INTE_STREX_prober
+     MODULE PROCEDURE INTE_STREX_probep
+  END INTERFACE 
+  INTERFACE TRACK_SLICE_STREX_OLD
+     MODULE PROCEDURE INTER_STREX
+     MODULE PROCEDURE INTEP_STREX
+  END INTERFACE 
 
   INTERFACE TRACK_SLICE
 !     MODULE PROCEDURE INTER_CAV4
 !     MODULE PROCEDURE INTEP_CAV4
-     MODULE PROCEDURE track_slice4r
-     MODULE PROCEDURE track_slice4p
-     MODULE PROCEDURE INTER_TEAPOT
-     MODULE PROCEDURE INTEP_TEAPOT
-     MODULE PROCEDURE INTER_STREX
-     MODULE PROCEDURE INTEP_STREX
+
      MODULE PROCEDURE INTER_SOL5
      MODULE PROCEDURE INTEP_SOL5
      MODULE PROCEDURE INTER_KTK
      MODULE PROCEDURE INTEP_KTK
-     MODULE PROCEDURE INTER_dkd2
-     MODULE PROCEDURE INTEP_dkd2
      MODULE PROCEDURE INTER_DRIFT1
      MODULE PROCEDURE INTEP_DRIFT1
-     MODULE PROCEDURE INTER_TKTF
-     MODULE PROCEDURE INTEP_TKTF
+     MODULE PROCEDURE INTE_TKTFR
+     MODULE PROCEDURE INTE_TKTFP
      MODULE PROCEDURE INTER_CAV_TRAV
      MODULE PROCEDURE INTEP_CAV_TRAV
      MODULE PROCEDURE INTER_abell_SLICE
@@ -454,7 +523,7 @@ type(work) w_bks
      MODULE PROCEDURE rk2_cavp
   END INTERFACE
 
-  INTERFACE rk2_cav
+  INTERFACE rk2bmad_cav
      MODULE PROCEDURE rk2bmad_cavr
      MODULE PROCEDURE rk2bmad_cavp
   END INTERFACE
@@ -464,7 +533,7 @@ type(work) w_bks
      MODULE PROCEDURE rk4_cavp
   END INTERFACE
 
-  INTERFACE rk4_cav
+  INTERFACE rk4bmad_cav
      MODULE PROCEDURE rk4bmad_cavr
      MODULE PROCEDURE rk4bmad_cavp
   END INTERFACE
@@ -474,7 +543,7 @@ type(work) w_bks
      MODULE PROCEDURE rk6_cavp
   END INTERFACE
 
-  INTERFACE rk6_cav
+  INTERFACE rk6bmad_cav
      MODULE PROCEDURE rk6bmad_cavr
      MODULE PROCEDURE rk6bmad_cavp
   END INTERFACE
@@ -486,15 +555,24 @@ type(work) w_bks
 
   INTERFACE feval_teapot_qua
      MODULE PROCEDURE feval_teapot_quar
-  !   MODULE PROCEDURE rk2_teapotp
+     MODULE PROCEDURE feval_teapot_quap
   END INTERFACE
 
-  INTERFACE rk2_teapot_qua
-     MODULE PROCEDURE rk2_teapot_quar
-  !   MODULE PROCEDURE rk2_teapotp
+  INTERFACE rk2_teapot_probe
+     MODULE PROCEDURE rk2_teapot_prober
+     MODULE PROCEDURE rk2_teapot_probep
+  END INTERFACE
+
+  INTERFACE rk4_teapot_probe
+     MODULE PROCEDURE rk4_teapot_prober
+     MODULE PROCEDURE rk4_teapot_probep
   END INTERFACE
 
 
+  INTERFACE rk6_teapot_probe
+     MODULE PROCEDURE rk6_teapot_prober
+     MODULE PROCEDURE rk6_teapot_probep
+  END INTERFACE
 
   INTERFACE rk4_teapot
      MODULE PROCEDURE rk4_teapotr
@@ -993,24 +1071,23 @@ type(work) w_bks
   INTERFACE B_PARA_PERP
      MODULE PROCEDURE B_PARA_PERPr
      MODULE PROCEDURE B_PARA_PERPp
-     MODULE PROCEDURE B_PARA_PERP_qua_r
+!     MODULE PROCEDURE B_PARA_PERP_qua_r
 
   END INTERFACE
 
   INTERFACE DIRECTION_V
      MODULE PROCEDURE DIRECTION_Vr
      MODULE PROCEDURE DIRECTION_Vp
-     MODULE PROCEDURE DIRECTION_qua_V
+!     MODULE PROCEDURE DIRECTION_qua_V
   END INTERFACE
 
   INTERFACE push_quaternion
      MODULE PROCEDURE push_quaternionr
+     MODULE PROCEDURE push_quaternionP
   END INTERFACE
 
 
-  INTERFACE dkd2_qua_PROBE
-     MODULE PROCEDURE dkd2_qua_PROBER
-  END INTERFACE
+
 
   INTERFACE get_omega_spin
      MODULE PROCEDURE get_omega_spinR
@@ -1941,7 +2018,7 @@ CONTAINS !----------------------------------------------------------------------
 
 
     DO I=1,EL%P%NST
-      call track_slice(EL,X,k,i)
+      call TRACK_SLICE_CAV4_OLD(EL,X,k,i)
     ENDDO
 
     !    k%TOTALPATH=TOTALPATH_FLAG
@@ -2081,7 +2158,7 @@ CALL FRINGECAV(EL,X,k,1)
     !   k%TOTALPATH=CAVITY_TOTALPATH
 
     DO I=1,EL%P%NST
-       call track_slice(EL,X,k,i)
+       call TRACK_SLICE_CAV4_OLD(EL,X,k,i)
        !          ! IF(PRESENT(MID)) CALL XMID(MID,X,I)
     ENDDO
 
@@ -3132,17 +3209,20 @@ CALL FRINGECAV(EL,X,k,2)
     real(dp), intent(inout) :: ti,h
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
+              
 
     call feval_CAV_bmad(tI,y,k,f,gr)
+ 
     do  j=1,ne
        a(j)=h*f(j)
     enddo
     do  j=1,ne
        yt(j)=y(j)+a(j)/2.0_dp
     enddo
-
+ 
     tt=tI+h/2.0_dp
     call feval_CAV_bmad(tt,yt,k,f,gr)
+ 
     do  j=1,ne
        b(j)=h*f(j)
     enddo
@@ -3565,15 +3645,15 @@ CALL FRINGECAV(EL,X,k,2)
     SELECT CASE(EL%P%METHOD)
     CASE(2)
 
-       call rk2_cav(z0,d1,el,X,k)
+       call rk2bmad_cav(z0,d1,el,X,k)
 
     CASE(4)
 
-       call rk4_cav(z0,d1,el,X,k)
+       call rk4bmad_cav(z0,d1,el,X,k)
 
     CASE(6)
 
-       call rk6_cav(z0,d1,el,X,k)
+       call rk6bmad_cav(z0,d1,el,X,k)
     CASE DEFAULT
        !w_p=0
        !w_p%nc=1
@@ -3616,15 +3696,15 @@ CALL FRINGECAV(EL,X,k,2)
     SELECT CASE(EL%P%METHOD)
     CASE(2)
 
-       call rk2_cav(z0,d1,el,X,k)
+       call rk2bmad_cav(z0,d1,el,X,k)
 
     CASE(4)
 
-       call rk4_cav(z0,d1,el,X,k)
+       call rk4bmad_cav(z0,d1,el,X,k)
 
     CASE(6)
 
-       call rk6_cav(z0,d1,el,X,k)
+       call rk6bmad_cav(z0,d1,el,X,k)
 
     CASE DEFAULT
 
@@ -5737,7 +5817,7 @@ integer :: kkk=0
     ! IF(PRESENT(MID)) CALL XMID(MID,X,0)
 
     DO I=1,EL%P%NST
-        CALL TRACK_SLICE(EL,X,k,i)
+        CALL TRACK_SLICE_dkd2_OLD(EL,X,k,i)
        ! IF(PRESENT(MID)) CALL XMID(MID,X,I)
     ENDDO
 
@@ -5756,7 +5836,7 @@ integer :: kkk=0
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
     DO I=1,EL%P%NST
-       CALL TRACK_SLICE(EL,X,k,i)
+       CALL TRACK_SLICE_dkd2_OLD(EL,X,k,i)
     ENDDO
 
   END SUBROUTINE INTEP
@@ -7296,6 +7376,7 @@ integer :: kkk=0
     ELSEIF(EL%P%METHOD/=6) THEN
        DH=(EL%L/EL%P%NST)/EL%P%METHOD   ! method=2,4
        IF(EL%P%METHOD==4) DH=DH*2.0_dp
+       IF(EL%P%METHOD==8) DH=(EL%L/EL%P%NST)/6.0_dp
     ELSE
        DH=EL%L/EL%P%NST/4.0_dp
     ENDIF
@@ -7547,6 +7628,7 @@ integer :: kkk=0
     ELSEIF(EL%P%METHOD/=6) THEN
        DH=(EL%L/EL%P%NST)/EL%P%METHOD   ! method=1,2
        IF(EL%P%METHOD==4) DH=DH*2.0_dp
+       IF(EL%P%METHOD==8) DH=(EL%L/EL%P%NST)/6.0_dp
     ELSE
        DH=EL%L/EL%P%NST/4.0_dp
     ENDIF
@@ -8157,7 +8239,7 @@ integer :: kkk=0
 
   END SUBROUTINE KICKPATHD
 
-  SUBROUTINE INTER_TKTF(EL,X,k,pos)
+  SUBROUTINE INTE_TKTFR(EL,X,k,pos)
     IMPLICIT NONE
     real(dp), INTENT(INOUT) :: X(6)
     TYPE(TKTF),INTENT(INOUT):: EL
@@ -8317,7 +8399,6 @@ integer :: kkk=0
 
        CALL KICKPATH(EL,DK5,X,k)
        CALL KICKTKT7(EL,DK6,X,k)   ! SYMMETRY POINT
-
        CALL KICKPATH(EL,DK5,X,k)
 
        CALL PUSHTKT7(EL,X,k)
@@ -8326,9 +8407,65 @@ integer :: kkk=0
        CALL KICKTKT7(EL,DK4,X,k)
 
        CALL PUSHTKT7(EL,X,k)
+
        CALL KICKPATH(EL,DK,X,k)
        CALL KICKTKT7(EL,DK,X,k)  ! NEW
+    CASE(8)
+       DK=EL%L/EL%P%NST/840.0_dp  !  41/840
+       DK2=216.0_dp*dk   !  9/35
+       DK4=27.0_dp*dk    !  9/280
+       DK6=272.0_dp*dk  !   34/105
+       DK5=DK6/2.0_dp  !  
+       DK=41.0_dp*DK    !  41/840
+ 
 
+
+       CALL KICKTKT7(EL,DK,X,k)  ! NEW
+ 
+       CALL KICKPATH(EL,DK,X,k)
+ 
+
+       CALL PUSHTKT7(EL,X,k)
+
+
+       CALL KICKTKT7(EL,DK2,X,k)
+
+
+       CALL KICKPATH(EL,DK2,X,k)
+
+
+       CALL PUSHTKT7(EL,X,k)
+
+
+       CALL KICKTKT7(EL,DK4,X,k)
+       CALL KICKPATH(EL,DK4,X,k)
+
+       CALL PUSHTKT7(EL,X,k)
+
+       CALL KICKPATH(EL,DK5,X,k)
+       CALL KICKTKT7(EL,DK6,X,k)   ! SYMMETRY POINT
+       CALL KICKPATH(EL,DK5,X,k)
+
+
+       CALL PUSHTKT7(EL,X,k)
+
+
+
+       CALL KICKPATH(EL,DK4,X,k)
+
+
+       CALL KICKTKT7(EL,DK4,X,k)
+
+
+       CALL PUSHTKT7(EL,X,k)
+
+       CALL KICKPATH(EL,DK2,X,k)
+       CALL KICKTKT7(EL,DK2,X,k)  
+
+       CALL PUSHTKT7(EL,X,k)
+
+       CALL KICKPATH(EL,DK,X,k)
+       CALL KICKTKT7(EL,DK,X,k)  ! NEW
     CASE DEFAULT
        !w_p=0
        !w_p%nc=1
@@ -8339,9 +8476,9 @@ integer :: kkk=0
     !       if(s_aperture_CHECK.and.associated(el%p%A).AND.CHECK_MADX_APERTURE) &
     !       call check_S_APERTURE_out(el%p,pos,x)
 
-  END SUBROUTINE INTER_TKTF
+  END SUBROUTINE INTE_TKTFR
 
-  SUBROUTINE INTEP_TKTF(EL,X,k,pos)
+  SUBROUTINE INTE_TKTFP(EL,X,k,pos)
     IMPLICIT NONE
     TYPE(REAL_8), INTENT(INOUT) :: X(6)
     TYPE(TKTFP),INTENT(INOUT):: EL
@@ -8534,6 +8671,52 @@ integer :: kkk=0
 
        CALL KILL(DK,DK2,DK6,DK4,DK5)
 
+    CASE(8)
+       CALL alloc(DK,DK2,DK6,DK4,DK5)
+       DK=EL%L/EL%P%NST/840.0_dp  !  41/840
+       DK2=216.0_dp*dk   !  9/35
+       DK4=27.0_dp*dk    !  9/280
+       DK6=272.0_dp*dk  !   34/105
+       DK5=DK6/2.0_dp  !  
+       DK=41.0_dp*DK    !  41/840
+ 
+
+
+       CALL KICKTKT7(EL,DK,X,k)  ! NEW
+       CALL KICKPATH(EL,DK,X,k)
+
+       CALL PUSHTKT7(EL,X,k)
+
+       CALL KICKTKT7(EL,DK2,X,k)
+       CALL KICKPATH(EL,DK2,X,k)
+
+       CALL PUSHTKT7(EL,X,k)
+
+       CALL KICKTKT7(EL,DK4,X,k)
+       CALL KICKPATH(EL,DK4,X,k)
+
+       CALL PUSHTKT7(EL,X,k)
+
+       CALL KICKPATH(EL,DK5,X,k)
+       CALL KICKTKT7(EL,DK6,X,k)   ! SYMMETRY POINT
+       CALL KICKPATH(EL,DK5,X,k)
+
+       CALL PUSHTKT7(EL,X,k)
+
+       CALL KICKPATH(EL,DK4,X,k)
+       CALL KICKTKT7(EL,DK4,X,k)
+
+       CALL PUSHTKT7(EL,X,k)
+
+       CALL KICKPATH(EL,DK2,X,k)
+       CALL KICKTKT7(EL,DK2,X,k)  
+
+       CALL PUSHTKT7(EL,X,k)
+
+       CALL KICKPATH(EL,DK,X,k)
+       CALL KICKTKT7(EL,DK,X,k)  ! NEW
+       CALL KILL(DK,DK2,DK6,DK4,DK5)
+
     CASE DEFAULT
        !w_p=0
        !w_p%nc=1
@@ -8542,7 +8725,7 @@ integer :: kkk=0
        ! call !write_e(357)
     END SELECT
 
-  END SUBROUTINE INTEP_TKTF
+  END SUBROUTINE INTE_TKTFP
 
   SUBROUTINE INTTKT7R(EL,X,k)
     IMPLICIT NONE
@@ -12165,7 +12348,7 @@ endif
     ! IF(PRESENT(MID)) CALL XMID(MID,X,0)
 
     DO I=1,EL%P%NST
-       CALL TRACK_SLICE(EL,X,k,I)
+       CALL TRACK_SLICE_TEAPOT_OLD(EL,X,k,I)
        ! IF(PRESENT(MID)) CALL XMID(MID,X,I)
     ENDDO
 
@@ -12188,7 +12371,7 @@ endif
     ENDIF
 
     DO I=1,EL%P%NST
-       CALL TRACK_SLICE(EL,X,k,I)
+       CALL TRACK_SLICE_TEAPOT_OLD(EL,X,k,I)
     ENDDO
 
     IF(EL%ELECTRIC) THEN
@@ -13456,7 +13639,7 @@ endif
     call PRTP("KICKEX:1", X)
 
   END SUBROUTINE KICKEXP
-
+ 
   SUBROUTINE INTER_STREX(EL,X,k,pos)
     IMPLICIT NONE
     TYPE(STREX),INTENT(IN):: EL
@@ -13834,7 +14017,7 @@ endif
     ! IF(PRESENT(MID)) CALL XMID(MID,X,0)
 
     DO I=1,EL%P%NST
-       CALL TRACK_SLICE(EL,X,k,i)
+       CALL TRACK_SLICE_STREX_OLD(EL,X,k,i)
        ! IF(PRESENT(MID)) CALL XMID(MID,X,I)
     ENDDO
 
@@ -13855,7 +14038,7 @@ endif
 
 
     DO I=1,EL%P%NST
-       CALL TRACK_SLICE(EL,X,k,i)
+       CALL TRACK_SLICE_STREX_OLD(EL,X,k,i)
     ENDDO
 
   END SUBROUTINE INTEEXP
@@ -14721,22 +14904,22 @@ endif
     CASE(2)
       if(el%implicit) then
          dh=d1/2
-         call rk1bmad_cav_imp(z0,dh,el,X,k,1,1.d-7,100)
-         call rk1bmad_cav_imp(z0,dh,el,X,k,2,1.d-8,100)
+         call rk1bmad_cav_imp(z0,dh,el,X,k,1,1.e-7_dp,100)
+         call rk1bmad_cav_imp(z0,dh,el,X,k,2,1.e-8_dp,100)
       else
        call rk2_cav_trav(z0,d1,el,X,k)
      endif
     CASE(4)
       if(el%implicit) then
          dh=fk1*d1/2
-         call rk1bmad_cav_imp(z0,dh,el,X,k,1,1.d-7,100)
-         call rk1bmad_cav_imp(z0,dh,el,X,k,2,1.d-7,100)
+         call rk1bmad_cav_imp(z0,dh,el,X,k,1,1.e-7_dp,100)
+         call rk1bmad_cav_imp(z0,dh,el,X,k,2,1.e-7_dp,100)
          dh=fk2*d1/2
-         call rk1bmad_cav_imp(z0,dh,el,X,k,1,1.d-7,100)
-         call rk1bmad_cav_imp(z0,dh,el,X,k,2,1.d-7,100)
+         call rk1bmad_cav_imp(z0,dh,el,X,k,1,1.e-7_dp,100)
+         call rk1bmad_cav_imp(z0,dh,el,X,k,2,1.e-7_dp,100)
          dh=fk1*d1/2
-         call rk1bmad_cav_imp(z0,dh,el,X,k,1,1.d-7,100)
-         call rk1bmad_cav_imp(z0,dh,el,X,k,2,1.d-7,100)
+         call rk1bmad_cav_imp(z0,dh,el,X,k,1,1.e-7_dp,100)
+         call rk1bmad_cav_imp(z0,dh,el,X,k,2,1.e-7_dp,100)
 
        else
        call rk4_cav_trav(z0,d1,el,X,k)
@@ -21911,7 +22094,152 @@ call kill(vm,phi,z)
 
   end subroutine get_omega_spinp
 
-  subroutine radiate_2r(c,DS,FAC,p,b2,dlds,before,k,POS)
+
+  subroutine radiate_2_forcer(c,x,b2,dlds,k,POS,f)
+    use gauss_dis
+    implicit none
+    TYPE(integration_node), POINTER::c
+    TYPE(ELEMENT), POINTER::EL
+    INTEGER,OPTIONAL,INTENT(IN) ::POS
+    real(dp),INTENT(INOUT) :: x(6) !,XP(2)
+    real(dp), intent(in):: B2,dlds
+    real(dp), intent(inout):: f(6)
+    real(dp)  st,z,av(3),t 
+    type(internal_state) k
+
+    IF(.NOT.CHECK_STABLE) return
+ 
+    el=>c%parent_fibre%mag
+    if(k%TIME) then
+       ST=root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)-1.0_dp
+    else
+       ST=X(5)
+    endif
+
+  f=0
+   f(5)=f(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
+ 
+
+    if(el%kind/=kindpa) then
+       IF(ASSOCIATED(EL%B_SOL)) THEN
+          if(k%TIME) then
+             f(2)=f(2)+(X(2) + EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+(X(4)-EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp)*f(5)/(1.0_dp+ST)
+          else
+             f(2)=f(2)+(X(2) + EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+(X(4)-EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp)*f(5)/(1.0_dp+ST)
+
+          endif
+       ELSEif(el%kind==kind22) then
+
+          IF(EL%HE22%P%DIR==1) THEN
+             Z= pos*el%l/el%p%nst
+          ELSE
+             Z=EL%L-pos*el%l/el%p%nst
+          ENDIF
+          CALL compute_f4(EL%he22,X,Z,A=AV)
+          if(k%TIME) then
+             f(2)=f(2)+(X(2)+EL%P%CHARGE*AV(1))*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+(X(4)-EL%P%CHARGE*AV(2))*f(5)/(1.0_dp+ST)
+          else
+             f(2)=f(2)+(X(2)+EL%P%CHARGE*AV(1))*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+(X(4)-EL%P%CHARGE*AV(2))*f(5)/(1.0_dp+ST)
+          endif
+
+
+       ELSE
+          if(k%TIME) then
+             f(2)=f(2)+X(2)*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+X(4)*f(5)/(1.0_dp+ST)
+          else
+             f(2)=f(2)+X(2)*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+X(4)*f(5)/(1.0_dp+ST)
+          endif
+       ENDIF
+    endif
+
+
+  end subroutine radiate_2_forcer
+
+
+
+ 
+
+  subroutine radiate_2_forcep(c,x,b2,dlds,k,POS,f)
+    use gauss_dis
+    implicit none
+    TYPE(integration_node), POINTER::c
+    TYPE(ELEMENTP), POINTER::EL
+    INTEGER,OPTIONAL,INTENT(IN) ::POS
+    type(real_8),INTENT(INOUT) :: x(6) !,XP(2)
+    TYPE(REAL_8), intent(in):: B2,dlds
+    type(real_8), intent(inout):: f(6)
+    TYPE(REAL_8) st,av(3),z
+    type(internal_state) k
+    integer i
+
+    IF(.NOT.CHECK_STABLE) return
+    call alloc(st,z)
+    call alloc(av)
+
+
+    el=>c%parent_fibre%magp
+    if(k%TIME) then
+       ST=sqrt(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)-1.0_dp
+    else
+       ST=X(5)
+    endif
+
+    do i=1,6
+     f(i)=0
+    enddo
+   f(5)=f(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
+ 
+
+    if(el%kind/=kindpa) then
+       IF(ASSOCIATED(EL%B_SOL)) THEN
+          if(k%TIME) then
+             f(2)=f(2)+(X(2) + EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+(X(4)-EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp)*f(5)/(1.0_dp+ST)
+          else
+             f(2)=f(2)+(X(2) + EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+(X(4)-EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp)*f(5)/(1.0_dp+ST)
+
+          endif
+       ELSEif(el%kind==kind22) then
+
+          IF(EL%HE22%P%DIR==1) THEN
+             Z= pos*el%l/el%p%nst
+          ELSE
+             Z=EL%L-pos*el%l/el%p%nst
+          ENDIF
+          CALL compute_f4(EL%he22,X,Z,A=AV)
+          if(k%TIME) then
+             f(2)=f(2)+(X(2)+EL%P%CHARGE*AV(1))*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+(X(4)-EL%P%CHARGE*AV(2))*f(5)/(1.0_dp+ST)
+          else
+             f(2)=f(2)+(X(2)+EL%P%CHARGE*AV(1))*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+(X(4)-EL%P%CHARGE*AV(2))*f(5)/(1.0_dp+ST)
+          endif
+
+
+       ELSE
+          if(k%TIME) then
+             f(2)=f(2)+X(2)*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+X(4)*f(5)/(1.0_dp+ST)
+          else
+             f(2)=f(2)+X(2)*f(5)/(1.0_dp+ST)
+             f(4)=f(4)+X(4)*f(5)/(1.0_dp+ST)
+          endif
+       ENDIF
+    endif
+
+    call kill(st,z)
+    call kill(av)
+
+  end subroutine radiate_2_forcep
+
+ subroutine radiate_2r(c,DS,FAC,p,b2,dlds,before,k,POS)
     use gauss_dis
     implicit none
     TYPE(integration_node), POINTER::c
@@ -21922,7 +22250,7 @@ call kill(vm,phi,z)
     REAL(DP), INTENT(IN) :: FAC
     real(dp), intent(in):: B2,dlds
     LOGICAL(LP),intent(in) :: BEFORE
-    real(dp)  st,z,av(3),t,x(6)
+    real(dp)  st,z,av(3),t ,x(6)
     type(internal_state) k
 
     IF(.NOT.CHECK_STABLE) return
@@ -21935,10 +22263,7 @@ call kill(vm,phi,z)
        ST=X(5)
     endif
 
-    ! X(5)=X(5)+B2*FAC*DS
-    !        B2=-CRADF(EL%P)*(one+X(5))**3*B2*DLDS
-    ! X(5)=one/(one/(one+X(5))+CRADF(EL%P)*(one+X(5))*B2*DLDS*FAC*DS)-one
-    !        X(5)=X(5)-CRADF(EL%P)*(one+X(5))**3*B2*FAC*DS/SQRT((one+X(5))**2-X(2)**2-X(4)**2)
+  
     if(K%radiation) X(5)=X(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
     if(k%stochastic) then
        !         t=sqrt(12.e0_dp)*(bran(bran_init)-half)
@@ -22001,11 +22326,9 @@ call kill(vm,phi,z)
        ENDIF
     endif
 
-    !       X(2)=X_MEC(2)*(one+X(5))/(one+X5)-EL%B_SOL*EL%P%CHARGE*X(3)/two
-    !       X(4)=X_MEC(4)*(one+X(5))/(one+X5)+EL%B_SOL*EL%P%CHARGE*X(1)/two
-
-   p%x=x
+     p%x=x
   end subroutine radiate_2r
+
 
 
   subroutine radiate_2p(c,DS,FAC,p,b2,dlds,XP,before,k,POS,E,B)
@@ -22416,18 +22739,435 @@ dspin=matmul(s,n_oleksii)
 
 
     end subroutine  quaternion_8_to_matrix
+!!!!!!!!!!!!!!! new bmad CAV4 !!!!!!!!!!!!!!
+!                                 (tI,y,q,k,f,q,c)    
+  subroutine feval_CAV_bmad_prober(z0,x,qi,k,f,q,c)    !(Z0,X,k,f,D)   ! MODELLED BASED ON DRIFT
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    real(dp), INTENT(INout) :: x(6)
+    real(dp), INTENT(INOUT) :: F(6)
+    type(quaternion) , INTENT(INOUT) :: q,qi
+    real(dp),INTENT(INOUT):: Z0
+    TYPE(CAV4) ,pointer  :: D
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    REAL(DP) A(3),AD(3),PZ
+
+    d=>c%parent_fibre%mag%c4
+
+    a=0
+    ad=0
+    CALL Abmad_TRANS(D,Z0,X,k,A,AD)
+
+    X(2)=X(2)-A(1)
+    X(4)=X(4)-A(2)
+
+    IF(D%P%EXACT) THEN
+       if(k%TIME) then
+          PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
+       else
+          PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
+       endif
+    ELSE
+       if(k%TIME) then
+          PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
+          F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
+       else
+          F(1)=X(2)/(1.0_dp+X(5))
+          F(3)=X(4)/(1.0_dp+X(5))
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
+       endif
+    ENDIF
+
+    X(2)=X(2)+A(1)
+    X(4)=X(4)+A(2)
+!  
+!    
+if(k%radiation.or.k%spin) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f)
+ 
+if(k%spin) then
+ q%x(0)=0.0_dp
+ q=q*qi
+endif
+
+  END subroutine feval_CAV_bmad_prober
+
+  subroutine feval_CAV_bmad_probep(z0,x,qi,k,f,q,e_ij,c)    !(Z0,X,k,f,D)   ! MODELLED BASED ON DRIFT
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(real_8), INTENT(INout) :: x(6)
+    type(real_8), INTENT(INOUT) :: F(6)
+    type(quaternion_8) , INTENT(INOUT) :: q,qi
+    type(real_8),INTENT(INOUT):: Z0
+    TYPE(CAV4P) ,pointer  :: D
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(real_8) A(3),AD(3),PZ
+    REAL(DP),intent(inout):: e_ij(6,6)
+
+    d=>c%parent_fibre%magp%c4
+    
+    call alloc(a) 
+    call alloc(ad) 
+    call alloc(pz) 
+!    a=0
+!    ad=0
+    CALL Abmad_TRANS(D,Z0,X,k,A,AD)
+
+    X(2)=X(2)-A(1)
+    X(4)=X(4)-A(2)
+
+    IF(D%P%EXACT) THEN
+       if(k%TIME) then
+          PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
+       else
+          PZ=sqrt((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
+       endif
+    ELSE
+       if(k%TIME) then
+          PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
+          F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
+       else
+          F(1)=X(2)/(1.0_dp+X(5))
+          F(3)=X(4)/(1.0_dp+X(5))
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
+       endif
+    ENDIF
+
+    X(2)=X(2)+A(1)
+    X(4)=X(4)+A(2)
+!  
+
+!    
+if(k%radiation.or.k%spin.or.k%envelope) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,e_ij)
+
+ 
+if(k%spin) then
+ q%x(0)=0.0_dp
+ q=q*qi
+endif
+
+    call kill(a) 
+    call kill(ad) 
+    call kill(pz) 
+  END subroutine feval_CAV_bmad_probep
+
+
+
+ subroutine rk2bmad_cav_prober(ti,p,k,c,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    real(dp)   y(ne)
+    real(dp)  yt(ne),f(ne),a(ne),b(ne),tt
+    type(quaternion) qa,qb,qyt,qy
+    integer j
+    real(dp), intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(quaternion) q
+
+
+
+    qy=p%q
+    y=p%x
+               
+    call feval_CAV_bmad_probe(tI,y,q,k,f,q,c)   
+ 
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+   if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+    endif
+    if(k%spin) then
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+ 
+
+    tt=tI+h/2.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,c)
+ 
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+    endif
+
+    do  j=1,ne
+       p%x(j) = p%x(j)+b(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+qb%x(j) 
+     enddo
+    endif
+
+    tI=ti+h
+
+    return
+  end  subroutine rk2bmad_cav_prober
+
+
+ subroutine rk2bmad_cav_probep(ti,p,k,c,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(real_8)   y(ne)
+    type(real_8)   yt(ne),f(ne),a(ne),b(ne),tt
+    type(quaternion_8) qa,qb,qyt,qy,q
+    integer j
+        type(real_8) , intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    real(dp) e_ija(6,6),e_ijb(6,6)
+    real(dp) de_ij(6,6),hr
+
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j))
+    enddo
+     call alloc(tt)
+     call alloc(qa,qb,qyt,qy,q)
+
+    qy=p%q
+    y=p%x
+    hr=h
+               
+    call feval_CAV_bmad_probe(tI,y,q,k,f,q,de_ij,c)   
+ 
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+   if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+    endif
+    if(k%spin) then
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+     if(k%envelope)  then
+      e_ija =hr*de_ij  
+    endif
+
+    tt=tI+h/2.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,c)
+ 
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijb =hr*de_ij  
+      p%e_ij=p%e_ij+e_ijb
+    endif
+    do  j=1,ne
+       p%x(j) = p%x(j)+b(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+qb%x(j) 
+     enddo
+    endif
+     
+
+
+    tI=ti+h
+
+
+    do j=1,ne
+     call kill(y(j),yt(j),f(j),a(j),b(j))
+    enddo
+     call kill(tt)
+     call kill(qa,qb,qyt,qy,q)
+
+    return
+  end  subroutine rk2bmad_cav_probep
+
+
+ subroutine rk4bmad_cav_prober(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    real(dp)   y(ne)
+    real(dp)  yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),tt
+    type(quaternion)qa,qb,qyt,qy,qc,qd,q
+    integer j
+    real(dp), intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+ 
+
+    qy=p%q
+    y=p%x
+               
+    call feval_CAV_bmad_probe(tI,y,q,k,f,q,ct)   
+ 
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+   if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+ 
+
+    tt=tI+h/2.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+ 
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qb%x(j)/2.0_dp
+     enddo
+    endif
+    do   j=1,ne
+       yt(j)=y(j) + b(j)/2.0_dp
+    enddo
+
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+     enddo
+      do  j=0,3
+       qyt%x(j)=qy%x(j)+qc%x(j) 
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+
+
+    tt=tI+h
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+     enddo
+    endif
+
+ 
+    do  j=1,ne
+       p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
+     enddo
+    endif
+
+
+    return
+  end  subroutine rk4bmad_cav_prober
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 
+
 !!!!!!!!!!!!!!! new teapot  with quaternion !!!!!!!!!!!!!!
 
- subroutine feval_teapot_quar(x,qi,k,f,q,EL)   !electric teapot s
+
+ subroutine feval_teapot_quar(x,qi,k,f,q,c)   !electric teapot s
     IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
     real(dp), INTENT(INout) :: x(6)
     real(dp), INTENT(INOUT) :: F(6)
     type(quaternion) , INTENT(INOUT) :: q,qi
     REAL(DP) PZ,DEL,H,B(3),Ef(3),dir,VM,Bf(3),phi
-     real(dp) BPA(3),BPE(3),XP(2),XPA(2),e(3),efd(3),eb(3),DLDS,om(3),GAMMA,beta
-    TYPE(teapot),  INTENT(IN) :: EL
+    TYPE(teapot),  pointer ::  EL
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer i
+    type(fibre), pointer :: fi
+
+    fi=>c%parent_fibre
+    el=>fi%mag%tp10
+
      call GETELECTRIC(EL,Ef,phi,Bf,VM,X,bkick=b)
  
      DIR=EL%P%DIR*EL%P%CHARGE
@@ -22487,55 +23227,127 @@ dspin=matmul(s,n_oleksii)
        Ef(I)=Ef(I)*EL%P%CHARGE
     ENDDO
 
-       X(5)=X(5)-phi*EL%P%CHARGE
-       CALL B_PARA_PERP(k,EL,X,Bf,BPA,BPE,XP,XPA,e,Ef,EB,EFD)
-       X(5)=X(5)+phi*EL%P%CHARGE
-
+! patrice 
+!    
+if(k%radiation.or.k%spin) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f)
  
-
-       IF(k%TIME) THEN
-          DLDS=1.0_dp/root(1.0_dp+2.0_dp*del/EL%P%BETA0+del**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+EL%P%b0*X(1))
-       ELSE
-          DLDS=1.0_dp/root((1.0_dp+del)**2-XPA(2)**2-XPA(1)**2)*(1.0_dp+EL%P%b0*X(1))
-       ENDIF
-       !if(pos>=0) 
-        OM(2)=el%p%dir*el%P%b0   ! not fake fringe
-
-
-    IF(.not.k%TIME) THEN
-      del=(2*del+del**2)/(root(1.0_dp/EL%P%BETA0**2+2.0_dp*del+del**2)+1.0_dp/EL%P%BETA0)
-    endif
-
-    !  MUST ALWAYS COMPUTER GAMMA EVEN IF TIME=FALSE.
-    GAMMA=EL%P%BETA0/el%P%GAMMA0I*( 1.0_dp/EL%P%BETA0 + del )
-
-    OM(1)=-DLDS*a_spin_scale*( (1.0_dp+el%P%AG*GAMMA)*BPE(1) + (1.0_dp+el%P%AG)*BPA(1) )
-    OM(2)=-DLDS*a_spin_scale*( (1.0_dp+el%P%AG*GAMMA)*BPE(2) + (1.0_dp+el%P%AG)*BPA(2) )+OM(2)
-    OM(3)=-DLDS*a_spin_scale*( (1.0_dp+el%P%AG*GAMMA)*BPE(3) + (1.0_dp+el%P%AG)*BPA(3) )
-
-
-    beta=root(1.0_dp+2.0_dp*del/EL%P%BETA0+del**2)/(1.0_dp/EL%P%BETA0+ del)  ! replaced
-
-q=1.0_dp
-    DO I=1,3
-       OM(I)=OM(I)+a_spin_scale*DLDS*beta*gamma*(el%P%AG+1.0_dp/(1.0_dp+GAMMA))*EB(I)
-       q%x(i)=om(i)/2.0_dp  ! quaternion
-    ENDDO
-       q=q*qi
-
+if(k%spin) then
+ q%x(0)=0.0_dp
+ q=q*qi
+endif
 
    END subroutine feval_teapot_quar
 
 
-   subroutine rk2_teapot_quar(h,GR,p,k)
+ subroutine feval_teapot_quap(x,qi,k,f,q,e_ij,c)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(real_8), INTENT(INout) :: x(6)
+    type(real_8), INTENT(INOUT) :: F(6)
+    type(quaternion_8) , INTENT(INOUT) :: q,qi
+    REAL(DP),intent(inout):: e_ij(6,6)
+    REAL(DP) dir
+    type(real_8) PZ,DEL,H,B(3),Ef(3),VM,Bf(3),phi
+    TYPE(teapotp),  pointer ::  EL
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer i
+    type(fibre), pointer :: fi
+
+    fi=>c%parent_fibre
+    el=>fi%magp%tp10
+   
+    call alloc(PZ,DEL,H,VM,phi)
+    do i=1,3 
+     call alloc(b(i),Ef(i),Bf(i))
+    enddo
+ 
+
+
+     call GETELECTRIC(EL,Ef,phi,Bf,VM,X,bkick=b)
+ 
+     DIR=EL%P%DIR*EL%P%CHARGE
+
+
+
+
+     IF(EL%P%EXACT) THEN
+        if(k%TIME) then
+           H=1.0_dp+EL%P%B0*x(1)
+           DEL=x(5)-phi*EL%P%CHARGE
+           PZ=sqrt(1.0_dp+2*del/EL%P%BETA0+del**2-x(2)**2-x(4)**2)
+           F(1)=x(2)*H/PZ
+           F(3)=x(4)*H/PZ
+           F(2)=EL%P%B0*PZ+dir*B(1)+H*(1.0_dp/EL%P%BETA0+del)/pz*ef(1)*EL%P%CHARGE
+           F(4)=dir*B(2)+H*(1.0_dp/EL%P%BETA0+del)/pz*ef(2)*EL%P%CHARGE
+           F(5)=0.0_dp
+           F(6)=H*(1.0_dp/EL%P%BETA0+del)/PZ+(k%TOTALPATH-1)/EL%P%BETA0  !! ld=L in sector bend
+        else
+           H=1.0_dp+EL%P%B0*x(1)
+           DEL=x(5)-phi*EL%P%CHARGE
+           PZ=sqrt(1.0_dp+2*del+del**2-x(2)**2-x(4)**2)
+           F(1)=x(2)*H/PZ
+           F(3)=x(4)*H/PZ
+           F(2)=EL%P%B0*PZ+dir*B(1)+H*(1.0_dp+del)/pz*ef(1)*EL%P%CHARGE
+           F(4)=dir*B(2)+H*(1.0_dp+del)/pz*ef(2)*EL%P%CHARGE
+           F(5)=0.0_dp
+           F(6)=H*(1.0_dp+del)/PZ+(k%TOTALPATH-1)
+        endif
+     ELSE
+        if(k%TIME) then
+           DEL=x(5)-phi*EL%P%CHARGE
+           PZ=sqrt(1.0_dp+2*del/EL%P%BETA0+del**2)
+           F(1)=x(2)/PZ
+           F(3)=x(4)/PZ
+           F(2)=EL%P%B0*pz+dir*B(1)+(1.0_dp/EL%P%BETA0+del)/pz*ef(1)*EL%P%CHARGE* &
+            (1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)
+           F(4)=dir*B(2)+(1.0_dp/EL%P%BETA0+del)/pz*ef(2)*EL%P%CHARGE*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)
+           F(5)=0.0_dp
+           F(6)=(1.0_dp/EL%P%BETA0+del)/PZ*(1.0_dp+0.5_dp*(x(2)**2+x(4)**2)/pz**2)+(k%TOTALPATH-1)/EL%P%BETA0 &
+           +EL%P%B0*X(1)/EL%P%BETA0  !! ld=L in sector bend
+        else
+           DEL=X(5)-phi*EL%P%CHARGE
+           PZ=1.0_dp+del
+           F(1)=X(2)/PZ
+           F(3)=X(4)/PZ
+           F(2)=EL%P%B0*pz+dir*B(1)+(1.0_dp+del)/pz*ef(1)*EL%P%CHARGE*(1.0_dp+0.5_dp*(X(2)**2+X(4)**2)/pz**2)
+           F(4)=dir*B(2)+(1.0_dp+del)/pz*ef(2)*EL%P%CHARGE*(1.0_dp+0.5_dp*(X(2)**2+X(4)**2)/pz**2)
+           F(5)=0.0_dp
+           F(6)=(1.0_dp+del)/PZ*(1.0_dp+0.5_dp*(X(2)**2+X(4)**2)/pz**2)+(k%TOTALPATH-1)+EL%P%B0*X(1)   !! ld=L in sector bend
+        endif
+     ENDIF
+     global_e= DEL*el%p%p0c
+
+    DO I=1,3
+       Bf(I)=Bf(I)*EL%P%CHARGE
+       Ef(I)=Ef(I)*EL%P%CHARGE
+    ENDDO
+
+! patrice 
+!        
+if(k%radiation.or.k%spin.or.k%envelope) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,e_ij)
+ 
+if(k%spin) then
+ q%x(0)=0.0_dp
+ q=q*qi
+endif
+   
+    call kill(PZ,DEL,H,VM,phi)
+    do i=1,3 
+     call kill(b(i),Ef(i),Bf(i))
+    enddo
+
+   END subroutine feval_teapot_quap
+
+
+   subroutine rk2_teapot_prober(p,k,c,h)
     IMPLICIT none
     integer ne
     parameter (ne=6)
-    type(probe), intent(inout) :: p
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
     real(dp)   y(ne)
     real(dp)  yt(ne),f(ne),a(ne),b(ne)
     type(quaternion) qa,qb,qyt,qy
-    type (teapot) ,INTENT(IN)::  GR
     integer j
     real(dp), intent(inout) :: h
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
@@ -22544,172 +23356,1304 @@ q=1.0_dp
     qy=p%q
     y=p%x
 
-    call feval_teapot_qua(y,qy,k,f,q,gr)
+    call feval_teapot_qua(y,qy,k,f,q,c)
     do  j=1,ne
        a(j)=h*f(j)
     enddo
-    do  j=0,3
+    if(k%spin) then
+     do  j=0,3
        qa%x(j)=h*q%x(j)
-    enddo
-
+     enddo
+    endif
     do  j=1,ne
        yt(j)=y(j)+a(j)/2.0_dp
     enddo
-    do  j=0,3
+    if(k%spin) then
+     do  j=0,3
        qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
-    enddo
+     enddo
+    endif
 
-
-    call feval_teapot_qua(yt,qyt,k,f,q,gr)
+    call feval_teapot_qua(yt,qyt,k,f,q,c)
     do  j=1,ne
        b(j)=h*f(j)
     enddo
-    do  j=0,3
+    if(k%spin) then
+     do  j=0,3
        qb%x(j)=h*q%x(j)
-    enddo
+     enddo
+    endif
 
     do  j=1,ne
-       p%x(j) = y(j)+b(j)
+       p%x(j) = p%x(j)+b(j)
     enddo
 
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+qb%x(j) 
+     enddo
+    endif
+
+    return
+  end  subroutine rk2_teapot_prober
+
+  subroutine rk4_teapot_prober(p,k,ct,h)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    real(dp)   y(ne)
+    real(dp)  yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne)
+    type(quaternion) qa,qb,qyt,qy,qc,qd
+    integer j
+    real(dp), intent(inout) :: h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(quaternion) q
+
+
+    qy=p%q
+    y=p%x
+
+
+    call feval_teapot_qua(y,qy,k,f,q,ct)
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+
+    call feval_teapot_qua(yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+    endif
+    do   j=1,ne
+       yt(j)=y(j) + b(j)/2.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qb%x(j)/2.0_dp 
+     enddo
+    endif
+
+    call feval_teapot_qua(yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qc%x(j) 
+     enddo
+    endif
+
+    call feval_teapot_qua(yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+
+ 
+
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+     enddo
+    endif
+
+    do  j=1,ne
+       p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
+     enddo
+    endif
+
+
+    return
+  end  subroutine rk4_teapot_prober
+
+
+  subroutine rk6_teapot_prober(pf,k,ct,h)
+    IMPLICIT none
+    integer ne
+    parameter (ne=6)
+    type(probe), INTENT(INOUT) ::  pf
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    real(dp)  y(ne),yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),p(ne)
+    integer j
+    real(dp), intent(inout) :: h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(quaternion) q,qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp
+
+
+    qy=pf%q
+    y=pf%x
+
+
+     call feval_teapot_qua(y,qy,k,f,q,ct)
+
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+      qyt%x(j)=qy%x(j)+qa%x(j)/9.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/9.0_dp
+    enddo
+
+    call feval_teapot_qua(yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j) + 3.0_dp*qb%x(j))/24.0_dp
+     enddo
+    endif
+    do   j=1,ne
+       yt(j)=y(j) + (a(j) + 3.0_dp*b(j))/24.0_dp
+    enddo
+
+    call feval_teapot_qua(yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j)-3.0_dp*qb%x(j)+4.0_dp*qc%x(j))/6.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+(a(j)-3.0_dp*b(j)+4.0_dp*c(j))/6.0_dp
+    enddo
+
+    call feval_teapot_qua(yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+ (-5.0_dp*qa%x(j) + 27.0_dp*qb%x(j) - 24.0_dp*qc%x(j) + 6.0_dp*qd%x(j))/8.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j) + (-5.0_dp*a(j) + 27.0_dp*b(j) - 24.0_dp*c(j) + 6.0_dp*d(j))/8.0_dp
+    enddo
+
+    call feval_teapot_qua(yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       e(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qe%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+ (221.0_dp*qa%x(j) - 981.0_dp*qb%x(j) + 867.0_dp*qc%x(j)- 102.0_dp*qd%x(j) + qe%x(j))/9.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j) + (221.0_dp*a(j) - 981.0_dp*b(j) + 867.0_dp*c(j)- 102.0_dp*d(j) + e(j))/9.0_dp
+    enddo
+
+    call feval_teapot_qua(yt,qyt,k,f,q,ct)
+    do   j=1,ne
+       g(j)=h*f(j)
+    enddo
+    if(k%spin) then
+do  j=0,3
+  qg%x(j)=h*q%x(j)
+  qyt%x(j)=qy%x(j)+(-183.0_dp*qa%x(j)+678.0_dp*qb%x(j)-472.0_dp*qc%x(j)-66.0_dp*qd%x(j)+80.0_dp*qe%x(j)+3.0_dp*qg%x(j))/48.0_dp
+enddo
+    endif
+    do  j=1,ne
+       yt(j) = y(j)+(-183.0_dp*a(j)+678.0_dp*b(j)-472.0_dp*c(j)-66.0_dp*d(j)+80.0_dp*e(j) + 3.0_dp*g(j))/48.0_dp
+    enddo
+
+    call feval_teapot_qua(yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       o(j)=h*f(j)
+    enddo
+    if(k%spin) then
     do  j=0,3
-       p%q%x(j)=qy%x(j)+qb%x(j) 
+     qo%x(j)=h*q%x(j)
+     qyt%x(j)=qy%x(j)+(716.0_dp*qa%x(j)-2079.0_dp*qb%x(j)+1002.0_dp*qc%x(j)+834.0_dp*qd%x(j) &
+            -454.0_dp*qe%x(j)-9.0_dp*qg%x(j)+72.0_dp*qo%x(j))/82.0_dp
+   enddo
+    endif
+    do  j=1,ne
+       yt(j) = y(j)+(716.0_dp*a(j)-2079.0_dp*b(j)+1002.0_dp*c(j)+834.0_dp*d(j)-454.0_dp*e(j)-9.0_dp*g(j)+72.0_dp*o(j))/82.0_dp
+    enddo
+
+
+    call feval_teapot_qua(yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       p(j)=h*f(j)
+    enddo
+    if(k%spin) then
+do  j=0,3
+  qp%x(j)=h*q%x(j)
+  pf%q%x(j)=pf%q%x(j)+(41.0_dp*qa%x(j)+216.0_dp*qc%x(j)+27.0_dp*qd%x(j)+272.0_dp*qe%x(j)+27.0_dp*qg%x(j) &
+        +216.0_dp*qo%x(j)+41.0_dp*qp%x(j))/840.0_dp
+enddo
+    endif
+    do  j=1,ne
+       pf%x(j) = pf%x(j)+(41.0_dp*a(j)+216.0_dp*c(j)+27.0_dp*d(j)+272.0_dp*e(j)+27.0_dp*g(j)+216.0_dp*o(j)+41.0_dp*p(j))/840.0_dp
+    enddo
+
+
+    return
+  end  subroutine rk6_teapot_prober
+
+   subroutine rk2_teapot_probep(p,k,c,h)
+    IMPLICIT none
+    integer ne
+    parameter (ne=6)
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(real_8)   y(ne),yt(ne),f(ne),a(ne),b(ne)
+    type(quaternion_8) qa,qb,qyt,qy
+    real(dp) e_ija(6,6),e_ijb(6,6)
+    integer j
+    type(real_8), intent(inout) :: h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(quaternion_8) q
+    real(dp) de_ij(6,6),hr
+
+    call alloc(qa,qb,qyt,qy,q)
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j))
+    enddo
+
+    qy=p%q
+    y=p%x
+    hr=h
+
+
+
+    call feval_teapot_qua(y,qy,k,f,q,de_ij,c)
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ija =hr*de_ij  
+    endif
+
+
+    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,c)
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijb =hr*de_ij  
+      p%e_ij=p%e_ij+e_ijb
+    endif
+
+    do  j=1,ne
+       p%x(j) =  p%x(j) +b(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+qb%x(j) 
+     enddo
+    endif
+    call kill(qa,qb,qyt,qy,q)
+    do j=1,ne
+     call kill(y(j),yt(j),f(j),a(j),b(j))
+    enddo
+    return
+  end  subroutine rk2_teapot_probep
+
+
+subroutine rk4_teapot_probep(p,k,ct,h)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+       type(real_8)    y(ne)
+       type(real_8)   yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne)
+    type(quaternion_8) q,qa,qb,qyt,qy,qc,qd
+    integer j
+    type(real_8) , intent(inout) :: h
+    real(dp) de_ij(6,6),hr,e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6)
+ 
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+ 
+
+    call alloc(q,qa,qb,qyt,qy,qc,qd)
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j),c(j),d(j))
+    enddo
+
+    qy=p%q
+    y=p%x
+    hr=h
+
+    call feval_teapot_qua(y,qy,k,f,q,de_ij,ct)
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+    do   j=1,ne
+       yt(j)=y(j) + a(j)/2.0_dp
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp 
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ija =hr*de_ij
+    endif
+
+
+    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    do   j=1,ne
+       yt(j)=y(j) + b(j)/2.0_dp
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qb%x(j)/2.0_dp 
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijb =hr*de_ij
+    endif
+
+    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    do   j=1,ne
+       yt(j)=y(j) + c(j) 
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qc%x(j) 
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijc =hr*de_ij
+    endif
+
+    call feval_teapot_qua(yt,qyt,k,f,q,e_ijd,ct)
+
+  
+
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+ 
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijd =hr*de_ij
+    endif
+
+ 
+
+    do  j=1,ne
+       p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
+     enddo
+    endif
+
+    if(k%envelope)  then
+        p%e_ij= p%e_ij+(e_ija+2.0_dp*e_ijb+2.0_dp*e_ijc+e_ijd)/6.0_dp
+    endif
+
+    call kill(q,qa,qb,qyt,qy,qc,qd)
+    do j=1,ne
+     call kill(y(j),yt(j),f(j),a(j),b(j),c(j),d(j))
     enddo
 
     return
-  end  subroutine rk2_teapot_quar
+  end  subroutine rk4_teapot_probep
 
-
-
-  subroutine B_PARA_PERP_qua_r(k,EL,X,B,BPA,BPE,XP,XPA,e,EF,EFB,EFD)
-    IMPLICIT NONE
-    REAL(DP),  INTENT(INout) :: X(6)
-    TYPE(teapot),  intent(in) :: EL
-    TYPE(MAGNET_CHART),  pointer :: P
-    REAL(DP),  INTENT(INout) :: B(3),BPA(3),BPE(3),XP(2),XPA(2),e(3)
-    REAL(DP),  OPTIONAL ::EF(3),EFB(3),EFD(3)
-    INTEGER i
-    REAL(DP) be
-    type(internal_state) k
-    P=>EL%P
-
-    !  this routines gives us  B parallel and B perpendicular
-    ! Also if EF is present, E perpendicular times beta is return
-
-    call DIRECTION_V(k,EL,X,E,XP,XPA)
-
-    be=b(1)*e(1)+b(2)*e(2)+b(3)*e(3)
-
-    do i=1,3
-       BPA(i)=be*e(i)
-    enddo
-    do i=1,3
-       BPE(i)=B(i)-BPA(i)
-    enddo
-
-    IF(PRESENT(EF)) THEN
-
-       EFB(1)=-EF(2)*E(3)+EF(3)*E(2)      ! changed sign txE of Barber
-       EFB(2)=-EF(3)*E(1)+EF(1)*E(3)
-       EFB(3)=-EF(1)*E(2)+EF(2)*E(1)
-       be=EF(1)*e(1)+EF(2)*e(2)+EF(3)*e(3)
-       do i=1,3
-         EFD(i)=be*e(i)
-        enddo
-
-    endif
-  END subroutine B_PARA_PERP_qua_r
-
-  subroutine DIRECTION_qua_V(k,EL,X,E,XP,XPA)
-    IMPLICIT NONE
-    REAL(DP),  INTENT(INout) :: X(6),XP(2),XPA(2)
-     TYPE(teapot),  intent(in) :: EL
-    TYPE(MAGNET_CHART),  pointer :: P
-    REAL(DP),  INTENT(INOUT) ::E(3)
-    REAL(DP) N,H,DP1,A,AP,B,BP,z,ve,AV(3),ad(3)
-    type(internal_state) k
-
-    P=>EL%P
-
-    !    CALL COMPX(EL,Z,X,A,AP)
-    !    X_MEC=zero
-    !    X_MEC(2)=X(2)-A
-    !    CALL COMPY(EL,Z,X,B,BP)
-    !    X_MEC(4)=X(4)-B
-    !    CALL B2PERP(EL%P,B_F,X_MEC,X5,B2)
-
-    IF(k%TIME) THEN
-       DP1=root(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2)
-    ELSE
-       DP1=1.0_dp+X(5)
-    ENDIF
-
-
-       IF(ASSOCIATED(EL%B_SOL)) THEN  !SOLENOID
-
-          XPA(1)=(X(2)+EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)
-          XPA(2)=(X(4)-EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp)
-          N=root(DP1**2-Xpa(1)**2-Xpa(2)**2)
-
-          E(1)=Xpa(1)/DP1
-          E(2)=Xpa(2)/DP1
-          E(3)=N/DP1
-          XP(1)=XPA(1)/N
-          XP(2)=XPA(2)/N
-        
-       else
-
-
-          N=root(DP1**2-X(2)**2-X(4)**2)
-
-          E(1)=X(2)/DP1
-          E(2)=X(4)/DP1
-          E(3)=N/DP1
-          XPA(1)=X(2)
-          XPA(2)=X(4)
-          XP(1)=X(2)/N
-          XP(2)=X(4)/N
-       ENDIF
-
- 
-
-!    E(1)=EL%P%dir*E(1)
-!    E(2)=EL%P%dir*E(2)    etienne 2016_5_9
-    E(3)=EL%P%dir*E(3)
-
-
-
-  END subroutine DIRECTION_qua_V
- 
-
-  SUBROUTINE INTE_TEAPOT_quaR(EL,p,k,pos)
-    IMPLICIT NONE
-    TYPE(probe),INTENT(INOUT) :: p
-    TYPE(TEAPOT),INTENT(IN):: EL
-    real(dp) D,DH,DD
-    real(dp) D1,D2,DK1,DK2
-    real(dp) DD1,DD2
-    real(dp) DF(4),DK(4),DDF(4)
-    real(dp) NDF(0:15),NDK(15),NDDF(0:15)
-
-    INTEGER I,J,f1
-    integer,optional :: pos
+  subroutine rk6_teapot_probep(pf,k,ct,h)
+    IMPLICIT none
+    integer ne
+    parameter (ne=6)
+    type(probe_8), INTENT(INOUT) ::  pf
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    type(real_8)  y(ne),yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),p(ne)
+    integer j
+    type(real_8), intent(inout) :: h
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(quaternion_8) q,qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp
+    real(dp) de_ij(6,6),hr,e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6)
+    real(dp)  e_ije(6,6),e_ijg(6,6),e_ijo(6,6),e_ijp(6,6)
+
+    call alloc(q,qa,qb,qyt,qy,qc,qd,qe,qg,qo)
+     call alloc(qp)
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j),c(j),d(j),e(j),g(j),o(j))
+     call alloc(p(j))
+    enddo
+
+    qy=pf%q
+    y=pf%x
+    hr=h
+
+     call feval_teapot_qua(y,qy,k,f,q,de_ij,ct)
+
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+      qyt%x(j)=qy%x(j)+qa%x(j)/9.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/9.0_dp
+    enddo
+    if(k%envelope)  then
+      e_ija =hr*de_ij
+    endif
+
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j) + 3.0_dp*qb%x(j))/24.0_dp
+     enddo
+    endif
+    do   j=1,ne
+       yt(j)=y(j) + (a(j) + 3.0_dp*b(j))/24.0_dp
+    enddo
+    if(k%envelope)  then
+      e_ijb =hr*de_ij
+    endif
+
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j)-3.0_dp*qb%x(j)+4.0_dp*qc%x(j))/6.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+(a(j)-3.0_dp*b(j)+4.0_dp*c(j))/6.0_dp
+    enddo
+    if(k%envelope)  then
+      e_ijc =hr*de_ij
+    endif
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+ (-5.0_dp*qa%x(j) + 27.0_dp*qb%x(j) - 24.0_dp*qc%x(j) + 6.0_dp*qd%x(j))/8.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j) + (-5.0_dp*a(j) + 27.0_dp*b(j) - 24.0_dp*c(j) + 6.0_dp*d(j))/8.0_dp
+    enddo
+    if(k%envelope)  then
+      e_ijd =hr*de_ij
+    endif
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       e(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qe%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+ (221.0_dp*qa%x(j) - 981.0_dp*qb%x(j) + 867.0_dp*qc%x(j)- 102.0_dp*qd%x(j) + qe%x(j))/9.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j) + (221.0_dp*a(j) - 981.0_dp*b(j) + 867.0_dp*c(j)- 102.0_dp*d(j) + e(j))/9.0_dp
+    enddo
+    if(k%envelope)  then
+      e_ije =hr*de_ij
+    endif
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    do   j=1,ne
+       g(j)=h*f(j)
+    enddo
+    if(k%spin) then
+do  j=0,3
+  qg%x(j)=h*q%x(j)
+  qyt%x(j)=qy%x(j)+(-183.0_dp*qa%x(j)+678.0_dp*qb%x(j)-472.0_dp*qc%x(j)-66.0_dp*qd%x(j)+80.0_dp*qe%x(j)+3.0_dp*qg%x(j))/48.0_dp
+enddo
+    endif
+    do  j=1,ne
+       yt(j) = y(j)+(-183.0_dp*a(j)+678.0_dp*b(j)-472.0_dp*c(j)-66.0_dp*d(j)+80.0_dp*e(j) + 3.0_dp*g(j))/48.0_dp
+    enddo
+    if(k%envelope)  then
+      e_ijg =hr*de_ij
+    endif
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       o(j)=h*f(j)
+    enddo
+    if(k%spin) then
+    do  j=0,3
+     qo%x(j)=h*q%x(j)
+     qyt%x(j)=qy%x(j)+(716.0_dp*qa%x(j)-2079.0_dp*qb%x(j)+1002.0_dp*qc%x(j)+834.0_dp*qd%x(j) &
+            -454.0_dp*qe%x(j)-9.0_dp*qg%x(j)+72.0_dp*qo%x(j))/82.0_dp
+   enddo
+    endif
+    do  j=1,ne
+       yt(j) = y(j)+(716.0_dp*a(j)-2079.0_dp*b(j)+1002.0_dp*c(j)+834.0_dp*d(j)-454.0_dp*e(j)-9.0_dp*g(j)+72.0_dp*o(j))/82.0_dp
+    enddo
+    if(k%envelope)  then
+      e_ijo =hr*de_ij
+    endif
+
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       p(j)=h*f(j)
+    enddo
+    if(k%spin) then
+do  j=0,3
+  qp%x(j)=h*q%x(j)
+  pf%q%x(j)=pf%q%x(j)+(41.0_dp*qa%x(j)+216.0_dp*qc%x(j)+27.0_dp*qd%x(j)+272.0_dp*qe%x(j)+27.0_dp*qg%x(j) &
+        +216.0_dp*qo%x(j)+41.0_dp*qp%x(j))/840.0_dp
+enddo
+    endif
+    if(k%envelope)  then
+      e_ijp =hr*de_ij
+    endif
+
+    do  j=1,ne
+       pf%x(j) = pf%x(j)+(41.0_dp*a(j)+216.0_dp*c(j)+27.0_dp*d(j)+272.0_dp*e(j)+27.0_dp*g(j)+216.0_dp*o(j)+41.0_dp*p(j))/840.0_dp
+    enddo
+
+    if(k%envelope)  then
+       pf%e_ij = pf%e_ij+(41.0_dp*e_ija+216.0_dp*e_ijc+27.0_dp*e_ijd+272.0_dp*e_ije &
+       +27.0_dp*e_ijg+216.0_dp*e_ijo+41.0_dp*e_ijp)/840.0_dp
+    endif
+
+
+    call kill(q,qa,qb,qyt,qy,qc,qd,qe,qg,qo)
+     call kill(qp)
+    do j=1,ne
+     call kill(y(j),yt(j),f(j),a(j),b(j),c(j),d(j),e(j),g(j),o(j))
+     call kill(p(j))
+    enddo
+
+
+    return
+  end  subroutine rk6_teapot_probep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!    CAV4 PROBE     !!!!!!!!!!!!!!!!!!!!!!!!!!! 
+!
+!
+
+  SUBROUTINE INTE_CAV4_PROBER(p,kt,c)
+    IMPLICIT NONE
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+    TYPE(CAV4),POINTER :: EL
+    real(dp) D,DH,DD
+    real(dp) D1,D2,DK1,DK2,DK1h,DK2h
+    real(dp) DD1,DD2,z0
+    real(dp) DF(4),DK(4),DDF(4),DKH(4)
+    real(dp) NDF(0:15),NDK(15),NDDF(0:15),NDKH(15)
+
+    INTEGER I,J,POS
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    TYPE(INTERNAL_STATE) kt !,OPTIONAL :: K
+
+    POS=C%POS_IN_FIBRE-2
+    f=>c%parent_fibre
+    el=> f%mag%C4
+
+    IF(EL%THIN) return
+
+
+    k=kt
+    !TOTALPATH_FLAG=k%TOTALPATH
+    k%TOTALPATH=el%CAVITY_TOTALPATH
+
+
+    if(EL%n_bessel/=-1) then
 
     SELECT CASE(EL%P%METHOD)
- 
     CASE(2)
-        D=EL%L/EL%P%NST
-        call rk2_teapot_qua(d,el,p,k)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+       !       DO I=1,B%N
+
+       !        X=BEAM_IN_X(B,I)
+       CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DH,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+        CALL KICKCAV (EL,DH,p%X,k)
+         else
+              CALL KICKCAV (EL,D,p%X,k)
+        endif
+       CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+
     CASE(4)
-stop 998
-     CASE(6)
- stop 999
+       D1=EL%L*FD1/EL%P%NST
+       D2=EL%L*FD2/EL%P%NST
+       DD1=EL%P%LD*FD1/EL%P%NST
+       DD2=EL%P%LD*FD2/EL%P%NST
+       DK1=EL%L*FK1/EL%P%NST
+       DK2=EL%L*FK2/EL%P%NST
+       DK1h=DK1/2.0_dp
+       DK2h=DK2/2.0_dp
+
+       !       DO I=1,B%N
+
+       !        X=BEAM_IN_X(B,I)
+       CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DK1h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK1)
+        CALL KICKCAV (EL,DK1h,p%X,k)
+         else
+              CALL KICKCAV (EL,DK1,p%X,k)
+        endif
+       CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DK2h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+        CALL KICKCAV (EL,DK2h,p%X,k)
+         else
+              CALL KICKCAV (EL,DK2,p%X,k)
+        endif
+       CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DK1h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK1)
+        CALL KICKCAV (EL,DK1h,p%X,k)
+         else
+              CALL KICKCAV (EL,DK1,p%X,k)
+        endif
+       CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+
+
+    CASE(6)
+       DO I =1,4
+          DF(I)=EL%L*YOSD(I)/EL%P%NST
+          DDF(I)=EL%P%LD*YOSD(I)/EL%P%NST
+          DK(I)=EL%L*YOSK(I)/EL%P%NST
+          DKH(I)=DK(I)/2.0_DP
+       ENDDO
+
+       !       DO I=1,B%N
+
+       !        X=BEAM_IN_X(B,I)
+       DO J=4,2,-1
+          CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+        CALL KICKCAV (EL,DKH(J),p%X,k)
+         else
+          CALL KICKCAV (EL,DK(J),p%X,k)
+        endif
+       ENDDO
+       CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DKH(1),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
+        CALL KICKCAV (EL,DKH(1),p%X,k)
+         else
+          CALL KICKCAV (EL,DK(1),p%X,k)
+        endif
+       CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       DO J=2,4
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+        CALL KICKCAV (EL,DKH(J),p%X,k)
+         else
+          CALL KICKCAV (EL,DK(J),p%X,k)
+        endif
+          CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       ENDDO
+
 
 !!! newyoshida
     CASE(8)
- stop 1000
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST
+          NDKH(I)=NDK(I)/2.0_DP
+       ENDDO
+ 
+          CALL DRIFT(NDF(0),NDDF(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
 
+       DO J=1,15
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICKCAV (EL,NDKH(J),p%X,k)
+         else
+          CALL KICKCAV (EL,NDK(J),p%X,k)
+        endif
+          CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,P%X)
+       ENDDO
+ 
+
+
+    CASE DEFAULT
+
+       WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+    else
+
+    D=el%p%dir*EL%L/EL%P%NST
+    IF(EL%P%DIR==1) THEN
+       Z0=(pos-1)*d
+    ELSE
+       Z0=EL%L+(pos-1)*d
+    ENDIF
+
+    SELECT CASE(EL%P%METHOD)
+
+    CASE(2)
+
+       D=EL%L/EL%P%NST
+
+        call rk2bmad_cav_probe(z0,p,k,c,d)
+
+    CASE(4)
+       D=EL%L/EL%P%NST
+
+        call rk4bmad_cav_probe(z0,p,k,c,d)
+
+       !call rk4_teapot(d,el,p%X,k)
+
+
+    CASE(6)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+!       call rk6_teapot(d,el,p%X,k)
+  !      call rk6_teapot_probe(p,k,c,d)
+!!! newyoshida
+    CASE(8)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+   !    call rk6_teapot(d,el,p%X,k)
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+    endif
+    !k%TOTALPATH=TOTALPATH_FLAG
+
+
+  END SUBROUTINE INTE_CAV4_PROBER
+
+
+  SUBROUTINE INTE_CAV4_PROBEP(p,kt,c)
+    IMPLICIT NONE
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+    TYPE(CAV4P),POINTER :: EL
+    real(dp) DD
+    TYPE(REAL_8)  dk2h,dk1h
+    TYPE(REAL_8) DH,D,D1,D2,DK1,DK2,DF(4),DK(4),z0
+    real(dp) DD1,DD2,DDF(4)
+    type(real_8) DKH(4)
+    type(real_8)  NDKH(15) 
+    real(dp)   NDDF(0:15)
+    type(real_8) NDF(0:15),NDK(15) 
+
+ 
+
+    INTEGER I,J,POS
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    TYPE(INTERNAL_STATE) kt !,OPTIONAL :: K
+
+    POS=C%POS_IN_FIBRE-2
+    f=>c%parent_fibre
+    el=> f%magp%C4
+
+    IF(EL%THIN) return
+    k=kt
+    !TOTALPATH_FLAG=k%TOTALPATH
+    k%TOTALPATH=el%CAVITY_TOTALPATH
+
+
+    if(EL%n_bessel/=-1) then
+
+
+    SELECT CASE(EL%P%METHOD)
+    CASE(2)
+     CALL ALLOC(DH,D)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+       !       DO I=1,B%N
+
+       !        X=BEAM_IN_X(B,I)
+       CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DH,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+        CALL KICKCAV (EL,DH,p%X,k)
+         else
+              CALL KICKCAV (EL,D,p%X,k)
+        endif
+       CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       CALL KILL(DH,D)
+    CASE(4)
+       CALL ALLOC(D1,D2,DK1,DK2)
+       D1=EL%L*FD1/EL%P%NST
+       D2=EL%L*FD2/EL%P%NST
+       DD1=EL%P%LD*FD1/EL%P%NST
+       DD2=EL%P%LD*FD2/EL%P%NST
+       DK1=EL%L*FK1/EL%P%NST
+       DK2=EL%L*FK2/EL%P%NST
+
+
+       !       DO I=1,B%N
+
+       !        X=BEAM_IN_X(B,I)
+       CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DK1h,DK2h)
+        DK1h=DK1/2.0_dp
+        DK2h=DK2/2.0_dp
+        CALL KICKCAV (EL,DK1h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK1)
+        CALL KICKCAV (EL,DK1h,p%X,k)
+         else
+              CALL KICKCAV (EL,DK1,p%X,k)
+        endif
+       CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DK2h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+        CALL KICKCAV (EL,DK2h,p%X,k)
+         else
+              CALL KICKCAV (EL,DK2,p%X,k)
+        endif
+       CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DK1h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK1)
+        CALL KICKCAV (EL,DK1h,p%X,k)
+         else
+              CALL KICKCAV (EL,DK1,p%X,k)
+        endif
+       CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+
+       CALL KILL(D1,D2,DK1,DK2)
+
+       if(k%spin.or.k%radiation) CALL KILL(DK1h,DK2h)
+
+    CASE(6)
+       CALL ALLOC(DF,4);CALL ALLOC(DK,4);
+       DO I =1,4
+          DF(I)=EL%L*YOSD(I)/EL%P%NST
+          DDF(I)=EL%P%LD*YOSD(I)/EL%P%NST
+          DK(I)=EL%L*YOSK(I)/EL%P%NST
+          DKH(I)=DK(I)/2.0_DP
+       ENDDO
+
+       !       DO I=1,B%N
+
+       !        X=BEAM_IN_X(B,I)
+       DO J=4,2,-1
+          CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+        CALL KICKCAV (EL,DKH(J),p%X,k)
+         else
+          CALL KICKCAV (EL,DK(J),p%X,k)
+        endif
+       ENDDO
+       CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DKH(1),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
+        CALL KICKCAV (EL,DKH(1),p%X,k)
+         else
+          CALL KICKCAV (EL,DK(1),p%X,k)
+        endif
+       CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       DO J=2,4
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,DKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+        CALL KICKCAV (EL,DKH(J),p%X,k)
+         else
+          CALL KICKCAV (EL,DK(J),p%X,k)
+        endif
+          CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       ENDDO
+
+       CALL KILL(DF,4);CALL KILL(DK,4);
+       if(k%spin.or.k%radiation) CALL KILL(DKH,4); 
+!!! newyoshida
+    CASE(8)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+    CALL ALLOC(NDF);CALL ALLOC(NDK);
+   if(k%spin.or.k%radiation) CALL alloc(NDKH)
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST
+          NDKH(I)=NDK(I)/2.0_DP
+       ENDDO
+ 
+          CALL DRIFT(NDF(0),NDDF(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       DO J=1,15
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICKCAV (EL,NDKH(J),p%X,k)
+         else
+          CALL KICKCAV (EL,NDK(J),p%X,k)
+        endif
+          CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,P%X)
+       ENDDO
+ 
+   CALL KILL(NDF);CALL KILL(NDK);
+   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+
+    CASE DEFAULT
+
+       WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+else
+
+     call alloc(d,z0)
+    D=el%p%dir*EL%L/EL%P%NST
+    IF(EL%P%DIR==1) THEN
+       Z0=(pos-1)*d
+    ELSE
+       Z0=EL%L+(pos-1)*d
+    ENDIF
+
+    SELECT CASE(EL%P%METHOD)
+
+    CASE(2)
+
+       D=EL%L/EL%P%NST
+
+        call rk2bmad_cav_probe(z0,p,k,c,d)
+
+    CASE(4)
+       D=EL%L/EL%P%NST
+
+      !  call rk2bmad_cav_probe(p,k,c,d)
+
+       !call rk4_teapot(d,el,p%X,k)
+
+
+    CASE(6)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+!       call rk6_teapot(d,el,p%X,k)
+  !      call rk6_teapot_probe(p,k,c,d)
+!!! newyoshida
+    CASE(8)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+   !    call rk6_teapot(d,el,p%X,k)
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+     call kill(d,z0)
+
+
+endif
+    !k%TOTALPATH=TOTALPATH_FLAG
+
+
+  END SUBROUTINE INTE_CAV4_PROBEP
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!    TEAPOT PROBE     !!!!!!!!!!!!!!!!!!!!!!!!!!! 
+!
+!
+  SUBROUTINE INTE_TEAPOT_prober(p,k,c)
+    IMPLICIT NONE
+ !   real(dp) X(6)
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+    TYPE(TEAPOT),pointer:: EL
+    real(dp) D,DH,DD
+    real(dp) D1,D2,DK1,DK2,DK1h,DK2h
+    real(dp) DD1,DD2
+    real(dp) DF(4),DK(4),DKH(4),DDF(4)
+    real(dp) NDF(0:15),NDK(15),NDKH(15),NDDF(0:15)
+
+    INTEGER I,J,f1
+ !   integer,optional :: pos
+    integer pos
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
+    POS=c%POS_IN_FIBRE-2
+
+    f=>c%parent_fibre
+    el=> f%mag%tp10
+
+    if(.not.el%electric) then
+
+    SELECT CASE(EL%P%METHOD)
+    CASE(1)
+       if(EL%F==1) then
+          f1=0
+       else
+          f1=EL%F+1
+       endif
+       DH=EL%L/EL%P%NST
+       D=EL%L/(EL%P%NST/EL%F/2)
+       DD=EL%P%LD/EL%P%NST
+
+       IF(MOD(POS,2*EL%F)==f1) THEN
+          CALL SKICK (EL,D,p%X,k)
+       if(k%spin.or.k%radiation) then
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+        endif
+       ENDIF
+       CALL SSECH1(EL,DH,DD,p%X,k)
+    CASE(2)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+       CALL SSECH1(EL,DH,DD,p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL SKICK(EL,Dh,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+        CALL SKICK(EL,Dh,p%X,k)
+         else
+       CALL SKICK(EL,D,p%X,k)
+        endif
+
+       CALL SSECH1(EL,DH,DD,p%X,k)
+    CASE(4)
+       D1=EL%L*FD1/EL%P%NST
+       D2=EL%L*FD2/EL%P%NST
+       DD1=EL%P%LD*FD1/EL%P%NST
+       DD2=EL%P%LD*FD2/EL%P%NST
+       DK1=EL%L*FK1/EL%P%NST
+       DK2=EL%L*FK2/EL%P%NST
+       if(k%spin.or.k%radiation) then
+           DK1h=EL%L*FK1/EL%P%NST/2.0_DP
+           DK2h=EL%L*FK2/EL%P%NST/2.0_DP
+       endif
+
+       CALL SSECH1(EL,D1,DD1,p%X,k)
+       if(k%spin.or.k%radiation) then
+          CALL SKICK(EL,DK1h,p%X,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,DK1)
+          CALL SKICK(EL,DK1h,p%X,k)
+         else
+          CALL SKICK(EL,DK1,p%X,k)
+        endif
+       CALL SSECH1(EL,D2,DD2,p%X,k)
+       if(k%spin.or.k%radiation) then
+          CALL SKICK(EL,DK2h,p%X,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+          CALL SKICK(EL,DK2h,p%X,k)
+         else
+          CALL SKICK(EL,DK2,p%X,k)
+        endif
+       CALL SSECH1(EL,D2,DD2,p%X,k)
+       if(k%spin.or.k%radiation) then
+          CALL SKICK(EL,DK1h,p%X,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,DK1)
+          CALL SKICK(EL,DK1h,p%X,k)
+         else
+          CALL SKICK(EL,DK1,p%X,k)
+        endif
+       CALL SSECH1(EL,D1,DD1,p%X,k)
+
+
+
+    CASE(6)
+       DO I =1,4
+          DF(I)=EL%L*YOSD(I)/EL%P%NST
+          DDF(I)=EL%P%LD*YOSD(I)/EL%P%NST
+          DK(I)=EL%L*YOSK(I)/EL%P%NST
+       ENDDO
+       if(k%spin.or.k%radiation) then
+        do I =1,4
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+        enddo
+       endif
+
+       DO J=4,2,-1
+          CALL SSECH1(EL,DF(J),DDF(J),p%X,k)
+           if(k%spin.or.k%radiation) then
+             CALL SKICK (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+             CALL SKICK (EL,DKH(J),p%X,k)
+            else
+              CALL SKICK (EL,DK(J),p%X,k)
+            endif
+       ENDDO
+       CALL SSECH1(EL,DF(1),DDF(1),p%X,k)
+           if(k%spin.or.k%radiation) then
+             CALL SKICK (EL,DKH(1),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+             CALL SKICK (EL,DKH(1),p%X,k)
+            else
+              CALL SKICK (EL,DK(1),p%X,k)
+            endif
+
+       CALL SSECH1(EL,DF(1),DDF(1),p%X,k)
+       DO J=2,4
+           if(k%spin.or.k%radiation) then
+             CALL SKICK (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+             CALL SKICK (EL,DKH(J),p%X,k)
+            else
+              CALL SKICK (EL,DK(J),p%X,k)
+            endif
+          CALL SSECH1(EL,DF(J),DDF(J),p%X,k)
+       ENDDO
+
+!!! newyoshida
+    CASE(8)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDKH(I)=EL%L*wyoshik(I)/EL%P%NST/2.0_dp
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST 
+       ENDDO
+ 
+          CALL SSECH1(EL,NDF(0),NDDF(0),p%X,k)
+
+       DO J=1,15
+       if(k%spin.or.k%radiation) then
+        CALL SKICK (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL SKICK (EL,NDKH(J),p%X,k)
+        else
+          CALL SKICK (EL,NDK(J),p%X,k)
+        endif
+          CALL SSECH1(EL,NDF(J),NDDF(J),p%X,k)
+       ENDDO
+ 
 
 
     CASE DEFAULT
@@ -22720,12 +24664,1828 @@ stop 998
        ! call !write_e(357)
     END SELECT
 
+    else
+    SELECT CASE(EL%P%METHOD)
+
+    CASE(2)
+
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+        call rk2_teapot_probe(p,k,c,d)
+
+    CASE(4)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+        call rk4_teapot_probe(p,k,c,d)
+
+       !call rk4_teapot(d,el,p%X,k)
 
 
-  END SUBROUTINE INTE_TEAPOT_quaR
+    CASE(6)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+!       call rk6_teapot(d,el,p%X,k)
+        call rk6_teapot_probe(p,k,c,d)
+!!! newyoshida
+    CASE(8)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+       call rk6_teapot(d,el,p%X,k)
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+    endif
+
+
+  END SUBROUTINE INTE_TEAPOT_prober
+
+
+  SUBROUTINE INTE_TEAPOT_probep(P,k,c)  !,pos)
+    IMPLICIT NONE
+   TYPE(integration_node),pointer, INTENT(IN):: c
+    TYPE(TEAPOTP),pointer:: EL
+    TYPE(probe_8), INTENT(INOUT) :: P
+    real(dp) DD
+    real(dp) DD1,DD2
+    real(dp) DDF(4)
+    TYPE(REAL_8) DH,D,D1,D2,DK1,DK2,DF(4),DK(4)
+    real(dp)  NDDF(0:15)
+    type(real_8) NDF(0:15),NDK(15) 
+    INTEGER I,J,f1
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+!    integer,optional :: pos
+    integer  pos
+    type(fibre), pointer :: f
+    TYPE(REAL_8)  dk2h,dk1h
+    type(real_8) DKH(4)
+    type(real_8)  NDKH(15) 
+
+
+    POS=c%POS_IN_FIBRE-2
+
+    f=>c%parent_fibre
+    el=> f%magp%tp10
+
+    if(.not.el%electric) then
+    SELECT CASE(EL%P%METHOD)
+    CASE(1)
+       CALL ALLOC(DH,D)
+       if(EL%F==1) then
+          f1=0
+       else
+          f1=EL%F+1
+       endif
+       DH=EL%L/EL%P%NST
+       D=EL%L/(EL%P%NST/EL%F/2)
+       DD=EL%P%LD/EL%P%NST
+
+       IF(MOD(POS,2*EL%F)==f1) THEN
+          CALL SKICK (EL,D,p%X,k)
+        if(k%spin.or.k%radiation) then
+         call RAD_SPIN_qua_PROBE(c,p,k,d)
+        endif
+       ENDIF
+       CALL SSECH1(EL,DH,DD,p%X,k)
+       CALL kill(DH,D)
+    CASE(2)
+
+       CALL ALLOC(DH,D)
+
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+       CALL SSECH1(EL,DH,DD,p%X,k)
+       if(k%spin.or.k%radiation) then
+         CALL SKICK (EL,Dh,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+         CALL SKICK (EL,Dh,p%X,k)
+         else
+        CALL SKICK (EL,D,p%X,k)
+        endif
+       CALL SSECH1(EL,DH,DD,p%X,k)
+
+       CALL KILL(DH,D)
+
+    CASE(4)
+       CALL ALLOC(D1,D2,DK1,DK2)
+       D1=EL%L*FD1/EL%P%NST
+       D2=EL%L*FD2/EL%P%NST
+       DD1=EL%P%LD*FD1/EL%P%NST
+       DD2=EL%P%LD*FD2/EL%P%NST
+       DK1=EL%L*FK1/EL%P%NST
+       DK2=EL%L*FK2/EL%P%NST
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DK1h,DK2h)
+           DK1h=EL%L*FK1/EL%P%NST/2.0_DP
+           DK2h=EL%L*FK2/EL%P%NST/2.0_DP
+       endif
+
+       CALL SSECH1(EL,D1,DD1,p%X,k)
+            if(k%spin.or.k%radiation) then
+             CALL SKICK (EL,DK1h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+             CALL SKICK (EL,DK1h,p%X,k)
+            else
+             CALL SKICK (EL,DK1,p%X,k)
+            endif
+       CALL SSECH1(EL,D2,DD2,p%X,k)
+            if(k%spin.or.k%radiation) then
+             CALL SKICK (EL,DK2h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+             CALL SKICK (EL,DK2h,p%X,k)
+            else
+             CALL SKICK (EL,DK2,p%X,k)
+            endif
+       CALL SSECH1(EL,D2,DD2,p%X,k)
+            if(k%spin.or.k%radiation) then
+             CALL SKICK (EL,DK1h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+             CALL SKICK (EL,DK1h,p%X,k)
+            else
+             CALL SKICK (EL,DK1,p%X,k)
+            endif
+       CALL SSECH1(EL,D1,DD1,p%X,k)
+
+       CALL KILL(D1,D2,DK1,DK2)
+       if(k%spin.or.k%radiation) CALL KILL(DK1h,DK2h)
+    CASE(6)
+       CALL ALLOC(DF,4);CALL ALLOC(DK,4);
+       DO I =1,4
+          DF(I)=EL%L*YOSD(I)/EL%P%NST
+          DDF(I)=EL%P%LD*YOSD(I)/EL%P%NST
+          DK(I)=EL%L*YOSK(I)/EL%P%NST
+       ENDDO
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DKH,4); 
+        do I =1,4
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+        enddo
+       endif
+
+       DO J=4,2,-1
+          CALL SSECH1(EL,DF(J),DDF(J),p%X,k)
+           if(k%spin.or.k%radiation) then
+            CALL SKICK (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+            CALL SKICK (EL,DKH(J),p%X,k)
+            else
+              CALL SKICK (EL,DK(J),p%X,k)
+            endif
+       ENDDO
+       CALL SSECH1(EL,DF(1),DDF(1),p%X,k)
+             if(k%spin.or.k%radiation) then
+              CALL SKICK (EL,DKH(1),p%X,k)
+              call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
+              CALL SKICK (EL,DKH(1),p%X,k)
+              else
+                CALL SKICK (EL,DK(1),p%X,k)
+              endif
+       CALL SSECH1(EL,DF(1),DDF(1),p%X,k)
+       DO J=2,4
+           if(k%spin.or.k%radiation) then
+            CALL SKICK (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+            CALL SKICK (EL,DKH(J),p%X,k)
+            else
+              CALL SKICK (EL,DK(J),p%X,k)
+            endif
+          CALL SSECH1(EL,DF(J),DDF(J),p%X,k)
+       ENDDO
+
+       CALL KILL(DF,4);CALL KILL(DK,4);
+       if(k%spin.or.k%radiation) CALL KILL(DKH,4); 
+!!! newyoshida
+    CASE(8)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+      CALL ALLOC(NDF);CALL ALLOC(NDK);
+    if(k%spin.or.k%radiation) CALL alloc(NDKH)
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDKH(I)=EL%L*wyoshik(I)/EL%P%NST/2.0_dp
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST
+       ENDDO
+
+          CALL SSECH1(EL,NDF(0),NDDF(0),p%X,k)
+
+       DO J=1,15
+       if(k%spin.or.k%radiation) then
+        CALL SKICK (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL SKICK (EL,NDKH(J),p%X,k)
+        else
+          CALL SKICK (EL,NDK(J),p%X,k)
+        endif
+
+          CALL SSECH1(EL,NDF(J),NDDF(J),p%X,k)
+       ENDDO
+
+
+
+      CALL KILL(NDF);CALL KILL(NDK);
+   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+    else
+    SELECT CASE(EL%P%METHOD)
+
+    CASE(2)
+       CALL ALLOC(DH,D)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+        call rk2_teapot_probe(p,k,c,d)
+       CALL kill(DH,D)
+    CASE(4)
+       CALL ALLOC(D1,D2,DK1,DK2)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+      ! call rk4_teapot(d,el,p%X,k)
+        call rk4_teapot_probe(p,k,c,d)
+
+       CALL kill(D1,D2,DK1,DK2)
+
+    CASE(6)
+       CALL ALLOC(DF,4);CALL ALLOC(DK,4);
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+        call rk6_teapot_probe(p,k,c,d)
+
+      ! call rk6_teapot(d,el,p%X,k)
+       CALL kill(DF,4);CALL kill(DK,4);
+    CASE(8)
+       CALL ALLOC(DF,4);CALL ALLOC(DK,4);
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+
+       call rk6_teapot(d,el,p%X,k)
+       CALL kill(DF,4);CALL kill(DK,4);
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+    endif
+
+  END SUBROUTINE INTE_TEAPOT_probep
+
+!!!!!!!!!!!!!!!!!  TKTF  probe  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 
+ 
+
+  SUBROUTINE INTE_TKTF_prober(P,k,c,pos)
+    IMPLICIT NONE
+   TYPE(integration_node),pointer, INTENT(IN):: c
+    TYPE(TKTF),pointer:: EL
+    type(fibre), pointer :: f
+    TYPE(probe), INTENT(INOUT) :: P
+    integer,optional :: pos
+    INTEGER f1
+    real(dp) DK,DKh,DK2,DK6,DK4,DK5,DK4h,DK2h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
+    f=>c%parent_fibre
+    el=> f%mag%t7
+
+    SELECT CASE(EL%P%METHOD)
+    CASE(1)
+       if(EL%F==1) then
+          f1=0
+       else
+          f1=EL%F+1
+       endif
+       DK2=EL%L/(EL%P%NST/EL%F/2)
+       DK=DK2/2.0_dp
+       IF(MOD(POS,2*EL%F)==f1) THEN
+          CALL KICKPATH(EL,DK,p%X,k)
+          CALL KICKTKT7(EL,DK2,p%x,k)
+        if(k%spin.or.k%radiation) then
+           call RAD_SPIN_qua_PROBE(c,p,k,dk2)
+        endif
+          CALL KICKPATH(EL,DK,p%x,k)
+       ENDIF
+       CALL PUSHTKT7(EL,p%x,k)
+    CASE(2)
+       DK2=EL%L/EL%P%NST
+       DK=DK2/2.0_dp
+! patrice
+       CALL PUSHTKT7(EL,p%X,k)
+       CALL KICKPATH(EL,DK,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk2)
+        CALL KICKTKT7(EL,DK,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK2,p%X,k)
+        endif
+
+       CALL KICKPATH(EL,DK,p%X,k)
+       CALL PUSHTKT7(EL,p%X,k)
+
+    CASE(3)
+
+       if(EL%F==1) then
+          f1=0
+       else
+          f1=EL%F+1
+       endif
+       DK=EL%L/(EL%P%NST/EL%F/2)/6.0_dp
+       DK2=DK*2.0_dp
+       DK6=2.0_dp*DK2
+       DKh=dk/2.0_dp
+       if(mod(pos,EL%F*2)==F1) then
+          CALL KICKPATH(EL,DK2,p%X,k)
+ ! 2/3
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,Dk2,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk6)
+        CALL KICKTKT7(EL,DK2,p%X,k)
+        else
+          CALL KICKTKT7(EL,DK6,p%X,k)   
+        endif
+
+          CALL KICKPATH(EL,DK2,p%X,k)
+          CALL PUSHTKT7(EL,p%X,k)
+          if(f1==0.and.pos==EL%P%NST) then   ! this becomes nst
+             CALL KICKPATH(EL,DK,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,Dkh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+             CALL KICKTKT7(EL,DK,p%X,k)  
+        endif
+
+          endif
+       elseif(mod(pos,EL%F*2)==1.and.pos/=1) then
+          CALL KICKPATH(EL,DK,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+        CALL KICKTKT7(EL,DK,p%X,k)
+        else
+          CALL KICKTKT7(EL,DK2,p%X,k)   
+        endif
+!          CALL KICKTKT7(EL,DK2,p%X,k)    ! 1/3
+          CALL KICKPATH(EL,DK,p%X,k)
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(pos==1) then             ! 1/6
+       !   CALL KICKTKT7(EL,DK,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+          CALL KICKTKT7(EL,DK,p%X,k)   
+        endif
+          CALL KICKPATH(EL,DK,p%X,k)
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(pos==EL%P%NST) then             ! 1/6
+          CALL PUSHTKT7(EL,p%X,k)
+          CALL KICKPATH(EL,DK,p%X,k)
+!          CALL KICKTKT7(EL,DK,p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+          CALL KICKTKT7(EL,DK,p%X,k)   
+        endif
+       else
+          CALL PUSHTKT7(EL,p%X,k)
+       endif
+
+
+    CASE(4)
+       DK2=EL%L/EL%P%NST/3.0_dp
+       DK6=2.0_dp*DK2
+       DK=DK2/2.0_dp
+       DKh=dk/2.0_dp
+
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+
+       CALL KICKPATH(EL,DK,p%X,k)
+       CALL PUSHTKT7(EL,p%X,k)
+       CALL KICKPATH(EL,DK2,p%X,k)
+
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK2,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK6)
+        CALL KICKTKT7(EL,DK2,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK6,p%X,k)
+        endif
+ 
+
+       CALL KICKPATH(EL,DK2,p%X,k)
+       CALL PUSHTKT7(EL,p%X,k)
+       CALL KICKPATH(EL,DK,p%X,k)
+
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+
+    CASE(5)
+
+       if(EL%F==1) then
+          f1=0
+       else
+          f1=3*EL%F+1
+       endif
+
+       DK2=14.0_dp*EL%L/(EL%P%NST/EL%F/4)/90.0_dp  ! 14/90
+       DK4=32.0_dp*EL%L/(EL%P%NST/EL%F/4)/90.0_dp  ! 32/90
+       DK6=12.0_dp*EL%L/(EL%P%NST/EL%F/4)/90.0_dp  ! 12/90
+       DK5=DK6/2.0_dp  ! 6/90
+       DK=DK2/2.0_dp    ! 7/90
+       DK4h=DK4/2.0_dp
+       DKh=DK/2.0_dp
+       if(mod(pos,EL%F*4)==EL%F+1) then
+!          CALL KICKTKT7(EL,DK4,p%X,k)  ! 32/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DK4h,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+            CALL KICKTKT7(EL,DK4h,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK4,p%X,k)
+         endif
+          CALL KICKPATH(EL,DK4,p%X,k)  ! 32/90
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(mod(pos,EL%F*4)==f1) then
+          CALL KICKPATH(EL,DK4,p%X,k)  ! 32/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DK4h,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+            CALL KICKTKT7(EL,DK4h,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK4,p%X,k)
+         endif
+!          CALL KICKTKT7(EL,DK4,p%X,k)  ! 32/90
+          CALL PUSHTKT7(EL,p%X,k)
+          if(f1==0.and.pos==EL%P%NST) then   ! this becomes nst
+             CALL KICKPATH(EL,DK,p%X,k)  ! 7/90
+ !            CALL KICKTKT7(EL,DK,p%X,k) !  7/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DKh,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK)
+            CALL KICKTKT7(EL,DKh,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK ,p%X,k)
+         endif
+          endif
+       elseif(mod(pos,EL%F*4)==2*EL%F+1) then
+          CALL KICKPATH(EL,DK5,p%X,k)  ! 6/90
+!          CALL KICKTKT7(EL,DK6,p%X,k)  ! 12/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DK5,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK6)
+            CALL KICKTKT7(EL,DK5,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK6 ,p%X,k)
+         endif
+          CALL KICKPATH(EL,DK5,p%X,k)  ! 6/90
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(mod(pos,EL%F*4)==1.and.pos/=1) then
+          CALL KICKPATH(EL,DK,p%X,k)  ! 7/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DK,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+            CALL KICKTKT7(EL,DK,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK2 ,p%X,k)
+         endif
+ !         CALL KICKTKT7(EL,DK2,p%X,k) ! 14/90
+          CALL KICKPATH(EL,DK,p%X,k)  ! 7/90
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(pos==1) then
+    !      CALL KICKTKT7(EL,DK,p%X,k)  ! 7/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DKh,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK)
+            CALL KICKTKT7(EL,DKh,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK ,p%X,k)
+         endif
+          CALL KICKPATH(EL,DK,p%X,k)  ! 7/90
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(pos==EL%P%NST) then
+          CALL PUSHTKT7(EL,p%X,k)
+          CALL KICKPATH(EL,DK,p%X,k)  ! 7/90
+!          CALL KICKTKT7(EL,DK,p%X,k) !  7/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DKh,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK)
+            CALL KICKTKT7(EL,DKh,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK ,p%X,k)
+         endif
+       else
+          CALL PUSHTKT7(EL,p%X,k)
+       endif
+
+    CASE(6)
+       DK2=14.0_dp*EL%L/EL%P%NST/90.0_dp  ! 14/90
+       DK4=32.0_dp*EL%L/EL%P%NST/90.0_dp  ! 32/90
+       DK6=12.0_dp*EL%L/EL%P%NST/90.0_dp  ! 12/90
+       DK5=DK6/2.0_dp  ! 6/90
+       DK=DK2/2.0_dp    ! 7/90
+       DKh=DK/2.0_dp   
+       DK4h=DK4/2.0_dp
+!       CALL KICKTKT7(EL,DK,p%X,k)  ! NEW
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+       CALL KICKPATH(EL,DK,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+  !     CALL KICKTKT7(EL,DK4,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK4,p%X,k)
+        endif
+       CALL KICKPATH(EL,DK4,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+       CALL KICKPATH(EL,DK5,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK5,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK6)
+        CALL KICKTKT7(EL,DK5,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK6,p%X,k)
+        endif
+!       CALL KICKTKT7(EL,DK6,p%X,k)   ! SYMMETRY POINT
+
+       CALL KICKPATH(EL,DK5,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+       CALL KICKPATH(EL,DK4,p%X,k)
+!       CALL KICKTKT7(EL,DK4,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK4,p%X,k)
+        endif
+       CALL PUSHTKT7(EL,p%X,k)
+       CALL KICKPATH(EL,DK,p%X,k)
+ !      CALL KICKTKT7(EL,DK,p%X,k)  ! NEW
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+          CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+    CASE(8)
+       DK=EL%L/EL%P%NST/840.0_dp  !  41/840
+       DK2=216.0_dp*dk   !  9/35
+       DK4=27.0_dp*dk    !  9/280
+       DK6=272.0_dp*dk  !   34/105
+       DK5=DK6/2.0_dp  !  
+       DK=41.0_dp*DK    !  41/840
+       DKh=dk/2.0_dp  !  
+       DK2h=dk2/2.0_dp  !  
+       DK4h=dk4/2.0_dp  !  
+ 
+   !    CALL KICKTKT7(EL,DK,X,k)  ! NEW
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+
+
+       CALL KICKPATH(EL,DK,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK2h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+        CALL KICKTKT7(EL,DK2h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK2,p%X,k)
+        endif
+
+       CALL KICKPATH(EL,DK2,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK4,p%X,k)
+        endif
+       CALL KICKPATH(EL,DK4,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+       CALL KICKPATH(EL,DK5,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK5,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK6) ! SYMMETRY POINT
+        CALL KICKTKT7(EL,DK5,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK6,p%X,k)
+        endif
+       CALL KICKPATH(EL,DK5,p%X,k)
+
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+       CALL KICKPATH(EL,DK4,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK4,p%X,k)
+        endif
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+
+       CALL KICKPATH(EL,DK2,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK2h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+        CALL KICKTKT7(EL,DK2h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK2,p%X,k)
+        endif
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+       CALL KICKPATH(EL,DK,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+    !       if(s_aperture_CHECK.and.associated(el%p%A).AND.CHECK_MADX_APERTURE) &
+    !       call check_S_APERTURE_out(el%p,pos,x)
+
+  END SUBROUTINE INTE_TKTF_prober
+
+ 
+
+  SUBROUTINE INTE_TKTF_probep(P,k,c,pos)
+    IMPLICIT NONE
+   TYPE(integration_node),pointer, INTENT(IN):: c
+    TYPE(TKTFP),pointer:: EL
+    type(fibre), pointer :: f
+    TYPE(probe_8), INTENT(INOUT) :: P
+    integer,optional :: pos
+    INTEGER f1
+    TYPE(REAL_8) DK,DK2,DK6,DK4,DK5,DK4h,DK2h,DKh
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
+    f=>c%parent_fibre
+    el=> f%magp%t7
+
+    SELECT CASE(EL%P%METHOD)
+    CASE(1)
+       CALL ALLOC(DK,DK2)
+       if(EL%F==1) then
+          f1=0
+       else
+          f1=EL%F+1
+       endif
+       DK2=EL%L/(EL%P%NST/EL%F/2)
+       DK=DK2/2.0_dp
+       IF(MOD(POS,2*EL%F)==f1) THEN
+          CALL KICKPATH(EL,DK,p%X,k)
+          CALL KICKTKT7(EL,DK2,p%x,k)
+        if(k%spin.or.k%radiation) then
+           call RAD_SPIN_qua_PROBE(c,p,k,dk2)
+        endif
+          CALL KICKPATH(EL,DK,p%x,k)
+       ENDIF
+       CALL PUSHTKT7(EL,p%x,k)
+       CALL KILL(DK,DK2)
+    CASE(2)
+       CALL ALLOC(DK,DK2)
+       DK2=EL%L/EL%P%NST
+       DK=DK2/2.0_dp
+
+       CALL PUSHTKT7(EL,p%X,k)
+       CALL KICKPATH(EL,DK,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk2)
+        CALL KICKTKT7(EL,DK,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK2,p%X,k)
+        endif
+
+       CALL KICKPATH(EL,DK,p%X,k)
+       CALL PUSHTKT7(EL,p%X,k)
+      CALL KILL(DK,DK2)
+    CASE(3)
+
+       if(EL%F==1) then
+          f1=0
+       else
+          f1=EL%F+1
+       endif
+       CALL ALLOC(DK,DK2,DK6,DKh)
+       DK=EL%L/(EL%P%NST/EL%F/2)/6.0_dp
+       DK2=DK*2.0_dp
+       DK6=2.0_dp*DK2
+       DKh=dk/2.0_dp
+       if(mod(pos,EL%F*2)==F1) then
+          CALL KICKPATH(EL,DK2,p%X,k)
+ ! 2/3
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,Dk2,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk6)
+        CALL KICKTKT7(EL,DK2,p%X,k)
+        else
+          CALL KICKTKT7(EL,DK6,p%X,k)   
+        endif
+
+          CALL KICKPATH(EL,DK2,p%X,k)
+          CALL PUSHTKT7(EL,p%X,k)
+          if(f1==0.and.pos==EL%P%NST) then   ! this becomes nst
+             CALL KICKPATH(EL,DK,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,Dkh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+             CALL KICKTKT7(EL,DK,p%X,k)  
+        endif
+
+          endif
+       elseif(mod(pos,EL%F*2)==1.and.pos/=1) then
+          CALL KICKPATH(EL,DK,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+        CALL KICKTKT7(EL,DK,p%X,k)
+        else
+          CALL KICKTKT7(EL,DK2,p%X,k)   
+        endif
+!          CALL KICKTKT7(EL,DK2,p%X,k)    ! 1/3
+          CALL KICKPATH(EL,DK,p%X,k)
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(pos==1) then             ! 1/6
+       !   CALL KICKTKT7(EL,DK,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+          CALL KICKTKT7(EL,DK,p%X,k)   
+        endif
+          CALL KICKPATH(EL,DK,p%X,k)
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(pos==EL%P%NST) then             ! 1/6
+          CALL PUSHTKT7(EL,p%X,k)
+          CALL KICKPATH(EL,DK,p%X,k)
+!          CALL KICKTKT7(EL,DK,p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+          CALL KICKTKT7(EL,DK,p%X,k)   
+        endif
+       else
+          CALL PUSHTKT7(EL,p%X,k)
+       endif
+       CALL kill(DK,DK2,DK6,DKh)
+
+    CASE(4)
+       CALL ALLOC(DK,DK2,DK6,DKh)
+
+       DK2=EL%L/EL%P%NST/3.0_dp
+       DK6=2.0_dp*DK2
+       DK=DK2/2.0_dp
+       DKh=dk/2.0_dp
+
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+
+       CALL KICKPATH(EL,DK,p%X,k)
+       CALL PUSHTKT7(EL,p%X,k)
+       CALL KICKPATH(EL,DK2,p%X,k)
+
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK2,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK6)
+        CALL KICKTKT7(EL,DK2,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK6,p%X,k)
+        endif
+ 
+
+       CALL KICKPATH(EL,DK2,p%X,k)
+       CALL PUSHTKT7(EL,p%X,k)
+       CALL KICKPATH(EL,DK,p%X,k)
+
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+       CALL kill(DK,DK2,DK6,DKh)
+
+    CASE(5)
+
+       if(EL%F==1) then
+          f1=0
+       else
+          f1=3*EL%F+1
+       endif
+       CALL ALLOC(DK,DK2,DK6,DK4,DK5,DK4h,dkh)
+       DK2=14.0_dp*EL%L/(EL%P%NST/EL%F/4)/90.0_dp  ! 14/90
+       DK4=32.0_dp*EL%L/(EL%P%NST/EL%F/4)/90.0_dp  ! 32/90
+       DK6=12.0_dp*EL%L/(EL%P%NST/EL%F/4)/90.0_dp  ! 12/90
+       DK5=DK6/2.0_dp  ! 6/90
+       DK=DK2/2.0_dp    ! 7/90
+       DK4h=DK4/2.0_dp
+       DKh=DK/2.0_dp
+       if(mod(pos,EL%F*4)==EL%F+1) then
+!          CALL KICKTKT7(EL,DK4,p%X,k)  ! 32/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DK4h,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+            CALL KICKTKT7(EL,DK4h,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK4,p%X,k)
+         endif
+          CALL KICKPATH(EL,DK4,p%X,k)  ! 32/90
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(mod(pos,EL%F*4)==f1) then
+          CALL KICKPATH(EL,DK4,p%X,k)  ! 32/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DK4h,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+            CALL KICKTKT7(EL,DK4h,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK4,p%X,k)
+         endif
+!          CALL KICKTKT7(EL,DK4,p%X,k)  ! 32/90
+          CALL PUSHTKT7(EL,p%X,k)
+          if(f1==0.and.pos==EL%P%NST) then   ! this becomes nst
+             CALL KICKPATH(EL,DK,p%X,k)  ! 7/90
+ !            CALL KICKTKT7(EL,DK,p%X,k) !  7/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DKh,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK)
+            CALL KICKTKT7(EL,DKh,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK ,p%X,k)
+         endif
+          endif
+       elseif(mod(pos,EL%F*4)==2*EL%F+1) then
+          CALL KICKPATH(EL,DK5,p%X,k)  ! 6/90
+!          CALL KICKTKT7(EL,DK6,p%X,k)  ! 12/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DK5,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK6)
+            CALL KICKTKT7(EL,DK5,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK6 ,p%X,k)
+         endif
+          CALL KICKPATH(EL,DK5,p%X,k)  ! 6/90
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(mod(pos,EL%F*4)==1.and.pos/=1) then
+          CALL KICKPATH(EL,DK,p%X,k)  ! 7/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DK,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+            CALL KICKTKT7(EL,DK,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK2 ,p%X,k)
+         endif
+ !         CALL KICKTKT7(EL,DK2,p%X,k) ! 14/90
+          CALL KICKPATH(EL,DK,p%X,k)  ! 7/90
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(pos==1) then
+    !      CALL KICKTKT7(EL,DK,p%X,k)  ! 7/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DKh,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK)
+            CALL KICKTKT7(EL,DKh,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK ,p%X,k)
+         endif
+          CALL KICKPATH(EL,DK,p%X,k)  ! 7/90
+          CALL PUSHTKT7(EL,p%X,k)
+       elseif(pos==EL%P%NST) then
+          CALL PUSHTKT7(EL,p%X,k)
+          CALL KICKPATH(EL,DK,p%X,k)  ! 7/90
+!          CALL KICKTKT7(EL,DK,p%X,k) !  7/90
+          if(k%spin.or.k%radiation) then
+            CALL KICKTKT7(EL,DKh,p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK)
+            CALL KICKTKT7(EL,DKh,p%X,k)
+          else
+            CALL KICKTKT7(EL,DK ,p%X,k)
+         endif
+       else
+          CALL PUSHTKT7(EL,p%X,k)
+       endif
+       CALL kill(DK,DK2,DK6,DK4,DK5,DK4h,dkh)
+
+    CASE(6)
+      CALL ALLOC(DK,DK2,DK6,DK4,DK5,DKh,DK4h)
+       DK2=14.0_dp*EL%L/EL%P%NST/90.0_dp  ! 14/90
+       DK4=32.0_dp*EL%L/EL%P%NST/90.0_dp  ! 32/90
+       DK6=12.0_dp*EL%L/EL%P%NST/90.0_dp  ! 12/90
+       DK5=DK6/2.0_dp  ! 6/90
+       DK=DK2/2.0_dp    ! 7/90
+       DKh=DK/2.0_dp   
+       DK4h=DK4/2.0_dp
+!       CALL KICKTKT7(EL,DK,p%X,k)  ! NEW
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+       CALL KICKPATH(EL,DK,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+  !     CALL KICKTKT7(EL,DK4,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK4,p%X,k)
+        endif
+       CALL KICKPATH(EL,DK4,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+       CALL KICKPATH(EL,DK5,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK5,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK6)
+        CALL KICKTKT7(EL,DK5,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK6,p%X,k)
+        endif
+!       CALL KICKTKT7(EL,DK6,p%X,k)   ! SYMMETRY POINT
+
+       CALL KICKPATH(EL,DK5,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+       CALL KICKPATH(EL,DK4,p%X,k)
+!       CALL KICKTKT7(EL,DK4,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK4,p%X,k)
+        endif
+       CALL PUSHTKT7(EL,p%X,k)
+       CALL KICKPATH(EL,DK,p%X,k)
+ !      CALL KICKTKT7(EL,DK,p%X,k)  ! NEW
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+          CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+      CALL kill(DK,DK2,DK6,DK4,DK5,DKh,DK4h)
+
+    CASE(8)
+       CALL alloc(DK,DK2,DK6,DK4,DK5,DKh,DK2h,DK4h)
+       DK=EL%L/EL%P%NST/840.0_dp  !  41/840
+       DK2=216.0_dp*dk   !  9/35
+       DK4=27.0_dp*dk    !  9/280
+       DK6=272.0_dp*dk  !   34/105
+       DK5=DK6/2.0_dp  !  
+       DK=41.0_dp*DK    !  41/840
+       DKh=dk/2.0_dp  !  
+       DK2h=dk2/2.0_dp  !  
+       DK4h=dk4/2.0_dp  !  
+ 
+   !    CALL KICKTKT7(EL,DK,X,k)  ! NEW
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+
+
+       CALL KICKPATH(EL,DK,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK2h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+        CALL KICKTKT7(EL,DK2h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK2,p%X,k)
+        endif
+
+       CALL KICKPATH(EL,DK2,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK4,p%X,k)
+        endif
+       CALL KICKPATH(EL,DK4,p%X,k)
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+       CALL KICKPATH(EL,DK5,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK5,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK6) ! SYMMETRY POINT
+        CALL KICKTKT7(EL,DK5,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK6,p%X,k)
+        endif
+       CALL KICKPATH(EL,DK5,p%X,k)
+
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+       CALL KICKPATH(EL,DK4,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK4)
+        CALL KICKTKT7(EL,DK4h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK4,p%X,k)
+        endif
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+
+       CALL KICKPATH(EL,DK2,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DK2h,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+        CALL KICKTKT7(EL,DK2h,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK2,p%X,k)
+        endif
+
+       CALL PUSHTKT7(EL,p%X,k)
+
+       CALL KICKPATH(EL,DK,p%X,k)
+        if(k%spin.or.k%radiation) then
+        CALL KICKTKT7(EL,DKh,p%X,k)
+           call RAD_SPIN_qua_PROBE(c,p,k,dk)
+        CALL KICKTKT7(EL,DKh,p%X,k)
+        else
+       CALL KICKTKT7(EL,DK,p%X,k)
+        endif
+       CALL kill(DK,DK2,DK6,DK4,DK5,DKh,DK2h,DK4h)
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+    !       if(s_aperture_CHECK.and.associated(el%p%A).AND.CHECK_MADX_APERTURE) &
+    !       call check_S_APERTURE_out(el%p,pos,x)
+
+  END SUBROUTINE INTE_TKTF_probep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!    STREX PROBE     !!!!!!!!!!!!!!!!!!!!!!!!!!! 
+! 
+  SUBROUTINE INTE_STREX_prober(p,k,c,pos)
+    IMPLICIT NONE
+    TYPE(STREX),pointer::  EL
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+    real(dp) D,DH,DD
+    real(dp) D1,D2,DK1,DK2,dk2h,dk1h
+    real(dp) DD1,DD2
+    real(dp) DF(4),DK(4),DKH(4),DDF(4)
+    real(dp) NDF(0:15),NDK(15),NDKH(15),NDDF(0:15)
+    INTEGER I,J,f1,pos
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
+    f=>c%parent_fibre
+    el=> f%mag%k16
+
+    IF(EL%DRIFTKICK) THEN
+
+       SELECT CASE(EL%P%METHOD)
+       CASE(1)
+          if(EL%F==1) then
+             f1=0
+          else
+             f1=EL%F+1
+          endif
+          DH=EL%L/EL%P%NST
+          D=EL%L/(EL%P%NST/EL%F/2)
+          DD=EL%P%LD/EL%P%NST
+
+          IF(MOD(POS,2*EL%F)==f1) THEN
+             CALL KICKEX (EL,D,p%X,k)
+       if(k%spin.or.k%radiation) then
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+        endif
+       ENDIF
+        
+          CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       CASE(2)
+          DH=EL%L/2.0_dp/EL%P%NST
+          D=EL%L/EL%P%NST
+          DD=EL%P%LD/2.0_dp/EL%P%NST
+
+          CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+         CALL KICKEX (EL,Dh,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+         CALL KICKEX (EL,Dh,p%X,k)
+         else
+        CALL KICKEX (EL,D,p%X,k)
+        endif
+          
+          CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       CASE(4)
+          D1=EL%L*FD1/EL%P%NST
+          D2=EL%L*FD2/EL%P%NST
+          DD1=EL%P%LD*FD1/EL%P%NST
+          DD2=EL%P%LD*FD2/EL%P%NST
+          DK1=EL%L*FK1/EL%P%NST
+          DK2=EL%L*FK2/EL%P%NST
+       if(k%spin.or.k%radiation) then
+           DK1h=EL%L*FK1/EL%P%NST/2.0_DP
+           DK2h=EL%L*FK2/EL%P%NST/2.0_DP
+       endif
+
+         CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK1h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+             CALL KICKEX (EL,DK1h,p%X,k)
+            else
+             CALL KICKEX (EL,DK1,p%X,k)
+            endif
+          CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK2h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+             CALL KICKEX (EL,DK2h,p%X,k)
+            else
+             CALL KICKEX (EL,DK2,p%X,k)
+            endif
+          CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK1h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+             CALL KICKEX (EL,DK1h,p%X,k)
+            else
+             CALL KICKEX (EL,DK1,p%X,k)
+            endif
+          CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       CASE(6)
+          DO I =1,4
+             DF(I)=EL%L*YOSD(I)/EL%P%NST
+             DDF(I)=EL%P%LD*YOSD(I)/EL%P%NST
+             DK(I)=EL%L*YOSK(I)/EL%P%NST
+          ENDDO
+       if(k%spin.or.k%radiation) then
+        do I =1,4
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+        enddo
+       endif
+          DO J=4,2,-1
+             CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+           if(k%spin.or.k%radiation) then
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            else
+              CALL KICKEX (EL,DK(J),p%X,k)
+            endif
+          ENDDO
+          CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+             if(k%spin.or.k%radiation) then
+              CALL KICKEX (EL,DKH(1),p%X,k)
+              call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
+              CALL KICKEX (EL,DKH(1),p%X,k)
+              else
+                CALL KICKEX (EL,DK(1),p%X,k)
+              endif
+          CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+          DO J=2,4
+           if(k%spin.or.k%radiation) then
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            else
+              CALL KICKEX (EL,DK(J),p%X,k)
+            endif
+             CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+          ENDDO
+       CASE(8)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDKH(I)=EL%L*wyoshik(I)/EL%P%NST/2.0_dp
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST 
+       ENDDO
+
+             CALL DRIFT(NDF(0),NDDF(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       DO J=1,15
+       if(k%spin.or.k%radiation) then
+        CALL KICKEX (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICKEX (EL,NDKH(J),p%X,k)
+        else
+          CALL KICKEX (EL,NDK(J),p%X,k)
+        endif
+             CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       ENDDO
+ 
+       CASE DEFAULT
+          !w_p=0
+          !w_p%nc=1
+          !w_p%fc='(1(1X,A72))'
+            write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+          ! call !write_e(357)
+       END SELECT
+    ELSE
+       SELECT CASE(EL%P%METHOD)
+       CASE(2)
+          DH=EL%L/2.0_dp/EL%P%NST
+          D=EL%L/EL%P%NST
+          DD=EL%P%LD/2.0_dp/EL%P%NST
+
+          CALL SPAR(EL,DH,DD,p%X,k)
+       if(k%spin.or.k%radiation) then
+         CALL KICKEX (EL,Dh,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+         CALL KICKEX (EL,Dh,p%X,k)
+         else
+        CALL KICKEX (EL,D,p%X,k)
+        endif
+          CALL SPAR(EL,DH,DD,p%X,k)
+
+       CASE(4)
+          D1=EL%L*FD1/EL%P%NST
+          D2=EL%L*FD2/EL%P%NST
+          DD1=EL%P%LD*FD1/EL%P%NST
+          DD2=EL%P%LD*FD2/EL%P%NST
+          DK1=EL%L*FK1/EL%P%NST
+          DK2=EL%L*FK2/EL%P%NST
+
+       if(k%spin.or.k%radiation) then
+           DK1h=EL%L*FK1/EL%P%NST/2.0_DP
+           DK2h=EL%L*FK2/EL%P%NST/2.0_DP
+       endif
+
+          CALL SPAR(EL,D1,DD1,p%X,k)
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK1h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+             CALL KICKEX (EL,DK1h,p%X,k)
+            else
+             CALL KICKEX (EL,DK1,p%X,k)
+            endif
+          CALL SPAR(EL,D2,DD2,p%X,k)
+ 
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK2h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+             CALL KICKEX (EL,DK2h,p%X,k)
+            else
+             CALL KICKEX (EL,DK2,p%X,k)
+            endif
+
+          CALL SPAR(EL,D2,DD2,p%X,k)
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK1h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+             CALL KICKEX (EL,DK1h,p%X,k)
+            else
+             CALL KICKEX (EL,DK1,p%X,k)
+            endif
+          CALL SPAR(EL,D1,DD1,p%X,k)
+
+
+ 
+       CASE(6)
+
+
+          DO I =1,4
+             DF(I)=EL%L*YOSD(I)/EL%P%NST
+             DDF(I)=EL%P%LD*YOSD(I)/EL%P%NST
+             DK(I)=EL%L*YOSK(I)/EL%P%NST
+          ENDDO
+       if(k%spin.or.k%radiation) then
+        do I =1,4
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+        enddo
+       endif
+
+ 
+
+          DO J=4,2,-1
+             CALL SPAR(EL,DF(J),DDF(J),p%X,k)
+           if(k%spin.or.k%radiation) then
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            else
+              CALL KICKEX (EL,DK(J),p%X,k)
+            endif
+          ENDDO
+
+
+
+          CALL SPAR(EL,DF(1),DDF(1),p%X,k)
+              if(k%spin.or.k%radiation) then
+              CALL KICKEX (EL,DKH(1),p%X,k)
+              call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
+              CALL KICKEX (EL,DKH(1),p%X,k)
+              else
+                CALL KICKEX (EL,DK(1),p%X,k)
+              endif
+
+          CALL SPAR(EL,DF(1),DDF(1),p%X,k)
+          DO J=2,4
+           if(k%spin.or.k%radiation) then
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            else
+              CALL KICKEX (EL,DK(J),p%X,k)
+            endif
+             CALL SPAR(EL,DF(J),DDF(J),p%X,k)
+          ENDDO
+       CASE(8)
+!  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDKH(I)=EL%L*wyoshik(I)/EL%P%NST/2.0_dp
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST 
+       ENDDO
+             CALL SPAR(EL,NDF(0),NDDF(0),p%X,k)
+       DO J=1,15
+       if(k%spin.or.k%radiation) then
+        CALL KICKEX (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICKEX (EL,NDKH(J),p%X,k)
+        else
+          CALL KICKEX (EL,NDK(J),p%X,k)
+        endif
+             CALL SPAR(EL,NDF(J),NDDF(J),p%X,k)
+       ENDDO
+       CASE DEFAULT
+          !w_p=0
+          !w_p%nc=1
+          !w_p%fc='(1(1X,A72))'
+            write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+          ! call !write_e(357)
+       END SELECT
+
+    ENDIF
+
+
+  END SUBROUTINE INTE_STREX_prober
+
+
+  SUBROUTINE INTE_STREX_probep(p,k,c,pos)
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    TYPE(STREXP),pointer:: EL
+    TYPE(probe_8), INTENT(INOUT) :: P
+    real(dp) DD
+    real(dp) DD1,DD2
+    real(dp) DDF(4)
+    TYPE(REAL_8) DH,D,D1,D2,DK1,DK2,DF(4),DK(4)
+    real(dp)  NDDF(0:15)
+    type(real_8) NDF(0:15),NDK(15) 
+    INTEGER I,J,f1,pos
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(fibre), pointer :: f
+    TYPE(REAL_8)  dk2h,dk1h
+    type(real_8) DKH(4)
+    type(real_8)  NDKH(15) 
+
+    f=>c%parent_fibre
+    el=> f%magp%k16
+
+    IF(EL%DRIFTKICK) THEN
+
+       SELECT CASE(EL%P%METHOD)
+       CASE(1)
+          if(EL%F==1) then
+             f1=0
+          else
+             f1=EL%F+1
+          endif
+          CALL ALLOC(DH,D)
+          DH=EL%L/EL%P%NST
+          D=EL%L/(EL%P%NST/EL%F/2)
+          DD=EL%P%LD/EL%P%NST
+
+          IF(MOD(POS,2*EL%F)==f1) THEN
+             CALL KICKEX (EL,D,p%X,k)
+        if(k%spin.or.k%radiation) then
+         call RAD_SPIN_qua_PROBE(c,p,k,d)
+        endif
+          ENDIF
+          CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+          CALL kill(DH,D)
+       CASE(2)
+          CALL ALLOC(DH,D)
+          DH=EL%L/2.0_dp/EL%P%NST
+          D=EL%L/EL%P%NST
+          DD=EL%P%LD/2.0_dp/EL%P%NST
+
+          CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+         CALL KICKEX (EL,Dh,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+         CALL KICKEX (EL,Dh,p%X,k)
+         else
+        CALL KICKEX (EL,D,p%X,k)
+        endif
+
+          CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+          CALL KILL(DH,D)
+
+       CASE(4)
+          CALL ALLOC(D1,D2,DK1,DK2)
+          D1=EL%L*FD1/EL%P%NST
+          D2=EL%L*FD2/EL%P%NST
+          DD1=EL%P%LD*FD1/EL%P%NST
+          DD2=EL%P%LD*FD2/EL%P%NST
+          DK1=EL%L*FK1/EL%P%NST
+          DK2=EL%L*FK2/EL%P%NST
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DK1h,DK2h)
+           DK1h=EL%L*FK1/EL%P%NST/2.0_DP
+           DK2h=EL%L*FK2/EL%P%NST/2.0_DP
+       endif
+
+          CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK1h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+             CALL KICKEX (EL,DK1h,p%X,k)
+            else
+             CALL KICKEX (EL,DK1,p%X,k)
+            endif
+          CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK2h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+             CALL KICKEX (EL,DK2h,p%X,k)
+            else
+             CALL KICKEX (EL,DK2,p%X,k)
+            endif
+          CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK1h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+             CALL KICKEX (EL,DK1h,p%X,k)
+            else
+             CALL KICKEX (EL,DK1,p%X,k)
+            endif
+          CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+          CALL KILL(D1,D2,DK1,DK2)
+       if(k%spin.or.k%radiation) CALL KILL(DK1h,DK2h)
+
+       CASE(6)
+          CALL ALLOC(DF,4);CALL ALLOC(DK,4);
+          DO I =1,4
+             DF(I)=EL%L*YOSD(I)/EL%P%NST
+             DDF(I)=EL%P%LD*YOSD(I)/EL%P%NST
+             DK(I)=EL%L*YOSK(I)/EL%P%NST
+          ENDDO
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DKH,4); 
+        do I =1,4
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+        enddo
+       endif
+          DO J=4,2,-1
+             CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+           if(k%spin.or.k%radiation) then
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            else
+              CALL KICKEX (EL,DK(J),p%X,k)
+            endif
+          ENDDO
+          CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+             if(k%spin.or.k%radiation) then
+              CALL KICKEX (EL,DKH(1),p%X,k)
+              call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
+              CALL KICKEX (EL,DKH(1),p%X,k)
+              else
+                CALL KICKEX (EL,DK(1),p%X,k)
+              endif
+          CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+          DO J=2,4
+           if(k%spin.or.k%radiation) then
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            else
+              CALL KICKEX (EL,DK(J),p%X,k)
+            endif
+             CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+          ENDDO
+          CALL KILL(DF,4);CALL KILL(DK,4);
+       if(k%spin.or.k%radiation) CALL KILL(DKH,4); 
+!!! newyoshida
+    CASE(8)
+!    real(dp)  NDDF(0:15)
+!    type(real_8) NDF(0:15),NDK(15)
+
+       CALL ALLOC(NDF);CALL ALLOC(NDK);
+   if(k%spin.or.k%radiation) CALL alloc(NDKH)
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDKH(I)=EL%L*wyoshik(I)/EL%P%NST/2.0_dp
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST 
+       ENDDO
+          CALL DRIFT(NDF(0),NDDF(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       DO J=1,15
+       if(k%spin.or.k%radiation) then
+        CALL KICKEX (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICKEX (EL,NDKH(J),p%X,k)
+        else
+          CALL KICKEX (EL,NDK(J),p%X,k)
+        endif
+             CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       ENDDO
+ 
+       CALL KILL(NDF);CALL KILL(NDK);
+   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+
+       CASE DEFAULT
+          !w_p=0
+          !w_p%nc=1
+          !w_p%fc='(1(1X,A72))'
+            write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+          ! call !write_e(357)
+       END SELECT
+    ELSE
+       SELECT CASE(EL%P%METHOD)
+       CASE(2)
+          CALL ALLOC(DH,D)
+          DH=EL%L/2.0_dp/EL%P%NST
+          D=EL%L/EL%P%NST
+          DD=EL%P%LD/2.0_dp/EL%P%NST
+
+          CALL SPAR(EL,DH,DD,p%X,k)
+       if(k%spin.or.k%radiation) then
+         CALL KICKEX (EL,Dh,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+         CALL KICKEX (EL,Dh,p%X,k)
+         else
+        CALL KICKEX (EL,D,p%X,k)
+        endif
+          CALL SPAR(EL,DH,DD,p%X,k)
+          CALL KILL(DH,D)
+
+       CASE(4)
+          CALL ALLOC(D1,D2,DK1,DK2)
+          D1=EL%L*FD1/EL%P%NST
+          D2=EL%L*FD2/EL%P%NST
+          DD1=EL%P%LD*FD1/EL%P%NST
+          DD2=EL%P%LD*FD2/EL%P%NST
+          DK1=EL%L*FK1/EL%P%NST
+          DK2=EL%L*FK2/EL%P%NST
+
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DK1h,DK2h)
+           DK1h=EL%L*FK1/EL%P%NST/2.0_DP
+           DK2h=EL%L*FK2/EL%P%NST/2.0_DP
+       endif
+
+          CALL SPAR(EL,D1,DD1,p%X,k)
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK1h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+             CALL KICKEX (EL,DK1h,p%X,k)
+            else
+             CALL KICKEX (EL,DK1,p%X,k)
+            endif
+          CALL SPAR(EL,D2,DD2,p%X,k)
+ 
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK2h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,DK2)
+             CALL KICKEX (EL,DK2h,p%X,k)
+            else
+             CALL KICKEX (EL,DK2,p%X,k)
+            endif
+          CALL SPAR(EL,D2,DD2,p%X,k)
+            if(k%spin.or.k%radiation) then
+             CALL KICKEX (EL,DK1h,p%X,k)
+             call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+             CALL KICKEX (EL,DK1h,p%X,k)
+            else
+             CALL KICKEX (EL,DK1,p%X,k)
+            endif
+          CALL SPAR(EL,D1,DD1,p%X,k)
+          CALL KILL(D1,D2,DK1,DK2)
+       if(k%spin.or.k%radiation) CALL KILL(DK1h,DK2h)
+       CASE(6)
+          CALL ALLOC(DF,4);CALL ALLOC(DK,4);
+          DO I =1,4
+             DF(I)=EL%L*YOSD(I)/EL%P%NST
+             DDF(I)=EL%P%LD*YOSD(I)/EL%P%NST
+             DK(I)=EL%L*YOSK(I)/EL%P%NST
+          ENDDO
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DKH,4); 
+        do I =1,4
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+        enddo
+       endif
+
+          DO J=4,2,-1
+             CALL SPAR(EL,DF(J),DDF(J),p%X,k)
+           if(k%spin.or.k%radiation) then
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            else
+              CALL KICKEX (EL,DK(J),p%X,k)
+            endif
+          ENDDO
+          CALL SPAR(EL,DF(1),DDF(1),p%X,k)
+              if(k%spin.or.k%radiation) then
+              CALL KICKEX (EL,DKH(1),p%X,k)
+              call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
+              CALL KICKEX (EL,DKH(1),p%X,k)
+              else
+                CALL KICKEX (EL,DK(1),p%X,k)
+              endif
+          CALL SPAR(EL,DF(1),DDF(1),p%X,k)
+          DO J=2,4
+           if(k%spin.or.k%radiation) then
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+            CALL KICKEX (EL,DKH(J),p%X,k)
+            else
+              CALL KICKEX (EL,DK(J),p%X,k)
+            endif
+             CALL SPAR(EL,DF(J),DDF(J),p%X,k)
+          ENDDO
+          CALL KILL(DF,4);CALL KILL(DK,4);
+       if(k%spin.or.k%radiation) CALL KILL(DKH,4); 
+!!! newyoshida
+    CASE(8)
+!    real(dp)  NDDF(0:15)
+!    type(real_8) NDF(0:15),NDK(15)
+
+       CALL ALLOC(NDF);CALL ALLOC(NDK);
+   if(k%spin.or.k%radiation) CALL alloc(NDKH)
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDKH(I)=EL%L*wyoshik(I)/EL%P%NST/2.0_dp
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST 
+       ENDDO
+             CALL SPAR(EL,NDF(0),NDDF(0),p%X,k)
+
+       DO J=1,15
+       if(k%spin.or.k%radiation) then
+        CALL KICKEX (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICKEX (EL,NDKH(J),p%X,k)
+        else
+          CALL KICKEX (EL,NDK(J),p%X,k)
+        endif
+             CALL SPAR(EL,NDF(J),NDDF(J),p%X,k)
+       ENDDO
+ 
+       CALL KILL(NDF);CALL KILL(NDK);
+   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+       CASE DEFAULT
+          !w_p=0
+          !w_p%nc=1
+          !w_p%fc='(1(1X,A72))'
+            write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+          ! call !write_e(357)
+       END SELECT
+
+    ENDIF
+
+
+  END SUBROUTINE INTE_STREX_probep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!    DKD2 PROBE     !!!!!!!!!!!!!!!!!!!!!!!!!!! 
-
+! 
   SUBROUTINE INTE_dkd2_prober(p,k,c)
     IMPLICIT NONE
     type(probe), INTENT(INOUT) :: p
@@ -22759,9 +26519,10 @@ stop 998
        IF(MOD(POS,2*EL%F)==f1) THEN
           CALL KICK (EL,D,p%X,k)
        if(k%spin.or.k%radiation) then
-        call dkd2_qua_PROBE(c,p,k,d)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
         endif
        ENDIF
+
        CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
 
     CASE(2)
@@ -22771,7 +26532,7 @@ stop 998
        CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        if(k%spin.or.k%radiation) then
         CALL KICK (EL,DH,p%X,k)
-        call dkd2_qua_PROBE(c,p,k,d)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
         CALL KICK (EL,Dh,p%X,k)
         else
         CALL KICK (EL,D,p%X,k)
@@ -22798,7 +26559,7 @@ stop 998
 !       CALL KICK (EL,DK1,p%X,k)
        if(k%spin.or.k%radiation) then
         CALL KICK (EL,DK1h,p%X,k)
-        call dkd2_qua_PROBE(c,p,k,dk1)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk1)
         CALL KICK (EL,DK1h,p%X,k)
         else
         CALL KICK (EL,DK1,p%X,k)
@@ -22806,7 +26567,7 @@ stop 998
        CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        if(k%spin.or.k%radiation) then
         CALL KICK (EL,DK2h,p%X,k)
-        call dkd2_qua_PROBE(c,p,k,dk2)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk2)
         CALL KICK (EL,DK2h,p%X,k)
         else
         CALL KICK (EL,DK2,p%X,k)
@@ -22814,7 +26575,7 @@ stop 998
        CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        if(k%spin.or.k%radiation) then
         CALL KICK (EL,DK1h,p%X,k)
-        call dkd2_qua_PROBE(c,p,k,dk1)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk1)
         CALL KICK (EL,DK1h,p%X,k)
         else
         CALL KICK (EL,DK1,p%X,k)
@@ -22842,7 +26603,7 @@ stop 998
           CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        if(k%spin.or.k%radiation) then
         CALL KICK (EL,DKH(J),p%X,k)
-        call dkd2_qua_PROBE(c,p,k,DK(J))
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
         CALL KICK (EL,DKH(J),p%X,k)
         else
           CALL KICK (EL,DK(J),p%X,k)
@@ -22852,7 +26613,7 @@ stop 998
        CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        if(k%spin.or.k%radiation) then
         CALL KICK (EL,DKH(1),p%X,k)
-        call dkd2_qua_PROBE(c,p,k,DK(1))
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
         CALL KICK (EL,DKH(1),p%X,k)
         else
           CALL KICK (EL,DK(1),p%X,k)
@@ -22863,7 +26624,7 @@ stop 998
        DO J=2,4
        if(k%spin.or.k%radiation) then
         CALL KICK (EL,DKH(J),p%X,k)
-        call dkd2_qua_PROBE(c,p,k,DK(J))
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
         CALL KICK (EL,DKH(J),p%X,k)
         else
           CALL KICK (EL,DK(J),p%X,k)
@@ -22888,7 +26649,7 @@ stop 998
        DO J=1,15
        if(k%spin.or.k%radiation) then
         CALL KICK (EL,NDKH(J),p%X,k)
-        call dkd2_qua_PROBE(c,p,k,NDK(J))
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
         CALL KICK (EL,NDKH(J),p%X,k)
         else
           CALL KICK (EL,NDK(J),p%X,k)
@@ -22907,22 +26668,155 @@ stop 998
 
   END SUBROUTINE INTE_dkd2_prober
 
-SUBROUTINE dkd2_qua_PROBER(c,p,k,ds)
+
+SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo)
+    real(dp), INTENT(INOUT) :: x(6),om(3)
+    real(dp),INTENT(INOUT) :: fo(6)    
+    TYPE(fibre),pointer ::  f
+    TYPE(integration_node),pointer :: c
+    REAL(DP)  B(3),XP(2),XPA(2),ed(3) 
+    REAL(DP) b2,dlds,ff(6)
+    TYPE(INTERNAL_STATE) k 
+     integer i,pos
+
+     pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
+     CALL get_omega_spin(c,OM,B2,dlds,XP,X,pos,k,Ed,B)
+
+
+   do i=1,3
+     om(i)=om(i)/2.0_dp
+    enddo
+    
+    if(k%radiation) then 
+     call radiate_2_force(c,x,b2,dlds,k,POS,ff)
+     fo=fo+ff
+    endif
+
+ end SUBROUTINE RAD_SPIN_force_PROBER
+
+ SUBROUTINE RAD_SPIN_force_PROBEp(c,x,om,k,fo,e_ij)
+    type(real_8), INTENT(INOUT) :: x(6),om(3)
+    type(real_8),INTENT(INOUT) :: fo(6)    
+    TYPE(fibre),pointer ::  f
+    TYPE(integration_node),pointer :: c
+    type(real_8)  B(3),XP(2),XPA(2),ed(3) 
+    type(real_8)  b2,dlds ,ff(6)
+    TYPE(INTERNAL_STATE) k 
+    real(dp),intent(inout) :: e_ij(6,6)
+     integer i,pos
+
+     call alloc(b2,dlds)
+     call alloc(ff)
+     call alloc(b)
+     call alloc(XP)
+     call alloc(XPA)
+     call alloc(ed)
+
+ 
+     pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
+     CALL get_omega_spin(c,OM,B2,dlds,XP,X,pos,k,Ed,B)
+
+
+   do i=1,3
+     om(i)=om(i)/2.0_dp
+    enddo
+
+    if(k%radiation) then
+     call radiate_2_force(c,x,b2,dlds,k,POS,ff)
+     do i=1,6
+      fo(i)=fo(i)+ff(i)
+     enddo
+    endif
+    if(k%envelope) then
+    call radiate_envelope(c,x,b2,dlds,XP,k, e_ij)
+    endif
+     call kill(b2,dlds)
+     call kill(ff)
+     call kill(b)
+     call kill(XP)
+     call kill(XPA)
+     call kill(ed)
+ end SUBROUTINE RAD_SPIN_force_PROBEp
+
+
+  subroutine radiate_envelope(c,xx,b2,dlds,XP,k, e_ij)
+    implicit none
+    TYPE(integration_node), POINTER::c
+    TYPE(ELEMENTP), POINTER::EL
+    TYPE(REAL_8),INTENT(INOUT) ::XP(2) 
+    TYPE(REAL_8),INTENT(INOUT) :: xx(6)
+    real(dp),INTENT(INOUT) :: e_ij(6,6)
+    TYPE(REAL_8), intent(in):: B2,dlds
+    TYPE(REAL_8) st,av(3),z,x(6)
+    type(quaternion) q
+    real(dp) b30,x1,x3,denf  , denf0
+    type(damap) xpmap
+    integer i,j 
+    type(internal_state) k
+    IF(.NOT.CHECK_STABLE) return
+ 
+    e_ij=0
+
+ 
+     x=xx
+
+    el=>c%parent_fibre%magp
+ 
+
+       denf=(1.0_dp+x(5))**5/SQRT((1.0_dp+X(5))**2-Xp(1)**2-Xp(2)**2)
+ 
+
+       b30=b2
+       b30=b30**1.5e0_dp
+       denf0=cflucf(el%p)
+       denf=denf0*b30 *denf
+ 
+       call alloc(xpmap)
+
+       xpmap%v(1)=x(1)
+       xpmap%v(3)=x(3)
+       xpmap%v(5)=x(5)
+       xpmap%v(6)=x(6)
+     !  xpmap%v(2)=xp(1)
+     !  xpmap%v(4)=xp(2)
+       xpmap%v(2)=x(2)
+       xpmap%v(4)=x(4)
+
+       xpmap=xpmap**(-1)
+
+       do i=1,6
+          do j=1,6
+             X1=(xpmap%v(i)).sub.'000010'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
+             X3=(xpmap%v(j)).sub.'000010'
+            E_IJ(i,j)=E_IJ(i,j)+denf*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+          enddo
+       enddo    
+       call kill(xpmap)
+ 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  end subroutine radiate_envelope
+
+
+
+
+SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds)
     type(probe), INTENT(INOUT) :: p
     TYPE(fibre),pointer ::  f
-    TYPE(integration_node),pointer, INTENT(IN):: c
-    real(dp), intent(in) ::ds
+    TYPE(integration_node),pointer :: c
+    real(dp), intent(inout) ::ds
     REAL(DP)  B(3),XP(2),XPA(2),ed(3)
-    REAL(DP) om(3),h,b2,dlds,FAC
+    REAL(DP) om(3),b2,dlds,FAC
      TYPE(INTERNAL_STATE) k 
       logical before
-     integer i
+     integer i,pos
      FAC=0.5_dp
      f=> c%parent_fibre
-
-    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,0,k,Ed,B)
+     pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
+     before=.true.
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B)
     if((k%radiation.or.k%envelope)) then
-       call radiate_2(c,DS,FAC,P,b2,dlds,.true.,k,0)
+       call radiate_2(c,DS,FAC,P,b2,dlds,before,k,pos)
     endif
 
    do i=1,3
@@ -22933,10 +26827,245 @@ SUBROUTINE dkd2_qua_PROBER(c,p,k,ds)
    call push_quaternion(p,om)
 
     if((k%radiation.or.k%envelope)) then
-       call radiate_2(c,DS,FAC,P,b2,dlds,.true.,k,0)
+       call radiate_2(c,DS,FAC,P,b2,dlds,before,k,pos)
     endif
 
- end SUBROUTINE dkd2_qua_PROBER
+ end SUBROUTINE RAD_SPIN_qua_PROBER
+
+SUBROUTINE RAD_SPIN_qua_PROBEP(c,p,k,ds)
+    type(probe_8), INTENT(INOUT) :: p
+    TYPE(fibre),pointer ::  f
+    TYPE(integration_node),pointer :: c
+    TYPE(REAL_8), intent(inout) ::ds
+    TYPE(REAL_8)  B(3),XP(2),XPA(2),ed(3),om(3),b2,dlds
+    REAL(DP)  FAC
+     TYPE(INTERNAL_STATE) k 
+      logical before
+     integer i,pos
+     pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
+
+     FAC=0.5_dp
+     f=> c%parent_fibre
+     CALL alloc(B);CALL alloc(XP);CALL alloc(XPA);CALL alloc(ed);
+     CALL alloc(OM);CALL alloc(B2);CALL alloc(DLDS);CALL alloc(ed);
+
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B)
+    if((k%radiation.or.k%envelope)) then
+       call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,pos,Ed,B)
+    endif
+
+   do i=1,3
+     om(i)=om(i)*ds/2.0_dp
+    enddo
+   
+    
+   call push_quaternion(p,om)
+
+    if((k%radiation.or.k%envelope)) then
+       call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,pos,Ed,B)
+    endif
+     CALL KILL(B);CALL KILL(XP);CALL KILL(XPA);CALL KILL(ed);
+     CALL KILL(OM);CALL KILL(B2);CALL KILL(DLDS);CALL KILL(ed);
+
+ end SUBROUTINE RAD_SPIN_qua_PROBEP
+
+  SUBROUTINE INTE_dkd2_probep(p,k,c)
+    IMPLICIT NONE
+    type(probe_8), INTENT(INOUT) :: p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+    TYPE(DKD2p),pointer:: EL
+    real(dp) DD
+    TYPE(REAL_8)  dk2h,dk1h
+    TYPE(REAL_8) DH,D,D1,D2,DK1,DK2,DF(4),DK(4)
+    real(dp) DD1,DD2,DDF(4)
+    type(real_8) DKH(4)
+    type(real_8)  NDKH(15) 
+    real(dp)   NDDF(0:15)
+    type(real_8) NDF(0:15),NDK(15) 
+    INTEGER I,J,f1
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer pos
+ 
+    f=>c%parent_fibre
+    el=> f%magP%k2
+
+    SELECT CASE(EL%P%METHOD)
+    CASE(1)
+       pos=c%pos_in_fibre-1
+       if(EL%F==1) then
+          f1=0
+       else
+          f1=EL%F+1
+       endif
+       CALL ALLOC(DH,D)
+       DH=EL%L/EL%P%NST
+       D=EL%L/(EL%P%NST/EL%F/2)
+       DD=EL%P%LD/EL%P%NST
+
+       IF(MOD(POS,2*EL%F)==f1) THEN
+          CALL KICK (EL,D,p%X,k)
+       if(k%spin.or.k%radiation) then
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+        endif
+       ENDIF
+       CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+      CALL KILL(DH,D)
+    CASE(2)
+       CALL ALLOC(DH,D)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=EL%P%LD/2.0_dp/EL%P%NST
+       CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICK (EL,DH,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+        CALL KICK (EL,Dh,p%X,k)
+        else
+        CALL KICK (EL,D,p%X,k)
+        endif
+       CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       CALL KILL(DH,D)
+    CASE(4)
+       CALL ALLOC(D1,D2,DK1,DK2)
+       D1=EL%L*FD1/EL%P%NST
+       D2=EL%L*FD2/EL%P%NST
+       DD1=EL%P%LD*FD1/EL%P%NST
+       DD2=EL%P%LD*FD2/EL%P%NST
+          DK1=EL%L*FK1/EL%P%NST
+          DK2=EL%L*FK2/EL%P%NST
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DK1h,DK2h)
+           DK1h=EL%L*FK1/EL%P%NST/2.0_DP
+           DK2h=EL%L*FK2/EL%P%NST/2.0_DP
+       endif
+
+ 
+
+
+
+       CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+!       CALL KICK (EL,DK1,p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICK (EL,DK1h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+        CALL KICK (EL,DK1h,p%X,k)
+        else
+        CALL KICK (EL,DK1,p%X,k)
+        endif
+       CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICK (EL,DK2h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk2)
+        CALL KICK (EL,DK2h,p%X,k)
+        else
+        CALL KICK (EL,DK2,p%X,k)
+        endif
+       CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICK (EL,DK1h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+        CALL KICK (EL,DK1h,p%X,k)
+        else
+        CALL KICK (EL,DK1,p%X,k)
+        endif
+       CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       CALL KILL(D1,D2,DK1,DK2)
+
+       if(k%spin.or.k%radiation) CALL KILL(DK1h,DK2h)
+
+    CASE(6)
+       CALL ALLOC(DF,4);CALL ALLOC(DK,4);
+       DO I =1,4
+          DF(I)=EL%L*YOSD(I)/EL%P%NST
+          DDF(I)=EL%P%LD*YOSD(I)/EL%P%NST
+           DK(I)=EL%L*YOSK(I)/EL%P%NST
+       ENDDO
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DKH,4); 
+        do I =1,4
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+        enddo
+       endif
+       !       DO I=1,B%N
+
+       !        X=BEAM_IN_X(B,I)
+
+       DO J=4,2,-1
+          CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICK (EL,DKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+        CALL KICK (EL,DKH(J),p%X,k)
+        else
+          CALL KICK (EL,DK(J),p%X,k)
+        endif
+
+       ENDDO
+       CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       if(k%spin.or.k%radiation) then
+        CALL KICK (EL,DKH(1),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
+        CALL KICK (EL,DKH(1),p%X,k)
+        else
+          CALL KICK (EL,DK(1),p%X,k)
+        endif
+        
+
+       CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       DO J=2,4
+       if(k%spin.or.k%radiation) then
+        CALL KICK (EL,DKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+        CALL KICK (EL,DKH(J),p%X,k)
+        else
+          CALL KICK (EL,DK(J),p%X,k)
+        endif
+          CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       ENDDO
+       CALL KILL(DF,4);CALL KILL(DK,4);
+       if(k%spin.or.k%radiation) CALL KILL(DKH,4); 
+!!! newyoshida
+    CASE(8)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+    CALL ALLOC(NDF);CALL ALLOC(NDK);
+   if(k%spin.or.k%radiation) CALL alloc(NDKH)
+
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDKH(I)=EL%L*wyoshik(I)/EL%P%NST/2.0_dp
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST 
+       ENDDO
+ 
+          CALL DRIFT(NDF(0),NDDF(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       DO J=1,15
+       if(k%spin.or.k%radiation) then
+        CALL KICK (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICK (EL,NDKH(J),p%X,k)
+        else
+          CALL KICK (EL,NDK(J),p%X,k)
+        endif
+          CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       ENDDO
+ 
+
+   CALL KILL(NDF);CALL KILL(NDK);
+   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+
+
+    CASE DEFAULT
+
+       WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+  END SUBROUTINE INTE_dkd2_probep
 
 SUBROUTINE push_quaternionr(p,om)
 implicit none
@@ -22956,5 +27085,28 @@ real(dp) norm,stheta
 
 end SUBROUTINE push_quaternionr
 
+SUBROUTINE push_quaternionP(p,om)
+implicit none
+TYPE(REAL_8), intent(inout):: om(3)
+type(probe_8) , intent(inout) :: p
+type(quaternion_8) dq
+TYPE(REAL_8) norm,stheta
+
+     call alloc(dq)
+     call alloc(norm,stheta)
+
+      norm=om(1)**2+om(2)**2+om(3)**2
+
+        stheta=sin_quaternion(norm)
+        dq%x(0)=cos_quaternion(norm)
+        dq%x(1)=stheta*om(1)
+        dq%x(2)=stheta*om(2)
+        dq%x(3)=stheta*om(3)
+        p%q=dq*p%q
+ 
+       call kill(norm,stheta)
+       call kill(dq)
+
+end SUBROUTINE push_quaternionP
 
 END MODULE S_DEF_KIND
