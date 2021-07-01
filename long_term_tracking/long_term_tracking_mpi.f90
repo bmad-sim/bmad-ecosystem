@@ -157,8 +157,8 @@ if (ltt_com%mpi_rank == master_rank$) then
     do ix = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
       call mpi_recv (iarr, 2, MPI_INTEGER, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
       beam_data%turn(ix)%status = iarr(1);  beam_data%turn(ix)%i_turn = iarr(2)
-      call mpi_recv (beam_data%turn(ix)%bunch, bd_size, MPI_BYTE, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
       slave_rank = stat(MPI_SOURCE)
+      call mpi_recv (beam_data%turn(ix)%bunch, bd_size, MPI_BYTE, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
     enddo
 
     ! Merge with existing data
