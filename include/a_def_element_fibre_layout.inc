@@ -203,18 +203,18 @@ TYPE ELEMENT
    !integer  twiss                                                            !
    ! TYPES OF MAGNETS
    TYPE(DRIFT1), POINTER :: D0  => null()               ! DRIFT
-   TYPE(DKD2), POINTER :: K2    => null()            ! INTEGRATOR
+   TYPE(DKD2), POINTER :: K2    => null()            ! INTEGRATOR  $
    TYPE(KICKT3), POINTER :: K3  => null()              !  THIN KICK
    TYPE(CAV4), POINTER :: C4    => null()            ! CAVITY
    TYPE(SOL5), POINTER :: S5    => null()            ! solenoid
    TYPE(KTK), POINTER :: T6     => null()           ! INTEGRATOR   thick slow
-   TYPE(TKTF), POINTER :: T7    => null()            ! INTEGRATOR   thick fast
+   TYPE(TKTF), POINTER :: T7    => null()            ! INTEGRATOR   thick fast   $
    TYPE(NSMI), POINTER :: S8    => null()            ! NORMAL SMI Sixtrack shit
    TYPE(SSMI), POINTER :: S9    => null()            ! SKEW SMI Sixtrack shit
-   TYPE(TEAPOT), POINTER :: TP10 => null()                ! sector teapot exact sector bend electric or magnetic
+   TYPE(TEAPOT), POINTER :: TP10 => null()   ! sector teapot exact sector bend electric or magnetic $
    TYPE(MON), POINTER :: MON14   => null()            ! MONITOR OR INSTRUMENT
    TYPE(ESEPTUM), POINTER :: SEP15 => null()              ! MONITOR OR INSTRUMENT electric kicker
-   TYPE(STREX), POINTER :: K16   => null()             ! EXACT STRAIGHT INTEGRATOR
+   TYPE(STREX), POINTER :: K16   => null()             ! EXACT STRAIGHT INTEGRATOR  $
    TYPE(ENGE), POINTER :: ENGE17 => null()               !  not implemented
    TYPE(RCOL), POINTER :: RCOL18 => null()             ! RCOLLIMATOR
    TYPE(ECOL), POINTER :: ECOL19 => null()             ! ECOLLIMATOR

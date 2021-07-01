@@ -1609,10 +1609,10 @@ enddo
 
     CALL alloc(s1%s)
     CALL alloc(s1%q)
-    s1%q=1.0_dp
+    s1%q=0.0_dp
+   ! s1%q=1.0_dp
     
-    !s1%q%x(1)=1.0_dp
-
+ 
     do i=n+1,size(s1%v)
      s1%v(i)%i=0
     enddo
@@ -11821,7 +11821,7 @@ end subroutine c_full_factorise
   implicit none
   type(c_damap), intent(inout) :: m_in,m_out,as
   type(quaternion) q0,q1,e_y,q3,qs
-  real(dp) alpha,cosalpha,sinalpha
+  real(dp) alpha,cosalpha,sinalpha,tone
 
 q0=m_in%q.sub.0
 
@@ -11870,7 +11870,13 @@ endif
 
 endif
 
-  
+qs=2
+qs=q3*qs*q3**(-1)   
+tone=qs%x(2)
+if(tone<0) then
+ qs=1
+ q3=q3*qs
+endif
 
 as%q=q3   
         m_out=c_simil(AS,m_in,-1)
@@ -13975,7 +13981,7 @@ function c_vector_field_quaternion(h,ds) ! spin routine
        if(norm1==0)  stop 1066
     endif
     if(present(ds)) c_exp_quaternion=c_exp_quaternion*ds
-
+ 
     call kill(dh)
     call kill(dhn)
     call kill(dr)
@@ -15980,17 +15986,22 @@ end subroutine teng_edwards_a1
 
 
 
-subroutine extract_linear_from_normalised(m,a1,phi1,f1,f2,integer_part)
+subroutine extract_linear_from_normalised(m,a1,phi1,f1,f2,integer_part,dospin)
     implicit none
     type(c_damap) , intent(inout) :: m,a1,phi1
     type(c_vector_field) , intent(inout) :: f1,f2
     real(dp), intent(IN)::    integer_part(:)
+    !real(dp), optional ,intent(IN)::    integer_part_spin
+    logical, optional :: dospin
     type(c_damap) b1,a
+    type(taylor) t(2)
     complex(dp) v
- 
+    real(dp) dd
+    logical dos
     integer i,j,k,kr
     integer, allocatable :: je(:)
-
+    dos=.false.
+       if(present(dospin)) dos=dospin
         
 
     call alloc(a)
@@ -16034,6 +16045,28 @@ subroutine extract_linear_from_normalised(m,a1,phi1,f1,f2,integer_part)
       f1%v(ndptb)=b1%v(ndptb)-(1.0_dp.cmono.ndptb)
      endif
 
+   if(dos) then
+      do i=0,3
+       j=1
+        do while(.true.) 
+
+
+          call  c_cycle(a%q%x(i),j,v ,je); if(j==0) exit;   
+          kr=0
+          do k=1,nd2
+           if(k==ndpt) cycle
+           kr=je(k)+kr
+          enddo
+ 
+           if(kr==0) then
+            b1%q%x(i)=b1%q%x(i)+(v.cmono.je)
+           endif
+           
+       enddo
+     enddo
+  endif  ! spin
+
+
      a1=a*b1**(-1)
 
      phi1=b1
@@ -16041,15 +16074,28 @@ subroutine extract_linear_from_normalised(m,a1,phi1,f1,f2,integer_part)
      do i=1,nd2t
       f1%v(i)=(log(b1%v(i).d.i).cut.c_%no) *(1.0_dp.cmono.i)
      enddo
+      if(dos) then
+       call alloc(t)
+        t(2)=b1%q%x(2)
+        t(1)=b1%q%x(0)
+        f1%q%x(2)=atan2(t(2),t(1))
+       call kill(t)
+      endif
+ 
+
      do i=1,nd2t/2
       f1%v(2*i-1)=-(i_*twopi*integer_part(i).cmono.(2*i-1))+ f1%v(2*i-1)
       f1%v(2*i)=(i_*twopi*integer_part(i).cmono.(2*i))+ f1%v(2*i)
      enddo
 
+if(dos) then
+      f2=c_logf_spin(a1)
+else
       f2=log(a1)
+endif
 
-     f2=transform_vector_field_by_map(f2,to_phasor())     
-     f1=transform_vector_field_by_map(f1,to_phasor())
+     f2=to_phasor()*f2  !transform_vector_field_by_map(f2,to_phasor())     
+     f1=to_phasor()*f1 !transform_vector_field_by_map(f1,to_phasor())
 
 
     deallocate(je)
@@ -16983,7 +17029,7 @@ end SUBROUTINE  equal_c_vector_field_fourier
 
 
      do i=-n_fourier,n_fourier
-      s2%f(i)=transform_vector_field_by_map(s1%f(i),m)
+      s2%f(i)=m*s1%f(i)   !       transform_vector_field_by_map(s1%f(i),m)
      enddo
    
 end  subroutine transform_vector_field_fourier_by_map

@@ -1582,7 +1582,281 @@ endif
 
   !  FUNDAMENTAL TRACKING ROUTINES
 
+  SUBROUTINE TRACK_NODE_FLAG_probe_quaR(C,XS,K)
+    IMPLICIT NONE
+    type(INTEGRATION_NODE), pointer :: C
+    type(probe), INTENT(INOUT) :: xs
+    TYPE(INTERNAL_STATE) K
+    REAL(DP) FAC,DS,beta
+    logical useptc,dofix0,dofix,doonemap
+    type(tree_element), pointer :: arbre(:)
+!    logical(lp) bmad
+    IF(.NOT.CHECK_STABLE) then
+       CALL RESET_APERTURE_FLAG
+    endif
 
+    !    if(xs%u) return
+    C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAG%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAG%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAG%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+
+
+      useptc=.true.
+
+     
+  !  if(.not.(k%nocavity.and.(C%PARENT_FIBRE%MAG%kind==kind4.or.C%PARENT_FIBRE%MAG%kind==kind21))) then
+     if(C%PARENT_FIBRE%dir==1) then
+       if(C%PARENT_FIBRE%MAG%skip_ptc_f==1) return
+       if(associated(C%PARENT_FIBRE%MAG%forward)) then
+         if(C%PARENT_FIBRE%MAG%usef) useptc=.false.
+          arbre=>C%PARENT_FIBRE%MAG%forward
+          doonemap=C%PARENT_FIBRE%MAG%do1mapf
+       endif
+     else
+       if(C%PARENT_FIBRE%MAG%skip_ptc_b==1) return
+       if(associated(C%PARENT_FIBRE%MAG%backward)) then
+         if(C%PARENT_FIBRE%MAG%useb) useptc=.false.
+          arbre=>C%PARENT_FIBRE%MAG%backward
+          doonemap=C%PARENT_FIBRE%MAG%do1mapb
+       endif
+     endif
+ !   endif ! cavity
+ 
+
+ !   if(use_bmad_units.and.inside_bmad) then
+ !     beta=C%PARENT_FIBRE%beta0
+ !     if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+ !     call convert_bmad_to_ptc(xs,beta,k%time)
+ !   endif
+
+    IF(K%MODULATION.and.xs%nac/=0) THEN !modulate
+       if(c%parent_fibre%mag%slow_ac/=0) CALL MODULATE(C,XS,K) !modulate
+       CALL TRACK_MODULATION(C,XS,K) !modulate
+    ENDIF !modulate
+
+
+
+    if(c%cas==0) then
+       if(useptc) then
+
+        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+
+       elseif(doonemap) then
+ 
+          if(C%POS_IN_FIBRE-2==1) then 
+             dofix0=.true.;dofix=.true.
+             call track_TREE_probe_complex(arbre,xs,dofix0,dofix,k)
+          endif
+       else
+          dofix0=.false.;dofix=.false.
+          if(C%POS_IN_FIBRE-2==1) dofix0=.true.
+          if(C%POS_IN_FIBRE-C%PARENT_FIBRE%MAG%p%nst==2) dofix=.true.
+        call track_TREE_probe_complex(arbre,xs,dofix0,dofix,k)
+       endif
+    elseIF(c%cas==case1.and.useptc) then
+       CALL TRACK_FRINGE_spin(C,XS,K)
+       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+    elseIF(c%cas==case2.and.useptc) then
+       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+       CALL TRACK_FRINGE_spin(C,XS,K)
+    else
+       IF(c%cas==caseP1) THEN
+
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+          if(k%spin) then
+            CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
+   if(xs%use_q.and.assume_c_quaternion_normalised) xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
+
+          endif
+       
+       ELSEif(c%cas==caseP2) THEN
+          if(k%spin) then
+
+                 CALL TRACK_SPIN_BACK(C%PARENT_FIBRE,XS)
+   if(xs%use_q.and.assume_c_quaternion_normalised) xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
+
+           endif
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+     ENDIF
+
+    endif
+    IF(K%MODULATION.and.xs%nac/=0.and.c%parent_fibre%mag%slow_ac/=0) then!modulate
+       CALL restore_ANBN_SINGLE(C%PARENT_FIBRE%MAG,C%PARENT_FIBRE%MAGP)
+    ENDIF  !modulate
+  !  IF((K%MODULATION.or.ramp).and.c%parent_fibre%mag%slow_ac) THEN  !modulate
+  !     CALL restore_ANBN_SINGLE(C%PARENT_FIBRE%MAG,C%PARENT_FIBRE%MAGP)
+  !  ENDIF  !modulate
+!    if(use_bmad_units.and.inside_bmad) then
+!      beta=C%PARENT_FIBRE%beta0
+!      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+!      call convert_ptc_to_bmad(xs,beta,k%time)
+!    endif
+
+    xs%u=.not.check_stable
+    if(xs%u) then
+       lost_fibre=>c%parent_fibre
+       lost_node=>c
+       xlost=xs%x
+    endif
+       xs%last_node=>c
+       xs%e=global_e
+  END SUBROUTINE TRACK_NODE_FLAG_probe_quaR
+
+  SUBROUTINE TRACK_NODE_FLAG_probe_QUAP(C,XS,K)
+    IMPLICIT NONE
+    type(INTEGRATION_NODE), pointer :: C
+    type(probe_8), INTENT(INOUT) :: xs
+    TYPE(INTERNAL_STATE) K
+    REAL(DP) FAC,beta
+    type(real_8) ds
+    logical(lp) CHECK_KNOB
+    integer(2), pointer,dimension(:)::AN,BN
+    integer ki
+    logical useptc,dofix0,dofix,doonemap
+    type(tree_element), pointer :: arbre(:)
+!    logical(lp) bmad
+    !   if(xs%u) return
+
+    IF(.NOT.CHECK_STABLE) then
+       CALL RESET_APERTURE_FLAG
+    endif
+    ki=c%parent_fibre%MAGp%kind
+    C%PARENT_FIBRE%MAGp%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAGp%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAGp%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAGp%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAGP%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAGP%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAGp%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+
+     useptc=.true.
+!    if(.not.(k%nocavity.and.(ki==kind4.or.ki==kind21))) then
+     if(C%PARENT_FIBRE%dir==1) then
+       if(C%PARENT_FIBRE%MAGp%skip_ptc_f==1) return
+       if(associated(C%PARENT_FIBRE%MAGP%forward)) then
+         if(C%PARENT_FIBRE%MAGP%usef) useptc=.false.
+          arbre=>C%PARENT_FIBRE%MAGP%forward
+          doonemap=C%PARENT_FIBRE%MAGp%do1mapf
+       endif
+     else
+       if(C%PARENT_FIBRE%MAGp%skip_ptc_b==1) return
+       if(associated(C%PARENT_FIBRE%MAGP%backward)) then
+         if(C%PARENT_FIBRE%MAGP%useb) useptc=.false.
+          arbre=>C%PARENT_FIBRE%MAGP%backward
+          doonemap=C%PARENT_FIBRE%MAGp%do1mapb
+       endif
+     endif
+!    endif
+ 
+ 
+
+ !   if(use_bmad_units.and.inside_bmad) then
+ !     beta=C%PARENT_FIBRE%beta0
+ !     if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+ !     call convert_bmad_to_ptc(xs,beta,k%time)
+ !   endif
+
+    IF(K%MODULATION.and.xs%nac/=0) then
+       if(c%parent_fibre%mag%slow_ac/=0)  CALL MODULATE(C,XS,K) !modulate
+       CALL TRACK_MODULATION(C,XS,K) !modulate
+    ENDIF !modulate
+
+
+
+
+    CALL ALLOC(DS)
+
+    !      if(associated(c%bb)) call BBKICK(c%BB,XS%X)
+
+    if(c%cas==0) then
+       if(useptc) then
+
+        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+
+       elseif(doonemap) then
+
+          if(C%POS_IN_FIBRE-2==1) then
+                     dofix0=.true.;dofix=.true.
+ 
+           call track_TREE_probe_complex(arbre,xs,dofix0,dofix,k)  
+ 
+          endif
+       else
+          dofix0=.false.;dofix=.false.
+          if(C%POS_IN_FIBRE-2==1) dofix0=.true.
+          if(C%POS_IN_FIBRE-C%PARENT_FIBRE%MAGp%p%nst==2) dofix=.true.
+        call track_TREE_probe_complex(arbre,xs,dofix0,dofix,k)
+       endif
+    elseIF(c%cas==case1.and.useptc) then
+if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
+       CALL TRACK_FRINGE_spin(C,XS,K)
+       CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
+    elseIF(c%cas==case2.and.useptc) then
+if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
+         CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+         CALL TRACK_FRINGE_spin(C,XS,K)
+       !        CALL  (C,XS,K)
+if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
+
+    else
+       IF(c%cas==caseP1) THEN
+          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+          if(k%spin) then
+
+                 CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
+   if(xs%use_q.and.assume_c_quaternion_normalised) then
+           ds=1.0_dp/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
+           xs%q%x(0)=xs%q%x(0)*ds
+           xs%q%x(1)=xs%q%x(1)*ds
+           xs%q%x(2)=xs%q%x(2)*ds
+           xs%q%x(3)=xs%q%x(3)*ds
+        endif
+
+          endif
+       ELSEif(c%cas==caseP2) THEN
+          if(k%spin) then
+
+                 CALL TRACK_SPIN_BACK(C%PARENT_FIBRE,XS)
+   if(xs%use_q.and.assume_c_quaternion_normalised) then
+           ds=1.0_dp/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
+           xs%q%x(0)=xs%q%x(0)*ds
+           xs%q%x(1)=xs%q%x(1)*ds
+           xs%q%x(2)=xs%q%x(2)*ds
+           xs%q%x(3)=xs%q%x(3)*ds
+        endif
+           endif
+          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+     ENDIF
+
+
+    endif
+
+
+    IF(K%MODULATION.and.xs%nac/=0.and.c%parent_fibre%mag%slow_ac/=0) then
+       CALL restore_ANBN_SINGLE(C%PARENT_FIBRE%MAG,C%PARENT_FIBRE%MAGP)
+    ENDIF  !modulate
+
+
+    call kill(ds)
+
+
+ 
+    xs%u=.not.check_stable
+    if(xs%u) then
+       lost_fibre=>c%parent_fibre
+       lost_node=>c
+       xlost=xs%x
+    endif
+       xs%last_node=>c
+       xs%e=global_e
+  END SUBROUTINE TRACK_NODE_FLAG_probe_QUAP
 
 
 
