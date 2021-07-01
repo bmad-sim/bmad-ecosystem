@@ -3782,13 +3782,17 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       if (tao_branch%spin_valid) then
         r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
-        nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                ', tao_branch%spin%pol_limit_st
-        nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DKM:               ', tao_branch%spin%pol_limit_dkm
-        nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Partial Polarization Limits DKM:      ', tao_branch%spin%pol_limit_dkm_partial
-        nl=nl+1; write(lines(nl), '(a, f12.2, es12.4)')  'Polarization Time BKS (minutes, turns): ', &
-                                                                     1 / (60*tao_branch%spin%pol_rate_bks), r / tao_branch%spin%pol_rate_bks
-        nl=nl+1; write(lines(nl), '(a, f12.2, es12.4)')  'Depolarization Time (minutes, turns):   ', &
-                                                                     1 / (60*tao_branch%spin%depol_rate), r / tao_branch%spin%depol_rate
+        if (tao_branch%spin%pol_rate_bks == 0) then
+          nl=nl+1; lines(nl) = 'No bends or other radiation producing lattice elements detected!'
+        else
+          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                ', tao_branch%spin%pol_limit_st
+          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DKM:               ', tao_branch%spin%pol_limit_dkm
+          nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Partial Polarization Limits DKM:      ', tao_branch%spin%pol_limit_dkm_partial
+          nl=nl+1; write(lines(nl), '(a, f12.2, es12.4)')  'Polarization Time BKS (minutes, turns): ', &
+                                                                       1 / (60*tao_branch%spin%pol_rate_bks), r / tao_branch%spin%pol_rate_bks
+          nl=nl+1; write(lines(nl), '(a, f12.2, es12.4)')  'Depolarization Time (minutes, turns):   ', &
+                                                                       1 / (60*tao_branch%spin%depol_rate), r / tao_branch%spin%depol_rate
+        endif
       else
         nl=nl+1; lines(nl) = 'Polarization calc not valid since: ' // why_invalid
       endif
@@ -3804,7 +3808,7 @@ case ('spin')
         sm => scratch%spin_map(i)
         nl=nl+1; write(lines(nl), '(2x, a, i0, a, i0)')     'Universe: ', sm%ix_uni, '  of: ', ubound(s%u, 1)
         nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', sm%ix_ref, sm%ix_ele 
-        nl=nl+1; write (lines(nl), '(26x, a, 26x, a)') 'Initial', 'Final'
+        nl=nl+1; write(lines(nl), '(26x, a, 26x, a)') 'Initial', 'Final'
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'L-axis: ', sm%axis0%l, sm%axis1%l
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'N0-axis:', sm%axis0%n0, sm%axis1%n0
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'M-axis: ', sm%axis0%m, sm%axis1%m
@@ -4004,6 +4008,7 @@ case ('taylor_map', 'matrix')
   print_ptc = .false.
   print_eigen = .false.
   disp_fmt = ''
+  fmt = ''
   angle_units = .false.
 
   if (show_what == 'matrix') then
@@ -4016,7 +4021,7 @@ case ('taylor_map', 'matrix')
 
   do
     call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format', &
-                                  '-running', '-angle_coordinates'], .true., switch, err, ix)
+                                  '-running', '-angle_coordinates', '-number_format'], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
 
@@ -4027,6 +4032,9 @@ case ('taylor_map', 'matrix')
       print_eigen = .true.
     case ('-lattice_format')
       disp_fmt = 'BMAD'
+    case ('-number_format')
+      fmt = what2(:ix)
+      call string_trim (what2(ix+1:), what2, ix)
     case ('-order')
       read (what2(:ix), *, iostat = ios) n_order
       if (ios /= 0) then
@@ -4201,10 +4209,14 @@ case ('taylor_map', 'matrix')
       if (i /= ix1) mat6 = matmul(ele%mat6, mat6)
       if (angle_units) stop 
       if (nl+10 > size(lines)) call re_allocate (lines, 2*nl, .false.)
+
+      fmt2 = '(f14.8, 4x, 6f14.8, 4x, 6f14.8)'
+      if (fmt /= '') call str_substitute(fmt2, 'f14.8', trim(fmt))
+
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, i6, 2x, a40, f18.9)') '#', i, ele%name, ele%s
       do j = 1, 6
-        nl=nl+1; write (lines(nl), '(f14.8, 4x, 6f14.8, 4x, 6f14.8)') ele%map_ref_orb_out%vec(j), ele%mat6(j,:), mat6(j,:)
+        nl=nl+1; write (lines(nl), fmt2, iostat = ios) ele%map_ref_orb_out%vec(j), ele%mat6(j,:), mat6(j,:)
       enddo
     enddo
 
@@ -4226,16 +4238,18 @@ case ('taylor_map', 'matrix')
       if (n_order == 0) then 
         nl = nl+1; write(lines(nl), '(6f11.6)') vec0
       else
-        if (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
-          fmt = '(6es15.7, a, es12.4)'
+        if (fmt /= '') then
+          fmt2 = '(6' // trim(fmt) // ', a, ' // trim(fmt) // ')'
+        elseif (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
+          fmt2 = '(6es15.7, a, es12.4)'
         else
-          fmt = '(6f15.8, a, es12.4)'
+          fmt2 = '(6f15.8, a, es12.4)'
         endif
 
         nl=nl+1; write (lines(nl), '(a, es10.2)') 'Symplectic Error:', mat_symp_error(mat6)
         nl=nl+1; lines(nl) = ''
         do i = 1, 6
-          nl=nl+1; write(lines(nl), fmt) mat6(i,:), '   : ', vec0(i)
+          nl=nl+1; write(lines(nl), fmt2, iostat = ios) mat6(i,:), '   : ', vec0(i)
         enddo
       endif
     endif
@@ -4245,9 +4259,18 @@ case ('taylor_map', 'matrix')
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(75x, a)') 'eVector'
       nl=nl+1; write(lines(nl), '(t11, a, t29, a, 3(15x, a, 14x, a))') '|eValue|', 'eValue', 'x', 'px', 'y', 'py', 'z', 'pz'
+
+      if (fmt == '') then
+        fmt2 = '(a, 8' // trim(fmt) // ')'
+        fmt3 = '(a, 16x, 8' // trim(fmt) // ')'
+      else
+        fmt2 = '(a, 8es16.8)'
+        fmt3 = '(a, 16x, 8es16.8)'
+      endif
+
       do i = 1, 6
-        nl=nl+1; write (lines(nl), '(a, 8es16.8)') 're', abs(eigen_val(i)), real(eigen_val(i), rp), real(eigen_vec(i,:), rp)
-        nl=nl+1; write (lines(nl), '(a, 16x, 8es16.8)') 'im',              aimag(eigen_val(i)), aimag(eigen_vec(i,:))
+        nl=nl+1; write (lines(nl), fmt2, iostat = ios) 're', abs(eigen_val(i)), real(eigen_val(i), rp), real(eigen_vec(i,:), rp)
+        nl=nl+1; write (lines(nl), fmt3, iostat = ios) 'im',              aimag(eigen_val(i)), aimag(eigen_vec(i,:))
         nl=nl+1; lines(nl) = ''
       enddo
       nl = nl-1

@@ -2731,7 +2731,7 @@ Examples:
 Syntax:
 \begin{example}
   show taylor_map \{-angle_coordinates\} \{-eigen_modes\} \{-lattice_format\} 
-                  \{-order <n_order>\} \{-ptc\} \{-s\} \{loc1 \{loc2\}\}
+            \{-number_format <fmt>\} \{-order <n_order>\} \{-ptc\} \{-s\} \{loc1 \{loc2\}\}
 \end{example}
 
 Shows the Taylor transfer map for the \vn{model} lattice of the default universe (set by
@@ -2757,6 +2757,13 @@ will be the for the element given by \vn{loc1}
 
 If the \vn{-eigen_modes} switch is present, the first order part of the map will be treated
 as a 1-turn matrix and the corresponding eigen values and eigen vectors will be printed.
+
+The \vn{-number_format} switch, if present, overrides the default format for the displayed format.
+Examples:
+\begin{example}
+  show taylor -num f12.6  ! Fixed format. 12 char field width, 6 digits after decimal place.
+  show taylor -num es12.4 ! Floating format. 12 char field width, 4 digits after decimal place.
+\end{example}
 
 The \vn{-order} switch, if present, gives the limiting order to display. In any case, the
 maximum order of the map is limited to the order set by the lattice file.
