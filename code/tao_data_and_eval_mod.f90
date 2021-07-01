@@ -4297,7 +4297,7 @@ type expression_func_struct
   integer :: n_arg_count = 0      ! Number of arguments found.
 end type
 
-type (tao_eval_stack1_struct), save :: stk(100)
+type (tao_eval_stack1_struct), allocatable :: stk(:)
 type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (coord_struct), optional :: dflt_orbit
@@ -4305,8 +4305,9 @@ type (tao_expression_info_struct), allocatable :: info(:)
 type (expression_func_struct) func(0:20)
 
 integer, optional :: dflt_uni, dflt_eval_point
+integer, allocatable :: op(:)
 integer i_lev, i_op, i, ios, n, n_size, ix0, ix1, ix2, n_func
-integer op(100), ix_word, i_delim, i2, ix, ix_word2
+integer ix_word, i_delim, i2, ix, ix_word2
 
 real(rp), allocatable :: value(:)
 real(rp), optional :: dflt_s_offset
@@ -4363,7 +4364,7 @@ n_func = 0
 i_lev = 0
 i_op = 0
 
-stk = tao_eval_stack1_struct(0, '', 1, null(), null(), null())
+allocate (stk(20), op(20))
 
 ! parsing loop to build up the stack.
 
@@ -4744,12 +4745,12 @@ parsing_loop: do
 
   i_op = i
   select case (i_delim)
-  case (no_delim$);    exit parsing_loop
+  case (no_delim$); exit parsing_loop
   case (comma$)
     if (printit) call out_io (s_error$, r_name, 'COMMA AT END OF EXPRESSION IS OUT OF place: ' // expression, &
                                    '(NEEDS "[...]" OUTER BRACKETS IF AN ARRAY.)')
     return
-  case default;        call pushit (op, i_op, i_delim)
+  case default; call pushit (op, i_op, i_delim)
   end select
 
 enddo parsing_loop
@@ -4794,19 +4795,15 @@ contains
 
 subroutine pushit (int_stack, i_lev, this_type)
 
-integer int_stack(:), i_lev, this_type
+integer, allocatable :: int_stack(:)
+integer i_lev, this_type
 
 character(*), parameter :: r_name = "pushit"
 
 !
 
 i_lev = i_lev + 1
-
-if (i_lev > size(int_stack)) then
-  call out_io (s_warn$, r_name, 'STACK OVERFLOW.')
-  call err_exit
-endif
-
+if (i_lev > size(int_stack)) call re_allocate(int_stack, 2*i_lev)
 int_stack(i_lev) = this_type
 
 end subroutine pushit
@@ -4816,7 +4813,7 @@ end subroutine pushit
 
 subroutine pushit2 (stack, i_lev, this_type)
 
-type (tao_eval_stack1_struct) stack(:)
+type (tao_eval_stack1_struct), allocatable :: stack(:), tmp_stk(:)
 integer i_lev, this_type
 
 character(*), parameter :: r_name = "pushit2"
@@ -4826,12 +4823,14 @@ character(*), parameter :: r_name = "pushit2"
 i_lev = i_lev + 1
 
 if (i_lev > size(stack)) then
-  call out_io (s_warn$, r_name, 'STACK OVERFLOW.')
-  call err_exit
+  call move_alloc(stack, tmp_stk)
+  allocate(stack(2*i_lev))
+  stack(1:i_lev-1) = tmp_stk
 endif
 
 stack(i_lev)%type = this_type
 stack(i_lev)%name = expression_op_name(this_type)
+stack(i_lev)%scale = 1
 
 end subroutine pushit2
                        
