@@ -255,7 +255,7 @@ parsing_loop: do
       case ('ANOMALOUS_MOMENT_OF')
         call pushit (op, i_op, anomalous_moment_of$)
       case default
-        err_str = 'UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word
+        err_str = 'UNEXPECTED CHARACTERS IN EXPRESSION BEFORE "(": ' // word
         return
       end select
 
@@ -298,7 +298,7 @@ parsing_loop: do
       enddo
 
       if (i == 0) then
-        err_str = 'UNMATCHED ")" ON RHS'
+        err_str = 'UNMATCHED ")" IN EXPRESSION'
         return
       endif
 
@@ -325,7 +325,7 @@ parsing_loop: do
 
       call get_next_chunk (parse_line, word, ix_word, '+-*/()^,:}', delim, delim_found)
       if (ix_word /= 0) then
-        err_str = 'UNEXPECTED CHARACTERS ON RHS AFTER ")"'
+        err_str = 'UNEXPECTED CHARACTERS IN EXPRESSION AFTER ")"'
         return
       endif
 
@@ -674,7 +674,7 @@ do i = 1, size(stack)
 
   case (numeric$, variable$, constant$)
     i2 = i2 + 1
-    stack2(i2)%value = stack(i)%value
+    stack2(i2) = stack(i)
 
   case (unary_minus$)
     stack2(i2)%value = -stack2(i2)%value
@@ -696,7 +696,7 @@ do i = 1, size(stack)
 
   case (divide$)
     if (stack2(i2)%value == 0) then
-      err_str = 'DIVIDE BY 0 ON RHS'
+      err_str = 'DIVIDE BY 0 IN EXPRESSION'
       return
     endif
     stack2(i2-1)%value= stack2(i2-1)%value / stack2(i2)%value

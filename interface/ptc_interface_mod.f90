@@ -1068,7 +1068,7 @@ endif
 ! Some init
 
 OLD_SURVEY = .false.
-BMAD_AUTOMATIC = .true. ! For c_normal calc. This enables automatic testing of whether RF is on or off.
+!!BMAD_AUTOMATIC = .true. ! For c_normal calc. This enables automatic testing of whether RF is on or off.
 USE_QUATERNION = .true.
 E_MUON = bmad_com%electric_dipole_moment
 CHECK_LONGITUDINAL = .false. ! MAD-X uses the True setting.

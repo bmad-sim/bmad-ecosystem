@@ -303,9 +303,9 @@ This equation is linear in the unknown $\bfn_j$ and so may be easily solved usin
 algebra techniques.
 
 Since the eigenvectors $\bfv_j$ span phase space, for any given phase space position $\bfr$, there
-exist a set of values $A_j(\bfr)$, $j = 1, \ldots, 6$, such that
+exist a set of coefficients $A_j(\bfr)$, $j = 1, \ldots, 6$, such that
 \begin{equation}
-  \bfr = \sum_{j = 1}^6 A_j \, \bfv_j
+  \bfr = \sum_{j = 1}^6 A_j(\bfr) \, \bfv_j
 \end{equation}
 Define the function $\bfn$ by
 \begin{equation}
@@ -363,37 +363,46 @@ stochastic process results in depolarization. Resonances, on the other hand, are
 even if a resonance tilts the polarization there can be the possibility of recovery.
 
 In order to calculate the effect of a resonance it is helpful to know the resonance strength
-$\epsilon_r$. The resonance strength calculation can be motivated by considering the Single
+$\xi_r$.\footnote
+  {
+The common practice is to absorb the orbital amplitude dependence in the resonance strength.  The
+resonance strength is then typically denoted by $\epsilon_R$ which here is equal to $\sqrt{J} \,
+\xi_r$ with $J$ being the value of the action of the obital oscillations.
+  }
+The resonance strength calculation can be motivated by considering the Single
 Resonance Model (SRM)\cite{b:spin.hoff} where it is assumed that only one orbital mode is excited
 and that there is a single dominating linear resonance so that the spin equation of motion is
 \begin{equation}
   \frac{d \bfs}{d \theta} = \Bf\Omega \cross \bfs, \qquad 
   \Bf\Omega = \begin{pmatrix}
-    \sqrt{J} \, \epsilon_r \, \cos \Phi \\
-    \sqrt{J} \, \epsilon_r \, \sin \Phi \\
+    \sqrt{J} \, \xi_r \, \cos \Phi \\
+    \sqrt{J} \, \xi_r \, \sin \Phi \\
     \nu_0
   \end{pmatrix}
   \label{stos}
 \end{equation}
-where $\nu_0$ is the closed orbit spin tune and $\theta$ is the longitudinal angle with $\theta = 2 \, \pi$
-representing one turn in the circular accelerator. $J$ is the action for the excited mode and $\Phi$
-is the phase
+where $\nu_0$ is the closed orbit spin tune and $\theta$ is the longitudinal angle with $\theta = 2
+\, \pi$ representing one turn in the circular accelerator. $J$ is the action for the orbital excited
+mode (\sref{s:action.ang} and $\Phi$ is the phase
 \begin{equation}
-  \Phi = (m_0 + Q) \, \theta + \Phi_0 \equiv \kappa \, \theta + \Phi_0
+  \Phi = (m_0 + Q) \, \theta \equiv \kappa \, \theta
 \end{equation}
-with $Q$ being the mode orbital tune and $\Phi_0$ the phase at $\theta = 0$. 
+with $Q$ being the mode orbital tune. The $\sqrt{J}$ factor in \Eq{stos} means that the resonance components of
+$\Omega$ ($\Omega_x$ and $\Omega_y$) depend linearly on the phase space coordinates. Single resonance models may
+be constructed with a different dependence on $J$ but in such a case the resonance would not be linear.
 
 \Eq{stos} can be solved by transforming to a coordinate system rotating about the $z$-axis with a rotational
 frequency $Q$. In this frame, the spin vector $s_R$ is
 \begin{equation}
-  \bfs_R = \bfq_z(-\Phi) \,\, \bfs \,\, \bfq_z^*(-\Phi), \qquad \bfq_z(\phi) = (\cos \phi, 0, 0, \sin \phi)
+  \bfs_R = \bfq_z(-\Phi/2) \,\, \bfs \,\, \bfq_z^*(-\Phi/2), \quad \text{where} \quad
+  \bfq_z(\phi) \equiv (\cos (\phi/2), 0, 0, \sin (\phi/2))
   \label{rqsq}
 \end{equation}
 Using \Eq{rqsq} in \Eq{stos} gives
 \begin{equation}
   \frac{d \bfs_R}{d \theta} = \Bf\Omega_R \cross \bfs_R, \qquad
   \Bf\Omega_R = \begin{pmatrix}
-    \sqrt{J} \, \epsilon_r \\
+    \sqrt{J} \, \xi_r \\
     0 \\
     \delta 
   \end{pmatrix},
@@ -407,12 +416,12 @@ to the laboratory frame and normalizing to one, $\bfn$ is
 \begin{equation}
   \bfn (\Phi) = \frac{\sign(\delta)}{\Lambda} \, 
   \begin{pmatrix}
-    \sqrt{J} \, \epsilon_r \, \cos \Phi \\
-    \sqrt{J} \, \epsilon_r \, \sin \Phi \\
+    \sqrt{J} \, \xi_r \, \cos \Phi \\
+    \sqrt{J} \, \xi_r \, \sin \Phi \\
     \delta
   \end{pmatrix},
   \qquad
-  \Lambda = \sqrt{\delta^2 + J \, \epsilon_r^2}
+  \Lambda = \sqrt{\delta^2 + J \, \xi_r^2}
   \label{nsdl}
 \end{equation}
 where the sign factor $\sign(\delta)$ is chosen so that on the closed orbit with $J = 0$ the $\bfn$
@@ -422,23 +431,24 @@ The resonance strengths in a lattice can be calculated by comparing \Eq{nsdl} wi
 developed in \sref{s:dn.calc}. The eigen analysis in \sref{s:dn.calc} gives the closed orbit
 $\bfn_0$ along with the six eignvectors $(\bfv_j, \bfn_j)$ and corresponding eigenvalues
 $\lambda_j$, $j = 1, \ldots 6$ of the 1-turn spin-orbital transport. The orbital part of the $j$\Th
-eigenvector, $\bfv_j$, represents particle motion with some value of the action $J_j$ for that
-mode. Considering \Eq{ndan}, if only one mode is excited for some particular $j$, and if $A_j$ is
-taken to be one, 
-the invariant spin field on the $m$\Th turn
+eigenvector, $\bfv_j$, normalized using \Eq{vsvi}, represents particle motion with unit action $J_j$
+for that mode. Considering \Eq{ndan}, if only one mode is excited for some particular $j$ and with
+some amplitude $\sqrt{J}$,  and if
+$A_j$ is taken to be one, the invariant spin field on the $m$\Th turn
 \begin{equation}
-  \bfn(m) = \bfn_0 + \bfn_j \, \lambda_j^m
+  \bfn(m) = \frac{1}{\Lambda_n} \, 
+  \left( \bfn_0 + e^{i \, \phi_0} \sqrt{J} \, \bfn_j \, \lambda_j^m \right),
+  \qquad
+  \Lambda_n = \sqrt{1 + J \, |\bfn_j|^2}
   \label{nnav}
 \end{equation}
-Comparing this to \Eq{nsdl}, the constant part of the $\bfn$ vector in \Eq{nsdl} ($\bfn_z$) is
-associated with $\bfn_0$ in \Eq{nnav} and the time varying part of $\bfn$ vector in \Eq{nsdl}
-($\bfn_x$ and $\bfn_y$) is associated with $\bfv_j$ in \Eq{nnav}. Taking the ratio of
-constant to time varying parts in both equations and equating gives
+where $\phi_0$ is the initial phase. Comparing this to \Eq{nsdl}, the constant part of the $\bfn$
+vector in \Eq{nsdl} ($\bfn_z$) is associated with $\bfn_0$ in \Eq{nnav} and the time varying part of
+$\bfn$ in \Eq{nsdl} ($\bfn_x$ and $\bfn_y$) is associated with $\bfv_j$ in \Eq{nnav}. Taking
+the ratio of constant to time varying parts in both equations and equating gives
 \begin{equation}
-  \epsilon_r = \frac{\delta}{\sqrt{J_j}} \, \frac{|\bfn_j|}{|\bfn_0|}
+  \xi_r = \delta \, |\bfn_j|
 \end{equation}
-
-
 
 
 %Should the $\nu_s$ term be $m_s \, \nu_s$?
@@ -448,7 +458,7 @@ constant to time varying parts in both equations and equating gives
 %FS resonance crossing formula.?
 
 
-\etcetc 
+%\etcetc 
 
 %-----------------------------------------------------------------   
 \section{SLIM Formalism}
@@ -458,11 +468,12 @@ The \vn{SLIM} formalism\footnote
   {
 The name references an early computer program that implemented the formalism.
   }
-\cite{b:chao.spin,b:barber99}, introduced by Alex Chao, is a way to represent the linearized
-(that is, first order) orbital and spin transport as an $8 \cross 8$ matrix which then can be
-analyzed. The idea is to expand the transport map around the closed orbit $(\bfr_0, \bfn_0)$ where
-$\bfr_0$ is the orbital closed orbit and $\bfn_0$ is the ``spin closed orbit''. Namely the
-unit-vector, one-turn periodic solution of the Thomas-BMT equation on $\bfr_0$\footnote
+\cite{b:chao.spin,b:barber99}, introduced by Alex Chao, is a way to represent the linearized (that
+is, first order) orbital and spin transport as an $8 \cross 8$ matrix which then can be analyzed
+using standard linear algebra techniques. The idea is to expand the transport map around the closed
+orbit $(\bfr_0, \bfn_0)$ where $\bfr_0$ is the orbital closed orbit and $\bfn_0$ is the ``spin
+closed orbit''. Namely the unit-vector, one-turn periodic solution of the Thomas-BMT equation on
+$\bfr_0$\footnote
   {
 Warning: The symbol $\hat n$ or
 $\vec n$ used in \cite{b:chao.spin,b:barber85} and other early literature to denote the periodic

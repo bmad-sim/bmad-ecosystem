@@ -27,36 +27,13 @@ implicit none
 
 real(rp), optional :: dn_dpz_partial(3,3)
 real(rp) orb_mat(6,6), q_map(0:3,0:6), dn_dpz(3)
-real(rp) w0(3,3), mat1(6,6)
-complex(rp) n0(0:3), q0(0:3), n_eigen(6,3), vv(6,6), aa(6,1)
-complex(rp) eval(6), evec(6,6), qv(0:3), qq(0:3), dd(3,3), gv(3,1)
-integer k, kk, pinfo, ipiv2(3), ipiv6(6)
-logical err
+complex(rp) n_eigen(6,3), vv(6,6), aa(6,1)
+complex(rp) eval(6), evec(6,6)
+integer k, kk, pinfo, ipiv6(6)
 
-! With RF off the eigen analysis is singular. 
-! In this case, modify the matrix to remove the singularity.
+!
 
-mat1 = orb_mat
-if (mat1(6,5) == 0) then ! Eigen anal is singular without RF so put in a fix.
-  mat1(5,1:4) = 0
-  mat1(5,6) = 0
-endif
-
-call mat_eigen(mat1, eval, evec, err)
-
-w0 = quat_to_w_mat(q_map(:,0))
-n0 = [0.0_rp, q_map(1:3,0)] / norm2(q_map(1:3,0))
-q0 = q_map(0:3,0)
-
-do k = 1, 6
-  call cplx_mat_make_unit(dd)
-  dd = eval(k) * dd - w0
-  qv = matmul(q_map(0:3,1:6), evec(k,:))
-  qq = quat_mul(quat_mul(qv, n0), quat_conj(q0)) + quat_mul(quat_mul(q0, n0), quat_conj(qv))
-  gv(:,1) = qq(1:3)
-  call zgesv_f95 (dd, gv, ipiv2, pinfo)
-  n_eigen(k,:) = gv(:,1)
-enddo
+call spin_mat_to_eigen (orb_mat, q_map, eval, evec, n_eigen)
 
 vv = transpose(evec)
 aa(:,1) = [0, 0, 0, 0, 0, 1]
