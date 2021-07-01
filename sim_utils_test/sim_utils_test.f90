@@ -54,8 +54,8 @@ m(6,:) = [ 0.00530822, -0.00029320,  0.00010783, -0.00001597,  0.01159978,  0.94
 
 call mat_eigen (m, eval, evec, err)
 do i = 1, 6
-  write (1, '(a, 6(2x, 2f12.8))') '"Eigen-val-' // int_str(i) // '" ABS 1e-10', eval(i)
-  write (1, '(a, 6(2x, 2f12.8))') '"Eigen-vec-' // int_str(i) // '" ABS 1e-10', evec(i,:)
+  write (1, '(a, 6(2x, 2f12.8))') '"Eigen-val-' // int_str(i) // '" ABS 1e-4', eval(i)
+  write (1, '(a, 6(2x, 2f12.8))') '"Eigen-vec-' // int_str(i) // '" ABS 1e-4', evec(i,:)
 enddo
 
 ! random
