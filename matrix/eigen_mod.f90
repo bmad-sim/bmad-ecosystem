@@ -1,7 +1,6 @@
 module eigen_mod
 
-use precision_def
-use output_mod
+use sim_utils
 
 contains
 
@@ -12,7 +11,7 @@ contains
 ! Subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
 !
 ! Routine for determining the eigenvectors and eigenvalues of a matrix.
-! The eigenvectors are normalized to 1.
+! The eigenvectors are normalized so that (v_j^*) * S * (v_j) = -i for j odd.
 !
 ! When the eigenvalues are complex conjugate pairs, the eigenvectors and eigenvalues
 ! are grouped so that the conjugate pairs are in slots (1,2), (3,4), etc.
@@ -66,32 +65,27 @@ error = .true.
 call eigensys (mat, val, vec, iv, n, err, print_err)
 if (err) return
 
-!
-
 call ordersys (val, vec, iv, n, err, print_err)
 if (err) return
 
+! Order eigen with horizontal first etc. 
+
 do ii = 1, nn
   i = 2 * ii
-  fnorm = sqrt(sum(vec(:, i-1:i)**2))
-  if (fnorm == 0) return
-  vec(:, i-1:i) = vec(:, i-1:i) / fnorm
   do kk = 1, nn
     k = 2 * kk
     amp(ii,kk) = sum(vec(k-1:k, i-1:i)**2)
   enddo
 enddo
 
-! Order eigen with horizontal first etc. 
-
 picked = .false.
-do i = 1, nn
+do ii = 1, nn
   do
-    sort(i) = maxloc(amp(:,i), 1)
-    if (.not. picked(sort(i))) exit
-    amp(sort(i),i) = -1
+    sort(ii) = maxloc(amp(:,ii), 1)
+    if (.not. picked(sort(ii))) exit
+    amp(sort(ii),ii) = -1
   enddo
-  picked(sort(i)) = .true.
+  picked(sort(ii)) = .true.
 enddo
 
 !
@@ -101,23 +95,34 @@ do ii = 1, nn
   j = 2 * sort(ii)
 
   if (iv(i-1) == 0) then  ! Unstable mode
+    fnorm = sqrt(sum(vec(:, i-1:i)**2))
+    if (fnorm == 0) return
+    vec(:, i-1:i) = vec(:, i-1:i) / fnorm
+
     eigen_val(j-1)    = val(i-1)
     eigen_val(j)      = val(i)
     eigen_vec(j-1, :) = vec(:, i-1)
     eigen_vec(j, :)   = vec(:, i)
 
   elseif (iv(i-1) == 1) then   ! Stable mode with complex conjugate pairs.
-    if (sum(vec(1:n-1:2, i-1) * vec(2:n:2, i)) - sum(vec(1:n-1:2, i) * vec(2:n:2, i-1)) > 0) then
-      eigen_val(j-1)    = cmplx(val(i-1),  val(i))
-      eigen_val(j)      = cmplx(val(i-1), -val(i))
-      eigen_vec(j-1, :) = cmplx(vec(:, i-1),  vec(:, i))
-      eigen_vec(j, :)   = cmplx(vec(:, i-1), -vec(:, i))
-    else
-      eigen_val(j-1)    = cmplx(val(i-1), -val(i))
-      eigen_val(j)      = cmplx(val(i-1),  val(i))
-      eigen_vec(j-1, :) = cmplx(vec(:, i-1), -vec(:, i))
-      eigen_vec(j, :)   = cmplx(vec(:, i-1),  vec(:, i))
+    eigen_val(j-1)    = cmplx(val(i-1), -val(i))
+    eigen_val(j)      = cmplx(val(i-1),  val(i))
+    eigen_vec(j-1, :) = cmplx(vec(:, i-1), -vec(:, i))
+    eigen_vec(j, :)   = cmplx(vec(:, i-1),  vec(:, i))
+
+    k = j - 1
+    fnorm = 0
+    do jj = 1, n, 2
+      fnorm = fnorm + 2 * aimag(eigen_vec(k, jj) * conjg(eigen_vec(k,jj+1)))
+    enddo
+
+    if (fnorm > 0) then  ! flip
+      eigen_vec(k:k+1, :) = eigen_vec(k+1:k:-1, :)
+      eigen_val(k:k+1) = eigen_val(k+1:k:-1)
     endif
+
+    eigen_vec(k,:)   = sign_of(fnorm) * eigen_vec(k,:) / sqrt(abs(fnorm))
+    eigen_vec(k+1,:) = sign_of(fnorm) * eigen_vec(k+1,:) / sqrt(abs(fnorm))
 
   else
     if (logic_option(.true., print_err)) call out_io (s_fatal$, 'mat_eigen', 'BAD IV FROM EIGENSYS')
@@ -127,7 +132,7 @@ enddo
 
 error = .false.
 
-end subroutine
+end subroutine mat_eigen
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
