@@ -258,7 +258,7 @@ do ie = 0, branch%n_ele_track
   ! Use new layout for multipass regions.
 
   if (ix_pass0 /= ix_pass .and. ele_inserted_in_layout) then
-    call layout_end_stuff (branch, .false.)
+    call layout_end_stuff (branch, ie, .false.)
     call layout_init_stuff (branch)
     call add_ptc_layout_to_list (branch%ptc, m_u%end)   ! Save layout
     ele_inserted_in_layout = .false.
@@ -271,7 +271,7 @@ do ie = 0, branch%n_ele_track
 
 enddo
 
-call layout_end_stuff (branch, .true.)
+call layout_end_stuff (branch, ie, .true.)
 
 ! Set bookkeeping state
 
@@ -299,10 +299,11 @@ end subroutine layout_init_stuff
 !-----------------------------------------------------------------------------
 ! contains
 
-subroutine layout_end_stuff (branch, at_end)
+subroutine layout_end_stuff (branch, ie, at_end)
 
 type (branch_struct) branch
 logical at_end
+integer ie
 
 !
 

@@ -2051,7 +2051,7 @@ type (bmad_common_struct), save, target :: bmad_com
 type ptc_common_struct
   integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set
   integer :: taylor_order_saved = 3     ! Default to use.
-  logical :: complex_ptc_used = .false. ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
+  logical :: complex_ptc_used = .true.  ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
   logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
   type (internal_state) :: base_state   ! Base PTC state. 
 end type

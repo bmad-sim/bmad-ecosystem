@@ -168,7 +168,7 @@ there is no coupling the analysis is simple but with coupling things get more co
 general case, calculating with eigenvectors and eigenvalues gives, assuming that the lattice is
 stable, three pairs of eigenvalues with the two eigenvalues of a given pair being complex
 conjugates and all eigenvalues having unit amplitude. That is, the eigenvalues $\lambda_i$, $i =
-1, \ldots 6$ can be written in the form:
+1, \ldots 6$ can be ordered in pairs:
 \begin{align}
   \lambda_1, \, \lambda_2 &= \exp(i \, \theta_a), \, \exp(-i \, \theta_a) \CRNO
   \lambda_3, \, \lambda_4 &= \exp(i \, \theta_b), \, \exp(-i \, \theta_b) \label{lleit} \\
@@ -179,30 +179,33 @@ $\lambda_2$, along with their associated eigenvectors $\bfV_1$ and $\bfV_2$, wit
 ``horizontal-like'' mode, all the eigenvectors are compared to one another and the eigenvector pair
 with the largest values for the $x$ and $p_x$ components are used for $\bfV_1$ and $\bfV_2$.
 Similarly, for the ``vertical-like'' mode, eigenvector pair with the largest values for the $y$ and
-$p_y$ components are associated with $\bfV_3$ and $bfV_4$, and finally for the ``longitudinal-like''
+$p_y$ components are associated with $\bfV_3$ and $\bfV_4$, and finally for the ``longitudinal-like''
 mode the eigenvector pair with the largest values for the $z$ and $p_z$ components are associated
 with $\bfV_5$ and $\bfV_6$.
 
 It can be useful to arrange the eigenvalues such that the odd numbered eigenvalues (1, 3, and 5) are
-associated with the tune and and the even numbered eigen values (2, 4, and 6) are associated with
-the negative of the tune as arranged in \Eq{lleit}. The algorithm for doing this can be deduced by
-first considering the case where the motion is in one-dimension only. Here taken to be $(x, p_x)$ as
-shown in \fig{f:tune}. Assuming $\beta_x = 1$ and $\alpha_x = 0$, the one-turn matrix $bfM$ is a
-simple rotation matrix
+associated with the tune and the even numbered eigen values (2, 4, and 6) are associated with the
+negative of the tune as arranged in \Eq{lleit}. The algorithm for doing this can be deduced by first
+considering the case where the motion is in one-dimension only. Here taken to be $(x, p)$ as shown
+in \fig{f:tune}. Notice that, by the standard accelerator physics convention, a positive tune
+represents a clockwise rotation in the transverse dimensions. For the longitudinal mode what counts
+as positive tune can depend upon whether the machine is above transition or not. To keep the
+mathematics consistent, positive tune for all modes will be taken to be clockwise.
+
+Assuming that the motion is circular, the one-turn matrix $\bfM$ with tune $\theta$ is
 \begin{equation}
   \bfM = \begin{pmatrix}
-    \cos(\theta_x) & \sin(\theta_x) \\
-   -\sin(\theta_x) & \cos(\theta_x)
+    \cos(\theta) & \sin(\theta) \\
+   -\sin(\theta) & \cos(\theta)
   \end{pmatrix}
+  \label{mctst}
 \end{equation}
-where $\theta_x$ is the tune. Notice that, by the standard accelerator physics convention, a
-positive tune represents a clockwise rotation. The eignvalues and
-eigenvectors are
+The eignvalues and eigenvectors are
 \begin{alignat}{2}
-  \lambda_1 &= \exp( i \, \theta_x),  \qquad &&\bfV_1 = \frac{1}{\sqrt{2}} \, (1, i) \CRNO
-  \lambda_2 &= \exp(-i \, \theta_x),  \qquad &&\bfV_2 = \frac{1}{\sqrt{2}} \, (1, -i) 
+  \lambda_1 &= \exp( i \, \theta),  \qquad &&\bfV_1 = \frac{1}{\sqrt{2}} \, (1, i) \CRNO
+  \lambda_2 &= \exp(-i \, \theta),  \qquad &&\bfV_2 = \frac{1}{\sqrt{2}} \, (1, -i) 
 \end{alignat}
-Thus, for the eigenvector $(1, i)/\sqrt{2}$, were the the momentum component is rotated by a factor
+Thus, for the eigenvector $(1, i)/\sqrt{2}$, were the momentum component is rotated by a factor
 of $\pi/2$ counterclockwise from the position coordinate, the rotation angle is the tune. The
 rotation angle associated with the eigenvector $(1, -i)/\sqrt{2}$ is associated with the negative of
 the tune.
@@ -211,10 +214,11 @@ In the general case, each $\bfV_i$, $i = 1, \ldots 6$, is a vector in $(x, p_x, 
 space with each component of the vector being a complex number. The criterion that an eigenvector
 is associated with the tune is that the phase of the momentum components are on average rotated
 clockwise from the position coordinates is
-\begin{equation}
-  \wt\bfV_{j}^* \, \bfS \, \bfV_j = i, \quad j = 1, 3, 5
+\begin{alignat}{2}
+  \wt\bfV_{j}^* \, \bfS \, \bfV_j &= -i, \quad &&j = 1, 3, 5 \CRNO
+  \wt\bfV_{j}^* \, \bfS \, \bfV_j &=  i, \quad &&j = 2, 4, 6
   \label{vsvi0}
-\end{equation}
+\end{alignat}
 where the tilde means transpose and $\bfS$ is the matrix
 \begin{equation}
   \bfS = \begin{pmatrix}
@@ -231,12 +235,47 @@ where the tilde means transpose and $\bfS$ is the matrix
 Different Authors can use different conventions. For example, the $\bfS$ matrix in the paper by
 Ohmi, Hirata, and Oide \cite{b:ohmi}, is the negative of the $\bfS$ matrix defined here and their
 phases are reversed (positive phase is counterclockwise rotation) as can be seen from Eqs.~(77) and
-(79) in their paper
+(79) in their paper.
   }
 
-Note: The longitudinal-like mode is a slight bit tricky here in that, while the mathematics is the
-same as for the other modes, in the case where a machine is above transition, what counts as a
-positive tune for a User may be a counterclockwise rotation in $(z, p_z)$ space.
+%-----------------------------------------------------------------
+\section{Action-Angle Coordinates}
+\label{s:action.ang}
+\index{action-angle|hyperbf}
+
+The transformation from the one-turn laboratory coordinates $6 \cross 6$ matrix $\bfT$ to action-angle coordinates
+uses the similarity transformation
+\begin{equation}
+  \bfT = \bfN \, \bfR \, \bfN^{-1}
+\end{equation}
+where $\bfR$ is the rotation matrix
+\begin{equation}
+  \bfR = \begin{pmatrix}
+    \bfR_2(\theta_a) &                  &                  \\
+                     & \bfR_2(\theta_b) &                  \\
+                     &                  & \bfR_2(\theta_c)
+  \end{pmatrix}
+\end{equation}
+with each $2 \times 2$ rotation submatrix $\bfR_2$ being of the form as $\bfM$ in \Eq{mctst}.
+The transformation from laboratory coordinates $\bfx$ to action-angle $\bfJ$ coordinates is then
+\begin{equation}
+  \bfJ = \bfN^{-1} \, \bfx
+\end{equation}
+In action-angle coordinates $\bfJ$ looks like
+\begin{equation}
+  \bfJ = \left( \sqrt{2 \, J_a} \, \cos(\phi_a), -\sqrt{2 \, J_a} \, \sin(\phi_a), 
+                \sqrt{2 \, J_b} \, \cos(\phi_b), -\sqrt{2 \, J_b} \, \sin(\phi_b), 
+                \sqrt{2 \, J_c} \, \cos(\phi_c), -\sqrt{2 \, J_c} \, \sin(\phi_c)
+         \right)
+\end{equation}
+where $J_a$, $J_b$, and $J_c$ are the actions and $\phi_a$, $\phi_b$, and $\phi_c$ are the angles.
+
+When the motion is uncoupled, the action and angle of a mode is related to the laboratory coordinates, up
+to an overall phase factor via:
+\begin{align}
+  x &= \sqrt{2 \, J \, \beta} \, \cos( \phi ) \CRNO
+  p &= -\sqrt{\frac{2 \, J}{\beta}} \, \left( \alpha \, \cos( \phi ) + \sin( \phi ) \right) \CRNO
+\end{align}
 
 %-----------------------------------------------------------------
 \section{Dispersion Calculation}

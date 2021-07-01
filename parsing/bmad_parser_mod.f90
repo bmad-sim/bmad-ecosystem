@@ -2911,8 +2911,11 @@ endif
 ! Check that final delim matches.
 
 if (present(end_delims)) then
-  if (.not. delim_found .or. index(end_delims, delim) == 0) then
-    call parser_error ('BAD DELIMITOR AFTER VALUE', 'FOR: ' // err_str)
+  if (.not. delim_found) then
+    call parser_error ('NO DELIMITOR AFTER STRING: ' // quote(str), 'FOR: ' // err_str)
+    return
+  elseif (index(end_delims, delim) == 0) then
+    call parser_error ('BAD DELIMITOR: ' // quote(delim) // ' AFTER STRING: ' // quote(str), 'FOR: ' // err_str)
     return
   endif
 endif
@@ -2963,7 +2966,7 @@ enddo
 
 value = expression_stack_value (stk, err, err_str2)
 if (err) then
-  call parser_error (err_str2, 'FOR: ' // err_str)
+  call parser_error (err_str2, 'IN EXPRESSION: ' // expression_stack_to_string(stk), 'FOR: ' // err_str)
 endif
 
 err_flag = .false.
