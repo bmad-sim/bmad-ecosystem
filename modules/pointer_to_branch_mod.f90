@@ -13,7 +13,7 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 ! or a given element.
 !
 ! This routine is an overloaded name for:
-!   pointer_to_branch_given_ele (ele) result (branch_ptr, parameter_is_branch0)
+!   pointer_to_branch_given_ele (ele) result (branch_ptr, parameter_is_branch0, blank_is_branch0)
 !   pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
 !
 ! The lattice branch *associated* with a given element is not necessarily the
@@ -26,11 +26,13 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 ! which can happen, for example, with overlay elements.
 !
 ! Input:
-!   ele         -- Ele_struct: Element contained in the branch.
-!   branch_name -- Character(*): May be a branch name or a branch index.
-!   lat         -- Lat_struct: Lattice to search.
+!   ele                  -- Ele_struct: Element contained in the branch.
+!   branch_name          -- Character(*): May be a branch name or a branch index.
+!   lat                  -- Lat_struct: Lattice to search.
 !   parameter_is_branch0 -- logical, optional: If True, 'PARAMETER' is taken to be
-!                     an alternative name for branch(0). Default is False.
+!                             an alternative name for branch(0). Default is False.
+!   blank_is_branch0     -- logical, optional: If True, branch_name = '' is taken to be
+!                             an alternative name for branch(0). Default is False.
 !
 ! Output:
 !   branch_ptr  -- branch_struct, pointer: Pointer to the branch.
@@ -48,7 +50,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0) result (branch_ptr)
+! Function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_is_branch0) result (branch_ptr)
 !
 ! Function to point to the named lattice branch.
 ! This routine is overloaded by the routine: pointer_to_branch.
@@ -65,13 +67,13 @@ contains
 !                   Nullified if there is no such branch.
 !-
 
-function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0) result (branch_ptr)
+function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_is_branch0) result (branch_ptr)
 
 type (branch_struct), pointer :: branch_ptr
 type (lat_struct), target :: lat
 
 integer ib, ios
-logical, optional :: parameter_is_branch0
+logical, optional :: parameter_is_branch0, blank_is_branch0
 
 character(*) branch_name
 character(40) b_name
@@ -81,7 +83,8 @@ character(*), parameter :: r_name = 'pointer_to_branch_given_name'
 
 call str_upcase (b_name, branch_name)
 
-if (logic_option(.false., parameter_is_branch0) .and. b_name == 'PARAMETER') then
+if (logic_option(.false., parameter_is_branch0) .and. b_name == 'PARAMETER' .or. &
+    logic_option(.false., blank_is_branch0) .and. b_name == '') then
   branch_ptr => lat%branch(0)
   return
 endif
