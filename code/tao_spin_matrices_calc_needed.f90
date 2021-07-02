@@ -6,7 +6,6 @@
 
 function tao_spin_matrices_calc_needed (data_type, data_source) result (do_calc)
 
-
 implicit none
 
 character(*) data_type, data_source

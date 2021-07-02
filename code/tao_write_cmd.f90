@@ -38,10 +38,10 @@ type (tao_d1_data_struct), pointer :: d1
 type (tao_data_struct), pointer :: dat
 type (tao_v1_var_struct), pointer :: v1
 
-real(rp) scale
+real(rp) scale, mat6(6,6)
 
 character(*) what
-character(20) action, name, lat_type, which, last_col
+character(20) action, name, lat_type, which, last_col, b_name
 character(40), allocatable :: z(:)
 character(200) line, switch, header1, header2
 character(200) file_name0, file_name, what2
@@ -51,7 +51,7 @@ character(*), parameter :: r_name = 'tao_write_cmd'
 integer i, j, k, m, n, ie, id, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word, ix_w2, file_format
 integer n_type, n_ref, n_start, n_ele, n_merit, n_meas, n_weight, n_good, n_bunch, n_eval, n_s
-integer i_min, i_max, n_len, len_d_type
+integer i_min, i_max, n_len, len_d_type, ix_branch
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
@@ -70,7 +70,7 @@ call match_word (action, [character(20):: &
               'hard', 'gif', 'ps', 'variable', 'bmad_lattice', 'derivative_matrix', 'digested', &
               'curve', 'mad_lattice', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', &
               'mad8_lattice', 'madx_lattice', 'pdf', 'pdf-l', 'opal_lattice', '3d_model', 'gif-l', &
-              'ptc', 'sad_lattice', 'blender', 'namelist', 'xsif_lattice'], ix, .true., matched_name = action)
+              'ptc', 'sad_lattice', 'blender', 'namelist', 'xsif_lattice', 'matrix'], ix, .true., matched_name = action)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED "WHAT": ' // action)
@@ -468,7 +468,89 @@ case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice
   enddo
 
 !---------------------------------------------------
-! orbit
+! matrix
+
+case ('matrix')
+
+  ix_word = 0
+  file_name = ''
+  which = '-single'
+  append = .false.
+  i_uni = -1
+  b_name = ''
+
+  do
+    ix_word = ix_word + 1
+    if (ix_word == size(word)-1) exit    
+    call tao_next_switch (word(ix_word), [character(16):: '-single', '-from_start', '-combined', &
+                      '-universe', '-branch'], .true., switch, err, ix)
+    if (err) return
+
+    select case (switch)
+    case ('')
+        exit
+    case ('-single', '-from_start', '-combined')
+      which = switch
+    case ('-universe')
+      ix_word = ix_word + 1
+      if (.not. is_integer(word(ix_word), i_uni)) then
+        call out_io (s_error$, r_name, 'BAD UNIVERSE INDEX: ' // word(ix_word))
+        return
+      endif
+    case ('-branch')
+      ix_word = ix_word + 1
+      b_name = word(ix_word)
+    case default
+      if (file_name /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name = switch
+    end select
+  enddo
+
+  !
+
+  u => tao_pointer_to_universe(i_uni)
+  if (.not. associated(u)) then
+    call out_io (s_error$, r_name, 'BAD UNIVERSE INDEX: ' // word(i_uni))
+    return
+  endif
+
+  branch => pointer_to_branch(b_name, u%model%lat, blank_is_branch0 = .true.)
+  if (.not. associated(branch)) then
+    call out_io (s_error$, r_name, 'BAD LATTICE BRANCH NAME OR INDEX: ' // b_name)
+    return
+  endif
+
+  if (file_name == '') file_name = 'matrix.dat'
+  iu = lunget()
+  open (iu, file = file_name)
+
+
+  call mat_make_unit(mat6)
+
+  do i = 1, branch%n_ele_track
+    ele => branch%ele(i)
+    mat6 = matmul(ele%mat6, mat6)
+
+    if (which == '-single' .or. which == '-combined') then
+      write (iu, *)
+      write (iu, '(i6, 2x, a, a16, f16.9)') i, ele%name, key_name(ele%key), ele%s
+      call mat_type (ele%mat6, iu, num_form = '(4x, 6f14.8)')
+    endif
+
+    if (which == '-from_start' .or. which == '-combined') then
+      write (iu, *)
+      write (iu, '(a, i6, 2x, a, a16, f16.9)') 'From start to:', i, ele%name, key_name(ele%key), ele%s
+      call mat_type (mat6, iu, num_form = '(4x, 6f14.8)')
+    endif
+  enddo
+
+  close (iu)
+
+!---------------------------------------------------
+! namelist
 
 case ('namelist')
 
@@ -477,10 +559,9 @@ case ('namelist')
   which = ''
   append = .false.
 
-  do 
+  do
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
-
     call tao_next_switch (word(ix_word), [character(16):: '-data', '-plot', '-variable', '-append'], .true., switch, err, ix)
     if (err) return
 
@@ -512,7 +593,7 @@ case ('namelist')
     open (iu, file = file_name)
   endif
 
-  !--------------------------------------------
+  !--------------
   ! namelist -data
 
   select case (which)
@@ -892,7 +973,6 @@ case ('ptc')
 ! variables
 
 case ('variable')
-
   good_opt_only = .false.
   ix_word = 0
   file_name = ''
