@@ -2471,11 +2471,12 @@ Syntax:
   show matrix \{-eigen_modes\} \{-ptc\} \{-s\} \{loc1 \{loc2\}\}
 \end{example}
 
-
 Shows the transfer matrix (Jacobian) for the \vn{model} lattice of the default universe (set by
 \vn{set default universe}). The matrix is calculated with respect to the particle orbit, not the
 zero orbit. This command is equivalent to \vn{show taylor_map -order 1}. See the \vn{show
 taylor_map} documentation for more details.
+
+Also see \vn{write matrix}.
 
 %% show merit --------------------------------------------------------------
 
@@ -2784,6 +2785,7 @@ The conversion between the two coordinate systems is given in the Bmad manual.
   }
 
 Maps are computed about the particle orbit. Not the zero orbit.
+Also see \vn{write matrix}.
 
 Examples:
 \begin{example}
@@ -3270,27 +3272,28 @@ Examples:
 The \vn{write} command creates various files.
 Format:
 \begin{example}
-  write beam \{-ascii\} -at <element_list> \{<file_name>\}                    ! \sref{s:write.beam}
-  write blender \{<file_name>\}                                             ! \sref{s:write.blender}
-  write bmad \{-format <format_type>\} \{<file_name>\}                        ! \sref{s:write.bmad}
-  write covariance_matrix \{file_name\}                                     ! \sref{s:write.covar.matrix}
-  write curve <curve_name> \{<file_name>\}                                  ! \sref{s:write.curve}
-  write derivative_matrix \{file_name\}                                     ! \sref{s:write.deriv.matrix}
-  write digested \{<file_name>\}                                            ! \sref{s:write.digested}
-  write gif \{<file_name>\}                                                 ! \sref{s:write.gif}
-  write gif-l \{<file_name>\}                                               ! \sref{s:write.gif}
-  write hard                                                              ! \sref{s:write.hard}
-  write hard-l                                                            ! \sref{s:write.hard}
-  write mad8 \{<file_name>\}                                                ! \sref{s:write.mad8}
-  write madx \{<file_name>\}                                                ! \sref{s:write.madx}
-  write namelist \{-append\} \{-data\} \{-plot\} \{-variable\} \{file_name\}        ! \sref{s:write.namelist}
-  write opal \{file_name\}                                                  ! \sref{s:write.opal}
-  write ps \{-scale <scale>\} \{<file_name>\}                                 ! \sref{s:write.ps}  
-  write ps-l \{-scale <scale>\} \{<file_name>\}                               ! \sref{s:write.ps}
-  write ptc \{-all\} \{-old\} \{-branch <name_or_index\} \{<file_name>\}          ! \sref{s:write.ptc}
-  write sad \{<file_name>\}                                                 ! \sref{s:write.sad}
-  write variable \{-good_var_only\} \{-tao_format\} \{<file_name>\}               ! \sref{s:write.variable}
-  write xsif \{<file_name>\}                                                ! \sref{s:write.xsif}
+  write beam ...                  ! \sref{s:write.beam}
+  write blender ...               ! \sref{s:write.blender}
+  write bmad ...                  ! \sref{s:write.bmad}
+  write covariance_matrix ...     ! \sref{s:write.covar.matrix}
+  write curve ...                 ! \sref{s:write.curve}
+  write derivative_matrix ...     ! \sref{s:write.deriv.matrix}
+  write digested ...              ! \sref{s:write.digested}
+  write gif ...                   ! \sref{s:write.gif}
+  write gif-l ...                 ! \sref{s:write.gif}
+  write hard                      ! \sref{s:write.hard}
+  write hard-l                    ! \sref{s:write.hard}
+  write mad8 ...                  ! \sref{s:write.mad8}
+  write madx ...                  ! \sref{s:write.madx}
+  write matrix ...                ! \sref{s:write.mat}
+  write nameli...                 ! \sref{s:write.namelist}
+  write opal ...                  ! \sref{s:write.opal}
+  write ps ...                    ! \sref{s:write.ps}  
+  write ps-l ...                  ! \sref{s:write.ps}
+  write ptc ...                   ! \sref{s:write.ptc}
+  write sad ...                   ! \sref{s:write.sad}
+  write variable ...              ! \sref{s:write.variable}
+  write xsif ...                  ! \sref{s:write.xsif}
 \end{example}
 
 % Use the command:
@@ -3504,6 +3507,35 @@ Syntax:
 \end{example}
 
 The default file name is \vn{lat_\#.madx} where \vn{\#} is replaced by the universe number. 
+
+%% write matrix --------------------------------------------------------------
+
+\subsection{write matrix}
+\label{s:write.mat}
+
+Syntax:
+\begin{example}
+    write madx \{-branch <branch>\} \{-single\} \{-from_start\} \{-combined\}
+               \{-universe <ix_uni>\} \{<file_name>\}  ! Write transport matrices
+\end{example}
+
+The \vn{write matrix} command writes transport matrices to a file for a particular lattice branch
+determined by the \vn{-universe} and \vn{-branch} switches. The default is the current viewed
+universe and lattice branch 0.
+
+If \vn{<file_name>} is not present, the default file name to write to is \vn{matrix.dat}.
+
+What is written is determined by the \vn{-single}, \vn{-from_start}, and \vn{-combined}
+switches. If \vn{-single} is present, the transfer matrices through each lattice element is recorded.
+If \vn{-from_start} is present, the transfer matrices from the start of the branch to each element
+is writen. If \vn{-combined} is present, both the element matrices and the matrices from the start
+of the branch are writen. The default is to write the element matrices.
+
+Examples:
+\begin{example}
+  write mat -uni 3 -br 1  ! Write matrices from universe 3, branch 1.
+  write mat -from m.dat   ! Write matrices in m.dat from branch beginning to elements
+\end{example}
 
 %% write namelist --------------------------------------------------------------
 
