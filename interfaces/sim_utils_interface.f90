@@ -776,12 +776,11 @@ subroutine string_trim2 (in_str, delimitors, out_str, ix_word, delim, ix_next)
   integer ix_next
 end subroutine
 
-function substr_is_equal(var_str, n1, n2, str) result (is_equal)
+function substr(var_str, n1, n2) result (sub_str)
   implicit none
-  character(*) str
   character(:), allocatable :: var_str
   integer n1, n2
-  logical is_equal
+  character(n2-n1+1) sub_str
 end function
 
 subroutine test_tune_tracker_lock (tracker_locked)
