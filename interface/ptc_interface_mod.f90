@@ -1007,20 +1007,20 @@ end function kind_name
 !   bmad_com%electric_dipole_moment to PTC.
 !
 ! Input:
-!   e_tot  -- Real(rp), optional: Energy in eV.
-!   particle     -- Integer, optional: Type of particle:
-!                     electron$, proton$, etc.
-!   taylor_order -- Integer, optional: Maximum order of the taylor polynomials.
-!                     0 => Use default.
-!   integ_order  -- Integer, optional: Default Order for the drift-kick-drift 
-!                     sympletic integrator. Possibilities are: 2, 4, or 6
-!                     Default = 2
-!   n_step       -- Integer, optional: Default Number of integration steps.
-!                     Default = 1
-!   no_cavity    -- Logical, optional: No RF Cavity exists? 
-!                     Default = False.
-!                     Corresponds to the nocavity option of the PTC init routine.
-!                     no_cavity = .true. will turn any cavity into a drift.
+!   e_tot          -- Real(rp), optional: Energy in eV.
+!   particle       -- Integer, optional: Type of particle:
+!                       electron$, proton$, etc.
+!   taylor_order   -- Integer, optional: Maximum order of the taylor polynomials.
+!                       0 => Use default.
+!   integ_order    -- Integer, optional: Default Order for the drift-kick-drift 
+!                       sympletic integrator. Possibilities are: 2, 4, or 6
+!                       Default = 2
+!   n_step         -- Integer, optional: Default Number of integration steps.
+!                       Default = 1
+!   no_cavity      -- Logical, optional: No RF Cavity exists? 
+!                       Default = False.
+!                       Corresponds to the nocavity option of the PTC init routine.
+!                       no_cavity = .true. will turn any cavity into a drift.
 !   exact_modeling -- logical, optional: Sets the PTC EXACT_MODEL variable.
 !                       Default = False.
 !                       See the PTC guide for more details.
