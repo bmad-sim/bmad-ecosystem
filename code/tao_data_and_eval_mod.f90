@@ -446,7 +446,6 @@ type (ptc_normal_form_struct), pointer :: ptc_nf
 type (taylor_struct), pointer :: taylor_ptr
 type (complex_taylor_struct), pointer :: complex_taylor_ptr
 type (all_pointer_struct) a_ptr
-type (tao_spin_map_struct), pointer :: spin_map
 type (rad_int_branch_struct), pointer :: rad_int_branch
 type (c_taylor), pointer :: phase_map
 type (twiss_struct), pointer :: z0, z1, z2
@@ -3043,22 +3042,25 @@ case ('spin_tune_ptc.')
 
 case ('spin_g_matrix.')
 
-  call tao_spin_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
+  call tao_spin_matrix_calc (datum, u, ix_ref, ix_ele)
+  valid_value = datum%spin_map%valid
+  why_invalid = datum%why_invalid
+
   if (.not. valid_value) return
 
   select case (data_type)
-  case ('spin_g_matrix.11');  datum_value = spin_map%mat8(7,1)
-  case ('spin_g_matrix.12');  datum_value = spin_map%mat8(7,2)
-  case ('spin_g_matrix.13');  datum_value = spin_map%mat8(7,3)
-  case ('spin_g_matrix.14');  datum_value = spin_map%mat8(7,4)
-  case ('spin_g_matrix.15');  datum_value = spin_map%mat8(7,5)
-  case ('spin_g_matrix.16');  datum_value = spin_map%mat8(7,6)
-  case ('spin_g_matrix.21');  datum_value = spin_map%mat8(8,1)
-  case ('spin_g_matrix.22');  datum_value = spin_map%mat8(8,2)
-  case ('spin_g_matrix.23');  datum_value = spin_map%mat8(8,3)
-  case ('spin_g_matrix.24');  datum_value = spin_map%mat8(8,4)
-  case ('spin_g_matrix.25');  datum_value = spin_map%mat8(8,5)
-  case ('spin_g_matrix.26');  datum_value = spin_map%mat8(8,6)
+  case ('spin_g_matrix.11');  datum_value = datum%spin_map%mat8(7,1)
+  case ('spin_g_matrix.12');  datum_value = datum%spin_map%mat8(7,2)
+  case ('spin_g_matrix.13');  datum_value = datum%spin_map%mat8(7,3)
+  case ('spin_g_matrix.14');  datum_value = datum%spin_map%mat8(7,4)
+  case ('spin_g_matrix.15');  datum_value = datum%spin_map%mat8(7,5)
+  case ('spin_g_matrix.16');  datum_value = datum%spin_map%mat8(7,6)
+  case ('spin_g_matrix.21');  datum_value = datum%spin_map%mat8(8,1)
+  case ('spin_g_matrix.22');  datum_value = datum%spin_map%mat8(8,2)
+  case ('spin_g_matrix.23');  datum_value = datum%spin_map%mat8(8,3)
+  case ('spin_g_matrix.24');  datum_value = datum%spin_map%mat8(8,4)
+  case ('spin_g_matrix.25');  datum_value = datum%spin_map%mat8(8,5)
+  case ('spin_g_matrix.26');  datum_value = datum%spin_map%mat8(8,6)
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)

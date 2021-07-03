@@ -111,6 +111,16 @@ subroutine tao_clip_cmd (gang, where, value1, value2)
   real(rp) value1, value2
 end subroutine
 
+subroutine tao_concat_spin_map (q_map, branch, n1, n2, q_ele)
+  use pointer_lattice, only: c_linear_map
+  import
+  implicit none
+  type (c_linear_map) q_map
+  type (c_linear_map), optional :: q_ele(:)
+  type (branch_struct), target :: branch
+  integer n1, n2
+end subroutine
+
 subroutine tao_control_tree_list (ele, tree)
   import
   implicit none
@@ -836,15 +846,12 @@ subroutine tao_split_component (comp_str, comp, err)
   logical err
 end subroutine
 
-subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
+subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele)
   import
   implicit none
   type (tao_data_struct) datum
   type (tao_universe_struct) u
-  type (tao_spin_map_struct), pointer :: spin_map
   integer ix_ref, ix_ele
-  logical valid_value
-character(*) why_invalid
 end subroutine
 
 subroutine tao_spin_polarization_calc (branch, tao_branch)

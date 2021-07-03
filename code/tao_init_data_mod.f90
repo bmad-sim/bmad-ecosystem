@@ -244,20 +244,20 @@ do
 
     if (ix_d1_data /= k) then
       write (line, '(a, 2i4)') ', k, ix_d1_data'
-      call out_io (s_abort$, r_name, &
+      call out_io (s_error$, r_name, &
                 'ERROR: IX_D1_DATA MISMATCH FOR D2_DATA: ' // quote(d2_data%name), &
                 '       THE D1_DATA HAD THE NAME: ' // quote(d1_data%name), &
                 '       I EXPECTED IX_D1_DATA TO BE: \i3\ ', &
                 '       I READ IX_D1_DATA TO BE: \i3\ ', &
                 i_array = (/ k, ix_d1_data /) )  
-      call err_exit
+      exit
     endif
 
     do i = lbound(datum, 1), ubound(datum, 1)
       if (index(datum(i)%data_type, 'dat::') /= 0) then
         call out_io (s_error$, r_name, &
                      'DATA_TYPE USES OLD "dat::" PREFIX. PLEASE CHANGE TO "data::": ' // quote(datum(i)%data_type))
-        call err_exit
+        exit
       endif
     enddo
     call out_io (s_blank$, r_name, 'Init: Read tao_d1_data namelist: ' // quote(d1_data%name))
@@ -354,7 +354,7 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%good_user        = datum(ix1:ix2)%good_user
   u%data(n1:n2)%good_opt         = datum(ix1:ix2)%good_opt
   u%data(n1:n2)%invalid_value    = datum(ix1:ix2)%invalid_value
-  u%data(n1:n2)%spin_axis        = datum(ix1:ix2)%spin_axis
+  u%data(n1:n2)%spin_map%axis_input   = datum(ix1:ix2)%spin_axis
   u%data(n1:n2)%ele_start_name   = datum(ix1:ix2)%ele_start_name
   u%data(n1:n2)%ele_ref_name     = datum(ix1:ix2)%ele_ref_name
   u%data(n1:n2)%ix_bunch         = datum(ix1:ix2)%ix_bunch
@@ -407,8 +407,8 @@ elseif (use_same_lat_eles_as /= '') then
   call string_trim (use_same_lat_eles_as, name, ix)
   call tao_find_data (err, name, d1_array = d1_array, ix_uni = u%ix_uni)
   if (err .or. size(d1_array) /= 1) then
-    call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
-    call err_exit
+    call out_io (s_error$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
+    return
   endif
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + size(d1_array(1)%d1%d)
@@ -429,9 +429,9 @@ elseif (use_same_lat_eles_as /= '') then
   u%data(n1:n2)%eval_point      = d1_array(1)%d1%d%eval_point
   u%data(n1:n2)%meas_value      = 0
 
-  u%data(n1:n2)%error_rms     = datum(ix1:ix2)%error_rms
-  u%data(n1:n2)%invalid_value = datum(ix1:ix2)%invalid_value
-  u%data(n1:n2)%spin_axis     = datum(ix1:ix2)%spin_axis
+  u%data(n1:n2)%error_rms       = datum(ix1:ix2)%error_rms
+  u%data(n1:n2)%invalid_value   = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%spin_map%axis_input  = datum(ix1:ix2)%spin_axis
 
   if (default_data_source /= '')  u%data(n1:n2)%data_source = default_data_source
   if (default_merit_type /= '')   u%data(n1:n2)%merit_type = default_merit_type
@@ -496,7 +496,7 @@ else
   u%data(n1:n2)%ix_bunch         = datum(ix1:ix2)%ix_bunch
   u%data(n1:n2)%data_source      = datum(ix1:ix2)%data_source
   u%data(n1:n2)%merit_type       = datum(ix1:ix2)%merit_type
-  u%data(n1:n2)%spin_axis        = datum(ix1:ix2)%spin_axis
+  u%data(n1:n2)%spin_map%axis_input   = datum(ix1:ix2)%spin_axis
   u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
 
   ! Find elements associated with the data
@@ -568,8 +568,7 @@ do j = n1, n2
   if (substr(dat%data_type, 1, 9) == 'normal.h.') then
     if(dat%data_source == 'lat') then
       if (dat%ix_branch /= 0 .or. dat%d1%d2%ix_universe /= 1) then
-        call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
-        call err_exit
+        call out_io (s_error$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')        
       endif
       n_hterms = n_hterms + 1
       call re_allocate(h_strings, 2*n_hterms, .false.)
@@ -580,8 +579,7 @@ do j = n1, n2
   if (tao_rad_int_calc_needed(dat%data_type, dat%data_source)) then
     u%calc%rad_int_for_data = .true. 
     if (dat%ix_branch /= 0) then
-      call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
-      call err_exit
+      call out_io (s_error$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
     endif
   endif
 
@@ -761,7 +759,7 @@ u%n_d2_data_used = u%n_d2_data_used + 1
 nn = u%n_d2_data_used
 
 if (size(u%d2_data) < nn) then
-  call out_io (s_error$, r_name, 'D2_DATA ARRAY OVERFLOW!')
+  call out_io (s_abort$, r_name, 'D2_DATA ARRAY OVERFLOW!')
   call err_exit
 endif
 

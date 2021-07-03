@@ -28,7 +28,7 @@ character(20), parameter :: tao_graph_type_name(6) = [character(20):: 'data', 'f
 character(16), parameter :: tao_x_axis_type_name(10) = [character(16):: 'index', 'lat', 'var', &
                                    'ele_index', 's', 'none', 'phase_space', 'histogram', 'data', 'floor']
 character(12), parameter :: tao_data_type_z_name(14) = [character(12):: 'x', 'px', 'y', 'py', 'z', 'pz', 'time', &
-                  'intensity', 'intensity_x', 'intensity_y', 'phase_x', 'phase_y', 'Ja', 'energy']
+                                    'intensity', 'intensity_x', 'intensity_y', 'phase_x', 'phase_y', 'Ja', 'energy']
 character(8), parameter :: tao_var_merit_type_name(2) = [character(8):: 'target ', 'limit']
 character(8), parameter :: tao_data_merit_type_name(8) = [character(8):: 'target', 'min', 'max', &
                                              'abs_min', 'abs_max', 'max-min', 'average', 'integral']
@@ -354,6 +354,26 @@ type tao_curve_array_struct
   type (tao_curve_struct), pointer :: c
 end type
 
+!---------------------------------------
+
+type tao_spin_orbit_linear_map_struct
+  real(rp) :: mat(6,6) = 0      ! Orbital transport matrix.
+  real(rp) :: q(0:3, 0:6) = 0    ! Spin quaternion 0th [q(:, 0)] and 1st order [q(:, 1:6)] transport.
+end type
+
+type tao_spin_map_struct
+  logical :: valid = .false.
+  type (taylor_struct) :: orbit_taylor(6) = taylor_struct()  ! Not yet used.
+  type (taylor_struct) :: spin_taylor(0:3) = taylor_struct() ! Not yet used.
+  type (tao_spin_orbit_linear_map_struct) :: q_map = tao_spin_orbit_linear_map_struct()
+  type (spin_axis_struct) :: axis_input = spin_axis_struct() ! Input axes.
+  type (spin_axis_struct) :: axis0 = spin_axis_struct()      ! Initial axes.
+  type (spin_axis_struct) :: axis1 = spin_axis_struct()      ! Final axes.
+  integer :: ix_ele = 0, ix_ref = 0, ix_uni = 0
+  integer :: ix_branch = 0
+  real(rp) :: mat8(8,8) = 0
+end type
+
 !-----------------------------------------------------------------------
 ! The data_struct defines the fundamental data structure representing 
 ! one datum point.
@@ -391,6 +411,7 @@ type tao_data_struct
   character(40) :: merit_type = ''         ! Type of constraint: 'target', 'max', 'min', etc.
   character(40) :: id = ''                 ! Used by Tao extension code. Not used by Tao directly.
   character(20) :: data_source = ''        ! 'lat', 'beam', 'data' or 'var'. Last two used for expressions.
+  character(100) :: why_invalid = ''       ! Informational string if there is a problem.
   integer :: ix_uni = -1                   ! Universe index of datum.
   integer :: ix_bunch = 0                  ! Bunch number to get the data from.
   integer :: ix_branch = 0                 ! Index of the associated lattice branch.
@@ -415,7 +436,7 @@ type tao_data_struct
   real(rp) :: merit = 0                    ! Merit function term value: weight * delta_merit^2
   real(rp) :: s = real_garbage$            ! longitudinal position of ele.
   real(rp) :: s_offset = 0                 ! Offset of the evaluation point.
-  type (spin_axis_struct) :: spin_axis = spin_axis_struct()  ! Input axes for spin g-matrix calculations.
+  type (tao_spin_map_struct) :: spin_map
   logical :: err_message_printed = .false. ! Used to prevent zillions of error messages being generated
   logical :: exists = .false.              ! See above
   logical :: good_model = .false.          ! See above
@@ -778,11 +799,6 @@ end type
 !-----------------------------------------------------------------------
 ! scratch space
 
-type spin_orbit_linear_map_struct
-  real(rp) :: mat(6,6) = 0      ! Orbital transport matrix.
-  real(rp) :: q(0:3, 0:6) = 0    ! Spin quaternion 0th [q(:, 0)] and 1st order [q(:, 1:6)] transport.
-end type
-
 type tao_beam_shake_struct
   real(rp) cbar(2,2)
   real(rp) k_11a, k_12a, k_12b, k_22b
@@ -790,18 +806,6 @@ type tao_beam_shake_struct
   real(rp) :: one = 1.0
   logical :: coupling_calc_done = .false.
   logical :: amp_calc_done = .false.
-end type
-
-type tao_spin_map_struct
-  type (taylor_struct) :: orbit_taylor(6) = taylor_struct()  ! Not yet used.
-  type (taylor_struct) :: spin_taylor(0:3) = taylor_struct() ! Not yet used.
-  type (spin_orbit_linear_map_struct) :: q_map = spin_orbit_linear_map_struct()
-  type (spin_axis_struct) :: axis_dat = spin_axis_struct()   ! Axes from data_struct
-  type (spin_axis_struct) :: axis0 = spin_axis_struct()      ! Initial axes.
-  type (spin_axis_struct) :: axis1 = spin_axis_struct()      ! Final axes.
-  integer :: ix_ele = 0, ix_ref = 0, ix_uni = 0
-  integer :: ix_branch = 0
-  real(rp) :: mat8(8,8) = 0
 end type
 
 type tao_scratch_space_struct
@@ -815,7 +819,6 @@ type tao_scratch_space_struct
   type (tao_data_var_component_struct), allocatable :: comp(:)
   type (tao_expression_info_struct), allocatable :: info(:)
   type (tao_expression_info_struct), allocatable :: info_x(:), info_y(:), info_ix(:)
-  type (tao_spin_map_struct), allocatable :: spin_map(:)
   logical, allocatable :: picked(:)
   logical, allocatable :: this_u(:)
   real(rp), allocatable :: axis1(:), axis2(:), axis3(:)
@@ -1037,6 +1040,7 @@ type tao_universe_struct
   type (lat_struct) scratch_lat                          ! Scratch area.
   type (tao_universe_calc_struct) calc                   ! What needs to be calculated?
   type (lat_ele_order_struct) ele_order                  ! Order of elements with same name.
+  type (tao_spin_map_struct) :: spin_map
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
   integer :: ix_uni = -1                    ! Universe index.
   integer :: n_d2_data_used = -1            ! Number of used %d2_data(:) components.

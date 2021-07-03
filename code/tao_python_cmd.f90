@@ -1887,14 +1887,14 @@ case ('datum_create')
   d_ptr%ix_bunch = int_val(name_arr(16), 1, err);                if (err) return
   d_ptr%invalid_value = real_val(name_arr(17), 0.0_rp, err);     if (err) return
   if (n_arr > 17) then
-    d_ptr%spin_axis%n0(1) = real_val(name_arr(18), 0.0_rp, err);   if (err) return
-    d_ptr%spin_axis%n0(2) = real_val(name_arr(19), 0.0_rp, err);   if (err) return
-    d_ptr%spin_axis%n0(3) = real_val(name_arr(20), 0.0_rp, err);   if (err) return
+    d_ptr%spin_map%axis_input%n0(1) = real_val(name_arr(18), 0.0_rp, err);   if (err) return
+    d_ptr%spin_map%axis_input%n0(2) = real_val(name_arr(19), 0.0_rp, err);   if (err) return
+    d_ptr%spin_map%axis_input%n0(3) = real_val(name_arr(20), 0.0_rp, err);   if (err) return
   endif
   if (n_arr == 23) then
-    d_ptr%spin_axis%l(1) = real_val(name_arr(21), 0.0_rp, err);   if (err) return
-    d_ptr%spin_axis%l(2) = real_val(name_arr(22), 0.0_rp, err);   if (err) return
-    d_ptr%spin_axis%l(3) = real_val(name_arr(23), 0.0_rp, err);   if (err) return
+    d_ptr%spin_map%axis_input%l(1) = real_val(name_arr(21), 0.0_rp, err);   if (err) return
+    d_ptr%spin_map%axis_input%l(2) = real_val(name_arr(22), 0.0_rp, err);   if (err) return
+    d_ptr%spin_map%axis_input%l(3) = real_val(name_arr(23), 0.0_rp, err);   if (err) return
   endif
 
   d_ptr%exists = tao_data_sanity_check (d_ptr, d_ptr%exists, '')
