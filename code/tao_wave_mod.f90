@@ -805,18 +805,18 @@ do i = 1, n_curve_pt
     phi_r(i) = ele%a%phi - ele%b%phi + tune_r
   endif
 
-  if (curve%data_type(1:4) == 'cbar') then
+  if (substr(curve%data_type,1,4) == 'cbar') then
     sin_s(i) = sin(phi_s(i))
     cos_s(i) = cos(phi_s(i))
     sin_r(i) = sin(phi_r(i))
     cos_r(i) = cos(phi_r(i))
-  elseif (curve%data_type(1:6) == 'ping_a') then
+  elseif (substr(curve%data_type,1,6) == 'ping_a') then
     sqrt_beta = sqrt(ele%b%beta)
     sin_s(i) = sqrt_beta * sin(phi_s(i))
     cos_s(i) = sqrt_beta * cos(phi_s(i))
     sin_r(i) = sqrt_beta * sin(phi_r(i))
     cos_r(i) = sqrt_beta * cos(phi_r(i))
-  elseif (curve%data_type(1:6) == 'ping_b') then
+  elseif (substr(curve%data_type,1,6) == 'ping_b') then
     sqrt_beta = sqrt(ele%a%beta)
     sin_s(i) = sqrt_beta * sin(phi_s(i))
     cos_s(i) = sqrt_beta * cos(phi_s(i))

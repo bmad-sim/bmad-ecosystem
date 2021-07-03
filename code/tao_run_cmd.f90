@@ -85,7 +85,7 @@ do i = iu0, iu1
     if (tao_chrom_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%chrom_for_data = .true.
     if (tao_beam_sigma_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%beam_sigma_for_data = .true.
     if (tao_spin_matrices_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%spin_matrices = .true.
-    if (u%data(j)%data_type(1:11) == 'expression:') s%com%have_datums_using_expressions = .true.
+    if (substr(u%data(j)%data_type,1,11) == 'expression:') s%com%have_datums_using_expressions = .true.
     u%calc%srdt_for_data = max(tao_srdt_calc_needed(u%data(j)%data_type, u%data(j)%data_source), u%calc%srdt_for_data)
   enddo
 
