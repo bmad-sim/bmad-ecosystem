@@ -210,6 +210,7 @@ module precision_constants
   logical :: use_quaternion = .false.
   logical :: use_tpsa = .false.
   logical :: conversion_xprime_in_abell=.true.
+    logical(lp) :: use_bmad_units=.false.,inside_bmad=.false.
   character(18) ::         format1="(1(1x,g23.16,1x))"
   character(18) ::         format2="(2(1x,g23.16,1x))"
   character(18) ::         format3="(3(1x,g23.16,1x))"

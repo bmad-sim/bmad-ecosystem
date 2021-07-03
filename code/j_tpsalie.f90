@@ -282,6 +282,17 @@ module tpsalie
 
 
 contains
+
+ subroutine set_2(NO1,ND21,ND1,NDPT1,NV1,np1)
+ implicit none
+ integer np1,NO1,ND1,ND21,NDPT1,NV1
+  np=np1
+  NO=no1
+  ND=nd1
+  ND2=nd21
+  NDPT=ndpt1
+  NV=nv1
+  end subroutine set_2
   ! new Poisson stuff
   FUNCTION mul_PBf_t( S1, S2 )   ! Computes  s1 s2
     implicit none

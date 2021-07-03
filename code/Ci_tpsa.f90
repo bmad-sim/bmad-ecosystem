@@ -48,7 +48,7 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
   private liebraquaternion,pow_tpsaMAP,c_concat_quaternion_ray,matrix_to_quaternion_in_c_damap,iexp_ad
   private EQUALql_cmap,EQUALcmap_ql,EQUAL_complex_quaternion_c_quaternion,EQUAL_c_quaternion_complex_quaternion
   private NO,ND,ND2,NP,NDPT,NV,ndptb,rf
-  integer, target :: NP,NO,ND,ND2,NDPT,NV,ndptb,rf
+  integer, target :: NP,NO,ND,ND2,NV,NDPT,ndptb,rf
   private nd_used
   integer nd_used
   logical(lp):: do_linear_ac_longitudinal=.true.
@@ -846,6 +846,17 @@ if(mf/=0) then
 endif
 
 end subroutine c_get_indices
+
+  subroutine locally_set_da_pointers()
+    use da_arrays,only : c_
+    implicit none
+    c_%no => no
+    c_%nv => nv
+    c_%nd => nd
+    c_%nd2 => nd2
+    c_%np => np
+    c_%ndpt => ndpt
+  end subroutine locally_set_da_pointers
 
   subroutine c_count_taylor(n,ns,ne)
 !#restricted : information
@@ -8524,6 +8535,14 @@ end   SUBROUTINE  c_clean_yu_w
     ndt=nd2t/2        ! ndt number of harmonic oscillators minus modulated clocks
     nd2harm=nd2t+2*rf  !!!!  total dimension of harmonic phase space
     ndharm=ndt+rf  !!!! total number of harmonic planes
+call set_1(NO,ND2,ND,NDPT,NV, np)
+call set_2(NO,ND2,ND,NDPT,NV, np)
+call set_3(NO,ND2,ND,NDPT,NV, np)
+call set_4(NO,ND2,ND,NDPT,NV, np)
+call set_5(NO,ND2,ND,NDPT,NV, np)
+call set_6(NO,ND2,ND,NDPT,NV, np)
+!call locally_set_da_pointers()
+
 q_phasor=c_phasor()
 qi_phasor=ci_phasor()
 
@@ -8663,7 +8682,7 @@ c_%NDPT=>NDPT
 c_%ND=>ND
 c_%ND2=>ND2
 c_%ndptb=>ndptb
-c_%ndpt=>ndpt
+!c_%ndpt=>ndpt
 
 c_%pos_of_delta=>pos_of_delta
 c_%pos_of_delta=0
@@ -8717,7 +8736,7 @@ c_%NDPT=>NDPT
 c_%ND=>ND
 c_%ND2=>ND2
 c_%ndptb=>ndptb
-c_%ndpt=>ndpt
+!c_%ndpt=>ndpt
 
     ind_spin(1,1)=1+6;ind_spin(1,2)=2+6;ind_spin(1,3)=3+6;
     ind_spin(2,1)=4+6;ind_spin(2,2)=5+6;ind_spin(2,3)=6+6;
@@ -18124,11 +18143,17 @@ if(bmad_automatic) then
     alpha=abs(xyso3%v(6).sub.'000001')
     norm=full_abs(xyso3%v(6))
     alpha=abs(alpha-1.0_dp)+abs(norm-1.0_dp)
-    if(alpha<1.d-12) ndptbmad=6
+    if(alpha<1.d-12) then 
+      ndptbmad=6
+     call in_bmad_units
+    endif
      alpha=abs(xyso3%v(5).sub.'000010')
     norm=full_abs(xyso3%v(5))
     alpha=abs(alpha-1.0_dp)+abs(norm-1.0_dp)
-    if(alpha<1.d-12) ndptbmad=5
+    if(alpha<1.d-12) then
+       ndptbmad=5
+     call in_ptc_units
+    endif
   call c_bmad_reinit(ndptbmad)
  
 
