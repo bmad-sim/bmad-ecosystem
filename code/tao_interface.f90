@@ -178,10 +178,11 @@ subroutine tao_data_check (err)
   logical err
 end subroutine
 
-function tao_data_sanity_check (datum, print_err) result (is_valid)
+function tao_data_sanity_check (datum, print_err, default_data_type) result (is_valid)
   import
   type (tao_data_struct) datum
   logical print_err, is_valid
+  character(*) default_data_type
 end function
 
 subroutine tao_data_show_use (d2_data, lines, nl)

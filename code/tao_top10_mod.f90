@@ -358,7 +358,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       con(nc)%name = name
     endif
     con(nc)%d2_d1_name = trim(tao_datum_name(data))
-    if (data%data_type(1:11) == 'expression:') con(nc)%expression = .true.
+    if (substr(data%data_type,1,11) == 'expression:') con(nc)%expression = .true.
 
     if (data%ix_ele < 0) then
       con(nc)%loc_ele = ' '

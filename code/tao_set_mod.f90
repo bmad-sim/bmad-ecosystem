@@ -2308,7 +2308,7 @@ if (component == 'exists') then
     d => d_dat(i)%d
     if (.not. d%exists) cycle
 
-    d%exists = tao_data_sanity_check(d, .true.)
+    d%exists = tao_data_sanity_check(d, .true., '')
     if (.not. d%exists) cycle
 
     u => s%u(d%d1%d2%ix_universe) 

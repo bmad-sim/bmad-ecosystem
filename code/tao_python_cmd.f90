@@ -1897,7 +1897,7 @@ case ('datum_create')
     d_ptr%spin_axis%l(3) = real_val(name_arr(23), 0.0_rp, err);   if (err) return
   endif
 
-  d_ptr%exists = tao_data_sanity_check (d_ptr, d_ptr%exists)
+  d_ptr%exists = tao_data_sanity_check (d_ptr, d_ptr%exists, '')
   if (tao_chrom_calc_needed(d_ptr%data_type, d_ptr%data_source)) u%calc%chrom_for_data = .true.
 
 !%% datum_has_ele -----------------------

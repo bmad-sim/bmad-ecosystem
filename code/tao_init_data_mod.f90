@@ -157,7 +157,7 @@ do
   d2_data%name           = ''
   universe               = '*'
   default_merit_type     = ''
-  default_weight         = 0      
+  default_weight         = 0
   default_data_type      = ''
   default_data_source    = ''
 
@@ -317,6 +317,10 @@ else
   d1_this%name = d1_data%name    ! stuff in the data
 endif
 
+! If given, use the default_data_type. If not, auto-generate the data_type.
+
+if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
+
 !-----------------------------------------
 ! Check if we are searching for elements or repeating elements
 ! and record the element names in the data structs.
@@ -360,10 +364,6 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%data_source      = datum(ix1:ix2)%data_source
   u%data(n1:n2)%meas_value       = datum(ix1:ix2)%meas
   u%data(n1:n2)%error_rms        = datum(ix1:ix2)%error_rms
-
-  ! If given, use the default_data_type. If not, auto-generate the data_type.
-
-  if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
 
   do i = n1, n2
     j = i - n1 + ix1
@@ -555,7 +555,7 @@ do j = n1, n2
 
   ! Convert old style to new style
 
-  if (dat%data_type(1:9) == 'unstable_') then
+  if (substr(dat%data_type, 1, 9) == 'unstable_') then
     call out_io (s_fatal$, r_name, &
          '"unstable_XXX" data source name (with an underscore) needs to be changed to "unstable.XXX" (with a dot).')
     stop
@@ -565,7 +565,7 @@ do j = n1, n2
 
   u%calc%srdt_for_data = max(u%calc%srdt_for_data, tao_srdt_calc_needed(dat%data_type, dat%data_source))
 
-  if (dat%data_type(1:9)  == 'normal.h.') then
+  if (substr(dat%data_type, 1, 9) == 'normal.h.') then
     if(dat%data_source == 'lat') then
       if (dat%ix_branch /= 0 .or. dat%d1%d2%ix_universe /= 1) then
         call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
@@ -573,7 +573,7 @@ do j = n1, n2
       endif
       n_hterms = n_hterms + 1
       call re_allocate(h_strings, 2*n_hterms, .false.)
-      h_strings(n_hterms) = dat%data_type(10:17)
+      h_strings(n_hterms) = substr(dat%data_type, 10, 17)
     endif
   endif
 
@@ -590,7 +590,7 @@ do j = n1, n2
 
   ! Some data types are global and are not associated with a particular element. Check for this.
 
-  dat%exists = tao_data_sanity_check (dat, dat%exists)
+  dat%exists = tao_data_sanity_check (dat, dat%exists, default_data_type)
   if (tao_chrom_calc_needed(dat%data_type, dat%data_source)) u%calc%chrom_for_data = .true.
 
 enddo

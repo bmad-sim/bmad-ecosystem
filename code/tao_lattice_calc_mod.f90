@@ -242,7 +242,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
   ! Calculate non-expression data 
 
   do id = 1, size(u%data)
-    if (u%data(id)%data_type(1:11) == 'expression:') cycle
+    if (substr(u%data(id)%data_type,1,11) == 'expression:') cycle
     call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
   enddo
 
@@ -261,7 +261,7 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. u%is_on) cycle
 
   do id = 1, size(u%data)
-    if (u%data(id)%data_type(1:11) /= 'expression:') cycle
+    if (substr(u%data(id)%data_type,1,11) /= 'expression:') cycle
     call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
   enddo
 enddo

@@ -1078,7 +1078,7 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)    '%merit             = ', d_ptr%merit
     nl=nl+1; write(lines(nl), rmt)    '%delta_merit       = ', d_ptr%delta_merit
     nl=nl+1; write(lines(nl), rmt)    '%weight            = ', d_ptr%weight
-    if (d_ptr%data_type(1:14) == 'spin_g_matrix.') then
+    if (substr(d_ptr%data_type,1,14) == 'spin_g_matrix.') then
       nl=nl+1; write(lines(nl), rmt)  '%spin_axis%l       = ', d_ptr%spin_axis%l
       nl=nl+1; write(lines(nl), rmt)  '%spin_axis%n0      = ', d_ptr%spin_axis%n0
       nl=nl+1; write(lines(nl), rmt)  '%spin_axis%m       = ', d_ptr%spin_axis%m
@@ -1138,7 +1138,7 @@ case ('data')
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
       name = tao_constraint_type_name(d_ptr)
-      if (d_ptr%data_type(1:11) /= 'expression:') then
+      if (substr(d_ptr%data_type,1,11) /= 'expression:') then
         n_name  = max(n_name,  len_trim(name))
         n_start = max(n_start, len_trim(d_ptr%ele_start_name))
         n_ref   = max(n_ref,   len_trim(d_ptr%ele_ref_name))
@@ -1170,7 +1170,7 @@ case ('data')
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
       name = tao_constraint_type_name(d_ptr)
-      if (d_ptr%data_type(1:11) == 'expression:') then
+      if (substr(d_ptr%data_type,1,11) == 'expression:') then
         nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, trim(name)
         nl=nl+1; write(lines(nl), fmt2) blank_str(1:n_name), &
                      d_ptr%ele_ref_name(1:n_ref), d_ptr%ele_start_name(1:n_start), &

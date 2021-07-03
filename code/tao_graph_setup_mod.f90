@@ -2740,7 +2740,7 @@ do m = 1, size(scratch%comp)
     end select
     scratch%y_value(ie) = scratch%y_value(ie) + scratch%comp(m)%sign * y_val
     if (.not. valid) good(ie) = .false.
-    if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
+    if (substr(datum%data_type,1,3) == 'tt.' .or. substr(datum%data_type,1,2) == 't.') then
       if (datum%ix_ele < datum%ix_ele_ref) datum%ix_ele_ref = datum%ix_ele
     endif
 

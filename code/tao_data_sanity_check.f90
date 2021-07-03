@@ -1,19 +1,20 @@
 !+
-! Function tao_data_sanity_check (datum, print_err) result (is_valid)
+! Function tao_data_sanity_check (datum, print_err, default_data_type) result (is_valid)
 !
 ! Routine to check if the data is internally consistent.
 ! Note: A datum whose data_type demands an associated lattice element will be invalid but will
 ! not generate an error message since d1 data arrays my have invalid datums that are just place holders.
 !
 ! Input:
-!   datum     -- tao_data_struct: Datum to check.
-!   print_err -- logical: Print error message if data is not valid?
+!   datum               -- tao_data_struct: Datum to check.
+!   print_err           -- logical: Print error message if data is not valid?
+!   default_data_type   -- character(*): Default data type associated with the datum's d2 structure.
 !
 ! Output:
 !   is_valid  -- logical: True if internally consistent.
 !-
 
-function tao_data_sanity_check (datum, print_err) result (is_valid)
+function tao_data_sanity_check (datum, print_err, default_data_type) result (is_valid)
 
 use tao_interface, dummy => tao_data_sanity_check
 
@@ -26,6 +27,7 @@ type (tao_universe_struct), pointer :: u
 integer has_associated_ele
 logical print_err, is_valid
 character(40) d_type
+character(*) default_data_type
 character(*), parameter :: r_name = 'tao_data_sanity_check'
 
 !
@@ -90,10 +92,12 @@ elseif (has_associated_ele == no$) then
     return
   endif
 
-else    ! has_associated_ele = yes$
+else    ! has_associated_ele = yes$. Also invalid data_types here.
   if (datum%ele_name == '') then
-    ! Datum is invalid but do not generate an error since this is a common situation.
-    return
+    if (datum%data_type == default_data_type .or. datum%data_type == '') then
+      ! Datum is invalid but this is do not generate an error since having "gaps" in the d1 array is a common situation.
+      return
+    endif
   endif
 endif
 
