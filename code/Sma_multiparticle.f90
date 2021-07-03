@@ -35,7 +35,6 @@ private MISALIGN_FIBRE_EQUAL
   real(dp) :: xsm0t=0.0_dp,xsmt=0.0_dp
   !real(dp) :: unit_time =1.0e-3_dp
   REAL(dp) :: x_orbit_sync(6)= 0.0_dp,dt_orbit_sync=0.0_dp
-    logical(lp) :: use_bmad_units=.false.,inside_bmad=.false.
 
 
 
@@ -2812,17 +2811,7 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
 
      end subroutine convert_ptc_to_bmadp 
 
-     subroutine in_bmad_units
-     implicit none  
-      use_bmad_units=.true.
-      ndpt_bmad=1
-     end subroutine in_bmad_units
 
-     subroutine in_ptc_units
-     implicit none  
-      use_bmad_units=.false.
-      ndpt_bmad=0
-     end subroutine in_ptc_units
 
      subroutine in_noncanonical_units
      implicit none  

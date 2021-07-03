@@ -198,7 +198,8 @@ type(work) w_bks
  private RAD_SPIN_force_PROBER,RAD_SPIN_force_PROBEP
  private radiate_2_forcer,radiate_2_forcep,INTE_TKTF_prober,INTE_TKTF_probep
  PRIVATE INTE_CAV4_PROBER,INTE_CAV4_PROBEP
- PRIVATE feval_CAV_bmad_prober,rk2bmad_cav_prober,rk4bmad_cav_prober
+ PRIVATE feval_CAV_bmad_prober,rk2bmad_cav_prober,rk4bmad_cav_prober,rk4bmad_cav_probep
+ private rk6bmad_cav_probep
 
   INTERFACE radiate_2_force
      MODULE PROCEDURE radiate_2_forcer
@@ -247,7 +248,12 @@ type(work) w_bks
 
   INTERFACE rk4bmad_cav_probe
      MODULE PROCEDURE rk4bmad_cav_prober
-!     MODULE PROCEDURE rk4bmad_cav_probep
+     MODULE PROCEDURE rk4bmad_cav_probep
+  END INTERFACE 
+
+  INTERFACE rk6bmad_cav_probe
+ !    MODULE PROCEDURE rk6bmad_cav_prober
+     MODULE PROCEDURE rk6bmad_cav_probep
   END INTERFACE 
 
 
@@ -23147,6 +23153,264 @@ endif
     return
   end  subroutine rk4bmad_cav_prober
 
+subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    type(real_8)    y(ne)
+    type(real_8)   yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),tt
+    type(quaternion_8) qa,qb,qyt,qy,qc,qd,q
+    integer j
+    type(real_8) , intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    real(dp) e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6)
+    real(dp) de_ij(6,6),hr
+
+
+          
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j),c(j),d(j))
+    enddo
+     call alloc(tt)
+     call alloc(qa,qb,qyt,qy,qc,qd,q)
+
+    qy=p%q
+    y=p%x
+    hr=h
+
+
+    call feval_CAV_bmad_probe(tI,y,q,k,f,q,de_ij,ct)   
+   do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+  if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+     if(k%envelope)  then
+      e_ija =hr*de_ij  
+    endif
+ 
+
+    tt=tI+h/2.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
+ 
+  do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+qb%x(j)/2.0_dp
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijb =hr*de_ij  
+    endif
+
+    do  j=1,ne
+       yt(j)=y(j)+b(j)/2.0_dp
+    enddo
+
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+     enddo
+      do  j=0,3
+       qyt%x(j)=qy%x(j)+qc%x(j) 
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+    if(k%envelope)  then
+      e_ijc =hr*de_ij  
+    endif
+
+    tt=tI+h
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijd =hr*de_ij  
+    endif
+ 
+    do  j=1,ne
+       p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
+     enddo
+    endif
+    if(k%envelope)  then
+      p%e_ij=p%e_ij+(e_ija+2.0_dp*e_ijb+2.0_dp*e_ijc+e_ijd)/6.0_dp
+    endif
+
+    do j=1,ne
+     call kill(y(j),yt(j),f(j),a(j),b(j),c(j),d(j))
+    enddo
+     call kill(tt)
+     call kill(qa,qb,qyt,qy,qc,qd,q)
+
+
+    return
+  end  subroutine rk4bmad_cav_probep
+
+
+subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    type(real_8)    y(ne)
+    type(real_8)   yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),pt(ne),tt
+    type(quaternion_8) qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp,q
+    integer j
+    type(real_8) , intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    real(dp) e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6),e_ije(6,6),e_ijg(6,6),e_ijo(6,6),e_ijp(6,6)
+    real(dp) de_ij(6,6),hr
+
+
+          
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j),c(j),d(j),e(j),g(j),o(j))
+     call alloc(pt(j))
+    enddo
+     call alloc(tt)
+     call alloc(qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp)
+     call alloc(q)
+
+    qy=p%q
+    y=p%x
+    hr=h
+   
+    call feval_CAV_bmad_probe(tI,y,q,k,f,q,de_ij,ct)   
+ 
+  if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/9.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/9.0_dp
+    enddo
+     if(k%envelope)  then
+      e_ija =hr*de_ij  
+    endif
+ 
+
+    tt=tI+h/6.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
+ 
+  do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+qb%x(j)/6.0_dp
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijb =hr*de_ij  
+      p%e_ij=p%e_ij+e_ijb
+    endif
+
+
+
+
+     
+
+
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+     enddo
+      do  j=0,3
+       qyt%x(j)=qy%x(j)+qc%x(j) 
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+    if(k%envelope)  then
+      e_ijc =hr*de_ij  
+    endif
+
+    tt=tI+h
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijd =hr*de_ij  
+    endif
+ 
+    do  j=1,ne
+       p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
+     enddo
+    endif
+    if(k%envelope)  then
+      p%e_ij=p%e_ij+(e_ija+2.0_dp*e_ijb+2.0_dp*e_ijc+e_ijd)/6.0_dp
+    endif
+
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j),c(j),d(j),e(j),g(j),o(j))
+     call alloc(pt(j))
+    enddo
+     call kill(tt)
+     call kill(qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp)
+     call kill(q)
+
+
+    return
+  end  subroutine rk6bmad_cav_probep
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  
 
@@ -24448,25 +24712,24 @@ else
     CASE(4)
        D=EL%L/EL%P%NST
 
-      !  call rk2bmad_cav_probe(p,k,c,d)
+        call rk4bmad_cav_probe(z0,p,k,c,d)
+
 
        !call rk4_teapot(d,el,p%X,k)
 
 
     CASE(6)
-       DH=EL%L/2.0_dp/EL%P%NST
-       D=EL%L/EL%P%NST
-       DD=EL%P%LD/2.0_dp/EL%P%NST
 
+       D=EL%L/EL%P%NST
+
+        call rk6bmad_cav_probe(z0,p,k,c,d)
 !       call rk6_teapot(d,el,p%X,k)
   !      call rk6_teapot_probe(p,k,c,d)
 !!! newyoshida
     CASE(8)
-       DH=EL%L/2.0_dp/EL%P%NST
        D=EL%L/EL%P%NST
-       DD=EL%P%LD/2.0_dp/EL%P%NST
 
-   !    call rk6_teapot(d,el,p%X,k)
+        call rk6bmad_cav_probe(z0,p,k,c,d)
 
     CASE DEFAULT
        !w_p=0

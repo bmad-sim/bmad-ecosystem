@@ -456,8 +456,16 @@ private nbitreal,nbittaylor,nbittaylorrt,nbittaylortr,CFU000_new
 
 CONTAINS
 
-
-
+ subroutine set_1(NO1,ND21,ND1,NDPT1,NV1,np1)
+ implicit none
+ integer np1,NO1,ND1,ND21,NDPT1,NV1
+  np=np1
+  NO=no1
+  ND=nd1
+  ND2=nd21
+  NDPT=ndpt1
+  NV=nv1
+  end subroutine set_1
 
   SUBROUTINE  change_default_tpsa(i)
     implicit none

@@ -501,7 +501,17 @@ contains
 
 
 
+     subroutine in_bmad_units
+     implicit none  
+      use_bmad_units=.true.
+      ndpt_bmad=1
+     end subroutine in_bmad_units
 
+     subroutine in_ptc_units
+     implicit none  
+      use_bmad_units=.false.
+      ndpt_bmad=0
+     end subroutine in_ptc_units
 
 
 
