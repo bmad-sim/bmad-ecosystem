@@ -80,7 +80,6 @@ enddo
 if (.not. s%global%lattice_calc_on) return
 
 s%com%ix_ref_taylor = -999   ! Reset taylor map
-if (allocated(scratch%spin_map)) deallocate(scratch%spin_map)
 
 call tao_hook_lattice_calc (calc_ok)
 
@@ -105,6 +104,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
     s%com%lattice_calc_done = .true.
     tao_lat => u%model  ! In the past tao_lat could point to design or base but no more.
+    u%spin_map%valid = .false.
 
     ! Loop over all branches
 

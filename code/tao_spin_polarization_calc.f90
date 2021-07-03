@@ -32,9 +32,8 @@ type (c_linear_map) :: q_1turn
 type (c_linear_map), pointer :: q1
 type (c_linear_map), target :: q_ele(branch%n_ele_track)
 type (ele_struct), pointer :: ele
-type (taylor_struct), pointer :: st
 
-real(rp) vec0(6), mat6(6,6), n0(3), dn_dpz(3), integral_bdn_partial(3), partial(3,3)
+real(rp) n0(3), dn_dpz(3), integral_bdn_partial(3), partial(3,3)
 real(rp) integral_bn, integral_bdn, integral_1ns, integral_dn2, integral_dn2_partial(3)
 real(rp) int_gx, int_gy, int_g, int_g2, int_g3, b_vec(3), s_vec(3), del_p, cm_ratio, gamma, f
 real(rp), parameter :: f_limit = 8 / (5 * sqrt(3.0_rp))
@@ -43,7 +42,7 @@ real(rp), parameter :: f_rate = 5 * sqrt(3.0_rp) * classical_radius_factor * h_b
 integer ix1, ix2
 integer i, j, k, kk, n, p, ie
 
-logical valid_value, st_on, err
+logical valid_value, err
 
 !
 
@@ -52,40 +51,7 @@ if (.not. allocated(tao_branch%dn_dpz)) allocate (tao_branch%dn_dpz(0:branch%n_e
 tao_branch%spin_valid = .true.
 
 q_1turn = 0
-do ie = 1, branch%n_ele_track
-  ele => branch%ele(ie)
-  if (.not. associated(ele%spin_taylor(0)%term)) then
-    st_on = bmad_com%spin_tracking_on
-    bmad_com%spin_tracking_on = .true.
-    call ele_to_taylor(ele, branch%param, ele%map_ref_orb_in)
-    bmad_com%spin_tracking_on = st_on
-  endif
-
-  q1 => q_ele(ie)
-  q1%q = 0
-
-  do i = 0, 3
-    st => ele%spin_taylor(i)
-    do k = 1, size(st%term)
-      n = sum(st%term(k)%expn)
-      select case (n)
-      case (0)
-        q1%q(i,0) = st%term(k)%coef
-      case (1)
-        do p = 1, 6
-          if (st%term(k)%expn(p) == 0) cycle
-          q1%q(i,p) = st%term(k)%coef
-          exit
-        enddo
-      end select
-    enddo
-  enddo
-
-  call taylor_to_mat6 (ele%taylor, ele%taylor%ref, vec0, mat6)
-  q1%mat = mat6
-
-  q_1turn = q1 * q_1turn
-enddo
+call tao_concat_spin_map (q_1turn, branch, 1, branch%n_ele_track, q_ele)
 
 ! Loop over all elements.
 

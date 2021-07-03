@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
+! Subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele)
 !
 ! Routine to calculate the spin g-matrix for a datum.
 !
@@ -11,11 +11,9 @@
 !
 ! Output:
 !   spin_map      -- tao_spin_map_struct, pointer: G-matrix, etc.
-!   valid_value   -- logical: True if able to calculate the g-matrix 
-!   why_invalid   -- Character(*), optional: Tells why datum value is invalid.
 !-
 
-subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
+subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele)
 
 use tao_data_and_eval_mod, dummy => tao_spin_matrix_calc
 use ptc_interface_mod
@@ -23,13 +21,10 @@ use pointer_lattice
 
 implicit none
 
-type (tao_data_struct) datum
+type (tao_data_struct), target :: datum
 type (tao_universe_struct), target :: u
-type (tao_spin_map_struct), pointer :: sm
-type (tao_spin_map_struct), allocatable ::sm_temp(:)
 type (tao_spin_map_struct), pointer :: spin_map
 type (branch_struct), pointer :: branch
-type (taylor_struct) orbit_taylor(6), spin_taylor(0:3)
 type (c_linear_map) q_map
 
 integer ix_ref, ix_ele
@@ -42,45 +37,13 @@ real(rp) quat0_lnm_to_xyz(0:3), quat1_lnm_to_xyz(0:3)
 
 integer i, j, n, p
 
-logical valid_value
+! Init
 
-character(*) why_invalid
-
-! Checks
-
-valid_value = .false.
 branch => u%model%lat%branch(datum%ix_branch)
 
-! Has this been computed before? If so then use old calculation.
-
-if (allocated(scratch%spin_map)) then
-  do i = 1, size(scratch%spin_map)
-    sm => scratch%spin_map(i)
-    if (sm%ix_ele /= ix_ele .or. sm%ix_ref /= ix_ref .or. sm%ix_uni /= u%ix_uni) cycle
-    if (any(sm%axis_dat%n0 /= datum%spin_axis%n0) .or. any(sm%axis_dat%l /= datum%spin_axis%l) .or. &
-                                                       any(sm%axis_dat%m /= datum%spin_axis%m)) cycle
-    spin_map => sm
-    valid_value = .true.
-    return
-  enddo
-endif
-
-!----
-! Calculate g-matrix...
-
-! Allocate space
-
-if (allocated(scratch%spin_map)) then
-  n = size(scratch%spin_map)
-  call move_alloc (scratch%spin_map, sm_temp)
-  allocate (scratch%spin_map(n+1))
-  scratch%spin_map(1:n) = sm_temp
-else
-  allocate (scratch%spin_map(1))
-endif
-
-spin_map => scratch%spin_map(size(scratch%spin_map))
+spin_map => datum%spin_map
 spin_map%mat8 = 0
+spin_map%valid = .false.
 
 ! Concatenate the spin/orbital map
 
@@ -90,10 +53,10 @@ ix_r = ix_ref
 if (ix_r < 0) ix_r = ix_ele
 
 if (ix_r >= ix_ele) then
-  call concat_this (q_map, ix_r, branch%n_ele_track)
-  call concat_this (q_map, 0, ix_ele)
+  call tao_concat_spin_map (q_map, branch, ix_r, branch%n_ele_track)
+  call tao_concat_spin_map (q_map, branch, 0, ix_ele)
 else
-  call concat_this (q_map, ix_r, ix_ele)
+  call tao_concat_spin_map (q_map, branch, ix_r, ix_ele)
 endif
 
 spin_map%q_map%mat = q_map%mat
@@ -103,28 +66,27 @@ quat0 = q_map%q(:, 0)
 
 ! If 1-turn then calculate n0. Otherwise take the value in the datum.
 
-if (any(datum%spin_axis%n0 /= 0)) then
-  n0 = datum%spin_axis%n0 / norm2(datum%spin_axis%n0)
+if (any(spin_map%axis_input%n0 /= 0)) then
+  n0 = spin_map%axis_input%n0 / norm2(spin_map%axis_input%n0)
 else  
   n0 = u%model%tao_branch(datum%ix_branch)%orbit(ix_r)%spin
 endif
 
 if (all(n0 == 0)) then
-  call tao_set_invalid (datum, 'DATUM SPIN_AXIS%N0 NOT SET AND CANNOT BE COMPUTED.', why_invalid, .true.)
+  call tao_set_invalid (datum, 'DATUM SPIN_AXIS%N0 NOT SET AND CANNOT BE COMPUTED.', datum%why_invalid, .true.)
   return
 endif
-
 
 n1 = rotate_vec_given_quat(quat0, n0)
 
 ! Construct coordinate systems (l0, n0, m0) and (l1, n1, m1)
 
-if (any(datum%spin_axis%l /= 0)) then
-  l0 = datum%spin_axis%l - n0 * dot_product(datum%spin_axis%l, n0)  ! Make sure l0 is perpendicular to n0.
+if (any(spin_map%axis_input%l /= 0)) then
+  l0 = spin_map%axis_input%l - n0 * dot_product(spin_map%axis_input%l, n0)  ! Make sure l0 is perpendicular to n0.
   l0 = l0 / norm2(l0)
   m0 = cross_product(l0, n0)
-elseif (any(datum%spin_axis%m /= 0)) then
-  m0 = datum%spin_axis%m - n0 * dot_product(datum%spin_axis%m, n0)  ! Make sure m0 is perpendicular to n0.
+elseif (any(spin_map%axis_input%m /= 0)) then
+  m0 = spin_map%axis_input%m - n0 * dot_product(spin_map%axis_input%m, n0)  ! Make sure m0 is perpendicular to n0.
   m0 = m0 / norm2(m0)
   l0 = cross_product(n0, m0)
 else
@@ -176,61 +138,8 @@ enddo
 spin_map%ix_ref   = ix_ref
 spin_map%ix_ele   = ix_ele
 spin_map%ix_uni   = u%ix_uni
-spin_map%axis_dat = datum%spin_axis
 spin_map%axis0    = spin_axis_struct(l0, n0, m0)
 spin_map%axis1    = spin_axis_struct(l1, n1, m1)
-
-valid_value = .true.
-
-!--------------------------------------------
-contains
-
-subroutine concat_this (q_map, ix1, ix2)
-
-type (c_linear_map) q_map, q_ele
-type (ele_struct), pointer :: ele
-type (taylor_struct), pointer :: st
-real(rp) vec0(6), mat6(6,6)
-integer ix1, ix2
-integer i, j, k, n, p
-logical st_on
-
-!
-
-do j = ix1+1, ix2
-  ele => branch%ele(j)
-  if (.not. associated(ele%spin_taylor(0)%term)) then
-    st_on = bmad_com%spin_tracking_on
-    bmad_com%spin_tracking_on = .true.
-    call ele_to_taylor(ele, branch%param, ele%map_ref_orb_in)
-    bmad_com%spin_tracking_on = st_on
-  endif
-
-  q_ele%q = 0
-
-  do i = 0, 3
-    st => ele%spin_taylor(i)
-    do k = 1, size(st%term)
-      n = sum(st%term(k)%expn)
-      select case (n)
-      case (0)
-        q_ele%q(i,0) = st%term(k)%coef
-      case (1)
-        do p = 1, 6
-          if (st%term(k)%expn(p) == 0) cycle
-          q_ele%q(i,p) = st%term(k)%coef
-          exit
-        enddo
-      end select
-    enddo
-  enddo
-
-  call taylor_to_mat6 (ele%taylor, ele%taylor%ref, vec0, mat6)
-  q_ele%mat = mat6
-
-  q_map = q_ele * q_map
-enddo
-
-end subroutine concat_this
+spin_map%valid    = .true.
 
 end subroutine tao_spin_matrix_calc

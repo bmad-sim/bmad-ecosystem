@@ -142,6 +142,7 @@ use transfer_map_mod
 use opti_de_mod
 use tao_command_mod, only: tao_next_switch
 use twiss_and_track_mod, only: twiss_and_track_at_s
+use c_tpsa, only: c_linear_map, assignment(=)
 
 implicit none
 
@@ -172,7 +173,6 @@ type (tao_data_array_struct), allocatable :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), pointer :: shape
 type (tao_shape_pattern_struct), pointer :: pattern
-type (tao_spin_map_struct), pointer :: spin_map
 type (all_pointer_struct) a_ptr
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
@@ -200,8 +200,8 @@ type (bmad_normal_form_struct), pointer :: bmad_nf
 type (ptc_normal_form_struct), pointer :: ptc_nf
 type (aperture_scan_struct), pointer :: aperture_scan
 type (coord_struct) orbit
-type (tao_spin_map_struct), pointer :: sm
 type (tao_wave_kick_pt_struct), pointer :: wk
+type (c_linear_map) q_map
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -279,7 +279,7 @@ integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_
 integer eval_pt, n_count
 integer, allocatable :: ix_c(:), ix_remove(:)
 
-complex(rp) eigen_val(6), eigen_vec(6,6)
+complex(rp) eval(6), evec(6,6), n_eigen(6,3)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
@@ -1079,17 +1079,16 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)    '%delta_merit       = ', d_ptr%delta_merit
     nl=nl+1; write(lines(nl), rmt)    '%weight            = ', d_ptr%weight
     if (substr(d_ptr%data_type,1,14) == 'spin_g_matrix.') then
-      nl=nl+1; write(lines(nl), rmt)  '%spin_axis%l       = ', d_ptr%spin_axis%l
-      nl=nl+1; write(lines(nl), rmt)  '%spin_axis%n0      = ', d_ptr%spin_axis%n0
-      nl=nl+1; write(lines(nl), rmt)  '%spin_axis%m       = ', d_ptr%spin_axis%m
-      call tao_spin_matrix_calc (d_ptr, u, d_ptr%ix_ele_ref, d_ptr%ix_ele, spin_map, valid_value, why_invalid)
-      if (valid_value) then
+      nl=nl+1; write(lines(nl), rmt)  '%spin_axis%l       = ', d_ptr%spin_map%axis_input%l
+      nl=nl+1; write(lines(nl), rmt)  '%spin_axis%n0      = ', d_ptr%spin_map%axis_input%n0
+      nl=nl+1; write(lines(nl), rmt)  '%spin_axis%m       = ', d_ptr%spin_map%axis_input%m
+      if (d_ptr%spin_map%valid) then
         nl=nl+1; write (lines(nl), '(2x, a, 16x, a, 34x, a)') 'Axes:', 'Initial', 'Final'
-        nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') '  L-axis:', spin_map%axis0%l, spin_map%axis1%l
-        nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') '  N-axis:', spin_map%axis0%n0, spin_map%axis1%n0
-        nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') '  M-axis:', spin_map%axis0%m, spin_map%axis1%m
+        nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') '  L-axis:', d_ptr%spin_map%axis0%l, d_ptr%spin_map%axis1%l
+        nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') '  N-axis:', d_ptr%spin_map%axis0%n0, d_ptr%spin_map%axis1%n0
+        nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') '  M-axis:', d_ptr%spin_map%axis0%m, d_ptr%spin_map%axis1%m
       else
-        nl=nl+1; lines(nl) = 'Spin calculation not valid since: ' // why_invalid
+        nl=nl+1; lines(nl) = 'Spin calculation not valid since: ' // d_ptr%why_invalid
       endif
     endif
     nl=nl+1; write(lines(nl), lmt)    '%exists            = ', d_ptr%exists
@@ -3698,7 +3697,7 @@ case ('spin')
   what_to_print = 'standard'
   show_q = .false.
   show_mat = .false.
-  datum%spin_axis = spin_axis_struct()
+  datum%spin_map%axis_input = spin_axis_struct()
   ele2_name = ''
   ele2 => null()
 
@@ -3723,7 +3722,7 @@ case ('spin')
       ele2_name = upcase(what2(1:ix))
       call string_trim(what2(ix+1:), what2, ix)
     case ('-n_axis')
-      read (what2, *, iostat = ios) datum%spin_axis%n0
+      read (what2, *, iostat = ios) datum%spin_map%axis_input%n0
       if (ios /= 0) then
         nl=nl+1; lines(nl) = 'CANNOT PARSE N-AXIS: ' // what2
         return
@@ -3733,7 +3732,7 @@ case ('spin')
       call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
       call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
     case ('-l_axis')
-      read (what2, *, iostat = ios) datum%spin_axis%l
+      read (what2, *, iostat = ios) datum%spin_map%axis_input%l
       if (ios /= 0) then
         nl=nl+1; lines(nl) = 'CANNOT PARSE L-AXIS: ' // what2
         return
@@ -3781,10 +3780,10 @@ case ('spin')
       call tao_spin_polarization_calc (branch, tao_branch)
       nl=nl+1; lines(nl) = ''
       if (tao_branch%spin_valid) then
-        r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
         if (tao_branch%spin%pol_rate_bks == 0) then
           nl=nl+1; lines(nl) = 'No bends or other radiation producing lattice elements detected!'
         else
+          r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
           nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                ', tao_branch%spin%pol_limit_st
           nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DKM:               ', tao_branch%spin%pol_limit_dkm
           nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Partial Polarization Limits DKM:      ', tao_branch%spin%pol_limit_dkm_partial
@@ -3794,39 +3793,44 @@ case ('spin')
                                                                        1 / (60*tao_branch%spin%depol_rate), r / tao_branch%spin%depol_rate
         endif
       else
-        nl=nl+1; lines(nl) = 'Polarization calc not valid since: ' // why_invalid
+        nl=nl+1; lines(nl) = 'Polarization calc not valid.'
       endif
     endif
 
-    if (allocated(scratch%spin_map)) then
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; lines(nl) = 'Spin G-matrices used in calculations:'
-      do i = 1, size(scratch%spin_map)
-        if (i > 1) then
+    j = 0
+    do iu = 1, size(s%u)
+      u => s%u(iu)
+      do i = 1, u%n_data_used
+        d_ptr => u%data(i)
+        if (.not. d_ptr%spin_map%valid) cycle
+        if (j == 0) then
+          nl=nl+1; lines(nl) = ''
+          nl=nl+1; lines(nl) = 'Spin G-matrices used in data:'
+        else
           nl=nl+1; lines(nl) = ''
         endif
-        sm => scratch%spin_map(i)
-        nl=nl+1; write(lines(nl), '(2x, a, i0, a, i0)')     'Universe: ', sm%ix_uni, '  of: ', ubound(s%u, 1)
-        nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', sm%ix_ref, sm%ix_ele 
+        j = j + 1
+        nl=nl+1; write(lines(nl), '(2x, a, i0, a, i0)')     'Universe: ', d_ptr%spin_map%ix_uni, '  of: ', ubound(s%u, 1)
+        nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', d_ptr%spin_map%ix_ref, d_ptr%spin_map%ix_ele 
         nl=nl+1; write(lines(nl), '(26x, a, 26x, a)') 'Initial', 'Final'
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'L-axis: ', sm%axis0%l, sm%axis1%l
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'N0-axis:', sm%axis0%n0, sm%axis1%n0
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'M-axis: ', sm%axis0%m, sm%axis1%m
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'L-axis: ', d_ptr%spin_map%axis0%l, d_ptr%spin_map%axis1%l
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'N0-axis:', d_ptr%spin_map%axis0%n0, d_ptr%spin_map%axis1%n0
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'M-axis: ', d_ptr%spin_map%axis0%m, d_ptr%spin_map%axis1%m
         nl=nl+1; write(lines(nl), '(2x, a)') '8x8 matrix:'
         do j = 1, 8
-          nl=nl+1; write(lines(nl), '(5x, a)') reals_to_table_row(sm%mat8(j,:), 13, 7)
+          nl=nl+1; write(lines(nl), '(5x, a)') reals_to_table_row(d_ptr%spin_map%mat8(j,:), 13, 7)
         enddo
-      enddo
 
-      if (show_q) then
-        nl=nl+1; lines(nl) = ''
-        nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order.'
-        nl=nl+1; write (lines(nl), '(14x, a, 7x, 6(2x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
-        do i = 0, 3
-          nl=nl+1; write(lines(nl), '(i8, f12.6, 4x, 6f12.6)') i, sm%q_map%q(i,:)
-        enddo
-      endif
-    endif
+        if (show_q) then
+          nl=nl+1; lines(nl) = ''
+          nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order.'
+          nl=nl+1; write (lines(nl), '(14x, a, 7x, 6(2x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
+          do ix = 0, 3
+            nl=nl+1; write(lines(nl), '(i8, f12.6, 4x, 6f12.6)') ix, d_ptr%spin_map%q_map%q(ix,:)
+          enddo
+        endif
+      enddo
+    enddo
 
   ! what_to_print = element
   else
@@ -3845,41 +3849,63 @@ case ('spin')
       ele2 => pointer_to_next_ele(ele, -1)
     endif
 
-    if (all(datum%spin_axis%n0 == 0)) then
-      datum%spin_axis%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele2%ix_ele)%spin
+    if (all(datum%spin_map%axis_input%n0 == 0)) then
+      if (all(u%model%tao_branch(ele%ix_branch)%orbit(ele2%ix_ele)%spin == 0)) call tao_lattice_calc(ok)
+      datum%spin_map%axis_input%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele2%ix_ele)%spin
     endif
 
+
     if (show_mat) then
-      if (all(datum%spin_axis%n0 == 0)) then
-        nl=nl+1; lines(nl) = 'NO N-AXIS GIVEN AND SPIN TRACKING IS NOT ON SO NO N0-AXIS IS AVAILABLE TO USE AS A DEFAULT.'
+      if (all(datum%spin_map%axis_input%n0 == 0)) then
+        nl=nl+1; lines(nl) = 'NO N0 SPIN AXIS COMPUTED.' 
         nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON FROM THE COMMAND LINE: "set bmad spin_tracking_on = T"'
         nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON IN THE LATTICE FILE: "bmad_com[spin_tracking_on] = T"'
         return
       endif
     endif
 
-    datum%ix_branch = ix_branch
-    call tao_spin_matrix_calc (datum, u, ele2%ix_ele, ele%ix_ele, spin_map, valid_value, why_invalid)
-    if (.not. valid_value) return
+    if (show_mat) then
+      datum%ix_branch = ix_branch
+      call tao_spin_matrix_calc (datum, u, ele2%ix_ele, ele%ix_ele)
+      if (datum%spin_map%valid) then
+        nl=nl+1; lines(nl) = 'INVALID: ' // datum%why_invalid
+        return
+      endif
+    else
+      q_map = 0
+      call tao_concat_spin_map (q_map, branch, 1, branch%n_ele_track)
+      datum%spin_map%q_map%q = q_map%q
+      datum%spin_map%q_map%mat = q_map%mat
+    endif
 
     if (show_mat) then
       nl=nl+1; write (lines(nl), '(23x, a, 34x, a)') 'Initial', 'Final'
-      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'L-axis:', spin_map%axis0%l, spin_map%axis1%l
-      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'N-axis:', spin_map%axis0%n0, spin_map%axis1%n0
-      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'M-axis:', spin_map%axis0%m, spin_map%axis1%m
+      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'L-axis:', datum%spin_map%axis0%l, datum%spin_map%axis1%l
+      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'N-axis:', datum%spin_map%axis0%n0, datum%spin_map%axis1%n0
+      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'M-axis:', datum%spin_map%axis0%m, datum%spin_map%axis1%m
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = '8x8 Matrix:'
       do i = 1, 8
-        nl=nl+1; write (lines(nl), '(5x, a)') reals_to_table_row(spin_map%mat8(i,:), 13, 7)
+        nl=nl+1; write (lines(nl), '(5x, a)') reals_to_table_row(datum%spin_map%mat8(i,:), 13, 7)
       enddo
     endif
 
     if (show_q) then
+      call spin_mat_to_eigen (datum%spin_map%q_map%mat, datum%spin_map%q_map%q, eval, evec, n_eigen)
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order.' 
+      nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order' 
       nl=nl+1; write (lines(nl), '(14x, a, 7x, 6(2x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
       do i = 0, 3
-        nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, 6f12.6)') i, q_name(i), spin_map%q_map%q(i,:)
+        nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, 6f12.6)') i, q_name(i), datum%spin_map%q_map%q(i,:)
+      enddo
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Eigen:'
+      nl=nl+1; lines(nl) = '     |Eval|     E_val            x           px          y           py          z           pz            Sx        Sy        Sz'
+
+      do i = 1, 6
+        nl=nl+1; write (lines(nl), '(a, 2f10.6,     4x, 6f12.6, 4x, 3f10.6)', iostat = ios) 're', abs(eval(i)), real(eval(i),rp), real(evec(i,:),rp), real(n_eigen(i,:),rp)
+        nl=nl+1; write (lines(nl), '(a, 10x, f10.6, 4x, 6f12.6, 4x, 3f10.6)', iostat = ios) 'im', aimag(eval(i)), aimag(evec(i,:)), aimag(n_eigen(i,:))
+        nl=nl+1; lines(nl) = ''
       enddo
     endif
   endif
@@ -4255,7 +4281,7 @@ case ('taylor_map', 'matrix')
     endif
 
     if (print_eigen) then
-      call mat_eigen (mat6, eigen_val, eigen_vec, err)
+      call mat_eigen (mat6, eval, evec, err)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(75x, a)') 'eVector'
       nl=nl+1; write(lines(nl), '(t11, a, t29, a, 3(15x, a, 14x, a))') '|eValue|', 'eValue', 'x', 'px', 'y', 'py', 'z', 'pz'
@@ -4269,8 +4295,8 @@ case ('taylor_map', 'matrix')
       endif
 
       do i = 1, 6
-        nl=nl+1; write (lines(nl), fmt2, iostat = ios) 're', abs(eigen_val(i)), real(eigen_val(i), rp), real(eigen_vec(i,:), rp)
-        nl=nl+1; write (lines(nl), fmt3, iostat = ios) 'im',              aimag(eigen_val(i)), aimag(eigen_vec(i,:))
+        nl=nl+1; write (lines(nl), fmt2, iostat = ios) 're', abs(eval(i)), real(eval(i), rp), real(evec(i,:), rp)
+        nl=nl+1; write (lines(nl), fmt3, iostat = ios) 'im',              aimag(eval(i)), aimag(evec(i,:))
         nl=nl+1; lines(nl) = ''
       enddo
       nl = nl-1

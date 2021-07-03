@@ -705,8 +705,8 @@ do  ! Loop over plot files
           if (err) cycle  ! Check
           crv%ix_ele_ref = eles(1)%ele%ix_ele
           crv%ix_branch  = eles(1)%ele%ix_branch
-        elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
-                crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then
+        elseif (substr(crv%data_type,1,5) == 'phase' .or. substr(crv%data_type,1,2) == 'r.' .or. &
+                substr(crv%data_type,1,2) == 't.' .or. substr(crv%data_type,1,3) == 'tt.') then
           crv%ix_ele_ref = 0
           crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
         elseif (graph%type == 'phase_space') then

@@ -721,7 +721,7 @@ n_da = size(da%scan)
 n_da_curve = 0
 do i = 1, size(graph%curve)
   curve => graph%curve(i)
-  if (curve%data_type(1:12) == 'beam_ellipse') cycle
+  if (substr(curve%data_type,1,12) == 'beam_ellipse') cycle
   n_da_curve = n_da_curve + 1
   ! Assign a default type 
   if (curve%data_type == '') curve%data_type = 'dynamic_aperture'
@@ -752,7 +752,7 @@ endif
 
 do i = 1, size(graph%curve)
   curve => graph%curve(i)
-  if (curve%data_type(1:12) == 'beam_ellipse') then
+  if (substr(curve%data_type,1,12) == 'beam_ellipse') then
     call tao_curve_beam_ellipse_setup(curve)
     cycle
   endif
@@ -1296,7 +1296,7 @@ component = tao_curve_component(curve, graph)
 data_source = curve%data_source
 
 if (plot%x_axis_type == 'lat' .or. plot%x_axis_type == 'var') data_source = 'plot_x_axis_var'
-if (curve%data_type(1:11) == 'expression:' .and. (data_source == 'dat' .or. data_source == 'var')) data_source = 'expression'
+if (substr(curve%data_type,1,11) == 'expression:' .and. (data_source == 'dat' .or. data_source == 'var')) data_source = 'expression'
 
 select case (data_source)
 
@@ -1812,7 +1812,7 @@ case ('lat', 'beam')
     return
   end select
 
-  if (curve%draw_symbols .and. curve%data_type(1:9) /= 'aperture.') then
+  if (curve%draw_symbols .and. substr(curve%data_type,1,9) /= 'aperture.') then
     call tao_curve_datum_calc (scratch%eles, plot, curve, 'SYMBOL')
     if (.not. curve%valid) return
   endif
@@ -1950,10 +1950,10 @@ case ('s')
   ! beam data_source is not interpolated.
   smooth_curve = (curve%data_source == 'lat' .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc)
   if (index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
-  if (curve%data_type(1:7) == 'smooth.') smooth_curve = .false.
-  if (curve%data_type(1:4) == 'bpm_') smooth_curve = .false.
-  if (curve%data_type(1:6) == 'bunch_') smooth_curve = .false.
-  if (curve%data_type(1:6) == 'chrom.') smooth_curve = .false.
+  if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
+  if (substr(curve%data_type,1,4) == 'bpm_') smooth_curve = .false.
+  if (substr(curve%data_type,1,6) == 'bunch_') smooth_curve = .false.
+  if (substr(curve%data_type,1,6) == 'chrom.') smooth_curve = .false.
 
   if (index(component, 'meas') /= 0 .or. index(component, 'ref') /= 0 .or. &
       curve%data_source == 'data' .or. curve%data_source == 'var') then
