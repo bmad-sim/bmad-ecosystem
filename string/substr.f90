@@ -13,7 +13,7 @@
 !                   Blanks are added if len(var_str) < n2
 !-
 
-function substr_is_equal(var_str, n1, n2) result (sub_str)
+function substr(var_str, n1, n2) result (sub_str)
 
 implicit none
 
