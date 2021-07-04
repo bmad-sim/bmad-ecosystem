@@ -36,6 +36,7 @@ logical st_on
 !
 
 do ie = n1, n2
+  if (ie == 0) cycle
   ele => branch%ele(ie)
   if (.not. associated(ele%spin_taylor(0)%term)) then
     st_on = bmad_com%spin_tracking_on
