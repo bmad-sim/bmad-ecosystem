@@ -11,7 +11,7 @@ contains
 ! Subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
 !
 ! Routine for determining the eigenvectors and eigenvalues of a matrix.
-! The eigenvectors are normalized so that (v_j^*) * S * (v_j) = -i for j odd.
+! The eigenvectors are normalized so that (v_j^*) * S * (v_j) = i for j odd.
 !
 ! When the eigenvalues are complex conjugate pairs, the eigenvectors and eigenvalues
 ! are grouped so that the conjugate pairs are in slots (1,2), (3,4), etc.
@@ -43,11 +43,12 @@ subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
 implicit none
 
 real(rp) mat(:,:)
-real(rp) :: val(size(mat,1)), vec(size(mat,1), size(mat,1)), fnorm, amp(size(mat,1)/2, size(mat,1)/2)
+real(rp) :: val(size(mat,1)), vec(size(mat,1), size(mat,1)), amp(size(mat,1)/2, size(mat,1)/2)
+real(rp) fnorm
 
 integer :: iv(size(mat,1)), sort(size(mat,1)/2)
 
-complex(rp) eigen_val(:), eigen_vec(:,:)
+complex(rp) eigen_val(:), eigen_vec(:,:), sgn
 
 integer i, j, k, ii, jj, kk, n, nn, ier
 
@@ -113,16 +114,18 @@ do ii = 1, nn
     k = j - 1
     fnorm = 0
     do jj = 1, n, 2
-      fnorm = fnorm + 2 * aimag(eigen_vec(k, jj) * conjg(eigen_vec(k,jj+1)))
+      fnorm = fnorm + 2 * aimag(conjg(eigen_vec(k, jj)) * eigen_vec(k,jj+1))
     enddo
 
-    if (fnorm > 0) then  ! flip
+    if (fnorm < 0) then  ! flip
       eigen_vec(k:k+1, :) = eigen_vec(k+1:k:-1, :)
-      eigen_val(k:k+1) = eigen_val(k+1:k:-1)
+      eigen_val(k:k+1)    = eigen_val(k+1:k:-1)
+      fnorm = -fnorm
     endif
 
-    eigen_vec(k,:)   = sign_of(fnorm) * eigen_vec(k,:) / sqrt(abs(fnorm))
-    eigen_vec(k+1,:) = sign_of(fnorm) * eigen_vec(k+1,:) / sqrt(abs(fnorm))
+    sgn = abs(eigen_vec(k,k)) / (sqrt(fnorm) * eigen_vec(k,k))
+    eigen_vec(k,:)   = sgn        * eigen_vec(k,:)
+    eigen_vec(k+1,:) = conjg(sgn) * eigen_vec(k+1,:)
 
   else
     if (logic_option(.true., print_err)) call out_io (s_fatal$, 'mat_eigen', 'BAD IV FROM EIGENSYS')
