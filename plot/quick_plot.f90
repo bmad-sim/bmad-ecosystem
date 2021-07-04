@@ -1774,21 +1774,25 @@ elseif (u_type == '%' .and. region == 'BOX') then
 elseif (u_type == 'DATA') then
   dgx = qp_com%graph%x2 - qp_com%graph%x1
   if (qp_com%plot%xx%type == 'LOG') then
-    if (x <= 0) then    ! x could be a dummy number so just return a dummy number
+    if (x <= 0 .or. qp_com%plot%xx%max == qp_com%plot%xx%min) then ! x could be a dummy number so just return a dummy number
       x_inch = 1  ! Dummy number
     else
       x_inch = log(x) * dgx / (log(qp_com%plot%xx%max) - log(qp_com%plot%xx%min))
     endif
+  elseif (qp_com%plot%xx%max == qp_com%plot%xx%min) then
+    x_inch = 0
   else
     x_inch = x * dgx / (qp_com%plot%xx%max - qp_com%plot%xx%min)
   endif
   dgy = qp_com%graph%y2 - qp_com%graph%y1
   if (qp_com%plot%yy%type == 'LOG') then
-    if (y <= 0) then ! y could be a dummy number so just return a dummy number
+    if (y <= 0 .or. qp_com%plot%yy%max == qp_com%plot%yy%min) then ! y could be a dummy number so just return a dummy number
       y_inch = 1 ! Dummy number
     else
       y_inch = log(y) * dgy / (log(qp_com%plot%yy%max) - log(qp_com%plot%yy%min))
     endif
+  elseif (qp_com%plot%yy%max == qp_com%plot%yy%min) then
+    y_inch = 0
   else
     y_inch = y * dgy / (qp_com%plot%yy%max - qp_com%plot%yy%min)
   endif
