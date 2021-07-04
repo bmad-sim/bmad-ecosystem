@@ -3703,7 +3703,7 @@ case ('spin')
 
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
-                                                  '-ref_element', '-q_map', 'g_map'], .true., switch, err, ix)
+                                                  '-ref_element', '-q_map', '-g_map'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
@@ -3867,7 +3867,7 @@ case ('spin')
     if (show_mat) then
       datum%ix_branch = ix_branch
       call tao_spin_matrix_calc (datum, u, ele2%ix_ele, ele%ix_ele)
-      if (datum%spin_map%valid) then
+      if (.not. datum%spin_map%valid) then
         nl=nl+1; lines(nl) = 'INVALID: ' // datum%why_invalid
         return
       endif

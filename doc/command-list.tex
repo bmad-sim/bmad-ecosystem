@@ -2640,7 +2640,7 @@ Examples:
 
 Syntax:
 \begin{example}
-  show spin \{-element \{<ref_ele_name\} <ele_name\} \{-q_map\} \{g_map\}
+  show spin \{-element \{<ref_ele_name\} <ele_name\} \{-q_map\} \{-g_map\}
                                     \{-n_axis <nx>, <ny>, <nz>\} \{-l_axis <lx>, <ly>, <lz>\}
 \end{example}
 
@@ -2657,7 +2657,7 @@ downstream end of the element given by \vn{<ref_ele_name>} to the downstream end
 given by \vn{<ele_name>}.  If \vn{<ref_ele_name>} is not given, the default is to use the element
 before the element given by \vn{<ele_name>}. This gives the spin transport through the
 \vn{<ele_name>} element. The spin map can be displayed in two different forms. If the \vn{-l_axis}
-or \vn{-n_axis} is given, or if \vn{g_map} is present, the G-matrix form of the spin map will be
+or \vn{-n_axis} is given, or if \vn{-g_map} is present, the G-matrix form of the spin map will be
 printed.  The G-matrix is dependent upon the $(\Bf l, \Bf n, \Bf m)$ axes used to define the spin
 vector (see the \vn{SLIM Formalism} section of the Spin chapter in the Bmad manual). The $\Bf n$ and
 $\Bf l$ axes can be specified using the \vn{-n_axis} and \vn{-l_axis} switches. The $\Bf m$-axis is
