@@ -75,8 +75,9 @@ do ii = 1, nn
   i = 2 * ii
   do kk = 1, nn
     k = 2 * kk
-    amp(ii,kk) = sum(vec(k-1:k, i-1:i)**2)
+    amp(kk,ii) = sum(vec(k-1:k, i-1:i)**2)
   enddo
+  amp(:,ii) = amp(:,ii) / sum(amp(:,ii))
 enddo
 
 picked = .false.
