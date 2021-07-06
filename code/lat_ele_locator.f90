@@ -638,23 +638,23 @@ endif
 do ie = 1, n_loc
   ele => eles(ie)%ele
 
-  if (ele%lord_status == multipass_lord$ .or. ele%lord_status == overlay_lord$ .or. ele%lord_status == group_lord$) then
+  select case (ele%lord_status)
+  case (multipass_lord$, overlay_lord$, group_lord$, ramper_lord$)
     call out_io (s_error$, r_name, 'OFFSET CANNOT BE APPLIED TO MULTIPASS, OVERLAY, OR GROUP LORD: ' // ele%name)
     return
-  endif
 
-  if (ele%lord_status == super_lord$ .or. ele%lord_status == girder_lord$) then
+  case (super_lord$, girder_lord$)
     if (offset > 0) then
       ele => pointer_to_slave(ele, ele%n_slave)
     else
       ele => pointer_to_slave(ele, 1)
     endif
-  endif
+  end select
 
   branch => ele%branch
   nl = ele%ix_ele + offset
   if (nl < 0) nl = ele%branch%n_ele_track + nl + 1
-  if (nl > branch%n_ele_track) nl = nl - branch%n_ele_track 
+  if (nl > branch%n_ele_track) nl = nl - branch%n_ele_track - 1
   eles(ie)%ele => branch%ele(nl)
 enddo
 
