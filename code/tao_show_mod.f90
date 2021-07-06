@@ -178,7 +178,7 @@ type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (tao_beam_branch_struct), pointer :: bb
 type (lat_struct), pointer :: lat, design_lat
-type (ele_struct), pointer :: ele, ele1, ele2, slave, lord
+type (ele_struct), pointer :: ele, ele1, ele2, slave, lord, ele_ref
 type (ele_struct), target :: ele3, ele0
 type (em_field_struct) field
 type (control_struct), pointer :: contl
@@ -230,7 +230,7 @@ type (show_lat_column_info_struct) col_info(60)
 type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z_in, dt, angle, r
-real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
+real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2, qs, q, x
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now
 real(rp), allocatable :: value(:)
@@ -251,7 +251,7 @@ character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = '', phase_units_str
 character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, irmt, iimt
-character(40) ele_name, sub_name, ele1_name, ele2_name, aname
+character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname
 character(40) replacement_for_blank
 character(60) nam, attrib_list(20), attrib
 character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
@@ -259,6 +259,7 @@ character(200) header, str, attrib0, file_name, name
 character(200), allocatable :: alloc_lines(:)
 
 character(2), parameter :: q_name(0:3) = ['q0', 'qx', 'qy', 'qz']
+character(1), parameter :: abc_name(1:3) = ['A', 'B', 'C']
 
 character(16) :: show_what, show_names(42) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
@@ -3698,8 +3699,8 @@ case ('spin')
   show_q = .false.
   show_mat = .false.
   datum%spin_map%axis_input = spin_axis_struct()
-  ele2_name = ''
-  ele2 => null()
+  ele_ref_name = ''
+  ele_ref => null()
 
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
@@ -3714,12 +3715,12 @@ case ('spin')
       ele_name = upcase(what2(1:ix))
       call string_trim(what2(ix+1:), what2, ix)
       if (what2(1:1) /= '-' .and. what2(1:1) /= ' ') then
-        ele2_name = ele_name
+        ele_ref_name = ele_name
         ele_name = upcase(what2(1:ix))
         call string_trim(what2(ix+1:), what2, ix)
       endif
     case ('-ref_element')  ! Note: This is old deprecated syntax.
-      ele2_name = upcase(what2(1:ix))
+      ele_ref_name = upcase(what2(1:ix))
       call string_trim(what2(ix+1:), what2, ix)
     case ('-n_axis')
       read (what2, *, iostat = ios) datum%spin_map%axis_input%n0
@@ -3841,17 +3842,17 @@ case ('spin')
     if (err) return
     ele => eles(1)%ele
 
-    if (ele2_name /= '') then
-      call tao_locate_elements (ele2_name, ix_u, eles, err)
+    if (ele_ref_name /= '') then
+      call tao_locate_elements (ele_ref_name, ix_u, eles, err)
       if (err) return
-      ele2 => eles(1)%ele
+      ele_ref => eles(1)%ele
     else
-      ele2 => pointer_to_next_ele(ele, -1)
+      ele_ref => pointer_to_next_ele(ele, -1)
     endif
 
     if (all(datum%spin_map%axis_input%n0 == 0)) then
-      if (all(u%model%tao_branch(ele%ix_branch)%orbit(ele2%ix_ele)%spin == 0)) call tao_lattice_calc(ok)
-      datum%spin_map%axis_input%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele2%ix_ele)%spin
+      if (all(u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin == 0)) call tao_lattice_calc(ok)
+      datum%spin_map%axis_input%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin
     endif
 
 
@@ -3866,7 +3867,7 @@ case ('spin')
 
     if (show_mat) then
       datum%ix_branch = ix_branch
-      call tao_spin_matrix_calc (datum, u, ele2%ix_ele, ele%ix_ele)
+      call tao_spin_matrix_calc (datum, u, ele_ref%ix_ele, ele%ix_ele)
       if (.not. datum%spin_map%valid) then
         nl=nl+1; lines(nl) = 'INVALID: ' // datum%why_invalid
         return
@@ -3898,6 +3899,9 @@ case ('spin')
       do i = 0, 3
         nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, 6f12.6)') i, q_name(i), datum%spin_map%q_map%q(i,:)
       enddo
+    endif
+
+    if (ele%ix_ele == ele_ref%ix_ele) then
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Eigen:'
       nl=nl+1; lines(nl) = '     |Eval|     E_val            x           px          y           py          z           pz            Sx        Sy        Sz'
@@ -3906,6 +3910,17 @@ case ('spin')
         nl=nl+1; write (lines(nl), '(a, 2f10.6,     4x, 6f12.6, 4x, 3f10.6)', iostat = ios) 're', abs(eval(i)), real(eval(i),rp), real(evec(i,:),rp), real(n_eigen(i,:),rp)
         nl=nl+1; write (lines(nl), '(a, 10x, f10.6, 4x, 6f12.6, 4x, 3f10.6)', iostat = ios) 'im', aimag(eval(i)), aimag(evec(i,:)), aimag(n_eigen(i,:))
         nl=nl+1; lines(nl) = ''
+      enddo
+
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Resonance strengths'
+      nl=nl+1; lines(nl) = '  Mode        Tune          Xi'
+      qs = branch%param%spin_tune/twopi
+      nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
+      do i = 1, 3
+        q = atan2(aimag(eval(2*i-1)), real(eval(2*i-1),rp)) / twopi
+        x = 2 * abs((q-qs) - nint(q-qs)) * norm2(real(n_eigen(2*i-1,:),rp))
+        nl=nl+1; write (lines(nl), '(5x, a, f12.6, es12.4)') abc_name(i), q, x
       enddo
     endif
   endif
