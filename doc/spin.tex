@@ -153,7 +153,7 @@ satisfies
 \end{equation}
 where $\Cal M_r$ is the orbital part of the 1-turn transfer map and $\Cal M_s(\bfr)$, derived from
 T-BMT equation, is the spin part of the map which is a function of $\bfr$. That is, the invariant
-spin field (ISF) obeys the T-BMT equation so a particle whose spin points in the direction of
+spin field (ISF) obeys the T-BMT equation. Thus, a particle whose spin points in the direction of
 $\bfn(\bfr, s)$ at some time $t$ will, in the absence of radiation effects, always have its spin
 pointing in the direction of $\bfn(\bfr, s)$. When there are no resonances, $\bfn(\bfr, s)$ is
 unique up to a flip of sign.
@@ -178,8 +178,9 @@ Instantaneously, the beam can be fully polarized but the average over many turns
 position $s$, cannot exceed $\left< \bfS \right>_{\max}$.
 
 Another quantity that can be computed from knowledge of $\bfn$ is the equilibrium polarization of a
-beam. The \vn{Baier-Katkov-Strakhovenko} (generalized \vn{Sokolov-Ternov}) polarization $P_{bks}$ is
-calculated by ignoring deviations of the beam from the closed orbit\cite{b:barber99}
+beam. The \vn{Baier-Katkov-Strakhovenko} polarization $P_{bks}$ (generalized from
+\vn{Sokolov-Ternov} to include non-vertical fields) is calculated by ignoring deviations of the beam
+from the closed orbit\cite{b:barber99}
 \begin{equation}
   P_{bks} = \pm \frac{8}{5 \, \sqrt{3}}
   \frac{\displaystyle \oint ds \, g^3 \, \what\bfb \dotproduct \bfn_0}
@@ -193,17 +194,17 @@ vector in the direction of motion, and $\what\bfb$ is defined to be
 Notice that $\what\bfb$ is the direction of the magnetic field when $\what\bfs$ is perpendicular to
 the magnetic field and when there is no electric field. In the above equation, the plus sign is for
 positrons (polarized parallel to the field) and the minus sign is for electrons. Since the above
-formula neglects any non-radiative processes, it is generally only valid for positrons and
-electrons. 
+equation is only valid when the anomalous magnetic moment is small\cite{b:jackson}, this formula is
+not valid for protons and anti-protons.
 
 The corresponding BKS polarization build-up rate $\tau_{bks}^{-1}$ is
 \begin{equation}
   \tau_{bks}^{-1} = \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m} \frac{1}{C} \,
-    \oint ds \, g^3 \, \left( 1 - \frac{2}{9} (\bfn \dotproduct \what\bfs)^2 \right)
+    \oint ds \, g^3 \, \left( 1 - \frac{2}{9} (\bfn_0 \dotproduct \what\bfs)^2 \right)
   \label{tbks}
 \end{equation}
 
-If the the finite emittance of the beam is taken into account, the generalized Sokolov-Ternov
+If the the stochastic excitation of the beam is taken into account, the generalized Sokolov-Ternov
 polarization is called the \vn{Derbenev-Kondratenko-Mane} formula
 \begin{equation}
   P_{dk} = \pm \frac{8}{5 \, \sqrt{3}}
@@ -215,7 +216,8 @@ polarization is called the \vn{Derbenev-Kondratenko-Mane} formula
 where $<>$ denotes an average over phase space, and $\delta$ is the fractional energy deviation
 which, for ultra-relativistic particles, is the same as phase space $p_z$. Since, away from any
 resonances, $\bfn$ is very close to $\bfn_0$, and since generally machines are tuned away from any
-resonances, $\bfn_0$ can be used in place of $\bfn$ when evaluating $P_{dk}$.
+resonances, the $\bfn - \partial\bfn/\partial\delta$ and $\bfn\cdot\what\bfs$ terms can be replaced
+by $\bfn_0 - \partial\bfn/\partial\delta$ and $\bfn_0\cdot\what\bfs$ when evaluating $P_{dk}$.
 
 The time dependence of the polarization is \cite{b:barber99})
 \begin{equation}
@@ -231,13 +233,13 @@ where $\bfP_0$ is the initial polarization and the polarization rate $\tau_{dk}^
 
 $\tau_{dk}^{-1}$ can be decomposed into two parts:
 \begin{equation}
-  \tau_{dk}^{-1} = \tau_{st}^{-1} + \tau_{dep}^{-1}
+  \tau_{dk}^{-1} = \tau_{pol}^{-1} + \tau_{dep}^{-1}
   \label{tdk}
 \end{equation}
-$\tau_{st}^{-1}$ is the Sokolov-Ternov polarization rate given by the first two terms on the
+$\tau_{pol}^{-1}$ is the polarization rate given by the first two terms on the
 RHS in \Eq{t583} and the depolarization rate $\tau_{dep}^{-1}$ is given by the the third term:
 \begin{align}
-  \tau_{st}^{-1} &= \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m} \frac{1}{C} \,
+  \tau_{pol}^{-1} &= \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m} \frac{1}{C} \,
     \oint ds \, \left< g^3 \, \left( 1 - \frac{2}{9} (\bfn \dotproduct \what\bfs)^2 \right) \right> 
     \CRNO
   \tau_{dep}^{-1} &= \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m}
@@ -245,20 +247,20 @@ RHS in \Eq{t583} and the depolarization rate $\tau_{dep}^{-1}$ is given by the t
     \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right>
     \label{tdep}
 \end{align}
-$\tau_{st}^{-1}$ is generally well approximated by the \vn{Baier-Katkov-Strakhovenko} polarization
-rate (\Eq{tbks}).  The difference being that $\tau_{bks}^{-1}$ is evaluated along the closed orbit
-while $\tau_{st}^{-1}$ takes into account the size of the beam.
+$\tau_{pol}^{-1}$ is generally well approximated by the \vn{Baier-Katkov-Strakhovenko} polarization
+rate (\Eq{tbks}). The difference being that $\tau_{bks}^{-1}$ is evaluated along the closed orbit
+while $\tau_{pol}^{-1}$ takes into account the size of the beam.
 
 %-----------------------------------------------------------------   
-\section{Linear \texorpdfstring{$d\bfn/d\delta$}{dn/dpz} Calculation}
+\section{Linear \texorpdfstring{$\partial\bfn/\partial\delta$}{dn/dpz} Calculation}
 \label{s:dn.calc}
 
 When evaluating the equations in the previous section, in many situations it is sufficient to just
-use the value of $d\bfn/d\delta$ as calculated in the linear regime. In the linear regime,
-$d\bfn/d\delta$ is only dependent upon the $s$-position and is independent of the phase space
-position. The calculation of $d\bfn/d\delta$ starts with the linearized transport equations which
-are characterized by a $6\times6$ orbital transfer matrix $\bfM$ along with the spin transport which
-can be written in the form
+use the value of $\partial\bfn/\partial\delta$ as calculated in the linear regime. In the linear regime,
+$\partial\bfn/\partial\delta$ is only dependent upon the $s$-position and is independent of the phase space
+position. The calculation of $\partial\bfn/\partial\delta$ starts with the linearized transport equations which
+are characterized by a $6\times6$ orbital 1-turn transfer matrix $\bfM$ along with the spin
+transport which can be written in the form
 \begin{equation}
   \bfq_s(\bfr) = \bfq_0 + \overrightarrow{\bfq} \dotproduct \bfr
   \label{qqqr}
@@ -281,35 +283,35 @@ The solution to this equation, normalized to one, is
 Since $\bfq_s$ is a rotation quaternion, the magnitude of $\bfq_s(\bfr)$ must remain one. Using
 \Eq{qqqr} in \Eq{1qqq}, to keep the magnitude equal to one to linear order gives the condition
 \begin{equation}
-  \bfq_0 \dotproduct \bfq_i = 0, \qquad i = 1, \ldots, 6
+  \bfq_0 \dotproduct \bfq_k = 0, \qquad k = 1, \ldots, 6
 \end{equation}
 for all $\bfq_i$ components of $\overrightarrow{\bfq}$.
 
-To calculate $d\bfn/d\delta$, the first step is to compute the eigenvectors $\bfv_j$ and
-eigenvalues $\lambda_j$, $j = 1, \ldots, 6$ of the 1-turn orbital matrix. The
-corresponding spin eigenvectors $\bfn_j$ are computed from the equation
+To calculate $\partial\bfn/\partial\delta$, the first step is to compute the eigenvectors $\bfv_k$ and
+eigenvalues $\lambda_k$, $k = 1, \ldots, 6$ of the 1-turn orbital matrix. The
+corresponding spin eigenvectors $\bfn_k$ are computed from the equation
 \begin{equation}
-  \bfq_s(\bfv_j) \,\, (\bfn_0 + \bfn_j) \,\, \bfq_s^*(\bfv_j) = \bfn_0 + \lambda_j \, \bfn_j
+  \bfq_s(\bfv_k) \,\, (\bfn_0 + \bfn_k) \,\, \bfq_s^*(\bfv_k) = \bfn_0 + \lambda_k \, \bfn_k
   \label{qnnq}
 \end{equation}
 Using \Eqs{qqqr} and \eq{qnqn}, and keeping only linear terms gives
 \begin{equation}
-  \lambda_j \, \bfn_j - \bfq_0 \, \bfn_j \, \bfq_0^* = 
-  (\overrightarrow{\bfq} \dotproduct \bfv_j) \, \bfn_0 \, \bfq_0^* + 
-  \bfq_0 \, \bfn_0 \, (\overrightarrow{\bfq}^* \dotproduct \bfv_j)
+  \lambda_k \, \bfn_k - \bfq_0 \, \bfn_k \, \bfq_0^* = 
+  (\overrightarrow{\bfq} \dotproduct \bfv_k) \, \bfn_0 \, \bfq_0^* + 
+  \bfq_0 \, \bfn_0 \, (\overrightarrow{\bfq}^* \dotproduct \bfv_k)
   \label{lnqnq}
 \end{equation}
-This equation is linear in the unknown $\bfn_j$ and so may be easily solved using standard linear
+This equation is linear in the unknown $\bfn_k$ and so may be easily solved using standard linear
 algebra techniques.
 
-Since the eigenvectors $\bfv_j$ span phase space, for any given phase space position $\bfr$, there
-exist a set of coefficients $A_j(\bfr)$, $j = 1, \ldots, 6$, such that
+Since the eigenvectors $\bfv_k$ span phase space, for any given phase space position $\bfr$, there
+exist a set of coefficients $A_k(\bfr)$, $k = 1, \ldots, 6$, such that
 \begin{equation}
-  \bfr = \sum_{j = 1}^6 A_j(\bfr) \, \bfv_j
+  \bfr = \sum_{k = 1}^6 A_k(\bfr) \, \bfv_k
 \end{equation}
 Define the function $\bfn$ by
 \begin{equation}
-  \bfn(\bfr) \equiv \bfn_0 + \sum_{j = 1}^6 A_j(\bfr) \, \bfn_j
+  \bfn(\bfr) \equiv \bfn_0 + \sum_{k = 1}^6 A_k(\bfr) \, \bfn_k
   \label{nrn0}
 \end{equation}
 This function obeys the T-BMT equation and is continuous and thus is the solution (up to a flip in
@@ -318,12 +320,12 @@ sign and a normalization constant) for the invariant spin field. From this, ${\p
 and $z$, is obtained via
 \begin{equation}
   \frac{\partial \bfn}{\partial \delta} = 
-  \sum_{j = 1}^6 A_j \, \bfn_j
+  \sum_{k = 1}^6 A_k \, \bfn_k
   \label{ndan}
 \end{equation}
-with the $A_j$ being computed by inverting the equation
+with the $A_k$ being computed by inverting the equation
 \begin{equation}
-  (0, 0, 0, 0, 0, 1)^t = \sum_{j = 1}^6 A_j \, \bfv_j
+  (0, 0, 0, 0, 0, 1)^t = \sum_{k = 1}^6 A_k \, \bfv_k
   \label{000001}
 \end{equation}
 where the superscript $t$ means transpose. Notice that for ${\partial \bfn}/\partial \delta$, as
@@ -335,7 +337,7 @@ A problem arises if the machine that is being simulated does not have any RF cav
 in the cavities is zero. In this case, there are no synchrotron oscillations which results in
 degenerate eigenvectors and the eigenvectors will not span all of phase space. The solution here
 is to reduce the dimensionality of phase space to five by remove the $z$ coordinate. The above
-equations then can be used with the sums over $j$ ranging from 1 to 5. 
+equations then can be used with the sums over $k$ ranging from 1 to 5. 
 
 It is sometimes informative to compute the contribution of ${\partial \bfn}/\partial \delta$ due to
 a single mode of oscillation. That is, to compute ${\partial \bfn}/\partial \delta$ with the sum in
@@ -352,11 +354,11 @@ tune $\nu_s$ in combination with the three orbital tunes $\nu_x$, $\nu_y$, and $
 \begin{equation}
   \nu_s + m_x \, \nu_x + m_y \, \nu_y + m_z \, \nu_z = m_0
 \end{equation}
-where $m_x$, $m_y$, $m_z$, and $m_0$ are integers. In the linear approximaiton (\sref{s:dn.calc}),
+where $m_x$, $m_y$, $m_z$, and $m_0$ are integers. In the linear approximation (\sref{s:dn.calc}),
 resonances only occur if one and exactly one of the $m_x$, $m_y$, or $m_z$ has a value of one and
 the other two are zero.
 
-Essentially, in rings where the synchrotron radiation is large (think electrons), the depolarization
+Generally, in rings where the synchrotron radiation is large (think electrons), the depolarization
 due to radiation will tend to dominate (\sref{s:isf}). For rings where the synchrotron radiation is
 small (think protons), resonances will be more important. Notice that synchrotron radiation, being a
 stochastic process results in depolarization. Resonances, on the other hand, are not stochastic and
@@ -367,11 +369,13 @@ $\xi_r$.\footnote
   {
 The common practice is to absorb the orbital amplitude dependence in the resonance strength.  The
 resonance strength is then typically denoted by $\epsilon_R$ which here is equal to $\sqrt{J} \,
-\xi_r$ with $J$ being the value of the action of the obital oscillations.
+\xi_r$ with $J$ being the value of the action of the orbital oscillations.
   }
-The resonance strength calculation can be motivated by considering the Single
-Resonance Model (SRM)\cite{b:spin.hoff} where it is assumed that only one orbital mode is excited
-and that there is a single dominating linear resonance so that the spin equation of motion is
+The resonance strength calculation can be motivated by considering the Single Resonance Model
+(SRM)\cite{b:spin.hoff} where it is assumed that only one orbital mode is excited and that there is
+a single dominating resonance. This analysis assumes that the resonance is linear in order to make
+the connection between the resonance strength and the linear spin transport map. In this case the
+spin equation of motion is
 \begin{equation}
   \frac{d \bfs}{d \theta} = \Bf\Omega \cross \bfs, \qquad 
   \Bf\Omega = \begin{pmatrix}
@@ -383,12 +387,12 @@ and that there is a single dominating linear resonance so that the spin equation
 \end{equation}
 where $\nu_0$ is the closed orbit spin tune and $\theta$ is the longitudinal angle with $\theta = 2
 \, \pi$ representing one turn in the circular accelerator. $J$ is the action for the orbital excited
-mode (\sref{s:action.ang} and $\Phi$ is the phase
+mode (\sref{s:action.ang}) and $\Phi$ is the phase
 \begin{equation}
   \Phi = (m_0 + Q) \, \theta \equiv \kappa \, \theta
 \end{equation}
 with $Q$ being the mode orbital tune. The $\sqrt{J}$ factor in \Eq{stos} means that the resonance components of
-$\Omega$ ($\Omega_x$ and $\Omega_y$) depend linearly on the phase space coordinates. Single resonance models may
+$\Bf\Omega$ ($\Omega_x$ and $\Omega_y$) depend linearly on the phase space coordinates. Single resonance models may
 be constructed with a different dependence on $J$ but in such a case the resonance would not be linear.
 
 \Eq{stos} can be solved by transforming to a coordinate system rotating about the $z$-axis with a rotational
@@ -429,25 +433,24 @@ axis is in the positive $z$-direction.
 
 The resonance strengths in a lattice can be calculated by comparing \Eq{nsdl} with the equations
 developed in \sref{s:dn.calc}. The eigen analysis in \sref{s:dn.calc} gives the closed orbit
-$\bfn_0$ along with the six eignvectors $(\bfv_j, \bfn_j)$ and corresponding eigenvalues
-$\lambda_j$, $j = 1, \ldots 6$ of the 1-turn spin-orbital transport. The orbital part of the $j$\Th
-eigenvector, $\bfv_j$, normalized using \Eq{vsvi}, represents particle motion with unit action $J_j$
-for that mode. Considering \Eq{ndan}, if only one mode is excited for some particular $j$ and with
-some amplitude $\sqrt{J}$,  and if
-$A_j$ is taken to be one, the invariant spin field on the $m$\Th turn
+$\bfn_0$ along with the six eigenvectors $(\bfv_k, \bfn_k)$ and corresponding eigenvalues
+$\lambda_k$, $k = 1, \ldots 6$ of the 1-turn spin-orbital transport. The orbital part of the $k$\Th
+eigenvector, $\bfv_k$, normalized using \Eq{vsvi0}, represents particle motion with unit action $J_k$
+for that mode. Considering \Eq{ndan}, if only one mode is excited for some particular $k$ and with
+some amplitude $\sqrt{J}$, the invariant spin field on the $m$\Th turn is
 \begin{equation}
   \bfn(m) = \frac{1}{\Lambda_n} \, 
-  \left( \bfn_0 + e^{i \, \phi_0} \sqrt{J} \, \bfn_j \, \lambda_j^m \right),
+  \left( \bfn_0 + \re \left( 2 \, \sqrt{J} \, \bfn_k \, e^{i \, \phi_0} \, \lambda_k^m \right) \right)
   \qquad
-  \Lambda_n = \sqrt{1 + J \, |\bfn_j|^2}
+  \Lambda_n = \sqrt{1 + 4 \, J \, |\re(\bfn_k)|^2}
   \label{nnav}
 \end{equation}
-where $\phi_0$ is the initial phase. Comparing this to \Eq{nsdl}, the constant part of the $\bfn$
-vector in \Eq{nsdl} ($\bfn_z$) is associated with $\bfn_0$ in \Eq{nnav} and the time varying part of
-$\bfn$ in \Eq{nsdl} ($\bfn_x$ and $\bfn_y$) is associated with $\bfv_j$ in \Eq{nnav}. Taking
-the ratio of constant to time varying parts in both equations and equating gives
+where $\phi_0$ is the initial phase (see \Eq{x2jv}). Comparing this to \Eq{nsdl}, the constant part
+of the $\bfn$ vector in \Eq{nsdl} ($\bfn_z$) is associated with $\bfn_0$ in \Eq{nnav} and the time
+varying part of $\bfn$ in \Eq{nsdl} ($\bfn_x$ and $\bfn_y$) is associated with $\bfv_k$ in
+\Eq{nnav}. Taking the ratio of constant to time varying parts in both equations and equating gives
 \begin{equation}
-  \xi_r = \delta \, |\bfn_j|
+  \xi_r = 2 \, \delta \, |\re(\bfn_k)|
 \end{equation}
 
 
@@ -693,17 +696,17 @@ similar to the calculation using quaternions (\sref{s:dn.calc}). The following f
 Barber\cite{b:barber99}. The calculation starts with the one-turn periodic $8 \times 8$ matrix
 $\widetilde \bfM$ [Here the periodic $(\bfl(s), \bfn_0(s), \bfm(s))$ coordinate system must be used
 since the ending coordinates for $\bfM$ must be the same as the starting coordinates.]  The
-eigenvectors $\bfu_j$ and eigenvalues $\lambda_j$ ($j = 1, \ldots 8$) of $\widetilde \bfM$ are of
+eigenvectors $\bfu_k$ and eigenvalues $\lambda_k$ ($k = 1, \ldots 8$) of $\widetilde \bfM$ are of
 the form
 \begin{align}
-  \bfu_j &= \begin{pmatrix} \bfv_j \\ \bfw_j \end{pmatrix}, \quad j = 1, \ldots, 6
+  \bfu_k &= \begin{pmatrix} \bfv_k \\ \bfw_k \end{pmatrix}, \quad k = 1, \ldots, 6
   \label{qvw} \\
-  \bfu_j &= \begin{pmatrix} \Bf 0_6 \\ \bfw_j \end{pmatrix}, \quad j = 7, 8 \nonumber
+  \bfu_k &= \begin{pmatrix} \Bf 0_6 \\ \bfw_k \end{pmatrix}, \quad k = 7, 8 \nonumber
 \end{align}
-where $\bfv_j$ are eigenvectors of the orbital submatrix $\bfM$, and for the first six eigenvectors
-the $\bfw_j$ are computed via (compare with \Eqs{lnqnq})
+where $\bfv_k$ are eigenvectors of the orbital submatrix $\bfM$, and for the first six eigenvectors
+the $\bfw_k$ are computed via (compare with \Eqs{lnqnq})
 \begin{equation}
-  \bfw_j = \left[ \lambda_j \, \bfI_2 - \bfD \right]^{-1} \bfG \, \bfv_j, \quad j = 1, \ldots, 6
+  \bfw_k = \left[ \lambda_k \, \bfI_2 - \bfD \right]^{-1} \bfG \, \bfv_k, \quad k = 1, \ldots, 6
   \label{wdlgv}
 \end{equation}
 where $\bfI_2$ is the $2 \times 2$ unit matrix. These eigenvectors, computed at the chosen starting
@@ -713,35 +716,15 @@ The derivative ${\partial \bfn}/\partial \delta$ is computed analogously to \Eq{
 \begin{equation}
   \frac{\partial \bfn}{\partial \delta} = 
   \left( \frac{\partial \alpha}{\partial \delta}, \, \frac{\partial \beta}{\partial \delta} \right) = 
-  \sum_{j = 1}^6 A_j \, \bfw_j
+  \sum_{k = 1}^6 A_k \, \bfw_k
   \label{ndaw}
 \end{equation}
-with the $A_j$ being computed from \Eq{000001}.
+with the $A_k$ being computed from \Eq{000001}.
 
 Alternatively, Chao \cite{b:chao79} gives a an analytical formulation where the eigenvectors are
-normalized in the form\footnote
-  {
-See section~\sref{s:eigen.tune} for a discussion on the implications of this normalization.
-  }
+normalized in the form \Eq{vsvi0}.  With this, ${\partial \bfn}/{\partial \delta}$ is computed via
 \begin{equation}
-  \bfv_{j+1}^{t} \, \bfS \, \bfv_j = i, \quad j = 1, 3, 5
-  \label{vsvi}
-\end{equation}
-where the eigenvectors have been arranged in complex conjugate pairs with $\bfv_{j+1} = \bfv_j^*, \,
-j = 1, 3, 5$ with the superscript $*$ denoting the complex conjugate. In \Eq{vsvi} $\bfS$ is the matrix
-\begin{equation}
-  \bfS = \begin{pmatrix}
-      0 & -1 &  0 &  0 &  0 &  0 \\
-      1 &  0 &  0 &  0 &  0 &  0 \\
-      0 &  0 &  0 & -1 &  0 &  0 \\
-      0 &  0 &  1 &  0 &  0 &  0 \\
-      0 &  0 &  0 &  0 &  0 & -1 \\
-      0 &  0 &  0 &  0 &  1 &  0 \\
-  \end{pmatrix}
-\end{equation}
-With this, ${\partial \bfn}/{\partial \delta}$ is computed via
-\begin{equation}
-  \frac{\partial \bfn}{\partial \delta} = i \, \sum_{j = 1}^6 \bfv_{j5}^* \, \bfw_j
+  \frac{\partial \bfn}{\partial \delta} = i \, \sum_{k = 1}^6 \bfv_{k5}^* \, \bfw_k
   \label{ndivw}
 \end{equation}
 
@@ -835,7 +818,7 @@ vector $\Bf u$ is defined as the absolute value of the average
 expectation value of the spin over all N particles times
 $\frac{2}{\hbar}$,
   \begin{equation}
-    P_s = \frac{2}{\hbar} \frac{1}{N} \sum_{j=1}^{N} \Psi_j^\dagger S_{\Bf u} \Psi_j
+    P_s = \frac{2}{\hbar} \frac{1}{N} \sum_{k=1}^{N} \Psi_k^\dagger S_{\Bf u} \Psi_k
   \end{equation}  
 
 See \S~\sref{s:spin.hard.fringe} for formulas for tracking a spin through a multipole

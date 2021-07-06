@@ -302,9 +302,13 @@ names, these strings are not converted to upper case), matching is always case i
   alias::*           ! Match to all elements whose \vn{alias} string is not blank.
 \end{example}
 
+\vspace*{1pt}
 After lattice expansion (\sref{s:expand}), the general syntax to specify a set of elements is:
 \begin{example}
-  \{branch_id>>\}\{class::\}element_id\{##N\}
+  \{branch_id>>\}\{class::\}element_id
+  \{branch_id>>\}element_name##N        ! N^th instance of element_name in branch with branch_id
+  \{branch_id>>\}\{class::\}element_id\{##N\}+M  ! M^th element after element
+  \{branch_id>>\}\{class::\}element_id\{##N\}-M  ! M^th element before element
 \end{example}
 where \vn{\{...\}} marks an optional component, \vn{class} is a class name, \vn{branch_id} is a
 branch name or index (\sref{s:branch.def}), \vn{element_id} is and element name or element index
@@ -315,12 +319,41 @@ used. Examples:
   2>>45                 ! element \#45 of branch \#2.
   q01##3                ! The 3rd element named q01 in each branch where there are at 
                         ! least three elements named q01.
+  q01-1                 ! Elements just before all elements named q01.
+  q01##3+0              ! Same as q01##3.
 \end{example}
-Note: \vn{Group} and \vn{Overlay} elements have unique names so using \vn{\#\#} is unnecessary.
+Note: \vn{Group} and \vn{overlay} elements have unique names so using \vn{\#\#} is unnecessary.
 
 Note: When using the \vn{\#\#} construct, \vn{super_lord} and \vn{girder_lord} elements are considered 
 to be situated where their slave elements are situated in the lattice. This is independent of where
 they actually exist which is in the lord part of branch 0 (\sref{s:lord.slave}).
+
+Note: When using \vn{+M} and \vn{-M} offsets, no space should be put around the plus or minus signs.
+Offsets cannot be used with \vn{overlay}, \vn{group}, \vn{ramper_lord} or \vn{multipass_lord}
+elements. If used with a \vn{super_lord} or \vn{girder} element, for a \vn{-M} offset the element
+selected is the \vn{M}\Th element before the first \vn{slave} element of the lord and for a \vn{+M}
+offset the element selected is the \vn{M}\Th element after the last \vn{slave} element of the
+lord. Also, independent of the \vn{geometry} of the branch, the element selected will ``wrap''
+around the ends of the branch.  For example, if a lattice branch looks like:
+\pagebreak[2]
+\begin{example}
+  Index  Name
+    0    Beginnning
+    1    A
+    2    B\B1       ! First super_slave of B super_lord
+    3    M
+    4    B\B2       ! Second super_slave of B super_lord
+    5    C
+\end{example}
+then
+\begin{example}
+    Name  Translates to     Name  Translates to
+    ----  -------------     ----  -------------
+    B-1   A                 B+1   C
+    B-2   Beginning         B+2   Beginning
+    B-3   C                 B+3   A
+    B-4   B\B2               B+4   B\B1
+\end{example}
 
 It is advised to avoid setting the parameters of differing elements that share the same
 name to differing values since this can lead problems later on. For example, consider this in a
@@ -383,7 +416,7 @@ either the name of an element or an element range. An element range has the synt
 \end{example}
 where
 \begin{example}
-  branch   ! Optional branch name
+  branch   ! Optional branch name or index.
   class    ! Optional element class name ("quadrupole", "sbend", etc.)
   ele1     ! Starting element of the range.
   ele2     ! Ending element of the range. 
@@ -394,8 +427,8 @@ For example:
   3 15:17          ! Same as above (commas are optional).
   2>>45:51         ! Elements 45 through 51 of branch 2.
   q1:q5            ! Elements between q1 and q5.
-  sbend::q1:q5     ! All sbend elements between q1 and q5. 
-                   ! Notice that q1 and q5 do not have to be sbends
+  sbend::q1:q5     ! All sbend elements between q1 and q5 including q1 and q5 if they. 
+                   ! are sbends. Notice that q1 and q5 do not have to be sbends
 \end{example}
 
 With a comma delimited list of names, a tilde prefix can be used to remove elements from the list.
