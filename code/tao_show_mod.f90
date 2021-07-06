@@ -3913,15 +3913,15 @@ case ('spin')
       enddo
 
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; lines(nl) = 'Resonance strengths'
-      nl=nl+1; lines(nl) = '  Mode        Tune          Xi'
+      nl=nl+1; lines(nl) = 'Resonance strengths:'
+      nl=nl+1; lines(nl) = '            Tune      Xi_res'
       qs = branch%param%spin_tune/twopi
-      nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
       do i = 1, 3
         q = atan2(aimag(eval(2*i-1)), real(eval(2*i-1),rp)) / twopi
         x = 2 * abs((q-qs) - nint(q-qs)) * norm2(real(n_eigen(2*i-1,:),rp))
         nl=nl+1; write (lines(nl), '(5x, a, f12.6, es12.4)') abc_name(i), q, x
       enddo
+      nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
     endif
   endif
 
