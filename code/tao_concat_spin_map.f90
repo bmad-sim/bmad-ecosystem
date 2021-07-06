@@ -1,13 +1,13 @@
 !+
 ! Subroutine tao_concat_spin_map (q_map, branch, n1, n2, q_ele)
 !
-! Routine to concatenate element spin/orbit maps in the range branch%ele(n1:n2)
+! Routine to concatenate element spin/orbit maps in the range branch%ele(n1+1:n2)
 !
 ! Input:
 !   q_map     -- c_linear_map: Map at start.
 !   branch    -- branch_struct: Lattice branch.
-!   n1        -- integer: Starting element index.
-!   n2        -- integer: Ending element index.
+!   n1        -- integer: Starting element index. Start at element downstream end.
+!   n2        -- integer: Ending element index. End at element downstream end
 !
 ! Output:
 !   q_map     -- c_linear_map: Map with element spin/orbit maps concatenated.
@@ -34,6 +34,19 @@ integer ie, i, k, n, p
 logical st_on
 
 !
+
+if (n2 <= n1) then
+  call concat_this_map(n1+1, branch%n_ele_track)
+  call concat_this_map(1, n2)
+else
+  call concat_this_map(n1+1, n2)
+endif
+
+!------------------------------------------------------
+contains
+
+subroutine concat_this_map(n1, n2)
+integer n1, n2
 
 do ie = n1, n2
   if (ie == 0) cycle
@@ -70,5 +83,7 @@ do ie = n1, n2
 
   q_map = q1 * q_map
 enddo
+
+end subroutine
 
 end subroutine

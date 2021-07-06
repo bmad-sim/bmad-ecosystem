@@ -50,14 +50,9 @@ spin_map%valid = .false.
 q_map = 0
 
 ix_r = ix_ref
-if (ix_r < 0) ix_r = ix_ele
+if (ix_r < 0) ix_r = ix_ele-1
 
-if (ix_r >= ix_ele) then
-  call tao_concat_spin_map (q_map, branch, ix_r, branch%n_ele_track)
-  call tao_concat_spin_map (q_map, branch, 0, ix_ele)
-else
-  call tao_concat_spin_map (q_map, branch, ix_r, ix_ele)
-endif
+call tao_concat_spin_map (q_map, branch, ix_r, ix_ele)
 
 spin_map%q_map%mat = q_map%mat
 spin_map%q_map%q   = q_map%q
