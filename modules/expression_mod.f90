@@ -79,17 +79,17 @@ type (expression_atom_struct), allocatable :: stack(:)
 type (expression_func_struct) func(0:20)
 
 integer i_op, i, var_type
-integer op(100), ix_word, i_delim, i2, ix_word2, n_stack, op0, n_func
+integer op(100), ix_word, ix, i_delim, i2, ix_word2, n_stack, op0, n_func
 
 real(rp) value
 
 character(*) string, err_str
-character(1) delim, old_delim
+character(1) delim, old_delim, cc
 character(80) word, word2
 character(len(string)) parse_line
 
-logical delim_found, split
-logical err_flag, err
+logical delim_found, do_combine
+logical err_flag, err, found
 
 ! The general idea is to rewrite the expression on a stack in reverse polish.
 ! Reverse polish means that the operand goes last so that 2 * 3 is written 
@@ -147,33 +147,41 @@ parsing_loop: do
   ! just make sure we are not chopping a number in two, e.g. "3.5d-7" should not
   ! get split at the "-" even though "-" is a delimiter
 
-  split = .true.         ! assume initially that we have a split number
-  if (ix_word == 0) then
-    split = .false.
-  elseif (word(ix_word:ix_word) /= 'E' .and. word(ix_word:ix_word) /= 'D' .and. &
-          word(ix_word:ix_word) /= 'e' .and. word(ix_word:ix_word) /= 'd') then
-    split = .false.
+  do_combine = (delim == '-' .or. delim == '+') 
+  if (do_combine .and. ix_word == 0) do_combine = .false.
+
+  if (do_combine) then
+    found = .false.   ! Found "NNN[" like construct where NNN is an integer?
+    ix = index(parse_line, '[')
+    if (ix /= 0) then
+      if (is_integer(parse_line(:ix-1))) found = .true.
+    endif
+
+    if (.not. found) then ! Test if a number
+      cc = upcase(word(ix_word:ix_word))
+      if (cc == 'E' .or. cc == 'D') then
+        do i = 1, ix_word-1
+          if (index('.0123456789', word(i:i)) == 0) do_combine = .false.
+        enddo
+      else
+        do_combine = .false.
+      endif
+    endif
   endif
-  if (delim(1:1) /= '-' .and. delim(1:1) /= '+') split = .false.
-  do i = 1, ix_word-1
-    if (index('.0123456789', word(i:i)) /= 0) cycle
-    split = .false.
-    exit
-  enddo
 
   ! If still SPLIT = .TRUE. then we need to unsplit
 
-  if (split) then
-    word = word(:ix_word) // delim
+  if (do_combine) then
+    word = trim(word) // delim
     do i = 1, len(parse_line)
       if (index('0123456789', parse_line(i:i)) /= 0) cycle
-      word = word(:ix_word+1) // parse_line(1:i-1)
+      word = trim(word) // parse_line(1:i-1)
       parse_line = parse_line(i:)
-      ix_word = ix_word + i
+      ix_word = len_trim(word)
       exit
     enddo
 
-    call get_next_chunk (parse_line, word2, ix_word2, '+-*/()^,:}', delim, delim_found)
+    call get_next_chunk (parse_line, word2, ix_word2, '+-*/()^,:[}', delim, delim_found)
     if (ix_word2 /= 0) then
       err_str = 'Malformed number: ' // trim(word) // word2
       return
@@ -188,11 +196,10 @@ parsing_loop: do
       err_str = 'No "]" found to match "["'
       return
     endif
-    word = word(:ix_word) // '[' // trim(word2) // ']'
-    ix_word = ix_word + ix_word2 + 2
+    word = trim(word) // '[' // trim(word2) // ']'
     call get_next_chunk (parse_line, word2, ix_word2, '+-*/()^,:} ', delim, delim_found)
-    word = word(:ix_word) // word2
-    ix_word = ix_word + ix_word2
+    word = trim(word) // word2
+    ix_word = len_trim(word)
   endif
 
   !---------------------------

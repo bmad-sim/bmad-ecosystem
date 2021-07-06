@@ -264,13 +264,13 @@ and $\bfR$ is a rotation matrix
   \end{pmatrix}
 \end{equation}
 with each $2 \times 2$ rotation submatrix $\bfR_2$ being of the form as $\bfM$ in \Eq{mctst}.
-The transformation from laboratory coordinates $\bfx$ to action-angle $\bfJ$ coordinates is then
+The transformation from laboratory coordinates $\bfx$ to normal mode $\bfa$ coordinates is
 \begin{equation}
-  \bfJ = \bfN^{-1} \, \bfx
+  \bfa = \bfN^{-1} \, \bfx
 \end{equation}
-In action-angle coordinates $\bfJ$ looks like
+In action-angle coordinates $\bfa$ looks like
 \begin{align}
-  \bfJ = &\left( \sqrt{2 \, J_a} \, \cos(\phi_a), -\sqrt{2 \, J_a} \, \sin(\phi_a), 
+  \bfa = &\left( \sqrt{2 \, J_a} \, \cos(\phi_a), -\sqrt{2 \, J_a} \, \sin(\phi_a), 
                  \sqrt{2 \, J_b} \, \cos(\phi_b), -\sqrt{2 \, J_b} \, \sin(\phi_b), \right. \\
         &\hskip20em \left. 
                  \sqrt{2 \, J_c} \, \cos(\phi_c), -\sqrt{2 \, J_c} \, \sin(\phi_c) 
@@ -288,7 +288,7 @@ to an overall phase factor via:
 With the eigenvectors normalized with \Eq{vsvi0}, the particle position $\bfx$ on turn $m$ when a
 single mode is excited can be written in the form
 \begin{equation}
-  \bfx(m) = \re \left( 2 \, \sqrt{J} \, V_k \, e^{i \, \phi_0} \, \lambda_k^m \right)
+  \bfx(m) = 2 \, \re \left( \sqrt{J} \, V_k \, e^{i \, \phi_0} \, \lambda_k^m \right)
   \label{x2jv}
 \end{equation}
 where the phase $\phi_0$ is set by the initial particle position $\bfx(0)$.
