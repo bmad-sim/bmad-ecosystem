@@ -4323,12 +4323,12 @@ character(*), optional :: dflt_component, dflt_source
 character(*), optional :: dflt_dat_or_var_index
 
 character(len(expression)) :: phrase, word, word2
-character(1) delim
+character(1) delim, cc
 character(80) default_source
 character(*), parameter :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
 
-logical delim_found, split, use_good_user
+logical delim_found, do_combine, use_good_user
 logical err_flag, err, wild, printit, found
 logical, optional :: print_err
 
@@ -4391,27 +4391,37 @@ parsing_loop: do
   ! then put it back together again...
 
   ! just make sure we are not chopping a number in two, e.g. "3.5e-7" should not
-  ! get split at the "-" even though "-" is a delimiter
+  ! get split at the "-" even though "-" is a delimiter. Also "Q01+4[k1]" should not be split.
 
-  split = .true.         ! assume initially that we have a split number
-  if (ix_word == 0) then
-    split = .false.
-  elseif (word(ix_word:ix_word) /= 'E' .and. word(ix_word:ix_word) /= 'e' .and. &
-          word(ix_word:ix_word) /= 'D' .and. word(ix_word:ix_word) /= 'd'  ) then
-    split = .false.
+  do_combine = (delim == '-' .or. delim == '+') 
+  if (do_combine .and. ix_word == 0) do_combine = .false.
+
+  if (do_combine) then
+    found = .false.   ! Found "NNN[" like construct where NNN is an integer?
+    ix = index(phrase, '[')
+    if (ix /= 0) then
+      if (is_integer(phrase(:ix-1))) found = .true.
+    endif
+
+    if (.not. found) then ! Test if a number
+      cc = upcase(word(ix_word:ix_word))
+      if (cc == 'E' .or. cc == 'D') then
+        do i = 1, ix_word-1
+          if (index('.0123456789', word(i:i)) == 0) do_combine = .false.
+        enddo
+      else
+        do_combine = .false.
+      endif
+    endif
   endif
-  if (delim /= '-' .and. delim /= '+') split = .false.
-  do i = 1, ix_word-1
-    if (index('.0123456789', word(i:i)) == 0) split = .false.
-  enddo
 
-  ! If still SPLIT = .TRUE. then we need to unsplit
+  ! If still DO_COMBINE = True then we need to unsplit
 
-  if (split) then
-    word = word(:ix_word) // delim
-    call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, delim_found, phrase)
-    word = word(:ix_word+1) // word2
-    ix_word = ix_word + ix_word2
+  if (do_combine) then
+    word = trim(word) // delim
+    call word_read (phrase, '+-*/()^,}[', word2, ix_word2, delim, delim_found, phrase)
+    word = trim(word) // word2
+    ix_word = len_trim(word)
   endif
 
   ! Something like "lcav[lr(2).freq]" or "[2,4]@orbit.x[1,4] will get split on the "["
@@ -4424,8 +4434,8 @@ parsing_loop: do
       call out_io (s_warn$, r_name, "NO MATCHING ']' FOR OPENING '[':" // expression)
       return
     endif
-    word = word(:ix_word) // '[' // trim(word2) // ']'
-    ix_word = ix_word + ix_word2 + 2
+    word = trim(word) // '[' // trim(word2) // ']'
+    ix_word = len_trim(word)
     if (phrase == ' ') then  
       delim_found = .false.
       delim = ' '
@@ -4439,10 +4449,9 @@ parsing_loop: do
       endif
     else          ! even more...
       call word_read (phrase, '[+-*/()^,}', word2, ix_word2, delim, delim_found, phrase)
-      word = word(:ix_word) // trim(word2)       
-      ix_word = ix_word + ix_word2 
+      word = trim(word) // trim(word2)       
+      ix_word = len_trim(word)
     endif
-
   enddo
 
   ! If delim = "*" then see if this is being used as a wildcard
