@@ -4322,7 +4322,7 @@ character(*) :: expression
 character(*), optional :: dflt_component, dflt_source
 character(*), optional :: dflt_dat_or_var_index
 
-character(len(expression)) :: phrase, word, word2
+character(len(expression)+20) :: phrase, word, word2
 character(1) delim, cc
 character(80) default_source
 character(*), parameter :: r_name = "tao_evaluate_expression"
