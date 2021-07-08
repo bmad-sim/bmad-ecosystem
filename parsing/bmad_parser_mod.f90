@@ -2226,6 +2226,7 @@ logical, optional :: upper_case_word, call_check, err_flag
 
 character(n_parse_line) line
 character(6) str
+character(20) suffix
 
 ! Possible inline call...
 
@@ -2236,12 +2237,16 @@ if (logic_option(.false., call_check)) then
   call str_upcase (str, bp_com%parse_line(1:6))
   if (str == 'CALL::') then
     bp_com%parse_line = bp_com%parse_line(7:)
-    call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)
-    if (index(line, '.h5') == len_trim(line)-2 .or. index(line, '.hdf5') == len_trim(line)-4) then
+    call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)    
+    ix = str_find_last_in_set(line, '.')
+    suffix = ''
+    if (ix /= 0 .and. ix > len_trim(line)-10) suffix = line(ix:)
+
+    if (suffix == '.h5' .or. suffix == '.hdf5') then
       word = 'hdf5'
       bp_com%parse_line = trim(line) // delim // bp_com%parse_line  ! Put line back on parse line.
       return
-    elseif (index(line, '.bin') == len_trim(line)-3) then
+    elseif (suffix == '.bin') then
       word = 'binary'
       bp_com%parse_line = trim(line) // delim // bp_com%parse_line  ! Put line back on parse line.
       return
