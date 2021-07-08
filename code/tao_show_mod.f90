@@ -3904,11 +3904,11 @@ case ('spin')
     if (ele%ix_ele == ele_ref%ix_ele) then
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Eigen:'
-      nl=nl+1; lines(nl) = '     |Eval|     E_val            x           px          y           py          z           pz            Sx        Sy        Sz'
+      nl=nl+1; lines(nl) = '     |Eval|     E_val            x           px          y           py          z           pz              Sx          Sy          Sz'
 
       do i = 1, 6
-        nl=nl+1; write (lines(nl), '(a, 2f10.6,     4x, 6f12.6, 4x, 3f10.6)', iostat = ios) 're', abs(eval(i)), real(eval(i),rp), real(evec(i,:),rp), real(n_eigen(i,:),rp)
-        nl=nl+1; write (lines(nl), '(a, 10x, f10.6, 4x, 6f12.6, 4x, 3f10.6)', iostat = ios) 'im', aimag(eval(i)), aimag(evec(i,:)), aimag(n_eigen(i,:))
+        nl=nl+1; write (lines(nl), '(a, 2f10.6,     4x, 6f12.6, 4x, 3f12.6)', iostat = ios) 're', abs(eval(i)), real(eval(i),rp), real(evec(i,:),rp), real(n_eigen(i,:),rp)
+        nl=nl+1; write (lines(nl), '(a, 10x, f10.6, 4x, 6f12.6, 4x, 3f12.6)', iostat = ios) 'im', aimag(eval(i)), aimag(evec(i,:)), aimag(n_eigen(i,:))
         nl=nl+1; lines(nl) = ''
       enddo
 
