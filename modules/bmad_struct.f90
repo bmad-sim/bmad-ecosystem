@@ -679,7 +679,7 @@ type grid_field_pt_struct
 end type
 
 type grid_field_struct
-  integer :: geometry = 0             ! Type of grid: xy$, or rotationally_symmetric_rz$
+  integer :: geometry = 0             ! Type of grid: xyz$, or rotationally_symmetric_rz$
   integer :: harmonic = 0             ! Harmonic of fundamental for AC fields.
   real(rp) :: phi0_fieldmap = 0       ! Mode oscillates as: twopi * (f * t + phi0_fieldmap)
   real(rp) :: field_scale = 1         ! Factor to scale the fields by
