@@ -3918,7 +3918,7 @@ case ('spin')
       qs = branch%param%spin_tune/twopi
       do i = 1, 3
         q = atan2(aimag(eval(2*i-1)), real(eval(2*i-1),rp)) / twopi
-        x = 2 * abs((q-qs) - nint(q-qs)) * norm2(real(n_eigen(2*i-1,:),rp))
+        x = abs((q-qs) - nint(q-qs)) * norm2(abs(n_eigen(2*i-1,:)))
         nl=nl+1; write (lines(nl), '(5x, a, f12.6, es12.4)') abc_name(i), q, x
       enddo
       nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
