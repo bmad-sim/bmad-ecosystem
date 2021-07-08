@@ -89,8 +89,13 @@ endif
 
 call tao_find_plots (err, who, 'TEMPLATE', template)
 if (err) return
+if (size(template) > 1) then
+  call out_io (s_error$, r_name, 'MULTIPLE TEMPLATE PLOTS MATCH: ' // who, &
+                                 'USE THE COMMAND "show plot -templates" TO SEE A LIST OF PLOTS.')
+  return
+endif
 
-! transfer the plotting information from the template to the plot 
+! Transfer the plotting information from the template to the plot 
 ! representing the region
 
 call tao_plot_struct_transfer (template(1)%p, region%plot)
