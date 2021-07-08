@@ -822,6 +822,12 @@ u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 lat => u%model%lat
 da => u%dynamic_aperture
 
+if (da%a_emit == 0 .or. da%b_emit == 0) then
+  curve%valid = .false.
+  curve%why_invalid = ''  ! Don't want any error messages printed since this is not a real error.
+  return
+endif
+
 if (da%param%start_ele == '') then
   ele => lat%ele(0)
 else
@@ -851,6 +857,8 @@ do i = 0, 100
   curve%x_line(i+1) = xx * cos(angle) 
   curve%y_line(i+1) = yy * sin(angle) 
 enddo
+
+curve%valid = .true.
 
 end subroutine tao_curve_beam_ellipse_setup
 

@@ -864,6 +864,7 @@ type (tao_ele_shape_struct) :: dflt_shapes(30) = [&
 real(rp) y_layout, dx, dy, dz, x1, x2, y1, y2
 integer np, n, nr, n_plots
 integer i, j, k, ie, ic, n_old
+character(20) :: color(19)
 logical include_dflt_lat_layout, include_dflt_floor_plan
 character(40) name
 character(2), parameter :: coord_name_lc(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
@@ -1743,6 +1744,9 @@ endif
 
 if (all(s%plot_page%template%name /= 'dynamic_aperture')) then
   call default_plot_init (np, plt, default_plot_g1c2)
+  deallocate(plt%graph(1)%curve)
+  allocate (plt%graph(1)%curve(19))
+
   plt%name                 = 'dynamic_aperture'
   plt%description          = 'Dynamic aperture using universe calc'
   plt%x%label = 'x (mm)'
@@ -1752,24 +1756,39 @@ if (all(s%plot_page%template%name /= 'dynamic_aperture')) then
   grph%p => plt
   grph%title               = 'dynamic aperture'
   grph%type                = 'dynamic_aperture'
-  grph%y%label             = 'y (mm)'
   grph%x_axis_scale_factor = 1000
+  grph%x%label             = 'x (mm)'
+  grph%y%label             = 'y (mm)'
   grph%y%label_offset= .15
+  
 
   crv => grph%curve(1)
-  crv%name         = 'c1'
-  crv%g => grph
-  !crv%legend_text  = 'a'  ! Legend text is automatically generated
-  crv%smooth_line_calc = .false.
+  crv%name = 'e'
+  crv%line%color = "red"
+  crv%data_type = "beam_ellipse"
+  crv%line%width = 4
+  crv%scale = 10   ! Draw beam ellipse at 10 sigma
+  crv%legend_text = "10 sigma beam ellipse"
+  crv%draw_symbols = .false.
   crv%y_axis_scale_factor = 1000
-  crv%units        = 'mm'
 
-  crv => grph%curve(2)
-  crv%name         = 'c2'
-  crv%g => grph
-  crv%smooth_line_calc = .false.
-  crv%y_axis_scale_factor = 1000
-  crv%units        = 'mm'
+  color(1:9) = [character(20):: 'blue', 'green', 'cyan', 'magenta', 'yellow', 'black', 'orange', 'purple', 'light_grey']
+  color(10:18) = color(1:9)
+
+  do i = 2, size(grph%curve)
+    crv => grph%curve(i)
+    crv%name         = 'c' // int_str(i-1)
+    crv%g => grph
+    crv%smooth_line_calc = .false.
+    crv%y_axis_scale_factor = 1000
+    crv%units        = 'mm'
+    crv%line%width = 4
+    crv%draw_symbols = .true.
+    crv%data_type = 'dynamic_aperture'
+    crv%data_index = int_str(i-1)
+    crv%symbol%color = color(i-1)
+    crv%line%color = color(i-1)
+  enddo
 endif
 
 !---------------

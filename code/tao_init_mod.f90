@@ -462,6 +462,7 @@ do n_da = 1, 1000
   ! Read tao_dynamic_aperture
   call out_io (s_blank$, r_name, 'Init: Begin reading tao_dynamic_aperture namelist')
   pz = real_garbage$
+  a_emit = 0;  b_emit = 0
   ix_universe = -1
   da_param = aperture_param_struct()
   read (iu, nml = tao_dynamic_aperture, iostat = ios)
