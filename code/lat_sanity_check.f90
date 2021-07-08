@@ -313,6 +313,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
           exit
         enddo
       endif
+
       if (associated(ele%grid_field)) then
         do i = 1, size(ele%grid_field)
           if (ele%grid_field(i)%harmonic == 0) cycle
@@ -320,6 +321,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
           exit
         enddo
       endif
+
       if (.not. foundit) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
@@ -843,7 +845,20 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                   'BUT THE FIELD_TYPE IS NOT SET TO "MIXED".')
             err_flag = .true.
           endif
+        endif
 
+        if (g_field%dr(1) == 0 .or. g_field%dr(2) == 0) then
+          call out_io (s_fatal$, r_name, &
+                'GRID_FIELD IN ELEMENT: ' // ele%name, &
+                'HAS DR(1) OR DR(2) EQUAL TO 0')
+          err_flag = .true.
+        endif
+
+        if (g_field%geometry == xyz$ .and. g_field%dr(3) == 0) then
+          call out_io (s_fatal$, r_name, &
+                'GRID_FIELD IN ELEMENT: ' // ele%name, &
+                'HAS GEOMETRY = "XYZ" BUT DR(3) IS 0.')
+          err_flag = .true.
         endif
       enddo
     endif
