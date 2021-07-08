@@ -8268,51 +8268,62 @@ err_flag = .false.
 !-----------------------------------------------------------
 contains 
 
-! subroutine parse_complex_component(complex_component, delim, err_flag2)
+! subroutine parse_complex_component(complex_component, delim, err_flag)
 ! looks for (x, y) or x followed by , or ) 
 ! returns complex field_component and next delim, which should be , or )
 
-subroutine parse_complex_component(complex_component, delim, err_flag2)
+subroutine parse_complex_component(complex_component, delim, err_flag)
 
-character(1) delim, delim2
-character(40) :: word, word2
-integer  ix_word, ix_word2
-logical delim_found, delim_found2, err_flag2
+character(1) delim
+logical delim_found, err_flag
 real(rp) x, y
 complex(rp) complex_component
 
 !
 
-err_flag2 = .true.
+err_flag = .true.
 
 ! Expect "(" for complex, "," for real in the middle of the list, and ")" at the end of the list
 
-call get_next_word (word, ix_word, ',()', delim, delim_found)
-if (is_real(word)) then
-  read (word, *) x
-  complex_component = cmplx(x, 0.0_rp, rp)
-else if (delim == '(') then
-  call get_next_word (word, ix_word, ',', delim, delim_found)
-  call get_next_word (word2, ix_word2, ')', delim2, delim_found2)
-  ! Expect: real, real ) 
-  if ((.not. is_real(word)) .or. (.not. is_real(word2)) &
-    .or. (delim /= ',') .or. (delim2 /= ')') &
-    .or. (.not. delim_found) .or. (.not. delim_found2)) then
-    call parser_error ('BAD COMPLEX COMPONENT CONSTRUCT', &
-                         'FOUND IN GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
-    return
-   end if
-   !
-   read (word, *) x
-      read (word2, *) y
-      complex_component = cmplx(x, y, rp)
-      ! Look for "," or end of list ")"
-   call get_next_word (word, ix_word, ',)', delim, delim_found)
-end if
+call string_trim(bp_com%parse_line, bp_com%parse_line, ix_word)
+if (bp_com%parse_line == '(') then
+  bp_com%parse_line = bp_com%parse_line(2:)
+  call get_this_value(x, ',', delim, delim_found, err_flag); if (err_flag) return
+  call get_this_value(y, ')', delim, delim_found, err_flag); if (err_flag) return
+  complex_component = cmplx(x, y, rp)
 
-err_flag2 = .false.
+else
+  call get_this_value(x, ',)', delim, delim_found, err_flag); if (err_flag) return
+  complex_component = cmplx(x, 0.0_rp, rp)
+endif
+
+err_flag = .false.
 
 end subroutine parse_complex_component
+
+!-----------------------------------------------------------
+! contains 
+
+subroutine get_this_value (val, delim_list, delim, delim_found, err_flag)
+
+real(rp) val
+integer ix_word
+logical delim_found, err_flag
+
+character(*) delim_list, delim
+character(40) :: word
+
+!
+
+err_flag = .false.
+call get_next_word (word, ix_word, delim_list, delim, delim_found)
+if (is_real(word, real_num = val)) return
+
+call parser_error ('BAD FIELD VALUE IN GRID_FIELD PT: ' // word, &
+                   '[NOTE: EXPRESSIONS FOR GRID_FIELD PT FIELD VALUES NOT IMPLEMENTED.]')
+err_flag = .true.
+
+end subroutine get_this_value
 
 end subroutine parse_grid_field
 
