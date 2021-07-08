@@ -391,12 +391,14 @@ mode (\sref{s:action.ang}) and $\Phi$ is the phase
 \begin{equation}
   \Phi = (m_0 + Q) \, \theta \equiv \kappa \, \theta
 \end{equation}
-with $Q$ being the mode orbital tune. The $\sqrt{J}$ factor in \Eq{stos} means that the resonance components of
-$\Bf\Omega$ ($\Omega_x$ and $\Omega_y$) depend linearly on the phase space coordinates. Single resonance models may
-be constructed with a different dependence on $J$ but in such a case the resonance would not be linear.
+with $Q$ being the mode orbital tune. The $\sqrt{J}$ factor in \Eq{stos} means that the resonance
+components of $\Bf\Omega$ ($\Omega_x$ and $\Omega_y$) depend linearly on the phase space
+coordinates. Single resonance models may be constructed with a different dependence on $J$ but in
+such a case the resonance would not be linear. The physical interpretation of $\xi_r$ is that it is
+a measure of the rate of tilting of the spin away from $\bfn_0$ when there is a resonance.
 
-\Eq{stos} can be solved by transforming to a coordinate system rotating about the $z$-axis with a rotational
-frequency $Q$. In this frame, the spin vector $s_R$ is
+\Eq{stos} can be solved by transforming to a coordinate system rotating about the $z$-axis with a
+rotational frequency $Q$. In this frame, the spin vector $s_R$ is
 \begin{equation}
   \bfs_R = \bfq_z(-\Phi/2) \,\, \bfs \,\, \bfq_z^*(-\Phi/2), \quad \text{where} \quad
   \bfq_z(\phi) \equiv (\cos (\phi/2), 0, 0, \sin (\phi/2))
@@ -450,9 +452,18 @@ of the $\bfn$ vector in \Eq{nsdl} ($\bfn_z$) is associated with $\bfn_0$ in \Eq{
 varying part of $\bfn$ in \Eq{nsdl} ($\bfn_x$ and $\bfn_y$) is associated with $\bfv_k$ in
 \Eq{nnav}. Taking the ratio of constant to time varying parts in both equations and equating gives
 \begin{equation}
-  \xi_r = 2 \, \delta \, |\re(\bfn_k)|
+  \xi_r = 2 \, \delta \, \left| \re(\bfn_k) \right|
+  \label{x2dn}
 \end{equation}
 
+$\xi_r$ in \Eq{x2dn} can be related to the $\bfG$ matrix (\Eq{mm0gd}). The corresponding equation
+is\cite{b:spin.hoff}
+\begin{equation}
+  \xi_r = \frac{1}{\pi} \, \left| \bfG \cdot \re(\bfv_k) \right|
+  \label{x1pg}
+\end{equation}
+As resonance is approached, $\delta$ goes to zero and $\bfn_k$ goes to infinity in \Eq{x2dn}. In
+contrast, the components of $\bfG$ stay finite at resonance.
 
 %Should the $\nu_s$ term be $m_s \, \nu_s$?
 %Importance of resonances vs stochastic dephasing.

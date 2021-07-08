@@ -347,21 +347,21 @@ spot that is enlarged along the $x$-axis.
 \section{Example: Backward Tracking Through a Lattice}
 \label{s:reverse}
 
-By creating a reversed lattice, one can essentially track particles backwards. For example,
+By creating a reversed lattice, one can track a particles backwards through the lattice. For example,
 assume that you have a lattice file called \vn{original_lattice.bmad} which defines a line
-called \vn{original_line}. To create a reversed lattice, create a new file with the following:
+called \vn{original_line} tracking electrons. To create a reversed lattice, create a new file with the following:
 \begin{example}
   call, file = original_lattice.bmad
   reversed_line: line = (--original_line)
-  parameter[default_tracking_species] = antiparticle(parameter[particle])
+  parameter[default_tracking_species] = positron
   use, reversed_line
 \end{example}
-The ``\vn{-{}-}'' reverses the line and reverses the elements (\sref{s:ele.reverse}). Tracking through
-\vn{reversed_line} is equivalent to tracking backwards through \vn{original_line}.  
+The ``\vn{-{}-}'' reverses the line and reverses the elements (\sref{s:ele.reverse}). Tracking
+through \vn{reversed_line} is equivalent to tracking backwards through \vn{original_line}.
 
 The default for the type of particle tracked is set by \vn{parameter[default_tracking_species]}
 (\sref{s:param}). [A \bmad based program can always override this default but it will be assumed
-here that this is not the case.] In this case the default species to use for tracking is set to the
+here that this is not the case.] In this case, the default species to use for tracking is set to the
 antiparticle of the reference particle species. If the \vn{original_line} lattice had just static
 magnetic fields and no electric fields, by tracking with the anti-particle in the reversed lattice,
 the anti-particle will follow the same path (but backward) as the particle in the original
@@ -369,3 +369,7 @@ lattice. For this to work, the anti-particle must be started with the appropriat
 coordinates. If $(x, p_x, y, p_y, z, p_z)$ is the phase space coordinates of the particle at the end
 of the original lattice, the anti-particle must be initialized with phase space coordinates of $(x,
 -p_x, y, -p_y, \text{immaterial}, p_z)$.
+
+It should be keept in mind that tracking backwards in the lattice is not exactly the same as
+tracking backwards in time. In particular, the two are different if there are electric fields or if
+radiation damping and/or excitation is turned on.
