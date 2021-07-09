@@ -63,7 +63,7 @@ orb_start = orb0
 orb_start%vec = orb_start%vec + dr
 
 a_quat = track_taylor(orb_start%vec, t_ele%spin_taylor, t_ele%taylor%ref)
-spin_a = rotate_vec_given_quat (a_quat, orb0%spin)
+spin_a = quat_rotate (a_quat, orb0%spin)
 
 bmad_com%spin_tracking_on = .true.
 call track1 (orb_start, lat%ele(1), lat%param, orb_end)

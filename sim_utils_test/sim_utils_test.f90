@@ -213,7 +213,7 @@ vec3a = rotate_vec_given_axis_angle (vec3, axis, angle)
 call axis_angle_to_w_mat (axis, angle, w_mat)
 vec3b = matmul(w_mat, vec3)
 
-vec3c = rotate_vec_given_quat(quat, vec3)
+vec3c = quat_rotate(quat, vec3)
 
 write (1, '(a, 3f11.6)') '"rot vecA" ABS 1E-14  ', vec3a
 write (1, '(a, 3es10.2)') '"drot vecB" ABS 1E-14  ', vec3b - vec3a
@@ -226,28 +226,28 @@ axis = axis / norm2(axis)
 angle  = 0.1_rp
 call axis_angle_to_w_mat(axis, angle, w_mat)
 quat = w_mat_to_quat(w_mat)
-write (1, '(a, 3es10.2)') '"dRot0" ABS 1E-14 ', matmul(w_mat, vec3) - rotate_vec_given_quat(quat, vec3)
+write (1, '(a, 3es10.2)') '"dRot0" ABS 1E-14 ', matmul(w_mat, vec3) - quat_rotate(quat, vec3)
 
 axis = [1.0_rp, 0.01_rp, 0.0_rp]
 axis = axis / norm2(axis)
 angle  = 3.1_rp
 call axis_angle_to_w_mat(axis, angle, w_mat)
 quat = w_mat_to_quat(w_mat)
-write (1, '(a, 3es10.2)') '"dRot1" ABS 1E-14 ', matmul(w_mat, vec3) - rotate_vec_given_quat(quat, vec3)
+write (1, '(a, 3es10.2)') '"dRot1" ABS 1E-14 ', matmul(w_mat, vec3) - quat_rotate(quat, vec3)
 
 axis = [0.01_rp, 1.0_rp, 0.0_rp]
 axis = axis / norm2(axis)
 angle  = 3.1_rp
 call axis_angle_to_w_mat(axis, angle, w_mat)
 quat = w_mat_to_quat(w_mat)
-write (1, '(a, 3es10.2)') '"dRot2" ABS 1E-14 ', matmul(w_mat, vec3) - rotate_vec_given_quat(quat, vec3)
+write (1, '(a, 3es10.2)') '"dRot2" ABS 1E-14 ', matmul(w_mat, vec3) - quat_rotate(quat, vec3)
 
 axis = [0.0_rp, 0.01_rp, 1.0_rp]
 axis = axis / norm2(axis)
 angle  = 3.1_rp
 call axis_angle_to_w_mat(axis, angle, w_mat)
 quat = w_mat_to_quat(w_mat)
-write (1, '(a, 3es10.2)') '"dRot3" ABS 1E-14 ', matmul(w_mat, vec3) - rotate_vec_given_quat(quat, vec3)
+write (1, '(a, 3es10.2)') '"dRot3" ABS 1E-14 ', matmul(w_mat, vec3) - quat_rotate(quat, vec3)
 
 ! naff test
 
