@@ -4,7 +4,6 @@
 ! Routine to concatenate element spin/orbit maps in the range branch%ele(n1+1:n2)
 !
 ! Input:
-!   q_map     -- c_linear_map: Map at start.
 !   branch    -- branch_struct: Lattice branch.
 !   n1        -- integer: Starting element index. Start at element downstream end.
 !   n2        -- integer: Ending element index. End at element downstream end
@@ -18,22 +17,19 @@ subroutine tao_concat_spin_map (q_map, branch, n1, n2, q_ele)
 
 use tao_interface, dummy => tao_concat_spin_map
 use ptc_interface_mod
-use pointer_lattice, only: c_linear_map, operator(*)
+use pointer_lattice, only: c_linear_map, operator(*), assignment(=)
 
 implicit none
 
-type (c_linear_map) q_map, q1
+type (c_linear_map) q_map
 type (c_linear_map), optional :: q_ele(:)
 type (branch_struct), target :: branch
-type (ele_struct), pointer :: ele
-type (taylor_struct), pointer :: st
 
-real(rp) vec0(6), mat6(6,6)
 integer n1, n2
-integer ie, i, k, n, p
-logical st_on
 
 !
+
+q_map = 0
 
 if (n2 <= n1) then
   call concat_this_map(n1+1, branch%n_ele_track)
@@ -46,7 +42,17 @@ endif
 contains
 
 subroutine concat_this_map(n1, n2)
+
+type (ele_struct), pointer :: ele
+type (taylor_struct), pointer :: st
+type (c_linear_map) q1
+
+real(rp) vec0(6), mat6(6,6)
 integer n1, n2
+integer ie, i, k, n, p
+logical st_on
+
+!
 
 do ie = n1, n2
   if (ie == 0) cycle
@@ -79,7 +85,9 @@ do ie = n1, n2
 
   call taylor_to_mat6 (ele%taylor, ele%taylor%ref, vec0, mat6)
   q1%mat = mat6
-  if (present(q_ele)) q_ele(ie) = q1
+  if (present(q_ele)) then
+    q_ele(ie) = q1
+  endif
 
   q_map = q1 * q_map
 enddo

@@ -3873,8 +3873,7 @@ case ('spin')
         return
       endif
     else
-      q_map = 0
-      call tao_concat_spin_map (q_map, branch, 1, branch%n_ele_track)
+      call tao_concat_spin_map (q_map, branch, 0, branch%n_ele_track)
       datum%spin_map%q_map%q = q_map%q
       datum%spin_map%q_map%mat = q_map%mat
     endif
