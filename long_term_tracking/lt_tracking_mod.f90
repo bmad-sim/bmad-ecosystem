@@ -617,7 +617,7 @@ else
   call track_probe (prb_ptc, ltt_com%ptc_state, fibre1 = pointer_to_fibre(ele_start), &
                                                 fibre2 = pointer_to_fibre(ele_stop))
 endif
-spin_ptc = rotate_vec_given_quat(prb_ptc%q%x, orb_start%spin)
+spin_ptc = quat_rotate(prb_ptc%q%x, orb_start%spin)
 
 end subroutine track_check_all
 
@@ -701,7 +701,7 @@ do i_turn = 1, lttp%n_turns
     prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
     call track_probe (prb, ltt_com%ptc_state, fibre1 = pointer_to_fibre(ele_start))
     orbit%vec = prb%x
-    orbit%spin = rotate_vec_given_quat(prb%q%x, orbit%spin)
+    orbit%spin = quat_rotate(prb%q%x, orbit%spin)
     is_lost = (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2))
     if (all(orbit%vec == orbit_old%vec)) is_lost = .true.
     orbit_old%vec = orbit%vec
@@ -871,7 +871,7 @@ do i_turn = 1, lttp%n_turns
         prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
         call track_probe (prb, ltt_com%ptc_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
         p%vec = prb%x
-        p%spin = rotate_vec_given_quat(prb%q%x, p%spin)
+        p%spin = quat_rotate(prb%q%x, p%spin)
         if (abs(p%vec(1)) > lttp%ptc_aperture(1) .or. abs(p%vec(3)) > lttp%ptc_aperture(2)) p%state = lost$
       enddo
 
