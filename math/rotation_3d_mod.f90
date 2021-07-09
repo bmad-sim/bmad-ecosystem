@@ -500,7 +500,7 @@ end function quat_mul_complex
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Function rotate_vec_given_quat (quat, vec_in) result (vec_out)
+! Function quat_rotate (quat, vec_in) result (vec_out)
 !
 ! Routine to rotate a vector using a quaternion..
 !
@@ -512,7 +512,7 @@ end function quat_mul_complex
 !   vec_out(3)  -- real(rp): Final vector.
 !-
 
-function rotate_vec_given_quat (quat, vec_in) result (vec_out)
+function quat_rotate (quat, vec_in) result (vec_out)
 
 real(rp) :: vec_in(3), vec_out(3), quat(0:3)
 real(rp) :: q0_inv
@@ -530,7 +530,7 @@ vec_out = [quat(0)*vec_out(1) + quat(2)*vec_out(3) - quat(3)*vec_out(2) - q0_inv
            quat(0)*vec_out(3) + quat(1)*vec_out(2) - quat(2)*vec_out(1) - q0_inv*quat(3)] * &
                                                                      (1.0_rp / dot_product(quat, quat))
 
-end function rotate_vec_given_quat
+end function quat_rotate
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
