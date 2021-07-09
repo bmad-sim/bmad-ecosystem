@@ -134,7 +134,7 @@ do i = 1, n_slice
     field%B = [-k0_y, k0_x, 0.0_rp] * orbit%p0c / (2 * c_light * charge_of(orbit%species))
     om = spin_omega (field, orbit, +1)
     quat = omega_to_quat(om)
-    orbit%spin = rotate_vec_given_quat(quat, orbit%spin)
+    orbit%spin = quat_rotate(quat, orbit%spin)
   endif
 enddo
 

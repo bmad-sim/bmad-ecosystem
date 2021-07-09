@@ -8275,9 +8275,11 @@ contains
 subroutine parse_complex_component(complex_component, delim, err_flag)
 
 character(1) delim
-logical delim_found, err_flag
+character(40) word
 real(rp) x, y
 complex(rp) complex_component
+integer ix_word
+logical delim_found, err_flag
 
 !
 
@@ -8286,11 +8288,12 @@ err_flag = .true.
 ! Expect "(" for complex, "," for real in the middle of the list, and ")" at the end of the list
 
 call string_trim(bp_com%parse_line, bp_com%parse_line, ix_word)
-if (bp_com%parse_line == '(') then
+if (bp_com%parse_line(1:1) == '(') then
   bp_com%parse_line = bp_com%parse_line(2:)
   call get_this_value(x, ',', delim, delim_found, err_flag); if (err_flag) return
   call get_this_value(y, ')', delim, delim_found, err_flag); if (err_flag) return
   complex_component = cmplx(x, y, rp)
+  call get_next_word (word, ix_word, ',)', delim, delim_found)
 
 else
   call get_this_value(x, ',)', delim, delim_found, err_flag); if (err_flag) return

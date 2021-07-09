@@ -42,7 +42,7 @@ if (abs(norm - 1) > 0.5) then
                                 'is far from 1.0: \es10.2\ ', r_array = [norm])
 endif
 
-end_orb%spin = rotate_vec_given_quat(quat/norm, start_orb%spin)
+end_orb%spin = quat_rotate(quat/norm, start_orb%spin)
 
 end subroutine track1_spin_taylor
 

@@ -231,7 +231,7 @@ if (z_probe%u) orbit%state = lost$   ! %u = T => "unstable".
 
 orbit%vec = z_probe%x
 if (bmad_com%spin_tracking_on) then
-  orbit%spin = rotate_vec_given_quat(z_probe%q%x, orbit%spin)
+  orbit%spin = quat_rotate(z_probe%q%x, orbit%spin)
 endif
 
 end subroutine ptc_track_map_with_radiation

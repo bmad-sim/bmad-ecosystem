@@ -515,7 +515,7 @@ if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   quat = quat_mul(omega_to_quat(ds*c3*dr_ds3(8:10)), quat)
   quat = quat_mul(omega_to_quat(ds*c4*dr_ds4(8:10)), quat)
   quat = quat_mul(omega_to_quat(ds*c6*dr_ds6(8:10)), quat)
-  orb_new%spin = rotate_vec_given_quat(quat, orb%spin)
+  orb_new%spin = quat_rotate(quat, orb%spin)
 endif
 
 r_err=ds*(dc1*dr_ds1 + dc3*dr_ds3 + dc4*dr_ds4 + dc5*dr_ds5 + dc6*dr_ds6)
