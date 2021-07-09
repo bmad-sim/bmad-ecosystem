@@ -47,8 +47,6 @@ spin_map%valid = .false.
 
 ! Concatenate the spin/orbital map
 
-q_map = 0
-
 ix_r = ix_ref
 if (ix_r < 0) ix_r = ix_ele-1
 
