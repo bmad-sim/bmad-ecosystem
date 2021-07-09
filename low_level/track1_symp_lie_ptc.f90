@@ -84,7 +84,7 @@ if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)
     call track_probe (ptc_probe, STATE, fibre1 = ptc_fibre)
   endif
 
-  end_orb%spin = rotate_vec_given_quat(ptc_probe%q%x, start2_orb%spin)
+  end_orb%spin = quat_rotate(ptc_probe%q%x, start2_orb%spin)
   re = ptc_probe%x
 
 else
@@ -135,7 +135,7 @@ real(dp) re(6)
 orbit = start2_orb
 orbit%vec = ptc_probe%x
 orbit%s = ptc_track%s(1) + ele%s_start
-orbit%spin = rotate_vec_given_quat(ptc_probe%q%x, start2_orb%spin)
+orbit%spin = quat_rotate(ptc_probe%q%x, start2_orb%spin)
 call save_a_step (track, ele, param, .false., orbit, ptc_track%s(1))
 
 end subroutine save_this_step
