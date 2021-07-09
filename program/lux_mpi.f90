@@ -5,8 +5,6 @@ use mpi
 
 implicit none
 
-!! include 'mpif.h'
-
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
 type (lux_output_data_struct) lux_data
