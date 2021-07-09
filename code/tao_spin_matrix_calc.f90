@@ -70,7 +70,7 @@ if (all(n0 == 0)) then
   return
 endif
 
-n1 = rotate_vec_given_quat(quat0, n0)
+n1 = quat_rotate(quat0, n0)
 
 ! Construct coordinate systems (l0, n0, m0) and (l1, n1, m1)
 
@@ -97,8 +97,8 @@ if (ix_r == ix_ele) then
   l1 = l0
   m1 = m0
 else
-  l1 = rotate_vec_given_quat(quat0, l0)
-  m1 = rotate_vec_given_quat(quat0, m0)
+  l1 = quat_rotate(quat0, l0)
+  m1 = quat_rotate(quat0, m0)
 endif
 
 mat3(:,1) = l0
