@@ -72,13 +72,14 @@ function tao_beam_sigma_calc_needed (data_type, data_source) result (do_beam_sig
   logical do_beam_sigma
 end function
  
-function tao_param_value_at_s (dat_name, ele, orbit, err_flag) result (value)
+function tao_param_value_at_s (dat_name, ele, orbit, err_flag, why_invalid) result (value)
   import
   implicit none
   type (ele_struct) ele
   type (coord_struct) orbit
   real(rp) value
   character(*) dat_name
+  character(*), optional :: why_invalid
   logical err_flag
 end function
 
