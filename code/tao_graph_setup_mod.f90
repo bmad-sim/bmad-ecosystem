@@ -2139,6 +2139,7 @@ integer cache_status
 integer, parameter :: loading_cache$ = 1, using_cache$ = 2
 
 character(40) name, sub_data_type, data_type_select, data_source
+character(100) why_invalid
 character(200) data_type
 character(*), parameter :: r_name = 'tao_calc_data_at_s'
 logical err, good(:), first_time, radiation_fluctuations_on, ok, gd
@@ -2585,8 +2586,11 @@ case ('t.', 'tt.')
   value = taylor_coef (t_map(i), expnt)
 
 case default
-  value = tao_param_value_at_s (data_type, ele, orbit, err)
-  if (err)  goto 9000  ! Error message & Return
+  value = tao_param_value_at_s (data_type, ele, orbit, err, why_invalid)
+  if (err) then
+    call tao_set_curve_invalid(curve, why_invalid, .true.)
+    goto 9100  ! Cleanup & Return
+  endif
 end select
 
 return
@@ -2595,6 +2599,7 @@ return
 
 9000 continue
 call tao_set_curve_invalid(curve, 'CANNOT EVALUATE FOR SMOOTH LINE CALC: ' // data_type, .true.)
+9100 continue
 good = .false.
 bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.
