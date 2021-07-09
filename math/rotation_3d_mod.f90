@@ -15,6 +15,11 @@ interface quat_mul
   module procedure quat_mul_complex
 end interface
 
+interface quat_rotate
+  module procedure quat_rotate_real
+  module procedure quat_rotate_complex
+end interface
+
 contains
 
 !------------------------------------------------------------------------------
@@ -500,7 +505,7 @@ end function quat_mul_complex
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Function quat_rotate (quat, vec_in) result (vec_out)
+! Function quat_rotate_real (quat, vec_in) result (vec_out)
 !
 ! Routine to rotate a vector using a quaternion..
 !
@@ -512,7 +517,7 @@ end function quat_mul_complex
 !   vec_out(3)  -- real(rp): Final vector.
 !-
 
-function quat_rotate (quat, vec_in) result (vec_out)
+function quat_rotate_real (quat, vec_in) result (vec_out)
 
 real(rp) :: vec_in(3), vec_out(3), quat(0:3)
 real(rp) :: q0_inv
@@ -530,7 +535,43 @@ vec_out = [quat(0)*vec_out(1) + quat(2)*vec_out(3) - quat(3)*vec_out(2) - q0_inv
            quat(0)*vec_out(3) + quat(1)*vec_out(2) - quat(2)*vec_out(1) - q0_inv*quat(3)] * &
                                                                      (1.0_rp / dot_product(quat, quat))
 
-end function quat_rotate
+end function quat_rotate_real
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Function quat_rotate_complex (quat, vec_in) result (vec_out)
+!
+! Routine to rotate a vector using a quaternion..
+!
+! Input:
+!   quat(0:3 )  -- complex(rp): Quaternion to rotate with. Does not have to be normalized.
+!   vec_in(3)   -- complex(rp): Initial vector.
+!
+! Output:
+!   vec_out(3)  -- complex(rp): Final vector.
+!-
+
+function quat_rotate_complex (quat, vec_in) result (vec_out)
+
+complex(rp) :: vec_in(3), vec_out(3), quat(0:3)
+complex(rp) :: q0_inv
+
+! Use quaternion rotation formula: vec -> q * vec * q^t
+
+q0_inv = -(quat(1)*vec_in(1) + quat(2)*vec_in(2) + quat(3)*vec_in(3))
+
+vec_out = [quat(0)*vec_in(1) + quat(2)*vec_in(3) - quat(3)*vec_in(2), &
+           quat(0)*vec_in(2) + quat(3)*vec_in(1) - quat(1)*vec_in(3), &
+           quat(0)*vec_in(3) + quat(1)*vec_in(2) - quat(2)*vec_in(1)]
+
+vec_out = [quat(0)*vec_out(1) + quat(2)*vec_out(3) - quat(3)*vec_out(2) - q0_inv*quat(1), &
+           quat(0)*vec_out(2) + quat(3)*vec_out(1) - quat(1)*vec_out(3) - q0_inv*quat(2), &
+           quat(0)*vec_out(3) + quat(1)*vec_out(2) - quat(2)*vec_out(1) - q0_inv*quat(3)] * &
+                                                                     (1.0_rp / dot_product(quat, quat))
+
+end function quat_rotate_complex
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
