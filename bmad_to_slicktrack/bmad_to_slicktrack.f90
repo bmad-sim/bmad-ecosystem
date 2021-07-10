@@ -2,12 +2,12 @@
 ! Program to convert a Bmad lattice file to a SLICKTRACK file.
 !
 ! Usage:
-!   bmad_to_slicktrack <bmad_file_name>
+!   bmad_to_slicktrack <bmad_file_name> {-no_split}
 !
 ! The output file name will be the bmad_file_name with the '.bmad' suffix
 ! (or whatever suffix is there) replaced by '.slick'.
 !
-! General rule:
+! The -no_split argument is optional. if the -no_split argument is present:
 ! Bends and quadrupoles will be split into two pieces in the slicktrack file and the
 ! resulting elements with have an ending "H" suffix applied.
 ! Exception: If two bends or two quadrupoles have the same name and are next to each other 
@@ -30,7 +30,7 @@ type (nametable_struct) nametab
 real(rp) slick_params(3), s_start, length, scale
 integer i, j, ix, n_arg, slick_class, nb, nq, ne, n_count, n_edge
 
-logical end_here, added
+logical end_here, added, split_eles
 
 character(200) slick_name, bmad_name
 character(100) line
@@ -41,23 +41,23 @@ character(*), parameter :: r_name = 'bmad_to_slicktrack'
 
 n_arg = cesr_iargc()
 bmad_name = ''
+split_eles = .true.
 
 do i = 1, n_arg
   call cesr_getarg (i, arg)
-  select case (arg)
-  case default
-    if (arg(1:1) == '-') then
-      print *, 'Bad switch: ', trim(arg)
-      bmad_name = ''
-      exit
-    else
-      bmad_name = arg
-    endif
-  end select
+  if (index('-no_split', trim(arg)) == 1) then
+    split_eles = .false.
+  elseif (arg(1:1) == '-') then
+    print *, 'Bad switch: ', trim(arg)
+    bmad_name = ''
+    exit
+  else
+    bmad_name = arg
+  endif
 enddo
 
 if (bmad_name == '') then
-  print '(a)', 'Usage: bmad_to_slicktrack <bmad_bmad_name>'
+  print '(a)', 'Usage: bmad_to_slicktrack <bmad_bmad_name> {-no_split}'
   stop
 endif
 
@@ -83,18 +83,20 @@ do i = 1, lat%n_ele_track
   name = trim(ele%name)
   scale = 1.0_rp
 
-  select case (ele%key)
-  case (sbend$, quadrupole$)
-    if (i == lat%n_ele_track) then
-      if (lat%ele(i-1)%name /= ele%name) then
+  if (split_eles) then
+    select case (ele%key)
+    case (sbend$, quadrupole$)
+      if (i == lat%n_ele_track) then
+        if (lat%ele(i-1)%name /= ele%name) then
+          name = trim(ele%name) // 'H'
+          scale = 0.5_rp
+        endif
+      elseif (lat%ele(i+1)%name /= ele%name .and. lat%ele(i-1)%name /= ele%name) then
         name = trim(ele%name) // 'H'
         scale = 0.5_rp
       endif
-    elseif (lat%ele(i+1)%name /= ele%name .and. lat%ele(i-1)%name /= ele%name) then
-      name = trim(ele%name) // 'H'
-      scale = 0.5_rp
-    endif
-  end select
+    end select
+  endif
 
   call find_indexx(name, nametab, ix, add_to_list = .true., has_been_added = added)
   if (.not. added) cycle   ! To avoid duplicates.
@@ -130,7 +132,7 @@ do i = 1, lat%n_ele_track
   case (sbend$)
     if (mod(n_count, 2) == 0) cycle
     if (ele%select) then  ! If k1 /= 0
-      if (2*i < lat%n_ele_track) then
+      if (2*i < lat%n_ele_track) then  ! Write  HC, ..., CQ elements in reverse for the 2nd half of the lattice.
         call write_insert_ele_def (nq, ['HC', 'VC', 'HQ', 'VQ', 'RQ', 'CQ'])    
       else
         call write_insert_ele_def (nq, ['CQ', 'RQ', 'VQ', 'HQ', 'VC', 'HC'])    
@@ -171,6 +173,23 @@ write (1, '(a)') 'IP              0'
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (i == lat%n_ele_track .and. ele%name == 'END') cycle   ! will be handled after do loop
+
+  if (.not. split_eles) then
+    select case (ele%key)
+    case (sbend$)
+      if (ele%value(e1$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
+      call write_ele_position (line, ne, ele%name, s_start + 0.5_rp * length)
+      if (ele%value(e2$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
+
+    case (solenoid$)
+      call write_ele_position (line, ne, ele%name, ele%s_start)
+
+    case (sextupole$, rfcavity$, beambeam$, hkicker$, vkicker$, kicker$, quadrupole$, marker$)
+      call write_ele_position (line, ne, ele%name, ele%s_start + 0.5_rp * ele%value(l$))
+    end select
+
+    cycle
+  endif
 
   if (lat%ele(i-1)%name == ele%name) then
     n_count = n_count + 1
@@ -244,13 +263,9 @@ do i = 1, lat%n_ele_track
   case (solenoid$)
     call write_ele_position (line, ne, ele%name, ele%s_start)
 
-  case (sextupole$, rfcavity$, beambeam$, hkicker$, vkicker$, kicker$)
+  case (sextupole$, rfcavity$, beambeam$, hkicker$, vkicker$, kicker$, marker$)
     call write_ele_position (line, ne, ele%name, ele%s_start + 0.5_rp * ele%value(l$))
-
-  case (marker$)
-    call write_ele_position (line, ne, ele%name, ele%s)
   end select
-
 enddo
 
 call write_ele_position (line, ne, 'IP', lat%ele(lat%n_ele_track)%s)
