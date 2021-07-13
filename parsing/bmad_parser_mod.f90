@@ -5906,7 +5906,7 @@ end subroutine allocate_plat
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_add_lord (in_lat, n_ele_max, plat, lat)
+! Subroutine parser_add_lord (lord_lat, n_ele_max, plat, lat, check_lat)
 !
 ! Subroutine to add overlay, group, and girder lords to the lattice.
 ! For overlays and groups: If multiple elements have the same name then 
@@ -5914,9 +5914,20 @@ end subroutine allocate_plat
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
+!
+! Input:
+!   lord_lat    -- lat_struct: List of lord elements to add to lat.
+!   n_ele_max   -- integer: lord elements in lord_lat are in range [1:n_ele_max].
+!   plat        -- parser_lat_struct: Extra info needed to place the lord elements
+!
+! Output:
+!   lat         -- lat_struct: Lattice to add lord elements to.
+!   check_lat   -- lat_struct, optional: If slave elements of a lord are not in lat but
+!                   are in check_lat, do not issue error message about slave elements
+!                   no found. 
 !-
 
-subroutine parser_add_lord (in_lat, n_ele_max, plat, lat)
+subroutine parser_add_lord (lord_lat, n_ele_max, plat, lat, check_lat)
 
 implicit none
 
@@ -5925,7 +5936,8 @@ type multi_ele_pointer_struct
   integer n_loc
 end type  
 
-type (lat_struct), target :: in_lat, lat
+type (lat_struct), target :: lord_lat, lat
+type (lat_struct), optional :: check_lat
 type (ele_struct), pointer :: lord, slave, ele, g_lord, g_slave0, g_slave1
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
@@ -5950,7 +5962,7 @@ logical have_wrapped
 
 main_loop: do n_in = 1, n_ele_max
 
-  lord => in_lat%ele(n_in)  ! next lord to add
+  lord => lord_lat%ele(n_in)  ! next lord to add
   pele => plat%ele(lord%ixx)
   
   !-----------------------------------------------------
@@ -5991,10 +6003,11 @@ main_loop: do n_in = 1, n_ele_max
 
   case (overlay$, group$)
  
-    ! If a slave name does not match any name in in_lat then this is an error (to catch typos).
-    ! If a slave is defined in in_lat but not present in lat then the slave is ignored.
-    ! If all slave elements are defined in in_lat, but are not present in lat, then
+    ! If a slave name does not match any name in lord_lat then this is an error (to catch typos).
+    ! If a slave is defined in lord_lat but not present in lat then the slave is ignored.
+    ! If all slave elements are defined in lord_lat, but are not present in lat, then
     ! this lord can be ignored.
+    ! Variation used by bmad_parser2: Check for missing slaves in check_lat instead of lord_lat.
 
     n_slave = 0
 
@@ -6008,7 +6021,11 @@ main_loop: do n_in = 1, n_ele_max
       n_slave = n_slave + n_loc
 
       if (n_loc == 0) then
-        call lat_ele_locator (pc%name, in_lat, in_eles, n_in_loc, err)
+        if (present(check_lat)) then
+          call lat_ele_locator (pc%name, check_lat, in_eles, n_in_loc, err)
+        else
+          call lat_ele_locator (pc%name, lord_lat, in_eles, n_in_loc, err)
+        endif
 
         if (n_loc == 0 .and. n_in_loc == 0) then
           call parser_error ('CANNOT FIND SLAVE ELEMENT FOR ' // trim(upcase(control_name(lord%lord_status))) // &
@@ -6836,7 +6853,7 @@ end subroutine form_digested_bmad_file_name
 !-------------------------------------------------------------------------
 !+
 ! Subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, &
-!                                                        seq_name, seq_indexx, no_end_marker, in_lat, plat, created_new_branch)
+!                                  seq_name, seq_indexx, no_end_marker, in_lat, plat, created_new_branch)
 !
 ! Subroutine to do line expansion.
 !

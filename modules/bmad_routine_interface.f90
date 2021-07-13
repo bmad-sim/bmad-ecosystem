@@ -1940,10 +1940,10 @@ function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial) result (dn_dpz)
   real(rp), optional :: dn_dpz_partial(3,3)
 end function
 
-subroutine spin_mat_to_eigen (orb_mat, spin_map, eigen_val, orb_evec, spin_evec)
+subroutine spin_mat_to_eigen (orb_mat, spin_map, eigen_val, orb_evec, n0, spin_evec)
   import
   implicit none
-  real(rp) orb_mat(6,6), spin_map(0:3,0:6)
+  real(rp) orb_mat(6,6), spin_map(0:3,0:6), n0(3)
   complex(rp) eigen_val(6), orb_evec(6,6), spin_evec(6,3)
 end subroutine
 

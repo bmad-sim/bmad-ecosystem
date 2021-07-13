@@ -288,10 +288,11 @@ to an overall phase factor via:
 With the eigenvectors normalized with \Eq{vsvi0}, the particle position $\bfx$ on turn $m$ when a
 single mode is excited can be written in the form
 \begin{equation}
-  \bfx(m) = 2 \, \re \left( \sqrt{J} \, V_k \, e^{i \, \phi_0} \, \lambda_k^m \right)
+  \bfx(m) = \sqrt{J} \, V_k \, e^{i \, \phi_0} \, \lambda_k^m + \text{C.C.}
   \label{x2jv}
 \end{equation}
-where the phase $\phi_0$ is set by the initial particle position $\bfx(0)$.
+where the phase $\phi_0$ is set by the initial particle position $\bfx(0)$ and \vn{C.C.} means
+complex conjugate.
 
 The $\bfN$ matrix can be constructed using the eigenvectors of $\bfT$ (\sref{s:eigen.tune})
 \begin{equation}
@@ -322,7 +323,7 @@ where the $2 \times 2$ submatrices have the standard form
   \end{pmatrix}
 \end{equation}
 with similar equations for $\bfN_b$ and $\bfN_c$. To make the $(1,2)$ component of these submatrices
-zero, along with having $\sqrt{\beta}$ positive, the $j$\Th component of $\bfV_k$, $k = 1, 3, 5$
+zero, along with having $\sqrt{\beta}$ positive, the $k$\Th component of $\bfV_k$, $k = 1, 3, 5$
 must be positive real. This fixes the overall phase of the eigenvectors.
 
 %-----------------------------------------------------------------
