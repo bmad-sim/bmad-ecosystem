@@ -153,7 +153,7 @@ type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct), pointer :: d_ptr
-type (tao_data_struct) datum
+type (tao_data_struct), target :: datum
 type (tao_dynamic_aperture_struct), pointer :: da
 type (tao_building_wall_section_struct), pointer :: section
 type (tao_building_wall_point_struct), pointer :: pt
@@ -202,6 +202,7 @@ type (aperture_scan_struct), pointer :: aperture_scan
 type (coord_struct) orbit
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (c_linear_map) q_map
+type (tao_spin_map_struct), pointer :: sm
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -229,10 +230,10 @@ type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
 type (tao_expression_info_struct), allocatable :: info(:)
 
-real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z_in, dt, angle, r
+real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z1, z2, z_in, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2, qs, q, x
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
-real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now
+real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
 real(rp), allocatable :: value(:)
 
 character(*) :: what
@@ -3698,7 +3699,8 @@ case ('spin')
   what_to_print = 'standard'
   show_q = .false.
   show_mat = .false.
-  datum%spin_map%axis_input = spin_axis_struct()
+  sm => datum%spin_map
+  sm%axis_input = spin_axis_struct()
   ele_ref_name = ''
   ele_ref => null()
 
@@ -3723,7 +3725,7 @@ case ('spin')
       ele_ref_name = upcase(what2(1:ix))
       call string_trim(what2(ix+1:), what2, ix)
     case ('-n_axis')
-      read (what2, *, iostat = ios) datum%spin_map%axis_input%n0
+      read (what2, *, iostat = ios) sm%axis_input%n0
       if (ios /= 0) then
         nl=nl+1; lines(nl) = 'CANNOT PARSE N-AXIS: ' // what2
         return
@@ -3733,7 +3735,7 @@ case ('spin')
       call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
       call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
     case ('-l_axis')
-      read (what2, *, iostat = ios) datum%spin_map%axis_input%l
+      read (what2, *, iostat = ios) sm%axis_input%l
       if (ios /= 0) then
         nl=nl+1; lines(nl) = 'CANNOT PARSE L-AXIS: ' // what2
         return
@@ -3850,14 +3852,14 @@ case ('spin')
       ele_ref => pointer_to_next_ele(ele, -1)
     endif
 
-    if (all(datum%spin_map%axis_input%n0 == 0)) then
+    if (all(sm%axis_input%n0 == 0)) then
       if (all(u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin == 0)) call tao_lattice_calc(ok)
-      datum%spin_map%axis_input%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin
+      sm%axis_input%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin
     endif
 
 
     if (show_mat) then
-      if (all(datum%spin_map%axis_input%n0 == 0)) then
+      if (all(sm%axis_input%n0 == 0)) then
         nl=nl+1; lines(nl) = 'NO N0 SPIN AXIS COMPUTED.' 
         nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON FROM THE COMMAND LINE: "set bmad spin_tracking_on = T"'
         nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON IN THE LATTICE FILE: "bmad_com[spin_tracking_on] = T"'
@@ -3868,35 +3870,36 @@ case ('spin')
     if (show_mat) then
       datum%ix_branch = ix_branch
       call tao_spin_matrix_calc (datum, u, ele_ref%ix_ele, ele%ix_ele)
-      if (.not. datum%spin_map%valid) then
+      if (.not. sm%valid) then
         nl=nl+1; lines(nl) = 'INVALID: ' // datum%why_invalid
         return
       endif
     else
       call tao_concat_spin_map (q_map, branch, 0, branch%n_ele_track)
-      datum%spin_map%q_map%q = q_map%q
-      datum%spin_map%q_map%mat = q_map%mat
+      sm%q_map%q = q_map%q
+      sm%q_map%mat = q_map%mat
     endif
 
     if (show_mat) then
       nl=nl+1; write (lines(nl), '(23x, a, 34x, a)') 'Initial', 'Final'
-      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'L-axis:', datum%spin_map%axis0%l, datum%spin_map%axis1%l
-      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'N-axis:', datum%spin_map%axis0%n0, datum%spin_map%axis1%n0
-      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'M-axis:', datum%spin_map%axis0%m, datum%spin_map%axis1%m
+      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'L-axis:', sm%axis0%l, sm%axis1%l
+      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'N-axis:', sm%axis0%n0, sm%axis1%n0
+      nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'M-axis:', sm%axis0%m, sm%axis1%m
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = '8x8 Matrix:'
       do i = 1, 8
-        nl=nl+1; write (lines(nl), '(5x, a)') reals_to_table_row(datum%spin_map%mat8(i,:), 13, 7)
+        nl=nl+1; write (lines(nl), '(5x, a)') reals_to_table_row(sm%mat8(i,:), 13, 7)
       enddo
     endif
 
     if (show_q) then
-      call spin_mat_to_eigen (datum%spin_map%q_map%mat, datum%spin_map%q_map%q, eval, evec, n_eigen)
+      call spin_mat_to_eigen (sm%q_map%mat, sm%q_map%q, eval, evec, n0, n_eigen)
+      if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order' 
       nl=nl+1; write (lines(nl), '(14x, a, 7x, 6(2x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
       do i = 0, 3
-        nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, 6f12.6)') i, q_name(i), datum%spin_map%q_map%q(i,:)
+        nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, 6f12.6)') i, q_name(i), sm%q_map%q(i,:)
       enddo
     endif
 
@@ -3913,12 +3916,16 @@ case ('spin')
 
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Resonance strengths:'
-      nl=nl+1; lines(nl) = '            Tune      Xi_res'
+      nl=nl+1; lines(nl) = '            Tune    Xi_res(eigen)   Xi_res(G.v1)   Xi_res(G.v2)'
       qs = branch%param%spin_tune/twopi
       do i = 1, 3
-        q = atan2(aimag(eval(2*i-1)), real(eval(2*i-1),rp)) / twopi
-        x = abs((q-qs) - nint(q-qs)) * norm2(abs(n_eigen(2*i-1,:)))
-        nl=nl+1; write (lines(nl), '(5x, a, f12.6, es12.4)') abc_name(i), q, x
+        j = 2 * i - 1
+        q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
+        !!x = abs((q-qs) - nint(q-qs)) * (norm2(real(n_eigen(j,:))) + norm2(imag(n_eigen(j,:))))
+        x = abs((q-qs) - nint(q-qs)) * sqrt(2.0_rp)*norm2(abs(n_eigen(j,:)))
+        z1 = abs(dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+        z2 = abs(dot_product(evec(j+1,:), sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+        nl=nl+1; write (lines(nl), '(5x, a, f12.6, 3es15.4)') abc_name(i), q, x, z1, z2
       enddo
       nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
     endif
