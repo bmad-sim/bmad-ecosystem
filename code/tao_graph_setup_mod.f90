@@ -1249,6 +1249,7 @@ logical straight_line_between_syms, valid, in_graph
 logical, allocatable :: good(:)
 
 character(200) data_type, name
+character(100) str
 character(60) component
 character(16) data_source, dflt_index
 character(*), parameter :: r_name = 'tao_curve_data_setup'
@@ -2008,6 +2009,20 @@ case ('s')
       end select
     enddo
 
+    if (substr(curve%data_type, 1, 3) == 'b0_' .or. substr(curve%data_type, 1, 3) == 'e0_') then
+      ix = index(curve%legend_text, '[')
+      if (ix == 0) ix = len_trim(curve%legend_text) + 2
+      str = ''
+      if (curve%g%orbit%x /= 0) str = trim(str) // ', x=' // real_str(curve%g%orbit%x, 5)
+      if (curve%g%orbit%y /= 0) str = trim(str) // ', y=' // real_str(curve%g%orbit%y, 5)
+      if (curve%g%orbit%t /= 0) str = trim(str) // ', t=' // real_str(curve%g%orbit%t, 5)
+      if (len_trim(str) == 0) then
+        curve%legend_text = curve%legend_text(:ix-1) // '[x=y=t=0]'
+      else
+        curve%legend_text = curve%legend_text(:ix-1) // '[' // trim(str(3:)) // ']'
+      endif
+    endif
+
     !! if (all(.not. good)) exit
     n_dat = count(good)
     curve%x_line(1:n_dat) = pack(curve%x_line, mask = good)
@@ -2195,7 +2210,7 @@ if (data_type(1:11) == 'expression:') then
 elseif (ix == 0) then
   data_type_select = data_type
 else
-  data_type_select = data_type(:ix)
+  data_type_select = data_type(:ix-1)
   sub_data_type = data_type(ix+1:)
 endif
 
@@ -2369,7 +2384,7 @@ do ii = 1, size(curve%x_line)
     return
   end select
 
-  call this_value_at_s (value, good(ii), ok, ii, s_last, s_now);  if (.not. ok) return
+  call this_value_at_s (data_type_select, value, good(ii), ok, ii, s_last, s_now);  if (.not. ok) return
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
   s_last = s_now
@@ -2422,7 +2437,7 @@ if (curve%ele_ref_name /= '') then
     return
   endif
 
-  call this_value_at_s (value, gd, ok, ii, s_last, s_now);  if (.not. ok) return
+  call this_value_at_s (data_type_select, value, gd, ok, ii, s_last, s_now);  if (.not. ok) return
 
   curve%y_line = curve%y_line - comp_sign * value
 
@@ -2436,11 +2451,12 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 !--------------------------------------------------------
 contains
 
-subroutine this_value_at_s (value, good1, ok, ii, s_last, s_now)
+subroutine this_value_at_s (data_type_select, value, good1, ok, ii, s_last, s_now)
 
 real(rp) value, s_last, s_now
 integer status, ii
 logical good1, ok
+character(*) data_type_select
 
 !
 
@@ -2448,7 +2464,7 @@ ok = .true.
 
 select case (data_type_select)
 
-case ('apparent_emit.', 'norm_apparent_emit.')
+case ('apparent_emit', 'norm_apparent_emit')
   select case (data_type)
   case ('apparent_emit.x', 'norm_apparent_emit.x')
     if (curve%data_source == 'beam') then
@@ -2468,7 +2484,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
     goto 9000  ! Error message & Return
   end select
 
-case ('element_attrib.')
+case ('element_attrib')
   name = upcase(curve%data_source(16:))
   ele_dum%key = overlay$  ! so entire attribute name table will be searched
   i = attribute_index(ele_dum, name)
@@ -2476,7 +2492,7 @@ case ('element_attrib.')
   call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
   if (associated (a_ptr%r)) value = a_ptr%r
 
-case ('emit.')
+case ('emit')
   select case (data_type)
   case ('emit.a')
     value = bunch_params%a%emit
@@ -2521,7 +2537,7 @@ case ('momentum_compaction')
     value = -(sum(mat6(5,1:4) * eta_vec) + mat6(5,6)) / ds
   endif
 
-case ('norm_emit.')
+case ('norm_emit')
   select case (data_type)
   case ('norm_emit.a')
     value = bunch_params%a%norm_emit
@@ -2533,7 +2549,7 @@ case ('norm_emit.')
     goto 9000  ! Error message & Return
   end select
 
-case ('r.')
+case ('r')
   if (ii == 1) call mat_make_unit (mat6)
   if (s_now < s_last) return
   i = tao_read_phase_space_index (data_type, 3); if (i == 0) goto 9000
@@ -2550,7 +2566,7 @@ case ('r56_compaction')
   eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
   value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
 
-case ('sigma.')
+case ('sigma')
   select case (data_type)
   case ('sigma.x')
     value = sqrt(bunch_params%sigma(1,1))
@@ -2568,7 +2584,7 @@ case ('sigma.')
     goto 9000  ! Error message & Return
   end select
 
-case ('t.', 'tt.')
+case ('t', 'tt')
   if (ii == 1) then
     call twiss_and_track_at_s (lat, s_last, orb = orb, orb_at_s = orbit, ix_branch = ix_branch)
     call taylor_make_unit (t_map, orbit%vec)
@@ -2586,6 +2602,12 @@ case ('t.', 'tt.')
   value = taylor_coef (t_map(i), expnt)
 
 case default
+  select case (data_type_select)
+  case ('b0_field', 'b0_curve', 'b0_div', 'e0_field', 'e0_curve', 'e0_div')
+    orbit%vec(1:5:2) = [curve%g%orbit%x, curve%g%orbit%y, 0.0_rp]
+    orbit%t = curve%g%orbit%t
+  end select
+
   value = tao_param_value_at_s (data_type, ele, orbit, err, why_invalid)
   if (err) then
     call tao_set_curve_invalid(curve, why_invalid, .true.)

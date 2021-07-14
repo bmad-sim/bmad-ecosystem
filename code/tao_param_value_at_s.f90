@@ -86,8 +86,7 @@ case ('alpha')
 case ('b_curl', 'b0_curl')
   orb = orbit
   if (prefix == 'b0_curl') then
-    orb%vec(1:5:2) = 0
-    orb%t = 0; time = 0
+    time = orbit%t
   else
     time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
   endif
@@ -109,8 +108,7 @@ case ('b_curl', 'b0_curl')
 case ('b_div', 'b0_div')
   orb = orbit
   if (prefix == 'b0_div') then
-    orb%vec(1:5:2) = 0
-    orb%t = 0; time = 0
+    time = orbit%t
   else
     time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
   endif
@@ -121,8 +119,7 @@ case ('b_div', 'b0_div')
 case ('b_field', 'b0_field')
   orb = orbit
   if (prefix == 'b0_field') then
-    orb%vec(1:5:2) = 0
-    orb%t = 0; time = 0
+    time = orbit%t
   else
     time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
   endif
@@ -247,8 +244,7 @@ case ('curly_h')
 case ('e_curl', 'e0_curl')
   orb = orbit
   if (prefix == 'e0_curl') then
-    orb%vec(1:5:2) = 0
-    orb%t = 0; time = 0
+    time = orbit%t
   else
     time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
   endif
@@ -260,9 +256,9 @@ case ('e_curl', 'e0_curl')
   call em_field_calc (ele, branch%param, orb%s-ele%s_start, orb, .false., field1, rf_time = time+dt)
 
   select case (d_type)
-  case ('e_curl.x', 'e0_curl.x');  value = field%dE(3,2) - field%dE(2,3) + (field1%E(1) - field0%E(1)) / (2 * dt)
-  case ('e_curl.y', 'e0_curl.y');  value = field%dE(1,3) - field%dE(3,1) + (field1%E(2) - field0%E(2)) / (2 * dt)
-  case ('e_curl.z', 'e0_curl.z');  value = field%dE(2,1) - field%dE(1,2) + (field1%E(3) - field0%E(3)) / (2 * dt)
+  case ('e_curl.x', 'e0_curl.x');  value = field%dE(3,2) - field%dE(2,3) + (field1%B(1) - field0%B(1)) / (2 * dt)
+  case ('e_curl.y', 'e0_curl.y');  value = field%dE(1,3) - field%dE(3,1) + (field1%B(2) - field0%B(2)) / (2 * dt)
+  case ('e_curl.z', 'e0_curl.z');  value = field%dE(2,1) - field%dE(1,2) + (field1%B(3) - field0%B(3)) / (2 * dt)
   case default
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
@@ -271,8 +267,7 @@ case ('e_curl', 'e0_curl')
 case ('e_div', 'e0_div')
   orb = orbit
   if (prefix == 'e0_div') then
-    orb%vec(1:5:2) = 0
-    orb%t = 0; time = 0
+    time = orbit%t
   else
     time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
   endif
@@ -283,8 +278,7 @@ case ('e_div', 'e0_div')
 case ('e_field', 'e0_field')
   orb = orbit
   if (prefix == 'e0_field') then
-    orb%vec(1:5:2) = 0
-    orb%t = 0; time = 0
+    time = orbit%t
   else
     time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
   endif

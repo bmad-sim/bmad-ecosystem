@@ -869,7 +869,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), imt)  'symbol%line_width    = ', c1%symbol%line_width
       nl=nl+1; write(lines(nl), amt)  'symbol%color         = ', c1%symbol%color
       
-      ! Histogram specific components
+      ! Histogram specific parameters
       if (c1%g%type == 'histogram') then
         nl=nl+1; write(lines(nl), lmt)  'hist%density_normalized = ', c1%hist%density_normalized 
         nl=nl+1; write(lines(nl), lmt)  'hist%weight_by_charge   = ', c1%hist%weight_by_charge
@@ -1956,6 +1956,14 @@ case ('graph')
   ! Standard
 
   g => graph(1)%g
+
+  found = .false.
+  if (allocated(g%curve)) then
+    do i = 1, size(g%curve)
+      if (substr(g%curve(i)%data_type, 1, 3) == 'b0_' .or. substr(g%curve(i)%data_type, 1, 3) == 'e0_') found = .true.
+    enddo
+  endif
+
   fmt = '(a, f6.3)'
 
   if (associated(g%p%r)) then
@@ -2047,6 +2055,14 @@ case ('graph')
   nl=nl+1; write(lines(nl), lmt)  'draw_title                       = ', g%draw_title
   nl=nl+1; write(lines(nl), lmt)  'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
   nl=nl+1; write(lines(nl), lmt)  'allow_wrap_around                = ', g%allow_wrap_around
+
+  ! Field at constant offset parameters
+  if (found) then
+    nl=nl+1; write(lines(nl), rmt)  'orbit%x                          = ', g%orbit%x
+    nl=nl+1; write(lines(nl), rmt)  'orbit%y                          = ', g%orbit%y
+    nl=nl+1; write(lines(nl), rmt)  'orbit%t                          = ', g%orbit%t
+  endif
+
   if (allocated(g%curve)) then
     nl=nl+1; lines(nl) = '                         |          Line           |          Symbols'
     nl=nl+1; lines(nl) = 'Curves:                  |     Mean         RMS    |      Mean         RMS'

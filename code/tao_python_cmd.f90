@@ -226,9 +226,9 @@ call string_trim(line(ix+1:), line, ix_line)
 !   x_axis_type (variable parameter)
 
 call match_word (cmd, [character(40) :: &
-          'beam', 'beam_init', 'branch1', 'bunch1', 'bmad_com', 'building_wall_list', 'building_wall_graph', &
-          'building_wall_point', 'building_wall_section', 'constraints', &
-          'da_params', 'da_aperture', &
+          'beam', 'beam_init', 'branch1', 'bunch_params', 'bunch1', 'bmad_com', 'building_wall_list', &
+          'building_wall_graph', 'building_wall_point', 'building_wall_section', &
+          'constraints', 'da_params', 'da_aperture', &
           'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
           'data_d2', 'data_d2_array', 'data_set_design_value', 'data_parameter', &
           'datum_create', 'datum_has_ele', 'derivative', &
@@ -493,13 +493,13 @@ case ('branch1')
   nl=incr(nl); write (li(nl), amt) 'param.geometry;ENUM;T;',                    trim(geometry_name(branch%param%geometry))
   nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                     branch%param%stable
 
-!%% bunch1 -----------------------
+!%% bunch_params -----------------------
 ! Bunch parameters at the exit end of a given lattice element.
 !
 ! Notes
 ! -----
 ! Command syntax:
-! python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
+! python bunch1 {ele_id}|{which}
 !
 ! Parameters
 ! ----------
@@ -507,69 +507,15 @@ case ('branch1')
 !   Element name or index
 ! which : default=model
 !   One of: "model", "base" or "design"
-! ix_bunch : default=1
-! coordinate : optional
-!   If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
-!
-!  
-! Returns
-! -------
-! string_list
-!   if not coordinate
-! real_array
-!   if coordinate and coordinate != 'state'
-! integer_array
-!   if coordinate == 'state'
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
-!  args:
-!    ele_id: end
-!    which: model
-!    ix_bunch: 1
-!    coordinate:
-!
-!Example: 2
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
-!  args:
-!    ele_id: end
-!    which: model
-!    ix_bunch: 1
-!    coordinate: x
 !
 
-
-
-case ('bunch1')
+case ('bunch_params')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
-  beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
-  if (.not. allocated(beam%bunch)) then
-    call invalid ('BEAM NOT SAVED AT ELEMENT.')
-    return
-  endif
-  ix_bunch = parse_int(tail_str, err, 1, size(beam%bunch)); if (err) return
-
-  !save_beam flag: u%model_branch(<branch-index>)%ele(<ele-index>)%save_beam
-
-  select case (tail_str)
-  case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c', 'state')
-    call coord_out(beam%bunch(ix_bunch), tail_str)
-    return
-  case ('')
-    bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
-    ! Continues below
-  case default
-    call invalid ('coordinate not "x", "px", etc.')
-    return
-  end select
+  bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
 
   call twiss_out(bunch_params%x, 'x', .true.)
   call twiss_out(bunch_params%y, 'y', .true.)
@@ -605,6 +551,72 @@ case ('bunch1')
   nl=incr(nl); write (li(nl), imt) 'n_particle_live;INT;F;',                   bunch_params%n_particle_live
   nl=incr(nl); write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
   nl=incr(nl); write (li(nl), lmt) 'beam_saved;LOGIC;T;',                      allocated(beam%bunch)
+
+
+!%% bunch1 -----------------------
+! Bunch parameters at the exit end of a given lattice element.
+!
+! Notes
+! -----
+! Command syntax:
+! python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
+!
+! Parameters
+! ----------
+! ele_id
+!   Element name or index
+! which : default=model
+!   One of: "model", "base" or "design"
+! ix_bunch : default=1
+! coordinate:
+!   If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
+!
+!  
+! Returns
+! -------
+! string_list
+!   if not coordinate
+! real_array
+!   if coordinate and coordinate != 'state'
+! integer_array
+!   if coordinate == 'state'
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
+!  args:
+!    ele_id: end
+!    which: model
+!    ix_bunch: 1
+!    coordinate:
+!
+!Example: 2
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
+!  args:
+!    ele_id: end
+!    which: model
+!    ix_bunch: 1
+!    coordinate: x
+!
+
+case ('bunch1')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  ix_bunch = parse_int(tail_str, err, 1, size(beam%bunch)); if (err) return
+
+  beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
+  if (.not. allocated(beam%bunch)) then
+    call invalid ('BEAM NOT SAVED AT ELEMENT.')
+    return
+  endif
+
+  call coord_out(beam%bunch(ix_bunch), tail_str)
 
 !%% building_wall_list -----------------------
 ! List of building wall sections or section points
