@@ -143,6 +143,7 @@ type tao_graph_input
   type (qp_axis_struct) :: y = qp_axis_struct()
   type (qp_axis_struct) :: x2 = qp_axis_struct()
   type (qp_axis_struct) :: y2 = qp_axis_struct()
+  type (tao_graph_orbit_struct) :: orbit = tao_graph_orbit_struct()
 end type 
 
 type tao_plot_input

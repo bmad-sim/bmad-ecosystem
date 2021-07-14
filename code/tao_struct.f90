@@ -162,6 +162,12 @@ type tao_histogram_struct
   integer :: number = 0
 end type
 
+! The tao_curve_orbit_struct is used for field plotting along a line with constant transverse offset
+type tao_graph_orbit_struct
+  real(rp) :: x = 0, y = 0       ! Transverse offset
+  real(rp) :: t = 0              ! Time
+end type
+
 ! A curve is defined by a set of (x,y) points and the axis parameters.
 ! for example the horizontal orbit is one curve.
 
@@ -234,8 +240,8 @@ end type
 ! contain both overlayed horizontal and vertical orbits.
 
 type tao_graph_struct
-  character(40) :: name = ''          ! Name identifying the graph
-  character(40) :: type = ''          ! 'data', 'lat_layout', 'phase_space', 'histogram', 'dynamic_aperture'
+  character(40) :: name = ''              ! Name identifying the graph
+  character(40) :: type = ''              ! 'data', 'lat_layout', 'phase_space', 'histogram', 'dynamic_aperture'
   character(100) :: title = ''
   character(100) :: title_suffix = ''
   character(100) :: text_legend(10) = ''            ! Array for holding descriptive info.
@@ -247,6 +253,7 @@ type tao_graph_struct
   type (tao_floor_plan_struct) :: floor_plan = tao_floor_plan_struct()
   type (qp_point_struct) text_legend_origin
   type (qp_point_struct) curve_legend_origin
+  type (tao_graph_orbit_struct) orbit               ! Used for E/B field plotting.
   type (qp_axis_struct) x                           ! X-axis parameters.
   type (qp_axis_struct) y                           ! Y-axis attributes.
   type (qp_axis_struct) x2                          ! X2-axis attributes (Only used for floor_plan).
