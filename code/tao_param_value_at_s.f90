@@ -23,7 +23,7 @@ use em_field_mod
 implicit none
 
 type (ele_struct) ele
-type (coord_struct) orbit
+type (coord_struct) orbit, orb
 type (bpm_phase_coupling_struct) bpm_data
 type (floor_position_struct) floor
 type (branch_struct), pointer :: branch
@@ -66,14 +66,14 @@ ix = index(d_type, '.')
 if (ix == 0) then
   prefix = d_type
 else
-  prefix = d_type(1:ix)
+  prefix = d_type(1:ix-1)
 endif
 
 !
 
 select case (prefix)
 
-case ('alpha.')
+case ('alpha')
   select case (d_type)
   case ('alpha.a');          value = ele%a%alpha
   case ('alpha.b');          value = ele%b%alpha
@@ -83,40 +83,62 @@ case ('alpha.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('b_curl.')
-  call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
-  time = particle_rf_time(orbit, ele, (ele%field_calc /= fieldmap$), orbit%s-ele%s_start)
+case ('b_curl', 'b0_curl')
+  orb = orbit
+  if (prefix == 'b0_curl') then
+    orb%vec(1:5:2) = 0
+    orb%t = 0; time = 0
+  else
+    time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
+  endif
+
+  call em_field_derivatives (ele, branch%param, orb%s-ele%s_start, orb, .false., field, rf_time = time)
   dt = bmad_com%d_orb(5) / c_light
-  call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field0, rf_time = time-dt)
-  call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field1, rf_time = time+dt)
+  call em_field_calc (ele, branch%param, orb%s-ele%s_start, orb, .false., field0, rf_time = time-dt)
+  call em_field_calc (ele, branch%param, orb%s-ele%s_start, orb, .false., field1, rf_time = time+dt)
 
   select case (d_type)
-  case ('b_curl.x');  value = field%dB(3,2) - field%dB(2,3) - (field1%E(1) - field0%E(1)) / (2 * dt * c_light**2)
-  case ('b_curl.y');  value = field%dB(1,3) - field%dB(3,1) - (field1%E(2) - field0%E(2)) / (2 * dt * c_light**2)
-  case ('b_curl.z');  value = field%dB(2,1) - field%dB(1,2) - (field1%E(3) - field0%E(3)) / (2 * dt * c_light**2)
+  case ('b_curl.x', 'b0_curl.x');  value = field%dB(3,2) - field%dB(2,3) - (field1%E(1) - field0%E(1)) / (2 * dt * c_light**2)
+  case ('b_curl.y', 'b0_curl.y');  value = field%dB(1,3) - field%dB(3,1) - (field1%E(2) - field0%E(2)) / (2 * dt * c_light**2)
+  case ('b_curl.z', 'b0_curl.z');  value = field%dB(2,1) - field%dB(1,2) - (field1%E(3) - field0%E(3)) / (2 * dt * c_light**2)
   case default
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('b_div')
-  call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
+case ('b_div', 'b0_div')
+  orb = orbit
+  if (prefix == 'b0_div') then
+    orb%vec(1:5:2) = 0
+    orb%t = 0; time = 0
+  else
+    time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
+  endif
+
+  call em_field_derivatives (ele, branch%param, orb%s-ele%s_start, orb, .false., field, rf_time = time)
   value = field%dB(1,1) + field%dB(2,2) + field%dB(3,3)
 
-case ('b_field.')
-  call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
+case ('b_field', 'b0_field')
+  orb = orbit
+  if (prefix == 'b0_field') then
+    orb%vec(1:5:2) = 0
+    orb%t = 0; time = 0
+  else
+    time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
+  endif
+
+  call em_field_calc (ele, branch%param, orb%s-ele%s_start, orb, .false., field, rf_time = time)
   select case (d_type)
-  case ('b_field.x');  value = field%b(1)
-  case ('b_field.y');  value = field%b(2)
-  case ('b_field.z');  value = field%b(3)
+  case ('b_field.x', 'b0_field.x');  value = field%b(1)
+  case ('b_field.y', 'b0_field.y');  value = field%b(2)
+  case ('b_field.z', 'b0_field.z');  value = field%b(3)
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('beta');        value = orbit%beta
-
-case ('beta.')
+case ('beta')
   select case (d_type)
+  case ('beta');             value = orbit%beta
   case ('beta.a');           value = ele%a%beta
   case ('beta.b');           value = ele%b%beta
   case ('beta.z');           value = ele%z%beta
@@ -125,7 +147,7 @@ case ('beta.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('bpm_cbar.')
+case ('bpm_cbar')
   call to_phase_and_coupling_reading (ele, s%com%add_measurement_noise, bpm_data, err_flag)
   select case (d_type)
   case ('bpm_cbar.22a');     value = bpm_data%cbar22_a
@@ -137,7 +159,7 @@ case ('bpm_cbar.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('bpm_eta.')
+case ('bpm_eta')
   select case (d_type)
   case ('bpm_eta.x');  call to_eta_reading ([ele%x%eta, ele%y%eta], ele, x_plane$, s%com%add_measurement_noise, value, err_flag)
   case ('bpm_eta.y');  call to_eta_reading ([ele%x%eta, ele%y%eta], ele, y_plane$, s%com%add_measurement_noise, value, err_flag)
@@ -146,7 +168,7 @@ case ('bpm_eta.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('bpm_orbit.')
+case ('bpm_orbit')
   select case (d_type)
   case ('bpm_orbit.x');      call to_orbit_reading (orbit, ele, x_plane$, s%com%add_measurement_noise, value, err_flag)
   case ('bpm_orbit.y');      call to_orbit_reading (orbit, ele, y_plane$, s%com%add_measurement_noise, value, err_flag)
@@ -155,7 +177,7 @@ case ('bpm_orbit.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('bpm_phase.')
+case ('bpm_phase')
   call to_phase_and_coupling_reading (ele, s%com%add_measurement_noise, bpm_data, err_flag)
   if (err_flag) return
   select case (d_type)
@@ -166,7 +188,7 @@ case ('bpm_phase.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('bpm_k.')
+case ('bpm_k')
   call to_phase_and_coupling_reading (ele, s%com%add_measurement_noise, bpm_data, err_flag)
   select case (d_type)
   case ('bpm_k.22a');        value = bpm_data%k_22a
@@ -178,8 +200,7 @@ case ('bpm_k.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('c_mat.', 'cmat')
-  if (d_type(1:5) == 'c_mat') d_type = 'cbar' // d_type(6:)
+case ('c_mat')
   select case (d_type)
   case ('cmat.11');         value = ele%c_mat(1,1)
   case ('cmat.12');         value = ele%c_mat(1,2)
@@ -190,7 +211,7 @@ case ('c_mat.', 'cmat')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('cbar.')
+case ('cbar')
   call c_to_cbar (ele, cbar)
   select case (d_type)
   case ('cbar.11');          value = cbar(1,1)
@@ -202,7 +223,7 @@ case ('cbar.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('coupling.')
+case ('coupling')
   call c_to_cbar (ele, cbar)  
   select case (d_type)
   case ('coupling.11b');  value = cbar(1,1) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
@@ -214,7 +235,7 @@ case ('coupling.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('curly_h.')
+case ('curly_h')
   select case (d_type)
   case ('curly_h.a');     value = ele%a%gamma * ele%a%eta**2 + 2 * ele%a%alpha * ele%a%eta * ele%a%etap + ele%a%beta * ele%a%etap**2
   case ('curly_h.b');     value = ele%b%gamma * ele%b%eta**2 + 2 * ele%b%alpha * ele%b%eta * ele%b%etap + ele%b%beta * ele%b%etap**2
@@ -223,32 +244,56 @@ case ('curly_h.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('e_curl.')
-  call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
-  time = particle_rf_time(orbit, ele, (ele%field_calc /= fieldmap$), orbit%s-ele%s_start)
+case ('e_curl', 'e0_curl')
+  orb = orbit
+  if (prefix == 'e0_curl') then
+    orb%vec(1:5:2) = 0
+    orb%t = 0; time = 0
+  else
+    time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
+  endif
+
+  call em_field_derivatives (ele, branch%param, orb%s-ele%s_start, orb, .false., field, rf_time = time)
+  time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
   dt = bmad_com%d_orb(5) / c_light
-  call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field0, rf_time = time-dt)
-  call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field1, rf_time = time+dt)
+  call em_field_calc (ele, branch%param, orb%s-ele%s_start, orb, .false., field0, rf_time = time-dt)
+  call em_field_calc (ele, branch%param, orb%s-ele%s_start, orb, .false., field1, rf_time = time+dt)
 
   select case (d_type)
-  case ('e_curl.x');  value = field%dE(3,2) - field%dE(2,3) + (field1%E(1) - field0%E(1)) / (2 * dt)
-  case ('e_curl.y');  value = field%dE(1,3) - field%dE(3,1) + (field1%E(2) - field0%E(2)) / (2 * dt)
-  case ('e_curl.z');  value = field%dE(2,1) - field%dE(1,2) + (field1%E(3) - field0%E(3)) / (2 * dt)
+  case ('e_curl.x', 'e0_curl.x');  value = field%dE(3,2) - field%dE(2,3) + (field1%E(1) - field0%E(1)) / (2 * dt)
+  case ('e_curl.y', 'e0_curl.y');  value = field%dE(1,3) - field%dE(3,1) + (field1%E(2) - field0%E(2)) / (2 * dt)
+  case ('e_curl.z', 'e0_curl.z');  value = field%dE(2,1) - field%dE(1,2) + (field1%E(3) - field0%E(3)) / (2 * dt)
   case default
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('e_div')
-  call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
+case ('e_div', 'e0_div')
+  orb = orbit
+  if (prefix == 'e0_div') then
+    orb%vec(1:5:2) = 0
+    orb%t = 0; time = 0
+  else
+    time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
+  endif
+
+  call em_field_derivatives (ele, branch%param, orb%s-ele%s_start, orb, .false., field, rf_time = time)
   value = field%dE(1,1) + field%dE(2,2) + field%dE(3,3)
 
-case ('e_field.')
-  call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
+case ('e_field', 'e0_field')
+  orb = orbit
+  if (prefix == 'e0_field') then
+    orb%vec(1:5:2) = 0
+    orb%t = 0; time = 0
+  else
+    time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
+  endif
+
+  call em_field_calc (ele, branch%param, orb%s-ele%s_start, orb, .false., field, rf_time = time)
   select case (d_type)
-  case ('e_field.x');  value = field%e(1)
-  case ('e_field.y');  value = field%e(2)
-  case ('e_field.z');  value = field%e(3)
+  case ('e_field.x', 'e0_field.x');  value = field%e(1)
+  case ('e_field.y', 'e0_field.y');  value = field%e(2)
+  case ('e_field.z', 'e0_field.z');  value = field%e(3)
   case default
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
@@ -263,7 +308,7 @@ case ('energy')
     call convert_pc_to(orbit%p0c * (1 + orbit%vec(6)), orbit%species, e_tot = value)
   endif
 
-case ('eta.')
+case ('eta')
   select case (d_type)
   case ('eta.a');            value = ele%a%eta
   case ('eta.b');            value = ele%b%eta
@@ -275,7 +320,7 @@ case ('eta.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('etap.')
+case ('etap')
   select case (d_type)
   case ('etap.a');           value = ele%a%etap
   case ('etap.b');           value = ele%b%etap
@@ -286,7 +331,7 @@ case ('etap.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('floor.')
+case ('floor')
   select case (d_type)
   case ('floor.x');          value = ele%floor%r(1)
   case ('floor.y');          value = ele%floor%r(2)
@@ -299,7 +344,7 @@ case ('floor.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('floor_actual.')
+case ('floor_actual')
   floor = ele_geometry_with_misalignments(ele)
   select case (d_type)
   case ('floor_actual.x');          value = floor%r(1)
@@ -313,7 +358,7 @@ case ('floor_actual.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('floor_orbit.')
+case ('floor_orbit')
   floor%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
   floor = coords_local_curvilinear_to_floor (floor, ele, .false.)
   select case (d_type)
@@ -325,7 +370,7 @@ case ('floor_orbit.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('gamma.')
+case ('gamma')
   select case (d_type)
   case ('gamma.a');          value = ele%a%gamma
   case ('gamma.b');          value = ele%b%gamma
@@ -335,7 +380,7 @@ case ('gamma.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('intensity.')
+case ('intensity')
   select case (d_type)
   case ('intensity');                     value = orbit%field(1)**2 + orbit%field(2)**2
   case ('intensity_x', 'intensity.x');    value = orbit%field(1)**2
@@ -345,7 +390,7 @@ case ('intensity.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('k.')
+case ('k')
   call c_to_cbar (ele, cbar)
   f = sqrt(ele%a%beta/ele%b%beta) 
   select case (d_type)
@@ -360,7 +405,7 @@ case ('k.')
 
 case ('momentum');            value = (1 + orbit%vec(6)) * orbit%p0c
 
-case ('orbit.')
+case ('orbit')
   if (d_type(7:9) == 'amp' .or. d_type(7:9) == 'nor') &
           call orbit_amplitude_calc (ele, orbit, amp_a, amp_b, amp_na, amp_nb)
   select case (d_type)
@@ -392,7 +437,7 @@ case ('pc');
     value = orbit%p0c * (1 + orbit%vec(6))
   endif
 
-case ('phase.', 'phase_frac.')
+case ('phase', 'phase_frac')
   select case (d_type)
   case ('phase.a');           value = ele%a%phi
   case ('phase_frac.a');      value = modulo2 (ele%a%phi, pi)
@@ -403,7 +448,7 @@ case ('phase.', 'phase_frac.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('ping_a.')
+case ('ping_a')
   call c_to_cbar (ele, cbar)
   select case (d_type)
   case ('ping_a.amp_x');          value = ele%gamma_c * sqrt(ele%a%beta)
@@ -425,7 +470,7 @@ case ('ping_a.')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('ping_b.')
+case ('ping_b')
   call c_to_cbar (ele, cbar)
   select case (d_type)
   case ('ping_b.amp_y');          value = ele%gamma_c * sqrt(ele%b%beta)
@@ -449,7 +494,7 @@ case ('ping_b.')
 
 case ('ref_time');            value = ele%ref_time
 
-case ('spin.')
+case ('spin')
   select case (d_type)
   case ('spin.x');        value = orbit%spin(1)
   case ('spin.y');        value = orbit%spin(2)
@@ -469,7 +514,7 @@ case ('s_position');         value = ele%s
 
 case ('time', 't');          value = orbit%t
 
-case ('velocity', 'velocity.')
+case ('velocity')
   select case (d_type)
   case ('velocity');  value = orbit%beta
   case ('velocity.x');  value = orbit%vec(2) * (1 + orbit%vec(6)) * orbit%beta

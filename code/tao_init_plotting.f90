@@ -1263,28 +1263,28 @@ if (all(s%plot_page%template%name /= 'b_div_curl')) then
   crv%name         = 'div'
   crv%g => grph
   crv%data_type    = 'b_div'
-  crv%legend_text  = 'B Divergence'
+  crv%legend_text  = 'B Divergence at particle position'
   crv%units        = 'T/m'
 
   crv => grph%curve(2)
   crv%name         = 'cx'
   crv%g => grph
   crv%data_type    = 'b_curl.x'
-  crv%legend_text  = '(curl B - (dE/dt)/c\u2\d) x-component'
+  crv%legend_text  = '(curl B)x - (dEx/dt)/c\u2\d at particle position'
   crv%units        = 'T/m'
 
   crv => grph%curve(3)
   crv%name         = 'cy'
   crv%g => grph
   crv%data_type    = 'b_curl.y'
-  crv%legend_text  = '(curl B - (dE/dt)/c\u2\d) y-component'
+  crv%legend_text  = '(curl B)y - (dEy/dt)/c\u2\d at particle position'
   crv%units        = 'T/m'
 
   crv => grph%curve(4)
   crv%name         = 'cz'
   crv%g => grph
   crv%data_type    = 'b_curl.z'
-  crv%legend_text  = '(curl B - (dE/dt)/c\u2\d) z-component'
+  crv%legend_text  = '(curl B)z - (dEy/dt)/c\u2\d at particle position'
   crv%units        = 'T/m'
 endif
  
@@ -1306,20 +1306,99 @@ if (all(s%plot_page%template%name /= 'b_field')) then
   crv%name         = 'bx'
   crv%g => grph
   crv%data_type    = 'b_field.x'
-  crv%legend_text  = 'B_field.x'
+  crv%legend_text  = 'B_field.x at particle position'
   crv%units        = 'T'
 
   crv => grph%curve(2)
   crv%name         = 'by'
   crv%g => grph
   crv%data_type    = 'b_field.y'
-  crv%legend_text  = 'B_field.y'
+  crv%legend_text  = 'B_field.y at particle position'
   crv%units        = 'T'
 
   crv => grph%curve(3)
   crv%name         = 'bz'
   crv%g => grph
   crv%data_type    = 'b_field.z'
+  crv%legend_text  = 'B_field.z at particle position'
+  crv%units        = 'T'
+endif
+ 
+!---------------
+! b0_div_curl plot
+
+if (all(s%plot_page%template%name /= 'b0_div_curl')) then
+  call default_plot_init (np, plt, default_plot_g1c4)
+  plt%name                 = 'b0_div_curl'
+  plt%description          = 'B-Field Divergence and (Curl B - (dE/dt)/c\u2\d) at x=y=t=0'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'B-Field Div and (Curl B - (dE/dt)/c\u2\d) at x=y=t=0'
+  grph%y%label             = 'B-Field Div, Curl (T/m)'
+  grph%y%label_offset= .15
+
+  crv => grph%curve(1)
+  crv%name         = 'div'
+  crv%g => grph
+  crv%data_type    = 'b0_div'
+  crv%legend_text  = 'B Divergence'
+  crv%units        = 'T/m'
+
+  crv => grph%curve(2)
+  crv%name         = 'cx'
+  crv%g => grph
+  crv%data_type    = 'b0_curl.x'
+  crv%legend_text  = '(curl B)x - (dEx/dt)/c\u2\d'
+  crv%units        = 'T/m'
+
+  crv => grph%curve(3)
+  crv%name         = 'cy'
+  crv%g => grph
+  crv%data_type    = 'b0_curl.y'
+  crv%legend_text  = '(curl B)y - (dEy/dt)/c\u2\d'
+  crv%units        = 'T/m'
+
+  crv => grph%curve(4)
+  crv%name         = 'cz'
+  crv%g => grph
+  crv%data_type    = 'b0_curl.z'
+  crv%legend_text  = '(curl B)z - (dEy/dt)/c\u2\d'
+  crv%units        = 'T/m'
+endif
+ 
+!---------------
+! B0_field plot
+
+if (all(s%plot_page%template%name /= 'b0_field')) then
+  call default_plot_init (np, plt, default_plot_g1c3)
+  plt%name                 = 'b0_field'
+  plt%description          = 'Magnetic Field at x=y=t=0'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Magnetic Field at x=y=t=0'
+  grph%y%label             = 'B-Field (T)'
+  grph%y%label_offset= .15
+
+  crv => grph%curve(1)
+  crv%name         = 'bx'
+  crv%g => grph
+  crv%data_type    = 'b0_field.x'
+  crv%legend_text  = 'B_field.x'
+  crv%units        = 'T'
+
+  crv => grph%curve(2)
+  crv%name         = 'by'
+  crv%g => grph
+  crv%data_type    = 'b0_field.y'
+  crv%legend_text  = 'B_field.y'
+  crv%units        = 'T'
+
+  crv => grph%curve(3)
+  crv%name         = 'bz'
+  crv%g => grph
+  crv%data_type    = 'b0_field.z'
   crv%legend_text  = 'B_field.z'
   crv%units        = 'T'
 endif
@@ -1801,7 +1880,7 @@ if (all(s%plot_page%template%name /= 'e_div_curl')) then
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%title               = 'Electric Field Divergence and (Curl E - dB/dt) Along Orbit'
+  grph%title               = 'E-Field Div and (Curl E - dB/dt) Along Orbit'
   grph%y%label             = 'Elec Div, Curl (V/m^2)'
   grph%y%label_offset= .15
 
@@ -1816,21 +1895,21 @@ if (all(s%plot_page%template%name /= 'e_div_curl')) then
   crv%name         = 'cx'
   crv%g => grph
   crv%data_type    = 'e_curl.x'
-  crv%legend_text  = '(curl E - dE/dt) x-component'
+  crv%legend_text  = '(curl E)x - dEx/dt at particle position'
   crv%units        = 'V/m^2'
 
   crv => grph%curve(3)
   crv%name         = 'cy'
   crv%g => grph
   crv%data_type    = 'e_curl.y'
-  crv%legend_text  = '(curl E - dE/dt) y-component'
+  crv%legend_text  = '(curl E)y - dEy/dt at particle position'
   crv%units        = 'V/m^2'
 
   crv => grph%curve(4)
   crv%name         = 'cz'
   crv%g => grph
   crv%data_type    = 'e_curl.z'
-  crv%legend_text  = '(curl E - dE/dt) z-component'
+  crv%legend_text  = '(curl E)z - dEz/dt at particle position'
   crv%units        = 'V/m^2'
 endif
  
@@ -1852,20 +1931,100 @@ if (all(s%plot_page%template%name /= 'e_field')) then
   crv%name         = 'ex'
   crv%g => grph
   crv%data_type    = 'e_field.x'
-  crv%legend_text  = 'E_field.x'
+  crv%legend_text  = 'E_field.x at particle position'
   crv%units        = 'V/m'
 
   crv => grph%curve(2)
   crv%name         = 'ey'
   crv%g => grph
   crv%data_type    = 'e_field.y'
-  crv%legend_text  = 'E_field.y'
+  crv%legend_text  = 'E_field.y at particle position'
   crv%units        = 'V/m'
 
   crv => grph%curve(3)
   crv%name         = 'ez'
   crv%g => grph
   crv%data_type    = 'e_field.z'
+  crv%legend_text  = 'E_field.z at particle position'
+  crv%units        = 'V/m'
+
+endif
+
+!---------------
+! e0_div_curl plot
+
+if (all(s%plot_page%template%name /= 'e0_div_curl')) then
+  call default_plot_init (np, plt, default_plot_g1c4)
+  plt%name                 = 'e0_div_curl'
+  plt%description          = 'Electric Field Divergence and (Curl E - dB/dt) at x=y=t=0'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'E-Field Div and (Curl E - dB/dt) at x=y=t=0'
+  grph%y%label             = 'Elec Div, Curl (V/m^2)'
+  grph%y%label_offset= .15
+
+  crv => grph%curve(1)
+  crv%name         = 'div'
+  crv%g => grph
+  crv%data_type    = 'e0_div'
+  crv%legend_text  = 'divergence'
+  crv%units        = 'V/m^2'
+
+  crv => grph%curve(2)
+  crv%name         = 'cx'
+  crv%g => grph
+  crv%data_type    = 'e0_curl.x'
+  crv%legend_text  = '(curl E)x - dEx/dt'
+  crv%units        = 'V/m^2'
+
+  crv => grph%curve(3)
+  crv%name         = 'cy'
+  crv%g => grph
+  crv%data_type    = 'e0_curl.y'
+  crv%legend_text  = '(curl E)y - dEy/dt'
+  crv%units        = 'V/m^2'
+
+  crv => grph%curve(4)
+  crv%name         = 'cz'
+  crv%g => grph
+  crv%data_type    = 'e0_curl.z'
+  crv%legend_text  = '(curl E)z - dEz/dt'
+  crv%units        = 'V/m^2'
+endif
+ 
+!---------------
+! E0_field plot
+
+if (all(s%plot_page%template%name /= 'e0_field')) then
+  call default_plot_init (np, plt, default_plot_g1c3)
+  plt%name                 = 'e0_field'
+  plt%description          = 'Electric Field at x=y=t=0'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'E-Field at x=y=t=0'
+  grph%y%label             = 'E-Field (V/m)'
+  grph%y%label_offset= .15
+
+  crv => grph%curve(1)
+  crv%name         = 'ex'
+  crv%g => grph
+  crv%data_type    = 'e0_field.x'
+  crv%legend_text  = 'E_field.x'
+  crv%units        = 'V/m'
+
+  crv => grph%curve(2)
+  crv%name         = 'ey'
+  crv%g => grph
+  crv%data_type    = 'e0_field.y'
+  crv%legend_text  = 'E_field.y'
+  crv%units        = 'V/m'
+
+  crv => grph%curve(3)
+  crv%name         = 'ez'
+  crv%g => grph
+  crv%data_type    = 'e0_field.z'
   crv%legend_text  = 'E_field.z'
   crv%units        = 'V/m'
 
