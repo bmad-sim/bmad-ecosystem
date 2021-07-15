@@ -98,7 +98,7 @@ type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, slave, field_ele
 type (ele_struct) :: ele2, ele_start, ele_end
-type (coord_struct), target :: orbit(0:), orb_start, orb_end, orb_end1
+type (coord_struct), target :: orbit(0:), orb_start, orb_end
 type (normal_modes_struct) mode
 type (bmad_common_struct) bmad_com_save
 type (lat_param_struct) branch_param_save
@@ -711,7 +711,7 @@ subroutine cache_this_point (branch, z_start, z1, z_here, orb_start, ele2, mat6,
 type (branch_struct) branch
 type (ele_struct) ele2
 type (rad_int_track_point_struct) :: c_pt
-type (coord_struct) orb_start, orb_end
+type (coord_struct) orb_start, orb_end, orb_end1
 type (ele_struct) ele_end
 
 real(rp) mat6(6,6), vec0(6), z_start, z1, z_here
