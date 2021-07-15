@@ -1634,9 +1634,9 @@ end function rb_field
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-! Convert fields: ele to lab coords
-
 ! contains
+
+! Convert fields: ele to lab coords
 
 subroutine convert_field_ele_to_lab (ele, s_here, forward_transform, field)
 
@@ -2211,7 +2211,6 @@ enddo
 field = interpolate_1d (r_frac(1), h)
 
 !---------------------------------------------------------------
-
 contains
 
 ! interpolation in 1 dimension using 4 equally spaced points: P1, P2, P3, P4.
