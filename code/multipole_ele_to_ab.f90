@@ -73,7 +73,7 @@ cache => ele%multipole_cache
 if (can_use_cache .and. allocated(ele%multipole_cache)) then
   if (p_type == magnetic$ .and. cache%ix_pole_mag_max /= invalid$) then
     ix_pole_max = cache%ix_pole_mag_max
-    if (ix_pole_max == -1 .and. (include_kck == no$ .or. cache%ix_kick_mag_max == -1)) then
+    if (ix_pole_max == invalid$ .and. (include_kck == no$ .or. cache%ix_kick_mag_max == invalid$)) then
       a = 0;  b = 0
       if (present(b1)) b1 = 0
       return
@@ -337,7 +337,7 @@ this_b = b_pole
 ! Also if scaling is turned off
 
 ix_max = max_nonzero(0, this_a, this_b)
-if (ix_max == -1) return
+if (ix_max < 0) return
 
 ! tilt?
 

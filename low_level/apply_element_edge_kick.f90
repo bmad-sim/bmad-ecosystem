@@ -190,7 +190,7 @@ case (lcavity$, rfcavity$, e_gun$)
   f = at_sign * charge_of(orb%species) / (2 * orb%p0c)
   s = s_edge
 
-  if (at_this_ele_end(physical_end, nint(hard_ele%value(fringe_at$)))) then
+  if (at_this_ele_end(physical_end, nint(hard_ele%value(fringe_at$))) .and. hard_ele%value(l$) /= 0) then
     z_saved = orb%vec(5)
     beta_ref = hard_ele%value(p0c$) / hard_ele%value(e_tot$)
     ds = track_ele%s_start - hard_ele%s_start

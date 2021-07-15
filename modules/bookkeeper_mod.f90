@@ -602,6 +602,8 @@ if (n_major_lords < 2) then
       if (allocated(slave%multipole_cache)) then
         slave%multipole_cache%ix_pole_mag_max = invalid$
         slave%multipole_cache%ix_pole_elec_max = invalid$
+        slave%multipole_cache%ix_kick_mag_max = invalid$
+        slave%multipole_cache%ix_kick_elec_max = invalid$
       endif
       if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
