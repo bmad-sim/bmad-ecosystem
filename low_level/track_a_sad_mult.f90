@@ -103,7 +103,7 @@ orbit%vec(4) = orbit%vec(4) - ele%value(x_offset_mult$) * ks / 2
 ele2%value(tilt_tot$) = tilt(1) 
 tilt = tilt - tilt(1)
 
-call multipole_kt_to_ab (knl, tilt, knsl, a_pole, b_pole)
+call multipole_kt_to_ab (knl, knsl, tilt, a_pole, b_pole)
 knl(1) = 0 ! So multipole_kicks does not conflict with sol_quad calc. 
 
 call offset_particle (ele2, param, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = present(mat6))
