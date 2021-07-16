@@ -180,7 +180,7 @@ type (tao_beam_branch_struct), pointer :: bb
 type (lat_struct), pointer :: lat, design_lat
 type (ele_struct), pointer :: ele, ele1, ele2, slave, lord, ele_ref
 type (ele_struct), target :: ele3, ele0
-type (em_field_struct) field
+type (em_field_struct) field, field0, field1
 type (control_struct), pointer :: contl
 type (bunch_struct), pointer :: bunch
 type (wake_struct), pointer :: wake
@@ -230,7 +230,7 @@ type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
 type (tao_expression_info_struct), allocatable :: info(:)
 
-real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z1, z2, z_in, dt, angle, r
+real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z1, z2, z_in, s_pos, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2, qs, q, x
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
@@ -1589,7 +1589,7 @@ case ('field')
   lat_type = model$
   orb%vec = 0
   orb%t = 0
-  z = 0
+  s_pos = 0
   show_all = .false.   ! Show derivatives?
   s_fmt = 'relative'
   n_count = 0          ! Counter for non-switch args. 
@@ -1636,18 +1636,18 @@ case ('field')
       case (4)
         call tao_evaluate_expression(switch, 1, .false., value, info, err)
         if (err) then
-          nl = 1; lines(1) = 'Bad Z value';  result_id = 'field:bad-z'
+          nl = 1; lines(1) = 'Bad S value';  result_id = 'field:bad-s'
           return
         endif
-        z_in = value(1)
+        s_pos = value(1)
 
       case (5)
         call tao_evaluate_expression(switch, 1, .false., value, info, err)
         if (err) then
-          nl = 1; lines(1) = 'Bad T value';  result_id = 'field:bad-t'
+          nl = 1; lines(1) = 'Bad Z or T value';  result_id = 'field:bad-t'
           return
         endif
-        z = value(1)
+
         if (ele%branch%lat%absolute_time_tracking) then
           orb%t = value(1)
         else
@@ -1669,37 +1669,48 @@ case ('field')
     ele => eles(i)%ele
 
     select case (s_fmt)
-    case ('percent');   z = z_in * ele%value(l$)
-    case ('absolute');  z = z_in - ele%s_start
-    case ('relative');  z = z_in
+    case ('percent');   s_pos = s_pos * ele%value(l$)
+    case ('absolute');  s_pos = s_pos - ele%s_start
+    case ('relative');  s_pos = s_pos
     end select
 
-    call em_field_calc (ele, ele%branch%param, z, orb, .false., field, calc_dfield = show_all, err_flag = err);  if (err) return
+    time1 = particle_rf_time(orb, ele, .true., s_pos)
+    dt = 1d-12
+
+    call em_field_calc (ele, ele%branch%param, s_pos, orb, .false., field, calc_dfield = show_all, &
+                                                          err_flag = err, rf_time = time1);  if (err) return
+    call em_field_calc (ele, ele%branch%param, s_pos, orb, .false., field0, rf_time = time1-dt)
+    call em_field_calc (ele, ele%branch%param, s_pos, orb, .false., field1, rf_time = time1+dt)
+    field1%E = (field1%E - field0%E) / (2 * dt)
+    field1%B = (field1%B - field0%B) / (2 * dt)
+
     if (i > 1) then
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = '=================================================='
     endif
     nl=nl+1; lines(nl) = trim(ele_loc_name(ele)) // ': ' // trim(ele%name) 
-    nl=nl+1; write (lines(nl), '(2a)') '   B (T):    ', reals_to_string(field%B, 12, 2, 6, 6)
-    nl=nl+1; write (lines(nl), '(2a)') '   E (V/m):  ', reals_to_string(field%E, 12, 2, 6, 2)
+    nl=nl+1; write (lines(nl), '(a24, 2x, a)') '  B [T]:', reals_to_string(field%B, 14, 2, 6, 6)
+    nl=nl+1; write (lines(nl), '(a24, 2x, a)') 'E [V/m]:', reals_to_string(field%E, 14, 2, 6, 2)
 
     if (show_all) then
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dx (T/m):         ', field%dB(1,:)
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dy (T/m):         ', field%dB(2,:)
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dz (T/m):         ', field%dB(3,:)
+      nl=nl+1; write (lines(nl), '(a24, 3es16.8)') 'dB/dx [T/m]:', field%dB(1,:)
+      nl=nl+1; write (lines(nl), '(a24, 3es16.8)') 'dB/dy [T/m]:', field%dB(2,:)
+      nl=nl+1; write (lines(nl), '(a24, 3es16.8)') 'dB/dz [T/m]:', field%dB(3,:)
+
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; write (lines(nl), '(a, 3es16.8, a, es16.8)') &
-                                                 '  Curl_B, Div_B (T/m): ', field%dB(3,2) - field%dB(2,3), &
+      nl=nl+1; write (lines(nl), '(a24, 3es16.8)') 'dB/dt [T/sec]:', field1%B
+      nl=nl+1; write (lines(nl), '(a24, 3es16.8, a, es16.8)') 'Curl_B, Div_B [T/m]:', field%dB(3,2) - field%dB(2,3), &
                                             field%dB(1,3) - field%dB(3,1), field%dB(2,1) - field%dB(1,2), ',', &
                                             field%dB(1,1) + field%dB(2,2) + field%dB(3,3)
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dx (V/m^2):         ', field%dE(1,:)
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dy (V/m^2):         ', field%dE(2,:)
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dz (V/m^2):         ', field%dE(3,:)
+      nl=nl+1; write (lines(nl), '(a24, 3es16.8)') 'dE/dx [V/m^2]:', field%dE(1,:)
+      nl=nl+1; write (lines(nl), '(a24, 3es16.8)') 'dE/dy [V/m^2]:', field%dE(2,:)
+      nl=nl+1; write (lines(nl), '(a24, 3es16.8)') 'dE/dz [V/m^2]:', field%dE(3,:)
+
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; write (lines(nl), '(a, 3es16.8, a, es16.8)') &
-                                                 '  Curl_E, Div_E (V/m^2): ', field%dE(3,2) - field%dE(2,3), &
+      nl=nl+1; write (lines(nl), '(a24, 3es16.8)') 'dE/dt [V/m/sec]:', field1%E
+      nl=nl+1; write (lines(nl), '(a24, 3es16.8, a, es16.8)') 'Curl_E, Div_E [V/m^2]:', field%dE(3,2) - field%dE(2,3), &
                                             field%dE(1,3) - field%dE(3,1), field%dE(2,1) - field%dE(1,2), ',', &
                                             field%dE(1,1) + field%dE(2,2) + field%dE(3,3)
     endif
