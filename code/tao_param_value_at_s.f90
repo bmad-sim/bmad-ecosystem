@@ -129,6 +129,7 @@ case ('b_field', 'b0_field')
   case ('b_field.x', 'b0_field.x');  value = field%b(1)
   case ('b_field.y', 'b0_field.y');  value = field%b(2)
   case ('b_field.z', 'b0_field.z');  value = field%b(3)
+  case default
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
