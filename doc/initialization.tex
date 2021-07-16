@@ -2184,9 +2184,10 @@ namelists should be placed directly after their respective
     graph%draw_curve_legend = <logical>        ! Default = T
     graph%allow_wrap_around = <logical>        ! Wrap curves around lattice ends?
     graph%component         = "<string>"       ! Eg: "model - design"
-    graph%symbol_size_scale = <real>                  ! Phase_space plots symbol scale factor
-    graph%ix_universe       = <integer>               ! Default = -1 => Use default universe
-    graph%floor_plan        =  <floor_plan_struct>    ! Floor_plan parameters (\sref{s:floor.plan}).
+    graph%symbol_size_scale = <real>                ! Phase_space plots symbol scale factor
+    graph%ix_universe       = <integer>             ! Default = -1 => Use default universe
+    graph%floor_plan        = <floor_plan_struct>   ! Floor_plan parameters (\sref{s:floor.plan}).
+    graph%orbit             = <tao_graph_orbit_struct>  ! For E & B field plots.
     graph%draw_only_good_user_data_or_vars     ! Veto data or variables with good_user = F?
                                  = <logical>   !   Default = T.
     graph%x_axis_scale_factor    = <factor>    ! Scale the x-axis by this.

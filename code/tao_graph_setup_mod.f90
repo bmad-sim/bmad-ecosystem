@@ -2384,7 +2384,7 @@ do ii = 1, size(curve%x_line)
     return
   end select
 
-  call this_value_at_s (data_type_select, value, good(ii), ok, ii, s_last, s_now);  if (.not. ok) return
+  call this_value_at_s (data_type_select, sub_data_type, value, good(ii), ok, ii, s_last, s_now);  if (.not. ok) return
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
   s_last = s_now
@@ -2437,7 +2437,7 @@ if (curve%ele_ref_name /= '') then
     return
   endif
 
-  call this_value_at_s (data_type_select, value, gd, ok, ii, s_last, s_now);  if (.not. ok) return
+  call this_value_at_s (data_type_select, sub_data_type, value, gd, ok, ii, s_last, s_now);  if (.not. ok) return
 
   curve%y_line = curve%y_line - comp_sign * value
 
@@ -2451,12 +2451,12 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 !--------------------------------------------------------
 contains
 
-subroutine this_value_at_s (data_type_select, value, good1, ok, ii, s_last, s_now)
+subroutine this_value_at_s (data_type_select, sub_data_type, value, good1, ok, ii, s_last, s_now)
 
 real(rp) value, s_last, s_now
 integer status, ii
 logical good1, ok
-character(*) data_type_select
+character(*) data_type_select, sub_data_type
 
 !
 
