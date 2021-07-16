@@ -97,8 +97,8 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, slave, field_ele
-type (ele_struct) :: ele2, ele_start, ele_end
-type (coord_struct), target :: orbit(0:), orb_start, orb_end
+type (ele_struct) :: ele2, ele_start, ele_end, runt
+type (coord_struct), target :: orbit(0:), orb_start, orb_end, orb_here
 type (normal_modes_struct) mode
 type (bmad_common_struct) bmad_com_save
 type (lat_param_struct) branch_param_save
@@ -197,6 +197,7 @@ ri_info%orbit => orbit
 m65 = 0
 mode%rf_voltage = 0
 int_tot = rad_int1_struct()
+runt%ix_ele = invalid$
 
 bmad_com_save = bmad_com
 bmad_com%convert_to_kinetic_momentum = .true.
@@ -307,16 +308,11 @@ if (use_cache .or. init_cache) then
     if (branch%ele(ixe)%bookkeeping_state%rad_int /= stale$) cycle
     branch%ele(ixe)%bookkeeping_state%rad_int = ok$
 
-    ! Calculation is effectively done in element reference frame with ele2 having
-    ! no offsets.
-
     ele2 = branch%ele(ixe)
     key2 = ele2%key
     if (key2 == undulator$ .or. key2 == em_field$) key2 = wiggler$
 
-    call zero_ele_offsets (ele2)
     orb_start = orbit(ixe-1)
-    call offset_particle (branch%ele(ixe), branch%param, set$, orb_start, set_hvkicks = .false.)
     call set_tracking_method_for_element_integration(ele2)
 
     !------------------------------------
@@ -348,13 +344,14 @@ if (use_cache .or. init_cache) then
       call mat_make_unit (mat6)
       vec0 = 0
 
+      orb_here = orb_start
       do k = 0, n_step
         z_here = k * del_z
         z1 = z_here + dz_small
         if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz_small)
-        call cache_this_point (branch, z_start, z1, z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
+        call cache_this_point (branch, z_start, z1, z_here, orb_start, orb_here, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
         z_start = z_here
-        orb_start = orb_end
+        orb_here = orb_end
         ele_start = ele_end
       enddo
 
@@ -392,6 +389,7 @@ if (use_cache .or. init_cache) then
         del_z = del_z / 2
         dz_small = min (1e-4_rp, del_z/3)
 
+        orb_here = orb_start
         do k = 1, n_step, 2
           z_here = k * del_z
           z1 = z_here + dz_small
@@ -399,14 +397,14 @@ if (use_cache .or. init_cache) then
           cp0 => cache_ele%pt(k-1)
           cp => cache_ele%pt(k)
           z_start = cp0%s_body
-          orb_start = cp0%ref_orb_out
+          orb_here = cp0%ref_orb_out
           mat6 = cp0%mat6
           vec0 = cp0%vec0
           ele_start%map_ref_orb_in   = orb_start
           ele_start%map_ref_orb_out  = cp0%ref_orb_out
           ele_start%time_ref_orb_in  = orb_start
           ele_start%time_ref_orb_out = cp0%ref_orb_out        
-          call cache_this_point (branch, z_start, z1, z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
+          call cache_this_point (branch, z_start, z1, z_here, orb_start, orb_here, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
         enddo
       enddo outer_loop
     endif
@@ -469,29 +467,17 @@ do ir = 1, branch%n_ele_track
   ! All other elements
 
   if (ele%key == sbend$) then
-    theta = ele%value(ref_tilt_tot$) + ele%value(roll_tot$)
-    pt%g_x0 =  cos(theta) * ele%value(g$)
-    pt%g_y0 = -sin(theta) * ele%value(g$)
+    theta = ele%value(ref_tilt_tot$)
+    pt%g_x0 = cos(theta) * (ele%value(g$) + ele%value(dg$))
+    pt%g_y0 = sin(theta) * (ele%value(g$) + ele%value(dg$))
     g2 = ele%value(g$)**2
-    pt%dgx_dx = ele%value(k1$) * cos(2*theta)
-    pt%dgy_dx = ele%value(k1$) * sin(2*theta)
-    pt%dgx_dy = pt%dgy_dx
-    pt%dgy_dy = -pt%dgx_dx
     ! Edge effects for a bend. In this case we ignore any rolls.
-    call propagate_part_way (orbit(ir-1), branch%param, pt, ri_info, 0.0_rp)
-    rad_int1%i4a = -ri_info%eta_a(1) * g2 * tan(ele%value(e1$))
-    rad_int1%i4b = -ri_info%eta_b(1) * g2 * tan(ele%value(e1$))
-    call propagate_part_way (orbit(ir-1), branch%param, pt, ri_info, ll)
-    rad_int1%i4a = rad_int1%i4a - ri_info%eta_a(1) * g2 * tan(ele%value(e2$))
-    rad_int1%i4b = rad_int1%i4a - ri_info%eta_b(1) * g2 * tan(ele%value(e2$))
-  endif
-
-  if (ele%key == quadrupole$ .or. ele%key == sol_quad$) then
-    theta = ele%value(tilt_tot$)
-    pt%dgx_dx = ele%value(k1$) * cos(2*theta)
-    pt%dgy_dx = ele%value(k1$) * sin(2*theta)
-    pt%dgx_dy = pt%dgy_dx
-    pt%dgy_dy = -pt%dgx_dx
+    call propagate_part_way (orbit(ir-1), branch%param, pt, ri_info, 0.0_rp, runt)
+    rad_int1%i4a = -g2 * tan(ele%value(e1$)) * (ri_info%eta_a(1) * cos(theta) + ri_info%eta_a(3) * sin(theta))
+    rad_int1%i4b = -g2 * tan(ele%value(e1$)) * (ri_info%eta_b(1) * cos(theta) + ri_info%eta_b(3) * sin(theta))
+    call propagate_part_way (orbit(ir-1), branch%param, pt, ri_info, ll, runt)
+    rad_int1%i4a = rad_int1%i4a - g2 * tan(ele%value(e2$)) * (ri_info%eta_a(1) * cos(theta) + ri_info%eta_a(3) * sin(theta))
+    rad_int1%i4b = rad_int1%i4b - g2 * tan(ele%value(e2$)) * (ri_info%eta_b(1) * cos(theta) + ri_info%eta_b(3) * sin(theta))
   endif
 
   ! Integrate for quads, bends and nonzero kicks
@@ -706,12 +692,12 @@ if (bmad_com%debug) print '(a, f12.2)', 'radiation_integrals execution time:', t
 !------------------------------------------------------------------------
 contains
 
-subroutine cache_this_point (branch, z_start, z1, z_here, orb_start, ele2, mat6, vec0, c_pt, orb_end, ele_end)
+subroutine cache_this_point (branch, z_start, z1, z_here, orb_start, orb_here, ele2, mat6, vec0, c_pt, orb_end, ele_end)
 
 type (branch_struct) branch
 type (ele_struct) ele2
 type (rad_int_track_point_struct) :: c_pt
-type (coord_struct) orb_start, orb_end, orb_end1
+type (coord_struct) orb_start, orb_here, orb_end, orb_end1
 type (ele_struct) ele_end
 
 real(rp) mat6(6,6), vec0(6), z_start, z1, z_here
@@ -723,7 +709,7 @@ c_pt%s_body = z_here
 reuse_ele_end = ((ele2%key == wiggler$ .or. ele2%key == undulator$) .and. ele2%tracking_method == bmad_standard$)
 
 call twiss_and_track_intra_ele (ele2, branch%param, z_start, z_here, .true., .false., &
-                                                            orb_start, orb_end,  ele_start, ele_end, reuse_ele_end = reuse_ele_end)
+                                                            orb_here, orb_end,  ele_start, ele_end, reuse_ele_end = reuse_ele_end)
 
 call concat_transfer_mat (ele_end%mat6, ele_end%vec0, mat6, vec0, mat6, vec0)
 c_pt%mat6 = mat6
@@ -736,26 +722,23 @@ if ((ele2%key == wiggler$ .or. ele2%key == undulator$) .and. &
   call calc_wiggler_g_params (ele2, branch%param, z_here, orb_end, c_pt)
 
 else
-  call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1, .true., .false., orb_start, orb_end1, ele_start)
+  call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1, .true., .false., orb_here, orb_end1, ele_start)
   c_pt%g_x0 = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
   c_pt%g_y0 = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
-  c_pt%dgx_dx = 0
-  c_pt%dgx_dy = 0
-  c_pt%dgy_dx = 0
-  c_pt%dgy_dy = 0
 
-  if (key2 == quadrupole$ .or. key2 == sol_quad$) then
-    c_pt%dgx_dx =  ele2%value(k1$)
-    c_pt%dgy_dy = -ele2%value(k1$)
-
-  elseif (key2 == sbend$) then
-    c_pt%g_x0   =  c_pt%g_x0 + ele2%value(g$)
-    c_pt%dgx_dx =  ele2%value(k1$)
-    c_pt%dgy_dy = -ele2%value(k1$)
+  if (ele2%key == sbend$) then
+    c_pt%g_x0 = c_pt%g_x0 + (ele2%value(g$) + ele2%value(dg$)) * cos(ele%value(ref_tilt$))
+    c_pt%g_y0 = c_pt%g_y0 + (ele2%value(g$) + ele2%value(dg$)) * sin(ele%value(ref_tilt$))
   endif
 endif
 
-call multipole_ele_to_ab (ele2, .false., ix_pole_max, a_pole, b_pole)
+call multipole_ele_to_ab (ele2, .true., ix_pole_max, a_pole, b_pole, include_kicks = include_kicks$)
+
+c_pt%dgx_dx = 0
+c_pt%dgx_dy = 0
+c_pt%dgy_dx = 0
+c_pt%dgy_dy = 0
+
 do ip = 0, ix_pole_max
   if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
   call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, branch%param%particle, ele2%orientation, orb_end, kx, ky, dk)
