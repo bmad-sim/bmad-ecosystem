@@ -3817,10 +3817,10 @@ case ('spin')
           nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                ', tao_branch%spin%pol_limit_st
           nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DKM:               ', tao_branch%spin%pol_limit_dkm
           nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Partial Polarization Limits DKM:      ', tao_branch%spin%pol_limit_dkm_partial
-          nl=nl+1; write(lines(nl), '(a, f12.2, es12.4)')  'Polarization Time BKS (minutes, turns): ', &
-                                                                       1 / (60*tao_branch%spin%pol_rate_bks), r / tao_branch%spin%pol_rate_bks
-          nl=nl+1; write(lines(nl), '(a, f12.2, es12.4)')  'Depolarization Time (minutes, turns):   ', &
-                                                                       1 / (60*tao_branch%spin%depol_rate), r / tao_branch%spin%depol_rate
+          nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Polarization Time BKS (minutes, turns): ', &
+                                             real_str(1 / (60*tao_branch%spin%pol_rate_bks), 3), r / tao_branch%spin%pol_rate_bks
+          nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Depolarization Time (minutes, turns):   ', &
+                                             real_str(1 / (60*tao_branch%spin%depol_rate), 3), r / tao_branch%spin%depol_rate
         endif
       else
         nl=nl+1; lines(nl) = 'Polarization calc not valid.'
