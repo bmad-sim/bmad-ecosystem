@@ -95,6 +95,7 @@ real(rp) d_err(num_int)
 
 type (ri_array_struct) ri_array(0:4) ! ri_array(n) holds info for the integrals for a particular step.
 type (ele_struct), pointer :: ele
+type (ele_struct) runt
 type (coord_struct) start, end
 type (rad_int_track_point_struct) pt
 type (rad_int_info_struct) info
@@ -129,13 +130,7 @@ ll = ele%value(l$)
 start = info%orbit(ele%ix_ele-1)
 end   = info%orbit(ele%ix_ele)
 gamma = ele%value(e_tot$) / mass_of(param%particle)
-
-! Go to the local element frame if there has been caching.
-
-if (associated(info%cache_ele)) then
-  call offset_particle (ele, param, set$, start, set_hvkicks = .false.)
-  call offset_particle (ele, param, set$, end, set_hvkicks = .false., s_pos = ll)
-endif
+runt%ix_ele = invalid$
 
 ! For j >= 3 we test if the integral calculation has converged.
 ! Exception: Since wigglers have a planar or helical field, the calculation can 
@@ -174,19 +169,19 @@ do j = 1, j_max
 
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
-    call propagate_part_way (start, param, pt, info, z_pos)
+    call propagate_part_way (start, param, pt, info, z_pos, runt)
     i_sum(1) = i_sum(1) + info%g_x * (info%eta_a(1) + info%eta_b(1)) + &
-                  info%g_y * (info%eta_a(3) + info%eta_b(3))
+                          info%g_y * (info%eta_a(3) + info%eta_b(3))
     i_sum(2) = i_sum(2) + info%g2
     i_sum(3) = i_sum(3) + info%g2 * info%g
     i_sum(4) = i_sum(4) + info%g2 * (info%g_x * info%eta_a(1) + info%g_y * info%eta_a(3)) + &
-                  info%dg2_x * info%eta_a(1) + info%dg2_y * info%eta_a(3)
+                                   info%dg2_x * info%eta_a(1) + info%dg2_y * info%eta_a(3)
     i_sum(5) = i_sum(5) + info%g2 * (info%g_x * info%eta_b(1) + info%g_y * info%eta_b(3)) + &
-                  info%dg2_x * info%eta_b(1) + info%dg2_y * info%eta_b(3)
+                                   info%dg2_x * info%eta_b(1) + info%dg2_y * info%eta_b(3)
     i_sum(6) = i_sum(6) + info%g2 * info%g * (info%a%gamma * info%a%eta**2 + &
-                  2 * info%a%alpha * info%a%eta * info%a%etap + info%a%beta * info%a%etap**2)
+                      2 * info%a%alpha * info%a%eta * info%a%etap + info%a%beta * info%a%etap**2)
     i_sum(7) = i_sum(7) + info%g2 * info%g * (info%b%gamma * info%b%eta**2 + &
-                  2 * info%b%alpha * info%b%eta * info%b%etap + info%b%beta * info%b%etap**2)
+                      2 * info%b%alpha * info%b%eta * info%b%etap + info%b%beta * info%b%etap**2)
     i_sum(8) = i_sum(8) + gamma * info%g
     i_sum(9) = i_sum(9) + info%g2 * info%g * info%b%beta
   enddo
@@ -264,27 +259,26 @@ end subroutine qromb_rad_int
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-subroutine propagate_part_way (orb_start, param, pt, info, z_here)
+subroutine propagate_part_way (orb_start, param, pt, info, z_here, runt)
 
 implicit none
 
 type (coord_struct) orb, orb_start, orb0, orb1, orb_end, orb_end1
 type (ele_struct), pointer :: ele0, ele, field_ele
-type (ele_struct), save :: runt, ele_end
-type (twiss_struct) a0, b0, a1, b1
+type (ele_struct) :: runt, ele_end
+type (twiss_struct) a0, b0, a1, b1, x0, y0, x1, y1
 type (rad_int_info_struct) info
 type (rad_int_track_point_struct) pt, pt0, pt1
 type (lat_param_struct) param
 
 real(rp) z_here, v(4,4), v_inv(4,4), s1, s2, error
 real(rp) f0, f1, del_z, c, s, x, y
-real(rp) eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
-real(rp) dz, z1, tilt
+real(rp) dz, z1
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky
+real(rp) eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
 
 integer i0, i1, tm_saved, m6cm_saved
 integer i, ix, ip, j_loop, n_pt, n, n1, n2, ix_pole_max
-integer, save :: ix_ele = -1
 
 logical is_special_wiggler
 
@@ -293,9 +287,9 @@ logical is_special_wiggler
 ele0 => info%branch%ele(info%ele%ix_ele-1)
 ele  => info%ele
 
-if (ix_ele /= info%ele%ix_ele) then
+if (runt%ix_ele /= info%ele%ix_ele) then
   runt = ele
-  ix_ele = info%ele%ix_ele
+  runt%ix_ele = info%ele%ix_ele
 endif
 
 !--------------------------------------
@@ -350,24 +344,6 @@ if (associated(info%cache_ele)) then
   info%g2 = info%g_x**2 + info%g_y**2
   info%g  = sqrt(info%g2)
 
-  ! Now convert the g calc back to lab coords.
-  
-  if (ele%key == sbend$) then
-    tilt = ele%value(ref_tilt_tot$) + ele%value(roll_tot$)  ! Small angle approx.
-  else
-    tilt = ele%value(tilt_tot$) 
-  endif
-
-  if (tilt /= 0) then
-    c = cos(tilt); s = sin(tilt) 
-    x = info%g_x; y = info%g_y
-    info%g_x = c * x - s * y
-    info%g_y = s * x + c * y
-    x = info%dg2_x; y = info%dg2_y
-    info%dg2_x = c * x - s * y
-    info%dg2_y = s * x + c * y
-  endif
-
   ! Interpolate the dispersions
 
   runt%mat6 = pt0%mat6
@@ -375,24 +351,28 @@ if (associated(info%cache_ele)) then
   runt%map_ref_orb_in  = pt0%ref_orb_in
   runt%map_ref_orb_out = pt0%ref_orb_out
 
-  call mat6_add_offsets (runt, param)  ! back to lab coords
   call twiss_propagate1 (ele0, runt)
   a0 = runt%a; b0 = runt%b
+
   call make_v_mats (runt, v, v_inv)
   eta_a0 = matmul(v, [runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp    ])
   eta_b0 = matmul(v, [0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap ])
+
+  !
 
   runt%mat6 = pt1%mat6
   runt%vec0 = pt1%vec0
   runt%map_ref_orb_in  = pt1%ref_orb_in
   runt%map_ref_orb_out = pt1%ref_orb_out
 
-  call mat6_add_offsets (runt, param)  ! back to lab coords
   call twiss_propagate1 (ele0, runt)
   a1 = runt%a; b1 = runt%b
+
   call make_v_mats (runt, v, v_inv)
   eta_a1 = matmul(v, [runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp    ])
   eta_b1 = matmul(v, [0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap ])
+
+  !
 
   info%a%beta  = a0%beta  * f0 + a1%beta  * f1
   info%a%alpha = a0%alpha * f0 + a1%alpha * f1
@@ -410,7 +390,6 @@ if (associated(info%cache_ele)) then
   info%eta_b = eta_b0 * f0 + eta_b1 * f1
 
   return
-
 endif
 
 !--------------------------------------
@@ -465,10 +444,9 @@ else
   call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1, .false., .false., orb_end, orb_end1)
   info%g_x = pt%g_x0 - (orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
   info%g_y = pt%g_y0 - (orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
+  info%dg2_x = 0
+  info%dg2_y = 0
 endif
-
-info%dg2_x = 2 * (info%g_x * pt%dgx_dx + info%g_y * pt%dgy_dx)
-info%dg2_y = 2 * (info%g_x * pt%dgx_dy + info%g_y * pt%dgy_dy) 
 
 info%g2 = info%g_x**2 + info%g_y**2
 info%g = sqrt(info%g2)
@@ -476,7 +454,7 @@ info%g = sqrt(info%g2)
 ! Add in multipole gradient
 
 if (.not. is_special_wiggler) then
-  call multipole_ele_to_ab (ele, .true., ix_pole_max, a_pole, b_pole)
+  call multipole_ele_to_ab (ele, .true., ix_pole_max, a_pole, b_pole, include_kicks = include_kicks$)
   do ip = 0, ix_pole_max
     if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
     call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, param%particle, ele%orientation, orb_end, kx, ky, dk)
