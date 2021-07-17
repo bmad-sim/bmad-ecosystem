@@ -19,7 +19,7 @@
 
 function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial) result (dn_dpz)
 
-use sim_utils
+use bmad_routine_interface, dummy => spin_dn_dpz_from_mat8
 use eigen_mod
 use f95_lapack
 

@@ -19,21 +19,21 @@
 
 function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial) result (dn_dpz)
 
-use sim_utils
+use bmad_routine_interface, dummy => spin_dn_dpz_from_qmap
 use eigen_mod
 use f95_lapack
 
 implicit none
 
 real(rp), optional :: dn_dpz_partial(3,3)
-real(rp) orb_mat(6,6), q_map(0:3,0:6), dn_dpz(3)
+real(rp) orb_mat(6,6), q_map(0:3,0:6), dn_dpz(3), n0(3)
 complex(rp) n_eigen(6,3), vv(6,6), aa(6,1)
 complex(rp) eval(6), evec(6,6)
 integer k, kk, pinfo, ipiv6(6)
 
 !
 
-call spin_mat_to_eigen (orb_mat, q_map, eval, evec, n_eigen)
+call spin_mat_to_eigen (orb_mat, q_map, eval, evec, n0, n_eigen)
 
 vv = transpose(evec)
 aa(:,1) = [0, 0, 0, 0, 0, 1]
