@@ -2013,9 +2013,9 @@ case ('s')
       ix = index(curve%legend_text, '[')
       if (ix == 0) ix = len_trim(curve%legend_text) + 2
       str = ''
-      if (curve%g%orbit%x /= 0) str = trim(str) // ', x=' // real_str(curve%g%orbit%x, 5)
-      if (curve%g%orbit%y /= 0) str = trim(str) // ', y=' // real_str(curve%g%orbit%y, 5)
-      if (curve%g%orbit%t /= 0) str = trim(str) // ', t=' // real_str(curve%g%orbit%t, 5)
+      if (curve%orbit%x /= 0) str = trim(str) // ', x=' // real_str(curve%orbit%x, 5)
+      if (curve%orbit%y /= 0) str = trim(str) // ', y=' // real_str(curve%orbit%y, 5)
+      if (curve%orbit%t /= 0) str = trim(str) // ', t=' // real_str(curve%orbit%t, 5)
       if (len_trim(str) == 0) then
         curve%legend_text = curve%legend_text(:ix-1) // '[x=y=t=0]'
       else
@@ -2604,8 +2604,8 @@ case ('t', 'tt')
 case default
   select case (data_type_select)
   case ('b0_field', 'b0_curve', 'b0_div', 'e0_field', 'e0_curve', 'e0_div')
-    orbit%vec(1:5:2) = [curve%g%orbit%x, curve%g%orbit%y, 0.0_rp]
-    orbit%t = curve%g%orbit%t
+    orbit%vec(1:5:2) = [curve%orbit%x, curve%orbit%y, 0.0_rp]
+    orbit%t = curve%orbit%t
   end select
 
   value = tao_param_value_at_s (data_type, ele, orbit, err, why_invalid)

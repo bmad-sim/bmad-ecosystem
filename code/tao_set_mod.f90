@@ -1440,6 +1440,16 @@ case ('hist%width')
   this_curve%hist%number = 0
   call tao_set_real_value (this_curve%hist%width, component, value_str, err, dflt_uni = i_uni)  
   
+case ('orbit')
+  select case (component)
+  case ('orbit%x')
+    call tao_set_real_value (this_curve%orbit%x, component, value_str, err, dflt_uni = i_uni)
+  case ('orbit%y')
+    call tao_set_real_value (this_curve%orbit%y, component, value_str, err, dflt_uni = i_uni)
+  case ('orbit%t')
+    call tao_set_real_value (this_curve%orbit%t, component, value_str, err, dflt_uni = i_uni)
+  end select
+
 case ('y_axis_scale_factor')
   call tao_set_real_value (this_curve%y_axis_scale_factor, component, value_str, err, dflt_uni = i_uni)
 
@@ -1771,15 +1781,6 @@ case ('y2_mirrors_y')
   call tao_set_logical_value(this_graph%y2_mirrors_y, component, value, error)
 case ('x_axis_scale_factor')
   call tao_set_real_value(this_graph%x_axis_scale_factor, component, value, error, dflt_uni = u%ix_uni)
-case ('orbit')
-  select case (component)
-  case ('orbit%x')
-    call tao_set_real_value (this_graph%orbit%x, component, value, error)
-  case ('orbit%y')
-    call tao_set_real_value (this_graph%orbit%y, component, value, error)
-  case ('orbit%t')
-    call tao_set_real_value (this_graph%orbit%t, component, value, error)
-  end select
 case default
   call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
   return

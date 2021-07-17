@@ -67,10 +67,11 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
-type (tao_data_struct), pointer :: d_ptr
 type (tao_d2_data_struct), allocatable :: d2_temp(:)
 type (tao_d1_data_struct), allocatable :: d1_temp(:)
+type (tao_data_struct), pointer :: data, d_ptr
 type (tao_data_struct), allocatable :: d_temp(:)
+type (tao_data_struct), target :: datum
 type (tao_v1_var_array_struct), allocatable, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr, var
@@ -93,7 +94,6 @@ type (tao_plot_region_struct), pointer :: region
 type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d1_data_array_struct), allocatable :: d1_array(:)
 type (tao_data_array_struct), allocatable :: d_array(:)
-type (tao_data_struct), pointer :: data
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
@@ -158,7 +158,11 @@ real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 real(rp) mat6(6,6), vec0(6), array(7)
 real(rp), allocatable :: real_arr(:), value_arr(:)
 
-integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, data_type
+type (tao_spin_map_struct), pointer :: sm
+real(rp) n0(3), qs, q, dq(3), xi_res_eigen(3), xi_res_gv1(3), xi_res_gv2(3)
+complex(rp) eval(6), evec(6,6), n_eigen(6,3)
+
+integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, data_type
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type, loc
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
 integer line_width, n_bend, ic, num_ele, n_arr, n_add, n1, n2, i0, i1, i2
@@ -243,7 +247,8 @@ call match_word (cmd, [character(40) :: &
           'plot_plot_manage', 'plot_graph_manage', 'plot_curve_manage', &
           'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'shape_list', &
           'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', 'shape_set', &
-          'show', 'species_to_int', 'species_to_str', 'spin_polarization', 'super_universe', 'twiss_at_s', 'universe', &
+          'show', 'species_to_int', 'species_to_str', 'spin_polarization', 'spin_resonance', 'super_universe', &
+          'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
           'wave'], ix, matched_name = command)
 
@@ -5454,9 +5459,9 @@ case ('plot_plot_manage')
 
   if (n == -1) then
     ix = p%ix_plot
-    n0 = size(s%plot_page%template)
-    s%plot_page%template(ix:n0-1) = s%plot_page%template(ix+1:n0)
-    do i = ix, n0
+    n1 = size(s%plot_page%template)
+    s%plot_page%template(ix:n1-1) = s%plot_page%template(ix+1:n1)
+    do i = ix, n1
       s%plot_page%template(i)%ix_plot = i
     enddo
     return
@@ -5522,10 +5527,10 @@ case ('plot_curve_manage')
   g => graphs(1)%g
 
   if (allocated(g%curve)) then
-    n0 = size(g%curve)
+    n1 = size(g%curve)
     call move_alloc(g%curve, curve_temp)
   else
-    n0 = 0
+    n1 = 0
   endif
 
   if (.not. is_integer(name1(2))) then
@@ -5533,21 +5538,21 @@ case ('plot_curve_manage')
     return
   endif
   read(name1(2), *) n
-  if (n > n0 + 1) then
+  if (n > n1 + 1) then
     call invalid ('Curve index out of range: ' // name1(2))
     return
   endif
 
-  if (n == n0 + 1) then
+  if (n == n1 + 1) then
     allocate (g%curve(n))
-    if (n0 /= 0) g%curve(1:n0) = curve_temp
+    if (n1 /= 0) g%curve(1:n1) = curve_temp
     g%curve(n)%name = name1(3)
     g%curve(n)%g => g
 
   else  ! Remove curve
-    allocate (g%curve(n0-1))
+    allocate (g%curve(n1-1))
     g%curve(1:n-1) = curve_temp(1:n-1)
-    g%curve(n:n0-1) = curve_temp(n+1:n0)
+    g%curve(n:n1-1) = curve_temp(n+1:n1)
   endif
 
 !%% plot_graph_manage -----------------------
@@ -5598,10 +5603,10 @@ case ('plot_graph_manage')
   p => plots(1)%p
 
   if (allocated(p%graph)) then
-    n0 = size(p%graph)
+    n1 = size(p%graph)
     call move_alloc(p%graph, graph_temp)
   else
-    n0 = 0
+    n1 = 0
   endif
 
   if (.not. is_integer(name1(2))) then
@@ -5609,21 +5614,21 @@ case ('plot_graph_manage')
     return
   endif
   read(name1(2), *) n
-  if (n > n0 + 1) then
+  if (n > n1 + 1) then
     call invalid ('Graph index out of range: ' // name1(2))
     return
   endif
 
-  if (n == n0 + 1) then
+  if (n == n1 + 1) then
     allocate (p%graph(n))
-    if (n0 /= 0) p%graph(1:n0) = graph_temp
+    if (n1 /= 0) p%graph(1:n1) = graph_temp
     p%graph(n)%name = name1(3)
     p%graph(n)%p => p
 
   else  ! Remove graph
-    allocate (p%graph(n0-1))
+    allocate (p%graph(n1-1))
     p%graph(1:n-1) = graph_temp(1:n-1)
-    p%graph(n:n0-1) = graph_temp(n+1:n0)
+    p%graph(n:n1-1) = graph_temp(n+1:n1)
   endif
 
 !%% plot_line -----------------------
@@ -6435,12 +6440,12 @@ case ('species_to_str')
   nl=incr(nl); write (li(nl), '(a)') trim(name)
 
 !%% spin_polarization -----------------------
-! Spin information
+! Spin polarization information
 !
 ! Notes
 ! -----
 ! Command syntax:
-!   python spin {ix_uni}@{ix_branch}|{which}
+!   python spin_polarization {ix_uni}@{ix_branch}|{which}
 ! where {which} is one of:
 !   model
 !   base
@@ -6492,6 +6497,49 @@ case ('spin_polarization')
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm_partial_c;REAL;F;',  tao_branch%spin%pol_limit_dkm_partial(3)
   nl=incr(nl); write (li(nl), rmt) 'polarization_rate_bks;REAL;F;',             tao_branch%spin%pol_rate_bks
   nl=incr(nl); write (li(nl), rmt) 'depolarization_rate;REAL;F;',               tao_branch%spin%depol_rate
+
+!%% spin_resonance -----------------------
+! Spin resonance information
+!
+!----
+! Command syntax:
+!   python spin_resonance {ix_uni}@{ix_branch}|{which}
+!
+! Parameters
+! ----------
+! ix_uni : default=1
+! ix_branch : default=0
+! which : default=model
+
+case ('spin_resonance')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err); if (err) return
+  ix_branch = parse_branch(line, .false., err); if (err) return
+  tao_branch => tao_lat%tao_branch(ix_branch)
+  branch => tao_lat%lat%branch(ix_branch)
+
+  datum%ix_branch = branch%ix_branch
+  sm => datum%spin_map
+  call tao_spin_matrix_calc (datum, u, 0, branch%n_ele_track)
+  call spin_mat_to_eigen (sm%q_map%mat, sm%q_map%q, eval, evec, n0, n_eigen)
+  if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
+
+  qs = branch%param%spin_tune/twopi
+  do i = 1, 3
+    j = 2 * i - 1
+    q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
+    dq(i) = abs((q-qs) - nint(q-qs))
+    xi_res_eigen(i) = dq(i) * sqrt(2.0_rp)*norm2(abs(n_eigen(j,:)))
+    xi_res_gv1(i) = abs(dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+    xi_res_gv2(i) = abs(dot_product(evec(j+1,:), sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+  enddo
+
+  nl=incr(nl); write (li(nl), rmt) 'spin_tune;REAL;F;',   qs
+  nl=incr(nl); write (li(nl), amt) 'dq;REAL_ARR;F',   (';', re_str(dq(k), 6), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'xi_res_eigen;REAL_ARR;F',   (';', re_str(xi_res_eigen(k), 6), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'xi_res_gv1;REAL_ARR;F',   (';', re_str(xi_res_gv1(k), 6), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'xi_res_gv2;REAL_ARR;F',   (';', re_str(xi_res_gv2(k), 6), k = 1, 3)
 
 !%% super_universe -----------------------
 ! Super_Universe information

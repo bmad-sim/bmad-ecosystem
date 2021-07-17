@@ -163,7 +163,7 @@ type tao_histogram_struct
 end type
 
 ! The tao_curve_orbit_struct is used for field plotting along a line with constant transverse offset
-type tao_graph_orbit_struct
+type tao_curve_orbit_struct
   real(rp) :: x = 0, y = 0       ! Transverse offset
   real(rp) :: t = 0              ! Time
 end type
@@ -201,6 +201,7 @@ type tao_curve_struct
   real(rp) :: z_color0 = 0, z_color1 = 0 ! Min and max values for mapping z-axis to color.
   type (qp_line_struct) line             ! Line attributes
   type (qp_symbol_struct) symbol         ! Symbol attributes
+  type (tao_curve_orbit_struct) orbit    ! Used for E/B field plotting.
   integer :: ix_universe = -1            ! Universe where data is. -1 => use s%global%default_universe
   integer :: symbol_every = 1            ! Symbol every how many points.
   integer :: ix_branch = 0
@@ -253,7 +254,6 @@ type tao_graph_struct
   type (tao_floor_plan_struct) :: floor_plan = tao_floor_plan_struct()
   type (qp_point_struct) text_legend_origin
   type (qp_point_struct) curve_legend_origin
-  type (tao_graph_orbit_struct) orbit               ! Used for E/B field plotting.
   type (qp_axis_struct) x                           ! X-axis parameters.
   type (qp_axis_struct) y                           ! Y-axis attributes.
   type (qp_axis_struct) x2                          ! X2-axis attributes (Only used for floor_plan).
