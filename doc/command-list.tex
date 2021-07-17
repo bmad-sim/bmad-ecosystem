@@ -3293,6 +3293,7 @@ Format:
   write ps-l ...                  ! \sref{s:write.ps}
   write ptc ...                   ! \sref{s:write.ptc}
   write sad ...                   ! \sref{s:write.sad}
+  write spin_mat8                 ! \sref{s:write.spin.mat8}
   write variable ...              ! \sref{s:write.variable}
   write xsif ...                  ! \sref{s:write.xsif}
 \end{example}
@@ -3587,7 +3588,7 @@ double the size, etc.
 
 Syntax:
 \begin{example}
-    write ptc \{-all\} \{-old\} \{-branch <name_or_index\} \{<file_name>\}
+  write ptc \{-all\} \{-old\} \{-branch <name_or_index\} \{<file_name>\}
 \end{example}
 
 The default file name is \vn{ptc.flatfile}
@@ -3616,10 +3617,34 @@ has been used to setup PTC.
 
 Syntax:
 \begin{example}
-    write sad \{<file_name>\}  ! Write a SAD lattice file of the model
+  write sad \{<file_name>\}  ! Write a SAD lattice file of the model
 \end{example}
 
 The default file name is \vn{lat_\#.sad} where \vn{\#} is replaced by the universe number. 
+
+%% write spin_mat8 --------------------------------------------------------------
+
+\subsection{write spin_mat8}
+\label{s:write.spin.mat8}
+
+The \vn{write spin_mat8} writes the 8x8 matrices spin/orbit transport matrices, element-by-element, for
+a given branch of the model lattice of the default universe.
+Syntax:
+\begin{example}
+  write spin_mat8 -l_axis <lx> <ly> <lz> \{-branch <name_or_index>\} \{<file_name>\}
+\end{example}
+See the \bmad manual for details on how the 8x8 spin/orbit matrices are defined. 
+
+The default file name if \vn{<file_name>} is not present is \vn{spin_mat8.dat}.
+
+The computation starts at the beginning of the lattice. The $n_0$-axis is computed by \bmad. The
+$l_0$-axis must be given in the \vn{write spin_mat8} command.  The $m_0$-axis will be computed so
+that $(l_0, n_0, m_0)$ form a right handed coordinate system.
+
+Example:
+\begin{example}
+  write spin -l 1 0 0    ! l-axis is (1, 0, 0).
+\end{example}
 
 %% write variable --------------------------------------------------------------
 
@@ -3629,7 +3654,7 @@ The default file name is \vn{lat_\#.sad} where \vn{\#} is replaced by the univer
 The \vn{write variable} command writes \tao variable values to a file or files.
 Syntax:
 \begin{example}
-    write variable \{-good_var_only\} \{-tao_format\} \{<file_name>\} 
+  write variable \{-good_var_only\} \{-tao_format\} \{<file_name>\} 
 \end{example}
 This is useful, for example, for recording changes when a lattice is optimized.
 

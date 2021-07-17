@@ -106,6 +106,7 @@ type tao_curve_input
   type (qp_line_struct) :: line = qp_line_struct()
   type (qp_symbol_struct) :: symbol = qp_symbol_struct()
   type (tao_histogram_struct) :: hist = tao_histogram_struct()
+  type (tao_curve_orbit_struct) :: orbit = tao_curve_orbit_struct()
 end type
 
 type tao_graph_input
@@ -143,7 +144,6 @@ type tao_graph_input
   type (qp_axis_struct) :: y = qp_axis_struct()
   type (qp_axis_struct) :: x2 = qp_axis_struct()
   type (qp_axis_struct) :: y2 = qp_axis_struct()
-  type (tao_graph_orbit_struct) :: orbit = tao_graph_orbit_struct()
 end type 
 
 type tao_plot_input

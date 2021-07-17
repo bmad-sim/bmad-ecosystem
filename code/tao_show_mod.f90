@@ -231,7 +231,7 @@ type (show_lat_column_info_struct) col_info(60)
 type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z1, z2, z_in, s_pos, dt, angle, r
-real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2, qs, q, x
+real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2, qs, q, dq, x
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
 real(rp), allocatable :: value(:)
@@ -880,6 +880,14 @@ case ('curve')
         nl=nl+1; write(lines(nl), imt)  'hist%number             = ', c1%hist%number
       endif
     endif
+
+  ! Field at constant offset parameters
+  if (substr(c1%data_type, 1, 3) == 'b0_' .or. substr(c1%data_type, 1, 3) == 'e0_') then
+    nl=nl+1; write(lines(nl), rmt)      'orbit%x                 = ', c1%orbit%x
+    nl=nl+1; write(lines(nl), rmt)      'orbit%y                 = ', c1%orbit%y
+    nl=nl+1; write(lines(nl), rmt)      'orbit%t                 = ', c1%orbit%t
+  endif
+
 
     return
   endif
@@ -1967,14 +1975,6 @@ case ('graph')
   ! Standard
 
   g => graph(1)%g
-
-  found = .false.
-  if (allocated(g%curve)) then
-    do i = 1, size(g%curve)
-      if (substr(g%curve(i)%data_type, 1, 3) == 'b0_' .or. substr(g%curve(i)%data_type, 1, 3) == 'e0_') found = .true.
-    enddo
-  endif
-
   fmt = '(a, f6.3)'
 
   if (associated(g%p%r)) then
@@ -2067,12 +2067,6 @@ case ('graph')
   nl=nl+1; write(lines(nl), lmt)  'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
   nl=nl+1; write(lines(nl), lmt)  'allow_wrap_around                = ', g%allow_wrap_around
 
-  ! Field at constant offset parameters
-  if (found) then
-    nl=nl+1; write(lines(nl), rmt)  'orbit%x                          = ', g%orbit%x
-    nl=nl+1; write(lines(nl), rmt)  'orbit%y                          = ', g%orbit%y
-    nl=nl+1; write(lines(nl), rmt)  'orbit%t                          = ', g%orbit%t
-  endif
 
   if (allocated(g%curve)) then
     nl=nl+1; lines(nl) = '                         |          Line           |          Symbols'
@@ -3884,7 +3878,6 @@ case ('spin')
       sm%axis_input%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin
     endif
 
-
     if (show_mat) then
       if (all(sm%axis_input%n0 == 0)) then
         nl=nl+1; lines(nl) = 'NO N0 SPIN AXIS COMPUTED.' 
@@ -3919,9 +3912,10 @@ case ('spin')
       enddo
     endif
 
+    call spin_mat_to_eigen (sm%q_map%mat, sm%q_map%q, eval, evec, n0, n_eigen)
+    if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
+
     if (show_q) then
-      call spin_mat_to_eigen (sm%q_map%mat, sm%q_map%q, eval, evec, n0, n_eigen)
-      if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order' 
       nl=nl+1; write (lines(nl), '(14x, a, 7x, 6(2x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
@@ -3943,16 +3937,17 @@ case ('spin')
 
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Resonance strengths:'
-      nl=nl+1; lines(nl) = '            Tune    Xi_res(eigen)   Xi_res(G.v1)   Xi_res(G.v2)'
+      nl=nl+1; lines(nl) = '            Tune        |Q-Qs|  Xi_res(eigen)   Xi_res(G.v1)   Xi_res(G.v2)'
       qs = branch%param%spin_tune/twopi
       do i = 1, 3
         j = 2 * i - 1
         q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
+        dq = abs((q-qs) - nint(q-qs))
         !!x = abs((q-qs) - nint(q-qs)) * (norm2(real(n_eigen(j,:))) + norm2(imag(n_eigen(j,:))))
-        x = abs((q-qs) - nint(q-qs)) * sqrt(2.0_rp)*norm2(abs(n_eigen(j,:)))
+        x = dq * sqrt(2.0_rp)*norm2(abs(n_eigen(j,:)))
         z1 = abs(dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
         z2 = abs(dot_product(evec(j+1,:), sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
-        nl=nl+1; write (lines(nl), '(5x, a, f12.6, 3es15.4)') abc_name(i), q, x, z1, z2
+        nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 3es15.4)') abc_name(i), q, dq, x, z1, z2
       enddo
       nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
     endif

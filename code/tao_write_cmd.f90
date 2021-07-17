@@ -36,13 +36,17 @@ type (coord_struct), pointer :: p
 type (tao_d2_data_struct), pointer :: d2
 type (tao_d1_data_struct), pointer :: d1
 type (tao_data_struct), pointer :: dat
+type (tao_data_struct), target :: datum
 type (tao_v1_var_struct), pointer :: v1
+type (tao_spin_map_struct), pointer :: sm
 
 real(rp) scale, mat6(6,6)
 
 character(*) what
+character(1) delim
 character(20) action, name, lat_type, which, last_col, b_name
 character(40), allocatable :: z(:)
+character(100) str
 character(200) line, switch, header1, header2
 character(200) file_name0, file_name, what2
 character(200) :: word(12)
@@ -55,7 +59,7 @@ integer i_min, i_max, n_len, len_d_type, ix_branch
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
-logical write_high_lim, write_low_lim, tao_format, eq_d_type
+logical write_high_lim, write_low_lim, tao_format, eq_d_type, delim_found
 
 !
 
@@ -70,7 +74,8 @@ call match_word (action, [character(20):: &
               'hard', 'gif', 'ps', 'variable', 'bmad_lattice', 'derivative_matrix', 'digested', &
               'curve', 'mad_lattice', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', &
               'mad8_lattice', 'madx_lattice', 'pdf', 'pdf-l', 'opal_lattice', '3d_model', 'gif-l', &
-              'ptc', 'sad_lattice', 'blender', 'namelist', 'xsif_lattice', 'matrix'], ix, .true., matched_name = action)
+              'ptc', 'sad_lattice', 'spin_mat8', 'blender', 'namelist', 'xsif_lattice', 'matrix'], &
+              ix, .true., matched_name = action)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED "WHAT": ' // action)
@@ -79,6 +84,8 @@ elseif (ix < 0) then
   call out_io (s_error$, r_name, 'AMBIGUOUS "WHAT": ' // action)
   return
 endif
+
+iu = lunget()
 
 select case (action)
 
@@ -136,8 +143,6 @@ case ('beam')
     call out_io (s_error$, r_name, 'YOU NEED TO SPECIFY "-at".')
     return
   endif 
-
-  iu = lunget()
 
   uni_loop: do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
@@ -253,8 +258,6 @@ case ('covariance_matrix')
   endif
 
   call fullfilename (file_name, file_name)
-
-  iu = lunget()
   open (iu, file = file_name)
 
   write (iu, '(i7, 2x, a)') count(s%var%useit_opt), '! n_var'
@@ -300,7 +303,6 @@ case ('curve')
   call fullfilename (file_name, file_name)
 
   c => curve(1)%c
-  iu = lunget()
   ok = .false.
 
   if (c%g%type == "phase_space") then
@@ -364,8 +366,6 @@ case ('derivative_matrix')
   file_name = word(1)
   if (file_name == ' ') file_name = 'derivative_matrix.dat'
   call fullfilename (file_name, file_name)
-
-  iu = lunget()
   open (iu, file = file_name)
 
   write (iu, *) count(s%var%useit_opt), '  ! n_var'
@@ -524,7 +524,6 @@ case ('matrix')
   endif
 
   if (file_name == '') file_name = 'matrix.dat'
-  iu = lunget()
   open (iu, file = file_name)
 
 
@@ -586,7 +585,7 @@ case ('namelist')
   endif
 
   if (file_name == '') file_name = 'tao.namelist'
-  iu = lunget()
+
   if (append) then
     open (iu, file = file_name, access = 'append')
   else
@@ -747,8 +746,6 @@ case ('namelist')
       write (iu, '(a, i0, a, i0, 2a)') '  place(', j, ') = @R', r%plot%ix_plot, ', ',  r%plot%name 
     enddo
     write (iu, '(a, /)') '/'
-
-
 
   !--------------------------------------------
   ! namelist -variable
@@ -970,7 +967,71 @@ case ('ptc')
   end select
 
 !---------------------------------------------------
-! variables
+! spin
+
+case ('spin_mat8')
+
+  u => tao_pointer_to_universe(-1)
+  branch => u%model%lat%branch(0)
+  file_name = ''
+  sm => datum%spin_map
+
+  do 
+    call tao_next_switch (what2, [character(16):: '-l_axis'], .true., switch, err, ix_w2)
+    if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+    case ('-l_axis')
+      read (what2, *, iostat = ios) sm%axis_input%n0
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'CANNOT PARSE L-AXIS: ' // what2)
+        return
+      endif
+      call word_read(what2, ' ,', str, ix, delim, delim_found, what2) ! Strip Axis from what2
+      call word_read(what2, ' ,', str, ix, delim, delim_found, what2)
+      call word_read(what2, ' ,', str, ix, delim, delim_found, what2)
+
+    case default
+      if (file_name /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name = switch
+    end select
+  enddo
+
+  if (file_name == '') file_name = 'spin_mat8.dat'
+  call fullfilename (file_name, file_name)
+  open (iu, file = file_name)
+
+  !
+
+  sm%axis_input%n0 = u%model%tao_branch(branch%ix_branch)%orbit(0)%spin
+  datum%ix_branch = branch%ix_branch
+
+  do ie = 1, branch%n_ele_track
+    ele => branch%ele(ie)
+    call tao_spin_matrix_calc (datum, u, ie-1, ie)
+
+    write (iu, *)
+    write (iu, '(i6, 2x, a, a16, f16.9)') ie, ele%name, key_name(ele%key), ele%s
+    write (iu, '(2(a, 3f14.8))') 'l_start: ', sm%axis0%l,  '  l_end: ', sm%axis1%l
+    write (iu, '(2(a, 3f14.8))') 'n0_start:', sm%axis0%n0, '  n0_end:', sm%axis1%n0
+    write (iu, '(2(a, 3f14.8))') 'm_start: ', sm%axis0%m,  '  m_end: ', sm%axis1%m
+    do i = 1, 8
+      write(iu, '(5x, a)') reals_to_table_row(sm%mat8(i,:), 13, 7)
+    enddo
+
+    sm%axis_input%n0 = sm%axis1%n0
+    sm%axis_input%l  = sm%axis1%l
+    sm%axis_input%m  = sm%axis1%m
+  enddo
+
+  call out_io (s_info$, r_name, 'Written: ' // file_name)
+
+!---------------------------------------------------
+! variable
 
 case ('variable')
   good_opt_only = .false.
