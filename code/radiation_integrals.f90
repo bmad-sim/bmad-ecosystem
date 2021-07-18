@@ -197,7 +197,6 @@ ri_info%orbit => orbit
 m65 = 0
 mode%rf_voltage = 0
 int_tot = rad_int1_struct()
-runt%ix_ele = invalid$
 
 bmad_com_save = bmad_com
 bmad_com%convert_to_kinetic_momentum = .true.
@@ -467,6 +466,7 @@ do ir = 1, branch%n_ele_track
   ! All other elements
 
   if (ele%key == sbend$) then
+    call transfer_ele(ele, runt)
     theta = ele%value(ref_tilt_tot$)
     pt%g_x0 = cos(theta) * (ele%value(g$) + ele%value(dg$))
     pt%g_y0 = sin(theta) * (ele%value(g$) + ele%value(dg$))
