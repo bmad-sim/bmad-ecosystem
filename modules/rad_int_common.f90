@@ -130,7 +130,7 @@ ll = ele%value(l$)
 start = info%orbit(ele%ix_ele-1)
 end   = info%orbit(ele%ix_ele)
 gamma = ele%value(e_tot$) / mass_of(param%particle)
-runt%ix_ele = invalid$
+call transfer_ele (ele, runt)
 
 ! For j >= 3 we test if the integral calculation has converged.
 ! Exception: Since wigglers have a planar or helical field, the calculation can 
