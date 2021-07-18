@@ -81,17 +81,14 @@ endif
 ! Additionally, if there is an open failure and no lattice file has been specified
 ! by the user, then there is nothing to do and is considered fatal.
 
-err_flag = .true.
+if (s%init%noinit_arg /= '') init_tao_file = ''
 
+err_flag = .true.
 iu = 0
-if (s%init%noinit_arg == '') then
-  init_tao_file = 'tao.init'
-  if (s%init%init_file_arg /= '') init_tao_file = s%init%init_file_arg
-else
-  init_tao_file = ''
-endif
 
 if (init_tao_file /= '') then
+  init_tao_file = 'tao.init'
+  if (s%init%init_file_arg /= '') init_tao_file = s%init%init_file_arg
   call tao_open_file (init_tao_file, iu, file_name, s_blank$)
   if (iu == 0) then ! If open failure
     if (s%init%init_file_arg == '') then
@@ -390,7 +387,7 @@ enddo
 
 ! Look for a startup file
 
-if (startup_file /= '') then
+if (startup_file /= '' .and. s%init%nostartup_arg == '') then
   using_default = (startup_file == 'tao.startup')
   call tao_open_file (startup_file, iu, file_name, -1)
   if (iu == 0 .and. using_default) then ! If default

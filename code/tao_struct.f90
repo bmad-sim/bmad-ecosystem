@@ -800,6 +800,7 @@ type tao_init_struct
   character(12) :: prompt_color_arg = ''           ! -prompt_color        command line argument
   character(12) :: quiet_arg = ''                  ! -quiet               command line argument
   character(12) :: noinit_arg = ''                 ! -noinit              command line argument
+  character(12) :: nostartup_arg = ''              ! -nostartup           command line argument
   character(100) :: unique_name_suffix = ''
 end type
 
