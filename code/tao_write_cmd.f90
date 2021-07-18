@@ -983,7 +983,7 @@ case ('spin_mat8')
 
     select case (switch)
     case ('-l_axis')
-      read (what2, *, iostat = ios) sm%axis_input%n0
+      read (what2, *, iostat = ios) sm%axis_input%l
       if (ios /= 0) then
         call out_io (s_error$, r_name, 'CANNOT PARSE L-AXIS: ' // what2)
         return

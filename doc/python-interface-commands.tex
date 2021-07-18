@@ -120,6 +120,23 @@ Example: 1
    ix_branch: 0
 
 \end{example}
+\item[bunch_params] \Newline\begin{example}
+Bunch parameters at the exit end of a given lattice element.
+
+Notes
+-----
+Command syntax:
+python bunch1 {ele_id}|{which}
+
+Parameters
+----------
+ele_id
+  Element name or index
+which : default=model
+  One of: "model", "base" or "design"
+
+
+\end{example}
 \item[bunch1] \Newline\begin{example}
 Bunch parameters at the exit end of a given lattice element.
 
@@ -135,7 +152,7 @@ ele_id
 which : default=model
   One of: "model", "base" or "design"
 ix_bunch : default=1
-coordinate : optional
+coordinate:
   If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
 
  
@@ -3104,12 +3121,12 @@ Example: 1
 
 \end{example}
 \item[spin_polarization] \Newline\begin{example}
-Spin information
+Spin polarization information
 
 Notes
 -----
 Command syntax:
-  python spin {ix_uni}@{ix_branch}|{which}
+  python spin_polarization {ix_uni}@{ix_branch}|{which}
 where {which} is one of:
   model
   base
@@ -3141,6 +3158,20 @@ Example: 1
    ix_uni: 1
    ix_branch: 0
    which: model
+
+\end{example}
+\item[spin_resonance] \Newline\begin{example}
+Spin resonance information
+
+----
+Command syntax:
+  python spin_resonance {ix_uni}@{ix_branch}|{which}
+
+Parameters
+----------
+ix_uni : default=1
+ix_branch : default=0
+which : default=model
 
 \end{example}
 \item[super_universe] \Newline\begin{example}

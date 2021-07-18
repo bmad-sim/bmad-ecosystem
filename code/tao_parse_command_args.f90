@@ -80,7 +80,7 @@ do
     negate = .false.
   endif
 
-  call match_word (arg1, [character(44):: '-?', '-init_file', '-noinit', '-beam0', '-clear', &
+  call match_word (arg1, [character(44):: '-?', '-init_file', '-noinit', '-nostartup', '-beam0', '-clear', &
         '-noplot', '-lattice_file', '-log_startup', '-beam_file', '-var_file', '-data_file', '-building_wall_file', &
         '-startup_file', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', '-beam_track_data_file', &
@@ -161,6 +161,9 @@ do
   case ('-noplot')
     s%init%noplot_arg = '<present>'
 
+  case ('-nostartup')
+    s%init%nostartup_arg = '<present>'
+
   case ('-no_rad_int')
     s%init%no_rad_int_arg = '<present>'
 
@@ -221,6 +224,7 @@ do
   case ('--no_stopping');                         s%init%no_stopping_arg = '<negated>'
   case ('--noinit');                              s%init%noinit_arg = ''
   case ('--noplot');                              s%init%noplot_arg = '<negated>'
+  case ('--nostartup');                           s%init%nostartup_arg = ''
   case ('--no_rad_int');                          s%init%no_rad_int_arg = '<negated>'
   case ('--plot_file');                           s%init%plot_file_arg = ''
   case ('--prompt_color', '--color_prompt');      s%init%prompt_color_arg = 'DEFAULT'  ! read_a_line recognizes this.
