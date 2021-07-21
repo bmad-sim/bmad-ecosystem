@@ -803,7 +803,7 @@ axis. Normally, the \vn{scale} command will scale both axes.  Scaling of just on
 be achieved by using the \vn{-y} or \vn{-y2} switches.
 
 How a graph is scaled is determined in part by the setting of the \vn{bounds} parameter in the
-\vn{y} and \vn{y2} components of the graph. See \vn{s:line.symb} for more details. The \vn{-exact}
+\vn{y} and \vn{y2} components of the graph. See \vn{s:quick.plot} for more details. The \vn{-exact}
 switch, if present, will set \vn{bounds} to \vn{"EXACT"} which means that \tao will use the min and
 max bounds as given by \vn{<value1>} and \vn{<value2>} and not try to find ``nice'' values near the
 given ones. If \vn{<value1>} and \vn{<value2>} are not given, and if \vn{bounds} is set to
@@ -852,6 +852,7 @@ The \vn{set} command is used to set values for data, variables, etc. Subcommands
   set plot <plot> <parameter> = <value>                     ! \sref{s:set.plot}
   set plot_page <parameter> = <value1> \{<value2>\}           ! \sref{s:set.plot.page}
   set ran_state = <random_number_generator_state>           ! \sref{s:set.ran.state}
+  set region <region> <parameter> = <value>                 ! \sref{s:set.plot}
   set symbolic_number <name> = <value>                      ! \sref{s:set.symbolic}
   set universe <what_universe> <on/off>                     ! \sref{s:set.universe}
   set universe <what_universe> <calc_name> <on/off>         ! \sref{s:set.universe}
@@ -1284,7 +1285,7 @@ Example:
   set graph orbit component = model - design    ! Applies to all graphs of orbit plot.
   set graph T::orbit.x component = design       ! Set template plot
   set graph r11 floor_plan%orbit_scale = 100    ! To display an orbit.
-  set graph beta y%bounds = "zero_at_end"       ! \sref{s:line.symb}.
+  set graph beta y%bounds = "zero_at_end"       ! \sref{s:quick.plot}.
 \end{example}
 
 %% set key --------------------------------------------------------------
@@ -3769,7 +3770,7 @@ the data of all the graphs is within the plot region. The affect of \vn{plot%aut
 be overridden by using the \vn{-gang} or \vn{-nogang} switches.
 
 How a graph is scaled is determined in part by the setting of the \vn{bounds} parameter in the
-\vn{x} component of the graph. See \vn{s:line.symb} for more details. The \vn{-exact} switch, if
+\vn{x} component of the graph. See \vn{s:quick.plot} for more details. The \vn{-exact} switch, if
 present, will set \vn{bounds} to \vn{"EXACT"}. which means that \tao will use the min and
 max bounds as given by \vn{<value1>} and \vn{<value2>} and not try to find ``nice'' values near the
 given ones. If \vn{<value1>} and \vn{<value2>} are not given, and if \vn{bounds} is set to
