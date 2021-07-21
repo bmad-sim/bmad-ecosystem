@@ -575,7 +575,7 @@ supersede everything else.
 \index{current_init_file}\index{var_out_file}\index{draw_curve_off_scale_warn}
 The \vn{tao_global_struct} structure contains \tao global parameters. The components of this structure are:
 \begin{example}
-type tao_global_struct
+type tao_global_struct:
   lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
   de_lm_step_ratio = 1             ! Step sizes between DE and LM optimizers.
   de_var_to_population_factor = 5 
@@ -626,7 +626,6 @@ type tao_global_struct
   single_step = F                  ! Single step through a command file?
   stop_on_error = T                ! For debugging: True -> Tao will not exiting on an error.
   var_limits_on = T                ! Respect the variable limits?
-end type
 \end{example}
 
 In an initialization file, this structure is set in the \vn{tao_params} namelist (\sref{s:globals})
@@ -811,7 +810,7 @@ The \vn{bmad_com_struct} holds bmad global variables.
 \index{radiation_damping_on}\index{taylor_order}
 \index{radiation_fluctuations_on}\index{sr_wakes_on}\index{lr_wakes_on}
 \begin{example}
-  type bmad_com_struct
+  type bmad_com_struct:
     real(rp) max_aperture_limit = 1e3    
     real(rp) d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
     real(rp) default_ds_step    = 0.2_rp    ! Integration step size.
@@ -856,7 +855,6 @@ The \vn{bmad_com_struct} holds bmad global variables.
     logical aperture_limit_on = T               ! use apertures in tracking?
     logical ptc_print_info_messages = F         ! Allow PTC to print informational messages?
     logical debug = F                           ! Used for code debugging.
-  end type
 \end{example}
 See the \bmad manual for more details.
 
@@ -867,7 +865,7 @@ See the \bmad manual for more details.
 The \vn{csr_parameter_struct} holds global variables for the coherent
 synchrotron radiation calculations. 
 \begin{example}
-  type csr_parameter_struct
+  type csr_parameter_struct:
     real(rp) ds_track_step = 0          ! Tracking step size
     real(rp) beam_chamber_height = 0    ! Used in shielding calculation.
     real(rp) sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
@@ -879,7 +877,6 @@ synchrotron radiation calculations.
     logical print_taylor_warning = True ! Print warning if Taylor element is present?
     logical write_csr_wake = False      ! Write the CSR wake? For diagnostics.
     logical lsc_kick_transverse_dependence = F
-  end type
 \end{example}
 See the \bmad manual on the \vn{csr_parameter_struct} for more details. In \tao,
 Besides setting the \vn{csr_parameter_struct} components, the following must
@@ -1886,7 +1883,11 @@ Example input files for calculating and plotting the dynamic aperture are at (\s
 \index{plotting initializing}
 \label{s:init.plot} 
 
-\subsection{Plot Window}
+\tao has a graphical display window within which such things as lattice functions, machine layout,
+beam positions, etc., can be plotted. An example display is shown in \fig{f:plot.typ}.
+
+%-----------------------------------------------------------------
+\subsection{Plot Page and Plot Regions}
 \label{s:plot.page}
 \index{initialization!plotting!plot window}
 
@@ -1904,12 +1905,12 @@ page) and defines the ``regions'' where plots go. The syntax of this block is:
     plot_page%size                     = <x_size>, <y_size>         ! size in POINTS 
     plot_page%border                   = <x1\(_{\dstyle{b}}\)>, <x2\(_{\dstyle{b}}\)>, <y1\(_{\dstyle{b}}\)>, <y2\(_{\dstyle{b}}\)>, "<units>"
     plot_page%text_height              = <real>   ! height in POINTS. Def = 12
-    plot_page%main_title_text_scale    = <real>   ! Relative to text_height. Def = 1.3
-    plot_page%graph_title_text_scale   = <real>   ! Relative to text_height. Def = 1.1
-    plot_page%axis_number_text_scale   = <real>   ! Relative to text_height. Def = 0.9
-    plot_page%axis_label_text_scale    = <real>   ! Relative to text_height. Def = 1.0
-    plot_page%legend_text_scale        = <real>   ! Relative to text_height. Def = 0.8
-    plot_page%key_table_text_scale     = <real>   ! Relative to text_height. Def = 0.9
+    plot_page%main_title_text_scale    = <real>   ! Rel to text_height. Def = 1.3
+    plot_page%graph_title_text_scale   = <real>   ! Rel to text_height. Def = 1.1
+    plot_page%axis_number_text_scale   = <real>   ! Rel to text_height. Def = 0.9
+    plot_page%axis_label_text_scale    = <real>   ! Rel to text_height. Def = 1.0
+    plot_page%legend_text_scale        = <real>   ! Rel to text_height. Def = 0.8
+    plot_page%key_table_text_scale     = <real>   ! Rel to text_height. Def = 0.9
     plot_page%floor_plan_shape_scale   = <real>   ! Floor_plan shape size scaling.
     plot_page%lat_layout_shape_scale   = <real>   ! Lat_layout shape size scaling.
     plot_page%title(i)                 = <string>, {<x>, <y>, "<units>", "<justify>"}
@@ -1993,7 +1994,7 @@ rectangle within this border is called the plot area.
 \vn{plot_page%title(i)} set the page title. There are two title areas (i = 1,2). If only the title
 string is given then the other variables are set to the defaults \vn{x} = 0.5, \vn{y} = 0.995,
 \vn{justify} = "CC" and \vn{units} = "\vn{%PAGE}". See the QuickPlot documentation
-(\sref{s:line.symb}) for more details.
+(\sref{s:quick.plot}) for more details.
 
 The plot area is divided up into rectangular regions where plots may be placed (what defines a plot
 is discussed below).  \vn{region(i)} in the \vn{tao_plot_page} namelist is an array of five elements
@@ -2099,7 +2100,7 @@ namelist (\sref{s:template}). This overrides \vn{default_graph} settings made in
 \vn{tao_template_plot} the \vn{default_graph} is defined in.
 
 \vn{plot%x} sets the properties of the horizontal axis. For more information see the \vn{QuickPlot}
-documentation (\sref{s:line.symb}) on the \vn{qp_axis_struct}.  If \vn{min} and \vn{max} are absent,
+documentation (\sref{s:quick.plot}) on the \vn{qp_axis_struct}.  If \vn{min} and \vn{max} are absent,
 then \tao will autoscale the axis.  If it is desired to have differing scales for different graphs,
 the \vn{graph%x} component can be used (see below).
 
@@ -2168,56 +2169,62 @@ namelists should be placed directly after their respective
 \index{curve!ix_bunch}\index{curve!data_type_x}
 \begin{example}
   &tao_template_graph
-    graph_index             = <integer>
-    graph%name              = "<string>"       ! Default is  "g<n>" <n> = graph_index. 
-    graph%type              = "<string>"       ! "data", "floor_plan", etc.
-    graph%box               = <ix>, <iy>, <ix_tot>, <iy_tot>
-    graph%title             = "<string>"       ! Title above the graph.
-    graph%title_suffix                         ! Not user settable.
-    graph%margin            =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
-    graph%scale_margin      =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
-    graph%x                 = <qp_axis_struct> ! Horizontal axis.
-    graph%y                 = <qp_axis_struct> ! Left axis.
-    graph%x2                = <qp_axis_struct> ! Top axis (only used for floor_plan plots).
-    graph%y2                = <qp_axis_struct> ! Right axis.
-    graph%y2_mirrors_y      = <logical>        ! y2 min/max the same as y-axis? Default = T
-    graph%clip              = <logical>        ! Clip curves at boundary? Default = T
-    graph%draw_axes         = <logical>        ! Default = T
-    graph%draw_grid         = <logical>        ! Default = T
-    graph%draw_curve_legend = <logical>        ! Default = T
-    graph%allow_wrap_around = <logical>        ! Wrap curves around lattice ends?
-    graph%component         = "<string>"       ! Eg: "model - design"
-    graph%symbol_size_scale = <real>                ! Phase_space plots symbol scale factor
-    graph%ix_universe       = <integer>             ! Default = -1 => Use default universe
-    graph%floor_plan        = <floor_plan_struct>   ! Floor_plan parameters (\sref{s:floor.plan}).
-    graph%draw_only_good_user_data_or_vars     ! Veto data or variables with good_user = F?
-                                 = <logical>   !   Default = T.
-    graph%x_axis_scale_factor    = <factor>    ! Scale the x-axis by this.
-    graph%n_curve                = <integer>   ! number of curves
-    curve(i)%name                = "<string>"  ! Default is "c<i>", <i> = curve num.
-    curve(i)%data_source         = "<string>"  ! Source for the data curve points
-    curve(i)%data_type_x         = "<string>"  ! Used with plot%x_axis_type = "data" or "var".
-    curve(i)%data_type           = "<string>"  ! EG: "orbit.x"
-    curve(i)%component           = "<string>"  ! Eg: "model - design". Overrides graph%component.
-    curve(i)%data_index          = "<string>"  ! Index number for data points.
-    curve(i)%legend_text         = "<string>"  ! Text for curve legend. 
-                                               !   Default is the data_type.
-    curve(i)%y_axis_scale_factor = <factor>    ! Scale the y-axis by this.
-    curve(i)%use_y2              = <logical>   ! Use left-axis scale?
-    curve(i)%draw_line           = <logical>   ! Connect data with lines?
-    curve(i)%draw_symbols        = <logical>   ! Draw data symbols?
-    curve(i)%draw_symbol_index   = <logical>   ! Print index number next to the data symbol?
-    curve(i)%draw_error_bars     = <logical>   ! Draw error bars with data?
-    curve(i)%ix_universe         = <integer>   ! Default = -1 => Use graph%ix_universe.
-    curve(i)%ix_branch           = <integer>   ! Default = 0  => Use main lattice.  
-    curve(i)%ix_bunch            = <integer>   ! Bunch index. Default = 0 (all bunches).
-    curve(i)%line   = <qp_line_struct>         ! Line spec (color, width, etc.)
-    curve(i)%symbol = <qp_symbol_struct>       ! Symbol spec (color size, etc.)
-    curve(i)%orbit  = <tao_graph_orbit_struct> ! For E & B field plots.
-    curve(i)%symbol_every     = <integer>      ! Plot symbol every # datums
-    curve(i)%ele_ref_name     = "<string>"     ! Name of reference element.
-    curve(i)%smooth_line_calc = <Logical>      ! Calc data between symbol points? 
-    curve(i)%units            = "<string>"     ! Data units
+    graph_index              = <integer>
+    graph%name               = "<string>"         ! Default is  "g<n>" <n> = graph_index. 
+    graph%type               = "<string>"         ! "data", "floor_plan", etc.
+    graph%box                = <ix>, <iy>, <ix_tot>, <iy_tot>
+    graph%title              = "<string>"         ! Title above the graph.
+    graph%text_legend(n)     = "<string>"         ! Set legend text
+    graph%text_legend_origin  = <qp_point_struct> ! Placement of the text legend
+    graph%curve_legend_origin = <qp_point_struct> ! Placement of the curve legend
+    graph%margin             =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
+    graph%scale_margin       =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
+    graph%x                  = <qp_axis_struct>   ! Horizontal axis.
+    graph%y                  = <qp_axis_struct>   ! Left axis.
+    graph%x2                 = <qp_axis_struct>   ! Top axis (only used for floor_plan plots).
+    graph%y2                 = <qp_axis_struct>   ! Right axis.
+    graph%y2_mirrors_y       = <logical>          ! y2 min/max the same as y-axis? Default = T
+    graph%clip               = <logical>          ! Clip curves at boundary? Default = T
+    graph%draw_axes          = <logical>          ! Default = T
+    graph%draw_grid          = <logical>          ! Default = T
+    graph%draw_curve_legend  = <logical>          ! Default = T
+    graph%draw_title         = <logical>          ! Default = T
+    graph%allow_wrap_around  = <logical>          ! Wrap curves around lattice ends?
+    graph%component          = "<string>"         ! Eg: "model - design"
+    graph%symbol_size_scale  = <real>             ! Phase_space plots symbol scale factor
+    graph%ix_universe        = <integer>          ! Default = -1 => Use default universe
+    graph%ix_branch          = <integer>          ! Lattice branch index.
+    graph%floor_plan         = <floor_plan_struct> ! Floor_plan parameters (\sref{s:floor.plan}).
+    graph%draw_only_good_user_data_or_vars        ! Veto data or variables with good_user = F?
+                                 = <logical>      !   Default = T.
+    graph%x_axis_scale_factor    = <factor>       ! Scale the x-axis by this.
+    graph%n_curve                = <integer>      ! number of curves
+    curve(i)%name                = "<string>"     ! Default is "c<i>", <i> = curve num.
+    curve(i)%data_type           = "<string>"     ! EG: "orbit.x"
+    curve(i)%data_source         = "<string>"     ! Source for the data curve points
+    curve(i)%data_type_x         = "<string>"     ! Used with plot%x_axis_type = "data" or "var".
+    curve(i)%data_type_z         = "<string>"     ! Used with phase space plots
+    curve(i)%component           = "<string>"     ! Eg: "model - design". Overrides graph%component.
+    curve(i)%data_index          = "<string>"     ! Index number for data points.
+    curve(i)%legend_text         = "<string>"     ! Text for curve legend. 
+    curve(i)%y_axis_scale_factor = <factor>       ! Scale the y-axis by this.
+    curve(i)%use_y2              = <logical>      ! Use left-axis scale?
+    curve(i)%draw_line           = <logical>      ! Connect data with lines?
+    curve(i)%draw_symbols        = <logical>      ! Draw data symbols?
+    curve(i)%draw_symbol_index   = <logical>      ! Print index number next to the data symbol?
+    curve(i)%draw_error_bars     = <logical>      ! Draw error bars with data?
+    curve(i)%ix_universe         = <integer>      ! Default = -1 => Use graph%ix_universe.
+    curve(i)%ix_branch           = <integer>      ! Default = 0  => Use main lattice.  
+    curve(i)%ix_bunch            = <integer>      ! Bunch index. Default = 0 (all bunches).
+    curve(i)%line     = <qp_line_struct>          ! Line spec (color, width, etc.)
+    curve(i)%symbol   = <qp_symbol_struct>        ! Symbol spec (color size, etc.)
+    curve(i)%symbol_every      = <integer>        ! Plot symbol every # datums
+    curve(i)%ele_ref_name      = "<string>"       ! Name of reference element.
+    curve(i)%smooth_line_calc  = <Logical>        ! Calc data between symbol points? 
+    curve(i)%units             = "<string>"       ! Data units
+    curve(i)%orbit   = <tao_graph_orbit_struct>   ! For E & B field plots
+    curve(i)%hist    = <tao_histogram_struct>     ! For histograms
+    curve(i)%z_color = <tao_curve_z_color_struct> ! For phase space plotting
   /
 \end{example}
 For example:
@@ -2241,41 +2248,94 @@ For example:
     curve(1)%use_y2           = F
   /
 \end{example}
-See the QuickPlot documentation (\sref{s:line.symb}) description of the \vn{qp_symbol_struct} and the
-\vn{qp_line_struct}.
 
-\vn{graph%title} is the string just above the graph. The full string will also include information
-about what is being plotted and the horizontal axis type. To fully suppress the title leave it
-blank. Note: A graph also has a \vn{graph%title_suffix} which \tao uses to hold the string which is
-printed to the right of the \vn{graph%title}. This string contains information like what
-\vn{curve%component} is being plotted. The \vn{graph%title_suffix} cannot be set by the user.
-
-If there are multiple curves drawn with a graph then a curve legend showing what lines are
-associated with what data will be drawn. The default is to draw this legend in the upper left hand
-corner of the graph. By default, the \vn{data_type} of each curve will be used as the text for that
-curve's line in the legend.  This default can be changed by setting a curve's \vn{curve%legend_tex}.
-
+\begin{description}
+%
+\item[\vn{graph_index}] \Newline
+The graph index. The first \vn{tao_template_graph} namelist after the associated
+\vn{tao_template_plot} must have the \vn{graph_index} component set to \vn{1}. The next must have
+\vn{graph_index} set to \vn{2}, etc. \tao uses the \vn{graph_index} component to check for errors.
+%
+\item[\vn{graph\%allow_wrap_around}] \Newline
+The \vn{graph%allow_wrap_around} parameter sets if, for a lattice with closed geometry, the curves
+contained in the graph are ``wrapped'' around the end of the lattice if \vn{graph%x%min} is
+negative. The default is \vn{True}. This only applies if \vn{plot%x_axis_type} is set to \vn{"s"}.
+%
+\item[\vn{graph\%box}] \Newline
+The \vn{graph%box} parameter sets the layout of the box which the \vn{graph} is placed in. For a
+definition of what a box is see the QuickPlot documentation (\sref{s:quick.plot}). In the above
+example the graph divides the region into two vertically stacked boxes and places itself into the
+bottom one.
+%
+\item[\vn{graph\%clip}] \Newline
+Clip the graph curves at the graph top and bottom boundaries? Default is \vn{True}.
+%
+\item[\vn{graph\%component}] \Newline
+The \vn{%component} parameter determines in part where data for drawing the graph's curves comes
+from. See \sref{s:plot.data} for more details. The \vn{graph%component} is the default used for 
+\vn{curve(k)%component} if the component parameter of curve $k$ is not set.
+%
+\item[\vn{graph\%curve_legend_origin}]\Newline
+The curve legend displayes which curves are associated with which of the plotted lines and symbols. Two
+examples are given \fig{f:plot.typ}. The \vn{%curve_legend_origin} defines where the upper left hand
+corner of the legend is. The default is:
+\begin{example}
+  graph%curve_legend_origin%x =  5.0
+  graph%curve_legend_origin%y = -2.0
+  graph%curve_legend_origin%x = "POINTS/GRAPH/LT"
+\end{example}
+The \vn{%curve_legend_origin} is of type \vn{qp_point_struct}. See \sref{s:quick.plot} for details on this
+structure. Also see \vn{graph%draw_curve_legend}
+%
+\item[\vn{graph\%draw_axes}] \Newline
+Draw the graph axes? Default is \vn{True}. 
+%
+\item[\vn{graph\%draw_curve_legend}] \Newline
+Draw the curve legend? Default is \vn{True}. The curve legend displayes which curves are associated
+with which of the plotted lines and symbols. Two examples are given \fig{f:plot.typ}. Also see
+\vn{graph%curve_legend_origin}.
+%
+\item[\vn{graph\%draw_grid}] \Newline
+Draw the graph grid? Default is \vn{True}.
+%
+\item[\vn{graph\%draw_only_good_user_data_or_vars}] \Newline
+%
+\item[\vn{graph\%draw_title}] \Newline
+%
+\item[\vn{graph\%floor_plan}] \Newline
+%
+\item[\vn{graph\%ix_universe}] \Newline
+%
+\item[\vn{graph\%margin}] \Newline
+\vn{graph%margin} sets the margin between the \vn{graph} and the \vn{box}
+it is drawn in.
+%
+\item[\vn{graph\%n_curve}] \Newline
+%
+\item[\vn{graph\%name}] \Newline
 \vn{graph%name} and \vn{curve%name} define names to be used with commands. The default names are
 just the letter \vn{g} or \vn{c} with the index of the graph or curve. Thus, in the example above,
 the name of the curve defaults to \vn{c1} and it would be referred to as \vn{orbit.x.c1}.  It is
 important that these names do not contain any blank spaces since \tao uses this fact in parsing the
 command line.
-
-\vn{graph%box} sets the layout of the box which the \vn{graph} is placed in. For a definition of
-what a box is see the QuickPlot documentation (\sref{s:line.symb}). In the above example the graph
-divides the region into two vertically stacked boxes and places itself into the bottom one.
-
-\vn{graph%allow_wrap_around} sets if, for a lattice with closed geometry, the curves contained in
-the graph are ``wrapped'' around the end of the lattice if \vn{graph%x%min} is negative. The default
-is \vn{True}. This only applies if \vn{plot%x_axis_type} is set to \vn{"s"}.
-
-\vn{graph%margin} sets the margin between the \vn{graph} and the \vn{box}
-it is drawn in.
-
+%
+\item[\vn{graph\%scale_margin}] \Newline
 \vn{graph%scale_margin} is used to set the minimum space between what is being drawn and the edges
 of the \vn{graph} when a \vn{scale}, \vn{x_scale}, or a \vn{xy_scale} command is issued. Normally
 this is zero but is useful for \vn{floor plan} drawings.
-
+%
+\item[\vn{graph\%symbol_size_scale}] \Newline
+%
+\item[\vn{graph\%text_legend_origin}]\Newline
+%
+\item[\vn{graph\%title}] \Newline
+The \vn{graph%title} component is the string printed just above the graph box. The full string will also
+include information about what is being plotted and the horizontal axis type. To fully suppress the
+title leave it blank. Note: A graph also has a \vn{graph%title_suffix} which \tao uses to hold the
+string which is printed to the right of the \vn{graph%title}. This string contains information like
+what \vn{curve%component} is being plotted. The \vn{graph%title_suffix} cannot be set by the user.
+%
+\item[\vn{graph\%type}] \Newline
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
 \index{data}\index{lat_layout}\index{key_table}\index{phase_space}
@@ -2314,6 +2374,75 @@ symbolical drawn in a one dimensional line as a function of the longitudinal dis
 machine centerline.
 
 With \vn{graph%type} set to \vn{phase_space} (\sref{s:phase.space}), phase space plots are produced.
+%
+\item[\vn{graph\%x}] \Newline
+%
+\item[\vn{graph\%x_axis_scale_factor}] \Newline
+%
+\item[\vn{graph\%x2}] \Newline
+%
+\item[\vn{graph\%y}] \Newline
+%
+\item[\vn{graph\%y2}] \Newline
+%
+\item[\vn{graph\%y2_mirrors_y}] \Newline
+%
+\end{description}
+
+
+
+\begin{description}
+%
+\item[\vn{curve\%component}] \Newline
+%
+\item[\vn{curve\%data_source}] \Newline
+%
+\item[\vn{curve\%data_index}] \Newline
+%
+\item[\vn{curve\%data_type}] \Newline
+%
+\item[\vn{curve\%data_type_x}] \Newline
+%
+\item[\vn{curve\%data_type_z}] \Newline
+%
+\item[\vn{curve\%ele_ref_name}] \Newline
+%
+\item[\vn{curve\%hist}] \Newline
+%
+\item[\vn{curve\%ix_branch}] \Newline
+%
+\item[\vn{curve\%ix_bunch}] \Newline
+%
+\item[\vn{curve\%legend_text}] \Newline
+%
+\item[\vn{curve\%line}] \Newline
+%
+\item[\vn{curve\%name}] \Newline
+%
+\item[\vn{curve\%orbit}] \Newline
+%
+\item[\vn{curve\%scale}] \Newline
+%
+\item[\vn{curve\%smooth_line_calc}] \Newline
+%
+\item[\vn{curve\%symbol}] \Newline
+%
+\item[\vn{curve\%units}] \Newline
+%
+\item[\vn{curve\%y_axis_scale_factor}] \Newline
+%
+\item[\vn{curve\%z_color}] \Newline
+%
+\end{description}
+
+See the \vn{Quick_Plot} documentation (\sref{s:quick.plot}) description of the \vn{qp_symbol_struct} and the
+\vn{qp_line_struct}.
+
+
+If there are multiple curves drawn with a graph then a curve legend showing what lines are
+associated with what data will be drawn. The default is to draw this legend in the upper left hand
+corner of the graph. By default, the \vn{data_type} of each curve will be used as the text for that
+curve's line in the legend.  This default can be changed by setting a curve's \vn{curve%legend_tex}.
 
 %-----------------------------------------------------------------
 \subsection{Lattice Parameters, Data and Variable plotting}
@@ -2656,7 +2785,7 @@ has a \vn{floor_plan} component which is a structure of type \vn{tao_floor_plan_
 of this structure can be set to control how a floor plan is drawn. The components of a
 \vn{tao_floor_plan_struct} are:
 \begin{example}
-  type tao_floor_plan_struct
+  type tao_floor_plan_struct:
     rotation             = <real>      ! Rotation of floor plan plot: 1.0 -> 360 deg. 
     view                 = "<string>"  ! View plane for floor plan plot. default = "zx"
     correct_distortion   = <logical>   ! For Floor Plan plots: Default = F
@@ -2667,7 +2796,6 @@ of this structure can be set to control how a floor plan is drawn. The component
     orbit_color          = "<color>"   ! Line color. Default = "red".
     orbit_pattern        = "<pattern>" ! Line pattern. Default = "solid_line".
     orbit_width          = <integer>   ! Line width. Default = 1.
-  end type
 \end{example}
 A graph is initialized with a \vn{tao_template_graph} namelist (\sref{s:template}). Example:
 \begin{example}
@@ -3498,230 +3626,3 @@ plot is placed will be named ``\vn{src_r12}''. Note: The \vn{show plot} command 
 in a given region is visible. The \vn{set plot} (\sref{s:set.plot}) command can be used to toggle 
 plot visibility.
 
-%-----------------------------------------------------------------
-\subsection{QuickPlot Plotting}
-\label{s:line.symb}
-
-\vn{QuickPlot} is an interface library developed for \bmad for graphics plotting. QuickPlot uses
-the following concepts:
-\begin{example}
-  PAGE  -- The entire drawing surface.
-  BOX   -- The area that the graph with axes, titles, etc. is placed into.
-  GRAPH -- The actual plotting area within the bounds of the axes.
-\end{example}
-
-For text that has an associated \vn{justify} parameter, the \vn{justify} parameter is a two
-character string.  The first character gives the horizontal justification:
-\begin{example}
-   "L" -- Left justify
-   "C" -- Center justify
-   "R" -- Right justify
-\end{example}
-The second character gives the vertical justification
-\begin{example}
-   "B" -- Bottom justify
-   "C" -- Center justify
-   "T" -- Top justify
-\end{example}
-
-For text that has an associated \vn{units} parameter, the \vn{units} parameter is a character string
-which is divided up into three parts. The syntax of the \vn{units} parameter is:
-\begin{example}
-   "unit_type/ref_object/corner"
-\end{example}
-Where \vn{unit_type} is the type of units:
-\begin{example}
-   "%"       - Percent.
-   "DATA"    - Data units.
-   "MM"      - millimeters.
-   "INCH"    - Inches.
-   "POINTS"  - Printers points (72 points = 1 inch, 1 pt ~ 1 pixel).
-\end{example}
-\vn{ref_object} is a reference object (optional except if \vn{unit_type} = "\%").
-\begin{example}
-   "PAGE"  -- Relative to the page.
-   "BOX"   -- Relative to the box.
-   "GRAPH" -- Relative to the graph.
-\end{example}
-And \vn{corner} is the origin location (optional):
-\begin{example}
-   "LB" -- Left Bottom.
-   "LT" -- Left Top.
-   "RB" -- Right Bottom.
-   "RT" -- Right Top.
-\end{example}
-
-\vn{QuickPlot} defines a number of structures to parameterize such things like line and symbol
-properties. The structures that \tao uses are as follows.
-
-The \vn{qp_axis_struct} structure defines the properties of a graph axis
-\begin{example}
-  type qp_axis_struct
-    label             = "<string>" ! Axis label string.
-    min               = <real>     ! Min is the left or bottom axis number.
-    max               = <real>     ! Max is the right or top axis number.
-    number_offset     = <real>     ! Offset from axis line in inches.
-    label_offset      = <real>     ! Offset from numbers in inches.
-    major_tick_len    = <real>     ! Major tick length in inches.
-    minor_tick_len    = <real>     ! Minor tick length in inches.
-    label_color       = <string>   ! Color of the label string
-    major_div         = <integer>  ! Number of major divisions
-    major_div_nominal = <integer>  ! Major divisions nominal value.
-    minor_div         = <integer>  ! Minor divisions. 0 = Tao will choose.
-    minor_div_max     = <integer>  ! Max minor div number if Tao chooses.
-    places            = <integer>  ! Number of digits to print
-    type              = <string>   ! Axis type: "LINEAR" or "LOG".
-    bounds            = <string>   ! Axis bounds: "GENERAL", "ZERO_AT_END", etc.
-    tick_side         = <integer>  ! 1 = draw to the inside, 0 = both, -1 = outside.
-    number_side       = <integer>  ! 1 = draw to the inside, -1 = outside.
-    draw_label        = <logical>  ! Draw the label string
-    draw_numbers      = <logical>  ! Draw the numbers.
-  end type
-\end{example}
-
-The \vn{%bounds} parameter sets how the axes min and max values are calculated when plots are initially
-instantiated and when \vn{scale}, \vn{x_scale}, and \vn{xy_scale} commands are used. Possible settings
-are:
-\begin{example}
-  "ZERO_AT_END"      ! Min or max value is set to zero.
-  "ZERO_SYMMETRIC"   ! Min and max chosen so that max = -min.
-  "GENERAL"          ! No restrictions (default).
-  "EXACT"            ! The User min/max is used.
-\end{example}
-If input min and max values are specified by the User, \tao will take the specified values as the starting
-point to find ``nice'' min and max values to use. For example, with the command
-\begin{example}
-  scale all 0 19
-\end{example}
-and with \vn{bounds} set to \vn{"GENERAL"}, the min and max values will be set to 0 and 20. The exception is when
-\vn{bounds} is set to \vn{"EXACT"}. In this case the User supplied min and max values will be used as is.
-
-Examples:
-\begin{example}
-Tao> set graph r13 y%bounds = "zero_at_end"
-Tao> scale r13 200 280   ! Graph bounds set to [0, 300]
-
-Tao> set graph r13 y%bounds = "zero_symmetric"
-Tao> scale r13 200 280   ! Graph bounds set to [-300, 300]
-
-Tao> set graph r13 y%bounds = "general"
-Tao> scale r13 20 190    ! Graph bounds set to [0, 200]
-
-Tao> set graph r13 y2%bounds = "exact"
-Tao> scale r13 -y2 20 190    ! Y2 graph bounds set to [20, 190]
-\end{example}
-
-\begin{table}
-\begin{tabular}{ll} \toprule
-{\B}u       & Start a superscript or end a subscript \\[0.3ex]
-{\B}d       & Start a subscript or end a superscript.
-              {\B}u and {\B}d must always be used in pairs \\[0.3ex]
-{\B}b       & Backspace (i.e., do not advance text pointer  
-               after plotting the previous character) \\[0.3ex]
-{\B}fn      & Switch to Normal font (1)       \\[0.3ex]
-{\B}fr      & Switch to Roman font (2)        \\[0.3ex]
-{\B}fi      & Switch to Italic font (3)       \\[0.3ex]
-{\B}fs      & Switch to Script font (4)       \\[0.3ex]
-{\B}{\B}    & Backslash character (\B)        \\[0.3ex]
-{\B}x       & Multiplication sign ($\times$)  \\[0.3ex]
-{\B}.       & Centered dot ($\cdot$)          \\[0.3ex]
-{\B}A       & Angstrom symbol (\AA)         \\[0.3ex]
-{\B}gx      & Greek letter corresponding to roman letter x. See Table~\ref{t:greek}. \\[0.3ex]
-{\B}mN {\B}mNN & Graph marker number \vn{N} or \vn{NN} (1-31) \\[1ex]
-{\B}(NNNN)  & 
-\parbox{5.2in} {Character number NNNN (1 to 4 decimal digits) from the Hershey character set which
-includes a number of special characters including mathematical, musical, astronomical, and
-cartographical symbols.} \\ \bottomrule
-\end{tabular}
-\caption{Escape Sequences for Labels.}
-\label{t:plot.escape}
-\end{table}
-
-The \vn{major_div} parameter is not settable directly. Rather, \vn{major_div_nominal} may be set by
-the user and then \tao will calculate the value of \vn{major_div} such that the value of
-\vn{major_div} is ``close'' to the value of \vn{major_div_nominal} with the constraint that the value
-of \vn{major_div} ``nicely'' divides the range from given by the values for \vn{min} and \vn{max}.
-
-The \vn{places} parameter set the number of places to display a number. \tao will automatically
-calculate this number and it is not user settable.
-
-The \vn{label} parameter may include Greek letters, subscripts, superscripts, and special characters.
-Encoding for these are given in Table~\ref{t:plot.escape}. 
-
-The \vn{label_color} parameter sets the color of the label string. Possible settings for the color are:
-\begin{example}
-  White   (actually the background color)       Orange          
-  Black   (actually the foreground color)       Yellow_Green    
-  Red                                           Light_Green         
-  Green                                         Navy_Blue       
-  Blue                                          Purple          
-  Cyan                                          Reddish_Purple  
-  Magenta                                       Dark_Grey        
-  Yellow                                        Light_Grey       
-\end{example}
-Color names are case insensitive.
-
-Table~\ref{t:greek} shows how the character string \vn{"{\B}g<r>"}, where \vn{"<r>"} 
-is a Roman letter, map onto the Greek character set.
-\begin{table}
-  \centering
-  \includegraphics[width=5.0in]{greek.pdf}
-  \caption[Roman to Greek Character Conversion]{Conversion for the string 
-\vn{"{\B}g<r>"} where \vn{"<r>"} is a Roman character to the corresponding 
-Greek character.}
-\label{t:greek}
-\end{table}
-
-The parameters associated with data lines drawn in a graph are contained in the \vn{qp_line_struct}:
-\begin{example}
-  type qp_line_struct
-    width          = <integer>  ! Default = 1
-    color          = <string>   ! Default = "black"
-    pattern        = <string>   ! Default = "solid"
-  end type
-\end{example}
-
-The possible colors for a line are given above. The \vn{pattern} parameter sets how the line is
-drawn. Possible settings are:
-\begin{example}
-  solid      ! Solid line                 dotted     ! Dotted line             
-  dashed     ! Dashed line                dash_dot3  ! Dash--dot--dot--dot line
-  dash_dot   ! Dash--dot line
-\end{example}
-Pattern names are case insensitive.
-
-The parameters associated with symbols that are drawn are contained in the \vn{qp_symbol_struct}:
-\begin{example}
-  type qp_symbol_struct
-    type          = <string>  ! Default = "dot"
-    height        = <real>    ! Size in points. Default = 10
-    color         = <string>  ! Default = "black"
-    fill_pattern  = <string>  ! Default = "solid_fill"
-    line_width    = <integer> ! Default = 1.
-  end type
-\end{example}
-
-Possible \vn{fill_pattern} settings are:
-\begin{example}
-  solid_fill                    hatched           
-  no_fill                       cross_hatched     
-\end{example}
-Fill pattern names are case insensitive.
-
-The symbol types are:
-\begin{example}
-  square                 triangle                    square_concave              
-  dot                    circle_plus                 diamond                     
-  plus                   circle_dot                  star5                       
-  times                  square_filled               triangle_filled           
-  circle                 circle_filled               red_cross                 
-  x                      star5_filled                star_of_david             
-\end{example}
-These symbols are illustrated in Table~\ref{t:plot.syms}. Symbol type names are case insensitive.
-
-\begin{table}
-  \centering
-  \includegraphics[width=5in]{plot-syms.pdf}
-  \caption{Plotting Symbols.}
-  \label{t:plot.syms}
-\end{table}
