@@ -92,23 +92,23 @@ real(rp), optional :: Done(:,:)
 
 real(rp) M0(6,6)
 real(rp) B0, B1, delta
-real(rp) l, gamma, rho
+real(rp) l, gamma, g_tot
 
 integer i
 
 M0 = ele%mat6
-if(any(ele%key==(/sbend$,rbend$/))) then
+if(any(ele%key==[sbend$,rbend$])) then
   l = ele%value(l$)
   call convert_total_energy_to(ele%value(E_TOT$), -1, gamma)
-  rho = ele%value(rho$)
-  B0 = ele%value(b_field$)
+  g_tot = ele%value(g$) + ele%value(dg$)
+  B0 = ele%value(b_field$) + ele%value(db_field$)
   B1 = ele%value(b1_gradient$)
   delta = co%vec(6)
 
-  M = M0 - l*matmul(M0,damping_matrix_D(gamma,rho,B0,B1,delta,co%species))  !Eqn. 80 & 81
+  M = M0 - l*matmul(M0,damping_matrix_D(gamma,g_tot,B0,B1,delta,co%species))  !Eqn. 80 & 81
 
-  Bone = l*matmul(M,matmul(diffusion_matrix_B(gamma,rho,co%species),transpose(M)))  !Eqn. 88
-  if(present(Done)) Done = l*matmul(M0,damping_matrix_D(gamma,rho,B0,B1,delta,co%species))
+  Bone = l*matmul(M,matmul(diffusion_matrix_B(gamma,g_tot,co%species),transpose(M)))  !Eqn. 88
+  if(present(Done)) Done = l*matmul(M0,damping_matrix_D(gamma,g_tot,B0,B1,delta,co%species))
 else
   M = M0
   Bone = 0.0d0
@@ -124,16 +124,16 @@ end subroutine make_SR_mats
 ! Calculate diffusion matrix B from Ohmi Eqn 114 & 115.
 !-
 
-function diffusion_matrix_B(gamma,rho,species) result(mat)
+function diffusion_matrix_B(gamma,g_tot,species) result(mat)
 real(rp) mat(6,6)
-real(rp) gamma, rho
+real(rp) gamma, g_tot
 real(rp), parameter :: D_const = 55.0d0/24.0d0/sqrt(3.0d0)*(1.055e-34)/(9.11e-31)/c_light
 integer species
 
 !
 
 mat = 0.0d0
-mat(6,6) = D_const * classical_radius(species) * gamma**5 / abs(rho)**3
+mat(6,6) = D_const * classical_radius(species) * gamma**5 * abs(g_tot)**3
 
 end function diffusion_matrix_B
 
@@ -145,10 +145,10 @@ end function diffusion_matrix_B
 !
 ! This routine assumes zero scalar potential.
 !-
-function damping_matrix_D(gamma, rho, B0, B1, delta, species) result(mat)
+function damping_matrix_D(gamma, g_tot, B0, B1, delta, species) result(mat)
 
 real(rp) mat(6,6)
-real(rp) gamma, rho, B0, B1, delta
+real(rp) gamma, g_tot, B0, B1, delta
 real(rp) delta_f, energy_loss_rate
 real(rp), parameter :: P_const = 2.0d0/3.0d0
 integer species
@@ -163,10 +163,10 @@ mat(2,2) = delta_f
 mat(4,4) = delta_f
 mat(6,6) = 2.0d0*delta_f
 
-mat(6,1) = 1.0d0/rho + 2.0d0/B0*B1
+mat(6,1) = 1.0d0*g_tot + 2.0d0/B0*B1
 mat(6,3) = 2.0d0/B0*B1
 
-energy_loss_rate = P_const * classical_radius(species) * gamma**3 / rho**2 ! From Ohmi Eqn 43.
+energy_loss_rate = P_const * classical_radius(species) * gamma**3 * g_tot**2 ! From Ohmi Eqn 43.
 mat = energy_loss_rate * mat
 
 end function damping_matrix_D
@@ -197,7 +197,7 @@ type(ele_struct) ele
 real(rp) Sigma_exit(6,6), Sigma_ent(6,6)
 real(rp) M(:,:), Bone(:,:), Yone(:,:)
 
-if(any(ele%key==(/sbend$,rbend$/))) then
+if(any(ele%key==[sbend$,rbend$])) then
   Sigma_exit = matmul(M,matmul(Sigma_ent,transpose(M))) + Bone + Yone
 else
   Sigma_exit = matmul(ele%mat6,matmul(Sigma_ent,transpose(ele%mat6))) + Yone
@@ -247,7 +247,7 @@ logical tail_cut
 
 call beam_envelope_ibs(Sigma_ent, ibs_mat, tail_cut, tau, ele%value(E_TOT$), n_part, species)
 
-if(any(ele%key==(/sbend$,rbend$/))) then
+if(any(ele%key==[sbend$,rbend$])) then
   Sigma_exit = matmul(M,matmul(Sigma_ent,transpose(M))) + Bone + Yone + ibs_mat*ele%value(l$) 
 else
   Sigma_exit = matmul(ele%mat6,matmul(Sigma_ent,transpose(ele%mat6))) + Yone + ibs_mat*ele%value(l$)
@@ -394,11 +394,6 @@ end subroutine make_v
 !
 ! Input:
 !   eles(:)                      - ele_struct: array of element structures representing ring.
-!          %mat6(6,6)            - real(rp): element transfer matrix.
-!          %value(l$)            - real(rp): element (slice) length.
-!          %value(rho$)          - real(rp): bending radius.
-!          %value(b_field$)      - real(rp): bend field.
-!          %value(b1_gradient$)  - real(rp): quadrupole field.
 !   coos(:)                      - coord_struct:  closed orbit at each element.
 !        %vec(6)                 - real(rp): energy offset.
 !   mode                         - normal_modes_struct
@@ -422,7 +417,7 @@ type(normal_modes_struct) mode
  
 real(rp) one_turn_mat(6,6)
 real(rp) delta
-real(rp) gamma, l, rho, B0, B1
+real(rp) gamma, l, g_tot, B0, B1
 real(rp) Y(6,6)
 real(rp) abz_tunes(3)
 
@@ -456,14 +451,14 @@ do i=1, size(eles)
   vv = matmul(vv, mat_symp_conj(eles(i)%mat6))
   vvinv = matmul(eles(i)%mat6, vvinv)
 
-  if(any(eles(i)%key==(/sbend$, rbend$/))) then
+  if(any(eles(i)%key==[sbend$, rbend$])) then
     call convert_total_energy_to(eles(i)%value(E_TOT$), -1, gamma)
     delta = coos(i)%vec(6)
-    rho = eles(i)%value(rho$)
-    B0 = eles(i)%value(b_field$)
+    g_tot = eles(i)%value(g$) + eles(i)%value(dg$)
+    B0 = eles(i)%value(b_field$) + eles(i)%value(db_field$)
     B1 = eles(i)%value(b1_gradient$)
-    Lambda = Lambda + l*matmul(VV, matmul(damping_matrix_D(gamma, rho, B0, B1, delta, coos(i)%species), VVinv))
-    Theta = Theta + l*matmul(VV, matmul(diffusion_matrix_B(gamma, rho, coos(i)%species), conjg(transpose((VV)))))
+    Lambda = Lambda + l*matmul(VV, matmul(damping_matrix_D(gamma, g_tot, B0, B1, delta, coos(i)%species), VVinv))
+    Theta = Theta + l*matmul(VV, matmul(diffusion_matrix_B(gamma, g_tot, coos(i)%species), conjg(transpose((VV)))))
   endif
   Iota = Iota + l*matmul(VV, matmul(Y, conjg(transpose((VV)))))
 enddo
@@ -894,17 +889,17 @@ integ_wk = fgsl_integration_workspace_alloc(limit)
 ptr = c_loc(args)
 integrand_ready = fgsl_function_init(kubo_integrand, ptr)
 
-args = (/u(1),u(2),u(3)/)
+args = [u(1),u(2),u(3)]
 fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, pi_2, eps7, eps7, & 
                                    limit, 3, integ_wk, integration_result, abserr) 
 g1 = integration_result
 
-args = (/u(2),u(1),u(3)/)
+args = [u(2),u(1),u(3)]
 fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, pi_2, eps7, eps7, &
                                    limit, 3, integ_wk, integration_result, abserr)
 g2 = integration_result
 
-args = (/u(3),u(1),u(2)/)
+args = [u(3),u(1),u(2)]
 fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, pi_2, eps7, eps7, &
                                    limit, 3, integ_wk, integration_result, abserr)
 g3 = integration_result
