@@ -422,7 +422,7 @@ where the sign factor $\sign(\delta)$ is chosen so that on the closed orbit with
 axis is in the positive $z$-direction.
 
 \Eq{nsdl} shows that resonance is when $\delta = 0$ or $\nu_0 = Q$.  The use of a sinusoidal
-perturbation in the single resonance model results in the suppression of all other linear resonances
+perturbation in the single resonance model results in the suppression of all other resonances
 which can be of the form $\nu_0 = m_0 \pm Q$ where $m_0$ is some integer. In an actual machine, the
 presence of a perturbation at some specific point in the machine will produce a comb of resonances
 of the form $m_0 \pm Q$.
@@ -457,15 +457,23 @@ gives
   \xi_r = 2 \, \delta \, \big| \re(\bfn_k) \big|
   \label{x2dn}
 \end{equation}
+where $k$ is either one of the two spin eigenvectors of the mode exciting the resonance.
 
-$\xi_r$ in \Eq{x2dn} can be related to the $\bfG$ matrix (\Eq{mm0gd}). The corresponding equation
+$\xi_r$ can be related to the $\bfG$ matrix of the SLIM formalism (\Eq{mm0gd}). The corresponding equation
 is\cite{b:spin.hoff}
 \begin{equation}
   \xi_r = \frac{1}{2 \, \pi} \, \big| \bfG \cdot \bfv_k \big|
   \label{x1pg}
 \end{equation}
-As resonance is approached, $\delta$ goes to zero and $\bfn_k$ goes to infinity in \Eq{x2dn}. In
-contrast, the components of $\bfG$ stay finite at resonance.
+Here $k$ must correspond to the eigenvalue which is the tune of the mode. The $k$ that corresponds to the
+eigenvalue which is negative the tune cannot be used here (unlike \Eq{x2dn}).
+
+While \Eqs{x2dn} and \eq{x1pg} can be used to calculate $\xi_r$ within the single resonance model
+independent of how large $\delta$ is, in a real machine, where there are many resonances, \Eqs{x2dn}
+and \eq{x1pg} are strictly only valid at resonance with $\delta = 0$. In this case \Eq{x2dn} is
+singular since, as $\delta$ goes to zero, $\bfn_k$ goes to infinity. In practice, \Eqs{x2dn} and
+\eq{x1pg} may be used to calculate $\xi_r$ with reasonable accuracy when $\delta$ is small.
+
 
 %Should the $\nu_s$ term be $m_s \, \nu_s$?
 %Importance of resonances vs stochastic dephasing.
