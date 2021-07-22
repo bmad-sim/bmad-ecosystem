@@ -54,7 +54,9 @@ namelist / tao_start / startup_file, building_wall_file, hook_init_file, &
 ! Put all informational messages in the tao_init.log file.
 ! Only print error messages. Not standard ones.
 
+err_flag = .true.
 iu_log = -1
+
 if (s%init%log_startup_arg /= '') then
   iu_log = lunget()
   open (iu_log, file = 'tao_init.log', action = 'write', iostat = ios)
@@ -81,14 +83,13 @@ endif
 ! Additionally, if there is an open failure and no lattice file has been specified
 ! by the user, then there is nothing to do and is considered fatal.
 
+init_tao_file = 'tao.init'
+if (s%init%init_file_arg /= '') init_tao_file = s%init%init_file_arg
 if (s%init%noinit_arg /= '') init_tao_file = ''
 
-err_flag = .true.
 iu = 0
 
 if (init_tao_file /= '') then
-  init_tao_file = 'tao.init'
-  if (s%init%init_file_arg /= '') init_tao_file = s%init%init_file_arg
   call tao_open_file (init_tao_file, iu, file_name, s_blank$)
   if (iu == 0) then ! If open failure
     if (s%init%init_file_arg == '') then
