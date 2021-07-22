@@ -126,7 +126,7 @@ Bunch parameters at the exit end of a given lattice element.
 Notes
 -----
 Command syntax:
-python bunch1 {ele_id}|{which}
+python bunch_params {ele_id}|{which}
 
 Parameters
 ----------
@@ -135,6 +135,15 @@ ele_id
 which : default=model
   One of: "model", "base" or "design"
 
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
+ args:
+   ele_id: end
+   which: model
+   ix_bunch: 1
 
 \end{example}
 \item[bunch1] \Newline\begin{example}
@@ -149,19 +158,17 @@ Parameters
 ----------
 ele_id
   Element name or index
+coordinate
+  If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
 which : default=model
   One of: "model", "base" or "design"
 ix_bunch : default=1
-coordinate:
-  If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
 
  
 Returns
 -------
-string_list
-  if not coordinate
 real_array
-  if coordinate and coordinate != 'state'
+  if coordinate != 'state'
 integer_array
   if coordinate == 'state'
 
@@ -173,17 +180,10 @@ Example: 1
  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
  args:
    ele_id: end
-   which: model
-   ix_bunch: 1
-   coordinate:
-
-Example: 2
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
- args:
-   ele_id: end
-   which: model
-   ix_bunch: 1
    coordinate: x
+   which: model
+   ix_bunch: 1
+  
 
 
 \end{example}
@@ -1189,9 +1189,9 @@ This gives map #2 of element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
 index
 who
+which : default=model
 
    
 Returns
@@ -1230,7 +1230,7 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
    
 Returns
@@ -1267,7 +1267,7 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
    
 Returns
@@ -1309,8 +1309,8 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
-who
+which : default=model
+who : default=base
 
    
 Returns
@@ -1352,9 +1352,9 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
-index
-who
+which : default=model
+index : default=1
+who : default=base
 
    
 Returns
@@ -1393,7 +1393,7 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
    
 Returns
@@ -1431,7 +1431,7 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
    
 Returns
@@ -1468,7 +1468,7 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
    
 Returns
@@ -1509,8 +1509,8 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
-who
+which : default=model
+who : default=mat6
 
    
 Returns
@@ -1552,9 +1552,9 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
 index
 who
+which : default=model
 
    
 Returns
@@ -1594,10 +1594,9 @@ This gives grid #2 of element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
-index
-who
-
+which : default=model
+index : default=1
+who : default=base
    
 Returns
 -------
@@ -1641,7 +1640,7 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 where : default=end
 
    
@@ -1691,8 +1690,8 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
-who
+which : default=model
+who : default=base
 
    
 Returns
@@ -1736,7 +1735,7 @@ These "Slave" and "Lord" lines are the slaves and lords of the "Element" element
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
    
 Returns
@@ -1773,7 +1772,7 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
    
 Returns
@@ -1838,19 +1837,18 @@ where {which} is one of:
   design
 Where:
   {x}, {y}  -- Transverse coords.
-  {z}       -- Longitudainal coord with respect to entrance end of element.
+  {z}       -- Longitudinal coord with respect to entrance end of element.
   {t_or_z}  -- time or phase space z depending if lattice is setup for absolute time tracking.
 
 
 Parameters
 ----------
 ele_id
-which
 x
 y
 z
 t_or_z
-
+which : default=model
    
 Returns
 -------
@@ -3215,10 +3213,10 @@ where {which} is one of:
 
 Parameters
 ----------
-ix_uni
-ix_branch
 s
-which
+ix_uni : default=1
+ix_branch : default=0
+which : default=model
 
    
 Returns
