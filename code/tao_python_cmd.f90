@@ -504,7 +504,7 @@ case ('branch1')
 ! Notes
 ! -----
 ! Command syntax:
-! python bunch1 {ele_id}|{which}
+! python bunch_params {ele_id}|{which}
 !
 ! Parameters
 ! ----------
@@ -513,6 +513,15 @@ case ('branch1')
 ! which : default=model
 !   One of: "model", "base" or "design"
 !
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
+!  args:
+!    ele_id: end
+!    which: model
+!    ix_bunch: 1
 
 case ('bunch_params')
 
@@ -570,19 +579,17 @@ case ('bunch_params')
 ! ----------
 ! ele_id
 !   Element name or index
+! coordinate
+!   If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
 ! which : default=model
 !   One of: "model", "base" or "design"
 ! ix_bunch : default=1
-! coordinate:
-!   If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
 !
 !  
 ! Returns
 ! -------
-! string_list
-!   if not coordinate
 ! real_array
-!   if coordinate and coordinate != 'state'
+!   if coordinate != 'state'
 ! integer_array
 !   if coordinate == 'state'
 !
@@ -594,17 +601,10 @@ case ('bunch_params')
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
 !    ele_id: end
-!    which: model
-!    ix_bunch: 1
-!    coordinate:
-!
-!Example: 2
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
-!  args:
-!    ele_id: end
-!    which: model
-!    ix_bunch: 1
 !    coordinate: x
+!    which: model
+!    ix_bunch: 1
+!   
 !
 
 case ('bunch1')
@@ -2572,9 +2572,9 @@ case ('ele:chamber_wall')
 ! Parameters
 ! ----------
 ! ele_id
-! which
 ! index
 ! who
+! which : default=model
 !
 !    
 ! Returns
@@ -2651,7 +2651,7 @@ case ('ele:cylindrical_map')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
 !    
 ! Returns
@@ -2710,7 +2710,7 @@ case ('ele:taylor')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
 !    
 ! Returns
@@ -2770,8 +2770,8 @@ case ('ele:spin_taylor')
 ! Parameters
 ! ----------
 ! ele_id
-! which
-! who
+! which : default=model
+! who : default=base
 !
 !    
 ! Returns
@@ -2873,9 +2873,9 @@ case ('ele:wake')
 ! Parameters
 ! ----------
 ! ele_id
-! which
-! index
-! who
+! which : default=model
+! index : default=1
+! who : default=base
 !
 !    
 ! Returns
@@ -2961,7 +2961,7 @@ case ('ele:wall3d')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
 !    
 ! Returns
@@ -3014,7 +3014,7 @@ case ('ele:twiss')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
 !    
 ! Returns
@@ -3075,7 +3075,7 @@ case ('ele:control_var')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
 !    
 ! Returns
@@ -3123,8 +3123,8 @@ case ('ele:orbit')
 ! Parameters
 ! ----------
 ! ele_id
-! which
-! who
+! which : default=model
+! who : default=mat6
 !
 !    
 ! Returns
@@ -3188,9 +3188,9 @@ case ('ele:mat6')
 ! Parameters
 ! ----------
 ! ele_id
-! which
 ! index
 ! who
+! which : default=model
 !
 !    
 ! Returns
@@ -3269,10 +3269,9 @@ case ('ele:taylor_field')
 ! Parameters
 ! ----------
 ! ele_id
-! which
-! index
-! who
-!
+! which : default=model
+! index : default=1
+! who : default=base
 !    
 ! Returns
 ! -------
@@ -3375,7 +3374,7 @@ case ('ele:grid_field')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 ! where : default=end
 !
 !    
@@ -3467,8 +3466,8 @@ case ('ele:floor')
 ! Parameters
 ! ----------
 ! ele_id
-! which
-! who
+! which : default=model
+! who : default=base
 !
 !    
 ! Returns
@@ -3546,7 +3545,7 @@ case ('ele:photon')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
 !    
 ! Returns
@@ -3610,7 +3609,7 @@ case ('ele:lord_slave')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
 !    
 ! Returns
@@ -3729,19 +3728,18 @@ case ('evaluate')
 !   design
 ! Where:
 !   {x}, {y}  -- Transverse coords.
-!   {z}       -- Longitudainal coord with respect to entrance end of element.
+!   {z}       -- Longitudinal coord with respect to entrance end of element.
 !   {t_or_z}  -- time or phase space z depending if lattice is setup for absolute time tracking.
 ! 
 !
 ! Parameters
 ! ----------
 ! ele_id
-! which
 ! x
 ! y
 ! z
 ! t_or_z
-!
+! which : default=model
 !    
 ! Returns
 ! -------
@@ -6587,10 +6585,10 @@ case ('super_universe')
 !
 ! Parameters
 ! ----------
-! ix_uni
-! ix_branch
 ! s
-! which
+! ix_uni : default=1
+! ix_branch : default=0
+! which : default=model
 !
 !    
 ! Returns
