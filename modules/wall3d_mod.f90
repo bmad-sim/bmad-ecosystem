@@ -918,7 +918,7 @@ if (sec2%patch_in_region) then
 
   if (present(origin)) then
     floor%r = r0
-    floor = coords_floor_to_local_curvilinear (floor, ele, status, use_patch_entrance = .true.)
+    floor = coords_floor_to_local_curvilinear (floor, ele, status, relative_to_upstream = .true.)
     origin = floor%r
     if (ele%key /= patch$) origin(3) = origin(3) + ele%value(l$)
   endif
@@ -1060,7 +1060,7 @@ real(rp) r(3)
 
 local%r = r
 call mat_make_unit(local%w)
-floor = coords_local_curvilinear_to_floor(local, ele, use_patch_entrance = .true.)
+floor = coords_local_curvilinear_to_floor(local, ele, relative_to_upstream = .true.)
 
 end function this_coords_to_floor
 

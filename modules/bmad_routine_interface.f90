@@ -305,14 +305,14 @@ function coords_floor_to_relative (floor0, global_position, calculate_angles, is
   logical, optional :: calculate_angles, is_delta_position
 end function coords_floor_to_relative
 
-function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, use_patch_entrance) result(local_position)
+function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, relative_to_upstream) result(local_position)
   import
   implicit none
   type (floor_position_struct) :: global_position, local_position
   type (ele_struct)   :: ele
   real(rp), optional :: w_mat(3,3)
   integer :: status
-  logical, optional :: use_patch_entrance
+  logical, optional :: relative_to_upstream
 end function coords_floor_to_local_curvilinear
 
 function coords_floor_to_curvilinear (floor_coords, ele0, ele1, status, w_mat) result (local_coords)
@@ -326,7 +326,7 @@ function coords_floor_to_curvilinear (floor_coords, ele0, ele1, status, w_mat) r
 end function coords_floor_to_curvilinear
 
 function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, &
-                                        w_mat, calculate_angles, use_patch_entrance) result (global_position)
+                                        w_mat, calculate_angles, relative_to_upstream) result (global_position)
   import
   implicit none
   type (floor_position_struct) :: local_position, global_position, p, floor0
@@ -336,7 +336,7 @@ function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, &
   real(rp), optional :: w_mat(3,3)
   logical, optional :: in_ele_frame
   logical, optional :: calculate_angles
-  logical, optional :: use_patch_entrance
+  logical, optional :: relative_to_upstream
 end function coords_local_curvilinear_to_floor
 
 function coords_element_frame_to_local (body_position, ele, w_mat, calculate_angles) result(local_position)
