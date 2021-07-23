@@ -1201,7 +1201,7 @@ type ele_struct
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC track corresponding to this ele.
   type (floor_position_struct) :: floor = floor_position_struct(r0_vec$, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
-                                                                      ! Global coords reference position
+                                                         ! Global coords reference position at downstream end.
   type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
   type (mode3_struct), pointer :: mode3 => null()                     ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()

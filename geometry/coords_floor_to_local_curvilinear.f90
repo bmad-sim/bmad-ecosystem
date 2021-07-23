@@ -1,9 +1,5 @@
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
 !+
-! Function coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat, use_patch_entrance) result(local_position)
+! Function coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat, relative_to_upstream) result(local_position)
 !
 ! Given a position in global coordinates, return local curvilinear coordinates defined by ele.
 !
@@ -15,12 +11,14 @@
 ! Input:
 !   global_position     -- floor_position_struct: %r = [X, Y, Z] position in global coordinates
 !   ele                 -- ele_struct: element to find local coordinates of.
-!   use_patch_entrance  -- logical, optional: This argument is ignored for non-patch elements. If in a patch: 
-!                             True => use entrance coordinates. False (default) => use exit coordinates. 
+!   relative_to_upstream  -- logical, optional: Default is False. If True, local_position%r(3) is relative to the 
+!                              upstream end which will not be the entrance end if ele%orientation = -1.
+!                              For patch elements (which always have ele%orientation = 1), if relative_to_upstream = T, 
+!                              local_position%r(1:2) transverse coords will be taken wrt the upstream coords 
 !                            
 ! Output:
 !   local_position  -- floor_position_struct: %r = [x, y, z] position in local curvilinear coordinates
-!                        with z relative to entrance edge of the element.
+!                        with z relative to entrance edge of the element except if relative_to_upstream = T.
 !   status          -- logical: longitudinal position:
 !                               inside$: Inside the element.
 !                               upstream_end$: Upstream of element.
@@ -30,7 +28,7 @@
 !                                  v_local = transpose(w_mat).v_global
 !-  
 
-function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, use_patch_entrance) result(local_position)
+function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, relative_to_upstream) result(local_position)
 
 use nr, only: zbrent
 use bmad_interface, dummy => coords_floor_to_local_curvilinear
@@ -43,7 +41,7 @@ type (floor_position_struct) :: floor0, floor1
 real(rp), optional :: w_mat(3,3)
 real(rp) x, y, z, rho, dtheta, tilt, dz0, dz1
 integer :: status
-logical, optional :: use_patch_entrance
+logical, optional :: relative_to_upstream
 
 ! In all cases remember that ele%floor is the downstream floor coords independent of ele%orientation
 ! sbend case.
@@ -92,14 +90,14 @@ if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
 
 elseif (ele%key == patch$) then
   if (ele%orientation == 1) then 
-    if (logic_option(.false., use_patch_entrance)) then
+    if (logic_option(.false., relative_to_upstream)) then
       floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
     else
       floor0 = ele%floor
     endif
 
   else
-    if (logic_option(.false., use_patch_entrance)) then
+    if (logic_option(.false., relative_to_upstream)) then
       floor0 = ele%floor
     else
       floor0 = ele%branch%ele(ele%ix_ele+1)%floor        ! Get floor0 from next element

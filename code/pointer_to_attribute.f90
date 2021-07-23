@@ -444,6 +444,7 @@ case ('PSI_POSITION');    a_ptr%r => ele%floor%psi
 case ('S');               a_ptr%r => ele%s
 case ('LORD_STATUS');     a_ptr%i => ele%lord_status
 case ('SLAVE_STATUS');    a_ptr%i => ele%slave_status
+case ('ORIENTATION');     a_ptr%i => ele%orientation
 case ('REF_TIME');        a_ptr%r => ele%ref_time
 case ('KEY');             a_ptr%i => ele%key
 case ('N_SLAVE');         a_ptr%i => ele%n_slave
