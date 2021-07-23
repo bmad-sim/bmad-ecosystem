@@ -57,12 +57,15 @@ call qp_set_text_attrib ('AXIS_LABEL', height = h * s%plot_page%axis_label_text_
 ! print the title 
 
 h = s%plot_page%text_height * s%plot_page%main_title_text_scale
-do i = 1, size(s%plot_page%title)
-  if (.not. s%plot_page%title(i)%draw_it .or. s%plot_page%title(i)%string == '') cycle
-  call qp_draw_text (s%plot_page%title(i)%string, s%plot_page%title(i)%x, &
-                     s%plot_page%title(i)%y, s%plot_page%title(i)%units, &
-                     s%plot_page%title(i)%justify, height = h)
-enddo
+if (s%plot_page%title%draw_it .and. s%plot_page%title%string /= '') then
+  call qp_draw_text (s%plot_page%title%string, s%plot_page%title%x, s%plot_page%title%y, &
+                     s%plot_page%title%units, s%plot_page%title%justify, height = h)
+endif
+
+if (s%plot_page%subtitle%draw_it .and. s%plot_page%subtitle%string /= '') then
+  call qp_draw_text (s%plot_page%subtitle%string, s%plot_page%subtitle%x, s%plot_page%subtitle%y, &
+                     s%plot_page%subtitle%units, s%plot_page%subtitle%justify, height = h)
+endif
 
 ! Draw view universe
 
@@ -684,7 +687,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
 
 else
   floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
-  floor1 = coords_local_curvilinear_to_floor (floor, ele, .true., use_patch_entrance = .true.)
+  floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
 
   floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
   floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
@@ -812,7 +815,7 @@ if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
                                                        .true., .true., orb_start, orb_here)
       f_orb%r(1:2) = graph%floor_plan%orbit_scale * orb_here%vec(1:3:2)
       f_orb%r(3) = s_here
-      f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
+      f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false., relative_to_upstream = .true.)
       call tao_floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
     enddo
     call qp_draw_polyline(dx_orbit(0:n), dy_orbit(0:n))
@@ -845,7 +848,7 @@ if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
                                                  .true., .true., orb_start, orb_here)
       floor%r(1:2) = graph%floor_plan%orbit_scale * orb_here%vec(1:3:2)
       floor%r(3) = s_here
-      floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+      floor1 = coords_local_curvilinear_to_floor (floor, ele, .false., relative_to_upstream = .true.)
       call tao_floor_to_screen_coords (graph, floor1, f_orb)
       dx_orbit(ic) = f_orb%r(1)
       dy_orbit(ic) = f_orb%r(2)
@@ -1701,12 +1704,14 @@ if (curve%draw_symbols .and. allocated(curve%x_symb)) then
     enddo 
     
   ! Color by z  
-  elseif (curve%use_z_color) then  
-     if (curve%autoscale_z_color) then
-       curve%z_color0 = minval(curve%z_symb(:))
-       curve%z_color1 = maxval(curve%z_symb(:))
-     endif
-     dz = (curve%z_color1 - curve%z_color0)
+  elseif (curve%z_color%is_on) then  
+    if (curve%z_color%autoscale) then
+      curve%z_color%min = minval(curve%z_symb(:))
+      curve%z_color%max = maxval(curve%z_symb(:))
+    endif
+
+    dz = (curve%z_color%max - curve%z_color%min)
+
     do i = 1, size(curve%x_symb), max(1, curve%symbol_every)
         call qp_draw_symbol (curve%x_symb(i), curve%y_symb(i), clip = graph%clip, color = z_color())
     enddo    
@@ -1764,7 +1769,7 @@ real(rp) :: z
 if (dz==0) then
   color = 'black'
 else
-  z = (curve%z_symb(i) - curve%z_color0)/dz
+  z = (curve%z_symb(i) - curve%z_color%min)/dz
   z = 1-z ! Make red -> purple with PLPlot
   color = qp_enum_to_string(qp_continuous_color(z), 'color')
 endif

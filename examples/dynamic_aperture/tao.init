@@ -21,6 +21,7 @@
 &tao_dynamic_aperture
   a_emit = 2e-7
   b_emit = 1e-8
+  ellipse_scale = 10   ! Draw beam ellipse at 10 sigma
   pz = 0, 0.01, 0.015
   da_param%n_angle = 10
   da_param%n_turn = 200 ! This is set low for demonstration purposes.

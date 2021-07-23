@@ -848,12 +848,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), imt)  'ix_universe          = ', c1%ix_universe
       nl=nl+1; write(lines(nl), imt)  'symbol_every         = ', c1%symbol_every
       nl=nl+1; write(lines(nl), rmt)  'y_axis_scale_factor  = ', c1%y_axis_scale_factor
-      nl=nl+1; write(lines(nl), rmt)  'scale                = ', c1%scale
-      nl=nl+1; write(lines(nl), rmt)  'z_color0             = ', c1%z_color0
-      nl=nl+1; write(lines(nl), rmt)  'z_color1             = ', c1%z_color1
       nl=nl+1; write(lines(nl), lmt)  'use_y2               = ', c1%use_y2
-      nl=nl+1; write(lines(nl), lmt)  'use_z_color          = ', c1%use_z_color
-      nl=nl+1; write(lines(nl), lmt)  'autoscale_z_color    = ', c1%autoscale_z_color
       nl=nl+1; write(lines(nl), lmt)  'draw_line            = ', c1%draw_line
       nl=nl+1; write(lines(nl), lmt)  'draw_symbols         = ', c1%draw_symbols
       nl=nl+1; write(lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
@@ -868,6 +863,10 @@ case ('curve')
       nl=nl+1; write(lines(nl), amt)  'symbol%fill_pattern  = ', c1%symbol%fill_pattern
       nl=nl+1; write(lines(nl), imt)  'symbol%line_width    = ', c1%symbol%line_width
       nl=nl+1; write(lines(nl), amt)  'symbol%color         = ', c1%symbol%color
+      nl=nl+1; write(lines(nl), lmt)  'z_color%is_on        = ', c1%z_color%is_on
+      nl=nl+1; write(lines(nl), lmt)  'z_color%autoscale    = ', c1%z_color%autoscale
+      nl=nl+1; write(lines(nl), rmt)  'z_color_min          = ', c1%z_color%min
+      nl=nl+1; write(lines(nl), rmt)  'z_color_max          = ', c1%z_color%max
       
       ! Histogram specific parameters
       if (c1%g%type == 'histogram') then
@@ -1363,8 +1362,9 @@ case ('dynamic_aperture')
   nl=nl+1; write(lines(nl), '(a, f10.6)')   'da_param%y_init:        ', da%param%y_init
   nl=nl+1; write(lines(nl), '(a, f10.6)')   'da_param%rel_accuracy:  ', da%param%rel_accuracy
   nl=nl+1; write(lines(nl), '(a, f10.6)')   'da_param%abs_accuracy:  ', da%param%abs_accuracy
-  nl=nl+1; write(lines(nl), rmt)            'a_emit                  ', da%a_emit
-  nl=nl+1; write(lines(nl), rmt)            'b_emit                  ', da%b_emit
+  nl=nl+1; write(lines(nl), rmt)            'a_emit:                 ', da%a_emit
+  nl=nl+1; write(lines(nl), rmt)            'b_emit:                 ', da%b_emit
+  nl=nl+1; write(lines(nl), rmt)            'ellipse_scale:          ', da%ellipse_scale
 
   do k = 1, size(da%scan)
     aperture_scan => da%scan(k) 
@@ -3514,7 +3514,7 @@ case ('plot')
 
   do
     call tao_next_switch (what2, [character(16) :: '-floor_plan', '-lat_layout', '-templates', &
-                                                   '-global', '-regions', '-plot_page'], .true., switch, err, ix)
+                                     '-global', '-regions', '-plot_page', '-page'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('') 
@@ -3631,26 +3631,37 @@ case ('plot')
 
   ! Plot_page parameters.
 
-  case ('-plot_page', '-global')
+  case ('-page', '-plot_page', '-global')
 
     nl=nl+1; lines(nl) = 'plot_page parameters:'
-    nl=nl+1; write(lines(nl), imt)  '  %size                         = ', nint(s%plot_page%size)
-    nl=nl+1; write(lines(nl), imt)  '  %n_curve_pts                  = ', s%plot_page%n_curve_pts
-    nl=nl+1; write(lines(nl), f3mt) '  %border                       = ', s%plot_page%border%x1, s%plot_page%border%x2, &
-                                                                          s%plot_page%border%y1, s%plot_page%border%y2
-    nl=nl+1; write(lines(nl), f3mt) '  %text_height                  = ', s%plot_page%text_height 
-    nl=nl+1; write(lines(nl), f3mt) '  %main_title_text_scale        = ', s%plot_page%main_title_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %graph_title_text_scale       = ', s%plot_page%graph_title_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %axis_number_text_scale       = ', s%plot_page%axis_number_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %axis_label_text_scale        = ', s%plot_page%axis_label_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %key_table_text_scale         = ', s%plot_page%key_table_text_scale 
+    nl=nl+1; write(lines(nl), amt)  '  %title%string                  = ', quote(s%plot_page%title%string)
+    nl=nl+1; write(lines(nl), '(a, 2f10.3, 2x, a, 2x, a)') &
+                                    '  %title%x, y, units, justify    = ', s%plot_page%title%x, s%plot_page%title%y, &
+                                                          quote(s%plot_page%title%units), quote(s%plot_page%title%justify)
+    nl=nl+1; write(lines(nl), amt)  '  %subtitle%string               = ', quote(s%plot_page%subtitle%string)
+    nl=nl+1; write(lines(nl), '(a, 2f10.3, 2x, a, 2x, a)') &
+                                    '  %subtitle%x, y, units, justify = ', s%plot_page%title%x, s%plot_page%title%y, &
+                                                          quote(s%plot_page%title%units), quote(s%plot_page%title%justify)
+    nl=nl+1; write(lines(nl), imt)  '  %size                          = ', nint(s%plot_page%size)
+    nl=nl+1; write(lines(nl), imt)  '  %n_curve_pts                   = ', s%plot_page%n_curve_pts
+    nl=nl+1; write(lines(nl), '(a, 4(f0.3, 2x), a)') &
+                                    '  %border                        = ', s%plot_page%border%x1, s%plot_page%border%x2, &
+                                                     s%plot_page%border%y1, s%plot_page%border%y2, s%plot_page%border%units
+    nl=nl+1; write(lines(nl), f3mt) '  %text_height                   = ', s%plot_page%text_height 
+    nl=nl+1; write(lines(nl), f3mt) '  %main_title_text_scale         = ', s%plot_page%main_title_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %graph_title_text_scale        = ', s%plot_page%graph_title_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %axis_number_text_scale        = ', s%plot_page%axis_number_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %axis_label_text_scale         = ', s%plot_page%axis_label_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %key_table_text_scale          = ', s%plot_page%key_table_text_scale 
     nl=nl+1; write(lines(nl), '(a, f0.3, 3x, a)') &
-                                    '  %legend_text_scale            = ', s%plot_page%legend_text_scale, &
-                                                                        '! For legends, plot_page, and lat_layout' 
-    nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale       = ', s%plot_page%floor_plan_shape_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale       = ', s%plot_page%lat_layout_shape_scale 
-    nl=nl+1; write(lines(nl), lmt)  '  %delete_overlapping_plots     = ', s%plot_page%delete_overlapping_plots
-    nl=nl+1; write(lines(nl), lmt)  '  %draw_graph_title_suffix      = ', s%plot_page%draw_graph_title_suffix
+                                    '  %legend_text_scale             = ', s%plot_page%legend_text_scale, &
+                                                                            '! For legends, plot_page, and lat_layout' 
+    nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale        = ', s%plot_page%floor_plan_shape_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale        = ', s%plot_page%lat_layout_shape_scale 
+    nl=nl+1; write(lines(nl), lmt)  '  %delete_overlapping_plots      = ', s%plot_page%delete_overlapping_plots
+    nl=nl+1; write(lines(nl), lmt)  '  %draw_graph_title_suffix       = ', s%plot_page%draw_graph_title_suffix
+    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend_line_len         = ', s%plot_page%curve_legend_line_len
+    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend_text_offset      = ', s%plot_page%curve_legend_text_offset
 
     result_id = 'plot:global'
     return 
@@ -3943,7 +3954,7 @@ case ('spin')
       do i = 1, 3
         j = 2 * i - 1
         q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
-        dq = abs((q-qs) - nint(q-qs))
+        dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
         !!x = abs((q-qs) - nint(q-qs)) * (norm2(real(n_eigen(j,:))) + norm2(imag(n_eigen(j,:))))
         x = dq * sqrt(2.0_rp)*norm2(abs(n_eigen(j,:)))
         z1 = abs(dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi

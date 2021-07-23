@@ -17,6 +17,13 @@ use quick_plot
 
 implicit none
 
+interface
+  function old_style_title_syntax(iu) result (is_old_style)
+  integer iu
+  logical is_old_style
+  end function
+end interface
+
 integer, parameter :: n_region_maxx   = 100     ! number of plotting regions.
 integer, parameter :: n_curve_maxx    = 40      ! number of curves per graph
 
@@ -93,8 +100,8 @@ region%name  = ''       ! a region exists only if its name is not blank
 include_default_plots = .true.
 
 plot_page = plot_page_default
-plot_page%title(1)%y = 0.996
-plot_page%title(2)%y = 0.97
+plot_page%title%y = 0.996
+plot_page%subtitle%y = 0.97
 plot_page%size = [500, 600]
 plot_page%border = qp_rect_struct(0.001_rp, 0.001_rp, 0.001_rp, 0.001_rp, '%PAGE')
 
@@ -158,7 +165,14 @@ endif
 call out_io (s_blank$, r_name, 'Init: Reading tao_plot_page namelist')
 read (iu, nml = tao_plot_page, iostat = ios)
 if (ios > 0) then
-  call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file)
+  ! First check to see if this is due to old style "title(i)" syntax.
+  if (old_style_title_syntax(iu)) then
+    call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file, &
+                                   '"PLOT_PAGE%TITLE(1) = ..." IS REPLACED BY "PLOT_PAGE%TITLE = ..." and', &
+                                   '"PLOT_PAGE%TITLE(2) = ..." IS REPLACED BY "PLOT_PAGE%SUBTITLE = ...".')
+  else
+    call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file)
+  endif
   rewind (iu)
   read (iu, nml = tao_plot_page)  ! To give error message
 endif
@@ -167,10 +181,6 @@ if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist fou
 master_default_graph = default_graph
 
 call tao_set_plotting (plot_page, s%plot_page, .true.)
-
-! title
-
-forall (i = 1:size(s%plot_page%title), (s%plot_page%title(i)%string /= '')) s%plot_page%title(i)%draw_it = .true.
 
 ! Plot window geometry specified on cmd line?
 
@@ -572,11 +582,8 @@ do  ! Loop over plot files
         crv%data_index           = curve(j)%data_index
         crv%data_type_x          = curve(j)%data_type_x
         crv%data_type_z          = curve(j)%data_type_z
-        crv%z_color0             = curve(j)%z_color0
-        crv%z_color1             = curve(j)%z_color1
         crv%data_type            = curve(j)%data_type
         crv%y_axis_scale_factor  = curve(j)%y_axis_scale_factor
-        crv%scale                = curve(j)%scale
         crv%symbol_every         = curve(j)%symbol_every
         crv%ix_universe          = curve(j)%ix_universe
         crv%draw_line            = curve(j)%draw_line
@@ -584,20 +591,23 @@ do  ! Loop over plot files
         crv%draw_symbol_index    = curve(j)%draw_symbol_index
         crv%draw_error_bars      = curve(j)%draw_error_bars
         crv%use_y2               = curve(j)%use_y2
-        crv%use_z_color          = curve(j)%use_z_color
-        crv%autoscale_z_color    = curve(j)%autoscale_z_color
         crv%symbol               = curve(j)%symbol
         crv%line                 = curve(j)%line
         crv%smooth_line_calc     = curve(j)%smooth_line_calc
         crv%name                 = curve(j)%name
         crv%ele_ref_name         = curve(j)%ele_ref_name
         call str_upcase (crv%ele_ref_name, crv%ele_ref_name)
-        crv%ix_ele_ref           = curve(j)%ix_ele_ref
         crv%ix_bunch             = curve(j)%ix_bunch
         crv%ix_branch            = curve(j)%ix_branch
         crv%legend_text          = curve(j)%legend_text
         crv%hist                 = curve(j)%hist
+        crv%z_color              = curve(j)%z_color
         crv%units                = curve(j)%units
+
+        if (curve(j)%z_color0 /= invalid$) crv%z_color%min = curve(j)%z_color0
+        if (curve(j)%z_color1 /= invalid$) crv%z_color%max = curve(j)%z_color1
+        if (curve(j)%autoscale_z_color)    crv%z_color%autoscale = .true.
+        if (curve(j)%use_z_color)          crv%z_color%is_on = .true.
 
         if (crv%data_source == '') crv%data_source = 'lat'
 
@@ -614,17 +624,6 @@ do  ! Loop over plot files
         if (crv%data_source == 'lattice')       crv%data_source = 'lat'
         if (crv%data_source == 'data_array')    crv%data_source = 'data'
         if (crv%data_source == 'var_array')     crv%data_source = 'var'
-
-        if (.not. curve(j)%draw_interpolated_curve) then
-          call out_io (s_error$, r_name, [&
-            '**********************************************************', &
-            '***** SYNTAX CHANGE:                                 *****', &
-            '*****         CURVE%DRAW_INTERPOLATED_CURVE          *****', &
-            '***** NEEDS TO BE CHANGED TO:                        *****', &
-            '*****         CURVE%SMOOTH_LINE_CALC                 *****', &
-            '**********************************************************'] )
-          stop
-        endif
 
         ! Default data type
 
@@ -692,15 +691,11 @@ do  ! Loop over plot files
           cycle
         endif
 
-        ! Find the ele_ref info if either ele_ref_name or ix_ele_ref has been set.
+        ! Find the ele_ref info.
         ! If plotting something like the phase then the default is for ele_ref 
         ! to be the beginning element.
 
-        ! if ix_ele_ref has been set ...
-        if (crv%ele_ref_name == '' .and. crv%ix_ele_ref >= 0) then 
-          crv%ele_ref_name = s%u(i_uni)%design%lat%ele(crv%ix_ele_ref)%name ! find the name
-        ! if ele_ref_name has been set ...
-        elseif (crv%ele_ref_name /= '') then
+        if (crv%ele_ref_name /= '') then
           call tao_locate_elements (crv%ele_ref_name, i_uni, eles, err, ignore_blank = .true.) ! find the index
           if (err) cycle  ! Check
           crv%ix_ele_ref = eles(1)%ele%ix_ele
@@ -1846,7 +1841,6 @@ if (all(s%plot_page%template%name /= 'dynamic_aperture')) then
   crv%line%color = "red"
   crv%data_type = "beam_ellipse"
   crv%line%width = 4
-  crv%scale = 10   ! Draw beam ellipse at 10 sigma
   crv%legend_text = "10 sigma beam ellipse"
   crv%draw_symbols = .false.
   crv%y_axis_scale_factor = 1000
@@ -2961,6 +2955,34 @@ if (present(default_plot)) plt = default_plot
 end subroutine default_plot_init
 
 end subroutine tao_init_plotting
+
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+
+function old_style_title_syntax(iu) result (is_old_style)
+
+use tao_input_struct
+
+type (tao_plot_page_test_input) plot_page
+type (tao_plot_input) default_plot
+type (tao_graph_input) :: default_graph
+type (tao_region_input) region(100)
+type (tao_place_input) place(30)
+
+integer iu, ios
+logical is_old_style, include_default_plots
+
+namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, include_default_plots
+
+!
+
+rewind (iu)
+read (iu, nml = tao_plot_page, iostat = ios) 
+
+is_old_style = (ios == 0)
+
+end function old_style_title_syntax
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------

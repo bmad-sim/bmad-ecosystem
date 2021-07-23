@@ -439,14 +439,14 @@ type (aperture_param_struct) :: da_param
 type (tao_universe_struct), pointer :: u
 type (tao_dynamic_aperture_struct), pointer :: da
 
-real(rp) pz(100), a_emit, b_emit
+real(rp) pz(100), a_emit, b_emit, ellipse_scale
 integer :: ix_universe, ios, iu, i, j, n_pz, n_da
 
 character(*) init_file
 character(200) file_name
 character(*), parameter :: r_name = 'tao_init_dynamic_aperture'
 
-namelist / tao_dynamic_aperture / ix_universe, da_param, pz, a_emit, b_emit
+namelist / tao_dynamic_aperture / ix_universe, da_param, pz, a_emit, b_emit, ellipse_scale
 
 !
 
@@ -462,7 +462,8 @@ do n_da = 1, 1000
   ! Read tao_dynamic_aperture
   call out_io (s_blank$, r_name, 'Init: Begin reading tao_dynamic_aperture namelist')
   pz = real_garbage$
-  a_emit = 0;  b_emit = 0
+  a_emit = -1;  b_emit = -1
+  ellipse_scale = 1
   ix_universe = -1
   da_param = aperture_param_struct()
   read (iu, nml = tao_dynamic_aperture, iostat = ios)
@@ -502,9 +503,10 @@ do n_da = 1, 1000
     da%pz = pz(1:n_pz)
   endif
 
-  da%a_emit = a_emit
-  da%b_emit = b_emit
-  da%param  = da_param
+  da%a_emit         = a_emit
+  da%b_emit         = b_emit
+  da%ellipse_scale  = ellipse_scale
+  da%param          = da_param
 
   !
 

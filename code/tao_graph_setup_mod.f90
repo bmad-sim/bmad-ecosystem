@@ -547,7 +547,7 @@ do k = 1, size(graph%curve)
     call re_allocate (curve%x_symb, n)
     call re_allocate (curve%y_symb, n)
     if (graph%symbol_size_scale > 0) call re_allocate (curve%symb_size, n)
-    if (curve%use_z_color) call re_allocate (curve%z_symb, n)
+    if (curve%z_color%is_on) call re_allocate (curve%z_symb, n)
 
     n = 0
     do ib = 1, size(beam%bunch)
@@ -558,7 +558,7 @@ do k = 1, size(graph%curve)
       call tao_phase_space_axis (curve%data_type,   ix2_ax, p, scratch%axis2, ele)
       curve%x_symb(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       curve%y_symb(n+1:n+m) = pack(scratch%axis2, mask = (p%state == alive$))
-      if (curve%use_z_color) then
+      if (curve%z_color%is_on) then
         call tao_phase_space_axis (curve%data_type_z, ix3_ax, p, scratch%axis3, ele)
         curve%z_symb(n+1:n+m) = pack(scratch%axis3, mask = (p%state == alive$))
       endif
@@ -845,8 +845,8 @@ else
   max_angle = u%dynamic_aperture%param%max_angle
 endif
 
-xx = curve%scale * sqrt(ele%a%beta * da%a_emit)
-yy = curve%scale * sqrt(ele%b%beta * da%b_emit)
+xx = da%ellipse_scale * sqrt(ele%a%beta * da%a_emit)
+yy = da%ellipse_scale * sqrt(ele%b%beta * da%b_emit)
 
 call re_allocate (curve%x_line, 101)
 call re_allocate (curve%y_line, 101)
