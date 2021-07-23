@@ -1358,7 +1358,7 @@ case ('dynamic_aperture.')
     return
   endif
 
-  if (da%a_emit == 0 .or. da%b_emit == 0) then
+  if (da%a_emit <= 0 .or. da%b_emit <= 0) then
     call tao_set_invalid (datum, 'A_EMIT OR B_EMIT NOT SET IN TAO_DYNAMIC_APERTURE STRUCTURE.', why_invalid)
     return
   endif

@@ -69,7 +69,7 @@ implicit none
 type (random_state_struct) ran_state
 character(*) state_string
 character(100) state_str
-character(30) :: r_name = 'tao_set_ran_state_cmd'
+character(*), parameter :: r_name = 'tao_set_ran_state_cmd'
 integer ix, ios
 
 !
@@ -131,7 +131,7 @@ implicit none
 
 character(*) dest_lat, source_lat
 character(16) dest1_name
-character(20) :: r_name = 'tao_set_lattice_cmd'
+character(*), parameter :: r_name = 'tao_set_lattice_cmd'
 
 real(rp) source_val
 
@@ -533,7 +533,7 @@ implicit none
 type (bmad_common_struct) this_bmad_com
 
 character(*) who, value_str
-character(20) :: r_name = 'tao_set_bmad_com_cmd'
+character(*), parameter :: r_name = 'tao_set_bmad_com_cmd'
 
 integer iu, ios
 logical err
@@ -586,7 +586,7 @@ implicit none
 type (geodesic_lm_param_struct) this_geodesic_lm
 
 character(*) who, value_str
-character(20) :: r_name = 'tao_set_geodesic_lm_cmd'
+character(*), parameter :: r_name = 'tao_set_geodesic_lm_cmd'
 
 integer iu, ios
 logical err
@@ -636,7 +636,7 @@ use opti_de_mod, only: opti_de_param
 implicit none
 
 character(*) who, value_str
-character(20) :: r_name = 'tao_set_opti_de_param_cmd'
+character(*), parameter :: r_name = 'tao_set_opti_de_param_cmd'
 
 integer iu, ios
 logical err
@@ -684,7 +684,7 @@ implicit none
 type (tao_wave_struct) wave
 
 character(*) who, value_str
-character(20) :: r_name = 'tao_set_wave_cmd'
+character(*), parameter :: r_name = 'tao_set_wave_cmd'
 
 real(rp) ix_a(2), ix_b(2)
 
@@ -1181,25 +1181,11 @@ namelist / params / plot_page
 select case (component)
 
 case ('title')
-  s%plot_page%title(1)%string = trim(value_str)
+  s%plot_page%title%string = trim(value_str)
   return
 
 case ('subtitle')
-  s%plot_page%title(2)%string = trim(value_str)
-  s%plot_page%title(2)%draw_it = .true.
-  return
-
-case ('subtitle_loc')
-
-  if (.not. present(value_str2)) then
-    call out_io(s_info$, r_name, "subtitle_loc requires two numbers.")
-    return
-  endif
-
-  read(value_str, '(f15.10)') x
-  read(value_str2, '(f15.10)') y
-  s%plot_page%title(2)%x = x
-  s%plot_page%title(2)%y = y
+  s%plot_page%subtitle%string = trim(value_str)
   return
 
 end select
@@ -1210,7 +1196,15 @@ end select
 iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
-write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // trim(value_str)
+
+select case (component)
+case ('subtitle%string', 'subtitle%units', 'subtitle%justify', 'plot_display_type', &
+      'title%string', 'title%units', 'title%justify')
+  write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // quote(value_str)
+case default
+  write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // trim(value_str)
+end select
+
 write (iu, '(a)') '/'
 rewind (iu)
 
@@ -1254,7 +1248,7 @@ integer i, j, ios, i_uni
 integer, allocatable :: ix_ele(:)
 
 character(*) curve_name, component, value_str
-character(20) :: r_name = 'tao_set_curve_cmd'
+character(*), parameter :: r_name = 'tao_set_curve_cmd'
 
 logical err
 
@@ -1390,12 +1384,6 @@ case ('draw_symbol_index')
 case ('use_y2')
   call tao_set_logical_value (this_curve%use_y2, component, value_str, err)
 
-case ('use_z_color')
-  call tao_set_logical_value (this_curve%use_z_color, component, value_str, err)
-  
-case ('autoscale_z_color')
-  call tao_set_logical_value (this_curve%autoscale_z_color, component, value_str, err)  
-
 case ('data_source')
   this_curve%data_source = unquote(value_str)
 
@@ -1417,11 +1405,17 @@ case ('legend_text')
 case ('units')
   this_curve%units = unquote(value_str)
 
-case ('z_color0')
-  call tao_set_real_value (this_curve%z_color0, component, value_str, err, dflt_uni = i_uni)
+case ('z_color%is_on', 'use_z_color')
+  call tao_set_logical_value (this_curve%z_color%is_on, component, value_str, err)
+  
+case ('z_color%autoscale', 'autoscale_z_color')
+  call tao_set_logical_value (this_curve%z_color%autoscale, component, value_str, err)  
 
-case ('z_color1')
-  call tao_set_real_value (this_curve%z_color1, component, value_str, err, dflt_uni = i_uni) 
+case ('z_color%min', 'z_color0')
+  call tao_set_real_value (this_curve%z_color%min, component, value_str, err, dflt_uni = i_uni)
+
+case ('z_color%max', 'z_color1')
+  call tao_set_real_value (this_curve%z_color%max, component, value_str, err, dflt_uni = i_uni) 
 
 case ('hist%number')
   this_curve%hist%width = 0
@@ -1486,12 +1480,12 @@ end subroutine tao_set_curve_cmd
 !+
 ! Subroutine tao_set_plot_cmd (plot_name, component, value_str)
 !
-! Routine to set var values.
+! Routine to set plot parameters.
 !
 ! Input:
-!   plot_name --  Character(*): Which plot to set.
-!   component  -- Character(*): Which component to set.
-!   value_str  -- Character(*): What value to set it to.
+!   plot_name  -- character(*): Which plot to set.
+!   component  -- character(*): Which component to set.
+!   value_str  -- character(*): What value to set it to.
 !
 !  Output:
 !-
@@ -1541,53 +1535,53 @@ do i = 1, size(plot)
 
   select case (comp)
 
-    case ('autoscale_x')
-      call tao_set_logical_value (p%autoscale_x, component, value_str, err_flag)
+  case ('autoscale_x')
+    call tao_set_logical_value (p%autoscale_x, component, value_str, err_flag)
 
-    case ('autoscale_y')
-      call tao_set_logical_value (p%autoscale_y, component, value_str, err_flag)
+  case ('autoscale_y')
+    call tao_set_logical_value (p%autoscale_y, component, value_str, err_flag)
 
-    case ('autoscale_gang_x')
-      call tao_set_logical_value (p%autoscale_gang_x, component, value_str, err_flag)
+  case ('autoscale_gang_x')
+    call tao_set_logical_value (p%autoscale_gang_x, component, value_str, err_flag)
 
-    case ('autoscale_gang_y')
-      call tao_set_logical_value (p%autoscale_gang_y, component, value_str, err_flag)
+  case ('autoscale_gang_y')
+    call tao_set_logical_value (p%autoscale_gang_y, component, value_str, err_flag)
 
-    case ('description')
-      p%description = value_str
+  case ('description')
+    p%description = value_str
 
-    case ('component')
+  case ('component')
+    do j = 1, size(p%graph)
+      p%graph(j)%component = unquote(value_str)
+    enddo
+
+  case ('n_curve_pts')
+    call tao_set_integer_value (p%n_curve_pts, component, value_str, err_flag)
+
+  case ('name')
+    p%name = value_str
+
+  case ('visible')
+    if (.not. associated(p%r)) cycle
+    call tao_set_logical_value (p%r%visible, component, value_str, err_flag)
+    call tao_turn_on_special_calcs_if_needed_for_plotting()
+    found = .true.
+
+  case ('x')
+    call tao_set_qp_axis_struct('x', sub_comp, p%x, value_str, err_flag)
+    if (allocated(p%graph)) then
       do j = 1, size(p%graph)
-        p%graph(j)%component = unquote(value_str)
+        p%graph(i)%x = p%x
       enddo
+    endif
 
-    case ('n_curve_pts')
-      call tao_set_integer_value (p%n_curve_pts, component, value_str, err_flag)
+  case ('x_axis_type')
+    call tao_set_switch_value (ix, component, value_str, tao_x_axis_type_name, lbound(tao_x_axis_type_name,1), err_flag)
+    if (.not. err_flag) p%x_axis_type = tao_x_axis_type_name(ix)
 
-    case ('name')
-      p%name = value_str
-
-    case ('visible')
-      if (.not. associated(p%r)) cycle
-      call tao_set_logical_value (p%r%visible, component, value_str, err_flag)
-      call tao_turn_on_special_calcs_if_needed_for_plotting()
-      found = .true.
-
-    case ('x')
-      call tao_set_qp_axis_struct('x', sub_comp, p%x, value_str, err_flag)
-      if (allocated(p%graph)) then
-        do j = 1, size(p%graph)
-          p%graph(i)%x = p%x
-        enddo
-      endif
-
-    case ('x_axis_type')
-      call tao_set_switch_value (ix, component, value_str, tao_x_axis_type_name, lbound(tao_x_axis_type_name,1), err_flag)
-      if (.not. err_flag) p%x_axis_type = tao_x_axis_type_name(ix)
-
-    case default
-      call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)
-      return
+  case default
+    call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)
+    return
       
   end select
 
@@ -1600,6 +1594,63 @@ if (comp == 'visible' .and. .not. found) then
 endif
 
 end subroutine tao_set_plot_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_region_cmd (region_name, component, value_str)
+!
+! Routine to set region parameters.
+!
+! Input:
+!   region_name -- character(*): Which region to set.
+!   component   -- character(*): Which component to set.
+!   value_str   -- character(*): What value to set it to.
+!
+!  Output:
+!-
+
+subroutine tao_set_region_cmd (region_name, component, value_str)
+
+implicit none
+
+type (tao_universe_struct), pointer :: u
+type (tao_plot_region_struct), pointer :: r
+
+character(*) region_name, component, value_str
+character(*), parameter :: r_name = 'tao_set_region_cmd'
+
+integer iset, iw, iu
+integer i, j, ix, ios
+logical err_flag, found
+
+!
+
+call tao_find_plot_region (err_flag, region_name, r)
+if (err_flag) return
+
+if (.not. associated(r)) then
+  call out_io (s_error$, r_name, 'BAD REGION NAME.')
+  return
+endif
+
+! And set
+
+select case (component)
+case ('x1')
+  call tao_set_real_value (r%location(1), component, value_str, err_flag)
+case ('x2')
+  call tao_set_real_value (r%location(2), component, value_str, err_flag)
+case ('y1')
+  call tao_set_real_value (r%location(3), component, value_str, err_flag)
+case ('y2')
+  call tao_set_real_value (r%location(4), component, value_str, err_flag)
+case ('visible')
+  call tao_set_logical_value (r%visible, component, value_str, err_flag)
+end select
+
+end subroutine tao_set_region_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -1625,7 +1676,7 @@ type (tao_plot_array_struct), allocatable :: plot(:)
 type (tao_graph_array_struct), allocatable :: graph(:)
 
 character(*) graph_name, component, value_str
-character(20) :: r_name = 'tao_set_graph_cmd'
+character(*), parameter :: r_name = 'tao_set_graph_cmd'
 
 integer i, j, ios
 logical err
@@ -1659,7 +1710,7 @@ type (tao_graph_struct) this_graph
 type (tao_universe_struct), pointer :: u
 character(40) comp, sub_comp
 character(200) value
-integer iset, iw, ix
+integer iset, iw, ix, ix2
 logical logic, error
 
 !
@@ -1699,6 +1750,28 @@ case ('text_legend')
 
 case ('allow_wrap_around')
   call tao_set_logical_value (this_graph%allow_wrap_around, component, value, error)
+
+case ('box')
+  ix = index(component, '(')
+  if (ix == 0) then
+    read (value, *, iostat = ios) this_graph%box
+  else
+    ix2 = index(component, ')')
+    if (ix2 == 0) then
+      call out_io (s_error$, r_name, 'MISSING ")" CHARACTER IN "BOX(N)" CONSTRUCT.')
+      return
+    endif
+    error = (.not. is_integer(component(ix+1:ix2-1), iw))
+    if (error .or. iw < 0 .or. iw > 4) then
+      call out_io (s_error$, r_name, 'BAD BOX INDEX.')
+      return
+    endif
+    read (value, *, iostat = ios) this_graph%box(iw)
+  endif
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'BAD BOX INTEGER VALUE.')
+  endif
+
 case ('component')
   this_graph%component = value_str
 case ('clip')
@@ -2074,7 +2147,7 @@ integer, allocatable :: int_save(:)
 
 character(*) who_str, value_str
 character(20) component
-character(20) :: r_name = 'tao_set_data_cmd'
+character(*), parameter :: r_name = 'tao_set_data_cmd'
 character(200) :: tmpstr, why_invalid
 character, allocatable :: s_save(:)
 
@@ -2408,7 +2481,7 @@ subroutine tao_set_dynamic_aperture_cmd (who, value_str)
 type (tao_universe_struct), pointer :: u
 type (aperture_param_struct) ap_param
 
-real(rp) pz(20)
+real(rp) pz(20), a_emit, b_emit, ellipse_scale
 integer i, iu, ios, iof, n, n2
 
 character(*) who, value_str
@@ -2417,7 +2490,7 @@ character(*), parameter :: r_name = 'tao_set_dynamic_aperture_cmd'
 logical, allocatable :: this_u(:)
 logical err
 
-namelist / params / ap_param, pz
+namelist / params / ap_param, pz, a_emit, b_emit, ellipse_scale
 
 !
 
@@ -2440,6 +2513,9 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   n = size(u%dynamic_aperture%pz)
   pz = -2
   pz(1:n) = u%dynamic_aperture%pz
+  a_emit = u%dynamic_aperture%a_emit
+  b_emit = u%dynamic_aperture%b_emit
+  ellipse_scale = u%dynamic_aperture%ellipse_scale
   ap_param = u%dynamic_aperture%param
   rewind(iof)
   read (iof, nml = params, iostat = ios)
@@ -2451,6 +2527,10 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   endif
 
   u%dynamic_aperture%param = ap_param
+  u%dynamic_aperture%a_emit = a_emit
+  u%dynamic_aperture%b_emit = b_emit
+  u%dynamic_aperture%ellipse_scale = ellipse_scale
+
   n = 0
   do i = 1, size(pz)
     if (pz(i) <= -1) cycle
@@ -2490,7 +2570,7 @@ implicit none
 integer i, n_uni
 
 character(*) uni, who, what
-character(20) :: r_name = "tao_set_universe_cmd"
+character(*), parameter :: r_name = "tao_set_universe_cmd"
 
 logical is_on, err, mat6_toggle
 
@@ -3019,7 +3099,7 @@ integer, optional :: dflt_uni
 integer ios
 
 character(*) var_str, value_str
-character(20) :: r_name = 'tao_set_real_value'
+character(*), parameter :: r_name = 'tao_set_real_value'
 logical error
 
 !
@@ -3078,7 +3158,7 @@ type (tao_ele_shape_input), pointer :: es_in
 type (tao_ele_shape_struct), pointer :: es
 
 character(*) component, value_str
-character(20) :: r_name = 'tao_set_drawing_cmd'
+character(*), parameter :: r_name = 'tao_set_drawing_cmd'
 
 integer i, ix, n, iu, ios
 
@@ -3411,7 +3491,10 @@ type (qp_point_struct) qp_point
 character(*) component, value, qp_point_name
 character(*), parameter :: r_name = 'tao_set_qp_point_struct '
 integer, optional :: ix_uni
+integer iu, ios
 logical error
+
+namelist / params / qp_point
 
 !
 
@@ -3423,6 +3506,22 @@ case ('y')
 case ('units')
   qp_point%units = value
   error = .false.
+case ('')
+  iu = tao_open_scratch_file (error);  if (error) return
+  write (iu, '(a)') '&params'
+  write (iu, '(a)') ' qp_point = ' // trim(value)
+  write (iu, '(a)') '/'
+  write (iu, *)
+
+  rewind (iu)
+  read (iu, nml = params, iostat = ios)
+  close (iu, status = 'delete')
+
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+    return
+  endif
+
 case default
   call out_io (s_error$, r_name, "BAD GRAPH QP_POINT COMPONENT " // component)
   error = .true.

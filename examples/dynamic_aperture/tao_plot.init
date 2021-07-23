@@ -8,7 +8,7 @@ the plot page) is broken up.
   plot_page%size = 600, 400
   plot_page%text_height = 12.0 
   plot_page%border = 0, 0, 0, 0, "%PAGE"  
-  plot_page%title(1)%string = "Dynamic Aperture Demo"
+  plot_page%title%string = "Dynamic Aperture Demo"
   region(1) = "all"    0.0, 1.0, 0.0, 0.95
   place(1) = "all", "da"
 /
@@ -45,7 +45,6 @@ Templates define the basics of, say, how to display an orbit.
   curve(1)%line%color = "red"
   curve(1)%data_type = "beam_ellipse"
   curve(1)%line%width = 5
-  curve(1)%scale = 10   ! Draw beam ellipse at 10 sigma
   curve(1)%legend_text = "10 sigma beam ellipse"
   curve(1)%draw_symbols = F
   curve(1:10)%y_axis_scale_factor = 10*1000

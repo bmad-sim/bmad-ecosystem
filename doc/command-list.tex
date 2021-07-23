@@ -495,7 +495,7 @@ plotted in the specified graphs or plots. Format:
 
 \vskip 10pt 
 
-components are a property of a graph (or curve) so when <plot_or_graph> specifies a plot, all the
+Here components are a property of a graph (or curve) so when <plot_or_graph> specifies a plot, all the
 graphs associated with the plot are assigned the \vn{<component>}.
 
 Note: The plot command is a shortcut for the commands:
@@ -830,34 +830,34 @@ Examples:
 
 The \vn{set} command is used to set values for data, variables, etc. Subcommands are:
 \begin{example}
-  set beam \{n@\}<component> = <value>                        ! \sref{s:set.beam}
-  set beam_init \{n@\}<component> = <value>                   ! \sref{s:set.beam.init}
-  set bmad_com <component> = <value>                        ! \sref{s:set.bmad.com}
-  set branch <branch> <component> = <value>                 ! \sref{s:set.branch}
-  set csr_param <component> = <value>                       ! \sref{s:set.csr.param}
-  set curve <curve> <component> = <value>                   ! \sref{s:set.curve}
-  set data <data_name>|<component> = <value>                ! \sref{s:set.data}
+  set beam \{n@\}<parameter> = <value>                        ! \sref{s:set.beam}
+  set beam_init \{n@\}<parameter> = <value>                   ! \sref{s:set.beam.init}
+  set bmad_com <parameter> = <value>                        ! \sref{s:set.bmad.com}
+  set branch <branch> <parameter> = <value>                 ! \sref{s:set.branch}
+  set csr_param <parameter> = <value>                       ! \sref{s:set.csr.param}
+  set curve <curve> <parameter> = <value>                   ! \sref{s:set.curve}
+  set data <data_name>|<parameter> = <value>                ! \sref{s:set.data}
   set default <parameter> = <value>                         ! \sref{s:set.default}
-  set dynamic_aperture \{n@\}<component = <value>             ! \sref{s:set.da}
+  set dynamic_aperture \{n@\}<parameter = <value>             ! \sref{s:set.da}
   set element <element_list> <attribute> = <value>          ! \sref{s:set.element}
-  set floor_plan <component> = <value>                      ! \sref{s:set.floor.plan}
-  set geodesic_lm <component> = <value>                     ! \sref{s:set.geodesic.lm}
-  set global <component> = <value>                          ! \sref{s:set.global}
-  set graph <graph> <component> = <value>                   ! \sref{s:set.graph}
+  set floor_plan <parameter> = <value>                      ! \sref{s:set.floor.plan}
+  set geodesic_lm <parameter> = <value>                     ! \sref{s:set.geodesic.lm}
+  set global <parameter> = <value>                          ! \sref{s:set.global}
+  set graph <graph> <parameter> = <value>                   ! \sref{s:set.graph}
   set key <key> = <command>                                 ! \sref{s:set.key}
-  set lat_layout <component> = <value>                      ! \sref{s:set.lat.layout}
+  set lat_layout <parameter> = <value>                      ! \sref{s:set.lat.layout}
   set lattice \{n@\}<destination_lat> = <source_lat>          ! \sref{s:set.lattice}
-  set opti_de_param <component> = <value>                   ! \sref{s:set.opti.de.param}
+  set opti_de_param <parameter> = <value>                   ! \sref{s:set.opti.de.param}
   set particle_start \{n@\}<coordinate> = <value>             ! \sref{s:set.particle.start}
   set plot <plot> <parameter> = <value>                     ! \sref{s:set.plot}
   set plot_page <parameter> = <value1> \{<value2>\}           ! \sref{s:set.plot.page}
   set ran_state = <random_number_generator_state>           ! \sref{s:set.ran.state}
-  set region <region> <parameter> = <value>                 ! \sref{s:set.plot}
+  set region <region> <parameter> = <value>                 ! \sref{s:set.region}
   set symbolic_number <name> = <value>                      ! \sref{s:set.symbolic}
   set universe <what_universe> <on/off>                     ! \sref{s:set.universe}
   set universe <what_universe> <calc_name> <on/off>         ! \sref{s:set.universe}
-  set variable <var_name>|<component> = <value>             ! \sref{s:set.variable}
-  set wave <component> = <value>                            ! \sref{s:set.wave}
+  set variable <var_name>|<parameter> = <value>             ! \sref{s:set.variable}
+  set wave <parameter> = <value>                            ! \sref{s:set.wave}
 \end{example}
 
 \vskip 10pt 
@@ -903,7 +903,7 @@ Where \vn{<value>} may be one of:
 
 Format:
 \begin{example}
-  set beam \{n@\}<component> = <value>
+  set beam \{n@\}<parameter> = <value>
   set beam \{n@\}beginning = <ele-name>
   set beam \{n@\}add_saved_at = <ele-list>
   set beam \{n@\}subtract_saved_at = <ele-list>
@@ -945,10 +945,10 @@ Examples:
 
 Format:
 \begin{example}
-  set beam_init \{n@\}<component> = <value>
+  set beam_init \{n@\}<parameter> = <value>
 \end{example}
 
-The \vn{set beam_init} command sets components of the \vn{beam_init} structure (\sref{s:beam.init}).
+The \vn{set beam_init} command sets parameters of the \vn{beam_init} structure (\sref{s:beam.init}).
 Additionally, the \vn{set beam_init} command can set the parameters (\sref{s:beam.init})
 \begin{example}
   beam_track_start  and
@@ -976,11 +976,11 @@ Examples:
 
 Format:
 \begin{example}
-  set bmad_com <component> = <value>
+  set bmad_com <parameter> = <value>
 \end{example}
 
 For \vn{set bmad_com}: The \vn{show global} command will give a list of 
-\vn{<component>}s.
+\vn{<parameter>}s.
 
 Example:
 \begin{example}
@@ -994,7 +994,7 @@ Example:
 
 Format:
 \begin{example}
-  set branch <branch-id> <component> = <value>
+  set branch <branch-id> <parameter> = <value>
 \end{example}
 
 Sets parameters associated with a lattice branch. Use the \vn{show branch} command to see the
@@ -1021,11 +1021,11 @@ Examples:
 
 Format:
 \begin{example}
-  set csr_param <component> = <value>
+  set csr_param <parameter> = <value>
 \end{example}
 
 Sets coherent synchrotron radiation parameters. Use the \vn{show global -csr_param}
-command to see a list of \vn{<component>}s.
+command to see a list of \vn{<parameter>}s.
 
 Example:
 \begin{example}
@@ -1039,10 +1039,10 @@ Example:
 
 Format:
 \begin{example}
-  set curve <curve> <component> = <value>
+  set curve <curve> <parameter> = <value>
 \end{example}
 
-For \vn{set curve}, the \vn{<component>}s that can be set are:
+For \vn{set curve}, the \vn{<parameter>}s that can be set are:
 \begin{example}
   ele_ref_name        = <string>  ! Name or index of the reference element
   component           = <string>  ! \sref{s:plot.data}
@@ -1058,7 +1058,7 @@ For \vn{set curve}, the \vn{<component>}s that can be set are:
 See the \vn{Plot Templates} section (\sref{s:template}) for a description of these attributes.  Use
 the \vn{show curve} (\sref{s:show}) to see the settings of the attributes.
 
-If there are visible plots with the same name as the plot component of \vn{<curve>}, a template plot
+If there are visible plots with the same name as the plot parameter of \vn{<curve>}, a template plot
 of the same name is ignored. To set template plot curve(s) in this case, add a ``\vn{T::}'' prefix.
 
 Examples:
@@ -1136,7 +1136,7 @@ Example:
 
 Format:
 \begin{example}
-  set dynamic_aperture \{n@\}<component> = <value>
+  set dynamic_aperture \{n@\}<parameter> = <value>
 \end{example}
 
 The \vn{set dynamic_aperture} command sets parameters for dynamic aperture simulations
@@ -1197,14 +1197,14 @@ Examples:
 
 Format:
 \begin{example}
-  set floor_plan <component> = <value>
+  set floor_plan <parameter> = <value>
 \end{example}
 
 
 Sets parameters for \vn{floor_plan} plots (\sref{s:shapes}).  Possible
-\vn{<components>} are:
+\vn{<parameters>} are:
 \begin{example}
-  <shape_name>%<shape_component>
+  <shape_name>%<shape_parameter>
   draw_beam_chamber_wall
   beam_chamber_wall_scale
 \end{example}
@@ -1225,11 +1225,11 @@ Example:
 
 Format:
 \begin{example}
-  set geodesic_lm <component> = <value>
+  set geodesic_lm <parameter> = <value>
 \end{example}
 
 For \vn{set geodesic_lm}: The \vn{show optimizer geodesic_lm} command will give a list of
-\vn{<component>}s.
+\vn{<parameter>}s.
 
 Example:
 \begin{example}
@@ -1243,7 +1243,7 @@ Example:
 
 Format:
 \begin{example}
-  set global <component> = <value>
+  set global <parameter> = <value>
 \end{example}
 
 The \vn{set global} command sets global parameters of \tao.
@@ -1262,21 +1262,21 @@ Example:
 
 Format:
 \begin{example}
-  set graph <graph> <component> = <value>
+  set graph <graph> <parameter> = <value>
 \end{example}
 
-The \vn{set graph} command is used to set components of a graph structure (\sref{s:template}).
+The \vn{set graph} command is used to set parameters of a graph structure (\sref{s:template}).
 
 If the \vn{<graph>} name corresponds to a plot, the set is applied to all the graphs associated with
-the plot. If there are visible plots with the same name as the plot component of \vn{<graph>}, a
+the plot. If there are visible plots with the same name as the plot parameter of \vn{<graph>}, a
 template plot of the same name is ignored. To set template plot graphs(s) in this case, add a
 ``\vn{T::}'' prefix.
 
-For setting the \vn{component} attribute see also the commands:
+For setting the \vn{parameter} attribute see also the commands:
 \begin{example}
   plot                    ! \sref{s:plot}
-  set plot component      ! \sref{s:set.plot}
-  set curve component     ! \sref{s:set.curve}
+  set plot parameter      ! \sref{s:set.plot}
+  set curve parameter     ! \sref{s:set.curve}
 \end{example}
 
 Example:
@@ -1316,7 +1316,7 @@ Example:
 
 Format:
 \begin{example}
-  set lat_layout <component> = <value>
+  set lat_layout <parameter> = <value>
 \end{example}
 
 Sets parameters for \vn{lat_layout} plots (\sref{s:shapes}).  Syntax for ``\vn{set lat_layout}'' is
@@ -1379,11 +1379,11 @@ Example:
 
 Format:
 \begin{example}
-  set opti_de_param <component> = <value>
+  set opti_de_param <parameter> = <value>
 \end{example}
 
 For \vn{set opti_de_param}: The \vn{show global} command will give a list of 
-\vn{<component>}s.
+\vn{<parameter>}s.
 
 Example:
 \begin{example}
@@ -1417,7 +1417,7 @@ For photons, \vn{<coordinate>} may also be:
   field_x, field_y, phase_x, phase_y
 \end{example}
 The \vn{*} coordinate denotes the phase space vector $(x, p_x, y, p_y, z, p_z)$.  For closed
-lattices only the \vn{pz} component is applicable. For lattices that have an \vn{e_gun} (which
+lattices only the \vn{pz} parameter is applicable. For lattices that have an \vn{e_gun} (which
 necessarily implies that the lattice has an open geometry), the time \vn{t} coordinate must be
 varied instead of \vn{pz}.
 
@@ -1430,7 +1430,7 @@ Examples:
 \begin{example}
   set particle_start 2@x = 0.001         ! Set beginning x position in universe 2 to 1 mm.
   set particle_start field_x = 1         ! Set photon field
-  set particle_start spin_y = 0.37       ! Set spin component.
+  set particle_start spin_y = 0.37       ! Set spin parameter.
 \end{example}
 
 %% set plot --------------------------------------------------------------
@@ -1448,8 +1448,8 @@ The \vn{<parameters>}s that can be set are:
   autoscale_x        = <logical>
   autoscale_y        = <logical>
   visible            = <logical>
-  component          = <string>    ! \sref{s:plot.data}
-  x%<axis_component> = <value>
+  parameter          = <string>    ! \sref{s:plot.data}
+  x%<axis_parameter> = <value>
   n_curve_pts        = <integer>
 \end{example}
 Use the \vn{show plot <plot_name>} to see the settings of various parameters. See the
@@ -1495,16 +1495,16 @@ Example:
 
 Format:
 \begin{example}
-  set plot_page <component> = <value1> \{<value2>\}
+  set plot_page <parameter> = <value1> \{<value2>\}
 \end{example}
 
-For \vn{set plot_page}, the \vn{<component>}s that can be set are:
+For \vn{set plot_page}, the \vn{<parameter>}s that can be set are:
 \begin{example}
   title        = <string>          ! Set the plot title text
   subtitle     = <string>          ! Set the subtitle text
   subtitle_loc = <number> <number> ! Set the subtitle location (\%PAGE)
 \end{example}
-The \vn{subtitle_loc} component can be used to place the subtitle anywhere on the plot
+The \vn{subtitle_loc} parameter can be used to place the subtitle anywhere on the plot
 page. This can be useful for referencing a noteworthy part of a graph data.
 
 Example:
@@ -1525,6 +1525,29 @@ Format:
 Sets the state of the random number generator to a specific state. Use \vn{show global -ran_state}
 to show the random number generator state. Manipulating the state for generating random numbers is
 generally only used for debugging purposes and is not of interest to the typical user.
+
+%% set region --------------------------------------------------------------
+
+\subsection{set region}
+\label{s:region}
+
+Format:
+\begin{example}
+  set region <parameter> = <value>
+\end{example}
+
+Sets a plot region parameter. Parameters are:
+\begin{example}
+  x1, x2, y1, y2    ! Region rectangle placement
+  visible           ! Is plot in region visible?
+\end{example}
+
+Use the \vn{show plot} command to see a listing of region parameters.
+
+Example:
+\begin{example}
+  set region r13 y2 = 0.3  ! Set y2 parameter of region r13
+\end{example}
 
 %% set symbolic_number --------------------------------------------------------------
 
@@ -1584,12 +1607,12 @@ parameters for that universe.
 The \vn{set universe <what_universe> dynamic_aperture_calc} command will enable the dynamic aperture
 calculation for a ring. See the \vn{Initializing Dynamic Aperture} section
 (\sref{s:da.calc}) for more details. To enable the dynamic aperture calculation at startup,
-set the \vn{design_lattice(i)%dynamic_aperture} component (\sref{s:init.lat}).
+set the \vn{design_lattice(i)%dynamic_aperture} parameter (\sref{s:init.lat}).
 
 The \vn{set universe <what_universe> one_turn_map_calc} command will enable a one-turn-map
 calculation for a ring using PTC, and populate the normal form taylor maps. See
 Eq.~\ref{normalform1} and Eq.~\ref{normalform2} in the \vn{normal.} data type. To enable the map
-calculation at startup, set the \vn{design_lattice(i)%one_turn_map_calc} component
+calculation at startup, set the \vn{design_lattice(i)%one_turn_map_calc} parameter
 (\sref{s:init.lat}).
 
 The commands
@@ -1615,10 +1638,10 @@ Example:
 
 Format:
 \begin{example}
-  set variable <var_name>|<component> = <value>
+  set variable <var_name>|<parameter> = <value>
 \end{example}
 
-For \vn{set var}, the \vn{<component>}s that can be set are:
+For \vn{set var}, the \vn{<parameter>}s that can be set are:
 \begin{example}
   model       ! Model lattice value.
   base        ! Base model value
@@ -1649,11 +1672,11 @@ Example:
 
 Format:
 \begin{example}
-  set wave <component> = <value>
+  set wave <parameter> = <value>
 \end{example}
 
 The \vn{set wave} command sets the boundaries of the $A$ and $B$ regions for the wave
-analysis (\sref{c:wave}). The components are
+analysis (\sref{c:wave}). The parameters are
 \begin{example}
   ix_a = <ix_a1> <ix_a2>  ! A-region left and right boundaries.
   ix_b = <ix_b1> <ix_b2>  ! B-region left and right boundaries.
@@ -1876,7 +1899,7 @@ horizontal data values will be put in column 1.
 The \vn{-no_header} switch is used with \vn{-line} and \vn{-symbol} to suppress the printing of
 header lines. This is useful when the generated table is to be read in by another program.
 
-If there are visible plots with the same name as the plot component of \vn{<curve>}, a template plot
+If there are visible plots with the same name as the plot parameter of \vn{<curve>}, a template plot
 of the same name is ignored. To show template plot curve(s) in this case, add a ``\vn{T::}'' prefix.
 
 Also see: \vn{show plot} and \vn{show graph} commands.
@@ -1933,7 +1956,7 @@ The \vn{-derivative_recalc} forces a recalculation of the derivative matrix. Thi
 same as using \vn{derivative} command (\sref{s:deriv}) before the \vn{show derivative} command.
 
 Note: Derivatives are only calculated for data and variables that are used in an optimization. That
-is, derivatives are only calculated for data and variables whose \vn{useit_opt} component (see
+is, derivatives are only calculated for data and variables whose \vn{useit_opt} parameter (see
 \sref{s:data.anatomy} and \sref{c:var}) is True.
 
 The output of this command is a number of lines that look like:
@@ -2102,8 +2125,8 @@ interest to the typical user.
 Specifically:
 \begin{example}
   show global               ! Displays \tao's global parameters.
-  show global -bmad_com     ! Displays \vn{bmad_com} components (\sref{s:globals}).
-  show global -csr_param    ! Displays \vn{csr_param} components (\sref{s:globals}).
+  show global -bmad_com     ! Displays \vn{bmad_com} parameters (\sref{s:globals}).
+  show global -csr_param    ! Displays \vn{csr_param} parameters (\sref{s:globals}).
   show global -optimization ! Displays optimization parameters.
   show global -ran_state    ! Displays the state of the random number generator.
 \end{example}
@@ -2121,7 +2144,7 @@ Syntax:
 Show information on a particular graph of a particular plot. See \sref{c:plotting} for the syntax on
 plot, graph, and curve names.  Use \vn{show plot} to get a list of plot names.
 
-If there are visible plots with the same name as the plot component of \vn{<graph>}, a template plot
+If there are visible plots with the same name as the plot parameter of \vn{<graph>}, a template plot
 of the same name is ignored. To show template plot graphs(s) in this case, add a ``\vn{T::}''
 prefix.
 
@@ -2301,17 +2324,17 @@ specifies a file containing a description of the custom columns or by using one 
     column(10) = "beam::n_particle_loss[#]", "i8",   8 
   /
 \end{example}
-each \vn{column(n)} line has four components. The first component is what is to be displayed in that
+each \vn{column(n)} line has four parameters. The first parameter is what is to be displayed in that
 column. Algebraic expressions are permitted (\sref{s:arithmetic.exp}).
 
-The second component is the Fortran edit descriptor. The third column is the total width of the
+The second parameter is the Fortran edit descriptor. The third column is the total width of the
 field. Notice that strings (like the element name) are left justified and numbers are right
 justified. In the case of a number followed by a string, there will be no white space in
 between. The use of an "x" column can solve this problem. A field width of 0, which can only be used
 for an \vn{ele::\#[name]} column, indicates that the field width will be taken to be one greater
 then the maximum characters of any element name.
 
-The last component is column title name. This component is optional and if not present then \tao
+The last parameter is column title name. This parameter is optional and if not present then \tao
 will choose something appropriate. The column title can be split into two lines using \vn{"|"} as a
 separator.  In the example above, The column title corresponding to \vn{"Orbit_x| (mm)"} will have
 ``Orbit_x'' printed in one row of the title and ``(mm)'' in the next row.
@@ -2597,7 +2620,7 @@ Examples:
 
 Syntax:
 \begin{example}
-  show plot \{-floor_plan\} \{-plot_page\} \{-lat_layout\} \{-regions\} 
+  show plot \{-floor_plan\} \{-page\} \{-lat_layout\} \{-regions\} 
             \{-templates\} \{<plot_or_template_name>\}
 \end{example}
 
@@ -2605,7 +2628,7 @@ The \vn{show plot -floor_plan} and \vn{show plot -lat_layout} commands show the 
 associated with the \vn{floor_plan} or \vn{lat_layout} plots (\sref{s:shapes}).
 Use the \vn{set floor_plan} or \vn{set lat_layout} commands to set these parameters.
 
-The \vn{show plot -plot_page} command shows some global plotting parameters like the size of the plot
+The \vn{show plot -page} command shows some plot page plotting parameters like the size of the plot
 window.
 
 The \vn{show plot -regions} command shows what plots are placed in which regions. Use the \vn{place}
@@ -2665,7 +2688,7 @@ $\Bf l$ axes can be specified using the \vn{-n_axis} and \vn{-l_axis} switches. 
 calculated from knowledge of the other two axes. If not given, the $\Bf n$-axes will be set to the
 reference orbit $\bfn_0$ value (the reference orbit is the closed orbit if the lattice geometry is
 closed).  The $\Bf l$-axis, if not given, will be chosen to be perpendicular to $\Bf n$. Commas
-between axis components are optional. If \vn{q_map} is present, or if the G-matrix is not being
+between axis parameters are optional. If \vn{q_map} is present, or if the G-matrix is not being
 printed, the quaternion form of the map will be printed.
 
 
@@ -2820,7 +2843,7 @@ Fortran edit descriptor syntax (\sref{s:edit.descrip}). If ``\vn{no}'' is used a
 the associated quantity will not be displayed. If there is no format specified then \tao will use
 a default format. Example:
 \begin{example}
-  show track -b_field      ! Display magnetic field components using the default format
+  show track -b_field      ! Display magnetic field parameters using the default format
   show track -position no  ! Do not display position information.
   show track -s 3pf12.1    ! Display S-position with decimal point shifted by three places.
                            !   That is, display the S-position in millimeters.
@@ -2830,7 +2853,7 @@ corresponding column(s) will be appropriately marked.
 
 \begin{description}
 \item[\vn{\{-b_field \{<fmt>\}\}}] \Newline
-Set the format for the three components of the magnetic field (in Tesla). The default, if
+Set the format for the three parameters of the magnetic field (in Tesla). The default, if
 \vn{-b_field} is not present, is not to print the field.
 %
 \item[\vn{\{-base\}}] \Newline
@@ -2849,11 +2872,11 @@ Set the format for the dispersion and dispersion derivative columns $(\eta_x, \e
 The default is not to print these columns.
 %
 \item[\vn{\{-e_field \{<fmt>\}\}}] \Newline
-Set the format for the three components of the electric field (in V/m). The default is not to print
+Set the format for the three parameters of the electric field (in V/m). The default is not to print
 the field.
 %
 \item[\vn{\{-momentum \{<fmt>\}\}}] \Newline
-Set the format for the three phase space momentum components $(p_x, p_y, p_z)$. Notice that these
+Set the format for the three phase space momentum parameters $(p_x, p_y, p_z)$. Notice that these
 are canonical momenta and are dimensionless as explained in the \bmad manual. In particular, $p_z$
 is the momentum deviation from the reference momentum. The default is to print the momenta using the
 default format.
@@ -2865,7 +2888,7 @@ If present then suppress the output header lines.
 Set the number of evaluation points. That is, set the number of rows in the table.
 %
 \item[\vn{\{-position \{<fmt>\}\}}] \Newline
-Set the format for the three phase space position components $(x, y, z)$. See the \bmad manual for 
+Set the format for the three phase space position parameters $(x, y, z)$. See the \bmad manual for 
 details on phase space coordinates. The default is to print the position using the default format.
 The default format is \vn{3PF14.6} so the output will be in mm.
 %
@@ -2880,7 +2903,7 @@ Set the S-position min/max bounds for the table. Default is beginning and ending
 Set the format for the S-position column. The default, if \vn{-s} is not present, is to print the column.
 %
 \item[\vn{\{-spin \{<fmt>\}\}}] \Newline
-Set the format for the three components of the particle's spin. The default, if
+Set the format for the three parameters of the particle's spin. The default, if
 \vn{-spin} is not present, is not to print the spin.
 %
 \item[\vn{\{-time \{<fmt>\}\}}] \Newline
@@ -2894,7 +2917,7 @@ Set the format for the Beta and Alpha functions of the two transverse normal mod
 Set the universe to use. The default is the default universe (\sref{s:universe}).
 %
 \item[\vn{\{-velocity \{<fmt>\}\}}] \Newline
-Set the format for the three particle velocity components $(v_x/c, v_y/c, v_z/c)$ normalized by the
+Set the format for the three particle velocity parameters $(v_x/c, v_y/c, v_z/c)$ normalized by the
 speed of light. The default is not to print the velocity.
 %
 \end{description}
@@ -2996,7 +3019,7 @@ Syntax:
 Shows variable information. If \vn{<var_name>} is not present, a list of all appropriate \vn{v1_var}
 classes is printed.
 
-The \vn{-universe} switch is used to select only variables what control components in a given
+The \vn{-universe} switch is used to select only variables what control parameters in a given
 universe or universes. Use \vn{-universe @} to select the current viewed universe.
 
 If the \vn{-bmad_format} switch is used then the Bmad lattice parameters that the \tao variables
@@ -3770,7 +3793,7 @@ the data of all the graphs is within the plot region. The affect of \vn{plot%aut
 be overridden by using the \vn{-gang} or \vn{-nogang} switches.
 
 How a graph is scaled is determined in part by the setting of the \vn{bounds} parameter in the
-\vn{x} component of the graph. See \vn{s:quick.plot} for more details. The \vn{-exact} switch, if
+\vn{x} parameter of the graph. See \vn{s:quick.plot} for more details. The \vn{-exact} switch, if
 present, will set \vn{bounds} to \vn{"EXACT"}. which means that \tao will use the min and
 max bounds as given by \vn{<value1>} and \vn{<value2>} and not try to find ``nice'' values near the
 given ones. If \vn{<value1>} and \vn{<value2>} are not given, and if \vn{bounds} is set to

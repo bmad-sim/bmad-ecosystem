@@ -86,8 +86,7 @@ type tao_curve_input
   character(40) :: units = ''
   character(60) :: component = ''
   real(rp) :: y_axis_scale_factor = 1
-  real(rp) :: scale = 1
-  real(rp) :: z_color0 = 0, z_color1 = 0
+  real(rp) :: z_color0 = invalid$, z_color1 = invalid$          ! Deprecated. Use c%z_color%...
   integer :: symbol_every = 1
   integer :: ix_universe = -1
   logical :: draw_line = .true.
@@ -95,18 +94,17 @@ type tao_curve_input
   logical :: draw_symbol_index = .false.
   logical :: draw_error_bars = .false.
   logical :: use_y2 = .false.
-  logical :: use_z_color = .false.
-  logical :: autoscale_z_color = .true.
-  logical :: draw_interpolated_curve = .true.
+  logical :: use_z_color = .false.                ! Deprecated. Use c%z_color%...
+  logical :: autoscale_z_color = .true.           ! Deprecated. Use c%z_color%...
   logical :: smooth_line_calc = .true.
   character(40) :: ele_ref_name = ''
   integer :: ix_branch = 0
-  integer :: ix_ele_ref = -1
   integer :: ix_bunch = 0
   type (qp_line_struct) :: line = qp_line_struct()
   type (qp_symbol_struct) :: symbol = qp_symbol_struct()
   type (tao_histogram_struct) :: hist = tao_histogram_struct()
   type (tao_curve_orbit_struct) :: orbit = tao_curve_orbit_struct()
+  type (tao_curve_color_struct) :: z_color = tao_curve_color_struct()
 end type
 
 type tao_graph_input
@@ -115,20 +113,20 @@ type tao_graph_input
   character(80) :: title = ''
   character(60) :: component = ''
   character(100) :: text_legend(10) = ''
-  character(2) :: floor_plan_view = ''
-  character(16) :: floor_plan_orbit_color = ''
+  character(2) :: floor_plan_view = ''                 ! deprecated. Use g%floor_plan%...
+  character(16) :: floor_plan_orbit_color = ''         ! deprecated. Use g%floor_plan%...
   integer :: box(4) = [1, 1, 1, 1]
   integer :: ix_universe = -1
   integer :: ix_branch = 0
   integer :: n_curve = 0
   real(rp) :: x_axis_scale_factor = 1
   real(rp) :: symbol_size_scale = 0
-  real(rp) :: floor_plan_rotation = real_garbage$    ! Rotation of floor plan plot: 1.0 -> 360^deg 
-  real(rp) :: floor_plan_orbit_scale = -1 ! Scale factor for drawing orbits. 0 -> Do not draw.
-  logical :: floor_plan_flip_label_side = .false.
-  logical :: floor_plan_size_is_absolute = .false.
-  logical :: floor_plan_draw_only_first_pass = .false.
-  logical :: correct_xy_distortion = .true.
+  real(rp) :: floor_plan_rotation = real_garbage$      ! deprecated. Use g%floor_plan%...
+  real(rp) :: floor_plan_orbit_scale = -1              ! deprecated. Use g%floor_plan%...
+  logical :: floor_plan_flip_label_side = .false.      ! deprecated. Use g%floor_plan%...
+  logical :: floor_plan_size_is_absolute = .false.     ! deprecated. Use g%floor_plan%...
+  logical :: floor_plan_draw_only_first_pass = .false. ! deprecated. Use g%floor_plan%...
+  logical :: correct_xy_distortion = .true.            ! deprecated. Use g%floor_plan%...
   logical :: clip = .true.
   logical :: draw_title = .true.
   logical :: draw_axes = .true.
@@ -189,8 +187,9 @@ type tao_key_input
 end type
 
 type tao_plot_page_input
+  type (tao_title_struct) :: title          ! Title  at top of page.
+  type (tao_title_struct) :: subtitle       ! Subtitle at top of page.
   character(8) :: plot_display_type = ''  
-  character(80) :: ps_scale             ! scaling when creating PS files.
   real(rp) size(2)                      ! width and height of window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
   real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
@@ -204,7 +203,27 @@ type tao_plot_page_input
   real(rp) :: curve_legend_line_len  = 30   ! Points
   real(rp) :: curve_legend_text_offset = 6 ! Points
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
-  type (tao_title_struct) :: title(2)       ! Titles at top of page.
+  type (qp_rect_struct) :: border           ! Border around plots edge of page.
+  logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
+  logical :: draw_graph_title_suffix = .true.
+end type
+
+type tao_plot_page_test_input
+  type (tao_title_struct) :: title(2)       ! Old style. Titles at top of page. 
+  character(8) :: plot_display_type = ''  
+  real(rp) size(2)                      ! width and height of window in pixels.
+  real(rp) :: text_height = 12              ! In points. Scales the height of all text
+  real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
+  real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
+  real(rp) :: axis_number_text_scale = 0.9  ! Relative to text_height
+  real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
+  real(rp) :: legend_text_scale      = 0.9  ! Relative to text_height
+  real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
+  real(rp) :: floor_plan_shape_scale = 1.0
+  real(rp) :: lat_layout_shape_scale = 1.0
+  real(rp) :: curve_legend_line_len  = 30   ! Points
+  real(rp) :: curve_legend_text_offset = 6 ! Points
+  integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   type (qp_rect_struct) :: border           ! Border around plots edge of page.
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
   logical :: draw_graph_title_suffix = .true.
@@ -244,7 +263,6 @@ character(16), parameter :: r_name = 'tao_set_plotting'
 
 if (logic_option(.false., reverse)) then
   if (plot_input%plot_display_type /= '') plot_page%plot_display_type = plot_input%plot_display_type
-  plot_page%ps_scale                     = plot_input%ps_scale
   plot_page%size                         = plot_input%size
   plot_page%text_height                  = plot_input%text_height
   plot_page%main_title_text_scale        = plot_input%main_title_text_scale
@@ -259,6 +277,7 @@ if (logic_option(.false., reverse)) then
   plot_page%curve_legend_text_offset     = plot_input%curve_legend_text_offset
   plot_page%n_curve_pts                  = plot_input%n_curve_pts
   plot_page%title                        = plot_input%title 
+  plot_page%subtitle                     = plot_input%subtitle 
   plot_page%border                       = plot_input%border
   plot_page%delete_overlapping_plots     = plot_input%delete_overlapping_plots
   plot_page%draw_graph_title_suffix      = plot_input%draw_graph_title_suffix
@@ -267,7 +286,6 @@ endif
 ! 
 
 if (plot_page%plot_display_type /= '') plot_input%plot_display_type = plot_page%plot_display_type
-plot_input%ps_scale                     = plot_page%ps_scale
 plot_input%size                         = plot_page%size
 plot_input%text_height                  = plot_page%text_height
 plot_input%main_title_text_scale        = plot_page%main_title_text_scale
@@ -282,6 +300,7 @@ plot_input%curve_legend_line_len        = plot_page%curve_legend_line_len
 plot_input%curve_legend_text_offset     = plot_page%curve_legend_text_offset
 plot_input%n_curve_pts                  = plot_page%n_curve_pts
 plot_input%title                        = plot_page%title 
+plot_input%subtitle                     = plot_page%subtitle 
 plot_input%border                       = plot_page%border
 plot_input%delete_overlapping_plots     = plot_page%delete_overlapping_plots
 plot_input%draw_graph_title_suffix      = plot_page%draw_graph_title_suffix

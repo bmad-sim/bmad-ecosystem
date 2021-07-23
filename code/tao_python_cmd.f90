@@ -5084,8 +5084,6 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            trim(c%units)
   nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;I;',                      trim(c%why_invalid)
   nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             c%y_axis_scale_factor
-  nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        c%z_color0
-  nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        c%z_color1
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     c%ix_universe
   nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     c%symbol_every
   nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              c%ix_branch
@@ -5098,8 +5096,10 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              c%draw_symbol_index
   nl=incr(nl); write (li(nl), lmt) 'draw_error_bars;LOGIC;T;',                c%draw_error_bars
   nl=incr(nl); write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               c%smooth_line_calc
-  nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;I;',                    c%use_z_color
-  nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              c%autoscale_z_color
+  nl=incr(nl); write (li(nl), lmt) 'z_color.is_on;LOGIC;I;',                  c%z_color%is_on
+  nl=incr(nl); write (li(nl), rmt) 'z_color.min;REAL;T;',                     c%z_color%min
+  nl=incr(nl); write (li(nl), rmt) 'z_color.max;REAL;T;',                     c%z_color%max
+  nl=incr(nl); write (li(nl), lmt) 'z_color.autoscale;LOGIC;I;',              c%z_color%autoscale
   nl=incr(nl); write (li(nl), lmt) 'valid;LOGIC;I;',                          c%valid
   nl=incr(nl); write (li(nl), '(a, i0, 4a)') 'line;STRUCT;T;width;INT;', c%line%width, &
                       ';color;ENUM;', trim(c%line%color), ';line^pattern;ENUM;', c%line%pattern
@@ -6501,25 +6501,37 @@ case ('spin_polarization')
 !
 !----
 ! Command syntax:
-!   python spin_resonance {ix_uni}@{ix_branch}|{which}
+!   python spin_resonance {ix_uni}@{ix_branch}|{which} {ref_ele}
 !
 ! Parameters
 ! ----------
 ! ix_uni : default=1
 ! ix_branch : default=0
 ! which : default=model
+! ref_ele : Reference element to calculate at. default = 0
 
 case ('spin_resonance')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ix_branch = parse_branch(line, .false., err); if (err) return
   tao_branch => tao_lat%tao_branch(ix_branch)
   branch => tao_lat%lat%branch(ix_branch)
 
+  if (tail_str == '') then
+    ele => branch%ele(0)
+  else
+    call lat_ele_locator (tail_str, u%model%lat, eles, n_loc, err, ix_dflt_branch = branch%ix_branch)
+    if (err .or. n_loc /= 1) then
+      call invalid('UNIQUE LATTICE START ELEMENT NOT FOUND FOR: ' // quote(tail_str))
+      return
+    endif
+    ele => eles(1)%ele
+  endif
+
   datum%ix_branch = branch%ix_branch
   sm => datum%spin_map
-  call tao_spin_matrix_calc (datum, u, 0, branch%n_ele_track)
+  call tao_spin_matrix_calc (datum, u, ele%ix_ele, ele%ix_ele)
   call spin_mat_to_eigen (sm%q_map%mat, sm%q_map%q, eval, evec, n0, n_eigen)
   if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
 
@@ -6527,7 +6539,7 @@ case ('spin_resonance')
   do i = 1, 3
     j = 2 * i - 1
     q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
-    dq(i) = abs((q-qs) - nint(q-qs))
+    dq(i) = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
     xi_res_eigen(i) = dq(i) * sqrt(2.0_rp)*norm2(abs(n_eigen(j,:)))
     xi_res_gv1(i) = abs(dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
     xi_res_gv2(i) = abs(dot_product(evec(j+1,:), sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi

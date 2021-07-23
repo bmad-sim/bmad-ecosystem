@@ -8,7 +8,6 @@ the plot page) is broken up.
   plot_page%text_height = 15.0 
   plot_page%border = 0, 0, 0, 0, '%PAGE'  
   plot_page%n_curve_pts = 5000
-  plot_page%title(1) = '', 0.5, 0.97
 
   region(1) = 'mid'       0.05, 0.95, 0.05, 0.95
   place(1) = 'mid', 'da'

@@ -1883,8 +1883,9 @@ Example input files for calculating and plotting the dynamic aperture are at (\s
 \index{plotting initializing}
 \label{s:init.plot} 
 
-\tao has a graphical display window within which such things as lattice functions, machine layout,
-beam positions, etc., can be plotted. An example display is shown in \fig{f:plot.typ}.
+\tao has a graphical display window, called the \vn{plot page} (\sref{s:plot.page.def}) within which
+such things as lattice functions, machine layout, beam positions, etc., can be plotted. An example
+display is shown in \fig{f:plot.typ}.
 
 %-----------------------------------------------------------------
 \subsection{Plot Page and Plot Regions}
@@ -1901,9 +1902,11 @@ page) and defines the ``regions'' where plots go. The syntax of this block is:
 \index{region!name}\index{region!location}\index{place}
 \begin{example}
   &tao_plot_page
-    plot_page%plot_display_type        = <string>  ! Display type: "X" or "TK"
-    plot_page%size                     = <x_size>, <y_size>         ! size in POINTS 
-    plot_page%border                   = <x1\(_{\dstyle{b}}\)>, <x2\(_{\dstyle{b}}\)>, <y1\(_{\dstyle{b}}\)>, <y2\(_{\dstyle{b}}\)>, "<units>"
+    plot_page%title                    = "<string>", <x>, <y>, "<units>", "<justify>"
+    plot_page%subtitle                 = "<string>", <x>, <y>, "<units>", "<justify>"
+    plot_page%plot_display_type        = "<string>"  ! Display type: "X" or "TK"
+    plot_page%size                     = <x_size>, <y_size>  ! size in POINTS 
+    plot_page%border                   = <qp_rect_struct>    ! Border around edge
     plot_page%text_height              = <real>   ! height in POINTS. Def = 12
     plot_page%main_title_text_scale    = <real>   ! Rel to text_height. Def = 1.3
     plot_page%graph_title_text_scale   = <real>   ! Rel to text_height. Def = 1.1
@@ -1913,7 +1916,6 @@ page) and defines the ``regions'' where plots go. The syntax of this block is:
     plot_page%key_table_text_scale     = <real>   ! Rel to text_height. Def = 0.9
     plot_page%floor_plan_shape_scale   = <real>   ! Floor_plan shape size scaling.
     plot_page%lat_layout_shape_scale   = <real>   ! Lat_layout shape size scaling.
-    plot_page%title(i)                 = <string>, {<x>, <y>, "<units>", "<justify>"}
     plot_page%n_curve_pts              = <int>    ! Num points used to construct a 
                                                   !   smooth curve. Default = 401
     plot_page%box_plots                = <T/F>    ! For debugging. Default = F.
@@ -1944,11 +1946,11 @@ the same namelist. Regions may overlap.}
 For example:
 \begin{example}
   &tao_plot_page
+    plot_page%title = "CESR Lattice", 0.5, 0.996, "%PAGE", "CC"
     plot_page%plot_display_type = "X"        ! X11 window.  "TK" is alternative.
     plot_page%size        = 700, 800         ! Points
     plot_page%border      = 0, 0, 0, 50, "POINTS"  
     plot_page%text_height = 12.0
-    plot_page%title(1)    = "CESR Lattice", 0.5, 0.996, "%PAGE", "CC"
     region(1) = "top"    0.0, 1.0, 0.5, 1.0
     region(2) = "bottom" 0.0, 1.0, 0.0, 0.5
     place(1)  = "top",    "orbit"
@@ -1987,14 +1989,12 @@ type. You can set this variable in your login file to avoid having to setup a \t
 init file to set this.
 
 \vn{plot_page%border} sets a border around the edges of the window. As shown in
-Figure~\ref{f:plot.page} x1$_{\dstyle{b}}$, x2$_{\dstyle{b}}$ are the right and left border widths
-and y1$_{\dstyle{b}}$ and y2$_{\dstyle{b}}$ are the bottom and top border widths respectively.  The
-rectangle within this border is called the plot area.
+Figure~\ref{f:plot.page} x1$_{\dstyle{b}}$, x2$_{\dstyle{b}}$ (corresponding to \vn{%border%x1} and
+\vn{%border%x2}) are the right and left border widths and y1$_{\dstyle{b}}$ and y2$_{\dstyle{b}}$
+(corresponding to \vn{%border%y1} and \vn{%border%y2}) are the bottom and top border widths
+respectively.  The rectangle within this border is called the plot area.
 
-\vn{plot_page%title(i)} set the page title. There are two title areas (i = 1,2). If only the title
-string is given then the other variables are set to the defaults \vn{x} = 0.5, \vn{y} = 0.995,
-\vn{justify} = "CC" and \vn{units} = "\vn{%PAGE}". See the QuickPlot documentation
-(\sref{s:quick.plot}) for more details.
+\vn{plot_page%title} set the page title and \vn{page%subtitle} set the subtitle.
 
 The plot area is divided up into rectangular regions where plots may be placed (what defines a plot
 is discussed below).  \vn{region(i)} in the \vn{tao_plot_page} namelist is an array of five elements
@@ -2579,10 +2579,10 @@ structure has been defined, an example of a data slice is the collection of poin
 \begin{example}
   (x, y) = (<n>@orbit.x[23], <n>@orbit.y[23]),   <n> = 1, ..., n_universe
 \end{example}
-When defining a template for graphing a data slice, the plot%x_axis_type is set to \vn{"data"}, and
+When defining a template for graphing a data slice, the \vn{plot%x_axis_type} is set to \vn{"data"}, and
 the \vn{graph%type} must be set to \vn{"data"}, the \vn{curve(:)%data_source} must be set to
-\vn{"data"} and the \vn{curve(:)%data_type_x} and \vn{curve%data_type} are used to define the x and
-y axes respectively.  In the strings given by \vn{<curve%data_type_x} or \vn{<curve%data_type}, all
+\vn{"data"} and the \vn{curve(:)%data_type_x} and \vn{curve%data_type} are used to define the $x$ and
+$y$ axes respectively.  In the strings given by \vn{<curve%data_type_x} or \vn{<curve%data_type}, all
 substrings that look like \vn{\#ref} are eliminated and the string given by \vn{curve%ele_ref_name}
 is substituted in its place.  Similarly, a \vn{\#comp} string is used as a place holder for the
 \vn{graph%component} Example:

@@ -168,6 +168,15 @@ type tao_curve_orbit_struct
   real(rp) :: t = 0              ! Time
 end type
 
+! The tao_curve_color_struct is used for phase space plots to color individual 
+! points by, for example, particle energy.
+
+type tao_curve_color_struct
+  logical :: is_on = .false.        ! For phase space plots.
+  real(rp) :: min = 0, max = 0      ! Min and max values for mapping z-axis to color.
+  logical :: autoscale = .true.     ! Set %min, %max automatically to the limits of curve%data_type_z
+end type
+
 ! A curve is defined by a set of (x,y) points and the axis parameters.
 ! for example the horizontal orbit is one curve.
 
@@ -185,7 +194,8 @@ type tao_curve_struct
   character(60) :: component = ''        ! Who to plot. Eg: 'meas - design'
   character(80) :: why_invalid = '???'   ! Informative string to print.
   type (tao_graph_struct), pointer :: g  ! pointer to parent graph
-  type (tao_histogram_struct) hist
+  type (tao_histogram_struct) :: hist = tao_histogram_struct()
+  type (tao_curve_color_struct) :: z_color = tao_curve_color_struct()
   real(rp), allocatable :: x_line(:)     ! Coords for drawing a curve
   real(rp), allocatable :: y_line(:) 
   real(rp), allocatable :: y2_line(:)    ! Second array needed for beam chamber curve. 
@@ -197,8 +207,6 @@ type tao_curve_struct
   real(rp), allocatable :: symb_size(:)  ! Symbol size. Used with symbol_size_scale. 
   integer, allocatable :: ix_symb(:)     ! Corresponding index in d1_data%d(:) array.
   real(rp) :: y_axis_scale_factor = 1    ! y-axis conversion from internal to plotting units.
-  real(rp) :: scale = 1                  ! Used by dynamic_aperture plotting.
-  real(rp) :: z_color0 = 0, z_color1 = 0 ! Min and max values for mapping z-axis to color.
   type (qp_line_struct) line             ! Line attributes
   type (qp_symbol_struct) symbol         ! Symbol attributes
   type (tao_curve_orbit_struct) orbit    ! Used for E/B field plotting.
@@ -215,8 +223,6 @@ type tao_curve_struct
   logical :: draw_error_bars = .false.   ! Draw error bars based upon data%error_rms if drawing data?
   !!! logical :: draw_rms = .false.          ! Show mean and RMS values with legend?
   logical :: smooth_line_calc = .true.   ! Calculate data between element edge points?
-  logical :: use_z_color = .false.       ! For phase space plots.
-  logical :: autoscale_z_color = .true.  ! Set %z_color0, %z_color1 automatically to the limits of %data_type_z
   logical :: valid = .false.             ! valid data? 
 end type
 
@@ -320,7 +326,8 @@ end type
 ! plot page info.
 
 type tao_plot_page_struct
-  type (tao_title_struct) title(2)          ! Titles at top of page.
+  type (tao_title_struct) title             ! Title  at top of page.
+  type (tao_title_struct) subtitle          ! Subtitle below title at top of page.
   type (qp_rect_struct) border              ! Border around plots edge of page.
   type (tao_drawing_struct) :: floor_plan
   type (tao_drawing_struct) :: lat_layout
@@ -328,7 +335,6 @@ type tao_plot_page_struct
   type (tao_plot_struct), allocatable :: template(:)  ! Templates for the plots.
   type (tao_plot_region_struct), allocatable :: region(:)
   character(8) :: plot_display_type = 'X'   ! 'X' or 'TK'
-  character(80) ps_scale                    ! scaling when creating PS files.
   real(rp) size(2)                          ! width and height of plot window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
   real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
@@ -348,6 +354,10 @@ type tao_plot_page_struct
 end type
 
 ! Arrays of structures
+
+type tao_region_array_struct
+  type (tao_plot_region_struct), pointer :: r
+end type
 
 type tao_plot_array_struct
   type (tao_plot_struct), pointer :: p
@@ -990,7 +1000,8 @@ type tao_dynamic_aperture_struct
   type (aperture_param_struct) param
   type (aperture_scan_struct), allocatable :: scan(:) ! One scan for each pz.
   real(rp), allocatable :: pz(:)
-  real(rp) :: a_emit, b_emit
+  real(rp) :: ellipse_scale = 1
+  real(rp) :: a_emit = -1, b_emit = -1
 end type
 
 !-----------------------------------------------------------------------
