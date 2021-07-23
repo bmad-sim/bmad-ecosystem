@@ -162,11 +162,13 @@ type (tao_spin_map_struct), pointer :: sm
 real(rp) n0(3), qs, q, dq(3), xi_res_eigen(3), xi_res_gv1(3), xi_res_gv2(3)
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
 
-integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, data_type
+integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, md, ct, nl2, n, ix, ix2, iu_write, data_type
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type, loc
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
 integer line_width, n_bend, ic, num_ele, n_arr, n_add, n1, n2, i0, i1, i2
 integer, allocatable :: index_arr(:), int_arr(:)
+integer, target :: nl
+integer, pointer :: nl_ptr
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
 logical first_time, found_one, calc_ok, no_slaves, index_order
@@ -274,6 +276,9 @@ vamt = '(a, i0, 3a)'
 
 nl = 0
 call re_allocate_lines (li, 200)
+
+li_ptr => li   ! To get around ifort bug
+nl_ptr => nl   ! To get around ifort bug
 
 select case (command)
 
@@ -530,6 +535,7 @@ case ('bunch_params')
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
+  beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
 
   call twiss_out(bunch_params%x, 'x', .true.)
   call twiss_out(bunch_params%y, 'y', .true.)
@@ -959,7 +965,6 @@ case ('constraints')
           branch => s%u(i)%model%lat%branch(data%ix_branch)
           a_name = branch%ele(ie)%name
         endif
-        li_ptr => li  
 
         nl=incr(nl); write (li(nl), '(10a, 6(es22.14, a), 2a)') trim(tao_datum_name(data)), ';', &
             trim(tao_constraint_type_name(data)), ';', &
@@ -7622,11 +7627,6 @@ subroutine coord_out(bunch, coordinate)
 type (bunch_struct) :: bunch
 character(20) coordinate
 integer :: i_vec, n
-
-if (.not. allocated(beam%bunch)) then
-    print *, 'no beam'
-    return
-endif
 
 ! Allocate scratch
 n = size(bunch%particle)
