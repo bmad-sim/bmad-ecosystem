@@ -526,7 +526,7 @@ case ('branch1')
 !  args:
 !    ele_id: end
 !    which: model
-!    ix_bunch: 1
+!
 
 case ('bunch_params')
 

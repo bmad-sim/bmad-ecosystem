@@ -143,7 +143,7 @@ Example: 1
  args:
    ele_id: end
    which: model
-   ix_bunch: 1
+
 
 \end{example}
 \item[bunch1] \Newline\begin{example}
@@ -3163,13 +3163,14 @@ Spin resonance information
 
 ----
 Command syntax:
-  python spin_resonance {ix_uni}@{ix_branch}|{which}
+  python spin_resonance {ix_uni}@{ix_branch}|{which} {ref_ele}
 
 Parameters
 ----------
 ix_uni : default=1
 ix_branch : default=0
 which : default=model
+ref_ele : Reference element to calculate at. default = 0
 
 \end{example}
 \item[super_universe] \Newline\begin{example}
