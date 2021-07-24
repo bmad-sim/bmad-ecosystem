@@ -171,12 +171,13 @@ do ib = 0, ubound(lat%branch, 1)
         if (j == bmad_standard$) end_bs = end_orb
       endif
 
+      if (j == symp_lie_ptc$) end_ptc = end_orb
+
       if (j == symp_lie_ptc$ .and. .not. debug_mode) then
-        end_ptc = end_orb
         bmad_com%orientation_to_ptc_design = .true.
         call track1 (start_orb, ele, branch%param, end_orb)
         bmad_com%orientation_to_ptc_design = .false.
-        write (1,fmt) quote(trim(out_str) // '-OD'), 'ABS 1e0', end_orb%vec - end_ptc%vec
+        write (1,fmt) quote(trim(out_str) // '-OD'), 'ABS 1e-10', end_orb%vec - end_ptc%vec
       endif
 
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$ .or. j == time_runge_kutta$ .or. j == taylor$) then
