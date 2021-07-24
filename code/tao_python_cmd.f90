@@ -6504,7 +6504,8 @@ case ('spin_polarization')
 !%% spin_resonance -----------------------
 ! Spin resonance information
 !
-!----
+! Notes 
+! -----
 ! Command syntax:
 !   python spin_resonance {ix_uni}@{ix_branch}|{which} {ref_ele}
 !
@@ -6513,7 +6514,14 @@ case ('spin_polarization')
 ! ix_uni : default=1
 ! ix_branch : default=0
 ! which : default=model
-! ref_ele : Reference element to calculate at. default = 0
+! ref_ele : default=0
+!   Reference element to calculate at.
+!
+!
+!
+!
+!
+
 
 case ('spin_resonance')
 
