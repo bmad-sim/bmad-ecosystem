@@ -266,24 +266,23 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
 
     case (sbend$, quadrupole$, sextupole$)
       if (val(l$) /= 0) then
-        bend_factor = sqrt(val(hkick$)**2 + val(vkick$)**2) / val(l$)
+        call multipole_ele_to_kt (ele, .false., ix, knl, tilt, magnetic$, include_kicks$)
+        knl = abs(knl)
+        bend_factor = knl(0) / val(l$)
         radius0 = ele%value(r0_mag$)
         if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
 
         select case (ele%key)
         case (sbend$)
           bend_factor = bend_factor + max(abs(val(g$)), abs(val(g$) + val(dg$)))
-          quad_factor = val(l$) * (abs(val(k1$)) + abs(val(k2$)) * radius0 + bend_factor**2)
+          quad_factor = knl(1) + knl(2) * radius0 + ele%value(l$) * bend_factor**2
         case (quadrupole$)
-          quad_factor = val(l$) * (abs(val(k1$)) + bend_factor**2)
+          ! The factor of 50 here is empirical based upon simulations with the canonical
+          ! CESR bmad_L9a18A000-_MOVEREC lattice.
+          quad_factor = 50 * (knl(1) + val(l$) * bend_factor**2)
         case (sextupole$)
-          quad_factor = val(l$) * (abs(val(k2$)) * radius0 + bend_factor**2)
+          quad_factor = knl(2) * radius0 + val(l$) * bend_factor**2
         end select
-
-        if (associated(ele%a_pole)) then
-          call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole)
-          quad_factor = quad_factor + abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))
-        endif
 
         if (associated(ele%a_pole_elec)) then
           radius0 = ele%value(r0_elec$)
