@@ -177,6 +177,7 @@ do
   call eliminate_inbetween (line, '& \sref{', '}', .true.)
   call eliminate_inbetween (line, '\hspace*{', '}', .true.)
   call eliminate_inbetween (line, '(\sref{', '})', .false.)
+  call eliminate_inbetween (line, ' \sref{', '}', .false.)
   call eliminate_inbetween (line, '\sref{', '}', .false.)
   call eliminate_inbetween (line, '{\it ', '}', .false.)
   call eliminate_inbetween (line, '\parbox{', '}', .false.)

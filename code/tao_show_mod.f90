@@ -7,6 +7,7 @@ use tao_lattice_calc_mod
 use tao_c_interface_mod, only: tao_c_interface_com
 use wall3d_mod
 use pointer_lattice, only: operator(.sub.)
+use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout
 
 type show_common_struct
   type (ele_struct), pointer :: ele 
@@ -203,6 +204,7 @@ type (coord_struct) orbit
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (c_linear_map) q_map
 type (tao_spin_map_struct), pointer :: sm
+type (normal_modes_struct) norm_mode
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -231,9 +233,10 @@ type (show_lat_column_info_struct) col_info(60)
 type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z1, z2, z_in, s_pos, dt, angle, r
-real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2, qs, q, dq, x
+real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
+real(rp) pz2, qs, q, dq, x
 real(rp), allocatable :: value(:)
 
 character(*) :: what
@@ -262,16 +265,7 @@ character(200), allocatable :: alloc_lines(:)
 character(2), parameter :: q_name(0:3) = ['q0', 'qx', 'qy', 'qz']
 character(1), parameter :: abc_name(1:3) = ['A', 'B', 'C']
 
-character(16) :: show_what, show_names(42) = [ &
-   'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
-   'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
-   'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
-   'hom             ', 'key_bindings    ', 'universe        ', 'orbit           ', 'derivative      ', &
-   'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
-   'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
-   'matrix          ', 'field           ', 'wake_elements   ', 'history         ', 'symbolic_numbers', &
-   'merit           ', 'track           ', 'spin            ', 'internal        ', 'control         ', &
-   'string          ', 'version         ']
+character(20) :: show_what
 
 integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width, expo(6)
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv, stat, lat_type
@@ -336,7 +330,13 @@ if (what == ' ') then
   return
 endif
 
-call match_word (what, show_names, ix, matched_name = show_what)
+call match_word (what, [character(20):: 'data', 'variable', 'global', 'alias', 'top10', &
+   'optimizer', 'element', 'lattice', 'constraints', 'plot', 'beam', 'tune', 'graph', 'curve', &
+   'hom', 'key_bindings', 'universe', 'orbit', 'derivative', 'branch', 'use', 'taylor_map', &
+   'twiss_and_orbit', 'building_wall', 'wall', 'normal_form', 'dynamic_aperture', 'value', &
+   'matrix', 'field', 'wake_elements', 'history', 'symbolic_numbers', 'wave', 'particle', &
+   'merit', 'track', 'spin', 'internal', 'control', 'string', 'version', 'ptc'], &
+                                                                   ix, matched_name = show_what)
 if (ix == 0) then
   nl=1; lines(1) = 'SHOW WHAT? WORD NOT RECOGNIZED: ' // what
   return
@@ -3723,6 +3723,37 @@ case ('plot')
     return
 
   end select
+
+!----------------------------------------------------------------------
+! ptc
+
+case ('ptc')
+
+  what_to_print = ''
+
+  do
+    call tao_next_switch (what2, [character(24):: '-emittance'], .true., switch, err, ix)
+    if (err) return
+
+    select case (switch)
+    case ('')
+      exit
+    case ('-emittance')
+      what_to_print = switch
+    end select
+  enddo
+
+  if (.not. associated(branch%ptc%m_t_layout)) then
+    call out_io (s_info$, r_name, 'Note: Creating PTC layout (equivalent to "ptc init").')
+    call lat_to_ptc_layout (lat)
+  endif
+
+
+  call ptc_emit_calc (branch%ele(0), norm_mode, sig_mat, orb)
+  nl=nl+1; lines(nl) = '  Mode      Emit        Tune'
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'A', norm_mode%a%emittance, norm_mode%a%tune
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'B', norm_mode%b%emittance, norm_mode%b%tune
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'C', norm_mode%z%emittance, norm_mode%z%tune
 
 !----------------------------------------------------------------------
 ! spin

@@ -10,10 +10,10 @@
 
 \tao has two \vn{modes} for entering commands. In \vn{Line Mode}, described in this chapter, \tao
 waits until the \vn{return} key is depressed to execute a command. That is, a command consists of a
-single line of input. Conversely, \vn{Single Mode}, which is described in Chapter~\sref{c:single},
-interprets each keystroke as a command. Single Mode is useful for quickly varying parameters to see
-how they affect a lattice but the number of commands in Single Mode is limited. To put \tao into
-\vn{single mode} use the \vn{single_mode} command (\sref{s:sing}).
+single line of input. Conversely, \vn{Single Mode}, which is described in \vn{Single Mode} chapter
+(\sref{c:single}), interprets each keystroke as a command. Single Mode is useful for quickly varying
+parameters to see how they affect a lattice but the number of commands in Single Mode is limited. To
+put \tao into \vn{single mode} use the \vn{single_mode} command (\sref{s:sing}).
 
 \index{commands!Command List} 
 Commands are case sensitive. The list of commands is shown in Table~\ref{t:commands}. Multiple
@@ -36,9 +36,9 @@ Example:
 \begin{example}
   change \{-silent\} variable <name>[<locations>] <number>
 \end{example}
-Here the \vn{-silent} argument is optional while the \vn{variable} argument is
-mandatory. Appropriate values for \vn{<name>}, \vn{<locations>}, and \vn{<number>} must be
-substituted. A possible
+Here the \vn{-silent} argument is optional while the \vn{variable} argument is mandatory.
+Appropriate values for \vn{<name>}, \vn{<locations>}, and \vn{<number>} must be substituted. A
+possible
 
 \begin{example}
   change var steering[34:36] @1e-3  ! set the steering strength #34-36 to 0.001
@@ -124,23 +124,21 @@ command xyzzy is used ``top'' is substituted for ``[[1]]'' in the string.
 \section{call}\index{commands!call}
 \label{s:call}
 
-The \vn{call} command opens a command file (\sref{s:command.files}) and executes the
-commands in it. Format:
-\vskip 1pt 
+The \vn{call} command opens a command file (\sref{s:command.files}) and executes the commands in
+it. Format: \vskip 1pt
 \begin{example}
   call <filename> \{<arg_list>\}
   call -ptc <filename>
 \end{example}
 
-\vskip 1pt 
-The \vn{call} command without \vn{-ptc} is for running a set of \tao commands.  Up to 9
-arguments may be passed to the command file. The i\Th argument is substituted in place of
-the string ``[[i]]'' in the file. Nesting of command files (command files calling other
-command files) is allowed. There is no limit to the number of nested files.  See the
-\vn{Command Files and Aliases} section (\sref{s:command.files}) for more details.
+\vskip 1pt The \vn{call} command without \vn{-ptc} is for running a set of \tao commands.  Up to 9
+arguments may be passed to the command file. The i\Th argument is substituted in place of the string
+``[[i]]'' in the file. Nesting of command files (command files calling other command files) is
+allowed. There is no limit to the number of nested files.  See the \vn{Command Files and Aliases}
+section (\sref{s:command.files}) for more details.
 
-The \vn{call -ptc} command passes the command file to PTC for processing. Previous to such
-a call, the command \vn{ptc init} must be issued.
+The \vn{call -ptc} command passes the command file to PTC for processing. Previous to such a call,
+the command \vn{ptc init} must be issued.
 
 If a command file calls another command file, and the name of the second command file has a relative
 (as opposed to absolute) path name, \tao will look for the second command file relative to the
@@ -166,7 +164,8 @@ To suppress the output when running a command file use the command:
   set global quiet = all
 \end{example}
 Note: quiet mode is automatically turned off at the end when a command file exits back to the
-terminal level. See Section~\sref{s:tao.global.struct} for more details.
+terminal level. See the \vn{Tao_global_struct Structure} section (\sref{s:tao.global.struct}) for
+more details.
 
 Examples:
 \begin{example}
@@ -179,8 +178,8 @@ file and ``def'' is substituted for any ``[[2]]''.  \Newline
 \section{change}\index{commands!change}
 \label{s:change}
 
-The \vn{change} command changes element attribute values or variable values in the
-\vn{model} lattice. Format:
+The \vn{change} command changes element attribute values or variable values in the \vn{model}
+lattice. Format:
 \begin{example}
   change \{-update\} element <element_list> <attribute> \{prefix>\} <number>
   change \{-silent\} variable <name>[<locations>] \{<prefix>\} <number>
@@ -189,8 +188,8 @@ The \vn{change} command changes element attribute values or variable values in t
 
 \vskip 10pt 
 
-The \vn{change} is used for changing real (as opposed to integer or logical)
-parameters. Also consider using the \vn{set} command (\sref{s:set}) which is more general.
+The \vn{change} is used for changing real (as opposed to integer or logical) parameters. Also
+consider using the \vn{set} command (\sref{s:set}) which is more general.
 
 If \vn{<prefix>} is not present, \vn{<number>} is added to the existing value
 of the attribute or variable. That is:
@@ -207,9 +206,8 @@ If \vn{<prefix>} is present, it may be one of
 Element list format (\sref{s:ele.list.format}), without any embedded blanks, is used for
 the \vn{<element_list>} argument.
 
-For \vn{change particle_start}, The optional \vn{n@} universe specification
-(\sref{s:universe}) may be used to specify the universe or universes to apply the change
-command to.
+For \vn{change particle_start}, The optional \vn{n@} universe specification (\sref{s:universe}) may
+be used to specify the universe or universes to apply the change command to.
 
 For lattices with an open geometry, \vn{change particle_start <coordinate> <number>} can be used to
 vary the starting coordinates for single particle tracking. If the
@@ -223,19 +221,18 @@ For photons, \vn{<coordinate>} may also be:
 \begin{example}
   field_x, field_y, phase_x, phase_y
 \end{example}
-For closed lattices only the \vn{pz} component is applicable. For lattices that have an
-\vn{e_gun} (which necessarily implies that the lattice has an open geometry), the time
-\vn{t} coordinate must be varied instead of \vn{pz}.
+For closed lattices only the \vn{pz} component is applicable. For lattices that have an \vn{e_gun}
+(which necessarily implies that the lattice has an open geometry), the time \vn{t} coordinate must
+be varied instead of \vn{pz}.
 
-For open lattices, \vn{change element beginning <twiss>} can be used to vary the starting
-Twiss parameters where \vn{<twiss>} is one of:
+For open lattices, \vn{change element beginning <twiss>} can be used to vary the starting Twiss
+parameters where \vn{<twiss>} is one of:
 \begin{example}
   beta_a, beta_b, alpha_a, alpha_b 
   eta_a, eta_b,etap_a, etap_b    
 \end{example}
 
-The \vn{-silent} switch, if present, suppresses the printing of what variables are
-changed.
+The \vn{-silent} switch, if present, suppresses the printing of what variables are changed.
 
 The \vn{-update} switch, if present, suppresses \tao from printing error messages if a ``variable
 slave value mismatch'' is detected (\sref{s:var.mismatch}). Independent of whether \vn{-update} is
@@ -260,9 +257,8 @@ Examples:
 \section{clip}\index{commands!clip}
 \label{s:clip}
 
-The \vn{clip} command vetoes data points for plotting and optimizing. That is, the
-\vn{good_user} logical of the data associated with the out-of-bound plotted points are set
-to False.  Format:
+The \vn{clip} command vetoes data points for plotting and optimizing. That is, the \vn{good_user}
+logical of the data associated with the out-of-bound plotted points are set to False.  Format:
 \begin{example}
   clip \{-gang\} \{<where> \{<limit1> \{<limit2>\}\}\}
 \end{example}
@@ -282,14 +278,14 @@ values. If only \vn{<limit1>} is present then the clip range is outside the regi
 -\vn{<limit1>} to +\vn{<limit1>}. If both are present than the range is from \vn{<limit1>}
 to \vn{<limit2>}.
 
-The \vn{-gang} switch is apply a clip to corresponding data in a \vn{d2_data} structure.
-For example
+The \vn{-gang} switch is apply a clip to corresponding data in a \vn{d2_data} structure. For
+example
 \begin{example}
   clip -g orbit.x   ! Clips both orbit.x and orbit.y 
 \end{example}
-Here the \vn{orbit.x} data is clipped and the corresponding data in \vn{orbit.y} is also
-vetoed. For example, if datum number 23 in \vn{orbit.x} is clipped, datum number 23 in
-\vn{orbit.y} will be vetoed.
+Here the \vn{orbit.x} data is clipped and the corresponding data in \vn{orbit.y} is also vetoed. For
+example, if datum number 23 in \vn{orbit.x} is clipped, datum number 23 in \vn{orbit.y} will be
+vetoed.
 
 Examples:
 \begin{example}
@@ -319,8 +315,8 @@ Command loops can be implemented in a command file files. Format:
     ...   ! use the syntax ``[[<var>]]'' to refer to a variable.
   enddo
 \end{example}
-Note: ``\vn{enddo}'' is one word and my not be split into two words.
-Loops can be nested and the number of levels is not unlimited. 
+Note: ``\vn{enddo}'' is one word and my not be split into two words. Loops can be nested and the
+number of levels is not unlimited.
 
 A loop will execute the code in between the \vn{do} and \vn{enddo} lines a certain number of
 times. Each time trough the the the integer variable \vn{<var>} will be incremented by \vn{<incr>},
@@ -341,9 +337,9 @@ As shown in the above example, to refer to a loop variable in a command, use the
 \section{end_file} \label{s:end.file}
 \index{commands!end_file}
 
-The \vn{end_file} command is used in command files (\sref{s:command.files}) to signal the
-end of the file. Everything after an \vn{end_file} command is ignored. An \vn{end_file}
-command entered at the command line will simply generate an error message.  Format:
+The \vn{end_file} command is used in command files (\sref{s:command.files}) to signal the end of the
+file. Everything after an \vn{end_file} command is ignored. An \vn{end_file} command entered at the
+command line will simply generate an error message.  Format:
 \begin{example}
   end_file
 \end{example}
@@ -361,8 +357,8 @@ The \vn{exit} command exits the program. Same as \vn{Quit}.  Format:
 \section{derivative}\index{commands!derivative}
 \label{s:deriv}
 
-The \vn{derivative} command calculates the \vn{dModel_Data/dVar} derivative matrix needed
-for the \vn{lm} optimizer.  Format:
+The \vn{derivative} command calculates the \vn{dModel_Data/dVar} derivative matrix needed for the
+\vn{lm} optimizer.  Format:
 \begin{example}
   derivative
 \end{example}
@@ -401,14 +397,15 @@ Examples:
   help show alias ! Help on the show alias command.
 \end{example}
 
-The \vn{help} command works by parsing the file \vn{\$TAO_DIR/doc/command-list.tex} which is
-the LaTeX file for the \vn{Tao Commands} chapter of the \tao manual. For the \vn{help} command
-to work properly, the environmental variable \vn{TAO_DIR} must be appropriately defined. Generally,
-\vn{TAO_DIR} will be defined if the appropriate \bmad setup script has been run. For ``Distributions'',
-this is the same setup script used to setup a distribution. See your local \bmad guru for details.
+The \vn{help} command works by parsing the file \vn{\$TAO_DIR/doc/command-list.tex} which is the
+LaTeX file for the \vn{Tao Commands} chapter of the \tao manual. For the \vn{help} command to work
+properly, the environmental variable \vn{TAO_DIR} must be appropriately defined. Generally,
+\vn{TAO_DIR} will be defined if the appropriate \bmad setup script has been run. For
+``Distributions'', this is the same setup script used to setup a distribution. See your local \bmad
+guru for details.
 
-When the \vn{help} command parses the \vn{\$TAO_DIR/doc/command-list.tex} file, LaTeX syntax will
-be modified to produce a reasonable looking output on the terminal. This translation is not perfect so
+When the \vn{help} command parses the \vn{\$TAO_DIR/doc/command-list.tex} file, LaTeX syntax will be
+modified to produce a reasonable looking output on the terminal. This translation is not perfect so
 reference should be made to the \tao manual if there is a problem in the translation.
 
 %% misalign --------------------------------------------------------------
@@ -456,8 +453,8 @@ Example:
 \section{place}\index{commands!place}
 \label{s:place}
 
-The \vn{place} command is used to associate a \vn{<template>} plot with a \vn{<region>}
-and thus create a visible plot in that region. Format:
+The \vn{place} command is used to associate a \vn{<template>} plot with a \vn{<region>} and thus
+create a visible plot in that region. Format:
 \begin{example}
   place \{-no_buffer\} <region> <template>
   place <region> none
@@ -487,8 +484,8 @@ Examples:
 \section{plot}\index{commands!plot}
 \label{s:plot}
 
-The \vn{plot} command is used to determine what ``components'' (\sref{s:plot.data}) are
-plotted in the specified graphs or plots. Format:
+The \vn{plot} command is used to determine what ``components'' (\sref{s:plot.data}) are plotted in
+the specified graphs or plots. Format:
 \begin{example}
   plot <plot_or_graph> <component>
 \end{example}
@@ -569,10 +566,11 @@ In terms of long term maintainability, the advantage of using the \vn{python} co
 over the \vn{show} command comes from the fact that the output syntax of \vn{show} commands can (and
 does) change.
 
-For further documentation on the python command and interfacing to python is in Chapter~\sref{c:python}.
+For further documentation on the python command and interfacing to python is in the \vn{Python/GUI
+Interface} chapter (\sref{c:python}).
 
-Documentation on interfacing Python scripts to \tao's python command is given in
-section~\sref{s:python.python}.
+Documentation on interfacing Python scripts to \tao's python command is given in the \vn{Tao Python
+Command} section (\sref{s:python.python}).
 
 List of possible \vn{<what_to_print>} choices:
 \begin{example}
@@ -635,8 +633,8 @@ Examples
 \section{read}\index{commands!read}
 \label{s:read}
 
-The \vn{read} command is used to modify the (\bmad) \vn{model} lattice or the associated
-\vn{PTC} lattice. Format:
+The \vn{read} command is used to modify the (\bmad) \vn{model} lattice or the associated \vn{PTC}
+lattice. Format:
 \begin{example}
   read lattice \{-silent\} \{-universes <universe-list>\} <file_name>
   read ptc <file_name>
@@ -680,8 +678,7 @@ Examples:
 \section{restore}\index{commands!restore}
 \label{s:restore}
 
-The \vn{restore} command cancels data or variable
-vetoes. Format:
+The \vn{restore} command cancels data or variable vetoes. Format:
 \begin{example}
   restore data  <data_name> <locations>
   restore var <var_name> <locations>
@@ -798,9 +795,9 @@ or \vn{-nogang} switches.
 If only \vn{<value1>} is present then the scale is taken to be from -\vn{<value1>} to +\vn{<value1>}.
 If both are present than the scale is from \vn{<value1>} to \vn{<value2>}.
 
-A graph can have a \vn{y2} (left) axis scale that is separate from the \vn{y} (right)
-axis. Normally, the \vn{scale} command will scale both axes.  Scaling of just one of these axes can
-be achieved by using the \vn{-y} or \vn{-y2} switches.
+A graph can have a \vn{y2} (left) axis scale that is separate from the \vn{y} (right) axis.
+Normally, the \vn{scale} command will scale both axes.  Scaling of just one of these axes can be
+achieved by using the \vn{-y} or \vn{-y2} switches.
 
 How a graph is scaled is determined in part by the setting of the \vn{bounds} parameter in the
 \vn{y} and \vn{y2} components of the graph. See \vn{s:quick.plot} for more details. The \vn{-exact}
@@ -956,7 +953,7 @@ Additionally, the \vn{set beam_init} command can set the parameters (\sref{s:bea
 \end{example}
 
 The optional \vn{n@} allows the specification of the universe or universes the set is applied to.
-The current default universe (\sref{s:universe}) will be used if no universe is given. 
+The current default universe (\sref{s:universe}) will be used if no universe is given.
 
 Use the \vn{show beam} command (\sref{s:show}) to see the current values.
 
@@ -979,8 +976,7 @@ Format:
   set bmad_com <parameter> = <value>
 \end{example}
 
-For \vn{set bmad_com}: The \vn{show global} command will give a list of 
-\vn{<parameter>}s.
+For \vn{set bmad_com}: The \vn{show global} command will give a list of \vn{<parameter>}s.
 
 Example:
 \begin{example}
@@ -1140,8 +1136,8 @@ Format:
 \end{example}
 
 The \vn{set dynamic_aperture} command sets parameters for dynamic aperture simulations
-(\sref{s:da.calc}) Also see the \vn{set universe dynamic_aperture} (\sref{s:set.universe})
-and \vn{show dynamic_aperture} (\sref{s:show.da}).
+(\sref{s:da.calc}) Also see the \vn{set universe dynamic_aperture} (\sref{s:set.universe}) and
+\vn{show dynamic_aperture} (\sref{s:show.da}).
 
 To set the particle energy for the <n>\Th scan use \vn{pz(<n>)}. Use a value less than -1 to remove
 the scan.
@@ -1178,8 +1174,8 @@ Note: \vn{set element} can be used to set \vn{ramper} type elements.
 Note: If an element in the \vn{<element_list>} does not specify a universe (or universes),
 only the element in the viewed universe is used. See the examples below.
 
-Note: It is also possible to use the \vn{change element} command to change
-real (as opposed to logical or integer) attributes.
+Note: It is also possible to use the \vn{change element} command to change real (as opposed to
+logical or integer) attributes.
 
 Examples:
 \begin{example}
@@ -1201,8 +1197,7 @@ Format:
 \end{example}
 
 
-Sets parameters for \vn{floor_plan} plots (\sref{s:shapes}).  Possible
-\vn{<parameters>} are:
+Sets parameters for \vn{floor_plan} plots (\sref{s:shapes}).  Possible \vn{<parameters>} are:
 \begin{example}
   <shape_name>%<shape_parameter>
   draw_beam_chamber_wall
@@ -1246,8 +1241,8 @@ Format:
   set global <parameter> = <value>
 \end{example}
 
-The \vn{set global} command sets global parameters of \tao.
-The \vn{show global} command will give a list of global parameters.
+The \vn{set global} command sets global parameters of \tao. The \vn{show global} command will give
+a list of global parameters.
 
 Example:
 \begin{example}
@@ -1382,8 +1377,7 @@ Format:
   set opti_de_param <parameter> = <value>
 \end{example}
 
-For \vn{set opti_de_param}: The \vn{show global} command will give a list of 
-\vn{<parameter>}s.
+For \vn{set opti_de_param}: The \vn{show global} command will give a list of \vn{<parameter>}s.
 
 Example:
 \begin{example}
@@ -1452,8 +1446,8 @@ The \vn{<parameters>}s that can be set are:
   x%<axis_parameter> = <value>
   n_curve_pts        = <integer>
 \end{example}
-Use the \vn{show plot <plot_name>} to see the settings of various parameters. See the
-section~\sref{s:template} for information on the plotting parameters.
+Use the \vn{show plot <plot_name>} to see the settings of various parameters. See the \vn{Plot
+Templates} section (\sref{s:template}) for information on the plotting parameters.
 
 The \vn{visible} parameter hides a plot but keeps the plot associated with the associate region. If
 the plot window is not enabled (\vn{-noplot} option used at startup), the \vn{visible} parameter is
@@ -1461,11 +1455,11 @@ used by \tao to decide whether to calculate the points needed for plotting curve
 computation is not needed). This is relevant when \tao is interfaced to a \vn{GUI}
 (\sref{s:gui.plot}).
 
-The \vn{n_curve_pts} parameters sets the number of points to use for drawing ``smooth''
-curves. This overrides the setting of \vn{plot_page%n_plot_pts} (\sref{s:init.plot}). Warning: \tao
-will cache intermediate calculations used to compute a smooth curve to use in the computation of
-other smooth curves. \tao will only do this for curves that have \vn{plot_page%n_curve_pts} number
-of points. Depending upon the circumstances, setting \vn{plot%n_curve_pts} for individual plots may
+The \vn{n_curve_pts} parameters sets the number of points to use for drawing ``smooth'' curves. This
+overrides the setting of \vn{plot_page%n_plot_pts} (\sref{s:init.plot}). Warning: \tao will cache
+intermediate calculations used to compute a smooth curve to use in the computation of other smooth
+curves. \tao will only do this for curves that have \vn{plot_page%n_curve_pts} number of
+points. Depending upon the circumstances, setting \vn{plot%n_curve_pts} for individual plots may
 slow down plotting calculations significantly.
 
 Note: If the \vn{component} parameter is set, the \vn{<value>} is stored in each of the graphs of
@@ -1477,8 +1471,8 @@ a whole. Other commands that involve \vn{component} are:
   set curve component     ! \sref{s:set.curve}
 \end{example}
 
-If \vn{<plot_or_region>} is a plot name, and there are visible plots of that name, any template plot of the same
-name is ignored. To set a template plot in this case, add a ``\vn{T::}'' prefix.
+If \vn{<plot_or_region>} is a plot name, and there are visible plots of that name, any template plot
+of the same name is ignored. To set a template plot in this case, add a ``\vn{T::}'' prefix.
 
 Example:
 \begin{example}
@@ -1601,13 +1595,13 @@ If optimizing while one or more universes are turned off, the variables associat
 universe will still be included in the merit function but not the data for that universe. The
 variables will still vary in the turned off universe.
 
-The \vn{set universe <what_universe> recalculate} command will recalculate the lattice
-parameters for that universe.
+The \vn{set universe <what_universe> recalculate} command will recalculate the lattice parameters
+for that universe.
 
 The \vn{set universe <what_universe> dynamic_aperture_calc} command will enable the dynamic aperture
-calculation for a ring. See the \vn{Initializing Dynamic Aperture} section
-(\sref{s:da.calc}) for more details. To enable the dynamic aperture calculation at startup,
-set the \vn{design_lattice(i)%dynamic_aperture} parameter (\sref{s:init.lat}).
+calculation for a ring. See the \vn{Initializing Dynamic Aperture} section (\sref{s:da.calc}) for
+more details. To enable the dynamic aperture calculation at startup, set the
+\vn{design_lattice(i)%dynamic_aperture} parameter (\sref{s:init.lat}).
 
 The \vn{set universe <what_universe> one_turn_map_calc} command will enable a one-turn-map
 calculation for a ring using PTC, and populate the normal form taylor maps. See
@@ -1675,8 +1669,8 @@ Format:
   set wave <parameter> = <value>
 \end{example}
 
-The \vn{set wave} command sets the boundaries of the $A$ and $B$ regions for the wave
-analysis (\sref{c:wave}). The parameters are
+The \vn{set wave} command sets the boundaries of the $A$ and $B$ regions for the wave analysis
+(\sref{c:wave}). The parameters are
 \begin{example}
   ix_a = <ix_a1> <ix_a2>  ! A-region left and right boundaries.
   ix_b = <ix_b1> <ix_b2>  ! B-region left and right boundaries.
@@ -1728,6 +1722,7 @@ Format:
   show optimizer ...         ! Show optimizer info \sref{s:show.optimizer}.
   show particle ...          ! Show tracked particle beam info \sref{s:show.particle}.
   show plot ...              ! Show plot info \sref{s:show.plot}.
+  show ptc ...               ! Show PTC calculated parameters \sref{s:show.ptc}.
   show spin ...              ! Show information on spin simulations \sref{s:show.spin}.
   show string ...            ! Print a string \sref{s:show.string}.
   show symbolic_numbers ...  ! Show symbolic constants \sref{s:show.symbolic}.
@@ -1920,8 +1915,8 @@ Syntax:
   show data \{<data_name>\}
 \end{example}
 
-Shows data information. If \vn{<data_name>} is not present then a list of all \vn{d2_data}
-names is printed.
+Shows data information. If \vn{<data_name>} is not present then a list of all \vn{d2_data} names is
+printed.
 
 Examples:
 \begin{example}
@@ -1948,9 +1943,9 @@ Syntax:
 \end{example}
 
 \index{lm}\index{svd}
-Shows the derivative dData_Model_Value/dVariable. This derivative is used by the optimizers
-\vn{lm} and \vn{svd}. Note: Wild card characters can be used to show multiple derivatives.
-Default values for \vn{<data_name(s)>} and \vn{<var_name(s)>} is "*" (all data or variables).
+Shows the derivative dData_Model_Value/dVariable. This derivative is used by the optimizers \vn{lm}
+and \vn{svd}. Note: Wild card characters can be used to show multiple derivatives.  Default values
+for \vn{<data_name(s)>} and \vn{<var_name(s)>} is "*" (all data or variables).
 
 The \vn{-derivative_recalc} forces a recalculation of the derivative matrix. This is exactly the
 same as using \vn{derivative} command (\sref{s:deriv}) before the \vn{show derivative} command.
@@ -2364,8 +2359,8 @@ switch.
 \item[<element_list>] \Newline
 The locations to show are specified either by specifying an element list or by specifying a
 longitudinal position range using the \vn{-s} switch The syntax used for specifying the element list
-is given in section~\sref{s:ele.list.format}.  In this case there should be no blank characters in
-the list.
+is given in the \vn{Lattice Element List Format} section (\sref{s:ele.list.format}). In this case
+there should be no blank characters in the list.
 %
 \item[-floor_coords] \Newline
 If present, the \vn{-floor_coords} switch will print the global floor (laboratory) coordinates for
@@ -2625,8 +2620,8 @@ Syntax:
 \end{example}
 
 The \vn{show plot -floor_plan} and \vn{show plot -lat_layout} commands show the parameters
-associated with the \vn{floor_plan} or \vn{lat_layout} plots (\sref{s:shapes}).
-Use the \vn{set floor_plan} or \vn{set lat_layout} commands to set these parameters.
+associated with the \vn{floor_plan} or \vn{lat_layout} plots (\sref{s:shapes}). Use the \vn{set
+floor_plan} or \vn{set lat_layout} commands to set these parameters.
 
 The \vn{show plot -page} command shows some plot page plotting parameters like the size of the plot
 window.
@@ -2656,6 +2651,19 @@ Examples:
   show plot r13     ! Show information on plot in region r13.
   show plot T::beta ! Show template beta plot.
 \end{example}
+
+%% show ptc --------------------------------------------------------------
+
+\subsection{show ptc}
+\label{s:show.ptc}
+
+Syntax:
+\begin{example}
+  show ptc 
+\end{example}
+
+Show quantities as calculated by PTC. This command is under development. Currently emittances and
+tunes are shown.
 
 %% show spin --------------------------------------------------------------
 
@@ -2771,15 +2779,14 @@ s-position of \vn{loc1} is greater than the s-position of \vn{loc2}, the map fro
 \vn{loc1} to the end of the lattice with the map from the beginning to \vn{loc2} is
 computed.
 
-If the \vn{-s} switch is present, \vn{loc1} and \vn{loc2} will be interpreted as
-longitudinal s-positions. In this case, if \vn{loc2} is not present, the map will be the
-1-turn map if the lattice is circular and the map from the beginning to \vn{loc1} if the
-map is not.
+If the \vn{-s} switch is present, \vn{loc1} and \vn{loc2} will be interpreted as longitudinal
+s-positions. In this case, if \vn{loc2} is not present, the map will be the 1-turn map if the
+lattice is circular and the map from the beginning to \vn{loc1} if the map is not.
 
-If the \vn{-s} switch is not present, \vn{loc1} and \vn{loc2} will be interpreted as
-element names or indexes. The map will be from the exit end of the \vn{loc1} element to
-the exit end of the \vn{loc2} element. In this case, if \vn{loc2} is not present, the map
-will be the for the element given by \vn{loc1}
+If the \vn{-s} switch is not present, \vn{loc1} and \vn{loc2} will be interpreted as element names
+or indexes. The map will be from the exit end of the \vn{loc1} element to the exit end of the
+\vn{loc2} element. In this case, if \vn{loc2} is not present, the map will be the for the element
+given by \vn{loc1}
 
 If the \vn{-eigen_modes} switch is present, the first order part of the map will be treated
 as a 1-turn matrix and the corresponding eigen values and eigen vectors will be printed.
@@ -2897,10 +2904,12 @@ Set the format for the column showing the total energy (in eV) of the particle. 
 to print this.
 %
 \item[\vn{\{-range <s1> <s2>\}}] \Newline
-Set the S-position min/max bounds for the table. Default is beginning and ending S-positions of the lattice.
+Set the S-position min/max bounds for the table. Default is beginning and ending S-positions of the
+lattice.
 %
 \item[\vn{\{-s \{<fmt>\}\}}] \Newline
-Set the format for the S-position column. The default, if \vn{-s} is not present, is to print the column.
+Set the format for the S-position column. The default, if \vn{-s} is not present, is to print the
+column.
 %
 \item[\vn{\{-spin \{<fmt>\}\}}] \Newline
 Set the format for the three parameters of the particle's spin. The default, if
@@ -2940,8 +2949,7 @@ The default universe to use is the current default universe. This can be changed
 \vn{-universe} switch.
 
 The default is to show the \vn{model} Twiss and orbit parameters. The use of \vn{-base} or
-\vn{-design} switches can be used to show parameters for the \vn{base} or \vn{design}
-lattices.
+\vn{-design} switches can be used to show parameters for the \vn{base} or \vn{design} lattices.
 
 The particular branch used in the analysis can be selected by the \vn{-branch} switch. The
 default is the default branch (\sref{s:lattice}).
@@ -3139,9 +3147,8 @@ The \vn{show wave} command shows the results of the current wave analysis (\sref
 \section{single_mode}\index{commands!single_mode}
 \label{s:sing}
 
-The \vn{single_mode} command puts \tao into \vn{single mode} (\sref{c:single}).
-For on-line help when running \tao go to \vn{single mode} and type ``?''.
-To get out of single mode type ``Z''.
+The \vn{single_mode} command puts \tao into \vn{single mode} (\sref{c:single}).  For on-line help
+when running \tao go to \vn{single mode} and type ``?''.  To get out of single mode type ``Z''.
 
 %% spawn --------------------------------------------------------------
 \section{spawn}\index{commands!spawn}
@@ -3366,9 +3373,9 @@ the \vn{blender} program\cite{b:blender}. Syntax:
 The default file name is \vn{blender_lat_\#.py} where \vn{\#} is replaced by the universe number. 
 
 \vn{Blender} is a free, open source, program for creating, among other things, 3D images. This
-script will create a 3D model of the lattice in the current default universe
-(\sref{s:universe}). The suffix must by '.py' and if this suffix is not present it will be added. To
-run the script in \vn{blender}, use the following on the operating system command line:
+script will create a 3D model of the lattice in the current default universe (\sref{s:universe}).
+The suffix must by '.py' and if this suffix is not present it will be added. To run the script in
+\vn{blender}, use the following on the operating system command line:
 \begin{example}
   <path-to-blender-exe>/blender -P <script-file-from-tao>
 \end{example}
@@ -3620,7 +3627,7 @@ The default file name is \vn{ptc.flatfile}
 The \vn{write ptc} command creates PTC lattice files (called ``flat'' files).  If the \vn{-all}
 switch is present, there will be two main flat files generated. The \vn{-all} switch needs to be
 used when there are multiple lattice branches that need to be translated to PTC. For example, in a
-dual colliding ring machine with two storage rings.  Both \vn{M_u} and \vn{M_t} mad_universe
+dual colliding ring machine with two storage rings. Both \vn{M_u} and \vn{M_t} mad_universe
 structures will be generated. The two main files generated will have the suffixes \vn{.m_u} and
 \vn{.m_t} appended to the file names. In this case, the setting of \vn{-branch} is ignored.
 
@@ -3631,8 +3638,8 @@ flat file will contain the information for a single lattice branch. The lattice 
 specified by the \vn{-branch} switch. The default, if \vn{-branch} is not present, is to use lattice
 branch \# 0. The \vn{-old} switch will generate an ``old style'' version.
 
-In all cases, the \vn{write ptc} command can only be used after a \vn{ptc init} command
-has been used to setup PTC.
+In all cases, the \vn{write ptc} command can only be used after a \vn{ptc init} command has been
+used to setup PTC.
 
 %% write sad --------------------------------------------------------------
 
@@ -3739,8 +3746,8 @@ Syntax:
     write xsif \{<file_name>\}  ! Write an XSIF lattice file of the model
 \end{example}
 
-The default file name is \vn{lat_\#.xsif} where \vn{\#} is replaced by the universe number. 
-XSIF is a version of MAD-8 customized by SLAC to handle \vn{lcavity} elements.
+The default file name is \vn{lat_\#.xsif} where \vn{\#} is replaced by the universe number. XSIF is
+a version of MAD-8 customized by SLAC to handle \vn{lcavity} elements.
 
 %% x_axis --------------------------------------------------------------
 
@@ -3801,7 +3808,7 @@ given ones. If \vn{<value1>} and \vn{<value2>} are not given, and if \vn{bounds}
 directly, use the \vn{set graph} command.
 
 Note: The \vn{x_scale} command will vary the number of major divisions (set by
-plot%x%major_divisions (\sref{s:template})) to try to give a nice looking axis. The result can be
+\vn{plot%x%major_divisions} (\sref{s:template})) to try to give a nice looking axis. The result can be
 that if two plots have the same range of data but differing major division settings, the
 \vn{x_scale} command can produce differing results.
 

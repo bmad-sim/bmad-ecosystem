@@ -619,13 +619,13 @@ case ('bunch1')
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
-  ix_bunch = parse_int(tail_str, err, 1, size(beam%bunch)); if (err) return
-
   beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
   if (.not. allocated(beam%bunch)) then
     call invalid ('BEAM NOT SAVED AT ELEMENT.')
     return
   endif
+
+  ix_bunch = parse_int(tail_str, err, 1, size(beam%bunch)); if (err) return
 
   call coord_out(beam%bunch(ix_bunch), tail_str)
 
