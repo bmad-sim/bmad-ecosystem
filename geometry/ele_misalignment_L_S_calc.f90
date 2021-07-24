@@ -5,11 +5,11 @@
 ! Used to transform coordinates and vectors relative to the center of the element
 !
 ! Input:
-!   ele       -- real(rp): Element
+!   ele         -- real(rp): Element
 !
 ! Output:
-!   L_mis(3)  -- real(rp): Misalignment vector relative to center of element
-!   S_mis(3)  -- real(rp): Misalignment matrix relative to center of element
+!   L_mis(3)    -- real(rp): Misalignment vector relative to center of element
+!   S_mis(3,3)  -- real(rp): Misalignment matrix relative to center of element
 !
 !-
 

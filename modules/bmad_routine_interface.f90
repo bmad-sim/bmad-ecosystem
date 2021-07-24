@@ -325,14 +325,21 @@ function coords_floor_to_curvilinear (floor_coords, ele0, ele1, status, w_mat) r
   real(rp), optional :: w_mat(3,3)
 end function coords_floor_to_curvilinear
 
+function coords_local_curvilinear_to_element (local_position, ele, w_mat, calculate_angles) result (body_position)
+  import
+  implicit none
+  type (floor_position_struct) :: local_position, body_position, p, floor0
+  type (ele_struct), target :: ele
+  real(rp), optional :: w_mat(3,3)
+  logical, optional :: calculate_angles
+end function
+
 function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, &
                                         w_mat, calculate_angles, relative_to_upstream) result (global_position)
   import
   implicit none
-  type (floor_position_struct) :: local_position, global_position, p, floor0
+  type (floor_position_struct) :: local_position, global_position
   type (ele_struct), target :: ele
-  type (ele_struct), pointer :: ele1
-  real(rp) :: w_mat_local(3,3), L_vec(3), S_mat(3,3), z
   real(rp), optional :: w_mat(3,3)
   logical, optional :: in_ele_frame
   logical, optional :: calculate_angles

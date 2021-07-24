@@ -61,6 +61,7 @@ if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
     x =  local_position%r(1) * cos(tilt) + local_position%r(2) * sin(tilt)
     y = -local_position%r(1) * sin(tilt) + local_position%r(2) * cos(tilt)
   endif
+
   z = local_position%r(3)
   rho = ele%value(rho$)
   if (rho > 0) then
