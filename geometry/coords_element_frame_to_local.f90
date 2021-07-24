@@ -1,13 +1,7 @@
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
 !+
 ! Function coords_element_frame_to_local (body_position, ele, w_mat, calculate_angles) result (local_position)
 !
-! Returns Cartesian coordinates relative to the exit end lab frame floor coordinates (which
-! is ele%floor if ele%orientation == 1).
-! This routine takes into account element misalignments.
+! Returns Cartesian coordinates relative to the exit end lab frame coordinates.
 !
 ! Input:
 !   body_position     -- floor_position_struct: Element body frame coordinates.
