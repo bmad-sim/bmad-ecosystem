@@ -19,6 +19,7 @@ use blender_interface_mod, only: write_blender_lat_layout
 use madx_ptc_module, only: m_u, m_t, print_universe_pointed, &
                            print_complex_single_structure, print_new_flat, print_universe
 use beam_file_io, only: write_beam_file
+use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout
 
 implicit none
 
@@ -945,9 +946,8 @@ case ('ptc')
   if (file_name == '') file_name = 'ptc.flatfile'
 
   if (.not. associated(branch%ptc%m_t_layout)) then
-    call out_io (s_fatal$, r_name, 'No associated PTC layout exists.', &
-                                  'You must use the command "ptc init" before creating a flat file.')
-    return
+    call out_io (s_info$, r_name, 'Note: Creating PTC layout (equivalent to "ptc init").')
+    call lat_to_ptc_layout (branch%lat)
   endif
 
   select case (which)
