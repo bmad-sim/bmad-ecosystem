@@ -14,7 +14,7 @@
 !   include_kicks -- integer, optional: Ignored for for pole_type == electric$ for non-elseparator elements.
 !                      Possibilities are: 
 !            no$                      -- Default. Do not include any kick components in a and b multipoles. 
-!            include_kicks$           -- Include hkick/vkick in the n = 0 components.
+!            include_kicks$           -- Include hkick/vkick/dg in the n = 0 components.
 !                                           Also included are quad k1, sextupole k2 and octupole k3 components.
 !
 ! Output:
@@ -255,6 +255,7 @@ case (magnetic$)
     b_kick(1) = ele%value(k1$) * ele%value(l$)
 
   case (sbend$)
+    b_kick(0) = b_kick(0) + ele%value(dg$) * ele%value(l$)
     b_kick(1) = ele%value(k1$) * ele%value(l$)
     b_kick(2) = ele%value(k2$) * ele%value(l$) / 2.0_rp
 

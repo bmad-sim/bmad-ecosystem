@@ -468,8 +468,8 @@ do ir = 1, branch%n_ele_track
   if (ele%key == sbend$) then
     call transfer_ele(ele, runt)
     theta = ele%value(ref_tilt_tot$)
-    pt%g_x0 = cos(theta) * (ele%value(g$) + ele%value(dg$))
-    pt%g_y0 = sin(theta) * (ele%value(g$) + ele%value(dg$))
+    pt%g_x0 = cos(theta) * ele%value(g$)
+    pt%g_y0 = sin(theta) * ele%value(g$)
     g2 = ele%value(g$)**2
     ! Edge effects for a bend. In this case we ignore any rolls.
     call propagate_part_way (orbit(ir-1), branch%param, pt, ri_info, 0.0_rp, runt)
@@ -727,8 +727,8 @@ else
   c_pt%g_y0 = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
 
   if (ele2%key == sbend$) then
-    c_pt%g_x0 = c_pt%g_x0 + (ele2%value(g$) + ele2%value(dg$)) * cos(ele%value(ref_tilt$))
-    c_pt%g_y0 = c_pt%g_y0 + (ele2%value(g$) + ele2%value(dg$)) * sin(ele%value(ref_tilt$))
+    c_pt%g_x0 = c_pt%g_x0 + ele2%value(g$) * cos(ele2%value(ref_tilt$))
+    c_pt%g_y0 = c_pt%g_y0 + ele2%value(g$) * sin(ele2%value(ref_tilt$))
   endif
 endif
 

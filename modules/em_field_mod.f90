@@ -620,8 +620,8 @@ case (bmad_standard$)
 
   case (sbend$)
 
-    ! Finite k1 or k2 is handled with rest of multipoles
-    field%b(2) = (ele%value(g$) + ele%value(dg$)) * f_p0c 
+    ! Finite dg, k1 or k2 is handled with rest of multipoles
+    field%b(2) = ele%value(g$) * f_p0c 
 
 
   !------------------
@@ -698,7 +698,7 @@ case (bmad_standard$)
   else
     ! First magnetic
     ! This should be cleaned up so that include_kicks is always present.
-    ! Do do this, the code above which puts in the kick, k1, k2, k3 kicks needs to be removed.
+    ! Do do this, the code above which puts in the kick, dg, k1, k2, k3 kicks needs to be removed.
     if (ele%key == sbend$) then
       call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole, magnetic$, include_kicks$)
       add_kicks = .false.

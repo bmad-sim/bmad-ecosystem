@@ -109,7 +109,7 @@ end subroutine multipole1_ab_to_kt
 !   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !   include_kicks -- integer, optional: Possibilities are: 
 !            no$                      -- Default. Do not include any kick components in a and b multipoles. 
-!            include_kicks$           -- Include hkick/vkick in the n = 0 components.
+!            include_kicks$           -- Include hkick/vkick/dg in the n = 0 components.
 !                                           Also included are quad k1, sextupole k2 and octupole k3 components.
 !
 ! Output:
