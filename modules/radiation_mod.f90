@@ -218,7 +218,7 @@ enddo
 
 select case (ele%key)
 case (sbend$)
-  gx = -kx_tot/ele%value(l$) + ele%value(g$) + ele%value(dg$) 
+  gx = -kx_tot/ele%value(l$) + ele%value(g$)
   gy = -ky_tot/ele%value(l$)
   g2 = gx**2 + gy**2
   g3 = sqrt(g2)**3

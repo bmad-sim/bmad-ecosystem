@@ -4413,11 +4413,10 @@ case (sbend$)
       add_multipoles = .false.
 
     else
+      bn(1) = bn(1) + ele%value(dg$)
       bn(2) = val(k1$)
       bn(3) = val(k2$) / 2
     endif
-
-    bn(1) = bn(1) + ele%value(dg$)
 
   else
     bn(1) = -ele%value(g$)

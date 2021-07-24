@@ -56,19 +56,36 @@ endif
 
 ! Set some parameters
 
-g = ele%value(g$)
-g_tot = (g + ele%value(dg$)) * rel_charge_dir
-dg = g_tot - g
-
 if (nint(ele%value(exact_multipoles$)) /= off$) then
   call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$)
   b1 = 0  ! Is folded in with multipoles.
+
 else
+  ! The sbend_body_with_k1_map suffers from roundoff problems at low b1. 
+  ! So avoid using this routine at small b1.
+
   call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$, b1)
   b1 = b1 * rel_charge_dir
+
+  if (abs(b1) < 1d-10) then
+    bn(1) = b1
+    b1 = 0
+  endif
 endif
 
+!
+
 call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+
+g = ele%value(g$)
+if (ele%value(l$) == 0) then
+  dg = 0
+else
+  dg = bn(0) / ele%value(l$)
+  bn(0) = 0
+endif
+
+g_tot = (g + dg) * rel_charge_dir
 
 if (.not. ele%is_on) then
   dg = -g
@@ -94,7 +111,7 @@ do n = 1, n_step
   ! with k1 /= 0 use small angle approximation
 
   if (b1 /= 0) then
-    call sbend_body_with_k1_map (ele, b1, param, n_step, orbit, mat6, make_matrix)
+    call sbend_body_with_k1_map (ele, dg, b1, param, n_step, orbit, mat6, make_matrix)
     orbit%vec(5) = orbit%vec(5) + low_energy_z_correction(orbit, ele, step_len, mat6, make_matrix)
 
   elseif ((g == 0 .and. dg == 0) .or. step_len == 0) then
@@ -450,13 +467,14 @@ end subroutine track_a_bend
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine sbend_body_with_k1_map (ele, b1, param, n_step, orbit, mat6, make_matrix)
+! Subroutine sbend_body_with_k1_map (ele, dg, b1, param, n_step, orbit, mat6, make_matrix)
 !
 ! Subroutine to calculate for a single step the transfer matrix and/or 
 ! ending coordinates for a sbend with a finite k1 but without a tilt.
 !
 ! Input:
 !   ele          -- Ele_struct: Sbend element.
+!   dg           -- real(rp): Field error.
 !   b1           -- real(rp): b1 quadrupole strength * rel_charge_dir
 !   param        -- Lat_param_struct: Branch parameters.
 !   n_step       -- Integer: Number of steps to divide the bend into.
@@ -470,7 +488,7 @@ end subroutine track_a_bend
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix with body added in.
 !-
 
-subroutine sbend_body_with_k1_map (ele, b1, param, n_step, orbit, mat6, make_matrix)
+subroutine sbend_body_with_k1_map (ele, dg, b1, param, n_step, orbit, mat6, make_matrix)
 
 use bmad, except_dummy => sbend_body_with_k1_map
 
@@ -497,14 +515,12 @@ logical, optional :: make_matrix
 rel_charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation * orbit%direction
 
 g = ele%value(g$)
-g_tot = (g + ele%value(dg$)) * rel_charge_dir
-dg = g_tot - g
 length = ele%value(l$) / n_step
 k1 = b1 / ele%value(l$)
 
 !
 
-g_tot = g + dg
+g_tot = (g + dg) * rel_charge_dir
 rel_p = (1 + orbit%vec(6))
 rel_p2 = rel_p**2
 
