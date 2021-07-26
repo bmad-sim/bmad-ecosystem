@@ -95,12 +95,13 @@ endif
 
 temp_end%spin = temp_start%spin
 
-! 
+! temp_start%s = temp_end%s when, for example, in an RF cavity when ele is a super_slave covering
+! a region outside the active region.
 
 if (ele%value(l$) == 0 .or. ele%key == multipole$ .or. ele%key == ab_multipole$ .or. ele%key == taylor$) then
   temp_end%vec = (temp_end%vec + temp_start%vec) / 2
   call multipole_spin_tracking (ele, param, temp_end)
-else
+elseif (temp_start%s /= temp_end%s) then
   call spline_fit_orbit (ele, temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, spline_x, spline_y, temp_start, temp_end, param)
   if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*start_orb%direction*ele%orientation, 0.0_rp]
