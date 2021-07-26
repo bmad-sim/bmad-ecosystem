@@ -1,11 +1,7 @@
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
 !+
 ! Function coords_floor_to_curvilinear (floor_coords, ele0, ele1, status, w_mat) result (local_coords)
 !
-! Given a position in global "floor" coordinates, return local curvilinear (ie element) coordinates 
+! Given a position in global "floor" coordinates, return local curvilinear (laboratory) coordinates 
 ! for an appropriate element, ele1, near ele0. That is, the s-position of local_coords will be within
 ! the longitudinal extent of ele1.
 !

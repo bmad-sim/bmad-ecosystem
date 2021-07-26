@@ -1260,9 +1260,9 @@ if (has_orientation_attributes(slave)) then
     if (any(off /= 0) .or. xp /= 0 .or. yp /= 0 .or. roll /= 0) then
       from_pos = floor_position_struct([0,0,0], w_unit$, 0, 0, 0)
       from_pos%r(3) = offset + len_slave/2
-      to_pos = coords_element_frame_to_local(from_pos, lord)
+      to_pos = coords_body_to_rel_exit (from_pos, lord)
       to_pos = bend_shift (to_pos, lord%value(g$), offset + len_slave/2 - len_lord, ref_tilt = tilt)
-      
+
       w_mat = to_pos%w
       if (tilt /= 0) call rotate_mat (w_mat, z_axis$, -tilt, right_multiply = .true.)
       call floor_w_mat_to_angles (w_mat, value(x_pitch$), value(y_pitch$), value(roll$))

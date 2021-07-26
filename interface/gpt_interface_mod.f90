@@ -366,7 +366,7 @@ q_sign = sign(1,  charge_of(branch%param%particle) )
 ! Get global position and rotation of origin of the field map, at the center of the element
 
 floor1%r = [0.0_rp, 0.0_rp, ele%value(L$)/2]
-floor2 = coords_local_curvilinear_to_floor (floor1, ele, in_ele_frame = .true., w_mat = w_mat)
+floor2 = coords_local_curvilinear_to_floor (floor1, ele, in_body_frame = .true., w_mat = w_mat)
 x0 = floor2%r(1)
 y0 = floor2%r(2)
 z0 = floor2%r(3)
