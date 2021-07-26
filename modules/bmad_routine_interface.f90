@@ -290,6 +290,24 @@ function congruent_lattice_elements (ele1, ele2) result (is_congruent)
   logical is_congruent
 end function
 
+function coords_body_to_rel_exit (body_position, ele, w_mat, calculate_angles) result(rel_exit)
+  import
+  implicit none
+  type (floor_position_struct) :: body_position, rel_exit
+  type (ele_struct) :: ele
+  real(rp), optional :: w_mat(3,3)
+  logical, optional :: calculate_angles
+end function 
+
+function coords_body_to_local (body_position, ele, w_mat, calculate_angles) result(local_position)
+  import
+  implicit none
+  type (floor_position_struct) :: body_position, local_position
+  type (ele_struct) :: ele
+  real(rp), optional :: w_mat(3,3)
+  logical, optional :: calculate_angles
+end function coords_body_to_local
+
 function coords_relative_to_floor (floor0, dr, theta, phi, psi) result (floor1)
   import
   implicit none
@@ -334,26 +352,17 @@ function coords_local_curvilinear_to_element (local_position, ele, w_mat, calcul
   logical, optional :: calculate_angles
 end function
 
-function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, &
+function coords_local_curvilinear_to_floor (local_position, ele, in_body_frame, &
                                         w_mat, calculate_angles, relative_to_upstream) result (global_position)
   import
   implicit none
   type (floor_position_struct) :: local_position, global_position
   type (ele_struct), target :: ele
   real(rp), optional :: w_mat(3,3)
-  logical, optional :: in_ele_frame
+  logical, optional :: in_body_frame
   logical, optional :: calculate_angles
   logical, optional :: relative_to_upstream
 end function coords_local_curvilinear_to_floor
-
-function coords_element_frame_to_local (body_position, ele, w_mat, calculate_angles) result(local_position)
-  import
-  implicit none
-  type (floor_position_struct) :: body_position, local_position
-  type (ele_struct) :: ele
-  real(rp), optional :: w_mat(3,3)
-  logical, optional :: calculate_angles
-end function coords_element_frame_to_local
 
 function coords_curvilinear_to_floor (xys, branch, err_flag) result (global)
   import

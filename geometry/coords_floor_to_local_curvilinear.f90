@@ -1,12 +1,13 @@
 !+
 ! Function coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat, relative_to_upstream) result(local_position)
 !
-! Given a position in global coordinates, return local curvilinear coordinates defined by ele.
+! Given a position in global coordinates, return local curvilinear (laboratory) coordinates defined by ele.
 !
 ! If the calculated longitudinal s places global_position outside of ele, the status argument
 ! will be set appropriately and local_position is not will be defined.
 !
-! Angular orientation is ignored.
+! Also see: coords_floor_to_curvilinear which will search a lattice branch for the element where
+! the global_position is associated with.
 !
 ! Input:
 !   global_position     -- floor_position_struct: %r = [X, Y, Z] position in global coordinates
@@ -39,50 +40,29 @@ type (floor_position_struct) :: global_position, local_position
 type (ele_struct)   :: ele
 type (floor_position_struct) :: floor0, floor1
 real(rp), optional :: w_mat(3,3)
-real(rp) x, y, z, rho, dtheta, tilt, dz0, dz1
+real(rp) x, y, z, g, dd, tilt, ds, dz0, dz1, wm(3,3), ref_tilt
 integer :: status
 logical, optional :: relative_to_upstream
 
 ! In all cases remember that ele%floor is the downstream floor coords independent of ele%orientation
 ! sbend case.
 
-if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
-  if (ele%orientation == 1) then
-    floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
+if (ele%key == sbend$) then
+  g = ele%value(g$); ref_tilt = ele%value(ref_tilt_tot$)
+  local_position = coords_floor_to_relative (ele%floor, global_position)
+
+  if (g /= 0) then
+    dd = (local_position%r(1) * cos(ref_tilt) + local_position%r(2) * sin(ref_tilt)) * g
+    ds = atan(local_position%r(3) * g / (1 + dd)) / g
+    local_position = bend_shift(local_position, g, ds, wm, ref_tilt)
+    local_position%r(3) = ds
+    if (present(w_mat)) w_mat = matmul(ele%floor%w, transpose(wm))
   else
-    floor0 = ele%floor
-  endif
-  local_position = coords_floor_to_relative (floor0, global_position)
-  tilt = ele%value(ref_tilt_tot$)
-  if (tilt == 0) then
-    x = local_position%r(1)
-    y = local_position%r(2)
-  else
-    x =  local_position%r(1) * cos(tilt) + local_position%r(2) * sin(tilt)
-    y = -local_position%r(1) * sin(tilt) + local_position%r(2) * cos(tilt)
+    if (present(w_mat)) w_mat = ele%floor%w
   endif
 
-  z = local_position%r(3)
-  rho = ele%value(rho$)
-  if (rho > 0) then
-    dtheta = atan2 (z, x + rho)
-  else
-    dtheta = atan2 (-z, -(x + rho))
-  endif
-
-  if (dtheta < ele%value(angle$)/2 - pi) dtheta = dtheta + twopi
-  if (dtheta > ele%value(angle$)/2 + pi) dtheta = dtheta - twopi
-
-  local_position%r(1) = rho * sqrt_one(2*x/rho + (x/rho)**2 + (z/rho)**2)
-  local_position%r(2) = y
-  local_position%r(3) = dtheta * rho
-
-  if (tilt == 0) then
-    call rotate_mat(local_position%w, y_axis$, dtheta)
-  else
-    call rotate_mat(local_position%w, z_axis$, -tilt)
-    call rotate_mat(local_position%w, y_axis$,  dtheta)
-    call rotate_mat(local_position%w, z_axis$,  tilt)
+  if (.not. (logic_option(.false., relative_to_upstream) .and. ele%orientation == -1)) then
+    local_position%r(3) = local_position%r(3) + ele%value(l$)
   endif
 
   call update_floor_angles (local_position)
@@ -106,6 +86,10 @@ elseif (ele%key == patch$) then
   endif
 
   local_position = coords_floor_to_relative (floor0, global_position)
+
+  if (present(w_mat)) then
+    w_mat = floor0%w
+  endif
 
   ! Is the particle inside the patch or outside?
 
@@ -131,8 +115,13 @@ else
   floor0 = ele%floor
   local_position = coords_floor_to_relative (floor0, global_position)
   if (ele%orientation == 1) local_position%r(3) = local_position%r(3) + ele%value(l$)
+
+  if (present(w_mat)) then
+    w_mat = floor0%w
+  endif
 endif
 
+!----------------------
 ! Inside or outside?
 
 if (local_position%r(3) < min(0.0_rp, ele%value(l$))) then
@@ -152,9 +141,5 @@ else
 endif
 
 ! Optionally return w_mat
-
-if (present(w_mat)) then
-  w_mat = local_position%W
-endif
 
 end function coords_floor_to_local_curvilinear

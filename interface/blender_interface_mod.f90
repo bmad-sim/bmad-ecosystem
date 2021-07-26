@@ -131,7 +131,7 @@ character(500) line
 call mat_make_unit(local_position%w)
 local_position%r = [0.0_rp, 0.0_rp, ele%value(L$)/2]
 
-p = coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame=.true., w_mat=w_mat)
+p = coords_local_curvilinear_to_floor (local_position, ele, in_body_frame=.true., w_mat=w_mat)
 
 select case (ele%key)
 case (crystal$, mirror$, multilayer_mirror$)

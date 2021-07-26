@@ -785,7 +785,7 @@ end subroutine em_field_kick_vector_time
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function particle_in_global_frame (orb, in_time_coordinates, in_ele_frame, w_mat_out) result (particle) 
+! Function particle_in_global_frame (orb, in_time_coordinates, in_body_frame, w_mat_out) result (particle) 
 !
 ! Returns the particle in global time coordinates given is coordinates orb in lattice lat.
 !   
@@ -794,14 +794,14 @@ end subroutine em_field_kick_vector_time
 !   branch              -- branch_struct: branch that contains branch%ele(orb%ix_ele)
 !   in_time_coordinates -- Logical (optional): Default is false. If true, orb
 !                            will taken as in time coordinates.    
-!   in_ele_frame        -- Logical (optional): Default is true. If false, ele offsets
+!   in_body_frame        -- Logical (optional): Default is true. If false, ele offsets
 !                            will be ignored.
 !
 ! Result:
 !   particle            -- Coord_struct: particle in global time coordinates
 !-
 
-function particle_in_global_frame (orb, branch, in_time_coordinates, in_ele_frame, w_mat_out) result (particle)
+function particle_in_global_frame (orb, branch, in_time_coordinates, in_body_frame, w_mat_out) result (particle)
 
 implicit none
 
@@ -811,7 +811,7 @@ type (floor_position_struct) :: floor_at_particle, global_position
 type (ele_struct), pointer :: ele
 real(rp) :: w_mat(3,3), s_body
 real(rp), optional :: w_mat_out(3,3)
-logical, optional :: in_time_coordinates, in_ele_frame
+logical, optional :: in_time_coordinates, in_body_frame
 character(28), parameter :: r_name = 'particle_in_global_frame'
 
 ! Get last tracked element  
@@ -836,7 +836,7 @@ floor_at_particle%psi = 0.0_rp
 
 ! Get [X,Y,Z] and w_mat for momenta rotation below
 global_position = coords_local_curvilinear_to_floor (floor_at_particle, ele, &
-  in_ele_frame = logic_option(.true., in_ele_frame) , w_mat = w_mat)
+  in_body_frame = logic_option(.true., in_body_frame) , w_mat = w_mat)
 
 !Set x, y, z
 particle%vec(1:5:2) = global_position%r
