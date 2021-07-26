@@ -1,19 +1,36 @@
 no_digested
-parameter[p0c] = 1e6 / 3.3356e-3
+parameter[p0c] = 1e6
 parameter[geometry] = open
+parameter[no_end_marker] = T
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-particle_start[z] = pi/2
-particle_start[x] = 1
+particle_start[x]  = 0.1
+particle_start[px] = 0.2
+particle_start[y]  = 0.3
+particle_start[py] = 0.4
+particle_start[z]  = 0.5
+particle_start[pz] = 0.6
 
-d: drift, l = 1
-p1: patch, z_offset = 1, x_pitch = pi
+q: quadrupole, l = 2, tilt = -1, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
+p: patch, z_offset = 2, x_pitch = pi
 
-b: sbend, l = 1, angle = 1, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2
-b2: sbend, l = 1, g = 0.1
+b1: sbend, l = 2, angle = 0.2, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
+b2: sbend, l = 2, angle = 0.0, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
+b3: sbend, l = 2, angle = 0.2, roll = 0.1, ref_tilt =  0, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
+b4: sbend, l = 2, angle = 0.0, roll = 0.1, ref_tilt =  0, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
 
-p_line: line = (d, b, p1, --d, --b)
-p2_line: line = (b2)
+p_line: line = (q, b1, b2, b3, b4, p, --q, --b1, --b2, --b3, --b4)
 
-use, p_line, p2_line
+!
+
+dz: drift, l = 1
+p1z: patch, z_offset = 1, x_pitch = pi
+
+bz: sbend, l = 1, angle = 1, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2
+b2z: sbend, l = 1, g = 0.1
+
+z_line: line = (dz, bz, p1z, --dz, --bz)
+
+
+use, p_line, z_line
