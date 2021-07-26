@@ -355,7 +355,7 @@ do section_id = 1, size(wall3d%section)
   dummy_orb%vec = [section%r0(1) + r_wall*cos(angle), 0.0_rp, section%r0(2) + r_wall*sin(angle), 0.0_rp, s_rel, 0.0_rp]
   dummy_orb%ix_ele = ele%ix_ele
   if (logic_option(.true., in_global_frame)) then
-    dummy_orb = particle_in_global_frame(dummy_orb, branch, in_time_coordinates = .true., in_ele_frame = .false.)
+    dummy_orb = particle_in_global_frame(dummy_orb, branch, in_time_coordinates = .true., in_body_frame = .false.)
   endif
 
   ! Array control
