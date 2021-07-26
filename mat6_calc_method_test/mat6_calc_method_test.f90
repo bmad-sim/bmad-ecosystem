@@ -174,15 +174,26 @@ case ('"E_GUN1:Tracking:MatrixRow6"')              ; tolerance = 'ABS 6e-08'
 case ('"E_GUN1:Tracking:Symp_Err"')                ; tolerance = 'ABS 4e-07'
 case ('"E_GUN1:Tracking:Vector"')                  ; tolerance = 'ABS 6e-10'
 
-case ('"ECOLLIMATOR1:Tracking:MatrixRow5"')       ; tolerance = 'ABS 5e-11'
+case ('"ECOLLIMATOR1:Tracking:MatrixRow5"')        ; tolerance = 'ABS 5e-11'
 
-case ('"ELSEPARATOR1:Tracking:MatrixRow5"')       ; tolerance = 'ABS 2e-10'
-case ('"ELSEPARATOR2:Tracking:MatrixRow5"')       ; tolerance = 'ABS 1e-10'
-case ('"ELSEPARATOR2:Tracking:Symp_Err"')         ; tolerance = 'ABS 5e-11'
+case ('"ELSEPARATOR1:Tracking:MatrixRow5"')        ; tolerance = 'ABS 2e-10'
+case ('"ELSEPARATOR2:Tracking:MatrixRow5"')        ; tolerance = 'ABS 1e-10'
+case ('"ELSEPARATOR2:Tracking:Symp_Err"')          ; tolerance = 'ABS 5e-11'
 
 
-case ('"WIGGLER_MAP1:Tracking:MatrixRow6"')       ; tolerance = 'ABS 2e-11'
-case ('"WIGGLER_MAP1:Tracking:Symp_Err"')         ; tolerance = 'ABS 2e-11'
+case ('"WIGGLER_MAP1:Tracking:MatrixRow6"')        ; tolerance = 'ABS 2e-11'
+case ('"WIGGLER_MAP1:Tracking:Symp_Err"')          ; tolerance = 'ABS 2e-11'
+
+case ('"LCAVITY1:Tracking:Symp_Err"')              ; tolerance = 'ABS 1e-10'
+case ('"LCAVITY2:Tracking:MatrixRow5"')            ; tolerance = 'ABS 1e-10'
+case ('"LCAVITY3:Tracking:MatrixRow5"')            ; tolerance = 'ABS 2e-10'
+case ('"LCAVITY3:Tracking:MatrixRow6"')            ; tolerance = 'ABS 1e-10'
+case ('"LCAVITY3:Tracking:Symp_Err"')              ; tolerance = 'ABS 1e-10'
+
+case ('"LCAVITY1_ABS_TIME:Tracking:Symp_Err"')     ; tolerance = 'ABS 1e-10'
+case ('"LCAVITY2_ABS_TIME:Tracking:MatrixRow5"')   ; tolerance = 'ABS 1e-10'
+case ('"LCAVITY3_ABS_TIME:Tracking:MatrixRow5"')   ; tolerance = 'ABS 2e-10'
+case ('"LCAVITY3_ABS_TIME:Tracking:Symp_Err"')     ; tolerance = 'ABS 1e-9'
 
 case ('"PATCH1:Tracking:MatrixRow5"')              ; tolerance = 'ABS 3e-11'
 case ('"PATCH1:Tracking:Symp_Err"')                ; tolerance = 'ABS 4e-11'
