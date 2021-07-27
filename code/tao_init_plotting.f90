@@ -2668,21 +2668,46 @@ if (all(s%plot_page%template%name /= 'ping_phase')) then
 endif
 
 !---------------
+! px_py
+
+if (all(s%plot_page%template%name /= 'px_py')) then
+  call default_plot_init (np, plt, default_plot_g1c2)
+  plt%name                 = 'px_py'
+  plt%description          = 'Particle px and py phase space coordinates'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Particle px, py Phase Space Coords'
+  grph%y%label       = 'px, py'
+
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'orbit.px'
+  crv%legend_text         = 'px'
+
+  crv => grph%curve(2)
+  crv%g => grph
+  crv%data_type     = 'orbit.py'
+  crv%legend_text         = 'py'
+endif
+
+!---------------
 ! pz
 
 if (all(s%plot_page%template%name /= 'pz')) then
   call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'pz'
-  plt%description          = 'Particle Pz momentum deviation'
+  plt%description          = 'Particle pz phase space coordinate'
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%title         = 'Particle Momentum deviation Delta_P / P0'
-  grph%y%label       = 'Pz'
+  grph%title         = 'Particle pz Phase Space Coordinate'
+  grph%y%label       = 'pz'
 
   crv => grph%curve(1)
   crv%g => grph
   crv%data_type     = 'orbit.pz'
+  crv%legend_text         = 'pz'
 endif
 
 !---------------
