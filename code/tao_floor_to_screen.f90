@@ -22,8 +22,7 @@ type (tao_graph_struct) graph
 
 real(rp) r_floor(3), x_screen, y_screen
 real(rp) x, y
-real(rp), save :: t, old_t = 0
-real(rp), save :: cc, ss
+real(rp) t, cc, ss
 
 ! 
 
@@ -50,11 +49,8 @@ if (t == 0) then
   x_screen = x
   y_screen = y
 else
-  if (t /= old_t) then
-    cc = cos(twopi * t)
-    ss = sin(twopi * t)
-    old_t = t
-  endif
+  cc = cos(twopi * t)
+  ss = sin(twopi * t)
   x_screen =  x * cc - y * ss
   y_screen =  x * ss + y * cc 
 endif

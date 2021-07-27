@@ -48,17 +48,7 @@ subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in)
 
 implicit none
 
-type do_loop_struct
-  character(20) :: name ! do loop index name
-  integer index, start, end, step ! for do loops
-  integer n_line_start, n_line_end ! lines in each nested loop
-  integer value
-end type
-
-type (do_loop_struct), allocatable :: loop(:)
-
 integer i, j, ix, ix1, ix2
-integer, save :: lev_loop = 0 ! in loop nest level
 integer ios, n_level
 
 character(*) :: cmd_out
@@ -193,7 +183,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
       ix1 = index(cmd_out, '[[')
       ix2 = index(cmd_out, ']]')
       if (ix1 == 0) exit
-      if (.not. allocated(loop) .or. ix2 < ix1) then
+      if (.not. allocated(s%com%do_loop) .or. ix2 < ix1) then
         call out_io (s_error$, r_name, 'MALFORMED LINE IN COMMAND FILE: ' // cmd_out)
         call tao_abort_command_file()
         cmd_out = ''
@@ -201,9 +191,9 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
       endif
       name = cmd_out(ix1+2:ix2-1)
 
-      do i = 1, size(loop)
-        if (name == loop(i)%name) then
-          cmd_out = cmd_out(1:ix1-1) // int_str(loop(i)%value) // cmd_out(ix2+2:) 
+      do i = 1, size(s%com%do_loop)
+        if (name == s%com%do_loop(i)%name) then
+          cmd_out = cmd_out(1:ix1-1) // int_str(s%com%do_loop(i)%value) // cmd_out(ix2+2:) 
           cycle loop1
         endif
       enddo
@@ -221,7 +211,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     endif
 
     ! Check if in a do loop
-    call do_loop(lev_loop, loop, n_level, cmd_out)
+    call parse_do_loop(s%com%lev_loop, s%com%do_loop, n_level, cmd_out)
   endif
 
   !
@@ -329,13 +319,13 @@ enddo
 
 s%com%saved_cmd_line = ' '
 
-end subroutine
+end subroutine check_for_multi_commands
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine do_loop (lev_loop, loop, n_level, cmd_out)
+subroutine parse_do_loop (lev_loop, loop, n_level, cmd_out)
 
 use tao_command_mod
 
@@ -411,7 +401,7 @@ elseif (cmd_word(1) == 'enddo') then
   ! read next line
 endif
     
-end subroutine do_loop
+end subroutine parse_do_loop
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

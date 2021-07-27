@@ -721,6 +721,13 @@ type tao_command_file_struct
   integer :: n_line = 0             ! Current line number
 end type
 
+type do_loop_struct
+  character(20) :: name ! do loop index name
+  integer index, start, end, step ! for do loops
+  integer n_line_start, n_line_end ! lines in each nested loop
+  integer value
+end type
+
 ! tao_common_struct is for the global parameters that the user should not have direct access to.
 ! Also see tao_global_struct.
 
@@ -733,6 +740,7 @@ type tao_common_struct
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   type (named_number_struct), allocatable :: symbolic_num(:)    ! Named numbers
   type (tao_plot_region_struct), allocatable :: plot_place_buffer(:)  ! Used when %external_plotting is on.
+  type (do_loop_struct), allocatable :: do_loop(:)
   real(rp), allocatable :: covar(:,:), alpha(:,:)
   real(rp) :: dummy_target = 0           ! Dummy varaible
   integer :: ix_ref_taylor = -1, ix_ele_taylor = -1  ! Taylor map end points
@@ -741,6 +749,7 @@ type tao_common_struct
   integer :: ix_key_bank = 0                    ! For single mode.
   integer :: ix_history = 0                     ! present index to command history array
   integer :: n_history = 0                      ! present history index
+  integer :: lev_loop = 0                       ! in do loop nest level
   integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
   logical :: cmd_file_paused = .false.
   logical :: use_cmd_here  = .false.            ! Used for commands recalled from the cmd history stack
