@@ -38,6 +38,8 @@ if (s%initialized) then
   s%com%n_history      = com_saved%n_history
   s%com%cmd_file       = com_saved%cmd_file
   s%com%cmd_file_level = com_saved%cmd_file_level
+  s%com%do_loop        = com_saved%do_loop
+  s%com%lev_loop       = com_saved%lev_loop
 else
   s%com = tao_common0
 endif
