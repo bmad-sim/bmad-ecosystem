@@ -1031,8 +1031,8 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 type (all_pointer_struct), allocatable :: ptr_array(:)
 
-real(rp) normalization, cut, dtime
-real(rp) total_dead_intens, pix_in_file_intens, norm2
+real(rp) normalization, cut, dtime, nrm2
+real(rp) total_dead_intens, pix_in_file_intens
 real(rp) :: intens_tot, intens_tot_x, intens_tot_y, intens_max
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave
 real(rp) phase_x, phase_y, x, y
@@ -1201,7 +1201,6 @@ if (lux_param%det_pix_out_file /= '') then
 
   ! det_pix_out_file.x
 
-  norm2 = normalization / size(detec_grid%pt, 2)
   open (3, file = trim(lux_param%det_pix_out_file) // '.x', recl = 240)
   write (3, '(a)') '#-----------------------------------------------------'
   write (3, '(a)') '#                                                                                                                             |                    Init'
@@ -1224,7 +1223,7 @@ if (lux_param%det_pix_out_file /= '') then
     endif
 
     write (3, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
-                       p%intensity_x * norm2, p%intensity_y * norm2, p%intensity * norm2, &
+                       p%intensity_x * normalization, p%intensity_y * normalization, p%intensity * normalization, &
                        p%n_photon, p%orbit(6), p%orbit_rms(6), p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
                        p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
   enddo
@@ -1232,7 +1231,6 @@ if (lux_param%det_pix_out_file /= '') then
 
   ! det_pix_out_file.y
 
-  norm2 = normalization / size(detec_grid%pt, 1)
   open (3, file = trim(lux_param%det_pix_out_file) // '.y', recl = 240)
   write (3, '(a)') '#-----------------------------------------------------'
   write (3, '(a)') '#                                                                                                                             |                    Init'
@@ -1254,7 +1252,7 @@ if (lux_param%det_pix_out_file /= '') then
     endif
 
     write (3, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
-                       p%intensity_x * norm2, p%intensity_y * norm2, p%intensity * norm2, &
+                       p%intensity_x * normalization, p%intensity_y * normalization, p%intensity * normalization, &
                        p%n_photon, p%orbit(6), p%orbit_rms(6), p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
                        p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
   enddo
@@ -1264,7 +1262,7 @@ if (lux_param%det_pix_out_file /= '') then
   ! det_pix_out_file.histogram
 
   if (lux_param%histogram_variable /= '') then
-    norm2 = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * lux_param%histogram_bin_width)
+    nrm2 = normalization / lux_param%histogram_bin_width
     open (3, file = trim(lux_param%det_pix_out_file) // '.histogram', recl = 240)
     write (3, '(a)')  '#-----------------------------------------------------'
     write (3, '(a, t130, a)')  '#', '|                    Init'
@@ -1285,8 +1283,8 @@ if (lux_param%det_pix_out_file /= '') then
         p%init_orbit_rms(n) = sqrt(max(0.0_rp, p%init_orbit_rms(n) - p%init_orbit(n)**2))
       enddo
 
-      write (3, '(i6, es14.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j * lux_param%histogram_bin_width, p%intensity_x * norm2, &
-                         p%intensity_y * norm2, p%intensity * norm2, p%n_photon, p%orbit(6), p%orbit_rms(6), &
+      write (3, '(i6, es14.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j * lux_param%histogram_bin_width, p%intensity_x * nrm2, &
+                         p%intensity_y * nrm2, p%intensity * nrm2, p%n_photon, p%orbit(6), p%orbit_rms(6), &
                          p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
                          p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
     enddo
