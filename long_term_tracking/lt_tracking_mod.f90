@@ -415,6 +415,7 @@ subroutine ltt_print_inital_info (lttp, ltt_com)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
+type (branch_struct), pointer :: branch
 integer i, nm, iu
 
 ! Print some info.
@@ -464,6 +465,8 @@ call ltt_write_master('ltt%random_seed:                    ' // int_str(lttp%ran
 if (lttp%random_seed == 0) then
   call ltt_write_master('random_seed_actual                  ' // int_str(ltt_com%random_seed_actual), iu = iu)
 endif
+branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
+call ltt_write_master('RF on (M65 /= 0 ?):                 ' // logic_str(rf_is_on(branch)))
 call ltt_write_master('--------------------------------------', iu = iu)
 
 close(iu)
@@ -1325,6 +1328,7 @@ write (iu,  '(a, l1)')   '# Radiation_Damping_on           = ', bmad_com%radiati
 write (iu,  '(a, l1)')   '# Radiation_Fluctuations_on      = ', bmad_com%radiation_fluctuations_on
 write (iu,  '(a, l1)')   '# Spin_tracking_on               = ', bmad_com%spin_tracking_on
 write (iu,  '(a, l1)')   '# sr_wakes_on                    = ', bmad_com%sr_wakes_on
+write (iu,  '(a, l1)')   '# RF_is_on                       = ', rf_is_on(ltt_com%tracking_lat%branch(ltt_com%ix_branch))
 if (bmad_com%sr_wakes_on) then
   write (iu, '(a, i0)')  '# Number_of_wake_elements        = ', size(ltt_com%ix_wake_ele)
 endif
