@@ -466,7 +466,7 @@ if (lttp%random_seed == 0) then
   call ltt_write_master('random_seed_actual                  ' // int_str(ltt_com%random_seed_actual), iu = iu)
 endif
 branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
-call ltt_write_master('RF on (M65 /= 0 ?):                 ' // logic_str(rf_is_on(branch)))
+call ltt_write_master('RF on (M65 /= 0 ?):                 ' // logic_str(rf_is_on(branch)), iu = iu)
 call ltt_write_master('--------------------------------------', iu = iu)
 
 close(iu)
