@@ -349,7 +349,7 @@ else
     endif
 
     if (size(t2%term) == 0) then
-      nl=nl+1; write (li(nl), '(a, 6x, a)') out_str, 'No Terms.'
+      nl=nl+1; write (li(nl), '(a, 6x, a)') out_str, 'No Terms. Always evaluates to zero.'
 
     else
       nullify (tlr%term)

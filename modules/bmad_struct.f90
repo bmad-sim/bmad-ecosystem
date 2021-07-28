@@ -1330,9 +1330,9 @@ end type
 
 ! Resonance Driving (RD) term
 
-type :: h_struct
-  character(8) :: c = ''
-  complex(rp) :: c_val = 0
+type resonance_h_struct
+  character(6) :: id = ''   ! 6 digit ID. EG: '003100'
+  complex(rp) :: c_val = 0  ! Resonance value
 end type
 
 ! Normal form components using Bmad structures and PTC structures.
@@ -1348,7 +1348,7 @@ type bmad_normal_form_struct
   type (taylor_struct) :: dhdj(6) = taylor_struct()               ! Nonlinear tune function operating on Floquet coordinates
   type (complex_taylor_struct) :: F(6) = complex_taylor_struct()  ! Vector field factorization in phasor basis:
   type (complex_taylor_struct) :: L(6) = complex_taylor_struct()  ! L component
-  type(h_struct), allocatable :: h(:)
+  type (resonance_h_struct), allocatable :: h(:)
 end type
 
 type ptc_normal_form_struct

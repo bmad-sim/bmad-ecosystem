@@ -1259,9 +1259,9 @@ a2 = (a_step1.sub.1)**(-1)*a_step1
 F=log(a2) ! c_vector_field <- c_damap
 vb = getpb(F)*c_phasor()
 
-do i=1, size(normal_form%h(:))
-  if(normal_form%h(i)%c /= '') then
-    normal_form%h(i)%c_val = vb .par. normal_form%h(i)%c(1:6)
+do i = 1, size(normal_form%h(:))
+  if (normal_form%h(i)%id /= '') then
+    normal_form%h(i)%c_val = vb .par. normal_form%h(i)%id
   endif
 enddo
 
