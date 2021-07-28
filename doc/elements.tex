@@ -1161,11 +1161,12 @@ Attributes specific to a \vn{crystal} element are:
   ref_orbit_follows  = <which_beam> ! Reference orbit aligned with what outgoing beam?
   graze_angle_in     = <Real>       ! Angle between incoming ref orbit and surface.
   graze_angle_out    = <Real>       ! Angle between outgoing ref orbit and surface.
+\end{example}
+
 %  is_mosaic          = <Logical>    ! Is a mosaic crystal? Default = False
 %  mosaic_thickness   = <Real>       ! Mosaic element thickness
 %  mosaic_angle_rms_in_plane  = <Real> ! In-plane mosaic angular half-width.
 %  mosaic_angle_rms_out_plane = <Real> ! Out-of-plane angular half-width. 
-\end{example}
 
 \index{bragg_angle_in}\index{bragg_angle_out}\index{alpha_angle}
 \index{tilt_corr}\index{d_spacing}\index{v_unitcell}\index{l}
@@ -4578,26 +4579,25 @@ is equivalent to the term
   S_x = 0.43 \cdot \delta x(\In) \, \delta y(\In)
 \end{equation}
 
-By default, a \vn{taylor} element starts out with the unit phase space map but no default
-is defined for the spin part of the map.  That is, a \vn{taylor} element starts with the
-following 6 terms
+By default, a \vn{taylor} element starts out with the unit phase space map.  That is, a \vn{taylor}
+element starts with the following 6 terms
 \begin{example}
-  \{1: 1.0, 1 0 0 0 0 0\}
-  \{2: 1.0, 0 1 0 0 0 0\}
-  \{3: 1.0, 0 0 1 0 0 0\}
-  \{4: 1.0, 0 0 0 1 0 0\}
-  \{5: 1.0, 0 0 0 0 1 0\}
-  \{6: 1.0, 0 0 0 0 0 1\}
+  \{1: 1.0, 1 0 0 0 0 0\}, \{2: 1.0, 0 1 0 0 0 0\},
+  \{3: 1.0, 0 0 1 0 0 0\}, \{4: 1.0, 0 0 0 1 0 0\}
+  \{5: 1.0, 0 0 0 0 1 0\}, \{6: 1.0, 0 0 0 0 0 1\}
 \end{example}
 Which is equivalent to
 \begin{example}
-  \{1: 1.0 | 1\}
-  \{2: 1.0 | 2\}
-  \{3: 1.0 | 3\}
-  \{4: 1.0 | 4\}
-  \{5: 1.0 | 5\}
-  \{6: 1.0 | 6\}
+  \{1: 1.0 | 1\}, \{2: 1.0 | 2\}, \{3: 1.0 | 3\}
+  \{4: 1.0 | 4\}, \{5: 1.0 | 5\}, \{6: 1.0 | 6\}
 \end{example}
+
+If there are no \vn{Sx} spin terms are present, the \vn{Sx} quaternion component will always
+evaluate to zero.  This is equivalent to a single term \{Sx: 0.0 |\}.  Similarly for the \vn{Sy} and
+\vn{Sz} components. If no \vn{S1} term is present, it is considered an error if any \vn{Sx},
+\vn{Sy}, or \vn{Sz} term is present. If no \vn{S1}, \vn{Sx}, \vn{Sy}, nor \vn{Sz} spin terms are
+present, \vn{S1} component will be given a default term of \{S1: 1.0 |\}. Thus, if no spin terms are
+present at all, the spin map will be the unit map.
 
 The \vn{ref_orbit} attribute specifies the phase space $(x, px, y, py, z, pz)$ reference
 orbit at the start of the element used to construct the Taylor map. Alternatively, the
