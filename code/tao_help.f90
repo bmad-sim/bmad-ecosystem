@@ -145,7 +145,7 @@ do
   if (line(1:10) == '\centering')  cycle
   if (line(1:8)  == '\caption')    cycle
   if (line(1:6)  == '\vskip')      cycle
-  if (index(line, '\index{') /= 0)  cycle
+  if (index(line, '\index{') /= 0) cycle
 
   if (left_over_eliminate /= '') then
     ix = index(line, trim(left_over_eliminate))
@@ -247,7 +247,7 @@ else
   call out_io (s_blank$, r_name, line)
 endif
 
-end subroutine
+end subroutine this_line_out
 
 !-----------------------------------------------------------------------------
 ! contains
@@ -270,7 +270,7 @@ if (ios /= 0) then
   ok = .false.
 endif
 
-end function
+end function read_this_line
 
 !-----------------------------------------------------------------------------
 ! contains
@@ -300,8 +300,7 @@ do
   endif
 enddo
 
-end subroutine
-
+end subroutine substitute
 
 !-----------------------------------------------------------------------------
 ! contains
@@ -366,7 +365,7 @@ main: do
 
 enddo main
 
-end subroutine
+end subroutine eliminate2
 
 !-----------------------------------------------------------------------------
 ! contains
@@ -401,6 +400,6 @@ do
   endif
 enddo
 
-end subroutine
+end subroutine eliminate_inbetween
 
 end subroutine tao_help

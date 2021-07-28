@@ -1953,7 +1953,7 @@ case ('normal.')
     valid_value = .true.
     term_found = .false.
     do i=1, size(bmad_nf%h)
-      if(sub_data_type(3:10) == bmad_nf%h(i)%c) then
+      if(sub_data_type(3:8) == bmad_nf%h(i)%id) then
         temp_cplx = bmad_nf%h(i)%c_val
         term_found = .true.
       endif

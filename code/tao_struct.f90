@@ -913,6 +913,7 @@ type tao_lattice_branch_struct
   type (normal_modes_struct) modes             ! Synchrotron integrals stuff
   type (tao_lat_mode_struct) a, b
   integer ix_rad_int_cache                     ! Radiation integrals cache index.
+  integer :: n_hterms = 0                      ! Number of distinct res driving terms to evaluate.
   type (normal_modes_struct) modes_rf_on       ! Synchrotron integrals stuff
   type (ptc_normal_form_struct) ptc_normal_form
   type (bmad_normal_form_struct) bmad_normal_form
