@@ -38,7 +38,7 @@ type (lat_struct), pointer :: lat
 real(rp) default_weight, def_weight        ! default merit function weight
 
 integer ios, iu, i, j, j1, k, ix, n_uni, num
-integer n, iostat, n_loc, n_hterms, n_nml
+integer n, iostat, n_loc, n_nml
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
 integer :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
@@ -50,9 +50,8 @@ character(40) name,  universe, d_typ, use_same_lat_eles_as
 character(40) default_merit_type, default_data_source, def_merit_type, def_data_source
 character(200) search_for_lat_eles
 character(200) line, default_data_type, def_data_type
-character(8), allocatable :: h_strings(:)
 
-logical err, free, gang
+logical err, free, gang, found
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
 logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
@@ -70,6 +69,7 @@ do i = lbound(s%u, 1), ubound(s%u,1)
   lat => s%u(i)%model%lat
   do j = 0, ubound(lat%branch, 1)
     n = max(n, lat%branch(j)%n_ele_max+10)
+    s%u(i)%model%tao_branch(j)%n_hterms = 0
   enddo
 enddo
 
@@ -143,10 +143,6 @@ rewind (iu)
 do i = lbound(s%u, 1), ubound(s%u, 1)
   call tao_init_data_in_universe (s%u(i), n_d2_data(i))
 enddo
-
-! Init data
-
-n_hterms = 0
 
 !--------------------------------------------
 ! Now fill in the data.
@@ -274,9 +270,6 @@ enddo  ! d2_data loop
 
 close (iu)
 
-allocate(s%u(1)%model%tao_branch(0)%bmad_normal_form%h(n_hterms))
-s%u(1)%model%tao_branch(0)%bmad_normal_form%h(:)%c = h_strings(1:n_hterms)
-
 ! Custom data setup?
 
 call tao_hook_init_data()
@@ -300,13 +293,16 @@ type (tao_d1_data_array_struct), allocatable :: d1_array(:)
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (tao_data_struct), pointer :: dat
-
+type (resonance_h_struct), allocatable :: h_temp(:)
+type (bmad_normal_form_struct), pointer :: norm_form
 real(rp), allocatable :: s(:)
 
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2, i_d1, has_associated_ele
 integer, allocatable :: ind(:)
+integer, pointer :: n_ht
 
 character(20) fmt
+character(6) h_str
 
 !
 
@@ -561,20 +557,37 @@ do j = n1, n2
     stop
   endif
 
-  !
+  ! Expressions may contain multiple norml.h terms
 
   u%calc%srdt_for_data = max(u%calc%srdt_for_data, tao_srdt_calc_needed(dat%data_type, dat%data_source))
 
-  if (substr(dat%data_type, 1, 9) == 'normal.h.') then
-    if(dat%data_source == 'lat') then
-      if (dat%ix_branch /= 0 .or. dat%d1%d2%ix_universe /= 1) then
-        call out_io (s_error$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')        
-      endif
-      n_hterms = n_hterms + 1
-      call re_allocate(h_strings, 2*n_hterms, .false.)
-      h_strings(n_hterms) = substr(dat%data_type, 10, 17)
+  ix = 1
+  do
+    k = index(dat%data_type(ix:), 'normal.h.') 
+    if (k == 0) exit
+    
+    if (dat%ix_branch /= 0) then
+      call out_io (s_error$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')        
     endif
-  endif
+
+    norm_form => u%model%tao_branch(dat%ix_branch)%bmad_normal_form
+    n_ht => u%model%tao_branch(dat%ix_branch)%n_hterms
+
+    h_str = substr(dat%data_type, ix+k+8, ix+k+13)
+    found = .false.
+    if (allocated(norm_form%h)) found = any(h_str == norm_form%h(1:n_ht)%id)
+
+    if (.not. found) then
+      n_ht = n_ht + 1
+      call move_alloc (norm_form%h, h_temp)
+      allocate (norm_form%h(n_ht))
+      if (n_ht > 1) norm_form%h(1:n_ht-1) = h_temp
+      norm_form%h(n_ht)%id = h_str
+    endif
+
+    if (len(dat%data_type) < ix + 20) exit
+    ix = ix + k + 14
+  enddo
 
   if (tao_rad_int_calc_needed(dat%data_type, dat%data_source)) then
     u%calc%rad_int_for_data = .true. 

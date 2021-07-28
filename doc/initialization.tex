@@ -2249,23 +2249,25 @@ For example:
   /
 \end{example}
 
+Graph related parameters of the \vn{tao_template_graph} namelist are:
 \begin{description}
 %
 \item[\vn{graph_index}] \Newline
-The graph index. The first \vn{tao_template_graph} namelist after the associated
-\vn{tao_template_plot} must have the \vn{graph_index} component set to \vn{1}. The next must have
-\vn{graph_index} set to \vn{2}, etc. \tao uses the \vn{graph_index} component to check for errors.
+The first \vn{tao_template_graph} namelist after the associated \vn{tao_template_plot} namelist must
+have the \vn{graph_index} component set to \vn{1}. The next must have \vn{graph_index} set to
+\vn{2}, etc. \tao uses the \vn{graph_index} component to check for errors.
 %
 \item[\vn{graph\%allow_wrap_around}] \Newline
-The \vn{graph%allow_wrap_around} parameter sets if, for a lattice with closed geometry, the curves
-contained in the graph are ``wrapped'' around the end of the lattice if \vn{graph%x%min} is
-negative. The default is \vn{True}. This only applies if \vn{plot%x_axis_type} is set to \vn{"s"}.
+If \vn{plot%x_axis_type} is set to \vn{"s"}, and if the plotted data is from a lattice branch with a
+closed geometry, and if \vn{graph%x%min} is negative, then the \vn{graph%allow_wrap_around}
+parameter sets if the curves contained in the graph are ``wrapped around'' the beginning of the
+lattice so that the curves are not cut off at $s = 0$. The default is \vn{True}.
 %
 \item[\vn{graph\%box}] \Newline
-The \vn{graph%box} parameter sets the layout of the box which the \vn{graph} is placed in. For a
-definition of what a box is see the QuickPlot documentation (\sref{s:quick.plot}). In the above
-example the graph divides the region into two vertically stacked boxes and places itself into the
-bottom one.
+The \vn{graph%box} parameter sets the layout of the box which the \vn{graph} is placed in
+\sref{s:box.def}. In the above example, the graph divides the \vn{region} the plot is placed in into
+two vertically stacked rectangles and the graph will be placed into the bottom one. The default
+is \vn{1,1,1,1} which scales a graph cover the entire \vn{region} the plot is placed in.
 %
 \item[\vn{graph\%clip}] \Newline
 Clip the graph curves at the graph top and bottom boundaries? Default is \vn{True}.
