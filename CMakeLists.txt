@@ -12,7 +12,6 @@ SET (INC_DIRS
 
 SET (SRC_DIRS
   file 
-  code
   interfaces 
   io 
   math 
