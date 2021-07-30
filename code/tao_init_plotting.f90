@@ -2867,12 +2867,12 @@ plt%name = 'scratch'
 ! Regions
 
 if (.not. allocated(s%plot_page%region)) then
-  allocate (s%plot_page%region(120))
+  allocate (s%plot_page%region(130))
   nr = 0
 else
   nr = size(s%plot_page%region)
   call move_alloc (s%plot_page%region, temp_region)
-  allocate (s%plot_page%region(nr + 120))
+  allocate (s%plot_page%region(nr + 130))
   s%plot_page%region(1:nr) = temp_region
   deallocate(temp_region)
 endif
