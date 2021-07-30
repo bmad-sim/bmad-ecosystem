@@ -206,8 +206,9 @@ n = count(region%name /= '')
 allocate (s%plot_page%region(n))
 
 do i = 1, n
-  s%plot_page%region(i)%name     = region(i)%name
-  s%plot_page%region(i)%location = region(i)%location
+  s%plot_page%region(i)%name      = region(i)%name
+  s%plot_page%region(i)%location  = region(i)%location
+  s%plot_page%region(i)%plot%name = ''
 enddo
 
 !------------------------------------------------------------------------------------

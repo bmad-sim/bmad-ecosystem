@@ -289,7 +289,7 @@ end type
 
 
 type tao_plot_struct
-  character(40) :: name = ' '                      ! Identifying name. Rule: If name is blank, plot is not valid.
+  character(40) :: name = ''                       ! Identifying name. Rule: If name is blank, plot is not valid.
   character(100) :: description = ''               ! Descriptive string.
   type (tao_graph_struct), allocatable :: graph(:) ! individual graphs of a plot
   type (qp_axis_struct) :: x = qp_axis_struct()    ! X-axis parameters.
@@ -313,12 +313,12 @@ end type
 ! Eg: %location = (0.0, 1.0, 0.5, 1.0) gives the top half of the page inside the border.
 
 type tao_plot_region_struct
-  character(40) :: name = ''       ! Region name. Eg: 'r13', etc.
-  type (tao_plot_struct) plot      ! Plot associated with this region
-  real(rp) location(4)             ! [x1, x2, y1, y2] location on page.
-  logical :: visible = .false.     ! To draw or not to draw.
-  logical :: list_with_show_plot_command = .true.  ! False used for default plots to shorten the output of "show plot"
-  logical :: setup_done = .false.  ! Used for plot bookkeeping.
+  character(40) :: name = ''                         ! Region name. Eg: 'r13', etc.
+  type (tao_plot_struct) :: plot                     ! Plot associated with this region
+  real(rp) :: location(4) = 0                        ! [x1, x2, y1, y2] location on page.
+  logical :: visible = .false.                       ! To draw or not to draw.
+  logical :: list_with_show_plot_command = .true.    ! False used for default plots to shorten the output of "show plot"
+  logical :: setup_done = .false.                    ! Used for plot bookkeeping.
 end type
 
 ! The tao_plot_page_struct defines the whole plotting window. 
