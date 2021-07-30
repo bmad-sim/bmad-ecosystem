@@ -48,6 +48,7 @@ call re_allocate2 (picked, lbound(s%u, 1), ubound(s%u, 1))
 call re_allocate2 (p, -1, ubound(s%u, 1))
 
 err = .false.
+name_out = name_in
 picked = .false.
 p = .false.
 if (present(ix_uni)) ix_uni = -1
@@ -68,7 +69,6 @@ if (ix == 0 .or. (ic /= 0 .and. ix > ic)) then
   endif
 
   picked (iu_dflt) = .true.
-  name_out = name_in
   if (present(ix_uni)) ix_uni = iu_dflt
   return
 endif
@@ -76,7 +76,7 @@ endif
 ! Here when "@" is found...
 
 uni = name_in(:ix-1)
-name_out = name_in(ix+1:)
+name_out = name_out(ix+1:)
 
 ! Strip off '[' and ']'
 

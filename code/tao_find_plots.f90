@@ -177,7 +177,6 @@ else
         endif
       endif
 
-      print *, i
       call point_to_plot(region%plot, p, np)
     enddo
   endif
