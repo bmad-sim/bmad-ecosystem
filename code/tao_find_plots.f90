@@ -165,18 +165,20 @@ else
 
   if (where_str == 'REGION' .or. where_str == 'BOTH') then
     do i = 1, size(s%plot_page%region)
-      if (only_vis .and. .not. s%plot_page%region(i)%visible) cycle
-      if (s%plot_page%region(i)%plot%name == '') cycle
+      region => s%plot_page%region(i)
+      if (only_vis .and. .not. region%visible) cycle
+      if (region%plot%name == '') cycle
       if (plot_name /= '*') then 
         if (have_exact_match) then
-          if (s%plot_page%region(i)%name /= plot_name .and. s%plot_page%region(i)%plot%name /= plot_name) cycle
+          if (region%name /= plot_name .and. region%plot%name /= plot_name) cycle
         else
-          if (index(s%plot_page%region(i)%name, trim(plot_name)) /= 1 .and. &
-              index(s%plot_page%region(i)%plot%name, trim(plot_name)) /= 1) cycle
+          if (index(region%name, trim(plot_name)) /= 1 .and. &
+              index(region%plot%name, trim(plot_name)) /= 1) cycle
         endif
       endif
 
-      call point_to_plot(s%plot_page%region(i)%plot, p, np)
+      print *, i
+      call point_to_plot(region%plot, p, np)
     enddo
   endif
 
