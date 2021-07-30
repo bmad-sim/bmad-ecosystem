@@ -2477,9 +2477,10 @@ case ('ping_b.')
 
 case ('r.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
+
   i = tao_read_phase_space_index (data_type, 3, .false.)
   j = tao_read_phase_space_index (data_type, 4, .false.)
-  if (i == 0 .or. j == 0) then
+  if (i == 0 .or. j == 0 .or. len_trim(data_type) /= 4) then
     call tao_set_invalid (datum, 'BAD DATA_TYPE = "' // trim(data_type), why_invalid, .true.)
     return
   endif
@@ -5169,6 +5170,7 @@ end subroutine tao_param_value_routine
 function tao_evaluate_datum_at_s (eval_point, s_offset, data_type, tao_lat, ele, ele_ref, valid_value, err_str, bad_datum) result(value)
 
 use twiss_and_track_mod, only: twiss_and_track_at_s
+use transfer_map_mod, only: mat6_from_s_to_s
 
 type (tao_lattice_struct), target :: tao_lat
 type (ele_struct), pointer :: ele, ele_ref
@@ -5179,13 +5181,18 @@ type (coord_struct), pointer :: orbit(:)
 
 real(rp) s_offset, value
 real(rp) s_eval, s_eval_ref
-integer eval_point
+integer eval_point, ix_ref
 logical valid_value, bad_datum, compute_floor, err
 character(*) data_type, err_str
+character(40) d_type
 
 !
 
 valid_value = .false.
+d_type = data_type
+s_eval_ref = 0
+ix_ref = 0
+if (associated(ele_ref)) ix_ref = ele_ref%ix_ele
 
 if (.not. associated(ele)) then
   err_str = 'THERE MUST BE AN ASSOCIATED ELEMENT WHEN S_OFFSET IS NON-ZERO OR EVAL_POINT != END.'
@@ -5209,35 +5216,48 @@ compute_floor = (data_type(1:5) == 'floor')
 branch => pointer_to_branch(ele)
 orbit => tao_lat%tao_branch(ele%ix_branch)%orbit
 
-call twiss_and_track_at_s (branch%lat, s_eval, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
-                                                                    err, compute_floor_coords = compute_floor)
-if (err) then
-  err_str = 'CANNOT TRACK TO OFFSET POSITION.'
-  bad_datum = .false.
-  return
-endif
+!--------------------------------------------
 
-value = tao_param_value_at_s (data_type, ele_at_s, orb_at_s, err)
-if (err) then
-  err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
-  bad_datum = .true.
-  return
-endif
-
-if (associated(ele_ref)) then
-  call twiss_and_track_at_s (branch%lat, s_eval_ref, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
-                                                                    err, compute_floor_coords = compute_floor)
+if (d_type(1:2) == 'r.') then
+  call mat6_from_s_to_s (branch%lat, ele_at_s%mat6, ele_at_s%vec0, s_eval_ref, s_eval, orbit(ix_ref), branch%ix_branch, .true.)
+  value = tao_param_value_at_s (data_type, ele_at_s, orbit(ix_ref), err)
   if (err) then
-    err_str = 'CANNOT TRACK TO REFERENCE POSITION.'
+    err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
+    bad_datum = .true.
+    return
+  endif
+
+else
+  call twiss_and_track_at_s (branch%lat, s_eval, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
+                                                                      err, compute_floor_coords = compute_floor)
+  if (err) then
+    err_str = 'CANNOT TRACK TO OFFSET POSITION.'
     bad_datum = .false.
     return
   endif
 
-  value = value - tao_param_value_at_s (data_type, ele_at_s, orb_at_s, err)
+  value = tao_param_value_at_s (data_type, ele_at_s, orb_at_s, err)
   if (err) then
-    err_str = 'CANNOT EVALUATE DATUM AT REFERENCE POSITION.'
+    err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
     bad_datum = .true.
     return
+  endif
+
+  if (associated(ele_ref)) then
+    call twiss_and_track_at_s (branch%lat, s_eval_ref, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
+                                                                      err, compute_floor_coords = compute_floor)
+    if (err) then
+      err_str = 'CANNOT TRACK TO REFERENCE POSITION.'
+      bad_datum = .false.
+      return
+    endif
+
+    value = value - tao_param_value_at_s (data_type, ele_at_s, orb_at_s, err)
+    if (err) then
+      err_str = 'CANNOT EVALUATE DATUM AT REFERENCE POSITION.'
+      bad_datum = .true.
+      return
+    endif
   endif
 endif
 

@@ -32,26 +32,28 @@ The syntax of the command line for running \tao is:
 \end{example}
 where \vn{EXE-DIRECTORY} is the directory where the tao executable lives. If this directory is
 listed in your \vn{PATH} environmental variable then the directory specification may be omitted.
-The optional arguments are:
+
+The optional arguments, which will always superceed equivalent parameters set in an initialization
+file are:
 \begin{description}
 %
-\item[\vn{-beam_file <file_name>}] \Newline
+\item[-beam_file <file_name>] \Newline
 Sets the name of the file containing the \vn{tao_beam_init} namelist (\sref{s:beam.init}).
 Overrides the setting of \vn{beam_file} (\sref{s:init.global}) specified in the \tao initialization
 file.
 %
-\item[\vn{-beam_track_data_file <file_name>}] \Newline
+\item[-beam_track_data_file <file_name>] \Newline
 Overrides the setting of \vn{beam_track_data_file} (\sref{s:beam.init}) specified in the \vn{tao_beam_init} namelist.
 %
-\item[\vn{-beam_init_position_file <file_name>}] \Newline
+\item[-beam_init_position_file <file_name>] \Newline
 Specifies the file containing initial particle positions.  Overrides the setting of
 \vn{beam_init%position_file} (\sref{s:beam.init}) specified in the \vn{tao_beam_init} namelist.
 %
-\item[\vn{-building_wall_file <file_name>}] \Newline
+\item[-building_wall_file <file_name>] \Newline
 Overrides the \vn{building_wall_file} (\sref{s:init.global}) specified in the \tao initialization
 file.
 %
-\item[\vn{-command <command_list>}] \Newline
+\item[-command <command_list>] \Newline
 List of commands to run at startup. This will be in addition to the commands run by the startup file
 (\sref{s:init.global}). The startup file commands will be run before the commands specified by
 \vn{-command}. Put the \vn{<command_list>} in quotes in order to embed blanks or if semicolons are
@@ -63,31 +65,31 @@ script. Example:
 In this example \tao will print some information on lattice elements 12 through 14 and then quit. The
 output of the \vn{show} command can be captured by a script and processed.
 %
-\item[\vn{-data_file <file_name>}] \Newline
+\item[-data_file <file_name>] \Newline
 Overrides the \vn{data_file} (\sref{s:init.global}) specified in the \tao initialization file.
 %
-\item[\vn{-disable_smooth_line_calc}] \Newline
+\item[-disable_smooth_line_calc] \Newline
 Disable computation of the ``smooth curves'' used in plotting.  This can be used to speed up \tao as
 discussed in \sref{s:plot.data}.
 %
-\item[\vn{-external_plotting}] \Newline
+\item[-external_plotting] \Newline
 This tells \tao that plotting is done externally to \tao. This is done, for example, when using a
 Graphics User Interface (GUI) (\sref{s:gui.plot}).
 %
-\item[\vn{-geometry <width>x<height>}] \Newline
+\item[-geometry <width>x<height>] \Newline
 Overrides the plot window geometry. \vn{<width>} and \vn{<height>} are in Points. This is equivalent
 to setting \vn{plot_page%size} in the \vn{tao_plot_page} namelist \sref{s:init.plot}.
 %
-\item[\vn{-hook_init_file}] \Newline
+\item[-hook_init_file] \Newline
 Specifies an input file for customized versions of Tao. Default file
 name is \vn{tao_hook.init}.
 %
-\item[\vn{-init_file <file_name>}] \Newline
+\item[-init_file <file_name>] \Newline
 Replaces the default \tao initialization file name (\vn{tao.init}). Note: A \tao initialization file
 is actually not needed. If no \tao initialization file is used, the use of the \vn{-lattice_file}
 switch is mandatory and \tao will use a set of default plot templates for plotting.
 %
-\item[\vn{-lattice_file <file_name>}] \Newline
+\item[-lattice_file <file_name>] \Newline
 Overrides the \vn{design_lattice} lattice file specified in the \tao initialization file
 (\sref{s:init.lat}). Example:
 \begin{example}
@@ -99,56 +101,56 @@ lattice names using a "|" character.  Do not put any spaces in between. Example:
   tao -lat slac.bmad|cesr.bmad
 \end{example}
 %
-\item[\vn{-log_startup}]
+\item[-log_startup]
 If there is a problem with starting \tao, \vn{-log_startup} can be used to create a log file of the
 initialization process.
 %
-\item[\vn{-no_stopping}] \Newline
+\item[-no_stopping] \Newline
 For debugging purposes. Prevents \tao from stopping where there is a fatal error.
 %
-\item[\vn{-noinit}] \Newline
+\item[-noinit] \Newline
 Suppresses use of a \tao initialization file. In this case the use of the \vn{-lattice_file} switch
 is mandatory and \tao will use a set of default plot templates for plotting.
 %
-\item[\vn{-noplot}] \Newline
+\item[-noplot] \Newline
 Suppresses the opening of the plot window.
 %
-\item[\vn{-nostartup}] \Newline
+\item[-nostartup] \Newline
 Suppresses the use of a startup file.
 %
-\item[\vn{-no_rad_int}] \Newline
+\item[-no_rad_int] \Newline
 Suppresses the radiation integrals calculation. Radiation integrals are used to calculate such
 things as emittances, etc. Generally the calculation is not a problem but in some special
 circumstances the calculation can take appreciable time.
 %
-\item[\vn{-plot_file <file_name>}] \Newline
+\item[-plot_file <file_name>] \Newline
 Overrides the \vn{plot_file} (\sref{s:init.global}) specified in the \tao initialization file.
 %
-\item[\vn{-prompt_color}] \Newline
+\item[-prompt_color] \Newline
 Sets the prompt string color to Blue. For different colors, use the \vn{set global prompt_color}
 command (\sref{s:set}).
 %
-\item[\vn{-rf_on}]
+\item[-rf_on]
 Leaves \vn{rfcavity} elements on. Normally \tao turns off these elements since Twiss and dispersion
 calculations do not make sense with them on.  Note: If you want to see orbit changes with RF
 frequency changes then you will need to set \vn{parameter[absolute_time_tracking]} to True. See the
 ``Relative Versus Absolute Time Tracking'' section in the\bmad manual for more details.
 %
-\item[\vn{-slice_lattice <element_list>}]
+\item[-slice_lattice <element_list>]
 If present, discard from the lattice all lattice elements that are not in the \vn{<element_list>}.
 Overrides the setting of \vn{design_lattice(i)%slice_lattice}. Note: A \vn{slice_lattice} command
 may also be put directly in the lattice file. See the \bmad manual for more documentation.
 %
-\item[\vn{-start_branch_at <element>}]
+\item[-start_branch_at <element>]
 If present, shift the starting point of a lattice branch while keeping the relative order of the
 elements the same. This is useful, for example, in storage rings. Note A \vn{start_branch_at}
 command may also be put directly in the lattice file. See the \bmad manual for more documentation.
 %
-\item[\vn{-startup_file <file_name>}]
+\item[-startup_file <file_name>]
 Overrides the \vn{startup_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
 %
-\item[\vn{-var_file <file_name>}] \Newline
+\item[-var_file <file_name>] \Newline
 Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
 
@@ -984,14 +986,14 @@ The syntax of the \vn{tao_beam_init} namelist is:
 
 \begin{description}
 %
-\item[\vn{ix_universe}] \Newline
+\item[ix_universe] \Newline
 Beam initialization parameters can be set on a universe-by-universe basis by having multiple
 \vn{tao_beam_init} namelists. The universe that the namelist is applied to is set by the
 \vn{ix_universe} component. If \vn{ix_universe} is not present, or if set to -1, the beam
 initialization parameters will be applied to all universes. Universes where beam initialization
 parameters are not set will not have beams tracked through them.
 %
-\item[\vn{beam_track_data_file}] \Newline
+\item[beam_track_data_file] \Newline
 The \vn{beam_track_data_file} component specifies a beam tracking data file (which can be created
 with the \vn{write beam} command) which contains the particle coordinates of the tracked beam at
 every element where the beam distribution is saved at. This causes \tao to use the data from the
@@ -1000,7 +1002,7 @@ to track a bunch through the lattice becomes long. The file name can be overridd
 \vn{-beam_track_data_file} argument on the command line (\sref{s:command.line}). Note: \tao will set
 the variable \vn{use_saved_beam_in_tracking} to \vn{True} to prevent actual tracking.
 %
-\item[\vn{beam_track_start}, \vn{beam_track_end}] \Newline
+\item[beam_track_start, beam_track_end] \Newline
 \vn{beam_track_start} and \vn{beam_track_end} are used when it is desired to only track the beam
 through part of the root lattice branch. \vn{beam_track_start} gives the starting element name or
 index. Tracking will start at the exit end of this element so the beam {\em will not} be tracked
@@ -1015,7 +1017,7 @@ After initialization, the \vn{set beam_init} (\sref{s:set.beam.init}) command ca
 \vn{beam_track_start} and \vn{beam_track_end}. Note: Deprecated names for \vn{beam_track_start} and
 \vn{beam_track_end} are \vn{track_start} and \vn{track_end} respectively.
 %
-\item[\vn{beam_init}] \Newline
+\item[beam_init] \Newline
 The \vn{beam_init} parameter is an instance of a \vn{beam_init_struct} structure which holds
 parameters (for example, the beam emittances) from which a distribution of particles can be
 constructed. Documentation on this can be found in the \bmad manual in the \vn{Beam Initialization}
@@ -1066,7 +1068,7 @@ reinitialize the beam. For example, in a lattice branch with a closed geometry, 
 magnet strengths will result in Twiss parameters changing everywhere. One trick to keep the initial
 distribution constant here is to change the geometry from closed to open. Another possibility is to
 specify the initial distribution using a beam position initialization file by setting
-\vn[beam_init%position_file}.
+\vn{beam_init%position_file}.
 
 The default is single particle tracking. To turn on particle tracking the \vn{global%track_type}
 parameter must be set to \vn{"beam"}. This can be placed in the \vn{tao_params} namelist above, for
@@ -1929,20 +1931,6 @@ page) and defines the ``regions'' where plots go. The syntax of this block is:
   /
 \end{example}
 
-%-----------------------
-
-\begin{figure}[bt]
-  \centering
-  \includegraphics{plot-page.pdf}
-  \caption[The plot window.]{The plot window has a boarder whose position is determined by 
-the \vn{plot_page\%border} parameter in the tao_plot_page namelist.  Plots are placed
-in ``\vn{regions}'' whose location is determined by the setting of the \vn{region(i)} parameters in
-the same namelist. Regions may overlap.} 
-  \label{f:plot.page}
-\end{figure}
-
-%-----------------------
-
 For example:
 \begin{example}
   &tao_plot_page
@@ -1960,11 +1948,90 @@ For example:
   /
 \end{example}
 
-\vn{plot_page%size} sets the horizontal and vertical size of the plot
+The \vn{plot_page} structure has the following parameters:
+\begin{description}
+%
+\item[plot_page\%axis_number_text_scale] \Newline
+This along with \vn{plot_page%text_height} sets the font size for the plot page title. See
+\vn{plot_page%text_height} for more details.
+%
+\item[plot_page\%axis_label_text_scale] \Newline
+This along with \vn{plot_page%text_height} sets the font size for the plot page title. See
+\vn{plot_page%text_height} for more details.
+%
+\item[plot_page\%border] \Newline
+\vn{plot_page%border} sets a border around the edges of the window. As shown in
+Figure~\ref{f:plot.page} x1$_{\dstyle{b}}$, x2$_{\dstyle{b}}$ (corresponding to \vn{%border%x1} and
+\vn{%border%x2}) are the right and left border widths and y1$_{\dstyle{b}}$ and y2$_{\dstyle{b}}$
+(corresponding to \vn{%border%y1} and \vn{%border%y2}) are the bottom and top border widths
+respectively. The rectangle within this border is called the \vn{plot area}.
+%
+\item[plot_page\%curve_legend_line_len] \Newline
+%
+\item[plot_page\%curve_legend_text_offset] \Newline
+%
+\item[plot_page\%delete_overlapping_plots] \Newline
+When \vn{plot_page%delete_overlapping_plots} is True (the default), Placing a plot (using
+the \vn{place} command \sref{s:place}) causes any existing plots that overlap the
+placed plot to become invisible. 
+%
+\item[plot_page\%draw_graph_title_suffix] \Newline
+The \vn{plot_page%draw_graph_title_suffix} is used to suppress the drawing of the string that
+is printed to the right of a graph title (set by \vn{graph%title}). This string is set by \tao
+and has information on what is being plotted (typically the \vn{curve%component}). To suppress
+the suffix, set \vn{plot_page%draw_graph_title_suffix} to False.
+%
+\item[plot_page\%floor_plan_shape_scale] \Newline
+%
+\item[plot_page\%graph_title_text_scale] \Newline
+This along with \vn{plot_page%text_height} sets the font size for the plot page title. See
+\vn{plot_page%text_height} for more details.
+%
+\item[plot_page\%key_table_text_scale] \Newline
+This along with \vn{plot_page%text_height} sets the font size for the plot page title. See
+\vn{plot_page%text_height} for more details.
+%
+\item[plot_page\%lat_layout_shape_scale] \Newline
+%
+\item[plot_page\%legend_text_scale] \Newline
+This along with \vn{plot_page%text_height} sets the font size for the plot page title. See
+\vn{plot_page%text_height} for more details.
+%
+\item[plot_page\%main_title_text_scale] \Newline
+This along with \vn{plot_page%text_height} sets the font size for the plot page title. See
+\vn{plot_page%text_height} for more details.
+%
+\item[plot_page\%n_curve_pts] \Newline
+The \vn{plot_page%n_curve_pts} parameter sets the default number of points to use for drawing
+``smooth'' curves. The default is 401. This default may be overridden for individual plots by
+setting the \vn{plot%n_curve_pts} component of a plot (\sref{s:template}). If \vn{plot%n_curve_pts}
+is set for an individual plot, that value overrides the value of
+\vn{plot_page%n_curve_pts}. Warning: \tao will cache intermediate calculations used to compute a
+smooth curve to use in the computation of other smooth curves. \tao will only do this for curves
+that have \vn{plot_page%n_curve_pts} number of points. Depending upon the circumstances, setting
+\vn{plot%n_curve_pts} for individual plots may slow down plotting calculations significantly.
+%
+\item[plot_page\%plot_display_type] \Newline
+The \vn{plot_page%plot_display_type} component sets the type of plot display
+window used. possibilities are:
+\begin{example}
+  "X"      X11 window
+  "TK"     tk window
+  "QT"     Available only when using PLPLOT (and not the default PGPLOT)
+\end{example}
+Note: The environmental variable \vn{ACC_PLOT_DISPLAY_TYPE} sets the default display
+type. You can set this variable in your login file to avoid having to setup a \tao
+init file to set this.
+%
+\item[plot_page\%size] \Newline
+The \vn{plot_page%size} parameter sets the horizontal and vertical size of the plot
 window in \vn{points} units (72 points = 1 inch. Roughly 1 point = 1
 pixel). 
-
-\vn{plot_page%text_height} sets the overall height of the text that is
+%
+\item[plot_page\%subtitle] \Newline
+%
+\item[plot_page\%text_height] \Newline
+The \vn{plot_page%text_height} parameter sets the overall height of the text that is
 drawn. Relative to this, various parameters can be used to scale
 individual types of text:
 \begin{example}
@@ -1976,57 +2043,27 @@ individual types of text:
   plot_page%legend_text_scale      = 0.9 ! Lat Layout or floor plan text.
 \end{example}
 The default values for these scales are given above.
-
-The \vn{plot_page%plot_display_type} component sets the type of plot display
-window used. possibilities are:
-\begin{example}
-  "X"      X11 window
-  "TK"     tk window
-  "QT"     Available only when using PLPLOT (and not the default PGPLOT)
-\end{example}
-Note: The environmental variable \vn{ACC_PLOT_DISPLAY_TYPE} sets the default display
-type. You can set this variable in your login file to avoid having to setup a \tao
-init file to set this.
-
-\vn{plot_page%border} sets a border around the edges of the window. As shown in
-Figure~\ref{f:plot.page} x1$_{\dstyle{b}}$, x2$_{\dstyle{b}}$ (corresponding to \vn{%border%x1} and
-\vn{%border%x2}) are the right and left border widths and y1$_{\dstyle{b}}$ and y2$_{\dstyle{b}}$
-(corresponding to \vn{%border%y1} and \vn{%border%y2}) are the bottom and top border widths
-respectively.  The rectangle within this border is called the plot area.
-
+%
+\item[plot_page\%title] \Newline
 \vn{plot_page%title} set the page title and \vn{page%subtitle} set the subtitle.
+%
+\end{description}
+
+Other parameters set in the \vn{tao_plot_page} 
 
 The plot area is divided up into rectangular regions where plots may be placed (what defines a plot
 is discussed below).  \vn{region(i)} in the \vn{tao_plot_page} namelist is an array of five elements
 that defines the i\Th region. The first element of this array is the name of the region. This name
-may not contain a dot ``.''.  The last four elements of the \vn{retion(i)} array, x1$_{\dstyle{r}}$,
-x2$_{\dstyle{r}}$, y1$_{\dstyle{r}}$ and y2$_{\dstyle{r}}$ define the location of the region as
-illustrated in Figure~\ref{f:plot.page}.  x1$_{\dstyle{r}}$ and x2$_{\dstyle{r}}$ are normalized to
-the width of the plot area and y1$_{\dstyle{r}}$ and y2$_{\dstyle{r}}$ are normalized to the height
-of the plot area. That is, these four number should be in the range $[0, 1]$.  Regions may overlap
-any one can define as many regions as one likes.
+may not contain a dot ``.''.  The last four elements of the \vn{retion(i)} array correspond to
+\vn{x1}, \vn{x2}, \vn{y1}, and \vn{y2} as discussed in \Sref{s:region.def}. There is no upper limit
+to the number of regions that can be defined.
 
 Besides the regions that the user sets up in the \vn{tao_plot_page} namelist, \tao defines a number
 of default regions whose names begin with the letter ``\vn{r}''. Use the \vn{show plot} command
 (\sref{s:plot}) to view a list of these plots.
 
-When \vn{plot_page%delete_overlapping_plots} is True (the default), Placing a plot (using
-the \vn{place} command \sref{s:place}) causes any existing plots that overlap the
-placed plot to become invisible. 
 
-The \vn{plot_page%draw_graph_title_suffix} is used to suppress the drawing of the string that
-is printed to the right of a graph title (set by \vn{graph%title}). This string is set by \tao
-and has information on what is being plotted (typically the \vn{curve%component}). To suppress
-the suffix, set \vn{plot_page%draw_graph_title_suffix} to False.
 
-The \vn{plot_page%n_curve_pts} parameter sets the default number of points to use for drawing
-``smooth'' curves. The default is 401. This default may be overridden for individual plots by
-setting the \vn{plot%n_curve_pts} component of a plot (\sref{s:template}). If \vn{plot%n_curve_pts}
-is set for an individual plot, that value overrides the value of
-\vn{plot_page%n_curve_pts}. Warning: \tao will cache intermediate calculations used to compute a
-smooth curve to use in the computation of other smooth curves. \tao will only do this for curves
-that have \vn{plot_page%n_curve_pts} number of points. Depending upon the circumstances, setting
-\vn{plot%n_curve_pts} for individual plots may slow down plotting calculations significantly.
 
 The \vn{place(i)} commands, $i = 1,2,3,\ldots$ determine the initial placement of plots. The initial
 placement can be modified while \tao is running using the \vn{place} command (\sref{s:place}).
@@ -2252,92 +2289,92 @@ For example:
 Graph related parameters of the \vn{tao_template_graph} namelist are:
 \begin{description}
 %
-\item[\vn{graph_index}] \Newline
+\item[graph_index] \Newline
 The first \vn{tao_template_graph} namelist after the associated \vn{tao_template_plot} namelist must
 have the \vn{graph_index} component set to \vn{1}. The next must have \vn{graph_index} set to
 \vn{2}, etc. \tao uses the \vn{graph_index} component to check for errors.
 %
-\item[\vn{graph\%allow_wrap_around}] \Newline
+\item[graph\%allow_wrap_around] \Newline
 If \vn{plot%x_axis_type} is set to \vn{"s"}, and if the plotted data is from a lattice branch with a
 closed geometry, and if \vn{graph%x%min} is negative, then the \vn{graph%allow_wrap_around}
 parameter sets if the curves contained in the graph are ``wrapped around'' the beginning of the
 lattice so that the curves are not cut off at $s = 0$. The default is \vn{True}.
 %
-\item[\vn{graph\%box}] \Newline
+\item[graph\%box] \Newline
 The \vn{graph%box} parameter sets the layout of the box which the \vn{graph} is placed in
 \sref{s:box.def}. In the above example, the graph divides the \vn{region} the plot is placed in into
 two vertically stacked rectangles and the graph will be placed into the bottom one. The default
-is \vn{1,1,1,1} which scales a graph cover the entire \vn{region} the plot is placed in.
+is \vn{1,1,1,1} which scales a graph to cover the entire \vn{region} the plot is placed in.
 %
-\item[\vn{graph\%clip}] \Newline
+\item[graph\%clip] \Newline
 Clip the graph curves at the graph top and bottom boundaries? Default is \vn{True}.
 %
-\item[\vn{graph\%component}] \Newline
+\item[graph\%component] \Newline
 The \vn{%component} parameter determines in part where data for drawing the graph's curves comes
 from. See \sref{s:plot.data} for more details. The \vn{graph%component} is the default used for 
 \vn{curve(k)%component} if the component parameter of curve $k$ is not set.
 %
-\item[\vn{graph\%curve_legend_origin}]\Newline
+\item[graph\%curve_legend_origin]\Newline
 The curve legend displayes which curves are associated with which of the plotted lines and symbols. Two
 examples are given \fig{f:plot.typ}. The \vn{%curve_legend_origin} defines where the upper left hand
 corner of the legend is. The default is:
 \begin{example}
   graph%curve_legend_origin%x =  5.0
   graph%curve_legend_origin%y = -2.0
-  graph%curve_legend_origin%x = "POINTS/GRAPH/LT"
+  graph%curve_legend_origin%units = "POINTS/GRAPH/LT"
 \end{example}
-The \vn{%curve_legend_origin} is of type \vn{qp_point_struct}. See \sref{s:quick.plot} for details on this
+The \vn{%curve_legend_origin} is of type \vn{qp_point_struct}. See \sref{s:qp.point} for details on this
 structure. Also see \vn{graph%draw_curve_legend}
 %
-\item[\vn{graph\%draw_axes}] \Newline
+\item[graph\%draw_axes] \Newline
 Draw the graph axes? Default is \vn{True}. 
 %
-\item[\vn{graph\%draw_curve_legend}] \Newline
+\item[graph\%draw_curve_legend] \Newline
 Draw the curve legend? Default is \vn{True}. The curve legend displayes which curves are associated
 with which of the plotted lines and symbols. Two examples are given \fig{f:plot.typ}. Also see
 \vn{graph%curve_legend_origin}.
 %
-\item[\vn{graph\%draw_grid}] \Newline
+\item[graph\%draw_grid] \Newline
 Draw the graph grid? Default is \vn{True}.
 %
-\item[\vn{graph\%draw_only_good_user_data_or_vars}] \Newline
+\item[graph\%draw_only_good_user_data_or_vars] \Newline
 %
-\item[\vn{graph\%draw_title}] \Newline
+\item[graph\%draw_title] \Newline
 %
-\item[\vn{graph\%floor_plan}] \Newline
+\item[graph\%floor_plan] \Newline
 %
-\item[\vn{graph\%ix_universe}] \Newline
+\item[graph\%ix_universe] \Newline
 %
-\item[\vn{graph\%margin}] \Newline
+\item[graph\%margin] \Newline
 \vn{graph%margin} sets the margin between the \vn{graph} and the \vn{box}
 it is drawn in.
 %
-\item[\vn{graph\%n_curve}] \Newline
+\item[graph\%n_curve] \Newline
 %
-\item[\vn{graph\%name}] \Newline
+\item[graph\%name] \Newline
 \vn{graph%name} and \vn{curve%name} define names to be used with commands. The default names are
 just the letter \vn{g} or \vn{c} with the index of the graph or curve. Thus, in the example above,
 the name of the curve defaults to \vn{c1} and it would be referred to as \vn{orbit.x.c1}.  It is
 important that these names do not contain any blank spaces since \tao uses this fact in parsing the
 command line.
 %
-\item[\vn{graph\%scale_margin}] \Newline
+\item[graph\%scale_margin] \Newline
 \vn{graph%scale_margin} is used to set the minimum space between what is being drawn and the edges
 of the \vn{graph} when a \vn{scale}, \vn{x_scale}, or a \vn{xy_scale} command is issued. Normally
 this is zero but is useful for \vn{floor plan} drawings.
 %
-\item[\vn{graph\%symbol_size_scale}] \Newline
+\item[graph\%symbol_size_scale] \Newline
 %
-\item[\vn{graph\%text_legend_origin}]\Newline
+\item[graph\%text_legend_origin]\Newline
 %
-\item[\vn{graph\%title}] \Newline
+\item[graph\%title] \Newline
 The \vn{graph%title} component is the string printed just above the graph box. The full string will also
 include information about what is being plotted and the horizontal axis type. To fully suppress the
 title leave it blank. Note: A graph also has a \vn{graph%title_suffix} which \tao uses to hold the
 string which is printed to the right of the \vn{graph%title}. This string contains information like
 what \vn{curve%component} is being plotted. The \vn{graph%title_suffix} cannot be set by the user.
 %
-\item[\vn{graph\%type}] \Newline
+\item[graph\%type] \Newline
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
 \index{data}\index{lat_layout}\index{key_table}\index{phase_space}
@@ -2377,17 +2414,17 @@ machine centerline.
 
 With \vn{graph%type} set to \vn{phase_space} (\sref{s:phase.space}), phase space plots are produced.
 %
-\item[\vn{graph\%x}] \Newline
+\item[graph\%x] \Newline
 %
-\item[\vn{graph\%x_axis_scale_factor}] \Newline
+\item[graph\%x_axis_scale_factor] \Newline
 %
-\item[\vn{graph\%x2}] \Newline
+\item[graph\%x2] \Newline
 %
-\item[\vn{graph\%y}] \Newline
+\item[graph\%y] \Newline
 %
-\item[\vn{graph\%y2}] \Newline
+\item[graph\%y2] \Newline
 %
-\item[\vn{graph\%y2_mirrors_y}] \Newline
+\item[graph\%y2_mirrors_y] \Newline
 %
 \end{description}
 
@@ -2395,45 +2432,45 @@ With \vn{graph%type} set to \vn{phase_space} (\sref{s:phase.space}), phase space
 
 \begin{description}
 %
-\item[\vn{curve\%component}] \Newline
+\item[curve\%component] \Newline
 %
-\item[\vn{curve\%data_source}] \Newline
+\item[curve\%data_source] \Newline
 %
-\item[\vn{curve\%data_index}] \Newline
+\item[curve\%data_index] \Newline
 %
-\item[\vn{curve\%data_type}] \Newline
+\item[curve\%data_type] \Newline
 %
-\item[\vn{curve\%data_type_x}] \Newline
+\item[curve\%data_type_x] \Newline
 %
-\item[\vn{curve\%data_type_z}] \Newline
+\item[curve\%data_type_z] \Newline
 %
-\item[\vn{curve\%ele_ref_name}] \Newline
+\item[curve\%ele_ref_name] \Newline
 %
-\item[\vn{curve\%hist}] \Newline
+\item[curve\%hist] \Newline
 %
-\item[\vn{curve\%ix_branch}] \Newline
+\item[curve\%ix_branch] \Newline
 %
-\item[\vn{curve\%ix_bunch}] \Newline
+\item[curve\%ix_bunch] \Newline
 %
-\item[\vn{curve\%legend_text}] \Newline
+\item[curve\%legend_text] \Newline
 %
-\item[\vn{curve\%line}] \Newline
+\item[curve\%line] \Newline
 %
-\item[\vn{curve\%name}] \Newline
+\item[curve\%name] \Newline
 %
-\item[\vn{curve\%orbit}] \Newline
+\item[curve\%orbit] \Newline
 %
-\item[\vn{curve\%scale}] \Newline
+\item[curve\%scale] \Newline
 %
-\item[\vn{curve\%smooth_line_calc}] \Newline
+\item[curve\%smooth_line_calc] \Newline
 %
-\item[\vn{curve\%symbol}] \Newline
+\item[curve\%symbol] \Newline
 %
-\item[\vn{curve\%units}] \Newline
+\item[curve\%units] \Newline
 %
-\item[\vn{curve\%y_axis_scale_factor}] \Newline
+\item[curve\%y_axis_scale_factor] \Newline
 %
-\item[\vn{curve\%z_color}] \Newline
+\item[curve\%z_color] \Newline
 %
 \end{description}
 

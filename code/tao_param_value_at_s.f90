@@ -35,7 +35,7 @@ character(*) data_type
 character(*), optional :: why_invalid
 character(40) name, prefix, d_type
 
-integer ix
+integer i, j, ix
 
 logical err_flag
 
@@ -486,6 +486,17 @@ case ('ping_b')
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
+
+case ('r')
+  i = tao_read_phase_space_index (data_type, 3, .false.)
+  j = tao_read_phase_space_index (data_type, 4, .false.)
+  if (i == 0 .or. j == 0 .or. len_trim(data_type) /= 4) then
+    err_flag = .true.
+    if (present(why_invalid)) why_invalid = 'BAD DATA_TYPE = "' // trim(data_type)
+    return
+  endif
+
+  value = ele%mat6(i,j)
 
 case ('ref_time');            value = ele%ref_time
 
