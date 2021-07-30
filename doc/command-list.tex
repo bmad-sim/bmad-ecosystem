@@ -1529,7 +1529,7 @@ generally only used for debugging purposes and is not of interest to the typical
 %% set region --------------------------------------------------------------
 
 \subsection{set region}
-\label{s:region}
+\label{s:set.region}
 
 Format:
 \begin{example}
@@ -3251,9 +3251,9 @@ Examples:
   veto data *[10:20]           ! veto all data from index 10 to 20 (see note)
 \end{example}
 
-Note: The command `\cmd{veto data *.*[10:20]}' will veto all d1\_data elements within the range
-10:20 \textit{using the index convention for each d1\_data structure separately}. This may produce
-curious results if the indexes for the d1\_data structures do not all point to the same lattice
+Note: The command `\cmd{veto data *.*[10:20]}' will veto all \vn{d1_data} elements within the range
+10:20 \textit{using the index convention for each \vn{d1_data} structure separately}. This may produce
+curious results if the indexes for the \vn{d1_data} structures do not all point to the same lattice
 elements.
 
 %% wave --------------------------------------------------------------
