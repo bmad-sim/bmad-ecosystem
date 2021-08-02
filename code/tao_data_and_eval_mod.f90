@@ -5219,8 +5219,9 @@ orbit => tao_lat%tao_branch(ele%ix_branch)%orbit
 !--------------------------------------------
 
 if (d_type(1:2) == 'r.') then
-  call mat6_from_s_to_s (branch%lat, ele_at_s%mat6, ele_at_s%vec0, s_eval_ref, s_eval, orbit(ix_ref), branch%ix_branch, .true.)
-  value = tao_param_value_at_s (data_type, ele_at_s, orbit(ix_ref), err)
+  orb_at_s = orbit(ix_ref)
+  call mat6_from_s_to_s (branch%lat, ele_at_s%mat6, ele_at_s%vec0, s_eval_ref, s_eval, orb_at_s, branch%ix_branch, .true.)
+  value = tao_param_value_at_s (data_type, ele_at_s, orb_at_s, err)
   if (err) then
     err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
     bad_datum = .true.
