@@ -5188,9 +5188,13 @@ character(40) d_type
 
 !
 
+compute_floor = (data_type(1:5) == 'floor')
+branch => pointer_to_branch(ele)
+orbit => tao_lat%tao_branch(ele%ix_branch)%orbit
+
 valid_value = .false.
 d_type = data_type
-s_eval_ref = 0
+s_eval_ref = branch%ele(0)%s
 ix_ref = 0
 if (associated(ele_ref)) ix_ref = ele_ref%ix_ele
 
@@ -5211,10 +5215,6 @@ case (anchor_end$)
   s_eval = ele%s + s_offset
   if (associated(ele_ref)) s_eval_ref = ele_ref%s
 end select
-
-compute_floor = (data_type(1:5) == 'floor')
-branch => pointer_to_branch(ele)
-orbit => tao_lat%tao_branch(ele%ix_branch)%orbit
 
 !--------------------------------------------
 
