@@ -563,18 +563,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
-    ! Check that a true rbend has e1 + e2 = angle.
-
-    if (ele%key == sbend$ .and. nint(ele%value(ptc_field_geometry$)) == true_rbend$) then
-      if (abs(ele%value(e1$) + ele%value(e2$) - ele%value(angle$)) > 1d-12) then
-        call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS AN RBEND WITH PTC_FIELD_GEOMETRY = TRUE_RBEND', &
-                      'DOES NOT HAVE EDGE ANGLES E1 + E2 = 0')
-        err_flag = .true.
-      endif
-    endif
-
     ! Check wakes
 
     if (associated(ele%wake)) then

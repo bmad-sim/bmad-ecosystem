@@ -1398,7 +1398,6 @@ call init_attribute_name1 (sbend$, b2_gradient$,                    'B2_GRADIENT
 call init_attribute_name1 (sbend$, r0_mag$,                         'R0_MAG')
 call init_attribute_name1 (sbend$, r0_elec$,                        'R0_ELEC')
 call init_attribute_name1 (sbend$, field_master$,                   'FIELD_MASTER')
-call init_attribute_name1 (sbend$, ptc_field_geometry$,             'PTC_FIELD_GEOMETRY')
 call init_attribute_name1 (sbend$, cartesian_map$,                  'CARTESIAN_MAP')
 call init_attribute_name1 (sbend$, cylindrical_map$,                'CYLINDRICAL_MAP')
 call init_attribute_name1 (sbend$, grid_field$,                     'GRID_FIELD')
@@ -1797,7 +1796,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
-      'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
+      'ORIGIN_ELE_REF_PT', 'PARTICLE', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
@@ -2310,10 +2309,6 @@ case ('PARTICLE', 'REF_SPECIES')
 case ('PHASE_UNITS')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, angle_units_name, lbound(angle_units_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == radians$)
-
-case ('PTC_FIELD_GEOMETRY')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_field_geometry_name, lbound(ptc_field_geometry_name, 1))
-  if (present(is_default)) is_default = (ix_attrib_val == sector$)
 
 case ('PTC_INTEGRATION_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_integration_type_name, lbound(ptc_integration_type_name, 1))
