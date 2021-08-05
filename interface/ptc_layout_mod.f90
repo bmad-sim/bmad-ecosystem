@@ -1447,18 +1447,18 @@ case (multipole$)
 case (sbend$)
   call update_this_real (ele%value(g$), fib%mag%p%b0)
   call update_this_real (ele%value(angle$), ele%value(g$) * ele%value(l$))
-  ix = nint(ele%value(ptc_field_geometry$))
-  if (ix == straight$ .or. ix == true_rbend$) then
+  call update_this_real (ele%value(hgap$), fib%mag%hgap(1))
+  call update_this_real (ele%value(fint$), fib%mag%fint(1))
+  call update_this_real (ele%value(hgapx$), fib%mag%hgap(2))
+  call update_this_real (ele%value(fintx$), fib%mag%fint(2))
+
+  if (ele%sub_key == rbend$) then
     call update_this_real (ele%value(e1$), fib%mag%p%edge(1) + ele%value(angle$)/2)
     call update_this_real (ele%value(e2$), fib%mag%p%edge(2) + ele%value(angle$)/2)
   else
     call update_this_real (ele%value(e1$), fib%mag%p%edge(1))
     call update_this_real (ele%value(e2$), fib%mag%p%edge(2))
   endif
-  call update_this_real (ele%value(hgap$), fib%mag%hgap(1))
-  call update_this_real (ele%value(fint$), fib%mag%fint(1))
-  call update_this_real (ele%value(hgapx$), fib%mag%hgap(2))
-  call update_this_real (ele%value(fintx$), fib%mag%fint(2))
 
 case (sextupole$)
   call update_this_real (ele%value(k2$), knl(2))

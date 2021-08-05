@@ -322,6 +322,12 @@ if (word == 'SPINOR_POLARIZATION' .or. word == 'SPINOR_PHI' .or. word == 'SPINOR
   return
 endif
 
+if (word == 'PTC_FIELD_GEOMETRY') then
+  call parser_error ('DUE TO A CHANGE IN PTC, "PTC_FIELD_GEOMETRY" IS NO LONGER A BEND PARAMETER.', &
+                     'SIMPLY REMOVE ANY REFERENCE TO THIS IN THE LATTICE FILE.')
+  return
+endif
+
 ! Setting n_ref_pass and multipass_ref_energy is no longer valid and
 ! will be ignored for backwards compatibility.
 if (word == 'N_REF_PASS' .or. word == 'MULTIPASS_REF_ENERGY') then
@@ -1741,15 +1747,6 @@ case ('PTC_FRINGE_GEOMETRY')
 
 case ('PTC_INTEGRATION_TYPE')
   call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele, delim, delim_found); if (err_flag) return
-
-case ('PTC_FIELD_GEOMETRY')
-  call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(ptc_field_geometry$) = ix
-
-  if (ele%key == sbend$ .and. ix == true_rbend$) then
-    call parser_error ('TRUE_RBEND IS NOT A VALID PTC_FIELD_GEOMETRY VALUE FOR AN SBEND')
-    return
-  endif
 
 case ('REF_ORIGIN')
   call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele, delim, delim_found); if (err_flag) return

@@ -3214,24 +3214,19 @@ case (sbend$)
   if (ptc_key%list%kill_exi_fringe .or. ix == none$) e2 = 0
 
   ptc_key%magnet = 'sbend'
-  ptc_key%list%b0   = ele%value(g$) * leng
   ptc_key%list%t1   = e1
   ptc_key%list%t2   = e2
 
+  ptc_key%list%b0   = ele%value(g$) * leng
   ptc_key%list%hgap = ele%value(hgap$)
   ptc_key%list%fint = ele%value(fint$)
   ptc_key%list%hgap2 = ele%value(hgapx$)
   ptc_key%list%fint2 = ele%value(fintx$)
 
-  ix = nint(ele%value(ptc_field_geometry$))
-  if (ix == straight$) then
+  if (ele%sub_key == rbend$) then
     ptc_key%magnet = 'wedgrbend'
     ptc_key%list%t1   = e1 - ele%value(angle$)/2
     ptc_key%list%t2   = e2 - ele%value(angle$)/2
-  elseif (ix == true_rbend$) then
-    ptc_key%magnet = 'truerbend'
-    ptc_key%list%t1   = e1 - ele%value(angle$)/2
-    !! ptc_key%list%t2   = ele%value(e2$) - ele%value(angle$)/2 ! Determined by %t1 in this case.
   endif
 
 case (sextupole$)

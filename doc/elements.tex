@@ -461,7 +461,6 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   l_arc              = <Real>     ! Arc length. For \vn{rbend}s only. 
   l_chord            = <Real>     ! Chord length. See \sref{s:l}.
   l_sagitta                       ! Sagittal length. Dependent param (\sref{s:depend}).
-  ptc_field_geometry = <Switch>   ! See below.
   rho                = <Real>     ! Design bend radius. A settable dependent param (\sref{s:depend}).
   roll               = <Real>     ! See \ref{s:offset}.
 \end{example}
@@ -711,54 +710,10 @@ counterclockwise rotation of the exit face. This is true irregardless of the sig
   e1 + e2 = angle
 \end{example}
 
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=5in]{true-rbend.pdf}
-  \caption[True Rbend coordinates]{Coordinate system when \vn{ptc_field_geometry}
-is set to \vn{true_rbend}.}
-  \label{f:true.rbend}
-\end{figure}
-
 Example bend specification:
 \begin{example}
   b03w: sbend, l = 0.6, k1 = 0.003, fint  ! gives fint = fintx = 0.5
 \end{example}
-
-
-\vn{ptc_field_geometry} determines how PTC integrates through a bend
-if PTC is being used for tracking. Possible values for
-\vn{ptc_field_geometry} are:
-\begin{example}
-  sector      ! Default
-  straight
-  true_rbend  ! Only valid for rbend elements
-\end{example}
-For \vn{sector} tracking, the tracking coordinate reference frame is
-with respect to the arc of the reference trajectory. For \vn{straight}
-tracking the tracking coordinate reference frame is with respect to the
-chord line. For a bend where the number of integration steps is large
-enough, and where there are no other fields besides the basic dipole
-field, the results are the same.  When there are quadrupole or higher
-order fields, the fields are expanded about the tracking reference
-frame. Since Maxwell's equations must be satisfied, the higher order
-fields will differ when tracking with \vn{sector} vs \vn{straight} the
-difference in the fields will scale with the inverse of the bending
-radius \vn{1/rho}. The above discussion is true for
-\vn{ptc_exact_model} set to True, for \vn{ptc_exact_model} set to
-False, a simplified sector tracking model is used in all cases.
-
-The \vn{true_rbend} tracking of \vn{ptc_field_geometry} is used only
-with \vn{rbend} elements and the entrance and exit faces must be parallel
-as shown in \fig{f:true.rbend}. That is
-\begin{example}
-  e1 + e2 = 0
-\end{example}
-In this case, the tracking geometry is parallel, to the bend face as
-shown in the figure. This can be an advantage in some situations but
-\'Etienne Forest discourages use of \vn{true_rbend} due to complications
-of how to handle the reference frames. In particular, how to handle
-the reference frames is problematic when you have more than one of
-them in a row.
 
 %-----------------------------------------------------------------
 \section{Capillary}

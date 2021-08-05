@@ -684,7 +684,6 @@ case ('HIGHER_ORDER_FRINGE_TYPE');       a_ptr%r => ele%value(higher_order_fring
 case ('MAT6_CALC_METHOD');               a_ptr%i => ele%mat6_calc_method
 case ('MODE');                           a_ptr%r => ele%value(mode$)
 case ('ORIGIN_ELE_REF_PT');              a_ptr%r => ele%value(origin_ele_ref_pt$)
-case ('PTC_FIELD_GEOMETRY');             a_ptr%r => ele%value(ptc_field_geometry$)
 case ('PTC_INTEGRATION_TYPE');           a_ptr%i => ele%ptc_integration_type
 case ('PTC_FRINGE_GEOMETRY');            a_ptr%r => ele%value(ptc_fringe_geometry$)
 case ('REF_ORBIT_FOLLOWS');              a_ptr%r => ele%value(ref_orbit_follows$)
