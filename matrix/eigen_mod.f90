@@ -124,7 +124,12 @@ do ii = 1, nn
       fnorm = -fnorm
     endif
 
-    sgn = abs(eigen_vec(k,k)) / (sqrt(fnorm) * eigen_vec(k,k))
+    if (abs(eigen_vec(k,k)) == 0) then
+      sgn = 1.0_rp / sqrt(fnorm)
+    else
+      sgn = abs(eigen_vec(k,k)) / (sqrt(fnorm) * eigen_vec(k,k))
+    endif
+
     eigen_vec(k,:)   = sgn        * eigen_vec(k,:)
     eigen_vec(k+1,:) = conjg(sgn) * eigen_vec(k+1,:)
 
