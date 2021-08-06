@@ -287,10 +287,9 @@ if (present(y2_mirrors_y)) qp_com%plot%y2_mirrors_y = y2_mirrors_y
 ! set world coords if needed
 
 if (present(box)) call qp_set_box (box(1), box(2), box(3), box(4))
-if (present(margin)) call qp_set_margin (margin%x1, margin%x2, &
-                                    margin%y1, margin%y2, margin%units)
+if (present(margin)) call qp_set_margin (margin%x1, margin%x2, margin%y1, margin%y2, margin%units)
 if (present(page_border)) call qp_set_page_border (page_border%x1, &
-           page_border%x2, page_border%y1, page_border%y2, page_border%units)
+                                  page_border%x2, page_border%y1, page_border%y2, page_border%units)
 
 end subroutine qp_set_layout
 
