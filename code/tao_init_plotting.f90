@@ -53,9 +53,11 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (qp_axis_struct) init_axis
 
 real(rp) y1, y2
+real(rp), parameter :: re_g$ = real_garbage$
 
 integer iu, i, j, k, k1, k2, ix, ip, n, ng, ios, ios1, ios2, i_uni
 integer graph_index, i_graph, ic
+integer, parameter :: int_g$ = int_garbage$
 
 character(*) plot_file_in
 character(len(plot_file_in)) plot_file_array
@@ -100,7 +102,7 @@ region%name  = ''       ! a region exists only if its name is not blank
 include_default_plots = .true.
 
 plot_page = plot_page_default
-plot_page%title%y = 0.996
+plot_page%title%y = 0.99
 plot_page%subtitle%y = 0.97
 plot_page%size = [500, 600]
 plot_page%border = qp_rect_struct(0.001_rp, 0.001_rp, 0.001_rp, 0.001_rp, '%PAGE')
@@ -331,7 +333,6 @@ endif
 
 close (iu)
 
-
 !------------------------------------------------------------------------------------
 ! Read in the plot templates and transfer the info to the 
 ! s%tamplate_plot structures
@@ -404,6 +405,10 @@ do  ! Loop over plot files
     plot = default_plot
     default_graph = master_default_graph
 
+    plot%x = qp_axis_struct(null_name$, re_g$, re_g$, re_g$, re_g$, re_g$, re_g$, re_g$, re_g$, re_g$, &
+                null_name$, int_g$, int_g$, int_g$, int_g$, int_g$, null_name$, null_name$, &
+                int_g$, int_g$, .true., .true.)
+
     read (iu, nml = tao_template_plot, iostat = ios)  
     if (ios /= 0) exit
 
@@ -422,16 +427,17 @@ do  ! Loop over plot files
     plt%name                 = plot%name
     plt%description          = plot%description
     plt%x_axis_type          = plot%x_axis_type
-    plt%x                    = plot%x
     plt%n_curve_pts          = plot%n_curve_pts
     plt%autoscale_gang_x     = plot%autoscale_gang_x 
     plt%autoscale_gang_y     = plot%autoscale_gang_y 
     plt%autoscale_x          = plot%autoscale_x 
     plt%autoscale_y          = plot%autoscale_y 
 
-    if (plt%x%major_div < 0 .and. plt%x%major_div_nominal < 0) plt%x%major_div_nominal = 6
+    call transfer_this_axis(plot%x, default_graph%x) ! Remember: plot%x is deprecated.
 
-    call qp_calc_axis_places (plt%x)
+    if (default_graph%x%major_div < 0 .and. default_graph%x%major_div_nominal < 0) default_graph%x%major_div_nominal = 6
+
+    call qp_calc_axis_places (default_graph%x)
 
     do
       ix = index(plt%name, '.')
@@ -448,7 +454,6 @@ do  ! Loop over plot files
     do i_graph = 1, ng
       graph_index = 0         ! setup defaults
       graph = default_graph
-      graph%x = plot%x      
       write (graph%name, '(a, i0)') 'g', i_graph
       curve(:) = tao_curve_input()
       do j = 1, size(curve)
@@ -507,6 +512,7 @@ do  ! Loop over plot files
       grph%ix_universe                      = graph%ix_universe
       grph%ix_branch                        = graph%ix_branch
       grph%clip                             = graph%clip
+      grph%allow_wrap_around                = graph%allow_wrap_around
       grph%draw_title                       = graph%draw_title
       grph%draw_axes                        = graph%draw_axes
       grph%draw_grid                        = graph%draw_grid
@@ -516,6 +522,7 @@ do  ! Loop over plot files
       grph%title_suffix                     = ''
       grph%text_legend                      = ''
       grph%y2_mirrors_y                     = .true.
+
       if (grph%x%major_div < 0 .and. grph%x%major_div_nominal < 0) grph%x%major_div_nominal = 6
       if (grph%y%major_div < 0 .and. grph%y%major_div_nominal < 0) grph%y%major_div_nominal = 4
       if (grph%y2%major_div < 0 .and. grph%y2%major_div_nominal < 0) grph%y2%major_div_nominal = 4
@@ -527,7 +534,6 @@ do  ! Loop over plot files
       if (graph%floor_plan_size_is_absolute)            grph%floor_plan%size_is_absolute     = graph%floor_plan_size_is_absolute
       if (graph%floor_plan_draw_only_first_pass)        grph%floor_plan%draw_only_first_pass = graph%floor_plan_draw_only_first_pass
       if (.not. graph%correct_xy_distortion)            grph%floor_plan%correct_distortion   = graph%correct_xy_distortion
-
 
       call qp_calc_axis_places (grph%x)
 
@@ -938,9 +944,6 @@ allocate (plt%graph(1)%curve(1))
 allocate (plt%graph(2)%curve(1))
 
 plt%x_axis_type          = 's'
-plt%x                    = init_axis
-plt%x%major_div_nominal  = 7
-plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
 grph%name                 = 'g1'
@@ -957,7 +960,9 @@ grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%component            = 'model'
-grph%x                    = plt%x
+grph%x                    = init_axis
+grph%x%major_div_nominal  = 7
+grph%x%minor_div_max      = 6
 grph%x%label = 's [m]'
 
 crv => grph%curve(1)
@@ -983,7 +988,7 @@ grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%component            = 'model'
-grph%x                    = plt%x
+grph%x                    = init_axis
 
 crv => grph%curve(1)
 crv%name         = 'c'
@@ -1004,9 +1009,6 @@ allocate (plt%graph(1))
 allocate (plt%graph(1)%curve(3))
 
 plt%x_axis_type          = 's'
-plt%x                    = init_axis
-plt%x%major_div_nominal  = 7
-plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
 grph%name                 = 'g'
@@ -1026,8 +1028,10 @@ grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%text_legend_origin   = default_graph%text_legend_origin
 grph%curve_legend_origin  = default_graph%curve_legend_origin
-grph%x                    = plt%x
-grph%x%label = 's [m]'
+grph%x                    = init_axis
+grph%x%major_div_nominal  = 7
+grph%x%minor_div_max      = 6
+grph%x%label              = 's [m]'
 
 crv => grph%curve(1)
 crv%name         = 'c1'
@@ -1064,9 +1068,6 @@ allocate (plt%graph(1))
 allocate (plt%graph(1)%curve(4))
 
 plt%x_axis_type          = 's'
-plt%x                    = init_axis
-plt%x%major_div_nominal  = 7
-plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
 grph%name                 = 'g'
@@ -1086,8 +1087,10 @@ grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%text_legend_origin   = default_graph%text_legend_origin
 grph%curve_legend_origin  = default_graph%curve_legend_origin
-grph%x                    = plt%x
-grph%x%label = 's [m]'
+grph%x                    = init_axis
+grph%x%major_div_nominal  = 7
+grph%x%minor_div_max      = 6
+grph%x%label              = 's [m]'
 
 crv => grph%curve(1)
 crv%name         = 'c1'
@@ -1132,9 +1135,6 @@ allocate (plt%graph(1))
 allocate (plt%graph(1)%curve(2))
 
 plt%x_axis_type          = 's'
-plt%x                    = init_axis
-plt%x%major_div_nominal  = 7
-plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
 grph%name                 = 'g'
@@ -1154,8 +1154,10 @@ grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%text_legend_origin   = default_graph%text_legend_origin
 grph%curve_legend_origin  = default_graph%curve_legend_origin
-grph%x                    = plt%x
-grph%x%label = 's [m]'
+grph%x                    = init_axis
+grph%x%major_div_nominal  = 7
+grph%x%minor_div_max      = 6
+grph%x%label              = 's [m]'
 
 crv => grph%curve(1)
 crv%name         = 'c1'
@@ -1184,9 +1186,6 @@ allocate (plt%graph(1))
 allocate (plt%graph(1)%curve(1))
 
 plt%x_axis_type          = 's'
-plt%x                    = init_axis
-plt%x%major_div_nominal  = 7
-plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
 grph%name                 = 'g'
@@ -1203,7 +1202,9 @@ grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%component            = 'model'
-grph%x                    = plt%x
+grph%x                    = init_axis
+grph%x%major_div_nominal  = 7
+grph%x%minor_div_max      = 6
 grph%x%label              = 's [m]'
 
 crv => grph%curve(1)
@@ -1462,7 +1463,6 @@ do j = 1, 6
   plt%description          = 'Bunch phase space'
   plt%list_with_show_plot_command = .false.
   plt%x_axis_type = 'phase_space'
-  plt%x%label = coord_name(i)
 
   grph => plt%graph(1)
   grph%p => plt
@@ -1508,7 +1508,6 @@ do i = 1, 6
   plt%name                 = name
   plt%description          = 'Bunch density histogram'
   plt%list_with_show_plot_command = .false.
-  plt%x%label = coord_name(i)
   plt%x_axis_type = 'histogram'
 
   grph => plt%graph(1)
@@ -1517,6 +1516,7 @@ do i = 1, 6
   grph%type                = 'histogram'
   grph%title               = 'Bunch Density Histogram in ' // trim(coord_name(i)) 
   grph%x%major_div_nominal = 4
+  grph%x%label = coord_name(i)
   grph%x_axis_scale_factor = 1d3  ! mm
 
   crv => grph%curve(1)
@@ -1795,7 +1795,6 @@ if (all(s%plot_page%template%name /= 'dynamic_aperture')) then
 
   plt%name                 = 'dynamic_aperture'
   plt%description          = 'Dynamic aperture using universe calc'
-  plt%x%label = 'x (mm)'
   plt%x_axis_type = 'phase_space'
 
   grph => plt%graph(1)
@@ -2039,7 +2038,6 @@ if (all(s%plot_page%template%name /= 'floor_plan')) then
   plt%name               = 'floor_plan'
   plt%description        = 'Floor plan drawing of lattice elements.'
   plt%x_axis_type        = 'floor'
-  plt%x                  = init_axis
 
   grph => plt%graph(1)
   grph%p => plt
@@ -2223,7 +2221,6 @@ if (all(s%plot_page%template%name /= 'key_table')) then
   plt%name           = 'key_table'
   plt%description    = 'Table of keyboard keys bound to variable values'
   plt%x_axis_type    = 'none'
-  plt%x              = init_axis
 
   grph => plt%graph(1)
   grph%p => plt
@@ -2246,9 +2243,6 @@ if (all(s%plot_page%template%name /= 'lat_layout')) then
   plt%name           = 'lat_layout'
   plt%description    = 'Lattice elements drawn as a function of S'
   plt%x_axis_type    = 's'
-  plt%x              = init_axis
-  plt%x%major_div_nominal  = 7
-  plt%x%minor_div_max      = 6
 
   grph => plt%graph(1)
   grph%p => plt
@@ -2256,7 +2250,9 @@ if (all(s%plot_page%template%name /= 'lat_layout')) then
   grph%box           = [1, 1, 1, 1]
   grph%type          = 'lat_layout'
   grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.03, '%BOX')
-  grph%x             = plt%x
+  grph%x             = init_axis
+  grph%x%major_div_nominal  = 7
+  grph%x%minor_div_max      = 6
   grph%y%min         = -1
   grph%y%max         =  1
 endif
@@ -2900,6 +2896,41 @@ if (allocated(plt%graph)) deallocate (plt%graph)
 if (present(default_plot)) plt = default_plot
 
 end subroutine default_plot_init
+
+!----------------------------------------------------------------------------------------
+! contains
+
+subroutine transfer_this_axis (ax_in, ax_out)
+
+type (qp_axis_struct) ax_in, ax_out
+
+if (ax_in%label       /= null_name$) ax_out%label       = ax_in%label
+if (ax_in%label_color /= null_name$) ax_out%label_color = ax_in%label_color
+if (ax_in%type        /= null_name$) ax_out%type        = ax_in%type
+if (ax_in%bounds      /= null_name$) ax_out%bounds      = ax_in%bounds
+
+if (ax_in%min            /= real_garbage$) ax_out%min            = ax_in%min
+if (ax_in%max            /= real_garbage$) ax_out%max            = ax_in%max
+if (ax_in%tick_min       /= real_garbage$) ax_out%tick_min       = ax_in%tick_min
+if (ax_in%tick_max       /= real_garbage$) ax_out%tick_max       = ax_in%tick_max
+if (ax_in%dtick          /= real_garbage$) ax_out%dtick          = ax_in%dtick
+if (ax_in%number_offset  /= real_garbage$) ax_out%number_offset  = ax_in%number_offset
+if (ax_in%label_offset   /= real_garbage$) ax_out%label_offset   = ax_in%label_offset
+if (ax_in%major_tick_len /= real_garbage$) ax_out%major_tick_len = ax_in%major_tick_len
+if (ax_in%minor_tick_len /= real_garbage$) ax_out%minor_tick_len = ax_in%minor_tick_len
+
+if (ax_in%major_div         /= int_garbage$) ax_out%major_div         = ax_in%major_div
+if (ax_in%major_div_nominal /= int_garbage$) ax_out%major_div_nominal = ax_in%major_div_nominal
+if (ax_in%minor_div         /= int_garbage$) ax_out%minor_div         = ax_in%minor_div
+if (ax_in%minor_div_max     /= int_garbage$) ax_out%minor_div_max     = ax_in%minor_div_max
+if (ax_in%places            /= int_garbage$) ax_out%places            = ax_in%places
+if (ax_in%tick_side         /= int_garbage$) ax_out%tick_side         = ax_in%tick_side
+if (ax_in%number_side       /= int_garbage$) ax_out%number_side       = ax_in%number_side
+
+if (.not. ax_in%draw_label)   ax_out%draw_label   = ax_in%draw_label
+if (.not. ax_in%draw_numbers) ax_out%draw_numbers = ax_in%draw_numbers
+
+end subroutine transfer_this_axis
 
 end subroutine tao_init_plotting
 

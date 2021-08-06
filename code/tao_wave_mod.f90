@@ -108,10 +108,9 @@ endif
 
 ! Transfer curve information to the wave plot
 
-wave_plot%name        = 'wave'
-wave_plot%type        = 'wave'
-wave_plot%x_axis_type = plot%x_axis_type
-wave_plot%x           = plot%x
+wave_plot%name             = 'wave'
+wave_plot%type             = 'wave'
+wave_plot%x_axis_type      = plot%x_axis_type
 wave_plot%autoscale_gang_x = .false.
 
 do i = 1, 4
@@ -121,7 +120,7 @@ do i = 1, 4
     wg => wave_plot%graph(i)
   endif
   wg = curve%g
-  wg%x = plot%x
+  wg%x = plot%graph(1)%x
   wg%box = [1, 4-i, 1, 3]
 
   if (size(wg%curve) /= 1) then

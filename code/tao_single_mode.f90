@@ -595,10 +595,10 @@ integer i, j
 do i = 1, size(s%plot_page%region)
   if (.not. s%plot_page%region(i)%visible) cycle
   plot => s%plot_page%region(i)%plot
+  if (.not. allocated(plot%graph)) cycle
   if (plot%autoscale_gang_x) then
-    call tao_x_scale_plot (plot, plot%x%min * factor, plot%x%max * factor)
+    call tao_x_scale_plot (plot, plot%graph(1)%x%min * factor, plot%graph(1)%x%max * factor)
   else
-    if (.not. allocated(plot%graph)) cycle
     do j = 1, size(plot%graph)
       graph => plot%graph(i)
       call tao_x_scale_graph (graph, graph%x%min * factor, graph%x%max * factor)

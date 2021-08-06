@@ -159,9 +159,6 @@ endselect
 
 ! Scale the x-axis if needed
 
-if ((plot%x%major_div < 0 .or. plot%x%min == plot%x%max) .and. plot%autoscale_gang_x .and. &
-          size(plot%graph) > 1) call tao_x_scale_plot (plot, plot%x%min, plot%x%max, include_wall = .true.)
-
 if (plot%type == 'wave') then
   call tao_wave_analysis(plot)
   return

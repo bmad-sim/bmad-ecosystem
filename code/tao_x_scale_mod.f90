@@ -38,9 +38,9 @@ type (tao_plot_struct), pointer :: p, p2
 type (tao_plot_array_struct), allocatable :: plot(:)
 type (tao_graph_array_struct), allocatable :: graph(:)
 
-real(rp) x_min_in, x_max_in, x_min, x_max
+real(rp) x_min_in, x_max_in, x_min, x_max, x0, x1
 
-integer i, j, n, ix, places, im, i0
+integer i, j, n, ix, places, im
 
 character(*) where
 character(*), optional :: gang
@@ -84,19 +84,25 @@ endif
 all_same = .true.
 
 if (size(graph) > 0) then
-  i0 = -1
+  x0 = real_garbage$
   do i = 1, size(graph)
     call set_this_exact (graph(i)%g, x_min_in, x_max_in, exact)
     call tao_x_scale_graph (graph(i)%g, x_min, x_max, include_wall, have_scaled)
     if (.not. have_scaled) cycle
     if (graph(i)%g%p%type == 'floor_plan') cycle
-    if (i0 == -1) i0 = i
-    if (graph(i)%g%x%max /= graph(i0)%g%x%max) all_same = .false.
-    if (graph(i)%g%x%min /= graph(i0)%g%x%min) all_same = .false.
+
+    if (x0 == real_garbage$) then
+      x0 = graph(i)%g%x%min
+      x1 = graph(i)%g%x%max
+    else
+      if (graph(i)%g%x%min /= x0 .or. graph(i)%g%x%max /= x1) all_same = .false.
+    endif
+
     if (logic_option(.true., turn_autoscale_off)) graph(i)%g%p%autoscale_x = .false.
   enddo
+
 else
-  i0 = -1
+  x0 = real_garbage$
   do i = 1, size(plot)
     if (.not. allocated(plot(i)%p%graph)) cycle
     do j = 1, size(plot(i)%p%graph)
@@ -106,9 +112,16 @@ else
     call tao_x_scale_plot (plot(i)%p, x_min, x_max, include_wall, gang, have_scaled)
     if (.not. have_scaled) cycle
     if (plot(i)%p%type == 'floor_plan') cycle
-    if (i0 == -1) i0 = i
-    if (plot(i)%p%x%max /= plot(i0)%p%x%max) all_same = .false.
-    if (plot(i)%p%x%min /= plot(i0)%p%x%min) all_same = .false.
+
+    do j = 1, size(plot(i)%p%graph)
+      if (x0 == real_garbage$) then
+        x0 = plot(i)%p%graph(j)%x%min
+        x1 = plot(i)%p%graph(j)%x%max
+      else
+        if (plot(i)%p%graph(j)%x%min /= x0 .or. plot(i)%p%graph(j)%x%max /= x1) all_same = .false.
+      endif
+    enddo
+
     if (logic_option(.true., turn_autoscale_off)) plot(i)%p%autoscale_x = .false.
   enddo
 endif
@@ -240,8 +253,6 @@ if (do_gang .and. valid) then
       call qp_calc_axis_params (this_min, this_max, p1, p2, graph%x)
     enddo
   endif
-
-   plot%x = plot%graph(1)%x
 
 endif
 
