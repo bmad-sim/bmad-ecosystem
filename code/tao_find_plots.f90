@@ -184,6 +184,7 @@ else
   if (where_str == 'TEMPLATE' .or. (where_str == 'BOTH' .and. np == 0)) then
     do i = 1, size(s%plot_page%template)
       if (s%plot_page%template(i)%phantom) cycle
+      if (s%plot_page%template(i)%name == '') cycle
       if (plot_name /= '*') then 
         if (have_exact_match) then
           if (s%plot_page%template(i)%name /= plot_name) cycle
