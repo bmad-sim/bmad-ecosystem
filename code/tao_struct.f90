@@ -190,7 +190,6 @@ type tao_curve_struct
   character(40) :: ele_ref_name = ''     ! Reference element.
   character(40) :: legend_text = ''      ! String to draw in a curve legend. 
   character(40) :: message_text = ''     ! Informational message to draw with graph.
-  character(40) :: units = ''            ! Data units.
   character(60) :: component = ''        ! Who to plot. Eg: 'meas - design'
   character(80) :: why_invalid = '???'   ! Informative string to print.
   type (tao_graph_struct), pointer :: g  ! pointer to parent graph

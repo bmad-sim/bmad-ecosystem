@@ -603,7 +603,6 @@ do  ! Loop over plot files
         crv%legend_text          = curve(j)%legend_text
         crv%hist                 = curve(j)%hist
         crv%z_color              = curve(j)%z_color
-        crv%units                = curve(j)%units
 
         if (curve(j)%z_color0 /= invalid$) crv%z_color%min = curve(j)%z_color0
         if (curve(j)%z_color1 /= invalid$) crv%z_color%max = curve(j)%z_color1
@@ -1260,28 +1259,24 @@ if (all(s%plot_page%template%name /= 'b_div_curl')) then
   crv%g => grph
   crv%data_type    = 'b_div'
   crv%legend_text  = 'B Divergence at particle position'
-  crv%units        = 'T/m'
 
   crv => grph%curve(2)
   crv%name         = 'cx'
   crv%g => grph
   crv%data_type    = 'b_curl.x'
   crv%legend_text  = '(curl B)x - (dEx/dt)/c\u2\d at particle position'
-  crv%units        = 'T/m'
 
   crv => grph%curve(3)
   crv%name         = 'cy'
   crv%g => grph
   crv%data_type    = 'b_curl.y'
   crv%legend_text  = '(curl B)y - (dEy/dt)/c\u2\d at particle position'
-  crv%units        = 'T/m'
 
   crv => grph%curve(4)
   crv%name         = 'cz'
   crv%g => grph
   crv%data_type    = 'b_curl.z'
   crv%legend_text  = '(curl B)z - (dEy/dt)/c\u2\d at particle position'
-  crv%units        = 'T/m'
 endif
  
 !---------------
@@ -1303,21 +1298,18 @@ if (all(s%plot_page%template%name /= 'b_field')) then
   crv%g => grph
   crv%data_type    = 'b_field.x'
   crv%legend_text  = 'B_field.x at particle position'
-  crv%units        = 'T'
 
   crv => grph%curve(2)
   crv%name         = 'by'
   crv%g => grph
   crv%data_type    = 'b_field.y'
   crv%legend_text  = 'B_field.y at particle position'
-  crv%units        = 'T'
 
   crv => grph%curve(3)
   crv%name         = 'bz'
   crv%g => grph
   crv%data_type    = 'b_field.z'
   crv%legend_text  = 'B_field.z at particle position'
-  crv%units        = 'T'
 endif
  
 !---------------
@@ -1339,28 +1331,24 @@ if (all(s%plot_page%template%name /= 'b0_div_curl')) then
   crv%g => grph
   crv%data_type    = 'b0_div'
   crv%legend_text  = 'B Divergence'
-  crv%units        = 'T/m'
 
   crv => grph%curve(2)
   crv%name         = 'cx'
   crv%g => grph
   crv%data_type    = 'b0_curl.x'
   crv%legend_text  = '(curl B)x - (dEx/dt)/c\u2\d'
-  crv%units        = 'T/m'
 
   crv => grph%curve(3)
   crv%name         = 'cy'
   crv%g => grph
   crv%data_type    = 'b0_curl.y'
   crv%legend_text  = '(curl B)y - (dEy/dt)/c\u2\d'
-  crv%units        = 'T/m'
 
   crv => grph%curve(4)
   crv%name         = 'cz'
   crv%g => grph
   crv%data_type    = 'b0_curl.z'
   crv%legend_text  = '(curl B)z - (dEy/dt)/c\u2\d'
-  crv%units        = 'T/m'
 endif
  
 !---------------
@@ -1382,21 +1370,18 @@ if (all(s%plot_page%template%name /= 'b0_field')) then
   crv%g => grph
   crv%data_type    = 'b0_field.x'
   crv%legend_text  = 'B_field.x'
-  crv%units        = 'T'
 
   crv => grph%curve(2)
   crv%name         = 'by'
   crv%g => grph
   crv%data_type    = 'b0_field.y'
   crv%legend_text  = 'B_field.y'
-  crv%units        = 'T'
 
   crv => grph%curve(3)
   crv%name         = 'bz'
   crv%g => grph
   crv%data_type    = 'b0_field.z'
   crv%legend_text  = 'B_field.z'
-  crv%units        = 'T'
 endif
  
 !---------------
@@ -1418,14 +1403,12 @@ if (all(s%plot_page%template%name /= 'beta')) then
   crv%g => grph
   crv%data_type    = 'beta.a'
   crv%legend_text  = '\gb\fn\dA\u'
-  crv%units        = 'm'
 
   crv => grph%curve(2)
   crv%name         = 'b'
   crv%g => grph
   crv%data_type    = 'beta.b'
   crv%legend_text  = '\gb\fn\dB\u'
-  crv%units        = 'm'
 endif
 
 !---------------
@@ -1448,7 +1431,6 @@ if (all(s%plot_page%template%name /= 'bunch_sigma_xy')) then
   crv%legend_text  = 'Sigma_x'
   crv%data_source  = 'beam' 
   crv%smooth_line_calc = .false.
-  crv%units        = 'm'
 
   crv => grph%curve(2)
   crv%name         = 'y'
@@ -1457,7 +1439,6 @@ if (all(s%plot_page%template%name /= 'bunch_sigma_xy')) then
   crv%legend_text  = 'Sigma_y'
   crv%data_source  = 'beam' 
   crv%smooth_line_calc = .false.
-  crv%units        = 'm'
 endif
 
 !---------------
@@ -1504,9 +1485,7 @@ do j = 1, 6
   crv%ix_ele_ref_track = ie
   crv%ele_ref_name = s%u(1)%design%lat%ele(ie)%name
   if (modulo(i,2) == 0) then
-    crv%units        = ''
   else
-    crv%units        = 'm'
   endif
 
 enddo
@@ -1567,11 +1546,9 @@ do i = 1, 6
   if (modulo(i,2) == 0) then
     grph%x%label     = trim(coord_name(i)) // ' [* 10^3]'
     grph%y%label     = 'Charge Density [nC/' // trim(graph%x%label) // ']'
-    crv%units        = ''
   else
     grph%x%label     = trim(coord_name(i)) // ' [mm]'
     grph%y%label     = 'Charge Density [nC/mm]'
-    crv%units        = 'mm'
   endif
 
 enddo
@@ -1719,14 +1696,12 @@ if (all(s%plot_page%template%name /= 'dispersion')) then
   crv%g => grph
   crv%data_type    = 'eta.x'
   crv%legend_text  = '\gy\fn\dX\u'
-  crv%units        = 'm'
 
   crv => grph%curve(2)
   crv%name         = 'y'
   crv%g => grph
   crv%data_type = 'eta.y'
   crv%legend_text  = '\gy\fn\dY\u'
-  crv%units        = 'm'
 endif
 
 !---------------
@@ -1773,14 +1748,12 @@ if (all(s%plot_page%template%name /= 'mode_dispersion')) then
   crv%g => grph
   crv%data_type    = 'eta.a'
   crv%legend_text  = '\gy\fn\dA\u'
-  crv%units        = 'm'
 
   crv => grph%curve(2)
   crv%name         = 'b'
   crv%g => grph
   crv%data_type = 'eta.b'
   crv%legend_text  = '\gy\fn\dB\u'
-  crv%units        = 'm'
 endif
 
 !---------------
@@ -1803,7 +1776,6 @@ if (all(s%plot_page%template%name /= 'dphi')) then
   crv%data_type    = 'chrom.dphi.a'
   crv%legend_text  = 'a'
   crv%smooth_line_calc = .false.
-  crv%units        = 'rad'
 
   crv => grph%curve(2)
   crv%name         = 'b'
@@ -1811,7 +1783,6 @@ if (all(s%plot_page%template%name /= 'dphi')) then
   crv%data_type    = 'chrom.dphi.b'
   crv%legend_text  = 'b'
   crv%smooth_line_calc = .false.
-  crv%units        = 'rad'
 endif
  
 !---------------
@@ -1855,7 +1826,6 @@ if (all(s%plot_page%template%name /= 'dynamic_aperture')) then
     crv%g => grph
     crv%smooth_line_calc = .false.
     crv%y_axis_scale_factor = 1000
-    crv%units        = 'mm'
     crv%line%width = 4
     crv%draw_symbols = .true.
     crv%data_type = 'dynamic_aperture'
@@ -1884,28 +1854,24 @@ if (all(s%plot_page%template%name /= 'e_div_curl')) then
   crv%g => grph
   crv%data_type    = 'e_div'
   crv%legend_text  = 'divergence'
-  crv%units        = 'V/m^2'
 
   crv => grph%curve(2)
   crv%name         = 'cx'
   crv%g => grph
   crv%data_type    = 'e_curl.x'
   crv%legend_text  = '(curl E)x - dBx/dt at particle position'
-  crv%units        = 'V/m^2'
 
   crv => grph%curve(3)
   crv%name         = 'cy'
   crv%g => grph
   crv%data_type    = 'e_curl.y'
   crv%legend_text  = '(curl E)y - dBy/dt at particle position'
-  crv%units        = 'V/m^2'
 
   crv => grph%curve(4)
   crv%name         = 'cz'
   crv%g => grph
   crv%data_type    = 'e_curl.z'
   crv%legend_text  = '(curl E)z - dBz/dt at particle position'
-  crv%units        = 'V/m^2'
 endif
  
 !---------------
@@ -1927,21 +1893,18 @@ if (all(s%plot_page%template%name /= 'e_field')) then
   crv%g => grph
   crv%data_type    = 'e_field.x'
   crv%legend_text  = 'E_field.x at particle position'
-  crv%units        = 'V/m'
 
   crv => grph%curve(2)
   crv%name         = 'ey'
   crv%g => grph
   crv%data_type    = 'e_field.y'
   crv%legend_text  = 'E_field.y at particle position'
-  crv%units        = 'V/m'
 
   crv => grph%curve(3)
   crv%name         = 'ez'
   crv%g => grph
   crv%data_type    = 'e_field.z'
   crv%legend_text  = 'E_field.z at particle position'
-  crv%units        = 'V/m'
 
 endif
 
@@ -1964,28 +1927,24 @@ if (all(s%plot_page%template%name /= 'e0_div_curl')) then
   crv%g => grph
   crv%data_type    = 'e0_div'
   crv%legend_text  = 'divergence'
-  crv%units        = 'V/m^2'
 
   crv => grph%curve(2)
   crv%name         = 'cx'
   crv%g => grph
   crv%data_type    = 'e0_curl.x'
   crv%legend_text  = '(curl E)x - dBx/dt'
-  crv%units        = 'V/m^2'
 
   crv => grph%curve(3)
   crv%name         = 'cy'
   crv%g => grph
   crv%data_type    = 'e0_curl.y'
   crv%legend_text  = '(curl E)y - dBy/dt'
-  crv%units        = 'V/m^2'
 
   crv => grph%curve(4)
   crv%name         = 'cz'
   crv%g => grph
   crv%data_type    = 'e0_curl.z'
   crv%legend_text  = '(curl E)z - dBz/dt'
-  crv%units        = 'V/m^2'
 endif
  
 !---------------
@@ -2007,21 +1966,18 @@ if (all(s%plot_page%template%name /= 'e0_field')) then
   crv%g => grph
   crv%data_type    = 'e0_field.x'
   crv%legend_text  = 'E_field.x'
-  crv%units        = 'V/m'
 
   crv => grph%curve(2)
   crv%name         = 'ey'
   crv%g => grph
   crv%data_type    = 'e0_field.y'
   crv%legend_text  = 'E_field.y'
-  crv%units        = 'V/m'
 
   crv => grph%curve(3)
   crv%name         = 'ez'
   crv%g => grph
   crv%data_type    = 'e0_field.z'
   crv%legend_text  = 'E_field.z'
-  crv%units        = 'V/m'
 
 endif
 
@@ -2044,7 +2000,6 @@ if (all(s%plot_page%template%name /= 'emittance')) then
   crv%data_type    = 'rad_int.i5a_e6'
   crv%legend_text  = 'a-mode emit'
   crv%y_axis_scale_factor = 7.213927194325027E-22 !for mm-mrad
-  crv%units        = 'mm*mrad'
   crv%smooth_line_calc = .false.
 
   crv => grph%curve(2)
@@ -2053,7 +2008,6 @@ if (all(s%plot_page%template%name /= 'emittance')) then
   crv%data_type    = 'rad_int.i5b_e6'
   crv%legend_text  = 'b-mode emit'
   crv%y_axis_scale_factor = 7.213927194325027E-22 !for mm-mrad
-  crv%units        = 'mm*mrad'
   crv%smooth_line_calc = .false.
 endif
 
@@ -2073,7 +2027,6 @@ if (all(s%plot_page%template%name /= 'energy')) then
   crv => grph%curve(1)
   crv%g => grph
   crv%data_type     = 'orbit.e_tot'
-  crv%units        = 'eV'
 endif
 
 !---------------
@@ -2163,7 +2116,6 @@ if (all(s%plot_page%template%name /= 'i2')) then
   crv%g => grph
   crv%data_type     = 'rad_int.i2'
   crv%smooth_line_calc = .false.
-  crv%units        = '1/m'
 endif
 
   !---------------
@@ -2183,7 +2135,6 @@ if (all(s%plot_page%template%name /= 'i3')) then
   crv%g => grph
   crv%data_type     = 'rad_int.i3'
   crv%smooth_line_calc = .false.
-  crv%units        = '1/m^2'
 endif
 
 !---------------
@@ -2202,7 +2153,6 @@ if (all(s%plot_page%template%name /= 'i4a')) then
   crv => grph%curve(1)
   crv%g => grph
   crv%data_type      = 'rad_int.i4a'
-  crv%units          = '1/m'
   crv%smooth_line_calc = .false.
 endif
 
@@ -2223,7 +2173,6 @@ if (all(s%plot_page%template%name /= 'i4b')) then
   crv%g => grph
   crv%data_type     = 'rad_int.i4b'
   crv%smooth_line_calc = .false.
-  crv%units        = '1/m'
 endif
 
 !---------------
@@ -2243,7 +2192,6 @@ if (all(s%plot_page%template%name /= 'i5a')) then
   crv%g => grph
   crv%data_type     = 'rad_int.i5a'
   crv%smooth_line_calc = .false.
-  crv%units        = '1/m'
 endif
 
 !---------------
@@ -2263,7 +2211,6 @@ if (all(s%plot_page%template%name /= 'i5b')) then
   crv%g => grph
   crv%data_type     = 'rad_int.i5b'
   crv%smooth_line_calc = .false.
-  crv%units        = '1/m'
 endif
 
 !---------------
@@ -2333,7 +2280,6 @@ if (all(s%plot_page%template%name /= 'orbit')) then
   crv%data_type           = 'orbit.x'
   crv%legend_text         = 'X'
   crv%y_axis_scale_factor = 1000
-  crv%units        = 'mm'
 
   crv => grph%curve(2)
   crv%name                = 'y'
@@ -2341,7 +2287,6 @@ if (all(s%plot_page%template%name /= 'orbit')) then
   crv%data_type           = 'orbit.y'
   crv%legend_text         = 'Y'
   crv%y_axis_scale_factor = 1000
-  crv%units        = 'mm'
 endif
 
 !---------------
@@ -2381,7 +2326,6 @@ if (all(s%plot_page%template%name /= 'momentum')) then
   crv => grph%curve(1)
   crv%g => grph
   crv%data_type    = 'momentum'
-  crv%units        = 'eV'
 endif
 
 !---------------
@@ -2400,7 +2344,6 @@ if (all(s%plot_page%template%name /= 'momentum_compaction')) then
   crv => grph%curve(1)
   crv%g => grph
   crv%data_type     = 'momentum_compaction'
-  crv%units        = 'm'
 endif
 
 !---------------
@@ -2422,7 +2365,6 @@ if (all(s%plot_page%template%name /= 'phase')) then
   crv%g => grph
   crv%data_type    = 'phase.a'
   crv%legend_text  = '\gf\fn\dA\u'
-  crv%units        = 'deg'
   crv%y_axis_scale_factor = 180/pi
 
   crv => grph%curve(2)
@@ -2430,7 +2372,6 @@ if (all(s%plot_page%template%name /= 'phase')) then
   crv%g => grph
   crv%data_type    = 'phase.b'
   crv%legend_text  = '\gf\fn\dB\u'
-  crv%units        = 'deg'
   crv%y_axis_scale_factor = 180/pi
 endif
 
@@ -2453,14 +2394,12 @@ if (all(s%plot_page%template%name /= 'ping_a_skew')) then
   crv%g => grph
   crv%data_type    = 'ping_a.amp_sin_y'
   crv%legend_text  = 'ping_a.amp_sin_y'
-  crv%units        = ''
 
   crv => grph%curve(2)
   crv%name         = 'cos_y'
   crv%g => grph
   crv%data_type    = 'ping_a.amp_cos_y'
   crv%legend_text  = 'ping_a.amp_cos_y'
-  crv%units        = ''
 endif
 
 !---------------
@@ -2482,14 +2421,12 @@ if (all(s%plot_page%template%name /= 'ping_a_rel_skew')) then
   crv%g => grph
   crv%data_type    = 'ping_a.amp_sin_rel_y'
   crv%legend_text  = 'ping_a.amp_sin_rel_y'
-  crv%units        = ''
 
   crv => grph%curve(2)
   crv%name         = 'cos_rel_y'
   crv%g => grph
   crv%data_type    = 'ping_a.amp_cos_rel_y'
   crv%legend_text  = 'ping_a.amp_cos_rel_y'
-  crv%units        = ''
 endif
 
 !---------------
@@ -2511,14 +2448,12 @@ if (all(s%plot_page%template%name /= 'ping_a_y_amp_phase')) then
   crv%g => grph
   crv%data_type    = 'ping_a.amp_y'
   crv%legend_text  = 'ping_a.amp_y'
-  crv%units        = ''
 
   crv => grph%curve(2)
   crv%name         = 'phase_y'
   crv%g => grph
   crv%data_type    = 'ping_a.phase_y'
   crv%legend_text  = 'ping_a.phase_y'
-  crv%units        = ''
 endif
 
 !---------------
@@ -2540,14 +2475,12 @@ if (all(s%plot_page%template%name /= 'ping_b_skew')) then
   crv%g => grph
   crv%data_type    = 'ping_b.amp_sin_x'
   crv%legend_text  = 'ping_b.amp_sin_x'
-  crv%units        = ''
 
   crv => grph%curve(2)
   crv%name         = 'cos_x'
   crv%g => grph
   crv%data_type    = 'ping_b.amp_cos_x'
   crv%legend_text  = 'ping_b.amp_cos_x'
-  crv%units        = ''
 endif
 
 !---------------
@@ -2569,14 +2502,12 @@ if (all(s%plot_page%template%name /= 'ping_b_rel_skew')) then
   crv%g => grph
   crv%data_type    = 'ping_b.amp_sin_rel_x'
   crv%legend_text  = 'ping_b.amp_sin_rel_x'
-  crv%units        = ''
 
   crv => grph%curve(2)
   crv%name         = 'cos_rel_x'
   crv%g => grph
   crv%data_type    = 'ping_b.amp_cos_rel_x'
   crv%legend_text  = 'ping_b.amp_cos_rel_x'
-  crv%units        = ''
 endif
 
 !---------------
@@ -2598,14 +2529,12 @@ if (all(s%plot_page%template%name /= 'ping_b_x_amp_phase')) then
   crv%g => grph
   crv%data_type    = 'ping_b.amp_x'
   crv%legend_text  = 'ping_b.amp_x'
-  crv%units        = ''
 
   crv => grph%curve(2)
   crv%name         = 'phase_x'
   crv%g => grph
   crv%data_type    = 'ping_b.phase_x'
   crv%legend_text  = 'ping_b.phase_x'
-  crv%units        = ''
 endif
 
 !---------------
@@ -2627,14 +2556,12 @@ if (all(s%plot_page%template%name /= 'ping_amp')) then
   crv%g => grph
   crv%data_type    = 'ping_a.amp_x'
   crv%legend_text  = 'ping_a.amp_x'
-  crv%units        = ''
 
   crv => grph%curve(2)
   crv%name         = 'amp_y'
   crv%g => grph
   crv%data_type    = 'ping_b.amp_y'
   crv%legend_text  = 'ping_b.amp_y'
-  crv%units        = ''
 endif
 
 !---------------
@@ -2656,7 +2583,6 @@ if (all(s%plot_page%template%name /= 'ping_phase')) then
   crv%g => grph
   crv%data_type    = 'ping_a.phase_x'
   crv%legend_text  = 'ping_a.phase_x'
-  crv%units        = 'deg'
   crv%y_axis_scale_factor = 180/pi
 
   crv => grph%curve(2)
@@ -2664,7 +2590,6 @@ if (all(s%plot_page%template%name /= 'ping_phase')) then
   crv%g => grph
   crv%data_type    = 'ping_b.phase_y'
   crv%legend_text  = 'ping_b.phase_y'
-  crv%units        = 'deg'
   crv%y_axis_scale_factor = 180/pi
 endif
 
@@ -2788,7 +2713,6 @@ if (all(s%plot_page%template%name /= 'sr_energy_loss')) then
   crv%g => grph
   crv%data_type        = 'rad_int.i2_e4'
   crv%y_axis_scale_factor = 9.59976e-16 ! (2/3) * r_e *mec2 in MeV*m
-  crv%units            = 'MeV * m'
   crv%smooth_line_calc = .false.
 endif
 
@@ -2808,7 +2732,6 @@ if (all(s%plot_page%template%name /= 'time')) then
   crv => grph%curve(1)
   crv%g => grph
   crv%data_type     = 'time'
-  crv%units        = 'sec'
 endif
 
 !---------------
@@ -2828,7 +2751,6 @@ if (all(s%plot_page%template%name /= 'velocity')) then
   crv%g => grph
   crv%data_type     = 'velocity'
   crv%y_axis_scale_factor = 1
-  crv%units        = ''
 endif
 
 !---------------
@@ -2848,7 +2770,6 @@ if (all(s%plot_page%template%name /= 'z')) then
   crv%g => grph
   crv%data_type     = 'orbit.z'
   crv%y_axis_scale_factor = 1000
-  crv%units        = 'mm'
 endif
 
 !-------------------------------------------------

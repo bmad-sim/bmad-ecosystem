@@ -5086,7 +5086,6 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(c%ele_ref_name)
   nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      trim(c%legend_text)
   nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     trim(c%message_text)
-  nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            trim(c%units)
   nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;I;',                      trim(c%why_invalid)
   nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             c%y_axis_scale_factor
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     c%ix_universe

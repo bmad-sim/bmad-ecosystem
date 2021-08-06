@@ -83,10 +83,10 @@ type tao_curve_input
   character(200) :: data_type = ''
   character(100) :: data_index = ''
   character(40) :: legend_text = ''
-  character(40) :: units = ''
+  character(40) :: units = ''                              ! Unused.
   character(60) :: component = ''
   real(rp) :: y_axis_scale_factor = 1
-  real(rp) :: z_color0 = invalid$, z_color1 = invalid$          ! Deprecated. Use c%z_color%...
+  real(rp) :: z_color0 = invalid$, z_color1 = invalid$     ! Deprecated. Use c%z_color%...
   integer :: symbol_every = 1
   integer :: ix_universe = -1
   logical :: draw_line = .true.
