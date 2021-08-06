@@ -1565,10 +1565,10 @@ do i = 1, size(plot)
     found = .true.
 
   case ('x')
-    call tao_set_qp_axis_struct('x', sub_comp, p%x, value_str, err_flag)
     if (allocated(p%graph)) then
       do j = 1, size(p%graph)
-        p%graph(i)%x = p%x
+        call tao_set_qp_axis_struct('x', sub_comp, p%graph(j)%x, value_str, err_flag)
+        if (err_flag) exit
       enddo
     endif
 

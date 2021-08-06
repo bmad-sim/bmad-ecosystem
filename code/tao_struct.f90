@@ -157,7 +157,7 @@ end type
 type tao_histogram_struct
   logical :: density_normalized = .false.
   logical :: weight_by_charge = .true.
-  real(rp) :: minimum = 0, maximum = 0
+  real(rp) :: minimum = 0, maximum = 0   ! Computed by Tao. Not User settable.
   real(rp) :: width = 0, center = 0
   integer :: number = 0
 end type
@@ -261,7 +261,7 @@ type tao_graph_struct
   type (qp_point_struct) curve_legend_origin
   type (qp_axis_struct) x                           ! X-axis parameters.
   type (qp_axis_struct) y                           ! Y-axis attributes.
-  type (qp_axis_struct) x2                          ! X2-axis attributes (Only used for floor_plan).
+  type (qp_axis_struct) x2                          ! X2-axis attributes (Not currently used).
   type (qp_axis_struct) y2                          ! Y2-axis attributes.
   type (qp_rect_struct) margin                      ! Margin around the graph.
   type (qp_rect_struct) scale_margin                ! Margin for scaling
@@ -291,7 +291,6 @@ type tao_plot_struct
   character(40) :: name = ''                       ! Identifying name. Rule: If name is blank, plot is not valid.
   character(100) :: description = ''               ! Descriptive string.
   type (tao_graph_struct), allocatable :: graph(:) ! individual graphs of a plot
-  type (qp_axis_struct) :: x = qp_axis_struct()    ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r => null() ! pointer to parent.
   integer :: ix_plot = -1                          ! Index in s%plot_page%template(:) or %region(:) arrays.
   integer :: n_curve_pts = -1                      ! Overrides s%plot_page%n_curve_pts.

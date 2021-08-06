@@ -232,7 +232,7 @@ type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
 type (tao_expression_info_struct), allocatable :: info(:)
 
-real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z1, z2, z_in, s_pos, dt, angle, r
+real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, gamma2, val, z, z1, z2, z_in, s_pos, dt, angle, r
 real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
@@ -275,7 +275,8 @@ integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_
 integer eval_pt, n_count
 integer, allocatable :: ix_c(:), ix_remove(:)
 
-complex(rp) eval(6), evec(6,6), n_eigen(6,3)
+complex(rp) eval(6), evec(6,6), n_eigen(6,3), qv(0:3), qv2(0:3), qn0(0:3), q0(0:3), ss1(0:3)
+real(rp) nn0(3)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
@@ -3562,14 +3563,6 @@ case ('plot')
         nl=nl+1; write (lines(nl), f3mt) 'Location [x1,x2,y1,y2] = ', p%r%location
       endif
       nl=nl+1; write(lines(nl), amt) 'x_axis_type          = ', quote(p%x_axis_type)
-      nl=nl+1; write(lines(nl), amt) 'x%label              = ', quote(p%x%label)
-      nl=nl+1; write(lines(nl), rmt) 'x%max                = ', p%x%max
-      nl=nl+1; write(lines(nl), rmt) 'x%min                = ', p%x%min
-      nl=nl+1; write(lines(nl), imt) 'x%major_div          = ', p%x%major_div
-      nl=nl+1; write(lines(nl), imt) 'x%major_div_nominal  = ', p%x%major_div_nominal
-      nl=nl+1; write(lines(nl), imt) 'x%places             = ', p%x%places
-      nl=nl+1; write(lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
-      nl=nl+1; write(lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
       nl=nl+1; write(lines(nl), lmt) 'autoscale_x          = ', p%autoscale_x
       nl=nl+1; write(lines(nl), lmt) 'autoscale_y          = ', p%autoscale_y
       nl=nl+1; write(lines(nl), lmt) 'autoscale_gang_x     = ', p%autoscale_gang_x
@@ -3923,7 +3916,7 @@ case ('spin')
 
     if (show_mat) then
       if (all(sm%axis_input%n0 == 0)) then
-        nl=nl+1; lines(nl) = 'NO N0 SPIN AXIS COMPUTED.' 
+        nl=nl+1; lines(nl) = 'NO SPIN AXIS COMPUTED.' 
         nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON FROM THE COMMAND LINE: "set bmad spin_tracking_on = T"'
         nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON IN THE LATTICE FILE: "bmad_com[spin_tracking_on] = T"'
         return
@@ -3973,8 +3966,8 @@ case ('spin')
       nl=nl+1; lines(nl) = '     |Eval|     E_val            x           px          y           py          z           pz              Sx          Sy          Sz'
 
       do i = 1, 6
-        nl=nl+1; write (lines(nl), '(a, 2f10.6,     4x, 6f12.6, 4x, 3f12.6)', iostat = ios) 're', abs(eval(i)), real(eval(i),rp), real(evec(i,:),rp), real(n_eigen(i,:),rp)
-        nl=nl+1; write (lines(nl), '(a, 10x, f10.6, 4x, 6f12.6, 4x, 3f12.6)', iostat = ios) 'im', aimag(eval(i)), aimag(evec(i,:)), aimag(n_eigen(i,:))
+        nl=nl+1; write (lines(nl), '(a, 2f10.6,     4x, 6f12.6, 4x, 3es12.4)', iostat = ios) 're', abs(eval(i)), real(eval(i),rp), real(evec(i,:),rp), real(n_eigen(i,:),rp)
+        nl=nl+1; write (lines(nl), '(a, 10x, f10.6, 4x, 6f12.6, 4x, 3es12.4)', iostat = ios) 'im', aimag(eval(i)), aimag(evec(i,:)), aimag(n_eigen(i,:))
         nl=nl+1; lines(nl) = ''
       enddo
 
@@ -3986,11 +3979,27 @@ case ('spin')
         j = 2 * i - 1
         q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
         dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
-        !!x = abs((q-qs) - nint(q-qs)) * (norm2(real(n_eigen(j,:))) + norm2(imag(n_eigen(j,:))))
         x = dq * sqrt(2.0_rp)*norm2(abs(n_eigen(j,:)))
+
+        q0 = sm%q_map%q(:,0)
+        nn0 = sm%q_map%q(1:3,0)
+        nn0 = nn0 / norm2(nn0)
+        qn0 = [0.0_rp, nn0]
+
+        do k = 0, 3
+          qv(k)  = sum(evec(j,:) * sm%q_map%q(k,1:6))
+          qv2(k) = sum(evec(j+1,:) * sm%q_map%q(k,1:6))
+        enddo
+        ss1 = (quat_mul(quat_mul(qv, qn0), quat_conj(q0)) + quat_mul(quat_mul(q0, qn0), quat_conj(qv))) / twopi
+        s1 = sqrt(2.0_rp) * norm2(abs(ss1))
+        ss1 = (quat_mul(quat_mul(qv2, qn0), quat_conj(q0)) + quat_mul(quat_mul(q0, qn0), quat_conj(qv2))) / twopi
+        s2 = sqrt(2.0_rp) * norm2(abs(ss1))
+
+
         z1 = abs(dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
         z2 = abs(dot_product(evec(j+1,:), sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
-        nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 3es15.4)') abc_name(i), q, dq, x, z1, z2
+        nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 7es15.4)') abc_name(i), q, dq, x, z1, z2, s1, s2
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') ss1
       enddo
       nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
     endif
