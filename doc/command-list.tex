@@ -1498,14 +1498,8 @@ Format:
   set plot_page <parameter> = <value1> \{<value2>\}
 \end{example}
 
-For \vn{set plot_page}, the \vn{<parameter>}s that can be set are:
-\begin{example}
-  title        = <string>          ! Set the plot title text
-  subtitle     = <string>          ! Set the subtitle text
-  subtitle_loc = <number> <number> ! Set the subtitle location (\%PAGE)
-\end{example}
-The \vn{subtitle_loc} parameter can be used to place the subtitle anywhere on the plot
-page. This can be useful for referencing a noteworthy part of a graph data.
+The \vn{set plot_page} command sets \vn{plot page} parameters (\sref{s:plot.page.def}).
+use the \vn{show plot -page} command to see a list of plot page parameters.
 
 Example:
 \begin{example}
@@ -3814,8 +3808,8 @@ given ones. If \vn{<value1>} and \vn{<value2>} are not given, and if \vn{bounds}
 directly, use the \vn{set graph} command.
 
 Note: The \vn{x_scale} command will vary the number of major divisions (set by
-\vn{plot%x%major_divisions} (\sref{s:template})) to try to give a nice looking axis. The result can be
-that if two plots have the same range of data but differing major division settings, the
+\vn{graph%x%major_divisions} (\sref{s:template})) to try to give a nice looking axis. The result
+can be that if two plots have the same range of data but differing major division settings, the
 \vn{x_scale} command can produce differing results.
 
 For scaling \vn{floor_plan} plots where there is a building wall to be drawn, if \vn{-include_wall}

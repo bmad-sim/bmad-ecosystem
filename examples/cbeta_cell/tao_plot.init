@@ -43,7 +43,7 @@ the plot page) is broken up.
 !------------------ layout ------
 &tao_template_plot
 	plot%name = 'layout'
-	plot%x%label = ' '
+	default_graph%x%label = ' '
 	plot%n_graph = 1
 	plot%x_axis_type = 's'
 /
@@ -56,7 +56,6 @@ the plot page) is broken up.
 	graph%x%draw_numbers = False
 	graph%ix_universe = -1 !Syntax Changed from 0
 	graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
-	graph%n_curve = 0
   	!graph%y%label = 'Layout'
  	graph%y%max =  20
   	graph%y%min = -20
@@ -120,10 +119,7 @@ the plot page) is broken up.
 !------------------ key_table ------
 &tao_template_plot
 	plot%name = 'key_table'
-	plot%x%min = 0
-	plot%x%max = 100
-	!plot%x%major_div = 10
-	plot%x%label = ' '
+	default_graph%x%label = ' '
 	plot%n_graph = 1
 	plot%x_axis_type = 's'
 /
@@ -135,10 +131,7 @@ the plot page) is broken up.
 	graph%box = 1, 1, 1, 1
 	graph%ix_universe = -1 !Syntax Changed from 0
 	graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
-	graph%n_curve = 0
-  	graph%y%label = 'X'
- 	graph%y%max =  20
-  	graph%y%min = -20
+	graph%y%label = 'X'
  	graph%y%major_div = 4
 /
 
@@ -150,7 +143,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'template'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -165,7 +158,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
   graph%y%label_offset=.4
-  graph%n_curve = 2
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
@@ -189,7 +181,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'rel_floor_x'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -204,7 +196,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
   graph%y%label_offset=.4
-  graph%n_curve = 1
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'rel_floor.x'
@@ -221,9 +212,9 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'zhist'
-  plot%x%min = -6
-  plot%x%max =  6
-  plot%x%label = 'z (mm)'	
+  default_graph%x%min = -6
+  default_graph%x%max =  6
+  default_graph%x%label = 'z (mm)'	
   plot%n_graph = 1
 /
 
@@ -238,7 +229,6 @@ the plot page) is broken up.
  ! graph%y%max =  15
  ! graph%y%min = 0
  ! graph%y%major_div = 4
-  graph%n_curve = 1
   graph%y%label_offset = .1
   graph%x_axis_scale_factor = 1000.00 !m->mm
 
@@ -259,7 +249,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'bends'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -274,7 +264,6 @@ the plot page) is broken up.
   graph%margin  =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
   graph%y%label_offset = .1
-  graph%n_curve = 1
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'element_attrib.b_field'
@@ -291,7 +280,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'quads'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -306,7 +295,6 @@ the plot page) is broken up.
   graph%margin  =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
   graph%y%label_offset = .1
-  graph%n_curve = 1
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'element_param.k1'
@@ -323,7 +311,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'beta'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -338,7 +326,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
   graph%y%label_offset=.4
-  graph%n_curve = 2
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
@@ -362,7 +349,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'eta'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -377,7 +364,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\gy\dx\u, \gy\dy\u (m)'
   graph%y%label_offset=.4
-  graph%n_curve = 2
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'eta.x'
@@ -402,7 +388,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'dispersionx'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -417,7 +403,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
    graph%y%label = 'r\d16\u, t\d166\u (m)'
   graph%y%label_offset=.1
-  graph%n_curve = 2
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'eta.x'
@@ -444,7 +429,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'phase'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -459,7 +444,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\gf\da\u, \gf\db\u (2\gp)'
   graph%y%label_offset=.1
-  graph%n_curve = 2
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'phase.a'
@@ -485,7 +469,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'orbit'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -500,7 +484,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = 'Orbit (mm)'
   graph%y%label_offset=.1
-  graph%n_curve = 2
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'orbit.x'
@@ -527,7 +510,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'diff_orbit'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -542,7 +525,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = 'Difference Orbit (mm)'
   graph%y%label_offset=.1
-  graph%n_curve = 2
   graph%component = 'model - design'
 
 
@@ -573,7 +555,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'diff_beam_orbit'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -588,7 +570,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = 'Beam \gDOrbit (mm)'
   graph%y%label_offset=.1
-  graph%n_curve = 2
   graph%component = 'model'
 
 
@@ -622,7 +603,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'multiorbit4'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -641,7 +622,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = 'Orbit (mm)'
   graph%y%label_offset=.1
-  graph%n_curve = 4
 
   curve(1)%ix_universe = -1
   curve(1)%data_source = 'lattice'
@@ -692,7 +672,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'multibeta4'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -711,7 +691,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\gb (m)'
   graph%y%label_offset=.2
-  graph%n_curve = 8
 
   curve(1)%ix_universe = -1
   curve(1)%data_source = 'lattice'
@@ -805,7 +784,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'multiphase4'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -824,7 +803,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\gf\da\u, \gf\db\u (2\gp)'
   graph%y%label_offset=.2
-  graph%n_curve = 8
 
   curve(1)%ix_universe = -1
   curve(1)%data_source = 'lattice'
@@ -918,7 +896,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'multieta4'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -937,7 +915,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = 'eta (m)'
   graph%y%label_offset=.1
-  graph%n_curve = 4
 
   curve(1)%ix_universe = -1
   curve(1)%data_source = 'lattice'
@@ -990,7 +967,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'momentum_compaction'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -1006,7 +983,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = 'r\d56\u contribution (m)'
   graph%y%label_offset=.4
-  graph%n_curve = 1
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'momentum_compaction'
@@ -1024,7 +1000,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'emittance_growth'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -1039,7 +1015,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\ge\dN\u Growth (mm-mrad)'
   graph%y%label_offset=.1
-  graph%n_curve = 1
 
   curve(1)%smooth_line_calc = False
   curve(1)%data_source = 'lattice'
@@ -1062,7 +1037,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'sr_energy_loss'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -1077,7 +1052,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '-\gDE\dISR\u (MeV)'
   graph%y%label_offset=.4
-  graph%n_curve = 1
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'rad_int.i2_e4'
@@ -1095,7 +1069,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'e_spread_growth'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -1110,7 +1084,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = '\gs\dE\u\u2\d Growth (eV\u2\d)'
   graph%y%label_offset=.1
-  graph%n_curve = 1
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'rad_int.i3_e7'
@@ -1130,7 +1103,7 @@ the plot page) is broken up.
 &tao_template_plot
   plot%name = 'energy'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -1146,7 +1119,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
   graph%y%label = '\(0555) (MeV)'  ! \(0555) is caligraphic E
   graph%y%label_offset=.4
-  graph%n_curve = 1
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'e_tot'
@@ -1162,7 +1134,7 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'xpx'
-  plot%x%label = 'X (\gmm)'
+  default_graph%x%label = 'X (\gmm)'
   plot%n_graph = 1
 /
 
@@ -1177,7 +1149,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = 'P\dx\u (\gmrad)'
   graph%y%label_offset=.1
-  graph%n_curve = 1
 
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type = 'x-px' 
@@ -1201,12 +1172,7 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'beta_error'
-  plot%x%min =   0
-  plot%x%max = 100
-  !!plot%x%major_div =10
-  !plot%x%label = 's (m)'
   plot%x_axis_type = 's'
-  !plot%x%label_offset = 1.2
   plot%n_graph = 1
 /
 
@@ -1225,7 +1191,6 @@ the plot page) is broken up.
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
@@ -1253,10 +1218,8 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'beamorbit'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph =1
 /
@@ -1271,7 +1234,6 @@ the plot page) is broken up.
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
  curve(1)%legend_text = 'X'
   curve(1)%data_source = 'beam'
   curve(1)%data_type   = 'orbit.x'
@@ -1289,10 +1251,8 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'orbitangle'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph =1
 /
@@ -1307,7 +1267,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
  curve(1)%legend_text = 'X'
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'orbit.px'
@@ -1329,10 +1288,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'xphase'
-  plot%x%min =   -0.001
-  plot%x%max = 0.001
-  !plot%x%major_div = 10
-  plot%x%label = 'x (mm)'
+  default_graph%x%min =   -0.001
+  default_graph%x%max = 0.001
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'x (mm)'
   plot%n_graph = 1
 /
 
@@ -1348,7 +1307,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max = 0.1
   graph%y%min = -0.1
   graph%y%major_div = 4
-  graph%n_curve = 1
   graph%y%label_offset=.4
   curve(1)%data_type = 'x-px' 
   curve(1)%y_axis_scale_factor = 1000 !rad->mrad
@@ -1360,10 +1318,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'yphase'
-  plot%x%min =   -0.001
-  plot%x%max = 0.001
-  !plot%x%major_div = 10
-  plot%x%label = 'y (mm)'
+  default_graph%x%min =   -0.001
+  default_graph%x%max = 0.001
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'y (mm)'
   plot%n_graph = 1
 /
 
@@ -1379,7 +1337,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max = 0.1
   graph%y%min = -0.1
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_type = 'y-py' 
   curve(1)%y_axis_scale_factor = 1000 !rad->mrad
   curve(1)%data_source = 'beam_tracking'
@@ -1391,10 +1348,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'zphase'
-  plot%x%min = -6
-  plot%x%max =  6
-  !plot%x%major_div = 10
-  plot%x%label = 'z (mm)'	
+  default_graph%x%min = -6
+  default_graph%x%max =  6
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'z (mm)'	
   plot%n_graph = 1
 /
 
@@ -1410,7 +1367,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max = 3
   graph%y%min = -3
   graph%y%major_div = 4
-  graph%n_curve = 1
   graph%y%label_offset=.4
   curve(1)%data_type = 'z-pz' 
   curve(1)%y_axis_scale_factor = 1000.0 !1->10^-3 relative
@@ -1428,10 +1384,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'xpzphase'
-  plot%x%min =   -0.001
-  plot%x%max = 0.001
-  !plot%x%major_div = 10
-  plot%x%label = 'x (mm)'
+  default_graph%x%min =   -0.001
+  default_graph%x%max = 0.001
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'x (mm)'
   plot%n_graph = 1
 /
 
@@ -1447,7 +1403,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max = 0.1
   graph%y%min = -0.1
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_type = 'x-pz' 
   curve(1)%y_axis_scale_factor = 1000 !rad->mrad
   curve(1)%data_source = 'beam_tracking'
@@ -1456,50 +1411,14 @@ curve(2)%legend_text = 'Y'
   curve(1)%symbol%type = "dot"
 /
 
-
-
-!--------------------------------------------------------------
-
-&tao_template_plot
-  plot%name = 'testphase'
-  plot%x%min =   -0.001
-  plot%x%max = 0.001
-  !plot%x%major_div = 10
-  plot%x%label = 'J\da\u (\gm m)'
-  plot%n_graph = 1
-/
-
-&tao_template_graph
-  graph_index = 1
-  graph%name = 'z'
-  graph%type = 'phase_space'
-  graph%box = 1, 1, 1, 1
-  graph%title = 'pz-Ja'
-  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
-  graph%x_axis_scale_factor = 1e6
-  graph%y%label = '\gd (10\u-4\d)'
-  graph%y%max = 0.1
-  graph%y%min = -0.1
-  graph%y%major_div = 4
-  graph%n_curve = 1
-  curve(1)%data_type = 'Ja-pz' 
-  curve(1)%y_axis_scale_factor = 1e4 !um
-  curve(1)%data_source = 'beam_tracking'
-  curve(1)%ix_universe = 1
-  curve(1)%ele_ref_name = "BEGINNING"
-  curve(1)%symbol%type = "dot"
-/
-
-
-
 !--------------------------------------------------------------
 
 &tao_template_plot
   plot%name = 'screen'
-  plot%x%min =   -0.001
-  plot%x%max = 0.001
-  !plot%x%major_div = 10
-  plot%x%label = 'x'
+  default_graph%x%min =   -0.001
+  default_graph%x%max = 0.001
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'x'
   plot%n_graph = 1
 /
 
@@ -1514,7 +1433,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max = 0.1
   graph%y%min = -0.1
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_type = 'x-y' 
   curve(1)%data_source = 'beam_tracking'
   curve(1)%ix_universe = 1
@@ -1522,20 +1440,11 @@ curve(2)%legend_text = 'Y'
   curve(1)%symbol%type = "dot"
 /
 
-
-
-
-
 !-------alpha-----------------------------------
 
 &tao_template_plot
   plot%name = 'alpha'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div =10
-  !plot%x%label = 's (m)'
   plot%x_axis_type = 's'
-  !plot%x%label_offset = 1.2
   plot%n_graph = 1
 /
 
@@ -1553,7 +1462,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'alpha.a'
   curve(1)%y_axis_scale_factor = 1
@@ -1575,12 +1483,12 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'betalabel'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div =10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div =10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
-  !plot%x%label_offset = 1.2
+  !default_graph%x%label_offset = 1.2
   plot%n_graph = 1
 /
 
@@ -1598,7 +1506,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
@@ -1620,10 +1527,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'betadispersion'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div =10
-  !plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div =10
+  !default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -1650,7 +1557,6 @@ curve(2)%legend_text = 'Y'
   graph%y2%major_div = 4  	  
   graph%y2%label_color=2
   
-  graph%n_curve = 2
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
@@ -1669,10 +1575,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'beambeta'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -1687,7 +1593,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 4
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
@@ -1721,10 +1626,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'beameta'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -1739,7 +1644,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'eta.x'
   curve(1)%y_axis_scale_factor = 1
@@ -1761,11 +1665,11 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'etaz'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%minor_div = 4
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%minor_div = 4
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -1781,7 +1685,6 @@ curve(2)%legend_text = 'Y'
   graph%y%min = -20
   graph%y%major_div = 4
   graph%y%label = '\gy\dz\u(m)'
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'eta.z'
   curve(1)%legend_text = '\gy\dz\u'
@@ -1797,11 +1700,11 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'etap'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%minor_div = 4
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%minor_div = 4
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -1816,7 +1719,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'etap.x'
   curve(1)%y_axis_scale_factor = 1
@@ -1841,10 +1743,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'dispersionxscaled'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -1862,7 +1764,6 @@ curve(2)%legend_text = 'Y'
   graph%y%min = -20
   graph%y%label_offset=.1
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'eta.x'
   curve(1)%y_axis_scale_factor = 1 !m
@@ -1887,10 +1788,10 @@ curve(2)%legend_text = 'Y'
 !------------ orbit.amp
 &tao_template_plot
   plot%name = 'orbitamp'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -1905,7 +1806,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'orbit.amp_a'
   curve(1)%y_axis_scale_factor = 1
@@ -1931,10 +1831,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'tof'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -1951,7 +1851,6 @@ curve(2)%legend_text = 'Y'
   graph%y%label_offset=.1
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'r.56'
   curve(1)%legend_text = 'r\d56\u'
@@ -1978,10 +1877,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'tofscaled'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -1998,7 +1897,6 @@ curve(2)%legend_text = 'Y'
   graph%y%label_offset=.1
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'r.56'
   curve(1)%legend_text = 'r\d56\u (cm)'
@@ -2026,10 +1924,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'txx6'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2046,7 +1944,6 @@ curve(2)%legend_text = 'Y'
   graph%y%label_offset=.1
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 4
   curve(1)%data_type = 't.116'
   curve(2)%data_type = 't.126'
   curve(3)%data_type = 't.226'
@@ -2094,10 +1991,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'u1666'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2114,7 +2011,6 @@ curve(2)%legend_text = 'Y'
   graph%y%label_offset=.1
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'tt.1666'
   curve(1)%legend_text = 'u\d1666\u'
@@ -2130,10 +2026,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'u5666'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2150,7 +2046,6 @@ curve(2)%legend_text = 'Y'
   graph%y%label_offset=.1
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'tt.5666'
   curve(1)%legend_text = 'u\d5666\u'
@@ -2168,10 +2063,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'xt1'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2186,7 +2081,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%smooth_line_calc = False
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'xeriodic_tt.1'
@@ -2200,10 +2094,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'pt166'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2218,7 +2112,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%smooth_line_calc = False
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'periodic.tt.166'
@@ -2233,10 +2126,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 't116'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2251,7 +2144,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%smooth_line_calc = False
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 't.116'
@@ -2266,10 +2158,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 't166'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2284,7 +2176,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%smooth_line_calc = False
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 't.166'
@@ -2298,10 +2189,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 't266'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2316,7 +2207,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 't.266'
   curve(1)%y_axis_scale_factor = 1
@@ -2328,10 +2218,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 't566'
-  plot%x%min =   800
-  plot%x%max = 2000
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   800
+  default_graph%x%max = 2000
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2346,7 +2236,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 't.566'
   curve(1)%y_axis_scale_factor = 1
@@ -2359,10 +2248,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'pt566'
-  plot%x%min =   800
-  plot%x%max = 2000
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   800
+  default_graph%x%max = 2000
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2377,7 +2266,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'periodic.tt.566'
   curve(1)%y_axis_scale_factor = 1
@@ -2392,10 +2280,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 't116'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2410,7 +2298,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%smooth_line_calc = False
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 't.116'
@@ -2427,10 +2314,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'beamdispersion'
-  plot%x%min =   0
-  plot%x%max = 2900
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 2900
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
   plot%autoscale_gang_y = False
@@ -2450,7 +2337,6 @@ curve(2)%legend_text = 'Y'
   graph%y%label_offset=.1
   graph%y%min = -6.0
   graph%y%major_div = 4
-  graph%n_curve = 4
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'eta.x'
   curve(1)%legend_text = 'D\dx\u'	
@@ -2487,10 +2373,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'emittancexy'
-  plot%x%min =   0
-  plot%x%max = 2900
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 2900
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
   plot%autoscale_gang_y = False
@@ -2510,7 +2396,6 @@ curve(2)%legend_text = 'Y'
   graph%y%label_offset=.4
   graph%y%min = 0.0
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'norm_emit.x'
   curve(1)%legend_text = '\ge\dN\u X'	
@@ -2531,10 +2416,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'emittancez'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 'Distance [m]'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'Distance [m]'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2549,7 +2434,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   !curve(1)%smooth_line_calc = False
   curve(1)%data_source = 'beam'
   curve(1)%data_type   = 'norm_emit.z'
@@ -2562,10 +2446,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'sigmaxy'
-  plot%x%min =   0
-  plot%x%max = 2900
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 2900
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
   plot%autoscale_gang_y = False
@@ -2585,7 +2469,6 @@ curve(2)%legend_text = 'Y'
   graph%y%label_offset=.4
   graph%y%min = 0.0
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'sigma.x'
   curve(1)%legend_text = '\gs\dx\u'	
@@ -2606,7 +2489,7 @@ curve(2)%legend_text = 'Y'
 &tao_template_plot
   plot%name = 'sigmaz'
   plot%x_axis_type = 's'
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
   plot%n_graph = 1
 /
 
@@ -2622,7 +2505,6 @@ curve(2)%legend_text = 'Y'
   graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
   graph%y%label = '\gs\dz\u/c (ps)'
   graph%y%label_offset=.4
-  graph%n_curve = 1
 
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'sigma.z'
@@ -2637,14 +2519,14 @@ curve(2)%legend_text = 'Y'
 
  &tao_template_plot
   plot%name = 'sigmapz'
-  plot%x%min =   0
-  plot%x%max = 2900
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 2900
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
   plot%autoscale_gang_y = False
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
  /
 
  &tao_template_graph
@@ -2659,7 +2541,6 @@ curve(2)%legend_text = 'Y'
   graph%y%label_offset=.1
   graph%y%min = 0.0
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'sigma.pz'
   curve(1)%y_axis_scale_factor = 1e4
@@ -2670,10 +2551,10 @@ curve(2)%legend_text = 'Y'
 
 !&tao_template_plot
   plot%name = 'quads'
-  plot%x%min =   0
-  plot%x%max = 120
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 120
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 'index'
   plot%n_graph = 1
 /
@@ -2688,7 +2569,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  0.1
   graph%y%min = -0.1
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'element_param.k1'
   curve(1)%y_axis_scale_factor = 1
@@ -2698,14 +2578,14 @@ curve(2)%legend_text = 'Y'
 
  &tao_template_plot
   plot%name = 'ploss'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
   plot%autoscale_gang_y = False
-  plot%x%label = 's (m)'
+  default_graph%x%label = 's (m)'
  /
 
  &tao_template_graph
@@ -2720,7 +2600,6 @@ curve(2)%legend_text = 'Y'
   graph%y%label_offset=.1
   graph%y%min = 0.0
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'n_particle_loss'
   curve(1)%y_axis_scale_factor =1
@@ -2733,10 +2612,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'delta_heuristic'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2751,7 +2630,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'delta_heuristic'
   curve(1)%ele_ref_name = "BEGINNING"
@@ -2764,10 +2642,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'touschek_heuristic'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2782,7 +2660,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'touschek_heuristic'
   curve(1)%y_axis_scale_factor = 1
@@ -2796,10 +2673,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'touschek_heuristic_integral'
-  plot%x%min =   0
-  plot%x%max = 100
-  !plot%x%major_div = 10
-  plot%x%label = 's (m)'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2814,7 +2691,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%ele_ref_name = "BEGINNING"
   curve(1)%data_type   = 'touschek_heuristic_integral'
@@ -2829,10 +2705,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'dynamic_aperture'
-  plot%x%min = -20
-  plot%x%max =  20
-  plot%x%major_div_nominal = 4
-  plot%x%label = 'x (mm)'
+  default_graph%x%min = -20
+  default_graph%x%max =  20
+  default_graph%x%major_div_nominal = 4
+  default_graph%x%label = 'x (mm)'
   plot%x_axis_type = 'phase_space'
   plot%n_graph = 1
 /
@@ -2848,7 +2724,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  20
   graph%y%min = 0
   graph%y%major_div = 4
-  graph%n_curve = 5
   curve(1)%y_axis_scale_factor = 1000
   curve(2)%y_axis_scale_factor = 1000
   curve(3)%y_axis_scale_factor = 1000
@@ -2875,10 +2750,10 @@ curve(2)%legend_text = 'Y'
 
 &tao_template_plot
   plot%name = 'floor'
-  plot%x%min =   -0.1
-  plot%x%max = 0.5
-  !plot%x%major_div = 10
-  plot%x%label = 'X (m)'
+  default_graph%x%min =   -0.1
+  default_graph%x%max = 0.5
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'X (m)'
   plot%n_graph = 1
 /
 
@@ -2894,7 +2769,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max = 0.3
   graph%y%min = -0.3
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%ix_universe = 1
 /
@@ -2903,10 +2777,10 @@ curve(2)%legend_text = 'Y'
 !--------- variable 1 -------------
 &tao_template_plot
   plot%name = 'var1'
-  plot%x%min =   0
-  plot%x%max = 10
-  !plot%x%major_div_nominal = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 10
+  !default_graph%x%major_div_nominal = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2922,7 +2796,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  2
   graph%y%min = -6
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'var_array'
   curve(1)%data_type = 'quad_offset'
   curve(1)%y_axis_scale_factor = 1000
@@ -2939,10 +2812,10 @@ curve(2)%legend_text = 'Y'
 !--------- variable BL_kicks -------------
 &tao_template_plot
   plot%name = 'var_correctors'
-  plot%x%min =   0
-  plot%x%max = 10
-  !plot%x%major_div_nominal = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 10
+  !default_graph%x%major_div_nominal = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -2958,7 +2831,6 @@ curve(2)%legend_text = 'Y'
   graph%y%max =  1
   graph%y%min = -1
   graph%y%major_div = 4
-  graph%n_curve = 6
 
   curve(1)%data_source = 'var_array'
   curve(1)%data_type = 'fa.correctors.x'

@@ -559,7 +559,7 @@ do k = 1, size(graph%curve)
       curve%x_symb(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       curve%y_symb(n+1:n+m) = pack(scratch%axis2, mask = (p%state == alive$))
       if (curve%z_color%is_on) then
-        call tao_phase_space_axis (curve%data_type_z, ix3_ax, p, scratch%axis3, ele)
+        call tao_phase_space_axis (curve%z_color%data_type, ix3_ax, p, scratch%axis3, ele)
         curve%z_symb(n+1:n+m) = pack(scratch%axis3, mask = (p%state == alive$))
       endif
       if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &

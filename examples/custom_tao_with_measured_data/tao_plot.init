@@ -14,8 +14,8 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'ping_ax'
-  plot%x%major_div_nominal = 7
-  plot%x%label = ' '
+  default_graph%x%major_div_nominal = 7
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 2
   plot%autoscale_gang_y = False
@@ -29,7 +29,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
   graph%y%label = 'Amp_x'
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'data'
   curve(1)%data_type   = 'ping_a.amp_x'
   curve(1)%draw_symbols = True
@@ -45,7 +44,6 @@ the plot page) is broken up.
   graph%x%draw_numbers = False
   graph%y%label = 'Phase_x'
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'data'
   curve(1)%data_type   = 'ping_a.phase_x'
   curve(1)%draw_symbols = True
@@ -55,8 +53,8 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'ping_ay'
-  plot%x%major_div_nominal = 7
-  plot%x%label = ' '
+  default_graph%x%major_div_nominal = 7
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 2
   plot%autoscale_gang_y = False
@@ -70,7 +68,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
   graph%y%label = 'Amp_y'
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'data'
   curve(1)%data_type   = 'ping_a.amp_y'
   curve(1)%draw_symbols = True
@@ -86,7 +83,6 @@ the plot page) is broken up.
   graph%x%draw_numbers = False
   graph%y%label = 'Phase_y'
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'data'
   curve(1)%data_type   = 'ping_a.phase_y'
   curve(1)%draw_symbols = True
@@ -96,8 +92,8 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'ping_bx'
-  plot%x%major_div_nominal = 7
-  plot%x%label = ' '
+  default_graph%x%major_div_nominal = 7
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 2
   plot%autoscale_gang_y = False
@@ -111,7 +107,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
   graph%y%label = 'Amp_x'
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'data'
   curve(1)%data_type   = 'ping_b.amp_x'
   curve(1)%draw_symbols = True
@@ -127,7 +122,6 @@ the plot page) is broken up.
   graph%x%draw_numbers = False
   graph%y%label = 'Phase_x'
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'data'
   curve(1)%data_type   = 'ping_b.phase_x'
   curve(1)%draw_symbols = True
@@ -137,8 +131,8 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'ping_b_y'
-  plot%x%major_div_nominal = 7
-  plot%x%label = ' '
+  default_graph%x%major_div_nominal = 7
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 2
   plot%autoscale_gang_y = False
@@ -152,7 +146,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
   graph%y%label = 'Amp_y'
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'data'
   curve(1)%data_type   = 'ping_b.amp_y'
   curve(1)%draw_symbols = True
@@ -168,7 +161,6 @@ the plot page) is broken up.
   graph%x%draw_numbers = False
   graph%y%label = 'Phase_y'
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'data'
   curve(1)%data_type   = 'ping_b.phase_y'
   curve(1)%draw_symbols = True

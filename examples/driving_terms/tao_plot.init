@@ -16,10 +16,8 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'da'
-  plot%x%min = -30
-  plot%x%max = 30
-  plot%x%major_div_nominal = 10
-  plot%x%label = 'x (mm)'
+  default_graph%x%major_div_nominal = 10
+  default_graph%x%label = 'x (mm)'
   plot%x_axis_type = 'phase_space'
   plot%n_graph = 1
 /
@@ -36,7 +34,6 @@ the plot page) is broken up.
   graph%y%max = 20
   graph%y%min = 0
   graph%y%major_div = 4
-  graph%n_curve = 3
   curve(1)%y_axis_scale_factor = 1000
   curve(1)%draw_symbols = F
   curve(1)%data_type = 'dynamic_aperture'
@@ -60,12 +57,10 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'lat_layout'
-  plot%x%min = 0.
-  plot%x%max = 90
-  plot%x%label = 'Meters'
-  plot%x%draw_label = False
+  default_graph%x%label = 'Meters'
+  default_graph%x%draw_label = False
   plot%x_axis_type = 's'
-  plot%x%major_div_nominal = 9
+  default_graph%x%major_div_nominal = 9
   plot%n_graph = 1
 /
 
@@ -87,12 +82,12 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'lat_layout2'
-  plot%x%min = 680
-  plot%x%max = 770
-  plot%x%label = 'Meters'
-  plot%x%draw_label = False
+  default_graph%x%min = 680
+  default_graph%x%max = 770
+  default_graph%x%label = 'Meters'
+  default_graph%x%draw_label = False
   plot%x_axis_type = 's'
-  plot%x%major_div_nominal = 9
+  default_graph%x%major_div_nominal = 9
   plot%n_graph = 1
 /
 
@@ -114,12 +109,10 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'lat_layout_full'
-  plot%x%min = 0.
-  plot%x%max = 770.
-  plot%x%label = 'Meters'
-  plot%x%draw_label = False
+  default_graph%x%label = 'Meters'
+  default_graph%x%draw_label = False
   plot%x_axis_type = 's'
-  plot%x%major_div_nominal = 14
+  default_graph%x%major_div_nominal = 14
   plot%n_graph = 1
 /
 
@@ -142,10 +135,7 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'beta_eta'
-  plot%x%min =   0.
-  plot%x%max = 90.
-  plot%x%major_div = 9
-  plot%x%label = 's [meters]'
+  default_graph%x%label = 's [meters]'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -168,7 +158,6 @@ the plot page) is broken up.
   graph%y2%min = 0
   graph%y2%major_div = 4
 
-  graph%n_curve = 3
 
   curve(1)%data_source = 'lat'
   curve(1)%data_type   = 'beta.a'
@@ -190,10 +179,10 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'beta_eta2'
-  plot%x%min =   680.
-  plot%x%max = 770.
-  plot%x%major_div = 9
-  plot%x%label = 's [meters]'
+  default_graph%x%min =   680.
+  default_graph%x%max = 770.
+  default_graph%x%major_div = 9
+  default_graph%x%label = 's [meters]'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -216,7 +205,6 @@ the plot page) is broken up.
   graph%y2%min = 0
   graph%y2%major_div = 4
 
-  graph%n_curve = 3
 
   curve(1)%data_source = 'lat'
   curve(1)%data_type   = 'beta.a'
@@ -238,10 +226,10 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'beta_eta_full'
-  plot%x%min =   0.
-  plot%x%max = 770.
-  plot%x%major_div = 14
-  plot%x%label = 's [meters]'
+  default_graph%x%min =   0.
+  default_graph%x%max = 770.
+  default_graph%x%major_div = 14
+  default_graph%x%label = 's [meters]'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -264,7 +252,6 @@ the plot page) is broken up.
   graph%y2%min = 0
   graph%y2%major_div = 4
 
-  graph%n_curve = 3
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
@@ -292,10 +279,10 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'orbit'
-  plot%x%min =  0 
-  plot%x%max = 770
-  plot%x%label = ''
-  plot%x%major_div = 10
+  default_graph%x%min =  0 
+  default_graph%x%max = 770
+  default_graph%x%label = ''
+  default_graph%x%major_div = 10
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -311,7 +298,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  10
   graph%y%min = -10
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'lat'
   curve(1)%data_type   = 'orbit.x'
   curve(1)%y_axis_scale_factor = 1000
@@ -329,10 +315,10 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'phase'
-  plot%x%min =   0
-  plot%x%max = 770
-  plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 770
+  default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -347,7 +333,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%n_curve = 2
   graph%component = 'model-design'
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'phase.a'
@@ -363,10 +348,10 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'beta'
-  plot%x%min =   0.
-  plot%x%max = 770.
-  plot%x%major_div = 14
-  plot%x%label = 's [meters]'
+  default_graph%x%min =   0.
+  default_graph%x%max = 770.
+  default_graph%x%major_div = 14
+  default_graph%x%label = 's [meters]'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -384,7 +369,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = 0
   graph%y%major_div = 4
 
-  graph%n_curve = 2
 
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
@@ -406,10 +390,10 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'eta'
-  plot%x%min =   0
-  plot%x%max = 770.
-  plot%x%major_div = 14
-  plot%x%label = 's [m]'
+  default_graph%x%min =   0
+  default_graph%x%max = 770.
+  default_graph%x%major_div = 14
+  default_graph%x%label = 's [m]'
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -425,7 +409,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max = 300.
   graph%y%min = 0.
   graph%y%major_div = 4
-  graph%n_curve = 2
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'eta.x'
   curve(1)%ix_branch = 0
@@ -443,10 +426,10 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'cbar'
-  plot%x%min =   0
-  plot%x%max = 3300
-  plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 3300
+  default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 3
 /
@@ -461,7 +444,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  0.10
   graph%y%min = -0.10
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%ix_branch = 0
@@ -477,7 +459,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  0.10
   graph%y%min = -0.10
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%ix_branch = 0
@@ -493,7 +474,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  0.10
   graph%y%min = -0.10
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%ix_branch = 0
@@ -503,10 +483,10 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'cbar12'
-  plot%x%min =   0
-  plot%x%max = 770
-  plot%x%major_div = 14
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 770
+  default_graph%x%major_div = 14
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -522,7 +502,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  0.10
   graph%y%min = -0.10
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'cbar.12'
   curve(1)%y_axis_scale_factor = 1
@@ -534,10 +513,10 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'ext_cbar'
-  plot%x%min =   0
-  plot%x%max = 100
-  plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 3
 /
@@ -552,7 +531,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  0.10
   graph%y%min = -0.10
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%ix_branch = 1
@@ -568,7 +546,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  0.10
   graph%y%min = -0.10
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%ix_branch = 1
@@ -584,7 +561,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  0.10
   graph%y%min = -0.10
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'lattice'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%ix_branch = 1
@@ -594,10 +570,10 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'quad_k1'
-  plot%x%min =   0
-  plot%x%max = 3300
-  plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 3300
+  default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -612,7 +588,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  2
   graph%y%min = -6
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'var_array'
   curve(1)%data_type = 'quad_k1'
   curve(1)%y_axis_scale_factor = 1
@@ -623,10 +598,10 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'ext_quad_k1'
-  plot%x%min =   0
-  plot%x%max = 100
-  plot%x%major_div = 10
-  plot%x%label = ' '
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  default_graph%x%major_div = 10
+  default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
 /
@@ -641,7 +616,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  2
   graph%y%min = -6
   graph%y%major_div = 4
-  graph%n_curve = 1
   curve(1)%data_source = 'var_array'
   curve(1)%data_type = 'quad_k1'
   curve(1)%y_axis_scale_factor = 1
@@ -652,8 +626,8 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'floor'
-  plot%x%min = -350.
-  plot%x%max = 1050.
+  default_graph%x%min = -350.
+  default_graph%x%max = 1050.
   plot%n_graph = 1
 /
 
@@ -675,8 +649,8 @@ Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
   plot%name = 'ext_floor'
-  plot%x%min = 200.
-  plot%x%max = 400.
+  default_graph%x%min = 200.
+  default_graph%x%max = 400.
   plot%n_graph = 1
 /
 

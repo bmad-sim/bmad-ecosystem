@@ -84,10 +84,7 @@ the plot page) is broken up.
 !------------------ layout ------
 &tao_template_plot
 	plot%name = 'layout'
-	plot%x%min = 0
-	plot%x%max = 100
-	!!plot%x%major_div = 10
-	plot%x%label = ' '
+	default_graph%x%label = ' '
 	plot%n_graph = 1
 	plot%x_axis_type = 's'
 /
@@ -100,10 +97,8 @@ the plot page) is broken up.
 	graph%x%draw_numbers = False
 	graph%ix_universe = -1 !Syntax Changed from 0
 	graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
-	graph%n_curve = 0
-  	!graph%y%label = 'Layout'
  	graph%y%max = 2
-  	graph%y%min = -2
+	graph%y%min = -2
  	graph%y%major_div = 4
 /
 
@@ -170,10 +165,10 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'xphase'
-  plot%x%min =   -4.5
-  plot%x%max = 4.5
-  !plot%x%major_div = 10
-  plot%x%label = 'x (mm)'
+  default_graph%x%min =   -4.5
+  default_graph%x%max = 4.5
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'x (mm)'
   plot%n_graph = 1
 /
 
@@ -189,7 +184,6 @@ the plot page) is broken up.
   !graph%y%max = 0.1
   !graph%y%min = -0.1
   graph%y%major_div = 4
-  graph%n_curve = 1
   graph%y%label_offset=.4
   curve(1)%data_type = 'x-px' 
   curve(1)%y_axis_scale_factor = 9.986935415832026 !px/p0 -> px (MeV/c) for 10 MeV beam
@@ -197,13 +191,13 @@ the plot page) is broken up.
   !curve(1)%ix_universe = 1
   curve(1)%ele_ref_name = 'END'
   curve(1)%symbol%type = 1
-  curve(1)%data_type_z = 'pz'
-  curve(1)%use_z_color = T
+  curve(1)%z_color%data_type = 'pz'
+  curve(1)%z_color%is_on = T
   ! Color by pz
-  !curve(1)%data_type_z = 'z'
-  !curve(1)%z_color0 = 0
-  !curve(1)%z_color1 = 0
-  !curve(1)%use_z_color = T
+  !curve(1)%z_color%data_type = 'z'
+  !curve(1)%z_color%min = 0
+  !curve(1)%z_color%max = 0
+  !curve(1)%z_color%is_on = T
   
 /
 
@@ -211,10 +205,10 @@ the plot page) is broken up.
 
 &tao_template_plot
   plot%name = 'zphase'
-  plot%x%min = -.4
-  plot%x%max =  .4
-  !plot%x%major_div = 10
-  plot%x%label = 'z (mm)'	
+  default_graph%x%min = -.4
+  default_graph%x%max =  .4
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'z (mm)'	
   plot%n_graph = 1
 /
 
@@ -230,7 +224,6 @@ the plot page) is broken up.
   graph%y%max = 3
   graph%y%min = -3
   graph%y%major_div = 4
-  graph%n_curve = 1
   graph%y%label_offset=.2
   curve(1)%data_type = 'z-pz' 
   curve(1)%y_axis_scale_factor = 9.986935415832026 !delta -> delta pz (MeV/c) for 10 MeV beam
@@ -240,10 +233,10 @@ the plot page) is broken up.
   curve(1)%symbol%color =4
   
   ! Color by pz
-  curve(1)%data_type_z = 'pz'
-  curve(1)%z_color0 = -.02
-  curve(1)%z_color1 =  .02
-  curve(1)%use_z_color = T
+  curve(1)%z_color%data_type = 'pz'
+  curve(1)%z_color%min = -.02
+  curve(1)%z_color%max =  .02
+  curve(1)%z_color%is_on = T
 /
 
 !--------------------------------------------------------------

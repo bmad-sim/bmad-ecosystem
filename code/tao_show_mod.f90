@@ -836,7 +836,6 @@ case ('curve')
       nl=nl+1; write(lines(nl), amt)  'data_source          = ', quote(c1%data_source)
       nl=nl+1; write(lines(nl), amt)  'data_index           = ', quote(c1%data_index)
       nl=nl+1; write(lines(nl), amt)  'data_type_x          = ', quote(c1%data_type_x)
-      nl=nl+1; write(lines(nl), amt)  'data_type_z          = ', quote(c1%data_type_z)
       nl=nl+1; write(lines(nl), amt)  'data_type            = ', quote(c1%data_type)
       nl=nl+1; write(lines(nl), amt)  'legend_text          = ', quote(c1%legend_text)
       nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name)
@@ -864,6 +863,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), amt)  'symbol%fill_pattern  = ', c1%symbol%fill_pattern
       nl=nl+1; write(lines(nl), imt)  'symbol%line_width    = ', c1%symbol%line_width
       nl=nl+1; write(lines(nl), amt)  'symbol%color         = ', c1%symbol%color
+      nl=nl+1; write(lines(nl), amt)  'z_color%data_type    = ', quote(c1%z_color%data_type)
       nl=nl+1; write(lines(nl), lmt)  'z_color%is_on        = ', c1%z_color%is_on
       nl=nl+1; write(lines(nl), lmt)  'z_color%autoscale    = ', c1%z_color%autoscale
       nl=nl+1; write(lines(nl), rmt)  'z_color_min          = ', c1%z_color%min
@@ -1879,7 +1879,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %mat6_track_symmetric            = ', bmad_com%mat6_track_symmetric
-    nl=nl+1; write(lines(nl), lmt) '  %orientation_to_ptc_design       = ', bmad_com%orientation_to_ptc_design
+    nl=nl+1; write(lines(nl), lmt) '  %ptc_use_orientation_patches     = ', bmad_com%ptc_use_orientation_patches
     nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                 = ', bmad_com%auto_bookkeeper
     nl=nl+1; write(lines(nl), lmt) '  %csr_and_space_charge_on         = ', bmad_com%csr_and_space_charge_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on

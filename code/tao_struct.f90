@@ -172,9 +172,10 @@ end type
 ! points by, for example, particle energy.
 
 type tao_curve_color_struct
-  logical :: is_on = .false.        ! For phase space plots.
+  character(100) :: data_type = ''  ! Datum type to use for z-axis.
+  logical :: is_on = .false.        ! On/Off
   real(rp) :: min = 0, max = 0      ! Min and max values for mapping z-axis to color.
-  logical :: autoscale = .true.     ! Set %min, %max automatically to the limits of curve%data_type_z
+  logical :: autoscale = .true.     ! Set %min, %max automatically to the limits of %data_type
 end type
 
 ! A curve is defined by a set of (x,y) points and the axis parameters.
@@ -185,7 +186,6 @@ type tao_curve_struct
   character(40) :: data_source  = ''     ! 'lat', 'beam', 'data' (deprecated: 'dat'), 'var', 'multi_turn_orbit'
   character(100) :: data_index  = ''     ! Used for calculating %ix_symb(:).
   character(100) :: data_type_x = ''     ! Used for data slices and phase space plots.
-  character(100) :: data_type_z = ''     ! Used for data phase space plots.
   character(:), allocatable :: data_type ! 'orbit.x', etc.
   character(40) :: ele_ref_name = ''     ! Reference element.
   character(40) :: legend_text = ''      ! String to draw in a curve legend. 
