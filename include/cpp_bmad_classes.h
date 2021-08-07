@@ -2982,7 +2982,7 @@ public:
   Bool sr_wakes_on;
   Bool lr_wakes_on;
   Bool mat6_track_symmetric;
-  Bool orientation_to_ptc_design;
+  Bool ptc_use_orientation_patches;
   Bool auto_bookkeeper;
   Bool csr_and_space_charge_on;
   Bool spin_tracking_on;
@@ -3027,7 +3027,7 @@ public:
     sr_wakes_on(true),
     lr_wakes_on(true),
     mat6_track_symmetric(true),
-    orientation_to_ptc_design(false),
+    ptc_use_orientation_patches(true),
     auto_bookkeeper(true),
     csr_and_space_charge_on(false),
     spin_tracking_on(false),

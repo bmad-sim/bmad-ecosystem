@@ -8341,7 +8341,7 @@ interface
       z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max, z_sad_n_div_max, z_taylor_order, &
       z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, &
       z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, z_sr_wakes_on, &
-      z_lr_wakes_on, z_mat6_track_symmetric, z_orientation_to_ptc_design, z_auto_bookkeeper, &
+      z_lr_wakes_on, z_mat6_track_symmetric, z_ptc_use_orientation_patches, z_auto_bookkeeper, &
       z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
       z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, &
       z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
@@ -8354,7 +8354,7 @@ interface
     real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
     real(c_double) :: z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max
     integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step
-    logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_orientation_to_ptc_design, z_auto_bookkeeper, z_csr_and_space_charge_on
+    logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_ptc_use_orientation_patches, z_auto_bookkeeper, z_csr_and_space_charge_on
     logical(c_bool) :: z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps
     logical(c_bool) :: z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug
   end subroutine
@@ -8380,7 +8380,7 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     F%sad_amp_max, F%sad_n_div_max, F%taylor_order, F%runge_kutta_order, F%default_integ_order, &
     F%ptc_max_fringe_order, F%max_num_runge_kutta_step, &
     c_logic(F%rf_phase_below_transition_ref), c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), &
-    c_logic(F%mat6_track_symmetric), c_logic(F%orientation_to_ptc_design), &
+    c_logic(F%mat6_track_symmetric), c_logic(F%ptc_use_orientation_patches), &
     c_logic(F%auto_bookkeeper), c_logic(F%csr_and_space_charge_on), &
     c_logic(F%spin_tracking_on), c_logic(F%backwards_time_tracking_on), &
     c_logic(F%spin_sokolov_ternov_flipping_on), c_logic(F%radiation_damping_on), &
@@ -8414,7 +8414,7 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_autoscale_phase_tol, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, &
     z_sad_amp_max, z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, &
     z_ptc_max_fringe_order, z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, &
-    z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_orientation_to_ptc_design, &
+    z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_ptc_use_orientation_patches, &
     z_auto_bookkeeper, z_csr_and_space_charge_on, z_spin_tracking_on, &
     z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, &
     z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, &
@@ -8432,7 +8432,7 @@ real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_signifi
 real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
 real(c_double) :: z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max
 integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step
-logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_orientation_to_ptc_design, z_auto_bookkeeper, z_csr_and_space_charge_on
+logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_ptc_use_orientation_patches, z_auto_bookkeeper, z_csr_and_space_charge_on
 logical(c_bool) :: z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps
 logical(c_bool) :: z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug
 
@@ -8495,7 +8495,7 @@ F%lr_wakes_on = f_logic(z_lr_wakes_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%mat6_track_symmetric = f_logic(z_mat6_track_symmetric)
 !! f_side.to_f2_trans[logical, 0, NOT]
-F%orientation_to_ptc_design = f_logic(z_orientation_to_ptc_design)
+F%ptc_use_orientation_patches = f_logic(z_ptc_use_orientation_patches)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%auto_bookkeeper = f_logic(z_auto_bookkeeper)
 !! f_side.to_f2_trans[logical, 0, NOT]

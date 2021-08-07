@@ -1289,7 +1289,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.sr_wakes_on == y.sr_wakes_on);
   is_eq = is_eq && (x.lr_wakes_on == y.lr_wakes_on);
   is_eq = is_eq && (x.mat6_track_symmetric == y.mat6_track_symmetric);
-  is_eq = is_eq && (x.orientation_to_ptc_design == y.orientation_to_ptc_design);
+  is_eq = is_eq && (x.ptc_use_orientation_patches == y.ptc_use_orientation_patches);
   is_eq = is_eq && (x.auto_bookkeeper == y.auto_bookkeeper);
   is_eq = is_eq && (x.csr_and_space_charge_on == y.csr_and_space_charge_on);
   is_eq = is_eq && (x.spin_tracking_on == y.spin_tracking_on);

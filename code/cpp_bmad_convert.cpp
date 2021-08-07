@@ -3096,7 +3096,7 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_c
       C.ptc_cut_factor, C.sad_eps_scale, C.sad_amp_max, C.sad_n_div_max, C.taylor_order,
       C.runge_kutta_order, C.default_integ_order, C.ptc_max_fringe_order,
       C.max_num_runge_kutta_step, C.rf_phase_below_transition_ref, C.sr_wakes_on,
-      C.lr_wakes_on, C.mat6_track_symmetric, C.orientation_to_ptc_design, C.auto_bookkeeper,
+      C.lr_wakes_on, C.mat6_track_symmetric, C.ptc_use_orientation_patches, C.auto_bookkeeper,
       C.csr_and_space_charge_on, C.spin_tracking_on, C.backwards_time_tracking_on,
       C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on, C.radiation_zero_average,
       C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
@@ -3115,9 +3115,10 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     c_Real& z_sad_amp_max, c_Int& z_sad_n_div_max, c_Int& z_taylor_order, c_Int&
     z_runge_kutta_order, c_Int& z_default_integ_order, c_Int& z_ptc_max_fringe_order, c_Int&
     z_max_num_runge_kutta_step, c_Bool& z_rf_phase_below_transition_ref, c_Bool& z_sr_wakes_on,
-    c_Bool& z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool& z_orientation_to_ptc_design,
-    c_Bool& z_auto_bookkeeper, c_Bool& z_csr_and_space_charge_on, c_Bool& z_spin_tracking_on,
-    c_Bool& z_backwards_time_tracking_on, c_Bool& z_spin_sokolov_ternov_flipping_on, c_Bool&
+    c_Bool& z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool&
+    z_ptc_use_orientation_patches, c_Bool& z_auto_bookkeeper, c_Bool&
+    z_csr_and_space_charge_on, c_Bool& z_spin_tracking_on, c_Bool&
+    z_backwards_time_tracking_on, c_Bool& z_spin_sokolov_ternov_flipping_on, c_Bool&
     z_radiation_damping_on, c_Bool& z_radiation_zero_average, c_Bool&
     z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
     z_absolute_time_tracking_default, c_Bool& z_convert_to_kinetic_momentum, c_Bool&
@@ -3180,7 +3181,7 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   // c_side.to_c2_set[logical, 0, NOT]
   C.mat6_track_symmetric = z_mat6_track_symmetric;
   // c_side.to_c2_set[logical, 0, NOT]
-  C.orientation_to_ptc_design = z_orientation_to_ptc_design;
+  C.ptc_use_orientation_patches = z_ptc_use_orientation_patches;
   // c_side.to_c2_set[logical, 0, NOT]
   C.auto_bookkeeper = z_auto_bookkeeper;
   // c_side.to_c2_set[logical, 0, NOT]

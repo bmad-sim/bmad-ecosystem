@@ -5121,7 +5121,7 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 28 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.orientation_to_ptc_design = (rhs % 2 == 0);
+  rhs = 29 + offset; C.ptc_use_orientation_patches = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 30 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
