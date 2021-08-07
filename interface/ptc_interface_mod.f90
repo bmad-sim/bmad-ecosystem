@@ -4265,7 +4265,7 @@ elseif (use_offsets) then
 
   ! Put misalignmnets in patches?
 
-  if (bmad_com%orientation_to_ptc_design) then
+  if (.not. bmad_com%ptc_use_orientation_patches) then
     call convert_mis_to_patch(ptc_fibre, .true.)
   endif
 

@@ -104,7 +104,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     logical sr_wakes_on = T                     ! Short range wakefields?
     logical lr_wakes_on = T                     ! Long range wakefields
     logical mat6_track_symmetric = T            ! symmetric offsets
-    logical orientation_to_ptc_design = F       ! Ele orientation translated to PTC design?
+    logical ptc_use_orientation_patches = T     ! Ele orientation translated to PTC patches?
     logical auto_bookkeeper = T                 ! Automatic bookkeeping?
     logical csr_and_space_charge_on = F         ! CSR and space charge (separate from HE SC).
     logical spin_tracking_on = F                ! spin tracking?
@@ -232,13 +232,13 @@ size to use for adaptive tracking. If To be useful, \vn{min_ds_adaptive_tracking
 larger than the value of \vn{fatal_ds_adaptive_tracking}. In this case, particles are never lost
 due to taking too small a step.
 %
-\item{orientation_to_ptc_design} \Newline
+\item{ptc_use_orientation_patches} \Newline
 With \bmad, there is no distinction whether an element's orientation attributes (\vn{offsets},
 \vn{pitches}, or \vn{tilt} (\sref{s:offset})) is deliberate (part of the ``design'' of the machine)
-or an error (a ``misalignment'').  With PTC this is not true. If the \vn{orientation_to_ptc_design}
-switch is set to False (the default), when a \bmad element is translated to PTC (for example, if a
-Taylor map is to be constructed), the element's orientation attributes are stored as misalignments.
-If set to True, these parameters are stored as design values. This will generally not make any
+or an error (a ``misalignment'').  With PTC this is not true. If the \vn{ptc_use_orientation_patches}
+switch is set to True (the default), when a \bmad element is translated to PTC,
+the element's orientation attributes are stored as patches. That is, ``desgin'' values.
+If set to False, these parameters are stored as misalignments. This will generally not make any
 difference to a calculation. The exception comes with PTC centric programs that vary machine
 parameters.\footnote
   {
