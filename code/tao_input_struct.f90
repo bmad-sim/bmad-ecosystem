@@ -79,7 +79,7 @@ type tao_curve_input
   character(40) :: name = ''
   character(40) :: data_source = ''
   character(100) :: data_type_x = ''
-  character(100) :: data_type_z = ''
+  character(100) :: data_type_z = ''                       ! Deprecated. Use c%z_color%...
   character(200) :: data_type = ''
   character(100) :: data_index = ''
   character(40) :: legend_text = ''

@@ -1396,11 +1396,11 @@ case ('data_type')
 case ('data_type_x')
   this_curve%data_type_x = unquote(value_str)
 
-case ('data_type_z')
-  this_curve%data_type_z = unquote(value_str)
-
 case ('legend_text')
   this_curve%legend_text = unquote(value_str)
+
+case ('z_color%data_type', 'data_type_z')
+  this_curve%z_color%data_type = unquote(value_str)
 
 case ('z_color%is_on', 'use_z_color')
   call tao_set_logical_value (this_curve%z_color%is_on, component, value_str, err)

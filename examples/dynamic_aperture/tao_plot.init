@@ -20,10 +20,8 @@ Templates define the basics of, say, how to display an orbit.
 ! dynamic aperture
 &tao_template_plot
   plot%name = "da"
-  plot%x%min = 0
-  plot%x%max = 0
-  plot%x%major_div_nominal = 10
-  plot%x%label = "x (mm)"
+  default_graph%x%major_div_nominal = 10
+  default_graph%x%label = "x (mm)"
   plot%x_axis_type = "phase_space"
   plot%n_graph = 1
 /
@@ -41,7 +39,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max = 0
   graph%y%min = 0
   graph%y%major_div = 4
-  graph%n_curve = 10
   curve(1)%line%color = "red"
   curve(1)%data_type = "beam_ellipse"
   curve(1)%line%width = 5

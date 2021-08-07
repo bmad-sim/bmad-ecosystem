@@ -56,7 +56,7 @@ real(rp) y1, y2
 real(rp), parameter :: re_g$ = real_garbage$
 
 integer iu, i, j, k, k1, k2, ix, ip, n, ng, ios, ios1, ios2, i_uni
-integer graph_index, i_graph, ic
+integer graph_index, i_graph, ic, n_curve
 integer, parameter :: int_g$ = int_garbage$
 
 character(*) plot_file_in
@@ -570,25 +570,36 @@ do  ! Loop over plot files
         plt%autoscale_gang_y = .false.  ! True does not make sense.
       endif
 
-      if (grph%type == 'floor_plan') then
-        graph%n_curve = 0
-      endif
+      ! Count curves. Any curve must have %data_type set or, for %data_source = "data",
+      ! %data_type can be constructed from "graph%name.curve%name".
 
-      if (graph%n_curve == 0) then
+      n_curve = 0
+      do j = 1, size(curve)
+        if (curve(j)%data_type == '' .and. (curve(j)%data_source /= 'data' .or. curve(j)%name == '')) cycle
+        n_curve = n_curve + 1
+      enddo
+
+      if (n_curve == 0) then
         if (allocated(grph%curve)) deallocate (grph%curve)
       else
-        allocate (grph%curve(graph%n_curve))
+        allocate (grph%curve(n_curve))
+        if (graph%n_curve /= 0 .and. graph%n_curve /= n_curve) then
+          call out_io (s_warn$, r_name, 'Note: "graph%n_curve" is deprecated and ignored.', &
+                        'You can safely remove this parameter from the namelist for plot: ' // plt%name)
+        endif
       endif
 
-      do j = 1, graph%n_curve
-        crv => grph%curve(j)
+      n_curve = 0
+      do j = 1, size(curve)
+        if (curve(j)%data_type == '' .and. (curve(j)%data_source /= 'data' .or. curve(j)%name == '')) cycle
+        n_curve = n_curve + 1
+        crv => grph%curve(n_curve)
 
         crv%g                    => grph
         crv%data_source          = curve(j)%data_source
         crv%component            = curve(j)%component
         crv%data_index           = curve(j)%data_index
         crv%data_type_x          = curve(j)%data_type_x
-        crv%data_type_z          = curve(j)%data_type_z
         crv%data_type            = curve(j)%data_type
         crv%y_axis_scale_factor  = curve(j)%y_axis_scale_factor
         crv%symbol_every         = curve(j)%symbol_every
@@ -614,6 +625,7 @@ do  ! Loop over plot files
         if (curve(j)%z_color1 /= invalid$) crv%z_color%max = curve(j)%z_color1
         if (curve(j)%autoscale_z_color)    crv%z_color%autoscale = .true.
         if (curve(j)%use_z_color)          crv%z_color%is_on = .true.
+        if (curve(j)%data_type_z /= '')    crv%z_color%data_type = curve(j)%data_type_z
 
         if (crv%data_source == '') crv%data_source = 'lat'
 

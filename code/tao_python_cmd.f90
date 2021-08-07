@@ -5080,7 +5080,6 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             trim(c%name)
   nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     trim(c%data_source)
   nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE_Z;T;',               trim(c%data_type_x)
-  nl=incr(nl); write (li(nl), amt) 'data_type_z;ENUM;T;',                     trim(c%data_type_z)
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   trim(c%data_type)
   nl=incr(nl); write (li(nl), amt) 'component;COMPONENT;T;',                  trim(c%component)
   nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(c%ele_ref_name)
@@ -5104,6 +5103,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), rmt) 'z_color.min;REAL;T;',                     c%z_color%min
   nl=incr(nl); write (li(nl), rmt) 'z_color.max;REAL;T;',                     c%z_color%max
   nl=incr(nl); write (li(nl), lmt) 'z_color.autoscale;LOGIC;I;',              c%z_color%autoscale
+  nl=incr(nl); write (li(nl), amt) 'z_color.data_type;ENUM;T;',               trim(c%z_color%data_type)
   nl=incr(nl); write (li(nl), lmt) 'valid;LOGIC;I;',                          c%valid
   nl=incr(nl); write (li(nl), '(a, i0, 4a)') 'line;STRUCT;T;width;INT;', c%line%width, &
                       ';color;ENUM;', trim(c%line%color), ';line^pattern;ENUM;', c%line%pattern

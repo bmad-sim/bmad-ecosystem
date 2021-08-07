@@ -78,13 +78,14 @@ The \vn{show plot -page} (\sref{s:show.plot}) command may be used to view the pa
 \label{s:region.def}
 
 The \vn{plot area} is the area within the border of the \vn{plot page} as shown in
-\fig{f:plot-page}.  In this \vn{plot area}, ``\vn{regions}'' can be defined which are invisible
+\fig{f:plot.page}.  In this \vn{plot area}, ``\vn{regions}'' can be defined which are invisible
 rectangles where a \vn{plot} (\sref{s:plot.def}) can be placed. This is shown schematically in
-\fig{f:plot.page}. Each region has a name and four numbers which specifies the location of the region 
-within the plot area. Regions may be defined by the user. In addition, for convienience, \tao will
-define a number of regions. With one exception, all of the \tao defined regions will begin with the
-letter 'r'. Regions may overlap. How to define regions is explained in \sref{s:plot.page}. The
-\vn{show plot} command will show the region list. Example:
+\fig{f:plot.page}. Each region has a name and four numbers which specifies the location of the
+region within the plot area. Regions may be defined by the user. In addition, for convienience, \tao
+will define a number of regions. \tao defined regions will either begin with the letter ``\vn{r}''
+or begin with the string ``\vn{layout}'' or the string ``\vn{scratch}''. Regions may overlap. How to
+define regions is explained in \sref{s:plot.page}. The \vn{show plot} command will show the region
+list. Example:
 \begin{example}
   Tao> show plot
 
@@ -149,7 +150,12 @@ came from. If a given \vn{template} plot is used to create multiple \vn{displaye
 these plots will have the same name. A \vn{displayed} plot can also be referred to by using the
 associated \vn{region} name. This can be used to remove ambiguity if there are multiple
 \vn{displayed} plots of the same name. Additionally, a \vn{template} plot can unambiguously be
-referred to by adding the prefix ``\vn{T::}'' to the plot name.
+referred to by adding the prefix ``\vn{T::}'' to the plot name. Examples:
+\begin{example}
+  show plot           ! Show plots associated with regions
+  show plot -template ! Show template plots
+  place r13 orbit     ! Put orbit template into r13 region
+\end{example}
 
 Some commands, for example, the \vn{scale} command by default will ignore \vn{template} plots unless
 the plot name has the \vn{T::} prefix. Other commands, for example the \vn{show plot} command, will
@@ -206,16 +212,28 @@ Examples:
 \section{Graph}
 \label{s:graph.def}
 
-A \vn{graph} is a diagram of some sort.  Most \vn{graph}s consists of horizontal and vertical axes
+%-----------------------------------------------------------------
+\subsection{Overview}
+\label{s:graph.overview}
+
+A \vn{graph} is a diagram of some sort. Most \vn{graph}s consists of horizontal and vertical axes
 along with one or more \vn{curve}s. \vn{Floor_plan} (\sref{s:floor.plan}) and \vn{lat_layout}
 (\sref{s:lat.layout}) \vn{graphs}, on the other hand, shows the placement in space of the lattice
 elements and do not have any associated \vn{curves}.
 
-How many \vn{graphs} are assocaited with a \vn{plot} is a matter of convienience and different
-\vn{graphs} of a \vn{plot} may display different types of information. For example, it would be
-possible to have a single \vn{plot} contain three \vn{graphs} and look like what is shown in
-\fig{f:plot.typ}. In actuality, the figure was constructed using three \vn{plots} each one containing
-one \vn{graph}.
+Every \vn{plot} has at least one \vn{graph}. How many \vn{graphs} are assocaited with a \vn{plot}
+is a matter of convienience and different \vn{graphs} of a \vn{plot} may display different types of
+information. For example, it would be possible to have a single \vn{plot} contain three \vn{graphs}
+and look like what is shown in \fig{f:plot.typ}. In actuality, the figure was constructed using
+three \vn{plots} each one containing one \vn{graph}.
+
+How to define \vn{graphs} when defining \vn{template} plots is given in \sref{s:template}. The
+\vn{show graph} command can be used to show graph parameters. The \vn{set graph} command can
+be used to modify \vn{graph} parameters.
+
+%-----------------------------------------------------------------
+\subsection{Graph Name}
+\label{s:graph.name}
 
 All graphs have a name. For example, the graph of the standard \vn{orbit} plot is simply ``\vn{g}''.
 \vn{Graphs} may be referred to using the syntax:
@@ -230,20 +248,140 @@ where \vn{<plot>} is the plot name (or the \vn{region} name associated with the 
   show graph r13.g1 ! Show info on ``g1'' graph of region r13.
 \end{example}
 
-How to define \vn{graphs} when defining \vn{template} plots is given in \sref{s:template}. The
-\vn{show graph} command can be used to show graph parameters. The \vn{set graph} command can
-be used to modify \vn{graph} parameters.
+%-----------------------------------------------------------------
+\subsection{Curve Legend}
+\label{s:curve.legend}
+
+The \vn{curve legend} is the legend identifying what curves are associated with what perameters. In
+\fig{f:plot.typ} the top two graphs have a curve legend in the upper left hand corner of the graph.
+By default, the \vn{data_type} of each curve will be used as the text for that
+curve's line in the legend.  This default can be changed by setting a curve's \vn{curve%legend_tex}.
+Parameters that affect the curve legend are:
+\begin{example}
+  plot_page%legend_text_scale        
+  plot_page%curve_legend_line_len    ! tao_plot_page namelist (\sref{s:plot.page}
+  plot_page%curve_legend_text_offset ! tao_plot_page namelist (\sref{s:plot.page}
+  curve(N)%legend_text               ! 
+  graph%curve_legend_origin          
+  graph%draw_curve_legend            
+\end{example}
+The curve legend is distinct from the \vn{text legend} (\sref{s:text.legend}).
+
+%-----------------------------------------------------------------
+\subsection{Text Legend}
+\label{s:text.legend}
+
+The \vn{text legend} is a legend that can be setup by either the user or by \tao itself.
+\tao uses the text legend in conjunction with phase space plotting or histogram displays.
+The \vn{text legend} is distinct from the \vn{curve legend}. Parameters that affect the text
+legend are:
+\begin{example}
+  graph%text_legend(N)
+  graph%text_legend_origin
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Graph Types}
+\label{s:graph.types}
+
+\tao defines several kinds of graphs:
+\begin{description}
+%
+\item[data graph] \Newline
+``Data'' plotting here has a specific meaning. That is, the plotting of a dependent variable on the
+$y$-axis vs an independent variable on the $x$-axis. Typically the independent variable
+will be the longitudinal position $s$-position as in the upper two graphs in \fig{f:plot.typ}. Also
+see \Sref{s:draw.ap} for an example where beam apertures are added to the graph.
+%
+\item[data slice] \Newline
+A ``\vn{data slice}'' graph is plotting one data array on the $y$-axis versus another data array on
+the $x$-axis (\sref{s:graph.data.slice}). Also see \vn{parametric plotting} (\sref{s:param.plot}).
+%
+\item[dynamic aperture] \Newline
+A \vn{dynamic aperture} graph (\sref{s:da.plot}) draws the results from a dynamic aperture
+calculation (\sref{s:da.calc}).
+
+%
+\item[floor plan] \Newline
+A \vn{floor plan} graph shows the physical layout of the machine (\sref{s:floor.plan}). A table maps
+lattice elements to a shape that is drawn (\sref{s:shapes}). The user may override the default
+mapping. Besides the lattice elements. the outline of the building or tunnel that the machine is in
+can be drawn (\sref{s:building.wall}).
+%
+\item[histogram] \Newline
+Currently \vn{histograms} (\sref{s:histogram}) are limited to displaying phase space data.
+%
+\item[key table] \Newline
+The \vn{key table} displays information about variables bound to keyboard keys \sref{s:key.bind}.
+Key bindings are used in \vn{single mode}.
+%
+\item[lattice layout] \Newline
+A \vn{lattice layout} graph displays the lattice elements as a series of shapes as a function of the
+longitudinal position $s$ (\sref{s:lat.layout}). The lowest graph in \fig{f:plot.typ} is an example
+of a \vn{lattice layout}.  A table maps lattice elements to a shape that is drawn (\sref{s:shapes}).
+The user may override the default mapping.
+%
+\item[parametric] \Newline
+With a \vn{parametric} plot both the $x$ and $y$ values of the points on a curve are dependent
+upon an independent parameter (\sref{s:param.plot}). This is similar to a \vn{data slice} plot
+(\sref{s:graph.data.slice}).
+%
+\item[phase space] \Newline
+A \vn{phase space graph} (\sref{s:phase.space}) displays particle positions in phase space after
+a beam of particles has been tracked (\sref{s:beam.init}).
+%
+\end{description}
+
+\begin{figure}[b]
+  \centering
+  \includegraphics[width=5.0in]{plot-axes.pdf}
+  \caption[Plot axes.]
+{A data graph has three axes called \vn{x} (bottom edge), \vn{y} (left edge), and \vn{y2} (right edge).}
+  \label{f:plot.axes}
+\end{figure}
+
+%-----------------------------------------------------------------
+\subsection{Graph Axes}
+\label{s:axes}
+
+Data graphs (\sref{s:graph.types}) have three axes as shown in \fig{f:plot.axes}. The bottom axis is
+called \vn{x}, and the left and right axes are called \vn{y} and \vn{y2} respectively. The \vn{qp_axis_struct}
+structure (\sref{s:qp.axis}) is used to store axis parameters.
+
+The \vn{scale} command (\sref{s:scale}) can be used to set the vertical axes. The \vn{x_scale}
+(\sref{s:x.scale}) command can be used to set the horizontal axis.
+
+Normally there is only one vertical scale for a graph and this is associated with the \vn{y}
+axis. However, if any curve of a given graph has \vn{curve%use_y2} set to \vn{True} then the \vn{y2}
+axis will have an independent second scale. In this case, the \vn{y2} axis numbers will be
+drawn. Notice that simply giving the \vn{y2} axis a label does {\em not} make the \vn{y2} axis scale
+independent of the \vn{y} axis scale.
 
 %-----------------------------------------------------------------
 \section{Curve}
 \label{s:curve.def}
 
+%-----------------------------------------------------------------
+\subsection{Overview}
+\label{s:curve.overview}
+
 A \vn{curve} is a data set to be displayed within a \vn{graph}. For example, a \vn{curve} may be the
 beta function of the \vn{model} lattice. \vn{Curves} have an associated set of points at which a
-symbol can be drawn and/or a curved line that can be drawn. For example, in \fig{f:plot.typ} only
-the line is drawn with the two curves of the beta plot while both symbols and line are drawn for the
-two curves of the orbit plot (here the data points where symbols are drawn are the orbit at the
-edges of the lattice elements).
+symbol can be drawn. A curve also can have an associated curved line that can be drawn. For example,
+in \fig{f:plot.typ} only the line is drawn with the two curves of the beta plot while both symbols
+and line are drawn for the two curves of the orbit plot (here the data points where symbols are
+drawn are the orbit at the edges of the lattice elements).
+
+Some \vn{graphs} do not have any associated curves. For example, a \vn{lat_layout} graph does not
+have associated curves.
+
+How to define \vn{curves} when defining \vn{template} plots is given in \sref{s:template}. The
+\vn{show curve} command can be used to show curve parameters. The \vn{set curve} command can
+be used to modify \vn{curve} parameters.
+
+%-----------------------------------------------------------------
+\subsection{Curve Name}
+\label{s:curve.name}
 
 All curves have a name. \vn{Curves} may be referred to using the syntax:
 \begin{example}
@@ -261,72 +399,127 @@ selected. Examples:
 The last example sets the \vn{curve legend} (\sref{s:template}) of the graph so that the curve
 legend of the graph is drawn with respect to the left top corner of the box.
 
-How to define \vn{curves} when defining \vn{template} plots is given in \sref{s:template}. The
-\vn{show curve} command can be used to show curve parameters. The \vn{set curve} command can
-be used to modify \vn{curve} parameters.
+%-----------------------------------------------------------------
+\subsection{Curve Line}
+\label{s:curve.line}
+
+Each curve may have an assoicated line that is drawn. The line may be a set of line segments
+connecting curve symbol points (\sref{s:curve.sym}) or may be a ``smooth'' curve calculated by
+evaluating the curve at a number of points. 
+
+\vn{curve%draw_line} determines whether a curve is drawn through the data point symbols. The
+thickness, style (solid, dashed, etc.), and color of the line can be controlled by setting
+\vn{curve%line}. If \vn{plot%x_axis_type} is \vn{"s"}, and \vn{graph%component} does not contain
+\vn{"meas"} or \vn{"ref"}, \tao will attempt to calculate intermediate values in order to draw a
+smooth, accurate curve is drawn. Occasionally, this process is too slow or not desired for other
+reasons so setting \vn{curve%smooth_line_calc} to False will prevent this calculation and the curve
+will be drawn as a series of lines connecting the symbol points. The default of
+\vn{curve%smooth_line_calc} is True. Use the \vn{set curve} command (\sref{s:set}) to toggle the
+drawing of lines. Alternatively, the \vn{-disable_smooth_line_calc} switch can be used on the
+command line (\sref{s:command.line}) or the global variable \vn{global%disable_smooth_line_calc} can
+be set in the \tao initialization file (\sref{s:globals}).
+
+The number of points to evaluate at when constructing a smoothed line is set by
+\vn{plot_page%n_curve_pts} in the \vn{tao_plot_page} namelist (\sref{s:plot.page}) or by using the
+\vn{set plot_page} command (\sref{s:set.plot.page}). To override this value for a particular plot
+the \vn{plot%n_curve_pts} parameter can be set in the \vn{tao_template_plot} namelist or using the
+\vn{set plot} command (\sref{s:set.plot}). More evaluation points may give a more accurate curve at
+the expense of computation time.
 
 %-----------------------------------------------------------------
-\section{Graph Types}
-\label{s:graph.types}
+\subsection{Curve Symbol}
+\label{s:curve.sym}
 
-\tao defines several kinds of graphs
-\begin{description}
-%
-\item[\vn{Data Graph}] \Newline
-``Data'' plotting here has a specific meaning. That is, the plotting of a dependent variable on the
-$y$-axis vs an independent variable on the $x$-axis. Typically the independent variable
-will be the longitudinal position $s$-position as in the upper two graphs in \fig{f:plot.typ}. Also
-see \Sref{s:draw.ap} for an example where beam apertures are added to the graph.
+\vn{curve%draw_symbols} determines whether a symbol is drawn at the data points. The size, shape and
+color of the symbols is determined by \vn{curve%symbol}. A given symbol point that is drawn has
+three numbers attached to it: The $(x, y)$ position on the graph and an index number to help
+identify it. The index number of a particular symbol is the index of the datum or variable
+corresponding the symbol in the \vn{d1_data} or \vn{v1_var} array. These three numbers can be
+printed using the \vn{show curve -symbol} command (\sref{s:show}).  \vn{curve%draw_symbol_index}
+determines whether the index number is printed besides the symbol. Use the \vn{set curve} command
+(\sref{s:set}) to toggle the drawing of symbols. The default value for \vn{curve%draw_symbol} is
+False if \vn{plot%x_axis_type} is \vn{"s"}, \vn{"curve"}, \vn{"lat"}, or \vn{"var"} and True
+otherwise. The default \vn{curve%draw_symbol_index} is always False.
 
-%
-\item[\vn{Data Slice Graph}] \Newline
-A ``\vn{data slice}'' graph is plotting one data array on the $y$-axis versus another data array on
-the $x$-axis.
-
-%
-\item[\vn{}] \Newline
-
-%
-\item[\vn{}] \Newline
-
-%
-\item[\vn{}] \Newline
-
-%
-\item[\vn{}] \Newline
-
-%
-\item[\vn{}] \Newline
-
-
-\end{description}
-
-data plot with apertures
-Dynamic apertures
-floor_plan
-histograph
-key table, 
-lat_layout
-phase space
-
-\begin{figure}[b]
-  \centering
-  \includegraphics[width=5.0in]{plot-axes.pdf}
-  \caption[Plot axes.]
-{A graph has four axes called \vn{x1} (bottom edge), \vn{x2} (top edge, not shown), \vn{y1} (left edge), and \vn{y2} (right edge) for the B}
-  \label{f:plot.axes}
-\end{figure}
+The \vn{graph%draw_only_good_user_data_or_vars} logical determines whether datums
+(\sref{s:init.data}) or variables (\sref{s:init.var}) with a \vn{good_user} component set to
+\vn{False} are drawn. The default is to not draw them which means that data or variables not used in
+an optimization are not drawn.
 
 %-----------------------------------------------------------------
-\section{Graph Axes}
-\label{s:axes}
+\subsection{Curve Component}
+\label{s:curve.comp}
 
-There are four axes 
-* x2 and y2
+A ``\vn{data}'' graph (\sref{s:plot.data}) is used to draw lattice parameters such as orbits, or
+\tao data (\sref{c:data}), or variable values such as quadrupole strengths. The data values will
+depend upon where the data comes from. This is determined, in part, by the setting of the
+\vn{component} parameter in the \vn{tao_template_graph} namelist (\sref{s:template}).  The
+\vn{component} may be one of:
+\index{model}\index{design}\index{base}\index{meas}\index{ref}
+\begin{example}
+  "model"             ! model values. Default.
+  "design"            ! design values.
+  "base"              ! Base values
+  "meas"              ! data values.
+  "ref"               ! reference data values.
+  "beam_chamber_wall" ! Beam chamber wall
+\end{example}
+Additionally, \vn{component} may be set to plot a linear combination of the above. For
+example:
+\begin{example}
+  &tao_template_graph
+    curve(2)%component = "model - design"
+    ...
+\end{example}
+This will plot the difference between the \vn{model} and \vn{design} values. A default value for
+\vn{component} may be defined by setting the \vn{graph%component} in the namelist.
+If a default is not set. The default is taken to be \vn{model}.
 
-* x-axis types
+%-----------------------------------------------------------------
+\subsection{Curve Data Source}
+\label{s:curve.source}
 
+\index{data}\index{var}\index{calculation}
+\index{curve!data_source}
+The \vn{data_source} parameter of a curve is the type of information for the source of the data points.
+\vn{data_source} must be one of:
+\begin{example}
+  "data"              ! A d1_data array is the source of the curve points.
+  "var"               ! A v1_var array is the source of the curve points.
+  "lat" (Default)     ! The curve points are computed directly from the lattice.
+  "beam"              ! The curve points are computed from tracking a beam of particles.
+  "multi_turn_orbit"  ! Computation is from multi-turn tracking. 
+\end{example}
+The default for \vn{data_source} is \vn{"lat"}. With \vn{data_source} set to "\vn{data}",
+the values of the curve points come from the \vn{d1_data} array structure named by
+the curve's \vn{data_type} parameter (\sref{s:curve.type}.
 
+Used in conjunction with \vn{data_type} and \vn{component} (\sref{s:curve.comp}). For
+example (\sref{s:curve.source}), a curve of the orbit with \vn{data_source} set to \vn{"beam"}
+would use the beam centroid computations. If the \vn{data_source} was set to \vn{"lat"} the
+computed orbit using single particle tracking is used.
+
+%-----------------------------------------------------------------
+\subsection{Curve Data Type}
+\label{s:curve.type}
+
+\etcetc
+Thus in the above example the curve point values are obtained from
+\vn{orbit.x} data. To be valid the data structure named by \vn{data_type} must be set up in an
+initialization file. If not given, the default \vn{data_type} is
+\begin{example}
+  <plot%name>.<graph%name>
+\end{example}
+If \vn{data_source} is set to \vn{var}, the values of the curve points come from a \vn{v1_var}
+array structure. If it is set to \vn{lat} the curve data points are calculated from the lattice
+without regard to any data structures. \vn{data_source} can be set to \vn{beam} when tracking
+beams of particles. In this case, the curve points are calculated from the tracking. With \vn{beam},
+the particular bunch that the data is extracted from can be specified via \vn{ix_bunch}. The
+default is \vn{0} which combines all the bunches of the beam for the calculation.
+
+Example: With \vn{data_type} set to \vn{beta.x}, the setting of \vn{data_source} to
+\vn{lat} gives the beta as calculated from the lattice and \vn{beam} gives the beta as calculated
+from the shape of the beam.
 
 %-----------------------------------------------------------------
 \section{Quick_Plot Plotting}
@@ -342,7 +535,7 @@ Positions and lengths with \vn{quick_plot} generall have an associated ``\vn{uni
 $(x, y)$ positions or $(dx, dy)$ lengths are to be interpreted. 
 The syntax of the \vn{units} parameter is:
 \begin{example}
-   "unit_type/ref_object/corner"
+  "unit_type/ref_object/corner"
 \end{example}
 A \vn{units} string has a \vn{unit_type}, \vn{ref_object} and \vn{corner} components separated by slashes ``/''.
 
@@ -367,7 +560,10 @@ The \vn{ref_object} component is optional if a relative length is being specifie
 \vn{unit_type} is anything other than \vn{%}. If \vn{unit_type} is \vn{%}, the slash between
 the \vn{unit_type} and the \vn{ref_object} may be omitted.
 
-And the \vn{corner} component is the origin location of the reference object.
+Note: The \vn{"PAGE"} reference is the entire \vn{plot page} and not the \vn{plot area}. The
+\vn{plot area} is only used for defining the placement of \vn{regions}.
+
+The \vn{corner} component is the origin location of the reference object.
 \vn{corner} can be one of:
 \begin{example}
    "LB" -- Left Bottom of reference object. Default.
@@ -418,7 +614,7 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\subsection{qp\_point\_struct}
+\subsection{qp_point_struct}
 \label{s:qp.point}
 
 \vn{QuickPlot} defines a number of structures to parameterize such things like line and symbol
@@ -440,7 +636,7 @@ In this example the fiducial point the left-top point on the graph rectangle. Th
 downward from this fiducial point.
 
 %-----------------------------------------------------------------
-\subsection{qp\_line\_struct}
+\subsection{qp_line_struct}
 \label{s:qp.line}
 
 The parameters associated with data lines drawn in a graph are contained in the \vn{qp_line_struct}:
@@ -484,7 +680,7 @@ The symbol types are:
 These symbols are illustrated in Table~\ref{t:plot.syms}. Symbol type names are case insensitive.
 
 %-----------------------------------------------------------------
-\subsection{qp\_axis\_struct}
+\subsection{qp_axis_struct}
 \label{s:qp.axis}
 
 The \vn{qp_axis_struct} structure defines the properties of a graph axis
@@ -543,16 +739,20 @@ Tao> set graph r13 y2%bounds = "exact"
 Tao> scale r13 -y2 20 190    ! Y2 graph bounds set to [20, 190]
 \end{example}
 
-The \vn{major_div} parameter is not settable directly. Rather, \vn{major_div_nominal} may be set by
-the user and then \tao will calculate the value of \vn{major_div} such that the value of
-\vn{major_div} is ``close'' to the value of \vn{major_div_nominal} with the constraint that the value
-of \vn{major_div} ``nicely'' divides the range from given by the values for \vn{min} and \vn{max}.
+Both \vn{major_div} and \vn{major_div_nominal} set the number of major divisions in the plot. The
+difference between the two is that with \vn{major_div} the number of major divisions is fixed at the
+set value and with \vn{major_div_nominal} the number of major divisions can vary from the set value
+when \tao scales a graph. If \vn{major_div_nominal} is set, this will override any setting of
+\vn{major_div}. If neither \vn{major_div} nor \vn{major_div_nominal} is set, a value will be chosen
+for \vn{major_div_nominal} by \tao. If you are unsure which to set, it is recommended that
+\vn{major_div_nominal} be used.
 
 The \vn{places} parameter set the number of places to display a number. \tao will automatically
 calculate this number and it is not user settable.
 
 The \vn{label} parameter may include Greek letters, subscripts, superscripts, and special characters.
 Encoding for these are given in Table~\ref{t:plot.escape}. 
+
 
 %-----------------------------------------------------------------
 \subsection{String Escape Sequencies}
