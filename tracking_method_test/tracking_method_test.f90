@@ -174,7 +174,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == symp_lie_ptc$) end_ptc = end_orb
 
       if (j == symp_lie_ptc$ .and. .not. debug_mode) then
-        bmad_com%ptc_use_orientation_patches = .false
+        bmad_com%ptc_use_orientation_patches = .false.
         call track1 (start_orb, ele, branch%param, end_orb)
         bmad_com%ptc_use_orientation_patches = .true.
         write (1,fmt) quote(trim(out_str) // '-OD'), 'ABS 1e-10', end_orb%vec - end_ptc%vec
