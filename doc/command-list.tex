@@ -11,7 +11,7 @@
 %---------------------------------------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------
 
-\chapter{Tao Commands}
+\chapter{Commands}
 \label{c:command}
 
 \tao has two \vn{modes} for entering commands. In \vn{Line Mode}, described in this chapter, \tao
@@ -71,10 +71,10 @@ possible
   misalign      & \sref{s:misalign} & veto          & \sref{s:veto}     \\ 
   pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\
   place         & \sref{s:place}    & write         & \sref{s:write}    \\ 
-  plot          & \sref{s:plot}     & x_axis        & \sref{s:x.axis}   \\ 
-  ptc           & \sref{s:ptc}      & x_scale       & \sref{s:x.scale}  \\ 
-  python        & \sref{s:python}   & xy_scale      & \sref{s:xy.scale} \\
-  quit          & \sref{s:quit}     &               &                   \\  \bottomrule 
+  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
+  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
+  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\
+\bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -484,36 +484,6 @@ Examples:
   place * none     ! Erase all plots.
   place top orbit  ! Place the orbit template in the top region
   place top none   ! Erase any plots in the top region
-\end{example}
-
-%% plot --------------------------------------------------------------
-\section{plot}\index{commands!plot}
-\label{s:plot}
-
-The \vn{plot} command is used to determine what ``components'' (\sref{s:plot.data}) are plotted in
-the specified graphs or plots. Format:
-\begin{example}
-  plot <plot_or_graph> <component>
-\end{example}
-
-\vskip 10pt 
-
-Here components are a property of a graph (or curve) so when <plot_or_graph> specifies a plot, all the
-graphs associated with the plot are assigned the \vn{<component>}.
-
-Note: The plot command is a shortcut for the commands:
-\begin{example}
-  set plot <plot_name> component = <component>     ! and
-  set graph <graph_name> component = <component>
-\end{example}
-Also see the \vn{set curve} command.
-
-Use a ``-'' for baselines. 
-
-Examples:
-\begin{example}
-  plot bottom.g1 model - design        ! Plot model - design in the g1 graph of the bottom region
-  plot top meas - model + design - ref ! Set the components for the graphs in the top region.
 \end{example}
 
 %% ptc -----------------------------------------------------------
@@ -1047,7 +1017,7 @@ Format:
 For \vn{set curve}, the \vn{<parameter>}s that can be set are:
 \begin{example}
   ele_ref_name        = <string>  ! Name or index of the reference element
-  component           = <string>  ! \sref{s:plot.data}
+  component           = <string>  ! \sref{s:curve.comp}
   ix_branch           = <number>  ! Branch index.
   ix_bunch            = <number>  ! Bunch index.
   ix_universe         = <number>  ! Universe index.
@@ -1275,7 +1245,6 @@ template plot of the same name is ignored. To set template plot graphs(s) in thi
 
 For setting the \vn{parameter} attribute see also the commands:
 \begin{example}
-  plot                    ! \sref{s:plot}
   set plot parameter      ! \sref{s:set.plot}
   set curve parameter     ! \sref{s:set.curve}
 \end{example}
@@ -1448,7 +1417,7 @@ The \vn{<parameters>}s that can be set are:
   autoscale_x        = <logical>
   autoscale_y        = <logical>
   visible            = <logical>
-  parameter          = <string>    ! \sref{s:plot.data}
+  component          = <string>    ! Sets curve component \sref{s:curve.comp}
   x%<axis_parameter> = <value>
   n_curve_pts        = <integer>
 \end{example}
@@ -1468,14 +1437,9 @@ curves. \tao will only do this for curves that have \vn{plot_page%n_curve_pts} n
 points. Depending upon the circumstances, setting \vn{plot%n_curve_pts} for individual plots may
 slow down plotting calculations significantly.
 
-Note: If the \vn{component} parameter is set, the \vn{<value>} is stored in each of the graphs of
-the plot since the \vn{component} attribute is associated with individual graphs and not the plot as
-a whole. Other commands that involve \vn{component} are:
-\begin{example}
-  plot                    ! \sref{s:plot}
-  set graph component     ! \sref{s:set.graph}
-  set curve component     ! \sref{s:set.curve}
-\end{example}
+Note: If the \vn{component} parameter is set, the \vn{<value>} is stored in each of the curves of
+the plot since the \vn{component} attribute is associated with individual curves and not the plot as
+a whole.
 
 If \vn{<plot_or_region>} is a plot name, and there are visible plots of that name, any template plot
 of the same name is ignored. To set a template plot in this case, add a ``\vn{T::}'' prefix.
@@ -2263,7 +2227,7 @@ switch specifies what attribute will be printed.  The general form of \vn{<attri
   attribute-name@format
 \end{example}
 where \vn{attribute-name} is the name of an attribute and \vn{format} specifies the Fortran style
-edit descriptors to be used (\sref{s:edit.descrip}. The default format is \vn{es12.4}.  Example:
+edit descriptors to be used (\sref{s:edit.descrip}). The default format is \vn{es12.4}.  Example:
 \begin{example}
   show lat -attrib is_on@l4 -attrib voltage rfcavity::*
 \end{example}

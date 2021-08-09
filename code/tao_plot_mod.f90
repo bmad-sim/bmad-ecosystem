@@ -1919,11 +1919,7 @@ do i = 1, nc
   endif
 
   if (.not. all(graph%curve%component == graph%curve(1)%component)) then
-    if (curve%component == '') then
-      text(i) = trim(text(i)) // ' ' // trim(graph%component)
-    else
-      text(i) = trim(text(i)) // ' ' // trim(curve%component)
-    endif
+    text(i) = trim(text(i)) // ' ' // trim(curve%component)
   endif
 
   ! Symbol to display

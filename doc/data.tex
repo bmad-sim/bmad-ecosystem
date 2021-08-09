@@ -199,7 +199,7 @@ which is a user settable value.
 %
   \item[error_rms] \Newline
 The error associated with the measured or reference data values. Used for drawing error bars. See the 
-documentation on \vn{curve(i)%draw_error_bars} in \sref{s:plot.data}.
+documentation on \vn{curve(N)%draw_error_bars} in \Sref{s:template}.
 for more details.
 %
   \item[eval_point] \Newline
@@ -867,7 +867,6 @@ plot template (\sref{s:init.plot}) can be used:
     graph%type = 'data'
     graph_index = 1
     graph%y%label = 'g'
-    graph%n_curve = 1
     curve(1)%name = 'g'
     curve(1)%data_type = 'element_attrib.g'
     curve(1)%draw_line = F
@@ -1037,7 +1036,7 @@ Note: The RF must be turned off for the calculation to work properly.
   %----------------------
   \item[multi_turn_orbit.x, .y, .z, .px, .py, .pz] \Newline \hlabel{multi.turn.orb}
 Used for storing the orbit over many turns. Only used for plotting purposes.
-See \sref{s:plot.data} for more details.
+See \Sref{s:curve.type} for more details.
 
   %----------------------
   \item[n_particle_loss] \Newline \hlabel{n.part.loss}

@@ -105,7 +105,7 @@ The \vn{%history} component holds the command history (\sref{s:s.history}).
 \section{s\%plot_page Component}
 \label{s:s.plot.page}
 
-The \vn{s%plot_page} component of the \vn{super universe} (\sref{s:super.uni.struct} holds plotting
+The \vn{s%plot_page} component of the \vn{super universe} (\sref{s:super.uni.struct}) holds plotting
 information and is initialized in the routine \vn{tao_init_plotting}. \vn{s%plot_page} is a
 \vn{tao_plot_page_struct} structure which has components:
 \begin{example}
@@ -163,7 +163,7 @@ specified by the \vn{place} command.
 \section {s\%v1_var Component}
 \label{s:s.v1.var}
 
-The \vn{s%v1_var(:)} array holds the list of \vn{v1} variable blocks (\sref{c:var}.
+The \vn{s%v1_var(:)} array holds the list of \vn{v1} variable blocks (\sref{c:var}).
 This array is initialized in the routine \vn{tao_init_variables}.
 The range of valid elements in this array goes from 1 to \vn{s%n_v1_var_used}.
 Each element of this array is a \vn{tao_v1_var_struct} structure:
@@ -187,9 +187,9 @@ The \vn{%v(:)} component is a pointer to the appropreiate block in the \vn{s%var
 \section {s\%var Component}
 \label{s:s.var}
 
-The \vn{s%var(:)} array holds the list complete list of all variables (\sref{c:var}.  This array is
+The \vn{s%var(:)} array holds the list complete list of all variables (\sref{c:var}).  This array is
 initialized in the routine \vn{tao_init_variables}. The range of valid variables goes from 1 to
-\vn{s%n_var_used}. Each element in the \vn{s%v1_var(:)} array (\sref{s:s.v1.var} has a pointer to
+\vn{s%n_var_used}. Each element in the \vn{s%v1_var(:)} array (\sref{s:s.v1.var}) has a pointer to
 the section of the \vn{s%var(:)} array holding the variables associated with \vn{v1} block. Using a
 single array of variables simplifies code where one wants to simply loop over all variables (for
 example, during optimization).

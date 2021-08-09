@@ -2,6 +2,7 @@
 ! Subroutine tao_plot_cmd (where, component)
 !
 ! Routine to set what is plotted Eg: model - design, etc.
+! NOTE: THIS COMMAND IS DEPRECATED 8/2021.
 !
 ! Input:
 !   where     -- Character(*): Region name to identify the plot to set.
@@ -17,6 +18,7 @@ implicit none
 type (tao_plot_array_struct), allocatable :: plot(:)
 type (tao_graph_array_struct), allocatable :: graph(:)
 type (tao_plot_region_struct), pointer :: region
+type (tao_plot_struct), pointer :: p
 integer i, j
 integer ix, ix_line, ix_cmd, which, n_word
 
@@ -32,8 +34,10 @@ err = .true.
 
 if (where == '*' .or. where == 'all') then
   do i = 1, size(s%plot_page%region)
-    do j = 1, size(s%plot_page%region(i)%plot%graph)
-      s%plot_page%region(i)%plot%graph(j)%component = component
+    p => s%plot_page%region(i)%plot
+    do j = 1, size(p%graph)
+      if (.not. allocated(p%graph(j)%curve)) cycle
+      p%graph(j)%curve%component = component
     enddo
   enddo
 
@@ -42,12 +46,15 @@ else
   if (err) return
   if (size(graph) > 0) then
     do i = 1, size(graph)
-      graph(i)%g%component = component
+      if (.not. allocated(graph(i)%g%curve)) cycle
+      graph(i)%g%curve%component = component
     enddo
   else
     do i = 1, size(plot)
-      do j = 1, size(plot(i)%p%graph)
-        plot(i)%p%graph(j)%component = component
+      p => plot(i)%p
+      do j = 1, size(p%graph)
+        if (.not. allocated(p%graph(j)%curve)) cycle
+        p%graph(j)%curve%component = component
       enddo
     enddo
   endif

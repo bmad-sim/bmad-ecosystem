@@ -86,7 +86,7 @@ if (has_associated_ele == maybe$) then
 
 elseif (has_associated_ele == no$) then
   if (datum%ele_name /= '') then
-    call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // d_type, &
+    call out_io (s_error$, r_name, 'DATUM OF TYPE: ' // d_type, &
                                    'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // datum%ele_name, &
                                    'FOR DATUM: ' // tao_datum_name(datum))
     return

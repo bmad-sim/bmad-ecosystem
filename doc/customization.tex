@@ -82,7 +82,7 @@ you need so that you can then do your customization.
 One way to initialize a hook routine is to read in parameters from an initialization file.
 If an initialization file is used, the filename may be set using the
 \vn{s%global%hook_init_file} string. This string may be set in the \vn{tao_params}
-namelist (\sref{s:globals} or may be set on the command line using the
+namelist (\sref{s:globals}) or may be set on the command line using the
 \vn{-hook_init_file} option (\sref{s:command.line}).
 
 %----------------------------------------------------------------
@@ -358,7 +358,6 @@ of the file
     graph%y%max =  15
     graph%y%min =  0.0
     graph%y%major_div = 4
-    graph%n_curve = 1
     curve(1)%data_source = 'data'
     curve(1)%data_type   = 'particle_emittance.x'
     curve(1)%y_axis_scale_factor = 1e6 !convert from meters to microns
@@ -374,7 +373,6 @@ of the file
     graph%y%max =  15
     graph%y%min =  0.0
     graph%y%major_div = 4
-    graph%n_curve = 1
     curve(1)%data_source = 'data'
     curve(1)%data_type = 'particle_emittance.y'
     curve(1)%units_factor = 1e6 !convert from meters to microns

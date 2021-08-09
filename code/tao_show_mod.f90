@@ -1986,7 +1986,6 @@ case ('graph')
   nl=nl+1; write(lines(nl), amt)  'type                             = ', quote(g%type)
   nl=nl+1; write(lines(nl), amt)  'title                            = ', quote(g%title)
   nl=nl+1; write(lines(nl), amt)  'title_suffix                     = ', quote(g%title_suffix)
-  nl=nl+1; write(lines(nl), amt)  'component                        = ', quote(g%component)
   nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
                                   'margin                           = ', g%margin
   nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &

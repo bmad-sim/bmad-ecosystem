@@ -512,6 +512,7 @@ the plot page) is broken up.
   plot%x_axis_type = 's'
   default_graph%x%label = 's (m)'
   plot%n_graph = 1
+  default_curve%component = 'model - design'
 /
 
 &tao_template_graph
@@ -525,7 +526,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = 'Difference Orbit (mm)'
   graph%y%label_offset=.1
-  graph%component = 'model - design'
 
 
   curve(1)%data_source = 'lattice'
@@ -557,6 +557,7 @@ the plot page) is broken up.
   plot%x_axis_type = 's'
   default_graph%x%label = 's (m)'
   plot%n_graph = 1
+  default_curve%component = 'model'
 /
 
 &tao_template_graph
@@ -570,7 +571,6 @@ the plot page) is broken up.
   graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
   graph%y%label = 'Beam \gDOrbit (mm)'
   graph%y%label_offset=.1
-  graph%component = 'model'
 
 
   curve(1)%data_source = 'lattice'
@@ -1174,6 +1174,7 @@ the plot page) is broken up.
   plot%name = 'beta_error'
   plot%x_axis_type = 's'
   plot%n_graph = 1
+  default_curve%component = 'model-design'
 /
 
 &tao_template_graph
@@ -1181,7 +1182,6 @@ the plot page) is broken up.
   graph%x%draw_numbers = False
   graph%x%draw_label = False
   graph_index = 1
-  graph%component = 'model-design'
   graph%box = 1, 1, 1, 1
  ! graph%title = 'Lattice \gb functions'
  ! graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'

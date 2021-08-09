@@ -143,14 +143,6 @@ subroutine tao_count_strings (string, pattern, num)
   integer num
 end subroutine
 
-function tao_curve_component (curve, graph) result (component)
-  import
-  implicit none
-  type (tao_curve_struct) curve
-  type (tao_graph_struct) graph
-  character(60) component
-end function
-
 function tao_curve_ix_uni (curve) result (ix_uni)
   import
   implicit none

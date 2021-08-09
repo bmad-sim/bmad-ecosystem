@@ -147,7 +147,6 @@ the plot page) is broken up.
   graph%title = 'L0 to 13W'
   graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
   graph%y%label = 'Beta [meters]'
-  graph%component = 'model'
 
   graph%y%max =  100
   graph%y%min = 0
@@ -194,7 +193,6 @@ the plot page) is broken up.
   graph%title = '13E to L0'
   graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
   graph%y%label = 'Beta [meters]'
-  graph%component = 'model'
 
   graph%y%max =  100
   graph%y%min = 0
@@ -241,7 +239,6 @@ the plot page) is broken up.
   graph%title = 'Full Ring'
   graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
   graph%y%label = 'Beta [meters]'
-  graph%component = 'model'
 
   graph%y%max = 50.
   graph%y%min = 0
@@ -293,7 +290,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%box = 1, 1, 1, 1
   graph%title = 'Orbit'
   graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
-  graph%component = 'model'
   graph%y%label = 'Orbit [mm]'
   graph%y%max =  10
   graph%y%min = -10
@@ -321,6 +317,7 @@ Templates define the basics of, say, how to display an orbit.
   default_graph%x%label = ' '
   plot%x_axis_type = 's'
   plot%n_graph = 1
+  default_curve%component = 'model-design'
 /
 
 &tao_template_graph
@@ -333,7 +330,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max =  20
   graph%y%min = -20
   graph%y%major_div = 4
-  graph%component = 'model-design'
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'phase.a'
   curve(1)%y_axis_scale_factor = 57.29578
@@ -363,7 +359,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%title = 'Full Ring'
   graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
   graph%y%label = 'Beta [meters]'
-  graph%component = 'model'
 
   graph%y%max = 100.
   graph%y%min = 0
@@ -405,7 +400,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%title = ''
   graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
   graph%y%label = 'Eta [cm]'
-  graph%component = 'model'
   graph%y%max = 300.
   graph%y%min = 0.
   graph%y%major_div = 4
@@ -498,7 +492,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%title = ''
   graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
   graph%y%label = 'Cbar12'
-  graph%component = 'model'
   graph%y%max =  0.10
   graph%y%min = -0.10
   graph%y%major_div = 4
