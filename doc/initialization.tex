@@ -1,4 +1,4 @@
-\chapter{Tao Initialization}
+\chapter{Initialization}
 \index{Initialization}
 \label{c:init}
 
@@ -33,7 +33,7 @@ The syntax of the command line for running \tao is:
 where \vn{EXE-DIRECTORY} is the directory where the tao executable lives. If this directory is
 listed in your \vn{PATH} environmental variable then the directory specification may be omitted.
 
-The optional arguments, which will always superceed equivalent parameters set in an initialization
+The optional arguments, which will always supersede equivalent parameters set in an initialization
 file are:
 \begin{description}
 %
@@ -71,7 +71,7 @@ Overrides the \vn{data_file} (\sref{s:init.global}) specified in the \tao initia
 %
 \item[-disable_smooth_line_calc] \Newline
 Disable computation of the ``smooth curves'' used in plotting.  This can be used to speed up \tao as
-discussed in \sref{s:plot.data}.
+discussed in \sref{s:curve.line}.
 %
 \item[-external_plotting] \Newline
 This tells \tao that plotting is done externally to \tao. This is done, for example, when using a
@@ -430,7 +430,7 @@ elements that control elements in the list are also retained. This is identical 
 \end{example}
 In this example, everything outside of the range from element \vn{Q1} to the element with index 35
 will be discarded.  See the \bmad manual for more details about the \vn{slice_lattice} command.
-Note: There is also a \vn{-slice_lattice} initialization argument (\sref{s:command.line} that can be
+Note: There is also a \vn{-slice_lattice} initialization argument (\sref{s:command.line}) that can be
 used.
 
 Example:
@@ -661,7 +661,7 @@ the model lattice.
   \item{\vn{global%disable_smooth_line_calc}} \Newline
 The \vn{global%disable_smooth_line_calc} is used to disable computation of the ``smooth
 curves'' used in plotting.  This can be used to speed up \tao as discussed in
-\sref{s:plot.data}.
+\sref{s:curve.line}.
 %
   \item{\vn{global%dmerit_stop_value}} \Newline
 When optimizing, if the fractional change in the merit function over one \vn{loop} (set by
@@ -1800,7 +1800,7 @@ If Tao is compiled with \vn{OpenMP} enabled (\sref{s:openmp}), the dynamic apert
 be done in parallel.
 
 Parameters for the dynamic aperture simulation are set in the \vn{tao_dynamic_aperture} namelist
-(\sref{s:init.global} in the \tao root initialization file. Multiple \vn{tao_dynamic_aperture}
+(\sref{s:init.global}) in the \tao root initialization file. Multiple \vn{tao_dynamic_aperture}
 namelists may be present if different universes need different parameter values. Example:
 \begin{example}
   &tao_dynamic_aperture
@@ -1873,7 +1873,7 @@ affect the computation time. If not set, these parameters will default to 0.001 
 \end{description}
 
 To plot the results, an appropriate plot must be defined (\sref{s:da.plot}) and \vn{placed} in the
-plotting window (\sref{s:init.plot}. An example dynamic aperture plot is shown in
+plotting window (\sref{s:init.plot}). An example dynamic aperture plot is shown in
 Fig.~\ref{f:da-plot}.
 
 Example input files for calculating and plotting the dynamic aperture are at (\sref{s:examples}):
@@ -2015,7 +2015,7 @@ black (corresponding to \vn{%border%y1} and \vn{%border%y2}) are the bottom and 
 respectively. The rectangle within this border is called the \vn{plot area}.
 %
 \item[plot_page\%curve_legend_line_len] \Newline
-Sets the length, in points, of lines drawn for the curve legend (\sref{s:plot.def}. Default is 30.
+Sets the length, in points, of lines drawn for the curve legend (\sref{s:plot.def}). Default is 30.
 %
 \item[plot_page\%curve_legend_text_offset] \Newline
 Sets the space, in points, between the line and text in the curve legend. Default is 6.
@@ -2163,6 +2163,7 @@ plots are constructed with a \vn{tao_template_plot} namelist in the plot initial
     plot%n_curve_pts = <integer>         ! Used to override plot_page%n_curve_pts.
     plot%n_graph     = <n_graphs>
     default_graph%...                    ! See below
+    default_curve%...                    ! See below
   /
 \end{example}
 For example:
@@ -2178,6 +2179,11 @@ For example:
 
 The \vn{tao_plot_page} namelist has the following parameters:
 \begin{description}
+%
+\item[default_curve] \Newline
+The \vn{default_curve} sets defaults for \vn{curves} associated with the plot. 
+The \vn{default_curve} is a structure with the same components
+as the \vn{curve} parameter of the \vn{tao_template_graph} structure discussed below.
 %
 \item[default_graph] \Newline
 The \vn{default_graph} sets defaults for \vn{graphs} associated with the plot. This is useful if
@@ -2293,7 +2299,6 @@ The general format of the \vn{tao_template_graph} namelist is:
     graph%draw_curve_legend  = <logical>          ! Default = T
     graph%draw_title         = <logical>          ! Default = T
     graph%allow_wrap_around  = <logical>          ! Wrap curves around lattice ends?
-    graph%component          = "<string>"         ! Eg: "model - design"
     graph%symbol_size_scale  = <real>             ! Phase_space plots symbol scale factor
     graph%ix_universe        = <integer>          ! Default = -1 => Use default universe
     graph%ix_branch          = <integer>          ! Lattice branch index.
@@ -2301,13 +2306,11 @@ The general format of the \vn{tao_template_graph} namelist is:
     graph%draw_only_good_user_data_or_vars        ! Veto data or variables with good_user = F?
                                  = <logical>      !   Default = T.
     graph%x_axis_scale_factor    = <factor>       ! Scale the x-axis by this.
-    graph%n_curve                = <integer>      ! number of curves
     curve(N)%name                = "<string>"     ! Default is "c<i>", <i> = curve num.
     curve(N)%data_type           = "<string>"     ! EG: "orbit.x"
     curve(N)%data_source         = "<string>"     ! Source for the data curve points
     curve(N)%data_type_x         = "<string>"     ! Used with plot%x_axis_type = "data" or "var".
-    curve(N)%data_type_z         = "<string>"     ! Used with phase space plots
-    curve(N)%component           = "<string>"     ! Eg: "model - design". Overrides graph%component.
+    curve(N)%component           = "<string>"     ! Eg: "model - design". 
     curve(N)%data_index          = "<string>"     ! Index number for data points.
     curve(N)%legend_text         = "<string>"     ! Text for curve legend. 
     curve(N)%y_axis_scale_factor = <factor>       ! Scale the y-axis by this.
@@ -2340,8 +2343,7 @@ For example:
     graph%margin              =  60, 200, 30, 30, "POINTS"
     graph%y%label             = "X"
     graph%y%major_div_nominal = 4
-    graph%n_curve             = 1
-    graph%component           = "model - design"
+    curve(1)%component        = "model - design"
     curve(1)%data_source      = "data"
     curve(1)%data_type        = "orbit.x"
     curve(1)%units_factor     = 1000
@@ -2374,16 +2376,13 @@ conjunction with \vn{%data_type} and \vn{%component}.
 \item[curve(N)\%data_type_x] \Newline
 Used with data slices (\sref{s:graph.data.slice}).
 %
-\item[curve(N)\%data_type_z] \Newline
-Used with \vn{phase space} plotting (\sref{s:phase.space}).
-%
 \item[curve(N)\%draw_error_bars] \Newline
 The \vn{%draw_error_bars} logical determines whether error bars are drawn when plotting data
 (\vn{%data_source} set to \vn{data}). The half height of the error bars is determined by the
 \vn{error_rms} values of the data associated with the curve (\sref{s:data.anatomy}).  To keep things
 simple, \tao ignores the setting of \vn{%component} when drawing error bars. This must be kept
 in mind since for example, the measurement error associated with a difference plot of measured data
-- reference data (when \vn{%component} is set to \vn{meas-ref}) is different from just plotting
+minus reference data (when \vn{%component} is set to \vn{meas-ref}) is different from just plotting
 measured data, which in turn is different from a plot of the data as calculated from the \vn{model}
 (the measurement error associated with this is zero).
 %
@@ -2402,7 +2401,7 @@ If \vn{%ele_ref_name} is set, the curve will be shifted by subtracting the value
 parameter being plotted evaluated at the reference element. For example, if \vn{orbit.x} is being
 plotted, and \vn{%ele_ref_name} is set to "\vn{Q10W}", the plotted curve will be shifted by
 subtracting the value of the horizontal orbit at Q10W. Notice that the shifting is done for each
-graph component. For example, if \vn{graph%component} is set to "\vn{model - design}", the curve
+curve component. For example, if \vn{%component} is set to "\vn{model - design}", the curve
 will be shifted by subtracting the difference between the \vn{model} and \vn{design} values
 evaluated at the reference element.
 %
@@ -2453,7 +2452,7 @@ The \vn{%orbit} is a structure with the following subcomponents:
 %
 \item[curve(N)\%smooth_line_calc] \Newline
 Sets if additional points are used to evaluate the curve at so that the drawn line has a ``smooth''
-appearence (\sref{s:curve.line}). Default is True.
+appearance (\sref{s:curve.line}). Default is True.
 %
 \item[curve(N)\%symbol] \Newline
 The \vn{%symbol} parameter sets parameters associated with the symbols to be drawn
@@ -2469,12 +2468,13 @@ helpful in phase space plots. The default is \vn{1}.
 Use the \vn{y2} axis (\sref{s:axes}) for the curve? Default is False.
 %
 \item[curve(N)\%y_axis_scale_factor] \Newline
-Curve vertical axis scale factor. The plotted value will be:
+Curve vertical \vn{y} and \vn{y2} axes scale factor. For a given ``datum'' value, the plotted value will be:
 \begin{example}
-  plot_value = scale_factor * datum_value
+  y(plotted) = scale_factor * y(datum)
 \end{example}
-The default value is \vn{1}. For example, a \vn{%y_axis_scale_factor} of 1000 will draw an orbit
-with a milimeter scale.
+The default value is \vn{1}. For example, a \vn{%y_axis_scale_factor} of 1000 will draw a 1.0~mm orbit at the
+1.0 mark on the vertical scale. That is, the vertical scale will be in millimeters.
+\vn{graph%x_axis_scale_factor}.
 %
 \item[curve(N)\%z_color] \Newline
 The \vn{%z_color} parameter is a structure used for setting false color parameters for phase space
@@ -2495,13 +2495,8 @@ is \vn{1,1,1,1} which scales a graph to cover the entire \vn{region} the plot is
 \item[graph\%clip] \Newline
 Clip the graph curves at the graph top and bottom boundaries? Default is \vn{True}.
 %
-\item[graph\%component] \Newline
-The \vn{%component} parameter determines in part where data for drawing the graph's curves comes
-from. See \sref{s:plot.data} for more details. The \vn{graph%component} is the default used for 
-\vn{curve(N)%component} if the component parameter of curve $N$ is not set.
-%
 \item[graph\%curve_legend_origin]\Newline
-The curve legend displayes which curves are associated with which of the plotted lines and symbols. Two
+The curve legend displays which curves are associated with which of the plotted lines and symbols. Two
 examples are given \fig{f:plot.typ}. The \vn{%curve_legend_origin} defines where the upper left hand
 corner of the legend is. The default is:
 \begin{example}
@@ -2516,7 +2511,7 @@ structure. Also see \vn{graph%draw_curve_legend}
 Draw the graph axes? Default is \vn{True}. 
 %
 \item[graph\%draw_curve_legend] \Newline
-Draw the curve legend? Default is \vn{True}. The curve legend displayes which curves are associated
+Draw the curve legend? Default is \vn{True}. The curve legend displays which curves are associated
 with which of the plotted lines and symbols. Two examples are given \fig{f:plot.typ}. Also see
 \vn{graph%curve_legend_origin}.
 %
@@ -2524,20 +2519,33 @@ with which of the plotted lines and symbols. Two examples are given \fig{f:plot.
 Draw the graph grid? Default is \vn{True}.
 %
 \item[graph\%draw_only_good_user_data_or_vars] \Newline
+When plotting \tao data (\sref{c:data}) or variables (\sref{c:var}): If
+\vn{%draw_only_good_user_data_or_vars} is set to True (the default), symbol points of curves in the
+graph associated with data or variables whose \vn{good_user} parameter is set to \vn{False} will be
+ignored. That is, data and variables that will not be used in an optimization will be ignored. If
+\vn{%draw_only_good_user_data_or_vars} is set to False, data or variables that have a valid value
+will be plotted.
 %
 \item[graph\%draw_title] \Newline
+Draw the graph title? Default is True.
 %
 \item[graph\%floor_plan] \Newline
+This parameter is a structure whose components are used when drawing a \vn{floor_plan}. See
+\Sref{s:floor.plan} for more details.
 %
 \item[graph\%ix_branch] \Newline
+The \vn{graph%ix_branch} parameter sets the default branch for curves of the graph. The default will
+be overridden by \vn{curve(N)%ix_branch}. 
 %
 \item[graph\%ix_universe] \Newline
+The \vn{graph%ix_universe} parameter sets the default universe for curves of the graph.
 %
 \item[graph\%margin] \Newline
 \vn{graph%margin} sets the margin between the \vn{graph} and the \vn{box}
 it is drawn in.
 %
 \item[graph\%n_curve] \Newline
+Deprecated and ignored. \tao now counts the number of curves associated with a graph.
 %
 \item[graph\%name] \Newline
 \vn{graph%name} and \vn{curve%name} define names to be used with commands. The default names are
@@ -2570,8 +2578,8 @@ following types:
 \index{data}\index{lat_layout}\index{key_table}\index{phase_space}
 \index{floor_plan}\index{beam_chamber_wall}
 \begin{example}
-  "data"               ! Lattice parameters, data and/or variable plots (default) (\sref{s:plot.data}).
-  "dynamic_aperture"   ! Dynamic aperture plot (\sref{s:da.plot}
+  "data"               ! Lattice parameters, data and/or variable plots (default).
+  "dynamic_aperture"   ! Dynamic aperture plot (\sref{s:da.plot}).
   "floor_plan"         ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
   "histogram"          ! Histogram of plot (\sref{s:histogram}).
   "key_table"          ! Key binding table for single mode (\sref{s:key.table}).
@@ -2579,10 +2587,7 @@ following types:
   "phase_space"        ! Phase space plots (\sref{s:phase.space}).
 \end{example}
 
-With \vn{graph%type} set to \vn{"beam_chamber_wall"} (\sref{s:beam.wall.draw}), the beam chamber
-wall is drawn if it has been defined in the \bmad lattice file.
-
-With \vn{graph%type} set to \vn{"data"} (\sref{s:plot.data}), data such as orbits and/or variable
+With \vn{graph%type} set to \vn{"data"} (\sref{s:graph.types}), data such as orbits and/or variable
 values such as quadrupole strengths are plotted. Here ``data'' can be data from a defined data
 structure (\sref{c:data}) or computed directly from the lattice, beam tracking, etc. A \vn{"data"}
 graph type will contain a number of \vn{curves} and multiple data and variable curves can be drawn
@@ -2605,12 +2610,26 @@ machine centerline.
 With \vn{graph%type} set to \vn{phase_space} (\sref{s:phase.space}), phase space plots are produced.
 %
 \item[graph\%x] \Newline
+The \vn{%x} parameter sets parameters for the \vn{x}-axis (\sref{s:axes}). This parameter is a
+structure of type \vn{qp_axis_struct}. See \Sref{s:qp.axis} for more details.
 %
 \item[graph\%x_axis_scale_factor] \Newline
+Sets the horizontal \vn{x}-axis scale factor. For a given ``datum'' value, the plotted value will
+be:
+\begin{example}
+  x(plotted) = scale_factor * x(datum)
+\end{example}
+The default value is \vn{1}. For example, a \vn{%x_axis_scale_factor} of 1000 will draw a 1.0~mm
+phase space $z$ value at the 1.0 mark on the horizontal scale. That is, the horizontal scale will be
+in millimeters. Also see \vn{curve(N)%y_axis_scale_factor}.
 %
 \item[graph\%y] \Newline
+The \vn{%y} parameter sets parameters for the \vn{y}-axis (\sref{s:axes}). This parameter is a
+structure of type \vn{qp_axis_struct}. See \Sref{s:qp.axis} for more details.
 %
 \item[graph\%y2] \Newline
+The \vn{%y2} parameter sets parameters for the \vn{y2}-axis (\sref{s:axes}). This parameter is a
+structure of type \vn{qp_axis_struct}. See \Sref{s:qp.axis} for more details.
 %
 \item[graph_index] \Newline
 The first \vn{tao_template_graph} namelist after the associated \vn{tao_template_plot} namelist must
@@ -2620,15 +2639,34 @@ have the \vn{graph_index} component set to \vn{1}. The next must have \vn{graph_
 \end{description}
 
 %-----------------------------------------------------------------
-\subsection{Lattice Parameters, Data and Variable plotting}
-\label{s:plot.data}
+\subsection{Graphing Lattice Parameters}\index{plot!lattice functions}
+\label{s:graph.lat.fun}
 
-A \vn{graph} (\sref{s:template}), with \vn{graph%type} equal to \vn{"data"}, is used to draw lattice
-parameters such as orbits, or \tao data (\sref{c:data}), or variable values such as quadrupole
-strengths. A data \vn{graph} will have a number of associated \vn{curve}s with each curve defining a
-particular data type to plot.
+Templates for plotting lattice parameters such as Twiss parameters or the orbit can be defined by setting
+the \vn{data_type} of a curve appropriately. Example:
+\begin{example}
+  &tao_template_plot
+    plot%name = "my_orbit"
+    plot%x_axis_type = "s"
+    plot%n_graph = 1
+    default_curve%y_axis_scale_factor = 1000  ! mm
+  /
 
-Example... \etcetc
+  &tao_template_graph
+    graph_index = 1
+    graph%name = "g"
+    curve(1:2)%data_type = "orbit.x", "orbit.y"
+  /
+\end{example}
+lattice parameter names correspond to data type name  as listed in \Sref{s:data.table}.
+
+If the \vn{plot%x_axis_type} is set to \vn{"index"}, the horizontal axis will be the lattice element
+index.
+
+If the \vn{curve(N)%source} parameter is set to \vn{"beam"} (The default is \vn{"lat"}), beam
+tracking must be done (\sref{s:beam.init}) to have a visible plot. Additionally, due to the way \tao
+does beam tracking, \tao is only able to evaluate the plotted parameter at the boundaries between
+lattice elements. This means that \tao is not able to do the ``smooth'' line calculation.
 
 %-----------------------------------------------------------------
 \subsection{Graphing a Data Slice}\index{plot!data slice}
@@ -2643,7 +2681,7 @@ example, suppose a number of universes have been established, with each universe
 same machine but with different steerings powered. If in each universe an \vn{orbit} \vn{d2_data}
 structure has been defined, an example of a data slice is the collection of points (x, y) where:
 \begin{example}
-  (x, y) = (<n>@orbit.x[23], <n>@orbit.y[23]),   <n> = 1, ..., n_universe
+  (x, y) = (<n>@orbit.x[23], <n>@orbit.y[23]),  <n> = 1, ..., n_universe
 \end{example}
 When defining a template for graphing a data slice, the \vn{plot%x_axis_type} is set to \vn{"data"}, and
 the \vn{graph%type} must be set to \vn{"data"}, the \vn{curve(:)%data_source} must be set to
@@ -2651,7 +2689,7 @@ the \vn{graph%type} must be set to \vn{"data"}, the \vn{curve(:)%data_source} mu
 $y$ axes respectively.  In the strings given by \vn{<curve%data_type_x} or \vn{<curve%data_type}, all
 substrings that look like \vn{\#ref} are eliminated and the string given by \vn{curve%ele_ref_name}
 is substituted in its place.  Similarly, a \vn{\#comp} string is used as a place holder for the
-\vn{graph%component} Example:
+\vn{curve%component} Example:
 \begin{example}
   &tao_template_plot
     plot%name = "at_bpm"
@@ -2663,11 +2701,10 @@ is substituted in its place.  Similarly, a \vn{\#comp} string is used as a place
     graph_index = 1
     graph%title = "Orbit at BPM"
     graph%y%label = "y"
-    graph%component = "meas - ref"
     graph%type = "data"
-    graph%n_curve = 1
     graph%x_axis_scale_factor = 1000
     graph%x%label = "x"
+    curve(1)%component   = "meas - ref"
     curve(1)%data_source = "data"
     curve(1)%data_type_x = "[2:57]@orbit.x[#ref]|#comp"
     curve(1)%data_type   = "[2:57]@orbit.y[#ref]|#comp"
@@ -2680,7 +2717,7 @@ is substituted in its place.  Similarly, a \vn{\#comp} string is used as a place
 In this example, \vn{curve(1)%data_type_x} expands to \vn{"[2:57]@orbit.x[23]|meas-ref"}. That is,
 the \vn{meas - ref} values of \vn{orbit.x[23]} from universes 2 through 57 is used for the x-axis.
 Similarly, \vn{orbit.y[23]} is used for the y-axis. The \vn{set} command (\sref{s:set}) can be used
-to change \vn{curve%ele_ref_name} and \vn{graph%component} strings.
+to change \vn{curve%ele_ref_name} and \vn{curve(1)%component} strings.
 
 \vn{curve%data_index} sets the index number for the symbol points (\sref{s:template}). In the above
 example, \vn{curve%data_index} is set to \vn{"[2:57]@orbit.y[\#ref]|ix_uni"}. The \vn{|ix_uni}
@@ -2699,8 +2736,74 @@ specification of \vn{curve(:)%data_type_x} and \vn{curve(:)%data_type}. Example:
   curve(1)%ele_ref_name = "3"
 \end{example}
 The plots the \vn{model} values of \vn{orbit.x} verses \vn{meas - ref} of \vn{orbit.x} for the data
-in universe 3. Note: Whenever explicit components are specified, the \vn{graph%component} settings
+in universe 3. Note: Whenever explicit components are specified, the \vn{curve%component} settings
 are ignored for that expression.
+
+%-----------------------------------------------------------------
+\subsection{Parametric Plotting}
+\label{s:param.plot}
+
+With parametric plotting, both the $x$ and the $y$ values of the points on a curve are dependent
+upon an independent parameter. An example could be plotting $\alpha_a(s)$ versus $\sqrt{\beta_b(s)}$ over
+some range of the independent parameter $s$. One way to do parametric plotting is to use data slices
+as discussed in section~\sref{s:graph.data.slice}. Another way to do parametric plotting, which is
+discussed in this section, is to setup two plot curves whose $y$ values are the desired dependent
+parameters ($\alpha_x(s)$ and $\beta_y(s)$ say) and then define a parametric curve which uses the
+data from these curves.
+
+The two curves from which the data is to be taken must be in the same graph. The $y$ values from the
+first curve will be taken to define the $x$ coordinate of the parametric curve and the $y$ values
+from the second curve will be taken to define the $y$ coordinate of the parametric curve. The plot
+that holds these curves will be called the ``\vn{source}'' plot. Example:
+\begin{example}
+  &tao_template_plot
+   plot%name = "src"
+   plot%x_axis_type = "s"
+   plot%n_graph = 1
+  /
+
+  &tao_template_graph
+   graph_index = 1
+   graph%name = "g"
+   curve(1)%data_source = "lat"
+   curve(1)%data_type = "alpha.a"
+   curve(2)%data_source = "lat"
+   curve(2)%data_type = "expression: sqrt(beta.b)"
+\end{example}
+This defines a source plot called \vn{src} with two curves which will be used in the parametric plot. 
+
+The parametric plot curve references the source curves by setting the parametric curve's
+\vn{data_source} parameter equal to \vn{"curve"} and the parametric curve's \vn{data_type} to the
+graph in the source plot which contains the source curves. For example:
+\begin{example}
+  &tao_template_plot
+    plot%name = "parametric"
+    plot%n_graph = 1
+    plot%x_axis_type = "curve"
+  /
+
+  &tao_template_graph
+    graph_index = 1
+    graph%name = "g1"
+    curve(1)%data_source = "curve"
+    curve(1)%data_type = "src.g"
+  /
+\end{example}
+The parametric plot's \vn{x_axis_type} needs to be set to \vn{"curve"} along with the parametric
+curve's \vn{data_source}.
+
+When the parametric plot is \vn{placed} in the plot window, \tao will look for a suitable source
+plot to connect with. If \tao does not find a suitable source plot, \tao will place a source plot in
+an unused plot \vn{region} and set the plot to be invisible. The region name will be set to
+\begin{example}
+  <source-plot-name>_<parametric-plot-region>
+\end{example}
+where \vn{<source-plot-name>} is the name of the source plot and \vn{<parametric-plot-region>} is
+the name of the region where the parametric plot has been placed. For example, if the above
+parametric plot is placed in a region called ``\vn{r12}'', the name of the region where the source
+plot is placed will be named ``\vn{src_r12}''. Note: The \vn{show plot} command will show if a plot
+in a given region is visible. The \vn{set plot} (\sref{s:set.plot}) command can be used to toggle 
+plot visibility.
 
 %-----------------------------------------------------------------
 \subsection{Plotting With a Variable Parameter on the X-Axis}
@@ -2730,7 +2833,7 @@ Example:
 Here the number of curve points has been set to 50 to reduce the evaluation overhead.
 
 Note: \tao treats the \vn{design} and \vn{base} lattices as static so that varying a variable will
-not affect these lattices. Thus, constructing a plot with \vn{graph%component} set to, for example,
+not affect these lattices. Thus, constructing a plot with \vn{curve%component} set to, for example,
 \vn{"model - design"} will {\em not} produce a plot that is the difference between varying a
 variable in both \vn{model} and \vn{design} lattices. In the case where such a plot is desired, a
 second universe needs to be established. In this case, one would set \vn{curve(:)%data_type} to
@@ -2845,7 +2948,7 @@ The placement of a lattice element in the drawing is determined by the element's
 system}.  In the \vn{global reference system}, the $(Z, X)$ plane is the horizontal plane. 
 
 A floor plan orbit is associated with a \vn{graph} of a \vn{plot} (\sref{s:template}). A \vn{graph}
-has a \vn{floor_plan} component which is a structure of type \vn{tao_floor_plan_struct}. Components
+has a \vn{floor_plan} parameter which is a structure of type \vn{tao_floor_plan_struct}. Components
 of this structure can be set to control how a floor plan is drawn. The components of a
 \vn{tao_floor_plan_struct} are:
 \begin{example}
@@ -3261,7 +3364,6 @@ The following example will graphs the horizontal orbit along with the horizontal
   &tao_template_graph
     graph%name    = "x"
     graph_index   = 1
-    graph%n_curve = 3
 
     curve(1)%data_source  = "aperture"
     curve(1)%data_type    = "+x"
@@ -3304,7 +3406,6 @@ Example plot setup:
   graph%x%label = "x (mm)"
   graph%x_axis_scale_factor = 1000  ! Plot in mm.
   graph%y%label = "y (mm)"
-  graph%n_curve = 10
   curve(1)%line%color = "red"
   curve(1)%data_type = 'beam_ellipse'
   curve(1)%line%width = 5
@@ -3368,7 +3469,6 @@ Fig.~\ref{f:histogram}, using the example histogram template:
   graph%x%max =  6
   graph%x%label = "z (mm)"
   graph%y%label = "Current (A)"
-  graph%n_curve = 1
   graph%y%label_offset = .1
   graph%x_axis_scale_factor = 1000.00 !m->mm
 
@@ -3487,7 +3587,6 @@ template to create a key table looks like:
   &tao_template_graph
     graph%type = "key_table" 
     graph_index = 1
-    graph%n_curve = 0
   /
 \end{example}
 
@@ -3531,8 +3630,8 @@ placed.
 
 A \vn{phase space} plot displays a particle or particles phase space coordinates at a given
 location. Phase space plotting is associated with a \vn{graph} by setting \vn{graph%type} equal to
-\vn{"phase_space"}. The concepts here are similar to data plotting (\sref{s:plot.data}). An example
-is show in Figure~\ref{f:phase.space}.  Example Phase Space template:
+\vn{"phase_space"}. The concepts here are similar to \vn{data} plotting (\sref{s:graph.types}). An
+example is show in Figure~\ref{f:phase.space}.  Example Phase Space template:
 \begin{example}
 &tao_template_plot
   plot%name = "xphase"
@@ -3552,7 +3651,6 @@ is show in Figure~\ref{f:phase.space}.  Example Phase Space template:
   graph%x_axis_scale_factor = 1000.00 !m->mm
   graph%y%label =  "p\textbackslash{}dx\textbackslash{}u/p\textbackslash{}d0\textbackslash{}u (mrad)"
   graph%y%major_div = 4
-  graph%n_curve = 1
   graph%y%label_offset=.4
   curve(1)%data_type = "x-px" 
   curve(1)%y_axis_scale_factor = 1000 !rad->mrad
@@ -3566,20 +3664,12 @@ is show in Figure~\ref{f:phase.space}.  Example Phase Space template:
 
 For a \vn{"phase_space"} type graph, \vn{curve%data_type_x} determines what phase space coordinate
 is plotted along the x-axis and \vn{curve%data_type} determines what phase space coordinate is
-plotted along the y-axis. The phase space coordinates are:
+plotted along the y-axis. Phase space coordinates are one of:
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \begin{example}
-  "x"
-  "px"
-  "y"
-  "py"
-  "z"
-  "pz"
-  "intensity"       -- Photon total intensity 
-  "intensity_x"     -- Photon intensity along x-axis 
-  "intensity_y"     -- Photon intensity along y-axis
-  "phase_x"         -- Photon phase along x-axis
-  "phase_y"         -- Photon phase along y-axis
+  "x",  "px",  "y",  "py",  "z",  "pz",
+  "intensity",  "intensity_x",  "intensity_y"     ! Photon intensity
+  "phase_x", "phase_y"                            ! Photon coherent phase
 \end{example}
 In this example above, the $x$-axis of the plot will correspond to the $z$ phase space coordinate
 and the $pz$-axis will correspond to the $px$ coordinate.
@@ -3621,73 +3711,4 @@ turns is determined by the setting of \vn{ix_max_data} in the \vn{tao_d1_data} n
 (\sref{s:init.data}). Using \vn{"twiss"} as the \vn{curve%data_source} indicates that the phase
 space plot will be an ellipse whose shape is based upon the Twiss and coupling parameters, and the
 normal mode emittances. If the normal mode emittances have not been computed then a nominal value of
-1e-6~m-rad is used.
-
-%-----------------------------------------------------------------
-\subsection{Parametric Plotting}
-\label{s:param.plot}
-
-With parametric plotting, both the $x$ and the $y$ values of the points on a curve are dependent
-upon an independent parameter. An example could be plotting $\alpha_a(s)$ versus $\sqrt{\beta_b(s)}$ over
-some range of the independent parameter $s$. One way to do parametric plotting is to use data slices
-as discussed in section~\sref{s:graph.data.slice}. Another way to do parametric plotting, which is
-discussed in this section, is to setup two plot curves whose $y$ values are the desired dependent
-parameters ($\alpha_x(s)$ and $\beta_y(s)$ say) and then define a parametric curve which uses the
-data from these curves.
-
-The two curves from which the data is to be taken must be in the same graph. The $y$ values from the
-first curve will be taken to define the $x$ coordinate of the parametric curve and the $y$ values
-from the second curve will be taken to define the $y$ coordinate of the parametric curve. The plot
-that holds these curves will be called the ``\vn{source}'' plot. Example:
-\begin{example}
-  &tao_template_plot
-   plot%name = "src"
-   plot%x_axis_type = "s"
-   plot%n_graph = 1
-  /
-
-  &tao_template_graph
-   graph_index = 1
-   graph%name = "g"
-   graph%n_curve = 2
-   curve(1)%data_source = "lat"
-   curve(1)%data_type = "alpha.a"
-   curve(2)%data_source = "lat"
-   curve(2)%data_type = "expression: sqrt(beta.b)"
-\end{example}
-This defines a source plot called \vn{src} with two curves which will be used in the parametric plot. 
-
-The parametric plot curve references the source curves by setting the parametric curve's
-\vn{data_source} parameter equal to \vn{"curve"} and the parametric curve's \vn{data_type} to the
-graph in the source plot which contains the source curves. For example:
-\begin{example}
-  &tao_template_plot
-    plot%name = "parametric"
-    plot%n_graph = 1
-    plot%x_axis_type = "curve"
-  /
-
-  &tao_template_graph
-    graph_index = 1
-    graph%name = "g1"
-    graph%n_curve = 1
-    curve(1)%data_source = "curve"
-    curve(1)%data_type = "src.g"
-  /
-\end{example}
-The parametric plot's \vn{x_axis_type} needs to be set to \vn{"curve"} along with the parametric
-curve's \vn{data_source}.
-
-When the parametric plot is \vn{placed} in the plot window, \tao will look for a suitable source
-plot to connect with. If \tao does not find a suitable source plot, \tao will place a source plot in
-an unused plot \vn{region} and set the plot to be invisible. The region name will be set to
-\begin{example}
-  <source-plot-name>_<parametric-plot-region>
-\end{example}
-where \vn{<source-plot-name>} is the name of the source plot and \vn{<parametric-plot-region>} is
-the name of the region where the parametric plot has been placed. For example, if the above
-parametric plot is placed in a region called ``\vn{r12}'', the name of the region where the source
-plot is placed will be named ``\vn{src_r12}''. Note: The \vn{show plot} command will show if a plot
-in a given region is visible. The \vn{set plot} (\sref{s:set.plot}) command can be used to toggle 
-plot visibility.
-
+1~$\mu$m-rad is used.

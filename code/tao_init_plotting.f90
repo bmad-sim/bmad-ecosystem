@@ -44,7 +44,7 @@ type (tao_curve_struct), pointer :: crv
 type (tao_plot_input) plot, default_plot
 type (tao_graph_input) :: graph, default_graph, master_default_graph
 type (tao_region_input) region(n_region_maxx)
-type (tao_curve_input) curve(n_curve_maxx)
+type (tao_curve_input) curve(n_curve_maxx), default_curve
 type (tao_place_input) place(30)
 type (old_tao_ele_shape_struct) shape(30)
 type (tao_ele_shape_input) ele_shape(60)
@@ -66,12 +66,16 @@ character(100) graph_name
 character(80) label
 character(40) str, old_name
 character(16) color
+character(16), parameter :: symbol_type(8) = [character(16):: 'circle_dot', 'times', 'square', 'plus', &
+                                                  'triangle', 'x_symbol', 'diamond', 'diamond']
+character(16), parameter :: draw_color(8) = [character(16):: 'black', 'blue', 'red', 'green', 'cyan', &
+                                                   'magenta', 'yellow', 'black']
 character(*), parameter :: r_name = 'tao_init_plotting'
 
-logical err, include_default_plots, all_set, include_default_shapes, include_dflt_lat_layout, include_dflt_floor_plan
+logical err, include_default_plots, include_default_shapes, include_dflt_lat_layout, include_dflt_floor_plan
 
 namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, include_default_plots
-namelist / tao_template_plot / plot, default_graph
+namelist / tao_template_plot / plot, default_graph, default_curve
 namelist / tao_template_graph / graph, graph_index, curve
 
 namelist / floor_plan_drawing / ele_shape, include_default_shapes
@@ -404,6 +408,10 @@ do  ! Loop over plot files
 
     plot = default_plot
     default_graph = master_default_graph
+    default_curve = tao_curve_input()
+    default_curve%symbol%type = ''
+    default_curve%symbol%color = ''
+    default_curve%line%color = ''
 
     plot%x = qp_axis_struct(null_name$, re_g$, re_g$, re_g$, re_g$, re_g$, re_g$, re_g$, re_g$, re_g$, &
                 null_name$, int_g$, int_g$, int_g$, int_g$, int_g$, null_name$, null_name$, &
@@ -455,7 +463,7 @@ do  ! Loop over plot files
       graph_index = 0         ! setup defaults
       graph = default_graph
       write (graph%name, '(a, i0)') 'g', i_graph
-      curve(:) = tao_curve_input()
+      curve(:) = default_curve
       do j = 1, size(curve)
         write (curve(j)%name, '(a, i0)') 'c', j
       enddo
@@ -465,9 +473,6 @@ do  ! Loop over plot files
       else
         curve(:)%draw_symbols = .true.
       endif
-      curve(2:7)%symbol%type = [character(16):: 'times', 'square', 'plus', 'triangle', 'x_symbol', 'diamond']
-      curve(2:7)%symbol%color = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
-      curve(2:7)%line%color = curve(2:7)%symbol%color
 
       read (iu, nml = tao_template_graph, iostat = ios)
       if (ios > 0) then
@@ -496,7 +501,6 @@ do  ! Loop over plot files
       grph%p => plt
       grph%name                             = graph%name
       grph%type                             = graph%type
-      grph%component                        = graph%component
       grph%x_axis_scale_factor              = graph%x_axis_scale_factor 
       grph%symbol_size_scale                = graph%symbol_size_scale   
       grph%text_legend_origin               = graph%text_legend_origin
@@ -620,6 +624,11 @@ do  ! Loop over plot files
         crv%legend_text          = curve(j)%legend_text
         crv%hist                 = curve(j)%hist
         crv%z_color              = curve(j)%z_color
+
+        k = min(j, size(symbol_type))
+        if (crv%symbol%type == '')  crv%symbol%type  = symbol_type(k)
+        if (crv%symbol%color == '') crv%symbol%color = draw_color(k)
+        if (crv%line%color == '')   crv%line%color   = draw_color(k)
 
         if (curve(j)%z_color0 /= invalid$) crv%z_color%min = curve(j)%z_color0
         if (curve(j)%z_color1 /= invalid$) crv%z_color%max = curve(j)%z_color1
@@ -745,16 +754,14 @@ do  ! Loop over plot files
         grph%y2%label_color = color
       endif
 
-      ! Set graph%component = 'model' if not set
+      ! 
 
-      all_set = .true.
       if (allocated(grph%curve)) then
         do ic = 1, size(grph%curve)
-          if (grph%curve(ic)%component == '') all_set = .false.
+          if (grph%curve(ic)%component == '') grph%curve(ic)%component = graph%component  ! Deprecated syntax.
+          if (grph%curve(ic)%component == '') grph%curve(ic)%component = 'model'
         enddo
       endif
-      if (.not. all_set .and. grph%component == '') grph%component = 'model'
-
     enddo  ! graph
   enddo  ! plot
 
@@ -971,7 +978,6 @@ grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
-grph%component            = 'model'
 grph%x                    = init_axis
 grph%x%major_div_nominal  = 7
 grph%x%minor_div_max      = 6
@@ -979,6 +985,7 @@ grph%x%label = 's [m]'
 
 crv => grph%curve(1)
 crv%name         = 'c'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'blue'
@@ -999,11 +1006,11 @@ grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
-grph%component            = 'model'
 grph%x                    = init_axis
 
 crv => grph%curve(1)
 crv%name         = 'c'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'blue'
@@ -1034,7 +1041,6 @@ grph%y%major_div_nominal  = 4
 grph%y2                   = init_axis
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
-grph%component            = 'model'
 grph%draw_curve_legend    = .true.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
@@ -1047,6 +1053,7 @@ grph%x%label              = 's [m]'
 
 crv => grph%curve(1)
 crv%name         = 'c1'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'blue'
@@ -1055,6 +1062,7 @@ crv%symbol%color = crv%line%color
 
 crv => grph%curve(2)
 crv%name         = 'c2'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'orange'
@@ -1063,6 +1071,7 @@ crv%symbol%color = crv%line%color
 
 crv => grph%curve(3)
 crv%name         = 'c3'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'green'
@@ -1093,7 +1102,6 @@ grph%y%major_div_nominal  = 4
 grph%y2                   = init_axis
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
-grph%component            = 'model'
 grph%draw_curve_legend    = .true.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
@@ -1106,6 +1114,7 @@ grph%x%label              = 's [m]'
 
 crv => grph%curve(1)
 crv%name         = 'c1'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'blue'
@@ -1114,6 +1123,7 @@ crv%symbol%color = crv%line%color
 
 crv => grph%curve(2)
 crv%name         = 'c2'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'orange'
@@ -1122,6 +1132,7 @@ crv%symbol%color = crv%line%color
 
 crv => grph%curve(3)
 crv%name         = 'c3'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'green'
@@ -1130,6 +1141,7 @@ crv%symbol%color = crv%line%color
 
 crv => grph%curve(4)
 crv%name         = 'c4'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'magenta'
@@ -1160,7 +1172,6 @@ grph%y%major_div_nominal  = 4
 grph%y2                   = init_axis
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
-grph%component            = 'model'
 grph%draw_curve_legend    = .true.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
@@ -1173,6 +1184,7 @@ grph%x%label              = 's [m]'
 
 crv => grph%curve(1)
 crv%name         = 'c1'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'blue'
@@ -1181,6 +1193,7 @@ crv%symbol%color = crv%line%color
 
 crv => grph%curve(2)
 crv%name         = 'c2'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'orange'
@@ -1213,7 +1226,6 @@ grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
-grph%component            = 'model'
 grph%x                    = init_axis
 grph%x%major_div_nominal  = 7
 grph%x%minor_div_max      = 6
@@ -1221,6 +1233,7 @@ grph%x%label              = 's [m]'
 
 crv => grph%curve(1)
 crv%name         = 'c'
+crv%component    = 'model'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = 'blue'
@@ -2366,10 +2379,10 @@ if (all(s%plot_page%template%name /= 'phase')) then
   grph%p => plt
   grph%title         = 'Betatron Phase'
   grph%y%label       = '\gf\fn\dA\u, \gf\fn\dB\u (deg)'
-  grph%component     = 'model - design'
 
   crv => grph%curve(1)
   crv%name         = 'a'
+  crv%component     = 'model - design'
   crv%g => grph
   crv%data_type    = 'phase.a'
   crv%legend_text  = '\gf\fn\dA\u'
@@ -2377,6 +2390,7 @@ if (all(s%plot_page%template%name /= 'phase')) then
 
   crv => grph%curve(2)
   crv%name         = 'b'
+  crv%component     = 'model - design'
   crv%g => grph
   crv%data_type    = 'phase.b'
   crv%legend_text  = '\gf\fn\dB\u'
@@ -2395,7 +2409,6 @@ if (all(s%plot_page%template%name /= 'ping_a_skew')) then
   grph%p => plt
   grph%title         = 'Pinged A-mode Skew'
   grph%y%label       = 'ping_a: amp_sin_y, amp_cos_y'
-  grph%component     = 'model'
 
   crv => grph%curve(1)
   crv%name         = 'sin_y'
@@ -2422,7 +2435,6 @@ if (all(s%plot_page%template%name /= 'ping_a_rel_skew')) then
   grph%p => plt
   grph%title         = 'Pinged A-mode Rel Skew'
   grph%y%label       = 'ping_a: amp_sin_rel_y, amp_cos_rel_y'
-  grph%component     = 'model'
 
   crv => grph%curve(1)
   crv%name         = 'sin_rel_y'
@@ -2449,7 +2461,6 @@ if (all(s%plot_page%template%name /= 'ping_a_y_amp_phase')) then
   grph%p => plt
   grph%title         = 'Pinged A-mode Y-plane Amp & Phase'
   grph%y%label       = 'ping_a: amp_y, phase_y'
-  grph%component     = 'model'
 
   crv => grph%curve(1)
   crv%name         = 'amp_y'
@@ -2476,7 +2487,6 @@ if (all(s%plot_page%template%name /= 'ping_b_skew')) then
   grph%p => plt
   grph%title         = 'Ping B-mode Skew'
   grph%y%label       = 'ping_b: sin_x, cos_x'
-  grph%component     = 'model'
 
   crv => grph%curve(1)
   crv%name         = 'sin_x'
@@ -2503,7 +2513,6 @@ if (all(s%plot_page%template%name /= 'ping_b_rel_skew')) then
   grph%p => plt
   grph%title         = 'Ping B-mode Rel Skew'
   grph%y%label       = 'ping_b: sin_rel_x, cos_rel_x'
-  grph%component     = 'model'
 
   crv => grph%curve(1)
   crv%name         = 'sin_rel_x'
@@ -2530,7 +2539,6 @@ if (all(s%plot_page%template%name /= 'ping_b_x_amp_phase')) then
   grph%p => plt
   grph%title         = 'Pinged B-mode X-plane Amp & Phase'
   grph%y%label       = 'ping_b: amp_x, phase_x'
-  grph%component     = 'model'
 
   crv => grph%curve(1)
   crv%name         = 'amp_x'
@@ -2557,7 +2565,6 @@ if (all(s%plot_page%template%name /= 'ping_amp')) then
   grph%p => plt
   grph%title         = 'Pinged Beam Osc Amplitudes'
   grph%y%label       = 'A\dax\u, A\dby\u'
-  grph%component     = 'model'
 
   crv => grph%curve(1)
   crv%name         = 'amp_x'
@@ -2584,10 +2591,10 @@ if (all(s%plot_page%template%name /= 'ping_phase')) then
   grph%p => plt
   grph%title         = 'Pinged Beam Osc Phase'
   grph%y%label       = '\gf\fn\dax\u, \gf\fn\dby\u'
-  grph%component     = 'model - design'
 
   crv => grph%curve(1)
   crv%name         = 'phase_x'
+  crv%component     = 'model - design'
   crv%g => grph
   crv%data_type    = 'ping_a.phase_x'
   crv%legend_text  = 'ping_a.phase_x'
@@ -2595,6 +2602,7 @@ if (all(s%plot_page%template%name /= 'ping_phase')) then
 
   crv => grph%curve(2)
   crv%name         = 'phase_y'
+  crv%component     = 'model - design'
   crv%g => grph
   crv%data_type    = 'ping_b.phase_y'
   crv%legend_text  = 'ping_b.phase_y'

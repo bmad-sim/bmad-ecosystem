@@ -1549,7 +1549,8 @@ do i = 1, size(plot)
 
   case ('component')
     do j = 1, size(p%graph)
-      p%graph(j)%component = unquote(value_str)
+      if (.not. allocated(p%graph(j)%curve)) cycle
+      p%graph(j)%curve%component = unquote(value_str)
     enddo
 
   case ('n_curve_pts')
@@ -1770,7 +1771,7 @@ case ('box')
   endif
 
 case ('component')
-  this_graph%component = value_str
+  if (allocated(this_graph%curve)) this_graph%curve%component = value_str
 case ('clip')
   call tao_set_logical_value (this_graph%clip, component, value, error)
 case ('curve_legend_origin')

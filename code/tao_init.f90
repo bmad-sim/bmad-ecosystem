@@ -172,7 +172,7 @@ if (iu /= 0) then
   endif
 
   if (ios > 0) then
-    call out_io (s_abort$, r_name, 'ERROR IN READING "TAO_START" NAMELIST IN FILE: ' // file_name)
+    call out_io (s_error$, r_name, 'ERROR IN READING "TAO_START" NAMELIST IN FILE: ' // file_name)
     rewind (iu)
     read (iu, nml = tao_start)  ! And generate error message.    
   endif
@@ -225,7 +225,7 @@ do i = 1, s%n_var_used
     if (var_slave%ix_ele < 0) cycle  ! Do not check EG "particle_start".
     if (.not. attribute_free (var_slave%ix_ele, var_slave%ix_branch, var%attrib_name, &
                                                                 u%model%lat, dependent_attribs_free = .true.)) then
-      call out_io (s_abort$, r_name, &
+      call out_io (s_error$, r_name, &
                 '       VARIABLE TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY.', &
                 '       VARIABLE:  ' // tao_var1_name(var), &
                 '       ELEMENT:   ' // var%ele_name, &

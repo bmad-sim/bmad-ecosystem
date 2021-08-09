@@ -346,6 +346,7 @@ case ('place')
 
 !--------------------------------
 ! PLOT
+! NOTE: THIS COMMAND IS DEPRECATED 8/2021.
 
 case ('plot')
 

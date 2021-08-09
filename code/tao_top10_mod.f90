@@ -260,7 +260,7 @@ do ix = n, 1, -1
   case ('abs_min')  
     if (abs(value) > abs(top10(ix)%value)) exit
   case default
-    call out_io (s_abort$, r_name, 'BAD "ORDER" ARGUMENT: ' // order)
+    call out_io (s_error$, r_name, 'BAD "ORDER" ARGUMENT: ' // order)
   end select
 enddo
 
@@ -419,7 +419,7 @@ do i = 1, s%n_var_used
       con(nc)%target_value = var%low_lim
     endif
   else
-    call out_io (s_abort$, r_name, 'UNKNOWN VARIABLE MERIT_TYPE: ' // var%merit_type)
+    call out_io (s_error$, r_name, 'UNKNOWN VARIABLE MERIT_TYPE: ' // var%merit_type)
   endif
   con(nc)%actual_value = var%model_value
   con(nc)%merit = var%merit

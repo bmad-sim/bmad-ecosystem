@@ -5284,7 +5284,6 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), amt) 'graph^type;ENUM;T;',                        trim(g%type)
   nl=incr(nl); write (li(nl), amt) 'title;STR;T;',                              trim(g%title)
   nl=incr(nl); write (li(nl), amt) 'title_suffix;STR;F;',                       trim(g%title_suffix)
-  nl=incr(nl); write (li(nl), amt) 'component;COMPONENT;T;',                    trim(g%component)
   nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;F;',                        trim(g%why_invalid)
   nl=incr(nl); write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',               g%x_axis_scale_factor
   nl=incr(nl); write (li(nl), rmt) 'symbol_size_scale;REAL;T;',                 g%symbol_size_scale

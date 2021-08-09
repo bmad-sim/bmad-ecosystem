@@ -570,7 +570,7 @@ else
   endif
 
   if (ix_max_var < ix_min_var) then
-    call out_io (s_abort$, r_name, 'NO ELEMENTS FOR: ' // quote(v1_var%name), 'THIS V1 VARIABLE ARRAY WILL NOT BE CREATED.')
+    call out_io (s_error$, r_name, 'NO ELEMENTS FOR: ' // quote(v1_var%name), 'THIS V1 VARIABLE ARRAY WILL NOT BE CREATED.')
     s%n_v1_var_used = s%n_v1_var_used - 1
     return
   endif
