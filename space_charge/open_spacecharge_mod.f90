@@ -632,7 +632,7 @@ end subroutine osc_freespace_solver2
 !-
 subroutine osc_get_cgrn_freespace(cgrn, delta, gamma, icomp, offset)
 
-complex(dp), intent(out), dimension(0:,0:,0:) :: cgrn ! Convenient indexing 
+complex(dp), intent(out), dimension(:,:,:) :: cgrn 
 real(dp), intent(in), dimension(3) :: delta
 integer, intent(in) :: icomp
 real(dp), intent(in) :: gamma
@@ -671,14 +671,14 @@ endif
 !$OMP PARALLEL DO &
 !$OMP DEFAULT(FIRSTPRIVATE), &
 !$OMP SHARED(cgrn)
-do k = 0, ksize-1
-  w = k*dz + wmin
+do k = 1, ksize
+  w = (k-1)*dz + wmin
 
-  do j=0, jsize-1
-    v=j*dy + vmin
+  do j=1, jsize
+    v=(j-1)*dy + vmin
 
-   do i=0, isize-1
-     u = i*dx + umin
+   do i=1, isize
+     u = (i-1)*dx + umin
      
      if(icomp == 0) gval=lafun2(u,v,w)*factor
      if(icomp == 1) gval=xlafun2(u,v,w)*factor
@@ -694,7 +694,15 @@ enddo
 ! Evaluate the indefinite integral over the cube     
 !cgrn = cgrn(1:,1:,1:) - cgrn(:-1,1:,1:) - cgrn(1:,:-1,1:) - cgrn(1:,1:,:-1) - cgrn(:-1,:-1,:-1) + cgrn(:-1,:-1,1:) + cgrn(:-1,1:,:-1)  + cgrn(1:,:-1,:-1)
 !       (x2,y2,z2) -      (x1,y2,z2) -     (x2,y1,z2) -    (x2,y2,z1) -    (x1,y1,z1)   +    (x1,y1,z2)   +    (x1,y2,z1)  +    (x2,y1,z1)
-cgrn = cgrn(1:,1:,1:) - cgrn(0:,1:,1:) - cgrn(1:,0:,1:) - cgrn(1:,1:,0:) - cgrn(0:,0:,0:) + cgrn(0:,0:,1:) + cgrn(0:,1:,0:)  + cgrn(1:,0:,0:)
+cgrn(1:isize-1, 1:jsize-1, 1:ksize-1) = &
+    + cgrn(2:isize,   2:jsize,   2:ksize) &
+    - cgrn(1:isize-1, 2:jsize,   2:ksize) &
+    - cgrn(2:isize,   1:jsize-1, 2:ksize) &
+    - cgrn(2:isize,   2:jsize,   1:ksize-1) &
+    - cgrn(1:isize-1, 1:jsize-1, 1:ksize-1) &
+    + cgrn(1:isize-1, 1:jsize-1, 2:ksize) &
+    + cgrn(1:isize-1, 2:jsize,   1:ksize-1)  &
+    + cgrn(2:isize,   1:jsize-1, 1:ksize-1)
 
 end subroutine osc_get_cgrn_freespace
 
