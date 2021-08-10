@@ -677,7 +677,9 @@ do
   if (err .and. print_err) then
     sig = bunch_params%sigma
     if (any(sig /= 0)) then
-      call out_io (s_error$, r_name, [character(80):: 'Singular sigma matrix is:', &
+      call out_io (s_error$, r_name, [character(80):: &
+            'Beam parameters not computed at: ' // trim(ele%name) // '  ' // ele_loc_name(ele, parens = '()') , &
+            'Singular sigma matrix is:', &
             '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', &
             'Will not print any more singular sigma matrices for this track...'], &
             r_array = [sig(1,:), sig(2,:), sig(3,:), sig(4,:), sig(5,:), sig(6,:)])

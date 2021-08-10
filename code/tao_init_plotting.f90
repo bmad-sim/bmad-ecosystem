@@ -587,10 +587,6 @@ do  ! Loop over plot files
         if (allocated(grph%curve)) deallocate (grph%curve)
       else
         allocate (grph%curve(n_curve))
-        if (graph%n_curve /= 0 .and. graph%n_curve /= n_curve) then
-          call out_io (s_warn$, r_name, 'Note: "graph%n_curve" is deprecated and ignored.', &
-                        'You can safely remove this parameter from the namelist for plot: ' // plt%name)
-        endif
       endif
 
       n_curve = 0
