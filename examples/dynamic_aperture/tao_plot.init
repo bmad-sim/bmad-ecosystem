@@ -24,6 +24,8 @@ Templates define the basics of, say, how to display an orbit.
   default_graph%x%label = "x (mm)"
   plot%x_axis_type = "phase_space"
   plot%n_graph = 1
+  default_curve%y_axis_scale_factor = 1000
+  default_curve%draw_symbols = T
 /
 
 &tao_template_graph
@@ -44,10 +46,10 @@ Templates define the basics of, say, how to display an orbit.
   curve(1)%line%width = 5
   curve(1)%legend_text = "10 sigma beam ellipse"
   curve(1)%draw_symbols = F
-  curve(1:10)%y_axis_scale_factor = 10*1000
-  curve(2:10)%draw_symbols = 9*T
-  curve(2:10)%data_type = 9*"dynamic_aperture"
   curve(2:10)%data_index = 1, 2, 3, 4, 5, 6, 7, 8, 9
+  ! Unfortunately gfortran has a compiler bug so it does not accept a repeat count.
+  curve(2:10)%data_type = "dynamic_aperture", "dynamic_aperture", "dynamic_aperture", "dynamic_aperture", 
+          "dynamic_aperture", "dynamic_aperture", "dynamic_aperture", "dynamic_aperture", "dynamic_aperture"
   curve(3)%symbol%color = "purple"
   curve(3)%line%color = "purple"
  /
