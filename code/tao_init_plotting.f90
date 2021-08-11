@@ -721,8 +721,11 @@ do  ! Loop over plot files
         ! to be the beginning element.
 
         if (crv%ele_ref_name /= '') then
-          call tao_locate_elements (crv%ele_ref_name, i_uni, eles, err, ignore_blank = .true.) ! find the index
-          if (err) cycle  ! Check
+          call tao_locate_elements (crv%ele_ref_name, i_uni, eles, err, model$, .true., s_warn$) ! find the index
+          if (err) then
+            call out_io (s_warn$, r_name, 'CANNOT LOCATE ELEMENT FOR PLOT CURVE: ' // tao_curve_name(crv))
+            cycle  ! Check
+          endif
           crv%ix_ele_ref = eles(1)%ele%ix_ele
           crv%ix_branch  = eles(1)%ele%ix_branch
         elseif (substr(crv%data_type,1,5) == 'phase' .or. substr(crv%data_type,1,2) == 'r.' .or. &

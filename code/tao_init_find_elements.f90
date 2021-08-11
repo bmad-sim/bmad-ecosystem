@@ -2,6 +2,8 @@
 ! subroutine tao_init_find_elements (u, search_string, eles, attribute, found_one)
 !
 ! Routine to search the lattice for the specified element and flags eles(:)
+! This routine is meant to be used by initialization routines.
+! Otherwise use tao_locate_elements instead.
 !
 ! Input:
 !   u             -- tao_universe_struct: Universe to search
@@ -47,7 +49,6 @@ no_lords = .false.
 call string_trim(search_string, string, ix)
 
 do
-
   if (string(1:1) /= '-') exit
 
   select case (string(1:ix))
@@ -56,17 +57,17 @@ do
   case ('-no_slaves') 
     no_slaves = .true.
   case default
-    call out_io (s_abort$, r_name, "BAD SEARCH SWITCH: " // search_string)
-    call err_exit
+    call out_io (s_warn$, r_name, "BAD SEARCH SWITCH: " // search_string)
+    call re_allocate_eles(eles, 0, exact = .true.)
+    return
   end select
 
   call string_trim (string(ix+1:), string, ix)
-
 enddo
 
 ! Find elements
 
-call tao_locate_elements (string, u%ix_uni, eles, err, print_err = .false.)
+call tao_locate_elements (string, u%ix_uni, eles, err, print_err = s_nooutput$)
 if (size(eles) > 0 .and. present(found_one)) found_one = .true.
 
 warn_given = .false.

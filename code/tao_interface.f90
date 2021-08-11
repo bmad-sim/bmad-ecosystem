@@ -588,8 +588,8 @@ subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, igno
   integer ix_universe
   type (ele_pointer_struct), allocatable :: eles(:)
   logical err
-  integer, optional :: lat_type, ix_dflt_branch
-  logical, optional :: ignore_blank, print_err, above_ubound_is_err, multiple_eles_is_err
+  integer, optional :: lat_type, print_err, ix_dflt_branch
+  logical, optional :: ignore_blank, above_ubound_is_err, multiple_eles_is_err
 end subroutine
 
 
