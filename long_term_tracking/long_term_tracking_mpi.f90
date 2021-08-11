@@ -107,6 +107,7 @@ ltt_com%mpi_data_dir = trim(path) // 'mpi_temp_dir/'
 ! Master:
 
 if (ltt_com%mpi_rank == master_rank$) then
+  call system_command ('rm -rf ' // trim(ltt_com%mpi_data_dir))
   call system_command ('mkdir ' // trim(ltt_com%mpi_data_dir))
 
   allocate (slave_is_done(num_slaves))
@@ -220,7 +221,7 @@ if (ltt_com%mpi_rank == master_rank$) then
 
   if (lttp%particle_output_file /= '') then
     n_out = 0   ! Number of output files to generage
-    allocate (turn(size(file_list)))
+    call re_allocate (turn, size(file_list))
     do i = 1, size(file_list)
       file = file_list(i)
       if (file(1:1) == 'b') cycle  ! Skip binary files

@@ -294,11 +294,6 @@ if (ltt%simulation_mode == 'CHECK') then
   endif
 endif
 
-if (ltt_com%using_mpi .and. ltt%tracking_method == 'PTC') then
-  print '(a)', 'TRACKING_METHOD = PTC NOT ALLOWED WITH MPI VERSION OF THIS PROGRAM.'
-  stop
-endif
-
 if (beam_init%use_particle_start_for_center) beam_init%center = lat%particle_start%vec
 
 !
