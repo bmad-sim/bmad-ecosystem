@@ -3908,13 +3908,14 @@ case ('spin')
       ele_ref => pointer_to_next_ele(ele, -1)
     endif
 
-    if (all(sm%axis_input%n0 == 0)) then
+    ! If one-turn calc: Use PTC n0 to be consistant
+    if (all(sm%axis_input%n0 == 0) .and. ele_ref%ix_ele /= ele%ix_ele) then
       if (all(u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin == 0)) call tao_lattice_calc(ok)
       sm%axis_input%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin
     endif
 
     if (show_mat) then
-      if (all(sm%axis_input%n0 == 0)) then
+      if (all(sm%axis_input%n0 == 0) .and. ele_ref%ix_ele /= ele%ix_ele) then
         nl=nl+1; lines(nl) = 'NO SPIN AXIS COMPUTED.' 
         nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON FROM THE COMMAND LINE: "set bmad spin_tracking_on = T"'
         nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON IN THE LATTICE FILE: "bmad_com[spin_tracking_on] = T"'

@@ -2225,7 +2225,7 @@ endif
 
 select case (data_type_select)
 case ('momentum_compaction', 'r56_compaction', 'r')
-  call mat6_from_s_to_s (lat, mat0, vec0, 0.0_rp, ele_ref%s, orb(0), ix_branch)
+  call mat6_from_s_to_s (lat, mat0, vec0, branch%ele(0)%s, ele_ref%s, orb(0), ix_branch)
   call mat_inverse(mat0, mat0)
 end select
 
@@ -2330,7 +2330,7 @@ do ii = 1, size(curve%x_line)
     else
       if (first_time) then
         call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
-        call mat6_from_s_to_s (lat, mat6, vec0, 0.0_rp, x1, orb(0), ix_branch)
+        call mat6_from_s_to_s (lat, mat6, vec0, branch%ele(0)%s, x1, orb(0), ix_branch)
         orbit_end = orbit
         first_time = .false.
 
