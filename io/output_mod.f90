@@ -8,6 +8,7 @@ use re_allocate_mod
 
 ! Message levels: Status level flags for messages.
 
+integer, parameter :: s_nooutput$  = -2 ! No message printed.
 integer, parameter :: s_blank$     = -1 ! Information message. The routine name is not printed.
 integer, parameter :: s_info$      = 0  ! Informational message.
 integer, parameter :: s_dinfo$     = 1  ! Info message (w/timestamp).
@@ -87,20 +88,21 @@ private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
 !   use output_mod
 !
 ! Input:
-!   level -- Integer: Status level flags for messages.
-!       s_blank$     -  Information message. No tag line is inserted.
-!       s_info$      -  Informational message. (no timestamp)
-!       s_dinfo$     -  Info message (w/timestamp).
-!       s_success$   -  Successful completion. (no timestamp)
-!       s_warn$      -  Warning of a possible problem. (no timestamp)
-!       s_dwarn$     -  Warning of a possible problem (w/timestamp).
-!       s_error$     -  An error as occurred [EG: bad user input] (w/ timestamp).
-!       s_fatal$     -  A fatal error has occurred so that computations
-!                         cannot be continued but the program will try to
-!                         reset itself and keep running (w/timestamp).
-!       s_abort$     -  A severe error has occurred and
-!                         the program is being aborted (w/timestamp).
-!       s_important  -  An important message (w/timestamp).
+!   level     -- Integer: Status level flags for messages.
+!       s_nooutput$      -- No output is produced.
+!       s_blank$         -- Information message. No tag line is inserted.
+!       s_info$          -- Informational message. (no timestamp)
+!       s_dinfo$         -- Info message (w/timestamp).
+!       s_success$       -- Successful completion. (no timestamp)
+!       s_warn$          -- Warning of a possible problem. (no timestamp)
+!       s_dwarn$         -- Warning of a possible problem (w/timestamp).
+!       s_error$         -- An error as occurred [EG: bad user input] (w/ timestamp).
+!       s_fatal$         -- A fatal error has occurred so that computations
+!                             cannot be continued but the program will try to
+!                             reset itself and keep running (w/timestamp).
+!       s_abort$         -- A severe error has occurred and
+!                             the program is being aborted (w/timestamp).
+!       s_important      -- An important message (w/timestamp).
 !   routine_name      -- Character(*): Name of the calling routine.
 !   line              -- Character(*), Line to print.
 !   lines(:)          -- Character(*), Lines to print.
@@ -268,6 +270,8 @@ logical, optional :: insert_tag_line
 !
 
 if (global_rank /= 0) return  ! For running under MPI
+if (level == s_nooutput$) return
+
 call header_io (level, routine_name, insert_tag_line)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
@@ -310,6 +314,8 @@ logical, optional :: insert_tag_line
 !
 
 if (global_rank /= 0) return  ! For running under MPI
+if (level == s_nooutput$) return
+
 call header_io (level, routine_name, insert_tag_line)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
@@ -352,6 +358,8 @@ logical, optional :: insert_tag_line
 !
 
 if (global_rank /= 0) return  ! For running under MPI
+if (level == s_nooutput$) return
+
 call header_io (level, routine_name, insert_tag_line)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
@@ -397,6 +405,8 @@ integer level, nr, ni, nl
 !
 
 if (global_rank /= 0) return  ! For running under MPI
+if (level == s_nooutput$) return
+
 call header_io (level, routine_name, insert_tag_line)
 
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
@@ -439,6 +449,8 @@ integer level, i, nr, ni, nl
 !
 
 if (global_rank /= 0) return  ! For running under MPI
+if (level == s_nooutput$) return
+
 call header_io (level, routine_name, insert_tag_line)
 
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
