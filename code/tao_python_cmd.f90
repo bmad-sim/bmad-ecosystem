@@ -518,6 +518,10 @@ case ('branch1')
 ! which : default=model
 !   One of: "model", "base" or "design"
 !
+! Returns
+! -------
+! string_list 
+!
 ! Examples
 ! --------
 !
@@ -4563,10 +4567,11 @@ case ('lat_general')
 ! -------
 ! string_list
 !   if ('-array_out' not in flags) or (who in ['ele.name'])
-! real_array
-!    if ('-array_out' in flags or 'real:' in who) and (who not in ['orbit.state'])
 ! integer_array
-!    if '-array_out' in flags and who in ['orbit.state']
+!    if '-array_out' in flags and who in ['orbit.state', 'ele.ix_ele']
+! real_array
+!    if ('-array_out' in flags) or ('real:' in who) 
+
 !
 ! Examples
 ! --------
@@ -4712,6 +4717,7 @@ case ('lat_list')
         cycle
       case ('ele.ix_ele')
         values(1) = ele%ix_ele
+        data_type = is_integer$        
       case ('ele.ix_branch')
         values(1) = ele%ix_branch
       case ('ele.a.beta')
