@@ -70,9 +70,9 @@ definition \Eq{mgq2m2}. See the discussion after \Eq{mgq2m}.
 quaternions. For more information, the reader is referred to the Web. In particular, the
 \vn{Quaternions and spatial rotation} article at \vn{wikipedia.org}. 
 
-A quaternion $\bfq$ is a 4-vector $\bfq = (q_0, q_x, q_y, q_z)$ where the components are reals if they represent a
-rotation and are Taylor series if they represent a rotation map (\sref{s:spin.map}). A quaternion can
-also be represented in the form:
+A quaternion $\bfq$ is a 4-vector $\bfq = (q_0, \bfq_r) = (q_0, q_x, q_y, q_z)$ where the components
+are reals if they represent a rotation and are Taylor series if they represent a rotation map
+(\sref{s:spin.map}). A quaternion can also be represented in the form:
 \begin{equation}
   \bfq = q_0 + q_x \, \cali + q_y \, \calj + q_z \calk
   \label{qqqqq}
@@ -84,6 +84,12 @@ under multiplication
   \cali \, \calj = \calk, \quad \calj \, \cali = -\calk, \quad \text{etc.}
 \end{equation}
 $\cali$, $\calj$, and $\calk$ do not commute among themselves but do commute with real numbers. 
+
+WARNING! It is important when looking at software or documentation to keep in mind that there are
+multiple conventions that are used to define quaternions! The ``\vn{Hamilton}'' convention, which is
+widely used in mathematics, physics and other fields, is used here. Use of the ``\vn{JPL}'' (Jet
+Propulsion Lab) and ``\vn{STS}'' (``space shuttle convention'') \vn{conventions} are generally
+confined to areospace and robotics contexts\cite{b:yazell,b:sommer}.
 
 The $q_0$ component of a quaternion is called the \vn{real} (or sometimes \vn{scalar}) part and the
 other three components are called the \vn{imaginary} (or sometimes \vn{vector}) part. The dot
@@ -404,6 +410,15 @@ Using \Eq{rqsq} in \Eq{stos} gives
   \delta = \nu_0 - Q
   \label{stos2}
 \end{equation}
+If a spin is initially aligned along the $\bfn_0$ axis ($\bfs = \bfs_R = (0, 0, 1)$), then at
+resonance, with $\delta = 0$, the spin will be rotated by an angle $2 \, \pi \, \epsilon_r$. This
+gives a physical interpretation to $\epsilon_r$. Thus, for a resonance to be small, the resonance
+strength must satisfy
+\begin{equation}
+  \epsilon_r \ll 1
+  \label{r1}
+\end{equation}
+
 In the rotating coordinate system, a spin oriented parallel to $\Bf\Omega_R$ remains parallel to
 $\Bf\Omega_R$ so $\Bf\Omega_R$ is in the direction of the invariant spin field. Transforming back
 to the laboratory frame and normalizing to one, $\bfn$ is
@@ -433,14 +448,18 @@ is the action of the orbital oscillations (\sref{s:action.ang})
   \epsilon_r = \sqrt{J} \, \xi_r
   \label{ejx}
 \end{equation}
-where $\xi_r$ is the normalized resonance strength. The normalized resonance strength can be related
-to the first order spin eigenvectors $\bfn_k$ (\Eq{qnnq}) by comparing \Eq{nsdl} with the equations
-developed in \sref{s:dn.calc}. The eigen analysis in \sref{s:dn.calc} gives the closed orbit
-$\bfn_0$ along with the six eigenvectors $(\bfv_k, \bfn_k)$ and corresponding eigenvalues
-$\lambda_k$, $k = 1, \ldots 6$ of the 1-turn spin-orbital transport. The orbital part of the $k$\Th
-eigenvector, $\bfv_k$, normalized using \Eq{vsvi0}, represents particle motion with unit action
-$J_k$ for that mode. Considering \Eq{ndan}, if only one mode is excited for some particular $k$ and
-with some amplitude $\sqrt{J}$, the invariant spin field on the $m$\Th turn is
+where $\xi_r$ is the normalized resonance strength. In this case, the criterion for the resonance
+strength to be small (\Eq{r1}) is that $\sqrt{J} \, \xi_r$ is small comapared to one with $J$ being
+the action for particle motion at a few beam sigma.
+
+The normalized resonance strength can be related to the first order spin eigenvectors $\bfn_k$
+(\Eq{qnnq}) by comparing \Eq{nsdl} with the equations developed in \sref{s:dn.calc}. The eigen
+analysis in \sref{s:dn.calc} gives the closed orbit $\bfn_0$ along with the six eigenvectors
+$(\bfv_k, \bfn_k)$ and corresponding eigenvalues $\lambda_k$, $k = 1, \ldots 6$ of the 1-turn
+spin-orbital transport. The orbital part of the $k$\Th eigenvector, $\bfv_k$, normalized using
+\Eq{vsvi0}, represents particle motion with unit action $J_k$ for that mode. Considering \Eq{ndan},
+if only one mode is excited for some particular $k$ and with some amplitude $\sqrt{J}$, the
+invariant spin field on the $m$\Th turn is
 \begin{equation}
   \bfn(m) = \frac{1}{\Lambda_n} \, 
   \left( \bfn_0 + \re \left( 2 \, \sqrt{J} \, \bfn_k \, e^{i \, \phi_0} \, \lambda_k^m \right) \right)

@@ -33,8 +33,7 @@
 !   ix_branch -- Integer, optional: Branch index. Default is 0.
 !   one_turn   -- Logical, optional: If present and True, and ix1 = ix2, and the lattice
 !                   is closed: Construct the one-turn matrix from ix1 back to ix1.
-!                   Otherwise mat6 is unchanged or the unit map if unit_start = T.
-!                   Default = False.
+!                   If False, (the default), and ix1 = ix2, mat6 is the unit matrix.
 !
 ! Output:
 !    xfr_mat(6,6) -- Real(rp): Transfer matrix.
