@@ -14391,7 +14391,7 @@ function c_vector_field_quaternion(h,ds) ! spin routine
        enddo
     enddo
     do i=1,nd2harm    !nd2t !-ndc2t
-       if(abs(reval(i)**2+aieval(i)**2 -1.0_dp).gt.1e-10_dp) then
+       if(abs(reval(i)**2+aieval(i)**2 -1.0_dp).gt.1e-8_dp) then
            if(lielib_print(4)==1) then
              write(6,*) ' EIG6: Eigenvalues off the unit circle!'
              write(6,*) sqrt(reval(i)**2+aieval(i)**2)
