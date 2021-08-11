@@ -2197,24 +2197,10 @@ Returns
 -------
 string_list
   if ('-array_out' not in flags) or (who in ['ele.name'])
-real_array
-   if ('-array_out' in flags or 'real:' in who) and (who not in ['orbit.state'])
 integer_array
-   if '-array_out' in flags and who in ['orbit.state']
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ix_uni: 1  
-   ix_branch: 0 
-   elements: Q* 
-   which: model
-   who: orbit.floor.x
-
-
+   if '-array_out' in flags and who in ['orbit.state', 'ele.ix_ele']
+real_array
+   if ('-array_out' in flags) or ('real:' in who) 
 
 \end{example}
 \item[lat_param_units] \Newline\begin{example}
