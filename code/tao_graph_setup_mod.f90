@@ -2130,7 +2130,7 @@ type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
 type (tao_expression_info_struct), allocatable :: info(:)
 
-real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
+real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6), mat0(6,6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign, vec3(3), r_bunch, ds, dt, time
 real(rp), allocatable :: val_arr(:)
@@ -2220,6 +2220,14 @@ if (curve%data_source == 'lat') then
     tao_branch%plot_cache_valid = .true.
   endif
 endif
+
+!
+
+select case (data_type_select)
+case ('momentum_compaction', 'r56_compaction', 'r')
+  call mat6_from_s_to_s (lat, mat0, vec0, 0.0_rp, ele_ref%s, orb(0), ix_branch)
+  call mat_inverse(mat0, mat0)
+end select
 
 !
 
@@ -2322,22 +2330,17 @@ do ii = 1, size(curve%x_line)
     else
       if (first_time) then
         call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
+        call mat6_from_s_to_s (lat, mat6, vec0, 0.0_rp, x1, orb(0), ix_branch)
         orbit_end = orbit
         first_time = .false.
+
       else
         call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err, compute_floor_coords = .true.)
+        mat6 = matmul(ele%mat6, mat6)
+        vec0 = matmul(ele%mat6, vec0) + ele%vec0
         orbit = orbit_end
       endif
 
-      if (data_type == 'momentum_compaction' .or. data_type == 'r56_compaction') then
-        if (first_time) then
-          call mat6_from_s_to_s (lat, mat6, vec0, ele_ref%s, s_now, orb_ref, ix_branch, err_flag = err)
-          first_time = .false.
-        else
-          mat6 = matmul(ele%mat6, mat6)
-          vec0 = matmul(ele%mat6, vec0) + ele%vec0
-        endif
-      endif
 
       if (cache_status == loading_cache$) then
         tao_branch%plot_cache(ii)%ele      = ele
@@ -2376,60 +2379,61 @@ do ii = 1, size(curve%x_line)
   s_last = s_now
 enddo
 
-! Subtrack reference?
+! Subtract reference?
 
 if (curve%ele_ref_name /= '') then
-  if (curve%data_source /= 'lat') then
-    call tao_set_curve_invalid(curve, 'SETTING ele_ref_name FOR CURVE WHERE curve%data_source IS NOT "lat" IS NOT VALID.')
-    good = .false.
-    bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-    if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.
-    return
-  endif
-
-  if (cache_status == using_cache$) then
-    ele   = tao_branch%plot_ref_cache%ele
-    orbit = tao_branch%plot_ref_cache%orbit
-    mat6  = tao_branch%plot_ref_cache%ele%mat6
-    vec0  = tao_branch%plot_ref_cache%ele%vec0
-    err   = tao_branch%plot_ref_cache%err
-  else
-    s_now = branch%ele(curve%ix_ele_ref)%s
-    call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
-
-    if (cache_status == loading_cache$) then
-      tao_branch%plot_ref_cache%ele      = ele
-      tao_branch%plot_ref_cache%orbit    = orbit
-      tao_branch%plot_ref_cache%ele%mat6 = mat6
-      tao_branch%plot_ref_cache%ele%vec0 = vec0
-      tao_branch%plot_ref_cache%err      = err
+  select case (data_type_select)
+  case ('r', 't', 'tt')
+  case default
+    if (curve%data_source /= 'lat') then
+      call tao_set_curve_invalid(curve, 'SETTING ele_ref_name FOR CURVE WHERE curve%data_source IS NOT "lat" IS NOT VALID.')
+      good = .false.
+      bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+      if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.
+      return
     endif
-  endif
 
-  if (err) then
-    tao_branch%plot_cache(ii:)%err = .true.
-    good(ii:) = .false.
-    bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-    return
-  endif
+    if (cache_status == using_cache$) then
+      ele   = tao_branch%plot_ref_cache%ele
+      orbit = tao_branch%plot_ref_cache%orbit
+      mat6  = tao_branch%plot_ref_cache%ele%mat6
+      vec0  = tao_branch%plot_ref_cache%ele%vec0
+      err   = tao_branch%plot_ref_cache%err
+    else
+      s_now = branch%ele(curve%ix_ele_ref)%s
+      call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
 
-  if (orbit%state /= alive$) then
-    good(ii:) = .false.
-    tao_branch%plot_cache(ii:)%err = .true.
-    write (curve%message_text, '(f10.3)') s_now
-    curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
-                         trim(adjustl(curve%message_text))
-    bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-    return
-  endif
+      if (cache_status == loading_cache$) then
+        tao_branch%plot_ref_cache%ele      = ele
+        tao_branch%plot_ref_cache%orbit    = orbit
+        tao_branch%plot_ref_cache%ele%mat6 = mat6
+        tao_branch%plot_ref_cache%ele%vec0 = vec0
+        tao_branch%plot_ref_cache%err      = err
+      endif
+    endif
 
-  call this_value_at_s (data_type_select, sub_data_type, value, gd, ok, ii, s_last, s_now);  if (.not. ok) return
+    if (err) then
+      tao_branch%plot_cache(ii:)%err = .true.
+      good(ii:) = .false.
+      bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+      return
+    endif
 
-  curve%y_line = curve%y_line - comp_sign * value
+    if (orbit%state /= alive$) then
+      good(ii:) = .false.
+      tao_branch%plot_cache(ii:)%err = .true.
+      write (curve%message_text, '(f10.3)') s_now
+      curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
+                           trim(adjustl(curve%message_text))
+      bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+      return
+    endif
 
+    call this_value_at_s (data_type_select, sub_data_type, value, gd, ok, ii, s_last, s_now);  if (.not. ok) return
 
+    curve%y_line = curve%y_line - comp_sign * value
+  end select
 endif
-
 !
 
 bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
@@ -2439,8 +2443,8 @@ contains
 
 subroutine this_value_at_s (data_type_select, sub_data_type, value, good1, ok, ii, s_last, s_now)
 
-real(rp) value, s_last, s_now
-integer status, ii
+real(rp) value, s_last, s_now, m6(6,6)
+integer status, ii, i, j
 logical good1, ok
 character(*) data_type_select, sub_data_type
 
@@ -2520,7 +2524,8 @@ case ('momentum_compaction')
   if (ds == 0) then
     value = 0
   else
-    value = -(sum(mat6(5,1:4) * eta_vec) + mat6(5,6)) / ds
+    m6 = matmul(mat6, mat0)
+    value = -(sum(m6(5,1:4) * eta_vec) + m6(5,6)) / ds
   endif
 
 case ('norm_emit')
@@ -2536,12 +2541,10 @@ case ('norm_emit')
   end select
 
 case ('r')
-  if (ii == 1) call mat_make_unit (mat6)
-  if (s_now < s_last) return
   i = tao_read_phase_space_index (data_type, 3); if (i == 0) goto 9000
   j = tao_read_phase_space_index (data_type, 4); if (j == 0) goto 9000
-  call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, orbit_last, ix_branch, unit_start = .false.)
-  value = mat6(i, j)
+  m6 = matmul(mat6, mat0)
+  value = m6(i, j)
 
 case ('r56_compaction')
   call make_v_mats (ele_ref, v_mat, v_inv_mat)
@@ -2550,7 +2553,8 @@ case ('r56_compaction')
   one_pz = 1 + orb_ref%vec(6)
   eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
   eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
-  value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
+  m6 = matmul(mat6, mat0)
+  value = sum(m6(5,1:4) * eta_vec) + m6(5,6)
 
 case ('sigma')
   select case (data_type)

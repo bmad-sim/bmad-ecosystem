@@ -118,7 +118,7 @@ type tao_graph_input
   integer :: box(4) = [1, 1, 1, 1]
   integer :: ix_universe = -1
   integer :: ix_branch = 0
-  integer :: n_curve = 0
+  integer :: n_curve = -1
   real(rp) :: x_axis_scale_factor = 1
   real(rp) :: symbol_size_scale = 0
   real(rp) :: floor_plan_rotation = real_garbage$      ! deprecated. Use g%floor_plan%...

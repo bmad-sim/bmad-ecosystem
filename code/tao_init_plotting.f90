@@ -56,7 +56,7 @@ real(rp) y1, y2
 real(rp), parameter :: re_g$ = real_garbage$
 
 integer iu, i, j, k, k1, k2, ix, ip, n, ng, ios, ios1, ios2, i_uni
-integer graph_index, i_graph, ic, n_curve
+integer graph_index, i_graph, ic, n_curve, nc
 integer, parameter :: int_g$ = int_garbage$
 
 character(*) plot_file_in
@@ -582,6 +582,7 @@ do  ! Loop over plot files
         if (curve(j)%data_type == '' .and. (curve(j)%data_source /= 'data' .or. curve(j)%name == '')) cycle
         n_curve = n_curve + 1
       enddo
+      if (graph%n_curve > 0) n_curve = graph%n_curve
 
       if (n_curve == 0) then
         if (allocated(grph%curve)) deallocate (grph%curve)
@@ -589,11 +590,12 @@ do  ! Loop over plot files
         allocate (grph%curve(n_curve))
       endif
 
-      n_curve = 0
+      nc = 0
       do j = 1, size(curve)
         if (curve(j)%data_type == '' .and. (curve(j)%data_source /= 'data' .or. curve(j)%name == '')) cycle
-        n_curve = n_curve + 1
-        crv => grph%curve(n_curve)
+        nc = nc + 1
+        if (nc > n_curve) exit
+        crv => grph%curve(nc)
 
         crv%g                    => grph
         crv%data_source          = curve(j)%data_source

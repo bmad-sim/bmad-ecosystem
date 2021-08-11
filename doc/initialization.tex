@@ -2306,6 +2306,7 @@ The general format of the \vn{tao_template_graph} namelist is:
     graph%draw_only_good_user_data_or_vars        ! Veto data or variables with good_user = F?
                                  = <logical>      !   Default = T.
     graph%x_axis_scale_factor    = <factor>       ! Scale the x-axis by this.
+    graph%n_curve                = <integer>      ! Limit number of curves.
     curve(N)%name                = "<string>"     ! Default is "c<i>", <i> = curve num.
     curve(N)%data_type           = "<string>"     ! EG: "orbit.x"
     curve(N)%data_source         = "<string>"     ! Source for the data curve points
@@ -2545,7 +2546,10 @@ The \vn{graph%ix_universe} parameter sets the default universe for curves of the
 it is drawn in.
 %
 \item[graph\%n_curve] \Newline
-Deprecated and ignored. \tao now counts the number of curves associated with a graph.
+If not present, \tao will count the number of curves associated with a graph based on if
+\vn{curve(N)%data_type} is set. In the case where \vn{default_curve%data_type} in the
+\vn{tao_template_plot} namelist is set, the \vn{graph%n_curve} parameter can be set to
+limit the number of curves created.
 %
 \item[graph\%name] \Newline
 \vn{graph%name} and \vn{curve%name} define names to be used with commands. The default names are
