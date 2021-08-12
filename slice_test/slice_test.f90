@@ -221,7 +221,7 @@ call twiss_and_track_at_s (lat, s1, ele1, ref_orb, orb1, branch%ix_branch)
 call twiss_and_track_at_s (lat, s2, ele2a, ref_orb, orb2a, branch%ix_branch)
 
 orb2c = orb1
-call mat6_from_s_to_s (lat, xmat_c, vec0_c, s1, s2, orb2c, branch%ix_branch)
+call mat6_from_s_to_s (lat, xmat_c, vec0_c, s1, s2, orb2c, orb2c, branch%ix_branch)
 
 idum = element_at_s (lat, s1, .true., branch%ix_branch, position = orb1)
 call twiss_and_track_from_s_to_s (branch, orb1, s2, orb2b, ele1, ele2b)
