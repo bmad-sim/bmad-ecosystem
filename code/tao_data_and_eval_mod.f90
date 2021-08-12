@@ -5176,7 +5176,7 @@ type (tao_lattice_struct), target :: tao_lat
 type (ele_struct), pointer :: ele, ele_ref
 type (branch_struct), pointer :: branch
 type (ele_struct) ele_at_s
-type (coord_struct) :: orb_at_s
+type (coord_struct) :: orb_at_s, orb2
 type (coord_struct), pointer :: orbit(:)
 
 real(rp) s_offset, value
@@ -5220,7 +5220,8 @@ end select
 
 if (d_type(1:2) == 'r.') then
   orb_at_s = orbit(ix_ref)
-  call mat6_from_s_to_s (branch%lat, ele_at_s%mat6, ele_at_s%vec0, s_eval_ref, s_eval, orb_at_s, branch%ix_branch, .true.)
+  call mat6_from_s_to_s (branch%lat, ele_at_s%mat6, ele_at_s%vec0, s_eval_ref, s_eval, &
+                                                       orbit(ele_at_s%ix_ele), orb2, branch%ix_branch, .true.)
   value = tao_param_value_at_s (data_type, ele_at_s, orb_at_s, err)
   if (err) then
     err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'

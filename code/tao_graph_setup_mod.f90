@@ -2225,7 +2225,7 @@ endif
 
 select case (data_type_select)
 case ('momentum_compaction', 'r56_compaction', 'r')
-  call mat6_from_s_to_s (lat, mat0, vec0, branch%ele(0)%s, ele_ref%s, orb(0), ix_branch)
+  call mat6_from_s_to_s (lat, mat0, vec0, branch%ele(0)%s, ele_ref%s, orb(0), ix_branch = ix_branch)
   call mat_inverse(mat0, mat0)
 end select
 
@@ -2330,7 +2330,7 @@ do ii = 1, size(curve%x_line)
     else
       if (first_time) then
         call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
-        call mat6_from_s_to_s (lat, mat6, vec0, branch%ele(0)%s, x1, orb(0), ix_branch)
+        call mat6_from_s_to_s (lat, mat6, vec0, branch%ele(0)%s, x1, orb(0), ix_branch = ix_branch)
         orbit_end = orbit
         first_time = .false.
 
@@ -2373,7 +2373,7 @@ do ii = 1, size(curve%x_line)
     return
   end select
 
-  call this_value_at_s (data_type_select, sub_data_type, value, good(ii), ok, ii, s_last, s_now);  if (.not. ok) return
+  call this_value_at_s (data_type_select, sub_data_type, value, good(ii), ok, ii, s_last, s_now, orbit);  if (.not. ok) return
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
   s_last = s_now
@@ -2429,7 +2429,7 @@ if (curve%ele_ref_name /= '') then
       return
     endif
 
-    call this_value_at_s (data_type_select, sub_data_type, value, gd, ok, ii, s_last, s_now);  if (.not. ok) return
+    call this_value_at_s (data_type_select, sub_data_type, value, gd, ok, ii, s_last, s_now, orbit);  if (.not. ok) return
 
     curve%y_line = curve%y_line - comp_sign * value
   end select
@@ -2441,8 +2441,9 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 !--------------------------------------------------------
 contains
 
-subroutine this_value_at_s (data_type_select, sub_data_type, value, good1, ok, ii, s_last, s_now)
+subroutine this_value_at_s (data_type_select, sub_data_type, value, good1, ok, ii, s_last, s_now, orbit)
 
+type (coord_struct) orbit
 real(rp) value, s_last, s_now, m6(6,6)
 integer status, ii, i, j
 logical good1, ok

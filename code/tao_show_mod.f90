@@ -4223,13 +4223,12 @@ case ('taylor_map', 'matrix')
     call twiss_and_track_at_s (lat, s1, ele0, u%model%tao_branch(ix_branch)%orbit, orb, ix_branch)
 
     if (n_order > 1 .or. print_ptc .or. disp_fmt == 'BMAD') then
-      call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch, &
+      call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch = ix_branch, &
                                                         one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
-      ref_vec = orb%vec
-
+      ref_vec = taylor%ref
     else
-      call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, ix_branch, one_turn = .true.)
+      call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, orb, ix_branch, one_turn = .true.)
       ref_vec = orb%vec
     endif
 
