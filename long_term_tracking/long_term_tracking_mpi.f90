@@ -10,6 +10,7 @@ type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (beam_init_struct) beam_init
 type (ltt_beam_data_struct), target :: beam_data, beam_data_sum
+type (ltt_turn_data_struct) :: turn_data
 type (ltt_bunch_data_struct), pointer :: bd
 type (ele_struct), pointer :: ele_start
 type (lat_struct), pointer :: lat
@@ -124,7 +125,9 @@ if (ltt_com%mpi_rank == master_rank$) then
 
   call ltt_allocate_beam_data(lttp, beam_data_sum, size(beam%bunch))
   call ltt_allocate_beam_data(lttp, beam_data, size(beam%bunch))
-  bd_size = size(beam_data%turn(1)%bunch) * storage_size(beam_data%turn(1)%bunch(1)) / 8
+  allocate (turn_data%bunch(size(beam%bunch)))
+  bd_size = size(turn_data%bunch) * storage_size(turn_data%bunch(1)) / 8
+
 
   ! Init positions to slaves
 
@@ -157,27 +160,23 @@ if (ltt_com%mpi_rank == master_rank$) then
     slave_rank = MPI_ANY_SOURCE
     do ix = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
       call mpi_recv (iarr, 2, MPI_INTEGER, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
-      beam_data%turn(ix)%status = iarr(1);  beam_data%turn(ix)%i_turn = iarr(2)
+      turn_data%status = iarr(1);  turn_data%i_turn = iarr(2)
       slave_rank = stat(MPI_SOURCE)
-      call mpi_recv (beam_data%turn(ix)%bunch, bd_size, MPI_BYTE, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
-    enddo
-
-    ! Merge with existing data
-    do ix = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
-      if (beam_data%turn(ix)%status /= valid$) cycle
+      call mpi_recv (turn_data%bunch, bd_size, MPI_BYTE, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
+      ! Merge with existing data
+      if (turn_data%status /= valid$) cycle
       do ib = 1, size(beam%bunch)
         bd => beam_data_sum%turn(ix)%bunch(ib)
-        beam_data_sum%turn(ix)%i_turn   = beam_data%turn(ix)%i_turn
-        bd%n_live   = bd%n_live + beam_data%turn(ix)%bunch(ib)%n_live
-        bd%n_count  = bd%n_count + beam_data%turn(ix)%bunch(ib)%n_count
-        bd%orb_sum  = bd%orb_sum + beam_data%turn(ix)%bunch(ib)%orb_sum
-        bd%orb2_sum = bd%orb2_sum + beam_data%turn(ix)%bunch(ib)%orb2_sum
-        bd%spin_sum = bd%spin_sum + beam_data%turn(ix)%bunch(ib)%spin_sum
-        bd%p0c_sum  = bd%p0c_sum + beam_data%turn(ix)%bunch(ib)%p0c_sum
-        bd%time_sum = bd%time_sum + beam_data%turn(ix)%bunch(ib)%time_sum
+        bd%n_live   = bd%n_live + turn_data%bunch(ib)%n_live
+        bd%n_count  = bd%n_count + turn_data%bunch(ib)%n_count
+        bd%orb_sum  = bd%orb_sum + turn_data%bunch(ib)%orb_sum
+        bd%orb2_sum = bd%orb2_sum + turn_data%bunch(ib)%orb2_sum
+        bd%spin_sum = bd%spin_sum + turn_data%bunch(ib)%spin_sum
+        bd%p0c_sum  = bd%p0c_sum + turn_data%bunch(ib)%p0c_sum
+        bd%time_sum = bd%time_sum + turn_data%bunch(ib)%time_sum
         bd%species  = beam%bunch(1)%particle(1)%species
       enddo
-      beam_data_sum%turn(ix)%i_turn = beam_data%turn(ix)%i_turn
+      beam_data_sum%turn(ix)%i_turn = turn_data%i_turn
       beam_data_sum%turn(ix)%status = valid$
     enddo
 
