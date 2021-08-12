@@ -2,6 +2,7 @@ module transfer_map_mod
 
 use element_at_s_mod
 use taylor_mod
+use coord_mod
 
 private transfer_this_map, transfer_this_mat
 
@@ -11,7 +12,7 @@ contains
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb, ix_branch, 
+! Subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb_in, ref_orb_out, ix_branch, 
 !                                               one_turn, unit_start, err_flag, concat_if_possible)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions s1 to s2.
@@ -26,33 +27,35 @@ contains
 ! If s2 = s1 then you get the unit map except if one_turn = True and the lattice is circular.
 !
 ! Input:
-!   lat        -- lat_struct: Lattice used in the calculation.
-!   t_map(6)   -- Taylor_struct: Initial map (used when unit_start = False)
-!   s1         -- real(rp), optional: Element start position for the calculation.
-!                   Default is 0.
-!   s2         -- real(rp), optional: Element end position for the calculation.
-!                   Default is lat%param%total_length.
-!   ref_orb    -- coord_struct, optional: Reference orbit/particle at s1 around which the map is made.
-!                   This arg is needed if: unit_start = True or particle is not the same as the reference 
-!                   particle of the lattice.
-!   ix_branch  -- integer, optional: Lattice branch index. Default is 0 (main branch).
-!   one_turn   -- logical, optional: If present and True, and s1 = s2, and the lattice
-!                   is circular: Construct the one-turn map from s1 back to s1.
-!                   Otherwise t_map is unchanged or the unit map if unit_start = T.
-!                   Default = False.
-!   unit_start -- logical, optional: If present and False then t_map will be
-!                   used as the starting map instead of the unit map.
-!                   Default = True
+!   lat         -- lat_struct: Lattice used in the calculation.
+!   t_map(6)    -- Taylor_struct: Initial map (used when unit_start = False)
+!   s1          -- real(rp), optional: Element start position for the calculation.
+!                    Default is 0.
+!   s2          -- real(rp), optional: Element end position for the calculation.
+!                    Default is lat%param%total_length.
+!   ref_orb_in  -- coord_struct, optional: Reference orbit/particle at s1 around which the map is made.
+!                    This arg is needed if: unit_start = True or particle is not the same as the reference 
+!                    particle of the lattice.
+!   ix_branch   -- integer, optional: Lattice branch index. Default is 0 (main branch).
+!   one_turn    -- logical, optional: If present and True, and s1 = s2, and the lattice
+!                    is circular: Construct the one-turn map from s1 back to s1.
+!                    Otherwise t_map is unchanged or the unit map if unit_start = T.
+!                    Default = False.
+!   unit_start  -- logical, optional: If present and False then t_map will be
+!                    used as the starting map instead of the unit map.
+!                    Default = True
 !   concat_if_possible
-!              -- logical, optional: If present and True then use map concatenation rather than tracking 
-!                   if a map is present for a given lattice element. See above. Default is False.
+!               -- logical, optional: If present and True then use map concatenation rather than tracking 
+!                    if a map is present for a given lattice element. See above. Default is False.
 !
 ! Output:
-!   t_map(6) -- Taylor_struct: Transfer map.
-!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
+!   t_map(6)    -- Taylor_struct: Transfer map.
+!   ref_orb_out -- coord_struct, optional: Ending coordinates of the reference orbit.
+!                    This is also the actual orbit of particle 
+!   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb, ix_branch, &
+subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb_in, ref_orb_out, ix_branch, &
                                                    one_turn, unit_start, err_flag, concat_if_possible)
 
 use ptc_interface_mod, only: concat_taylor, taylor_inverse
@@ -60,16 +63,17 @@ use ptc_interface_mod, only: concat_taylor, taylor_inverse
 implicit none
 
 type (lat_struct), target :: lat
-type (coord_struct), optional :: ref_orb
+type (coord_struct), optional :: ref_orb_in, ref_orb_out
+type (coord_struct) orb
 type (taylor_struct) :: t_map(:)
 type (taylor_struct) a_map(6)
 type (branch_struct), pointer :: branch
 
 real(rp), intent(in), optional :: s1, s2
-real(rp) ss1, ss2
+real(rp) ss1, ss2, v6(6)
 
 integer, optional :: ix_branch
-integer ix_br
+integer ix_br, ix_ele
 
 logical, optional :: one_turn, unit_start, err_flag, concat_if_possible
 logical unit_start_this, error_flag
@@ -92,7 +96,15 @@ if (error_flag) return
 
 if (unit_start_this) then
   call taylor_make_unit (t_map)
-  if (present(ref_orb)) t_map%ref = ref_orb%vec
+  if (present(ref_orb_in)) t_map%ref = ref_orb_in%vec
+endif
+
+if (present(ref_orb_in)) then
+  orb = ref_orb_in
+else
+  ix_ele = element_at_s (branch, s1, .true.)
+  v6 = 0
+  call init_coord(orb, v6, branch%ele(ix_ele), inside$)
 endif
 
 ! One turn or not calc?
@@ -105,27 +117,27 @@ endif
 ! Normal case
 
 if (ss1 < ss2) then 
-  call transfer_this_map (t_map, branch, ss1, ss2, error_flag, concat_if_possible = concat_if_possible)
+  call transfer_this_map (t_map, branch, ss1, ss2, error_flag, orb, concat_if_possible = concat_if_possible)
   if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%geometry == closed$) then
-  call transfer_this_map (t_map, branch, ss1, branch%param%total_length, error_flag, ref_orb, concat_if_possible)
+  call transfer_this_map (t_map, branch, ss1, branch%param%total_length, error_flag, orb, concat_if_possible)
   if (error_flag) return
-  call transfer_this_map (t_map, branch, 0.0_rp, ss2, error_flag, ref_orb, concat_if_possible)
+  call transfer_this_map (t_map, branch, 0.0_rp, ss2, error_flag, orb, concat_if_possible)
   if (error_flag) return
 
 ! For an open lattice compute the backwards map
 
 else
   if (unit_start_this) then
-    call transfer_this_map (t_map, branch, ss2, ss1, error_flag, ref_orb, concat_if_possible)
+    call transfer_this_map (t_map, branch, ss2, ss1, error_flag, orb, concat_if_possible)
     if (error_flag) return
     call taylor_inverse (t_map, t_map)
   else  
     call taylor_make_unit (a_map)
-    call transfer_this_map (a_map, branch, ss2, ss1, error_flag, ref_orb, concat_if_possible)
+    call transfer_this_map (a_map, branch, ss2, ss1, error_flag, orb, concat_if_possible)
     if (error_flag) return
     call taylor_inverse (a_map, a_map)
     call concat_taylor (t_map, a_map, t_map)
@@ -134,6 +146,7 @@ else
 
 endif
 
+if (present(ref_orb_out)) ref_orb_out = orb
 if (present(err_flag)) err_flag = .false.
 
 end subroutine transfer_map_from_s_to_s
@@ -142,12 +155,12 @@ end subroutine transfer_map_from_s_to_s
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, ref_orb, concat_if_possible)
+! Subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, orb, concat_if_possible)
 !
 ! Private subroutine used by transfer_map_from_s_to_s
 !-
 
-subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, ref_orb, concat_if_possible)
+subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, orb, concat_if_possible)
 
 use ptc_interface_mod, only: taylor_propagate1, concat_ele_taylor
 
@@ -159,8 +172,8 @@ type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: runt => null()
 type (ele_struct), target, save :: runt_save
 type (ele_struct), target :: runt_nosave
-type (coord_struct), optional :: ref_orb
-type (coord_struct) orb0
+type (coord_struct) :: orb
+type (coord_struct) orb2
 
 real(rp) s_1, s_2, s_now, s_end, ds
 
@@ -183,13 +196,6 @@ endif
 s_now = s_1
 
 ! Loop over all the element to track through.
-
-if (present(ref_orb)) then
-  orb0 = ref_orb
-else
-  orb0 = coord_struct()
-  orb0%species = branch%param%particle
-endif
 
 do
   ele => branch%ele(ix_ele)
@@ -243,8 +249,10 @@ do
 
   if (track_entire_ele .and. logic_option(.false., concat_if_possible)  .and. associated(ele%taylor(1)%term)) then
     call concat_ele_taylor (map, ele, map)
+    call init_coord(orb, map%ref, ele, downstream_end$)
   else
-    call taylor_propagate1 (map, runt, branch%param, ref_orb)
+    call taylor_propagate1 (map, runt, branch%param, orb)
+    call init_coord(orb, map%ref, runt, downstream_end$)
   endif
 
   ! Save the present integration step parameters so that if this routine
@@ -278,7 +286,8 @@ end subroutine transfer_this_map
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag, ele_save)
+! Subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ref_orb_in, ref_orb_out, 
+!                                                      ix_branch, one_turn, unit_start, err_flag, ele_save)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions
 ! s1 to s2.
@@ -297,50 +306,53 @@ end subroutine transfer_this_map
 ! If this is not true, lat_make_mat6 must be called before hand.
 !
 ! Input:
-!   lat        -- Lat_struct: Lattice used in the calculation.
-!   mat6(6,6)  -- Real(rp): Initial matrix (used when unit_start = False)
-!   vec0(6)    -- Real(rp): Initial 0th order map (used when unit_start = False)
-!   s1         -- Real(rp), optional: Element start index for the calculation.
-!                   Default is 0.
-!   s2         -- Real(rp), optional: Element end index for the calculation.
-!                   Default is lat%param%total_length.
-!   orbit      -- coord_struct, optional: Starting coordinates of the reference orbit about 
-!                   which mat6 is made. Default is to make it around the zero-orbit.
-!   ix_branch  -- Integer, optional: Lattice branch index. Default is 0 (main branch).
-!   one_turn   -- Logical, optional: If present and True, and s1 = s2, and the lattice
-!                   is circular: Construct the one-turn matrix from s1 back to s1.
-!                   Otherwise mat6 is unchanged or the unit map if unit_start = T.
-!                   Default = False.
-!   unit_start -- Logical, optional: If present and False then mat6 will be
-!                   used as the starting matrix instead of the unit matrix.
-!                   Default = True
-!   ele_save   -- ele_struct, optional: Used as scratch space to save values between calls.
-!                   Only useful if the next call has s1 equal to the present s2. 
+!   lat         -- Lat_struct: Lattice used in the calculation.
+!   mat6(6,6)   -- Real(rp): Initial matrix (used when unit_start = False)
+!   vec0(6)     -- Real(rp): Initial 0th order map (used when unit_start = False)
+!   s1          -- Real(rp), optional: Element start index for the calculation.
+!                    Default is 0.
+!   s2          -- Real(rp), optional: Element end index for the calculation.
+!                    Default is lat%param%total_length.
+!   ref_orb_in  -- coord_struct, optional: Starting coordinates of the reference orbit about 
+!                    which mat6 is made. Default is to make it around the zero-orbit.
+!   ix_branch   -- Integer, optional: Lattice branch index. Default is 0 (main branch).
+!   one_turn    -- Logical, optional: If present and True, and s1 = s2, and the lattice
+!                    is circular: Construct the one-turn matrix from s1 back to s1.
+!                    Otherwise mat6 is unchanged or the unit map if unit_start = T.
+!                    Default = False.
+!   unit_start  -- Logical, optional: If present and False then mat6 will be
+!                    used as the starting matrix instead of the unit matrix.
+!                    Default = True
+!   ele_save    -- ele_struct, optional: Used as scratch space to save values between calls.
+!                    Only useful if the next call has s1 equal to the present s2. 
 !
 ! Output:
-!   mat6(6,6)  -- Real(rp): Transfer matrix.
-!   vec0(6)    -- Real(rp): 0th order part of the map.
-!   orbit      -- coord_struct, optional: Ending coordinates of the reference orbit.
-!                   This is also the actual orbit of particle 
-!   err_flag   -- Logical, optional: Set True if there is an error. False otherwise.
-!   ele_save   -- ele_struct, optional: Used as scratch space to save values between calls.
-!                   Only useful if the next call has s1 equal to the present s2. 
+!   mat6(6,6)   -- Real(rp): Transfer matrix.
+!   vec0(6)     -- Real(rp): 0th order part of the map.
+!   ref_orb_out -- coord_struct, optional: Ending coordinates of the reference orbit.
+!                    This is also the actual orbit of particle 
+!   err_flag    -- Logical, optional: Set True if there is an error. False otherwise.
+!   ele_save    -- ele_struct, optional: Used as scratch space to save values between calls.
+!                    Only useful if the next call has s1 equal to the present s2. 
 !-
 
-subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag, ele_save)
+subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ref_orb_in, ref_orb_out, &
+                                                     ix_branch, one_turn, unit_start, err_flag, ele_save)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (coord_struct), optional :: orbit
+type (coord_struct), optional :: ref_orb_in, ref_orb_out
+type (coord_struct) orb
 type (ele_struct), optional, target :: ele_save
 
 real(rp) mat6(:,:), vec0(:)
 real(rp), intent(in), optional :: s1, s2
-real(rp) ss1, ss2
+real(rp) ss1, ss2, v6(6)
 
 integer, optional :: ix_branch
+integer ix_ele
 
 logical, optional :: one_turn, unit_start, err_flag
 logical error_flag
@@ -361,6 +373,14 @@ if (logic_option(.true., unit_start)) then
   vec0 = 0
 endif
 
+if (present(ref_orb_in)) then
+  orb = ref_orb_in
+else
+  ix_ele = element_at_s (branch, s1, .true.)
+  v6 = 0
+  call init_coord(orb, v6, branch%ele(ix_ele), inside$)
+endif
+
 ! One turn or not calc?
 
 if (ss1 == ss2 .and. (.not. logic_option (.false., one_turn) .or. branch%param%geometry == open$)) then
@@ -371,28 +391,28 @@ endif
 ! Normal case
 
 if (ss1 < ss2) then
-  call transfer_this_mat (mat6, vec0, branch, ss1,  ss2, error_flag, orbit, ele_save)
+  call transfer_this_mat (mat6, vec0, branch, ss1,  ss2, error_flag, orb, ele_save)
   if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%geometry == closed$) then
-  call transfer_this_mat (mat6, vec0, branch, ss1,  branch%param%total_length, error_flag, orbit)
+  call transfer_this_mat (mat6, vec0, branch, ss1,  branch%param%total_length, error_flag, orb)
   if (error_flag) return
-  call transfer_this_mat (mat6, vec0, branch, 0.0_rp, ss2, error_flag, orbit, ele_save)
+  call transfer_this_mat (mat6, vec0, branch, 0.0_rp, ss2, error_flag, orb, ele_save)
   if (error_flag) return
 
 ! For an open lattice compute the backwards matrix
 
 else
-  call transfer_this_mat (mat6, vec0, branch, ss2, ss1, error_flag, orbit, ele_save)
+  call transfer_this_mat (mat6, vec0, branch, ss2, ss1, error_flag, orb, ele_save)
   if (error_flag) return
   call mat_inverse (mat6, mat6)
   vec0 = -matmul(mat6, vec0)
-
 endif
 
 if (present(err_flag)) err_flag = .false.
+if (present(ref_orb_out)) ref_orb_out = orb
 
 end subroutine mat6_from_s_to_s
 
@@ -400,12 +420,12 @@ end subroutine mat6_from_s_to_s
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine transfer_this_mat (mat6, vec0, branch, s_1, s_2, error_flag, orbit, ele_save)
+! Subroutine transfer_this_mat (mat6, vec0, branch, s_1, s_2, error_flag, orb, ele_save)
 !
 ! Private subroutine used by mat6_from_s_to_s
 !-
 
-subroutine transfer_this_mat (mat6, vec0, branch, s_1, s_2, error_flag, orbit, ele_save)
+subroutine transfer_this_mat (mat6, vec0, branch, s_1, s_2, error_flag, orb, ele_save)
 
 implicit none
 
@@ -414,7 +434,7 @@ type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: runt
 type (ele_struct), target :: runt_nosave
 type (ele_struct), optional, target :: ele_save
-type (coord_struct), optional :: orbit
+type (coord_struct) :: orb, orb2
 
 real(rp) mat6(:,:), vec0(:)
 real(rp) s_1, s_2, s_end, s_now, ds
@@ -437,7 +457,6 @@ s_now = s_1
 ! Loop over all the element to track through.
 
 do
-
   ele => branch%ele(ix_ele)
   s_end = min(s_2, ele%s)
 
@@ -458,7 +477,7 @@ do
 
   if (track_entire_ele) then
     runt => ele
-    if (present(orbit)) call track1 (orbit, runt, branch%param, orbit)
+    call track1 (orb, runt, branch%param, orb2)
 
   elseif (use_saved) then
     runt => ele_save
@@ -466,7 +485,7 @@ do
     call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele)%s_start, &
                            branch%param, track_upstream_end, track_downstream_end, error_flag, runt)
     if (error_flag) exit
-    call make_mat6 (runt, branch%param, orbit, orbit)
+    call make_mat6 (runt, branch%param, orb, orb2)
 
   else
     runt => runt_nosave
@@ -474,8 +493,7 @@ do
     call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele)%s_start, &
                                       branch%param, track_upstream_end, track_downstream_end, error_flag)
     if (error_flag) exit
-    call make_mat6 (runt, branch%param, orbit, orbit)
-
+    call make_mat6 (runt, branch%param, orb, orb2)
   endif
 
   ! Now for the integration step
@@ -486,6 +504,7 @@ do
   ! Are we done?
   ! Include any zero length elements at end of region.
 
+  orb = orb2
   include_next_ele = .false.
   if (ix_ele + 1 <= branch%n_ele_track) include_next_ele = (branch%ele(ix_ele+1)%s <= s_end)
   if (.not. include_next_ele .and. abs(s_end - s_2) < bmad_com%significant_length) exit
@@ -494,7 +513,6 @@ do
 
   s_now = s_end
   ix_ele = ix_ele + 1
-
 enddo
 
 ! Cleanup

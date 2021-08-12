@@ -58,7 +58,7 @@ re = start_orb%vec
 start2_orb = start_orb   ! Save initial state
 end_orb = start_orb
 
-call ele_to_fibre (ele, ptc_fibre, param, .true., track_particle = start_orb)
+call ele_to_fibre (ele, ptc_fibre, param, .true., ref_in = start_orb)
 
 !
 

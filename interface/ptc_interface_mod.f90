@@ -2580,7 +2580,7 @@ end subroutine real_8_to_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_propagate1 (bmad_taylor, ele, param, track_particle)
+! Subroutine taylor_propagate1 (bmad_taylor, ele, param, ref_in)
 !
 ! Subroutine to track (symplectic integration) a taylor map through an element.
 ! The alternative routine, if ele has a taylor map, is concat_taylor.
@@ -2592,7 +2592,7 @@ end subroutine real_8_to_taylor
 !   bmad_taylor(6)   -- Taylor_struct: Map to be tracked
 !   ele              -- Ele_struct: Element to track through
 !   param            -- lat_param_struct: 
-!   track_particle   -- coord_struct, optional: Particle to be tracked. ref_particle$, electron$, etc.
+!   ref_in           -- coord_struct, optional: Particle to be tracked.
 !                         Must be present if the particle to be tracked is not the reference particle or
 !                         if the direction of propagation is backwards.
 !
@@ -2600,7 +2600,7 @@ end subroutine real_8_to_taylor
 !   bmad_taylor(6)  -- Taylor_struct: Map through element
 !-
 
-subroutine taylor_propagate1 (bmad_taylor, ele, param, track_particle)
+subroutine taylor_propagate1 (bmad_taylor, ele, param, ref_in)
 
 use s_tracking
 use mad_like, only: real_8, fibre, ptc_track => track
@@ -2614,7 +2614,7 @@ type (real_8), save :: ptc_tlr(6)
 type (ele_struct) ele, drift_ele
 type (lat_param_struct) param
 type (fibre), pointer :: ptc_fibre
-type (coord_struct), optional :: track_particle
+type (coord_struct), optional :: ref_in
 
 real(rp) beta0, beta1, m2_rel
 
@@ -2639,7 +2639,7 @@ ptc_tlr = bmad_taylor
 
 ! track the map
 
-call ele_to_fibre (ele, ptc_fibre, param, .true., track_particle = track_particle)
+call ele_to_fibre (ele, ptc_fibre, param, .true., ref_in = ref_in)
 call track_probe_x (ptc_tlr, ptc_com%base_state, fibre1 = bmadl%start)
 
 ! transfer ptc map back to bmad map
@@ -2742,7 +2742,7 @@ if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_
 
 use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_offsets)
 
-call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0)
+call ele_to_fibre (ele, ptc_fibre, param, use_offsets, ref_in = orb0)
 
 call alloc(ptc_cdamap)
 call alloc(ptc_probe8)
@@ -2941,8 +2941,7 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, 
-!                                                           for_layout, track_particle)
+! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, ref_in)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
@@ -2951,25 +2950,25 @@ end subroutine type_map
 !   FPP alloc and kill since the setting up of the PTC pancake uses FPP.
 !
 ! Input:
-!   ele                  -- Ele_struct: Bmad element.
-!   param                -- lat_param_struct: 
-!   use_offsets          -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
-!   integ_order          -- Integer, optional: Order for the 
-!                             sympletic integrator. Possibilities are: 2, 4, or 6
-!                             Overrides ele%value(integrator_order$).
-!                             default = 2 (if not set with set_ptc).
-!   steps                -- Integer, optional: Number of integration steps.
-!                             Overrides ele%value(ds_step$).
-!   for_layout           -- Logical, optional: If True then fibre will be put in the PTC layout.
-!                             Default is False.
-!   track_particle       -- coord_struct, optional: Particle to be tracked. ref_particle$, electron$, etc.
-!                             This argument should only be present when the fibre is not to be put in a layout.
+!   ele              -- Ele_struct: Bmad element.
+!   param            -- lat_param_struct: 
+!   use_offsets      -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
+!   integ_order      -- Integer, optional: Order for the 
+!                         sympletic integrator. Possibilities are: 2, 4, or 6
+!                         Overrides ele%value(integrator_order$).
+!                         default = 2 (if not set with set_ptc).
+!   steps            -- Integer, optional: Number of integration steps.
+!                         Overrides ele%value(ds_step$).
+!   for_layout       -- Logical, optional: If True then fibre will be put in the PTC layout.
+!                         Default is False.
+!   ref_in           -- coord_struct, optional: Particle to be tracked. ref_particle$, electron$, etc.
+!                         This argument should only be present when the fibre is not to be put in a layout.
 !
 ! Output:
 !   ptc_fibre -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, track_particle)
+subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, ref_in)
 
 use madx_ptc_module
 
@@ -2977,7 +2976,7 @@ implicit none
  
 type (ele_struct), target :: ele
 type (lat_param_struct) param
-type (coord_struct), optional :: track_particle
+type (coord_struct), optional :: ref_in
 type (ele_struct), pointer :: field_ele, ele2
 type (cartesian_map_term1_struct), pointer :: wt
 type (cartesian_map_struct), pointer :: cm
@@ -3091,8 +3090,8 @@ if (key == sbend$ .and. val(g$) + val(dg$) == 0 .and. ptc_key%model /= 'DRIFT_KI
   !          'BEND WITH ZERO NET BENDING FIELD WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
 endif
 
-if (present(track_particle)) then
-  rel_charge = charge_of(track_particle%species) / charge_of(param%particle)
+if (present(ref_in)) then
+  rel_charge = charge_of(ref_in%species) / charge_of(param%particle)
 else
   rel_charge = charge_of(default_tracking_species(param)) / charge_of(param%particle)
 endif
@@ -3496,14 +3495,14 @@ if (logic_option(.false., for_layout)) then
   call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
   ptc_fibre => m_u%end%end
 
-  if (present (track_particle)) then
-    call out_io (s_fatal$, r_name, 'TRACK_PARTICLE ARGUMENT SHOULD NOT BE PRESENT WHEN FOR_LAYOUT IS TRUE!')
+  if (present (ref_in)) then
+    call out_io (s_fatal$, r_name, 'REF_IN ARGUMENT SHOULD NOT BE PRESENT WHEN FOR_LAYOUT IS TRUE!')
     if (global_com%exit_on_error) call err_exit
     return
   endif
 
   ptc_fibre%dir = ele%orientation
-  if (present(track_particle)) ptc_fibre%dir = ptc_fibre%dir * track_particle%direction
+  if (present(ref_in)) ptc_fibre%dir = ptc_fibre%dir * ref_in%direction
 
 ! Non-layout case
 
@@ -3537,7 +3536,7 @@ else
   if (key == beambeam$) call beambeam_fibre_setup(ele, ptc_fibre, param)
 
   ptc_fibre%dir = ele%orientation
-  if (present(track_particle)) ptc_fibre%dir = ptc_fibre%dir * track_particle%direction
+  if (present(ref_in)) ptc_fibre%dir = ptc_fibre%dir * ref_in%direction
 
   call survey (ptc_fibre, ent = global_frame, a = global_origin)
   ! Note: Misalignments/patch setup for the layout is handled after the layout is instantiated.

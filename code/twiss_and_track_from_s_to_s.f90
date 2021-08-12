@@ -76,8 +76,7 @@ if (s_start == s_true_end .and. branch%param%geometry == open$) then
 endif
 
 if (s_true_end < s_start .and. branch%param%geometry == open$) then
-  call out_io (s_abort$, r_name, 'S_END < S_START WITH AN OPEN LATTICE.')
-  if (global_com%exit_on_error) call err_exit
+  call out_io (s_error$, r_name, 'S_END < S_START WITH AN OPEN LATTICE.')
   if (present(err)) err = .true.
   return
 endif
@@ -93,7 +92,7 @@ endif
 ix_start = orbit%ix_ele
 if (orbit%location == downstream_end$) then
   if (abs(orbit%s - branch%ele(ix_start)%s) > bmad_com%significant_length) then
-    call out_io (s_abort$, r_name, 'PARTICLE MARKED AT END OF ELEMENT BUT S-POSITION WRONG')
+    call out_io (s_error$, r_name, 'PARTICLE MARKED AT END OF ELEMENT BUT S-POSITION WRONG')
     if (present(err)) err = .false.
     return
   endif
