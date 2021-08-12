@@ -119,15 +119,17 @@ if (ltt_com%mpi_rank == master_rank$) then
   call init_beam_distribution (ele_start, lat%param, beam_init, beam, err_flag, modes = ltt_com%modes)
   mpi_particles_per_run = real(size(beam%bunch(1)%particle), rp) / real((lttp%mpi_runs_per_subprocess * (mpi_n_proc - 1)), rp)
 
-  print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
-  print '(a, i0, 2x, i0)', 'Nominal number of particles per pass: ', nint(mpi_particles_per_run)
-  call ltt_print_mpi_info (lttp, ltt_com, 'Master: Starting...', .true.)
-
   call ltt_allocate_beam_data(lttp, beam_data_sum, size(beam%bunch))
   call ltt_allocate_beam_data(lttp, beam_data, size(beam%bunch))
   allocate (turn_data%bunch(size(beam%bunch)))
   bd_size = size(turn_data%bunch) * storage_size(turn_data%bunch(1)) / 8
 
+  print '(a, f12.3)', '*** Size of data storage (MB) needed per process: ', bd_size * size(beam_data_sum%turn) * 8e-6
+  print *
+
+  print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
+  print '(a, i0, 2x, i0)', 'Nominal number of particles per pass: ', nint(mpi_particles_per_run)
+  call ltt_print_mpi_info (lttp, ltt_com, 'Master: Starting...', .true.)
 
   ! Init positions to slaves
 
