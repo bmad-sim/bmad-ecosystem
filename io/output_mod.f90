@@ -42,7 +42,7 @@ end type
 type (out_io_mod_com_struct), save, private :: out_io_com
 type (out_io_output_direct_struct), save, private :: out_io_direct
 
-private out_io_line6, out_io_int, out_io_real, out_io_logical
+private out_io_line12, out_io_int, out_io_real, out_io_logical
 private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
 
 !+
