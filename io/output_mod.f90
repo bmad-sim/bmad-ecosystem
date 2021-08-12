@@ -57,8 +57,8 @@ private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
 !   out_io_int (level, routine_name, line, i_num, insert_tag_line)
 !   out_io_logical (level, routine_name, line, l_num, insert_tag_line)
 !   out_io_lines (level, routine_name, lines, r_array, i_array, l_array, insert_tag_line)
-!   out_io_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
-!                                          r_array, i_array, l_array, insert_tag_line)
+!   out_io_line12 (level, routine_name, line1, line2, line3, line4, line5, line6, &
+!         line7, line8, line9, line10, line11, line12, r_array, i_array, l_array, insert_tag_line)
 !
 ! Numbers are encoded in lines using the syntax "\<fmt>\" 
 ! where <fmt> is the desired format. For example:
@@ -88,7 +88,7 @@ private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
 !   use output_mod
 !
 ! Input:
-!   level     -- Integer: Status level flags for messages.
+!   level              -- Integer: Status level flags for messages.
 !       s_nooutput$      -- No output is produced.
 !       s_blank$         -- Information message. No tag line is inserted.
 !       s_info$          -- Informational message. (no timestamp)
@@ -103,22 +103,22 @@ private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
 !       s_abort$         -- A severe error has occurred and
 !                             the program is being aborted (w/timestamp).
 !       s_important      -- An important message (w/timestamp).
-!   routine_name      -- Character(*): Name of the calling routine.
-!   line              -- Character(*), Line to print.
-!   lines(:)          -- Character(*), Lines to print.
-!   line1             -- Character(*): First line to print.
-!   line2, ..., line6 -- Character(*), optional: Second through sixth lines to print.
-!   r_num             -- Real(rp): Real Number to print.
-!   i_num             -- Integer: Integer to print.
-!   l_num             -- Logical: Logical to print.
-!   r_array(:)        -- Real(rp), optional: Real numbers to print.
-!   i_array(:)        -- Integer, optional: Integer numbers to print.
-!   l_array(:)        -- Logical, optional: Logicals to print.
-!   insert_tag_line   -- logical, optional: Include the taga line in the output?
+!   routine_name       -- Character(*): Name of the calling routine.
+!   line               -- Character(*), Line to print.
+!   lines(:)           -- Character(*), Lines to print.
+!   line1              -- Character(*): First line to print.
+!   line2, ..., line12 -- Character(*), optional: Second through sixth lines to print.
+!   r_num              -- Real(rp): Real Number to print.
+!   i_num              -- Integer: Integer to print.
+!   l_num              -- Logical: Logical to print.
+!   r_array(:)         -- Real(rp), optional: Real numbers to print.
+!   i_array(:)         -- Integer, optional: Integer numbers to print.
+!   l_array(:)         -- Logical, optional: Logicals to print.
+!   insert_tag_line    -- logical, optional: Include the taga line in the output?
 !-
 
 interface out_io
-  module procedure out_io_line6
+  module procedure out_io_line12
   module procedure out_io_lines
   module procedure out_io_real
   module procedure out_io_int
@@ -379,20 +379,20 @@ end subroutine out_io_logical
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine out_io_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
-!                                                      r_array, i_array, l_array, insert_tag_line)
+! Subroutine out_io_line12 (level, routine_name, line1, line2, line3, line4, line5, line6, &
+!            line7, line8, line9, line10, line11, line12, r_array, i_array, l_array, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine out_io_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
-                                                       r_array, i_array, l_array, insert_tag_line)
+subroutine out_io_line12 (level, routine_name, line1, line2, line3, line4, line5, line6, &
+            line7, line8, line9, line10, line11, line12, r_array, i_array, l_array, insert_tag_line)
 
 implicit none
 
 character(*) routine_name, line1
-character(*), optional :: line2, line3, line4, line5, line6
+character(*), optional :: line2, line3, line4, line5, line6, line7, line8, line9, line10, line11, line12
 character(40) fmt
 
 real(rp), optional :: r_array(:)
@@ -412,15 +412,21 @@ call header_io (level, routine_name, insert_tag_line)
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
 
 call insert_numbers (level, fmt, nr, ni, nl, line1, r_array, i_array, l_array, insert_tag_line)
-if (present(line2)) call insert_numbers (level, fmt, nr, ni, nl, line2, r_array, i_array, l_array, insert_tag_line)
-if (present(line3)) call insert_numbers (level, fmt, nr, ni, nl, line3, r_array, i_array, l_array, insert_tag_line)
-if (present(line4)) call insert_numbers (level, fmt, nr, ni, nl, line4, r_array, i_array, l_array, insert_tag_line)
-if (present(line5)) call insert_numbers (level, fmt, nr, ni, nl, line5, r_array, i_array, l_array, insert_tag_line)
-if (present(line6)) call insert_numbers (level, fmt, nr, ni, nl, line6, r_array, i_array, l_array, insert_tag_line)
+if (present(line2))  call insert_numbers (level, fmt, nr, ni, nl, line2,  r_array, i_array, l_array, insert_tag_line)
+if (present(line3))  call insert_numbers (level, fmt, nr, ni, nl, line3,  r_array, i_array, l_array, insert_tag_line)
+if (present(line4))  call insert_numbers (level, fmt, nr, ni, nl, line4,  r_array, i_array, l_array, insert_tag_line)
+if (present(line5))  call insert_numbers (level, fmt, nr, ni, nl, line5,  r_array, i_array, l_array, insert_tag_line)
+if (present(line6))  call insert_numbers (level, fmt, nr, ni, nl, line6,  r_array, i_array, l_array, insert_tag_line)
+if (present(line7))  call insert_numbers (level, fmt, nr, ni, nl, line7,  r_array, i_array, l_array, insert_tag_line)
+if (present(line8))  call insert_numbers (level, fmt, nr, ni, nl, line8,  r_array, i_array, l_array, insert_tag_line)
+if (present(line9))  call insert_numbers (level, fmt, nr, ni, nl, line9,  r_array, i_array, l_array, insert_tag_line)
+if (present(line10)) call insert_numbers (level, fmt, nr, ni, nl, line10, r_array, i_array, l_array, insert_tag_line)
+if (present(line11)) call insert_numbers (level, fmt, nr, ni, nl, line11, r_array, i_array, l_array, insert_tag_line)
+if (present(line12)) call insert_numbers (level, fmt, nr, ni, nl, line12, r_array, i_array, l_array, insert_tag_line)
 
 if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
-end subroutine
+end subroutine out_io_line12
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
