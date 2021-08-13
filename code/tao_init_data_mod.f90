@@ -41,7 +41,7 @@ integer ios, iu, i, j, j1, k, ix, n_uni, num
 integer n, iostat, n_loc, n_nml
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
-integer :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
+integer :: n_d2_data(lbound(s%u, 1):ubound(s%u, 1)), n_data(lbound(s%u, 1):ubound(s%u, 1))
 
 character(*) data_file
 character(40) :: r_name = 'tao_init_data'
@@ -52,8 +52,7 @@ character(200) search_for_lat_eles
 character(200) line, default_data_type, def_data_type
 
 logical err, free, gang, found
-logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
-logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
+logical :: good_uni(lbound(s%u, 1) : ubound(s%u, 1))
 
 namelist / tao_d2_data / d2_data, n_d1_data, universe, &
                 default_merit_type, default_weight, default_data_type, default_data_source
@@ -122,9 +121,9 @@ do
   endif
 
   if (universe == '*') then
-    good_unis = .true.
+    good_uni = .true.
   else
-    call location_decode (universe, good_unis, lbound(s%u, 1), num)
+    call location_decode (universe, good_uni, lbound(s%u, 1), num)
     if (num < 0) then
       call out_io (s_abort$, r_name, &
             'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // quote(d2_data%name), &
@@ -133,7 +132,7 @@ do
     endif
   endif
 
-  where (good_unis) n_d2_data = n_d2_data + 1
+  where (good_uni) n_d2_data = n_d2_data + 1
 enddo
 
 rewind (iu)
@@ -149,7 +148,6 @@ enddo
 ! Loop over d2_data namelists.
 
 do 
-  mask(:) = .true.      ! set defaults
   d2_data%name           = ''
   universe               = '*'
   default_merit_type     = ''
@@ -162,23 +160,24 @@ do
   call out_io (s_blank$, r_name, 'Init: Read tao_d2_data namelist: ' // quote(d2_data%name))
 
   if (universe == '*') then
-    good_unis = .true.
+    good_uni = .true.
   else
-    call location_decode (universe, good_unis, lbound(s%u, 1), num)
+    call location_decode (universe, good_uni, lbound(s%u, 1), num)
   endif
 
   uni_loop: do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. good_unis(i)) cycle  
+    if (.not. good_uni(i)) cycle  
     ! check if this data type has already been defined for this universe
     do k = 1, size(s%u(i)%d2_data)
       if (trim(s%u(i)%d2_data(k)%name) /= trim(d2_data%name)) cycle
-      mask(i) = .false.
+      good_uni(i) = .false.
       call out_io (s_error$, r_name, 'TWO D2 DATA STRUCTURES HAVE THE SAME NAME: ' // quote(d2_data%name), &
                                      'THE SECOND ONE WILL BE IGNORED!')
       cycle uni_loop
     enddo
 
     call tao_d2_data_stuffit (s%u(i), d2_data%name, n_d1_data)
+    n_data(i) = s%u(i)%n_data_used
   enddo uni_loop
 
   def_merit_type  = default_merit_type   ! Save
@@ -186,6 +185,7 @@ do
   def_data_type   = default_data_type
   def_data_source = default_data_source
 
+  !----------------------------
   ! Loop over d1_data namelists
 
   do k = 1, n_d1_data
@@ -241,11 +241,16 @@ do
     if (ix_d1_data /= k) then
       write (line, '(a, 2i4)') ', k, ix_d1_data'
       call out_io (s_error$, r_name, &
-                'ERROR: IX_D1_DATA MISMATCH FOR D2_DATA: ' // quote(d2_data%name), &
-                '       THE D1_DATA HAD THE NAME: ' // quote(d1_data%name), &
-                '       I EXPECTED IX_D1_DATA TO BE: \i3\ ', &
-                '       I READ IX_D1_DATA TO BE: \i3\ ', &
-                i_array = (/ k, ix_d1_data /) )  
+                'IX_D1_DATA MISMATCH FOR D2_DATA: ' // quote(d2_data%name), &
+                'THE D1_DATA HAD THE NAME: ' // quote(d1_data%name), &
+                'I EXPECTED IX_D1_DATA TO BE: \i3\ ', &
+                'I READ IX_D1_DATA TO BE: \i3\ ', &
+                'THIS D2_DATA WILL BE IGNORED!', i_array = [k, ix_d1_data])
+      do i = lbound(s%u, 1), ubound(s%u, 1)
+        if (.not. good_uni(i)) cycle
+        s%u(i)%n_d2_data_used = s%u(i)%n_d2_data_used - 1
+        s%u(i)%n_data_used = n_data(i)
+      enddo
       exit
     endif
 
@@ -253,19 +258,17 @@ do
       if (index(datum(i)%data_type, 'dat::') /= 0) then
         call out_io (s_error$, r_name, &
                      'DATA_TYPE USES OLD "dat::" PREFIX. PLEASE CHANGE TO "data::": ' // quote(datum(i)%data_type))
-        exit
+        datum(i)%data_type = 'data::' // datum(i)%data_type(6:)
       endif
     enddo
     call out_io (s_blank$, r_name, 'Init: Read tao_d1_data namelist: ' // quote(d1_data%name))
 
     do i = lbound(s%u, 1), ubound(s%u, 1)
-      if (.not. good_unis(i)) cycle
-      if (.not. mask(i)) cycle
+      if (.not. good_uni(i)) cycle
       call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used, datum)
     enddo
 
   enddo  ! d1_data loop
-
 enddo  ! d2_data loop
 
 close (iu)
