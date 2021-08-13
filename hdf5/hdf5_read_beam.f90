@@ -337,8 +337,8 @@ do ip = 1, size(bunch%particle)
     return
   endif
 
-  if (abs(p0c_initial - p0c_final) > 1e-12 * p0c_final) then
-    call out_io (s_warn$, r_name, 'REFERENCE MOMENTUM IN BEAM FILE:  \es20.12\ ', &
+  if (p%state == alive$ .and. abs(p0c_initial - p0c_final) > 1e-12 * p0c_final) then
+    call out_io (s_warn$, r_name, 'REFERENCE MOMENTUM OF PARTICLE IN BEAM FILE:  \es20.12\ ', &
                                   'FROM FILE: ' // file_name, &
                                   'DIFFERENT FROM REFERNECE MOMENTUM IN LATTICE: \es20.12\ ', &
                                   'THIS WILL CAUSE A SHIFT IN PHASE SPACE pz = (P - P0)/P', &
