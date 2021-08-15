@@ -132,9 +132,10 @@ type (beam_init_struct) beam_init
 type (ele_struct), optional :: ele
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:)
+type (coord_struct), allocatable :: p_temp(:)
 type (coord_struct) orb_init
 
-integer i, j, k, n, ix, iu, ix_word, ios, ix_ele, species
+integer i, j, k, n, np, ix, iu, ix_word, ios, ix_ele, species
 integer n_bunch, n_particle, n_particle_lines, ix_lost
 
 real(rp) vec(6), sum_charge, bunch_charge
@@ -163,6 +164,23 @@ endif
 n = len_trim(full_name)
 if (full_name(max(1,n-4):n) == '.hdf5' .or. full_name(max(1,n-2):n) == '.h5') then
   call hdf5_read_beam (full_name, beam, err_flag, ele)
+
+  np = beam_init%n_particle
+  if (np > 0) then
+    do i = 1, size(beam%bunch)
+      p => beam%bunch(i)%particle
+      if (size(p) < beam_init%n_particle) then
+        call out_io (s_error$, r_name, &
+                'NUMBER OF PARTICLES ' // int_str(size(p)) // 'DEFINED IN BEAM FILE: ' // full_name, &
+                'LESS THAN NUMBER OF PARTICLES WANTED WHICH IS SET BY BEAM_INIT%N_PARTICLE: ' // int_str(np))
+        cycle
+      endif
+      call move_alloc (beam%bunch(i)%particle, p_temp)
+      allocate (beam%bunch(i)%particle(np))
+      beam%bunch(i)%particle = p_temp(1:np)
+      deallocate (p_temp)
+    enddo
+  endif
   return
 endif
 
