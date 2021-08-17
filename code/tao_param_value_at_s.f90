@@ -425,7 +425,7 @@ case ('orbit')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
-case ('pc');
+case ('pc')
   if (orbit%species == photon$) then
     value = orbit%p0c
   else
@@ -498,7 +498,11 @@ case ('r')
 
   value = ele%mat6(i,j)
 
-case ('ref_time');            value = ele%ref_time
+case ('ref_p0c')
+  value = orbit%p0c
+
+case ('ref_time')
+  value = ele%ref_time
 
 case ('spin')
   select case (d_type)

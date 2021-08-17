@@ -25,7 +25,7 @@
   global%prompt_color = 'BLUE'
   !---Bmad---
   bmad_com%radiation_damping_on = F
-  bmad_com%radiation_fluctuations_on = T
+  bmad_com%radiation_fluctuations_on = F
   /
 
 
