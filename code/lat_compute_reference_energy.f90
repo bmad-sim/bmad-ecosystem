@@ -569,14 +569,13 @@ case (lcavity$)
   ! small changes in the tracking. So if there has been a shift in the end energy, track again.
 
   do i = 1, 5
-    call track_this_ele (orb_start, orb_end, .false., err); if (err) goto 9000
+    call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
+    call calc_time_ref_orb_out(orb_end)
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) goto 9000
     if (abs(orb_end%vec(6)) < bmad_com%rel_tol_tracking) exit
   enddo
-
-  call calc_time_ref_orb_out(orb_end)
 
 case (custom$, hybrid$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)   ! Delta_ref_time is an independent attrib here.
@@ -609,7 +608,7 @@ case (e_gun$)
     endif
   endif
 
-  call track_this_ele (orb_start, orb_end, .true., err); if (err) goto 9000
+  call track_this_ele (orb_start, orb_end, ref_time_start, .true., err); if (err) goto 9000
   call calc_time_ref_orb_out(orb_end)
 
 case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, photon_init$, mask$)
@@ -677,7 +676,7 @@ case default
     endif
 
   else
-    call track_this_ele (orb_start, orb_end, .false., err); if (err) goto 9000
+    call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
     call calc_time_ref_orb_out(orb_end)
   endif
 
@@ -744,10 +743,11 @@ bmad_com = bmad_com_saved
 !---------------------------------------------------------------------------------
 contains
 
-subroutine track_this_ele (orb_start, orb_end, is_inside, error)
+subroutine track_this_ele (orb_start, orb_end, ref_time_start, is_inside, error)
 
 type (coord_struct) orb_start, orb_end
 type (ele_struct), pointer :: lord
+real(rp) ref_time_start
 logical error, is_inside
 
 !
@@ -925,7 +925,7 @@ if (orb_end%vec(6) /= -1) then
   ele%time_ref_orb_out%vec(4) = ele%time_ref_orb_out%vec(4) / (1 + orb_end%vec(6))
 endif
 
-if (ele%key == lcavity$) then
+if (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$) then
   ele%time_ref_orb_out%vec(5) = 0
 elseif (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   lord => pointer_to_lord(ele, 1)
