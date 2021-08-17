@@ -410,7 +410,9 @@ if (include_excitation) then
   cda = 1
   prb = closed_orb
   prb8 = prb + cda
+  compute_stoch_kick = .true.
   call track_probe (prb8, ptc_state, fibre1 = branch%ele(1)%ptc_fibre)
+  compute_stoch_kick = .false.
 
   call kill(prb8)
   call kill(cda)
