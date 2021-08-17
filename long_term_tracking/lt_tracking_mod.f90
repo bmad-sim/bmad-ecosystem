@@ -398,8 +398,6 @@ if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
   endif
 endif
 
-if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'PTC') call lat_to_ptc_layout(ltt_com%tracking_lat)
-
 end subroutine ltt_init_tracking
 
 !-------------------------------------------------------------------------------------------
