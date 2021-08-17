@@ -3808,6 +3808,91 @@ endif
     close(mf)
   end SUBROUTINE print_frames
 
+  SUBROUTINE print_frame(p,mf)
+    IMPLICIT NONE
+    integer mf
+    type(fibre), pointer :: P
+ 
+ 
+
+
+       !   INTEGER(2), POINTER:: PATCH    ! IF TRUE, SPACIAL PATCHES NEEDED
+       !   INTEGER, POINTER :: A_X1,A_X2   ! FOR ROTATION OF PI AT ENTRANCE = -1, DEFAULT = 1 ,
+       !   INTEGER, POINTER :: B_X1,B_X2   ! FOR ROTATION OF PI AT EXIT = -1    , DEFAULT = 1
+       !   REAL(DP),DIMENSION(:), POINTER:: A_D,B_D      !ENTRACE AND EXIT TRANSLATIONS  A_D(3)
+       !   REAL(DP),DIMENSION(:), POINTER:: A_ANG,B_ANG   !ENTRACE AND EXIT ROTATIONS    A_ANG(3)
+       !   INTEGER(2), POINTER:: ENERGY   ! IF TRUE, ENERGY PATCHES NEEDED
+       !   INTEGER(2), POINTER:: TIME     ! IF TRUE, TIME PATCHES NEEDED
+       !   REAL(DP), POINTER:: A_T,B_T     ! TIME SHIFT NEEDED SOMETIMES WHEN RELATIVE TIME IS USED
+       write(mf,*) " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+       write(mf,*) "  "
+write(mf,'(a14,1x,i4,a15,i4,a11,a24,a2)') "|| position = ", P%pos,' || PTC kind = ', P%mag%kind," || name = ",P%mag%name, " ||"
+       write(mf,*) "  "
+       if(p%patch%patch==1.or.p%patch%patch==3) then
+          write(mf,*) " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+          write(mf,*) " Entrance geometrical Patch "
+          write(mf,*) " Translations A_D(3) "
+          write(mf,*) P%patch%a_d
+          write(mf,*) " Rotations A_ANG(3) || PI rotations ->   ",p%patch%a_x1,p%patch%a_x2
+          write(mf,*) P%patch%A_ANG
+          write(mf,*) " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+          write(mf,*) "  "
+       endif
+       write(mf,*) " Fibre positioning or Ideal position in conventional parlance"
+       write(mf,*) "  "
+       write(mf,*) " Entrance origin A(3) "
+       write(mf,*) P%chart%f%a
+       write(mf,*) " Entrance frame (i,j,k) basis in the ent(3,3) array "
+       write(mf,*) P%chart%f%ent(1,:)
+       write(mf,*) P%chart%f%ent(2,:)
+       write(mf,*) P%chart%f%ent(3,:)
+       write(mf,*) " Middle origin O(3) "
+       write(mf,*) P%chart%f%o
+       write(mf,*) " Middle frame (i,j,k) basis in the ent(3,3) array "
+       write(mf,*) P%chart%f%mid(1,:)
+       write(mf,*) P%chart%f%mid(2,:)
+       write(mf,*) P%chart%f%mid(3,:)
+       write(mf,*) " Exit origin B(3) "
+       write(mf,*) P%chart%f%B
+       write(mf,*) " Exit frame (i,j,k) basis in the ent(3,3) array "
+       write(mf,*) P%chart%f%exi(1,:)
+       write(mf,*) P%chart%f%exi(2,:)
+       write(mf,*) P%chart%f%exi(3,:)
+       write(mf,*) "  "
+       write(mf,*) " Actual magnet positioning  "
+       write(mf,*) "  "
+       write(mf,*) " Entrance origin A(3) "
+       write(mf,*) P%mag%p%f%a
+       write(mf,*) " Entrance frame (i,j,k) basis in the ent(3,3) array "
+       write(mf,*) P%mag%p%f%ent(1,:)
+       write(mf,*) P%mag%p%f%ent(2,:)
+       write(mf,*) P%mag%p%f%ent(3,:)
+       write(mf,*) " Middle origin O(3) "
+       write(mf,*) P%mag%p%f%o
+       write(mf,*) " Middle frame (i,j,k) basis in the ent(3,3) array "
+       write(mf,*) P%mag%p%f%mid(1,:)
+       write(mf,*) P%mag%p%f%mid(2,:)
+       write(mf,*) P%mag%p%f%mid(3,:)
+       write(mf,*) " Exit origin B(3) "
+       write(mf,*) P%mag%p%f%B
+       write(mf,*) " Exit frame (i,j,k) basis in the ent(3,3) array "
+       write(mf,*) P%mag%p%f%exi(1,:)
+       write(mf,*) P%mag%p%f%exi(2,:)
+       write(mf,*) P%mag%p%f%exi(3,:)
+       if(p%patch%patch==2.or.p%patch%patch==3) then
+          write(mf,*) " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+          write(mf,*) " Exit geometrical Patch "
+          write(mf,*) " Translations B_D(3) "
+          write(mf,*) P%patch%b_d
+          write(mf,*) " Rotations B_ANG(3) || PI rotations ->   ",p%patch%b_x1,p%patch%b_x2
+          write(mf,*) P%patch%B_ANG
+          write(mf,*) " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+          write(mf,*) "  "
+       endif
+       write(mf,*) " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+ 
+  end SUBROUTINE print_frame
+
   subroutine printframes(filenameIA)
     use madx_ptc_module
     implicit none

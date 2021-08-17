@@ -3336,10 +3336,12 @@ endif
              l=>r%parent_universe%start
              do ii=1,r%parent_universe%n
                 call make_node_layout(l)
+                 call survey(l)
                 l=>l%next
              enddo
           elseif(f2) then
              call make_node_layout(r)  !!! bug (l) was wrong
+                 call survey(r)
           endif
           RETURN
        ELSE
@@ -3350,10 +3352,12 @@ endif
              l=>r%parent_universe%start
              do ii=1,r%parent_universe%n
                 call make_node_layout(l)
+call survey(l)
                 l=>l%next
              enddo
           elseif(f2) then
              call make_node_layout(r)  !!! bug (l) was wrong
+call survey(r)
           endif
 
     ENDIF
