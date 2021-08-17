@@ -622,7 +622,8 @@ end subroutine make_slices
 !------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------
 !+
-! Subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slices_sxt_opt, chrom_set_x_opt, chrom_set_y_opt)
+! Subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slices_sxt_opt, 
+!                                                     chrom_set_x_opt, chrom_set_y_opt, weight_in)
 !
 ! Given lat, finds K2 moments that set the chromaticity and zeros-out the real
 ! and complex parts of the first order driving terms, that minimizes the sum of the squares
@@ -638,14 +639,21 @@ end subroutine make_slices
 !   lat                -- lat_struct: lattice with Twiss parameters calculated.
 !   var_indexes(:)     -- integer: indexes in lat%ele that are K2 variables.  Must be sorted smallest index to largest index.
 !   n_slices_gen_opt   -- integer, optional: number of times to slice elements other than sextupoles.  Default is 10.
-!   n_slices_sxt_opt  -- integer, optional: nubmer of times to slice sextupoles.  Default is 20.
+!   n_slices_sxt_opt   -- integer, optional: nubmer of times to slice sextupoles.  Default is 20.
 !   chrom_set_x_opt    -- real(rp), optional: what to set x chromaticity to.  Default zero.
 !   chrom_set_y_opt    -- real(rp), optional: what to set y chromaticity to.  Default zero.
+!   weight_in(10)      -- real(rp), optional: moment weights. Terms are:
+!                              [wgt_chrom_x, wgt_chrom_y, wgt_h20001, wgt_h00201, wgt_h10002, 
+!                              wgt_h21000, wgt_h30000, wgt_h10110, wgt_h10020, wgt_h10200, 
+!                          If present, any terms equal to zero are given default values which is 
+!                          1.0e4 for wgt_chrom_x and wgt_chrom_y and is 1.0 for everything else.
+!
 ! Output:
 !   ls_soln(1:size(var_indexes))  -- real(rp): contains K2 for the indexes in var_indexes
 !-
 
-subroutine srdt_lsq_solution(lat, var_indexes, var_names, ls_soln, n_slices_gen_opt, n_slices_sxt_opt, chrom_set_x_opt, chrom_set_y_opt)
+subroutine srdt_lsq_solution(lat, var_indexes, var_names, ls_soln, n_slices_gen_opt, n_slices_sxt_opt, &
+                                                                 chrom_set_x_opt, chrom_set_y_opt, weight_in)
 
 implicit none
 
@@ -655,13 +663,14 @@ character(40) var_names(200)
 real(rp), allocatable :: ls_soln(:)
 integer, optional :: n_slices_sxt_opt
 integer, optional :: n_slices_gen_opt
-real(rp), optional :: chrom_set_x_opt, chrom_set_y_opt
+real(rp), optional :: chrom_set_x_opt, chrom_set_y_opt, weight_in(10)
 
 type(sliced_eles_struct), allocatable :: eles(:)
 type(sliced_eles_struct), allocatable :: K2eles(:)
 
 integer i, j, w, nK2, nvar, nnames
 integer, allocatable :: k2mask(:), mags(:)
+integer n_slices_sext, n_slices_gen
 
 real(rp), allocatable :: A(:, :), Ap(:, :)
 real(rp), allocatable :: As(:, :), Asp(:, :)
@@ -670,9 +679,6 @@ real(rp), allocatable :: ls_soln_sliced(:)
 real(rp) chrom_set_x, chrom_set_y
 
 logical, allocatable :: mask(:)
-
-integer n_slices_sext
-integer n_slices_gen
 
 character(8) err_str
 character(17) :: r_name = 'srdt_lsq_solution'
@@ -700,13 +706,27 @@ allocate(ls_soln_sliced(nvar))
 allocate(mask(nvar))
 allocate(mags(nvar))
 
-Weights=1.0d0
-Weights(1) = 1d4
-Weights(2) = 1d4
+
+weights(1:2) = 1e4_rp
+weights(3:) = 1.0_rp
+
+if (present(weight_in)) then
+  do i = 1, 10
+    if (weight_in(i) == 0) cycle
+    select case (i)
+    case (1);  Weights(1) = weight_in(i)
+    case (2);  Weights(2) = weight_in(i)
+    case default
+      Weights(2*i-3) = weight_in(i)
+      Weights(2*i-2) = weight_in(i)
+    end select
+  enddo
+endif
 
 ! A is a matrix of the coefficients of the sextupole moments that are valid variables s.t. A.K2vec = RDTs
 ! The columns of A are condensed such that each column corresponds to one physical sextupole. That is, 
 ! the contributions from each slice are added together.
+
 do i=1, nvar
   mask = k2eles(:)%ix==var_indexes(i)
   if (count(mask) .gt. 0) then
