@@ -2654,6 +2654,44 @@ if (all(s%plot_page%template%name /= 'pz')) then
 endif
 
 !---------------
+! Reference momentom
+
+if (all(s%plot_page%template%name /= 'ref_p0c')) then
+  call default_plot_init (np, plt, default_plot_g1c1)
+  plt%name                 = 'ref_p0c'
+  plt%description          = 'Reference momentum'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Reference Momentum'
+  grph%y%label       = 'Ref p0c'
+
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'ref_p0c'
+
+endif
+
+!---------------
+! Reference time
+
+if (all(s%plot_page%template%name /= 'ref_time')) then
+  call default_plot_init (np, plt, default_plot_g1c1)
+  plt%name                 = 'ref_time'
+  plt%description          = 'Reference time'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Reference Time'
+  grph%y%label       = 'Ref Time'
+
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'ref_time'
+
+endif
+
+!---------------
 ! spin dn/dpz
 
 if (all(s%plot_page%template%name /= 'spin_dn_dpz')) then
@@ -2823,7 +2861,7 @@ if (all(s%plot_page%region(:)%name /= 'layout')) then
   s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
 endif
 
-do i = 1, 4
+do i = 1, 5
   do j = 1, i
     write (name, '(a, 2i0)') 'r', j, i
     if (any(s%plot_page%region(:)%name == name)) cycle
@@ -2832,6 +2870,7 @@ do i = 1, 4
     y1 = y_layout + (1 - y_layout) * real(i-j)/ i
     y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
     s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, y1, y2]
+    if (i > 4) s%plot_page%region(nr)%list_with_show_plot_command = .false.
   enddo
 enddo
 
