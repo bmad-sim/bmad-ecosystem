@@ -31,7 +31,7 @@ MODULE S_DEF_KIND
   PRIVATE INTESOLR,INTESOLP,INTESOL
   PRIVATE FACER,FACEP !,FACE
   PRIVATE NEWFACER,NEWFACEP,fake_shiftr,fake_shiftp
-  PRIVATE EDGE_TRUE_PARALLELR,EDGE_TRUE_PARALLELP
+!  PRIVATE EDGE_TRUE_PARALLELR,EDGE_TRUE_PARALLELP
   PRIVATE GET_BE_CAVR,GET_BE_CAVP ,GET_BE_CAV
   PRIVATE ZEROR_KTK,ZEROP_KTK,ZEROR_STREX,ZEROP_STREX,ZERO_CAV4R,ZERO_CAV4P,ZEROr_enge,ZEROp_enge
   PRIVATE ZEROR_superdrift,  ZEROP_superdrift,ZERO_ABELLR,ZERO_ABELLP
@@ -181,7 +181,7 @@ PRIVATE DIRECTION_VR,DIRECTION_VP   !,DIRECTION_V
   PRIVATE  B_PARA_PERPr,B_PARA_PERPp   !,B_PARA_PERP
   PRIVATE push_quaternionr,push_quaternionP
   PRIVATE get_omega_spinR,get_omega_spinP   !,get_omega_spin 
-  private radiate_2p,radiate_2r  !,radiate_2
+  private radiate_2p,radiate_2r,radiate_2_prober,radiate_2_probep,radiate_2_probe  !,radiate_2
   private quaternion_8_to_matrix,crossp,RAD_SPIN_qua_PROBER,RAD_SPIN_qua_PROBEP
   logical :: do_d_sij=.false.
   !  INTEGER, PRIVATE :: ISPIN0P=0,ISPIN1P=3
@@ -199,7 +199,8 @@ type(work) w_bks
  private radiate_2_forcer,radiate_2_forcep,INTE_TKTF_prober,INTE_TKTF_probep
  PRIVATE INTE_CAV4_PROBER,INTE_CAV4_PROBEP
  PRIVATE feval_CAV_bmad_prober,rk2bmad_cav_prober,rk4bmad_cav_prober,rk4bmad_cav_probep
- private rk6bmad_cav_probep
+ private rk6bmad_cav_prober,rk6bmad_cav_probep
+ private INTE_sol5_prober,INTE_SOL5_probep
 
   INTERFACE radiate_2_force
      MODULE PROCEDURE radiate_2_forcer
@@ -217,6 +218,11 @@ type(work) w_bks
   END INTERFACE
 
 !!!!  tracking probe-
+  INTERFACE TRACK_SLICE_sol5
+     MODULE PROCEDURE INTE_sol5_prober
+     MODULE PROCEDURE INTE_sol5_probep
+  END INTERFACE 
+
   INTERFACE TRACK_SLICE_dkd2
      MODULE PROCEDURE INTE_dkd2_prober
      MODULE PROCEDURE INTE_dkd2_probep
@@ -252,7 +258,7 @@ type(work) w_bks
   END INTERFACE 
 
   INTERFACE rk6bmad_cav_probe
- !    MODULE PROCEDURE rk6bmad_cav_prober
+     MODULE PROCEDURE rk6bmad_cav_prober
      MODULE PROCEDURE rk6bmad_cav_probep
   END INTERFACE 
 
@@ -659,10 +665,10 @@ type(work) w_bks
      MODULE PROCEDURE EDGEP       ! USE TO CREATE OTHER ELEMENTS (INTEGRATION)
   END INTERFACE
 
-  INTERFACE EDGE_TRUE_PARALLEL
-     MODULE PROCEDURE EDGE_TRUE_PARALLELR
-     MODULE PROCEDURE EDGE_TRUE_PARALLELP       ! USE TO CREATE OTHER ELEMENTS (INTEGRATION)
-  END INTERFACE
+!  INTERFACE EDGE_TRUE_PARALLEL
+!     MODULE PROCEDURE EDGE_TRUE_PARALLELR
+!     MODULE PROCEDURE EDGE_TRUE_PARALLELP       ! USE TO CREATE OTHER ELEMENTS (INTEGRATION)
+!  END INTERFACE
 
 
 
@@ -1105,6 +1111,12 @@ type(work) w_bks
      MODULE PROCEDURE radiate_2r
      MODULE PROCEDURE radiate_2p
   END INTERFACE
+
+  INTERFACE radiate_2_probe
+     MODULE PROCEDURE radiate_2_prober
+     MODULE PROCEDURE radiate_2_probep
+  END INTERFACE
+
 
 
   INTERFACE makeso3
@@ -3660,6 +3672,9 @@ CALL FRINGECAV(EL,X,k,2)
     CASE(6)
 
        call rk6bmad_cav(z0,d1,el,X,k)
+    CASE(8)
+
+       call rk6bmad_cav(z0,d1,el,X,k)
     CASE DEFAULT
        !w_p=0
        !w_p%nc=1
@@ -3709,6 +3724,9 @@ CALL FRINGECAV(EL,X,k,2)
        call rk4bmad_cav(z0,d1,el,X,k)
 
     CASE(6)
+
+       call rk6bmad_cav(z0,d1,el,X,k)
+    CASE(8)
 
        call rk6bmad_cav(z0,d1,el,X,k)
 
@@ -5127,93 +5145,93 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
   END SUBROUTINE FRINGE2QUADP
 
 
-  SUBROUTINE EDGE_TRUE_PARALLELR(EL,BN,H1,H2,FINT,HGAP,I,X,k)
-    IMPLICIT NONE
-    logical(lp) :: doneitt=.true.
-    real(dp),INTENT(INOUT):: X(6)
-    real(dp),INTENT(IN)::FINT,HGAP,H1,H2
-    real(dp),INTENT(IN),dimension(:)::BN
-    TYPE(MAGNET_CHART),INTENT(IN):: EL
-    INTEGER, INTENT(IN) :: I
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+!  SUBROUTINE EDGE_TRUE_PARALLELR(EL,BN,H1,H2,FINT,HGAP,I,X,k)
+!    IMPLICIT NONE
+!    logical(lp) :: doneitt=.true.
+!    real(dp),INTENT(INOUT):: X(6)
+!    real(dp),INTENT(IN)::FINT,HGAP,H1,H2
+!    real(dp),INTENT(IN),dimension(:)::BN
+!    TYPE(MAGNET_CHART),INTENT(IN):: EL
+!    INTEGER, INTENT(IN) :: I
+!    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+!
+!    IF(EL%EXACT) THEN
+!       IF(EL%DIR==1) THEN
+!          IF(I==1) then                !doubling entrance angle if first half  (1/2 magnet for designer)
+!             call ROT_XZ(EL%EDGE(1),X,EL%BETA0,DONEITT,k%TIME)
+!             CALL FACE(EL,BN,H1,X,k)
+!          endif
+!          CALL FRINGE_dipole(EL,BN,FINT,HGAP,I,X,k)
+!          IF(I==2) then                !doubling exit angle if second half
+!             CALL FACE(EL,BN,H2,X,k)
+!             x(1)=x(1)+EL%LC*SIN((EL%EDGE(2)-EL%EDGE(1))*0.5_dp)
+!             call ROT_XZ(EL%EDGE(2),X,EL%BETA0,DONEITT,k%TIME)
+!          endif
+!       ELSE
+!          IF(I==2) then                !doubling exit angle if second half
+!             call ROT_XZ(EL%EDGE(2),X,EL%BETA0,DONEITT,k%TIME)
+!             x(1)=x(1)+EL%DIR*EL%LC*SIN((EL%EDGE(2)-EL%EDGE(1))*0.5_dp)
+!             CALL FACE(EL,BN,H2,X,k)
+!          endif
+!          CALL FRINGE_dipole(EL,BN,FINT,HGAP,I,X,k)
+!          IF(I==1) then                !doubling entrance angle if first half  (1/2 magnet for designer)
+!             CALL FACE(EL,BN,H1,X,k)
+!             call ROT_XZ(EL%EDGE(1),X,EL%BETA0,DONEITT,k%TIME)
+!          endif
+!       ENDIF
+!
+!    ELSE
+!       WRITE(6,*) "ERROR 777"
+!       STOP 777
+!    ENDIF
+!
+!  END SUBROUTINE EDGE_TRUE_PARALLELR
+!
+!  SUBROUTINE EDGE_TRUE_PARALLELP(EL,BN,H1,H2,FINT,HGAP,I,X,k)
+!    IMPLICIT NONE
+!    logical(lp) :: doneitt=.true.
+!    TYPE(REAL_8),INTENT(INOUT):: X(6)
+!    TYPE(REAL_8),INTENT(IN)::FINT,HGAP,H1,H2
+!    TYPE(REAL_8),INTENT(IN),dimension(:)::BN
+!    TYPE(MAGNET_CHART),INTENT(IN):: EL
+!    INTEGER, INTENT(IN) :: I
+!    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+!
+!    call PRTP("EDGE_PARALLEL:0", X)
+!
+!    IF(EL%EXACT) THEN
+!       IF(EL%DIR==1) THEN
+!          IF(I==1) then                !doubling entrance angle if first half  (1/2 magnet for designer)
+!             call ROT_XZ(EL%EDGE(1),X,EL%BETA0,DONEITT,k%TIME)
+!             CALL FACE(EL,BN,H1,X,k)
+!          endif
+!          CALL FRINGE_dipole(EL,BN,FINT,HGAP,I,X,k)
+!          IF(I==2) then                !doubling exit angle if second half
+!             CALL FACE(EL,BN,H2,X,k)
+!             x(1)=x(1)+EL%LC*SIN((EL%EDGE(2)-EL%EDGE(1))*0.5_dp)
+!             call ROT_XZ(EL%EDGE(2),X,EL%BETA0,DONEITT,k%TIME)
+!          endif
+!       ELSE
+!          IF(I==2) then                !doubling exit angle if second half
+!             call ROT_XZ(EL%EDGE(2),X,EL%BETA0,DONEITT,k%TIME)
+!             x(1)=x(1)+EL%DIR*EL%LC*SIN((EL%EDGE(2)-EL%EDGE(1))*0.5_dp)
+!             CALL FACE(EL,BN,H2,X,k)
+!          endif
+!          CALL FRINGE_dipole(EL,BN,FINT,HGAP,I,X,k)
+!          IF(I==1) then                !doubling entrance angle if first half  (1/2 magnet for designer)
+!             CALL FACE(EL,BN,H1,X,k)
+!             call ROT_XZ(EL%EDGE(1),X,EL%BETA0,DONEITT,k%TIME)
+!          endif
+!       ENDIF
+!    ELSE
+!       WRITE(6,*) "ERROR 778"
+!       STOP 778
+!
+!    ENDIF 
 
-    IF(EL%EXACT) THEN
-       IF(EL%DIR==1) THEN
-          IF(I==1) then                !doubling entrance angle if first half  (1/2 magnet for designer)
-             call ROT_XZ(EL%EDGE(1),X,EL%BETA0,DONEITT,k%TIME)
-             CALL FACE(EL,BN,H1,X,k)
-          endif
-          CALL FRINGE_dipole(EL,BN,FINT,HGAP,I,X,k)
-          IF(I==2) then                !doubling exit angle if second half
-             CALL FACE(EL,BN,H2,X,k)
-             x(1)=x(1)+EL%LC*SIN((EL%EDGE(2)-EL%EDGE(1))*0.5_dp)
-             call ROT_XZ(EL%EDGE(2),X,EL%BETA0,DONEITT,k%TIME)
-          endif
-       ELSE
-          IF(I==2) then                !doubling exit angle if second half
-             call ROT_XZ(EL%EDGE(2),X,EL%BETA0,DONEITT,k%TIME)
-             x(1)=x(1)+EL%DIR*EL%LC*SIN((EL%EDGE(2)-EL%EDGE(1))*0.5_dp)
-             CALL FACE(EL,BN,H2,X,k)
-          endif
-          CALL FRINGE_dipole(EL,BN,FINT,HGAP,I,X,k)
-          IF(I==1) then                !doubling entrance angle if first half  (1/2 magnet for designer)
-             CALL FACE(EL,BN,H1,X,k)
-             call ROT_XZ(EL%EDGE(1),X,EL%BETA0,DONEITT,k%TIME)
-          endif
-       ENDIF
+!    call PRTP("EDGE_PARALLEL:1", X)
 
-    ELSE
-       WRITE(6,*) "ERROR 777"
-       STOP 777
-    ENDIF
-
-  END SUBROUTINE EDGE_TRUE_PARALLELR
-
-  SUBROUTINE EDGE_TRUE_PARALLELP(EL,BN,H1,H2,FINT,HGAP,I,X,k)
-    IMPLICIT NONE
-    logical(lp) :: doneitt=.true.
-    TYPE(REAL_8),INTENT(INOUT):: X(6)
-    TYPE(REAL_8),INTENT(IN)::FINT,HGAP,H1,H2
-    TYPE(REAL_8),INTENT(IN),dimension(:)::BN
-    TYPE(MAGNET_CHART),INTENT(IN):: EL
-    INTEGER, INTENT(IN) :: I
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
-    call PRTP("EDGE_PARALLEL:0", X)
-
-    IF(EL%EXACT) THEN
-       IF(EL%DIR==1) THEN
-          IF(I==1) then                !doubling entrance angle if first half  (1/2 magnet for designer)
-             call ROT_XZ(EL%EDGE(1),X,EL%BETA0,DONEITT,k%TIME)
-             CALL FACE(EL,BN,H1,X,k)
-          endif
-          CALL FRINGE_dipole(EL,BN,FINT,HGAP,I,X,k)
-          IF(I==2) then                !doubling exit angle if second half
-             CALL FACE(EL,BN,H2,X,k)
-             x(1)=x(1)+EL%LC*SIN((EL%EDGE(2)-EL%EDGE(1))*0.5_dp)
-             call ROT_XZ(EL%EDGE(2),X,EL%BETA0,DONEITT,k%TIME)
-          endif
-       ELSE
-          IF(I==2) then                !doubling exit angle if second half
-             call ROT_XZ(EL%EDGE(2),X,EL%BETA0,DONEITT,k%TIME)
-             x(1)=x(1)+EL%DIR*EL%LC*SIN((EL%EDGE(2)-EL%EDGE(1))*0.5_dp)
-             CALL FACE(EL,BN,H2,X,k)
-          endif
-          CALL FRINGE_dipole(EL,BN,FINT,HGAP,I,X,k)
-          IF(I==1) then                !doubling entrance angle if first half  (1/2 magnet for designer)
-             CALL FACE(EL,BN,H1,X,k)
-             call ROT_XZ(EL%EDGE(1),X,EL%BETA0,DONEITT,k%TIME)
-          endif
-       ENDIF
-    ELSE
-       WRITE(6,*) "ERROR 778"
-       STOP 778
-
-    ENDIF
-
-    call PRTP("EDGE_PARALLEL:1", X)
-
-  END SUBROUTINE EDGE_TRUE_PARALLELP
+!  END SUBROUTINE EDGE_TRUE_PARALLELP
 
   SUBROUTINE EDGER(EL,BN,H1,H2,FINT,HGAP,I,X,k)
     IMPLICIT NONE
@@ -14064,7 +14082,7 @@ endif
 
        IF(J==1) THEN
 
-          IF(EL%LIKEMAD) THEN
+  !        IF(EL%LIKEMAD) THEN
 
              ANGH=EL%P%B0*EL%P%LD*0.5_dp-EL%P%EDGE(1)
              CALL ROT_XZ(EL%P%EDGE(1),X,EL%P%BETA0,DONEITT,k%TIME)
@@ -14073,17 +14091,17 @@ endif
                 IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,1,X,k)
                 IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
              CALL  WEDGE(ANGH,X,k,EL1=EL)
-
-          ELSE
-             CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(1),EL%HGAP(1),1,X,k)
-                IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3) CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,1,X,k)
-                IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
-          ENDIF
+ !          ELSE
+!  stop 8
+!             CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(1),EL%HGAP(1),1,X,k) 
+ !               IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3) CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,1,X,k)
+!                IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
+ !         ENDIF
 
        ELSE  ! J==2
 
 
-          IF(EL%LIKEMAD) THEN
+     !     IF(EL%LIKEMAD) THEN
              ANGH=EL%P%B0*EL%P%LD*0.5_dp-EL%P%EDGE(2)
              CALL  WEDGE(ANGH,X,k,EL1=EL)
                 IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
@@ -14091,11 +14109,11 @@ endif
              CALL FRINGE_dipole(EL%P,EL%BN,EL%FINT(2),EL%HGAP(2),2,X,k)
              CALL FACE(EL%P,EL%BN,EL%H2,X,k)
              CALL ROT_XZ(EL%P%EDGE(2),X,EL%P%BETA0,DONEITT,k%TIME)
-          ELSE
-                IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
-                IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,2,X,k)
-             CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(2),EL%HGAP(2),2,X,k)
-          ENDIF
+     !     ELSE
+     !           IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
+     !           IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,2,X,k)
+     !        CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(2),EL%HGAP(2),2,X,k)
+     !     ENDIF
 
        ENDIF ! J
 
@@ -14103,7 +14121,7 @@ endif
 
        IF(J==1) THEN
 
-          IF(EL%LIKEMAD) THEN
+   !       IF(EL%LIKEMAD) THEN
 
              ANGH=EL%P%B0*EL%P%LD*0.5_dp-EL%P%EDGE(2)
              CALL ROT_XZ(EL%P%EDGE(2),X,EL%P%BETA0,DONEITT,k%TIME)
@@ -14112,16 +14130,16 @@ endif
                 IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,2,X,k)
                 IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
              CALL  WEDGE(ANGH,X,k,EL1=EL)
-          ELSE
-             CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(2),EL%HGAP(2),2,X,k)
-                IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,2,X,k)
-                IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
-          ENDIF
+    !      ELSE
+    !         CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(2),EL%HGAP(2),2,X,k)
+    !            IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,2,X,k)
+    !            IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
+    !      ENDIF
 
 
        ELSE ! J==2
 
-          IF(EL%LIKEMAD) THEN
+    !      IF(EL%LIKEMAD) THEN
              ANGH=EL%P%B0*EL%P%LD*0.5_dp-EL%P%EDGE(1)
              CALL  WEDGE(ANGH,X,k,EL1=EL)
                 IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
@@ -14129,11 +14147,11 @@ endif
              CALL FRINGE_dipole(EL%P,EL%BN,EL%FINT(1),EL%HGAP(1),1,X,k)
              CALL FACE(EL%P,EL%BN,EL%H1,X,k)
              CALL ROT_XZ(EL%P%EDGE(1),X,EL%P%BETA0,DONEITT,k%TIME)
-          ELSE
-                IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
-                IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,1,X,k)
-             CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(1),EL%HGAP(1),1,X,k)
-          ENDIF
+    !      ELSE
+    !            IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
+    !            IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,1,X,k)
+    !         CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(1),EL%HGAP(1),1,X,k)
+    !      ENDIF
 
        ENDIF ! J
 
@@ -14159,7 +14177,7 @@ endif
 
         ! print *, "fringe=", k%fringe, "bend_fringe=", el%p%bend_fringe, "permfringe=", el%p%permfringe, "likemad=", el%likemad
 
-          IF(EL%LIKEMAD) THEN
+     !     IF(EL%LIKEMAD) THEN
 
              ANGH=EL%P%B0*EL%P%LD*0.5_dp-EL%P%EDGE(1)
              CALL ROT_XZ(EL%P%EDGE(1),X,EL%P%BETA0,DONEITT,k%TIME)
@@ -14169,16 +14187,16 @@ endif
                 IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
              CALL  WEDGE(ANGH,X,k,EL1=EL)
 
-          ELSE
-             CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(1),EL%HGAP(1),1,X,k)
-                IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3) CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,1,X,k)
-                IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
-          ENDIF
+     !     ELSE
+     !        CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(1),EL%HGAP(1),1,X,k)
+     !           IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3) CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,1,X,k)
+     !           IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
+     !     ENDIF
 
        ELSE  ! J==2
 
 
-          IF(EL%LIKEMAD) THEN
+   !       IF(EL%LIKEMAD) THEN
              ANGH=EL%P%B0*EL%P%LD*0.5_dp-EL%P%EDGE(2)
              CALL  WEDGE(ANGH,X,k,EL1=EL)
                 IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
@@ -14186,11 +14204,11 @@ endif
              CALL FRINGE_dipole(EL%P,EL%BN,EL%FINT(2),EL%HGAP(2),2,X,k)
              CALL FACE(EL%P,EL%BN,EL%H2,X,k)
              CALL ROT_XZ(EL%P%EDGE(2),X,EL%P%BETA0,DONEITT,k%TIME)
-          ELSE
-                IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
+  !        ELSE
+  !              IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
                 IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,2,X,k)
-             CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(2),EL%HGAP(2),2,X,k)
-          ENDIF
+  !           CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(2),EL%HGAP(2),2,X,k)
+  !        ENDIF
 
        ENDIF ! J
 
@@ -14198,7 +14216,7 @@ endif
 
        IF(J==1) THEN
 
-          IF(EL%LIKEMAD) THEN
+    !      IF(EL%LIKEMAD) THEN
 
              ANGH=EL%P%B0*EL%P%LD*0.5_dp-EL%P%EDGE(2)
              CALL ROT_XZ(EL%P%EDGE(2),X,EL%P%BETA0,DONEITT,k%TIME)
@@ -14207,16 +14225,16 @@ endif
                 IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,2,X,k)
                 IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
              CALL  WEDGE(ANGH,X,k,EL1=EL)
-          ELSE
-             CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(2),EL%HGAP(2),2,X,k)
-                IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,2,X,k)
-                IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
-          ENDIF
+     !     ELSE
+     !        CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(2),EL%HGAP(2),2,X,k)
+     !           IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,2,X,k)
+     !           IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,2,X,k)
+     !     ENDIF
 
 
        ELSE ! J==2
 
-          IF(EL%LIKEMAD) THEN
+    !      IF(EL%LIKEMAD) THEN
              ANGH=EL%P%B0*EL%P%LD*0.5_dp-EL%P%EDGE(1)
              CALL  WEDGE(ANGH,X,k,EL1=EL)
                 IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
@@ -14224,11 +14242,11 @@ endif
              CALL FRINGE_dipole(EL%P,EL%BN,EL%FINT(1),EL%HGAP(1),1,X,k)
              CALL FACE(EL%P,EL%BN,EL%H1,X,k)
              CALL ROT_XZ(EL%P%EDGE(1),X,EL%P%BETA0,DONEITT,k%TIME)
-          ELSE
-                IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
-                IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,1,X,k)
-             CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(1),EL%HGAP(1),1,X,k)
-          ENDIF
+    !      ELSE
+    !            IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
+    !            IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3)CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,1,X,k)
+    !         CALL EDGE_TRUE_PARALLEL(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT(1),EL%HGAP(1),1,X,k)
+    !      ENDIF
 
        ENDIF ! J
 
@@ -16772,15 +16790,15 @@ endif
        if(ASSOCIATED(EL%DRIFTKICK)) then
           deallocate(EL%DRIFTKICK)
        endif
-       if(ASSOCIATED(EL%LIKEMAD)) then
-          deallocate(EL%LIKEMAD)
-       endif
+!       if(ASSOCIATED(EL%LIKEMAD)) then
+!          deallocate(EL%LIKEMAD)
+!       endif
        if(ASSOCIATED(EL%F)) deallocate(EL%F)
     elseif(i==0)       then          ! nullifies
 
        NULLIFY(EL%F)
        NULLIFY(EL%DRIFTKICK)
-       NULLIFY(EL%LIKEMAD)
+!       NULLIFY(EL%LIKEMAD)
     endif
 
   END SUBROUTINE ZEROr_STREX
@@ -16794,11 +16812,11 @@ endif
        if(ASSOCIATED(EL%DRIFTKICK)) then
           deallocate(EL%DRIFTKICK)
        endif
-       if(ASSOCIATED(EL%LIKEMAD)) then
-          deallocate(EL%LIKEMAD)
-       endif
+!       if(ASSOCIATED(EL%LIKEMAD)) then
+!          deallocate(EL%LIKEMAD)
+!       endif
        if(ASSOCIATED(EL%F)) deallocate(EL%F)
-       NULLIFY(EL%LIKEMAD)
+!       NULLIFY(EL%LIKEMAD)
     elseif(i==0)       then          ! nullifies
 
        NULLIFY(EL%F)
@@ -22245,6 +22263,217 @@ call kill(vm,phi,z)
 
   end subroutine radiate_2_forcep
 
+ subroutine radiate_2_prober(c,DS,FAC,p,b2,dlds,k,POS)
+    use gauss_dis
+    implicit none
+    TYPE(integration_node), POINTER::c
+    TYPE(ELEMENT), POINTER::EL
+    INTEGER,OPTIONAL,INTENT(IN) ::POS
+    type(probe),INTENT(INOUT) :: p !,XP(2)
+    real(dp), INTENT(IN) :: DS
+    REAL(DP), INTENT(IN) :: FAC
+    real(dp), intent(in):: B2,dlds
+    real(dp)  st,z,av(3),t ,x(6)
+    type(internal_state) k
+
+    IF(.NOT.CHECK_STABLE) return
+    x=p%x
+    el=>c%parent_fibre%mag
+
+    if(k%TIME) then
+       ST=root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)-1.0_dp
+    else
+       ST=X(5)
+    endif
+
+  
+    if(K%radiation) X(5)=X(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
+
+
+    if(el%kind/=kindpa) then
+       IF(ASSOCIATED(EL%B_SOL)) THEN
+          if(k%TIME) then
+             X(2)=(X(2)+EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+             X(2)=X(2)-EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp
+             X(4)=(X(4)-EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+             X(4)=X(4)+EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp
+          else
+             X(2)=(X(2)+EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*(1.0_dp+X(5))/(1.0_dp+ST)
+             X(2)=X(2)-EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp
+             X(4)=(X(4)-EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp)*(1.0_dp+X(5))/(1.0_dp+ST)
+             X(4)=X(4)+EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp
+          endif
+       ELSEif(el%kind==kind22) then
+
+          IF(EL%HE22%P%DIR==1) THEN
+             Z= pos*el%l/el%p%nst
+          ELSE
+             Z=EL%L-pos*el%l/el%p%nst
+          ENDIF
+          CALL compute_f4(EL%he22,X,Z,A=AV)
+          if(k%TIME) then
+             X(2)=(X(2)+EL%P%CHARGE*AV(1)) *root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+             X(2)=X(2)-EL%P%CHARGE*AV(1)
+             X(4)=(X(4)-EL%P%CHARGE*AV(2)) *root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+             X(4)=X(4)+EL%P%CHARGE*AV(2)
+          else
+             X(2)=(X(2)+EL%P%CHARGE*AV(1))*(1.0_dp+X(5))/(1.0_dp+ST)
+             X(2)=X(2)-EL%P%CHARGE*AV(1)
+             X(4)=(X(4)-EL%P%CHARGE*AV(2))*(1.0_dp+X(5))/(1.0_dp+ST)
+             X(4)=X(4)+EL%P%CHARGE*AV(2)
+          endif
+
+
+       ELSE
+          if(k%TIME) then
+             X(2)=X(2)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+             X(4)=X(4)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+          else
+             X(2)=X(2)*(1.0_dp+X(5))/(1.0_dp+ST)
+             X(4)=X(4)*(1.0_dp+X(5))/(1.0_dp+ST)
+          endif
+       ENDIF
+    endif
+
+     p%x=x
+  end subroutine radiate_2_prober
+
+
+  subroutine radiate_2_probep(c,DS,FAC,p,b2,dlds,XP,k,POS,E,B)
+    implicit none
+    TYPE(integration_node), POINTER::c
+    TYPE(ELEMENTP), POINTER::EL
+    INTEGER,OPTIONAL,INTENT(IN) ::POS
+    TYPE(REAL_8),INTENT(INOUT) ::XP(2),E(3),B(3)
+    TYPE(probe_8),INTENT(INOUT) :: p
+    TYPE(REAL_8), INTENT(IN) :: DS
+    REAL(DP), INTENT(IN) :: FAC
+    TYPE(REAL_8), intent(in):: B2,dlds
+    TYPE(REAL_8) st,z,x(6),av(3)
+ 
+    real(dp) b30,x1,x3,denf,denf0    
+    type(damap) xpmap
+ 
+    integer i,j   !,ja,ia
+    type(internal_state) k
+ 
+ 
+    IF(.NOT.CHECK_STABLE) return
+ 
+ 
+    call alloc(x)
+    x=p%x
+
+    el=>c%parent_fibre%magp
+ 
+
+       denf=(1.0_dp+x(5))**5/SQRT((1.0_dp+X(5))**2-Xp(1)**2-Xp(2)**2)
+ 
+
+       b30=b2
+       b30=b30**1.5e0_dp
+       denf0=cflucf(el%p)
+       denf=denf0*b30 *FAC*DS*denf
+ 
+       call alloc(xpmap)
+
+       xpmap%v(1)=x(1)
+       xpmap%v(3)=x(3)
+       xpmap%v(5)=x(5)
+       xpmap%v(6)=x(6)
+     !  xpmap%v(2)=xp(1)
+     !  xpmap%v(4)=xp(2)
+       xpmap%v(2)=x(2)
+       xpmap%v(4)=x(4)
+
+       xpmap=xpmap**(-1)
+
+       do i=1,6
+          do j=1,6
+             X1=(xpmap%v(i)).sub.'000010'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
+             X3=(xpmap%v(j)).sub.'000010'
+             P%E_IJ(i,j)=p%E_IJ(i,j)+denf*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+          enddo
+       enddo    
+       call kill(xpmap)
+! new eq 15
+ 
+       if(compute_stoch_kick) then 
+        c%delta_rad_in=(denf)+c%delta_rad_in
+        c%delta_rad_out=(denf)+c%delta_rad_out
+       endif
+
+    call alloc(st)
+
+    if(k%TIME) then
+       ST=SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)-1.0_dp
+    else
+       ST=X(5)
+    endif
+
+   if(K%radiation)  X(5)=X(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
+
+
+    if(el%kind/=kindpa) then
+       IF(ASSOCIATED(EL%B_SOL)) THEN
+          if(k%TIME) then
+             X(2)=(X(2)+EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+             X(2)=X(2)-EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp
+             X(4)=(X(4)-EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp)*SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+             X(4)=X(4)+EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp
+          else
+             X(2)=(X(2)+EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*(1.0_dp+X(5))/(1.0_dp+ST)
+             X(2)=X(2)-EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp
+             X(4)=(X(4)-EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp)*(1.0_dp+X(5))/(1.0_dp+ST)
+             X(4)=X(4)+EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp
+          endif
+       ELSEif(el%kind==kind22) then
+          call alloc(av,3)
+          call alloc(z)
+
+          IF(EL%HE22%P%DIR==1) THEN
+             Z= pos*el%l/el%p%nst
+          ELSE
+             Z=EL%L-pos*el%l/el%p%nst
+          ENDIF
+          CALL compute_f4(EL%he22,X,Z,A=AV)
+          if(k%TIME) then
+             X(2)=(X(2)+EL%P%CHARGE*AV(1)) *sqrt(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+             X(2)=X(2)-EL%P%CHARGE*AV(1)
+             X(4)=(X(4)-EL%P%CHARGE*AV(2)) *sqrt(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+             X(4)=X(4)+EL%P%CHARGE*AV(2)
+          else
+             X(2)=(X(2)+EL%P%CHARGE*AV(1))*(1.0_dp+X(5))/(1.0_dp+ST)
+             X(2)=X(2)-EL%P%CHARGE*AV(1)
+             X(4)=(X(4)-EL%P%CHARGE*AV(2))*(1.0_dp+X(5))/(1.0_dp+ST)
+             X(4)=X(4)+EL%P%CHARGE*AV(2)
+          endif
+          call kill(av,3)
+          call kill(z)
+       ELSE
+          if(k%TIME) then
+             X(2)=X(2)*SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+             X(4)=X(4)*SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+          else
+             X(2)=X(2)*(1.0_dp+X(5))/(1.0_dp+ST)
+             X(4)=X(4)*(1.0_dp+X(5))/(1.0_dp+ST)
+          endif
+       ENDIF
+    endif
+
+    call kill(st)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    p%x=x
+    call kill(x)
+ 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  end subroutine radiate_2_probep
+
+
+
  subroutine radiate_2r(c,DS,FAC,p,b2,dlds,before,k,POS)
     use gauss_dis
     implicit none
@@ -22745,6 +22974,8 @@ dspin=matmul(s,n_oleksii)
 
 
     end subroutine  quaternion_8_to_matrix
+
+
 !!!!!!!!!!!!!!! new bmad CAV4 !!!!!!!!!!!!!!
 !                                 (tI,y,q,k,f,q,c)    
   subroutine feval_CAV_bmad_prober(z0,x,qi,k,f,q,c)    !(Z0,X,k,f,D)   ! MODELLED BASED ON DRIFT
@@ -22818,7 +23049,7 @@ endif
 
   END subroutine feval_CAV_bmad_prober
 
-  subroutine feval_CAV_bmad_probep(z0,x,qi,k,f,q,e_ij,c)    !(Z0,X,k,f,D)   ! MODELLED BASED ON DRIFT
+  subroutine feval_CAV_bmad_probep(z0,x,qi,k,f,q,e_ij,denf,c)    !(Z0,X,k,f,D)   ! MODELLED BASED ON DRIFT
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
     type(real_8), INTENT(INout) :: x(6)
@@ -22828,7 +23059,7 @@ endif
     TYPE(CAV4P) ,pointer  :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     type(real_8) A(3),AD(3),PZ
-    REAL(DP),intent(inout):: e_ij(6,6)
+    REAL(DP),intent(inout):: e_ij(6,6),denf
 
     d=>c%parent_fibre%magp%c4
     
@@ -22885,7 +23116,7 @@ endif
 !  
 
 !    
-if(k%radiation.or.k%spin.or.k%envelope) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,e_ij)
+if(k%radiation.or.k%spin.or.k%envelope) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,e_ij,denf)
 
  
 if(k%spin) then
@@ -22920,7 +23151,7 @@ endif
     qy=p%q
     y=p%x
                
-    call feval_CAV_bmad_probe(tI,y,q,k,f,q,c)   
+    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,c)   
  
     do  j=1,ne
        a(j)=h*f(j)
@@ -22982,7 +23213,7 @@ endif
         type(real_8) , intent(inout) :: ti,h
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) e_ija(6,6),e_ijb(6,6)
-    real(dp) de_ij(6,6),hr
+    real(dp) de_ij(6,6),hr,denf,cr
 
     do j=1,ne
      call alloc(y(j),yt(j),f(j),a(j),b(j))
@@ -22993,9 +23224,16 @@ endif
     qy=p%q
     y=p%x
     hr=h
+   cr=0.5_dp
                
-    call feval_CAV_bmad_probe(tI,y,q,k,f,q,de_ij,c)   
- 
+    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,c)   
+
+  if(compute_stoch_kick) then 
+  c%delta_rad_in=(hr*denf*cr)+c%delta_rad_in 
+  c%delta_rad_out=(hr*denf*cr)+c%delta_rad_out 
+  endif
+
+
     do  j=1,ne
        a(j)=h*f(j)
     enddo
@@ -23003,8 +23241,6 @@ endif
      do  j=0,3
        qa%x(j)=h*q%x(j)
      enddo
-    endif
-    if(k%spin) then
      do  j=0,3
        qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
      enddo
@@ -23017,8 +23253,11 @@ endif
     endif
 
     tt=tI+h/2.0_dp
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,c)
- 
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,c)
+  if(compute_stoch_kick) then 
+  c%delta_rad_in=(hr*denf*cr)+c%delta_rad_in 
+  c%delta_rad_out=(hr*denf*cr)+c%delta_rad_out 
+  endif
     do  j=1,ne
        b(j)=h*f(j)
     enddo
@@ -23074,7 +23313,7 @@ endif
     qy=p%q
     y=p%x
                
-    call feval_CAV_bmad_probe(tI,y,q,k,f,q,ct)   
+    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,ct)   
  
     do  j=1,ne
        a(j)=h*f(j)
@@ -23095,6 +23334,7 @@ endif
     tt=tI+h/2.0_dp
     call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
  
+
     do  j=1,ne
        b(j)=h*f(j)
     enddo
@@ -23111,6 +23351,8 @@ endif
     enddo
 
     call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+ 
+
     do  j=1,ne
        c(j)=h*f(j)
     enddo
@@ -23129,6 +23371,8 @@ endif
 
     tt=tI+h
     call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+ 
+
     do  j=1,ne
        d(j)=h*f(j)
     enddo
@@ -23142,12 +23386,15 @@ endif
     do  j=1,ne
        p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
     enddo
+ 
 
+ 
     if(k%spin) then
      do  j=0,3
        p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
      enddo
     endif
+ 
 
 
     return
@@ -23167,7 +23414,7 @@ subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     type(real_8) , intent(inout) :: ti,h
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6)
-    real(dp) de_ij(6,6),hr
+    real(dp) de_ij(6,6),hr,denf,cr
 
 
           
@@ -23180,9 +23427,15 @@ subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     qy=p%q
     y=p%x
     hr=h
+   cr=0.25_dp
+
+    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,ct)   
+if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
 
 
-    call feval_CAV_bmad_probe(tI,y,q,k,f,q,de_ij,ct)   
    do  j=1,ne
        a(j)=h*f(j)
     enddo
@@ -23203,8 +23456,13 @@ subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
  
 
     tt=tI+h/2.0_dp
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
- 
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
+
+
   do  j=1,ne
        b(j)=h*f(j)
     enddo
@@ -23213,7 +23471,7 @@ subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
        qb%x(j)=h*q%x(j)
      enddo
      do  j=0,3
-       p%q%x(j)=p%q%x(j)+qb%x(j)/2.0_dp
+       qyt%x(j)=qy%x(j)+qb%x(j)/2.0_dp
      enddo
     endif
     if(k%envelope)  then
@@ -23224,7 +23482,13 @@ subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
        yt(j)=y(j)+b(j)/2.0_dp
     enddo
 
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+   if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
+
+
     do  j=1,ne
        c(j)=h*f(j)
     enddo
@@ -23244,7 +23508,13 @@ subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     endif
 
     tt=tI+h
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
+
+
     do  j=1,ne
        d(j)=h*f(j)
     enddo
@@ -23260,12 +23530,15 @@ subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     do  j=1,ne
        p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
     enddo
-
+ 
+ 
     if(k%spin) then
      do  j=0,3
        p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
      enddo
     endif
+ 
+
     if(k%envelope)  then
       p%e_ij=p%e_ij+(e_ija+2.0_dp*e_ijb+2.0_dp*e_ijc+e_ijd)/6.0_dp
     endif
@@ -23281,6 +23554,192 @@ subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
   end  subroutine rk4bmad_cav_probep
 
 
+subroutine rk6bmad_cav_prober(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    real(dp)     y(ne)
+    real(dp)    yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),pt(ne),tt
+    type(quaternion) qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp,q
+    integer j
+    real(dp)  , intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+ 
+
+    qy=p%q
+    y=p%x
+    
+    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,ct)   
+
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+  if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/9.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/9.0_dp
+    enddo
+ 
+ 
+
+    tt=tI+h/9.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+  do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j) + 3.0_dp*qb%x(j))/24.0_dp
+     enddo
+    endif
+ 
+    do   j=1,ne
+       yt(j)=y(j) + (a(j) + 3.0_dp*b(j))/24.0_dp
+    enddo
+
+
+
+     
+    tt=tI+h/6.0_dp
+
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j)-3.0_dp*qb%x(j)+4.0_dp*qc%x(j))/6.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+ 
+
+    do  j=1,ne
+       yt(j)=y(j)+(a(j)-3.0_dp*b(j)+4.0_dp*c(j))/6.0_dp
+    enddo
+ 
+
+   tt=tI+h/3.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(-5.0_dp*qa%x(j) + 27.0_dp*qb%x(j) - 24.0_dp*qc%x(j) + 6.0_dp*qd%x(j))/8.0_dp
+     enddo
+    endif
+ 
+ 
+    do  j=1,ne
+       yt(j)=y(j) + (-5.0_dp*a(j) + 27.0_dp*b(j) - 24.0_dp*c(j) + 6.0_dp*d(j))/8.0_dp
+    enddo
+
+   tt=tI+0.5_dp*h
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       e(j)=h*f(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qe%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(221.0_dp*qa%x(j)-981.0_dp*qb%x(j) + 867.0_dp*qc%x(j)- 102.0_dp*qd%x(j) + qe%x(j))/9.0_dp
+     enddo
+    endif
+
+    do  j=1,ne
+       yt(j)=y(j) + (221.0_dp*a(j) - 981.0_dp*b(j) + 867.0_dp*c(j)- 102.0_dp*d(j) + e(j))/9.0_dp
+    enddo
+ 
+
+     tt = tI+2.0_dp*h/3.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do   j=1,ne
+       g(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j) = y(j)+(-183.0_dp*a(j)+678.0_dp*b(j)-472.0_dp*c(j)-66.0_dp*d(j)+80.0_dp*e(j) + 3.0_dp*g(j))/48.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qg%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(-183.0_dp*qa%x(j)+678.0_dp*qb%x(j)-472.0_dp*qc%x(j) &
+              -66.0_dp*qd%x(j)+80.0_dp*qe%x(j)+3.0_dp*qg%x(j))/48.0_dp
+     enddo
+    endif
+ 
+
+    tt = tI + 5.0_dp*h/6.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       o(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j) = y(j)+(716.0_dp*a(j)-2079.0_dp*b(j)+1002.0_dp*c(j)+834.0_dp*d(j)-454.0_dp*e(j)-9.0_dp*g(j)+72.0_dp*o(j))/82.0_dp
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qo%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(716.0_dp*qa%x(j)-2079.0_dp*qb%x(j)+1002.0_dp*qc%x(j)+834.0_dp*qd%x(j) &
+        -454.0_dp*qe%x(j)-9.0_dp*qg%x(j)+72.0_dp*qo%x(j))/82.0_dp
+     enddo
+     endif
+ 
+
+    tt = tI + h
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       pt(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qp%x(j)=h*q%x(j)
+     enddo
+    endif
+ 
+
+    do  j=1,ne
+       p%x(j) = p%x(j)+(41.0_dp*a(j)+216.0_dp*c(j)+27.0_dp*d(j)+272.0_dp*e(j)+27.0_dp*g(j)+216.0_dp*o(j)+41.0_dp*pt(j))/840.0_dp
+    enddo
+
+ 
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j) = p%q%x(j)+(41.0_dp*qa%x(j)+216.0_dp*qc%x(j)+27.0_dp*qd%x(j) &
+                   +272.0_dp*qe%x(j)+27.0_dp*qg%x(j)+216.0_dp*qo%x(j)+41.0_dp*qp%x(j))/840.0_dp
+    enddo
+    endif
+
+
+ 
+
+
+    return
+  end  subroutine rk6bmad_cav_prober
+
 subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     IMPLICIT none
 
@@ -23295,7 +23754,7 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     type(real_8) , intent(inout) :: ti,h
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6),e_ije(6,6),e_ijg(6,6),e_ijo(6,6),e_ijp(6,6)
-    real(dp) de_ij(6,6),hr
+    real(dp) de_ij(6,6),hr,denf,cr
 
 
           
@@ -23310,9 +23769,16 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     qy=p%q
     y=p%x
     hr=h
-   
-    call feval_CAV_bmad_probe(tI,y,q,k,f,q,de_ij,ct)   
- 
+   cr=0.125_dp
+    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,ct)   
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
+
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
   if(k%spin) then
      do  j=0,3
        qa%x(j)=h*q%x(j)
@@ -23329,41 +23795,47 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     endif
  
 
-    tt=tI+h/6.0_dp
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
- 
+    tt=tI+h/9.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
   do  j=1,ne
        b(j)=h*f(j)
     enddo
     if(k%spin) then
      do  j=0,3
        qb%x(j)=h*q%x(j)
-     enddo
-     do  j=0,3
-       p%q%x(j)=p%q%x(j)+qb%x(j)/6.0_dp
+       qyt%x(j)=qy%x(j)+(qa%x(j) + 3.0_dp*qb%x(j))/24.0_dp
      enddo
     endif
     if(k%envelope)  then
       e_ijb =hr*de_ij  
       p%e_ij=p%e_ij+e_ijb
     endif
-
+    do   j=1,ne
+       yt(j)=y(j) + (a(j) + 3.0_dp*b(j))/24.0_dp
+    enddo
 
 
 
      
+    tt=tI+h/6.0_dp
 
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
 
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
     do  j=1,ne
        c(j)=h*f(j)
     enddo
     if(k%spin) then
      do  j=0,3
        qc%x(j)=h*q%x(j)
-     enddo
-      do  j=0,3
-       qyt%x(j)=qy%x(j)+qc%x(j) 
+       qyt%x(j)=qy%x(j)+(qa%x(j)-3.0_dp*qb%x(j)+4.0_dp*qc%x(j))/6.0_dp
      enddo
     endif
     do  j=1,ne
@@ -23373,14 +23845,26 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
       e_ijc =hr*de_ij  
     endif
 
-    tt=tI+h
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,ct)
+    do  j=1,ne
+       yt(j)=y(j)+(a(j)-3.0_dp*b(j)+4.0_dp*c(j))/6.0_dp
+    enddo
+ 
+
+   tt=tI+h/3.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
+
+
     do  j=1,ne
        d(j)=h*f(j)
     enddo
     if(k%spin) then
      do  j=0,3
        qd%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(-5.0_dp*qa%x(j) + 27.0_dp*qb%x(j) - 24.0_dp*qc%x(j) + 6.0_dp*qd%x(j))/8.0_dp
      enddo
     endif
     if(k%envelope)  then
@@ -23388,21 +23872,119 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     endif
  
     do  j=1,ne
-       p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
+       yt(j)=y(j) + (-5.0_dp*a(j) + 27.0_dp*b(j) - 24.0_dp*c(j) + 6.0_dp*d(j))/8.0_dp
+    enddo
+
+   tt=tI+0.5_dp*h
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
+    do  j=1,ne
+       e(j)=h*f(j)
     enddo
 
     if(k%spin) then
      do  j=0,3
-       p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
+       qe%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(221.0_dp*qa%x(j)-981.0_dp*qb%x(j) + 867.0_dp*qc%x(j)- 102.0_dp*qd%x(j) + qe%x(j))/9.0_dp
      enddo
     endif
+
+    do  j=1,ne
+       yt(j)=y(j) + (221.0_dp*a(j) - 981.0_dp*b(j) + 867.0_dp*c(j)- 102.0_dp*d(j) + e(j))/9.0_dp
+    enddo
+     if(k%envelope)  then
+      e_ije =hr*de_ij  
+    endif
+
+     tt = tI+2.0_dp*h/3.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
+
+    do   j=1,ne
+       g(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j) = y(j)+(-183.0_dp*a(j)+678.0_dp*b(j)-472.0_dp*c(j)-66.0_dp*d(j)+80.0_dp*e(j) + 3.0_dp*g(j))/48.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qg%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(-183.0_dp*qa%x(j)+678.0_dp*qb%x(j)-472.0_dp*qc%x(j) &
+              -66.0_dp*qd%x(j)+80.0_dp*qe%x(j)+3.0_dp*qg%x(j))/48.0_dp
+     enddo
+    endif
+     if(k%envelope)  then
+      e_ijg =hr*de_ij  
+    endif
+
+    tt = tI + 5.0_dp*h/6.0_dp
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
+
+    do  j=1,ne
+       o(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j) = y(j)+(716.0_dp*a(j)-2079.0_dp*b(j)+1002.0_dp*c(j)+834.0_dp*d(j)-454.0_dp*e(j)-9.0_dp*g(j)+72.0_dp*o(j))/82.0_dp
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qo%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(716.0_dp*qa%x(j)-2079.0_dp*qb%x(j)+1002.0_dp*qc%x(j)+834.0_dp*qd%x(j) &
+        -454.0_dp*qe%x(j)-9.0_dp*qg%x(j)+72.0_dp*qo%x(j))/82.0_dp
+     enddo
+     endif
+     if(k%envelope)  then
+      e_ijo =hr*de_ij  
+    endif
+
+    tt = tI + h
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  endif
+
+    do  j=1,ne
+       pt(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qp%x(j)=h*q%x(j)
+     enddo
+    endif
+     if(k%envelope)  then
+      e_ijp =hr*de_ij  
+    endif
+
+    do  j=1,ne
+       p%x(j) = p%x(j)+(41.0_dp*a(j)+216.0_dp*c(j)+27.0_dp*d(j)+272.0_dp*e(j)+27.0_dp*g(j)+216.0_dp*o(j)+41.0_dp*pt(j))/840.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j) = p%q%x(j)+(41.0_dp*qa%x(j)+216.0_dp*qc%x(j)+27.0_dp*qd%x(j) &
+                   +272.0_dp*qe%x(j)+27.0_dp*qg%x(j)+216.0_dp*qo%x(j)+41.0_dp*qp%x(j))/840.0_dp
+    enddo
+    endif
     if(k%envelope)  then
-      p%e_ij=p%e_ij+(e_ija+2.0_dp*e_ijb+2.0_dp*e_ijc+e_ijd)/6.0_dp
+      p%e_ij=p%e_ij+(41.0_dp*e_ija+216.0_dp*e_ijc+27.0_dp*e_ijd+272.0_dp*e_ije & 
+             +27.0_dp*e_ijg+216.0_dp*e_ijo+41.0_dp*e_ijp)/840.0_dp
     endif
 
     do j=1,ne
-     call alloc(y(j),yt(j),f(j),a(j),b(j),c(j),d(j),e(j),g(j),o(j))
-     call alloc(pt(j))
+     call kill(y(j),yt(j),f(j),a(j),b(j),c(j),d(j),e(j),g(j),o(j))
+     call kill(pt(j))
     enddo
      call kill(tt)
      call kill(qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp)
@@ -23503,13 +24085,13 @@ endif
    END subroutine feval_teapot_quar
 
 
- subroutine feval_teapot_quap(x,qi,k,f,q,e_ij,c)   !electric teapot s
+ subroutine feval_teapot_quap(x,qi,k,f,q,e_ij,denf,c)   !electric teapot s
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
     type(real_8), INTENT(INout) :: x(6)
     type(real_8), INTENT(INOUT) :: F(6)
     type(quaternion_8) , INTENT(INOUT) :: q,qi
-    REAL(DP),intent(inout):: e_ij(6,6)
+    REAL(DP),intent(inout):: e_ij(6,6),denf
     REAL(DP) dir
     type(real_8) PZ,DEL,H,B(3),Ef(3),VM,Bf(3),phi
     TYPE(teapotp),  pointer ::  EL
@@ -23588,7 +24170,7 @@ endif
 
 ! patrice 
 !        
-if(k%radiation.or.k%spin.or.k%envelope) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,e_ij)
+if(k%radiation.or.k%spin.or.k%envelope) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,e_ij,denf)
  
 if(k%spin) then
  q%x(0)=0.0_dp
@@ -23916,7 +24498,7 @@ enddo
     type(real_8), intent(inout) :: h
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     type(quaternion_8) q
-    real(dp) de_ij(6,6),hr
+    real(dp) de_ij(6,6),hr,denf,cr
 
     call alloc(qa,qb,qyt,qy,q)
     do j=1,ne
@@ -23926,10 +24508,16 @@ enddo
     qy=p%q
     y=p%x
     hr=h
+    cr=0.5_dp
 
 
+    call feval_teapot_qua(y,qy,k,f,q,de_ij,denf,c)
 
-    call feval_teapot_qua(y,qy,k,f,q,de_ij,c)
+  if(compute_stoch_kick) then 
+  c%delta_rad_in=(hr*denf*cr)+c%delta_rad_in
+  c%delta_rad_out=(hr*denf*cr)+c%delta_rad_out
+  endif
+
     do  j=1,ne
        a(j)=h*f(j)
     enddo
@@ -23951,7 +24539,13 @@ enddo
     endif
 
 
-    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,c)
+    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,c)
+  if(compute_stoch_kick) then 
+  c%delta_rad_in=(hr*denf*cr)+c%delta_rad_in
+  c%delta_rad_out=(hr*denf*cr)+c%delta_rad_out
+  endif
+
+
     do  j=1,ne
        b(j)=h*f(j)
     enddo
@@ -23994,11 +24588,11 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     type(quaternion_8) q,qa,qb,qyt,qy,qc,qd
     integer j
     type(real_8) , intent(inout) :: h
-    real(dp) de_ij(6,6),hr,e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6)
+    real(dp) de_ij(6,6),hr,e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6),denf,cr
  
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
  
-
+    cr=0.25_dp
     call alloc(q,qa,qb,qyt,qy,qc,qd)
     do j=1,ne
      call alloc(y(j),yt(j),f(j),a(j),b(j),c(j),d(j))
@@ -24008,7 +24602,12 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     y=p%x
     hr=h
 
-    call feval_teapot_qua(y,qy,k,f,q,de_ij,ct)
+    call feval_teapot_qua(y,qy,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
+
     do  j=1,ne
        a(j)=h*f(j)
     enddo
@@ -24028,7 +24627,13 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     endif
 
 
-    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
+
+
     do  j=1,ne
        b(j)=h*f(j)
     enddo
@@ -24047,7 +24652,13 @@ subroutine rk4_teapot_probep(p,k,ct,h)
       e_ijb =hr*de_ij
     endif
 
-    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
+
+
     do  j=1,ne
        c(j)=h*f(j)
     enddo
@@ -24066,7 +24677,11 @@ subroutine rk4_teapot_probep(p,k,ct,h)
       e_ijc =hr*de_ij
     endif
 
-    call feval_teapot_qua(yt,qyt,k,f,q,e_ijd,ct)
+    call feval_teapot_qua(yt,qyt,k,f,q,e_ijd,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
 
   
 
@@ -24119,7 +24734,7 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     type(quaternion_8) q,qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp
     real(dp) de_ij(6,6),hr,e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6)
-    real(dp)  e_ije(6,6),e_ijg(6,6),e_ijo(6,6),e_ijp(6,6)
+    real(dp)  e_ije(6,6),e_ijg(6,6),e_ijo(6,6),e_ijp(6,6),denf,cr
 
     call alloc(q,qa,qb,qyt,qy,qc,qd,qe,qg,qo)
      call alloc(qp)
@@ -24131,8 +24746,12 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     qy=pf%q
     y=pf%x
     hr=h
-
-     call feval_teapot_qua(y,qy,k,f,q,de_ij,ct)
+    cr=0.125_dp
+     call feval_teapot_qua(y,qy,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
 
     do  j=1,ne
        a(j)=h*f(j)
@@ -24150,7 +24769,13 @@ subroutine rk4_teapot_probep(p,k,ct,h)
       e_ija =hr*de_ij
     endif
 
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
+
+
     do  j=1,ne
        b(j)=h*f(j)
     enddo
@@ -24167,7 +24792,12 @@ subroutine rk4_teapot_probep(p,k,ct,h)
       e_ijb =hr*de_ij
     endif
 
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
+
     do  j=1,ne
        c(j)=h*f(j)
     enddo
@@ -24183,7 +24813,12 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     if(k%envelope)  then
       e_ijc =hr*de_ij
     endif
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
+
     do  j=1,ne
        d(j)=h*f(j)
     enddo
@@ -24199,7 +24834,12 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     if(k%envelope)  then
       e_ijd =hr*de_ij
     endif
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
+
     do  j=1,ne
        e(j)=h*f(j)
     enddo
@@ -24215,7 +24855,12 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     if(k%envelope)  then
       e_ije =hr*de_ij
     endif
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
+
     do   j=1,ne
        g(j)=h*f(j)
     enddo
@@ -24231,7 +24876,12 @@ enddo
     if(k%envelope)  then
       e_ijg =hr*de_ij
     endif
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
+
     do  j=1,ne
        o(j)=h*f(j)
     enddo
@@ -24249,7 +24899,12 @@ enddo
       e_ijo =hr*de_ij
     endif
 
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
+  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  endif
+
     do  j=1,ne
        p(j)=h*f(j)
     enddo
@@ -24462,37 +25117,34 @@ enddo
     ELSE
        Z0=EL%L+(pos-1)*d
     ENDIF
-
+       D=EL%L/EL%P%NST
     SELECT CASE(EL%P%METHOD)
 
     CASE(2)
 
-       D=EL%L/EL%P%NST
+
 
         call rk2bmad_cav_probe(z0,p,k,c,d)
 
     CASE(4)
-       D=EL%L/EL%P%NST
+ 
 
         call rk4bmad_cav_probe(z0,p,k,c,d)
 
-       !call rk4_teapot(d,el,p%X,k)
-
+ 
 
     CASE(6)
-       DH=EL%L/2.0_dp/EL%P%NST
-       D=EL%L/EL%P%NST
-       DD=EL%P%LD/2.0_dp/EL%P%NST
 
-!       call rk6_teapot(d,el,p%X,k)
-  !      call rk6_teapot_probe(p,k,c,d)
-!!! newyoshida
+ 
+        call rk6bmad_cav_probe(z0,p,k,c,d)
+
+ !!! newyoshida
     CASE(8)
-       DH=EL%L/2.0_dp/EL%P%NST
-       D=EL%L/EL%P%NST
-       DD=EL%P%LD/2.0_dp/EL%P%NST
+ 
+        call rk6bmad_cav_probe(z0,p,k,c,d)
 
-   !    call rk6_teapot(d,el,p%X,k)
+
+ 
 
     CASE DEFAULT
        !w_p=0
@@ -24700,34 +25352,29 @@ else
     ELSE
        Z0=EL%L+(pos-1)*d
     ENDIF
+       D=EL%L/EL%P%NST
 
     SELECT CASE(EL%P%METHOD)
 
     CASE(2)
 
-       D=EL%L/EL%P%NST
 
         call rk2bmad_cav_probe(z0,p,k,c,d)
 
     CASE(4)
-       D=EL%L/EL%P%NST
 
         call rk4bmad_cav_probe(z0,p,k,c,d)
 
 
-       !call rk4_teapot(d,el,p%X,k)
 
 
     CASE(6)
 
-       D=EL%L/EL%P%NST
 
         call rk6bmad_cav_probe(z0,p,k,c,d)
-!       call rk6_teapot(d,el,p%X,k)
-  !      call rk6_teapot_probe(p,k,c,d)
+ 
 !!! newyoshida
     CASE(8)
-       D=EL%L/EL%P%NST
 
         call rk6bmad_cav_probe(z0,p,k,c,d)
 
@@ -25177,40 +25824,34 @@ endif
     SELECT CASE(EL%P%METHOD)
 
     CASE(2)
-       CALL ALLOC(DH,D)
-       DH=EL%L/2.0_dp/EL%P%NST
+       CALL ALLOC(D)
        D=EL%L/EL%P%NST
-       DD=EL%P%LD/2.0_dp/EL%P%NST
+
         call rk2_teapot_probe(p,k,c,d)
-       CALL kill(DH,D)
+       CALL kill(D)
     CASE(4)
-       CALL ALLOC(D1,D2,DK1,DK2)
-       DH=EL%L/2.0_dp/EL%P%NST
+       CALL ALLOC(D)
        D=EL%L/EL%P%NST
-       DD=EL%P%LD/2.0_dp/EL%P%NST
 
       ! call rk4_teapot(d,el,p%X,k)
         call rk4_teapot_probe(p,k,c,d)
 
-       CALL kill(D1,D2,DK1,DK2)
+       CALL kill(D)
 
     CASE(6)
-       CALL ALLOC(DF,4);CALL ALLOC(DK,4);
-       DH=EL%L/2.0_dp/EL%P%NST
+       CALL ALLOC(D)
        D=EL%L/EL%P%NST
-       DD=EL%P%LD/2.0_dp/EL%P%NST
         call rk6_teapot_probe(p,k,c,d)
 
       ! call rk6_teapot(d,el,p%X,k)
-       CALL kill(DF,4);CALL kill(DK,4);
+       CALL kill(D);
     CASE(8)
-       CALL ALLOC(DF,4);CALL ALLOC(DK,4);
-       DH=EL%L/2.0_dp/EL%P%NST
-       D=EL%L/EL%P%NST
-       DD=EL%P%LD/2.0_dp/EL%P%NST
+       CALL ALLOC(D);
 
-       call rk6_teapot(d,el,p%X,k)
-       CALL kill(DF,4);CALL kill(DK,4);
+       D=EL%L/EL%P%NST
+
+        call rk6_teapot_probe(p,k,c,d)
+       CALL kill(D)
     CASE DEFAULT
        !w_p=0
        !w_p%nc=1
@@ -26747,8 +27388,357 @@ endif
 
   END SUBROUTINE INTE_STREX_probep
 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!    SOL5 probe     !!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 
+  SUBROUTINE INTE_SOL5_prober(p,k,c)
+    IMPLICIT NONE
+    type(probe), INTENT(INOUT) :: p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+    TYPE(SOL5),pointer:: EL
+    real(dp) D,DH,DD
+    real(dp) D1,D2,DK1,DK2,dk2h,dk1h,D2H
+    real(dp) DD1,DD2
+    real(dp) DF(4),DK(4),DKH(4),DDF(4)
+    real(dp) NDF(0:15),NDK(15),NDKH(15),NDDF(0:15)
+    INTEGER I,J,f1
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer pos
+
+    f=>c%parent_fibre
+    el=> f%mag%s5
+
+    SELECT CASE(EL%P%METHOD)
+    CASE(2)
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=(EL%P%LD)/2.0_dp/EL%P%NST
+
+       CALL KICK_SOL(EL,DH,p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DH,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+        CALL KICKMUL (EL,Dh,p%X,k)
+        else
+        CALL KICKMUL (EL,D,p%X,k)
+        endif
+
+
+       CALL KICK_SOL(EL,DH,p%X,k)
+
+    CASE(4)
+
+       D=EL%L/EL%P%NST
+       D1=D*FD1
+       D2=D*FD2
+       DK1=D*FK1
+       DK2=D*FK2
+       D2H=DK2/2.0_dp
+       DD1=(EL%P%LD)/EL%P%NST*FD1
+       DD2=(EL%P%LD)/EL%P%NST*FD2
+       if(k%spin.or.k%radiation) then
+           DK1h=EL%L*FK1/EL%P%NST/2.0_DP
+           DK2h=EL%L*FK2/EL%P%NST/2.0_DP
+       endif
+
+       CALL KICK_SOL(EL,D1,p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DK1h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+        CALL KICKMUL (EL,DK1h,p%X,k)
+        else
+        CALL KICKMUL(EL,DK1,p%X,k)
+        endif
+
+       CALL KICK_SOL(EL,D1,p%X,k)
+       CALL KICK_SOL(EL,D2H,p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DK2h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk2)
+        CALL KICKMUL (EL,DK2h,p%X,k)
+        else
+         CALL KICKMUL(EL,DK2,p%X,k)
+        endif
+
+       CALL KICK_SOL(EL,D2H,p%X,k)
+       CALL KICK_SOL(EL,D1,p%X,k)
+
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DK1h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+        CALL KICKMUL (EL,DK1h,p%X,k)
+        else
+       CALL KICKMUL(EL,DK1,p%X,k)
+        endif
+       CALL KICK_SOL(EL,D1,p%X,k)
+
+    CASE(6)
+       DO I =1,4
+          DK(I)=EL%L*YOSK(I)/EL%P%NST
+          DF(I)=DK(I)/2.0_dp
+          DDF(I)=EL%P%LD*YOSK(I)/2.0_dp/EL%P%NST
+       ENDDO
+       if(k%spin.or.k%radiation) then
+        do I =1,4
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+        enddo
+       endif
+       !       DO I=1,B%N
+
+       !        X=BEAM_IN_X(B,I)
+       DO J=4,1,-1
+          CALL KICK_SOL(EL,DF(J),p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+        CALL KICKMUL (EL,DKH(J),p%X,k)
+        else
+          CALL KICKMUL(EL,DK(J),p%X,k)
+        endif
+          CALL KICK_SOL(EL,DF(J),p%X,k)
+       ENDDO
+
+       DO J=2,4
+          CALL KICK_SOL(EL,DF(J),p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+        CALL KICKMUL (EL,DKH(J),p%X,k)
+        else
+          CALL KICKMUL(EL,DK(J),p%X,k)
+        endif
+          CALL KICK_SOL(EL,DF(J),p%X,k)
+       ENDDO
+!!! newyoshida
+    CASE(8)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDKH(I)=EL%L*wyoshik(I)/EL%P%NST/2.0_dp
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST
+       ENDDO
+ 
+          CALL KICK_SOL(EL,NDF(0),p%X,k)
+
+       DO J=1,15
+
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICKMUL (EL,NDKH(J),p%X,k)
+        else
+          CALL KICKMUL(EL,NDK(J),p%X,k)
+        endif
+          CALL KICK_SOL(EL,NDF(J),p%X,k)
+       ENDDO
+ 
+
+ 
+
+
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+
+
+  END SUBROUTINE INTE_SOL5_prober
+
+  SUBROUTINE INTE_SOL5_probep(p,k,c)
+    IMPLICIT NONE
+    type(probe_8), INTENT(INOUT) :: p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+    TYPE(SOL5P),pointer:: EL
+    real(dp) DD
+    TYPE(REAL_8)  dk2h,dk1h,D2H
+    TYPE(REAL_8) DH,D,D1,D2,DK1,DK2,DF(4),DK(4)
+    real(dp) DD1,DD2,DDF(4)
+    type(real_8) DKH(4)
+    type(real_8)  NDKH(15) 
+    real(dp)   NDDF(0:15)
+    type(real_8) NDF(0:15),NDK(15) 
+    INTEGER I,J,f1
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer pos
+
+
+    f=>c%parent_fibre
+    el=> f%magp%s5
+
+    SELECT CASE(EL%P%METHOD)
+    CASE(2)
+       CALL ALLOC(DH,D)
+
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       DD=(EL%P%LD)/2.0_dp/EL%P%NST
+
+       CALL KICK_SOL(EL,DH,p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DH,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,d)
+        CALL KICKMUL (EL,Dh,p%X,k)
+        else
+        CALL KICKMUL (EL,D,p%X,k)
+        endif
+
+
+       CALL KICK_SOL(EL,DH,p%X,k)
+       CALL KILL(DH,D)
+    CASE(4)
+       CALL ALLOC(D,D1,D2,DK1,DK2,D2H)
+       D=EL%L/EL%P%NST
+       D1=D*FD1
+       D2=D*FD2
+       DK1=D*FK1
+       DK2=D*FK2
+       D2H=DK2/2.0_dp
+       DD1=(EL%P%LD)/EL%P%NST*FD1
+       DD2=(EL%P%LD)/EL%P%NST*FD2
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DK1h,DK2h)
+           DK1h=EL%L*FK1/EL%P%NST/2.0_DP
+           DK2h=EL%L*FK2/EL%P%NST/2.0_DP
+       endif
+
+       CALL KICK_SOL(EL,D1,p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DK1h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+        CALL KICKMUL (EL,DK1h,p%X,k)
+        else
+        CALL KICKMUL(EL,DK1,p%X,k)
+        endif
+
+       CALL KICK_SOL(EL,D1,p%X,k)
+       CALL KICK_SOL(EL,D2H,p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DK2h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk2)
+        CALL KICKMUL (EL,DK2h,p%X,k)
+        else
+         CALL KICKMUL(EL,DK2,p%X,k)
+        endif
+
+       CALL KICK_SOL(EL,D2H,p%X,k)
+       CALL KICK_SOL(EL,D1,p%X,k)
+
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DK1h,p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,dk1)
+        CALL KICKMUL (EL,DK1h,p%X,k)
+        else
+       CALL KICKMUL(EL,DK1,p%X,k)
+        endif
+       CALL KICK_SOL(EL,D1,p%X,k)
+
+
+       CALL KILL(D,D1,D2,DK1,DK2,D2H)
+
+       if(k%spin.or.k%radiation) CALL KILL(DK1h,DK2h)
+    CASE(6)
+       CALL ALLOC(DF,4);CALL ALLOC(DK,4);
+       DO I =1,4
+          DK(I)=EL%L*YOSK(I)/EL%P%NST
+          DF(I)=DK(I)/2.0_dp
+    !      DDF(I)=EL%P%LD*YOSK(I)/2.0_dp/EL%P%NST
+       ENDDO
+       if(k%spin.or.k%radiation) then
+       CALL ALLOC(DKH,4); 
+        do I =1,4
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+        enddo
+       endif
+       !       DO I=1,B%N
+
+       !        X=BEAM_IN_X(B,I)
+       DO J=4,1,-1
+          CALL KICK_SOL(EL,DF(J),p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+        CALL KICKMUL (EL,DKH(J),p%X,k)
+        else
+          CALL KICKMUL(EL,DK(J),p%X,k)
+        endif
+          CALL KICK_SOL(EL,DF(J),p%X,k)
+       ENDDO
+
+       DO J=2,4
+          CALL KICK_SOL(EL,DF(J),p%X,k)
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,DKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
+        CALL KICKMUL (EL,DKH(J),p%X,k)
+        else
+          CALL KICKMUL(EL,DK(J),p%X,k)
+        endif
+          CALL KICK_SOL(EL,DF(J),p%X,k)
+       ENDDO
+
+       CALL KILL(DF,4);CALL KILL(DK,4);
+       if(k%spin.or.k%radiation) CALL KILL(DKH,4); 
+
+!!! newyoshida
+    CASE(8)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+    CALL ALLOC(NDF);CALL ALLOC(NDK);
+   if(k%spin.or.k%radiation) CALL alloc(NDKH)
+
+          NDF(0)=EL%L*wyoshid(0)/EL%P%NST
+          NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
+       DO I =1,15
+          NDF(I)=EL%L*wyoshid(I)/EL%P%NST
+          NDDF(I)=EL%P%LD*wyoshid(I)/EL%P%NST
+          NDKH(I)=EL%L*wyoshik(I)/EL%P%NST/2.0_dp
+          NDK(I)=EL%L*wyoshik(I)/EL%P%NST
+       ENDDO
+ 
+          CALL KICK_SOL(EL,NDF(0),p%X,k)
+
+       DO J=1,15
+
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,NDKH(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICKMUL (EL,NDKH(J),p%X,k)
+        else
+          CALL KICKMUL(EL,NDK(J),p%X,k)
+        endif
+          CALL KICK_SOL(EL,NDF(J),p%X,k)
+       ENDDO
+ 
+
+ 
+   CALL KILL(NDF);CALL KILL(NDK);
+   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+
+
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+
+
+  END SUBROUTINE INTE_SOL5_probep
 !!!!!!!!!!!!!!!!!!!!!!!!!!!    DKD2 PROBE     !!!!!!!!!!!!!!!!!!!!!!!!!!! 
 ! 
+
   SUBROUTINE INTE_dkd2_prober(p,k,c)
     IMPLICIT NONE
     type(probe), INTENT(INOUT) :: p
@@ -26949,7 +27939,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo)
    do i=1,3
      om(i)=om(i)/2.0_dp
     enddo
-    
+ 
     if(k%radiation) then 
      call radiate_2_force(c,x,b2,dlds,k,POS,ff)
      fo=fo+ff
@@ -26957,7 +27947,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo)
 
  end SUBROUTINE RAD_SPIN_force_PROBER
 
- SUBROUTINE RAD_SPIN_force_PROBEp(c,x,om,k,fo,e_ij)
+ SUBROUTINE RAD_SPIN_force_PROBEp(c,x,om,k,fo,e_ij,denf)
     type(real_8), INTENT(INOUT) :: x(6),om(3)
     type(real_8),INTENT(INOUT) :: fo(6)    
     TYPE(fibre),pointer ::  f
@@ -26965,7 +27955,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo)
     type(real_8)  B(3),XP(2),XPA(2),ed(3) 
     type(real_8)  b2,dlds ,ff(6)
     TYPE(INTERNAL_STATE) k 
-    real(dp),intent(inout) :: e_ij(6,6)
+    real(dp),intent(inout) :: e_ij(6,6),denf
      integer i,pos
 
      call alloc(b2,dlds)
@@ -26982,6 +27972,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo)
 
    do i=1,3
      om(i)=om(i)/2.0_dp
+ 
     enddo
 
     if(k%radiation) then
@@ -26991,7 +27982,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo)
      enddo
     endif
     if(k%envelope) then
-    call radiate_envelope(c,x,b2,dlds,XP,k, e_ij)
+    call radiate_envelope(c,x,b2,dlds,XP,k, e_ij,denf)
     endif
      call kill(b2,dlds)
      call kill(ff)
@@ -27002,7 +27993,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo)
  end SUBROUTINE RAD_SPIN_force_PROBEp
 
 
-  subroutine radiate_envelope(c,xx,b2,dlds,XP,k, e_ij)
+  subroutine radiate_envelope(c,xx,b2,dlds,XP,k, e_ij,denf)
     implicit none
     TYPE(integration_node), POINTER::c
     TYPE(ELEMENTP), POINTER::EL
@@ -27056,6 +28047,13 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo)
        enddo    
        call kill(xpmap)
  
+
+   !    if(compute_stoch_kick) then 
+   !     c%delta_rad_in=(denf)+c%delta_rad_in
+   !     c%delta_rad_out=(denf)+c%delta_rad_out
+   !    endif
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   end subroutine radiate_envelope
@@ -27079,18 +28077,22 @@ SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds)
      before=.true.
     CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B)
     if((k%radiation.or.k%envelope)) then
-       call radiate_2(c,DS,FAC,P,b2,dlds,before,k,pos)
+       call radiate_2_probe(c,DS,FAC,P,b2,dlds,k,pos)
+!       call radiate_2(c,DS,FAC,P,b2,dlds,before,k,pos)
     endif
 
+   if(k%spin) then   
    do i=1,3
      om(i)=om(i)*ds/2.0_dp
     enddo
    
     
    call push_quaternion(p,om)
-
+  endif
     if((k%radiation.or.k%envelope)) then
-       call radiate_2(c,DS,FAC,P,b2,dlds,before,k,pos)
+ !      call radiate_2(c,DS,FAC,P,b2,dlds,before,k,pos)
+ call radiate_2_probe(c,DS,FAC,P,b2,dlds,k,pos)
+
     endif
 
  end SUBROUTINE RAD_SPIN_qua_PROBER
@@ -27103,34 +28105,105 @@ SUBROUTINE RAD_SPIN_qua_PROBEP(c,p,k,ds)
     TYPE(REAL_8)  B(3),XP(2),XPA(2),ed(3),om(3),b2,dlds
     REAL(DP)  FAC
      TYPE(INTERNAL_STATE) k 
-      logical before
+   !   logical before
      integer i,pos
      pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
 
      FAC=0.5_dp
      f=> c%parent_fibre
+ !    before=.true.
      CALL alloc(B);CALL alloc(XP);CALL alloc(XPA);CALL alloc(ed);
      CALL alloc(OM);CALL alloc(B2);CALL alloc(DLDS);CALL alloc(ed);
 
     CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B)
     if((k%radiation.or.k%envelope)) then
-       call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,pos,Ed,B)
-    endif
+     !  call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,pos,Ed,B)
+       call radiate_2_probe(c,DS,FAC,P,b2,dlds,XP,k,pos,Ed,B)
 
+    endif
+   if(k%spin) then 
    do i=1,3
      om(i)=om(i)*ds/2.0_dp
     enddo
    
     
    call push_quaternion(p,om)
-
+   endif
     if((k%radiation.or.k%envelope)) then
-       call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,pos,Ed,B)
+ !      call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,pos,Ed,B)
+        call radiate_2_probe(c,DS,FAC,P,b2,dlds,XP,k,pos,Ed,B)
+
     endif
      CALL KILL(B);CALL KILL(XP);CALL KILL(XPA);CALL KILL(ed);
      CALL KILL(OM);CALL KILL(B2);CALL KILL(DLDS);CALL KILL(ed);
 
  end SUBROUTINE RAD_SPIN_qua_PROBEP
+
+SUBROUTINE kick_stochastic_before(c,p)
+    use gauss_dis
+    type(probe), INTENT(INOUT) :: p
+     TYPE(integration_node),pointer :: c
+     real(dp) t
+       !         t=sqrt(12.e0_dp)*(bran(bran_init)-half)
+       t=RANF()
+       !         t=sqrt(12.d0)*(RANF()-half)
+       if(t>0.5_dp) then
+          t=1.0_dp
+       else
+          t=-1.0_dp
+       endif
+          p%x(5)=p%x(5)+t*c%delta_rad_in
+          p%x(5)=p%x(5)+t*c%delta_rad_out
+       
+end SUBROUTINE kick_stochastic_before
+
+SUBROUTINE kick_stochastic_after(c,p)
+use gauss_dis
+    type(probe), INTENT(INOUT) :: p
+     TYPE(integration_node),pointer :: c
+     real(dp) t
+       !         t=sqrt(12.e0_dp)*(bran(bran_init)-half)
+       t=RANF()
+       !         t=sqrt(12.d0)*(RANF()-half)
+       if(t>0.5_dp) then
+          t=1.0_dp
+       else
+          t=-1.0_dp
+       endif
+
+          p%x(5)=p%x(5)+t*c%delta_rad_out
+       
+end SUBROUTINE kick_stochastic_after
+
+   subroutine  clear_compute_stoch_kick(L)
+   implicit none
+   type(layout), pointer :: L
+   type(integration_node), pointer :: c
+   integer i
+
+    c=>l%t%start
+    do i=1,L%t%n
+     c%delta_rad_in=0.0_dp
+     c%delta_rad_out=0.0_dp
+    c=>c%next
+    enddo
+
+   end subroutine  clear_compute_stoch_kick
+
+  subroutine  root_stoch_kick(L)
+   implicit none
+   type(layout), pointer :: L
+   type(integration_node), pointer :: c
+   integer i
+
+    c=>l%t%start
+    do i=1,L%t%n
+     c%delta_rad_in =sqrt(c%delta_rad_in/2.0_DP)
+     c%delta_rad_out=sqrt(c%delta_rad_out/2.0_DP)
+    c=>c%next
+    enddo
+
+   end subroutine  root_stoch_kick
 
   SUBROUTINE INTE_dkd2_probep(p,k,c)
     IMPLICIT NONE

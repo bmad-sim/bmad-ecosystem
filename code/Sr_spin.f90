@@ -655,7 +655,7 @@ endif
     INTEGER I
 
     !if(.not.(el%p%radiation.or.EL%P%SPIN)) return
-    if(.not.(k%radiation.or.k%SPIN.or.k%envelope)) return
+    if(.not.(k%radiation.or.k%SPIN.or.k%envelope.or.k%stochastic)) return
     IF(.NOT.CHECK_STABLE) return
     el=>c%parent_fibre%mag
     if(EL%kind<=kind1) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
@@ -663,7 +663,7 @@ endif
     !    if(EL%kind>=kind18.and.EL%kind<=kind19) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
 
     CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B)
-    if((k%radiation.or.k%envelope).AND.BEFORE) then
+    if((k%radiation.or.k%envelope.or.k%stochastic).AND.BEFORE) then
        !if(el%p%radiation.AND.BEFORE) then
        !       call radiate_2(c,DS,FAC,P%X,b2,dlds,XP,before,k,POS)
        call radiate_2(c,DS,FAC,P,b2,dlds,before,k,POS)
@@ -732,7 +732,7 @@ endif
     endif
    endif
     !if(el%p%radiation.AND.(.NOT.BEFORE)) then
-    if((k%radiation.or.k%envelope).AND.(.NOT.BEFORE)) then
+    if((k%radiation.or.k%envelope.or.k%stochastic).AND.(.NOT.BEFORE)) then
        !       call radiate_2(c,DS,FAC,P%X,b2,dlds,XP,before,k,POS)
        call radiate_2(c,DS,FAC,P,b2,dlds,before,k,POS)
     endif
@@ -1865,7 +1865,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     type(INTEGRATION_NODE), pointer :: C
     type(probe), INTENT(INOUT) :: xs
     TYPE(INTERNAL_STATE) K
-    REAL(DP) FAC,DS,beta
+    REAL(DP) FAC,DS,beta,x(6)
     logical useptc,dofix0,dofix,doonemap
     type(tree_element), pointer :: arbre(:)
 !    logical(lp) bmad
@@ -1963,7 +1963,9 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
    if(xs%use_q.and.assume_c_quaternion_normalised) xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
 
            endif
-          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+!x=XS%X
+          CALL TRACK_NODE_SINGLE(C,XS%X,K) 
+!XS%X=x
      ENDIF
 
     endif

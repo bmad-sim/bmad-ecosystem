@@ -1944,7 +1944,8 @@ CONTAINS
        return
 
     ELSE  !  1
-
+    write(6,*) "This option of the true rbend must now be done with patches "
+   ! stop 
        LM1=0.0_dp
        ANG1=0.0_dp
        IF(PRESENT(L)) LM1=L
@@ -2969,7 +2970,7 @@ CONTAINS
           !w_p%c(1)= " Likemad is true and element is not STREX "
           ! call !write_e(kind16)
        endif
-       s2%k16%likemad=LIKEMAD
+!       s2%k16%likemad=LIKEMAD
        S2%KIND=KIND20
        LIKEMAD=.false.
     endif

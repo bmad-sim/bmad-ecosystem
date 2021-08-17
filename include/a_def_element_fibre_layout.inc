@@ -205,8 +205,8 @@ TYPE ELEMENT
    TYPE(DRIFT1), POINTER :: D0  => null()               ! DRIFT
    TYPE(DKD2), POINTER :: K2    => null()            ! INTEGRATOR  $
    TYPE(KICKT3), POINTER :: K3  => null()              !  THIN KICK
-   TYPE(CAV4), POINTER :: C4    => null()            ! CAVITY
-   TYPE(SOL5), POINTER :: S5    => null()            ! solenoid
+   TYPE(CAV4), POINTER :: C4    => null()            ! CAVITY  $
+   TYPE(SOL5), POINTER :: S5    => null()            ! solenoid  $
    TYPE(KTK), POINTER :: T6     => null()           ! INTEGRATOR   thick slow
    TYPE(TKTF), POINTER :: T7    => null()            ! INTEGRATOR   thick fast   $
    TYPE(NSMI), POINTER :: S8    => null()            ! NORMAL SMI Sixtrack shit

@@ -1023,23 +1023,21 @@ endif
     implicit none
     type(probe), intent(inout) :: p
     TYPE(INTEGRATION_NODE), pointer, INTENT(INOUT):: T
-    REAL(DP) X(6)
-    TYPE(INTERNAL_STATE)  K
+     TYPE(INTERNAL_STATE)  K
     !    TYPE(INTERNAL_STATE), INTENT(IN) :: K
     type(element),pointer :: el
-    LOGICAL TA,copy
+    LOGICAL TA 
     type(work) w,we
     IF(.NOT.CHECK_STABLE) return
-    x=p%x
-    copy=.true.
+ 
     !       CALL RESET_APERTURE_FLAG
     !    endif
 
-    if(abs(x(1))+abs(x(3))>absolute_aperture.or.abs(x(6))>t_aperture) then   !.or.(.not.CHECK_MADX_APERTURE)) then
+    if(abs(p%x(1))+abs(p%x(3))>absolute_aperture.or.abs(p%x(6))>t_aperture) then   !.or.(.not.CHECK_MADX_APERTURE)) then
        messageLOST="exceed absolute_aperture in TRACKR_NODE_SINGLE"
        lost_node=>t
        lost_fibre=>t%parent_fibre
-       xlost=x
+       xlost=p%x
        CHECK_STABLE=.false.
     endif
 
@@ -1057,208 +1055,207 @@ endif
 
     !dt1=ttime1-ttime0+dt1
 
+    if(k%stochastic) call kick_stochastic_before(t,p)
 
     SELECT CASE(T%CAS)
     CASE(CASEP1)
 
-      CALL TRACK_FIBRE_FRONT(T%PARENT_FIBRE,X,K)
+      CALL TRACK_FIBRE_FRONT(T%PARENT_FIBRE,p%x,K)
       if(associated(T%PARENT_FIBRE%MAG%p%aperture)) then
         TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==-1 .OR. &
            T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos== 0
-        if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+        if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,p%X)
       endif
       
-      global_e= x(5)*el%p%p0c
+      global_e= p%x(5)*el%p%p0c
       
     CASE(CASEP2)
       if(associated(T%PARENT_FIBRE%MAG%p%aperture)) then
         TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1 .OR. &
            T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==0
-        if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+        if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,p%X)
       endif
 
-      CALL TRACK_FIBRE_BACK(T%PARENT_FIBRE,X,K)
-      global_e= x(5)*el%p%p0c
+      CALL TRACK_FIBRE_BACK(T%PARENT_FIBRE,p%x,K)
+      global_e= p%x(5)*el%p%p0c
     
     CASE(CASE1,CASE2)
   !     el=>T%PARENT_FIBRE%MAG
        if(s_aperture_CHECK.and.associated(el%p%A).AND.CHECK_MADX_APERTURE.and.t%cas==case2) &
-            call check_S_APERTURE_out(el%p,t%POS_IN_FIBRE-2,x)
+            call check_S_APERTURE_out(el%p,t%POS_IN_FIBRE-2,p%x)
  
        SELECT CASE(EL%KIND)
        CASE(KIND0:KIND1,KIND3,KIND8:KIND9,KIND11:KIND15,KIND18:KIND19)
        case(KIND2)
-          CALL TRACK_FRINGE(EL=EL%K2,X=X,k=k,J=T%CAS)
+          CALL TRACK_FRINGE(EL=EL%K2,X=p%X,k=k,J=T%CAS)
        case(KIND4)
           IF(T%CAS==CASE1) THEN
-             CALL ADJUST_TIME_CAV4(EL%C4,X,k,1)
-             CALL FRINGECAV(EL%C4,X,k=k,J=1)
+             CALL ADJUST_TIME_CAV4(EL%C4,p%x,k,1)
+             CALL FRINGECAV(EL%C4,p%x,k=k,J=1)
           ELSE
-             CALL FRINGECAV(EL%C4,X,k=k,J=2)
-             CALL ADJUST_TIME_CAV4(EL%C4,X,k,2)
+             CALL FRINGECAV(EL%C4,p%X,k=k,J=2)
+             CALL ADJUST_TIME_CAV4(EL%C4,p%x,k,2)
           ENDIF
        case(KINDhel)
           IF(T%CAS==CASE2) THEN
-            call fringe_hel(el%he22,x,2)
-            call fake_shift(el%he22,x)
+            call fringe_hel(el%he22,p%x,2)
+            call fake_shift(el%he22,p%x)
            else
-            call fringe_hel(el%he22,x,1)
+            call fringe_hel(el%he22,p%x,1)
           ENDIF
        case(KIND5)
-          CALL TRACK_FRINGE(EL5=EL%S5,X=X,k=k,J=T%CAS)
+          CALL TRACK_FRINGE(EL5=EL%S5,X=p%X,k=k,J=T%CAS)
        case(KIND6)
-          CALL TRACK_FRINGE(EL6=EL%T6,X=X,k=k,J=T%CAS)
+          CALL TRACK_FRINGE(EL6=EL%T6,X=p%X,k=k,J=T%CAS)
        case(KIND7)
-          CALL TRACK_FRINGE(EL7=EL%T7,X=X,k=k,J=T%CAS)
+          CALL TRACK_FRINGE(EL7=EL%T7,X=p%X,k=k,J=T%CAS)
        case(KIND10)
-          CALL FRINGE_teapot(EL%TP10,X,k=k,j=T%CAS)
+          CALL FRINGE_teapot(EL%TP10,p%X,k=k,j=T%CAS)
        case(KIND16,KIND20)
-          CALL fringe_STREX(EL%K16,X,k,T%CAS)
+          CALL fringe_STREX(EL%K16,p%x,k,T%CAS)
        case(KIND17)
           STOP 317
        case(KIND21)
-          CALL FRINGE_CAV_TRAV(EL%CAV21,X=X,k=k,J=T%CAS)
-          CALL ADJUST_TIME_CAV_TRAV_OUT(EL%CAV21,X,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
+          CALL FRINGE_CAV_TRAV(EL%CAV21,X=p%X,k=k,J=T%CAS)
+          CALL ADJUST_TIME_CAV_TRAV_OUT(EL%CAV21,p%x,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
        case(KINDWIGGLER)
 
           IF(T%CAS==CASE1) THEN
           if(el%p%dir==1) then
-            call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
+            call ADJUST_LIKE_ABELL(EL%wi,p%x,k,1)
           else
-            call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
+            call ADJUST_LIKE_ABELL(EL%wi,p%x,k,2)
           endif
           ELSE
           if(el%p%dir==1) then
-            call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
+            call ADJUST_LIKE_ABELL(EL%wi,p%x,k,2)
           else
-            call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
+            call ADJUST_LIKE_ABELL(EL%wi,p%x,k,1)
           endif
-          CALL ADJUST_WI(EL%WI,X,k,T%CAS) 
+          CALL ADJUST_WI(EL%WI,p%x,k,T%CAS) 
           ENDIF
 
   ! ONLY DOES SOMETHING IF J==2
        case(KINDPA)
-          CALL ADJUST_PANCAKE(EL%PA,X,k,T%CAS)
+          CALL ADJUST_PANCAKE(EL%PA,p%x,k,T%CAS)
        case(KINDabell)
-          CALL ADJUST_abell(EL%ab,X,k,T%CAS)
+          CALL ADJUST_abell(EL%ab,p%x,k,T%CAS)
        case(kindsuperdrift)
-        if(el%p%dir==1.and.t%cas==case1) call  PATCH_drift(el%sdr,X,k,el%p%exact,1)
-        if(el%p%dir==-1.and.t%cas==case2) call  PATCH_drift(el%sdr,X,k,el%p%exact,-1)
+        if(el%p%dir==1.and.t%cas==case1) call  PATCH_drift(el%sdr,p%x,k,el%p%exact,1)
+        if(el%p%dir==-1.and.t%cas==case2) call  PATCH_drift(el%sdr,p%x,k,el%p%exact,-1)
        CASE DEFAULT
           WRITE(6,*) "NOT IMPLEMENTED ",EL%KIND
           stop 666
        END SELECT
-        global_e= x(5)*el%p%p0c
+        global_e= p%x(5)*el%p%p0c
     CASE(CASE0)
  !      el=>T%PARENT_FIBRE%MAG
        if(s_aperture_CHECK.and.associated(el%p%A).AND.CHECK_MADX_APERTURE)  &
-            call check_S_APERTURE(el%p,t%POS_IN_FIBRE-2,x)
+            call check_S_APERTURE(el%p,t%POS_IN_FIBRE-2,p%x)
        if(associated(t%bb).and.dobb.and.do_beam_beam) then
 
-          if(t%bb%patch) call PATCH_BB(t%bb,X,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_true)
+          if(t%bb%patch) call PATCH_BB(t%bb,p%x,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_true)
  
-          call BBKICK(t%bb,X,EL%p%BETA0,EL%P%EXACT,k%time)
+          call BBKICK(t%bb,p%x,EL%p%BETA0,EL%P%EXACT,k%time)
  
 
-          if(t%bb%patch)call PATCH_BB(t%bb,X,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_false)
+          if(t%bb%patch)call PATCH_BB(t%bb,p%x,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_false)
 
        endif
  
        SELECT CASE(EL%KIND)
        CASE(KIND0)
-         global_e= x(5)*el%p%p0c
+         global_e= p%x(5)*el%p%p0c
        case(KIND1)
-          CALL TRACK_SLICE(EL%D0,X,K)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%D0,p%x,K)
+         global_e= p%x(5)*el%p%p0c
        case(KIND2)
-!          CALL TRACK_SLICE(EL%K2,X,K,t%POS_IN_FIBRE-2)
+!          CALL TRACK_SLICE(EL%K2,p%x,K,t%POS_IN_FIBRE-2)
             CALL TRACK_SLICE_dkd2(p,k,T)
-         copy=.false.
-         global_e= x(5)*el%p%p0c
+ 
+         global_e= p%x(5)*el%p%p0c
        case(KIND3)
-          CALL TRACK(EL%K3,X,K)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK(EL%K3,p%x,K)
+         global_e= p%x(5)*el%p%p0c
        case(KIND4)
           CALL TRACK_SLICE_CAV4(p,K,t)
-         copy=.false.
-    !      CALL TRACK_SLICE(EL%C4,X,K,t%POS_IN_FIBRE-2)
-          global_e= x(5)*el%p%p0c
+ 
+    !      CALL TRACK_SLICE(EL%C4,p%x,K,t%POS_IN_FIBRE-2)
+          global_e= p%x(5)*el%p%p0c
        case(KIND5)
-          CALL TRACK_SLICE(EL%S5,X,K)
-          global_e= x(5)*el%p%p0c
+         ! CALL TRACK_SLICE(EL%S5,p%x,K)
+            CALL TRACK_SLICE_sol5(p,k,T)
+           global_e= p%x(5)*el%p%p0c
        case(KIND6)
-          CALL TRACK_SLICE(EL%T6,X,K)
-          global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%T6,p%x,K)
+          global_e= p%x(5)*el%p%p0c
        case(KIND7)
-      !    CALL TRACK_SLICE(EL%T7,X,K,t%POS_IN_FIBRE-2)
+      !    CALL TRACK_SLICE(EL%T7,p%x,K,t%POS_IN_FIBRE-2)
           CALL TRACK_SLICE_TKTF(p,K,t,t%POS_IN_FIBRE-2)
-         copy=.false.
-          global_e= x(5)*el%p%p0c
+           global_e= p%x(5)*el%p%p0c
        case(KIND8)
-          CALL TRACK(EL%S8,X,K)
-          global_e= x(5)*el%p%p0c
+          CALL TRACK(EL%S8,p%x,K)
+          global_e= p%x(5)*el%p%p0c
        case(KIND9)
-          CALL TRACK(EL%S9,X,K)
-          global_e= x(5)*el%p%p0c
+          CALL TRACK(EL%S9,p%x,K)
+          global_e= p%x(5)*el%p%p0c
        case(KIND10)
- !         CALL TRACK_SLICE_TEAPOT_OLD(EL%TP10,X,K,t%POS_IN_FIBRE-2)
+ !         CALL TRACK_SLICE_TEAPOT_OLD(EL%TP10,p%x,K,t%POS_IN_FIBRE-2)
           CALL TRACK_SLICE_TEAPOT(p,K,t)  !,t%POS_IN_FIBRE-2)
-         copy=.false.
-          if(.not.el%electric)  global_e= x(5)*el%p%p0c
+           if(.not.el%electric)  global_e= p%x(5)*el%p%p0c
        case(KIND11:KIND14)
-          CALL MONTI(EL%MON14,X,k,t%POS_IN_FIBRE-2)
-         global_e= x(5)*el%p%p0c
-          !          CALL TRACK_SLICE(EL%MON14,X,K)
+          CALL MONTI(EL%MON14,p%x,k,t%POS_IN_FIBRE-2)
+         global_e= p%x(5)*el%p%p0c
+          !          CALL TRACK_SLICE(EL%MON14,p%x,K)
        case(KIND15)
-          call SEPTTRACK(EL%SEP15,X,k,t%POS_IN_FIBRE-2)
-         !   global_e= x(5)*el%p%p0c done inside
-          !          CALL TRACK_SLICE(EL%SEP15,X,K)
+          call SEPTTRACK(EL%SEP15,p%x,k,t%POS_IN_FIBRE-2)
+         !   global_e= p%x(5)*el%p%p0c done inside
+          !          CALL TRACK_SLICE(EL%SEP15,p%x,K)
        case(KIND16,KIND20)
             CALL TRACK_SLICE_strex(p,k,T,t%POS_IN_FIBRE-2)
-         copy=.false.
-      !    CALL TRACK_SLICE(EL%K16,X,K,t%POS_IN_FIBRE-2)
-       global_e= x(5)*el%p%p0c
+      !    CALL TRACK_SLICE(EL%K16,p%x,K,t%POS_IN_FIBRE-2)
+       global_e= p%x(5)*el%p%p0c
        case(KIND17)
           STOP 317
        case(KIND18)
-          call RCOLLIMATORI(EL%RCOL18,X,k,t%POS_IN_FIBRE-2)
-       global_e= x(5)*el%p%p0c
+          call RCOLLIMATORI(EL%RCOL18,p%x,k,t%POS_IN_FIBRE-2)
+       global_e= p%x(5)*el%p%p0c
        case(KIND19)
-          CALL ECOLLIMATORI(EL%ECOL19,X,k,t%POS_IN_FIBRE-2)
-       global_e= x(5)*el%p%p0c
-          !          CALL TRACK_SLICE(EL%ECOL19,X,K)
+          CALL ECOLLIMATORI(EL%ECOL19,p%x,k,t%POS_IN_FIBRE-2)
+       global_e= p%x(5)*el%p%p0c
+          !          CALL TRACK_SLICE(EL%ECOL19,p%x,K)
        case(KIND21)
-          CALL TRACK_SLICE(EL%CAV21,X,k,t%POS_IN_FIBRE-2)
-       global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%CAV21,p%x,k,t%POS_IN_FIBRE-2)
+       global_e= p%x(5)*el%p%p0c
        case(KIND22)
-          CALL TRACK_SLICE(EL%he22,X,k,t%POS_IN_FIBRE-2)
-       global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%he22,p%x,k,t%POS_IN_FIBRE-2)
+       global_e= p%x(5)*el%p%p0c
        case(KINDWIGGLER)
-          CALL TRACK_SLICE(EL%WI,X,k,t%POS_IN_FIBRE-2)
-       global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%WI,p%x,k,t%POS_IN_FIBRE-2)
+       global_e= p%x(5)*el%p%p0c
        case(KINDPA)
-          CALL TRACK_SLICE(EL%PA,X,k,T%POS_IN_FIBRE-2)
-       global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%PA,p%x,k,T%POS_IN_FIBRE-2)
+       global_e= p%x(5)*el%p%p0c
        case(KINDabell)
-          CALL TRACK_SLICE(EL%ab,X,k,T%POS_IN_FIBRE-2)
- !      global_e= x(5)*el%p%p0c treat like electric
+          CALL TRACK_SLICE(EL%ab,p%x,k,T%POS_IN_FIBRE-2)
+ !      global_e= p%x(5)*el%p%p0c treat like electric
        case(kindsuperdrift)
-          call track_slice(EL%sdr,X,k)
-       global_e= x(5)*el%p%p0c
+          call track_slice(EL%sdr,p%x,k)
+       global_e= p%x(5)*el%p%p0c
        CASE DEFAULT
           WRITE(6,*) "NOT IMPLEMENTED ",EL%KIND
           stop 999
        END SELECT
        if(associated(T%PARENT_FIBRE%MAG%p%aperture).and.aperture_all_case0) &
-            call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+            call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,p%X)
 
 
     case(CASET)
        if(associated(t%bb).and.dobb.and.do_beam_beam) then
 
-          if(t%bb%patch) call PATCH_BB(t%bb,X,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_true)
-          call BBKICK(t%bb,X,EL%p%BETA0,EL%P%EXACT,k%time)
-          if(t%bb%patch)call PATCH_BB(t%bb,X,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_false)
+          if(t%bb%patch) call PATCH_BB(t%bb,p%x,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_true)
+          call BBKICK(t%bb,p%x,EL%p%BETA0,EL%P%EXACT,k%time)
+          if(t%bb%patch)call PATCH_BB(t%bb,p%x,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_false)
        endif
 !       IF(ASSOCIATED(T%T)) CALL TRACK(T%T,X)
     case(CASETF1,CASETF2)
@@ -1269,7 +1266,8 @@ endif
     END SELECT
     ! CASE(CASE100)  ! FAKE BEAM BEAM CAKE AT SOME S
 
-    if(copy) p%x=x
+     if(k%stochastic) call kick_stochastic_after(t,p)
+
     !    T%PARENT_FIBRE%MAG=DEFAULT
     if(wherelost==2.and.(.not.check_stable)) then
        t%lost=t%lost+1
@@ -1277,6 +1275,7 @@ endif
   END SUBROUTINE TRACK_NODE_SINGLE_quaR
 
 
+!kick_stochastic_after(c,p)
 
   SUBROUTINE TRACK_NODE_SINGLE_quaP(T,P,K) !!
     ! This routines tracks a single thin lens
@@ -1284,25 +1283,25 @@ endif
     implicit none
     TYPE(INTEGRATION_NODE), pointer, INTENT(INOUT):: T
     TYPE(PROBE_8),INTENT(INOUT):: P
-    TYPE(REAL_8)  X(6)
+!    TYPE(REAL_8)  X(6)
     TYPE(INTERNAL_STATE)  K
     !    TYPE(INTERNAL_STATE), INTENT(IN) :: K
     type(elementp),pointer :: el
     logical(lp) BN2,L
     logical(lp) CHECK_KNOB
     integer(2), pointer,dimension(:)::AN,BN
-     logical TA,COPY
+     logical TA
     IF(.NOT.CHECK_STABLE) return
     !       CALL RESET_APERTURE_FLAG
     !    endif
-    CALL alloc(X)
-    X=P%X
-    COPY=.TRUE.
-    if(abs(x(1))+abs(x(3))>absolute_aperture.or.abs(x(6))>t_aperture) then
+!    CALL alloc(X)
+!    X=P%X
+ 
+    if(abs(p%x(1))+abs(p%x(3))>absolute_aperture.or.abs(p%x(6))>t_aperture) then
        messageLOST="exceed absolute_aperture in TRACKP_NODE_SINGLE"
        lost_node=>t
        lost_fibre=>t%parent_fibre
-       xlost=x
+       xlost=p%x
        CHECK_STABLE=.false.
     endif
 
@@ -1317,141 +1316,141 @@ endif
     T%PARENT_FIBRE%MAGP%P%CHARGE=>T%PARENT_FIBRE%CHARGE
        el=>T%PARENT_FIBRE%MAGP
 
-
+    
     SELECT CASE(T%CAS)
     CASE(CASEP1)
-       CALL TRACK_FIBRE_FRONT(T%PARENT_FIBRE,X,K)
+       CALL TRACK_FIBRE_FRONT(T%PARENT_FIBRE,p%x,K)
        if(associated(T%PARENT_FIBRE%MAGP%p%aperture)) then
           TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==-1 .OR.  &
              T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==0
-          if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,X)
+          if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,p%x)
        endif
-          global_e= x(5)*el%p%p0c
+          global_e= p%x(5)*el%p%p0c
     CASE(CASEP2)
     
   
        if(associated(T%PARENT_FIBRE%MAGP%p%aperture)) then
           TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1 .OR.  &
                  T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==0
-          if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,X)
+          if(TA) call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,p%X)
        endif
 
-       CALL TRACK_FIBRE_BACK(T%PARENT_FIBRE,X,K)
-       global_e= x(5)*el%p%p0c
+       CALL TRACK_FIBRE_BACK(T%PARENT_FIBRE,p%x,K)
+       global_e= p%x(5)*el%p%p0c
 
   
     CASE(CASE1,CASE2)
 !       el=>T%PARENT_FIBRE%MAGP
        if(s_aperture_CHECK.and.associated(el%p%A).AND.CHECK_MADX_APERTURE.and.t%cas==case2) &
-            call check_S_APERTURE_out(el%p,t%POS_IN_FIBRE-2,x)
+            call check_S_APERTURE_out(el%p,t%POS_IN_FIBRE-2,p%x)
 
 
        SELECT CASE(EL%KIND)
+ 
        CASE(KIND0:KIND1,KIND3,KIND8:KIND9,KIND11:KIND15,KIND18:KIND19)
        case(KIND2)
-          CALL TRACK_FRINGE(EL=EL%K2,X=X,k=k,J=T%CAS)
+          CALL TRACK_FRINGE(EL=EL%K2,X=p%X,k=k,J=T%CAS)
        case(KIND4)
           IF(T%CAS==CASE1) THEN
-             CALL ADJUST_TIME_CAV4(EL%C4,X,k,1)
-             CALL FRINGECAV(EL%C4,X,k=k,J=1)
+             CALL ADJUST_TIME_CAV4(EL%C4,p%x,k,1)
+             CALL FRINGECAV(EL%C4,p%x,k=k,J=1)
           ELSE
-             CALL FRINGECAV(EL%C4,X,k=k,J=2)
-             CALL ADJUST_TIME_CAV4(EL%C4,X,k,2)
+             CALL FRINGECAV(EL%C4,p%x,k=k,J=2)
+             CALL ADJUST_TIME_CAV4(EL%C4,p%x,k,2)
           ENDIF
        case(KINDhel)
           IF(T%CAS==CASE2) THEN
-            call fake_shift(el%he22,x)
+            call fake_shift(el%he22,p%x)
           ENDIF
        case(KIND5)
-          CALL TRACK_FRINGE(EL5=EL%S5,X=X,k=k,J=T%CAS)
+          CALL TRACK_FRINGE(EL5=EL%S5,X=p%X,k=k,J=T%CAS)
        case(KIND6)
-          CALL TRACK_FRINGE(EL6=EL%T6,X=X,k=k,J=T%CAS)
+          CALL TRACK_FRINGE(EL6=EL%T6,X=p%X,k=k,J=T%CAS)
        case(KIND7)
-          CALL TRACK_FRINGE(EL7=EL%T7,X=X,k=k,J=T%CAS)
+          CALL TRACK_FRINGE(EL7=EL%T7,X=p%X,k=k,J=T%CAS)
        case(KIND10)
-          CALL FRINGE_teapot(EL%TP10,X,k,T%CAS)
+          CALL FRINGE_teapot(EL%TP10,p%x,k,T%CAS)
        case(KIND16,KIND20)
-          CALL fringe_STREX(EL%K16,X,k,T%CAS)
+          CALL fringe_STREx(EL%K16,p%x,k,T%CAS)
        case(KIND17)
           STOP 317
        case(KIND21)
-          CALL FRINGE_CAV_TRAV(EL%CAV21,X=X,k=k,J=T%CAS)
-          CALL ADJUST_TIME_CAV_TRAV_OUT(EL%CAV21,X,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
+          CALL FRINGE_CAV_TRAV(EL%CAV21,X=p%X,k=k,J=T%CAS)
+          CALL ADJUST_TIME_CAV_TRAV_OUT(EL%CAV21,p%x,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
        case(KINDWIGGLER)
 
           IF(T%CAS==CASE1) THEN
           if(el%p%dir==1) then
-            call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
+            call ADJUST_LIKE_ABELL(EL%wi,p%x,k,1)
           else
-            call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
+            call ADJUST_LIKE_ABELL(EL%wi,p%x,k,2)
           endif
           ELSE
           if(el%p%dir==1) then
-            call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
+            call ADJUST_LIKE_ABELL(EL%wi,p%x,k,2)
           else
-            call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
+            call ADJUST_LIKE_ABELL(EL%wi,p%x,k,1)
           endif
-          CALL ADJUST_WI(EL%WI,X,k,T%CAS) 
+          CALL ADJUST_WI(EL%WI,p%x,k,T%CAS) 
           ENDIF
 
        case(KINDPA)
-          CALL ADJUST_PANCAKE(EL%PA,X,k,T%CAS)    
+          CALL ADJUST_PANCAKE(EL%PA,p%x,k,T%CAS)    
        case(KINDabell)
-          CALL ADJUST_ABELL(EL%AB,X,k,T%CAS)
- !      global_e= x(5)*el%p%p0c treat like electric
+          CALL ADJUST_ABELL(EL%AB,p%x,k,T%CAS)
+ !      global_e= p%x(5)*el%p%p0c treat like electric
        case(kindsuperdrift)
-        if(el%p%dir==1.and.t%cas==case1) call  PATCH_drift(el%sdr,X,k,el%p%exact,1)
-        if(el%p%dir==-1.and.t%cas==case2) call  PATCH_drift(el%sdr,X,k,el%p%exact,-1)
+        if(el%p%dir==1.and.t%cas==case1) call  PATCH_drift(el%sdr,p%x,k,el%p%exact,1)
+        if(el%p%dir==-1.and.t%cas==case2) call  PATCH_drift(el%sdr,p%x,k,el%p%exact,-1)
        CASE DEFAULT
           WRITE(6,*) "NOT IMPLEMENTED ",EL%KIND
           stop 666
        END SELECT
-        global_e= x(5)*el%p%p0c
+        global_e= p%x(5)*el%p%p0c
     CASE(CASE0)
 
  !      el=>T%PARENT_FIBRE%MAGP
        if(s_aperture_CHECK.and.associated(el%p%A).AND.CHECK_MADX_APERTURE) &
-            call check_S_APERTURE(el%p,t%POS_IN_FIBRE-2,x)
+            call check_S_APERTURE(el%p,t%POS_IN_FIBRE-2,p%x)
        if(associated(t%bb).and.dobb.and.do_beam_beam) then
 
-          if(t%bb%patch) call PATCH_BB(t%bb,X,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_true)
-          call BBKICK(t%bb,X,EL%p%BETA0,EL%P%EXACT,k%time)
-          if(t%bb%patch)call PATCH_BB(t%bb,X,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_false)
+          if(t%bb%patch) call PATCH_BB(t%bb,p%x,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_true)
+          call BBKICK(t%bb,p%x,EL%p%BETA0,EL%P%EXACT,k%time)
+          if(t%bb%patch)call PATCH_BB(t%bb,p%x,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_false)
 
        endif
        SELECT CASE(EL%KIND)
        CASE(KIND0)
-         global_e= x(5)*el%p%p0c
+         global_e= p%x(5)*el%p%p0c
        case(KIND1)
-          CALL TRACK_SLICE(EL%D0,X,K)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%D0,p%x,K)
+         global_e= p%x(5)*el%p%p0c
        case(KIND2)
-!          CALL TRACK_SLICE(EL%K2,X,K,t%POS_IN_FIBRE-2)
+!          CALL TRACK_SLICE(EL%K2,p%x,K,t%POS_IN_FIBRE-2)
             CALL TRACK_SLICE_dkd2(p,k,T)
-         copy=.false.
-         global_e= x(5)*el%p%p0c
+          global_e= p%x(5)*el%p%p0c
        case(KIND3)
-          CALL TRACK(EL%K3,X,K)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK(EL%K3,p%x,K)
+         global_e= p%x(5)*el%p%p0c
        case(KIND4)
           CALL TRACK_SLICE_CAV4(p,K,t)
-         copy=.false.
-    !      CALL TRACK_SLICE(EL%C4,X,K,t%POS_IN_FIBRE-2)
-          global_e= x(5)*el%p%p0c
+     !      CALL TRACK_SLICE(EL%C4,p%x,K,t%POS_IN_FIBRE-2)
+          global_e= p%x(5)*el%p%p0c
        case(KIND5)
-          CALL TRACK_SLICE(EL%S5,X,K)
-         global_e= x(5)*el%p%p0c
+ 
+            CALL TRACK_SLICE_sol5(p,k,T)
+ 
+         global_e= p%x(5)*el%p%p0c
        case(KIND6)
-          CALL TRACK_SLICE(EL%T6,X,K)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%T6,p%x,K)
+         global_e= p%x(5)*el%p%p0c
        case(KIND7)
           IF((EL%T7%BN(2)%KIND==3.OR.EL%T7%L%KIND==3).AND.KNOB) THEN
              CALL GETMAT7(EL%T7)                                      ! RECOMPUTES ONLY IF KNOB (SPEED)
           ENDIF
-!          CALL TRACK_SLICE(EL%T7,X,K,t%POS_IN_FIBRE-2)
+!          CALL TRACK_SLICE(EL%T7,p%x,K,t%POS_IN_FIBRE-2)
           CALL TRACK_SLICE_TKTF(p,K,t,t%POS_IN_FIBRE-2)
-         copy=.false.
-          IF(KNOB) THEN
+           IF(KNOB) THEN
              BN2=.FALSE.
              L=.FALSE.
              IF(EL%T7%BN(2)%KIND==3) THEN
@@ -1470,74 +1469,72 @@ endif
                 IF(L)  EL%T7%L%KIND=3
              ENDIF
           ENDIF
-         global_e= x(5)*el%p%p0c
+         global_e= p%x(5)*el%p%p0c
        case(KIND8)
-          CALL TRACK(EL%S8,X,K)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK(EL%S8,p%x,K)
+         global_e= p%x(5)*el%p%p0c
        case(KIND9)
-          CALL TRACK(EL%S9,X,K)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK(EL%S9,p%x,K)
+         global_e= p%x(5)*el%p%p0c
        case(KIND10)
           CALL MAKEPOTKNOB(EL%TP10,CHECK_KNOB,AN,BN)
-!          CALL TRACK_SLICE_TEAPOT_OLD(EL%TP10,X,K,t%POS_IN_FIBRE-2)
+!          CALL TRACK_SLICE_TEAPOT_OLD(EL%TP10,p%x,K,t%POS_IN_FIBRE-2)
           CALL TRACK_SLICE_TEAPOT(p,K,t)  !,t%POS_IN_FIBRE-2)
-          copy=.false.
-          CALL UNMAKEPOTKNOB(EL%TP10,CHECK_KNOB,AN,BN)
-          if(.not.el%electric)  global_e= x(5)*el%p%p0c
+           CALL UNMAKEPOTKNOB(EL%TP10,CHECK_KNOB,AN,BN)
+          if(.not.el%electric)  global_e= p%x(5)*el%p%p0c
        case(KIND11:KIND14)
-          CALL MONTI(EL%MON14,X,k,t%POS_IN_FIBRE-2)
-          !          CALL TRACK_SLICE(EL%MON14,X,K)
-         global_e= x(5)*el%p%p0c
+          CALL MONTI(EL%MON14,p%x,k,t%POS_IN_FIBRE-2)
+          !          CALL TRACK_SLICE(EL%MON14,p%x,K)
+         global_e= p%x(5)*el%p%p0c
        case(KIND15)
-          call SEPTTRACK(EL%SEP15,X,k,t%POS_IN_FIBRE-2)
-          !          CALL TRACK_SLICE(EL%SEP15,X,K)
-         global_e= x(5)*el%p%p0c
+          call SEPTTRACK(EL%SEP15,p%x,k,t%POS_IN_FIBRE-2)
+          !          CALL TRACK_SLICE(EL%SEP15,p%x,K)
+         global_e= p%x(5)*el%p%p0c
        case(KIND16,KIND20)
             CALL TRACK_SLICE_strex(p,k,T,t%POS_IN_FIBRE-2)
-         copy=.false.
-       !   CALL TRACK_SLICE(EL%K16,X,K,t%POS_IN_FIBRE-2)
-         global_e= x(5)*el%p%p0c
+        !   CALL TRACK_SLICE(EL%K16,p%x,K,t%POS_IN_FIBRE-2)
+         global_e= p%x(5)*el%p%p0c
        case(KIND17)
           STOP 317
        case(KIND18)
-          call RCOLLIMATORI(EL%RCOL18,X,k,t%POS_IN_FIBRE-2)
-         global_e= x(5)*el%p%p0c
-          !          CALL TRACK_SLICE(EL%RCOL18,X,K)
+          call RCOLLIMATORI(EL%RCOL18,p%x,k,t%POS_IN_FIBRE-2)
+         global_e= p%x(5)*el%p%p0c
+          !          CALL TRACK_SLICE(EL%RCOL18,p%x,K)
        case(KIND19)
-          CALL ECOLLIMATORI(EL%ECOL19,X,k,t%POS_IN_FIBRE-2)
-          !          CALL TRACK_SLICE(EL%ECOL19,X,K)
-         global_e= x(5)*el%p%p0c
+          CALL ECOLLIMATORI(EL%ECOL19,p%x,k,t%POS_IN_FIBRE-2)
+          !          CALL TRACK_SLICE(EL%ECOL19,p%x,K)
+         global_e= p%x(5)*el%p%p0c
        case(KIND21)
-          CALL TRACK_SLICE(EL%CAV21,X,k,t%POS_IN_FIBRE-2)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%CAV21,p%x,k,t%POS_IN_FIBRE-2)
+         global_e= p%x(5)*el%p%p0c
        case(KINDWIGGLER)
-          CALL TRACK_SLICE(EL%WI,X,k,t%POS_IN_FIBRE-2)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%WI,p%x,k,t%POS_IN_FIBRE-2)
+         global_e= p%x(5)*el%p%p0c
        case(KIND22)
-          CALL TRACK_SLICE(EL%he22,X,k,t%POS_IN_FIBRE-2)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%he22,p%x,k,t%POS_IN_FIBRE-2)
+         global_e= p%x(5)*el%p%p0c
        case(KINDPA)
-          CALL TRACK_SLICE(EL%PA,X,k,T%POS_IN_FIBRE-2)
-         global_e= x(5)*el%p%p0c
+          CALL TRACK_SLICE(EL%PA,p%x,k,T%POS_IN_FIBRE-2)
+         global_e= p%x(5)*el%p%p0c
        case(KINDabell)
-          CALL TRACK_SLICE(EL%ab,X,k,T%POS_IN_FIBRE-2)
+          CALL TRACK_SLICE(EL%ab,p%x,k,T%POS_IN_FIBRE-2)
        case(kindsuperdrift)
-          call track_slice(EL%sdr,X,k)
-         global_e= x(5)*el%p%p0c
+          call track_slice(EL%sdr,p%x,k)
+         global_e= p%x(5)*el%p%p0c
        CASE DEFAULT
           WRITE(6,*) "NOT IMPLEMENTED ",EL%KIND
           stop 999
        END SELECT
        if(associated(T%PARENT_FIBRE%MAGP%p%aperture).and.aperture_all_case0) &
-            call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,X)
+            call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,p%X)
 
     case(CASET)
 
        if(associated(t%bb).and.dobb.and.do_beam_beam) then
 
-          if(t%bb%patch) call PATCH_BB(t%bb,X,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_true)
-          call BBKICK(t%bb,X,EL%p%BETA0,EL%P%EXACT,k%time)
-          if(t%bb%patch)call PATCH_BB(t%bb,X,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_false)
+          if(t%bb%patch) call PATCH_BB(t%bb,p%x,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_true)
+          call BBKICK(t%bb,p%x,EL%p%BETA0,EL%P%EXACT,k%time)
+          if(t%bb%patch)call PATCH_BB(t%bb,p%x,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_false)
        endif
  !      IF(ASSOCIATED(T%T)) CALL TRACK(T%T,X)
     case(CASETF1,CASETF2)
@@ -1553,9 +1550,8 @@ endif
     ! NEW STUFF WITH KIND=3
     KNOB=.FALSE.
     ! END NEW STUFF WITH KIND=3
-     IF(COPY) P%X=X
-
-    CALL KILL(X)
+ 
+ 
   END SUBROUTINE TRACK_NODE_SINGLE_quaP
 
 
@@ -2273,13 +2269,13 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
     implicit none
     TYPE (NODE_LAYOUT), pointer :: L
 
-  if(lielib_print(4)==1) then
+
     WRITE(6,*)  " PARENT LAYOUT NAME :", L%PARENT_LAYOUT%NAME(1:len_trim(L%PARENT_LAYOUT%NAME))
     WRITE(6,*) " NUMBER OF ORIGINAL LAYOUT ELEMENTS :", L%PARENT_LAYOUT%N
     WRITE(6,*) " NUMBER OF THIN OBJECTS :", L%N
     WRITE(6,*) " TOTAL IDEAL LENGTH OF STRUCTURE :", L%END%S(1)
     WRITE(6,*) " TOTAL INTEGRATION LENGTH OF STRUCTURE (mad8 style survey) :", L%END%S(3)
-  endif
+
   end SUBROUTINE stat_NODE_LAYOUT
 
 

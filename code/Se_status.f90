@@ -124,7 +124,7 @@ module S_status
 
   !  private s_init,S_init_berz,MAKE_STATES_0,MAKE_STATES_m,print_s,CONV
   private s_init,MAKE_STATES_0,MAKE_STATES_m,print_s,CONV
-  LOGICAL(lp), target :: compute_stoch_kick = .true.
+  LOGICAL(lp), target :: compute_stoch_kick = .false.
   private alloc_p,equal_p,dealloc_p,alloc_A,equal_A,dealloc_A
   PRIVATE KILL_S_APERTURE,ALLOC_S_APERTURE
   !,NULL_p
