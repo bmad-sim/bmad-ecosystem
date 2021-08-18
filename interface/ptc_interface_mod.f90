@@ -3222,11 +3222,11 @@ case (sbend$)
   ptc_key%list%hgap2 = ele%value(hgapx$)
   ptc_key%list%fint2 = ele%value(fintx$)
 
-  if (ele%sub_key == rbend$) then
-    ptc_key%magnet = 'wedgrbend'
-    ptc_key%list%t1   = e1 - ele%value(angle$)/2
-    ptc_key%list%t2   = e2 - ele%value(angle$)/2
-  endif
+!  if (ele%sub_key == rbend$) then
+!    ptc_key%magnet = 'wedgrbend'
+!    ptc_key%list%t1   = e1 - ele%value(angle$)/2
+!    ptc_key%list%t2   = e2 - ele%value(angle$)/2
+!  endif
 
 case (sextupole$)
   ptc_key%magnet = 'sextupole'
