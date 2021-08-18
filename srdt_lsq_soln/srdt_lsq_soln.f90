@@ -5,7 +5,7 @@ use srdt_mod
 
 implicit none
 
-character in_file*200, lat_file*200
+character(200) in_file, lat_file
 
 type(lat_struct) lat
 type(coord_struct), allocatable :: co(:)
@@ -13,7 +13,9 @@ type(summation_rdt_struct) srdt
 type(summation_rdt_struct), allocatable :: per_ele_rdt(:)
 
 real(rp), allocatable :: ls_soln(:)
-real(rp) chrom_x, chrom_y
+real(rp) chrom_x, chrom_y, weight(10)
+real(rp) wgt_chrom_x, wgt_chrom_y, wgt_h20001, wgt_h00201, wgt_h10002
+real(rp) wgt_h21000, wgt_h30000, wgt_h10110, wgt_h10020, wgt_h10200
 
 integer i, j, k, nVar
 integer status
@@ -22,7 +24,9 @@ integer, allocatable :: var_indexes(:)
 
 character(40) var_names(200)
 
-namelist /srdt_lsq/ lat_file, var_names, gen_slices, sxt_slices, chrom_x, chrom_y
+namelist /srdt_lsq/ lat_file, var_names, gen_slices, sxt_slices, chrom_x, chrom_y, &
+                    wgt_chrom_x, wgt_chrom_y, wgt_h20001, wgt_h00201, wgt_h10002, &
+                    wgt_h21000, wgt_h30000, wgt_h10110, wgt_h10020, wgt_h10200
 
 gen_slices = 60
 sxt_slices = 120
@@ -30,7 +34,12 @@ chrom_x = 1.0
 chrom_y = 1.0
 var_names = ''
 
-call getarg(1, in_file)
+in_file = 'srdt_lsq_soln.in'
+if (iargc() > 0) call getarg(1, in_file)
+
+wgt_chrom_x = 0;  wgt_chrom_y = 0;  wgt_h20001 = 0;  wgt_h00201 = 0;  wgt_h10002 = 0
+wgt_h21000 = 0;  wgt_h30000 = 0;  wgt_h10110 = 0;  wgt_h10020 = 0;  wgt_h10200 = 0
+
 open (unit = 10, file = in_file, action='read')
 read (10, nml = srdt_lsq)
 close (10)
@@ -49,7 +58,10 @@ nVar = count(lat%ele(:)%select)
 allocate(var_indexes(nVar))
 var_indexes = pack([(i,i=0,lat%n_ele_track)],lat%ele(:)%select)
 
-call srdt_lsq_solution(lat, var_indexes, var_names, ls_soln, gen_slices, sxt_slices, chrom_x, chrom_y)
+weight = [wgt_chrom_x, wgt_chrom_y, wgt_h20001, wgt_h00201, wgt_h10002, &
+                        wgt_h21000, wgt_h30000, wgt_h10110, wgt_h10020, wgt_h10200]
+
+call srdt_lsq_solution(lat, var_indexes, var_names, ls_soln, gen_slices, sxt_slices, chrom_x, chrom_y, weight)
 
 open(45,file='srdt_lsq_soln.var')
 do i=1,size(ls_soln)

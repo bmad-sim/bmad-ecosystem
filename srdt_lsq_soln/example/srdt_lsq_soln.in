@@ -17,4 +17,20 @@
               'SEX_24E', 'SEX_23E', 'SEX_22E', 'SEX_21E', 'SEX_20E', 'SEX_19E',
               'SEX_18E', 'SEX_17E', 'SEX_16E', 'SEX_15E', 'SEX_14E', 'SEX_13E',
               'SEX_12E', 'SEX_11E', 'SEX_10AE','SEX_09AE'
+
+
+! Any weight terms equal to zero are given default values which is 1.0e4 for wgt_chrom_x and
+! wgt_chrom_y and is 1.0 for everything else.
+
+wgt_chrom_x = 0
+wgt_chrom_y = 0
+wgt_h20001 = 0
+wgt_h00201 = 0
+wgt_h10002 = 0
+wgt_h21000 = 0
+wgt_h30000 = 0
+wgt_h10110 = 0
+wgt_h10020 = 0
+wgt_h10200 = 0
+
 /
