@@ -1283,7 +1283,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.taylor_order == y.taylor_order);
   is_eq = is_eq && (x.runge_kutta_order == y.runge_kutta_order);
   is_eq = is_eq && (x.default_integ_order == y.default_integ_order);
-  is_eq = is_eq && (x.ptc_max_fringe_order == y.ptc_max_fringe_order);
   is_eq = is_eq && (x.max_num_runge_kutta_step == y.max_num_runge_kutta_step);
   is_eq = is_eq && (x.rf_phase_below_transition_ref == y.rf_phase_below_transition_ref);
   is_eq = is_eq && (x.sr_wakes_on == y.sr_wakes_on);

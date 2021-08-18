@@ -3082,8 +3082,8 @@ extern "C" void bmad_common_to_c (const Opaque_bmad_common_class*, CPP_bmad_comm
 extern "C" void bmad_common_to_f2 (Opaque_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_class* F) {
 
@@ -3094,13 +3094,13 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_c
       C.min_ds_adaptive_tracking, C.fatal_ds_adaptive_tracking, C.autoscale_amp_abs_tol,
       C.autoscale_amp_rel_tol, C.autoscale_phase_tol, C.electric_dipole_moment,
       C.ptc_cut_factor, C.sad_eps_scale, C.sad_amp_max, C.sad_n_div_max, C.taylor_order,
-      C.runge_kutta_order, C.default_integ_order, C.ptc_max_fringe_order,
-      C.max_num_runge_kutta_step, C.rf_phase_below_transition_ref, C.sr_wakes_on,
-      C.lr_wakes_on, C.mat6_track_symmetric, C.ptc_use_orientation_patches, C.auto_bookkeeper,
-      C.csr_and_space_charge_on, C.spin_tracking_on, C.backwards_time_tracking_on,
-      C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on, C.radiation_zero_average,
-      C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
-      C.convert_to_kinetic_momentum, C.aperture_limit_on, C.ptc_print_info_messages, C.debug);
+      C.runge_kutta_order, C.default_integ_order, C.max_num_runge_kutta_step,
+      C.rf_phase_below_transition_ref, C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric,
+      C.ptc_use_orientation_patches, C.auto_bookkeeper, C.csr_and_space_charge_on,
+      C.spin_tracking_on, C.backwards_time_tracking_on, C.spin_sokolov_ternov_flipping_on,
+      C.radiation_damping_on, C.radiation_zero_average, C.radiation_fluctuations_on,
+      C.conserve_taylor_maps, C.absolute_time_tracking_default, C.convert_to_kinetic_momentum,
+      C.aperture_limit_on, C.ptc_print_info_messages, C.debug);
 
 }
 
@@ -3113,11 +3113,10 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_autoscale_amp_abs_tol, c_Real& z_autoscale_amp_rel_tol, c_Real& z_autoscale_phase_tol,
     c_Real& z_electric_dipole_moment, c_Real& z_ptc_cut_factor, c_Real& z_sad_eps_scale,
     c_Real& z_sad_amp_max, c_Int& z_sad_n_div_max, c_Int& z_taylor_order, c_Int&
-    z_runge_kutta_order, c_Int& z_default_integ_order, c_Int& z_ptc_max_fringe_order, c_Int&
-    z_max_num_runge_kutta_step, c_Bool& z_rf_phase_below_transition_ref, c_Bool& z_sr_wakes_on,
-    c_Bool& z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool&
-    z_ptc_use_orientation_patches, c_Bool& z_auto_bookkeeper, c_Bool&
-    z_csr_and_space_charge_on, c_Bool& z_spin_tracking_on, c_Bool&
+    z_runge_kutta_order, c_Int& z_default_integ_order, c_Int& z_max_num_runge_kutta_step,
+    c_Bool& z_rf_phase_below_transition_ref, c_Bool& z_sr_wakes_on, c_Bool& z_lr_wakes_on,
+    c_Bool& z_mat6_track_symmetric, c_Bool& z_ptc_use_orientation_patches, c_Bool&
+    z_auto_bookkeeper, c_Bool& z_csr_and_space_charge_on, c_Bool& z_spin_tracking_on, c_Bool&
     z_backwards_time_tracking_on, c_Bool& z_spin_sokolov_ternov_flipping_on, c_Bool&
     z_radiation_damping_on, c_Bool& z_radiation_zero_average, c_Bool&
     z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
@@ -3168,8 +3167,6 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.runge_kutta_order = z_runge_kutta_order;
   // c_side.to_c2_set[integer, 0, NOT]
   C.default_integ_order = z_default_integ_order;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.ptc_max_fringe_order = z_ptc_max_fringe_order;
   // c_side.to_c2_set[integer, 0, NOT]
   C.max_num_runge_kutta_step = z_max_num_runge_kutta_step;
   // c_side.to_c2_set[logical, 0, NOT]

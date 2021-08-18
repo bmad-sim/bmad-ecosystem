@@ -2976,7 +2976,6 @@ public:
   Int taylor_order;
   Int runge_kutta_order;
   Int default_integ_order;
-  Int ptc_max_fringe_order;
   Int max_num_runge_kutta_step;
   Bool rf_phase_below_transition_ref;
   Bool sr_wakes_on;
@@ -3021,7 +3020,6 @@ public:
     taylor_order(0),
     runge_kutta_order(4),
     default_integ_order(2),
-    ptc_max_fringe_order(2),
     max_num_runge_kutta_step(10000),
     rf_phase_below_transition_ref(false),
     sr_wakes_on(true),
