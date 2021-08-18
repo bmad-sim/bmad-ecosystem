@@ -26,23 +26,33 @@ character(200) full_name, basename
 character(*), parameter :: r_name = 'tao_call_cmd'
 
 integer iu, nl, nl0, ix
-logical err, is_relative, valid
+logical err, is_relative, valid, reset_at_end
 
-! PTC call
+! Call options
 
-if (file_name(1:1) == '-') then
-  if (index('-ptc', trim(file_name)) ==  1 .and. len_trim(file_name) > 1) then
-    if (cmd_arg(1) == '' .or. cmd_arg(2) /= '') then
-      call out_io (s_error$, r_name, 'FILENAME MISSING OR EXTRA STUFF FOUND.')
-      return
-    endif
-    call read_ptc_command77 (cmd_arg(1))
+reset_at_end = .false.
 
-  else
-    call out_io (s_fatal$, r_name, 'BAD SWITCH: ' // file_name, 'NOTHING DONE.')
+if (file_name(1:2) == '-p') then
+  if (index('-ptc', trim(file_name)) /= 1 .or. cmd_arg(1) == '' .or. cmd_arg(2) /= '') then
+    call out_io (s_error$, r_name, 'MALFORMED PTC COMMAND FILE CALL')
+    return
   endif
-  return
+
+  call read_ptc_command77 (cmd_arg(1))
+
+elseif (file_name(1:2) == '-n') then
+  if (index('-no_calc', trim(file_name)) /= 1 .or. .not. present(cmd_arg)) then
+    call out_io (s_error$, r_name, 'MALFORMED "-no_calc" OPTION.')
+    return
+  endif
+
+  reset_at_end = .true.
+  file_name = cmd_arg(1)
+  cmd_arg = [cmd_arg(2:), cmd_arg(1)]
+  cmd_arg(size(cmd_arg)) = ''
 endif
+
+! 
 
 ! Open the command file and store the unit number
 
@@ -90,5 +100,9 @@ if(present(cmd_arg)) then
 else
   s%com%cmd_file(nl)%cmd_arg = ' '
 endif
+
+s%com%cmd_file(nl)%reset_at_end      = reset_at_end
+s%com%cmd_file(nl)%lattice_calc_save = s%global%lattice_calc_on
+s%com%cmd_file(nl)%plot_save         = s%global%plot_on
 
 end subroutine 

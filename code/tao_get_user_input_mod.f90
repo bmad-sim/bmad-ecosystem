@@ -264,9 +264,7 @@ return
 ! Here on an end of file detected or a file read error.
 
 8000 continue
-close (s%com%cmd_file(n_level)%ix_unit)
-s%com%cmd_file(n_level)%ix_unit = 0 
-s%com%cmd_file_level = n_level - 1 ! Signal that the file has been closed
+call tao_close_command_file()
 cmd_out = ''
 
 ! If there exists a still lower nested command file to complete then return.
