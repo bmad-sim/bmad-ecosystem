@@ -16,6 +16,7 @@ set (EXE_SPECS
   cmake.geometry_test
   cmake.girder_test
   cmake.hdf5_test
+  cmake.mad_to_bmad_test
   cmake.mat6_calc_method_test
   cmake.mode_flip_test
   cmake.mode3_test
