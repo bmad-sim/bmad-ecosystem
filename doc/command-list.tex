@@ -97,11 +97,11 @@ The \vn{alias} command defines command shortcuts. Format:
   alias \{<alias_name> <string>\}
 \end{example}
 
-\vskip 7pt
+\vskip 7pt 
 
-\vn{Alias} is like Unix aliases. Using the \vn{alias} command without any arguments results in a
-printout of the aliases that have been defined. When using an alias up to 9 arguments may be
-substituted in the \vn{<string>}. The i\Th argument is substituted in place of the sub-string
+\vn{Alias} is like Unix aliases. Using the \vn{alias} command without any arguments
+results in a printout of the aliases that have been defined. When using an alias up to 9 arguments
+may be substituted in the \vn{<string>}. The i\Th argument is substituted in place of the sub-string
 ``[[i]]'' or ``[<i>]''.  Arguments that do not have a corresponding ``[[i]]'' or ``[<i>]'' are
 placed at the end of \vn{<string>}. The difference between ``[[i]]'' and ``[<i>]'' is that ``[[i]]''
 is a required argument while ``[<i>]'' defines an optional argument. For example
@@ -131,20 +131,23 @@ command xyzzy is used ``top'' is substituted for ``[[1]]'' in the string.
 \label{s:call}
 
 The \vn{call} command opens a command file (\sref{s:command.files}) and executes the commands in
-it. Format: \vskip 1pt
+it. Format: 
+\vskip 1pt
 \begin{example}
   call <filename> \{<arg_list>\}
+  call -no_calc \{<arg_list>\}
   call -ptc <filename>
 \end{example}
 
-\vskip 1pt The \vn{call} command without \vn{-ptc} is for running a set of \tao commands.  Up to 9
+\vskip 1pt 
+The \vn{call} command without \vn{-ptc} is for running a set of \tao commands.  Up to 9
 arguments may be passed to the command file. The i\Th argument is substituted in place of the string
 ``[[i]]'' in the file. Nesting of command files (command files calling other command files) is
 allowed. There is no limit to the number of nested files.  See the \vn{Command Files and Aliases}
 section (\sref{s:command.files}) for more details.
 
 The \vn{call -ptc} command passes the command file to PTC for processing. Previous to such a call,
-the command \vn{ptc init} must be issued.
+the command \vn{ptc init} must be issued. This is for PTC wizards only.
 
 If a command file calls another command file, and the name of the second command file has a relative
 (as opposed to absolute) path name, \tao will look for the second command file relative to the
@@ -158,12 +161,16 @@ one level up from your current working directory use
 Command loops can be implemented in a command file. See the documentation on \vn{do/enddo}
 (\sref{s:do}) for more details.
 
-Other useful commands to put in a command file to speed up execution are:
+The \vn{-no_calc} option is equivalent to putting the following at the beginning of the
+command file to speed up execution time:
 \begin{example}
   set global lattice_calc_on = F   ! Stop lattice calculations (\sref{s:lat.calc}).
-  set global plot_on = F           ! Halt replotting
+  set global plot_on = F           ! Halt replotting 
+or
+  set calc -on                     ! Same as the two lines above.
 \end{example}
-If set then at the end of the command file these logicals should be toggled back to True.
+When using the \vn{-no_calc} option, at the end of the command file the \vn{lattice_calc_on} and
+\vn{plot_on} logicals will be toggled back to their initial values.
 
 To suppress the output when running a command file use the command:
 \begin{example}
@@ -175,7 +182,7 @@ more details.
 
 Examples:
 \begin{example}
-    call my_cmd_file abc def 
+    call -no my_cmd_file abc def 
 \end{example}
 In the above example the argument ``abc'' is substituted for any ``[[1]]'' appearing the
 file and ``def'' is substituted for any ``[[2]]''.  \Newline
@@ -193,7 +200,6 @@ lattice. Format:
 \end{example}
 
 \vskip 10pt 
-
 The \vn{change} is used for changing real (as opposed to integer or logical) parameters. Also
 consider using the \vn{set} command (\sref{s:set}) which is more general.
 
@@ -270,7 +276,6 @@ logical of the data associated with the out-of-bound plotted points are set to F
 \end{example}
 
 \vskip 10pt 
-
 Which graphs are clipped is determined by the \vn{<where>} switch. If \vn{<where>} is not
 present, all graphs are clipped. If \vn{where} is a plot name, then all the graphs of that
 plot are clipped. If \vn{where} is the name of a \vn{d2_data} (for example, \vn{orbit}) or
@@ -391,7 +396,6 @@ The \vn{help} command gives help on \tao commands. Format:
 \end{example}
 
 \vskip 10pt
-
 The \vn{help} command without any arguments gives a list of all commands.  Some commands, like
 \vn{show}, are so large that help on these commands is divided up by their subcommand.
 
@@ -436,8 +440,8 @@ The \vn{pause} command is used to pause \tao when executing a command file
 \begin{example}
   pause \{<time>\} ! Pause time in seconds.
 \end{example}
-\vskip 10pt
 
+\vskip 10pt
 If \vn{<time>} is not present or zero, \tao will pause until the \vn{CR} key is pressed. Once the
 \vn{CR} key is pressed, the command file will be resumed. If \vn{<time>} is negative, \tao will
 suspend the command file. Commands can now be issued from the keyboard and the command file will be
@@ -468,7 +472,6 @@ create a visible plot in that region. Format:
 \end{example}
 
 \vskip 10pt 
-
 If \vn{<region>} is set to ``\vn{*}'' then all regions are selected.
 
 If \vn{<template>} is set to ``\vn{none}'' all selected regions are cleared of plots.
@@ -497,7 +500,6 @@ lattices. Format:
 \end{example}
 
 \vskip 10pt 
-
 The \vn{ptc init} command must be run before running any other \vn{ptc} command is used.
 
 Also see:
@@ -807,6 +809,7 @@ The \vn{set} command is used to set values for data, variables, etc. Subcommands
   set beam_init \{n@\}<parameter> = <value>                   ! \sref{s:set.beam.init}
   set bmad_com <parameter> = <value>                        ! \sref{s:set.bmad.com}
   set branch <branch> <parameter> = <value>                 ! \sref{s:set.branch}
+  set calculate <on/off>                                    ! \sref{s:set.calc}
   set csr_param <parameter> = <value>                       ! \sref{s:set.csr.param}
   set curve <curve> <parameter> = <value>                   ! \sref{s:set.curve}
   set data <data_name>|<parameter> = <value>                ! \sref{s:set.data}
@@ -984,6 +987,30 @@ Examples:
   set branch a_line geometry = open  ! Open geometry for branch named a_line.
   set branch default_tracking_species = positron
                                      ! Set the tracking species to positron.
+\end{example}
+
+%% set calculate --------------------------------------------------------------
+
+\subsection{set calculate}
+\label{s:set.calc}
+
+Format:
+\begin{example}
+  set calculate \{<on/off>\}
+\end{example}
+
+Toggles the following on (True) or off (False):
+\begin{example}
+  global%lattice_calc_on
+  global%plot_on
+\end{example}
+
+Examples:
+\begin{example}
+  set calc on    ! Sets lattice calc and plot_on to True
+  set calc off   ! Sets lattice calc and plot_on to False
+  set call       ! Toggles lattice_calc and sets plot_on to
+                 !  the same value as lattice_calc.
 \end{example}
 
 %% set csr_param --------------------------------------------------------------

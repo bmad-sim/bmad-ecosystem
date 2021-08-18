@@ -112,6 +112,9 @@ subroutine tao_clip_cmd (gang, where, value1, value2)
   real(rp) value1, value2
 end subroutine
 
+subroutine tao_close_cmd_file()
+end subroutine
+
 subroutine tao_concat_spin_map (q_map, branch, n1, n2, q_ele)
   use pointer_lattice, only: c_linear_map
   import

@@ -4096,7 +4096,7 @@ case ('symbolic_numbers')
         nl=nl+1; write (lines(nl), '(2x, 2a, es22.15)') s%com%symbolic_num(i)%name, '=', s%com%symbolic_num(i)%value
       enddo
     else
-      nl=nl+1; lines(nl) = 'No symbolic numbers yet defined.'
+      nl=nl+1; lines(nl) = 'No symbolic numbers yet defined. Use "show sym -phys" to show physical constants'
     endif
 
   case ('physical')

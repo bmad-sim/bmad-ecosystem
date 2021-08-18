@@ -716,6 +716,9 @@ type tao_command_file_struct
   character(40) cmd_arg(9)          ! Command file arguments.
   logical :: paused = .false.       ! Is the command file paused?
   integer :: n_line = 0             ! Current line number
+  logical :: reset_at_end = .true.  ! Reset lattice_calc_on and plot_on at end of file?
+  logical :: lattice_calc_save = .true.
+  logical :: plot_save = .true.
 end type
 
 type do_loop_struct

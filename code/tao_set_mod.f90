@@ -12,6 +12,50 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine tao_set_calculate_cmd (switch)
+!
+! Toggles off lattice calc and plotting.
+!-
+
+subroutine tao_set_calculate_cmd (switch)
+
+character(*), optional :: switch
+character(8) what
+character(*), parameter :: r_name = 'tao_set_calculate_cmd'
+
+!
+
+what = 'toggle'
+
+if (present(switch)) then
+  if ((index('off', trim(switch)) == 1 .or. index('on', trim(switch)) == 1) .and. len_trim(switch) > 1) then
+    what = switch
+  elseif (switch /= '') then
+    call out_io (s_error$, r_name, 'BAD SWITCH: ' // switch)
+    return
+  endif
+endif
+
+select case (what)
+case ('toggle')
+  s%global%lattice_calc_on = (.not. s%global%lattice_calc_on)
+  s%global%plot_on = s%global%lattice_calc_on 
+
+case ('off')
+  s%global%lattice_calc_on = .false.
+  s%global%plot_on = .false.
+
+case ('on')
+  s%global%lattice_calc_on = .true.
+  s%global%plot_on = .true.
+end select
+
+end subroutine tao_set_calculate_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_key_cmd (key_str, cmd_str)
 !
 ! Associates a command with a key press for single mode.

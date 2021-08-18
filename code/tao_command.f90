@@ -244,9 +244,7 @@ case ('end_file')
     return
   endif
 
-  close (s%com%cmd_file(n_level)%ix_unit)
-  s%com%cmd_file(n_level)%ix_unit = 0 
-  s%com%cmd_file_level = n_level - 1 ! signal that the file has been closed
+  call tao_close_command_file()
 
   if (s%com%cmd_file(n_level-1)%paused) then
     call out_io (s_info$, r_name, 'To continue the paused command file type "continue".')
@@ -534,7 +532,7 @@ case ('set')
     'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
     'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
     'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-    'region'], ix, .true., matched_name = set_word)
+    'region', 'calculate'], ix, .true., matched_name = set_word)
   if (ix < 1) then
     call out_io (s_error$, r_name, 'NOT RECOGNIZED OR AMBIGUOUS: ' // cmd_word(1))
     goto 9000
@@ -549,6 +547,7 @@ case ('set')
   case ('universe'); n_word = 4; n_eq = 3
   case ('plot_page'); n_word = 4; n_eq = 2
   case ('branch', 'curve', 'element', 'graph', 'plot', 'region'); n_word = 4; n_eq = 3
+  case ('calculate'); n_word = 1; n_eq = 0
   end select
 
   call tao_cmd_split (cmd_line, n_word, cmd_word, .false., err, '=')
@@ -583,6 +582,8 @@ case ('set')
     call tao_set_bmad_com_cmd (cmd_word(1), cmd_word(3))
   case ('branch')
     call tao_set_branch_cmd (cmd_word(1), cmd_word(2), cmd_word(4)) 
+  case ('calculate')
+    call tao_set_calculate_cmd (cmd_word(1))
   case ('csr_param')
     call tao_set_csr_param_cmd (cmd_word(1), cmd_word(3))
   case ('curve')
