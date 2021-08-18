@@ -335,21 +335,21 @@ call twiss_propagate_all (lat, branch%ix_branch)
 end_orb = ref_orb(branch%n_ele_track)
 end_ele = branch%ele(branch%n_ele_track)
 
-write (1, '(a, 2es22.12)') '"B2:vec(1)" ABS  1e-14', end_orb%vec(1), end_orb%vec(1) - orbit%vec(1)
-write (1, '(a, 2es22.12)') '"B2:vec(2)" ABS  1e-14', end_orb%vec(2), end_orb%vec(2) - orbit%vec(2)
-write (1, '(a, 2es22.12)') '"B2:vec(3)" ABS  1e-14', end_orb%vec(3), end_orb%vec(3) - orbit%vec(3)
-write (1, '(a, 2es22.12)') '"B2:vec(4)" ABS  1e-14', end_orb%vec(4), end_orb%vec(4) - orbit%vec(4)
-write (1, '(a, 2es22.12)') '"B2:vec(5)" ABS  2e-14', end_orb%vec(5), end_orb%vec(5) - orbit%vec(5)
-write (1, '(a, 2es22.12)') '"B2:vec(6)" ABS  4e-14', end_orb%vec(6), end_orb%vec(6) - orbit%vec(6)
-write (1, '(a, 2es22.12)') '"B2:c*t"    ABS  1e-14', c_light * end_orb%t, c_light * (end_orb%t - orbit%t)
+write (1, '(a, 2es22.12)') '"LC-BS:vec(1)" ABS  1e-14', end_orb%vec(1), end_orb%vec(1) - orbit%vec(1)
+write (1, '(a, 2es22.12)') '"LC-BS:vec(2)" ABS  1e-14', end_orb%vec(2), end_orb%vec(2) - orbit%vec(2)
+write (1, '(a, 2es22.12)') '"LC-BS:vec(3)" ABS  1e-14', end_orb%vec(3), end_orb%vec(3) - orbit%vec(3)
+write (1, '(a, 2es22.12)') '"LC-BS:vec(4)" ABS  1e-14', end_orb%vec(4), end_orb%vec(4) - orbit%vec(4)
+write (1, '(a, 2es22.12)') '"LC-BS:vec(5)" ABS  2e-14', end_orb%vec(5), end_orb%vec(5) - orbit%vec(5)
+write (1, '(a, 2es22.12)') '"LC-BS:vec(6)" ABS  4e-14', end_orb%vec(6), end_orb%vec(6) - orbit%vec(6)
+write (1, '(a, 2es22.12)') '"LC-BS:c*t"    ABS  1e-14', c_light * end_orb%t, c_light * (end_orb%t - orbit%t)
 
 write (1, *)
-write (1, '(a, 2f22.14)') '"B2:D:a%beta"  ABS  1e-12', end_ele%a%beta,  end_ele%a%beta  - ele1%a%beta
-write (1, '(a, 2f22.14)') '"B2:D:b%beta"  ABS  1e-12', end_ele%b%beta,  end_ele%b%beta  - ele1%b%beta
-write (1, '(a, 2f22.14)') '"B2:D:a%alpha" ABS  1e-12', end_ele%a%alpha, end_ele%a%alpha - ele1%a%alpha
-write (1, '(a, 2f22.14)') '"B2:D:b%alpha" ABS  1e-12', end_ele%b%alpha, end_ele%b%alpha - ele1%b%alpha
-write (1, '(a, 2f22.14)') '"B2:D:a%eta"   ABS  1e-12', end_ele%a%eta,   end_ele%a%eta   - ele1%a%eta
-write (1, '(a, 2f22.14)') '"B2:D:b%eta"   ABS  1e-12', end_ele%b%eta,   end_ele%b%eta   - ele1%b%eta
+write (1, '(a, 2f22.14)') '"LC-BS:D:a%beta"  ABS  1e-12', end_ele%a%beta,  end_ele%a%beta  - ele1%a%beta
+write (1, '(a, 2f22.14)') '"LC-BS:D:b%beta"  ABS  1e-12', end_ele%b%beta,  end_ele%b%beta  - ele1%b%beta
+write (1, '(a, 2f22.14)') '"LC-BS:D:a%alpha" ABS  1e-12', end_ele%a%alpha, end_ele%a%alpha - ele1%a%alpha
+write (1, '(a, 2f22.14)') '"LC-BS:D:b%alpha" ABS  1e-12', end_ele%b%alpha, end_ele%b%alpha - ele1%b%alpha
+write (1, '(a, 2f22.14)') '"LC-BS:D:a%eta"   ABS  1e-12', end_ele%a%eta,   end_ele%a%eta   - ele1%a%eta
+write (1, '(a, 2f22.14)') '"LC-BS:D:b%eta"   ABS  1e-12', end_ele%b%eta,   end_ele%b%eta   - ele1%b%eta
 
 !------------------------------------------------
 ! Test slice_test2.bmad
@@ -366,8 +366,6 @@ call em_field_calc (ele, branch%param, 0.1_rp, orb1, .true., field)
 write (1, *)
 write (1, '(a, 3f14.8)') '"Field%E"  ABS  1e-12', field%e
 write (1, '(a, 3f14.8)') '"Field%B"  ABS  1e-12', field%b
-
-
 
 !------------------------------------------------
 
