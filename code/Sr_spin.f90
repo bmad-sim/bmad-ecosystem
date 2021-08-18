@@ -26,7 +26,7 @@ module ptc_spin
   PRIVATE TRACK_SPIN_BACKR,TRACK_SPIN_BACKP,TRACK_SPIN_BACK
   !  private PUSH_SPIN_RAY8
   private TRACK_NODE_FLAG_probe_R,TRACK_NODE_FLAG_probe_p,TRACK_NODE_LAYOUT_FLAG_spinr_x
-
+  private TRACK_NODE_FLAG_probe_wrap_r,TRACK_NODE_FLAG_probe_wrap_p
  ! PRIVATE get_Bfield_fringeR,get_Bfield_fringeP,get_Bfield_fringe
   private TRACK_NODE_LAYOUT_FLAG_spinp_x
   private TRACK_LAYOUT_FLAG_spin12r_x,TRACK_LAYOUT_FLAG_spin12p_x
@@ -42,7 +42,7 @@ module ptc_spin
   REAL(DP) :: bran_init=pi  
   logical :: locate_with_no_cavity = .false.,full_way=.true.
   integer  :: item_min=3,mfdebug
-
+   logical :: old_integrator =.true.
 
 
 
@@ -69,10 +69,16 @@ module ptc_spin
      MODULE PROCEDURE TRACK_NODE_LAYOUT_FLAG_pr_t12_P  ! (xs,k,fibre1,fibre2,node1,node2)
   END INTERFACE
 
-  INTERFACE TRACK_NODE_PROBE                  ! (C,XS,K)  track probe in a node t
+  INTERFACE TRACK_NODE_PROBE_old                  ! (C,XS,K)  track probe in a node t
      MODULE PROCEDURE TRACK_NODE_FLAG_PROBE_R   ! #1
      MODULE PROCEDURE TRACK_NODE_FLAG_PROBE_p   ! #1p
   END INTERFACE
+
+  INTERFACE TRACK_NODE_PROBE                ! (C,XS,K)  track probe in a node t
+     MODULE PROCEDURE TRACK_NODE_FLAG_probe_wrap_r   ! #1
+     MODULE PROCEDURE TRACK_NODE_FLAG_probe_wrap_p   ! #1p
+  END INTERFACE
+
 
   INTERFACE TRACK_node_x                !
      MODULE PROCEDURE TRACK_NODE_LAYOUT_FLAG_spinr_x  !#4 ! TRACK X THROUGH INTEGRATION_NODE T
@@ -1858,7 +1864,32 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        xs%e=global_e
   END SUBROUTINE TRACK_NODE_FLAG_probe_QUAP
 
+  SUBROUTINE TRACK_NODE_FLAG_probe_wrap_R(C,XS,K)
+    type(INTEGRATION_NODE), pointer :: C
+    type(probe), INTENT(INOUT) :: xs
+    TYPE(INTERNAL_STATE) K
 
+    if(old_integrator) then
+     call TRACK_NODE_FLAG_probe_R(C,XS,K)
+    else
+     call TRACK_NODE_FLAG_probe_quaR(C,XS,K)
+    endif
+
+    end SUBROUTINE TRACK_NODE_FLAG_probe_wrap_R
+
+  SUBROUTINE TRACK_NODE_FLAG_probe_wrap_p(C,XS,K)
+    type(INTEGRATION_NODE), pointer :: C
+    type(probe_8), INTENT(INOUT) :: xs
+    TYPE(INTERNAL_STATE) K
+
+    if(old_integrator) then
+     call TRACK_NODE_FLAG_probe_p(C,XS,K)
+    else
+     call TRACK_NODE_FLAG_probe_quap(C,XS,K)
+    endif
+    end SUBROUTINE TRACK_NODE_FLAG_probe_wrap_p
+
+ 
 
   SUBROUTINE TRACK_NODE_FLAG_probe_R(C,XS,K)
     IMPLICIT NONE
