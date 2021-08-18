@@ -6,7 +6,7 @@
 
 subroutine tao_close_command_file()
 
-use tao_interface
+use tao_interface, dummy => tao_close_command_file
 
 implicit none
 
