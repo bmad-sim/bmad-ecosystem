@@ -244,10 +244,10 @@ call match_word (cmd, [character(40) :: &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
-          'matrix', 'merit', 'orbit_at_s', 'place_buffer', &
-          'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
+          'matrix', 'merit', 'orbit_at_s', &
+          'place_buffer', 'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_plot_manage', 'plot_graph_manage', 'plot_curve_manage', &
-          'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'shape_list', &
+          'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'ptc_com', 'shape_list', &
           'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', 'shape_set', &
           'show', 'species_to_int', 'species_to_str', 'spin_polarization', 'spin_resonance', 'super_universe', &
           'twiss_at_s', 'universe', &
@@ -432,7 +432,6 @@ case ('bmad_com')
   nl=incr(nl); write (li(nl), imt) 'taylor_order;INT;T;',                        bmad_com%taylor_order
   nl=incr(nl); write (li(nl), imt) 'runge_kutta_order;INT;T;',                   bmad_com%runge_kutta_order
   nl=incr(nl); write (li(nl), imt) 'default_integ_order;INT;T;',                 bmad_com%default_integ_order
-  nl=incr(nl); write (li(nl), imt) 'ptc_max_fringe_order;INT;T;',                bmad_com%ptc_max_fringe_order
   nl=incr(nl); write (li(nl), imt) 'max_num_runge_kutta_step;INT;T;',            bmad_com%max_num_runge_kutta_step
   nl=incr(nl); write (li(nl), lmt) 'rf_phase_below_transition_ref;LOGIC;T;',     bmad_com%rf_phase_below_transition_ref
   nl=incr(nl); write (li(nl), lmt) 'sr_wakes_on;LOGIC;T;',                       bmad_com%sr_wakes_on
@@ -5946,6 +5945,37 @@ case ('plot1')
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
   nl=incr(nl); write (li(nl), imt) 'n_curve_pts;INT;T;',                      p%n_curve_pts
 
+
+!%% ptc_com -----------------------
+! Ptc_com structure components
+!
+! Notes
+! -----
+! Command syntax:
+!   python ptc_com
+! 
+! Parameters
+! ----------
+!
+!    
+! Returns
+! -------
+! string_list 
+!
+!
+! Examples
+! -------- 
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init ???
+!  args:
+
+case ('ptc_com')
+
+  nl=incr(nl); write (li(nl), imt) 'max_fringe_order;INT;T;',               ptc_com%max_fringe_order
+  nl=incr(nl); write (li(nl), lmt) 'old_integrator;LOGIC;T;',               ptc_com%old_integrator
+  nl=incr(nl); write (li(nl), lmt) 'exact_model;LOGIC;T;',                  ptc_com%exact_model
+  nl=incr(nl); write (li(nl), lmt) 'exact_misalign;LOGIC;T;',               ptc_com%exact_misalign
 
 !%% shape_list -----------------------
 ! lat_layout and floor_plan shapes list
