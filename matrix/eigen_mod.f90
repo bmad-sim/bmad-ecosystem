@@ -43,18 +43,18 @@ subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
 implicit none
 
 real(rp) mat(:,:)
-real(rp) :: val(size(mat,1)), vec(size(mat,1), size(mat,1)), amp(size(mat,1)/2, size(mat,1)/2)
+real(rp) :: val(size(mat,1)), vec(size(mat,1), size(mat,1))
+real(rp) :: amp(size(mat,1)/2, size(mat,1)/2), amp2(size(mat,1)/2, size(mat,1)/2), dmax(size(mat,1)/2)
 real(rp) fnorm
 
 integer :: iv(size(mat,1)), sort(size(mat,1)/2)
 
 complex(rp) eigen_val(:), eigen_vec(:,:), sgn
 
-integer i, j, k, ii, jj, kk, n, nn, ier
+integer i, j, k, ii, jj, kk, m, m2, n, nn, ier
 
 logical, optional :: print_err
 logical error, err
-logical :: picked(size(mat,1)/2)
 
 !
 
@@ -80,14 +80,21 @@ do ii = 1, nn
   amp(:,ii) = amp(:,ii) / sum(amp(:,ii))
 enddo
 
-picked = .false.
 do ii = 1, nn
-  do
-    sort(ii) = maxloc(amp(:,ii), 1)
-    if (.not. picked(sort(ii))) exit
-    amp(sort(ii),ii) = -1
+  amp2 = amp
+
+  do j = 1, nn
+    m = maxloc(amp2(j,:), 1)
+    amp2(j, m) = 0
+    m2 = maxloc(amp2(j,:), 1)
+    dmax(j) = amp(j,m) - amp(j,m2)
   enddo
-  picked(sort(ii)) = .true.
+
+  k = maxloc(dmax, 1)
+  m = maxloc(amp(k,:), 1)
+  sort(m) = k
+  amp(k,:) = 0
+  amp(:,m) = 0
 enddo
 
 !
