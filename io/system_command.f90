@@ -1,5 +1,5 @@
 !+
-! Subroutine system_command (line)
+! Subroutine system_command (line, err_flag)
 !
 ! Routine to execute an operating system command from within the program.
 !
