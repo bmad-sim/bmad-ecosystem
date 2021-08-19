@@ -143,7 +143,7 @@ use transfer_map_mod
 use opti_de_mod
 use tao_command_mod, only: tao_next_switch
 use twiss_and_track_mod, only: twiss_and_track_at_s
-use c_tpsa, only: c_linear_map, assignment(=)
+use ptc_spin, only: c_linear_map, assignment(=)
 
 implicit none
 
@@ -1734,20 +1734,14 @@ case ('global')
 
   do
     call tao_next_switch (what2, [character(16):: '-optimization', '-bmad_com', &
-                                 '-csr_param', '-ran_state'], .true., switch, err, ix)
+                                 '-csr_param', '-ran_state', '-ptc'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('')
       exit
-    case ('-optimization')
-      what_to_print = 'opti'
-    case ('-bmad_com') 
-      what_to_print = 'bmad_com'
-    case ('-csr_param') 
-      what_to_print = 'csr'
-    case ('-ran_state')
-      what_to_print = 'ran'
+    case ('-optimization', '-bmad_com', '-csr_param', '-ran_state', '-ptc')
+      what_to_print = switch
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
       return
@@ -1833,7 +1827,7 @@ case ('global')
     call write_this_arg (nl, lines, '  -startup_file', s%init%startup_file_arg)
     call write_this_arg (nl, lines, '  -var_file', s%init%var_file_arg)
 
-  case ('ran')
+  case ('-ran_state')
     call ran_default_state (get_state = ran_state)
     nl=nl+1; write(lines(nl), imt) '  %ix              = ', ran_state%ix
     nl=nl+1; write(lines(nl), imt) '  %iy              = ', ran_state%iy
@@ -1846,10 +1840,10 @@ case ('global')
     nl=nl+1; write(lines(nl), rmt) '  %gauss_sigma_cut = ', ran_state%gauss_sigma_cut
     nl=nl+1; write(lines(nl), imt) '  %in_sobseq       = ', ran_state%in_sobseq
 
-  case ('opti')
+  case ('-optimization')
     call show_opt()
 
-  case ('bmad_com')
+  case ('-bmad_com')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
     nl=nl+1; write(lines(nl), rmt) '  %max_aperture_limit              = ', bmad_com%max_aperture_limit
@@ -1873,7 +1867,6 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %sad_n_div_max                   = ', bmad_com%sad_n_div_max
     nl=nl+1; write(lines(nl), imt) '  %taylor_order                    = ', bmad_com%taylor_order
     nl=nl+1; write(lines(nl), imt) '  %default_integ_order             = ', bmad_com%default_integ_order
-    nl=nl+1; write(lines(nl), imt) '  %ptc_max_fringe_order            = ', bmad_com%ptc_max_fringe_order
 
     nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
     nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
@@ -1891,9 +1884,6 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking_default  = ', bmad_com%absolute_time_tracking_default
     nl=nl+1; write(lines(nl), lmt) '  %convert_to_kinetic_momentum     = ', bmad_com%convert_to_kinetic_momentum
     nl=nl+1; write(lines(nl), lmt) '  %aperture_limit_on               = ', bmad_com%aperture_limit_on
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'PTC_com Parameters:'
-    nl=nl+1; write(lines(nl), imt) '  %taylor_order_ptc                = ', ptc_com%taylor_order_ptc
 
     if (allocated(lat%custom)) then
       nl=nl+1; lines(nl) = 'Custom lattice parameters defined in lattice file:'
@@ -1904,7 +1894,7 @@ case ('global')
       enddo
     endif
 
-  case ('csr')
+  case ('-csr_param')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'CSR_param Parameters (set by "set csr_param ..."):'
     nl=nl+1; write(lines(nl), rmt) '  %ds_track_step                  = ', csr_param%ds_track_step
@@ -1920,6 +1910,15 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %lsc_kick_transverse_dependence = ', csr_param%lsc_kick_transverse_dependence
     nl=nl+1; write(lines(nl), lmt) '  %write_csr_wake                 = ', csr_param%write_csr_wake
     nl=nl+1; write(lines(nl), amt) '  %wake_output_file               = ', quote(csr_param%wake_output_file)
+
+  case ('-ptc')
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'PTC_com Parameters:'
+    nl=nl+1; write(lines(nl), imt) '  %taylor_order_ptc      = ', ptc_com%taylor_order_ptc
+    nl=nl+1; write(lines(nl), imt) '  %max_fringe_order      = ', ptc_com%max_fringe_order
+    nl=nl+1; write(lines(nl), lmt) '  %old_integrator        = ', ptc_com%old_integrator
+    nl=nl+1; write(lines(nl), lmt) '  %exact_model           = ', ptc_com%exact_model
+    nl=nl+1; write(lines(nl), lmt) '  %exact_misalign        = ', ptc_com%exact_misalign
   end select
 
 !----------------------------------------------------------------------
