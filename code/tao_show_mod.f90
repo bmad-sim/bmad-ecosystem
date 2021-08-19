@@ -553,8 +553,9 @@ case ('beam')
     u => s%u(ix_u)
     call tao_locate_elements (word1, ix_u, eles, err)
     if (err .or. size(eles) == 0) return
-    ix_ele = eles(1)%ele%ix_ele
-    ix_branch = eles(1)%ele%ix_branch
+    ele => eles(1)%ele
+    ix_ele = ele%ix_ele
+    ix_branch = ele%ix_branch
     n = s%global%bunch_to_plot
 
     bunch_p => tao_branch%bunch_params(ix_ele)
@@ -574,8 +575,9 @@ case ('beam')
     endif
 
 
-    nl=nl+1; lines(nl) = 'Cached bunch parameters:'
+    nl=nl+1; lines(nl) = 'Bunch parameters at: ' // trim(ele%name) // ' ' //  ele_loc_name(ele, .false., '()')
     nl=nl+1; write(lines(nl), imt)  '  Parameters for bunch:       ', n
+    nl=nl+1; write(lines(nl), rmt)  '  S-position:                 ', ele%s
     nl=nl+1; write(lines(nl), imt)  '  In branch:                  ', ix_branch
     nl=nl+1; write(lines(nl), imt)  '  Particles surviving:        ', n_live
     nl=nl+1; write(lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
@@ -590,7 +592,8 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) '  RMS:     ', &
                       sqrt(bunch_p%sigma(1,1)), sqrt(bunch_p%sigma(2,2)), sqrt(bunch_p%sigma(3,3)), &
                       sqrt(bunch_p%sigma(4,4)), sqrt(bunch_p%sigma(5,5)), sqrt(bunch_p%sigma(6,6))
-    if (u%model%lat%branch(eles(1)%ele%ix_branch)%param%particle /= photon$) then
+    if (u%model%lat%branch(ele%ix_branch)%param%particle /= photon$) then
+      nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), rmt) '               norm_emitt            emit            beta           alpha'
       nl=nl+1; write(lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%emit, bunch_p%a%beta, bunch_p%a%alpha
       nl=nl+1; write(lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%emit, bunch_p%b%beta, bunch_p%b%alpha
@@ -604,7 +607,7 @@ case ('beam')
       enddo
     endif
 
-    beam => u%model_branch(eles(1)%ele%ix_branch)%ele(ix_ele)%beam
+    beam => u%model_branch(ele%ix_branch)%ele(ix_ele)%beam
     nl=nl+1; lines(nl) = ''
     if (allocated(beam%bunch)) then
       bunch => beam%bunch(n)

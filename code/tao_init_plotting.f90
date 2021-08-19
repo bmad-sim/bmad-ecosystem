@@ -888,7 +888,6 @@ integer i, j, k, ie, ic, n_old
 character(20) :: color(19)
 logical include_dflt_lat_layout, include_dflt_floor_plan
 character(40) name
-character(2), parameter :: coord_name_lc(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
 
 !
 
@@ -1481,7 +1480,7 @@ do i = 1, 6
 do j = 1, 6
 
   if (i == j) cycle
-  name = 'bunch_' // trim(coord_name_lc(i)) // '_' // trim(coord_name_lc(j))
+  name = 'bunch_' // trim(coord_name(i)) // '_' // trim(coord_name(j))
   if (any(s%plot_page%template%name == name)) cycle
 
   call default_plot_init (np, plt, default_plot_g1c1)
@@ -1493,17 +1492,17 @@ do j = 1, 6
   grph => plt%graph(1)
   grph%p => plt
   grph%type                = 'phase_space'
-  grph%title               = trim(coord_name(i)) // ' Vs ' // coord_name(j)
-  grph%x%label             = coord_name(i)
-  grph%y%label             = coord_name(j)
+  grph%title               = trim(coord_name_cap(i)) // ' Vs ' // coord_name_cap(j)
+  grph%x%label             = coord_name_cap(i)
+  grph%y%label             = coord_name_cap(j)
   grph%x%major_div_nominal = 4
 
   crv => grph%curve(1)
   crv%name         = 'c'
   crv%g => grph
   crv%data_source = 'beam'
-  crv%data_type_x  = coord_name_lc(i)
-  crv%data_type    = coord_name_lc(j)
+  crv%data_type_x  = coord_name(i)
+  crv%data_type    = coord_name(j)
   crv%draw_symbols = .true.
   crv%draw_line    = .false.
   ie = s%u(1)%design%lat%n_ele_track
@@ -1527,7 +1526,7 @@ plt%name = 'bunch_density_<R>'
 plt%description = 'Bunch Charge Density Histogram. <R> -> x, px, y, py, z, or pz. EG: bunch_density_z'
 
 do i = 1, 6
-  name = 'bunch_density_' // trim(coord_name_lc(i))
+  name = 'bunch_density_' // trim(coord_name(i))
   if (any(s%plot_page%template%name == name)) cycle
 
   call default_plot_init (np, plt, default_plot_g1c1)
@@ -1538,18 +1537,18 @@ do i = 1, 6
 
   grph => plt%graph(1)
   grph%p => plt
-  graph%name               = coord_name_lc(i)
+  graph%name               = coord_name(i)
   grph%type                = 'histogram'
-  grph%title               = 'Bunch Density Histogram in ' // trim(coord_name(i)) 
+  grph%title               = 'Bunch Density Histogram in ' // trim(coord_name_cap(i)) 
   grph%x%major_div_nominal = 4
-  grph%x%label = coord_name(i)
+  grph%x%label = coord_name_cap(i)
   grph%x_axis_scale_factor = 1d3  ! mm
 
   crv => grph%curve(1)
   crv%g => grph
   crv%name         = 'c'
   crv%data_source  = 'beam'
-  crv%data_type    = coord_name_lc(i)
+  crv%data_type    = coord_name(i)
 
   crv%hist%density_normalized = .true.
   crv%hist%weight_by_charge = .true.
@@ -1570,10 +1569,10 @@ do i = 1, 6
   crv%ele_ref_name = s%u(1)%design%lat%ele(ie)%name
 
   if (modulo(i,2) == 0) then
-    grph%x%label     = trim(coord_name(i)) // ' [* 10^3]'
+    grph%x%label     = trim(coord_name_cap(i)) // ' [* 10^3]'
     grph%y%label     = 'Charge Density [nC/' // trim(graph%x%label) // ']'
   else
-    grph%x%label     = trim(coord_name(i)) // ' [mm]'
+    grph%x%label     = trim(coord_name_cap(i)) // ' [mm]'
     grph%y%label     = 'Charge Density [nC/mm]'
   endif
 
