@@ -1791,12 +1791,14 @@ CONTAINS
   END FUNCTION GBTILT
 
 
-  FUNCTION  RECTTILT(NAME,L,ANGLE,E1,E2,T)
+  FUNCTION  RECTTILT(NAME,L,ANGLE,E1,E2,T,list)
     implicit none
     type (EL_LIST) RECTTILT
     type (TILTING),OPTIONAL, INTENT(IN):: T
     CHARACTER(*), INTENT(IN):: NAME
     real(dp) ,optional, INTENT(IN):: L,angle,E1,E2
+    type (EL_LIST),optional, INTENT(IN)::list
+
     real(dp) L1,LM,ANG1,E11,E22
 
     L1=0.0_dp
@@ -1815,7 +1817,17 @@ CONTAINS
        L1=2.0_dp*LM*SIN(ANG1/2.0_dp)/ANG1
     ENDIF
 
-    RECTTILT=0
+    if(present(list)) then
+       RECTTILT=list
+       l1=list%L
+       E11=LIST%T1
+       E22=LIST%T2
+       ANG1=LIST%B0
+    else
+       RECTTILT=0
+    endif
+
+
     RECTTILT%B0=2.0_dp*SIN(ANG1/2.0_dp)/L1
     !    IF(ANG1==zero) THEN
     !       RECTTILT%L=L1
@@ -1937,9 +1949,9 @@ CONTAINS
        endif
 
        IF(present(t)) then
-          rectaETILT=RECTTILT(NAME,L,ANGLE,E11,E22,T)
+          rectaETILT=RECTTILT(NAME,L,ANGLE,E11,E22,T,list=list)
        else
-          rectaETILT=RECTTILT(NAME,L,ANGLE,E11,E22)
+          rectaETILT=RECTTILT(NAME,L,ANGLE,E11,E22,list=list)
        endif
        return
 
