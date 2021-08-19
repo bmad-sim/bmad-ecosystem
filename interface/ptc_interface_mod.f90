@@ -34,12 +34,6 @@ interface operator (-)
   module procedure taylor_minus_taylor
 end interface
 
-type ptc_parameter_struct
-  logical exact_model
-  logical exact_misalign
-  real(dp) phase0
-end type
-
 contains
 
 !----------------------------------------------------------------------
@@ -989,7 +983,7 @@ end function kind_name
 !------------------------------------------------------------------------
 !+
 ! Subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, &
-!                      no_cavity, exact_modeling, exact_misalign, init_complex, force_init)
+!                                             no_cavity, init_complex, force_init)
 !
 ! Subroutine to initialize PTC.
 !
@@ -1000,8 +994,6 @@ end function kind_name
 ! Note: If you just want to use FPP without PTC then call the FPP routine init directly.
 !
 ! Note: This subroutine cannot be used if you want to have "knobs" (in the PTC sense).
-!
-! Note: Use the routine get_ptc_params to get the state of PTC parameters.
 !
 ! Note: Call this routine to transfer the value of the electric dipole moment from 
 !   bmad_com%electric_dipole_moment to PTC.
@@ -1021,23 +1013,17 @@ end function kind_name
 !                       Default = False.
 !                       Corresponds to the nocavity option of the PTC init routine.
 !                       no_cavity = .true. will turn any cavity into a drift.
-!   exact_modeling -- logical, optional: Sets the PTC EXACT_MODEL variable.
-!                       Default = False.
-!                       See the PTC guide for more details.
-!   exact_misalign -- logical, optional: Sets the PTC ALWAYS_EXACTMIS variable.
-!                       Default = true.
-!                       See the PTC guide for more details.
 !   init_complex   -- logical, optional: If present and True then init complex PTC.
 !                       Note: Complex PTC will also be initialized with bmad_com%spin_tracking_on = T.
 !   force_init     -- logical, optional: If present and True then force a PTC init.
 !-
 
 subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, &
-                        no_cavity, exact_modeling, exact_misalign, init_complex, force_init) 
+                                          no_cavity, init_complex, force_init) 
 
-use mad_like, only: make_states, exact_model, always_exactmis, pmaMUON, pmaE, &
+use mad_like, only: make_states, pmaMUON, pmaE, PHASE0, &
               assignment(=), nocavity0, operator(+), in_bmad_units, &
-              berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE, init_all, SPIN0
+              berz, init, set_madx, lp, superkill, TIME0, init_all, SPIN0
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, &
               use_info_m, check_longitudinal, bmad_automatic, OLD_SURVEY
 use c_tpsa, only: c_verbose, E_MUON, USE_QUATERNION
@@ -1051,8 +1037,8 @@ real(rp), optional :: e_tot
 real(rp), save :: old_e_tot = 0
 real(dp) this_energy
 
-logical, optional :: no_cavity, exact_modeling, exact_misalign, init_complex, force_init
-logical, save :: init_ptc_needed = .true., init_init_needed = .true., init_spin_needed = .true.
+logical, optional :: no_cavity, init_complex, force_init
+logical, save :: init_ptc_needed = .true., init_spin_needed = .true.
 logical params_present, c_verbose_save
 
 character(16) :: r_name = 'set_ptc'
@@ -1074,15 +1060,7 @@ E_MUON = bmad_com%electric_dipole_moment
 CHECK_LONGITUDINAL = .false. ! MAD-X uses the True setting.
 call in_bmad_units
 
-if (init_init_needed) then
-  EXACT_MODEL = .false.
-  ALWAYS_EXACTMIS = .true.
-  init_init_needed = .false.
-endif
-
-! More init
-
-HIGHEST_FRINGE = bmad_com%ptc_max_fringe_order
+if (.not. associated(ptc_com%exact_model)) call set_ptc_com_pointers ()
 
 ! do not call set_mad
 
@@ -1108,8 +1086,6 @@ if (init_ptc_needed .and. params_present) then
   PHASE0 = 0
 endif
 
-if (present (exact_modeling))     EXACT_MODEL = exact_modeling
-if (present (exact_misalign))     ALWAYS_EXACTMIS = exact_misalign
 if (present(no_cavity))           ptc_com%base_state = ptc_com%base_state + NOCAVITY0
 if (bmad_com%spin_tracking_on)    ptc_com%base_state = ptc_com%base_state + SPIN0
 
@@ -1189,29 +1165,41 @@ end subroutine set_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine get_ptc_params (ptc_param)
+! Subroutine set_ptc_com_pointers ()
 !
-! Routine to return ptc parameters.
-!
-! Output:
-!   ptc_param -- ptc_parameter_struct: PTC parameters.
+! Routine to set ptc_com pointers to PTC global variables.
 !-
 
-subroutine get_ptc_params (ptc_param)
-
-use mad_like, only: EXACT_MODEL, ALWAYS_EXACTMIS, PHASE0
+subroutine set_ptc_com_pointers ()
 
 implicit none
 
-type (ptc_parameter_struct) ptc_param
+logical init_needed
 
 !
 
-ptc_param%exact_model     = EXACT_MODEL
-ptc_param%exact_misalign  = ALWAYS_EXACTMIS
-ptc_param%phase0          = PHASE0
+init_needed = (.not. associated(ptc_com%exact_model))
 
-end subroutine get_ptc_params
+ptc_com%old_integrator   => OLD_INTEGRATOR
+ptc_com%exact_model      => EXACT_MODEL
+ptc_com%exact_misalign   => ALWAYS_EXACTMIS
+ptc_com%max_fringe_order => HIGHEST_FRINGE
+
+if (init_needed) then
+  ptc_com%exact_model = .false.
+  ptc_com%exact_misalign = .true.  ! Points to ALWAYS_EXACTMIS
+
+  allocate (ptc_com_default%old_integrator, ptc_com_default%exact_model, &
+            ptc_com_default%exact_misalign, ptc_com_default%max_fringe_order)
+
+  ptc_com_default%old_integrator   = ptc_com%old_integrator
+  ptc_com_default%exact_model      = ptc_com%exact_model
+  ptc_com_default%exact_misalign   = ptc_com%exact_misalign
+  ptc_com_default%max_fringe_order = ptc_com%max_fringe_order
+endif
+
+
+end subroutine set_ptc_com_pointers
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -3005,7 +2993,7 @@ complex(rp) k_0
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
-integer np, max_order, ix_pole_max, exact_model_saved, nn
+integer np, max_order, ix_pole_max, nn
 
 logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it
 logical, optional :: for_layout
@@ -3222,11 +3210,11 @@ case (sbend$)
   ptc_key%list%hgap2 = ele%value(hgapx$)
   ptc_key%list%fint2 = ele%value(fintx$)
 
-!  if (ele%sub_key == rbend$) then
-!    ptc_key%magnet = 'wedgrbend'
-!    ptc_key%list%t1   = e1 - ele%value(angle$)/2
-!    ptc_key%list%t2   = e2 - ele%value(angle$)/2
-!  endif
+  if (nint(ele%value(ptc_field_geometry$)) == straight$) then
+    ptc_key%magnet = 'wedgrbend'
+    ptc_key%list%t1   = e1 - ele%value(angle$)/2
+    ptc_key%list%t2   = e2 - ele%value(angle$)/2
+  endif
 
 case (sextupole$)
   ptc_key%magnet = 'sextupole'

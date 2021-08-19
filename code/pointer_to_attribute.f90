@@ -686,8 +686,9 @@ case ('MODE');                           a_ptr%r => ele%value(mode$)
 case ('ORIGIN_ELE_REF_PT');              a_ptr%r => ele%value(origin_ele_ref_pt$)
 case ('PTC_INTEGRATION_TYPE');           a_ptr%i => ele%ptc_integration_type
 case ('PTC_FRINGE_GEOMETRY');            a_ptr%r => ele%value(ptc_fringe_geometry$)
+case ('PTC_FIELD_GEOMETRY');             a_ptr%r => ele%value(ptc_field_geometry$)
 case ('REF_ORBIT_FOLLOWS');              a_ptr%r => ele%value(ref_orbit_follows$)
-case ('REF_COORDS');                a_ptr%r => ele%value(ref_coords$)
+case ('REF_COORDS');                     a_ptr%r => ele%value(ref_coords$)
 case ('SPACE_CHARGE_METHOD');            a_ptr%i => ele%space_charge_method
 case ('SPIN_TRACKING_METHOD');           a_ptr%i => ele%spin_tracking_method
 case ('TRACKING_METHOD');                a_ptr%i => ele%tracking_method
@@ -699,11 +700,13 @@ case ('PARTICLE')
     a_ptr%i => branch%param%particle
   endif
 
+case ('OLD_INTEGRATOR');                            a_ptr%l => ptc_com%old_integrator
+case ('EXACT_MODEL', 'PTC_EXACT_MODEL');            a_ptr%l => ptc_com%exact_model
+case ('EXACT_MISALIGN', 'PTC_EXACT_MISALIGN');      a_ptr%l => ptc_com%exact_misalign
+case ('MAX_FRINGE_ORDER', 'PTC_MAX_FRINGE_ORDER');  a_ptr%i => ptc_com%max_fringe_order
+
 ! No corresponding attribute in element.
 case ('TAYLOR_ORDER')
-case ('PTC_EXACT_MODEL')
-case ('PTC_EXACT_MISALIGN')
-case ('PTC_MAX_FRINGE_ORDER')
 case ('UPSTREAM_ELE_DIR')
 case ('DOWNSTREAM_ELE_DIR')
 end select

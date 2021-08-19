@@ -81,7 +81,6 @@ select case (ele_name)
 ! Selected parameters in bmad_com
 
 case ('BMAD_COM')
-
   select case (attrib_name)
   case ('D_ORB')
     call re_allocate (ptr_array, 6)
@@ -111,6 +110,8 @@ case ('BMAD_COM')
   if (present(eles)) call re_allocate_eles (eles, 1)
 
   select case(attrib_name)
+  case ('PTC_MAX_FRINGE_ORDER');            ptr_array(1)%i => ptc_com%max_fringe_order
+
   case ('MAX_APERTURE_LIMIT');              ptr_array(1)%r => bmad_com%max_aperture_limit
   case ('DEFAULT_DS_STEP');                 ptr_array(1)%r => bmad_com%default_ds_step
   case ('SIGNIFICANT_LENGTH');              ptr_array(1)%r => bmad_com%significant_length
@@ -132,7 +133,6 @@ case ('BMAD_COM')
   case ('SAD_N_DIV_MAX');                   ptr_array(1)%i => bmad_com%sad_n_div_max
   case ('TAYLOR_ORDER');                    ptr_array(1)%i => bmad_com%taylor_order
   case ('DEFAULT_INTEG_ORDER');             ptr_array(1)%i => bmad_com%default_integ_order
-  case ('PTC_MAX_FRINGE_ORDER');            ptr_array(1)%i => bmad_com%ptc_max_fringe_order
   case ('RUNGE_KUTTA_ORDER');               ptr_array(1)%i => bmad_com%runge_kutta_order
   case ('MAX_NUM_RUNGE_KUTTA_STEP');        ptr_array(1)%i => bmad_com%max_num_runge_kutta_step
 

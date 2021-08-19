@@ -1,8 +1,11 @@
 \chapter{Lattice File Global Parameters}
 
-This chapter deals with statements that can be used to set ``global''
-parameter values. That is, parameter values that are associated with
-the lattice as a whole and not simply associated with a single element.
+This chapter deals with statements that can be used to set ``global'' parameter values. That is,
+parameter values that are associated with the lattice as a whole and not simply associated with a
+single element.
+
+Discussed elsewhere are the global structures (\sref{s:struct}) \vn{bmad_com} 
+and \vn{ptc_com} (\sref{s:bmad.ptc.com}).
 
 %-----------------------------------------------------------------------------
 \section{Parameter Statements}
@@ -15,9 +18,9 @@ the lattice as a whole and not simply associated with a single element.
 \index{p0c}\index{ran_seed}\index{absolute_time_tracking}
 \index{n_part}\index{no_end_marker}\index{high_energy_space_charge_on}
 \index{ptc_exact_model}\index{ptc_exact_misalign}
-\vn{Parameter} statements are used to set a number of global variables.
-If multiple branches are present (\sref{s:branch.def}), these variables pertain
-to the \vn{root} branch. The variables that can be set by \vn{parameter} are
+\vn{Parameter} statements are used to set a number of global variables.  If multiple branches are
+present (\sref{s:branch.def}), these variables pertain to the \vn{root} branch. The variables that
+can be set by \vn{parameter} are
 \begin{example}
   parameter[absolute_time_tracking]   = <Logical>   ! Absolute time used for RF clock?
   parameter[custom_attributeN]        = <string>    ! Defining custom attributes (\sref{s:cust.att}).
@@ -35,10 +38,6 @@ to the \vn{root} branch. The variables that can be set by \vn{parameter} are
   parameter[p0c]                      = <Real>      ! Reference momentum.
   parameter[particle]                 = <speciesID> ! Reference species: positron, proton, etc.
   parameter[photon_type]              = <Switch>    ! Incoherent or coherent photons?
-  parameter[ptc_exact_model]          = <Logical>   ! PTC to do "exact" tracking?
-  parameter[ptc_exact_misalignment]   = <Logical>   ! PTC to "exactly" misalign elements?
-  parameter[ptc_max_fringe_order]     = <Integer>   ! Max fringe order. 
-                                                    !    Default: 2 => Quadrupole.
   parameter[ran_seed]                 = <Integer>   ! Random number generator init.
   parameter[taylor_order]             = <Integer>   ! Default: 3
   parameter[high_energy_space_charge_on] = <logical>
@@ -182,8 +181,10 @@ settings are:
 The general rule is use incoherent tracking except when there is a \vn{diffraction_plate} element in
 the lattice.
 %
-  \index{ptc_exact_model}\index{ptc_exact_misalign}
+  \index{ptc_exact_model}\index{exact_misalign}
   \item[{parameter[ptc_exact_model]}] \Newline
+Deprecated. Replaced by \vn{ptc_com[exact_model]} (\sref{s:ptc.com}).
+
 The \vn{ptc_exact_model} and \vn{ptc_exact_misalign} switches affect tracking using the \vn{PTC}
 library. See \sref{s:integ} for more details.
 %

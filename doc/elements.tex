@@ -461,6 +461,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   l_arc              = <Real>     ! Arc length. For \vn{rbend}s only. 
   l_chord            = <Real>     ! Chord length. See \sref{s:l}.
   l_sagitta                       ! Sagittal length. Dependent param (\sref{s:depend}).
+  ptc_field_geometry = <Switch>   ! See below.
   rho                = <Real>     ! Design bend radius. A settable dependent param (\sref{s:depend}).
   roll               = <Real>     ! See \ref{s:offset}.
 \end{example}
@@ -714,6 +715,22 @@ Example bend specification:
 \begin{example}
   b03w: sbend, l = 0.6, k1 = 0.003, fint  ! gives fint = fintx = 0.5
 \end{example}
+
+\vn{ptc_field_geometry} determines what coordinates PTC uses within a bend for calculating fields.
+This only affects tracking if PTC is being used. Possible values for
+\vn{ptc_field_geometry} are:
+\begin{example}
+  sector      ! Default
+  straight
+\end{example}
+For \vn{sector} reference coordinates, the field coordinate reference frame is with respect to the
+arc of the reference trajectory. For \vn{straight} coordinates the coordinate reference frame is
+with respect to the chord line. For a bend where there are no other fields besides the basic dipole
+field, tracking is essentially uneffected.  When there are quadrupole or higher order fields, the
+fields are centered about the reference frame set by \vn{ptc_field_geometry}.
+
+The above discussion is true for \vn{ptc_exact_model} set to True, for \vn{ptc_exact_model} set to
+False, a simplified sector tracking model is used in all cases.
 
 %-----------------------------------------------------------------
 \section{Capillary}

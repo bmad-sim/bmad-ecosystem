@@ -722,29 +722,28 @@ fastest. This is not surprising given the highly nonlinear nature of a wiggler. 
 \vn{symp_lie_bmad} always uses an order 2 integrator independent of the setting of
 \vn{integrator_order}.
 
-\index{ptc_exact_model}\index{ptc_exact_misalign}
+\index{exact_model}\index{exact_misalign}
 When tracking uses the \vn{PTC} library (\sref{s:ptc.intro}), there are two global parameters that
 can be set in the lattice file that affect the calculation. These are:
 \begin{example}
-  parameter[ptc_exact_model]        = <Logical>  ! "exact" tracking? Default: False
-  parameter[ptc_exact_misalignment] = <Logical>  ! "exactly" misalign elements? 
-                                                 !    Default: True
+  ptc_com[exact_model]    = <Logical>  ! "exact" tracking? Default: False
+  ptc_com[exact_misalign] = <Logical>  ! "exactly" misalign elements? Default: True
 \end{example}
-The default for \vn{ptc_exact_model} is \vn{False} and the default for
-\vn{ptc_exact_misalignment} is \vn{True}. 
+The default for \vn{exact_model} is \vn{False} and the default for
+\vn{exact_misalign} is \vn{True}. 
 
-The \vn{ptc_exact_model} parameter sets whether PTC uses an ``exact'' model for
+The \vn{exact_model} parameter sets whether PTC uses an ``exact'' model for
 tracking. Essentially this means that the paraxial approximation (\sref{s:mag.hamiltonian}) is made
-for \vn{ptc_exact_model} set to \vn{False} and is not made if set to \vn{True}. This can be
+for \vn{exact_model} set to \vn{False} and is not made if set to \vn{True}. This can be
 important, for example, for bend tracking when the bend radius is small.
 
 In PTC, exact modeling can be set on an element-by-element basis. Currently \bmad does not support
 specifying element-by-element setting of exact modeling. However, PTC does not have a non-exact
 tracking option for elements that have an electric field. In this case, PTC tracking will always be
-exact independent of the setting of \vn{ptc_exact_model}.  Additionally, for elements with an
+exact independent of the setting of \vn{exact_model}.  Additionally, for elements with an
 electric field, tracking will not be symplectic.
 
-The \vn{ptc_exact_misalignment} parameter determines whether misalignments are handled exactly or
+The \vn{exact_misalign} parameter determines whether misalignments are handled exactly or
 whether approximations are made that will speed up the calculation.
 
 In addition to the above parameters, how the Hamiltonian is split when tracking with \vn{PTC} can be

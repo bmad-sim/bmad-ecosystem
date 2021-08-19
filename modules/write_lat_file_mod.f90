@@ -358,7 +358,6 @@ type (lat_struct), optional, target :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele, first_sol_edge
 type (branch_struct), pointer :: branch, branch_out
 type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele, bend_ele, quad_ele
-type (ptc_parameter_struct) ptc_param
 
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
@@ -389,12 +388,12 @@ character(300) line, knl_str, ksl_str
 character(2000) line_out
 
 logical, optional :: include_apertures, err
-logical converted, init_needed, in_solenoid
+logical converted, init_needed, in_solenoid, ptc_exact_model
 
 ! Use ptc exact_model = True since this is needed to get the drift nonlinear terms
 
-call get_ptc_params(ptc_param)
-call set_ptc (exact_modeling = .true.)
+ptc_exact_model = ptc_com%exact_model
+ptc_com%exact_model = .true.
 
 ! Init
 
@@ -1243,7 +1242,7 @@ call deallocate_lat_pointers (lat_model)
 ! Restore ptc settings
 
 if (n_taylor_order_saved /= ptc_com%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
-call set_ptc (exact_modeling = ptc_param%exact_model)
+ptc_com%exact_model = ptc_exact_model
 
 close (iu)
 

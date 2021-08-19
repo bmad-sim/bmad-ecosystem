@@ -29,7 +29,6 @@ implicit none
 type (lat_struct), target, intent(in) :: lat
 type (branch_struct), pointer :: branch
 type (extra_parsing_info_struct), optional :: extra
-type (ptc_parameter_struct) ptc_param
 type (wake_struct), pointer :: wake
 
 real(rp) value(num_ele_attrib$)
@@ -165,8 +164,7 @@ write (d_unit) lat%beam_init
 
 ! Write PTC info
 
-call get_ptc_params (ptc_param)
-write (d_unit) ptc_param
+write (d_unit) ptc_com%old_integrator, ptc_com%exact_model, ptc_com%exact_misalign, ptc_com%max_fringe_order
 
 ! Write random state info
 

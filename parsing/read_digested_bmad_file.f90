@@ -37,7 +37,6 @@ implicit none
 type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
 type (extra_parsing_info_struct) :: extra
-type (ptc_parameter_struct) ptc_param
 type (bmad_common_struct) bmad_com_read
 real(rp) value(num_ele_attrib$)
 
@@ -264,15 +263,12 @@ read (d_unit, err = 9060) lat%beam_init
 
 ! Read PTC info
 
-read (d_unit, iostat = ios) ptc_param
+call set_ptc_com_pointers()
+read (d_unit, iostat = ios) ptc_com%old_integrator, ptc_com%exact_model, ptc_com%exact_misalign, ptc_com%max_fringe_order
 if (ios /= 0) then
   call out_io(s_error$, r_name, 'ERROR READING PTC PARAMETERS.')
   close (d_unit)
   return
-endif
-
-if (ios == 0) then
-  call set_ptc (exact_modeling = ptc_param%exact_model, exact_misalign = ptc_param%exact_misalign)
 endif
 
 ! Read extra state info.
@@ -305,7 +301,6 @@ if (found_it) then
   if (extra%taylor_order_set)                     bmad_com%taylor_order                    = bmad_com_read%taylor_order
   if (extra%d_orb_set)                            bmad_com%d_orb                           = bmad_com_read%d_orb
   if (extra%default_integ_order_set)              bmad_com%default_integ_order             = bmad_com_read%default_integ_order
-  if (extra%ptc_max_fringe_order_set)             bmad_com%ptc_max_fringe_order            = bmad_com_read%ptc_max_fringe_order
   if (extra%runge_kutta_order_set)                bmad_com%runge_kutta_order               = bmad_com_read%runge_kutta_order
   if (extra%sr_wakes_on_set)                      bmad_com%sr_wakes_on                     = bmad_com_read%sr_wakes_on
   if (extra%lr_wakes_on_set)                      bmad_com%lr_wakes_on                     = bmad_com_read%lr_wakes_on

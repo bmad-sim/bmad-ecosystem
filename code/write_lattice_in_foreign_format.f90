@@ -74,7 +74,6 @@ type (taylor_term_struct) :: term
 type (branch_struct), pointer :: branch, branch_out
 type (mad_energy_struct) energy
 type (mad_map_struct) mad_map
-type (ptc_parameter_struct) ptc_param
 type (taylor_struct) taylor_a(6), taylor_b(6)
 type (taylor_struct), pointer :: taylor_ptr(:)
 
@@ -100,7 +99,7 @@ character(2) continue_char, eol_char, comment_char, separator_char
 
 logical, optional :: use_matrix_model, include_apertures, err
 logical init_needed, mad_out
-logical parsing, warn_printed, converted
+logical parsing, warn_printed, converted, ptc_exact_model
 
 ! SAD translation
 
@@ -111,8 +110,7 @@ endif
 
 ! Use ptc exact_model = True since this is needed to get the drift nonlinear terms
 
-call get_ptc_params(ptc_param)
-call set_ptc (exact_modeling = .true.)
+ptc_com%exact_model = .true.
 
 ! Init
 
@@ -1226,7 +1224,7 @@ call deallocate_lat_pointers (lat_model)
 ! Restore ptc settings
 
 if (n_taylor_order_saved /= ptc_com%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
-call set_ptc (exact_modeling = ptc_param%exact_model)
+ptc_com%exact_model = ptc_exact_model
 
 close(iu)
 

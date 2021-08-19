@@ -84,6 +84,7 @@ logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 ! Note: The name of the digested file depends upon the real precision.
 
 call cpu_time(bp_com%time0)
+call set_ptc_com_pointers()
 auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .true.  
 
@@ -205,6 +206,12 @@ ele%name = 'PARTICLE_START'           ! For beam starting parameters
 call nametable_add (in_lat%nametable, ele%name, n_max) 
 
 ele => in_lat%ele(4)
+n_max = n_max + 1
+call init_ele(ele, def_ptc_com$, 0, 4, in_lat%branch(0))
+ele%name = 'PTC_COM'           ! Global PTC parameters
+call nametable_add (in_lat%nametable, ele%name, n_max)
+
+ele => in_lat%ele(5)
 n_max = n_max + 1
 call init_ele(ele, def_bmad_com$, 0, 4, in_lat%branch(0))
 ele%name = 'BMAD_COM'           ! Global bmad parameters

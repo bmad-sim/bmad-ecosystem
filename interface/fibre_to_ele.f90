@@ -166,7 +166,7 @@ if (mag%p%b0 /= 0) then
   ele%value(fintx$) = fib%mag%fint(2)
   ele%value(ref_tilt$) = fib%mag%p%tiltd
 
-  if (ele%sub_key == rbend$) then
+  if (nint(ele%value(ptc_field_geometry$)) == straight$) then
     ele%value(e1$) = fib%mag%p%edge(1) + ele%value(angle$)/2
     ele%value(e2$) = fib%mag%p%edge(2) + ele%value(angle$)/2
   else
