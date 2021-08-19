@@ -179,6 +179,7 @@ if (full_name(max(1,n-4):n) == '.hdf5' .or. full_name(max(1,n-2):n) == '.h5') th
       allocate (beam%bunch(i)%particle(np))
       beam%bunch(i)%particle = p_temp(1:np)
       deallocate (p_temp)
+      call re_allocate (beam%bunch(i)%ix_z, np)
     enddo
   endif
   return
