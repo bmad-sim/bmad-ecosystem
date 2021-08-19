@@ -33,7 +33,6 @@ class sad_info_struct:
     self.ele_list = OrderedDict()
     self.param_list = OrderedDict()
     self.var_list = OrderedDict()
-    self.has_sol_f1 = False    # SOL element with F1 attribute present in lattice file?
     self.ix_null = 0           # Index used for generating unique null_ele names
 
 #------------------------------------------------------------------
@@ -115,7 +114,7 @@ ele_type_to_bmad = {
   'cavi':      'rfcavity',
   'moni':      'monitor',
   'mark':      'marker',
-  'beambeam':  'marker',
+  'beambeam':  'beambeam',
   'apert':     'rcollimator',
   'coord':     'patch',
 }
@@ -146,8 +145,10 @@ ele_param_translate = {
     'e1': ['e1', ' * @angle@'],
     'e2': ['e2', ' * @angle@'],
     'sol:bz': 'sad_bz',
-    'bz': 'bs_field',
     'sol:f1': 'sad_f1',
+    'geo': 'sad_geo',
+    'bound': 'sad_bound',
+    'bz': 'bs_field',
     'f1': 'fq1',       # For mult and quad elements
     'f2': 'fq2',
     'eps': 'eps_step_scale',
@@ -155,7 +156,6 @@ ele_param_translate = {
     'phi': ['phi0', ' / twopi'],
     'dphi': ['phi0_err', ' / twopi'],
     'volt': 'voltage',
-    'bound': 'bound',
     'harm': 'harmon',
     'mult:dx': 'x_offset_mult',
     'mult:dy': 'y_offset_mult',
@@ -190,7 +190,7 @@ ele_param_translate = {
 # Stuff to ignore or stuff that must be handled specially.
 
 ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay',
-                  'bound', 'geo', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
+                  'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
                   'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np', 'ddp', 
                   'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng', 'ax', 'ay', 'dx1', 'dx2', 'dy1', 'dy2',
@@ -432,18 +432,6 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     if len(set(['dx', 'dy', 'dz', 'chi1', 'chi2', 'chi3', 'rotate']).intersection(sad_ele.param)) > 0:
       bmad_ele.type = 'patch'
 
-##      if sad_ele.param.get('geo') == '1':
-##        print ('MISALIGNMENTS IN SOL ELEMENT '+ sad_ele.name + ' WITH GEO = 1 NOT YET IMPLEMENTED! WILL BE IGNORED!')
-##        print ('  IF MISALIGNMENTS ARE SMALL, OR BZ = 0 THROUGH THE SOLENOID, THIS IS NOT A PROBLEM:')
-##        for param in sad_ele.param:
-##          if param in ['dx', 'dy', 'dz', 'chi1', 'chi2', 'chi3', 'rotate']:
-##            print ('  ' + param + ' = ' + sad_ele.param[param])
-
-  # SAD sol with zero field
-
-  if sad_ele.type == 'sol' and zero_field and 'geo' not in sad_ele.param and 'bound' not in sad_ele.param:
-    bmad_ele.param['sad_geo_bound'] = '-1'
-
   # Handle case when inside solenoid
 
   if sol_status != 0 and bmad_ele.type != 'marker' and bmad_ele.type != 'monitor' and \
@@ -514,16 +502,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     except ValueError:
       zero_value = False
 
-    # geo and bound get combined into sad_geo_bound
-
-    if sad_param_name == 'geo' or sad_param_name == 'bound':
-      if value != '0':
-        if 'sad_geo_bound' in bmad_ele.param:
-          bmad_ele.param['sad_geo_bound'] = '2'
-        else:
-          bmad_ele.param['sad_geo_bound'] = '1'
-
-      continue
+#   # geo and bound parameters
+#
+#   if sad_param_name == 'geo' or sad_param_name == 'bound':
+#     bmad_ele.param['sad_' + sad_param_name] = value
+#
+#     continue
 
     #
 
@@ -920,7 +904,6 @@ def parse_ele (head, rest_of_line, sad_info):
             ## print ('Found ): "' + line[ix0:ix] + '"')
             ele.param[param_name] = add_units(line[ix0:ix].strip())
             line = line[ix+1:]
-            if ele.type == 'sol' and param_name == 'f1': sad_info.has_sol_f1 = True
             break
 
           n_parens -= 1
@@ -935,7 +918,6 @@ def parse_ele (head, rest_of_line, sad_info):
           param_name = sub_str[j+1:].strip()
           delim = line[ix]
           ix0 = ix + 1
-          if ele.type == 'sol' and param_name == 'f1': sad_info.has_sol_f1 = True
 
     # Put element in list
 
@@ -1190,15 +1172,17 @@ f_out.write ('parameter[ptc_exact_model] = true\n')
 
 # If there is a SOL element with an F1 attribute. See the DOC file for more info.
 
-if sad_info.has_sol_f1: f_out.write('''
-! Save SAD SOL F1 info in a custom attribute in case lattice is back translated to to SAD
+f_out.write('''
+! Save SAD SOL F1 and other info in a custom attribute in case lattice is back translated to to SAD
 parameter[custom_attribute1] = "marker::sad_f1"
 parameter[custom_attribute1] = "patch::sad_f1"
-parameter[custom_attribute2] = "marker::sad_geo_bound"     !  1 -> bound, 2 -> bound + geo, 
-parameter[custom_attribute2] = "patch::sad_geo_bound"      ! -1 -> zero field sol 
-parameter[custom_attribute3] = "marker::sad_bz"
-parameter[custom_attribute3] = "patch::sad_bz"
-parameter[custom_attribute4] = "patch::sad_fshift"
+parameter[custom_attribute2] = "marker::sad_geo"  
+parameter[custom_attribute2] = "patch::sad_geo"   
+parameter[custom_attribute3] = "marker::sad_bound"
+parameter[custom_attribute3] = "patch::sad_bound" 
+parameter[custom_attribute4] = "marker::sad_bz"
+parameter[custom_attribute4] = "patch::sad_bz"
+parameter[custom_attribute5] = "patch::sad_fshift"
 ''')
 
 # If the first element is a marker with Twiss parameters...

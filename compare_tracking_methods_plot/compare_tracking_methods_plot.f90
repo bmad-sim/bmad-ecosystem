@@ -136,7 +136,7 @@ DO i = 1, size(is_valid)
       ele%tracking_method = i  
       write (1,*) "Tracking Method = ", tracking_method_name(i)
    else 
-      call set_ptc(exact_modeling = .true.)
+      ptc_com%exact_model = .true.
       ele%tracking_method = symp_lie_ptc$
       write (1,*) "Tracking Method = Symp_Lie_PTC_Exact"
    end if
