@@ -107,7 +107,7 @@ private EQUALq_r,EQUALq_8_c,EQUALq_c_8,EQUALq,POWq,c_invq,subq,mulq,addq,alloc_c
 private c_pri_quaternion,CUTORDERquaternion,c_trxquaternion,EQUALq_c_r,EQUALq_r_c,mulcq,c_exp_quaternion
 private equalc_quaternion_c_spinor,equalc_spinor_c_quaternion,unarySUB_q,c_trxquaternion_tpsa
 private c_exp_vectorfield_on_quaternion,c_vector_field_quaternion,addql,subql,mulqdiv,powql,quaternion_to_matrix
-private copy_tree_into_tree_zhe,absq2,absq
+private copy_tree_into_tree_zhe,absq2,absq,c_MAP_VEC
 !private equal_map_real8,equal_map_complex8,equal_real8_map,equal_complex8_map
 real(dp) dts
 real(dp), private :: sj(6,6)
@@ -188,6 +188,7 @@ type(c_linear_map) q_phasor,qi_phasor
      MODULE PROCEDURE equal_real8_cmap  !# put cmap in real_8(6)
      MODULE PROCEDURE equal_cmap_real8  ! put real_8(6) in cmap
      MODULE PROCEDURE c_EQUALMAP  !#  c_damap=c_damap
+     MODULE PROCEDURE c_MAP_VEC
     MODULE PROCEDURE c_IdentityEQUALMAP
     MODULE PROCEDURE c_IdentityEQUALSPIN
     MODULE PROCEDURE c_IdentityEQUALSPINOR   !# c_spinor = 0,1,2, or 3
@@ -2276,6 +2277,7 @@ enddo
     call kill(ct)
 
  end SUBROUTINE  equalc_map_cmap
+
 
   SUBROUTINE  equal_real8_cmap(S2,S1)
 !*
@@ -10416,6 +10418,24 @@ endif
        s2%b_kin=s1%b_kin
      endif
   END SUBROUTINE c_EQUALMAP
+
+ SUBROUTINE  c_MAP_VEC(S2,S1)
+!*
+    implicit none
+    type (c_damap),INTENT(inOUT)::S2
+    type (c_vector_field),INTENT(IN)::S1
+    integer i
+    IF(.NOT.C_STABLE_DA) RETURN
+    
+    call c_check_snake
+
+    S2=1
+    do i=1,min(s1%n,s2%n)
+       s2%v(i)=s1%v(i)
+    enddo
+
+  END SUBROUTINE c_MAP_VEC
+
 
  SUBROUTINE  c_EQUALVEC(S2,S1)
 !*

@@ -42,7 +42,7 @@ module ptc_spin
   REAL(DP) :: bran_init=pi  
   logical :: locate_with_no_cavity = .false.,full_way=.true.
   integer  :: item_min=3,mfdebug
-   logical :: old_integrator =.true.
+   logical, target :: old_integrator =.true.
 
 
 
