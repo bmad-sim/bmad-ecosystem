@@ -1,6 +1,7 @@
 abs_time_test
 aperture_test
 autoscale_test
+beam_test
 bbu_test   
 bookkeeper_test
 closed_orbit_test
