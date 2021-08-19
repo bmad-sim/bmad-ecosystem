@@ -249,7 +249,7 @@ particular, PTC is used for constructing the map(s) used for tracking when the
 used when \vn{ltt%tracking_method} is set to "\vn{PTC}". In this case, tracking is done
 element-by-element using symplectic integration.
 
-Note: Using maps is not compatible when a machine is being ramped (\sref{s:ramp}.
+Note: Using maps is not compatible when a machine is being ramped (\sref{s:ramp}).
 
 Sometimes it is convenient to exclude certain lattice elements from a map. For example, the
 beam-beam interaction is highly non-linear so excluding any \vn{beambeam} elements can improve map
@@ -259,6 +259,14 @@ excluded for a number of reasons. When an element is excluded, multiple maps are
 each of the sections of the lattice where there are no excluded elements. In this case, tracking
 consists of using a map to track from one excluded element to the next followed by tracking through
 the excluded element.
+
+{\em Important!} Maps cannot model RF elements that have a frequency not commensurate with the
+one-turn frequency. The reason for this is that a map is just a function that maps the particle's
+starting phase space coordinates to the particle's ending coordinates independent of how many turns
+the particle has been tracked. But if an RF element has a frequency not commensurate with the
+one-turn frequency the kick given a particle going through the element will depend upon the turn
+index. Maps can be used to model a lattice with such RF elements, but in this case such elements
+must be excluded from be incorporated in any map by setting \vn{ltt%exclude_from_maps} appropriately.
 
 Depending upon how things are setup, a \vn{PTC} map can include radiation damping and fluctuations
 effects. \footnote
@@ -385,7 +393,7 @@ element is computed and this value is applied to the first variable of each ramp
 with the \vn{ramp_rf} element defined above, the \vn{t} variable will be set to the time. particle
 time The \ltt program assumes that the fist variable of a ramper element is that the ramper control
 variable is time. Implicit in this is the assumption that controlled parameters are varying slow
-enough so that the ramplers only need be applied once per beam passage. This is done to minimize
+enough so that the rampers only need be applied once per beam passage. This is done to minimize
 computational time.
 
 In the lattice file, individual ramper elements may be toggled on or off using the element's
@@ -855,7 +863,7 @@ Sets the simulation mode for the program. See Section~\sref{s:sim.modes} for mor
 Use a radiation point in the middle of all the bends instead of including radiation effects in the
 transport maps? Default is False.
 %
-\item[ltt\%symplecitic_map_tracking]\Newline
+\item[ltt\%symplectic_map_tracking]\Newline
 If False (the default), the maps used for tracking will be a set of truncated Taylor series
 polynomials. If True, the tracking maps will be derived from the Taylor map by partially inverting
 it forming an implicit symplectic map. The advantage of the symplectic map is that it is symplectic.
@@ -925,7 +933,7 @@ particle data is only recorded at the end of tracking.
 Long term tracking including spin is often used to calculate damping times and equilibrium
 polarizations. One common strategy is to first track a beam for a few damping times until it has
 reached equilibrium in the orbital phase space. The beam distribution is now saved and a new run
-is started with this saved orbital distribution and with all the spins alligned so that the
+is started with this saved orbital distribution and with all the spins aligned so that the
 beam is 100\% polarized. A plot \etcetc.
 
 
