@@ -1180,9 +1180,9 @@ def read_madx_command ():
 
     while line != '':
       for ix in range(len(line)):
-        ##print (f'Ix: {ix} {line[ix]} -{quote_delim}- ' + line)
-        ##print (f'C: {command}')
-        ##print (f'D: {dlist}')
+        #print (f'Ix: {ix} {line[ix]} -{quote_delim}- ' + line)
+        #print (f'C: {command}')
+        #print (f'D: {dlist}')
 
         if line[ix] == '{': curly_brace_count += 1
         if line[ix] == '}': 
