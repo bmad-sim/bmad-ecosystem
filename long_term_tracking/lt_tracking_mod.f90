@@ -1544,7 +1544,7 @@ do ib = 0, nb
 
     do i = 1, 6
     do j = i, 6
-      sigma(i,j) = bd%orb2_sum(i,j) / bd%n_count - bd%orb_sum(i) * bd%orb_sum(j) / bd%n_count**2
+      sigma(i,j) = bd%orb2_sum(i,j) / bd%n_count - bd%orb_sum(i) * bd%orb_sum(j) / real(bd%n_count, rp)**2
       sigma(j,i) = sigma(i,j)
     enddo
     enddo
@@ -1553,7 +1553,7 @@ do ib = 0, nb
 
     call calc_emittances_and_twiss_from_sigma_matrix (sigma, 0.0_rp, bunch_params, error)
 
-    write (iu, '(i9, i9, 2f14.9, 2x, 3f14.9, 2x, 13es14.6, 2x, 3es14.6)') &
+    write (iu, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 13es14.6, 2x, 3es14.6)') &
             beam_data%turn(ix)%i_turn, bd%n_live, bd%time_sum/bd%n_count, norm2(bd%spin_sum/bd%n_count), &
             bd%spin_sum/bd%n_count, sig1, bd%orb_sum/bd%n_count, bd%p0c_sum/bd%n_count, &
             bunch_params%a%emit, bunch_params%b%emit, bunch_params%c%emit
@@ -1625,7 +1625,7 @@ do ib = 0, nb
     do i = 1, 6
     do j = i, 6
       k = k + 1
-      sigma(k) = bd%orb2_sum(i,j) / bd%n_count - bd%orb_sum(i) * bd%orb_sum(j) / bd%n_count**2
+      sigma(k) = bd%orb2_sum(i,j) / bd%n_count - bd%orb_sum(i) * bd%orb_sum(j) / real(bd%n_count, rp)**2
     enddo
     enddo
     write (iu, '(i9, i9, es14.6, 2x, 22es14.6)') beam_data%turn(ix)%i_turn, bd%n_live, &
