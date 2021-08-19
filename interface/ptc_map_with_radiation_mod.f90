@@ -251,7 +251,7 @@ call track_tree_probe_complex_zhe (map_with_rad%sub_map, z_probe, bmad_com%spin_
 if (z_probe%u) orbit%state = lost$   ! %u = T => "unstable".
 
 call convert_pc_to ((1 + z_probe%x(6)) * map_with_rad%p0c_end, orbit%species, beta = beta_end)
-orbit%t = orbit%t + (orbit%vec(5) / orbit%beta - z_probe%x(5) / beta_end) + map_with_rad%dref_time
+orbit%t = orbit%t + (orbit%vec(5) / orbit%beta - z_probe%x(5) / beta_end) / c_light + map_with_rad%dref_time
 orbit%beta = beta_end
 orbit%vec = z_probe%x
 orbit%s = map_with_rad%s_end
