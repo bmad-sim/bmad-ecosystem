@@ -9,6 +9,10 @@ use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, tr
 type ptc_map_with_rad_struct
   type (tree_element_zhe) sub_map(3)    ! Type tree_element in PTC
   character(200) lattice_file     ! Name of the lattice file
+  real(rp) dref_time              ! Time ref particle takes.
+  real(rp) p0c_start              ! ref momentum at start
+  real(rp) p0c_end                ! ref momentum at end
+  real(rp) s_end                  ! Ending s-position
   integer map_order
   logical radiation_damping_on
   integer ix_branch
@@ -83,7 +87,7 @@ type (probe) pb
 real(rp) orb(6), orb0(6), e_ij(6,6)
 
 integer, optional :: map_order
-integer val_save
+integer val_save, nt
 
 logical, optional :: err_flag, include_damping, create_symplectic_map
 
@@ -112,6 +116,7 @@ if (map_with_rad%map_order < 1) map_with_rad%map_order = ptc_com%taylor_order_pt
 call init_all(state, map_with_rad%map_order, 0)
 
 branch => pointer_to_branch(ele1)
+nt = branch%n_ele_track
 ptc_layout => branch%ptc%m_t_layout
 map_with_rad%ix_branch = branch%ix_branch
 map_with_rad%lattice_file = branch%lat%input_file_name
@@ -124,13 +129,27 @@ endif
 
 f1 => pointer_to_fibre(ele1)
 map_with_rad%ix_ele_start = ele1%ix_ele
+map_with_rad%p0c_start = ele1%value(p0c$)
 
 if (present(ele2)) then
   f2 => pointer_to_fibre(ele2)
   map_with_rad%ix_ele_end = ele2%ix_ele
+  map_with_rad%p0c_end = ele2%value(p0c$)
+  map_with_rad%s_end = ele2%s
+  map_with_rad%dref_time = ele2%ref_time - ele1%ref_time
+  if (ele2%ix_ele <= ele1%ix_ele) map_with_rad%dref_time = map_with_rad%dref_time + &
+                                                  branch%ele(nt)%ref_time - branch%ele(0)%ref_time
 else
   f2 => f1
   map_with_rad%ix_ele_end = ele1%ix_ele
+  map_with_rad%p0c_start = ele1%value(p0c$)
+  map_with_rad%s_end = ele1%s
+  map_with_rad%dref_time = branch%ele(nt)%ref_time - branch%ele(0)%ref_time
+endif
+
+if (map_with_rad%p0c_end /= map_with_rad%p0c_start) then
+  call out_io (s_error$, r_name, 'CANNOT HANDLE LATTICE WITH CHANGING REFERENCE ENERGY.')
+  return
 endif
 
 if (present(orbit1)) then
@@ -212,6 +231,8 @@ type (coord_struct) orbit
 type (ptc_map_with_rad_struct) map_with_rad
 type (probe_zhe) z_probe
 
+real(rp) beta_end
+
 logical, optional :: rad_damp, rad_fluct
 logical damp, fluct
 
@@ -229,7 +250,17 @@ z_probe%q%x = [1, 0, 0, 0]
 call track_tree_probe_complex_zhe (map_with_rad%sub_map, z_probe, bmad_com%spin_tracking_on, damp, fluct)
 if (z_probe%u) orbit%state = lost$   ! %u = T => "unstable".
 
+call convert_pc_to ((1 + z_probe%x(6)) * map_with_rad%p0c_end, orbit%species, beta = beta_end)
+orbit%t = orbit%t + (orbit%vec(5) / orbit%beta - z_probe%x(5) / beta_end) + map_with_rad%dref_time
+orbit%beta = beta_end
 orbit%vec = z_probe%x
+orbit%s = map_with_rad%s_end
+orbit%ix_ele = map_with_rad%ix_ele_end
+
+if (map_with_rad%p0c_end /= map_with_rad%p0c_start) then
+  call err_exit  ! The map does not know about changing reference energy
+endif
+
 if (bmad_com%spin_tracking_on) then
   orbit%spin = quat_rotate(z_probe%q%x, orbit%spin)
 endif
@@ -259,7 +290,7 @@ subroutine ptc_write_map_with_radiation(map_with_rad, file_name, file_unit)
 type (ptc_map_with_rad_struct), target :: map_with_rad
 type (tree_element_zhe), pointer :: t
 
-integer i, j, k, iu
+integer i, j, k, iu, ios
 integer, optional :: file_unit
 character(*), optional :: file_name
 
@@ -274,7 +305,8 @@ endif
 
 write (iu) map_with_rad%lattice_file
 write (iu) map_with_rad%map_order, map_with_rad%radiation_damping_on, &
-            map_with_rad%ix_branch, map_with_rad%ix_ele_start, map_with_rad%ix_ele_end
+            map_with_rad%ix_branch, map_with_rad%ix_ele_start, map_with_rad%ix_ele_end, &
+            map_with_rad%p0c_start, map_with_rad%p0c_end, map_with_rad%dref_time, map_with_rad%s_end
 
 do k = 1, 3
   t => map_with_rad%sub_map(k)
@@ -382,7 +414,8 @@ endif
 
 read (iu, err = 9000, end = 9000) map_with_rad%lattice_file
 read (iu, err = 9000, end = 9000) map_with_rad%map_order, map_with_rad%radiation_damping_on, &
-            map_with_rad%ix_branch, map_with_rad%ix_ele_start, map_with_rad%ix_ele_end
+            map_with_rad%ix_branch, map_with_rad%ix_ele_start, map_with_rad%ix_ele_end, &
+            map_with_rad%p0c_start, map_with_rad%p0c_end, map_with_rad%dref_time, map_with_rad%s_end
 
 do k = 1, 3
   t => map_with_rad%sub_map(k)
