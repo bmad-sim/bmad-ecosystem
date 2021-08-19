@@ -4570,7 +4570,6 @@ case ('lat_general')
 !    if '-array_out' in flags and who in ['orbit.state', 'ele.ix_ele']
 ! real_array
 !    if ('-array_out' in flags) or ('real:' in who) 
-
 !
 ! Examples
 ! --------
@@ -4583,6 +4582,15 @@ case ('lat_general')
 !    elements: Q* 
 !    which: model
 !    who: orbit.floor.x
+!
+! Example: 2
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!    ix_uni: 1  
+!    ix_branch: 0 
+!    elements: Q* 
+!    which: design
+!    who: ele.ix_ele
 !
 !
 
@@ -5967,7 +5975,7 @@ case ('plot1')
 ! -------- 
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init ???
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init 
 !  args:
 
 case ('ptc_com')
