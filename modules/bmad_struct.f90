@@ -1440,7 +1440,8 @@ type lat_struct
   logical :: absolute_time_tracking = .false.         ! Use abs. time for RF phase? Call autoscale if toggled.
 end type
 
-character(2), parameter :: coord_name(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
+character(2), parameter :: coord_name(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
+character(2), parameter :: coord_name_cap(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
 
 ! KEY value definitions
 ! Note: sbend$ and rbend$ also used for sub_key
