@@ -2287,8 +2287,6 @@ is_eq = is_eq .and. (f1%runge_kutta_order == f2%runge_kutta_order)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%default_integ_order == f2%default_integ_order)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ptc_max_fringe_order == f2%ptc_max_fringe_order)
-!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%max_num_runge_kutta_step == f2%max_num_runge_kutta_step)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%rf_phase_below_transition_ref .eqv. f2%rf_phase_below_transition_ref)

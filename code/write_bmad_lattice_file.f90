@@ -200,7 +200,6 @@ call write_if_int_param_changed   (bmad_com%sad_n_div_max,                   bma
 call write_if_int_param_changed   (bmad_com%taylor_order,                    bmad_com_default%taylor_order,                     'bmad_com[taylor_order]')
 call write_if_int_param_changed   (bmad_com%runge_kutta_order,               bmad_com_default%runge_kutta_order,                'bmad_com[runge_kutta_order]')
 call write_if_int_param_changed   (bmad_com%default_integ_order,             bmad_com_default%default_integ_order,              'bmad_com[default_integ_order]')
-call write_if_int_param_changed   (bmad_com%ptc_max_fringe_order,            bmad_com_default%ptc_max_fringe_order,             'bmad_com[ptc_max_fringe_order]')
 call write_if_int_param_changed   (bmad_com%max_num_runge_kutta_step,        bmad_com_default%max_num_runge_kutta_step,         'bmad_com[max_num_runge_kutta_step]')
 call write_if_logic_param_changed (bmad_com%rf_phase_below_transition_ref,   bmad_com_default%rf_phase_below_transition_ref,    'bmad_com[rf_phase_below_transition_ref]')
 call write_if_logic_param_changed (bmad_com%sr_wakes_on,                     bmad_com_default%sr_wakes_on,                      'bmad_com[sr_wakes_on]')
@@ -220,6 +219,11 @@ call write_if_logic_param_changed (bmad_com%absolute_time_tracking_default,  bma
 call write_if_logic_param_changed (bmad_com%convert_to_kinetic_momentum,     bmad_com_default%convert_to_kinetic_momentum,      'bmad_com[convert_to_kinetic_momentum]')
 call write_if_logic_param_changed (bmad_com%aperture_limit_on,               bmad_com_default%aperture_limit_on,                'bmad_com[aperture_limit_on]')
 call write_if_logic_param_changed (bmad_com%ptc_print_info_messages,         bmad_com_default%ptc_print_info_messages,          'bmad_com[ptc_print_info_messages]')
+
+call write_if_int_param_changed   (ptc_com%max_fringe_order,          ptc_com_default%max_fringe_order,      'ptc_com[max_fringe_order]')
+call write_if_logic_param_changed (ptc_com%old_integrator,            ptc_com_default%old_integrator,        'ptc_com[old_integrator]')
+call write_if_logic_param_changed (ptc_com%exact_model,               ptc_com_default%exact_model,           'ptc_com[exact_model]')
+call write_if_logic_param_changed (ptc_com%exact_misalign,            ptc_com_default%exact_misalign,        'ptc_com[exact_misalign]')
 
 ele => lat%ele(0) 
 

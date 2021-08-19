@@ -1454,7 +1454,7 @@ case (sbend$)
   call update_this_real (ele%value(hgapx$), fib%mag%hgap(2))
   call update_this_real (ele%value(fintx$), fib%mag%fint(2))
 
-  if (ele%sub_key == rbend$) then
+  if (nint(ele%value(ptc_field_geometry$)) == straight$) then
     call update_this_real (ele%value(e1$), fib%mag%p%edge(1) + ele%value(angle$)/2)
     call update_this_real (ele%value(e2$), fib%mag%p%edge(2) + ele%value(angle$)/2)
   else

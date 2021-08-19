@@ -8,7 +8,9 @@ use random_mod
 use spline_mod
 use cubic_interpolation_mod
 
-use definition, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state
+use definition, only: 
+use ptc_spin, only: EXACT_MODEL, ALWAYS_EXACTMIS, OLD_INTEGRATOR, HIGHEST_FRINGE, &
+                    genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state
 
 private next_in_branch
 
@@ -18,7 +20,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 262
+integer, parameter :: bmad_inc_version$ = 263
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -94,6 +96,12 @@ character(16), parameter :: sub_key_name(0:18) = ['GARBAGE!     ', 'GARBAGE!    
     'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', &
     'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', &
     'RBend        ']
+
+! ptc_field_geometry for bends
+
+integer, parameter :: sector$ = 1, straight$ = 2
+character(16), parameter :: ptc_field_geometry_name(0:2) = [ &
+                              'Garbage!  ', 'Sector    ', 'Straight  ']
 
 ! field_calc names.
 ! Note: refer_to_lords is an "internal" value which is not valid for use in a lattice file.
@@ -1450,7 +1458,8 @@ integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46, e_gu
 integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffraction_plate$ = 52
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 integer, parameter :: ac_kicker$ = 58, lens$ = 59, beam_init$ = 60, crab_cavity$ = 61, ramper$ = 62
-integer, parameter :: n_key$ = 62
+integer, parameter :: def_ptc_com$ = 63
+integer, parameter :: n_key$ = 63
 
 ! An "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
@@ -1467,7 +1476,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
     'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', 'Beam_Init         ', &
-    'Crab_Cavity       ', 'Ramper            ']
+    'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1580,7 +1589,7 @@ integer, parameter :: lattice_type$ = 45, B1_gradient$ = 45, E1_gradient$ = 45, 
 integer, parameter :: live_branch$ = 46, B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46
 integer, parameter :: geometry$ = 47, coupler_at$ = 47, E_tot_set$ = 47, ptc_canonical_coords$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48, p0c_set$ = 48
-integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49
+integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
 integer, parameter :: delta_ref_time$ = 50
 integer, parameter :: p0c_start$ = 51
 integer, parameter :: e_tot_start$ = 52
@@ -1626,7 +1635,7 @@ integer, parameter :: max_num_runge_kutta_step$ = 91
 
 integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
 integer, parameter :: tt$ = 81, x_knot$ = 81
-integer, parameter :: alias$  = 82, ptc_max_fringe_order$ = 82, eta_x$ = 82
+integer, parameter :: alias$  = 82, max_fringe_order$ = 82, eta_x$ = 82
 integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83
 integer, parameter :: y_knot$ = 83, eta_y$ = 83
 integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84, etap_x$ = 84, slave$ = 84
@@ -1646,10 +1655,10 @@ integer, parameter :: y_limit$ = 97, etap_b$ = 97
 integer, parameter :: offset_moves_aperture$ = 98
 integer, parameter :: aperture_limit_on$ = 99, alpha_a$ = 99
 
-integer, parameter :: ptc_exact_misalign$ = 100, physical_source$ = 100
+integer, parameter :: exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_b$ = 100
-integer, parameter :: term$ = 101, frequencies$ = 101
-integer, parameter :: x_position$ = 102, ptc_exact_model$ = 102
+integer, parameter :: term$ = 101, frequencies$ = 101, old_integrator$ = 101
+integer, parameter :: x_position$ = 102, exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
 integer, parameter :: z_position$ = 104, amp_vs_time$ = 104
 integer, parameter :: is_on$ = 105, theta_position$ = 105
@@ -1952,7 +1961,6 @@ type extra_parsing_info_struct
   logical :: taylor_order_set                       = .false.
   logical :: runge_kutta_order_set                  = .false.
   logical :: default_integ_order_set                = .false.
-  logical :: ptc_max_fringe_order_set               = .false.
   logical :: sr_wakes_on_set                        = .false.
   logical :: lr_wakes_on_set                        = .false.
   logical :: mat6_track_symmetric_set               = .false.
@@ -2010,8 +2018,6 @@ type bmad_common_struct
                                                        !   ptc_com%taylor_order_ptc gives actual order in use. 
   integer :: runge_kutta_order = 4                     ! Runge Kutta order.
   integer :: default_integ_order = 2                   ! PTC integration order. 
-  integer :: ptc_max_fringe_order = 2                  ! PTC max fringe order (2  = > Quadrupole !). 
-                                                       !   Must call set_ptc after changing.
   integer :: max_num_runge_kutta_step = 10000          ! Maximum number of RK steps before particle is considered lost.
   logical :: rf_phase_below_transition_ref = .false.   ! Autoscale uses below transition stable point for RFCavities?
   logical :: sr_wakes_on = .true.                      ! Short range wakefields?
@@ -2048,9 +2054,13 @@ type ptc_common_struct
   logical :: complex_ptc_used = .true.  ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
   logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
   type (internal_state) :: base_state   ! Base PTC state. 
+  integer, pointer :: max_fringe_order  => null()  ! Points to HIGHEST_FRINGE. 2 (default) => Quadrupole.
+  logical, pointer :: old_integrator    => null()
+  logical, pointer :: exact_model       => null()
+  logical, pointer :: exact_misalign    => null()  ! Points to ALWAYS_EXACTMIS.
 end type
 
-type (ptc_common_struct), save, target :: ptc_com
+type (ptc_common_struct), save, target :: ptc_com, ptc_com_default
 
 real(rp), parameter :: small_rel_change$ = 1d-14
 

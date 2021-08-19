@@ -89,9 +89,10 @@ if (lat_file /= 'FROM: BMAD_PARSER') then
 endif
 
 ! Note: The order of def_parameter and def_mad_beam elements is used by parser_set_attribute
+! due to overlapping parameters
 
 n_max => lat%n_ele_max
-n_def_ele = 4 + size(lat%branch)
+n_def_ele = 5 + size(lat%branch)
 call allocate_plat (plat, n_def_ele)
 if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat, n_max+n_def_ele+100)
 
@@ -121,20 +122,27 @@ extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
 call nametable_add(lat%nametable, ele%name, n_max+3)
 
 ele => lat%ele(n_max+4)
-call init_ele (ele, def_bmad_com$, 0, n_max+4, lat%branch(0))
-ele%name = 'BMAD_COM'
+call init_ele (ele, def_ptc_com$, 0, n_max+4, lat%branch(0))
+ele%name = 'PTC_COM'
 ele%ixx  = 4                    ! Pointer to plat%ele() array
 extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
 call nametable_add(lat%nametable, ele%name, n_max+4)
 
+ele => lat%ele(n_max+5)
+call init_ele (ele, def_bmad_com$, 0, n_max+5, lat%branch(0))
+ele%name = 'BMAD_COM'
+ele%ixx  = 5                    ! Pointer to plat%ele() array
+extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
+call nametable_add(lat%nametable, ele%name, n_max+5)
+
 do i = 0, ubound(lat%branch, 1)
-  ele => lat%ele(n_max+5+i)
-  call init_ele(ele, def_line$, 0, n_max+5+i, lat%branch(0))
+  ele => lat%ele(n_max+6+i)
+  call init_ele(ele, def_line$, 0, n_max+6+i, lat%branch(0))
   ele%name = lat%branch(i)%name
   ele%value(ix_branch$) = i
-  ele%ixx = 5 + i
+  ele%ixx = 6 + i
   extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
-  call nametable_add(lat%nametable, ele%name, n_max+5+i)
+  call nametable_add(lat%nametable, ele%name, n_max+6+i)
 enddo
 
 n_plat_ele = n_def_ele

@@ -322,12 +322,6 @@ if (word == 'SPINOR_POLARIZATION' .or. word == 'SPINOR_PHI' .or. word == 'SPINOR
   return
 endif
 
-if (word == 'PTC_FIELD_GEOMETRY') then
-  call parser_error ('DUE TO A CHANGE IN PTC, "PTC_FIELD_GEOMETRY" IS NO LONGER A BEND PARAMETER.', &
-                     'SIMPLY REMOVE ANY REFERENCE TO THIS IN THE LATTICE FILE.')
-  return
-endif
-
 ! Setting n_ref_pass and multipass_ref_energy is no longer valid and
 ! will be ignored for backwards compatibility.
 if (word == 'N_REF_PASS' .or. word == 'MULTIPASS_REF_ENERGY') then
@@ -431,7 +425,6 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     a_ptrs(1)%i = nint(value)
     if (associated(a_ptrs(1)%i, bmad_com%taylor_order))                   bp_com%extra%taylor_order_set                    = .true.
     if (associated(a_ptrs(1)%i, bmad_com%default_integ_order))            bp_com%extra%default_integ_order_set             = .true.
-    if (associated(a_ptrs(1)%i, bmad_com%ptc_max_fringe_order))           bp_com%extra%ptc_max_fringe_order_set            = .true.
     if (associated(a_ptrs(1)%i, bmad_com%runge_kutta_order))              bp_com%extra%runge_kutta_order_set               = .true.
     if (associated(a_ptrs(1)%i, bmad_com%sad_n_div_max))                  bp_com%extra%sad_n_div_max_set                   = .true.
     if (associated(a_ptrs(1)%i, bmad_com%max_num_runge_kutta_step))       bp_com%extra%max_num_runge_kutta_step_set        = .true.
@@ -1552,11 +1545,6 @@ case ('REF_ORBIT')
   if (.not. parse_real_list (lat, ele%name // ' REF_ORBIT', ele%taylor%ref, .true., delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
-case ('PTC_MAX_FRINGE_ORDER')
-  call parser_error ('PLEASE CONVERT "PARAMETER[PTC_MAX_FRINGE_ORDER]" TO "BMAD_COM[PTC_MAX_FRINGE_ORDER]"', level = s_warn$)
-  call parser_get_integer (bmad_com%ptc_max_fringe_order, word, ix_word, delim, delim_found, err_flag); if (err_flag) return
-  bp_com%extra%ptc_max_fringe_order_set = .true.
-
 case ('TAYLOR_ORDER')
   call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag); if (err_flag) return
   if (ix <= 0) then
@@ -1732,14 +1720,11 @@ case ('PHOTON_TYPE')
   call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   lat%photon_type = ix   ! photon_type has been set.
 
-case ('PTC_EXACT_MODEL')
-  call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag); if (err_flag) return
-  call set_ptc (exact_modeling = logic)
+case ('EXACT_MODEL', 'PTC_EXACT_MODEL')        ! parameter[ptc_exact_model] is deprecated
+  call parser_get_logical (attrib_word, ptc_com%exact_model, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
-case ('PTC_EXACT_MISALIGN')
-  call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag)
-  if (err_flag) return
-  call set_ptc (exact_misalign = logic)
+case ('EXACT_MISALIGN', 'PTC_EXACT_MISALIGN')  ! parameter[ptc_exact_misalign] is deprecated
+  call parser_get_logical (attrib_word, ptc_com%exact_misalign, ele%name, delim, delim_found, err_flag)
 
 case ('PTC_FRINGE_GEOMETRY')
   call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -1747,6 +1732,10 @@ case ('PTC_FRINGE_GEOMETRY')
 
 case ('PTC_INTEGRATION_TYPE')
   call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele, delim, delim_found); if (err_flag) return
+
+case ('PTC_FIELD_GEOMETRY')
+  call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(ptc_field_geometry$) = ix
 
 case ('REF_ORIGIN')
   call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -1847,6 +1836,15 @@ case default   ! normal attribute
       call get_logical_real (attrib_word, ele%value(ix_attrib), err_flag)
     endif
     if (err_flag) return
+
+  case (is_integer$)
+    if (associated (a_ptr%i)) then
+      call parser_get_integer (a_ptr%i, word, ix_word, delim, delim_found, err_flag, trim(ele%name) // ' ' // attrib_word)
+    else
+      call parse_evaluate_value (trim(ele%name) // ' ' // word, ele%value(ix_attrib), lat, delim, delim_found, err_flag, ele = ele)
+    endif
+    if (err_flag) return
+    
 
   case default
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
@@ -2024,6 +2022,8 @@ end function parser_find_ele_for_attrib_transfer
 function attrib_free_problem (attrib_name) result (is_problem)
 
 type (ele_attribute_struct) attrib_info
+type (all_pointer_struct) a_ptr
+
 character(*) attrib_name
 logical is_problem, is_free
 
@@ -6507,7 +6507,7 @@ implicit none
 type (ele_struct),  target :: ele
 type (branch_struct), pointer :: branch
 
-real(rp) angle, a, rr, v_inv_mat(4,4), eta_vec(4)
+real(rp) a, rr, v_inv_mat(4,4), eta_vec(4)
 
 integer n
 logical kick_set, length_set, set_done, err_flag
@@ -6571,6 +6571,7 @@ case (beginning_ele$)
 !------------------
 ! Convert rbends to sbends and evaluate G if needed.
 ! Needed is the length and either: angle, G, or rho.
+! Note: l -> l_chord for rbends has already been done.
 
 case (sbend$, rbend$) 
 
@@ -6578,7 +6579,6 @@ case (sbend$, rbend$)
   g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
 
   if (ele%key /= sad_mult$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
-  angle = ele%value(angle$) 
 
   ! Only one of b_field, g, or rho may be set.
   ! B_field may not be set for an rbend since, in this case, L is not computable (we don't know the ref energy).
@@ -6597,52 +6597,55 @@ case (sbend$, rbend$)
 
   ! if rho is set then this gives g
 
-  if (ele%value(l$) /= 0 .and. angle /= 0 .and. ele%value(g$) /= 0) &
+  if (ele%value(l$) /= 0 .and. ele%value(angle$) /= 0 .and. ele%value(g$) /= 0) &
                       call parser_error ('ANGLE, G, AND L ARE ALL SPECIFIED FOR BEND: ' // ele%name)
-  if (ele%value(l$) /= 0 .and. angle /= 0 .and. ele%value(rho$) /= 0) &
+  if (ele%value(l$) /= 0 .and. ele%value(angle$) /= 0 .and. ele%value(rho$) /= 0) &
                       call parser_error ('ANGLE, RHO, AND L ARE ALL SPECIFIED FOR BEND: ' // ele%name)
 
   if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
 
   ! If g and angle are set then this determines l
 
-  if (ele%value(g$) /= 0 .and. angle /= 0) ele%value(l$) = angle / ele%value(g$)
+  if (ele%value(g$) /= 0 .and. ele%value(angle$) /= 0) ele%value(l$) = ele%value(angle$) / ele%value(g$)
+
+  if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0 .and. ele%value(l_chord$) == 0) then
+    call parser_error ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
+  endif
 
   ! Convert an rbend to an sbend
 
   if (ele%key == rbend$) then
-    ! Note: L may not be zero if g and angle have both been specified and are non-zero.
-    if (ele%value(l$) == 0) then
-      if (ele%value(l_chord$) == 0) then
-        angle = 0
-      elseif (angle /= 0) then
-        ele%value(l$) = ele%value(l_chord$) * angle / (2.0_rp * sin(0.5_rp*angle))
+    ! Note: L must be zero if g and angle have both been specified and are non-zero.
+    if (ele%value(l$) == 0 .and. ele%value(l_chord$) /= 0) then
+      if (ele%value(angle$) /= 0) then
+        ele%value(l$) = ele%value(l_chord$) * ele%value(angle$) / (2.0_rp * sin(0.5_rp*ele%value(angle$)))
       elseif (ele%value(g$) /= 0) then
         a = 0.5_rp * ele%value(l_chord$) * ele%value(g$)
         if (abs(a) >= 1) then
           call parser_error ('G * L FOR RBEND IS TOO LARGE TO BE PHYSICAL! ' // ele%name)
           return
         endif
-        angle = 2 * asin(a)
-        ele%value(l$) = ele%value(l_chord$) * angle / (2.0_rp * sin(0.5_rp*angle))
+        a = 2 * asin(a)
+        ele%value(l$) = ele%value(l_chord$) * a / (2.0_rp * sin(0.5_rp*a))
       else  ! g and angle are zero.
         ele%value(l$) = ele%value(l_chord$)
       endif
     endif
-    
-    ele%value(e1$) = ele%value(e1$) + 0.5_rp * angle
-    ele%value(e2$) = ele%value(e2$) + 0.5_rp * angle
-    ele%key = sbend$
 
+    if (ele%value(l$) /= 0 .and. ele%value(angle$) /= 0) then
+      ele%value(g$) = ele%value(angle$) / ele%value(l$) 
+    elseif (ele%value(g$) /= 0) then
+      ele%value(angle$) = ele%value(g$) * ele%value(l$) 
+    endif
+
+    ele%value(e1$) = ele%value(e1$) + 0.5_rp * ele%value(angle$)
+    ele%value(e2$) = ele%value(e2$) + 0.5_rp * ele%value(angle$)
+    ele%key = sbend$
   endif
 
   ! 
 
-  if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0) then
-    call parser_error ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
-  elseif (ele%value(angle$) /= 0) then
-    ele%value(g$) = ele%value(angle$) / ele%value(l$) 
-  endif
+  if (ele%value(angle$) /= 0) ele%value(g$) = ele%value(angle$) / ele%value(l$) 
 
   ! If fintx or hgapx are real_garbage then they have not been set.
   ! If so, set their valuse to fint and hgap.

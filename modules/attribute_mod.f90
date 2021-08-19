@@ -550,6 +550,7 @@ do i = 1, n_key$
   if (i == def_particle_start$) cycle
   if (i == def_line$)           cycle
   if (i == def_parameter$)      cycle
+  if (i == def_ptc_com$)        cycle
 
   call init_attribute_name1 (i, check_sum$, 'check_sum', private$)
 
@@ -980,11 +981,16 @@ call init_attribute_name1 (def_parameter$, particle$,                     'PARTI
 call init_attribute_name1 (def_parameter$, photon_type$,                  'PHOTON_TYPE')
 call init_attribute_name1 (def_parameter$, no_end_marker$,                'NO_END_MARKER')
 call init_attribute_name1 (def_parameter$, absolute_time_tracking$,       'ABSOLUTE_TIME_TRACKING')
-call init_attribute_name1 (def_parameter$, ptc_exact_model$,              'PTC_EXACT_MODEL')
-call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,           'PTC_EXACT_MISALIGN')
+call init_attribute_name1 (def_parameter$, exact_model$,                  'PTC_EXACT_MODEL')    ! Deprecated
+call init_attribute_name1 (def_parameter$, exact_misalign$,               'PTC_EXACT_MISALIGN') ! Deprecated
 call init_attribute_name1 (def_parameter$, default_tracking_species$,     'DEFAULT_TRACKING_SPECIES')
 call init_attribute_name1 (def_parameter$, electric_dipole_moment$,       'ELECTRIC_DIPOLE_MOMENT')
 call init_attribute_name1 (def_parameter$, high_energy_space_charge_on$,  'HIGH_ENERGY_SPACE_CHARGE_ON')
+
+call init_attribute_name1 (def_ptc_com$, exact_model$,                    'EXACT_MODEL')
+call init_attribute_name1 (def_ptc_com$, exact_misalign$,                 'EXACT_MISALIGN')
+call init_attribute_name1 (def_ptc_com$, old_integrator$,                 'OLD_INTEGRATOR')
+call init_attribute_name1 (def_ptc_com$, max_fringe_order$,               'MAX_FRINGE_ORDER')
 
 call init_attribute_name1 (detector$, l$,                             'L', dependent$)
 
@@ -1405,6 +1411,7 @@ call init_attribute_name1 (sbend$, taylor_field$,                   'TAYLOR_FIEL
 call init_attribute_name1 (sbend$, ptc_canonical_coords$,           'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (sbend$, exact_multipoles$,               'EXACT_MULTIPOLES')
 call init_attribute_name1 (sbend$, dpz_rad_damp_ave$,               'dpz_rad_damp_ave', private$)
+call init_attribute_name1 (sbend$, ptc_field_geometry$,             'PTC_FIELD_GEOMETRY')
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
@@ -1785,18 +1792,19 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
-      'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK')
+      'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', &
+      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_SLAVE', 'N_LORD', &
-      'PTC_MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR', 'RUNGE_KUTTA_ORDER', &
+      'MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR', 'RUNGE_KUTTA_ORDER', &
       'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM')
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
-      'ORIGIN_ELE_REF_PT', 'PARTICLE', 'DEFAULT_TRACKING_SPECIES', &
+      'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
@@ -2309,6 +2317,10 @@ case ('PARTICLE', 'REF_SPECIES')
 case ('PHASE_UNITS')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, angle_units_name, lbound(angle_units_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == radians$)
+
+case ('PTC_FIELD_GEOMETRY')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_field_geometry_name, lbound(ptc_field_geometry_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == sector$)
 
 case ('PTC_INTEGRATION_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_integration_type_name, lbound(ptc_integration_type_name, 1))
