@@ -214,7 +214,7 @@ write (1, '(a, 3i4)') '"gang1"  ABS 0 ', n_loc, eles(1)%ele%n_slave, eles(2)%ele
 !
 
 write (1, '(a, f10.2)') '"bmad_com[max_aperture_limit]"          ABS 0', bmad_com%max_aperture_limit
-write (1, '(a, i4)')    '"bmad_com[ptc_max_fringe_order]"        ABS 0', bmad_com%ptc_max_fringe_order
+write (1, '(a, i4)')    '"bmad_com[ptc_max_fringe_order]"        ABS 0', ptc_com%max_fringe_order
 write (1, '(a, l1, a)') '"bmad_com[convert_to_kinetic_momentum]" STR   "', bmad_com%convert_to_kinetic_momentum, '"'
 write (1, '(3a)')       '"geometry"                              STR   "', trim(geometry_name(lat%param%geometry)), '"'
 write (1, '(3a)')       '"quad-custom_attribute2"                STR   "', trim(attribute_name(quadrupole$, custom_attribute0$+2)), '"'
