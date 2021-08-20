@@ -46,7 +46,7 @@ if (graph%type == 'lat_layout') then
 endif
 
 if (.not. allocated (graph%curve)) then
-  call out_io (s_error$, r_name, 'NO CURVES ASSOCIATED WITH: ' // tao_graph_name(graph))
+  call out_io (s_warn$, r_name, 'NO CURVES ASSOCIATED WITH: ' // tao_graph_name(graph))
   graph%is_valid = .false.
   graph%why_invalid = 'NO ASSOCIATED CURVES'
   return
@@ -165,7 +165,7 @@ do i = 1, size(graph%curve)
     name = curve%data_type(:ix-1)
     if (.not. is_integer(curve%data_type(ix+1:), ix_slave)) then
       curve%valid = .false.
-      call out_io (s_error$, r_name, 'CURVE DATA_TYPE HAS NON-INTEGER SLAVE INDEX: ' // curve%data_type, &
+      call out_io (s_warn$, r_name, 'CURVE DATA_TYPE HAS NON-INTEGER SLAVE INDEX: ' // curve%data_type, &
                                      'FOR CURVE: ' // tao_curve_name(curve))
       cycle
     endif
@@ -173,7 +173,7 @@ do i = 1, size(graph%curve)
 
   call lat_ele_locator (name, u%model%lat, eles, n_loc, err)
   if (n_loc == 0) then
-    call out_io (s_error$, r_name, 'CANNOT FIND CONTROLLER ELEMENT: ' // name, &
+    call out_io (s_warn$, r_name, 'CANNOT FIND CONTROLLER ELEMENT: ' // name, &
                                    'FOR CURVE: ' // tao_curve_name(curve))
     curve%valid = .false.
     cycle
@@ -188,7 +188,7 @@ do i = 1, size(graph%curve)
   ele => eles(1)%ele
   if (ele%key == group$ .or. ele%key == overlay$) then
     if (ix_slave < 1 .or. ix_slave > ele%n_slave) then
-      call out_io (s_error$, r_name, 'SLAVE INDEX OF CONTROLLER ELEMENT OUT OF RANGE: ' // curve%data_type, &
+      call out_io (s_warn$, r_name, 'SLAVE INDEX OF CONTROLLER ELEMENT OUT OF RANGE: ' // curve%data_type, &
                                      'FOR CURVE: ' // tao_curve_name(curve))
       curve%valid = .false.
       cycle
@@ -197,7 +197,7 @@ do i = 1, size(graph%curve)
 
   elseif (ele%key == ramper$) then
     if (ix_slave < 1 .or. ix_slave > size(ele%control%ramp)) then
-      call out_io (s_error$, r_name, 'SLAVE INDEX OF CONTROLLER ELEMENT OUT OF RANGE: ' // curve%data_type, &
+      call out_io (s_warn$, r_name, 'SLAVE INDEX OF CONTROLLER ELEMENT OUT OF RANGE: ' // curve%data_type, &
                                      'FOR CURVE: ' // tao_curve_name(curve))
       curve%valid = .false.
       cycle
@@ -205,7 +205,7 @@ do i = 1, size(graph%curve)
     ctl => ele%control%ramp(ix_slave)
 
   else
-    call out_io (s_error$, r_name, 'ELEMENT IS NOT A GROUP, RAMPER, OR OVERLAY: ' // name, &
+    call out_io (s_warn$, r_name, 'ELEMENT IS NOT A GROUP, RAMPER, OR OVERLAY: ' // name, &
                                    'FOR CURVE: ' // tao_curve_name(curve))
     curve%valid = .false.
     cycle
@@ -337,7 +337,7 @@ curve_loop: do k = 1, size(graph%curve)
     if (size(scratch%info_x) == size(scratch%info_y)) then
       curve%ix_symb = pack (nint(scratch%x), mask = scratch%info_x%good .and. scratch%info_y%good)
     else
-      call out_io (s_error$, r_name, &
+      call out_io (s_warn$, r_name, &
           'SIZE OF SYMBOL INDEX ARRAY IS WRONG IN CURVE: ' // tao_curve_name(curve), &
           'CURVE%DATA_INDEX: ' // curve%data_index)
     endif
@@ -501,7 +501,7 @@ do k = 1, size(graph%curve)
 
   if (curve%data_source == 'beam') then
     if (curve%ix_ele_ref_track < 0) then
-      call out_io (s_error$, r_name, 'REFERENCE ELEMENT DOES NOT EXIST: ' // trim(curve%ele_ref_name), &
+      call out_io (s_warn$, r_name, 'REFERENCE ELEMENT DOES NOT EXIST: ' // trim(curve%ele_ref_name), &
                     'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
       curve%g%why_invalid = 'NO BEAM AT ELEMENT'
       return
@@ -510,7 +510,7 @@ do k = 1, size(graph%curve)
     beam => u%model_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
     ele => u%model%lat%branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)
     if (.not. allocated(beam%bunch)) then
-      call out_io (s_error$, r_name, 'NO BEAM AT ELEMENT: ' // trim(ele%name), &
+      call out_io (s_warn$, r_name, 'NO BEAM AT ELEMENT: ' // trim(ele%name), &
                     'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
       curve%g%why_invalid = 'NO BEAM AT ELEMENT'
@@ -527,7 +527,7 @@ do k = 1, size(graph%curve)
     endif
 
     if (n == 0) then
-      call out_io (s_error$, r_name, 'NO LIVE BEAM PARTICLES PRESENT AT ELEMENT: ' // trim(ele%name), &
+      call out_io (s_warn$, r_name, 'NO LIVE BEAM PARTICLES PRESENT AT ELEMENT: ' // trim(ele%name), &
                     'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
       curve%g%why_invalid = 'NO LIVE BEAM PARTICLES PRESENT'
@@ -576,13 +576,13 @@ do k = 1, size(graph%curve)
       if (curve%data_type   == d2_ptr%d1(i)%name) d1_y => d2_ptr%d1(i)
     enddo
     if (.not. associated(d1_x)) then
-      call out_io (s_error$, r_name, &
+      call out_io (s_warn$, r_name, &
               'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type_x, &
               'FOR CURVE: ' // tao_curve_name(curve))
       return
     endif
     if (.not. associated(d1_y)) then
-      call out_io (s_error$, r_name, &
+      call out_io (s_warn$, r_name, &
               'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type, &
               'FOR CURVE: ' // tao_curve_name(curve))
       return
@@ -590,7 +590,7 @@ do k = 1, size(graph%curve)
 
     if (lbound(d1_x%d, 1) /= lbound(d1_y%d, 1) .or. &
                                         ubound(d1_x%d, 1) /= ubound(d1_y%d, 1)) then 
-      call out_io (s_error$, r_name, &
+      call out_io (s_warn$, r_name, &
               'BOUNDS FOR X-AXIS AND Y-AXIS DATA OF PHASE SPACE PLOTTING MISMATCHED.', &
               'FOR CURVE: ' // tao_curve_name(curve))
       return
@@ -632,7 +632,7 @@ do k = 1, size(graph%curve)
     sigma_mat = matmul (matmul (mat4, sigma_mat), transpose(mat4))
 
     if (ix1_ax > 4 .or. ix2_ax > 4) then
-      call out_io (s_error$, r_name, &
+      call out_io (s_warn$, r_name, &
         'Z OR PZ PHASE SPACE PLOTTING NOT YET IMPLEMENTED FOR "twiss" DATA_SOURCE.')
       return
     endif
@@ -668,7 +668,7 @@ do k = 1, size(graph%curve)
     enddo
 
   else
-    call out_io (s_error$, r_name, &
+    call out_io (s_warn$, r_name, &
         'INVALID CURVE%DATA_SOURCE: ' // curve%data_source, &
         'FOR CURVE: '// tao_curve_name(curve))
     return
@@ -955,7 +955,7 @@ do k = 1, size(graph%curve)
   if (curve%data_source == 'beam') then
     beam => u%model_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
     if (.not. allocated(beam%bunch)) then
-      call out_io (s_error$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
+      call out_io (s_warn$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
       return
     endif
@@ -1127,7 +1127,7 @@ case ('energy')
   endif
   
 case default
-  call out_io (s_error$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)
+  call out_io (s_warn$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)
   if (present(err)) err = .true.
 end select
 
@@ -1657,7 +1657,7 @@ case ('var')
     enddo
   enddo v_loop
   if (ix_this .eq. -1) then
-    call out_io (s_error$, r_name, "This variable doesn't point to the currently displayed  universe.")
+    call out_io (s_warn$, r_name, "This variable doesn't point to the currently displayed  universe.")
     return
   endif
 
@@ -1708,7 +1708,7 @@ case ('var')
   data_type = trim(curve%data_type) // '|' // trim(curve%component)
   call tao_evaluate_expression (data_type, 0, graph%draw_only_good_user_data_or_vars, value_arr, scratch%info, err)
   if (err) then
-    call out_io (s_error$, r_name, 'BAD CURVE DATA_TYPE: ' // data_type)
+    call out_io (s_warn$, r_name, 'BAD CURVE DATA_TYPE: ' // data_type)
     return
   end if
 

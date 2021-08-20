@@ -913,11 +913,9 @@ endif
 
 ! Init for main branch...
 ! If init is via a call to init_beam_distribution: If the distribution is generated with the help of a random 
-! number generator a different distribution is generated on each time init_beam_distribution is called. 
+! number generator, a different distribution is generated each time init_beam_distribution is called. 
 ! This is a problem if, say, we are looking at changes to the beam transport due to changes in lattice parameters. 
 ! Of course if, for example, the beam_init structure is modified then we do want a distribution recalc.
-! So only reinit the distribution if the distribution has not already been initialized or if commanded 
-! via %init_starting_distribution.
 
 bb => u%model_branch(0)%beam
 
@@ -942,8 +940,7 @@ endif
 ele0 => branch%ele(bb%ix_track_start)
 ele1 => bb%ele_at_start
 
-if (bb%init_starting_distribution .or. bb%beam_init%position_file /= "" .or. &
-            any(ele0%value /= ele1%value) .or. .not. (ele0%a == ele1%a) .or. .not. (ele0%b == ele1%b)) then
+if (bb%init_starting_distribution .or. u%beam%always_reinit) then
   call init_beam_distribution (ele0, branch%param, bb%beam_init, beam, err, u%model%tao_branch(ix_branch)%modes)
   if (err) then
     call out_io (s_error$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT PROPERLY SET FOR UNIVERSE: ' // int_str(u%ix_uni))

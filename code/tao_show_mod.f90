@@ -422,12 +422,13 @@ case ('beam')
     fmt = '(3a, i0, a)'
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'General beam components (set by "set beam ..."):'
-    nl=nl+1; write(lines(nl), amt) 'beam_track_data_file   = ', quote(u%beam%track_data_file)
-    nl=nl+1; write(lines(nl), amt) 'beam_saved_at          = ', quote(u%beam%saved_at)
-    nl=nl+1; write(lines(nl), amt) 'beam_dump_at           = ', quote(u%beam%dump_at)
-    nl=nl+1; write(lines(nl), amt) 'beam_dump_file         = ', quote(u%beam%dump_file)
-    nl=nl+1; write(lines(nl), fmt) 'beam_track_start       = ', quote(bb%track_start), ' (', bb%ix_track_start, ')'
-    nl=nl+1; write(lines(nl), fmt) 'beam_track_end         = ', quote(bb%track_end), ' (', bb%ix_track_end, ')'
+    nl=nl+1; write(lines(nl), lmt) 'always_reinit     = ', u%beam%always_reinit
+    nl=nl+1; write(lines(nl), amt) 'track_data_file   = ', quote(u%beam%track_data_file)
+    nl=nl+1; write(lines(nl), amt) 'saved_at          = ', quote(u%beam%saved_at)
+    nl=nl+1; write(lines(nl), amt) 'dump_at           = ', quote(u%beam%dump_at)
+    nl=nl+1; write(lines(nl), amt) 'dump_file         = ', quote(u%beam%dump_file)
+    nl=nl+1; write(lines(nl), fmt) 'track_start       = ', quote(bb%track_start), ' (', bb%ix_track_start, ')'
+    nl=nl+1; write(lines(nl), fmt) 'track_end         = ', quote(bb%track_end), ' (', bb%ix_track_end, ')'
 
     beam => u%model_branch(0)%ele(bb%ix_track_start)%beam
     if (allocated(beam%bunch)) then

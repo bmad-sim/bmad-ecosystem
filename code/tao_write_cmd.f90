@@ -165,7 +165,7 @@ case ('beam')
 
     if (new_file) then
       call out_io (s_error$, r_name, 'BEAM NOT SAVED AT THIS ELEMENT.', &
-                    'CHECK THE SETTING OF THE BEAM_SAVED_AT COMPONENT OF THE TAO_BEAM_INIT NAMELIST.', &
+                    'CHECK THE SETTING OF THE SAVED_AT COMPONENT OF THE TAO_BEAM_INIT NAMELIST.', &
                     'ANOTHER POSSIBILITY IS THAT GLOBAL%TRACK_TYPE = "single" SO NO BEAM TRACKING HAS BEEN DONE.')
     else
       call out_io (s_info$, r_name, 'Written: ' // file_name)
