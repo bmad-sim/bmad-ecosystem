@@ -688,8 +688,8 @@ program moga
       cons(3)  = -1.0    ! closed orbit and mats exist out to +de
       cons(4)  = -1.0    !nonlinear dispersion out to -de
       cons(5)  = -1.0    !nonlinear dispersion out to +de
-      cons(6)  = -1.0    !off-energy tunes or traces
-      cons(7)  = -1.0    !off-energy tunes or traces
+      cons(6)  = -10.0    !off-energy tunes or traces
+      cons(7)  = -10.0    !off-energy tunes or traces
       ! On-energy constraints
       cons(8)  = -1.0 !x working point bounds
       cons(9)  = -1.0 !y working point bounds
