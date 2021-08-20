@@ -971,6 +971,7 @@ type tao_beam_uni_struct
   character(200) :: dump_file = ''
   character(200) :: dump_at = ''
   logical :: track_beam_in_universe = .false.    ! Beam tracking enabled in this universe?
+  logical :: always_reinit = .false.
 end type
 
 ! Logicals that determine what calculations need to be done.

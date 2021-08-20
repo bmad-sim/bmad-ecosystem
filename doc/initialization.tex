@@ -926,6 +926,16 @@ See \sref{s:lat.correction} for more details on \vn{global%n_opti_cycles} and
 \index{initialization!beams}
 \label{s:beam.init}
 
+The default is single particle tracking. To turn on particle tracking the \vn{global%track_type}
+parameter must be set to \vn{"beam"}. This can be placed in the \vn{tao_params} namelist above, for
+example,
+\begin{example}
+  &tao_params
+    global%optimizer = "lm"  ! Set the default optimizer.
+    global%track_type = "beam"
+  /
+\end{example}
+
 A particle beam is initialized in the \vn{tao_beam_init} namelist block.  The file that \tao looks
 in to find this namelist is set by the \vn{beam_file} component of the \vn{tao_start} namelist
 (\sref{s:init.global}). The default, if \vn{beam_file} is not set, is the root initialization file.
@@ -944,12 +954,13 @@ The syntax of the \vn{tao_beam_init} namelist is:
 \begin{example}
   &tao_beam_init
     ix_universe               = <integer>     ! Universe to apply to.
-    beam_track_data_file      = <string>      ! File used in place of beam tracking.
-    beam_saved_at             = "<ele_list>"  ! At what elements to save beam info.
-    beam_dump_file            = "<file_name>" ! File for saving beam info.
-    beam_dump_at              = "<ele_list>"  ! Save beam info at these elements.
-    beam_track_start          = "<ele_id>"    ! Beam tracking start element.
-    beam_track_end            = "<ele_id>"    ! Beam tracking end element.
+    always_reinit             = <logical>     ! Always reinit the particle distribution?
+    track_data_file           = <string>      ! File used in place of beam tracking.
+    saved_at                  = "<ele_list>"  ! At what elements to save beam info.
+    dump_file                 = "<file_name>" ! File for saving beam info.
+    dump_at                   = "<ele_list>"  ! Save beam info at these elements.
+    track_start               = "<ele_id>"    ! Beam tracking start element.
+    track_end                 = "<ele_id>"    ! Beam tracking end element.
     beam_init%position_file   = <string>      ! Beam position init file.
     beam_init%distribution_type(3) = "<type>" ! "ELLIPSE", "KV", "GRID", or 
                                               !   "RAN_GAUSS" (default).
@@ -987,36 +998,24 @@ The syntax of the \vn{tao_beam_init} namelist is:
 
 \begin{description}
 %
-\item[ix_universe] \Newline
-Beam initialization parameters can be set on a universe-by-universe basis by having multiple
-\vn{tao_beam_init} namelists. The universe that the namelist is applied to is set by the
-\vn{ix_universe} component. If \vn{ix_universe} is not present, or if set to -1, the beam
-initialization parameters will be applied to all universes. Universes where beam initialization
-parameters are not set will not have beams tracked through them.
-%
-\item[beam_track_data_file] \Newline
-The \vn{beam_track_data_file} component specifies a beam tracking data file (which can be created
-with the \vn{write beam} command) which contains the particle coordinates of the tracked beam at
-every element where the beam distribution is saved at. This causes \tao to use the data from the
-file in lieu of actual tracking. This can be helpful when to reanalyze old data if the time for \tao
-to track a bunch through the lattice becomes long. The file name can be overridden by using the
-\vn{-beam_track_data_file} argument on the command line (\sref{s:command.line}). Note: \tao will set
-the variable \vn{use_saved_beam_in_tracking} to \vn{True} to prevent actual tracking.
-%
-\item[beam_track_start, beam_track_end] \Newline
-\vn{beam_track_start} and \vn{beam_track_end} are used when it is desired to only track the beam
-through part of the root lattice branch. \vn{beam_track_start} gives the starting element name or
-index. Tracking will start at the exit end of this element so the beam {\em will not} be tracked
-through this element. The tracking will end at the exit end of the lattice element with name or
-index \vn{beam_track_end}. The default, if \vn{beam_track_start} is not given, is to start at
-the beginning of the branch The default for \vn{beam_track_end} is the end of the root branch if the 
-branch has an open geometry or beam tracking is beginning at the start of the branch. For a root
-branch with a closed geometry and with the beam starting in the middle, the tracking will wrap 
-around from the branch end to the beginning of the branch and will end up just before the starting point.
+\item[always_reinit] \Newline
+\tao tracks the beam through the lattice every time a lattice parameter is changed. For example,
+during optimizations or when the \vn{set} command (\sref{s:set}) is used. For the retracking, the
+default is that the particle distribution at the beginning of the lattice is not recalculated. The
+exception here is that if the \vn{set beam} (\sref{s:set.beam}) or \vn{set beam init}
+(\sref{s:set.beam.init}) is used (with the exception of the \vn{set beam beginning} command), the
+initial beam distribution is automatically reinitialized. To force a new initial beam particle
+distribution, use the \vn{reinitialize beam} command (\sref{s:reinit}). Also, if the
+\vn{always_reinit} parameter of the \vn{tao_beam_init} namelist is set to True, the initial
+distribution is always recalculated.
 
-After initialization, the \vn{set beam_init} (\sref{s:set.beam.init}) command can be used to set
-\vn{beam_track_start} and \vn{beam_track_end}. Note: Deprecated names for \vn{beam_track_start} and
-\vn{beam_track_end} are \vn{track_start} and \vn{track_end} respectively.
+Not recalculating the initial distribution can be important since, if the initial distribution is
+constructed with the help of a random number generator,\footnote
+  {
+Note that if the initial distribution is read in from a file, no random number generator is used.
+  }
+variations of the initial distribution will cause values calculated from the beam to ``jitter''. This
+can be especially problematical when doing an optimization as it may hinder finding the merit function minimum.
 %
 \item[beam_init] \Newline
 The \vn{beam_init} parameter is an instance of a \vn{beam_init_struct} structure which holds
@@ -1054,65 +1053,76 @@ The three random number generator parameters (\vn{%random_engine}, \vn{%random_g
 corresponding parameters in the \vn{beam_init} structure. That is, separate parameters may be setup
 for beam particle generation verses everything else.  These parameters are explained in
 Section~\sref{s:globals}.
-
-\end{description}
-
-\tao tracks the beam through the lattice every time a lattice parameter is changed. For example,
-during optimizations or when the \vn{set} command (\sref{s:set}) is used. For the retracking, the
-particle distribution at the beginning of the lattice is fixed. That is, the a new random
-distribution is {\emph not} generated. This can be important during optimizations since variations of
-the initial distribution may hinder finding the merit function minimum.
-
-To force a new distribution, use the \vn{reinitialize beam} command (\sref{s:reinit}). The exception
-here is that if the Twiss parameters at the place where the beam is started changes, \tao will
-reinitialize the beam. For example, in a lattice branch with a closed geometry, any changes to
-magnet strengths will result in Twiss parameters changing everywhere. One trick to keep the initial
-distribution constant here is to change the geometry from closed to open. Another possibility is to
-specify the initial distribution using a beam position initialization file by setting
-\vn{beam_init%position_file}.
-
-The default is single particle tracking. To turn on particle tracking the \vn{global%track_type}
-parameter must be set to \vn{"beam"}. This can be placed in the \vn{tao_params} namelist above, for
-example,
-\begin{example}
-  &tao_params
-    global%optimizer = "lm"  ! Set the default optimizer.
-    global%track_type = "beam"
-  /
-\end{example}
-
-\vn{beam_saved_at} is used to specify at what elements the beam particle positions are saved
-at. Note that, independent of the setting of \vn{beam_saved_at}, beam statistics (like the beam
-sigma matrix) are always saved at each lattice element. Element list format, as explained in
-\sref{s:ele.list.format}, is used to specify a list of elements for \vn{beam_saved_at}. The beam is
-automatically saved at the beginning position and end position of beam tracking and at \vn{fork} and
-\vn{photon_fork} elements.
+%
+\item[dump_at] \Newline
+See documentation on the \vn{dump_file} parameter below.
+%
+\item[dump_file] \Newline
+If the beam size is large or the number of elements at which the beam is to be saved at is large, it
+may be problematic to store all the beam particle position information in memory until the end of
+tracking. If this is the case, the beam particle position information can be written directly to a
+file during tracking (and not saved in memory) by setting \vn{dump_at} to a list of elements at
+which the position information is to be saved and setting \vn{dump_file} to the name of the
+data file. The data file should have an ".h5" or ".hdf5" suffix to save the data in HDF5
+format. Otherwise, an ASCII file will be produced. The syntax for \vn{dump_at} is the same at
+\vn{saved_at}. Saving directly to a file using \vn{dump_at} is separate from saving to
+memory using \vn{saved_at}. Example
 \begin{example}
   &tao_beam_init
-    beam_saved_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"
+    dump_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"
+                                      !   and all elements that have "34w" in their name. 
+    dump_file = "beam_dump.h5"
+  /
+\end{example}
+%
+\item[ix_universe] \Newline
+Beam initialization parameters can be set on a universe-by-universe basis by having multiple
+\vn{tao_beam_init} namelists. The universe that the namelist is applied to is set by the
+\vn{ix_universe} component. If \vn{ix_universe} is not present, or if set to -1, the beam
+initialization parameters will be applied to all universes. Universes where beam initialization
+parameters are not set will not have beams tracked through them.
+%
+\item[saved_at] \Newline
+\vn{saved_at} is used to specify at what elements the beam particle positions are saved at. Note
+that, independent of the setting of \vn{saved_at}, beam statistics (like the beam sigma matrix) are
+always saved at each lattice element. Element list format, as explained in \sref{s:ele.list.format},
+is used to specify a list of elements for \vn{saved_at}. The beam is automatically saved at the
+beginning position and end position of beam tracking and at \vn{fork} and \vn{photon_fork} elements.
+\begin{example}
+  &tao_beam_init
+    saved_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"
                                        !   and all elements that have "34w" in their name. 
   /
 \end{example}
 The elements where the beam is saved may be modified while \tao is running by using the \vn{set beam
 saved_at}, \vn{set beam add_saved_at}, and \vn{set beam subtract_saved_at} commands
-(\sref{s:set.beam}). To write the beam particle positions use the \vn{write beam} command (\sref{s:write.beam}).
+(\sref{s:set.beam}). To write the beam particle positions use the \vn{write beam} command
+(\sref{s:write.beam}).
+%
+\item[track_data_file] \Newline
+The \vn{track_data_file} component specifies a beam tracking data file (which can be created
+with the \vn{write beam} command) which contains the particle coordinates of the tracked beam at
+every element where the beam distribution is saved at. This causes \tao to use the data from the
+file in lieu of actual tracking. This can be helpful when to reanalyze old data if the time for \tao
+to track a bunch through the lattice becomes long. The file name can be overridden by using the
+\vn{-track_data_file} argument on the command line (\sref{s:command.line}). Note: \tao will set
+the variable \vn{use_saved_in_tracking} to \vn{True} to prevent actual tracking.
+%
+\item[track_start, track_end] \Newline
+\vn{track_start} and \vn{track_end} are used when it is desired to only track the beam
+through part of the root lattice branch. \vn{track_start} gives the starting element name or
+index. Tracking will start at the exit end of this element so the beam {\em will not} be tracked
+through this element. The tracking will end at the exit end of the lattice element with name or
+index \vn{track_end}. The default, if \vn{track_start} is not given, is to start at
+the beginning of the branch The default for \vn{track_end} is the end of the root branch if the 
+branch has an open geometry or beam tracking is beginning at the start of the branch. For a root
+branch with a closed geometry and with the beam starting in the middle, the tracking will wrap 
+around from the branch end to the beginning of the branch and will end up just before the starting point.
 
-If the beam size is large or the number of elements at which the beam is to be saved at is large, it
-may be problematic to store all the beam particle position information in memory until the end of
-tracking. If this is the case, the beam particle position information can be written directly to a
-file during tracking (and not saved in memory) by setting \vn{beam_dump_at} to a list of elements at
-which the position information is to be saved and setting \vn{beam_dump_file} to the name of the
-data file. The data file should have an ".h5" or ".hdf5" suffix to save the data in HDF5
-format. Otherwise, an ASCII file will be produced. The syntax for \vn{beam_dump_at} is the same at
-\vn{beam_saved_at}. Saving directly to a file using \vn{beam_dump_at} is separate from saving to
-memory using \vn{beam_saved_at}. Example
-\begin{example}
-  &tao_beam_init
-    beam_dump_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"
-                                      !   and all elements that have "34w" in their name. 
-    beam_dump_file = "beam_dump.h5"
-  /
-\end{example}
+After initialization, the \vn{set beam_init} (\sref{s:set.beam.init}) command can be used to set
+\vn{track_start} and \vn{track_end}. Note: Deprecated names for \vn{track_start} and
+\vn{track_end} are \vn{track_start} and \vn{track_end} respectively.
+\end{description}
 
 %-----------------------------------------------------------------
 \section{Initializing Variables}\index{initialization!variables}

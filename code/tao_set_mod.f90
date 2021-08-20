@@ -791,7 +791,7 @@ type (tao_beam_branch_struct), pointer :: bb
 integer ix, iu, n_loc, ie
 
 logical, allocatable :: this_u(:)
-logical err, logic
+logical err, logic, always_reinit
 
 character(*) who, value_str
 character(20) switch, who2
@@ -804,12 +804,18 @@ call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
 call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'beam_track_data_file', &
                     'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
                     'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
-                    'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file'], ix, matched_name=switch)
+                    'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', 'track_data_file', &
+                    'always_reinit'], ix, matched_name=switch)
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
   u => s%u(iu)
   bb => u%model_branch(0)%beam
+
+  if (switch /= 'beginning') then
+    bb%init_starting_distribution = .true.
+    u%calc%lattice = .true.
+  endif
 
   select case (switch)
   case ('beginning')
@@ -824,23 +830,21 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     bb%beam_at_start = beam
     u%calc%lattice = .true.
 
+  case ('always_reinit')
+    call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)
+
   case ('track_start', 'beam_track_start')
     call set_this_track(bb%track_start, bb%ix_track_start)
 
   case ('track_end', 'beam_track_end')
     call set_this_track(bb%track_end, bb%ix_track_end)
 
-  case ('beam_track_data_file')
+  case ('track_data_file', 'beam_track_data_file')
     u%beam%track_data_file = value_str
 
-  case ('beam_init_file_name')
-    call out_io (s_warn$, r_name, 'Note: "beam_init_file_name" has been renamed to "beam_init_position_file".')
+  case ('beam_init_position_file', 'beam_init_file_name')
+    if (switch == 'beam_init_file_name') call out_io (s_warn$, r_name, 'Note: "beam_init_file_name" has been renamed to "beam_init_position_file".')
     bb%beam_init%position_file = value_str
-    bb%init_starting_distribution = .true.
-
-  case ('beam_init_position_file')
-    bb%beam_init%position_file = value_str
-    bb%init_starting_distribution = .true.
 
   case ('dump_file', 'beam_dump_file')
     u%beam%dump_file = value_str
@@ -848,7 +852,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   case ('dump_at', 'beam_dump_at')
     call tao_locate_elements (value_str, u%ix_uni, eles, err)
     if (err) then
-      call out_io (s_error$, r_name, 'BAD BEAM_DUMP_AT STRING: ' // value_str)
+      call out_io (s_error$, r_name, 'BAD DUMP_AT STRING: ' // value_str)
       return
     endif
     u%beam%dump_at = value_str
@@ -866,7 +870,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   case ('saved_at', 'beam_saved_at')
     call tao_locate_elements (value_str, u%ix_uni, eles, err)
     if (err) then
-      call out_io (s_error$, r_name, 'BAD BEAM_SAVED_AT STRING: ' // value_str)
+      call out_io (s_error$, r_name, 'BAD SAVED_AT STRING: ' // value_str)
       return
     endif
     u%beam%saved_at = value_str
@@ -884,7 +888,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   case ('add_saved_at', 'subtract_saved_at')
     call tao_locate_elements (value_str, u%ix_uni, eles, err)
     if (err) then
-      call out_io (s_error$, r_name, 'BAD BEAM_SAVED_AT STRING: ' // value_str)
+      call out_io (s_error$, r_name, 'BAD SAVED_AT STRING: ' // value_str)
       return
     endif
 

@@ -316,12 +316,13 @@ case ('beam')
 
   u => point_to_uni(line, .false., err); if (err) return
 
-  nl=incr(nl); write (li(nl), amt) 'beam_track_data_file;STR;T;',           trim(u%beam%track_data_file)
-  nl=incr(nl); write (li(nl), amt) 'beam_track_start;STR;T;',               trim(u%model_branch(0)%beam%track_start)
-  nl=incr(nl); write (li(nl), amt) 'beam_track_end;STR;T;',                 trim(u%model_branch(0)%beam%track_end)
-  nl=incr(nl); write (li(nl), amt) 'beam_saved_at;STR;T;',                  trim(u%beam%saved_at)
-  nl=incr(nl); write (li(nl), amt) 'beam_dump_at;STR;T;',                   trim(u%beam%dump_at)
-  nl=incr(nl); write (li(nl), amt) 'beam_dump_file;STR;T;',                 trim(u%beam%dump_file)
+  nl=incr(nl); write (li(nl), lmt) 'always_reinit;LOGIC;T;',           u%beam%always_reinit
+  nl=incr(nl); write (li(nl), amt) 'track_data_file;STR;T;',           trim(u%beam%track_data_file)
+  nl=incr(nl); write (li(nl), amt) 'track_start;STR;T;',               trim(u%model_branch(0)%beam%track_start)
+  nl=incr(nl); write (li(nl), amt) 'track_end;STR;T;',                 trim(u%model_branch(0)%beam%track_end)
+  nl=incr(nl); write (li(nl), amt) 'saved_at;STR;T;',                  trim(u%beam%saved_at)
+  nl=incr(nl); write (li(nl), amt) 'dump_at;STR;T;',                   trim(u%beam%dump_at)
+  nl=incr(nl); write (li(nl), amt) 'dump_file;STR;T;',                 trim(u%beam%dump_file)
 
 !%% beam_init -----------------------
 ! Output beam_init parameters.
