@@ -798,9 +798,9 @@ program moga
               enddo
               co_screen = (co_limit - max(co_screen_x,co_screen_y)) / co_limit
               if(i==1) then
-                cons(4) = min(cons(4), co_screen)
+                cons(4) = co_screen
               elseif(i==2) then
-                cons(5) = min(cons(5), co_screen)
+                cons(5) = co_screen
               endif
             endif
 
