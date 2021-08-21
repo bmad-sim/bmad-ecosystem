@@ -37,7 +37,9 @@ type random_state_struct
   real(rp) :: x_sobseq(sobseq_maxdim) = 0
 end type
 
-type (random_state_struct), private, target, save :: ran_state_dflt
+type (random_state_struct), private, target, save :: ran_state_save
+type (random_state_struct), private, target, save, allocatable :: thread_ran_state(:)
+logical, private, save :: thread_state_allocated = .false.
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -154,11 +156,7 @@ real(rp), save :: erf_array(0:max_g) = 0
 ! ran_state%g is the normalized error function and maps from the 
 ! interval [0, 0.5] to [0, infinity].
 
-if (present(ran_state)) then
-  r_state => ran_state
-else
-  r_state => ran_state_dflt
-endif
+r_state => pointer_to_ran_state(ran_state)
 
 sig_cut = 1000
 if (r_state%gauss_sigma_cut > 0) sig_cut = r_state%gauss_sigma_cut
@@ -304,15 +302,9 @@ type (random_state_struct), pointer :: r_state
 character(*), optional :: set, get
 character(16) :: r_name = 'ran_engine'
 
-! Set state to use
+! Get
 
-if (present(ran_state)) then
-  r_state => ran_state
-else
-  r_state => ran_state_dflt
-endif
-
-! get
+r_state => pointer_to_ran_state(ran_state)
 
 if (present (get)) then
   select case (r_state%engine)
@@ -390,15 +382,9 @@ real(rp), optional :: set_sigma_cut, get_sigma_cut
 character(*), optional :: set, get
 character(16) :: r_name = 'ran_gauss_converter'
 
-! Set state to use
+! Get converter
 
-if (present(ran_state)) then
-  r_state => ran_state
-else
-  r_state => ran_state_dflt
-endif
-
-! get converter
+r_state => pointer_to_ran_state(ran_state)
 
 if (present (get)) then
   select case (r_state%gauss_converter)
@@ -485,19 +471,26 @@ type (random_state_struct), pointer :: r_state
 type (random_state_struct), optional, target :: ran_state
 
 integer, optional :: seed
-integer v(10)
+integer v(10), nt, max_t
 
 real(rp) dum(2)
 
-! Set state to use
+! Openmp
 
-if (present(ran_state)) then
-  r_state => ran_state
-else
-  r_state => ran_state_dflt
-endif
+nt = 0
 
-! init
+!$ if (.not. thread_state_allocated) then
+!$   nt = OMP_GET_THREAD_NUM()
+!$   max_t = OMP_GET_MAX_THREADS()
+!$   if (nt == 0) allocate (thread_ran_stat(max_t))
+!$OMP BARRIER
+!$   if (nt == 0) thread_state_allocated = .true.
+!$OMP BARRIER
+!$ endif
+
+! Init
+
+r_state => pointer_to_ran_state(ran_state)
 
 r_state%in_sobseq = 0
 r_state%ix_sobseq = 0
@@ -506,9 +499,9 @@ r_state%am = nearest(1.0,-1.0) / im_nr_ran
 
 if (seed == 0) then
   call date_and_time (values = v)
-  r_state%seed = v(1) + v(2) + 11*v(3) + 111*v(5) + 1111*v(6) + 11111*v(7) + 111111*v(8)
+  r_state%seed = v(1) + v(2) + 11*v(3) + 111*v(5) + 1111*v(6) + 11111*v(7) + 111111*v(8) + nt
 else
-  r_state%seed = seed
+  r_state%seed = seed + nt
 endif
 
 r_state%iy = ior(ieor(888889999, abs(r_state%seed)), 1)
@@ -548,19 +541,12 @@ implicit none
 type (random_state_struct), optional, target :: ran_state
 type (random_state_struct), pointer :: r_state
 
-integer, optional :: seed
-
-! Set state to use
-
-if (present(ran_state)) then
-  r_state => ran_state
-else
-  r_state => ran_state_dflt
-endif
+integer :: seed
 
 !
 
-if (present(seed)) seed = r_state%seed
+r_state => pointer_to_ran_state(ran_state)
+seed = r_state%seed
 
 end subroutine ran_seed_get 
 
@@ -585,11 +571,14 @@ subroutine ran_default_state (set_state, get_state)
 implicit none
 
 type (random_state_struct), optional :: set_state, get_state
+type (random_state_struct), pointer :: state_ptr
 
 !
 
-if (present(set_state)) ran_state_dflt = set_state
-if (present(get_state)) get_state = ran_state_dflt
+state_ptr => pointer_to_ran_state()
+
+if (present(set_state)) state_ptr = set_state
+if (present(get_state)) get_state = state_ptr
 
 end subroutine ran_default_state
 
@@ -624,16 +613,9 @@ integer(kr4b), parameter :: iq = 127773, ir = 2836
 
 character :: r_name = 'ran_uniform_scalar'
 
-! Set state to use
+! If r_state%iy < 0 then the random number generator has never been initialized.
 
-if (present(ran_state)) then
-  r_state => ran_state
-else
-  r_state => ran_state_dflt
-endif
-
-! If r_state%iy < 0 then the random number generator has never bee initialized.
-
+r_state => pointer_to_ran_state(ran_state)
 if (r_state%iy < 0) call ran_seed_put(r_state%seed)
 
 ! quasi-random
@@ -712,11 +694,11 @@ end subroutine ran_uniform_vector
 !   ran_state -- random_state_struct, optional: Generator state.
 !-
 
-subroutine super_sobseq (x, state)
+subroutine super_sobseq (x, ran_state)
 
 implicit none
 
-type (random_state_struct), optional, target :: state
+type (random_state_struct), optional, target :: ran_state
 type (random_state_struct), pointer :: r_state
 
 real(rp), dimension(:), intent(out) :: x
@@ -766,15 +748,9 @@ integer(i4_b), parameter :: iv(sobseq_maxdim*sobseq_maxbit) = [ &
 
 character(16), parameter :: r_name = 'super_sobseq'
 
-! which state to use?
+! Calc
 
-if (present(state)) then
-  r_state => state
-else
-  r_state => ran_state_dflt
-endif
-
-! calc
+r_state => pointer_to_ran_state(ran_state)
 
 im = r_state%in_sobseq
 do j = 1, sobseq_maxbit
@@ -796,5 +772,41 @@ r_state%in_sobseq = r_state%in_sobseq + 1
 
 end subroutine super_sobseq
 
-end module
+!+
+! Function pointer_to_ran_state(ran_state) result (ran_state_ptr)
+!
+! Routine to point to the appropriate state structure for generating random numbers
+!
+! Input:
+!   ran_state     -- random_state_struct, optional: Point to this if present.
+!                      Otherwise point to the global saved state.
+!
+! Output:
+!   ran_state_ptr -- random_state_struct, pointer: Pointer to the appropriate state.
+!-
 
+function pointer_to_ran_state(ran_state) result (ran_state_ptr)
+
+implicit none
+
+type (random_state_struct), optional, target :: ran_state
+type (random_state_struct), pointer :: ran_state_ptr
+
+integer nt
+
+!
+
+if (present(ran_state)) then
+  ran_state_ptr => ran_state
+  return
+endif
+
+!$ nt = OMP_GET_THREAD_NUM()
+!$ ran_state_ptr => thread_ran_state(nt)
+!$ return
+
+ran_state_ptr => ran_state_save
+
+end function pointer_to_ran_state
+
+end module
