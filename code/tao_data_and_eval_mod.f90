@@ -463,9 +463,6 @@ real(rp) theta, phi, psi
 complex(rp) eigen_val(6), eigen_vec(6,6)
 complex(rp) temp_cplx
 
-! Cf: Sands Eq 5.46 pg 124.
-real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
-
 integer i, j, jj, k, m, n, k_old, ix, ie, is, iz, ix_ele, ix_start, ix_ref, ie0, ie1
 integer n_size, ix0, which, expnt(6), n_track, n_max, ix_branch, expo(6), n_da
 
@@ -2865,8 +2862,8 @@ case ('sigma.')
         datum_value = sqrt(datum_value)
       else
         if (ix_ele == -1) ix_ele = branch%n_ele_track
-        datum_value = sqrt(4 * const_q_factor * classical_radius_factor * &
-                                 sum(rad_int_branch%ele(ix_ref+1:ix_ele)%lin_i3_e7) / 3) / mass_of(lat%param%particle)
+        datum_value = rad_int_branch%ele(ix_ele)%lin_sig_E / ele%value(E_tot$)
+        if (ix_ref > 0) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_sig_E / ele_ref%value(E_tot$)
         valid_value = .true.
       endif
     else
