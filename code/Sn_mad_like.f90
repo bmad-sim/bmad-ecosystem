@@ -1823,12 +1823,15 @@ CONTAINS
        E11=LIST%T1
        E22=LIST%T2
        ANG1=LIST%B0
+       RECTTILT%B0=ANG1/list%L
+       L1=2.0_dp*l1*SIN(ANG1/2.0_dp)/ANG1
     else
        RECTTILT=0
+       RECTTILT%B0=2.0_dp*SIN(ANG1/2.0_dp)/L1
     endif
 
 
-    RECTTILT%B0=2.0_dp*SIN(ANG1/2.0_dp)/L1
+
     !    IF(ANG1==zero) THEN
     !       RECTTILT%L=L1
     !       RECTTILT%LD=L1
