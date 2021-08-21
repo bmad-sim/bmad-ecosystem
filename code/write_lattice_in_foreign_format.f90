@@ -110,6 +110,7 @@ endif
 
 ! Use ptc exact_model = True since this is needed to get the drift nonlinear terms
 
+ptc_exact_model = ptc_com%exact_model
 ptc_com%exact_model = .true.
 
 ! Init

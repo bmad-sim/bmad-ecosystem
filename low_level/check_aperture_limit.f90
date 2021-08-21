@@ -192,6 +192,9 @@ if (ele%aperture_at == wall_transition$) then
     endif
 
   case (rectangular$, auto_aperture$)
+    x_old = old_orb%vec(1)
+    y_old = old_orb%vec(3)
+
     inside = (x1_lim == 0 .or. x_particle > x1_lim) .and. (x2_lim == 0 .or. x_particle < x2_lim) .and. &
              (y1_lim == 0 .or. y_particle > y1_lim) .and. (y2_lim == 0 .or. y_particle < y2_lim)
     old_inside = (x1_lim == 0 .or. x_old > x1_lim) .and. (x2_lim == 0 .or. x_old < x2_lim) .and. &

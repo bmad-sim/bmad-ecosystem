@@ -275,7 +275,9 @@ setting of \vn{radiation_damping_on}, will not affect the emittance calculation.
 As discussed in Section~\sref{s:radiation}, it is sometimes convenient to shift the emitted radiation
 spectrum so that the average energy emitted along the closed orbit is zero. This gets rid of the ``sawtooth''
 effect. To shift the average emitted energy to zero, set \vn{radiation_zero_average} to \vn{True}. The
-default is \vn{False}.
+default is \vn{False}. Currently, the shifting of the spectrum only works for non PTC
+dependent tracking. That is, the shifting is not applicable to tracking with Taylor maps and with
+\vn{symp_lie_ptc} (\sref{s:tkm}) tracking.
 %
 \item[\vn{rel_tol_adaptive_tracking}] \Newline
 Relative tolerance to use in adaptive tracking. This is used in \vn{runge_kutta} and
