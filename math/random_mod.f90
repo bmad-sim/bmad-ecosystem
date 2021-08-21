@@ -484,7 +484,7 @@ nt = 0
 !$ if (.not. thread_state_allocated) then
 !$   nt = OMP_GET_THREAD_NUM()
 !$   max_t = OMP_GET_MAX_THREADS()
-!$   if (nt == 0) allocate (thread_ran_state(max_t))
+!$   if (nt == 0) allocate (thread_ran_state(0:max_t-1))
 !$OMP BARRIER
 !$   if (nt == 0) thread_state_allocated = .true.
 !$OMP BARRIER
