@@ -465,6 +465,8 @@ end subroutine ran_gauss_converter
 
 subroutine ran_seed_put (seed, ran_state)
 
+!$ use omp_lib, only: OMP_GET_THREAD_NUM, OMP_GET_MAX_THREADS
+
 implicit none
 
 type (random_state_struct), pointer :: r_state
@@ -482,7 +484,7 @@ nt = 0
 !$ if (.not. thread_state_allocated) then
 !$   nt = OMP_GET_THREAD_NUM()
 !$   max_t = OMP_GET_MAX_THREADS()
-!$   if (nt == 0) allocate (thread_ran_stat(max_t))
+!$   if (nt == 0) allocate (thread_ran_state(max_t))
 !$OMP BARRIER
 !$   if (nt == 0) thread_state_allocated = .true.
 !$OMP BARRIER
@@ -786,6 +788,9 @@ end subroutine super_sobseq
 !-
 
 function pointer_to_ran_state(ran_state) result (ran_state_ptr)
+
+!$ use omp_lib, only: OMP_GET_THREAD_NUM
+
 
 implicit none
 
