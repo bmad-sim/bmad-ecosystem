@@ -639,7 +639,6 @@ type (probe) prb
 
 real(rp) average(6), sigma(6,6), dt
 integer i, n_sum, iu_part, i_turn, track_state, ix_branch
-logical is_lost
 
 character(40) fmt
 
@@ -688,8 +687,8 @@ do i_turn = 1, lttp%n_turns
   case ('BMAD')
     orb(ele_start%ix_ele) = orbit
     call track_many (lat, orb, ele_start%ix_ele, ele_start%ix_ele, 1, ix_branch, track_state)
-    is_lost = (track_state /= moving_forward$)
     orbit = orb(ele_start%ix_ele)
+    if (track_state /= moving_forward$) orbit%state = lost$
 
   case ('PTC')
     prb = orbit%vec
@@ -697,13 +696,12 @@ do i_turn = 1, lttp%n_turns
     call track_probe (prb, ltt_com%ptc_state, fibre1 = pointer_to_fibre(ele_start))
     orbit%vec = prb%x
     orbit%spin = quat_rotate(prb%q%x, orbit%spin)
-    is_lost = (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2))
-    if (all(orbit%vec == orbit_old%vec)) is_lost = .true.
+    if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2) .or. &
+                             orbit_too_large(orbit) .or. all(orbit%vec == orbit_old%vec)) orbit%state = lost$
     orbit_old%vec = orbit%vec
 
   case ('MAP')
     call ltt_track_map(lttp, ltt_com, orbit)
-    is_lost = (orbit%state /= alive$)
 
   case default
     print '(a)', 'Unknown tracking_method: ' // lttp%tracking_method
@@ -714,7 +712,7 @@ do i_turn = 1, lttp%n_turns
     write (iu_part, fmt) i_turn, orbit%vec, orbit%spin
   endif
 
-  if (is_lost) then
+  if (orbit%state /= alive$) then
     ele => branch%ele(track_state)
     print '(a, i0, 8a)', 'Particle lost at turn: ', i_turn
     if (lttp%tracking_method == 'BMAD') print '(5a)', 'Lost at element: ', trim(ele%name), ' (', ele_loc_name(ele), '), State: ', coord_state_name(orb(track_state)%state)
@@ -2064,11 +2062,8 @@ do i = 1, ubound(ltt_com%sec, 1)
 
   if (allocated(sec%map)) then
     call ptc_track_map_with_radiation (orbit, sec%map, rad_damp = damping_on, rad_fluct = fluct_on)
-    if (orbit_too_large(orbit) .or. abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. &
-                                             abs(orbit%vec(3)) > lttp%ptc_aperture(2)) then
-      orbit%state = lost$
-      return
-    endif
+    if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
+    if (orbit%state /= alive$) return
   elseif (sec%ele%name == 'RADIATION_PT') then
     call track1_radiation_center(orbit, pointer_to_next_ele(sec%ele, -1), pointer_to_next_ele(sec%ele), branch%param)
   else  ! EG: beambeam
