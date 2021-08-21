@@ -1201,7 +1201,6 @@ if (init_needed) then
   ptc_com_default%max_fringe_order = ptc_com%max_fringe_order
 endif
 
-
 end subroutine set_ptc_com_pointers
 
 !------------------------------------------------------------------------
@@ -4099,9 +4098,10 @@ endif
 
 if (ele%key == patch$) then
   if (ele%orientation == -1) then
+    floor0 = floor_position_struct(r0_vec$, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
     call ele_geometry (floor0, ele, floor1)
     dr = floor1%r
-    ang = [floor1%theta, floor1%phi, floor1%psi]
+    ang = [floor1%phi, floor1%theta, floor1%psi]
   else
     dr = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
     ang = [ele%value(y_pitch$), ele%value(x_pitch$), ele%value(tilt$)]
@@ -4136,8 +4136,8 @@ if (ele%key == patch$) then
   ! renormalize the patch length to get PTC to agree with Bmad.
 
   ptc_fibre%patch%time = 2     ! Subtract off reference time (which affects z in tracking).
-  ptc_fibre%patch%b_t = ele%value(l$) / beta_end + ele%value(t_offset$) * c_light 
-  ptc_fibre%patch%b_l = ele%value(l$) + ele%value(t_offset$) * c_light * beta_end
+  ptc_fibre%patch%b_t = ele%value(l$) / beta_end + ele%orientation * ele%value(t_offset$) * c_light 
+  ptc_fibre%patch%b_l = ele%value(l$) + ele%orientation * ele%value(t_offset$) * c_light * beta_end
 
 !----------------------------------------------------------------------
 ! Not patch nor floor_shift element.
