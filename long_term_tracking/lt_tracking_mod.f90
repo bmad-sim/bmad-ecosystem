@@ -584,7 +584,6 @@ type (ele_struct), pointer :: ele_start, ele_stop
 
 real(rp) spin_ptc(3)
 integer i_ps, sgn
-logical is_lost
 
 !
 
@@ -595,7 +594,7 @@ if (i_ps > 0) orb_start%vec(i_ps) = orb_start%vec(i_ps) + sgn * bmad_com%d_orb(i
 ! Map
 
 orb_map = orb_start
-call ltt_track_map (lttp, ltt_com, orb_map, is_lost)
+call ltt_track_map (lttp, ltt_com, orb_map)
 
 ! Bmad
 
@@ -703,7 +702,8 @@ do i_turn = 1, lttp%n_turns
     orbit_old%vec = orbit%vec
 
   case ('MAP')
-    call ltt_track_map(lttp, ltt_com, orbit, is_lost)
+    call ltt_track_map(lttp, ltt_com, orbit)
+    is_lost = (orbit%state /= alive$)
 
   case default
     print '(a)', 'Unknown tracking_method: ' // lttp%tracking_method
@@ -765,7 +765,7 @@ real(rp) time0, time1, time_now
 integer n, n_print_dead_loss, i_turn, ie, n_part_tot
 integer ip, ib, n_live_old, n_live, ix_branch
 
-logical err_flag, is_lost
+logical err_flag
 
 character(16) prefix_str
 character(200) file_name
@@ -852,8 +852,7 @@ do i_turn = 1, lttp%n_turns
       do ip = 1, size(bunch%particle)
         p => bunch%particle(ip)
         if (p%state /= alive$) cycle
-        call ltt_track_map (lttp, ltt_com, p, is_lost)
-        if (is_lost) p%state = lost$
+        call ltt_track_map (lttp, ltt_com, p)
       enddo
 
     case ('BMAD')
@@ -2037,7 +2036,7 @@ end subroutine ltt_pointer_to_map_ends
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_track_map (lttp, ltt_com, orbit, is_lost)
+subroutine ltt_track_map (lttp, ltt_com, orbit)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -2046,7 +2045,7 @@ type (ltt_section_struct), pointer :: sec
 type (branch_struct), pointer :: branch
 
 integer i
-logical is_lost, damping_on, fluct_on
+logical damping_on, fluct_on
 
 !
 
@@ -2059,22 +2058,23 @@ endif
 
 branch => ltt_com%tracking_lat%branch(0)
 
-
 do i = 1, ubound(ltt_com%sec, 1)
   sec => ltt_com%sec(i)
   if (.not. associated(sec%ele)) exit
 
   if (allocated(sec%map)) then
     call ptc_track_map_with_radiation (orbit, sec%map, rad_damp = damping_on, rad_fluct = fluct_on)
-    is_lost = (orbit_too_large(orbit) .or. abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2))
-    if (is_lost) exit
+    if (orbit_too_large(orbit) .or. abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. &
+                                             abs(orbit%vec(3)) > lttp%ptc_aperture(2)) then
+      orbit%state = lost$
+      return
+    endif
   elseif (sec%ele%name == 'RADIATION_PT') then
     call track1_radiation_center(orbit, pointer_to_next_ele(sec%ele, -1), pointer_to_next_ele(sec%ele), branch%param)
   else  ! EG: beambeam
     call track1 (orbit, sec%ele, branch%param, orbit)
   endif
 enddo
-
 
 end subroutine ltt_track_map
 
