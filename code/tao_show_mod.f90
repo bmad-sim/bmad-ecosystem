@@ -3273,6 +3273,7 @@ case ('normal_form')
     return
   endif
 
+  tao_lat => tao_pointer_to_tao_lat (u, model$)
   if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., tao_lat, ix_branch)
 
   bmad_nf => tao_branch%bmad_normal_form
