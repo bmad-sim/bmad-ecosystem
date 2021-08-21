@@ -63,21 +63,6 @@
 !                   is not changed.
 !   rad_int_by_ele  -- Rad_int_all_ele_struct, optional: Radiation integrals element by element. 
 !     %branch(ix_branch)%ele(0:) -- Array of rad_int1_struct structures, one for each element in the branch.
-!       %i0              -- I0 integral for the element. See the Bmad manual.
-!       %i1              -- I1 integral for the element.
-!       %i2              -- I2 integral for the element.
-!       %i3              -- I3 integral for the element.
-!       %i4a             -- "A" mode I4 integral for the element.
-!       %i4b             -- "B" mode I4 integral for the element.
-!       %i5a             -- "A" mode I5 integral for the element.
-!       %i5b             -- "B" mode I5 integral for the element.
-!       %lin_i2_E4       -- I2 * gamma^4 integral for the element.
-!       %lin_i3_E7       -- I3 * gamma^7 integral for the element.
-!       %lin_i5a_E6      -- I5a * gamma^6 integral for the element.
-!       %lin_i5b_E6      -- I5b * gamma^6 integral for the element.
-!       %lin_norm_emit_a -- "A" mode emittance. Running sum from the beginning of the branch.
-!       %lin_norm_emit_b -- "B" mode emittance. Running sum from the beginning of the branch.
-!
 !
 ! Notes:
 !
@@ -575,6 +560,7 @@ do i = 0, branch%n_ele_track
   mode%lin%i5b_E6 = mode%lin%i5b_E6 + rad_int_branch%ele(i)%lin_i5b_E6
   rad_int_branch%ele(i)%lin_norm_emit_a = branch%a%emit * gamma + factor * mode%lin%i5a_E6
   rad_int_branch%ele(i)%lin_norm_emit_b = branch%b%emit * gamma + factor * mode%lin%i5b_E6
+  rad_int_branch%ele(i)%lin_sig_E = mc2 * sqrt(2 * factor * mode%lin%i3_E7)
 enddo
 
 mode%lin%sig_E1 = mc2 * sqrt (2 * factor * mode%lin%i3_E7)

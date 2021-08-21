@@ -2086,6 +2086,7 @@ type rad_int1_struct
   real(rp) :: lin_i5b_E6  = 0
   real(rp) :: lin_norm_emit_a = 0 ! Running sum
   real(rp) :: lin_norm_emit_b = 0 ! Running sum
+  real(rp) :: lin_sig_E       = 0 ! Running sum
   real(rp) :: n_steps         = 0 ! number of qromb steps needed
 end type
 
