@@ -234,7 +234,7 @@ type (probe_zhe) z_probe
 real(rp) beta_end
 
 logical, optional :: rad_damp, rad_fluct
-logical damp, fluct
+logical damp, fluct, dummy
 
 !
 
@@ -264,6 +264,8 @@ endif
 if (bmad_com%spin_tracking_on) then
   orbit%spin = quat_rotate(z_probe%q%x, orbit%spin)
 endif
+
+dummy = orbit_too_large(orbit) ! Will set orbit%state if needed
 
 end subroutine ptc_track_map_with_radiation
 
