@@ -1,3 +1,0 @@
-Higher priority items at the top of the list
-
-* Building wall settings
