@@ -717,8 +717,8 @@ Example bend specification:
 \end{example}
 
 \vn{ptc_field_geometry} determines what coordinates PTC uses within a bend for calculating fields.
-This only affects tracking if PTC is being used. Possible values for
-\vn{ptc_field_geometry} are:
+This only affects tracking if PTC is being used and if \vn{ptc_com[exact_model]} is set to
+True (\sref{s:bmad.ptc.com}). Possible values for \vn{ptc_field_geometry} are:
 \begin{example}
   sector      ! Default
   straight
@@ -726,11 +726,18 @@ This only affects tracking if PTC is being used. Possible values for
 For \vn{sector} reference coordinates, the field coordinate reference frame is with respect to the
 arc of the reference trajectory. For \vn{straight} coordinates the coordinate reference frame is
 with respect to the chord line. For a bend where there are no other fields besides the basic dipole
-field, tracking is essentially uneffected.  When there are quadrupole or higher order fields, the
-fields are centered about the reference frame set by \vn{ptc_field_geometry}.
+field, tracking is essentially uneffected.\footnote
+  {
+There will be a small difference due to the fact that with a \vn{straight} geometry tracking uses a
+coordinate system with the $z$-axis along the chord and with a \vn{sector} geometry an integration step
+uses the curvilinear coordinate system with the $z$-axis along the arc of the bend. If the length
+of an integration step is made small, this difference will go to zero.
+  }
+When there are quadrupole or higher order fields, the fields are centered about the reference frame
+set by \vn{ptc_field_geometry}. Since \bmad based tracking does not implement \vn{straight} geometry
+tracking, \bmad and PTC tracking will show marked differences when \vn{ptc_field_geometry} is set to
+\vn{straight}.
 
-The above discussion is true for \vn{ptc_exact_model} set to True, for \vn{ptc_exact_model} set to
-False, a simplified sector tracking model is used in all cases.
 
 %-----------------------------------------------------------------
 \section{Capillary}
