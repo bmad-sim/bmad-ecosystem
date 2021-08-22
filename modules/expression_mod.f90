@@ -609,6 +609,7 @@ if (err_flag) then
   else
     call out_io (s_error$, r_name, err_string, 'FOR EXPRESSION: ' // expression)
   endif
+  value = real_garbage$
   return
 endif
 
