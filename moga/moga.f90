@@ -38,7 +38,6 @@ program moga
 
   real(rp) metric
   real(rp) chrom_x, chrom_y
-  real(rp) tr_a, tr_b
   real(rp) delta, linear_vec, da_vec
   real(rp) nu_x, nu_y, dist_to_coup
   real(rp) nux_cons, nuy_cons
@@ -46,8 +45,6 @@ program moga
   real(rp) min_dist_to_coup
   real(rp) delta_e
   real(rp), parameter :: TME = 50.0d-12
-  real(rp) log_tr_a_min, log_tr_a_max
-  real(rp) log_tr_b_min, log_tr_b_max
 
   logical linear_ok
   logical feasible
@@ -101,10 +98,10 @@ program moga
   integer, allocatable :: arc(:)
   integer, allocatable :: last_arc(:)
   integer, allocatable :: sel(:)
+  integer n_ok
   real(rp) omega_bound_lir
   real(rp) omega_bound_uir
   real(rp) r
-  logical fp_flag
 
   !mpi housekeeping
   integer myrank, from_id
@@ -182,10 +179,6 @@ program moga
   if(master) call check_params_bomb()
 
   ! process parameters
-  log_tr_a_min = log(tr_a_min/2.0d0)
-  log_tr_a_max = log(tr_a_max/2.0d0)
-  log_tr_b_min = log(tr_b_min/2.0d0)
-  log_tr_b_max = log(tr_a_max/2.0d0)
   n_linear = 0
   n_chrom = 0
   n_harmo = 0
@@ -760,8 +753,8 @@ program moga
         cons(2)  = 0.000001 ! closed orbit and mats exist out to -de
         cons(3)  = 0.000001 ! closed orbit and mats exist out to +de
         do i=1,2  ! i==1: negative de.  i==2: positive de.
+          n_ok = 0
           call clear_lat_1turn_mats(ring)
-          fp_flag = .false.
           do j=1,n_fp_steps
             !calculate closed orbit and optics at energy offset
             co(0)%vec = 0.0d0
@@ -805,42 +798,21 @@ program moga
             endif
 
             !calculate trace or off-energy tunes constraints.
-            if(chrom_mode == 'trace') then ! screen matrix traces
-              if(mat_ok) then
-                !Take logs of traces, because unstable modes can have huge traces.
-                tr_a = log( (ring%param%t1_no_RF(1,1)+ring%param%t1_no_RF(2,2))/2.0d0)
-                tr_b = log( (ring%param%t1_no_RF(3,3)+ring%param%t1_no_RF(4,4))/2.0d0)
-                cons(6) = min(tr_a-log_tr_a_min,cons(6))
-                cons(6) = min(log_tr_a_max-tr_a,cons(6))
-                cons(7) = min(tr_b-log_tr_b_min,cons(7))
-                cons(7) = min(log_tr_b_max-tr_b,cons(7))
-              endif
-            elseif(chrom_mode == 'tunes') then !screen tunes
-              if (.not. fp_flag) then
-                if(mat_ok) then
-                  nu_x = ring%ele(ring%n_ele_track)%a%phi/twopi
-                  nu_y = ring%ele(ring%n_ele_track)%b%phi/twopi
-                  if(nu_x .gt. x_fp_max) fp_flag = .true.
-                  if(nu_x .lt. x_fp_min) fp_flag = .true.
-                  if(nu_y .gt. y_fp_max) fp_flag = .true.
-                  if(nu_y .lt. y_fp_min) fp_flag = .true.
-                else
-                  fp_flag = .true.
-                endif
-                if(fp_flag) then
-                  if(i==1) then !negative chromatic footprint constraint
-                    cons(6) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
-                  elseif(i==2) then !positive chromatic footprint constraint
-                    cons(7) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
-                  endif
-                endif
-              endif
-            else
-              write(*,*) "FATAL: Unknown chrom_mode."
-              call mpi_finalize(mpierr)
-              error stop
+            if(mat_ok) then
+              nu_x = ring%ele(ring%n_ele_track)%a%phi/twopi
+              nu_y = ring%ele(ring%n_ele_track)%b%phi/twopi
+              if(nu_x .gt. x_fp_max) cycle
+              if(nu_x .lt. x_fp_min) cycle
+              if(nu_y .gt. y_fp_max) cycle
+              if(nu_y .lt. y_fp_min) cycle
+              n_ok = n_ok + 1
             endif
           enddo
+          if(i==1) then !negative chromatic footprint constraint
+            cons(6) = 0.0001-1.0*(n_fp_steps-n_ok)/n_fp_steps
+          elseif(i==2) then !positive chromatic footprint constraint
+            cons(7) = 0.0001-1.0*(n_fp_steps-n_ok)/n_fp_steps
+          endif
         enddo
 
         ! feasible if all constraints met, otherwise infeasible
@@ -943,11 +915,6 @@ program moga
       adts_x_max = -999.0
       adts_y_min = -999.0
       adts_y_max = -999.0
-      tr_a_min = -999.0
-      tr_a_max = -999.0
-      tr_b_min = -999.0
-      tr_b_max = -999.0
-      chrom_mode = 'bomb'
       init_len = -999.0
       fp_de_neg = -999.0
       fp_de_pos = -999.0
@@ -978,11 +945,6 @@ program moga
       fail = fail .or. check_bomb(adts_x_max,'adts_x_max')
       fail = fail .or. check_bomb(adts_y_min,'adts_y_min')
       fail = fail .or. check_bomb(adts_y_max,'adts_y_max')
-      fail = fail .or. check_bomb(tr_a_min,'tr_a_min')
-      fail = fail .or. check_bomb(tr_a_max,'tr_a_max')
-      fail = fail .or. check_bomb(tr_b_min,'tr_b_min')
-      fail = fail .or. check_bomb(tr_b_max,'tr_b_max')
-      fail = fail .or. check_bomb(chrom_mode,'chrom_mode')
       fail = fail .or. check_bomb(co_limit,'co_limit')
       fail = fail .or. check_bomb(linear_vec_cutoff,'linear_vec_cutoff')
       fail = fail .or. check_bomb(fp_de_neg,'fp_de_neg')
