@@ -5159,9 +5159,10 @@ end subroutine tao_param_value_routine
 !   valid_value   -- logical: True if evaluation was sucessful. False if not.
 !
 ! Output:
-!   err_str       -- Character(*): Error string for printing an error message.
+!   err_str       -- character(*): Error string for printing an error message.
 !   bad_datum     -- logical: True -> datum is malformed. False -> Could evaluate or evaluation problem was not due to the datum
 !                               itself (EG: the lattice was unstable).
+!   value         -- real(rp): Datum value.
 !-
 
 function tao_evaluate_datum_at_s (eval_point, s_offset, data_type, tao_lat, ele, ele_ref, valid_value, err_str, bad_datum) result(value)
@@ -5198,6 +5199,7 @@ if (associated(ele_ref)) ix_ref = ele_ref%ix_ele
 if (.not. associated(ele)) then
   err_str = 'THERE MUST BE AN ASSOCIATED ELEMENT WHEN S_OFFSET IS NON-ZERO OR EVAL_POINT != END.'
   bad_datum = .true.
+  value = real_garbage$
   return
 endif
 
@@ -5232,6 +5234,7 @@ else
   if (err) then
     err_str = 'CANNOT TRACK TO OFFSET POSITION.'
     bad_datum = .false.
+    value = real_garbage$
     return
   endif
 
