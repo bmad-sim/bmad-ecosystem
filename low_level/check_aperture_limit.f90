@@ -42,16 +42,17 @@ type (lat_param_struct), intent(inout) :: param
 
 real(rp) x_width2, y_width2, x_particle, y_particle, s_here, r, rel_p, x0, y0
 real(rp) x1_lim, x2_lim, y1_lim, y2_lim, dx1, dx2, dy1, dy2, d_max, r_wall
-real(rp) d_radius, d_old, position(6), x_old, y_old, r_old, f
+real(rp) d_radius, d_old, position(6), x_old, y_old, r_old, f, unstable_factor
 
 integer i, particle_at, physical_end
 logical do_tilt, err, no_wall, inside, old_inside
 logical, optional :: check_momentum
 character(*), parameter :: r_name = 'check_aperture_limit'
 
-! 
+! Care must be taken with OpenMP since param%unstable_factor is common to all threads.
 
 param%unstable_factor = 0
+unstable_factor = 0
 
 ! Check p_x and p_y
 
@@ -96,13 +97,13 @@ case (ecollimator$)
   x0 = ele%value(px_aperture_center$)
   y0 = ele%value(py_aperture_center$)
   if (x_width2 == 0 .or. y_width2 == 0) then
-    call check_this_limit (orb, param, orb%vec(2), x_width2, x0)
-    call check_this_limit (orb, param, orb%vec(4), y_width2, y0)
+    call check_this_limit (orb, param, orb%vec(2), x_width2, x0, unstable_factor)
+    call check_this_limit (orb, param, orb%vec(4), y_width2, y0, unstable_factor)
   else
     r = ((orb%vec(2) - x0)/x_width2)**2 + ((orb%vec(4) - y0)/y_width2)**2
     if (r > 1) then
       orb%state = lost$
-      param%unstable_factor = sqrt(r) - 1
+      unstable_factor = sqrt(r) - 1
     endif
   endif
 
@@ -111,21 +112,21 @@ case (ecollimator$)
   x0 = ele%value(z_aperture_center$)
   y0 = ele%value(pz_aperture_center$)
   if (x_width2 == 0 .or. y_width2 == 0) then
-    call check_this_limit (orb, param, orb%vec(5), x_width2, x0)
-    call check_this_limit (orb, param, orb%vec(6), y_width2, y0)
+    call check_this_limit (orb, param, orb%vec(5), x_width2, x0, unstable_factor)
+    call check_this_limit (orb, param, orb%vec(6), y_width2, y0, unstable_factor)
   else
     r = ((orb%vec(5) - x0)/x_width2)**2 + ((orb%vec(6) - y0)/y_width2)**2
     if (r > 1) then
       orb%state = lost$
-      param%unstable_factor = sqrt(r) - 1
+      unstable_factor = sqrt(r) - 1
     endif
   endif
 
 case (rcollimator$)
-  call check_this_limit (orb, param, orb%vec(2), ele%value(px_aperture_width2$), ele%value(px_aperture_center$))
-  call check_this_limit (orb, param, orb%vec(4), ele%value(py_aperture_width2$), ele%value(py_aperture_center$))
-  call check_this_limit (orb, param, orb%vec(5), ele%value(z_aperture_width2$), ele%value(z_aperture_center$))
-  call check_this_limit (orb, param, orb%vec(6), ele%value(pz_aperture_width2$), ele%value(pz_aperture_center$))
+  call check_this_limit (orb, param, orb%vec(2), ele%value(px_aperture_width2$), ele%value(px_aperture_center$), unstable_factor)
+  call check_this_limit (orb, param, orb%vec(4), ele%value(py_aperture_width2$), ele%value(py_aperture_center$), unstable_factor)
+  call check_this_limit (orb, param, orb%vec(5), ele%value(z_aperture_width2$), ele%value(z_aperture_center$), unstable_factor)
+  call check_this_limit (orb, param, orb%vec(6), ele%value(pz_aperture_width2$), ele%value(pz_aperture_center$), unstable_factor)
 end select
 
 ! A photon at the surface will have the appropriate coords already so do not need to offset.
@@ -175,7 +176,10 @@ y1_lim = -ele%value(y1_limit$)
 y2_lim =  ele%value(y2_limit$)
 
 if (ele%aperture_at == wall_transition$) then
-  if (.not. present(old_orb)) return
+  if (.not. present(old_orb)) then
+    param%unstable_factor = unstable_factor
+    return
+  endif
 
   select case (ele%aperture_type)
   case (elliptical$)
@@ -188,7 +192,7 @@ if (ele%aperture_at == wall_transition$) then
     r = (x_particle / x_width2)**2 + (y_particle / y_width2)**2
     if (r_old > 1 .neqv. r > 1) then
       orb%state = lost$
-      param%unstable_factor = abs(sqrt(r) - 1)
+      unstable_factor = abs(sqrt(r) - 1)
     endif
 
   case (rectangular$, auto_aperture$)
@@ -204,19 +208,19 @@ if (ele%aperture_at == wall_transition$) then
       orb%state = lost$
 
       if (x1_lim /= 0 .and. ((x_particle <= x1_lim .and. x_old >= x1_lim) .or. (x_particle >= x1_lim .and. x_old <= x1_lim))) then
-        param%unstable_factor = max(param%unstable_factor, abs((x_particle - x1_lim) / (x2_lim - x1_lim)))
+        unstable_factor = max(unstable_factor, abs((x_particle - x1_lim) / (x2_lim - x1_lim)))
       endif
 
       if (x2_lim /= 0 .and. ((x_particle <= x2_lim .and. x_old >= x2_lim) .or. (x_particle >= x2_lim .and. x_old <= x2_lim))) then
-        param%unstable_factor = max(param%unstable_factor, abs((x_particle - x2_lim) / (x2_lim - x1_lim)))
+        unstable_factor = max(unstable_factor, abs((x_particle - x2_lim) / (x2_lim - x1_lim)))
       endif
 
       if (y1_lim /= 0 .and. ((y_particle <= y1_lim .and. y_old >= y1_lim) .or. (y_particle >= y1_lim .and. y_old <= y1_lim))) then
-        param%unstable_factor = max(param%unstable_factor, abs((y_particle - y1_lim) / (y2_lim - y1_lim)))
+        unstable_factor = max(unstable_factor, abs((y_particle - y1_lim) / (y2_lim - y1_lim)))
       endif
 
       if (y2_lim /= 0 .and. ((y_particle <= y2_lim .and. y_old >= y2_lim) .or. (y_particle >= y2_lim .and. y_old <= y2_lim))) then
-        param%unstable_factor = max(param%unstable_factor, abs((y_particle - y2_lim) / (y2_lim - y1_lim)))
+        unstable_factor = max(unstable_factor, abs((y_particle - y2_lim) / (y2_lim - y1_lim)))
       endif
     endif
 
@@ -227,7 +231,7 @@ if (ele%aperture_at == wall_transition$) then
     d_radius = wall3d_d_radius (position, ele)
     if (.not. no_wall .and. (d_radius > 0 .neqv. d_old > 0)) then
       orb%state = lost$
-      param%unstable_factor = abs(d_radius) / r_wall
+      unstable_factor = abs(d_radius) / r_wall
     endif
 
   case default
@@ -235,6 +239,7 @@ if (ele%aperture_at == wall_transition$) then
     if (global_com%exit_on_error) call err_exit
   end select
 
+  param%unstable_factor = unstable_factor
   return
 endif
 
@@ -246,7 +251,10 @@ case (elliptical$)
   call elliptical_params_setup(ele, x1_lim, x2_lim, x_particle, x_width2, x0, err); if (err) return
   call elliptical_params_setup(ele, y1_lim, y2_lim, y_particle, y_width2, y0, err); if (err) return
   r = (x_particle / x_width2)**2 + (y_particle / y_width2)**2
-  if (r < 1) return
+  if (r < 1) then
+    param%unstable_factor = unstable_factor
+    return
+  endif
 
   if (abs(x_particle / x_width2) > abs(y_particle / y_width2)) then
     if (x_particle > 0) then; orb%state = lost_pos_x_aperture$
@@ -258,38 +266,38 @@ case (elliptical$)
     endif
   endif
 
-  param%unstable_factor = sqrt(r) - 1
+  unstable_factor = sqrt(r) - 1
 
 case (rectangular$, auto_aperture$)
   if (x1_lim /= 0 .and. x_particle < x1_lim) then
     f = abs((x_particle - x1_lim) / (x2_lim - x1_lim))
-    if (f > param%unstable_factor) then
+    if (f > unstable_factor) then
       orb%state = lost_neg_x_aperture$
-      param%unstable_factor = f
+      unstable_factor = f
     endif
   endif
   
   if (x2_lim /= 0 .and. x_particle > x2_lim) then
     f = abs((x_particle - x2_lim) / (x2_lim - x1_lim))
-    if (f > param%unstable_factor) then
+    if (f > unstable_factor) then
       orb%state = lost_pos_x_aperture$
-      param%unstable_factor = f
+      unstable_factor = f
     endif
   endif
 
   if (y1_lim /= 0 .and. y_particle < y1_lim) then
     f = abs((y_particle - y1_lim) / (y2_lim - y1_lim))
-    if (f > param%unstable_factor) then
+    if (f > unstable_factor) then
       orb%state = lost_neg_y_aperture$
-      param%unstable_factor = f
+      unstable_factor = f
     endif
   endif
   
   if (y2_lim /= 0 .and. y_particle > y2_lim) then
     f = abs((y_particle - y2_lim) / (y2_lim - y1_lim))
-    if (f > param%unstable_factor) then
+    if (f > unstable_factor) then
       orb%state = lost_pos_y_aperture$
-      param%unstable_factor = f
+      unstable_factor = f
     endif
   endif
 
@@ -298,7 +306,7 @@ case (wall3d$)
   d_radius = wall3d_d_radius (position, ele, no_wall_here = no_wall, radius_wall = r_wall)
   if (.not. no_wall .and. d_radius > 0) then
     orb%state = lost$
-    param%unstable_factor = d_radius / r_wall
+    unstable_factor = d_radius / r_wall
   endif
 
 case default
@@ -306,20 +314,22 @@ case default
   if (global_com%exit_on_error) call err_exit
 end select
 
+param%unstable_factor = unstable_factor
+
 !----------------------------------------------------------------------------------
 contains
 
-subroutine check_this_limit (orbit, param, coord, width2, center)
+subroutine check_this_limit (orbit, param, coord, width2, center, unstable_factor)
 
 type (coord_struct) orbit
 type (lat_param_struct) param
-real(rp) coord, width2, center
+real(rp) coord, width2, center, unstable_factor
 
 if (width2 == 0) return
 if (coord > center - width2 .and. coord < center + width2) return
 
 orbit%state = lost$
-param%unstable_factor = max((center - width2) - coord, coord - (center + width2))
+unstable_factor = max((center - width2) - coord, coord - (center + width2))
 
 end subroutine check_this_limit
 
