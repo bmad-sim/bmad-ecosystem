@@ -711,6 +711,9 @@ program moga
           vars_phys(1+n_linear:n_linear+n_chrom) = 0.0d0
           vars_phys(1+n_linear+n_chrom:n_linear+n_chrom+n_harmo) = vars(1+n_linear+n_omega:n_linear+n_harmo+n_omega)
         endif
+      else
+        cons(8) = 1.0d0
+        cons(9) = 1.0d0
       endif
 
 

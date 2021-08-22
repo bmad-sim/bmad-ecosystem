@@ -17,7 +17,6 @@ character*100 moga_output_file
 real(rp) set_chrom_x
 real(rp) set_chrom_y
 character*100 initial_pop
-character*5 chrom_mode ! 'tunes' or 'trace'
 integer seed
 integer generate_feasible_seeds_only
 type(breeder_params_struct) breeder_params
@@ -57,7 +56,6 @@ namelist / nl_moga /       moga_output_file, &
                         fp_dE_neg, &
                         fp_dE_pos, &
                         n_fp_steps, &
-                        chrom_mode, &
                         tr_a_min, &
                         tr_a_max, &
                         tr_b_min, &
