@@ -39,11 +39,6 @@
     fp_dE_neg = -0.05  ! bound for chromatic footprint constraint
     fp_dE_pos = 0.05
     n_fp_steps = 51  ! granularity of chromatic footprint calculation
-    chrom_mode = 'traces'  ! 'traces' to constrain chromatic footprint using traces (some infor for unstable lattices). 'tunes' to constrain tunes directly (blind for unstable lattices).
-    tr_a_min = -2.0  ! bounds for horizontal chromatic trace
-    tr_a_max = 2.0
-    tr_b_min = -2.0  ! bounds for vertical chromatic trace
-    tr_b_max = 2.0
     x_fp_min = 37.0  ! bounds for horizontal and vertical trace
     x_fp_max = 38.0
     y_fp_min = 10.0
