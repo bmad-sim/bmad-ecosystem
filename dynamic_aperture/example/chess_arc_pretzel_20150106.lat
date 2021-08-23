@@ -52,9 +52,6 @@ call, file=chess_05.bmad
 wigw_mid: marker, superimpose, ref = vkick_08wb
 wige_mid: marker, superimpose, ref = wig_e
 
-scv43w: marker, superimpose, ref=Q43W, ref_end, offset=0.5802
-scv43e: marker, superimpose, ref=Q43E, ref_end, offset=-1.1782
-
 wig_e[b_max] = 1.17
 
 !Turn off wigglers:
