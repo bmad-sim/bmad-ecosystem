@@ -181,7 +181,7 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
 
   !
 
-  call ran_uniform_scalar (r, r_state, index_quasi)
+  call ran_uniform_scalar (r, ran_state, index_quasi)
   if (r > 0.5) then
     r = r - 0.5
     ss = 1
@@ -218,7 +218,7 @@ do
   ! else we generate a number
 
   do
-    call ran_uniform(a, r_state)
+    call ran_uniform(a, ran_state)
     v1 = 2*a(1) - 1
     v2 = 2*a(2) - 1
     r = v1**2 + v2**2
@@ -457,7 +457,7 @@ end subroutine ran_gauss_converter
 ! Modules needed:
 !   use random_mod
 !
-! Intput:
+! Input:
 !   seed  -- Integer, optional: Seed number. If seed = 0 then a 
 !              seed will be choosen based upon the system clock.
 !   ran_state -- random_state_struct, optional: Internal state.
@@ -469,30 +469,49 @@ subroutine ran_seed_put (seed, ran_state)
 
 implicit none
 
-type (random_state_struct), pointer :: r_state
 type (random_state_struct), optional, target :: ran_state
 
-integer, optional :: seed
-integer v(10), nt, max_t
+integer :: seed
+integer nt, max_t, n
 
 real(rp) dum(2)
 
-! Openmp
+! OpenMP put
 
-nt = 0
-
-!$ if (.not. thread_state_allocated) then
-!$   nt = OMP_GET_THREAD_NUM()
-!$   max_t = OMP_GET_MAX_THREADS()
-!$   if (nt == 0) allocate (thread_ran_state(0:max_t-1))
+!$  nt = OMP_GET_THREAD_NUM()
+!$  max_t = OMP_GET_MAX_THREADS()
+!$  if (.not. thread_state_allocated .and. nt == 0) then
+!$    allocate (thread_ran_state(0:max_t-1))
+!$  endif
 !$OMP BARRIER
-!$   if (nt == 0) thread_state_allocated = .true.
+
+!$  if (nt == 0) then
+!$    thread_state_allocated = .true.
+!$    do n = 0, max_t-1
+!$      call this_seed_put(n, seed, ran_state)
+!$    enddo
+!$  endif
 !$OMP BARRIER
-!$ endif
+!$  return
 
-! Init
+! Non-OpenMP put
 
-r_state => pointer_to_ran_state(ran_state)
+call this_seed_put (0, seed, ran_state)
+
+!---------------------------------------------
+contains
+
+subroutine this_seed_put (nt, seed, ran_state)
+
+type (random_state_struct), pointer :: r_state
+type (random_state_struct), optional, target :: ran_state
+
+integer :: seed
+integer v(10), nt
+
+!
+
+r_state => pointer_to_ran_state(ran_state, nt)
 
 r_state%in_sobseq = 0
 r_state%ix_sobseq = 0
@@ -510,6 +529,8 @@ r_state%iy = ior(ieor(888889999, abs(r_state%seed)), 1)
 r_state%ix = ieor(777755555, abs(r_state%seed))
 
 r_state%number_stored = .false.
+
+end subroutine this_seed_put
 
 end subroutine ran_seed_put
 
@@ -624,7 +645,7 @@ if (r_state%iy < 0) call ran_seed_put(r_state%seed)
 
 if (r_state%engine == quasi_random$) then
   ix_q = integer_option(1, index_quasi)
-  if (ix_q == 1) call super_sobseq (r_state%x_sobseq, r_state)
+  if (ix_q == 1) call super_sobseq (r_state%x_sobseq, ran_state)
   if (ix_q > sobseq_maxdim) then
     call out_io (s_error$, r_name, 'NUMBER OF DIMENSIONS WANTED IS TOO LARGE!')
     if (global_com%exit_on_error) call err_exit
@@ -775,19 +796,20 @@ r_state%in_sobseq = r_state%in_sobseq + 1
 end subroutine super_sobseq
 
 !+
-! Function pointer_to_ran_state(ran_state) result (ran_state_ptr)
+! Function pointer_to_ran_state(ran_state, ix_thread) result (ran_state_ptr)
 !
 ! Routine to point to the appropriate state structure for generating random numbers
 !
 ! Input:
 !   ran_state     -- random_state_struct, optional: Point to this if present.
 !                      Otherwise point to the global saved state.
+!   ix_thread     -- integer, optional: Thread index.
 !
 ! Output:
 !   ran_state_ptr -- random_state_struct, pointer: Pointer to the appropriate state.
 !-
 
-function pointer_to_ran_state(ran_state) result (ran_state_ptr)
+function pointer_to_ran_state(ran_state, ix_thread) result (ran_state_ptr)
 
 !$ use omp_lib, only: OMP_GET_THREAD_NUM
 
@@ -797,6 +819,7 @@ implicit none
 type (random_state_struct), optional, target :: ran_state
 type (random_state_struct), pointer :: ran_state_ptr
 
+integer, optional :: ix_thread
 integer nt
 
 !
@@ -806,7 +829,7 @@ if (present(ran_state)) then
   return
 endif
 
-!$ nt = OMP_GET_THREAD_NUM()
+!$ nt = integer_option(OMP_GET_THREAD_NUM(), ix_thread)
 !$ ran_state_ptr => thread_ran_state(nt)
 !$ return
 
