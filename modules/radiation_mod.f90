@@ -67,18 +67,16 @@ implicit none
 
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: field_ele
 type (lat_param_struct) :: param
 type (coord_struct) :: orbit2
-type (coord_struct) start0_orb, start_orb, end_orb
-type (track_struct) track
 
 real(rp) len2, int_gx, int_gy, int_g2, int_g3, kx, ky, kx_tot, ky_tot, s_here
 real(rp) eff_len, g2, g3, gx, gy, cos_t, sin_t, tilt
 real(rp) a_pole_mag(0:n_pole_maxx), b_pole_mag(0:n_pole_maxx)
 real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
-real(rp), parameter :: del_orb = 1d-4
 
-integer edge, direc, track_method_saved
+integer edge, direc
 integer i, j, ix_mag_max, ix_elec_max
 
 logical use_half_length, err_flag
@@ -129,54 +127,23 @@ if (eff_len <= 0) return
 ! Wiggler, undulator, em_field case
 
 if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) then
+  field_ele => pointer_to_field_ele (ele, 1)
   int_gx = 0
   int_gy = 0
 
-  if (ele%field_calc == planar_model$) then
+  if (field_ele%field_calc == planar_model$) then
     g2 = abs(ele%value(k1y$))
     g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
     int_g2 = eff_len * g2
     int_g3 = eff_len * g3
 
-  elseif (ele%field_calc == helical_model$) then
+  elseif (field_ele%field_calc == helical_model$) then
     g2 = abs(ele%value(k1y$))
     g3 = sqrt(g2)**3
     int_g2 = eff_len * g2
     int_g3 = eff_len * g3
 
   else
-    if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) then
-      if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
-
-      ! If %map_ref_orb_in has not been set (can happen before the closed orbit is 
-      ! calculated or during optimization), use %time_ref_orb_in.
-      if (ele%map_ref_orb_in%state == not_set$ .or. ele%map_ref_orb_in%p0c /= ele%value(p0c$)) then
-        start0_orb = ele%time_ref_orb_in
-      else
-        start0_orb = ele%map_ref_orb_in
-      endif
-      ele%rad_int_cache%orb0 = start0_orb%vec
-
-      track%n_pt = -1
-      track_method_saved = ele%tracking_method
-      if (ele%tracking_method == taylor$) ele%tracking_method = runge_kutta$
-      call track1 (start0_orb, ele, param, end_orb, track, err_flag, .true.)
-      call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
-
-      do j = 1, 4
-        start_orb = start0_orb
-        start_orb%vec(j) = start_orb%vec(j) + del_orb
-        track%n_pt = -1
-        call track1 (start_orb, ele, param, end_orb, track, err_flag, .true.)
-        call calc_g (track, g2, g3)
-        ele%rad_int_cache%dg2_dorb(j) = (g2 - ele%rad_int_cache%g2_0) / del_orb
-        ele%rad_int_cache%dg3_dorb(j) = (g3 - ele%rad_int_cache%g3_0) / del_orb
-      enddo
-
-      ele%rad_int_cache%stale = .false.
-      ele%tracking_method = track_method_saved
-    endif
-
     int_g2 = eff_len * (ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4)))
     int_g3 = eff_len * (ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4)))
     if (int_g3 < 0) int_g3 = 0
@@ -252,50 +219,6 @@ else
   int_gx = len2 * (gx * cos_t - gy * sin_t)
   int_gy = len2 * (gx * sin_t + gy * cos_t)
 endif
-
-!-------------------------------------------------------
-contains
-
-subroutine calc_g (track, g2, g3)
-
-type (track_struct) track
-real(rp) g2, g3, g2_here, g3_here, g(3), f, s0
-integer j, n1
-
-! g2 is the average g^2 over the element for an on-energy particle.
-
-track%pt(:)%orb%vec(6) = 0  ! on-energy
-
-g2 = 0; g3 = 0
-
-n1 = track%n_pt
-s0 = ele%s_start
-
-do j = 0, n1
-
-  call g_bending_strength_from_em_field (ele, param, track%pt(j)%orb%s - s0, track%pt(j)%orb, .false., g)
-
-  g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
-  g3_here = sqrt(g2_here)**3
-
-  if (j == 0) then
-    g2 = g2 + g2_here * track%pt(1)%s_body / 2.0_rp
-    g3 = g3 + g3_here * track%pt(1)%s_body / 2.0_rp
-  elseif (j == n1) then
-    g2 = g2 + g2_here * (track%pt(n1)%s_body - track%pt(n1-1)%s_body) / 2.0_rp
-    g3 = g3 + g3_here * (track%pt(n1)%s_body - track%pt(n1-1)%s_body) / 2.0_rp
-  else
-    g2 = g2 + g2_here * (track%pt(j-1)%s_body - track%pt(j+1)%s_body) / 2.0_rp
-    g3 = g3 + g3_here * (track%pt(j-1)%s_body - track%pt(j+1)%s_body) / 2.0_rp
-  endif
-
-
-enddo
-
-g2 = g2 / track%pt(n1)%s_body
-g3 = g3 / track%pt(n1)%s_body
-
-end subroutine calc_g
 
 end subroutine calc_radiation_tracking_integrals
 

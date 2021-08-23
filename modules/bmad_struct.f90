@@ -121,6 +121,8 @@ character(12), parameter :: distribution_name(0:3) = ['GARBAGE! ', 'Uniform  ', 
 ! Control element logicals.
 ! Note: super_slave$ and multipass_slave$ are also used as possible settings of the why_not_free argument in attribute_free(...) 
 
+integer, parameter :: ix_slice_slave$ = -2 ! Index to set slice_slave%ix_ele to.
+
 integer, parameter :: minor_slave$ = 1, super_slave$ = 2, free$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
@@ -2055,10 +2057,10 @@ type ptc_common_struct
   logical :: complex_ptc_used = .true.  ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
   logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
   type (internal_state) :: base_state   ! Base PTC state. 
-  integer, pointer :: max_fringe_order  => null()  ! Points to HIGHEST_FRINGE. 2 (default) => Quadrupole.
-  logical, pointer :: old_integrator    => null()
-  logical, pointer :: exact_model       => null()
-  logical, pointer :: exact_misalign    => null()  ! Points to ALWAYS_EXACTMIS.
+  integer, pointer :: max_fringe_order  => null()  ! Points to PTC HIGHEST_FRINGE. 2 (default) => Quadrupole.
+  logical, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR.
+  logical, pointer :: exact_model       => null()  ! Points to PTC EXACT_MODEL.
+  logical, pointer :: exact_misalign    => null()  ! Points to ptc ALWAYS_EXACTMIS. Notice different names.
 end type
 
 type (ptc_common_struct), save, target :: ptc_com, ptc_com_default

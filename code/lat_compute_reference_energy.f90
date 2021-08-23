@@ -680,6 +680,8 @@ case default
     call calc_time_ref_orb_out(orb_end)
   endif
 
+  call ele_rad_int_cache_calc (ele, .true.)
+
   if (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$) then
     bmad_com%radiation_damping_on = .true.
     orb1 = ele%time_ref_orb_in
@@ -732,8 +734,9 @@ if (energy_stale.or. ele%bookkeeping_state%control /= ok$ .or. ele%bookkeeping_s
     if (.not. old_floor == ele%floor) call set_lords_status_stale (ele, floor_position_group$) ! Need to update girders
     call set_lords_status_stale (ele, ref_energy_group$)!, control_bookkeeping = .true.)
   endif
-
 endif
+
+!
 
 err_flag = .false.
 

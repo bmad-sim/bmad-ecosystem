@@ -52,7 +52,7 @@ character(24) :: r_name = 'create_element_slice'
 err_flag = .true.
 in_len = ele_in%value(l$)
 
-if (.not. associated(sliced_ele%lord, ele_in) .or. sliced_ele%ix_ele /= -2) then
+if (.not. associated(sliced_ele%lord, ele_in) .or. sliced_ele%ix_ele /= ix_slice_slave$) then
   call transfer_ele(ele_in, sliced_ele, .true.)
 endif
 
@@ -66,9 +66,11 @@ else
 endif
 sliced_ele%lord_status = not_a_lord$
 sliced_ele%slave_status = slice_slave$
-sliced_ele%ix_ele = -2  ! Indicate sliced ele is not an element in the lattice.
+sliced_ele%ix_ele = ix_slice_slave$  ! Indicate sliced ele is not an element in the lattice.
 sliced_ele%s_start = ele_in%s - in_len + offset
 sliced_ele%s = sliced_ele%s_start + sliced_ele%value(l$)
+sliced_ele%map_ref_orb_in  = coord_struct()
+sliced_ele%map_ref_orb_out = coord_struct()
 
 ! The sliced element is treated as a super_slave to the original element.
 ! Except if the original element is itself a super_slave. Then the sliced element is a super_slave
