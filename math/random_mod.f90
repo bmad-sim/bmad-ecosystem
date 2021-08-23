@@ -478,15 +478,10 @@ real(rp) dum(2)
 
 ! OpenMP put
 
+!$  if (.not. thread_state_allocated) call allocate_thread_states()
 !$  nt = OMP_GET_THREAD_NUM()
 !$  max_t = OMP_GET_MAX_THREADS()
-!$  if (.not. thread_state_allocated .and. nt == 0) then
-!$    allocate (thread_ran_state(0:max_t-1))
-!$  endif
-!$OMP BARRIER
-
 !$  if (nt == 0) then
-!$    thread_state_allocated = .true.
 !$    do n = 0, max_t-1
 !$      call this_seed_put(n, seed, ran_state)
 !$    enddo
@@ -795,6 +790,9 @@ r_state%in_sobseq = r_state%in_sobseq + 1
 
 end subroutine super_sobseq
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 !+
 ! Function pointer_to_ran_state(ran_state, ix_thread) result (ran_state_ptr)
 !
@@ -811,8 +809,7 @@ end subroutine super_sobseq
 
 function pointer_to_ran_state(ran_state, ix_thread) result (ran_state_ptr)
 
-!$ use omp_lib, only: OMP_GET_THREAD_NUM
-
+!$ use omp_lib, only: OMP_GET_THREAD_NUM, OMP_GET_MAX_THREADS
 
 implicit none
 
@@ -829,6 +826,7 @@ if (present(ran_state)) then
   return
 endif
 
+!$ if (.not. thread_state_allocated) call allocate_thread_states()
 !$ nt = integer_option(OMP_GET_THREAD_NUM(), ix_thread)
 !$ ran_state_ptr => thread_ran_state(nt)
 !$ return
@@ -836,5 +834,34 @@ endif
 ran_state_ptr => ran_state_save
 
 end function pointer_to_ran_state
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine allocate_thread_states()
+!
+! Routine to allocate random number state structures when openMP is used.
+!-
+
+subroutine allocate_thread_states()
+
+!$ use omp_lib, only: OMP_GET_THREAD_NUM, OMP_GET_MAX_THREADS
+
+implicit none
+
+integer nt, max_t
+
+!
+
+!$ if (thread_state_allocated) return
+!$ nt = OMP_GET_THREAD_NUM()
+!$ max_t = OMP_GET_MAX_THREADS()
+!$ if (nt == 0) allocate (thread_ran_state(0:max_t-1))
+!$OMP BARRIER
+!$ if (nt == 0) thread_state_allocated = .true.
+!$OMP BARRIER
+
+end subroutine allocate_thread_states
 
 end module
