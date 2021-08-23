@@ -225,6 +225,7 @@ if (ltt_com%using_mpi) then
 endif
 
 call bmad_parser (ltt%lat_file, lat)
+if (.not. ltt%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
 
 ! Read the master input file again so that bmad_com parameters set in the file
 ! take precedence over bmad_com parameters set in the lattice file.
@@ -348,10 +349,13 @@ logical err, map_file_exists
 
 character(40) start_name, stop_name
 
-! PTC has an internal aperture of 1.0 meter. To be safe, use an aperture of 0.9 meter
+! PTC has an internal aperture of 1.0 meter. To be safe, set default aperture at 0.9 meter
 
 call ltt_make_tracking_lat(lttp, ltt_com)
 lat => ltt_com%tracking_lat
+
+call twiss_and_track (lat, ltt_com%bmad_closed_orb, ix_branch = ltt_com%ix_branch)
+call radiation_integrals (lat, ltt_com%bmad_closed_orb, ltt_com%modes, ix_branch = ltt_com%ix_branch)
 
 lttp%ptc_aperture = min([0.9_rp, 0.9_rp], lttp%ptc_aperture)
 
@@ -375,10 +379,6 @@ if (lttp%ramping_on) then
 endif  
 
 !
-
-if (.not. lttp%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
-call twiss_and_track (ltt_com%tracking_lat, ltt_com%bmad_closed_orb, ix_branch = ltt_com%ix_branch)
-call radiation_integrals (lat, ltt_com%bmad_closed_orb, ltt_com%modes, ix_branch = ltt_com%ix_branch)
 
 if (lttp%simulation_mode == 'CHECK') bmad_com%radiation_fluctuations_on = .false.
 
