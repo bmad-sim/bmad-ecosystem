@@ -125,6 +125,7 @@ end function pointer_to_branch_given_name
 ! Function pointer_to_branch_given_ele (ele) result (branch_ptr)
 !
 ! Function to point to the lattice branch associated with an element.
+!
 ! This routine is overloaded by the routine: pointer_to_branch.
 ! See pointer_to_branch for more details.
 !
@@ -142,12 +143,21 @@ end function pointer_to_branch_given_name
 recursive function pointer_to_branch_given_ele (ele) result (branch_ptr)
 
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele2
 type (branch_struct), pointer :: branch_ptr
 integer ixb
 
+!
+
+if (ele%ix_ele == ix_slice_slave$) then
+  ele2 => ele%lord
+else
+  ele2 => ele
+endif
+
 ! Not associated with a lattice case
 
-if (.not. associated(ele%branch)) then
+if (.not. associated(ele2%branch)) then
   nullify(branch_ptr)
   return
 endif
@@ -155,22 +165,22 @@ endif
 ! A null_ele that is a lord is the result of superposition. This null_ele has no slaves and the
 ! original branch info is in %value(ix_branch$).
 
-if (ele%key == null_ele$ .and. ele%ix_branch == 0 .and. ele%ix_ele > ele%branch%n_ele_track) then
-  ixb = nint(ele%value(ix_branch$))
-  branch_ptr => ele%branch%lat%branch(ixb)
+if (ele2%key == null_ele$ .and. ele2%ix_branch == 0 .and. ele2%ix_ele > ele2%branch%n_ele_track) then
+  ixb = nint(ele2%value(ix_branch$))
+  branch_ptr => ele2%branch%lat%branch(ixb)
   return
 endif
 
 ! Not a lord case
 
-if (ele%n_slave == 0) then
-  branch_ptr => ele%branch
+if (ele2%n_slave == 0) then
+  branch_ptr => ele2%branch
   return
 endif
 
 ! If a lord then look to the first slave for the associated branch
 
-branch_ptr => pointer_to_branch_given_ele(pointer_to_slave(ele, 1))
+branch_ptr => pointer_to_branch_given_ele(pointer_to_slave(ele2, 1))
 
 end function pointer_to_branch_given_ele
 

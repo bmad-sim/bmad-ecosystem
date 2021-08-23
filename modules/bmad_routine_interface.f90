@@ -749,6 +749,20 @@ function ele_nametable_index(ele) result(ix_nt)
   integer ix_nt
 end function
 
+subroutine ele_order_calc (lat, order)
+  import
+  implicit none
+  type (lat_struct) lat
+  type (lat_ele_order_struct) order
+end subroutine
+
+subroutine ele_rad_int_cache_calc (ele, force_calc)
+  import
+  implicit none
+  type (ele_struct) ele
+  logical force_calc
+end subroutine
+
 function ele_unique_name (ele, order) result (unique_name)
   import
   implicit none
@@ -756,13 +770,6 @@ function ele_unique_name (ele, order) result (unique_name)
   type (lat_ele_order_struct) order
   character(40) unique_name
 end function ele_unique_name
-
-subroutine ele_order_calc (lat, order)
-  import
-  implicit none
-  type (lat_struct) lat
-  type (lat_ele_order_struct) order
-end subroutine
 
 function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed)
   import

@@ -39,7 +39,7 @@ real(rp), parameter :: zero_vec(6) = 0
 integer mat6_calc_method, species
 
 logical, optional :: err_flag
-logical rad_fluct_save, err, finished
+logical rad_fluct_save, err, finished, stale
 
 character(*), parameter :: r_name = 'make_mat6'
 
@@ -71,10 +71,7 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele)
 mat6_calc_method = ele%mat6_calc_method
 if (.not. ele%is_on) mat6_calc_method = bmad_standard$
 
-if (any(ele%map_ref_orb_in%vec /= a_start_orb%vec)) then
-  if (associated(ele%rad_int_cache)) ele%rad_int_cache%stale = .true.
-endif
-
+stale = (any(ele%map_ref_orb_in%vec /= a_start_orb%vec))
 ele%map_ref_orb_in = a_start_orb
 
 rad_fluct_save = bmad_com%radiation_fluctuations_on
@@ -158,7 +155,9 @@ endif
 
 ! Finish up
 
+stale = (stale .or. any(ele%map_ref_orb_out%vec /= a_end_orb%vec))
 ele%map_ref_orb_out = a_end_orb
+call ele_rad_int_cache_calc (ele, stale)
 
 bmad_com%radiation_fluctuations_on = rad_fluct_save
 
