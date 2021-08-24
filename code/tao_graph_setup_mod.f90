@@ -699,7 +699,7 @@ integer :: i, j, k, n_da, n_da_curve, n, ix_ele_ref
 logical err
 
 character(40) name
-character(40) :: r_name = 'tao_graph_dynamic_aperture_setup'
+character(*), parameter :: r_name = 'tao_graph_dynamic_aperture_setup'
 
 ! Only the graph's universe for now
 u => tao_pointer_to_universe (graph%ix_universe)
@@ -716,9 +716,15 @@ do i = 1, size(graph%curve)
   n_da_curve = n_da_curve + 1
   ! Assign a default type 
   if (curve%data_type == '') curve%data_type = 'dynamic_aperture'
-  if (curve%data_type /= 'dynamic_aperture' .and. curve%data_type /= 'dynamic_aperture_centered') then
+  select case (curve%data_type)
+  case ('dynamic_aperture_centered')
+    call out_io (s_warn$, r_name, 'curve%data_type = "dynamic_aperture_centered" is now "dynamic_aperture".', &
+                                  'Note: "dynamic_aperture_ref0" gives curves centered on the zero orbit.')
+    curve%data_type = 'dynamic_aperture'
+  case ('dynamic_aperture', 'dynamic_aperture_ref0')
+  case default
     call tao_set_curve_invalid (curve, 'BAD DATA_TYPE FOR DYNAMIC_APERTURE PLOT CURVE: ' // quote(curve%data_type))
-  endif 
+  end select
 enddo 
 
 graph%is_valid = (n_da_curve /= 0)
@@ -771,10 +777,10 @@ do i = 1, size(graph%curve)
 
   write(curve%legend_text, '(a, f6.2, a)') '\gd:', 100*da%pz(k), ' %'
 
-  if (curve%data_type == 'dynamic_aperture_centered') then
+  if (curve%data_type == 'dynamic_aperture') then
     curve%x_line(:) = scan%point(:)%x
     curve%y_line(:) = scan%point(:)%y
-  else
+  else  ! "dynamic_aperture_ref0"
     curve%x_line(:) = scan%point(:)%x + scan%ref_orb%vec(1)
     curve%y_line(:) = scan%point(:)%y + scan%ref_orb%vec(3)
   endif
