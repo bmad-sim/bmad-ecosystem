@@ -3439,10 +3439,10 @@ scan at fixed initial momentum $p_z$.
 
 Dynamic aperture curves can have the following \vn{%data_type} parameters:
 \begin{example}
-  "dynamic_aperture"          ! Curve points include the reference orbit offset.
-  "dynamic_aperture_centered" ! Curve points are plotted relative to the reference orbit.
-  "beam_ellipse"              ! Draws the beam ellipse within the [min_angle, max_angle] range.
-  "beam_ellipse_full"         ! Draws the entire beam ellipse.
+  "dynamic_aperture"        ! Curve points are with respect to the closed orbit (x,y).
+  "dynamic_aperture_ref0"   ! Curve points are with respect to x = y = 0.
+  "beam_ellipse"            ! Draws the beam ellipse within the [min_angle, max_angle] range.
+  "beam_ellipse_full"       ! Draws the entire beam ellipse.
 \end{example}
 
 In the above example, the first curve has \vn{%data_type} set to \vn{"beam_ellipse"}. This results

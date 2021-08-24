@@ -606,6 +606,11 @@ case ('beam')
       do i = 1, 6
         nl=nl+1; write (lines(nl), '(a2, 2x, 6es16.8)') coord_name(i), bunch_p%sigma(i,:)
       enddo
+
+      if (abs(bunch_p%a%norm_emit - bunch_p%b%norm_emit) < 0.2 * (bunch_p%a%norm_emit + bunch_p%b%norm_emit)) then
+        nl=nl+1; lines(nl) = 'Note! The calculation of the emittances from the beam sigma matrix is singular when the emittances are equal!'
+        nl=nl+1; lines(nl) = 'This is due to modes being degenerate. Emittance and Twiss values are untrustworthy in this limit.'
+      endif
     endif
 
     beam => u%model_branch(ele%ix_branch)%ele(ix_ele)%beam
