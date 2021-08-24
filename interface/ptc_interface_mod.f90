@@ -608,8 +608,8 @@ if (logic_option(.true., print_coords)) then
       call write_reals ('%b_ang  [Exit angle]:      ', ptch%b_ang, '10f13.9', writeit = .true.)
     endif
 
-    nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%energy [Energy Patch at]:     ', patch_name(ptch%energy)
-    nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%time   [Time Patch at]:       ', patch_name(ptch%time)
+    nl=nl+1; write (li(nl), '(2x, a, t40, 2a)') '%energy [Energy Patch at]:     ', patch_name(ptch%energy), ' ! 4 == Entrance, 5 == Exit'
+    nl=nl+1; write (li(nl), '(2x, a, t40,  a)') '%time   [Time Patch at]:       ', patch_name(ptch%time)
 
     printit = .false.
     if (integer2_value(0, ptch%time) == 1 .or. integer2_value(0, ptch%time) == 3) printit = .true.
