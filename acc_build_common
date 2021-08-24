@@ -543,6 +543,7 @@ func_install_utilities () {
             [ "${UTIL}" == "${PKGCONFIG_UTIL}" ] \
 		&& UTIL_MIN_VERSION=$(echo ${UTIL} | awk -F"-" ' { print $3  } ') \
 		|| UTIL_MIN_VERSION=$(echo ${UTIL} | cut -d- -f2)
+
 	    UTIL_MIN_MAJOR_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f1)
 	    UTIL_MIN_MINOR_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f2)
 	    UTIL_MIN_SUB_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f3)
@@ -576,23 +577,30 @@ func_install_utilities () {
 		export UTIL_INSTALLED_MAJOR_VERSION=0
 		export UTIL_INSTALLED_MINOR_VERSION=0
 	    fi
-	    
-	    if ( [ "${UTIL_INSTALLED_MAJOR_VERSION}" -lt "${UTIL_MIN_MAJOR_VERSION}" ] ) ; then
-		func_get_build_utilities
-	    elif ( [ "${UTIL_INSTALLED_MAJOR_VERSION}" -eq "${UTIL_MIN_MAJOR_VERSION}" ] ) ; then
-		if ( [ "${UTIL_INSTALLED_MINOR_VERSION}" -lt "${UTIL_MIN_MINOR_VERSION}" ] ) ; then
+
+	    # Check CMAKE version and build if necessary. 
+	    if [ ${UTIL_NAME} == "cmake" ] ; then
+		if ( [ "${UTIL_INSTALLED_MAJOR_VERSION}" -lt "${UTIL_MIN_MAJOR_VERSION}" ] ) ; then
 		    func_get_build_utilities
-		elif ( [ "${UTIL_INSTALLED_MINOR_VERSION}" -eq "${UTIL_MIN_MINOR_VERSION}" ] ) ; then 
-		    if [ ${UTIL_INSTALLED_SUB_VERSION} ] ; then
-			[ "${UTIL_INSTALLED_SUB_VERSION}" -lt "${UTIL_MIN_SUB_VERSION}" ] && func_get_build_utilities \
-			    || echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
+		elif ( [ "${UTIL_INSTALLED_MAJOR_VERSION}" -eq "${UTIL_MIN_MAJOR_VERSION}" ] ) ; then
+		    if ( [ "${UTIL_INSTALLED_MINOR_VERSION}" -lt "${UTIL_MIN_MINOR_VERSION}" ] ) ; then
+			func_get_build_utilities
+		    elif ( [ "${UTIL_INSTALLED_MINOR_VERSION}" -eq "${UTIL_MIN_MINOR_VERSION}" ] ) ; then 
+			if [ ${UTIL_INSTALLED_SUB_VERSION} ] ; then
+			    [ "${UTIL_INSTALLED_SUB_VERSION}" -lt "${UTIL_MIN_SUB_VERSION}" ] && func_get_build_utilities \
+				|| echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
+			fi
+		    else
+			echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
 		    fi
 		else
 		    echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
 		fi
 	    else
-		echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
+		# Force the build of all GNU Utilities - issue with building FGSL requires this - see RT#59328 and others.
+		func_get_build_utilities
 	    fi
+
 	done
 	[ -e ${UTIL_DIR}/bin ] && date > ${UTIL_DIR}/bin/.BUILDCOMPLETE
     else
