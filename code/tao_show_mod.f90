@@ -1408,6 +1408,7 @@ case ('element')
   lat_type = model$
   print_ptc = .false.
   attrib0 = ''
+  name = ''
 
   do
     call tao_next_switch (what2, [character(16):: '-taylor', '-em_field', &
@@ -1442,24 +1443,24 @@ case ('element')
         call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
         return
       endif
-      ele_name = upcase(switch)
+      name = upcase(switch)
     end select
   enddo
 
-  call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+  call tao_pick_universe (name, name, picked_uni, err, ix_u)
   if (err) return
   u => s%u(ix_u)
 
   ! Wildcard: show all elements.
 
-  if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0 .or. &
-                (ele_name(1:2) /= 'S:' .and. index(ele_name, ':') /= 0) .or. &
+  if (index(name, '*') /= 0 .or. index(name, '%') /= 0 .or. &
+                (name(1:2) /= 'S:' .and. index(name, ':') /= 0) .or. &
                 count(picked_uni) > 1) then
 
     n_tot = 0
     do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. picked_uni(i_uni)) cycle
-      call tao_locate_elements (ele_name, i_uni, eles, err, ignore_blank = .true.)
+      call tao_locate_elements (name, i_uni, eles, err, ignore_blank = .true.)
       if (err) return
       lat => s%u(i_uni)%model%lat
       do i = 1, size(eles)
@@ -1497,7 +1498,7 @@ case ('element')
   ! No wildcard case...
   ! Normal: Show the element info
 
-  call tao_locate_elements (ele_name, ix_u, eles, err, lat_type)
+  call tao_locate_elements (name, ix_u, eles, err, lat_type)
   if (err) return
   ele => eles(1)%ele
 
