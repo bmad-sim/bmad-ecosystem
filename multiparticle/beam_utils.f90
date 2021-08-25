@@ -31,6 +31,8 @@ contains
 
 subroutine track1_bunch_hom (bunch_start, ele, param, bunch_end, direction)
 
+use ptc_interface_mod, only: ele_to_taylor
+
 implicit none
 
 type (bunch_struct) bunch_start, bunch_end
