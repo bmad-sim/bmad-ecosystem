@@ -697,7 +697,7 @@ do i_turn = 1, lttp%n_turns
     orbit%vec = prb%x
     orbit%spin = quat_rotate(prb%q%x, orbit%spin)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2) .or. &
-                             orbit_too_large(orbit) .or. all(orbit%vec == orbit_old%vec)) orbit%state = lost$
+                                                   orbit_too_large(orbit) .or. prb%u) orbit%state = lost$
     orbit_old%vec = orbit%vec
 
   case ('MAP')
@@ -865,7 +865,7 @@ do i_turn = 1, lttp%n_turns
         call track_probe (prb, ltt_com%ptc_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
         p%vec = prb%x
         p%spin = quat_rotate(prb%q%x, p%spin)
-        if (abs(p%vec(1)) > lttp%ptc_aperture(1) .or. abs(p%vec(3)) > lttp%ptc_aperture(2)) p%state = lost$
+        if (abs(p%vec(1)) > lttp%ptc_aperture(1) .or. abs(p%vec(3)) > lttp%ptc_aperture(2) .or. prb%u) p%state = lost$
       enddo
 
     case default
