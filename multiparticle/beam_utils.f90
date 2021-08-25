@@ -43,36 +43,28 @@ real(rp) charge, ds_wake
 
 integer, optional :: direction
 integer i, j, n, jj
-logical err_flag, finished
+logical err_flag, finished, thread_safe
 
 character(*), parameter :: r_name = 'track1_bunch_hom'
 
-! Charge and center
+! Note: PTC tracking is not not thread safe.
 
 bunch_start%particle%direction = integer_option(1, direction)
+if (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param)
+thread_safe = (ele%tracking_method /= symp_lie_ptc$)
 
 !------------------------------------------------
 ! Without wakefields just track through.
-! PTC is not not thread safe.
 
 wake_ele => pointer_to_wake_ele(ele, ds_wake)
 if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
-  if (ele%tracking_method == symp_lie_ptc$ .or. &
-            (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term))) then
-    do j = 1, size(bunch_start%particle)
-      if (bunch_start%particle(j)%state /= alive$) cycle
-      call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
-    enddo
-
-  else
-    !$OMP parallel do
-    do j = 1, size(bunch_start%particle)
-      if (bunch_start%particle(j)%state /= alive$) cycle
-      call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
-    enddo
-    !$OMP end parallel do
-  endif
+  !$OMP parallel do if (thread_safe)
+  do j = 1, size(bunch_start%particle)
+    if (bunch_start%particle(j)%state /= alive$) cycle
+    call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
+  enddo
+  !$OMP end parallel do
 
   bunch_end%charge_live = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
   return
@@ -84,7 +76,7 @@ endif
 ! For zero length elements just track the element.
 
 if (ele%value(l$) == 0) then
-  !$OMP parallel do
+  !$OMP parallel do if (thread_safe)
   do j = 1, size(bunch_start%particle)
     if (bunch_start%particle(j)%state /= alive$) cycle
     call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
@@ -105,7 +97,9 @@ else
     return
   endif
 
-  !$OMP parallel do
+  if (half_ele%tracking_method == taylor$ .and. .not. associated(half_ele%taylor(1)%term)) call ele_to_taylor(half_ele, param)
+
+  !$OMP parallel do if (thread_safe)
   do j = 1, size(bunch_start%particle)
     if (bunch_start%particle(j)%state /= alive$) cycle
     call track1 (bunch_start%particle(j), half_ele, param, bunch_end%particle(j))
@@ -137,7 +131,7 @@ else
   call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, param, .true., .false., err_flag)
 endif
 
-!$OMP parallel do
+!$OMP parallel do if (thread_safe)
 do j = 1, size(bunch_end%particle)
   if (bunch_end%particle(j)%state /= alive$) cycle
   call track1 (bunch_end%particle(j), half_ele, param, bunch_end%particle(j))

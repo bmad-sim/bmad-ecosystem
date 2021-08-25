@@ -49,7 +49,7 @@ real(rp) :: delta_angle, time0, time1, time2
 real(rp) Sx, Sy
 
 integer :: i, omp_n, n_loc, ns
-logical err
+logical err, thread_safe
 logical, optional :: print_timing
 
 character(*), parameter :: r_name = 'dynamic_aperture_scan'
@@ -92,6 +92,17 @@ else
   enddo
 endif
 
+!
+
+thread_safe = .true.
+do i = 1, branch%n_ele_track
+  if (branch%ele(i)%tracking_method /= symp_lie_ptc$) cycle
+  thread_safe = .false.
+  !$ call out_io (s_warn$, r_name, 'Element with symp_lie_ptc tracking detected: ' // branch%ele(i)%name, &
+  !$                               'PTC is not thread safe so Will NOT run multithreaded!')
+  exit
+enddo
+
 !---------------
 
 if (allocated(aperture_scan)) then
@@ -133,7 +144,7 @@ do ns = 1, size(pz_start)
   if (ap_param%x_init == 0) ap_param%x_init = 0.001_rp
   if (ap_param%y_init == 0) ap_param%y_init = 0.001_rp
 
-  !$OMP parallel sections
+  !$OMP parallel sections if (thread_safe)
   !$OMP section
 
   call dynamic_aperture_point (branch, ele0, ap_scan%ref_orb, 0.0_rp, ap_param, x_point, .false.)
@@ -150,7 +161,7 @@ do ns = 1, size(pz_start)
   if (logic_option(.true., print_timing)) call out_io (s_blank$, r_name, '  Scale factors calculated. dTime(min): \f8.2\ ', &
                                                                                 r_array = [(time1-time0)/60])
 
-  !$OMP parallel do
+  !$OMP parallel do if (thread_safe)
   do i = 1, ap_param%n_angle
     if (abs(angle_list(i)) < 1d-6) then
       ap_points(i) = x_point

@@ -43,7 +43,7 @@ The following (rather silly) example shows some of the features of a
 A \bmad lattice file consists of a sequence of statements. An exclamation mark (!) denotes a comment
 and the exclamation mark and everything after the exclamation mark on a line are ignored.  \bmad is
 generally case insensitive. Most names are converted to uppercase. Exceptions where a name is not
-converted include file names and atomic formulas for materials used in crystal diffraction.
+converted include file names and atomic formulas for materials used in crystal diffraction. 
 
 \index{\& continuation symbol}
 \index{continuation symbol (\&)}
@@ -70,6 +70,9 @@ The following example shows a command extending over four lines
 Note: The symbols ``+'', ``-'', ``*'', and ``/'' are {\em not} valid implicit continuation
 characters. The reason for this is to avoid confusion when a species name (for example ``He++'')
 comes at the end of a line.
+
+A single line in a lattice file is limited to 500 characters. Commands have no restrictions as to
+the number of lines they may be continued over and there is no limit to the length of a command.
 
 \index{lattice files!name syntax}
 Names of constants, elements, lines, etc. are limited to 40

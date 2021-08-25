@@ -296,11 +296,9 @@ do k = 0, ksize-1
   do j=0, jsize-1
     y=j*dy + ymin
 
-   do i=0, isize-1
-     x = i*dx + xmin
-    
-     cgrn(i,j,k) =  psi0(x, y, z, gamma, icomp, abs(dx), dy, dz)
-     
+    do i=0, isize-1
+      x = i*dx + xmin
+      cgrn(i,j,k) =  psi0(x, y, z, gamma, icomp, abs(dx), dy, dz)
     enddo
   enddo
 enddo
