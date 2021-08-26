@@ -143,7 +143,6 @@ type (tao_building_wall_section_struct), allocatable :: bws_temp(:)
 type (tao_building_wall_point_struct), pointer :: bwp(:)
 type (tao_building_wall_point_struct), allocatable :: bwp_temp(:)
 type (tao_dynamic_aperture_struct), pointer :: da
-type (tao_expression_info_struct), allocatable :: info(:)
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_model_element_struct), pointer :: tao_ele
 type (tao_lattice_branch_struct), pointer :: tao_branch
@@ -3706,7 +3705,7 @@ case ('evaluate')
     use_real_array_buffer = .true.
   endif
 
-  call tao_evaluate_expression (line, 0, .false., value_arr, info, err)
+  call tao_evaluate_expression (line, 0, .false., value_arr, err)
   if (err) then
     call invalid ('Invalid expression')
     return

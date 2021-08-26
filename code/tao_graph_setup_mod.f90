@@ -299,9 +299,9 @@ curve_loop: do k = 1, size(graph%curve)
     if (i == 2) name = curve%data_type
     call tao_data_type_substitute (name, name, curve, graph)
     if (i == 1) call tao_evaluate_expression (name, 0, graph%draw_only_good_user_data_or_vars, &
-                                                                 scratch%x, scratch%info_x, err, dflt_component = curve%component)
+                                                 scratch%x, err, info = scratch%info_x, dflt_component = curve%component)
     if (i == 2) call tao_evaluate_expression (name, 0, graph%draw_only_good_user_data_or_vars, &
-                                                                 scratch%y, scratch%info_y, err, dflt_component = curve%component)
+                                                 scratch%y, err, info = scratch%info_y, dflt_component = curve%component)
     if (err) then
       call tao_set_curve_invalid (curve, 'CANNOT FIND DATA.')
       cycle curve_loop
@@ -333,7 +333,7 @@ curve_loop: do k = 1, size(graph%curve)
   else
     call tao_data_type_substitute (curve%data_index, name, curve, graph)
     call tao_evaluate_expression (name, 0, graph%draw_only_good_user_data_or_vars, &
-                                                            scratch%x, scratch%info_ix, err, dflt_component = curve%component)
+                                          scratch%x, err, info = scratch%info_ix, dflt_component = curve%component)
     if (size(scratch%info_x) == size(scratch%info_y)) then
       curve%ix_symb = pack (nint(scratch%x), mask = scratch%info_x%good .and. scratch%info_y%good)
     else
@@ -1317,7 +1317,7 @@ case ('expression')
     do i = nint(graph%x%min), nint(graph%x%max)
       write (dflt_index, '(i0)') i
       call tao_evaluate_expression  (curve%data_type(12:), 0, graph%draw_only_good_user_data_or_vars, value_arr, &
-                   scratch%info, err, .false., scratch%stack, curve%component, curve%data_source, dflt_dat_or_var_index = dflt_index)
+                   err, .false., scratch%info, scratch%stack, curve%component, curve%data_source, dflt_dat_or_var_index = dflt_index)
       if (err .or. .not. scratch%info(1)%good) cycle
       n_dat = n_dat + 1
 
@@ -1328,7 +1328,7 @@ case ('expression')
 
   else
     call tao_evaluate_expression  (curve%data_type(12:), 0, graph%draw_only_good_user_data_or_vars, value_arr, &
-                                                 scratch%info, err, .true., scratch%stack, curve%component, curve%data_source)
+                                            err, .true., scratch%info, scratch%stack, curve%component, curve%data_source)
     if (err) return
     n_dat = count(scratch%info%good)
     call re_allocate (curve%ix_symb, n_dat)
@@ -1430,7 +1430,7 @@ case ('plot_x_axis_var')
     endif
     call tao_lattice_calc (valid)
 
-    call tao_evaluate_expression (curve%data_type, 0, .false., value_arr, scratch%info, err, &
+    call tao_evaluate_expression (curve%data_type, 0, .false., value_arr, err, &
                           dflt_component = curve%component, dflt_source = curve%data_source)
     if (.not. valid .or. err .or. size(value_arr) /= 1) then
       call tao_set_curve_invalid (curve, 'BAD CONSTRUCT IN CURVE%DATA_TYPE: ' // curve%data_type)
@@ -1463,7 +1463,7 @@ case ('data')
   ! Calculate values
 
   call tao_data_type_substitute (curve%data_type, data_type, curve, graph)
-  call tao_evaluate_expression  (data_type, 0, graph%draw_only_good_user_data_or_vars, value_arr, scratch%info, err, &
+  call tao_evaluate_expression  (data_type, 0, graph%draw_only_good_user_data_or_vars, value_arr, err, &
                           stack = scratch%stack, dflt_component = curve%component, dflt_source = 'data', dflt_uni = u%ix_uni)
   if (err) then
     call tao_set_curve_invalid (curve, 'CANNOT FIND DATA CORRESPONDING: ' // data_type)
@@ -1712,7 +1712,7 @@ case ('var')
   ! calculate the y-axis data point values.
 
   data_type = trim(curve%data_type) // '|' // trim(curve%component)
-  call tao_evaluate_expression (data_type, 0, graph%draw_only_good_user_data_or_vars, value_arr, scratch%info, err)
+  call tao_evaluate_expression (data_type, 0, graph%draw_only_good_user_data_or_vars, value_arr, err)
   if (err) then
     call out_io (s_warn$, r_name, 'BAD CURVE DATA_TYPE: ' // data_type)
     return
@@ -2134,7 +2134,6 @@ type (ele_struct), pointer :: ele_here, ele_ref
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
-type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6), mat0(6,6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
@@ -2515,7 +2514,7 @@ case ('emit')
 
 case ('expression')
   ele_here => ele
-  call tao_evaluate_expression (data_type(12:), 1, .false., val_arr, info, err, .true., &
+  call tao_evaluate_expression (data_type(12:), 1, .false., val_arr, err, .true., &
             dflt_source = 'at_ele', dflt_ele = ele_here, dflt_uni = tao_lat%u%ix_uni, &
             dflt_orbit = orbit);  if (err) goto 9000  ! Error message & Return
   value = val_arr(1)

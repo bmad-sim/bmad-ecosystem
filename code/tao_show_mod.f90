@@ -230,7 +230,6 @@ end type
 
 type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
-type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, gamma2, val, z, z1, z2, z_in, s_pos, dt, angle, r
 real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1
@@ -1637,7 +1636,7 @@ case ('field')
         call init_coord (orb, ele = ele, element_end = downstream_end$)
 
       case (2)
-        call tao_evaluate_expression(switch, 1, .false., value, info, err)
+        call tao_evaluate_expression(switch, 1, .false., value, err)
         if (err) then
           nl = 1; lines(1) = 'Bad X value';  result_id = 'field:bad-x'
           return
@@ -1645,7 +1644,7 @@ case ('field')
         orb%vec(1) = value(1)
 
       case (3)
-        call tao_evaluate_expression(switch, 1, .false., value, info, err)
+        call tao_evaluate_expression(switch, 1, .false., value, err)
         if (err) then
           nl = 1; lines(1) = 'Bad Y value';  result_id = 'field:bad-y'
           return
@@ -1653,7 +1652,7 @@ case ('field')
         orb%vec(3) = value(1)
 
       case (4)
-        call tao_evaluate_expression(switch, 1, .false., value, info, err)
+        call tao_evaluate_expression(switch, 1, .false., value, err)
         if (err) then
           nl = 1; lines(1) = 'Bad S value';  result_id = 'field:bad-s'
           return
@@ -1661,7 +1660,7 @@ case ('field')
         s_pos = value(1)
 
       case (5)
-        call tao_evaluate_expression(switch, 1, .false., value, info, err)
+        call tao_evaluate_expression(switch, 1, .false., value, err)
         if (err) then
           nl = 1; lines(1) = 'Bad Z or T value';  result_id = 'field:bad-t'
           return
@@ -3126,7 +3125,7 @@ case ('lattice')
         case default;       eval_pt = anchor_end$
         end select
 
-        call tao_evaluate_expression (name, 1, .false., value, info, err, .false., &
+        call tao_evaluate_expression (name, 1, .false., value, err, .false., &
                       dflt_component = tao_lat_type_name(lat_type), dflt_source = 'ele', dflt_ele = ele, &
                       dflt_uni = u%ix_uni, dflt_eval_point = eval_pt)
 
@@ -4058,7 +4057,7 @@ case ('string')
       str = str(:n-1)
     endif
 
-    call tao_evaluate_expression (str, 0, .false., value, info, err)
+    call tao_evaluate_expression (str, 0, .false., value, err)
     if (err) return
 
     if (size(value) == 1) then
@@ -4645,7 +4644,7 @@ case ('twiss_and_orbit')
   if (ix == 0) then
     s_pos = 0
   else
-    call tao_evaluate_expression (attrib0, 1, .false., value, info, err, .false., &
+    call tao_evaluate_expression (attrib0, 1, .false., value, err, .false., &
                                            dflt_component = tao_lat_type_name(lat_type), dflt_uni = u%ix_uni)
 
     if (err) then
@@ -5049,7 +5048,7 @@ case ('value')
     endif
   endif
 
-  call tao_evaluate_expression (what2, 0, .false., value, info, err)
+  call tao_evaluate_expression (what2, 0, .false., value, err)
   if (err) return
 
   if (size(value) == 1) then

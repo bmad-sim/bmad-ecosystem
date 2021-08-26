@@ -324,7 +324,6 @@ implicit none
 
 type (tao_global_struct) global, old_global
 type (tao_universe_struct), pointer :: u
-type (tao_expression_info_struct), allocatable :: info(:)
 
 character(*) who, value_str
 character(*), parameter :: r_name = 'tao_set_global_cmd'
@@ -396,13 +395,13 @@ case ('random_engine', 'random_gauss_converter', 'track_type', 'quiet', 'prompt_
 
 case ('n_opti_cycles', 'n_opti_loops', 'phase_units', 'bunch_to_plot', &
       'random_seed', 'n_top10_merit', 'srdt_gen_n_slices', 'srdt_sxt_n_slices')
-  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+  call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
   write (val, '(i0)', iostat = ios) nint(set_val(1))
 
 case ('lm_opt_deriv_reinit', 'de_lm_step_ratio', 'de_var_to_population_factor', 'lmdif_eps', &
       'lmdif_negligible_merit', 'svd_cutoff', 'unstable_penalty', 'merit_stop_value', &
       'dmerit_stop_value', 'random_sigma_cutoff', 'delta_e_chrom')
-  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+  call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
   write (val, '(es24.16)', iostat = ios) set_val(1)
 
 case default
@@ -506,7 +505,6 @@ subroutine tao_set_csr_param_cmd (who, value_str)
 implicit none
 
 type (csr_parameter_struct) local_csr_param
-type (tao_expression_info_struct), allocatable :: info(:)
 
 character(*) who, value_str
 character(len(value_str)+24) val
@@ -526,11 +524,11 @@ case ('wake_output_file')
   return
 
 case ('ds_track_step', 'beam_chamber_height', 'sigma_cutoff')
-  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+  call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
   write (val, '(es24.16)', iostat = ios) set_val(1)
 
 case ('n_bin', 'particle_bin_span', 'n_shield_images', 'sc_min_in_bin')
-  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+  call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
   write (val, '(i0)', iostat = ios) nint(set_val(1))
 
 case default  ! Is logical
@@ -953,7 +951,6 @@ subroutine tao_set_particle_start_cmd (who, value_str)
 type (tao_universe_struct), pointer :: u
 type (all_pointer_struct), allocatable :: a_ptr(:)
 type (tao_d2_data_array_struct), allocatable :: d2_array(:)
-type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp), allocatable :: set_val(:)
 
@@ -973,9 +970,9 @@ call tao_pick_universe (who, who2, this_u, err); if (err) return
 call string_trim (upcase(who2), who2, ix)
 
 if (who2 == '*') then
-  call tao_evaluate_expression (value_str, 6, .false., set_val, info, err); if (err) return
+  call tao_evaluate_expression (value_str, 6, .false., set_val, err); if (err) return
 else
-  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+  call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
 endif
 
 !
@@ -1042,7 +1039,6 @@ type (beam_init_struct) beam_init
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
-type (tao_expression_info_struct), allocatable :: info(:)
 type (tao_beam_branch_struct), pointer :: bb
 
 character(*) who, value_str
@@ -1148,7 +1144,7 @@ else
     ! If tao_evaluate_expression fails then the root cause may be that the User is trying
     ! something like "set beam_init beam_saved_at = END" so the basic problem is that beam_saved_at
     ! is not a valid beam_init component. So delay error messages until we know for sure.
-    call tao_evaluate_expression (value_str, 1, .false., set_val, info, eval_err, print_err = .false.)
+    call tao_evaluate_expression (value_str, 1, .false., set_val, eval_err, print_err = .false.)
     if (eval_err) then
       write (iu, '(a)') ' beam_init%' // trim(who2) // ' = 0'  ! For a test
     else
@@ -1173,7 +1169,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (ios /= 0) then
       call out_io (s_error$, r_name, 'BAD BEAM_INIT COMPONENT: ' // who2)
     else
-      call tao_evaluate_expression (value_str, 1, .false., set_val, info, eval_err, print_err = .true.) ! Print error message
+      call tao_evaluate_expression (value_str, 1, .false., set_val, eval_err, print_err = .true.) ! Print error message
     endif
     exit
   endif
@@ -1935,7 +1931,6 @@ type (tao_real_pointer_struct), allocatable    :: r_var(:), r_set(:)
 type (tao_logical_array_struct), allocatable :: l_var(:), l_set(:)
 type (tao_var_array_struct), allocatable, target :: v_var(:)
 type (tao_string_array_struct), allocatable :: s_var(:), s_set(:)
-type (tao_expression_info_struct), allocatable :: info(:)
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
 type (all_pointer_struct) a_ptr
@@ -2026,7 +2021,7 @@ elseif (size(s_var) /= 0) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (size(r_var) /= 0) then
-  call tao_evaluate_expression (value_str, size(r_var),  .false., r_value, info, err, dflt_source = 'var')
+  call tao_evaluate_expression (value_str, size(r_var),  .false., r_value, err, dflt_source = 'var')
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return
@@ -2184,7 +2179,6 @@ type (tao_universe_struct), pointer :: u
 type (tao_data_struct), pointer :: d
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
-type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp), allocatable :: r_value(:)
 
@@ -2410,7 +2404,7 @@ elseif (size(s_dat) /= 0) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (size(r_dat) /= 0) then
-  call tao_evaluate_expression (value_str, size(r_dat), .false., r_value, info, err, dflt_source = 'data')
+  call tao_evaluate_expression (value_str, size(r_dat), .false., r_value, err, dflt_source = 'data')
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return
@@ -2785,7 +2779,6 @@ implicit none
 type (ele_pointer_struct), allocatable :: eles(:), v_eles(:)
 type (tao_universe_struct), pointer :: u
 type (all_pointer_struct) a_ptr
-type (tao_expression_info_struct), allocatable :: info(:)
 type (tao_lattice_struct), pointer :: tao_lat
 
 real(rp), allocatable :: set_val(:)
@@ -2819,7 +2812,7 @@ endif
 if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
   ! Important to use "size(eles)" as 2nd arg instead of "0" since if value is something like "ran()" then
   ! want a an array of set_val values with each value different.
-  call tao_evaluate_expression (value, size(eles), .false., set_val, info, err)
+  call tao_evaluate_expression (value, size(eles), .false., set_val, err)
   if (err) return
 
   if (size(eles) /= size(set_val)) then
@@ -3136,8 +3129,6 @@ subroutine tao_set_real_value (var, var_str, value_str, error, min_val, max_val,
 
 implicit none
 
-type (tao_expression_info_struct), allocatable :: info(:)
-
 real(rp) var, var_value
 real(rp), allocatable :: var_array(:)
 real(rp), optional :: min_val, max_val
@@ -3150,7 +3141,7 @@ logical error
 
 !
 
-call tao_evaluate_expression (value_str, 1, .false., var_array, info, error, .true., dflt_uni = dflt_uni)
+call tao_evaluate_expression (value_str, 1, .false., var_array, error, .true., dflt_uni = dflt_uni)
 if (error) return
 
 var_value = var_array(1)
@@ -3285,7 +3276,6 @@ end subroutine tao_set_drawing_cmd
 
 subroutine tao_set_symbolic_number_cmd (sym_str, num_str)
 
-type (tao_expression_info_struct), allocatable :: info(:)
 type (named_number_struct), allocatable :: sym_temp(:)
 
 integer i, n
@@ -3307,7 +3297,7 @@ do i = 1, size(physical_const_list)
   endif
 enddo
 
-call tao_evaluate_expression (num_str, 1, .false., value, info, err); if (err) return
+call tao_evaluate_expression (num_str, 1, .false., value, err); if (err) return
 
 !
 

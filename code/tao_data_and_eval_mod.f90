@@ -1651,7 +1651,7 @@ case ('expression:', 'expression.')
   enddo
 
   printit = (s%com%n_err_messages_printed < s%global%datum_err_messages_max) 
-  call tao_evaluate_expression (e_str, 0, .false., expression_value_vec, info, err, printit, datum%stack, tao_lat%name, &
+  call tao_evaluate_expression (e_str, 0, .false., expression_value_vec, err, printit, info, datum%stack, tao_lat%name, &
                  datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni, datum%eval_point, datum%s_offset)
   if (err) then
     call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // e_str, why_invalid)
@@ -4230,8 +4230,6 @@ subroutine tao_to_real (expression, value, err_flag)
 
 character(*) :: expression
 
-type (tao_expression_info_struct), allocatable :: info(:)
-
 real(rp) value
 real(rp), allocatable :: vec(:)
 
@@ -4239,7 +4237,7 @@ logical err_flag
 
 !
 
-call tao_evaluate_expression (expression, 1, .false., vec, info, err_flag)
+call tao_evaluate_expression (expression, 1, .false., vec, err_flag)
 if (err_flag) return
 value = vec(1)
 
@@ -4249,9 +4247,9 @@ end subroutine tao_to_real
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, info, err_flag, &
-!      print_err, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
-!      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
+! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, err_flag, print_err, &
+!                   info, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
+!                   dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
 !
 ! Mathematically evaluates a character expression.
 !
@@ -4277,20 +4275,21 @@ end subroutine tao_to_real
 !
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
-!   info(:)    -- tao_expression_info_struct, allocatable: Is the value valid?, etc.
-!                  Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
-!                  orbit.x[23]|good_user is False.
 !   err_flag  -- Logical: True on an error. EG: Invalid expression.
 !                  A divide by zero is not an error but good(:) will be set to False.
+!   info(:)    -- tao_expression_info_struct, allocatable, optional: Is the value valid?, etc.
+!                  Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
+!                  orbit.x[23]|good_user is False.
 !   stack(:)  -- Tao_eval_stack1_struct, allocatable, optional: Evaluation stack for the
 !                  expression. This is useful to save if the same expression is
 !                  to be evaluated repeatedly. 
 !                  With this, tao_evaluate_stack can be called directly.
 !-
 
-subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, info, err_flag, &
-                  print_err, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, &
-                  dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
+recursive &
+subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, err_flag, print_err, &
+                      info, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
+                      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
 
 use random_mod
 use expression_mod
@@ -4305,7 +4304,7 @@ type (tao_eval_stack1_struct), allocatable :: stk(:)
 type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (coord_struct), optional :: dflt_orbit
-type (tao_expression_info_struct), allocatable :: info(:)
+type (tao_expression_info_struct), allocatable, optional :: info(:)
 type (expression_func_struct) func(0:20)
 
 integer, optional :: dflt_uni, dflt_eval_point
@@ -4323,8 +4322,8 @@ character(*), optional :: dflt_dat_or_var_index
 character(len(expression)+20) :: phrase, word, word2
 character(1) delim, cc
 character(80) default_source
-character(*), parameter :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
+character(*), parameter :: r_name = "tao_evaluate_expression"
 
 logical delim_found, do_combine, use_good_user
 logical err_flag, err, wild, printit, found
@@ -4454,10 +4453,11 @@ parsing_loop: do
 
   ! If delim = "*" then see if this is being used as a wildcard
   ! Examples: "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|", "ele::q*1[beta_a]", 3*.42
-  ! If so, we have split in the wrong place and we need to correct this.  *
+  ! If so, we have split in the wrong place and we need to correct this. 
+  ! Something like "3*[1,2]" does not get split.
 
   do
-    if (delim /= '*') exit
+    if (delim /= '*' .or. phrase(1:1) == '[') exit
 
     ix0 = index(word, '::')
     ix1 = index(phrase, '[')
@@ -4614,8 +4614,9 @@ parsing_loop: do
       endif
     else
       call pushit2 (stk, i_lev, numeric$)
-      call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, default_source, &
-             dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
+      call tao_param_value_routine (word, use_good_user, saved_prefix, stk(i_lev), err, printit, &
+             dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
+             dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -4684,8 +4685,9 @@ parsing_loop: do
       return
     endif
     call pushit2 (stk, i_lev, numeric$)
-    call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, default_source, &
-            dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
+    call tao_param_value_routine (word, use_good_user, saved_prefix, stk(i_lev), err, printit, &
+            dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
+            dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -4761,7 +4763,7 @@ parsing_loop: do
   case (no_delim$); exit parsing_loop
   case (comma$)
     if (printit) call out_io (s_error$, r_name, 'COMMA AT END OF EXPRESSION IS OUT OF place: ' // expression, &
-                                   '(NEEDS "[...]" OUTER BRACKETS IF AN ARRAY.)')
+                                   '(NEEDS "[...]" BRACKETS IF AN ARRAY.)')
     return
   case default; call pushit (op, i_op, i_delim)
   end select
@@ -4786,7 +4788,7 @@ if (phrase /= '') then
   return
 endif
 
-call tao_evaluate_stack (stk(1:i_lev), n_size, use_good_user, value, info, err_flag, printit, expression)
+call tao_evaluate_stack (stk(1:i_lev), n_size, use_good_user, value, err_flag, printit, expression, info)
 
 ! If the stack argument is present then copy stk to stack
 
@@ -4854,11 +4856,12 @@ end subroutine tao_evaluate_expression
 !---------------------------------------------------------------------------
 
 recursive &
-subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_err, dflt_component, &
+subroutine tao_param_value_routine (str, use_good_user, saved_prefix, stack, err_flag, print_err, dflt_component, &
                     dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, &
                     dflt_eval_point, dflt_s_offset, dflt_orbit)
 
-type (tao_eval_stack1_struct) stack, stack2
+type (tao_eval_stack1_struct) stack
+type (tao_eval_stack1_struct), allocatable :: stack2(:)
 type (tao_real_pointer_struct), allocatable :: re_array(:)
 type (tao_data_array_struct), allocatable :: d_array(:)
 type (tao_integer_array_struct), allocatable :: int_array(:)
@@ -4869,8 +4872,10 @@ type (tao_var_struct), pointer :: v
 type (tao_lattice_struct), pointer :: tao_lat
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (coord_struct), optional :: dflt_orbit
+type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp), optional :: dflt_s_offset
+real(rp), allocatable :: value(:)
 
 integer, optional :: dflt_uni, dflt_eval_point
 integer ios, i, m, n, ix, ix2, ix_word, ix_uni
@@ -4885,7 +4890,7 @@ character(60) name, word2
 character(200) str2
 character(*), parameter :: r_name = 'tao_param_value_routine'
 
-logical err_flag, print_err, print_error, delim_found, valid_value, exterminate
+logical use_good_user, err_flag, print_err, print_error, delim_found, valid_value, exterminate
 
 ! See if it is a constant like pi, etc.
 
@@ -4928,15 +4933,19 @@ if (str(1:1) == '[' .and. index(str, ']@') == 0) then
 
   do
     call word_read (str2, ',', word2, ix_word, delim, delim_found, str2, ignore_interior = .true.)
-    call tao_param_value_routine (word2, saved_prefix, stack2, err_flag, print_err, dflt_component, dflt_source, &
-                dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset)
+    call tao_evaluate_expression (word2, 1, use_good_user, value, err_flag, print_err, &
+                         info, stack2, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, &
+                         dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
     if (err_flag) return
     m = size(stack%value)
-    n = size(stack2%value)
-    call re_allocate(stack%value, m+n)
-    call tao_re_allocate_expression_info (stack%info, n+m)
-    stack%value(m+1:m+n) = stack2%value
-    stack%info(m+1:m+n) = stack2%info
+    call re_allocate(stack%value, m+1)
+    call tao_re_allocate_expression_info (stack%info, m+1)
+    stack%value(m+1) = value(1)
+    stack%info(m+1)%good = .true.
+    do i = 1, size(stack2)
+      if (.not. allocated(stack2(i)%info)) cycle
+      stack%info(m+1)%good = (stack%info(m+1)%good .and. stack2(i)%info(1)%good)
+    enddo
     if (.not. delim_found) return
   enddo
 
@@ -5293,7 +5302,7 @@ end function tao_evaluate_datum_at_s
 !   err_flag      -- Logical: True on error. False otherwise
 !-
 
-subroutine tao_evaluate_stack (stack, n_size_in, use_good_user, value, info, err_flag, print_err, expression)
+subroutine tao_evaluate_stack (stack, n_size_in, use_good_user, value, err_flag, print_err, expression, info_in)
 
 use expression_mod
 
@@ -5301,6 +5310,7 @@ type (tao_eval_stack1_struct), target :: stack(:)
 type (tao_eval_stack1_struct), pointer :: ss
 type (tao_eval_stack1_struct), pointer :: s(:)
 type (tao_eval_stack1_struct) stk2(20)
+type (tao_expression_info_struct), allocatable, optional :: info_in(:)
 type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp), allocatable :: value(:)
@@ -5317,7 +5327,6 @@ character(*), parameter :: r_name = 'tao_evaluate_stack'
 
 s => stack   ! For debugging purposes
 err_flag = .true.
-if (allocated(info)) deallocate(info)
 n_size = max(1, n_size_in)
 
 do i = 1, size(stack)
@@ -5602,6 +5611,10 @@ else
   where (.not. info%good) value = 0
 endif
 
+if (present(info_in)) then
+  if (allocated(info_in)) deallocate(info_in)
+  info_in = info
+endif
 
 n_size = size(value)
 if (n_size_in /= 0) then
