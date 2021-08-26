@@ -20,22 +20,23 @@ integer, parameter :: factorial$ = 24, int$ = 25, nint$ = 26, floor$ = 27, ceili
 integer, parameter :: numeric$ = 29, variable$ = 30
 integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_const$ = 35
 integer, parameter :: sinc$ = 36, constant$ = 37, comma$ = 38, rms$ = 39, average$ = 40, sum$ = 41, l_func_parens$ = 42
-integer, parameter :: arg_count$ = 43, antiparticle$ = 44, cot$ = 45, sec$ = 46, csc$ = 47
+integer, parameter :: arg_count$ = 43, antiparticle$ = 44, cot$ = 45, sec$ = 46, csc$ = 47, sign$ = 48
 
 ! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
 ! Note: "rms" and "average" are not implemented here but is used by Tao.
 
-character(20), parameter :: expression_op_name(47) = [character(20) :: '+', '-', '*', '/', &
+character(20), parameter :: expression_op_name(48) = [character(20) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                     'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                     'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
                                     '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', &
                                     'species', '?!+Species', 'sinc', '?!+Constant', ',', 'rms', 'average', 'sum', &
-                                    '(', '?!+Arg Count', 'antiparticle', 'cot', 'sec', 'csc']
+                                    '(', '?!+Arg Count', 'antiparticle', 'cot', 'sec', 'csc', 'sign']
 
 
-integer, parameter :: expression_eval_level(47) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-              9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9]
+integer, parameter :: expression_eval_level(48) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+              9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, &
+              9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9]
 
 private pushit
 
@@ -255,6 +256,8 @@ parsing_loop: do
         func(n_func)%n_arg_target = -1        ! 0 or 1 args.
       case ('INT')
         call pushit (op, i_op, int$)
+      case ('SIGN')
+        call pushit (op, i_op, sign$)
       case ('NINT')
         call pushit (op, i_op, nint$)
       case ('FLOOR')
@@ -803,6 +806,9 @@ do i = 1, size(stack)
 
   case (int$)
     stack2(i2)%value = int(stack2(i2)%value)
+
+  case (sign$)
+    stack2(i2)%value = sign_of(stack2(i2)%value)
 
   case (nint$)
     stack2(i2)%value = nint(stack2(i2)%value)
