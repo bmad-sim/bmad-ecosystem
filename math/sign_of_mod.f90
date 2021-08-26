@@ -38,11 +38,11 @@ contains
 ! Overloaded routine. See documentation on sign_of function.
 !-
 
-function sign_of_real (num, zero_is_zero) result (num_sign)
+elemental function sign_of_real (num, zero_is_zero) result (num_sign)
 
-real(rp) num
+real(rp), intent(in) :: num
 integer num_sign
-logical, optional :: zero_is_zero
+logical, optional, intent(in) :: zero_is_zero
 
 !
 
@@ -69,11 +69,11 @@ end function sign_of_real
 ! Overloaded routine. See documentation on sign_of function.
 !-
 
-function sign_of_int (num, zero_is_zero) result (num_sign)
+elemental function sign_of_int (num, zero_is_zero) result (num_sign)
 
-integer num
+integer, intent(in) :: num
 integer num_sign
-logical, optional :: zero_is_zero
+logical, optional, intent(in) :: zero_is_zero
 
 !
 
