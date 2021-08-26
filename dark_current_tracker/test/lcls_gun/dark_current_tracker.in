@@ -8,8 +8,8 @@ save_field = T
 plot_on = T
 
 parallel=F
-plot_y_min = -.12
-plot_y_max = .12
+plot_y_min = -.03
+plot_y_max = .03
 plot_color_scale = 1
 
 !dt_save = 1e-12

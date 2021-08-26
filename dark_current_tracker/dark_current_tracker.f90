@@ -328,9 +328,9 @@ particle_loop: do particle_id = 1, size(start_particles)
   end_particle = start
   
   if (dc_param%save_tracks .or. dc_param%plot_on) then
-    call track_until_dead (end_particle, lat, end_particle, single_track)
+    call track_until_dead (start, lat, end_particle, single_track)
   else
-    call track_until_dead (end_particle, lat, end_particle)
+    call track_until_dead (start, lat, end_particle)
   endif
   
   if (plot_on) call plot_particle_track( lat,single_track, plot_color_scale )
