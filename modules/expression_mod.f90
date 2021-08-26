@@ -20,22 +20,22 @@ integer, parameter :: factorial$ = 24, int$ = 25, nint$ = 26, floor$ = 27, ceili
 integer, parameter :: numeric$ = 29, variable$ = 30
 integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_const$ = 35
 integer, parameter :: sinc$ = 36, constant$ = 37, comma$ = 38, rms$ = 39, average$ = 40, sum$ = 41, l_func_parens$ = 42
-integer, parameter :: arg_count$ = 43, antiparticle$ = 44
+integer, parameter :: arg_count$ = 43, antiparticle$ = 44, cot$ = 45, sec$ = 46, csc$ = 47
 
 ! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
 ! Note: "rms" and "average" are not implemented here but is used by Tao.
 
-character(20), parameter :: expression_op_name(44) = [character(20) :: '+', '-', '*', '/', &
+character(20), parameter :: expression_op_name(47) = [character(20) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                     'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                     'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
                                     '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', &
                                     'species', '?!+Species', 'sinc', '?!+Constant', ',', 'rms', 'average', 'sum', &
-                                    '(', '?!+Arg Count', 'antiparticle']
+                                    '(', '?!+Arg Count', 'antiparticle', 'cot', 'sec', 'csc']
 
 
-integer, parameter :: expression_eval_level(44) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-              9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9]
+integer, parameter :: expression_eval_level(47) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+              9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9]
 
 private pushit
 
@@ -214,6 +214,12 @@ parsing_loop: do
       n_func = n_func + 1
       func(n_func) = expression_func_struct(upcase(word), 1, 0)
       select case (upcase(word))
+      case ('COT') 
+        call pushit (op, i_op, cot$)
+      case ('CSC') 
+        call pushit (op, i_op, csc$)
+      case ('SEC') 
+        call pushit (op, i_op, sec$)
       case ('SIN') 
         call pushit (op, i_op, sin$)
       case ('SINC') 
@@ -717,6 +723,23 @@ do i = 1, size(stack)
   case (power$)
     stack2(i2-1)%value = stack2(i2-1)%value**stack2(i2)%value
     i2 = i2 - 1
+
+  case (cot$)
+    if (stack2(i2)%value == 0) then
+      err_str = 'DIVIDE BY 0 IN EXPRESSION'
+      return
+    endif
+    stack2(i2)%value = 1.0_rp / tan(stack2(i2)%value)
+
+  case (csc$)
+    if (stack2(i2)%value == 0) then
+      err_str = 'DIVIDE BY 0 IN EXPRESSION'
+      return
+    endif
+    stack2(i2)%value = 1.0_rp / sin(stack2(i2)%value)
+
+  case (sec$)
+    stack2(i2)%value = 1.0_rp / cos(stack2(i2)%value)
 
   case (sin$)
     stack2(i2)%value = sin(stack2(i2)%value)
