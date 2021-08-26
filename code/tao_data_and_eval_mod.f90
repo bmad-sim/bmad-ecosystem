@@ -4531,6 +4531,12 @@ parsing_loop: do
       n_func = n_func + 1
       func(n_func) = expression_func_struct(word2, 1, 0)
       select case (word2)
+      case ('cot')
+        call pushit (op, i_op, cot$)
+      case ('csc')
+        call pushit (op, i_op, csc$)
+      case ('sec')
+        call pushit (op, i_op, sec$)
       case ('sin')
         call pushit (op, i_op, sin$)
       case ('sinc')
@@ -4572,6 +4578,8 @@ parsing_loop: do
         func(n_func)%n_arg_target = -1      ! 0 or 1 args
       case ('int')
         call pushit (op, i_op, int$)
+      case ('sign')
+        call pushit (op, i_op, sign$)
       case ('nint')
         call pushit (op, i_op, nint$)
       case ('floor')
@@ -4886,8 +4894,8 @@ character(*), optional :: dflt_dat_or_var_index
 
 character(1) delim
 character(16) s_str, source
-character(60) name, word2
-character(200) str2
+character(60) name
+character(200) str2, word2
 character(*), parameter :: r_name = 'tao_param_value_routine'
 
 logical use_good_user, err_flag, print_err, print_error, delim_found, valid_value, exterminate
@@ -5485,6 +5493,15 @@ do i = 1, size(stack)
     endif
     i2 = i2 - 1
 
+  case (cot$)
+    stk2(i2)%value = 1.0_rp / tan(stk2(i2)%value)
+
+  case (csc$) 
+    stk2(i2)%value = 1.0_rp / sin(stk2(i2)%value)
+
+  case (sec$)
+    stk2(i2)%value = 1.0_rp / cos(stk2(i2)%value)
+
   case (sin$) 
     stk2(i2)%value = sin(stk2(i2)%value)
 
@@ -5576,6 +5593,9 @@ do i = 1, size(stack)
 
   case (int$)
     stk2(i2)%value = int(stk2(i2)%value)
+
+  case (sign$)
+    stk2(i2)%value = sign_of(stk2(i2)%value)
 
   case (nint$)
     stk2(i2)%value = nint(stk2(i2)%value)
