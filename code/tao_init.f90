@@ -98,7 +98,7 @@ if (init_tao_file /= '') then
     else
       call output_direct (-1, print_and_capture=s%com%print_to_terminal)
       call out_io (s_abort$, r_name, 'TAO INITIALIZATION FILE NOT FOUND: ' // init_tao_file)
-      stop
+      return
     endif
   endif
 endif
@@ -110,7 +110,7 @@ if (iu == 0 .and. (s%init%lattice_file_arg == '' .and. s%init%hook_lat_file == '
           '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
           '  See the Tao manual for more details...')
   call tao_print_command_line_info
-  stop
+  return
 endif
 
 ! Set defaults.
