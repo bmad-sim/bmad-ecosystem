@@ -91,7 +91,7 @@ call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // data_file)
 call tao_open_file (data_file, iu, file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'CANNOT OPEN DATA INIT FILE: ' // data_file)
-  stop
+  return
 endif
 
 n_d2_data = 0
@@ -117,7 +117,7 @@ do
     call out_io (s_abort$, r_name, &
           'D2_DATA%NAME IN TAO_D2_DATA NAMELIST CANNOT CONTAIN A PERIOD CHARACTER: ' // quote(d2_data%name), &
           'IN FILE: ' // data_file)
-    stop
+    cycle
   endif
 
   if (universe == '*') then
@@ -128,7 +128,7 @@ do
       call out_io (s_abort$, r_name, &
             'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // quote(d2_data%name), &
             'IN FILE: ' // data_file)
-      stop
+      cycle
     endif
   endif
 
@@ -218,7 +218,7 @@ do
       endif
       rewind (iu)
       do
-        read (iu, nml = tao_d1_data)  ! force printing of error message
+        read (iu, nml = tao_d1_data)  ! Force printing of error message
       enddo
     endif
 

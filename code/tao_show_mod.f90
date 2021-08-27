@@ -4871,7 +4871,7 @@ case ('universe')
   l_lat = branch%param%total_length
   gamma2 = (branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle))**2
   n = branch%n_ele_track
-  time1 = branch%ele(branch%n_ele_track)%ref_time
+  time1 = branch%ele(n)%ref_time
 
   if (branch%param%geometry == closed$ .or. s%global%rad_int_calc_on) then
 
@@ -4898,12 +4898,14 @@ case ('universe')
         nl=nl+1; write(lines(nl), fmt) 'Damping_time', time1/tao_branch%modes%a%alpha_damp, &
               time1/design_tao_branch%modes%a%alpha_damp, time1/tao_branch%modes%b%alpha_damp, time1/design_tao_branch%modes%b%alpha_damp, '! Sec'
       endif
+
       nl=nl+1; write(lines(nl), fmt) 'I4', tao_branch%modes%a%synch_int(4), &
             design_tao_branch%modes%a%synch_int(4), tao_branch%modes%b%synch_int(4), design_tao_branch%modes%b%synch_int(4), '! Radiation Integral'
       nl=nl+1; write(lines(nl), fmt) 'I5', tao_branch%modes%a%synch_int(5), &
             design_tao_branch%modes%a%synch_int(5), tao_branch%modes%b%synch_int(5), design_tao_branch%modes%b%synch_int(5), '! Radiation Integral'
       nl=nl+1; write(lines(nl), fmt3) 'I6/gamma^2', tao_branch%modes%b%synch_int(6) / gamma2, &
             design_tao_branch%modes%b%synch_int(6) / gamma2, '! Radiation Integral'
+
       if (branch%param%geometry == open$) then
         nl=nl+1; write(lines(nl), fmt) 'Final Emittance', tao_branch%modes%lin%a_emittance_end, &
             design_tao_branch%modes%lin%a_emittance_end, tao_branch%modes%lin%b_emittance_end, design_tao_branch%modes%lin%b_emittance_end, '! Meters'

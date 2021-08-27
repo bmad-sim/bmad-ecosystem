@@ -150,7 +150,7 @@ type (all_pointer_struct) a_ptr
 type (controller_var1_struct), pointer :: cvar
 
 real(rp) z, s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
-real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy
+real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy, time1, gamma
 real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400), dx_orbit(0:400), dy_orbit(0:400)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
@@ -246,7 +246,7 @@ call match_word (cmd, [character(40) :: &
           'matrix', 'merit', 'orbit_at_s', &
           'place_buffer', 'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_plot_manage', 'plot_graph_manage', 'plot_curve_manage', &
-          'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'ptc_com', 'shape_list', &
+          'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'ptc_com', 'ring_general', 'shape_list', &
           'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', 'shape_set', &
           'show', 'species_to_int', 'species_to_str', 'spin_polarization', 'spin_resonance', 'super_universe', &
           'twiss_at_s', 'universe', &
@@ -5986,6 +5986,91 @@ case ('ptc_com')
   nl=incr(nl); write (li(nl), lmt) 'exact_model;LOGIC;T;',                  ptc_com%exact_model
   nl=incr(nl); write (li(nl), lmt) 'exact_misalign;LOGIC;T;',               ptc_com%exact_misalign
 
+
+!%% ring_general -----------------------
+! Lattice branch with closed geometry info (emittances, etc.)
+!
+! Notes
+! -----
+! Command syntax:
+!   python ring_general {ix_uni}@{ix_branch}|{which}
+! where {which} is one of:
+!   model
+!   base
+!   design
+! Example:
+!   python ring_general 1@0|model
+! 
+!
+! Parameters
+! ----------
+! ix_uni : default = s%global%default_universe
+! ix_branch : default = s%global%default_branch
+! which : default=model
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+
+case ('ring_general')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err); if (err) return
+  ix_branch = parse_branch(line, .false., err); if (err) return
+  tao_branch => tao_lat%tao_branch(ix_branch)
+  branch => tao_lat%lat%branch(ix_branch)
+
+  if (branch%param%geometry == open$) then
+    call invalid ('Branch geometry must be closed')
+    return
+  endif
+
+  call chrom_calc (branch%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
+                                                  pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch)
+  call calc_z_tune(branch%lat, branch%ix_branch)
+  call radiation_integrals (branch%lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, branch%ix_branch)
+
+  n = branch%n_ele_track
+  time1 = branch%ele(n)%ref_time
+  gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
+
+  nl=incr(nl); write (li(nl), rmt) 'param.unstable_factor;REAL;F;',             branch%param%unstable_factor
+  nl=incr(nl); write (li(nl), rmt) 'Q_a;REAL;F;',                               branch%ele(n)%a%phi/twopi
+  nl=incr(nl); write (li(nl), rmt) 'Q_b;REAL;F;',                               branch%ele(n)%b%phi/twopi
+  nl=incr(nl); write (li(nl), rmt) 'Q_z;REAL;F;',                              -branch%z%tune/twopi
+  nl=incr(nl); write (li(nl), rmt) 'Q_spin;REAL;F;',                            branch%param%spin_tune/twopi
+  nl=incr(nl); write (li(nl), rmt) 'chrom_a;REAL;F;',                           tao_branch%a%chrom
+  nl=incr(nl); write (li(nl), rmt) 'chrom_b;REAL;F;',                           tao_branch%b%chrom
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_a;REAL;F;',                          tao_branch%modes%a%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_b;REAL;F;',                          tao_branch%modes%b%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_z;REAL;F;',                          tao_branch%modes%z%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'emit_a;REAL;F;',                            tao_branch%modes%a%emittance
+  nl=incr(nl); write (li(nl), rmt) 'emit_b;REAL;F;',                            tao_branch%modes%b%emittance
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_a;REAL;F;',                      tao_branch%modes%a%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_b;REAL;F;',                      tao_branch%modes%b%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_z;REAL;F;',                      tao_branch%modes%z%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_a;REAL;F;',                    time1/tao_branch%modes%a%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_b;REAL;F;',                    time1/tao_branch%modes%b%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_z;REAL;F;',                    time1/tao_branch%modes%z%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'sigE_E;REAL;F;',                            tao_branch%modes%sigE_E
+  nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;F;',                             tao_branch%modes%sig_z
+  nl=incr(nl); write (li(nl), rmt) 'energy_loss;REAL;F;',                       tao_branch%modes%e_loss
+  nl=incr(nl); write (li(nl), rmt) 'I0;REAL;F;',                                tao_branch%modes%synch_int(0)
+  nl=incr(nl); write (li(nl), rmt) 'I1;REAL;F;',                                tao_branch%modes%synch_int(1)
+  nl=incr(nl); write (li(nl), rmt) 'I2;REAL;F;',                                tao_branch%modes%synch_int(2)
+  nl=incr(nl); write (li(nl), rmt) 'I3;REAL;F;',                                tao_branch%modes%synch_int(3)
+  nl=incr(nl); write (li(nl), rmt) 'I4_a;REAL;F;',                              tao_branch%modes%a%synch_int(4)
+  nl=incr(nl); write (li(nl), rmt) 'I4_b;REAL;F;',                              tao_branch%modes%b%synch_int(4)
+  nl=incr(nl); write (li(nl), rmt) 'I5_a;REAL;F;',                              tao_branch%modes%a%synch_int(5)
+  nl=incr(nl); write (li(nl), rmt) 'I5_b;REAL;F;',                              tao_branch%modes%b%synch_int(5)
+  nl=incr(nl); write (li(nl), rmt) 'I6_g2_b;REAL;F;',                           tao_branch%modes%b%synch_int(6) / gamma**2
+
 !%% shape_list -----------------------
 ! lat_layout and floor_plan shapes list
 !
@@ -6497,7 +6582,7 @@ case ('species_to_str')
 !   base
 !   design
 ! Example:
-!   python spin 1@0|model
+!   python spin_polarization 1@0|model
 ! 
 ! Note: This command is under development. If you want to use please contact David Sagan.
 ! 
