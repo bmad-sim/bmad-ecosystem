@@ -242,7 +242,7 @@ call match_word (cmd, [character(40) :: &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control_var', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
-          'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
+          'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'matrix', 'merit', 'orbit_at_s', &
           'place_buffer', 'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_plot_manage', 'plot_graph_manage', 'plot_curve_manage', &
@@ -508,7 +508,7 @@ case ('branch1')
 ! Notes
 ! -----
 ! Command syntax:
-! python bunch_params {ele_id}|{which}
+! python bunch_params {ix_universe}@{ele_id}|{which}
 !
 ! Parameters
 ! ----------
@@ -4467,13 +4467,13 @@ case ('lat_ele_list')
     nl=incr(nl); write (li(nl), '(i0, 2a)') i, ';', branch%ele(i)%name
   enddo
 
-!%% lat_general -----------------------
-! Lattice general
+!%% lat_branch_list -----------------------
+! Lattice branch list
 !
 ! Notes
 ! -----
 ! Command syntax:
-!   python lat_general {ix_universe}
+!   python lat_branch_list {ix_universe}
 ! 
 ! Output syntax:
 !   branch_index;branch_name;n_ele_track;n_ele_max
@@ -4496,7 +4496,8 @@ case ('lat_ele_list')
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
 !    ix_universe: 1
-case ('lat_general')
+
+case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 
   u => point_to_uni(line, .false., err); if (err) return
   lat => u%model%lat
