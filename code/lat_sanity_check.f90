@@ -1214,7 +1214,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     do j = ele%ix1_slave, ele%ix1_slave+ele%n_slave+ele%n_slave_field-1
 
-      if (j < 1 .or. j > lat%n_control_max) then
+      if (j < 0 .or. j > lat%n_control_max) then
         call out_io (s_fatal$, r_name, &
                   'LORD: ' // trim(ele%name)  // '  (\i0\)', &
                   'HAS IX_SLAVE INDEX OUT OF BOUNDS: \3i5\ ', &
@@ -1236,7 +1236,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       i_t2 = ctl%slave%ix_ele
       i_b2 = ctl%slave%ix_branch
 
-      if (i_t2 < 1 .or. i_t2 > lat%branch(i_b2)%n_ele_max) then
+      if (i_t2 < 0 .or. i_t2 > lat%branch(i_b2)%n_ele_max) then
         call out_io (s_fatal$, r_name, &
                   'LORD: ' // trim(ele%name) // '  (\i0\)', &
                   'HAS A SLAVE INDEX OUT OF RANGE: \i0\ ', &
