@@ -2331,24 +2331,21 @@ an offset at the center of \vn{q2} of $0.01 = 0.002 * 5$. This, added to the off
 \vn{q2}, give the total \vn{x_offset}, denoted \vn{x_offset_tot} of \vn{q2} is $0.06 = 0.01 + 0.03 +
 0.02$. The total \vn{x_pitch}, denoted \vn{x_pitch_tot}, of \vn{q2} is $0.022 = 0.02 + 0.001$.
 
-A \vn{girder} that has its \vn{is_on} attribute set to False is considered to be
-unsifted with respect to it's reference frame.
+A \vn{girder} that has its \vn{is_on} attribute set to False is considered to be unsifted with
+respect to it's reference frame.
 
 %-----------------------------------------------------------------------------
 \section{Group}
 \label{s:group}
 \index{group|hyperbf}
 
-\vn{Group} elements are a type of \vn{control} element
-(\sref{s:lord.slave}) used to make variations in the attributes of
-other elements (called ``slave'' attributes) during execution of a
-program. For example, to simulate the action of a control room knob
-that changes the beam tune in a storage ring, a \vn{group} element can
-be used to vary the strength of selected quads in a specified
-manner. Also see \vn{overlay} (\sref{s:overlay}) The difference
-between \vn{group} and \vn{overlay} elements is that \vn{overlay}
-elements set the values of the attributes directly while \vn{group}
-elements make delta changes to attribute values.
+\vn{Group} elements are a type of \vn{control} element (\sref{s:lord.slave}) used to make variations
+in the attributes of other elements (called ``slave'' attributes) during execution of a program. For
+example, to simulate the action of a control room knob that changes the beam tune in a storage ring,
+a \vn{group} element can be used to vary the strength of selected quads in a specified manner. Also
+see \vn{overlay} (\sref{s:overlay}) The difference between \vn{group} and \vn{overlay} elements is
+that \vn{overlay} elements set the values of the attributes directly while \vn{group} elements make
+delta changes to attribute values.
 
 General \vn{group} attributes are:
 \begin{center}
@@ -2537,16 +2534,13 @@ element.
 \index{monitor|hyperbf}
 \index{pipe|hyperbf}
 
-Essentially \bmad treats \vn{instrument}, \vn{monitor}, and \vn{pipe}
-elements like a \vn{drift}. There is a difference, however, when
-superimposing elements (\sref{s:super}). For example, a
-\vn{quadrupole} superimposed on top of a \vn{drift} results in a free
-\vn{quadrupole} element in the tracking part of the lattice and no
-lord elements are created. On the other hand, a \vn{quadrupole}
-superimposed on top of a \vn{monitor} results in a \vn{quadrupole}
-element in the tracking part of the lattice and this \vn{quadrupole}
-element will have two lords: A \vn{quadrupole} superposition lord and
-a \vn{monitor} superposition lord.
+Essentially \bmad treats \vn{instrument}, \vn{monitor}, and \vn{pipe} elements like a
+\vn{drift}. There is a difference, however, when superimposing elements (\sref{s:super}). For
+example, a \vn{quadrupole} superimposed on top of a \vn{drift} results in a free \vn{quadrupole}
+element in the tracking part of the lattice and no lord elements are created. On the other hand, a
+\vn{quadrupole} superimposed on top of a \vn{monitor} results in a \vn{quadrupole} element in the
+tracking part of the lattice and this \vn{quadrupole} element will have two lords: A \vn{quadrupole}
+superposition lord and a \vn{monitor} superposition lord.
 
 General \vn{instrument}, \vn{monitor}, and \vn{pipe} attributes are:
 \begin{center}

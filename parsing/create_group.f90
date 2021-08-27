@@ -60,7 +60,7 @@ do i = 1, n_control
     return
   endif
 
-  if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
+  if (ix_slave < 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
     call parser_error ('LATTICE ELEMENT INDEX OUT OF BOUNDS. \i0\ ', &
                        'CONSTRUCTING GROUP: ' // lord%name, i_array = [ix_slave])
     return
