@@ -450,17 +450,6 @@ function setrel64() {
 
 
 #--------------------------------------------------------------
-# Add PYTHONPATH for pytao
-# Requested by dcs16 in RT#52493
-#--------------------------------------------------------------
-if ( [ "${ACC_PYTHONPATH}" != "" ] ) then
-    export PYTHONPATH="${ACC_PYTHONPATH}${PYTHONPATH:+:${PYTHONPATH}}"
-else
-    export PYTHONPATH="${ACC_ROOT_DIR}/tao/python${PYTHONPATH:+:${PYTHONPATH}}"
-fi
-
-
-#--------------------------------------------------------------
 # Remove all duplicate path entries from variables composed during
 # the above process
 #--------------------------------------------------------------
@@ -472,7 +461,6 @@ export MANPATH=`remove_duplicates ${MANPATH}`
 export LIBPATH=`remove_duplicates ${LIBPATH}`
 export LIBRARYPATH=`remove_duplicates ${LIBRARYPATH}`
 export SYSPATH=`remove_duplicates ${SYSPATH}`
-export PYTHONPATH=`remove_duplicates ${PYTHONPATH}`
 export SHLIB_PATH=`remove_duplicates ${SHLIB_PATH}`
 
 

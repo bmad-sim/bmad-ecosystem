@@ -39,15 +39,4 @@ export TAO_DIR=${DIST_BASE_DIR}/tao
 #--------------------------------------------------------------
 export ACC_ENABLE_FPIC=Y
 
-#--------------------------------------------------------------
-# Add PYTHONPATH for pytao  
-# Requested by dcs16 in RT#52493 
-#--------------------------------------------------------------
-if ( [ "${ACC_PYTHONPATH}" != "" ] ) then
-    export PYTHONPATH="${ACC_PYTHONPATH}${PYTHONPATH:+:${PYTHONPATH}}"
-else
-    export PYTHONPATH="${ACC_ROOT_DIR}/tao/python${PYTHONPATH:+:${PYTHONPATH}}"
-fi
-
-
 

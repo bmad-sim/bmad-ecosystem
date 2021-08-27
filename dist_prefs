@@ -158,11 +158,3 @@ export ACC_ENABLE_PROFILING="N"
 #-----------------------------------------------------------
 export ACC_SET_GMAKE_JOBS="2"
 
-
-#-----------------------------------------------------------
-# If ACC_PYTHONPATH is set, ACC_PYTHONPATH is prepended to PYTHONPATH.
-# If ACC_PYTHONPATH is not set, "${ACC_ROOT_DIR}/tao/python is prepended to PYTHONPATH.
-# [ACC_ROOT_DIR will point to the Bmad Distribution base directory.]
-# Setting PYTHONPATH is typically used for the interfacing of the Tao program to Python.
-#-----------------------------------------------------------
-# export ACC_PYTHONPATH=""
