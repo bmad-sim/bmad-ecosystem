@@ -946,7 +946,7 @@ endif
     else
      if(use_bmad_units.and.(.not.inside_bmad)) then 
        beta=C%PARENT_FIBRE%beta0
-       if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+       if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
        call convert_bmad_to_ptc(xs,beta,k%time)
      endif
  
@@ -963,7 +963,7 @@ endif
      endif
     if(use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_ptc_to_bmad(xs,beta,k%time)
     endif
     endif
@@ -1042,7 +1042,7 @@ endif
     else
     if(use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_bmad_to_ptc(xs,beta,k%time)
     endif
      DO  WHILE(.not.ASSOCIATED(C,n2))
@@ -1057,7 +1057,7 @@ endif
      endif
     if(use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_ptc_to_bmad(xs,beta,k%time)
     endif
     endif
@@ -1096,7 +1096,7 @@ endif
 
     if(use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_bmad_to_ptc(xs,beta,k%time)
     endif
 
@@ -1112,7 +1112,7 @@ endif
 
     if(use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_ptc_to_bmad(xs,beta,k%time)
     endif
 
@@ -1153,7 +1153,7 @@ endif
 
     if(use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_bmad_to_ptc(xs,beta,k%time)
     endif
 
@@ -1168,7 +1168,7 @@ endif
 
     if(use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_ptc_to_bmad(xs,beta,k%time)
     endif
 

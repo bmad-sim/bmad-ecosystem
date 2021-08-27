@@ -21,7 +21,7 @@ module pointer_lattice
   real(dp) r_ap(2),x_ap,y_ap   ! default aperture
   integer :: kind_ap=2,file_ap=0                      ! Single aperture position and kind of aperture + file unit
   character(nlp) name_ap,namet(2)
-  character(255) :: filename_ap = "Tracking.txt",datafile
+  character(255) :: filename_ap = "Tracking_ap.txt",datafile
   character(255), private :: file_zher,filezhe, name_zhe
   integer, private :: k_zhe, number_zhe_maps_local
   integer last_npara 

@@ -1818,6 +1818,10 @@ CONTAINS
     ENDIF
 
     if(present(list)) then
+      if(madlength) then
+         write(6,*) " List in RECTTILT should use arc length "
+        stop
+      endif
        RECTTILT=list
        l1=list%L
        E11=LIST%T1
