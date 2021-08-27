@@ -29,7 +29,7 @@ set (EXE_SPECS
   cmake.synrad3d
   cmake.synrad_aperture_to_wall
   cmake.tune_plane_res_plot
-  cmake.wall_generator
+  ##cmake.wall_generator
 )
 
 #set (FFLAGS "-qopenmp")
