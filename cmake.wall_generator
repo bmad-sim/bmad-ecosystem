@@ -1,0 +1,13 @@
+set (EXENAME wall_generator)
+
+FILE (GLOB SRC_FILES wall_generator/*.f90)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)
