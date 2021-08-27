@@ -2603,7 +2603,9 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
      else
      t=z(6)
      z(6)=-z(5)*sqrt(1.0_dp/b0**2+2*t+t**2)/(1.0_dp+t)
-     z(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+     !z(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+      z(5)=(2*t+t**2)/(sqrt(1.0_dp/b0**2+2*t+t**2)+1.0_dp/b0)
+
      endif
      end subroutine convert_bmad_to_ptcar
 
@@ -2630,7 +2632,9 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
      t=z(6)
 
      z(6)=-z(5)*sqrt(1.0_dp/b0**2+2*t+t**2)/(1.0_dp+t)
-     z(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+     !z(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+      z(5)=(2*t+t**2)/(sqrt(1.0_dp/b0**2+2*t+t**2)+1.0_dp/b0)
+
      endif
      call kill(t)
 
@@ -2658,7 +2662,8 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
      else
       t=z(5)
       z(5)=-(z(6)-l)*sqrt(1.d0 +2*t/b0+t**2)/(1.d0/b0+t)
-      z(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.d0 
+  !    z(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.d0 
+        z(6)=(2*t/b0+t**2)/(sqrt(1.0_dp +2*t/b0+t**2)+1.0_dp)
      endif
      end subroutine convert_ptc_to_bmadar   
 
@@ -2689,7 +2694,9 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
      else
       t=z(5)
       z(5)=-(z(6)-l)*sqrt(1.0_dp+2*t/b0+t**2)/(1.0_dp/b0+t)
-      z(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.0_dp 
+    !  z(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.0_dp 
+        z(6)=(2*t/b0+t**2)/(sqrt(1.0_dp +2*t/b0+t**2)+1.0_dp)
+
      endif
      call kill(t)
 
@@ -2714,7 +2721,8 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
      else
       t=z%x(6)
       z%x(6)=-z%x(5)*sqrt(1.0_dp/b0**2+2*t+t**2)/(1.0_dp+t)
-      z%x(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+ !    z%x(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+      z%x(5)=(2*t+t**2)/(sqrt(1.0_dp/b0**2+2*t+t**2)+1.0_dp/b0)
      endif
      end subroutine convert_bmad_to_ptcr   
 
@@ -2740,7 +2748,9 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
      t=z%x(6)
 
      z%x(6)=-z%x(5)*sqrt(1.d0/b0**2+2*t+t**2)/(1.0_dp+t)
-     z%x(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+!     z%x(5)=sqrt(1.0_dp/b0**2+2*t+t**2)-1.0_dp/b0
+      z%x(5)=(2*t+t**2)/(sqrt(1.0_dp/b0**2+2*t+t**2)+1.0_dp/b0)
+
     endif 
 
      call kill(t)
@@ -2769,7 +2779,9 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
      else
      t=z%x(5)
       z%x(5)=-(z%x(6)-l)*sqrt(1.0_dp +2*t/b0+t**2)/(1.0_dp/b0+t)
-      z%x(6)=sqrt(1.0_dp+2*t/b0+t**2)-1.0_dp 
+ !     z%x(6)=sqrt(1.0_dp+2*t/b0+t**2)-1.0_dp 
+        z%x(6)=(2*t/b0+t**2)/(sqrt(1.0_dp +2*t/b0+t**2)+1.0_dp)
+
      endif
      end subroutine convert_ptc_to_bmadr   
 
@@ -2799,7 +2811,9 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
      else
       t=z%x(5)
       z%x(5)=-(z%x(6)-l)*sqrt(1.0_dp +2*t/b0+t**2)/(1.0_dp/b0+t)
-      z%x(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.e0_dp 
+  !    z%x(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.e0_dp 
+        z%x(6)=(2*t/b0+t**2)/(sqrt(1.0_dp +2*t/b0+t**2)+1.0_dp)
+
      endif
      call kill(t)
  
