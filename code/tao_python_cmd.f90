@@ -295,7 +295,7 @@ select case (command)
 !
 ! Parameters
 ! ----------
-! ix_universe : default=1
+! ix_universe : default = s%global%default_universe
 !
 !    
 ! Returns
@@ -337,7 +337,7 @@ case ('beam')
 !
 ! Parameters
 ! ----------
-! ix_universe : default=1
+! ix_universe : default = s%global%default_universe
 !
 !    
 ! Returns
@@ -465,8 +465,8 @@ case ('bmad_com')
 !
 ! Parameters
 ! ----------
-! ix_universe : default=1
-! ix_branch : default=0
+! ix_universe : default = s%global%default_universe
+! ix_branch : default = s%global%default_branch
 !
 !    
 ! Returns
@@ -1003,7 +1003,7 @@ case ('constraints')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=1
+! ix_uni : default = s%global%default_universe
 !
 !    
 ! Returns
@@ -1042,7 +1042,7 @@ case ('da_aperture')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=1
+! ix_uni : default = s%global%default_universe
 !
 !    
 ! Returns
@@ -1091,7 +1091,7 @@ case ('da_params')
 ! ----------
 ! d2_name
 ! d1_datum
-! ix_universe : default=1
+! ix_universe : default = s%global%default_universe
 ! dat_index : default=1
 !
 !    
@@ -1207,7 +1207,7 @@ case ('data')
 ! d2_name
 ! n_d1_data
 ! d_data_arrays_name_min_max
-! ix_uni : default=1
+! ix_uni : default = s%global%default_universe
 !    
 ! Returns
 ! -------
@@ -1339,7 +1339,7 @@ case ('data_d2_create')
 ! Parameters
 ! ----------
 ! d2_datum
-! ix_uni : default=1
+! ix_uni : default = s%global%default_universe
 !    
 ! Returns
 ! -------
@@ -1372,7 +1372,7 @@ call destroy_this_data_d2(line)
 ! Parameters
 ! ----------
 ! d2_datum
-! ix_uni : default=1
+! ix_uni : default = s%global%default_universe
 !
 !    
 ! Returns
@@ -1428,7 +1428,7 @@ case ('data_d2')
 ! Parameters
 ! ----------
 ! d1_datum
-! ix_uni : default=1
+! ix_uni : default = s%global%default_universe
 !
 !    
 ! Returns
@@ -1481,7 +1481,7 @@ case ('data_d_array')
 ! Parameters
 ! ----------
 ! d2_datum
-! ix_uni : default=1
+! ix_uni : default = s%global%default_universe
 !
 !    
 ! Returns
@@ -4441,7 +4441,7 @@ case ('lat_calc_done')
 !
 ! Parameters
 ! ----------
-! branch_name : default=0
+! branch_name : default = s%global%default_branch
 !
 !    
 ! Returns
@@ -4481,7 +4481,7 @@ case ('lat_ele_list')
 !
 ! Parameters
 ! ----------
-! ix_universe : default=1
+! ix_universe : default = s%global%default_universe
 !
 !    
 ! Returns
@@ -4557,8 +4557,8 @@ case ('lat_general')
 ! ----------
 ! elements 
 ! who 
-! ix_uni : default=1
-! ix_branch : default=0
+! ix_uni : default = s%global%default_universe
+! ix_branch : default = s%global%default_branch
 ! which : default=model
 ! flags : optional, default=-array_out -track_only
 !
@@ -4984,8 +4984,8 @@ case ('merit')
 ! Parameters
 ! ----------
 ! s 
-! ix_uni : default=1
-! ix_branch : default=0
+! ix_uni : default = s%global%default_universe
+! ix_branch : default = s%global%default_branch
 ! which : default=model
 !
 !    
@@ -6503,8 +6503,8 @@ case ('species_to_str')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=1
-! ix_branch : default=0
+! ix_uni : default = s%global%default_universe
+! ix_branch : default = s%global%default_branch
 ! which : default=model
 !
 !    
@@ -6553,8 +6553,8 @@ case ('spin_polarization')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=1
-! ix_branch : default=0
+! ix_uni : default = s%global%default_universe
+! ix_branch : default = s%global%default_branch
 ! which : default=model
 ! ref_ele : default=0
 !   Reference element to calculate at.
@@ -6653,8 +6653,8 @@ case ('super_universe')
 ! Parameters
 ! ----------
 ! s
-! ix_uni : default=1
-! ix_branch : default=0
+! ix_uni : default = s%global%default_universe
+! ix_branch : default = s%global%default_branch
 ! which : default=model
 !
 !    
@@ -7407,10 +7407,9 @@ end subroutine
 function point_to_uni (line, compound_word, err) result (u)
 
 type (tao_universe_struct), pointer :: u
-integer ix, ix_universe
+integer ix, ix_universe, ios
 logical compound_word, err
 character(*) line
-character(40) str
 
 ! A compound_word is something like "2@q10w" or "q10w". A non-compound word is something like "2" which
 ! just represents a universe index.
@@ -7421,18 +7420,18 @@ err = .false.
 if (compound_word) then
   ix = index(line, '@')
   if (ix == 0) then
-    str = '1' ! Use universe 1 as a default.
+    ix_universe = s%global%default_universe
   else
-    str = line(1:ix-1)
+    read (line(1:ix-1), *,  iostat = ios)  ix_universe
+    if (ios /= 0) ix_universe = -999
     line = line(ix+1:)
   endif
 else
   ! In this case line is just a universe number
-  str = line
+  read (line, *,  iostat = ios)  ix_universe
+  if (ios /= 0) ix_universe = -999
 endif
 
-read (str, *,  iostat = ios)  ix_universe
-if (ios /= 0) ix_universe = -999
 
 u => tao_pointer_to_universe(ix_universe, .true.)
 
@@ -7491,7 +7490,8 @@ line = line(1:ix)
 
 ix = index(line, '|')
 if (ix == 0) then
-  call invalid ('Expecting "|<{which}" where {which} must be one of "model", "base", or "design"')
+  tao_lat => u%model
+  err = .false.
   return
 endif
 
@@ -7565,14 +7565,16 @@ if (has_separator) then
     return
   endif
 
-  str = line(1:ix-1)
+  read (line(1:ix-1), *, iostat = ios) ix_branch
+  if (ios /= 0) ix_branch = -999
   line = line(ix+2:)
-else
-  str = line
-endif
 
-read (str, *, iostat = ios) ix_branch
-if (ios /= 0) ix_branch = -999
+elseif (len_trim(line) == 0) then
+  ix_branch = s%global%default_branch
+else
+  read (line, *, iostat = ios) ix_branch
+  if (ios /= 0) ix_branch = -999
+endif
 
 if (ix_branch < 0 .or. ix_branch > ubound(u%design%lat%branch, 1) .or. len_trim(str) == 0) then
   call invalid ('missing or out of range branch index')
