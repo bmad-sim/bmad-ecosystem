@@ -289,13 +289,13 @@ select case (command)
 ! Command syntax:
 !   python beam {ix_universe}
 ! where
-!   {ix_universe} is a universe index.
+!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
 ! To set beam_init parameters use the "set beam" command
 ! 
 !
 ! Parameters
 ! ----------
-! ix_universe : default=s%global%default_universe
+! ix_universe : optional
 !
 !    
 ! Returns
@@ -331,13 +331,13 @@ case ('beam')
 ! Command syntax:
 !   python beam_init {ix_universe}
 ! where
-!   {ix_universe} is a universe index.
+!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
 ! To set beam_init parameters use the "set beam_init" command
 ! 
 !
 ! Parameters
 ! ----------
-! ix_universe : default=s%global%default_universe
+! ix_universe : optional
 !
 !    
 ! Returns
@@ -459,14 +459,14 @@ case ('bmad_com')
 ! Command syntax:
 !   python branch1 {ix_universe}@{ix_branch}
 ! where
-!   {ix_universe} is a universe index
-!   {ix_branch} is a lattice branch index
+!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 ! 
 !
 ! Parameters
 ! ----------
-! ix_universe : default=s%global%default_universe
-! ix_branch : default=s%global%default_branch
+! ix_universe : ""
+! ix_branch : ""
 !
 !    
 ! Returns
@@ -508,11 +508,10 @@ case ('branch1')
 ! Notes
 ! -----
 ! Command syntax:
-! python bunch_params {ix_universe}@{ele_id}|{which}
+! python bunch_params {ele_id}|{which}
 !
 ! Parameters
 ! ----------
-! ix_universe : default=s%global%default_universe
 ! ele_id
 !   Element name or index
 ! which : default=model
@@ -1004,7 +1003,7 @@ case ('constraints')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=s%global%default_universe
+! ix_uni : optional
 !
 !    
 ! Returns
@@ -1043,7 +1042,7 @@ case ('da_aperture')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=s%global%default_universe
+! ix_uni : optional
 !
 !    
 ! Returns
@@ -1092,7 +1091,7 @@ case ('da_params')
 ! ----------
 ! d2_name
 ! d1_datum
-! ix_universe : default=s%global%default_universe
+! ix_universe : optional
 ! dat_index : default=1
 !
 !    
@@ -1208,7 +1207,7 @@ case ('data')
 ! d2_name
 ! n_d1_data
 ! d_data_arrays_name_min_max
-! ix_uni : default=s%global%default_universe
+! ix_uni : optional
 !    
 ! Returns
 ! -------
@@ -1340,7 +1339,7 @@ case ('data_d2_create')
 ! Parameters
 ! ----------
 ! d2_datum
-! ix_uni : default=s%global%default_universe
+! ix_uni : optional
 !    
 ! Returns
 ! -------
@@ -1373,7 +1372,7 @@ call destroy_this_data_d2(line)
 ! Parameters
 ! ----------
 ! d2_datum
-! ix_uni : default=s%global%default_universe
+! ix_uni : optional
 !
 !    
 ! Returns
@@ -1429,7 +1428,7 @@ case ('data_d2')
 ! Parameters
 ! ----------
 ! d1_datum
-! ix_uni : default=s%global%default_universe
+! ix_uni : optional
 !
 !    
 ! Returns
@@ -1482,7 +1481,7 @@ case ('data_d_array')
 ! Parameters
 ! ----------
 ! d2_datum
-! ix_uni : default=s%global%default_universe
+! ix_uni : optional
 !
 !    
 ! Returns
@@ -4442,7 +4441,7 @@ case ('lat_calc_done')
 !
 ! Parameters
 ! ----------
-! branch_name : default=s%global%default_branch
+! branch_name : optional
 !
 !    
 ! Returns
@@ -4482,7 +4481,7 @@ case ('lat_ele_list')
 !
 ! Parameters
 ! ----------
-! ix_universe : default=s%global%default_universe
+! ix_universe : optional
 !
 !    
 ! Returns
@@ -4559,8 +4558,8 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 ! ----------
 ! elements 
 ! who 
-! ix_uni : default=s%global%default_universe
-! ix_branch : default=s%global%default_branch
+! ix_uni : optional
+! ix_branch : optional
 ! which : default=model
 ! flags : optional, default=-array_out -track_only
 !
@@ -4986,8 +4985,8 @@ case ('merit')
 ! Parameters
 ! ----------
 ! s 
-! ix_uni : default=s%global%default_universe
-! ix_branch : default=s%global%default_branch
+! ix_uni : optional
+! ix_branch : optional
 ! which : default=model
 !
 !    
@@ -6005,8 +6004,8 @@ case ('ptc_com')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=s%global%default_universe
-! ix_branch : default=s%global%default_branch
+! ix_uni : optional
+! ix_branch : optional
 ! which : default=model
 !
 !    
@@ -6590,8 +6589,8 @@ case ('species_to_str')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=s%global%default_universe
-! ix_branch : default=s%global%default_branch
+! ix_uni : optional
+! ix_branch : optional
 ! which : default=model
 !
 !    
@@ -6640,8 +6639,8 @@ case ('spin_polarization')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=s%global%default_universe
-! ix_branch : default=s%global%default_branch
+! ix_uni : optional
+! ix_branch : optional
 ! which : default=model
 ! ref_ele : default=0
 !   Reference element to calculate at.
@@ -6740,8 +6739,8 @@ case ('super_universe')
 ! Parameters
 ! ----------
 ! s
-! ix_uni : default=s%global%default_universe
-! ix_branch : default=s%global%default_branch
+! ix_uni : optional
+! ix_branch : optional
 ! which : default=model
 !
 !    
