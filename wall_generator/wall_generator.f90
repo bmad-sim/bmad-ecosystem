@@ -19,7 +19,7 @@ program wall_generator
 
 use bmad
 use wall3d_mod
-use dark_current_mod, only: particle_in_global_frame
+use time_tracker_mod
 
 implicit none
 
