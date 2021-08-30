@@ -96,7 +96,7 @@ character(80) str, err_str
 character(200) line
 
 logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, hetero_list
-logical is_attrib, err_flag2, old_style_input, ok
+logical is_attrib, err_flag2, old_style_input, ok, err
 logical, optional :: check_free, heterogeneous_ele_list, set_field_master
 
 ! Get next WORD.
@@ -104,7 +104,7 @@ logical, optional :: check_free, heterogeneous_ele_list, set_field_master
 ! [except for a "GROUP[COMMAND] = 0.343" redef construct]
 
 err_flag = .true.  ! assume the worst
-call get_next_word (word, ix_word, ':, =(){', delim, delim_found, call_check = .true.)
+call get_next_word (word, ix_word, ':, =(){', delim, delim_found, call_check = .true., err_flag = err); if (err) return
 lat => ele%branch%lat
 
 if (ele%key == def_particle_start$ .and. word == 'SIG_E') word = 'SIG_PZ'
@@ -2249,7 +2249,12 @@ if (logic_option(.false., call_check)) then
       return
     else
       bp_com%parse_line = delim // bp_com%parse_line  ! Put delim back on parse line.
-      call parser_file_stack ('push_inline', line); if (bp_com%fatal_error_flag) return
+      call parser_file_stack ('push_inline', line)
+      if (bp_com%fatal_error_flag) then
+        if (present(err_flag)) err_flag = .true.
+        word = ''
+        return
+      endif
     endif
   endif
 endif
@@ -6184,6 +6189,8 @@ main_loop: do n_in = 1, n_ele_max
 
 enddo main_loop
 
+call control_bookkeeper (lat)
+
 !-------------------------------------------------------------------------
 contains
 
@@ -6406,8 +6413,6 @@ if (err) return
 lat%ele(ix_lord)%value(gang$) = lord%value(gang$)
 
 ! Finish.
-
-call control_bookkeeper (lat, lat%ele(ix_lord))
 
 err_flag = .false.
 
