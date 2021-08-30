@@ -1156,8 +1156,9 @@ Variables are initialized using the \vn{tao_var} namelist. The format for this i
                                            !   Default = "limit"
     default_low_lim      = <real>          ! Lower var value limit. Default: -1e30
     default_high_lim     = <real>          ! Upper var value limit. Default 1e30
-    default_key_bound    = <logical>       ! Variables to be bound?
     default_key_delta    = <real>          ! Change when key is pressed.
+    default_key_bound    = <logical>       ! Variable  to be bound?
+    default_good_user    = <logical>       ! Vary for optimization?
     ix_min_var           = <integer>       ! Minimum array index.
     ix_max_var           = <integer>       ! Maximum array index.
     var(N)%ele_name      = "<ele_name>"    ! Name or index of element to be controlled.
@@ -1172,6 +1173,7 @@ Variables are initialized using the \vn{tao_var} namelist. The format for this i
     var(N)%good_user     = <logical>       ! Good optimization variable?
     var(N)%key_bound     = <logical>       ! Variable bound to a key
     var(N)%key_delta     = <real>          ! Change when key is pressed.
+    var(N)%meas          = <real>          ! ``Measured'' value (\sref{s:del.v}).
   /
 \end{example}
 Example:
@@ -1214,7 +1216,8 @@ used.
 
 \vn{var(N)%good_user} is a logical that the user can toggle when
 running \tao (\sref{c:var}). The initial default value of
-\vn{%good_user} is True.
+\vn{%good_user} is set by \vn{default_good_user}. If \vn{default_good_user}
+is not present, the default is True.
 
 \vn{var(N)%universe} gives the universe that the lattice element lives
 in. Multiple universes can be specified using a comma delimited list.

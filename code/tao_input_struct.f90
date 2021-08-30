@@ -57,9 +57,10 @@ type tao_var_input
   real(rp) :: low_lim = -1e30
   real(rp) :: high_lim = 1e30
   character(40) :: merit_type = ''
-  logical :: good_user = .true.
-  logical :: key_bound = .false.
+  logical(4) :: good_user = .true.
+  logical(4) :: key_bound = .false.
   real(rp) :: key_delta = 0
+  real(rp) :: meas = 0
 end type
 
 !-------------------------------------------------------------

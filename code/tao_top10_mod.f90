@@ -328,7 +328,8 @@ type constraint_struct
   logical :: expression = .false.
 end type
 
-type (constraint_struct), allocatable :: con(:)
+type (constraint_struct), allocatable, target :: con(:)
+type (constraint_struct), pointer :: c
 
 ! Init
  
@@ -465,7 +466,8 @@ do j = 1, n_max
 enddo
 
 n_tot = max(n_tot,  n_name + n_loc_ref + n_loc_start + n_loc_ele + 6)
-n_loc_ele = n_tot - n_name - n_loc_ref - n_loc_start - 6
+n_loc_ele = min(n_tot - n_name - n_loc_ref - n_loc_start - 6, len(con(1)%loc_ele))
+n_tot = n_name + n_loc_ref + n_loc_start + n_loc_ele + 6
 
 !
 
@@ -486,15 +488,15 @@ fmt2 = '(a, 1(2x, a), es13.4, es13.4, es11.3, 2x, a)'
 call re_allocate (line, nl+n_max+100)
 do j = 1, n_max
   i = ixm(j)
-  if (con(i)%expression) then
-    nl=nl+1; write (line(nl), fmt2) con(i)%d2_d1_name(1:n_d2_d1_name), &
-            con(i)%name(1:n_tot), con(i)%target_value, con(i)%actual_value, con(i)%merit, con(i)%max_loc
+  c => con(i)
+  if (c%expression) then
+    nl=nl+1; write (line(nl), fmt2) c%d2_d1_name(1:n_d2_d1_name), &
+            c%name(1:n_tot), c%target_value, c%actual_value, c%merit, c%max_loc
   else
-    nl=nl+1; write (line(nl), fmt) con(i)%d2_d1_name(1:n_d2_d1_name), con(i)%name(1:n_name), &
-            con(i)%loc_ref(1:n_loc_ref), con(i)%loc_start(1:n_loc_start), con(i)%loc_ele(1:n_loc_ele), &
-            con(i)%target_value, con(i)%actual_value, con(i)%merit, con(i)%max_loc
+    nl=nl+1; write (line(nl), fmt) c%d2_d1_name(1:n_d2_d1_name), c%name(1:n_name), c%loc_ref(1:n_loc_ref), &
+            c%loc_start(1:n_loc_start), c%loc_ele(1:n_loc_ele), c%target_value, c%actual_value, c%merit, c%max_loc
   endif
-end do
+enddo
 nl=nl+1; line(nl) = l1
 
 !

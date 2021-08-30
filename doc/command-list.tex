@@ -552,23 +552,24 @@ Command} section (\sref{s:python.python}).
 
 List of possible \vn{<what_to_print>} choices:
 \begin{example}
-  beam, beam_init, branch1, bunch1, bmad_com, building_wall_list, building_wall_graph, 
-  building_wall_point, building_wall_section, constraints, da_params, da_aperture, 
-  data, data_d2_create, data_d2_destroy, data_d_array, data_d1_array, data_d2, 
-  data_d2_array, data_set_design_value, datum_create, datum_has_ele, derivative, 
-  ele:head, ele:gen_attribs, ele:multipoles, ele:elec_multipoles, ele:ac_kicker, 
-  ele:cartesian_map, ele:chamber_wall, ele:cylindrical_map, ele:orbit, ele:taylor,
-  ele:spin_taylor, ele:wake, ele:wall3d, ele:twiss, ele:methods, ele:control, 
-  ele:mat6, ele:taylor_field, ele:grid_field, ele:floor, ele:photon, ele:lord_slave, 
-  em_field, enum, evaluate, floor_plan, floor_orbit, global, help, inum, 
-  lat_calc_done, lat_ele_list, lat_general, lat_list, lat_param_units, 
-  merit, orbit_at_s, place_buffer, plot_curve, plot_graph, plot_histogram, 
-  plot_lat_layout, plot_line, plot_plot_manage, plot_graph_manage, plot_curve_manage, 
-  plot_list, plot_symbol, plot_transfer, plot1, shape_list, shape_manage, 
-  shape_pattern_list, shape_pattern_manage, shape_pattern_point_manage, shape_set, 
-  show, species_to_int, species_to_str, spin_polarization, super_universe, twiss_at_s, 
-  universe, var_v1_create, var_v1_destroy, var_create, var_general, var_v1_array, 
-  var_v_array, var, wave
+  beam, beam_init, branch1, bunch_params, bunch1, bmad_com, building_wall_list
+  building_wall_graph, building_wall_point, building_wall_section constraints,
+  da_params, da_aperture data, data_d2_create, data_d2_destroy, data_d_array,
+  data_d1_array data_d2, data_d2_array, data_set_design_value, data_parameter
+  datum_create, datum_has_ele, derivative ele:head, ele:gen_attribs, ele:multipoles,
+  ele:elec_multipoles, ele:ac_kicker ele:cartesian_map, ele:chamber_wall,
+  ele:cylindrical_map, ele:orbit ele:taylor, ele:spin_taylor, ele:wake, ele:wall3d,
+  ele:twiss, ele:methods, ele:control_var ele:mat6, ele:taylor_field, ele:grid_field,
+  ele:floor, ele:photon, ele:lord_slave em_field, enum, evaluate, floor_plan,
+  floor_orbit, global, help, inum lat_branch_list, lat_calc_done, lat_ele_list,
+  lat_list, lat_param_units matrix, merit, orbit_at_s place_buffer, plot_curve,
+  plot_graph, plot_histogram, plot_lat_layout, plot_line plot_plot_manage,
+  plot_graph_manage, plot_curve_manage plot_list, plot_symbol, plot_transfer, plot1,
+  ptc_com, ring_general, shape_list shape_manage, shape_pattern_list,
+  shape_pattern_manage, shape_pattern_point_manage, shape_set show, species_to_int,
+  species_to_str, spin_polarization, spin_resonance, super_universe twiss_at_s,
+  universe var_v1_create, var_v1_destroy, var_create, var_general, var_v1_array,
+  var_v_array, var wave
 \end{example}
 
 %% quit --------------------------------------------------------------
@@ -2076,8 +2077,8 @@ used or the phase space $z$ value if relative time tracking is being used (use t
 universe} command to see if absolute time tracking is used or not). The \vn{<t-or-z>} argument is
 only useful for elements with RF fields. If not set, \vn{<t-or-z>} will default to zero.
 
-Expressions can be used for all real quantities. An Expression must be quoted if it contains any
-blank spaces or, simpler, any blank spaces should be removed.
+Expressions can be used for all real quantities. An expression must be quoted if it contains any
+blank spaces or, simpler, any blank spaces can be removed.
 
 If the \vn{-absolute_s} switch is present, the \vn{<s>} value will be relative to the start
 of the element's lattice branch instead of relative to the start of the element.
@@ -2478,13 +2479,12 @@ Examples:
 
 Syntax:
 \begin{example}
-  show matrix \{-eigen_modes\} \{-ptc\} \{-s\} \{loc1 \{loc2\}\}
+  show matrix \{-eigen_modes\} \{-ptc\} \{-s\} \{-universe\} \{loc1 \{loc2\}\}
 \end{example}
 
-Shows the transfer matrix (Jacobian) for the \vn{model} lattice of the default universe (set by
-\vn{set default universe}). The matrix is calculated with respect to the particle orbit, not the
-zero orbit. This command is equivalent to \vn{show taylor_map -order 1}. See the \vn{show
-taylor_map} documentation for more details.
+Shows the transfer matrix (Jacobian) for the \vn{model} lattice. The matrix is calculated with
+respect to the particle orbit, not the zero orbit. This command is equivalent to \vn{show taylor_map
+-order 1}. See the \vn{show taylor_map} documentation for more details.
 
 Also see \vn{write matrix}.
 
@@ -2756,7 +2756,8 @@ Examples:
 Syntax:
 \begin{example}
   show taylor_map \{-angle_coordinates\} \{-eigen_modes\} \{-lattice_format\} 
-            \{-number_format <fmt>\} \{-order <n_order>\} \{-ptc\} \{-s\} \{loc1 \{loc2\}\}
+            \{-number_format <fmt>\} \{-order <n_order>\} \{-ptc\} 
+            \{-s\} \{-universe\} \{loc1 \{loc2\}\}
 \end{example}
 
 Shows the Taylor transfer map for the \vn{model} lattice of the default universe (set by
@@ -2807,8 +2808,11 @@ coordinates $(x, p_x, y, p_y, z, p_z)$.\footnote
 The conversion between the two coordinate systems is given in the Bmad manual.
   }
 
-Maps are computed about the particle orbit. Not the zero orbit.
-Also see \vn{write matrix}.
+Maps are computed about the particle orbit. Not the zero orbit. Also see \vn{write matrix}.
+
+Expressions can be used for all real quantities (that is, \vn{loc1} and \vn{loc2} if \vn{-s} is
+present). An expression must be quoted if it contains any blank spaces or, simpler, any blank spaces
+can be removed.
 
 Examples:
 \begin{example}

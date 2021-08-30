@@ -382,11 +382,11 @@ case ('beam')
     case ('-universe')
       read (what2(1:ix_s2), *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
-      lat => u%model%lat
       if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
         return
       endif
+      lat => u%model%lat
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case default
@@ -4143,6 +4143,8 @@ case ('taylor_map', 'matrix')
   disp_fmt = ''
   fmt = ''
   angle_units = .false.
+  ele1_name = ''
+  ele2_name = ''
 
   if (show_what == 'matrix') then
     n_order = 1
@@ -4150,11 +4152,9 @@ case ('taylor_map', 'matrix')
     n_order = -1
   endif
 
-  attrib0 = ''
-
   do
     call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format', &
-                                  '-running', '-angle_coordinates', '-number_format'], .true., switch, err, ix)
+                      '-universe', '-running', '-angle_coordinates', '-number_format'], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
 
@@ -4187,19 +4187,29 @@ case ('taylor_map', 'matrix')
       disp_fmt = 'RUNNING'
     case ('-s')
       by_s = .true.
+
+    case ('-universe')
+      read (what2(1:ix), *, iostat = ios) ix
+      u => tao_pointer_to_universe(ix)
+      if (ix == 0 .or. ios /= 0 .or. .not. associated(u)) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
+        return
+      endif
+      lat => u%model%lat
+      call string_trim(what2(ix+1:), what2, ix)
+
     case default
-      attrib0 = trim(attrib0) // ' ' // trim(switch)
+      if (ele1_name == '') then
+        ele1_name = switch
+      elseif (ele2_name == '') then
+        ele2_name = switch
+      else
+        nl=1; lines(1) = 'EXTRA STUFF ON LINE!'
+        return
+      endif
     end select
   enddo
 
-  call string_trim (attrib0, attrib0, ix)
-  ele1_name = attrib0(:ix)
-  call string_trim(attrib0(ix+1:), attrib0, ix)
-  ele2_name = attrib0(:ix)
-  if (attrib0(ix+1:) /= '') then
-    nl=1; lines(1) = 'EXTRA STUFF ON LINE!'
-    return
-  endif
 
   if (by_s .and. print_ptc) then
     nl=1; lines(1) = 'ERROR: "-ptc" AND "-s" SWITCHES CANNOT BOTH BE PRESENT.'
@@ -4214,22 +4224,24 @@ case ('taylor_map', 'matrix')
       s2 = lat%ele(lat%n_ele_track)%s
       s1 = 0
     else
-      read (ele1_name, *, iostat = ios) s1
-      if (ios /= 0) then
+      call tao_evaluate_expression(ele1_name, 1, .false., value, err)
+      if (err) then
         nl=1; lines(1) = 'BAD S1 VALUE:' // ele1_name
         return
       endif
+      s1 = value(1)
     endif
 
     if (ele2_name == '') then
       s2 = s1
       if (lat%param%geometry == open$) s1 = 0
     else 
-      read (ele2_name, *, iostat = ios) s2
-      if (ios /= 0) then
+      call tao_evaluate_expression(ele2_name, 1, .false., value, err)
+      if (err) then
         nl=1; lines(1) = 'BAD S2 VALUE:' // ele2_name
         return
       endif
+      s2 = value(1)
     endif
 
     call twiss_and_track_at_s (lat, s1, ele0, u%model%tao_branch(ix_branch)%orbit, orb, ix_branch)
@@ -4436,7 +4448,8 @@ case ('track')
   do 
     call tao_next_switch (what2, [character(16):: '-e_field', '-b_field', '-velocity', '-momentum', &
                 '-energy', '-position', '-no_label_lines', '-s', '-spin', '-points', '-time', &
-                '-range', '-twiss', '-dispersion', '-branch', '-universe', '-design', '-base'], .false., switch, err, ix_s2)
+                '-range', '-twiss', '-dispersion', '-branch', '-universe', '-design', '-base'], &
+                .false., switch, err, ix_s2)
 
     if (err) return
     if (switch == '') exit
@@ -5674,6 +5687,7 @@ type (tao_universe_struct), pointer :: u
 integer ix_uni
 
 u => tao_pointer_to_universe(ix_uni)
+if (.not. associated(u)) return
 nl=nl+1; lines(nl) = ''
 nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_meas = ', u%ping_scale%a_mode_meas
 nl=nl+1; write(lines(nl), rmt) 'ping_scale%a_mode_ref  = ', u%ping_scale%a_mode_ref

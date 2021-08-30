@@ -1,8 +1,18 @@
 \chapter{Overview}
 \label{c:overview.tao}
 
+%----------------------------------------------------------------
+\section{Starting and Initializing Tao}
+\index{initializing!files}
+\label{s:initializing}
+
+The syntax for starting \tao is given in \Sref{s:command.line}.
+
+Initialization occurs when \tao is started. Initialization information is stored in one or more
+files as discussed in Chapter \sref{c:init}.
+
 %%----------------------------------------------------------------
-%\section{Running Tao with OpenMP}
+\section{Running Tao with OpenMP}
 \index{openMP}
 \label{s:openmp}
 
@@ -23,15 +33,6 @@ To set the number of threads when running a program compiled with \vn{OpenMP}, s
 To the local \bmad Guru: Compiling and linking of \tao with \vn{OpenMP} is documented on the \bmad
 web site. By default, \vn{OpenMP} is not enabled. Essentially, OpenMP is enabled by modifying
 the \vn{dist_prefs} file before compiling and linking.
-
-%----------------------------------------------------------------
-\section{Initializing Tao}
-\index{initializing!files}
-\label{s:initializing}
-
-Initialization occurs when \tao is started. Initialization information is stored in one or more
-files as discussed in Chapter \sref{c:init}. If no initialization files are found. \tao uses a
-default initialization.
 
 %----------------------------------------------------------------
 \section{Command Line Mode and Single Mode}
