@@ -67,10 +67,12 @@ p0c = orbit%p0c
 ! Thus if the cavity is flipped (orientation = -1), the wave of interest, which is 
 ! always the accelerating wave, is the "backward" wave. And the phase of the backward 
 ! wave is different from the phase of the forward wave by a constant dt_ref * freq.
+! Note: phi0_autoscale is not used here since bmad_standard tracking by design gives the correct tracking.
+! In fact, using phi0_autoscale would be a mistake if, say, tracking_method = runge_kutta, mat6_calc_method = bmad_standard.
 
-voltage = e_accel_field(ele, voltage$) * charge_dir
+voltage = e_accel_field(ele, voltage$, .true.) * charge_dir
 
-phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
+phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - &
         (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
 if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
 phase = phase0
