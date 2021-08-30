@@ -2,6 +2,7 @@ module rotation_3d_mod
 
 use sim_utils_interface
 use output_mod
+use modulo2_mod
 
 implicit none
 
@@ -26,27 +27,29 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine w_mat_to_axis_angle (w_mat, axis, angle)
+! Subroutine w_mat_to_axis_angle (w_mat, axis, angle, ref_axis)
 !
 ! Routine to find the rotation axis and rotation angle corresponding to a given
 ! 3D rotation matrix.
 !
 ! The rotation axis is chosen to have a non-negative dot product with the
-! vector (1, 1, 1).
+! reference axis ref_axis.
 !
 ! The rotation angle is chosen in the range [-pi, pi].
 !
 ! Input:
-!   w_mat(3,3) -- real(rp): Rotation matrix
+!   w_mat(3,3)    -- real(rp): Rotation matrix.
+!   ref_axis(3)   -- real(rp), optional: Reference axis. Default is [1, 1, 1].
 !
 ! Output:
-!   axis(3)    -- real(rp): Rotation axis. Normalized to 1.
-!   angle      -- real(rp): Rotation angle in the range [-pi, pi].
+!   axis(3)       -- real(rp): Rotation axis. Normalized to 1.
+!   angle         -- real(rp): Rotation angle in the range [-pi, pi].
 !-
 
-subroutine w_mat_to_axis_angle (w_mat, axis, angle)
+subroutine w_mat_to_axis_angle (w_mat, axis, angle, ref_axis)
 
 real(rp) w_mat(3,3), axis(3), angle
+real(rp), optional :: ref_axis(3)
 real(rp) sin2_ang, quat(0:3)
 
 !
@@ -62,11 +65,16 @@ endif
 
 sin2_ang = norm2(quat(1:3))
 axis = quat(1:3) / sin2_ang
-angle = 2 *atan2(sin2_ang, quat(0))
+angle = modulo2(2 * atan2(sin2_ang, quat(0)), pi)
 
 ! Align to axis to point in the general direction of (1,1,1)
 
-if (sum(axis) < 0) then
+if (present(ref_axis)) then
+  if (dot_product(ref_axis, axis) < 0) then
+    axis = -axis 
+    angle = -angle
+  endif
+elseif (sum(axis) < 0) then
   axis = -axis 
   angle = -angle
 endif
