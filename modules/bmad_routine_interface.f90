@@ -663,12 +663,13 @@ subroutine do_mode_flip (ele, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-function e_accel_field (ele, voltage_or_gradient) result (field)
+function e_accel_field (ele, voltage_or_gradient, bmad_standard_tracking) result (field)
   import
   implicit none
   type (ele_struct) ele
   real(rp) field
-  integer voltage_or_gradient 
+  integer voltage_or_gradient
+  logical, optional :: bmad_standard_tracking
 end function
 
 recursive subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)

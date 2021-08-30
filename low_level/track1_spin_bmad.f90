@@ -51,7 +51,7 @@ if (ele%key == crab_cavity$) then
 
   voltage = e_accel_field(ele, voltage$) * rel_tracking_charge_to_mass(ave_orb, param)
   k_rf = twopi * ele%value(rf_frequency$) / c_light
-  phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
+  phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - &
           (particle_rf_time (ave_orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
 
   field%B(2) = -voltage * sin(phase) / c_light

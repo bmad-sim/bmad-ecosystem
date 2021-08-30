@@ -73,9 +73,10 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, pa
 
 ! The RF phase is defined with respect to the time at the beginning of the element.
 ! So if dealing with a slave element and absolute time tracking then need to correct.
+! Note: phi0_autoscale is not used here since bmad_standard tracking by design gives the correct tracking.
+! In fact, using phi0_autoscale would be a mistake if, say, tracking_method = runge_kutta, mat6_calc_method = bmad_standard.
 
-phase = twopi * (ele%value(phi0_err$) + ele%value(phi0_autoscale$) + &
-           ele%value(phi0$) + ele%value(phi0_multipass$) + &
+phase = twopi * (ele%value(phi0_err$) + ele%value(phi0$) + ele%value(phi0_multipass$) + &
            (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
 phase = modulo2(phase, pi)
 
@@ -95,7 +96,7 @@ pc_start = ele%value(p0c_start$) * rel_p
 beta_start = orbit%beta
 E_start = pc_start / beta_start 
 
-gradient_max = e_accel_field(ele, gradient$) * ele%value(l$) / length
+gradient_max = e_accel_field(ele, gradient$, .true.) * ele%value(l$) / length
 
 cos_phi = cos(phase)
 sin_phi = sin(phase)

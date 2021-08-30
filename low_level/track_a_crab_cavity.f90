@@ -51,18 +51,20 @@ length = ele%value(l$)
 n_slice = 1
 dl = length / n_slice
 charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation
-voltage = e_accel_field(ele, voltage$) * charge_dir / (ele%value(p0c$) * n_slice)
+voltage = e_accel_field(ele, voltage$, .true.) * charge_dir / (ele%value(p0c$) * n_slice)
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 dt_ref = length / (c_light * beta_ref)
 k_rf = twopi * ele%value(rf_frequency$) / c_light
 
 ! Track through slices.
+! Note: phi0_autoscale is not used here since bmad_standard tracking by design gives the correct energy change.
+! In fact, using phi0_autoscale would be a mistake if, say, tracking_method = runge_kutta, mat6_calc_method = bmad_standard.
 
 call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
 
 do i = 1, n_slice
 
-  phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
+  phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - &
           (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
   if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
   phase = phase0
