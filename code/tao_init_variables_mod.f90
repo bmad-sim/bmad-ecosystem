@@ -52,7 +52,7 @@ character(40) use_same_lat_eles_as
 character(200) file_name
 character(200) line, search_for_lat_eles
 
-logical default_key_bound
+logical(4) default_key_bound, default_good_user
 logical, allocatable :: default_key_b(:)
 logical err, free, gang
 logical searching, limited
@@ -60,7 +60,7 @@ logical, allocatable :: dflt_good_unis(:), good_unis(:)
 
 namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
                     ix_min_var, ix_max_var, default_universe, default_attribute, &
-                    default_low_lim, default_high_lim, default_merit_type, &
+                    default_low_lim, default_high_lim, default_merit_type, default_good_user, &
                     use_same_lat_eles_as, search_for_lat_eles, default_key_bound
 
 !-----------------------------------------------------------------------
@@ -153,12 +153,14 @@ var_loop: do
   var%merit_type     = ''
   var%weight         = 0         ! set default
   var%step           = 0         ! set default
+  var%meas           = 0
   var%attribute      = ''
   var%universe       = ''
   var%low_lim        = default_low_lim
   var%high_lim       = default_high_lim
   ! Transfer defaults
   call transfer_logical (default_key_b(n_v1), var(0)%key_bound)
+  call set_logical_to_garbage(default_good_user)
   do i = lbound(var, 1), ubound(var, 1)
     call set_logical_to_garbage (var(i)%good_user)
   enddo
@@ -233,7 +235,7 @@ var_loop: do
     call tao_var_stuffit1 (var, v1_var_ptr, v1_var, -1, searching, &
               use_same_lat_eles_as, search_for_lat_eles, ix_min_var, ix_max_var, &
               default_attribute, default_weight, default_step, default_merit_type, &
-              default_low_lim, default_high_lim, dflt_good_unis)
+              default_low_lim, default_high_lim, default_good_user, dflt_good_unis)
 
     if (.not. searching) then
       do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
@@ -272,7 +274,7 @@ var_loop: do
       call tao_var_stuffit1 (var, v1_var_ptr, v1_var, i, searching, &
               use_same_lat_eles_as, search_for_lat_eles, ix_min_var, ix_max_var, &
               default_attribute, default_weight, default_step, default_merit_type, &
-              default_low_lim, default_high_lim, dflt_good_unis)
+              default_low_lim, default_high_lim, default_good_user, dflt_good_unis)
 
       write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
       if (.not. searching) then
@@ -328,7 +330,7 @@ end subroutine tao_init_variables
 subroutine tao_var_stuffit1 (var, v1_var_ptr, v1_var, ix_uni, searching, &
               use_same_lat_eles_as, search_for_lat_eles, ix_min_var, ix_max_var, &
               default_attribute, default_weight, default_step, default_merit_type, &
-              default_low_lim, default_high_lim, dflt_good_unis)
+              default_low_lim, default_high_lim, default_good_user, dflt_good_unis)
 
 use tao_input_struct
 
@@ -358,7 +360,7 @@ integer, allocatable :: an_indexx(:)
 integer ix_min_var, ix_max_var
 
 logical :: dflt_good_unis(lbound(s%u,1):)
-logical searching, grouping, found_one, err, logical_is_garbage
+logical searching, grouping, found_one, err, logical_is_garbage, default_good_user
 
 ! count number of v1 entries
 
@@ -382,7 +384,7 @@ if (use_same_lat_eles_as /= '') then
   v1_ptr => v1_array(1)%v1
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + size(v1_ptr%v)
-  call tao_allocate_var_array (n2)
+  call tao_allocate_var_array (n2, default_good_user)
 
   ix_min_var = lbound(v1_ptr%v, 1)
   ix1 = ix_min_var
@@ -417,6 +419,9 @@ if (use_same_lat_eles_as /= '') then
     s%var(n)%step = v1_ptr%v(ip)%step
     if (default_step /= 0) s%var(n)%step = default_step
     if (var(ix)%step /= 0) s%var(n)%step = var(ix)%step
+
+    s%var(n)%meas_value = v1_ptr%v(ip)%meas_value
+    if (var(ix)%meas /= 0) s%var(n)%meas_value = var(ix)%meas
 
     s%var(n)%merit_type = v1_ptr%v(ip)%merit_type
     if (default_merit_type /= '') s%var(n)%merit_type = default_merit_type
@@ -514,7 +519,7 @@ if (search_for_lat_eles /= '') then
 
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + num_ele
-  call tao_allocate_var_array (n2)
+  call tao_allocate_var_array (n2, default_good_user)
 
   nn = n1 - 1
   do iu = lbound(s%u, 1), ubound(s%u, 1)
@@ -580,7 +585,7 @@ else
   ix1 = ix_min_var
   ix2 = ix_max_var
  
-  call tao_allocate_var_array (n2)
+  call tao_allocate_var_array (n2, default_good_user)
 
   s%var(n1:n2)%ele_name = var(ix1:ix2)%ele_name
 endif
@@ -597,7 +602,11 @@ do n = n1, n2
   endif
 
   if (logical_is_garbage(var(i)%good_user)) then
-    s%var(n)%good_user = .true.
+    if (logical_is_garbage(default_good_user)) then
+      s%var(n)%good_user = .true.
+    else
+      s%var(n)%good_user = default_good_user
+    endif
   else
     s%var(n)%good_user = var(i)%good_user
   endif
@@ -618,6 +627,8 @@ where (s%var(n1:n2)%weight == 0) s%var(n1:n2)%weight = default_weight
  
 s%var(n1:n2)%step = var(ix1:ix2)%step
 where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = default_step
+ 
+s%var(n1:n2)%meas_value = var(ix1:ix2)%meas
  
 s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
 where (s%var(n1:n2)%merit_type == '') s%var(n1:n2)%merit_type = default_merit_type
@@ -974,7 +985,7 @@ end subroutine tao_pointer_to_var_in_lattice2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_allocate_var_array (n_var)
+! Subroutine tao_allocate_var_array (n_var, default_good_user)
 !
 ! Routine to increase the s%var(:) array size.
 !
@@ -982,12 +993,13 @@ end subroutine tao_pointer_to_var_in_lattice2
 !   n_var -- Integer: Size of s%var(:) wanted.
 !-
 
-subroutine tao_allocate_var_array (n_var)
+subroutine tao_allocate_var_array (n_var, default_good_user)
 
 type (tao_var_struct), allocatable :: var(:)
 type (tao_v1_var_struct), pointer :: v1
 
 integer i, j1, j2, n0, n_var
+logical default_good_user, logical_is_garbage
 
 ! First save the information presently in s%var(:) in the var(:) array.
 ! s%n_var_used gives the present upper bound to s%var(:).
@@ -1028,7 +1040,11 @@ do i = n0+1, size(s%var)
   s%var(i)%good_opt  = .true.
   s%var(i)%exists    = .false.
   s%var(i)%good_var  = .true.
-  s%var(i)%good_user = .true.
+  if (logical_is_garbage(default_good_user)) then
+    s%var(i)%good_user = .true.
+  else
+    s%var(i)%good_user = default_good_user
+  endif
   s%var(i)%model_value => s%com%dummy_target  ! Just to point to somewhere
   s%var(i)%base_value  => s%com%dummy_target  ! Just to point to somewhere
   s%var(i)%low_lim = -1d30
@@ -1037,7 +1053,6 @@ do i = n0+1, size(s%var)
 enddo
   
 s%n_var_used = n_var
-
 
 end subroutine tao_allocate_var_array
 
