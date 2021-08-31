@@ -7507,17 +7507,23 @@ if (compound_word) then
   ix = index(line, '@')
   if (ix == 0) then
     ix_universe = s%global%default_universe
+  elseif (line(1:ix-1) == '') then
+    ix_universe = s%global%default_universe
+    line = line(ix+1:)
   else
     read (line(1:ix-1), *,  iostat = ios)  ix_universe
     if (ios /= 0) ix_universe = -999
     line = line(ix+1:)
   endif
 else
-  ! In this case line is just a universe number
-  read (line, *,  iostat = ios)  ix_universe
-  if (ios /= 0) ix_universe = -999
+  if (len_trim(line) == 0) then
+    ix_universe = s%global%default_universe
+  else
+    ! In this case line is just a universe number
+    read (line, *,  iostat = ios)  ix_universe
+    if (ios /= 0) ix_universe = -999
+  endif
 endif
-
 
 u => tao_pointer_to_universe(ix_universe, .true.)
 

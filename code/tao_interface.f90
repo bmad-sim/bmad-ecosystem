@@ -1026,6 +1026,10 @@ ix = index(string, '@')
 if (ix == 0) then
   u => s%u(tao_universe_number(-1))
   return
+elseif (string(1:ix-1) == '') then
+  u => s%u(tao_universe_number(-1))
+  string = string(ix+1:)
+  return
 endif
 
 !
