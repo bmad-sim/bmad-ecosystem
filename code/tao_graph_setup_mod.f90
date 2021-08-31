@@ -819,9 +819,10 @@ u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 lat => u%model%lat
 da => u%dynamic_aperture
 
-if (da%a_emit == 0 .or. da%b_emit == 0) then
+if (da%a_emit <= 0 .or. da%b_emit <= 0) then
   curve%valid = .false.
   curve%why_invalid = ''  ! Don't want any error messages printed since this is not a real error.
+  call out_io (s_warn$, r_name, 'a_emit and/or b_emit not set in tao_dynamic_aperture namelist. Will not draw beam ellipse.')
   return
 endif
 
