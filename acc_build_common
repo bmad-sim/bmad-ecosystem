@@ -43,6 +43,9 @@ func_set_base_env () {
     export LIBTOOL_UTIL=libtool-2.4.6
     export M4_UTIL=m4-1.4.19
     export PKGCONFIG_UTIL=pkg-config-0.29.1
+
+    # Check for Scientific Linux OS version
+    [ "$(grep Scientific /etc/redhat-release &> /dev/null ; echo $?)" -eq 0 ] && export SL_RELEASE=1
 }
 
 
@@ -597,8 +600,9 @@ func_install_utilities () {
 		    echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
 		fi
 	    else
-		# Force the build of all GNU Utilities - issue with building FGSL requires this - see RT#59328 and others.
-		func_get_build_utilities
+		# Force the build of all GNU Utilities for Scientific Linux only.
+		# Issue with building FGSL requires this - see RT#59328, RT#59565 and others.
+		[ ${SL_RELEASE} ] && func_get_build_utilities
 	    fi
 
 	done
