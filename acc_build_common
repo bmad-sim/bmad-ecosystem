@@ -21,15 +21,9 @@ func_set_base_env () {
     fi
 
     export ACC_LIB_TOOLS_WIKI='https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc#A_42Libraries_and_Tools_Needed_for_Compiling_42'
-
-    [ "${BUILD_TYPE}" == "production" ] \
-	&& export OTHER_BUILD_TYPE="debug" \
-	|| export OTHER_BUILD_TYPE="production"
-
     export BASE_DIR=$(dirname `pwd`)
     export PROJ_DIR_NAME=$(basename `pwd`)
     export OUTPUT_DIR=${BASE_DIR}/${BUILD_TYPE}
-    export OTHER_OUTPUT_DIR=${BASE_DIR}/${OTHER_BUILD_TYPE}
     export WORK_DIR=${BASE_DIR}/${PROJ_DIR_NAME}/${BUILD_TYPE}
 
     # Logic to check for the presence of gmake, else use make 
@@ -504,15 +498,6 @@ func_install_utilities () {
 		    rsync -aq ${UTIL_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/ ${OUTPUT_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/
 
 		    [ `hash -l >& /dev/null ; echo $?` -eq 0 ] && hash -r || rehash
-
-		    if [ -d ${OTHER_OUTPUT_DIR} ] ; then
-
-			[ ! -d ${OTHER_OUTPUT_DIR}/bin ] && mkdir -p ${OTHER_OUTPUT_DIR}/bin
-			cp ${UTIL_DIR}/bin/${UTIL_NAME} ${OTHER_OUTPUT_DIR}/bin
-
-			[ -d ${OTHER_OUTPUT_DIR}/share ] && mkdir -p ${OTHER_OUTPUT_DIR}/share
-			rsync -aq ${UTIL_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/ ${OTHER_OUTPUT_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/
-		    fi
 		fi
 	    fi
 
@@ -530,8 +515,8 @@ func_install_utilities () {
         export PATH=/opt/local/libexec/gnubin${PATH:+:${PATH}}
     fi
 
-    export PATH=${UTIL_DIR}/bin:${OTHER_OUTPUT_DIR}/gnu_utilities/bin${PATH:+:${PATH}}
-    export LD_LIBRARY_PATH=${UTIL_DIR}/lib:${OTHER_OUTPUT_DIR}/gnu_utilities/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+    export PATH=${UTIL_DIR}/bin:${PATH:+:${PATH}}
+    export LD_LIBRARY_PATH=${UTIL_DIR}/lib:${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 
     if [ ! -e ${UTIL_DIR}/bin/.BUILDCOMPLETE ] ; then
 	echo -e "\nChecking minimium version of GNU Utility Programs needed...\n"
@@ -721,8 +706,6 @@ func_cleanup_variables () {
     unset WORK_DIR
     unset BUILD_TYPE
     unset ARGUMENTS
-    unset OTHER_OUTPUT_DIR
-    unset OTHER_BUILD_TYPE
     unset DYLD_LIBRARY_PATH
     unset PACKAGE_VERSION
 
