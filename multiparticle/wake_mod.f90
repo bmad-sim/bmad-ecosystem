@@ -538,7 +538,7 @@ nm = n_max
 ! If first time through
 
 if (bunch%ix_z(1) < 1) then
-  call indexx (bunch%particle%vec(5), bunch%ix_z)
+  call indexer (bunch%particle%vec(5), bunch%ix_z)
   bunch%ix_z(1:nm) = bunch%ix_z(nm:1:-1)
 endif
 

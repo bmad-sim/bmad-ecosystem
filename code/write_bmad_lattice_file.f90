@@ -74,7 +74,7 @@ type (wall3d_vertex_struct), pointer :: v
 type (bmad_common_struct), parameter :: bmad_com_default = bmad_common_struct()
 type (ac_kicker_struct), pointer :: ac
 type (expression_atom_struct), pointer :: stack(:)
-type (str_indexx_struct) str_index
+type (str_index_struct) str_index
 type (lat_ele_order_struct) order
 
 real(rp) s0, x_lim, y_lim, val, x, y
@@ -294,7 +294,7 @@ do i = 1, lat%n_control_max
     if (stack(j)%type /= variable$) cycle
     if (stack(j)%name == '') cycle
     if (any(stack(j)%name == physical_const_list%name)) cycle
-    call find_indexx(stack(j)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
+    call find_index(stack(j)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
     if (.not. (has_been_added)) cycle  ! Avoid duuplicates
     write (iu, '(3a)') trim(stack(j)%name), ' = ', re_str(stack(j)%value)
   enddo
@@ -1369,7 +1369,7 @@ integer i, iv
 
 lat => ele%branch%lat
 if (ele%slave_status == multipass_slave$) return
-call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+call find_index (ele%name, names, an_indexx, n_names, ix_match)
 ele0 => named_eles(ix_match)%ele   ! Element with this name whose attributes were written to the lattice file.
 if (ele%ix_ele == ele0%ix_ele .and. ele%ix_branch == ele0%ix_branch) return
 
@@ -1492,7 +1492,7 @@ if (size(names) < n_names + 1) then
   call re_allocate(an_indexx, 2*size(names))
   call re_allocate_eles(named_eles, 2*size(names), .true.)
 endif
-call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true., has_been_added = has_been_added)
+call find_index (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true., has_been_added = has_been_added)
 if (has_been_added) named_eles(n_names)%ele => ele
 
 end subroutine add_this_name_to_list

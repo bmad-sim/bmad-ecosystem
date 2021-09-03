@@ -42,7 +42,7 @@ integer :: iu,  ios, ix_match, ie, ix_start, ix_end, iu_fieldgrid
 integer :: n_names, n
 integer :: q_sign
 
-type (str_indexx_struct) :: fieldgrid_names, ele_names
+type (str_index_struct) :: fieldgrid_names, ele_names
 integer, allocatable      :: ele_name_occurrences(:)
 
 real(rp), pointer :: val(:)
@@ -126,7 +126,7 @@ ele_loop: do ie = ix_start, ix_end
   call str_substitute (ele%name, "\", "_and_")  ! "
 
   ! Make unique names  
-  call find_indexx (ele%name, ele_names, ix_match)
+  call find_index (ele%name, ele_names, ix_match)
 
   if (ix_match > 0) then
     ele_name_occurrences(ix_match) = ele_name_occurrences(ix_match) + 1
@@ -137,7 +137,7 @@ ele_loop: do ie = ix_start, ix_end
   end if
 
   ! add name to list  
-  call find_indexx (ele%name, ele_names, ix_match, add_to_list = .true.)
+  call find_index (ele%name, ele_names, ix_match, add_to_list = .true.)
 
   ! Format for numbers
   rfmt = 'es13.5'
@@ -347,10 +347,10 @@ end subroutine write_opal_lattice_file
 ! Input:
 !   ele              -- ele_struct: element to make map
 !   param            -- lat_param_struct: Contains lattice information
-!   name_indexx      -- str_indexx_struct: contains field grid filenames
+!   name_indexx      -- str_index_struct: contains field grid filenames
 !
 ! Output:   
-!   name_indexx      -- str_indexx_struct: updated if new name is added
+!   name_indexx      -- str_index_struct: updated if new name is added
 !   output_name      -- Real(rp): output filename. 
 !   field_scale      -- Real(rp): the scaling of the field grid
 !
@@ -363,7 +363,7 @@ implicit none
 
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
-type (str_indexx_struct) :: name_indexx
+type (str_index_struct) :: name_indexx
 character(*)  :: output_name
 real(rp)      :: field_scale
 
@@ -374,7 +374,7 @@ integer :: ix_match, iu_fieldgrid, ios
 output_name = ''
 
 ! Check field map file. If file has not been written, create a new file. 
-call find_indexx (ele%grid_field(1)%ptr%file, name_indexx, ix_match)
+call find_index (ele%grid_field(1)%ptr%file, name_indexx, ix_match)
 ! Check for match with existing grid
 if (ix_match > 0) then
   ! File should exist  
@@ -384,7 +384,7 @@ if (ix_match > 0) then
 else
   ! File does not exist.
   ! Add name to list  
-  call find_indexx (ele%grid_field(1)%ptr%file, name_indexx, ix_match, add_to_list = .true.)
+  call find_index (ele%grid_field(1)%ptr%file, name_indexx, ix_match, add_to_list = .true.)
   ix_match = name_indexx%n_max
   write(output_name, '(a, i0, a)') 'fieldgrid_', ix_match, '.t7'
   ! Write new fieldgrid file

@@ -471,7 +471,7 @@ parsing_loop: do
     endif
 
     if (ixc == 0 .and. key == -1 .and. .not. wild_here) then    
-      call find_indexx (word_1, in_lat%nametable, ix)
+      call find_index (word_1, in_lat%nametable, ix)
       if (ix == -1) then
         if (index(name, '##') /= 0) then
           call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
@@ -682,7 +682,7 @@ parsing_loop: do
 
   match_found = .false.  ! found a match?
 
-  call find_indexx (word_2, in_lat%nametable, i)
+  call find_index (word_2, in_lat%nametable, i)
   if (i >= 0 .and. i < n_max) then ! i < n_max avoids "abc: abc" construct.
     plat%ele(n_max) = plat%ele(i)
     in_lat%ele(n_max) = in_lat%ele(i)
@@ -774,7 +774,7 @@ param_ele    => in_lat%ele(ix_param_ele)
 
 allocate (seq_indexx(iseq_tot), seq_name(iseq_tot))
 seq_name = sequence(1:iseq_tot)%name
-call indexx (seq_name, seq_indexx)
+call indexer (seq_name, seq_indexx)
 
 do i = 1, iseq_tot-1
   ix1 = seq_indexx(i)
@@ -783,8 +783,8 @@ do i = 1, iseq_tot-1
 enddo
 
 do i = 1, in_lat%nametable%n_max-1
-  ix1 = in_lat%nametable%indexx(i)
-  ix2 = in_lat%nametable%indexx(i+1)
+  ix1 = in_lat%nametable%index(i)
+  ix2 = in_lat%nametable%index(i+1)
   if (in_lat%ele(ix1)%name == in_lat%ele(ix2)%name) call parser_error ('DUPLICATE ELEMENT NAME ' // in_lat%ele(ix1)%name)
 enddo
 
@@ -804,9 +804,9 @@ do k = 1, iseq_tot
 
     ! Remember: Sequence names also appear in the element list so search the sequence list first.
 
-    call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
+    call find_index (name, seq_name, seq_indexx, iseq_tot, j)
     if (j == 0) then  ! if not a sequence, it must be an element
-      call find_indexx (name, in_lat%nametable, j)
+      call find_index (name, in_lat%nametable, j)
       if (j < 0) then  ! if not an element, I don't know what it is
         s_ele%ix_ele = -1       ! Struggle on for now...
         s_ele%type = element$
@@ -894,7 +894,7 @@ branch_loop: do i_loop = 1, n_branch_max
   n_branch = ubound(lat%branch, 1)
   branch => lat%branch(n_branch)
 
-  call find_indexx (this_branch_name, in_lat%nametable, ix)
+  call find_index (this_branch_name, in_lat%nametable, ix)
   ele => in_lat%ele(ix) ! line_ele element associated with this branch.
 
   ele0 => branch%ele(0)
@@ -1097,7 +1097,7 @@ do i = 1, n_max
   do 
     j = j + 1
     if (j > n_slave) exit
-    call find_indexx(pele%control(j)%name, seq_name, seq_indexx, size(seq_name), k, k2)
+    call find_index(pele%control(j)%name, seq_name, seq_indexx, size(seq_name), k, k2)
     if (k == 0) cycle
     call parser_expand_line (-1, pele%control(j)%name, sequence, &
                                          seq_name, seq_indexx, .false., n_ele_use, expanded_line = a_line)
@@ -1390,7 +1390,7 @@ case ('BEGINNING', 'BEAM', 'PARTICLE_START')
   return
 case ('END')
   if (any(class_word == lat0%ele(1:n_max)%name)) then
-    call find_indexx (class_word, lat0%nametable, ix, add_to_list = .false.)
+    call find_index (class_word, lat0%nametable, ix, add_to_list = .false.)
     is_marker = (lat0%ele(ix)%key == marker$)
   else
     is_marker = (index('MARKER', trim(class_word)) /= 0)
@@ -1412,7 +1412,7 @@ endif
 
 n_max = n_max + 1
 lat0%ele(n_max)%name = word1
-call find_indexx (word1, lat0%nametable, ix, add_to_list = .true., has_been_added = added)
+call find_index (word1, lat0%nametable, ix, add_to_list = .true., has_been_added = added)
 if (.not. added) then
   call parser_error ('DUPLICATE ELEMENT, LINE, OR LIST NAME: ' // word1)
 endif

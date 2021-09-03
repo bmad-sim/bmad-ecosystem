@@ -46,7 +46,6 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
 
 use bmad_interface, except_dummy => type_ele
 use expression_mod
-use indexx_mod
 
 implicit none
 
@@ -75,7 +74,7 @@ type (lat_param_struct) param
 type (control_struct), pointer :: ctl
 type (all_pointer_struct) a_ptr
 type (ac_kicker_struct), pointer :: ac
-type (str_indexx_struct) str_index
+type (str_index_struct) str_index
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
@@ -866,7 +865,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
           if (ctl%stack(im)%type /= variable$) cycle
           if (ctl%stack(im)%name == '') cycle
           if (any(ctl%stack(im)%name == physical_const_list%name)) cycle
-          call find_indexx(ctl%stack(im)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
+          call find_index(ctl%stack(im)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
           if (.not. (has_been_added)) cycle  ! Avoid duuplicates
           if (print_it) then
             nl=nl+1; li(nl) = 'Named Constants:'

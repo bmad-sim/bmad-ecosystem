@@ -33,7 +33,6 @@ subroutine create_unique_ele_names (lat, key, suffix)
 
 use bmad_interface, except => create_unique_ele_names
 
-
 implicit none
 
 type (lat_struct), target :: lat
@@ -72,7 +71,7 @@ do ib = 0, ubound(lat%branch, 1)
   call re_allocate (name_indexx, n_max)
   call re_allocate (original_name, n_max)
   original_name = branch%ele(1:n_max)%name
-  call indexx (original_name, name_indexx)
+  call indexer (original_name, name_indexx)
 
   ! Find repeated names
 
@@ -80,7 +79,7 @@ do ib = 0, ubound(lat%branch, 1)
   	ele => branch%ele(i)
 
   	if (key /= 0 .and. ele%key /= key) cycle
-  	call find_indexx (ele%name, original_name, name_indexx, n_max, ix, ixx)
+  	call find_index (ele%name, original_name, name_indexx, n_max, ix, ixx)
   	if (ixx == n_max) cycle  ! Name is unique
   	j = name_indexx(ixx+1)
   	if (original_name(j) /= ele%name) cycle ! Name is unique

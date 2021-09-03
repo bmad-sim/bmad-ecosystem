@@ -24,7 +24,6 @@ recursive subroutine twiss_at_element (ele, start, end, average)
 
 use expression_mod
 use equal_mod, dummy => twiss_at_element
-use nr
 
 implicit none
 

@@ -731,7 +731,6 @@ end subroutine taylor_extract_zeroth_order_part
 
 subroutine sort_taylor_terms (taylor_in, taylor_sorted, min_val)
 
-use nr
 
 implicit none
 
@@ -759,7 +758,7 @@ do i = 1, n
   ord(i) = taylor_exponent_index(tt(i)%expn)
 enddo
 
-call indexx (ord, ix)
+call indexer (ord, ix)
 
 j = 0
 do i = 1, n

@@ -25,7 +25,7 @@ enddo
 bp_com%i_const_init = nn
 bp_com%i_const_tot  = nn
 
-call indexx (bp_com2%const(1:nn)%name, bp_com2%const(1:nn)%indexx)
+call indexer (bp_com2%const(1:nn)%name, bp_com2%const(1:nn)%index)
 
 end subroutine init_bmad_parser_common
 

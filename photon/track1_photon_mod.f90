@@ -689,7 +689,6 @@ end subroutine track1_multilayer_mirror
 
 subroutine track1_mosaic_crystal (ele, param, orbit)
 
-use nr, only: indexx
 
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
@@ -824,7 +823,7 @@ do im = 1, n_layer
   ml%branch_ratio = (field1**2 + field2**2) / (field1**2 + field2**2 + field3**2 + field4**2)
 enddo
 
-call indexx(m_layer%branch_ratio, indx)
+call indexer(m_layer%branch_ratio, indx)
 indx = indx(n_layer:1:-1)
 follow_prob(1) = 1
 p_sum = 1

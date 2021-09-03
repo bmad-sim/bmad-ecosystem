@@ -8,7 +8,7 @@
 !   ele       -- ele_struct: Element in a lattice.
 !
 ! Output:
-!   ix_nt     -- integer: Nametable index. lat%nametable%name(ix_nt) and lat%nametable%indexx(ix_nt)
+!   ix_nt     -- integer: Nametable index. lat%nametable%name(ix_nt) and lat%nametable%index(ix_nt)
 !                 correspond with ele. 
 !                 Set to -1 if ele is not a lattice element. For example, a slice_slave is not a lattice element.
 !-

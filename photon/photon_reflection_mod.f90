@@ -56,8 +56,6 @@ contains
 
 Subroutine photon_reflection_std_surface_init (surface)
 
-use nr
-
 implicit none
 
 type (photon_reflect_surface_struct), target :: surface

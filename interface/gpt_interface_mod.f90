@@ -166,7 +166,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, end_ele
-type (str_indexx_struct) :: fieldgrid_names
+type (str_index_struct) :: fieldgrid_names
 type (gpt_lat_param_struct), target :: gpt_lat_param
 type (gpt_lat_param_struct), pointer :: param
 type (ele_pointer_struct), allocatable :: eles(:)
@@ -341,7 +341,7 @@ use bmad_interface
 
 type (ele_struct) :: ele
 type (floor_position_struct) :: floor1, floor2
-type (str_indexx_struct), optional :: fieldgrid_names
+type (str_index_struct), optional :: fieldgrid_names
 type (branch_struct), pointer :: branch
 
 real(rp) :: w_mat(3,3)
@@ -648,7 +648,7 @@ end subroutine write_gpt_ele
 !
 ! Input:
 !   ele              -- ele_struct: element to make map
-!   name_indexx      -- str_indexx_struct: contains field grid filenames
+!   name_indexx      -- str_index_struct: contains field grid filenames
 !   dimensions       -- integer: 1, 2, or 3 dimensions.
 !
 ! Output:   
@@ -660,8 +660,9 @@ end subroutine write_gpt_ele
 
 subroutine get_gpt_fieldgrid_name_and_scaling(ele, name_indexx, output_name, field_scale, ref_time, dimensions)
 
+
 type (ele_struct) :: ele
-type (str_indexx_struct) :: name_indexx
+type (str_index_struct) :: name_indexx
 character(*)  :: output_name
 real(rp)      :: field_scale
 real(rp)      :: ref_time
@@ -688,7 +689,7 @@ endif
 
 ! Check field map file. If file has not been written, create a new file. 
 
-call find_indexx (unique_grid_file, name_indexx, ix_match)
+call find_index (unique_grid_file, name_indexx, ix_match)
 
 ! Check for match with existing grid
 
@@ -699,7 +700,7 @@ if (ix_match > 0) then
 else
   ! File does not exist.
   ! Add name to list  
-  call find_indexx (unique_grid_file, name_indexx, ix_match, add_to_list = .true.)
+  call find_index (unique_grid_file, name_indexx, ix_match, add_to_list = .true.)
   ix_match = name_indexx%n_max
   call get_output_name()
 

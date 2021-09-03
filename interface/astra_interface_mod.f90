@@ -32,7 +32,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
-type (str_indexx_struct) :: fieldgrid_names
+type (str_index_struct) :: fieldgrid_names
 type (astra_lattice_param_struct) :: astra_lattice_param
 
 integer :: n, ie, ix_start, ix_end, iu, id
@@ -144,13 +144,12 @@ end subroutine write_astra_lattice_file
 !------------------------------------------------------------------------
 !+ 
 subroutine write_astra_ele(iu, ele, id, fieldgrid_names, dimensions)
-use bmad_interface
 
 implicit none
 
 type (ele_struct) :: ele
 type (floor_position_struct) :: floor1, floor2
-type (str_indexx_struct), optional :: fieldgrid_names
+type (str_index_struct), optional :: fieldgrid_names
 type (branch_struct), pointer :: branch
 
 real(rp) :: s, x(3), dx(3), d(3), d1(2), d2(2), d3(2), d4(2), w1, e_angle, ds_slice
@@ -388,23 +387,23 @@ end function
 !
 ! Input:
 !   ele              -- ele_struct: element to make map
-!   name_indexx      -- str_indexx_struct: contains field grid filenames
+!   name_indexx      -- str_index_struct: contains field grid filenames
 !   dimensions       -- integer, optional: 1 or 3 dimensions. Default: 1
 !
 ! Output:   
-!   name_indexx      -- str_indexx_struct: updated if new name is added
+!   name_indexx      -- str_index_struct: updated if new name is added
 !   output_name      -- Real(rp): output filename. 
 !   field_scale      -- Real(rp): the scaling of the field grid
 !
 !-
 
-subroutine get_astra_fieldgrid_name_and_scaling(&
-             ele, name_indexx, output_name, field_scale, dimensions)
+subroutine get_astra_fieldgrid_name_and_scaling(ele, name_indexx, output_name, field_scale, dimensions)
+
                                           
 implicit none
 
 type (ele_struct) :: ele
-type (str_indexx_struct) :: name_indexx
+type (str_index_struct) :: name_indexx
 character(*)  :: output_name
 real(rp)      :: field_scale
 character(200) :: unique_grid_file
@@ -428,7 +427,7 @@ else
 endif
 
 ! Check field map file. If file has not been written, create a new file. 
-call find_indexx (unique_grid_file, name_indexx, ix_match)
+call find_index (unique_grid_file, name_indexx, ix_match)
 ! Check for match with existing grid
 if (ix_match > 0) then
   ! File should exist  
@@ -442,7 +441,7 @@ if (ix_match > 0) then
 else
   ! File does not exist.
   ! Add name to list  
-  call find_indexx (unique_grid_file, name_indexx, ix_match, add_to_list = .true.)
+  call find_index (unique_grid_file, name_indexx, ix_match, add_to_list = .true.)
   ix_match = name_indexx%n_max
   call get_output_name()
   ! Write new fieldgrid file

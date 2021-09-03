@@ -63,14 +63,14 @@ do ib = 0, ubound(lat%branch, 1)
       problem_found = .true.
     endif
 
-    call find_indexx(ele%name, nt, ix_match)
+    call find_index(ele%name, nt, ix_match)
     if (ix_match < 0) then
       call out_io (s_fatal$, r_name, 'LAT NAMETABLE MAPPING MISMATCH!', 'PLEASE REPORT THIS!')
       problem_found = .true.
     endif
 
     if (n > 0) then
-      if (nt%name(nt%indexx(n-1)) > nt%name(nt%indexx(n))) then
+      if (nt%name(nt%index(n-1)) > nt%name(nt%index(n))) then
         call out_io (s_fatal$, r_name, 'LAT NAMETABLE INDEXX ORDER MISMATCH!', 'PLEASE REPORT THIS!')
         problem_found = .true.
       endif

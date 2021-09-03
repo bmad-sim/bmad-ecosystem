@@ -629,7 +629,7 @@ do   ! ix_ele = 1e1, ie2
 
   ! Do not make duplicate specs
 
-  call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+  call find_index (ele%name, names, an_indexx, n_names, ix_match)
   if (ix_match > 0) cycle
 
   ! Add to the list of elements
@@ -639,7 +639,7 @@ do   ! ix_ele = 1e1, ie2
     call re_allocate(an_indexx, 2*size(names))
   endif
  
-  call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
+  call find_index (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
 
   !----------
   ! OPAL case
@@ -1148,7 +1148,7 @@ if (out_type(1:3) == 'MAD') then
 
     !
 
-    call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+    call find_index (ele%name, names, an_indexx, n_names, ix_match)
     if (ix_match == 0) cycle ! Happens for translated to MADX patch elements.
     n_repeat(ix_match) = n_repeat(ix_match) + 1
     

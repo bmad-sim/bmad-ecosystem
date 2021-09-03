@@ -43,7 +43,7 @@ type seq_struct
   integer type                      ! LINE$, REPLACEMENT_LINE$ or LIST$
   integer ix_list                   ! Current index for lists
   integer :: list_upcount = 0
-  integer indexx                    ! Alphabetical order sorted index
+  integer index                     ! Alphabetical order sorted index
   character(200) :: file_name = ''  ! File where sequence is defined
   integer ix_file_line              ! Line number in file where sequence is defined
   logical multipass
@@ -91,7 +91,7 @@ type parser_ele_struct
   integer ix_line_in_file    ! Line in file where element was defined.
   integer ix_count
   integer ele_pt, ref_pt
-  integer indexx
+  integer index
   logical :: superposition_command_here = .false.
   logical :: superposition_has_been_set = .false.
   logical :: wrap_superimpose = .true.
@@ -116,7 +116,7 @@ integer, parameter :: def$ = 1, redef$ = 2
 type bp_const_struct
   character(40) :: name = ''   ! Constant name
   real(rp) :: value = 0        ! Constant value
-  integer :: indexx = 0        ! Constant sort index
+  integer :: index = 0         ! Constant sort index
 end type
 
 type bp_common_struct

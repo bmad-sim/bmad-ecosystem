@@ -791,7 +791,7 @@ do ix_ele = ie1, ie2
 
   ! do not make duplicate specs
 
-  call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+  call find_index (ele%name, names, an_indexx, n_names, ix_match)
   if (ix_match > 0) cycle
 
   ! Add to the list of elements
@@ -801,7 +801,7 @@ do ix_ele = ie1, ie2
     call re_allocate(an_indexx, 2*size(names))
   endif
 
-  call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
+  call find_index (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
 
   converted = .false.
   if (.not. associated (ele%a_pole) .and. ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then

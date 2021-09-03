@@ -347,16 +347,17 @@ spot that is enlarged along the $x$-axis.
 \section{Example: Backward Tracking Through a Lattice}
 \label{s:reverse}
 
-By creating a reversed lattice, one can track a particles backwards through the lattice. For example,
-assume that you have a lattice file called \vn{original_lattice.bmad} which defines a line
-called \vn{original_line} tracking electrons. To create a reversed lattice, create a new file with the following:
+By creating a reversed lattice, one can track a particles backwards through the lattice. For
+example, assume that you have a lattice file called \vn{original_lattice.bmad} which defines a line
+called \vn{original_line} tracking electrons. To create a reversed lattice, create a new file with
+the following:
 \begin{example}
   call, file = original_lattice.bmad
   reversed_line: line = (--original_line)
   parameter[default_tracking_species] = positron
   use, reversed_line
 \end{example}
-The ``\vn{-{}-}'' reverses the line and reverses the elements (\sref{s:ele.reverse}). Tracking
+The ``$--$'' reverses the line and reverses the elements (\sref{s:ele.reverse}). Tracking
 through \vn{reversed_line} is equivalent to tracking backwards through \vn{original_line}.
 
 The default for the type of particle tracked is set by \vn{parameter[default_tracking_species]}

@@ -21,7 +21,7 @@
 subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
 
 use bmad_interface, except_dummy => multi_turn_tracking_to_mat
-use nr
+use nr, only: svdfit
 
 implicit none
 
@@ -118,8 +118,6 @@ chi = sqrt(dsum2/sum2)
 contains
 
 function multi_turn_func (x, id) result (vec)
-
-use bmad_interface
 
 implicit none                      
 
