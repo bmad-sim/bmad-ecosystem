@@ -237,10 +237,11 @@ call match_word (cmd, [character(40) :: &
           'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
           'data_d2', 'data_d2_array', 'data_set_design_value', 'data_parameter', &
           'datum_create', 'datum_has_ele', 'derivative', &
-          'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', &
-          'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
-          'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control_var', &
-          'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
+          'ele:ac_kicker', 'ele:cartesian_map', 'ele:chamber_wall', 'ele:control_var', &
+          'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:grid_field', &
+          'ele:gen_attribs', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
+          'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', & 
+          'ele:taylor_field', 'ele:twiss', 'ele:wake', 'ele:wall3d', &
           'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'matrix', 'merit', 'orbit_at_s', &
@@ -2002,351 +2003,6 @@ case ('derivative')
     enddo
   enddo
 
-!%% ele:head -----------------------
-! "Head" Element attributes
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:head {ele_id}|{which}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! Example:
-!   python ele:head 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id 
-! which : default=model
-!
-!    
-! Returns
-! -------
-! string_list 
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-
-case ('ele:head')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
-
-  nl=incr(nl); write (li(nl), imt) 'universe;INT;F;',                 u%ix_uni
-  nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                   ele%ix_ele
-
-  nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                     trim(key_name(ele%key))
-  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                     trim(ele%name)
-  nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       ele%type
-  nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      ele%alias
-  if (associated(ele%descrip)) then
-    nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ele%descrip
-  else
-    nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ''
-  endif
-  nl=incr(nl); write (li(nl), '(2(a,l1))') 'is_on;LOGIC;', attribute_free(ele, 'is_on', .false.), ';', ele%is_on
-
-  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                     ele%s
-  nl=incr(nl); write (li(nl), rmt) 's_start;REAL;F;',               ele%s_start
-  nl=incr(nl); write (li(nl), rmt) 'ref_time;REAL;F;',              ele%ref_time
-
-  nl=incr(nl); write (li(nl), lmt) 'has#methods;LOGIC;F;',          (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$)
-  nl=incr(nl); write (li(nl), lmt) 'has#ab_multipoles;LOGIC;F;',    (attribute_name(ele, a0$) == 'A0')
-  nl=incr(nl); write (li(nl), lmt) 'has#kt_multipoles;LOGIC;F;',    (ele%key == multipole$)
-  nl=incr(nl); write (li(nl), lmt) 'has#multipoles_elec;LOGIC;F;',  (attribute_name(ele, a0_elec$) == 'A0_ELEC')
-  nl=incr(nl); write (li(nl), lmt) 'has#ac_kick;LOGIC;F;',          associated(ele%ac_kick)
-  nl=incr(nl); write (li(nl), lmt) 'has#taylor;LOGIC;F;',           associated(ele%taylor(1)%term)
-  nl=incr(nl); write (li(nl), lmt) 'has#spin_taylor;LOGIC;F;',      associated(ele%spin_taylor(1)%term)
-  nl=incr(nl); write (li(nl), lmt) 'has#wake;LOGIC;F;',             associated(ele%wake)
-  n = 0; if (associated(ele%cartesian_map)) n = size(ele%cartesian_map)
-  nl=incr(nl); write (li(nl), imt) 'num#cartesian_map;INT;F;',    n
-  n = 0; if (associated(ele%cylindrical_map)) n = size(ele%cylindrical_map)
-  nl=incr(nl); write (li(nl), imt) 'num#cylindrical_map;INT;F;',  n
-  n = 0; if (associated(ele%taylor_field)) n = size(ele%taylor_field)
-  nl=incr(nl); write (li(nl), imt) 'num#taylor_field;INT;F;',     n
-  n = 0; if (associated(ele%grid_field)) n = size(ele%grid_field)
-  nl=incr(nl); write (li(nl), imt) 'num#grid_field;INT;F;',       n
-  n = 0; if (associated(ele%wall3d)) n = size(ele%wall3d)
-  nl=incr(nl); write (li(nl), imt) 'has#wall3d;INT;F;',           n
-  nl=incr(nl); write (li(nl), lmt) 'has#control;LOGIC;F;',          associated(ele%control)
-  nl=incr(nl); write (li(nl), lmt) 'has#twiss;LOGIC;F;',            (ele%a%beta /= 0)
-  nl=incr(nl); write (li(nl), lmt) 'has#mat6;LOGIC;F;',             (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD')
-  nl=incr(nl); write (li(nl), lmt) 'has#floor;LOGIC;F;',            (ele%lord_status /= multipass_lord$)
-  nl=incr(nl); write (li(nl), lmt) 'has#photon;LOGIC;F;',           associated(ele%photon)
-  nl=incr(nl); write (li(nl), lmt) 'has#lord_slave;LOGIC;F;',       .true.
-
-!%% ele:methods -----------------------
-! Element methods
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:methods {ele_id}|{which}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! Example:
-!   python ele:methods 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-!
-!
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-
-case ('ele:methods')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
-    nl=incr(nl); write (li(nl), amt) 'crystal_type;STR;T;', trim(ele%component_name)
-  endif
-
-  if (attribute_name(ele, material_type$) == 'MATERIAL_TYPE') then
-    nl=incr(nl); write (li(nl), amt) 'material_type;STR;T;', trim(ele%component_name)
-  endif
-
-  if (attribute_name(ele, origin_ele$) == 'ORIGIN_ELE') then
-    nl=incr(nl); write (li(nl), amt) 'origin_ele;STR;T;', trim(ele%component_name)
-  endif
-
-  if (attribute_name(ele, physical_source$) == 'PHYSICAL_SOURCE') then
-    nl=incr(nl); write (li(nl), amt) 'physical_source;STR;T;', trim(ele%component_name)
-  endif
-
-  if (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD') then
-    nl=incr(nl); write (li(nl), amt) 'mat6_calc_method;ENUM;T;', trim(mat6_calc_method_name(ele%mat6_calc_method))
-  endif
-
-  if (attribute_name(ele, tracking_method$) == 'TRACKING_METHOD') then
-    nl=incr(nl); write (li(nl), amt) 'tracking_method;ENUM;T;', trim(tracking_method_name(ele%tracking_method))
-  endif
-
-  if (attribute_name(ele, spin_tracking_method$) == 'SPIN_TRACKING_METHOD') then
-    nl=incr(nl); write (li(nl), amt) 'spin_tracking_method;ENUM;T;', trim(spin_tracking_method_name(ele%spin_tracking_method))
-  endif
-
-  if (attribute_name(ele, csr_method$) == 'CSR_METHOD') then
-    nl=incr(nl); write (li(nl), amt) 'csr_method;ENUM;T;', trim(csr_method_name(ele%csr_method))
-  endif
-
-  if (attribute_name(ele, space_charge_method$) == 'SPACE_CHARGE_METHOD') then
-    nl=incr(nl); write (li(nl), amt) 'space_charge_method;ENUM;T;', trim(space_charge_method_name(ele%space_charge_method))
-  endif
-
-  if (attribute_name(ele, ptc_integration_type$) == 'PTC_INTEGRATION_TYPE') then
-    nl=incr(nl); write (li(nl), amt) 'ptc_integration_type;ENUM;T;', trim(ptc_integration_type_name(ele%ptc_integration_type))
-  endif
-
-  if (attribute_name(ele, field_calc$) == 'FIELD_CALC') then
-    nl=incr(nl); write (li(nl), amt) 'field_calc;ENUM;T;', trim(field_calc_name(ele%field_calc))
-  endif
-
-  if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$) then
-    nl=incr(nl); write (li(nl), imt) 'longitudinal_orientation;INT;F;',              ele%orientation
-  endif
-
-!%% ele:gen_attribs -----------------------
-! Element general attributes
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:gen_attribs {ele_id}|{which}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! Example:
-!   python ele:gen_attribs 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-!
-!
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-
-case ('ele:gen_attribs')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  do i = 1, num_ele_attrib$
-    attrib = attribute_info(ele, i)
-    a_name = attrib%name
-    if (a_name == null_name$) cycle
-    if (attrib%state == private$) cycle
-
-    free = attribute_free (ele, a_name, .false., why_not_free = why_not_free)
-    if (.not. free .and. why_not_free == field_master_dependent$) free = .true.
-    attrib_type = attribute_type(a_name)
-    if (which /= 'model') free = .false.
-
-    select case (attrib_type)
-    case (is_logical$)
-      nl=incr(nl); write (li(nl), '(2a, l1, a, l1)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
-    case (is_integer$)
-      nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
-    case (is_real$)
-      nl=incr(nl); write (li(nl), '(2a, l1, a, es22.14)') trim(a_name), ';REAL;', free, ';', ele%value(i)
-      nl=incr(nl); write (li(nl), '(4a)') 'units#', trim(a_name), ';STR;F;', attrib%units
-    case (is_switch$)
-      name = switch_attrib_value_name (a_name, ele%value(i), ele)
-      nl=incr(nl); write (li(nl), '(2a, l1, 2a)') trim(a_name), ';ENUM;', free, ';', trim(name)
-    end select
-  enddo
-
-  if (attribute_name(ele, aperture_at$) == 'APERTURE_AT') then
-    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', trim(aperture_at_name(ele%aperture_at))
-    nl=incr(nl); write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
-  endif
-
-  if (attribute_name(ele, aperture_type$) == 'APERTURE_TYPE') then
-    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;', trim(aperture_type_name(ele%aperture_type))
-  endif
-
-  if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
-    nl=incr(nl); write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
-  endif
-
-!%% ele:multipoles -----------------------
-! Element multipoles
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:multipoles {ele_id}|{which}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! Example:
-!   python ele:multipoles 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-!
-!
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-
-case ('ele:multipoles')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;', ele%multipoles_on
-  if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
-    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T;', ele%scale_multipoles
-  endif
-
-  if (ele%key == multipole$) then
-    nl=incr(nl); li(nl) = 'KnL;Tn;KnL (w/Tilt);Tn (w/Tilt);An (equiv);Bn (equiv)'
-  elseif (ele%key == ab_multipole$) then
-    nl=incr(nl); li(nl) = 'An;Bn;An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
-  else
-    nl=incr(nl); li(nl) = 'An;Bn;An (Scaled);Bn (Scaled);An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
-  endif
-
-  if (.not. associated(ele%a_pole)) then
-    call end_stuff(li, nl)
-    return
-  endif
-
-  a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
-  if (ele%key == multipole$) then
-    call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
-    call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
-  else
-    call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
-    call multipole_ele_to_ab (ele, .true.,  ix_pole_max, a2, b2)
-    call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
-  endif
-
-  do i = 0, n_pole_maxx
-    if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
-
-    if (ele%key == multipole$) then
-      nl=incr(nl); write (li(nl), '(i0, 6(a, es22.14))') i, ';', &
-                      ele%a_pole(i), ';', ele%b_pole(i), ';', knl(i), ';', tn(i), ';', a(i), ';', b(i)
-
-    elseif (ele%key == ab_multipole$) then
-      nl=incr(nl); write (li(nl), '(i0, 6(a, es22.14))') i, ';', &
-                      ele%a_pole(i), ';', ele%b_pole(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
-
-    else
-      nl=incr(nl); write (li(nl), '(i0, 8(a, es22.14))') i, ';', &
-                      ele%a_pole(i), ';', ele%b_pole(i), ';', a(i), ';', b(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
-    endif
-  enddo
-
 !%% ele:ac_kicker -----------------------
 ! Element ac_kicker
 !
@@ -2557,6 +2213,68 @@ case ('ele:chamber_wall')
     nl=incr(nl); write (li(nl), '(i0, 3(a, es14.6))') i, ';', wall3d%section(i)%s, ';', z1, ';', -z2
   enddo
 
+!%% ele:control_var -----------------------
+! List element control variables.
+! Used for group, overlay and ramper type elements
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:control_var {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Example:
+!   python ele:control_var 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>873
+!   which: model
+
+case ('ele:control_var')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  if (.not. associated(ele%control)) then
+    call invalid ('ele%control not allocated')
+    return
+  endif
+
+  ! Group controller var has an old_value. Overlay and ramper vars do not.
+
+  if (ele%key == group$) then
+    do i = 1, size(ele%control%var)
+      cvar => ele%control%var(i)
+      nl=incr(nl); write (li(nl), '(i0, 2a, 2(a, es22.14))') i, ';', trim(cvar%name), ';', cvar%value, ';', cvar%old_value
+    enddo
+  else
+    do i = 1, size(ele%control%var)
+      cvar => ele%control%var(i)
+      nl=incr(nl); write (li(nl), '(i0, 2a, 2(a, es22.14))') i, ';', trim(cvar%name), ';', cvar%value
+    enddo
+  endif
+
 !%% ele:cylindrical_map -----------------------
 ! Element cylindrical_map
 !
@@ -2640,6 +2358,983 @@ case ('ele:cylindrical_map')
     return
   end select
 
+!%% ele:elec_multipoles -----------------------
+! Element electric multipoles
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:elec_multipoles {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Example:
+!   python ele:elec_multipoles 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+ 
+
+case ('ele:elec_multipoles')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on
+  if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
+    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T', ele%scale_multipoles
+  endif
+
+  can_vary = (which == 'model')
+
+  nl=incr(nl); li(nl) = 'An_elec;Bn_elec;An_elec (Scaled);Bn_elec (Scaled)'
+
+  if (.not. associated(ele%a_pole_elec)) then
+    call end_stuff(li, nl)
+    return
+  endif
+
+  call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
+
+  do i = 0, n_pole_maxx
+    if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
+    nl=incr(nl); write (li(nl), '(i0, 4(a, es22.14))') i, ';', ele%a_pole_elec(i), ';', ele%b_pole_elec(i), ';', a(i), ';', b(i)
+  enddo
+
+!%% ele:floor -----------------------
+! Element floor coordinates. The output gives two lines. "Reference" is
+! without element misalignments and "Actual" is with misalignments.
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:floor {ele_id}|{which} {where}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {where} is an optional argument which, if present, is one of
+!   beginning  ! Upstream end
+!   center     ! Middle of element
+!   end        ! Downstream end (default)
+! Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
+! Example:
+!   python ele:floor 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+! where : default=end
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   where: 
+!
+! Example: 2
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   where: center
+
+case ('ele:floor')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+  if (ele%ix_ele == 0) then
+    ele0 => ele
+  else
+    ele0 => pointer_to_next_ele(ele, -1)
+  endif
+
+  can_vary = (ele%ix_ele == 0 .and. which == 'model')
+
+  select case (ele%key)
+  case (crystal$, mirror$, multilayer_mirror$)
+    floor = ele%floor
+    floor2 = ele_geometry_with_misalignments (ele, 0.5_rp)
+  case default
+    if (tail_str == '') tail_str = 'end'
+    call match_word (tail_str, [character(12):: 'beginning', 'center', 'end'], loc)
+    if (loc == 0) then
+      call invalid ('BAD "where" SWITCH. SHOULD BE ONE OF "", "beginning", "center", or "end".')
+      return
+    endif
+    select case (loc)
+    case (1)
+      floor  = ele0%floor
+      floor2 = ele_geometry_with_misalignments (ele, 0.0_rp)
+    case (2)
+      call ele_geometry(ele0%floor, ele, floor, 0.5_rp)
+      floor2 = ele_geometry_with_misalignments (ele, 0.5_rp)
+    case (3)
+      floor  = ele%floor
+      floor2 = ele_geometry_with_misalignments (ele)
+    end select
+  end select
+
+  nl=incr(nl); write (li(nl), rmt2) 'Reference;REAL_ARR;', can_vary, (';', floor%r(i), i = 1, 3), ';', floor%theta, ';', floor%phi, ';', floor%psi
+  nl=incr(nl); write (li(nl), rmt2) 'Reference-W;REAL_ARR;', .false., ((';', floor%w(i,j), i = 1, 3), j = 1, 3)
+  nl=incr(nl); write (li(nl), rmt2) 'Actual;REAL_ARR;', .false., (';', floor2%r(i), i = 1, 3), ';', floor2%theta, ';', floor2%phi, ';', floor2%psi
+  nl=incr(nl); write (li(nl), rmt2) 'Actual-W;REAL_ARR;', .false., ((';', floor2%w(i,j), i = 1, 3), j = 1, 3)
+
+!%% ele:grid_field -----------------------
+! Element grid_field
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:grid_field {ele_id}|{which} {index} {who}
+! where {ele_id} is an element name or index and {which} is one of
+!   model, base, design
+! {index} is the index number in the ele%grid_field(:) array.
+! {who} is one of:
+!   base, points
+! Example:
+!   python ele:grid_field 3@1>>7|model 2 base
+! This gives grid #2 of element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+! index : default=1
+! who :
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_grid
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   index: 1
+!   who: base 
+
+case ('ele:grid_field')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  if (.not. associated(ele%grid_field)) then
+    call invalid ('grid_field not allocated')
+    return
+  endif
+  ix = parse_int (tail_str, err, 1, size(ele%grid_field));  if (err) return
+  g_field => ele%grid_field(ix)
+
+  select case (tail_str)
+  case ('base')
+    nl=incr(nl); write (li(nl), ramt) 'dr;REAL_ARR;T;',                        (';', g_field%dr(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
+    name = attribute_name(ele, g_field%master_parameter)
+    if (name(1:1) == '!') name = '<None>'
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(g_field%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    trim(em_field_type_name(g_field%field_type))
+    nl=incr(nl); write (li(nl), amt) 'grid_field^geometry;ENUM;T;',           trim(grid_field_geometry_name(g_field%geometry))
+    nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       g_field%harmonic
+    nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 g_field%phi0_fieldmap
+    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   g_field%field_scale
+    nl=incr(nl); write (li(nl), imt) 'interpolation_order;INUM;T;',           g_field%interpolation_order
+    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             g_field%curved_ref_frame
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(g_field%ptr%file)
+
+  case ('points')
+    do i = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)
+    do j = lbound(g_field%ptr%pt, 2), ubound(g_field%ptr%pt, 2)
+    do k = lbound(g_field%ptr%pt, 3), ubound(g_field%ptr%pt, 3)
+      g_pt => g_field%ptr%pt(i,j,k)
+      select case (g_field%field_type)
+      case (electric$)
+        if (g_field%harmonic == 0) then
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (real_part_str(g_pt%E(ix)), ix = 1, 3)
+        else
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (cmplx_str(g_pt%E(ix)), ix = 1, 3)
+        endif
+      case (magnetic$)
+        if (g_field%harmonic == 0) then
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (real_part_str(g_pt%B(ix)), ix = 1, 3)
+        else
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (cmplx_str(g_pt%B(ix)), ix = 1, 3)
+        endif
+      case (mixed$)
+        if (g_field%harmonic == 0) then
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 6a)') i, ';', j, ';', k, &
+                                                            (real_part_str(g_pt%B(ix)), ix = 1, 3), (real_part_str(g_pt%E(ix)), ix = 1, 3)
+        else
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 6a)') i, ';', j, ';', k, &
+                                                            (cmplx_str(g_pt%B(ix)), ix = 1, 3), (cmplx_str(g_pt%B(ix)), ix = 1, 3)
+        endif
+      end select
+    enddo; enddo; enddo
+  end select
+
+!%% ele:gen_attribs -----------------------
+! Element general attributes
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:gen_attribs {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Example:
+!   python ele:gen_attribs 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+!
+!
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+
+case ('ele:gen_attribs')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  do i = 1, num_ele_attrib$
+    attrib = attribute_info(ele, i)
+    a_name = attrib%name
+    if (a_name == null_name$) cycle
+    if (attrib%state == private$) cycle
+
+    free = attribute_free (ele, a_name, .false., why_not_free = why_not_free)
+    if (.not. free .and. why_not_free == field_master_dependent$) free = .true.
+    attrib_type = attribute_type(a_name)
+    if (which /= 'model') free = .false.
+
+    select case (attrib_type)
+    case (is_logical$)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, l1)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
+    case (is_integer$)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
+    case (is_real$)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, es22.14)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+      nl=incr(nl); write (li(nl), '(4a)') 'units#', trim(a_name), ';STR;F;', attrib%units
+    case (is_switch$)
+      name = switch_attrib_value_name (a_name, ele%value(i), ele)
+      nl=incr(nl); write (li(nl), '(2a, l1, 2a)') trim(a_name), ';ENUM;', free, ';', trim(name)
+    end select
+  enddo
+
+  if (attribute_name(ele, aperture_at$) == 'APERTURE_AT') then
+    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', trim(aperture_at_name(ele%aperture_at))
+    nl=incr(nl); write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
+  endif
+
+  if (attribute_name(ele, aperture_type$) == 'APERTURE_TYPE') then
+    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;', trim(aperture_type_name(ele%aperture_type))
+  endif
+
+  if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
+    nl=incr(nl); write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
+  endif
+
+!%% ele:head -----------------------
+! "Head" Element attributes
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:head {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Example:
+!   python ele:head 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id 
+! which : default=model
+!
+!    
+! Returns
+! -------
+! string_list 
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+
+case ('ele:head')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
+
+  nl=incr(nl); write (li(nl), imt) 'universe;INT;F;',                 u%ix_uni
+  nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                   ele%ix_ele
+
+  nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                     trim(key_name(ele%key))
+  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                     trim(ele%name)
+  nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       ele%type
+  nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      ele%alias
+  if (associated(ele%descrip)) then
+    nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ele%descrip
+  else
+    nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ''
+  endif
+  nl=incr(nl); write (li(nl), '(2(a,l1))') 'is_on;LOGIC;', attribute_free(ele, 'is_on', .false.), ';', ele%is_on
+
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                     ele%s
+  nl=incr(nl); write (li(nl), rmt) 's_start;REAL;F;',               ele%s_start
+  nl=incr(nl); write (li(nl), rmt) 'ref_time;REAL;F;',              ele%ref_time
+
+  nl=incr(nl); write (li(nl), lmt) 'has#methods;LOGIC;F;',          (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$)
+  nl=incr(nl); write (li(nl), lmt) 'has#ab_multipoles;LOGIC;F;',    (attribute_name(ele, a0$) == 'A0')
+  nl=incr(nl); write (li(nl), lmt) 'has#kt_multipoles;LOGIC;F;',    (ele%key == multipole$)
+  nl=incr(nl); write (li(nl), lmt) 'has#multipoles_elec;LOGIC;F;',  (attribute_name(ele, a0_elec$) == 'A0_ELEC')
+  nl=incr(nl); write (li(nl), lmt) 'has#ac_kick;LOGIC;F;',          associated(ele%ac_kick)
+  nl=incr(nl); write (li(nl), lmt) 'has#taylor;LOGIC;F;',           associated(ele%taylor(1)%term)
+  nl=incr(nl); write (li(nl), lmt) 'has#spin_taylor;LOGIC;F;',      associated(ele%spin_taylor(1)%term)
+  nl=incr(nl); write (li(nl), lmt) 'has#wake;LOGIC;F;',             associated(ele%wake)
+  n = 0; if (associated(ele%cartesian_map)) n = size(ele%cartesian_map)
+  nl=incr(nl); write (li(nl), imt) 'num#cartesian_map;INT;F;',    n
+  n = 0; if (associated(ele%cylindrical_map)) n = size(ele%cylindrical_map)
+  nl=incr(nl); write (li(nl), imt) 'num#cylindrical_map;INT;F;',  n
+  n = 0; if (associated(ele%taylor_field)) n = size(ele%taylor_field)
+  nl=incr(nl); write (li(nl), imt) 'num#taylor_field;INT;F;',     n
+  n = 0; if (associated(ele%grid_field)) n = size(ele%grid_field)
+  nl=incr(nl); write (li(nl), imt) 'num#grid_field;INT;F;',       n
+  n = 0; if (associated(ele%wall3d)) n = size(ele%wall3d)
+  nl=incr(nl); write (li(nl), imt) 'has#wall3d;INT;F;',           n
+  nl=incr(nl); write (li(nl), lmt) 'has#control;LOGIC;F;',          associated(ele%control)
+  nl=incr(nl); write (li(nl), lmt) 'has#twiss;LOGIC;F;',            (ele%a%beta /= 0)
+  nl=incr(nl); write (li(nl), lmt) 'has#mat6;LOGIC;F;',             (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD')
+  nl=incr(nl); write (li(nl), lmt) 'has#floor;LOGIC;F;',            (ele%lord_status /= multipass_lord$)
+  nl=incr(nl); write (li(nl), lmt) 'has#photon;LOGIC;F;',           associated(ele%photon)
+  nl=incr(nl); write (li(nl), lmt) 'has#lord_slave;LOGIC;F;',       .true.
+
+!%% ele:lord_slave -----------------------
+! Lists the lord/slave tree of an element.
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:lord_slave {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Example:
+!   python ele:lord_slave 3@1>>7|model
+! This gives lord and slave info on element number 7 in branch 1 of universe 3.
+! Note: The lord/slave info is independent of the setting of {which}.
+! 
+! The output is a number of lines, each line giving information on an element (element index, etc.).
+! Some lines begin with the word "Element". 
+! After each "Element" line, there are a number of lines (possibly zero) that begin with the word "Slave or "Lord".
+! These "Slave" and "Lord" lines are the slaves and lords of the "Element" element.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+ 
+
+case ('ele:lord_slave')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  call tao_control_tree_list(ele, eles)
+  do i = size(eles), 1, -1  ! Show lords first
+    ele => eles(i)%ele
+
+    nl=incr(nl); write (li(nl), '(8a)') 'Element;', trim(ele_loc_name(ele, .true.)), ';', &
+                                  trim(ele%name), ';', trim(key_name(ele%key)), ';', control_name(ele%lord_status)
+
+    do j = 1, ele%n_lord
+      lord => pointer_to_lord(ele, j)
+      nl=incr(nl); write (li(nl), '(8a)') 'Lord;', trim(ele_loc_name(lord, .true.)), ';', &
+                                  trim(lord%name), ';', trim(key_name(lord%key)), ';', control_name(lord%lord_status)
+    enddo
+
+    do j = 1, ele%n_slave+ele%n_slave_field
+      slave => pointer_to_slave(ele, j)
+      nl=incr(nl); write (li(nl), '(8a)') 'Slave;', trim(ele_loc_name(slave, .true.)), ';', &
+                                  trim(slave%name), ';', trim(key_name(slave%key)), ';', control_name(slave%slave_status)
+    enddo
+  enddo
+
+!%% ele:mat6 -----------------------
+! Element mat6
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:mat6 {ele_id}|{which} {who}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {who} is one of:
+!   mat6
+!   vec0
+!   err
+! Example:
+!   python ele:mat6 3@1>>7|model mat6
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+! who :
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   who: mat6
+
+case ('ele:mat6')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  select case (tail_str)
+  case ('mat6')
+    do i = 1, 6
+      nl=incr(nl); write (li(nl), '(i0, a, 6(a, es22.14))') i, ';REAL_ARR;F', (';', ele%mat6(i,j), j = 1, 6)
+    enddo
+
+  case ('vec0')
+    nl=incr(nl); write (li(nl), ramt) 'vec0;REAL_ARR;F', (';', ele%vec0(i), i = 1, 6)
+
+  case ('err')
+    nl=incr(nl); write (li(nl), rmt) 'symplectic_error;REAL;F;', mat_symp_error(ele%mat6)
+
+  case default
+    call invalid ('Bad or missign {who} switch.')
+    return
+  end select
+
+!%% ele:methods -----------------------
+! Element methods
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:methods {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Example:
+!   python ele:methods 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+!
+!
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+
+case ('ele:methods')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
+    nl=incr(nl); write (li(nl), amt) 'crystal_type;STR;T;', trim(ele%component_name)
+  endif
+
+  if (attribute_name(ele, material_type$) == 'MATERIAL_TYPE') then
+    nl=incr(nl); write (li(nl), amt) 'material_type;STR;T;', trim(ele%component_name)
+  endif
+
+  if (attribute_name(ele, origin_ele$) == 'ORIGIN_ELE') then
+    nl=incr(nl); write (li(nl), amt) 'origin_ele;STR;T;', trim(ele%component_name)
+  endif
+
+  if (attribute_name(ele, physical_source$) == 'PHYSICAL_SOURCE') then
+    nl=incr(nl); write (li(nl), amt) 'physical_source;STR;T;', trim(ele%component_name)
+  endif
+
+  if (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD') then
+    nl=incr(nl); write (li(nl), amt) 'mat6_calc_method;ENUM;T;', trim(mat6_calc_method_name(ele%mat6_calc_method))
+  endif
+
+  if (attribute_name(ele, tracking_method$) == 'TRACKING_METHOD') then
+    nl=incr(nl); write (li(nl), amt) 'tracking_method;ENUM;T;', trim(tracking_method_name(ele%tracking_method))
+  endif
+
+  if (attribute_name(ele, spin_tracking_method$) == 'SPIN_TRACKING_METHOD') then
+    nl=incr(nl); write (li(nl), amt) 'spin_tracking_method;ENUM;T;', trim(spin_tracking_method_name(ele%spin_tracking_method))
+  endif
+
+  if (attribute_name(ele, csr_method$) == 'CSR_METHOD') then
+    nl=incr(nl); write (li(nl), amt) 'csr_method;ENUM;T;', trim(csr_method_name(ele%csr_method))
+  endif
+
+  if (attribute_name(ele, space_charge_method$) == 'SPACE_CHARGE_METHOD') then
+    nl=incr(nl); write (li(nl), amt) 'space_charge_method;ENUM;T;', trim(space_charge_method_name(ele%space_charge_method))
+  endif
+
+  if (attribute_name(ele, ptc_integration_type$) == 'PTC_INTEGRATION_TYPE') then
+    nl=incr(nl); write (li(nl), amt) 'ptc_integration_type;ENUM;T;', trim(ptc_integration_type_name(ele%ptc_integration_type))
+  endif
+
+  if (attribute_name(ele, field_calc$) == 'FIELD_CALC') then
+    nl=incr(nl); write (li(nl), amt) 'field_calc;ENUM;T;', trim(field_calc_name(ele%field_calc))
+  endif
+
+  if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$) then
+    nl=incr(nl); write (li(nl), imt) 'longitudinal_orientation;INT;F;',              ele%orientation
+  endif
+
+!%% ele:multipoles -----------------------
+! Element multipoles
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:multipoles {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Example:
+!   python ele:multipoles 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+!
+!
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+
+case ('ele:multipoles')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;', ele%multipoles_on
+  if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
+    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T;', ele%scale_multipoles
+  endif
+
+  if (ele%key == multipole$) then
+    nl=incr(nl); li(nl) = 'KnL;Tn;KnL (w/Tilt);Tn (w/Tilt);An (equiv);Bn (equiv)'
+  elseif (ele%key == ab_multipole$) then
+    nl=incr(nl); li(nl) = 'An;Bn;An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
+  else
+    nl=incr(nl); li(nl) = 'An;Bn;An (Scaled);Bn (Scaled);An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
+  endif
+
+  if (.not. associated(ele%a_pole)) then
+    call end_stuff(li, nl)
+    return
+  endif
+
+  a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
+  if (ele%key == multipole$) then
+    call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
+    call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
+  else
+    call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
+    call multipole_ele_to_ab (ele, .true.,  ix_pole_max, a2, b2)
+    call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
+  endif
+
+  do i = 0, n_pole_maxx
+    if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+
+    if (ele%key == multipole$) then
+      nl=incr(nl); write (li(nl), '(i0, 6(a, es22.14))') i, ';', &
+                      ele%a_pole(i), ';', ele%b_pole(i), ';', knl(i), ';', tn(i), ';', a(i), ';', b(i)
+
+    elseif (ele%key == ab_multipole$) then
+      nl=incr(nl); write (li(nl), '(i0, 6(a, es22.14))') i, ';', &
+                      ele%a_pole(i), ';', ele%b_pole(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
+
+    else
+      nl=incr(nl); write (li(nl), '(i0, 8(a, es22.14))') i, ';', &
+                      ele%a_pole(i), ';', ele%b_pole(i), ';', a(i), ';', b(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
+    endif
+  enddo
+
+!%% ele:orbit -----------------------
+! Element orbit
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:orbit {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Example:
+!   python ele:orbit 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+
+case ('ele:orbit')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
+
+!%% ele:param -----------------------
+! Element parameter
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:param {ele_id}|{which} {who}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Possible {who} values is the same as possible {who} values for "python lat_list"
+! except for "ele:mat6" and "ele:vec0".
+! Note: Here {who} must be a single parameter and not a list.
+!
+! Example:
+!   python ele:param 3@1>>7|model e_tot
+! This gives E_tot of element number 7 in branch 1 of universe 3.
+!
+! Note: On output the {variable} component will always be "F" (since this 
+! command cannot tell if a parameter is allowed to vary).
+!
+! Also see: "python lat_list".
+!
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+! who :
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   who:
+!
+
+case ('ele:param')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+  orbit => tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele)
+
+  value = ele_param_value(tail_str, ele, orbit, data_type, err); if (err) return
+
+  select case (data_type)
+  case (is_real$)
+    nl=incr(nl); write (li(nl), rmt) trim(tail_str) // ';REAL;F;',                  value
+  case (is_integer$)
+    nl=incr(nl); write (li(nl), imt) trim(tail_str) // ';INT;F;',                   nint(value)
+  end select
+
+!%% ele:photon -----------------------
+! Element photon
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:photon {ele_id}|{which} {who}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {who} is one of:
+!   base
+!   material
+!   surface
+! Example:
+!   python ele:photon 3@1>>7|model base
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+! who :
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   who: base
+ 
+
+case ('ele:photon')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  if (.not. associated(ele%photon)) then
+    call invalid ('photon not allocated')
+    return
+  endif
+
+  ph => ele%photon
+  select case (tail_str)
+  case ('base')
+    nl=incr(nl); write (li(nl), lmt) 'has#surface;LOGIC;F;',  (attribute_name(ele, surface_attrib$) == 'SURFACE')
+    nl=incr(nl); write (li(nl), lmt) 'has#material;LOGIC;F;', &
+                           (attribute_name(ele, material_type$) == 'MATERIAL_TYPE' .or. ele%key == crystal$)
+
+  case ('material')
+    if (ele%key == multilayer_mirror$) then
+      nl=incr(nl); write (li(nl), amt) 'F0_m1;COMPLEX;F',      cmplx_str(ph%material%f0_m1)
+      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',      cmplx_str(ph%material%f0_m2)
+    else
+      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',      cmplx_str(ph%material%f0_m2)
+    endif
+    nl=incr(nl); write (li(nl), amt) 'F_H;COMPLEX;F',              cmplx_str(ph%material%f_h)
+    nl=incr(nl); write (li(nl), amt) 'F_Hbar;COMPLEX;F',           cmplx_str(ph%material%f_hbar)
+    nl=incr(nl); write (li(nl), amt) 'Sqrt(F_H*F_Hbar);COMPLEX;F', cmplx_str(ph%material%f_hkl)
+
+  case ('surface')
+    nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T', ph%surface%spherical_curvature
+    nl=incr(nl); write (li(nl), ramt) 'elliptical_curvature;REAL_ARR;T', (';', ph%surface%elliptical_curvature(i), i = 1, 3)
+  end select
+
+!%% ele:spin_taylor -----------------------
+! Element spin_taylor
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:spin_taylor {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Example:
+!   python ele:spin_taylor 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_spin
+!  args:
+!   ele_id: 1@0>>2
+!   which: model
+! 
+
+case ('ele:spin_taylor')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  if (.not. associated(ele%spin_taylor(1)%term)) then
+    call invalid('Spin Taylor map not allocated')
+    return
+  endif
+
+  do i = 0, 3
+    do j = 1, size(ele%spin_taylor(i)%term)
+      tt => ele%spin_taylor(i)%term(j)
+      nl=incr(nl); write (li(nl), '(i0, a, es22.14, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
+    enddo
+  enddo
+
 !%% ele:taylor -----------------------
 ! Element taylor
 !
@@ -2699,19 +3394,103 @@ case ('ele:taylor')
     enddo
   enddo
 
-!%% ele:spin_taylor -----------------------
-! Element spin_taylor
+!%% ele:taylor_field -----------------------
+! Element taylor_field
 !
 ! Notes
 ! -----
 ! Command syntax:
-!   python ele:spin_taylor {ele_id}|{which}
+!   python ele:taylor_field {ele_id}|{which} {index} {who}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {index} is the index number in the ele%taylor_field(:) array
+! {who} is one of:
+!   base
+!   terms
+! Example:
+!   python ele:taylor_field 3@1>>7|model 2 base
+! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! index
+! who
+! which : default=model
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
+!  args:
+!   ele_id: 1@0>>9
+!   which: model
+!   index: 1
+!   who: terms
+
+case ('ele:taylor_field')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  if (.not. associated(ele%taylor_field)) then
+    call invalid ('taylor_field not allocated')
+    return
+  endif
+  ix = parse_int (tail_str, err, 1, size(ele%taylor_field));  if (err) return
+  t_field => ele%taylor_field(ix)
+
+  select case (tail_str)
+  case ('base')
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(t_field%ptr%file)
+    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   t_field%field_scale
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', t_field%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            t_field%dz
+    name = attribute_name(ele, t_field%master_parameter)
+    if (name(1:1) == '!') name = '<None>'
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(t_field%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(t_field%field_type))
+    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             t_field%curved_ref_frame
+    nl=incr(nl); write (li(nl), lmt) 'canonical_tracking;LOGIC;T;',           t_field%canonical_tracking
+
+  case ('terms')
+    do i = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
+      t_term => t_field%ptr%plane(i)
+      do j = 1, 3
+        do k = 1, size(t_term%field(j)%term)
+          em_tt => t_term%field(j)%term(k)
+          nl=incr(nl); write (li(nl), '(2(i0, a), es22.14, 2(a, i0))') i, ';', j, ';', &
+                                                       em_tt%coef, ';', em_tt%expn(1), ';', em_tt%expn(2)
+        enddo
+      enddo
+    enddo
+  end select
+
+!%% ele:twiss -----------------------
+! Element twiss
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:twiss {ele_id}|{which}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
 ! Example:
-!   python ele:spin_taylor 3@1>>7|model
+!   python ele:twiss 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
 !
@@ -2730,29 +3509,26 @@ case ('ele:taylor')
 ! --------
 !
 ! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_spin
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
-!   ele_id: 1@0>>2
+!   ele_id: 1@0>>1
 !   which: model
- 
 
-case ('ele:spin_taylor')
+case ('ele:twiss')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
-  if (.not. associated(ele%spin_taylor(1)%term)) then
-    call invalid('Spin Taylor map not allocated')
-    return
-  endif
+  if (ele%a%beta == 0) return
+  free = attribute_free(ele, 'BETA_A', .false.) .and. (which == 'model')
 
-  do i = 0, 3
-    do j = 1, size(ele%spin_taylor(i)%term)
-      tt => ele%spin_taylor(i)%term(j)
-      nl=incr(nl); write (li(nl), '(i0, a, es22.14, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
-    enddo
-  enddo
+  nl=incr(nl); write (li(nl), lmt) 'mode_flip;LOGIC;F;', ele%mode_flip
+
+  call twiss_out (ele%a, 'a', can_vary = free)
+  call twiss_out (ele%b, 'b', can_vary = free)
+  call xy_disp_out (ele%x, 'x', can_vary = free)
+  call xy_disp_out (ele%y, 'y', can_vary = free)
 
 !%% ele:wake -----------------------
 ! Element wake
@@ -2779,7 +3555,7 @@ case ('ele:spin_taylor')
 ! ----------
 ! ele_id
 ! which : default=model
-! who : default=base
+! who :
 !
 !    
 ! Returns
@@ -2882,8 +3658,8 @@ case ('ele:wake')
 ! ----------
 ! ele_id
 ! which : default=model
-! index : default=1
-! who : default=base
+! index :
+! who :
 !
 !    
 ! Returns
@@ -2949,718 +3725,6 @@ case ('ele:wall3d')
     call invalid ('Bad or missign {who} switch.')
     return
   end select
-
-!%% ele:twiss -----------------------
-! Element twiss
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:twiss {ele_id}|{which}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! Example:
-!   python ele:twiss 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-!
-!    
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-
-case ('ele:twiss')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  if (ele%a%beta == 0) return
-  free = attribute_free(ele, 'BETA_A', .false.) .and. (which == 'model')
-
-  nl=incr(nl); write (li(nl), lmt) 'mode_flip;LOGIC;F;', ele%mode_flip
-
-  call twiss_out (ele%a, 'a', can_vary = free)
-  call twiss_out (ele%b, 'b', can_vary = free)
-  call xy_disp_out (ele%x, 'x', can_vary = free)
-  call xy_disp_out (ele%y, 'y', can_vary = free)
-
-!%% ele:control_var -----------------------
-! List element control variables.
-! Used for group, overlay and ramper type elements
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:control_var {ele_id}|{which}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! Example:
-!   python ele:control_var 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-!
-!    
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>873
-!   which: model
-
-case ('ele:control_var')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  if (.not. associated(ele%control)) then
-    call invalid ('ele%control not allocated')
-    return
-  endif
-
-  ! Group controller var has an old_value. Overlay and ramper vars do not.
-
-  if (ele%key == group$) then
-    do i = 1, size(ele%control%var)
-      cvar => ele%control%var(i)
-      nl=incr(nl); write (li(nl), '(i0, 2a, 2(a, es22.14))') i, ';', trim(cvar%name), ';', cvar%value, ';', cvar%old_value
-    enddo
-  else
-    do i = 1, size(ele%control%var)
-      cvar => ele%control%var(i)
-      nl=incr(nl); write (li(nl), '(i0, 2a, 2(a, es22.14))') i, ';', trim(cvar%name), ';', cvar%value
-    enddo
-  endif
-
-!%% ele:orbit -----------------------
-! Element orbit
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:orbit {ele_id}|{which}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! Example:
-!   python ele:orbit 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-!
-!    
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-
-case ('ele:orbit')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
-
-!%% ele:mat6 -----------------------
-! Element mat6
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:mat6 {ele_id}|{which} {who}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {who} is one of:
-!   mat6
-!   vec0
-!   err
-! Example:
-!   python ele:mat6 3@1>>7|model mat6
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-! who : default=mat6
-!
-!    
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-!   who: mat6
-
-case ('ele:mat6')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  select case (tail_str)
-  case ('mat6')
-    do i = 1, 6
-      nl=incr(nl); write (li(nl), '(i0, a, 6(a, es22.14))') i, ';REAL_ARR;F', (';', ele%mat6(i,j), j = 1, 6)
-    enddo
-
-  case ('vec0')
-    nl=incr(nl); write (li(nl), ramt) 'vec0;REAL_ARR;F', (';', ele%vec0(i), i = 1, 6)
-
-  case ('err')
-    nl=incr(nl); write (li(nl), rmt) 'symplectic_error;REAL;F;', mat_symp_error(ele%mat6)
-
-  case default
-    call invalid ('Bad or missign {who} switch.')
-    return
-  end select
-
-!%% ele:taylor_field -----------------------
-! Element taylor_field
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:taylor_field {ele_id}|{which} {index} {who}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {index} is the index number in the ele%taylor_field(:) array
-! {who} is one of:
-!   base
-!   terms
-! Example:
-!   python ele:taylor_field 3@1>>7|model 2 base
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! index
-! who
-! which : default=model
-!
-!    
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
-!  args:
-!   ele_id: 1@0>>9
-!   which: model
-!   index: 1
-!   who: terms
-
-case ('ele:taylor_field')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  if (.not. associated(ele%taylor_field)) then
-    call invalid ('taylor_field not allocated')
-    return
-  endif
-  ix = parse_int (tail_str, err, 1, size(ele%taylor_field));  if (err) return
-  t_field => ele%taylor_field(ix)
-
-  select case (tail_str)
-  case ('base')
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(t_field%ptr%file)
-    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   t_field%field_scale
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', t_field%r0(i), i = 1, 3)
-    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            t_field%dz
-    name = attribute_name(ele, t_field%master_parameter)
-    if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(t_field%ele_anchor_pt))
-    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(t_field%field_type))
-    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             t_field%curved_ref_frame
-    nl=incr(nl); write (li(nl), lmt) 'canonical_tracking;LOGIC;T;',           t_field%canonical_tracking
-
-  case ('terms')
-    do i = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
-      t_term => t_field%ptr%plane(i)
-      do j = 1, 3
-        do k = 1, size(t_term%field(j)%term)
-          em_tt => t_term%field(j)%term(k)
-          nl=incr(nl); write (li(nl), '(2(i0, a), es22.14, 2(a, i0))') i, ';', j, ';', &
-                                                       em_tt%coef, ';', em_tt%expn(1), ';', em_tt%expn(2)
-        enddo
-      enddo
-    enddo
-  end select
-
-!%% ele:grid_field -----------------------
-! Element grid_field
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:grid_field {ele_id}|{which} {index} {who}
-! where {ele_id} is an element name or index and {which} is one of
-!   model, base, design
-! {index} is the index number in the ele%grid_field(:) array.
-! {who} is one of:
-!   base, points
-! Example:
-!   python ele:grid_field 3@1>>7|model 2 base
-! This gives grid #2 of element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-! index : default=1
-! who : default=base
-!    
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_grid
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-!   index: 1
-!   who: base 
-
-case ('ele:grid_field')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  if (.not. associated(ele%grid_field)) then
-    call invalid ('grid_field not allocated')
-    return
-  endif
-  ix = parse_int (tail_str, err, 1, size(ele%grid_field));  if (err) return
-  g_field => ele%grid_field(ix)
-
-  select case (tail_str)
-  case ('base')
-    nl=incr(nl); write (li(nl), ramt) 'dr;REAL_ARR;T;',                        (';', g_field%dr(i), i = 1, 3)
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
-    name = attribute_name(ele, g_field%master_parameter)
-    if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(g_field%ele_anchor_pt))
-    nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    trim(em_field_type_name(g_field%field_type))
-    nl=incr(nl); write (li(nl), amt) 'grid_field^geometry;ENUM;T;',           trim(grid_field_geometry_name(g_field%geometry))
-    nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       g_field%harmonic
-    nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 g_field%phi0_fieldmap
-    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   g_field%field_scale
-    nl=incr(nl); write (li(nl), imt) 'interpolation_order;INUM;T;',           g_field%interpolation_order
-    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             g_field%curved_ref_frame
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(g_field%ptr%file)
-
-  case ('points')
-    do i = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)
-    do j = lbound(g_field%ptr%pt, 2), ubound(g_field%ptr%pt, 2)
-    do k = lbound(g_field%ptr%pt, 3), ubound(g_field%ptr%pt, 3)
-      g_pt => g_field%ptr%pt(i,j,k)
-      select case (g_field%field_type)
-      case (electric$)
-        if (g_field%harmonic == 0) then
-          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (real_part_str(g_pt%E(ix)), ix = 1, 3)
-        else
-          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (cmplx_str(g_pt%E(ix)), ix = 1, 3)
-        endif
-      case (magnetic$)
-        if (g_field%harmonic == 0) then
-          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (real_part_str(g_pt%B(ix)), ix = 1, 3)
-        else
-          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (cmplx_str(g_pt%B(ix)), ix = 1, 3)
-        endif
-      case (mixed$)
-        if (g_field%harmonic == 0) then
-          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 6a)') i, ';', j, ';', k, &
-                                                            (real_part_str(g_pt%B(ix)), ix = 1, 3), (real_part_str(g_pt%E(ix)), ix = 1, 3)
-        else
-          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 6a)') i, ';', j, ';', k, &
-                                                            (cmplx_str(g_pt%B(ix)), ix = 1, 3), (cmplx_str(g_pt%B(ix)), ix = 1, 3)
-        endif
-      end select
-    enddo; enddo; enddo
-  end select
-
-!%% ele:floor -----------------------
-! Element floor coordinates. The output gives two lines. "Reference" is
-! without element misalignments and "Actual" is with misalignments.
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:floor {ele_id}|{which} {where}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {where} is an optional argument which, if present, is one of
-!   beginning  ! Upstream end
-!   center     ! Middle of element
-!   end        ! Downstream end (default)
-! Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
-! Example:
-!   python ele:floor 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-! where : default=end
-!
-!    
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-!   where: 
-!
-! Example: 2
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-!   where: center
-
-case ('ele:floor')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-  if (ele%ix_ele == 0) then
-    ele0 => ele
-  else
-    ele0 => pointer_to_next_ele(ele, -1)
-  endif
-
-  can_vary = (ele%ix_ele == 0 .and. which == 'model')
-
-  select case (ele%key)
-  case (crystal$, mirror$, multilayer_mirror$)
-    floor = ele%floor
-    floor2 = ele_geometry_with_misalignments (ele, 0.5_rp)
-  case default
-    if (tail_str == '') tail_str = 'end'
-    call match_word (tail_str, [character(12):: 'beginning', 'center', 'end'], loc)
-    if (loc == 0) then
-      call invalid ('BAD "where" SWITCH. SHOULD BE ONE OF "", "beginning", "center", or "end".')
-      return
-    endif
-    select case (loc)
-    case (1)
-      floor  = ele0%floor
-      floor2 = ele_geometry_with_misalignments (ele, 0.0_rp)
-    case (2)
-      call ele_geometry(ele0%floor, ele, floor, 0.5_rp)
-      floor2 = ele_geometry_with_misalignments (ele, 0.5_rp)
-    case (3)
-      floor  = ele%floor
-      floor2 = ele_geometry_with_misalignments (ele)
-    end select
-  end select
-
-  nl=incr(nl); write (li(nl), rmt2) 'Reference;REAL_ARR;', can_vary, (';', floor%r(i), i = 1, 3), ';', floor%theta, ';', floor%phi, ';', floor%psi
-  nl=incr(nl); write (li(nl), rmt2) 'Reference-W;REAL_ARR;', .false., ((';', floor%w(i,j), i = 1, 3), j = 1, 3)
-  nl=incr(nl); write (li(nl), rmt2) 'Actual;REAL_ARR;', .false., (';', floor2%r(i), i = 1, 3), ';', floor2%theta, ';', floor2%phi, ';', floor2%psi
-  nl=incr(nl); write (li(nl), rmt2) 'Actual-W;REAL_ARR;', .false., ((';', floor2%w(i,j), i = 1, 3), j = 1, 3)
-
-!%% ele:photon -----------------------
-! Element photon
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:photon {ele_id}|{which} {who}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {who} is one of:
-!   base
-!   material
-!   surface
-! Example:
-!   python ele:photon 3@1>>7|model base
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-! who : default=base
-!
-!    
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-!   who: base
- 
-
-case ('ele:photon')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  if (.not. associated(ele%photon)) then
-    call invalid ('photon not allocated')
-    return
-  endif
-
-  ph => ele%photon
-  select case (tail_str)
-  case ('base')
-    nl=incr(nl); write (li(nl), lmt) 'has#surface;LOGIC;F;',  (attribute_name(ele, surface_attrib$) == 'SURFACE')
-    nl=incr(nl); write (li(nl), lmt) 'has#material;LOGIC;F;', &
-                           (attribute_name(ele, material_type$) == 'MATERIAL_TYPE' .or. ele%key == crystal$)
-
-  case ('material')
-    if (ele%key == multilayer_mirror$) then
-      nl=incr(nl); write (li(nl), amt) 'F0_m1;COMPLEX;F',      cmplx_str(ph%material%f0_m1)
-      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',      cmplx_str(ph%material%f0_m2)
-    else
-      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',      cmplx_str(ph%material%f0_m2)
-    endif
-    nl=incr(nl); write (li(nl), amt) 'F_H;COMPLEX;F',              cmplx_str(ph%material%f_h)
-    nl=incr(nl); write (li(nl), amt) 'F_Hbar;COMPLEX;F',           cmplx_str(ph%material%f_hbar)
-    nl=incr(nl); write (li(nl), amt) 'Sqrt(F_H*F_Hbar);COMPLEX;F', cmplx_str(ph%material%f_hkl)
-
-  case ('surface')
-    nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T', ph%surface%spherical_curvature
-    nl=incr(nl); write (li(nl), ramt) 'elliptical_curvature;REAL_ARR;T', (';', ph%surface%elliptical_curvature(i), i = 1, 3)
-  end select
-
-!%% ele:lord_slave -----------------------
-! Lists the lord/slave tree of an element.
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:lord_slave {ele_id}|{which}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! Example:
-!   python ele:lord_slave 3@1>>7|model
-! This gives lord and slave info on element number 7 in branch 1 of universe 3.
-! Note: The lord/slave info is independent of the setting of {which}.
-! 
-! The output is a number of lines, each line giving information on an element (element index, etc.).
-! Some lines begin with the word "Element". 
-! After each "Element" line, there are a number of lines (possibly zero) that begin with the word "Slave or "Lord".
-! These "Slave" and "Lord" lines are the slaves and lords of the "Element" element.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-!
-!    
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
- 
-
-case ('ele:lord_slave')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  call tao_control_tree_list(ele, eles)
-  do i = size(eles), 1, -1  ! Show lords first
-    ele => eles(i)%ele
-
-    nl=incr(nl); write (li(nl), '(8a)') 'Element;', trim(ele_loc_name(ele, .true.)), ';', &
-                                  trim(ele%name), ';', trim(key_name(ele%key)), ';', control_name(ele%lord_status)
-
-    do j = 1, ele%n_lord
-      lord => pointer_to_lord(ele, j)
-      nl=incr(nl); write (li(nl), '(8a)') 'Lord;', trim(ele_loc_name(lord, .true.)), ';', &
-                                  trim(lord%name), ';', trim(key_name(lord%key)), ';', control_name(lord%lord_status)
-    enddo
-
-    do j = 1, ele%n_slave+ele%n_slave_field
-      slave => pointer_to_slave(ele, j)
-      nl=incr(nl); write (li(nl), '(8a)') 'Slave;', trim(ele_loc_name(slave, .true.)), ';', &
-                                  trim(slave%name), ';', trim(key_name(slave%key)), ';', control_name(slave%slave_status)
-    enddo
-  enddo
-
-
-!%% ele:elec_multipoles -----------------------
-! Element electric multipoles
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:elec_multipoles {ele_id}|{which}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! Example:
-!   python ele:elec_multipoles 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
-! 
-!
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-!
-!    
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
- 
-
-case ('ele:elec_multipoles')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on
-  if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
-    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T', ele%scale_multipoles
-  endif
-
-  can_vary = (which == 'model')
-
-  nl=incr(nl); li(nl) = 'An_elec;Bn_elec;An_elec (Scaled);Bn_elec (Scaled)'
-
-  if (.not. associated(ele%a_pole_elec)) then
-    call end_stuff(li, nl)
-    return
-  endif
-
-  call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
-
-  do i = 0, n_pole_maxx
-    if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
-    nl=incr(nl); write (li(nl), '(i0, 4(a, es22.14))') i, ';', ele%a_pole_elec(i), ';', ele%b_pole_elec(i), ';', a(i), ';', b(i)
-  enddo
 
 !%% evaluate -----------------------
 ! Evaluate an expression. The result may be a vector.
@@ -4543,7 +4607,7 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !     ele.s, ele.l
 !     ele.e_tot, ele.p0c
 !     ele.mat6, ele.vec0
-!     ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (ele.beta_a, etc.)
+!     ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (EG: ele.beta_a, ele.k1, etc.)
 ! 
 !   {elements} is a string to match element names to.
 !     Use "*" to match to all elements.
@@ -4553,6 +4617,7 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !   python lat_list 3@0>>Q*|base real:ele.s    
 ! 
 ! Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
+! Also see: "python ele:param"
 !
 ! Parameters
 ! ----------
@@ -4594,7 +4659,6 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !    who: ele.ix_ele
 !
 !
-
 
 case ('lat_list')
 
@@ -4667,7 +4731,6 @@ case ('lat_list')
     call invalid ('Number of "who" must be 1 for real buffered output.')
   endif
 
-  data_type = is_real$
   n_arr = 0
 
   do ie = 1, n_loc
@@ -4679,95 +4742,8 @@ case ('lat_list')
     do i = 1, n_who
 
       n_add = 1
+
       select case (name1(i))
-      case ('orbit.floor.x', 'orbit.floor.y', 'orbit.floor.z')
-        floor%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
-        floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
-        select case (name1(i))
-        case ('orbit.floor.x')
-          values(1) = floor1%r(1)
-        case ('orbit.floor.y')
-          values(1) = floor1%r(2)
-        case ('orbit.floor.z')
-          values(1) = floor1%r(3)
-        end select
-      case ('orbit.spin.1')
-        values(1) = orbit%spin(1)
-      case ('orbit.spin.2')
-        values(1) = orbit%spin(2)
-      case ('orbit.spin.3')
-        values(1) = orbit%spin(3)
-      case ('orbit.vec.1')
-        values(1) = orbit%vec(1)
-      case ('orbit.vec.2')
-        values(1) = orbit%vec(2)
-      case ('orbit.vec.3')
-        values(1) = orbit%vec(3)
-      case ('orbit.vec.4')
-        values(1) = orbit%vec(4)
-      case ('orbit.vec.5')
-        values(1) = orbit%vec(5)
-      case ('orbit.vec.6')
-        values(1) = orbit%vec(6)
-      case ('orbit.t')
-        values(1) = orbit%t
-      case ('orbit.beta')
-        values(1) = orbit%beta
-      case ('orbit.state')
-        values(1) = orbit%state
-        data_type = is_integer$
-      case ('orbit.energy')
-        values(1) = (1 + orbit%vec(6)) * orbit%p0c
-      case ('orbit.pc')
-        call convert_pc_to ((1 + orbit%vec(6)) * orbit%p0c, orbit%species, E_tot = values(1))
-      case ('ele.name')
-        nl=incr(nl); li(nl) = ele%name
-        cycle
-      case ('ele.ix_ele')
-        values(1) = ele%ix_ele
-        data_type = is_integer$        
-      case ('ele.ix_branch')
-        values(1) = ele%ix_branch
-      case ('ele.a.beta')
-        values(1) = ele%a%beta
-      case ('ele.a.alpha')
-        values(1) = ele%a%alpha
-      case ('ele.a.eta')
-        values(1) = ele%a%eta
-      case ('ele.a.etap')
-        values(1) = ele%a%etap
-      case ('ele.a.gamma')
-        values(1) = ele%a%gamma
-      case ('ele.a.phi')
-        values(1) = ele%a%phi
-      case ('ele.b.beta')
-        values(1) = ele%b%beta
-      case ('ele.b.alpha')
-        values(1) = ele%b%alpha
-      case ('ele.b.eta')
-        values(1) = ele%b%eta
-      case ('ele.b.etap')
-        values(1) = ele%b%etap
-      case ('ele.b.gamma')
-        values(1) = ele%b%gamma
-      case ('ele.b.phi')
-        values(1) = ele%b%phi
-      case ('ele.e_tot')
-        values(1) = ele%value(e_tot$)
-      case ('ele.p0c')
-        values(1) = ele%value(p0c$)
-      case ('ele.x.eta')
-        values(1) = ele%x%eta
-      case ('ele.x.etap')
-        values(1) = ele%x%etap
-      case ('ele.y.eta')
-        values(1) = ele%y%eta
-      case ('ele.y.etap')
-        values(1) = ele%y%etap
-      case ('ele.s')
-        values(1) = ele%s
-      case ('ele.l')
-        values(1) = ele%value(l$)
       case ('ele.mat6')
         n_add = 36
         do ix = 1, 6
@@ -4776,25 +4752,12 @@ case ('lat_list')
       case ('ele.vec0')
         n_add = 6
         values(1:6) = ele%vec0
+      case ('ele.name')
+        nl=incr(nl); li(nl) = ele%name
+        cycle
       case default
-        call str_upcase (attrib_name, name1(i))
-        ix = index(attrib_name, '.')
-        attrib_name = attrib_name(ix+1:)
-
-        call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err, .false.)
-
-        if (err) then
-          call invalid ('Bad {who}: ' // name1(i)); return
-        endif
-
-        if (associated(a_ptr%r)) then
-          values(1) = a_ptr%r
-        elseif (associated(a_ptr%i)) then
-          data_type = is_integer$
-          values(1) = a_ptr%i
-        else
-          call invalid ('{who} is not integer or real: ' // name1(i)); return
-        endif
+        values(1) = ele_param_value(name1(i), ele, orbit, data_type, err)
+        if (err) return
       end select
 
       !
@@ -8259,5 +8222,136 @@ if (err) then
 endif
 
 end function int_val
+
+!----------------------------------------------------------------------
+! contains
+
+function ele_param_value(name, ele, orbit, data_type, err) result (value)
+
+type (ele_struct) ele
+type (coord_struct) orbit
+real(rp) value
+integer data_type
+logical err
+character(*) name
+character(40) attrib_name
+
+!
+
+err = .true.
+data_type = is_real$
+
+select case (name)
+case ('orbit.floor.x', 'orbit.floor.y', 'orbit.floor.z')
+  floor%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
+  floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+  select case (name)
+  case ('orbit.floor.x')
+    value = floor1%r(1)
+  case ('orbit.floor.y')
+    value = floor1%r(2)
+  case ('orbit.floor.z')
+    value = floor1%r(3)
+  end select
+case ('orbit.spin.1')
+  value = orbit%spin(1)
+case ('orbit.spin.2')
+  value = orbit%spin(2)
+case ('orbit.spin.3')
+  value = orbit%spin(3)
+case ('orbit.vec.1')
+  value = orbit%vec(1)
+case ('orbit.vec.2')
+  value = orbit%vec(2)
+case ('orbit.vec.3')
+  value = orbit%vec(3)
+case ('orbit.vec.4')
+  value = orbit%vec(4)
+case ('orbit.vec.5')
+  value = orbit%vec(5)
+case ('orbit.vec.6')
+  value = orbit%vec(6)
+case ('orbit.t')
+  value = orbit%t
+case ('orbit.beta')
+  value = orbit%beta
+case ('orbit.state')
+  value = orbit%state
+  data_type = is_integer$
+case ('orbit.energy')
+  value = (1 + orbit%vec(6)) * orbit%p0c
+case ('orbit.pc')
+  call convert_pc_to ((1 + orbit%vec(6)) * orbit%p0c, orbit%species, E_tot = value)
+case ('ele.ix_ele')
+  value = ele%ix_ele
+  data_type = is_integer$        
+case ('ele.ix_branch')
+  value = ele%ix_branch
+case ('ele.a.beta')
+  value = ele%a%beta
+case ('ele.a.alpha')
+  value = ele%a%alpha
+case ('ele.a.eta')
+  value = ele%a%eta
+case ('ele.a.etap')
+  value = ele%a%etap
+case ('ele.a.gamma')
+  value = ele%a%gamma
+case ('ele.a.phi')
+  value = ele%a%phi
+case ('ele.b.beta')
+  value = ele%b%beta
+case ('ele.b.alpha')
+  value = ele%b%alpha
+case ('ele.b.eta')
+  value = ele%b%eta
+case ('ele.b.etap')
+  value = ele%b%etap
+case ('ele.b.gamma')
+  value = ele%b%gamma
+case ('ele.b.phi')
+  value = ele%b%phi
+case ('ele.e_tot')
+  value = ele%value(e_tot$)
+case ('ele.p0c')
+  value = ele%value(p0c$)
+case ('ele.x.eta')
+  value = ele%x%eta
+case ('ele.x.etap')
+  value = ele%x%etap
+case ('ele.y.eta')
+  value = ele%y%eta
+case ('ele.y.etap')
+  value = ele%y%etap
+case ('ele.s')
+  value = ele%s
+case ('ele.l')
+  value = ele%value(l$)
+case default
+  call str_upcase (attrib_name, name)
+  ix = index(attrib_name, '.')
+  attrib_name = attrib_name(ix+1:)
+
+  call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err, .false.)
+
+  if (err) then
+    call invalid ('Bad {who}: ' // name); return
+  endif
+
+  if (associated(a_ptr%r)) then
+    value = a_ptr%r
+  elseif (associated(a_ptr%i)) then
+    data_type = is_integer$
+    value = a_ptr%i
+  else
+    call invalid ('{who} does not evaluate to an integer or real: ' // name); return
+    err = .true.
+    return
+  endif
+end select
+
+err = .false.
+
+end function ele_param_value
 
 end subroutine tao_python_cmd

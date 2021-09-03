@@ -488,7 +488,7 @@ if (search_for_lat_eles /= '') then
 
     if (grouping) then
       do kk = 1, size(eles)
-        call find_indexx(eles(kk)%ele%name, ele_names, an_indexx, num_ele, ixm, ix2m)
+        call find_index(eles(kk)%ele%name, ele_names, an_indexx, num_ele, ixm, ix2m)
         if (ixm == 0) then
           if (num_ele+1 > size(ele_names)) then
             call re_allocate(ele_names, size(ele_names) + 100)
