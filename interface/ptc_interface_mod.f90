@@ -2844,7 +2844,6 @@ end subroutine type_real_8_taylors
 
 subroutine sort_universal_terms (ut_in, ut_sorted)
 
-use nr, only: indexx
 use definition, only: universal_taylor
 
 implicit none

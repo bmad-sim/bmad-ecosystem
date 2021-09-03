@@ -662,9 +662,9 @@ END FUNCTION integrand_base_cov
 !-
 FUNCTION exp_bessi0(t, B1, B2)
 
-USE nrtype; USE nrutil, ONLY : poly
+use nrutil, ONLY: poly
 
-IMPLICIT NONE
+implicit none
 
 REAL(rp), INTENT(IN) :: t, B1, B2
 REAL(rp) :: b2t

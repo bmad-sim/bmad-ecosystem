@@ -519,8 +519,6 @@ end subroutine sr_transverse_wake_particle
 
 Subroutine order_particles_in_z (bunch)
 
-use nr, only: indexx
-
 implicit none
 
 type (bunch_struct), target :: bunch
