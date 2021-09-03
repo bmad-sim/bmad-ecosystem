@@ -20,8 +20,6 @@ contains
 
 subroutine sr3d_plot_diffuse_probability (plot_param, lat)
 
-use nr
-
 implicit none
 
 type (lat_struct), target :: lat
