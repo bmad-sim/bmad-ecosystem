@@ -346,7 +346,7 @@ if (search_for_lat_eles /= '') then
   do i = 1, size(eles)
     s(i) = eles(i)%ele%s
   enddo
-  call indexx (s, ind)
+  call indexer (s, ind)
 
   ! Get element names
 

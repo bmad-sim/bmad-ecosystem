@@ -431,7 +431,7 @@ enddo
 
 if (form == 'TOP10') then
   ! Merit may be negative when trying to maximize a datum instead of minimizing it.
-  call indexx(abs(con(1:nc)%merit), ixm(1:nc))
+  call indexer(abs(con(1:nc)%merit), ixm(1:nc))
   n_max = min(nc, s%global%n_top10_merit)
   ixm(1:n_max) = ixm(nc:nc-n_max+1:-1)
   line(1) = ' '
