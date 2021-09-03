@@ -408,8 +408,8 @@ end function super_zbrent
 
 recursive subroutine super_mrqmin (y, weight, a, chisq, funcs, storage, alamda, status, maska)
 
-use nrutil, only : diagmult
-use nr, only : covsrt
+use nr, only: covsrt
+use nrutil, only: diagmult
 
 implicit none
 
