@@ -18,7 +18,6 @@
 program bmad_to_slicktrack
 
 use bmad
-use indexx_mod
 
 implicit none
 
@@ -98,7 +97,7 @@ do i = 1, lat%n_ele_track
     end select
   endif
 
-  call find_indexx(name, nametab, ix, add_to_list = .true., has_been_added = added)
+  call find_index(name, nametab, ix, add_to_list = .true., has_been_added = added)
   if (.not. added) cycle   ! To avoid duplicates.
 
   call ele_to_slick_params(ele, slick_class, slick_params, scale)

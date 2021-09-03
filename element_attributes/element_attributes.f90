@@ -44,7 +44,7 @@ character(200) line
 
 call cesr_getarg(1, arg)
 call init_attribute_name_array()
-call indexx(key_name, key_indx)
+call indexer(key_name, key_indx)
 
 ! Element keys
 
@@ -230,7 +230,7 @@ write (1, '(a)') ''
 
 !
 
-call indexx(table%sort_name, key_indx)
+call indexer(table%sort_name, key_indx)
 
 do it = 1, n_key$
   tab => table(key_indx(it))
@@ -247,7 +247,7 @@ do it = 1, n_key$
 
   nl = tab%n_line
   indx = nl+1  ! point to blank attribute name
-  call indexx(tab%entry(1:nl)%name, indx(1:nl))
+  call indexer(tab%entry(1:nl)%name, indx(1:nl))
 
 
   write (1, *) '%---------------------------------'

@@ -412,7 +412,7 @@ enddo
 norm = 2.0 / (Nz_max - Nz_min + 1)
 
 amp = abs(fx)
-call indexx(-amp, indx)
+call indexer(-amp, indx)
 print *, 'B_x FFT (X-family):'
 print *,   '    kz            Amp           Phase'
 do i = 1, min(5, size(indx))
@@ -422,7 +422,7 @@ do i = 1, min(5, size(indx))
 enddo
 
 amp = abs(fy)
-call indexx(-amp, indx)
+call indexer(-amp, indx)
 print *
 print *, 'B_y FFT (Y-family):'
 print *,   '    kz            Amp           Phase'
@@ -433,7 +433,7 @@ do i = 1, min(5, size(indx))
 enddo
 
 amp = abs(fz)
-call indexx(-amp, indx)
+call indexer(-amp, indx)
 print *
 print *, 'B_z FFT (SQ-family):'
 print *,   '    kz            Amp           Phase'
