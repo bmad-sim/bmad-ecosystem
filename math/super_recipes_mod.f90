@@ -3,6 +3,7 @@ module super_recipes_mod
 use precision_def
 use output_mod
 use re_allocate_mod
+use swap_mod
 
 ! super_mrqmin_storage_struct is used to:
 !   1) Make super_mrqmin thread safe.
@@ -42,10 +43,9 @@ contains
 
 subroutine super_sort(arr)
 
-use nrtype; use nrutil, only : swap_i,nrerror
 implicit none
 integer, dimension(:), intent(inout) :: arr
-integer(i4b), parameter :: nn=15, nstack=50
+integer, parameter :: nn=15, nstack=50
 integer :: a
 integer :: n,k,i,j,jstack,l,r
 integer, dimension(nstack) :: istack
@@ -94,7 +94,7 @@ do
     arr(l+1)=arr(j)
     arr(j)=a
     jstack=jstack+2
-    if (jstack > NSTACK) call nrerror('sort: NSTACK too small')
+    if (jstack > NSTACK) call err_exit('sort: NSTACK too small')
     if (r-i+1 >= j-l) then
       istack(jstack)=r
       istack(jstack-1)=i
@@ -140,8 +140,6 @@ end subroutine super_sort
 !-
 
 function super_rtsafe (funcs, x1, x2, tol, status) result (x_zero)
-
-use nrtype
 
 implicit none
 
@@ -252,8 +250,6 @@ end function super_rtsafe
 !-
 
 function super_zbrent (func, x1, x2, rel_tol, abs_tol, status) result (x_zero)
-
-use nrtype
 
 implicit none
 
@@ -412,7 +408,7 @@ end function super_zbrent
 
 recursive subroutine super_mrqmin (y, weight, a, chisq, funcs, storage, alamda, status, maska)
 
-use nrtype; use nrutil, only : assert_eq, diagmult
+use nrutil, only : diagmult
 use nr, only : covsrt
 
 implicit none
@@ -440,12 +436,12 @@ end interface
 
 !
 
-ndata = assert_eq(size(y), size(weight), 'super_mrqmin: ndata')
+ndata = assert_equal([size(y), size(weight)], 'super_mrqmin: ndata')
 ma = size(a)
 
 call re_allocate(storage%mask, size(a))
 if (present(maska)) then
-  ma = assert_eq([ma, size(maska)], 'super_mrqmin: maska')
+  ma = assert_equal([ma, size(maska)], 'super_mrqmin: maska')
   storage%mask = maska
 else
   storage%mask = .true.
@@ -527,8 +523,6 @@ end subroutine super_mrqmin
 
 recursive subroutine super_mrqcof (a, y, co_alpha, da_beta, weight, chisq, funcs, storage, status)
 
-use nrtype 
-
 implicit none
 
 type (super_mrqmin_storage_struct) storage
@@ -605,7 +599,7 @@ end subroutine super_mrqcof
 
 subroutine super_gaussj (a, b, status)
 
-use nrtype; use nrutil, only : assert_eq, outerand, outerprod, swap
+use nrutil, only : outerand, outerprod
 
 implicit none
 
@@ -614,7 +608,7 @@ real(rp) :: pivinv
 
 real(rp), dimension(size(a, 1)) :: dumc
 integer, dimension(size(a, 1)) :: ipiv, indxr, indxc
-logical(lgt), dimension(size(a, 1)) :: lpiv
+logical, dimension(size(a, 1)) :: lpiv
 
 integer status
 integer, target :: irc(2)
@@ -625,7 +619,7 @@ character(*), parameter :: r_name = 'super_gaussj'
 
 !
 
-n = assert_eq(size(a, 1), size(a, 2), size(b, 1), 'gaussj')
+n = assert_equal([size(a, 1), size(a, 2), size(b, 1)], 'gaussj')
 irow => irc(1)
 icol => irc(2)
 ipiv = 0
@@ -694,7 +688,7 @@ end subroutine super_gaussj
 
 subroutine super_ludcmp(a,indx,d, err)
 
-use nrtype; use nrutil, only : assert_eq,imaxloc,outerprod,swap
+use nrutil, only : imaxloc,outerprod
 implicit none
 real(rp), dimension(:,:), intent(inout) :: a
 integer, dimension(:), intent(out) :: indx
@@ -708,7 +702,7 @@ logical err
 !
 
 err = .true.
-n = assert_eq(size(a,1),size(a,2),size(indx),'ludcmp')
+n = assert_equal([size(a,1),size(a,2),size(indx)],'ludcmp')
 d = 1.0
 vv = maxval(abs(a),dim = 2)
 if (any(vv == 0.0)) then
@@ -763,8 +757,6 @@ end subroutine super_ludcmp
 !-
 
 function super_brent(ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_min)
-
-use nrtype
 
 implicit none
 

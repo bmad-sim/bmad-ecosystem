@@ -86,7 +86,6 @@ contains
 
 function opti_de_mpi (v_best, generations, population, merit_func, v_del, status) result (best_merit)
 
-use nr, only: indexx
 use mpi
 
 implicit none
@@ -201,20 +200,20 @@ do ng = 1, generations
     ! i1, ... i5 gives the indexes for constructing the perturbed vector.
 
     call random_number (r_pop)
-    call indexx (r_pop, i1)   ! i1 is a random permutation
+    call indexer (r_pop, i1)   ! i1 is a random permutation
 
     call random_number (r_pop)
-    call indexx (r_pop, i2)   ! i2 is a random permutation
+    call indexer (r_pop, i2)   ! i2 is a random permutation
 
     call random_number (r_pop)
-    call indexx (r_pop, i3)   ! i3 is a random permutation
+    call indexer (r_pop, i3)   ! i3 is a random permutation
 
     if (opti_de_param%use_2nd_diff) then
       call random_number (r_pop)
-      call indexx (r_pop, i4)   ! i4 is a random permutation
+      call indexer (r_pop, i4)   ! i4 is a random permutation
 
       call random_number (r_pop)
-      call indexx (r_pop, i5)   ! i5 is a random permutation
+      call indexer (r_pop, i5)   ! i5 is a random permutation
     endif
 
     ! Loop over the entire n_pop

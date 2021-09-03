@@ -16,7 +16,7 @@
 subroutine mat_inverse (mat, mat_inv, ok, print_err)
 
 use output_mod, except => mat_inverse
-use nr
+use nr, only: ludcmp, lubksb
 
 implicit none
 

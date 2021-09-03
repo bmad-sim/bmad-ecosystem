@@ -20,6 +20,14 @@ elemental function asinc(x, nd) result (y)
   integer, optional, intent(in) :: nd
 end function
 
+function assert_equal (int_arr, err_str) result (ival)
+  import
+  implicit none
+  integer, intent(in) :: int_arr(:)
+  integer ival
+  character(*) err_str
+end function
+
 function bracket_index (s, s_arr, i_min, dr, restrict) result (ix)
   import
   implicit none
@@ -71,19 +79,17 @@ elemental function cos_one(angle) result (cos1)
 end function
 
 subroutine cplx_lubksb(a,indx,b)
-  use nrtype
   import
-  complex(dp), dimension(:,:), intent(in) :: a
-  integer(I4B), dimension(:), intent(in) :: indx
-  complex(dp), dimension(:), intent(inout) :: b
+  complex(rp), dimension(:,:), intent(in) :: a
+  integer, dimension(:), intent(in) :: indx
+  complex(rp), dimension(:), intent(inout) :: b
 end subroutine
 
 subroutine cplx_ludcmp(a,indx,d)
-  use nrtype
   import
-  complex(dp), dimension(:,:), intent(inout) :: a
-  integer(I4B), dimension(:), intent(out) :: indx
-  real(dp), intent(out) :: d
+  complex(rp), dimension(:,:), intent(inout) :: a
+  integer, dimension(:), intent(out) :: indx
+  real(rp), intent(out) :: d
 end subroutine
 
 subroutine cplx_mat_inverse(mat_r, mat_i, inv_r, inv_i, ok, print_err)
@@ -166,6 +172,11 @@ function downcase(str_in) result (str_out)
   character(*) str_in
   character(len(str_in)) str_out
 end function
+
+subroutine err_exit(err_str)
+  implicit none
+  character(*), optional :: err_str
+end subroutine
 
 function factorial(n) result (fact)
   import

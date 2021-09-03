@@ -42,13 +42,13 @@ n_max = n_max - 1
 nametable%name(ix_name:n_max) = [nametable%name(ix_name+1:n_max+1)]
 
 do i0 = ix_id, n_min, -1
-  if (nametable%indexx(i0) == ix_name) exit
+  if (nametable%index(i0) == ix_name) exit
 enddo
 
 do i = n_min, n_max+1
-  if (nametable%indexx(i) >= ix_name) nametable%indexx(i) = nametable%indexx(i) - 1
+  if (nametable%index(i) >= ix_name) nametable%index(i) = nametable%index(i) - 1
 enddo
 
-nametable%indexx(i0:n_max) = nametable%indexx(i0+1:n_max+1)
+nametable%index(i0:n_max) = nametable%index(i0+1:n_max+1)
 
 end subroutine nametable_remove

@@ -15,16 +15,16 @@ type var_length_string_struct
   character(:), allocatable :: str
 end type
 
-type str_indexx_struct
+type str_index_struct
   type (var_length_string_struct), allocatable :: name(:)  !  Array of names.
-  integer, allocatable :: indexx(:)        !  Sorted index for names(:) array.
-                                           !    names(an_indexx(i)) is in alphabetical order.
+  integer, allocatable :: index(:)         !  Sorted index for names(:) array.
+                                           !    names(an_index(i)) is in alphabetical order.
   integer :: n_min = 1                     ! 
   integer :: n_max = 0                     !  Use only names(n_min:n_max) part of array.
 end type
 
 ! Structure for holding a sorted index for all the elements in a lattice.
-! Create using create_lat_ele_nametable. Find element using find_indexx.
+! Create using create_lat_ele_nametable. Find element using find_index.
 ! The mapping of element locations to %name(0:) is:
 !   ix_nametable = ele%ix_ele                             for elements in branch 0
 !   ix_nametable = ele%ix_ele + branch(0)%n_ele_max + 1   for elements in branch 1
@@ -33,8 +33,8 @@ end type
 
 type nametable_struct
   character(40), allocatable :: name(:)    ! Array of names.
-  integer, allocatable :: indexx(:)        ! Sorted index for names(:) array.
-                                           !   names(an_indexx(i)) is in alphabetical order.
+  integer, allocatable :: index(:)         ! Sorted index for names(:) array.
+                                           !   names(an_index(i)) is in alphabetical order.
   integer :: n_min = 1                     ! Set to 0 for use in a lattice.
   integer :: n_max = 0                     ! Use only names(n_min:n_max) part of array.
 end type

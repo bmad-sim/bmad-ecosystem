@@ -41,7 +41,7 @@ ix_id = nametable_bracket_indexx(nametable, name)
 n_max = n_max + 1
 if (n_max > ubound(nametable%name, 1)) then
   n = n_max - n_min + 10
-  call re_allocate2(nametable%indexx, n_min, n_max+n, .false.)
+  call re_allocate2(nametable%index, n_min, n_max+n, .false.)
   call re_allocate2(nametable%name, n_min, n_max+n, .false.)
 endif
 
@@ -52,11 +52,11 @@ nametable%name(ix_name) = name
 
 
 do i = n_min, n_max-1
-  if (nametable%indexx(i) >= ix_name) nametable%indexx(i) = nametable%indexx(i) + 1
+  if (nametable%index(i) >= ix_name) nametable%index(i) = nametable%index(i) + 1
 enddo
 
-if (n_max > ix_id+1) nametable%indexx(ix_id+2:n_max) = nametable%indexx(ix_id+1:n_max-1)
-nametable%indexx(ix_id+1) = ix_name
+if (n_max > ix_id+1) nametable%index(ix_id+2:n_max) = nametable%index(ix_id+1:n_max-1)
+nametable%index(ix_id+1) = ix_name
 
 end subroutine nametable_add
 

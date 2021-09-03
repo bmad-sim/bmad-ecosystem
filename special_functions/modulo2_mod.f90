@@ -14,11 +14,11 @@ use precision_def
 !   sim_utils_interface
 ! 
 ! Input:
-!   x    -- Real(sp), Real(dp), or Integer
-!   amp  -- Real(sp), Real(dp), or Integer: Must be positive.
+!   x    -- Real(sp), Real(rp), or Integer
+!   amp  -- Real(sp), Real(rp), or Integer: Must be positive.
 !
 ! Output:
-!   mod2 -- Real(sp), Real(dp), or Integer: Result
+!   mod2 -- Real(sp), Real(rp), or Integer: Result
 !-
 
 interface modulo2
@@ -83,11 +83,11 @@ end function
 !   sim_utils_interface
 ! 
 ! Input:
-!   x    -- Real(dp): 
-!   amp  -- Real(dp): Must be positive.
+!   x    -- Real(rp): 
+!   amp  -- Real(rp): Must be positive.
 !
 ! Output:
-!   mod2 -- Real(dp): Result
+!   mod2 -- Real(rp): Result
 !-
 
 elemental function modulo2_dp (x, amp) result (mod2)
@@ -97,8 +97,8 @@ elemental function modulo2_dp (x, amp) result (mod2)
 
   implicit none
 
-  real(dp), intent(in) :: x, amp
-  real(dp) mod2
+  real(rp), intent(in) :: x, amp
+  real(rp) mod2
 
 !
 

@@ -30,7 +30,7 @@ nametable%n_min = n0
 nametable%n_max = n1
 
 n1 = max(n1, n0+10)
-call re_allocate2(nametable%indexx, n0, n1, .false.)
+call re_allocate2(nametable%index, n0, n1, .false.)
 call re_allocate2(nametable%name, n0, n1, .false.)
 
 end subroutine nametable_init

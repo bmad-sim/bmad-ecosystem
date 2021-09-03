@@ -1,16 +1,16 @@
 SUBROUTINE cplx_lubksb(a,indx,b)
 
-  USE nrtype; USE nrutil, ONLY : assert_eq
+  USE sim_utils_interface, dummy => cplx_lubksb
 
   IMPLICIT NONE
 
-  COMPLEX(dp), DIMENSION(:,:), INTENT(IN) :: a
-  INTEGER(I4B), DIMENSION(:), INTENT(IN) :: indx
-  COMPLEX(dp), DIMENSION(:), INTENT(INOUT) :: b
-  INTEGER(I4B) :: i,n,ii,ll
-  COMPLEX(dp) :: summ
+  COMPLEX(rp), DIMENSION(:,:), INTENT(IN) :: a
+  INTEGER, DIMENSION(:), INTENT(IN) :: indx
+  COMPLEX(rp), DIMENSION(:), INTENT(INOUT) :: b
+  INTEGER :: i,n,ii,ll
+  COMPLEX(rp) :: summ
 
-  n=assert_eq(size(a,1),size(a,2),size(indx),'cplx_lubksb')
+  n=assert_equal([size(a,1),size(a,2),size(indx)],'cplx_lubksb')
 
   !- indx is ignored because the pivoting approach used in nr does not work
   !- when the columns are complex conjugate pairs

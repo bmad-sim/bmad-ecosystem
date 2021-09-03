@@ -37,7 +37,7 @@ if (ix_name < n_min .or. ix_name > n_max) then
 endif
 
 ix_old = nametable_bracket_indexx(nametable, nametable%name(ix_name))
-do while (nametable%indexx(ix_old) /= ix_name)
+do while (nametable%index(ix_old) /= ix_name)
   ix_old = ix_old - 1
 enddo
 
@@ -49,12 +49,12 @@ nametable%name(ix_name) = name
 
 if (ix_new > ix_old) then
   ix_new = ix_new - 1
-  nametable%indexx(ix_old:ix_new-1) = nametable%indexx(ix_old+1:ix_new)
+  nametable%index(ix_old:ix_new-1) = nametable%index(ix_old+1:ix_new)
 elseif (ix_new < ix_old) then
-  nametable%indexx(ix_new+1:ix_old) = nametable%indexx(ix_new:ix_old-1)
+  nametable%index(ix_new+1:ix_old) = nametable%index(ix_new:ix_old-1)
 endif
 
-nametable%indexx(ix_new) = ix_name
+nametable%index(ix_new) = ix_name
 
 end subroutine nametable_change1
 
