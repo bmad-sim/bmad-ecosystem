@@ -2,7 +2,7 @@
 ! Function nametable_bracket_indexx (nametable, name, n_match) result (ix_max)
 !
 ! Routine to find the index ix_max such that:
-!   nametable%name(nametable%indexx(ix_max)) <= name < nametable%name(nametable%indexx(ix_max+1))
+!   nametable%name(nametable%index(ix_max)) <= name < nametable%name(nametable%index(ix_max+1))
 !
 ! Input:
 !   nametable   -- nametable_struct: Nametable.
@@ -40,9 +40,9 @@ endif
 
 do
   if (ix1 == ix3) then
-    if (nametable%name(nametable%indexx(ix1)) < name) then
+    if (nametable%name(nametable%index(ix1)) < name) then
       ix_max = ix1
-    elseif (nametable%name(nametable%indexx(ix1)) == name) then
+    elseif (nametable%name(nametable%index(ix1)) == name) then
       ix_max = ix1
     else
       ix_max = ix1 - 1
@@ -52,9 +52,9 @@ do
   endif
 
   if (ix1 + 1 == ix3) then
-    if (name < nametable%name(nametable%indexx(ix1))) then
+    if (name < nametable%name(nametable%index(ix1))) then
       ix_max = ix1 - 1
-    elseif (name >= nametable%name(nametable%indexx(ix3))) then
+    elseif (name >= nametable%name(nametable%index(ix3))) then
       ix_max = ix3
     else
       ix_max = ix1
@@ -65,17 +65,17 @@ do
 
   ix_max = (ix1 + ix3) / 2 
 
-  if (nametable%name(nametable%indexx(ix_max)) == name) then
+  if (nametable%name(nametable%index(ix_max)) == name) then
     do ! if there are duplicate nametable%name in the list choose the last one
       if (ix_max == nametable%n_max) exit
-      if (nametable%name(nametable%indexx(ix_max+1)) /= nametable%name(nametable%indexx(ix_max))) exit
+      if (nametable%name(nametable%index(ix_max+1)) /= nametable%name(nametable%index(ix_max))) exit
       ix_max = ix_max + 1
     enddo
 
     if (present(n_match)) n_match = calc_n_match(nametable, name, ix_max)
     return
 
-  elseif (nametable%name(nametable%indexx(ix_max)) < name) then
+  elseif (nametable%name(nametable%index(ix_max)) < name) then
     ix1 = ix_max + 1
 
   else
@@ -96,7 +96,7 @@ integer i, ix_max
 !
 
 do i = ix_max, nametable%n_min, -1
-  if (nametable%name(nametable%indexx(i)) /= name) exit
+  if (nametable%name(nametable%index(i)) /= name) exit
 enddo
 
 n_match = ix_max - i

@@ -161,7 +161,7 @@ end function
 
 function maximize_projection(seed, cdata)
 
-use nr
+use nr, only: mnbrak, brent
 
 implicit none
 
@@ -325,7 +325,7 @@ end function interpolated_fft_gsl
 
 function interpolated_fft (cdata, calc_ok, opt_dump_spectrum, opt_dump_index) result (this_fft)
 
-use nr
+use nr, only: four1
 use sim_utils
 
 complex(rp) cdata(:)

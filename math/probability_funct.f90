@@ -23,7 +23,7 @@
 
 function probability_funct(x) result (p_func)
 
-use nr
+use nr, only: erf
 use precision_def
 
 implicit none

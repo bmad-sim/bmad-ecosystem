@@ -16,7 +16,6 @@
 subroutine cplx_mat_inverse (mat_r, mat_i, inv_r, inv_i, ok, print_err)
 
 use output_mod, except => cplx_mat_inverse
-use nr
 
 implicit none
 
