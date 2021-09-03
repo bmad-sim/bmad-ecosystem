@@ -474,7 +474,7 @@ do i = 1, wall_in%n_place
   endif
   sec => wall_in%section(i)
   write(name, '(2a, i0)') trim(sec%sub_chamber_name), ':', sec%ix_branch
-  call find_indexx(name, sub_name, ix_sort, n_sub, ix, add_to_list = .true.)
+  call find_index(name, sub_name, ix_sort, n_sub, ix, add_to_list = .true.)
 enddo
 
 ! Associate surface
@@ -492,7 +492,7 @@ enddo
 do i = wall_in%n_place, 1, -1
   sec => wall_in%section(i)
   write(name, '(2a, i0)') trim(sec%sub_chamber_name), ':', sec%ix_branch
-  call find_indexx(name, sub_name, ix_sort, n_sub, ix, add_to_list = .false.)
+  call find_index(name, sub_name, ix_sort, n_sub, ix, add_to_list = .false.)
 
   if (associated(sec%section%surface)) then
     if (.not. sec%surface_is_local) surface_ptr(ix)%ptr => sec%section%surface
@@ -524,7 +524,7 @@ do ib = 0, ubound(lat%branch, 1)
     sec => wall_in%section(i)
     if (sec%ix_branch /= ib) cycle
     name = sec%sub_chamber_name
-    call find_indexx(name, sub_name, ix_sort, n_sub, ix, add_to_list = .true.)
+    call find_index(name, sub_name, ix_sort, n_sub, ix, add_to_list = .true.)
     n_sub_sec(ix) = n_sub_sec(ix) + 1
   enddo
 
@@ -551,7 +551,7 @@ do ib = 0, ubound(lat%branch, 1)
   do i = 1, wall_in%n_place
     sec => wall_in%section(i)
     if (sec%ix_branch /= ib) cycle
-    call find_indexx(sec%sub_chamber_name, sub_name, ix_sort, n_sub, iss)
+    call find_index(sec%sub_chamber_name, sub_name, ix_sort, n_sub, iss)
     wall3d => branch%wall3d(iss)
     n_sub_sec(iss) = n_sub_sec(iss) + 1
     ns = n_sub_sec(iss)  

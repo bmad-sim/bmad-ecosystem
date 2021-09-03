@@ -1,7 +1,6 @@
 program spin_stroboscope
 
 use bmad
-use nr, only: indexx
 use lmdif_mod
 use mode3_mod
 
@@ -311,7 +310,7 @@ do ix_z = 1, n_points(3)
       s(:)%ix_nearest(2*k) = -1
       if (.not. mode_is_oscillating(k)) cycle
 
-      call indexx(s(0:i_turn)%orbit_phase(k), indx(0:i_turn))
+      call indexer(s(0:i_turn)%orbit_phase(k), indx(0:i_turn))
       indx = indx - 1  ! Since s(:) is indexed from 0
       s(0:i_turn)%indexx(k) = indx
 

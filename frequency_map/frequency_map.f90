@@ -2,9 +2,8 @@ program frequency_map
 
   use bmad
   use bsim_interface
-  use nr
+  use nr, only: fourrow
   use eigen_mod
-  use nrutil, only: dpc
   use z_tune_mod
   
   implicit none
@@ -38,7 +37,7 @@ real(rp) :: dx=0., dy=0., de=0.
 real(rp) :: rf_frequency
 real(rp), ALLOCATABLE :: fft1(:), fft2(:), fft3(:)
 real(rp), ALLOCATABLE :: fft4(:), fft5(:), fft6(:)
-complex(dpc), ALLOCATABLE ::  n1(:,:), m1(:,:),  n2(:,:), m2(:,:), n3(:,:), m3(:,:), n4(:,:)
+complex(rp), ALLOCATABLE ::  n1(:,:), m1(:,:),  n2(:,:), m2(:,:), n3(:,:), m3(:,:), n4(:,:)
 real(rp), ALLOCATABLE ::  rftxa(:), rftxb(:), rftya(:), rftyb(:), rftea(:), rfteb(:)
 real(rp), allocatable :: grid_pts(:,:)
 real(rp) hanning

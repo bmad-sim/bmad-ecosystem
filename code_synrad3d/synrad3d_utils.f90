@@ -357,7 +357,6 @@ end subroutine sr3d_print_photon_info
 
 function i0_eff_calc(ele, orb0, e_min, e_max, vert_angle_min, vert_angle_max, vert_angle_symmetric) result (i0_eff)
 
-use nrtype
 use nr, only: polint
 
 type (ele_struct) ele
