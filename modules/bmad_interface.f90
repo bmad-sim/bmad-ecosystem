@@ -1,6 +1,5 @@
 module bmad_interface
 
-use nrutil, only: reallocate
 use equal_mod
 use attribute_mod
 use element_at_s_mod
