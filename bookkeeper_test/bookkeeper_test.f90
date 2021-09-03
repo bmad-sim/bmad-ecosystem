@@ -74,7 +74,7 @@ enddo
 call bmad_parser ('bookkeeper_test1.bmad', lat, err_flag = err);  if (err) stop
 
 call create_lat_ele_nametable(lat, ntab)
-write (1, '(a, 100(a, i0))') '"Sort"  STR   "', (';', ntab%indexx(ie), ie = 0, ntab%n_max, 3), '"'
+write (1, '(a, 100(a, i0))') '"Sort"  STR   "', (';', ntab%index(ie), ie = 0, ntab%n_max, 3), '"'
 
 !
 

@@ -8,7 +8,6 @@ program em_field_test
 
 use bmad
 use runge_kutta_mod
-use nr
 
 implicit none
 
