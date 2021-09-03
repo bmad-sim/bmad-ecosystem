@@ -1,6 +1,6 @@
 module opti_de_mod
 
-use output_mod
+use sim_utils
 
 type opti_de_param_struct
   real(rp) :: CR = 0.8                    ! Crossover probability
