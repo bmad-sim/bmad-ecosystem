@@ -30,6 +30,8 @@
   delta_current = 0.40  !step size
   low_current = 0.01  !lowest current
 
+	initial_blow_up = 4, 4, 4
+
   x_view = 479    !vBSM positrons   !element number in lattice where horizontal projection to be taken.
   y_view = 939    !xBSM positrons   !element number in lattice where vertical projection to be taken.
   z_view = 479    !vBSM positrons   !element number in lattice where longitudinal projection to be taken.

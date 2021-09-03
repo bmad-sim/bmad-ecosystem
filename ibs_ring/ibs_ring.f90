@@ -75,40 +75,34 @@ type(ibs_sim_param_struct) ibs_sim_params
 type(coord_struct), target, allocatable :: orb(:)
 type(coord_struct) ptc_co
 
-namelist /parameters/ lat_file, &        ! Lattice file in BMAD format.
-                      granularity, &     ! Step size along lattice in meters.  Set to -1 for element-by-element.
-
-                      ptc_calc, &        ! Use PTC for emittance calculation.
-                      b_emit, &          ! Zero current vertical emittance.  Set to -1 for rad int calc.
-                      a_emit, &          ! Zero current horizontal emittance.  Set to -1 for rad int calc.
-                      energy_spread, &   ! Zero current energy spread.  Set to -1 for rad int calc.
-                      fake_3HC, &        ! If greater than zero, reduce rates by this factor.  IBS rates scale with 1/sigma_z
-
-                      high_current, &    ! Largest current per bunch in mA.
-                      delta_current, &        ! mA step size.
-                      low_current, &         ! Smallest current per bunch in mA.
-
-                      ibs_formula, &     ! 'cimp', 'bjmt', 'bane', 'mpzt', 'mpxx'
-                      clog_to_use, &     ! 1=classic, no tail cut.  2=Raubenheimer.  3=Oide, 4=Bane.  See multi_coulomb_log in ibs_mod.f90
-
-                      eqb_method, &      ! 'der' for derivatives.  'rlx' for relaxation approach.  Use 'der'.
-                      initial_blow_up, & ! initial starting point for 'rlx' method.
-                      ratio, &           ! "Coupling parameter r" hack for including coupling.
-
-                      x_view, &          ! index of element where projection is taken for horizontal beam size calculation.
-                      y_view, &          ! index of element where projection is taken for vertical beam size calculation.
-                      z_view, &          ! index of element where projection is taken for longitudinal beam size calculation.
-
-                      do_pwd, &          ! .true. or .false.: Simulate PWD by inserting element at start of lattice with 
-                                         ! some 
-                      inductance, &      ! Longitudinal inductance for PWD calc.  Effects bunch length vs. current.
-
-                      set_dispersion, &  ! If true, then apply eta_set and etap_set.  If false, then do not.
-                                         ! Note: this adjusts the vertical dispersion that is plugged into the IBS formulas.
-                                         ! This vertical dispersion is included in the sigma_x, sigma_y, sigma_z values that
-                                         ! emittance.dat is populated with.  See set_t6_eta for details.
-                      eta_set, &         ! Sets vertical dispersion at every element to this fixed value.
-                      etap_set           ! Sets vertical dispersion prime at every element to this fixes value.
+namelist /parameters/ 
+  lat_file, &        ! Lattice file in BMAD format.
+  granularity, &     ! Step size along lattice in meters.  Set to -1 for element-by-element.
+  ptc_calc, &        ! Use PTC for emittance calculation.
+  b_emit, &          ! Zero current vertical emittance.  Set to -1 for rad int calc.
+  a_emit, &          ! Zero current horizontal emittance.  Set to -1 for rad int calc.
+  energy_spread, &   ! Zero current energy spread.  Set to -1 for rad int calc.
+  fake_3HC, &        ! If greater than zero, reduce rates by this factor.  IBS rates scale with 1/sigma_z
+  high_current, &    ! Largest current per bunch in mA.
+  delta_current, &   ! mA step size.
+  low_current, &     ! Smallest current per bunch in mA.
+  ibs_formula, &     ! 'cimp', 'bjmt', 'bane', 'mpzt', 'mpxx'
+  clog_to_use, &     ! 1=classic, no tail cut.  2=Raubenheimer.  3=Oide, 4=Bane.  See multi_coulomb_log in ibs_mod.f90
+  eqb_method, &      ! 'der' for derivatives.  'rlx' for relaxation approach.  Use 'der'.
+  initial_blow_up, & ! initial starting point for 'rlx' method.
+  ratio, &           ! "Coupling parameter r" hack for including coupling.
+  x_view, &          ! index of element where projection is taken for horizontal beam size calculation.
+  y_view, &          ! index of element where projection is taken for vertical beam size calculation.
+  z_view, &          ! index of element where projection is taken for longitudinal beam size calculation.
+  do_pwd, &          ! .true. or .false.: Simulate PWD by inserting element at start of lattice with 
+                     ! some 
+  inductance, &      ! Longitudinal inductance for PWD calc.  Effects bunch length vs. current.
+  set_dispersion, &  ! If true, then apply eta_set and etap_set.  If false, then do not.
+                     ! Note: this adjusts the vertical dispersion that is plugged into the IBS formulas.
+                     ! This vertical dispersion is included in the sigma_x, sigma_y, sigma_z values that
+                     ! emittance.dat is populated with.  See set_t6_eta for details.
+  eta_set, &         ! Sets vertical dispersion at every element to this fixed value.
+  etap_set           ! Sets vertical dispersion prime at every element to this fixes value.
 
 call load_parameters_file()
 if(do_pwd) then
