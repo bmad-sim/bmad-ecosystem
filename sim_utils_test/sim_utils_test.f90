@@ -6,7 +6,6 @@ program math_test
 
 use bmad
 use random_mod
-use nr
 use naff_mod
 use cubic_interpolation_mod
 use eigen_mod
