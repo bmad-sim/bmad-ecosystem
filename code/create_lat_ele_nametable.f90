@@ -32,7 +32,7 @@ do ib = 0, ubound(lat%branch, 1)
 enddo
 
 call re_allocate2 (nt%name, 0, n_tot-1, .false.)
-call re_allocate2 (nt%indexx, 0, n_tot-1, .false.)
+call re_allocate2 (nt%index, 0, n_tot-1, .false.)
 nt%n_min = 0
 nt%n_max = n_tot - 1
 
@@ -47,7 +47,7 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 enddo
 
-call indexx (nt%name(0:nt%n_max), nt%indexx(0:nt%n_max))
-nt%indexx(0:nt%n_max) = nt%indexx(0:nt%n_max) - 1
+call indexer (nt%name(0:nt%n_max), nt%index(0:nt%n_max))
+nt%index(0:nt%n_max) = nt%index(0:nt%n_max) - 1
 
 end subroutine

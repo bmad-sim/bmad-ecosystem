@@ -580,7 +580,6 @@ end subroutine kill_complex_taylor
 
 subroutine sort_complex_taylor_terms (complex_taylor_in, complex_taylor_sorted)
 
-use nr
 
 implicit none
 
@@ -607,7 +606,7 @@ do i = 1, n
   ord(i) = complex_taylor_exponent_index(expn)
 enddo
 
-call indexx (ord, ix)
+call indexer (ord, ix)
 
 do i = 1, n
   complex_taylor_sorted%term(i)= tt(ix(i))

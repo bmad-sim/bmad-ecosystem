@@ -27,7 +27,6 @@
 
 subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
 
-use nr, only: indexx
 use pointer_to_ele_mod, except_dummy => find_element_ends
 
 implicit none

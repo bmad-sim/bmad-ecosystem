@@ -896,9 +896,9 @@ end subroutine bl_via_vlassov
 
 subroutine bl_via_mat(lat, ibs_sim_params, mode, sig_z)
 
-  use nr
   use mode3_mod
   use longitudinal_profile_mod
+  use nr, only: brent
 
   implicit none
 

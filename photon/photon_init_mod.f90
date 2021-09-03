@@ -231,7 +231,7 @@ end subroutine bend_photon_init
 
 function bend_photon_energy_integ_prob (E_photon, g_bend, gamma) result (integ_prob)
 
-use nr
+use nr, only: zbrent
 
 implicit none
 

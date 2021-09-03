@@ -506,7 +506,7 @@ Nth_instance_found = .false.
 
 if (.not. do_match_wild .and. match_name_to == ele_name$) then
   nt => lat%nametable
-  call find_indexx(name, nt, ix, ix2_match = ix1)
+  call find_index(name, nt, ix, ix2_match = ix1)
   if (ix < 0) then
     err = .false.
     return
@@ -515,13 +515,13 @@ if (.not. do_match_wild .and. match_name_to == ele_name$) then
 
   do
     if (ix2 == nt%n_max) exit
-    if (nt%name(nt%indexx(ix2+1)) /= name) exit
+    if (nt%name(nt%index(ix2+1)) /= name) exit
     ix2 = ix2 + 1
   enddo
 
   allocate (ix_nt(ix1:ix2))
   do i = ix1, ix2
-    ix_nt(i) = nt%indexx(i)
+    ix_nt(i) = nt%index(i)
   enddo
 
   ! Due to the way check_this_match works, put first slaves in the list
@@ -839,8 +839,6 @@ end function extended_key_name_to_key_index
 
 subroutine negate_eles(eles, n_ele, eles2)
 
-use nr
-
 type (ele_pointer_struct) eles(:), eles2(:)
 integer n_ele
 integer i, n
@@ -870,8 +868,6 @@ end subroutine negate_eles
 ! contains
 
 subroutine intersection_eles(eles, n_ele, eles2)
-
-use nr
 
 type (ele_pointer_struct) eles(:), eles2(:)
 integer n_ele

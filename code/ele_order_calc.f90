@@ -15,7 +15,6 @@
 subroutine ele_order_calc (lat, order)
 
 use pointer_to_ele_mod, dummy => ele_order_calc
-use nr, only: indexx
 
 implicit none
 
@@ -71,13 +70,13 @@ i0 = 0
 do
 
   n_count = 0
-  name0 = nt%name(nt%indexx(i0))
+  name0 = nt%name(nt%index(i0))
   i1 = i0 - 1
 
   do
     i1 = i1 + 1
     if (i1 > nt%n_max) exit
-    it1 = nt%indexx(i1)
+    it1 = nt%index(i1)
     if (nt%name(it1) /= name0) exit
     ele => pointer_to_ele(lat, it1)
     ele2 => ele
@@ -112,7 +111,7 @@ do
     endif
 
     call re_allocate(indx, nn, .false.)
-    call indexx(ord_br(ib)%ele(1:nn)%ix_ele, indx(1:nn))
+    call indexer(ord_br(ib)%ele(1:nn)%ix_ele, indx(1:nn))
     do ix = 1, nn
       in = ord_br(ib)%ele(indx(ix))%ix_nt
       ele => pointer_to_ele(lat, in)

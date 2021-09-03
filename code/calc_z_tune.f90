@@ -20,8 +20,7 @@
 subroutine calc_z_tune (lat, ix_branch)
 
 use bmad_interface, except_dummy => calc_z_tune
-use nrtype
-use nr
+use nr, only: balanc, elmhes, hqr
 
 implicit none
 

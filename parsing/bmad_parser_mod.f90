@@ -3027,7 +3027,7 @@ var_name = upcase(word)
 
 ix1 = index(var_name, '[')
 if (ix1 == 0) then
-  call find_indexx (var_name, bp_com2%const%name, bp_com2%const%indexx, bp_com%i_const_tot, i)
+  call find_index (var_name, bp_com2%const%name, bp_com2%const%index, bp_com%i_const_tot, i)
   if (i == 0) then
     do i = 1, size(old_style_physical_const_list)
       if (var_name == upcase(old_style_physical_const_list(i)%name)) then
@@ -3048,9 +3048,9 @@ if (ix1 == 0) then
     i_const = bp_com%i_const_tot
     bp_com2%const(i_const)%name = var_name
     bp_com2%const(i_const)%value = 0
-    call find_indexx (var_name, bp_com2%const%name, bp_com2%const%indexx, i_const-1, ixm, ixm2)
-    bp_com2%const(ixm2+1:i_const)%indexx = bp_com2%const(ixm2:i_const-1)%indexx
-    bp_com2%const(ixm2)%indexx = i_const
+    call find_index (var_name, bp_com2%const%name, bp_com2%const%index, i_const-1, ixm, ixm2)
+    bp_com2%const(ixm2+1:i_const)%index = bp_com2%const(ixm2:i_const-1)%index
+    bp_com2%const(ixm2)%index = i_const
 
   else
     value = bp_com2%const(i)%value
@@ -3203,7 +3203,7 @@ logical delim_found, err_flag, redef_is_error
 
 !
 
-call find_indexx (word, bp_com2%const%name, bp_com2%const%indexx, bp_com%i_const_tot, i)
+call find_index (word, bp_com2%const%name, bp_com2%const%index, bp_com%i_const_tot, i)
 if (i /= 0) then
   old_val = bp_com2%const(i)%value
   call parse_evaluate_value (word, bp_com2%const(i)%value, lat, delim, delim_found, err_flag)
@@ -3225,9 +3225,9 @@ else
   i_const = bp_com%i_const_tot
   bp_com2%const(i_const)%name = word
   ! Reindex.
-  call find_indexx (word, bp_com2%const%name, bp_com2%const%indexx, i_const-1, ixm, ixm2)
-  bp_com2%const(ixm2+1:i_const)%indexx = bp_com2%const(ixm2:i_const-1)%indexx
-  bp_com2%const(ixm2)%indexx = i_const
+  call find_index (word, bp_com2%const%name, bp_com2%const%index, i_const-1, ixm, ixm2)
+  bp_com2%const(ixm2+1:i_const)%index = bp_com2%const(ixm2:i_const-1)%index
+  bp_com2%const(ixm2)%index = i_const
   ! Evaluate
   call parse_evaluate_value (bp_com2%const(i_const)%name, bp_com2%const(i_const)%value, lat, delim, delim_found, err_flag)
   ! Put in lat%constant(:) array
@@ -4704,7 +4704,7 @@ do i = 1, n_multipass
   enddo
 
   ! If a name is not unique then add "#NNN" suffix
-  call indexx(names, indx)
+  call indexer(names, indx)
   j = 0
   outer_loop: do 
     j = j + 1
@@ -7095,7 +7095,7 @@ err_line2 = ''
 if (bp_com%detected_expand_lattice_cmd) err_line2 = &
                       'NOTE: ERROR HAPPENS AFTER AN EXPAND_LATTICE COMMAND. THIS MAY BE OF SIGNIFICANCE.'
 
-call find_indexx (line_name, seq_name, seq_indexx, iseq_tot, ix_seq)
+call find_index (line_name, seq_name, seq_indexx, iseq_tot, ix_seq)
 if (ix_seq == 0) then
   if (i_lev == 1) then
     call parser_error ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // line_name, err_line2, stop_here = .true.)
@@ -7155,12 +7155,12 @@ line_expansion: do
     s_ele%name = name
     s_ele%ele_orientation = seq%ele(ix_ele)%ele_orientation
 
-    call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
+    call find_index (name, seq_name, seq_indexx, iseq_tot, j)
     if (j > 0) then  ! if a sequence
       s_ele%ix_ele = j
       s_ele%type = sequence(j)%type
     else  ! Must be an element
-      call find_indexx (name, in_lat%nametable, j)
+      call find_index (name, in_lat%nametable, j)
       if (j == 0) then  ! if not an element then I don't know what it is
         call parser_error ('CANNOT FIND DEFINITION FOR: ' // name, &
                           'IN LINE: ' // seq%name, err_line2, seq = seq)
@@ -7271,7 +7271,7 @@ line_expansion: do
       b_ele%orientation = b_ele%orientation * s_ele%ele_orientation
       b_ele%ele_order_reflect = (b_ele%ele_order_reflect .neqv. s_ele%ele_order_reflect)
 
-      if (seq2%multipass .and. b_ele%ix_multi == 0) b_ele%ix_multi = i + 1000000 * seq2%indexx
+      if (seq2%multipass .and. b_ele%ix_multi == 0) b_ele%ix_multi = i + 1000000 * seq2%index
 
       if (b_ele%tag /= '' .and. s_ele%tag /= '') then
         b_ele%tag =  trim(s_ele%tag) // '.' // trim(b_ele%tag)

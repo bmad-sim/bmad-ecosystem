@@ -15,7 +15,6 @@
 subroutine track1_bunch_e_gun_space_charge (bunch, ele, err)
 
 use bmad, dummy => track1_bunch_e_gun_space_charge
-use nr, only: indexx
 
 implicit none
 
@@ -68,7 +67,7 @@ do i = 1, size(bunch%particle)
   t_now = min(p%t, t_now)
 enddo
 
-call indexx(t_emit, ix_t_emit)
+call indexer(t_emit, ix_t_emit)
 
 dt_max = ele%value(dt_max$)
 if (dt_max == 0) then

@@ -2877,7 +2877,7 @@ do i = 1, n
   enddo
 enddo
 
-call indexx (ord, ix)
+call indexer (ord, ix)
 
 do i = 1, n
   ut_sorted%c(i)= ut_in%c(ix(i))
