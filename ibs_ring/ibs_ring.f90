@@ -75,7 +75,7 @@ type(ibs_sim_param_struct) ibs_sim_params
 type(coord_struct), target, allocatable :: orb(:)
 type(coord_struct) ptc_co
 
-namelist /parameters/ 
+namelist /parameters/ &
   lat_file, &        ! Lattice file in BMAD format.
   granularity, &     ! Step size along lattice in meters.  Set to -1 for element-by-element.
   ptc_calc, &        ! Use PTC for emittance calculation.
