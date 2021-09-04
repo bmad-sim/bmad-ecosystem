@@ -5,13 +5,27 @@ use photon_init_spline_mod
 
 implicit none
 
-type (coord_struct) orbit
+type (lat_struct) lat
+type (coord_struct) orbit, orb_start, orb_end
 real(rp) E_rel, prob
 integer i
 
 !
 
 open (1, file = 'output.now', recl = 200)
+
+!
+
+call bmad_parser ('grid.bmad', lat)
+
+call init_coord (orb_start, vec0$, lat%ele(0), downstream_end$)
+orb_start%vec(1) = 1d-4
+orb_start%vec(3) = 2d-4
+call track1 (orb_start, lat%ele(1), lat%param, orb_end)
+
+write (1, '(a, 6f12.8)') '"Grid-orb" ABS 1e-12', orb_end%vec
+
+!
 
 do i = 0, 5
   E_rel = bend_photon_e_rel_init(i / 5.0_rp)
