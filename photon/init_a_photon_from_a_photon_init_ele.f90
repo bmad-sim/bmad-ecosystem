@@ -41,9 +41,7 @@ else
   return
 endif
 
-orbit%vec(1:5:2) = [ele%value(x_offset_tot$) + ele%value(sig_x$) * r(1), &
-                    ele%value(y_offset_tot$) + ele%value(sig_y$) * r(2), &
-                    ele%value(z_offset_tot$) + ele%value(sig_z$) * r(3)]
+orbit%vec(1:5:2) = [ele%value(sig_x$) * r(1), ele%value(sig_y$) * r(2), ele%value(sig_z$) * r(3)]
 
 ! Direction of photon
 
