@@ -534,7 +534,7 @@ if (associated (ele%photon)) then
   surf => ele%photon%surface
   write (d_unit) ele%photon%target, ele%photon%material, &
           surf%curvature_xy, surf%has_curvature, surf%spherical_curvature, surf%elliptical_curvature, &
-          surf%grid%type, surf%grid%dr, surf%grid%r0, surf%segment, allocated(surf%grid%pt)
+          surf%grid%active, surf%grid%type, surf%grid%dr, surf%grid%r0, allocated(surf%grid%pt)
 
   if (allocated(surf%grid%pt)) then
     write (d_unit) lbound(surf%grid%pt), ubound(surf%grid%pt)

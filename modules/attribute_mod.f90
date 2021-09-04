@@ -566,7 +566,7 @@ do i = 1, n_key$
   if (i == ramper$)   cycle
 
   call init_attribute_name1 (i, superimpose$,        'SUPERIMPOSE')
-  call init_attribute_name1 (i, offset$,             'OFFSET')
+  call init_attribute_name1 (i, super_offset$,       'OFFSET')
   call init_attribute_name1 (i, reference$,          'REFERENCE')
   call init_attribute_name1 (i, ref_origin$,         'REF_ORIGIN')
   call init_attribute_name1 (i, ele_origin$,         'ELE_ORIGIN')
@@ -906,7 +906,7 @@ call init_attribute_name1 (crystal$, alpha_angle$,                  'ALPHA_ANGLE
 call init_attribute_name1 (crystal$, ref_tilt$,                     'REF_TILT')
 call init_attribute_name1 (crystal$, ref_tilt_tot$,                 'REF_TILT_TOT', dependent$)
 call init_attribute_name1 (crystal$, tilt_corr$,                    'TILT_CORR', dependent$)
-call init_attribute_name1 (crystal$, d_spacing$,                    'D_SPACING')
+call init_attribute_name1 (crystal$, d_spacing$,                    'D_SPACING', dependent$)
 call init_attribute_name1 (crystal$, v_unitcell$,                   'V_UNITCELL', dependent$)
 call init_attribute_name1 (crystal$, b_param$,                      'B_PARAM')
 call init_attribute_name1 (crystal$, bragg_angle$,                  'BRAGG_ANGLE' , dependent$)

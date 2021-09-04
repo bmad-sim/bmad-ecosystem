@@ -996,6 +996,9 @@ if (attrib_word == 'SURFACE') then
         endif
 
         select case (word)
+        case ('ACTIVE')
+          call parser_get_logical (word, surf%grid%active, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
+
         case ('DR')
           if (.not. parse_real_list (lat, trim(ele%name) // ' GRID DR', surf%grid%dr, .true., delim, delim_found)) return
 
@@ -1029,11 +1032,33 @@ if (attrib_word == 'SURFACE') then
             return
           endif
           if (.not. expect_this ('=', .false., .false., 'IN GRID PT', ele, delim, delim_found)) return
-          if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .true., delim, delim_found)) return
-          surf%grid%pt(i_vec(1), i_vec(2))%orientation = surface_orientation_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
+
+          if (surf%grid%type == h_misalign$) then
+            if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .true., delim, delim_found)) return
+            surf%grid%pt(i_vec(1), i_vec(2))%orientation = surface_orientation_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
+          elseif (surf%grid%type == displacement$) then
+            r_vec(1:4) = real_garbage$
+            if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .false., delim, delim_found, num_found = n)) return
+            if (n /= 1 .and. n /= 3 .and. n /= 4) then
+              call parser_error ('NUMBER OF PT(I,J) VALUES NOT 1, 3, NOR 4 FOR SURFACE GRID OF: ' // ele%name)
+              return
+            endif
+            surf%grid%pt(i_vec(1), i_vec(2))%z0 = r_vec(1)
+            surf%grid%pt(i_vec(1), i_vec(2))%dz_dx = r_vec(2)
+            surf%grid%pt(i_vec(1), i_vec(2))%dz_dy = r_vec(3)
+            surf%grid%pt(i_vec(1), i_vec(2))%d2z_dxdy = r_vec(4)
+          elseif (surf%grid%type == not_set$) then
+            call parser_error ('THE SURFACE GRID TYPE MUST BE SET BEFORE SETTING A TABLE OF SURFACE GRID "PT" POINTS.', &
+                               'FOR: ' // ele%name)
+            return
+          else
+            call parser_error ('A TABLE OF SURFACE GRID "PT" POINTS IS NOT ALLOWED IF THE GRID TYPE IS', &
+                               'SOMETHING OTHER THAN "OFFSET" OR "H_MISALIGN" FOR: ' // ele%name)
+            return
+          endif
 
         case ('TYPE')
-          call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), surf%grid%type, err_flag2, ele, delim, delim_found)
+          call get_switch ('SURFACE GRID TYPE', input_surface_grid_type_name(1:), surf%grid%type, err_flag2, ele, delim, delim_found)
           if (err_flag2) return
           bp_com%parse_line = delim // bp_com%parse_line
 
@@ -1043,11 +1068,17 @@ if (attrib_word == 'SURFACE') then
         end select
 
         if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
+
+        call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+        if (word == 'PT' .and. delim == ',' .and. bp_com%parse_line(1:1) == '}') then
+          delim = '}'
+          bp_com%parse_line = bp_com%parse_line(2:)
+        endif
+
         if (delim == '}') then
           if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
           exit
         endif
-
       enddo
 
     case default
@@ -6511,10 +6542,12 @@ implicit none
 
 type (ele_struct),  target :: ele
 type (branch_struct), pointer :: branch
+type (surface_grid_struct), pointer :: grid
+type (surface_grid_pt_struct), pointer :: pt
 
 real(rp) a, rr, v_inv_mat(4,4), eta_vec(4)
 
-integer n
+integer n, i, j, i0, i1, j0, j1
 logical kick_set, length_set, set_done, err_flag
 logical b_field_set, g_set
 
@@ -6528,6 +6561,48 @@ if (associated(ele%wall3d)) then
       return
     endif
   enddo
+endif
+
+! Surface init
+
+if (associated(ele%photon)) then
+  grid => ele%photon%surface%grid
+  select case (grid%type)
+  case (segmented$)
+    do i = lbound(grid%pt, 1), ubound(grid%pt, 1)
+    do j = lbound(grid%pt, 2), ubound(grid%pt, 2)
+      call init_surface_segment (ele%photon%surface, i, j)
+    enddo
+    enddo
+
+  case (displacement$)
+    do i = lbound(grid%pt, 1), ubound(grid%pt, 1)
+    do j = lbound(grid%pt, 2), ubound(grid%pt, 2)
+      pt => grid%pt(i,j)
+
+      pt%x0 = i * grid%dr(1) + grid%r0(1)
+      pt%y0 = j * grid%dr(2) + grid%r0(2)
+
+      i0 = i - 1; i1 = i + 1
+      j0 = j - 1; j1 = j + 1
+      if (i == lbound(grid%pt, 1)) i0 = i
+      if (i == ubound(grid%pt, 1)) i1 = i
+      if (j == lbound(grid%pt, 2)) j0 = j
+      if (j == ubound(grid%pt, 2)) j1 = j
+      
+      if (pt%dz_dx == real_garbage$) then
+        pt%dz_dx = (grid%pt(i1,j)%z0 - grid%pt(i0,j)%z0) / ((i1-i0)*grid%dr(1))
+        pt%dz_dy = (grid%pt(i,j1)%z0 - grid%pt(i,j0)%z0) / ((j1-j0)*grid%dr(2))
+      endif
+
+      if (pt%d2z_dxdy == real_garbage$) then
+        pt%d2z_dxdy = (grid%pt(i1,j1)%z0 - grid%pt(i1,j0)%z0 - grid%pt(i0,j1)%z0 + grid%pt(i0,j0)%z0) / &
+                                                            ((i1-i0)*grid%dr(1)*(j1-j0)*grid%dr(2))
+      endif
+    enddo
+    enddo
+
+  end select
 endif
 
 ! Aperture init
@@ -8786,7 +8861,7 @@ end function parse_integer_list2
 !-------------------------------------------------------------------------
 !+
 ! Function parse_real_list (lat, err_str, real_array, exact_size, delim, delim_found, open_delim, 
-!                                separator, close_delim, default_value) result (is_ok)
+!                                separator, close_delim, default_value, num_found) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
 !    open_delim real_1 separator real_2 . . . close_delim
@@ -8797,7 +8872,7 @@ end function parse_integer_list2
 !-
 
 function parse_real_list (lat, err_str, real_array, exact_size, delim, delim_found, open_delim, &
-                               separator, close_delim, default_value) result (is_ok)
+                               separator, close_delim, default_value, num_found) result (is_ok)
 
 implicit none
 
@@ -8807,7 +8882,8 @@ real(rp) real_array(:)
 real(rp), optional :: default_value
 real(rp), allocatable :: vec(:)
 
-integer num_found
+integer, optional :: num_found
+integer num_here
 
 character(*) err_str, delim
 character(*), optional :: open_delim, separator, close_delim
@@ -8817,15 +8893,16 @@ logical is_ok, exact_size, delim_found
 !
 
 is_ok = .false.
-if (.not. parse_real_list2 (lat, err_str, vec, num_found, delim, delim_found, size(real_array), &
+if (.not. parse_real_list2 (lat, err_str, vec, num_here, delim, delim_found, size(real_array), &
                           open_delim, separator, close_delim, default_value)) return
 
-if (num_found > size(real_array) .or. (exact_size .and. num_found < size(real_array))) then
+if (num_here > size(real_array) .or. (exact_size .and. num_here < size(real_array))) then
   call parser_error (err_str)
   return
 endif
 
-real_array(1:num_found) = vec(1:num_found)
+real_array(1:num_here) = vec(1:num_here)
+if (present(num_found)) num_found = num_here
 
 is_ok = .true.
 
@@ -9470,5 +9547,95 @@ do
 enddo
 
 end subroutine parse_superimpose_command
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine init_surface_segment (surf, ix, iy)
+!
+! Routine to init the componentes in ele%photon%surface%grid%pt(ix,iy) for use with segmented surface calculations.
+!
+! Input:
+!   surf    -- surface_grid_struct: Surface structure.
+!   ix, iy  -- integer: index of grid point to init.
+!-
+
+subroutine init_surface_segment (surf, ix, iy)
+
+type (photon_surface_struct), target :: surf
+type (surface_grid_pt_struct), pointer :: pt
+
+real(rp) zt, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag, g(3), gs
+integer ix, iy
+
+!
+
+pt => surf%grid%pt(ix, iy)
+
+x0 = ix * surf%grid%dr(1) + surf%grid%r0(1)
+y0 = iy * surf%grid%dr(2) + surf%grid%r0(2)
+
+pt%x0 = x0
+pt%y0 = y0
+pt%z0 = 0
+
+pt%dz_dx = 0
+pt%dz_dy = 0
+coef_xx = 0; coef_xy = 0; coef_yy = 0
+
+do ix = 0, ubound(surf%curvature_xy, 1)
+do iy = 0, ubound(surf%curvature_xy, 2) - ix
+  if (surf%curvature_xy(ix, iy) == 0) cycle
+  pt%z0 = pt%z0 - surf%curvature_xy(ix, iy) * x0**ix * y0**iy
+  if (ix > 0) pt%dz_dx = pt%dz_dx - ix * surf%curvature_xy(ix, iy) * x0**(ix-1) * y0**iy
+  if (iy > 0) pt%dz_dy = pt%dz_dy - iy * surf%curvature_xy(ix, iy) * x0**ix * y0**(iy-1)
+  if (ix > 1) coef_xx = coef_xx - ix * (ix-1) * surf%curvature_xy(ix, iy) * x0**(ix-2) * y0**iy / 2
+  if (iy > 1) coef_yy = coef_yy - iy * (iy-1) * surf%curvature_xy(ix, iy) * x0**ix * y0**(iy-2) / 2
+  if (ix > 0 .and. iy > 0) coef_xy = coef_xy - ix * iy * surf%curvature_xy(ix, iy) * x0**(ix-1) * y0**(iy-1)
+enddo
+enddo
+
+g = surf%elliptical_curvature
+if (g(3) /= 0) then
+  zt = sqrt(1 - (x0 * g(1))**2 - (y0 * g(2))**2)
+  pt%z0 = pt%z0 + sqrt_one(-(g(1) * x0)**2 - (g(2) * y0)**2) / g(3)
+  pt%dz_dx = pt%dz_dx - x0 * g(1)**2 / (g(3) * zt)
+  pt%dz_dy = pt%dz_dy - y0 * g(2)**2 / (g(3) * zt)
+  coef_xx = coef_xx - (g(1)**2 / zt - (x0 * g(1)**2)**2 / zt**3) / (2 * g(3))
+  coef_yy = coef_yy - (g(2)**2 / zt - (y0 * g(2)**2)**2 / zt**3) / (2 * g(3))
+  coef_xy = coef_xy - (x0 * y0 * (g(1) * g(2))**2 / zt**3) / (g(3))
+endif
+
+gs = surf%spherical_curvature
+if (gs /= 0) then
+  zt = sqrt(1 - (x0 * gs)**2 - (y0 * gs)**2)
+  pt%z0 = pt%z0 + sqrt_one(-(gs * x0)**2 - (gs * y0)**2) / gs
+  pt%dz_dx = pt%dz_dx - x0 * gs**2 / (gs * zt)
+  pt%dz_dy = pt%dz_dy - y0 * gs**2 / (gs * zt)
+  coef_xx = coef_xx - (gs**2 / zt - (x0 * gs**2)**2 / zt**3) / (2 * gs)
+  coef_yy = coef_yy - (gs**2 / zt - (y0 * gs**2)**2 / zt**3) / (2 * gs)
+  coef_xy = coef_xy - (x0 * y0 * (gs * gs)**2 / zt**3) / (gs)
+endif
+
+! Correct for fact that segment is supported at the corners of the segment and the segment is flat.
+! This correction only affects z0 and not the slopes
+
+dx = surf%grid%dr(1) / 2
+dy = surf%grid%dr(2) / 2
+coef_xx = coef_xx * dx**2
+coef_xy = coef_xy * dx * dy
+coef_yy = coef_yy * dy**2
+coef_diag = coef_xx + coef_yy - abs(coef_xy)
+
+if (abs(coef_diag) > abs(coef_xx) .and. abs(coef_diag) > abs(coef_yy)) then
+  pt%z0 = pt%z0 + coef_diag
+else if (abs(coef_xx) > abs(coef_yy)) then
+  pt%z0 = pt%z0 + coef_xx
+else
+  pt%z0 = pt%z0 + coef_yy
+endif
+
+end subroutine init_surface_segment 
 
 end module
