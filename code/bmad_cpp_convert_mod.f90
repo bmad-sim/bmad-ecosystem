@@ -413,15 +413,6 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine segmented_surface_to_f (C, Fp) bind(c)
-    import c_ptr
-    type(c_ptr), value :: C, Fp
-  end subroutine
-end interface
-
-!--------------------------------------------------------------------------
-
-interface 
   subroutine target_point_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -5161,15 +5152,17 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine surface_grid_pt_to_c2 (C, z_orientation, z_n_photon, z_e_x, z_e_y, z_intensity_x, &
-      z_intensity_y, z_intensity, z_orbit, z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
+  subroutine surface_grid_pt_to_c2 (C, z_orientation, z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, &
+      z_d2z_dxdy, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, z_intensity, z_orbit, &
+      z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_orientation
+    real(c_double) :: z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, z_d2z_dxdy, z_intensity_x
+    real(c_double) :: z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
     integer(c_int) :: z_n_photon
     complex(c_double_complex) :: z_e_x, z_e_y
-    real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
   end subroutine
 end interface
 
@@ -5185,9 +5178,10 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call surface_grid_pt_to_c2 (C, c_loc(F%orientation), F%n_photon, F%e_x, F%e_y, F%intensity_x, &
-    F%intensity_y, F%intensity, fvec2vec(F%orbit, 6), fvec2vec(F%orbit_rms, 6), &
-    fvec2vec(F%init_orbit, 6), fvec2vec(F%init_orbit_rms, 6))
+call surface_grid_pt_to_c2 (C, c_loc(F%orientation), F%z0, F%x0, F%y0, F%dz_dx, F%dz_dy, &
+    F%d2z_dxdy, F%n_photon, F%e_x, F%e_y, F%intensity_x, F%intensity_y, F%intensity, &
+    fvec2vec(F%orbit, 6), fvec2vec(F%orbit_rms, 6), fvec2vec(F%init_orbit, 6), &
+    fvec2vec(F%init_orbit_rms, 6))
 
 end subroutine surface_grid_pt_to_c
 
@@ -5207,8 +5201,9 @@ end subroutine surface_grid_pt_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine surface_grid_pt_to_f2 (Fp, z_orientation, z_n_photon, z_e_x, z_e_y, z_intensity_x, &
-    z_intensity_y, z_intensity, z_orbit, z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
+subroutine surface_grid_pt_to_f2 (Fp, z_orientation, z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, &
+    z_d2z_dxdy, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, z_intensity, z_orbit, &
+    z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
 
 
 implicit none
@@ -5218,14 +5213,27 @@ type(surface_grid_pt_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(c_ptr), value :: z_orientation
+real(c_double) :: z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, z_d2z_dxdy, z_intensity_x
+real(c_double) :: z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
 integer(c_int) :: z_n_photon
 complex(c_double_complex) :: z_e_x, z_e_y
-real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[type, 0, NOT]
 call surface_orientation_to_f(z_orientation, c_loc(F%orientation))
+!! f_side.to_f2_trans[real, 0, NOT]
+F%z0 = z_z0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x0 = z_x0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y0 = z_y0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%dz_dx = z_dz_dx
+!! f_side.to_f2_trans[real, 0, NOT]
+F%dz_dy = z_dz_dy
+!! f_side.to_f2_trans[real, 0, NOT]
+F%d2z_dxdy = z_d2z_dxdy
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_photon = z_n_photon
 !! f_side.to_f2_trans[complex, 0, NOT]
@@ -5270,11 +5278,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine surface_grid_to_c2 (C, z_file, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
+  subroutine surface_grid_to_c2 (C, z_file, z_active, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
+    logical(c_bool) :: z_active
     integer(c_int) :: z_type
     real(c_double) :: z_dr(*), z_r0(*)
     type(c_ptr) :: z_pt(*)
@@ -5308,8 +5318,8 @@ else
 endif
 
 !! f_side.to_c2_call
-call surface_grid_to_c2 (C, trim(F%file) // c_null_char, F%type, fvec2vec(F%dr, 2), &
-    fvec2vec(F%r0, 2), z_pt, n1_pt, n2_pt)
+call surface_grid_to_c2 (C, trim(F%file) // c_null_char, c_logic(F%active), F%type, &
+    fvec2vec(F%dr, 2), fvec2vec(F%r0, 2), z_pt, n1_pt, n2_pt)
 
 end subroutine surface_grid_to_c
 
@@ -5329,7 +5339,8 @@ end subroutine surface_grid_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine surface_grid_to_f2 (Fp, z_file, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
+subroutine surface_grid_to_f2 (Fp, z_file, z_active, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) &
+    bind(c)
 
 
 implicit none
@@ -5339,6 +5350,7 @@ type(surface_grid_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 character(c_char) :: z_file(*)
+logical(c_bool) :: z_active
 integer(c_int) :: z_type
 real(c_double) :: z_dr(*), z_r0(*)
 type(c_ptr) :: z_pt(*)
@@ -5348,6 +5360,8 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_file, F%file)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%active = f_logic(z_active)
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%type = z_type
 !! f_side.to_f2_trans[real, 1, NOT]
@@ -5372,101 +5386,6 @@ endif
 
 
 end subroutine surface_grid_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine segmented_surface_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad segmented_surface_struct to a C++ CPP_segmented_surface structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad segmented_surface_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_segmented_surface struct.
-!-
-
-subroutine segmented_surface_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine segmented_surface_to_c2 (C, z_ix, z_iy, z_x0, z_y0, z_z0, z_slope_x, z_slope_y) &
-      bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    integer(c_int) :: z_ix, z_iy
-    real(c_double) :: z_x0, z_y0, z_z0, z_slope_x, z_slope_y
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(segmented_surface_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-
-!
-
-call c_f_pointer (Fp, F)
-
-
-!! f_side.to_c2_call
-call segmented_surface_to_c2 (C, F%ix, F%iy, F%x0, F%y0, F%z0, F%slope_x, F%slope_y)
-
-end subroutine segmented_surface_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine segmented_surface_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_segmented_surface structure to a Bmad segmented_surface_struct structure.
-! This routine is called by segmented_surface_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the segmented_surface_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad segmented_surface_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine segmented_surface_to_f2 (Fp, z_ix, z_iy, z_x0, z_y0, z_z0, z_slope_x, z_slope_y) &
-    bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(segmented_surface_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_ix, z_iy
-real(c_double) :: z_x0, z_y0, z_z0, z_slope_x, z_slope_y
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ix = z_ix
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%iy = z_iy
-!! f_side.to_f2_trans[real, 0, NOT]
-F%x0 = z_x0
-!! f_side.to_f2_trans[real, 0, NOT]
-F%y0 = z_y0
-!! f_side.to_f2_trans[real, 0, NOT]
-F%z0 = z_z0
-!! f_side.to_f2_trans[real, 0, NOT]
-F%slope_x = z_slope_x
-!! f_side.to_f2_trans[real, 0, NOT]
-F%slope_y = z_slope_y
-
-end subroutine segmented_surface_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -5568,12 +5487,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_surface_to_c2 (C, z_grid, z_segment, z_curvature_xy, z_spherical_curvature, &
+  subroutine photon_surface_to_c2 (C, z_grid, z_curvature_xy, z_spherical_curvature, &
       z_elliptical_curvature, z_has_curvature) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr), value :: z_grid, z_segment
+    type(c_ptr), value :: z_grid
     real(c_double) :: z_curvature_xy(*), z_spherical_curvature, z_elliptical_curvature(*)
     logical(c_bool) :: z_has_curvature
   end subroutine
@@ -5591,7 +5510,7 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call photon_surface_to_c2 (C, c_loc(F%grid), c_loc(F%segment), mat2vec(F%curvature_xy, 7*7), &
+call photon_surface_to_c2 (C, c_loc(F%grid), mat2vec(F%curvature_xy, 7*7), &
     F%spherical_curvature, fvec2vec(F%elliptical_curvature, 3), c_logic(F%has_curvature))
 
 end subroutine photon_surface_to_c
@@ -5612,7 +5531,7 @@ end subroutine photon_surface_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_surface_to_f2 (Fp, z_grid, z_segment, z_curvature_xy, z_spherical_curvature, &
+subroutine photon_surface_to_f2 (Fp, z_grid, z_curvature_xy, z_spherical_curvature, &
     z_elliptical_curvature, z_has_curvature) bind(c)
 
 
@@ -5622,7 +5541,7 @@ type(c_ptr), value :: Fp
 type(photon_surface_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr), value :: z_grid, z_segment
+type(c_ptr), value :: z_grid
 real(c_double) :: z_curvature_xy(*), z_spherical_curvature, z_elliptical_curvature(*)
 logical(c_bool) :: z_has_curvature
 
@@ -5630,8 +5549,6 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[type, 0, NOT]
 call surface_grid_to_f(z_grid, c_loc(F%grid))
-!! f_side.to_f2_trans[type, 0, NOT]
-call segmented_surface_to_f(z_segment, c_loc(F%segment))
 !! f_side.to_f2_trans[real, 2, NOT]
 call vec2mat(z_curvature_xy, F%curvature_xy)
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -8546,13 +8463,13 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine rad_int1_to_c2 (C, z_i0, z_i1, z_i2, z_i3, z_i4a, z_i4b, z_i4z, z_i5a, z_i5b, &
       z_i6b, z_lin_i2_e4, z_lin_i3_e7, z_lin_i5a_e6, z_lin_i5b_e6, z_lin_norm_emit_a, &
-      z_lin_norm_emit_b, z_n_steps) bind(c)
+      z_lin_norm_emit_b, z_lin_sig_e, z_n_steps) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_i0, z_i1, z_i2, z_i3, z_i4a, z_i4b, z_i4z
     real(c_double) :: z_i5a, z_i5b, z_i6b, z_lin_i2_e4, z_lin_i3_e7, z_lin_i5a_e6, z_lin_i5b_e6
-    real(c_double) :: z_lin_norm_emit_a, z_lin_norm_emit_b, z_n_steps
+    real(c_double) :: z_lin_norm_emit_a, z_lin_norm_emit_b, z_lin_sig_e, z_n_steps
   end subroutine
 end interface
 
@@ -8570,7 +8487,7 @@ call c_f_pointer (Fp, F)
 !! f_side.to_c2_call
 call rad_int1_to_c2 (C, F%i0, F%i1, F%i2, F%i3, F%i4a, F%i4b, F%i4z, F%i5a, F%i5b, F%i6b, &
     F%lin_i2_e4, F%lin_i3_e7, F%lin_i5a_e6, F%lin_i5b_e6, F%lin_norm_emit_a, F%lin_norm_emit_b, &
-    F%n_steps)
+    F%lin_sig_e, F%n_steps)
 
 end subroutine rad_int1_to_c
 
@@ -8592,7 +8509,7 @@ end subroutine rad_int1_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine rad_int1_to_f2 (Fp, z_i0, z_i1, z_i2, z_i3, z_i4a, z_i4b, z_i4z, z_i5a, z_i5b, &
     z_i6b, z_lin_i2_e4, z_lin_i3_e7, z_lin_i5a_e6, z_lin_i5b_e6, z_lin_norm_emit_a, &
-    z_lin_norm_emit_b, z_n_steps) bind(c)
+    z_lin_norm_emit_b, z_lin_sig_e, z_n_steps) bind(c)
 
 
 implicit none
@@ -8603,7 +8520,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_i0, z_i1, z_i2, z_i3, z_i4a, z_i4b, z_i4z
 real(c_double) :: z_i5a, z_i5b, z_i6b, z_lin_i2_e4, z_lin_i3_e7, z_lin_i5a_e6, z_lin_i5b_e6
-real(c_double) :: z_lin_norm_emit_a, z_lin_norm_emit_b, z_n_steps
+real(c_double) :: z_lin_norm_emit_a, z_lin_norm_emit_b, z_lin_sig_e, z_n_steps
 
 call c_f_pointer (Fp, F)
 
@@ -8639,6 +8556,8 @@ F%lin_i5b_e6 = z_lin_i5b_e6
 F%lin_norm_emit_a = z_lin_norm_emit_a
 !! f_side.to_f2_trans[real, 0, NOT]
 F%lin_norm_emit_b = z_lin_norm_emit_b
+!! f_side.to_f2_trans[real, 0, NOT]
+F%lin_sig_e = z_lin_sig_e
 !! f_side.to_f2_trans[real, 0, NOT]
 F%n_steps = z_n_steps
 

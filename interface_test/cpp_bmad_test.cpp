@@ -2863,36 +2863,54 @@ void set_CPP_surface_grid_pt_test_pattern (CPP_surface_grid_pt& C, int ix_patt) 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_surface_orientation_test_pattern(C.orientation, ix_patt);
 
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.z0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.x0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.y0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.dz_dx = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.dz_dy = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.d2z_dxdy = rhs;
+
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.n_photon = rhs;
+  rhs = 8 + offset; C.n_photon = rhs;
 
   // c_side.test_pat[complex, 0, NOT]
-  rhs = 3 + offset; C.e_x = Complex(rhs, 100+rhs);
+  rhs = 9 + offset; C.e_x = Complex(rhs, 100+rhs);
 
   // c_side.test_pat[complex, 0, NOT]
-  rhs = 4 + offset; C.e_y = Complex(rhs, 100+rhs);
+  rhs = 10 + offset; C.e_y = Complex(rhs, 100+rhs);
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.intensity_x = rhs;
+  rhs = 11 + offset; C.intensity_x = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.intensity_y = rhs;
+  rhs = 12 + offset; C.intensity_y = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.intensity = rhs;
+  rhs = 13 + offset; C.intensity = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.orbit.size(); i++)
-    {int rhs = 101 + i + 8 + offset; C.orbit[i] = rhs;}
+    {int rhs = 101 + i + 14 + offset; C.orbit[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.orbit_rms.size(); i++)
-    {int rhs = 101 + i + 9 + offset; C.orbit_rms[i] = rhs;}
+    {int rhs = 101 + i + 15 + offset; C.orbit_rms[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.init_orbit.size(); i++)
-    {int rhs = 101 + i + 10 + offset; C.init_orbit[i] = rhs;}
+    {int rhs = 101 + i + 16 + offset; C.init_orbit[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.init_orbit_rms.size(); i++)
-    {int rhs = 101 + i + 11 + offset; C.init_orbit_rms[i] = rhs;}
+    {int rhs = 101 + i + 17 + offset; C.init_orbit_rms[i] = rhs;}
 
 }
 
@@ -2945,15 +2963,18 @@ void set_CPP_surface_grid_test_pattern (CPP_surface_grid& C, int ix_patt) {
   C.file.resize(200);
   for (unsigned int i = 0; i < C.file.size(); i++)
     {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 2 + offset; C.active = (rhs % 2 == 0);
+
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.type = rhs;
+  rhs = 3 + offset; C.type = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.dr.size(); i++)
-    {int rhs = 101 + i + 3 + offset; C.dr[i] = rhs;}
+    {int rhs = 101 + i + 4 + offset; C.dr[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.r0.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.r0[i] = rhs;}
+    {int rhs = 101 + i + 5 + offset; C.r0[i] = rhs;}
   // c_side.test_pat[type, 2, ALLOC]
   if (ix_patt < 3) 
     C.pt.resize(0);
@@ -3004,75 +3025,6 @@ extern "C" void test_c_surface_grid (Opaque_surface_grid_class* F, bool& c_ok) {
 
   set_CPP_surface_grid_test_pattern (C2, 4);
   surface_grid_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_segmented_surface (CPP_segmented_surface&, bool&);
-
-void set_CPP_segmented_surface_test_pattern (CPP_segmented_surface& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.ix = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.iy = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.x0 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.y0 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.z0 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.slope_x = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.slope_y = rhs;
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_segmented_surface (Opaque_segmented_surface_class* F, bool& c_ok) {
-
-  CPP_segmented_surface C, C2;
-
-  c_ok = true;
-
-  segmented_surface_to_c (F, C);
-  set_CPP_segmented_surface_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " segmented_surface: C side convert F->C: Good" << endl;
-  } else {
-    cout << " segmented_surface: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_segmented_surface_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_segmented_surface (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_segmented_surface_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " segmented_surface: F side convert F->C: Good" << endl;
-  } else {
-    cout << " segmented_surface: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_segmented_surface_test_pattern (C2, 4);
-  segmented_surface_to_f (C2, F);
 
 }
 
@@ -3139,20 +3091,17 @@ void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_surface_grid_test_pattern(C.grid, ix_patt);
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_segmented_surface_test_pattern(C.segment, ix_patt);
-
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.curvature_xy.size(); i++)  for (unsigned int j = 0; j < C.curvature_xy[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 3 + offset; C.curvature_xy[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 2 + offset; C.curvature_xy[i][j] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.spherical_curvature = rhs;
+  rhs = 3 + offset; C.spherical_curvature = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.elliptical_curvature.size(); i++)
-    {int rhs = 101 + i + 5 + offset; C.elliptical_curvature[i] = rhs;}
+    {int rhs = 101 + i + 4 + offset; C.elliptical_curvature[i] = rhs;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 6 + offset; C.has_curvature = (rhs % 2 == 0);
+  rhs = 5 + offset; C.has_curvature = (rhs % 2 == 0);
 
 
 }
@@ -5259,7 +5208,10 @@ void set_CPP_rad_int1_test_pattern (CPP_rad_int1& C, int ix_patt) {
   rhs = 16 + offset; C.lin_norm_emit_b = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 17 + offset; C.n_steps = rhs;
+  rhs = 17 + offset; C.lin_sig_e = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 18 + offset; C.n_steps = rhs;
 
 
 }

@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 262;
+  const int BMAD_INC_VERSION = 263;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -35,9 +35,11 @@ namespace Bmad {
   const int FIXED_STEP_TIME_RUNGE_KUTTA = 13, MAD = 14;
   const int N_METHODS = 14;
   const int DRIFT_KICK = 1, MATRIX_KICK = 2, RIPKEN_KICK = 3;
+  const int SECTOR = 1, STRAIGHT = 2;
   const int FIELDMAP = 2, PLANAR_MODEL = 3, REFER_TO_LORDS = 4, NO_FIELD = 5;
   const int HELICAL_MODEL = 6, SOFT_EDGE = 8;
   const int UNIFORM = 1, GAUSSIAN = 2, SPHERICAL = 3;
+  const int IX_SLICE_SLAVE = -2;
   const int MINOR_SLAVE = 1, SUPER_SLAVE = 2, FREE = 3;
   const int GROUP_LORD = 4, SUPER_LORD = 5, OVERLAY_LORD = 6;
   const int GIRDER_LORD = 7, MULTIPASS_LORD = 8, MULTIPASS_SLAVE = 9;
@@ -91,7 +93,7 @@ namespace Bmad {
   const int ATTRIBUTE_GROUP = 1, CONTROL_GROUP = 2, FLOOR_POSITION_GROUP = 3;
   const int S_POSITION_GROUP = 4, REF_ENERGY_GROUP = 5, MAT6_GROUP = 6;
   const int RAD_INT_GROUP = 7, ALL_GROUPS = 8, S_AND_FLOOR_POSITION_GROUP = 9;
-  const int SEGMENTED = 2, H_MISALIGN = 3, DIFFRACT_TARGET = 4;
+  const int SEGMENTED = 1, H_MISALIGN = 2, DISPLACEMENT = 3, DIFFRACT_TARGET = 4;
   const int EXPRESSION = 2, SPLINE = 3;
   const int INCOHERENT = 1, COHERENT = 2;
   const int OPAL = 1, IMPACTT = 2;
@@ -108,7 +110,8 @@ namespace Bmad {
   const int FLOOR_SHIFT = 49, FIDUCIAL = 50, UNDULATOR = 51, DIFFRACTION_PLATE = 52;
   const int PHOTON_INIT = 53, SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56, MASK = 57;
   const int AC_KICKER = 58, LENS = 59, BEAM_INIT = 60, CRAB_CAVITY = 61, RAMPER = 62;
-  const int N_KEY = 62;
+  const int DEF_PTC_COM = 63;
+  const int N_KEY = 63;
   const int VAL1=11, VAL2=12, VAL3=13, VAL4=14, VAL5=15, 
             VAL6=16, VAL7=17, VAL8=18, VAL9=19, VAL10=20, VAL11=21, 
             VAL12=22;
@@ -242,7 +245,7 @@ namespace Bmad {
   const int MAX_NUM_RUNGE_KUTTA_STEP = 91;
   const int SPHERICAL_CURVATURE = 81, DISTRIBUTION = 81;
   const int TT = 81, X_KNOT = 81;
-  const int ALIAS  = 82, PTC_MAX_FRINGE_ORDER = 82, ETA_X = 82;
+  const int ALIAS  = 82, MAX_FRINGE_ORDER = 82, ETA_X = 82;
   const int ELECTRIC_DIPOLE_MOMENT = 83, LR_SELF_WAKE_ON = 83, X_REF = 83, SPECIES_OUT = 83;
   const int Y_KNOT = 83, ETA_Y = 83;
   const int LR_WAKE_FILE = 84, PX_REF = 84, ELLIPTICAL_CURVATURE_X = 84, ETAP_X = 84, SLAVE = 84;
@@ -261,10 +264,10 @@ namespace Bmad {
   const int Y_LIMIT = 97, ETAP_B = 97;
   const int OFFSET_MOVES_APERTURE = 98;
   const int APERTURE_LIMIT_ON = 99, ALPHA_A = 99;
-  const int PTC_EXACT_MISALIGN = 100, PHYSICAL_SOURCE = 100;
+  const int EXACT_MISALIGN = 100, PHYSICAL_SOURCE = 100;
   const int SR_WAKE_FILE = 100, ALPHA_B = 100;
-  const int TERM = 101, FREQUENCIES = 101;
-  const int X_POSITION = 102, PTC_EXACT_MODEL = 102;
+  const int TERM = 101, FREQUENCIES = 101, OLD_INTEGRATOR = 101;
+  const int X_POSITION = 102, EXACT_MODEL = 102;
   const int SYMPLECTIFY = 103, Y_POSITION = 103, N_SLICE_SPLINE = 103;
   const int Z_POSITION = 104, AMP_VS_TIME = 104;
   const int IS_ON = 105, THETA_POSITION = 105;
@@ -283,7 +286,7 @@ namespace Bmad {
   const int REF_ORIGIN = 118;
   const int ELE_ORIGIN = 119;
   const int SUPERIMPOSE     = 120;
-  const int OFFSET          = 121;
+  const int SUPER_OFFSET    = 121;
   const int REFERENCE       = 122;
   const int CARTESIAN_MAP   = 123;
   const int CYLINDRICAL_MAP = 124;
@@ -315,8 +318,8 @@ namespace Bmad {
   const int INVALID_NAME = 0, IS_LOGICAL = 1, IS_INTEGER = 2, IS_REAL = 3, IS_SWITCH = 4, IS_STRING = 5;
   const int IS_STRUCT = 6, UNKNOWN = 7;
   const int PATCH_PROBLEM = 2, OUTSIDE = 3, CANNOT_FIND = 4;
-  const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const double SMALL_REL_CHANGE = 1E-14;
+  const int S_NOOUTPUT  = -2;
   const int S_BLANK     = -1;
   const int S_INFO      = 0;
   const int S_DINFO     = 1;

@@ -236,11 +236,6 @@ typedef valarray<CPP_surface_grid>          CPP_surface_grid_ARRAY;
 typedef valarray<CPP_surface_grid_ARRAY>    CPP_surface_grid_MATRIX;
 typedef valarray<CPP_surface_grid_MATRIX>   CPP_surface_grid_TENSOR;
 
-class CPP_segmented_surface;
-typedef valarray<CPP_segmented_surface>          CPP_segmented_surface_ARRAY;
-typedef valarray<CPP_segmented_surface_ARRAY>    CPP_segmented_surface_MATRIX;
-typedef valarray<CPP_segmented_surface_MATRIX>   CPP_segmented_surface_TENSOR;
-
 class CPP_target_point;
 typedef valarray<CPP_target_point>          CPP_target_point_ARRAY;
 typedef valarray<CPP_target_point_ARRAY>    CPP_target_point_MATRIX;
@@ -1844,6 +1839,12 @@ class Opaque_surface_grid_pt_class {};  // Opaque class for pointers to correspo
 class CPP_surface_grid_pt {
 public:
   CPP_surface_orientation orientation;
+  Real z0;
+  Real x0;
+  Real y0;
+  Real dz_dx;
+  Real dz_dy;
+  Real d2z_dxdy;
   Int n_photon;
   Complex e_x;
   Complex e_y;
@@ -1857,6 +1858,12 @@ public:
 
   CPP_surface_grid_pt() :
     orientation(),
+    z0(0.0),
+    x0(0.0),
+    y0(0.0),
+    dz_dx(0.0),
+    dz_dy(0.0),
+    d2z_dxdy(0.0),
     n_photon(0),
     e_x(0.0),
     e_y(0.0),
@@ -1888,6 +1895,7 @@ class Opaque_surface_grid_class {};  // Opaque class for pointers to correspondi
 class CPP_surface_grid {
 public:
   string file;
+  Bool active;
   Int type;
   Real_ARRAY dr;
   Real_ARRAY r0;
@@ -1895,7 +1903,8 @@ public:
 
   CPP_surface_grid() :
     file(),
-    type(Bmad::OFF),
+    active(true),
+    type(Bmad::NOT_SET),
     dr(0.0, 2),
     r0(0.0, 2),
     pt(CPP_surface_grid_pt_ARRAY(CPP_surface_grid_pt(), 0), 0)
@@ -1910,42 +1919,6 @@ extern "C" void surface_grid_to_c (const Opaque_surface_grid_class*, CPP_surface
 extern "C" void surface_grid_to_f (const CPP_surface_grid&, Opaque_surface_grid_class*);
 
 bool operator== (const CPP_surface_grid&, const CPP_surface_grid&);
-
-
-//--------------------------------------------------------------------
-// CPP_segmented_surface
-
-class Opaque_segmented_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_segmented_surface {
-public:
-  Int ix;
-  Int iy;
-  Real x0;
-  Real y0;
-  Real z0;
-  Real slope_x;
-  Real slope_y;
-
-  CPP_segmented_surface() :
-    ix(Bmad::INT_GARBAGE),
-    iy(Bmad::INT_GARBAGE),
-    x0(0.0),
-    y0(0.0),
-    z0(0.0),
-    slope_x(0.0),
-    slope_y(0.0)
-    {}
-
-  ~CPP_segmented_surface() {
-  }
-
-};   // End Class
-
-extern "C" void segmented_surface_to_c (const Opaque_segmented_surface_class*, CPP_segmented_surface&);
-extern "C" void segmented_surface_to_f (const CPP_segmented_surface&, Opaque_segmented_surface_class*);
-
-bool operator== (const CPP_segmented_surface&, const CPP_segmented_surface&);
 
 
 //--------------------------------------------------------------------
@@ -1980,7 +1953,6 @@ class Opaque_photon_surface_class {};  // Opaque class for pointers to correspon
 class CPP_photon_surface {
 public:
   CPP_surface_grid grid;
-  CPP_segmented_surface segment;
   Real_MATRIX curvature_xy;
   Real spherical_curvature;
   Real_ARRAY elliptical_curvature;
@@ -1988,7 +1960,6 @@ public:
 
   CPP_photon_surface() :
     grid(),
-    segment(),
     curvature_xy(Real_ARRAY(0.0, 7), 7),
     spherical_curvature(0.0),
     elliptical_curvature(0.0, 3),
@@ -3076,6 +3047,7 @@ public:
   Real lin_i5b_e6;
   Real lin_norm_emit_a;
   Real lin_norm_emit_b;
+  Real lin_sig_e;
   Real n_steps;
 
   CPP_rad_int1() :
@@ -3095,6 +3067,7 @@ public:
     lin_i5b_e6(0.0),
     lin_norm_emit_a(0.0),
     lin_norm_emit_b(0.0),
+    lin_sig_e(0.0),
     n_steps(0.0)
     {}
 

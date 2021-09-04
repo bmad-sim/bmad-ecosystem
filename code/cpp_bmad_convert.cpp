@@ -1733,27 +1733,41 @@ extern "C" void surface_grid_pt_to_c (const Opaque_surface_grid_pt_class*, CPP_s
 
 // c_side.to_f2_arg
 extern "C" void surface_grid_pt_to_f2 (Opaque_surface_grid_pt_class*, const
-    CPP_surface_orientation&, c_Int&, c_Complex&, c_Complex&, c_Real&, c_Real&, c_Real&,
-    c_RealArr, c_RealArr, c_RealArr, c_RealArr);
+    CPP_surface_orientation&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&,
+    c_Complex&, c_Complex&, c_Real&, c_Real&, c_Real&, c_RealArr, c_RealArr, c_RealArr,
+    c_RealArr);
 
 extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt& C, Opaque_surface_grid_pt_class* F) {
 
   // c_side.to_f2_call
-  surface_grid_pt_to_f2 (F, C.orientation, C.n_photon, C.e_x, C.e_y, C.intensity_x,
-      C.intensity_y, C.intensity, &C.orbit[0], &C.orbit_rms[0], &C.init_orbit[0],
-      &C.init_orbit_rms[0]);
+  surface_grid_pt_to_f2 (F, C.orientation, C.z0, C.x0, C.y0, C.dz_dx, C.dz_dy, C.d2z_dxdy,
+      C.n_photon, C.e_x, C.e_y, C.intensity_x, C.intensity_y, C.intensity, &C.orbit[0],
+      &C.orbit_rms[0], &C.init_orbit[0], &C.init_orbit_rms[0]);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, const
-    Opaque_surface_orientation_class* z_orientation, c_Int& z_n_photon, c_Complex& z_e_x,
+    Opaque_surface_orientation_class* z_orientation, c_Real& z_z0, c_Real& z_x0, c_Real& z_y0,
+    c_Real& z_dz_dx, c_Real& z_dz_dy, c_Real& z_d2z_dxdy, c_Int& z_n_photon, c_Complex& z_e_x,
     c_Complex& z_e_y, c_Real& z_intensity_x, c_Real& z_intensity_y, c_Real& z_intensity,
     c_RealArr z_orbit, c_RealArr z_orbit_rms, c_RealArr z_init_orbit, c_RealArr
     z_init_orbit_rms) {
 
   // c_side.to_c2_set[type, 0, NOT]
   surface_orientation_to_c(z_orientation, C.orientation);
+  // c_side.to_c2_set[real, 0, NOT]
+  C.z0 = z_z0;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x0 = z_x0;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y0 = z_y0;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.dz_dx = z_dz_dx;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.dz_dy = z_dz_dy;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.d2z_dxdy = z_d2z_dxdy;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_photon = z_n_photon;
   // c_side.to_c2_set[complex, 0, NOT]
@@ -1783,8 +1797,8 @@ extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, const
 extern "C" void surface_grid_to_c (const Opaque_surface_grid_class*, CPP_surface_grid&);
 
 // c_side.to_f2_arg
-extern "C" void surface_grid_to_f2 (Opaque_surface_grid_class*, c_Char, c_Int&, c_RealArr,
-    c_RealArr, const CPP_surface_grid_pt**, Int, Int);
+extern "C" void surface_grid_to_f2 (Opaque_surface_grid_class*, c_Char, c_Bool&, c_Int&,
+    c_RealArr, c_RealArr, const CPP_surface_grid_pt**, Int, Int);
 
 extern "C" void surface_grid_to_f (const CPP_surface_grid& C, Opaque_surface_grid_class* F) {
   // c_side.to_f_setup[type, 2, ALLOC]
@@ -1799,19 +1813,22 @@ extern "C" void surface_grid_to_f (const CPP_surface_grid& C, Opaque_surface_gri
   }
 
   // c_side.to_f2_call
-  surface_grid_to_f2 (F, C.file.c_str(), C.type, &C.dr[0], &C.r0[0], z_pt, n1_pt, n2_pt);
+  surface_grid_to_f2 (F, C.file.c_str(), C.active, C.type, &C.dr[0], &C.r0[0], z_pt, n1_pt,
+      n2_pt);
 
   // c_side.to_f_cleanup[type, 2, ALLOC]
   delete[] z_pt;
 }
 
 // c_side.to_c2_arg
-extern "C" void surface_grid_to_c2 (CPP_surface_grid& C, c_Char z_file, c_Int& z_type,
-    c_RealArr z_dr, c_RealArr z_r0, Opaque_surface_grid_pt_class** z_pt, Int n1_pt, Int n2_pt)
-    {
+extern "C" void surface_grid_to_c2 (CPP_surface_grid& C, c_Char z_file, c_Bool& z_active,
+    c_Int& z_type, c_RealArr z_dr, c_RealArr z_r0, Opaque_surface_grid_pt_class** z_pt, Int
+    n1_pt, Int n2_pt) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.file = z_file;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.active = z_active;
   // c_side.to_c2_set[integer, 0, NOT]
   C.type = z_type;
   // c_side.to_c2_set[real, 1, NOT]
@@ -1825,43 +1842,6 @@ extern "C" void surface_grid_to_c2 (CPP_surface_grid& C, c_Char z_file, c_Int& z
     for (int j = 0; j < n2_pt; j++) surface_grid_pt_to_c(z_pt[n2_pt*i+j], C.pt[i][j]);
   }
 
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_segmented_surface
-
-extern "C" void segmented_surface_to_c (const Opaque_segmented_surface_class*, CPP_segmented_surface&);
-
-// c_side.to_f2_arg
-extern "C" void segmented_surface_to_f2 (Opaque_segmented_surface_class*, c_Int&, c_Int&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
-
-extern "C" void segmented_surface_to_f (const CPP_segmented_surface& C, Opaque_segmented_surface_class* F) {
-
-  // c_side.to_f2_call
-  segmented_surface_to_f2 (F, C.ix, C.iy, C.x0, C.y0, C.z0, C.slope_x, C.slope_y);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void segmented_surface_to_c2 (CPP_segmented_surface& C, c_Int& z_ix, c_Int& z_iy,
-    c_Real& z_x0, c_Real& z_y0, c_Real& z_z0, c_Real& z_slope_x, c_Real& z_slope_y) {
-
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.ix = z_ix;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.iy = z_iy;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x0 = z_x0;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.y0 = z_y0;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.z0 = z_z0;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.slope_x = z_slope_x;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.slope_y = z_slope_y;
 }
 
 //--------------------------------------------------------------------
@@ -1895,27 +1875,25 @@ extern "C" void photon_surface_to_c (const Opaque_photon_surface_class*, CPP_pho
 
 // c_side.to_f2_arg
 extern "C" void photon_surface_to_f2 (Opaque_photon_surface_class*, const CPP_surface_grid&,
-    const CPP_segmented_surface&, c_RealArr, c_Real&, c_RealArr, c_Bool&);
+    c_RealArr, c_Real&, c_RealArr, c_Bool&);
 
 extern "C" void photon_surface_to_f (const CPP_photon_surface& C, Opaque_photon_surface_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_curvature_xy[7*7]; matrix_to_vec(C.curvature_xy, z_curvature_xy);
 
   // c_side.to_f2_call
-  photon_surface_to_f2 (F, C.grid, C.segment, z_curvature_xy, C.spherical_curvature,
+  photon_surface_to_f2 (F, C.grid, z_curvature_xy, C.spherical_curvature,
       &C.elliptical_curvature[0], C.has_curvature);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, const Opaque_surface_grid_class*
-    z_grid, const Opaque_segmented_surface_class* z_segment, c_RealArr z_curvature_xy, c_Real&
-    z_spherical_curvature, c_RealArr z_elliptical_curvature, c_Bool& z_has_curvature) {
+    z_grid, c_RealArr z_curvature_xy, c_Real& z_spherical_curvature, c_RealArr
+    z_elliptical_curvature, c_Bool& z_has_curvature) {
 
   // c_side.to_c2_set[type, 0, NOT]
   surface_grid_to_c(z_grid, C.grid);
-  // c_side.to_c2_set[type, 0, NOT]
-  segmented_surface_to_c(z_segment, C.segment);
   // c_side.to_c2_set[real, 2, NOT]
   C.curvature_xy << z_curvature_xy;
   // c_side.to_c2_set[real, 0, NOT]
@@ -3218,14 +3196,14 @@ extern "C" void rad_int1_to_c (const Opaque_rad_int1_class*, CPP_rad_int1&);
 // c_side.to_f2_arg
 extern "C" void rad_int1_to_f2 (Opaque_rad_int1_class*, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&);
+    c_Real&, c_Real&, c_Real&, c_Real&);
 
 extern "C" void rad_int1_to_f (const CPP_rad_int1& C, Opaque_rad_int1_class* F) {
 
   // c_side.to_f2_call
   rad_int1_to_f2 (F, C.i0, C.i1, C.i2, C.i3, C.i4a, C.i4b, C.i4z, C.i5a, C.i5b, C.i6b,
       C.lin_i2_e4, C.lin_i3_e7, C.lin_i5a_e6, C.lin_i5b_e6, C.lin_norm_emit_a,
-      C.lin_norm_emit_b, C.n_steps);
+      C.lin_norm_emit_b, C.lin_sig_e, C.n_steps);
 
 }
 
@@ -3233,7 +3211,8 @@ extern "C" void rad_int1_to_f (const CPP_rad_int1& C, Opaque_rad_int1_class* F) 
 extern "C" void rad_int1_to_c2 (CPP_rad_int1& C, c_Real& z_i0, c_Real& z_i1, c_Real& z_i2,
     c_Real& z_i3, c_Real& z_i4a, c_Real& z_i4b, c_Real& z_i4z, c_Real& z_i5a, c_Real& z_i5b,
     c_Real& z_i6b, c_Real& z_lin_i2_e4, c_Real& z_lin_i3_e7, c_Real& z_lin_i5a_e6, c_Real&
-    z_lin_i5b_e6, c_Real& z_lin_norm_emit_a, c_Real& z_lin_norm_emit_b, c_Real& z_n_steps) {
+    z_lin_i5b_e6, c_Real& z_lin_norm_emit_a, c_Real& z_lin_norm_emit_b, c_Real& z_lin_sig_e,
+    c_Real& z_n_steps) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.i0 = z_i0;
@@ -3267,6 +3246,8 @@ extern "C" void rad_int1_to_c2 (CPP_rad_int1& C, c_Real& z_i0, c_Real& z_i1, c_R
   C.lin_norm_emit_a = z_lin_norm_emit_a;
   // c_side.to_c2_set[real, 0, NOT]
   C.lin_norm_emit_b = z_lin_norm_emit_b;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.lin_sig_e = z_lin_sig_e;
   // c_side.to_c2_set[real, 0, NOT]
   C.n_steps = z_n_steps;
 }

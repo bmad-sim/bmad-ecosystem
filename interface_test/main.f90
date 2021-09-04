@@ -52,7 +52,6 @@ call test1_f_bookkeeping_state(ok); if (.not. ok) all_ok = .false.
 call test1_f_rad_int_ele_cache(ok); if (.not. ok) all_ok = .false.
 call test1_f_surface_grid_pt(ok); if (.not. ok) all_ok = .false.
 call test1_f_surface_grid(ok); if (.not. ok) all_ok = .false.
-call test1_f_segmented_surface(ok); if (.not. ok) all_ok = .false.
 call test1_f_target_point(ok); if (.not. ok) all_ok = .false.
 call test1_f_photon_surface(ok); if (.not. ok) all_ok = .false.
 call test1_f_photon_target(ok); if (.not. ok) all_ok = .false.

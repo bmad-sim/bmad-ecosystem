@@ -4342,36 +4342,48 @@ offset = 100 * ix_patt
 
 !! f_side.test_pat[type, 0, NOT]
 call set_surface_orientation_test_pattern (F%orientation, ix_patt)
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%z0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%x0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%y0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%dz_dx = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%dz_dy = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%d2z_dxdy = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%n_photon = rhs
+rhs = 8 + offset; F%n_photon = rhs
 !! f_side.test_pat[complex, 0, NOT]
-rhs = 3 + offset; F%e_x = cmplx(rhs, 100+rhs)
+rhs = 9 + offset; F%e_x = cmplx(rhs, 100+rhs)
 !! f_side.test_pat[complex, 0, NOT]
-rhs = 4 + offset; F%e_y = cmplx(rhs, 100+rhs)
+rhs = 10 + offset; F%e_y = cmplx(rhs, 100+rhs)
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%intensity_x = rhs
+rhs = 11 + offset; F%intensity_x = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%intensity_y = rhs
+rhs = 12 + offset; F%intensity_y = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%intensity = rhs
+rhs = 13 + offset; F%intensity = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%orbit,1); lb1 = lbound(F%orbit,1) - 1
-  rhs = 100 + jd1 + 8 + offset
+  rhs = 100 + jd1 + 14 + offset
   F%orbit(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%orbit_rms,1); lb1 = lbound(F%orbit_rms,1) - 1
-  rhs = 100 + jd1 + 9 + offset
+  rhs = 100 + jd1 + 15 + offset
   F%orbit_rms(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%init_orbit,1); lb1 = lbound(F%init_orbit,1) - 1
-  rhs = 100 + jd1 + 10 + offset
+  rhs = 100 + jd1 + 16 + offset
   F%init_orbit(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%init_orbit_rms,1); lb1 = lbound(F%init_orbit_rms,1) - 1
-  rhs = 100 + jd1 + 11 + offset
+  rhs = 100 + jd1 + 17 + offset
   F%init_orbit_rms(jd1+lb1) = rhs
 enddo
 
@@ -4462,16 +4474,18 @@ offset = 100 * ix_patt
 do jd1 = 1, len(F%file)
   F%file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
 enddo
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 2 + offset; F%active = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%type = rhs
+rhs = 3 + offset; F%type = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%dr,1); lb1 = lbound(F%dr,1) - 1
-  rhs = 100 + jd1 + 3 + offset
+  rhs = 100 + jd1 + 4 + offset
   F%dr(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
-  rhs = 100 + jd1 + 4 + offset
+  rhs = 100 + jd1 + 5 + offset
   F%r0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[type, 2, ALLOC]
@@ -4488,104 +4502,6 @@ else
 endif
 
 end subroutine set_surface_grid_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test1_f_segmented_surface (ok)
-
-implicit none
-
-type(segmented_surface_struct), target :: f_segmented_surface, f2_segmented_surface
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_segmented_surface (c_segmented_surface, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_segmented_surface
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_segmented_surface_test_pattern (f2_segmented_surface, 1)
-
-call test_c_segmented_surface(c_loc(f2_segmented_surface), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_segmented_surface_test_pattern (f_segmented_surface, 4)
-if (f_segmented_surface == f2_segmented_surface) then
-  print *, 'segmented_surface: C side convert C->F: Good'
-else
-  print *, 'segmented_surface: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_segmented_surface
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_segmented_surface (c_segmented_surface, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_segmented_surface
-type(segmented_surface_struct), target :: f_segmented_surface, f2_segmented_surface
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call segmented_surface_to_f (c_segmented_surface, c_loc(f_segmented_surface))
-
-call set_segmented_surface_test_pattern (f2_segmented_surface, 2)
-if (f_segmented_surface == f2_segmented_surface) then
-  print *, 'segmented_surface: F side convert C->F: Good'
-else
-  print *, 'segmented_surface: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_segmented_surface_test_pattern (f2_segmented_surface, 3)
-call segmented_surface_to_c (c_loc(f2_segmented_surface), c_segmented_surface)
-
-end subroutine test2_f_segmented_surface
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_segmented_surface_test_pattern (F, ix_patt)
-
-implicit none
-
-type(segmented_surface_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%ix = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%iy = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%x0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%y0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%z0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%slope_x = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%slope_y = rhs
-
-end subroutine set_segmented_surface_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -4759,23 +4675,21 @@ offset = 100 * ix_patt
 
 !! f_side.test_pat[type, 0, NOT]
 call set_surface_grid_test_pattern (F%grid, ix_patt)
-!! f_side.test_pat[type, 0, NOT]
-call set_segmented_surface_test_pattern (F%segment, ix_patt)
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%curvature_xy,1); lb1 = lbound(F%curvature_xy,1) - 1
 do jd2 = 1, size(F%curvature_xy,2); lb2 = lbound(F%curvature_xy,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 3 + offset
+  rhs = 100 + jd1 + 10*jd2 + 2 + offset
   F%curvature_xy(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%spherical_curvature = rhs
+rhs = 3 + offset; F%spherical_curvature = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%elliptical_curvature,1); lb1 = lbound(F%elliptical_curvature,1) - 1
-  rhs = 100 + jd1 + 5 + offset
+  rhs = 100 + jd1 + 4 + offset
   F%elliptical_curvature(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 6 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
+rhs = 5 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
 
 end subroutine set_photon_surface_test_pattern
 
@@ -7687,7 +7601,9 @@ rhs = 15 + offset; F%lin_norm_emit_a = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 16 + offset; F%lin_norm_emit_b = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 17 + offset; F%n_steps = rhs
+rhs = 17 + offset; F%lin_sig_e = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 18 + offset; F%n_steps = rhs
 
 end subroutine set_rad_int1_test_pattern
 

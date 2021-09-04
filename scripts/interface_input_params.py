@@ -63,7 +63,6 @@ struct_list = [
     'rad_int_ele_cache_struct',
     'surface_grid_pt_struct',
     'surface_grid_struct',
-    'segmented_surface_struct',
     'target_point_struct',
     'photon_surface_struct',
     'photon_target_struct',
