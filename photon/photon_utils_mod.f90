@@ -18,6 +18,32 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
+! Function has_curvature (surf) result (curved)
+!
+! Routine to determine if a surface is potentially curved or is flat.
+!
+! Input:
+!   surf      -- photon_surface_struct: Surface structure.
+!
+! Output:
+!   curved    -- logical: Set True if surface is curved.
+!-
+
+function has_curvature (surf) result (curved)
+
+type (photon_surface_struct) surf
+logical curved
+
+!
+
+curved = (surf%has_curvature .or. (surf%grid%type == displacement$ .and. surf%grid%active))
+
+end function has_curvature
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
 ! Function photon_type (ele) result (e_type)
 !
 ! Routine to return the type of photon to be tracked: coherent$ or incoherent$.
@@ -50,42 +76,50 @@ end function photon_type
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Function z_at_surface (ele, x, y, status) result (z)
+! Function z_at_surface (ele, x, y, err_flag, extend_grid) result (z)
 !
 ! Routine return the height (z) of the surface for a particular (x,y) position. 
 ! Remember: +z points into the element.
 !
 ! Input:
 !   ele         -- ele_struct: Element
-!   x, y        -- real(rp): coordinates on surface.
+!   x, y        -- real(rp): Photon coordinates on surface.
+!   extend_grid -- logical, optional: If a grid is involved and (x, y) is outside of the grid, and 
+!                   extend_grid = True: Pretend (x, y) is at edge. Default is False.
 !
 ! Output:
 !   z           -- real(rp): z coordinate.
-!   status      -- integer: 0 -> Everythin OK.
-!                           1 -> Cannot compute z due to point being outside of ellipseoid bounds.
+!   err_flag    -- logical: Set True if cannot compute z due to, say, point 
+!                             being outside of ellipseoid or grid bounds.
 !-
 
-function z_at_surface (ele, x, y, status) result (z)
+function z_at_surface (ele, x, y, err_flag, extend_grid) result (z)
 
 type (ele_struct), target :: ele
 type (photon_surface_struct), pointer :: surf
+type (surface_grid_pt_struct), pointer :: pt
 
-real(rp) x, y, z, g(3), gs, f
-integer status, ix, iy
+real(rp) x, y, z, g(3), gs, f, dum1, dum2, xx, yy
+integer ix, iy
+logical err_flag
+logical, optional :: extend_grid
 
 !
 
 surf => ele%photon%surface
-status = 0
+err_flag = .true.
+z = 0
 
-if (surf%grid%type == segmented$) then
-  call init_surface_segment (x, y, ele)
-
-  z = surf%segment%z0 - (x - surf%segment%x0) * surf%segment%slope_x - &
-                        (y - surf%segment%y0) * surf%segment%slope_y
+if (surf%grid%type == segmented$  .and. surf%grid%active) then
+  pt => pointer_to_surface_grid_pt(ele, .true., x, y, ix, iy, extend_grid, xx, yy)
+  if (.not. associated(pt)) return
+  z = pt%z0 - (xx - pt%x0) * pt%dz_dx - (yy - pt%y0) * pt%dz_dy
 
 else
-  z = 0
+  if (surf%grid%type == displacement$) then
+    call surface_grid_displacement (ele, x, y, err_flag, z, dum1, dum2, extend_grid); if (err_flag) return
+  endif
+
   do ix = 0, ubound(surf%curvature_xy, 1)
   do iy = 0, ubound(surf%curvature_xy, 2) - ix
     if (ele%photon%surface%curvature_xy(ix, iy) == 0) cycle
@@ -97,24 +131,19 @@ else
   g = surf%elliptical_curvature
   if (g(3) /= 0) then
     f = -((g(1) * x)**2 + (g(2) * y)**2)
-    if (f < -1) then
-      status = 1
-      return
-    endif
+    if (f < -1) return
     z = z + sqrt_one(f) / g(3)
   endif
 
   gs = surf%spherical_curvature
   if (gs /= 0) then
     f = -((gs * x)**2 + (gs * y)**2)
-    if (f < -1) then
-      status = 1
-      return
-    endif
+    if (f < -1) return
     z = z + sqrt_one(f) / gs
   endif
-
 endif
+
+err_flag = .false.
 
 end function z_at_surface
 
@@ -122,107 +151,165 @@ end function z_at_surface
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine init_surface_segment (x, y, ele)
+! Function pointer_to_surface_grid_pt (ele, nearest, x, y, ix, iy, extend_grid, xx, yy) result (pt)
 !
-! Routine to init the componentes in ele%photon%surface%segment for use with segmented surface calculations.
-! The segment used is determined by the (x,y) photon coordinates
+! Routine to point to the grid point struct associated with point (x,y).
+!
+! Note: If nearest = True, the grid boundary is a length dr/2 from the boundary grid points.
 !
 ! Input:
-!   x, y   -- Real(rp): Coordinates of the photon.
-!   ele    -- ele_struct: Elment containing a surface.
+!   ele         -- ele_struct: Element containing the grid
+!   nearest     -- logical: If True, return pointer to nearest grid point. 
+!                           If False, return pointer to the grid point lower and left of (x,y).
+!   x, y        -- real(rp): Photon position.
+!   extend_grid -- logical, optional: If (x,y) past grid pretend (x,y) is at grid boundary.
+!                   Default is False.
 !
 ! Output:
-!   ele    -- ele_struct: Element with ele%photon%surface%segment initialized.
+!   ix, iy      -- integer, optional: Grid point index.
+!   pt          -- grid_point_struct: Pointer to grid point. 
+!                   Will not be associated if (x,y) outside the grid.
+!   xx, yy      -- real(rp), optional: Set equal to (x, y) except if (x,y) is outside of the grid.
+!                   In this case, (xx, yy) will be set to be on the nearest grid boundary point.
 !-
 
-subroutine init_surface_segment (x, y, ele)
+function pointer_to_surface_grid_pt (ele, nearest, x, y, ix, iy, extend_grid, xx, yy) result (pt)
 
 type (ele_struct), target :: ele
-type (photon_surface_struct), pointer :: s
-type (segmented_surface_struct), pointer :: seg
+type (surface_grid_struct), pointer :: grid
+type (surface_grid_pt_struct), pointer :: pt
 
-real(rp) x, y, zt, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag, g(3), gs
-integer ix, iy
+real(rp) x, y, xh, yh, ff
+real(rp), optional :: xx, yy
 
-! Only redo the cacluation if needed
+integer, optional :: ix, iy
+integer kx, ky, nx0, ny0, nx1, ny1
 
-s => ele%photon%surface
-seg => s%segment
+logical, optional :: extend_grid
+logical nearest, outside
 
-ix = nint(x / s%grid%dr(1))
-iy = nint(y / s%grid%dr(2))
-
-if (ix == seg%ix .and. iy == seg%iy) return
+character(*), parameter :: r_name = 'pointer_to_surface_grid_pt'
 
 !
 
-x0 = ix * s%grid%dr(1)
-y0 = iy * s%grid%dr(2)
+grid => ele%photon%surface%grid
 
-seg%ix = ix
-seg%iy = iy
-
-seg%x0 = x0
-seg%y0 = y0
-seg%z0 = 0
-
-seg%slope_x = 0
-seg%slope_y = 0
-coef_xx = 0; coef_xy = 0; coef_yy = 0
-
-do ix = 0, ubound(s%curvature_xy, 1)
-do iy = 0, ubound(s%curvature_xy, 2) - ix
-  if (s%curvature_xy(ix, iy) == 0) cycle
-  seg%z0 = seg%z0 - s%curvature_xy(ix, iy) * x0**ix * y0**iy
-  if (ix > 0) seg%slope_x = seg%slope_x - ix * s%curvature_xy(ix, iy) * x0**(ix-1) * y0**iy
-  if (iy > 0) seg%slope_y = seg%slope_y - iy * s%curvature_xy(ix, iy) * x0**ix * y0**(iy-1)
-  if (ix > 1) coef_xx = coef_xx - ix * (ix-1) * s%curvature_xy(ix, iy) * x0**(ix-2) * y0**iy / 2
-  if (iy > 1) coef_yy = coef_yy - iy * (iy-1) * s%curvature_xy(ix, iy) * x0**ix * y0**(iy-2) / 2
-  if (ix > 0 .and. iy > 0) coef_xy = coef_xy - ix * iy * s%curvature_xy(ix, iy) * x0**(ix-1) * y0**(iy-1)
-enddo
-enddo
-
-g = s%elliptical_curvature
-if (g(3) /= 0) then
-  zt = sqrt(1 - (x0 * g(1))**2 - (y0 * g(2))**2)
-  seg%z0 = seg%z0 + sqrt_one(-(g(1) * x)**2 - (g(2) * y)**2) / g(3)
-  seg%slope_x = seg%slope_x - x0 * g(1)**2 / (g(3) * zt)
-  seg%slope_y = seg%slope_y - y0 * g(2)**2 / (g(3) * zt)
-  coef_xx = coef_xx - (g(1)**2 / zt - (x0 * g(1)**2)**2 / zt**3) / (2 * g(3))
-  coef_yy = coef_yy - (g(2)**2 / zt - (y0 * g(2)**2)**2 / zt**3) / (2 * g(3))
-  coef_xy = coef_xy - (x0 * y0 * (g(1) * g(2))**2 / zt**3) / (g(3))
-endif
-
-gs = s%spherical_curvature
-if (gs /= 0) then
-  zt = sqrt(1 - (x0 * gs)**2 - (y0 * gs)**2)
-  seg%z0 = seg%z0 + sqrt_one(-(gs * x)**2 - (gs * y)**2) / gs
-  seg%slope_x = seg%slope_x - x0 * gs**2 / (gs * zt)
-  seg%slope_y = seg%slope_y - y0 * gs**2 / (gs * zt)
-  coef_xx = coef_xx - (gs**2 / zt - (x0 * gs**2)**2 / zt**3) / (2 * gs)
-  coef_yy = coef_yy - (gs**2 / zt - (y0 * gs**2)**2 / zt**3) / (2 * gs)
-  coef_xy = coef_xy - (x0 * y0 * (gs * gs)**2 / zt**3) / (gs)
-endif
-
-! Correct for fact that segment is supported at the corners of the segment and the segment is flat.
-! This correction only affects z0 and not the slopes
-
-dx = s%grid%dr(1) / 2
-dy = s%grid%dr(2) / 2
-coef_xx = coef_xx * dx**2
-coef_xy = coef_xy * dx * dy
-coef_yy = coef_yy * dy**2
-coef_diag = coef_xx + coef_yy - abs(coef_xy)
-
-if (abs(coef_diag) > abs(coef_xx) .and. abs(coef_diag) > abs(coef_yy)) then
-  seg%z0 = seg%z0 + coef_diag
-else if (abs(coef_xx) > abs(coef_yy)) then
-  seg%z0 = seg%z0 + coef_xx
+if (nearest) then
+  ff = 0.5_rp
 else
-  seg%z0 = seg%z0 + coef_yy
+  ff = 0
 endif
 
-end subroutine init_surface_segment 
+nx0 = lbound(grid%pt, 1);  nx1 = ubound(grid%pt, 1)
+ny0 = lbound(grid%pt, 2);  ny1 = ubound(grid%pt, 2)
+
+if (x < grid%pt(nx0,ny0)%x0 - ff * grid%dr(1)) then
+  xh = grid%pt(nx0,ny0)%x0 - ff * grid%dr(1)
+elseif (x > grid%pt(nx1,ny1)%x0 + ff * grid%dr(1)) then
+  xh = grid%pt(nx1,ny1)%x0 + ff * grid%dr(1)
+else
+  xh = x
+endif
+
+if (y < grid%pt(nx0,ny0)%y0 - ff * grid%dr(2)) then
+  yh = grid%pt(nx0,ny0)%y0 - ff * grid%dr(2)
+elseif (y > grid%pt(nx1,ny1)%y0 + ff * grid%dr(2)) then
+  yh = grid%pt(nx1,ny1)%y0 + ff * grid%dr(2)
+else
+  yh = y
+endif
+
+if (present(xx)) xx = xh
+if (present(yy)) yy = yh
+
+outside = (x /= xh .or. y /= yh)
+
+if (.not. logic_option(.false., extend_grid) .and. outside) then
+  call out_io (s_info$, r_name, 'Photon position: (\2f12.8\) is outside of grid for: ' // ele%name, r_array = [x, y])
+  pt => null()
+  return
+endif
+
+if (nearest) then
+  kx = nint((xh - grid%r0(1)) / grid%dr(1))
+  ky = nint((yh - grid%r0(2)) / grid%dr(2))
+  kx = min(max(kx, nx0), nx1)   ! Can happen due to roundoff
+  ky = min(max(ky, ny0), ny1)   ! Can happen due to roundoff
+else
+  kx = int((xh - grid%r0(1)) / grid%dr(1))
+  ky = int((yh - grid%r0(2)) / grid%dr(2))
+  kx = min(max(kx, nx0), nx1-1)   ! Can happen due to roundoff
+  ky = min(max(ky, ny0), ny1-1)   ! Can happen due to roundoff
+endif
+
+pt => grid%pt(kx, ky)
+
+if (present(ix)) ix = kx
+if (present(iy)) iy = ky
+
+end function pointer_to_surface_grid_pt
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine surface_grid_displacement (ele, x, y, err_flag, z, dz_dx, dz_dy, extend_grid)
+!
+! Routine to add in the z displacement defined by the grid 
+!
+! Input:
+!   ele           -- ele_struct: Element containing the grid
+!   x, y          -- real(rp): Photon coords at surface.
+!   extend_grid   -- logical, optional: If (x,y) past grid pretend (x,y) is at grid boundary.
+!                     Default is False.
+!
+! Output
+!   err_flag      -- logical: Set True if there is a problem.
+!   z             -- real(rp): surface height at (x, y).
+!   dz_dx, dz_dy  -- real(rp): Surface slope at (x, y).
+!-
+
+subroutine surface_grid_displacement (ele, x, y, err_flag, z, dz_dx, dz_dy, extend_grid)
+
+use nr, only: bcuint
+
+type (ele_struct), target :: ele
+type (photon_surface_struct), pointer :: surf
+type (surface_grid_pt_struct), pointer :: pt00, pt01, pt10, pt11
+
+real(rp) x, y
+real(rp) z, dz_dx, dz_dy, xx, yy
+integer ix, iy
+logical err_flag
+logical, optional :: extend_grid
+
+!
+
+surf => ele%photon%surface
+
+if (.not. surf%grid%active) then
+  z = 0;  dz_dx = 0;  dz_dy = 0
+  err_flag = .false.
+  return
+endif
+
+!
+
+err_flag = .true.
+pt00 => pointer_to_surface_grid_pt(ele, .false., x, y, ix, iy, extend_grid, xx, yy)
+if (.not. associated(pt00)) return
+
+pt01 => surf%grid%pt(ix,iy+1)
+pt10 => surf%grid%pt(ix+1,iy)
+pt11 => surf%grid%pt(ix+1,iy+1)
+
+call bcuint([pt00%z0, pt01%z0, pt11%z0, pt10%z0], [pt00%dz_dx, pt01%dz_dx, pt11%dz_dx, pt10%dz_dx], &
+        [pt00%dz_dy, pt01%dz_dy, pt11%dz_dy, pt10%dz_dy], [pt00%d2z_dxdy, pt01%d2z_dxdy, pt11%d2z_dxdy, pt10%d2z_dxdy], &
+        pt00%x0, pt11%x0, pt00%y0, pt11%y0, xx, yy, z, dz_dx, dz_dy)
+
+err_flag = .false.
+
+end subroutine surface_grid_displacement
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------

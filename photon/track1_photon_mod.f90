@@ -246,7 +246,7 @@ character(*), parameter :: r_name = 'track1_sample'
 call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
-if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
 ! Check aperture
 
@@ -279,7 +279,7 @@ end select
 
 ! Rotate back to uncurved element coords
 
-if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_sample
 
@@ -505,7 +505,7 @@ wavelength = c_light * h_planck / orbit%p0c
 call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
-if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
 ! Check aperture
 
@@ -520,7 +520,7 @@ orbit%vec(6) = -orbit%vec(6)
 
 ! Rotate back to uncurved element coords
 
-if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_mirror
 
@@ -563,7 +563,7 @@ wavelength = c_light * h_planck / orbit%p0c
 call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
-if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
 ! Check aperture
 
@@ -596,7 +596,7 @@ orbit%vec(6) = -orbit%vec(6)
 
 ! Rotate back to uncurved element coords
 
-if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 !-----------------------------------------------------------------------------------------------
 contains
@@ -764,7 +764,7 @@ thick = ele%value(thickness$) / n_layer
 call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
-if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
 ! Check aperture
 
@@ -902,7 +902,7 @@ do im = 1, n_layer
 
 enddo
 
-if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_mosaic_crystal
 
@@ -963,7 +963,7 @@ cp%cap_gamma = r_e * cp%wavelength**2 / (pi * ele%value(v_unitcell$))
 call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
-if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
 ! Check aperture
 
@@ -1022,7 +1022,7 @@ else
   if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) orbit%vec(2:6:2) = cp%new_vvec
 endif
 
-if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_crystal
 
@@ -1054,7 +1054,6 @@ use super_recipes_mod
 
 type (ele_struct) ele
 type (coord_struct) orbit
-type (segmented_surface_struct), pointer :: segment
 
 real(rp) :: s_len, s1, s2, s_center, x0, y0, z
 integer status 
@@ -1065,9 +1064,7 @@ logical, optional :: curved_surface_rot
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
 
-if (ele%photon%surface%has_curvature) then
-
-  ele%photon%surface%segment%ix = int_garbage$; ele%photon%surface%segment%iy = int_garbage$
+if (has_curvature(ele%photon%surface)) then
 
   ! Assume flat crystal, compute s required to hit the intersection
 
@@ -1142,13 +1139,19 @@ real(rp), intent(in) :: s_len
 real(rp) :: delta_h
 real(rp) :: point(3)
 
-integer status
+integer status  ! Need to use status arg due to super_zbrent.
+logical err_flag
 
-!
+! Extend_grid = True is needed since test points may well be outside of the grid.
 
 point = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
-delta_h = point(3) - z_at_surface(ele, point(1), point(2), status)
-if (status /= 0) orbit%state = lost$
+delta_h = point(3) - z_at_surface(ele, point(1), point(2), err_flag, .true.)
+if (err_flag) then
+  orbit%state = lost$
+  status = 1
+else
+  status = 0
+endif
 
 end function photon_depth_in_element
 
@@ -1184,13 +1187,15 @@ subroutine rotate_for_curved_surface (ele, orbit, set, rot_mat)
 type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (photon_surface_struct), pointer :: s
+type (surface_grid_pt_struct), pointer :: pt
 
 real(rp) rot_mat(3,3)
 real(rp) rot(3,3), angle
-real(rp) slope_y, slope_x, x, y, zt, g(3), gs
+real(rp) dz_dy, dz_dx, x, y, z, zt, g(3), gs
 integer ix, iy
 
-logical set
+logical set, err_flag
+character(*), parameter :: r_name = 'rotate_for_curved_surface'
 
 ! Transform from local curved to body coords.
 
@@ -1207,47 +1212,61 @@ s => ele%photon%surface
 x = orbit%vec(1)
 y = orbit%vec(3)
 
-if (s%grid%type == segmented$) then
-  call init_surface_segment (x, y, ele)
-  slope_x = s%segment%slope_x; slope_y = s%segment%slope_y
+if (s%grid%type == segmented$ .and. s%grid%active) then
+  pt => pointer_to_surface_grid_pt(ele, .true., x, y)
+  if (.not. associated(pt)) then
+    orbit%state = lost$
+    call out_io (s_info$, r_name, 'Photon is outside of grid bounds for: ' // ele%name)
+    return
+  endif
+
+  dz_dx = pt%dz_dx; dz_dy = pt%dz_dy
 
 else
-
-  slope_x = 0
-  slope_y = 0
+  if (s%grid%type == displacement$) then
+    call surface_grid_displacement (ele, x, y, err_flag, z, dz_dx, dz_dy)
+    if (err_flag) then
+      orbit%state = lost$
+      call out_io (s_info$, r_name, 'Photon is outside of grid bounds for: ' // ele%name)
+      return
+    endif
+  else
+    dz_dx = 0
+    dz_dy = 0
+  endif
 
   do ix = 0, ubound(s%curvature_xy, 1)
   do iy = 0, ubound(s%curvature_xy, 2) - ix
     if (s%curvature_xy(ix, iy) == 0) cycle
-    if (ix > 0) slope_x = slope_x - ix * s%curvature_xy(ix, iy) * x**(ix-1) * y**iy
-    if (iy > 0) slope_y = slope_y - iy * s%curvature_xy(ix, iy) * x**ix * y**(iy-1)
+    if (ix > 0) dz_dx = dz_dx - ix * s%curvature_xy(ix, iy) * x**(ix-1) * y**iy
+    if (iy > 0) dz_dy = dz_dy - iy * s%curvature_xy(ix, iy) * x**ix * y**(iy-1)
   enddo
   enddo
 
   g = s%elliptical_curvature
   if (g(3) /= 0) then
     zt = sqrt(1 - (x * g(1))**2 - (y * g(2))**2)
-    slope_x = slope_x - x * g(1)**2 / (g(3) * zt)
-    slope_y = slope_y - y * g(2)**2 / (g(3) * zt)
+    dz_dx = dz_dx - x * g(1)**2 / (g(3) * zt)
+    dz_dy = dz_dy - y * g(2)**2 / (g(3) * zt)
   endif
 
   gs = s%spherical_curvature
   if (gs /= 0) then
     zt = sqrt(1 - (x * gs)**2 - (y * gs)**2)
-    slope_x = slope_x - x * gs**2 / (gs * zt)
-    slope_y = slope_y - y * gs**2 / (gs * zt)
+    dz_dx = dz_dx - x * gs**2 / (gs * zt)
+    dz_dy = dz_dy - y * gs**2 / (gs * zt)
   endif
 endif
 
-if (slope_x == 0 .and. slope_y == 0) then
+if (dz_dx == 0 .and. dz_dy == 0) then
   call mat_make_unit(rot_mat)
   return
 endif
 
 ! Compute rotation matrix and goto body element coords at point of photon impact
 
-angle = -atan2(sqrt(slope_x**2 + slope_y**2), 1.0_rp)
-call axis_angle_to_w_mat ([slope_y, -slope_x, 0.0_rp], angle, rot_mat)
+angle = -atan2(sqrt(dz_dx**2 + dz_dy**2), 1.0_rp)
+call axis_angle_to_w_mat ([dz_dy, -dz_dx, 0.0_rp], angle, rot_mat)
 
 orbit%vec(2:6:2) = matmul(rot_mat, orbit%vec(2:6:2))
 
@@ -1284,8 +1303,9 @@ character(*), parameter :: r_name = 'crystal_h_misalign'
 !
 
 s => ele%photon%surface
+if (.not. s%grid%active) return
 
-ij = nint((orbit%vec(1:3:2) + s%grid%r0) / s%grid%dr)
+ij = nint((orbit%vec(1:3:2) - s%grid%r0) / s%grid%dr)
 
 if (any(ij < lbound(s%grid%pt)) .or. any(ij > ubound(s%grid%pt))) then
   call out_io (s_error$, r_name, &

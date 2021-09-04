@@ -13,12 +13,14 @@ contains
 ! Subroutine photon_target_setup (ele)
 !
 ! Routine to calculate and store the parmeters needed for photon targeting.
+! This routine is called by Bmad parsing routines and is not meant for general use.
 !
 ! Photon initialization with targeting is done by the routine init_a_photon_from_a_photon_init_ele
 ! Which is called by init_coord. 
 !
 ! Input:
-!   ele       -- ele_struct: Source element to setup.
+!   ele       -- ele_struct: Source element to setup. 
+!                 Element will be of type: sample, diffraction_plate or photon_init.
 !
 ! Output:
 !   ele       -- ele_struct: Source element with target parameters setup in ele%photon%target.
@@ -34,9 +36,8 @@ type (branch_struct), pointer :: branch
 
 real(rp), pointer :: val(:)
 real(rp) z
-integer status
-logical :: is_bending_element, follow_fork, grid_defined
-character(*), parameter :: r_name = 'photon_target_setup '
+logical :: is_bending_element, follow_fork, grid_defined, err_flag
+character(*), parameter :: r_name = 'photon_target_setup'
 
 ! Init
 
@@ -62,7 +63,6 @@ endif
 ! Find next element with an aperture
 
 do 
-
   ap_ele => pointer_to_next_ele (ap_ele, skip_beginning = .true., follow_fork = follow_fork)
 
   if (ap_ele%value(x1_limit$) /= 0 .or. ap_ele%key == detector$) exit
@@ -76,10 +76,9 @@ do
     target%type = off$
     return
   endif
-
 enddo
 
-! get aperture corners...
+! Get aperture corners...
 ! Target info is stored in ele%photon%target so allocate ele%photon if needed.
 
 grid_defined = .false.
@@ -124,16 +123,16 @@ else
 
   if (associated(ap_ele%photon)) then
     if (ap_ele%photon%surface%has_curvature .and. ap_ele%aperture_at == surface$) then
-      z = z_at_surface(ele, -val(x1_limit$), -val(y1_limit$), status)
+      z = z_at_surface(ele, -val(x1_limit$), -val(y1_limit$), err_flag)
       call photon_target_corner_calc (ap_ele, -val(x1_limit$), -val(y1_limit$), z, ele, target%corner(5))
 
-      z = z_at_surface(ele, -val(x1_limit$), val(y1_limit$), status)
+      z = z_at_surface(ele, -val(x1_limit$), val(y1_limit$), err_flag)
       call photon_target_corner_calc (ap_ele, -val(x1_limit$),  val(y2_limit$), z, ele, target%corner(6))
 
-      z = z_at_surface(ele, val(x1_limit$), -val(y1_limit$), status)
+      z = z_at_surface(ele, val(x1_limit$), -val(y1_limit$), err_flag)
       call photon_target_corner_calc (ap_ele,  val(x2_limit$), -val(y1_limit$), z, ele, target%corner(7))
 
-      z = z_at_surface(ele, val(x1_limit$), val(y1_limit$), status)
+      z = z_at_surface(ele, val(x1_limit$), val(y1_limit$), err_flag)
       call photon_target_corner_calc (ap_ele,  val(x2_limit$),  val(y1_limit$), z, ele, target%corner(8))
       target%n_corner = 8
     endif

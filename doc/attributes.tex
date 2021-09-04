@@ -1168,21 +1168,22 @@ The coordinate system used for characterizing the curvature of a surface is the 
 frame as shown in \fig{f:surface}). This coordinate system has the $z$ axis pointing towards the
 interior of the element, and the $x$ axis in the plane defined by the entrance and exit reference
 orbit. In this coordinate system, the surface is an ellipsoid plus a fourth order polynomial in $x$
-and $y$ plus a possible ``figure error'' contribution $z_\text{fig}$ defined by a surface grid:
+and $y$ plus a possible ``figure error'' contribution $z_\text{off}$ defined by a surface grid:
 \begin{align}
   \label{xs2ij4}
   {-z} &= \frac{1}{g_z} \, \left[ 1 - \sqrt{1 - (g_x \, x)^2 - (g_y \, y)^2} \right] + \\
   &\qquad \qquad \frac{1}{g_{sp}} \, \left[ 1 - \sqrt{1 - (g_{sp} \, x)^2 - (g_{sp} \, y)^2} \right] + 
-  \sum_{2 \le i+j \le 6} c_{ij} \, x^i \, y^j - z_\text{fig} \nonumber
+  \sum_{2 \le i+j \le 6} c_{ij} \, x^i \, y^j - z_\text{off} \nonumber
 \end{align}
-$z_\text{fig}$ is discussed in section~\sref{s:surf.grid} and is only present when the surface grid
-\vn{type} is set to \vn{Figure_Error}. In \Eq{xs2ij4} the $c_{ij}$ coefficients parameterize the
+$z_\text{off}$ is discussed in section~\sref{s:surf.grid} and is only present when the surface grid
+\vn{type} is set to \vn{Displacement}. In \Eq{xs2ij4} the $c_{ij}$ coefficients parameterize the
 fourth order polynomial, $g_{sp}$ parameterize the spherical curvature, and $g_x, g_y$, and $g_z$
 parameterize ellipsoid curvature. [In principle, the spherical curvature is not needed since the
-elliptical curvature is more general. In practice, it is sometimes convenient to be able to specify spherical
-curvature.]  If $g_z$ is zero, the elliptical curvature is ignored. If $g_z$ or $g_{sp}$ is
-positive, the curvature is concave towards the incoming photon. If negative, the curvature is convex.
-The spherical and ellipsoid parameters are set for an element by setting the element parameters
+elliptical curvature is more general. In practice, it is sometimes convenient to be able to specify
+spherical curvature.]  If $g_z$ is zero, the elliptical curvature is ignored. If $g_z$ or $g_{sp}$
+is positive, the curvature is concave towards the incoming photon. If negative, the curvature is
+convex.  The spherical and ellipsoid parameters are set for an element by setting the element
+parameters
 \begin{example}
   spherical_curvature    = <Real>   ! \(g_{sp}\)
   elliptical_curvature_x = <Real>   ! \(g_{x}\)
@@ -1204,11 +1205,9 @@ Example:
 \begin{example}
   c2: crystal, spherical_curvature = 1/4.7, curvature_x2_y0 = 0.37, ...
 \end{example}
-in this example, \vn{curvature_x2_y0} corresponds to the $c_{20}$ term
-in \Eq{xs2ij4}. To get the effect of a nonzero $x^0\, y^0$, $x^1 \,
-y^0$, or $x^0 \, y^1$ terms (since corresponding \vn{curvature_xN_yM}
-are not permitted), element offsets and pitches can be used
-(\sref{s:offset}).
+in this example, \vn{curvature_x2_y0} corresponds to the $c_{20}$ term in \Eq{xs2ij4}. To get the
+effect of a nonzero $x^0\, y^0$, $x^1 \, y^0$, or $x^0 \, y^1$ terms (since corresponding
+\vn{curvature_xN_yM} are not permitted), element offsets and pitches can be used (\sref{s:offset}).
 
 Some useful formulas: Series expansion for a sphere of radius $R$:
 \begin{equation}
@@ -1266,18 +1265,19 @@ A surface can be broken up into a grid of rectangles. This is useful, for exampl
 and other elements. The general syntax is:
 \begin{example}
   surface = \{
-    grid = \{                
-      type = <type_name>,                ! Off, Segmented, Figure_Error, or H_Misalign
+    grid = \{
+      active = <T/F>                     ! Turn on/off effect of grid. Default = True
+      type = <type_name>,                ! Segmented, Displacement, or H_Misalign
       ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
       iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
       r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
       dr = (<dx>, <dy>),                 ! width and height of pixels.
       ! Grid points used with type = H_Misalign:
-      pt(<i>,<j>) = (<dz_dx>, <dz_dy>, <dz_dx_rms>, <dz_dy_rms>)
-      ! Grid points used with type = Figure_Error:
-      pt(<i>,<j>) = (<z>, <dz_dx>, <dz_dy>),    ! or
-      pt(<i>,<j>) = <z>, 
-                                         
+      pt(<i>,<j>) = (<dz/dx>, <dz/dy>, <dz/dx_rms>, <dz/dy_rms>),
+      ! Grid points used with type = Displacement:
+      pt(<i>,<j>) = (<z>),                                    ! or
+      pt(<i>,<j>) = (<z>, <dz/dx>, <dz/dy>),                ! or
+      pt(<i>,<j>) = (<z>, <dz/dx>, <dz/dy>, <d2z/dxdy>),
           \} \}
 \end{example}
 Example:
@@ -1307,20 +1307,20 @@ the center of the $(i,j)$ pixel is:
 There are several types of grids. What type of grid is determined by the \vn{type} component
 Possible \vn{type} values are:
 \begin{example}
-  Figure_Error       ! Mesh defines the surface figure error.
+  Displacement       ! Mesh defines an offset from the nominal surface.
   H_Misalign         ! Misalignment of crystal H vector
-  Off                ! Ignore grid
   Segmented          ! Surface is a matrix of flat rectangles
 \end{example}
+Note: The \vn{type} {\em must} be set before specifying any \vn{pt}. 
 
 \begin{description}
-\item[Figure_Error] \Newline
-With the \vn{type} parameter set to \vn{Figure_Error}, a figure error, $z_\text{fig}$ is added to
-the surface curvature defined in \Eq{xs2ij4}. $z_\text{fig}$ is determined by a spline
-interpolation of the $z$ values of the grid of points defined by \vn{pt(<i>,<j>)}. For each point
-\vn{pt(<i>,<j>)}, the $z$ value along with the $dz_dx$ and $dz_dy$ slopes can be specified or only
-the $z$ value needs to be specified. With the later option the slopes will be computed by taking
-finite differences of nearest neighbors.
+\item[Displacement] \Newline
+With the \vn{type} parameter set to \vn{Displacement}, an offset $z_\text{off}$ is added to the surface
+position defined in \Eq{xs2ij4}. The $z$ offset at a given $(x,y)$ position is determined by a
+spline interpolation of the $z$ values of the grid of points defined by \vn{pt(<i>,<j>)}. For each
+point \vn{pt(<i>,<j>)}, the $z$ value along with the $dz/dx$, $dz/dy$, $d2z/dxdy$ slopes can be specified or
+only the $z$ value needs to be specified. With the later option the slopes will be computed by
+taking finite differences of nearest neighbors.
 %
 \item[H_Misalign] \Newline
 A setting of the \vn{type} attribute to \vn{H_Misalign} is used with crystals only. With
@@ -1329,16 +1329,13 @@ diffracting planes of the crystal (\sref{s:crystal.tracking}).  When using \vn{H
 \vn{pt(i,j)} component gives the misalignment of $H$ for the corresponding pixel. For an individual
 photon, the misalignment of $H$ will be
 \begin{example}
-  dz_dx_tot = <dz_dx> + r1 * <dz_dx_rms>
-  dz_dy_tot = <dz_dy> + r2 * <dz_dy_rms>
+  dz/dx_tot = <dz/dx> + r1 * <dz/dx_rms>
+  dz/dy_tot = <dz/dy> + r2 * <dz/dy_rms>
 \end{example}
-where \vn{dz_dx_tot} and \vn{dz_dy_tot} are the rotational misalignment (\sref{s:offset}) used
+where \vn{dz/dx_tot} and \vn{dz/dy_tot} are the rotational misalignment (\sref{s:offset}) used
 in the calculation, the quantities in brackets \vn{<...>} are components of \vn{pt}, and \vn{r1} and
 \vn{r2} are Gaussian distributed random numbers with unit rms. These random numbers are regenerated
-for each photon. Note: \vn{pt} is only used with \vn{H_Misalign}.
-%
-\item[Off] \Newline
-When the \vn{type} component is set to \vn{Off}, the grid will not be used.
+for each photon.
 %
 \item[Segmented] \Newline
 When the \vn{type} component is set to \vn{Segmented}, the crystal surface is modeled as a grid of
@@ -1349,9 +1346,10 @@ the corresponding pixel. \Eq{xs2ij4} is used to calculate the $z$ coordinate of 
 rectangle and then these $z$ values are adjusted so that
 \begin{example}
   1) The rectangle is flat (the vertices all lie on a plane).
-  2) The rectangle contacts the unsegmented surface (\Eq{xs2ij4}) at two diagonally opposite vertices.
-  3) The other two diagonally opposite vertices will be as close as possible in the
-     least squares sense from the unsegmented surface.
+  2) The rectangle contacts the unsegmented surface (\Eq{xs2ij4}) at two 
+       diagonally opposite vertices.
+  3) The other two diagonally opposite vertices will be as close as possible 
+       in the least squares sense from the unsegmented surface.
 \end{example}
 Note: The \vn{pt} component is not used here.
 \end{description}

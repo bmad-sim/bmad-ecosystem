@@ -473,6 +473,8 @@ case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'LR_WAKE%AMP_SCALE', 'LR_WAKE%TIME_SC
     a_ptr%l => ele%wake%sr%scale_with_length
   end select
 
+case ('SURFACE%GRID%ACTIVE')
+  a_ptr%l => ele%photon%surface%grid%active
 case ('SPHERICAL_CURVATURE')
   a_ptr%r => ele%photon%surface%spherical_curvature
 case ('ELLIPTICAL_CURVATURE_X')

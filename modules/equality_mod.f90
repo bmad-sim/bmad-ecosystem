@@ -22,16 +22,15 @@ interface operator (==)
   module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
   module procedure eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field
   module procedure eq_floor_position, eq_high_energy_space_charge, eq_xy_disp, eq_twiss, eq_mode3
-  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface
-  module procedure eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_material, eq_photon_element
-  module procedure eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_control, eq_controller_var1
-  module procedure eq_controller, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init
-  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
-  module procedure eq_normal_modes, eq_em_field, eq_track_point, eq_track, eq_synch_rad_common
-  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele
-  module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat
-  module procedure eq_bunch, eq_bunch_params, eq_beam, eq_aperture_point, eq_aperture_param
-  module procedure eq_aperture_scan
+  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_target_point
+  module procedure eq_photon_surface, eq_photon_target, eq_photon_material, eq_photon_element, eq_wall3d_vertex
+  module procedure eq_wall3d_section, eq_wall3d, eq_control, eq_controller_var1, eq_controller
+  module procedure eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init, eq_lat_param
+  module procedure eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes
+  module procedure eq_em_field, eq_track_point, eq_track, eq_synch_rad_common, eq_csr_parameter
+  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele, eq_ele
+  module procedure eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat, eq_bunch
+  module procedure eq_bunch_params, eq_beam, eq_aperture_point, eq_aperture_param, eq_aperture_scan
 end interface
 
 contains
@@ -1269,6 +1268,18 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%orientation == f2%orientation)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z0 == f2%z0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x0 == f2%x0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y0 == f2%y0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dz_dx == f2%dz_dx)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dz_dy == f2%dz_dy)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%d2z_dxdy == f2%d2z_dxdy)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_photon == f2%n_photon)
 !! f_side.equality_test[complex, 0, NOT]
@@ -1307,6 +1318,8 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%file == f2%file)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%active .eqv. f2%active)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[real, 1, NOT]
@@ -1321,36 +1334,6 @@ if (.not. is_eq) return
 if (allocated(f1%pt)) is_eq = all(f1%pt == f2%pt)
 
 end function eq_surface_grid
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
-elemental function eq_segmented_surface (f1, f2) result (is_eq)
-
-implicit none
-
-type(segmented_surface_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix == f2%ix)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%iy == f2%iy)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x0 == f2%x0)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y0 == f2%y0)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%z0 == f2%z0)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%slope_x == f2%slope_x)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%slope_y == f2%slope_y)
-
-end function eq_segmented_surface
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1385,8 +1368,6 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%grid == f2%grid)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%segment == f2%segment)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%curvature_xy == f2%curvature_xy)
 !! f_side.equality_test[real, 0, NOT]
@@ -2374,6 +2355,8 @@ is_eq = is_eq .and. (f1%lin_i5b_e6 == f2%lin_i5b_e6)
 is_eq = is_eq .and. (f1%lin_norm_emit_a == f2%lin_norm_emit_a)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%lin_norm_emit_b == f2%lin_norm_emit_b)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%lin_sig_e == f2%lin_sig_e)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%n_steps == f2%n_steps)
 

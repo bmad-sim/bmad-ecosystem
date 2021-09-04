@@ -475,6 +475,8 @@ integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
 integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
 integer, parameter :: pre_born$ = 8    ! EG: For electrons not yet emitted from a cathode.
 
+real(rp), parameter :: vec0$(6) = 0
+
 ! The %location component gives the particle location with respect to the element being tracked through
 ! even if that element is a super_slave or slice_slave. For example, a particle at the beginning of a
 ! slice_element will have %location = upstream_end$ even though the slice is at the center of the
@@ -885,6 +887,10 @@ end type
 
 type surface_grid_pt_struct
   type (surface_orientation_struct) :: orientation = surface_orientation_struct()
+  real(rp) :: z0 = 0                         ! Height at center
+  real(rp) :: x0 = 0, y0 = 0                 ! Position at center
+  real(rp) :: dz_dx = 0, dz_dy = 0           ! Slope at center
+  real(rp) :: d2z_dxdy = 0                   ! d2z/dxdy at center
   ! Photon statistics...
   integer :: n_photon = 0
   complex(rp) :: E_x  = 0, E_y = 0
@@ -895,30 +901,26 @@ type surface_grid_pt_struct
   real(rp) :: init_orbit_rms(6) = 0   ! Initial orbit at start of lattice RMS statistics.
 end type
 
-integer, parameter :: segmented$ = 2, h_misalign$ = 3, diffract_target$ = 4
-character(16), parameter :: surface_grid_type_name(0:4) = ['GARBAGE!       ', 'Off            ',  &
-                                        'Segmented      ', 'H_Misalign     ', 'Diffract_Target']
+integer, parameter :: segmented$ = 1, h_misalign$ = 2, displacement$ = 3, diffract_target$ = 4
+character(16), parameter :: surface_grid_type_name(0:4) = [character(16):: 'GARBAGE!', &
+                               'Segmented', 'H_Misalign', 'Displacement', 'Diffract_Target']
+character(16), parameter :: input_surface_grid_type_name(0:3) = surface_grid_type_name(0:3)
+
+! grid%type = diffract_target$ is set by Bmad when Bmad uses the grid structure for targeting calculations.
+! That is, grid%type is never set to diffract_target in a lattice file
 
 type surface_grid_struct
   character(200) :: file = ''
-  integer :: type = off$   ! or segmented$, or h_misalign$, or diffract_target$
+  logical :: active = .true.
+  integer :: type = not_set$   ! offset$, segmented$, h_misalign$, or diffract_target$
   real(rp) :: dr(2) = 0, r0(2) = 0
   type (surface_grid_pt_struct), allocatable :: pt(:,:) 
-end type
-
-! Scratch space for segmented surface calculations
-
-type segmented_surface_struct
-  integer :: ix = int_garbage$, iy = int_garbage$    ! Index of segment
-  real(rp) :: x0 = 0, y0 = 0, z0 = 0         ! Center of segment
-  real(rp) :: slope_x = 0, slope_y = 0       ! Slopes of segment
 end type
 
 ! Surface container structure
 
 type photon_surface_struct
-  type (surface_grid_struct) :: grid = surface_grid_struct('', off$, 0, 0, null())
-  type (segmented_surface_struct) :: segment = segmented_surface_struct()
+  type (surface_grid_struct) :: grid = surface_grid_struct('', .true., not_set$, 0, 0, null())
   real(rp) :: curvature_xy(0:6,0:6) = 0
   real(rp) :: spherical_curvature = 0
   real(rp) :: elliptical_curvature(3) = 0   ! Total curvature = elliptical + spherical
@@ -1684,7 +1686,7 @@ integer, parameter :: ref_origin$ = 118
 integer, parameter :: ele_origin$ = 119
 
 integer, parameter :: superimpose$     = 120   
-integer, parameter :: offset$          = 121
+integer, parameter :: super_offset$    = 121
 integer, parameter :: reference$       = 122
 integer, parameter :: cartesian_map$   = 123
 integer, parameter :: cylindrical_map$ = 124

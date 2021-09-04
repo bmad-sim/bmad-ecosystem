@@ -729,24 +729,24 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     if (associated(ele%photon)) then
       surf => ele%photon%surface
-      if (all (surf%grid%type /= [off$, segmented$, h_misalign$, diffract_target$])) then
+      if (all (surf%grid%type /= [not_set$, segmented$, h_misalign$, diffract_target$, displacement$])) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'HAS AN INVALID SURFACE%GRID%TYPE SETTING: \i0\ ', i_array = [surf%grid%type])
         err_flag = .true.
       endif
 
-      if (surf%grid%type /= off$ .and. any (surf%grid%dr == 0)) then
+      if (surf%grid%type /= not_set$ .and. any (surf%grid%dr == 0)) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'HAS A ZERO DR VALUE BUT THE GRID TYPE IS NOT OFF. \2f10.2\ ', r_array = surf%grid%dr)
         err_flag = .true.
       endif
 
-      if (surf%grid%type == h_misalign$ .and. .not. allocated(surf%grid%pt)) then
+      if (surf%grid%type /= not_set$ .and. .not. allocated(surf%grid%pt)) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
-                  'HAS GRID TYPE H_MISALIGN BUT NO GRID IS DEFINED!')
+                  'HAS NO GRID IS DEFINED!')
         err_flag = .true.
       endif
 
