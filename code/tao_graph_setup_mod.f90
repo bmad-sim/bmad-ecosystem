@@ -1214,7 +1214,7 @@ end subroutine tao_graph_data_setup
 
 subroutine tao_curve_data_setup (plot, graph, curve)
 
-use nrutil, only: swap
+use swap_mod
 
 implicit none
 

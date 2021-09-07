@@ -22,7 +22,7 @@ subroutine tao_svd_optimizer (abort)
 use LA_PRECISION, ONLY: WP => DP
 use f95_lapack
 
-use nr
+use nr, only: svbksb
 
 implicit none
 
