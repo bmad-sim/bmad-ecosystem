@@ -1,6 +1,7 @@
 module filename_mod
 
 use output_mod
+use sim_utils_interface
 
 contains
 
@@ -18,9 +19,8 @@ contains
 ! Input:
 !   filename -- Character(*): Name requiring expansion of an environment
 !                  variable.  The name can be of the form:
-!                      $ENV_VARIABLE/foo.bar  (UNIX form) 
-!                  Hardwired paths are also accepted but strongly discouraged 
-!                  because of the resulting platform dependence (see above).
+!                      $ENV_VARIABLE/foo.bar  (UNIX form)
+!
 ! Output:
 !   outfile  -- Character(*): Expanded name.
 !   valid    -- Logical, optional: Set False if, under UNIX, an environmental 
@@ -32,10 +32,10 @@ contains
 !      DUMMY = /home/cesr/dummy
 !    Then the following behaviors will result when using fullfilename:
 !
-!      Filename                    outfile
-!      -----------------------    ---------------------------
-!      $DUMMY/foo.bar'            '/home/cesr/dummy/foo.bar'
-!      /home/cesr/dummy/foo.bar'  '/home/cesr/dummy/foo.bar'
+!      Filename                     outfile
+!      -----------------------      ---------------------------
+!      '$DUMMY/foo.bar'             '/home/cesr/dummy/foo.bar'
+!      '/home/cesr/dummy/foo.bar'   '/home/cesr/dummy/foo.bar'
 !-
 
 subroutine FullFileName (filename, outfile, valid)
@@ -49,40 +49,36 @@ character(*) outfile
 logical, optional :: valid
 
 character(*), parameter :: r_name = 'FullFileName'
-character(len(outfile)) expandname        ! Expanded Name
+character(len(outfile)) expandname, name0        ! Expanded Name
 
 integer InLen, iDollar, iColon, iSlash
 integer i, ix
 integer explen
 
-logical, save :: rcsini = .true.
-
-
-! Assign input to output by default
-
-if (present(valid)) valid = .false.
-outfile = filename
-
-if (filename == '') return  ! Blank is invalid
-
 ! Get length of input file name
 
-InLen = Len_Trim(filename)
+if (present(valid)) valid = .false.
 
-!     
+InLen = len_trim(filename)
 
-if (InLen .gt. len(outfile)) then
+if (InLen > len(outfile)) then
   call out_io (s_error$, r_name, 'Outfile argument string length too small: \i0\ ', len(outfile))
   return
 endif
 
+! Assign input to output by default
+
+outfile = unquote(filename)
+if (outfile == '') return  ! Blank is invalid
+name0 = outfile
+expandname = outfile
+
 ! Locate special characters (first dollar-sign, first colon, first slash)
 
-iDollar = Index(filename(:InLen), '$' )
-iColon  = Index(filename(:InLen), ':' )
-iSlash  = Index(filename(:InLen), '/' )
+iDollar = Index(name0(:InLen), '$' )
+iColon  = Index(name0(:InLen), ':' )
+iSlash  = Index(name0(:InLen), '/' )
 
-expandname = filename
 
 !-----------------------------------------------------------------------
 ! Translation on WINDOWS (from unix to windows)
@@ -117,7 +113,6 @@ elseif (iColon > 1) then
   ExpLen      = Len_Trim(expandname)
   if (ExpLen == 0) return
   expandname(ExpLen+1:) = '/' // filename(iColon+1:InLen)
-  outfile = expandname
 endif
 
 
@@ -135,18 +130,18 @@ if (present(valid)) valid = .true.
 
 ! Tilde
 
-if (filename(1:1) == '~') then
+if (name0(1:1) == '~') then
   call GetEnv('HOME', expandname)
   if (expandname == '') return
 
-  if (filename(2:2) == '/') then
-    expandname = trim(expandname) // filename(2:)
+  if (name0(2:2) == '/') then
+    expandname = trim(expandname) // name0(2:)
   else
     ix = index(expandname, '/', back = .true.)
     if (ix == 0) then
-      expandname = trim(expandname) // '/' // filename
+      expandname = trim(expandname) // '/' // name0
     else
-      expandname = expandname(1:ix) // filename
+      expandname = expandname(1:ix) // name0
     endif
   endif
 
@@ -155,16 +150,16 @@ if (filename(1:1) == '~') then
 elseif (iDollar == 1) then
   if (iSlash == 0) then
         
-    call GetEnv(filename(2:InLen), expandname)
+    call GetEnv(name0(2:InLen), expandname)
     if (len_trim(expandname) == 0) return
 
   ! Environment variable plus short name specifies the full name
 
   elseif (iSlash > 2) then
-    call GetEnv(filename(2:iSlash-1), expandname)
+    call GetEnv(name0(2:iSlash-1), expandname)
     ExpLen = Len_Trim(expandname)
     if (ExpLen == 0) return
-    expandname(ExpLen+1:) = filename(iSlash:InLen)
+    expandname(ExpLen+1:) = name0(iSlash:InLen)
   endif
 endif
 
@@ -173,7 +168,7 @@ if (present(valid)) valid = .true.
 
 #endif
 
-end subroutine
+end subroutine FullFileName
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -205,7 +200,7 @@ implicit none
 character(*) filename, path, basename
 logical, optional :: is_relative
 
-character(16), parameter :: r_name = 'Splitfilename'
+character(*), parameter :: r_name = 'Splitfilename'
 
 Integer InLen, ix_char, ix
 Integer iBracket, iColon, iSlash
@@ -237,7 +232,7 @@ ix_char = ix
 
 if (present(is_relative)) is_relative = file_name_is_relative(path)
 
-end function
+end function Splitfilename
 
 !-----------------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -266,7 +261,7 @@ implicit none
 
 character(*) file_name
 character(len(file_name)) name
-character(24), parameter :: r_name = 'file_name_is_relative'
+character(*), parameter :: r_name = 'file_name_is_relative'
 integer ix
 logical is_rel
 
@@ -372,7 +367,7 @@ loop: do
   name_out = name_out(ix+4:)
 enddo loop
 
-end subroutine
+end subroutine simplify_path
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -409,7 +404,7 @@ implicit none
 
 character(*) dir, sub_dir, dir_out
 character(len(dir_out)) temp
-character(24) :: r_name = 'Append_SubDirectory'
+character(*), parameter :: r_name = 'Append_SubDirectory'
 
 integer n_dir
 
@@ -444,6 +439,6 @@ dir_out = temp
 
 err = .false.
 
-end subroutine
+end subroutine append_subdirectory
 
 end module
