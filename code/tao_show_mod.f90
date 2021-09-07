@@ -1834,6 +1834,7 @@ case ('global')
     call write_this_arg (nl, lines, '  -slice_lattice', s%init%slice_lattice_arg)
     call write_this_arg (nl, lines, '  -start_branch_at', s%init%start_branch_at_arg)
     call write_this_arg (nl, lines, '  -startup_file', s%init%startup_file_arg)
+    call write_this_arg (nl, lines, '  -symbol_import', s%init%symbol_import_arg)
     call write_this_arg (nl, lines, '  -var_file', s%init%var_file_arg)
 
   case ('-ran_state')

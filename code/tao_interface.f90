@@ -752,20 +752,6 @@ subroutine tao_remove_blank_characters (str)
   character(*) str
 end subroutine
 
-subroutine tao_set_opt_vars (var_vec, print_limit_warning)
-  import
-  implicit none
-  real(rp) var_vec(:)
-  logical, optional :: print_limit_warning
-end subroutine
-
-function tao_srdt_calc_needed (data_type, data_source) result (do_srdt)
-  import
-  implicit none
-  character(*) data_type, data_source
-  integer do_srdt
-end function
-
 subroutine tao_read_cmd (which, unis, file, silent)
   implicit none
   character(*) which, unis, file
@@ -818,9 +804,29 @@ end subroutine
 subroutine tao_set_var_useit_opt ()
 end subroutine
 
+subroutine tao_set_opt_vars (var_vec, print_limit_warning)
+  import
+  implicit none
+  real(rp) var_vec(:)
+  logical, optional :: print_limit_warning
+end subroutine
+
 subroutine tao_setup_key_table ()
   import
   implicit none
+end subroutine
+
+function tao_srdt_calc_needed (data_type, data_source) result (do_srdt)
+  import
+  implicit none
+  character(*) data_type, data_source
+  integer do_srdt
+end function
+
+subroutine tao_symbol_import_from_lat(lat)
+  import
+  implicit none
+  type (lat_struct) lat
 end subroutine
 
 subroutine tao_quiet_set (set)

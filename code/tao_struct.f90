@@ -700,6 +700,7 @@ type tao_global_struct
   logical :: var_limits_on = .true.                   ! Respect the variable limits?
   logical :: wait_for_CR_in_single_mode = .false.     ! For use with a python GUI.
   logical :: blank_line_between_commands = .true.     ! Add a blank line between command output?
+  logical :: symbol_import = .false.                  ! Import symbols from lattice file(s)?
 end type
 
 !
@@ -820,6 +821,7 @@ type tao_init_struct
   character(12) :: quiet_arg = ''                  ! -quiet               command line argument
   character(12) :: noinit_arg = ''                 ! -noinit              command line argument
   character(12) :: nostartup_arg = ''              ! -nostartup           command line argument
+  character(12) :: symbol_import_arg = ''          ! -symbol_import       command line argument
   character(100) :: unique_name_suffix = ''
 end type
 

@@ -83,11 +83,12 @@ do
   endif
 
   call match_word (arg1, [character(44):: '-?', '-init_file', '-noinit', '-nostartup', '-beam0', '-clear', &
-        '-noplot', '-lattice_file', '-log_startup', '-beam_file', '-var_file', '-data_file', '-building_wall_file', &
+        '-noplot', '-lattice_file', '-log_startup', '-beam_file', '-var_file', '-data_file', &
         '-startup_file', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
-        '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', '-beam_track_data_file', &
+        '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', &
         '-beam_init_file_name', '-slice_lattice', '-start_branch_at', '-prompt_color', '-beam_init_position_file', &
-        '-plot_file', '-external_plotting', '-quiet', '-no_rad_int', '-command'], ix, .true., matched_name=switch)
+        '-plot_file', '-external_plotting', '-quiet', '-no_rad_int', '-command', &
+        '-beam_track_data_file', '-symbol_import', '-building_wall_file'], ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
 
@@ -196,6 +197,9 @@ do
   case ('-startup_file')
     call get_next_arg (arg0, s%init%startup_file_arg, i_arg, n_arg)
 
+  case ('-symbol_import')
+    s%init%symbol_import_arg = '<present>'
+
   case ('-var_file')
     call get_next_arg (arg0, s%init%var_file_arg, i_arg, n_arg)
 
@@ -235,6 +239,7 @@ do
   case ('--slice_lattice');                       s%init%slice_lattice_arg = ''
   case ('--start_branch_at');                     s%init%start_branch_at_arg = ''
   case ('--startup_file');                        s%init%startup_file_arg = ''
+  case ('--symbol_import');                       s%init%symbol_import_arg = ''
   case ('--var_file');                            s%init%var_file_arg = ''
   end select
 enddo

@@ -225,6 +225,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     !
 
     if (s%com%combine_consecutive_elements_of_like_name) call combine_consecutive_elements(u%design%lat, err)
+    if (s%global%symbol_import) call tao_symbol_import_from_lat(u%design%lat)
 
     unique_name_suffix = s%init%unique_name_suffix
     do
