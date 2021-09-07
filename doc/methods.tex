@@ -453,7 +453,7 @@ for the calculation.  This method is symplectic but can be slow.
 \end{description}
 
 Since speed may be an issue, \bmad has an global parameter called \vn{spin_tracking_on} which is
-part of the \vn{bmad_com} instance (\sref{s:bmad.com}) that determines whether spin is tracked or
+part of the \vn{bmad_com} instance (\sref{s:bmad.ptc.com}) that determines whether spin is tracked or
 not. Note: There is also another \vn{bmad_com} parameter called \vn{spin_baier_katkov_flipping_on}
 which can influence spin tracking.
 
@@ -644,7 +644,7 @@ strength. One should consider the default as more of a guesstimate.
 \index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
 The \vn{runge_kutta} and \vn{time_runge_kutta} tracking uses adaptive step
 control independent of \vn{ds_step}. These methods use three \vn{bmad_com} parameters
-\sref{s:bmad.com}) namely:
+\sref{s:bmad.ptc.com}) namely:
 \begin{example}
   bmad_com[rel_tol_adaptive_tracking]
   bmad_com[abs_to_adaptive_tracking]
@@ -830,7 +830,7 @@ set \vn{taylor_map_includes_offsets} to \vn{True} and if the orientation is
 varying it is faster to set \vn{taylor_map_includes_offsets} to \vn{False}.
 
 If the global parameter \vn{bmad_com%conserve_taylor_maps}
-(\sref{s:bmad.com}) is set to True (the default), then, if an
+(\sref{s:bmad.ptc.com}) is set to True (the default), then, if an
 element is offset within a program, and if \vn{taylor_map_include_offsets} is set
 to True for that element, \bmad will toggle \vn{taylor_map_include_offsets} to
 False to conserve the map.

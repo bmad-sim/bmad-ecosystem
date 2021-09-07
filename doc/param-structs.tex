@@ -54,7 +54,7 @@ this sets the \vn{max_aperture_limit} parameter of \vn{bmad_com} which is an ins
 should be documented in the program manual.
 
 Note: Thought must be given to setting \vn{bmad_com} and other global parameters in a lattice file
-(sref{s:bmad.ptc.com}) since that will affect every program that uses the lattice.
+(\sref{s:bmad.ptc.com}) since that will affect every program that uses the lattice.
 
 %-----------------------------------------------------------------
 \section{Bmad_Common_Struct}
@@ -310,27 +310,22 @@ Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
 \section{PTC_Common_Struct}
 \label{s:ptc.common}
 
-The \vn{bmad_common_struct} structure contains a set of global parameters. There is only one global
-instance (\sref{c:param.structs}) of this structure and this instance has the name
-\vn{bmad_com}. The components of this structure along with the default values are:
+The \vn{ptc_common_struct} structure contains a set of global parameters that effect tracking when
+PTC is involved. There is only one global instance (\sref{c:param.structs}) of this structure and
+this instance has the name \vn{ptc_com}. The components of this structure along with the default
+values are:
 \begin{example}
   type ptc_common_struct
-  integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set
-  integer :: taylor_order_saved = 3     ! Default to use.
-  logical :: complex_ptc_used = .true.  ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
-  logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
-  type (internal_state) :: base_state   ! Base PTC state.
-  integer, pointer :: max_fringe_order  => null()  ! Points to PTC HIGHEST_FRINGE. 2 (default) => Quadrupole.
-  logical, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR.
-  logical, pointer :: exact_model       => null()  ! Points to PTC EXACT_MODEL.
-  logical, pointer :: exact_misalign    => null()  ! Points to ptc ALWAYS_EXACTMIS. Notice different names.
+    taylor_order_ptc = 3    ! What has been set in PTC. 0 -> not yet set
+    taylor_order_saved = 3  ! Default to use.
+    max_fringe_order  = 2   ! 2 => Quadrupole.
+    complex_ptc_used = True ! Complex PTC code in use? 
+    use_totalpath  = False  ! phase space z = time instead of time - ref_time?
+    old_integrator = True   ! PTC OLD_INTEGRATOR.
+    exact_model    = False  ! PTC EXACT_MODEL.
+    exact_misalign = True   ! PTC ALWAYS_EXACTMIS.
   end type
 \end{example}
-
-
-
-
-\etcetc
 
 %-----------------------------------------------------------------
 \section{Bmad_Com and PTC_Com}

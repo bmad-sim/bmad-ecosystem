@@ -1893,24 +1893,17 @@ reference orbit. Therefore, turning off an \vn{lcavity} will not affect the refe
 
 The following elements cannot be ``turned off:''
 \begin{example}
-  beginning_ele
-  capillary
-  crystal
-  drift
-  fiducial
-  floor_shift
-  patch
+  beginning_ele       null_ele
+  capillary           overlay
+  crystal             hybrid
+  drift               mirror
+  fiducial            multilayer_mirror
+  floor_shift         photon_init
+  patch               sample
   group
-  null_ele
-  overlay
-  hybrid
-  mirror
-  multilayer_mirror
-  photon_init
-  sample
 \end{example}
 
-A related is \vn{multipoles_on} (\sref{s:multip}.
+A related parameter is \vn{multipoles_on} (\sref{s:multip}).
 
 %-----------------------------------------------------------------
 \section{Multipole Attributes: Magnetic and Electric}
