@@ -292,8 +292,6 @@ end subroutine tao_to_top10
 
 subroutine tao_show_constraints (iunit, form)
 
-use nr
-
 implicit none
 
 type (tao_top10_struct) top_merit(s%global%n_top10_merit)

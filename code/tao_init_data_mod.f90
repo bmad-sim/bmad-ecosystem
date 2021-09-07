@@ -25,7 +25,6 @@ use tao_data_and_eval_mod
 use tao_lattice_calc_mod
 use tao_input_struct
 use random_mod
-use nr, only: indexx
   
 implicit none
 
