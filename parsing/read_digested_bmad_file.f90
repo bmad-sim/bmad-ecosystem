@@ -207,7 +207,7 @@ read (d_unit, err = 9035, end = 9035) n
 if (allocated(lat%constant)) deallocate(lat%constant)
 allocate(lat%constant(n))
 do i = 1, n
-  read (d_unit, err = 9035, end = 9035) lat%constant(n)
+  read (d_unit, err = 9035, end = 9035) lat%constant(i)
 enddo
 
 ! Allocate lat%ele, lat%control and lat%ic arrays
