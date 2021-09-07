@@ -351,8 +351,8 @@ character(*) default_merit_type
 character(20) fmt
 character(40) name
 character(40), allocatable :: ele_names(:)
-character(60) search_string
-character(20) :: r_name = 'tao_var_stuffit1'
+character(200) search_string
+character(*), parameter :: r_name = 'tao_var_stuffit1'
 
 integer i, iu, ip, j, jj, k, kk, n, nn, n1, n2, ix1, ix2, ix
 integer num_ele, ios, ix_uni, ixm, ix2m
@@ -788,7 +788,7 @@ type (all_pointer_struct) a_ptr
 
 integer ix, ix_uni, ix_slave
 logical :: err
-character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
+character(*), parameter :: r_name = 'tao_pointer_to_var_in_lattice'
 
 ! locate element
 
@@ -899,7 +899,7 @@ type (all_pointer_struct), allocatable :: a_ptr(:), b_ptr(:), cm_ptr(:), cb_ptr(
 
 integer ii, ix, ix_uni, n_old
 logical :: err
-character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
+character(*), parameter :: r_name = 'tao_pointer_to_var_in_lattice'
 
 ! locate element
 
