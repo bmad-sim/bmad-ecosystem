@@ -95,10 +95,9 @@ For a listing of element attributes for each type of element, see Chapter~\sref{
 \label{s:ab.m}
 \index{ab_multipole|hyperbf}
 
-An \vn{ab_multipole} is a thin magnetic multipole lens up to 21\St order. The
-basic difference between this and a \vn{multipole} (\sref{s:mult} is
-the input format. See section~\sref{s:mag.field} for how the multipole
-coefficients are defined.
+An \vn{ab_multipole} is a thin magnetic multipole lens up to 21\St order. The basic difference
+between this and a \vn{multipole} (\sref{s:mult}) is the input format. See
+section~\sref{s:mag.field} for how the multipole coefficients are defined.
 
 General \vn{ab_multipole} attributes are:
 \begin{center}
@@ -118,18 +117,16 @@ General \vn{ab_multipole} attributes are:
 See \sref{s:list.ab.multipole} for a full list of element attributes along with a their units.
 
 \index{x_pitch}\index{y_pitch}
-The length \vn{l} is a fictitious length that is used for synchrotron
-radiation computations and affects the longitudinal position of the
-next element but does not affect any tracking or transfer map
-calculations.  The \vn{x_pitch} and \vn{y_pitch} attributes are not
-used in tracking.
+The length \vn{l} is a fictitious length that is used for synchrotron radiation computations and
+affects the longitudinal position of the next element but does not affect any tracking or transfer
+map calculations.  The \vn{x_pitch} and \vn{y_pitch} attributes are not used in tracking.
 
-When an \vn{ab_multipole} is superimposed (\sref{s:super}) on a lattice, it is
-treated as a zero length element and in this case it is an error for the length
-of the \vn{ab_multipole} to be set to a nonzero value.
+When an \vn{ab_multipole} is superimposed (\sref{s:super}) on a lattice, it is treated as a zero
+length element and in this case it is an error for the length of the \vn{ab_multipole} to be set to
+a nonzero value.
 
-Unlike a \vn{multipole}, an \vn{ab_multipole} will {\em not} affect the
-reference orbit if there is a dipole component. 
+Unlike a \vn{multipole}, an \vn{ab_multipole} will {\em not} affect the reference orbit if there is
+a dipole component.
 
 Example:
 \begin{example}
@@ -315,7 +312,7 @@ starting point and ending points are at the \vn{beambeam} element. For example, 
 \begin{example}
   0. Start with the particle longitudinally at the \vn{beambeam} element.
   1. Offsets, pitches and tilt are applied to convert from laboratory to element 
-       body coordinates (\sref{s:lab.body.transform}.
+       body coordinates (\sref{s:lab.body.transform}).
   2. Propagate (drift) backwards to the center of the first slice.
   3. Apply the beam--beam kick due to the first slice.
   4. Propagate (drift) forwards to the center of the second slice.
@@ -1429,7 +1426,7 @@ less, transversely to a x-ray beam through which photon can travel. A
 zone plate or Young's double slits. A \vn{diffraction_plate} element
 is used in places where diffraction effects must be taken into
 account. This is in contrast to setting an aperture attribute
-(\sref{s:limit} for other elements where diffraction effects are
+(\sref{s:limit}) for other elements where diffraction effects are
 ignored.
 
 A \vn{diffraction_plate} element is similar to a \vn{mask}
@@ -2745,7 +2742,7 @@ sign. Essentially the MAD8 documentation gives
 This is incorrect. 
 
 When short-range wakefields are being simulated, with \vn{bmad_com%sr_wakes_on = True}
-(\sref{s:bmad.com}), the \vn{e_loss} attribute can be used to modify the gradient in order to
+(\sref{s:bmad.ptc.com}), the \vn{e_loss} attribute can be used to modify the gradient in order to
 maintain a constant average energy gain. That is, \vn{e_loss} can be used to simulate the effect of
 a feedback circuit that attempts to maintain the average energy of the bunch after the element
 constant.  The energy kick is then
@@ -4182,7 +4179,7 @@ are dependent attributes (\sref{s:depend}) and are not directly settable. Rather
 attributes are calculated using \vn{SAD}'s own algorithm for setting the step size. To
 vary the calculated step size for a single \vn{sad_mult} element, the attribute
 \vn{eps_step_scale} may be set.  To vary the step size for all \vn{sad_mult} elements, the
-global parameter \vn{bmad_com[sad_eps_scale]} (\sref{s:bmad.com}) may be set.
+global parameter \vn{bmad_com[sad_eps_scale]} (\sref{s:bmad.ptc.com}) may be set.
 The default values for these parameters are:
 \begin{example}
   eps_step_scale          = 1
