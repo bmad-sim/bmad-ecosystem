@@ -1027,7 +1027,7 @@ if (attrib_word == 'SURFACE') then
             call parser_error ('SURFACE PT_MAX MISSING', 'FOR: ' // ele%name)
             return
           endif
-          if (any(i_vec < 0) .or. any(i_vec > ubound(surf%grid%pt))) then
+          if (any(i_vec < lbound(surf%grid%pt)) .or. any(i_vec > ubound(surf%grid%pt))) then
             call parser_error ('SURFACE PT(I,J) INDEX OUT OF BOUNDS', 'FOR: ' // ele%name)
             return
           endif

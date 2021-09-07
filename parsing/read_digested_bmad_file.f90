@@ -83,7 +83,7 @@ call simplify_path (full_digested_file, full_digested_file)
 open (unit = d_unit, file = full_digested_file, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
-read (d_unit, err = 9010) n_files, file_version
+read (d_unit, err = 9010, end = 9010) n_files, file_version
 if (present(lat_files)) call re_allocate (lat_files, n_files)
 
 ! Version is old
@@ -167,11 +167,11 @@ enddo
 ! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
 
-read (d_unit, err = 9030) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
-read (d_unit, err = 9030) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
-read (d_unit, err = 9030) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
-read (d_unit, err = 9030) lat%input_taylor_order, lat%absolute_time_tracking, lat%photon_type
-read (d_unit, err = 9070) n_branch, lat%pre_tracker, n_custom, n_print
+read (d_unit, err = 9030, end = 9030) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
+read (d_unit, err = 9030, end = 9030) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
+read (d_unit, err = 9030, end = 9030) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
+read (d_unit, err = 9030, end = 9030) lat%input_taylor_order, lat%absolute_time_tracking, lat%photon_type
+read (d_unit, err = 9070, end = 9070) n_branch, lat%pre_tracker, n_custom, n_print
 
 ! Different compilers (EG ifort and gfortran) will produce different binary formats. 
 ! As a double check, check the version number again.
@@ -187,27 +187,27 @@ endif
 
 if (n_custom > -1) then
   call re_allocate(lat%custom, n_custom)
-  read (d_unit, err = 9070) lat%custom
+  read (d_unit, err = 9070, end = 9070) lat%custom
 endif
 
 if (n_print > -1) then
   call re_allocate(lat%print_str, n_print)
-  read (d_unit, err = 9070) lat%print_str
+  read (d_unit, err = 9070, end = 9070) lat%print_str
 endif
 
 ! Defined constants and custom attributes
 
-read (d_unit, err = 9035) n
+read (d_unit, err = 9035, end = 9035) n
 allocate(index_list(n), name_list(n))
 do i = 1, n
-  read (d_unit, err = 9035) index_list(i), name_list(i)
+  read (d_unit, err = 9035, end = 9035) index_list(i), name_list(i)
 enddo
 
-read (d_unit, err = 9035) n
+read (d_unit, err = 9035, end = 9035) n
 if (allocated(lat%constant)) deallocate(lat%constant)
 allocate(lat%constant(n))
 do i = 1, n
-  read (d_unit, err = 9035) lat%constant(n)
+  read (d_unit, err = 9035, end = 9035) lat%constant(n)
 enddo
 
 ! Allocate lat%ele, lat%control and lat%ic arrays
@@ -227,13 +227,13 @@ call allocate_branch_array (lat, n_branch)  ! Initial allocation
 call read_this_wall3d (lat%branch(0)%wall3d, error)
 if (error) return
 
-read (d_unit, err = 9070) lat%branch(0)%name
+read (d_unit, err = 9070, end = 9070) lat%branch(0)%name
 
 do i = 1, n_branch
   branch => lat%branch(i)
   branch%ix_branch = i
-  read (d_unit, err = 9070) branch%param
-  read (d_unit, err = 9070) branch%name, branch%ix_from_branch, branch%ix_to_ele, &
+  read (d_unit, err = 9070, end = 9070) branch%param
+  read (d_unit, err = 9070, end = 9070) branch%name, branch%ix_from_branch, branch%ix_to_ele, &
                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
 
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
@@ -255,11 +255,11 @@ do i = 1, lat%n_control_max
 enddo
 
 do i = 1, lat%n_ic_max
-  read (d_unit, err = 9050) lat%ic(i)
+  read (d_unit, err = 9050, end = 9050) lat%ic(i)
 enddo
 
-read (d_unit, err = 9060) lat%particle_start
-read (d_unit, err = 9060) lat%beam_init
+read (d_unit, err = 9060, end = 9060) lat%particle_start
+read (d_unit, err = 9060, end = 9060) lat%beam_init
 
 ! Read PTC info
 
@@ -481,8 +481,8 @@ read (d_unit, err = 9100, end = 9100) &
 
 ! Decompress value array
 
-read (d_unit, err = 9110) k_max
-read (d_unit, err = 9120) ix_value(1:k_max), value(1:k_max)
+read (d_unit, err = 9110, end = 9110) k_max
+read (d_unit, err = 9120, end = 9120) ix_value(1:k_max), value(1:k_max)
 do k = 1, k_max
   ele%value(ix_value(k)) = value(k)
 enddo
@@ -491,17 +491,17 @@ enddo
 
 if (ix_c /= 0) then
   allocate (ele%control)
-  read (d_unit, err = 9120) ele%control%type, n_var, nk, nr
+  read (d_unit, err = 9120, end = 9120) ele%control%type, n_var, nk, nr
 
   if (nk > -1) then
     allocate(ele%control%x_knot(nk))
-    read (d_unit, err = 9120) ele%control%x_knot
+    read (d_unit, err = 9120, end = 9120) ele%control%x_knot
   endif
 
   if (n_var > -1) then
     allocate (ele%control%var(n_var))
     do i = 1, n_var
-      read (d_unit, err = 9120) ele%control%var(i)
+      read (d_unit, err = 9120, end = 9120) ele%control%var(i)
     enddo
   endif
 
@@ -518,18 +518,18 @@ endif
 if (ac_kicker_alloc) then
   allocate (ele%ac_kick)
   ac => ele%ac_kick
-  read (d_unit, err = 9130) n1, n2
+  read (d_unit, err = 9130, end = 9130) n1, n2
   if (n1 > -1) then
     allocate (ac%amp_vs_time(n1))
     do n = lbound(ac%amp_vs_time, 1), ubound(ac%amp_vs_time, 1)
-      read (d_unit, err = 9130) ac%amp_vs_time(n)
+      read (d_unit, err = 9130, end = 9130) ac%amp_vs_time(n)
     enddo
   endif
 
   if (n2 > -1) then
     allocate(ac%frequencies(n2))
     do n = lbound(ac%frequencies, 1), ubound(ac%frequencies, 1)
-      read (d_unit, err = 9130) ac%frequencies(n)
+      read (d_unit, err = 9130, end = 9130) ac%frequencies(n)
     enddo
   endif
 endif
@@ -538,32 +538,32 @@ endif
 
 if (ix_convert == 1) then
   allocate (ele%converter)
-  read (d_unit, err = 9120) ele%converter%species_out, ele%converter%material_type, ns
+  read (d_unit, err = 9120, end = 9120) ele%converter%species_out, ele%converter%material_type, ns
   allocate (ele%converter%dist(ns))
   do n = 1, size(ele%converter%dist)
     c_dist => ele%converter%dist(n)
-    read (d_unit, err = 9120) c_dist%thickness, ns
+    read (d_unit, err = 9120, end = 9120) c_dist%thickness, ns
     allocate (c_dist%sub_dist(ns))
     do j = 1, size(c_dist%sub_dist)
-      read (d_unit, err = 9120) c_dist%sub_dist(j)%pc_in
+      read (d_unit, err = 9120, end = 9120) c_dist%sub_dist(j)%pc_in
       ppcr => c_dist%sub_dist(j)%prob_pc_r
-      read (d_unit, err = 9120) ppcr%integrated_prob, ne, nr
+      read (d_unit, err = 9120, end = 9120) ppcr%integrated_prob, ne, nr
       allocate (ppcr%pc_out(ne), ppcr%r(nr), ppcr%prob(ne,nr))
-      read (d_unit, err = 9120) ppcr%pc_out
-      read (d_unit, err = 9120) ppcr%r
-      read (d_unit, err = 9120) ppcr%prob
+      read (d_unit, err = 9120, end = 9120) ppcr%pc_out
+      read (d_unit, err = 9120, end = 9120) ppcr%r
+      read (d_unit, err = 9120, end = 9120) ppcr%prob
       c_dir => c_dist%sub_dist(j)%dir_out
-      read (d_unit, err = 9120) nn
+      read (d_unit, err = 9120, end = 9120) nn
       allocate (c_dir%beta%fit_1D_r(nn(1)), c_dir%alpha_x%fit_1D_r(nn(2)), c_dir%alpha_y%fit_1D_r(nn(3)), &
                 c_dir%c_x%fit_1D_r(nn(4)), c_dir%dxds_min%fit_1D_r(nn(5)), c_dir%dxds_max%fit_1D_r(nn(6)), &
                 c_dir%dyds_max%fit_1D_r(nn(7)))
-      read (d_unit, err = 9120) c_dir%beta%fit_1d_r, c_dir%beta%fit_2d_pc, c_dir%beta%fit_2d_r, c_dir%beta%c0
-      read (d_unit, err = 9120) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_2d_pc, c_dir%alpha_x%fit_2d_r, c_dir%alpha_x%c0
-      read (d_unit, err = 9120) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_2d_pc, c_dir%alpha_y%fit_2d_r, c_dir%alpha_y%c0
-      read (d_unit, err = 9120) c_dir%c_x%fit_1d_r, c_dir%c_x%fit_2d_pc, c_dir%c_x%fit_2d_r, c_dir%c_x%c0
-      read (d_unit, err = 9120) c_dir%dxds_min%fit_1d_r, c_dir%dxds_min%fit_2d_pc, c_dir%dxds_min%fit_2d_r, c_dir%dxds_min%c0
-      read (d_unit, err = 9120) c_dir%dxds_max%fit_1d_r, c_dir%dxds_max%fit_2d_pc, c_dir%dxds_max%fit_2d_r, c_dir%dxds_max%c0
-      read (d_unit, err = 9120) c_dir%dyds_max%fit_1d_r, c_dir%dyds_max%fit_2d_pc, c_dir%dyds_max%fit_2d_r, c_dir%dyds_max%c0
+      read (d_unit, err = 9120, end = 9120) c_dir%beta%fit_1d_r, c_dir%beta%fit_2d_pc, c_dir%beta%fit_2d_r, c_dir%beta%c0
+      read (d_unit, err = 9120, end = 9120) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_2d_pc, c_dir%alpha_x%fit_2d_r, c_dir%alpha_x%c0
+      read (d_unit, err = 9120, end = 9120) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_2d_pc, c_dir%alpha_y%fit_2d_r, c_dir%alpha_y%c0
+      read (d_unit, err = 9120, end = 9120) c_dir%c_x%fit_1d_r, c_dir%c_x%fit_2d_pc, c_dir%c_x%fit_2d_r, c_dir%c_x%c0
+      read (d_unit, err = 9120, end = 9120) c_dir%dxds_min%fit_1d_r, c_dir%dxds_min%fit_2d_pc, c_dir%dxds_min%fit_2d_r, c_dir%dxds_min%c0
+      read (d_unit, err = 9120, end = 9120) c_dir%dxds_max%fit_1d_r, c_dir%dxds_max%fit_2d_pc, c_dir%dxds_max%fit_2d_r, c_dir%dxds_max%c0
+      read (d_unit, err = 9120, end = 9120) c_dir%dyds_max%fit_1d_r, c_dir%dyds_max%fit_2d_pc, c_dir%dyds_max%fit_2d_r, c_dir%dyds_max%c0
     enddo
   enddo
 endif
@@ -575,18 +575,18 @@ if (n_cart > 0) then
 
   do i = 1, n_cart
     ct_map => ele%cartesian_map(i)
-    read (d_unit, err = 9120) ct_map%field_scale, ct_map%master_parameter, ct_map%ele_anchor_pt, ct_map%field_type, ct_map%r0
-    read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, n
+    read (d_unit, err = 9120, end = 9120) ct_map%field_scale, ct_map%master_parameter, ct_map%ele_anchor_pt, ct_map%field_type, ct_map%r0
+    read (d_unit, err = 9120, end = 9120) ix_ele, ix_branch, ix_ptr, n
 
     if (ix_ele > 0) then
       ele%cartesian_map(i)%ptr => lat%branch(ix_branch)%ele(ix_ele)%cartesian_map(ix_ptr)%ptr
       ele%cartesian_map(i)%ptr%n_link = ele%cartesian_map(i)%ptr%n_link + 1
     else
       allocate (ele%cartesian_map(i)%ptr)
-      read (d_unit, err = 9120) ct_map%ptr%file
+      read (d_unit, err = 9120, end = 9120) ct_map%ptr%file
       allocate (ct_map%ptr%term(n))
       do j = 1, n
-        read (d_unit, err = 9120) ct_map%ptr%term(j)
+        read (d_unit, err = 9120, end = 9120) ct_map%ptr%term(j)
       enddo
     endif
   enddo
@@ -599,19 +599,19 @@ if (n_cyl > 0) then
 
   do i = 1, n_cyl
     cl_map => ele%cylindrical_map(i)
-    read (d_unit, err = 9120) cl_map%field_scale, cl_map%master_parameter, cl_map%harmonic, &
+    read (d_unit, err = 9120, end = 9120) cl_map%field_scale, cl_map%master_parameter, cl_map%harmonic, &
                 cl_map%phi0_fieldmap, cl_map%theta0_azimuth, cl_map%ele_anchor_pt, cl_map%m, cl_map%dz, cl_map%r0
-    read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, n
+    read (d_unit, err = 9120, end = 9120) ix_ele, ix_branch, ix_ptr, n
 
     if (ix_ele > 0) then
       ele%cylindrical_map(i)%ptr => lat%branch(ix_branch)%ele(ix_ele)%cylindrical_map(ix_ptr)%ptr
       ele%cylindrical_map(i)%ptr%n_link = ele%cylindrical_map(i)%ptr%n_link + 1
     else
       allocate (ele%cylindrical_map(i)%ptr)
-      read (d_unit, err = 9120) cl_map%ptr%file
+      read (d_unit, err = 9120, end = 9120) cl_map%ptr%file
       allocate (cl_map%ptr%term(n))
       do j = 1, n
-        read (d_unit, err = 9120) cl_map%ptr%term(j)
+        read (d_unit, err = 9120, end = 9120) cl_map%ptr%term(j)
       enddo
     endif
   enddo
@@ -626,21 +626,21 @@ if (n_grid > 0) then
 
   do i = 1, n_grid
     g_field => ele%grid_field(i)
-    read (d_unit, err = 9120) g_field%field_scale, g_field%master_parameter, &
+    read (d_unit, err = 9120, end = 9120) g_field%field_scale, g_field%master_parameter, &
                 g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
                 g_field%r0, g_field%harmonic, g_field%geometry, &
                 g_field%curved_ref_frame, g_field%field_type, g_field%interpolation_order
-    read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, lb, ub
+    read (d_unit, err = 9120, end = 9120) ix_ele, ix_branch, ix_ptr, lb, ub
 
     if (ix_ele > 0) then
       ele%grid_field(i)%ptr => lat%branch(ix_branch)%ele(ix_ele)%grid_field(ix_ptr)%ptr
       ele%grid_field(i)%ptr%n_link = ele%grid_field(i)%ptr%n_link + 1
     else
       allocate (ele%grid_field(i)%ptr)
-      read (d_unit, err = 9120) g_field%ptr%file
+      read (d_unit, err = 9120, end = 9120) g_field%ptr%file
       allocate (g_field%ptr%pt(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
       do j = lb(3), ub(3)
-        read (d_unit, err = 9120) g_field%ptr%pt(:, :, j)
+        read (d_unit, err = 9120, end = 9120) g_field%ptr%pt(:, :, j)
       enddo
     endif
   enddo
@@ -654,23 +654,23 @@ if (n_tay > 0) then
 
   do i = 1, n_tay
     t_field => ele%taylor_field(i)
-    read (d_unit, err = 9120) t_field%field_scale, t_field%master_parameter, t_field%curved_ref_frame, &
+    read (d_unit, err = 9120, end = 9120) t_field%field_scale, t_field%master_parameter, t_field%curved_ref_frame, &
            t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0, t_field%canonical_tracking
-    read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, n0, n1
+    read (d_unit, err = 9120, end = 9120) ix_ele, ix_branch, ix_ptr, n0, n1
 
     if (ix_ele > 0) then
       ele%taylor_field(i)%ptr => lat%branch(ix_branch)%ele(ix_ele)%taylor_field(ix_ptr)%ptr
       ele%taylor_field(i)%ptr%n_link = ele%taylor_field(i)%ptr%n_link + 1
     else
       allocate (ele%taylor_field(i)%ptr)
-      read (d_unit, err = 9120) t_field%ptr%file
+      read (d_unit, err = 9120, end = 9120) t_field%ptr%file
       allocate (t_field%ptr%plane(n0:n1))
       do j = n0, n1
         do k = 1, 3
-          read (d_unit, err = 9120) nt
+          read (d_unit, err = 9120, end = 9120) nt
           allocate (t_field%ptr%plane(j)%field(k)%term(nt))
           do n = 1, nt
-           read (d_unit, err = 9120) t_field%ptr%plane(j)%field(k)%term(n)
+           read (d_unit, err = 9120, end = 9120) t_field%ptr%plane(j)%field(k)%term(n)
           enddo
         enddo
       enddo
@@ -682,36 +682,36 @@ endif
 
 if (mode3) then
   allocate(ele%mode3)
-  read (d_unit, err = 9150) ele%mode3
+  read (d_unit, err = 9150, end = 9150) ele%mode3
 endif
 
 if (ix_r /= 0) then
-  read (d_unit, err = 9350) i_min, i_max
+  read (d_unit, err = 9350, end = 9350) i_min, i_max
   allocate (ele%r(i_min(1):i_max(1), i_min(2):i_max(2), i_min(3):i_max(3)))
   do i = i_min(3), i_max(3)
-    read (d_unit, err = 9400) ele%r(:,:,i)
+    read (d_unit, err = 9400, end = 9400) ele%r(:,:,i)
   enddo
 endif
 
 if (n_cus /= 0) then
   allocate (ele%custom(n_cus))
-  read (d_unit, err = 9410) ele%custom(:)
+  read (d_unit, err = 9410, end = 9410) ele%custom(:)
 endif
 
 if (ix_s /= 0) then
   allocate (ele%photon)
   surf => ele%photon%surface
-  read (d_unit, err = 9360) ele%photon%target, ele%photon%material, &
+  read (d_unit, err = 9360, end = 9360) ele%photon%target, ele%photon%material, &
          surf%curvature_xy, surf%has_curvature, surf%spherical_curvature, surf%elliptical_curvature, &
          surf%grid%active, surf%grid%type, surf%grid%dr, surf%grid%r0, is_alloc_pt
   if (is_alloc_pt) then
-    read (d_unit, err = 9361) i0, j0, i1, j1
+    read (d_unit, err = 9361, end = 9361) i0, j0, i1, j1
     allocate(surf%grid%pt(i0:i1, j0:j1))
     ! Detectors do not have any grid data that needs saving
     if (ele%key /= detector$) then
       do i = lbound(surf%grid%pt, 1), ubound(surf%grid%pt, 1)
       do j = lbound(surf%grid%pt, 2), ubound(surf%grid%pt, 2)
-        read (d_unit, err = 9362) surf%grid%pt(i,j)
+        read (d_unit, err = 9362, end = 9362) surf%grid%pt(i,j)
       enddo
       enddo
     endif
@@ -721,34 +721,34 @@ endif
 
 if (ix_d /= 0) then
   allocate (ele%descrip)
-  read (d_unit, err = 9500) ele%descrip
+  read (d_unit, err = 9500, end = 9500) ele%descrip
 endif
 
 if (ix_m /= 0) then
   call multipole_init (ele, magnetic$)
-  read (d_unit, err = 9600) ele%a_pole, ele%b_pole
+  read (d_unit, err = 9600, end = 9600) ele%a_pole, ele%b_pole
 endif
   
 if (ix_e /= 0) then
   call multipole_init (ele, electric$)
-  read (d_unit, err = 9600) ele%a_pole_elec, ele%b_pole_elec
+  read (d_unit, err = 9600, end = 9600) ele%a_pole_elec, ele%b_pole_elec
 endif
 
 do j = 1, size(ele%taylor)
   if (ix_t(j) == -1) cycle
-  read (d_unit, err = 9650) ele%taylor(j)%ref
+  read (d_unit, err = 9650, end = 9650) ele%taylor(j)%ref
   allocate (ele%taylor(j)%term(ix_t(j)))
   do k = 1, ix_t(j)
-    read (d_unit, err = 9700) ele%taylor(j)%term(k)
+    read (d_unit, err = 9700, end = 9700) ele%taylor(j)%term(k)
   enddo
 enddo
 
 do i = 0, 3
   if (ix_st(i) == -1) cycle
-  read (d_unit, err = 9650) ele%spin_taylor(i)%ref
+  read (d_unit, err = 9650, end = 9650) ele%spin_taylor(i)%ref
   allocate (ele%spin_taylor(i)%term(ix_st(i)))
   do k = 1, ix_st(i)
-    read (d_unit, err = 9700) ele%spin_taylor(i)%term(k)
+    read (d_unit, err = 9700, end = 9700) ele%spin_taylor(i)%term(k)
   enddo
 enddo
 
@@ -762,16 +762,16 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr_mode /= 0) then
   else
     call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_lr_mode)
     wake => ele%wake
-    read (d_unit, err = 9800) wake%sr%z_ref_long, wake%sr%z_ref_trans, wake%sr%z_max, wake%sr%scale_with_length, wake%sr%amp_scale, wake%sr%z_scale
+    read (d_unit, err = 9800, end = 9800) wake%sr%z_ref_long, wake%sr%z_ref_trans, wake%sr%z_max, wake%sr%scale_with_length, wake%sr%amp_scale, wake%sr%z_scale
     do i = 1, size(wake%sr%long)
-      read (d_unit, err = 9800) wake%sr%long(i)
+      read (d_unit, err = 9800, end = 9800) wake%sr%long(i)
     enddo
     do i = 1, size(wake%sr%trans)
-      read (d_unit, err = 9800) wake%sr%trans(i)
+      read (d_unit, err = 9800, end = 9800) wake%sr%trans(i)
     enddo
-    read (d_unit, err = 9800) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
+    read (d_unit, err = 9800, end = 9800) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
     do i = 1, size(wake%lr%mode)
-      read (d_unit, err = 9800) wake%lr%mode(i)
+      read (d_unit, err = 9800, end = 9800) wake%lr%mode(i)
     enddo
   endif
 endif
@@ -780,7 +780,7 @@ if (ix_wall3d > 0) then
   call read_this_wall3d (ele%wall3d, error)
   if (error) return
 elseif (ix_wall3d < 0) then
-  read (d_unit, err = 9900) idum
+  read (d_unit, err = 9900, end = 9900) idum
   ele%wall3d => lat%branch(ix_wall3d_branch)%ele(abs(ix_wall3d))%wall3d
   if (.not. associated(ele%wall3d)) then
     call out_io(s_error$, r_name, 'ERROR IN WALL3D INIT.')
@@ -789,7 +789,7 @@ elseif (ix_wall3d < 0) then
   endif
   ele%wall3d%n_link = ele%wall3d%n_link + 1
 else
-  read (d_unit, err = 9900) idum
+  read (d_unit, err = 9900, end = 9900) idum
 endif
 
 !
@@ -1010,17 +1010,17 @@ logical error
 
 error = .false.
 
-read (d_unit, err = 9040) ctl%slave_name, n, nk, ctl%value, ctl%lord, ctl%slave, ctl%ix_attrib, ctl%attribute
+read (d_unit, err = 9040, end = 9040) ctl%slave_name, n, nk, ctl%value, ctl%lord, ctl%slave, ctl%ix_attrib, ctl%attribute
 if (n > 0) then
   allocate (ctl%stack(n))
   do j = 1, n
-    read (d_unit, err = 9045) ctl%stack(j)
+    read (d_unit, err = 9045, end = 9045) ctl%stack(j)
   enddo
 endif
 
 if (nk > 0) then
   allocate (ctl%y_knot(nk))
-  read (d_unit, err = 9045) ctl%y_knot
+  read (d_unit, err = 9045, end = 9045) ctl%y_knot
 endif
 
 return

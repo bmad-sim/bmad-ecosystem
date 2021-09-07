@@ -891,7 +891,7 @@ type surface_grid_pt_struct
   real(rp) :: x0 = 0, y0 = 0                 ! Position at center
   real(rp) :: dz_dx = 0, dz_dy = 0           ! Slope at center
   real(rp) :: d2z_dxdy = 0                   ! d2z/dxdy at center
-  ! Photon statistics...
+  ! Photon statistics if used as a detector pixel
   integer :: n_photon = 0
   complex(rp) :: E_x  = 0, E_y = 0
   real(rp) ::  intensity_x = 0, intensity_y = 0, intensity = 0
@@ -959,6 +959,7 @@ type photon_element_struct
   type (photon_surface_struct) :: surface = photon_surface_struct()
   type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
+  !! type (surface_grid_struct) :: detector = surface_grid_struct('', .true., not_set$, 0, 0, null())
 end type
 
 !------------------------------------------------------------------------------
