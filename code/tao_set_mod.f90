@@ -464,6 +464,12 @@ case ('track_type')
   s%u%calc%lattice = .true.
 case ('srdt_gen_n_slices', 'srdt_sxt_n_slices', 'srdt_use_cache')
   s%u%calc%lattice = .true.
+case ('symbol_import')
+  if (global%symbol_import) then
+    do iuni = lbound(s%u, 1), ubound(s%u, 1)
+      call tao_symbol_import_from_lat (s%u(iuni)%model%lat)
+    enddo
+  endif
 end select
 
 !
@@ -3265,24 +3271,28 @@ end subroutine tao_set_drawing_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_symbolic_number_cmd (sym_str, num_str)
+! Subroutine tao_set_symbolic_number_cmd (sym_str, num_str, val)
 !
 ! Associates a given symbol with a given number.
+! Note: Either num_str or val argument must be present. 
 !
 ! Input:
 !   sym_str     -- character(*): Symbol.
-!   num_str     -- character(*): Number.
+!   num_str     -- character(*), optional: Symbol value expression.
+!   val         -- real(rp), optional: Value of symbol
 !-
 
-subroutine tao_set_symbolic_number_cmd (sym_str, num_str)
+subroutine tao_set_symbolic_number_cmd (sym_str, num_str, val)
 
 type (named_number_struct), allocatable :: sym_temp(:)
 
 integer i, n
+real(rp), optional :: val
 real(rp), allocatable :: value(:)
 logical err
 
-character(*) sym_str, num_str
+character(*) sym_str
+character(*), optional :: num_str
 character(40) s_str
 character(*), parameter :: r_name = 'tao_set_symbolic_number_cmd'
 
@@ -3297,7 +3307,12 @@ do i = 1, size(physical_const_list)
   endif
 enddo
 
-call tao_evaluate_expression (num_str, 1, .false., value, err); if (err) return
+if (present(val)) then
+  allocate(value(1))
+  value(1) = val
+else
+  call tao_evaluate_expression (num_str, 1, .false., value, err); if (err) return
+endif
 
 !
 

@@ -46,6 +46,7 @@ call out_io (s_blank$, r_name, [ &
         '  -slice_lattice <ele_list>            # Discards elements from lattice that are not in the list', &
         '  -start_branch_at <ele_name>          # Start lattice branch at element.                       ', &
         '  -startup_file <file_name>            # Commands to run after parsing Tao init file            ', &
+        '  -symbol_import                       # Import symbols defined in lattice files(s)?            ', &
         '  -var_file <file_name>                # Define variables for plotting and optimization         '])
 
 end subroutine tao_print_command_line_info

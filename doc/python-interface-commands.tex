@@ -8,13 +8,13 @@ Notes
 Command syntax:
   python beam {ix_universe}
 where
-  {ix_universe} is a universe index.
+  {ix_universe} is a universe index. Defaults to s%global%default_universe.
 To set beam_init parameters use the "set beam" command
 
 
 Parameters
 ----------
-ix_universe : default=1
+ix_universe : optional
 
    
 Returns
@@ -39,13 +39,13 @@ Notes
 Command syntax:
   python beam_init {ix_universe}
 where
-  {ix_universe} is a universe index.
+  {ix_universe} is a universe index. Defaults to s%global%default_universe.
 To set beam_init parameters use the "set beam_init" command
 
 
 Parameters
 ----------
-ix_universe : default=1
+ix_universe : optional
 
    
 Returns
@@ -95,14 +95,14 @@ Notes
 Command syntax:
   python branch1 {ix_universe}@{ix_branch}
 where
-  {ix_universe} is a universe index
-  {ix_branch} is a lattice branch index
+  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 
 
 Parameters
 ----------
-ix_universe : default=1
-ix_branch : default=0
+ix_universe : ""
+ix_branch : ""
 
    
 Returns
@@ -412,7 +412,7 @@ Command syntax:
 
 Parameters
 ----------
-ix_uni : default=1
+ix_uni : optional
 
    
 Returns
@@ -435,7 +435,7 @@ Command syntax:
 
 Parameters
 ----------
-ix_uni : default=1
+ix_uni : optional
 
    
 Returns
@@ -465,7 +465,7 @@ Parameters
 ----------
 d2_name
 d1_datum
-ix_universe : default=1
+ix_universe : optional
 dat_index : default=1
 
    
@@ -529,7 +529,7 @@ Parameters
 d2_name
 n_d1_data
 d_data_arrays_name_min_max
-ix_uni : default=1
+ix_uni : optional
    
 Returns
 -------
@@ -562,7 +562,7 @@ Command syntax:
 Parameters
 ----------
 d2_datum
-ix_uni : default=1
+ix_uni : optional
    
 Returns
 -------
@@ -592,7 +592,7 @@ Command syntax:
 Parameters
 ----------
 d2_datum
-ix_uni : default=1
+ix_uni : optional
 
    
 Returns
@@ -626,7 +626,7 @@ Example:
 Parameters
 ----------
 d1_datum
-ix_uni : default=1
+ix_uni : optional
 
    
 Returns
@@ -658,7 +658,7 @@ Command syntax:
 Parameters
 ----------
 d2_datum
-ix_uni : default=1
+ix_uni : optional
 
    
 Returns
@@ -899,154 +899,6 @@ Example: 1
  args:
 
 \end{example}
-\item[ele:head] \Newline\begin{example}
-"Head" Element attributes
-
-Notes
------
-Command syntax:
-  python ele:head {ele_id}|{which}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-Example:
-  python ele:head 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id 
-which : default=model
-
-   
-Returns
--------
-string_list 
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:methods] \Newline\begin{example}
-Element methods
-
-Notes
------
-Command syntax:
-  python ele:methods {ele_id}|{which}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-Example:
-  python ele:methods 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-
-
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:gen_attribs] \Newline\begin{example}
-Element general attributes
-
-Notes
------
-Command syntax:
-  python ele:gen_attribs {ele_id}|{which}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-Example:
-  python ele:gen_attribs 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-
-
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:multipoles] \Newline\begin{example}
-Element multipoles
-
-Notes
------
-Command syntax:
-  python ele:multipoles {ele_id}|{which}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-Example:
-  python ele:multipoles 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-
-
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
 \item[ele:ac_kicker] \Newline\begin{example}
 Element ac_kicker
 
@@ -1170,6 +1022,44 @@ Example: 1
   who: x
 
 \end{example}
+\item[ele:control_var] \Newline\begin{example}
+List element control variables.
+Used for group, overlay and ramper type elements
+
+Notes
+-----
+Command syntax:
+  python ele:control_var {ele_id}|{which}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+Example:
+  python ele:control_var 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+ args:
+  ele_id: 1@0>>873
+  which: model
+
+\end{example}
 \item[ele:cylindrical_map] \Newline\begin{example}
 Element cylindrical_map
 
@@ -1215,182 +1105,19 @@ Example: 1
   who: base
 
 \end{example}
-\item[ele:taylor] \Newline\begin{example}
-Element taylor
+\item[ele:elec_multipoles] \Newline\begin{example}
+Element electric multipoles
 
 Notes
 -----
 Command syntax:
-  python ele:taylor {ele_id}|{which}
+  python ele:elec_multipoles {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
   design
 Example:
-  python ele:taylor 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_taylor
- args:
-  ele_id: 1@0>>34
-  which: model
-
-\end{example}
-\item[ele:spin_taylor] \Newline\begin{example}
-Element spin_taylor
-
-Notes
------
-Command syntax:
-  python ele:spin_taylor {ele_id}|{which}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-Example:
-  python ele:spin_taylor 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_spin
- args:
-  ele_id: 1@0>>2
-  which: model
-
-\end{example}
-\item[ele:wake] \Newline\begin{example}
-Element wake
-
-Notes
------
-Command syntax:
-  python ele:wake {ele_id}|{which} {who}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{Who} is one of
-  base
-  sr_long     sr_long_table
-  sr_trans    sr_trans_table
-  lr_mode_table
-Example:
-  python ele:wake 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-who : default=base
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wake
- args:
-  ele_id: 1@0>>1
-  which: model
-  who: sr_long
-
-\end{example}
-\item[ele:wall3d] \Newline\begin{example}
-Element wall3d
-
-Notes
------
-Command syntax:
-  python ele:wall3d {ele_id}|{which} {index} {who}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
-{who} is one of:
-  base
-  table
-Example:
-  python ele:wall3d 3@1>>7|model 2 base
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-index : default=1
-who : default=base
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall3d
- args:
-  ele_id: 1@0>>1
-  which: model
-  index: 1
-  who: table
-
-\end{example}
-\item[ele:twiss] \Newline\begin{example}
-Element twiss
-
-Notes
------
-Command syntax:
-  python ele:twiss {ele_id}|{which}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-Example:
-  python ele:twiss 3@1>>7|model
+  python ele:elec_multipoles 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
 
 
@@ -1413,210 +1140,6 @@ Example: 1
  args:
   ele_id: 1@0>>1
   which: model
-
-\end{example}
-\item[ele:control_var] \Newline\begin{example}
-List element control variables.
-Used for group, overlay and ramper type elements
-
-Notes
------
-Command syntax:
-  python ele:control_var {ele_id}|{which}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-Example:
-  python ele:control_var 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>873
-  which: model
-
-\end{example}
-\item[ele:orbit] \Newline\begin{example}
-Element orbit
-
-Notes
------
-Command syntax:
-  python ele:orbit {ele_id}|{which}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-Example:
-  python ele:orbit 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:mat6] \Newline\begin{example}
-Element mat6
-
-Notes
------
-Command syntax:
-  python ele:mat6 {ele_id}|{which} {who}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{who} is one of:
-  mat6
-  vec0
-  err
-Example:
-  python ele:mat6 3@1>>7|model mat6
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-who : default=mat6
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-  who: mat6
-
-\end{example}
-\item[ele:taylor_field] \Newline\begin{example}
-Element taylor_field
-
-Notes
------
-Command syntax:
-  python ele:taylor_field {ele_id}|{which} {index} {who}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{index} is the index number in the ele%taylor_field(:) array
-{who} is one of:
-  base
-  terms
-Example:
-  python ele:taylor_field 3@1>>7|model 2 base
-This gives element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-index
-who
-which : default=model
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
- args:
-  ele_id: 1@0>>9
-  which: model
-  index: 1
-  who: terms
-
-\end{example}
-\item[ele:grid_field] \Newline\begin{example}
-Element grid_field
-
-Notes
------
-Command syntax:
-  python ele:grid_field {ele_id}|{which} {index} {who}
-where {ele_id} is an element name or index and {which} is one of
-  model, base, design
-{index} is the index number in the ele%grid_field(:) array.
-{who} is one of:
-  base, points
-Example:
-  python ele:grid_field 3@1>>7|model 2 base
-This gives grid #2 of element number 7 in branch 1 of universe 3.
-
-
-Parameters
-----------
-ele_id
-which : default=model
-index : default=1
-who : default=base
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_grid
- args:
-  ele_id: 1@0>>1
-  which: model
-  index: 1
-  who: base 
 
 \end{example}
 \item[ele:floor] \Newline\begin{example}
@@ -1671,32 +1194,29 @@ Example: 2
   where: center
 
 \end{example}
-\item[ele:photon] \Newline\begin{example}
-Element photon
+\item[ele:grid_field] \Newline\begin{example}
+Element grid_field
 
 Notes
 -----
 Command syntax:
-  python ele:photon {ele_id}|{which} {who}
+  python ele:grid_field {ele_id}|{which} {index} {who}
 where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+  model, base, design
+{index} is the index number in the ele%grid_field(:) array.
 {who} is one of:
-  base
-  material
-  surface
+  base, points
 Example:
-  python ele:photon 3@1>>7|model base
-This gives element number 7 in branch 1 of universe 3.
+  python ele:grid_field 3@1>>7|model 2 base
+This gives grid #2 of element number 7 in branch 1 of universe 3.
 
 
 Parameters
 ----------
 ele_id
 which : default=model
-who : default=base
-
+index : default=1
+who :
    
 Returns
 -------
@@ -1707,11 +1227,86 @@ Examples
 --------
 
 Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_grid
  args:
   ele_id: 1@0>>1
   which: model
-  who: base
+  index: 1
+  who: base 
+
+\end{example}
+\item[ele:gen_attribs] \Newline\begin{example}
+Element general attributes
+
+Notes
+-----
+Command syntax:
+  python ele:gen_attribs {ele_id}|{which}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+Example:
+  python ele:gen_attribs 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+
+
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+
+\end{example}
+\item[ele:head] \Newline\begin{example}
+"Head" Element attributes
+
+Notes
+-----
+Command syntax:
+  python ele:head {ele_id}|{which}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+Example:
+  python ele:head 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id 
+which : default=model
+
+   
+Returns
+-------
+string_list 
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:lord_slave] \Newline\begin{example}
@@ -1757,19 +1352,136 @@ Example: 1
   which: model
 
 \end{example}
-\item[ele:elec_multipoles] \Newline\begin{example}
-Element electric multipoles
+\item[ele:mat6] \Newline\begin{example}
+Element mat6
 
 Notes
 -----
 Command syntax:
-  python ele:elec_multipoles {ele_id}|{which}
+  python ele:mat6 {ele_id}|{which} {who}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+{who} is one of:
+  mat6
+  vec0
+  err
+Example:
+  python ele:mat6 3@1>>7|model mat6
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+who :
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  who: mat6
+
+\end{example}
+\item[ele:methods] \Newline\begin{example}
+Element methods
+
+Notes
+-----
+Command syntax:
+  python ele:methods {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
   design
 Example:
-  python ele:elec_multipoles 3@1>>7|model
+  python ele:methods 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+
+
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+
+\end{example}
+\item[ele:multipoles] \Newline\begin{example}
+Element multipoles
+
+Notes
+-----
+Command syntax:
+  python ele:multipoles {ele_id}|{which}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+Example:
+  python ele:multipoles 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+
+
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+
+\end{example}
+\item[ele:orbit] \Newline\begin{example}
+Element orbit
+
+Notes
+-----
+Command syntax:
+  python ele:orbit {ele_id}|{which}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+Example:
+  python ele:orbit 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
 
 
@@ -1792,6 +1504,344 @@ Example: 1
  args:
   ele_id: 1@0>>1
   which: model
+
+\end{example}
+\item[ele:param] \Newline\begin{example}
+Element parameter
+
+Notes
+-----
+Command syntax:
+  python ele:param {ele_id}|{which} {who}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+Possible {who} values is the same as possible {who} values for "python lat_list"
+except for "ele:mat6" and "ele:vec0".
+Note: Here {who} must be a single parameter and not a list.
+
+Example:
+  python ele:param 3@1>>7|model e_tot
+This gives E_tot of element number 7 in branch 1 of universe 3.
+
+Note: On output the {variable} component will always be "F" (since this 
+command cannot tell if a parameter is allowed to vary).
+
+Also see: "python lat_list".
+
+
+Parameters
+----------
+ele_id
+which : default=model
+who :
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
+ args:
+  ele_id: 1@0>>1
+  which: model
+  who:
+
+
+\end{example}
+\item[ele:photon] \Newline\begin{example}
+Element photon
+
+Notes
+-----
+Command syntax:
+  python ele:photon {ele_id}|{which} {who}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+{who} is one of:
+  base
+  material
+  surface
+Example:
+  python ele:photon 3@1>>7|model base
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+who :
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
+ args:
+  ele_id: 1@0>>1
+  which: model
+  who: base
+
+\end{example}
+\item[ele:spin_taylor] \Newline\begin{example}
+Element spin_taylor
+
+Notes
+-----
+Command syntax:
+  python ele:spin_taylor {ele_id}|{which}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+Example:
+  python ele:spin_taylor 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_spin
+ args:
+  ele_id: 1@0>>2
+  which: model
+
+
+\end{example}
+\item[ele:taylor] \Newline\begin{example}
+Element taylor
+
+Notes
+-----
+Command syntax:
+  python ele:taylor {ele_id}|{which}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+Example:
+  python ele:taylor 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_taylor
+ args:
+  ele_id: 1@0>>34
+  which: model
+
+\end{example}
+\item[ele:taylor_field] \Newline\begin{example}
+Element taylor_field
+
+Notes
+-----
+Command syntax:
+  python ele:taylor_field {ele_id}|{which} {index} {who}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+{index} is the index number in the ele%taylor_field(:) array
+{who} is one of:
+  base
+  terms
+Example:
+  python ele:taylor_field 3@1>>7|model 2 base
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+index
+who
+which : default=model
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
+ args:
+  ele_id: 1@0>>9
+  which: model
+  index: 1
+  who: terms
+
+\end{example}
+\item[ele:twiss] \Newline\begin{example}
+Element twiss
+
+Notes
+-----
+Command syntax:
+  python ele:twiss {ele_id}|{which}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+Example:
+  python ele:twiss 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+
+\end{example}
+\item[ele:wake] \Newline\begin{example}
+Element wake
+
+Notes
+-----
+Command syntax:
+  python ele:wake {ele_id}|{which} {who}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+{Who} is one of
+  base
+  sr_long     sr_long_table
+  sr_trans    sr_trans_table
+  lr_mode_table
+Example:
+  python ele:wake 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+who :
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wake
+ args:
+  ele_id: 1@0>>1
+  which: model
+  who: sr_long
+
+\end{example}
+\item[ele:wall3d] \Newline\begin{example}
+Element wall3d
+
+Notes
+-----
+Command syntax:
+  python ele:wall3d {ele_id}|{which} {index} {who}
+where {ele_id} is an element name or index and {which} is one of
+  model
+  base
+  design
+{index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
+{who} is one of:
+  base
+  table
+Example:
+  python ele:wall3d 3@1>>7|model 2 base
+This gives element number 7 in branch 1 of universe 3.
+
+
+Parameters
+----------
+ele_id
+which : default=model
+index :
+who :
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall3d
+ args:
+  ele_id: 1@0>>1
+  which: model
+  index: 1
+  who: table
 
 \end{example}
 \item[evaluate] \Newline\begin{example}
@@ -2089,7 +2139,7 @@ Command syntax:
 
 Parameters
 ----------
-branch_name : default=0
+branch_name : optional
 
    
 Returns
@@ -2106,13 +2156,13 @@ Example: 1
    branch_name: 1@0
 
 \end{example}
-\item[lat_general] \Newline\begin{example}
-Lattice general
+\item[lat_branch_list] \Newline\begin{example}
+Lattice branch list
 
 Notes
 -----
 Command syntax:
-  python lat_general {ix_universe}
+  python lat_branch_list {ix_universe}
 
 Output syntax:
   branch_index;branch_name;n_ele_track;n_ele_max
@@ -2120,7 +2170,7 @@ Output syntax:
 
 Parameters
 ----------
-ix_universe : default=1
+ix_universe : optional
 
    
 Returns
@@ -2173,7 +2223,7 @@ where:
     ele.s, ele.l
     ele.e_tot, ele.p0c
     ele.mat6, ele.vec0
-    ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (ele.beta_a, etc.)
+    ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (EG: ele.beta_a, ele.k1, etc.)
 
   {elements} is a string to match element names to.
     Use "*" to match to all elements.
@@ -2183,13 +2233,14 @@ Examples:
   python lat_list 3@0>>Q*|base real:ele.s    
 
 Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
+Also see: "python ele:param"
 
 Parameters
 ----------
 elements 
 who 
-ix_uni : default=1
-ix_branch : default=0
+ix_uni : optional
+ix_branch : optional
 which : default=model
 flags : optional, default=-array_out -track_only
 
@@ -2336,8 +2387,8 @@ where:
 Parameters
 ----------
 s 
-ix_uni : default=1
-ix_branch : default=0
+ix_uni : optional
+ix_branch : optional
 which : default=model
 
    
@@ -2829,6 +2880,38 @@ Example: 1
  args:
 
 \end{example}
+\item[ring_general] \Newline\begin{example}
+Lattice branch with closed geometry info (emittances, etc.)
+
+Notes
+-----
+Command syntax:
+  python ring_general {ix_uni}@{ix_branch}|{which}
+where {which} is one of:
+  model
+  base
+  design
+Example:
+  python ring_general 1@0|model
+
+
+Parameters
+----------
+ix_uni : optional
+ix_branch : optional
+which : default=model
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+
+\end{example}
 \item[shape_list] \Newline\begin{example}
 lat_layout and floor_plan shapes list
 
@@ -3168,15 +3251,15 @@ where {which} is one of:
   base
   design
 Example:
-  python spin 1@0|model
+  python spin_polarization 1@0|model
 
 Note: This command is under development. If you want to use please contact David Sagan.
 
 
 Parameters
 ----------
-ix_uni : default=1
-ix_branch : default=0
+ix_uni : optional
+ix_branch : optional
 which : default=model
 
    
@@ -3206,8 +3289,8 @@ Command syntax:
 
 Parameters
 ----------
-ix_uni : default=1
-ix_branch : default=0
+ix_uni : optional
+ix_branch : optional
 which : default=model
 ref_ele : default=0
   Reference element to calculate at.
@@ -3260,8 +3343,8 @@ where {which} is one of:
 Parameters
 ----------
 s
-ix_uni : default=1
-ix_branch : default=0
+ix_uni : optional
+ix_branch : optional
 which : default=model
 
    

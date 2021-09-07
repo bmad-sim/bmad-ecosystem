@@ -151,6 +151,9 @@ command may also be put directly in the lattice file. See the \bmad manual for m
 Overrides the \vn{startup_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
 %
+\item[-symbol_import]
+Import symbolic constants defined in any lattice files? (the default is not to).
+%
 \item[-var_file <file_name>] \Newline
 Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
@@ -628,6 +631,7 @@ type tao_global_struct:
   svd_retreat_on_merit_increase = T    
   single_step = F                  ! Single step through a command file?
   stop_on_error = T                ! For debugging: True -> Tao will not exiting on an error.
+  symbol_import = F                ! Import symbols defined in any lattice files?
   var_limits_on = T                ! Respect the variable limits?
 \end{example}
 
@@ -757,6 +761,13 @@ details.
   \item{\vn{global%single_step}} \Newline
 For use with command files. If set True, this is equivalent to putting a "pause -1" after
 each line in a command file. Useful for debugging or for talk demonstrations. 
+%
+  \item{\vn{global%symbol_import}} \Newline
+Symbolic constants can be defined in lattice files. These symbols can be imported by setting
+\vn{%symbol_import} to True (default is False). Note that if the value of these symbols is
+subsequently modified in \tao, this will {\em not} affect the lattice. For example,
+control functions used in lattice control elements (\vn{group} and \vn{overlay} elements), will not
+be affected even if a control function expression used a symbolic constant.
 %
   \item{\vn{global%track_type}} \Newline
 The setting of the \vn{global%track_type} parameter can be
