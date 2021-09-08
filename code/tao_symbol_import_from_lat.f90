@@ -17,7 +17,7 @@ integer i
 if (.not. allocated(lat%constant)) return
 
 do i = 1, size(lat%constant)
-  call tao_set_symbolic_number_cmd (lat%constant(i)%name, val = lat%constant(i)%value)
+  call tao_set_symbolic_number_cmd (downcase(lat%constant(i)%name), val = lat%constant(i)%value)
 enddo
 
 end subroutine
