@@ -3354,8 +3354,10 @@ case ('orbit')
 
   call tao_locate_elements (word1, u%ix_uni, eles, err)
   if (err) return
+  ele => eles(1)%ele
+  orb = u%model%tao_branch(ele%ix_branch)%orbit(ele%ix_ele)
   do i = 1, 6
-    nl=nl+1; write(lines(nl), rmt) '     ', u%model%tao_branch(eles(1)%ele%ix_branch)%orbit%vec(i)
+    nl=nl+1; write(lines(nl), rmt) coord_name(i), orb%vec(i)
   enddo
 
 !----------------------------------------------------------------------
