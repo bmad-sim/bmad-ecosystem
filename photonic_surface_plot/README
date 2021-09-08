@@ -1,0 +1,47 @@
+The code in the util_programs/photonic_surface_plot directory is used for:
+	1) Generating a data file of surface points for a Bmad lattice element.
+  2) Generating a 3D plot of the surface using the data file and gnuplot.
+
+------------------------------
+1) Generating the surface data
+
+The program is photonic_surface_data.f90.
+This program is built with the standard Bmad Distribution.
+To run use the syntax:
+	photonic_surface_data <init_file>
+where <init_file> is the name of the initialization file containing the parameters needed by the
+program to generate the data file.
+
+An example input file is in example/photonic_surface_data.init .
+To run with this file, use the following command in the example directory:
+	photonic_surface_data photonic_surface_data.init
+
+This example input file is self documenting look in this file for details.
+
+The resulting data file looks like:
+
+#     Ix      Iy          X               Y                 Z
+     -25     -10      -3.50987227E-02  -2.12821053E-02   2.66263866E-08
+     -25      -9      -3.50987227E-02  -1.91538948E-02   1.21422273E-05
+     -25      -8      -3.50987227E-02  -1.70256842E-02   4.84936425E-05
+     -25      -7      -3.50987227E-02  -1.48974737E-02   1.09094709E-04
+
+There are 5 columns.
+The first two columns give indexes ix and iy.
+The last three columns give the (x, y, z) point on the surface.
+
+------------------------------
+2) Plotting the data.
+
+The gnuplot command file is named surface_plot.gp .
+
+This command file looks for a data file named "surface.dat" so if your data file has a different name
+you will need to edit surface_plot.gp.
+
+To run, first start gnuplot and then use the command:
+	gnuplot> load "<directory>/surface_plot.gp"
+where <directory> is the directory that surface_plot.gp is in.
+For example, when running from the example directory, you would use:
+	gnuplot> load "../surface_plot.gp"
+
+Note: Plotted is -z (not z) so that the view of the surface is from above (and not below).
