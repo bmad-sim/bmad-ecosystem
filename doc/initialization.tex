@@ -22,11 +22,11 @@ directory:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Command Line Initialization}
+\section{Tao Initialization Command Line Arguments}
 \index{command line}
 \label{s:command.line} 
 
-The syntax of the command line for running \tao is:
+The syntax of the command line for starting \tao is:
 \begin{example}
   EXE-DIRECTORY/tao \{OPTIONS\}
 \end{example}
@@ -152,7 +152,8 @@ Overrides the \vn{startup_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
 %
 \item[-symbol_import]
-Import symbolic constants defined in any lattice files? (the default is not to).
+Import symbolic constants defined in any lattice files? (the default is not to). Symbols are
+imported lower cased.
 %
 \item[-var_file <file_name>] \Newline
 Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
@@ -764,10 +765,14 @@ each line in a command file. Useful for debugging or for talk demonstrations.
 %
   \item{\vn{global%symbol_import}} \Newline
 Symbolic constants can be defined in lattice files. These symbols can be imported by setting
-\vn{%symbol_import} to True (default is False). Note that if the value of these symbols is
-subsequently modified in \tao, this will {\em not} affect the lattice. For example,
-control functions used in lattice control elements (\vn{group} and \vn{overlay} elements), will not
-be affected even if a control function expression used a symbolic constant.
+\vn{%symbol_import} to True (default is False). Alternatively, the \vn{-symbol_import} switch may be
+used at startup (\sref{s:command.line}). In \tao, unlike \bmad, symbolic names are case
+sensitive. Imported symbolic names are lower cased.
+
+If the value of these symbols is subsequently modified in \tao, this will {\em not} affect the
+lattice. For example, control functions used in lattice control elements (\vn{group} and
+\vn{overlay} elements), will not be affected even if a control function expression used a symbolic
+constant.
 %
   \item{\vn{global%track_type}} \Newline
 The setting of the \vn{global%track_type} parameter can be
