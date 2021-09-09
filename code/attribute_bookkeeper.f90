@@ -47,7 +47,7 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), n_particles
 
-integer i, j, ix, n, n_div, ixm, ix_pole_max, particle, geometry, i_max
+integer i, j, ix, n, n_div, ixm, ix_pole_max, particle, geometry, i_max, status
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -600,7 +600,7 @@ case (wiggler$, undulator$)
       i_max = i      
     enddo
     if (i_max /= 0 .and. i_max /= n) then
-      val(b_max$) = -super_brent((i_max-1)*dl, i_max*dl, (i_max+1)*dl, wiggler_field, 1.0e-8_rp, 0.0_rp, zmin)
+      val(b_max$) = -super_brent((i_max-1)*dl, i_max*dl, (i_max+1)*dl, wiggler_field, 1.0e-8_rp, 0.0_rp, zmin, status)
     endif
     ele%is_on = is_on
     val(polarity$) = polarity
@@ -735,10 +735,11 @@ ele%old_value = val
 !----------------------------------------------------
 contains
 
-function wiggler_field (z) result (b_field)
+function wiggler_field (z, status) result (b_field)
 
 real(rp), intent(in) :: z
 real(rp) b_field
+integer, optional :: status
 
 
 call em_field_calc (ele, branch%param, z, start, .true., field, rf_time = 0.0_rp)
