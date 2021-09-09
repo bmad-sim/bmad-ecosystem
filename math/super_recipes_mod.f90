@@ -222,6 +222,123 @@ end function super_rtsafe
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Function super_mnbrak (ax, bx, cx, fa, fb, fc, func, status)
+!
+! Given initial range [ax, bx], this routine finds new points ax, bx, cx that bracket a minimum of 
+! the function func.
+!
+! This routine is essentially mnbrak from Numerical Recipes with the feature that it returns
+! a status integer.
+!
+! Input:
+!   ax, bx     -- real(rp): Range of x to search. It is permitted that bx < ax.
+!   func       -- function whose minimum is to be bracketed. The interface is:
+!                    function func(x, status) result (value)
+!                      real(rp), intent(in) :: x
+!                      integer, optional :: status  ! If non-zero return value, super_mnbrak will terminate.
+!                      real(rp) :: value
+!                    end function func
+!
+! Output:
+!   ax, bx      -- real(rp): Range over which there is a minimum.
+!   cx          -- real(rp): Value in the range [ax, bx] such that func(cx) < min(func(ax), func(cx)).
+!   fa, fb, fc  -- real(rp): values of func(ax), func(bx), and func(cx) respectively.
+!   status      -- integer: Calculation status:
+!                       0    => Normal.
+!                       Other => Set by func. 
+!-
+
+subroutine super_mnbrak(ax, bx, cx, fa, fb, fc, func, status)
+
+implicit none
+
+real(rp), intent(inout) :: ax, bx
+real(rp), intent(out) :: cx, fa, fb, fc
+
+interface
+  function func(x, status) result (value)
+  import
+  implicit none
+  real(rp), intent(in) :: x
+  real(rp) :: value
+  integer, optional :: status
+  end function func
+end interface
+
+real(rp), parameter :: gold = 1.618034_rp, glimit = 100.0_rp, tiny = 1.0e-20_rp
+real(rp) :: fu, q, r, u, ulim
+integer status
+
+!
+
+status = 0
+
+fa = func(ax, status)
+fb = func(bx, status)
+if (fb > fa) then
+  call swap(ax, bx)
+  call swap(fa, fb)
+end if
+cx = bx+gold*(bx-ax)
+fc = func(cx, status); if (status /= 0) return
+do
+  if (fb < fc) return
+  r = (bx-ax)*(fb-fc)
+  q = (bx-cx)*(fb-fa)
+  u = bx-((bx-cx)*q-(bx-ax)*r)/(2.0_rp*sign(max(abs(q-r), tiny), q-r))
+  ulim = bx+glimit*(cx-bx)
+  if ((bx-u)*(u-cx) > 0.0) then
+    fu = func(u, status); if (status /= 0) return
+    if (fu < fc) then
+      ax = bx
+      fa = fb
+      bx = u
+      fb = fu
+      return
+    else if (fu > fb) then
+      cx = u
+      fc = fu
+      return
+    end if
+    u = cx+gold*(cx-bx)
+    fu = func(u, status); if (status /= 0) return
+  else if ((cx-u)*(u-ulim) > 0.0) then
+    fu = func(u, status); if (status /= 0) return
+    if (fu < fc) then
+      bx = cx
+      cx = u
+      u = cx+gold*(cx-bx)
+      call shft(fb, fc, fu, func(u, status))
+    end if
+  else if ((u-ulim)*(ulim-cx) >= 0.0) then
+    u = ulim
+    fu = func(u, status); if (status /= 0) return
+  else
+    u = cx+gold*(cx-bx)
+    fu = func(u, status); if (status /= 0) return
+  end if
+  call shft(ax, bx, cx, u)
+  call shft(fa, fb, fc, fu)
+end do
+
+!------------------------
+contains
+
+subroutine shft(a, b, c, d)
+real(rp), intent(out) :: a
+real(rp), intent(inout) :: b, c
+real(rp), intent(in) :: d
+a = b
+b = c
+c = d
+end subroutine shft
+
+end subroutine super_mnbrak
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Function super_brent (ax, bx, cx, func, rel_tol, abs_tol, xmin, status) result (ymin)
 !
 ! Routine to find the minimum of a function.
@@ -234,10 +351,10 @@ end function super_rtsafe
 ! Input:
 !   ax, cx   -- real(rp): Range of x to search. It is permitted that cx < ax.
 !   bx       -- real(rp): x-value between ax and cx such that func(bx) < min(func(ax), func(cx)).
-!   func     -- function whose root is to be found. The interface is:
+!   func     -- function whose minimum is to be found. The interface is:
 !                  function func(x, status) result (value)
 !                    real(rp), intent(in) :: x
-!                    integer, optional :: status  ! If non-zero return value, super_zbrent will terminate.
+!                    integer, optional :: status  ! If non-zero return value, super_brent will terminate.
 !                    real(rp) :: value
 !                  end function func
 !   rel_tol  -- real(rp): Relative tolerance for the error of the minimum.
@@ -395,7 +512,7 @@ end function super_brent
 !                      -2    => Max iterations exceeded.
 !                      -1    => Root not bracketed.
 !                       0    => Normal.
-!                       Other => Set by funcs. 
+!                       Other => Set by func. 
 !-
 
 function super_zbrent (func, x1, x2, rel_tol, abs_tol, status) result (x_zero)
