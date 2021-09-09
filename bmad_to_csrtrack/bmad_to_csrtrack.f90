@@ -85,11 +85,11 @@ namelist / beam_params / beam_init
 
 ! Find input file name.
 
-  n_arg = cesr_iargc()
+  n_arg = command_argument_count()
   input_file = "bmad_to_csrtrack.in"
   csrtrk_file = "csrtrk.in"
 
-  if (n_arg == 1) call cesr_getarg(1, input_file)
+  if (n_arg == 1) call get_command_argument(1, input_file)
 
   if (n_arg > 1) then
     print *, "Usage: bmad_to_csrtrack {<input_file_name>}"

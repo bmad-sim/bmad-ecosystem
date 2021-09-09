@@ -48,14 +48,14 @@ namelist / params / field_file, freq_t, file_type, radius
 
 ! Read in the parameters
 
-if (cesr_iargc() > 1) then
+if (command_argument_count() > 1) then
   print *, 'Usage:'
   print *, '  rf_field_coef_calc {<input_file>}'
   stop
 endif
 
 file_name = 'rf_field_coef_calc.init'
-if (cesr_iargc() == 1) call cesr_getarg(1, file_name)
+if (command_argument_count() == 1) call get_command_argument(1, file_name)
 print *, 'Input file: ', trim(file_name)
 
 open (1, file = file_name, status = 'old')

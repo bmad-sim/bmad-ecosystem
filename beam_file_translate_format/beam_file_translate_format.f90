@@ -13,7 +13,7 @@ character(200) file_name, full_name
 
 !
 
-if (cesr_iargc() < 2) then
+if (command_argument_count() < 2) then
   print *, 'Usage:'
   print *, '   beam_file_translate_format <beam_file> <out_format>'
   print *, ' where <out_format> is one of:'
@@ -26,10 +26,10 @@ endif
 
 hdf5_com%debug_on = .false.
 
-call cesr_getarg(1, file_name)
+call get_command_argument(1, file_name)
 call fullfilename(file_name, full_name)
 
-call cesr_getarg(2, out_fmt)
+call get_command_argument(2, out_fmt)
 
 call read_beam_file(full_name, beam, beam_init, err_flag)
 if (err_flag) stop

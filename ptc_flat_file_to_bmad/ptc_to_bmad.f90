@@ -11,7 +11,7 @@ character(200) flat_file(2)
 
 !
 
-n = cesr_iargc()
+n = command_argument_count()
 
 if (n < 1 .or. n > 2) then
   print *, 'Usage:'
@@ -23,7 +23,7 @@ endif
 !
 
 do i = 1, n
-  call cesr_getarg(i, flat_file(i))
+  call get_command_argument(i, flat_file(i))
 enddo
 
 call ptc_read_flat_file(flat_file(1:n), err_flag, lat)

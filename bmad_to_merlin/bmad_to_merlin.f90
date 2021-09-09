@@ -49,14 +49,14 @@ character(4) :: col_type(18) = [character(4):: '%s', '%s', '%le', '%le', '%le', 
 
 !
 
-select case (cesr_iargc())
+select case (command_argument_count())
 case (0)
   print *, 'Usage:'
   print *, '   bmad_to_merlin <bmad-lattice-file-name>'
   print *, 'Where: <bmad-lattice-file> is the name of a Bmad lattice file to be translated.'
   stop
 case (1)
-  call cesr_getarg(1, lat_file)
+  call get_command_argument(1, lat_file)
 case default
   print *, 'Too many parameters on the command line.'
   print *, 'Usage:'

@@ -39,11 +39,11 @@ character(100) fname
 mode_in = 'STD'
 num_str = ''
 
-if (cesr_iargc() > 0) then
-  call cesr_getarg(1, arg_in)
+if (command_argument_count() > 0) then
+  call get_command_argument(1, arg_in)
   if (is_integer(arg_in)) then
     num_str = arg_in
-    if (cesr_iargc() > 1) call cesr_getarg(2, mode_in)
+    if (command_argument_count() > 1) call get_command_argument(2, mode_in)
   else
     mode_in = arg_in
   endif

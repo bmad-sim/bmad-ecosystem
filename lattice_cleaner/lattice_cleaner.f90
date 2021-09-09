@@ -32,18 +32,18 @@ logical err
 
 ! Get input lattice file name
 
-if (cesr_iargc() == 0) then
+if (command_argument_count() == 0) then
   print *, 'Command line synrax:'
   print *, '  lattic_cleaner <input-bmad-lattice-file-name>'
   stop
 endif
 
-if (cesr_iargc() > 1) then
+if (command_argument_count() > 1) then
   print *, 'Too much stuff on the command line! Stopping here.'
   stop
 endif
 
-call cesr_getarg (1, lat_file)
+call get_command_argument (1, lat_file)
 
 ! Read in the lattice
 

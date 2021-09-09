@@ -42,7 +42,7 @@ character(200) line
 
 !
 
-call cesr_getarg(1, arg)
+call get_command_argument(1, arg)
 call init_attribute_name_array()
 call indexer(key_name, key_indx)
 

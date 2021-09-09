@@ -38,12 +38,12 @@ character(*), parameter :: r_name = 'bmad_to_slicktrack'
 
 !
 
-n_arg = cesr_iargc()
+n_arg = command_argument_count()
 bmad_name = ''
 split_eles = .true.
 
 do i = 1, n_arg
-  call cesr_getarg (i, arg)
+  call get_command_argument (i, arg)
   if (index('-no_split', trim(arg)) == 1) then
     split_eles = .false.
   elseif (arg(1:1) == '-') then
