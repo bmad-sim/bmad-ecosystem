@@ -34,6 +34,15 @@ void display_size_and_res(int ix_screen, double* x_size, double* y_size, double*
 #include <X11/Xwindows.h>
 #endif
 
+// Fix for OSX X11 issue with conda-forge build
+#include <X11/Xfuncproto.h>
+#ifndef _X_SENTINEL
+# define _X_SENTINEL(x)
+#endif
+#ifndef _X_DEPRECATED
+# define _X_DEPRECATED
+#endif
+
 #include <X11/Xlib.h>
 #include <stdio.h>
 #include <stdlib.h>
