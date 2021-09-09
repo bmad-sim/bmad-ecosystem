@@ -17,7 +17,7 @@ type (expression_atom_struct), allocatable :: stack(:)
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(40) :: loc_str(16) = [character(40):: 'qu1-1', 'qu1-5', 'qu2+1', 'qu2+10', &
-          '1>>drift::3:15', 'sb', '3:15:3', '1>>quad::*', 'octupole::1>>*', &
+          '1>>drift::3:15', 'sb', '3:15', '1>>quad::*', 'octupole::1>>*', &
           'sb##2', 'type::*', 'alias::"q*t"', 'descrip::"So Long"', 'sb%', &
           '0>>drift::qu1:qu2', '1>>drift::qu1:qu2']
 character(40) :: exp_str(4) = [character(40):: &
