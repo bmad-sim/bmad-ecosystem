@@ -161,15 +161,15 @@ namelist / params / lux_param
 lux_com%verbose = .true.
 
 i = 0
-do while (i < cesr_iargc())
+do while (i < command_argument_count())
   i = i + 1
-  call cesr_getarg(i, arg)
+  call get_command_argument(i, arg)
   select case (arg)
   case ('-silent')
     lux_com%verbose = .false.
   case ('-plot')
     i = i + 1
-    call cesr_getarg (i, plotting)
+    call get_command_argument (i, plotting)
   case default
     if (arg(1:1) == '-') then
       call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND: ' // trim(arg))
