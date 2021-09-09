@@ -130,10 +130,15 @@ func_set_openmp_flags () {
 
     case "${ACC_ENABLE_OPENMP}" in
 	"Y" | "y" | "1" )
+	    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+                export CFLAGS="${CFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
+                export FCFLAGS="${FFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
+                export LDFLAGS="-L${ACC_CONDA_PATH}/lib -Wl,-rpath,${ACC_CONDA_PATH}/lib ${LDFLAGS}"
+	    fi
 	    export CFLAGS="-fopenmp ${CFLAGS}"
 	    if ( [ "${FC}" == "gfortran" ] ) ; then
-		export FCFLAGS="-fopenmp"
-		export LDFLAGS="-lgomp"
+		export FCFLAGS="-fopenmp ${FCFLAGS}"
+		export LDFLAGS="-lgomp ${LDFLAGS}"
 	    elif [ "${IFORT_MAJOR_VERSION}" ] ; then
 		if [ "${IFORT_MAJOR_VERSION}" -gt 15 ] ; then
 		    export FCFLAGS="-qopenmp" 
@@ -162,6 +167,15 @@ func_set_fpic_flags () {
 # Function to check for required MacPorts install on Mac OS X
 
 func_check_macports () {
+    # We don't need MacPorts for CONDA builds
+    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+           return
+    fi
+
+    # We don't need MacPorts if not using it
+    if ( [[ ! "${USE_MACPORTS}" ]] ) ; then
+           return
+    fi
 
     if ( [ `uname` == "Darwin" ] ) ; then
 	if ( [ "$(type gcc &> /dev/null ; echo $?)" -eq 0 ] ) ; then
@@ -397,6 +411,10 @@ func_check_fortran_version () {
 # Function to check minimium version of GNU Utility Programs needed, install which is needed
     
 func_install_utilities () {
+    # We don't need to install utilities for CONDA builds
+    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+           return
+    fi
 
     UTIL_DIR=${OUTPUT_DIR}/gnu_utilities
     UTIL_SRC_DIR=${BASE_DIR}/gnu_utilities_src
@@ -607,7 +625,7 @@ func_set_c_flags () {
 	export LDFLAGS="${LDFLAGS}"
     elif ( [ `uname` == "Darwin" ] ) ; then
 	export CFLAGS="-std=gnu99 -Wall -fPIC -Wno-trigraphs -Wno-unused -g ${CFLAGS}"
-	export LDFLAGS="-v"
+	export LDFLAGS="-v ${LDFLAGS}"
     else
 	export CFLAGS="-std=gnu99 -Wall -Wno-trigraphs -Wno-unused -g ${CFLAGS}"
 	export LDFLAGS="${LDFLAGS}"
@@ -714,6 +732,17 @@ func_cleanup_variables () {
 
 
 # Main script
+
+case "${ACC_CONDA_BUILD}" in
+    "Y" | "y" | "1" )
+        CONDA_BUILD=1
+        ;;
+esac
+case "${ACC_USE_MACPORTS}" in
+    "Y" | "y" | "1" )
+        USE_MACPORTS=1
+        ;;
+esac
 
 if ( [ "${1}" == "-debug" ] || [ "${1}" == "-production" ] ) ; then
 

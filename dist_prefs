@@ -158,3 +158,31 @@ export ACC_ENABLE_PROFILING="N"
 #-----------------------------------------------------------
 export ACC_SET_GMAKE_JOBS="2"
 
+
+#-----------------------------------------------------------
+# By default the conda build flag is off.
+# Setting the variable ACC_CONDA_BUILD here to "Y" will
+# enable the compilation path assuming external
+# dependencies from the system and it will also reduce
+# the number of targets to only essential pieces.
+# E.g.: regression tests are not compiled
+#-----------------------------------------------------------
+export ACC_CONDA_BUILD="N"
+
+
+#-----------------------------------------------------------
+# If using ACC_CONDA_BUILD configure here the path to your
+# environment.
+#-----------------------------------------------------------
+export ACC_CONDA_PATH="${CONDA_PREFIX}"
+
+
+#-----------------------------------------------------------
+# By default this flag is on.
+# Setting the variable ACC_USE_MACPORTS here to "Y" will
+# enable the MacPorts path (/opt/local/) to be added to
+# library search path.
+# This option is only valid for MacOS (Darwin).
+#-----------------------------------------------------------
+export ACC_USE_MACPORTS="Y"
+

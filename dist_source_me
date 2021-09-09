@@ -42,6 +42,11 @@ func_set_os_env () {
 
     export ACC_COMPILER_TOOLSET=default
 
+    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+        # No need to set os env for Conda Build.
+        return;
+    fi
+
     if ( [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ) ; then
 
         # Workaround for $(uname -m) == x86_64 on Msys2/MinGW-w64-i686
@@ -72,9 +77,11 @@ func_set_os_env () {
     # For Mac OS X "Darwin"
     if [ "$(uname)" == "Darwin" ] ; then
 	# Force MacPorts gcc/g++ as GNU compiler
-	if [ -e /opt/local/bin/gcc ] ; then
-	    export CC=gcc
-	    export CXX=g++
+	if ( [[ "${USE_MACPORTS}" ]] ) ; then
+		if [ -e /opt/local/bin/gcc ] ; then
+		    export CC=gcc
+		    export CXX=g++
+		fi
 	fi
     fi
 }
@@ -341,6 +348,11 @@ func_add_bmad_path () {
 
     export PATH=${USER_PATH}
 
+    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+        export LD_LIBRARY_PATH=${ACC_CONDA_PATH}/lib:${LD_LIBRARY_PATH}
+    fi
+
+
     if [ ${LD_LIBRARY_PATH} ] ; then
 	USER_LIB_PATH_LIST=$(echo ${LD_LIBRARY_PATH} | sed s/:/\ /g)
 
@@ -376,7 +388,17 @@ func_add_bmad_path () {
     fi
 }
 
+case "${ACC_CONDA_BUILD}" in
+    "Y" | "y" | "1" )
+        CONDA_BUILD=1
+        ;;
+esac
 
+case "${ACC_USE_MACPORTS}" in
+    "Y" | "y" | "1" )
+        USE_MACPORTS=1
+        ;;
+esac
 
 #-----------------------------------------------------------------
 # Main Script
@@ -403,6 +425,13 @@ CWD=$(pwd)
 CWD_DIR_CHECK=$(func_is_dir_toplevel ${CWD})
 DIST_BASE_DIR_CHECK=$(func_is_dir_toplevel ${DIST_BASE_DIR})
 
+
+if ( [[ "${CONDA_BUILD}" ]] ) ; then
+    DIST_SETUP_LOG=/dev/stdout
+    DIST_SETUP_QUIET="Y"
+fi
+
+
 if ( [ "${CWD_DIR_CHECK}" == "Y" ] && [[ ! ${CWD} -ef ${DIST_BASE_DIR} ]]) ; then
 
     [ ! -z "${DIST_BASE_DIR}" ] && echo -e "\n-----------------------------------------------------" \
@@ -416,7 +445,9 @@ if ( [ "${CWD_DIR_CHECK}" == "Y" ] && [[ ! ${CWD} -ef ${DIST_BASE_DIR} ]]) ; the
     func_set_os_env
     func_set_bmad_env
     func_add_bmad_path
-    func_check_fortran_version
+    if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
+        func_check_fortran_version
+    fi
 
 elif ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
     echo -e "\nThe working directory of the Bmad Distribution tree is defined by DIST_BASE_DIR." \
@@ -425,7 +456,9 @@ elif ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
     func_set_os_env
     func_set_bmad_env
     func_add_bmad_path
-    func_check_fortran_version
+    if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
+        func_check_fortran_version
+    fi
 
 else
     echo -e "\nERROR - Cannot Enable the Bmad Distribution Environment.\n" \
@@ -454,4 +487,6 @@ echo -e "     https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc\n" \
 #-----------------------------------------------------------------
 # Display Logfile, unless requested not to.
 #-----------------------------------------------------------------
-[ "${DIST_SETUP_QUIET}" != "Y" ] && cat ${DIST_SETUP_LOG}
+if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
+    [ "${DIST_SETUP_QUIET}" != "Y" ] && cat ${DIST_SETUP_LOG}
+fi

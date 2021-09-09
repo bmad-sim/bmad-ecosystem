@@ -11,11 +11,26 @@
 [ "${ACC_PLOT_PACKAGE}" == "pgplot" ] && export ACC_PLOT_PACKAGE_DIR="PGPLOT" 
 [ "${ACC_PLOT_PACKAGE}" == "plplot" ] && export ACC_PLOT_PACKAGE_DIR="plplot"
 
-# List of Project Directories - Order here matters!
-DIRLIST=( ${ACC_PLOT_PACKAGE_DIR} hdf5 fftw lapack gsl fgsl forest recipes_f-90_LEPP sim_utils xraylib bmad tao cpp_bmad_interface examples bsim util_programs lux regression_tests )
+case "${ACC_CONDA_BUILD}" in
+    "Y" | "y" | "1" )
+    CONDA_BUILD=1
+    ;;
+esac
 
-# Build OpenMPI, if requested
-[ "${ACC_ENABLE_MPI}" == "Y" ] && DIRLIST=( openmpi ${DIRLIST[*]} )
+if ( [[ "${CONDA_BUILD}" ]] ) ; then
+    # For conda build most of the dependencies are pulled from conda-forge
+    # We also remove examples and regression tests from the build list
+
+    # List of Project Directories - Order here matters!
+    DIRLIST=( forest recipes_f-90_LEPP sim_utils bmad tao cpp_bmad_interface bsim util_programs lux )
+    [ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST=( plplot ${DIRLIST[*]} )
+else
+    # List of Project Directories - Order here matters!
+    DIRLIST=( ${ACC_PLOT_PACKAGE_DIR} hdf5 fftw lapack gsl fgsl forest recipes_f-90_LEPP sim_utils xraylib bmad tao cpp_bmad_interface examples bsim util_programs lux regression_tests )
+
+    # Build OpenMPI, if requested
+    [ "${ACC_ENABLE_MPI}" == "Y" ] && DIRLIST=( openmpi ${DIRLIST[*]} )
+fi
 
 # General Distribution Build Function
 func_dist_build () { 
