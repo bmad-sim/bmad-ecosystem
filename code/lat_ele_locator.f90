@@ -6,8 +6,9 @@
 !
 ! loc_str is a list of element names or element ranges.
 ! A space or a comma delimits the elements.
+! An ampersand "&" can be used to form the intersection of two groups.
 !
-! An element name can be of the form
+! An element "name" (which can match to multiple elements) can be of the form
 !   {~}{branch>>}{key::}ele_id{##N}{+/-offset}
 ! Where
 !   ~         -- Negation character. See below.
@@ -23,14 +24,13 @@
 !   {key::}{branch>>}ele_id{##N}
 !
 ! An element range is of the form:
-!   {key::}ele1:ele2{:step}
+!   {key::}ele1:ele2
 ! Where:
 !   key      -- Optional key name ("quadrupole", "sbend", etc.). 
 !               Also key may be "type", "alias", or "descrip" in which case the %type, %alias, or 
 !               %descrip field is matched to instead of the element name.
 !   ele1     -- Starting element of the range.
 !   ele2     -- Ending element of the range. 
-!   step     -- Optional step increment Default is 1. 
 ! Note: ele1 and ele2 must be in the same branch. Branch 0 is the default.
 ! If ele1 or ele2 is a super_lord, the elements in the range are determined by the position of the super_slave elements.
 ! For example, if loc_str is "Q1:Q1" and Q1 is *not* a super_lord, the eles list will simply be Q1.
@@ -59,6 +59,10 @@
 ! This shows that order is important when negation is used since adding/subtracting elements from
 ! the list is done left to right.
 !
+! An ampersand "&" can be used to form the intersection of two groups.
+! Example:
+!   1:10 & BPM*   ! All element with index in range [1,10] and with name starting with "BPM".
+! 
 ! Note: For something like loc_str = "quad::*", if order_by_index = True, the eles(:) array will
 ! be ordered by element index. If order_by_index = False, the eles(:) array will be ordered by
 ! s-position. This is the same as order by index except in the case where where there are super_lord
@@ -115,7 +119,7 @@ character(1) delim
 
 integer, optional :: ix_dflt_branch
 integer i, j, ib, ios, ix, n_loc, n_loc2, match_name_to
-integer in_range, step, ix_word, key
+integer in_range, ix_word, key
 integer, parameter :: ele_name$ = -1
 
 logical, optional :: above_ubound_is_err, err, order_by_index
@@ -134,7 +138,6 @@ call str_upcase (str, str)
 !   0 -> not in range construct
 !   1 -> processing start
 !   2 -> processing stop
-!   3 -> processing step
 in_range = 0   
 
 ! Loop over all items in the list
@@ -155,7 +158,6 @@ do
     negate = .false.
     key = 0
     match_name_to = ele_name$
-    step = 1
   endif
 
   if (name(1:1) == '~') then
@@ -213,32 +215,23 @@ do
 
   ! Get list of elements for this item
 
-  if (in_range == 3) then  ! Must be step
-    read (name, *, iostat = ios) step
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD STEP: ' // loc_str)
-      return
-    endif
-    in_range = in_range + 1
+  ! In a range the key is applied to the list of elements in the range and not
+  ! applied to picking the end elements.
+  above_ub_is_err = (logic_option(.true., above_ubound_is_err) .or. in_range /= 2)
+  s_ordered = (.not. logic_option(.false., order_by_index))
+  if (in_range == 0) then
+    call lat_ele1_locator (branch_str, key, name, match_name_to, lat, eles2, n_loc2, err2, &
+                                                     above_ub_is_err, ix_dflt_branch, s_ordered)
   else
-    ! In a range the key is applied to the list of elements in the range and not
-    ! applied to picking the end elements.
-    above_ub_is_err = (logic_option(.true., above_ubound_is_err) .or. in_range /= 2)
-    s_ordered = (.not. logic_option(.false., order_by_index))
-    if (in_range == 0) then
-      call lat_ele1_locator (branch_str, key, name, match_name_to, lat, eles2, n_loc2, err2, &
-                                                       above_ub_is_err, ix_dflt_branch, s_ordered)
+    call lat_ele1_locator (branch_str, 0, name, match_name_to, lat, eles2, n_loc2, err2, &
+                                                     above_ub_is_err, ix_dflt_branch, s_ordered)
+    if (in_range == 1) then
+      names_are_integers = (is_integer(name))
     else
-      call lat_ele1_locator (branch_str, 0, name, match_name_to, lat, eles2, n_loc2, err2, &
-                                                       above_ub_is_err, ix_dflt_branch, s_ordered)
-      if (in_range == 1) then
-        names_are_integers = (is_integer(name))
-      else
-        names_are_integers = (is_integer(name) .and. names_are_integers)
-      endif
+      names_are_integers = (is_integer(name) .and. names_are_integers)
     endif
-    if (err2) return
   endif
+  if (err2) return
 
   ! If not a range construct then just put this on the list
 
@@ -280,7 +273,7 @@ do
   if (in_range == 2) ele_end   => eles2(1)%ele
 
   if (delim == ':') then
-    if (in_range >= 4) then
+    if (in_range >= 3) then
       call out_io (s_error$, r_name, 'TOO MANY ":" IN RANGE CONSTRUCT: ' // loc_str)
       return
     endif
@@ -307,17 +300,17 @@ do
 
   if (key > 0) then
     n_loc2 = 0
-    do i = ele_start%ix_ele, ele_end%ix_ele, step
+    do i = ele_start%ix_ele, ele_end%ix_ele
       if (lat%branch(ib)%ele(i)%key == key .or. lat%branch(ib)%ele(i)%sub_key == key) n_loc2 = n_loc2 + 1
     enddo
   else
-    n_loc2 = (ele_end%ix_ele - ele_start%ix_ele) / step + 1
+    n_loc2 = (ele_end%ix_ele - ele_start%ix_ele) + 1
   endif
 
   if (negate .or. intersection) then
     call re_allocate_eles(eles2, n_loc2, .false.)
     n_loc2 = 0
-    do i = ele_start%ix_ele, ele_end%ix_ele, step
+    do i = ele_start%ix_ele, ele_end%ix_ele
       if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key .and. lat%branch(ib)%ele(i)%sub_key /= key) cycle
       n_loc2 = n_loc2 + 1
       eles2(n_loc2)%ele => lat%branch(ib)%ele(i)
@@ -334,7 +327,7 @@ do
     call re_allocate_eles(eles, n_loc+n_loc2, .true.)
 
     n_loc2 = 0
-    do i = ele_start%ix_ele, ele_end%ix_ele, step
+    do i = ele_start%ix_ele, ele_end%ix_ele
       if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key .and. lat%branch(ib)%ele(i)%sub_key /= key) cycle
       n_loc2 = n_loc2 + 1
       eles(n_loc+n_loc2)%ele => lat%branch(ib)%ele(i)
