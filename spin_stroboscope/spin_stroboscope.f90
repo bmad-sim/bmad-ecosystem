@@ -109,13 +109,13 @@ namelist / strob_params / bmad_lat, rf_on, orbit_start, orbit_stop, n_points, n_
 
 ! Read parameter file
 
-if (cesr_iargc() > 1) then
+if (command_argument_count() > 1) then
   print *, '??? MULTIPLE ARGUMENTS ON THE COMMAND LINE.'
   stop
 endif
 
 param_file = 'spin_stroboscope.init'
-if (cesr_iargc() == 1) call cesr_getarg(1, param_file)
+if (command_argument_count() == 1) call get_command_argument(1, param_file)
 
 debug = .false.
 ix_lat_branch = 0

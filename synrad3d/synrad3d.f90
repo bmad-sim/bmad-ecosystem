@@ -81,23 +81,23 @@ photon_start_input_file = ''
 ix_photon_out = -1
 
 i = 0
-do while (i < cesr_iargc())
+do while (i < command_argument_count())
   i = i + 1
-  call cesr_getarg(i, arg)
+  call get_command_argument(i, arg)
   select case (arg)
   case ('-plot')
     i = i + 1
-    call cesr_getarg(i, plotting)
+    call get_command_argument(i, plotting)
     if (plotting == '') ok = .false.
   case ('-test')
     i = i + 1
-    call cesr_getarg(i, test)
+    call get_command_argument(i, test)
   case ('-in')
     i = i + 1
-    call cesr_getarg(i, photon_start_input_file)
+    call get_command_argument(i, photon_start_input_file)
   case ('-out')
     i = i + 1
-    call cesr_getarg(i, arg)
+    call get_command_argument(i, arg)
     read (arg, *) ix_photon_out
   case default
     if (arg(1:1) == '-') then

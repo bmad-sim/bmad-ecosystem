@@ -24,12 +24,12 @@ character(24)  :: fmt
 !------------------
 
 !Get lattice from command line
-if (cesr_iargc()==0) then
+if (command_argument_count()==0) then
 	print *,"ERROR: Please provide a lattice file"
 	stop
 endif
 
-call cesr_getarg(1, lat_name)
+call get_command_argument(1, lat_name)
 print *,"Using ", lat_name
 call file_suffixer (lat_name, outfile_name, '.wall_dat', .true.)
 

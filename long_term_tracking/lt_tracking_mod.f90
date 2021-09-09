@@ -179,9 +179,9 @@ lat => ltt_com%lat
 ltt_com%master_input_file = ''
 
 i = 0
-do while (i < cesr_iargc())
+do while (i < command_argument_count())
   i = i + 1
-  call cesr_getarg(i, arg)
+  call get_command_argument(i, arg)
   call match_word (arg, ['-debug'], ix, .false., .true., m_name)
   select case (m_name)
   case ('-debug')

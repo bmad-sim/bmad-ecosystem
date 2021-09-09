@@ -31,9 +31,9 @@ namelist / params / lat_file, bmad_com, set_rf_off, da_param, dpz, dat_file
 
 in_file = 'dynamic_aperture.init'
 
-nargs = cesr_iargc()
+nargs = command_argument_count()
 if (nargs == 1) then
-  call cesr_getarg(1, in_file)
+  call get_command_argument(1, in_file)
 elseif (nargs > 1) then
   print *, 'ERROR: EXTRA STUFF ON COMMAND LINE'
   stop

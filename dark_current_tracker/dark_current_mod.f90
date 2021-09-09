@@ -514,7 +514,7 @@ if (present(cmd_words)) then
   n_arg = size(cmd_words)
   if (cmd_words(1) == '') return
 else
-  n_arg = cesr_iargc()
+  n_arg = command_argument_count()
   if (n_arg == 0) return
 endif
 
@@ -571,7 +571,7 @@ i_arg = i_arg + 1
 if (present(cmd_words)) then
   arg = cmd_words(i_arg)
 else
-  call cesr_getarg(i_arg, arg)
+  call get_command_argument(i_arg, arg)
 endif
 
 end subroutine get_next_arg
