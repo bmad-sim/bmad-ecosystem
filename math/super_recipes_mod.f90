@@ -397,6 +397,7 @@ integer :: iter, status
 !
 
 status = 0
+ymin = real_garbage$
 
 a = min(ax, cx)
 b = max(ax, cx)
