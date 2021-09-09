@@ -237,7 +237,7 @@ end function super_rtsafe
 !   func     -- function whose root is to be found. The interface is:
 !                  function func(x, status) result (value)
 !                    real(rp), intent(in) :: x
-!                    integer :: status  ! If non-zero return value, super_zbrent will terminate.
+!                    integer, optional :: status  ! If non-zero return value, super_zbrent will terminate.
 !                    real(rp) :: value
 !                  end function func
 !   rel_tol  -- real(rp): Relative tolerance for the error of the minimum.
@@ -267,7 +267,7 @@ interface
   implicit none
   real(rp), intent(in) :: x
   real(rp) :: func
-  integer status
+  integer, optional :: status
   end function func
 end interface
 
