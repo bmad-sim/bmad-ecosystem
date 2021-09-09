@@ -12,8 +12,10 @@ SET (LINK_LIBS
   ${ACC_BMAD_LINK_LIBS}
 )
 
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND $ENV{ACC_USE_MACPORTS} MATCHES "Y")
-  link_directories(/opt/local/lib)
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  IF ($ENV{ACC_USE_MACPORTS} MATCHES "Y")
+    link_directories(/opt/local/lib)
+  ENDIF ()
 ENDIF ()
 
 # If this is a conda build we must expand the library search
