@@ -2759,13 +2759,14 @@ ptc_probe8 = ptc_cdamap + ptc_probe ! = IdentityMap + const
 
 if (bmad_com%spin_tracking_on) then
   call track_probe (ptc_probe8, ptc_com%base_state+SPIN0, fibre1 = bmadl%start)
+
+  do i = 0, 3
+    spin_tylr(i) = ptc_probe8%q%x(i)%t
+  enddo
+
 else
   call track_probe (ptc_probe8, ptc_com%base_state-SPIN0, fibre1 = bmadl%start)
 endif
-
-do i = 0, 3
-  spin_tylr(i) = ptc_probe8%q%x(i)%t
-enddo
 
 ! take out the offset
 

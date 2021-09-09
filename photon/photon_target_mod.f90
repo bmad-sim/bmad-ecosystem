@@ -87,12 +87,11 @@ if (associated(ap_ele%photon)) then
   grid_defined = (gr%dr(1) /= 0 .or. gr%dr(2) /= 0)
 endif
 
-! If grid defined...
+! If a grid has been defined use that as the target
 
 if (grid_defined) then 
   target%type = grided$
   target%ele_loc = lat_ele_loc_struct(ap_ele%ix_ele, ap_ele%ix_branch)
-  gr%type = diffract_target$
 
   z = 0
   
@@ -100,7 +99,7 @@ if (grid_defined) then
   call photon_target_corner_calc (ap_ele, gr%r0(1)+gr%dr(1), gr%r0(2),          z, ele, target%corner(1))
   call photon_target_corner_calc (ap_ele, gr%r0(1),          gr%r0(2)+gr%dr(2), z, ele, target%corner(2))
 
-! If grid not defined..
+! If no grid defined use the element limits.
 
 else
 

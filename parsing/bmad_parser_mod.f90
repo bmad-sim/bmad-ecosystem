@@ -1058,7 +1058,7 @@ if (attrib_word == 'SURFACE') then
           endif
 
         case ('TYPE')
-          call get_switch ('SURFACE GRID TYPE', input_surface_grid_type_name(1:), surf%grid%type, err_flag2, ele, delim, delim_found)
+          call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), surf%grid%type, err_flag2, ele, delim, delim_found)
           if (err_flag2) return
           bp_com%parse_line = delim // bp_com%parse_line
 
