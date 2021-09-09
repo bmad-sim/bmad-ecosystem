@@ -50,9 +50,9 @@ sr_param%filter_phantom_photons = .true.
 ok = .true.
 
 i = 0
-do while (i < cesr_iargc())
+do while (i < command_argument_count())
   i = i + 1
-  call cesr_getarg(i, arg)
+  call get_command_argument(i, arg)
   select case (arg)
   case ('-plot')
     plotting = 'true'

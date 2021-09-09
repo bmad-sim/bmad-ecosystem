@@ -34,11 +34,11 @@ namelist / bbu_params / bbu_param, beam_init, bmad_com
 ! Defaults for namelist
 beam_init%n_particle = 1
 
-select case (cesr_iargc())
+select case (command_argument_count())
 case (0)
   init_file = 'bbu.init'
 case (1)
-  call cesr_getarg(1, init_file)
+  call get_command_argument(1, init_file)
 case default
   print *, 'CONFUSED: MULTIPLE COMMAND LINE ARGUMENTS!'
   stop
