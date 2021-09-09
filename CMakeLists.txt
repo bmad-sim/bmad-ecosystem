@@ -7,8 +7,17 @@ SET (CREATE_SHARED true)
 
 SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 
-SET (INC_DIRS
+# If this is a conda build, xraylib is contained
+# one level deeper in the include folder
+IF ($ENV{ACC_CONDA_BUILD})
+  SET (INC_DIRS
+    $ENV{ACC_CONDA_PATH}/include/xraylib/
+    $ENV{ACC_CONDA_PATH}/include/fgsl/
   )
+ELSE ()
+  SET (INC_DIRS
+  )
+ENDIF ()
 
 SET (SRC_DIRS 
   code 
