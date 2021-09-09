@@ -729,7 +729,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     if (associated(ele%photon)) then
       surf => ele%photon%surface
-      if (all (surf%grid%type /= [not_set$, segmented$, h_misalign$, diffract_target$, displacement$])) then
+      if (all (surf%grid%type /= [not_set$, segmented$, h_misalign$, displacement$])) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'HAS AN INVALID SURFACE%GRID%TYPE SETTING: \i0\ ', i_array = [surf%grid%type])

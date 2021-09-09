@@ -901,18 +901,16 @@ type surface_grid_pt_struct
   real(rp) :: init_orbit_rms(6) = 0   ! Initial orbit at start of lattice RMS statistics.
 end type
 
-integer, parameter :: segmented$ = 1, h_misalign$ = 2, displacement$ = 3, diffract_target$ = 4
-character(16), parameter :: surface_grid_type_name(0:4) = [character(16):: 'GARBAGE!', &
-                               'Segmented', 'H_Misalign', 'Displacement', 'Diffract_Target']
-character(16), parameter :: input_surface_grid_type_name(0:3) = surface_grid_type_name(0:3)
+integer, parameter :: segmented$ = 1, h_misalign$ = 2, displacement$ = 3
+character(16), parameter :: surface_grid_type_name(0:3) = [character(16):: 'GARBAGE!', &
+                                                  'Segmented', 'H_Misalign', 'Displacement']
 
-! grid%type = diffract_target$ is set by Bmad when Bmad uses the grid structure for targeting calculations.
-! That is, grid%type is never set to diffract_target in a lattice file
+!
 
 type surface_grid_struct
   character(200) :: file = ''
   logical :: active = .true.
-  integer :: type = not_set$   ! offset$, segmented$, h_misalign$, or diffract_target$
+  integer :: type = not_set$   ! or displacement$, segmented$, h_misalign$
   real(rp) :: dr(2) = 0, r0(2) = 0
   type (surface_grid_pt_struct), allocatable :: pt(:,:) 
 end type
