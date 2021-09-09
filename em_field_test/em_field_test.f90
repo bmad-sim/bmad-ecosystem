@@ -30,13 +30,13 @@ namelist / params / del, rf_time
 print_extra = .false.
 lat_file = 'em_field_test.bmad'
 
-nargs = cesr_iargc()
+nargs = command_argument_count()
 if (nargs > 1) then
   print *, 'Only one command line arg permitted.'
   call err_exit
 
 elseif (nargs > 0)then
-  call cesr_getarg(1, lat_file)
+  call get_command_argument(1, lat_file)
   print *, 'Using ', trim(lat_file)
   print_extra = .true.
 endif

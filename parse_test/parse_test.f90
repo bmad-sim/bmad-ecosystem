@@ -29,10 +29,10 @@ logical err, delim_found
 
 !
 
-nargs = cesr_iargc()
+nargs = command_argument_count()
 
 if (nargs > 0) then
-  call cesr_getarg(1, lat_file)
+  call get_command_argument(1, lat_file)
   print *, 'Using ', trim(lat_file)
 
   bmad_com%auto_bookkeeper = .false.

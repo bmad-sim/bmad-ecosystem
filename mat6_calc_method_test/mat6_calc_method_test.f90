@@ -32,9 +32,9 @@ logical custom_test, err, abs_time
 global_com%exit_on_error = .false.
 
 custom_test = .false.
-nargs = cesr_iargc()
+nargs = command_argument_count()
 if (nargs == 1) then
-  call cesr_getarg(1, lat_file)
+  call get_command_argument(1, lat_file)
   print *, 'Using ', trim(lat_file)
   custom_test = .true.
   fmt1 = '(a, 6es15.7)' ! Don't need as much precison for test purposes

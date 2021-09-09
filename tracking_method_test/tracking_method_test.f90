@@ -22,11 +22,11 @@ fmt = '(a, t49, a, 7es18.10)'
 track_method = ''
 
 debug_mode = .false.
-nargs = cesr_iargc()
+nargs = command_argument_count()
 
 if (nargs > 0) then
-  call cesr_getarg(1, lat_file)
-  call cesr_getarg(2, track_method)
+  call get_command_argument(1, lat_file)
+  call get_command_argument(2, track_method)
   print *, 'Using ', trim(lat_file)
   debug_mode = .true.
   fmt = '(a, t49, a, 7es14.6)'
