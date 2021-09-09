@@ -53,7 +53,7 @@ short_method_name(symp_lie_bmad$)     = 'SLB'
 short_method_name(mad$)               = 'MAD'
 short_method_name(time_runge_kutta$)  = 'TRK'
 
-if (cesr_iargc() == 1) call cesr_getarg (1, input_file)
+if (command_argument_count() == 1) call get_command_argument (1, input_file)
 
 veto_methods = ''
 

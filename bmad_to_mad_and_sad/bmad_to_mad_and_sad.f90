@@ -46,7 +46,7 @@ character(*), parameter :: r_name = 'bmad_to_mad_and_sad'
 
 !
 
-n_arg = cesr_iargc()
+n_arg = command_argument_count()
 nobpm = .false.
 file_name = ''
 out_type = 'all'
@@ -54,7 +54,7 @@ aperture = .true.
 force = .false.
 
 do i = 1, n_arg
-  call cesr_getarg (i, arg)
+  call get_command_argument (i, arg)
   select case (arg)
   case ('-force')
     force = .true.

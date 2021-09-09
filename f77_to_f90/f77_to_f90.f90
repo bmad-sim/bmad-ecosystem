@@ -20,7 +20,7 @@ integer i, n
 ! get the input file and open input and output files
 
 
-n = cesr_iargc()
+n = command_argument_count()
 
 if (n == 0) then
   print '(a, $)', ' Input f77 (or f90) file name: '
@@ -30,7 +30,7 @@ if (n == 0) then
 endif
 
 do i = 1, n
-  call cesr_getarg (1, file_name)
+  call get_command_argument (1, file_name)
   call convert1 (file_name)
 enddo
 

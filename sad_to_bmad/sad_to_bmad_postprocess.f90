@@ -34,14 +34,14 @@ character(200) line
 
 ! Read in lattice file 
 
-if (cesr_iargc() /= 2) then
+if (command_argument_count() /= 2) then
   print *, 'Command line syntax:'
   print *, '  sad_to_bmad_postprocess <lattice-file-name> <calc_fshift_for>'
   stop
 endif
 
-call cesr_getarg (1, lat_file)
-call cesr_getarg (2, calc_fshift_for)
+call get_command_argument (1, lat_file)
+call get_command_argument (2, calc_fshift_for)
 call bmad_parser (lat_file, lat)
 
 calc_fshift_for = upcase(calc_fshift_for)

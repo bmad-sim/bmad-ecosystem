@@ -34,7 +34,7 @@ namelist / params / input_var_min, input_var_max, curve_list, table_file_name, m
 ! Read input
 
 init_file = 'controller_response_plot.init'
-if (cesr_iargc() > 0) call cesr_getarg(1, init_file)
+if (command_argument_count() > 0) call get_command_argument(1, init_file)
 print '(2a)', 'Init file: ', trim(init_file)
 
 curve_list = '*'                   ! Set some defaults
