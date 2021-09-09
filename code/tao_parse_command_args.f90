@@ -62,7 +62,7 @@ if (present(cmd_line)) then
   n_arg = size(cmd_words)
   if (cmd_words(1) == '') return
 else
-  n_arg = cesr_iargc()
+  n_arg = command_argument_count()
   if (n_arg == 0) return
 endif
 
@@ -277,7 +277,7 @@ if (present(cmd_line)) then
   arg_next = cmd_words(i_arg)
   if (cmd_words(i_arg+1) == '') n_arg = i_arg
 else
-  call cesr_getarg(i_arg, arg_next)
+  call get_command_argument(i_arg, arg_next)
 endif
 
 ! may_have_blanks = T means that the arg_next string may contain blank characters.
@@ -289,7 +289,7 @@ if (logic_option(.false., may_have_blanks)) then
     if (present(cmd_line)) then
       sub = cmd_words(i_arg+1)
     else
-      call cesr_getarg(i_arg+1, sub)
+      call get_command_argument(i_arg+1, sub)
     endif
 
     if (sub(1:1) == '-') return
