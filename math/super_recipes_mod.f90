@@ -44,6 +44,7 @@ contains
 subroutine super_sort(arr)
 
 implicit none
+
 integer, dimension(:), intent(inout) :: arr
 integer, parameter :: nn=15, nstack=50
 integer :: a
@@ -221,28 +222,176 @@ end function super_rtsafe
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Function super_brent (ax, bx, cx, func, rel_tol, abs_tol, xmin, status) result (ymin)
+!
+! Routine to find the minimum of a function.
+! The x-tolerance is:
+!   x-tolerance = |xmin| * rel_tol + abs_tol
+!
+! This routine is essentially brent from Numerical Recipes with the feature that it returns
+! a status integer if something goes wrong instead of bombing.
+!
+! Input:
+!   ax, cx   -- real(rp): Range of x to search. It is permitted that cx < ax.
+!   bx       -- real(rp): x-value between ax and cx such that func(bx) < min(func(ax), func(cx)).
+!   func     -- function whose root is to be found. The interface is:
+!                  function func(x, status) result (value)
+!                    real(rp), intent(in) :: x
+!                    integer :: status  ! If non-zero return value, super_zbrent will terminate.
+!                    real(rp) :: value
+!                  end function func
+!   rel_tol  -- real(rp): Relative tolerance for the error of the minimum.
+!   abs_tol  -- real(rp): Absolute tolerance for the error of the minimum.
+!
+! Output:
+!   xmin     -- real(rp): x-coordinate at minimum.
+!   status   -- integer: Calculation status:
+!                      -2    => Max iterations exceeded.
+!                       0    => Normal.
+!                       Other => Set by funcs. 
+!   ymin     -- real(rp) value of func(xmin).
+!-
+
+function super_brent(ax, bx, cx, func, rel_tol, abs_tol, xmin, status) result (ymin)
+
+implicit none
+
+real(rp), intent(in) :: ax, bx, cx, rel_tol, abs_tol
+real(rp), intent(out) :: xmin
+real(rp) ymin
+real(rp) :: brent
+
+interface
+  function func(x, status)
+  import
+  implicit none
+  real(rp), intent(in) :: x
+  real(rp) :: func
+  integer status
+  end function func
+end interface
+
+real(rp), parameter :: cgold = 0.3819660_dp, zeps = 1.0e-3_dp*epsilon(ax)
+integer, parameter :: itmax = 100
+
+real(rp) tol1, tol2, a, b, d, e, etemp, fu, fv, fw, fx, p, q, r, u, v, w, x, xm
+integer :: iter, status
+
+!
+
+status = 0
+
+a = min(ax, cx)
+b = max(ax, cx)
+v = bx
+w = v
+x = v
+e = 0.0
+fx = func(x, status); if (status /= 0) return
+fv = fx
+fw = fx
+do iter = 1, itmax
+  xm = 0.5_dp*(a+b)
+  tol1 = rel_tol*abs(x)+abs_tol
+  tol2 = 2.0_dp*tol1
+  if (abs(x-xm) <= (tol2-0.5_dp*(b-a))) then
+    xmin = x
+    ymin = fx
+    return
+  end if
+  if (abs(e) > tol1) then
+    r = (x-w)*(fx-fv)
+    q = (x-v)*(fx-fw)
+    p = (x-v)*q-(x-w)*r
+    q = 2.0_dp*(q-r)
+    if (q > 0.0) p = -p
+    q = abs(q)
+    etemp = e
+    e = d
+    if (abs(p) >= abs(0.5_dp*q*etemp) .or. &
+      p <= q*(a-x) .or. p >= q*(b-x)) then
+      e = merge(a-x, b-x, x >= xm )
+      d = cgold*e
+    else
+      d = p/q
+      u = x+d
+      if (u-a < tol2 .or. b-u < tol2) d = sign(tol1, xm-x)
+    end if
+  else
+    e = merge(a-x, b-x, x >= xm )
+    d = cgold*e
+  end if
+  u = merge(x+d, x+sign(tol1, d), abs(d) >= tol1 )
+  fu = func(u, status); if (status /= 0) return
+  if (fu <= fx) then
+    if (u >= x) then
+      a = x
+    else
+      b = x
+    end if
+    call shft(v, w, x, u)
+    call shft(fv, fw, fx, fu)
+  else
+    if (u < x) then
+      a = u
+    else
+      b = u
+    end if
+    if (fu <= fw .or. w == x) then
+      v = w
+      fv = fw
+      w = u
+      fw = fu
+    else if (fu <= fv .or. v == x .or. v == w) then
+      v = u
+      fv = fu
+    end if
+  end if
+end do
+
+status = -2
+return
+
+!--------------------------------------
+contains
+subroutine shft(a, b, c, d)
+real(rp), intent(out) :: a
+real(rp), intent(inout) :: b, c
+real(rp), intent(in) :: d
+a = b
+b = c
+c = d
+end subroutine shft
+
+end function super_brent
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Function super_zbrent (func, x1, x2, rel_tol, abs_tol, status) result (x_zero)
 !
 ! Routine to find the root of a function.
-! The tolerance is:
-!   tolerance = |x_root| * rel_tol + abs_tol
+! The x-tolerance is:
+!   x-tolerance = |x_root| * rel_tol + abs_tol
 !
 ! This routine is essentially zbrent from Numerical Recipes with the feature that it returns
-! an error flag if something goes wrong instead of bombing.
+! a status integer if something goes wrong instead of bombing.
 !
 ! Input:
-!   func(x)  -- function whose root is to be found. The interface is:
+!   func     -- function whose root is to be found. The interface is:
 !                  function func(x, status) result (value)
 !                    real(rp), intent(in) :: x
-!                    integer status
+!                    integer :: status    ! If non-zero return value, super_zbrent will terminate.
 !                    real(rp) :: value
 !                  end function func
 !   x1, x2   -- real(rp): Bracket values.
 !   rel_tol  -- real(rp): Relative tolerance for the error of the root.
 !   abs_tol  -- real(rp): Absolute tolerance for the error of the root.
+!
 ! Output:
-!   x_zero   -- Real(rp): Root found.
-!   status   -- Integer: Calculation status:
+!   x_zero   -- real(rp): Root found.
+!   status   -- integer: Calculation status:
 !                      -2    => Max iterations exceeded.
 !                      -1    => Root not bracketed.
 !                       0    => Normal.
@@ -725,155 +874,6 @@ end do
 err = .false.
 
 end subroutine super_ludcmp
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Function super_brent (ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_min)
-!
-! Routine to find the minimum of a function.
-!
-! This routine is essentially brent from Numerical Recipes with the added feature
-! there are two tollerances: rel_tol and abs_tol.
-!
-! The function func should satisfy the following interface:
-!   function func(x)
-!     real(rp), intent(in) :: x
-!     real(rp) :: func
-!   end function func
-!
-! Input:
-!   ax      -- real(rp): Lower bound of search range.
-!   bx      -- real(rp): point between ax and cx such that func(bx) < func(ax) and func(bx) < func(cx).
-!   cx      -- real(rp): Upper bound of search range.
-!   func    -- function: One dimensional function. 
-!   rel_tol -- real(rp): Relative tolerance.
-!   abs_tol -- real(rp): Absolute tolerance.  
-!
-! Output:
-!   x_min   -- real(rp): minimum of the function.
-!   f_min   -- real(rp): Value at the minimum = func(x_min).
-!-
-
-function super_brent(ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_min)
-
-implicit none
-
-real(rp), intent(in) :: ax,bx,cx,rel_tol, abs_tol
-real(rp), intent(out) :: xmin
-real(rp) :: f_min
-
-interface
-  function func(x)
-    import
-    implicit none
-    real(rp), intent(in) :: x
-    real(rp) :: func
-  end function func
-end interface
-
-integer, parameter :: itmax = 100
-real(rp), parameter :: cgold = 0.3819660_rp
-integer :: iter
-real(rp) :: a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
-
-character(*), parameter :: r_name = 'super_brent'
-
-!
-f_min = 0  ! avoid uninit warnings
-a = min(ax,cx)
-b = max(ax,cx)
-v = bx
-w = v
-x = v
-e = 0.0
-fx = func(x)
-fv = fx
-fw = fx
-do iter = 1, ITMAX
-  xm = 0.5_rp*(a+b)
-  tol1 = rel_tol*abs(x)+abs_tol
-  tol2 = 2.0_rp*tol1
-  if (abs(x-xm) <= (tol2-0.5_rp*(b-a))) then
-    xmin = x
-    f_min = fx
-    return
-  end if
-  if (abs(e) > tol1) then
-    r = (x-w)*(fx-fv)
-    q = (x-v)*(fx-fw)
-    p = (x-v)*q-(x-w)*r
-    q = 2.0_rp*(q-r)
-    if (q > 0.0) p = -p
-    q = abs(q)
-    etemp = e
-    e = d
-    if (abs(p) >= abs(0.5_rp*q*etemp) .or. p <= q*(a-x) .or. p >= q*(b-x)) then
-      e = merge(a-x,b-x, x >= xm )
-      d = CGOLD*e
-    else
-      d = p/q
-      u = x+d
-      if (u-a < tol2 .or. b-u < tol2) d = sign(tol1,xm-x)
-    end if
-  else
-    e = merge(a-x,b-x, x >= xm )
-    d = cgold*e
-  end if
-  u = merge(x+d,x+sign(tol1,d), abs(d) >= tol1 )
-  fu = func(u)
-  if (fu <= fx) then
-    if (u >= x) then
-      a = x
-    else
-      b = x
-    end if
-    call shft(v,w,x,u)
-    call shft(fv,fw,fx,fu)
-  else
-    if (u < x) then
-      a = u
-    else
-      b = u
-    end if
-    if (fu <= fw .or. w == x) then
-      v = w
-      fv = fw
-      w = u
-      fw = fu
-    else if (fu <= fv .or. v == x .or. v == w) then
-      v = u
-      fv = fu
-    end if
-  end if
-
-  ! Test to see if FX is not significantly different
-
-  if (iter > 4 .and. fx >= max(fu, fv, fw) * 0.999999) then
-    xmin = x
-    f_min = fx
-    return
-  endif
-
-end do
-
-call out_io (s_fatal$, r_name, 'EXCEED MAXIMUM ITERATIONS.')
-if (global_com%exit_on_error) call err_exit
-
-!-------------------------------------------------
-contains
-
-subroutine shft(a,b,c,d)
-real(rp), intent(out) :: a
-real(rp), intent(inout) :: b,c
-real(rp), intent(in) :: d
-
-a = b
-b = c
-c = d
-end subroutine shft
-end function super_brent
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
