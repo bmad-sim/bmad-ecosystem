@@ -60,7 +60,7 @@
 
 \title{Lux Program}
 \author{D. Sagan, K. Finkelstein}
-\date{September 25, 2020}
+\date{September 8, 2021}
 
 %---------------------------------------------------------------------------------
 
@@ -752,54 +752,6 @@ pixel-by-pixel file and the projected files.
 
 \clearpage
 
-%------------------------------------------------------------------
-\subsection{Data Visualization of the det_pix_out_file}
-\label{s:vis}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=5in]{det-pix-plot.pdf}
-  \caption{
-Example intensity plots. A) Results from a perfectly configured Rowland circle spectrometer. B) Same
-as (A) except that the curvature of the crystal is off by 1\%. The lattice used to generate these
-plots is illustrated in the Bmad manual in the \vn{Lattice Examples} chapter.
-  }
-\label{f:det.plot}
-\end{figure}
-
-%------------------------------------------------------------------
-
-There is a python script for making an intensity plot of the
-\vn{det_pix_out_file} in:
-\begin{example}
-  $ACC_ROOT_DIR/lux/scripts/plot_det_pix.py
-\end{example}
-
-The script needs Python3 to run. You can invoke the script using the command
-\begin{example}
-  <path-to-lux-root-dir>/scripts/plot_det_pix.py <det_pix_out_file>
-\end{example}
-where \vn{<det_pix_out_file>} is the actual name of the \vn{det_pix_out_file}.
-If the default version of python is not python3 then the following may work
-\begin{example}
-  python3 <path-to-lux-root-dir>/scripts/plot_det_pix.py <det_pix_out_file>
-\end{example}
-
-The script has a number of optional arguments. The syntax for running the script is:
-\begin{example}
-    plot_det_pix.py \{-scale <scale>\} \{-plot <who_to_plot>\} \{<data_file_name>\}
-  <who_to_plot> = x         # Intensity of x-polarized photons
-                = y         # Intensity of y-polarized photons
-                = i         # Total intensity (sum of x & y polarizations)
-                = e         # Energy
-  Defaults:
-    <scale>          = 1e3
-    <data_file_name> = det_pix
-    <who_to_plot>    = i
-\end{example}
-
-Figure~\ref{f:det.plot} shows two example intensity plots. 
-
 %-------------------------------------------
 \subsection{Histogram File}
 \label{s:histo.file}
@@ -835,14 +787,74 @@ bin is computed using the formula:
 All photons hitting any detector pixel are used for the histogram. 
 
 %------------------------------------------------------------------
+\section{Plotting}
+
+%------------------------------------------------------------------
+\subsection{Data Visualization of the det_pix_out_file}
+\label{s:vis}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=5in]{det-pix-plot.pdf}
+  \caption{
+Example intensity plots. A) Results from a perfectly configured Rowland circle spectrometer. B) Same
+as (A) except that the curvature of the crystal is off by 1\%. The lattice used to generate these
+plots is illustrated in the Bmad manual in the \vn{Lattice Examples} chapter.
+  }
+\label{f:det.plot}
+\end{figure}
+
+%------------------------------------------------------------------
+
+There is a python script for making an intensity plot of the
+\vn{det_pix_out_file} in:
+\begin{example}
+  $ACC_ROOT_DIR/lux/scripts/plot_det_pix.py
+\end{example}
+
+The script needs Python3 to run. You can invoke the script using the command
+\begin{example}
+  <path-to-lux-root-dir>/scripts/plot_det_pix.py <det_pix_out_file>
+\end{example}
+where \vn{<det_pix_out_file>} is the actual name of the \vn{det_pix_out_file}.  If the default
+version of python is not python3 then the following may work
+\begin{example}
+  python3 <path-to-lux-root-dir>/scripts/plot_det_pix.py <det_pix_out_file>
+\end{example}
+
+The script has a number of optional arguments. The syntax for running the script is:
+\begin{example}
+    plot_det_pix.py \{-scale <scale>\} \{-plot <who_to_plot>\} \{<data_file_name>\}
+  <who_to_plot> = x         # Intensity of x-polarized photons
+                = y         # Intensity of y-polarized photons
+                = i         # Total intensity (sum of x & y polarizations)
+                = e         # Energy
+  Defaults:
+    <scale>          = 1e3
+    <data_file_name> = det_pix
+    <who_to_plot>    = i
+\end{example}
+
+Figure~\ref{f:det.plot} shows two example intensity plots. 
+
+%------------------------------------------------------------------
+\subsection{Other plotting}
+
+For lattice elements like crystals or mirrors that can have a curved surface, there is a script for
+drawing the surface in the directory:
+\begin{example}
+  util_programs/photonic_surface_plot
+\end{example}
+In this directory there is a \vn{README} file with documentation.
+
+%------------------------------------------------------------------
 \section{Python Scripting}
 \label{s:python}
 
-In some cases it is desired to study some output parameter while
-varying some input parameter. For example, it may be desired to look
-at a ``rocking curve'' where the initial angle of the photons are
-varied and the output intensity is monitored.  Such studies can be
-easily achieved using a scripting language like \vn{python}.
+In some cases it is desired to study some output parameter while varying some input parameter. For
+example, it may be desired to look at a ``rocking curve'' where the initial angle of the photons are
+varied and the output intensity is monitored.  Such studies can be easily achieved using a scripting
+language like \vn{python}.
 
 Example:
 \begin{listing}{1}
