@@ -552,18 +552,12 @@ function max_z_eigen(t1) result (z_eigen)
 
 real(rp) t1(6,6), z_eigen
 complex(rp) eigen_val(6), eigen_vec(6,6)
-integer ix
 logical error
 
 !
 
 call mat_eigen (t1, eigen_val, eigen_vec, error)
-ix = maxloc(abs(eigen_vec(5,:)) + abs(eigen_vec(6,:)), 1)
-select case (ix)
-case (1, 2);  z_eigen = max(abs(eigen_val(1)), abs(eigen_val(2)))
-case (3, 4);  z_eigen = max(abs(eigen_val(3)), abs(eigen_val(4)))
-case (5, 6);  z_eigen = max(abs(eigen_val(5)), abs(eigen_val(6)))
-end select
+z_eigen = max(abs(eigen_val(5)), abs(eigen_val(6)))
 
 end function max_z_eigen
 
