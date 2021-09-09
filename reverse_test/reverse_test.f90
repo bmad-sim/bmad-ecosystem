@@ -41,7 +41,7 @@ namelist / params / tracking_method, backwards, bmad_com
 
 !
 
-nargs = cesr_iargc()
+nargs = command_argument_count()
 
 if (nargs > 2) then
   print *, 'Max two command line args permitted.'
@@ -49,7 +49,7 @@ if (nargs > 2) then
 endif
 
 if (nargs > 0)then
- call cesr_getarg(1, lat_file)
+ call get_command_argument(1, lat_file)
  print *, 'Using ', trim(lat_file)
  verbosity = .true.
 endif

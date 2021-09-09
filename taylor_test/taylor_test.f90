@@ -17,12 +17,12 @@ character(100) lat_file
 !
 
 debug_mode = .false.
-nargs = cesr_iargc()
+nargs = command_argument_count()
 lat_file = 'taylor_test.bmad'
 
 if (nargs > 0) then
   debug_mode = .true.
-  call cesr_getarg(1, lat_file)
+  call get_command_argument(1, lat_file)
 endif
 
 !
