@@ -752,9 +752,9 @@ x_vec = [x1m, x2m, x2m, x1m, x1m]
 y_vec = [y1m, y1m, y2m, y2m, y1m]
 call plfill (x_vec, y_vec)         ! Fills a polygon with 4 vertices
 
-call qp_restore_state_basic(.true.)           ! Flush the buffer.
+call qp_restore_state_basic           ! Flush the buffer.
 
-end subroutine
+end subroutine qp_clear_box_basic
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
