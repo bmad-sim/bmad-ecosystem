@@ -46,6 +46,8 @@ if (.not. s%global%plot_on) return
 call tao_create_plot_window () ! This routine knows not to create multiple windows.
 if (logic_option(.true., do_clear)) call qp_clear_page
 
+call qp_wait_to_flush(.true.)
+
 h = s%plot_page%text_height
 call qp_set_text_attrib ('TEXT', height = h)
 call qp_set_text_attrib ('MAIN_TITLE', height = h * s%plot_page%main_title_text_scale)
@@ -163,6 +165,8 @@ do i = 1, size(s%plot_page%region)
   enddo g_loop
 
 enddo
+
+call qp_wait_to_flush(.false.)
 
 end subroutine tao_draw_plots
 
