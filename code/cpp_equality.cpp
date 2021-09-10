@@ -802,9 +802,6 @@ template bool is_all_equal (const CPP_photon_surface_MATRIX&, const CPP_photon_s
 
 bool operator== (const CPP_photon_target& x, const CPP_photon_target& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.deterministic_grid == y.deterministic_grid);
-  is_eq = is_eq && (x.ix_grid == y.ix_grid);
-  is_eq = is_eq && (x.iy_grid == y.iy_grid);
   is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.n_corner == y.n_corner);
   is_eq = is_eq && (x.ele_loc == y.ele_loc);

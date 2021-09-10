@@ -1984,9 +1984,6 @@ class Opaque_photon_target_class {};  // Opaque class for pointers to correspond
 
 class CPP_photon_target {
 public:
-  Bool deterministic_grid;
-  Int ix_grid;
-  Int iy_grid;
   Int type;
   Int n_corner;
   CPP_lat_ele_loc ele_loc;
@@ -1994,9 +1991,6 @@ public:
   CPP_target_point center;
 
   CPP_photon_target() :
-    deterministic_grid(false),
-    ix_grid(0),
-    iy_grid(0),
     type(Bmad::OFF),
     n_corner(0),
     ele_loc(),

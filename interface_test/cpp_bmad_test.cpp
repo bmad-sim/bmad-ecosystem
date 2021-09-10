@@ -3151,27 +3151,18 @@ void set_CPP_photon_target_test_pattern (CPP_photon_target& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 1 + offset; C.deterministic_grid = (rhs % 2 == 0);
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.ix_grid = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.iy_grid = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 4 + offset; C.type = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 5 + offset; C.n_corner = rhs;
+  rhs = 2 + offset; C.n_corner = rhs;
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_lat_ele_loc_test_pattern(C.ele_loc, ix_patt);
 
   // c_side.test_pat[type, 1, NOT]
   for (unsigned int i = 0; i < C.corner.size(); i++)
-    {int rhs = 101 + i + 7 + offset; set_CPP_target_point_test_pattern(C.corner[i], ix_patt+i+1);}
+    {int rhs = 101 + i + 4 + offset; set_CPP_target_point_test_pattern(C.corner[i], ix_patt+i+1);}
   // c_side.test_pat[type, 0, NOT]
   set_CPP_target_point_test_pattern(C.center, ix_patt);
 

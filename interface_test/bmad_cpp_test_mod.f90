@@ -4774,21 +4774,15 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 1 + offset; F%deterministic_grid = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%ix_grid = rhs
+rhs = 1 + offset; F%type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 3 + offset; F%iy_grid = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 4 + offset; F%type = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 5 + offset; F%n_corner = rhs
+rhs = 2 + offset; F%n_corner = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_lat_ele_loc_test_pattern (F%ele_loc, ix_patt)
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%corner,1); lb1 = lbound(F%corner,1) - 1
-  rhs = 100 + jd1 + 7 + offset
+  rhs = 100 + jd1 + 4 + offset
   call set_target_point_test_pattern (F%corner(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[type, 0, NOT]
