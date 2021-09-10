@@ -45,27 +45,21 @@ orbit%vec(1:5:2) = [ele%value(sig_x$) * r(1), ele%value(sig_y$) * r(2), ele%valu
 
 ! Direction of photon
 
-if (ele%photon%target%type == grided$) then
-  call point_photon_emission (ele, param, orbit, +1, twopi)
+select case (nint(ele%value(velocity_distribution$)))
+case (spherical$)
+  call point_photon_emission (ele, param, orbit, +1, twopi)  ! Includes targeting
 
-else
-  select case (nint(ele%value(velocity_distribution$)))
-  case (spherical$)
-    call point_photon_emission (ele, param, orbit, +1, twopi)
+case (uniform$)
+  call ran_uniform(rv)
+  rv = 2 * rv - 1
+  orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + rv * [ele%value(sig_vx$), ele%value(sig_vy$)]
+  orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
 
-  case (uniform$)
-    call ran_uniform(rv)
-    rv = 2 * rv - 1
-    orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + rv * [ele%value(sig_vx$), ele%value(sig_vy$)]
-    orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
-
-  case (gaussian$)
-    call ran_gauss(rv)
-    orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + rv * [ele%value(sig_vx$), ele%value(sig_vy$)]
-    orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
-
-  end select
-endif
+case (gaussian$)
+  call ran_gauss(rv)
+  orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + rv * [ele%value(sig_vx$), ele%value(sig_vy$)]
+  orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
+end select
 
 ! Energy of photon
 

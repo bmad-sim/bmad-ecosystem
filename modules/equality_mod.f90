@@ -1392,12 +1392,6 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%deterministic_grid .eqv. f2%deterministic_grid)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_grid == f2%ix_grid)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%iy_grid == f2%iy_grid)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[integer, 0, NOT]
