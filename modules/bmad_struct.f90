@@ -20,7 +20,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 263
+integer, parameter :: bmad_inc_version$ = 264
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -138,7 +138,6 @@ logical, parameter :: set$ = .true., unset$ = .false.
 ! Auto aperture is different from Rectangular aperture in that with Auto, aperture values are calculated by Bmad 
 ! when the lattice file is parsed. Auto is only available for Mask, Detector and Diffraction_plate elements.
 
-integer, parameter :: grided$ = 123
 integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, wall3d$ = 5, custom_aperture$ = 7
 character(16), parameter :: aperture_type_name(0:7) = &
                                     ['garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
@@ -932,9 +931,7 @@ type target_point_struct
 end type
 
 type photon_target_struct
-  logical :: deterministic_grid = .false.     ! Use ix/iy_grid instead of random number?  
-  integer :: ix_grid = 0, iy_grid = 0         ! Grid pt to go to if deterministic_grid = T.
-  integer :: type = off$                      ! or rectangular$, or grided$
+  integer :: type = off$                      ! or rectangular$
   integer :: n_corner = 0
   type (lat_ele_loc_struct) :: ele_loc = lat_ele_loc_struct()
   type (target_point_struct) :: corner(8) = target_point_struct()

@@ -243,17 +243,8 @@ character(*), parameter :: r_name = 'track1_sample'
 
 !
 
-call track_to_surface (ele, orbit)
+call track_to_surface (ele, orbit, param, w_surface)
 if (orbit%state /= alive$) return
-
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
-
-! Check aperture
-
-if (ele%aperture_at == surface$) then
-  call check_aperture_limit (orbit, ele, surface$, param)
-  if (orbit%state /= alive$) return
-endif
 
 ! Reflect 
 
@@ -396,53 +387,6 @@ case (rectangular$)
     orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / max_target_area)
   endif
 
-! Grid target
-
-case (grided$)
-  r_particle = orbit%vec(1:5:2)
-  r = target%center%r - r_particle
-  if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
-  call target_rot_mats (r, w_to_target, w_to_ele)
-
-  det_ele => pointer_to_ele(ele%branch%lat, target%ele_loc)
-  gr => det_ele%photon%surface%grid
-  lb = lbound(gr%pt); ub = ubound(gr%pt)
-
-  if (target%deterministic_grid) then
-    ix = target%ix_grid
-    iy = target%iy_grid
-  else
-    call ran_uniform(zran)
-    ix = lb(1) + int((ub(1) - lb(1) + 1 - 1d-10) * zran(1))
-    iy = lb(2) + int((ub(2) - lb(2) + 1 - 1d-10) * zran(2))
-  endif
-  
-  r = target%center%r + ix * (target%corner(1)%r - target%center%r) + &
-                        iy * (target%corner(2)%r - target%center%r) - r_particle
-  r = matmul (w_to_target, r)
-  r_len = norm2(r)
-  r = r / r_len
-  y = r(2)
-  rho = sqrt(1 - y*y)
-  r = matmul(w_to_ele, [rho * r(1), y, rho * r(3)])
-  orbit%vec(2:6:2) = r
-
-  ! Field scaling
-
-  dr_x = matmul(w_to_ele, target%corner(1)%r - target%center%r)
-  dr_y = matmul(w_to_ele, target%corner(2)%r - target%center%r)
-  area = norm2(cross_product(dr_x, r)) * norm2(cross_product(dr_y, r)) / r_len**2
-
-  if (photon_type(ele) == coherent$) then
-    orbit%field = orbit%field * area / max_target_area
-    if (orbit%path_len /= 0) then
-      orbit%field = orbit%field * orbit%path_len
-      orbit%path_len = 0
-    endif
-  else
-    orbit%field = orbit%field * sqrt(area / max_target_area)
-  endif
-
 ! No targeting
 
 case (off$)
@@ -502,17 +446,8 @@ character(*), parameter :: r_name = 'track1_mirror'
 val => ele%value
 wavelength = c_light * h_planck / orbit%p0c
 
-call track_to_surface (ele, orbit)
+call track_to_surface (ele, orbit, param, w_surface)
 if (orbit%state /= alive$) return
-
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
-
-! Check aperture
-
-if (ele%aperture_at == surface$) then
-  call check_aperture_limit (orbit, ele, surface$, param)
-  if (orbit%state /= alive$) return
-endif
 
 ! Reflect momentum vector
 
@@ -560,17 +495,8 @@ character(*), parameter :: r_name = 'track1_multilayer_mirror'
 val => ele%value
 wavelength = c_light * h_planck / orbit%p0c
 
-call track_to_surface (ele, orbit)
+call track_to_surface (ele, orbit, param, w_surface)
 if (orbit%state /= alive$) return
-
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
-
-! Check aperture
-
-if (ele%aperture_at == surface$) then
-  call check_aperture_limit (orbit, ele, surface$, param)
-  if (orbit%state /= alive$) return
-endif
 
 ! Note: Koln z-axis = Bmad x-axis.
 ! Note: f0_re and f0_im are both positive.
@@ -761,17 +687,8 @@ thick = ele%value(thickness$) / n_layer
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
 ! k0_outside_norm is normalized to 1.
 
-call track_to_surface (ele, orbit)
+call track_to_surface (ele, orbit, param, w_surface)
 if (orbit%state /= alive$) return
-
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
-
-! Check aperture
-
-if (ele%aperture_at == surface$) then
-  call check_aperture_limit (orbit, ele, surface$, param)
-  if (orbit%state /= alive$) return
-endif
 
 ! Some init
 
@@ -960,17 +877,8 @@ cp%cap_gamma = r_e * cp%wavelength**2 / (pi * ele%value(v_unitcell$))
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
 ! k0_outside_norm is normalized to 1.
 
-call track_to_surface (ele, orbit)
+call track_to_surface (ele, orbit, param, w_surface)
 if (orbit%state /= alive$) return
-
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
-
-! Check aperture
-
-if (ele%aperture_at == surface$) then
-  call check_aperture_limit (orbit, ele, surface$, param)
-  if (orbit%state /= alive$) return
-endif
 
 ! Construct h_bar = H * wavelength.
 
@@ -1030,7 +938,7 @@ end subroutine track1_crystal
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine track_to_surface (ele, orbit)
+! Subroutine track_to_surface (ele, orbit, param, w_surface)
 !
 ! Routine to track a photon to the surface of the element.
 !
@@ -1038,28 +946,28 @@ end subroutine track1_crystal
 ! be called to rotate the photon's velocity coordinates to the local surface coordinate system.
 !
 ! Input:
-!   ele                 -- ele_struct: Element
-!   orbit               -- coord_struct: Coordinates in the element coordinate frame
-!   curved_surface_rot  -- Logical, optional, If present and False then do not rotate velocity coords.
+!   ele            -- ele_struct: Element
+!   orbit          -- coord_struct: Coordinates in the element coordinate frame
+!   param          -- lat_param_struct: Branch parameters.
 !
 ! Output:
-!   orbit      -- coord_struct: At surface in local surface coordinate frame
-!     %state     -- set to lost$ if the photon does not intersect the surface (can happen when surface is curved).
-!   err        -- logical: Set true if surface intersection cannot be found. 
+!   orbit          -- coord_struct: At surface in local surface coordinate frame
+!     %state         -- set to lost$ if the photon does not intersect the surface (can happen when surface is curved).
+!   w_surface(3,3) -- real(rp), rotation matrix to transform to surface coords.
 !-
 
-subroutine track_to_surface (ele, orbit, curved_surface_rot)
+subroutine track_to_surface (ele, orbit, param, w_surface)
 
 use super_recipes_mod
 
 type (ele_struct) ele
 type (coord_struct) orbit
+type (lat_param_struct) param
 
-real(rp) :: s_len, s1, s2, s_center, x0, y0, z
+real(rp) :: w_surface(3,3), s_len, s1, s2, s_center, x0, y0, z
 integer status 
 
 character(*), parameter :: r_name = 'track_to_surface'
-logical, optional :: curved_surface_rot
 
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
@@ -1113,8 +1021,14 @@ else
   orbit%t = orbit%t + s_len / c_light
 endif
 
-contains
+! Check aperture and rotate to surface coords.
 
+if (ele%aperture_at == surface$) call check_aperture_limit (orbit, ele, surface$, param)
+if (orbit%state /= alive$) return
+
+if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
+
+contains
 !-----------------------------------------------------------------------------------------------
 !+
 ! Function photon_depth_in_element (s_len, status) result (delta_h)
