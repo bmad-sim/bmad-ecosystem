@@ -232,9 +232,9 @@ use output_mod
 type (qp_state_struct), pointer, save :: qp_com
 type (qp_state_struct), target, save :: qp_save_com(0:20)
 
-integer, save :: ix_qp_com = 0
+integer, save, private :: ix_qp_com = 0
 
-private qp_save_com, ix_qp_com, qp_com
+private qp_save_com, qp_com
 
 contains
 
@@ -363,6 +363,33 @@ end subroutine qp_get_layout_attrib
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
+! Subroutine qp_wait_to_flush (wait)
+!
+! Routine to signal to quick_plot whether to wait for flushing the plot buffer.
+!
+! If in a wait state, the plot buffer will not be flushed until this routine is called
+! with wait = False. Note: By default, quick_plot is not in a wait state.
+!
+! Input:
+!   wait    -- logical: If True, go into a wait state for flushing. 
+!                       If False, flush the buffer and go into a non-wait state.
+!-
+
+subroutine qp_wait_to_flush(wait)
+
+implicit none
+logical wait
+
+!
+
+call qp_wait_to_flush_basic(wait)
+
+end subroutine qp_wait_to_flush
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
 ! Subroutine qp_init_com_struct 
 ! 
 ! Subroutine to initialize the common block qp_state_struct.
@@ -394,10 +421,7 @@ end subroutine qp_init_com_struct
 ! Use qp_restore_state to restore the saved state.
 !
 ! There are two buffers: One for quick_plot and the other for
-! the underlying plot library (PGPLOT at present). The underlying buffer
-! is only used to buffer the graphical output (nothing will be seen on
-! the plot window until the buffering is ended) and does not buffer
-! the underlying state.
+! the underlying plot library (pgplot or plplot). 
 !
 ! qp_save_state always buffers the quick_plot state and the buffer_basic
 !   argument determines whether the base state is buffered as well.
@@ -405,6 +429,8 @@ end subroutine qp_init_com_struct
 !
 ! Note: Buffering can make things go faster but with buffering the display 
 !   will not be updated until you call qp_restore_state.
+!
+! Also see qp_wait_to_flush which can be used to prevent flushing of the plot buffer.
 !
 ! Input:
 !   buffer_basic -- Logical: If True then buffer the base state.
@@ -466,7 +492,7 @@ character(*), parameter :: r_name = 'qp_restore_state'
 
 !
 
-if (qp_com%buffer) call qp_restore_state_basic 
+if (qp_com%buffer) call qp_restore_state_basic()
 
 if (ix_qp_com == 0) then
   call out_io (s_fatal$, r_name, 'NO STATE TO RESTORE!')

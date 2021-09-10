@@ -45,6 +45,7 @@ end type
 type (pg_interface_struct), pointer, save, private :: pg_com
 type (pg_interface_struct), save, target, private :: pg_interface_save_com(0:20)
 integer, save, private :: i_save = 0
+logical, save, private :: pg_allow_flush = .true.
 
 contains
 
@@ -383,29 +384,58 @@ end subroutine qp_draw_symbol_basic
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_save_state_basic 
+! Subroutine qp_save_state_basic()
 !
 ! Subroutine to save the print state.
 !-
 
-subroutine qp_save_state_basic () 
-implicit none
-call pgbbuf     ! buffer commands
+subroutine qp_save_state_basic()
+if (pg_allow_flush) call pgbbuf     ! buffer commands
 end subroutine qp_save_state_basic
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_restore_state_basic ()
+! Subroutine qp_restore_state_basic()
 !
 ! Subroutine to restore the print state.
+!
+! Input:
+!   flush   -- logical: Flush the plot buffer?
 !-
 
-subroutine qp_restore_state_basic ()
-implicit none
-call pgebuf        ! flush buffer
+subroutine qp_restore_state_basic()
+if (pg_allow_flush) call pgebuf        ! flush buffer
 end subroutine qp_restore_state_basic
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine qp_wait_to_flush_basic (wait)
+!
+! Routine to signal to quick_plot whether to wait for flushing the plot buffer.
+! Note: By default, quick_plot is not in a wait state.
+!
+! Input:
+!   wait    -- logical: If True, go into a wait state for flushing.
+!                       If False, flush the buffer and go into a non-wait state.
+!-
+
+subroutine qp_wait_to_flush_basic(wait)
+implicit none
+logical wait
+!
+pg_allow_flush = .not. wait
+
+if (pg_allow_flush) then
+  call pgebuf        ! flush buffer
+else
+  call pgbbuf        ! buffer commands
+endif
+
+end subroutine qp_wait_to_flush_basic
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -522,7 +552,7 @@ call pgvsiz (real(f*x1), real(f*x2), real(f*y1), real(f*y2))
 call pgrect (xw1, xw2, yw1, yw2)      ! color the box
 call pgsvp (xv1, xv2, yv1, yv2)       ! reset the viewport coords
 
-call qp_restore_state_basic           ! Flush the buffer.
+call qp_restore_state_basic()         ! Flush the buffer.
 
 end subroutine qp_paint_rectangle_basic
 
