@@ -289,7 +289,7 @@ if (graph%type == 'key_table') return
 if (present(have_scaled)) have_scaled = .true.
 
 if (x_max /= x_min) then
-  if (graph%x%major_div_nominal> 0) then
+  if (graph%x%major_div_nominal > 0) then
     p1 = nint(0.7 * graph%x%major_div_nominal)  
     p2 = nint(1.3 * graph%x%major_div_nominal)
   else

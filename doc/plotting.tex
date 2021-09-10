@@ -781,11 +781,12 @@ Tao> scale r13 -y2 20 190    ! Y2 graph bounds set to [20, 190]
 \end{example}
 
 Both \vn{major_div} and \vn{major_div_nominal} set the number of major divisions in the plot. The
-difference between the two is that with \vn{major_div} the number of major divisions is fixed at the
-set value and with \vn{major_div_nominal} the number of major divisions can vary from the set value
-when \tao scales a graph. If \vn{major_div_nominal} is set, this will override any setting of
-\vn{major_div}. If neither \vn{major_div} nor \vn{major_div_nominal} is set, a value will be chosen
-for \vn{major_div_nominal} by \tao. If you are unsure which to set, it is recommended that
+difference between the two is that with \vn{major_div} set positive and \vn{major_div_nominal} set
+zero or negative, the number of major divisions is fixed at the value of \vn{major_div}. With
+\vn{major_div_nominal} positive, the value of \vn{major_div} is ignored, and the number of major
+divisions will be chosen to be a ``nice'' value near the value of \vn{major_div_nominal}. If neither
+\vn{major_div} nor \vn{major_div_nominal} is set positive, a value will be chosen for
+\vn{major_div_nominal} by \tao. If you are unsure which to set, it is recommended that
 \vn{major_div_nominal} be used.
 
 The \vn{places} parameter set the number of places to display a number. \tao will automatically
