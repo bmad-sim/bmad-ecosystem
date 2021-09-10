@@ -66,6 +66,7 @@ end type
 type (pl_interface_struct), pointer, save, private :: pl_com
 type (pl_interface_struct), save, target, private :: pl_interface_save_com(0:20)
 integer, save, private :: i_save = 0
+logical, save, private :: pl_allow_flush = .true.
 real(rp), save, private :: point_to_mm_conv
 
 contains
@@ -601,13 +602,13 @@ call plschr(def, pl_com%char_size)
 
 call plssym(pl_com%sym_size, 1.0_rp)  ! Set symbol scale factor
 
-if(pl_com%fill_pattern /= 0) then
+if (pl_com%fill_pattern /= 0) then
    call plpsty(pl_com%fill_pattern)
 endif
 
 call plwidth(pl_com%line_width/4.0)
 
-if(pl_com%line_pattern /= 0) then
+if (pl_com%line_pattern /= 0) then
    call pllsty(pl_com%line_pattern)
 endif
 
@@ -625,9 +626,35 @@ else
   call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
 endif
 
-call plflush()
+if (pl_allow_flush) call plflush()
 
-end subroutine
+end subroutine qp_restore_state_basic 
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine qp_wait_to_flush_basic(wait)
+!
+! Routine to signal to quick_plot whether to wait for flushing the plot buffer.
+! Note: By default, quick_plot is not in a wait state.
+!
+! Calls to this command should come in pairs. First a call with wait = True and
+! then a call with wait = False. Do not interleave these pairs with calls
+! to qp_save_state and qp_restore_state.
+!
+! Input:
+!   wait    -- logical: If True, go into a wait state for flushing.
+!                       If False, flush the buffer and go into a non-wait state.
+!-
+
+subroutine qp_wait_to_flush_basic(wait)
+implicit none
+logical wait
+!
+pl_allow_flush = .not. wait
+if (pl_allow_flush) call plflush()
+end subroutine qp_wait_to_flush_basic
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -725,7 +752,7 @@ x_vec = [x1m, x2m, x2m, x1m, x1m]
 y_vec = [y1m, y1m, y2m, y2m, y1m]
 call plfill (x_vec, y_vec)         ! Fills a polygon with 4 vertices
 
-call qp_restore_state_basic           ! Flush the buffer.
+call qp_restore_state_basic(.true.)           ! Flush the buffer.
 
 end subroutine
 
