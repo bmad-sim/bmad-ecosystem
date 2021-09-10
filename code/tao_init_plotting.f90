@@ -127,6 +127,8 @@ default_plot%n_curve_pts = -1
 
 default_graph = tao_graph_input()
 default_graph%x                     = init_axis
+default_graph%x%major_div           = -1
+default_graph%x%major_div_nominal   = -1
 default_graph%y                     = init_axis
 default_graph%y%major_div           = -1
 default_graph%y%major_div_nominal   = -1
@@ -147,7 +149,7 @@ if (allocated(s%plot_page%pattern)) deallocate(s%plot_page%pattern)
 allocate (s%plot_page%pattern(0))
 
 if (plot_file_in == '') then
-  call tao_setup_default_plotting(.false., .false.)
+  call tao_setup_default_plotting(.false., .false., default_graph)
   call number_template_plots()
   return
 endif
@@ -163,7 +165,7 @@ call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
 call tao_open_file (plot_file, iu, full_file_name, s_error$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE: ' // plot_file)
-  call tao_setup_default_plotting(.false., .false.)
+  call tao_setup_default_plotting(.false., .false., default_graph)
   call number_template_plots()
   return
 endif
@@ -443,7 +445,7 @@ do  ! Loop over plot files
 
     call transfer_this_axis(plot%x, default_graph%x) ! Remember: plot%x is deprecated.
 
-    if (default_graph%x%major_div < 0 .and. default_graph%x%major_div_nominal < 0) default_graph%x%major_div_nominal = 6
+    if (default_graph%x%major_div < 0 .and. default_graph%x%major_div_nominal < 0) default_graph%x%major_div_nominal = 7
 
     call qp_calc_axis_places (default_graph%x)
 
@@ -527,7 +529,7 @@ do  ! Loop over plot files
       grph%text_legend                      = ''
       grph%y2_mirrors_y                     = .true.
 
-      if (grph%x%major_div < 0 .and. grph%x%major_div_nominal < 0) grph%x%major_div_nominal = 6
+      if (grph%x%major_div < 0 .and. grph%x%major_div_nominal < 0) grph%x%major_div_nominal = 7
       if (grph%y%major_div < 0 .and. grph%y%major_div_nominal < 0) grph%y%major_div_nominal = 4
       if (grph%y2%major_div < 0 .and. grph%y2%major_div_nominal < 0) grph%y2%major_div_nominal = 4
       if (graph%floor_plan_orbit_color /= '')           grph%floor_plan%orbit_color = graph%floor_plan_orbit_color ! Old style
@@ -776,7 +778,7 @@ close (iu)
 
 if (ip == 0 .or. include_default_plots) then
   if (size(s%plot_page%region) == 0) deallocate (s%plot_page%region)
-  call tao_setup_default_plotting(include_dflt_lat_layout, include_dflt_floor_plan)
+  call tao_setup_default_plotting(include_dflt_lat_layout, include_dflt_floor_plan, master_default_graph)
 endif
 
 ! Initial placement of plots
@@ -839,10 +841,11 @@ end subroutine number_template_plots
 !----------------------------------------------------------------------------------------
 ! contains
 
-subroutine tao_setup_default_plotting(include_dflt_lat_layout, include_dflt_floor_plan)
+subroutine tao_setup_default_plotting(include_dflt_lat_layout, include_dflt_floor_plan, default_graph)
 
 type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
+type (tao_graph_input) default_graph
 type (tao_curve_struct), pointer :: crv
 type (branch_struct), pointer :: branch
 type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1, default_plot_g1c3, default_plot_g1c4

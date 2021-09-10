@@ -2037,11 +2037,9 @@ case ('graph')
   nl=nl+1; write(lines(nl), imt)  'x%places                         = ', g%x%places
   nl=nl+1; write(lines(nl), lmt)  'x%draw_label                     = ', g%x%draw_label
   nl=nl+1; write(lines(nl), lmt)  'x%draw_numbers                   = ', g%x%draw_numbers
-  if (print_debug) then
-    nl=nl+1; write(lines(nl), rmt)  'x%tick_max                       = ', g%x%tick_max
-    nl=nl+1; write(lines(nl), rmt)  'x%tick_min                       = ', g%x%tick_min
-    nl=nl+1; write(lines(nl), rmt)  'x%dtick                          = ', g%x%dtick
-  endif
+  nl=nl+1; write(lines(nl), rmt)  'x%tick_max                       = ', g%x%tick_max
+  nl=nl+1; write(lines(nl), rmt)  'x%tick_min                       = ', g%x%tick_min
+  nl=nl+1; write(lines(nl), rmt)  'x%dtick                          = ', g%x%dtick
 
   nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y                     = ', g%y2_mirrors_y
   nl=nl+1; write(lines(nl), amt)  'y%label                          = ', quote(g%y%label)
@@ -2053,11 +2051,9 @@ case ('graph')
   nl=nl+1; write(lines(nl), imt)  'y%places                         = ', g%y%places
   nl=nl+1; write(lines(nl), lmt)  'y%draw_label                     = ', g%y%draw_label
   nl=nl+1; write(lines(nl), lmt)  'y%draw_numbers                   = ', g%y%draw_numbers
-  if (print_debug) then
-    nl=nl+1; write(lines(nl), rmt)  'y%tick_max                       = ', g%y%tick_max
-    nl=nl+1; write(lines(nl), rmt)  'y%tick_min                       = ', g%y%tick_min
-    nl=nl+1; write(lines(nl), rmt)  'y%dtick                          = ', g%y%dtick
-  endif
+  nl=nl+1; write(lines(nl), rmt)  'y%tick_max                       = ', g%y%tick_max
+  nl=nl+1; write(lines(nl), rmt)  'y%tick_min                       = ', g%y%tick_min
+  nl=nl+1; write(lines(nl), rmt)  'y%dtick                          = ', g%y%dtick
 
   nl=nl+1; write(lines(nl), amt)  'y2%label                         = ', quote(g%y2%label)
   nl=nl+1; write(lines(nl), rmt)  'y2%label_offset                  = ', g%y2%label_offset
