@@ -88,6 +88,7 @@ dat_file = open (dat_file_name)
 for n_header in range(1, 1000):
   line = dat_file.readline()
   if line[0:3] == '#--': break
+  print (line.strip())
   exec (line)
 
 dat_file.close()

@@ -4,7 +4,6 @@ use random_mod
 use photon_init_mod
 use photon_target_mod
 use track1_photon_mod
-use photon_bunch_mod
 use em_field_mod
 use bmad
 use quick_plot
@@ -53,7 +52,6 @@ type lux_param_struct
   logical :: debug = .false.             ! For debugging
   logical :: reject_dead_at_det_photon1 = .false.
   logical :: scale_initial_field_to_1 = .true.
-  logical :: track_bunch = .false.
   logical :: normalization_includes_pixel_area = .true.
 end type
 
@@ -801,47 +799,7 @@ nt = detec_ele%ix_ele
 
 call reallocate_coord (photon%orb, lat, t_branch%ix_branch)
 
-!----------------------------------
-! Photon bunch tracking
-! Note: Not currently used...
-
-if (lux_param%track_bunch) then
-
-  n = lux_com%n_photon_stop1
-  call reallocate_bunch (bunch, n)
-
-  do ip = 1, n
-    call lux_generate_photon(bunch%particle(ip), lux_param, lux_com)
-  enddo
-
-  bunch_start = bunch
-
-  if (lux_param%photon1_out_file /= '') then
-    call track_photon_bunch (bunch, t_branch, 0, photon1_ele%ix_ele)
-    bunch_stop1 = bunch
-    call track_photon_bunch (bunch, t_branch, photon1_ele%ix_ele, detec_ele%ix_ele)
-  else
-    call track_photon_bunch (bunch, t_branch, 0, detec_ele%ix_ele)
-  endif
-
-  do ip = 1, n
-    call add_to_detector_statistics (bunch_start%particle(ip), bunch%particle(ip), intens)
-    ix = bunch%particle(ip)%ix_ele
-    if (bunch%particle(ip)%state == alive$) then
-      lux_com%stat(ix)%n_particle_live = lux_com%stat(ix)%n_particle_live + 1
-    endif
-    if (lux_param%photon1_out_file /= '') then
-      call photon1_out (bunch_start%particle(ip), bunch_stop1%particle(ip), bunch%particle(ip), ip)
-    endif
-  enddo
-
-  lux_data%n_track_tot = n
-
-  return
-endif
-
-!----------------------------------
-! Individual photon tracking
+!
 
 intensity_tot = 0
 
