@@ -931,11 +931,7 @@ call plwind (0.0_rp, x2i-x1i, 0.0_rp, y2i-y1i) ! set min/max for window
 ! Get page size info.
 call plgvpw(x1i,x2i,y1i,y2i)      ! Get viewport size in mm
 
-if (page_type == 'X') then 
-  call plschr(0.7 * point_to_mm_conv, 1.0_rp)
-else
-  call plschr(point_to_mm_conv, 1.0_rp)
-endif
+call plschr(point_to_mm_conv, 1.0_rp)
 
 call plgchr(d, h)
 
