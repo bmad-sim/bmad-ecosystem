@@ -163,7 +163,7 @@ if (uniform_size) then
     h = h * 0.73
   end select
 
-  if (pl_com%page_type == 'X' .or. pl_com%page_type == 'TK') then
+  if (pl_com%page_type == 'X') then
     select case (symbol_type)
     case (circle_plus_sym$)
       h = h * 0.55
@@ -371,8 +371,6 @@ real(rp) height, d, h
 h = height
 if (pl_com%page_type(1:2) == 'X') then
   !do nothing. Old: h = h ! !0.7
-elseif (pl_com%page_type == 'TK') then
-  h = h * 1.3    
 elseif (pl_com%page_type(1:2) == 'PS') then
   h = h * 0.85
 endif
@@ -856,41 +854,35 @@ endif
 
 select case (page_type)
 case ('X')
-  call plsdev ('xwin')
-  stat = plsetopt('drvopt', 'nobuffered=1') ! nobuffered: Sets unbuffered operation
-
-case ('TK')
-  call plsdev ('tk')
-
-case ('QT')
-  call plsdev ('qtwidget')
+  call plsdev ('xcairo')
+  stat = plsetopt('drvopt', 'image_buffering=0') ! nobuffered: Sets unbuffered operation
 
 case ('PS')
   call plsori(1)   ! portrait mode
-  call plsdev ('psc')
+  call plsdev ('epscairo')
 
 case ('PS-L')
   call plsori(0)   ! Landscape mode
-  call plsdev ('psc')
+  call plsdev ('epscairo')
 
 case ('GIF')
   call plsori(1)   ! portrait mode
-  call plsdev ('png')
+  call plsdev ('pngcairo')
 
 case ('GIF-L')
   call plsori(0)   ! Landscape mode
-  call plsdev ('png')
+  call plsdev ('pngcairo')
 
 case ('SVG')
-  call plsdev ('svg')
+  call plsdev ('svgcairo')
 
 case ('PDF')
   call plsori(1)   ! portrait mode
-  call plsdev ('pdf')
+  call plsdev ('pdfcairo')
 
 case ('PDF-L')
   call plsori(0)   ! Landscape mode
-  call plsdev ('pdf')
+  call plsdev ('pdfcairo')
 
 case default
   call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PAGE_TYPE: ' // page_type)
@@ -899,7 +891,7 @@ end select
 
 ! Set output file name  
 
-if (page_type /= 'X' .and. page_type /= 'TK' .and. page_type /= 'QT') then
+if (page_type /= 'X') then
    call plsfnam (trim(plot_file))
 endif
 
@@ -914,7 +906,7 @@ call plscmap1l(.false., [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.
 ! Set size of x-window.
 ! Work around for bug in plplot-5.9.5 is to set the geometry
 
-if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT' .or. page_type(1:3) == 'GIF') then
+if (page_type == 'X' .or. page_type(1:3) == 'GIF') then
   call display_size_and_resolution(0, x_size, y_size, x_res, y_res)
   ix_len = nint(x_res * x_len * 25.4)  ! x_res is in pixels / mm
   iy_len = nint(y_res * y_len * 25.4)
@@ -941,8 +933,6 @@ call plgvpw(x1i,x2i,y1i,y2i)      ! Get viewport size in mm
 
 if (page_type == 'X') then 
   call plschr(0.7 * point_to_mm_conv, 1.0_rp)
-elseif (page_type == 'TK' .or. page_type == 'QT') then
-  call plschr(point_to_mm_conv, 1.0_rp)
 else
   call plschr(point_to_mm_conv, 1.0_rp)
 endif
@@ -966,7 +956,7 @@ pl_com%sym_size = 10
 pl_com%page_scale = real_option(1.0_rp, page_scale)
 pl_com%page_type = page_type
 
-if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT') then
+if (page_type == 'X') then
   pl_com%x_inch_to_mm = pl_com%page_scale * x2i / x_len
   pl_com%y_inch_to_mm = pl_com%page_scale * y2i / y_len
   x_page = x_len
