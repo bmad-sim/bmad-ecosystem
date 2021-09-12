@@ -3308,16 +3308,13 @@ Format:
   write derivative_matrix ...     ! \sref{s:write.deriv.matrix}
   write digested ...              ! \sref{s:write.digested}
   write gif ...                   ! \sref{s:write.gif}
-  write gif-l ...                 ! \sref{s:write.gif}
   write hard                      ! \sref{s:write.hard}
-  write hard-l                    ! \sref{s:write.hard}
   write mad8 ...                  ! \sref{s:write.mad8}
   write madx ...                  ! \sref{s:write.madx}
   write matrix ...                ! \sref{s:write.mat}
   write namelist ...              ! \sref{s:write.namelist}
   write opal ...                  ! \sref{s:write.opal}
   write ps ...                    ! \sref{s:write.ps}  
-  write ps-l ...                  ! \sref{s:write.ps}
   write ptc ...                   ! \sref{s:write.ptc}
   write sad ...                   ! \sref{s:write.sad}
   write spin_mat8                 ! \sref{s:write.spin.mat8}
@@ -3488,9 +3485,9 @@ Syntax:
 The default file name is \vn{lat_\#.digested} where \vn{\#} is replaced by the universe number. 
 
 
-%% write gif-l --------------------------------------------------------------
+%% write gif --------------------------------------------------------------
 
-\subsection{write gif, write gif-l}
+\subsection{write gif}
 \label{s:write.gif}
 
 Syntax:
@@ -3498,14 +3495,14 @@ Syntax:
     write gif \{<file_name>\}           ! Create a gif file of the plot window.
 \end{example}
 
-The default file name is \vn{tao.gif}.
+Write a \vn{gif} file. The default file name is \vn{tao.gif}.
 
 Note: PGPLOT, if being used, does a poor job producing gif files so consider making a
 postscript file instead and using a ps to gif converter.
 
-%% write hard-l --------------------------------------------------------------
+%% write hard --------------------------------------------------------------
 
-\subsection{write hard, write hard-l}
+\subsection{write hard}
 \label{s:write.hard}
 
 Syntax:
@@ -3590,23 +3587,20 @@ Syntax:
 
 The default file name is \vn{lat_\#.opal} where \vn{\#} is replaced by the universe number. 
 
-%% write ps-l --------------------------------------------------------------
+%% write ps --------------------------------------------------------------
 
-\subsection{write ps, write ps-l}
+\subsection{write ps}
 \label{s:write.ps}
 
-The \vn{write ps} and \vn{write ps-l} commands produce postscript output. The difference is that
-\vn{write ps} uses portrait orientation while \vn{write ps-l} uses landscape orientation. Syntax:
+The \vn{write ps} command produces postscript output. Syntax:
 \begin{example}
-  write ps \{-scale <scale>\} \{<file_name>\}      ! Portrait orientation
-  write ps-l \{-scale <scale>\} \{<file_name>\}    ! Landscape orientation
+  write ps \{-scale <scale>\} \{<file_name>\}
 \end{example}
 
 The default file name is \vn{tao.ps}. 
 
-The optional \vn{-scale} switch sets the scale for the postscript file. The default is 0 which
-autoscales to fit an 8-1/2 by 11 sheet of paper. A value of 1.0 will result in no scaling, 2.0 will
-double the size, etc.
+The optional \vn{-scale} switch sets the scale for the postscript file. A value of 1.0 (the
+default) will result in no scaling, 2.0 will double the size, etc.
 
 %% write ptc --------------------------------------------------------------
 
