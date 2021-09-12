@@ -835,12 +835,9 @@ character(*) page_type, plot_file
 character(40) geom
 character(16) :: r_name = 'qp_open_page_basic'
 
-integer, parameter :: red(0:15) = [255, 0, 255, 0, 0, 0, 255, 255, 255, 127&
-                           , 0, 0, 127, 255, 85, 170]
-integer, parameter :: green(0:15) = [255, 0, 0, 255, 0, 255, 0, 255, 127,&
-                           255, 255, 127, 0, 0, 85, 170]
-integer, parameter :: blue(0:15) = [255, 0, 0, 0, 255, 255, 255, 0, 0, 0,&
-                           127, 255, 255, 127, 85, 170]
+integer, parameter :: red(0:15) = [255, 0, 255, 0, 0, 0, 255, 255, 255, 127, 0, 0, 127, 255, 85, 170]
+integer, parameter :: green(0:15) = [255, 0, 0, 255, 0, 255, 0, 255, 127, 255, 255, 127, 0, 0, 85, 170]
+integer, parameter :: blue(0:15) = [255, 0, 0, 0, 255, 255, 255, 0, 0, 0, 127, 255, 255, 127, 85, 170]
 
 ! set plot type
 
@@ -851,37 +848,24 @@ else
   call plsstrm(i_ch)
 endif
 
-
 select case (page_type)
 case ('X')
   call plsdev ('xwin')
   stat = plsetopt('drvopt', 'nobuffered=1')
 
-case ('PS')
-  call plsori(1)   ! portrait mode
+case ('PS', 'PS-L')
+  call plsori(0)   ! portrait mode
   call plsdev ('epscairo')
 
-case ('PS-L')
-  call plsori(0)   ! Landscape mode
-  call plsdev ('epscairo')
-
-case ('GIF')
-  call plsori(1)   ! portrait mode
-  call plsdev ('pngcairo')
-
-case ('GIF-L')
-  call plsori(0)   ! Landscape mode
+case ('GIF', 'GIF-L')
+  call plsori(0)   ! portrait mode
   call plsdev ('pngcairo')
 
 case ('SVG')
   call plsdev ('svgcairo')
 
-case ('PDF')
-  call plsori(1)   ! portrait mode
-  call plsdev ('pdfcairo')
-
-case ('PDF-L')
-  call plsori(0)   ! Landscape mode
+case ('PDF', 'PDF-L')
+  call plsori(0)   ! portrait mode
   call plsdev ('pdfcairo')
 
 case default
@@ -903,22 +887,16 @@ call plscmap1n(1048576)
 call plscmap1l(.false., [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.8d0])
 
 
-! Set size of x-window.
-! Work around for bug in plplot-5.9.5 is to set the geometry
+! Set size of window.
 
-if (page_type == 'X' .or. page_type(1:3) == 'GIF') then
-  call display_size_and_resolution(0, x_size, y_size, x_res, y_res)
-  ix_len = nint(x_res * x_len * 25.4)  ! x_res is in pixels / mm
-  iy_len = nint(y_res * y_len * 25.4)
-  call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
-  point_to_mm_conv = 0.25 * x_res * 25.4 / 72
-  !write (geom, '(i0, a, i0, a)') ix_len, 'x', iy_len, '+10+10'
-  !call plsetopt ("geometry", trim(geom))
-else
-  point_to_mm_conv = 0.25
-endif
+call display_size_and_resolution(0, x_size, y_size, x_res, y_res)
+ix_len = nint(x_res * x_len * 25.4)  ! x_res is in pixels / mm
+iy_len = nint(y_res * y_len * 25.4)
+call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
+point_to_mm_conv = 0.25 * x_res * 25.4 / 72
 
 ! Initialize plplot
+
 call plstar(1,1)
 call pladv(0)
 
@@ -956,17 +934,11 @@ pl_com%sym_size = 10
 pl_com%page_scale = real_option(1.0_rp, page_scale)
 pl_com%page_type = page_type
 
-if (page_type == 'X') then
-  pl_com%x_inch_to_mm = pl_com%page_scale * x2i / x_len
-  pl_com%y_inch_to_mm = pl_com%page_scale * y2i / y_len
-  x_page = x_len
-  y_page = y_len
-else
-  pl_com%x_inch_to_mm = pl_com%page_scale * 25.4
-  pl_com%y_inch_to_mm = pl_com%page_scale * 25.4
-  x_page = (x2i-x1i) / 25.4         ! convert to inches
-  y_page = (y2i-y1i) / 25.4
-endif
+
+pl_com%x_inch_to_mm = pl_com%page_scale * x2i / x_len
+pl_com%y_inch_to_mm = pl_com%page_scale * y2i / y_len
+x_page = x_len
+y_page = y_len
 
 pl_com%x_inch_page = x_page
 pl_com%y_inch_page = y_page
