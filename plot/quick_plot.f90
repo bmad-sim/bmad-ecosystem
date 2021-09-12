@@ -3295,12 +3295,9 @@ end subroutine qp_draw_line
 !
 ! if x_len and y_len are not supplied, x_len and y_len are set to the values used on a 
 ! previous call to qp_open_page. 
-! If there has been no previous call, a size of 8-1/2 x 11 is used.
+! If there has been no previous call, this is an error.
 !
-! The scale argument can be used to expand or shrink the drawing. 
-! A value of 0.0, cannot be used with a page_type of 'X'.
-! will auto-scale so that the graph of size (x_len, y_len) will fit the 8-1/2 x 11
-! printed page.
+! The scale argument can be used to expand or shrink the drawing.
 !
 ! Note: pgplot does not do a good job with gif files. Consider making
 ! a postscript file and using the unix command pstogif to convert it.
@@ -3309,12 +3306,8 @@ end subroutine qp_draw_line
 !   page_type -- Character(*). Device name for the type of plot.
 !                 TYPE is passed to GG_SETUP. E.g.
 !                 TYPE = 'GIF'   --> To create a gif file.
-!                 TYPE = 'GIF-L' --> Gif w/ landscape page orientation.
 !                 TYPE = 'PDF'   -- > pdf file. [plplot only.]
 !                 TYPE = 'PS'    --> To create a Color PostScript file.
-!                 TYPE = 'PS-L'  --> PostScript w/ landscape page orientation.
-!                 TYPE = 'TK'    --> Open a tk window. plplot only. Will map to X for PGPLOT.
-!                 TYPE = 'QT'    --> Open a qt window. plplot only. Will map to X for PGPLOT.
 !                 TYPE = 'X'     --> Open an X-window.
 !   x_len     -- Real(rp), optional: Page horizontal width before scaling. Default: See above.
 !   y_len     -- Real(rp), optional: Page vertical width before scaling. Default: See above.
@@ -3324,12 +3317,11 @@ end subroutine qp_draw_line
 !                    'POINTS' - Point
 !   plot_file -- Character(*), optional: Name for the plot file.
 !                    Default is: 'quick_plot.ps' or 'quick_plot.gif'
-!   scale     -- real(rp), optional: If positive then the entire plot will be scaled.
-!                    Default is 1.0. A value of 0.0 will autoscale to fit the page.
+!   scale     -- real(rp), optional: If positive then the entire page will be scaled.
+!                    Default is 1.0.
 !
 ! Output:
-!   i_chan    -- Inteter, optional: Plot channel. 
-!                 Like a unit number for a fortran OPEN.
+!   i_chan    -- Inteter, optional: Plot channel. Like a unit number for a fortran OPEN.
 !                 To be used with qp_select_page.
 !-
 
@@ -3347,7 +3339,7 @@ character(*) page_type
 character(*), optional :: units, plot_file
 character(*), parameter :: r_name = 'qp_open_page'
 
-logical saved_state, landscape, output_to_file
+logical saved_state
 
 ! Init
 
@@ -3355,13 +3347,6 @@ call qp_save_state (.false.)
 
 qp_com%dflt_units = dflt_set$
 qp_com%page_type = page_type
-
-landscape = .false.
-if (index(qp_com%page_type, '-L') /= 0) landscape = .true.
-
-output_to_file = .true.
-if (qp_com%page_type == 'X' .or. qp_com%page_type == 'TK' .or. &
-                                 qp_com%page_type == 'QT') output_to_file = .false.
 
 ! set the name for the output plot file.
 
@@ -3389,13 +3374,8 @@ else
 endif
 
 if (x_inch == 0) then
-  if (qp_com%page_type == 'PS-L' .or. qp_com%page_type == 'GIF-L') then
-    x_inch = print_page_long_len
-    y_inch = print_page_short_len
-  else
-    x_inch = print_page_short_len
-    y_inch = print_page_long_len
-  endif
+  x_inch = print_page_short_len
+  y_inch = print_page_long_len
 endif
 
 qp_com%page%x1 = 0
@@ -3407,35 +3387,8 @@ qp_com%page%y2 = y_inch
 
 page_scale = real_option(1.0_rp, scale)
 
-if (page_scale == 0) then ! Auto scale to fit standard paper size.
-
-  if (.not. output_to_file) then
-    call out_io (s_abort$, r_name, &
-                  'SCALE = 0 CAN NOT BE USE WITH PAGE_TYPE = ' // qp_com%page_type)
-    if (global_com%exit_on_error) call err_exit
-  endif
-
-  if (landscape) then
-    if (x_inch/y_inch > print_page_long_len/print_page_short_len) then  ! x_inch is larger
-      page_scale = print_page_long_len / x_inch
-    else
-      page_scale = print_page_short_len / y_inch
-    endif
-  else
-    if (x_inch/y_inch > print_page_short_len/print_page_long_len) then  ! x_inch is larger
-      page_scale = print_page_short_len / x_inch
-    else
-      page_scale = print_page_long_len / y_inch
-    endif
-  endif
-
-  call qp_open_page_basic (qp_com%page_type, 0.0_rp, 0.0_rp, &
+call qp_open_page_basic (qp_com%page_type, x_inch * page_scale, y_inch * page_scale, &
                         qp_com%plot_file, x_page, y_page, i_chan, page_scale)
-
-else
-    call qp_open_page_basic (qp_com%page_type, x_inch * page_scale, y_inch * page_scale, &
-                        qp_com%plot_file, x_page, y_page, i_chan, page_scale)
-endif
 
 ! set the graph parameters
 

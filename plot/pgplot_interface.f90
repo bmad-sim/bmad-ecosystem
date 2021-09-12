@@ -607,11 +607,9 @@ end subroutine qp_draw_polyline_basic
 !                  TYPE is passed to GG_SETUP. E.g.
 !                  TYPE = 'X'     --> Open an X-window.
 !                  TYPE = 'GIF'   --> To create a gif file.
-!                  TYPE = 'GIF-L' --> Gif w/ landscape page orientation.
 !                  TYPE = 'PS'    --> To create a Color PostScript file.
-!                  TYPE = 'PS-L'  --> PostScript w/ landscape page orientation.
-!   x_len      -- Real(rp), optional: Horizontal width in inches. 0 => Ignore.
-!   y_len      -- Real(rp), optional: Vertical width in inches. 0 => Ignore.
+!   x_len      -- Real(rp), optional: Horizontal width in inches.
+!   y_len      -- Real(rp), optional: Vertical width in inches.
 !   plot_file  -- Character(*), optional: Name for the plot file.
 !                    Default is: 'quick_plot.ps' or 'quick_plot.gif'
 !   page_scale -- Real(rp), optional: Scale to expand or shrink the drawing.
@@ -630,7 +628,6 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, x_page, y_pag
 implicit none
 
 real(rp) x_len, y_len, x_page, y_page
-real(rp) x_size, y_size, x_res, y_res
 real(rp), optional :: page_scale
 
 real x, y
@@ -645,7 +642,8 @@ character(16) :: r_name = 'qp_open_page_basic'
 ! Set plot type
 ! GIF does not work well so create a ps file and convert to gif on closing.
 
-if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT') then
+select case (page_type)
+case ('X')
 #if defined (CESR_WINCVF)
   iw = pgopen ('/WV')
 #else
@@ -655,26 +653,18 @@ if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT') then
   call pgscr (0, 1.0, 1.0, 1.0)    ! white background
   call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
 
-elseif (page_type == 'PS') then
-  iw = pgopen (trim(plot_file) // '/VCPS')
-
-elseif (page_type == 'PS-L') then
+case ('PS', 'PS-L')
   iw = pgopen (trim(plot_file) // '/CPS')
 
-elseif (page_type == 'GIF') then
-  iw = pgopen (trim(plot_file) // '/VGIF')
-  call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
-  call pgscr (0, 1.0, 1.0, 1.0)    ! white background
-
-elseif (page_type == 'GIF-L') then
+case ('GIF', 'GIF-L')
   iw = pgopen (trim(plot_file) // '/GIF')
   call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
   call pgscr (0, 1.0, 1.0, 1.0)    ! white background
 
-else
+case default
   call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PAGE_TYPE: ' // page_type)
   if (global_com%exit_on_error) call err_exit
-endif
+end select
 
 if (present(i_chan)) i_chan = iw
 
@@ -687,14 +677,8 @@ endif
 ! pgplot assumes 72 pixels / inch for X-windows so there needs to be a correction
 
 if (x_len > 0 .and. y_len > 0) then
-  if (page_type == 'X') then
-    call display_size_and_resolution(0, x_size, y_size, x_res, y_res)
-    call pgpap (real(x_len), real(y_len/x_len))
-  else
-    call pgpap (real(x_len), real(y_len/x_len))
-  endif
+  call pgpap (real(x_len), real(y_len/x_len))
 endif
-
 
 ! do not pause when clearing the screen.
 
@@ -711,7 +695,6 @@ y_page = y2i
 call pgpage
 call pgsvp (0.0, 1.0, 0.0, 1.0)  ! viewport to entire page
 call pgswin (0.0, x2i, 0.0, y2i) ! set min/max
-
 
 ! get the conversion factor for character height.
 
