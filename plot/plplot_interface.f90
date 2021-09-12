@@ -854,8 +854,8 @@ endif
 
 select case (page_type)
 case ('X')
-  call plsdev ('xcairo')
-  stat = plsetopt('drvopt', 'image_buffering=0') ! nobuffered: Sets unbuffered operation
+  call plsdev ('xwin')
+  stat = plsetopt('drvopt', 'nobuffered=1')
 
 case ('PS')
   call plsori(1)   ! portrait mode
@@ -931,7 +931,11 @@ call plwind (0.0_rp, x2i-x1i, 0.0_rp, y2i-y1i) ! set min/max for window
 ! Get page size info.
 call plgvpw(x1i,x2i,y1i,y2i)      ! Get viewport size in mm
 
-call plschr(point_to_mm_conv, 1.0_rp)
+if (page_type == 'X') then 		
+  call plschr(0.60 * point_to_mm_conv, 1.0_rp)		
+else		
+  call plschr(point_to_mm_conv, 1.0_rp)		
+endif		
 
 call plgchr(d, h)
 
