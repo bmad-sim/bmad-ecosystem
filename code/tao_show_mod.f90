@@ -274,7 +274,7 @@ integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_
 integer eval_pt, n_count
 integer, allocatable :: ix_c(:), ix_remove(:)
 
-complex(rp) eval(6), evec(6,6), n_eigen(6,3), qv(0:3), qv2(0:3), qn0(0:3), q0(0:3), ss1(0:3)
+complex(rp) eval(6), evec(6,6), n_eigen(6,3), qv(0:3), qv2(0:3), qn0(0:3), q0(0:3), ss1(0:3), ss2(0:3)
 real(rp) nn0(3)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
@@ -3984,13 +3984,12 @@ case ('spin')
 
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Resonance strengths:'
-      nl=nl+1; lines(nl) = '            Tune        |Q-Qs|  Xi_res(eigen)   Xi_res(G.v1)   Xi_res(G.v2)'
+      nl=nl+1; lines(nl) = '            Tune        |Q-Qs|  Xi_res(quat.v1)  Xi_res(quat.v2)   Xi_res(G.v1)   Xi_res(G.v2)'
       qs = branch%param%spin_tune/twopi
       do i = 1, 3
         j = 2 * i - 1
         q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
         dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
-        x = dq * sqrt(2.0_rp)*norm2(abs(n_eigen(j,:)))
 
         q0 = sm%q_map%q(:,0)
         nn0 = sm%q_map%q(1:3,0)
@@ -4003,14 +4002,21 @@ case ('spin')
         enddo
         ss1 = (quat_mul(quat_mul(qv, qn0), quat_conj(q0)) + quat_mul(quat_mul(q0, qn0), quat_conj(qv))) / twopi
         s1 = sqrt(2.0_rp) * norm2(abs(ss1))
-        ss1 = (quat_mul(quat_mul(qv2, qn0), quat_conj(q0)) + quat_mul(quat_mul(q0, qn0), quat_conj(qv2))) / twopi
-        s2 = sqrt(2.0_rp) * norm2(abs(ss1))
-
+        ss2 = (quat_mul(quat_mul(qv2, qn0), quat_conj(q0)) + quat_mul(quat_mul(q0, qn0), quat_conj(qv2))) / twopi
+        s2 = sqrt(2.0_rp) * norm2(abs(ss2))
 
         z1 = abs(dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
         z2 = abs(dot_product(evec(j+1,:), sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
-        nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 7es15.4)') abc_name(i), q, dq, x, z1, z2, s1, s2
+        nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 7es15.4)') abc_name(i), q, dq, s1, s2, z1, z2
         nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') ss1
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (quat_mul(quat_mul(qv, qn0), quat_conj(q0))) / twopi
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (quat_mul(quat_mul(q0, qn0), quat_conj(qv))) / twopi
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') ss2
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (quat_mul(quat_mul(qv2, qn0), quat_conj(q0))) / twopi
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (quat_mul(quat_mul(q0, qn0), quat_conj(qv2))) / twopi
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (dot_product(evec(j+1,:), sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+        nl=nl+1; lines(nl) = ''
       enddo
       nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
     endif

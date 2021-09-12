@@ -427,11 +427,7 @@ case ('digested')
 
 case ('hard', 'hard-l')
 
-  if (action == 'hard') then
-    call qp_open_page ('PS', scale = 0.0_rp)
-  else
-    call qp_open_page ('PS-L', scale = 0.0_rp)
-  endif
+  call qp_open_page ('PS', ix, s%plot_page%size(1), s%plot_page%size(2), 'POINTS')
   call tao_draw_plots ()   ! PS out
   call qp_close_page
   call tao_draw_plots ()   ! Update the plotting window
@@ -853,7 +849,7 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
   endif
 
   ix_word = 0
-  scale = 0
+  scale = 1
   file_name = ''
 
   do
@@ -897,12 +893,7 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
 
   call str_upcase (action, action)
 
-  if (action(1:3) == 'GIF') then
-    call qp_open_page (action, plot_file = file_name, x_len = s%plot_page%size(1), y_len = s%plot_page%size(2), &
-                                                                                    units = 'POINTS', scale = scale)
-  else
-    call qp_open_page (action, plot_file = file_name, scale = scale)
-  endif
+  call qp_open_page (action, ix, s%plot_page%size(1), s%plot_page%size(2), 'POINTS', file_name, scale)
   call tao_draw_plots (.false.)   ! GIF plot
   call qp_close_page
 
