@@ -4005,17 +4005,15 @@ case ('spin')
         ss2 = (quat_mul(quat_mul(qv2, qn0), quat_conj(q0)) + quat_mul(quat_mul(q0, qn0), quat_conj(qv2))) / twopi
         s2 = sqrt(2.0_rp) * norm2(abs(ss2))
 
-        z1 = abs(dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
-        z2 = abs(dot_product(evec(j+1,:), sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+        z1 = abs(sum(evec(j,:)   * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag))) / twopi
+        z2 = abs(sum(evec(j+1,:) * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag))) / twopi
         nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 7es15.4)') abc_name(i), q, dq, s1, s2, z1, z2
         nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') ss1
-        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (quat_mul(quat_mul(qv, qn0), quat_conj(q0))) / twopi
-        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (quat_mul(quat_mul(q0, qn0), quat_conj(qv))) / twopi
         nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') ss2
-        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (quat_mul(quat_mul(qv2, qn0), quat_conj(q0))) / twopi
-        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (quat_mul(quat_mul(q0, qn0), quat_conj(qv2))) / twopi
-        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
-        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') (dot_product(evec(j+1,:), sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') sum(evec(j,:)   * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') sum(evec(j+1,:) * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') sum(evec(j,:)   * sm%mat8(7,1:6))/twopi, sum(evec(j,:)   * sm%mat8(8,1:6)) / twopi
+        nl=nl+1; write (lines(nl), '(4(5x, 2f12.6))') sum(evec(j+1,:) * sm%mat8(7,1:6))/twopi, sum(evec(j+1,:) * sm%mat8(8,1:6)) / twopi
         nl=nl+1; lines(nl) = ''
       enddo
       nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs

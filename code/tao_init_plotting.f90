@@ -579,12 +579,15 @@ do  ! Loop over plot files
       ! Count curves. Any curve must have %data_type set or, for %data_source = "data",
       ! %data_type can be constructed from "graph%name.curve%name".
 
-      n_curve = 0
-      do j = 1, size(curve)
-        if (curve(j)%data_type == '' .and. (curve(j)%data_source /= 'data' .or. curve(j)%name == '')) cycle
-        n_curve = n_curve + 1
-      enddo
-      if (graph%n_curve > 0) n_curve = graph%n_curve
+      if (graph%n_curve > 0) then   ! Old style before n_curve was eliminated.
+        n_curve = graph%n_curve
+      else
+        n_curve = 0
+        do j = 1, size(curve)
+          if (curve(j)%data_type == '' .and. (curve(j)%data_source /= 'data' .or. curve(j)%name == '')) cycle
+          n_curve = n_curve + 1
+        enddo
+      endif
 
       if (n_curve == 0) then
         if (allocated(grph%curve)) deallocate (grph%curve)
@@ -594,7 +597,8 @@ do  ! Loop over plot files
 
       nc = 0
       do j = 1, size(curve)
-        if (curve(j)%data_type == '' .and. (curve(j)%data_source /= 'data' .or. curve(j)%name == '')) cycle
+        if ((graph%n_curve < 1 .or. j > graph%n_curve) .and. &
+              (curve(j)%data_type == '' .and. (curve(j)%data_source /= 'data' .or. curve(j)%name == ''))) cycle
         nc = nc + 1
         if (nc > n_curve) exit
         crv => grph%curve(nc)
@@ -651,6 +655,13 @@ do  ! Loop over plot files
         if (crv%data_source == 'lattice')       crv%data_source = 'lat'
         if (crv%data_source == 'data_array')    crv%data_source = 'data'
         if (crv%data_source == 'var_array')     crv%data_source = 'var'
+
+        ! A floor_plan does not have any associated curves.
+
+        if (grph%type == 'floor_plan') then
+          call out_io (s_warn$, r_name, 'FLOOR_PLAN GRAPHS DO NOT HAVE ASSOCIATED CURVES.')
+          crv%why_invalid = 'FLOOR_PLAN GRAPHS DO NOT HAVE ASSOCIATED CURVES.'
+        endif
 
         ! Default data type
 
