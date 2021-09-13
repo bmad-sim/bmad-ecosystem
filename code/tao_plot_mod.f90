@@ -46,7 +46,9 @@ if (.not. s%global%plot_on) return
 call tao_create_plot_window () ! This routine knows not to create multiple windows.
 if (logic_option(.true., do_clear)) call qp_clear_page
 
-call qp_wait_to_flush(.true.)
+! It can be helpful for debugging purposes not wait to flush all at the end
+
+if (.not. s%global%debug_on) call qp_wait_to_flush(.true.)
 
 h = s%plot_page%text_height
 call qp_set_text_attrib ('TEXT', height = h)
@@ -166,7 +168,7 @@ do i = 1, size(s%plot_page%region)
 
 enddo
 
-call qp_wait_to_flush(.false.)
+if (.not. s%global%debug_on) call qp_wait_to_flush(.false.)
 
 end subroutine tao_draw_plots
 
