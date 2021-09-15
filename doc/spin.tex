@@ -111,8 +111,12 @@ A rotation quaternion $\bfq$ has unit normalization:
   1 = ||\bfq|| = \sqrt{\bfq \dotproduct \bfq} = \sqrt{q_0^2 + q_x^2 + q_y^2 + q_z^2}
   \label{1qqq}
 \end{equation}
-Such a quaternion is called a \vn{unit} quaternion.
-The quaternion conjugate $\bfq^*$ is defined by
+Such a quaternion is called a \vn{unit} quaternion.  The quaternion conjugate $\bfq^*$ is defined
+by\footnote
+  {
+Notice that even if the components of $\bfq$ are complex, there is no complex conjugation when computing
+the quaternion conjugate.
+  }
 \begin{equation}
   \bfq^* = q_0 - q_x \, \cali - q_y \, \calj - q_z \calk
 \end{equation}
@@ -128,7 +132,7 @@ represented by quaternion $\bfq$ to position $\bfr'$ is given by
   \bfr' = \bfq \, \bfr \, \bfq^*
   \label{rqrq}
 \end{equation}
-The rotation matrix $\bfR$ corresponding to \Eq{rqrq} is
+The rotation matrix $\bfR$ corresponding to \Eq{rqrq} so that $\bfr' = \bfR \, \bfr$ is
 \begin{equation}
   \bfR = \begin{pmatrix}
     q_0^2 + q_x^2 - q_y^2 - q_z^2    & 2 \, q_x \ q_y - 2 \, q_0 \, q_z & 2 \, q_x \ q_z + 2 \, q_0 \, q_y \\
@@ -138,12 +142,16 @@ The rotation matrix $\bfR$ corresponding to \Eq{rqrq} is
   \label{rqqq}
 \end{equation}
 
-In quaternion notation, two rotations $\bfq_1$ and $\bfq_2$ are combined into one rotation using the formula
-\begin{equation}
-  \bfq_{12} = \bfq_2 \, \bfq_1
-\end{equation}
-where $\bfq_{12}$ is the result of rotation $\bfq_1$ followed by $\bfq_2$. Note that this equation
-is analogous to how rotation matrices are combined (for more information see \cite{b:quat}).
+In quaternion notation, two rotations $\bfa$ followd by $\bfb$ are combined into one rotation $\bfc$
+using the formula
+\begin{align}
+  \bfc = \bfb \, \bfa = &(a_0 b_0 - a_x b_x - a_y b_y - a_z b_z) +
+                          (a_0 b_x + a_x b_0 + a_y b_z - a_z b_y) \, \cali + \\
+                         &(a_0 b_y - a_x b_z + a_y b_0 + a_z b_x) \, \calj +
+                          (a_0 b_z + a_x b_y - a_y b_x + a_z b_0) \, \calk \nonumber
+\end{align}
+This equation is analogous to how rotation matrices are combined (for more information see
+\cite{b:quat}).
 
 %-----------------------------------------------------------------   
 \section{Invariant Spin Field}
@@ -304,7 +312,7 @@ Using \Eqs{qqqr} and \eq{qnqn}, and keeping only linear terms gives
 \begin{equation}
   \lambda_k \, \bfn_k - \bfq_0 \, \bfn_k \, \bfq_0^* = 
   (\overrightarrow{\bfq} \dotproduct \bfv_k) \, \bfn_0 \, \bfq_0^* + 
-  \bfq_0 \, \bfn_0 \, (\overrightarrow{\bfq}^* \dotproduct \bfv_k^*)
+  \bfq_0 \, \bfn_0 \, (\overrightarrow{\bfq}^* \dotproduct \bfv_k)
   \label{lnqnq}
 \end{equation}
 This equation is linear in the unknown $\bfn_k$ and so may be easily solved using standard linear
