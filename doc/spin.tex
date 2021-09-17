@@ -74,7 +74,7 @@ A quaternion $\bfq$ is a 4-vector $\bfq = (q_0, \bfq_r) = (q_0, q_x, q_y, q_z)$ 
 are reals if they represent a rotation and are Taylor series if they represent a rotation map
 (\sref{s:spin.map}). A quaternion can also be represented in the form:
 \begin{equation}
-  \bfq = q_0 + q_x \, \cali + q_y \, \calj + q_z \calk
+  \bfq = q_0 + q_x \, \cali + q_y \, \calj + q_z \, \calk
   \label{qqqqq}
 \end{equation}
 where $\cali$, $\calj$, and $\calk$ are the {\em fundamental quaternion units} with the properties
@@ -98,20 +98,7 @@ product (inner product) of two quaternions is defined to be standard Euclidean d
   \bfa \dotproduct \bfb = a_0 \, b_0 + a_x \, b_x + a_y \, b_y + a_z \, b_z
 \end{equation}
 
-When a quaternion represents a rotation, $\cali$, $\calj$, and $\calk$ can be thought of as representing unit
-vectors along the three Cartesian axes $\bfx$, $\bfy$, and $\bfz$ respectively. A rotation through an angle
-$\theta$ around the unit axis $\bfu = (u_x, u_y, u_z)$ is represented by the quaternion
-\begin{equation}
-  \bfq = \cos\frac{\theta}{2} + (u_x \, \cali + u_y \, \calj + u_z \, \calk) \sin\frac{\theta}{2}
-  \label{qt2ui}
-\end{equation}
-
-A rotation quaternion $\bfq$ has unit normalization:
-\begin{equation}
-  1 = ||\bfq|| = \sqrt{\bfq \dotproduct \bfq} = \sqrt{q_0^2 + q_x^2 + q_y^2 + q_z^2}
-  \label{1qqq}
-\end{equation}
-Such a quaternion is called a \vn{unit} quaternion.  The quaternion conjugate $\bfq^*$ is defined
+The quaternion conjugate $\bfq^*$ is defined
 by\footnote
   {
 Notice that even if the components of $\bfq$ are complex, there is no complex conjugation when computing
@@ -120,10 +107,28 @@ the quaternion conjugate.
 \begin{equation}
   \bfq^* = q_0 - q_x \, \cali - q_y \, \calj - q_z \calk
 \end{equation}
-and the inverse $\bfq^{-1}$ is given by
+with the property
+\begin{equation}
+  (\bfq_1 \, \bfq_2)^* = \bfq_2^* \, \bfq_1^*
+\end{equation}
+The quaternion inverse $\bfq^{-1}$ is related to the quaternion conjugate by
 \begin{equation}
   \bfq^{-1} = \frac{\bfq^*}{||\bfq||^2}
 \end{equation}
+where the norm $||\bfq||$ is given by
+\begin{equation}
+  ||\bfq|| \equiv \sqrt{\bfq \dotproduct \bfq} = \sqrt{q_0^2 + q_x^2 + q_y^2 + q_z^2}
+  \label{1qqq}
+\end{equation}
+
+When a quaternion represents a rotation, $\cali$, $\calj$, and $\calk$ can be thought of as representing unit
+vectors along the three Cartesian axes $\bfx$, $\bfy$, and $\bfz$ respectively. A rotation through an angle
+$\theta$ around the unit axis $\bfu = (u_x, u_y, u_z)$ is represented by the quaternion
+\begin{equation}
+  \bfq = \cos\frac{\theta}{2} + (u_x \, \cali + u_y \, \calj + u_z \, \calk) \sin\frac{\theta}{2}
+  \label{qt2ui}
+\end{equation}
+A rotation quaternion $\bfq$ is a \vn{unit} quaternion since its norm is unity $||\bfq|| = 1$.
 
 Given an ordinary spatial vector $(\bfr_x, \bfr_y, \bfr_z)$, this vector is represented by a
 quaternion $\bfr = (0, \bfr_x, \bfr_y, \bfr_z)$. The rotation of $\bfr$ through a rotation
@@ -150,8 +155,7 @@ using the formula
                          &(a_0 b_y - a_x b_z + a_y b_0 + a_z b_x) \, \calj +
                           (a_0 b_z + a_x b_y - a_y b_x + a_z b_0) \, \calk \nonumber
 \end{align}
-This equation is analogous to how rotation matrices are combined (for more information see
-\cite{b:quat}).
+for more information see \cite{b:quat}.
 
 %-----------------------------------------------------------------   
 \section{Invariant Spin Field}
@@ -276,12 +280,12 @@ position. The calculation of $\partial\bfn/\partial\delta$ starts with the linea
 are characterized by a $6\times6$ orbital 1-turn transfer matrix $\bfM$ along with the spin
 transport which can be written in the form
 \begin{equation}
-  \bfq_s(\bfr) = \bfq_0 + \overrightarrow{\bfq} \dotproduct \bfr
+  \bfq_s(\bfr) = \bfq_0 + \arrowbfq \dotproduct \bfr
   \label{qqqr}
 \end{equation}
 The quaternion map $\bfq_s$, evaluated at the orbital phase space point $\bfr$, has a zeroth order
 part $\bfq_0$ (the spin rotation for a particle on the closed orbit) and the first order part
-$\overrightarrow{\bfq} = (\bfq_1, \ldots, \bfq_6)$ which is a vector of six quaternions and which is
+$\arrowbfq = (\bfq_1, \ldots, \bfq_6)$ which is a vector of six quaternions and which is
 evaluated in \Eq{qqqr} by taking the dot product with the vector $\bfr$.
 
 The closed orbit invariant spin $\bfn_0$ which has unit amplitude satisfies the equation
@@ -294,12 +298,20 @@ The solution to this equation, normalized to one, is
   \bfn_0 = \frac{(q_{0,x}, q_{0,y}, q_{0,z})}{\|(q_{0,x}, q_{0,y}, q_{0,z})\|}
   \label{nkqqq}
 \end{equation}
+Another way of writing this is using \Eq{qt2ui}
+\begin{equation}
+  \bfq_0 = \cos(\pi \, \nu_0) + 
+  (n_{0,x} \, \cali + n_{0,y} \, \calj + n_{0,z} \, \calk) \, \sin(\pi \, \nu_0)
+  \label{qnni}
+\end{equation}
+where $\nu_0$ is the spin tune.
+
 Since $\bfq_s$ is a rotation quaternion, the magnitude of $\bfq_s(\bfr)$ must remain one. Using
 \Eq{qqqr} in \Eq{1qqq}, to keep the magnitude equal to one to linear order gives the condition
 \begin{equation}
   \bfq_0 \dotproduct \bfq_k = 0, \qquad k = 1, \ldots, 6
 \end{equation}
-for all $\bfq_k$ components of $\overrightarrow{\bfq}$.
+for all $\bfq_k$ components of $\arrowbfq$.
 
 To calculate $\partial\bfn/\partial\delta$, the first step is to compute the eigenvectors $\bfv_k$ and
 eigenvalues $\lambda_k$, $k = 1, \ldots, 6$ of the 1-turn orbital matrix. The
@@ -311,8 +323,8 @@ corresponding spin eigenvectors $\bfn_k$ are computed from the equation
 Using \Eqs{qqqr} and \eq{qnqn}, and keeping only linear terms gives
 \begin{equation}
   \lambda_k \, \bfn_k - \bfq_0 \, \bfn_k \, \bfq_0^* = 
-  (\overrightarrow{\bfq} \dotproduct \bfv_k) \, \bfn_0 \, \bfq_0^* + 
-  \bfq_0 \, \bfn_0 \, (\overrightarrow{\bfq}^* \dotproduct \bfv_k)
+  (\arrowbfq \dotproduct \bfv_k) \, \bfn_0 \, \bfq_0^* + 
+  \bfq_0 \, \bfn_0 \, (\arrowbfq^* \dotproduct \bfv_k)
   \label{lnqnq}
 \end{equation}
 This equation is linear in the unknown $\bfn_k$ and so may be easily solved using standard linear
@@ -359,7 +371,7 @@ a single mode of oscillation. That is, to compute ${\partial \bfn}/\partial \del
 mode of interest. This information can help guide lattice design.
 
 %-----------------------------------------------------------------   
-\section{Linear Single Resonance Analysis}
+\section{Single Resonance Analysis}
 \label{s:spin.lin.res}
 
 Resonances occur when the spin tune $\nu_s$ is an integer (``imperfection'' resonances) and when the spin
@@ -368,7 +380,8 @@ tune $\nu_s$ in combination with the three orbital tunes $\nu_x$, $\nu_y$, and $
 \begin{equation}
   \nu_s + m_x \, \nu_x + m_y \, \nu_y + m_z \, \nu_z = m_0
 \end{equation}
-where $m_x$, $m_y$, $m_z$, and $m_0$ are integers. In the linear approximation (\sref{s:dn.calc}),
+where $m_x$, $m_y$, $m_z$, and $m_0$ are integers. As discussed below, 
+in the linear approximation (\sref{s:dn.calc}),
 resonances only occur if one and exactly one of the $m_x$, $m_y$, or $m_z$ has a value of one and
 the other two are zero.
 
@@ -376,7 +389,7 @@ Generally, in rings where the synchrotron radiation is large (think electrons), 
 due to radiation will tend to dominate (\sref{s:isf}). For rings where the synchrotron radiation is
 small (think protons), resonances will be more important. Notice that synchrotron radiation, being a
 stochastic process results in depolarization. Resonances, on the other hand, are not stochastic and
-even if a resonance tilts the polarization there can be the possibility of recovery.
+even if a resonance tilts the polarization direction there can be the possibility of recovery.
 
 In order to calculate the effect of a resonance it is helpful to know the resonance strength
 The resonance strength calculation can be motivated by considering the Single Resonance Model
@@ -399,7 +412,8 @@ In the above equation the phase $\Phi$ is related to the orbital mode tune $Q$ v
   \Phi = Q \, \theta + \Phi_0
 \end{equation}
 with $\Phi_0$ being the starting phase. \Eq{stos} can be solved by transforming to a coordinate
-system rotating about the $z$-axis with a rotational frequency $Q$. In this frame, the spin vector
+system rotating about the $z$-axis with a rotational frequency $Q$. This is called the ``\vn{resonance}''
+coordinate system or the ``\vn{rotating}'' coordinate system. In this frame, the spin vector
 $s_R$ is
 \begin{equation}
   \bfs_R = \bfq_z(-\Phi/2) \,\, \bfs \,\, \bfq_z^*(-\Phi/2), \quad \text{where} \quad
@@ -418,14 +432,10 @@ Using \Eq{rqsq} in \Eq{stos} gives
   \delta = \nu_0 - Q
   \label{stos2}
 \end{equation}
-If a spin is initially aligned along the $\bfn_0$ axis ($\bfs = \bfs_R = (0, 0, 1)$), then at
-resonance, with $\delta = 0$, the spin will be rotated by an angle $2 \, \pi \, \epsilon_r$. This
-gives a physical interpretation to $\epsilon_r$. Thus, for a resonance to be small, the resonance
-strength must satisfy
-\begin{equation}
-  \epsilon_r \ll 1
-  \label{r1}
-\end{equation}
+Spins rotate around around $\Bf\Omega_R$. A spin initially aligned along the $z$-axis will be 
+tilted a maximum of $\tan^{-1}(\epsilon_r/\delta)$ away from the $z$-axis. This shows that the
+characteristic frequency width of the resonance is set by $\delta \approx \epsilon_r$. That is,
+the frequency width scales linearly with $\epsilon_r$.
 
 In the rotating coordinate system, a spin oriented parallel to $\Bf\Omega_R$ remains parallel to
 $\Bf\Omega_R$ so $\Bf\Omega_R$ is in the direction of the invariant spin field. Transforming back
@@ -450,66 +460,148 @@ which can be of the form $\nu_0 = m_0 \pm Q$ where $m_0$ is some integer. In an 
 presence of a perturbation at some specific point in the machine will produce a comb of resonances
 of the form $m_0 \pm Q$.
 
-Restricting discussion to linear resonances, the resonance strength will scale with $\sqrt{J}$ where $J$
-is the action of the orbital oscillations (\sref{s:action.ang})
+At resonance, with $\delta = 0$, \Eq{stos2} shows that if a spin in the resonance coordinate system is initially
+aligned along the $\bfn_0$ axis ($\bfs_R = (0, 0, 1)$), After $N$ turns, in the linear approximation, the spin
+will be
 \begin{equation}
-  \epsilon_r = \sqrt{J} \, \xi_r
+  \bfs_R(N,\bfn_0) = (0, -N \cdot 2 \, \pi \, \epsilon_r, 1)
+  \label{sr0n}
+\end{equation}
+For the linear approximation to be valid, it must be true that $N \, \epsilon_r \ll 1$. \Eq{sr0n} gives a physical
+interpretation to the resonance strength $\epsilon_r$. The resonance strength is the angle (modulo $2 \, \pi$) 
+that a spin is tipped away from $\bfn_0$ in one turn. For a resonance to be small, the resonance
+strength must satisfy
+\begin{equation}
+  \epsilon_r \ll 1
+  \label{r1}
+\end{equation}
+
+Inversion of \Eq{sr0n} shows how to compute the strength of a linear resonance:
+\begin{equation}
+  \epsilon_r = \lim_{N \rightarrow \infty} \, \frac{1}{2 \, \pi \, N} \, 
+  \left| \bfs_R(N,\bfn_0) - \bfn_0 \right|
+  \label{eN12n}
+\end{equation}
+where the right hand side must be computed on resonance and within the linear approximation.
+$\bfs_R(N, \bfn_0)$ is the spin after $N$ turns given an initial spin of $\bfn_0$.
+$\bfs_R(N, \bfn_0)$  can be computed via
+\begin{equation}
+  \bfs_R(N, \bfn_0) = \bfQ_N \, \bfn_0 \, \bfQ_N^*
+  \label{sQnQ}
+\end{equation}
+The rotation quaternion $\bfQ_N$ over $N$ turns is the product of one-turn rotation quaternions $\bfq_s(\bfr)$
+with an extra factor of $\bfq_0^{-N}$ to convert from laboratory coordinates to resonance coordinates since
+$\bfq_s$ is the transport in laboratory coordinates (by definition, resonance coordinates are the same as 
+laboratory coordinates at $N = 0$).
+\begin{equation}
+  \bfQ_N = \bfq_0^{-N} \, \bfq_s(\bfr_{N-1}) \ldots \bfq_s(\bfr_1) \, \bfq_s(\bfr_0)
+  \label{Qqqr}
+\end{equation}
+In the above equation, $\bfr_j$ is the orbital position after $j$ turns. 
+Using \Eq{qqqr} and expanding to linear order in $\arrowbfq$ gives
+\begin{equation}
+  \bfQ_N = \bfq_0^{-1} \, \left( 
+  \bfq_0 + \sum_{j = 0}^{N-1} \, \bfq_0^{-j}
+  \left( \arrowbfq \cdot \bfr_j \right) \bfq_0^{j}
+  \right)
+  \label{qqqjn}
+\end{equation}
+Using this with \Eq{sQnQ} in \Eq{eN12n} and keeping only linear terms, gives
+\begin{equation}
+  \epsilon_r = \left|
+    \bfq_0^{-1} \, \bfZ \, \bfn_0 + 
+    \bfn_0 \, \bfZ^* \, \bfq_0
+    \right| \label{eqZnn}
+\end{equation}
+where
+\begin{equation}
+  \bfZ = \lim_{N \rightarrow \infty} 
+  \frac{1}{2 \pi N} 
+  \sum_{j = 0}^{N-1} \, \bfq_0^{-j} \left( \arrowbfq \cdot \bfr_j \right) \bfq_0^{j}
+  \label{Z}
+\end{equation}
+
+To evaluate $\bfZ$, the quantity $\bfq_0^j$ is decomposed into two parts
+\begin{equation}
+  \bfq_0^j = e^{i \pi j \nu_0} \, \bfn_0^- + 
+  e^{-i \pi j \nu_0} \, \bfn_0^+
+  \label{q12en}
+\end{equation}
+where $\bfn_0^-$ and $\bfn_0^+$ are defined as
+\begin{equation}
+  \bfn_0^\pm \equiv \frac{1}{2} \, \big( 1 \pm i \,
+  (n_{0,x} \, \cali + n_{0,y} \, \calj + n_{0,z} \, \calk)
+  \big)
+  \label{n1in}
+\end{equation}
+For later use, the following identities are useful
+\begin{alignat}{2}
+   &\bfn_0^+ \bfn_0^+ = \bfn_0^+, \qquad
+  &&\bfn_0 = i (\bfn_0^- - \bfn_0^+), \\
+   &\bfn_0^- \bfn_0^- = \bfn_0^-, \qquad
+  &&\bfn_0^+ \bfn_0^- = \bfn_0^- \bfn_0^+ = \Bf 0
+  \nonumber
+\end{alignat}
+
+For a particular mode of oscillation, $\bfr_j$ is given by \Eq{x2jv}. 
+Without loss of generality, $\phi_0$ in \Eq{x2jv} will be set to zero.
+Using this along with the above equations gives
+\begin{align}
+  \bfZ = \lim_{N \rightarrow \infty} 
+    \frac{\sqrt{J}}{2 \pi N} 
+    \sum_{j = 0}^{N-1} \Big[
+    &\bfn_0^+ (\arrowbfq \cdot \bfv_k)     \bfn_0^- \, e^{ i2\pi j (Q_k + \nu_0)} + 
+     \bfn_0^- (\arrowbfq \cdot \BAR\bfv_k) \bfn_0^+ \, e^{-i2\pi j (Q_k + \nu_0)} + {} 
+    \nonumber \\[-2ex]
+    &\bfn_0^- (\arrowbfq \cdot \bfv_k)     \bfn_0^+ \, e^{ i2\pi j (Q_k - \nu_0)} +
+     \bfn_0^+ (\arrowbfq \cdot \BAR\bfv_k) \bfn_0^- \, e^{-i2\pi j (Q_k - \nu_0)} + {}
+    \label{zj2pn} \\
+    &\bfn_0^- (\arrowbfq \cdot \bfv_k)     \bfn_0^- \, e^{i2\pi j Q_k} + 
+     \bfn_0^+ (\arrowbfq \cdot \BAR\bfv_k) \bfn_0^+ \, e^{-i2\pi j Q_k} + \CRNO
+    &\bfn_0^+ (\arrowbfq \cdot \bfv_k)     \bfn_0^+ \, e^{i2\pi j Q_k} + 
+     \bfn_0^- (\arrowbfq \cdot \BAR\bfv_k) \bfn_0^- \, e^{-i2\pi j Q_k}
+   \Big] \nonumber
+%    &\hspace{-1in} (\bfn_0^- (\arrowbfq \cdot \bfv_k) + \bfn_0^+ (\arrowbfq \cdot \bfv_k) \bfn_0^-) \, 
+%      e^{i2\pi j Q_k} + 
+%     (\bfn_0^- (\arrowbfq \cdot \BAR\bfv_k) + \bfn_0^+ (\arrowbfq \cdot \BAR\bfv_k) \bfn_0^-) \, 
+%      e^{i2\pi j Q_k} \CRNO
+\end{align}
+where the bar as in $\BAR\bfv_k$ means complex (not quaternion) conjugate.
+the first two terms on the right hand side of \Eq{zj2pn} will be nonzero only
+at the sum resonance with $Q_k + \nu_0 = p$ for $p$ an integer. 
+The third and fourth terms will be nonzero only at the difference resonance with $Q_k - \nu_0 = p$.
+And the last four terms will be nonzero only at
+an integer resonance where $Q_k = p$ which can be ignored.
+
+The normalized resonance strength $\xi_r$ is defined by
+\begin{equation}
+  \epsilon_r \equiv \sqrt{J} \, \xi_r
   \label{ejx}
 \end{equation}
-where $\xi_r$ is the normalized resonance strength. In this case, the criterion for the resonance
-strength to be small (\Eq{r1}) is that $\sqrt{J} \, \xi_r$ is small comapared to one with $J$ being
-the action for particle motion at a few beam sigma.
-
-The normalized resonance strength can be related to the first order spin eigenvectors $\bfn_k$
-(\Eq{qnnq}) by comparing \Eq{nsdl} with the equations developed in \sref{s:dn.calc}. The eigen
-analysis in \sref{s:dn.calc} gives the closed orbit $\bfn_0$ along with the six eigenvectors
-$(\bfv_k, \bfn_k)$ and corresponding eigenvalues $\lambda_k$, $k = 1, \ldots 6$ of the 1-turn
-spin-orbital transport. The orbital part of the $k$\Th eigenvector, $\bfv_k$, normalized using
-\Eq{vsvi0}, represents particle motion with unit action $J_k$ for that mode. Considering \Eq{ndan},
-if only one mode is excited for some particular $k$ and with some amplitude $\sqrt{J}$, the
-invariant spin field on the $m$\Th turn is
+To compute $\xi_r$, the following theorem is needed. 
+For any complex quaternion $\bfq$, the quantity $\bfn^+ \bfq \bfn^-$ has
+a zero scalar part and therefore can be considered to be a vector. Considering this quantity as a vector, the
+magnitude of the real and imaginary parts are equal 
 \begin{equation}
-  \bfn(m) = \frac{1}{\Lambda_n} \, 
-  \left( \bfn_0 + \re \left( 2 \, \sqrt{J} \, \bfn_k \, e^{i \, \phi_0} \, \lambda_k^m \right) \right)
-  \qquad
-  \Lambda_n = \sqrt{1 + 4 \, J \, \big| \re(\bfn_k) \big|^2}
-  \label{nnav}
+  \Big| \re \big( \bfn_+ \, \bfq \, \bfn_- \big) \Big| = 
+  \Big| \im \big( \bfn_+ \, \bfq \, \bfn_- \big) \Big|
 \end{equation}
-where $\phi_0$ is the initial phase (see \Eq{x2jv}). Comparing this to \Eqs{nsdl} and \eq{ejx}, the
-constant part of the $\bfn$ vector in \Eq{nsdl} ($\bfn_z$) is associated with $\bfn_0$ in \Eq{nnav}
-and the time varying part of $\bfn$ in \Eq{nsdl} ($\bfn_x$ and $\bfn_y$) is associated with $\bfv_k$
-in \Eq{nnav}. Taking the ratio of constant to time varying parts in both equations and equating
-gives
+This theorem can be be proved by brute force.
+Combining the above equations, the strength of a sum resonance is
 \begin{equation}
-  \xi_r = 2 \, \delta \, \big| \re(\bfn_k) \big|
-  \label{x2dn}
+  \xi_r = \frac{\sqrt{2}}{2\pi} \Big|
+  \bfn_0^+ ((\arrowbfq -\arrowbfq^*) \cdot \bfv_k) \bfn_0^- \Big| \label{x12pq1}
 \end{equation}
-where $k$ is either one of the two spin eigenvectors of the mode exciting the resonance.
-
-$\xi_r$ can be related to the $\bfG$ matrix of the SLIM formalism (\Eq{mm0gd}). The corresponding equation
-is\cite{b:spin.hoff}
+and for a difference resonance
 \begin{equation}
-  \xi_r = \frac{1}{2 \, \pi} \, \big| \bfG \cdot \bfv_k \big|
-  \label{x1pg}
+  \xi_r = \frac{\sqrt{2}}{2\pi} \Big|
+  \bfn_0^- ((\arrowbfq -\arrowbfq^*) \cdot \bfv_k) \bfn_0^+ \Big| \label{x12pq2}
 \end{equation}
-Here $k$ must correspond to the eigenvalue which is the tune of the mode. The $k$ that corresponds to the
-eigenvalue which is negative the tune cannot be used here (unlike \Eq{x2dn}).
+In both equations, the standard complex vector absolute value is used (which is not the same as the
+quaternion norm \Eq{1qqq}).
 
-While \Eqs{x2dn} and \eq{x1pg} can be used to calculate $\xi_r$ within the single resonance model
-independent of how large $\delta$ is, in a real machine, where there are many resonances, \Eqs{x2dn}
-and \eq{x1pg} are strictly only valid at resonance with $\delta = 0$. In this case \Eq{x2dn} is
-singular since, as $\delta$ goes to zero, $\bfn_k$ goes to infinity. In practice, \Eqs{x2dn} and
-\eq{x1pg} may be used to calculate $\xi_r$ with reasonable accuracy when $\delta$ is small.
-
-
-%Should the $\nu_s$ term be $m_s \, \nu_s$?
-%Importance of resonances vs stochastic dephasing.
-%How to calculate nonlinear resonance strengths.
-%references.
-%FS resonance crossing formula.?
-
-
-%\etcetc 
+The resonance strength can also be calculated within the \vn{SLIM} formalism (\sref{s:slim})
+via \Eq{x1pg}.
 
 %-----------------------------------------------------------------   
 \section{SLIM Formalism}
@@ -775,6 +867,19 @@ normalized in the form \Eq{vsvi0}.  With this, ${\partial \bfn}/{\partial \delta
   \frac{\partial \bfn}{\partial \delta} = i \, \sum_{k = 1}^6 \bfv_{k5}^* \, \bfw_k
   \label{ndivw}
 \end{equation}
+
+The strength of linear resonances can be calculated from the $\bfG$ matrix
+The corresponding equation to \Eqs{x12pq1} and \eq{x12pq2} is\cite{b:spin.hoff}
+\begin{equation}
+  \xi_r = \frac{1}{2 \, \pi} \, \big| \overrightarrow\bfG \cdot \bfv_k \big|
+  \label{x1pg}
+\end{equation}
+where 
+\begin{equation}
+  \overrightarrow\bfG = \bfG(1,:) + i \, \bfG(2,:)
+\end{equation}
+with $\bfG(1,:)$ being the first row of the $2\times6$ $\bfG$ matrix and $\bfG(2,:)$ being
+the second row.
 
 %-----------------------------------------------------------------   
 \section{Spinor Notation}
