@@ -866,7 +866,7 @@ end subroutine super_mrqcof
 
 subroutine super_gaussj (a, b, status)
 
-use nrutil, only : outerand, outerprod
+use nrutil, only : outerand
 
 implicit none
 
@@ -918,10 +918,10 @@ do i = 1, n
    dumc = a(:, icol)
    a(:, icol) = 0.0
    a(icol, icol) = pivinv
-   a(1:icol-1, :) = a(1:icol-1, :)-outerprod(dumc(1:icol-1), a(icol, :))
-   b(1:icol-1, :) = b(1:icol-1, :)-outerprod(dumc(1:icol-1), b(icol, :))
-   a(icol+1:, :) = a(icol+1:, :)-outerprod(dumc(icol+1:), a(icol, :))
-   b(icol+1:, :) = b(icol+1:, :)-outerprod(dumc(icol+1:), b(icol, :))
+   a(1:icol-1, :) = a(1:icol-1, :)-outer_product(dumc(1:icol-1), a(icol, :))
+   b(1:icol-1, :) = b(1:icol-1, :)-outer_product(dumc(1:icol-1), b(icol, :))
+   a(icol+1:, :) = a(icol+1:, :)-outer_product(dumc(icol+1:), a(icol, :))
+   b(icol+1:, :) = b(icol+1:, :)-outer_product(dumc(icol+1:), b(icol, :))
 end do
 
 do l = n, 1, -1
@@ -955,7 +955,7 @@ end subroutine super_gaussj
 
 subroutine super_ludcmp(a,indx,d, err)
 
-use nrutil, only : imaxloc,outerprod
+use nrutil, only : imaxloc
 implicit none
 real(rp), dimension(:,:), intent(inout) :: a
 integer, dimension(:), intent(out) :: indx
@@ -987,7 +987,7 @@ do j = 1,n
   indx(j) = imax
   if (a(j,j) == 0.0) a(j,j) = tiny
   a(j+1:n,j) = a(j+1:n,j)/a(j,j)
-  a(j+1:n,j+1:n) = a(j+1:n,j+1:n)-outerprod(a(j+1:n,j),a(j,j+1:n))
+  a(j+1:n,j+1:n) = a(j+1:n,j+1:n)-outer_product(a(j+1:n,j),a(j,j+1:n))
 end do
 err = .false.
 

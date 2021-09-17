@@ -20,7 +20,7 @@
 !-
 MODULE qr_mod
 
-USE precision_def
+USE sim_utils_interface
 
 IMPLICIT NONE
 
@@ -29,7 +29,6 @@ PUBLIC thin_qr
 PUBLIC RbackS
 PUBLIC print_mat
 PRIVATE twonorm2
-PRIVATE outer_product
 PRIVATE house
 
 CONTAINS
@@ -154,33 +153,6 @@ FUNCTION twonorm2(v) RESULT(z)
     z = z + v(i)*v(i)
   ENDDO
 END FUNCTION twonorm2
-
-!+
-! Function outer_product(u,v)
-!
-! Computes the outer product of two same-length vectors.
-!
-! Modules needed:
-!   use qr_mod
-!
-! Input:
-!   u(:)   -- REAL(rp), INTENT(IN): 1-dim array of length n
-!   v(:)   -- REAL(rp), INTENT(IN): 1-dim array of length n
-!
-! Output:
-!   <return valeu>(:,:) -- REAL(rp): n*n array containing the outer product of u and v
-!-
-FUNCTION outer_product(u,v) RESULT(B)
-
-  REAL(rp), INTENT(IN) :: u(:)
-  REAL(rp), INTENT(IN) :: v(:)
-  REAL(rp) B(SIZE(u),SIZE(v))
-  INTEGER i
-
-  DO i=1,SIZE(v)
-    B(:,i) = u(:)*v(i)
-  ENDDO
-END FUNCTION outer_product
 
 !+
 ! Function house(x)

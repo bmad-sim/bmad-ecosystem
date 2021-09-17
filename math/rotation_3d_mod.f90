@@ -433,25 +433,50 @@ end function quat_inverse
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Function quat_mul_real (q1, q2) result (q_out)
+! Function quat_mul_real (q1, q2, q3, q4, q5, q6, q7, q8, q9) result (q_out)
 !
-! Routine to multiply two quaternions q_out = q1 * q2.
-! Overloaded by quad_mul.
+! Routine to multiply quaternions q_out = q1 * q2 * q3 * q4 * ...
+! Overloaded by quat_mul.
 ! Note: q_out = q1 * q2 represents a rotation of q2 first followed by q1.
 !
 ! Input:
-!   q1(0:3), q2(0:3)  -- real(rp): Quaternions.
+!   q1(0:3), q2(0:3)        -- real(rp): Quaternions.
+!   q3(0:3), ..., q9(0:3)   -- real(rp), optional: More quaternions.
 !
 ! Output:
-!   q_out(0:3)        -- real(rp): Resultant q1 * q2
+!   q_out(0:3)              -- real(rp): Resultant q1 * q2
 !-
 
-function quat_mul_real (q1, q2) result (q_out)
+function quat_mul_real (q1, q2, q3, q4, q5, q6, q7, q8, q9) result (q_out)
+
+real(rp) q1(0:3), q2(0:3), q_out(0:3)
+real(rp), optional :: q3(0:3), q4(0:3), q5(0:3), q6(0:3), q7(0:3), q8(0:3), q9(0:3)
+
+!
+
+q_out = q_mul(q1, q2)
+if (.not. present(q3)) return
+q_out = q_mul(q_out, q3)
+if (.not. present(q4)) return
+q_out = q_mul(q_out, q4)
+if (.not. present(q5)) return
+q_out = q_mul(q_out, q5)
+if (.not. present(q6)) return
+q_out = q_mul(q_out, q6)
+if (.not. present(q7)) return
+q_out = q_mul(q_out, q7)
+if (.not. present(q8)) return
+q_out = q_mul(q_out, q8)
+if (.not. present(q9)) return
+q_out = q_mul(q_out, q9)
+
+!----------------------------------------------------
+contains
+
+function q_mul(q1, q2) result (q_out)
 
 real(rp) q1(0:3), q2(0:3), q_out(0:3)
 real(rp) a, b, c, d, e, f, g, h
-
-!
 
 A = (q1(0) + q1(1)) * (q2(0) + q2(1))
 B = (q1(3) - q1(2)) * (q2(2) - q2(3))
@@ -466,6 +491,8 @@ q_out(0) = B + (-E - F + G + H)*0.5_rp
 q_out(1) = A -  (E + F + G + H)*0.5_rp 
 q_out(2) = C +  (E - F + G - H)*0.5_rp 
 q_out(3) = D +  (E - F - G + H)*0.5_rp
+
+end function q_mul
 
 end function quat_mul_real
 
@@ -473,25 +500,50 @@ end function quat_mul_real
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Function quat_mul_complex (q1, q2) result (q_out)
+! Function quat_mul_complex (q1, q2, q3, q4, q5, q6, q7, q8, q9) result (q_out)
 !
-! Routine to multiply two quaternions q_out = q1 * q2.
-! Overloaded by quad_mul.
+! Routine to multiply quaternions q_out = q1 * q2 * q3 * q4 * ...
+! Overloaded by quat_mul.
 ! Note: q_out = q1 * q2 represents a rotation of q2 first followed by q1.
 !
 ! Input:
-!   q1(0:3), q2(0:3)  -- real(rp): Quaternions.
+!   q1(0:3), q2(0:3)        -- complex(rp): Quaternions.
+!   q3(0:3), ..., q9(0:3)   -- complex(rp), optional: More quaternions.
 !
 ! Output:
-!   q_out(0:3)        -- real(rp): Resultant q1 * q2
+!   q_out(0:3)              -- complex(rp): Resultant q1 * q2
 !-
 
-function quat_mul_complex (q1, q2) result (q_out)
+function quat_mul_complex (q1, q2, q3, q4, q5, q6, q7, q8, q9) result (q_out)
+
+complex(rp) q1(0:3), q2(0:3), q_out(0:3)
+complex(rp), optional :: q3(0:3), q4(0:3), q5(0:3), q6(0:3), q7(0:3), q8(0:3), q9(0:3)
+
+!
+
+q_out = q_mul(q1, q2)
+if (.not. present(q3)) return
+q_out = q_mul(q_out, q3)
+if (.not. present(q4)) return
+q_out = q_mul(q_out, q4)
+if (.not. present(q5)) return
+q_out = q_mul(q_out, q5)
+if (.not. present(q6)) return
+q_out = q_mul(q_out, q6)
+if (.not. present(q7)) return
+q_out = q_mul(q_out, q7)
+if (.not. present(q8)) return
+q_out = q_mul(q_out, q8)
+if (.not. present(q9)) return
+q_out = q_mul(q_out, q9)
+
+!----------------------------------------------------
+contains
+
+function q_mul(q1, q2) result (q_out)
 
 complex(rp) q1(0:3), q2(0:3), q_out(0:3)
 complex(rp) a, b, c, d, e, f, g, h
-
-!
 
 A = (q1(0) + q1(1)) * (q2(0) + q2(1))
 B = (q1(3) - q1(2)) * (q2(2) - q2(3))
@@ -506,6 +558,8 @@ q_out(0) = B + (-E - F + G + H)*0.5_rp
 q_out(1) = A -  (E + F + G + H)*0.5_rp 
 q_out(2) = C +  (E - F + G - H)*0.5_rp 
 q_out(3) = D +  (E - F - G + H)*0.5_rp
+
+end function q_mul
 
 end function quat_mul_complex
 
