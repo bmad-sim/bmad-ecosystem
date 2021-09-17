@@ -679,7 +679,7 @@ else
   useit_str = '! Not used in optimizing'
 endif
 
-if (n_line+1 >= size(str)) call re_allocate (str, 2*n_line)
+if (n_line+1 >= size(str)) call re_allocate (str, 2*(n_line+1))
 
 ! A potential problem is that the variable may not control all elements named var%ele_name in a universe.
 ! If this is the case, must use ele name order index to qualify the name.

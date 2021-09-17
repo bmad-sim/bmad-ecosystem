@@ -118,13 +118,13 @@ quat1_lnm_to_xyz = w_mat_to_quat(mat3)
 
 spin_map%mat8(1:6,1:6) = q_map%mat
 
-q0_lnm = quat_mul(quat_mul(quat_inverse(quat1_lnm_to_xyz), quat0), quat0_lnm_to_xyz)
+q0_lnm = quat_mul(quat_inverse(quat1_lnm_to_xyz), quat0, quat0_lnm_to_xyz)
 mat3 = quat_to_w_mat(q0_lnm)
 spin_map%mat8(7:8,7:8) = mat3(1:3:2,1:3:2)
 
 do p = 1, 6
   quat1 = q_map%q(:, p)
-  qq = quat_mul(quat_mul(quat_inverse(quat1_lnm_to_xyz), quat1), quat0_lnm_to_xyz)
+  qq = quat_mul(quat_inverse(quat1_lnm_to_xyz), quat1, quat0_lnm_to_xyz)
   ! q0_lnm(1) & q0_lnm(3) should be 0 so could drop corresponding terms here.
   spin_map%mat8(7,p) = 2 * (q0_lnm(1)*qq(2) + q0_lnm(2)*qq(1) - q0_lnm(0)*qq(3) - q0_lnm(3)*qq(0))
   spin_map%mat8(8,p) = 2 * (q0_lnm(0)*qq(1) + q0_lnm(1)*qq(0) + q0_lnm(2)*qq(3) + q0_lnm(3)*qq(2))

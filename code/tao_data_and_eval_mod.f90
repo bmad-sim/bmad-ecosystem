@@ -241,7 +241,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (valid) err = .false.
   enddo
 
-  n_tot = n_tot + size(values)
+  n_tot = n_tot + n_loc
 enddo
 
 if (n_tot == 0) then
@@ -3124,22 +3124,25 @@ case ('time')
 
 case ('tune.')
 
-  select case (data_type)
+  if (data_source == 'beam') goto 9000  ! Set error message and return
 
+  select case (data_type)
   case ('tune.a')
-    if (data_source == 'beam') goto 9000  ! Set error message and return
     datum_value = branch%ele(branch%n_ele_track)%a%phi
     valid_value = .true.
 
   case ('tune.b')
-    if (data_source == 'beam') goto 9000  ! Set error message and return
     datum_value = branch%ele(branch%n_ele_track)%b%phi
+    valid_value = .true.
+
+  case ('tune.z')
+    call calc_z_tune (branch%lat, branch%ix_branch)
+    datum_value = -branch%z%tune
     valid_value = .true.
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
     return
-
   end select
 
 !-----------
