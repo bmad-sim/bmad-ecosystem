@@ -11,11 +11,16 @@
 !   "i1:i2:iskip" specifies a range of locations between i1 and i2 skipping every "iskip" elements.
 !   If ix_min is non-negative, a negative number indicates a location that is determined by counting 
 !     backwards from the end of the array with "-1" indicating the end of the array.
+!   If string is "ALL", "all", or "*" then entire array is set True.
 ! Examples:
 !     string = '3:37 98, 101:115:2'
 !
+! Also see:
+!   location_encode
+!   pointer_to_locations
+!
 ! Input:
-!   string         -- Character*(*): Array of locations.
+!   string         -- Character(*): Array of locations.
 !   ix_min         -- Integer: Array minimum.
 !   names(ix_min:) -- Character(*), optional: Array of location names that can be used
 !                       instead used of numbers. Names cannot contain blanks, or ":" 
@@ -72,7 +77,6 @@ ix_max = ubound(array, 1)
 num = -1
 
 do
-
   if (ix_next == 0) then
     if (delim == ',') then
       if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'MISPLACED COMMA')

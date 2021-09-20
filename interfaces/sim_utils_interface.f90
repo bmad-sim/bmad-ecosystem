@@ -569,6 +569,14 @@ subroutine parse_fortran_format (format_str, multiplyer, power, code, width, dig
   character(*) format_str, code
 end subroutine
 
+subroutine pointer_to_locations(string, array, num, ix_min, ix_max, names, exact_case, print_err)
+  implicit none
+  integer, allocatable :: array(:)
+  integer num, ix_min, ix_max
+  logical, optional :: exact_case, print_err
+  character(*) string, names(:)
+end subroutine
+
 function poly_eval(poly, x) result (y)
   import
   implicit none
