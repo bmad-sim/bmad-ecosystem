@@ -608,7 +608,7 @@ end function quat_rotate_real
 ! Routine to rotate a vector using a quaternion..
 !
 ! Input:
-!   quat(0:3 )  -- complex(rp): Quaternion to rotate with. Does not have to be normalized.
+!   quat(0:3)   -- complex(rp): Quaternion to rotate with. Does not have to be normalized.
 !   vec_in(3)   -- complex(rp): Initial vector.
 !
 ! Output:
