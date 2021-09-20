@@ -236,8 +236,8 @@ if (nearest) then
   kx = min(max(kx, nx0), nx1)   ! Can happen due to roundoff
   ky = min(max(ky, ny0), ny1)   ! Can happen due to roundoff
 else
-  kx = int((xh - grid%r0(1)) / grid%dr(1))
-  ky = int((yh - grid%r0(2)) / grid%dr(2))
+  kx = floor((xh - grid%r0(1)) / grid%dr(1))
+  ky = floor((yh - grid%r0(2)) / grid%dr(2))
   kx = min(max(kx, nx0), nx1-1)   ! Can happen due to roundoff
   ky = min(max(ky, ny0), ny1-1)   ! Can happen due to roundoff
 endif
@@ -303,8 +303,8 @@ pt01 => surf%grid%pt(ix,iy+1)
 pt10 => surf%grid%pt(ix+1,iy)
 pt11 => surf%grid%pt(ix+1,iy+1)
 
-call bcuint([pt00%z0, pt01%z0, pt11%z0, pt10%z0], [pt00%dz_dx, pt01%dz_dx, pt11%dz_dx, pt10%dz_dx], &
-        [pt00%dz_dy, pt01%dz_dy, pt11%dz_dy, pt10%dz_dy], [pt00%d2z_dxdy, pt01%d2z_dxdy, pt11%d2z_dxdy, pt10%d2z_dxdy], &
+call bcuint([pt00%z0, pt10%z0, pt11%z0, pt01%z0], [pt00%dz_dx, pt10%dz_dx, pt11%dz_dx, pt01%dz_dx], &
+        [pt00%dz_dy, pt10%dz_dy, pt11%dz_dy, pt01%dz_dy], [pt00%d2z_dxdy, pt10%d2z_dxdy, pt11%d2z_dxdy, pt01%d2z_dxdy], &
         pt00%x0, pt11%x0, pt00%y0, pt11%y0, xx, yy, z, dz_dx, dz_dy)
 
 err_flag = .false.
