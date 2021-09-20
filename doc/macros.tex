@@ -41,6 +41,7 @@
 \newcommand{\bfl}{\Bf l}
 \newcommand{\bfm}{\Bf m}
 \newcommand{\bfn}{\Bf n}
+\newcommand{\bfp}{\Bf p}
 \newcommand{\bfq}{\Bf q}
 \newcommand{\bfr}{\Bf r}
 \newcommand{\bfs}{\Bf s}
@@ -228,7 +229,17 @@
   }
   {\end{list}}
 
-\newcommand{\BAR}[1]{\overline{#1}}
+%\BAR gives an overline raised up a little bit (otherwise it is too close to what is below).
+\newcommand{\BAR}[1]{\overline{\raisebox{0pt}[\dimexpr\height+0.15ex\relax]{$#1$}}}
+
+% Superscript or subscript minus and plus looks better if smaller and bolder than normal.
+%\newcommand\bpkplus{{\mbox{\fontfamily{pbk}\fontseries{db}\selectfont+}}}  % This is too bold
+
+\newcommand\pbkminus{{\mbox{\fontfamily{pbk}\selectfont-}}}
+\newcommand{\mmin}{{\hspace{-0.1em} \raisebox{-0.5ex}{\scalebox{1.4}[1.4]{\pbkminus}}}}
+
+\newcommand\pbkplus{{\mbox{\fontfamily{pbk}\selectfont+}}}
+\newcommand{\ppls}{{\hspace{-0.1em} \raisebox{-0.4ex}{\scalebox{1.0}[1.0]{\pbkplus}}}}
 
 \newcommand{\DAG}{$^\dagger$}
 \newcommand{\DDAG}{$^\ddagger$}

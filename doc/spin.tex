@@ -63,27 +63,13 @@ which, in the case of nuclei and other composite baryonic particles, differs fro
 definition \Eq{mgq2m2}. See the discussion after \Eq{mgq2m}.
 
 %-----------------------------------------------------------------   
-\section{Quaternion Representation of Spin Rotations}
+\section{Quaternions and Biquaternions}
 \label{s:quat}
 
-\bmad uses a quaternion representation for spin rotations. The following is a brief introduction to
-quaternions. For more information, the reader is referred to the Web. In particular, the
-\vn{Quaternions and spatial rotation} article at \vn{wikipedia.org}. 
-
-A quaternion $\bfq$ is a 4-vector $\bfq = (q_0, \bfq_r) = (q_0, q_x, q_y, q_z)$ where the components
-are reals if they represent a rotation and are Taylor series if they represent a rotation map
-(\sref{s:spin.map}). A quaternion can also be represented in the form:
-\begin{equation}
-  \bfq = q_0 + q_x \, \cali + q_y \, \calj + q_z \, \calk
-  \label{qqqqq}
-\end{equation}
-where $\cali$, $\calj$, and $\calk$ are the {\em fundamental quaternion units} with the properties
-under multiplication
-\begin{equation}
-  \cali^2 = \calj^2 = \calk^2 = \cali \, \calj \, \calk = -1, \quad 
-  \cali \, \calj = \calk, \quad \calj \, \cali = -\calk, \quad \text{etc.}
-\end{equation}
-$\cali$, $\calj$, and $\calk$ do not commute among themselves but do commute with real numbers. 
+\bmad uses a quaternion representation for spin rotations\cite{b:quat} and for the single resonance
+analysis (\sref{s:spin.res}) biquaternions (quaternions with complex coefficients) will be used. The
+following is a brief introduction to quaternions and biquaternions. For more information, the reader is
+referred to the literature\cite{b:biquat}.
 
 WARNING! It is important when looking at software or documentation to keep in mind that there are
 multiple conventions that are used to define quaternions! The ``\vn{Hamilton}'' convention used here
@@ -91,34 +77,103 @@ is widely used in mathematics, physics and other fields. The ``\vn{JPL}'' (Jet P
 Laboratory) and ``\vn{STS}'' (``space shuttle'') conventions are generally confined to use in
 areospace and robotics contexts\cite{b:yazell,b:sommer}.
 
-The $q_0$ component of a quaternion is called the \vn{real} (or sometimes \vn{scalar}) part and the
-other three components are called the \vn{imaginary} (or sometimes \vn{vector}) part. The dot
-product (inner product) of two quaternions is defined to be standard Euclidean dot product in 4D:
+A quaternion $\bfq$ is a 4-component object:
+\begin{equation}
+  \bfq = q_0 + q_x \, \cali + q_y \, \calj + q_z \, \calk
+  \label{qqqqq}
+\end{equation}
+where $q_0$, $q_x$, $q_y$, and $q_z$ are real numbers for quaternions and complex numbers for
+biquaternions. $\cali$, $\calj$, and $\calk$ are the {\em fundamental quaternion units} with the
+properties under multiplication
+\begin{equation}
+  \cali^2 = \calj^2 = \calk^2 = \cali \, \calj \, \calk = -1, \quad 
+  \cali \, \calj = \calk, \quad \calj \, \cali = -\calk, \quad \text{etc.}
+\end{equation}
+$\cali$, $\calj$, and $\calk$ do not commute among themselves but do commute with real or complex
+numbers. It is important to keep in mind the difference between the quaternion unit $\cali$
+and the imaginary number $i$ which is not the same.
+
+Explicitly, the product of two bi/quaternions (that is, two quaternions or biquaternions) is
+\begin{align}
+  \bfb \, \bfa = &(a_0 b_0 - a_x b_x - a_y b_y - a_z b_z) +
+                  (a_0 b_x + a_x b_0 + a_y b_z - a_z b_y) \, \cali + \\
+                 &(a_0 b_y - a_x b_z + a_y b_0 + a_z b_x) \, \calj +
+                  (a_0 b_z + a_x b_y - a_y b_x + a_z b_0) \, \calk \nonumber
+\end{align}
+
+The $q_0$ component of a quaternion $\bfq$ is called the \vn{scalar} part and will be denoted by
+$S(\bfq)$.  the $q_x \cali + q_y \calj + q_z \calk$ part is called the \vn{vector} part and will be
+denoted $\bfV(\bfq)$. That is:
+\begin{equation}
+  \bfq = S(\bfq) + \bfV(\bfq)
+\end{equation}
+A bi/quaternion with $S(\bfq)$ equal to zero is called a ``\vn{pure}'' quaternion.
+the quaternion product in terms of $S$ and $\bfV$ is
+\begin{equation}
+  \bfp \, \bfq = S(\bfp) S(\bfq) + S(\bfp) \bfV(\bfq) + S(\bfq) \bfV(\bfp) + \bfV(\bfp) \bfV(\bfq)
+\end{equation}
+and, if $\bfV(\bfp)$ and $\bfV(\bfq)$ are considered as vectors, the last term in the above equation
+can be written as
+\begin{equation}
+  \bfV(\bfp) \bfV(\bfq) = \bfV(\bfp) \dot \bfV(\bfq) \bfV(\bfp) \cross \bfV(\bfq)
+\end{equation}
+
+In the literature, the scalar part is sometimes called the \vn{real} part and the vector part is
+sometimes called the \vn{imaginary} part. In this manual, this nomenclature is avoided to avoid
+confusion with the real and imaginary parts of complex numbers. Here $\re(\bfq)$ and $\im(\bfq)$ are
+defined to be the real and imaginary parts of the biquaternion.
+\begin{align}
+  \re(\bfq) &\equiv \re(q_0) + \re(q_x) \, \cali + \re(q_y) \, \calj + \re(q_z) \, \calk \CRNO
+  \im(\bfq) &\equiv -i \left[ \im(q_0) + \im(q_x) \, \cali + \im(q_y) \, \calj + \im(q_z) \, \calk \right]
+\end{align}
+
+The dot product (inner product) of two bi/quaternions is defined to be the
+standard Euclidean dot product in 4D:
 \begin{equation}
   \bfa \dotproduct \bfb = a_0 \, b_0 + a_x \, b_x + a_y \, b_y + a_z \, b_z
 \end{equation}
-
-The quaternion conjugate $\bfq^*$ is defined
-by\footnote
-  {
-Notice that even if the components of $\bfq$ are complex, there is no complex conjugation when computing
-the quaternion conjugate.
-  }
-\begin{equation}
-  \bfq^* = q_0 - q_x \, \cali - q_y \, \calj - q_z \calk
-\end{equation}
-with the property
-\begin{equation}
-  (\bfq_1 \, \bfq_2)^* = \bfq_2^* \, \bfq_1^*
-\end{equation}
-The quaternion inverse $\bfq^{-1}$ is related to the quaternion conjugate by
-\begin{equation}
-  \bfq^{-1} = \frac{\bfq^*}{||\bfq||^2}
-\end{equation}
-where the norm $||\bfq||$ is given by
+and the bi/quaternion norm $||\bfq||$ is given by
 \begin{equation}
   ||\bfq|| \equiv \sqrt{\bfq \dotproduct \bfq} = \sqrt{q_0^2 + q_x^2 + q_y^2 + q_z^2}
   \label{1qqq}
+\end{equation}
+Notice that for quaternions the norm is positive or zero and real. On the other hand, the norm of a
+biquaternion will, in general, be complex. For pure bi/quaternions, the \vn{complex norm}
+is defined by 
+\begin{equation}
+  |\bfq| \equiv \sqrt{|q_x|^2 + |q_y|^2 + |q_z|^2}
+\end{equation}
+with the convention that quaternion norm uses double bars and complex norm uses a single bar. For
+pure quaternions the two are equal.
+
+The ``\vn{quaternion conjugate}'', $\BAR\bfq$, valid for both quaternions and biquaternions, is defined
+by\footnote
+  {
+Different symbols are used in the literature. Here the use of ``*'' to denote the quaternion
+conjugate is avoided to avoid confusion with complex conjugate.  Notice that even with
+biquaternions, there is no complex conjugation when computing $\BAR\bfq$.
+  }
+\begin{equation}
+  \BAR\bfq = q_0 - q_x \, \cali - q_y \, \calj - q_z \calk
+\end{equation}
+The quaternion conjugate has the properties
+\begin{equation}
+  \BAR{\bfq_1 \, \bfq_2} = \BAR\bfq_2 \, \BAR\bfq_1, \qquad 
+  \BAR{S(\bfq)} = S(\bfq), \qquad 
+  \BAR{\bfV(\bfq)} = -\bfV(\bfq)
+\end{equation}
+Along with the properties
+\begin{equation}
+  \bfp \cdot \bfq = \frac{1}{2} \, (\BAR\bfp \bfq + \BAR\bfq \bfp)
+\end{equation}
+The bi/quaternion inverse $\bfq^{-1}$ is related to the quaternion conjugate by
+\begin{equation}
+  \bfq^{-1} = \frac{\BAR\bfq}{||\bfq||^2}
+\end{equation}
+
+The biquaternion complex conjugate $\bfq^*$ is just the complex conjugate of the components
+\begin{equation}
+  \bfq^* = q_0^* + q_x^* \, \cali + q_y^* \, \calj + q_z^* \, \calk 
 \end{equation}
 
 When a quaternion represents a rotation, $\cali$, $\calj$, and $\calk$ can be thought of as representing unit
@@ -131,10 +186,10 @@ $\theta$ around the unit axis $\bfu = (u_x, u_y, u_z)$ is represented by the qua
 A rotation quaternion $\bfq$ is a \vn{unit} quaternion since its norm is unity $||\bfq|| = 1$.
 
 Given an ordinary spatial vector $(\bfr_x, \bfr_y, \bfr_z)$, this vector is represented by a
-quaternion $\bfr = (0, \bfr_x, \bfr_y, \bfr_z)$. The rotation of $\bfr$ through a rotation
+pure quaternion $\bfr = (0, \bfr_x, \bfr_y, \bfr_z)$. The rotation of $\bfr$ through a rotation
 represented by quaternion $\bfq$ to position $\bfr'$ is given by
 \begin{equation}
-  \bfr' = \bfq \, \bfr \, \bfq^*
+  \bfr' = \bfq \, \bfr \, \BAR\bfq
   \label{rqrq}
 \end{equation}
 The rotation matrix $\bfR$ corresponding to \Eq{rqrq} so that $\bfr' = \bfR \, \bfr$ is
@@ -147,15 +202,52 @@ The rotation matrix $\bfR$ corresponding to \Eq{rqrq} so that $\bfr' = \bfR \, \
   \label{rqqq}
 \end{equation}
 
-In quaternion notation, two rotations $\bfa$ followed by $\bfb$ are combined into one rotation $\bfc$
-using the formula
+Define functions $I_-(\bfn)$ and $I_+(\bfn)$ which map pure quaternions $\bfn = (0, n_x, n_y, n_z)$ to biquaternions
+$\bfn^\mmin$ and $\bfn^\ppls$ via
 \begin{align}
-  \bfc = \bfb \, \bfa = &(a_0 b_0 - a_x b_x - a_y b_y - a_z b_z) +
-                          (a_0 b_x + a_x b_0 + a_y b_z - a_z b_y) \, \cali + \\
-                         &(a_0 b_y - a_x b_z + a_y b_0 + a_z b_x) \, \calj +
-                          (a_0 b_z + a_x b_y - a_y b_x + a_z b_0) \, \calk \nonumber
+  \bfn^\ppls &\equiv I_+(\bfn) \equiv \frac{1}{2} + \frac{i}{2}  \big( n_x \, \cali + n_y \, \calj + n_z \, \calk \big) \CRNO
+  \bfn^\mmin &\equiv I_-(\bfn) \equiv \frac{1}{2} - \frac{i}{2} \big( n_x \, \cali + n_y \, \calj + n_z \, \calk \big)
+  \label{n1in}
 \end{align}
-for more information see \cite{b:quat}.
+It will be assumed throughout that $\bfn$ has unit magnitude $||\bfn|| = 1$ and has real components (is a quaternion).
+
+For later use, the following identities are useful
+\begin{alignat}{2}
+   &\bfn^\ppls \bfn^\ppls = \bfn^\ppls, \qquad
+  &&\bfn^\mmin \bfn^\mmin = \bfn^\mmin, \\
+   &\bfn = i (\bfn^\mmin - \bfn^\ppls), \qquad
+  &&\bfn^\ppls \bfn^\mmin = \bfn^\mmin \bfn^\ppls = \Bf 0 \CRNO
+   &\BAR{\bfn^\ppls} = \bfn^\mmin, \qquad
+  &&\BAR{\bfn^\mmin} = \bfn^\ppls
+  \nonumber
+\end{alignat}
+The relations on the first row mean that $I_+(\bfn)$ and $I_-(\bfn)$ produce ``idempotent''
+biquaternions\cite{b:biquat}.
+
+For any biquaternions $\bfq$, $\bfn^\ppls = I_+(\bfn)$, and $\bfn^\mmin = I_-(\bfn)$, the biquaternion $\bfG =
+\bfn^\ppls \bfq \bfn^\mmin$ is pure. This follows from
+\begin{equation}
+  2 \, S(\bfG) = \bfG + \BAR\bfG = 
+  \bfn^\ppls (S(\bfq) + \BAR{S(\bfq)}) \bfn^\mmin + \bfn^\ppls (\bfV(\bfq) + \BAR{\bfV(\bfq)}) \bfn^\mmin
+  = 2 \, S(\bfq) \, \bfn^\ppls \bfn^\mmin = 0
+\end{equation}
+Furthermore, the real and imaginary parts of $\bfG$ have the following properties
+\begin{align}
+  & \re(\bfG) \cdot \im(\bfG) = 0 \CRNO
+  & \re(\bfG) \cdot \bfn = \im(\bfG) \cdot \bfn = 0 
+  \label{GG0} \\
+  & |\re(\bfG)| = |\im(\bfG)| \nonumber
+\end{align}
+These relations are fairly easy to derive. For example, the last one is proved via
+\begin{equation}
+  4 \, | \re(\bfG) |^2 = (\bfG + \bfG^*) \cdot (\bfG + \bfG^*) =
+  \bfn^\ppls \bfq^2 \bfn^\ppls + \bfn^\mmin \bfq^2 \bfn^\mmin =
+  -(\bfG - \bfG^*) \cdot (\bfG - \bfG^*) =
+  4 \, | \im(\bfG) |^2
+\end{equation}
+and since the magnitude of both $\re(\bfG)$ and $\im(\bfG)$ must be positive (since $\re$ and $\im$
+produce real numbers), it follows that $|\re(\bfG)| = |\im(\bfG)|$.
+
 
 %-----------------------------------------------------------------   
 \section{Invariant Spin Field}
@@ -163,7 +255,7 @@ for more information see \cite{b:quat}.
 
 In a storage ring, the \vn{invariant spin field} $\bfn(\bfr, s) = (n_x, n_y, n_z)$
 \cite{b:spin.hoff,b:duan15}, which is a function of phase space position $\bfr = (x, p_x, y, p_y, z,
-p_z)$ and longitudinal position $s$, is the {\em continuous function} with unit amplitude that
+p_z)$ and longitudinal position $s$, is the {\em continuous} function with unit amplitude that
 satisfies
 \begin{equation}
   \bfn(\Cal M_r \bfr, s) = \Cal M_s(\bfr) \, \bfn(\bfr, s)
@@ -290,7 +382,7 @@ evaluated in \Eq{qqqr} by taking the dot product with the vector $\bfr$.
 
 The closed orbit invariant spin $\bfn_0$ which has unit amplitude satisfies the equation
 \begin{equation}
-  \bfq_0 \, \bfn_0 \, \bfq_0^* = \bfn_0
+  \bfq_0 \, \bfn_0 \, \BAR\bfq_0 = \bfn_0
   \label{qnqn}
 \end{equation}
 The solution to this equation, normalized to one, is
@@ -317,14 +409,14 @@ To calculate $\partial\bfn/\partial\delta$, the first step is to compute the eig
 eigenvalues $\lambda_k$, $k = 1, \ldots, 6$ of the 1-turn orbital matrix. The
 corresponding spin eigenvectors $\bfn_k$ are computed from the equation
 \begin{equation}
-  \bfq_s(\bfv_k) \,\, (\bfn_0 + \bfn_k) \,\, \bfq_s^*(\bfv_k) = \bfn_0 + \lambda_k \, \bfn_k
+  \bfq_s(\bfv_k) \,\, (\bfn_0 + \bfn_k) \,\, \BAR\bfq_s(\bfv_k) = \bfn_0 + \lambda_k \, \bfn_k
   \label{qnnq}
 \end{equation}
 Using \Eqs{qqqr} and \eq{qnqn}, and keeping only linear terms gives
 \begin{equation}
-  \lambda_k \, \bfn_k - \bfq_0 \, \bfn_k \, \bfq_0^* = 
-  (\arrowbfq \dotproduct \bfv_k) \, \bfn_0 \, \bfq_0^* + 
-  \bfq_0 \, \bfn_0 \, (\arrowbfq^* \dotproduct \bfv_k)
+  \lambda_k \, \bfn_k - \bfq_0 \, \bfn_k \, \BAR\bfq_0 = 
+  (\arrowbfq \dotproduct \bfv_k) \, \bfn_0 \, \BAR\bfq_0 + 
+  \bfq_0 \, \bfn_0 \, (\BAR\arrowbfq \dotproduct \bfv_k)
   \label{lnqnq}
 \end{equation}
 This equation is linear in the unknown $\bfn_k$ and so may be easily solved using standard linear
@@ -372,7 +464,7 @@ mode of interest. This information can help guide lattice design.
 
 %-----------------------------------------------------------------   
 \section{Single Resonance Analysis}
-\label{s:spin.lin.res}
+\label{s:spin.res}
 
 Resonances occur when the spin tune $\nu_s$ is an integer (``imperfection'' resonances) and when the spin
 tune $\nu_s$ in combination with the three orbital tunes $\nu_x$, $\nu_y$, and $\nu_z$ is an integer
@@ -416,8 +508,8 @@ system rotating about the $z$-axis with a rotational frequency $Q$. This is call
 coordinate system or the ``\vn{rotating}'' coordinate system. In this frame, the spin vector
 $s_R$ is
 \begin{equation}
-  \bfs_R = \bfq_z(-\Phi/2) \,\, \bfs \,\, \bfq_z^*(-\Phi/2), \quad \text{where} \quad
-  \bfq_z(\phi) \equiv (\cos (\phi/2), 0, 0, \sin (\phi/2))
+  \bfs_R = \bfq_z(-\Phi/2) \,\, \bfs \,\, \BAR\bfq_z(-\Phi/2), \quad \text{where} \quad
+  \bfq_z(\phi) \equiv \cos (\phi/2) +  \sin (\phi/2)) \, \calk
   \label{rqsq}
 \end{equation}
 Using \Eq{rqsq} in \Eq{stos} gives
@@ -486,7 +578,7 @@ where the right hand side must be computed on resonance and within the linear ap
 $\bfs_R(N, \bfn_0)$ is the spin after $N$ turns given an initial spin of $\bfn_0$.
 $\bfs_R(N, \bfn_0)$  can be computed via
 \begin{equation}
-  \bfs_R(N, \bfn_0) = \bfQ_N \, \bfn_0 \, \bfQ_N^*
+  \bfs_R(N, \bfn_0) = \bfQ_N \, \bfn_0 \, \BAR\bfQ_N
   \label{sQnQ}
 \end{equation}
 The rotation quaternion $\bfQ_N$ over $N$ turns is the product of one-turn rotation quaternions $\bfq_s(\bfr)$
@@ -510,7 +602,7 @@ Using this with \Eq{sQnQ} in \Eq{eN12n} and keeping only linear terms, gives
 \begin{equation}
   \epsilon_r = \left|
     \bfq_0^{-1} \, \bfZ \, \bfn_0 + 
-    \bfn_0 \, \bfZ^* \, \bfq_0
+    \bfn_0 \, \BAR\bfZ \, \bfq_0
     \right| \label{eqZnn}
 \end{equation}
 where
@@ -520,88 +612,61 @@ where
   \sum_{j = 0}^{N-1} \, \bfq_0^{-j} \left( \arrowbfq \cdot \bfr_j \right) \bfq_0^{j}
   \label{Z}
 \end{equation}
-
 To evaluate $\bfZ$, the quantity $\bfq_0^j$ is decomposed into two parts
 \begin{equation}
-  \bfq_0^j = e^{i \pi j \nu_0} \, \bfn_0^- + 
-  e^{-i \pi j \nu_0} \, \bfn_0^+
+  \bfq_0^j = e^{i \pi j \nu_0} \, \bfn_0^\mmin + 
+  e^{-i \pi j \nu_0} \, \bfn_0^\ppls
   \label{q12en}
 \end{equation}
-where $\bfn_0^-$ and $\bfn_0^+$ are defined as
-\begin{equation}
-  \bfn_0^\pm \equiv \frac{1}{2} \, \big( 1 \pm i \,
-  (n_{0,x} \, \cali + n_{0,y} \, \calj + n_{0,z} \, \calk)
-  \big)
-  \label{n1in}
-\end{equation}
-For later use, the following identities are useful
-\begin{alignat}{2}
-   &\bfn_0^+ \bfn_0^+ = \bfn_0^+, \qquad
-  &&\bfn_0 = i (\bfn_0^- - \bfn_0^+), \\
-   &\bfn_0^- \bfn_0^- = \bfn_0^-, \qquad
-  &&\bfn_0^+ \bfn_0^- = \bfn_0^- \bfn_0^+ = \Bf 0
-  \nonumber
-\end{alignat}
+where $\bfn_0^\mmin \equiv I_-(\bfn_0)$ and $\bfn_0^\ppls \equiv I_+(\bfn_0)$ are given by \Eq{n1in}.
 
-For a particular mode of oscillation, $\bfr_j$ is given by \Eq{x2jv}. 
-Without loss of generality, $\phi_0$ in \Eq{x2jv} will be set to zero.
-Using this along with the above equations gives
+For a particular mode of oscillation, $\bfr_j$ is given by \Eq{x2jv}.  Without loss of generality,
+$\phi_0$ in \Eq{x2jv} will be set to zero.  Using this along with the above equations gives
 \begin{align}
   \bfZ = \lim_{N \rightarrow \infty} 
     \frac{\sqrt{J}}{2 \pi N} 
     \sum_{j = 0}^{N-1} \Big[
-    &\bfn_0^+ (\arrowbfq \cdot \bfv_k)     \bfn_0^- \, e^{ i2\pi j (Q_k + \nu_0)} + 
-     \bfn_0^- (\arrowbfq \cdot \BAR\bfv_k) \bfn_0^+ \, e^{-i2\pi j (Q_k + \nu_0)} + {} 
+    &\bfn_0^\ppls (\arrowbfq \cdot \bfv_k)   \bfn_0^\mmin \, e^{ i2\pi j (Q_k + \nu_0)} + 
+     \bfn_0^\mmin (\arrowbfq \cdot \bfv_k^*) \bfn_0^\ppls \, e^{-i2\pi j (Q_k + \nu_0)} + {} 
     \nonumber \\[-2ex]
-    &\bfn_0^- (\arrowbfq \cdot \bfv_k)     \bfn_0^+ \, e^{ i2\pi j (Q_k - \nu_0)} +
-     \bfn_0^+ (\arrowbfq \cdot \BAR\bfv_k) \bfn_0^- \, e^{-i2\pi j (Q_k - \nu_0)} + {}
+    &\bfn_0^\mmin (\arrowbfq \cdot \bfv_k)   \bfn_0^\ppls \, e^{ i2\pi j (Q_k - \nu_0)} +
+     \bfn_0^\ppls (\arrowbfq \cdot \bfv_k^*) \bfn_0^\mmin \, e^{-i2\pi j (Q_k - \nu_0)} + {}
     \label{zj2pn} \\
-    &\bfn_0^- (\arrowbfq \cdot \bfv_k)     \bfn_0^- \, e^{i2\pi j Q_k} + 
-     \bfn_0^+ (\arrowbfq \cdot \BAR\bfv_k) \bfn_0^+ \, e^{-i2\pi j Q_k} + \CRNO
-    &\bfn_0^+ (\arrowbfq \cdot \bfv_k)     \bfn_0^+ \, e^{i2\pi j Q_k} + 
-     \bfn_0^- (\arrowbfq \cdot \BAR\bfv_k) \bfn_0^- \, e^{-i2\pi j Q_k}
+    &\bfn_0^\mmin (\arrowbfq \cdot \bfv_k)   \bfn_0^\mmin \, e^{i2\pi j Q_k} + 
+     \bfn_0^\ppls (\arrowbfq \cdot \bfv_k^*) \bfn_0^\ppls \, e^{-i2\pi j Q_k} + \CRNO
+    &\bfn_0^\ppls (\arrowbfq \cdot \bfv_k)   \bfn_0^\ppls \, e^{i2\pi j Q_k} + 
+     \bfn_0^\mmin (\arrowbfq \cdot \bfv_k^*) \bfn_0^\mmin \, e^{-i2\pi j Q_k}
    \Big] \nonumber
-%    &\hspace{-1in} (\bfn_0^- (\arrowbfq \cdot \bfv_k) + \bfn_0^+ (\arrowbfq \cdot \bfv_k) \bfn_0^-) \, 
-%      e^{i2\pi j Q_k} + 
-%     (\bfn_0^- (\arrowbfq \cdot \BAR\bfv_k) + \bfn_0^+ (\arrowbfq \cdot \BAR\bfv_k) \bfn_0^-) \, 
-%      e^{i2\pi j Q_k} \CRNO
 \end{align}
-where the bar as in $\BAR\bfv_k$ means complex (not quaternion) conjugate.
-the first two terms on the right hand side of \Eq{zj2pn} will be nonzero only
-at the sum resonance with $Q_k + \nu_0 = p$ for $p$ an integer. 
-The third and fourth terms will be nonzero only at the difference resonance with $Q_k - \nu_0 = p$.
-And the last four terms will be nonzero only at
-an integer resonance where $Q_k = p$ which can be ignored.
+the first two terms on the right hand side of \Eq{zj2pn} will be nonzero only at the sum resonance
+with $Q_k + \nu_0 = p$ for $p$ an integer.  The third and fourth terms will be nonzero only at the
+difference resonance with $Q_k - \nu_0 = p$.  And the last four terms will be nonzero only at an
+integer resonance where $Q_k = p$ which can be ignored.
 
 The normalized resonance strength $\xi_r$ is defined by
 \begin{equation}
   \epsilon_r \equiv \sqrt{J} \, \xi_r
   \label{ejx}
 \end{equation}
-To compute $\xi_r$, the following theorem is needed. 
-For any complex quaternion $\bfq$, the quantity $\bfn^+ \bfq \bfn^-$ has
-a zero scalar part and therefore can be considered to be a vector. Considering this quantity as a vector, the
-magnitude of the real and imaginary parts are equal 
-\begin{equation}
-  \Big| \re \big( \bfn_+ \, \bfq \, \bfn_- \big) \Big| = 
-  \Big| \im \big( \bfn_+ \, \bfq \, \bfn_- \big) \Big|
-\end{equation}
-This theorem can be be proved by brute force.
 Combining the above equations, the strength of a sum resonance is
 \begin{equation}
-  \xi_r = \frac{\sqrt{2}}{2\pi} \Big|
-  \bfn_0^+ ((\arrowbfq -\arrowbfq^*) \cdot \bfv_k) \bfn_0^- \Big| \label{x12pq1}
+  \xi_r = \frac{\sqrt{2}}{\pi} \big| \bfG \cdot \bfv_k \big| \label{x12pq1}
 \end{equation}
 and for a difference resonance
 \begin{equation}
-  \xi_r = \frac{\sqrt{2}}{2\pi} \Big|
-  \bfn_0^- ((\arrowbfq -\arrowbfq^*) \cdot \bfv_k) \bfn_0^+ \Big| \label{x12pq2}
+  \xi_r = \frac{\sqrt{2}}{\pi} \big|
+  \bfG \cdot \bfv_k^* \big| \label{x12pq2}
 \end{equation}
-In both equations, the standard complex vector absolute value is used (which is not the same as the
-quaternion norm \Eq{1qqq}).
+where $\bfG$ is given by
+\begin{equation}
+  \bfG = \bfn_0^\ppls \arrowbfq \bfn_0^\mmin
+\end{equation}
 
-The resonance strength can also be calculated within the \vn{SLIM} formalism (\sref{s:slim})
-via \Eq{x1pg}.
+The resonance strength can also be calculated within the \vn{SLIM} formalism (\sref{s:slim}) via
+\Eq{x1pg}. From \Eqs{GG0} it can be seen that $\bfG$ is the quaternion equivalent of the SLIM
+$\bfG_{2\cross6}$ matrix. The extra factor of $\sqrt{2}$ in \Eqs{x12pq1} and \eq{x12pq2} compared 
+to \Eq{x1pg} comes from using $overrightarrow\bfG$ which is a complex number instead of using
+the equivalent equation involving $\bfG_{2\cross6}$.
 
 %-----------------------------------------------------------------   
 \section{SLIM Formalism}
