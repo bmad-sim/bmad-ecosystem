@@ -43,8 +43,10 @@ module pointer_lattice
   !  PRIVATE POWER_CAVITY,RADIA
   ! stuff from my fortran
   type(internal_state), target:: etat
-  integer,private,target:: START ,FIN,ORDER,np,start_t
-  real(dp),target:: xfix(6) ,DELT0
+  integer,private,target::  start_t
+integer ,target:: gino_START = 1,gino_np=0,gino_FIN=1,gino_ORDER=1
+  real(dp),target:: gino_xfix(1:6)=0.0_dp
+  real(dp),target::  gino_DELTA=0.0_dp
   integer :: logs_exp=30, num_iter = 20
   !logical :: absolute = .false.
  !private ind1,ind2,ipos,ireal,a_f,a_f0,yfit
@@ -117,21 +119,16 @@ endif
      etat=DEFAULT !+nocavity0-time0
      my_estate => etat
     endif 
-    my_start => START
-    my_END => FIN
-    my_fix=>xfix
-    my_DELTA=> DELT0
-    MY_ORDER=> ORDER
-    MY_NP=> NP
+    my_start => gino_START
+    my_END => gino_FIN
+    my_fix=>gino_xfix
+    my_DELTA=> gino_DELTA
+    MY_ORDER=> gino_ORDER
+    MY_NP=> gino_NP
     MY_ORDER=1
     my_start_t=>start_t
     start_t=1
-    DELT0=0.D0
-    START=1
-    FIN=1
-    ORDER=1
-    NP=0
-    xfix=0.d0
+
     my_scale_planar=100.d0
     my_fix(1:6)=.000d0
 
