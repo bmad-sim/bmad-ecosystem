@@ -1057,6 +1057,12 @@ type tao_ping_scale_struct
   real(rp) :: b_mode_ref = 1
 end type
 
+! Structure for constructing an array of universe pointers
+
+type tao_universe_pointer_struct
+  type (tao_universe_struct), pointer :: u
+end type
+
 !-----------------------------------------------------------------------
 ! A universe is a snapshot of a machine
 

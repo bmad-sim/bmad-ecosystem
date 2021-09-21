@@ -275,7 +275,7 @@ integer eval_pt, n_count
 integer, allocatable :: ix_c(:), ix_remove(:)
 
 complex(rp) eval(6), evec(6,6), n_eigen(6,3), qv(0:3), qv2(0:3), qn0(0:3), q0(0:3), ss1(0:3), ss2(0:3)
-complex(rp) np(0:3), nm(0:3), t1(0:3), t2(0:3), t3(0:3), t4(0:3), qq(0:3), qq2(0:3), t5(0:3), t6(0:3), zz(0:3)
+complex(rp) np(0:3), nm(0:3), t1(0:3), t2(0:3)
 real(rp) nn0(3)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
@@ -4008,32 +4008,14 @@ case ('spin')
         nm(0) = 0.5_rp
         nm(1:3) = -i_imag * nn0 / 2
 
-
-        qq = qv - quat_conj(qv)
-        qq2 = qv2 - quat_conj(qv2)
-
-
-        t3 = quat_mul(quat_conj(q0), np, qq, nm)
-        t3 = (t3 + conjg(t3)) / twopi
-
-        t4 = quat_mul(quat_conj(q0), nm, qq, np)
-        t4 = (t4 + conjg(t4)) / twopi
-
-        t5 = sqrt(2.0) * quat_mul(np, qq, nm) / twopi
-        t6 = sqrt(2.0) * quat_mul(nm, qq, np) / twopi
-
-
-
-        q0(1:3) = i_imag * q0(1:3)
-        ss1 = (quat_mul(qv, qn0, quat_conj(q0)) + quat_mul(q0, qn0, quat_conj(qv))) / twopi
-        s1 = norm2(abs(ss1))
-        ss2 = (quat_mul(qv2, qn0, quat_conj(q0)) + quat_mul(q0, qn0, quat_conj(qv2))) / twopi
-        s2 = norm2(abs(ss2))
+        t1 = sqrt(2.0) * quat_mul(np, qv, nm) / pi
+        t2 = sqrt(2.0) * quat_mul(np, qv2, nm) / pi
 
         z1 = abs(sum(evec(j,:)   * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag))) / twopi
         z2 = abs(sum(evec(j+1,:) * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag))) / twopi
+
         nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 8(4x, 2es13.5))') abc_name(i), q, dq, &
-                                                                 norm2(abs(t5)), norm2(abs(t6)), z1, z2
+                                           norm2(abs(t1)), norm2(abs(t2)), z1, z2
                           
 
         ! nl=nl+1; write (lines(nl), '(4(4x, 2es12.4))') t2 / twopi

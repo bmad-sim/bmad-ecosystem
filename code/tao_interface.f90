@@ -897,6 +897,16 @@ subroutine tao_turn_on_special_calcs_if_needed_for_plotting ()
   implicit none
 end subroutine
 
+subroutine tao_universe_locator (name_in, name_out, unis, err, explicit_uni, dflt_uni)
+  import
+  implicit none
+  type (tao_universe_pointer_struct), allocatable :: unis(:)
+  character(*) name_in, name_out
+  integer, optional :: dflt_uni
+  logical err
+  logical, optional :: explicit_uni
+end subroutine
+
 function tao_universe_number (i_uni, neg2_to_default) result (i_this_uni)
   import
   implicit none
