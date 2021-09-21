@@ -36,6 +36,7 @@ private MISALIGN_FIBRE_EQUAL
   !real(dp) :: unit_time =1.0e-3_dp
   REAL(dp) :: x_orbit_sync(6)= 0.0_dp,dt_orbit_sync=0.0_dp
 
+ logical :: okdok=.false.
 
 
   INTERFACE ASSIGNMENT (=)
@@ -2845,10 +2846,11 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
 subroutine SURVEY_EXIST_PLANAR_IJ_new(L,pi,fi,ent,a)
 implicit none
 type(layout) L
-integer :: pi,i
-integer ,target, optional:: fi
+integer :: pi,i,dfi
+!integer ,target, optional:: fi
+integer, optional::  fi
 type(fibre), pointer :: p
-type(fibre),pointer :: f
+!type(fibre),pointer :: f
 real(dp), optional, intent(in):: a(3),ent(3,3)
  
 if(.not.associated(l%t)) then
@@ -2862,11 +2864,12 @@ p=>p%next
 enddo
 
 if(present(fi)) then
- f=>p
- do i=pi,fi-1
-  f=>f%next
- enddo
- call  survey_integration_layout(p,f,ent=ent,a=a)
+ dfi=fi-pi
+ !f=>p
+ !do i=pi,fi-1
+!  f=>f%next
+! enddo
+ call  survey_integration_layout(p,dfi=dfi,ent=ent,a=a)
 else
  call  survey_integration_layout(p,ent=ent,a=a)
 endif
@@ -2874,14 +2877,16 @@ endif
 end subroutine SURVEY_EXIST_PLANAR_IJ_new
 
 
-subroutine survey_integration_layout(p,f,ent,a)
+subroutine survey_integration_layout(p,f,dfi,ent,a)
 implicit none
 type(fibre), target :: p
 type(fibre),target, optional:: f
+  integer, optional:: dfi
 type(fibre),pointer :: p1,p2
 real(dp), optional, intent(in):: a(3),ent(3,3)
 real(dp)  a0(3),ent0(3,3)
- 
+ integer i
+
 if(present(a)) then
  a0=a
 else
@@ -2912,25 +2917,33 @@ endif
  
 call survey_integration_fibre(p,ent0,a0)
 
- 
+  if(OKDOK) write(6,*) p%pos,p%mag%name
  
 p1=>p%next
+ p2=>p
+
 if(present(f)) then
  p2=>f
-else
- p2=>p
+!else
+! p2=>p
 endif
  
+if(present(dfi)) then
+ do i=1,dfi
+  call survey_integration_fibre(p1,p1%previous%t2%exi,p1%previous%t2%b)
+  if(OKDOK) write(6,*) p1%pos,p1%mag%name
+  p1=>p1%next
+ enddo
+else
 do while(.not.associated(p2,p1).and.associated(p1))
 !if(p1%previous%dir==1) then 
  call survey_integration_fibre(p1,p1%previous%t2%exi,p1%previous%t2%b)
-!else
-! call survey_integration_fibre(p1,p1%previous%t2%ent,p1%previous%t2%a)
-!endif 
-!call survey_integration_fibre(p1,p1%previous%chart%f%b,p1%previous%chart%f%exi)
- 
-p1=>p1%next
+ if(OKDOK) write(6,*) p1%pos,p1%mag%name
+ p1=>p1%next
 enddo
+
+endif
+
  
 end subroutine survey_integration_layout
 

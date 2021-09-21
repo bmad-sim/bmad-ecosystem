@@ -227,7 +227,7 @@ TYPE ELEMENT
    TYPE(FIBRE), POINTER :: PARENT_FIBRE => null()   ! in the database universe
    TYPE(fibre_appearance), POINTER :: doko => null()  ! all appearances 
    type(element), pointer :: siamese => null()    !   magnets somewhat glued together
-   type(element), pointer :: girders => null()    !    mangets on a girder
+   type(element), pointer :: girders => null()    !    magnets on a girder
    TYPE(AFFINE_FRAME), POINTER :: SIAMESE_FRAME => null()
    TYPE(AFFINE_FRAME), POINTER :: girder_FRAME => null()
    !   integer, POINTER ::girder_index => null()

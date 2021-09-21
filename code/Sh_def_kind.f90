@@ -4118,12 +4118,17 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/b+x(5)**2-X(2)**2-X(4)**2)
           X(1)=X(1)+L*X(2)/PZ
           X(3)=X(3)+L*X(4)/PZ
-          X(6)=X(6)+L*(1.0_dp/b+X(5))/PZ-(1-T)*LD/b
+!          X(6)=X(6)+L*(1.0_dp/b+X(5))/PZ-(1-T)*LD/b
+          X(6)=X(6)+(L/B)*(-2.0_dp*X(5)/B-x(5)**2+X(2)**2+X(4)**2)/pz/(1.0_dp+pz) &
+ + L*X(5)/PZ + (L-LD)/B + T*LD/B
        else
           PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           X(1)=X(1)+L*X(2)/PZ
           X(3)=X(3)+L*X(4)/PZ
-          X(6)=X(6)+L*(1.0_dp+X(5))/PZ-(1-T)*LD
+ !         X(6)=X(6)+L*(1.0_dp+X(5))/PZ-(1-T)*LD
+          X(6)=X(6)+L*(-2.0_dp*X(5) -x(5)**2+X(2)**2+X(4)**2)/pz/(1.0_dp+pz) &
+ + L*X(5)/PZ + (L-LD)  + T*LD 
+
        endif
     ELSE
        if(CTIME) then
@@ -4132,12 +4137,20 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
           X(3)=X(3)+L*X(4)/pz
           ! bug found by Schmidt totalpath=false time=true
           !          X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/two/pz**2+T)*(one/b+x(5))*L/pz
-          X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/b+x(5))*L/pz
-          X(6)=X(6)-(1-T)*L/B
+!          X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/b+x(5))*L/pz
+!          X(6)=X(6)-(1-T)*L/B
+X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2)*(1.0_dp/b+x(5))*L/pz + x(5)*L/pz &
++L/pz/(1.0_dp+pz)/B*(-2.0_dp*X(5)/b-x(5)**2) +T*L/B
        else
-          X(1)=X(1)+L*X(2)/(1.0_dp+X(5))
-          X(3)=X(3)+L*X(4)/(1.0_dp+X(5))
-          X(6)=X(6)+(L/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+T*L
+          pz=(1.0_dp+X(5))
+          X(1)=X(1)+L*X(2)/pz
+          X(3)=X(3)+L*X(4)/pz
+ 
+ !         X(6)=X(6)+(L/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+T*L
+ X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2)*(1.0_dp+x(5))*L/pz + x(5)*L/pz &
++L/pz/(1.0_dp+pz)*(-2.0_dp*X(5) -x(5)**2) +T*L
+ 
+
        endif
     ENDIF
 
@@ -4161,7 +4174,9 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
           PZ=SQRT(1.0_dp+2.0_dp*X(5)/b+x(5)**2-X(2)**2-X(4)**2)
           X(1)=X(1)+L*X(2)/PZ
           X(3)=X(3)+L*X(4)/PZ
-          X(6)=X(6)+L*(1.0_dp/b+X(5))/PZ-(1-T)*LD/b
+       !   X(6)=X(6)+L*(1.0_dp/b+X(5))/PZ-(1-T)*LD/b
+          X(6)=X(6)+(L/B)*(-2.0_dp*X(5)/B-x(5)**2+X(2)**2+X(4)**2)/pz/(1.0_dp+pz) &
+ + L*X(5)/PZ + (L-LD)/B + T*LD/B
        else
           call PRTP("********* UNEXPECTED TIME=FALSE **********")
 
@@ -4169,6 +4184,9 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
           X(1)=X(1)+L*X(2)/PZ
           X(3)=X(3)+L*X(4)/PZ
           X(6)=X(6)+L*(1.0_dp+X(5))/PZ-(1-T)*LD
+          X(6)=X(6)+L*(-2.0_dp*X(5) -x(5)**2+X(2)**2+X(4)**2)/pz/(1.0_dp+pz) &
+ + L*X(5)/PZ + (L-LD)  + T*LD 
+
        endif
        CALL KILL(PZ)
     ELSE
@@ -4180,15 +4198,24 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
           X(3)=X(3)+L*X(4)/pz
           ! bug found by Schmidt totalpath=false time=true
           !          X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/two/pz**2+T)*(one/b+x(5))*L/pz
-          X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/b+x(5))*L/pz
-          X(6)=X(6)-(1-T)*L/B
+  !        X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/b+x(5))*L/pz
+   !       X(6)=X(6)-(1-T)*L/B
+X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2)*(1.0_dp/b+x(5))*L/pz + x(5)*L/pz &
++L/pz/(1.0_dp+pz)/B*(-2.0_dp*X(5)/b-x(5)**2) +T*L/B
+
+
           CALL KILL(PZ)
        else
-          X(1)=X(1)+L*X(2)/(1.0_dp+X(5))
-          X(3)=X(3)+L*X(4)/(1.0_dp+X(5))
+          CALL ALLOC(PZ)
+          PZ=(1.0_dp+X(5))
 
-         X(6)=X(6)+(L/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+T*L
- 
+          X(1)=X(1)+L*X(2)/pz
+          X(3)=X(3)+L*X(4)/pz
+
+!         X(6)=X(6)+(L/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+T*L
+ X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2)*(1.0_dp+x(5))*L/pz + x(5)*L/pz &
++L/pz/(1.0_dp+pz)*(-2.0_dp*X(5)-x(5)**2) +T*L
+          CALL KILL(PZ)
        endif
     ENDIF
 

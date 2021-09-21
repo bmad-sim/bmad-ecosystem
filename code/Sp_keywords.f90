@@ -4031,8 +4031,8 @@ endif
 ! else
   p%chart%f%b=b_
   p%chart%f%exi=exi_
-call survey(r)
-
+call survey(r,pi=1,fi=r%n,a=r%start%chart%f%a,ent=r%start%chart%f%ent)
+!call survey(INJECTION_and_RING,pi=1,fi=INJECTION_and_RING%n,ent=p_start_ring%t1%ent )
 read(mf,'(a120)') line
 
 size_dna=0
