@@ -25,7 +25,7 @@
 
 subroutine tao_universe_locator (name_in, name_out, unis, err, explicit_uni, dflt_uni)
 
-use tao_interface, except_dummy => tao_pick_universe
+use tao_interface, except_dummy => tao_universe_locator
 
 implicit none
 

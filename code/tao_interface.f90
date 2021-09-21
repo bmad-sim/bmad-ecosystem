@@ -194,7 +194,7 @@ end function
 subroutine tao_data_show_use (d2_data, lines, nl)
   import
   implicit none
-  type (tao_d2_data_struct) :: d2_data
+  type (tao_d2_data_struct), target :: d2_data
   character(*), optional, allocatable :: lines(:)
   integer, optional :: nl
 end subroutine
@@ -683,7 +683,7 @@ end subroutine
 subroutine tao_plot_struct_transfer (plot_in, plot_out)
   import
   implicit none
-  type (tao_plot_struct) plot_in
+  type (tao_plot_struct), target :: plot_in
   type (tao_plot_struct) plot_out
 end subroutine
 
@@ -698,7 +698,7 @@ function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var
   import
   implicit none
   integer ix_uni
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (tao_ele_shape_struct), target :: ele_shape(:)
   character(*), optional :: dat_var_name
   real(rp), optional :: dat_var_value
@@ -787,7 +787,7 @@ end subroutine
 subroutine tao_set_flags_for_changed_attribute (u, ele_name, ele_ptr, val_ptr)
   import
   implicit none
-  type (tao_universe_struct) u
+  type (tao_universe_struct), target :: u
   type (ele_struct), pointer, optional :: ele_ptr
   real(rp), pointer, optional :: val_ptr
   character(*) ele_name
