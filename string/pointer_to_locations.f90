@@ -39,9 +39,9 @@ use sim_utils, dummy => pointer_to_locations
 implicit none
 
 integer, allocatable :: array(:)
-integer :: ix_min, ix_max
+integer :: num, ix_min, ix_max
 
-integer indx, start_loc, end_loc, ix_word, ix_next, num
+integer indx, start_loc, end_loc, ix_word, ix_next
 integer i, ios, n_num, n_add
 
 character(*) string
