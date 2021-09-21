@@ -534,13 +534,12 @@ slave%field_calc = refer_to_lords$
 if (associated(slave%a_pole)) deallocate(slave%a_pole, slave%b_pole)
 if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_elec)
 
-! Bookkeeping for EM_Field slave is independent of the lords.
+! Bookkeeping for EM_Field slave is mostly independent of the lords.
 
 if (slave%key == em_field$) then
   value = slave%value
   slave%value = 0
   slave%value(l$)                     = value(l$)
-  slave%value(constant_ref_energy$)   = value(constant_ref_energy$)
   slave%value(delta_ref_time$)        = value(delta_ref_time$)
   slave%value(p0c_start$)             = value(p0c_start$)
   slave%value(e_tot_start$)           = value(e_tot_start$)
@@ -569,6 +568,19 @@ if (slave%key == em_field$) then
   enddo
   if (fixed_step .and. slave%tracking_method == runge_kutta$) slave%tracking_method = fixed_step_runge_kutta$
   if (fixed_step .and. slave%tracking_method == time_runge_kutta$) slave%tracking_method = fixed_step_time_runge_kutta$
+
+  slave%value(constant_ref_energy$) = true$
+  do i = 1, slave%n_lord
+    lord => pointer_to_lord(slave, i)
+    if (lord%lord_status /= super_lord$) cycle
+    select case (lord%key)
+    case (lcavity$)
+      slave%value(constant_ref_energy$) = false$
+    case (em_field$)
+      if (is_false(lord%value(constant_ref_energy$))) slave%value(constant_ref_energy$) = false$
+    end select
+  enddo
+
   return
 endif
 
