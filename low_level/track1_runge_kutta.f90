@@ -31,8 +31,8 @@ use runge_kutta_mod, except_dummy => track1_runge_kutta
 implicit none
 
 type (coord_struct) :: start_orb, end_orb
-type (lat_param_struct), target, intent(inout) :: param
-type (ele_struct), target, intent(inout) :: ele
+type (lat_param_struct), target :: param
+type (ele_struct), target :: ele
 type (track_struct), optional :: track
 
 real(rp), optional :: mat6(6,6)

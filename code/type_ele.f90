@@ -100,7 +100,7 @@ character(*), parameter :: r_name = 'type_ele'
 
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
-logical, optional :: type_floor_coords, type_field, type_wall
+logical, optional, intent(in) :: type_floor_coords, type_field, type_wall
 logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, z1, z2
 
 ! init

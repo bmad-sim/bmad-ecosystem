@@ -18,7 +18,7 @@ end function
 function ac_kicker_amp(ele, orbit) result (ac_amp)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (coord_struct) orbit
   real(rp) ac_amp
 end function
@@ -80,7 +80,7 @@ end subroutine
 subroutine apply_all_rampers (lat, err_flag)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   logical err_flag
 end subroutine
 
@@ -89,7 +89,7 @@ subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_sp
   implicit none
   type (coord_struct) orb
   type (fringe_field_info_struct) fringe_info
-  type (ele_struct) hard_ele, track_ele
+  type (ele_struct), target :: track_ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6), rf_time
   logical, optional :: make_matrix, apply_sol_fringe
@@ -108,7 +108,7 @@ end subroutine
 subroutine apply_ramper (slave, ramper, err_flag)
   import
   implicit none
-  type (ele_struct) :: slave
+  type (ele_struct), target :: slave
   type (ele_pointer_struct) ramper(:)
   logical err_flag
 end subroutine
@@ -248,7 +248,7 @@ end subroutine
 subroutine calc_z_tune (lat, ix_branch)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   integer, optional :: ix_branch
 end subroutine
 
@@ -347,7 +347,7 @@ function coords_local_curvilinear_to_element (local_position, ele, w_mat, calcul
   import
   implicit none
   type (floor_position_struct) :: local_position, body_position, p, floor0
-  type (ele_struct), target :: ele
+  type (ele_struct) :: ele
   real(rp), optional :: w_mat(3,3)
   logical, optional :: calculate_angles
 end function
@@ -404,7 +404,7 @@ subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
                        pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (lat_struct), optional, target :: low_E_lat, high_E_lat
   type (coord_struct), allocatable, optional, target :: low_E_orb(:), high_E_orb(:)
   real(rp) delta_e
@@ -435,7 +435,7 @@ end subroutine
 subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag, print_err)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (coord_struct), allocatable, target :: closed_orb(:)
   integer, optional :: direction, ix_branch, i_dim
   logical, optional, intent(out) :: err_flag
@@ -540,7 +540,7 @@ end subroutine
 subroutine create_girder (lat, ix_ele, con, init_ele, err_flag)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (ele_struct) :: init_ele
   type (control_struct) con(:)
   integer, intent(in) :: ix_ele
@@ -550,7 +550,7 @@ end subroutine
 subroutine create_group (lord, con, err)
   import
   implicit none
-  type (ele_struct) lord
+  type (ele_struct), target :: lord
   type (control_struct) con(:)
   logical err
 end subroutine
@@ -559,13 +559,13 @@ subroutine create_lat_ele_nametable (lat, nametable)
   import
   implicit none
   type (lat_struct), target :: lat
-  type (nametable_struct) nametable
+  type (nametable_struct), target :: nametable
 end subroutine
 
 subroutine create_overlay (lord, contl, err)
   import
   implicit none
-  type (ele_struct) lord
+  type (ele_struct), target :: lord
   type (control_struct) contl(:)
   logical err
 end subroutine
@@ -573,7 +573,7 @@ end subroutine
 subroutine create_ramper (lord, contl, err)
   import
   implicit none
-  type (ele_struct) lord
+  type (ele_struct), target :: lord
   type (control_struct) contl(:)
   logical err
 end subroutine
@@ -598,7 +598,7 @@ end subroutine
 subroutine crystal_attribute_bookkeeper (ele)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
 end subroutine
 
 subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out, err_flag)
@@ -675,7 +675,7 @@ end function
 recursive subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
   import
   implicit none
-  type (ele_struct) ele0, ele
+  type (ele_struct), target :: ele0, ele
   type (lat_param_struct) param
   real(rp) e_tot_start, p0c_start, ref_time_start
   logical err_flag
@@ -753,7 +753,7 @@ end function
 subroutine ele_order_calc (lat, order)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (lat_ele_order_struct) order
 end subroutine
 
@@ -791,7 +791,7 @@ end function
 subroutine fibre_to_ele (ptc_fibre, branch, ix_ele, err_flag, from_mad)
   import
   implicit none
-  type (fibre) ptc_fibre
+  type (fibre), target :: ptc_fibre
   type (branch_struct) branch
   integer ix_ele
   logical err_flag
@@ -801,7 +801,7 @@ end subroutine
 subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (ele_struct), pointer :: ele1, ele2
   integer, optional :: ix_multipass
 end subroutine
@@ -845,7 +845,7 @@ end subroutine
 subroutine get_slave_list (lord, slaves, n_slave)
   import
   implicit none
-  type (ele_struct) :: lord
+  type (ele_struct), target :: lord
   type (ele_pointer_struct), allocatable :: slaves(:)
   integer n_slave
 end subroutine
@@ -931,7 +931,7 @@ end subroutine
 subroutine init_lat (lat, n, init_beginning_ele)
   import
   implicit none
-  type (lat_struct)  lat
+  type (lat_struct), target :: lat
   integer, optional :: n
   logical, optional :: init_beginning_ele
 end subroutine
@@ -947,7 +947,7 @@ end subroutine
 subroutine insert_element (lat, insert_ele, insert_index, ix_branch, orbit)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (ele_struct) insert_ele
   integer insert_index
   integer, optional :: ix_branch
@@ -973,7 +973,7 @@ end function
 subroutine kill_ptc_layouts (lat)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
 end subroutine
 
 function knot_interpolate (x_knot, y_knot, x_pt, interpolation, err_flag) result (y_pt)
@@ -987,7 +987,7 @@ end function
 subroutine lat_compute_ref_energy_and_time (lat, err_flag)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   logical err_flag
 end subroutine
 
@@ -1076,7 +1076,7 @@ end subroutine
 recursive subroutine make_mat6 (ele, param, start_orb, end_orb, err_flag)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (coord_struct), optional :: start_orb, end_orb
   type (lat_param_struct) param
   logical, optional :: err_flag
@@ -1239,7 +1239,7 @@ end subroutine
 subroutine multipass_chain (ele, ix_pass, n_links, chain_ele, use_super_lord)
   import
   implicit none
-  type (ele_struct) :: ele
+  type (ele_struct), target :: ele
   type (ele_pointer_struct), allocatable, optional :: chain_ele(:)
   integer :: n_links, ix_pass
   logical, optional :: use_super_lord
@@ -1286,7 +1286,7 @@ end subroutine
 subroutine name_to_list (lat, ele_names)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   character(*) ele_names(:)
 end subroutine
 
@@ -1301,7 +1301,7 @@ end subroutine
 function num_lords (slave, lord_type) result (num)
   import
   implicit none
-  type (ele_struct) slave
+  type (ele_struct), target :: slave
 integer lord_type, num
 end function
 
@@ -1321,7 +1321,7 @@ end subroutine
 subroutine offset_photon (ele, coord, set, offset_position_only, rot_mat)
   import
   implicit none
-  type (ele_struct) :: ele
+  type (ele_struct), target :: ele
   type (coord_struct) :: coord
   logical :: set
   logical, optional :: offset_position_only
@@ -1371,7 +1371,7 @@ end subroutine
 
 subroutine converter_distribution_parser (ele, delim, delim_found, err_flag)
   import
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   character(*) delim
   logical delim_found, err_flag
 end subroutine
@@ -1394,7 +1394,7 @@ function particle_rf_time (orbit, ele, reference_active_edge, s_rel) result (tim
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   real(rp), optional :: s_rel
   real(rp) time
   logical reference_active_edge
@@ -1484,7 +1484,7 @@ end function
 function pointer_to_multipass_lord (ele, ix_pass, super_lord) result (multi_lord)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   integer, optional :: ix_pass
   type (ele_struct), pointer :: multi_lord
   type (ele_struct), pointer, optional :: super_lord
@@ -1521,7 +1521,7 @@ subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
                   ptr_array, err_flag, err_print_flag, eles, ix_attrib)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (all_pointer_struct), allocatable :: ptr_array(:)
   character(*) ele_name, attrib_name
   logical err_flag
@@ -1548,7 +1548,7 @@ end function
 subroutine ptc_bookkeeper (lat)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
 end subroutine
 
 subroutine ptc_ran_seed_put (iseed)
@@ -1559,7 +1559,7 @@ end subroutine
 subroutine ptc_read_flat_file (flat_file, err_flag, lat, create_end_marker, from_mad)
   import
   implicit none
-  type (lat_struct), optional :: lat
+  type (lat_struct), optional, target :: lat
   character(*) flat_file(:)
   logical err_flag
   logical, optional :: create_end_marker, from_mad
@@ -1586,7 +1586,7 @@ end subroutine
 subroutine quad_beta_ave (ele, beta_a_ave, beta_b_ave)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   real(rp) beta_a_ave
   real(rp) beta_b_ave
 end subroutine
@@ -1603,7 +1603,7 @@ subroutine radiation_integrals (lat, orb, mode, ix_cache, ix_branch, rad_int_by_
   import
   implicit none
   type (lat_struct), target :: lat
-  type (rad_int_all_ele_struct), optional :: rad_int_by_ele
+  type (rad_int_all_ele_struct), optional, target :: rad_int_by_ele
   type (coord_struct), target :: orb(0:)
   type (normal_modes_struct) mode
   integer, optional :: ix_cache, ix_branch
@@ -1653,7 +1653,7 @@ end function
 subroutine remove_eles_from_lat (lat, check_sanity)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   logical, optional :: check_sanity
 end subroutine
 
@@ -1756,13 +1756,13 @@ end subroutine
 subroutine s_calc (lat)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
 end subroutine
 
 subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time)
   import
   implicit none
-  type (track_struct) track
+  type (track_struct), target :: track
   type (ele_struct), target :: ele
   type (lat_param_struct), intent(in) :: param
   type (coord_struct) orb
@@ -1845,7 +1845,7 @@ end subroutine
 subroutine set_particle_from_rf_time (rf_time, ele, reference_active_edge, orbit)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (coord_struct) orbit
   real(rp) rf_time
   logical reference_active_edge
@@ -1897,7 +1897,7 @@ end subroutine
 subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (coord_struct), allocatable :: orb(:)
   real(rp) phi_a_set
   real(rp) phi_b_set
@@ -1916,7 +1916,7 @@ end function
 subroutine slice_lattice (lat, ele_list, error, do_bookkeeping)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   character(*) ele_list
   logical error
   logical, optional :: do_bookkeeping
@@ -1935,7 +1935,7 @@ end subroutine
 subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   type (coord_struct) start_orb, end_orb
   real(rp) length
@@ -2056,7 +2056,7 @@ subroutine track_a_beambeam (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2066,7 +2066,7 @@ subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2076,7 +2076,7 @@ subroutine track_a_converter (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2113,7 +2113,7 @@ subroutine track_a_lcavity (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2123,7 +2123,7 @@ subroutine track_a_mask (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2133,7 +2133,7 @@ subroutine track_a_match (orbit, ele, param, err_flag, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix, err_flag
@@ -2152,7 +2152,7 @@ subroutine track_a_quadrupole (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2162,7 +2162,7 @@ subroutine track_a_rfcavity (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2172,7 +2172,7 @@ subroutine track_a_sad_mult (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2182,7 +2182,7 @@ subroutine track_a_sol_quad (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2192,7 +2192,7 @@ subroutine track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2202,7 +2202,7 @@ subroutine track_a_wiggler (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2222,7 +2222,7 @@ end subroutine
 subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (coord_struct), allocatable, target :: orbit(:)
   type (coord_struct), optional, allocatable, target :: orbit0(:)
   integer, optional :: ix_branch, track_state
@@ -2233,7 +2233,7 @@ subroutine track_bunch_time (lat, bunch, t_end, s_end, dt_step)
   import
   implicit none
   type (lat_struct), target :: lat
-  type (bunch_struct) :: bunch
+  type (bunch_struct), target :: bunch
   real(rp) t_end, s_end
   real(rp), optional :: dt_step(:)
 end subroutine
@@ -2241,7 +2241,7 @@ end subroutine
 subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (coord_struct) orbit_start, orbit_end
   type (coord_struct), optional, allocatable :: all_orb(:)
   real(rp) s_start, s_end
@@ -2251,7 +2251,7 @@ end subroutine
 subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
   import
   implicit none
-  type (lat_struct)  lat
+  type (lat_struct), target :: lat
   type (coord_struct)  orbit(0:)
   integer ix_start
   integer ix_end
@@ -2298,7 +2298,7 @@ end subroutine
 subroutine track1_bunch_e_gun_space_charge (bunch, ele, err)
   import
   implicit none
-  type (bunch_struct) bunch
+  type (bunch_struct), target :: bunch
   type (ele_struct) :: ele
   logical err
 end subroutine
@@ -2367,7 +2367,7 @@ subroutine track1_taylor (start_orb, ele, param, end_orb, taylor, mat6, make_mat
   implicit none
   type (coord_struct) :: start_orb
   type (coord_struct) :: end_orb
-  type (ele_struct) :: ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) :: param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2459,7 +2459,7 @@ end subroutine
 subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start, concat_if_possible)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (taylor_struct) :: t_map(:)
   type (coord_struct), optional :: ref_orb
   integer, intent(in), optional :: ix1, ix2, ix_branch
@@ -2485,7 +2485,7 @@ end subroutine
 subroutine transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   real(rp) :: xfer_mat(6,6)
   real(rp), optional :: xfer_vec(6)
   integer, optional :: ix1, ix2, ix_branch
@@ -2517,7 +2517,7 @@ subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, &
   implicit none
   type (coord_struct) :: orbit_start, orbit_end
   type (ele_struct), optional :: ele_start, ele_end
-  type (branch_struct) branch
+  type (branch_struct), target :: branch
   real(rp) s_end
   logical, optional, intent(inout) :: err
   logical, optional :: compute_floor_coords
@@ -2529,7 +2529,7 @@ recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, trac
   implicit none
   type (coord_struct), optional :: orbit_start, orbit_end
   type (ele_struct), optional :: ele_start, ele_end
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp) l_start, l_end
   logical track_upstream_end, track_downstream_end
@@ -2548,7 +2548,7 @@ end subroutine
 subroutine twiss_at_start (lat, status, ix_branch, type_out)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   integer, optional, intent(in) :: ix_branch
   integer, optional, intent(out) :: status
   logical, optional :: type_out
@@ -2595,7 +2595,7 @@ end subroutine
 subroutine twiss_propagate1 (ele1, ele2, err)
   import
   implicit none
-  type (ele_struct) ele1
+  type (ele_struct), target :: ele1
   type (ele_struct) ele2
   logical, optional :: err
 end subroutine
@@ -2603,7 +2603,7 @@ end subroutine
 subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end, zero_uncalculated)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   integer, optional :: ix_branch, ie_start, ie_end
   logical, optional :: err_flag, zero_uncalculated
 end subroutine
@@ -2631,7 +2631,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
   integer, optional, intent(in) :: twiss_out
   logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
   logical, optional, intent(in) :: type_zero_attrib, type_wake
-  logical, optional :: type_field, type_wall
+  logical, optional, intent(in) :: type_field, type_wall
   character(*), optional, allocatable :: lines(:)
 end subroutine
 
@@ -2670,7 +2670,7 @@ end subroutine update_floor_angles
 subroutine update_fibre_from_ele (ele)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
 end subroutine
 
 function valid_field_calc (ele, field_calc) result (is_valid)
@@ -2692,7 +2692,7 @@ end function
 function valid_mat6_calc_method (ele, species, mat6_calc_method) result (is_valid)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   integer mat6_calc_method, species
   logical is_valid
 end function
