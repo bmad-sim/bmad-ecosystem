@@ -23,8 +23,8 @@ use fringe_mod, except_dummy => track_a_zero_length_element
 implicit none
 
 type (coord_struct) :: start_orb, end_orb
-type (lat_param_struct), target, intent(inout) :: param
-type (ele_struct), target, intent(inout) :: ele
+type (lat_param_struct), target :: param
+type (ele_struct), target :: ele
 type (track_struct), optional :: track
 type (fringe_field_info_struct) fringe_info
 

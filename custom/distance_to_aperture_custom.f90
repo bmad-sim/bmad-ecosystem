@@ -10,14 +10,14 @@
 ! This routine is called by distance_to_aperture.
 !
 ! Input:
-!   orbit         -- coord_struct: Particle position.
-!   particle_at   -- integer: 
-!   ele           -- ele_struct: Element containing aperture.
+!   orbit             -- coord_struct: Particle position.
+!   particle_at       -- integer: first_track_edge$, or second_track_edge$.
+!   ele               -- ele_struct: Element containing aperture.
 !
 ! Output:
-!   no_wall_here  -- logical, optional: True if aperture does not exist at the
-!                       longitudinal location of the particle.
-!   dist          -- real(rp): Percentage distance to the aperture.
+!   no_aperture_here  -- logical, optional: True if aperture does not exist at the
+!                           longitudinal location of the particle.
+!   dist              -- real(rp): Percentage distance to the aperture.
 !-
 
 function distance_to_aperture_custom (orbit, particle_at, ele, no_aperture_here) result (dist)
@@ -31,7 +31,8 @@ type (ele_struct) ele
 
 real(rp) dist, x_particle, y_particle
 integer physical_end
-logical particle_at, no_aperture_here
+integer particle_at
+logical no_aperture_here
 
 character(*), parameter :: r_name = 'distance_to_aperture_custom'
 
