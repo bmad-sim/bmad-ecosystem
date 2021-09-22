@@ -108,4 +108,26 @@ do i = 1, num
 	unis(i)%u => s%u(arr(i))
 enddo
 
+!-------------------------------------
+contains
+
+subroutine tao_allocate_uni_pointers (unis, n)
+
+type (tao_universe_pointer_struct), allocatable :: unis(:)
+integer n
+
+!
+
+if (.not. allocated(unis)) then
+  allocate(unis(n))
+  return
+endif
+
+if (size(unis) /= n) then
+  deallocate(unis)
+  allocate(unis(n))
+endif
+
+end subroutine tao_allocate_uni_pointers
+
 end subroutine tao_universe_locator
