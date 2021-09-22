@@ -87,7 +87,7 @@ else
   g = ph%curvature%elliptical
   if (g(3) /= 0) then
     zt = sqrt(1 - (x * g(1))**2 - (y * g(2))**2)
-    dz_dxy = dz_dxy - [x, y] * (g(1)**2 / (g(3) * zt))
+    dz_dxy = dz_dxy - [x*g(1)**2, y*g(2)**2] / (g(3) * zt)
   endif
 
   gs = ph%curvature%spherical
@@ -105,7 +105,7 @@ endif
 ! Compute rotation matrix and goto body element coords at point of photon impact
 
 angle = -atan2(sqrt(dz_dxy(1)**2 + dz_dxy(2)**2), 1.0_rp)
-call axis_angle_to_w_mat ([dz_dxy(1), -dz_dxy(2), 0.0_rp], angle, rot_mat)
+call axis_angle_to_w_mat ([dz_dxy(2), -dz_dxy(1), 0.0_rp], angle, rot_mat)
 
 orbit%vec(2:6:2) = matmul(rot_mat, orbit%vec(2:6:2))
 
