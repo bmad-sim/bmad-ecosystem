@@ -1730,6 +1730,15 @@ function rf_ref_time_offset (ele) result (time)
   real(rp) time
 end function
 
+subroutine rotate_for_curved_surface (ele, orbit, set, rot_mat)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (coord_struct) orbit
+  real(rp) rot_mat(3,3)
+  logical set
+end subroutine
+
 subroutine rotate_spin (rot_vec, spin)
   import
   implicit none
@@ -2257,6 +2266,15 @@ subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track
   integer ix_end
   integer direction
   integer, optional :: ix_branch, track_state
+end subroutine
+
+subroutine track_to_surface (ele, orbit, param, w_surface)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (coord_struct) orbit
+  type (lat_param_struct) param
+  real(rp) :: w_surface(3,3)
 end subroutine
 
 recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, &

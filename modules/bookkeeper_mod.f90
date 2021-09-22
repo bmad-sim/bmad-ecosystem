@@ -1748,7 +1748,7 @@ subroutine aperture_bookkeeper (ele)
 
 type (ele_struct), target :: ele
 type (surface_grid_struct), pointer :: grid
-type (detector_pixel_struct), pointer :: pixel
+type (pixel_grid_struct), pointer :: pixel
 type (wall3d_section_struct), pointer :: sec
 
 real(rp) angle, r_wall, dr_dtheta, x, y

@@ -892,11 +892,18 @@ type surface_grid_pt_struct
   real(rp) :: d2z_dxdy = 0                   ! d2z/dxdy at center
 end type
 
+type surface_grid_struct
+  logical :: active = .true.
+  integer :: type = not_set$   ! or displacement$, segmented$, h_misalign$
+  real(rp) :: dr(2) = 0, r0(2) = 0
+  type (surface_grid_pt_struct), allocatable :: pt(:,:) 
+end type
+
 integer, parameter :: segmented$ = 1, h_misalign$ = 2, displacement$ = 3
 character(16), parameter :: surface_grid_type_name(0:3) = [character(16):: 'GARBAGE!', &
                                                   'Segmented', 'H_Misalign', 'Displacement']
 
-! Photon statistics if used as a detector pixel
+! Photon statistics at a detector
 
 type pixel_grid_pt_struct
   integer :: n_photon = 0
@@ -908,17 +915,9 @@ type pixel_grid_pt_struct
   real(rp) :: init_orbit_rms(6) = 0   ! Initial orbit at start of lattice RMS statistics.
 end type
 
-!
-
-type surface_grid_struct
-  logical :: active = .true.
-  integer :: type = not_set$   ! or displacement$, segmented$, h_misalign$
+type pixel_grid_struct
   real(rp) :: dr(2) = 0, r0(2) = 0
-  type (surface_grid_pt_struct), allocatable :: pt(:,:) 
-end type
-
-type detector_pixel_struct
-  real(rp) :: dr(2) = 0, r0(2) = 0
+  real(rp), allocatable :: x_edge(:), y_edge(:)       ! [x_edge(i-1), x_edge(i)] are bounds for pt(i,:)
   type (pixel_grid_pt_struct), allocatable :: pt(:,:) 
 end type
 
@@ -962,7 +961,7 @@ type photon_element_struct
   type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
   type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
-  type (detector_pixel_struct) :: pixel = detector_pixel_struct(0, 0, null())
+  type (pixel_grid_struct) :: pixel = pixel_grid_struct(0, 0, null())
 end type
 
 !------------------------------------------------------------------------------
