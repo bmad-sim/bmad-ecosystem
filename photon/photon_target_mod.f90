@@ -221,10 +221,11 @@ type (coord_struct) orbit0, orbit, orb
 type (ele_struct), target :: ele
 type (pixel_grid_pt_struct), optional, target :: pixel_pt
 type (pixel_grid_pt_struct), pointer :: pix
-type (detector_pixel_struct), pointer :: pixel
+type (pixel_grid_struct), pointer :: pixel
 type (branch_struct), pointer :: branch
 
-real(rp) phase, intens_x, intens_y, intens, dE
+real(rp) phase, intens_x, intens_y, intens, dE, w_surf(3,3)
+
 integer, optional :: ix_pt, iy_pt
 integer nx, ny
 
@@ -240,10 +241,18 @@ if (present(pixel_pt)) then
 
 else
   pixel => ele%photon%pixel
-
   nx = 0; ny = 0
-  if (pixel%dr(1) /= 0) nx = nint((orb%vec(1) - pixel%r0(1)) / pixel%dr(1))
-  if (pixel%dr(2) /= 0) ny = nint((orb%vec(3) - pixel%r0(2)) / pixel%dr(2))
+
+  if (has_curvature(ele%photon)) then
+    if (.not. allocated(pixel%x_edge)) call pixel_edge_info_calc(ele)
+    call track_to_surface (ele, orb, ele%branch%param, w_surf)
+    nx = bracket_index (orb%vec(1), pixel%x_edge, lbound(pixel%x_edge, 1)) + 1
+    ny = bracket_index (orb%vec(3), pixel%y_edge, lbound(pixel%y_edge, 1)) + 1
+
+  else
+    if (pixel%dr(1) /= 0) nx = nint((orb%vec(1) - pixel%r0(1)) / pixel%dr(1))
+    if (pixel%dr(2) /= 0) ny = nint((orb%vec(3) - pixel%r0(2)) / pixel%dr(2))
+  endif
 
   if (present(ix_pt)) ix_pt = nx
   if (present(iy_pt)) iy_pt = ny
@@ -281,6 +290,119 @@ else
 endif
 
 end subroutine photon_add_to_detector_statistics
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine pixel_edge_info_calc (ele)
+!
+! Routine to calculate the x and y locations of pixel edges when the surface is curved.
+! This assumes that the curvature is only in one direction.
+!
+! Input:
+!   ele              -- ele_struct: Detector element 
+!
+! Output:
+!   phot_ele
+!     %pixel%x_edge(:)
+!     %pixel%y_edge(:)
+!-
+
+subroutine pixel_edge_info_calc (ele)
+
+type (ele_struct), target :: ele
+
+!
+
+call find_these_edges(1, ele, ele%photon%pixel%x_edge)
+call find_these_edges(2, ele, ele%photon%pixel%y_edge)
+
+!-------------------------------------------------------
+contains
+
+subroutine find_these_edges (idim, ele, edge)
+
+type (ele_struct), target :: ele
+type (pixel_grid_struct), pointer :: pix
+
+real(rp), allocatable :: edge(:)
+real(rp) dz_dxy(2), dz_dxy_old(2), z, dlen, dlen_old, dlen_target, dw, w_old(2), w_now(2)
+real(rp) a, b
+
+integer idim, i_now
+integer i, ilb, iub, ie
+logical err_flag
+
+!
+
+pix => ele%photon%pixel
+ilb = lbound(pix%pt, idim);  iub = ubound(pix%pt, idim)
+call re_allocate2(edge, ilb-1, iub)
+
+! First integrate backwards to find point to the left of the first edge
+
+dlen = 0
+dw = pix%dr(1) / 100
+w_old = 0
+z = z_at_surface(ele, 0.0_rp, 0.0_rp, err_flag, .true., dz_dxy_old)
+dlen_target = pix%r0(idim) + (ilb - 0.5) * pix%dr(idim)
+i_now = 0
+
+do
+  if (dlen < dlen_target) exit
+  i_now = i_now - 1
+  w_now(idim) = i_now * dw
+  z = z_at_surface(ele, w_now(1), w_now(2), err_flag, .true., dz_dxy)
+  b = dz_dxy_old(idim)
+  a = (dz_dxy(idim) - dz_dxy_old(idim)) / dw  
+  if (a == 0) then
+    dlen = dlen - dw / sqrt(1 + dz_dxy(idim)**2)
+  else
+    dlen = dlen + (asinh(-a*dw+b) - asinh(b)) / a
+  endif
+  w_old = w_now
+  dz_dxy_old = dz_dxy
+enddo
+
+! Now integrate forwards to find edges
+
+ie = ilb - 1
+dlen_target = pix%r0(idim) + (ie + 0.5) * pix%dr(idim)
+dlen_old = dlen
+
+do
+  i_now = i_now + 1
+  w_now(idim) = i_now * dw
+  z = z_at_surface(ele, w_now(1), w_now(2), err_flag, .true., dz_dxy)
+  b = dz_dxy_old(idim)
+  a = (dz_dxy(idim) - dz_dxy_old(idim)) / dw  
+  if (a == 0) then
+    dlen = dlen + dw / sqrt(1 + b**2)
+  else
+    dlen = dlen + (asinh(a*dw+b) - asinh(b)) / a
+  endif
+
+  if (dlen > dlen_target) then
+    if (a == 0) then
+      pix%x_edge(ie) = w_old(idim) + (dlen_target - dlen_old) * sqrt(1 + b**2)
+    else
+      pix%x_edge(ie) = w_old(idim) + (sinh(a * (dlen_target - dlen_old) + asinh(b)) - b) / a
+    endif
+
+    ie = ie + 1
+    dlen_target = pix%r0(idim) + (ie + 0.5) * pix%dr(idim)
+    if (ie > iub) exit
+  endif
+
+  w_old = w_now
+  dz_dxy_old = dz_dxy
+  dlen_old = dlen
+enddo
+
+end subroutine find_these_edges
+
+end subroutine pixel_edge_info_calc
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------

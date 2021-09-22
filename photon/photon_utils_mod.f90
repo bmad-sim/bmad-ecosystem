@@ -76,7 +76,7 @@ end function photon_type
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Function z_at_surface (ele, x, y, err_flag, extend_grid) result (z)
+! Function z_at_surface (ele, x, y, err_flag, extend_grid, dz_dxy) result (z)
 !
 ! Routine return the height (z) of the surface for a particular (x,y) position. 
 ! Remember: +z points into the element.
@@ -91,15 +91,18 @@ end function photon_type
 !   z           -- real(rp): z coordinate.
 !   err_flag    -- logical: Set True if cannot compute z due to, say, point 
 !                             being outside of ellipseoid or grid bounds.
+!   dz_dxy(2)   -- real(rp), optional: Surface slope at (x, y).
 !-
 
-function z_at_surface (ele, x, y, err_flag, extend_grid) result (z)
+function z_at_surface (ele, x, y, err_flag, extend_grid, dz_dxy) result (z)
 
 type (ele_struct), target :: ele
 type (photon_element_struct), pointer :: ph
 type (surface_grid_pt_struct), pointer :: pt
 
-real(rp) x, y, z, g(3), gs, f, dum1, dum2, xx, yy
+real(rp) x, y, z, g(3), gs, f, dz_dx, dz_dy, xx, yy
+real(rp), optional :: dz_dxy(2)
+
 integer ix, iy
 logical err_flag
 logical, optional :: extend_grid
@@ -114,25 +117,28 @@ if (ph%grid%type == segmented$  .and. ph%grid%active) then
   pt => pointer_to_surface_grid_pt(ele, .true., x, y, ix, iy, extend_grid, xx, yy)
   if (.not. associated(pt)) return
   z = pt%z0 - (xx - pt%x0) * pt%dz_dx - (yy - pt%y0) * pt%dz_dy
+  if (present(dz_dxy)) dz_dxy = [pt%dz_dx, pt%dz_dy]
 
 else
   if (ph%grid%type == displacement$) then
-    call surface_grid_displacement (ele, x, y, err_flag, z, dum1, dum2, extend_grid); if (err_flag) return
+    call surface_grid_displacement (ele, x, y, err_flag, z, dz_dxy, extend_grid); if (err_flag) return
   endif
 
   do ix = 0, ubound(ph%curvature%xy, 1)
-  do iy = 0, ubound(ph%curvature%xy, 2) - ix
-    if (ph%curvature%xy(ix, iy) == 0) cycle
-    z = z - ph%curvature%xy(ix, iy) * x**ix * y**iy
+    do iy = 0, ubound(ph%curvature%xy, 2) - ix
+      if (ph%curvature%xy(ix, iy) == 0) cycle
+      z = z - ph%curvature%xy(ix, iy) * x**ix * y**iy
+      if (present(dz_dxy)) dz_dxy = dz_dxy + &
+              ph%curvature%xy(ix, iy) * x**max(0,ix-1) * y**max(0,iy-1) * [ix * y, iy * x]
+    enddo
   enddo
-  enddo
-
 
   g = ph%curvature%elliptical
   if (g(3) /= 0) then
     f = -((g(1) * x)**2 + (g(2) * y)**2)
     if (f < -1) return
     z = z + sqrt_one(f) / g(3)
+    if (present(dz_dxy)) dz_dxy = dz_dxy - (2 * sqrt_one(f,1) / g(3)) * g(1:2)**2 * [x, y]
   endif
 
   gs = ph%curvature%spherical
@@ -140,6 +146,7 @@ else
     f = -((gs * x)**2 + (gs * y)**2)
     if (f < -1) return
     z = z + sqrt_one(f) / gs
+    if (present(dz_dxy)) dz_dxy = dz_dxy - (2 * sqrt_one(f,1) / gs) * gs**2 * [x, y]
   endif
 endif
 
@@ -253,7 +260,7 @@ end function pointer_to_surface_grid_pt
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine surface_grid_displacement (ele, x, y, err_flag, z, dz_dx, dz_dy, extend_grid)
+! Subroutine surface_grid_displacement (ele, x, y, err_flag, z, dz_dxy, extend_grid)
 !
 ! Routine to add in the z displacement defined by the grid 
 !
@@ -266,10 +273,10 @@ end function pointer_to_surface_grid_pt
 ! Output
 !   err_flag      -- logical: Set True if there is a problem.
 !   z             -- real(rp): surface height at (x, y).
-!   dz_dx, dz_dy  -- real(rp): Surface slope at (x, y).
+!   dz_dxy(2)     -- real(rp), optional: Surface slope at (x, y).
 !-
 
-subroutine surface_grid_displacement (ele, x, y, err_flag, z, dz_dx, dz_dy, extend_grid)
+subroutine surface_grid_displacement (ele, x, y, err_flag, z, dz_dxy, extend_grid)
 
 use nr, only: bcuint
 
@@ -278,7 +285,8 @@ type (photon_element_struct), pointer :: ph
 type (surface_grid_pt_struct), pointer :: pt00, pt01, pt10, pt11
 
 real(rp) x, y
-real(rp) z, dz_dx, dz_dy, xx, yy
+real(rp), optional :: dz_dxy(2)
+real(rp) z, xx, yy, dz_dx, dz_dy
 integer ix, iy
 logical err_flag
 logical, optional :: extend_grid
@@ -288,7 +296,8 @@ logical, optional :: extend_grid
 ph => ele%photon
 
 if (.not. ph%grid%active) then
-  z = 0;  dz_dx = 0;  dz_dy = 0
+  z = 0
+  if (present(dz_dxy)) dz_dxy = 0
   err_flag = .false.
   return
 endif
@@ -306,6 +315,8 @@ pt11 => ph%grid%pt(ix+1,iy+1)
 call bcuint([pt00%z0, pt10%z0, pt11%z0, pt01%z0], [pt00%dz_dx, pt10%dz_dx, pt11%dz_dx, pt01%dz_dx], &
         [pt00%dz_dy, pt10%dz_dy, pt11%dz_dy, pt01%dz_dy], [pt00%d2z_dxdy, pt10%d2z_dxdy, pt11%d2z_dxdy, pt01%d2z_dxdy], &
         pt00%x0, pt11%x0, pt00%y0, pt11%y0, xx, yy, z, dz_dx, dz_dy)
+
+if (present(dz_dxy)) dz_dxy = [dz_dx, dz_dy]
 
 err_flag = .false.
 

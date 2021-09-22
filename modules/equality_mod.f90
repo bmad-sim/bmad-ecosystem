@@ -23,7 +23,7 @@ interface operator (==)
   module procedure eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field
   module procedure eq_floor_position, eq_high_energy_space_charge, eq_xy_disp, eq_twiss, eq_mode3
   module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_target_point
-  module procedure eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_grid_pt, eq_detector_pixel
+  module procedure eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_grid_pt, eq_pixel_grid
   module procedure eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_control
   module procedure eq_controller_var1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init
   module procedure eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
@@ -1453,11 +1453,11 @@ end function eq_pixel_grid_pt
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_detector_pixel (f1, f2) result (is_eq)
+elemental function eq_pixel_grid (f1, f2) result (is_eq)
 
 implicit none
 
-type(detector_pixel_struct), intent(in) :: f1, f2
+type(pixel_grid_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -1467,6 +1467,18 @@ is_eq = .true.
 is_eq = is_eq .and. all(f1%dr == f2%dr)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%r0 == f2%r0)
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%x_edge) .eqv. allocated(f2%x_edge))
+if (.not. is_eq) return
+if (allocated(f1%x_edge)) is_eq = all(shape(f1%x_edge) == shape(f2%x_edge))
+if (.not. is_eq) return
+if (allocated(f1%x_edge)) is_eq = all(f1%x_edge == f2%x_edge)
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%y_edge) .eqv. allocated(f2%y_edge))
+if (.not. is_eq) return
+if (allocated(f1%y_edge)) is_eq = all(shape(f1%y_edge) == shape(f2%y_edge))
+if (.not. is_eq) return
+if (allocated(f1%y_edge)) is_eq = all(f1%y_edge == f2%y_edge)
 !! f_side.equality_test[type, 2, ALLOC]
 is_eq = is_eq .and. (allocated(f1%pt) .eqv. allocated(f2%pt))
 if (.not. is_eq) return
@@ -1474,7 +1486,7 @@ if (allocated(f1%pt)) is_eq = all(shape(f1%pt) == shape(f2%pt))
 if (.not. is_eq) return
 if (allocated(f1%pt)) is_eq = all(f1%pt == f2%pt)
 
-end function eq_detector_pixel
+end function eq_pixel_grid
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
