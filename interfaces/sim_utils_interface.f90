@@ -575,7 +575,7 @@ subroutine pointer_to_locations(string, array, num, ix_min, ix_max, names, exact
   integer num, ix_min, ix_max
   logical, optional :: exact_case, print_err
   character(*) string
-  character, optional :: names(:)
+  character(*), optional :: names(:)
 end subroutine
 
 function poly_eval(poly, x) result (y)
