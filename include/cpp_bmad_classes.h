@@ -241,10 +241,10 @@ typedef valarray<CPP_target_point>          CPP_target_point_ARRAY;
 typedef valarray<CPP_target_point_ARRAY>    CPP_target_point_MATRIX;
 typedef valarray<CPP_target_point_MATRIX>   CPP_target_point_TENSOR;
 
-class CPP_photon_surface;
-typedef valarray<CPP_photon_surface>          CPP_photon_surface_ARRAY;
-typedef valarray<CPP_photon_surface_ARRAY>    CPP_photon_surface_MATRIX;
-typedef valarray<CPP_photon_surface_MATRIX>   CPP_photon_surface_TENSOR;
+class CPP_surface_curvature;
+typedef valarray<CPP_surface_curvature>          CPP_surface_curvature_ARRAY;
+typedef valarray<CPP_surface_curvature_ARRAY>    CPP_surface_curvature_MATRIX;
+typedef valarray<CPP_surface_curvature_MATRIX>   CPP_surface_curvature_TENSOR;
 
 class CPP_photon_target;
 typedef valarray<CPP_photon_target>          CPP_photon_target_ARRAY;
@@ -255,6 +255,16 @@ class CPP_photon_material;
 typedef valarray<CPP_photon_material>          CPP_photon_material_ARRAY;
 typedef valarray<CPP_photon_material_ARRAY>    CPP_photon_material_MATRIX;
 typedef valarray<CPP_photon_material_MATRIX>   CPP_photon_material_TENSOR;
+
+class CPP_pixel_grid_pt;
+typedef valarray<CPP_pixel_grid_pt>          CPP_pixel_grid_pt_ARRAY;
+typedef valarray<CPP_pixel_grid_pt_ARRAY>    CPP_pixel_grid_pt_MATRIX;
+typedef valarray<CPP_pixel_grid_pt_MATRIX>   CPP_pixel_grid_pt_TENSOR;
+
+class CPP_detector_pixel;
+typedef valarray<CPP_detector_pixel>          CPP_detector_pixel_ARRAY;
+typedef valarray<CPP_detector_pixel_ARRAY>    CPP_detector_pixel_MATRIX;
+typedef valarray<CPP_detector_pixel_MATRIX>   CPP_detector_pixel_TENSOR;
 
 class CPP_photon_element;
 typedef valarray<CPP_photon_element>          CPP_photon_element_ARRAY;
@@ -1845,16 +1855,6 @@ public:
   Real dz_dx;
   Real dz_dy;
   Real d2z_dxdy;
-  Int n_photon;
-  Complex e_x;
-  Complex e_y;
-  Real intensity_x;
-  Real intensity_y;
-  Real intensity;
-  Real_ARRAY orbit;
-  Real_ARRAY orbit_rms;
-  Real_ARRAY init_orbit;
-  Real_ARRAY init_orbit_rms;
 
   CPP_surface_grid_pt() :
     orientation(),
@@ -1863,17 +1863,7 @@ public:
     y0(0.0),
     dz_dx(0.0),
     dz_dy(0.0),
-    d2z_dxdy(0.0),
-    n_photon(0),
-    e_x(0.0),
-    e_y(0.0),
-    intensity_x(0.0),
-    intensity_y(0.0),
-    intensity(0.0),
-    orbit(0.0, 6),
-    orbit_rms(0.0, 6),
-    init_orbit(0.0, 6),
-    init_orbit_rms(0.0, 6)
+    d2z_dxdy(0.0)
     {}
 
   ~CPP_surface_grid_pt() {
@@ -1894,7 +1884,6 @@ class Opaque_surface_grid_class {};  // Opaque class for pointers to correspondi
 
 class CPP_surface_grid {
 public:
-  string file;
   Bool active;
   Int type;
   Real_ARRAY dr;
@@ -1902,7 +1891,6 @@ public:
   CPP_surface_grid_pt_MATRIX pt;
 
   CPP_surface_grid() :
-    file(),
     active(true),
     type(Bmad::NOT_SET),
     dr(0.0, 2),
@@ -1946,35 +1934,33 @@ bool operator== (const CPP_target_point&, const CPP_target_point&);
 
 
 //--------------------------------------------------------------------
-// CPP_photon_surface
+// CPP_surface_curvature
 
-class Opaque_photon_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_surface_curvature_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_photon_surface {
+class CPP_surface_curvature {
 public:
-  CPP_surface_grid grid;
-  Real_MATRIX curvature_xy;
-  Real spherical_curvature;
-  Real_ARRAY elliptical_curvature;
+  Real_MATRIX xy;
+  Real spherical;
+  Real_ARRAY elliptical;
   Bool has_curvature;
 
-  CPP_photon_surface() :
-    grid(),
-    curvature_xy(Real_ARRAY(0.0, 7), 7),
-    spherical_curvature(0.0),
-    elliptical_curvature(0.0, 3),
+  CPP_surface_curvature() :
+    xy(Real_ARRAY(0.0, 7), 7),
+    spherical(0.0),
+    elliptical(0.0, 3),
     has_curvature(false)
     {}
 
-  ~CPP_photon_surface() {
+  ~CPP_surface_curvature() {
   }
 
 };   // End Class
 
-extern "C" void photon_surface_to_c (const Opaque_photon_surface_class*, CPP_photon_surface&);
-extern "C" void photon_surface_to_f (const CPP_photon_surface&, Opaque_photon_surface_class*);
+extern "C" void surface_curvature_to_c (const Opaque_surface_curvature_class*, CPP_surface_curvature&);
+extern "C" void surface_curvature_to_f (const CPP_surface_curvature&, Opaque_surface_curvature_class*);
 
-bool operator== (const CPP_photon_surface&, const CPP_photon_surface&);
+bool operator== (const CPP_surface_curvature&, const CPP_surface_curvature&);
 
 
 //--------------------------------------------------------------------
@@ -2048,20 +2034,94 @@ bool operator== (const CPP_photon_material&, const CPP_photon_material&);
 
 
 //--------------------------------------------------------------------
+// CPP_pixel_grid_pt
+
+class Opaque_pixel_grid_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_pixel_grid_pt {
+public:
+  Int n_photon;
+  Complex e_x;
+  Complex e_y;
+  Real intensity_x;
+  Real intensity_y;
+  Real intensity;
+  Real_ARRAY orbit;
+  Real_ARRAY orbit_rms;
+  Real_ARRAY init_orbit;
+  Real_ARRAY init_orbit_rms;
+
+  CPP_pixel_grid_pt() :
+    n_photon(0),
+    e_x(0.0),
+    e_y(0.0),
+    intensity_x(0.0),
+    intensity_y(0.0),
+    intensity(0.0),
+    orbit(0.0, 6),
+    orbit_rms(0.0, 6),
+    init_orbit(0.0, 6),
+    init_orbit_rms(0.0, 6)
+    {}
+
+  ~CPP_pixel_grid_pt() {
+  }
+
+};   // End Class
+
+extern "C" void pixel_grid_pt_to_c (const Opaque_pixel_grid_pt_class*, CPP_pixel_grid_pt&);
+extern "C" void pixel_grid_pt_to_f (const CPP_pixel_grid_pt&, Opaque_pixel_grid_pt_class*);
+
+bool operator== (const CPP_pixel_grid_pt&, const CPP_pixel_grid_pt&);
+
+
+//--------------------------------------------------------------------
+// CPP_detector_pixel
+
+class Opaque_detector_pixel_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_detector_pixel {
+public:
+  Real_ARRAY dr;
+  Real_ARRAY r0;
+  CPP_pixel_grid_pt_MATRIX pt;
+
+  CPP_detector_pixel() :
+    dr(0.0, 2),
+    r0(0.0, 2),
+    pt(CPP_pixel_grid_pt_ARRAY(CPP_pixel_grid_pt(), 0), 0)
+    {}
+
+  ~CPP_detector_pixel() {
+  }
+
+};   // End Class
+
+extern "C" void detector_pixel_to_c (const Opaque_detector_pixel_class*, CPP_detector_pixel&);
+extern "C" void detector_pixel_to_f (const CPP_detector_pixel&, Opaque_detector_pixel_class*);
+
+bool operator== (const CPP_detector_pixel&, const CPP_detector_pixel&);
+
+
+//--------------------------------------------------------------------
 // CPP_photon_element
 
 class Opaque_photon_element_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_photon_element {
 public:
-  CPP_photon_surface surface;
+  CPP_surface_curvature curvature;
   CPP_photon_target target;
   CPP_photon_material material;
+  CPP_surface_grid grid;
+  CPP_detector_pixel pixel;
 
   CPP_photon_element() :
-    surface(),
+    curvature(),
     target(),
-    material()
+    material(),
+    grid(),
+    pixel()
     {}
 
   ~CPP_photon_element() {

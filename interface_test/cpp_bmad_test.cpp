@@ -2881,36 +2881,6 @@ void set_CPP_surface_grid_pt_test_pattern (CPP_surface_grid_pt& C, int ix_patt) 
   // c_side.test_pat[real, 0, NOT]
   rhs = 7 + offset; C.d2z_dxdy = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.n_photon = rhs;
-
-  // c_side.test_pat[complex, 0, NOT]
-  rhs = 9 + offset; C.e_x = Complex(rhs, 100+rhs);
-
-  // c_side.test_pat[complex, 0, NOT]
-  rhs = 10 + offset; C.e_y = Complex(rhs, 100+rhs);
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.intensity_x = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.intensity_y = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 13 + offset; C.intensity = rhs;
-
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.orbit.size(); i++)
-    {int rhs = 101 + i + 14 + offset; C.orbit[i] = rhs;}
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.orbit_rms.size(); i++)
-    {int rhs = 101 + i + 15 + offset; C.orbit_rms[i] = rhs;}
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.init_orbit.size(); i++)
-    {int rhs = 101 + i + 16 + offset; C.init_orbit[i] = rhs;}
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.init_orbit_rms.size(); i++)
-    {int rhs = 101 + i + 17 + offset; C.init_orbit_rms[i] = rhs;}
 
 }
 
@@ -2959,22 +2929,18 @@ void set_CPP_surface_grid_test_pattern (CPP_surface_grid& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[character, 0, NOT]
-  C.file.resize(200);
-  for (unsigned int i = 0; i < C.file.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 2 + offset; C.active = (rhs % 2 == 0);
+  rhs = 1 + offset; C.active = (rhs % 2 == 0);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.type = rhs;
+  rhs = 2 + offset; C.type = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.dr.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.dr[i] = rhs;}
+    {int rhs = 101 + i + 3 + offset; C.dr[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.r0.size(); i++)
-    {int rhs = 101 + i + 5 + offset; C.r0[i] = rhs;}
+    {int rhs = 101 + i + 4 + offset; C.r0[i] = rhs;}
   // c_side.test_pat[type, 2, ALLOC]
   if (ix_patt < 3) 
     C.pt.resize(0);
@@ -3082,63 +3048,60 @@ extern "C" void test_c_target_point (Opaque_target_point_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_photon_surface (CPP_photon_surface&, bool&);
+extern "C" void test2_f_surface_curvature (CPP_surface_curvature&, bool&);
 
-void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
+void set_CPP_surface_curvature_test_pattern (CPP_surface_curvature& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_surface_grid_test_pattern(C.grid, ix_patt);
-
   // c_side.test_pat[real, 2, NOT]
-  for (unsigned int i = 0; i < C.curvature_xy.size(); i++)  for (unsigned int j = 0; j < C.curvature_xy[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 2 + offset; C.curvature_xy[i][j] = rhs;}
+  for (unsigned int i = 0; i < C.xy.size(); i++)  for (unsigned int j = 0; j < C.xy[0].size(); j++) 
+    {int rhs = 101 + i + 10*(j+1) + 1 + offset; C.xy[i][j] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.spherical_curvature = rhs;
+  rhs = 2 + offset; C.spherical = rhs;
 
   // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.elliptical_curvature.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.elliptical_curvature[i] = rhs;}
+  for (unsigned int i = 0; i < C.elliptical.size(); i++)
+    {int rhs = 101 + i + 3 + offset; C.elliptical[i] = rhs;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 5 + offset; C.has_curvature = (rhs % 2 == 0);
+  rhs = 4 + offset; C.has_curvature = (rhs % 2 == 0);
 
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_photon_surface (Opaque_photon_surface_class* F, bool& c_ok) {
+extern "C" void test_c_surface_curvature (Opaque_surface_curvature_class* F, bool& c_ok) {
 
-  CPP_photon_surface C, C2;
+  CPP_surface_curvature C, C2;
 
   c_ok = true;
 
-  photon_surface_to_c (F, C);
-  set_CPP_photon_surface_test_pattern (C2, 1);
+  surface_curvature_to_c (F, C);
+  set_CPP_surface_curvature_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " photon_surface: C side convert F->C: Good" << endl;
+    cout << " surface_curvature: C side convert F->C: Good" << endl;
   } else {
-    cout << " photon_surface: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " surface_curvature: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_photon_surface_test_pattern (C2, 2);
+  set_CPP_surface_curvature_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_photon_surface (C2, c_ok2);
+  test2_f_surface_curvature (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_photon_surface_test_pattern (C, 3);
+  set_CPP_surface_curvature_test_pattern (C, 3);
   if (C == C2) {
-    cout << " photon_surface: F side convert F->C: Good" << endl;
+    cout << " surface_curvature: F side convert F->C: Good" << endl;
   } else {
-    cout << " photon_surface: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " surface_curvature: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_photon_surface_test_pattern (C2, 4);
-  photon_surface_to_f (C2, F);
+  set_CPP_surface_curvature_test_pattern (C2, 4);
+  surface_curvature_to_f (C2, F);
 
 }
 
@@ -3280,6 +3243,152 @@ extern "C" void test_c_photon_material (Opaque_photon_material_class* F, bool& c
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_pixel_grid_pt (CPP_pixel_grid_pt&, bool&);
+
+void set_CPP_pixel_grid_pt_test_pattern (CPP_pixel_grid_pt& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.n_photon = rhs;
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 2 + offset; C.e_x = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 3 + offset; C.e_y = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.intensity_x = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.intensity_y = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.intensity = rhs;
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.orbit.size(); i++)
+    {int rhs = 101 + i + 7 + offset; C.orbit[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.orbit_rms.size(); i++)
+    {int rhs = 101 + i + 8 + offset; C.orbit_rms[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.init_orbit.size(); i++)
+    {int rhs = 101 + i + 9 + offset; C.init_orbit[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.init_orbit_rms.size(); i++)
+    {int rhs = 101 + i + 10 + offset; C.init_orbit_rms[i] = rhs;}
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_pixel_grid_pt (Opaque_pixel_grid_pt_class* F, bool& c_ok) {
+
+  CPP_pixel_grid_pt C, C2;
+
+  c_ok = true;
+
+  pixel_grid_pt_to_c (F, C);
+  set_CPP_pixel_grid_pt_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " pixel_grid_pt: C side convert F->C: Good" << endl;
+  } else {
+    cout << " pixel_grid_pt: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_pixel_grid_pt_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_pixel_grid_pt (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_pixel_grid_pt_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " pixel_grid_pt: F side convert F->C: Good" << endl;
+  } else {
+    cout << " pixel_grid_pt: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_pixel_grid_pt_test_pattern (C2, 4);
+  pixel_grid_pt_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_detector_pixel (CPP_detector_pixel&, bool&);
+
+void set_CPP_detector_pixel_test_pattern (CPP_detector_pixel& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.dr.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.dr[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.r0.size(); i++)
+    {int rhs = 101 + i + 2 + offset; C.r0[i] = rhs;}
+  // c_side.test_pat[type, 2, ALLOC]
+  if (ix_patt < 3) 
+    C.pt.resize(0);
+  else {
+    C.pt.resize(3);
+    for (unsigned int i = 0; i < C.pt.size(); i++) {
+      C.pt[i].resize(2);
+
+      for (unsigned int j = 0; j < C.pt[0].size(); j++) {
+        set_CPP_pixel_grid_pt_test_pattern(C.pt[i][j], ix_patt+i+2*j+3);
+      }
+    }
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_detector_pixel (Opaque_detector_pixel_class* F, bool& c_ok) {
+
+  CPP_detector_pixel C, C2;
+
+  c_ok = true;
+
+  detector_pixel_to_c (F, C);
+  set_CPP_detector_pixel_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " detector_pixel: C side convert F->C: Good" << endl;
+  } else {
+    cout << " detector_pixel: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_detector_pixel_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_detector_pixel (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_detector_pixel_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " detector_pixel: F side convert F->C: Good" << endl;
+  } else {
+    cout << " detector_pixel: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_detector_pixel_test_pattern (C2, 4);
+  detector_pixel_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_photon_element (CPP_photon_element&, bool&);
 
 void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
@@ -3287,13 +3396,19 @@ void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[type, 0, NOT]
-  set_CPP_photon_surface_test_pattern(C.surface, ix_patt);
+  set_CPP_surface_curvature_test_pattern(C.curvature, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_photon_target_test_pattern(C.target, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_photon_material_test_pattern(C.material, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_surface_grid_test_pattern(C.grid, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_detector_pixel_test_pattern(C.pixel, ix_patt);
 
 
 }

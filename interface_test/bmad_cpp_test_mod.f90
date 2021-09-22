@@ -4354,38 +4354,6 @@ rhs = 5 + offset; F%dz_dx = rhs
 rhs = 6 + offset; F%dz_dy = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 7 + offset; F%d2z_dxdy = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%n_photon = rhs
-!! f_side.test_pat[complex, 0, NOT]
-rhs = 9 + offset; F%e_x = cmplx(rhs, 100+rhs)
-!! f_side.test_pat[complex, 0, NOT]
-rhs = 10 + offset; F%e_y = cmplx(rhs, 100+rhs)
-!! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%intensity_x = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 12 + offset; F%intensity_y = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 13 + offset; F%intensity = rhs
-!! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%orbit,1); lb1 = lbound(F%orbit,1) - 1
-  rhs = 100 + jd1 + 14 + offset
-  F%orbit(jd1+lb1) = rhs
-enddo
-!! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%orbit_rms,1); lb1 = lbound(F%orbit_rms,1) - 1
-  rhs = 100 + jd1 + 15 + offset
-  F%orbit_rms(jd1+lb1) = rhs
-enddo
-!! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%init_orbit,1); lb1 = lbound(F%init_orbit,1) - 1
-  rhs = 100 + jd1 + 16 + offset
-  F%init_orbit(jd1+lb1) = rhs
-enddo
-!! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%init_orbit_rms,1); lb1 = lbound(F%init_orbit_rms,1) - 1
-  rhs = 100 + jd1 + 17 + offset
-  F%init_orbit_rms(jd1+lb1) = rhs
-enddo
 
 end subroutine set_surface_grid_pt_test_pattern
 
@@ -4470,22 +4438,18 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[character, 0, NOT]
-do jd1 = 1, len(F%file)
-  F%file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
-enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 2 + offset; F%active = (modulo(rhs, 2) == 0)
+rhs = 1 + offset; F%active = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 3 + offset; F%type = rhs
+rhs = 2 + offset; F%type = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%dr,1); lb1 = lbound(F%dr,1) - 1
-  rhs = 100 + jd1 + 4 + offset
+  rhs = 100 + jd1 + 3 + offset
   F%dr(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
-  rhs = 100 + jd1 + 5 + offset
+  rhs = 100 + jd1 + 4 + offset
   F%r0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[type, 2, ALLOC]
@@ -4596,18 +4560,18 @@ end subroutine set_target_point_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_photon_surface (ok)
+subroutine test1_f_surface_curvature (ok)
 
 implicit none
 
-type(photon_surface_struct), target :: f_photon_surface, f2_photon_surface
+type(surface_curvature_struct), target :: f_surface_curvature, f2_surface_curvature
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_photon_surface (c_photon_surface, c_ok) bind(c)
+  subroutine test_c_surface_curvature (c_surface_curvature, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_photon_surface
+    type(c_ptr), value :: c_surface_curvature
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -4615,83 +4579,81 @@ end interface
 !
 
 ok = .true.
-call set_photon_surface_test_pattern (f2_photon_surface, 1)
+call set_surface_curvature_test_pattern (f2_surface_curvature, 1)
 
-call test_c_photon_surface(c_loc(f2_photon_surface), c_ok)
+call test_c_surface_curvature(c_loc(f2_surface_curvature), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_photon_surface_test_pattern (f_photon_surface, 4)
-if (f_photon_surface == f2_photon_surface) then
-  print *, 'photon_surface: C side convert C->F: Good'
+call set_surface_curvature_test_pattern (f_surface_curvature, 4)
+if (f_surface_curvature == f2_surface_curvature) then
+  print *, 'surface_curvature: C side convert C->F: Good'
 else
-  print *, 'photon_surface: C SIDE CONVERT C->F: FAILED!'
+  print *, 'surface_curvature: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_photon_surface
+end subroutine test1_f_surface_curvature
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_photon_surface (c_photon_surface, c_ok) bind(c)
+subroutine test2_f_surface_curvature (c_surface_curvature, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_photon_surface
-type(photon_surface_struct), target :: f_photon_surface, f2_photon_surface
+type(c_ptr), value ::  c_surface_curvature
+type(surface_curvature_struct), target :: f_surface_curvature, f2_surface_curvature
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call photon_surface_to_f (c_photon_surface, c_loc(f_photon_surface))
+call surface_curvature_to_f (c_surface_curvature, c_loc(f_surface_curvature))
 
-call set_photon_surface_test_pattern (f2_photon_surface, 2)
-if (f_photon_surface == f2_photon_surface) then
-  print *, 'photon_surface: F side convert C->F: Good'
+call set_surface_curvature_test_pattern (f2_surface_curvature, 2)
+if (f_surface_curvature == f2_surface_curvature) then
+  print *, 'surface_curvature: F side convert C->F: Good'
 else
-  print *, 'photon_surface: F SIDE CONVERT C->F: FAILED!'
+  print *, 'surface_curvature: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_photon_surface_test_pattern (f2_photon_surface, 3)
-call photon_surface_to_c (c_loc(f2_photon_surface), c_photon_surface)
+call set_surface_curvature_test_pattern (f2_surface_curvature, 3)
+call surface_curvature_to_c (c_loc(f2_surface_curvature), c_surface_curvature)
 
-end subroutine test2_f_photon_surface
+end subroutine test2_f_surface_curvature
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_photon_surface_test_pattern (F, ix_patt)
+subroutine set_surface_curvature_test_pattern (F, ix_patt)
 
 implicit none
 
-type(photon_surface_struct) F
+type(surface_curvature_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[type, 0, NOT]
-call set_surface_grid_test_pattern (F%grid, ix_patt)
 !! f_side.test_pat[real, 2, NOT]
-do jd1 = 1, size(F%curvature_xy,1); lb1 = lbound(F%curvature_xy,1) - 1
-do jd2 = 1, size(F%curvature_xy,2); lb2 = lbound(F%curvature_xy,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 2 + offset
-  F%curvature_xy(jd1+lb1,jd2+lb2) = rhs
+do jd1 = 1, size(F%xy,1); lb1 = lbound(F%xy,1) - 1
+do jd2 = 1, size(F%xy,2); lb2 = lbound(F%xy,2) - 1
+  rhs = 100 + jd1 + 10*jd2 + 1 + offset
+  F%xy(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%spherical_curvature = rhs
+rhs = 2 + offset; F%spherical = rhs
 !! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%elliptical_curvature,1); lb1 = lbound(F%elliptical_curvature,1) - 1
-  rhs = 100 + jd1 + 4 + offset
-  F%elliptical_curvature(jd1+lb1) = rhs
+do jd1 = 1, size(F%elliptical,1); lb1 = lbound(F%elliptical,1) - 1
+  rhs = 100 + jd1 + 3 + offset
+  F%elliptical(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 5 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
+rhs = 4 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
 
-end subroutine set_photon_surface_test_pattern
+end subroutine set_surface_curvature_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -4900,6 +4862,228 @@ end subroutine set_photon_material_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_pixel_grid_pt (ok)
+
+implicit none
+
+type(pixel_grid_pt_struct), target :: f_pixel_grid_pt, f2_pixel_grid_pt
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_pixel_grid_pt (c_pixel_grid_pt, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_pixel_grid_pt
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_pixel_grid_pt_test_pattern (f2_pixel_grid_pt, 1)
+
+call test_c_pixel_grid_pt(c_loc(f2_pixel_grid_pt), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_pixel_grid_pt_test_pattern (f_pixel_grid_pt, 4)
+if (f_pixel_grid_pt == f2_pixel_grid_pt) then
+  print *, 'pixel_grid_pt: C side convert C->F: Good'
+else
+  print *, 'pixel_grid_pt: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_pixel_grid_pt
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_pixel_grid_pt (c_pixel_grid_pt, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_pixel_grid_pt
+type(pixel_grid_pt_struct), target :: f_pixel_grid_pt, f2_pixel_grid_pt
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call pixel_grid_pt_to_f (c_pixel_grid_pt, c_loc(f_pixel_grid_pt))
+
+call set_pixel_grid_pt_test_pattern (f2_pixel_grid_pt, 2)
+if (f_pixel_grid_pt == f2_pixel_grid_pt) then
+  print *, 'pixel_grid_pt: F side convert C->F: Good'
+else
+  print *, 'pixel_grid_pt: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_pixel_grid_pt_test_pattern (f2_pixel_grid_pt, 3)
+call pixel_grid_pt_to_c (c_loc(f2_pixel_grid_pt), c_pixel_grid_pt)
+
+end subroutine test2_f_pixel_grid_pt
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_pixel_grid_pt_test_pattern (F, ix_patt)
+
+implicit none
+
+type(pixel_grid_pt_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%n_photon = rhs
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 2 + offset; F%e_x = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 3 + offset; F%e_y = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%intensity_x = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%intensity_y = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%intensity = rhs
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%orbit,1); lb1 = lbound(F%orbit,1) - 1
+  rhs = 100 + jd1 + 7 + offset
+  F%orbit(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%orbit_rms,1); lb1 = lbound(F%orbit_rms,1) - 1
+  rhs = 100 + jd1 + 8 + offset
+  F%orbit_rms(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%init_orbit,1); lb1 = lbound(F%init_orbit,1) - 1
+  rhs = 100 + jd1 + 9 + offset
+  F%init_orbit(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%init_orbit_rms,1); lb1 = lbound(F%init_orbit_rms,1) - 1
+  rhs = 100 + jd1 + 10 + offset
+  F%init_orbit_rms(jd1+lb1) = rhs
+enddo
+
+end subroutine set_pixel_grid_pt_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_detector_pixel (ok)
+
+implicit none
+
+type(detector_pixel_struct), target :: f_detector_pixel, f2_detector_pixel
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_detector_pixel (c_detector_pixel, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_detector_pixel
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_detector_pixel_test_pattern (f2_detector_pixel, 1)
+
+call test_c_detector_pixel(c_loc(f2_detector_pixel), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_detector_pixel_test_pattern (f_detector_pixel, 4)
+if (f_detector_pixel == f2_detector_pixel) then
+  print *, 'detector_pixel: C side convert C->F: Good'
+else
+  print *, 'detector_pixel: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_detector_pixel
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_detector_pixel (c_detector_pixel, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_detector_pixel
+type(detector_pixel_struct), target :: f_detector_pixel, f2_detector_pixel
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call detector_pixel_to_f (c_detector_pixel, c_loc(f_detector_pixel))
+
+call set_detector_pixel_test_pattern (f2_detector_pixel, 2)
+if (f_detector_pixel == f2_detector_pixel) then
+  print *, 'detector_pixel: F side convert C->F: Good'
+else
+  print *, 'detector_pixel: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_detector_pixel_test_pattern (f2_detector_pixel, 3)
+call detector_pixel_to_c (c_loc(f2_detector_pixel), c_detector_pixel)
+
+end subroutine test2_f_detector_pixel
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_detector_pixel_test_pattern (F, ix_patt)
+
+implicit none
+
+type(detector_pixel_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%dr,1); lb1 = lbound(F%dr,1) - 1
+  rhs = 100 + jd1 + 1 + offset
+  F%dr(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
+  rhs = 100 + jd1 + 2 + offset
+  F%r0(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[type, 2, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%pt)) deallocate (F%pt)
+else
+  if (.not. allocated(F%pt)) allocate (F%pt(-1:1, 2))
+  do jd1 = 1, size(F%pt,1); lb1 = lbound(F%pt,1) - 1
+  do jd2 = 1, size(F%pt,2); lb2 = lbound(F%pt,2) - 1
+    call set_pixel_grid_pt_test_pattern (F%pt(jd1+lb1,jd2+lb2), ix_patt+jd1+2*jd2)
+  enddo
+  enddo
+endif
+
+end subroutine set_detector_pixel_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_photon_element (ok)
 
 implicit none
@@ -4978,11 +5162,15 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 offset = 100 * ix_patt
 
 !! f_side.test_pat[type, 0, NOT]
-call set_photon_surface_test_pattern (F%surface, ix_patt)
+call set_surface_curvature_test_pattern (F%curvature, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_photon_target_test_pattern (F%target, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_photon_material_test_pattern (F%material, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_surface_grid_test_pattern (F%grid, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_detector_pixel_test_pattern (F%pixel, ix_patt)
 
 end subroutine set_photon_element_test_pattern
 

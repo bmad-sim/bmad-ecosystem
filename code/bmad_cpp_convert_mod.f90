@@ -422,7 +422,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine photon_surface_to_f (C, Fp) bind(c)
+  subroutine surface_curvature_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -441,6 +441,24 @@ end interface
 
 interface 
   subroutine photon_material_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine pixel_grid_pt_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine detector_pixel_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -5153,16 +5171,12 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine surface_grid_pt_to_c2 (C, z_orientation, z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, &
-      z_d2z_dxdy, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, z_intensity, z_orbit, &
-      z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
+      z_d2z_dxdy) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_orientation
-    real(c_double) :: z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, z_d2z_dxdy, z_intensity_x
-    real(c_double) :: z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
-    integer(c_int) :: z_n_photon
-    complex(c_double_complex) :: z_e_x, z_e_y
+    real(c_double) :: z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, z_d2z_dxdy
   end subroutine
 end interface
 
@@ -5179,9 +5193,7 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call surface_grid_pt_to_c2 (C, c_loc(F%orientation), F%z0, F%x0, F%y0, F%dz_dx, F%dz_dy, &
-    F%d2z_dxdy, F%n_photon, F%e_x, F%e_y, F%intensity_x, F%intensity_y, F%intensity, &
-    fvec2vec(F%orbit, 6), fvec2vec(F%orbit_rms, 6), fvec2vec(F%init_orbit, 6), &
-    fvec2vec(F%init_orbit_rms, 6))
+    F%d2z_dxdy)
 
 end subroutine surface_grid_pt_to_c
 
@@ -5202,8 +5214,7 @@ end subroutine surface_grid_pt_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine surface_grid_pt_to_f2 (Fp, z_orientation, z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, &
-    z_d2z_dxdy, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, z_intensity, z_orbit, &
-    z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
+    z_d2z_dxdy) bind(c)
 
 
 implicit none
@@ -5213,10 +5224,7 @@ type(surface_grid_pt_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(c_ptr), value :: z_orientation
-real(c_double) :: z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, z_d2z_dxdy, z_intensity_x
-real(c_double) :: z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
-integer(c_int) :: z_n_photon
-complex(c_double_complex) :: z_e_x, z_e_y
+real(c_double) :: z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, z_d2z_dxdy
 
 call c_f_pointer (Fp, F)
 
@@ -5234,26 +5242,6 @@ F%dz_dx = z_dz_dx
 F%dz_dy = z_dz_dy
 !! f_side.to_f2_trans[real, 0, NOT]
 F%d2z_dxdy = z_d2z_dxdy
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%n_photon = z_n_photon
-!! f_side.to_f2_trans[complex, 0, NOT]
-F%e_x = z_e_x
-!! f_side.to_f2_trans[complex, 0, NOT]
-F%e_y = z_e_y
-!! f_side.to_f2_trans[real, 0, NOT]
-F%intensity_x = z_intensity_x
-!! f_side.to_f2_trans[real, 0, NOT]
-F%intensity_y = z_intensity_y
-!! f_side.to_f2_trans[real, 0, NOT]
-F%intensity = z_intensity
-!! f_side.to_f2_trans[real, 1, NOT]
-F%orbit = z_orbit(1:6)
-!! f_side.to_f2_trans[real, 1, NOT]
-F%orbit_rms = z_orbit_rms(1:6)
-!! f_side.to_f2_trans[real, 1, NOT]
-F%init_orbit = z_init_orbit(1:6)
-!! f_side.to_f2_trans[real, 1, NOT]
-F%init_orbit_rms = z_init_orbit_rms(1:6)
 
 end subroutine surface_grid_pt_to_f2
 
@@ -5278,12 +5266,10 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine surface_grid_to_c2 (C, z_file, z_active, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) &
-      bind(c)
+  subroutine surface_grid_to_c2 (C, z_active, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    character(c_char) :: z_file(*)
     logical(c_bool) :: z_active
     integer(c_int) :: z_type
     real(c_double) :: z_dr(*), z_r0(*)
@@ -5318,8 +5304,8 @@ else
 endif
 
 !! f_side.to_c2_call
-call surface_grid_to_c2 (C, trim(F%file) // c_null_char, c_logic(F%active), F%type, &
-    fvec2vec(F%dr, 2), fvec2vec(F%r0, 2), z_pt, n1_pt, n2_pt)
+call surface_grid_to_c2 (C, c_logic(F%active), F%type, fvec2vec(F%dr, 2), fvec2vec(F%r0, 2), &
+    z_pt, n1_pt, n2_pt)
 
 end subroutine surface_grid_to_c
 
@@ -5339,8 +5325,7 @@ end subroutine surface_grid_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine surface_grid_to_f2 (Fp, z_file, z_active, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) &
-    bind(c)
+subroutine surface_grid_to_f2 (Fp, z_active, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
 
 
 implicit none
@@ -5349,7 +5334,6 @@ type(c_ptr), value :: Fp
 type(surface_grid_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-character(c_char) :: z_file(*)
 logical(c_bool) :: z_active
 integer(c_int) :: z_type
 real(c_double) :: z_dr(*), z_r0(*)
@@ -5358,8 +5342,6 @@ integer(c_int), value :: n1_pt, n2_pt
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[character, 0, NOT]
-call to_f_str(z_file, F%file)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%active = f_logic(z_active)
 !! f_side.to_f2_trans[integer, 0, NOT]
@@ -5470,37 +5452,36 @@ end subroutine target_point_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine photon_surface_to_c (Fp, C) bind(c)
+! Subroutine surface_curvature_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad photon_surface_struct to a C++ CPP_photon_surface structure
+! Routine to convert a Bmad surface_curvature_struct to a C++ CPP_surface_curvature structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad photon_surface_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad surface_curvature_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_photon_surface struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_surface_curvature struct.
 !-
 
-subroutine photon_surface_to_c (Fp, C) bind(c)
+subroutine surface_curvature_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_surface_to_c2 (C, z_grid, z_curvature_xy, z_spherical_curvature, &
-      z_elliptical_curvature, z_has_curvature) bind(c)
+  subroutine surface_curvature_to_c2 (C, z_xy, z_spherical, z_elliptical, z_has_curvature) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr), value :: z_grid
-    real(c_double) :: z_curvature_xy(*), z_spherical_curvature, z_elliptical_curvature(*)
+    real(c_double) :: z_xy(*), z_spherical, z_elliptical(*)
     logical(c_bool) :: z_has_curvature
   end subroutine
 end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(photon_surface_struct), pointer :: F
+type(surface_curvature_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 
@@ -5510,55 +5491,52 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call photon_surface_to_c2 (C, c_loc(F%grid), mat2vec(F%curvature_xy, 7*7), &
-    F%spherical_curvature, fvec2vec(F%elliptical_curvature, 3), c_logic(F%has_curvature))
+call surface_curvature_to_c2 (C, mat2vec(F%xy, 7*7), F%spherical, fvec2vec(F%elliptical, 3), &
+    c_logic(F%has_curvature))
 
-end subroutine photon_surface_to_c
+end subroutine surface_curvature_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine photon_surface_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine surface_curvature_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_photon_surface structure to a Bmad photon_surface_struct structure.
-! This routine is called by photon_surface_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_surface_curvature structure to a Bmad surface_curvature_struct structure.
+! This routine is called by surface_curvature_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the photon_surface_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the surface_curvature_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad photon_surface_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad surface_curvature_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_surface_to_f2 (Fp, z_grid, z_curvature_xy, z_spherical_curvature, &
-    z_elliptical_curvature, z_has_curvature) bind(c)
+subroutine surface_curvature_to_f2 (Fp, z_xy, z_spherical, z_elliptical, z_has_curvature) &
+    bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(photon_surface_struct), pointer :: F
+type(surface_curvature_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr), value :: z_grid
-real(c_double) :: z_curvature_xy(*), z_spherical_curvature, z_elliptical_curvature(*)
+real(c_double) :: z_xy(*), z_spherical, z_elliptical(*)
 logical(c_bool) :: z_has_curvature
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[type, 0, NOT]
-call surface_grid_to_f(z_grid, c_loc(F%grid))
 !! f_side.to_f2_trans[real, 2, NOT]
-call vec2mat(z_curvature_xy, F%curvature_xy)
+call vec2mat(z_xy, F%xy)
 !! f_side.to_f2_trans[real, 0, NOT]
-F%spherical_curvature = z_spherical_curvature
+F%spherical = z_spherical
 !! f_side.to_f2_trans[real, 1, NOT]
-F%elliptical_curvature = z_elliptical_curvature(1:3)
+F%elliptical = z_elliptical(1:3)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%has_curvature = f_logic(z_has_curvature)
 
-end subroutine photon_surface_to_f2
+end subroutine surface_curvature_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -5760,6 +5738,226 @@ end subroutine photon_material_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine pixel_grid_pt_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad pixel_grid_pt_struct to a C++ CPP_pixel_grid_pt structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad pixel_grid_pt_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_pixel_grid_pt struct.
+!-
+
+subroutine pixel_grid_pt_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine pixel_grid_pt_to_c2 (C, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, &
+      z_intensity, z_orbit, z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int) :: z_n_photon
+    complex(c_double_complex) :: z_e_x, z_e_y
+    real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(pixel_grid_pt_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call pixel_grid_pt_to_c2 (C, F%n_photon, F%e_x, F%e_y, F%intensity_x, F%intensity_y, &
+    F%intensity, fvec2vec(F%orbit, 6), fvec2vec(F%orbit_rms, 6), fvec2vec(F%init_orbit, 6), &
+    fvec2vec(F%init_orbit_rms, 6))
+
+end subroutine pixel_grid_pt_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine pixel_grid_pt_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_pixel_grid_pt structure to a Bmad pixel_grid_pt_struct structure.
+! This routine is called by pixel_grid_pt_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the pixel_grid_pt_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad pixel_grid_pt_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine pixel_grid_pt_to_f2 (Fp, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, &
+    z_intensity, z_orbit, z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(pixel_grid_pt_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_n_photon
+complex(c_double_complex) :: z_e_x, z_e_y
+real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_photon = z_n_photon
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%e_x = z_e_x
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%e_y = z_e_y
+!! f_side.to_f2_trans[real, 0, NOT]
+F%intensity_x = z_intensity_x
+!! f_side.to_f2_trans[real, 0, NOT]
+F%intensity_y = z_intensity_y
+!! f_side.to_f2_trans[real, 0, NOT]
+F%intensity = z_intensity
+!! f_side.to_f2_trans[real, 1, NOT]
+F%orbit = z_orbit(1:6)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%orbit_rms = z_orbit_rms(1:6)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%init_orbit = z_init_orbit(1:6)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%init_orbit_rms = z_init_orbit_rms(1:6)
+
+end subroutine pixel_grid_pt_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine detector_pixel_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad detector_pixel_struct to a C++ CPP_detector_pixel structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad detector_pixel_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_detector_pixel struct.
+!-
+
+subroutine detector_pixel_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine detector_pixel_to_c2 (C, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_dr(*), z_r0(*)
+    type(c_ptr) :: z_pt(*)
+    integer(c_int), value :: n1_pt, n2_pt
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(detector_pixel_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_pt(:)
+integer(c_int) :: n1_pt
+integer(c_int) :: n2_pt
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 2, ALLOC]
+if (allocated(F%pt)) then
+  n1_pt = size(F%pt, 1); lb1 = lbound(F%pt, 1) - 1
+  n2_pt = size(F%pt, 2); lb2 = lbound(F%pt, 2) - 1
+  allocate (z_pt(n1_pt * n2_pt))
+  do jd1 = 1, n1_pt; do jd2 = 1, n2_pt
+    z_pt(n2_pt*(jd1-1) + jd2) = c_loc(F%pt(jd1+lb1, jd2+lb2))
+  enddo;  enddo
+else
+  n1_pt = 0; n2_pt = 0
+endif
+
+!! f_side.to_c2_call
+call detector_pixel_to_c2 (C, fvec2vec(F%dr, 2), fvec2vec(F%r0, 2), z_pt, n1_pt, n2_pt)
+
+end subroutine detector_pixel_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine detector_pixel_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_detector_pixel structure to a Bmad detector_pixel_struct structure.
+! This routine is called by detector_pixel_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the detector_pixel_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad detector_pixel_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine detector_pixel_to_f2 (Fp, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(detector_pixel_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_dr(*), z_r0(*)
+type(c_ptr) :: z_pt(*)
+integer(c_int), value :: n1_pt, n2_pt
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 1, NOT]
+F%dr = z_dr(1:2)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%r0 = z_r0(1:2)
+!! f_side.to_f2_trans[type, 2, ALLOC]
+if (n1_pt == 0) then
+  if (allocated(F%pt)) deallocate(F%pt)
+else
+  if (allocated(F%pt)) then
+    if (n1_pt == 0 .or. any(shape(F%pt) /= [n1_pt, n2_pt])) deallocate(F%pt)
+    if (any(lbound(F%pt) /= 1)) deallocate(F%pt)
+  endif
+  if (.not. allocated(F%pt)) allocate(F%pt(1:n1_pt+1-1, 1:n2_pt+1-1))
+  do jd1 = 1, n1_pt
+  do jd2 = 1, n2_pt
+    call pixel_grid_pt_to_f (z_pt(n2_pt*(jd1-1) + jd2), c_loc(F%pt(jd1+1-1,jd2+1-1)))
+  enddo
+  enddo
+endif
+
+
+end subroutine detector_pixel_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine photon_element_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad photon_element_struct to a C++ CPP_photon_element structure
@@ -5777,11 +5975,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_element_to_c2 (C, z_surface, z_target, z_material) bind(c)
+  subroutine photon_element_to_c2 (C, z_curvature, z_target, z_material, z_grid, z_pixel) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr), value :: z_surface, z_target, z_material
+    type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel
   end subroutine
 end interface
 
@@ -5797,7 +5996,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call photon_element_to_c2 (C, c_loc(F%surface), c_loc(F%target), c_loc(F%material))
+call photon_element_to_c2 (C, c_loc(F%curvature), c_loc(F%target), c_loc(F%material), &
+    c_loc(F%grid), c_loc(F%pixel))
 
 end subroutine photon_element_to_c
 
@@ -5817,7 +6017,8 @@ end subroutine photon_element_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_element_to_f2 (Fp, z_surface, z_target, z_material) bind(c)
+subroutine photon_element_to_f2 (Fp, z_curvature, z_target, z_material, z_grid, z_pixel) &
+    bind(c)
 
 
 implicit none
@@ -5826,16 +6027,20 @@ type(c_ptr), value :: Fp
 type(photon_element_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr), value :: z_surface, z_target, z_material
+type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[type, 0, NOT]
-call photon_surface_to_f(z_surface, c_loc(F%surface))
+call surface_curvature_to_f(z_curvature, c_loc(F%curvature))
 !! f_side.to_f2_trans[type, 0, NOT]
 call photon_target_to_f(z_target, c_loc(F%target))
 !! f_side.to_f2_trans[type, 0, NOT]
 call photon_material_to_f(z_material, c_loc(F%material))
+!! f_side.to_f2_trans[type, 0, NOT]
+call surface_grid_to_f(z_grid, c_loc(F%grid))
+!! f_side.to_f2_trans[type, 0, NOT]
+call detector_pixel_to_f(z_pixel, c_loc(F%pixel))
 
 end subroutine photon_element_to_f2
 

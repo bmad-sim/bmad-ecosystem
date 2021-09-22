@@ -740,16 +740,6 @@ bool operator== (const CPP_surface_grid_pt& x, const CPP_surface_grid_pt& y) {
   is_eq = is_eq && (x.dz_dx == y.dz_dx);
   is_eq = is_eq && (x.dz_dy == y.dz_dy);
   is_eq = is_eq && (x.d2z_dxdy == y.d2z_dxdy);
-  is_eq = is_eq && (x.n_photon == y.n_photon);
-  is_eq = is_eq && (x.e_x == y.e_x);
-  is_eq = is_eq && (x.e_y == y.e_y);
-  is_eq = is_eq && (x.intensity_x == y.intensity_x);
-  is_eq = is_eq && (x.intensity_y == y.intensity_y);
-  is_eq = is_eq && (x.intensity == y.intensity);
-  is_eq = is_eq && is_all_equal(x.orbit, y.orbit);
-  is_eq = is_eq && is_all_equal(x.orbit_rms, y.orbit_rms);
-  is_eq = is_eq && is_all_equal(x.init_orbit, y.init_orbit);
-  is_eq = is_eq && is_all_equal(x.init_orbit_rms, y.init_orbit_rms);
   return is_eq;
 };
 
@@ -760,7 +750,6 @@ template bool is_all_equal (const CPP_surface_grid_pt_MATRIX&, const CPP_surface
 
 bool operator== (const CPP_surface_grid& x, const CPP_surface_grid& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.file == y.file);
   is_eq = is_eq && (x.active == y.active);
   is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && is_all_equal(x.dr, y.dr);
@@ -785,18 +774,17 @@ template bool is_all_equal (const CPP_target_point_MATRIX&, const CPP_target_poi
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
+bool operator== (const CPP_surface_curvature& x, const CPP_surface_curvature& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.grid == y.grid);
-  is_eq = is_eq && is_all_equal(x.curvature_xy, y.curvature_xy);
-  is_eq = is_eq && (x.spherical_curvature == y.spherical_curvature);
-  is_eq = is_eq && is_all_equal(x.elliptical_curvature, y.elliptical_curvature);
+  is_eq = is_eq && is_all_equal(x.xy, y.xy);
+  is_eq = is_eq && (x.spherical == y.spherical);
+  is_eq = is_eq && is_all_equal(x.elliptical, y.elliptical);
   is_eq = is_eq && (x.has_curvature == y.has_curvature);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_photon_surface_ARRAY&, const CPP_photon_surface_ARRAY&);
-template bool is_all_equal (const CPP_photon_surface_MATRIX&, const CPP_photon_surface_MATRIX&);
+template bool is_all_equal (const CPP_surface_curvature_ARRAY&, const CPP_surface_curvature_ARRAY&);
+template bool is_all_equal (const CPP_surface_curvature_MATRIX&, const CPP_surface_curvature_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -833,11 +821,46 @@ template bool is_all_equal (const CPP_photon_material_MATRIX&, const CPP_photon_
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_pixel_grid_pt& x, const CPP_pixel_grid_pt& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.n_photon == y.n_photon);
+  is_eq = is_eq && (x.e_x == y.e_x);
+  is_eq = is_eq && (x.e_y == y.e_y);
+  is_eq = is_eq && (x.intensity_x == y.intensity_x);
+  is_eq = is_eq && (x.intensity_y == y.intensity_y);
+  is_eq = is_eq && (x.intensity == y.intensity);
+  is_eq = is_eq && is_all_equal(x.orbit, y.orbit);
+  is_eq = is_eq && is_all_equal(x.orbit_rms, y.orbit_rms);
+  is_eq = is_eq && is_all_equal(x.init_orbit, y.init_orbit);
+  is_eq = is_eq && is_all_equal(x.init_orbit_rms, y.init_orbit_rms);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_pixel_grid_pt_ARRAY&, const CPP_pixel_grid_pt_ARRAY&);
+template bool is_all_equal (const CPP_pixel_grid_pt_MATRIX&, const CPP_pixel_grid_pt_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_detector_pixel& x, const CPP_detector_pixel& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.dr, y.dr);
+  is_eq = is_eq && is_all_equal(x.r0, y.r0);
+  is_eq = is_eq && is_all_equal(x.pt, y.pt);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_detector_pixel_ARRAY&, const CPP_detector_pixel_ARRAY&);
+template bool is_all_equal (const CPP_detector_pixel_MATRIX&, const CPP_detector_pixel_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_photon_element& x, const CPP_photon_element& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.surface == y.surface);
+  is_eq = is_eq && (x.curvature == y.curvature);
   is_eq = is_eq && (x.target == y.target);
   is_eq = is_eq && (x.material == y.material);
+  is_eq = is_eq && (x.grid == y.grid);
+  is_eq = is_eq && (x.pixel == y.pixel);
   return is_eq;
 };
 

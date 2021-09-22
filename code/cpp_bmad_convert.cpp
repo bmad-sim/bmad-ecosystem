@@ -1733,26 +1733,19 @@ extern "C" void surface_grid_pt_to_c (const Opaque_surface_grid_pt_class*, CPP_s
 
 // c_side.to_f2_arg
 extern "C" void surface_grid_pt_to_f2 (Opaque_surface_grid_pt_class*, const
-    CPP_surface_orientation&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&,
-    c_Complex&, c_Complex&, c_Real&, c_Real&, c_Real&, c_RealArr, c_RealArr, c_RealArr,
-    c_RealArr);
+    CPP_surface_orientation&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
 
 extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt& C, Opaque_surface_grid_pt_class* F) {
 
   // c_side.to_f2_call
-  surface_grid_pt_to_f2 (F, C.orientation, C.z0, C.x0, C.y0, C.dz_dx, C.dz_dy, C.d2z_dxdy,
-      C.n_photon, C.e_x, C.e_y, C.intensity_x, C.intensity_y, C.intensity, &C.orbit[0],
-      &C.orbit_rms[0], &C.init_orbit[0], &C.init_orbit_rms[0]);
+  surface_grid_pt_to_f2 (F, C.orientation, C.z0, C.x0, C.y0, C.dz_dx, C.dz_dy, C.d2z_dxdy);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, const
     Opaque_surface_orientation_class* z_orientation, c_Real& z_z0, c_Real& z_x0, c_Real& z_y0,
-    c_Real& z_dz_dx, c_Real& z_dz_dy, c_Real& z_d2z_dxdy, c_Int& z_n_photon, c_Complex& z_e_x,
-    c_Complex& z_e_y, c_Real& z_intensity_x, c_Real& z_intensity_y, c_Real& z_intensity,
-    c_RealArr z_orbit, c_RealArr z_orbit_rms, c_RealArr z_init_orbit, c_RealArr
-    z_init_orbit_rms) {
+    c_Real& z_dz_dx, c_Real& z_dz_dy, c_Real& z_d2z_dxdy) {
 
   // c_side.to_c2_set[type, 0, NOT]
   surface_orientation_to_c(z_orientation, C.orientation);
@@ -1768,26 +1761,6 @@ extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, const
   C.dz_dy = z_dz_dy;
   // c_side.to_c2_set[real, 0, NOT]
   C.d2z_dxdy = z_d2z_dxdy;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_photon = z_n_photon;
-  // c_side.to_c2_set[complex, 0, NOT]
-  C.e_x = z_e_x;
-  // c_side.to_c2_set[complex, 0, NOT]
-  C.e_y = z_e_y;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.intensity_x = z_intensity_x;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.intensity_y = z_intensity_y;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.intensity = z_intensity;
-  // c_side.to_c2_set[real, 1, NOT]
-  C.orbit << z_orbit;
-  // c_side.to_c2_set[real, 1, NOT]
-  C.orbit_rms << z_orbit_rms;
-  // c_side.to_c2_set[real, 1, NOT]
-  C.init_orbit << z_init_orbit;
-  // c_side.to_c2_set[real, 1, NOT]
-  C.init_orbit_rms << z_init_orbit_rms;
 }
 
 //--------------------------------------------------------------------
@@ -1797,8 +1770,8 @@ extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, const
 extern "C" void surface_grid_to_c (const Opaque_surface_grid_class*, CPP_surface_grid&);
 
 // c_side.to_f2_arg
-extern "C" void surface_grid_to_f2 (Opaque_surface_grid_class*, c_Char, c_Bool&, c_Int&,
-    c_RealArr, c_RealArr, const CPP_surface_grid_pt**, Int, Int);
+extern "C" void surface_grid_to_f2 (Opaque_surface_grid_class*, c_Bool&, c_Int&, c_RealArr,
+    c_RealArr, const CPP_surface_grid_pt**, Int, Int);
 
 extern "C" void surface_grid_to_f (const CPP_surface_grid& C, Opaque_surface_grid_class* F) {
   // c_side.to_f_setup[type, 2, ALLOC]
@@ -1813,20 +1786,17 @@ extern "C" void surface_grid_to_f (const CPP_surface_grid& C, Opaque_surface_gri
   }
 
   // c_side.to_f2_call
-  surface_grid_to_f2 (F, C.file.c_str(), C.active, C.type, &C.dr[0], &C.r0[0], z_pt, n1_pt,
-      n2_pt);
+  surface_grid_to_f2 (F, C.active, C.type, &C.dr[0], &C.r0[0], z_pt, n1_pt, n2_pt);
 
   // c_side.to_f_cleanup[type, 2, ALLOC]
   delete[] z_pt;
 }
 
 // c_side.to_c2_arg
-extern "C" void surface_grid_to_c2 (CPP_surface_grid& C, c_Char z_file, c_Bool& z_active,
-    c_Int& z_type, c_RealArr z_dr, c_RealArr z_r0, Opaque_surface_grid_pt_class** z_pt, Int
-    n1_pt, Int n2_pt) {
+extern "C" void surface_grid_to_c2 (CPP_surface_grid& C, c_Bool& z_active, c_Int& z_type,
+    c_RealArr z_dr, c_RealArr z_r0, Opaque_surface_grid_pt_class** z_pt, Int n1_pt, Int n2_pt)
+    {
 
-  // c_side.to_c2_set[character, 0, NOT]
-  C.file = z_file;
   // c_side.to_c2_set[logical, 0, NOT]
   C.active = z_active;
   // c_side.to_c2_set[integer, 0, NOT]
@@ -1869,37 +1839,33 @@ extern "C" void target_point_to_c2 (CPP_target_point& C, c_RealArr z_r) {
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_photon_surface
+// CPP_surface_curvature
 
-extern "C" void photon_surface_to_c (const Opaque_photon_surface_class*, CPP_photon_surface&);
+extern "C" void surface_curvature_to_c (const Opaque_surface_curvature_class*, CPP_surface_curvature&);
 
 // c_side.to_f2_arg
-extern "C" void photon_surface_to_f2 (Opaque_photon_surface_class*, const CPP_surface_grid&,
-    c_RealArr, c_Real&, c_RealArr, c_Bool&);
+extern "C" void surface_curvature_to_f2 (Opaque_surface_curvature_class*, c_RealArr, c_Real&,
+    c_RealArr, c_Bool&);
 
-extern "C" void photon_surface_to_f (const CPP_photon_surface& C, Opaque_photon_surface_class* F) {
+extern "C" void surface_curvature_to_f (const CPP_surface_curvature& C, Opaque_surface_curvature_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
-  Real z_curvature_xy[7*7]; matrix_to_vec(C.curvature_xy, z_curvature_xy);
+  Real z_xy[7*7]; matrix_to_vec(C.xy, z_xy);
 
   // c_side.to_f2_call
-  photon_surface_to_f2 (F, C.grid, z_curvature_xy, C.spherical_curvature,
-      &C.elliptical_curvature[0], C.has_curvature);
+  surface_curvature_to_f2 (F, z_xy, C.spherical, &C.elliptical[0], C.has_curvature);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, const Opaque_surface_grid_class*
-    z_grid, c_RealArr z_curvature_xy, c_Real& z_spherical_curvature, c_RealArr
-    z_elliptical_curvature, c_Bool& z_has_curvature) {
+extern "C" void surface_curvature_to_c2 (CPP_surface_curvature& C, c_RealArr z_xy, c_Real&
+    z_spherical, c_RealArr z_elliptical, c_Bool& z_has_curvature) {
 
-  // c_side.to_c2_set[type, 0, NOT]
-  surface_grid_to_c(z_grid, C.grid);
   // c_side.to_c2_set[real, 2, NOT]
-  C.curvature_xy << z_curvature_xy;
+  C.xy << z_xy;
   // c_side.to_c2_set[real, 0, NOT]
-  C.spherical_curvature = z_spherical_curvature;
+  C.spherical = z_spherical;
   // c_side.to_c2_set[real, 1, NOT]
-  C.elliptical_curvature << z_elliptical_curvature;
+  C.elliptical << z_elliptical;
   // c_side.to_c2_set[logical, 0, NOT]
   C.has_curvature = z_has_curvature;
 }
@@ -1984,32 +1950,130 @@ extern "C" void photon_material_to_c2 (CPP_photon_material& C, c_Complex& z_f0_m
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_pixel_grid_pt
+
+extern "C" void pixel_grid_pt_to_c (const Opaque_pixel_grid_pt_class*, CPP_pixel_grid_pt&);
+
+// c_side.to_f2_arg
+extern "C" void pixel_grid_pt_to_f2 (Opaque_pixel_grid_pt_class*, c_Int&, c_Complex&,
+    c_Complex&, c_Real&, c_Real&, c_Real&, c_RealArr, c_RealArr, c_RealArr, c_RealArr);
+
+extern "C" void pixel_grid_pt_to_f (const CPP_pixel_grid_pt& C, Opaque_pixel_grid_pt_class* F) {
+
+  // c_side.to_f2_call
+  pixel_grid_pt_to_f2 (F, C.n_photon, C.e_x, C.e_y, C.intensity_x, C.intensity_y, C.intensity,
+      &C.orbit[0], &C.orbit_rms[0], &C.init_orbit[0], &C.init_orbit_rms[0]);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void pixel_grid_pt_to_c2 (CPP_pixel_grid_pt& C, c_Int& z_n_photon, c_Complex& z_e_x,
+    c_Complex& z_e_y, c_Real& z_intensity_x, c_Real& z_intensity_y, c_Real& z_intensity,
+    c_RealArr z_orbit, c_RealArr z_orbit_rms, c_RealArr z_init_orbit, c_RealArr
+    z_init_orbit_rms) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_photon = z_n_photon;
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.e_x = z_e_x;
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.e_y = z_e_y;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.intensity_x = z_intensity_x;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.intensity_y = z_intensity_y;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.intensity = z_intensity;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.orbit << z_orbit;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.orbit_rms << z_orbit_rms;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.init_orbit << z_init_orbit;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.init_orbit_rms << z_init_orbit_rms;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_detector_pixel
+
+extern "C" void detector_pixel_to_c (const Opaque_detector_pixel_class*, CPP_detector_pixel&);
+
+// c_side.to_f2_arg
+extern "C" void detector_pixel_to_f2 (Opaque_detector_pixel_class*, c_RealArr, c_RealArr, const
+    CPP_pixel_grid_pt**, Int, Int);
+
+extern "C" void detector_pixel_to_f (const CPP_detector_pixel& C, Opaque_detector_pixel_class* F) {
+  // c_side.to_f_setup[type, 2, ALLOC]
+
+  int n1_pt = C.pt.size(), n2_pt = 0;
+  const CPP_pixel_grid_pt** z_pt = NULL;
+  if (n1_pt > 0) {
+    n2_pt = C.pt[0].size();
+    z_pt = new const CPP_pixel_grid_pt* [n1_pt*n2_pt];
+    for (int i = 0; i < n1_pt; i++) {
+      for (int j = 0; j < n2_pt; j++) z_pt[i*n2_pt + j] = &C.pt[i][j];}
+  }
+
+  // c_side.to_f2_call
+  detector_pixel_to_f2 (F, &C.dr[0], &C.r0[0], z_pt, n1_pt, n2_pt);
+
+  // c_side.to_f_cleanup[type, 2, ALLOC]
+  delete[] z_pt;
+}
+
+// c_side.to_c2_arg
+extern "C" void detector_pixel_to_c2 (CPP_detector_pixel& C, c_RealArr z_dr, c_RealArr z_r0,
+    Opaque_pixel_grid_pt_class** z_pt, Int n1_pt, Int n2_pt) {
+
+  // c_side.to_c2_set[real, 1, NOT]
+  C.dr << z_dr;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.r0 << z_r0;
+  // c_side.to_c2_set[type, 2, ALLOC]
+  C.pt.resize(n1_pt);
+  for (int i = 0; i < n1_pt; i++) {
+    C.pt[i].resize(n2_pt);
+    for (int j = 0; j < n2_pt; j++) pixel_grid_pt_to_c(z_pt[n2_pt*i+j], C.pt[i][j]);
+  }
+
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_photon_element
 
 extern "C" void photon_element_to_c (const Opaque_photon_element_class*, CPP_photon_element&);
 
 // c_side.to_f2_arg
-extern "C" void photon_element_to_f2 (Opaque_photon_element_class*, const CPP_photon_surface&,
-    const CPP_photon_target&, const CPP_photon_material&);
+extern "C" void photon_element_to_f2 (Opaque_photon_element_class*, const
+    CPP_surface_curvature&, const CPP_photon_target&, const CPP_photon_material&, const
+    CPP_surface_grid&, const CPP_detector_pixel&);
 
 extern "C" void photon_element_to_f (const CPP_photon_element& C, Opaque_photon_element_class* F) {
 
   // c_side.to_f2_call
-  photon_element_to_f2 (F, C.surface, C.target, C.material);
+  photon_element_to_f2 (F, C.curvature, C.target, C.material, C.grid, C.pixel);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_element_to_c2 (CPP_photon_element& C, const Opaque_photon_surface_class*
-    z_surface, const Opaque_photon_target_class* z_target, const Opaque_photon_material_class*
-    z_material) {
+extern "C" void photon_element_to_c2 (CPP_photon_element& C, const
+    Opaque_surface_curvature_class* z_curvature, const Opaque_photon_target_class* z_target,
+    const Opaque_photon_material_class* z_material, const Opaque_surface_grid_class* z_grid,
+    const Opaque_detector_pixel_class* z_pixel) {
 
   // c_side.to_c2_set[type, 0, NOT]
-  photon_surface_to_c(z_surface, C.surface);
+  surface_curvature_to_c(z_curvature, C.curvature);
   // c_side.to_c2_set[type, 0, NOT]
   photon_target_to_c(z_target, C.target);
   // c_side.to_c2_set[type, 0, NOT]
   photon_material_to_c(z_material, C.material);
+  // c_side.to_c2_set[type, 0, NOT]
+  surface_grid_to_c(z_grid, C.grid);
+  // c_side.to_c2_set[type, 0, NOT]
+  detector_pixel_to_c(z_pixel, C.pixel);
 }
 
 //--------------------------------------------------------------------
