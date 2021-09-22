@@ -3217,7 +3217,7 @@ case ('ele:param')
 ! {who} is one of:
 !   base
 !   material
-!   surface
+!   curvature
 ! Example:
 !   python ele:photon 3@1>>7|model base
 ! This gives element number 7 in branch 1 of universe 3.
@@ -3260,7 +3260,8 @@ case ('ele:photon')
   ph => ele%photon
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), lmt) 'has#surface;LOGIC;F;',  (attribute_name(ele, surface_attrib$) == 'SURFACE')
+    nl=incr(nl); write (li(nl), lmt) 'has#pixel;LOGIC;F;',  (allocated(ele%photon%pixel%pt))
+    nl=incr(nl); write (li(nl), lmt) 'grid#type;LOGIC;F;',  surface_grid_type_name(ele%photon%grid%type)
     nl=incr(nl); write (li(nl), lmt) 'has#material;LOGIC;F;', &
                            (attribute_name(ele, material_type$) == 'MATERIAL_TYPE' .or. ele%key == crystal$)
 
@@ -3275,9 +3276,12 @@ case ('ele:photon')
     nl=incr(nl); write (li(nl), amt) 'F_Hbar;COMPLEX;F',           cmplx_str(ph%material%f_hbar)
     nl=incr(nl); write (li(nl), amt) 'Sqrt(F_H*F_Hbar);COMPLEX;F', cmplx_str(ph%material%f_hkl)
 
-  case ('surface')
-    nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T', ph%surface%spherical_curvature
-    nl=incr(nl); write (li(nl), ramt) 'elliptical_curvature;REAL_ARR;T', (';', ph%surface%elliptical_curvature(i), i = 1, 3)
+  case ('curvature')
+    nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T', ph%curvature%spherical
+    nl=incr(nl); write (li(nl), ramt) 'elliptical_curvature;REAL_ARR;T', (';', ph%curvature%elliptical(i), i = 1, 3)
+    do i = 0, ubound(ph%curvature%xy, 2)
+      nl=incr(nl); write (li(nl), ramt) 'xy(' // int_str(i) // ',:);REAL_ARR;T', (';', ph%curvature%xy(i,j), j = 0, ubound(ph%curvature%xy, 1))
+    enddo
   end select
 
 !%% ele:spin_taylor -----------------------
