@@ -83,7 +83,7 @@ enddo
 
 grid_defined = .false.
 if (associated(ap_ele%photon)) then
-  gr => ap_ele%photon%surface%grid
+  gr => ap_ele%photon%grid
   grid_defined = (gr%dr(1) /= 0 .or. gr%dr(2) /= 0)
 endif
 
@@ -117,7 +117,7 @@ target%n_corner = 4
 ! If there is surface curvature then the aperture rectangle becomes a 3D aperture box.
 
 if (associated(ap_ele%photon)) then
-  if (ap_ele%photon%surface%has_curvature .and. ap_ele%aperture_at == surface$) then
+  if (has_curvature(ap_ele%photon) .and. ap_ele%aperture_at == surface$) then
     z = z_at_surface(ele, -val(x1_limit$), -val(y1_limit$), err_flag)
     call photon_target_corner_calc (ap_ele, -val(x1_limit$), -val(y1_limit$), z, ele, target%corner(5))
 
@@ -197,31 +197,31 @@ end subroutine photon_target_corner_calc
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_add_to_detector_statistics (orbit0, orbit, ele, ix_pt, iy_pt, grid_pt)
+! Subroutine photon_add_to_detector_statistics (orbit0, orbit, ele, ix_pt, iy_pt, pixel_pt)
 !
 ! Routine to add photon statistics to the appropriate pixel of a "detector" grid.
 !
 ! Input:
-!   orbit0  -- coord_struct: Photon coords at beginning of lattice
-!   orbit   -- coord_struct: Photon coords at the detector.
-!   ele     -- ele_struct: Element with grid.
-!   grid_pt -- surface_grid_pt_struct, optional: If present then use this grid point
+!   orbit0    -- coord_struct: Photon coords at beginning of lattice
+!   orbit     -- coord_struct: Photon coords at the detector.
+!   ele       -- ele_struct: Element with grid.
+!   pixel_pt  -- pixel_grid_pt_struct, optional: If present then use this grid point
 !                 instead of the grid point determined by the (x, y) coords of the photon
 !   
 !
 ! Output:
 !   ele           -- ele_struct: Element with updatted grid.
 !   ix_pt, iy_pt  -- integer, optional: Index of upgraded ele%photon%surface%grid%pt(:,:) point.
-!                       These arguments are not set if the grid_pt argument is present.
+!                       These arguments are not set if the pixel_pt argument is present.
 !-
 
-subroutine photon_add_to_detector_statistics (orbit0, orbit, ele, ix_pt, iy_pt, grid_pt)
+subroutine photon_add_to_detector_statistics (orbit0, orbit, ele, ix_pt, iy_pt, pixel_pt)
 
 type (coord_struct) orbit0, orbit, orb
 type (ele_struct), target :: ele
-type (surface_grid_pt_struct), optional, target :: grid_pt
-type (surface_grid_struct), pointer :: grid
-type (surface_grid_pt_struct), pointer :: pix
+type (pixel_grid_pt_struct), optional, target :: pixel_pt
+type (pixel_grid_pt_struct), pointer :: pix
+type (detector_pixel_struct), pointer :: pixel
 type (branch_struct), pointer :: branch
 
 real(rp) phase, intens_x, intens_y, intens, dE
@@ -235,25 +235,25 @@ orb = to_photon_angle_coords (orbit, ele, .true.)
 ! Find grid pt to update.
 ! Note: dr(i) can be zero for 1-dim grid
 
-if (present(grid_pt)) then
-  pix => grid_pt
+if (present(pixel_pt)) then
+  pix => pixel_pt
 
 else
-  grid => ele%photon%surface%grid
+  pixel => ele%photon%pixel
 
   nx = 0; ny = 0
-  if (grid%dr(1) /= 0) nx = nint((orb%vec(1) - grid%r0(1)) / grid%dr(1))
-  if (grid%dr(2) /= 0) ny = nint((orb%vec(3) - grid%r0(2)) / grid%dr(2))
+  if (pixel%dr(1) /= 0) nx = nint((orb%vec(1) - pixel%r0(1)) / pixel%dr(1))
+  if (pixel%dr(2) /= 0) ny = nint((orb%vec(3) - pixel%r0(2)) / pixel%dr(2))
 
   if (present(ix_pt)) ix_pt = nx
   if (present(iy_pt)) iy_pt = ny
 
   ! If outside of detector region then do nothing.
 
-  if (nx < lbound(grid%pt, 1) .or. nx > ubound(grid%pt, 1) .or. &
-      ny < lbound(grid%pt, 2) .or. ny > ubound(grid%pt, 2)) return
+  if (nx < lbound(pixel%pt, 1) .or. nx > ubound(pixel%pt, 1) .or. &
+      ny < lbound(pixel%pt, 2) .or. ny > ubound(pixel%pt, 2)) return
 
-  pix => grid%pt(nx,ny)
+  pix => pixel%pt(nx,ny)
 endif
 
 ! Add to det stat

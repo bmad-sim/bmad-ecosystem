@@ -23,14 +23,15 @@ interface operator (==)
   module procedure eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field
   module procedure eq_floor_position, eq_high_energy_space_charge, eq_xy_disp, eq_twiss, eq_mode3
   module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_target_point
-  module procedure eq_photon_surface, eq_photon_target, eq_photon_material, eq_photon_element, eq_wall3d_vertex
-  module procedure eq_wall3d_section, eq_wall3d, eq_control, eq_controller_var1, eq_controller
-  module procedure eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init, eq_lat_param
-  module procedure eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes
-  module procedure eq_em_field, eq_track_point, eq_track, eq_synch_rad_common, eq_csr_parameter
-  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele, eq_ele
-  module procedure eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat, eq_bunch
-  module procedure eq_bunch_params, eq_beam, eq_aperture_point, eq_aperture_param, eq_aperture_scan
+  module procedure eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_grid_pt, eq_detector_pixel
+  module procedure eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_control
+  module procedure eq_controller_var1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init
+  module procedure eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
+  module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_point, eq_track
+  module procedure eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_branch
+  module procedure eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch
+  module procedure eq_lat, eq_bunch, eq_bunch_params, eq_beam, eq_aperture_point
+  module procedure eq_aperture_param, eq_aperture_scan
 end interface
 
 contains
@@ -1280,26 +1281,6 @@ is_eq = is_eq .and. (f1%dz_dx == f2%dz_dx)
 is_eq = is_eq .and. (f1%dz_dy == f2%dz_dy)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%d2z_dxdy == f2%d2z_dxdy)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%n_photon == f2%n_photon)
-!! f_side.equality_test[complex, 0, NOT]
-is_eq = is_eq .and. (f1%e_x == f2%e_x)
-!! f_side.equality_test[complex, 0, NOT]
-is_eq = is_eq .and. (f1%e_y == f2%e_y)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%intensity_x == f2%intensity_x)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%intensity_y == f2%intensity_y)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%intensity == f2%intensity)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%orbit == f2%orbit)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%orbit_rms == f2%orbit_rms)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%init_orbit == f2%init_orbit)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%init_orbit_rms == f2%init_orbit_rms)
 
 end function eq_surface_grid_pt
 
@@ -1316,8 +1297,6 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[character, 0, NOT]
-is_eq = is_eq .and. (f1%file == f2%file)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%active .eqv. f2%active)
 !! f_side.equality_test[integer, 0, NOT]
@@ -1356,28 +1335,26 @@ end function eq_target_point
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_photon_surface (f1, f2) result (is_eq)
+elemental function eq_surface_curvature (f1, f2) result (is_eq)
 
 implicit none
 
-type(photon_surface_struct), intent(in) :: f1, f2
+type(surface_curvature_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = .true.
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%grid == f2%grid)
 !! f_side.equality_test[real, 2, NOT]
-is_eq = is_eq .and. all(f1%curvature_xy == f2%curvature_xy)
+is_eq = is_eq .and. all(f1%xy == f2%xy)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%spherical_curvature == f2%spherical_curvature)
+is_eq = is_eq .and. (f1%spherical == f2%spherical)
 !! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%elliptical_curvature == f2%elliptical_curvature)
+is_eq = is_eq .and. all(f1%elliptical == f2%elliptical)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%has_curvature .eqv. f2%has_curvature)
 
-end function eq_photon_surface
+end function eq_surface_curvature
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1440,6 +1417,68 @@ end function eq_photon_material
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_pixel_grid_pt (f1, f2) result (is_eq)
+
+implicit none
+
+type(pixel_grid_pt_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_photon == f2%n_photon)
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%e_x == f2%e_x)
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%e_y == f2%e_y)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%intensity_x == f2%intensity_x)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%intensity_y == f2%intensity_y)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%intensity == f2%intensity)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%orbit == f2%orbit)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%orbit_rms == f2%orbit_rms)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%init_orbit == f2%init_orbit)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%init_orbit_rms == f2%init_orbit_rms)
+
+end function eq_pixel_grid_pt
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_detector_pixel (f1, f2) result (is_eq)
+
+implicit none
+
+type(detector_pixel_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%dr == f2%dr)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%r0 == f2%r0)
+!! f_side.equality_test[type, 2, ALLOC]
+is_eq = is_eq .and. (allocated(f1%pt) .eqv. allocated(f2%pt))
+if (.not. is_eq) return
+if (allocated(f1%pt)) is_eq = all(shape(f1%pt) == shape(f2%pt))
+if (.not. is_eq) return
+if (allocated(f1%pt)) is_eq = all(f1%pt == f2%pt)
+
+end function eq_detector_pixel
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_photon_element (f1, f2) result (is_eq)
 
 implicit none
@@ -1451,11 +1490,15 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%surface == f2%surface)
+is_eq = is_eq .and. (f1%curvature == f2%curvature)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%target == f2%target)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%material == f2%material)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%grid == f2%grid)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%pixel == f2%pixel)
 
 end function eq_photon_element
 

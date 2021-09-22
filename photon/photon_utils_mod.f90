@@ -18,25 +18,25 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Function has_curvature (surf) result (curved)
+! Function has_curvature (phot_ele) result (curved)
 !
 ! Routine to determine if a surface is potentially curved or is flat.
 !
 ! Input:
-!   surf      -- photon_surface_struct: Surface structure.
+!   phot_ele    -- photon_element_struct: From ele%photon
 !
 ! Output:
-!   curved    -- logical: Set True if surface is curved.
+!   curved      -- logical: Set True if phot_eleace is curved.
 !-
 
-function has_curvature (surf) result (curved)
+function has_curvature (phot_ele) result (curved)
 
-type (photon_surface_struct) surf
+type (photon_element_struct) phot_ele
 logical curved
 
 !
 
-curved = (surf%has_curvature .or. (surf%grid%type == displacement$ .and. surf%grid%active))
+curved = (phot_ele%curvature%has_curvature .or. (phot_ele%grid%type == displacement$ .and. phot_ele%grid%active))
 
 end function has_curvature
 
@@ -96,7 +96,7 @@ end function photon_type
 function z_at_surface (ele, x, y, err_flag, extend_grid) result (z)
 
 type (ele_struct), target :: ele
-type (photon_surface_struct), pointer :: surf
+type (photon_element_struct), pointer :: ph
 type (surface_grid_pt_struct), pointer :: pt
 
 real(rp) x, y, z, g(3), gs, f, dum1, dum2, xx, yy
@@ -106,36 +106,36 @@ logical, optional :: extend_grid
 
 !
 
-surf => ele%photon%surface
+ph => ele%photon
 err_flag = .true.
 z = 0
 
-if (surf%grid%type == segmented$  .and. surf%grid%active) then
+if (ph%grid%type == segmented$  .and. ph%grid%active) then
   pt => pointer_to_surface_grid_pt(ele, .true., x, y, ix, iy, extend_grid, xx, yy)
   if (.not. associated(pt)) return
   z = pt%z0 - (xx - pt%x0) * pt%dz_dx - (yy - pt%y0) * pt%dz_dy
 
 else
-  if (surf%grid%type == displacement$) then
+  if (ph%grid%type == displacement$) then
     call surface_grid_displacement (ele, x, y, err_flag, z, dum1, dum2, extend_grid); if (err_flag) return
   endif
 
-  do ix = 0, ubound(surf%curvature_xy, 1)
-  do iy = 0, ubound(surf%curvature_xy, 2) - ix
-    if (ele%photon%surface%curvature_xy(ix, iy) == 0) cycle
-    z = z - surf%curvature_xy(ix, iy) * x**ix * y**iy
+  do ix = 0, ubound(ph%curvature%xy, 1)
+  do iy = 0, ubound(ph%curvature%xy, 2) - ix
+    if (ph%curvature%xy(ix, iy) == 0) cycle
+    z = z - ph%curvature%xy(ix, iy) * x**ix * y**iy
   enddo
   enddo
 
 
-  g = surf%elliptical_curvature
+  g = ph%curvature%elliptical
   if (g(3) /= 0) then
     f = -((g(1) * x)**2 + (g(2) * y)**2)
     if (f < -1) return
     z = z + sqrt_one(f) / g(3)
   endif
 
-  gs = surf%spherical_curvature
+  gs = ph%curvature%spherical
   if (gs /= 0) then
     f = -((gs * x)**2 + (gs * y)**2)
     if (f < -1) return
@@ -192,7 +192,7 @@ character(*), parameter :: r_name = 'pointer_to_surface_grid_pt'
 
 !
 
-grid => ele%photon%surface%grid
+grid => ele%photon%grid
 
 if (nearest) then
   ff = 0.5_rp
@@ -274,7 +274,7 @@ subroutine surface_grid_displacement (ele, x, y, err_flag, z, dz_dx, dz_dy, exte
 use nr, only: bcuint
 
 type (ele_struct), target :: ele
-type (photon_surface_struct), pointer :: surf
+type (photon_element_struct), pointer :: ph
 type (surface_grid_pt_struct), pointer :: pt00, pt01, pt10, pt11
 
 real(rp) x, y
@@ -285,9 +285,9 @@ logical, optional :: extend_grid
 
 !
 
-surf => ele%photon%surface
+ph => ele%photon
 
-if (.not. surf%grid%active) then
+if (.not. ph%grid%active) then
   z = 0;  dz_dx = 0;  dz_dy = 0
   err_flag = .false.
   return
@@ -299,9 +299,9 @@ err_flag = .true.
 pt00 => pointer_to_surface_grid_pt(ele, .false., x, y, ix, iy, extend_grid, xx, yy)
 if (.not. associated(pt00)) return
 
-pt01 => surf%grid%pt(ix,iy+1)
-pt10 => surf%grid%pt(ix+1,iy)
-pt11 => surf%grid%pt(ix+1,iy+1)
+pt01 => ph%grid%pt(ix,iy+1)
+pt10 => ph%grid%pt(ix+1,iy)
+pt11 => ph%grid%pt(ix+1,iy+1)
 
 call bcuint([pt00%z0, pt10%z0, pt11%z0, pt01%z0], [pt00%dz_dx, pt10%dz_dx, pt11%dz_dx, pt01%dz_dx], &
         [pt00%dz_dy, pt10%dz_dy, pt11%dz_dy, pt01%dz_dy], [pt00%d2z_dxdy, pt10%d2z_dxdy, pt11%d2z_dxdy, pt01%d2z_dxdy], &

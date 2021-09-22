@@ -1748,6 +1748,7 @@ subroutine aperture_bookkeeper (ele)
 
 type (ele_struct), target :: ele
 type (surface_grid_struct), pointer :: grid
+type (detector_pixel_struct), pointer :: pixel
 type (wall3d_section_struct), pointer :: sec
 
 real(rp) angle, r_wall, dr_dtheta, x, y
@@ -1790,16 +1791,26 @@ case default
                                    'THERE IS NOT A SURFACE ASSOCIATED WITH ELEMENT: ' // ele%name)
     return
   endif
-  grid => ele%photon%surface%grid
-  if (.not. allocated(grid%pt)) then
+
+  if (allocated(ele%photon%pixel%pt)) then
+    pixel => ele%photon%pixel
+    ele%value(x1_limit$) = -(pixel%r0(1) + (lbound(pixel%pt, 1) - 0.5) * pixel%dr(1))
+    ele%value(y1_limit$) = -(pixel%r0(2) + (lbound(pixel%pt, 2) - 0.5) * pixel%dr(2))
+    ele%value(x2_limit$) =  (pixel%r0(1) + (ubound(pixel%pt, 1) + 0.5) * pixel%dr(1))
+    ele%value(y2_limit$) =  (pixel%r0(2) + (ubound(pixel%pt, 2) + 0.5) * pixel%dr(2))
+
+  elseif (allocated(ele%photon%grid%pt)) then
+    grid => ele%photon%grid
+    ele%value(x1_limit$) = -(grid%r0(1) + (lbound(grid%pt, 1) - 0.5) * grid%dr(1))
+    ele%value(y1_limit$) = -(grid%r0(2) + (lbound(grid%pt, 2) - 0.5) * grid%dr(2))
+    ele%value(x2_limit$) =  (grid%r0(1) + (ubound(grid%pt, 1) + 0.5) * grid%dr(1))
+    ele%value(y2_limit$) =  (grid%r0(2) + (ubound(grid%pt, 2) + 0.5) * grid%dr(2))
+
+  else
     call out_io (s_error$, r_name, 'ELEMENT APERTURE TYPE SET TO "SURFACE" BUT', &
-                                   'NO SURFACE GRID IS DEFINED: ' // ele%name)
+                                   'NO GRID IS DEFINED: ' // ele%name)
     return
   endif
-  ele%value(x1_limit$) = -(grid%r0(1) + (lbound(grid%pt, 1) - 0.5) * grid%dr(1))
-  ele%value(y1_limit$) = -(grid%r0(2) + (lbound(grid%pt, 2) - 0.5) * grid%dr(2))
-  ele%value(x2_limit$) =  (grid%r0(1) + (ubound(grid%pt, 1) + 0.5) * grid%dr(1))
-  ele%value(y2_limit$) =  (grid%r0(2) + (ubound(grid%pt, 2) + 0.5) * grid%dr(2))
 
 end select
 

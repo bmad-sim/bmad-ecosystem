@@ -216,14 +216,24 @@ if (associated(ele_in%photon)) then
   ele_out%photon => ele_save%photon  ! reinstate
   if (.not. associated(ele_out%photon)) allocate(ele_out%photon)
 
-  if (allocated (ele_in%photon%surface%grid%pt)) then
-    ub = ubound(ele_in%photon%surface%grid%pt)
-    if (allocated (ele_out%photon%surface%grid%pt)) then
-      if (any(ub /= ubound(ele_out%photon%surface%grid%pt))) deallocate (ele_out%photon%surface%grid%pt)
+  if (allocated (ele_in%photon%grid%pt)) then
+    ub = ubound(ele_in%photon%grid%pt)
+    if (allocated (ele_out%photon%grid%pt)) then
+      if (any(ub /= ubound(ele_out%photon%grid%pt))) deallocate (ele_out%photon%grid%pt)
     endif
-    if (.not. allocated (ele_out%photon%surface%grid%pt)) allocate (ele_out%photon%surface%grid%pt(0:ub(1), 0:ub(2)))
+    if (.not. allocated (ele_out%photon%grid%pt)) allocate (ele_out%photon%grid%pt(0:ub(1), 0:ub(2)))
   else
-    if (allocated(ele_out%photon%surface%grid%pt)) deallocate (ele_out%photon%surface%grid%pt)
+    if (allocated(ele_out%photon%grid%pt)) deallocate (ele_out%photon%grid%pt)
+  endif
+
+  if (allocated (ele_in%photon%pixel%pt)) then
+    ub = ubound(ele_in%photon%pixel%pt)
+    if (allocated (ele_out%photon%pixel%pt)) then
+      if (any(ub /= ubound(ele_out%photon%pixel%pt))) deallocate (ele_out%photon%pixel%pt)
+    endif
+    if (.not. allocated (ele_out%photon%pixel%pt)) allocate (ele_out%photon%pixel%pt(0:ub(1), 0:ub(2)))
+  else
+    if (allocated(ele_out%photon%pixel%pt)) deallocate (ele_out%photon%pixel%pt)
   endif
 
   ele_out%photon = ele_in%photon

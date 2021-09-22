@@ -204,7 +204,7 @@ subroutine write_this_ele (ele)
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele2
 type (wake_struct), pointer :: wake
-type (photon_surface_struct), pointer :: surf
+type (photon_element_struct), pointer :: ph
 type (surface_grid_pt_struct), pointer :: s_pt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
@@ -531,23 +531,24 @@ endif
 
 if (associated (ele%photon)) then
 
-  surf => ele%photon%surface
-  write (d_unit) ele%photon%target, ele%photon%material, &
-          surf%curvature_xy, surf%has_curvature, surf%spherical_curvature, surf%elliptical_curvature, &
-          surf%grid%active, surf%grid%type, surf%grid%dr, surf%grid%r0, allocated(surf%grid%pt)
+  ph => ele%photon
+  write (d_unit) ph%target, ph%material, ph%curvature, &
+          ph%grid%active, ph%grid%type, ph%grid%dr, ph%grid%r0, allocated(ph%grid%pt), &
+          ph%pixel%dr, ph%pixel%r0, allocated(ph%pixel%pt)
 
-  if (allocated(surf%grid%pt)) then
-    write (d_unit) lbound(surf%grid%pt), ubound(surf%grid%pt)
-    ! Detectors do not have any grid data that needs saving
-    if (ele%key /= detector$) then
-      do i = lbound(surf%grid%pt, 1), ubound(surf%grid%pt, 1)
-      do j = lbound(surf%grid%pt, 2), ubound(surf%grid%pt, 2)
-        write (d_unit) surf%grid%pt(i,j)
-      enddo
-      enddo
-    endif
+  if (allocated(ph%grid%pt)) then
+    write (d_unit) lbound(ph%grid%pt), ubound(ph%grid%pt)
+    do i = lbound(ph%grid%pt, 1), ubound(ph%grid%pt, 1)
+    do j = lbound(ph%grid%pt, 2), ubound(ph%grid%pt, 2)
+      write (d_unit) ph%grid%pt(i,j)
+    enddo
+    enddo
   endif
 
+  if (allocated(ph%pixel%pt)) then
+    write (d_unit) lbound(ph%pixel%pt), ubound(ph%pixel%pt)
+    ! Detectors do not have any pixel data that needs saving
+  endif
 endif
 
 if (associated(ele%descrip))      write (d_unit) ele%descrip
