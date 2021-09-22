@@ -45,7 +45,8 @@ open (1, file = 'output.now')
 
 ! pointer_to_locations
 
-call pointer_to_locations ('7 n4:n5,4  5:,  :4', arr, n, 3, 10, ['n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10'])
+call pointer_to_locations ('7 n4:n5,4  5:,  :4', arr, n, 3, 10, &
+                              [character(3):: 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10'])
 write (1, '(a, 99i3)') '"Locs1" ABS 0    ', n, (arr(i), i = 1, n)
 
 ! Eigen modes
