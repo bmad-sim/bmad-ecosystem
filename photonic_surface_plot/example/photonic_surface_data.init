@@ -16,5 +16,7 @@
 !  r0 = 0, 0                         ! (x, y) position of the point with (ix, iy) = (0, 0).
 !  ix_bounds = -20, 30               ! Index range in x . 
 !  iy_bounds = -10, 10               ! Index range in y.
+  granularity = 1                    ! Sample within the grid to produce a finer mesh of data in the output file?
+                                     ! A granularity = N will increase the number of points by approximately N^2
 /
 

@@ -20,20 +20,23 @@ This example input file is self documenting look in this file for details.
 
 The resulting data file looks like:
 
-#     Ix      Iy          X               Y                 Z
-     -25     -10      -3.50987227E-02  -2.12821053E-02   2.66263866E-08
-     -25      -9      -3.50987227E-02  -1.91538948E-02   1.21422273E-05
-     -25      -8      -3.50987227E-02  -1.70256842E-02   4.84936425E-05
-     -25      -7      -3.50987227E-02  -1.48974737E-02   1.09094709E-04
+#     Ix      Iy          X                Y                Z              dZ/dX         dZ/dY
+ 
+     -25     -10      -3.50987227E-02  -2.12821053E-02   2.66263866E-08 -1.728355E+00 -3.250801E+00
+     -25      -9      -3.50987227E-02  -1.91538948E-02   1.21422273E-05 -1.728301E+00 -5.406615E+00
+     -25      -8      -3.50987227E-02  -1.70256842E-02   4.84936425E-05 -1.728140E+00 -7.562425E+00
+     -25      -7      -3.50987227E-02  -1.48974737E-02   1.09094709E-04 -1.727872E+00 -9.718226E+00
+		... etc ...
 
-There are 5 columns.
+There are 7 columns.
 The first two columns give indexes ix and iy.
-The last three columns give the (x, y, z) point on the surface.
+The next three columns give the (x, y, z) point on the surface.
+The final two columns give the surface slope with respect to x and y.
 
 ------------------------------
 2) Plotting the data.
 
-The gnuplot command file is named surface_plot.gp .
+There is a gnuplot command file named surface_plot.gp to draw in 3D either the surface or the surface slopes.
 
 This command file looks for a data file named "surface.dat" so if your data file has a different name
 you will need to edit surface_plot.gp.
@@ -44,4 +47,7 @@ where <directory> is the directory that surface_plot.gp is in.
 For example, when running from the example directory, you would use:
 	gnuplot> load "../surface_plot.gp"
 
+The default is to plot the surface z.
 Note: Plotted is -z (not z) so that the view of the surface is from above (and not below).
+
+To plot the slopes edit the file surface_plot.gp to use columns 6 or 7 instead of column 5.
