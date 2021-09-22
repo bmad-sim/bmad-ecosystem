@@ -961,7 +961,7 @@ type photon_element_struct
   type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
   type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
-  type (pixel_grid_struct) :: pixel = pixel_grid_struct(0, 0, null())
+  type (pixel_grid_struct) :: pixel = pixel_grid_struct(0, 0, null(), null(), null())
 end type
 
 !------------------------------------------------------------------------------
