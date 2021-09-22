@@ -18,12 +18,12 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
-type (photon_surface_struct), pointer :: s
+type (photon_element_struct), pointer :: ph
 type (ele_pointer_struct), allocatable :: eles(:)
 
-real(rp) dr(2), r0(2), x, y, z
+real(rp) dr(2), r0(2), x, y, z, del_r(2), z0x, z0y, z1x, z1y
 
-integer ie, n_arg, n_loc, ix, iy
+integer ie, n_arg, n_loc, ix, iy, granularity
 integer ix_bounds(2), iy_bounds(2)
 
 logical err
@@ -31,7 +31,7 @@ logical err
 character(100) lat_file_name, param_file_name, data_file_name
 character(40) ele_name
 
-namelist / params / lat_file_name, ele_name, data_file_name, dr, r0, ix_bounds, iy_bounds
+namelist / params / lat_file_name, ele_name, data_file_name, dr, r0, ix_bounds, iy_bounds, granularity
 
 !
 
@@ -50,14 +50,17 @@ r0 = real_garbage$
 dr = real_garbage$
 ix_bounds = int_garbage$
 iy_bounds = int_garbage$
-data_file_name = 'surface.dat'
+granularity = 1
+data_file_name = ''
 ele_name = ''
 lat_file_name = ''
 
 call get_command_argument(1, param_file_name)
-open (1, file = param_file_name)
+open (1, file = param_file_name, status = 'old')
 read (1, nml = params)
 close (1)
+
+if (data_file_name == '') data_file_name = 'surface.dat'
 
 !
 
@@ -94,14 +97,14 @@ if (.not. associated(ele%photon)) then
   stop
 endif
 
-s => ele%photon%surface
+ph => ele%photon
 
-if (any(s%grid%dr /= 0)) then
-  if (all(r0 == real_garbage$)) r0 =  s%grid%r0
-  if (all(dr == real_garbage$)) dr =  s%grid%dr
-  if (allocated(s%grid%pt)) then
-    if (all(ix_bounds == int_garbage$)) ix_bounds = [lbound(s%grid%pt,1), ubound(s%grid%pt,1)]
-    if (all(iy_bounds == int_garbage$)) iy_bounds = [lbound(s%grid%pt,2), ubound(s%grid%pt,2)]
+if (any(ph%grid%dr /= 0)) then
+  if (all(r0 == real_garbage$)) r0 =  ph%grid%r0
+  if (all(dr == real_garbage$)) dr =  ph%grid%dr
+  if (allocated(ph%grid%pt)) then
+    if (all(ix_bounds == int_garbage$)) ix_bounds = [lbound(ph%grid%pt,1), ubound(ph%grid%pt,1)]
+    if (all(iy_bounds == int_garbage$)) iy_bounds = [lbound(ph%grid%pt,2), ubound(ph%grid%pt,2)]
   endif
 endif
 
@@ -120,8 +123,15 @@ endif
 
 !
 
+ix_bounds = ix_bounds * granularity
+iy_bounds = iy_bounds * granularity
+dr = dr / granularity
+del_r = 1d-6 * dr
+
+!
+
 open (1, file = data_file_name)
-write (1, '(a)') '#     Ix      Iy          X                Y                Z'
+write (1, '(a)') '#     Ix      Iy          X                Y                Z              dZ/dX         dZ/dY'
 
 do ix = ix_bounds(1), ix_bounds(2)
   write (1, *)
@@ -129,7 +139,11 @@ do ix = ix_bounds(1), ix_bounds(2)
   do iy = iy_bounds(1), iy_bounds(2)
     y = r0(2) + iy * dr(2)
     z = z_at_surface (ele, x, y, err, .true.)
-    write (1, '(2i8, 4x, 3es17.8)') ix, iy, x, y, z
+    z0x = z_at_surface (ele, x-del_r(1), y, err, .true.)
+    z0y = z_at_surface (ele, x, y-del_r(2), err, .true.)
+    z1x = z_at_surface (ele, x+del_r(1), y, err, .true.)
+    z1y = z_at_surface (ele, x, y+del_r(2), err, .true.)
+    write (1, '(2i8, 4x, 3es17.8, 2es14.6)') ix, iy, x, y, z, (z1x-z0x)/(2*del_r(1)), (z1y-z0y)/(2*del_r(2))
   enddo
 enddo
 
