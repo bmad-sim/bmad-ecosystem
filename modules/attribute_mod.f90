@@ -533,7 +533,7 @@ end function attribute_info
 
 subroutine init_attribute_name_array ()
 
-type (photon_surface_struct) surface
+type (surface_curvature_struct) curv
 type (ele_struct) ele
 integer i, j, num, ix, iy
 character(40) word
@@ -749,16 +749,17 @@ enddo
 do i = 1, n_key$
   select case (i)
   case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$, detector$)
-    call init_attribute_name1 (i, surface_attrib$, 'SURFACE')
+    call init_attribute_name1 (i, p89$, 'DISPLACEMENT')
+    call init_attribute_name1 (i, p90$, 'SEGMENTED')
     call init_attribute_name1 (i, spherical_curvature$, 'SPHERICAL_CURVATURE')
     call init_attribute_name1 (i, elliptical_curvature_x$, 'ELLIPTICAL_CURVATURE_X')
     call init_attribute_name1 (i, elliptical_curvature_y$, 'ELLIPTICAL_CURVATURE_Y')
     call init_attribute_name1 (i, elliptical_curvature_z$, 'ELLIPTICAL_CURVATURE_Z')
     num = a0$ - 1
-    do ix = 0, ubound(surface%curvature_xy, 1)
-    do iy = 0, ubound(surface%curvature_xy, 2)
+    do ix = 0, ubound(curv%xy, 1)
+    do iy = 0, ubound(curv%xy, 2)
       if (ix+iy < 2) cycle
-      if (ix+iy > ubound(surface%curvature_xy, 1)) cycle
+      if (ix+iy > ubound(curv%xy, 1)) cycle
       write (word, '(a, i1, a, i1)') 'CURVATURE_X', ix, '_Y', iy
       num = num + 1
       call init_attribute_name1 (i, num, word) 
@@ -925,6 +926,7 @@ call init_attribute_name1 (crystal$, mosaic_thickness$,             'MOSAIC_THIC
 call init_attribute_name1 (crystal$, mosaic_angle_rms_in_plane$,    'MOSAIC_ANGLE_RMS_IN_PLANE')
 call init_attribute_name1 (crystal$, mosaic_angle_rms_out_plane$,   'MOSAIC_ANGLE_RMS_OUT_PLANE')
 call init_attribute_name1 (crystal$, mosaic_diffraction_num$,       'MOSAIC_DIFFRACTION_NUM')
+call init_attribute_name1 (crystal$, p88$,                          'H_MISALIGN')
 
 call init_attribute_name1 (def_bmad_com$, max_aperture_limit$,          'MAX_APERTURE_LIMIT')
 call init_attribute_name1 (def_bmad_com$, default_ds_step$,             'DEFAULT_DS_STEP')
@@ -993,6 +995,7 @@ call init_attribute_name1 (def_ptc_com$, old_integrator$,                 'OLD_I
 call init_attribute_name1 (def_ptc_com$, max_fringe_order$,               'MAX_FRINGE_ORDER')
 
 call init_attribute_name1 (detector$, l$,                             'L', dependent$)
+call init_attribute_name1 (detector$, pixel$,                         'PIXEL')
 
 call init_attribute_name1 (diffraction_plate$, l$,                    'l', private$)
 call init_attribute_name1 (diffraction_plate$, mode$,                 'MODE')
@@ -1818,8 +1821,8 @@ case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PH
   attrib_type = is_string$
 
 case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GRID_FIELD', 'REF_ORBIT', &
-      'SUPERIMPOSE', 'SURFACE', 'TAYLOR_FIELD', 'TERM', 'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', &
-      'X_KNOT', 'SR_WAKE', 'LR_WAKE')
+      'SUPERIMPOSE', 'H_MISALIGN', 'DISPLACEMENT', 'SEGMENTED', 'PIXEL', 'TAYLOR_FIELD', 'TERM', &
+      'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', 'X_KNOT', 'SR_WAKE', 'LR_WAKE')
   attrib_type = is_struct$
 
 case default

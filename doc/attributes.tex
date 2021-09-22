@@ -1256,30 +1256,78 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\subsection{Surface Grid}
+\subsection{Displacement, H_Misalign, and Segmented Surface Grids}
 \label{s:surf.grid}
 \index{surface grid}
 
-A surface can be broken up into a grid of rectangles. This is useful, for example, in breaking up a
-\vn{detector} element into pixel photo receptors or in simulating a rough surface for \vn{crystal}s
-and other elements. The general syntax is:
+A surface can be broken up into a grid of rectangles. This is useful, for example, in simulating
+crystal surface roughness. The case of the \vn{pixel} grid for a \vn{detector} element is discussed
+in \Sref{s:detector}. Here the other three types of grids are explained. These are:
 \begin{example}
-  surface = \{
-    grid = \{
+  Displacement       ! Mesh defines an offset from the nominal surface.
+  H_Misalign         ! Misalignment of crystal H vector
+  Segmented          ! Surface is a matrix of flat rectangles
+\end{example}
+Note: Currently there is the restriction that multiple grids cannot be defined for any given element.
+
+\begin{description}
+\item[Displacement] \Newline
+With a \vn{displacement} grid, an offset $z_\text{off}$ is added to the surface
+position defined in \Eq{xs2ij4}. The $z$ offset at a given $(x,y)$ position is determined by a
+spline interpolation of the $z$ values of the grid of points defined by \vn{pt(<i>,<j>)}. For each
+point \vn{pt(<i>,<j>)}, the $z$ value along with the $dz/dx$, $dz/dy$, $d2z/dxdy$ slopes can be specified or
+only the $z$ value needs to be specified. With the later option the slopes will be computed by
+taking finite differences of nearest neighbors.
+%
+\item[H_Misalign] \Newline
+An \vn{h_misalign} grid is used with crystals only. With \vn{H_Misalign}, the grid defines
+misalignment of the $H$ vector which is the normal to the diffracting planes of the crystal
+(\sref{s:crystal.tracking}).  When using \vn{H_Misalign}, each \vn{pt(i,j)} component gives the
+misalignment of $H$ for the region around the point. For an individual photon, the misalignment of $H$
+will be
+\begin{example}
+  dz/dx_tot = <dz/dx> + r1 * <dz/dx_rms>
+  dz/dy_tot = <dz/dy> + r2 * <dz/dy_rms>
+\end{example}
+where \vn{dz/dx_tot} and \vn{dz/dy_tot} are the rotational misalignment (\sref{s:offset}) used
+in the calculation, the quantities in brackets \vn{<...>} are components of \vn{pt}, and \vn{r1} and
+\vn{r2} are Gaussian distributed random numbers with unit rms. These random numbers are regenerated
+for each photon.
+%
+\item[Segmented] \Newline
+With a \vn{segmented} grid the crystal surface is modeled as a grid of flat ``rectangles'' (the
+actual shape is very close but not quite rectangular). Using a segmented surface only makes sense
+when the surface is curved (see \Eq{xs2ij4}). There is one rectangle for each grid point. Each rectangle
+has an extent in the $(x,y)$ transverse dimensions equal to the spacing between grid points.
+\Eq{xs2ij4} is used to calculate the $z$ coordinate of the vertices of a given rectangle and
+then these $z$ values are adjusted so that
+\begin{example}
+  1) The rectangle is flat (the vertices all lie on a plane).
+  2) The rectangle contacts the unsegmented surface (\Eq{xs2ij4}) at two 
+       diagonally opposite vertices.
+  3) The other two diagonally opposite vertices will be as close as possible 
+       in the least squares sense from the unsegmented surface.
+\end{example}
+Note: The \vn{pt} component is not used here.
+\end{description}
+
+The general syntax for a \vn{displacement} grid:
+\begin{example}
+    displacement = \{
       active = <T/F>                     ! Turn on/off effect of grid. Default = True
-      type = <type_name>,                ! Segmented, Displacement, or H_Misalign
       ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
       iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
       r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
-      dr = (<dx>, <dy>),                 ! width and height of pixels.
-      ! Grid points used with type = H_Misalign:
-      pt(<i>,<j>) = (<dz/dx>, <dz/dy>, <dz/dx_rms>, <dz/dy_rms>),
-      ! Grid points used with type = Displacement:
-      pt(<i>,<j>) = (<z>),                                    ! or
+      dr = (<dx>, <dy>),                 ! Spacing between grid points.
+      pt(<i>,<j>) = (<z>),                                  ! or
       pt(<i>,<j>) = (<z>, <dz/dx>, <dz/dy>),                ! or
       pt(<i>,<j>) = (<z>, <dz/dx>, <dz/dy>, <d2z/dxdy>),
-          \} \}
+          \}
 \end{example}
+
+The general syntax 
+
+
 Example:
 \begin{example}
   ccd: crystal, surface = \{
@@ -1304,55 +1352,7 @@ the center of the $(i,j)$ pixel is:
   (x,y) = (r0(1), r0(2)) + (i*dr(1), j*dr(2))
 \end{example}
 
-There are several types of grids. What type of grid is determined by the \vn{type} component
-Possible \vn{type} values are:
-\begin{example}
-  Displacement       ! Mesh defines an offset from the nominal surface.
-  H_Misalign         ! Misalignment of crystal H vector
-  Segmented          ! Surface is a matrix of flat rectangles
-\end{example}
-Note: The \vn{type} {\em must} be set before specifying any \vn{pt}. 
 
-\begin{description}
-\item[Displacement] \Newline
-With the \vn{type} parameter set to \vn{Displacement}, an offset $z_\text{off}$ is added to the surface
-position defined in \Eq{xs2ij4}. The $z$ offset at a given $(x,y)$ position is determined by a
-spline interpolation of the $z$ values of the grid of points defined by \vn{pt(<i>,<j>)}. For each
-point \vn{pt(<i>,<j>)}, the $z$ value along with the $dz/dx$, $dz/dy$, $d2z/dxdy$ slopes can be specified or
-only the $z$ value needs to be specified. With the later option the slopes will be computed by
-taking finite differences of nearest neighbors.
-%
-\item[H_Misalign] \Newline
-A setting of the \vn{type} attribute to \vn{H_Misalign} is used with crystals only. With
-\vn{H_Misalign}, the grid defines misalignment of the $H$ vector which is the normal to the
-diffracting planes of the crystal (\sref{s:crystal.tracking}).  When using \vn{H_Misalign}, each
-\vn{pt(i,j)} component gives the misalignment of $H$ for the corresponding pixel. For an individual
-photon, the misalignment of $H$ will be
-\begin{example}
-  dz/dx_tot = <dz/dx> + r1 * <dz/dx_rms>
-  dz/dy_tot = <dz/dy> + r2 * <dz/dy_rms>
-\end{example}
-where \vn{dz/dx_tot} and \vn{dz/dy_tot} are the rotational misalignment (\sref{s:offset}) used
-in the calculation, the quantities in brackets \vn{<...>} are components of \vn{pt}, and \vn{r1} and
-\vn{r2} are Gaussian distributed random numbers with unit rms. These random numbers are regenerated
-for each photon.
-%
-\item[Segmented] \Newline
-When the \vn{type} component is set to \vn{Segmented}, the crystal surface is modeled as a grid of
-flat ``rectangles'' (the actual shape is very close but not quite rectangular). Using a segmented
-surface only makes sense when the surface is curved (see \Eq{xs2ij4}). There is one rectangle for
-each pixel. Each rectangle has an extent in the $(x,y)$ transverse dimensions equal to the extent of
-the corresponding pixel. \Eq{xs2ij4} is used to calculate the $z$ coordinate of the vertices of a given
-rectangle and then these $z$ values are adjusted so that
-\begin{example}
-  1) The rectangle is flat (the vertices all lie on a plane).
-  2) The rectangle contacts the unsegmented surface (\Eq{xs2ij4}) at two 
-       diagonally opposite vertices.
-  3) The other two diagonally opposite vertices will be as close as possible 
-       in the least squares sense from the unsegmented surface.
-\end{example}
-Note: The \vn{pt} component is not used here.
-\end{description}
 
 %-----------------------------------------------------------------
 \section{Walls: Vacuum Chamber, Capillary and Mask}

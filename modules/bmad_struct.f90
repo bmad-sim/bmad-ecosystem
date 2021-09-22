@@ -890,7 +890,15 @@ type surface_grid_pt_struct
   real(rp) :: x0 = 0, y0 = 0                 ! Position at center
   real(rp) :: dz_dx = 0, dz_dy = 0           ! Slope at center
   real(rp) :: d2z_dxdy = 0                   ! d2z/dxdy at center
-  ! Photon statistics if used as a detector pixel
+end type
+
+integer, parameter :: segmented$ = 1, h_misalign$ = 2, displacement$ = 3
+character(16), parameter :: surface_grid_type_name(0:3) = [character(16):: 'GARBAGE!', &
+                                                  'Segmented', 'H_Misalign', 'Displacement']
+
+! Photon statistics if used as a detector pixel
+
+type pixel_grid_pt_struct
   integer :: n_photon = 0
   complex(rp) :: E_x  = 0, E_y = 0
   real(rp) ::  intensity_x = 0, intensity_y = 0, intensity = 0
@@ -900,27 +908,26 @@ type surface_grid_pt_struct
   real(rp) :: init_orbit_rms(6) = 0   ! Initial orbit at start of lattice RMS statistics.
 end type
 
-integer, parameter :: segmented$ = 1, h_misalign$ = 2, displacement$ = 3
-character(16), parameter :: surface_grid_type_name(0:3) = [character(16):: 'GARBAGE!', &
-                                                  'Segmented', 'H_Misalign', 'Displacement']
-
 !
 
 type surface_grid_struct
-  character(200) :: file = ''
   logical :: active = .true.
   integer :: type = not_set$   ! or displacement$, segmented$, h_misalign$
   real(rp) :: dr(2) = 0, r0(2) = 0
   type (surface_grid_pt_struct), allocatable :: pt(:,:) 
 end type
 
+type detector_pixel_struct
+  real(rp) :: dr(2) = 0, r0(2) = 0
+  type (pixel_grid_pt_struct), allocatable :: pt(:,:) 
+end type
+
 ! Surface container structure
 
-type photon_surface_struct
-  type (surface_grid_struct) :: grid = surface_grid_struct('', .true., not_set$, 0, 0, null())
-  real(rp) :: curvature_xy(0:6,0:6) = 0
-  real(rp) :: spherical_curvature = 0
-  real(rp) :: elliptical_curvature(3) = 0   ! Total curvature = elliptical + spherical
+type surface_curvature_struct
+  real(rp) :: xy(0:6,0:6) = 0
+  real(rp) :: spherical = 0
+  real(rp) :: elliptical(3) = 0             ! Total curvature = elliptical + spherical
   logical :: has_curvature = .false.        ! Dependent var. Will be set by Bmad
 end type
 
@@ -951,10 +958,11 @@ end type
 ! photon_element_struct is an ele_struct component holding photon parameters
 
 type photon_element_struct
-  type (photon_surface_struct) :: surface = photon_surface_struct()
+  type (surface_curvature_struct) :: curvature = surface_curvature_struct()
   type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
-  !! type (surface_grid_struct) :: detector = surface_grid_struct('', .true., not_set$, 0, 0, null())
+  type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
+  type (detector_pixel_struct) :: pixel = detector_pixel_struct(0, 0, null())
 end type
 
 !------------------------------------------------------------------------------
@@ -1643,9 +1651,9 @@ integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ 
 integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85, etap_y$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87, machine$ = 87
-integer, parameter :: taylor_map_includes_offsets$ = 88, surface_attrib$ = 88
-integer, parameter :: csr_method$ = 89, var$ = 89, z_ref$ = 89
-integer, parameter :: pz_ref$ = 90, space_charge_method$ = 90
+integer, parameter :: taylor_map_includes_offsets$ = 88, pixel$ = 88, p88$ = 88
+integer, parameter :: csr_method$ = 89, var$ = 89, z_ref$ = 89, p89$ = 89
+integer, parameter :: pz_ref$ = 90, space_charge_method$ = 90, p90$ = 90
 integer, parameter :: mat6_calc_method$ = 91
 integer, parameter :: tracking_method$  = 92, s_long$ = 92
 integer, parameter :: ref_time$ = 93, ptc_integration_type$ = 93

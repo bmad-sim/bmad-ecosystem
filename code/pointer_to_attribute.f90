@@ -473,25 +473,25 @@ case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'LR_WAKE%AMP_SCALE', 'LR_WAKE%TIME_SC
     a_ptr%l => ele%wake%sr%scale_with_length
   end select
 
-case ('SURFACE%GRID%ACTIVE')
-  a_ptr%l => ele%photon%surface%grid%active
+case ('H_MISALIGN%ACTIVE', 'DISPLACEMENT%ACTIVE', 'SEGMENTED%ACTIVE')
+  a_ptr%l => ele%photon%grid%active
 case ('SPHERICAL_CURVATURE')
-  a_ptr%r => ele%photon%surface%spherical_curvature
+  a_ptr%r => ele%photon%curvature%spherical
 case ('ELLIPTICAL_CURVATURE_X')
-  a_ptr%r => ele%photon%surface%elliptical_curvature(1)
+  a_ptr%r => ele%photon%curvature%elliptical(1)
 case ('ELLIPTICAL_CURVATURE_Y')
-  a_ptr%r => ele%photon%surface%elliptical_curvature(2)
+  a_ptr%r => ele%photon%curvature%elliptical(2)
 case ('ELLIPTICAL_CURVATURE_Z')
-  a_ptr%r => ele%photon%surface%elliptical_curvature(3)
+  a_ptr%r => ele%photon%curvature%elliptical(3)
 end select
 
 if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then
   ix = index('0123456789', a_name(12:12)) - 1
   iy = index('0123456789', a_name(15:15)) - 1
   if (ix == -1 .or. iy == -1) goto 9000 ! Error message and return
-  if (ix > ubound(ele%photon%surface%curvature_xy, 1)) goto 9000 ! Error message and return
-  if (iy > ubound(ele%photon%surface%curvature_xy, 2)) goto 9000 ! Error message and return
-  a_ptr%r => ele%photon%surface%curvature_xy(ix,iy)
+  if (ix > ubound(ele%photon%curvature%xy, 1)) goto 9000 ! Error message and return
+  if (iy > ubound(ele%photon%curvature%xy, 2)) goto 9000 ! Error message and return
+  a_ptr%r => ele%photon%curvature%xy(ix,iy)
   err_flag = .false.
   return
 endif

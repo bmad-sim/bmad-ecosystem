@@ -36,7 +36,7 @@ type (ele_struct), pointer :: lord, slave, slave2
 type (coord_struct) start, end
 type (em_field_struct) field
 type (branch_struct), pointer :: branch
-type (photon_surface_struct), pointer :: surface
+type (photon_element_struct), pointer :: ph
 type (wake_lr_mode_struct), pointer :: lr
 type (converter_prob_pc_r_struct), pointer :: ppcr
 
@@ -418,9 +418,8 @@ case (crystal$, multilayer_mirror$, mirror$)
     call multilayer_type_to_multilayer_params (ele, err_flag)
   endif
 
-  surface => ele%photon%surface
-  surface%has_curvature = (any(surface%curvature_xy /= 0) .or. &
-                     surface%spherical_curvature /= 0 .or. any(surface%elliptical_curvature /= 0))
+  ph => ele%photon
+  ph%curvature%has_curvature = (any(ph%curvature%xy /= 0) .or. ph%curvature%spherical /= 0 .or. any(ph%curvature%elliptical /= 0))
 
 ! E_Gun
 

@@ -72,7 +72,6 @@ type (all_pointer_struct) a_ptr
 type (wall3d_struct), pointer :: wall3d_arr(:), wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
-type (photon_surface_struct), pointer :: surf
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cartesian_map_term1_struct), allocatable :: ct_terms(:)
@@ -80,6 +79,7 @@ type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (cartesian_map_struct), pointer :: ct_map
 type (ac_kicker_struct), pointer :: ac
+type (photon_element_struct), pointer :: ph
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2)
 real(rp), allocatable :: table(:,:)
@@ -660,9 +660,15 @@ if (word(1:16) == 'CUSTOM_ATTRIBUTE') then
 endif
 
 !-------------------------------------------------------------------
+! "SURFACE" is old style
 
 ix_attrib = attribute_index(ele, word, attrib_word)
 if (attrib_free_problem(word)) return
+
+if (word == "SURFACE") then
+  ix_attrib = 999  
+  attrib_word = word
+endif
 
 if (ix_attrib < 1) then
   call pointer_to_attribute(ele, word, .true., a_ptr, err_flag, .false.)
@@ -954,146 +960,171 @@ endif
 !-------------------------------
 ! Reflecting Surface
 
-if (attrib_word == 'SURFACE') then
-  surf => ele%photon%surface
+select case (attrib_word)
+case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
+  ph => ele%photon
 
-  if (.not. expect_this ('=', .true., .true., 'AFTER "SURFACE"', ele, delim, delim_found)) return
+  name = attrib_word
+  if (attrib_word == 'SURFACE') then
+    if (ele%key == detector$) name = 'PIXEL'
+  elseif (attrib_word /= 'PIXEL') then
+    call match_word (attrib_word, surface_grid_type_name(1:), ph%grid%type)
+  endif
+
+  if (.not. expect_this ('=', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
 
   ! "ele1[surface] = ele2[surface]" construct
 
   if (delim == '[') then
-    ele2 => parser_find_ele_for_attrib_transfer ('SURFACE', word)
+    ele2 => parser_find_ele_for_attrib_transfer (attrib_word, word)
     if (.not. associated(ele2%photon)) then
-      call parser_error ('NO SURFACE ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+      call parser_error ('NO ' // trim(attrib_word) // ' ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    ele%photon%surface = ele2%photon%surface
+
+    if (attrib_word == 'PIXEL') then
+      ph%pixel = ele2%photon%pixel
+    else
+      ph%grid = ele2%photon%grid
+    endif
+
     return
   endif
 
   !
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "SURFACE"', ele, delim, delim_found)) return
+  if (.not. expect_this ('{', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
 
-  surface_loop: do
-
-    ! Expect "GRID ={" or "TYPE ="
-
+  if (attrib_word == 'SURFACE') then   ! Old style
+!!!    call parser_error ('Old style "SURFACE" construct. Please change this (see Bmad manual).', level = s_warn$)
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+    ! Expect "GRID = {" 
+    if (word /= 'GRID') then
+      call parser_error ('EXPECT "GRID" AFTER "SURFACE" BUT GOT: ' // word, 'FOR: ' // ele%name)
+      return
+    endif
+    if (.not. expect_this ('={', .true., .true., 'AFTER "GRID"', ele, delim, delim_found)) return
+  endif
+
+  ix_bounds = int_garbage$; iy_bounds = int_garbage$
+
+  do
+    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+    if (word /= 'PT') then
+      if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN ' // trim(attrib_word) // ' CONSTRUCT', ele, delim, delim_found)) return
+    endif
 
     select case (word)
+    case ('ACTIVE')
+      call parser_get_logical (word, ph%grid%active, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
 
-    case ('GRID')
+    case ('DR')
+      if (name == 'PIXEL') then
+        if (.not. parse_real_list (lat, trim(ele%name) // ' GRID DR', ph%pixel%dr, .true., delim, delim_found)) return
+      else
+        if (.not. parse_real_list (lat, trim(ele%name) // ' GRID DR', ph%grid%dr, .true., delim, delim_found)) return
+      endif
 
-      if (.not. expect_this ('={', .true., .true., 'AFTER "GRID"', ele, delim, delim_found)) return
-      ix_bounds = int_garbage$; iy_bounds = int_garbage$
+    case ('R0')
+      if (name == 'PIXEL') then
+        if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', ph%pixel%r0, .true., delim, delim_found)) return
+      else
+        if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', ph%grid%r0, .true., delim, delim_found)) return
+      endif
 
-      do
-        call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-        if (word /= 'PT') then
-          if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN SURFACE CONSTRUCT', ele, delim, delim_found)) return
-        endif
+    case ('IX_BOUNDS', 'IY_BOUNDS')
+      if (.not. parse_integer_list (trim(ele%name) // ' GRID ' // trim(word), lat, i_vec, .true., delim, delim_found)) return
+      if (word == 'IX_BOUNDS') ix_bounds = i_vec
+      if (word == 'IY_BOUNDS') iy_bounds = i_vec
 
-        select case (word)
-        case ('ACTIVE')
-          call parser_get_logical (word, surf%grid%active, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
-
-        case ('DR')
-          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID DR', surf%grid%dr, .true., delim, delim_found)) return
-
-        case ('R0')
-          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', surf%grid%r0, .true., delim, delim_found)) return
-
-        case ('IX_BOUNDS', 'IY_BOUNDS')
-          if (.not. parse_integer_list (trim(ele%name) // ' GRID ' // trim(word), lat, i_vec, .true., delim, delim_found)) return
-          if (word == 'IX_BOUNDS') ix_bounds = i_vec
-          if (word == 'IY_BOUNDS') iy_bounds = i_vec
-
-          if (any(ix_bounds /= int_garbage$) .and. any(iy_bounds /= int_garbage$)) then
-            if (any(ix_bounds == int_garbage$) .or. any(iy_bounds == int_garbage$) .or. &
-                ix_bounds(1) > ix_bounds(2) .or. iy_bounds(1) > iy_bounds(2)) then
-              call parser_error ('SURFACE GRID X/IY_BOUNDS NOT PROPERLY SET', trim(ele%name))
-              return
-            endif
-            if (allocated (surf%grid%pt)) deallocate (surf%grid%pt)
-            allocate (surf%grid%pt(ix_bounds(1):ix_bounds(2), iy_bounds(1):iy_bounds(2)))
-          endif
-
-        case ('PT')
-          bp_com%parse_line = delim // bp_com%parse_line
-          if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', lat, i_vec, .true., delim, delim_found)) return
-          if (.not. allocated(surf%grid%pt)) then
-            call parser_error ('SURFACE PT_MAX MISSING', 'FOR: ' // ele%name)
-            return
-          endif
-          if (any(i_vec < lbound(surf%grid%pt)) .or. any(i_vec > ubound(surf%grid%pt))) then
-            call parser_error ('SURFACE PT(I,J) INDEX OUT OF BOUNDS', 'FOR: ' // ele%name)
-            return
-          endif
-          if (.not. expect_this ('=', .false., .false., 'IN GRID PT', ele, delim, delim_found)) return
-
-          if (surf%grid%type == h_misalign$) then
-            if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .true., delim, delim_found)) return
-            surf%grid%pt(i_vec(1), i_vec(2))%orientation = surface_orientation_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
-          elseif (surf%grid%type == displacement$) then
-            r_vec(1:4) = real_garbage$
-            if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .false., delim, delim_found, num_found = n)) return
-            if (n /= 1 .and. n /= 3 .and. n /= 4) then
-              call parser_error ('NUMBER OF PT(I,J) VALUES NOT 1, 3, NOR 4 FOR SURFACE GRID OF: ' // ele%name)
-              return
-            endif
-            surf%grid%pt(i_vec(1), i_vec(2))%z0 = r_vec(1)
-            surf%grid%pt(i_vec(1), i_vec(2))%dz_dx = r_vec(2)
-            surf%grid%pt(i_vec(1), i_vec(2))%dz_dy = r_vec(3)
-            surf%grid%pt(i_vec(1), i_vec(2))%d2z_dxdy = r_vec(4)
-          elseif (surf%grid%type == not_set$) then
-            call parser_error ('THE SURFACE GRID TYPE MUST BE SET BEFORE SETTING A TABLE OF SURFACE GRID "PT" POINTS.', &
-                               'FOR: ' // ele%name)
-            return
-          else
-            call parser_error ('A TABLE OF SURFACE GRID "PT" POINTS IS NOT ALLOWED IF THE GRID TYPE IS', &
-                               'SOMETHING OTHER THAN "OFFSET" OR "H_MISALIGN" FOR: ' // ele%name)
-            return
-          endif
-
-        case ('TYPE')
-          call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), surf%grid%type, err_flag2, ele, delim, delim_found)
-          if (err_flag2) return
-          bp_com%parse_line = delim // bp_com%parse_line
-
-        case default
-          call parser_error ('GRID COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
+      if (any(ix_bounds /= int_garbage$) .and. any(iy_bounds /= int_garbage$)) then
+        if (any(ix_bounds == int_garbage$) .or. any(iy_bounds == int_garbage$) .or. &
+            ix_bounds(1) > ix_bounds(2) .or. iy_bounds(1) > iy_bounds(2)) then
+          call parser_error ('SURFACE GRID X/IY_BOUNDS NOT PROPERLY SET', trim(ele%name))
           return
-        end select
-
-        if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
-
-        call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
-        if (word == 'PT' .and. delim == ',' .and. bp_com%parse_line(1:1) == '}') then
-          delim = '}'
-          bp_com%parse_line = bp_com%parse_line(2:)
         endif
 
-        if (delim == '}') then
-          if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
-          exit
+        if (name == 'PIXEL') then
+          if (allocated (ph%pixel%pt)) deallocate (ph%pixel%pt)
+          allocate (ph%pixel%pt(ix_bounds(1):ix_bounds(2), iy_bounds(1):iy_bounds(2)))
+        else
+          if (allocated (ph%grid%pt)) deallocate (ph%grid%pt)
+          allocate (ph%grid%pt(ix_bounds(1):ix_bounds(2), iy_bounds(1):iy_bounds(2)))
         endif
-      enddo
+      endif
+
+    case ('PT')
+      bp_com%parse_line = delim // bp_com%parse_line
+      if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', lat, i_vec, .true., delim, delim_found)) return
+
+      if (.not. allocated(ph%grid%pt)) then
+        call parser_error ('IX_BOUNDS OR IY_BOUNDS MISSING WHEN CONSTRUCTING: ' // attrib_word, 'FOR: ' // ele%name)
+        return
+      endif
+
+      if (any(i_vec < lbound(ph%grid%pt)) .or. any(i_vec > ubound(ph%grid%pt))) then
+        call parser_error ('PT(I,J) INDEX OUT OF BOUNDS WHEN CONSTRUCTING: ' // attrib_word, 'FOR: ' // ele%name)
+        return
+      endif
+
+      if (.not. expect_this ('=', .false., .false., 'IN GRID PT', ele, delim, delim_found)) return
+
+      if (ph%grid%type == h_misalign$) then
+        if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .true., delim, delim_found)) return
+        ph%grid%pt(i_vec(1), i_vec(2))%orientation = surface_orientation_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
+
+      elseif (ph%grid%type == displacement$) then
+        r_vec(1:4) = real_garbage$
+        if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .false., delim, delim_found, num_found = n)) return
+        if (n /= 1 .and. n /= 3 .and. n /= 4) then
+          call parser_error ('NUMBER OF PT(I,J) VALUES NOT 1, 3, NOR 4 FOR SURFACE GRID OF: ' // ele%name)
+          return
+        endif
+        ph%grid%pt(i_vec(1), i_vec(2))%z0 = r_vec(1)
+        ph%grid%pt(i_vec(1), i_vec(2))%dz_dx = r_vec(2)
+        ph%grid%pt(i_vec(1), i_vec(2))%dz_dy = r_vec(3)
+        ph%grid%pt(i_vec(1), i_vec(2))%d2z_dxdy = r_vec(4)
+      elseif (ph%grid%type == not_set$) then
+        call parser_error ('THE SURFACE GRID TYPE MUST BE SET BEFORE SETTING A TABLE OF SURFACE GRID "PT" POINTS.', &
+                           'FOR: ' // ele%name)
+        return
+      else
+        call parser_error ('A TABLE OF SURFACE GRID "PT" POINTS IS NOT ALLOWED IF THE GRID TYPE IS', &
+                           'SOMETHING OTHER THAN "OFFSET" OR "H_MISALIGN" FOR: ' // ele%name)
+        return
+      endif
+
+    case ('TYPE')
+      call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), ph%grid%type, err_flag2, ele, delim, delim_found)
+      if (err_flag2) return
+      bp_com%parse_line = delim // bp_com%parse_line
 
     case default
-      call parser_error ('UNKNOWN SURFACE COMPONENT: ' // word2, 'FOR: ' // ele%name)
+      call parser_error ('GRID COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
       return
     end select
 
-    if (delim == '}') exit
+    if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
-  enddo surface_loop
+    call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+    if (word == 'PT' .and. delim == ',' .and. bp_com%parse_line(1:1) == '}') then
+      delim = '}'
+      bp_com%parse_line = bp_com%parse_line(2:)
+    endif
+
+    if (delim == '}') then
+      if (attrib_word == 'SURFACE') then
+        if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
+      endif
+      exit
+    endif
+  enddo
 
   if (.not. expect_one_of(', ', .false., ele%name, delim, delim_found)) return
   err_flag = .false.
   return
-endif
+end select
 
 !-------------------------------
 
@@ -6566,12 +6597,12 @@ endif
 ! Surface init
 
 if (associated(ele%photon)) then
-  grid => ele%photon%surface%grid
+  grid => ele%photon%grid
   select case (grid%type)
   case (segmented$)
     do i = lbound(grid%pt, 1), ubound(grid%pt, 1)
     do j = lbound(grid%pt, 2), ubound(grid%pt, 2)
-      call init_surface_segment (ele%photon%surface, i, j)
+      call init_surface_segment (ele%photon, i, j)
     enddo
     enddo
 
@@ -9552,18 +9583,18 @@ end subroutine parse_superimpose_command
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine init_surface_segment (surf, ix, iy)
+! Subroutine init_surface_segment (phot, ix, iy)
 !
-! Routine to init the componentes in ele%photon%surface%grid%pt(ix,iy) for use with segmented surface calculations.
+! Routine to init the componentes in ele%photon%grid%pt(ix,iy) for use with segmented surface calculations.
 !
 ! Input:
-!   surf    -- surface_grid_struct: Surface structure.
+!   phot    -- photon_element_struct: Surface structure.
 !   ix, iy  -- integer: index of grid point to init.
 !-
 
-subroutine init_surface_segment (surf, ix, iy)
+subroutine init_surface_segment (phot, ix, iy)
 
-type (photon_surface_struct), target :: surf
+type (photon_element_struct), target :: phot
 type (surface_grid_pt_struct), pointer :: pt
 
 real(rp) zt, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag, g(3), gs
@@ -9571,10 +9602,10 @@ integer ix, iy
 
 !
 
-pt => surf%grid%pt(ix, iy)
+pt => phot%grid%pt(ix, iy)
 
-x0 = ix * surf%grid%dr(1) + surf%grid%r0(1)
-y0 = iy * surf%grid%dr(2) + surf%grid%r0(2)
+x0 = ix * phot%grid%dr(1) + phot%grid%r0(1)
+y0 = iy * phot%grid%dr(2) + phot%grid%r0(2)
 
 pt%x0 = x0
 pt%y0 = y0
@@ -9584,19 +9615,19 @@ pt%dz_dx = 0
 pt%dz_dy = 0
 coef_xx = 0; coef_xy = 0; coef_yy = 0
 
-do ix = 0, ubound(surf%curvature_xy, 1)
-do iy = 0, ubound(surf%curvature_xy, 2) - ix
-  if (surf%curvature_xy(ix, iy) == 0) cycle
-  pt%z0 = pt%z0 - surf%curvature_xy(ix, iy) * x0**ix * y0**iy
-  if (ix > 0) pt%dz_dx = pt%dz_dx - ix * surf%curvature_xy(ix, iy) * x0**(ix-1) * y0**iy
-  if (iy > 0) pt%dz_dy = pt%dz_dy - iy * surf%curvature_xy(ix, iy) * x0**ix * y0**(iy-1)
-  if (ix > 1) coef_xx = coef_xx - ix * (ix-1) * surf%curvature_xy(ix, iy) * x0**(ix-2) * y0**iy / 2
-  if (iy > 1) coef_yy = coef_yy - iy * (iy-1) * surf%curvature_xy(ix, iy) * x0**ix * y0**(iy-2) / 2
-  if (ix > 0 .and. iy > 0) coef_xy = coef_xy - ix * iy * surf%curvature_xy(ix, iy) * x0**(ix-1) * y0**(iy-1)
+do ix = 0, ubound(phot%curvature%xy, 1)
+do iy = 0, ubound(phot%curvature%xy, 2) - ix
+  if (phot%curvature%xy(ix, iy) == 0) cycle
+  pt%z0 = pt%z0 - phot%curvature%xy(ix, iy) * x0**ix * y0**iy
+  if (ix > 0) pt%dz_dx = pt%dz_dx - ix * phot%curvature%xy(ix, iy) * x0**(ix-1) * y0**iy
+  if (iy > 0) pt%dz_dy = pt%dz_dy - iy * phot%curvature%xy(ix, iy) * x0**ix * y0**(iy-1)
+  if (ix > 1) coef_xx = coef_xx - ix * (ix-1) * phot%curvature%xy(ix, iy) * x0**(ix-2) * y0**iy / 2
+  if (iy > 1) coef_yy = coef_yy - iy * (iy-1) * phot%curvature%xy(ix, iy) * x0**ix * y0**(iy-2) / 2
+  if (ix > 0 .and. iy > 0) coef_xy = coef_xy - ix * iy * phot%curvature%xy(ix, iy) * x0**(ix-1) * y0**(iy-1)
 enddo
 enddo
 
-g = surf%elliptical_curvature
+g = phot%curvature%elliptical
 if (g(3) /= 0) then
   zt = sqrt(1 - (x0 * g(1))**2 - (y0 * g(2))**2)
   pt%z0 = pt%z0 + sqrt_one(-(g(1) * x0)**2 - (g(2) * y0)**2) / g(3)
@@ -9607,7 +9638,7 @@ if (g(3) /= 0) then
   coef_xy = coef_xy - (x0 * y0 * (g(1) * g(2))**2 / zt**3) / (g(3))
 endif
 
-gs = surf%spherical_curvature
+gs = phot%curvature%spherical
 if (gs /= 0) then
   zt = sqrt(1 - (x0 * gs)**2 - (y0 * gs)**2)
   pt%z0 = pt%z0 + sqrt_one(-(gs * x0)**2 - (gs * y0)**2) / gs
@@ -9621,8 +9652,8 @@ endif
 ! Correct for fact that segment is supported at the corners of the segment and the segment is flat.
 ! This correction only affects z0 and not the slopes
 
-dx = surf%grid%dr(1) / 2
-dy = surf%grid%dr(2) / 2
+dx = phot%grid%dr(1) / 2
+dy = phot%grid%dr(2) / 2
 coef_xx = coef_xx * dx**2
 coef_xy = coef_xy * dx * dy
 coef_yy = coef_yy * dy**2

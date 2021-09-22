@@ -434,7 +434,7 @@ contains
 subroutine read_this_ele (ele, ix_ele_in, error)
 
 type (ele_struct), target :: ele
-type (photon_surface_struct), pointer :: surf
+type (photon_element_struct), pointer :: ph
 type (surface_grid_pt_struct), pointer :: s_pt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
@@ -452,7 +452,7 @@ integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert, ix_c
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns
 
-logical error, is_alloc_pt, ac_kicker_alloc
+logical error, is_alloc_grid, is_alloc_pix, ac_kicker_alloc
 
 !
 
@@ -700,23 +700,26 @@ endif
 
 if (ix_s /= 0) then
   allocate (ele%photon)
-  surf => ele%photon%surface
-  read (d_unit, err = 9360, end = 9360) ele%photon%target, ele%photon%material, &
-         surf%curvature_xy, surf%has_curvature, surf%spherical_curvature, surf%elliptical_curvature, &
-         surf%grid%active, surf%grid%type, surf%grid%dr, surf%grid%r0, is_alloc_pt
-  if (is_alloc_pt) then
+  ph => ele%photon
+  read (d_unit, err = 9360, end = 9360) ph%target, ph%material, ph%curvature, &
+         ph%grid%active, ph%grid%type, ph%grid%dr, ph%grid%r0, is_alloc_grid, &
+         ph%pixel%dr, ph%pixel%r0, is_alloc_pix
+
+  if (is_alloc_grid) then
     read (d_unit, err = 9361, end = 9361) i0, j0, i1, j1
-    allocate(surf%grid%pt(i0:i1, j0:j1))
-    ! Detectors do not have any grid data that needs saving
-    if (ele%key /= detector$) then
-      do i = lbound(surf%grid%pt, 1), ubound(surf%grid%pt, 1)
-      do j = lbound(surf%grid%pt, 2), ubound(surf%grid%pt, 2)
-        read (d_unit, err = 9362, end = 9362) surf%grid%pt(i,j)
-      enddo
-      enddo
-    endif
+    allocate(ph%grid%pt(i0:i1, j0:j1))
+    do i = lbound(ph%grid%pt, 1), ubound(ph%grid%pt, 1)
+    do j = lbound(ph%grid%pt, 2), ubound(ph%grid%pt, 2)
+      read (d_unit, err = 9362, end = 9362) ph%grid%pt(i,j)
+    enddo
+    enddo
   endif
 
+  if (is_alloc_pix) then
+    read (d_unit, err = 9361, end = 9361) i0, j0, i1, j1
+    allocate(ph%grid%pt(i0:i1, j0:j1))
+    ! Detectors do not have any grid data that needs saving
+  endif
 endif
 
 if (ix_d /= 0) then

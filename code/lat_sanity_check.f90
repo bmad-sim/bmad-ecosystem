@@ -23,7 +23,7 @@ type (lat_struct), target :: lat
 type (nametable_struct), pointer :: nt
 type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
 type (branch_struct), pointer :: branch, slave_branch, branch2, associated_branch
-type (photon_surface_struct), pointer :: surf
+type (photon_element_struct), pointer :: ph
 type (wake_sr_mode_struct), pointer :: sr_mode
 type (wake_lr_mode_struct), pointer :: lr
 type (floor_position_struct) floor0, floor
@@ -728,36 +728,36 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ! photonic element surface consistancy check
 
     if (associated(ele%photon)) then
-      surf => ele%photon%surface
-      if (all (surf%grid%type /= [not_set$, segmented$, h_misalign$, displacement$])) then
+      ph => ele%photon
+      if (all (ph%grid%type /= [not_set$, segmented$, h_misalign$, displacement$])) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
-                  'HAS AN INVALID SURFACE%GRID%TYPE SETTING: \i0\ ', i_array = [surf%grid%type])
+                  'HAS AN INVALID GRID%TYPE SETTING: \i0\ ', i_array = [ph%grid%type])
         err_flag = .true.
       endif
 
-      if (surf%grid%type /= not_set$ .and. any (surf%grid%dr == 0)) then
+      if (ph%grid%type /= not_set$ .and. any (ph%grid%dr == 0)) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
-                  'HAS A ZERO DR VALUE BUT THE GRID TYPE IS NOT OFF. \2f10.2\ ', r_array = surf%grid%dr)
+                  'HAS A ZERO DR VALUE BUT THE GRID TYPE IS NOT OFF. \2f10.2\ ', r_array = ph%grid%dr)
         err_flag = .true.
       endif
 
-      if (surf%grid%type /= not_set$ .and. .not. allocated(surf%grid%pt)) then
+      if (ph%grid%type /= not_set$ .and. .not. allocated(ph%grid%pt)) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'HAS NO GRID IS DEFINED!')
         err_flag = .true.
       endif
 
-      if (surf%grid%type == h_misalign$ .and. ele%value(b_param$) > 0) then
+      if (ph%grid%type == h_misalign$ .and. ele%value(b_param$) > 0) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'HAS GRID TYPE H_MISALIGN BUT THIS IS NOT IMPLEMENTED FOR LAUE DIFFRACTION!')
         err_flag = .true.
       endif
 
-      g = surf%spherical_curvature + surf%elliptical_curvature
+      g = ph%curvature%spherical + ph%curvature%elliptical
       if ((g(1) /= 0 .or. g(2) /= 0) .and. g(3) == 0) then
         call out_io (s_warn$, r_name, &
                   'ELEMENT: ' // ele%name, &

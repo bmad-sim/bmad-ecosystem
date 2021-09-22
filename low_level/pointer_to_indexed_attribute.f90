@@ -111,8 +111,8 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b21$) then
   if (a_name(1:4) == 'CURV') then
     read (a_name(12:12), *) ix
     read (a_name(15:15), *) iy
-    if (ix > ubound(ele%photon%surface%curvature_xy, 1) .or. iy > ubound(ele%photon%surface%curvature_xy, 2)) return
-    a_ptr%r => ele%photon%surface%curvature_xy(ix,iy)
+    if (ix > ubound(ele%photon%curvature%xy, 1) .or. iy > ubound(ele%photon%curvature%xy, 2)) return
+    a_ptr%r => ele%photon%curvature%xy(ix,iy)
 
   ! Multipole
   else

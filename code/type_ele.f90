@@ -67,8 +67,7 @@ type (taylor_field_plane1_struct), pointer :: t_term
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
-type (photon_element_struct), pointer :: p
-type (photon_surface_struct), pointer :: s
+type (photon_element_struct), pointer :: ph
 type (ele_attribute_struct) attrib, attrib2
 type (lat_param_struct) param
 type (control_struct), pointer :: ctl
@@ -645,51 +644,66 @@ endif
 
 ! surface info
 
-p => ele%photon
-if (associated(p)) then
-  s => ele%photon%surface
-  nl=nl+1; write (li(nl), *)
-  nl=nl+1; write (li(nl), *) 'Surface:'
+ph => ele%photon
+if (associated(ph)) then
  
-  if (s%has_curvature) then
-    nl=nl+1; write (li(nl), '(a, f11.6)')  'Spherical_Curvature        = ', s%spherical_curvature
-    nl=nl+1; write (li(nl), '(a, 3f11.6)') 'Elliptical_Curvature_X/Y/Z = ', s%elliptical_curvature
-    do ix = 0, ubound(s%curvature_xy, 1)
-    do iy = 0, ubound(s%curvature_xy, 2)
-      if (s%curvature_xy(ix,iy) == 0) cycle
-      nl=nl+1; write (li(nl), '(2x, 2(2x, 2(a, i0), a, es14.6))') 'CURVATURE_X', ix, '_Y', iy, ' =', s%curvature_xy(ix,iy)
+  nl=nl+1; li(nl) = ''
+  if (ph%curvature%has_curvature) then
+    nl=nl+1; write (li(nl), '(a, f11.6)')  'Spherical_Curvature        = ', ph%curvature%spherical
+    nl=nl+1; write (li(nl), '(a, 3f11.6)') 'Elliptical_Curvature_X/Y/Z = ', ph%curvature%elliptical
+    do ix = 0, ubound(ph%curvature%xy, 1)
+    do iy = 0, ubound(ph%curvature%xy, 2)
+      if (ph%curvature%xy(ix,iy) == 0) cycle
+      nl=nl+1; write (li(nl), '(2x, 2(2x, 2(a, i0), a, es14.6))') 'CURVATURE_X', ix, '_Y', iy, ' =', ph%curvature%xy(ix,iy)
     enddo
     enddo
   else
-    nl=nl+1; li(nl) = '    No Curvature'
+    nl=nl+1; li(nl) = ' No Curvature'
   endif
 
-  if (s%grid%type /= not_set$) then
-    nl=nl+1; write (li(nl), '(4x, a, l1)')       'Grid active  ', s%grid%active
-    nl=nl+1; write (li(nl), '(4x, 2a)')          'Grid type:   ', surface_grid_type_name(s%grid%type)
-    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid dr:     ', s%grid%dr
-    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid r0:     ', s%grid%r0
-    if (allocated(s%grid%pt)) then
-      nl=nl+1; write (li(nl), '(4x, a, 2i10)')   'Num grid pts:', ubound(s%grid%pt) + 1
+  if (allocated(ph%grid%pt)) then
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; write (li(nl), '(1x, 2a)') trim(surface_grid_type_name(ph%grid%type)), ' Grid:'
+    nl=nl+1; write (li(nl), '(4x, a, l1)')       'Grid active  ', ph%grid%active
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid dr:     ', ph%grid%dr
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid r0:     ', ph%grid%r0
+    if (allocated(ph%grid%pt)) then
+      nl=nl+1; write (li(nl), '(4x, a, 2i10)')   'Num grid pts:', ubound(ph%grid%pt) + 1
       nl=nl+1; write (li(nl), '(4x, a, 2(a, f10.6, a, f10.6, a, 4x))') &
                                                   'Grid bounds:', &
-                        '(', -s%grid%r0(1), ',', -s%grid%r0(1) + ubound(s%grid%pt, 1) * s%grid%dr(1), ')', & 
-                        '(', -s%grid%r0(2), ',', -s%grid%r0(2) + ubound(s%grid%pt, 2) * s%grid%dr(2), ')' 
+                        '(', -ph%grid%r0(1), ',', -ph%grid%r0(1) + ubound(ph%grid%pt, 1) * ph%grid%dr(1), ')', & 
+                        '(', -ph%grid%r0(2), ',', -ph%grid%r0(2) + ubound(ph%grid%pt, 2) * ph%grid%dr(2), ')' 
     endif
   endif
 
-  if (p%material%f_h /= 0) then
+  if (allocated(ph%pixel%pt)) then
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = ' Pixel Grid:'
+    nl=nl+1; write (li(nl), '(1x, 2a)')          'Grid of type:', surface_grid_type_name(ph%grid%type)
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Pixel dr:     ', ph%pixel%dr
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Pixel r0:     ', ph%pixel%r0
+    if (allocated(ph%pixel%pt)) then
+      nl=nl+1; write (li(nl), '(4x, a, 2i10)')   'Num pixel pts:', ubound(ph%pixel%pt) + 1
+      nl=nl+1; write (li(nl), '(4x, a, 2(a, f10.6, a, f10.6, a, 4x))') &
+                                                  'Pixel bounds:', &
+                        '(', -ph%pixel%r0(1), ',', -ph%pixel%r0(1) + ubound(ph%pixel%pt, 1) * ph%pixel%dr(1), ')', & 
+                        '(', -ph%pixel%r0(2), ',', -ph%pixel%r0(2) + ubound(ph%pixel%pt, 2) * ph%pixel%dr(2), ')' 
+    endif
+  endif
+
+  if (ph%material%f_h /= 0) then
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = ' Structure Factors:'
     if (ele%key == multilayer_mirror$) then
-      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0 (Material 1):', real(p%material%f0_m1), ' + I ', aimag(p%material%f0_m1)
-      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0 (Material 2):', real(p%material%f0_m2), ' + I ', aimag(p%material%f0_m2)
+      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0 (Material 1):', real(ph%material%f0_m1), ' + I ', aimag(ph%material%f0_m1)
+      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0 (Material 2):', real(ph%material%f0_m2), ' + I ', aimag(ph%material%f0_m2)
     else
-      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0:             ', real(p%material%f_0), ' + I ', aimag(p%material%f_0)
+      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0:             ', real(ph%material%f_0), ' + I ', aimag(ph%material%f_0)
     endif
-    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_H:             ', real(p%material%f_h), ' + I ', aimag(p%material%f_h)
-    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_Hbar:          ', real(p%material%f_hbar), ' + I ', aimag(p%material%f_hbar)
-    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'Sqrt(F_H*F_Hbar):', real(p%material%f_hkl), ' + I ', aimag(p%material%f_hkl)
+    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_H:             ', real(ph%material%f_h), ' + I ', aimag(ph%material%f_h)
+    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_Hbar:          ', real(ph%material%f_hbar), ' + I ', aimag(ph%material%f_hbar)
+    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'Sqrt(F_H*F_Hbar):', real(ph%material%f_hkl), ' + I ', aimag(ph%material%f_hkl)
   endif
-
 endif
 
 ! Encode branch info

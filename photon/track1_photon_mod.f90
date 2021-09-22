@@ -270,7 +270,7 @@ end select
 
 ! Rotate back to uncurved element coords
 
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+if (has_curvature(ele%photon)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_sample
 
@@ -324,7 +324,7 @@ select case (target%type)
 case (rectangular$)
   r_particle = orbit%vec(1:5:2)
   r = target%center%r - r_particle
-  if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
+  if (ele%photon%curvature%has_curvature) r = matmul(w_to_surface, r)
   call target_rot_mats (r, w_to_target, w_to_ele)
 
   do i = 1, target%n_corner
@@ -336,7 +336,7 @@ case (rectangular$)
     else
       call err_exit
     endif
-    if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
+    if (ele%photon%curvature%has_curvature) r = matmul(w_to_surface, r)
     r = matmul(w_to_target, r)
     corner(i)%r = r / norm2(r)
   enddo
@@ -455,7 +455,7 @@ orbit%vec(6) = -orbit%vec(6)
 
 ! Rotate back to uncurved element coords
 
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+if (has_curvature(ele%photon)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_mirror
 
@@ -522,7 +522,7 @@ orbit%vec(6) = -orbit%vec(6)
 
 ! Rotate back to uncurved element coords
 
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+if (has_curvature(ele%photon)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 !-----------------------------------------------------------------------------------------------
 contains
@@ -713,7 +713,7 @@ do im = 1, n_layer
   orbit%vec = vec_init
   call rotate_vec(orbit%vec(2:6:2), y_axis$, ml%theta_in)
   call rotate_vec(orbit%vec(2:6:2), z_axis$, ml%theta_out)
-  if (ele%photon%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar0) 
+  if (ele%photon%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar0) 
 
   cp%old_vvec = orbit%vec(2:6:2)
   cp%new_vvec = orbit%vec(2:6:2) + h_bar0
@@ -819,7 +819,7 @@ do im = 1, n_layer
 
 enddo
 
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+if (has_curvature(ele%photon)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_mosaic_crystal
 
@@ -883,7 +883,7 @@ if (orbit%state /= alive$) return
 ! Construct h_bar = H * wavelength.
 
 h_bar = ele%photon%material%h_norm
-if (ele%photon%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar) 
+if (ele%photon%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar) 
 h_bar = h_bar * cp%wavelength / ele%value(d_spacing$)
 
 ! cp%new_vvec is the normalized outgoing wavevector outside the crystal
@@ -930,7 +930,7 @@ else
   if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) orbit%vec(2:6:2) = cp%new_vvec
 endif
 
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+if (has_curvature(ele%photon)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_crystal
 
@@ -972,7 +972,7 @@ character(*), parameter :: r_name = 'track_to_surface'
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
 
-if (has_curvature(ele%photon%surface)) then
+if (has_curvature(ele%photon)) then
 
   ! Assume flat crystal, compute s required to hit the intersection
 
@@ -1026,7 +1026,7 @@ endif
 if (ele%aperture_at == surface$) call check_aperture_limit (orbit, ele, surface$, param)
 if (orbit%state /= alive$) return
 
-if (has_curvature(ele%photon%surface)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
+if (has_curvature(ele%photon)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
 contains
 !-----------------------------------------------------------------------------------------------
@@ -1100,7 +1100,7 @@ subroutine rotate_for_curved_surface (ele, orbit, set, rot_mat)
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (photon_surface_struct), pointer :: s
+type (photon_element_struct), pointer :: ph
 type (surface_grid_pt_struct), pointer :: pt
 
 real(rp) rot_mat(3,3)
@@ -1122,11 +1122,11 @@ endif
 ! Compute the slope of the surface at that the point of impact.
 ! curve_rot transforms from standard body element coords to body element coords at point of impact.
 
-s => ele%photon%surface
+ph => ele%photon
 x = orbit%vec(1)
 y = orbit%vec(3)
 
-if (s%grid%type == segmented$ .and. s%grid%active) then
+if (ph%grid%type == segmented$ .and. ph%grid%active) then
   pt => pointer_to_surface_grid_pt(ele, .true., x, y)
   if (.not. associated(pt)) then
     orbit%state = lost$
@@ -1137,7 +1137,7 @@ if (s%grid%type == segmented$ .and. s%grid%active) then
   dz_dx = pt%dz_dx; dz_dy = pt%dz_dy
 
 else
-  if (s%grid%type == displacement$) then
+  if (ph%grid%type == displacement$) then
     call surface_grid_displacement (ele, x, y, err_flag, z, dz_dx, dz_dy)
     if (err_flag) then
       orbit%state = lost$
@@ -1149,22 +1149,22 @@ else
     dz_dy = 0
   endif
 
-  do ix = 0, ubound(s%curvature_xy, 1)
-  do iy = 0, ubound(s%curvature_xy, 2) - ix
-    if (s%curvature_xy(ix, iy) == 0) cycle
-    if (ix > 0) dz_dx = dz_dx - ix * s%curvature_xy(ix, iy) * x**(ix-1) * y**iy
-    if (iy > 0) dz_dy = dz_dy - iy * s%curvature_xy(ix, iy) * x**ix * y**(iy-1)
+  do ix = 0, ubound(ph%curvature%xy, 1)
+  do iy = 0, ubound(ph%curvature%xy, 2) - ix
+    if (ph%curvature%xy(ix, iy) == 0) cycle
+    if (ix > 0) dz_dx = dz_dx - ix * ph%curvature%xy(ix, iy) * x**(ix-1) * y**iy
+    if (iy > 0) dz_dy = dz_dy - iy * ph%curvature%xy(ix, iy) * x**ix * y**(iy-1)
   enddo
   enddo
 
-  g = s%elliptical_curvature
+  g = ph%curvature%elliptical
   if (g(3) /= 0) then
     zt = sqrt(1 - (x * g(1))**2 - (y * g(2))**2)
     dz_dx = dz_dx - x * g(1)**2 / (g(3) * zt)
     dz_dy = dz_dy - y * g(2)**2 / (g(3) * zt)
   endif
 
-  gs = s%spherical_curvature
+  gs = ph%curvature%spherical
   if (gs /= 0) then
     zt = sqrt(1 - (x * gs)**2 - (y * gs)**2)
     dz_dx = dz_dx - x * gs**2 / (gs * zt)
@@ -1207,7 +1207,7 @@ subroutine crystal_h_misalign (ele, orbit, h_vec)
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (photon_surface_struct), pointer :: s
+type (photon_element_struct), pointer :: ph
 type (surface_orientation_struct), pointer :: orient
 
 real(rp) h_vec(3), r(2)
@@ -1216,12 +1216,12 @@ character(*), parameter :: r_name = 'crystal_h_misalign'
 
 !
 
-s => ele%photon%surface
-if (.not. s%grid%active) return
+ph => ele%photon
+if (.not. ph%grid%active) return
 
-ij = nint((orbit%vec(1:3:2) - s%grid%r0) / s%grid%dr)
+ij = nint((orbit%vec(1:3:2) - ph%grid%r0) / ph%grid%dr)
 
-if (any(ij < lbound(s%grid%pt)) .or. any(ij > ubound(s%grid%pt))) then
+if (any(ij < lbound(ph%grid%pt)) .or. any(ij > ubound(ph%grid%pt))) then
   call out_io (s_error$, r_name, &
               'Photon position on crystal surface outside of grid bounds for element: ' // ele%name)
   return
@@ -1229,7 +1229,7 @@ endif
 
 ! Make small angle approximation
 
-orient => s%grid%pt(ij(1), ij(2))%orientation
+orient => ph%grid%pt(ij(1), ij(2))%orientation
 
 h_vec(1:2) = h_vec(1:2) + [orient%dz_dx, orient%dz_dy]
 if (orient%dz_dx_rms /= 0 .or. orient%dz_dy /= 0) then
