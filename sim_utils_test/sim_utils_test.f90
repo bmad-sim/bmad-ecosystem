@@ -26,7 +26,8 @@ real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3), unit
 real(rp) field2(10:12, 20:22), field3(10:12, 20:22, 30:32), ff, df_dx, df_dy, df_dz, ff0, ff1
 real(rp) del, dff_dx, dff_dy, dff_dz, x, y, z, value
 
-integer i, j, k, ie, which, where, n_freq, mult, power, width, digits, species
+integer i, j, k, ie, n, which, where, n_freq, mult, power, width, digits, species
+integer, allocatable :: arr(:)
 
 complex(rp) cdata(32)
 complex(rp) amp(3), eval(6), evec(6,6)
@@ -41,6 +42,11 @@ character(16) :: extrap(0:3) = [character(16):: 'ZERO', 'LINEAR', 'CONSTANT', 'S
 !
 
 open (1, file = 'output.now')
+
+! pointer_to_locations
+
+call pointer_to_locations ('7 n4:n5,4  5:,  :4', arr, n, 3, 10, ['n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10'])
+write (1, '(a, 99i3)') '"Locs1" ABS 0    ', n, (arr(i), i = 1, n)
 
 ! Eigen modes
 
