@@ -73,7 +73,7 @@ type lux_common_struct
   integer :: n_photon1_out = 0     ! Count of photons in photon1_out_file
   integer :: iu_photon1_out        ! File I/O unit number.
   type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
-  type (surface_grid_pt_struct), allocatable :: histogram_bin(:)
+  type (pixel_grid_pt_struct), allocatable :: histogram_bin(:)
   real(rp) E_min, E_max                                      ! Photon energy range for bends and wigglers
   logical :: verbose = .false.
   logical :: using_mpi = .false.
@@ -402,13 +402,13 @@ subroutine lux_init_data (lux_param, lux_com, lux_data)
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
 type (lux_output_data_struct) lux_data
-type (surface_grid_struct), pointer :: detec_grid
+type (detector_pixel_struct), pointer :: detec_grid
 
 character(*), parameter :: r_name = 'lux_init_data'
 
 !
 
-detec_grid => lux_com%detec_ele%photon%surface%grid
+detec_grid => lux_com%detec_ele%photon%pixel
 
 if (.not. allocated(detec_grid%pt)) then
   call out_io (s_fatal$, r_name, 'DETECTOR GRID NOT SET!')
@@ -422,7 +422,7 @@ lux_data%ny_max = ubound(detec_grid%pt, 2)
 
 lux_data%n_track_tot = 0
 
-detec_grid%pt = surface_grid_pt_struct()
+detec_grid%pt = pixel_grid_pt_struct()
 
 end subroutine lux_init_data
 
@@ -773,9 +773,9 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: detec_ele, photon_init_ele, photon1_ele
 type (branch_struct), pointer :: s_branch, t_branch
 type (bunch_struct) bunch, bunch_stop1, bunch_start
-type (surface_grid_struct), pointer :: detec_grid
-type (surface_grid_pt_struct), pointer :: pix
-type (surface_grid_pt_struct) :: pixel
+type (detector_pixel_struct), pointer :: detec_grid
+type (pixel_grid_pt_struct), pointer :: pix
+type (pixel_grid_pt_struct) :: pixel
 
 real(rp) phase, intensity_tot, intens
 
@@ -789,7 +789,7 @@ character(*), parameter :: r_name = 'lux_track_photons'
 
 lat => lux_com%lat
 detec_ele => lux_com%detec_ele
-detec_grid => lux_com%detec_ele%photon%surface%grid
+detec_grid => lux_com%detec_ele%photon%pixel
 photon_init_ele => lux_com%photon_init_ele
 photon1_ele => lux_com%photon1_ele
 t_branch => lux_com%tracking_branch
@@ -861,7 +861,7 @@ end subroutine photon1_out
 subroutine add_to_detector_statistics (start_orb, det_orb, intens)
 
 type (coord_struct) start_orb, det_orb, orb0, orb
-type (surface_grid_pt_struct), allocatable :: temp_bin(:)
+type (pixel_grid_pt_struct), allocatable :: temp_bin(:)
 real(rp) intens, intens_x, intens_y
 integer ix, i1, i2
 
@@ -918,7 +918,7 @@ if (lux_param%det_pix_out_file /= '' .and. lux_param%histogram_variable /= '') t
     lux_com%histogram_bin(i1:i2) = temp_bin
   endif
 
-  call photon_add_to_detector_statistics (start_orb, det_orb, detec_ele, grid_pt = lux_com%histogram_bin(ix))
+  call photon_add_to_detector_statistics (start_orb, det_orb, detec_ele, pixel_pt = lux_com%histogram_bin(ix))
 endif
 
 end subroutine add_to_detector_statistics
@@ -935,13 +935,13 @@ end subroutine lux_track_photons
 ! Routine to combine data from an MPI slave to the master data structure.
 !
 ! Input:
-!   slave_pt(:,:) -- surface_grid_struct: Grid of data points
+!   slave_pt(:,:) -- detector_pixel_struct: Grid of data points
 !   lux_param     -- lux_param_struct: Lux input parameters.
 !   lux_com       -- lux_common_struct: Common parameters.
 !   lux_data      -- lux_output_data_struct: Tracking data.
 !
 ! Output:
-!   lux_com%lat%detec_ele%photon%surface%grid%pt
+!   lux_com%lat%detec_ele%photon%pixel%pt
 !-
 
 subroutine lux_add_in_mpi_slave_data (slave_pt, lux_param, lux_com, lux_data)
@@ -949,13 +949,13 @@ subroutine lux_add_in_mpi_slave_data (slave_pt, lux_param, lux_com, lux_data)
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
 type (lux_output_data_struct) lux_data
-type (surface_grid_pt_struct) slave_pt(:,:)
-type (surface_grid_pt_struct), pointer :: pt(:,:)
+type (pixel_grid_pt_struct) slave_pt(:,:)
+type (pixel_grid_pt_struct), pointer :: pt(:,:)
 
 !
 
-pt => lux_com%detec_ele%photon%surface%grid%pt
-pt = surface_grid_pt_struct()
+pt => lux_com%detec_ele%photon%pixel%pt
+pt = pixel_grid_pt_struct()
 
 lux_data%n_track_tot   = lux_data%n_track_tot   + lux_com%n_photon_stop1
 lux_data%n_live        = lux_data%n_live        + sum(slave_pt%n_photon)
@@ -982,9 +982,9 @@ subroutine lux_write_data (lux_param, lux_com, lux_data)
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
 type (lux_output_data_struct) lux_data
-type (surface_grid_struct), pointer :: detec_grid
-type (surface_grid_pt_struct), pointer :: pix
-type (surface_grid_pt_struct) :: p
+type (detector_pixel_struct), pointer :: detec_grid
+type (pixel_grid_pt_struct), pointer :: pix
+type (pixel_grid_pt_struct) :: p
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 type (all_pointer_struct), allocatable :: ptr_array(:)
@@ -1004,7 +1004,7 @@ character(200) params_out, param
 
 !------------------------------------------
 
-detec_grid => lux_com%detec_ele%photon%surface%grid
+detec_grid => lux_com%detec_ele%photon%pixel
 lat => lux_com%lat
 
 !
@@ -1165,7 +1165,7 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a)') '#   ix      x_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
   do i = lux_data%nx_min, lux_data%nx_max
-    p = surface_grid_pt_struct()
+    p = pixel_grid_pt_struct()
     p%intensity_x = sum(detec_grid%pt(i,:)%intensity_x)
     p%intensity_y = sum(detec_grid%pt(i,:)%intensity_y)
     p%intensity   = sum(detec_grid%pt(i,:)%intensity)
@@ -1194,7 +1194,7 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a)') '#                                                                                                                             |                    Init'
   write (3, '(a)') '#   iy      y_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
   do j = lux_data%ny_min, lux_data%ny_max
-    p = surface_grid_pt_struct()
+    p = pixel_grid_pt_struct()
     p%intensity_x = sum(detec_grid%pt(:,j)%intensity_x)
     p%intensity_y = sum(detec_grid%pt(:,j)%intensity_y)
     p%intensity   = sum(detec_grid%pt(:,j)%intensity)
@@ -1337,7 +1337,7 @@ type (lat_struct), pointer:: lat
 type (ele_struct), pointer :: ele
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
-type (surface_grid_struct) detector
+type (detector_pixel_struct) detector
 
 real(rp) x1, x2, y1, y2
 integer ix, iy, i_chan
