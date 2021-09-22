@@ -95,7 +95,7 @@ if (uni == '') then
   return
 endif
 
-call pointer_tolocations (uni, arr, num, 1, ubound(s%u))
+call pointer_to_locations (uni, arr, num, 1, ubound(s%u, 1))
 if (num == -1) then
   call out_io (s_error$, r_name, 'BAD UNIVERSE NUMBER: ' // uni)
   err = .true.
