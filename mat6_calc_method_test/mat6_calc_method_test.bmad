@@ -145,14 +145,12 @@ l4[particle] = photon
 r0 = 1
 
 crystal1: crystal, crystal_type = 'Si(444)', b_param = -1.1, tilt = 0.1, psi_angle = 1.8,
-	curvature_x0_y2 =  1 / (2 *r0), curvature_x0_y4 = 1 / (8*r0^3),
-	curvature_x2_y0 = 1 / (2*r0), curvature_x4_y0 = 1 / (8*r0^3),
-	curvature_x2_y2 = 1 / (4*r0^3), mat6_calc_method = tracking
+	curvature = {x0y2 =  1 / (2 *r0), x0y4 = 1 / (8*r0^3), x2y0 = 1 / (2*r0), x4y0 = 1 / (8*r0^3),
+	x2y2 = 1 / (4*r0^3)}, mat6_calc_method = tracking
 
 crystal2: crystal, crystal_type = 'Si(444)', b_param = 1.1, tilt = 0.1, psi_angle = 1.8,
-	curvature_x0_y2 =  1 / (2 *r0), curvature_x0_y4 = 1 / (8*r0^3),
-	curvature_x2_y0 = 1 / (2*r0), curvature_x4_y0 = 1 / (8*r0^3),
-	curvature_x2_y2 = 1 / (4*r0^3), mat6_calc_method = tracking
+	curvature = {x0y2 =  1 / (2 *r0), x0y4 = 1 / (8*r0^3), x2y0 = 1 / (2*r0), x4y0 = 1 / (8*r0^3),
+	x2y2 = 1 / (4*r0^3)}, mat6_calc_method = tracking
 
 !---------------
 
