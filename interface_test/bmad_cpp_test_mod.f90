@@ -5065,28 +5065,6 @@ do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
   rhs = 100 + jd1 + 2 + offset
   F%r0(jd1+lb1) = rhs
 enddo
-!! f_side.test_pat[real, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%x_edge)) deallocate (F%x_edge)
-else
-  if (.not. allocated(F%x_edge)) allocate (F%x_edge(-1:1))
-  do jd1 = 1, size(F%x_edge,1); lb1 = lbound(F%x_edge,1) - 1
-    rhs = 100 + jd1 + 3 + offset
-    F%x_edge(jd1+lb1) = rhs
-  enddo
-endif
-!! f_side.test_pat[real, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%y_edge)) deallocate (F%y_edge)
-else
-  if (.not. allocated(F%y_edge)) allocate (F%y_edge(-1:1))
-  do jd1 = 1, size(F%y_edge,1); lb1 = lbound(F%y_edge,1) - 1
-    rhs = 100 + jd1 + 5 + offset
-    F%y_edge(jd1+lb1) = rhs
-  enddo
-endif
 !! f_side.test_pat[type, 2, ALLOC]
 
 if (ix_patt < 3) then

@@ -3333,22 +3333,6 @@ void set_CPP_pixel_grid_test_pattern (CPP_pixel_grid& C, int ix_patt) {
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.r0.size(); i++)
     {int rhs = 101 + i + 2 + offset; C.r0[i] = rhs;}
-  // c_side.test_pat[real, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.x_edge.resize(0);
-  else {
-    C.x_edge.resize(3);
-    for (unsigned int i = 0; i < C.x_edge.size(); i++)
-      {int rhs = 101 + i + 3 + offset; C.x_edge[i] = rhs;}  }
-
-  // c_side.test_pat[real, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.y_edge.resize(0);
-  else {
-    C.y_edge.resize(3);
-    for (unsigned int i = 0; i < C.y_edge.size(); i++)
-      {int rhs = 101 + i + 5 + offset; C.y_edge[i] = rhs;}  }
-
   // c_side.test_pat[type, 2, ALLOC]
   if (ix_patt < 3) 
     C.pt.resize(0);

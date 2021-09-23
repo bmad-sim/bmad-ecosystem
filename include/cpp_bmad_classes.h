@@ -2084,15 +2084,11 @@ class CPP_pixel_grid {
 public:
   Real_ARRAY dr;
   Real_ARRAY r0;
-  Real_ARRAY x_edge;
-  Real_ARRAY y_edge;
   CPP_pixel_grid_pt_MATRIX pt;
 
   CPP_pixel_grid() :
     dr(0.0, 2),
     r0(0.0, 2),
-    x_edge(0.0, 0),
-    y_edge(0.0, 0),
     pt(CPP_pixel_grid_pt_ARRAY(CPP_pixel_grid_pt(), 0), 0)
     {}
 

@@ -2001,22 +2001,10 @@ extern "C" void pixel_grid_pt_to_c2 (CPP_pixel_grid_pt& C, c_Int& z_n_photon, c_
 extern "C" void pixel_grid_to_c (const Opaque_pixel_grid_class*, CPP_pixel_grid&);
 
 // c_side.to_f2_arg
-extern "C" void pixel_grid_to_f2 (Opaque_pixel_grid_class*, c_RealArr, c_RealArr, c_RealArr,
-    Int, c_RealArr, Int, const CPP_pixel_grid_pt**, Int, Int);
+extern "C" void pixel_grid_to_f2 (Opaque_pixel_grid_class*, c_RealArr, c_RealArr, const
+    CPP_pixel_grid_pt**, Int, Int);
 
 extern "C" void pixel_grid_to_f (const CPP_pixel_grid& C, Opaque_pixel_grid_class* F) {
-  // c_side.to_f_setup[real, 1, ALLOC]
-  int n1_x_edge = C.x_edge.size();
-  c_RealArr z_x_edge = NULL;
-  if (n1_x_edge > 0) {
-    z_x_edge = &C.x_edge[0];
-  }
-  // c_side.to_f_setup[real, 1, ALLOC]
-  int n1_y_edge = C.y_edge.size();
-  c_RealArr z_y_edge = NULL;
-  if (n1_y_edge > 0) {
-    z_y_edge = &C.y_edge[0];
-  }
   // c_side.to_f_setup[type, 2, ALLOC]
 
   int n1_pt = C.pt.size(), n2_pt = 0;
@@ -2029,32 +2017,20 @@ extern "C" void pixel_grid_to_f (const CPP_pixel_grid& C, Opaque_pixel_grid_clas
   }
 
   // c_side.to_f2_call
-  pixel_grid_to_f2 (F, &C.dr[0], &C.r0[0], z_x_edge, n1_x_edge, z_y_edge, n1_y_edge, z_pt,
-      n1_pt, n2_pt);
+  pixel_grid_to_f2 (F, &C.dr[0], &C.r0[0], z_pt, n1_pt, n2_pt);
 
   // c_side.to_f_cleanup[type, 2, ALLOC]
   delete[] z_pt;
 }
 
 // c_side.to_c2_arg
-extern "C" void pixel_grid_to_c2 (CPP_pixel_grid& C, c_RealArr z_dr, c_RealArr z_r0, c_RealArr
-    z_x_edge, Int n1_x_edge, c_RealArr z_y_edge, Int n1_y_edge, Opaque_pixel_grid_pt_class**
-    z_pt, Int n1_pt, Int n2_pt) {
+extern "C" void pixel_grid_to_c2 (CPP_pixel_grid& C, c_RealArr z_dr, c_RealArr z_r0,
+    Opaque_pixel_grid_pt_class** z_pt, Int n1_pt, Int n2_pt) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.dr << z_dr;
   // c_side.to_c2_set[real, 1, NOT]
   C.r0 << z_r0;
-  // c_side.to_c2_set[real, 1, ALLOC]
-
-  C.x_edge.resize(n1_x_edge);
-  C.x_edge << z_x_edge;
-
-  // c_side.to_c2_set[real, 1, ALLOC]
-
-  C.y_edge.resize(n1_y_edge);
-  C.y_edge << z_y_edge;
-
   // c_side.to_c2_set[type, 2, ALLOC]
   C.pt.resize(n1_pt);
   for (int i = 0; i < n1_pt; i++) {
