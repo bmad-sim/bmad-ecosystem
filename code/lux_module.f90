@@ -818,7 +818,7 @@ do
 
   call track_all (lat, photon%orb, t_branch%ix_branch, track_state)
 
-  call add_to_detector_statistics (photon%orb(0), photon%orb(nt), intens)
+  call add_this_to_detector_statistics (photon%orb(0), photon%orb(nt), intens)
   do i = 1, nt
     if (photon%orb(i)%state == alive$) lux_com%stat(i)%n_particle_live = lux_com%stat(i)%n_particle_live + 1
   enddo
@@ -858,18 +858,12 @@ end subroutine photon1_out
 !--------------------------------------------------------------------
 ! contains
 
-subroutine add_to_detector_statistics (start_orb, det_orb, intens)
+subroutine add_this_to_detector_statistics (start_orb, det_orb, intens)
 
-type (coord_struct) start_orb, det_orb, orb0, orb
+type (coord_struct) start_orb, det_orb, orb0, orb, d_orb
 type (pixel_grid_pt_struct), allocatable :: temp_bin(:)
-real(rp) intens, intens_x, intens_y
+real(rp) intens, w_surf(3,3)
 integer ix, i1, i2
-
-!
-
-intens_x = det_orb%field(1)**2
-intens_y = det_orb%field(2)**2
-intens = intens_x + intens_y
 
 !
 
@@ -878,16 +872,30 @@ if (det_orb%state /= alive$) then
   return
 endif
 
+d_orb = det_orb
+call offset_photon (detec_ele, d_orb, set$)  ! Go to coordinates of the detector
+call track_to_surface (detec_ele, d_orb, detec_ele%branch%param, w_surf)
+call to_detector_surface_coords (d_orb, detec_ele)
+
+!
+
+if (d_orb%state /= alive$) then
+  lux_data%n_lost = lux_data%n_lost + 1
+  return
+endif
+
 lux_data%n_live = lux_data%n_live + 1
+
+intens = d_orb%field(1)**2 + d_orb%field(2)**2
 intensity_tot = intensity_tot + intens
 
-call photon_add_to_detector_statistics (start_orb, det_orb, detec_ele)
+call photon_add_to_detector_statistics (start_orb, d_orb, detec_ele)
 
 ! Histogram
 
 if (lux_param%det_pix_out_file /= '' .and. lux_param%histogram_variable /= '') then
-  orb  = to_photon_angle_coords (det_orb, detec_ele, .true.)
-  orb0 = to_photon_angle_coords (start_orb, detec_ele, .false.)
+  orb  = to_photon_angle_coords (d_orb, detec_ele)
+  orb0 = to_photon_angle_coords (start_orb, detec_ele)
 
   select case (lux_param%histogram_variable)
   case ('init_x')
@@ -918,10 +926,10 @@ if (lux_param%det_pix_out_file /= '' .and. lux_param%histogram_variable /= '') t
     lux_com%histogram_bin(i1:i2) = temp_bin
   endif
 
-  call photon_add_to_detector_statistics (start_orb, det_orb, detec_ele, pixel_pt = lux_com%histogram_bin(ix))
+  call photon_add_to_detector_statistics (start_orb, d_orb, detec_ele, pixel_pt = lux_com%histogram_bin(ix))
 endif
 
-end subroutine add_to_detector_statistics
+end subroutine add_this_to_detector_statistics
 
 end subroutine lux_track_photons
 
