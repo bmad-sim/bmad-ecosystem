@@ -402,7 +402,7 @@ subroutine lux_init_data (lux_param, lux_com, lux_data)
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
 type (lux_output_data_struct) lux_data
-type (detector_pixel_struct), pointer :: detec_grid
+type (pixel_grid_struct), pointer :: detec_grid
 
 character(*), parameter :: r_name = 'lux_init_data'
 
@@ -773,7 +773,7 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: detec_ele, photon_init_ele, photon1_ele
 type (branch_struct), pointer :: s_branch, t_branch
 type (bunch_struct) bunch, bunch_stop1, bunch_start
-type (detector_pixel_struct), pointer :: detec_grid
+type (pixel_grid_struct), pointer :: detec_grid
 type (pixel_grid_pt_struct), pointer :: pix
 type (pixel_grid_pt_struct) :: pixel
 
@@ -935,7 +935,7 @@ end subroutine lux_track_photons
 ! Routine to combine data from an MPI slave to the master data structure.
 !
 ! Input:
-!   slave_pt(:,:) -- detector_pixel_struct: Grid of data points
+!   slave_pt(:,:) -- pixel_grid_struct: Grid of data points
 !   lux_param     -- lux_param_struct: Lux input parameters.
 !   lux_com       -- lux_common_struct: Common parameters.
 !   lux_data      -- lux_output_data_struct: Tracking data.
@@ -982,7 +982,7 @@ subroutine lux_write_data (lux_param, lux_com, lux_data)
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
 type (lux_output_data_struct) lux_data
-type (detector_pixel_struct), pointer :: detec_grid
+type (pixel_grid_struct), pointer :: detec_grid
 type (pixel_grid_pt_struct), pointer :: pix
 type (pixel_grid_pt_struct) :: p
 type (lat_struct), pointer :: lat
@@ -1337,7 +1337,7 @@ type (lat_struct), pointer:: lat
 type (ele_struct), pointer :: ele
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
-type (detector_pixel_struct) detector
+type (pixel_grid_struct) detector
 
 real(rp) x1, x2, y1, y2
 integer ix, iy, i_chan
