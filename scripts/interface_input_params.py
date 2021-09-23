@@ -68,7 +68,7 @@ struct_list = [
     'photon_target_struct',
     'photon_material_struct',
     'pixel_grid_pt_struct',
-    'detector_pixel_struct',
+    'pixel_grid_struct',
     'photon_element_struct',
     'wall3d_vertex_struct',
     'wall3d_section_struct',

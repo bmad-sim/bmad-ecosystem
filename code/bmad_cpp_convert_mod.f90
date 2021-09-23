@@ -458,7 +458,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine detector_pixel_to_f (C, Fp) bind(c)
+  subroutine pixel_grid_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -5843,38 +5843,41 @@ end subroutine pixel_grid_pt_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine detector_pixel_to_c (Fp, C) bind(c)
+! Subroutine pixel_grid_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad detector_pixel_struct to a C++ CPP_detector_pixel structure
+! Routine to convert a Bmad pixel_grid_struct to a C++ CPP_pixel_grid structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad detector_pixel_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad pixel_grid_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_detector_pixel struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_pixel_grid struct.
 !-
 
-subroutine detector_pixel_to_c (Fp, C) bind(c)
+subroutine pixel_grid_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine detector_pixel_to_c2 (C, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
+  subroutine pixel_grid_to_c2 (C, z_dr, z_r0, z_x_edge, n1_x_edge, z_y_edge, n1_y_edge, z_pt, &
+      n1_pt, n2_pt) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_dr(*), z_r0(*)
+    real(c_double) :: z_dr(*), z_r0(*), z_x_edge(*), z_y_edge(*)
+    integer(c_int), value :: n1_x_edge, n1_y_edge, n1_pt, n2_pt
     type(c_ptr) :: z_pt(*)
-    integer(c_int), value :: n1_pt, n2_pt
   end subroutine
 end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(detector_pixel_struct), pointer :: F
+type(pixel_grid_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
+integer(c_int) :: n1_x_edge
+integer(c_int) :: n1_y_edge
 type(c_ptr), allocatable :: z_pt(:)
 integer(c_int) :: n1_pt
 integer(c_int) :: n2_pt
@@ -5883,6 +5886,16 @@ integer(c_int) :: n2_pt
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_c_trans[real, 1, ALLOC]
+n1_x_edge = 0
+if (allocated(F%x_edge)) then
+  n1_x_edge = size(F%x_edge, 1)
+endif
+!! f_side.to_c_trans[real, 1, ALLOC]
+n1_y_edge = 0
+if (allocated(F%y_edge)) then
+  n1_y_edge = size(F%y_edge, 1)
+endif
 !! f_side.to_c_trans[type, 2, ALLOC]
 if (allocated(F%pt)) then
   n1_pt = size(F%pt, 1); lb1 = lbound(F%pt, 1) - 1
@@ -5896,38 +5909,42 @@ else
 endif
 
 !! f_side.to_c2_call
-call detector_pixel_to_c2 (C, fvec2vec(F%dr, 2), fvec2vec(F%r0, 2), z_pt, n1_pt, n2_pt)
+call pixel_grid_to_c2 (C, fvec2vec(F%dr, 2), fvec2vec(F%r0, 2), fvec2vec(F%x_edge, n1_x_edge), &
+    n1_x_edge, fvec2vec(F%y_edge, n1_y_edge), n1_y_edge, z_pt, n1_pt, n2_pt)
 
-end subroutine detector_pixel_to_c
+end subroutine pixel_grid_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine detector_pixel_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine pixel_grid_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_detector_pixel structure to a Bmad detector_pixel_struct structure.
-! This routine is called by detector_pixel_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_pixel_grid structure to a Bmad pixel_grid_struct structure.
+! This routine is called by pixel_grid_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the detector_pixel_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the pixel_grid_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad detector_pixel_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad pixel_grid_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine detector_pixel_to_f2 (Fp, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
+subroutine pixel_grid_to_f2 (Fp, z_dr, z_r0, z_x_edge, n1_x_edge, z_y_edge, n1_y_edge, z_pt, &
+    n1_pt, n2_pt) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(detector_pixel_struct), pointer :: F
+type(pixel_grid_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_dr(*), z_r0(*)
+type(c_ptr), value :: z_x_edge, z_y_edge
+real(c_double), pointer :: f_x_edge(:), f_y_edge(:)
+integer(c_int), value :: n1_x_edge, n1_y_edge, n1_pt, n2_pt
 type(c_ptr) :: z_pt(*)
-integer(c_int), value :: n1_pt, n2_pt
 
 call c_f_pointer (Fp, F)
 
@@ -5935,6 +5952,32 @@ call c_f_pointer (Fp, F)
 F%dr = z_dr(1:2)
 !! f_side.to_f2_trans[real, 1, NOT]
 F%r0 = z_r0(1:2)
+!! f_side.to_f2_trans[real, 1, ALLOC]
+if (allocated(F%x_edge)) then
+  if (n1_x_edge == 0 .or. any(shape(F%x_edge) /= [n1_x_edge])) deallocate(F%x_edge)
+  if (any(lbound(F%x_edge) /= 1)) deallocate(F%x_edge)
+endif
+if (n1_x_edge /= 0) then
+  call c_f_pointer (z_x_edge, f_x_edge, [n1_x_edge])
+  if (.not. allocated(F%x_edge)) allocate(F%x_edge(n1_x_edge))
+  F%x_edge = f_x_edge(1:n1_x_edge)
+else
+  if (allocated(F%x_edge)) deallocate(F%x_edge)
+endif
+
+!! f_side.to_f2_trans[real, 1, ALLOC]
+if (allocated(F%y_edge)) then
+  if (n1_y_edge == 0 .or. any(shape(F%y_edge) /= [n1_y_edge])) deallocate(F%y_edge)
+  if (any(lbound(F%y_edge) /= 1)) deallocate(F%y_edge)
+endif
+if (n1_y_edge /= 0) then
+  call c_f_pointer (z_y_edge, f_y_edge, [n1_y_edge])
+  if (.not. allocated(F%y_edge)) allocate(F%y_edge(n1_y_edge))
+  F%y_edge = f_y_edge(1:n1_y_edge)
+else
+  if (allocated(F%y_edge)) deallocate(F%y_edge)
+endif
+
 !! f_side.to_f2_trans[type, 2, ALLOC]
 if (n1_pt == 0) then
   if (allocated(F%pt)) deallocate(F%pt)
@@ -5952,7 +5995,7 @@ else
 endif
 
 
-end subroutine detector_pixel_to_f2
+end subroutine pixel_grid_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -6040,7 +6083,7 @@ call photon_material_to_f(z_material, c_loc(F%material))
 !! f_side.to_f2_trans[type, 0, NOT]
 call surface_grid_to_f(z_grid, c_loc(F%grid))
 !! f_side.to_f2_trans[type, 0, NOT]
-call detector_pixel_to_f(z_pixel, c_loc(F%pixel))
+call pixel_grid_to_f(z_pixel, c_loc(F%pixel))
 
 end subroutine photon_element_to_f2
 

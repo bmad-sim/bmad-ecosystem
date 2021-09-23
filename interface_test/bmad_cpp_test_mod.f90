@@ -4978,18 +4978,18 @@ end subroutine set_pixel_grid_pt_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_detector_pixel (ok)
+subroutine test1_f_pixel_grid (ok)
 
 implicit none
 
-type(detector_pixel_struct), target :: f_detector_pixel, f2_detector_pixel
+type(pixel_grid_struct), target :: f_pixel_grid, f2_pixel_grid
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_detector_pixel (c_detector_pixel, c_ok) bind(c)
+  subroutine test_c_pixel_grid (c_pixel_grid, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_detector_pixel
+    type(c_ptr), value :: c_pixel_grid
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -4997,58 +4997,58 @@ end interface
 !
 
 ok = .true.
-call set_detector_pixel_test_pattern (f2_detector_pixel, 1)
+call set_pixel_grid_test_pattern (f2_pixel_grid, 1)
 
-call test_c_detector_pixel(c_loc(f2_detector_pixel), c_ok)
+call test_c_pixel_grid(c_loc(f2_pixel_grid), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_detector_pixel_test_pattern (f_detector_pixel, 4)
-if (f_detector_pixel == f2_detector_pixel) then
-  print *, 'detector_pixel: C side convert C->F: Good'
+call set_pixel_grid_test_pattern (f_pixel_grid, 4)
+if (f_pixel_grid == f2_pixel_grid) then
+  print *, 'pixel_grid: C side convert C->F: Good'
 else
-  print *, 'detector_pixel: C SIDE CONVERT C->F: FAILED!'
+  print *, 'pixel_grid: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_detector_pixel
+end subroutine test1_f_pixel_grid
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_detector_pixel (c_detector_pixel, c_ok) bind(c)
+subroutine test2_f_pixel_grid (c_pixel_grid, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_detector_pixel
-type(detector_pixel_struct), target :: f_detector_pixel, f2_detector_pixel
+type(c_ptr), value ::  c_pixel_grid
+type(pixel_grid_struct), target :: f_pixel_grid, f2_pixel_grid
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call detector_pixel_to_f (c_detector_pixel, c_loc(f_detector_pixel))
+call pixel_grid_to_f (c_pixel_grid, c_loc(f_pixel_grid))
 
-call set_detector_pixel_test_pattern (f2_detector_pixel, 2)
-if (f_detector_pixel == f2_detector_pixel) then
-  print *, 'detector_pixel: F side convert C->F: Good'
+call set_pixel_grid_test_pattern (f2_pixel_grid, 2)
+if (f_pixel_grid == f2_pixel_grid) then
+  print *, 'pixel_grid: F side convert C->F: Good'
 else
-  print *, 'detector_pixel: F SIDE CONVERT C->F: FAILED!'
+  print *, 'pixel_grid: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_detector_pixel_test_pattern (f2_detector_pixel, 3)
-call detector_pixel_to_c (c_loc(f2_detector_pixel), c_detector_pixel)
+call set_pixel_grid_test_pattern (f2_pixel_grid, 3)
+call pixel_grid_to_c (c_loc(f2_pixel_grid), c_pixel_grid)
 
-end subroutine test2_f_detector_pixel
+end subroutine test2_f_pixel_grid
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_detector_pixel_test_pattern (F, ix_patt)
+subroutine set_pixel_grid_test_pattern (F, ix_patt)
 
 implicit none
 
-type(detector_pixel_struct) F
+type(pixel_grid_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -5065,6 +5065,28 @@ do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
   rhs = 100 + jd1 + 2 + offset
   F%r0(jd1+lb1) = rhs
 enddo
+!! f_side.test_pat[real, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%x_edge)) deallocate (F%x_edge)
+else
+  if (.not. allocated(F%x_edge)) allocate (F%x_edge(-1:1))
+  do jd1 = 1, size(F%x_edge,1); lb1 = lbound(F%x_edge,1) - 1
+    rhs = 100 + jd1 + 3 + offset
+    F%x_edge(jd1+lb1) = rhs
+  enddo
+endif
+!! f_side.test_pat[real, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%y_edge)) deallocate (F%y_edge)
+else
+  if (.not. allocated(F%y_edge)) allocate (F%y_edge(-1:1))
+  do jd1 = 1, size(F%y_edge,1); lb1 = lbound(F%y_edge,1) - 1
+    rhs = 100 + jd1 + 5 + offset
+    F%y_edge(jd1+lb1) = rhs
+  enddo
+endif
 !! f_side.test_pat[type, 2, ALLOC]
 
 if (ix_patt < 3) then
@@ -5078,7 +5100,7 @@ else
   enddo
 endif
 
-end subroutine set_detector_pixel_test_pattern
+end subroutine set_pixel_grid_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -5170,7 +5192,7 @@ call set_photon_material_test_pattern (F%material, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_surface_grid_test_pattern (F%grid, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
-call set_detector_pixel_test_pattern (F%pixel, ix_patt)
+call set_pixel_grid_test_pattern (F%pixel, ix_patt)
 
 end subroutine set_photon_element_test_pattern
 

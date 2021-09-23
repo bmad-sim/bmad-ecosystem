@@ -3321,9 +3321,9 @@ extern "C" void test_c_pixel_grid_pt (Opaque_pixel_grid_pt_class* F, bool& c_ok)
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_detector_pixel (CPP_detector_pixel&, bool&);
+extern "C" void test2_f_pixel_grid (CPP_pixel_grid&, bool&);
 
-void set_CPP_detector_pixel_test_pattern (CPP_detector_pixel& C, int ix_patt) {
+void set_CPP_pixel_grid_test_pattern (CPP_pixel_grid& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -3333,6 +3333,22 @@ void set_CPP_detector_pixel_test_pattern (CPP_detector_pixel& C, int ix_patt) {
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.r0.size(); i++)
     {int rhs = 101 + i + 2 + offset; C.r0[i] = rhs;}
+  // c_side.test_pat[real, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.x_edge.resize(0);
+  else {
+    C.x_edge.resize(3);
+    for (unsigned int i = 0; i < C.x_edge.size(); i++)
+      {int rhs = 101 + i + 3 + offset; C.x_edge[i] = rhs;}  }
+
+  // c_side.test_pat[real, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.y_edge.resize(0);
+  else {
+    C.y_edge.resize(3);
+    for (unsigned int i = 0; i < C.y_edge.size(); i++)
+      {int rhs = 101 + i + 5 + offset; C.y_edge[i] = rhs;}  }
+
   // c_side.test_pat[type, 2, ALLOC]
   if (ix_patt < 3) 
     C.pt.resize(0);
@@ -3352,37 +3368,37 @@ void set_CPP_detector_pixel_test_pattern (CPP_detector_pixel& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_detector_pixel (Opaque_detector_pixel_class* F, bool& c_ok) {
+extern "C" void test_c_pixel_grid (Opaque_pixel_grid_class* F, bool& c_ok) {
 
-  CPP_detector_pixel C, C2;
+  CPP_pixel_grid C, C2;
 
   c_ok = true;
 
-  detector_pixel_to_c (F, C);
-  set_CPP_detector_pixel_test_pattern (C2, 1);
+  pixel_grid_to_c (F, C);
+  set_CPP_pixel_grid_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " detector_pixel: C side convert F->C: Good" << endl;
+    cout << " pixel_grid: C side convert F->C: Good" << endl;
   } else {
-    cout << " detector_pixel: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " pixel_grid: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_detector_pixel_test_pattern (C2, 2);
+  set_CPP_pixel_grid_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_detector_pixel (C2, c_ok2);
+  test2_f_pixel_grid (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_detector_pixel_test_pattern (C, 3);
+  set_CPP_pixel_grid_test_pattern (C, 3);
   if (C == C2) {
-    cout << " detector_pixel: F side convert F->C: Good" << endl;
+    cout << " pixel_grid: F side convert F->C: Good" << endl;
   } else {
-    cout << " detector_pixel: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " pixel_grid: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_detector_pixel_test_pattern (C2, 4);
-  detector_pixel_to_f (C2, F);
+  set_CPP_pixel_grid_test_pattern (C2, 4);
+  pixel_grid_to_f (C2, F);
 
 }
 
@@ -3408,7 +3424,7 @@ void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
   set_CPP_surface_grid_test_pattern(C.grid, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
-  set_CPP_detector_pixel_test_pattern(C.pixel, ix_patt);
+  set_CPP_pixel_grid_test_pattern(C.pixel, ix_patt);
 
 
 }

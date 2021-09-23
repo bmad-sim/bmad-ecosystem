@@ -841,16 +841,18 @@ template bool is_all_equal (const CPP_pixel_grid_pt_MATRIX&, const CPP_pixel_gri
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_detector_pixel& x, const CPP_detector_pixel& y) {
+bool operator== (const CPP_pixel_grid& x, const CPP_pixel_grid& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.dr, y.dr);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
+  is_eq = is_eq && is_all_equal(x.x_edge, y.x_edge);
+  is_eq = is_eq && is_all_equal(x.y_edge, y.y_edge);
   is_eq = is_eq && is_all_equal(x.pt, y.pt);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_detector_pixel_ARRAY&, const CPP_detector_pixel_ARRAY&);
-template bool is_all_equal (const CPP_detector_pixel_MATRIX&, const CPP_detector_pixel_MATRIX&);
+template bool is_all_equal (const CPP_pixel_grid_ARRAY&, const CPP_pixel_grid_ARRAY&);
+template bool is_all_equal (const CPP_pixel_grid_MATRIX&, const CPP_pixel_grid_MATRIX&);
 
 //--------------------------------------------------------------
 

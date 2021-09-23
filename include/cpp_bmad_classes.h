@@ -261,10 +261,10 @@ typedef valarray<CPP_pixel_grid_pt>          CPP_pixel_grid_pt_ARRAY;
 typedef valarray<CPP_pixel_grid_pt_ARRAY>    CPP_pixel_grid_pt_MATRIX;
 typedef valarray<CPP_pixel_grid_pt_MATRIX>   CPP_pixel_grid_pt_TENSOR;
 
-class CPP_detector_pixel;
-typedef valarray<CPP_detector_pixel>          CPP_detector_pixel_ARRAY;
-typedef valarray<CPP_detector_pixel_ARRAY>    CPP_detector_pixel_MATRIX;
-typedef valarray<CPP_detector_pixel_MATRIX>   CPP_detector_pixel_TENSOR;
+class CPP_pixel_grid;
+typedef valarray<CPP_pixel_grid>          CPP_pixel_grid_ARRAY;
+typedef valarray<CPP_pixel_grid_ARRAY>    CPP_pixel_grid_MATRIX;
+typedef valarray<CPP_pixel_grid_MATRIX>   CPP_pixel_grid_TENSOR;
 
 class CPP_photon_element;
 typedef valarray<CPP_photon_element>          CPP_photon_element_ARRAY;
@@ -2076,31 +2076,35 @@ bool operator== (const CPP_pixel_grid_pt&, const CPP_pixel_grid_pt&);
 
 
 //--------------------------------------------------------------------
-// CPP_detector_pixel
+// CPP_pixel_grid
 
-class Opaque_detector_pixel_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_pixel_grid_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_detector_pixel {
+class CPP_pixel_grid {
 public:
   Real_ARRAY dr;
   Real_ARRAY r0;
+  Real_ARRAY x_edge;
+  Real_ARRAY y_edge;
   CPP_pixel_grid_pt_MATRIX pt;
 
-  CPP_detector_pixel() :
+  CPP_pixel_grid() :
     dr(0.0, 2),
     r0(0.0, 2),
+    x_edge(0.0, 0),
+    y_edge(0.0, 0),
     pt(CPP_pixel_grid_pt_ARRAY(CPP_pixel_grid_pt(), 0), 0)
     {}
 
-  ~CPP_detector_pixel() {
+  ~CPP_pixel_grid() {
   }
 
 };   // End Class
 
-extern "C" void detector_pixel_to_c (const Opaque_detector_pixel_class*, CPP_detector_pixel&);
-extern "C" void detector_pixel_to_f (const CPP_detector_pixel&, Opaque_detector_pixel_class*);
+extern "C" void pixel_grid_to_c (const Opaque_pixel_grid_class*, CPP_pixel_grid&);
+extern "C" void pixel_grid_to_f (const CPP_pixel_grid&, Opaque_pixel_grid_class*);
 
-bool operator== (const CPP_detector_pixel&, const CPP_detector_pixel&);
+bool operator== (const CPP_pixel_grid&, const CPP_pixel_grid&);
 
 
 //--------------------------------------------------------------------
@@ -2114,7 +2118,7 @@ public:
   CPP_photon_target target;
   CPP_photon_material material;
   CPP_surface_grid grid;
-  CPP_detector_pixel pixel;
+  CPP_pixel_grid pixel;
 
   CPP_photon_element() :
     curvature(),
