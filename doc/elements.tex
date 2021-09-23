@@ -440,27 +440,27 @@ See \sref{s:list.bend} for a full list of element attributes along with a their 
 \index{hgap}\index{hgapx}\index{roll}\index{k1}\index{exact_multipoles}
 Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 \begin{example}
-  angle              = <Real>     ! Design bend angle. A settable dependent var (\sref{s:depend}).
-  b_field            = <Real>     ! Design field strength (= P_0 g / q) (\sref{s:depend}).
-  db_field           = <Real>     ! Actual - Design bending field difference (\sref{s:depend}).
-  b1_gradient        = <Real>     ! Quadrupole field strength (\sref{s:depend}).
-  b2_gradient        = <Real>     ! Sextupole field strength (\sref{s:depend}).
-  e1, e2             = <Real>     ! Face angles.
-  exact_multipoles   = <Switch>   ! Curved coordinate correction? \vn{off} is default.
-  fint, fintx        = <Real>     ! Face field integrals.
-  g                  = <Real>     ! Design bend strength (= 1/rho).
-  dg                 = <Real>     ! Actual - Design bend strength difference (\sref{s:depend}).
-  h1, h2             = <Real>     ! Face curvature.
-  hgap, hgapx        = <Real>     ! Pole half gap.
-  k1                 = <Real>     ! Quadrupole strength.
-  k2                 = <Real>     ! Sextupole strength (\sref{s:depend}).
-  l                  = <Real>     ! "Length" of bend. See below.
-  l_arc              = <Real>     ! Arc length. For \vn{rbend}s only. 
-  l_chord            = <Real>     ! Chord length. See \sref{s:l}.
-  l_sagitta                       ! Sagittal length. Dependent param (\sref{s:depend}).
-  ptc_field_geometry = <Switch>   ! See below.
-  rho                = <Real>     ! Design bend radius. A settable dependent param (\sref{s:depend}).
-  roll               = <Real>     ! See \ref{s:offset}.
+  angle              = <Real>   ! Design bend angle. Settable dependent var (\sref{s:depend}).
+  b_field            = <Real>   ! Design field strength (= P_0 g / q) (\sref{s:depend}).
+  db_field           = <Real>   ! Actual - Design bending field difference (\sref{s:depend}).
+  b1_gradient        = <Real>   ! Quadrupole field strength (\sref{s:depend}).
+  b2_gradient        = <Real>   ! Sextupole field strength (\sref{s:depend}).
+  e1, e2             = <Real>   ! Face angles.
+  exact_multipoles   = <Switch> ! Curved coordinate correction? \vn{off} is default.
+  fint, fintx        = <Real>   ! Face field integrals.
+  g                  = <Real>   ! Design bend strength (= 1/rho).
+  dg                 = <Real>   ! Actual - Design bend strength difference (\sref{s:depend}).
+  h1, h2             = <Real>   ! Face curvature.
+  hgap, hgapx        = <Real>   ! Pole half gap.
+  k1                 = <Real>   ! Quadrupole strength.
+  k2                 = <Real>   ! Sextupole strength (\sref{s:depend}).
+  l                  = <Real>   ! "Length" of bend. See below.
+  l_arc              = <Real>   ! Arc length. For \vn{rbend}s only. 
+  l_chord            = <Real>   ! Chord length. See \sref{s:l}.
+  l_sagitta                     ! Sagittal length. Dependent param (\sref{s:depend}).
+  ptc_field_geometry = <Switch> ! See below.
+  rho                = <Real>   ! Design bend radius. Settable dependent param (\sref{s:depend}).
+  roll               = <Real>   ! See \ref{s:offset}.
 \end{example}
 
 \begin{figure}[tb]
@@ -553,7 +553,7 @@ tracking must be turned on. That is, in the lattice file set:
 \begin{example2}
   parameter[ptc_exact_model] = T
 \end{example2}
-With exact model tracking, PTC always assumes that multipole coefficients correspond to
+With exact model tracking, PTC always assumes that multipole coefficient values correspond to
 \vn{horizontally_pure}. In this case, \bmad will convert \vn{vertically_pure} to
 \vn{horizontally_pure} as needed when passing multipole coefficients to PTC. Note that in
 the case where PTC is doing exact model tracking (\sref{s:integ}) but the
@@ -829,8 +829,8 @@ and
   px < px_aperture_center - px_aperture_width2  or
   px > px_aperture_center + px_aperture_width2
 \end{example}
-with similar equations for \vn{py}, \vn{z}, and \vn{pz}. For \vn{ecollimator}s, if \vn{px_aperture_width2}
-and \vn{py_aperture_width2} are both nonzero, particles are collimated if
+with similar equations for \vn{py}, \vn{z}, and \vn{pz}. For \vn{ecollimator} elements, if
+\vn{px_aperture_width2} and \vn{py_aperture_width2} are both nonzero, particles are collimated if
 \begin{example}
   ((px - px_aperture_center) / px_aperture_width2)^2 + 
         ((py - py_aperture_center) / py_aperture_width2)^2 < 1
@@ -875,8 +875,8 @@ The attributes specific to an \vn{converter} are
   pc_out_max      = <Real>      ! Maximum outgoing particle momentum (eV).
   angle_out_max   = <Real>      ! Maximum outgoing angle.
   species_out     = <SpeciesID> ! Output species.
-  p0c             = <Real>      ! Output reference momentum.
-  E_tot           = <Real>      ! Output reference energy. A settable dependent var (\sref{s:depend}).
+  p0c             = <Real>      ! Output ref momentum.
+  E_tot           = <Real>      ! Output ref energy. Settable dependent var (\sref{s:depend}).
 \end{example}
 
 The species of the outgoing particles is specified by the \vn{species_out} parameter
@@ -1400,20 +1400,38 @@ General \vn{detector} element attributes are:
 \toffset
 See \sref{s:list.detector} for a full list of element attributes along with a their units.
 
-The detector pixels are are arranged in a rectangular grid (\sref{s:surf.grid}). 
+Attributes specific to a \vn{detector} element are:
+\begin{example}
+  pixel         = \{...\}   ! Define detector pixel grid.
+\end{example}
 
-\index{aperture_type}
-The \vn{aperture_type} (\sref{s:limit}) parameter of a
-\vn{detector} will default to \vn{auto} which will set the
-aperture limits to define a rectangular aperture that just cover the
-clear area of the plate.
+The detector pixels are are arranged in a rectangular grid. The general syntax for defining
+a detector pixel grid is
+\begin{example}
+  pixel = \{
+      ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
+      iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
+      r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
+      dr = (<dx>, <dy>)                  ! Spacing between grid points.
+          \}
+\end{example}
+See \Sref{s:surf.grid} for an explanation of the various pixel parameters.
 
 Example:
 \begin{example}
-  det: detector, surface = \{grid = 
-          \{ix_bounds = (-4,5), iy_bounds = (-10,10), dr = (0.01, 0.01)\}\}
+  det: detector, pixels = 
+          \{ix_bounds = (-4,5), iy_bounds = (-10,10), dr = (0.01, 0.01)\}
 \end{example}
 This example defines a detector with 1~cm x 1~cm pixels.
+
+\index{aperture_type}
+The \vn{aperture_type} (\sref{s:limit}) parameter of a \vn{detector} will default to \vn{auto} which
+will set the aperture limits to define a rectangular aperture that just cover the area of the pixel
+grid.
+
+A curved detector can be constructed by setting the appropriate surface curvature parameters
+(\sref{s:s.curve}). It is assumed that any curvature is only in one dimension ($x$ or $y$). This
+allows a straight forward mapping of the rectangular pixel grid onto the curved surface.
 
 %-----------------------------------------------------------------
 \section{Diffraction_Plate}
@@ -1726,7 +1744,7 @@ See \sref{s:list.em.field} for a full list of element attributes along with a th
 \index{constant_ref_energy}
 Attributes specific to an \vn{em_field} element are:
 \begin{example}
-  constant_ref_energy = <Logical> ! Does the element have a constant reference energy? Default = True.
+  constant_ref_energy = <Logical> ! Is the reference energy constant? Default = True.
 \end{example}
 
 If the \vn{constant_ref_energy} logical is set to \vn{True} (the default), the reference energy
@@ -3666,7 +3684,7 @@ Attributes specific to an \vn{photon_init} element are:
   e_field_y                = <Real>
   energy_distribution      = <Switch>  ! Gaussian or uniform
   physical_source          = <String>  ! physical source of x-rays
-  ref_wavelength                       ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
+  ref_wavelength                       ! Ref wavelength (\sref{s:energy}). Dep attribute (\sref{s:depend}).
   sig_x                    = <Real>
   sig_y                    = <Real>
   sig_z                    = <Real>
@@ -4687,8 +4705,8 @@ Attributes specific to wiggler and undulator elements are:
   n_pole     = <Real>  ! The number of poles. DEPRECATED. USE N_PERIOD INSTEAD.
   polarity   = <Real>  ! For scaling the field.
   kx         = <Real>  ! Planar wiggler horizontal wave number.
-  k1x                  ! Planar wiggler horizontal defocusing strength. Dependent attribute (\sref{s:depend}).
-  k1y                  ! Planar wiggler vertical focusing strength. Dependent attribute (\sref{s:depend}).
+  k1x                  ! Planar wiggler horizontal defocusing strength. Dep attribute (\sref{s:depend}).
+  k1y                  ! Planar wiggler vertical focusing strength. Dep attribute (\sref{s:depend}).
   g_max                ! Maximum bending strength. Dependent attribute.
   osc_amplitude        ! Amplitude of the particle oscillations. Dependent attribute.
 \end{example}

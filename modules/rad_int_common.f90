@@ -80,7 +80,7 @@ subroutine qromb_rad_int (param, do_int, pt, info, int_tot, rad_int1)
 
 use precision_def
 use nrtype
-use nr, only: polint
+use super_recipes_mod, only: super_polint
 
 implicit none
 
@@ -205,7 +205,7 @@ do j = 1, j_max
 
   do n = 1, num_int
     if (.not. do_int(n)) cycle
-    call polint (ri_array(1:j1)%h, ri_array(1:j1)%sum(n), 0.0_rp, rad_int_vec(n), dint(n))
+    call super_polint (ri_array(1:j1)%h, ri_array(1:j1)%sum(n), 0.0_rp, rad_int_vec(n), dint(n))
     d0(n) = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot_vec(n)) + 1d-30
     d_err(n) = abs(dint(n)) / d0(n)
     d_max = max(d_max, d_err(n))

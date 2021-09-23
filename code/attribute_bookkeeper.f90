@@ -409,7 +409,7 @@ case (crab_cavity$)
 
 ! Crystal
 
-case (crystal$, multilayer_mirror$, mirror$)
+case (crystal$, multilayer_mirror$, mirror$, detector$, sample$, diffraction_plate$)
 
   if (ele%key == crystal$) then
     call crystal_type_to_crystal_params (ele, err_flag)

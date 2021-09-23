@@ -1182,32 +1182,31 @@ parameterize ellipsoid curvature. [In principle, the spherical curvature is not 
 elliptical curvature is more general. In practice, it is sometimes convenient to be able to specify
 spherical curvature.]  If $g_z$ is zero, the elliptical curvature is ignored. If $g_z$ or $g_{sp}$
 is positive, the curvature is concave towards the incoming photon. If negative, the curvature is
-convex.  The spherical and ellipsoid parameters are set for an element by setting the element
-parameters
+convex. 
+
+The spherical, ellipsoid and polynomial parameters are set for an element by setting the element's
+curvature parameter. The syntax is
 \begin{example}
-  spherical_curvature    = <Real>   ! \(g_{sp}\)
-  elliptical_curvature_x = <Real>   ! \(g_{x}\)
-  elliptical_curvature_y = <Real>   ! \(g_{y}\)
-  elliptical_curvature_z = <Real>   ! \(g_{z}\)
+  curvature = \{
+      spherical    = <Real>,   ! g_{sp}
+      elliptical_x = <Real>,   ! g_{x}
+      elliptical_y = <Real>,   ! g_{y}
+      elliptical_z = <Real>,   ! g_{z}
+      xMyN         = <Real>    ! $c_{ij}
 \end{example}
 
-The polynomial coefficients $c_{ij}$ are set in the lattice file by setting the
-element attributes
-\index{surface curveture}
-\begin{example}
-  curvature_xM_yN = <Real>   
-\end{example}
-where \vn{M} and \vn{N} are integers in the range 0 through 6 with the restriction
+The polynomial coefficients $c_{ij}$ are set via the \vn{xMyN} components where \vn{M} and \vn{N}
+are integers in the range 0 through 6 with the restriction
 \begin{example}
   2 \(\le\) M + N \(\le\) 6
 \end{example}
 Example:
 \begin{example}
-  c2: crystal, spherical_curvature = 1/4.7, curvature_x2_y0 = 0.37, ...
+  c2: crystal, spherical_curvature = 1/4.7, curvature = \{x2y0 = 0.37, ...\}
 \end{example}
-in this example, \vn{curvature_x2_y0} corresponds to the $c_{20}$ term in \Eq{xs2ij4}. To get the
+in this example, \vn{x2y0} corresponds to the $c_{20}$ term in \Eq{xs2ij4}. To get the
 effect of a nonzero $x^0\, y^0$, $x^1 \, y^0$, or $x^0 \, y^1$ terms (since corresponding
-\vn{curvature_xN_yM} are not permitted), element offsets and pitches can be used (\sref{s:offset}).
+\vn{curvature} \vn{xNyM} are not permitted), element offsets and pitches can be used (\sref{s:offset}).
 
 Some useful formulas: Series expansion for a sphere of radius $R$:
 \begin{equation}
@@ -1250,9 +1249,9 @@ Example:
   t_bragg = 1.3950647
   rt = 1  ! Crystal transverse radius
   rs = rt*(sin(t_bragg))^2
-  c: crystal, crystal_type =  "Si(553)", b_param = -1,
-        curvature_x0_y2 =  1 / (2 * rs), curvature_x0_y4 = 1 / (8 * rs^3),
-        curvature_x2_y0 = 1 / (2 * rt), curvature_x4_y0 = 1 / (8 * rt^3),
+  c: crystal, crystal_type =  "Si(553)", b_param = -1, curvature = \{x0y2 = 1 / (2 * rs), 
+                      x0y4 = 1 / (8 * rs^3), x2y0 = 1 / (2 * rt), x4y0 = 1 / (8 * rt^3)\}
+  c[curvature%x0y2] = 1.01 * c[curvature%x0y2]  ! Put in an error
 \end{example}
 
 %-----------------------------------------------------------------
@@ -1268,10 +1267,56 @@ in \Sref{s:detector}. Here the other three types of grids are explained. These a
   H_Misalign         ! Misalignment of crystal H vector
   Segmented          ! Surface is a matrix of flat rectangles
 \end{example}
-Note: Currently there is the restriction that multiple grids cannot be defined for any given element.
+Note: Currently there is the restriction that a maximum of one grid (excluding the \vn{pixel} grid)
+can be defined for any given element.
 
+All grids have the following common parameters:
+\begin{example}
+  active = <T/F>                     ! Turn on/off effect of grid. Default = True
+  ix_bounds = (<ix_min>, <ix_max>),  ! Min/max grid index bounds in x-direction
+  iy_bounds = (<iy_min>, <iy_max>),  ! Min/max grid index bounds in y-direction
+  r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
+  dr = (<dx>, <dy>),                 ! Spacing between grid points.
+\end{example}
+
+Example:
+\begin{example}
+  ccd: crystal, n_misalign = \{
+            r0 = (0.0, 0.01), dr = (0.005, 0.005),
+            ix_bounds = (1, 57), iy_bounds = (-30, 10),
+            pt(1,-30) = (0.001, -0.002, 0, 0), 
+            pt(1,-29) = ..., 
+          \}
+\end{example}
+
+The grid is a two dimensional rectangular mesh with bounds given by the \vn{ix_bounds} and
+\vn{iy_bounds} components. In the above example the grid is 57 pixels in $x$ and 41 pixels in $y$.
+
+The physical placement of the grid on the element is determined by the \vn{r0} and \vn{dr}
+components. \vn{r0} is optional and gives the $(x,y)$ coordinates of the center of the pixel with
+index $(0,0)$. The \vn{dr} component, which must be present, gives the pixel width and height. Thus
+the center of the $(i,j)$ pixel is:
+\begin{example}
+  (x,y) = (r0(1), r0(2)) + (i*dr(1), j*dr(2))
+\end{example}
+
+The different grid types are:
 \begin{description}
-\item[Displacement] \Newline
+\item[Displacement grid] \Newline
+The general syntax for a \vn{displacement} grid is:
+\begin{example}
+  displacement = \{
+      active = <T/F>                     ! Turn on/off effect of grid. Default = True
+      ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
+      iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
+      r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
+      dr = (<dx>, <dy>),                 ! Spacing between grid points.
+      pt(<i>,<j>) = (<z>),                                  ! or
+      pt(<i>,<j>) = (<z>, <dz/dx>, <dz/dy>),                ! or
+      pt(<i>,<j>) = (<z>, <dz/dx>, <dz/dy>, <d2z/dxdy>),
+          \}
+\end{example}
+
 With a \vn{displacement} grid, an offset $z_\text{off}$ is added to the surface
 position defined in \Eq{xs2ij4}. The $z$ offset at a given $(x,y)$ position is determined by a
 spline interpolation of the $z$ values of the grid of points defined by \vn{pt(<i>,<j>)}. For each
@@ -1279,7 +1324,19 @@ point \vn{pt(<i>,<j>)}, the $z$ value along with the $dz/dx$, $dz/dy$, $d2z/dxdy
 only the $z$ value needs to be specified. With the later option the slopes will be computed by
 taking finite differences of nearest neighbors.
 %
-\item[H_Misalign] \Newline
+\item[H_Misalign grid] \Newline
+The general syntax for a \vn{h_misalign} grid:
+\begin{example}
+  h_misalign = \{
+      active = <T/F>                     ! Turn on/off effect of grid. Default = True
+      ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
+      iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
+      r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
+      dr = (<dx>, <dy>)                  ! Spacing between grid points.
+      pt(<i>,<j>) = (<dz_dx>, <dz_dy>, <dz_dx_rms>, <dz_dy_rms>)
+          \}
+\end{example}
+
 An \vn{h_misalign} grid is used with crystals only. With \vn{H_Misalign}, the grid defines
 misalignment of the $H$ vector which is the normal to the diffracting planes of the crystal
 (\sref{s:crystal.tracking}).  When using \vn{H_Misalign}, each \vn{pt(i,j)} component gives the
@@ -1294,7 +1351,18 @@ in the calculation, the quantities in brackets \vn{<...>} are components of \vn{
 \vn{r2} are Gaussian distributed random numbers with unit rms. These random numbers are regenerated
 for each photon.
 %
-\item[Segmented] \Newline
+\item[Segmented grid] \Newline
+The general syntax for a \vn{segmented} grid:
+\begin{example}
+  segmented = \{
+      active = <T/F>                     ! Turn on/off effect of grid. Default = True
+      ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
+      iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
+      r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
+      dr = (<dx>, <dy>)                  ! Spacing between grid points.
+          \}
+\end{example}
+
 With a \vn{segmented} grid the crystal surface is modeled as a grid of flat ``rectangles'' (the
 actual shape is very close but not quite rectangular). Using a segmented surface only makes sense
 when the surface is curved (see \Eq{xs2ij4}). There is one rectangle for each grid point. Each rectangle
@@ -1303,56 +1371,13 @@ has an extent in the $(x,y)$ transverse dimensions equal to the spacing between 
 then these $z$ values are adjusted so that
 \begin{example}
   1) The rectangle is flat (the vertices all lie on a plane).
-  2) The rectangle contacts the unsegmented surface (\Eq{xs2ij4}) at two 
-       diagonally opposite vertices.
-  3) The other two diagonally opposite vertices will be as close as possible 
-       in the least squares sense from the unsegmented surface.
+  2) The rectangle contacts the unsegmented surface (\Eq{xs2ij4}) at two diagonally 
+       opposite vertices.
+  3) The other two diagonally opposite vertices will be as close as possible in the 
+       least squares sense from the unsegmented surface.
 \end{example}
 Note: The \vn{pt} component is not used here.
 \end{description}
-
-The general syntax for a \vn{displacement} grid:
-\begin{example}
-    displacement = \{
-      active = <T/F>                     ! Turn on/off effect of grid. Default = True
-      ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
-      iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
-      r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
-      dr = (<dx>, <dy>),                 ! Spacing between grid points.
-      pt(<i>,<j>) = (<z>),                                  ! or
-      pt(<i>,<j>) = (<z>, <dz/dx>, <dz/dy>),                ! or
-      pt(<i>,<j>) = (<z>, <dz/dx>, <dz/dy>, <d2z/dxdy>),
-          \}
-\end{example}
-
-The general syntax 
-
-
-Example:
-\begin{example}
-  ccd: crystal, surface = \{
-          grid = \{
-            type = h_misalign,
-            r0 = (0.0, 0.01), dr = (0.005, 0.005),
-            ix_bounds = (1, 57), iy_bounds = (-30, 10),
-            pt(1,-30) = (0.001, -0.002, 0, 0), 
-            pt(1,-29) = ..., 
-          \} \}
-\end{example}
-
-The grid is a two dimensional with bounds given by the \vn{ix_bounds} and \vn{iy_bounds}
-components. These two components must be present. In the above example the grid is 57 pixels in $x$
-and 41 pixels in $y$.
-
-The physical placement of the grid on the element is determined by the \vn{r0} and \vn{dr}
-components. \vn{r0} is optional and gives the $(x,y)$ coordinates of the center of the pixel with
-index $(0,0)$. The \vn{dr} component, which must be present, gives the pixel width and height. Thus
-the center of the $(i,j)$ pixel is:
-\begin{example}
-  (x,y) = (r0(1), r0(2)) + (i*dr(1), j*dr(2))
-\end{example}
-
-
 
 %-----------------------------------------------------------------
 \section{Walls: Vacuum Chamber, Capillary and Mask}
@@ -2223,10 +2248,10 @@ as described in Sec.~\sref{s:cart.map.phys}.
 The lattice file syntax for the \vn{cartesian_map} type is:
 \begin{example}
   cartesian_map = \{
-    field_type       = <String>,           ! Type of field: Default = Magnetic.
-    field_scale      = <Real>,             ! Scale factor for the E & B fields.
-    master_parameter = <Name>,             ! Master scaling parameter for E & B fields.
-    ele_anchor_pt    = <Position>,         ! Anchor position: Beginning (default), Center, or End.
+    field_type       = <String>, ! Type of field: Default = Magnetic.
+    field_scale      = <Real>,   ! Scale factor for the E & B fields.
+    master_parameter = <Name>,   ! Master scaling parameter for E & B fields.
+    ele_anchor_pt    = <Real>,   ! Anchor position: Beginning (default), Center, or End.
     r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
     term = \{<A>, <k_x>, <k_y>, <k_z>, <x_0>, <y_0>, <phi_z>, <family>\}, 
     term = \{....\}  \}
@@ -2269,13 +2294,13 @@ as described in Sec.~\sref{s:cylind.map.phys}.
 The lattice file syntax for the \vn{cylindrical_map} type is:
 \begin{example}
   cylindrical_map = \{
-    field_scale      = <Real>,             ! Scale factor for the E & B fields.
-    master_parameter = <Name>,             ! Master scaling parameter for E & B fields.
-    ele_anchor_pt    = <Position>,         ! Anchor position: Beginning (default), Center, or End.
-    m                = <Integer>,          ! Azimuthal mode number
-    harmonic         = <Integer>,          ! RF frequency harmonic number 
-    phi0_fieldmap    = <Real>,             ! Phase of oscillations.
-    theta0_azimuth   = <Real>,             ! Azimuthal orientation.
+    field_scale      = <Real>,    ! Scale factor for the E & B fields.
+    master_parameter = <Name>,    ! Master scaling parameter for E & B fields.
+    ele_anchor_pt    = <Real>,    ! Anchor position: Beginning (default), Center, or End.
+    m                = <Integer>, ! Azimuthal mode number
+    harmonic         = <Integer>, ! RF frequency harmonic number 
+    phi0_fieldmap    = <Real>,    ! Phase of oscillations.
+    theta0_azimuth   = <Real>,    ! Azimuthal orientation.
     r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
     dz        = <Real>,                    ! Distance between sampled field points.
     e_coef_re = (<Real>, <Real>, ....),    ! Real part of E.
@@ -2535,12 +2560,12 @@ of a set of two dimensional Taylor maps.
 The syntax for describing a \vn{taylor_field} is:
 \begin{example}
   taylor_field = \{
-    field_type       = <String>,           ! Type of field: Default = Magnetic.
-    field_scale      = <Real>,             ! Scale factor for the E & B fields.
-    master_parameter = <Name>,             ! Master scaling parameter for E & B fields.
-    curved_ref_frame   = <Logical>,        ! Use curved coords with bends?
-    canonical_tracking = <logical>         ! Use (px, py) instead of (x', y') when tracking?
-    ele_anchor_pt    = <Position>,         ! Anchor position: Beginning (default), Center, or End.
+    field_type       = <String>,    ! Type of field: Default = Magnetic.
+    field_scale      = <Real>,      ! Scale factor for the E & B fields.
+    master_parameter = <Name>,      ! Master scaling parameter for E & B fields.
+    curved_ref_frame   = <Logical>, ! Use curved coords with bends?
+    canonical_tracking = <logical>  ! Use (px, py) instead of (x', y') when tracking?
+    ele_anchor_pt    = <Real>,      ! Anchor position: Beginning (default), Center, or End.
     r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
     dz               = <Real>,             ! Distance between sampled field points.
     plane(<i>) = \{<term1>, <term2>, <term3>, ....\}, ! Taylor map at constant z.

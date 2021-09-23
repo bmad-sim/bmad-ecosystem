@@ -311,7 +311,8 @@ names, these strings are not converted to upper case), matching is always case i
 After lattice expansion (\sref{s:expand}), the general syntax to specify a set of elements is:
 \begin{example}
   \{branch_id>>\}\{class::\}element_id
-  \{branch_id>>\}element_name##N        ! N^th instance of element_name in branch with branch_id
+  \{branch_id>>\}element_name##N                 ! N^th instance of element_name in 
+                                               !        branch with branch_id
   \{branch_id>>\}\{class::\}element_id\{##N\}+M  ! M^th element after element
   \{branch_id>>\}\{class::\}element_id\{##N\}-M  ! M^th element before element
 \end{example}
@@ -1188,7 +1189,7 @@ attribute is redefined and has the form
 \end{example}
 Example:
 \begin{example}
-  c: crystal, call::my_curvature.bmad, surface = call::my_surface.bmad, ...
+  c: crystal, call::my_curvature.bmad, h_misalign = call::my_surface.bmad, ...
 \end{example}  
 
 For \vn{grid_fields}, which can take some time to parse, a \vn{HDF5} binary file can to created and then

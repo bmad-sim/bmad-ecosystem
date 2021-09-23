@@ -649,21 +649,22 @@ if (associated(ph)) then
  
   nl=nl+1; li(nl) = ''
   if (ph%curvature%has_curvature) then
-    nl=nl+1; write (li(nl), '(a, f11.6)')  'Spherical_Curvature        = ', ph%curvature%spherical
-    nl=nl+1; write (li(nl), '(a, 3f11.6)') 'Elliptical_Curvature_X/Y/Z = ', ph%curvature%elliptical
+    nl=nl+1; li(nl) = 'Curviture:'
+    nl=nl+1; write (li(nl), '(4x, a, f11.6)')  'Spherical        = ', ph%curvature%spherical
+    nl=nl+1; write (li(nl), '(4x, a, 3f11.6)') 'Elliptical_X/Y/Z = ', ph%curvature%elliptical
     do ix = 0, ubound(ph%curvature%xy, 1)
     do iy = 0, ubound(ph%curvature%xy, 2)
       if (ph%curvature%xy(ix,iy) == 0) cycle
-      nl=nl+1; write (li(nl), '(2x, 2(2x, 2(a, i0), a, es14.6))') 'CURVATURE_X', ix, '_Y', iy, ' =', ph%curvature%xy(ix,iy)
+      nl=nl+1; write (li(nl), '(4x, 2(2x, 2(a, i0), a, es14.6))') 'X', ix, 'Y', iy, '   =', ph%curvature%xy(ix,iy)
     enddo
     enddo
   else
-    nl=nl+1; li(nl) = ' No Curvature'
+    nl=nl+1; li(nl) = 'No Curvature'
   endif
 
   if (allocated(ph%grid%pt)) then
     nl=nl+1; li(nl) = ''
-    nl=nl+1; write (li(nl), '(1x, 2a)') trim(surface_grid_type_name(ph%grid%type)), ' Grid:'
+    nl=nl+1; write (li(nl), '(2a)') trim(surface_grid_type_name(ph%grid%type)), ' Grid:'
     nl=nl+1; write (li(nl), '(4x, a, l1)')       'Grid active  ', ph%grid%active
     nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid dr:     ', ph%grid%dr
     nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid r0:     ', ph%grid%r0
@@ -678,8 +679,7 @@ if (associated(ph)) then
 
   if (allocated(ph%pixel%pt)) then
     nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = ' Pixel Grid:'
-    nl=nl+1; write (li(nl), '(1x, 2a)')          'Grid of type:', surface_grid_type_name(ph%grid%type)
+    nl=nl+1; li(nl) = 'Pixel Grid:'
     nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Pixel dr:     ', ph%pixel%dr
     nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Pixel r0:     ', ph%pixel%r0
     if (allocated(ph%pixel%pt)) then
@@ -693,16 +693,16 @@ if (associated(ph)) then
 
   if (ph%material%f_h /= 0) then
     nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = ' Structure Factors:'
+    nl=nl+1; li(nl) = 'Structure Factors:'
     if (ele%key == multilayer_mirror$) then
-      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0 (Material 1):', real(ph%material%f0_m1), ' + I ', aimag(ph%material%f0_m1)
-      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0 (Material 2):', real(ph%material%f0_m2), ' + I ', aimag(ph%material%f0_m2)
+      nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0 (Material 1):', real(ph%material%f0_m1), ' + I ', aimag(ph%material%f0_m1)
+      nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0 (Material 2):', real(ph%material%f0_m2), ' + I ', aimag(ph%material%f0_m2)
     else
-      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0:             ', real(ph%material%f_0), ' + I ', aimag(ph%material%f_0)
+      nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0:             ', real(ph%material%f_0), ' + I ', aimag(ph%material%f_0)
     endif
-    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_H:             ', real(ph%material%f_h), ' + I ', aimag(ph%material%f_h)
-    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_Hbar:          ', real(ph%material%f_hbar), ' + I ', aimag(ph%material%f_hbar)
-    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'Sqrt(F_H*F_Hbar):', real(ph%material%f_hkl), ' + I ', aimag(ph%material%f_hkl)
+    nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_H:             ', real(ph%material%f_h), ' + I ', aimag(ph%material%f_h)
+    nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_Hbar:          ', real(ph%material%f_hbar), ' + I ', aimag(ph%material%f_hbar)
+    nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'Sqrt(F_H*F_Hbar):', real(ph%material%f_hkl), ' + I ', aimag(ph%material%f_hkl)
   endif
 endif
 
