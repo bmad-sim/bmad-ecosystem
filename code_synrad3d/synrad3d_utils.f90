@@ -357,7 +357,7 @@ end subroutine sr3d_print_photon_info
 
 function i0_eff_calc(ele, orb0, e_min, e_max, vert_angle_min, vert_angle_max, vert_angle_symmetric) result (i0_eff)
 
-use nr, only: polint
+use super_recipes_mod, only: super_polint
 
 type (ele_struct) ele
 type (ele_struct), pointer :: field_ele
@@ -490,7 +490,7 @@ do j = 1, j_max
 
   if (j < j_min_test) cycle
 
-  call polint (h(1:j1), i0_sum(1:j1), 0.0_rp, i0_eff, dint)
+  call super_polint (h(1:j1), i0_sum(1:j1), 0.0_rp, i0_eff, dint)
   d0 = eps_int * i0_eff !! + eps_sum * i0_eff_tot ???????
   if (dint <= d0) exit  ! if converged
 end do
