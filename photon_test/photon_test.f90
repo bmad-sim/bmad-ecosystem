@@ -27,11 +27,16 @@ call init_coord (orb_start, vec0$, lat%ele(0), downstream_end$)
 ele => lat%ele(2)
 orbit = orb_start
 orbit%vec = [0.010, 0.2, 0.020, 0.3, 0.0, sqrt(1.0 - 0.2**2 - 0.3**2)]
+orbit%field = [1, 2]
 
 call offset_photon (ele, orbit, set$)  ! Go to coordinates of the detector
 call track_to_surface (ele, orbit, lat%param, w_surf)
 call to_detector_surface_coords (orbit, ele)
 call photon_add_to_detector_statistics (orb_start, orbit, lat%ele(2), ix_pt, iy_pt) 
+
+write (1, '(a, 6f16.10)') '"Pix-Orb" ABS 1E-8 ', orbit%vec
+write (1, '(a, 2i4)')     '"Pix-Ix"  ABS 1E-8 ', ix_pt, iy_pt
+write (1, '(a, 6f16.10)') '"Pix-Pix" ABS 1E-8 ', ele%photon%pixel%pt(ix_pt,iy_pt)%orbit
 
 !
 
