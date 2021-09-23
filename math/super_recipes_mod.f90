@@ -114,33 +114,39 @@ end subroutine super_sort
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function super_rtsafe (funcs, x1, x2, tol, status) result (x_zero)
+! Function super_rtsafe (funcs, x1, x2, rel_tol, abs_tol, status) result (x_zero)
 !
-! Routine find the root of a function.
-! This routine is essentially rtsafe from Numerical Recipes with the feature that it returns
-! a status.
+! Routine find the root of a function. Use this method when computing derivatives is easy.
+! Otherwise, use super_zbrent.
+!
+! The x-tolerance is:
+!   x-tolerance = |x_root| * rel_tol + abs_tol
+!
+! This routine is essentially rtsafe from Numerical Recipes with the feature that it 
+! returns a status flag.
 !
 ! Input:
-!   funcs   -- Function whose root is to be found. The interface is:
+!   funcs     -- Function whose root is to be found. The interface is:
 !                  subroutine funcs(x, fval, fderiv, status)
 !                    real(rp), intent(in) :: x
 !                    real(rp), intent(out) :: fval, fderiv
 !                    integer status
 !                  end subroutine funcs
 !
-!   x1, x2  -- Real(rp): Bracket values.
-!   tol     -- Real(rp): Tolerance for root.
+!   x1, x2    -- Real(rp): Bracket values.
+!   rel_tol   -- real(rp): Relative tolerance for the error of the root.
+!   abs_tol   -- real(rp): Absolute tolerance for the error of the root.
 !
 ! Output:
-!   x_zero  -- Real(rp): Root found.
-!   status  -- Integer: Calculation status:
+!   x_zero    -- Real(rp): Root found.
+!   status    -- Integer: Calculation status:
 !                      -2    => Max iterations exceeded.
 !                      -1    => Root not bracketed.
 !                       0    => Normal.
 !                       Other => Set by funcs. 
 !-
 
-function super_rtsafe (funcs, x1, x2, tol, status) result (x_zero)
+function super_rtsafe (funcs, x1, x2, rel_tol, abs_tol, status) result (x_zero)
 
 implicit none
 
@@ -154,7 +160,7 @@ interface
   end subroutine funcs
 end interface
 
-real(rp), intent(in) :: x1, x2, tol
+real(rp), intent(in) :: x1, x2, rel_tol, abs_tol
 real(rp) :: x_zero
 real(rp) :: df, dx, dxold, f, fh, fl, temp, xh, xl
 integer, parameter :: maxit = 100
@@ -205,7 +211,7 @@ do j = 1, maxit
     x_zero = x_zero-dx
     if (temp == x_zero) return
   end if
-  if (abs(dx) < tol) return
+  if (abs(dx) < rel_tol * abs(x_zero) + abs_tol) return
   call funcs(x_zero, f, df, status); if (status /= 0) return
   if (f < 0.0) then
     xl = x_zero
@@ -490,8 +496,11 @@ end function super_brent
 ! Function super_zbrent (func, x1, x2, rel_tol, abs_tol, status) result (x_zero)
 !
 ! Routine to find the root of a function.
+!
 ! The x-tolerance is:
 !   x-tolerance = |x_root| * rel_tol + abs_tol
+!
+! Consider using super_rtsafe if computing derivatives is easy.
 !
 ! This routine is essentially zbrent from Numerical Recipes with the feature that it returns
 ! a status integer if something goes wrong instead of bombing.
@@ -848,6 +857,11 @@ end subroutine super_mrqcof
 !+
 ! Subroutine super_gaussj (a, b, status)
 ! 
+! Routine to solve a set of linear equations:
+!   a * x = b
+! Where a(N,N) is a square matrix and b(N,M) is rectangular with M being
+! the number of linear equations to solve..
+!
 ! This is the gaussj routine from Num Rec with an added status argument.
 !
 ! Modules needed:
@@ -858,8 +872,8 @@ end subroutine super_mrqcof
 !   b(:,:) -- Real(rp): matrix.
 !
 ! Output:
-!   a(:,:) -- Real(rp): matrix.
-!   b(:,:) -- Real(rp): matrix.
+!   a(:,:) -- Real(rp): Inverse to input a(:,:) matrix.
+!   b(:,:) -- Real(rp): Solutions to a * x = b euqations.
 !   status -- Integer: Status. Set to -1 or -2 if there is an error.
 !               Set to 0 otherwise.
 !-
@@ -1024,8 +1038,6 @@ end subroutine super_ludcmp
 
 function super_qromb (func, a, b, rel_tol, abs_tol, k_order, err_flag) result (integral)
 
-use nr, only : polint, trapzd
-
 implicit none
 
 integer, parameter :: jmax = 50, jmaxp = jmax+1
@@ -1063,9 +1075,9 @@ endif
 !
 
 do j = 1, jmax
-  call trapzd(func, a, b, s(j), j)
+  call super_trapzd(func, a, b, s(j), j)
   if (j >= k) then
-    call polint(h(j-km:j), s(j-km:j), 0.0_rp, integral, d_int)
+    call super_polint(h(j-km:j), s(j-km:j), 0.0_rp, integral, d_int)
     if (abs(d_int) <= rel_tol*abs(integral) + abs_tol) return
   end if
   s(j+1) = s(j)
@@ -1075,6 +1087,114 @@ end do
 err_flag = .true.
 
 end function super_qromb
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function super_polint (xa, ya, x, y, dy)
+!
+! This is essentially polint from Numerical Recipes.
+!
+! Input:
+!   xa(:), ya(:)  -- real(rp):
+!   x             -- real(rp):
+!
+! Output:
+!   y             -- real(rp):
+!   dy            -- real(rp):
+!-
+
+subroutine super_polint(xa, ya, x, y, dy)
+
+use nrutil, only : iminloc
+implicit none
+
+real(rp), intent(in) :: xa(:), ya(:)
+real(rp), intent(in) :: x
+real(rp), intent(out) :: y, dy
+integer :: m, n, ns
+real(rp), dimension(size(xa)) :: c, d, den, ho
+
+!
+
+n = assert_equal([size(xa), size(ya)], 'polint')
+c = ya
+d = ya
+ho = xa-x
+ns = iminloc(abs(x-xa))
+y = ya(ns)
+ns = ns-1
+
+do m = 1, n-1
+  den(1:n-m) = ho(1:n-m)-ho(1+m:n)
+  if (any(den(1:n-m) == 0.0)) call err_exit('polint: calculation failure')
+  den(1:n-m) = (c(2:n-m+1)-d(1:n-m))/den(1:n-m)
+  d(1:n-m) = ho(1+m:n)*den(1:n-m)
+  c(1:n-m) = ho(1:n-m)*den(1:n-m)
+
+  if (2*ns < n-m) then
+    dy = c(ns+1)
+  else
+    dy = d(ns)
+    ns = ns-1
+  end if
+
+  y = y+dy
+end do
+
+end subroutine super_polint
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine super_trapzd (func, a, b, s, n)
+!
+! This is essentially trapzd from Numerical Recipes.
+!
+! Input:
+!   func
+!   a, b      -- real(rp):
+!   s         -- real(rp):
+!   n         -- integer:
+!
+! Output:
+!   s         -- rel(rp):
+!-
+
+subroutine super_trapzd(func, a, b, s, n)
+
+use nrutil, only : arth
+
+implicit none
+
+real(rp), intent(in) :: a, b
+real(rp), intent(inout) :: s
+integer, intent(in) :: n
+real(rp) :: del, fsum
+integer :: it
+
+interface
+  function func(x) result (value)
+  import
+  real(rp), intent(in) :: x(:)
+  real(rp) :: value(size(x))
+  end function func
+end interface
+
+!
+
+if (n == 1) then
+  s = 0.5_rp*(b-a)*sum(func( [a, b] ))
+else
+  it = 2**(n-2)
+  del = (b-a)/it
+  fsum = sum(func(arth(a+0.5_rp*del, del, it)))
+  s = 0.5_rp*(s+del*fsum)
+end if
+
+end subroutine super_trapzd
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1106,8 +1226,6 @@ end function super_qromb
 !-
 
 function super_qromb_2D (func, ax, bx, ay, by, rel_tol, abs_tol, k_order, err_flag) result (integral)
-
-use nr, only : polint
 
 implicit none
 
@@ -1147,7 +1265,7 @@ endif
 do j = 1, jmax
   call trapzd_2D(ax, bx, ay, by, s(j), j)
   if (j >= k) then
-    call polint(h(j-km:j), s(j-km:j), 0.0_rp, integral, d_int)
+    call super_polint(h(j-km:j), s(j-km:j), 0.0_rp, integral, d_int)
     if (abs(d_int) <= rel_tol*abs(integral) + abs_tol) return
   end if
   s(j+1) = s(j)
