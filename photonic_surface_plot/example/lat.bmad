@@ -36,8 +36,7 @@ aperture_type = rectangular, y_limit = 7.5e-3,
 
 drift2: drift, l = q0
 
-det: detector,
-surface={grid={ix_bounds=(-700,700),iy_bounds=(-100,100),dr=(100e-6,2e-6)}},
+det: detector, pixel = {ix_bounds=(-700,700),iy_bounds=(-100,100),dr=(100e-6,2e-6)},
      x_pitch = th_det
      !aperture_type = rectangular, x_limit = 13.0e-3, y_limit = 30e-3,
      !aperture_at = entrance_end, offset_moves_aperture = False 
