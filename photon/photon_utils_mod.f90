@@ -122,14 +122,18 @@ if (ph%grid%type == segmented$  .and. ph%grid%active) then
 else
   if (ph%grid%type == displacement$) then
     call surface_grid_displacement (ele, x, y, err_flag, z, dz_dxy, extend_grid); if (err_flag) return
+  else
+    if (present(dz_dxy)) dz_dxy = 0
   endif
 
   do ix = 0, ubound(ph%curvature%xy, 1)
     do iy = 0, ubound(ph%curvature%xy, 2) - ix
       if (ph%curvature%xy(ix, iy) == 0) cycle
       z = z - ph%curvature%xy(ix, iy) * x**ix * y**iy
-      if (present(dz_dxy)) dz_dxy = dz_dxy + &
-              ph%curvature%xy(ix, iy) * x**max(0,ix-1) * y**max(0,iy-1) * [ix * y, iy * x]
+      if (present(dz_dxy)) then
+        if (ix /= 0) dz_dxy(1) = dz_dxy(1) + ph%curvature%xy(ix, iy) * ix * x**(ix-1) * y**iy
+        if (iy /= 0) dz_dxy(2) = dz_dxy(2) + ph%curvature%xy(ix, iy) * iy * x**ix * y**(iy-1)
+      endif
     enddo
   enddo
 

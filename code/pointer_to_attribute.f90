@@ -475,23 +475,46 @@ case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'LR_WAKE%AMP_SCALE', 'LR_WAKE%TIME_SC
 
 case ('H_MISALIGN%ACTIVE', 'DISPLACEMENT%ACTIVE', 'SEGMENTED%ACTIVE')
   a_ptr%l => ele%photon%grid%active
-case ('SPHERICAL_CURVATURE')
+case ('SPHERICAL_CURVATURE')     ! Deprecated syntax
   a_ptr%r => ele%photon%curvature%spherical
-case ('ELLIPTICAL_CURVATURE_X')
+case ('ELLIPTICAL_CURVATURE_X')  ! Deprecated syntax
   a_ptr%r => ele%photon%curvature%elliptical(1)
-case ('ELLIPTICAL_CURVATURE_Y')
+case ('ELLIPTICAL_CURVATURE_Y')  ! Deprecated syntax
   a_ptr%r => ele%photon%curvature%elliptical(2)
-case ('ELLIPTICAL_CURVATURE_Z')
+case ('ELLIPTICAL_CURVATURE_Z')  ! Deprecated syntax
   a_ptr%r => ele%photon%curvature%elliptical(3)
 end select
 
-if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then
+if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then  ! Deprecated syntax
   ix = index('0123456789', a_name(12:12)) - 1
   iy = index('0123456789', a_name(15:15)) - 1
   if (ix == -1 .or. iy == -1) goto 9000 ! Error message and return
   if (ix > ubound(ele%photon%curvature%xy, 1)) goto 9000 ! Error message and return
   if (iy > ubound(ele%photon%curvature%xy, 2)) goto 9000 ! Error message and return
   a_ptr%r => ele%photon%curvature%xy(ix,iy)
+  err_flag = .false.
+  return
+endif
+
+if (a_name(1:10) == 'CURVATURE%') then
+  select case (a_name(11:))
+  case ('SPHERICAL')
+    a_ptr%r => ele%photon%curvature%spherical
+  case ('ELLIPTICAL_X')
+    a_ptr%r => ele%photon%curvature%elliptical(1)
+  case ('ELLIPTICAL_Y')
+    a_ptr%r => ele%photon%curvature%elliptical(2)
+  case ('ELLIPTICAL_Z')
+    a_ptr%r => ele%photon%curvature%elliptical(3)
+  case default
+    if (a_name(11:11) /= 'X' .or. a_name(13:13) /= 'Y' .or. a_name(15:15) /= ' ') goto 9000
+    ix = index('0123456789', a_name(12:12)) - 1
+    iy = index('0123456789', a_name(14:14)) - 1
+    if (ix == -1 .or. iy == -1) goto 9000 ! Error message and return
+    if (ix > ubound(ele%photon%curvature%xy, 1)) goto 9000 ! Error message and return
+    if (iy > ubound(ele%photon%curvature%xy, 2)) goto 9000 ! Error message and return
+    a_ptr%r => ele%photon%curvature%xy(ix,iy)
+  end select
   err_flag = .false.
   return
 endif

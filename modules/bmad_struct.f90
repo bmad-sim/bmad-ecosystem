@@ -917,7 +917,6 @@ end type
 
 type pixel_grid_struct
   real(rp) :: dr(2) = 0, r0(2) = 0
-  real(rp), allocatable :: x_edge(:), y_edge(:)       ! [x_edge(i-1), x_edge(i)] are bounds for pt(i,:)
   type (pixel_grid_pt_struct), allocatable :: pt(:,:) 
 end type
 
@@ -961,7 +960,7 @@ type photon_element_struct
   type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
   type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
-  type (pixel_grid_struct) :: pixel = pixel_grid_struct(0, 0, null(), null(), null())
+  type (pixel_grid_struct) :: pixel = pixel_grid_struct(0, 0, null())
 end type
 
 !------------------------------------------------------------------------------
@@ -1665,7 +1664,7 @@ integer, parameter :: aperture_limit_on$ = 99, alpha_a$ = 99
 
 integer, parameter :: exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_b$ = 100
-integer, parameter :: term$ = 101, frequencies$ = 101, old_integrator$ = 101
+integer, parameter :: term$ = 101, frequencies$ = 101, old_integrator$ = 101, curvature$ = 101
 integer, parameter :: x_position$ = 102, exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
 integer, parameter :: z_position$ = 104, amp_vs_time$ = 104

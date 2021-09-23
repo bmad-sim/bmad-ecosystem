@@ -1467,18 +1467,6 @@ is_eq = .true.
 is_eq = is_eq .and. all(f1%dr == f2%dr)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%r0 == f2%r0)
-!! f_side.equality_test[real, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%x_edge) .eqv. allocated(f2%x_edge))
-if (.not. is_eq) return
-if (allocated(f1%x_edge)) is_eq = all(shape(f1%x_edge) == shape(f2%x_edge))
-if (.not. is_eq) return
-if (allocated(f1%x_edge)) is_eq = all(f1%x_edge == f2%x_edge)
-!! f_side.equality_test[real, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%y_edge) .eqv. allocated(f2%y_edge))
-if (.not. is_eq) return
-if (allocated(f1%y_edge)) is_eq = all(shape(f1%y_edge) == shape(f2%y_edge))
-if (.not. is_eq) return
-if (allocated(f1%y_edge)) is_eq = all(f1%y_edge == f2%y_edge)
 !! f_side.equality_test[type, 2, ALLOC]
 is_eq = is_eq .and. (allocated(f1%pt) .eqv. allocated(f2%pt))
 if (.not. is_eq) return

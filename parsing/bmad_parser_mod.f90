@@ -85,7 +85,7 @@ real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2)
 real(rp), allocatable :: table(:,:)
 real(rp), pointer :: r_ptr
 
-integer i, i2, j, k, n, nn, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
+integer i, i2, j, k, n, nn, ix_word, how, ix_word1, ix_word2, ios, ix, iy, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_ptr, i_term, ib, ie, im
 integer ix_bounds(2), iy_bounds(2), i_vec(2), n_sec, key
 
@@ -1016,6 +1016,11 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
     endif
 
     select case (word)
+    case ('TYPE')   ! This is old style.
+      call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), ph%grid%type, err_flag2, ele, delim, delim_found)
+      if (err_flag2) return
+      bp_com%parse_line = delim // bp_com%parse_line
+
     case ('ACTIVE')
       call parser_get_logical (word, ph%grid%active, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
 
@@ -1095,11 +1100,6 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
         return
       endif
 
-    case ('TYPE')
-      call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), ph%grid%type, err_flag2, ele, delim, delim_found)
-      if (err_flag2) return
-      bp_com%parse_line = delim // bp_com%parse_line
-
     case default
       call parser_error ('GRID COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
       return
@@ -1119,6 +1119,44 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
       endif
       exit
     endif
+  enddo
+
+  if (.not. expect_one_of(', ', .false., ele%name, delim, delim_found)) return
+  err_flag = .false.
+  return
+
+!------------------------
+! Curvature
+
+case ('CURVATURE')
+  ph => ele%photon
+
+  if (.not. expect_this ('=', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+
+  if (delim == '[') then
+    ele2 => parser_find_ele_for_attrib_transfer (attrib_word, word)
+    if (.not. associated(ele2%photon)) then
+      call parser_error ('NO ' // trim(attrib_word) // ' ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+      return
+    endif
+    ph%curvature = ele2%photon%curvature
+  endif
+
+  if (.not. expect_this ('{', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+
+  do
+    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+    call pointer_to_attribute (ele, 'CURVATURE%' // word, .false., a_ptr, err_flag)
+    if (err_flag) then
+      call parser_error ('BAD CURVATURE PARAMETER: ' // word, 'FOR: ' // ele%name)
+      return
+    endif
+    call parse_evaluate_value (trim(ele%name) // ' ' // attrib_word, a_ptr%r, &
+                                                             lat, delim, delim_found, err_flag, ele = ele)
+
+    if (.not. expect_one_of (',}', .true., ele%name, delim, delim_found)) return
+    if (delim == '}') exit
   enddo
 
   if (.not. expect_one_of(', ', .false., ele%name, delim, delim_found)) return

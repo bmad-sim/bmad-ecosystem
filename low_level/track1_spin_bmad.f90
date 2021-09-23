@@ -123,7 +123,7 @@ contains
 
 function trapzd_omega (ele, spline_x, spline_y, start_orb, end_orb, param) result (omega)
 
-use nr, only: polint
+use super_recipes_mod, only: super_polint
 
 implicit none
 
@@ -190,7 +190,7 @@ do j = 2, j_max
   end select
 
   do k = 1, 3
-    call polint (q_array(1:j)%h, q_array(1:j)%omega(k), 0.0_rp, omega(k), dint)
+    call super_polint (q_array(1:j)%h, q_array(1:j)%omega(k), 0.0_rp, omega(k), dint)
     if (abs(dint) > eps .and. j < j_max) exit ! Failed test. Note: Last loop with j = j_max -> no test.
     if (k == 3) return                        ! Passed all tests or last loop
   enddo

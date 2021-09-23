@@ -927,6 +927,7 @@ call init_attribute_name1 (crystal$, mosaic_angle_rms_in_plane$,    'MOSAIC_ANGL
 call init_attribute_name1 (crystal$, mosaic_angle_rms_out_plane$,   'MOSAIC_ANGLE_RMS_OUT_PLANE')
 call init_attribute_name1 (crystal$, mosaic_diffraction_num$,       'MOSAIC_DIFFRACTION_NUM')
 call init_attribute_name1 (crystal$, p88$,                          'H_MISALIGN')
+call init_attribute_name1 (crystal$, curvature$,                    'CURVATURE')
 
 call init_attribute_name1 (def_bmad_com$, max_aperture_limit$,          'MAX_APERTURE_LIMIT')
 call init_attribute_name1 (def_bmad_com$, default_ds_step$,             'DEFAULT_DS_STEP')
@@ -994,18 +995,20 @@ call init_attribute_name1 (def_ptc_com$, exact_misalign$,                 'EXACT
 call init_attribute_name1 (def_ptc_com$, old_integrator$,                 'OLD_INTEGRATOR')
 call init_attribute_name1 (def_ptc_com$, max_fringe_order$,               'MAX_FRINGE_ORDER')
 
-call init_attribute_name1 (detector$, l$,                             'L', dependent$)
-call init_attribute_name1 (detector$, pixel$,                         'PIXEL')
+call init_attribute_name1 (detector$, l$,                               'L', dependent$)
+call init_attribute_name1 (detector$, pixel$,                           'PIXEL')
+call init_attribute_name1 (detector$, curvature$,                       'CURVATURE')
 
-call init_attribute_name1 (diffraction_plate$, l$,                    'l', private$)
-call init_attribute_name1 (diffraction_plate$, mode$,                 'MODE')
-call init_attribute_name1 (diffraction_plate$, field_scale_factor$,   'FIELD_SCALE_FACTOR')
-call init_attribute_name1 (diffraction_plate$, ref_wavelength$,       'REF_WAVELENGTH', dependent$)
+call init_attribute_name1 (diffraction_plate$, l$,                      'l', private$)
+call init_attribute_name1 (diffraction_plate$, mode$,                   'MODE')
+call init_attribute_name1 (diffraction_plate$, field_scale_factor$,     'FIELD_SCALE_FACTOR')
+call init_attribute_name1 (diffraction_plate$, ref_wavelength$,         'REF_WAVELENGTH', dependent$)
+call init_attribute_name1 (diffraction_plate$, curvature$,              'CURVATURE')
 
-call init_attribute_name1 (mask$, l$,                                 'l', private$)
-call init_attribute_name1 (mask$, mode$,                              'MODE')
-call init_attribute_name1 (mask$, field_scale_factor$,                'FIELD_SCALE_FACTOR')
-call init_attribute_name1 (mask$, ref_wavelength$,                    'REF_WAVELENGTH', dependent$)
+call init_attribute_name1 (mask$, l$,                                   'l', private$)
+call init_attribute_name1 (mask$, mode$,                                'MODE')
+call init_attribute_name1 (mask$, field_scale_factor$,                  'FIELD_SCALE_FACTOR')
+call init_attribute_name1 (mask$, ref_wavelength$,                      'REF_WAVELENGTH', dependent$)
 
 call init_attribute_name1 (drift$, spin_fringe_on$,                 'spin_fringe_on', private$)
 call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type', private$)
@@ -1434,6 +1437,7 @@ call init_attribute_name1 (solenoid$, r_solenoid$,                  'R_SOLENOID'
 call init_attribute_name1 (sample$, l$,                             'L')
 call init_attribute_name1 (sample$, mode$,                          'MODE')
 call init_attribute_name1 (sample$, material_type$,                 'MATERIAL_TYPE')
+call init_attribute_name1 (sample$, curvature$,                     'CURVATURE')
 
 call init_attribute_name1 (sol_quad$, k1$,                          'K1', quasi_free$)
 call init_attribute_name1 (sol_quad$, ks$,                          'KS', quasi_free$)
@@ -1513,6 +1517,7 @@ call init_attribute_name1 (mirror$, critical_angle$,                'CRITICAL_AN
 call init_attribute_name1 (mirror$, ref_tilt$,                      'REF_TILT')
 call init_attribute_name1 (mirror$, ref_tilt_tot$,                  'REF_TILT_TOT', dependent$)
 call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH', dependent$)
+call init_attribute_name1 (mirror$, curvature$,                     'CURVATURE')
 
 call init_attribute_name1 (multilayer_mirror$, l$,                    'L', dependent$)
 call init_attribute_name1 (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
@@ -1525,6 +1530,7 @@ call init_attribute_name1 (multilayer_mirror$, v1_unitcell$,          'V1_UNITCE
 call init_attribute_name1 (multilayer_mirror$, v2_unitcell$,          'V2_UNITCELL')
 call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVELENGTH', dependent$)
 call init_attribute_name1 (multilayer_mirror$, material_type$,        'MATERIAL_TYPE')
+call init_attribute_name1 (multilayer_mirror$, curvature$,            'CURVATURE')
 
 call init_attribute_name1 (taylor$, ref_orbit$,                     'REF_ORBIT')
 call init_attribute_name1 (taylor$, tt$,                            'TT<out><n1><n2>...')
