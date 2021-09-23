@@ -1,21 +1,26 @@
+no_digested
+
 beginning[e_tot] = 13358.658982699999 ! eV
 parameter[particle] = photon
 parameter[no_end_marker] = T
 particle_start[field_x] = 0.5
 particle_start[field_y] = 0.5
 
-beam_line: line = (cryst1)
+beam_line: line = (cryst1, det1, det2)
 use, beam_line
+
+det1: detector, pixel = {dr = (0.001, 0.002), r0 = (0.002, 0.00), ix_bounds = (-20,20), iy_bounds = (1,10)},
+  curvature_x0_y2 = 1
+
+det2: detector, pixel = {dr = (0.001, 0.002), r0 = (0.002, 0.001), ix_bounds = (-20,20), iy_bounds = (1,10)},
+  curvature = {x0y2 = 1e-20, x2y0 = 1e-30}
 
 cryst1: crystal, crystal_type = 'Si(422)', thickness = 0.080e-3, b_param = -1.0, ref_tilt = 0,
         aperture_type = rectangular, y_limit = 7.5e-3,
         x1_limit = 30e-3, x2_limit = 30e-3,
         !aperture_at = entrance_end, offset_moves_aperture = False
         aperture_at = surface, offset_moves_aperture = True,
-surface = { 
-  grid = { 
-    !type = Segmented, 
-    type = displacement,
+  displacement = { 
     ix_bounds = (1,11), 
     iy_bounds = (1,5), 
     r0 = (-6*0.007, -3*0.01), 
@@ -75,4 +80,4 @@ surface = {
     pt(11,3) = (0.00037276058289633686), 
     pt(11,4) = (0.0006852197092058504), 
     pt(11,5) = (0.0016257829070503245),
-}}
+}

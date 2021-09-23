@@ -51,16 +51,14 @@ sss: sbend
 tt: taylor, {s1: 0.4 | 13}, {sx: 0.1|}
 
 c: diffraction_plate, mode = transmission, 
-    surface = {
-      grid = {
+      displacement = {
         dr = (1, 2),
-        type = displacement, 
         ix_bounds = (10, 11),
         iy_bounds = (0, 0),
         pt(10,0) = (0, 1, 2, 3),
         pt(11,0) = (1, 2, 3, 4),
         r0 = (3,4) &
-      } }
+      }
 
 mm: mask, mode = transmission, 
   wall = {
