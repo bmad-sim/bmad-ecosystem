@@ -1,67 +1,68 @@
- 2021-06-04 21:09:47 
+ 2021-09-22 21:32:17 
  
    1   Drift                 20   !Bmad_Com
    2   Sbend                 29   !Line
    3   Quadrupole            21   !Mad_Beam
-   4   Group                 26   !Parameter
-   5   Sextupole             39   !Particle_Start
-   6   Overlay               22   AB_multipole
-   7   Custom                58   AC_Kicker
-   8   Taylor                11   BeamBeam
-   9   RFcavity              60   Beam_Init
-  10   ELseparator           28   Beginning_Ele
-  11   BeamBeam              45   Capillary
-  12   Wiggler               38   Converter
-  13   Sol_Quad              61   Crab_Cavity
-  14   Marker                43   Crystal
-  15   Kicker                 7   Custom
-  16   Hybrid                55   Detector
-  17   Octupole              52   Diffraction_Plate
-  18   Rbend                  1   Drift
-  19   Multipole             10   ELseparator
-  20   !Bmad_Com             48   EM_Field
-  21   !Mad_Beam             47   E_Gun
-  22   AB_multipole          36   Ecollimator
-  23   Solenoid              50   Fiducial
-  24   Patch                 49   Floor_Shift
-  25   Lcavity               41   Fork
-  26   !Parameter            37   Girder
-  27   Null_Ele               4   Group
-  28   Beginning_Ele         33   Hkicker
-  29   !Line                 16   Hybrid
-  30   Match                 32   Instrument
-  31   Monitor               15   Kicker
-  32   Instrument            25   Lcavity
-  33   Hkicker               59   Lens
-  34   Vkicker               14   Marker
-  35   Rcollimator           57   Mask
-  36   Ecollimator           30   Match
-  37   Girder                42   Mirror
-  38   Converter             31   Monitor
-  39   !Particle_Start       46   Multilayer_Mirror
-  40   Photon_Fork           19   Multipole
-  41   Fork                  27   Null_Ele
-  42   Mirror                17   Octupole
-  43   Crystal                6   Overlay
-  44   Pipe                  24   Patch
-  45   Capillary             40   Photon_Fork
-  46   Multilayer_Mirror     53   Photon_Init
-  47   E_Gun                 44   Pipe
-  48   EM_Field               3   Quadrupole
-  49   Floor_Shift            9   RFcavity
-  50   Fiducial              62   Ramper
-  51   Undulator             18   Rbend
-  52   Diffraction_Plate     35   Rcollimator
-  53   Photon_Init           56   Sad_Mult
-  54   Sample                54   Sample
-  55   Detector               2   Sbend
-  56   Sad_Mult               5   Sextupole
-  57   Mask                  13   Sol_Quad
-  58   AC_Kicker             23   Solenoid
-  59   Lens                   8   Taylor
-  60   Beam_Init             51   Undulator
-  61   Crab_Cavity           34   Vkicker
-  62   Ramper                12   Wiggler
+   4   Group                 63   !PTC_Com
+   5   Sextupole             26   !Parameter
+   6   Overlay               39   !Particle_Start
+   7   Custom                22   AB_multipole
+   8   Taylor                58   AC_Kicker
+   9   RFcavity              11   BeamBeam
+  10   ELseparator           60   Beam_Init
+  11   BeamBeam              28   Beginning_Ele
+  12   Wiggler               45   Capillary
+  13   Sol_Quad              38   Converter
+  14   Marker                61   Crab_Cavity
+  15   Kicker                43   Crystal
+  16   Hybrid                 7   Custom
+  17   Octupole              55   Detector
+  18   Rbend                 52   Diffraction_Plate
+  19   Multipole              1   Drift
+  20   !Bmad_Com             10   ELseparator
+  21   !Mad_Beam             48   EM_Field
+  22   AB_multipole          47   E_Gun
+  23   Solenoid              36   Ecollimator
+  24   Patch                 50   Fiducial
+  25   Lcavity               49   Floor_Shift
+  26   !Parameter            41   Fork
+  27   Null_Ele              37   Girder
+  28   Beginning_Ele          4   Group
+  29   !Line                 33   Hkicker
+  30   Match                 16   Hybrid
+  31   Monitor               32   Instrument
+  32   Instrument            15   Kicker
+  33   Hkicker               25   Lcavity
+  34   Vkicker               59   Lens
+  35   Rcollimator           14   Marker
+  36   Ecollimator           57   Mask
+  37   Girder                30   Match
+  38   Converter             42   Mirror
+  39   !Particle_Start       31   Monitor
+  40   Photon_Fork           46   Multilayer_Mirror
+  41   Fork                  19   Multipole
+  42   Mirror                27   Null_Ele
+  43   Crystal               17   Octupole
+  44   Pipe                   6   Overlay
+  45   Capillary             24   Patch
+  46   Multilayer_Mirror     40   Photon_Fork
+  47   E_Gun                 53   Photon_Init
+  48   EM_Field              44   Pipe
+  49   Floor_Shift            3   Quadrupole
+  50   Fiducial               9   RFcavity
+  51   Undulator             62   Ramper
+  52   Diffraction_Plate     18   Rbend
+  53   Photon_Init           35   Rcollimator
+  54   Sample                56   Sad_Mult
+  55   Detector              54   Sample
+  56   Sad_Mult               2   Sbend
+  57   Mask                   5   Sextupole
+  58   AC_Kicker             13   Sol_Quad
+  59   Lens                  23   Solenoid
+  60   Beam_Init              8   Taylor
+  61   Crab_Cavity           51   Undulator
+  62   Ramper                34   Vkicker
+  63   !PTC_Com              12   Wiggler
  
  !---------------------------------
  20  !Bmad_Com           
@@ -125,6 +126,13 @@
         53  PC                                      
         54  ENERGY                                  
        132  PARTICLE                                
+ 
+ !---------------------------------
+ 63  !PTC_Com            
+        82  MAX_FRINGE_ORDER                        
+       100  EXACT_MISALIGN                          
+       101  OLD_INTEGRATOR                          
+       102  EXACT_MODEL                             
  
  !---------------------------------
  26  !Parameter          
@@ -761,7 +769,9 @@
         85  ELLIPTICAL_CURVATURE_Y                  
         86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
-        88  SURFACE                                 
+        88  H_MISALIGN                              
+        89  DISPLACEMENT                            
+        90  SEGMENTED                               
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -919,7 +929,9 @@
         85  ELLIPTICAL_CURVATURE_Y                  
         86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
-        88  SURFACE                                 
+        88  PIXEL                                   
+        89  DISPLACEMENT                            
+        90  SEGMENTED                               
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -977,7 +989,8 @@
         85  ELLIPTICAL_CURVATURE_Y                  
         86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
-        88  SURFACE                                 
+        89  DISPLACEMENT                            
+        90  SEGMENTED                               
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -2325,7 +2338,8 @@
         85  ELLIPTICAL_CURVATURE_Y                  
         86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
-        88  SURFACE                                 
+        89  DISPLACEMENT                            
+        90  SEGMENTED                               
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -2484,7 +2498,8 @@
         85  ELLIPTICAL_CURVATURE_Y                  
         86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
-        88  SURFACE                                 
+        89  DISPLACEMENT                            
+        90  SEGMENTED                               
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -3175,6 +3190,7 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
+        27  dpz_rad_damp_ave                          [private]
         29  L_SAGITTA                               
         30  L_CHORD                                 
         33  ANGLE                                   
@@ -3462,7 +3478,8 @@
         85  ELLIPTICAL_CURVATURE_Y                  
         86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
-        88  SURFACE                                 
+        89  DISPLACEMENT                            
+        90  SEGMENTED                               
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -3514,6 +3531,7 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
+        27  dpz_rad_damp_ave                          [private]
         29  L_SAGITTA                               
         30  L_CHORD                                 
         33  ANGLE                                   
@@ -3969,6 +3987,7 @@
         21  POLARITY                                
         22  N_PERIOD                                
         23  L_PERIOD                                
+        27  dpz_rad_damp_ave                          [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -4155,6 +4174,7 @@
         21  POLARITY                                
         22  N_PERIOD                                
         23  L_PERIOD                                
+        27  dpz_rad_damp_ave                          [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -4266,7 +4286,7 @@
     24    20
     25    16
     26    22
-    27    17
+    27    21
     28    12
     29    24
     30    19
@@ -4321,15 +4341,15 @@
     79     0
     80     0
     81    12
-    82    59
+    82    60
     83    36
     84    40
     85    37
     86    26
     87    54
-    88    36
-    89    32
-    90    29
+    88    32
+    89    38
+    90    35
     91    52
     92    53
     93    53
@@ -4339,9 +4359,9 @@
     97    50
     98    50
     99     3
-   100    31
-   101     3
-   102     3
+   100    32
+   101     4
+   102     4
    103    33
    104     3
    105    44
@@ -5151,8 +5171,11 @@ Index: 26
  
  !---------------------------------
 Index: 27
+    Sbend               
     RFcavity            
+    Wiggler             
     Marker              
+    Rbend               
     Lcavity             
     Match               
     Monitor             
@@ -5165,6 +5188,7 @@ Index: 27
     E_Gun               
     EM_Field            
     Fiducial            
+    Undulator           
     Photon_Init         
     Detector            
     Crab_Cavity         
@@ -6936,6 +6960,7 @@ Index: 82
     Beam_Init           
     Crab_Cavity         
     Ramper              
+    !PTC_Com            
  
  !---------------------------------
 Index: 83
@@ -7169,15 +7194,11 @@ Index: 88
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Mirror              
     Crystal             
     Pipe                
-    Multilayer_Mirror   
     E_Gun               
     EM_Field            
     Undulator           
-    Diffraction_Plate   
-    Sample              
     Detector            
     Sad_Mult            
     AC_Kicker           
@@ -7210,10 +7231,16 @@ Index: 89
     Vkicker             
     Rcollimator         
     Ecollimator         
+    Mirror              
+    Crystal             
     Pipe                
+    Multilayer_Mirror   
     E_Gun               
     EM_Field            
     Undulator           
+    Diffraction_Plate   
+    Sample              
+    Detector            
     AC_Kicker           
     Beam_Init           
     Crab_Cavity         
@@ -7243,10 +7270,16 @@ Index: 90
     Vkicker             
     Rcollimator         
     Ecollimator         
+    Mirror              
+    Crystal             
     Pipe                
+    Multilayer_Mirror   
     E_Gun               
     EM_Field            
     Undulator           
+    Diffraction_Plate   
+    Sample              
+    Detector            
     AC_Kicker           
     Beam_Init           
     Crab_Cavity         
@@ -7724,18 +7757,21 @@ Index: 100
     AC_Kicker           
     Beam_Init           
     Crab_Cavity         
+    !PTC_Com            
  
  !---------------------------------
 Index: 101
     Wiggler             
     Undulator           
     AC_Kicker           
+    !PTC_Com            
  
  !---------------------------------
 Index: 102
     !Parameter          
     Beginning_Ele       
     !Line               
+    !PTC_Com            
  
  !---------------------------------
 Index: 103
