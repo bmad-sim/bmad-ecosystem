@@ -12,7 +12,6 @@
 program rf_field_coef_calc
 
 use rf_field_coef_calc_mod
-use nr
 
 implicit none
 

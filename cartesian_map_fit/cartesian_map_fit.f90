@@ -9,7 +9,6 @@ program cartesian_map_fit
 use cartesian_map_fit_mod
 use super_recipes_mod
 use opti_de_mod, only: opti_de !MPI , opti_de_mpi
-use nr
 
 implicit none
 
