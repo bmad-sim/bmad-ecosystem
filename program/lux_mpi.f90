@@ -8,8 +8,8 @@ implicit none
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
 type (lux_output_data_struct) lux_data
-type (surface_grid_struct) :: slave_grid
-type (surface_grid_struct), pointer :: detec_grid
+type (pixel_grid_struct) :: slave_grid
+type (pixel_grid_struct), pointer :: detec_grid
 
 integer master_rank, ierr, rc, leng, i, stat(MPI_STATUS_SIZE)
 integer data_size, num_slaves
@@ -59,7 +59,7 @@ endif
 lux_com%using_mpi = .true.
 call lux_init (lux_param, lux_com)
 
-detec_grid => lux_com%detec_ele%photon%surface%grid
+detec_grid => lux_com%detec_ele%photon%pixel
 allocate (slave_grid%pt(size(detec_grid%pt, 1), size(detec_grid%pt, 1)))
 
 ! storage_size returns size in bytes per point
