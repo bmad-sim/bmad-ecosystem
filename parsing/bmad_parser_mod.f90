@@ -1940,8 +1940,10 @@ case default   ! normal attribute
   case (is_integer$)
     if (associated (a_ptr%i)) then
       call parser_get_integer (a_ptr%i, word, ix_word, delim, delim_found, err_flag, trim(ele%name) // ' ' // attrib_word)
+      call set_flags_for_changed_attribute (ele, a_ptr%i, set_dependent = (bp_com%parser_name == 'bmad_parser2'))
     else
       call parse_evaluate_value (trim(ele%name) // ' ' // word, ele%value(ix_attrib), lat, delim, delim_found, err_flag, ele = ele)
+      call set_flags_for_changed_attribute (ele, ele%value(ix_attrib), set_dependent = (bp_com%parser_name == 'bmad_parser2'))
     endif
     if (err_flag) return
     

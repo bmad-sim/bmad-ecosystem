@@ -110,7 +110,7 @@ if (branch%param%geometry == closed$) then
   call c_fast_canonise(u, u_c, dospin = .true.)
 
   p8_a = probe_orb + u_c
-  p8_ele   = probe_orb + cdamap_1
+  p8_ele = probe_orb + cdamap_1
 
 else
   u = 1

@@ -214,7 +214,7 @@ It will be assumed throughout that $\bfn$ has unit magnitude $||\bfn|| = 1$ and 
 For later use, the following identities are useful
 \begin{alignat}{2}
    &\bfn^\ppls \bfn^\ppls = \bfn^\ppls, \qquad
-  &&\bfn^\mmin \bfn^\mmin = \bfn^\mmin, \\
+  &&\bfn^\mmin \bfn^\mmin = \bfn^\mmin, \label{n6} \\
    &\bfn = i (\bfn^\mmin - \bfn^\ppls), \qquad
   &&\bfn^\ppls \bfn^\mmin = \bfn^\mmin \bfn^\ppls = \Bf 0 \CRNO
    &\BAR{\bfn^\ppls} = \bfn^\mmin, \qquad
@@ -224,29 +224,31 @@ For later use, the following identities are useful
 The relations on the first row mean that $I_+(\bfn)$ and $I_-(\bfn)$ produce ``idempotent''
 biquaternions\cite{b:biquat}.
 
-For any biquaternions $\bfq$, $\bfn^\ppls = I_+(\bfn)$, and $\bfn^\mmin = I_-(\bfn)$, the biquaternion $\bfG =
+For any biquaternions $\bfq$, $\bfn^\ppls = I_+(\bfn)$, and $\bfn^\mmin = I_-(\bfn)$, the biquaternion $\bfQ =
 \bfn^\ppls \bfq \bfn^\mmin$ is pure. This follows from
 \begin{equation}
-  2 \, S(\bfG) = \bfG + \BAR\bfG = 
+  2 \, S(\bfQ) = \bfQ + \BAR\bfQ = 
   \bfn^\ppls (S(\bfq) + \BAR{S(\bfq)}) \bfn^\mmin + \bfn^\ppls (\bfV(\bfq) + \BAR{\bfV(\bfq)}) \bfn^\mmin
   = 2 \, S(\bfq) \, \bfn^\ppls \bfn^\mmin = 0
+  \label{2sgg}
 \end{equation}
-Furthermore, the real and imaginary parts of $\bfG$ have the following properties
+Furthermore, the real and imaginary parts of $\bfQ$ have the following properties
 \begin{align}
-  & \re(\bfG) \cdot \im(\bfG) = 0 \CRNO
-  & \re(\bfG) \cdot \bfn = \im(\bfG) \cdot \bfn = 0 
+  & \re(\bfQ) \cdot \im(\bfQ) = 0 \CRNO
+  & \re(\bfQ) \cdot \bfn = \im(\bfQ) \cdot \bfn = 0 
   \label{GG0} \\
-  & |\re(\bfG)| = |\im(\bfG)| \nonumber
+  & |\re(\bfQ)| = |\im(\bfQ)| \nonumber
 \end{align}
 These relations are fairly easy to derive. For example, the last one is proved via
 \begin{equation}
-  4 \, | \re(\bfG) |^2 = (\bfG + \bfG^*) \cdot (\bfG + \bfG^*) =
+  4 \, | \re(\bfQ) |^2 = (\bfQ + \bfQ^*) \cdot (\bfQ + \bfQ^*) =
   \bfn^\ppls \bfq^2 \bfn^\ppls + \bfn^\mmin \bfq^2 \bfn^\mmin =
-  -(\bfG - \bfG^*) \cdot (\bfG - \bfG^*) =
-  4 \, | \im(\bfG) |^2
+  -(\bfQ - \bfQ^*) \cdot (\bfQ - \bfQ^*) =
+  4 \, | \im(\bfQ) |^2
+  \label{4ggg}
 \end{equation}
-and since the magnitude of both $\re(\bfG)$ and $\im(\bfG)$ must be positive (since $\re$ and $\im$
-produce real numbers), it follows that $|\re(\bfG)| = |\im(\bfG)|$.
+and since the magnitude of both $\re(\bfQ)$ and $\im(\bfQ)$ must be positive (since $\re$ and $\im$
+produce real numbers), it follows that $|\re(\bfQ)| = |\im(\bfQ)|$.
 
 
 %-----------------------------------------------------------------   
@@ -463,7 +465,7 @@ a single mode of oscillation. That is, to compute ${\partial \bfn}/\partial \del
 mode of interest. This information can help guide lattice design.
 
 %-----------------------------------------------------------------   
-\section{Single Resonance Analysis}
+\section{Single Resonance Model}
 \label{s:spin.res}
 
 Resonances occur when the spin tune $\nu_s$ is an integer (``imperfection'' resonances) and when the spin
@@ -483,11 +485,10 @@ small (think protons), resonances will be more important. Notice that synchrotro
 stochastic process results in depolarization. Resonances, on the other hand, are not stochastic and
 even if a resonance tilts the polarization direction there can be the possibility of recovery.
 
-In order to calculate the effect of a resonance it is helpful to know the resonance strength
-The resonance strength calculation can be motivated by considering the Single Resonance Model
+To calculate the effect of a resonance it is helpful to know the resonance strength.  The resonance
+strength calculation can be motivated by considering the Single Resonance Model
 (SRM)\cite{b:spin.hoff} where it is assumed that only one orbital mode is excited and that there is
-a single dominating resonance. In this case the
-spin equation of motion is
+a single dominating resonance. In this case the spin equation of motion is
 \begin{equation}
   \frac{d \bfs}{d \theta} = \Bf\Omega \cross \bfs, \qquad 
   \Bf\Omega = \begin{pmatrix}
@@ -499,17 +500,19 @@ spin equation of motion is
 \end{equation}
 where $\epsilon_r$ is the resonance strength, $\nu_0$ is the closed orbit spin tune and $\theta$ is
 the longitudinal angle with $\theta = 2 \, \pi$ representing one turn in the circular accelerator.
-In the above equation the phase $\Phi$ is related to the orbital mode tune $Q$ via
+In the above equation the phase $\Phi$ is related to the orbital mode tunes $Q$ via
 \begin{equation}
-  \Phi = Q \, \theta + \Phi_0
+  \Phi = (j_0 + j_x Q_x + j_y Q_y + j_z Q_z) \theta + \Phi_0 \equiv
+  %%% (j_0 + \bfj \cdot \bfQ) \theta + \Phi_0 = 
+  \kappa \theta + \Phi_0
 \end{equation}
-with $\Phi_0$ being the starting phase. \Eq{stos} can be solved by transforming to a coordinate
-system rotating about the $z$-axis with a rotational frequency $Q$. This is called the ``\vn{resonance}''
-coordinate system or the ``\vn{rotating}'' coordinate system. In this frame, the spin vector
-$s_R$ is
+with $j_0$, $j_x$, $j_y$, and $j_z$ being integers and $\Phi_0$ being the starting phase. \Eq{stos}
+can be solved by transforming to a coordinate system rotating about the $z$-axis with a rotational
+frequency $\kappa$. This is called the ``\vn{resonance}'' coordinate system or the ``\vn{rotating}''
+coordinate system. In this frame, the spin vector $s_R$ is
 \begin{equation}
   \bfs_R = \bfq_z(-\Phi/2) \,\, \bfs \,\, \BAR\bfq_z(-\Phi/2), \quad \text{where} \quad
-  \bfq_z(\phi) \equiv \cos (\phi/2) +  \sin (\phi/2)) \, \calk
+  \bfq_z(\phi) \equiv \big( \cos (\phi/2) +  \sin (\phi/2) \big) \, \calk
   \label{rqsq}
 \end{equation}
 Using \Eq{rqsq} in \Eq{stos} gives
@@ -521,11 +524,11 @@ Using \Eq{rqsq} in \Eq{stos} gives
     \delta 
   \end{pmatrix},
   \qquad
-  \delta = \nu_0 - Q
+  \delta = \nu_0 - \kappa
   \label{stos2}
 \end{equation}
 Spins rotate around around $\Bf\Omega_R$. A spin initially aligned along the $z$-axis will be 
-tilted a maximum of $\tan^{-1}(\epsilon_r/\delta)$ away from the $z$-axis. This shows that the
+tilted a maximum of $\tan^{-1}(2\epsilon_r/\delta)$ away from the $z$-axis. This shows that the
 characteristic frequency width of the resonance is set by $\delta \approx \epsilon_r$. That is,
 the frequency width scales linearly with $\epsilon_r$.
 
@@ -543,40 +546,51 @@ to the laboratory frame and normalizing to one, $\bfn$ is
   \Lambda = \sqrt{\delta^2 + \epsilon_r^2}
   \label{nsdl}
 \end{equation}
-where the sign factor $\sign(\delta)$ is chosen so that on the closed orbit with $J = 0$ the $\bfn$
-axis is in the positive $z$-direction.
+where the sign factor $\sign(\delta)$ is chosen so that on the closed orbit with $\epsilon_r = 0$
+the $\bfn$ axis is in the positive $z$-direction.
 
-\Eq{nsdl} shows that resonance is when $\delta = 0$ or $\nu_0 = Q$.  The use of a sinusoidal
-perturbation in the single resonance model results in the suppression of all other resonances
-which can be of the form $\nu_0 = m_0 \pm Q$ where $m_0$ is some integer. In an actual machine, the
-presence of a perturbation at some specific point in the machine will produce a comb of resonances
-of the form $m_0 \pm Q$.
+\Eq{nsdl} shows that resonance occurs when $\delta = 0$ or $\nu_0 = \kappa$.  The use of a
+sinusoidal perturbation in the single resonance model results in the suppression of all other
+resonances.  In an actual machine, the presence of a perturbation at some specific point in the
+machine will produce a comb of resonances of the form $m_0 \pm Q$.
 
-At resonance, with $\delta = 0$, \Eq{stos2} shows that if a spin in the resonance coordinate system is initially
-aligned along the $\bfn_0$ axis ($\bfs_R = (0, 0, 1)$), After $N$ turns, in the linear approximation, the spin
-will be
+At resonance, with $\delta = 0$, \Eq{stos2} shows that if a spin in the resonance coordinate system
+is initially aligned along the $\bfn_0$ axis ($\bfs_R = (0, 0, 1)$), After $N$ turns, in the linear
+approximation, the spin will be
 \begin{equation}
   \bfs_R(N,\bfn_0) = (0, -N \cdot 2 \, \pi \, \epsilon_r, 1)
   \label{sr0n}
 \end{equation}
-For the linear approximation to be valid, it must be true that $N \, \epsilon_r \ll 1$. \Eq{sr0n} gives a physical
-interpretation to the resonance strength $\epsilon_r$. The resonance strength is the angle (modulo $2 \, \pi$) 
-that a spin is tipped away from $\bfn_0$ in one turn. For a resonance to be small, the resonance
-strength must satisfy
+For the linear approximation to be valid, it must be true that $N \, \epsilon_r \ll 1$. \Eq{sr0n}
+gives a physical interpretation to the resonance strength $\epsilon_r$. The resonance strength is
+the angle (modulo $2 \, \pi$) that a spin is tipped away from $\bfn_0$ in one turn. For a resonance
+to be small, the resonance strength must satisfy
 \begin{equation}
   \epsilon_r \ll 1
   \label{r1}
 \end{equation}
 
-Inversion of \Eq{sr0n} shows how to compute the strength of a linear resonance:
+%-----------------------------------------------------------------   
+\section{Linear Resonance Analysis}
+\label{s:spin.res1}
+
+Within the linear approximation, the resonance strength $\epsilon_r$ (\Eq{stos}) can be related to
+the first order spin transport (\Eq{qqqr}). The analysis starts by inversion of \Eq{sr0n} and
+letting $N$ go to infinity
 \begin{equation}
   \epsilon_r = \lim_{N \rightarrow \infty} \, \frac{1}{2 \, \pi \, N} \, 
   \left| \bfs_R(N,\bfn_0) - \bfn_0 \right|
   \label{eN12n}
 \end{equation}
-where the right hand side must be computed on resonance and within the linear approximation.
-$\bfs_R(N, \bfn_0)$ is the spin after $N$ turns given an initial spin of $\bfn_0$.
-$\bfs_R(N, \bfn_0)$  can be computed via
+Here the restriction $N \ll 1 / \epsilon_r$ can be ignored since the spin transport is linearized.
+That is, it is the nonlinear terms in the spin transport which makes the restriction necessary. In
+fact, with linear spin transport, the magnitude of $\bfs_R$ is not constant and at resonance is
+unbounded. \Eq{eN12n} will still be valid even when there are multiple resonances present since
+\Eq{eN12n} must be evaluated on a particular resonance and, it will be seen, the contribution to
+\Eq{eN12n} from non-resonant resonances is zero.
+
+$\bfs_R(N, \bfn_0)$ is the spin after $N$ turns given an initial spin of $\bfn_0$.  $\bfs_R(N,
+\bfn_0)$ can be computed via
 \begin{equation}
   \bfs_R(N, \bfn_0) = \bfQ_N \, \bfn_0 \, \BAR\bfQ_N
   \label{sQnQ}
@@ -620,8 +634,9 @@ To evaluate $\bfZ$, the quantity $\bfq_0^j$ is decomposed into two parts
 \end{equation}
 where $\bfn_0^\mmin \equiv I_-(\bfn_0)$ and $\bfn_0^\ppls \equiv I_+(\bfn_0)$ are given by \Eq{n1in}.
 
-For a particular mode of oscillation, $\bfr_j$ is given by \Eq{x2jv}.  Without loss of generality,
-$\phi_0$ in \Eq{x2jv} will be set to zero.  Using this along with the above equations gives
+For a particular mode $k$ of oscillation, $\bfr_j$ is given by \Eq{x2jv}. The end result will be
+independent of $\phi_0$ in \Eq{x2jv} so without loss of generality, $\phi_0$ will be set to zero.
+Using this along with the above equations gives
 \begin{align}
   \bfZ = \lim_{N \rightarrow \infty} 
     \frac{\sqrt{J}}{2 \pi N} 
@@ -641,32 +656,35 @@ $\phi_0$ in \Eq{x2jv} will be set to zero.  Using this along with the above equa
 the first two terms on the right hand side of \Eq{zj2pn} will be nonzero only at the sum resonance
 with $Q_k + \nu_0 = p$ for $p$ an integer.  The third and fourth terms will be nonzero only at the
 difference resonance with $Q_k - \nu_0 = p$.  And the last four terms will be nonzero only at an
-integer resonance where $Q_k = p$ which can be ignored.
+integer resonance where $Q_k = p$ which can be ignored since an accelerator can never be operated
+stably at an integer tune.
 
 The normalized resonance strength $\xi_r$ is defined by
 \begin{equation}
   \epsilon_r \equiv \sqrt{J} \, \xi_r
   \label{ejx}
 \end{equation}
-Combining the above equations, the strength of a sum resonance is
+Combining the above equations along with \Eqs{n6} through \eq{4ggg}, the strength of the sum
+resonance for the $k$ mode of oscillation is
 \begin{equation}
-  \xi_r = \frac{\sqrt{2}}{\pi} \big| \bfG \cdot \bfv_k \big| \label{x12pq1}
+  \xi_r = \frac{\sqrt{2}}{2\pi} \big| \bf{\cal G} \cdot \bfv_k \big| 
+  \label{x12pq1}
 \end{equation}
-and for a difference resonance
+and for the difference resonance the strength is
 \begin{equation}
-  \xi_r = \frac{\sqrt{2}}{\pi} \big|
-  \bfG \cdot \bfv_k^* \big| \label{x12pq2}
+  \xi_r = \frac{\sqrt{2}}{2\pi} \big|
+  \bf{\cal G} \cdot \bfv_k^* \big| 
+  \label{x12pq2}
 \end{equation}
-where $\bfG$ is given by
+where $\bf{\cal G}$ is given by
 \begin{equation}
-  \bfG = \bfn_0^\ppls \arrowbfq \bfn_0^\mmin
+  \bf{\cal G} = 2 \, \bfn_0^\ppls \arrowbfq \bfn_0^\mmin
+  \label{g2nqn}
 \end{equation}
 
 The resonance strength can also be calculated within the \vn{SLIM} formalism (\sref{s:slim}) via
-\Eq{x1pg}. From \Eqs{GG0} it can be seen that $\bfG$ is the quaternion equivalent of the SLIM
-$\bfG_{2\cross6}$ matrix. The extra factor of $2\sqrt{2}$ in \Eqs{x12pq1} and \eq{x12pq2} compared 
-to \Eq{x1pg} comes from using $overrightarrow\bfG$ which is a complex number instead of using
-the equivalent equation involving $\bfG_{2\cross6}$.
+\Eq{x1pg} or \Eq{x2pg}. \bf{\cal G} Comparing \Eqs{x12pq1} or \eq{x12pq2} with \Eq{x2pg} it is seen
+that $\bf{\cal G}$ is the quaternion equivalent of the SLIM $\bfG_{2\cross6}$ matrix.
 
 %-----------------------------------------------------------------   
 \section{SLIM Formalism}
@@ -933,8 +951,8 @@ normalized in the form \Eq{vsvi0}.  With this, ${\partial \bfn}/{\partial \delta
   \label{ndivw}
 \end{equation}
 
-The strength of linear resonances can be calculated from the $\bfG$ matrix
-The corresponding equation to \Eqs{x12pq1} and \eq{x12pq2} is\cite{b:spin.hoff}
+The strength of linear resonances can be calculated from the $\bfG$ matrix.  The corresponding
+equation to \Eqs{x12pq1} and \eq{x12pq2} is\cite{b:spin.hoff}
 \begin{equation}
   \xi_r = \frac{1}{2 \, \pi} \, \big| \overrightarrow\bfG \cdot \bfv_k \big|
   \label{x1pg}
@@ -944,7 +962,12 @@ where
   \overrightarrow\bfG = \bfG(1,:) + i \, \bfG(2,:)
 \end{equation}
 with $\bfG(1,:)$ being the first row of the $2\times6$ $\bfG$ matrix and $\bfG(2,:)$ being
-the second row.
+the second row. It can be shown that an equivalent way of writing \Eq{x1pg} is 
+\begin{equation}
+  \xi_r = \frac{\sqrt{2}}{2 \, \pi} \, \big| (\bfG(1,:) \cdot \bfv_k, \bfG(2,:) \cdot \bfv_k) \big|
+  \label{x2pg}
+\end{equation}
+
 
 %-----------------------------------------------------------------   
 \section{Spinor Notation}
