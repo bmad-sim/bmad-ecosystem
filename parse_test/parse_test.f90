@@ -192,6 +192,7 @@ call write_bmad_lattice_file ('write_parser_test.bmad', lat2)
 call bmad_parser ('write_parser_test.bmad', lat, make_mats6 = .false.)
 call bmad_parser ('write_parser_test.bmad', lat, make_mats6 = .false.)   ! To read digested file
 
+write (1, '(a, es12.4)') '"ele(1):num_steps" ABS 0 ', lat%ele(1)%value(num_steps$)
 write (1, '(a, es12.4)') '"parameter[abc]" ABS 0 ', lat%custom(2)
 
 call pointer_to_attribute (lat%ele(1), 'QQQ', .true., a_ptr, err)

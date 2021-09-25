@@ -186,3 +186,4 @@ expand_lattice
 
 aa[k1] = 2
 a*[tracking_method] = symp_lie_bmad
+aa[num_steps] = 7
