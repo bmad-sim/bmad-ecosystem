@@ -880,8 +880,6 @@ end subroutine super_mrqcof
 
 subroutine super_gaussj (a, b, status)
 
-use nrutil, only : outerand
-
 implicit none
 
 real(rp), dimension(:, :), intent(inout) :: a, b
@@ -907,7 +905,7 @@ ipiv = 0
 
 do i = 1, n
    lpiv = (ipiv == 0)
-   irc = maxloc(abs(a), outerand(lpiv, lpiv))
+   irc = maxloc(abs(a), (spread(lpiv, dim = 2, ncopies = n) .and. spread(lpiv, dim = 1, ncopies = n)))
    ipiv(icol) = ipiv(icol)+1
    if (ipiv(icol) > 1) then
       status = -1
@@ -969,7 +967,6 @@ end subroutine super_gaussj
 
 subroutine super_ludcmp(a,indx,d, err)
 
-use nrutil, only : imaxloc
 implicit none
 real(rp), dimension(:,:), intent(inout) :: a
 integer, dimension(:), intent(out) :: indx
@@ -992,7 +989,7 @@ if (any(vv == 0.0)) then
 endif
 vv = 1.0_rp/vv
 do j = 1,n
-  imax = (j-1)+imaxloc(vv(j:n)*abs(a(j:n,j)))
+  imax = (j-1)+maxloc(vv(j:n)*abs(a(j:n,j)), 1)
   if (j /= imax) then
     call swap(a(imax,:),a(j,:))
     d = -d
@@ -1107,7 +1104,6 @@ end function super_qromb
 
 subroutine super_polint(xa, ya, x, y, dy)
 
-use nrutil, only : iminloc
 implicit none
 
 real(rp), intent(in) :: xa(:), ya(:)
@@ -1122,7 +1118,7 @@ n = assert_equal([size(xa), size(ya)], 'polint')
 c = ya
 d = ya
 ho = xa-x
-ns = iminloc(abs(x-xa))
+ns = minloc(abs(x-xa), 1)
 y = ya(ns)
 ns = ns-1
 
@@ -1165,14 +1161,12 @@ end subroutine super_polint
 
 subroutine super_trapzd(func, a, b, s, n)
 
-use nrutil, only : arth
-
 implicit none
 
 real(rp), intent(in) :: a, b
 real(rp), intent(inout) :: s
 integer, intent(in) :: n
-real(rp) :: del, fsum
+real(rp) :: del, fsum, start, vec(2**max(0,(n-2)))
 integer :: it
 
 interface
@@ -1190,7 +1184,11 @@ if (n == 1) then
 else
   it = 2**(n-2)
   del = (b-a)/it
-  fsum = sum(func(arth(a+0.5_rp*del, del, it)))
+  start = a - 0.5_rp*del
+  do it = 1, size(vec)
+    vec(it) = start + it * del
+  enddo
+  fsum = sum(func(vec))
   s = 0.5_rp*(s+del*fsum)
 end if
 
