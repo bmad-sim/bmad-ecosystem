@@ -79,7 +79,6 @@ contains
 subroutine qromb_rad_int (param, do_int, pt, info, int_tot, rad_int1)
 
 use precision_def
-use nrtype
 use super_recipes_mod, only: super_polint
 
 implicit none
