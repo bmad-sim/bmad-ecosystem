@@ -444,8 +444,6 @@ end subroutine lux_init_data
 
 subroutine lux_generate_photon (orb, lux_param, lux_com)
 
-use nr
-
 type (lat_struct), pointer :: lat
 type (coord_struct) charged_orb
 type (coord_struct) :: orb
