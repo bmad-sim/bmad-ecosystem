@@ -6,16 +6,7 @@ set (INC_DIRS
 )
 
 set (LINK_LIBS
-  bmad 
-  xrlf03
-  xrl
-  lapack95
-  lapack
-  blas
+  bmad
   sim_utils
-  recipes_f-90_LEPP 
-  forest 
-  fgsl
-  gsl
-  gslcblas
+  ${ACC_BMAD_LINK_LIBS}
 )
