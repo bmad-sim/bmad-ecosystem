@@ -99,7 +99,7 @@ do
   end select
 end do
 
-! Get restults.
+! Get results.
 ! Result_id is for tao_show_this to show exactly what it did.
 ! This info can be helpful in tao_hook_show_cmd.
 
@@ -274,7 +274,7 @@ integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_
 integer eval_pt, n_count
 integer, allocatable :: ix_c(:), ix_remove(:)
 
-complex(rp) eval(6), evec(6,6), n_eigen(6,3), qv(0:3), qv2(0:3), qn0(0:3), q0(0:3), ss1(0:3), ss2(0:3)
+complex(rp) eval(6), evec(6,6), n_eigen(6,3), qv(0:3), qv2(0:3)
 complex(rp) np(0:3), nm(0:3), t1(0:3), t2(0:3)
 real(rp) nn0(3)
 
@@ -3943,7 +3943,7 @@ case ('spin')
         return
       endif
     else
-      call tao_concat_spin_map (q_map, branch, 0, branch%n_ele_track)
+      call spin_concat_linear_maps (q_map, branch, 0, branch%n_ele_track)
       sm%q_map%q = q_map%q
       sm%q_map%mat = q_map%mat
     endif
@@ -3993,15 +3993,13 @@ case ('spin')
         q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
         dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
 
-        q0 = sm%q_map%q(:,0)
-        nn0 = sm%q_map%q(1:3,0)
-        nn0 = nn0 / norm2(nn0)
-        qn0 = [0.0_rp, nn0]
-
         do k = 0, 3
           qv(k)  = sum(evec(j,:) * sm%q_map%q(k,1:6))
           qv2(k) = sum(evec(j+1,:) * sm%q_map%q(k,1:6))
         enddo
+
+        nn0 = sm%q_map%q(1:3,0)
+        nn0 = nn0 / norm2(nn0)
 
         np(0) = 0.5_rp
         np(1:3) = i_imag * nn0 / 2
@@ -4015,10 +4013,20 @@ case ('spin')
         z2 = abs(sum(evec(j+1,:) * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag))) / twopi
 
         nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 8(4x, 2es13.5))') abc_name(i), q, dq, &
-                                           norm2(abs(t1)), norm2(abs(t2)), z1, z2
-                          
+                                                            norm2(abs(t1)), norm2(abs(t2)), z1, z2
+!        if (i == 1) then
+!          do k = 1, 6
+!            qv = sm%q_map%q(:,k)
+!            nl=nl+1; write (lines(nl), '(i1, 6(4x, 2es12.4))') k, 4  * quat_mul(np, qv, nm)
+!          enddo
+!           nl=nl+1; write (lines(nl), '(i1, 6(4x, 2es12.4))') 0, evec(j+1,:) * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)
+!          nl=nl+1; lines(nl) = ''
+!          do k = 1, 6
+!            qv = sm%q_map%q(:,k)
+!            nl=nl+1; write (lines(nl), '(i1, 6(4x, 2es12.4))') k, 4 * quat_mul(nm, qv, np)
+!          enddo
+!        endif
 
-        ! nl=nl+1; write (lines(nl), '(4(4x, 2es12.4))') t2 / twopi
       enddo
       nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
     endif
