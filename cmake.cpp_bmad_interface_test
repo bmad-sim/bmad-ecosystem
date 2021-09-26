@@ -5,11 +5,8 @@ file (GLOB SRC_FILES interface_test/*.f90 interface_test/*.cpp)
 set (LINK_LIBS
   cpp_bmad_interface
   bmad
-  xrlf03
-  xrl
   sim_utils
-  recipes_f-90_LEPP 
-  forest
+  ${ACC_BMAD_LINK_LIBS}
 )
 
 SET (SHARED_LINK_LIBS
