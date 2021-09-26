@@ -50,7 +50,7 @@ orbit => tao_branch%orbit
 if (.not. allocated(tao_branch%dn_dpz)) allocate (tao_branch%dn_dpz(0:branch%n_ele_track))
 tao_branch%spin_valid = .true.
 
-call tao_concat_spin_map (q_1turn, branch, 0, branch%n_ele_track, q_ele)
+call spin_concat_linear_maps (q_1turn, branch, 0, branch%n_ele_track, q_ele)
 
 ! Loop over all elements.
 

@@ -115,16 +115,6 @@ end subroutine
 subroutine tao_close_command_file()
 end subroutine
 
-subroutine tao_concat_spin_map (q_map, branch, n1, n2, q_ele)
-  use pointer_lattice, only: c_linear_map
-  import
-  implicit none
-  type (c_linear_map) q_map
-  type (c_linear_map), optional :: q_ele(:)
-  type (branch_struct), target :: branch
-  integer n1, n2
-end subroutine
-
 subroutine tao_control_tree_list (ele, tree)
   import
   implicit none
