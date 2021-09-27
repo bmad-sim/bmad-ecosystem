@@ -1951,13 +1951,14 @@ subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
   real(rp), optional :: mat6(:,:)
 end subroutine
 
-subroutine spin_concat_linear_maps (q_map, branch, n1, n2, q_ele)
+subroutine spin_concat_linear_maps (q_map, branch, n1, n2, q_ele, orbit)
   use pointer_lattice, only: c_linear_map
   import
   implicit none
   type (c_linear_map) q_map
   type (c_linear_map), optional :: q_ele(:)
   type (branch_struct), target :: branch
+  type (coord_struct), optional :: orbit(0:)
   integer n1, n2
 end subroutine
 
@@ -2070,6 +2071,11 @@ subroutine tilt_mat6 (mat6, tilt)
   implicit none
   real(rp) tilt, mat6(6,6)
 end subroutine
+
+function time_direction() result (time_sign)
+  implicit none
+  integer time_sign
+end function
 
 subroutine track_a_beambeam (orbit, ele, param, mat6, make_matrix)
   import

@@ -19,7 +19,7 @@
 
 subroutine track_a_drift (orb, length, mat6, make_matrix, include_ref_motion)
 
-use bmad_struct
+use bmad_routine_interface, dummy => track_a_drift
 
 implicit none
 
@@ -29,12 +29,13 @@ type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
 real(rp) matd(6,6), e_tot_ref, e_particle, rel_len
-real(rp) length, rel_pc, dz, px, py, ps, delta, pxy2, mc2
+real(rp) length, len_eff, rel_pc, dz, px, py, ps, delta, pxy2, mc2
 
 logical, optional :: make_matrix, include_ref_motion
 
 ! Everything but photons
 
+len_eff = time_direction() * length
 delta = orb%vec(6)
 rel_pc = 1 + delta
 px = orb%vec(2) / rel_pc
@@ -46,26 +47,26 @@ if (pxy2 >= 1) then
 endif
 ps = sqrt(1 - pxy2)
 
-orb%vec(1) = orb%vec(1) + length * px / ps
-orb%vec(3) = orb%vec(3) + length * py / ps
+orb%vec(1) = orb%vec(1) + len_eff * px / ps
+orb%vec(3) = orb%vec(3) + len_eff * py / ps
 
 if (orb%beta > 0) then
   if (logic_option(.true., include_ref_motion)) then
     mc2 = mass_of(orb%species)
-    ! dz = length * ([beta/beta_ref - 1] - [1/ps - 1])
-    dz = length * (sqrt_one((mc2**2 * (2*delta+delta**2))/((orb%p0c*rel_pc)**2 + mc2**2)) + sqrt_one(-pxy2)/ps)
-    orb%s = orb%s + orb%direction * length
+    ! dz = len_eff * ([beta/beta_ref - 1] - [1/ps - 1])
+    dz = len_eff * (sqrt_one((mc2**2 * (2*delta+delta**2))/((orb%p0c*rel_pc)**2 + mc2**2)) + sqrt_one(-pxy2)/ps)
+    orb%s = orb%s + orb%direction * len_eff
   else
-    dz = -length /ps
+    dz = -len_eff /ps
   endif
-  orb%t = orb%t + length / (orb%beta * ps * c_light)
+  orb%t = orb%t + len_eff / (orb%beta * ps * c_light)
 
 else
   if (logic_option(.true., include_ref_motion)) then
-    dz = length * (1 - 1/ps)
-    orb%s = orb%s + orb%direction * length
+    dz = len_eff * (1 - 1/ps)
+    orb%s = orb%s + orb%direction * len_eff
   else
-    dz = -length /ps
+    dz = -len_eff /ps
   endif
 endif
 
@@ -73,7 +74,7 @@ orb%vec(5) = orb%vec(5) + dz
 
 if (logic_option(.false., make_matrix)) then
   call mat_make_unit(matd)
-  rel_len = length / (rel_pc * ps)
+  rel_len = len_eff / (rel_pc * ps)
   matd(1,2) =  rel_len * (px**2 / ps**2 + 1)
   matd(3,4) =  rel_len * (py**2 / ps**2 + 1)
   matd(1,4) =  rel_len * px*py / ps**2
@@ -86,7 +87,7 @@ if (logic_option(.false., make_matrix)) then
     e_tot_ref = sqrt(orb%p0c**2 + mass_of(orb%species)**2)
     e_particle = orb%p0c * (1 + orb%vec(6)) / orb%beta
     matd(5,6) =  rel_len * (px**2 + py**2) / ps**2 + &
-                    length * mass_of(orb%species)**2 * e_tot_ref / e_particle**3
+                    len_eff * mass_of(orb%species)**2 * e_tot_ref / e_particle**3
   else
     matd(5,6) =  rel_len * (px**2 + py**2) / ps**2
   endif
