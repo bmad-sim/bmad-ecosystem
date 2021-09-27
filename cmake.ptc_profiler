@@ -1,0 +1,11 @@
+set (EXENAME ptc_profiler)
+
+set (SRC_FILES
+  ptc_profiler/ptc_profiler.f90
+)
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

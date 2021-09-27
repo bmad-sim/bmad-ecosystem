@@ -1,0 +1,7 @@
+&params
+  num_steps = 1, 2, 10, 20, 40, 100
+  integrator_order = 2, 4
+  lat_file = 'lat.bmad'
+  stop_time = 1.0
+  n_time_calc = 10000
+/
