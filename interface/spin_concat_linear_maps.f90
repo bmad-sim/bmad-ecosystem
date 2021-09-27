@@ -1,19 +1,26 @@
 !+
-! Subroutine spin_concat_linear_maps (q_map, branch, n1, n2, q_ele)
+! Subroutine spin_concat_linear_maps (q_map, branch, n1, n2, q_ele, orbit)
 !
 ! Routine to concatenate element spin/orbit maps in the range branch%ele(n1+1:n2)
+! This routine will wrap around the ends of the lattice so n2 may be less than n1.
+! In this case the range will be [n1+1:end] + [beginning:n2].
+!
+! If a Taylor map exists for an individual element, that map will be reused.
+! If not, a new map will be made for the element. If a map is made, orbit(:) will be 
+! used as the reference orbit. If it is not present, ele%map_ref_orb_in will be used.
 !
 ! Input:
 !   branch    -- branch_struct: Lattice branch.
 !   n1        -- integer: Starting element index. Start at element downstream end.
 !   n2        -- integer: Ending element index. End at element downstream end
+!   orbit(0:) -- coord_struct, optional: Reference orbit used if maps must be created.
 !
 ! Output:
 !   q_map     -- c_linear_map: Map with element spin/orbit maps concatenated.
 !   q_ele(:)  -- c_linear_map, optional: Individual spin/orbit maps.
 !-
 
-subroutine spin_concat_linear_maps (q_map, branch, n1, n2, q_ele)
+subroutine spin_concat_linear_maps (q_map, branch, n1, n2, q_ele, orbit)
 
 use ptc_interface_mod, dummy => spin_concat_linear_maps
 use pointer_lattice, only: c_linear_map, operator(*), assignment(=)
@@ -23,6 +30,7 @@ implicit none
 type (c_linear_map) q_map
 type (c_linear_map), optional :: q_ele(:)
 type (branch_struct), target :: branch
+type (coord_struct), optional :: orbit(0:)
 
 integer n1, n2
 
@@ -59,7 +67,11 @@ do ie = n1, n2
   if (.not. associated(ele%spin_taylor(0)%term)) then
     st_on = bmad_com%spin_tracking_on
     bmad_com%spin_tracking_on = .true.
-    call ele_to_taylor(ele, branch%param, ele%map_ref_orb_in)
+    if (present(orbit)) then
+      call ele_to_taylor(ele, branch%param, orbit(ie-1))
+    else
+      call ele_to_taylor(ele, branch%param, ele%map_ref_orb_in)
+    endif
     bmad_com%spin_tracking_on = st_on
   endif
 
