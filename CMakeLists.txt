@@ -22,6 +22,7 @@ set (EXE_SPECS
   cmake.f77_to_f90
   cmake.lattice_cleaner
   cmake.photonic_surface_plot
+  cmake.ptc_profiler
   cmake.sad_to_bmad_postprocess
   cmake.cartesian_map_fit
 )
