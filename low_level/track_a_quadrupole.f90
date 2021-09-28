@@ -26,7 +26,7 @@ type (lat_param_struct) :: param
 type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
-real(rp) kmat(6,6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3)
+real(rp) kmat(6,6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), length
 real(rp) k1, b1, rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass, e_tot
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
@@ -41,16 +41,17 @@ start_orb = orbit
 orientation = ele%orientation * start_orb%direction
 rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param)
 charge_dir = rel_tracking_charge * orientation
+length = time_direction() * ele%value(l$)
 
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$, b1)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 n_step = 1
-if (ix_mag_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+if (ix_mag_max > -1 .or. ix_elec_max > -1) n_step = max(nint(abs(length) / ele%value(ds_step$)), 1)
 
-r_step = 1.0_rp / n_step
+r_step = time_direction() / n_step
 step_len = ele%value(l$) * r_step
-if (ele%value(l$) == 0) n_step = 0
+if (length == 0) n_step = 0
 
 ! Entrance edge
 
@@ -75,7 +76,7 @@ do i = 1, n_step
   if (logic_option(.false., make_matrix)) call mat_make_unit (kmat)
 
   rel_p = 1 + orbit%vec(6)  ! Can change when there are electric fields
-  k1 = charge_dir * b1 / (ele%value(l$) * rel_p)
+  k1 = charge_dir * b1 / (length * rel_p)
 
   call quad_mat2_calc (-k1, step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
   call quad_mat2_calc ( k1, step_len, rel_p, kmat(3:4,3:4), dz_y, ddz_y)
@@ -134,7 +135,7 @@ endif
 
 call offset_particle (ele, param, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
-orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
+orbit%t = start_orb%t + time_direction() * (ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light))
 
 !
 

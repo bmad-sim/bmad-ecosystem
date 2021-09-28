@@ -26,8 +26,8 @@ type (lat_param_struct) :: param
 type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
-real(rp) sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0, sig_x, sig_y
-real(rp) beta, s_pos, s_pos_old, k0_x, k0_y, k_xx1, k_xy1, k_yx1, k_yy1, k_xx2, k_xy2, k_yx2, k_yy2, coef, del
+real(rp) sig_x, sig_y, x_center, y_center
+real(rp) s_pos, s_pos_old, k0_x, k0_y, k_xx1, k_xy1, k_yx1, k_yy1, k_xx2, k_xy2, k_yx2, k_yy2, coef, del
 real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const, z
 real(rp), allocatable :: z_slice(:)
 real(rp) om(3), quat(0:3)
@@ -45,30 +45,11 @@ if (ele%value(charge$) == 0 .or. param%n_part == 0) return
 if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
 
 del = 0.001
-sig_x0 = ele%value(sig_x$)
-sig_y0 = ele%value(sig_y$)
-if (sig_x0 == 0 .or. sig_y0 == 0) then
+if (ele%value(sig_x$) == 0 .or. ele%value(sig_x$) == 0) then
   call out_io (s_error$, r_name, 'STRONG BEAM SIGMAS NOT SET FOR BEAMBEAM ELEMENT: ' // ele%name, &
                                  'PARTICLE WILL BE MARKED AS LOST.')
   orbit%state = lost$
   return
-endif
-
-
-if (ele%value(beta_a_strong$) == 0) then
-  beta_a0 = ele%a%beta
-  alpha_a0 = ele%a%alpha
-else
-  beta_a0 = ele%value(beta_a_strong$)
-  alpha_a0 = ele%value(alpha_a_strong$)
-endif
-
-if (ele%value(beta_b_strong$) == 0) then
-  beta_b0 = ele%b%beta
-  alpha_b0 = ele%b%alpha
-else
-  beta_b0 = ele%value(beta_b_strong$)
-  alpha_b0 = ele%value(alpha_b_strong$)
 endif
 
 call offset_particle (ele, param, set$, orbit)
@@ -81,31 +62,19 @@ call bbi_slice_calc (ele, n_slice, z_slice)
 s_pos = 0    ! end at the ip
 
 do i = 1, n_slice
-  z = z_slice(i)
+  z = z_slice(i)   ! Positive z_slice is the tail of the strong beam.
   s_pos_old = s_pos
   s_pos = (orbit%vec(5) + z) / 2
   del_s = s_pos - s_pos_old
 
   call track_a_drift (orbit, del_s, mat6, make_matrix)
 
-  if (beta_a0 == 0) then
-    sig_x = sig_x0
-    sig_y = sig_y0
-  else
-    beta = beta_a0 - 2 * alpha_a0 * s_pos + (1 + alpha_a0**2) * s_pos**2 / beta_a0
-    sig_x = sig_x0 * sqrt(beta / beta_a0)
-    beta = beta_b0 - 2 * alpha_b0 * s_pos + (1 + alpha_b0**2) * s_pos**2 / beta_b0
-    sig_y = sig_y0 * sqrt(beta / beta_b0)
-  endif
+  call strong_beam_sigma_calc (ele, s_pos, -z, sig_x, sig_y, bbi_const, x_center, y_center)
 
   ratio = sig_y / sig_x
-  bbi_const = -param%n_part * ele%value(charge$) * classical_radius_factor /  &
-                                        (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
 
-  x_pos = (orbit%vec(1) + (ele%value(crab_x1$) * z + ele%value(crab_x2$) * z**2 + &
-                           ele%value(crab_x3$) * z**3) * cos(ele%value(crab_tilt$))) / sig_x
-  y_pos = (orbit%vec(3) + (ele%value(crab_x1$) * z + ele%value(crab_x2$) * z**2 + &
-                           ele%value(crab_x3$) * z**3) * sin(ele%value(crab_tilt$))) / sig_y
+  x_pos = (orbit%vec(1) - x_center) / sig_x
+  y_pos = (orbit%vec(3) - y_center) / sig_y
 
   call bbi_kick (x_pos, y_pos, ratio, k0_x, k0_y)
 

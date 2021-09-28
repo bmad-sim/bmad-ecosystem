@@ -20,7 +20,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 265
+integer, parameter :: bmad_inc_version$ = 266
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -63,7 +63,7 @@ end type
 integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2, runge_kutta$ = 3 
 integer, parameter :: linear$ = 4, tracking$ = 5, time_runge_kutta$ = 6
 integer, parameter :: fixed_step_runge_kutta$ = 9, symp_lie_bmad$ = 10, static$ = 11
-integer, parameter :: fixed_step_time_runge_kutta$ = 13, mad$ = 14
+integer, parameter :: sprint$ = 12, fixed_step_time_runge_kutta$ = 13, mad$ = 14
 integer, parameter :: n_methods$ = 14
 
 character(28), parameter :: tracking_method_name(0:n_methods$) = [character(28) :: &
@@ -76,7 +76,7 @@ character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'GARBAGE!        ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &
       'GARBAGE!        ', 'Tracking        ', 'GARBAGE!        ', 'Custom          ', &
       'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', &
-      'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ']
+      'Sprint          ', 'GARBAGE!        ', 'GARBAGE!        ']
 
 character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &
@@ -1243,7 +1243,7 @@ type ele_struct
   real(rp) :: mat6(6,6) = 0                                    ! 1st order transport matrix.
   real(rp) :: c_mat(2,2) = 0                                   ! 2x2 C coupling matrix
   real(rp) :: gamma_c = 1                                      ! gamma associated with C matrix
-  real(rp) :: spin_quaternion(0:3) = 0                         ! 0th order Spin transport quaternion.
+  real(rp) :: spin_quaternion(0:3,0:6) = 0                     ! 0th and 1st order Spin transport quaternion.
   real(rp) :: s_start = 0                                      ! longitudinal ref position at entrance_end
   real(rp) :: s = 0                                            ! longitudinal ref position at the exit end.
   real(rp) :: ref_time = 0                                     ! Time ref particle passes exit end.
