@@ -43,7 +43,7 @@ if (start_orb%species == photon$) return
 
 if ((ele%key == drift$ .or. ele%key == marker$) .and. ele%spin_tracking_method /= custom$) then
   end_orb%spin = start_orb%spin
-  if (logic_option(.false., make_quaternion)) ele%spin_quaternion = [1, 0, 0, 0]
+  if (logic_option(.false., make_quaternion)) ele%spin_quaternion(:,0) = [1, 0, 0, 0]
   return
 endif
 
@@ -74,6 +74,9 @@ case (custom$)
 case (symp_lie_ptc$)
   call track1_symp_lie_ptc (start_orb, ele, param, temp_orb)
   end_orb%spin = temp_orb%spin
+
+case (sprint$)
+  call track1_spin_sprint (start_orb, ele, param, end_orb)
 
 case (taylor$)
   call track1_spin_taylor (start_orb, ele, param, end_orb)

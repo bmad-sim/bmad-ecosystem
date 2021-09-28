@@ -1243,7 +1243,7 @@ type ele_struct
   real(rp) :: mat6(6,6) = 0                                    ! 1st order transport matrix.
   real(rp) :: c_mat(2,2) = 0                                   ! 2x2 C coupling matrix
   real(rp) :: gamma_c = 1                                      ! gamma associated with C matrix
-  real(rp) :: spin_quaternion(0:3,0:6) = 0                     ! 0th and 1st order Spin transport quaternion.
+  real(rp) :: spin_quaternion(0:3,0:6) = real_garbage$         ! 0th and 1st order Spin transport quaternion.
   real(rp) :: s_start = 0                                      ! longitudinal ref position at entrance_end
   real(rp) :: s = 0                                            ! longitudinal ref position at the exit end.
   real(rp) :: ref_time = 0                                     ! Time ref particle passes exit end.
