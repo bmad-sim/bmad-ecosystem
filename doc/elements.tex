@@ -338,7 +338,8 @@ The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes (\sref{s:offset})
 the strong beam. Note that in \mad the attributes used to offset the strong beam are called \vn{xma}
 and \vn{yma}. \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a crossing
 angle. \vn{x_pitch}, \vn{y_pitch} or some combination of the two should be set to the crossing angle
-of the strong beam with respect to the reference orbit of the weak beam. To curve the strong beam centroid to simulate crabbing, the following parameters can be used:
+of the strong beam with respect to the reference orbit of the weak beam. To curve the strong beam
+centroid to simulate crabbing, the following parameters can be used:
 \begin{example}
   crab_x1,    crab_x2
   crab_x3,    crab_tilt
@@ -346,10 +347,11 @@ of the strong beam with respect to the reference orbit of the weak beam. To curv
 If \vn{crab_tilt} is zero (the default), the strong beam centroid $(x_c, y_c)$ will have $y_c$ zero
 and
 \begin{equation}
-  x_c = \text{crab_x1} \cdot z + \text{crab_x2} \cdot z^2 + \text{crab_x3} \cdot z^3
+  x_c(z) = \text{crab_x1} \cdot z + \text{crab_x2} \cdot z^2 + \text{crab_x3} \cdot z^3
 \end{equation}
-With a finite \vn{crab_tilt}, the curvature is rotated around the $z$ axis as shown in
-figure~\ref{f:tilt}.
+where $z$ is the longitudinal position within the strong beam with positive $z$ being towards the
+head of the bunch. With a finite \vn{crab_tilt}, the curvature is rotated around the $z$ axis as
+shown in figure~\ref{f:tilt}.
 
 The \vn{bbi_constant} is a measure of the beam--beam interaction strength.  It is a dependent
 variable and is calculated from the equation

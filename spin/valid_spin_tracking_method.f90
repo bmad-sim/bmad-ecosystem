@@ -66,6 +66,12 @@ case (sad_mult$, patch$)
 case (group$, overlay$, girder$, ramper$, null_ele$)
   ! No valid methods
 
+case (sbend$, quadrupole$, solenoid$, sextupole$)
+  select case (spin_tracking_method)
+  case (custom$, symp_lie_ptc$, tracking$, sprint$)
+    is_valid = .true.
+  end select
+
 case default
   select case (spin_tracking_method)
   case (custom$, symp_lie_ptc$, tracking$)

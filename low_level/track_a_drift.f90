@@ -55,7 +55,7 @@ if (orb%beta > 0) then
     mc2 = mass_of(orb%species)
     ! dz = len_eff * ([beta/beta_ref - 1] - [1/ps - 1])
     dz = len_eff * (sqrt_one((mc2**2 * (2*delta+delta**2))/((orb%p0c*rel_pc)**2 + mc2**2)) + sqrt_one(-pxy2)/ps)
-    orb%s = orb%s + orb%direction * len_eff
+    orb%s = orb%s + orb%direction * length
   else
     dz = -len_eff /ps
   endif
@@ -64,7 +64,7 @@ if (orb%beta > 0) then
 else
   if (logic_option(.true., include_ref_motion)) then
     dz = len_eff * (1 - 1/ps)
-    orb%s = orb%s + orb%direction * len_eff
+    orb%s = orb%s + orb%direction * length
   else
     dz = -len_eff /ps
   endif

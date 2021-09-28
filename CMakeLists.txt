@@ -31,6 +31,7 @@ SET (SRC_DIRS
   low_level
   hdf5
   space_charge
+  spin
   )
 
 # For profiling... - Note: This is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
