@@ -9191,7 +9191,7 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     z_taylor_field, n1_taylor_field, c_loc(F%map_ref_orb_in), c_loc(F%map_ref_orb_out), &
     c_loc(F%time_ref_orb_in), c_loc(F%time_ref_orb_out), fvec2vec(F%value, num_ele_attrib$), &
     fvec2vec(F%old_value, num_ele_attrib$), fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), &
-    mat2vec(F%c_mat, 2*2), F%gamma_c, fvec2vec(F%spin_quaternion, 4), F%s_start, F%s, &
+    mat2vec(F%c_mat, 2*2), F%gamma_c, mat2vec(F%spin_quaternion, 4*7), F%s_start, F%s, &
     F%ref_time, fvec2vec(F%a_pole, n1_a_pole), n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), &
     n1_b_pole, fvec2vec(F%a_pole_elec, n1_a_pole_elec), n1_a_pole_elec, fvec2vec(F%b_pole_elec, &
     n1_b_pole_elec), n1_b_pole_elec, fvec2vec(F%custom, n1_custom), n1_custom, tensor2vec(F%r, &
@@ -9461,8 +9461,8 @@ call vec2mat(z_mat6, F%mat6)
 call vec2mat(z_c_mat, F%c_mat)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%gamma_c = z_gamma_c
-!! f_side.to_f2_trans[real, 1, NOT]
-F%spin_quaternion = z_spin_quaternion(1:4)
+!! f_side.to_f2_trans[real, 2, NOT]
+call vec2mat(z_spin_quaternion, F%spin_quaternion)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%s_start = z_s_start
 !! f_side.to_f2_trans[real, 0, NOT]

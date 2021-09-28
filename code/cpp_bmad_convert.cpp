@@ -3469,6 +3469,8 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
   Real z_mat6[6*6]; matrix_to_vec(C.mat6, z_mat6);
   // c_side.to_f_setup[real, 2, NOT]
   Real z_c_mat[2*2]; matrix_to_vec(C.c_mat, z_c_mat);
+  // c_side.to_f_setup[real, 2, NOT]
+  Real z_spin_quaternion[4*7]; matrix_to_vec(C.spin_quaternion, z_spin_quaternion);
   // c_side.to_f_setup[real, 1, PTR]
   int n1_a_pole = C.a_pole.size();
   c_RealArr z_a_pole = NULL;
@@ -3519,16 +3521,16 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
       z_cartesian_map, n1_cartesian_map, z_cylindrical_map, n1_cylindrical_map, z_grid_field,
       n1_grid_field, z_taylor_field, n1_taylor_field, C.map_ref_orb_in, C.map_ref_orb_out,
       C.time_ref_orb_in, C.time_ref_orb_out, &C.value[0], &C.old_value[0], &C.vec0[0], z_mat6,
-      z_c_mat, C.gamma_c, &C.spin_quaternion[0], C.s_start, C.s, C.ref_time, z_a_pole,
-      n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec,
-      n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, C.key, C.sub_key, C.ix_ele,
-      C.ix_branch, C.lord_status, C.n_slave, C.n_slave_field, C.ix1_slave, C.slave_status,
-      C.n_lord, C.n_lord_field, C.ic1_lord, C.ix_pointer, C.ixx, C.iyy, C.izz,
-      C.mat6_calc_method, C.tracking_method, C.spin_tracking_method, C.csr_method,
-      C.space_charge_method, C.ptc_integration_type, C.field_calc, C.aperture_at,
-      C.aperture_type, C.ref_species, C.orientation, C.symplectify, C.mode_flip,
-      C.multipoles_on, C.scale_multipoles, C.taylor_map_includes_offsets, C.field_master,
-      C.is_on, C.logic, C.bmad_logic, C.select, C.offset_moves_aperture);
+      z_c_mat, C.gamma_c, z_spin_quaternion, C.s_start, C.s, C.ref_time, z_a_pole, n1_a_pole,
+      z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec,
+      z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, C.key, C.sub_key, C.ix_ele, C.ix_branch,
+      C.lord_status, C.n_slave, C.n_slave_field, C.ix1_slave, C.slave_status, C.n_lord,
+      C.n_lord_field, C.ic1_lord, C.ix_pointer, C.ixx, C.iyy, C.izz, C.mat6_calc_method,
+      C.tracking_method, C.spin_tracking_method, C.csr_method, C.space_charge_method,
+      C.ptc_integration_type, C.field_calc, C.aperture_at, C.aperture_type, C.ref_species,
+      C.orientation, C.symplectify, C.mode_flip, C.multipoles_on, C.scale_multipoles,
+      C.taylor_map_includes_offsets, C.field_master, C.is_on, C.logic, C.bmad_logic, C.select,
+      C.offset_moves_aperture);
 
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_wall3d;
@@ -3712,7 +3714,7 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
   C.c_mat << z_c_mat;
   // c_side.to_c2_set[real, 0, NOT]
   C.gamma_c = z_gamma_c;
-  // c_side.to_c2_set[real, 1, NOT]
+  // c_side.to_c2_set[real, 2, NOT]
   C.spin_quaternion << z_spin_quaternion;
   // c_side.to_c2_set[real, 0, NOT]
   C.s_start = z_s_start;
