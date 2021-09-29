@@ -4,14 +4,14 @@
 ! Routine to return +1 if bmad_com%backwards_time_tracking_on = False and -1 otherwise.
 !
 ! Output:
-!   time_sign   -- integer: +1 or -1.
+!   time_sign   -- real(rp): +1 or -1.
 !-
 
 function time_direction() result (time_sign)
 
-use bmad_struct, only: bmad_com
+use bmad_struct
 implicit none
-integer time_sign
+real(rp) time_sign
 
 !
 

@@ -2080,8 +2080,9 @@ subroutine tilt_mat6 (mat6, tilt)
 end subroutine
 
 function time_direction() result (time_sign)
+  import
   implicit none
-  integer time_sign
+  real(rp) time_sign
 end function
 
 subroutine track_a_beambeam (orbit, ele, param, mat6, make_matrix)
