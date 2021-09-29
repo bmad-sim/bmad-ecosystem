@@ -17,9 +17,9 @@ real(rp) time_sign
 
 select case (bmad_com%backwards_time_tracking_on)
 case (.true.)
-  time_sign = -1
+  time_sign = -1.0_rp
 case default
-  time_sign = +1
+  time_sign = +1.0_rp
 end select
 
 end function time_direction
