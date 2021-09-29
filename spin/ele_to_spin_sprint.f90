@@ -15,7 +15,7 @@
 
 subroutine ele_to_spin_sprint (ele, orb0)
 
-use bmad
+use bmad, dummy => ele_to_spin_sprint
 
 implicit none
 
