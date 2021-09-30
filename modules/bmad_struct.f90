@@ -289,10 +289,13 @@ type spin_polar_struct
   real(rp) :: xi    = 0
 end type
 
-! Structure holding a single quaternion.
+! Structure holding a spin/orbital first order map
 
-type quaternion1_struct
-  real(rp) q(0:3)
+type spin_orbit_map1_struct
+  real(rp) :: mat6(6,6) = 0     ! Orbital matrix
+  real(rp) :: vec0(6)           ! Orbital 0th order map. 
+  real(rp) :: q0(0:3) = 0       ! Zeroth order quaternion spin map
+  real(rp) :: q1(0:3, 6) = 0  ! First order quaternion spin map
 end type
 
 !

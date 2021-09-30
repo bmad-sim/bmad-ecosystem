@@ -132,20 +132,20 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
   int_gy = 0
 
   if (field_ele%field_calc == planar_model$) then
-    g2 = abs(ele%value(k1y$))
+    g2 = abs(field_ele%value(k1y$))
     g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
     int_g2 = eff_len * g2
     int_g3 = eff_len * g3
 
   elseif (field_ele%field_calc == helical_model$) then
-    g2 = abs(ele%value(k1y$))
+    g2 = abs(field_ele%value(k1y$))
     g3 = sqrt(g2)**3
     int_g2 = eff_len * g2
     int_g3 = eff_len * g3
 
   else
-    int_g2 = eff_len * (ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4)))
-    int_g3 = eff_len * (ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4)))
+    int_g2 = eff_len * (field_ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-field_ele%rad_int_cache%orb0(1:4), field_ele%rad_int_cache%dg2_dorb(1:4)))
+    int_g3 = eff_len * (field_ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-field_ele%rad_int_cache%orb0(1:4), field_ele%rad_int_cache%dg3_dorb(1:4)))
     if (int_g3 < 0) int_g3 = 0
   endif
 

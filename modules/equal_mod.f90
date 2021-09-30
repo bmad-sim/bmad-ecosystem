@@ -22,7 +22,50 @@ interface operator (+)
   module procedure em_field_plus_em_field
 end interface
 
+interface operator (*)
+  module procedure map1_times_map1
+end interface
+
 contains
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Function map1_times_map1 (map2, map1) result (map_out)
+!
+! Routine to concatenate two spin orbital linear maps.
+!     map_out = map2(map1)
+! Order is like applying matrices. map1 is before map2.
+!
+! Input:
+!   map2      -- spin_orbit_map1_struct: Second map.
+!   map1      -- spin_orbit_map1_struct: First map.
+!
+! Output:
+!   map_out   -- spin_orbit_map1_struct: Concatenated map.
+!-
+
+function map1_times_map1 (map2, map1) result (map_out)
+
+type (spin_orbit_map1_struct), intent(in) :: map1, map2
+type (spin_orbit_map1_struct) map_out
+real(rp) m2q1(0:3,6)
+integer i
+
+!
+
+map_out%mat6 = matmul(map2%mat6, map1%mat6)
+map_out%vec0 = matmul(map2%mat6, map1%vec0) + map2%vec0
+
+map_out%q0 = quat_mul(map2%q0, map1%q0)
+
+m2q1 = matmul(map2%q1, map1%mat6)
+do i = 1, 6
+  map_out%q1(:,i) = quat_mul(map2%q0, map1%q1(:,i)) + quat_mul(m2q1(:,i), map1%q0)
+enddo
+
+end function map1_times_map1
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -30,7 +73,7 @@ contains
 !+
 ! Function em_field_plus_em_field (field1, field2) result (field_tot)
 !
-! Subroutine to add fields.
+! Routine to add fields.
 !
 ! Note: This subroutine is called by the overloaded plus sign:
 !		field_tot = field1 + field2 
