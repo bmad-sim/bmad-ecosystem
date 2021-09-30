@@ -47,7 +47,7 @@ character(300) :: cmd_word(12)
 character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(39) = [ &
+character(16) :: cmd_names(40) = [ &
     'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
     'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
     'run_optimizer', 'flatten      ', 'change       ', 'set          ', 'cut_ring     ', &
@@ -55,13 +55,13 @@ character(16) :: cmd_names(39) = [ &
     're_execute   ', 'reinitialize ', 'x_scale      ', 'x_axis       ', 'derivative   ', &
     'spawn        ', 'xy_scale     ', 'read         ', 'misalign     ', 'end_file     ', &
     'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
-    'python       ', 'json         ', 'quiet        ', 'ls           ']
+    'python       ', 'json         ', 'quiet        ', 'ls           ', 'taper        ']
 
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
 
-logical quit_tao, err, silent, gang, abort, err_flag, ok, include_wall, update, exact
+logical quit_tao, err, silent, gang, abort, err_flag, ok, include_wall, update, exact, include_this
 
 ! blank line => nothing to do
 
@@ -418,15 +418,16 @@ case ('restore', 'use', 'veto')
   call tao_cmd_split(cmd_line, 2, cmd_word, .true., err);  if (err) goto 9000
   
   call match_word (cmd_word(1), [character(8) :: "data", "variable"], which, .true., matched_name = switch)
-  
-  if (switch == 'data') then
+
+  select case (switch)
+  case ('data')
     call tao_use_data (cmd_name, cmd_word(2))
-  elseif (switch == 'variable') then
+  case ('variable')
     call tao_use_var (cmd_name, cmd_word(2))
-  else
+  case default
     call out_io (s_error$, r_name, "Use/veto/restore what? data or variable?")
     return
-  endif 
+  end select
 
 !--------------------------------
 ! REINITIALIZE
@@ -656,6 +657,38 @@ case ('spawn')
 
   call system_command (cmd_line, err)
   if (err) call tao_abort_command_file()
+  return
+
+!--------------------------------
+! taper
+
+case ('taper')
+
+  include_this = .false.  ! Include solenoids?
+  word = ''
+
+  call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+
+  i = 0
+  do
+    i = i + 1
+    if (cmd_word(i) == '') exit
+    call match_word (cmd_word(i), [character(20):: '-universe', '-inculde_solenoids'], ix, .true., matched_name=switch)
+
+    select case (switch)
+    case ('include_solenoids')
+      include_this = .true.
+    case ('-universe')
+      i = i + 1
+      word = cmd_word(i)
+    case default
+      call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // cmd_word(1))
+      return
+    end select
+  enddo
+
+  call tao_taper_cmd(include_this, word)
+  call tao_cmd_end_calc
   return
 
 !--------------------------------

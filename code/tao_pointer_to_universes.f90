@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_universe_locator (name_in, name_out, unis, err, explicit_uni, dflt_uni)
+! Subroutine tao_pointer_to_universes (name_in, unis, err, name_out, explicit_uni, dflt_uni)
 !
 ! Subroutine to pick what universe the data name is comming from.
 ! Examples:
@@ -16,24 +16,26 @@
 !   dflt_uni     -- integer, optional: Default universe to use. Set to -1 if explicit universe is required.
 !
 ! Output:
-!   name_out     -- character(*): name_in without any "n@" beginning.
 !   unis(:)      -- tao_universe_pointer_struct, allocatable: Array of pointers to picked universes.
 !                     The array will be resized if necessary.
 !   err          -- logical: Set True if an error is detected.
+!   name_out     -- character(*), optional: name_in without any "n@" beginning.
 !   explicit_uni -- logical, optional: Set True if name_in has explicit universe "n@" specification.
 !-
 
-subroutine tao_universe_locator (name_in, name_out, unis, err, explicit_uni, dflt_uni)
+subroutine tao_pointer_to_universes (name_in, unis, err, name_out, explicit_uni, dflt_uni)
 
-use tao_interface, except_dummy => tao_universe_locator
+use tao_interface, except_dummy => tao_pointer_to_universes
 
 implicit none
 
 type (tao_universe_pointer_struct), allocatable :: unis(:)
 
-character(*) name_in, name_out
+character(*) name_in
+character(*), optional :: name_out
 character(*), parameter :: r_name = 'tao_pick_universe'
 character(40) uni
+character(len(name_in)) this_name
 
 integer, optional :: dflt_uni
 integer i, ix, n, ios, iu, num, ic, iu_dflt
@@ -45,7 +47,7 @@ logical, optional :: explicit_uni
 ! Init
 
 err = .false.
-name_out = name_in
+this_name = name_in
 
 ! No "@" then simply choose s%global%default_universe.
 
@@ -70,7 +72,8 @@ endif
 ! Here when "@" is found...
 
 uni = name_in(:ix-1)
-name_out = name_out(ix+1:)
+this_name = this_name(ix+1:)
+if (present(name_out)) name_out = this_name
 
 ! Strip off '[' and ']'
 
@@ -130,4 +133,4 @@ endif
 
 end subroutine tao_allocate_uni_pointers
 
-end subroutine tao_universe_locator
+end subroutine tao_pointer_to_universes

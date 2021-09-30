@@ -25,7 +25,7 @@ use tao_struct
 !
 ! Note: With a string argument, this routine can only handle single universe picks. 
 ! That is, it cannot handlle something like "[1,3,4]@...". To handle multiple universe picks, use:
-!   tao_pick_universe
+!   tao_pointer_to_universes
 !
 ! Input:
 !   ix_uni          -- Integer: Index to the s%u(:) array
@@ -634,6 +634,17 @@ function tao_pointer_to_datum (d1, ele_name) result (datum_ptr)
   character(*) ele_name
 end function
 
+subroutine tao_pointer_to_universes (name_in, unis, err, name_out, explicit_uni, dflt_uni)
+  import
+  implicit none
+  type (tao_universe_pointer_struct), allocatable :: unis(:)
+  character(*) name_in
+  character(*), optional :: name_out
+  integer, optional :: dflt_uni
+  logical err
+  logical, optional :: explicit_uni
+end subroutine
+
 subroutine tao_parse_command_args (error, cmd_line)
   import
   implicit none
@@ -876,6 +887,13 @@ function tao_subin_uni_number (name_in, ix_uni, name_out) result (ok)
   logical ok
 end function
 
+subroutine tao_taper_cmd(include_solenoids, uni_names)
+  import
+  implicit none
+  logical include_solenoids
+  character(*) uni_names
+end subroutine
+
 subroutine tao_top_level (command, errcode)
   implicit none
   character(*), optional :: command
@@ -885,16 +903,6 @@ end subroutine
 subroutine tao_turn_on_special_calcs_if_needed_for_plotting ()
   import
   implicit none
-end subroutine
-
-subroutine tao_universe_locator (name_in, name_out, unis, err, explicit_uni, dflt_uni)
-  import
-  implicit none
-  type (tao_universe_pointer_struct), allocatable :: unis(:)
-  character(*) name_in, name_out
-  integer, optional :: dflt_uni
-  logical err
-  logical, optional :: explicit_uni
 end subroutine
 
 function tao_universe_number (i_uni, neg2_to_default) result (i_this_uni)
