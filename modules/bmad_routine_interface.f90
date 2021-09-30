@@ -2057,6 +2057,14 @@ subroutine strong_beam_sigma_calc (ele, s_pos, z_strong, sig_x, sig_y, bbi_const
   real(rp) s_pos, z_strong, bbi_const, x_center, y_center, sig_x, sig_y
 end subroutine
 
+subroutine taper_mag_strengths (lat, ref_lat, vary_solenoid)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (lat_struct), optional, target :: ref_lat
+  logical, optional :: vary_solenoid
+end subroutine
+
 subroutine tilt_coords (tilt_val, coord, mat6, make_matrix)
   import
   implicit none

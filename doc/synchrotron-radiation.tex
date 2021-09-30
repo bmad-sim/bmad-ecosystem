@@ -164,19 +164,25 @@ strengths rotate as $2\, \theta$.
 The above integrals are invariant under rotation of the $(x,y)$ coordinate system and reduce to the
 standard equations when $g_y = 0$ as they should.
 
-There are various parameters that can be expressed in terms of these integrals.  The $I_1$ integral
+There are various parameters that can be expressed in terms of these integrals. The $I_1$ integral
 can be related to the momentum compaction $\alpha_p$ via
   \begin{equation}
-    I_1 = \alpha_p \, L
+    I_1 = L \, \frac{dL/L}{dp/p} = L \, \alpha_p
   \end{equation}
-where $L$ is the storage ring circumference. The energy loss per turn is
+where $p$ is the momentum and $L$ is the ring circumference. The can be related to the time slip
+factor $eta_p$ by
+\begin{equation}
+  \eta_p = \frac{dt/t}{dp/p} = \alpha_p - \frac{1}{\gamma^2}
+\end{equation}
+
+The energy loss per turn is related to $I_2$ via
   \begin{equation}
     U_0 = \frac{2 \, r_e E_0^4}{3 \, (mc^2)^3} I_2
   \end{equation}
 where $E_0$ is the nominal energy and $r_e$ is the classical electron radius (electrons are assumed
 here but the formulas are easily generalized).
 
-The damping partition numbers are
+The damping partition numbers are related to the radiation integrals via
   \begin{equation}
     J_a = 1 - \frac{I_{4a}}{I_2} \comma \quad
     J_b = 1 - \frac{I_{4b}}{I_2} \comma \, \text{and} \quad \label{j1ii}

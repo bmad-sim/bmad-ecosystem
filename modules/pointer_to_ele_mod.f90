@@ -18,6 +18,7 @@ private pointer_to_ele1, pointer_to_ele2, pointer_to_ele3
 !     Function pointer_to_ele1 (lat, ix_nametable) result (ele_ptr)
 !     Function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
 !     Function pointer_to_ele3 (lat, ele_name) result (ele_ptr)
+!     Function pointer_to_ele4 (lat, foreign_ele) result (ele_ptr)
 !
 ! Ix_nametable is a mapping of ele locations to integers. The mapping is:
 !   ix_nametable = ele%ix_ele                             For elements in branch 0
@@ -25,6 +26,10 @@ private pointer_to_ele1, pointer_to_ele2, pointer_to_ele3
 !   etc., etc.
 !
 ! The reverse routine to pointer_to_ele1 (lat, ix_nametable) is ele_nametable_index.
+!
+! pointer_to_ele4(lat, foreign_ele) is useful when foreign_ele is associated with a separate
+! lattice that has an identical layout. pointer_to_ele4 will then return the corresponding
+! element in lat.
 ! 
 ! Note that using ele_name to locate an element is potentially dangerous if there
 ! are multiple elements that have the same name. Better in this case is to use:
@@ -41,6 +46,7 @@ private pointer_to_ele1, pointer_to_ele2, pointer_to_ele3
 !   ix_nametable  -- integer: Nametable index. See above
 !   ele_loc       -- lat_ele_loc_struct: Location identification.
 !   ele_name      -- character(*): Name or index of element.
+!   foreign_ele   -- ele_struct: Lattice element in another lattice.
 !
 ! Output:
 !   ele_ptr       -- ele_struct, pointer: Pointer to the element. 
@@ -50,6 +56,7 @@ interface pointer_to_ele
   module procedure pointer_to_ele1
   module procedure pointer_to_ele2
   module procedure pointer_to_ele3
+  module procedure pointer_to_ele4
 end interface
 
 contains
@@ -167,6 +174,29 @@ end function pointer_to_ele3
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function pointer_to_ele4 (lat, foreign_ele) result (ele_ptr)
+!
+! Function to return a pointer to an element in a lattice.
+! This routine is overloaded by pointer_to_ele.
+! See pointer_to_ele for more details.
+!-
+
+function pointer_to_ele4 (lat, foreign_ele) result (ele_ptr)
+
+type (lat_struct), target :: lat
+type (ele_struct) foreign_ele
+type (ele_struct), pointer :: ele_ptr
+
+!
+
+ele_ptr => lat%branch(foreign_ele%ix_branch)%ele(foreign_ele%ix_ele)
+
+end function pointer_to_ele4
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! function pointer_to_field_ele(ele, ix_field_ele, dz_offset) result (field_ele)
 !
 ! Routine to return a pointer to one of the "field elements" associated with a given element.
@@ -221,11 +251,18 @@ type (ele_struct), pointer :: this_ele, field_ele
 real(rp) offset
 integer ixf, ix_field_ele, i
 
+!
+
 select case (ele%key)
 case (overlay$, group$, girder$, null_ele$); return
 end select
 
-if (ele%field_calc == refer_to_lords$) then
+!
+
+if (ele%slave_status == slice_slave$) then
+    call iterate_over_field_eles (ele%lord, ixf, ix_field_ele, field_ele, offset)
+
+elseif (ele%field_calc == refer_to_lords$) then
   do i = 1, ele%n_lord
     this_ele => pointer_to_lord(ele, i)
 
