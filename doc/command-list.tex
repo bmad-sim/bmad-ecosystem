@@ -56,16 +56,16 @@ possible
 \centering {\tt
 \begin{tabular}{ll|ll} \toprule
   {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \midrule
-  alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\
-  call          & \sref{s:call}     & read          & \sref{s:read}     \\
-  change        & \sref{s:change}   & restore       & \sref{s:restore}  \\ 
-  clip          & \sref{s:clip}     & reinitialize  & \sref{s:reinit}   \\ 
-  continue      & \sref{s:continue} & run_optimizer & \sref{s:run}      \\ 
-  derivative    & \sref{s:deriv}    & scale         & \sref{s:scale}    \\ 
-  do, enddo     & \sref{s:do}       & set           & \sref{s:set}      \\  
-  end_file      & \sref{s:end.file} & show          & \sref{s:show}     \\ 
-  exit          & \sref{s:exit}     & single_mode   & \sref{s:sing}     \\ 
-  flatten       & \sref{s:flatten}  & spawn         & \sref{s:spawn}    \\ 
+  alias         & \sref{s:alias}    & read          & \sref{s:read}     \\
+  call          & \sref{s:call}     & restore       & \sref{s:restore}  \\ 
+  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ 
+  clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ 
+  continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ 
+  derivative    & \sref{s:deriv}    & set           & \sref{s:set}      \\  
+  do, enddo     & \sref{s:do}       & show          & \sref{s:show}     \\ 
+  end_file      & \sref{s:end.file} & single_mode   & \sref{s:sing}     \\ 
+  exit          & \sref{s:exit}     & spawn         & \sref{s:spawn}    \\ 
+  flatten       & \sref{s:flatten}  & taper         & \sref{s:taper}    \\
   help          & \sref{s:help}     & timer         & \sref{s:timer}    \\
   ls            & \sref{s:ls}       & use           & \sref{s:use}      \\ 
   misalign      & \sref{s:misalign} & veto          & \sref{s:veto}     \\ 
@@ -74,6 +74,7 @@ possible
   ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
   python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
   quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\
+  re_execute    & \sref{s:re.exe}   &               &                   \\
 \bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
@@ -3164,6 +3165,47 @@ Examples:
   spawn tcsh                    ! launch a new tcsh shell 
                                 ! (type 'exit' to return to TAO)
   spawn ls                      ! Get a directory listing.
+\end{example}
+
+%% taper --------------------------------------------------------------
+
+\section{taper}
+\index{commands!taper}
+\label{s:taper}
+
+The \vn{taper} command is used to vary magnet strengths to eliminate the transverse orbital and Twiss
+changes due to the radiation damping induced ``sawtooth'' effect. Format:
+\begin{example}
+  taper \{-universe <ix_uni>\} \{-include_solenoids\}
+\end{example}
+
+The sawtooth effect is the variation of the energy as a function of longitudinal position due to
+radiation damping. This affects the transverse closed orbit and Twiss parameters. The \vn{taper}
+command will adjust magnet strengths in the \vn{model} universe to counteract this making strengths
+weaker or stronger in proportion to the local closed orbit momentum deviation.
+
+Note: Another way of handling the sawtooth effect is to set \vn{bmad_com%radiation_zero_average} to
+True. See the \bmad manual for more details.
+
+The magnet strengths that are tapered are the ``multipole'' like parameters:
+\begin{example}
+  dg, k1, k2, k3, hkick, vkick, kick, a1, a2, ..., b1, b2, ...
+\end{example}
+Not included is \vn{ks} unless the \vn{-include_solenoids} switch is present. Notice that something
+like wiggler strengths are not included.
+
+The scaling of the magnet strengths is done with respect to the \vn{base} lattice (which is the same
+as the \vn{design} lattice if the \vn{set lattice base = ...} command has not been issued). That is,
+if two \vn{taper} commands are issued one after another, the second \vn{taper} command will not affect
+magnet strengths.
+
+The \vn{-universe <ix_uni>} switch can be used select the desired universe to taper. If not present,
+the default universe will be used. Set <ix_uni> to ``*'' to choose all universes
+
+Examples:
+\begin{example}
+  taper -uni *      ! Taper all universes
+  taper -inc        ! Taper default uni and include solenoid ks strength.
 \end{example}
 
 %% timer --------------------------------------------------------------
