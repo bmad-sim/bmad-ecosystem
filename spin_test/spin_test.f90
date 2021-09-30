@@ -1,6 +1,7 @@
 program spin_test
 
 use bmad
+use pointer_lattice, only: c_linear_map, operator(*), assignment(=)
 
 implicit none
 
@@ -8,9 +9,9 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (ele_struct) t_ele
 type (coord_struct) orb0, orb_start, orb_end, orb1, orb2
+type (c_linear_map) q1, q2, q3
 
 real(rp) spin_a(3), spin_b(3), spin0(3), dr(6), a_quat(0:3), n_vec(3)
-real(rp) mat6(6,6)
 
 integer nargs
 
@@ -35,26 +36,25 @@ elseif (nargs > 0)then
   print_extra = .true.             
 endif                              
 
+!
+
+open (1, file = 'output.now')
+
+!---------------------------------
+
+call bmad_parser ('small_line.bmad', lat)
+
+!call 
+
+!call spin_concat_linear_maps (q_map
+
+!---------------------------------
+
 call bmad_parser (lat_file, lat)
 
 open (1, file = lat_file)
 read (1, nml = param)
 close (1)
-
-!
-
-open (1, file = 'output.now')
-
-!
-
-!mat6(1,:) = [-1.795314806127,  11.169503607591,  -0.072040449858,  -0.309254514765,   0.139536527474,   2.500915635320]
-!mat6(2,:) = [-0.307551607326,   1.376714853191,  -0.004285833502,  -0.049235846905,   0.022015858160,   0.639803917413]
-!mat6(3,:) = [ 0.025950938219,  -0.270713920515,  -1.173200609674,  -2.134837975277,   0.003863406582,   0.161444030610]
-!mat6(4,:) = [ 0.009574724184,  -0.014681768689,   0.142691836094,  -0.590953501728,  -0.000296313025,  -0.049128246447]
-!mat6(5,:) = [ 0.176693701798,  -2.992991984786,   0.018015388299,  -0.118086642355,   0.570940266616, -14.232737739618]
-!mat6(6,:) = [ 0.019747369685,  -0.140791393136,  -0.000671030912,  -0.004067544028,   0.044879709376,   0.573027752937]
-
-! 
 
 call init_coord (orb0, lat%particle_start, lat%ele(0), downstream_end$)
 call ptc_transfer_map_with_spin (lat%branch(0), t_ele%taylor, t_ele%spin_taylor, orb0, err_flag, 0, 1)

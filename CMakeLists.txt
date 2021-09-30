@@ -5,6 +5,7 @@ set (EXE_SPECS
   cmake.abs_time_test
   cmake.aperture_test
   cmake.autoscale_test
+  cmake.backwards_time_track_test
   cmake.beam_test
   cmake.bbu_test
   cmake.closed_orbit_test
