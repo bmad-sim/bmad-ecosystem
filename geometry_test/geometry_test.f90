@@ -12,6 +12,7 @@ type (em_field_struct) f1, f2
 type (branch_struct), pointer :: branch
 
 real(rp) w_mat(3,3), s, w1_mat(3,3), w2_mat(3,3), w3_mat(3,3), dw(3,3), dw1(3,3), t(3,3)
+real(rp) floor_ps(6)
 
 integer i, status, nargs
 logical print_extra
@@ -33,6 +34,13 @@ endif
 call bmad_parser (lat_file, lat)
 
 open (1, file = 'output.now')
+
+!
+
+orbit%s = 2.001
+orbit%vec = [0.01_rp, 0.01_rp, 0.02_rp, 0.2_rp, 0.03_rp, 2.0_rp]
+floor_ps = orbit_to_floor_phase_space (orbit, lat%ele(2))
+write (1, '(a, 3f15.11, 4x, 3f15.11)') '"floor_phase_space1" ABS 1E-12', floor_ps(1:5:2), floor_ps(2:6:2)
 
 !
 
