@@ -176,6 +176,7 @@ do
   case ('-prompt_color', '-color_prompt')
     if (i_arg < n_arg) then
       call get_next_arg (arg0, s%init%prompt_color_arg, i_arg, n_arg)
+      call upcase_string(s%init%prompt_color_arg)
       if (s%init%prompt_color_arg(1:1) == '-') then
         i_arg = i_arg - 1
         s%init%prompt_color_arg = 'BLUE'
