@@ -2,10 +2,10 @@
 ! Function orbit_to_local_curvilinear (orbit, ele) result (local_position)
 !
 ! Routine to return the local curvilinear position and orientation of a particle.
-! The orbit is in local coords so misalignments do not affect the calculation.
+! The orbit is in laboratory coords so element misalignments do not affect the calculation.
 !
 ! Input:
-!   orbit         -- coord_struct: Particle orbit in local (not element) coordinates.
+!   orbit         -- coord_struct: Particle orbit in laboratory (not body) coordinates.
 !   ele           -- ele_struct: Lattice element particle is in.
 !
 ! Output:
@@ -27,6 +27,7 @@ real(rp) px, py, pz, r2
 !
 
 local_position%r = [orbit%vec(1), orbit%vec(3), orbit%s - ele%s_start]
+
 px = orbit%vec(2) / (1 + orbit%vec(6))
 py = orbit%vec(4) / (1 + orbit%vec(6))
 r2 = 1.0_rp - px**2 - py**2
