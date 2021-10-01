@@ -3374,24 +3374,35 @@ Format:
 \subsection{write beam}
 \label{s:write.beam}
 
-The \vn{write beam} command writes beam information to a file.
+The \vn{write beam} command writes beam particle information to a file.
 Syntax:
 \begin{example}
-    write beam \{-ascii\} -at <element_list> \{<file_name>\} 
+    write beam \{-ascii\} \{-floor_position\} -at <element_list> \{<file_name>\} 
 \end{example}
 
-The default file name is \vn{beam_\#.dat} if an ASCII file is to be created and \vn{beam_\#.hdf5} when
-an HDF5 binary file is to be created where \vn{\#} is replaced by the universe number.
-
-\vn{write beam} will create a file of the particle positions when beam tracking is being used. The
+The \vn{write beam} command creates a file of beam particle positions at a given lattice element(s). The
 \vn{-at} switch specifies at what elements the particle positions are written. Element list format
 (\sref{s:ele.list.format}), without any embedded blanks, is used for the \vn{<element_list>}
-argument to the \vn{-at} switch. The \vn{-ascii} switch is for writing ASCII text files instead of
-the default HDF5 files. See the \vn{Beam Initialization} chapter in the \bmad manual for a
-discussion of the syntax. The default is to write with a compressed binary format. Note: Beam files
-can be used to initialize \tao (\sref{s:command.line}). Example
+argument to the \vn{-at} switch. 
+
+The default, if \vn{-floor_position} is not present, is to write particle phase space positions.
+If \vn{-floor_position} is present. The particle position in global coordinate space is written.
+In this case, a ASCII file is always produced.
+
+Note: Non-floor position beam files can be used to initialize \tao (\sref{s:command.line}).
+
+If \vn{-floor_position} is not present, the default is to write a binary HDF5 file. See the \vn{Beam
+Initialization} chapter in the \bmad manual for a discussion of the syntax. This default can be overridden
+by using the \vn{-ascii} switch.
+
+If \vn{-floor_position} is present, the default file name is \vn{beam_floor_\#.dat} where \vn{\#} is
+replaced by the universe number. If \vn{-floor_position} is not present, the default ASCII file name
+is \vn{beam_\#.dat} and the default HDF5 binary file name is \vn{beam_\#.hdf5}.
+
+Examples:
 \begin{example}
-  write beam -at *   ! Output beam at every element.
+  write beam -at *        ! Output beam at every element.
+  write beam -floor end   ! Output beam floor coords at element named ``end''.
 \end{example}
 
 %% write blender --------------------------------------------------------------

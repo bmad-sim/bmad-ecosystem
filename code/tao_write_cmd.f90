@@ -58,7 +58,7 @@ integer i_chan, ix_beam, ix_word, ix_w2, file_format
 integer n_type, n_ref, n_start, n_ele, n_merit, n_meas, n_weight, n_good, n_bunch, n_eval, n_s
 integer i_min, i_max, n_len, len_d_type, ix_branch
 
-logical is_open, ok, err, good_opt_only, at_switch, new_file, append
+logical is_open, ok, err, good_opt_only, at_switch, new_file, append, write_floor
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
 logical write_high_lim, write_low_lim, tao_format, eq_d_type, delim_found
 
@@ -100,18 +100,20 @@ case ('beam')
   at_switch = .false.
   ix_word = 0
   file_name0 = ''
+  write_floor = .false.
 
   do 
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), [character(8):: '-ascii', '-at', '-hdf5'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(16):: '-ascii', '-at', '-hdf5', '-floor_position'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
-    case ('');       exit
-    case ('-ascii');  file_format = ascii$
-    case ('-hdf5'); file_format = hdf5$
+    case ('');                 exit
+    case ('-ascii');           file_format = ascii$
+    case ('-floor_position');  write_floor = .true.
+    case ('-hdf5');            file_format = hdf5$
     case ('-at')
       ix_word = ix_word + 1
       call tao_locate_elements (word(ix_word), s%global%default_universe, eles, err)
@@ -126,7 +128,9 @@ case ('beam')
     end select
   enddo
 
-  if (file_format == hdf5$) then
+  if (write_floor) then
+    file_name0 = 'beam_floor_#.dat'
+  elseif (file_format == hdf5$) then
     if (file_name0 == '') then
       file_name0 = 'beam_#.hdf5'
     else
@@ -159,7 +163,11 @@ case ('beam')
       beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
       if (.not. allocated(beam%bunch)) cycle
 
-      call write_beam_file (file_name, beam, new_file, file_format, u%model%lat)
+      if (write_floor) then
+        call write_beam_floor_positions(file_name, beam, ele, new_file)
+      else
+        call write_beam_file (file_name, beam, new_file, file_format, u%model%lat)
+      endif
       new_file = .false.
     enddo 
 
