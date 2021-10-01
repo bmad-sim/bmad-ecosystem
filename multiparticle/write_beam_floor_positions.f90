@@ -64,6 +64,4 @@ do ib = 1, size(beam%bunch)
   enddo
 enddo
 
-
-
 end subroutine
