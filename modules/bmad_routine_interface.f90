@@ -1345,6 +1345,14 @@ subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb)
   real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
 end subroutine
 
+function orbit_to_floor_phase_space (orbit, ele) result (floor_phase_space)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  real(rp) floor_phase_space(6)
+end function
+
 function orbit_to_local_curvilinear (orbit, ele) result (local_position)
   import
   implicit none
@@ -2835,6 +2843,15 @@ function w_mat_for_tilt (tilt, return_inverse) result (w_mat)
   real(rp) :: w_mat(3,3)
   logical, optional :: return_inverse
 end function w_mat_for_tilt
+
+subroutine write_beam_floor_positions (file_name, beam, ele, new_file)
+  import
+  implicit none
+  type (beam_struct), target :: beam
+  type (ele_struct) :: ele
+  character(*) file_name
+  logical, optional :: new_file
+end subroutine
 
 subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form, orbit0)
   import
