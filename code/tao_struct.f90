@@ -875,6 +875,7 @@ type tao_dn_dpz_struct
 end type
 
 type tao_spin_polarization_struct
+  real(rp) :: tune = real_garbage$
   real(rp) :: pol_limit_st = real_garbage$
   real(rp) :: pol_limit_dkm = real_garbage$    ! Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
   real(rp) :: pol_limit_dkm_partial(3) = real_garbage$  ! Limit using only single mode to calc dn_dpz

@@ -52,6 +52,8 @@ tao_branch%spin_valid = .true.
 
 call spin_concat_linear_maps (q_1turn, branch, 0, branch%n_ele_track, q_ele)
 
+tao_branch%spin%tune = atan2(norm2(real(q_1turn%q(1:3,0))), real(q_1turn%q(0,0)))
+
 ! Loop over all elements.
 
 integral_bn          = 0

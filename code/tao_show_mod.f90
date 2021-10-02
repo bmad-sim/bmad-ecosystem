@@ -1876,7 +1876,8 @@ case ('global')
     nl=nl+1; write(lines(nl), rmt) '  %sad_amp_max                     = ', bmad_com%sad_amp_max
 
     nl=nl+1; write(lines(nl), imt) '  %sad_n_div_max                   = ', bmad_com%sad_n_div_max
-    nl=nl+1; write(lines(nl), imt) '  %taylor_order                    = ', bmad_com%taylor_order
+    nl=nl+1; write(lines(nl), iimt)'  %taylor_order                    = ', bmad_com%taylor_order, ' ! Input order'
+    nl=nl+1; write(lines(nl), iimt)'   [Actual taylor_order in PTC:    = ', ptc_com%taylor_order_ptc, ']'
     nl=nl+1; write(lines(nl), imt) '  %default_integ_order             = ', bmad_com%default_integ_order
 
     nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
@@ -3282,6 +3283,8 @@ case ('normal_form')
   bmad_nf => tao_branch%bmad_normal_form
   ptc_nf  => tao_branch%ptc_normal_form
 
+  expo = [0, 0, 0, 0, 0, 0]   ! Use expo(6) = i to get the i^th Taylor coef in tune vs pz curve.
+  nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', real(ptc_nf%spin .sub. expo)
   nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N  momentum_compaction_ptc.N'
 
   do i = 0, ptc_com%taylor_order_ptc
@@ -3835,7 +3838,6 @@ case ('spin')
   nl=nl+1; lines(nl) = 'E_tot = ' // real_str(branch%ele(1)%value(e_tot$), 6)
 
   if (what_to_print == 'standard') then
-    if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, ix_branch)
     ele => branch%ele(0)
 
     nl=nl+1; write(lines(nl), lmt) 'bmad_com%spin_tracking_on                = ', bmad_com%spin_tracking_on
@@ -3845,11 +3847,9 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(a, 3f12.8)') 'Beginning spin:', orb%spin
     else
-      ptc_nf => u%model%tao_branch(ix_branch)%ptc_normal_form
-      expo = [0, 0, 0, 0, 0, 0]   ! Use expo(6) = i to get the i^th Taylor coef in tune vs pz curve.
-      nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', real(ptc_nf%spin .sub. expo)
       call tao_spin_polarization_calc (branch, tao_branch)
       nl=nl+1; lines(nl) = ''
+      nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', tao_branch%spin%tune / twopi
       if (tao_branch%spin_valid) then
         if (tao_branch%spin%pol_rate_bks == 0) then
           nl=nl+1; lines(nl) = 'No bends or other radiation producing lattice elements detected!'
