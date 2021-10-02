@@ -40,6 +40,25 @@ contains
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
+! Subroutine ptc_set_taylor_order_if_needed()
+!
+! Routine to see if the taylor_order for PTC needs to be set/changed.
+! For example, for a change in bmad_com%taylor_order.
+!-
+
+subroutine ptc_set_taylor_order_if_needed ()
+
+if ((bmad_com%taylor_order /= 0 .and. bmad_com%taylor_order /= ptc_com%taylor_order_ptc) .or. &
+                                                                    ptc_com%taylor_order_ptc == 0) then
+  call set_ptc (taylor_order = bmad_com%taylor_order)
+endif
+
+end subroutine ptc_set_taylor_order_if_needed
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
 ! Function taylor_plus_taylor (taylor1, taylor2) result (taylor3)
 !
 ! Routine to add two taylor maps.
@@ -64,11 +83,9 @@ type (real_8) y1(size(taylor1)), y2(size(taylor1)), y3(size(taylor1))
 
 integer i
 
-! set the taylor order in PTC if not already done so
+! 
 
-if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
-
-!
+call ptc_set_taylor_order_if_needed()
 
 call alloc(y1)
 call alloc(y2)
@@ -117,11 +134,9 @@ type (real_8) y1(size(taylor1)), y2(size(taylor1)), y3(size(taylor1))
 
 integer i
 
-! set the taylor order in PTC if not already done so
-
-if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
-
 !
+
+call ptc_set_taylor_order_if_needed()
 
 call alloc(y1)
 call alloc(y2)
@@ -1908,11 +1923,9 @@ real(dp), optional :: r2_ref(:)
 integer i
 logical, optional :: keep_y1_const_terms
 
-! set the taylor order in PTC if not already done so
-
-if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
-
 ! Allocate temp vars
+
+call ptc_set_taylor_order_if_needed()
 
 call alloc(id)
 call alloc(da1)
@@ -1985,13 +1998,11 @@ type (real_8) y(size(bmad_taylor))
 
 real(rp), intent(out) :: c0(:)
 
-! set the taylor order in PTC if not already done so
-
-if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
-
 ! Remove constant terms from the taylor map first. This is probably
 ! not needed but we do it to make sure everything is alright.
 ! Also remove terms that have higher order then bmad_com%taylor_order
+
+call ptc_set_taylor_order_if_needed()
 
 call remove_constant_taylor (bmad_taylor, taylor, c0, .true.)
 
@@ -2134,9 +2145,9 @@ logical, optional :: err
 
 character(16) :: r_name = 'taylor_inverse'
 
-! Set the taylor order in PTC if not already done so.
+!
 
-if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
+call ptc_set_taylor_order_if_needed()
 
 call alloc(da)
 call alloc(y)
@@ -2224,11 +2235,9 @@ type (taylor_struct) :: taylor1(:), taylor2(:)
 type (taylor_struct) :: taylor3(:)
 type (real_8) y1(size(taylor1)), y2(size(taylor2)), y3(size(taylor3))
 
-! Set the taylor order in PTC if not already done so
-
-if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
-
 ! Allocate temp vars
+
+call ptc_set_taylor_order_if_needed()
 
 call alloc (y1)
 call alloc (y2)
@@ -2307,7 +2316,7 @@ endif
 ! Here when we need to include the misalignment effects.
 ! First set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
+call ptc_set_taylor_order_if_needed()
 
 ! Create a PTC fibre that holds the misalignment info
 ! and create map corresponding to ele%taylor.
@@ -2617,7 +2626,7 @@ endif
 
 ! set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
+call ptc_set_taylor_order_if_needed()
 
 ! Init ptc map with bmad map
 
@@ -2728,7 +2737,7 @@ endif
 
 ! Init. Note that the fibre must be made before any map manipulation in case ele contains a taylor_field.
 
-if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
+call ptc_set_taylor_order_if_needed()
 
 use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_offsets)
 
@@ -3533,7 +3542,6 @@ else
   call misalign_ptc_fibre (ele, use_offsets, ptc_fibre, .false.)
 
 endif
-
 
 !----------------------------------------------
 
