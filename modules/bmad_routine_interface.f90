@@ -2009,6 +2009,13 @@ function spin_omega (field, orbit, sign_z_vel, phase_space_coords) result (omega
   real(rp) omega(3)
 end function
 
+function spin_taylor_to_linear (spin_taylor) result (spin_map1)
+  import
+  implicit none
+  type (taylor_struct), target :: spin_taylor(0:3)
+  real(rp) spin_map1(0:3,0:6)
+end function
+
 function spinor_to_polar (spinor) result (polar)
   import
   implicit none
