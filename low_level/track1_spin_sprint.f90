@@ -28,7 +28,7 @@ character(*), parameter :: r_name = 'track1_spin_sprint'
 
 !
 
-if (ele%spin_quaternion(0,0) == real_garbage$) then
+if (ele%spin_q(0,0) == real_garbage$) then
 endif
 
 end_orb%spin = 0
