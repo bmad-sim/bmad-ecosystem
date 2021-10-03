@@ -465,7 +465,7 @@ read (d_unit, err = 9100, end = 9100) &
 
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-        ele%a, ele%b, ele%z, ele%vec0, ele%mat6, ele%spin_quaternion, &
+        ele%a, ele%b, ele%z, ele%vec0, ele%mat6, ele%spin_q, &
         ele%c_mat, ele%gamma_c, ele%s_start, ele%s, ele%key, ele%floor, &
         ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
         ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, &

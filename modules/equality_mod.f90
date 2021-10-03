@@ -2573,7 +2573,7 @@ is_eq = is_eq .and. all(f1%c_mat == f2%c_mat)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%gamma_c == f2%gamma_c)
 !! f_side.equality_test[real, 2, NOT]
-is_eq = is_eq .and. all(f1%spin_quaternion == f2%spin_quaternion)
+is_eq = is_eq .and. all(f1%spin_q == f2%spin_q)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%s_start == f2%s_start)
 !! f_side.equality_test[real, 0, NOT]

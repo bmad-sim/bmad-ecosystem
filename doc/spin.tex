@@ -414,14 +414,16 @@ corresponding spin eigenvectors $\bfn_k$ are computed from the equation
   \bfq_s(\bfv_k) \,\, (\bfn_0 + \bfn_k) \,\, \BAR\bfq_s(\bfv_k) = \bfn_0 + \lambda_k \, \bfn_k
   \label{qnnq}
 \end{equation}
-Using \Eqs{qqqr} and \eq{qnqn}, and keeping only linear terms gives
+These eigenvectors are perpendicular to $\bfn_0$. This can be easily shown by noting that
+$\bfn(\bfr)$ in \Eq{nrn0} must have unit magnitude to linear order for any arbitrary choice of
+$A_k(\bfr)$. Using \Eqs{qqqr} and \eq{qnqn}, and keeping only linear terms gives
 \begin{equation}
   \lambda_k \, \bfn_k - \bfq_0 \, \bfn_k \, \BAR\bfq_0 = 
   (\arrowbfq \dotproduct \bfv_k) \, \bfn_0 \, \BAR\bfq_0 + 
   \bfq_0 \, \bfn_0 \, (\BAR\arrowbfq \dotproduct \bfv_k)
   \label{lnqnq}
 \end{equation}
-This equation is linear in the unknown $\bfn_k$ and so may be easily solved using standard linear
+This equation is linear in the unknown $\bfn_k$ and so may be solved using standard linear
 algebra techniques. One small problem with \Eq{lnqnq} is that it is degenerate along the $\bfn_0$
 axis in the limit when there is no RF voltage since the eigen mode associated with the longitudinal
 motion will have an eigenvalue of one. In this case, round-off errors can cause large
@@ -430,11 +432,17 @@ by first constructing vectors $\bfc_1$ and $\bfc_2$ which are orthogonal to $\bf
 to each other. \Eq{lnqnq} is projected onto the $(\bfc_1, \bfc_2)$ plane to give
 \begin{align}
   \big( \lambda_k \, \bfn_k - \bfq_0 \, \bfn_k \, \BAR\bfq_0 \big) \cdot \bfc_m = 
-  (\arrowbfq \dotproduct \bfv_k) \, \bfn_0 \, \BAR\bfq_0 + 
-  \bfq_0 \, \bfn_0 \, (\BAR\arrowbfq \dotproduct \bfv_k)
-  \label{lnqnq}
+  \big( (\arrowbfq \dotproduct \bfv_k) \, \bfn_0 \, \BAR\bfq_0 + 
+  \bfq_0 \, \bfn_0 \, (\BAR\arrowbfq \dotproduct \bfv_k) \big) \cdot \bfc_m,
+  \quad m = 1, 2
+  \label{lnqnq2}
 \end{align}
-and can be solved for $\bfn_k$.
+Now using the fact that $\bfn_k$ is perpendicular to $\bfn_0$ means that $\bfn_k$ can be written as
+a linear combination of $\bfc_1$ and $\bfc_2$
+\begin{equation}
+  \bfn_k = a_1 \, \bfc_1 + a_2 \, \bfc_2
+\end{equation}
+Using this in \Eq{lnqnq2} gives linear coupled equations in the unknowns $(a_1, a_2)$ which is easily solved.
 
 Since the eigenvectors $\bfv_k$ span phase space, for any given phase space position $\bfr$, there
 exist a set of coefficients $A_k(\bfr)$, $k = 1, \ldots, 6$, such that

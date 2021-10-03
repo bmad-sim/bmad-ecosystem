@@ -17,7 +17,7 @@
 !
 ! Output:
 !   ele              -- ele_struct: Element to track through
-!      %spin_quaternion   -- 1st order spin map made if make_quaternion = True.
+!      %spin_q            -- 1st order spin map made if make_quaternion = True.
 !   end_orb          -- Coord_struct: Ending coords.
 !      %spin(2)           -- complex(rp): Ending spin
 !-
@@ -43,7 +43,7 @@ if (start_orb%species == photon$) return
 
 if ((ele%key == drift$ .or. ele%key == marker$) .and. ele%spin_tracking_method /= custom$) then
   end_orb%spin = start_orb%spin
-  if (logic_option(.false., make_quaternion)) ele%spin_quaternion(:,0) = [1, 0, 0, 0]
+  if (logic_option(.false., make_quaternion)) ele%spin_q(:,0) = [1, 0, 0, 0]
   return
 endif
 

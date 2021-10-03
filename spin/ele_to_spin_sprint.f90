@@ -10,7 +10,7 @@
 ! Output:
 !   ele       -- ele_struct: Element with map.
 !     %spin_taylor(:)   -- Taylor map.
-!     %spin_quaternion  -- Map to 1st order.
+!     %spin_q           -- Map to 1st order.
 !-
 
 subroutine ele_to_spin_sprint (ele, orb0)

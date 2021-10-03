@@ -706,7 +706,7 @@ if (non_offset_changed .or. (offset_changed .and. ele%taylor_map_includes_offset
   if (associated(ele%taylor(1)%term)) then
     call kill_taylor(ele%taylor)
     call kill_taylor(ele%spin_taylor)
-    ele%spin_quaternion(0,0) = real_garbage$
+    ele%spin_q(0,0) = real_garbage$
   endif
 endif
 
