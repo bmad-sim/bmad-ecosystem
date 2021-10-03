@@ -8251,10 +8251,10 @@ enddo; enddo
 !! f_side.test_pat[real, 0, NOT]
 rhs = 49 + offset; F%gamma_c = rhs
 !! f_side.test_pat[real, 2, NOT]
-do jd1 = 1, size(F%spin_quaternion,1); lb1 = lbound(F%spin_quaternion,1) - 1
-do jd2 = 1, size(F%spin_quaternion,2); lb2 = lbound(F%spin_quaternion,2) - 1
+do jd1 = 1, size(F%spin_q,1); lb1 = lbound(F%spin_q,1) - 1
+do jd2 = 1, size(F%spin_q,2); lb2 = lbound(F%spin_q,2) - 1
   rhs = 100 + jd1 + 10*jd2 + 50 + offset
-  F%spin_quaternion(jd1+lb1,jd2+lb2) = rhs
+  F%spin_q(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[real, 0, NOT]
 rhs = 51 + offset; F%s_start = rhs

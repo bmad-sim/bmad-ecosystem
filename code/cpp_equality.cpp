@@ -1424,7 +1424,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && is_all_equal(x.mat6, y.mat6);
   is_eq = is_eq && is_all_equal(x.c_mat, y.c_mat);
   is_eq = is_eq && (x.gamma_c == y.gamma_c);
-  is_eq = is_eq && is_all_equal(x.spin_quaternion, y.spin_quaternion);
+  is_eq = is_eq && is_all_equal(x.spin_q, y.spin_q);
   is_eq = is_eq && (x.s_start == y.s_start);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.ref_time == y.ref_time);

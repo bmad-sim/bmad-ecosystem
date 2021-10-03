@@ -3470,7 +3470,7 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_c_mat[2*2]; matrix_to_vec(C.c_mat, z_c_mat);
   // c_side.to_f_setup[real, 2, NOT]
-  Real z_spin_quaternion[4*7]; matrix_to_vec(C.spin_quaternion, z_spin_quaternion);
+  Real z_spin_q[4*7]; matrix_to_vec(C.spin_q, z_spin_q);
   // c_side.to_f_setup[real, 1, PTR]
   int n1_a_pole = C.a_pole.size();
   c_RealArr z_a_pole = NULL;
@@ -3521,14 +3521,14 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
       z_cartesian_map, n1_cartesian_map, z_cylindrical_map, n1_cylindrical_map, z_grid_field,
       n1_grid_field, z_taylor_field, n1_taylor_field, C.map_ref_orb_in, C.map_ref_orb_out,
       C.time_ref_orb_in, C.time_ref_orb_out, &C.value[0], &C.old_value[0], &C.vec0[0], z_mat6,
-      z_c_mat, C.gamma_c, z_spin_quaternion, C.s_start, C.s, C.ref_time, z_a_pole, n1_a_pole,
-      z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec,
-      z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, C.key, C.sub_key, C.ix_ele, C.ix_branch,
-      C.lord_status, C.n_slave, C.n_slave_field, C.ix1_slave, C.slave_status, C.n_lord,
-      C.n_lord_field, C.ic1_lord, C.ix_pointer, C.ixx, C.iyy, C.izz, C.mat6_calc_method,
-      C.tracking_method, C.spin_tracking_method, C.csr_method, C.space_charge_method,
-      C.ptc_integration_type, C.field_calc, C.aperture_at, C.aperture_type, C.ref_species,
-      C.orientation, C.symplectify, C.mode_flip, C.multipoles_on, C.scale_multipoles,
+      z_c_mat, C.gamma_c, z_spin_q, C.s_start, C.s, C.ref_time, z_a_pole, n1_a_pole, z_b_pole,
+      n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_custom,
+      n1_custom, z_r, n1_r, n2_r, n3_r, C.key, C.sub_key, C.ix_ele, C.ix_branch, C.lord_status,
+      C.n_slave, C.n_slave_field, C.ix1_slave, C.slave_status, C.n_lord, C.n_lord_field,
+      C.ic1_lord, C.ix_pointer, C.ixx, C.iyy, C.izz, C.mat6_calc_method, C.tracking_method,
+      C.spin_tracking_method, C.csr_method, C.space_charge_method, C.ptc_integration_type,
+      C.field_calc, C.aperture_at, C.aperture_type, C.ref_species, C.orientation,
+      C.symplectify, C.mode_flip, C.multipoles_on, C.scale_multipoles,
       C.taylor_map_includes_offsets, C.field_master, C.is_on, C.logic, C.bmad_logic, C.select,
       C.offset_moves_aperture);
 
@@ -3565,7 +3565,7 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     z_map_ref_orb_in, const Opaque_coord_class* z_map_ref_orb_out, const Opaque_coord_class*
     z_time_ref_orb_in, const Opaque_coord_class* z_time_ref_orb_out, c_RealArr z_value,
     c_RealArr z_old_value, c_RealArr z_vec0, c_RealArr z_mat6, c_RealArr z_c_mat, c_Real&
-    z_gamma_c, c_RealArr z_spin_quaternion, c_Real& z_s_start, c_Real& z_s, c_Real& z_ref_time,
+    z_gamma_c, c_RealArr z_spin_q, c_Real& z_s_start, c_Real& z_s, c_Real& z_ref_time,
     c_RealArr z_a_pole, Int n1_a_pole, c_RealArr z_b_pole, Int n1_b_pole, c_RealArr
     z_a_pole_elec, Int n1_a_pole_elec, c_RealArr z_b_pole_elec, Int n1_b_pole_elec, c_RealArr
     z_custom, Int n1_custom, c_RealArr z_r, Int n1_r, Int n2_r, Int n3_r, c_Int& z_key, c_Int&
@@ -3715,7 +3715,7 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
   // c_side.to_c2_set[real, 0, NOT]
   C.gamma_c = z_gamma_c;
   // c_side.to_c2_set[real, 2, NOT]
-  C.spin_quaternion << z_spin_quaternion;
+  C.spin_q << z_spin_q;
   // c_side.to_c2_set[real, 0, NOT]
   C.s_start = z_s_start;
   // c_side.to_c2_set[real, 0, NOT]

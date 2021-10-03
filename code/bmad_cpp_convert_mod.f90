@@ -8993,11 +8993,11 @@ interface
       n_wake, z_wall3d, n1_wall3d, z_cartesian_map, n1_cartesian_map, z_cylindrical_map, &
       n1_cylindrical_map, z_grid_field, n1_grid_field, z_taylor_field, n1_taylor_field, &
       z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_value, &
-      z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_spin_quaternion, z_s_start, z_s, &
-      z_ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, &
-      z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, z_key, &
-      z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field, z_ix1_slave, &
-      z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, z_izz, &
+      z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_spin_q, z_s_start, z_s, z_ref_time, &
+      z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, &
+      n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, z_key, z_sub_key, z_ix_ele, &
+      z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field, z_ix1_slave, z_slave_status, &
+      z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, z_izz, &
       z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, &
       z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
       z_aperture_type, z_ref_species, z_orientation, z_symplectify, z_mode_flip, &
@@ -9014,7 +9014,7 @@ interface
     type(c_ptr), value :: z_control, z_floor, z_high_energy_space_charge, z_mode3, z_photon, z_rad_int_cache, z_wake
     type(c_ptr), value :: z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out
     type(c_ptr) :: z_taylor(*), z_spin_taylor(*), z_wall3d(*), z_cartesian_map(*), z_cylindrical_map(*), z_grid_field(*), z_taylor_field(*)
-    real(c_double) :: z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c, z_spin_quaternion(*)
+    real(c_double) :: z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c, z_spin_q(*)
     real(c_double) :: z_s_start, z_s, z_ref_time, z_a_pole(*), z_b_pole(*), z_a_pole_elec(*), z_b_pole_elec(*)
     real(c_double) :: z_custom(*), z_r(*)
     integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field
@@ -9191,9 +9191,9 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     z_taylor_field, n1_taylor_field, c_loc(F%map_ref_orb_in), c_loc(F%map_ref_orb_out), &
     c_loc(F%time_ref_orb_in), c_loc(F%time_ref_orb_out), fvec2vec(F%value, num_ele_attrib$), &
     fvec2vec(F%old_value, num_ele_attrib$), fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), &
-    mat2vec(F%c_mat, 2*2), F%gamma_c, mat2vec(F%spin_quaternion, 4*7), F%s_start, F%s, &
-    F%ref_time, fvec2vec(F%a_pole, n1_a_pole), n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), &
-    n1_b_pole, fvec2vec(F%a_pole_elec, n1_a_pole_elec), n1_a_pole_elec, fvec2vec(F%b_pole_elec, &
+    mat2vec(F%c_mat, 2*2), F%gamma_c, mat2vec(F%spin_q, 4*7), F%s_start, F%s, F%ref_time, &
+    fvec2vec(F%a_pole, n1_a_pole), n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), n1_b_pole, &
+    fvec2vec(F%a_pole_elec, n1_a_pole_elec), n1_a_pole_elec, fvec2vec(F%b_pole_elec, &
     n1_b_pole_elec), n1_b_pole_elec, fvec2vec(F%custom, n1_custom), n1_custom, tensor2vec(F%r, &
     n1_r*n2_r*n3_r), n1_r, n2_r, n3_r, F%key, F%sub_key, F%ix_ele, F%ix_branch, F%lord_status, &
     F%n_slave, F%n_slave_field, F%ix1_slave, F%slave_status, F%n_lord, F%n_lord_field, &
@@ -9230,11 +9230,11 @@ subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, 
     n_wake, z_wall3d, n1_wall3d, z_cartesian_map, n1_cartesian_map, z_cylindrical_map, &
     n1_cylindrical_map, z_grid_field, n1_grid_field, z_taylor_field, n1_taylor_field, &
     z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_value, &
-    z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_spin_quaternion, z_s_start, z_s, &
-    z_ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, &
-    z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, z_key, &
-    z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field, z_ix1_slave, &
-    z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, z_izz, &
+    z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_spin_q, z_s_start, z_s, z_ref_time, &
+    z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, &
+    n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, z_key, z_sub_key, z_ix_ele, &
+    z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field, z_ix1_slave, z_slave_status, &
+    z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, z_izz, &
     z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, &
     z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
     z_aperture_type, z_ref_species, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
@@ -9265,7 +9265,7 @@ type(photon_element_struct), pointer :: f_photon
 type(rad_int_ele_cache_struct), pointer :: f_rad_int_cache
 type(c_ptr) :: z_taylor(*), z_spin_taylor(*), z_wall3d(*), z_cartesian_map(*), z_cylindrical_map(*), z_grid_field(*), z_taylor_field(*)
 type(wake_struct), pointer :: f_wake
-real(c_double) :: z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c, z_spin_quaternion(*)
+real(c_double) :: z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c, z_spin_q(*)
 real(c_double) :: z_s_start, z_s, z_ref_time
 real(c_double), pointer :: f_a_pole(:), f_b_pole(:), f_a_pole_elec(:), f_b_pole_elec(:), f_custom(:), f_r(:)
 integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field
@@ -9462,7 +9462,7 @@ call vec2mat(z_c_mat, F%c_mat)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%gamma_c = z_gamma_c
 !! f_side.to_f2_trans[real, 2, NOT]
-call vec2mat(z_spin_quaternion, F%spin_quaternion)
+call vec2mat(z_spin_q, F%spin_q)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%s_start = z_s_start
 !! f_side.to_f2_trans[real, 0, NOT]

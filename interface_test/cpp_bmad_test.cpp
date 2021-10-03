@@ -5662,8 +5662,8 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   rhs = 49 + offset; C.gamma_c = rhs;
 
   // c_side.test_pat[real, 2, NOT]
-  for (unsigned int i = 0; i < C.spin_quaternion.size(); i++)  for (unsigned int j = 0; j < C.spin_quaternion[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 50 + offset; C.spin_quaternion[i][j] = rhs;}
+  for (unsigned int i = 0; i < C.spin_q.size(); i++)  for (unsigned int j = 0; j < C.spin_q[0].size(); j++) 
+    {int rhs = 101 + i + 10*(j+1) + 50 + offset; C.spin_q[i][j] = rhs;}
   // c_side.test_pat[real, 0, NOT]
   rhs = 51 + offset; C.s_start = rhs;
 

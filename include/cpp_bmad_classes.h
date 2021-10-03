@@ -3227,7 +3227,7 @@ public:
   Real_MATRIX mat6;
   Real_MATRIX c_mat;
   Real gamma_c;
-  Real_MATRIX spin_quaternion;
+  Real_MATRIX spin_q;
   Real s_start;
   Real s;
   Real ref_time;
@@ -3335,7 +3335,7 @@ public:
     mat6(Real_ARRAY(0.0, 6), 6),
     c_mat(Real_ARRAY(0.0, 2), 2),
     gamma_c(1),
-    spin_quaternion(Real_ARRAY(Bmad::REAL_GARBAGE, 7), 4),
+    spin_q(Real_ARRAY(Bmad::REAL_GARBAGE, 7), 4),
     s_start(0.0),
     s(0.0),
     ref_time(0.0),
