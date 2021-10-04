@@ -646,6 +646,11 @@ case ('show')
 
 case ('single_mode')
 
+  if (cmd_line /= '') then
+    call out_io (s_error$, r_name, 'Extra stuff on line: ' // cmd_line)
+    return
+  endif
+
   s%com%single_mode = .true.
   call out_io (s_blank$, r_name, 'Entering Single Mode...')
   return
