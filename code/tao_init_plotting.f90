@@ -2831,7 +2831,7 @@ if (all(s%plot_page%template%name /= 'w_function')) then
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%title         = 'W-function x, y, z'
+  grph%title         = 'W-function'
   grph%y%label       = 'W\da\u, W\db\u'
 
   crv => grph%curve(1)
