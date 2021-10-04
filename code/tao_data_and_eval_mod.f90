@@ -1157,7 +1157,7 @@ case ('chrom.')
   case ('chrom.w.a', 'chrom.w.b')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        if (data_type == 'chrom.wa') then
+        if (data_type == 'chrom.w.a') then
           z2 => tao_branch%high_E_lat%ele(i)%a
           z1 => tao_branch%low_E_lat%ele(i)%a
           z0 => branch%ele(i)%a
