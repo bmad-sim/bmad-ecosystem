@@ -1063,7 +1063,7 @@ case ('chrom.')
   
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
-  if (.not. associated(tao_branch%low_E_lat%ele)) then
+  if (.not. allocated(tao_lat%low_E_lat%branch)) then
     if (branch%param%geometry == open$) then
       why_invalid = 'Cannot calc ' // trim(data_type) // ' with an open geometry.'
     elseif (branch%param%unstable_factor == 0) then
@@ -1093,7 +1093,7 @@ case ('chrom.')
   case ('chrom.dbeta.a')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_branch%high_E_lat%ele(i)%a%beta - tao_branch%low_E_lat%ele(i)%a%beta) / (tao_lat%lat%ele(i)%a%beta * dE)
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%a%beta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%a%beta) / (tao_lat%lat%ele(i)%a%beta * dE)
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1101,7 +1101,7 @@ case ('chrom.')
   case ('chrom.dbeta.b')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_branch%high_E_lat%ele(i)%b%beta - tao_branch%low_E_lat%ele(i)%b%beta) / (tao_lat%lat%ele(i)%b%beta * dE)
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%b%beta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b%beta) / (tao_lat%lat%ele(i)%b%beta * dE)
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1109,7 +1109,7 @@ case ('chrom.')
   case ('chrom.dphi.a')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_branch%high_E_lat%ele(i)%a%phi - tao_branch%low_E_lat%ele(i)%a%phi)/ dE
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%a%phi - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%a%phi)/ dE
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1117,7 +1117,7 @@ case ('chrom.')
   case ('chrom.dphi.b')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_branch%high_E_lat%ele(i)%b%phi - tao_branch%low_E_lat%ele(i)%b%phi)/ dE
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%b%phi - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b%phi)/ dE
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1125,7 +1125,7 @@ case ('chrom.')
   case ('chrom.deta.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_branch%high_E_lat%ele(i)%x%eta - tao_branch%low_E_lat%ele(i)%x%eta)/ dE
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%x%eta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%x%eta)/ dE
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1133,7 +1133,7 @@ case ('chrom.')
   case ('chrom.deta.y')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_branch%high_E_lat%ele(i)%y%eta - tao_branch%low_E_lat%ele(i)%y%eta)/ dE
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%y%eta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%y%eta)/ dE
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1141,7 +1141,7 @@ case ('chrom.')
   case ('chrom.detap.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_branch%high_E_lat%ele(i)%x%etap - tao_branch%low_E_lat%ele(i)%x%etap)/ dE
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%x%etap - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%x%etap)/ dE
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1149,7 +1149,7 @@ case ('chrom.')
   case ('chrom.detap.y')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_branch%high_E_lat%ele(i)%y%etap - tao_branch%low_E_lat%ele(i)%y%etap)/ dE
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%y%etap - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%y%etap)/ dE
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -1158,12 +1158,12 @@ case ('chrom.')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
         if (data_type == 'chrom.w.a') then
-          z2 => tao_branch%high_E_lat%ele(i)%a
-          z1 => tao_branch%low_E_lat%ele(i)%a
+          z2 => tao_lat%high_E_lat%branch(ix_branch)%ele(i)%a
+          z1 => tao_lat%low_E_lat%branch(ix_branch)%ele(i)%a
           z0 => branch%ele(i)%a
         else
-          z2 => tao_branch%high_E_lat%ele(i)%b
-          z1 => tao_branch%low_E_lat%ele(i)%b
+          z2 => tao_lat%high_E_lat%branch(ix_branch)%ele(i)%b
+          z1 => tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b
           z0 => branch%ele(i)%b
         endif
         dalpha = (z2%alpha - z1%alpha) / dE

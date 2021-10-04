@@ -1955,7 +1955,7 @@ case ('s')
   if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
   if (substr(curve%data_type,1,4) == 'bpm_') smooth_curve = .false.
   if (substr(curve%data_type,1,6) == 'bunch_') smooth_curve = .false.
-  if (substr(curve%data_type,1,6) == 'chrom.') smooth_curve = .false.
+  if (substr(curve%data_type,1,6) == 'chrom.' .and. substr(curve%data_type,1,7) /= 'chrom.w') smooth_curve = .false.
 
   if (index(curve%component, 'meas') /= 0 .or. index(curve%component, 'ref') /= 0 .or. &
       curve%data_source == 'data' .or. curve%data_source == 'var') then
@@ -2130,8 +2130,8 @@ type (bunch_params_struct) :: bunch_params
 type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end, orbit_last, orbit
 type (lat_struct), pointer :: lat
-type (ele_struct), target :: ele, ele_dum
-type (ele_struct), pointer :: ele_here, ele_ref
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele_here, ele_ref, this_ele
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
@@ -2141,7 +2141,7 @@ real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign, vec3(3), r_bunch, ds, dt, time
 real(rp), allocatable :: val_arr(:)
 
-integer i, ii, ix, j, k, np, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
+integer i, ii, ix, j, k, np, expnt(6), ix_ele_here, ix_ref, ix_branch, idum, n_ele_track
 integer cache_status
 integer, parameter :: loading_cache$ = 1, using_cache$ = 2
 
@@ -2255,8 +2255,8 @@ do ii = 1, size(curve%x_line)
 
   ! Check if in a hybrid or taylor element within which interpolation cannot be done.
 
-  ix_ele = element_at_s (lat, s_now, .true., ix_branch, err)
-  ele_here => branch%ele(ix_ele)
+  ix_ele_here = element_at_s (lat, s_now, .true., ix_branch, err)
+  ele_here => branch%ele(ix_ele_here)
 
   if (ele_here%key == hybrid$ .or. ele_here%key == taylor$ .or. err) then
     if (err .or. s_last == ele_here%s) then
@@ -2309,8 +2309,6 @@ do ii = 1, size(curve%x_line)
       cycle
     endif
 
-    ix_ele = element_at_s (lat, s_now, .true.)
-    ele = branch%ele(ix_ele)
     orbit%vec = (1-r_bunch) * bunch_params0%centroid%vec + r_bunch * bunch_params1%centroid%vec
 
     bunch_params%sigma = (1-r_bunch) * bunch_params0%sigma + (1-r_bunch) * bunch_params1%sigma
@@ -2379,7 +2377,8 @@ do ii = 1, size(curve%x_line)
     return
   end select
 
-  call this_value_at_s (data_type_select, sub_data_type, value, good(ii), ok, ii, s_last, s_now, orbit);  if (.not. ok) return
+  call this_value_at_s (data_type_select, sub_data_type, value, good(ii), ok, ii, &
+                                                                 s_last, s_now, tao_branch, orbit);  if (.not. ok) return
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
   s_last = s_now
@@ -2435,7 +2434,8 @@ if (curve%ele_ref_name /= '') then
       return
     endif
 
-    call this_value_at_s (data_type_select, sub_data_type, value, gd, ok, ii, s_last, s_now, orbit);  if (.not. ok) return
+    call this_value_at_s (data_type_select, sub_data_type, value, gd, ok, ii, &
+                                                  s_last, s_now, tao_branch, orbit);  if (.not. ok) return
 
     curve%y_line = curve%y_line - comp_sign * value
   end select
@@ -2447,13 +2447,21 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 !--------------------------------------------------------
 contains
 
-subroutine this_value_at_s (data_type_select, sub_data_type, value, good1, ok, ii, s_last, s_now, orbit)
+subroutine this_value_at_s (data_type_select, sub_data_type, value, good1, ok, ii, &
+                                                                 s_last, s_now, tao_branch, orbit)
 
-type (coord_struct) orbit
-real(rp) value, s_last, s_now, m6(6,6)
+type (coord_struct) orbit, orb_end
+type (tao_lattice_branch_struct) :: tao_branch
+type (ele_struct), target :: ele_dum, high_ele, low_ele
+type (lat_struct), pointer :: this_lat
+type (branch_struct), pointer :: this_branch
+type (twiss_struct), pointer :: z0, z1, z2
+
+real(rp) value, s_last, s_now, ds, m6(6,6), dalpha, dbeta, aa, bb, dE
 integer status, ii, i, j
 logical good1, ok
 character(*) data_type_select, sub_data_type
+character(40) name
 
 !
 
@@ -2514,9 +2522,9 @@ case ('emit')
   end select
 
 case ('expression')
-  ele_here => ele
+  this_ele => ele  ! Need a pointer to an ele
   call tao_evaluate_expression (data_type(12:), 1, .false., val_arr, err, .true., &
-            dflt_source = 'at_ele', dflt_ele = ele_here, dflt_uni = tao_lat%u%ix_uni, &
+            dflt_source = 'at_ele', dflt_ele = this_ele, dflt_uni = tao_lat%u%ix_uni, &
             dflt_orbit = orbit);  if (err) goto 9000  ! Error message & Return
   value = val_arr(1)
 
@@ -2597,6 +2605,37 @@ case ('t', 'tt')
   call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &
                                           unit_start = .false., concat_if_possible = s%global%concatenate_maps)
   value = taylor_coef (t_map(i), expnt)
+
+case ('chrom')
+  dE = 2 * s%global%delta_e_chrom  ! Actually this is the change in pz
+  ds = s_now - ele_here%s_start
+  i = ix_ele_here
+
+  this_lat => tao_lat%high_E_lat
+  this_branch => this_lat%branch(ix_branch)
+  call twiss_and_track_intra_ele (this_branch%ele(i), this_branch%param, 0.0_rp, ds, .true., .true., &
+              this_branch%ele(i)%map_ref_orb_in, orb_end, this_branch%ele(i-1), high_ele)
+  
+  this_lat => tao_lat%low_E_lat
+  this_branch => this_lat%branch(ix_branch)
+  call twiss_and_track_intra_ele (this_branch%ele(i), this_branch%param, 0.0_rp, ds, .true., .true., &
+              this_branch%ele(i)%map_ref_orb_in, orb_end, this_branch%ele(i-1), low_ele)
+
+  if (data_type == 'chrom.w.a') then
+    z2 => high_ele%a
+    z1 => low_ele%a
+    Z0 => ele%a
+  else
+    z2 => high_ele%b
+    z1 => low_ele%b
+    z0 => ele%b
+  endif
+
+  dalpha = (z2%alpha - z1%alpha) / dE
+  dbeta  = (z2%beta - z1%beta) / dE
+  aa = dalpha - z0%alpha * dbeta / z0%beta
+  bb = dbeta / z0%beta
+  value = sqrt(aa**2 + bb**2)
 
 case default
   select case (data_type_select)

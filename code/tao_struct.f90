@@ -904,7 +904,6 @@ type tao_lattice_branch_struct
   type (tao_sigma_mat_struct), allocatable :: linear(:) ! Sigma matrix derived from linear lattice.
   type (coord_struct), allocatable :: orbit(:)
   type (coord_struct) orb0                     ! For saving beginning orbit
-  type (lat_struct) :: high_E_lat, low_E_lat  ! For chrom calc.
   type (tao_plot_cache_struct), allocatable :: plot_cache(:)  ! Plotting data cache
   type (tao_plot_cache_struct) :: plot_ref_cache              ! Plotting data cache
   integer track_state
@@ -928,6 +927,7 @@ end type
 type tao_lattice_struct
   character(8) :: name                         ! "model", "base", or "design".
   type (lat_struct) lat                        ! lattice structures
+  type (lat_struct) :: high_E_lat, low_E_lat   ! For chrom calc.
   type (tao_universe_struct), pointer :: u => null()  ! Parent universe
   type (rad_int_all_ele_struct) rad_int
   type (tao_lattice_branch_struct), allocatable :: tao_branch(:)
@@ -1194,8 +1194,6 @@ endif
 
 tlb1%srdt                   = tlb2%srdt
 tlb1%orb0                   = tlb2%orb0
-tlb1%high_E_lat             = tlb2%high_E_lat
-tlb1%low_E_lat              = tlb2%low_E_lat
 tlb1%track_state            = tlb2%track_state
 tlb1%has_open_match_element = tlb2%has_open_match_element
 tlb1%plot_cache_valid       = tlb2%plot_cache_valid
@@ -1241,6 +1239,8 @@ integer i
 !
 
 lat1%lat            = lat2%lat
+lat1%high_E_lat     = lat2%high_E_lat
+lat1%low_E_lat      = lat2%low_E_lat
 lat1%rad_int        = lat2%rad_int
 lat1%tao_branch     = lat2%tao_branch
 

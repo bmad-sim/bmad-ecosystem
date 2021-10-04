@@ -312,8 +312,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
     if (branch%param%geometry == closed$) then
       call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
-                 tao_branch%orbit(0)%vec(6), low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat, &
-                 ix_branch = ib)
+                 tao_branch%orbit(0)%vec(6), low_E_lat=tao_lat%low_E_lat, high_E_lat=tao_lat%high_E_lat, ix_branch = ib)
     endif
 
   enddo

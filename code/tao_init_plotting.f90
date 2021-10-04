@@ -2822,6 +2822,28 @@ if (all(s%plot_page%template%name /= 'velocity')) then
 endif
 
 !---------------
+! w-function
+
+if (all(s%plot_page%template%name /= 'w_function')) then
+  call default_plot_init (np, plt, default_plot_g1c2)
+  plt%name                 = 'w_function'
+  plt%description          = 'Chromatic W-function'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'W-function x, y, z'
+  grph%y%label       = 'W\da\u, W\db\u'
+
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'chrom.w.a'
+
+  crv => grph%curve(2)
+  crv%g => grph
+  crv%data_type     = 'chrom.w.b'
+endif
+
+!---------------
 ! z
 
 if (all(s%plot_page%template%name /= 'z')) then
