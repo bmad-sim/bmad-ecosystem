@@ -352,6 +352,18 @@ write (1, '(a, 2f22.14)') '"LC-BS:D:a%eta"   ABS  1e-12', end_ele%a%eta,   end_e
 write (1, '(a, 2f22.14)') '"LC-BS:D:b%eta"   ABS  1e-12', end_ele%b%eta,   end_ele%b%eta   - ele1%b%eta
 
 !------------------------------------------------
+! Test branch 4
+
+branch => lat%branch(4)
+bmad_com%radiation_damping_on = .true.
+call init_coord(start_orb, start_orb, branch%ele(2), upstream_end$)
+call twiss_and_track_intra_ele (branch%ele(2), branch%param, 0.0_rp, 0.2_rp, .true., .true., start_orb, end_orb)
+
+write (1, '(a, 6es16.8)') '"em_field_slave" ABS 1e-10', end_orb%vec
+
+close (1)
+
+!------------------------------------------------
 ! Test slice_test2.bmad
 
 call bmad_parser ('slice_test2.bmad', lat, .false.)
@@ -366,10 +378,5 @@ call em_field_calc (ele, branch%param, 0.1_rp, orb1, .true., field)
 write (1, *)
 write (1, '(a, 3f14.8)') '"Field%E"  ABS  1e-12', field%e
 write (1, '(a, 3f14.8)') '"Field%B"  ABS  1e-12', field%b
-
-!------------------------------------------------
-
-close (1)
-
 
 end program 
