@@ -127,9 +127,9 @@ if (eff_len <= 0) return
 ! Wiggler, undulator, em_field case
 
 if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) then
-  field_ele => pointer_to_field_ele (ele, 1)
   int_gx = 0
   int_gy = 0
+  field_ele => pointer_to_field_ele (ele, 1)
 
   if (field_ele%field_calc == planar_model$) then
     g2 = abs(field_ele%value(k1y$))
@@ -144,6 +144,7 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
     int_g3 = eff_len * g3
 
   else
+    if (associated(ele%rad_int_cache)) field_ele => ele
     int_g2 = eff_len * (field_ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-field_ele%rad_int_cache%orb0(1:4), field_ele%rad_int_cache%dg2_dorb(1:4)))
     int_g3 = eff_len * (field_ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-field_ele%rad_int_cache%orb0(1:4), field_ele%rad_int_cache%dg3_dorb(1:4)))
     if (int_g3 < 0) int_g3 = 0
