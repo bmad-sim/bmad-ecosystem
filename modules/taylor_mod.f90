@@ -811,17 +811,20 @@ end function taylor_exponent_index
 !+
 ! Subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6, r_out)
 !
-! Subroutine to calculate, from a Taylor map and about some trajectory:
-!   The 1st order (Jacobian) transfer matrix.
+! Routine to calculate from a Taylor map the 1st order (Jacobian) transfer matrix.
+! Output transfer map is:
+!   x_out = mat6 * x_in + vec0
+! Where x_out and x_in are phase space coordinates. Notice that vec0 is *not* the
+! zeroth order part of the map around r_out.
 !
 ! Input:
 !   a_taylor(6) -- Taylor_struct: Taylor map.
 !   r_in(6)     -- Real(rp): Coordinates at the input about which the Jacobian is evaluated. 
 !
 ! Output:
-!   vec0(6)   -- Real(rp): 0th order tranfsfer map
+!   vec0(6)   -- Real(rp): See above
 !   mat6(6,6) -- Real(rp): 1st order transfer map (6x6 matrix).
-!   r_out(6)  -- Real(rp), optional: Coordinates at output.
+!   r_out(6)  -- Real(rp), optional: Coordinates at output with r_in as the starting coords.
 !-
 
 subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6, r_out)

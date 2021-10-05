@@ -93,7 +93,7 @@ else
   call lat_make_mat6 (lat2, -1, this_orb, ix_br)
 endif
 
-call twiss_at_start (lat2, stat, ix_br)
+call twiss_at_start (lat2, stat, ix_br, .false.)
 if (stat /= ok$) return
 call twiss_propagate_all (lat2, ix_br)
 low_tune_x = branch2%ele(nt)%a%phi / twopi
@@ -128,7 +128,7 @@ else
   call lat_make_mat6 (lat2, -1, this_orb, ix_br)
 endif
 
-call twiss_at_start (lat2, stat, ix_br)
+call twiss_at_start (lat2, stat, ix_br, .false.)
 if (stat /= ok$) return
 call twiss_propagate_all (lat2, ix_br)
 high_tune_x = branch2%ele(nt)%a%phi / twopi

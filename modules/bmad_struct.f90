@@ -20,7 +20,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 266
+integer, parameter :: bmad_inc_version$ = 267
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1232,13 +1232,14 @@ type ele_struct
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
   type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define E/M fields.
   type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define E/M fields.
-  ! The difference between map_ref_orb and time_ref_orb is that the map_ref_orb is the reference orbit for the
-  ! transfer map which, in general, is non-zero while the time_ref_orb follows the reference particle which is
+  ! The difference between map_ref_orb and time_ref_orb is that map_ref_orb is the reference orbit for the
+  ! 1st order spin/orbit map which, in general, is non-zero while time_ref_orb follows the reference particle which is
   ! generally the zero orbit (non-zero, for example, in the second slice of a sliced wiggler).
   type (coord_struct) :: map_ref_orb_in = coord_struct()       ! Entrance end transfer map ref orbit
   type (coord_struct) :: map_ref_orb_out = coord_struct()      ! Exit end transfer map ref orbit
   type (coord_struct) :: time_ref_orb_in = coord_struct()      ! Reference orbit at entrance end for ref_time calc.
   type (coord_struct) :: time_ref_orb_out = coord_struct()     ! Reference orbit at exit end for ref_time calc.
+  real(rp) :: spin_taylor_ref_orb_in(6) = 0                    ! spin_taylor entrance reference orbit.
   real(rp) :: value(num_ele_attrib$) = 0                       ! attribute values.
   real(rp) :: old_value(num_ele_attrib$) = 0                   ! Used to see if %value(:) array has changed.
   real(rp) :: vec0(6) = 0                                      ! 0th order transport vector.
