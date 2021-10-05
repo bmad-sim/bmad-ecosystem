@@ -1,16 +1,17 @@
 !+
-! Function spin_taylor_to_linear (spin_taylor) result (spin_map1)
+! Function spin_taylor_to_linear (spin_taylor, dref_orb) result (spin_map1)
 !
 ! Routine to truncate a Taylor spin map to order 1.
 !
 ! Input:
 !   spin_taylor(0:3)    -- taylor_struct: Taylor spin map.
+!   dref_orb(6)         -- real(rp): Change in Reference orbit: output_map1_ref - input_taylor_ref.
 !
 ! Output:
-!   spin_map1(0:3,0:6)  -- real(rp): First otfrt spin_map.
+!   spin_map1(0:3,0:6)  -- real(rp): First order spin map.
 !-
 
-function spin_taylor_to_linear (spin_taylor) result (spin_map1)
+function spin_taylor_to_linear (spin_taylor, dref_orb) result (spin_map1)
 
 use bmad_routine_interface, dummy => spin_taylor_to_linear
 
@@ -18,29 +19,73 @@ implicit none
 
 type (taylor_struct), target :: spin_taylor(0:3)
 type (taylor_struct), pointer :: st
+type (taylor_term_struct), pointer :: term
 
-real(rp) spin_map1(0:3,0:6)
-integer i, k, n, p
+real(rp) dref_orb(6), spin_map1(0:3,0:6)
+real(rp) t(6), t_out, prod
+
+integer i, j, k, l, n, p
 
 !
 
 spin_map1 = 0
 
-do i = 0, 3
-  st => spin_taylor(i)
-  do k = 1, size(st%term)
-    n = sum(st%term(k)%expn)
-    select case (n)
-    case (0)
-      spin_map1(i,0) = st%term(k)%coef
-    case (1)
-      do p = 1, 6
-        if (st%term(k)%expn(p) == 0) cycle
-        spin_map1(i,p) = st%term(k)%coef
-        exit
-      enddo
-    end select
+if (all(dref_orb == 0)) then
+  do i = 0, 3
+    st => spin_taylor(i)
+    do k = 1, size(st%term)
+      n = sum(st%term(k)%expn)
+      select case (n)
+      case (0)
+        spin_map1(i,0) = st%term(k)%coef
+      case (1)
+        do p = 1, 6
+          if (st%term(k)%expn(p) == 0) cycle
+          spin_map1(i,p) = st%term(k)%coef
+          exit
+        enddo
+      end select
+    enddo
   enddo
-enddo
+
+!
+
+else
+  do i = 0, 3
+    st => spin_taylor(i)
+
+    do k = 1, size(st%term)
+      term => st%term(k)
+
+      t_out = term%coef
+      do l = 1, 6
+        if (term%expn(l) == 0) cycle
+        t(l) = dref_orb(l)**term%expn(l)
+        t_out = t_out * t(l)
+      enddo
+      spin_map1(i,0) = spin_map1(i,0) + t_out
+    enddo
+
+    do j = 1, 6
+      if (term%expn(j) == 0) cycle
+      if (term%expn(j) > 1 .and. dref_orb(j) == 0) cycle
+
+      if (term%expn(j) > 1)then
+        prod = term%coef * term%expn(j) * dref_orb(j)**(term%expn(j)-1)
+      else  ! term%expn(j) == 1
+        prod = term%coef
+      endif
+
+      do l = 1, 6
+        if (term%expn(l) == 0) cycle
+        if (l == j) cycle
+        prod = prod * t(l)
+      enddo
+
+      spin_map1(i,j) = spin_map1(i,j) + prod
+    enddo
+
+  enddo
+endif
 
 end function
