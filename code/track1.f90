@@ -1,5 +1,5 @@
 !+
-! Subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, make_matrix, init_to_edge)
+! Subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, make_map1, init_to_edge)
 !
 ! Particle tracking through a single element. 
 ! This includes synchrotron radiation and space charge kicks if enabled by the appropriate
@@ -23,27 +23,25 @@
 !   ignore_radiation
 !                 -- Logical, optional: If present and True then do not include radiation
 !                    effects along with space charge effects. 
-!   mat6(6,6)     -- Real(rp), optional: Transfer matrix before the element.
-!   make_matrix   -- logical, optional: Propagate the transfer matrix? Default is false.
+!   make_map1     -- logical, optional: Make ele%mat6 and ele%spin_q components? Default is false.
 !   init_to_edge  -- logical, optional: Default is True. If True then force the tracked particle to
 !                    begin at the element's edge. See above. 
 !                    Do not use this argument unless you know what you are doing.
 !
 ! Output:
-!   end_orb     -- Coord_struct: End position.
-!   track       -- track_struct, optional: Structure holding the track information if the 
-!                    tracking method does tracking step-by-step.
-!                    When tracking through multiple elements, the trajectory in an element
-!                    is appended to the existing trajectory. To reset: Set track%n_pt = -1.
-!   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
-!                    Note: The particle getting lost (EG hitting an aperture) is *not* an error.
-!                    An error is something like start_orb not being properly initialized.
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix including the element.
-!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
+!   ele           -- ele_struct: Modified if make_map1 is True.
+!   end_orb       -- coord_struct: End position.
+!   track         -- track_struct, optional: Structure holding the track information if the 
+!                      tracking method does tracking step-by-step.
+!                      When tracking through multiple elements, the trajectory in an element
+!                      is appended to the existing trajectory. To reset: Set track%n_pt = -1.
+!   err_flag      -- logical, optional: Set true if there is an error. False otherwise.
+!                      Note: The particle getting lost (EG hitting an aperture) is *not* an error.
+!                      An error is something like start_orb not being properly initialized.
 !-
 
-recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, &
-                                                                                     make_matrix, init_to_edge)
+recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, &
+                                                                                     make_map1, init_to_edge)
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
@@ -58,13 +56,12 @@ type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
-real(rp), optional :: mat6(6,6)
 real(rp) p0c_start
 integer tracking_method, stm
 
 character(*), parameter :: r_name = 'track1'
 
-logical, optional :: make_matrix
+logical, optional :: make_map1
 logical, optional :: err_flag, ignore_radiation, init_to_edge
 logical err, do_extra, finished, radiation_included, do_spin_tracking, time_RK_tracking
 
@@ -193,7 +190,7 @@ case (bmad_standard$)
   if (start2_orb%species == photon$) then
     call track1_bmad_photon (start2_orb, ele, param, end_orb, err)
   else
-    call track1_bmad (start2_orb, ele, param, end_orb, err, mat6, make_matrix)
+    call track1_bmad (start2_orb, ele, param, end_orb, err, mat6 = ele%mat6, make_matrix = make_map1)
     if (ele%key == beambeam$) do_spin_tracking = .false.
   endif
 
@@ -201,7 +198,7 @@ case (bmad_standard$)
   if (err) return
 
 case (runge_kutta$, fixed_step_runge_kutta$) 
-  call track1_runge_kutta (start2_orb, ele, param, end_orb, err, track, mat6, make_matrix)
+  call track1_runge_kutta (start2_orb, ele, param, end_orb, err, track, mat6 = ele%mat6, make_matrix = make_map1)
   if (err) return
 
 case (linear$) 
@@ -213,7 +210,7 @@ case (taylor$)
   if (present(track)) call add_to_track(start2_orb, end_orb)
 
 case (symp_lie_bmad$) 
-  call symp_lie_bmad (ele, param, start2_orb, end_orb, track, mat6, make_matrix)
+  call symp_lie_bmad (ele, param, start2_orb, end_orb, track, mat6 = ele%mat6, make_matrix = make_map1)
 
 case (symp_lie_ptc$)
   call track1_symp_lie_ptc (start2_orb, ele, param, end_orb, track)
@@ -252,7 +249,7 @@ endif
 
 ! spin tracking. Must do after regular tracking in the case of spin_tracking_method = bmad_standard
  
-if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb, make_matrix)
+if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb, make_map1)
 
 ! Set ix_ele. If the element is a slice_slave then the appropriate ix_ele is given by the lord.
 

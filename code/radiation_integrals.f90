@@ -101,12 +101,13 @@ type (rad_int_track_point_struct), allocatable :: pt_temp(:)
 type (rad_int1_struct) int_tot
 type (rad_int1_struct), pointer :: rad_int1
 type (rad_int_cache_struct), allocatable :: cache_temp(:)
+type (spin_orbit_map1_struct) map1
 
 real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, gx_err, gy_err, del_z
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f, ds_step
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky, beta_min
 real(rp) v(4,4), v_inv(4,4), z_here, z_start, mc2, gamma, gamma4, gamma6
-real(rp) kz, fac, c, s, factor, g2, g_x0, dz_small, z1, const_q, mat6(6,6), vec0(6)
+real(rp) kz, fac, c, s, factor, g2, g_x0, dz_small, z1, const_q, vec0(6), mat6(6,6)
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) ! Cf: Sands Eq 5.46 pg 124.
 real time0, time1
 
@@ -305,8 +306,8 @@ if (use_cache .or. init_cache) then
 
     if (ele2%tracking_method == runge_kutta$ .or. ele2%tracking_method == time_runge_kutta$ .or. ele2%tracking_method == symp_lie_bmad$) then
       track%n_pt = -1
-      call mat_make_unit(mat6)
-      call track1 (orb_start, ele2, branch%param, orb_end, track, mat6 = mat6, make_matrix = .true.)
+      call track1 (orb_start, ele2, branch%param, orb_end, track, make_map1 = .true.)
+      mat6 = ele2%mat6
       call allocate_cache(cache_ele, track%n_pt)
       do i = 0, track%n_pt
         cache_ele%pt(i)%ref_orb_in  = orb_start

@@ -55,14 +55,14 @@ integer i
 
 !
 
-map_out%mat6 = matmul(map2%mat6, map1%mat6)
-map_out%vec0 = matmul(map2%mat6, map1%vec0) + map2%vec0
+map_out%orb_mat = matmul(map2%orb_mat, map1%orb_mat)
+map_out%vec0 = matmul(map2%orb_mat, map1%vec0) + map2%vec0
 
-map_out%q(:,0) = quat_mul(map2%q(:,0), map1%q(:,0))
+map_out%q_spin(:,0) = quat_mul(map2%q_spin(:,0), map1%q_spin(:,0))
 
-m2q1 = matmul(map2%q(:,1:6), map1%mat6)
+m2q1 = matmul(map2%q_spin(:,1:6), map1%orb_mat)
 do i = 1, 6
-  map_out%q(:,i) = quat_mul(map2%q(:,0), map1%q(:,i)) + quat_mul(m2q1(:,i), map1%q(:,0))
+  map_out%q_spin(:,i) = quat_mul(map2%q_spin(:,0), map1%q_spin(:,i)) + quat_mul(m2q1(:,i), map1%q_spin(:,0))
 enddo
 
 end function map1_times_map1

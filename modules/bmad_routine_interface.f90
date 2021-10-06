@@ -2322,6 +2322,19 @@ subroutine ele_to_spin_sprint (ele, orb0)
   type (coord_struct), optional :: orb0
 end subroutine
 
+recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, &
+                                                        ignore_radiation, make_map1, init_to_edge)
+  import
+  implicit none
+  type (coord_struct) :: start_orb
+  type (coord_struct) :: end_orb
+  type (ele_struct)   :: ele
+  type (lat_param_struct) :: param
+  type (track_struct), optional :: track
+  logical, optional :: err_flag, ignore_radiation, init_to_edge
+  logical, optional :: make_map1
+end subroutine
+
 subroutine track1_spin_sprint (start_orb, ele, param, end_orb)
   import
   implicit none
@@ -2337,20 +2350,6 @@ subroutine track_to_surface (ele, orbit, param, w_surface)
   type (coord_struct) orbit
   type (lat_param_struct) param
   real(rp) :: w_surface(3,3)
-end subroutine
-
-recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, &
-                                                                           mat6, make_matrix, init_to_edge)
-  import
-  implicit none
-  type (coord_struct) :: start_orb
-  type (coord_struct) :: end_orb
-  type (ele_struct)   :: ele
-  type (lat_param_struct) :: param
-  type (track_struct), optional :: track
-  logical, optional :: err_flag, ignore_radiation, init_to_edge
-  real(rp), optional :: mat6(6,6)
-  logical, optional :: make_matrix
 end subroutine
 
 subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, mat6, make_matrix)
