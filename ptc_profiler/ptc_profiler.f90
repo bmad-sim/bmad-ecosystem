@@ -7,7 +7,7 @@ use pointer_lattice, only: c_linear_map, SPIN0, operator(+), track_probe, bmadl,
 implicit none
 
 type profile_struct
-  type (c_linear_map) :: map
+  type (spin_orbit_map1_struct) :: map
   real(rp) t_taylor, t_probe, t_fibre
 end type
 
@@ -15,7 +15,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (taylor_struct), pointer :: st
 type (coord_struct), allocatable :: orbit(:)
-type (c_linear_map), target :: map0
+type (spin_orbit_map1_struct), target :: map0
 type (profile_struct), target :: new(20), old(20)
 
 real(rp) stop_time, spin_diff_old, spin_diff_new
@@ -25,7 +25,7 @@ integer num_steps(20), integrator_order(3)
 character(100) lat_file
 character(2), parameter :: q_name(0:3) = ['q0', 'qx', 'qy', 'qz']
 
-namelist / params / num_steps, lat_file, stop_time, n_time_calc
+namelist / params / num_steps, lat_file, stop_time, n_time_calc, integrator_order
 
 !
 
@@ -51,7 +51,7 @@ do ie = 1, lat%n_ele_track
 
   do ii = 1, size(integrator_order)
     if (integrator_order(ii) == -1) exit
-    ele%value(integrator_order$) = ii
+    ele%value(integrator_order$) = integrator_order(ii)
 
     do is = 1, size(num_steps)
       if (num_steps(is) == -1) exit
@@ -99,7 +99,7 @@ do ie = 1, lat%n_ele_track
   print *
   print '(14x, a, 7x, 6(2x, a, 7x))', '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
   do i = 0, 3
-    print '(i4, 2x, a, 2x, f12.6, 4x, 6f12.6)', i, q_name(i), real(map0%q(i,:))
+    print '(i4, 2x, a, 2x, f12.6, 4x, 6f12.6)', i, q_name(i), map0%spin_q(i,:)
   enddo
 enddo
 
@@ -210,7 +210,7 @@ end function fibre_timer
 
 function spin_diff (map, map0) result (diff)
 
-type (c_linear_map) map, map0
+type (spin_orbit_map1_struct) map, map0
 real(rp) diff, denom, vec(0:3), vec0(0:3), dvec
 integer i, j
 
@@ -218,15 +218,19 @@ integer i, j
 
 diff = 0
 do i = 1, 6
-  vec = map%q(:,i)
-  vec0 = map0%q(:,i)
+  vec = map%spin_q(:,i)
+  vec0 = map0%spin_q(:,i)
   dvec = 0
   do j = 0, 3
     if (vec(j) == 0 .and. vec0(j) == 0) cycle
     dvec = max(dvec, abs(vec(j)-vec0(j))) 
   enddo
   if (dvec == 0) cycle
-  diff = max(diff, dvec/norm2(vec0))
+  if (mod(i,2) == 0) then
+    diff = max(diff, 3*dvec/(norm2(map0%spin_q(:,2)) + norm2(map0%spin_q(:,4)) + norm2(map0%spin_q(:,6))))
+  else
+    diff = max(diff, 3*dvec/(norm2(map0%spin_q(:,1)) + norm2(map0%spin_q(:,3)) + norm2(map0%spin_q(:,5))))
+  endif
 enddo
 
 end function spin_diff
@@ -236,13 +240,13 @@ end function spin_diff
 
 function orbit_diff (map, map0) result (diff)
 
-type (c_linear_map) map, map0
+type (spin_orbit_map1_struct) map, map0
 real(rp) diff, dmat(6,6)
 integer i, j
 
 !
 
-dmat = map%mat - map0%mat
+dmat = map%orb_mat - map0%orb_mat
 diff = maxval(abs(dmat))
 
 end function orbit_diff
