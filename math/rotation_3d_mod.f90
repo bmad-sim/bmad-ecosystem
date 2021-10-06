@@ -93,12 +93,12 @@ end subroutine w_mat_to_axis_angle
 !   w_mat(3,3) -- real(rp): Rotation matrix
 !
 ! Output:
-!   quat(4)    -- real(rp): Quaternion.
+!   quat(0:3)  -- real(rp): Quaternion.
 !-
 
 function w_mat_to_quat (w_mat) result (quat)
 
-real(rp) w_mat(3,3), quat(4)
+real(rp) w_mat(3,3), quat(0:3)
 real(rp) trace, s
 
 !
@@ -107,31 +107,31 @@ trace = w_mat(1,1) + w_mat(2,2) + w_mat(3,3)
 
 if (trace > 0) then
   s = 0.5_rp / sqrt(trace + 1)
-  quat(1) = 1 / (4 * s)
-  quat(2) = (w_mat(3,2) - w_mat(2,3)) * s
-  quat(3) = (w_mat(1,3) - w_mat(3,1)) * s
-  quat(4) = (w_mat(2,1) - w_mat(1,2)) * s
+  quat(0) = 1 / (4 * s)
+  quat(1) = (w_mat(3,2) - w_mat(2,3)) * s
+  quat(2) = (w_mat(1,3) - w_mat(3,1)) * s
+  quat(3) = (w_mat(2,1) - w_mat(1,2)) * s
 
 elseif (w_mat(1,1) > w_mat(2,2) .and. w_mat(1,1) > w_mat(3,3)) then
   s = 2 * sqrt(1 + w_mat(1,1) - w_mat(2,2) - w_mat(3,3))
-  quat(1) = (w_mat(3,2) - w_mat(2,3)) / s
-  quat(2) = 0.25_rp * s
-  quat(3) = (w_mat(1,2) + w_mat(2,1)) / s
-  quat(4) = (w_mat(1,3) + w_mat(3,1)) / s
+  quat(0) = (w_mat(3,2) - w_mat(2,3)) / s
+  quat(1) = 0.25_rp * s
+  quat(2) = (w_mat(1,2) + w_mat(2,1)) / s
+  quat(3) = (w_mat(1,3) + w_mat(3,1)) / s
 
 elseif (w_mat(2,2) > w_mat(3,3)) then
   s = 2 * sqrt(1 + w_mat(2,2) - w_mat(1,1) - w_mat(3,3))
-  quat(1) = (w_mat(1,3) - w_mat(3,1)) / s
-  quat(2) = (w_mat(1,2) + w_mat(2,1)) / s
-  quat(3) = 0.25_rp * s
-  quat(4) = (w_mat(2,3) + w_mat(3,2)) / s
+  quat(0) = (w_mat(1,3) - w_mat(3,1)) / s
+  quat(1) = (w_mat(1,2) + w_mat(2,1)) / s
+  quat(2) = 0.25_rp * s
+  quat(3) = (w_mat(2,3) + w_mat(3,2)) / s
 
 else
   s = 2 * sqrt(1 + w_mat(3,3) - w_mat(1,1) - w_mat(2,2))
-  quat(1) = (w_mat(2,1) - w_mat(1,2)) / s
-  quat(2) = (w_mat(1,3) + w_mat(3,1)) / s
-  quat(3) = (w_mat(2,3) + w_mat(3,2)) / s
-  quat(4) = 0.25_rp * s
+  quat(0) = (w_mat(2,1) - w_mat(1,2)) / s
+  quat(1) = (w_mat(1,3) + w_mat(3,1)) / s
+  quat(2) = (w_mat(2,3) + w_mat(3,2)) / s
+  quat(3) = 0.25_rp * s
 endif
 
 end function w_mat_to_quat
@@ -145,7 +145,7 @@ end function w_mat_to_quat
 ! Routine to construct the 3D rotation matrix w_mat given a rotation quaternion
 !
 ! Input:
-!   quat(4)    -- real(rp): Quaternion.
+!   quat(0:3)  -- real(rp): Quaternion.
 !
 ! Output:
 !   w_mat(3,3) -- real(rp): Rotation matrix
