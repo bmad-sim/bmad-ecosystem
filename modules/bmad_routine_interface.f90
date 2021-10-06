@@ -1073,6 +1073,18 @@ subroutine make_hybrid_lat (r_in, r_out, use_taylor, orb0_arr)
   type (coord_array_struct), optional :: orb0_arr(0:)
 end subroutine
 
+function map1_inverse (map1) result (inv_map1)
+  import
+  implicit none
+  type (spin_orbit_map1_struct) map1, inv_map1
+end function
+
+subroutine map1_make_unit(map1)
+  import
+  implicit none
+  type (spin_orbit_map1_struct) map1
+end subroutine
+
 recursive subroutine make_mat6 (ele, param, start_orb, end_orb, err_flag)
   import
   implicit none
@@ -1959,12 +1971,11 @@ subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
   real(rp), optional :: mat6(:,:)
 end subroutine
 
-subroutine spin_concat_linear_maps (q_map, branch, n1, n2, q_ele, orbit)
-  use pointer_lattice, only: c_linear_map
+subroutine spin_concat_linear_maps (mat1, branch, n1, n2, mat1_ele, orbit)
   import
   implicit none
-  type (c_linear_map) q_map
-  type (c_linear_map), optional :: q_ele(:)
+  type (spin_orbit_map1_struct) mat1
+  type (spin_orbit_map1_struct), optional :: mat1_ele(:)
   type (branch_struct), target :: branch
   type (coord_struct), optional :: orbit(0:)
   integer n1, n2
@@ -1992,6 +2003,12 @@ function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial) result (dn_dpz)
   real(rp), optional :: dn_dpz_partial(3,3)
 end function
 
+subroutine spin_map1_normalize (spin1)
+  import
+  implicit none
+  real(rp) spin1(0:3,0:6)
+end subroutine
+
 subroutine spin_mat_to_eigen (orb_mat, spin_map, eigen_val, orb_evec, n0, spin_evec)
   import
   implicit none
@@ -2009,11 +2026,11 @@ function spin_omega (field, orbit, sign_z_vel, phase_space_coords) result (omega
   real(rp) omega(3)
 end function
 
-function spin_taylor_to_linear (spin_taylor) result (spin_map1)
+function spin_taylor_to_linear (spin_taylor, dref_orb) result (spin_map1)
   import
   implicit none
   type (taylor_struct), target :: spin_taylor(0:3)
-  real(rp) spin_map1(0:3,0:6)
+  real(rp) dref_orb(6), spin_map1(0:3,0:6)
 end function
 
 function spinor_to_polar (spinor) result (polar)
