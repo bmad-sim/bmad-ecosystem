@@ -9,7 +9,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (ele_struct) t_ele
 type (coord_struct) orb0, orb_start, orb_end, orb1, orb2
-type (c_linear_map) q_map
+type (spin_orbit_map1_struct) map1
 
 real(rp) spin_a(3), spin_b(3), spin0(3), dr(6), a_quat(0:3), n_vec(3)
 real(rp) mat6(6,6), smap(0:3,0:6), n0(3)
@@ -86,10 +86,10 @@ enddo
 
 call bmad_parser ('small_line.bmad', lat)
 
-call spin_concat_linear_maps (q_map, lat%branch(0), 0, 0)
+call spin_concat_linear_maps (map1, lat%branch(0), 0, 0)
 
 do i = 0, 3
-  write (1, '(a, 7es16.8)') '"q_map' // int_str(i) // '" ABS 1E-8', real(q_map%q(i,:), rp)
+  write (1, '(a, 7es16.8)') '"q_map' // int_str(i) // '" ABS 1E-8', real(map1%spin_q(i,:), rp)
 enddo
 
 !---------------------------------
