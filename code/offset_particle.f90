@@ -156,7 +156,7 @@ else
   set_hv2 = .false.
 endif
 
-if (set_spn) B_factor = ele%value(p0c$) / (charge_of(param%particle) * c_light)
+B_factor = ele%value(p0c$) / (charge_of(param%particle) * c_light)
 
 !----------------------------------------------------------------
 ! Set...

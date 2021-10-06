@@ -294,7 +294,7 @@ end type
 type spin_orbit_map1_struct
   real(rp) :: orb_mat(6,6) = 0      ! Orbital matrix
   real(rp) :: vec0(6) = 0           ! Orbital 0th order map: r_out = mat6 * r_in + vec0
-  real(rp) :: q_spin(0:3,0:6) = 0   ! 0th and 1st order quaternion spin map
+  real(rp) :: spin_q(0:3,0:6) = 0   ! 0th and 1st order quaternion spin map
 end type
 
 !

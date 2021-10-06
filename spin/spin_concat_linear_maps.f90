@@ -1,5 +1,5 @@
 !+
-! Subroutine spin_concat_linear_maps (q_map, branch, n1, n2, q_ele, orbit)
+! Subroutine spin_concat_linear_maps (map1, branch, n1, n2, q_ele, orbit)
 !
 ! Routine to concatenate element spin/orbit maps in the range branch%ele(n1+1:n2)
 ! This routine will wrap around the ends of the lattice so n2 may be less than n1.
@@ -16,19 +16,18 @@
 !   orbit(0:) -- coord_struct, optional: Reference orbit used if maps must be created.
 !
 ! Output:
-!   q_map     -- c_linear_map: Map with element spin/orbit maps concatenated.
-!   q_ele(:)  -- c_linear_map, optional: Individual spin/orbit maps.
+!   map1     -- spin_orbit_map1_struct: Map with element spin/orbit maps concatenated.
+!   q_ele(:)  -- spin_orbit_map1_struct, optional: Individual spin/orbit maps.
 !-
 
-subroutine spin_concat_linear_maps (q_map, branch, n1, n2, q_ele, orbit)
+subroutine spin_concat_linear_maps (map1, branch, n1, n2, map1_ele, orbit)
 
 use ptc_interface_mod, dummy => spin_concat_linear_maps
-use pointer_lattice, only: c_linear_map, operator(*), assignment(=)
 
 implicit none
 
-type (c_linear_map) q_map
-type (c_linear_map), optional :: q_ele(:)
+type (spin_orbit_map1_struct) map1
+type (spin_orbit_map1_struct), optional :: map1_ele(:)
 type (branch_struct), target :: branch
 type (coord_struct), optional :: orbit(0:)
 
@@ -36,7 +35,7 @@ integer n1, n2
 
 !
 
-q_map = 0
+call map1_make_unit(map1)
 
 if (n2 <= n1) then
   call concat_this_map(n1+1, branch%n_ele_track)
@@ -45,6 +44,8 @@ else
   call concat_this_map(n1+1, n2)
 endif
 
+call spin_map1_normalize(map1%spin_q)
+
 !------------------------------------------------------
 contains
 
@@ -52,9 +53,9 @@ subroutine concat_this_map(n1, n2)
 
 type (ele_struct), pointer :: ele
 type (taylor_struct), pointer :: st
-type (c_linear_map) q1
+type (spin_orbit_map1_struct) q1
 
-real(rp) vec0(6), mat6(6,6)
+real(rp) vec0(6), ref_orb(6)
 integer n1, n2
 integer ie, i, k, n, p
 logical st_on
@@ -64,6 +65,13 @@ logical st_on
 do ie = n1, n2
   if (ie == 0) cycle
   ele => branch%ele(ie)
+
+  if (present(orbit)) then
+    ref_orb = orbit(ie-1)%vec
+  else
+    ref_orb = 0
+  endif
+
   if (.not. associated(ele%spin_taylor(0)%term)) then
     st_on = bmad_com%spin_tracking_on
     bmad_com%spin_tracking_on = .true.
@@ -75,32 +83,14 @@ do ie = n1, n2
     bmad_com%spin_tracking_on = st_on
   endif
 
-  q1%q = 0
+  q1%spin_q = spin_taylor_to_linear(ele%spin_taylor, ref_orb - ele%spin_taylor_ref_orb_in)
 
-  do i = 0, 3
-    st => ele%spin_taylor(i)
-    do k = 1, size(st%term)
-      n = sum(st%term(k)%expn)
-      select case (n)
-      case (0)
-        q1%q(i,0) = st%term(k)%coef
-      case (1)
-        do p = 1, 6
-          if (st%term(k)%expn(p) == 0) cycle
-          q1%q(i,p) = st%term(k)%coef
-          exit
-        enddo
-      end select
-    enddo
-  enddo
-
-  call taylor_to_mat6 (ele%taylor, ele%taylor%ref, vec0, mat6)
-  q1%mat = mat6
-  if (present(q_ele)) then
-    q_ele(ie) = q1
+  call taylor_to_mat6 (ele%taylor, ref_orb, vec0, q1%orb_mat)
+  if (present(map1_ele)) then
+    map1_ele(ie) = q1
   endif
 
-  q_map = q1 * q_map
+  map1 = q1 * map1
 enddo
 
 end subroutine

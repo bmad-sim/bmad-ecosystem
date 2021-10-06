@@ -33,8 +33,11 @@ spin_map1 = 0
 if (all(dref_orb == 0)) then
   do i = 0, 3
     st => spin_taylor(i)
+
     do k = 1, size(st%term)
+      term => st%term(k)
       n = sum(st%term(k)%expn)
+
       select case (n)
       case (0)
         spin_map1(i,0) = st%term(k)%coef
@@ -64,27 +67,26 @@ else
         t_out = t_out * t(l)
       enddo
       spin_map1(i,0) = spin_map1(i,0) + t_out
-    enddo
 
-    do j = 1, 6
-      if (term%expn(j) == 0) cycle
-      if (term%expn(j) > 1 .and. dref_orb(j) == 0) cycle
+      do j = 1, 6
+        if (term%expn(j) == 0) cycle
+        if (term%expn(j) > 1 .and. dref_orb(j) == 0) cycle
 
-      if (term%expn(j) > 1)then
-        prod = term%coef * term%expn(j) * dref_orb(j)**(term%expn(j)-1)
-      else  ! term%expn(j) == 1
-        prod = term%coef
-      endif
+        if (term%expn(j) > 1)then
+          prod = term%coef * term%expn(j) * dref_orb(j)**(term%expn(j)-1)
+        else  ! term%expn(j) == 1
+          prod = term%coef
+        endif
 
-      do l = 1, 6
-        if (term%expn(l) == 0) cycle
-        if (l == j) cycle
-        prod = prod * t(l)
+        do l = 1, 6
+          if (term%expn(l) == 0) cycle
+          if (l == j) cycle
+          prod = prod * t(l)
+        enddo
+
+        spin_map1(i,j) = spin_map1(i,j) + prod
       enddo
-
-      spin_map1(i,j) = spin_map1(i,j) + prod
     enddo
-
   enddo
 endif
 
