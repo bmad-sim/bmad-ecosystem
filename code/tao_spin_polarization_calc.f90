@@ -21,16 +21,15 @@ subroutine tao_spin_polarization_calc (branch, tao_branch)
 use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
 use radiation_mod
 use ptc_interface_mod
-use pointer_lattice, dummy2 => sqrt
 
 implicit none
 
 type (branch_struct), target :: branch
 type (tao_lattice_branch_struct), target :: tao_branch
 type (coord_struct), pointer :: orbit(:)
-type (c_linear_map) :: q_1turn
-type (c_linear_map), pointer :: q1
-type (c_linear_map), target :: q_ele(branch%n_ele_track)
+type (spin_orbit_map1_struct) :: q_1turn
+type (spin_orbit_map1_struct), pointer :: q1
+type (spin_orbit_map1_struct), target :: q_ele(branch%n_ele_track)
 type (ele_struct), pointer :: ele
 
 real(rp) n0(3), dn_dpz(3), integral_bdn_partial(3), partial(3,3)
@@ -50,9 +49,9 @@ orbit => tao_branch%orbit
 if (.not. allocated(tao_branch%dn_dpz)) allocate (tao_branch%dn_dpz(0:branch%n_ele_track))
 tao_branch%spin_valid = .true.
 
-call spin_concat_linear_maps (q_1turn, branch, 0, branch%n_ele_track, q_ele)
+call spin_concat_linear_maps (q_1turn, branch, 0, branch%n_ele_track, q_ele, orbit)
 
-tao_branch%spin%tune = atan2(norm2(real(q_1turn%q(1:3,0))), real(q_1turn%q(0,0)))
+tao_branch%spin%tune = atan2(norm2(real(q_1turn%spin_q(1:3,0))), real(q_1turn%spin_q(0,0)))
 
 ! Loop over all elements.
 
@@ -64,12 +63,12 @@ integral_bdn_partial = 0
 integral_dn2_partial = 0
 
 do ie = 0, branch%n_ele_track
-  if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * q_ele(ie)**(-1)
+  if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * map1_inverse(q_ele(ie))
   
-  dn_dpz = spin_dn_dpz_from_qmap(real(q_1turn%mat, rp), real(q_1turn%q, rp), partial)
+  dn_dpz = spin_dn_dpz_from_qmap(real(q_1turn%orb_mat, rp), real(q_1turn%spin_q, rp), partial)
   tao_branch%dn_dpz(ie)%vec = dn_dpz
   tao_branch%dn_dpz(ie)%partial = partial
-  n0 = q_1turn%q(1:3, 0)
+  n0 = q_1turn%spin_q(1:3, 0)
   n0 = n0 / norm2(n0)
 
   del_p  = 1 + orbit(ie)%vec(6)

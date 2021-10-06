@@ -202,7 +202,6 @@ type (ptc_normal_form_struct), pointer :: ptc_nf
 type (aperture_scan_struct), pointer :: aperture_scan
 type (coord_struct) orbit
 type (tao_wave_kick_pt_struct), pointer :: wk
-type (c_linear_map) q_map
 type (tao_spin_map_struct), pointer :: sm
 type (normal_modes_struct) norm_mode
 
@@ -3897,7 +3896,7 @@ case ('spin')
           nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order.'
           nl=nl+1; write (lines(nl), '(14x, a, 7x, 6(2x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
           do ix = 0, 3
-            nl=nl+1; write(lines(nl), '(i8, f12.6, 4x, 6f12.6)') ix, d_ptr%spin_map%q_map%q(ix,:)
+            nl=nl+1; write(lines(nl), '(i8, f12.6, 4x, 6f12.6)') ix, d_ptr%spin_map%map1%spin_q(ix,:)
           enddo
         endif
       enddo
@@ -3943,9 +3942,7 @@ case ('spin')
         return
       endif
     else
-      call spin_concat_linear_maps (q_map, branch, 0, branch%n_ele_track)
-      sm%q_map%q = q_map%q
-      sm%q_map%mat = q_map%mat
+      call spin_concat_linear_maps (sm%map1, branch, 0, branch%n_ele_track, orbit = tao_branch%orbit)
     endif
 
     if (show_mat) then
@@ -3960,7 +3957,7 @@ case ('spin')
       enddo
     endif
 
-    call spin_mat_to_eigen (sm%q_map%mat, sm%q_map%q, eval, evec, n0, n_eigen)
+    call spin_mat_to_eigen (sm%map1%orb_mat, sm%map1%spin_q, eval, evec, n0, n_eigen)
     if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
 
     if (show_q) then
@@ -3968,7 +3965,7 @@ case ('spin')
       nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order' 
       nl=nl+1; write (lines(nl), '(14x, a, 7x, 6(2x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
       do i = 0, 3
-        nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, 6f12.6)') i, q_name(i), sm%q_map%q(i,:)
+        nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, 6f12.6)') i, q_name(i), sm%map1%spin_q(i,:)
       enddo
     endif
 
@@ -3994,11 +3991,11 @@ case ('spin')
         dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
 
         do k = 0, 3
-          qv(k)  = sum(evec(j,:) * sm%q_map%q(k,1:6))
-          qv2(k) = sum(evec(j+1,:) * sm%q_map%q(k,1:6))
+          qv(k)  = sum(evec(j,:) * sm%map1%spin_q(k,1:6))
+          qv2(k) = sum(evec(j+1,:) * sm%map1%spin_q(k,1:6))
         enddo
 
-        nn0 = sm%q_map%q(1:3,0)
+        nn0 = sm%map1%spin_q(1:3,0)
         nn0 = nn0 / norm2(nn0)
 
         np(0) = 0.5_rp
@@ -4016,13 +4013,13 @@ case ('spin')
                                                             norm2(abs(t1)), norm2(abs(t2)), z1, z2
 !        if (i == 1) then
 !          do k = 1, 6
-!            qv = sm%q_map%q(:,k)
+!            qv = sm%map1%spin_q(:,k)
 !            nl=nl+1; write (lines(nl), '(i1, 6(4x, 2es12.4))') k, 4  * quat_mul(np, qv, nm)
 !          enddo
 !           nl=nl+1; write (lines(nl), '(i1, 6(4x, 2es12.4))') 0, evec(j+1,:) * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)
 !          nl=nl+1; lines(nl) = ''
 !          do k = 1, 6
-!            qv = sm%q_map%q(:,k)
+!            qv = sm%map1%spin_q(:,k)
 !            nl=nl+1; write (lines(nl), '(i1, 6(4x, 2es12.4))') k, 4 * quat_mul(nm, qv, np)
 !          enddo
 !        endif
