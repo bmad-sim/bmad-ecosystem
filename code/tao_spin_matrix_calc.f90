@@ -25,7 +25,8 @@ type (tao_data_struct), target :: datum
 type (tao_universe_struct), target :: u
 type (tao_spin_map_struct), pointer :: spin_map
 type (branch_struct), pointer :: branch
-type (c_linear_map) q_map
+type (tao_lattice_branch_struct), pointer :: tao_branch
+type (spin_orbit_map1_struct) map1
 
 integer ix_ref, ix_ele
 integer ix_r
@@ -40,6 +41,7 @@ integer i, j, n, p
 ! Init
 
 branch => u%model%lat%branch(datum%ix_branch)
+tao_branch => u%model%tao_branch(datum%ix_branch)
 
 spin_map => datum%spin_map
 spin_map%mat8 = 0
@@ -50,19 +52,16 @@ spin_map%valid = .false.
 ix_r = ix_ref
 if (ix_r < 0) ix_r = ix_ele-1
 
-call spin_concat_linear_maps (q_map, branch, ix_r, ix_ele)
+call spin_concat_linear_maps (spin_map%map1, branch, ix_r, ix_ele, orbit = tao_branch%orbit)
 
-spin_map%q_map%mat = q_map%mat
-spin_map%q_map%q   = q_map%q
-
-quat0 = q_map%q(:, 0)
+quat0 = map1%spin_q(:, 0)
 
 ! If 1-turn then calculate n0. Otherwise take the value in the datum.
 
 if (any(spin_map%axis_input%n0 /= 0)) then
   n0 = spin_map%axis_input%n0 / norm2(spin_map%axis_input%n0)
 elseif (ix_ele == ix_ref) then
-  n0 = real(q_map%q(1:3,0), rp)
+  n0 = real(map1%spin_q(1:3,0), rp)
   n0 = n0 / norm2(n0)
 else
   n0 = u%model%tao_branch(datum%ix_branch)%orbit(ix_r)%spin
@@ -116,14 +115,14 @@ quat1_lnm_to_xyz = w_mat_to_quat(mat3)
 
 ! Calculate the 8x8 transfer matrix 
 
-spin_map%mat8(1:6,1:6) = q_map%mat
+spin_map%mat8(1:6,1:6) = map1%orb_mat
 
 q0_lnm = quat_mul(quat_inverse(quat1_lnm_to_xyz), quat0, quat0_lnm_to_xyz)
 mat3 = quat_to_w_mat(q0_lnm)
 spin_map%mat8(7:8,7:8) = mat3(1:3:2,1:3:2)
 
 do p = 1, 6
-  quat1 = q_map%q(:, p)
+  quat1 = map1%spin_q(:, p)
   qq = quat_mul(quat_inverse(quat1_lnm_to_xyz), quat1, quat0_lnm_to_xyz)
   ! q0_lnm(1) & q0_lnm(3) should be 0 so could drop corresponding terms here.
   spin_map%mat8(7,p) = 2 * (q0_lnm(1)*qq(2) + q0_lnm(2)*qq(1) - q0_lnm(0)*qq(3) - q0_lnm(3)*qq(0))

@@ -370,16 +370,11 @@ end type
 
 !---------------------------------------
 
-type tao_spin_orbit_linear_map_struct
-  real(rp) :: mat(6,6) = 0      ! Orbital transport matrix.
-  real(rp) :: q(0:3, 0:6) = 0    ! Spin quaternion 0th [q(:, 0)] and 1st order [q(:, 1:6)] transport.
-end type
-
 type tao_spin_map_struct
   logical :: valid = .false.
   type (taylor_struct) :: orbit_taylor(6) = taylor_struct()  ! Not yet used.
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct() ! Not yet used.
-  type (tao_spin_orbit_linear_map_struct) :: q_map = tao_spin_orbit_linear_map_struct()
+  type (spin_orbit_map1_struct) :: map1 = spin_orbit_map1_struct()
   type (spin_axis_struct) :: axis_input = spin_axis_struct() ! Input axes.
   type (spin_axis_struct) :: axis0 = spin_axis_struct()      ! Initial axes.
   type (spin_axis_struct) :: axis1 = spin_axis_struct()      ! Final axes.
