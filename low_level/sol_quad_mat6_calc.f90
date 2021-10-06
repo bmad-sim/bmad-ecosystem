@@ -14,7 +14,7 @@
 !   ele         -- ele_struct: Sol_quad element.
 !   orbit       -- coord_struct: Orbit at beginning of the sol_quad.
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix up to the sol_quad.
-!   make_matrix -- logical, optional: Extent the matrix?
+!   make_matrix -- logical, optional: Extend the matrix?
 !
 ! Output:
 !   orbit       -- coord_struct: Orbit at beginning of the sol_quad.

@@ -71,7 +71,7 @@ case (ab_multipole$, crab_cavity$, sad_mult$, beambeam$, sbend$, patch$, quadrup
   tm = ele%tracking_method
   field_ele => pointer_to_field_ele(ele, 1)
   if (key /= wiggler$ .or. field_ele%field_calc /= fieldmap$)   ele%tracking_method = bmad_standard$
-  call track1 (start_orb, ele, param, end_orb, mat6 = ele%mat6, make_matrix = .true.)
+  call track1 (start_orb, ele, param, end_orb, make_map1 = .true.)
   ele%tracking_method = tm
 
   ele%vec0 = end_orb%vec - matmul(ele%mat6, start_orb%vec)
