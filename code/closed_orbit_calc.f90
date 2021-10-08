@@ -83,7 +83,6 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_
 use bmad_interface, except_dummy => closed_orbit_calc
 use super_recipes_mod
 use lmdif_mod
-use eigen_mod
 
 implicit none
 

@@ -20,7 +20,6 @@
 function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial) result (dn_dpz)
 
 use bmad_routine_interface, dummy => spin_dn_dpz_from_qmap
-use eigen_mod
 use f95_lapack
 
 implicit none
