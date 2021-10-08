@@ -418,6 +418,15 @@ subroutine make_pseudoinverse(A,Ap,svd_condition,print_err,ok)
   logical, optional :: ok
 end subroutine
 
+subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
+  import
+  implicit none
+  real(rp) mat(:,:), mat2(size(mat,1), size(mat,2))
+  complex(rp) eigen_val(:), eigen_vec(:,:)
+  logical error
+  logical, optional :: print_err
+end subroutine
+
 subroutine mat_inverse (mat, mat_inv, ok, print_err)
   import
   real(rp) :: mat(:,:)
