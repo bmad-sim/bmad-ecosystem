@@ -8,7 +8,6 @@ use bmad
 use random_mod
 use naff_mod
 use cubic_interpolation_mod
-use eigen_mod
 
 implicit none
 
