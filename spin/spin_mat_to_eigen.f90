@@ -20,7 +20,6 @@
 subroutine spin_mat_to_eigen (orb_mat, spin_map, orb_eval, orb_evec, n0, spin_evec)
 
 use sim_utils
-use eigen_mod
 use f95_lapack
 
 implicit none

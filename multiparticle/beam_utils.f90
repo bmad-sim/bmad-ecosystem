@@ -1,7 +1,6 @@
 module beam_utils
 
 use beam_file_io
-use eigen_mod
 use wake_mod
 use coord_mod
 
