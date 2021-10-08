@@ -3,7 +3,6 @@ program frequency_map
   use bmad
   use bsim_interface
   use nr, only: fourrow
-  use eigen_mod
   use z_tune_mod
   
   implicit none

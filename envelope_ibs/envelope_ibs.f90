@@ -13,7 +13,6 @@ use bmad
 use transfer_map_mod
 use mode3_mod
 use envelope_mod
-use eigen_mod
 
 implicit none
 
