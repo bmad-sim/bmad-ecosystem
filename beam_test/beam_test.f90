@@ -1,6 +1,6 @@
 program beam_test
 
-use eigen_mod
+use sim_utils
 
 implicit none
 
@@ -31,8 +31,6 @@ sig_s(:,6) =  sig(:,5)
 
 
 call mat_eigen (sig_s, eval, evec, err)
-
-
 
 do i = 1, 6
   write (1, '(a, i0, a, 2es16.8)') '"EigenVal', i, '" ABS 1E-20', eval(i)
