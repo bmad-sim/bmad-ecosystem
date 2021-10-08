@@ -219,7 +219,6 @@ release_build_list = [
                 '/CESR/CESR_progs/knobs',
                 '/CESR/CESR_progs/xbus_load',
                 '/CESR/CESR_progs/moorecon',
-                '/CESR/CESR_progs/qadcon',
                 '/CESR/CESR_progs/scwigcon',
                 '/CESR/CESR_progs/scwig_mpmdb',
                 '/CESR/CESR_progs/vacmap',
