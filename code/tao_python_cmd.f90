@@ -386,7 +386,7 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
 
 !%% bmad_com -----------------------
-! Bmad_com structure components
+! Output bmad_com structure components
 !
 ! Notes
 ! -----
@@ -453,7 +453,7 @@ case ('bmad_com')
   nl=incr(nl); write (li(nl), lmt) 'debug;LOGIC;T;',                             bmad_com%debug
 
 !%% branch1 -----------------------
-! Lattice element list.
+! Output lattice branch information for a particular lattice branch.
 !
 ! Notes
 ! -----
@@ -462,18 +462,15 @@ case ('bmad_com')
 ! where
 !   {ix_universe} is a universe index. Defaults to s%global%default_universe.
 !   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
-! 
 !
 ! Parameters
 ! ----------
 ! ix_universe : ""
 ! ix_branch : ""
-!
-!    
+! 
 ! Returns
 ! -------
 ! string_list
-!
 !
 ! Examples
 ! --------
@@ -504,12 +501,12 @@ case ('branch1')
   nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                     branch%param%stable
 
 !%% bunch_params -----------------------
-! Bunch parameters at the exit end of a given lattice element.
+! Output bunch parameters at the exit end of a given lattice element.
 !
 ! Notes
 ! -----
 ! Command syntax:
-! python bunch_params {ele_id}|{which}
+!   python bunch_params {ele_id}|{which}
 !
 ! Parameters
 ! ----------
@@ -530,7 +527,6 @@ case ('branch1')
 !  args:
 !    ele_id: end
 !    which: model
-!
 
 case ('bunch_params')
 
@@ -595,14 +591,12 @@ case ('bunch_params')
 !   One of: "model", "base" or "design"
 ! ix_bunch : default=1
 !
-!  
 ! Returns
 ! -------
 ! real_array
 !   if coordinate != 'state'
 ! integer_array
 !   if coordinate == 'state'
-!
 !
 ! Examples
 ! --------
@@ -614,8 +608,6 @@ case ('bunch_params')
 !    coordinate: x
 !    which: model
 !    ix_bunch: 1
-!   
-!
 
 case ('bunch1')
 
@@ -1180,6 +1172,7 @@ case ('data')
 ! -----
 ! Command syntax:
 !   python data_d2_create {d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
+!
 ! {d2_name} should be of the form {ix_uni}@{d2_datum_name}
 ! {n_d1_data} is the number of associated d1 data structures.
 ! {d_data_arrays_name_min_max} has the form
@@ -1201,7 +1194,6 @@ case ('data')
 !   ("set global lattice_calc_on = F") to prevent Tao trying to 
 !       evaluate the partially created datum and generating unwanted error messages.
 ! 
-!
 ! Parameters
 ! ----------
 !
@@ -1213,7 +1205,6 @@ case ('data')
 ! Returns
 ! -------
 ! None
-!
 !
 ! Examples
 ! --------

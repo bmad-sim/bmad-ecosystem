@@ -1,267 +1,143 @@
 % WARNING: this is automatically generated. DO NOT EDIT.
-\begin{description}
-\item[beam] \Newline\begin{example}
+
+%% python beam ------------------------------------
+\subsection{python beam}
+\index{python!beam}
+\label{p:beam}
+
 Output beam parameters that are not in the beam_init structure.
 
-Notes
------
-Command syntax:
-  python beam {ix_universe}
+\begin{example}
+   python beam {ix_universe}
+\end{example}
+\begin{verbatim}
 where
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_universe} is a universe index. Defaults to \vn{s%global%default_universe.}
 To set beam_init parameters use the "set beam" command
 
 
-Parameters
-----------
-ix_universe : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list 
+%% python beam_init ------------------------------------
+\subsection{python beam_init}
+\index{python!beam_init}
+\label{p:beam.init}
 
-
-Examples
--------- 
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
- args:
-   ix_universe: 1
-
-\end{example}
-\item[beam_init] \Newline\begin{example}
 Output beam_init parameters.
 
-Notes
------
-Command syntax:
-  python beam_init {ix_universe}
+\begin{example}
+   python beam_init {ix_universe}
+\end{example}
+\begin{verbatim}
 where
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_universe} is a universe index. Defaults to \vn{s%global%default_universe.}
 To set beam_init parameters use the "set beam_init" command
 
 
-Parameters
-----------
-ix_universe : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list 
+%% python bmad_com ------------------------------------
+\subsection{python bmad_com}
+\index{python!bmad_com}
+\label{p:bmad.com}
 
+Output bmad_com structure components
 
-Examples
--------- 
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
- args:
-   ix_universe: 1
-
+\begin{example}
+   python bmad_com
 \end{example}
-\item[bmad_com] \Newline\begin{example}
-Bmad_com structure components
+\begin{verbatim}
 
-Notes
------
-Command syntax:
-  python bmad_com
+\end{verbatim}
 
-Parameters
-----------
+%% python branch1 ------------------------------------
+\subsection{python branch1}
+\index{python!branch1}
+\label{p:branch1}
 
-   
-Returns
--------
-string_list 
+Output lattice branch information for a particular lattice branch.
 
-
-Examples
--------- 
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-
+\begin{example}
+   python branch1 {ix_universe}@{ix_branch}
 \end{example}
-\item[branch1] \Newline\begin{example}
-Lattice element list.
-
-Notes
------
-Command syntax:
-  python branch1 {ix_universe}@{ix_branch}
+\begin{verbatim}
 where
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
-  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
+  {ix_universe} is a universe index. Defaults to \vn{s%global%default_universe.}
+  {ix_branch} is a lattice branch index. Defaults to \vn{s%global%default_branch.}
 
+\end{verbatim}
 
-Parameters
-----------
-ix_universe : ""
-ix_branch : ""
+%% python bunch_params ------------------------------------
+\subsection{python bunch_params}
+\index{python!bunch_params}
+\label{p:bunch.params}
 
-   
-Returns
--------
-string_list
+Output bunch parameters at the exit end of a given lattice element.
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ix_universe: 1
-   ix_branch: 0
-
+\begin{example}
+   python bunch_params {ele_id}|{which}
 \end{example}
-\item[bunch_params] \Newline\begin{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% python bunch1 ------------------------------------
+\subsection{python bunch1}
+\index{python!bunch1}
+\label{p:bunch1}
+
 Bunch parameters at the exit end of a given lattice element.
 
-Notes
------
-Command syntax:
-python bunch_params {ele_id}|{which}
-
-Parameters
-----------
-ele_id
-  Element name or index
-which : default=model
-  One of: "model", "base" or "design"
-
-Returns
--------
-string_list 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
- args:
-   ele_id: end
-   which: model
-
-
+\begin{example}
+ python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
 \end{example}
-\item[bunch1] \Newline\begin{example}
-Bunch parameters at the exit end of a given lattice element.
+\begin{verbatim}
 
-Notes
------
-Command syntax:
-python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
+\end{verbatim}
 
-Parameters
-----------
-ele_id
-  Element name or index
-coordinate
-  If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
-which : default=model
-  One of: "model", "base" or "design"
-ix_bunch : default=1
+%% python building_wall_list ------------------------------------
+\subsection{python building_wall_list}
+\index{python!building_wall_list}
+\label{p:building.wall.list}
 
- 
-Returns
--------
-real_array
-  if coordinate != 'state'
-integer_array
-  if coordinate == 'state'
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
- args:
-   ele_id: end
-   coordinate: x
-   which: model
-   ix_bunch: 1
-  
-
-
-\end{example}
-\item[building_wall_list] \Newline\begin{example}
 List of building wall sections or section points
 
-Notes
------
-Command syntax:
-  python building_wall_list {ix_section}
+\begin{example}
+   python building_wall_list {ix_section}
+\end{example}
+\begin{verbatim}
 If {ix_section} is not present then a list of building wall sections is given.
 If {ix_section} is present then a list of section points is given
 
 
-Parameters
-----------
-ix_section : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list 
+%% python building_wall_graph ------------------------------------
+\subsection{python building_wall_graph}
+\index{python!building_wall_graph}
+\label{p:building.wall.graph}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
- args:
-   ix_section:
-
-Example: 2
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
- args:
-   ix_section: 1
-
-\end{example}
-\item[building_wall_graph] \Newline\begin{example}
 (x, y) points for drawing the building wall for a particular graph.
 
-Notes
------
-The graph defines the coordinate system for the (x, y) points.
-Command syntax:
-  python building_wall_graph {graph}
-
-
-Parameters
-----------
-graph
-
-   
-Returns
--------
-string_list 
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
- args:
-   graph: floor_plan.g
-
+\begin{example}
+   python building_wall_graph {graph}
 \end{example}
-\item[building_wall_point] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python building_wall_point ------------------------------------
+\subsection{python building_wall_point}
+\index{python!building_wall_point}
+\label{p:building.wall.point}
+
 add or delete a building wall point
 
-Notes
------
-Command syntax:
-  python building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^{z_center}^^{x_center}
+\begin{example}
+   python building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^{z_center}^^{x_center}
+\end{example}
+\begin{verbatim}
 Where:
   {ix_section}    -- Section index.
   {ix_point}      -- Point index. Points of higher indexes will be moved up 
@@ -270,44 +146,19 @@ Where:
                   -- If {z} is set to "delete" then delete the point.
 
 
-Parameters
-----------
-ix_section
-ix_point
-z
-x
-radius
-z_center
-x_center
+\end{verbatim}
 
-   
-Returns
--------
-None 
+%% python building_wall_section ------------------------------------
+\subsection{python building_wall_section}
+\index{python!building_wall_section}
+\label{p:building.wall.section}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
- args:
-   ix_section: 1
-   ix_point: 1
-   z: 0
-   x: 0
-   radius: 0
-   z_center: 0
-   x_center: 0
-
-\end{example}
-\item[building_wall_section] \Newline\begin{example}
 add or delete a building wall section
 
-Notes
------
-Command syntax:
-  python building_wall_section {ix_section}^^{sec_name}^^{sec_constraint}
+\begin{example}
+   python building_wall_section {ix_section}^^{sec_name}^^{sec_constraint}
+\end{example}
+\begin{verbatim}
 Where:
   {ix_section}      -- Section index. Sections with higher indexes will be
                          moved up if adding a section and down if deleting.
@@ -319,36 +170,19 @@ Where:
       right_side
 
 
-Parameters
-----------
-ix_section
-sec_name
-sec_constraint
+\end{verbatim}
 
-   
-Returns
--------
-None
+%% python constraints ------------------------------------
+\subsection{python constraints}
+\index{python!constraints}
+\label{p:constraints}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ix_section: 1
-   sec_name: test
-   sec_constraint: none
-
-\end{example}
-\item[constraints] \Newline\begin{example}
 Optimization data and variables that contribute to the merit function.
 
-Notes
------
-Command syntax:
-  python constraints {who}
+\begin{example}
+   python constraints {who}
+\end{example}
+\begin{verbatim}
 {who} is one of:
   data
   var
@@ -359,9 +193,9 @@ Data constraints output is:
   start element name
   end/reference element name
   measured value
-  ref value (only relavent if global%opt_with_ref = T)
+  ref value (only relavent if \vn{global%opt_with_ref} = T)
   model value
-  base value (only relavent if global%opt_with_base = T)
+  base value (only relavent if \vn{global%opt_with_base} = T)
   weight
   merit value
   location where merit is evaluated (if there is a range)
@@ -369,91 +203,57 @@ Var constraints output is:
   var name
   Associated varible attribute
   meas value
-  ref value (only relavent if global%opt_with_ref = T)
+  ref value (only relavent if \vn{global%opt_with_ref} = T)
   model value
-  base value (only relavent if global%opt_with_base = T)
+  base value (only relavent if \vn{global%opt_with_base} = T)
   weight
   merit value
   dmerit/dvar
 
 
-Parameters
-----------
-who
+\end{verbatim}
 
-   
-Returns
--------
-string_list 
+%% python da_aperture ------------------------------------
+\subsection{python da_aperture}
+\index{python!da_aperture}
+\label{p:da.aperture}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   who: data
-
-Example: 2
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   who:var
-
-\end{example}
-\item[da_aperture] \Newline\begin{example}
 Dynamic aperture data
 
-Notes
------
-Command syntax:
-  python da_aperture {ix_uni}
-
-
-Parameters
-----------
-ix_uni : optional
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
+\begin{example}
+   python da_aperture {ix_uni}
 \end{example}
-\item[da_params] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python da_params ------------------------------------
+\subsection{python da_params}
+\index{python!da_params}
+\label{p:da.params}
+
 Dynamic aperture input parameters
 
-Notes
------
-Command syntax:
-  python da_params {ix_uni}
-
-
-Parameters
-----------
-ix_uni : optional
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
+\begin{example}
+   python da_params {ix_uni}
 \end{example}
-\item[data] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python data ------------------------------------
+\subsection{python data}
+\index{python!data}
+\label{p:data}
+
 Individual datum info.
 
-Notes
------
-Command syntax:
-  python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
+\begin{example}
+   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
+\end{example}
+\begin{verbatim}
 Use the "python data-d1" command to get detailed info on a specific d1 array.
 Output syntax is parameter list form. See documentation at the beginning of this file.
 Example:
@@ -461,46 +261,20 @@ Example:
 Note : By default dat_index is 1.
 
 
-Parameters
-----------
-d2_name
-d1_datum
-ix_universe : optional
-dat_index : default=1
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python data_d2_create ------------------------------------
+\subsection{python data_d2_create}
+\index{python!data_d2_create}
+\label{p:data.d2.create}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   ix_universe:
-   d2_name: twiss
-   d1_datum: end 
-   dat_index: 1  
-
-Example: 2
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   ix_universe: 1
-   d2_name: twiss
-   d1_datum: end
-   dat_index: 1
-
-\end{example}
-\item[data_d2_create] \Newline\begin{example}
 Create a d2 data structure along with associated d1 and data arrays.
 
-Notes
------
-Command syntax:
-  python data_d2_create {d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
+\begin{example}
+   python data_d2_create {d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
+\end{example}
+\begin{verbatim}
+
 {d2_name} should be of the form {ix_uni}@{d2_datum_name}
 {n_d1_data} is the number of associated d1 data structures.
 {d_data_arrays_name_min_max} has the form
@@ -518,394 +292,202 @@ The "y" d1 structure has an associated data arrray with indexes in the range [1,
 
 Use the "set data" command to set a created datum parameters.
 Note: When setting multiple data parameters, 
-      temporarily toggle s%global%lattice_calc_on to False
+      temporarily toggle \vn{s%global%lattice_calc_on} to False
   ("set global lattice_calc_on = F") to prevent Tao trying to 
       evaluate the partially created datum and generating unwanted error messages.
 
+\end{verbatim}
 
-Parameters
-----------
+%% python data_d2_destroy ------------------------------------
+\subsection{python data_d2_destroy}
+\index{python!data_d2_destroy}
+\label{p:data.d2.destroy}
 
-d2_name
-n_d1_data
-d_data_arrays_name_min_max
-ix_uni : optional
-   
-Returns
--------
-None
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   ix_uni: 1
-   d2_name: orbit
-   n_d1_data: 2 
-   d_data_arrays_name_min_max: x^^0^^45^^y^^1^^47
-
-\end{example}
-\item[data_d2_destroy] \Newline\begin{example}
 Destroy a d2 data structure along with associated d1 and data arrays.
 
-Notes
------
-Command syntax:
-  python data_d2_destroy {d2_datum}
+\begin{example}
+   python data_d2_destroy {d2_datum}
+\end{example}
+\begin{verbatim}
 {d2_datum} should be of the form
   {ix_uni}@{d2_datum_name}
 
 
-Parameters
-----------
-d2_datum
-ix_uni : optional
-   
-Returns
--------
-None
+\end{verbatim}
 
+%% python data_d2 ------------------------------------
+\subsection{python data_d2}
+\index{python!data_d2}
+\label{p:data.d2}
 
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   d2_datum: 1@eta.x
-
-\end{example}
-\item[data_d2] \Newline\begin{example}
 Information on a d2_datum.
 
-Notes
------
-Command syntax:
-  python data_d2 {d2_datum}
+\begin{example}
+   python data_d2 {d2_datum}
+\end{example}
+\begin{verbatim}
 {d2_datum} should be of the form
   {ix_uni}@{d2_datum_name}
 
 
-Parameters
-----------
-d2_datum
-ix_uni : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list 
+%% python data_d_array ------------------------------------
+\subsection{python data_d_array}
+\index{python!data_d_array}
+\label{p:data.d.array}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   ix_uni: 1
-   d2_datum: twiss
-
-\end{example}
-\item[data_d_array] \Newline\begin{example}
 List of datums for a given data_d1.
 
-Notes
------
-Command syntax:
-  python data_d_array {d1_datum}
+\begin{example}
+   python data_d_array {d1_datum}
+\end{example}
+\begin{verbatim}
 {d1_datum} should be for the form
   {ix_uni}@{d2_datum_name}.{d1_datum_name}
 Example:
   python data_d_array 1@orbit.x
 
 
-Parameters
-----------
-d1_datum
-ix_uni : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list 
+%% python data_d1_array ------------------------------------
+\subsection{python data_d1_array}
+\index{python!data_d1_array}
+\label{p:data.d1.array}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   ix_uni: 1 
-   d1_datum: twiss.end
-
-\end{example}
-\item[data_d1_array] \Newline\begin{example}
 List of d1 arrays for a given data_d2.
 
-Notes
------
-Command syntax:
-  python data_d1_array {d2_datum}
+\begin{example}
+   python data_d1_array {d2_datum}
+\end{example}
+\begin{verbatim}
 {d2_datum} should be of the form
   {ix_uni}@{d2_datum_name}
 
 
-Parameters
-----------
-d2_datum
-ix_uni : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list 
+%% python data_parameter ------------------------------------
+\subsection{python data_parameter}
+\index{python!data_parameter}
+\label{p:data.parameter}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   ix_uni: 1 
-   d2_datum: twiss
-
-\end{example}
-\item[data_parameter] \Newline\begin{example}
 Given an array of datums, generate an array of values for a particular datum parameter.
 
-Notes
------
-Command syntax:
-  python data_parameter {data_array} {parameter}
+\begin{example}
+   python data_parameter {data_array} {parameter}
+\end{example}
+\begin{verbatim}
 {parameter} may be any tao_data_struct parameter.
 Example:
   python data_parameter orbit.x model_value
 
-Parameters
-----------
-data_array
-parameter
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python data_d2_array ------------------------------------
+\subsection{python data_d2_array}
+\index{python!data_d2_array}
+\label{p:data.d2.array}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   data_array: twiss.end 
-   parameter: model_value
-
-\end{example}
-\item[data_d2_array] \Newline\begin{example}
 Data d2 info for a given universe.
 
-Notes
------
-Command syntax:
-  python data_d2_array {ix_universe}
+\begin{example}
+   python data_d2_array {ix_universe}
+\end{example}
+\begin{verbatim}
 Example:
   python data_d2_array 1
 
 
-Parameters
-----------
-ix_universe
+\end{verbatim}
 
-   
-Returns
--------
-string_list  
+%% python data_set_design_value ------------------------------------
+\subsection{python data_set_design_value}
+\index{python!data_set_design_value}
+\label{p:data.set.design.value}
 
+Set the design (and base \& model) values for all datums.
 
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ix_universe : 1 
-
+\begin{example}
+   python data_set_design_value
 \end{example}
-\item[data_set_design_value] \Newline\begin{example}
-Set the design (and base & model) values for all datums.
-
-Notes
------
-Command syntax:
-  python data_set_design_value
+\begin{verbatim}
 Example:
   python data_set_design_value
 
 Note: Use the "data_d2_create" and "datum_create" first to create datums.
 
-Parameters
-----------
+\end{verbatim}
 
-   
-Returns
--------
-None
+%% python datum_create ------------------------------------
+\subsection{python datum_create}
+\index{python!datum_create}
+\label{p:datum.create}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-
-\end{example}
-\item[datum_create] \Newline\begin{example}
 Create a datum.
 
-Notes
------
-Command syntax:
-  python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^
-                      {ele_name}^^{merit_type}^^{meas}^^{good_meas}^^{ref}^^
-                      {good_ref}^^{weight}^^{good_user}^^{data_source}^^
-                      {eval_point}^^{s_offset}^^{ix_bunch}^^{invalid_value}^^
-                      {spin_axis%n0(1)}^^{spin_axis%n0(2)}^^{spin_axis%n0(3)}^^
-                      {spin_axis%l(1)}^^{spin_axis%l(2)}^^{spin_axis%l(3)}
+\begin{example}
+   python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^
+                       {ele_name}^^{merit_type}^^{meas}^^{good_meas}^^{ref}^^
+                       {good_ref}^^{weight}^^{good_user}^^{data_source}^^
+                       {eval_point}^^{s_offset}^^{ix_bunch}^^{invalid_value}^^
+                       {spin_axis%n0(1)}^^{spin_axis%n0(2)}^^{spin_axis%n0(3)}^^
+                       {spin_axis%l(1)}^^{spin_axis%l(2)}^^{spin_axis%l(3)}
+\end{example}
+\begin{verbatim}
 
-Note: The 3 values for spin_axis%n0, as a group, are optional. 
-      Also the 3 values for spin_axis%l are, as a group, optional.
+Note: The 3 values for \vn{spin_axis%n0,} as a group, are optional. 
+      Also the 3 values for \vn{spin_axis%l} are, as a group, optional.
 Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
 Note: After creating all your datums, use the "data_set_design_value" routine to 
       set the design (and model) values.
 
 
-Parameters
-----------
-datum_name          ! EG: orb.x[3]
-data_type           ! EG: orbit.x
-ele_ref_name : optional
-ele_start_name : optional
-ele_name : optional
-merit_type : optional
-meas : default=0
-good_meas : default=F
-ref : default=0
-good_ref : default=F
-weight : default=0
-good_user : default=T
-data_source : default=lat
-eval_point : default=END
-s_offset : default=0
-ix_bunch : default=0
-invalid_value : default=0
-spin_axis%n0(1) : optional
-spin_axis%n0(2) : optional
-spin_axis%n0(3) : optional
-spin_axis%l(1) : optional
-spin_axis%l(2) : optional
-spin_axis%l(3) : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python datum_has_ele ------------------------------------
+\subsection{python datum_has_ele}
+\index{python!datum_has_ele}
+\label{p:datum.has.ele}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   datum_name: twiss.end[6]
-   data_type: beta.y
-   ele_ref_name:
-   ele_start_name:
-   ele_name: P1
-   merit_type: target
-   meas: 0
-   good_meas: T
-   ref: 0
-   good_ref: T
-   weight: 0.3
-   good_user: T
-   data_source: lat
-   eval_point: END
-   s_offset: 0
-   ix_bunch: 1
-   invalid_value: 0
-
-\end{example}
-\item[datum_has_ele] \Newline\begin{example}
 Does datum type have an associated lattice element?
 
-Notes
------
-Command syntax:
-  python datum_has_ele {datum_type}
-
-
-Parameters
-----------
-datum_type
-
-   
-Returns
--------
-string_list 
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   datum_type: twiss.end 
-
+\begin{example}
+   python datum_has_ele {datum_type}
 \end{example}
-\item[derivative] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python derivative ------------------------------------
+\subsection{python derivative}
+\index{python!derivative}
+\label{p:derivative}
+
 Optimization derivatives
 
-Notes
------
-Command syntax:
-  python derivative
+\begin{example}
+   python derivative
+\end{example}
+\begin{verbatim}
 Note: To save time, this command will not recalculate derivatives. 
 Use the "derivative" command beforehand to recalcuate if needed.
 
-Parameters
-----------
+\end{verbatim}
 
+%% python ele:ac_kicker ------------------------------------
+\subsection{python ele:ac_kicker}
+\index{python!ele:ac_kicker}
+\label{p:ele:ac.kicker}
 
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-
-\end{example}
-\item[ele:ac_kicker] \Newline\begin{example}
 Element ac_kicker
 
-Notes
------
-Command syntax:
-  python ele:ac_kicker {ele_id}|{which}
+\begin{example}
+   python ele:ac_kicker {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -915,39 +497,24 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
+%% python ele:cartesian_map ------------------------------------
+\subsection{python ele:cartesian_map}
+\index{python!ele:cartesian_map}
+\label{p:ele:cartesian.map}
 
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:cartesian_map] \Newline\begin{example}
 Element cartesian_map
 
-Notes
------
-Command syntax:
-  python ele:cartesian_map {ele_id}|{which} {index} {who}
+\begin{example}
+   python ele:cartesian_map {ele_id}|{which} {index} {who}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
   design
-{index} is the index number in the ele%cartesian_map(:) array
+{index} is the index number in the \vn{ele%cartesian_map(:)} array
 {who} is one of:
   base
   terms
@@ -956,37 +523,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-index 
-who
-which : default=model
+\end{verbatim}
 
-Returns
--------
-string_list
+%% python ele:chamber_wall ------------------------------------
+\subsection{python ele:chamber_wall}
+\index{python!ele:chamber_wall}
+\label{p:ele:chamber.wall}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
- args:
-  ele_id: 1@0>>1
-  which: model
-  index: 1
-  who: base
-
-\end{example}
-\item[ele:chamber_wall] \Newline\begin{example}
 Element beam chamber wall
 
-Notes
------
-Command syntax:
-  python ele:chamber_wall {ele_id}|{which} {index} {who}
+\begin{example}
+   python ele:chamber_wall {ele_id}|{which} {index} {who}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -997,39 +546,20 @@ where {ele_id} is an element name or index and {which} is one of
   y       ! Return min/max in vertical plane
 
 
-Parameters
-----------
-ele_id
-index
-who
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list 
+%% python ele:control_var ------------------------------------
+\subsection{python ele:control_var}
+\index{python!ele:control_var}
+\label{p:ele:control.var}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall3d
- args:
-  ele_id: 1@0>>1
-  which: model
-  index: 1
-  who: x
-
-\end{example}
-\item[ele:control_var] \Newline\begin{example}
 List element control variables.
 Used for group, overlay and ramper type elements
 
-Notes
------
-Command syntax:
-  python ele:control_var {ele_id}|{which}
+\begin{example}
+   python ele:control_var {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1039,39 +569,24 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:cylindrical_map ------------------------------------
+\subsection{python ele:cylindrical_map}
+\index{python!ele:cylindrical_map}
+\label{p:ele:cylindrical.map}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>873
-  which: model
-
-\end{example}
-\item[ele:cylindrical_map] \Newline\begin{example}
 Element cylindrical_map
 
-Notes
------
-Command syntax:
-  python ele:cylindrical_map {ele_id}|{which} {index} {who}
+\begin{example}
+   python ele:cylindrical_map {ele_id}|{which} {index} {who}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
   design
-{index} is the index number in the ele%cylindrical_map(:) array
+{index} is the index number in the \vn{ele%cylindrical_map(:)} array
 {who} is one of:
   base
   terms
@@ -1080,38 +595,19 @@ Example:
 This gives map #2 of element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-index
-who
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:elec_multipoles ------------------------------------
+\subsection{python ele:elec_multipoles}
+\index{python!ele:elec_multipoles}
+\label{p:ele:elec.multipoles}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
- args:
-  ele_id: 1@0>>5
-  which: model
-  index: 1
-  who: base
-
-\end{example}
-\item[ele:elec_multipoles] \Newline\begin{example}
 Element electric multipoles
 
-Notes
------
-Command syntax:
-  python ele:elec_multipoles {ele_id}|{which}
+\begin{example}
+   python ele:elec_multipoles {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1121,35 +617,20 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:floor ------------------------------------
+\subsection{python ele:floor}
+\index{python!ele:floor}
+\label{p:ele:floor}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:floor] \Newline\begin{example}
 Element floor coordinates. The output gives two lines. "Reference" is
 without element misalignments and "Actual" is with misalignments.
 
-Notes
------
-Command syntax:
-  python ele:floor {ele_id}|{which} {where}
+\begin{example}
+   python ele:floor {ele_id}|{which} {where}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1164,46 +645,22 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
-where : default=end
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:grid_field ------------------------------------
+\subsection{python ele:grid_field}
+\index{python!ele:grid_field}
+\label{p:ele:grid.field}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-  where: 
-
-Example: 2
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-  where: center
-
-\end{example}
-\item[ele:grid_field] \Newline\begin{example}
 Element grid_field
 
-Notes
------
-Command syntax:
-  python ele:grid_field {ele_id}|{which} {index} {who}
+\begin{example}
+   python ele:grid_field {ele_id}|{which} {index} {who}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model, base, design
-{index} is the index number in the ele%grid_field(:) array.
+{index} is the index number in the \vn{ele%grid_field(:)} array.
 {who} is one of:
   base, points
 Example:
@@ -1211,37 +668,19 @@ Example:
 This gives grid #2 of element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
-index : default=1
-who :
-   
-Returns
--------
-string_list
+\end{verbatim}
 
+%% python ele:gen_attribs ------------------------------------
+\subsection{python ele:gen_attribs}
+\index{python!ele:gen_attribs}
+\label{p:ele:gen.attribs}
 
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_grid
- args:
-  ele_id: 1@0>>1
-  which: model
-  index: 1
-  who: base 
-
-\end{example}
-\item[ele:gen_attribs] \Newline\begin{example}
 Element general attributes
 
-Notes
------
-Command syntax:
-  python ele:gen_attribs {ele_id}|{which}
+\begin{example}
+   python ele:gen_attribs {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1251,34 +690,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
+%% python ele:head ------------------------------------
+\subsection{python ele:head}
+\index{python!ele:head}
+\label{p:ele:head}
 
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:head] \Newline\begin{example}
 "Head" Element attributes
 
-Notes
------
-Command syntax:
-  python ele:head {ele_id}|{which}
+\begin{example}
+   python ele:head {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1288,34 +712,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id 
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list 
+%% python ele:lord_slave ------------------------------------
+\subsection{python ele:lord_slave}
+\index{python!ele:lord_slave}
+\label{p:ele:lord.slave}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:lord_slave] \Newline\begin{example}
 Lists the lord/slave tree of an element.
 
-Notes
------
-Command syntax:
-  python ele:lord_slave {ele_id}|{which}
+\begin{example}
+   python ele:lord_slave {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1331,34 +740,19 @@ After each "Element" line, there are a number of lines (possibly zero) that begi
 These "Slave" and "Lord" lines are the slaves and lords of the "Element" element.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:mat6 ------------------------------------
+\subsection{python ele:mat6}
+\index{python!ele:mat6}
+\label{p:ele:mat6}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:mat6] \Newline\begin{example}
 Element mat6
 
-Notes
------
-Command syntax:
-  python ele:mat6 {ele_id}|{which} {who}
+\begin{example}
+   python ele:mat6 {ele_id}|{which} {who}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1372,36 +766,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
-who :
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:methods ------------------------------------
+\subsection{python ele:methods}
+\index{python!ele:methods}
+\label{p:ele:methods}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-  who: mat6
-
-\end{example}
-\item[ele:methods] \Newline\begin{example}
 Element methods
 
-Notes
------
-Command syntax:
-  python ele:methods {ele_id}|{which}
+\begin{example}
+   python ele:methods {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1411,34 +788,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
+%% python ele:multipoles ------------------------------------
+\subsection{python ele:multipoles}
+\index{python!ele:multipoles}
+\label{p:ele:multipoles}
 
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:multipoles] \Newline\begin{example}
 Element multipoles
 
-Notes
------
-Command syntax:
-  python ele:multipoles {ele_id}|{which}
+\begin{example}
+   python ele:multipoles {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1448,34 +810,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
+%% python ele:orbit ------------------------------------
+\subsection{python ele:orbit}
+\index{python!ele:orbit}
+\label{p:ele:orbit}
 
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:orbit] \Newline\begin{example}
 Element orbit
 
-Notes
------
-Command syntax:
-  python ele:orbit {ele_id}|{which}
+\begin{example}
+   python ele:orbit {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1485,34 +832,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:param ------------------------------------
+\subsection{python ele:param}
+\index{python!ele:param}
+\label{p:ele:param}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:param] \Newline\begin{example}
 Element parameter
 
-Notes
------
-Command syntax:
-  python ele:param {ele_id}|{which} {who}
+\begin{example}
+   python ele:param {ele_id}|{which} {who}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1531,37 +863,19 @@ command cannot tell if a parameter is allowed to vary).
 Also see: "python lat_list".
 
 
-Parameters
-----------
-ele_id
-which : default=model
-who :
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:photon ------------------------------------
+\subsection{python ele:photon}
+\index{python!ele:photon}
+\label{p:ele:photon}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
- args:
-  ele_id: 1@0>>1
-  which: model
-  who:
-
-
-\end{example}
-\item[ele:photon] \Newline\begin{example}
 Element photon
 
-Notes
------
-Command syntax:
-  python ele:photon {ele_id}|{which} {who}
+\begin{example}
+   python ele:photon {ele_id}|{which} {who}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1575,36 +889,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
-who :
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:spin_taylor ------------------------------------
+\subsection{python ele:spin_taylor}
+\index{python!ele:spin_taylor}
+\label{p:ele:spin.taylor}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
- args:
-  ele_id: 1@0>>1
-  which: model
-  who: base
-
-\end{example}
-\item[ele:spin_taylor] \Newline\begin{example}
 Element spin_taylor
 
-Notes
------
-Command syntax:
-  python ele:spin_taylor {ele_id}|{which}
+\begin{example}
+   python ele:spin_taylor {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1614,35 +911,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:taylor ------------------------------------
+\subsection{python ele:taylor}
+\index{python!ele:taylor}
+\label{p:ele:taylor}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_spin
- args:
-  ele_id: 1@0>>2
-  which: model
-
-
-\end{example}
-\item[ele:taylor] \Newline\begin{example}
 Element taylor
 
-Notes
------
-Command syntax:
-  python ele:taylor {ele_id}|{which}
+\begin{example}
+   python ele:taylor {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1652,39 +933,24 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:taylor_field ------------------------------------
+\subsection{python ele:taylor_field}
+\index{python!ele:taylor_field}
+\label{p:ele:taylor.field}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_taylor
- args:
-  ele_id: 1@0>>34
-  which: model
-
-\end{example}
-\item[ele:taylor_field] \Newline\begin{example}
 Element taylor_field
 
-Notes
------
-Command syntax:
-  python ele:taylor_field {ele_id}|{which} {index} {who}
+\begin{example}
+   python ele:taylor_field {ele_id}|{which} {index} {who}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
   design
-{index} is the index number in the ele%taylor_field(:) array
+{index} is the index number in the \vn{ele%taylor_field(:)} array
 {who} is one of:
   base
   terms
@@ -1693,38 +959,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-index
-who
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:twiss ------------------------------------
+\subsection{python ele:twiss}
+\index{python!ele:twiss}
+\label{p:ele:twiss}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
- args:
-  ele_id: 1@0>>9
-  which: model
-  index: 1
-  who: terms
-
-\end{example}
-\item[ele:twiss] \Newline\begin{example}
 Element twiss
 
-Notes
------
-Command syntax:
-  python ele:twiss {ele_id}|{which}
+\begin{example}
+   python ele:twiss {ele_id}|{which}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1734,34 +981,19 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:wake ------------------------------------
+\subsection{python ele:wake}
+\index{python!ele:wake}
+\label{p:ele:wake}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-  ele_id: 1@0>>1
-  which: model
-
-\end{example}
-\item[ele:wake] \Newline\begin{example}
 Element wake
 
-Notes
------
-Command syntax:
-  python ele:wake {ele_id}|{which} {who}
+\begin{example}
+   python ele:wake {ele_id}|{which} {who}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
@@ -1776,41 +1008,24 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
-who :
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ele:wall3d ------------------------------------
+\subsection{python ele:wall3d}
+\index{python!ele:wall3d}
+\label{p:ele:wall3d}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wake
- args:
-  ele_id: 1@0>>1
-  which: model
-  who: sr_long
-
-\end{example}
-\item[ele:wall3d] \Newline\begin{example}
 Element wall3d
 
-Notes
------
-Command syntax:
-  python ele:wall3d {ele_id}|{which} {index} {who}
+\begin{example}
+   python ele:wall3d {ele_id}|{which} {index} {who}
+\end{example}
+\begin{verbatim}
 where {ele_id} is an element name or index and {which} is one of
   model
   base
   design
-{index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
+{index} is the index number in the \vn{ele%wall3d(:)} array (size obtained from "ele:head").
 {who} is one of:
   base
   table
@@ -1819,72 +1034,37 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 
 
-Parameters
-----------
-ele_id
-which : default=model
-index :
-who :
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python evaluate ------------------------------------
+\subsection{python evaluate}
+\index{python!evaluate}
+\label{p:evaluate}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall3d
- args:
-  ele_id: 1@0>>1
-  which: model
-  index: 1
-  who: table
-
-\end{example}
-\item[evaluate] \Newline\begin{example}
 Evaluate an expression. The result may be a vector.
 
-Notes
------
-Command syntax:
-  python evaluate {flags} {expression}
+\begin{example}
+   python evaluate {flags} {expression}
+\end{example}
+\begin{verbatim}
 
 Example:
   python evaluate data::cbar.11[1:10]|model
 
 
-Parameters
-----------
-expression
-flags : default=-array_out
-  If -array_out, the output will be available in the tao_c_interface_com%c_real.!
+\end{verbatim}
 
-Returns
--------
-string_list
-  if '-array_out' not in flags
-real_array
-  if '-array_out' in flags
+%% python em_field ------------------------------------
+\subsection{python em_field}
+\index{python!em_field}
+\label{p:em.field}
 
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   expression: data::cbar.11[1:10]|model
-
-\end{example}
-\item[em_field] \Newline\begin{example}
 EM field at a given point generated by a given element.
 
-Notes
------
-Command syntax:
-  python em_field {ele_id}|{which} {x} {y} {z} {t_or_z}
+\begin{example}
+   python em_field {ele_id}|{which} {x} {y} {z} {t_or_z}
+\end{example}
+\begin{verbatim}
 where {which} is one of:
   model
   base
@@ -1895,127 +1075,66 @@ Where:
   {t_or_z}  -- time or phase space z depending if lattice is setup for absolute time tracking.
 
 
-Parameters
-----------
-ele_id
-x
-y
-z
-t_or_z
-which : default=model
-   
-Returns
--------
-string_list
+\end{verbatim}
 
+%% python enum ------------------------------------
+\subsection{python enum}
+\index{python!enum}
+\label{p:enum}
 
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ele_id: 1@0>>22
-   which: model
-   x: 0
-   y: 0
-   z: 0
-   t_or_z: 0
-
-\end{example}
-\item[enum] \Newline\begin{example}
 List of possible values for enumerated numbers.
 
-Notes
------
-Command syntax:
-  python enum {enum_name}
+\begin{example}
+   python enum {enum_name}
+\end{example}
+\begin{verbatim}
 Example:
   python enum tracking_method
 
 
-Parameters
-----------
-enum_name
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python floor_plan ------------------------------------
+\subsection{python floor_plan}
+\index{python!floor_plan}
+\label{p:floor.plan}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   enum_name: tracking_method
-
-\end{example}
-\item[floor_plan] \Newline\begin{example}
 Floor plan elements
 
-Notes
------
-Command syntax:
-  python floor_plan {graph}
-
-
-Parameters
-----------
-graph
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   graph: r13.g
-
+\begin{example}
+   python floor_plan {graph}
 \end{example}
-\item[floor_orbit] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python floor_orbit ------------------------------------
+\subsection{python floor_orbit}
+\index{python!floor_orbit}
+\label{p:floor.orbit}
+
 (x, y) coordinates for drawing the particle orbit on a floor plan.
 
-Notes
------
-Command syntax:
-  python floor_orbit {graph}
-
-
-Parameters
-----------
-graph
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_floor_orbit
- args:
-   graph: r33.g 
-
+\begin{example}
+   python floor_orbit {graph}
 \end{example}
-\item[global] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python global ------------------------------------
+\subsection{python global}
+\index{python!global}
+\label{p:global}
+
 Global parameters
 
-Notes
------
-Command syntax:
-  python global
+\begin{example}
+   python global
+\end{example}
+\begin{verbatim}
 Output syntax is parameter list form. See documentation at the beginning of this file.
 
 Note: The follow is intentionally left out:
@@ -2026,181 +1145,107 @@ Note: The follow is intentionally left out:
   prompt_string
 
 
-Parameters
-----------
+\end{verbatim}
 
+%% python help ------------------------------------
+\subsection{python help}
+\index{python!help}
+\label{p:help}
 
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-
-\end{example}
-\item[help] \Newline\begin{example}
 returns list of "help xxx" topics
 
-Notes
------
-Command syntax:
-  python help
-
-
-Parameters
-----------
-
-
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-
+\begin{example}
+   python help
 \end{example}
-\item[inum] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python inum ------------------------------------
+\subsection{python inum}
+\index{python!inum}
+\label{p:inum}
+
 INUM
 
-Notes
------
-Command syntax:
-  python inum {who}
-
-
-Parameters
-----------
-who
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   who: ix_universe
-
+\begin{example}
+   python inum {who}
 \end{example}
-\item[lat_calc_done] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python lat_calc_done ------------------------------------
+\subsection{python lat_calc_done}
+\index{python!lat_calc_done}
+\label{p:lat.calc.done}
+
 Check if a lattice recalculation has been proformed since the last time
   "python lat_calc_done" was called.
 
-Notes
------
-Command syntax:
-  python lat_calc_done
-
-
-Parameters
-----------
-branch_name
-
-
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   branch_name: 1@0
-
+\begin{example}
+   python lat_calc_done
 \end{example}
-\item[lat_ele_list] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python lat_ele_list ------------------------------------
+\subsection{python lat_ele_list}
+\index{python!lat_ele_list}
+\label{p:lat.ele.list}
+
 Lattice element list.
 
-Notes
------
-Command syntax:
-  python lat_ele_list {branch_name}
+\begin{example}
+   python lat_ele_list {branch_name}
+\end{example}
+\begin{verbatim}
 {branch_name} should have the form:
   {ix_uni}@{ix_branch}
 
 
-Parameters
-----------
-branch_name : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python lat_branch_list ------------------------------------
+\subsection{python lat_branch_list}
+\index{python!lat_branch_list}
+\label{p:lat.branch.list}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   branch_name: 1@0
-
-\end{example}
-\item[lat_branch_list] \Newline\begin{example}
 Lattice branch list
 
-Notes
------
-Command syntax:
-  python lat_branch_list {ix_universe}
+\begin{example}
+   python lat_branch_list {ix_universe}
+\end{example}
+\begin{verbatim}
 
 Output syntax:
   branch_index;branch_name;n_ele_track;n_ele_max
 
 
-Parameters
-----------
-ix_universe : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python lat_list ------------------------------------
+\subsection{python lat_list}
+\index{python!lat_list}
+\label{p:lat.list}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ix_universe: 1
-
-\end{example}
-\item[lat_list] \Newline\begin{example}
 List of parameters at ends of lattice elements
 
-Notes
------
-Command syntax:
-  python lat_list {flags} {ix_uni}@{ix_branch}>>{elements}|{which} {who}
+\begin{example}
+   python lat_list {flags} {ix_uni}@{ix_branch}>>{elements}|{which} {who}
+\end{example}
+\begin{verbatim}
 where:
  Optional {flags} are:
   -no_slaves : If present, multipass_slave and super_slave elements will not be matched to.
   -track_only : If present, lord elements will not be matched to.
   -index_order : If present, order elements by element index instead of the standard s-position.
-  -array_out : If present, the output will be available in the tao_c_interface_com%c_real or
-    tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
+  -array_out : If present, the output will be available in the \vn{tao_c_interface_com%c_real} or
+    \vn{tao_c_interface_com%c_integer} arrays. See the code below for when %c_real vs %c_integer is used.
     Note: Only a single {who} item permitted when -array_out is present.
 
   {which} is one of:
@@ -2235,83 +1280,34 @@ Examples:
 Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
 Also see: "python ele:param"
 
-Parameters
-----------
-elements 
-who 
-ix_uni : optional
-ix_branch : optional
-which : default=model
-flags : optional, default=-array_out -track_only
+\end{verbatim}
 
-Returns
--------
-string_list
-  if ('-array_out' not in flags) or (who in ['ele.name'])
-integer_array
-   if '-array_out' in flags and who in ['orbit.state', 'ele.ix_ele']
-real_array
-   if ('-array_out' in flags) or ('real:' in who) 
+%% python lat_param_units ------------------------------------
+\subsection{python lat_param_units}
+\index{python!lat_param_units}
+\label{p:lat.param.units}
 
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ix_uni: 1  
-   ix_branch: 0 
-   elements: Q* 
-   which: model
-   who: orbit.floor.x
-
-Example: 2
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ix_uni: 1  
-   ix_branch: 0 
-   elements: Q* 
-   which: design
-   who: ele.ix_ele
-
-
-
-\end{example}
-\item[lat_param_units] \Newline\begin{example}
 Units of a parameter associated with a lattice or lattice element.
 
-Notes
------
-Command syntax:
-  python lat_param_units {param_name}
-
-
-Parameters
-----------
-param_name
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   param_name: L   
-
+\begin{example}
+   python lat_param_units {param_name}
 \end{example}
-\item[matrix] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python matrix ------------------------------------
+\subsection{python matrix}
+\index{python!matrix}
+\label{p:matrix}
+
 Matrix value from the exit end of one element to the exit end of the other.
 
-Notes
------
-Command syntax:
-  python matrix {ele1_id} {ele2_id}
+\begin{example}
+   python matrix {ele1_id} {ele2_id}
+\end{example}
+\begin{verbatim}
 where:
   {ele1_id} is the start element.
   {ele2_id} is the end element.
@@ -2322,60 +1318,34 @@ Example:
   python matrix 2@1>>q01w|design q02w
 
 
-Parameters
-----------
-ele1_id
-ele2_id
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python merit ------------------------------------
+\subsection{python merit}
+\index{python!merit}
+\label{p:merit}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ele1_id: 1@0>>q01w|design
-   ele2_id: q02w
-
-\end{example}
-\item[merit] \Newline\begin{example}
 Merit value.
 
-Notes
------
-Command syntax:
-  python merit
-
-
-Parameters
-----------
-
-
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-
+\begin{example}
+   python merit
 \end{example}
-\item[orbit_at_s] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python orbit_at_s ------------------------------------
+\subsection{python orbit_at_s}
+\index{python!orbit_at_s}
+\label{p:orbit.at.s}
+
 Twiss at given s position.
 
-Notes
------
-Command syntax:
-  python orbit_at_s {ix_uni}@{ix_branch}>>{s}|{which}
+\begin{example}
+   python orbit_at_s {ix_uni}@{ix_branch}>>{s}|{which}
+\end{example}
+\begin{verbatim}
 where:
   {which} is one of:
     model
@@ -2384,157 +1354,86 @@ where:
   {s} is the longitudinal s-position.
 
 
-Parameters
-----------
-s 
-ix_uni : optional
-ix_branch : optional
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python place_buffer ------------------------------------
+\subsection{python place_buffer}
+\index{python!place_buffer}
+\label{p:place.buffer}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ix_uni: 1
-   ix_branch: 0
-   s: 0.001
-   which: model
-
-\end{example}
-\item[place_buffer] \Newline\begin{example}
 Output place command buffer and reset the buffer.
 The contents of the buffer are the place commands that the user has issued.
 
-Notes
------
-Command syntax:
-  python place_buffer
-
-
-Parameters
-----------
-
-   
-Returns
--------
-None
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-
+\begin{example}
+   python place_buffer
 \end{example}
-\item[plot_curve] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python plot_curve ------------------------------------
+\subsection{python plot_curve}
+\index{python!plot_curve}
+\label{p:plot.curve}
+
 Curve information for a plot
 
 
-Notes
------
-Command syntax:
-  python plot_curve {curve_name}
-
-
-Parameters
-----------
-curve_name
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   curve_name: r13.g.a
-
+\begin{example}
+   python plot_curve {curve_name}
 \end{example}
-\item[plot_lat_layout] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python plot_lat_layout ------------------------------------
+\subsection{python plot_lat_layout}
+\index{python!plot_lat_layout}
+\label{p:plot.lat.layout}
+
 Plot Lat_layout info
 
-Notes
------
-Command syntax:
-  python plot_lat_layout {ix_universe}@{ix_branch}
+\begin{example}
+   python plot_lat_layout {ix_universe}@{ix_branch}
+\end{example}
+\begin{verbatim}
 Note: The returned list of element positions is not ordered in increasing
       longitudinal position.
 
 
-Parameters
-----------
-ix_universe: 1
-ix_branch: 0
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python plot_list ------------------------------------
+\subsection{python plot_list}
+\index{python!plot_list}
+\label{p:plot.list}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   ix_universe: 1
-   ix_branch: 0 
-
-\end{example}
-\item[plot_list] \Newline\begin{example}
 List of plot templates or plot regions.
 
-Notes
------
-Command syntax:
-  python plot_list {r_or_g}
+\begin{example}
+   python plot_list {r_or_g}
+\end{example}
+\begin{verbatim}
 where "{r/g}" is:
   "r"      ! list regions
   "t"      ! list template plots
 
 
-Parameters
-----------
-r_or_g
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python plot_graph ------------------------------------
+\subsection{python plot_graph}
+\index{python!plot_graph}
+\label{p:plot.graph}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   r_or_g: r
-
-\end{example}
-\item[plot_graph] \Newline\begin{example}
 Graph
 
-Notes
------
-Command syntax:
-  python plot_graph {graph_name}
+\begin{example}
+   python plot_graph {graph_name}
+\end{example}
+\begin{verbatim}
 {graph_name} is in the form:
   {p_name}.{g_name}
 where
@@ -2543,175 +1442,92 @@ where
   {g_name} is the graph name obtained from the python plot1 command.
 
 
-Parameters
-----------
-graph_name
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python plot_histogram ------------------------------------
+\subsection{python plot_histogram}
+\index{python!plot_histogram}
+\label{p:plot.histogram}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   graph_name: beta.g
-
-\end{example}
-\item[plot_histogram] \Newline\begin{example}
 Plot Histogram
 
-Notes
------
-Command syntax:
-  python plot_histogram {curve_name}
-
-
-Parameters
-----------
-curve_name
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   curve_name: r33.g.x
-
+\begin{example}
+   python plot_histogram {curve_name}
 \end{example}
-\item[plot_plot_manage] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python plot_plot_manage ------------------------------------
+\subsection{python plot_plot_manage}
+\index{python!plot_plot_manage}
+\label{p:plot.plot.manage}
+
 Template plot creation or destruction.
 
-Notes
------
-Command syntax:
-  python plot_plot_manage {plot_location}^^{plot_name}^^
-                         {n_graph}^^{graph1_name}^^{graph2_name}^^{graphN_name}
+\begin{example}
+   python plot_plot_manage {plot_location}^^{plot_name}^^
+                          {n_graph}^^{graph1_name}^^{graph2_name}^^{graphN_name}
+\end{example}
+\begin{verbatim}
 Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a 
 spot where there is already a template.
 Extra graph names can be included with ^^ connection. 
 If {n_graph} is set to -1 then just delete the plot.
 
 
-Parameters
-----------
-plot_location
-plot_name
-n_graph
-graph1_name
-graph2_name
-graphN_name
+\end{verbatim}
 
-   
-Returns
--------
-None
+%% python plot_curve_manage ------------------------------------
+\subsection{python plot_curve_manage}
+\index{python!plot_curve_manage}
+\label{p:plot.curve.manage}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   plot_location: @T1
-   plot_name: beta
-   n_graph: 1
-   graph1_name: g1
-   graph2_name: g2
-   graphN_name: gN
-
-\end{example}
-\item[plot_curve_manage] \Newline\begin{example}
 Template plot curve creation/destruction
 
-Notes
------
-Command syntax:
-  python plot_curve_manage {graph_name}^^{curve_index}^^{curve_name}
+\begin{example}
+   python plot_curve_manage {graph_name}^^{curve_index}^^{curve_name}
+\end{example}
+\begin{verbatim}
 If {curve_index} corresponds to an existing curve then this curve is deleted.
 In this case the {curve_name} is ignored and does not have to be present.
 If {curve_index} does not not correspond to an existing curve, {curve_index}
 must be one greater than the number of curves.
 
 
-Parameters
-----------
-graph_name
-curve_index
-curve_name
+\end{verbatim}
 
-   
-Returns
--------
-None
+%% python plot_graph_manage ------------------------------------
+\subsection{python plot_graph_manage}
+\index{python!plot_graph_manage}
+\label{p:plot.graph.manage}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   graph_name: beta.g
-   curve_index: 1
-   curve_name: r13.g.a
-
-\end{example}
-\item[plot_graph_manage] \Newline\begin{example}
 Template plot graph creation/destruction
 
-Notes
------
-Command syntax:
-  python plot_graph_manage {plot_name}^^{graph_index}^^{graph_name}
+\begin{example}
+   python plot_graph_manage {plot_name}^^{graph_index}^^{graph_name}
+\end{example}
+\begin{verbatim}
 If {graph_index} corresponds to an existing graph then this graph is deleted.
 In this case the {graph_name} is ignored and does not have to be present.
 If {graph_index} does not not correspond to an existing graph, {graph_index}
 must be one greater than the number of graphs.
 
 
-Parameters
-----------
-plot_name
-graph_index
-graph_name
+\end{verbatim}
 
-   
-Returns
--------
-None
+%% python plot_line ------------------------------------
+\subsection{python plot_line}
+\index{python!plot_line}
+\label{p:plot.line}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   plot_name: beta
-   graph_index: 1
-   graph_name: beta.g
-
-\end{example}
-\item[plot_line] \Newline\begin{example}
 Output points used to construct the "line" associated with a plot curve.
 
-Notes
------
-Command syntax:
-  python plot_line {region_name}.{graph_name}.{curve_name} {x_or_y}
+\begin{example}
+   python plot_line {region_name}.{graph_name}.{curve_name} {x_or_y}
+\end{example}
+\begin{verbatim}
 Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y 
 component put into the real array buffer.
 Note: The plot must come from a region, and not a template, since no template plots 
@@ -2722,38 +1538,19 @@ Examples:
   python plot_line r13.g.a y ! y-component of line points loaded into the real array buffer.
 
 
-Parameters
-----------
-region_name
-graph_name
-curve_name
-x_or_y : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python plot_symbol ------------------------------------
+\subsection{python plot_symbol}
+\index{python!plot_symbol}
+\label{p:plot.symbol}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line -external_plotting
- args:
-   region_name: beta
-   graph_name: g
-   curve_name: a
-   x_or_y:
-
-\end{example}
-\item[plot_symbol] \Newline\begin{example}
 Locations to draw symbols for a plot curve.
 
-Notes
------
-Command syntax:
-  python plot_symbol {region_name}.{graph_name}.{curve_name} {x_or_y}
+\begin{example}
+   python plot_symbol {region_name}.{graph_name}.{curve_name} {x_or_y}
+\end{example}
+\begin{verbatim}
 Optional {x_or_y} may be set to "x" or "y" to get the symbol x or y 
 positions put into the real array buffer.
 Note: The plot must come from a region, and not a template, 
@@ -2766,127 +1563,69 @@ Examples:
                                      loaded into the real array buffer.
 
 
-Parameters
-----------
-region_name
-graph_name
-curve_name
-x_or_y
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python plot_transfer ------------------------------------
+\subsection{python plot_transfer}
+\index{python!plot_transfer}
+\label{p:plot.transfer}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line -external_plotting
- args:
-   region_name: r13
-   graph_name: g
-   curve_name: a
-   x_or_y: 
-
-\end{example}
-\item[plot_transfer] \Newline\begin{example}
 Transfer plot parameters from the "from plot" to the "to plot" (or plots).
 
-Notes
------
-Command syntax:
-  python plot_transfer {from_plot} {to_plot}
+\begin{example}
+   python plot_transfer {from_plot} {to_plot}
+\end{example}
+\begin{verbatim}
 To avoid confusion, use "@Tnnn" and "@Rnnn" syntax for {from_plot}.
 If {to_plot} is not present and {from_plot} is a template plot, the "to plots" 
  are the equivalent region plots with the same name. And vice versa 
  if {from_plot} is a region plot.
 
 
-Parameters
-----------
-from_plot
-to_plot
+\end{verbatim}
 
-   
-Returns
--------
-None
+%% python plot1 ------------------------------------
+\subsection{python plot1}
+\index{python!plot1}
+\label{p:plot1}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   from_plot: r13
-   to_plot: r23 
-
-\end{example}
-\item[plot1] \Newline\begin{example}
 Info on a given plot.
 
-Notes
------
-Command syntax:
-  python plot1 {name}
+\begin{example}
+   python plot1 {name}
+\end{example}
+\begin{verbatim}
 {name} should be the region name if the plot is associated with a region.
 Output syntax is parameter list form. See documentation at the beginning of this file.
 
 
-Parameters
-----------
-name
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python ptc_com ------------------------------------
+\subsection{python ptc_com}
+\index{python!ptc_com}
+\label{p:ptc.com}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   name: beta
-
-\end{example}
-\item[ptc_com] \Newline\begin{example}
 Ptc_com structure components
 
-Notes
------
-Command syntax:
-  python ptc_com
-
-Parameters
-----------
-
-   
-Returns
--------
-string_list 
-
-
-Examples
--------- 
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init 
- args:
-
+\begin{example}
+   python ptc_com
 \end{example}
-\item[ring_general] \Newline\begin{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% python ring_general ------------------------------------
+\subsection{python ring_general}
+\index{python!ring_general}
+\label{p:ring.general}
+
 Lattice branch with closed geometry info (emittances, etc.)
 
-Notes
------
-Command syntax:
-  python ring_general {ix_uni}@{ix_branch}|{which}
+\begin{example}
+   python ring_general {ix_uni}@{ix_branch}|{which}
+\end{example}
+\begin{verbatim}
 where {which} is one of:
   model
   base
@@ -2895,61 +1634,37 @@ Example:
   python ring_general 1@0|model
 
 
-Parameters
-----------
-ix_uni : optional
-ix_branch : optional
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python shape_list ------------------------------------
+\subsection{python shape_list}
+\index{python!shape_list}
+\label{p:shape.list}
 
-
-Examples
---------
-
-
-\end{example}
-\item[shape_list] \Newline\begin{example}
 lat_layout and floor_plan shapes list
 
-Notes
------
-Command syntax:
-  python shape_list {who}
+\begin{example}
+   python shape_list {who}
+\end{example}
+\begin{verbatim}
 {who} is one of:
   lat_layout
   floor_plan
 
 
-Parameters
-----------
-who
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python shape_manage ------------------------------------
+\subsection{python shape_manage}
+\index{python!shape_manage}
+\label{p:shape.manage}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   who: floor_plan  
-
-\end{example}
-\item[shape_manage] \Newline\begin{example}
 element shape creation or destruction
 
-Notes
------
-Command syntax:
-  python shape_manage {who} {index} {add_or_delete}
+\begin{example}
+   python shape_manage {who} {index} {add_or_delete}
+\end{example}
+\begin{verbatim}
 
 {who} is one of:
   lat_layout
@@ -2966,67 +1681,37 @@ Note: After adding a shape use "python shape_set" to set shape parameters.
 This is important since an added shape is in a ill-defined state.
 
 
-Parameters
-----------
-who
-index
-add_or_delete
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python shape_pattern_list ------------------------------------
+\subsection{python shape_pattern_list}
+\index{python!shape_pattern_list}
+\label{p:shape.pattern.list}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   who: floor_plan
-   index: 1
-   add_or_delete: add
-
-\end{example}
-\item[shape_pattern_list] \Newline\begin{example}
 List of shape patterns or shape pattern points
 
-Notes
------
-Command syntax:
-  python shape_pattern_list {ix_pattern}
+\begin{example}
+   python shape_pattern_list {ix_pattern}
+\end{example}
+\begin{verbatim}
 
 If optional {ix_pattern} index is omitted then list all the patterns.
 If {ix_pattern} is present, list points of given pattern.
 
 
-Parameters
-----------
-ix_pattern : optional
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python shape_pattern_manage ------------------------------------
+\subsection{python shape_pattern_manage}
+\index{python!shape_pattern_manage}
+\label{p:shape.pattern.manage}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_shape
- args:
-   ix_pattern: 
-
-\end{example}
-\item[shape_pattern_manage] \Newline\begin{example}
 Add or remove shape pattern
 
-Notes
------
-Command syntax:
-  python shape_pattern_manage {ix_pattern}^^{pat_name}^^{pat_line_width}
+\begin{example}
+   python shape_pattern_manage {ix_pattern}^^{pat_name}^^{pat_line_width}
+\end{example}
+\begin{verbatim}
 where:
   {ix_pattern}      -- Pattern index. Patterns with higher indexes will be moved up 
                                       if adding a pattern and down if deleting.
@@ -3035,36 +1720,19 @@ where:
                                             will be deleted.
 
 
-Parameters
-----------
-ix_pattern
-pat_name
-pat_line_width
+\end{verbatim}
 
-   
-Returns
--------
-None
+%% python shape_pattern_point_manage ------------------------------------
+\subsection{python shape_pattern_point_manage}
+\index{python!shape_pattern_point_manage}
+\label{p:shape.pattern.point.manage}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_shape
- args:
-   ix_pattern : 1
-   pat_name : new_pat
-   pat_line_width : 1
-
-\end{example}
-\item[shape_pattern_point_manage] \Newline\begin{example}
 Add or remove shape pattern point
 
-Notes
------
-Command syntax:
-  python shape_pattern_point_manage {ix_pattern}^^{ix_point}^^{s}^^{x}
+\begin{example}
+   python shape_pattern_point_manage {ix_pattern}^^{ix_point}^^{s}^^{x}
+\end{example}
+\begin{verbatim}
 where:
   {ix_pattern}      -- Pattern index.
   {ix_point}        -- Point index. Points of higher indexes will be moved up
@@ -3072,180 +1740,91 @@ where:
   {s}, {x}          -- Point location. If {s} is "delete" then delete the point.
 
 
-Parameters
-----------
-ix_pattern
-ix_point
-s
-x
+\end{verbatim}
 
-   
-Returns
--------
-None
+%% python shape_set ------------------------------------
+\subsection{python shape_set}
+\index{python!shape_set}
+\label{p:shape.set}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_shape
- args:
-   ix_pattern: 1
-   ix_point: 1
-   s: 0
-   x: 0
-
-\end{example}
-\item[shape_set] \Newline\begin{example}
 lat_layout or floor_plan shape set
 
-Notes
------
-Command syntax:
-  python shape_set {who}^^{shape_index}^^{ele_name}^^{shape}^^{color}^^
-                   {shape_size}^^{type_label}^^{shape_draw}^^
-                   {multi_shape}^^{line_width}
+\begin{example}
+   python shape_set {who}^^{shape_index}^^{ele_name}^^{shape}^^{color}^^
+                    {shape_size}^^{type_label}^^{shape_draw}^^
+                    {multi_shape}^^{line_width}
+\end{example}
+\begin{verbatim}
 {who} is one of:
   lat_layout
   floor_plan
 
 
-Parameters
-----------
-who
-shape_index
-ele_name
-shape
-color
-shape_size
-type_label
-shape_draw
-multi_shape
-line_width
+\end{verbatim}
 
-   
-Returns
--------
-None
+%% python show ------------------------------------
+\subsection{python show}
+\index{python!show}
+\label{p:show}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   who: floor_plan
-   shape_index: 1
-   ele_name: Q1
-   shape: circle
-   color:
-   shape_size:
-   type_label:
-   shape_draw:
-   multi_shape:
-   line_width:
-
-\end{example}
-\item[show] \Newline\begin{example}
 Show command pass through
 
-Notes
------
-Command syntax:
-  python show {line}
+\begin{example}
+   python show {line}
+\end{example}
+\begin{verbatim}
 {line} is the string to pass through to the show command.
 Example:
   python show lattice -python
 
 
-Parameters
-----------
-line
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python species_to_int ------------------------------------
+\subsection{python species_to_int}
+\index{python!species_to_int}
+\label{p:species.to.int}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   line: -python
-
-\end{example}
-\item[species_to_int] \Newline\begin{example}
 Convert species name to corresponding integer
 
-Notes
------
-Command syntax:
-  python species_to_int {species_str}
+\begin{example}
+   python species_to_int {species_str}
+\end{example}
+\begin{verbatim}
 Example:
   python species_to_int CO2++
 
 
-Parameters
-----------
-species_str
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python species_to_str ------------------------------------
+\subsection{python species_to_str}
+\index{python!species_to_str}
+\label{p:species.to.str}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   species_str: electron
-
-\end{example}
-\item[species_to_str] \Newline\begin{example}
 Convert species integer id to corresponding
 
-Notes
------
-Command syntax:
-  python species_to_str {species_int}
+\begin{example}
+   python species_to_str {species_int}
+\end{example}
+\begin{verbatim}
 Example:
   python species_to_str -1     ! Returns 'Electron'
 
 
-Parameters
-----------
-species_int
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python spin_polarization ------------------------------------
+\subsection{python spin_polarization}
+\index{python!spin_polarization}
+\label{p:spin.polarization}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   species_int: -1
-
-\end{example}
-\item[spin_polarization] \Newline\begin{example}
 Spin polarization information
 
-Notes
------
-Command syntax:
-  python spin_polarization {ix_uni}@{ix_branch}|{which}
+\begin{example}
+   python spin_polarization {ix_uni}@{ix_branch}|{which}
+\end{example}
+\begin{verbatim}
 where {which} is one of:
   model
   base
@@ -3256,328 +1835,167 @@ Example:
 Note: This command is under development. If you want to use please contact David Sagan.
 
 
-Parameters
-----------
-ix_uni : optional
-ix_branch : optional
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python spin_resonance ------------------------------------
+\subsection{python spin_resonance}
+\index{python!spin_resonance}
+\label{p:spin.resonance}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args: 
-   ix_uni: 1
-   ix_branch: 0
-   which: model
-
-\end{example}
-\item[spin_resonance] \Newline\begin{example}
 Spin resonance information
 
-Notes 
------
-Command syntax:
-  python spin_resonance {ix_uni}@{ix_branch}|{which} {ref_ele}
-
-Parameters
-----------
-ix_uni : optional
-ix_branch : optional
-which : default=model
-ref_ele : default=0
-  Reference element to calculate at.
-
-
-
-
-
-
+\begin{example}
+   python spin_resonance {ix_uni}@{ix_branch}|{which} {ref_ele}
 \end{example}
-\item[super_universe] \Newline\begin{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% python super_universe ------------------------------------
+\subsection{python super_universe}
+\index{python!super_universe}
+\label{p:super.universe}
+
 Super_Universe information
 
-Notes
------
-Command syntax:
-  python super_universe
-
-
-Parameters
-----------
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args: 
-
+\begin{example}
+   python super_universe
 \end{example}
-\item[twiss_at_s] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python twiss_at_s ------------------------------------
+\subsection{python twiss_at_s}
+\index{python!twiss_at_s}
+\label{p:twiss.at.s}
+
 Twiss at given s position
 
-Notes
------
-Command syntax:
-  python twiss_at_s {ix_uni}@{ix_branch}>>{s}|{which}
+\begin{example}
+   python twiss_at_s {ix_uni}@{ix_branch}>>{s}|{which}
+\end{example}
+\begin{verbatim}
 where {which} is one of:
   model
   base
   design
 
 
-Parameters
-----------
-s
-ix_uni : optional
-ix_branch : optional
-which : default=model
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python universe ------------------------------------
+\subsection{python universe}
+\index{python!universe}
+\label{p:universe}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args: 
-   ix_uni: 1
-   ix_branch: 0
-   s: 0
-   which: model 
-
-\end{example}
-\item[universe] \Newline\begin{example}
 Universe info
 
-Notes
------
-Command syntax:
-  python universe {ix_universe}
+\begin{example}
+   python universe {ix_universe}
+\end{example}
+\begin{verbatim}
 Use "python global" to get the number of universes.
 
 
-Parameters
-----------
-ix_universe
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python var ------------------------------------
+\subsection{python var}
+\index{python!var}
+\label{p:var}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args: 
-   ix_universe: 1
-
-\end{example}
-\item[var] \Newline\begin{example}
 Info on an individual variable
 
-Notes
------
-Command syntax:
-  python var {var} slaves
-
-
-Parameters
-----------
-var
-slaves : optional
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args: 
-   var: quad[1]
-   slaves:
-
-Example: 2
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args: 
-   var: quad[1]
-   slaves: slaves
-
+\begin{example}
+   python var {var} slaves
 \end{example}
-\item[var_create] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python var_create ------------------------------------
+\subsection{python var_create}
+\index{python!var_create}
+\label{p:var.create}
+
 Create a single variable
 
-Notes
------
-Command syntax:
-  python var_create {var_name}^^{ele_name}^^{attribute}^^{universes}^^
-                    {weight}^^{step}^^{low_lim}^^{high_lim}^^{merit_type}^^
-                    {good_user}^^{key_bound}^^{key_delta}
+\begin{example}
+   python var_create {var_name}^^{ele_name}^^{attribute}^^{universes}^^
+                     {weight}^^{step}^^{low_lim}^^{high_lim}^^{merit_type}^^
+                     {good_user}^^{key_bound}^^{key_delta}
+\end{example}
+\begin{verbatim}
 {var_name} is something like "kick[5]".
 Before using var_create, setup the appropriate v1_var array using 
 the "python var_v1_create" command.
 
 
-Parameters
-----------
-var_name
-ele_name
-attribute
-universes
-weight
-step
-low_lim
-high_lim
-merit_type
-good_user
-key_bound
-key_delta
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python var_general ------------------------------------
+\subsection{python var_general}
+\index{python!var_general}
+\label{p:var.general}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
- args:
-   var_name: quad[1]
-   ele_name: Q1
-   attribute: L
-   universes: 1
-   weight: 0.001
-   step: 0.001
-   low_lim: -10
-   high_lim: 10
-   merit_type: 
-   good_user: T
-   key_bound: T
-   key_delta: 0.01 
-
-\end{example}
-\item[var_general] \Newline\begin{example}
 List of all variable v1 arrays
 
-Notes
------
-Command syntax:
-  python var_general
-Output syntax:
-  {v1_var name};{v1_var%v lower bound};{v1_var%v upper bound}
-
-
-Parameters
-----------
-
-
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-
+\begin{example}
+   python var_general
 \end{example}
-\item[var_v_array] \Newline\begin{example}
+\begin{verbatim}
+Output syntax:
+  {v1_var \vn{name};{v1_var%v} lower \vn{bound};{v1_var%v} upper bound}
+
+
+\end{verbatim}
+
+%% python var_v_array ------------------------------------
+\subsection{python var_v_array}
+\index{python!var_v_array}
+\label{p:var.v.array}
+
 List of variables for a given data_v1.
 
-Notes
------
-Command syntax:
-  python var_v_array {v1_var}
+\begin{example}
+   python var_v_array {v1_var}
+\end{example}
+\begin{verbatim}
 Example:
   python var_v_array quad_k1
 
 
-Parameters
-----------
-v1_var
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python var_v1_array ------------------------------------
+\subsection{python var_v1_array}
+\index{python!var_v1_array}
+\label{p:var.v1.array}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   v1_var: quad_k1
-
-\end{example}
-\item[var_v1_array] \Newline\begin{example}
 List of variables in a given variable v1 array
 
-Notes
------
-Command syntax:
-  python var_v1_array {v1_var}
-
-
-Parameters
-----------
-v1_var
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   v1_var: quad_k1 
-
+\begin{example}
+   python var_v1_array {v1_var}
 \end{example}
-\item[var_v1_create] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python var_v1_create ------------------------------------
+\subsection{python var_v1_create}
+\index{python!var_v1_create}
+\label{p:var.v1.create}
+
 Create a v1 variable structure along with associated var array.
 
-Notes
------
-Command syntax:
-  python var_v1_create {v1_name} {n_var_min} {n_var_max}
+\begin{example}
+   python var_v1_create {v1_name} {n_var_min} {n_var_max}
+\end{example}
+\begin{verbatim}
 {n_var_min} and {n_var_max} are the lower and upper bounds of the var
 Example:
   python var_v1_create quad_k1 0 45
@@ -3592,69 +2010,39 @@ Examples:
   set quad_k1[2]|ele_name = 2@q01w[k1]
   set quad_k1[2]|ele_name = 2@0>>10[k1]
 Note: When setting multiple variable parameters, 
-      temporarily toggle s%global%lattice_calc_on to False
+      temporarily toggle \vn{s%global%lattice_calc_on} to False
   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the 
 partially created variable and generating unwanted error messages.
 
 
-Parameters
-----------
-v1_name
-n_var_min
-n_var_max
+\end{verbatim}
 
-   
-Returns
--------
-string_list
+%% python var_v1_destroy ------------------------------------
+\subsection{python var_v1_destroy}
+\index{python!var_v1_destroy}
+\label{p:var.v1.destroy}
 
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   v1_name: quad_k1 
-   n_var_min: 0 
-   n_var_max: 45 
-
-\end{example}
-\item[var_v1_destroy] \Newline\begin{example}
 Destroy a v1 var structure along with associated var sub-array.
 
-Notes
------
-Command syntax:
-  python var_v1_destroy {v1_datum}
-
-
-Parameters
-----------
-v1_datum
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   v1_datum: quad_k1
-
+\begin{example}
+   python var_v1_destroy {v1_datum}
 \end{example}
-\item[wave] \Newline\begin{example}
+\begin{verbatim}
+
+
+\end{verbatim}
+
+%% python wave ------------------------------------
+\subsection{python wave}
+\index{python!wave}
+\label{p:wave}
+
 Wave analysis info.
 
-Notes
------
-Command syntax:
-  python wave {what}
+\begin{example}
+   python wave {what}
+\end{example}
+\begin{verbatim}
 Where {what} is one of:
   params
   loc_header
@@ -3662,23 +2050,4 @@ Where {what} is one of:
   plot1, plot2, plot3
 
 
-Parameters
-----------
-what
-
-   
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
- args:
-   what: params
-
-\end{example}
-\end{description}
+\end{verbatim}
