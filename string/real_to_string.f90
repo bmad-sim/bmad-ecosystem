@@ -167,18 +167,18 @@ elseif (n_dec > 0 .and. n_exp+1+n_dec <= 17 .and. n_exp+2+n_dec <= width_net) th
 
 ! Case: Floating format
 
-elseif (n_sig+1+e_width <= width_net) then
-  if (n_exp >= 100) then
-    write (fmt, '(a, i0, a, i0, a)') '(es', width, '.', n_sig-1, 'E3)'
-  else
-    write (fmt, '(a, i0, a, i0, a)') '(es', width, '.', n_sig-1, ')'
-  endif
-  write (str, fmt) real_num
-
-! Case: Overflow
-
 else
-  call x_string(str)
+  n_sig = min(n_sig-1, width_net-e_width-2)
+  if (n_sig > 0) then
+    if (n_exp >= 100) then
+      write (fmt, '(a, i0, a, i0, a)') '(es', width, '.', n_sig, 'E3)'
+    else
+      write (fmt, '(a, i0, a, i0, a)') '(es', width, '.', n_sig, ')'
+    endif
+    write (str, fmt) real_num
+  else
+    call x_string(str)
+  endif
 endif
 
 !--------------------------
