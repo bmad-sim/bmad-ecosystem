@@ -94,25 +94,25 @@ with open(TEXFILE, 'w') as f:
 ''')
         f.write(doc['overview'].replace('&', '\\&'))
         f.write('\\begin{example}\n')
-        f.write(doc['command_str'])
+        f.write(doc['command_str'].replace('{','\\{').replace('}','\}'))
         f.write('\\end{example}\n')
         f.write('\\begin{verbatim}\n')
         noff = 0
         #notes = doc['notes'].replace('{','\\{').replace('}','\}').replace('^', '\\^{}') \
         #                                        .replace('&', '\\&').replace('#', '\\#').replace('$', '\\$')
         notes = doc['notes']
-        for match in re.finditer(re_pe, notes):
-          m = match.group()
-          ix0 = 0
-          ix1 = len(m)
-          if m[0] == ' ': ix0 = 1
-          if m[-1] == ' ' or m[-1] == '\n': ix1 -= 1
-          iz0 = match.start() + noff
-          iz1 = match.end() + noff
-          notes = notes[:iz0] + m[:ix0] + '\\vn{' + m[ix0:ix1] + '}' + m[ix1:] + notes[iz1:]
-          noff += 5  # Number of characters added
+        #for match in re.finditer(re_pe, notes):
+        #  m = match.group()
+        #  ix0 = 0
+        #  ix1 = len(m)
+        #  if m[0] == ' ': ix0 = 1
+        #  if m[-1] == ' ' or m[-1] == '\n': ix1 -= 1
+        #  iz0 = match.start() + noff
+        #  iz1 = match.end() + noff
+        #  notes = notes[:iz0] + m[:ix0] + '\\vn{' + m[ix0:ix1] + '}' + m[ix1:] + notes[iz1:]
+        #  noff += 5  # Number of characters added
         #
-        f.write(notes)
+        f.write(notes.strip() + '\n')
         f.write('\\end{verbatim}\n')
 
 print('Written:', TEXFILE)

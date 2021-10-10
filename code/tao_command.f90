@@ -47,7 +47,7 @@ character(300) :: cmd_word(12)
 character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(40) = [ &
+character(16) :: cmd_names(41) = [ &
     'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
     'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
     'run_optimizer', 'flatten      ', 'change       ', 'set          ', 'cut_ring     ', &
@@ -55,7 +55,8 @@ character(16) :: cmd_names(40) = [ &
     're_execute   ', 'reinitialize ', 'x_scale      ', 'x_axis       ', 'derivative   ', &
     'spawn        ', 'xy_scale     ', 'read         ', 'misalign     ', 'end_file     ', &
     'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
-    'python       ', 'json         ', 'quiet        ', 'ls           ', 'taper        ']
+    'python       ', 'json         ', 'quiet        ', 'ls           ', 'taper        ', &
+    'clear        ']
 
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
@@ -167,6 +168,12 @@ case ('change')
     call out_io (s_error$, r_name, 'Change who? (should be: "element", "particle_start", or "variable")')
   endif
 
+!--------------------------------
+! CLEAR
+
+case ('clear')
+
+  call tao_clear_cmd(cmd_line)
 
 !--------------------------------
 ! CLIP
