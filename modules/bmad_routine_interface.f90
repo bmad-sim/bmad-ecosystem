@@ -432,6 +432,12 @@ subroutine clear_lat_1turn_mats (lat)
   type (lat_struct) lat
 end subroutine
 
+subroutine clear_taylor_maps_from_elements (lat)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+end subroutine
+
 subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag, print_err)
   import
   implicit none
