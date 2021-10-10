@@ -1995,18 +1995,20 @@ function spin_depolarization_rate (branch, match_info, rad_int_by_ele) result (d
   real(rp) depol_rate
 end function
 
-function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial) result (dn_dpz)
+function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial, error) result (dn_dpz)
   import
   implicit none
   real(rp) mat_1turn(8,8), dn_dpz(3)
   real(rp), optional :: dn_dpz_partial(3,3)
+  logical error
 end function
 
-function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial) result (dn_dpz)
+function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial, error) result (dn_dpz)
   import
   implicit none
   real(rp) orb_mat(6,6), q_map(0:3,0:6), dn_dpz(3)
   real(rp), optional :: dn_dpz_partial(3,3)
+  logical error
 end function
 
 subroutine spin_map1_normalize (spin1)
@@ -2015,11 +2017,12 @@ subroutine spin_map1_normalize (spin1)
   real(rp) spin1(0:3,0:6)
 end subroutine
 
-subroutine spin_mat_to_eigen (orb_mat, spin_map, eigen_val, orb_evec, n0, spin_evec)
+subroutine spin_mat_to_eigen (orb_mat, spin_map, eigen_val, orb_evec, n0, spin_evec, error)
   import
   implicit none
   real(rp) orb_mat(6,6), spin_map(0:3,0:6), n0(3)
   complex(rp) eigen_val(6), orb_evec(6,6), spin_evec(6,3)
+  logical error
 end subroutine
 
 function spin_omega (field, orbit, sign_z_vel, phase_space_coords) result (omega)

@@ -1,5 +1,5 @@
 !+
-! Function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial) result (dn_dpz)
+! Function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial, error) result (dn_dpz)
 !
 ! Routine to calculate dn_dpz from th 1-turn 6x6 orbital matrix and the linear quaternian map
 ! Also see spin_dn_dpz_from_mat8 for the SLIM formalism equivalent.
@@ -15,9 +15,10 @@
 !
 ! Output:
 !   dn_dpz(3)       -- real(rp): dn_dpz.
+!   error           -- logical: Set True if there is an error. False otherwise.
 !-
 
-function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial) result (dn_dpz)
+function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial, error) result (dn_dpz)
 
 use bmad_routine_interface, dummy => spin_dn_dpz_from_qmap
 use f95_lapack
@@ -29,10 +30,15 @@ real(rp) orb_mat(6,6), q_map(0:3,0:6), dn_dpz(3), n0(3)
 complex(rp) n_eigen(6,3), vv(6,6), aa(6,1)
 complex(rp) eval(6), evec(6,6)
 integer k, kk, pinfo, ipiv6(6)
+logical error
 
 !
 
-call spin_mat_to_eigen (orb_mat, q_map, eval, evec, n0, n_eigen)
+call spin_mat_to_eigen (orb_mat, q_map, eval, evec, n0, n_eigen, error)
+if (error) then
+  dn_dpz = 0
+  return
+endif
 
 vv = transpose(evec)
 aa(:,1) = [0, 0, 0, 0, 0, 1]

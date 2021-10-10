@@ -1,5 +1,5 @@
 !+
-! Subroutine spin_mat_to_eigen (orb_mat, spin_map, orb_eval, orb_evec, n0, spin_evec)
+! Subroutine spin_mat_to_eigen (orb_mat, spin_map, orb_eval, orb_evec, n0, spin_evec, error)
 !
 ! Routine to return the spin/orbit eigen values and eigen vectors given the 1-turn spin/orbit map.
 !
@@ -15,9 +15,10 @@
 !   orb_evec(6,6)     -- complex(rp): Orbital eigenvectors. orb_evec(j,:) is the j^th vector.
 !   n0(3)             -- real(rp): n_0 invariant spin
 !   spin_evec(6,3)    -- complex(rp): Spin eigenvectors. spin_evec(j,:) is the j^th vector.
+!   error             -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine spin_mat_to_eigen (orb_mat, spin_map, orb_eval, orb_evec, n0, spin_evec)
+subroutine spin_mat_to_eigen (orb_mat, spin_map, orb_eval, orb_evec, n0, spin_evec, error)
 
 use sim_utils
 use f95_lapack
@@ -30,7 +31,7 @@ complex(rp) orb_eval(6), orb_evec(6,6), spin_evec(6,3)
 complex(rp) n0q(0:3), q0(0:3), qv(0:3), qq(0:3), dd(2,2), gv(2,1)
 
 integer k, ipiv2(2), pinfo
-logical err
+logical error
 
 ! With RF off the eigen analysis is singular. 
 ! In this case, modify the matrix to remove the singularity.
@@ -41,7 +42,12 @@ if (mat1(6,5) == 0) then ! Eigen anal is singular without RF so put in a fix.
   mat1(5,6) = 0
 endif
 
-call mat_eigen(mat1, orb_eval, orb_evec, err)
+call mat_eigen(mat1, orb_eval, orb_evec, error)
+if (error) then
+  orb_eval = 0;  orb_evec = 0
+  n0 = 0;  spin_evec = 0
+  return
+endif
 
 w0 = quat_to_w_mat(spin_map(:,0))
 n0 = spin_map(1:3,0) / norm2(spin_map(1:3,0))

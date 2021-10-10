@@ -1,5 +1,5 @@
 !+
-! Function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial) result (dn_dpz)
+! Function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial, error) result (dn_dpz)
 !
 ! Routine to calculate dn_dpz from a 1-turn 8x8 spin-orbital matrix.
 ! Also see spin_dn_dpz_from_qmap for the quaternion equivalent.
@@ -13,11 +13,11 @@
 !                              mode "excited". So dn_dpz_partial(1,:) represents a-mode excitation, etc.
 !
 ! Output:
-!   dn_dpz(3)      -- real(rp): dn_dpz (l,n,m) coordinates.
-!
+!   dn_dpz(3)         -- real(rp): dn_dpz (l,n,m) coordinates.
+!   error             -- logical: Set True if there is an error. False otherwise.
 !-
 
-function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial) result (dn_dpz)
+function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial, error) result (dn_dpz)
 
 use bmad_routine_interface, dummy => spin_dn_dpz_from_mat8
 use f95_lapack
@@ -28,7 +28,7 @@ real(rp), optional :: dn_dpz_partial(3,3)
 real(rp) mat_1turn(8,8), dn_dpz(3), mat1(6,6)
 complex(rp) eval(6), evec(6,6), dd(2,2), gv(2,1), w_vec(6,2), vv(6,6), aa(6,1)
 integer k, kk, pinfo, ipiv2(2), ipiv6(6)
-logical err
+logical error
 
 ! With RF off the eigen analysis is singular. 
 ! In this case, modify the matrix to remove the singularity.
@@ -39,7 +39,11 @@ if (mat1(6,5) == 0) then ! Eigen anal is singular without RF so put in a fix.
   mat1(5,6) = 0
 endif
 
-call mat_eigen(mat1(1:6,1:6), eval, evec, err)
+call mat_eigen(mat1(1:6,1:6), eval, evec, error)
+if (error) then
+  dn_dpz = 0
+  return
+endif
 
 do k = 1, 6
   call cplx_mat_make_unit(dd)
