@@ -59,8 +59,8 @@ smap(3,:) = [-0.00848062536777657_rp, 0.0242925995028888_rp, 0.0255153607860429_
 call spin_mat_to_eigen(mat6, smap, orb_eval, orb_evec, n0, spin_evec)
 write (1, '(a, 3f14.10)') '"n0 noRF" ABS 1E-9', n0
 do i = 1, 3
-  write (1, '(a, 6f14.10)') '"spin_evec' // int_str(i) // ' RE noRF" ABS 1E-7', real(spin_evec(:,i), rp)
-  write (1, '(a, 6f14.10)') '"spin_evec' // int_str(i) // ' IM noRF" ABS 1E-7', aimag(spin_evec(:,i))
+  write (1, '(a, 6f14.10)') '"spin_evec' // int_str(i) // ' RE noRF" ABS 1E-9', real(spin_evec(:,i), rp)
+  write (1, '(a, 6f14.10)') '"spin_evec' // int_str(i) // ' IM noRF" ABS 1E-9', aimag(spin_evec(:,i))
 enddo
 
 mat6(1,:) = [-1.86188861871179_rp, 11.6415650949441_rp, -0.379398600528061_rp, -0.207432122016991_rp, 0.00304692758210734_rp, 4.04419952113488_rp]
@@ -78,8 +78,8 @@ smap(3,:) = [-0.00715175423263742_rp, 0.0247012868571641_rp, 0.0230889442582705_
 call spin_mat_to_eigen(mat6, smap, orb_eval, orb_evec, n0, spin_evec)
 write (1, '(a, 3f14.10)') '"n0 wRF" ABS 1E-9', n0
 do i = 1, 3
-  write (1, '(a, 6f14.10)') '"spin_evec' // int_str(i) // ' RE wRF" ABS 2E-7', real(spin_evec(:,i), rp)
-  write (1, '(a, 6f14.10)') '"spin_evec' // int_str(i) // ' IM wRF" ABS 2E-7', aimag(spin_evec(:,i))
+  write (1, '(a, 6f14.10)') '"spin_evec' // int_str(i) // ' RE wRF" ABS 1E-9', real(spin_evec(:,i), rp)
+  write (1, '(a, 6f14.10)') '"spin_evec' // int_str(i) // ' IM wRF" ABS 1E-9', aimag(spin_evec(:,i))
 enddo
 
 !---------------------------------
