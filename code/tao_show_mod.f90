@@ -3896,7 +3896,7 @@ case ('spin')
           nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order.'
           nl=nl+1; write (lines(nl), '(14x, a, 7x, 6(2x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
           do ix = 0, 3
-            nl=nl+1; write(lines(nl), '(i8, f12.6, 4x, 6f12.6)') ix, d_ptr%spin_map%map1%spin_q(ix,:)
+            nl=nl+1; write(lines(nl), '(i8, f12.6, 4x, a)') ix, d_ptr%spin_map%map1%spin_q(ix,0), reals_to_string(d_ptr%spin_map%map1%spin_q(ix,1:), 11, 1, 6, 6)
           enddo
         endif
       enddo
@@ -3965,7 +3965,7 @@ case ('spin')
       nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order' 
       nl=nl+1; write (lines(nl), '(14x, a, 7x, 6(2x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
       do i = 0, 3
-        nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, 6f12.6)') i, q_name(i), sm%map1%spin_q(i,:)
+        nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, a)') i, q_name(i), sm%map1%spin_q(i,0), reals_to_string(sm%map1%spin_q(i,1:), 11, 1, 6, 6)
       enddo
     endif
 
