@@ -96,7 +96,7 @@ do ii = 1, nn
 
   do j = 1, nn
     m = maxloc(amp2(j,:), 1)
-    amp2(j, m) = 0
+    amp2(j, m) = -1
     m2 = maxloc(amp2(j,:), 1)
     dmax(j) = amp(j,m) - amp(j,m2)
   enddo
