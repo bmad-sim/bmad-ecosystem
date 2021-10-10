@@ -65,7 +65,9 @@ integral_dn2_partial = 0
 do ie = 0, branch%n_ele_track
   if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * map1_inverse(q_ele(ie))
   
-  dn_dpz = spin_dn_dpz_from_qmap(real(q_1turn%orb_mat, rp), real(q_1turn%spin_q, rp), partial)
+  dn_dpz = spin_dn_dpz_from_qmap(real(q_1turn%orb_mat, rp), real(q_1turn%spin_q, rp), partial, err)
+  if (err) exit
+
   tao_branch%dn_dpz(ie)%vec = dn_dpz
   tao_branch%dn_dpz(ie)%partial = partial
   n0 = q_1turn%spin_q(1:3, 0)
@@ -111,7 +113,7 @@ enddo
 ! Some toy lattices may not have any bends (EG: spin single resonance model lattice) or have lattice length zero.
 ! So test that integral_1ns is non-zero.
 
-if (integral_1ns == 0) then
+if (integral_1ns == 0 .or. err) then
   tao_branch%spin%pol_limit_st          = 0
   tao_branch%spin%pol_limit_dkm         = 0
   tao_branch%spin%pol_limit_dkm_partial = 0

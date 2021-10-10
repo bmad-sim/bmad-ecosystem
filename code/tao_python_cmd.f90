@@ -6387,7 +6387,7 @@ case ('spin_resonance')
   datum%ix_branch = branch%ix_branch
   sm => datum%spin_map
   call tao_spin_matrix_calc (datum, u, ele%ix_ele, ele%ix_ele)
-  call spin_mat_to_eigen (sm%map1%orb_mat, sm%map1%spin_q, eval, evec, n0, n_eigen)
+  call spin_mat_to_eigen (sm%map1%orb_mat, sm%map1%spin_q, eval, evec, n0, n_eigen, err)
   if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
 
   qs = branch%param%spin_tune/twopi

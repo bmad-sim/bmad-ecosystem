@@ -3957,7 +3957,9 @@ case ('spin')
       enddo
     endif
 
-    call spin_mat_to_eigen (sm%map1%orb_mat, sm%map1%spin_q, eval, evec, n0, n_eigen)
+    call spin_mat_to_eigen (sm%map1%orb_mat, sm%map1%spin_q, eval, evec, n0, n_eigen, err)
+    if (err) return
+
     if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
 
     if (show_q) then
