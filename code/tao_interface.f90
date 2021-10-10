@@ -103,7 +103,12 @@ function tao_chrom_calc_needed (data_type, data_source) result (do_chrom)
   character(*) data_type, data_source
   logical do_chrom
 end function
- 
+
+subroutine tao_clear_cmd (cmd_line)
+  implicit none
+  character(*) cmd_line
+end subroutine
+
 subroutine tao_clip_cmd (gang, where, value1, value2)
   import
   implicit none

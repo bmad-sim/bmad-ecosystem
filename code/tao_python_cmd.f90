@@ -289,24 +289,22 @@ select case (command)
 ! -----
 ! Command syntax:
 !   python beam {ix_universe}
-! where
+!
+! Where:
 !   {ix_universe} is a universe index. Defaults to s%global%default_universe.
-! To set beam_init parameters use the "set beam" command
-! 
+!
+! Note: To set beam_init parameters use the "set beam" command.
 !
 ! Parameters
 ! ----------
 ! ix_universe : optional
-!
 !    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! -------- 
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
@@ -331,24 +329,22 @@ case ('beam')
 ! -----
 ! Command syntax:
 !   python beam_init {ix_universe}
-! where
+!
+! Where:
 !   {ix_universe} is a universe index. Defaults to s%global%default_universe.
-! To set beam_init parameters use the "set beam_init" command
-! 
+!
+! Note: To set beam_init parameters use the "set beam_init" command
 !
 ! Parameters
 ! ----------
 ! ix_universe : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! -------- 
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
@@ -386,7 +382,7 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
 
 !%% bmad_com -----------------------
-! Output bmad_com structure components
+! Output bmad_com structure components.
 !
 ! Notes
 ! -----
@@ -396,15 +392,12 @@ case ('beam_init')
 ! Parameters
 ! ----------
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! -------- 
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -459,7 +452,8 @@ case ('bmad_com')
 ! -----
 ! Command syntax:
 !   python branch1 {ix_universe}@{ix_branch}
-! where
+!
+! Where:
 !   {ix_universe} is a universe index. Defaults to s%global%default_universe.
 !   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 !
@@ -474,7 +468,6 @@ case ('bmad_com')
 !
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -501,19 +494,21 @@ case ('branch1')
   nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                     branch%param%stable
 
 !%% bunch_params -----------------------
-! Output bunch parameters at the exit end of a given lattice element.
+! Outputs bunch parameters at the exit end of a given lattice element.
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python bunch_params {ele_id}|{which}
 !
+! Where:
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   
 ! Parameters
 ! ----------
 ! ele_id
-!   Element name or index
 ! which : default=model
-!   One of: "model", "base" or "design"
 !
 ! Returns
 ! -------
@@ -521,7 +516,6 @@ case ('branch1')
 !
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
@@ -574,21 +568,28 @@ case ('bunch_params')
 
 
 !%% bunch1 -----------------------
-! Bunch parameters at the exit end of a given lattice element.
+! Outputs Bunch parameters at the exit end of a given lattice element.
 !
 ! Notes
 ! -----
 ! Command syntax:
-! python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
+!   python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
+!
+! Where:
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {ix_bunch} is the bunch index.
+!   {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state"
+!
+! For example, if {coordinate} = "px", the phase space px coordinate of each particle
+! of the bunch is displayed. The "state" of a particle is an integer. A value of 1 means
+! alive and any other value means the particle has been lost.
 !
 ! Parameters
 ! ----------
 ! ele_id
-!   Element name or index
 ! coordinate
-!   If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
 ! which : default=model
-!   One of: "model", "base" or "design"
 ! ix_bunch : default=1
 !
 ! Returns
@@ -600,7 +601,6 @@ case ('bunch_params')
 !
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
@@ -626,29 +626,29 @@ case ('bunch1')
   call coord_out(beam%bunch(ix_bunch), tail_str)
 
 !%% building_wall_list -----------------------
-! List of building wall sections or section points
+! Output List of building wall sections or section points
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python building_wall_list {ix_section}
-! If {ix_section} is not present then a list of building wall sections is given.
-! If {ix_section} is present then a list of section points is given
-! 
 !
+! Where:
+!   {ix_section} is a building wall section index.
+!
+! If {ix_section} is not present, a list of building wall sections is given.
+! If {ix_section} is present, a list of section points is given.
+! 
 ! Parameters
 ! ----------
 ! ix_section : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
 !  args:
@@ -685,28 +685,27 @@ case ('building_wall_list')
   endif
 
 !%% building_wall_graph -----------------------
-! (x, y) points for drawing the building wall for a particular graph.
+! Output (x, y) points for drawing the building wall for a particular graph.
 !
 ! Notes
 ! -----
 ! The graph defines the coordinate system for the (x, y) points.
 ! Command syntax:
 !   python building_wall_graph {graph}
-! 
+!
+! Where:
+!   {graph} is a plot region graph name.
 !
 ! Parameters
 ! ----------
 ! graph
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
 !  args:
@@ -746,6 +745,7 @@ case ('building_wall_graph')
 ! -----
 ! Command syntax:
 !   python building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^{z_center}^^{x_center}
+!
 ! Where:
 !   {ix_section}    -- Section index.
 !   {ix_point}      -- Point index. Points of higher indexes will be moved up 
@@ -753,7 +753,6 @@ case ('building_wall_graph')
 !   {z}, etc...     -- See tao_building_wall_point_struct components.
 !                   -- If {z} is set to "delete" then delete the point.
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_section
@@ -764,15 +763,12 @@ case ('building_wall_graph')
 ! z_center
 ! x_center
 !
-!    
 ! Returns
 ! -------
 ! None 
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall
 !  args:
@@ -823,38 +819,35 @@ case ('building_wall_point')
   end select
 
 !%% building_wall_section -----------------------
-! add or delete a building wall section
+! Add or delete a building wall section
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python building_wall_section {ix_section}^^{sec_name}^^{sec_constraint}
+!
 ! Where:
 !   {ix_section}      -- Section index. Sections with higher indexes will be
 !                          moved up if adding a section and down if deleting.
 !   {sec_name}        -- Section name.
-!   {sec_constraint}  -- Must be one of:
-!       delete     -- Delete section. Anything else will add the section.
+!   {sec_constraint}  -- A section constraint name or "delete". Must be one of:
+!       delete          -- Delete section. Anything else will add the section.
 !       none
 !       left_side
 !       right_side
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_section
 ! sec_name
 ! sec_constraint
-!
-!    
+! 
 ! Returns
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -889,13 +882,15 @@ case ('building_wall_section')
   end select
 
 !%% constraints -----------------------
-! Optimization data and variables that contribute to the merit function.
+! Output optimization data and variable parameters that contribute to the merit function.
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python constraints {who}
-! {who} is one of:
+!
+! Where:
+!   {who} is one of:
 !   data
 !   var
 ! Data constraints output is:
@@ -921,21 +916,17 @@ case ('building_wall_section')
 !   weight
 !   merit value
 !   dmerit/dvar
-! 
 !
 ! Parameters
 ! ----------
 ! who
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -986,23 +977,20 @@ case ('constraints')
   end select
 
 !%% da_aperture -----------------------
-! Dynamic aperture data
+! Output dynamic aperture data
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python da_aperture {ix_uni}
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_uni : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list
-!
 !
 ! Examples
 ! --------
@@ -1025,23 +1013,20 @@ case ('da_aperture')
   enddo
 
 !%% da_params -----------------------
-! Dynamic aperture input parameters
+! Output dynamic aperture input parameters
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python da_params {ix_uni}
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_uni : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list
-!
 !
 ! Examples
 ! --------
@@ -1067,19 +1052,19 @@ case ('da_params')
   nl=incr(nl); write (li(nl), ramt) 'pz;REAL_ARR;T',        (';', da%pz(i), i = 1, size(da%pz))
 
 !%% data -----------------------
-! Individual datum info.
+! Output Individual datum parameters.
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
+!
 ! Use the "python data-d1" command to get detailed info on a specific d1 array.
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
 ! Example:
 !   python data 1@orbit.x[10]
 ! Note : By default dat_index is 1.
 ! 
-!
 ! Parameters
 ! ----------
 ! d2_name
@@ -1087,11 +1072,9 @@ case ('da_params')
 ! ix_universe : optional
 ! dat_index : default=1
 !
-!    
 ! Returns
 ! -------
 ! string_list
-!
 !
 ! Examples
 ! --------
@@ -1196,7 +1179,6 @@ case ('data')
 ! 
 ! Parameters
 ! ----------
-!
 ! d2_name
 ! n_d1_data
 ! d_data_arrays_name_min_max
@@ -1208,7 +1190,6 @@ case ('data')
 !
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -1324,10 +1305,10 @@ case ('data_d2_create')
 ! -----
 ! Command syntax:
 !   python data_d2_destroy {d2_datum}
+!
 ! {d2_datum} should be of the form
 !   {ix_uni}@{d2_datum_name}
 ! 
-!
 ! Parameters
 ! ----------
 ! d2_datum
@@ -1337,10 +1318,8 @@ case ('data_d2_create')
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -1357,24 +1336,21 @@ call destroy_this_data_d2(line)
 ! -----
 ! Command syntax:
 !   python data_d2 {d2_datum}
+!
 ! {d2_datum} should be of the form
 !   {ix_uni}@{d2_datum_name}
 ! 
-!
 ! Parameters
 ! ----------
 ! d2_datum
 ! ix_uni : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -1405,32 +1381,29 @@ case ('data_d2')
   nl=incr(nl); write (li(nl), lmt) 'ref_read_in;LOGIC;F;',                    d2_ptr%ref_read_in
 
 !%% data_d_array -----------------------
-! List of datums for a given data_d1.
+! Output list of datums for a given data_d1.
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python data_d_array {d1_datum}
+!
 ! {d1_datum} should be for the form
 !   {ix_uni}@{d2_datum_name}.{d1_datum_name}
 ! Example:
 !   python data_d_array 1@orbit.x
 ! 
-!
 ! Parameters
 ! ----------
 ! d1_datum
 ! ix_uni : optional
 !
-!    
 ! Returns
 ! -------
-! string_list 
-!
+! string_list
 !
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -1466,24 +1439,21 @@ case ('data_d_array')
 ! -----
 ! Command syntax:
 !   python data_d1_array {d2_datum}
+!
 ! {d2_datum} should be of the form
 !   {ix_uni}@{d2_datum_name}
 ! 
-!
 ! Parameters
 ! ----------
 ! d2_datum
 ! ix_uni : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -1508,12 +1478,13 @@ case ('data_d1_array')
   enddo
 
 !%% data_parameter -----------------------
-! Given an array of datums, generate an array of values for a particular datum parameter.
+! Output an array of values for a particular datum parameter for a given array of datums, 
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python data_parameter {data_array} {parameter}
+!
 ! {parameter} may be any tao_data_struct parameter.
 ! Example:
 !   python data_parameter orbit.x model_value
@@ -1523,15 +1494,12 @@ case ('data_d1_array')
 ! data_array
 ! parameter
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -1655,29 +1623,26 @@ case ('data_parameter')
   endif
 
 !%% data_d2_array -----------------------
-! Data d2 info for a given universe.
+! Output data d2 info for a given universe.
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python data_d2_array {ix_universe}
+!
 ! Example:
 !   python data_d2_array 1
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_universe
-!
-!    
+! 
 ! Returns
 ! -------
 ! string_list  
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -1701,6 +1666,7 @@ case ('data_d2_array')
 ! -----
 ! Command syntax:
 !   python data_set_design_value
+!
 ! Example:
 !   python data_set_design_value
 ! 
@@ -1709,15 +1675,12 @@ case ('data_d2_array')
 ! Parameters
 ! ----------
 !
-!    
 ! Returns
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -1776,7 +1739,6 @@ case ('data_set_design_value')
 ! Note: After creating all your datums, use the "data_set_design_value" routine to 
 !       set the design (and model) values.
 ! 
-!
 ! Parameters
 ! ----------
 ! datum_name          ! EG: orb.x[3]
@@ -1803,15 +1765,12 @@ case ('data_set_design_value')
 ! spin_axis%l(2) : optional
 ! spin_axis%l(3) : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -1918,27 +1877,23 @@ case ('datum_create')
   if (tao_chrom_calc_needed(d_ptr%data_type, d_ptr%data_source)) u%calc%chrom_for_data = .true.
 
 !%% datum_has_ele -----------------------
-! Does datum type have an associated lattice element?
+! Output whether a datum type has an associated lattice element
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python datum_has_ele {datum_type}
 ! 
-!
 ! Parameters
 ! ----------
 ! datum_type
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -1954,27 +1909,25 @@ case ('datum_has_ele')
   end select
 
 !%% derivative -----------------------
-! Optimization derivatives
+! Output optimization derivatives
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python derivative
+!
 ! Note: To save time, this command will not recalculate derivatives. 
 ! Use the "derivative" command beforehand to recalcuate if needed.
 ! 
 ! Parameters
 ! ----------
 !
-!
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -1995,35 +1948,34 @@ case ('derivative')
   enddo
 
 !%% ele:ac_kicker -----------------------
-! Element ac_kicker
+! Output element ac_kicker parameters
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python ele:ac_kicker {ele_id}|{which}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+!
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of
+!     model
+!     base
+!     design
 ! Example:
 !   python ele:ac_kicker 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -2054,12 +2006,13 @@ case ('ele:ac_kicker')
   endif
 
 !%% ele:cartesian_map -----------------------
-! Element cartesian_map
+! Output element cartesian_map parameters
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python ele:cartesian_map {ele_id}|{which} {index} {who}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2072,7 +2025,6 @@ case ('ele:ac_kicker')
 !   python ele:cartesian_map 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
@@ -2084,10 +2036,8 @@ case ('ele:ac_kicker')
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
 !  args:
@@ -2134,12 +2084,13 @@ case ('ele:cartesian_map')
   end select
 
 !%% ele:chamber_wall -----------------------
-! Element beam chamber wall
+! Output element beam chamber wall parameters
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python ele:chamber_wall {ele_id}|{which} {index} {who}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2149,7 +2100,6 @@ case ('ele:cartesian_map')
 !   x       ! Return min/max in horizontal plane
 !   y       ! Return min/max in vertical plane
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
@@ -2157,15 +2107,12 @@ case ('ele:cartesian_map')
 ! who
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall3d
 !  args:
@@ -2205,13 +2152,14 @@ case ('ele:chamber_wall')
   enddo
 
 !%% ele:control_var -----------------------
-! List element control variables.
-! Used for group, overlay and ramper type elements
+! Output list of element control variables.
+! Used for group, overlay and ramper type elements.
 !
 ! Notes
 ! -----
 ! Command syntax:
 !   python ele:control_var {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2220,21 +2168,17 @@ case ('ele:chamber_wall')
 !   python ele:control_var 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -2273,6 +2217,7 @@ case ('ele:control_var')
 ! -----
 ! Command syntax:
 !   python ele:cylindrical_map {ele_id}|{which} {index} {who}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2285,7 +2230,6 @@ case ('ele:control_var')
 !   python ele:cylindrical_map 3@1>>7|model 2 base
 ! This gives map #2 of element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
@@ -2293,15 +2237,12 @@ case ('ele:control_var')
 ! who
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
 !  args:
@@ -2356,6 +2297,7 @@ case ('ele:cylindrical_map')
 ! -----
 ! Command syntax:
 !   python ele:elec_multipoles {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2364,21 +2306,17 @@ case ('ele:cylindrical_map')
 !   python ele:elec_multipoles 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -2421,6 +2359,7 @@ case ('ele:elec_multipoles')
 ! -----
 ! Command syntax:
 !   python ele:floor {ele_id}|{which} {where}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2434,22 +2373,18 @@ case ('ele:elec_multipoles')
 !   python ele:floor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 ! where : default=end
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -2514,6 +2449,7 @@ case ('ele:floor')
 ! -----
 ! Command syntax:
 !   python ele:grid_field {ele_id}|{which} {index} {who}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model, base, design
 ! {index} is the index number in the ele%grid_field(:) array.
@@ -2523,7 +2459,6 @@ case ('ele:floor')
 !   python ele:grid_field 3@1>>7|model 2 base
 ! This gives grid #2 of element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
@@ -2535,10 +2470,8 @@ case ('ele:floor')
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_grid
 !  args:
@@ -2614,6 +2547,7 @@ case ('ele:grid_field')
 ! -----
 ! Command syntax:
 !   python ele:gen_attribs {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2622,21 +2556,17 @@ case ('ele:grid_field')
 !   python ele:gen_attribs 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -2694,6 +2624,7 @@ case ('ele:gen_attribs')
 ! -----
 ! Command syntax:
 !   python ele:head {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2702,21 +2633,17 @@ case ('ele:gen_attribs')
 !   python ele:head 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id 
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -2782,6 +2709,7 @@ case ('ele:head')
 ! -----
 ! Command syntax:
 !   python ele:lord_slave {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2796,21 +2724,17 @@ case ('ele:head')
 ! After each "Element" line, there are a number of lines (possibly zero) that begin with the word "Slave or "Lord".
 ! These "Slave" and "Lord" lines are the slaves and lords of the "Element" element.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -2851,6 +2775,7 @@ case ('ele:lord_slave')
 ! -----
 ! Command syntax:
 !   python ele:mat6 {ele_id}|{which} {who}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2863,22 +2788,18 @@ case ('ele:lord_slave')
 !   python ele:mat6 3@1>>7|model mat6
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 ! who :
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -2916,6 +2837,7 @@ case ('ele:mat6')
 ! -----
 ! Command syntax:
 !   python ele:methods {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -2924,21 +2846,17 @@ case ('ele:mat6')
 !   python ele:methods 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -3006,6 +2924,7 @@ case ('ele:methods')
 ! -----
 ! Command syntax:
 !   python ele:multipoles {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -3014,21 +2933,17 @@ case ('ele:methods')
 !   python ele:multipoles 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -3093,6 +3008,7 @@ case ('ele:multipoles')
 ! -----
 ! Command syntax:
 !   python ele:orbit {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -3101,21 +3017,17 @@ case ('ele:multipoles')
 !   python ele:orbit 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -3137,6 +3049,7 @@ case ('ele:orbit')
 ! -----
 ! Command syntax:
 !   python ele:param {ele_id}|{which} {who}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -3154,29 +3067,24 @@ case ('ele:orbit')
 !
 ! Also see: "python lat_list".
 !
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 ! who :
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
 !   who:
-!
 
 case ('ele:param')
 
@@ -3201,6 +3109,7 @@ case ('ele:param')
 ! -----
 ! Command syntax:
 !   python ele:photon {ele_id}|{which} {who}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -3213,22 +3122,18 @@ case ('ele:param')
 !   python ele:photon 3@1>>7|model base
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 ! who :
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_photon
 !  args:
@@ -3282,6 +3187,7 @@ case ('ele:photon')
 ! -----
 ! Command syntax:
 !   python ele:spin_taylor {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -3290,28 +3196,22 @@ case ('ele:photon')
 !   python ele:spin_taylor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_spin
 !  args:
 !   ele_id: 1@0>>2
 !   which: model
-! 
-
 case ('ele:spin_taylor')
 
   u => point_to_uni(line, .true., err); if (err) return
@@ -3337,6 +3237,7 @@ case ('ele:spin_taylor')
 ! -----
 ! Command syntax:
 !   python ele:taylor {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -3345,21 +3246,17 @@ case ('ele:spin_taylor')
 !   python ele:taylor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_taylor
 !  args:
@@ -3396,6 +3293,7 @@ case ('ele:taylor')
 ! -----
 ! Command syntax:
 !   python ele:taylor_field {ele_id}|{which} {index} {who}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -3408,7 +3306,6 @@ case ('ele:taylor')
 !   python ele:taylor_field 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
@@ -3416,15 +3313,12 @@ case ('ele:taylor')
 ! who
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
 !  args:
@@ -3480,6 +3374,7 @@ case ('ele:taylor_field')
 ! -----
 ! Command syntax:
 !   python ele:twiss {ele_id}|{which}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -3488,21 +3383,17 @@ case ('ele:taylor_field')
 !   python ele:twiss 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -3532,6 +3423,7 @@ case ('ele:twiss')
 ! -----
 ! Command syntax:
 !   python ele:wake {ele_id}|{which} {who}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -3545,22 +3437,18 @@ case ('ele:twiss')
 !   python ele:wake 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
 ! which : default=model
 ! who :
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wake
 !  args:
@@ -3636,6 +3524,7 @@ case ('ele:wake')
 ! -----
 ! Command syntax:
 !   python ele:wall3d {ele_id}|{which} {index} {who}
+!
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
@@ -3648,7 +3537,6 @@ case ('ele:wake')
 !   python ele:wall3d 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
@@ -3656,15 +3544,12 @@ case ('ele:wake')
 ! index :
 ! who :
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_wall3d
 !  args:
@@ -3732,7 +3617,6 @@ case ('ele:wall3d')
 ! Example:
 !   python evaluate data::cbar.11[1:10]|model
 ! 
-!
 ! Parameters
 ! ----------
 ! expression
@@ -3748,7 +3632,6 @@ case ('ele:wall3d')
 !
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -3789,6 +3672,7 @@ case ('evaluate')
 ! -----
 ! Command syntax:
 !   python em_field {ele_id}|{which} {x} {y} {z} {t_or_z}
+!
 ! where {which} is one of:
 !   model
 !   base
@@ -3798,7 +3682,6 @@ case ('evaluate')
 !   {z}       -- Longitudinal coord with respect to entrance end of element.
 !   {t_or_z}  -- time or phase space z depending if lattice is setup for absolute time tracking.
 ! 
-!
 ! Parameters
 ! ----------
 ! ele_id
@@ -3812,10 +3695,8 @@ case ('evaluate')
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -3854,23 +3735,20 @@ case ('em_field')
 ! -----
 ! Command syntax:
 !   python enum {enum_name}
+!
 ! Example:
 !   python enum tracking_method
 ! 
-!
 ! Parameters
 ! ----------
 ! enum_name
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4020,20 +3898,16 @@ case ('enum')
 ! Command syntax:
 !   python floor_plan {graph}
 ! 
-!
 ! Parameters
 ! ----------
 ! graph
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -4113,20 +3987,16 @@ case ('floor_plan')
 ! Command syntax:
 !   python floor_orbit {graph}
 ! 
-!
 ! Parameters
 ! ----------
 ! graph
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_floor_orbit
 !  args:
@@ -4268,6 +4138,7 @@ case ('floor_orbit')
 ! -----
 ! Command syntax:
 !   python global
+!
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
 ! 
 ! Note: The follow is intentionally left out:
@@ -4277,19 +4148,15 @@ case ('floor_orbit')
 !   prompt_color
 !   prompt_string
 !
-!
 ! Parameters
 ! ----------
-!
 !
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4355,19 +4222,15 @@ case ('global')
 ! Command syntax:
 !   python help
 !
-!
 ! Parameters
 ! ----------
-!
 !
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4398,20 +4261,16 @@ case ('help')
 ! Command syntax:
 !   python inum {who}
 ! 
-!
 ! Parameters
 ! ----------
 ! who
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4464,20 +4323,16 @@ case ('inum')
 ! Command syntax:
 !   python lat_calc_done
 ! 
-!
 ! Parameters
 ! ----------
 ! branch_name
-!
 !
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4495,23 +4350,20 @@ case ('lat_calc_done')
 ! -----
 ! Command syntax:
 !   python lat_ele_list {branch_name}
+!
 ! {branch_name} should have the form:
 !   {ix_uni}@{ix_branch}
 ! 
-!
 ! Parameters
 ! ----------
 ! branch_name : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4538,20 +4390,16 @@ case ('lat_ele_list')
 ! Output syntax:
 !   branch_index;branch_name;n_ele_track;n_ele_max
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_universe : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4574,6 +4422,7 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 ! -----
 ! Command syntax:
 !   python lat_list {flags} {ix_uni}@{ix_branch}>>{elements}|{which} {who}
+!
 ! where:
 !  Optional {flags} are:
 !   -no_slaves : If present, multipass_slave and super_slave elements will not be matched to.
@@ -4635,7 +4484,6 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4812,20 +4660,16 @@ case ('lat_list')
 ! Command syntax:
 !   python lat_param_units {param_name}
 ! 
-!
 ! Parameters
 ! ----------
 ! param_name
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4844,6 +4688,7 @@ case ('lat_param_units')
 ! -----
 ! Command syntax:
 !   python matrix {ele1_id} {ele2_id}
+!
 ! where:
 !   {ele1_id} is the start element.
 !   {ele2_id} is the end element.
@@ -4853,21 +4698,17 @@ case ('lat_param_units')
 ! Example:
 !   python matrix 2@1>>q01w|design q02w
 ! 
-!
 ! Parameters
 ! ----------
 ! ele1_id
 ! ele2_id
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4905,19 +4746,15 @@ case ('matrix')
 ! Command syntax:
 !   python merit
 ! 
-!
 ! Parameters
 ! ----------
-!
 !
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4933,6 +4770,7 @@ case ('merit')
 ! -----
 ! Command syntax:
 !   python orbit_at_s {ix_uni}@{ix_branch}>>{s}|{which}
+!
 ! where:
 !   {which} is one of:
 !     model
@@ -4940,7 +4778,6 @@ case ('merit')
 !     design
 !   {s} is the longitudinal s-position.
 ! 
-!
 ! Parameters
 ! ----------
 ! s 
@@ -4948,15 +4785,12 @@ case ('merit')
 ! ix_branch : optional
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -4983,19 +4817,15 @@ case ('orbit_at_s')
 ! Command syntax:
 !   python place_buffer
 ! 
-!
 ! Parameters
 ! ----------
 !
-!    
 ! Returns
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -5019,20 +4849,16 @@ case ('place_buffer')
 ! Command syntax:
 !   python plot_curve {curve_name}
 ! 
-!
 ! Parameters
 ! ----------
 ! curve_name
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -5094,24 +4920,21 @@ case ('plot_curve')
 ! -----
 ! Command syntax:
 !   python plot_lat_layout {ix_universe}@{ix_branch}
+!
 ! Note: The returned list of element positions is not ordered in increasing
 !       longitudinal position.
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_universe: 1
 ! ix_branch: 0
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -5147,24 +4970,21 @@ case ('plot_lat_layout')
 ! -----
 ! Command syntax:
 !   python plot_list {r_or_g}
+!
 ! where "{r/g}" is:
 !   "r"      ! list regions
 !   "t"      ! list template plots
 ! 
-!
 ! Parameters
 ! ----------
 ! r_or_g
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -5200,6 +5020,7 @@ case ('plot_list')
 ! -----
 ! Command syntax:
 !   python plot_graph {graph_name}
+!
 ! {graph_name} is in the form:
 !   {p_name}.{g_name}
 ! where
@@ -5207,20 +5028,16 @@ case ('plot_list')
 !   This name is obtained from the python plot_list command.
 !   {g_name} is the graph name obtained from the python plot1 command.
 ! 
-!
 ! Parameters
 ! ----------
 ! graph_name
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -5331,20 +5148,16 @@ case ('plot_graph')
 ! Command syntax:
 !   python plot_histogram {curve_name}
 ! 
-!
 ! Parameters
 ! ----------
 ! curve_name
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -5377,12 +5190,12 @@ case ('plot_histogram')
 ! Command syntax:
 !   python plot_plot_manage {plot_location}^^{plot_name}^^
 !                          {n_graph}^^{graph1_name}^^{graph2_name}^^{graphN_name}
+!
 ! Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a 
 ! spot where there is already a template.
 ! Extra graph names can be included with ^^ connection. 
 ! If {n_graph} is set to -1 then just delete the plot.
 ! 
-!
 ! Parameters
 ! ----------
 ! plot_location
@@ -5392,15 +5205,12 @@ case ('plot_histogram')
 ! graph2_name
 ! graphN_name
 !
-!    
 ! Returns
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -5460,27 +5270,24 @@ case ('plot_plot_manage')
 ! -----
 ! Command syntax:
 !   python plot_curve_manage {graph_name}^^{curve_index}^^{curve_name}
+!
 ! If {curve_index} corresponds to an existing curve then this curve is deleted.
 ! In this case the {curve_name} is ignored and does not have to be present.
 ! If {curve_index} does not not correspond to an existing curve, {curve_index}
 ! must be one greater than the number of curves.
 ! 
-!
 ! Parameters
 ! ----------
 ! graph_name
 ! curve_index
 ! curve_name
 !
-!    
 ! Returns
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -5536,27 +5343,24 @@ case ('plot_curve_manage')
 ! -----
 ! Command syntax:
 !   python plot_graph_manage {plot_name}^^{graph_index}^^{graph_name}
+!
 ! If {graph_index} corresponds to an existing graph then this graph is deleted.
 ! In this case the {graph_name} is ignored and does not have to be present.
 ! If {graph_index} does not not correspond to an existing graph, {graph_index}
 ! must be one greater than the number of graphs.
 ! 
-!
 ! Parameters
 ! ----------
 ! plot_name
 ! graph_index
 ! graph_name
 !
-!    
 ! Returns
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -5612,6 +5416,7 @@ case ('plot_graph_manage')
 ! -----
 ! Command syntax:
 !   python plot_line {region_name}.{graph_name}.{curve_name} {x_or_y}
+!
 ! Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y 
 ! component put into the real array buffer.
 ! Note: The plot must come from a region, and not a template, since no template plots 
@@ -5621,7 +5426,6 @@ case ('plot_graph_manage')
 !   python plot_line r13.g.a x ! x-component of line points loaded into the real array buffer.
 !   python plot_line r13.g.a y ! y-component of line points loaded into the real array buffer.
 ! 
-!
 ! Parameters
 ! ----------
 ! region_name
@@ -5629,15 +5433,12 @@ case ('plot_graph_manage')
 ! curve_name
 ! x_or_y : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line -external_plotting
 !  args:
@@ -5703,6 +5504,7 @@ endif
 ! -----
 ! Command syntax:
 !   python plot_symbol {region_name}.{graph_name}.{curve_name} {x_or_y}
+!
 ! Optional {x_or_y} may be set to "x" or "y" to get the symbol x or y 
 ! positions put into the real array buffer.
 ! Note: The plot must come from a region, and not a template, 
@@ -5714,7 +5516,6 @@ endif
 !   python plot_symbol r13.g.a y     ! y-component of the symbol positions 
 !                                      loaded into the real array buffer.
 ! 
-!
 ! Parameters
 ! ----------
 ! region_name
@@ -5722,7 +5523,6 @@ endif
 ! curve_name
 ! x_or_y
 !
-!    
 ! Returns
 ! -------
 ! string_list
@@ -5730,7 +5530,6 @@ endif
 !
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line -external_plotting
 !  args:
@@ -5794,26 +5593,23 @@ case ('plot_symbol')
 ! -----
 ! Command syntax:
 !   python plot_transfer {from_plot} {to_plot}
+!
 ! To avoid confusion, use "@Tnnn" and "@Rnnn" syntax for {from_plot}.
 ! If {to_plot} is not present and {from_plot} is a template plot, the "to plots" 
 !  are the equivalent region plots with the same name. And vice versa 
 !  if {from_plot} is a region plot.
 ! 
-!
 ! Parameters
 ! ----------
 ! from_plot
 ! to_plot
 !
-!    
 ! Returns
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -5864,23 +5660,20 @@ case ('plot_transfer')
 ! -----
 ! Command syntax:
 !   python plot1 {name}
+!
 ! {name} should be the region name if the plot is associated with a region.
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
 ! 
-!
 ! Parameters
 ! ----------
 ! name
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -5925,15 +5718,12 @@ case ('plot1')
 ! Parameters
 ! ----------
 !
-!    
 ! Returns
 ! -------
 ! string_list 
 !
-!
 ! Examples
 ! -------- 
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init 
 !  args:
@@ -5953,6 +5743,7 @@ case ('ptc_com')
 ! -----
 ! Command syntax:
 !   python ring_general {ix_uni}@{ix_branch}|{which}
+!
 ! where {which} is one of:
 !   model
 !   base
@@ -5960,22 +5751,18 @@ case ('ptc_com')
 ! Example:
 !   python ring_general 1@0|model
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_uni : optional
 ! ix_branch : optional
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 
 case ('ring_general')
 
@@ -6037,24 +5824,21 @@ case ('ring_general')
 ! -----
 ! Command syntax:
 !   python shape_list {who}
+!
 ! {who} is one of:
 !   lat_layout
 !   floor_plan
 ! 
-!
 ! Parameters
 ! ----------
 ! who
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -6103,22 +5887,18 @@ case ('shape_list')
 ! Note: After adding a shape use "python shape_set" to set shape parameters.
 ! This is important since an added shape is in a ill-defined state.
 ! 
-!
 ! Parameters
 ! ----------
 ! who
 ! index
 ! add_or_delete
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -6170,20 +5950,16 @@ case ('shape_manage')
 ! If optional {ix_pattern} index is omitted then list all the patterns.
 ! If {ix_pattern} is present, list points of given pattern.
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_pattern : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_shape
 !  args:
@@ -6212,6 +5988,7 @@ case ('shape_pattern_list')
 ! -----
 ! Command syntax:
 !   python shape_pattern_manage {ix_pattern}^^{pat_name}^^{pat_line_width}
+!
 ! where:
 !   {ix_pattern}      -- Pattern index. Patterns with higher indexes will be moved up 
 !                                       if adding a pattern and down if deleting.
@@ -6219,22 +5996,18 @@ case ('shape_pattern_list')
 !   {pat_line_width}  -- Line width. Integer. If set to "delete" then section 
 !                                             will be deleted.
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_pattern
 ! pat_name
 ! pat_line_width
 !
-!    
 ! Returns
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_shape
 !  args:
@@ -6274,13 +6047,13 @@ case ('shape_pattern_manage')
 ! -----
 ! Command syntax:
 !   python shape_pattern_point_manage {ix_pattern}^^{ix_point}^^{s}^^{x}
+!
 ! where:
 !   {ix_pattern}      -- Pattern index.
 !   {ix_point}        -- Point index. Points of higher indexes will be moved up
 !                                     if adding a point and down if deleting.
 !   {s}, {x}          -- Point location. If {s} is "delete" then delete the point.
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_pattern
@@ -6288,15 +6061,12 @@ case ('shape_pattern_manage')
 ! s
 ! x
 !
-!    
 ! Returns
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_shape
 !  args:
@@ -6344,11 +6114,11 @@ case ('shape_pattern_point_manage')
 !   python shape_set {who}^^{shape_index}^^{ele_name}^^{shape}^^{color}^^
 !                    {shape_size}^^{type_label}^^{shape_draw}^^
 !                    {multi_shape}^^{line_width}
+!
 ! {who} is one of:
 !   lat_layout
 !   floor_plan
 ! 
-!
 ! Parameters
 ! ----------
 ! who
@@ -6362,15 +6132,12 @@ case ('shape_pattern_point_manage')
 ! multi_shape
 ! line_width
 !
-!    
 ! Returns
 ! -------
 ! None
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -6422,24 +6189,21 @@ case ('shape_set')
 ! -----
 ! Command syntax:
 !   python show {line}
+!
 ! {line} is the string to pass through to the show command.
 ! Example:
 !   python show lattice -python
 ! 
-!
 ! Parameters
 ! ----------
 ! line
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -6456,23 +6220,20 @@ case ('show')
 ! -----
 ! Command syntax:
 !   python species_to_int {species_str}
+!
 ! Example:
 !   python species_to_int CO2++
 ! 
-!
 ! Parameters
 ! ----------
 ! species_str
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -6495,23 +6256,20 @@ case ('species_to_int')
 ! -----
 ! Command syntax:
 !   python species_to_str {species_int}
+!
 ! Example:
 !   python species_to_str -1     ! Returns 'Electron'
 ! 
-!
 ! Parameters
 ! ----------
 ! species_int
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -6536,6 +6294,7 @@ case ('species_to_str')
 ! -----
 ! Command syntax:
 !   python spin_polarization {ix_uni}@{ix_branch}|{which}
+!
 ! where {which} is one of:
 !   model
 !   base
@@ -6545,22 +6304,18 @@ case ('species_to_str')
 ! 
 ! Note: This command is under development. If you want to use please contact David Sagan.
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_uni : optional
 ! ix_branch : optional
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args: 
@@ -6659,19 +6414,15 @@ case ('spin_resonance')
 ! Command syntax:
 !   python super_universe
 ! 
-!
 ! Parameters
 ! ----------
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args: 
@@ -6689,12 +6440,12 @@ case ('super_universe')
 ! -----
 ! Command syntax:
 !   python twiss_at_s {ix_uni}@{ix_branch}>>{s}|{which}
+!
 ! where {which} is one of:
 !   model
 !   base
 !   design
 ! 
-!
 ! Parameters
 ! ----------
 ! s
@@ -6702,15 +6453,12 @@ case ('super_universe')
 ! ix_branch : optional
 ! which : default=model
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args: 
@@ -6737,22 +6485,19 @@ case ('twiss_at_s')
 ! -----
 ! Command syntax:
 !   python universe {ix_universe}
+!
 ! Use "python global" to get the number of universes.
 ! 
-!
 ! Parameters
 ! ----------
 ! ix_universe
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args: 
@@ -6775,21 +6520,17 @@ case ('universe')
 ! Command syntax:
 !   python var {var} slaves
 ! 
-!
 ! Parameters
 ! ----------
 ! var
 ! slaves : optional
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args: 
@@ -6873,11 +6614,11 @@ case ('var')
 !   python var_create {var_name}^^{ele_name}^^{attribute}^^{universes}^^
 !                     {weight}^^{step}^^{low_lim}^^{high_lim}^^{merit_type}^^
 !                     {good_user}^^{key_bound}^^{key_delta}
+!
 ! {var_name} is something like "kick[5]".
 ! Before using var_create, setup the appropriate v1_var array using 
 ! the "python var_v1_create" command.
 ! 
-!
 ! Parameters
 ! ----------
 ! var_name
@@ -6893,15 +6634,12 @@ case ('var')
 ! key_bound
 ! key_delta
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
@@ -7010,22 +6748,19 @@ case ('var_create')
 ! -----
 ! Command syntax:
 !   python var_general
+!
 ! Output syntax:
 !   {v1_var name};{v1_var%v lower bound};{v1_var%v upper bound}
 !
-!
 ! Parameters
 ! ----------
-!
 !
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -7046,23 +6781,20 @@ case ('var_general')
 ! -----
 ! Command syntax:
 !   python var_v_array {v1_var}
+!
 ! Example:
 !   python var_v_array quad_k1
 ! 
-!
 ! Parameters
 ! ----------
 ! v1_var
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -7094,20 +6826,16 @@ case ('var_v_array')
 ! Command syntax:
 !   python var_v1_array {v1_var}
 ! 
-!
 ! Parameters
 ! ----------
 ! v1_var
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -7142,6 +6870,7 @@ case ('var_v1_array')
 ! -----
 ! Command syntax:
 !   python var_v1_create {v1_name} {n_var_min} {n_var_max}
+!
 ! {n_var_min} and {n_var_max} are the lower and upper bounds of the var
 ! Example:
 !   python var_v1_create quad_k1 0 45
@@ -7160,22 +6889,18 @@ case ('var_v1_array')
 !   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the 
 ! partially created variable and generating unwanted error messages.
 ! 
-!
 ! Parameters
 ! ----------
 ! v1_name
 ! n_var_min
 ! n_var_max
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -7244,20 +6969,16 @@ case ('var_v1_create')
 ! Command syntax:
 !   python var_v1_destroy {v1_datum}
 ! 
-!
 ! Parameters
 ! ----------
 ! v1_datum
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
@@ -7274,26 +6995,23 @@ case ('var_v1_destroy')
 ! -----
 ! Command syntax:
 !   python wave {what}
+!
 ! Where {what} is one of:
 !   params
 !   loc_header
 !   locations
 !   plot1, plot2, plot3
 ! 
-!
 ! Parameters
 ! ----------
 ! what
 !
-!    
 ! Returns
 ! -------
 ! string_list
 !
-!
 ! Examples
 ! --------
-!
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:

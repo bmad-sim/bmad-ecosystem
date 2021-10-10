@@ -56,9 +56,10 @@ possible
 \centering {\tt
 \begin{tabular}{ll|ll} \toprule
   {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \midrule
-  alias         & \sref{s:alias}    & read          & \sref{s:read}     \\
-  call          & \sref{s:call}     & restore       & \sref{s:restore}  \\ 
-  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ 
+  alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\
+  call          & \sref{s:call}     & read          & \sref{s:read}     \\
+  change        & \sref{s:change}   & restore       & \sref{s:restore}  \\ 
+  clear         & \sref{s:clear}    & reinitialize  & \sref{s:reinit}   \\ 
   clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ 
   continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ 
   derivative    & \sref{s:deriv}    & set           & \sref{s:set}      \\  
@@ -74,7 +75,6 @@ possible
   ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
   python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
   quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\
-  re_execute    & \sref{s:re.exe}   &               &                   \\
 \bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
@@ -266,6 +266,21 @@ Examples:
 \end{example}
 
 
+%% clear --------------------------------------------------------------
+\section{clear}\index{commands!clear}
+\label{s:clear}
+
+The \vn{clear} command clears stored spin and orbital Taylor maps from all elements in a lattice
+with the exception of \vn{Taylor} elements (which are specified in the lattice file as opposed to
+being calculated by \bmad). Format:
+\begin{example}
+  clear maps
+\end{example}
+
+Clearing the Taylor maps may be needed if the maps are in use (for example, with a spin polarization
+calculation) and orbit excursions place the calculated orbit outside of the range of validity of the
+maps.
+
 %% clip --------------------------------------------------------------
 \section{clip}\index{commands!clip}
 \label{s:clip}
@@ -276,22 +291,18 @@ logical of the data associated with the out-of-bound plotted points are set to F
   clip \{-gang\} \{<where> \{<limit1> \{<limit2>\}\}\}
 \end{example}
 
-\vskip 10pt 
-Which graphs are clipped is determined by the \vn{<where>} switch. If \vn{<where>} is not
-present, all graphs are clipped. If \vn{where} is a plot name, then all the graphs of that
-plot are clipped. If \vn{where} is the name of a \vn{d2_data} (for example, \vn{orbit}) or
-a \vn{d1_data} (for example, \vn{orbit.x}) structure, then those graphs that display this
-data are clipped.
+\vskip 10pt Which graphs are clipped is determined by the \vn{<where>} switch. If \vn{<where>} is
+not present, all graphs are clipped. If \vn{where} is a plot name, then all the graphs of that plot
+are clipped. If \vn{where} is the name of a \vn{d2_data} (for example, \vn{orbit}) or a \vn{d1_data}
+(for example, \vn{orbit.x}) structure, then those graphs that display this data are clipped.
 
-The points that are clipped those points whose $y$ values are outside a certain range
-defined by \vn{<limit1>} and \vn{<limit2>}. If neither \vn{<limit1>} nor \vn{<limit2>} are
-present, the clip range is taken to be outside the graph minimum and maximum $y$--axis
-values. If only \vn{<limit1>} is present then the clip range is outside the region from
--\vn{<limit1>} to +\vn{<limit1>}. If both are present than the range is from \vn{<limit1>}
-to \vn{<limit2>}.
+The points that are clipped those points whose $y$ values are outside a certain range defined by
+\vn{<limit1>} and \vn{<limit2>}. If neither \vn{<limit1>} nor \vn{<limit2>} are present, the clip
+range is taken to be outside the graph minimum and maximum $y$--axis values. If only \vn{<limit1>}
+is present then the clip range is outside the region from -\vn{<limit1>} to +\vn{<limit1>}. If both
+are present than the range is from \vn{<limit1>} to \vn{<limit2>}.
 
-The \vn{-gang} switch is apply a clip to corresponding data in a \vn{d2_data} structure. For
-example
+The \vn{-gang} switch is apply a clip to corresponding data in a \vn{d2_data} structure. For example
 \begin{example}
   clip -g orbit.x   ! Clips both orbit.x and orbit.y 
 \end{example}
