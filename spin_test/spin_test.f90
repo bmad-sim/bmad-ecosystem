@@ -17,7 +17,7 @@ complex(rp) orb_eval(6), orb_evec(6,6), spin_evec(6,3)
 integer i, nargs
 
 character(40) :: lat_file = 'spin_test.bmad'
-logical print_extra, err_flag
+logical print_extra, err, err_flag
 
 namelist / param / dr
 
@@ -56,7 +56,7 @@ smap(1,:) = [-0.00685250940958695_rp, -0.0220406297379937_rp, -0.026993057048057
 smap(2,:) = [-0.777294845209733_rp, -0.338517412818692_rp, 0.5143587138526_rp, -0.0476276423794947_rp, -0.0307172897350696_rp, 0.0_rp, 0.377861514185347_rp]
 smap(3,:) = [-0.00848062536777657_rp, 0.0242925995028888_rp, 0.0255153607860429_rp, -0.382910379812211_rp, 0.214739411520287_rp, 0.0_rp, 0.00664126972595546_rp]
 
-call spin_mat_to_eigen(mat6, smap, orb_eval, orb_evec, n0, spin_evec)
+call spin_mat_to_eigen(mat6, smap, orb_eval, orb_evec, n0, spin_evec, err)
 write (1, '(a, 3f14.10)') '"n0 noRF" ABS 1E-9', n0
 do i = 1, 3
   write (1, '(a, 6f14.10)') '"spin_evec' // int_str(i) // ' RE noRF" ABS 1E-9', real(spin_evec(:,i), rp)
@@ -75,7 +75,7 @@ smap(1,:) = [-0.00577912096536385_rp, -0.022433622147659_rp, -0.023934389475195_
 smap(2,:) = [-0.778492991161124_rp, -0.323048089979131_rp, 0.441845517473186_rp, -0.0458892036514809_rp, -0.0290461360214925_rp, 0.000620467256904083_rp, 0.353328140106095_rp]
 smap(3,:) = [-0.00715175423263742_rp, 0.0247012868571641_rp, 0.0230889442582705_rp, -0.371630255499699_rp, 0.220039460098232_rp, 5.71356858448481e-06_rp, 0.00541359028621752_rp]
 
-call spin_mat_to_eigen(mat6, smap, orb_eval, orb_evec, n0, spin_evec)
+call spin_mat_to_eigen(mat6, smap, orb_eval, orb_evec, n0, spin_evec, err)
 write (1, '(a, 3f14.10)') '"n0 wRF" ABS 1E-9', n0
 do i = 1, 3
   write (1, '(a, 6f14.10)') '"spin_evec' // int_str(i) // ' RE wRF" ABS 1E-9', real(spin_evec(:,i), rp)
