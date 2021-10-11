@@ -36,7 +36,7 @@ set (EXE_SPECS
   cmake.sim_utils_test
   cmake.slice_test
   cmake.spin_method_test
-  cmake.spin_test
+  cmake.spin_general_test
   cmake.superimpose_test
   cmake.synrad3d_test
   cmake.taylor_test

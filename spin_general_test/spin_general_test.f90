@@ -1,4 +1,4 @@
-program spin_test
+program spin_general_test
 
 use bmad
 use pointer_lattice, only: c_linear_map, operator(*), assignment(=)
@@ -16,7 +16,7 @@ real(rp) mat6(6,6), smap(0:3,0:6), n0(3)
 complex(rp) orb_eval(6), orb_evec(6,6), spin_evec(6,3)
 integer i, nargs
 
-character(40) :: lat_file = 'spin_test.bmad'
+character(40) :: lat_file = 'spin_general_test.bmad'
 logical print_extra, err, err_flag
 
 namelist / param / dr
