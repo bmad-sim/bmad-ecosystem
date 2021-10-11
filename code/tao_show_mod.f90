@@ -234,8 +234,10 @@ real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, gamma2, val, z, z1, z2,
 real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
-real(rp) pz2, qs, q, dq, x
+real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2)
 real(rp), allocatable :: value(:)
+
+complex(rp) eval(6), evec(6,6), n_eigen(6,3)
 
 character(*) :: what
 character(*), parameter :: r_name = "tao_show_cmd"
@@ -272,10 +274,6 @@ integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
 integer eval_pt, n_count
 integer, allocatable :: ix_c(:), ix_remove(:)
-
-complex(rp) eval(6), evec(6,6), n_eigen(6,3), qv(0:3), qv2(0:3)
-complex(rp) np(0:3), nm(0:3), t1(0:3), t2(0:3)
-real(rp) nn0(3)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
@@ -3925,6 +3923,13 @@ case ('spin')
       sm%axis_input%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin
     endif
 
+    datum%ix_branch = ix_branch
+    call tao_spin_matrix_calc (datum, u, ele_ref%ix_ele, ele%ix_ele)
+    if (.not. sm%valid) then
+      nl=nl+1; lines(nl) = 'INVALID: ' // datum%why_invalid
+      return
+    endif
+
     if (show_mat) then
       if (all(sm%axis_input%n0 == 0) .and. ele_ref%ix_ele /= ele%ix_ele) then
         nl=nl+1; lines(nl) = 'NO SPIN AXIS COMPUTED.' 
@@ -3932,20 +3937,6 @@ case ('spin')
         nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON IN THE LATTICE FILE: "bmad_com[spin_tracking_on] = T"'
         return
       endif
-    endif
-
-    if (show_mat) then
-      datum%ix_branch = ix_branch
-      call tao_spin_matrix_calc (datum, u, ele_ref%ix_ele, ele%ix_ele)
-      if (.not. sm%valid) then
-        nl=nl+1; lines(nl) = 'INVALID: ' // datum%why_invalid
-        return
-      endif
-    else
-      call spin_concat_linear_maps (sm%map1, branch, 0, branch%n_ele_track, orbit = tao_branch%orbit)
-    endif
-
-    if (show_mat) then
       nl=nl+1; write (lines(nl), '(23x, a, 34x, a)') 'Initial', 'Final'
       nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'L-axis:', sm%axis0%l, sm%axis1%l
       nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'N-axis:', sm%axis0%n0, sm%axis1%n0
@@ -3991,41 +3982,9 @@ case ('spin')
         j = 2 * i - 1
         q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
         dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
-
-        do k = 0, 3
-          qv(k)  = sum(evec(j,:) * sm%map1%spin_q(k,1:6))
-          qv2(k) = sum(evec(j+1,:) * sm%map1%spin_q(k,1:6))
-        enddo
-
-        nn0 = sm%map1%spin_q(1:3,0)
-        nn0 = nn0 / norm2(nn0)
-
-        np(0) = 0.5_rp
-        np(1:3) = i_imag * nn0 / 2
-        nm(0) = 0.5_rp
-        nm(1:3) = -i_imag * nn0 / 2
-
-        t1 = sqrt(2.0) * quat_mul(np, qv, nm) / pi
-        t2 = sqrt(2.0) * quat_mul(np, qv2, nm) / pi
-
-        z1 = abs(sum(evec(j,:)   * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag))) / twopi
-        z2 = abs(sum(evec(j+1,:) * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag))) / twopi
-
-        nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 8(4x, 2es13.5))') abc_name(i), q, dq, &
-                                                            norm2(abs(t1)), norm2(abs(t2)), z1, z2
-!        if (i == 1) then
-!          do k = 1, 6
-!            qv = sm%map1%spin_q(:,k)
-!            nl=nl+1; write (lines(nl), '(i1, 6(4x, 2es12.4))') k, 4  * quat_mul(np, qv, nm)
-!          enddo
-!           nl=nl+1; write (lines(nl), '(i1, 6(4x, 2es12.4))') 0, evec(j+1,:) * (sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)
-!          nl=nl+1; lines(nl) = ''
-!          do k = 1, 6
-!            qv = sm%map1%spin_q(:,k)
-!            nl=nl+1; write (lines(nl), '(i1, 6(4x, 2es12.4))') k, 4 * quat_mul(nm, qv, np)
-!          enddo
-!        endif
-
+        call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat)
+        call spin_mat8_resonance_strengths(evec(j,:), sm%mat8, xi_mat8)
+        nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 8(4x, 2es13.5))') abc_name(i), q, dq, xi_quat, xi_mat8
       enddo
       nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
     endif
