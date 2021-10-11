@@ -45,6 +45,8 @@ logical valid_value, err
 
 !
 
+call tao_spin_tracking_turn_on()
+
 orbit => tao_branch%orbit
 if (.not. allocated(tao_branch%dn_dpz)) allocate (tao_branch%dn_dpz(0:branch%n_ele_track))
 tao_branch%spin_valid = .true.

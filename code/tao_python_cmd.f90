@@ -158,7 +158,7 @@ real(rp) mat6(6,6), vec0(6), array(7)
 real(rp), allocatable :: real_arr(:), value_arr(:)
 
 type (tao_spin_map_struct), pointer :: sm
-real(rp) n0(3), qs, q, dq(3), xi_res_eigen(3), xi_res_gv1(3), xi_res_gv2(3)
+real(rp) n0(3), qs, q, dq(3), xi_quat(3,2), xi_mat8(3,2)
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
 
 integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, md, ct, nl2, n, ix, ix2, iu_write, data_type
@@ -6395,16 +6395,16 @@ case ('spin_resonance')
     j = 2 * i - 1
     q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
     dq(i) = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
-    xi_res_eigen(i) = dq(i) * sqrt(2.0_rp)*norm2(abs(n_eigen(j,:)))
-    xi_res_gv1(i) = abs(dot_product(evec(j,:),   sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
-    xi_res_gv2(i) = abs(dot_product(evec(j+1,:), sm%mat8(7,1:6) + sm%mat8(8,1:6) * i_imag)) / twopi
+    call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat(i,:))
+    call spin_mat8_resonance_strengths(evec(j,:), sm%mat8, xi_mat8(i,:))
   enddo
 
   nl=incr(nl); write (li(nl), rmt) 'spin_tune;REAL;F;',   qs
   nl=incr(nl); write (li(nl), amt) 'dq;REAL_ARR;F',   (';', re_str(dq(k), 6), k = 1, 3)
-  nl=incr(nl); write (li(nl), amt) 'xi_res_eigen;REAL_ARR;F',   (';', re_str(xi_res_eigen(k), 6), k = 1, 3)
-  nl=incr(nl); write (li(nl), amt) 'xi_res_gv1;REAL_ARR;F',   (';', re_str(xi_res_gv1(k), 6), k = 1, 3)
-  nl=incr(nl); write (li(nl), amt) 'xi_res_gv2;REAL_ARR;F',   (';', re_str(xi_res_gv2(k), 6), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'xi_res1_quat;REAL_ARR;F',   (';', re_str(xi_quat(k,1), 6), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'xi_res2_quat;REAL_ARR;F',   (';', re_str(xi_quat(k,2), 6), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'xi_res1_mat8;REAL_ARR;F',   (';', re_str(xi_mat8(k,1), 6), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'xi_res2_mat8;REAL_ARR;F',   (';', re_str(xi_mat8(k,2), 6), k = 1, 3)
 
 !%% super_universe -----------------------
 ! Super_Universe information

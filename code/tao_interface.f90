@@ -876,6 +876,9 @@ function tao_spin_matrices_calc_needed (data_type, data_source) result (do_calc)
   logical do_calc
 end function
 
+subroutine tao_spin_tracking_turn_on()
+end subroutine
+
 subroutine tao_shape_init (shape, err, print_err)
   import
   implicit none
