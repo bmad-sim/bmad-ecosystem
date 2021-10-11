@@ -2025,6 +2025,13 @@ subroutine spin_mat_to_eigen (orb_mat, spin_map, eigen_val, orb_evec, n0, spin_e
   logical error
 end subroutine
 
+subroutine spin_mat8_resonance_strengths (orb_evec, mat8, xi_mat8)
+  import
+  implicit none
+  real(rp) mat8(6,6), xi_mat8(2)
+  complex(rp) orb_evec(6)
+end subroutine
+
 function spin_omega (field, orbit, sign_z_vel, phase_space_coords) result (omega)
   import
   implicit none
@@ -2034,6 +2041,13 @@ function spin_omega (field, orbit, sign_z_vel, phase_space_coords) result (omega
   logical, optional :: phase_space_coords
   real(rp) omega(3)
 end function
+
+subroutine spin_quat_resonance_strengths (orb_evec, spin_q, xi_quat)
+  import
+  implicit none
+  real(rp) spin_q(0:3,0:6), xi_quat(2)
+  complex(rp) orb_evec(6)
+end subroutine
 
 function spin_taylor_to_linear (spin_taylor, dref_orb) result (spin_map1)
   import
