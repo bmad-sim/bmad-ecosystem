@@ -1,6 +1,6 @@
-set (EXENAME spin_method_test)
+set (EXENAME spin_map_test)
 
-FILE (GLOB SRC_FILES "spin_method_test/*.f90")
+FILE (GLOB SRC_FILES "spin_map_test/*.f90")
 
 set (INC_DIRS
 )

@@ -1,0 +1,5 @@
+cd ../../bmad
+mkd
+cd ../regression_tests/
+mkd spin_map_test-exe
+cd spin_map_test
