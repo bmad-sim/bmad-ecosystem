@@ -69,7 +69,7 @@ do ib = 0, ubound(lat%branch, 1)
       call init_coord (start_orb, lat%particle_start, ele, upstream_end$, branch%param%particle)
 
       call make_mat6 (ele, branch%param, start_orb, end_orb, err)
-      if (.not. allocated(ele%spin_taylor%term(1))) cycle
+      if (.not. associated(ele%spin_taylor(1)%term)) cycle
 
       ele%spin_q = spin_taylor_to_linear(ele%spin_taylor, start_orb%vec)
       iq = iq + 1
