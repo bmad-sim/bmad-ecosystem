@@ -2,9 +2,9 @@
 \index{customizing}
 \label{c:custom.tao}
 
-\tao has been designed to be readily extensible with a minimum of
-effort when certain rules are followed. 
-This chapter discusses how this is done.
+\tao has been designed to be readily extensible with a minimum of effort when certain rules are
+followed. This chapter discusses how this is done. This is separate from using \tao's \vn{python}
+command (\sref{s:python.python}) to control \tao.
 
 %----------------------------------------------------------------
 \section{Initial Setup}
@@ -29,21 +29,23 @@ name.  Here this directory will be called \vn{tao_custom}.
   \item
 Copy the files from the directory \vn{tao/customization} to \vn{ROOT/tao_custom}. The \vn{tao}
 directory is part of the \bmad package. If you do not know where to find it, ask your local Guru
-where it is. Along with a \vn{README} file, there are two CMake\footnote{CMake is a program used for
-compiling code}  script files in the
-\vn{customization} directory:
+where it is. Along with a \vn{README} file, there are two CMake\footnote
+  {
+CMake is a program used for compiling code.
+  } 
+script files in the \vn{customization} directory:
 \begin{example}
   CMakeLists.txt
   cmake.custom_tao
 \end{example}
-These scripts are setup to make an executable called \vn{custom_tao}. This name can be changed
-by modifying the \vn{cmake.custom_tao} file.
+These scripts are setup to make an executable called \vn{custom_tao}. This name can be changed by
+modifying the \vn{cmake.custom_tao} file.
   \item
 Copy the file \vn{tao/program/tao_program.f90} to \vn{ROOT/tao_custom}.
   \item
-Copy as needed \vn{hook} files from \vn{tao/hook} to \vn{ROOT/tao_custom}. The hook files
-you will need are the hook files you will want to modify to customize \tao. See below for
-details. See \sref{s:cust.example} for an example.
+Copy as needed \vn{hook} files from \vn{tao/hook} to \vn{ROOT/tao_custom}. The hook files you will
+need are the hook files you will want to modify to customize \tao. See below for details. See
+\sref{s:cust.example} for an example.
   \item
 Go to the \vn{ROOT/tao_custom} directory and use the command \vn{mk} to create the
 executable 
@@ -61,49 +63,40 @@ A debug executable only needs to be created if you a debugging the code.
 \section{It's All a Matter of Hooks}
 \index{customizing!hooks}
 
-The golden rule when extending \tao is that you are only allowed to
-customize routines that have the name ``hook'' in
-them. These files are located in the directory \vn{tao/hook}.
-To customize one of these files, copy it from \vn{tao/hook} to \vn{ROOT}
-and then make modifications to the copy.
+The golden rule when extending \tao is that you are only allowed to customize routines that have the
+name ``hook'' in them. These files are located in the directory \vn{tao/hook}.  To customize one of
+these files, copy it from \vn{tao/hook} to \vn{ROOT} and then make modifications to the copy.
 
-The reason for this golden rule is to ensure that, as time
-goes by, and revisions are made to the \tao routines to extend it's
-usefulness and to eliminate bugs, these changes will
-have a minimum impact on the specialized routines you write.
-What happens if the modification you want to do cannot be accomplished
-by customizing a hook routine? The answer is to contact
-the \tao programming team and we will modify \tao and provide the hooks 
-you need so that you can then do your customization.
+The reason for this golden rule is to ensure that, as time goes by, and revisions are made to the
+\tao routines to extend it's usefulness and to eliminate bugs, these changes will have a minimum
+impact on the specialized routines you write.  What happens if the modification you want to do
+cannot be accomplished by customizing a hook routine? The answer is to contact the \tao programming
+team and we will modify \tao and provide the hooks you need so that you can then do your
+customization.
 
 %----------------------------------------------------------------
 \section{Initializing Hook Routines}
 
-One way to initialize a hook routine is to read in parameters from an initialization file.
-If an initialization file is used, the filename may be set using the
-\vn{s%global%hook_init_file} string. This string may be set in the \vn{tao_params}
-namelist (\sref{s:globals}) or may be set on the command line using the
-\vn{-hook_init_file} option (\sref{s:command.line}).
+One way to initialize a hook routine is to read in parameters from an initialization file.  If an
+initialization file is used, the filename may be set using the \vn{s%global%hook_init_file}
+string. This string may be set in the \vn{tao_params} namelist (\sref{s:globals}) or may be set on
+the command line using the \vn{-hook_init_file} option (\sref{s:command.line}).
 
 %----------------------------------------------------------------
 \section{Hook Routines}
 
-To get a good idea of how \tao works it is recommended to spend a
-little bit of time going through the source files. This may also
-provide pointers on how to make customizations in the hook routines. Of
-particular interest is the module \vn{tao_lattice_calc_mod.f90} where tracking
-and lattice parameters are computed. 
+To get a good idea of how \tao works it is recommended to spend a little bit of time going through
+the source files. This may also provide pointers on how to make customizations in the hook
+routines. Of particular interest is the module \vn{tao_lattice_calc_mod.f90} where tracking and
+lattice parameters are computed.
 
-Plotting is based upon the \vn{quick_plot} subroutines which are
-documented in the \bmad reference manual. If custom plotting is
-desired this material should be reviewed to get familiar with the
+Plotting is based upon the \vn{quick_plot} subroutines which are documented in the \bmad reference
+manual. If custom plotting is desired this material should be reviewed to get familiar with the
 concepts of ``graph'', ``box'', and ``page''.
 
-The following is a run through of each of the hook routines. Each
-routine is in a separate file called
-\vn{tao/hook/<hook_routine_name>.f90}. See these files for subroutine
-headers and plenty of comments throughout the dummy code to aid in the
-modification of these subroutines.
+The following is a run through of each of the hook routines. Each routine is in a separate file
+called \vn{tao/hook/<hook_routine_name>.f90}. See these files for subroutine headers and plenty of
+comments throughout the dummy code to aid in the modification of these subroutines.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_graph_setup}
@@ -115,20 +108,16 @@ Use this to setup custom graph data for a plot.
 \subsection{tao_hook_command}\index{customizing!tao_hook_commad}
 \label{s:hook.command}
 
-Any custom commands are placed here. The dummy subroutine already has
-a bit of code that replicates what is performed in
-\vn{tao_command}. Commands placed here are searched before the
-standard \tao commands. This allows for the overwriting of any
-standard \tao command.
+Any custom commands are placed here. The dummy subroutine already has a bit of code that replicates
+what is performed in \vn{tao_command}. Commands placed here are searched before the standard \tao
+commands. This allows for the overwriting of any standard \tao command.
 
-By default, there is one command included in here: \vn{`hook'}. This
-is just a simple command that doesn't really do anything and is for
-the purposes of demonstrating how a custom command would be
+By default, there is one command included in here: \vn{`hook'}. This is just a simple command that
+doesn't really do anything and is for the purposes of demonstrating how a custom command would be
 implemented.
 
-The only thing needed to be called at the end of a custom command is
-\vn{tao_cmd_end_calc}. This will perform all of the steps listed in
-Section~\sref{s:lat.calc}.
+The only thing needed to be called at the end of a custom command is \vn{tao_cmd_end_calc}. This
+will perform all of the steps listed in Section~\sref{s:lat.calc}.
 
 See Sec.~\sref{s:cust.read.example} for an example of how to use this hook.
 
@@ -146,13 +135,13 @@ in \vn{tao_lattice_calc}. \vn{tao_lattice_calc} in turn calls \vn{tao_evaluate_a
 datum. \vn{tao_evaluate_a_datum} in turn calls \vn{tao_hook_evaluate_a_datum} to allow for custom
 data evaluations. 
 
-See the \vn{tao_evaluate_a_datum} routine as an example as how to handle datums.
-The arguments for \vn{tao_hook_evaluate_a_datum} is
+See the \vn{tao_evaluate_a_datum} routine as an example as how to handle datums.  The arguments for
+\vn{tao_hook_evaluate_a_datum} is
 \begin{example}
   tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value)
 \end{example}
-The \vn{found} logical argument should be set to \vn{True} for datums that are handled by this
-hook routine and \vn{found} should be set to \vn{False} for all other datums.
+The \vn{found} logical argument should be set to \vn{True} for datums that are handled by this hook
+routine and \vn{found} should be set to \vn{False} for all other datums.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_init1 and tao_hook_init2}
@@ -160,14 +149,14 @@ hook routine and \vn{found} should be set to \vn{False} for all other datums.
 \index{customizing!tao_hook_init}
 
 After the \vn{design} lattice and the global and universe structures are initialized,
-\vn{tao_hook_init1} is called from the \vn{tao_init} routine. Here, any further
-initializations can be added. In particular, if any custom hook structures need to be
-initialized, here's the place to do it. 
+\vn{tao_hook_init1} is called from the \vn{tao_init} routine. Here, any further initializations can
+be added. In particular, if any custom hook structures need to be initialized, here's the place to
+do it.
 
-Further down in \vn{tao_init}, \vn{tao_hook_init2} is called. Normally you will want to
-use \vn{tao_hook_init1}. However, \vn{tao_hook_init2} can be used, for example, ! to set
-model variable values different from design variable values since when \vn{tao_hook_init1}
-is called the \vn{model} lattice has not yet been initialized.
+Further down in \vn{tao_init}, \vn{tao_hook_init2} is called. Normally you will want to use
+\vn{tao_hook_init1}. However, \vn{tao_hook_init2} can be used, for example, ! to set model variable
+values different from design variable values since when \vn{tao_hook_init1} is called the \vn{model}
+lattice has not yet been initialized.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_init_design_lattice}

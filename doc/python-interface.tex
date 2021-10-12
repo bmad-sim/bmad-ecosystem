@@ -49,25 +49,51 @@ as opposed to the \vn{show} command . See the \vn{python} command for more detai
 A \vn{ctypes} based python module \vn{pytao.py} for interfacing \tao to \vn{Python} is provided in
 the directory \vn{tao/python/pytao}.
 
-A test driver script named \vn{pytao_example.py} is in the same directory. See the documentation in both of
-these files for further information.
+A test driver script named \vn{pytao_example.py} is in the same directory. See the documentation in
+both of these files for further information.
 
 %--------------------------------------------------------------------------
 \section{Tao Python Command}
 \label{s:python.python}
+\tao's \vn{python} command was developed to
+%
+\begin{itemize}
+\item 
+Standardize output of information (data, parameters, etc.) to simplify the task of interfacing \tao
+to external programs including the \vn{Python} program.
+% 
+\item 
+Act as an intermediate layer for the control of \tao by such things as machine online control
+programs or the planned graphical user interface for \tao.
+\end{itemize}
+Using the \vn{python} command to control \tao will not be covered here. The interested reader is
+invited to read the sections of this manual on the coding of \tao and look at the \tao code itself
+(which is heavily documented).
 
-To get output from \tao that can be easily parsed by Python, use the \vn{python} command
-(\sref{s:python}). The output of this command are semi-colon delimited lists. Besides being easily
-parsed, the syntax of the output from the \vn{python} command will not change over time as the \tao
-program is developed. [However, the content of the lists will change when \tao's internal structures
-are modified in the course of \tao program development.]
-
-Documentation on the \vn{python} command is contained in the code file itself at:
+The general form of the \vn{python} command is:
 \begin{example}
-  tao/code/tao_python_cmd.f90
+  python <subcommand> <arguments>
 \end{example}
+The \vn{python} command has a number of \vn{subcommands} (over 100) that are listed in
+\Sref{s:python.sub}. The sub-commands can be divided into two categories. One category are the
+``\vn{action}'' subcommands which allow the user to control \tao. The other category are the
+``\vn{output}'' commands which output information from \tao.
 
-Example: The command
+Using the \vn{python} command is far superior to using the \vn{show} command when interfacing to an
+external program. For one, the \vn{python} command is formatted to be easily parsable. And the
+\vn{PyTao} (\sref{s:pytao}) Python module can be used for easy parsing. Another reason to use the
+\vn{python} command is that the output is generally stable over time as the \tao program is
+developed to ensure that external code that interfaces to the \vn{python} command does not
+break.\footnote
+  {
+The output of the \vn{python} command will change when \tao's or \bmad's internal structures are
+modified in the course of time.
+  }
+This is in contrast to the \vn{show} command whose output is formated to be human readible and whose
+output format may change on a whim.
+
+The output of the \vn{python} command are semi-colon delimited lists. Example: With the subcommand
+\vn{global} the output looks like:
 \begin{example}
   python global
 \end{example}
@@ -76,39 +102,50 @@ will produce as output:
   lm_opt_deriv_reinit;REAL;T; -1.0000000000000000E+00
   de_lm_step_ratio;REAL;T;  1.0000000000000000E+00
   de_var_to_population_factor;REAL;T;  5.0000000000000000E+00
-  lmdif_eps;REAL;T;  9.9999999600419720E-13
-  svd_cutoff;REAL;T;  9.9999997473787516E-06
   unstable_penalty;REAL;T;  1.0000000474974513E-03
+  n_opti_cycles;INT;T;20
+  track_type;ENUM;T;single
+  derivative_uses_design;LOGIC;T;F
   ... etc ...
 \end{example}
 
-To simplify the process of parsing parameter lists, a Python class called \vn{tao_parameter} is
-defined in the file:
+Most output is in ``\vn{parameter list form}'' where each line has four fields separated by semicolons:
 \begin{example}
-  tao/python/pytao/util/parameters.py
+  {name};{type};{variable};{value(s)}
 \end{example}
-This class defines components
+The fields are:
 \begin{example}
     name:       The name of the parameter
-    type:       "STR", "INT", "REAL", "LOGIC", "ENUM", etc...
+
+    type:       The type of the parameter:
+        INT           Integer number
+        REAL          Real number
+        COMPLEX       Complex number (Re;Im)
+        REAL_ARR      Real array
+        LOGIC         Logical: "T" or "F".
+        INUM          Integer whose allowed values can be obtained 
+                        using the "python inum" command.
+        ENUM          String whose allowed values can be obtained 
+                        using the "python enum" command.
+        FILE          Name of file.
+        CRYSTAL       Crystal name string. EG: "Si(111)"
+        DAT_TYPE      Data type string. EG: "orbit.x"
+        DAT_TYPE_Z    Data type string if plot%x_axis_type = 'data'. 
+                        Otherwise is a data_type_z enum.
+        SPECIES       Species name string. EG: "H2SO4++"
+        ELE_PARAM     Lattice element parameter string. EG "K1"
+        STR           String that does not fall into one of the above string categories.
+        STRUCT        Structure. In this case {component_value(s)} is of the form:
+                        {name1};{type1};{value1};{name2};{type2};{value2};...
+        COMPONENT     For curve component parameters.
+
     can_vary:   Either 'T', 'F', or 'I', indicating whether or not the
                 user may change the value of the parameter. 'I' indicates
-                that the parameter is to be ignored by a gui when displaying parameters.
-    value:      The value held in the parameter, should be of the
-                appropriate type for the specified param_type
-                (or 'T'/'F' for LOGIC)
-\end{example}
-Further documentation on this class is in this file. The following Python program will parse a parameter
-list data file and crate a dictionary holding the information
-\begin{example}
-  from pytao.util.parameters import *
-  df = open('spin.dat', 'r')
-  param_dict = tao_parameter_dict(df.readlines())
-  print (str(param_dict))
-\end{example}
-Note: The \bmad setup scripts will append the directory \vn{tao/python} to the \vn{PYTHONPATH}
-environment variable.
+                that the parameter is to be ignored by a GUI when displaying parameters.
 
+    value(s):   The value or values of the the parameter. If a parameter has multiple
+                values (EG an array), the values will be separated by semicolons.
+\end{example}
 
 %--------------------------------------------------------------------------
 \section{Plotting Issues}
@@ -139,10 +176,10 @@ the displayed plots (plots that are associated with plot regions) can be referre
 syntax ``\vn{@Rnnn}''.
 
 %--------------------------------------------------------------------------
-\section{Python commands}
-\label{s:python.commands}
+\section{Python subcommands}
+\label{s:python.sub}
 
-The following python sub-commands are available:
+The \vn{python} command has the following subcommands:
 
 \input{python-interface-commands.tex}
 

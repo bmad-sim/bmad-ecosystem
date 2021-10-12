@@ -535,8 +535,8 @@ information to the terminal. The difference is that the output from the \vn{show
 for viewing by the user while the output of the \vn{python} command is meant for easy
 parsing. Format:
 \begin{example}
-  python \{-append <file_name>\} \{-noprint\} <what_to_print>
-  python \{-write <file_name>\} \{-noprint\} <what_to_print>
+  python \{-append <file_name>\} \{-noprint\} <subcommand> <arguments>
+  python \{-write <file_name>\} \{-noprint\} <subcommand> <arguments>
 \end{example}
 
 The \vn{python} command has \vn{-append} and \vn{-write} optional arguments which can be used to
@@ -1770,7 +1770,7 @@ computed), the error messages are reproduced in the file. If this behavior is no
 The \vn{-append}, \vn{-write}, \vn{-noprint}, and \vn{-no_err_out} switches must be placed before
 \vn{<subcommand>}.
 
-Note: When running \tao as a subprocess, consider using the \vn{python} command (\sref{s:python})
+Note: When running \tao as a subprocess, use the \vn{python} command (\sref{s:python})
 instead of the \vn{show} command for communicating with the parent process.
 
 % Use the command:
