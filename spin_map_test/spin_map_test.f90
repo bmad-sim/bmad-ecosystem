@@ -62,19 +62,26 @@ do ib = 0, ubound(lat%branch, 1)
         call kill_taylor(ele%taylor)
         call kill_taylor(ele%spin_taylor)
       endif
+
       ele%mat6_calc_method = j
+      ele%spin_tracking_method = tracking$
+      if (j == bmad_standard$) ele%spin_tracking_method = sprint$
       call init_coord (start_orb, lat%particle_start, ele, upstream_end$, branch%param%particle)
+
       call make_mat6 (ele, branch%param, start_orb, end_orb, err)
       if (.not. allocated(ele%spin_taylor%term(1))) cycle
+
       ele%spin_q = spin_taylor_to_linear(ele%spin_taylor, start_orb%vec)
       iq = iq + 1
       spin_q(iq)%method = mat6_calc_method_name(j)
       spin_q(iq)%q = ele%spin_q
+
     enddo
 
     if (custom_test) then
       print '(a, 6f13.8)', 'Start orbit:', start_orb%vec
       print '(a, 6f13.8)', 'End orbit:  ', end_orb%vec
+    endif
 
     do k = 0, 3
       do j = 1, iq
