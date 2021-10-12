@@ -75,10 +75,7 @@ case (symp_lie_ptc$)
   call track1_symp_lie_ptc (start_orb, ele, param, temp_orb)
   end_orb%spin = temp_orb%spin
 
-case (sprint$)
-  call track1_spin_sprint (start_orb, ele, param, end_orb)
-
-case (taylor$)
+case (taylor$, sprint$)
   call track1_spin_taylor (start_orb, ele, param, end_orb)
 
 case default

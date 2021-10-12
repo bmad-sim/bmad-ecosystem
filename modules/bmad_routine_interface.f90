@@ -2355,11 +2355,10 @@ subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track
   integer, optional :: ix_branch, track_state
 end subroutine
 
-subroutine ele_to_spin_sprint (ele, orb0)
+subroutine ele_to_sprint_spin_taylor_map (ele)
   import
   implicit none
   type (ele_struct) ele
-  type (coord_struct), optional :: orb0
 end subroutine
 
 recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, &
@@ -2373,14 +2372,6 @@ recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, &
   type (track_struct), optional :: track
   logical, optional :: err_flag, ignore_radiation, init_to_edge
   logical, optional :: make_map1
-end subroutine
-
-subroutine track1_spin_sprint (start_orb, ele, param, end_orb)
-  import
-  implicit none
-  type (coord_struct) :: start_orb, end_orb
-  type (ele_struct) ele
-  type (lat_param_struct) param
 end subroutine
 
 subroutine track_to_surface (ele, orbit, param, w_surface)

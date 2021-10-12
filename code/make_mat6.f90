@@ -126,6 +126,12 @@ if (err) then
   return
 endif
 
+! Spin?
+
+if (ele%spin_tracking_method == sprint$) then
+  call ele_to_sprint_spin_taylor_map(ele)
+endif
+
 ! Add space charge effects
 
 if (param%high_energy_space_charge_on) call make_mat6_high_energy_space_charge (ele, param)
