@@ -67,7 +67,7 @@ call hdf5_read_attribute_alloc_string (f_id, 'latticeName', pmd_head%latticeName
 
 if (present(pmd_header)) pmd_header = pmd_head
 
-! Since bunch case with "%T" not present.
+! Single bunch case with "%T" not present.
 
 it = index(pmd_head%basePath, '%T')
 if (it == 0) then  ! No "%T" means only one bunch present
@@ -80,6 +80,7 @@ if (it == 0) then  ! No "%T" means only one bunch present
 endif
 
 ! Multiple bunch case with "%T" present.
+! basePath could be something like "abc/zzz%Txxx/yyy"
 
 is = index(pmd_head%basePath(1:it), '/', back = .true.)
 z_id = hdf5_open_group(f_id, pmd_head%basePath(1:is), err, .true.);  if (err) return
@@ -92,7 +93,7 @@ if (is == 0) then
   sub_dir = ''
 else
   sub_dir = t_match(is:)
-  t_match = t_match(1:is-1)
+  t_match = t_match(1:is-1)  ! Something like "zzz%Txxx"
 endif
 
 ! Loop over all bunches
@@ -111,11 +112,11 @@ do idx = 0, n_links-1
   if (it > 1) then
     if (name(1:it-1) /= t_match(1:it-1)) cycle
   endif
-  j = nt - (it + 1)
+  j = nt - (it + 1)  ! Num char after "%T"
   if (j > 0) then
     if (name(nn-j+1:nn) /= t_match(nt-j+1:nt)) cycle
   endif
-  if (.not. is_integer(name(it+1:nn-j))) cycle
+  if (.not. is_integer(name(it:nn-j))) cycle
   name = trim(name) // sub_dir
   n_bunch = n_bunch + 1
   call reallocate_beam (beam, n_bunch, save = .true.)
@@ -149,7 +150,7 @@ real(rp), allocatable :: dt(:), tot_mom(:), mom_x_off(:), mom_y_off(:), mom_z_of
 integer(hid_t), value :: root_id
 integer(hid_t) g_id, g2_id, a_id
 integer(hsize_t) idx
-integer n, stat, h5_stat, ia, ip, species, h5_err
+integer n, stat, h5_stat, ia, ip, species, h5_err, n_links
 integer, allocatable :: charge_state(:)
 
 character(*) bunch_obj_name
