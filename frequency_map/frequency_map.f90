@@ -78,7 +78,7 @@ open (unit= 1, file = file_name, status = 'old', iostat = ios)
 
 if(ios.ne.0)then
    print *
-   print *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
+   print '(2a)', 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
 endif
 
 grid_type = 'xy'
@@ -89,23 +89,32 @@ Nthmin = 11
 Br = 8.0
 read(1, nml = parameters)
 
-print *, ' lat_file = ', lat_file
+print '(2a)', ' lat_file = ', lat_file
 
 call fullfilename(lat_file, lat_file)
 call bmad_parser(lat_file, ring)
 
 
-
 if (z_cut) then
+  rf_frequency = 0
   do ix = 1, ring%n_ele_track
-     if (ring%ele(ix)%key == key_name_to_key_index('RFCAVITY',.true.)) then
-        ! note: picks up first cavity; will not work if first cavity is a 3rd-harmonic, for example!
-        rf_frequency = value_of_attribute(ring%ele(ix),'RF_FREQUENCY', err)
-        exit
-     endif
+    if (ring%ele(ix)%key /= rfcavity$) cycle
+    ! Note: Assume lowest frequency is fundamental.
+    if (rf_frequency == 0) then
+      rf_frequency = ring%ele(ix)%value(rf_frequency$)
+    else
+      rf_frequency = min(rf_frequency, ring%ele(ix)%value(rf_frequency$))
+    endif
   enddo
+
+  if (rf_frequency == 0) then
+    print *, 'No rfcavity elements found!! Setting z_cut = False.'
+    rf_frequency = 1.0d-6
+    z_cut = .false.
+  endif
+
 else
-   rf_frequency = 1.e-6 ! something small; prevents longitudinal cuts until much larger
+   rf_frequency = 1.0d-6 ! something small; prevents longitudinal cuts until much larger
 endif
 
 call reallocate_coord(co, ring%n_ele_max)
