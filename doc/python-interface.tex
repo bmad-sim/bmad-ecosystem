@@ -109,7 +109,8 @@ will produce as output:
   ... etc ...
 \end{example}
 
-Most output is in ``\vn{parameter list form}'' where each line has four fields separated by semicolons:
+Most output is in ``\vn{parameter list form}'' where each line has four fields separated by
+semicolons:
 \begin{example}
   {name};{type};{variable};{value(s)}
 \end{example}
@@ -120,7 +121,7 @@ The fields are:
     type:       The type of the parameter:
         INT           Integer number
         REAL          Real number
-        COMPLEX       Complex number (Re;Im)
+        COMPLEX       Complex number. A complex number is output as Re;Im
         REAL_ARR      Real array
         LOGIC         Logical: "T" or "F".
         INUM          Integer whose allowed values can be obtained 
@@ -145,6 +146,21 @@ The fields are:
 
     value(s):   The value or values of the the parameter. If a parameter has multiple
                 values (EG an array), the values will be separated by semicolons.
+\end{example}
+
+%--------------------------------------------------------------------------
+\section{PyTao interface}
+\label{s:pytao}
+
+The \vn{Python} based \vn{PyTao} interface to \tao is separate from the \vn{Distribution}
+(\sref{s:obtaining}) package which the \bmad and \tao source files are contained in.
+The PyTao source is in a GitHub repository at
+\begin{example}
+  https://github.com/bmad-sim/pytao
+\end{example}
+Documentation for setup and using PyTao is at
+\begin{example}
+  https://bmad-sim.github.io/pytao/
 \end{example}
 
 %--------------------------------------------------------------------------

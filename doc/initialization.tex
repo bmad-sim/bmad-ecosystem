@@ -1838,6 +1838,7 @@ namelists may be present if different universes need different parameter values.
     pz = 0, 0.01, 0.15           ! List of phase space pz to start scans at.
     a_emit = 1e-11               ! A-mode emittance. Used for data calc.
     b_emit = 1e-13               ! B-mode emittance. Used for data calc.
+    ellipse_scale = 10           ! Scale for drawing the ellipse in beam sigmas.
     da_param%start_ele = ''      ! Lattice element to start tracking at.
     da_param%n_angle = 21        ! Number of angles in scan of each energy
     da_param%min_angle = 0       ! Starting scan angle (rad).
@@ -1851,6 +1852,10 @@ namelists may be present if different universes need different parameter values.
 \end{example}
 Parameters:
 \begin{description}
+\item[ellipse_scale] \Newline
+Scale for drawing the beam ellipse. The default value is 10 which will result in an ellipse drawn
+at 10 sigma.
+%
 \item[ix_universe] \Newline
 The \vn{ix_universe} parameter set which universe the parameters are applied to. Any universe index
 below a value of one results in the parameter values being applied to all universes.
@@ -3443,7 +3448,6 @@ Example plot setup:
   curve(1)%line%color = "red"
   curve(1)%data_type = 'beam_ellipse'
   curve(1)%line%width = 5
-  curve(1)%scale = 10              ! Draw beam ellipse at 10 sigma
   curve(1)%legend_text = '10 sigma beam ellipse'
   curve(1)%draw_symbols = F
   curve(1:10)%y_axis_scale_factor = 10*1000  ! Plot in mm.
@@ -3468,8 +3472,10 @@ Dynamic aperture curves can have the following \vn{%data_type} parameters:
 In the above example, the first curve has \vn{%data_type} set to \vn{"beam_ellipse"}. This results
 in the half ellipse in red since the [min_angle, max_angle] set in the \vn{tao_dynamic_aperture}
 namelist for this example was [0, pi]. If the entire ellipse is desired to be drawn, the
-\vn{%data_type} can be set to \vn{"beam_ellipse_full"}. The beam ellipse is set by the curve's
-\vn{%scale} value. In this example, the $10 \, \sigma$ ellipse is drawn. 
+\vn{%data_type} can be set to \vn{"beam_ellipse_full"}. The scale of the ellipse drawn is set by the
+\vn{ellipse_scale} parameter of the \vn{tao_dynamic_aperture} namelist (\sref{s:da.calc}). The default value is
+10 so that a $10 \, \sigma$ ellipse will be drawn by default. Also used in calculating the ellipse
+curve are the settings of \vn{a_emit} and \vn{b_emit} emittances also set in the same namelist.
 
 There are 10 curves defined in the example. Curves 2 through 10 have \vn{%data_type} set to
 \vn{"dynamic_aperture"}. Each curve here represents one dynamic aperture scan. The scan index is set

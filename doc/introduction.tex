@@ -1,77 +1,133 @@
 \chapter{Introduction}
 \label{c:introduction}
 
-%------------------------------------------------------------------------
-\section{Overview}
-\label{s:overview}
+%----------------------------------------------------------------
+\section{Obtaining Tao}
+\index{tao!Obtaining}
+\label{s:obtaining}
 
-\tao stands for ``Tool for Accelerator Optics''. \tao is a general purpose program for simulating
-high energy particle beams in accelerators and storage rings. The simulation engine that \tao uses
-is the \bmad software library\cite{b:bmad}. \bmad was developed as an object-oriented library so
-that common tasks, such as reading in a lattice file and particle tracking, did not have to be coded
-from scratch every time someone wanted to develop a program to calculate this, that or whatever.
+A \vn{Distribution} is a set of files, including \bmad and \tao source files, which are used to
+build the \bmad, the \tao program, and various other simulation programs. A \vn{Release} is like a
+\vn{Distribution} except that it is created on the Linux computer system at CLASSE (Cornell's
+Laboratory for Accelerator-based Sciences and Education). More information can be obtained from the
+\bmad web site. 
 
-After the development of \bmad, it became apparent that many simulation programs had common needs:
-For example, plotting data, viewing machine parameters, etc. Because of this commonality, the \tao
-program was developed to reduce the time needed to develop a working programs without sacrificing
-flexibility. That is, while the ``vanilla'' version of the \tao program is quite a powerful
-simulation tool, \tao has been designed to be easily customizable so that extending \tao to solve
-new and different problems is relatively straight forward.
+If there is no local \bmad Guru to guide you, download and setup instructions for downloading a
+Distribution, environmental variable setup, and building \tao is contained on the \bmad web
+site and will not be covered here.
 
-More information, including the most up--to--date version of this manual, can be found at the \bmad
-web site at:
+%----------------------------------------------------------------
+\section{Starting and Initializing Tao}
+\index{initializing!files}
+\label{s:initializing}
+
+The syntax for starting \tao is given in \Sref{s:command.line}.
+
+Initialization occurs when \tao is started. Initialization information is stored in one or more
+files as discussed in Chapter \sref{c:init}.
+
+%%----------------------------------------------------------------
+\section{Running Tao with OpenMP}
+\index{openMP}
+\label{s:openmp}
+
+\vn{OpenMP} is a standard that enables programs to run calculations with multiple threads which will
+reduce computation time. Certain calculations done by \tao, including beam tracking and dynamic
+aperture calculations, can be run multithreaded via OpenMP if the \tao executable file has been
+properly compiled.  Interested users should consult their local \bmad Guru for guidance. Note:
+\vn{OpenMP} multithreading involves using multiple cores of a single machine (unlike \vn{Open MPI}
+which involves multiple machines). Therefore, it is not necessary to have a cluster of machines to
+use \vn{OpenMP}.
+
+To set the number of threads when running a program compiled with \vn{OpenMP}, set the environment variable
+\vn{OMP_NUM_THREADS}. Example:
 \begin{example}
-  classe.cornell.edu/bmad
+  export OMP_NUM_THREADS=8
 \end{example}
 
-Errors and omissions are a fact of life for any reference work and comments from you, dear reader,
-are therefore most welcome. Please send any missives (or chocolates, or any other kind of
-sustenance) to:
+To the local \bmad Guru: Compiling and linking of \tao with \vn{OpenMP} is documented on the \bmad
+web site. By default, \vn{OpenMP} is not enabled. Essentially, OpenMP is enabled by modifying
+the \vn{dist_prefs} file before compiling and linking.
+
+%----------------------------------------------------------------
+\section{Command Line Mode and Single Mode}
+\label{s:modes}
+
+After \tao is initialized, \tao interacts with the user though the command line. \tao has two modes
+for this. In \vn{command line} mode, which is the default mode, \tao waits until the the \vn{return}
+key is depressed to execute a command. Command line mode is described in Chapter~\sref{c:command}. 
+
+In \vn{single} mode, single keystrokes are interpreted as commands. \tao can be set up so that in
+\vn{single mode} the pressing of certain keys increase or decrease variables. While the same effect
+can be achieved in the standard \vn{line mode}, \vn{single mode} allows for quick adjustments of
+variables. See Chapter~\sref{c:single} for more details.
+
+%-----------------------------------------------------------------
+\section{Lattice Calculations}
+\index{lattice calculaitons}
+\label{s:lat.calc.overview} 
+
+By default \tao recalculates lattice parameters and does tracking of particles after each command.
+The exception is for commands that do not change any parameter that would affect such calculations
+such as the \vn{show} command. See \sref{s:lat.calc} for more details. If the recalculation takes a
+significant amount of time, the recalculation may be suppressed using the \vn{set global
+lattice_calc_on} command (\sref{s:set.global}) or the \vn{set universe} command
+(\sref{s:set.universe}).
+
+%-----------------------------------------------------------------
+\section{Command Files and Aliases}
+\index{command files}
+\label{s:command.files} 
+
+Typing repetitive commands in command line mode can become tedious. \tao has two constructs to
+mitigate this: Aliases and Command Files. 
+
+Aliases are just like aliases in Unix. See Section~\sref{s:alias} for more details.
+
+Command files are like Unix shell scripts. A series of commands are
+put in a file and then that file can be called using the \vn{call}
+command (\sref{s:call}).
+
+\tao will call a command file at startup. The default name of this startup file is \vn{tao.startup}
+but this name can be changed (\sref{s:format}).
+
+Do loops (\sref{s:do}) are allowed with the following syntax:
 \begin{example}
-  David Sagan <dcs16@cornell.edu>
+  do <var> = <begin>, <end> \{, <step>\} 
+    ...
+    tao command [[<var>]]
+    ...
+  enddo
+\end{example}
+The \vn{<var>} can be used as a variable in the loop body but must be
+bracketed ``[[<var>]]''.  The step size can be any integer positive or
+negative but not zero.  Nested loops are allowed and command files can
+be called within do loops.
+
+\begin{example}
+  do i = 1, 100
+    call set_quad_misalignment [[i]] ! command file to misalign quadrupoles
+    zero_quad 1e-5*2^([[i]]-1) ! Some user supplied command to zero quad number [[i]]
+  enddo
 \end{example}
 
-It is my pleasure to express appreciation to people who have contributed to this effort. To Scott
-Berg, Michael Ehrlichman, Chris Mayes, and Jeff Smith for bug reports, suggestions, code
-improvements, Etc. To John Mastroberti and Kevin Kowalski for their work on a graphics user
-interface and associated plotting, And last but not least thanks also must go to Dave Rubin and
-Georg Hoffstaetter for their help, support, and patience.
-
-%------------------------------------------------------------------------
-\section{Bmad and Tao Tutorial}
-\label{s:tutorial}
-
-\vspace{0.1in} The \tao manual is organized as reference guide and so does not do a good job of
-instructing the beginner as to how to use \tao. For this there is an introduction and tutorial on
-\bmad and \tao concepts that can be downloaded from the \bmad web page. Go to either the \bmad
-manual or the \tao manual page and there will be a link for the tutorial.
-
-%------------------------------------------------------------------------
-\section{Tao Examples}
-\label{s:examples}
-
-Example input files for running a number of different simulations can be found with the \bmad and \tao
-Tutorial (\sref{s:tutorial}). Additionally, there are a number of examples in the directory
+To reduce unnecessary calculations, the logicals \vn{global%lattice_calc_on}
+and \vn{global%plot_on} can be toggled from within the command file. Also 
+setting \vn{global%quiet} can turn off verbose output to the terminal. Example
 \begin{example}
-  \$ACC_ROOT_DIR/tao/examples/
+  set global quiet = all          ! Turn off verbose output to the terminal.
+  set global lattice_calc_on = F  ! Turn off lattice calculations
+  set global plot_on = F          ! Turn off plot calculations
+  ... do some stuff ...
+  set global plot_on = T          ! Turn back on 
+  set global lattice_calc_on = T  ! Turn back on
+  set global quiet = off         
 \end{example}
-where \vn{\$ACC_ROOT_DIR} is the base directory of your local \bmad Distribution or Release (a full
-description of \bmad Distributions and Releases is given in the \bmad and \tao Tutorial).
+See \sref{s:globals} for more details.
 
-%------------------------------------------------------------------------
-\section{Manual Organization}
+A \vn{end_file} command (\sref{s:end.file}) can be used to signal the
+end of the command file.
 
-This manual is divided into two parts. Part I is the reference section which defines the terms used
-by \tao, discusses \tao commands, etc. Part II is a programmer's guide which shows how to extend
-\tao's capabilities including interfacing to Python and how to incorporate custom calculations into
-\tao.
-
-%------------------------------------------------------------------------
-\section{Other Bmad based programs}
-\label{s:other}
-
-\tao is not the only program based upon \bmad. There are other programs which are specialized for
-certain computations such as long-term tracking, beam break-up instability, multi-objective
-optimization, etc. The discussion of these programs is beyond the scope of this manual. More
-information along with instructions for obtaining the programs can be obtained from the \bmad web site (\sref{s:overview}).
+The \vn{pause} command (\sref{s:pause}) can be used to temporarily
+pause the command file.
 
