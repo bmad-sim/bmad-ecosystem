@@ -2462,9 +2462,9 @@ case ('ele:floor')
 ! Parameters
 ! ----------
 ! ele_id
+! index 
+! who 
 ! which : default=model
-! index : default=1
-! who :
 !    
 ! Returns
 ! -------
@@ -2792,7 +2792,7 @@ case ('ele:lord_slave')
 ! ----------
 ! ele_id
 ! which : default=model
-! who :
+! who : default=mat6
 !
 ! Returns
 ! -------
@@ -3070,8 +3070,8 @@ case ('ele:orbit')
 ! Parameters
 ! ----------
 ! ele_id
+! who 
 ! which : default=model
-! who :
 !
 ! Returns
 ! -------
@@ -3084,7 +3084,7 @@ case ('ele:orbit')
 !  args:
 !   ele_id: 1@0>>1
 !   which: model
-!   who:
+!   who: orbit.vec.1
 
 case ('ele:param')
 
@@ -3125,8 +3125,8 @@ case ('ele:param')
 ! Parameters
 ! ----------
 ! ele_id
+! who 
 ! which : default=model
-! who :
 !
 ! Returns
 ! -------
@@ -3440,8 +3440,8 @@ case ('ele:twiss')
 ! Parameters
 ! ----------
 ! ele_id
+! who
 ! which : default=model
-! who :
 !
 ! Returns
 ! -------
@@ -3540,9 +3540,9 @@ case ('ele:wake')
 ! Parameters
 ! ----------
 ! ele_id
+! index 
+! who 
 ! which : default=model
-! index :
-! who :
 !
 ! Returns
 ! -------
@@ -5763,6 +5763,13 @@ case ('ptc_com')
 !
 ! Examples
 ! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!     ix_uni: 1
+!     ix_branch: 0
+!     which: model
+!
 
 case ('ring_general')
 
@@ -6360,7 +6367,15 @@ case ('spin_polarization')
 !   Reference element to calculate at.
 !
 !
+! Examples
+! --------
 !
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args: 
+!    ix_uni: 1
+!    ix_branch: 0
+!    which: model
 !
 !
 
