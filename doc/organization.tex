@@ -1,24 +1,6 @@
 \chapter{Organization and Structure}
 \label{c:organization}
 
-\tao stands for ``Tool for Accelerator Optics''. \tao is a general purpose program for simulating
-high energy particle beams in accelerators and storage rings. This manual assumes you are already
-familiar with the basics of particle beam dynamics and its formalism. There are several books that
-introduce the topics very well. A good place to start is, for example, \textit{The Physics of
-Particle Accelerators} by Klaus Wille\cite{b:wille}.
-
-\index{bmad}
-\tao is based on the \bmad\cite{b:bmad} subroutine library. An understanding of the nitty-gritty
-details of the routines that comprise \bmad is not necessary, however, one should be familiar with
-the conventions that \bmad uses and this is covered in the \bmad manual.
-
-So, what is \tao good for? A large variety of applications: Single and multiparticle tracking,
-lattice simulation and analysis, lattice design, machine commissioning and correction,
-etc. Furthermore, it is designed to be extensible using interface ``hooks'' built into the program.
-This versatility has been used, for example, to enable \tao to directly read in measurement data
-from Cornell's Cesr storage ring and Jefferson Lab's FEL. Think of \tao as an accelerator design and
-analysis environment. But even without any customizations, \tao will do much analysis.
-
 This chapter discusses how \tao is organized. After you are familiar with the basics of \tao, you
 might be interested to exploit its versatility by extending \tao to do custom calculations. For
 this, see Chapter~\ref{c:custom.tao}.

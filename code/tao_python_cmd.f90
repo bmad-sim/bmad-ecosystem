@@ -3,15 +3,15 @@
 !
 ! Print information in a form easily parsed by a scripting program like python.
 !
-! Output will be printed to the terminal or written to a file depending upon the switch!%% es embedded
-! in the input_str string argument. See the contained routine end_stuff below. For a few commands (for
+! Output will be printed to the terminal or written to a file depending upon the switches embedded
+! in the input_str string argument. See the routine "end_stuff" below. For a few commands (for
 ! example, the "python lat_list" command), the output can be stored on the tao_c_interface_com%c_integer (for 
 ! integer output) or tao_c_interface_com%c_real (for real output) arrays for faster processing.
 !
 ! Note: The syntax for "parameter list form" is:
-!   {component_name};{type};{variable};{component_value}
+!   {component_name};{type};{can_vary};{component_value(s)}
 !
-! {type} is one of:
+! {type} is the type of the parameter and is one of:
 !   INT         ! Integer number
 !   REAL        ! Real number
 !   COMPLEX     ! Complex number (Re;Im)
@@ -26,11 +26,11 @@
 !   SPECIES     ! Species name string. EG: "H2SO4++"
 !   ELE_PARAM   ! Lattice element parameter string. EG "K1"
 !   STR         ! String that does not fall into one of the above string categories.
-!   STRUCT      ! Struct. In this case{component_value} is of the form:
+!   STRUCT      ! Structure. In this case {component_value} is of the form:
 !                   {name1};{type1};{value1};{name2};{type2};{value2};...
-!   COMPONENT   ! For curve component param.
+!   COMPONENT   ! For curve component parameters.
 !
-! {variable} indicates if the component can be varied. It is one of:
+! {can_vay} indicates if the component can be varied. It is one of:
 !   T         ! Can vary
 !   F         ! Cannot vary
 !   I         ! Ignore (Do not display)
@@ -504,7 +504,10 @@ case ('branch1')
 ! Where:
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
-!   
+!
+! Example:
+!   python bunch_params end|model  ! parameters at model lattice element named "end".
+!
 ! Parameters
 ! ----------
 ! ele_id
@@ -891,8 +894,8 @@ case ('building_wall_section')
 !
 ! Where:
 !   {who} is one of:
-!   data
-!   var
+!     data
+!     var
 ! Data constraints output is:
 !   data name
 !   constraint type
@@ -982,8 +985,11 @@ case ('constraints')
 ! Notes
 ! -----
 ! Command syntax:
-!   python da_aperture {ix_uni}
-! 
+!   python da_aperture {ix_universe}
+!
+! Where:
+!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!
 ! Parameters
 ! ----------
 ! ix_uni : optional
@@ -1018,7 +1024,10 @@ case ('da_aperture')
 ! Notes
 ! -----
 ! Command syntax:
-!   python da_params {ix_uni}
+!   python da_params {ix_universe}
+!
+! Where:
+!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
 ! 
 ! Parameters
 ! ----------
@@ -1058,6 +1067,9 @@ case ('da_params')
 ! -----
 ! Command syntax:
 !   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
+!
+! Where:
+!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
 !
 ! Use the "python data-d1" command to get detailed info on a specific d1 array.
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
@@ -1330,7 +1342,7 @@ case ('data_d2_destroy')
 call destroy_this_data_d2(line)
 
 !%% data_d2 -----------------------
-! Information on a d2_datum.
+! Output information on a d2_datum.
 !
 ! Notes
 ! -----
@@ -1433,7 +1445,7 @@ case ('data_d_array')
 
 
 !%% data_d1_array -----------------------
-! List of d1 arrays for a given data_d2.
+! Output list of d1 arrays for a given data_d2.
 !
 ! Notes
 ! -----
@@ -2211,7 +2223,7 @@ case ('ele:control_var')
   endif
 
 !%% ele:cylindrical_map -----------------------
-! Element cylindrical_map
+! Output element cylindrical_map
 !
 ! Notes
 ! -----
@@ -2291,7 +2303,7 @@ case ('ele:cylindrical_map')
   end select
 
 !%% ele:elec_multipoles -----------------------
-! Element electric multipoles
+! Output element electric multipoles
 !
 ! Notes
 ! -----
@@ -2352,7 +2364,7 @@ case ('ele:elec_multipoles')
   enddo
 
 !%% ele:floor -----------------------
-! Element floor coordinates. The output gives two lines. "Reference" is
+! Output element floor coordinates. The output gives two lines. "Reference" is
 ! without element misalignments and "Actual" is with misalignments.
 !
 ! Notes
@@ -2443,7 +2455,7 @@ case ('ele:floor')
   nl=incr(nl); write (li(nl), rmt2) 'Actual-W;REAL_ARR;', .false., ((';', floor2%w(i,j), i = 1, 3), j = 1, 3)
 
 !%% ele:grid_field -----------------------
-! Element grid_field
+! Output element grid_field
 !
 ! Notes
 ! -----
@@ -2541,7 +2553,7 @@ case ('ele:grid_field')
   end select
 
 !%% ele:gen_attribs -----------------------
-! Element general attributes
+! Output element general attributes
 !
 ! Notes
 ! -----
@@ -2618,7 +2630,7 @@ case ('ele:gen_attribs')
   endif
 
 !%% ele:head -----------------------
-! "Head" Element attributes
+! Output "head" Element attributes
 !
 ! Notes
 ! -----
@@ -2703,7 +2715,7 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), lmt) 'has#lord_slave;LOGIC;F;',       .true.
 
 !%% ele:lord_slave -----------------------
-! Lists the lord/slave tree of an element.
+! Output the lord/slave tree of an element.
 !
 ! Notes
 ! -----
@@ -2769,7 +2781,7 @@ case ('ele:lord_slave')
   enddo
 
 !%% ele:mat6 -----------------------
-! Element mat6
+! Output element mat6
 !
 ! Notes
 ! -----
@@ -2831,7 +2843,7 @@ case ('ele:mat6')
   end select
 
 !%% ele:methods -----------------------
-! Element methods
+! Output element methods
 !
 ! Notes
 ! -----
@@ -2918,7 +2930,7 @@ case ('ele:methods')
   endif
 
 !%% ele:multipoles -----------------------
-! Element multipoles
+! Output element multipoles
 !
 ! Notes
 ! -----
@@ -3002,7 +3014,7 @@ case ('ele:multipoles')
   enddo
 
 !%% ele:orbit -----------------------
-! Element orbit
+! Output element orbit
 !
 ! Notes
 ! -----
@@ -3043,7 +3055,7 @@ case ('ele:orbit')
   call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
 
 !%% ele:param -----------------------
-! Element parameter
+! Output lattice element parameter
 !
 ! Notes
 ! -----
@@ -3103,7 +3115,7 @@ case ('ele:param')
   end select
 
 !%% ele:photon -----------------------
-! Element photon
+! Output element photon parameters
 !
 ! Notes
 ! -----
@@ -3181,7 +3193,7 @@ case ('ele:photon')
   end select
 
 !%% ele:spin_taylor -----------------------
-! Element spin_taylor
+! Output element spin_taylor parameters
 !
 ! Notes
 ! -----
@@ -3231,7 +3243,7 @@ case ('ele:spin_taylor')
   enddo
 
 !%% ele:taylor -----------------------
-! Element taylor
+! Output element taylor map 
 !
 ! Notes
 ! -----
@@ -3287,7 +3299,7 @@ case ('ele:taylor')
   enddo
 
 !%% ele:taylor_field -----------------------
-! Element taylor_field
+! Output element taylor_field 
 !
 ! Notes
 ! -----
@@ -3368,7 +3380,7 @@ case ('ele:taylor_field')
   end select
 
 !%% ele:twiss -----------------------
-! Element twiss
+! Output element Twiss parameters
 !
 ! Notes
 ! -----
@@ -3417,7 +3429,7 @@ case ('ele:twiss')
   call xy_disp_out (ele%y, 'y', can_vary = free)
 
 !%% ele:wake -----------------------
-! Element wake
+! Output element wake.
 !
 ! Notes
 ! -----
@@ -3518,7 +3530,7 @@ case ('ele:wake')
   end select
 
 !%% ele:wall3d -----------------------
-! Element wall3d
+! Output element wall3d parameters.
 !
 ! Notes
 ! -----
@@ -3607,7 +3619,7 @@ case ('ele:wall3d')
   end select
 
 !%% evaluate -----------------------
-! Evaluate an expression. The result may be a vector.
+! Output the value of an expression. The result may be a vector.
 !
 ! Notes
 ! -----
@@ -3666,7 +3678,7 @@ case ('evaluate')
   endif
 
 !%% em_field -----------------------
-! EM field at a given point generated by a given element.
+! Output EM field at a given point generated by a given element.
 !
 ! Notes
 ! -----
@@ -3729,7 +3741,7 @@ case ('em_field')
   nl=incr(nl); write (li(nl), '(6(es22.14, a))') (field%B(i), ';',  i = 1, 3), (field%E(i), ';',  i = 1, 2), field%E(3)
 
 !%% enum -----------------------
-! List of possible values for enumerated numbers.
+! Output list of possible values for enumerated numbers.
 !
 ! Notes
 ! -----
@@ -3891,7 +3903,7 @@ case ('enum')
   end select
 
 !%% floor_plan -----------------------
-! Floor plan elements
+! Output (x,y) points and other information that can be used for drawing a floor_plan.
 !
 ! Notes
 ! -----
@@ -3980,7 +3992,7 @@ case ('floor_plan')
   enddo
 
 !%% floor_orbit -----------------------
-! (x, y) coordinates for drawing the particle orbit on a floor plan.
+! Output (x, y) coordinates for drawing the particle orbit on a floor plan.
 !
 ! Notes
 ! -----
@@ -4132,7 +4144,7 @@ case ('floor_orbit')
   enddo
 
 !%% global -----------------------
-! Global parameters
+! Output global parameters.
 !
 ! Notes
 ! -----
@@ -4215,7 +4227,7 @@ case ('global')
 
 
 !%% help -----------------------
-! returns list of "help xxx" topics
+! Output list of "help xxx" topics
 !
 ! Notes
 ! -----
@@ -4254,7 +4266,8 @@ case ('help')
   nl = nl + nl2
 
 !%% inum -----------------------
-! INUM
+! Output list of possible values for an INUM parameter.
+! For example, possible index numbers for the branches of a lattice.
 !
 ! Notes
 ! -----
@@ -4315,8 +4328,8 @@ case ('inum')
   end select
 
 !%% lat_calc_done -----------------------
-! Check if a lattice recalculation has been proformed since the last time
-!   "python lat_calc_done" was called.
+! Output if a lattice recalculation has been proformed since the last 
+!   time "python lat_calc_done" was called.
 !
 ! Notes
 ! -----
@@ -4344,7 +4357,7 @@ case ('lat_calc_done')
   s%com%lattice_calc_done = .false.
 
 !%% lat_ele_list -----------------------
-! Lattice element list.
+! Output lattice element list.
 !
 ! Notes
 ! -----
@@ -4380,7 +4393,7 @@ case ('lat_ele_list')
   enddo
 
 !%% lat_branch_list -----------------------
-! Lattice branch list
+! Output lattice branch list
 !
 ! Notes
 ! -----
@@ -4416,7 +4429,7 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
   enddo
 
 !%% lat_list -----------------------
-! List of parameters at ends of lattice elements
+! Output list of parameters at ends of lattice elements
 !
 ! Notes
 ! -----
@@ -4653,7 +4666,7 @@ case ('lat_list')
   endif
 
 !%% lat_param_units -----------------------
-! Units of a parameter associated with a lattice or lattice element.
+! Output units of a parameter associated with a lattice or lattice element.
 !
 ! Notes
 ! -----
@@ -4682,7 +4695,7 @@ case ('lat_param_units')
   nl=incr(nl); write(li(nl), '(a)') a_name
 
 !%% matrix -----------------------
-! Matrix value from the exit end of one element to the exit end of the other.
+! Output matrix value from the exit end of one element to the exit end of the other.
 !
 ! Notes
 ! -----
@@ -4739,7 +4752,7 @@ case ('matrix')
   enddo
 
 !%% merit -----------------------
-! Merit value.
+! Output merit value.
 !
 ! Notes
 ! -----
@@ -4764,7 +4777,7 @@ case ('merit')
   nl=incr(nl); write (li(nl), '(es22.14)') tao_merit()
 
 !%% orbit_at_s -----------------------
-! Twiss at given s position.
+! Output twiss at given s position.
 !
 ! Notes
 ! -----
@@ -4798,6 +4811,7 @@ case ('merit')
 !    ix_branch: 0
 !    s: 0.001
 !    which: model
+
 case ('orbit_at_s')
 
   u => point_to_uni(line, .true., err); if (err) return
@@ -4841,7 +4855,7 @@ case ('place_buffer')
   deallocate(s%com%plot_place_buffer)
 
 !%% plot_curve -----------------------
-! Curve information for a plot
+! Output curve information for a plot
 !
 !
 ! Notes
@@ -4914,7 +4928,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               c%symbol%line_width
 
 !%% plot_lat_layout -----------------------
-! Plot Lat_layout info
+! Output plot Lat_layout info
 !
 ! Notes
 ! -----
@@ -4964,7 +4978,7 @@ case ('plot_lat_layout')
   enddo
 
 !%% plot_list -----------------------
-! List of plot templates or plot regions.
+! Output list of plot templates or plot regions.
 !
 ! Notes
 ! -----
@@ -5014,7 +5028,7 @@ case ('plot_list')
   endif
 
 !%% plot_graph -----------------------
-! Graph
+! Output graph info.
 !
 ! Notes
 ! -----
@@ -5141,7 +5155,7 @@ case ('plot_graph')
   endif
 
 !%% plot_histogram -----------------------
-! Plot Histogram
+! Output plot histogram info.
 !
 ! Notes
 ! -----
@@ -5498,7 +5512,7 @@ endif
 
 
 !%% plot_symbol -----------------------
-! Locations to draw symbols for a plot curve.
+! Output locations to draw symbols for a plot curve.
 !
 ! Notes
 ! -----
@@ -5587,7 +5601,7 @@ case ('plot_symbol')
   end select
 
 !%% plot_transfer -----------------------
-! Transfer plot parameters from the "from plot" to the "to plot" (or plots).
+! Output transfer plot parameters from the "from plot" to the "to plot" (or plots).
 !
 ! Notes
 ! -----
@@ -5654,7 +5668,7 @@ case ('plot_transfer')
   endif
 
 !%% plot1 -----------------------
-! Info on a given plot.
+! Output info on a given plot.
 !
 ! Notes
 ! -----
@@ -5708,7 +5722,7 @@ case ('plot1')
 
 
 !%% ptc_com -----------------------
-! Ptc_com structure components
+! Output Ptc_com structure components.
 !
 ! Notes
 ! -----
@@ -5737,7 +5751,7 @@ case ('ptc_com')
 
 
 !%% ring_general -----------------------
-! Lattice branch with closed geometry info (emittances, etc.)
+! Output lattice branch with closed geometry info (emittances, etc.)
 !
 ! Notes
 ! -----
@@ -5825,7 +5839,7 @@ case ('ring_general')
   nl=incr(nl); write (li(nl), rmt) 'I6_g2_b;REAL;F;',                           tao_branch%modes%b%synch_int(6) / gamma**2
 
 !%% shape_list -----------------------
-! lat_layout and floor_plan shapes list
+! Output lat_layout or floor_plan shapes list
 !
 ! Notes
 ! -----
@@ -5873,7 +5887,7 @@ case ('shape_list')
 
 
 !%% shape_manage -----------------------
-! element shape creation or destruction
+! Element shape creation or destruction
 !
 ! Notes
 ! -----
@@ -5947,7 +5961,7 @@ case ('shape_manage')
   end select
 
 !%% shape_pattern_list -----------------------
-! List of shape patterns or shape pattern points
+! Output list of shape patterns or shape pattern points
 !
 ! Notes
 ! -----
@@ -6113,7 +6127,7 @@ case ('shape_pattern_point_manage')
   end select
 
 !%% shape_set -----------------------
-! lat_layout or floor_plan shape set
+! Set lat_layout or floor_plan shape parameters.
 !
 ! Notes
 ! -----
@@ -6190,7 +6204,7 @@ case ('shape_set')
   call tao_shape_init(drawing%ele_shape(ix), err, .true.)
 
 !%% show -----------------------
-! Show command pass through
+! Output the output from a show command.
 !
 ! Notes
 ! -----
@@ -6295,7 +6309,7 @@ case ('species_to_str')
   nl=incr(nl); write (li(nl), '(a)') trim(name)
 
 !%% spin_polarization -----------------------
-! Spin polarization information
+! Output spin polarization information
 !
 ! Notes
 ! -----
@@ -6351,7 +6365,7 @@ case ('spin_polarization')
   nl=incr(nl); write (li(nl), rmt) 'depolarization_rate;REAL;F;',               tao_branch%spin%depol_rate
 
 !%% spin_resonance -----------------------
-! Spin resonance information
+! Output spin resonance information
 !
 ! Notes 
 ! -----
@@ -6422,7 +6436,7 @@ case ('spin_resonance')
   nl=incr(nl); write (li(nl), amt) 'xi_res2_mat8;REAL_ARR;F',   (';', re_str(xi_mat8(k,2), 6), k = 1, 3)
 
 !%% super_universe -----------------------
-! Super_Universe information
+! Output super_Universe parameters.
 !
 ! Notes
 ! -----
@@ -6449,7 +6463,7 @@ case ('super_universe')
   nl=incr(nl); write (li(nl), imt) 'n_var_used;INT;F;',                s%n_var_used
 
 !%% twiss_at_s -----------------------
-! Twiss at given s position
+! Output twiss parameters at given s position.
 !
 ! Notes
 ! -----
@@ -6494,7 +6508,7 @@ case ('twiss_at_s')
   call twiss_out (this_ele%b, 'b')
 
 !%% universe -----------------------
-! Universe info
+! Output universe info.
 !
 ! Notes
 ! -----
@@ -6528,7 +6542,7 @@ case ('universe')
   nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                          u%is_on
 
 !%% var -----------------------
-! Info on an individual variable
+! Output parameters of a given variable.
 !
 ! Notes
 ! -----
@@ -6757,7 +6771,7 @@ case ('var_create')
 
 
 !%% var_general -----------------------
-! List of all variable v1 arrays
+! Output list of all variable v1 arrays
 !
 ! Notes
 ! -----
@@ -6790,7 +6804,7 @@ case ('var_general')
   enddo
 
 !%% var_v_array -----------------------
-! List of variables for a given data_v1.
+! Output list of variables for a given data_v1.
 !
 ! Notes
 ! -----
@@ -6834,7 +6848,7 @@ case ('var_v_array')
 
 
 !%% var_v1_array -----------------------
-! List of variables in a given variable v1 array
+! Output list of variables in a given variable v1 array
 !
 ! Notes
 ! -----
@@ -7004,7 +7018,7 @@ case ('var_v1_destroy')
   call destroy_this_var_v1(line)
 
 !%% wave -----------------------
-! Wave analysis info.
+! Output Wave analysis info.
 !
 ! Notes
 ! -----
@@ -7788,7 +7802,7 @@ end function re_str
 function real_part_str(z) result (str)
 
 complex(rp) z
-character(22) str
+character(23) str
 
 write (str, '(a, es22.14)') ';', real(z)
 
@@ -7800,7 +7814,7 @@ end function real_part_str
 function cmplx_str(z) result (str)
 
 complex(rp) z
-character(44) str
+character(46) str
 
 write (str, '(2(a, es22.14))') ';', real(z), ';', aimag(z)
 
