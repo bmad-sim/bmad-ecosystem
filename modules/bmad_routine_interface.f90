@@ -1886,6 +1886,14 @@ subroutine set_particle_from_rf_time (rf_time, ele, reference_active_edge, orbit
   logical reference_active_edge
 end subroutine
 
+subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, init_complex, force_init) 
+  import
+  implicit none
+  integer, optional :: integ_order, particle, n_step, taylor_order
+  real(rp), optional :: e_tot
+  logical, optional :: no_cavity, init_complex, force_init
+end subroutine
+
 subroutine set_status_flags (bookkeeping_state, stat)
   import
   implicit none
@@ -2359,6 +2367,16 @@ subroutine ele_to_sprint_spin_taylor_map (ele)
   import
   implicit none
   type (ele_struct) ele
+end subroutine
+
+subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, orbital_taylor, spin_taylor)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (lat_param_struct) :: param
+  type (coord_struct), optional, intent(in) :: orb0
+  type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
+  logical, optional :: taylor_map_includes_offsets
 end subroutine
 
 recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, &

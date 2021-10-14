@@ -7,7 +7,6 @@
 !   start_orb  -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct: Element to track through.
 !   param      -- lat_param_struct: Beam parameters.
-!   end_orb    -- Coord_struct: Ending coords.
 !
 ! Output:
 !   end_orb     -- Coord_struct:
@@ -20,7 +19,7 @@ use taylor_mod, dummy => track1_spin_taylor
 
 implicit none
 
-type (coord_struct) :: start_orb, end_orb
+type (coord_struct) :: start_orb, end_orb, orbit
 type (ele_struct) ele
 type (lat_param_struct) param
 
@@ -30,19 +29,33 @@ character(*), parameter :: r_name = 'track1_spin_taylor'
 !
 
 if (.not. associated(ele%spin_taylor(0)%term)) then
-  call out_io (s_error$, r_name, 'NO SPIN TAYLOR MAP ASSOCIATED WITH ELEMENT: ' // ele%name)
-  if (global_com%exit_on_error) call err_exit
-  end_orb%spin = start_orb%spin
+  if (ele%spin_tracking_method == sprint$) then
+    call ele_to_sprint_spin_taylor_map(ele)
+  else
+    call ele_to_taylor(ele, param)
+  endif
 endif
 
-quat = track_taylor (start_orb%vec, ele%spin_taylor, ele%taylor%ref)
+!
+
+orbit = start_orb
+if (.not. ele%taylor_map_includes_offsets) call offset_particle (ele, param, set$, orbit)
+
+!
+
+quat = track_taylor (orbit%vec, ele%spin_taylor, ele%taylor%ref)
 norm = norm2(quat)
 if (abs(norm - 1) > 0.5) then
   call out_io (s_warn$, r_name, 'Norm of quaternion computed from the spin taylor map of element: ' // ele%name, &
                                 'is far from 1.0: \es10.2\ ', r_array = [norm])
 endif
 
-end_orb%spin = quat_rotate(quat/norm, start_orb%spin)
+orbit%spin = quat_rotate(quat/norm, orbit%spin)
+
+!
+
+if (.not. ele%taylor_map_includes_offsets) call offset_particle (ele, param, unset$, orbit)
+end_orb%spin = orbit%spin
 
 end subroutine track1_spin_taylor
 

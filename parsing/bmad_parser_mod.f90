@@ -9,7 +9,6 @@
 module bmad_parser_mod
 
 use bmad_parser_struct
-use ptc_interface_mod, only: set_ptc
 use superimpose_mod
 use binary_parser_mod
 use wake_mod

@@ -31,9 +31,9 @@
 subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 
 use bmad_parser_mod, dummy1 => bmad_parser
-use ptc_interface_mod, dummy2 => bmad_parser
 use wall3d_mod, dummy3 => bmad_parser
 use photon_target_mod, dummy4 => bmad_parser
+use ptc_interface_mod, only: set_ptc_com_pointers
 use random_mod
 
 implicit none
