@@ -77,6 +77,12 @@ ele%map_ref_orb_in = a_start_orb
 rad_fluct_save = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.
 
+! Spin?
+
+if (ele%spin_tracking_method == sprint$) then
+  call ele_to_sprint_spin_taylor_map(ele)
+endif
+
 ! Compute matrix
 
 err = .false.
@@ -124,12 +130,6 @@ end select
 if (err) then
   if (present(end_orb)) end_orb = a_end_orb
   return
-endif
-
-! Spin?
-
-if (ele%spin_tracking_method == sprint$) then
-  call ele_to_sprint_spin_taylor_map(ele)
 endif
 
 ! Add space charge effects
