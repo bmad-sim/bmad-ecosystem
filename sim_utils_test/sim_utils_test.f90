@@ -25,7 +25,7 @@ real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3), unit
 real(rp) field2(10:12, 20:22), field3(10:12, 20:22, 30:32), ff, df_dx, df_dy, df_dz, ff0, ff1
 real(rp) del, dff_dx, dff_dy, dff_dz, x, y, z, value
 
-integer i, j, k, ie, n, which, where, n_freq, mult, power, width, digits, species
+integer i, j, k, ie, n, which, where, n_freq, mult, power, width, digits, species, s_mat(6,6)
 integer, allocatable :: arr(:)
 
 complex(rp) cdata(32)
@@ -57,11 +57,20 @@ m(4,:) = [ 0.01161089,  0.02967948, 26.62729191, -0.88564965,  0.00002272, -0.04
 m(5,:) = [-0.08861524, -0.00613454,  0.03485868, -0.00268734,  0.94781760, -8.79515336]
 m(6,:) = [ 0.00530822, -0.00029320,  0.00010783, -0.00001597,  0.01159978,  0.94735510]
 
+s_mat = 0
+s_mat(1,2) =  1;  s_mat(3,4) =  1;  s_mat(5,6) =  1
+s_mat(2,1) = -1;  s_mat(4,3) = -1;  s_mat(6,5) = -1
+
 call mat_eigen (m, eval, evec, err)
 do i = 1, 6
   write (1, '(a, 6(2x, 2f12.8))') '"Eigen-val-' // int_str(i) // '" ABS 1e-4', eval(i)
   write (1, '(a, 6(2x, 2f12.8))') '"Eigen-vec-' // int_str(i) // '" ABS 1e-4', evec(i,:)
 enddo
+
+
+write (1, '(a, 3(2x, 2f12.8))') '"vSv-odd"  ABS 1e-4', (sum(conjg(evec(i,:)) * matmul(s_mat, evec(i,:))), i = 1,5,2)
+write (1, '(a, 3(2x, 2f12.8))') '"vSv-even" ABS 1e-4', (sum(conjg(evec(i,:)) * matmul(s_mat, evec(i,:))), i = 2,6,2)
+write (1, '(a, 3(2x, 2f12.8))') '"v-pairs"  ABS 1e-4', (real(evec(i,:)-evec(i+1,:), rp), aimag(evec(i,:)+evec(i+1,:)), i = 1,5,2)
 
 ! random
 

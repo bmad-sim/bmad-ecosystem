@@ -65,7 +65,13 @@ do ib = 0, ubound(lat%branch, 1)
 
       ele%mat6_calc_method = j
       ele%spin_tracking_method = tracking$
-      if (j == bmad_standard$) ele%spin_tracking_method = sprint$
+      if (j == bmad_standard$) then
+        ele%spin_tracking_method = sprint$
+        spin_q(iq+1)%method = 'Sprint'
+      else
+        spin_q(iq+1)%method = 'PTC'
+      endif
+
       call init_coord (start_orb, lat%particle_start, ele, upstream_end$, branch%param%particle)
 
       call make_mat6 (ele, branch%param, start_orb, end_orb, err)
@@ -73,7 +79,6 @@ do ib = 0, ubound(lat%branch, 1)
 
       ele%spin_q = spin_taylor_to_linear(ele%spin_taylor, start_orb%vec)
       iq = iq + 1
-      spin_q(iq)%method = mat6_calc_method_name(j)
       spin_q(iq)%q = ele%spin_q
 
     enddo
@@ -85,8 +90,9 @@ do ib = 0, ubound(lat%branch, 1)
 
     do k = 0, 3
       do j = 1, iq
-        write (1, '(5a, i0, a, t35, 7f15.10)') '"', trim(ele%name), '-', trim(spin_q(j)%method), '-', k, '" ABS 1E-10', spin_q(j)%q(k,:)
+        write (1, '(5a, i0, a, t35, f15.10, 4x, 6f15.10)') '"', trim(ele%name), '-', trim(spin_q(j)%method), '-', k, '" ABS 1E-10', spin_q(j)%q(k,:)
       enddo
+      write (1, *)
     enddo
 
   end do  ! ele
