@@ -25,8 +25,14 @@ ele%spin_taylor_ref_orb_in = 0  ! Sprint ref is always the zero orbit
 
 select case (ele%key)
 case (drift$)
+  call taylor_make_quaternion_unit(ele%spin_taylor)
 
 case (quadrupole$)
+  call taylor_make_quaternion_unit(ele%spin_taylor)
+
+case default
+  print *, 'HELP! I SHOULD NOT BE HERE!!!!'
+  stop
 
 end select
 
