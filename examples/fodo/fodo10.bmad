@@ -1,0 +1,10 @@
+call, file = $ACC_ROOT_DIR/tao/examples/fodo/fodo.bmad
+call, file = markers.bmad
+
+Q1[k1] = 20.6297896339797
+Q2[k1] = -10.5500557883925
+
+lat: line = (10*fodo1)
+
+use, lat
+
