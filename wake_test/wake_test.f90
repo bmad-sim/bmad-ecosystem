@@ -183,8 +183,8 @@ do n = 1, 3
   enddo
 enddo
 
-write (1, '(a, 6es18.9)') '"dB-LR-Pipe-P20" ABS 1E-19' , bunch2%particle(20)%vec - bunch%particle(20)%vec
-write (1, '(a, 6es18.9)') '"dB-LR-Pipe-P40" ABS 1E-19' , bunch2%particle(40)%vec - bunch%particle(40)%vec
+write (1, '(a, 6es18.9)') '"dB-LR-Pipe-P20" ABS 1E-20' , dvec(bunch2%particle(20)%vec - bunch%particle(20)%vec)
+write (1, '(a, 6es18.9)') '"dB-LR-Pipe-P40" ABS 1E-20' , dvec(bunch2%particle(40)%vec - bunch%particle(40)%vec)
 
 ! Long range wake in rf cavity
 
@@ -201,8 +201,8 @@ enddo
 bunch2%particle%vec(5) = bunch2%particle%vec(5) - 6d-17       ! Correction due to rf2 having finite length
 bunch2%particle%vec(6) = bunch2%particle%vec(6) + 6.9414d-12  ! Correction due to rf2 having finite length
 
-write (1, '(a, 6es18.9)') '"dB-LR-RF-P20" ABS 1E-13' , bunch2%particle(20)%vec - bunch0%particle(20)%vec
-write (1, '(a, 6es18.9)') '"dB-LR-RF-P40" ABS 1E-13' , bunch2%particle(40)%vec - bunch0%particle(40)%vec
+write (1, '(a, 6es18.9)') '"dB-LR-RF-P20" ABS 1E-15' , dvec(bunch2%particle(20)%vec - bunch0%particle(20)%vec)
+write (1, '(a, 6es18.9)') '"dB-LR-RF-P40" ABS 1E-15' , dvec(bunch2%particle(40)%vec - bunch0%particle(40)%vec)
 
 !---------------------------------
 ! Sort test
@@ -229,5 +229,15 @@ do i = 1, size(bunch%particle) - 1
     call err_exit
   endif
 enddo
+
+!------------------------------------------------------------------
+contains
+
+! vec(6) is much larger than the other components so rescale to be of the same magnitude
+function dvec(vec_in) result (vec_out)
+real(rp) vec_in(6), vec_out(6)
+vec_out = vec_in
+vec_out(6) = 1d-4 * vec_in(6)
+end function dvec
 
 end program
