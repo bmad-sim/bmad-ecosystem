@@ -251,7 +251,7 @@ end function super_rtsafe
 !   fa, fb, fc  -- real(rp): values of func(ax), func(bx), and func(cx) respectively.
 !   status      -- integer: Calculation status:
 !                       0    => Normal.
-!                       Other => Set by func. 
+!                       Other => If set by func. 
 !-
 
 subroutine super_mnbrak(ax, bx, cx, fa, fb, fc, func, status)
@@ -363,8 +363,8 @@ end subroutine super_mnbrak
 !                    integer, optional :: status  ! If non-zero return value, super_brent will terminate.
 !                    real(rp) :: value
 !                  end function func
-!   rel_tol  -- real(rp): Relative tolerance for the error of the minimum.
-!   abs_tol  -- real(rp): Absolute tolerance for the error of the minimum.
+!   rel_tol  -- real(rp): Relative tolerance for the error xmin. This is tol in NR brent routine.
+!   abs_tol  -- real(rp): Absolute tolerance for the error xmin. Equivalent to 1e-18*abs(ax) in NR brent.
 !
 ! Output:
 !   xmin     -- real(rp): x-coordinate at minimum.
@@ -513,8 +513,8 @@ end function super_brent
 !                    real(rp) :: value
 !                  end function func
 !   x1, x2   -- real(rp): Bracket values.
-!   rel_tol  -- real(rp): Relative tolerance for the error of the root.
-!   abs_tol  -- real(rp): Absolute tolerance for the error of the root.
+!   rel_tol  -- real(rp): Relative tolerance for x_zero. This is 4d-16 in NR zbrent.
+!   abs_tol  -- real(rp): Absolute tolerance for x_zero. This is tol in NR zbrent.
 !
 ! Output:
 !   x_zero   -- real(rp): Root found.
