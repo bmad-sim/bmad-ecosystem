@@ -67,10 +67,12 @@ do i = 1, 6
   write (1, '(a, 6(2x, 2f12.8))') '"Eigen-vec-' // int_str(i) // '" ABS 1e-4', evec(i,:)
 enddo
 
-
 write (1, '(a, 3(2x, 2f12.8))') '"vSv-odd"  ABS 1e-4', (sum(conjg(evec(i,:)) * matmul(s_mat, evec(i,:))), i = 1,5,2)
 write (1, '(a, 3(2x, 2f12.8))') '"vSv-even" ABS 1e-4', (sum(conjg(evec(i,:)) * matmul(s_mat, evec(i,:))), i = 2,6,2)
-write (1, '(a, 3(2x, 2f12.8))') '"v-pairs"  ABS 1e-4', (real(evec(i,:)-evec(i+1,:), rp), aimag(evec(i,:)+evec(i+1,:)), i = 1,5,2)
+do i = 1, 5, 2
+  write (1, '(a, 3(2x, 2f12.8))') '"v-pairs-re' // int_str(i) // '"  ABS 1e-4', real(evec(i,:)-evec(i+1,:), rp)
+  write (1, '(a, 3(2x, 2f12.8))') '"v-pairs-im' // int_str(i) // '"  ABS 1e-4', aimag(evec(i,:)+evec(i+1,:))
+enddo
 
 ! random
 
