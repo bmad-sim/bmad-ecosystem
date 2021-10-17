@@ -129,8 +129,6 @@ contains
 
 subroutine ran_gauss_scalar (harvest, ran_state, sigma_cut, index_quasi, sigma_cut_used)
 
-use nr, only: erf_s, erf
-
 implicit none
 
 type (random_state_struct), optional, target :: ran_state
@@ -172,9 +170,9 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
   sig_cut = min(sigma_max, sig_cut)
 
   if (erf_array(1) == 0) then
-    fac = 2 * erf_s (sigma_max/sqrt_2)
+    fac = 2 * erf (sigma_max/sqrt_2)
     do i = 0, max_g-1
-      erf_array(i) = erf_s (i / (n_pts_per_sigma * sqrt_2)) / fac
+      erf_array(i) = erf (i / (n_pts_per_sigma * sqrt_2)) / fac
     enddo
     erf_array(max_g) = 0.50000000001_rp
   endif

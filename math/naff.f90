@@ -161,7 +161,7 @@ end function
 
 function maximize_projection(seed, cdata)
 
-use nr, only: mnbrak, brent
+use super_recipes_mod, only: super_mnbrak, super_brent
 
 implicit none
 
@@ -169,9 +169,9 @@ real(rp) seed
 complex(rp) cdata(:)
 real(rp) maximize_projection
 
-integer i, N
+integer i, N, status
 real(rp) small_step
-real(rp) :: tol = 1.0d-8
+real(rp) :: tol = 1.0d-8, abs_tol = 1.0d-15
 real(rp) fmin !throw away
 real(rp) ax,bx,cx
 real(rp) fa,fb,fc
@@ -195,8 +195,8 @@ enddo
 ax = seed
 bx = seed+small_step
 cx = 0.0d0
-call mnbrak(ax, bx, cx, fa, fb, fc, special_projection)
-fmin = brent(ax, bx, cx, special_projection, tol, maximize_projection)
+call super_mnbrak(ax, bx, cx, fa, fb, fc, special_projection, status)
+fmin = super_brent(ax, bx, cx, special_projection, tol, abs_tol, maximize_projection, status)
 
 !--------------------------------------------
 
@@ -209,7 +209,8 @@ contains
 ! Used only by maximize projection. Uses data global to the function to accomodate stock NR routine.
 !-
 
-function special_projection (f)
+function special_projection (f, status)
+  integer, optional :: status
   real(rp), intent(in) :: f
   real(rp) special_projection
   special_projection = -1.0d0*abs(projdd(wcdata,ed(f,N)))
