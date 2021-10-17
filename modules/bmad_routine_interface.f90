@@ -109,7 +109,7 @@ subroutine apply_ramper (slave, ramper, err_flag)
   import
   implicit none
   type (ele_struct), target :: slave
-  type (ele_pointer_struct) ramper(:)
+  type (ele_pointer_struct), target :: ramper(:)
   logical err_flag
 end subroutine
 
@@ -1336,11 +1336,11 @@ subroutine offset_particle (ele, param, set, coord, set_tilt, set_hvkicks, drift
   logical, optional :: make_matrix
 end subroutine
 
-subroutine offset_photon (ele, coord, set, offset_position_only, rot_mat)
+subroutine offset_photon (ele, orbit, set, offset_position_only, rot_mat)
   import
   implicit none
   type (ele_struct), target :: ele
-  type (coord_struct) :: coord
+  type (coord_struct), target :: orbit
   logical :: set
   logical, optional :: offset_position_only
   real(rp), optional :: rot_mat(3,3)
@@ -2190,7 +2190,7 @@ subroutine track_a_crab_cavity (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2427,7 +2427,7 @@ subroutine track1_bunch_e_gun_space_charge (bunch, ele, err)
   import
   implicit none
   type (bunch_struct), target :: bunch
-  type (ele_struct) :: ele
+  type (ele_struct), target :: ele
   logical err
 end subroutine
 
@@ -2656,7 +2656,7 @@ recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, trac
   import
   implicit none
   type (coord_struct), optional :: orbit_start, orbit_end
-  type (ele_struct), optional :: ele_start, ele_end
+  type (ele_struct), optional, target :: ele_start, ele_end
   type (ele_struct), target :: ele
   type (lat_param_struct) param
   real(rp) l_start, l_end
@@ -2723,8 +2723,7 @@ end subroutine
 subroutine twiss_propagate1 (ele1, ele2, err)
   import
   implicit none
-  type (ele_struct), target :: ele1
-  type (ele_struct) ele2
+  type (ele_struct), target :: ele1, ele2
   logical, optional :: err
 end subroutine
 
