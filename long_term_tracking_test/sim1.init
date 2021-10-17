@@ -21,7 +21,7 @@
 
   bmad_com%spin_tracking_on = T         ! See Bmad manual for bmad_com parameters.
   bmad_com%radiation_damping_on = T
-  bmad_com%radiation_fluctuations_on = T 
+  bmad_com%radiation_fluctuations_on = F
 
   beam_init%n_particle = 10
   beam_init%spin = 0, 1, 0              ! See Bmad manual for beam_init_struct parameters.
