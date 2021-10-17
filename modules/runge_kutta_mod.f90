@@ -50,7 +50,7 @@ contains
 
 recursive subroutine odeint_bmad (orbit, ele, param, s1_body, s2_body, err_flag, track, mat6, make_matrix)
 
-use nr, only: zbrent
+use super_recipes_mod, only: super_zbrent
 
 implicit none
 
@@ -67,7 +67,7 @@ real(rp), target :: ds, ds_did, ds_next, s_body, s_last_save, ds_saved, s_edge_b
 real(rp) :: old_s, ds_zbrent, dist_to_wall, ds_tiny, mat6_old(6,6)
 real(rp), pointer :: s_body_ptr
 
-integer :: n_step, s_dir, nr_max, n_step_max
+integer :: n_step, s_dir, nr_max, n_step_max, status
 
 logical, optional :: make_matrix
 logical err_flag, err, at_hard_edge, track_spin, too_large
@@ -180,8 +180,8 @@ do n_step = 1, n_step_max
       if (n_step == 1) return  ! Cannot do anything if this is the first step
       ! Due to the zbrent finite tolerance, the particle may not have crossed the wall boundary.
       ! So step a small amount to make sure that the particle is past the wall.
-      ds_zbrent = zbrent (wall_intersection_func, 0.0_rp, ds_did, ds_tiny)
-      dist_to_wall = wall_intersection_func(ds_zbrent+ds_tiny)
+      ds_zbrent = super_zbrent (wall_intersection_func, 0.0_rp, ds_did, 1e-15_rp, ds_tiny, status)
+      dist_to_wall = wall_intersection_func(ds_zbrent+ds_tiny, status)
 
       call wall_hit_handler_custom (orbit, ele, s_body)
       if (orbit%state /= alive$) return
@@ -264,12 +264,13 @@ err_flag = .false.
 !-----------------------------------------------------------------
 contains
 
-function wall_intersection_func (ds) result (d_radius)
+function wall_intersection_func (ds, status) result (d_radius)
 
 real(rp), intent(in) :: ds
 real(rp) d_radius
 real(rp) t_new, r_err(11), dr_ds(11)
 
+integer :: status
 logical no_aperture_here
 
 !
@@ -283,6 +284,7 @@ d_radius = distance_to_aperture (orbit, in_between$, ele, no_aperture_here)
 if (no_aperture_here) then
   call out_io (s_fatal$, r_name, 'CONFUSED APERTURE CALCULATION. PLEASE CONTACT HELP.')
   if (global_com%exit_on_error) call err_exit
+  status = 1
 endif
 
 end function wall_intersection_func
