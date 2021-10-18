@@ -106,8 +106,8 @@ IF (FORTRAN_COMPILER MATCHES "gfortran")
        SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none -fopenmp")
        SET (OPENMP_LINK_LIBS "gomp")
        IF ($ENV{ACC_ENABLE_SHARED})
-	 SET (SHARED_DEPS ${OPENMP_LINK_LIBS} ${SHARED_DEPS})
-	 SET (CMAKE_SHARED_LINKER_FLAGS "-fopenmp ${CMAKE_SHARED_LINKER_FLAGS}")
+         SET (SHARED_DEPS ${OPENMP_LINK_LIBS} ${SHARED_DEPS})
+         SET (CMAKE_SHARED_LINKER_FLAGS "-fopenmp ${CMAKE_SHARED_LINKER_FLAGS}")
        ENDIF ()
      ELSE ()
        SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none")
@@ -122,13 +122,13 @@ ELSE ()
      IF (${ACC_ENABLE_OPENMP})
        SET (OPENMP_LINK_LIBS "-liomp5")
        EXECUTE_PROCESS (
-	 COMMAND bash -c "ifort --version | head -1 | awk ' { print $3 } '"
-	 OUTPUT_VARIABLE INTEL_VERSION_OUPUT
-	 )
+         COMMAND bash -c "ifort --version | head -1 | awk ' { print $3 } '"
+         OUTPUT_VARIABLE INTEL_VERSION_OUPUT
+         )
        IF ( ${INTEL_VERSION_OUPUT} VERSION_GREATER "16.0.0" )
-	 SET (IFORT_OPENMP_FLAG "-qopenmp")
+         SET (IFORT_OPENMP_FLAG "-qopenmp")
        ELSE()
-	 SET (IFORT_OPENMP_FLAG "-openmp")
+         SET (IFORT_OPENMP_FLAG "-openmp")
        ENDIF ()
        SET (COMPILER_SPECIFIC_F_FLAGS "-fpp ${IFORT_OPENMP_FLAG}")
        IF ($ENV{ACC_ENABLE_SHARED})
@@ -241,8 +241,12 @@ ENDIF ()
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT $ENV{ACC_PLOT_PACKAGE} MATCHES "none")
   SET (ACC_PLOT_LIB_DIRS /usr/lib64)
-ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND "$ENV{ACC_USE_MACPORTS}" MATCHES "Y")
-  SET (ACC_PLOT_LIB_DIRS /opt/local/lib /opt/X11/lib)
+ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT $ENV{ACC_CONDA_BUILD} MATCHES "Y") # See: RT 60204
+  IF ($ENV{ACC_USE_MACPORTS} MATCHES "Y")
+    SET (ACC_PLOT_LIB_DIRS /opt/local/lib /opt/X11/lib)
+  ELSE ()
+    SET (ACC_PLOT_LIB_DIRS /opt/X11/lib)
+  ENDIF ()
 ENDIF ()
 
 IF (${CMAKE_Fortran_COMPILER} STREQUAL "ifort" AND "$ENV{ACC_ENABLE_SHARED}" MATCHES "Y")
@@ -829,7 +833,7 @@ foreach(exespec ${EXE_SPECS})
       # all C source files.
       #-----------------------------------
       foreach (file ${cpp_sources})
-	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CXX_FLAGS} ${CPPFLAGS}")
+        set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CXX_FLAGS} ${CPPFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${cpp_sources})
 
@@ -848,7 +852,7 @@ foreach(exespec ${EXE_SPECS})
       # all Fortran source files.
       #-----------------------------------
       foreach (file ${f_sources})
-	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
+        set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${f_sources})
 
