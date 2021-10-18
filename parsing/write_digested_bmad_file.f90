@@ -386,6 +386,7 @@ if (associated(ele%converter)) then
       write (d_unit) ppcr%pc_out
       write (d_unit) ppcr%r
       write (d_unit) ppcr%prob
+      write (d_unit) ppcr%spin_z
       c_dir => c_dist%sub_dist(j)%dir_out
       write (d_unit) [size(c_dir%beta%fit_1D_r), size(c_dir%alpha_x%fit_1D_r), size(c_dir%alpha_y%fit_1D_r), &
                   size(c_dir%c_x%fit_1D_r), size(c_dir%dxds_min%fit_1D_r), size(c_dir%dxds_max%fit_1D_r), &

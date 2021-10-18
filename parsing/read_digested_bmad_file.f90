@@ -548,10 +548,11 @@ if (ix_convert == 1) then
       read (d_unit, err = 9120, end = 9120) c_dist%sub_dist(j)%pc_in
       ppcr => c_dist%sub_dist(j)%prob_pc_r
       read (d_unit, err = 9120, end = 9120) ppcr%integrated_prob, ne, nr
-      allocate (ppcr%pc_out(ne), ppcr%r(nr), ppcr%prob(ne,nr))
+      allocate (ppcr%pc_out(ne), ppcr%r(nr), ppcr%prob(ne,nr), ppcr%spin_z(ne,nr))
       read (d_unit, err = 9120, end = 9120) ppcr%pc_out
       read (d_unit, err = 9120, end = 9120) ppcr%r
       read (d_unit, err = 9120, end = 9120) ppcr%prob
+      read (d_unit, err = 9120, end = 9120) ppcr%spin_z
       c_dir => c_dist%sub_dist(j)%dir_out
       read (d_unit, err = 9120, end = 9120) nn
       allocate (c_dir%beta%fit_1D_r(nn(1)), c_dir%alpha_x%fit_1D_r(nn(2)), c_dir%alpha_y%fit_1D_r(nn(3)), &
