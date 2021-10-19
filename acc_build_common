@@ -513,7 +513,9 @@ func_install_utilities () {
 
 		    [ ! -d ${OUTPUT_DIR}/share ] && mkdir -p ${OUTPUT_DIR}/share
 		    [ ${CMAKE_VER_DIR} ] || CMAKE_VER_DIR=$(echo ${CMAKE_UTIL} | cut -d- -f2 | cut -d. -f1,2)
-		    rsync -aq ${UTIL_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/ ${OUTPUT_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/
+		    # Due to rsync being missing on some OSes, cp is used instead - see RT#60244 
+		    #rsync -aq ${UTIL_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/ ${OUTPUT_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/
+		    \cp -pRd ${UTIL_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR} ${OUTPUT_DIR}/share/
 
 		    [ `hash -l >& /dev/null ; echo $?` -eq 0 ] && hash -r || rehash
 		fi
