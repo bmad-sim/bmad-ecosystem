@@ -227,7 +227,8 @@ do i = 0, n
   floor%r = [vec(1), vec(3), s_ele%value(l$)]
   eleinfo%floor1 = coords_local_curvilinear_to_floor (floor, s_ele)
   eleinfo%floor1%r(2) = 0  ! Make sure in horizontal plane
-  eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / (1+vec(6)))
+  ! The 1d-14 is inserted to avoid 0/0 error at the beginning of an e_gun.
+  eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / (1.0_rp + 1d-14 + vec(6)))
 
   if (i == 0) then
     eleinfo%e_floor0 = csr%eleinfo(i)%e_floor1
@@ -261,7 +262,7 @@ do i = 0, n
   parallel0 = (abs(modulo2(eleinfo%floor0%theta - theta_chord, pi)) < pi/2)
   parallel1 = (abs(modulo2(eleinfo%floor1%theta - theta_chord, pi)) < pi/2)
   if (parallel0 .neqv. parallel1) then
-    call out_io (s_fatal$, r_name, 'VERY CONFUSED CSR CALCULATION! PLEASE SEAK HELP')
+    call out_io (s_fatal$, r_name, 'VERY CONFUSED CSR CALCULATION! PLEASE SEEK HELP ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
   endif
