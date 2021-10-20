@@ -126,7 +126,7 @@ endif
 
 !$ n_threads = omp_get_max_threads()
 !$ if (n_threads > 1) then
-!$   print *, '  FFTW with n_threads: ', n_threads
+!! !$   print *, '  FFTW with n_threads: ', n_threads
 !$   call fftw_plan_with_nthreads(n_threads)
 !$ endif
 
