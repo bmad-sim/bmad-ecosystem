@@ -39,7 +39,7 @@ implicit none
 real(rp) mat(:,:), mat2(size(mat,1), size(mat,2))
 real(rp) :: eval_r(size(mat,1)), eval_i(size(mat,1)), vec(size(mat,1), size(mat,1)), tmp(size(mat,1))
 real(rp) :: amp(size(mat,1)/2, size(mat,1)/2), amp2(size(mat,1)/2, size(mat,1)/2), dmax(size(mat,1)/2)
-real(rp) fnorm
+real(rp) fnorm, fs
 
 integer :: sort(size(mat,1)/2)
 
@@ -118,19 +118,17 @@ do ii = 1, nn
 
   if (eval_i(i-1) == 0) then  ! Unstable mode
 
-    if (eval_r(i-1) == eval_r(i)) then ! orthogonalize
-      fnorm = dot_product(vec(:,j-1), vec(:,j)) / sum(vec(:,j-1)**2)
-      vec(:,j) = vec(:,j) - fnorm * vec(:,j-1)
-      vec(:,j) = vec(:,j) / norm2(vec(:,j))
+    fs = sum(vec(:,i-1)**2)
+    if (eval_r(i-1) == eval_r(i) .and. abs(fs) > 1e-100_rp) then ! orthogonalize
+      fnorm = dot_product(vec(:,i-1), vec(:,i)) / fs
+      vec(:,i) = vec(:,i) - fnorm * vec(:,i-1)
     endif
 
     fnorm = sqrt(sum(vec(:, i-1)**2))
-    if (fnorm == 0) return
-    vec(:, i-1) = vec(:, i-1) / fnorm
+    if (abs(fnorm) > 1e-100_rp) vec(:, i-1) = vec(:, i-1) / fnorm
 
     fnorm = sqrt(sum(vec(:, i)**2))
-    if (fnorm == 0) return
-    vec(:, i) = vec(:, i) / fnorm
+    if (abs(fnorm) > 1e-100_rp) vec(:, i) = vec(:, i) / fnorm
 
     eigen_val(j-1)    = eval_r(i-1)
     eigen_val(j)      = eval_r(i)
@@ -165,8 +163,6 @@ do ii = 1, nn
     eigen_vec(k+1,:) = conjg(sgn) * eigen_vec(k+1,:)
   endif
 enddo
-
-
 
 error = .false.
 
