@@ -1066,16 +1066,18 @@ case ('da_params')
 ! Notes
 ! -----
 ! Command syntax:
-!   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
+!   python data {ix_universe}@{d2_name}.{d1_name}[{dat_index}]
 !
 ! Where:
 !   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {d2_name} is the name of the d2_data structure the datum is in.
+!   {d1_datum} is the name of the d1_data structure the datum is in.
+!   {dat_index} is the index of the datum.
 !
 ! Use the "python data-d1" command to get detailed info on a specific d1 array.
-! Output syntax is parameter list form. See documentation at the beginning of this file.
+!
 ! Example:
 !   python data 1@orbit.x[10]
-! Note : By default dat_index is 1.
 ! 
 ! Parameters
 ! ----------
@@ -1166,14 +1168,15 @@ case ('data')
 ! Notes
 ! -----
 ! Command syntax:
-!   python data_d2_create {d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
+!   python data_d2_create {ix_universe}@{{d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
 !
-! {d2_name} should be of the form {ix_uni}@{d2_datum_name}
-! {n_d1_data} is the number of associated d1 data structures.
-! {d_data_arrays_name_min_max} has the form
-!   {name1}^^{lower_bound1}^^{upper_bound1}^^....^^{nameN}^^{lower_boundN}^^{upper_boundN}
-! where {name} is the data array name and {lower_bound} and {upper_bound} are the bounds 
-! of the array.
+! Where:
+!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {d2_name} is the name of the d2_data structure to create.
+!   {n_d1_data} is the number of associated d1 data structures.
+!   {d_data_arrays_name_min_max} has the form
+!     {name1}^^{lower_bound1}^^{upper_bound1}^^....^^{nameN}^^{lower_boundN}^^{upper_boundN}
+!   where {name} is the data array name and {lower_bound} and {upper_bound} are the bounds of the array.
 ! 
 ! Example:
 !   python data_d2_create 2@orbit^^2^^x^^0^^45^^y^^1^^47
@@ -1183,7 +1186,8 @@ case ('data')
 ! The "x" d1 structure has an associated data array with indexes in the range [0, 45].
 ! The "y" d1 structure has an associated data arrray with indexes in the range [1, 47].
 ! 
-! Use the "set data" command to set a created datum parameters.
+! Use the "set data" command to set created datum parameters.
+!
 ! Note: When setting multiple data parameters, 
 !       temporarily toggle s%global%lattice_calc_on to False
 !   ("set global lattice_calc_on = F") to prevent Tao trying to 
@@ -1316,10 +1320,15 @@ case ('data_d2_create')
 ! Notes
 ! -----
 ! Command syntax:
-!   python data_d2_destroy {d2_datum}
+!   python data_d2_destroy {ix_universe}@{d2_name}
 !
-! {d2_datum} should be of the form
-!   {ix_uni}@{d2_datum_name}
+! Where:
+!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {d2_name} is the name of the d2_data structure to destroy.
+!
+! Example:
+!   python data_d2_destroy 2@orbit
+! This destroys the orbit d2_data structure in universe 2.
 ! 
 ! Parameters
 ! ----------
@@ -1347,11 +1356,12 @@ call destroy_this_data_d2(line)
 ! Notes
 ! -----
 ! Command syntax:
-!   python data_d2 {d2_datum}
+!   python data_d2 {ix_universe}@{d2_name}
 !
-! {d2_datum} should be of the form
-!   {ix_uni}@{d2_datum_name}
-! 
+! Where:
+!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {d2_name} is the name of the d2_data structure.
+!
 ! Parameters
 ! ----------
 ! d2_datum
@@ -1393,15 +1403,18 @@ case ('data_d2')
   nl=incr(nl); write (li(nl), lmt) 'ref_read_in;LOGIC;F;',                    d2_ptr%ref_read_in
 
 !%% data_d_array -----------------------
-! Output list of datums for a given data_d1.
+! Output list of datums for a given d1_data structure.
 !
 ! Notes
 ! -----
 ! Command syntax:
-!   python data_d_array {d1_datum}
+!   python data_d_array {ix_universe}@{d2_name}.{d1_name}
 !
-! {d1_datum} should be for the form
-!   {ix_uni}@{d2_datum_name}.{d1_datum_name}
+! Where:
+!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {d2_name} is the name of the containing d2_data structure.
+!   {d1_name} is the name of the d1_data structure containing the array of datums.
+!
 ! Example:
 !   python data_d_array 1@orbit.x
 ! 

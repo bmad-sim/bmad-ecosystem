@@ -4589,7 +4589,7 @@ parsing_loop: do
       case ('ceiling')
         call pushit (op, i_op, ceiling$)
       case default
-        call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS BEFORE "(": ', 'IN EXPRESSION: ' // expression)
+        call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS (BAD FUNCTION NAME?) BEFORE "(": ', 'IN EXPRESSION: ' // expression)
         return
       end select
 
