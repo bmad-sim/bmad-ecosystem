@@ -42,7 +42,12 @@ kss0 = ks0 / 2
 
 xp = end_orb%vec(2) + kss0 * end_orb%vec(3)
 yp = end_orb%vec(4) - kss0 * end_orb%vec(1)
-pz = sqrt(rel_p**2 - xp**2 - yp**2)
+ff = rel_p**2 - xp**2 - yp**2
+if (ff <= 0) then
+  end_orb%state = lost_pz_aperture$
+  return
+endif
+pz = sqrt(ff)
 
 end_orb%vec(5) = end_orb%vec(5) + length * ((end_orb%beta * ele%value(E_tot$) / ele%value(p0c$)) - rel_p/pz)
 

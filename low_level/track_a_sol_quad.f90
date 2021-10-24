@@ -78,6 +78,7 @@ do i = 1, n_step
       mat6 = matmul(kmat, mat6)
     else
       call solenoid_track_and_mat (ele, step_len, param, orbit, orbit)
+      if (orbit%state /= alive$) return
     endif
 
   else
