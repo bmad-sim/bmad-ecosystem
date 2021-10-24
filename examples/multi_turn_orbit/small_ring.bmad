@@ -1,0 +1,20 @@
+parameter[p0c] = 1e9
+bmad_com[radiation_damping_on] = f
+bmad_com[radiation_fluctuations_on] = f
+bmad_com[spin_tracking_on] = T
+
+particle_start[x] = 0.001
+
+q1: quad, l = 0.5, k1 = 0.6, tilt = 0.05
+q2: quad, l = 0.5, k1 = -0.5
+
+d: drift, l = 0.3
+b: sbend, l = 3, angle = pi/8, e1 = 0.07, e2 = 0.07
+
+rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 1e6, phi0 = 0.1
+!rf: marker
+
+sector: line = (d, q1, d, b, d, q2, d, rf, b)
+ring: line = (8*sector)
+
+use, ring

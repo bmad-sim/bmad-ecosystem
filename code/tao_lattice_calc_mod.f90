@@ -39,14 +39,18 @@ type (tao_universe_struct), pointer :: u
 type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_dat
 type (tao_d1_data_struct), pointer :: d1_dat
-type (coord_struct), allocatable :: orb(:)
+type (coord_struct), allocatable, target :: orb(:)
+type (coord_struct), pointer :: orbit
 type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (tao_dynamic_aperture_struct), pointer :: da
 type (beam_struct) beam
+type (tao_plot_struct), pointer :: plot
+type (tao_curve_struct), pointer :: curve
+type (tao_curve_array_struct), allocatable :: crv(:), crv_temp(:)
 
-integer iuni, j, ib, ix, n_max, iu, it, id
+integer iuni, i, j, k, nc, ib, ix, iy, n_max, iu, it, id, n_turn
 
 character(*), parameter :: r_name = "tao_lattice_calc"
 character(20) name
@@ -155,45 +159,83 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
                        ix_branch = ib)
       endif
 
-      ! do multi-turn tracking if needed. This is always the main lattice. 
+      ! do multi-turn tracking if needed.
 
-      if (ib == 0) then
-        write (name, '(i0, a)') iuni, '@multi_turn_orbit'
-        call tao_find_data (err, name, d2_array, print_err = .false.)
+      nc = 0
+      n_turn = 0
+      do i = 1, size(s%plot_page%region)
+        if (.not. s%plot_page%region(i)%visible) cycle
+        plot => s%plot_page%region(i)%plot
+        if (.not. allocated(plot%graph)) cycle
+        do j = 1, size(plot%graph)
+          if (plot%graph(j)%type /= 'phase_space') cycle
+          if (.not. allocated(plot%graph(j)%curve)) cycle
+          do k = 1, size(plot%graph(j)%curve)
+            curve => plot%graph(j)%curve(k)
+            if (curve%data_source /= 'multi_turn_orbit') cycle
+            if ((curve%ix_universe == -1 .and. iuni /= s%global%default_universe) .or. &
+                                  (curve%ix_universe /= -1 .and. iuni /= curve%ix_universe)) cycle
+            if (curve%ix_branch /= ib) cycle
+            nc = nc + 1
+            if (nc == 1) then
+              allocate(crv(1))
+            else
+              call move_alloc(crv, crv_temp)
+              allocate(crv(nc))
+              crv(1:nc-1) = crv_temp
+              deallocate(crv_temp)
+            endif
+            crv(nc)%c => curve
+            n_turn = max(n_turn, curve%n_turn)
+            curve%valid = .true.
+            call re_allocate(curve%x_symb, curve%n_turn)
+            call re_allocate(curve%y_symb, curve%n_turn)
+            call re_allocate(curve%ix_symb, curve%n_turn)
+          enddo
+        enddo
+      enddo
 
-        if (size(d2_array) > 0) then
-          if (size(d2_array) /= 1) then
-            call out_io (s_error$, r_name, 'MULTIPLE D2 DATA ARRAYS ASSOCIATED WITH: ' // name)
-          endif
-          d2_dat => d2_array(1)%d2
-          n_max = 0
-          do id = 1, size(d2_dat%d1)
-            n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
+      if (nc > 0) then
+        call reallocate_coord (orb, branch%n_ele_max)
+        orb(0) = tao_lat%lat%particle_start
+        do it = 1, n_turn
+          call track_all (tao_lat%lat, orb, ib)
+          do k = 1, nc
+            curve => crv(k)%c
+            if (.not. curve%valid) cycle
+            if (it > curve%n_turn) cycle
+
+            orbit => orb(curve%ix_ele_ref)
+            if (orbit%state /= alive$) then
+              call re_allocate(curve%x_symb, it-1)
+              call re_allocate(curve%y_symb, it-1)
+              call re_allocate(curve%ix_symb, it-1)
+              cycle
+            endif
+
+            call match_word (curve%data_type_x, coord_name, ix)
+            call match_word (curve%data_type, coord_name, iy)
+            if (ix == 0) then
+              call out_io(s_error$, r_name, 'MALFORMED CURVE%DATA_TYPE_X: ' // quote(curve%data_type_x), &
+                                            'FOR: ' //tao_curve_name(curve))
+              curve%why_invalid = 'MALFORMED CURVE%DATA_TYPE_X'
+              curve%valid = .false.
+              cycle
+            endif
+            if (iy == 0) then
+              call out_io(s_error$, r_name, 'MALFORMED CURVE%DATA_TYPE: ' // quote(curve%data_type), &
+                                            'FOR: ' //tao_curve_name(curve))
+              curve%why_invalid = 'MALFORMED CURVE%DATA_TYPE'
+              curve%valid = .false.
+              cycle
+            endif
+            curve%x_symb(it) = orbit%vec(ix) * curve%g%x_axis_scale_factor
+            curve%y_symb(it) = orbit%vec(iy) * curve%y_axis_scale_factor
+            curve%ix_symb(it) = it
           enddo
-          call reallocate_coord (orb, branch%n_ele_max)
-          orb(0) = tao_lat%lat%particle_start
-          do it = 0, n_max
-            do id = 1, size(d2_dat%d1)
-              d1_dat => d2_dat%d1(id)
-              if (it >= lbound(d1_dat%d, 1) .and. it <= ubound(d1_dat%d, 1)) then
-                select case (d1_dat%name)
-                case ('x');   d1_dat%d(it)%model_value = orb(0)%vec(1)
-                case ('px');  d1_dat%d(it)%model_value = orb(0)%vec(2)
-                case ('y');   d1_dat%d(it)%model_value = orb(0)%vec(3)
-                case ('py');  d1_dat%d(it)%model_value = orb(0)%vec(4)
-                case ('z');   d1_dat%d(it)%model_value = orb(0)%vec(5)
-                case ('pz');  d1_dat%d(it)%model_value = orb(0)%vec(6)
-                case default
-                  call out_io (s_fatal$, r_name, &
-                              'BAD MULTI_TURN_ORBIT D1_DATA%NAME: ' // d1_dat%name)
-                  call err_exit
-                end select
-              endif
-            enddo
-            call track_all (tao_lat%lat, orb, ib)
-            orb(0) = orb(branch%n_ele_track)
-          enddo
-        endif
+          orb(0) = orb(branch%n_ele_track)
+          if (orb(0)%state /= alive$) exit
+        enddo
       endif
 
       ! Note: The SRDT calc does not involve PTC.

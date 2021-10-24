@@ -1034,11 +1034,6 @@ To save time when the calculation of momentum compaction terms is not needed, th
 Note: The RF must be turned off for the calculation to work properly.
 
   %----------------------
-  \item[multi_turn_orbit.x, .y, .z, .px, .py, .pz] \Newline \hlabel{multi.turn.orb}
-Used for storing the orbit over many turns. Only used for plotting purposes.
-See \Sref{s:curve.type} for more details.
-
-  %----------------------
   \item[n_particle_loss] \Newline \hlabel{n.part.loss}
 If the reference element is not specified, \vn{n_particle_loss} gives
 the number of particles lost at the evaluation element. If the
@@ -1850,10 +1845,6 @@ See the previous section for a description of the data types.
                                                                     Momentum compaction \\
                                                                     Taylor terms
                                                                   \end{tabular}                             & lat         & No  \\ \hline
-  \pref{multi.turn.orb}   &  \begin{tabular}{@{}l}
-                               multi_turn_orbit.x, .y, \\ 
-                               \hspace{3em} .z, .px, .py, .pz
-                             \end{tabular}                      & Store orbit over many turns               & lat         & No  \\ \hline 
   \pref{n.part.loss}      & n_particle_loss                     & Number of particles lost                  & beam        & No  \\ \hline 
   \pref{norm.app.emit}    & norm_apparent_emit.x, .y            & Normalized apparent emittance             & lat, beam   & No  \\ \hline
   \pref{norm.emit.a}      & norm_emit.a, .b, .c                 & Normalized beam emittance                 & lat, beam   & No  \\ \hline 

@@ -93,6 +93,8 @@ if (allocated (graph%curve)) then
   do i = 1, size(graph%curve)
     curve => graph%curve(i)
     if (.not. curve%valid) cycle
+    ! Unlike other curves, multi_turn_orbit curves gets calculated in tao_lattice_calc which takes care of the scaling.
+    if (curve%data_source == 'multi_turn_orbit') cycle 
 
     if (allocated(curve%x_symb)) then
         curve%x_symb = curve%x_symb * graph%x_axis_scale_factor
@@ -494,7 +496,8 @@ do k = 1, size(graph%curve)
 
   ! fill the curve data arrays
 
-  if (allocated (curve%ix_symb)) deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
+  if (allocated (curve%ix_symb) .and. curve%data_source /= 'multi_turn_orbit') &
+                                                  deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   !----------------------------
@@ -562,51 +565,7 @@ do k = 1, size(graph%curve)
   !----------------------------
 
   elseif (curve%data_source == 'multi_turn_orbit') then
-    
-    call tao_find_data (err, curve%data_source, d2_array, ix_uni = tao_curve_ix_uni(curve))
-    if (err .or. size(d2_array) /= 1) then
-      call tao_set_curve_invalid (curve, 'CANNOT FIND DATA ARRAY TO PLOT.')
-      cycle
-    endif
-
-    nullify (d1_x, d1_y)
-    d2_ptr => d2_array(1)%d2
-    do i = 1, size(d2_ptr%d1)
-      if (curve%data_type_x == d2_ptr%d1(i)%name) d1_x => d2_ptr%d1(i)
-      if (curve%data_type   == d2_ptr%d1(i)%name) d1_y => d2_ptr%d1(i)
-    enddo
-    if (.not. associated(d1_x)) then
-      call out_io (s_warn$, r_name, &
-              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type_x, &
-              'FOR CURVE: ' // tao_curve_name(curve))
-      return
-    endif
-    if (.not. associated(d1_y)) then
-      call out_io (s_warn$, r_name, &
-              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type, &
-              'FOR CURVE: ' // tao_curve_name(curve))
-      return
-    endif
-
-    if (lbound(d1_x%d, 1) /= lbound(d1_y%d, 1) .or. &
-                                        ubound(d1_x%d, 1) /= ubound(d1_y%d, 1)) then 
-      call out_io (s_warn$, r_name, &
-              'BOUNDS FOR X-AXIS AND Y-AXIS DATA OF PHASE SPACE PLOTTING MISMATCHED.', &
-              'FOR CURVE: ' // tao_curve_name(curve))
-      return
-    endif
-
-    n = size(d1_x%d)
-    call re_allocate (curve%ix_symb, n)
-    call re_allocate (curve%x_symb, n)
-    call re_allocate (curve%y_symb, n)
-
-    do ib = 1, n
-      i = ib + lbound(d1_x%d, 1) - 1
-      curve%x_symb(ib) = d1_x%d(i)%model_value
-      curve%y_symb(ib) = d1_y%d(i)%model_value
-    enddo
-
+    ! Everything is handled in tao_lattice_calc
 
   elseif (curve%data_source == 'twiss') then
 
