@@ -215,6 +215,7 @@ type tao_curve_struct
   integer :: ix_ele_ref = -1             ! Index in lattice of reference element.
   integer :: ix_ele_ref_track = -1       ! = ix_ele_ref except for super_lord elements.
   integer :: ix_bunch = 0                ! Bunch to plot.
+  integer :: n_turn = 10                 ! Used for multi_turn_orbit plotting
   logical :: use_y2 = .false.            ! Use y2 axis?
   logical :: draw_line = .true.          ! Draw a line through the data points?
   logical :: draw_symbols = .true.       ! Draw a symbol at the data points?

@@ -612,6 +612,7 @@ do  ! Loop over plot files
         crv%y_axis_scale_factor  = curve(j)%y_axis_scale_factor
         crv%symbol_every         = curve(j)%symbol_every
         crv%ix_universe          = curve(j)%ix_universe
+        crv%n_turn               = curve(j)%n_turn
         crv%draw_line            = curve(j)%draw_line
         crv%draw_symbols         = curve(j)%draw_symbols
         crv%draw_symbol_index    = curve(j)%draw_symbol_index

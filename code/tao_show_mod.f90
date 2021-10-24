@@ -852,6 +852,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
       nl=nl+1; write(lines(nl), imt)  'ix_bunch             = ', c1%ix_bunch
       nl=nl+1; write(lines(nl), imt)  'ix_universe          = ', c1%ix_universe
+      nl=nl+1; write(lines(nl), imt)  'n_turn               = ', c1%n_turn
       nl=nl+1; write(lines(nl), imt)  'symbol_every         = ', c1%symbol_every
       nl=nl+1; write(lines(nl), rmt)  'y_axis_scale_factor  = ', c1%y_axis_scale_factor
       nl=nl+1; write(lines(nl), lmt)  'use_y2               = ', c1%use_y2

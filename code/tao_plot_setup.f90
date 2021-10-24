@@ -184,6 +184,8 @@ do jg = 1, size(plot%graph)
   if (allocated(graph%curve)) then
     do ic = 1, size(graph%curve)
       curve => graph%curve(ic)
+      if (.not. curve%valid) cycle
+
       call qp_get_parameters (default_axis_slop_factor = slop)
       if (curve%use_y2) then
         ax_min = graph%y2%min + slop * (graph%y2%min - graph%y2%max)

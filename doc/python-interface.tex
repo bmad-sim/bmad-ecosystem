@@ -76,8 +76,9 @@ The general form of the \vn{python} command is:
 \end{example}
 The \vn{python} command has a number of \vn{subcommands} (over 100) that are listed in
 \Sref{s:python.sub}. The sub-commands can be divided into two categories. One category are the
-``\vn{action}'' subcommands which allow the user to control \tao. The other category are the
-``\vn{output}'' commands which output information from \tao.
+``\vn{action}'' subcommands which allow the user to control \tao (for example, creating variables
+and data for use in an optimization). The other category are the ``\vn{output}'' subcommands which
+output information from \tao.
 
 Using the \vn{python} command is far superior to using the \vn{show} command when interfacing to an
 external program. For one, the \vn{python} command is formatted to be easily parsable. And the
@@ -109,8 +110,8 @@ will produce as output:
   ... etc ...
 \end{example}
 
-Most output is in ``\vn{parameter list form}'' where each line has four fields separated by
-semicolons:
+Most \vn{output} subcommands use ``\vn{parameter list form}'' format where each line has four fields
+separated by semicolons:
 \begin{example}
   {name};{type};{variable};{value(s)}
 \end{example}
@@ -156,11 +157,11 @@ The \vn{Python} based \vn{PyTao} interface to \tao is separate from the \vn{Dist
 (\sref{s:obtaining}) package which the \bmad and \tao source files are contained in.
 The PyTao source is in a GitHub repository at
 \begin{example}
-  https://github.com/bmad-sim/pytao
+  github.com/bmad-sim/pytao
 \end{example}
 Documentation for setup and using PyTao is at
 \begin{example}
-  https://bmad-sim.github.io/pytao/
+  bmad-sim.github.io/pytao/
 \end{example}
 
 %--------------------------------------------------------------------------

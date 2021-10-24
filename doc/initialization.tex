@@ -2358,6 +2358,7 @@ The general format of the \vn{tao_template_graph} namelist is:
     curve(N)%ix_universe         = <integer>      ! Default = -1 => Use graph%ix_universe.
     curve(N)%ix_branch           = <integer>      ! Default = 0  => Use main lattice.  
     curve(N)%ix_bunch            = <integer>      ! Bunch index. Default = 0 (all bunches).
+    curve(N)%n_turn              = <integer>      ! For phase space multi_turn_orbit.
     curve(N)%line     = <qp_line_struct>          ! Line spec (color, width, etc.)
     curve(N)%symbol   = <qp_symbol_struct>        ! Symbol spec (color size, etc.)
     curve(N)%symbol_every      = <integer>        ! Plot symbol every # datums
@@ -3574,12 +3575,7 @@ must be either:
 \vn{"beam"} indicates that the points of the histogram plot will be obtained correspond to the
 positions of the particles within a tracked beam. \vn{multi_turn_orbit"} is used for rings where a
 single particle is tracked multiple turns and the position of this particle is recorded each
-turn. In this case, a \vn{d2_data} structure must have been set up to hold the turn--by--turn
-orbit. This \vn{d2_data} structure must be called \vn{multi_turn_orbit} and must have \vn{d1_data}
-data arrays for the histogram planes to be plotted. For example, if the histogram plot is \vn{x}
-versus \vn{px}, then there must be \vn{d1_data} arrays named \vn{"x"} and \vn{"px"}. The number of
-turns is determined by the setting of \vn{ix_max_data} in the \vn{tao_d1_data} namelist
-(\sref{s:init.data}).
+turn. The number of turns is determined by the setting of \vn{curve%n_turn}.
 
 %%-----------------------------------------------------------------
 %\subsection{Drawing the Beam Chamber Wall}
@@ -3692,7 +3688,8 @@ example is show in Figure~\ref{f:phase.space}.  Example Phase Space template:
   graph%y%label =  "p\textbackslash{}dx\textbackslash{}u/p\textbackslash{}d0\textbackslash{}u (mrad)"
   graph%y%major_div = 4
   graph%y%label_offset=.4
-  curve(1)%data_type = "x-px" 
+  curve(1)%data_type_x = "x" 
+  curve(1)%data_type   = "px" 
   curve(1)%y_axis_scale_factor = 1000 !rad->mrad
   curve(1)%data_source = "beam_tracking"
   curve(1)%ele_ref_name = "END"
