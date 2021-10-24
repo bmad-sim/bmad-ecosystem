@@ -1168,7 +1168,7 @@ case ('data')
 ! Notes
 ! -----
 ! Command syntax:
-!   python data_d2_create {ix_universe}@{{d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
+!   python data_d2_create {ix_universe}@{d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
 !
 ! Where:
 !   {ix_universe} is a universe index. Defaults to s%global%default_universe.
