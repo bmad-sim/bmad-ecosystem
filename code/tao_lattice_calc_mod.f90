@@ -178,6 +178,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
             if (curve%ix_branch /= ib) cycle
             nc = nc + 1
             if (nc == 1) then
+              if (allocated(crv)) deallocate(crv)
               allocate(crv(1))
             else
               call move_alloc(crv, crv_temp)
