@@ -17,6 +17,7 @@ type (aperture_param_struct) :: da_param
 type (aperture_point_struct), pointer :: da_point
 type (aperture_scan_struct), allocatable, target :: aperture_scan(:)
 type (aperture_scan_struct), pointer :: da
+type (coord_struct), allocatable :: closed_orb(:)
 
 real(rp) dpz(20)
 integer nargs, ios, i, j, n_dpz
@@ -63,6 +64,8 @@ da_param%max_angle = da_param%max_angle * pi / 180
 ! Read in lattice
 
 call bmad_parser (lat_file, lat)
+
+call twiss_and_track(lat, closed_orb)
 
 n_dpz = count(dpz /= real_garbage$)
 print *, 'Note: Number of dpz points: ', n_dpz
