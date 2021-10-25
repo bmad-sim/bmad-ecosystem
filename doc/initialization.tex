@@ -3573,9 +3573,13 @@ must be either:
   "multi_turn_orbit"
 \end{example} 
 \vn{"beam"} indicates that the points of the histogram plot will be obtained correspond to the
-positions of the particles within a tracked beam. \vn{multi_turn_orbit"} is used for rings where a
+positions of the particles within a tracked beam. 
+
+Setting \vn{curve%data_source} to \vn{multi_turn_orbit"} is used for rings where a
 single particle is tracked multiple turns and the position of this particle is recorded each
-turn. The number of turns is determined by the setting of \vn{curve%n_turn}.
+turn. The number of turns is determined by the setting of \vn{curve%n_turn}. The starting position
+for the tracking is set by setting the \vn{particle_start[x]}, \vn{particle_start[px]}, etc. 
+parameters in the lattice file (see the \bmad manual for details).d 
 
 %%-----------------------------------------------------------------
 %\subsection{Drawing the Beam Chamber Wall}
