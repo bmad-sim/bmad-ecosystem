@@ -104,6 +104,8 @@ do i = 1, n_dpz
   write (1, *)
   write (1, *)
   write (1, '(a, f10.6)') '"Dpz =', dpz(i), '"'
+  write (1, '(a, f10.6)') '"x_ref_orb =', da%ref_orb%vec(1), '"'
+  write (1, '(a, f10.6)') '"y_ref_orb =', da%ref_orb%vec(1), '"'
   do j = 1, da_param%n_angle
     da_point => da%point(j)
     write (1, '(2f11.6, i7, 6x, a, 3x, a)') da_point%x, da_point%y, da_point%i_turn, &
