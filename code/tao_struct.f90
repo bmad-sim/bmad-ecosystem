@@ -748,6 +748,7 @@ type tao_common_struct
   integer :: n_history = 0                      ! present history index
   integer :: lev_loop = 0                       ! in do loop nest level
   integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
+  integer :: n_universes = n_uni_init$   
   logical :: cmd_file_paused = .false.
   logical :: use_cmd_here  = .false.            ! Used for commands recalled from the cmd history stack
   logical :: cmd_from_cmd_file = .false.        ! was command from a command file?
@@ -762,17 +763,17 @@ type tao_common_struct
   logical :: init_read_lat_info    = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running     = .false. 
   logical :: have_datums_using_expressions = .false.
-  logical :: print_to_terminal = .true.            ! Print command prompt to the terminal? For use with GUIs.
-  logical :: lattice_calc_done = .false.           ! Used by GUI for deciding when to refresh.
-  logical :: add_measurement_noise = .true.        ! Turn off to take data derivatives.
-  logical :: is_err_message_printed(2) = .false.   ! Used by tao_set_invalid
+  logical :: print_to_terminal = .true.              ! Print command prompt to the terminal? For use with GUIs.
+  logical :: lattice_calc_done = .false.             ! Used by GUI for deciding when to refresh.
+  logical :: add_measurement_noise = .true.          ! Turn off to take data derivatives.
+  logical :: is_err_message_printed(2) = .false.     ! Used by tao_set_invalid
   logical :: command_arg_has_been_executed = .false. ! Has the -command command line argument been executed?
   logical :: all_merit_weights_positive = .true.  
-  character(100) :: cmd = ''                       ! Used for the cmd history
-  character(16) :: valid_plot_who(10) = ''         ! model, base, ref etc...
-  character(200) :: saved_cmd_line = ''            ! Saved part of command line when there are mulitple commands on a line
+  logical :: multi_turn_orbit_is_plotted = .false.   ! Is a multi_turn_orbit being plotted?
+  character(100) :: cmd = ''                         ! Used for the cmd history
+  character(16) :: valid_plot_who(10) = ''           ! model, base, ref etc...
+  character(200) :: saved_cmd_line = ''              ! Saved part of command line when there are mulitple commands on a line
   character(80) :: single_mode_buffer = ''
-  integer :: n_universes = n_uni_init$   
 end type
 
 ! Initialization parameters

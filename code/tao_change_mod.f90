@@ -171,8 +171,6 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (all_pointer_struct), allocatable :: d_ptr(:), m_ptr(:)
 type (ele_pointer_struct), allocatable :: eles(:)
-type (tao_d2_data_array_struct), allocatable :: d2_array(:)
-type (tao_d2_data_struct), pointer :: d2_dat
 
 real(rp), allocatable :: change_number(:), old_value(:)
 real(rp) new_merit, old_merit, new_value, delta, max_val
@@ -218,7 +216,6 @@ nl=nl+1;write (lines(nl), '(11x, a)') &
                   'Old           New    Old-Design    New-Design         Delta'
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
-
   if (.not. this_u(iu)) cycle
   u => s%u(iu)
 
@@ -233,23 +230,18 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   ! Make sure attributes are free to vary. 
   ! With something like "change ele quad::* x_offset ..." then need to ignore any super_slave elements.
   ! So things are OK if at least one free attribute exists.
+  ! Note: Can vary particle_start[pz] with RF off even in rings.
+  ! Or can vary particle_start[...] when plotting multi_turn_orbit
 
   nd = size(d_ptr)
   call re_allocate (old_value, nd)
   call re_allocate (free, nd)
 
-  free = .true.
-
-  ! Can vary beam energy with RF off even in rings.
-  ! Or when doing multi_turn_orbit data taking.
-
   if (e_name == 'PARTICLE_START') then
+    free = .false.
     if (u%model%lat%param%geometry == closed$) then
-      free = .false.
-      write (name, '(i0, a)') iu, '@multi_turn_orbit'
-      call tao_find_data (err, name, d2_array, print_err = .false.)
       if (a_name == 'PZ' .and. .not. s%global%rf_on) free = .true.
-      if (size(d2_array) > 0) free = .true.
+      if (s%com%multi_turn_orbit_is_plotted) free = .true.
     endif
   else
     do i = 1, nd

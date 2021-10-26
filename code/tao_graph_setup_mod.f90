@@ -94,7 +94,7 @@ if (allocated (graph%curve)) then
     curve => graph%curve(i)
     if (.not. curve%valid) cycle
     ! Unlike other curves, multi_turn_orbit curves gets calculated in tao_lattice_calc which takes care of the scaling.
-    if (curve%data_source == 'multi_turn_orbit') cycle 
+    if (curve%data_source == 'multi_turn_orbit' .or. curve%data_source == 'rel_multi_turn_orbit') cycle 
 
     if (allocated(curve%x_symb)) then
         curve%x_symb = curve%x_symb * graph%x_axis_scale_factor
@@ -473,6 +473,12 @@ do k = 1, size(graph%curve)
   ele => u%model%lat%ele(curve%ix_ele_ref_track)
   name = curve%ele_ref_name
   if (name == '') name = ele%name
+
+  if (len_trim(graph%title_suffix) + len_trim(name) + 10 > len(graph%title_suffix)) then
+    graph%title_suffix = trim(graph%title_suffix) // ' etc...'  ! prevent overflow
+    exit
+  endif
+
   if (same_uni) then
     write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), '[', curve%ix_ele_ref, ': ', trim(name), ']'
   else
@@ -496,8 +502,8 @@ do k = 1, size(graph%curve)
 
   ! fill the curve data arrays
 
-  if (allocated (curve%ix_symb) .and. curve%data_source /= 'multi_turn_orbit') &
-                                                  deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
+  if (allocated (curve%ix_symb) .and. curve%data_source /= 'multi_turn_orbit' .and. &
+            curve%data_source /= 'rel_multi_turn_orbit') deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   !----------------------------
@@ -564,7 +570,7 @@ do k = 1, size(graph%curve)
 
   !----------------------------
 
-  elseif (curve%data_source == 'multi_turn_orbit') then
+  elseif (curve%data_source == 'multi_turn_orbit' .or. curve%data_source == 'rel_multi_turn_orbit') then
     ! Everything is handled in tao_lattice_calc
 
   elseif (curve%data_source == 'twiss') then
@@ -947,29 +953,6 @@ do k = 1, size(graph%curve)
       if (curve%hist%weight_by_charge) weight(n+1:n+m) = pack(p%charge, mask = (p%state == alive$))
       n = n + m
     enddo
-
-  !----------------------------
-
-  elseif (curve%data_source == 'multi_turn_orbit') then
-    
-    call tao_find_data (err, curve%data_source, d2_array, ix_uni = tao_curve_ix_uni(curve))
-    if (err .or. size(d2_array) /= 1) then
-      call tao_set_curve_invalid (curve, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
-      cycle
-    endif
-
-    nullify (d1)
-    d2_ptr => d2_array(1)%d2
-    do i = 1, size(d2_ptr%d1)
-      if (curve%data_type == d2_ptr%d1(i)%name) d1 => d2_ptr%d1(i)
-    enddo
-    if (.not. associated(d1)) then
-      call tao_set_curve_invalid (curve, 'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type)
-      cycle
-    endif
-
-    allocate(data(size(d1%d)))
-    data = d1%d(i)%model_value
 
   ! Unrecognized
 

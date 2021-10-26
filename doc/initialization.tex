@@ -3553,8 +3553,8 @@ In this example above, the $x$-axis of the plot will correspond to the $z$ phase
 
 The maximum and minimum of the bins is set automatically to fit the data.  The
 \vn{curve%hist%number} establishes the number of bins. Alternatively, if \vn{curve%hist%number = 0},
-then \vn{curve%hist%width} establishes
- the width of the histogram bins and sets the number automatically. 
+then \vn{curve%hist%width} establishes the width of the histogram bins and sets the number
+automatically.
 
 If \vn{curve%hist%density_normalized = T}, then the height of a bin will be divided by its width. If
 \vn{curve%hist%weight_by_charge = T}, then the particle charge will be used to bin, otherwise the
@@ -3571,15 +3571,23 @@ must be either:
 \begin{example}
   "beam"
   "multi_turn_orbit"
+  "rel_multi_turn_orbit"
 \end{example} 
 \vn{"beam"} indicates that the points of the histogram plot will be obtained correspond to the
 positions of the particles within a tracked beam. 
 
-Setting \vn{curve%data_source} to \vn{multi_turn_orbit"} is used for rings where a
-single particle is tracked multiple turns and the position of this particle is recorded each
-turn. The number of turns is determined by the setting of \vn{curve%n_turn}. The starting position
-for the tracking is set by setting the \vn{particle_start[x]}, \vn{particle_start[px]}, etc. 
-parameters in the lattice file (see the \bmad manual for details).d 
+Setting \vn{curve%data_source} to \vn{"multi_turn_orbit"} or \vn{"rel_multi_turn_orbit"} is used for
+rings where a single particle is tracked multiple turns and the position of this particle is
+recorded each turn. The number of turns is determined by the setting of \vn{curve%n_turn}. The
+starting position for the tracking is set by setting the \vn{particle_start[x]},
+\vn{particle_start[px]}, etc.  parameters in the lattice file (see the \bmad manual for
+details). The difference between \vn{"multi_turn_orbit"} and \vn{"rel_multi_turn_orbit"} is that
+\vn{"rel_multi_turn_orbit"} is drawn relative to the phase space point
+\begin{equation}
+  p_{z0} \cdot (\eta_x, \eta'_x, \eta_y, eta'_y, 0, 0)
+\end{equation}
+where $p_{z0}$ is the value of the particle's initial $p_z$ and $\eta$ is the dispersion at the
+reference element where the orbit is being evaluated for the plot.
 
 %%-----------------------------------------------------------------
 %\subsection{Drawing the Beam Chamber Wall}

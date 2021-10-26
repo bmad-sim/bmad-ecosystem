@@ -43,6 +43,7 @@ type (coord_struct), allocatable, target :: orb(:)
 type (coord_struct), pointer :: orbit
 type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (tao_dynamic_aperture_struct), pointer :: da
 type (beam_struct) beam
@@ -50,12 +51,13 @@ type (tao_plot_struct), pointer :: plot
 type (tao_curve_struct), pointer :: curve
 type (tao_curve_array_struct), allocatable :: crv(:), crv_temp(:)
 
+real(rp) pz0, dvec(6)
 integer iuni, i, j, k, nc, ib, ix, iy, n_max, iu, it, id, n_turn
+
+logical calc_ok, this_calc_ok, err, mat_changed
 
 character(*), parameter :: r_name = "tao_lattice_calc"
 character(20) name
-
-logical calc_ok, this_calc_ok, err, mat_changed
 
 ! Lattice bookkeeping
 
@@ -172,11 +174,12 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           if (.not. allocated(plot%graph(j)%curve)) cycle
           do k = 1, size(plot%graph(j)%curve)
             curve => plot%graph(j)%curve(k)
-            if (curve%data_source /= 'multi_turn_orbit') cycle
+            if (curve%data_source /= 'multi_turn_orbit' .and. curve%data_source /= 'rel_multi_turn_orbit') cycle
             if ((curve%ix_universe == -1 .and. iuni /= s%global%default_universe) .or. &
                                   (curve%ix_universe /= -1 .and. iuni /= curve%ix_universe)) cycle
             if (curve%ix_branch /= ib) cycle
             nc = nc + 1
+            s%com%multi_turn_orbit_is_plotted = .true.
             if (nc == 1) then
               if (allocated(crv)) deallocate(crv)
               allocate(crv(1))
@@ -199,6 +202,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       if (nc > 0) then
         call reallocate_coord (orb, branch%n_ele_max)
         orb(0) = tao_lat%lat%particle_start
+        pz0 = orb(0)%vec(6)
+        dvec = 0
         do it = 1, n_turn
           call track_all (tao_lat%lat, orb, ib)
           do k = 1, nc
@@ -230,8 +235,12 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
               curve%valid = .false.
               cycle
             endif
-            curve%x_symb(it) = orbit%vec(ix) * curve%g%x_axis_scale_factor
-            curve%y_symb(it) = orbit%vec(iy) * curve%y_axis_scale_factor
+            if (curve%data_source == 'rel_multi_turn_orbit') then
+              ele => branch%ele(curve%ix_ele_ref)
+              dvec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 0.0_rp] * pz0
+            endif
+            curve%x_symb(it) = (orbit%vec(ix) - dvec(ix)) * curve%g%x_axis_scale_factor
+            curve%y_symb(it) = (orbit%vec(iy) - dvec(iy)) * curve%y_axis_scale_factor
             curve%ix_symb(it) = it
           enddo
           orb(0) = orb(branch%n_ele_track)
