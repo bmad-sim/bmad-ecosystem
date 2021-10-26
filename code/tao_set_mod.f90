@@ -996,9 +996,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     if (u%model%lat%param%geometry == closed$) then
       ! All parameters free to vary if multi-turn orbit data is being collected.
-      write (name, '(i0, a)') iu, '@multi_turn_orbit'
-      call tao_find_data (err, name, d2_array, print_err = .false.)
-      if (size(d2_array) == 0) then
+      if (.not. s%com%multi_turn_orbit_is_plotted) then
         if (who2 == 'PZ') then
           if (s%global%rf_on) then
             call out_io (s_warn$, r_name, 'Setting particle_start[pz] will not affect lattice calculations since the rf is on and the lattice is closed.', &
