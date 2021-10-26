@@ -387,7 +387,7 @@ subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, val
   import
   implicit none
   type (tao_data_struct) datum
-  type (tao_universe_struct) u
+  type (tao_universe_struct), target :: u
   type (tao_lattice_struct) tao_lat
   real(rp) datum_value
   logical found, valid_value
@@ -857,8 +857,8 @@ end subroutine
 subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele)
   import
   implicit none
-  type (tao_data_struct) datum
-  type (tao_universe_struct) u
+  type (tao_data_struct), target :: datum
+  type (tao_universe_struct), target :: u
   integer ix_ref, ix_ele
 end subroutine
 
@@ -866,7 +866,7 @@ subroutine tao_spin_polarization_calc (branch, tao_branch)
   import
   implicit none
   type (branch_struct), target :: branch
-  type (tao_lattice_branch_struct) :: tao_branch
+  type (tao_lattice_branch_struct), target :: tao_branch
 end subroutine
 
 function tao_spin_matrices_calc_needed (data_type, data_source) result (do_calc)
