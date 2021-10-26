@@ -189,7 +189,7 @@ end function
 subroutine tao_data_show_use (d2_data, lines, nl)
   import
   implicit none
-  type (tao_d2_data_struct), target :: d2_data
+  type (tao_d2_data_struct), intent(in), target :: d2_data
   character(*), optional, allocatable :: lines(:)
   integer, optional :: nl
 end subroutine
@@ -388,7 +388,7 @@ subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, val
   implicit none
   type (tao_data_struct) datum
   type (tao_universe_struct), target :: u
-  type (tao_lattice_struct) tao_lat
+  type (tao_lattice_struct), target :: tao_lat
   real(rp) datum_value
   logical found, valid_value
   character(*), optional :: why_invalid
@@ -462,7 +462,7 @@ subroutine tao_hook_merit_data (i_uni, j_data, data, valid_value_set)
   import
   implicit none
   type (tao_data_struct) data
-  integer i_uni, j_data
+  integer, intent(in) :: i_uni, j_data
   logical valid_value_set
 end subroutine
 
@@ -470,7 +470,7 @@ subroutine tao_hook_merit_var (i_uni, j_var, var)
   import
   implicit none
   type (tao_var_struct) var
-  integer i_uni, j_var
+  integer, intent(in) :: i_uni, j_var
 end subroutine
 
 subroutine tao_hook_optimizer (abort)
@@ -689,8 +689,7 @@ end subroutine
 subroutine tao_plot_struct_transfer (plot_in, plot_out)
   import
   implicit none
-  type (tao_plot_struct), target :: plot_in
-  type (tao_plot_struct) plot_out
+  type (tao_plot_struct), target :: plot_in, plot_out
 end subroutine
 
 function tao_pointer_to_building_wall_shape (wall_name) result (e_shape)
@@ -957,7 +956,7 @@ end subroutine
 subroutine tao_var_show_use (v1_var, lines, nl)
   import
   implicit none
-  type (tao_v1_var_struct) :: v1_var
+  type (tao_v1_var_struct), intent(in) :: v1_var
   character(*), optional, allocatable :: lines(:)
   integer, optional :: nl
 end subroutine
