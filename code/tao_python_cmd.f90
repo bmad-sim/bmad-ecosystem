@@ -1082,7 +1082,7 @@ case ('da_params')
 ! Parameters
 ! ----------
 ! d2_name
-! d1_datum
+! d1_name
 ! ix_universe : optional
 ! dat_index : default=1
 !
@@ -1098,7 +1098,7 @@ case ('da_params')
 !  args:
 !    ix_universe:
 !    d2_name: twiss
-!    d1_datum: end 
+!    d1_name: end 
 !    dat_index: 1  
 !
 ! Example: 2
@@ -1106,7 +1106,7 @@ case ('da_params')
 !  args:
 !    ix_universe: 1
 !    d2_name: twiss
-!    d1_datum: end
+!    d1_name: end
 !    dat_index: 1
 
 case ('data')
@@ -1198,7 +1198,7 @@ case ('data')
 ! d2_name
 ! n_d1_data
 ! d_data_arrays_name_min_max
-! ix_uni : optional
+! ix_universe : optional
 !    
 ! Returns
 ! -------
@@ -1209,7 +1209,7 @@ case ('data')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
-!    ix_uni: 1
+!    ix_universe: 1
 !    d2_name: orbit
 !    n_d1_data: 2 
 !    d_data_arrays_name_min_max: x^^0^^45^^y^^1^^47
@@ -1332,8 +1332,8 @@ case ('data_d2_create')
 ! 
 ! Parameters
 ! ----------
-! d2_datum
-! ix_uni : optional
+! d2_name
+! ix_universe : optional
 !    
 ! Returns
 ! -------
@@ -1344,7 +1344,7 @@ case ('data_d2_create')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
-!    d2_datum: 1@eta.x
+!    d2_name: orbit
 
 case ('data_d2_destroy')
 
@@ -1364,8 +1364,8 @@ call destroy_this_data_d2(line)
 !
 ! Parameters
 ! ----------
-! d2_datum
-! ix_uni : optional
+! d2_name
+! ix_universe : optional
 !
 ! Returns
 ! -------
@@ -1376,8 +1376,8 @@ call destroy_this_data_d2(line)
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
-!    ix_uni: 1
-!    d2_datum: twiss
+!    ix_universe: 1
+!    d2_name: twiss
 
 case ('data_d2')
 
@@ -1420,8 +1420,9 @@ case ('data_d2')
 ! 
 ! Parameters
 ! ----------
-! d1_datum
-! ix_uni : optional
+! d2_name
+! d1_name
+! ix_universe : optional
 !
 ! Returns
 ! -------
@@ -1432,8 +1433,9 @@ case ('data_d2')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
-!    ix_uni: 1 
-!    d1_datum: twiss.end
+!    ix_universe: 1 
+!    d2_name: twiss
+!    d1_name: end
 
 
 case ('data_d_array')
