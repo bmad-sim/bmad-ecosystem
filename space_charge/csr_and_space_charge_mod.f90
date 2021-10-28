@@ -11,7 +11,7 @@ module csr_and_space_charge_mod
 use beam_utils
 use bmad_interface
 use spline_mod
-use nr, only: zbrent
+use super_recipes_mod, only: super_zbrent
 use open_spacecharge_mod
 use csr3d_mod, only: csr3d_steady_state_solver
 
@@ -768,7 +768,7 @@ type (ele_struct), pointer :: ele
 real(rp) a, b, c, dz, s_source, beta2, L0, Lz, ds_source
 real(rp) z0, z1, sz_kick, sz0, Lsz0, ddz0, ddz1, dr_match(3)
 
-integer i, last_step
+integer i, last_step, status
 logical err_flag
 
 character(*), parameter :: r_name = 's_source_calc'
@@ -838,16 +838,16 @@ do
   ! Look at ends of the source element and check if the source point is within the element or not.
   ! Generally dz decreases with increasing s but this may not be true for patch elements.
 
-  ddz0 = ddz_calc_csr(0.0_rp)
-  ddz1 = ddz_calc_csr(einfo_s%L_chord)
+  ddz0 = ddz_calc_csr(0.0_rp, status)
+  ddz1 = ddz_calc_csr(einfo_s%L_chord, status)
 
   if (last_step == -1 .and. ddz1 > 0) then  ! Roundoff error is causing ddz1 to be positive.
-    s_source = ddz_calc_csr(einfo_s%L_chord)
+    s_source = ddz_calc_csr(einfo_s%L_chord, status)
     return
   endif
 
   if (last_step == 1 .and. ddz0 < 0) then  ! Roundoff error is causing ddz0 to be negative.
-    s_source = ddz_calc_csr(0.0_rp)
+    s_source = ddz_calc_csr(0.0_rp, status)
     return
   endif
 
@@ -881,7 +881,7 @@ do
 
   ! Only possibility left is that root is bracketed.
 
-  s_source = zbrent (ddz_calc_csr, 0.0_rp, einfo_s%L_chord, 1d-8)
+  s_source = super_zbrent (ddz_calc_csr, 0.0_rp, einfo_s%L_chord, 1e-12_rp, 1e-8_rp, status)
   return
     
 enddo
@@ -896,7 +896,7 @@ err_flag = .true.
 contains
 
 !+
-! Function ddz_calc_csr (s_chord_source) result (ddz_this)
+! Function ddz_calc_csr (s_chord_source, status) result (ddz_this)
 !
 ! Routine to calculate the distance between the source particle and the
 ! kicked particle at constant time minus the target distance.
@@ -908,7 +908,7 @@ contains
 !   ddz_this        -- real(rp): Distance between source and kick particles: Calculated - Wanted.
 !-
 
-function ddz_calc_csr (s_chord_source) result (ddz_this)
+function ddz_calc_csr (s_chord_source, status) result (ddz_this)
 
 implicit none
 
@@ -917,6 +917,7 @@ real(rp), intent(in) :: s_chord_source
 real(rp) ddz_this, x, z, c, s, dtheta_L
 real(rp) s0, s1, ds, theta_L, dL
 
+integer status
 integer i
 
 character(*), parameter :: r_name = 'ddz_calc_csr'

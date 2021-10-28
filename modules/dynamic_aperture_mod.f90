@@ -120,13 +120,19 @@ do ns = 1, size(pz_start)
   ap_scan => aperture_scan(ns)
 
   if (rf_is_on(branch)) then
-    if (ns == 1) call closed_orbit_calc (lat, orbit, 6, ix_branch = branch%ix_branch)
+    if (ns == 1) call closed_orbit_calc (lat, orbit, 6, ix_branch = branch%ix_branch, err_flag = err)
     ap_scan%ref_orb = orbit(ele0%ix_ele)
     ap_scan%ref_orb%vec = ap_scan%ref_orb%vec + pz_start(ns) * [ele0%x%eta, ele0%x%etap, ele0%y%eta, ele0%y%etap, 0.0_rp, 1.0_rp]
   else
     orbit(0)%vec(6) = pz_start(ns)
-    call closed_orbit_calc (lat, orbit, 4, ix_branch = branch%ix_branch)
+    call closed_orbit_calc (lat, orbit, 4, ix_branch = branch%ix_branch, err_flag = err)
     ap_scan%ref_orb = orbit(ele0%ix_ele)
+  endif
+
+  if (err) then
+    call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT FOR STARTING ENERGY: ' // real_str(pz_start(ns), 4))
+    if (allocated(ap_scan%point)) deallocate (ap_scan%point)
+    cycle
   endif
 
   ! Allocate point array.
