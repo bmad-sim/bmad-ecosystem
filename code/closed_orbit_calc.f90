@@ -115,7 +115,7 @@ type (closed_orb_com_struct), pointer :: cocp
 real(rp) del_co(6), t11_inv(6,6), i1_int, del_orb(6)
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), start_orb_t1(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_eigen, min_max_eigen, z_original, betas(2)
-real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3)
+real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), this(5)
 real(rp), allocatable, target :: on_off_state(:), vec0(:), dvec(:), weight(:), merit_vec(:), dy_da(:,:)
 
 integer, optional :: direction, ix_branch, i_dim
@@ -124,7 +124,7 @@ integer ix_ele_start, ix_ele_end
 
 logical, optional, intent(out) :: err_flag
 logical, optional, intent(in) :: print_err
-logical err, error, allocate_m_done, alive_at_end, check_for_z_stability, printit, at_end, try_lmdif
+logical err, error, allocate_m_done, has_been_alive_at_end, check_for_z_stability, printit, at_end, try_lmdif
 logical invert_step_tried
 logical, allocatable :: maska(:)
 
@@ -271,7 +271,7 @@ allocate(co_saved(0:ubound(closed_orb, 1)))
 allocate(vec0(n_dim), dvec(n_dim), weight(n_dim), coc%a_vec(n_dim), maska(n_dim), merit_vec(n_dim), dy_da(n_dim,n_dim))
 vec0 = 0
 maska = .false.
-alive_at_end = .false.
+has_been_alive_at_end = .false.
 check_for_z_stability = (n_dim == 6)
 invert_step_tried = .false.
 a_lambda = -1
@@ -294,6 +294,33 @@ do i_loop = 1, i_max
   weight(1:4) = weight(1:4) * [1/sqrt(betas(1)), sqrt(betas(1)), 1/sqrt(betas(2)), sqrt(betas(2))]
 
   call super_mrqmin (vec0, weight, coc%a_vec, chisq, co_func, storage, a_lambda, status)
+
+  !
+
+  if (.not. has_been_alive_at_end) then
+    select case (i_loop)
+    case (1)
+      n = min(5, n_dim)
+      coc%a_vec(1:n) = 0  ! Desperation move.
+      a_lambda = -1  ! Reset super_mrqmin
+      cycle
+    case (2)
+      n = min(5, n_dim)
+      this = start_orb%vec(6) * [ele_start%x%eta, ele_start%x%etap, ele_start%y%eta, ele_start%y%etap, 0.0_rp]
+      coc%a_vec(1:n) = this(1:n)  ! Another desperation move.
+      a_lambda = -1  ! Reset super_mrqmin
+      cycle
+    case default
+      ! Thought: Put in code using lmdif and minimizing branch%param%unstable_factor to see if a stable orbit
+      ! can be found.
+      if (printit) call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
+                                                  'TRACKING BRANCH: ' // branch_name(branch))
+      call end_cleanup(branch)
+      return
+    end select
+  endif
+
+  !
 
   if ((branch%param%unstable_factor /= 0 .and. try_lmdif) .or. a_lambda > 1d8) then  ! Particle lost. Try lmdif since lmdif does not need derivatives
     call initial_lmdif()
@@ -331,35 +358,26 @@ do i_loop = 1, i_max
 
   !
 
-  if (i_loop == 1 .and. .not. alive_at_end) then
-    coc%a_vec(1:4) = 0  ! Desperation move.
-  elseif (i_loop == 2 .and. .not. alive_at_end) then
-    if (printit) call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
-                                   'TRACKING BRANCH: ' // branch_name(branch))
-    call end_cleanup(branch)
-    return
-  else
-    amp_co = abs(start_orb%vec)
-    dorb = end_orb%vec - start_orb%vec
+  amp_co = abs(start_orb%vec)
+  dorb = end_orb%vec - start_orb%vec
 
-    if (n_dim == 6) then
-      coc%a_vec(5) = modulo2 (coc%a_vec(5), coc%rf_wavelen / 2)   ! Keep z within 1/2 wavelength of original value
+  if (n_dim == 6) then
+    coc%a_vec(5) = modulo2 (coc%a_vec(5), coc%rf_wavelen / 2)   ! Keep z within 1/2 wavelength of original value
 
-      if (branch%lat%absolute_time_tracking) then
-        dt = (end_orb%t - start_orb%t) - nint((end_orb%t - start_orb%t) * rf_freq) / rf_freq
-        dorb(5) = -end_orb%beta * c_light * dt
-      endif
+    if (branch%lat%absolute_time_tracking) then
+      dt = (end_orb%t - start_orb%t) - nint((end_orb%t - start_orb%t) * rf_freq) / rf_freq
+      dorb(5) = -end_orb%beta * c_light * dt
     endif
+  endif
 
-    amp_del = abs(dorb)
-    if (all(amp_del(1:n_dim) < amp_co(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)) then
-      if (n_dim == 6) then
-        call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
-        if (max_z_eigen(coc%t1) < 1.000001_rp) exit
-        check_for_z_stability = .true.   ! Is unstable
-      else
-        exit
-      endif
+  amp_del = abs(dorb)
+  if (all(amp_del(1:n_dim) < amp_co(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)) then
+    if (n_dim == 6) then
+      call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
+      if (max_z_eigen(coc%t1) < 1.000001_rp) exit
+      check_for_z_stability = .true.   ! Is unstable
+    else
+      exit
     endif
   endif
 
@@ -431,7 +449,7 @@ do i_loop = 1, i_max
   ! If we are near an unstable fixed point look for a better spot by shifting the particle in z in steps of pi/4.
   ! Note: due to inaccuracies, the maximum eigen value may be slightly over 1 at the stable fixed point.
 
-  if (check_for_z_stability .and. alive_at_end) then
+  if (check_for_z_stability .and. has_been_alive_at_end) then
     min_max_eigen = max_z_eigen(coc%t1)
     if (min_max_eigen > 1.000001_rp) then    ! Is unstable
       j_max = 0
@@ -609,7 +627,7 @@ if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
 endif
 
 if (track_state == moving_forward$) then
-  alive_at_end = .true.
+  has_been_alive_at_end = .true.
   y_fit = del_orb(1:n_dim)
 else
   y_fit = 1d10 * branch%param%unstable_factor   ! Some large number

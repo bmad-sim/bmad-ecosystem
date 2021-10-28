@@ -418,13 +418,13 @@ if (associated(ele%cartesian_map)) then
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', ct_map%field_scale
       nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:               ', ct_map%r0
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', ct_map%ptr%n_link
-      nl=nl+1; write (li(nl), '(5x, a, 6x, a, 3(9x, a), 2(12x, a), 9x, a, 3x, a)') 'Term#', &
-                                    'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Type'
+      nl=nl+1; write (li(nl), '(5x, a, 6x, a, 3(9x, a), 2(12x, a), 9x, a8, a)') 'Term#', &
+                                    'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Family Form'
       do j = 1, min(10, size(ct_map%ptr%term))
         if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
         ct_term => ct_map%ptr%term(j)
         nl=nl+1; write (li(nl), '(i8, 4f12.6, 3f14.6, 3x, a, 2x, a)') j, ct_term%coef, ct_term%kx, ct_term%ky, ct_term%kz, ct_term%x0, &
-                               ct_term%y0, ct_term%phi_z, cartesian_map_family_name(ct_term%family), cartesian_map_form_name(ct_term%form)
+                         ct_term%y0, ct_term%phi_z, cartesian_map_family_name(ct_term%family), trim(cartesian_map_form_name(ct_term%form))
       enddo
       if (size(ct_map%ptr%term) > 10) then
         nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(ct_map%ptr%term), ')' 
