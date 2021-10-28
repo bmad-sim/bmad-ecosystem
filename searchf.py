@@ -121,6 +121,7 @@ def print_help_message ():
       cesr_programs       mpm_utils
       cesr_utils          mpmnet
       cesrv               nonlin_bpm
+                          univ_tune_tracker
 ''')
   sys.exit()
 
@@ -613,22 +614,15 @@ def search_all (doc_type):
   # Setup dir_list list, etc
 
   if len(dir_list) == 0:    # If no -d command line arg
-    choose_path (dir_list, root_dir, 'bmad', '/modules/bmad_struct.f90', '')
-    choose_path (dir_list, root_dir, 'sim_utils', '/interfaces/sim_utils.f90', '')
-    choose_path (dir_list, root_dir, 'tao', '/code/tao_struct.f90', '')
-    choose_path (dir_list, root_dir, 'mad_tpsa', '/code/mad_ctpsa_fun.c', '')
+    choose_path (dir_list, root_dir, 'univ_tune_tracker', '/code/tt_acq_sub.f90', '')
     choose_path (dir_list, root_dir, 'cesr_utils', '/modules/cesr_utils.f90', '')
     choose_path (dir_list, root_dir, 'mpm_utils', '/code/butout.f90', '')
     choose_path (dir_list, root_dir, 'bmadz', '/modules/bmadz_struct.f90', '')
-    choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '')
-    choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
     choose_path (dir_list, root_dir, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
     choose_path (dir_list, root_dir, 'cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
     choose_path (dir_list, root_dir, 'cesrv', '/code/cesrv_struct.f90', '')
     choose_path (dir_list, root_dir, 'util_programs', '/bmad_to_mad_and_sad/bmad_to_mad_and_sad.f90', '')
-    choose_path (dir_list, root_dir, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
     choose_path (dir_list, root_dir, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
-    choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '/packages/')
     choose_path (dir_list, root_dir, 'mpmnet', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'genplt', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'instr_utils', '/CMakeLists.txt', '')
@@ -638,6 +632,14 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'hard', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'save', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'vac', '/CMakeLists.txt', '')
+    choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '/packages/')
+    choose_path (dir_list, root_dir, 'mad_tpsa', '/code/mad_ctpsa_fun.c', '')
+    choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '')
+    choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
+    choose_path (dir_list, root_dir, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
+    choose_path (dir_list, root_dir, 'sim_utils', '/interfaces/sim_utils.f90', '')
+    choose_path (dir_list, root_dir, 'tao', '/code/tao_struct.f90', '')
+    choose_path (dir_list, root_dir, 'bmad', '/modules/bmad_struct.f90', '')
 
   if search_com.doc_type == 'LIST':
     search_com.match_str = '(\w+)'
