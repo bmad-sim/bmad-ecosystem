@@ -20,17 +20,19 @@
 subroutine calc_z_tune (lat, ix_branch)
 
 use bmad_interface, except_dummy => calc_z_tune
-use nr, only: balanc, elmhes, hqr
 
 implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 
-real(rp) a(6,6), wr(6), wi(6), cos_z, denom
+real(rp) a(6,6), cos_z, denom
+complex(rp) eval(6), evec(6,6)
 
 integer, optional :: ix_branch
 integer i, sgn
+
+logical err
 
 !
 
@@ -57,14 +59,9 @@ if (cos_z - 1 > -1d-9) then
   return
 endif
 
-call balanc(a)
-call elmhes(a)
-call hqr(a,wr,wi)
+call mat_eigen(a, eval, evec, err)
 
-! we need to find which eigen-value is closest to the z_tune
-
-i = minloc(abs(wr-cos_z), 1)
-branch%z%tune = sgn * abs(atan2(wi(i),wr(i)))
+branch%z%tune = sgn * abs(atan2(aimag(eval(5)), real(eval(5), rp)))
 branch%z%stable = .true.
 
 end subroutine
