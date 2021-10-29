@@ -473,6 +473,7 @@ def parse_and_write_element(dlist, write_to_file, command):
     if not found:
       print (dlist[2].upper() + ' TYPE ELEMENT IS UNKNOWN!')
       return
+  #End if
 
   if ele.madx_base_type == '???':
     print (dlist[2].upper() + ' TYPE ELEMENT CANNOT BE TRANSLATED TO BMAD.')
@@ -799,7 +800,7 @@ def parse_command(command, dlist):
       if is_zero(offset):
         wrap_write (f'{seq.name}: line = ({seq.line[:-2]})', f_out)
       else:
-        drift_name = f'drft{common.drift_count}'
+        drift_name = f'drift{common.drift_count}'
         f_out.write(f'{drift_name}: drift, l = {offset}\n')
         wrap_write (f'{seq.name}: line = ({seq.line}{drift_name})', f_out)
         common.drift_count += 1
@@ -895,19 +896,18 @@ def parse_command(command, dlist):
         last_offset = f'{offset}'
         this_offset = f'{offset}'
         length = ''
-        if 'l' in ele.param:
-          if ele.madx_base_type == 'rbend':
-            length = f'{ele.name}[l]/sinc({ele.name}[angle]/2)'
-          else:
-            length = ele.param['l']
 
-        elif ele.madx_inherit in common.ele_dict:
-          ele2 = common.ele_dict[ele.madx_inherit]
-          if 'l' in ele2.param: 
-            if ele2.madx_base_type == 'rbend':
-              length = f'{ele2.name}[l]/sinc({ele2.name}[angle]/2)'
-            else:
-              length = ele2.param['l']
+        ele2 = ele
+        while True:
+          if 'l' in ele2.param: break
+          if ele2.madx_inherit not in common.ele_dict: break
+          ele2 = common.ele_dict[ele2.madx_inherit]
+
+        if 'l' in ele2.param:
+          if ele2.madx_base_type == 'rbend':
+            length = f'{ele.name}[l]/sinc({ele2.name}[angle]/2)'
+          else:
+            length = ele2.param['l']
 
         if length != '': length = add_parens(bmad_expression(length, ''), False)
 
@@ -925,7 +925,7 @@ def parse_command(command, dlist):
           seq.line += f'{ele_name}, '
           seq.last_ele_offset = last_offset
         else:
-          drift_name = f'drft{common.drift_count}'
+          drift_name = f'drift{common.drift_count}'
           drift_line = f'{drift_name}: drift, l = {this_offset}'
           f_out.write(drift_line + '\n')
           seq.line += f'{drift_name}, {ele_name}, '
@@ -974,7 +974,7 @@ def parse_command(command, dlist):
       f_out.write (f'!!** superimpose, element = {ele.name}_mark, ref = {seq.name}_mark, offset = {offset}\n')
 
     elif not is_zero(this_offset):
-      drift_name = f'drft{common.drift_count}'
+      drift_name = f'drift{common.drift_count}'
       drift_line = f'{drift_name}: drift, l = {this_offset}'
       common.drift_count += 1
 
