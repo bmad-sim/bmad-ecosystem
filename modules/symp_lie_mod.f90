@@ -54,7 +54,7 @@ type (coord_struct) :: start_orb, end_orb, start_orb_saved
 type (lat_param_struct)  param
 type (track_struct), optional, target :: track
 type (cartesian_map_struct), pointer :: ct_map
-type (cartesian_map_term1_struct), pointer :: wig_term(:)
+type (cartesian_map_term1_struct), pointer :: wig_term(:), ww(:)
 type (cartesian_map_term1_struct), pointer :: wt
 type (wiggler_computations_struct), allocatable, target :: tm(:)
 type (wiggler_computations_struct), pointer :: tm2(:)
@@ -178,15 +178,16 @@ Case (wiggler$, undulator$)
   endif
 
   wig_term => ct_map%ptr%term
+  ww => ct_map%ptr%term       ! To get around ifort bug.
   num_wig_terms = size(wig_term)
 
   allocate (tm(num_wig_terms))
   tm2 => tm   ! To get around intel compiler bug which prevents debug viewing of variables shared in contained procedures.
 
-  call calc_wig_coefs (calculate_mat6)
+  call calc_wig_coefs (calculate_mat6, field_ele)
   call update_wig_y_terms (err); if (err) return
   call update_wig_x_terms (err); if (err) return
-  call update_wig_s_terms
+  call update_wig_s_terms(s, z_offset)
 
   if (present(track)) then
     call save_this_track_pt ()
@@ -208,7 +209,7 @@ Case (wiggler$, undulator$)
     ! s half step
 
     s = s + ds2 * end_orb%direction
-    call update_wig_s_terms
+    call update_wig_s_terms(s, z_offset)
 
     ! Drift_1 = (P_x - Ax)^2 / (2 * (1 + dE))
 
@@ -264,7 +265,7 @@ Case (wiggler$, undulator$)
     ! s half step
 
     s = s + ds2 * end_orb%direction
-    call update_wig_s_terms
+    call update_wig_s_terms(s, z_offset)
 
     if (present(track)) call save_this_track_pt ()
 
@@ -676,9 +677,11 @@ end subroutine apply_wig_exp_int_ay
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine calc_wig_coefs (do_mat6)
+subroutine calc_wig_coefs (do_mat6, field_ele)
 
+type (ele_struct) field_ele
 type (wiggler_computations_struct), pointer :: tmj
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) factor, coef
 integer j
 logical do_mat6
@@ -802,6 +805,7 @@ end subroutine calc_wig_coefs
 subroutine update_wig_x_terms (err)
 
 type (wiggler_computations_struct), pointer :: tmj
+type (cartesian_map_term1_struct), pointer :: wt
 
 real(rp) arg0, darg, arg, x
 integer j
@@ -882,6 +886,7 @@ end subroutine update_wig_x_terms
 subroutine update_wig_y_terms (err)
 
 type (wiggler_computations_struct), pointer :: tmj
+type (cartesian_map_term1_struct), pointer :: wt
 
 real(rp) arg0, darg, arg, y
 integer j
@@ -958,9 +963,11 @@ end subroutine update_wig_y_terms
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine update_wig_s_terms
+subroutine update_wig_s_terms(s, z_offset)
 
-real(rp) spz_offset, s0
+type (cartesian_map_term1_struct), pointer :: wt
+
+real(rp) s, spz_offset, s0, z_offset
 real(rp) kzz(1:num_wig_terms)
 
 integer j
@@ -1004,6 +1011,8 @@ end subroutine update_wig_s_terms
 
 function Ax() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
+
 real(rp) value
 integer j
 
@@ -1029,6 +1038,8 @@ end function Ax
 ! contains
 
 function dAx_dx() result (value)
+
+type (cartesian_map_term1_struct), pointer :: wt
 
 real(rp) value
 integer j
@@ -1056,6 +1067,7 @@ end function dAx_dx
 
 function dAx_dy() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1082,6 +1094,7 @@ end function dAx_dy
 
 function dint_Ax_dy() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1108,6 +1121,7 @@ end function dint_Ax_dy
 
 function ddint_Ax_dy_dy() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1134,6 +1148,7 @@ end function ddint_Ax_dy_dy
 
 function Ay() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1160,6 +1175,7 @@ end function Ay
 
 function dAy_dx() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1186,6 +1202,7 @@ end function dAy_dx
 
 function dAy_dy() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1212,6 +1229,7 @@ end function dAy_dy
 
 function dint_Ay_dx() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1238,6 +1256,7 @@ end function dint_Ay_dx
 
 function ddint_Ay_dx_dx() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1265,6 +1284,7 @@ end function ddint_Ay_dx_dx
 
 function dAz_dx() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1275,7 +1295,7 @@ do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
-    value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%sy_over_ky * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
+    value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%sy_over_ky * tm(j)%c_z * wt%kx * tm(j)%trig_x
   case (family_y$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
   end select
@@ -1289,6 +1309,7 @@ end function dAz_dx
 
 function dAz_dy() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1301,7 +1322,7 @@ do j = 1, num_wig_terms
   case (family_x$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
   case (family_y$)
-    value = value + tm(j)%coef_Az * tm(j)%sx_over_kx * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
+    value = value + tm(j)%coef_Az * tm(j)%sx_over_kx * tm(j)%s_y * tm(j)%c_z * wt%ky * tm(j)%trig_y
   end select
 enddo
 
@@ -1313,6 +1334,7 @@ end function dAz_dy
 
 function ddAz_dx_dx() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1323,9 +1345,9 @@ do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
-    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%sy_over_ky * tm(j)%c_z * wig_term(j)%kx**2 * tm(j)%trig_x
+    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%sy_over_ky * tm(j)%c_z * wt%kx**2 * tm(j)%trig_x
   case (family_y$)
-    value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
+    value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z * wt%kx * tm(j)%trig_x
   end select
 enddo
 
@@ -1337,6 +1359,7 @@ end function ddAz_dx_dx
 
 function ddAz_dx_dy() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1347,9 +1370,9 @@ do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
-    value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
+    value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z * wt%kx * tm(j)%trig_x
   case (family_y$)
-    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
+    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z * wt%ky * tm(j)%trig_y
   end select
 enddo
 
@@ -1361,6 +1384,7 @@ end function ddAz_dx_dy
 
 function ddAz_dy_dy() result (value)
 
+type (cartesian_map_term1_struct), pointer :: wt
 real(rp) value
 integer j
 
@@ -1371,9 +1395,9 @@ do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
-    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
+    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z * wt%ky * tm(j)%trig_y
   case (family_y$)
-    value = value + tm(j)%coef_Az * tm(j)%sx_over_kx * tm(j)%c_y * tm(j)%c_z * wig_term(j)%ky**2 * tm(j)%trig_y
+    value = value + tm(j)%coef_Az * tm(j)%sx_over_kx * tm(j)%c_y * tm(j)%c_z * wt%ky**2 * tm(j)%trig_y
   end select
 enddo
 

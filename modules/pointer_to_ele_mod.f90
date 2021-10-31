@@ -218,7 +218,7 @@ end function pointer_to_ele4
 ! Output:
 !   field_ele     -- ele_struct: Pointer to the field element with index ix_field_ele.
 !                     Will point to null if ix_field_ele is out of range.
-!   dz_offset     -- real(rp), optional: Longitudinal offset of ele from the field ele pointed to.
+!   dz_offset     -- real(rp), optional: Longitudinal offset of ele upstream edge from the field ele pointed to.
 !-
 
 function pointer_to_field_ele(ele, ix_field_ele, dz_offset) result (field_ele)
@@ -261,6 +261,7 @@ end select
 
 if (ele%slave_status == slice_slave$) then
     call iterate_over_field_eles (ele%lord, ixf, ix_field_ele, field_ele, offset)
+    offset = ele%s_start - field_ele%s_start
 
 elseif (ele%field_calc == refer_to_lords$) then
   do i = 1, ele%n_lord
