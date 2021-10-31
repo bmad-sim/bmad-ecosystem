@@ -1031,7 +1031,7 @@ Printing the number without an explicit exponent is preferred.
 
 \index[routine]{reals_to_string}
 \label{r:reals.to.string}
-\item[reals_to_string (real_arr, width, n_blank, n_signif, n_decimal) result (str)] \Newline 
+\item[reals_to_string (real_arr, n_number, n_blank, n_signif, n_decimal) result (str)] \Newline 
 Routine to turn a n array of reals into a string for printing. 
 
 \index[routine]{reals_to_table_row}
@@ -3080,7 +3080,7 @@ Note: This affects both lines and symbols.
 
 \index[routine]{qp_set_color_basic}
 \label{r:qp.set.color.basic}
-\item[qp_set_color_basic (ix_color)  ] \Newline 
+\item[qp_set_color_basic (ix_color, set_background)  ] \Newline 
 Routine to set the color taking into account that GIF
 inverts the black for white.
 
@@ -3419,7 +3419,7 @@ Routine to invert a taylor map.
 
 \index[routine]{taylor_propagate1}
 \label{r:taylor.propagate1}
-\item[taylor_propagate1 (bmad_taylor, ele, param, track_particle)] \Newline
+\item[taylor_propagate1 (bmad_taylor, ele, param, ref_in)] \Newline
 Routine to track a real_8 taylor map through an element. 
 The alternative routine, if ele has a taylor series, is concat_taylor. 
 
