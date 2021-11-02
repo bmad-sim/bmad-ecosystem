@@ -68,7 +68,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ March 14, 2021}
+\date{David Sagan \\ October 26, 2021}
 \begin{document}
 \maketitle
 
@@ -409,7 +409,7 @@ If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulatio
 \ltt program parameters that affect ramping in the simulation are:
 \begin{code}
   ltt%ramping_on
-  ltt%ramper_start_time
+  ltt%ramping_start_time
 \end{code}
 
 When ramping, the \vn{ltt%simulation_mode} (\sref{s:track.methods}) must be set to "\vn{BMAD}". The
@@ -532,8 +532,8 @@ Example:
 &params
   ! Input
   ltt%lat_file   =  "lat.bmad"     ! Bmad lattice file
-  ltt%ramper_on = False
-  ltt%ramper_start_time = 0
+  ltt%ramping_on = False
+  ltt%ramping_start_time = 0
 
   ! Output parameters
   ltt%particle_output_file = "snap.dat"
@@ -573,7 +573,6 @@ Example:
   bmad_com%spin_tracking_on = T          ! See Bmad manual for 
   bmad_com%radiation_damping_on = F      !    bmad_com parameters.
   bmad_com%radiation_fluctuations_on = F 
-  bmad_com%space_charge_on = F
 
   ! Beam initialization
   ltt%add_closed_orbit_to_init_position = True
@@ -793,10 +792,9 @@ emittance as calculated via radiation integrals will be used. Note: A value of
 \item[bmad_com\%...] \Newline
 The \vn{bmad_com} structure contains various parameters that affect tracking. For example, whether
 radiation damping and fluctuations are included in tracking. A full list of \vn{bmad_com} parameters
-is detailed in the Bmad reference manual. The \vn{bmad_com%space_charge_on} logical can be used to
-turn on/off ultra-relativistic space charge effects. See section~\sref{s:space.charge} for more
-details. Note: \vn{bmad_com} parameters can be set in the Bmad lattice file as well. \vn{Bmad_com}
-parameter set in the master input file will take precedence over parameters set in the lattice file.
+is detailed in the Bmad reference manual. Note: \vn{bmad_com} parameters can be set in the Bmad
+lattice file as well. \vn{Bmad_com} parameter set in the master input file will take precedence over
+parameters set in the lattice file.
 %
 \item[ltt\%dead_cutoff] \Newline
 Sets the cutoff for the number of dead particles below which the simulation will stop. For example,
@@ -845,7 +843,7 @@ Number of turns to track. See Section~\sref{s:track.methods}.
 If set to True, \vn{ramper} control elements will be use to modify the lattice during tracking
 (\sref{s:ramp}). Default is False.
 %
-\item[ltt\%ramper_start_time] \Newline
+\item[ltt\%ramping_start_time] \Newline
 The starting (offset) time used to set \vn{ramper} elements. This enables simulations to start in the middle
 of a ramp cycle. Default is 0.
 %
@@ -890,9 +888,9 @@ See sections \sref{s:map} and \sref{s:track.methods} for more details.
 
 A space charge kick can be applied in the simulation. The space charge kick is calculated using an
 approximation suitable at ultra-relativistic energies. The kick is turned on by setting the logical
-\vn{bmad_com%space_charge_on} to \vn{True} (default is \vn{False}. See the Bmad manual documentation
-on \vn{bmad_com%space_charge_on} for more details. The high energy space charge kick is only applied when 
-\vn{ltt%tracking_method} is set to \vn{"BMAD"}.
+\vn{parameter[high_energy_space_charge_on]} to \vn{True} (default is \vn{False} in the lattice
+file. See the Bmad manual documentation for more details. The high energy space charge kick is only
+applied when \vn{ltt%tracking_method} is set to \vn{"BMAD"}.
 
 The $a$ and $b$ mode emittances are used as input to the space charge calculation. [If there is no
 coupling, the $a$ mode corresponds to the ``horizontal'' mode and the $b$ mode corresponds to the
@@ -934,8 +932,7 @@ Long term tracking including spin is often used to calculate damping times and e
 polarizations. One common strategy is to first track a beam for a few damping times until it has
 reached equilibrium in the orbital phase space. The beam distribution is now saved and a new run
 is started with this saved orbital distribution and with all the spins aligned so that the
-beam is 100\% polarized. A plot \etcetc.
-
+beam is 100\% polarized. A plot of polarization vs time now gives the damping time.
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}
