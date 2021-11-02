@@ -3879,8 +3879,10 @@ case ('spin')
           nl=nl+1; lines(nl) = ''
         endif
         j = j + 1
+        ix = d_ptr%spin_map%ix_ref
+        if (ix < 0) ix = d_ptr%spin_map%ix_ele
         nl=nl+1; write(lines(nl), '(2x, a, i0, a, i0)')     'Universe: ', d_ptr%spin_map%ix_uni, '  of: ', ubound(s%u, 1)
-        nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', d_ptr%spin_map%ix_ref, d_ptr%spin_map%ix_ele 
+        nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', ix, d_ptr%spin_map%ix_ele
         nl=nl+1; write(lines(nl), '(26x, a, 26x, a)') 'Initial', 'Final'
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'L-axis: ', d_ptr%spin_map%axis0%l, d_ptr%spin_map%axis1%l
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'N0-axis:', d_ptr%spin_map%axis0%n0, d_ptr%spin_map%axis1%n0

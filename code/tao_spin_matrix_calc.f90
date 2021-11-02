@@ -51,7 +51,7 @@ spin_map%valid = .false.
 ! Concatenate the spin/orbital map
 
 ix_r = ix_ref
-if (ix_r < 0) ix_r = ix_ele-1
+if (ix_r < 0) ix_r = ix_ele
 
 call spin_concat_linear_maps (spin_map%map1, branch, ix_r, ix_ele, orbit = tao_branch%orbit)
 
