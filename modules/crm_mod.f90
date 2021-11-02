@@ -126,7 +126,7 @@ contains
       A(2,k) = (chrom_y-init_chrom_y)/numerical_delta
     enddo
 
-    call make_pseudoinverse(A,Ap)
+    call mat_pseudoinverse(A,Ap)
 
     chrom_vec(1) = init_chrom_x - crm%set_chrom_x
     chrom_vec(2) = init_chrom_y - crm%set_chrom_y
