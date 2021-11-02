@@ -149,7 +149,7 @@ program make_a_matching_knob
           if(set_y) Jac(yix,l) = (con0(yix) - ring%ele(ring%n_ele_track)%b%phi/twopi) / dk
         enddo
 
-        call make_pseudoinverse(Jac,Jacp)
+        call mat_pseudoinverse(Jac,Jacp)
 
         delta_var = matmul(Jacp,(con-con0))
         var = var - alpha_n*delta_var
