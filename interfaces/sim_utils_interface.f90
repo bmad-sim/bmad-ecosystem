@@ -409,7 +409,7 @@ function match_wild (string, template) result (is_match)
   character(*) template
 end function
 
-subroutine make_pseudoinverse(A,Ap,svd_condition,print_err,ok)
+subroutine mat_pseudoinverse(A,Ap,svd_condition,print_err,ok)
   import
   real(rp) A(:,:)
   real(rp) Ap(:,:)

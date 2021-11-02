@@ -1,5 +1,5 @@
 !+
-! Subroutine make_pseudoinverse(A,Ap,svd_condition,print_err,ok)
+! Subroutine mat_pseudoinverse(A,Ap,svd_condition,print_err,ok)
 !
 ! Makes Monroe-Penrose pseudoinverse of a matrix A.
 !
@@ -9,87 +9,90 @@
 !                                        s(i)/s(1) > svd_condition for the pseudoinverse.
 !   print_err     -- Logical, optional: If true, print info return from dgesdd if nonzero.
 !   ok            -- Logical, optional: True if pseudoinverse calculated OK.  Else false.
+!
 ! Output:
 !   Ap(:,:)      -- Real(rp): Pseudoinverse of A.  dim(transpose(A))
 !-
-subroutine make_pseudoinverse(A,Ap,svd_condition,print_err,ok)
-  use output_mod, except => make_pseudoinverse
-  use f95_lapack
 
-  implicit none
+subroutine mat_pseudoinverse(A,Ap,svd_condition,print_err,ok)
 
-  real(rp) A(:,:)
-  real(rp) Ap(:,:)
-  real(rp), optional :: svd_condition
-  logical, optional :: print_err
-  logical, optional :: ok
+use output_mod, except => mat_pseudoinverse
+use f95_lapack
 
-  real(rp) Atemp(size(A(:,1)),size(A(1,:)))
-  integer ndata, nvars
-  integer lwork, n_svals
-  integer n_good_svals
-  integer info
-  integer i
+implicit none
 
-  real(rp), allocatable :: S(:)
-  real(rp), allocatable :: Ut(:,:)
-  real(rp), allocatable :: V(:,:)
-  real(rp), allocatable :: work(:)
-  integer, allocatable :: iwork(:)
+real(rp) A(:,:)
+real(rp) Ap(:,:)
+real(rp), optional :: svd_condition
+logical, optional :: print_err
+logical, optional :: ok
 
-  character(4) info_str
-  character(16) :: r_name = 'make_pseudoinverse'
+real(rp) Atemp(size(A(:,1)),size(A(1,:)))
+integer ndata, nvars
+integer lwork, n_svals
+integer n_good_svals
+integer info
+integer i
 
-  if(present(ok)) ok = .true.
+real(rp), allocatable :: S(:)
+real(rp), allocatable :: Ut(:,:)
+real(rp), allocatable :: V(:,:)
+real(rp), allocatable :: work(:)
+integer, allocatable :: iwork(:)
 
-  ndata = size(A(:,1))
-  nvars = size(A(1,:))
-  lwork = nvars*(6+4*nvars)+ndata
-  n_svals = min(ndata,nvars)
+character(4) info_str
+character(*), parameter :: r_name = 'mat_pseudoinverse'
 
-  allocate(S(n_svals))
-  allocate(Ut(ndata,ndata))
-  allocate(V(nvars,nvars))
-  allocate(work(lwork))
-  allocate(iwork(8*nvars))
+if(present(ok)) ok = .true.
 
-  Atemp = A
-  CALL dgesdd('A',ndata,nvars,Atemp,ndata,S,Ut,ndata,V,nvars,work,lwork,iwork,info) 
-  if(info .ne. 0) then
-    if (logic_option(.false., print_err)) then
-      write(info_str,*) info
-      call out_io (s_error$, r_name, 'dgesdd failed. info = '//info_str)
-    endif
-    if (present(ok)) ok = .false.
+ndata = size(A(:,1))
+nvars = size(A(1,:))
+lwork = nvars*(6+4*nvars)+ndata
+n_svals = min(ndata,nvars)
+
+allocate(S(n_svals))
+allocate(Ut(ndata,ndata))
+allocate(V(nvars,nvars))
+allocate(work(lwork))
+allocate(iwork(8*nvars))
+
+Atemp = A
+CALL dgesdd('A',ndata,nvars,Atemp,ndata,S,Ut,ndata,V,nvars,work,lwork,iwork,info) 
+if(info .ne. 0) then
+  if (logic_option(.false., print_err)) then
+    write(info_str,*) info
+    call out_io (s_error$, r_name, 'dgesdd failed. info = '//info_str)
   endif
-  V=transpose(V)
-  Ut=transpose(Ut)
+  if (present(ok)) ok = .false.
+endif
+V=transpose(V)
+Ut=transpose(Ut)
 
-  ! Count good singular values
-  n_good_svals = 0
-  do i=1, n_svals
-    if( S(i) .gt. 1.0E-8 ) THEN
-      if(present(svd_condition)) then
-        if( S(i)/S(1) .gt. svd_condition) then
-          n_good_svals = n_good_svals + 1
-        endif
-      else
+! Count good singular values
+n_good_svals = 0
+do i=1, n_svals
+  if( S(i) .gt. 1.0E-8 ) THEN
+    if(present(svd_condition)) then
+      if( S(i)/S(1) .gt. svd_condition) then
         n_good_svals = n_good_svals + 1
       endif
+    else
+      n_good_svals = n_good_svals + 1
     endif
-  enddo
+  endif
+enddo
 
-  !Make pseudoinverse using only good singular values
-  Ap(:,:) = 0
-  do i=1,n_good_svals
-    Ap(i,:) = Ut(i,:)/S(i)
-  enddo
-  Ap = matmul(V,Ap)
+!Make pseudoinverse using only good singular values
+Ap(:,:) = 0
+do i=1,n_good_svals
+  Ap(i,:) = Ut(i,:)/S(i)
+enddo
+Ap = matmul(V,Ap)
 
-  deallocate(S)
-  deallocate(Ut)
-  deallocate(V)
-  deallocate(work)
-  deallocate(iwork)
+deallocate(S)
+deallocate(Ut)
+deallocate(V)
+deallocate(work)
+deallocate(iwork)
 
 end subroutine

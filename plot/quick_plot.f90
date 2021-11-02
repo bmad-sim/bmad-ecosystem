@@ -187,6 +187,8 @@
 !    17 - circle_filled_sym$
 !    18 - star5_filled_sym$
 !
+! The correspoinding name strings are are constructed by removing the "_sym$" from the parameter.
+!
 !--------------------------------------------------------------------
 !
 ! The following are the symbol types:
