@@ -24,31 +24,29 @@
 !                   If it fails the sextupoles are set to the last value calculated.
 !
 ! Note: This subroutine assumes the Twiss parameters have been computed.
-!
-! Created:  2002/07/24 jtu2
 !-
 
 subroutine chrom_tune(lat, delta_e, target_x, target_y, err_tol, err_flag)
 
 use bmad_interface, except_dummy => chrom_tune
-use nr, only: gaussj
 use super_recipes_mod
 
 implicit none
 
 type (lat_struct) lat
-type (ele_pointer_struct), allocatable :: ele_sex(:)
+type (ele_pointer_struct), allocatable, target :: ele_sex(:)
+type (ele_struct), pointer :: ele
 type (super_mrqmin_storage_struct) storage
 
 integer i, j, ix, iy, n_sex, status
 integer, allocatable :: ix_x_sex(:), ix_y_sex(:)
 
 real(rp), allocatable :: sex_y_value(:), sex_x_value(:)
-real(rp) target_x, target_y, chrom_x, chrom_y, chisq
+real(rp) target_x, target_y, chisq
 real(rp) d_chrom, chrom_x0, chrom_y0, a_lambda
 real(rp) delta_e, err_tol, k2_vec(2), weight(2), chrom_target(2)
  
-logical err_flag, maska(2)
+logical err_flag, maska(2), all_x_zero, all_y_zero
 character(*), parameter :: r_name = 'chrom_tune'
 
 !                      
@@ -60,15 +58,25 @@ allocate (ix_x_sex(n_sex), ix_y_sex(n_sex))
 allocate (sex_x_value(n_sex), sex_y_value(n_sex))
 
 ix = 0; iy = 0
+all_x_zero = .true.;  all_y_zero = .true.
 
 do i = 1, n_sex
-  if (ele_sex(i)%ele%value(tilt_tot$) /= 0) cycle    ! do not use tilted sextupoles 
-  if (ele_sex(i)%ele%a%beta > ele_sex(i)%ele%b%beta) then
+  ele => ele_sex(i)%ele
+  if (ele%value(tilt_tot$) /= 0) cycle    ! do not use tilted sextupoles
+  if (ele%a%beta == 0 .or. ele%b%beta == 0) then
+    call out_io (s_error$, r_name, 'TWISS PARAMETERS NOT COMPUTED AT: ' // ele%name, 'NO TUNING DONE.')
+    return
+  endif
+
+  if (ele%a%beta > ele%b%beta) then
     ix = ix + 1
-    ix_x_sex(ix) = ele_sex(i)%ele%ix_ele
+    ix_x_sex(ix) = ele%ix_ele
+    if (ele%value(k2$) /= 0) all_x_zero = .false.
+
   else
     iy = iy + 1
-    ix_y_sex(iy) = ele_sex(i)%ele%ix_ele
+    ix_y_sex(iy) = ele%ix_ele
+    if (ele%value(k2$) /= 0) all_y_zero = .false.
   end if
 end do
 
@@ -102,14 +110,23 @@ do j = 1, 100
 
   if (status < 0) then
     call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!')
-    stop
+    return
   endif
 
   d_chrom = abs(target_x - chrom_x0) + abs(target_y - chrom_y0)
+
   if (d_chrom < err_tol) then
     err_flag = .false.
-    lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + k2_vec(1))
-    lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + k2_vec(2))
+    if (all_x_zero) then
+      lat%ele(ix_x_sex(:))%value(k2$) = k2_vec(1)
+    else
+      lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + k2_vec(1))
+    endif
+    if (all_y_zero) then
+      lat%ele(ix_y_sex(:))%value(k2$) = k2_vec(2)
+    else
+      lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + k2_vec(2))
+    endif
     return
   endif
 enddo
@@ -127,27 +144,58 @@ real(rp), intent(out) :: y_fit(:)
 real(rp), intent(out) :: dy_da(:, :)
 
 real(rp) :: delta = 0.01
+real(rp) chrom_x, chrom_y
 integer status, i
 
 !
 
-lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + a_try(1))
-lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2))
+if (all_x_zero) then
+  lat%ele(ix_x_sex(:))%value(k2$) = a_try(1)
+else
+  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + a_try(1))
+endif
+
+if (all_y_zero) then
+  lat%ele(ix_y_sex(:))%value(k2$) = a_try(2)
+else
+  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2))
+endif
+
 call chrom_calc(lat, delta_e, chrom_x0, chrom_y0)
 y_fit = [chrom_x0, chrom_y0]
 
-lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + a_try(1) + delta)
-lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2))
+if (all_x_zero) then
+  lat%ele(ix_x_sex(:))%value(k2$) = a_try(1) + delta
+else
+  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + a_try(1) + delta)
+endif
+
+if (all_y_zero) then
+  lat%ele(ix_y_sex(:))%value(k2$) = a_try(2)
+else
+  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2))
+endif
+
 call chrom_calc(lat, delta_e, chrom_x, chrom_y)
 dy_da(1,1) = (chrom_x - chrom_x0) / delta
 dy_da(2,1) = (chrom_y - chrom_y0) / delta
 
-lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + a_try(1))
-lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2) + delta)
+if (all_x_zero) then
+  lat%ele(ix_x_sex(:))%value(k2$) = a_try(1)
+else
+  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + a_try(1))
+endif
+
+if (all_y_zero) then
+  lat%ele(ix_y_sex(:))%value(k2$) = a_try(2) + delta
+else
+  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2) + delta)
+endif
+
 call chrom_calc(lat, delta_e, chrom_x, chrom_y)
 dy_da(1,2) = (chrom_x - chrom_x0) / delta
 dy_da(2,2) = (chrom_y - chrom_y0) / delta
 
-end subroutine
+end subroutine chrom_func
 
 end subroutine
