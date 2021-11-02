@@ -775,9 +775,7 @@ do i=1, nnames
     As(j, i) = sum(A(j, :), mask=mask) !FOO /count(mask)
   enddo
 enddo
-call make_pseudoinverse(As, Asp)
-
-!call make_pseudoinverse(A, Ap)
+call mat_pseudoinverse(As, Asp)
 
 ! C is a vector of the contributions to the DTs from those elements with valid K2 that are not variables. 
 C=0.0d0
