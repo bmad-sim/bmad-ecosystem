@@ -2689,9 +2689,9 @@ discussion of how these quantities are calculated.
 
 If \vn{-element} is present, the output will be the first order spin transfer map from the
 downstream end of the element given by \vn{<ref_ele_name>} to the downstream end of the element
-given by \vn{<ele_name>}.  If \vn{<ref_ele_name>} is not given, the default is to use the element
-before the element given by \vn{<ele_name>}. This gives the spin transport through the
-\vn{<ele_name>} element. The spin map can be displayed in two different forms. If the \vn{-l_axis}
+given by \vn{<ele_name>}.  If \vn{<ref_ele_name>} is not given, the default is the element
+given by \vn{<ele_name>}. This gives the 1-turn spin transport from the downstream end of
+\vn{<ele_name>}. The spin map can be displayed in two different forms. If the \vn{-l_axis}
 or \vn{-n_axis} is given, or if \vn{-g_map} is present, the G-matrix form of the spin map will be
 printed.  The G-matrix is dependent upon the $(\Bf l, \Bf n, \Bf m)$ axes used to define the spin
 vector (see the \vn{SLIM Formalism} section of the Spin chapter in the Bmad manual). The $\Bf n$ and
@@ -2706,8 +2706,8 @@ printed, the quaternion form of the map will be printed.
 Example:
 \begin{example}
   show spin
-  show spin -ele Q10W -n 0,1,0 -l 1,0,0  ! G-matrix for Q10W
-  show spin -ele S1 S1  ! 1-turn analysis at downstream end of S1 
+  show spin -ele Q1-1 Q1 -n 0,1,0 -l 1,0,0  ! G-matrix for Q1
+  show spin -ele S1     ! 1-turn analysis at downstream end of S1 
   show spin -ele 4 7    ! G-matrix from end of element 4 to end of element 7
 \end{example}
 
