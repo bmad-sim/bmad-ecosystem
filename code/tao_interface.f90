@@ -359,13 +359,13 @@ subroutine tao_hook_command (command_line, found)
   logical found
 end subroutine
  
-function tao_hook_curve_s_pt (s_default, ix_now, curve, tao_lat) result (s_pt)
+function tao_hook_curve_s_pt (s_default, ix_now, x1, x2, n_pts, tao_lat, curve) result (s_pt)
   import
   implicit none
   type (tao_curve_struct) curve
   type (tao_lattice_struct) tao_lat
-  real(rp) s_default, s_pt
-  integer ix_now
+  real(rp) s_default, x1, x2, s_pt
+  integer ix_now, n_pts
 end function
  
 subroutine tao_hook_draw_floor_plan (plot, graph)
