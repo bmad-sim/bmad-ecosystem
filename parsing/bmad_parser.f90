@@ -330,7 +330,7 @@ parsing_loop: do
   ! Superimpose statement
 
   if (word_1(:ix_word) == 'SUPERIMPOSE') then
-    call new_element_init('superimpose-command:' // int_str(n_max+1), '', in_lat, err)
+    call new_element_init('superimpose-command:' // int_str(n_max+1), '', in_lat, err, null_ele$)
     ele => in_lat%ele(n_max)
     call parse_superimpose_command(in_lat, ele, plat%ele(ele%ixx), delim)
     cycle parsing_loop   
@@ -1370,11 +1370,12 @@ end subroutine parser_end_stuff
 !---------------------------------------------------------------------
 ! contains
 
-subroutine new_element_init (word1, class_word, lat0, err)
+subroutine new_element_init (word1, class_word, lat0, err, ele_key)
 
 type (lat_struct), target :: lat0
 
 integer, pointer :: n_max
+integer, optional :: ele_key
 integer ix
 logical err, added, is_marker
 character(*) word1, class_word
@@ -1418,7 +1419,7 @@ if (.not. added) then
 endif
 
 lat0%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
-
+if (present(ele_key)) lat0%ele(n_max)%key = ele_key
 plat%ele(n_max)%lat_file = bp_com%current_file%full_name
 plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line
 

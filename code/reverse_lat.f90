@@ -102,6 +102,7 @@ enddo
 do ie = lat_temp%n_ele_track+1, lat_temp%n_ele_max
   ele_rev => lat_rev%ele(ie)
   ele_rev = lat_temp%ele(ie)
+  if (ele_rev%lord_status == super_lord$) ele_rev%orientation = -ele_rev%orientation
 enddo
 
 ! Correct control information

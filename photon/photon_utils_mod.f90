@@ -282,7 +282,7 @@ end function pointer_to_surface_grid_pt
 
 subroutine surface_grid_displacement (ele, x, y, err_flag, z, dz_dxy, extend_grid)
 
-use nr, only: bcuint
+use super_recipes_mod
 
 type (ele_struct), target :: ele
 type (photon_element_struct), pointer :: ph
@@ -316,7 +316,7 @@ pt01 => ph%grid%pt(ix,iy+1)
 pt10 => ph%grid%pt(ix+1,iy)
 pt11 => ph%grid%pt(ix+1,iy+1)
 
-call bcuint([pt00%z0, pt10%z0, pt11%z0, pt01%z0], [pt00%dz_dx, pt10%dz_dx, pt11%dz_dx, pt01%dz_dx], &
+call super_bicubic_interpolation([pt00%z0, pt10%z0, pt11%z0, pt01%z0], [pt00%dz_dx, pt10%dz_dx, pt11%dz_dx, pt01%dz_dx], &
         [pt00%dz_dy, pt10%dz_dy, pt11%dz_dy, pt01%dz_dy], [pt00%d2z_dxdy, pt10%d2z_dxdy, pt11%d2z_dxdy, pt01%d2z_dxdy], &
         pt00%x0, pt11%x0, pt00%y0, pt11%y0, xx, yy, z, dz_dx, dz_dy)
 

@@ -421,7 +421,7 @@ end subroutine bend_photon_polarization_init
 
 function bend_photon_vert_angle_init (E_rel, gamma, r_in, invert) result (phi)
 
-use nr, only: bcuint
+use super_recipes_mod
 
 implicit none
 
@@ -514,19 +514,21 @@ do ix_prob = 0, n_prob_pt - 1
 enddo
 
 if (ix_prob == n_prob_pt) then  ! Extrapolate
-  call bcuint([gp(ix_E,ix_prob-1)%gp,        gp(ix_E+1,ix_prob-1)%gp,        gp(ix_E+1,ix_prob)%gp,        gp(ix_E,ix_prob)%gp], &
-              [gp(ix_E,ix_prob-1)%dgp_dlogE, gp(ix_E+1,ix_prob-1)%dgp_dlogE, gp(ix_E+1,ix_prob)%dgp_dlogE, gp(ix_E,ix_prob)%dgp_dlogE], &
-              [gp(ix_E,ix_prob-1)%dgp_dprob, gp(ix_E+1,ix_prob-1)%dgp_dprob, gp(ix_E+1,ix_prob)%dgp_dprob, gp(ix_E,ix_prob)%dgp_dprob], &
-              [gp(ix_E,ix_prob-1)%dgp_d2,    gp(ix_E+1,ix_prob-1)%dgp_d2,    gp(ix_E+1,ix_prob)%dgp_d2,    gp(ix_E,ix_prob)%dgp_d2], &
-               log_E_pt(ix_E), log_E_pt(ix_E+1), prob_pt(ix_prob-1), prob_pt(ix_prob), log_E_prob, prob_pt(n_prob_pt), gamma_phi, dval_dE, dval_dprob)
+  call super_bicubic_interpolation( &
+          [gp(ix_E,ix_prob-1)%gp,        gp(ix_E+1,ix_prob-1)%gp,        gp(ix_E+1,ix_prob)%gp,        gp(ix_E,ix_prob)%gp], &
+          [gp(ix_E,ix_prob-1)%dgp_dlogE, gp(ix_E+1,ix_prob-1)%dgp_dlogE, gp(ix_E+1,ix_prob)%dgp_dlogE, gp(ix_E,ix_prob)%dgp_dlogE], &
+          [gp(ix_E,ix_prob-1)%dgp_dprob, gp(ix_E+1,ix_prob-1)%dgp_dprob, gp(ix_E+1,ix_prob)%dgp_dprob, gp(ix_E,ix_prob)%dgp_dprob], &
+          [gp(ix_E,ix_prob-1)%dgp_d2,    gp(ix_E+1,ix_prob-1)%dgp_d2,    gp(ix_E+1,ix_prob)%dgp_d2,    gp(ix_E,ix_prob)%dgp_d2], &
+          log_E_pt(ix_E), log_E_pt(ix_E+1), prob_pt(ix_prob-1), prob_pt(ix_prob), log_E_prob, prob_pt(n_prob_pt), gamma_phi, dval_dE, dval_dprob)
   gamma_phi = gamma_phi * log((1-prob_pt(n_prob_pt))/inv_rr)
 
 else ! Interpolate
-  call bcuint([gp(ix_E,ix_prob)%gp,        gp(ix_E+1,ix_prob)%gp,        gp(ix_E+1,ix_prob+1)%gp,        gp(ix_E,ix_prob+1)%gp], &
-              [gp(ix_E,ix_prob)%dgp_dlogE, gp(ix_E+1,ix_prob)%dgp_dlogE, gp(ix_E+1,ix_prob+1)%dgp_dlogE, gp(ix_E,ix_prob+1)%dgp_dlogE], &
-              [gp(ix_E,ix_prob)%dgp_dprob, gp(ix_E+1,ix_prob)%dgp_dprob, gp(ix_E+1,ix_prob+1)%dgp_dprob, gp(ix_E,ix_prob+1)%dgp_dprob], &
-              [gp(ix_E,ix_prob)%dgp_d2,    gp(ix_E+1,ix_prob)%dgp_d2,    gp(ix_E+1,ix_prob+1)%dgp_d2,    gp(ix_E,ix_prob+1)%dgp_d2], &
-              log_E_pt(ix_E), log_E_pt(ix_E+1), 0.0_rp, prob_pt(ix_prob+1) - prob_pt(ix_prob), log_E_prob, inv_prob_pt(ix_prob) - inv_rr, gamma_phi, dval_dE, dval_dprob)
+  call super_bicubic_interpolation( &
+          [gp(ix_E,ix_prob)%gp,        gp(ix_E+1,ix_prob)%gp,        gp(ix_E+1,ix_prob+1)%gp,        gp(ix_E,ix_prob+1)%gp], &
+          [gp(ix_E,ix_prob)%dgp_dlogE, gp(ix_E+1,ix_prob)%dgp_dlogE, gp(ix_E+1,ix_prob+1)%dgp_dlogE, gp(ix_E,ix_prob+1)%dgp_dlogE], &
+          [gp(ix_E,ix_prob)%dgp_dprob, gp(ix_E+1,ix_prob)%dgp_dprob, gp(ix_E+1,ix_prob+1)%dgp_dprob, gp(ix_E,ix_prob+1)%dgp_dprob], &
+          [gp(ix_E,ix_prob)%dgp_d2,    gp(ix_E+1,ix_prob)%dgp_d2,    gp(ix_E+1,ix_prob+1)%dgp_d2,    gp(ix_E,ix_prob+1)%dgp_d2], &
+          log_E_pt(ix_E), log_E_pt(ix_E+1), 0.0_rp, prob_pt(ix_prob+1) - prob_pt(ix_prob), log_E_prob, inv_prob_pt(ix_prob) - inv_rr, gamma_phi, dval_dE, dval_dprob)
 endif
 
 ! Scale result by the sigma of the spectrum at fixed E_rel
