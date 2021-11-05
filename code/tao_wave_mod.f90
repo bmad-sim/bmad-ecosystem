@@ -1036,7 +1036,6 @@ x = [(i, i = 1, n_dat)]
 
 ! Fit
 
-sig = 1
 call svdfit (x, curve%y_symb(ix1:ix2), sig, coef, v, w, chisq, tao_wave_funcs)
 call svdvar (v, w, cvm)
 
