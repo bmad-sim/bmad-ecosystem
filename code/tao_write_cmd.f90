@@ -42,6 +42,7 @@ type (tao_v1_var_struct), pointer :: v1
 type (tao_spin_map_struct), pointer :: sm
 
 real(rp) scale, mat6(6,6)
+real(rp), allocatable :: values(:)
 
 character(*) what
 character(1) delim
@@ -60,7 +61,7 @@ integer i_min, i_max, n_len, len_d_type, ix_branch
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append, write_floor
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
-logical write_high_lim, write_low_lim, tao_format, eq_d_type, delim_found
+logical write_high_lim, write_low_lim, tao_format, eq_d_type, delim_found, turn_rf_on
 
 !
 
@@ -210,16 +211,18 @@ case ('bmad_lattice')
   file_format = binary$
   file_name0 = 'lat_#.bmad'
   ix_word = 0
+  turn_rf_on = .true.
 
   do 
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), [character(16):: '-one_file', '-format'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(16):: '-one_file', '-format', '-no_rf'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('');       exit
+    case ('-no_rf');    turn_rf_on = .false.
     case ('-one_file'); file_format = one_file$
     case ('-format')
       ix_word = ix_word + 1
@@ -243,11 +246,20 @@ case ('bmad_lattice')
     end select
   enddo
 
+  if (s%global%rf_on) turn_rf_on = .false. ! Do not need to try to turn on RF
+  if (turn_rf_on) then
+    call out_io (s_info$, r_name, 'RF will be turned on in the lattice file. If you do not want this use the "-no_rf" flag.')
+  endif
+
   do i = lbound(s%u, 1), ubound(s%u, 1)
+    u => s%u(i)
+    if (turn_rf_on) call set_on_off(rfcavity$, u%model%lat, save_state$, u%model%tao_branch(0)%orbit, saved_values = values)
+    if (turn_rf_on) call set_on_off(rfcavity$, u%model%lat, on$, u%model%tao_branch(0)%orbit)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
-    call write_bmad_lattice_file (file_name, s%u(i)%model%lat, err, file_format, s%u(i)%model%tao_branch(0)%orbit(0))
+    call write_bmad_lattice_file (file_name, u%model%lat, err, file_format, u%model%tao_branch(0)%orbit(0))
     if (err) return
     call out_io (s_info$, r_name, 'Written: ' // file_name)
+    if (turn_rf_on) call set_on_off(rfcavity$, u%model%lat, restore_state$, u%model%tao_branch(0)%orbit, saved_values = values)
   enddo
 
 !---------------------------------------------------

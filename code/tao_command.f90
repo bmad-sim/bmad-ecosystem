@@ -355,8 +355,8 @@ case ('place')
 
 case ('plot')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err)
-  call tao_plot_cmd (cmd_word(1), cmd_word(2))
+  call out_io (s_error$, r_name, 'The "plot" command has been replaced by the "set plot <plot_name> component = ..." command.')
+  return
 
 !--------------------------------
 ! PTC

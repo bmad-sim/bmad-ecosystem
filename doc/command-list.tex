@@ -3459,7 +3459,7 @@ Generally, one of the latter two environmental variables will be defined.  If no
 
 The \vn{write bmad} command will create a bmad lattice file. Syntax:
 \begin{example}
-    write bmad \{-format <type>\} \{<file_name>\} 
+    write bmad \{-format <type>\} \{-no_rf\} \{<file_name>\} 
 \end{example}
 
 The default file name is \vn{lat_\#.bmad} where \vn{\#} is replaced by the universe number. 
@@ -3485,6 +3485,10 @@ separate secondary lattice files. This is done by setting \vn{format} to either 
 \vn{binary}. The difference between \vn{ascii} and \vn{binary} is that for \vn{grid_field}s, which
 may have a huge amount of associated data, the \vn{binary} format stores \vn{grid_field}s using
 HDF5. The other three field description types are always stored using ASCII files.
+
+By default, the \vn{rfcavities} in the output lattice will be set back \vn{on} if the cavities were
+initially turned off when \tao was started (turning RF off at startup is the default procedure). If
+this is not wanted, the \vn{-no_rf} switch can be used to prevent this.
 
 \begin{example}
   write bmad -format one lat.bmad  ! Single lattice file lat.bmad created.
