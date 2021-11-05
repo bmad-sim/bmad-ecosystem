@@ -29,9 +29,124 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine super_bicubic_interpolation(y, y1, y2, y12, x1l, x1u, x2l, x2u, x1, x2, ansy, ansy1, ansy2)
+!
+! Routine to do bicubic interpolation.
+! This is from NR bcuint.
+!
+! Note! The four grid points are arrayed in counter-clockwise order beginning from the lower left.
+! So, for example, y = [y_ll, y_lu, y_uu, y_ul] where "l" = lower, "u" = upper index.
+!
+! Input:
+!   y(4)    -- real(rp): Function values at grid points.
+!   y1(4)   -- real(rp): dy/dx1 derivatives.
+!   y2(4)   -- real(rp): dy/dx2 derivatives.
+!   y12(4)  -- real(rp): d2y/dx1*dx2 second derivatives.
+!   x1l     -- real(rp): 1-direction coordinate at lower points.
+!   x1u     -- real(rp): 1-direction coordinate at upper points
+!   x2l     -- real(rp): 2-direction coordinate at lower points.
+!   x2u     -- real(rp): 2-direction coordinate at upper points
+!   x1      -- real(rp): 1-direction coordinate at point to evaluate.
+!   x2      -- real(rp): 2-direction coordinate at point to evaluate.
+!
+! Output:
+!   ansy    -- real(rp): Interpolation value.
+!   ansy1   -- real(rp): 1-direction derivative at interpolation point.
+!   ansy2   -- real(rp): 2-direction derivative at interpolation point.
+!-
+
+subroutine super_bicubic_interpolation(y, y1, y2, y12, x1l, x1u, x2l, x2u, x1, x2, ansy, ansy1, ansy2)
+
+implicit none
+
+real(rp), dimension(4), intent(in) :: y, y1, y2, y12
+real(rp), intent(in) :: x1l, x1u, x2l, x2u, x1, x2
+real(rp), intent(out) :: ansy, ansy1, ansy2
+integer :: i
+real(rp) :: t, u
+real(rp), dimension(4,4) :: c
+
+!
+
+call super_bicubic_coef(y, y1, y2, y12, x1u-x1l, x2u-x2l, c)
+
+if (x1u == x1l .or. x2u == x2l) call err_exit ('super_bicubic_interpolation: problem with input values - boundary pair equal?')
+t = (x1-x1l)/(x1u-x1l)
+u = (x2-x2l)/(x2u-x2l)
+ansy = 0.0
+ansy2 = 0.0
+ansy1 = 0.0
+
+do i = 4, 1, -1
+  ansy = t*ansy + ((c(i, 4)*u + c(i, 3))*u + c(i, 2))*u + c(i, 1)
+  ansy2 = t*ansy2 + (3.0_rp*c(i,4)*u + 2.0_rp*c(i, 3))*u + c(i, 2)
+  ansy1 = u*ansy1 + (3.0_rp*c(4,i)*t + 2.0_rp*c(3, i))*t + c(2, i)
+end do
+
+ansy1 = ansy1/(x1u-x1l)
+ansy2 = ansy2/(x2u-x2l)
+
+end subroutine super_bicubic_interpolation
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine super_bicubic_coef(y, y1, y2, y12, d1, d2, c)
+!
+! Routine to compute coefficients for bicubic interpolation.
+! This is from NR bcucof.
+!
+! Input:
+!   y(4)    -- real(rp): Function values at grid points.
+!   y1(4)   -- real(rp): dy/dx1 derivatives.
+!   y2(4)   -- real(rp): dy/dx2 derivatives.
+!   y12(4)  -- real(rp): d2y/dx1*dx2 second derivatives.
+!   d1      -- real(rp): Grid width in 1-direction.
+!   d2      -- real(rp): Grid width in 2-direction.
+!
+! Output:
+!   c(4,4)  -- real(rp): Coefficients.
+!-
+
+subroutine super_bicubic_coef(y, y1, y2, y12, d1, d2, c)
+
+implicit none
+
+real(dp), intent(in) :: d1, d2
+real(dp), dimension(4), intent(in) :: y, y1, y2, y12
+real(dp), dimension(4,4), intent(out) :: c
+real(dp), dimension(16) :: x
+real(dp), dimension(16,16) :: wt
+
+!
+
+data wt /1, 0, -3, 2, 4*0, -3, 0, 9, -6, 2, 0, -6, 4, &
+  8*0, 3, 0, -9, 6, -2, 0, 6, -4, 10*0, 9, -6, 2*0, -6, 4, 2*0, 3, -2, 6*0, -9, 6, &
+  2*0, 6, -4, 4*0, 1, 0, -3, 2, -2, 0, 6, -4, 1, 0, -3, 2, 8*0, -1, 0, 3, -2, 1, 0, -3, &
+  2, 10*0, -3, 2, 2*0, 3, -2, 6*0, 3, -2, 2*0, -6, 4, 2*0, 3, -2, 0, 1, -2, 1, 5*0, &
+  -3, 6, -3, 0, 2, -4, 2, 9*0, 3, -6, 3, 0, -2, 4, -2, 10*0, -3, 3, 2*0, 2, -2, 2*0, &
+  -1, 1, 6*0, 3, -3, 2*0, -2, 2, 5*0, 1, -2, 1, 0, -2, 4, -2, 0, 1, -2, 1, 9*0, -1, 2, &
+  -1, 0, 1, -2, 1, 10*0, 1, -1, 2*0, -1, 1, 6*0, -1, 1, 2*0, 2, -2, 2*0, -1, 1/
+
+!
+
+x(1:4) = y
+x(5:8) = y1*d1
+x(9:12) = y2*d2
+x(13:16) = y12*d1*d2
+x = matmul(wt, x)
+c = reshape(x, [4,4], order = [2,1])
+
+end subroutine super_bicubic_coef
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine super_sort(arr)
 !
-! Routine to sort an integer array in place .
+! Routine to sort an integer array in place.
 ! This is the NR routine sort modified to sort integers.
 !
 ! Input:
@@ -46,64 +161,64 @@ subroutine super_sort(arr)
 implicit none
 
 integer, dimension(:), intent(inout) :: arr
-integer, parameter :: nn=15, nstack=50
+integer, parameter :: nn = 15, nstack = 50
 integer :: a
-integer :: n,k,i,j,jstack,l,r
+integer :: n, k, i, j, jstack, l, r
 integer, dimension(nstack) :: istack
 
 !
 
-n=size(arr)
-jstack=0
-l=1
-r=n
+n = size(arr)
+jstack = 0
+l = 1
+r = n
 do
   if (r-l < NN) then
-    do j=l+1,r
-      a=arr(j)
-      do i=j-1,l,-1
+    do j = l+1, r
+      a = arr(j)
+      do i = j-1, l, -1
         if (arr(i) <= a) exit
-        arr(i+1)=arr(i)
+        arr(i+1) = arr(i)
       end do
-      arr(i+1)=a
+      arr(i+1) = a
     end do
     if (jstack == 0) RETURN
-    r=istack(jstack)
-    l=istack(jstack-1)
-    jstack=jstack-2
+    r = istack(jstack)
+    l = istack(jstack-1)
+    jstack = jstack-2
   else
-    k=(l+r)/2
-    call swap_i(arr(k),arr(l+1))
-    if (arr(l)>arr(r))   call swap_i(arr(l),arr(r))
-    if (arr(l+1)>arr(r)) call swap_i(arr(l+1),arr(r))
-    if (arr(l)>arr(l+1)) call swap_i(arr(l),arr(l+1))
-    i=l+1
-    j=r
-    a=arr(l+1)
+    k = (l+r)/2
+    call swap_i(arr(k), arr(l+1))
+    if (arr(l)>arr(r))   call swap_i(arr(l), arr(r))
+    if (arr(l+1)>arr(r)) call swap_i(arr(l+1), arr(r))
+    if (arr(l)>arr(l+1)) call swap_i(arr(l), arr(l+1))
+    i = l+1
+    j = r
+    a = arr(l+1)
     do
       do
-        i=i+1
+        i = i+1
         if (arr(i) >= a) exit
       end do
       do
-        j=j-1
+        j = j-1
         if (arr(j) <= a) exit
       end do
       if (j < i) exit
-      call swap_i(arr(i),arr(j))
+      call swap_i(arr(i), arr(j))
     end do
-    arr(l+1)=arr(j)
-    arr(j)=a
-    jstack=jstack+2
+    arr(l+1) = arr(j)
+    arr(j) = a
+    jstack = jstack+2
     if (jstack > NSTACK) call err_exit('sort: NSTACK too small')
     if (r-i+1 >= j-l) then
-      istack(jstack)=r
-      istack(jstack-1)=i
-      r=j-1
+      istack(jstack) = r
+      istack(jstack-1) = i
+      r = j-1
     else
-      istack(jstack)=j-1
-      istack(jstack-1)=l
-      l=i
+      istack(jstack) = j-1
+      istack(jstack-1) = l
+      l = i
     end if
   end if
 end do
