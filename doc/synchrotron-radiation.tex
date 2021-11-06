@@ -1,9 +1,9 @@
 \chapter{Synchrotron Radiation}
 
 %-----------------------------------------------------------------
-\section{Synchrotron Radiation Damping and Excitation}
+\section{Radiation Damping and Excitation}
 \label{s:radiation}
-\index{synchrotron radiation!damping and excitation|hyperbf}
+\index{radiation!damping and excitation|hyperbf}
 
 Emission of synchrotron radiation by a particle can be decomposed into two parts. The deterministic
 average energy emitted produces damping while the stochastic fluctuating part of the energy spectrum
@@ -72,24 +72,34 @@ dependent tracking. That is, the shifting is not applicable to tracking with Tay
 \vn{symp_lie_ptc} (\sref{s:tkm}) tracking.
 
 %-----------------------------------------------------------------
+\section{Transport Map with Radiation Included}
+\label{s:map.rad}
+\index{map!with radiation included}
+
+Transport maps which include radiation effects can be constructed\cite{b:ohmi}. The first step is to
+calculate the referece orbit. If the lattice has a closed geometry, the reference orbit is the
+closed orbit calculated with radiation damping included in the tracking. If the lattice has an open
+geometry, the reference orbit is the orbit with radiation damping starting from the initial
+particle position given by the user.
+
+After the reference orbit has been calculated, The 
+
+%-----------------------------------------------------------------
 \section{Synchrotron Radiation Integrals}
 \label{s:synch.ints}
 \index{synchrotron radiation!integrals}
 
-The synchrotron radiation integrals are used to compute emittances,
-the energy spread, etc. The standard formulas assume no coupling
-between the horizontal and vertical planes\cite{b:helm,b:jowett}. With
-coupling, the equations need to be generalized and this is detailed
-below.
+The synchrotron radiation integrals are used to compute emittances, the energy spread, etc. The
+standard formulas assume no coupling between the horizontal and vertical
+planes\cite{b:helm,b:jowett}. With coupling, the equations need to be generalized and this is
+detailed below.
 
 \index{dispersion}
-In the general case, the curvature vector $\bfg = (g_x, g_y)$, which
-points away from the center of curvature of the particle's orbit and
-has a magnitude of $|\bfg| = 1/\rho$, where $\rho$ is the radius of
-curvature (see \fig{f:local.coords}), does not lie in the
-horizontal plane. Similarly, the dispersion $\bfeta\two =
-(\eta_x, \eta_y)$ will not lie in the horizontal plane. With this
-notation, the synchrotron integrals for coupled motion are:
+In the general case, the curvature vector $\bfg = (g_x, g_y)$, which points away from the center of
+curvature of the particle's orbit and has a magnitude of $|\bfg| = 1/\rho$, where $\rho$ is the
+radius of curvature (see \fig{f:local.coords}), does not lie in the horizontal plane. Similarly, the
+dispersion $\bfeta\two = (\eta_x, \eta_y)$ will not lie in the horizontal plane. With this notation,
+the synchrotron integrals for coupled motion are:
   \begingroup
   \allowdisplaybreaks
   \begin{align}
@@ -131,8 +141,8 @@ Using this gives on--axis ($x = y = 0$)
     \label{g2gkg}
   \end{equation}
 
-$I_0$ is not a standard radiation integral. It is useful,
-though, in calculating the average number of photons emitted. For electrons:
+$I_0$ is not a standard radiation integral. It is useful, though, in calculating the average number
+of photons emitted. For electrons:
   \begin{equation}
     {\cal N} = \frac{5 \: r_{\! f}}{2 \sqrt{3} \, \hbar \, c} \, I_0 
   \end{equation}

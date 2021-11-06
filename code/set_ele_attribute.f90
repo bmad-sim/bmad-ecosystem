@@ -63,6 +63,16 @@ if (ix == 0) then
 endif
 
 a_name = string(1:ix-1)
+
+select case (a_name)
+case ('SLAVE', 'VAR', 'REF_BEGINNING', 'REF_CENTER', 'REF_END', 'ELE_BEGINNING', &
+      'ELE_CENTER', 'ELE_END', 'SUPERIMPOSE', 'REFERENCE', 'OFFSET', 'FIELD_OVERLAPS', &
+      'CREATE_JUMBO_SLAVE', 'ELE_ORIGIN', 'REF_ORIGIN', 'WRAP_SUPERIMPOSE', 'TO_ELEMENT')
+  if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, &
+                                'ELEMENT PARAMETER NOT SETTABLE AFTER THE LATTICE HAS BEEN READ IN: ' // a_name)
+  return
+end select
+
 if (.not. attribute_free (ele, a_name, err_print_flag, dependent_attribs_free = .true.)) return
 
 ! Evaluate and set.
