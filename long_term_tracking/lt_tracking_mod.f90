@@ -158,6 +158,7 @@ type (beam_init_struct) beam_init
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele
 
 real(rp) dummy
 integer ir, i, n, ix, n_loc
@@ -309,6 +310,14 @@ if (ltt%ramping_on) then
     print '(2a)', 'Warning! NO RAMPER ELEMENTS FOUND IN LATTICE.'
     stop
   endif
+
+  do i = 1, ltt_com%n_ramper_loc
+    ele => ltt_com%ramper(i)%ele
+    if (ele%control%var(1)%name /= 'TIME') then
+      print *, 'Note! This ramper does not use "time" as the control variable: ' // trim(ele%name)
+      print *, '      This ramper will not be directly varied in the simulation.'
+    endif
+  enddo
 endif
 
 ! Get list of wake elements.
