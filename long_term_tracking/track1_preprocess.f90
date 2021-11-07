@@ -37,6 +37,7 @@ implicit none
 
 type (coord_struct) :: start_orb
 type (ele_struct) :: ele
+type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
@@ -66,11 +67,22 @@ if (.not. ltt_com_global%ramp_in_track1_preprocess) return
 t = start_orb%t + 0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
 
 do ir = 1, ltt_com_global%n_ramper_loc
+  if (ltt_com_global%ramper(ir)%ele%control%var(1)%name /= 'TIME') cycle
   ltt_com_global%ramper(ir)%ele%control%var(1)%value = t
 enddo
 
 n = ltt_com_global%n_ramper_loc
 call apply_ramper (ele, ltt_com_global%ramper(1:n), err_flag)
+
+! The beginning element is never tracked through. If there is energy ramping and the user is writing out 
+! p0c or E_tot from the beginning element, the user may be confused since these values will not change. 
+! So adjust the beginning element's p0c and E_tot to keep users happy.
+
+if (ele%ix_ele == 1) then
+  ele0 => pointer_to_next_ele(ele, -1)
+  ele0%value(p0c$) = ele%value(p0c_start$)
+  ele0%value(E_tot$) = ele%value(E_tot_start$)
+endif
 
 ! Adjust particle reference energy if needed.
 

@@ -68,7 +68,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ October 26, 2021}
+\date{David Sagan \\ November 7, 2021}
 \begin{document}
 \maketitle
 
@@ -372,6 +372,9 @@ character ``\vn{*}'' will match to any element name), and it is the element's \v
 
 In the above example, the \vn{ramp_rf} ramper will be applied to all \vn{rfcavity} elements with
 the cavity voltage and phase (\vn{phi0}) being varied.
+
+Important! Only rampers that use \vn{time} as the variable name will be directly varied in the
+tracking.
 
 In the case where the reference energy \vn{e_tot} or reference momentum \vn{p0c} is being varied, the
 effect on an element will depend upon the setting of the element's \vn{field_master} parameter. For
