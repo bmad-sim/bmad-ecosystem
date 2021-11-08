@@ -261,13 +261,14 @@ nw_loop: do
   enddo
 
   if (ix_b1 /= 0 .or. ix_b2 /= 0 .or. ix_b3 /= 0) then
-    call out_io (s_error$, r_name, 'MISMATCHED "{...}", "(...)", OR "[...]".')
+    call out_io (s_error$, r_name, 'MISMATCHED "{...}", "(...)", OR "[...]": ' // cmd_line)
     err = .true.
     return
   endif
 
-  call out_io (s_abort$, r_name, 'INTERNAL ERROR!')
-  call err_exit
+  call out_io (s_abort$, r_name, 'MALFORMED COMMAND: ' // cmd_line)
+  err = .true.
+  return
 
 enddo nw_loop
 
