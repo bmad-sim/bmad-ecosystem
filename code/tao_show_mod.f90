@@ -328,7 +328,7 @@ if (what == ' ') then
   return
 endif
 
-call match_word (what, [character(20):: 'data', 'variable', 'global', 'alias', 'top10', &
+call match_word (what, [character(20):: 'data', 'variables', 'global', 'alias', 'top10', &
    'optimizer', 'element', 'lattice', 'constraints', 'plot', 'beam', 'tune', 'graph', 'curve', &
    'hom', 'key_bindings', 'universe', 'orbit', 'derivative', 'branch', 'use', 'taylor_map', &
    'twiss_and_orbit', 'building_wall', 'wall', 'normal_form', 'dynamic_aperture', 'value', &
@@ -5065,7 +5065,7 @@ case ('value')
 !----------------------------------------------------------------------
 ! variable
 
-case ('variable')
+case ('variables')
 
   good_opt_only = .false.
   bmad_format = .false.
