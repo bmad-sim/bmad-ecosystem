@@ -1375,9 +1375,13 @@ case ('plot_x_axis_var')
 
     call tao_evaluate_expression (curve%data_type, 0, .false., value_arr, err, &
                           dflt_component = curve%component, dflt_source = curve%data_source)
-    if (.not. valid .or. err .or. size(value_arr) /= 1) then
-      call tao_set_curve_invalid (curve, 'BAD CONSTRUCT IN CURVE%DATA_TYPE: ' // curve%data_type)
-      return
+
+    if (.not. valid) then
+      call tao_set_curve_invalid (curve, 'PROBLEM CALCULATING LATTICE PARAMETERS (INSTABILITY?) FOR: ' // curve%data_type, .true.)
+      exit
+    elseif(err .or. size(value_arr) /= 1) then
+      call tao_set_curve_invalid (curve, 'PROBLEM EVALUATING DATA FOR: ' // curve%data_type, .true.)
+      exit
     endif
 
     curve%x_symb(i) = val      

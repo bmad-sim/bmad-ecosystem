@@ -321,7 +321,7 @@ type (tao_building_wall_point_struct) pt
 real(rp), optional :: y_range(2), y2_range(2)
 real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2, del
 
-integer i, j, k, ix, ib, p1, p2
+integer i, j, k, ix, ib, p1, p2, iu
 logical, optional :: include_wall
 logical found_data, found_data2
 
@@ -376,18 +376,21 @@ endif
 
 if (graph%type == 'floor_plan') then
   ix = tao_universe_number(graph%ix_universe)
-  lat => s%u(ix)%model%lat
   this_min = 1e30
   this_max = -1e30
   found_data = .false.
 
-  do ib = 0, ubound(lat%branch, 1)
-    do i = 0, lat%branch(ib)%n_ele_track
-      call tao_floor_to_screen_coords (graph, lat%branch(ib)%ele(i)%floor, end)
-      if (end%r(1) > graph%x%max .or. end%r(1) < graph%x%min) cycle
-      this_min = min(this_min, end%r(2))
-      this_max = max(this_max, end%r(2))
-      found_data = .true.
+  do iu = 1, ubound(s%u, 1)
+    if (ix /= -2 .and. ix /= iu) cycle
+    lat => s%u(iu)%model%lat
+    do ib = 0, ubound(lat%branch, 1)
+      do i = 0, lat%branch(ib)%n_ele_track
+        call tao_floor_to_screen_coords (graph, lat%branch(ib)%ele(i)%floor, end)
+        if (end%r(1) > graph%x%max .or. end%r(1) < graph%x%min) cycle
+        this_min = min(this_min, end%r(2))
+        this_max = max(this_max, end%r(2))
+        found_data = .true.
+      enddo
     enddo
   enddo
 
