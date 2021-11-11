@@ -83,10 +83,16 @@ instability:
   unstable.orbit
 \end{example}
 
-To see a list of constraints when running \tao use the \vn{show constraints} command
-(\sref{s:show}). To see how a particular variable or datum is doing use the \vn{show data} or
-\vn{show variable} commands.  See \sref{s:datum.opt} for details on how datums are chosen to be
-included in an optimization.
+There are a number of \vn{show} commands (\sref{s:show}) that can be used to show optimization
+parameters:
+\begin{example}
+  show constraints    ! \sref{s:show.constraints} List of constraints 
+  show data           ! \sref{s:show.data} Show data info
+  show derivative     ! \sref{s:show.derivative} Show derivative info
+  show merit          ! \sref{s:show.merit} Top contributors to the merit function
+  show optimizer      ! \sref{s:show.optimizer} Optimizer parameters
+  show variable       ! \sref{s:show.variables} Show variable info
+\end{example}
 
 %------------------------------------------------------------------------
 \section{Calculation of $\delta D$ for a Datum}
