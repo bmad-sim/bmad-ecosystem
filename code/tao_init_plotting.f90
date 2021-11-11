@@ -1845,9 +1845,9 @@ if (all(s%plot_page%template%name /= 'dynamic_aperture')) then
   grph%x%label             = 'x (mm)'
   grph%y%label             = 'y (mm)'
   grph%y%label_offset= .15
-  
 
   crv => grph%curve(1)
+  crv%g => grph
   crv%name = 'e'
   crv%line%color = "red"
   crv%data_type = "beam_ellipse"
