@@ -1362,6 +1362,7 @@ case ('plot_x_axis_var')
 
   val0 = var_ptr
 
+  j = 0
   do i = 1, n_curve_pts 
     val = graph%x%min + (graph%x%max - graph%x%min) * (i - 1.0_rp) / (n_curve_pts - 1)
     if (plot%x_axis_type == 'lat')then
@@ -1371,26 +1372,31 @@ case ('plot_x_axis_var')
     else
       call tao_set_var_model_value (scratch%var_array(1)%v, val)
     endif
-    call tao_lattice_calc (valid)
+    call tao_lattice_calc (valid, .false.)
 
     call tao_evaluate_expression (curve%data_type, 0, .false., value_arr, err, &
                           dflt_component = curve%component, dflt_source = curve%data_source)
 
+    if (.not. valid .or. err .or. size(value_arr) /= 1) cycle
+    j = j + 1
+    curve%x_symb(j) = val      
+    curve%y_symb(j) = value_arr(1)
+    curve%x_line(j) = val      
+    curve%y_line(j) = value_arr(1)
+  enddo
+
+  if (j == 0) then
     if (.not. valid) then
       call tao_set_curve_invalid (curve, 'PROBLEM CALCULATING LATTICE PARAMETERS (INSTABILITY?) FOR: ' // curve%data_type, .true.)
-      exit
     elseif(err .or. size(value_arr) /= 1) then
       call tao_set_curve_invalid (curve, 'PROBLEM EVALUATING DATA FOR: ' // curve%data_type, .true.)
-      exit
     endif
+  endif
 
-    curve%x_symb(i) = val      
-    curve%y_symb(i) = value_arr(1)
-
-    curve%x_line(i) = val      
-    curve%y_line(i) = value_arr(1)
-
-  enddo
+  call re_allocate(curve%x_symb, j)
+  call re_allocate(curve%y_symb, j)
+  call re_allocate(curve%x_line, j)
+  call re_allocate(curve%y_line, j)
 
   ! Reset
 

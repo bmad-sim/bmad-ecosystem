@@ -19,7 +19,7 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_lattice_calc (calc_ok)
+! Subroutine tao_lattice_calc (calc_ok, print_err)
 !
 ! For all universes track and calculate the lattice functions for the model lattice.
 ! Also compute model values for all data.
@@ -27,9 +27,11 @@ contains
 ! Output:
 !   calc_ok       -- logical: Set False if there was an error in the 
 !                     calculation like a particle was lost or a lat is unstable.
+!   print_err     -- logical, optional: Default True. If False, do not print error messages 
+!                     if, for example, the lattice is unstable.
 !-
 
-subroutine tao_lattice_calc (calc_ok)
+subroutine tao_lattice_calc (calc_ok, print_err)
 
 use srdt_mod
 
@@ -54,6 +56,7 @@ type (tao_curve_array_struct), allocatable :: crv(:), crv_temp(:)
 real(rp) pz0, dvec(6)
 integer iuni, i, j, k, nc, ib, ix, iy, n_max, iu, it, id, n_turn
 
+logical, optional :: print_err
 logical calc_ok, this_calc_ok, err, mat_changed
 
 character(*), parameter :: r_name = "tao_lattice_calc"
@@ -135,7 +138,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       ! Even when beam tracking we need to calculate the lattice parameters with single tracking.
 
       call tao_inject_particle (u, tao_lat, ib)
-      call tao_single_track (u, tao_lat, this_calc_ok, ib)
+      call tao_single_track (tao_lat, this_calc_ok, ib, print_err)
       if (.not. this_calc_ok) calc_ok = .false.
 
       ! Need to beam track even if single tracking is not OK since the merit function may depend
@@ -328,8 +331,21 @@ end subroutine tao_lattice_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
+!+
+! Subroutine tao_single_track (tao_lat, calc_ok, ix_branch, print_err)
+!
+! Routine to track a single particle and calculate lattice functions through a lattice.
+!
+! Input:
+!   tao_lat   -- tao_lattice_struct: Structure containing the lattice.
+!   ix_branch -- integer: Branch index to track through.
+!   print_err -- logical, optional: Default False. Print error messages if, eg, lattice is unstable?
+!
+! Output:
+!   calc_ok   -- logical: Set True if there were no problems, False otherwise.
+!-
 
-subroutine tao_single_track (u, tao_lat, calc_ok, ix_branch)
+subroutine tao_single_track (tao_lat, calc_ok, ix_branch, print_err)
 
 use mode3_mod
 
@@ -337,7 +353,7 @@ implicit none
 
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
-type (tao_universe_struct), target :: u
+type (tao_universe_struct), pointer :: u
 type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
@@ -352,10 +368,12 @@ integer i, ii, n, nn, ix_branch, status, ix_lost, i_dim
 character(80) :: lines(10)
 character(*), parameter :: r_name = "tao_single_track"
 
+logical, optional :: print_err
 logical calc_ok, err, radiation_fluctuations_on
 
 !
 
+u => tao_lat%u
 lat => tao_lat%lat
 branch => tao_lat%lat%branch(ix_branch)
 tao_branch => tao_lat%tao_branch(ix_branch)
@@ -458,7 +476,7 @@ if (u%calc%twiss .and. branch%param%particle /= photon$) then
     call lat_make_mat6 (lat, -1, orbit, ix_branch)
 
     if (branch%param%geometry == closed$) then
-      call twiss_at_start (lat, status, branch%ix_branch)
+      call twiss_at_start (lat, status, branch%ix_branch, print_err)
       if (status /= ok$) then
         calc_ok = .false.
         return
