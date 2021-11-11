@@ -7315,14 +7315,19 @@ case ('base')
   tao_lat => u%base
 case ('design')
   tao_lat => u%design
+case ('')
+  tao_lat => u%model
 case default
-  call invalid ('Expecting "|<{which}" where {which} must be one of "model", "base", or "design"')
+  call invalid ('Expecting "|{which}" where {which} must be one of "model", "base", or "design"')
   return
 end select
 
-if (present(which)) which = line(ix+1:)
-line = line(1:ix-1)
+if (present(which)) then
+  which = line(ix+1:)
+  if (which == '') which = 'model'
+endif
 
+line = line(1:ix-1)
 err = .false.
 
 end function point_to_tao_lat
@@ -7378,8 +7383,12 @@ if (has_separator) then
     return
   endif
 
-  read (line(1:ix-1), *, iostat = ios) ix_branch
-  if (ios /= 0) ix_branch = -999
+  if (ix == 1) then
+    ix_branch = s%global%default_branch
+  else
+    read (line(1:ix-1), *, iostat = ios) ix_branch
+    if (ios /= 0) ix_branch = -999
+  endif
   line = line(ix+2:)
 
 elseif (len_trim(line) == 0) then
@@ -7389,8 +7398,8 @@ else
   if (ios /= 0) ix_branch = -999
 endif
 
-if (ix_branch < 0 .or. ix_branch > ubound(u%design%lat%branch, 1) .or. len_trim(str) == 0) then
-  call invalid ('missing or out of range branch index')
+if (ix_branch < 0 .or. ix_branch > ubound(u%design%lat%branch, 1)) then
+  call invalid ('Out of range branch index')
   err = .true.
   return
 endif
