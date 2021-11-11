@@ -516,18 +516,10 @@ parsing_loop: do
       endif
     endif
 
-    ! When setting an attribute for all elements then suppress error printing
+    ! When setting an attribute for many elements (EG "1:10[k1] = ..."), only some of the elements may have
+    ! the attribute to be set. This is acceptible and should not generate an error.
 
     ele_found = .false.
-
-    !! print_err = (key == 0 .and. word_1 /= '*')   ! False only when word_1 = "*"
-
-    if (attribute_index (key, word_2) == 0) then
-      call parser_error ('BAD ATTRIBUTE')
-      bp_com%parse_line = '' 
-      cycle parsing_loop
-    endif
-
     heterogeneous_ele_list = (key == 0 .and. wild_here)
 
     do i = 0, n_max
@@ -564,6 +556,9 @@ parsing_loop: do
       else
         call parser_error ('ELEMENT NOT FOUND: ' // name)
       endif
+    elseif (.not. ele_found .and. attribute_index (key, word_2) == 0) then
+      call parser_error ('BAD ATTRIBUTE')
+      bp_com%parse_line = '' 
     endif
 
     cycle parsing_loop

@@ -13,38 +13,31 @@ produces excitation\cite{b:jowett}.
 The treatment of radiation damping by \bmad essentially follows \mad. The energy loss through and element is
 modeled via 
 \begin{equation}
-  \frac{\Delta E}{E_0} = -k_E \equiv -(k_d + k_f \, \xi) \, (1 + p_z)^2
+  \frac{\Delta E}{E_0} = -k_E \equiv -(k_d \, L_p + \sqrt{k_f \, L_p} \, \xi) \, (1 + p_z)^2
 \end{equation}
-where $k_d$ gives the deterministic part of the emission, $\xi$ is a Gaussian distributed random
-number with unit sigma and zero mean, and $k_f$ is the amplitude of the stochastic part of the
-emission. The deterministic and stochastic parts of the emission can be included or excluded from a
-tracking simulation by setting in a lattice file the \bmad global parameters (\sref{s:bmad.common})
-\begin{example}
-  bmad_com[radiation_damping_on]      = True or False  ! Deterministic part on/off.
-  bmad_com[radiation_fluctuations_on] = True or False  ! Stochastic part on/off.
-  bmad_com[radiation_zero_average]    = True or False  ! Make ave radiation kick zero.
-\end{example}
-
-Values for $k_d$ and $k_f$ are calculated via the equations
+where $L_p$ is the actual path length, $k_d$ gives the deterministic part of the emission, $\xi$ is
+a Gaussian distributed random number with unit sigma and zero mean, and $k_f$ is the amplitude of
+the stochastic part of the emission. Values for $k_d$ and $k_f$ are calculated via the equations
 \begin{align}
-  k_d &= \frac{2 \, r_e}{3} \, \gamma_0^3 \, \ave{g_0^2} \, L_p
+  k_d &= \frac{2 \, r_e}{3} \, \gamma_0^3 \, \ave{g_0^2}
     \label{k2r3g} \\
-  k_f &= \left( \frac{55 \, r_e \, \hbar}{24 \, \sqrt{3} \, m_e \, c} \, 
-    L_p \, \gamma_0^5 \ave{g_0^3} \right)^{1/2}
+  k_f &= \frac{55 \, r_e \, \hbar}{24 \, \sqrt{3} \, m_e \, c} \, 
+    \gamma_0^5 \ave{g_0^3}
     \label{k55rh}
 \end{align}
-where $r_e$ is the classical electron radius, $L_p$ is the actual path length, $\gamma_0$ is the energy
-factor of an on-energy particle, $1/g_0$ is the bending radius of an on--energy particle, and
-$\ave{g_0^2}$ is an average of $g_0^2$ over the actual path.
+where $r_e$ is the classical electron radius, $\gamma_0$ is the energy factor of an on-energy
+particle, $1/g_0$ is the bending radius of an on--energy particle, and $\ave{g_0^2}$ is an average
+of $g_0^2$ over the actual path.
 
 Since the radiation is emitted in the forward direction the angular orientation of the particle
 motion is invariant which leads to the following equations for the changes in momentum phase space
 coordinates
-\begin{align}
-  \Delta p_x &= -\frac{k_E}{1 + p_z} \, p_x , \qquad  
-    \Delta p_y = -\frac{k_E}{1 + p_z} \, p_y \CRNO
-  \Delta p_z &\approx \frac{\Delta E}{E_0} = -k_E 
-\end{align}
+\begin{equation}
+  \Delta p_x = -\frac{k_E}{1 + p_z} \, p_x , \qquad
+  \Delta p_y = -\frac{k_E}{1 + p_z} \, p_y, \qquad
+  \Delta p_z \approx \frac{\Delta E}{E_0} = -k_E 
+  \label{pk1pp}
+\end{equation}
 
 The above formalism does not take into account the fact that radiation is emitted with a $1/\gamma$
 angular distribution. This means that the calculated vertical emittance for a lattice with bends
@@ -61,11 +54,18 @@ energy loss along the closed orbit. For this calculation the closed orbit should
 as calculated without radiation damping (in other words the closed orbit without the sawtooth). In
 this case, $k_E$ is calculated by
 \begin{equation}
-  k_E = (k_d + k_f \, \xi) \, (1 + p_z)^2 - k_{d0}
+  k_E = (k_d \, L_p + \sqrt{k_f \, L_p} \, \xi) \, (1 + p_z)^2 - k_{d0} \, L_p
 \end{equation}
 where $k_{d0}$ is $k_d$ evaluated along the closed orbit. In practice, for the calculation, \bmad
 approximates the closed orbit as the zero orbit. 
 
+The deterministic and stochastic parts of the emission can be included or excluded from a tracking
+simulation by setting in a lattice file the \bmad global parameters (\sref{s:bmad.common})
+\begin{example}
+  bmad_com[radiation_damping_on]      = True or False  ! Deterministic part on/off.
+  bmad_com[radiation_fluctuations_on] = True or False  ! Stochastic part on/off.
+  bmad_com[radiation_zero_average]    = True or False  ! Make ave radiation kick zero.
+\end{example}
 The global parameter \vn{bmad_com[radiation_zero_average]} controls the shifting of the photon
 spectrum to have zero average. Currently, the shifting of the spectrum only works for non PTC
 dependent tracking. That is, the shifting is not applicable to tracking with Taylor maps and with
@@ -77,12 +77,75 @@ dependent tracking. That is, the shifting is not applicable to tracking with Tay
 \index{map!with radiation included}
 
 Transport maps which include radiation effects can be constructed\cite{b:ohmi}. The first step is to
-calculate the referece orbit. If the lattice has a closed geometry, the reference orbit is the
-closed orbit calculated with radiation damping included in the tracking. If the lattice has an open
-geometry, the reference orbit is the orbit with radiation damping starting from the initial
-particle position given by the user.
+calculate the reference orbit which is the beam centroid orbit with radiation damping but ignoring
+stochastic effects. The transfer map from $s_1$ to $s_2$ will be of the form
+\begin{equation}
+  \bfr_2 = \calM_{21}(\bfr_1) + \Cal{S}_{21} \Bf\Xi
+  \label{rmrsx}
+\end{equation}
+where $\bfr_1$ and $\bfr_2$ are the particle positions with respect to the reference orbit at $s_1$
+and $s_2$ respectively and $\calM_{21}$ is the transfer map with damping. The stochastic radiation
+part is represented by a $6\times6$ matrix $\Cal{S}$ times a $6$-vector 
+\begin{equation}
+  \Bf\Xi = (\xi_1, \xi_2, \xi_3, \xi_4, \xi_5, \xi_6)
+\end{equation}
+with each $\xi_i$ being a Gaussian distributed random number with unit sigma. The stochastic
+transport (second term in \Eq{rmrsx}) is treated here only in lowest order. This is a good
+approximation as long as the radiation emitted is small enough in the region between $s_1$ and
+$s_2$. This is true for nearly all practical cases. In the case where this approximation fails, the
+equilibrium beam distribution would not be Gaussian and the standard radiation integral treatment
+(\sref{s:synch.ints}), which relies on this approximation, would not be valid.
 
-After the reference orbit has been calculated, The 
+The transfer map with damping $\calM_{21}$ is calculated by adding in the effect of the damping
+(\Eqs{pk1pp}) when integrating the equations of motion to form the map. Assuming that the change in
+energy over the interval $[s_1, s_2]$ is small compared to the energy of a particle, the matrix
+$\bfM_{21}$, which is the first order part of $\calM_{21}$, is computed via first order perturbation
+theory to be
+\begin{equation}
+  \bfM_{21} = \bfT_{21} + \bfD_{21}
+\end{equation}
+where $\bfT_{21}$ is the transfer matrix without damping and $\bfD_{21}$ is the damping matrix
+computed via
+\begin{equation}
+  \bfD_{21} = \int_{s_1}^{s_2} ds \, \bfT_{2s} \, \bfd(s)
+\end{equation}
+with the local damping matrix $\bfd$ being computed from \Eqs{pk1pp}. Notice that since $\calM_{21}$
+is computed with respect to the beam centroid orbit, there is no constant part to the map.
+
+The $\Cal{S}$ matrix is calculated by first noting that, to linear order, the distribution of
+$\bfr_2$ due to stochastic radiation over some length $ds$ as some point $s$ is
+\begin{equation}
+  \bfr_2 = \sqrt{ds} \, \bfM_{2s} \, \bfV_\mk{f}(s) \, \xi
+\end{equation}
+where $\bfM_{2s}$ is the first order part (matrix) of the map $\calM_{2s}$ from $s$ to $s_2$, and
+$\bfV_\mk{f}$ is (see \sref{s:radiation})
+\begin{equation}
+  \bfV_\mk{f} = -\sqrt{k_f} \cdot (0, 0, 0, 0, 0, 1)
+\end{equation}
+where $k_f$ is to be evaluated on the reference orbit. Notice that since $\bfr$ is, by definition,
+the deviation from the reference orbit, $p_x = r_2$ and $p_y = r_4$ will be zero on the reference
+orbit. The covariance matrix $\bfsig_\gamma$ is defined by $\sigma_{\gamma ij} \equiv \langle r_i \, r_j
+\rangle_\gamma$ where $\langle \ldots \rangle_\gamma$ is an average over the photon emission
+spectrum.\footnote
+  {
+Not to be confused with the beam size matrix $\bfsig$ which is an average over the particles of a beam.
+  }
+ At $s_2$, due to the
+stochastic emission over the region between $s_1$ and $s_2$, $\bfsig_\gamma$ is
+\begin{equation}
+  \bfsig_\gamma(s_2) = \int_{s_1}^{s_2} ds \, 
+  \bfM_{2s} \, \big[ \bfV_\mk{f}(s) \otimes \bfV_\mk{f}(s) \big] \, \bfM_{2s}^t
+  \label{smvvm}
+\end{equation}
+where $\otimes$ is the outer product and the $t$ superscript indicates transpose. $\bfsig_\gamma$ is related to
+$\Cal{S}$ via
+\begin{equation}
+  \bfsig_\gamma = \Cal{S} \, \Cal{S}^t
+  \label{sxx}
+\end{equation}
+The calculation of $\Cal{S}$ involves calculating $\bfsig_\gamma$ via \Eq{smvvm} and then using \Eq{sxx}
+to solve for $\Cal{S}$ using, say, a Cholesky decomposition. Notice that while \Eq{sxx} does not have a
+unique solution, what matters here is that $\Cal{S} \, \Bf\Xi$ gives the correct distribution.
 
 %-----------------------------------------------------------------
 \section{Synchrotron Radiation Integrals}
