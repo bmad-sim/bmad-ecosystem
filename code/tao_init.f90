@@ -18,6 +18,8 @@ use tao_data_and_eval_mod, dummy7 => tao_init
 use tao_command_mod, dummy8 => tao_init
 use tao_set_mod, dummy9 => tao_init
 use tao_plot_mod, only: tao_draw_plots
+use tao_plot_window_mod, only: tao_destroy_plot_window
+
 !$ use omp_lib
 
 implicit none
@@ -125,6 +127,11 @@ beam_file          = 'NOT SET!'         ! set default
 building_wall_file = 'NOT SET!'       
 startup_file       = 'NOT SET!'       
 hook_init_file     = 'NOT SET!'
+
+! Quit the plot window if it exists so it will be recreated    
+
+call tao_destroy_plot_window
+s%com%init_plot_needed = .true.
 
 ! Read the global parameters
 

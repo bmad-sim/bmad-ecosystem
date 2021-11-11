@@ -34,7 +34,7 @@ character(*), optional :: command
 character(1000) cmd_out
 character(16) :: r_name = 'tao_top_level'
 
-logical found, err, need_input
+logical found, err, need_input, err_is_fatal
 
 ! init
 
@@ -89,7 +89,8 @@ do
   else
     ! Command line mode
     call tao_hook_command (cmd_out, found)
-    if (.not. found) call tao_command (cmd_out, err)
+    if (.not. found) call tao_command (cmd_out, err, err_is_fatal)
+    if (err_is_fatal) exit
     call tao_cmd_history_record (cmd_out)
   endif
 
