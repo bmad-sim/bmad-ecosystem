@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_command (command_line, err)
+! Subroutine tao_command (command_line, err, err_is_fatal)
 !
 ! Interface to all standard (non hook) tao commands. 
 ! This routine esentially breaks the command line into words
@@ -7,25 +7,27 @@
 ! Commands are case sensitive.
 !
 ! Input:
-!   command_line -- character(*): command line
+!   command_line  -- character(*): command line
 !
-!  Output:
+! Output:
+!  err            -- logical: Set True on error. False otherwise.
+!  err_is_fatal   -- logical: Set True on non-recoverable error. False otherwise
 !-
 
-subroutine tao_command (command_line, err)
+subroutine tao_command (command_line, err, err_is_fatal)
 
 use tao_change_mod
 use tao_command_mod
 use tao_data_and_eval_mod
 use tao_dmerit_mod
 use tao_misalign_mod
-use tao_plot_window_mod
 use tao_scale_mod
 use tao_set_mod
 use tao_show_mod
 use tao_wave_mod
 use tao_x_scale_mod
 use input_mod
+use tao_plot_window_mod, only: tao_destroy_plot_window
 
 ! MPI use tao_mpi_mod
 
@@ -62,9 +64,13 @@ character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
 
-logical quit_tao, err, silent, gang, abort, err_flag, ok, include_wall, update, exact, include_this
+logical quit_tao, err, err_is_fatal, silent, gang, abort, err_flag, ok
+logical include_wall, update, exact, include_this
 
 ! blank line => nothing to do
+
+err_is_fatal = .false.
+err = .false.
 
 call string_trim (command_line, cmd_line, ix_line)
 if (ix_line == 0 .or. cmd_line(1:1) == '!') return
@@ -459,12 +465,8 @@ case ('reinitialize')
   case ('tao') 
     call tao_parse_command_args (err, cmd_word(2));  if (err) goto 9000
 
-    ! quit the plot window so it will be recreated    
-    call tao_destroy_plot_window
-    s%com%init_plot_needed = .true.
-    
     if (s%init%init_file_arg /= '') call out_io (s_info$, r_name, 'Reinitializing with: ' // s%init%init_file_arg)
-    call tao_init (err)
+    call tao_init (err_is_fatal)
     return
 
   case default
