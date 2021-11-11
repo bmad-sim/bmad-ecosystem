@@ -171,6 +171,10 @@ start_orb => closed_orb(ix_ele_start)
 end_orb   => closed_orb(ix_ele_end)
 ele_start => branch%ele(ix_ele_start)
 
+c_orb => closed_orb   ! Used to get around ifort bug
+s_orb => start_orb    ! Used to get around ifort bug
+e_orb => end_orb      ! Used to get around ifort bug
+
 call init_coord (start_orb, start_orb, ele_start, start_end$, start_orb%species, dir)
 
 !----------------------------------------------------------------------
@@ -279,10 +283,6 @@ old_chisq = 1d30   ! Something large
 coc%a_vec = start_orb%vec(1:n_dim)
 if (n_dim == 5) coc%a_vec(5) = start_orb%vec(6)
 try_lmdif = .true.
-
-c_orb => closed_orb   ! Used to get around ifort bug
-s_orb => start_orb    ! Used to get around ifort bug
-e_orb => end_orb      ! Used to get around ifort bug
 
 !
 
