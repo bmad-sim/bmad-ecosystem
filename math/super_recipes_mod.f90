@@ -1434,4 +1434,43 @@ end subroutine trapzd_2D
 
 end function super_qromb_2D
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function super_poly (x, coef) result (value)
+!
+! Routine to compute Sum: coef(i)*x^i
+!
+! Input:
+!   x       -- real(rp): Variable.
+!   coef(:) -- real(rp): Coefficients.
+!
+! Output:
+!   value   -- real(rp): Polynomial value.
+!-
+
+function super_poly (x, coeffs) result(value)
+
+real(rp), intent(in) :: x
+real(rp), intent(in) :: coeffs(:)
+real(rp) :: value
+integer :: i, n
+
+!
+
+n = size(coeffs)
+
+if (n <= 0) then
+  value = 0.0_rp
+
+else
+  value = coeffs(n)
+  do i = n-1, 1, -1
+    value = x*value + coeffs(i)
+  end do
+end if
+
+end function super_poly
+
 end module
