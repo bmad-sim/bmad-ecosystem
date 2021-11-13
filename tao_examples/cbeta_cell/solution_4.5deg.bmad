@@ -1,0 +1,14 @@
+O_FF_ANGLE_DEG[X_PITCH]=-4.5
+O_quad_length[L] = 5*abs(O_FF_ANGLE_DEG[X_PITCH]*pi/180) - .17 ! 5 m radius, 17cm drifts
+FF.QUA01[B1_GRADIENT] = -20.931
+FF.QUA02[B1_GRADIENT] = 20.32
+FF.QUA02[X_OFFSET]    = 0.025342
+O_QUAD_LENGTH[F]      = 0.51775
+
+
+FF.QUA01[L] = (5*4.5*pi/180 - .17 )*0.51775
+FF.QUA02[L] = (5*4.5*pi/180 - .17 )*(1-0.51775)
+FF.Patch01a[x_pitch] = -4.5*pi/180/2
+FF.Patch01b[x_pitch] = -4.5*pi/180/2
+
+O_aperture[r0] = 25e-3

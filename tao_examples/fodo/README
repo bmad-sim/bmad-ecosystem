@@ -1,0 +1,26 @@
+# Simple FODO example
+
+- fodo.bmad is the main lattice file.
+- fod010.bmad calls fodo.bmad
+- markers.bmad has markers that fodo10.bmad uses.
+
+## Set up an alias that optimizes for mean beta functions
+tao
+
+Tao> call SetBetas.tao 
+Tao> setbetas 10 15
+
+Will return:
+...
+Tao: show var -bmad -good
+Q1[K1] =  2.06297458031601657E+001
+Q2[K1] = -1.05805690948094870E+001
+
+## 10-cell lattice with markers to gather the beam from
+tao -lat fodo10.bmad
+
+
+
+
+
+

@@ -1,0 +1,26 @@
+set (EXENAME ping_tao)
+
+FILE (GLOB SRC_FILES "*.f90")
+
+SET (LINK_FLAGS ${READLINE_LINK_FLAGS})
+
+set (LINK_LIBS
+  tao 
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)
+
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  link_directories(/opt/local/lib)
+ENDIF ()
+
+IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
+  set (SHARED_LINK_LIBS
+    pangocairo-1.0
+    cairo
+    pango-1.0
+    gobject-2.0
+  )
+ENDIF ()

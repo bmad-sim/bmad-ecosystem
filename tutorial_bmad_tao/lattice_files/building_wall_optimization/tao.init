@@ -1,0 +1,53 @@
+&tao_start
+  plot_file = 'tao_plot.init'
+  building_wall_file = 'tao.init'
+/
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1) = "lat.bmad"
+/
+
+!------------------------------------------------------------------------
+! Define data constraints
+
+&tao_d2_data
+  d2_data%name = 'wall'
+  n_d1_data = 1
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = 'a'
+  datum(1) =  'wall.left_side'     '' '' 'END'   'min' 0.1   1
+  datum(2) =  'wall.right_side'    '' '' 'END'   'min' 0.1   1
+/
+
+!------------------------------------------------------------------------
+! Define variables
+
+&tao_var
+  v1_var%name = 'bend'
+  default_attribute = 'g'
+  default_weight = 1e-2
+  default_step = 1e-6
+  var(1)%ele_name = 'B'
+/
+
+!------------------------------------------------------------------------
+! Define building wall
+
+&building_wall_section
+  name = 'outside'
+  constraint = 'left_side'
+  point(1) = 0.0,  0.2
+  point(2) = 1.2, -1.0, 1.2
+/
+
+&building_wall_section
+  name = 'inside'
+  constraint = 'right_side'
+  point(1) = 0.0, -0.2
+  point(2) = 0.8, -1.0, 0.8
+/
+

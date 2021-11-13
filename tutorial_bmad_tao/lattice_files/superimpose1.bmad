@@ -1,0 +1,15 @@
+! Lattice File: superimpose1.bmad
+
+beginning[beta_a] = 10.   ! m  a-mode beta function
+beginning[beta_b] = 10.   ! m  b-mode beta function
+beginning[e_tot] = 10e6   ! eV   Or can set p0c
+parameter[geometry] = open      ! or closed
+
+q: quadrupole, L = 1, k1 = 0.2
+d: drift, L = 1
+
+m1: marker, superimpose, ref = q, ref_origin = beginning, offset = 0.3
+m2: marker, superimpose, ref = q, ref_origin = end, offset = 0.4
+
+lat: line = (q, d)   ! List of lattice elements
+use, lat             ! Line used to construct the lattice

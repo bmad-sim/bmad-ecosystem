@@ -1,0 +1,190 @@
+!------------------------------------------------------------------------
+!
+&tao_start
+  plot_file = 'tao_plot.init'
+/
+
+!------------------------------------------------------------------------
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1) = "bmad.lat"
+  design_lattice(1)%dynamic_aperture_calc = f
+  design_lattice(1)%one_turn_map_calc = True
+/
+
+!------------------------------------------------------------------------
+
+&tao_dynamic_aperture
+  da_init(1)%pz = 0, 0.001, -0.001
+  da_init(1)%n_angle = 9
+  da_init(1)%min_angle = 0
+  da_init(1)%max_angle = 3.14159
+  da_init(1)%n_turn = 200
+  da_init(1)%x_init = 1e-7
+  da_init(1)%y_init = 1e-7
+  da_init(1)%accuracy = 1e-5
+/
+
+&tao_params
+  global%plot_on = t
+  global%n_opti_cycles = 20
+  global%n_opti_loops = 10000
+  global%srdt_use_cache = True
+  global%srdt_gen_n_slices=15
+  global%srdt_sxt_n_slices=30
+  bmad_com%taylor_order = 5
+/
+
+!------------------------------------------------------------------------
+! Summation Driving Term Data
+&tao_d2_data
+  d2_data%name = "srdt"
+  universe = '1'
+  n_d1_data = 3
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "first"
+  default_weight = 1
+  ix_min_data = 1
+  ix_max_data = 10
+
+  datum(1:10)%data_type      = 'chrom.a', 'chrom.b', 'srdt.h21000.a', 'srdt.h30000.a', 'srdt.h10110.a',
+                              'srdt.h10020.a', 'srdt.h10200.a', 'srdt.h20001.a', 'srdt.h00201.a', 'srdt.h10002.a',
+  datum(1:10)%merit_type     = 'target', 'target', 'target', 'target', 'target', 'target', 'target', 'target', 'target', 'target'
+  datum(1:10)%meas           = 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+  datum(1:2)%weight         = 100.0, 100.0
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "adts"
+  default_weight = 1.0e-9
+  ix_min_data = 1
+  ix_max_data = 3
+
+  datum(1:3)%data_type      = 'srdt.h22000.r', 'srdt.h11110.r', 'srdt.h00220.r'
+  datum(1:3)%merit_type     = 'target', 'target', 'target'
+  datum(1:3)%meas           = 0.0, 0.0, 0.0
+/
+
+&tao_d1_data
+  ix_d1_data = 3
+  d1_data%name = "second"
+  default_weight = 1.0e-6
+  ix_min_data = 1
+  ix_max_data = 8
+
+  datum(1:8)%data_type      = 'srdt.h31000.a', 'srdt.h40000.a', 'srdt.h20110.a', 'srdt.h11200.a', 'srdt.h20020.a', 'srdt.h20200.a', 'srdt.h00310.a', 'srdt.h00400.a'
+  datum(1:8)%merit_type     = 'target', 'target', 'target', 'target', 'target', 'target', 'target', 'target'
+  datum(1:8)%meas           = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+/
+
+
+!------------------------------------------------------------------------
+! PTC Normal Form Driving Term Data
+
+&tao_d2_data
+  d2_data%name = "ptc"
+  universe = 1
+  n_d1_data = 5
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "chrom"
+  default_weight = 1
+  default_merit_type = 'target'
+  ix_min_data = 1
+  ix_max_data = 2
+
+  datum(1:2)%data_type      = 'chrom.a', 'chrom.b'
+  datum(1:10)%meas           = 1.0, 1.0
+  datum(1:2)%weight         = 10.0, 10.0
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "first"
+  default_weight = 1.0
+  default_merit_type = 'target'
+  ix_min_data = 1
+  ix_max_data = 8
+
+  datum( 1)%data_type     = 'normal.h.210000.a'
+  datum( 2)%data_type     = 'normal.h.300000.a'
+  datum( 3)%data_type     = 'normal.h.101100.a'
+  datum( 4)%data_type     = 'normal.h.100200.a'
+  datum( 5)%data_type     = 'normal.h.102000.a'
+  datum( 6)%data_type     = 'normal.h.200001.a'
+  datum( 7)%data_type     = 'normal.h.002001.a'
+  datum( 8)%data_type     = 'normal.h.100002.a'
+  datum(1:8)%meas         = 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+/
+
+&tao_d1_data
+  ix_d1_data = 3
+  d1_data%name = "second"
+  default_weight = 8e-6 !penalized 1 order, because not in vacinity
+  default_merit_type = 'target'
+  ix_min_data = 1
+  ix_max_data = 8
+
+  datum(1)%data_type      = 'normal.h.310000.a'
+  datum(2)%data_type      = 'normal.h.400000.a'
+  datum(3)%data_type      = 'normal.h.201100.a'
+  datum(4)%data_type      = 'normal.h.112000.a'
+  datum(5)%data_type      = 'normal.h.200200.a'
+  datum(6)%data_type      = 'normal.h.202000.a'
+  datum(7)%data_type      = 'normal.h.003100.a'
+  datum(8)%data_type      = 'normal.h.004000.a'
+  datum(1:8)%meas         = 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+/
+&tao_d1_data
+  ix_d1_data = 4
+  d1_data%name = "adts"
+  default_weight = 1e-9  !based on experience
+  default_merit_type = 'target'
+  ix_min_data = 1
+  ix_max_data = 8
+  datum(1)%data_type      = 'normal.h.220000.r'
+  datum(2)%data_type      = 'normal.h.111100.r'
+  datum(3)%data_type      = 'normal.h.002200.r'
+  datum(1:3)%meas         = 0.0,0.0,0.0
+/
+
+&tao_d1_data
+  ix_d1_data = 5
+  d1_data%name = "custom"
+  default_weight = 1.0e-6
+  default_merit_type = 'target'
+  ix_min_data = 1
+  ix_max_data = 6
+
+  datum( 1)%data_type     = 'normal.h.300100.a'
+  datum( 1)%weight        = 2.9e-3
+  datum( 2)%data_type     = 'normal.h.104000.a'
+  datum( 2)%weight        = 8e-6
+  datum( 3)%data_type     = 'normal.h.014000.a'
+  datum( 3)%weight        = 8e-6
+  datum( 4)%data_type     = 'normal.h.203000.a'
+  datum( 4)%weight        = 8e-6
+  datum( 5)%data_type     = 'normal.h.302000.a'
+  datum( 5)%weight        = 8e-6
+  datum( 6)%data_type     = 'normal.h.005000.a'
+  datum( 6)%weight        = 8e-6
+  datum(1:6)%meas         = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+/
+
+&tao_var
+  v1_var%name  = "s_k2"
+  default_attribute = "k2"
+  default_weight = 0.0
+  default_step = 1e-4
+  ix_min_var = 1
+  ix_max_var = 200
+  search_for_lat_eles = 'sextupole::sex*'
+/
+

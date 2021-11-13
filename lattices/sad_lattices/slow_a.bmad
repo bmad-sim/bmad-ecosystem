@@ -1,0 +1,108 @@
+! Translated from SAD file: slow_a.sad
+
+ 
+beginning[p0c] = 3.8249e0  * 1e9
+parameter[ptc_exact_model] = true
+
+mass = 0.93826e0  * 1e9
+ess1k = 0.2e-03*0.
+ess2k = 0.2e-03*0.
+sms11k = -1.0e-03*0.
+sms12k = sms11k*2.*0.
+sms21k = -2.72e-3*0.95*0.
+sms31k = -10.08246e-3*0.
+sms33k = -21.7306e-3*0.
+qfnk1 = .159107549119-2.2e-4*1.56
+
+ref: marker
+
+mkisin: marker
+
+mkmodex: marker
+mkmatin: marker
+l1: drift, l = 2.22
+qfs: quadrupole, k1 = .125198286993 disfrin 0 fringe 3 f1 0.2155 / (0.63*2.), fringe_type = hard_edge_only, l = 0.63*2.
+l2: drift, l = 9.95
+qds: quadrupole, k1 = -.176963910926 disfrin 0 fringe 3 f1 0.2155 / (0.83*2.), fringe_type = hard_edge_only, l = 0.83*2.
+l3: drift, l = 1.44
+qft: quadrupole, k1 = .139936126279 disfrin 0 fringe 3 f1 0.2155 / (0.73*2.), fringe_type = hard_edge_only, l = 0.73*2.
+l4plsf: drift, l = 3.09/2.
+plsf: marker
+qfp: quadrupole, k1 = .072842159459 disfrin 0 fringe 3 f1 0.2155 / (0.43*2.), fringe_type = hard_edge_only, l = 0.43*2.
+l5: drift, l = 9.62-0.1
+qdt: quadrupole, k1 = -.149108000095 disfrin 0 fringe 3 f1 0.2155 / (0.93*2.), fringe_type = hard_edge_only, l = 0.93*2.
+null_mkqdt01#1: null_ele
+mkqdt01: marker, superimpose, ref = null_mkqdt01#1, offset = -0.93
+l6: drift, l = 6.6
+mkmatex: marker
+mkregin: marker
+
+insmat1: line = (mkmodex, mkmatin, l1, qfs, l2, qds, l3, qft, l4plsf, plsf, l4plsf, qfp, l5, qdt, null_mkqdt01#1, l6,
+          mkmatex, mkregin)
+
+qfr: quadrupole, k1 = .174581349985 disfrin 0 fringe 3 f1 0.2155 / (0.88*2.), fringe_type = hard_edge_only, l = 0.88*2.
+null_mkqfr01#2: null_ele
+mkqfr01: marker, superimpose, ref = null_mkqfr01#2, offset = -0.88
+l7: drift, l = 6.4
+qdr: quadrupole, k1 = -.170442952470 disfrin 0 fringe 3 f1 0.2155 / (0.93*2.), fringe_type = hard_edge_only, l = 0.93*2.
+null_mkqdr01#3: null_ele
+mkqdr01: marker, superimpose, ref = null_mkqdr01#3, offset = -0.93
+l8: drift, l = 6.4
+null_mkqfr02#4: null_ele
+mkqfr02: marker, superimpose, ref = null_mkqfr02#4, offset = -0.88
+null_mkqdr02#5: null_ele
+mkqdr02: marker, superimpose, ref = null_mkqdr02#5, offset = -0.93
+mkregex: marker
+
+insreg: line = (mkmodex, mkregin, qfr, null_mkqfr01#2, l7, qdr, null_mkqdr01#3, l8, qfr, null_mkqfr02#4, l8, qdr,
+          null_mkqdr02#5, l7, mkregex)
+
+l4: drift, l = 3.09
+qdx: quadrupole, k1 = -.168177386201 disfrin 0 fringe 3 f1 0.2155 / (0.83*2.), fringe_type = hard_edge_only, l = 0.83*2.
+
+insmat2: line = (qfr, l6, qdt, l5, qfp, l4, qft, l3, qds, l2, qfs, l1, qdx)
+mkisex: marker
+
+ins: line = (mkisin, insmat1, insreg, insmat2, mkisex)
+
+mkacin: marker
+
+mkmodin: marker
+la1: drift, l = 0.82
+bmn: sbend, hgap = (.0)/6, fint = 0.5, angle = 3.75  * degrees, fringe_type = sad_full, l = 5.85,
+          e1 = 0 * 3.75  * degrees, e2 = 0 * 3.75  * degrees
+la2: drift, l = 0.97
+qfn: quadrupole, k1 = qfnk1 disfrin 0 fringe 3 f1 0.2155 / (0.78*2.), fringe_type = hard_edge_only, l = 0.78*2.
+la3: drift, l = 0.82
+la4: drift, l = 0.97
+qdn: quadrupole, k1 = -.188032340066 disfrin 0 fringe 3 f1 0.2155 / (0.93*2.), fringe_type = hard_edge_only, l = 0.93*2.
+la5: drift, l = 0.45
+sda: sextupole, k2 = -4.397044e-01*1. / 0.7, fringe_type = full, l = 0.7
+la6: drift, l = 2.66
+qfx: quadrupole, k1 = .132494812971 disfrin 0 fringe 3 f1 0.2155 / (0.63*2.), fringe_type = hard_edge_only, l = 0.63*2.
+la7: drift, l = 0.45
+sfa: sextupole, k2 = 5.386042e-01*1. / 0.7, fringe_type = full, l = 0.7
+la8: drift, l = 0.45
+la9: drift, l = 0.45
+
+lsex: drift, l = 0.35
+sfm: sad_mult, fringe_type = hard_edge_only, l = 0, b2 = 0 / factorial(2)
+
+sfx24: line = (lsex, sfm, lsex)
+la10: drift, l = 1.18
+sdb: sextupole, k2 = -4.397044e-01*1. / 0.7, fringe_type = full, l = 0.7
+la11: drift, l = 0.78
+la12: drift, l = 0.82
+la13: drift, l = 0.97
+la14: drift, l = 0.82
+la15: drift, l = 0.97
+
+mod: line = (mkmodin, la1, bmn, la2, qfn, la3, bmn, la4, qdn, la5, sda, la6, qfx, la7, sfa, la8, qfx, la9, sfx24, la10,
+          sdb, la11, qdn, la12, bmn, la13, qfn, la14, bmn, la15, qdx, mkmodex, mkmatin)
+mkacex: marker
+
+arc: line = (mkacin, 8*mod, mkacex)
+
+rng: line = (ref, ins, arc, ins, arc, ins, arc)
+
+use, rng

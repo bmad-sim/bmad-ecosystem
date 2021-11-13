@@ -1,0 +1,9 @@
+! Energy patches for reference energy: 158.5 MeV
+pEref.1: patch, e_tot_offset = 9.15e7
+pEref.2: patch, e_tot_offset = 3.05e7
+pEref.3: patch, e_tot_offset = -3.05e7
+pEref.4: patch, e_tot_offset = -9.15e7
+pErefReverse.1: patch, e_tot_offset = -9.15e7
+pErefReverse.2: patch, e_tot_offset = -3.05e7
+pErefReverse.3: patch, e_tot_offset = 3.05e7
+pErefReverse.4: patch, e_tot_offset = 9.15e7

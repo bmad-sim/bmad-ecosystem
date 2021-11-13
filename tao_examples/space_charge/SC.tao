@@ -1,0 +1,30 @@
+
+
+set csr_param n_bin = 40
+set csr_param ds_track_step = 0.01
+
+
+
+set ele * csr_method = off
+set ele * space_charge_method = fft_3d
+
+set bmad_com csr_and_space_charge_on = T
+
+
+
+place * none
+!place r11 xphase
+!place r12 zphase
+place top2 xphase
+place middle2 zphase
+
+
+
+set global track_type = beam
+!set global track_type = beam
+
+sc
+
+!x-s r11 -4.5 4.5
+!x-s r12 -.4 .4
+!sc

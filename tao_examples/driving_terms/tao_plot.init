@@ -1,0 +1,662 @@
+This initialization file defines how plotting is done.
+
+The following namelist block defines how the plot window (also called
+the plot page) is broken up.
+
+&tao_plot_page
+  plot_page%size = 800, 800
+  plot_page%text_height = 15.0 
+  plot_page%border = 0, 0, 0, 0, '%PAGE'  
+  plot_page%n_curve_pts = 5000
+
+  region(1) = 'mid'       0.05, 0.95, 0.05, 0.95
+  place(1) = 'mid', 'da'
+
+/
+
+&tao_template_plot
+  plot%name = 'da'
+  default_graph%x%major_div_nominal = 10
+  default_graph%x%label = 'x (mm)'
+  plot%x_axis_type = 'phase_space'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'g1'
+  graph%type = 'dynamic_aperture'
+  graph_index = 1
+  graph%title = 'dynamic aperture'
+  graph%margin = 0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000
+  graph%y%label = 'y (mm)'
+  graph%y%label_offset = .2
+  graph%y%max = 20
+  graph%y%min = 0
+  graph%y%major_div = 4
+  curve(1)%y_axis_scale_factor = 1000
+  curve(1)%draw_symbols = F
+  curve(1)%data_type = 'dynamic_aperture'
+  curve(1)%line%color = "black"
+  curve(1)%line%width = 5
+
+  curve(2)%y_axis_scale_factor = 1000
+  curve(2)%draw_symbols = F
+  curve(2)%data_type = 'dynamic_aperture'
+  curve(2)%line%color = "red"
+  curve(2)%line%width = 3
+
+  curve(3)%y_axis_scale_factor = 1000
+  curve(3)%draw_symbols = F
+  curve(3)%data_type = 'dynamic_aperture'
+  curve(3)%line%color = "green"
+  curve(3)%line%width = 3
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'lat_layout'
+  default_graph%x%label = 'Meters'
+  default_graph%x%draw_label = False
+  plot%x_axis_type = 's'
+  default_graph%x%major_div_nominal = 9
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'this'
+  graph%type = 'lat_layout'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Floor Plan'
+  graph%title = ''
+  graph%margin = 0.05, 0.05, 0.05, 0.05, "%BOX"
+  graph%x%draw_numbers = F
+  graph%y%max = 0.5
+  graph%y%min = -0.5
+  graph%y%major_div_nominal = 10
+  graph%y%label = "Meters"
+  graph%floor_plan%correct_distortion = f
+/
+
+&tao_template_plot
+  plot%name = 'lat_layout2'
+  default_graph%x%min = 680
+  default_graph%x%max = 770
+  default_graph%x%label = 'Meters'
+  default_graph%x%draw_label = False
+  plot%x_axis_type = 's'
+  default_graph%x%major_div_nominal = 9
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'this'
+  graph%type = 'lat_layout'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Floor Plan'
+  graph%title = ''
+  graph%margin = 0.05, 0.05, 0.05, 0.05, "%BOX"
+  graph%x%draw_numbers = F
+  graph%y%max = 0.5
+  graph%y%min = -0.5
+  graph%y%major_div_nominal = 10
+  graph%y%label = "Meters"
+  graph%floor_plan%correct_distortion = f
+/
+
+&tao_template_plot
+  plot%name = 'lat_layout_full'
+  default_graph%x%label = 'Meters'
+  default_graph%x%draw_label = False
+  plot%x_axis_type = 's'
+  default_graph%x%major_div_nominal = 14
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'this'
+  graph%type = 'lat_layout'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Floor Plan'
+  graph%title = ''
+  graph%margin = 0.05, 0.05, 0.05, 0.05, "%BOX"
+  graph%y%max = 0.5
+  graph%y%min = -0.5
+  graph%x%draw_numbers = F
+  graph%y%major_div_nominal = 10
+  graph%y%label = "Meters"
+  graph%floor_plan%correct_distortion = f
+/
+
+
+&tao_template_plot
+  plot%name = 'beta_eta'
+  default_graph%x%label = 's [meters]'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'L0 to 13W'
+  graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
+  graph%y%label = 'Beta [meters]'
+
+  graph%y%max =  100
+  graph%y%min = 0
+  graph%y%major_div = 4
+
+  graph%y2%label = 'Eta.x [cm]'
+  graph%y2%max = 100
+  graph%y2%min = 0
+  graph%y2%major_div = 4
+
+
+  curve(1)%data_source = 'lat'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 0
+
+  curve(2)%data_source = 'lat'
+  curve(2)%data_type   = 'beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%ix_branch = 0
+
+  curve(3)%data_source = 'lat'
+  curve(3)%data_type   = 'eta.x'
+  curve(3)%y_axis_scale_factor = 100
+  curve(3)%ix_branch = 0
+  curve(3)%use_y2 = True
+
+/
+
+&tao_template_plot
+  plot%name = 'beta_eta2'
+  default_graph%x%min =   680.
+  default_graph%x%max = 770.
+  default_graph%x%major_div = 9
+  default_graph%x%label = 's [meters]'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = '13E to L0'
+  graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
+  graph%y%label = 'Beta [meters]'
+
+  graph%y%max =  100
+  graph%y%min = 0
+  graph%y%major_div = 4
+
+  graph%y2%label = 'Eta.x [cm]'
+  graph%y2%max = 100
+  graph%y2%min = 0
+  graph%y2%major_div = 4
+
+
+  curve(1)%data_source = 'lat'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 0
+
+  curve(2)%data_source = 'lat'
+  curve(2)%data_type   = 'beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%ix_branch = 0
+
+  curve(3)%data_source = 'lat'
+  curve(3)%data_type   = 'eta.x'
+  curve(3)%y_axis_scale_factor = 100
+  curve(3)%ix_branch = 0
+  curve(3)%use_y2 = True
+
+/
+
+&tao_template_plot
+  plot%name = 'beta_eta_full'
+  default_graph%x%min =   0.
+  default_graph%x%max = 770.
+  default_graph%x%major_div = 14
+  default_graph%x%label = 's [meters]'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Full Ring'
+  graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
+  graph%y%label = 'Beta [meters]'
+
+  graph%y%max = 50.
+  graph%y%min = 0
+  graph%y%major_div = 4
+
+  graph%y2%label = 'Eta.x [cm]'
+  graph%y2%max = 50
+  graph%y2%min = 0
+  graph%y2%major_div = 4
+
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 0
+!  curve(1)%smooth_line_calc = True
+
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%ix_branch = 0
+!  curve(2)%smooth_line_calc = True
+
+  curve(3)%data_source = 'lattice'
+  curve(3)%data_type   = 'eta.x'
+  curve(3)%y_axis_scale_factor = 100
+  curve(3)%ix_branch = 0
+  curve(3)%use_y2 = True
+!  curve(3)%smooth_line_calc = True
+
+/
+
+!----------------------------------------------------------------
+Templates define the basics of, say, how to display an orbit.
+
+&tao_template_plot
+  plot%name = 'orbit'
+  default_graph%x%min =  0 
+  default_graph%x%max = 770
+  default_graph%x%label = ''
+  default_graph%x%major_div = 10
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Orbit'
+  graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
+  graph%y%label = 'Orbit [mm]'
+  graph%y%max =  10
+  graph%y%min = -10
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lat'
+  curve(1)%data_type   = 'orbit.x'
+  curve(1)%y_axis_scale_factor = 1000
+  curve(1)%ix_branch = 0
+  curve(2)%data_source = 'lat'
+  curve(2)%data_type   = 'orbit.y'
+  curve(2)%y_axis_scale_factor = 1000
+  curve(2)%ix_branch = 0
+
+/
+
+
+!----------------------------------------------------------------
+
+
+&tao_template_plot
+  plot%name = 'phase'
+  default_graph%x%min =   0
+  default_graph%x%max = 770
+  default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+  default_curve%component = 'model-design'
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = ''
+  graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
+  graph%y%label = 'Phase (deg)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'phase.a'
+  curve(1)%y_axis_scale_factor = 57.29578
+  curve(1)%ix_branch = 0
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'phase.b'
+  curve(2)%y_axis_scale_factor = 57.29578
+  curve(2)%ix_branch = 0
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'beta'
+  default_graph%x%min =   0.
+  default_graph%x%max = 770.
+  default_graph%x%major_div = 14
+  default_graph%x%label = 's [meters]'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Full Ring'
+  graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
+  graph%y%label = 'Beta [meters]'
+
+  graph%y%max = 100.
+  graph%y%min = 0
+  graph%y%major_div = 4
+
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 0
+!  curve(1)%smooth_line_calc = True
+
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%ix_branch = 0
+!  curve(2)%smooth_line_calc = True
+
+/
+
+
+!----------------------------------------------------------------
+
+
+&tao_template_plot
+  plot%name = 'eta'
+  default_graph%x%min =   0
+  default_graph%x%max = 770.
+  default_graph%x%major_div = 14
+  default_graph%x%label = 's [m]'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = ''
+  graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
+  graph%y%label = 'Eta [cm]'
+  graph%y%max = 300.
+  graph%y%min = 0.
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'eta.x'
+  curve(1)%ix_branch = 0
+  curve(1)%y_axis_scale_factor = 100
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'eta.y'
+  curve(2)%ix_branch = 0
+  curve(2)%y_axis_scale_factor = 100
+  
+/
+
+
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'cbar'
+  default_graph%x%min =   0
+  default_graph%x%max = 3300
+  default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 3
+/
+
+&tao_template_graph
+  graph%name = '22'
+  graph_index = 1
+  graph%box = 1, 3, 1, 3
+  graph%title = 'Cbar22'
+  graph%margin =  0.15, 0.06, 0.2, 0.2, '%BOX'
+  graph%y%label = 'Cbar22'
+  graph%y%max =  0.10
+  graph%y%min = -0.10
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 0
+/
+
+&tao_template_graph
+  graph%name = '12'
+  graph_index = 2
+  graph%box = 1, 2, 1, 3
+  graph%title = 'Cbar12'
+  graph%margin =  0.15, 0.06, 0.2, 0.2, '%BOX'
+  graph%y%label = 'Cbar12'
+  graph%y%max =  0.10
+  graph%y%min = -0.10
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 0
+/
+
+&tao_template_graph
+  graph%name = '11'
+  graph_index = 3
+  graph%box = 1, 1, 1, 3
+  graph%title = 'Cbar11'
+  graph%margin =  0.15, 0.06, 0.2, 0.2, '%BOX'
+  graph%y%label = 'Cbar11'
+  graph%y%max =  0.10
+  graph%y%min = -0.10
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 0
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'cbar12'
+  default_graph%x%min =   0
+  default_graph%x%max = 770
+  default_graph%x%major_div = 14
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = '12'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = ''
+  graph%margin =  0.05, 0.05, 0.05, 0.05, '%BOX'
+  graph%y%label = 'Cbar12'
+  graph%y%max =  0.10
+  graph%y%min = -0.10
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'cbar.12'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 0
+/
+
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'ext_cbar'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 3
+/
+
+&tao_template_graph
+  graph%name = '22'
+  graph_index = 1
+  graph%box = 1, 3, 1, 3
+  graph%title = 'Cbar22'
+  graph%margin =  0.15, 0.06, 0.2, 0.2, '%BOX'
+  graph%y%label = 'Cbar22'
+  graph%y%max =  0.10
+  graph%y%min = -0.10
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 1
+/
+
+&tao_template_graph
+  graph%name = '12'
+  graph_index = 2
+  graph%box = 1, 2, 1, 3
+  graph%title = 'Cbar12'
+  graph%margin =  0.15, 0.06, 0.2, 0.2, '%BOX'
+  graph%y%label = 'Cbar12'
+  graph%y%max =  0.10
+  graph%y%min = -0.10
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 1
+/
+
+&tao_template_graph
+  graph%name = '11'
+  graph_index = 3
+  graph%box = 1, 1, 1, 3
+  graph%title = 'Cbar11'
+  graph%margin =  0.15, 0.06, 0.2, 0.2, '%BOX'
+  graph%y%label = 'Cbar11'
+  graph%y%max =  0.10
+  graph%y%min = -0.10
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 1
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'quad_k1'
+  default_graph%x%min =   0
+  default_graph%x%max = 3300
+  default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'k1'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Quadrupole K1 (1/m^2)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'k1'
+  graph%y%max =  2
+  graph%y%min = -6
+  graph%y%major_div = 4
+  curve(1)%data_source = 'var_array'
+  curve(1)%data_type = 'quad_k1'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 0
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'ext_quad_k1'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'k1'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Quadrupole K1 (1/m^2)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'k1'
+  graph%y%max =  2
+  graph%y%min = -6
+  graph%y%major_div = 4
+  curve(1)%data_source = 'var_array'
+  curve(1)%data_type = 'quad_k1'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ix_branch = 1
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'floor'
+  default_graph%x%min = -350.
+  default_graph%x%max = 1050.
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'this'
+	graph%type = 'floor_plan'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Floor Plan'
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin = 0.10, 0.10, 0.10, 0.10, "%BOX"
+  graph%y%max = 550
+  graph%y%min = -50
+  graph%y%label = "Meters"
+  graph%floor_plan%correct_distortion = T
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'ext_floor'
+  default_graph%x%min = 200.
+  default_graph%x%max = 400.
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'this'
+	graph%type = 'floor_plan'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Floor Plan'
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin = 0.10, 0.10, 0.10, 0.10, "%BOX"
+  graph%y%max = 10
+  graph%y%min = -10
+  graph%y%label = "Meters"
+  !graph%floor_plan%correct_distortion = T
+/

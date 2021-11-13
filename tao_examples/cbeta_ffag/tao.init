@@ -1,0 +1,239 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = 'tao_plot.init'
+  startup_file = 'tao.startup'
+/
+!Beam Initialization
+!--------------------------------------------------------
+&tao_design_lattice
+  n_universes = 4
+  !design_lattice(1)%file = 'fa.lat.bmad'
+  design_lattice(1)%file = 'fa1.lat'
+  design_lattice(2)%file = 'fa2.lat'
+  design_lattice(3)%file = 'fa3.lat'
+  design_lattice(4)%file = 'fa4.lat'
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  !global%plot_on = True
+  global%track_type = 'single'
+  global%beam_timer_on = T
+  global%random_engine = 'pseudo'
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = T
+  /
+  
+  
+&tao_d2_data
+        d2_data%name = 'fa'
+        universe = '*'
+        n_d1_data = 1
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = 'r56'
+        datum( 1) =  'momentum_compaction'     'BEGINNING' '' 'END'   'target'   0
+/
+
+&tao_d2_data
+        d2_data%name = 'time'
+        universe = '*'
+        n_d1_data = 2
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = 'total'
+        datum( 1) =  'time'     'BEGINNING' '' 'END'   'target'   0
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = 'ref'
+        datum( 1) =  'ref_time'     'BEGINNING' '' 'END'   'target'   0
+/
+
+
+
+&tao_d2_data
+        d2_data%name = 'test'
+        universe = '*'
+        n_d1_data = 2
+/
+&tao_d1_data
+        ix_d1_data =1 
+        default_weight = 1
+        d1_data%name = 'time'
+        datum(1)%data_type = 'expression: (data::time.total[1])'
+/
+&tao_d1_data
+        ix_d1_data =2 
+        default_weight = 1
+        d1_data%name = 'dtime'
+        datum(1)%data_type = 'expression: (data::time.total[1]-1@data::time.total[1])*299792458'
+/
+
+!-------- Orbit x, y------------
+&tao_d2_data
+	d2_data%name = 'orbit'
+    universe = '*'
+	n_d1_data = 2
+	default_merit_type = "target"
+/
+&tao_d1_data
+	ix_d1_data = 1
+	d1_data%name = 'x'
+	default_data_type = 'bpm_orbit.x'
+	default_weight = 1e10
+	search_for_lat_eles = "-no_lords *.BPM*"
+/
+&tao_d1_data
+	ix_d1_data = 2
+	d1_data%name = 'y'
+	default_data_type = 'bpm_orbit.y'
+	default_weight = 1e10
+	search_for_lat_eles = "-no_lords *.BPM*"
+/
+
+!-------- Orbit x, y------------
+&tao_d2_data
+	d2_data%name = 'extra_orbit'
+    universe = '*'
+	n_d1_data = 2
+	default_merit_type = "target"
+/
+&tao_d1_data
+	ix_d1_data = 1
+	d1_data%name = 'x'
+	default_data_type = 'bpm_orbit.x'
+	default_weight = 1e12
+	search_for_lat_eles = "-no_lords Mar.END"
+/
+&tao_d1_data
+	ix_d1_data = 2
+	d1_data%name = 'y'
+	default_data_type = 'bpm_orbit.y'
+	default_weight = 1e12
+	search_for_lat_eles = "-no_lords Mar.END"
+/
+
+
+
+
+!--- variables for gang error
+&tao_var
+    v1_var%name = 'b1_gradient'
+	default_universe = "gang"
+	default_attribute = "b1_gradient"
+	default_weight = 1e5
+	default_step = 1e-5
+	ix_min_var = 1
+	search_for_lat_eles = "quad::*"
+/
+&tao_var
+    v1_var%name = 'quad_x_offset'
+	default_universe = "gang"
+	default_attribute = "x_offset"
+	default_weight = 1e5
+	default_step = 1e-5
+	ix_min_var = 1
+	search_for_lat_eles = "quad::*"
+/
+&tao_var
+    v1_var%name = 'quad_y_offset'
+	default_universe = "gang"
+	default_attribute = "y_offset"
+	default_weight = 1e5
+	default_step = 1e-5
+	ix_min_var = 1
+	search_for_lat_eles = "quad::*"
+/
+&tao_var
+    v1_var%name = 'quad_x_pitch'
+	default_universe = "gang"
+	default_attribute = "x_pitch"
+	default_weight = 1e5
+	default_step = 1e-5
+	ix_min_var = 1
+	search_for_lat_eles = "quad::*"
+/
+
+
+
+
+!--- Correctors
+&tao_var
+    v1_var%name = "fa.correctors.x"
+  default_universe = 'gang'
+  default_attribute = "BL_HKICK"
+  default_weight = 1e9
+  default_low_lim  = -0.01
+  default_high_lim = 0.01
+  default_step = 1e-10
+  ix_min_var = 1
+  search_for_lat_eles = "KICKER::FA*"
+/
+&tao_var
+    v1_var%name = "fa.correctors.y"
+  default_universe = 'gang'
+  default_attribute = "BL_VKICK"
+  default_weight = 1e9
+  default_low_lim  = -0.01
+  default_high_lim = 0.01
+  default_step = 1e-10
+  ix_min_var = 1
+  search_for_lat_eles = "KICKER::FA*"
+/
+&tao_var
+    v1_var%name = "za.correctors.x"
+  default_universe = 'gang'
+  default_attribute = "BL_HKICK"
+  default_weight = 1e9
+  default_low_lim  = -0.01
+  default_high_lim = 0.01
+  default_step = 1e-10
+  ix_min_var = 1
+  search_for_lat_eles = "KICKER::ZA*"
+/
+&tao_var
+    v1_var%name = "za.correctors.y"
+  default_universe = 'gang'
+  default_attribute = "BL_VKICK"
+  default_weight = 1e9
+  default_low_lim  = -0.01
+  default_high_lim = 0.01
+  default_step = 1e-10
+  ix_min_var = 1
+  search_for_lat_eles = "KICKER::ZA*"
+/
+
+&tao_var
+    v1_var%name = "quad.correctors.x"
+  default_universe = 'gang'
+  default_attribute = "BL_HKICK"
+  default_weight = 1e9
+  default_low_lim  = -0.01
+  default_high_lim = 0.01
+  default_step = 1e-10
+  ix_min_var = 1
+  search_for_lat_eles = "QUAD::*"
+/
+&tao_var
+    v1_var%name = "quad.correctors.y"
+  default_universe = 'gang'
+  default_attribute = "BL_VKICK"
+  default_weight = 1e9
+  default_low_lim  = -0.01
+  default_high_lim = 0.01
+  default_step = 1e-10
+  ix_min_var = 1
+  search_for_lat_eles = "QUAD::*"
+/
+

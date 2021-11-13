@@ -1,0 +1,26 @@
+Example of How to Create a Customized Version of Tao 
+---------------------------------------------------
+
+Directory:
+	tao/examples/custom_tao_with_measured_data
+
+Purpose:
+  Create a customized version of Tao to read in "ping data" for analysis.
+
+Custom code file:
+	custom_tao_with_measured_data/tao_hook_command.f90
+
+How to compile:
+	Go to the custom_tao_with_measured_data directory and issue the "mk" command.
+
+Executable will be created at:
+	tao/examples/production/bin/ping_tao
+
+To run ping_tao, go to the custom_tao_with_measured_data directory and use the command:
+	../production/bin/ping_tao
+
+Writeup: See the Tao manual section "Reading in Measured Data Example" for more details.
+
+	
+
+

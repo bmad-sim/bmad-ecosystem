@@ -1,0 +1,219 @@
+This initialization file defines how plotting is done.
+
+The following namelist block defines how the plot window (also called
+the plot page) is broken up.
+
+&tao_plot_page
+  plot_page%size = 800, 600
+  plot_page%text_height = 12.0 
+  plot_page%border = 0, 0, 0, 0, '%PAGE'
+  plot_page%n_curve_pts = 900
+
+  region(1)%name = 'floor'
+  region(1)%location = 0.0, 1.0, 0.5, 0.95
+  region(2)%name = 'top'
+  region(2)%location = 0.0, 1.0, 0.3, 0.5
+  region(3)%name = 'middle'
+  region(3)%location = 0.0, 1.0, 0.1, 0.26
+  region(4)%name = 'bottom'
+  region(4)%location = 0.0, 1.0, 0.0, 0.1
+
+  region(5)%name = 'r21'
+  region(5)%location = 0.0, .5, 0.2, 0.6
+  region(6)%name = 'r11'
+  region(6)%location = 0.0, .5, .6, 1.0
+  region(7)%name = 'r22'
+  region(7)%location = 0.5, 1.0, 0.2, 0.6
+  region(8)%name = 'r12'
+  region(8)%location = 0.5, 1.0, 0.6, 1.0
+
+  region(9)%name = 'r3'
+  region(9)%location = 0, 1.0, 0, 0.2
+
+  
+  region(10)%name = 'r00'
+  region(10)%location = 0.0, 1.0, 0.0, 1.0
+
+ ! place(1) = 'floor', 'floor'
+ ! place(2) = 'top', 'beta'
+ ! place(3) = 'middle', 'eta'
+ ! place(4) = 'bottom', 'layout'
+
+/
+
+
+
+!------------------ layout ------
+&tao_template_plot
+	plot%name = 'layout'
+	default_graph%x%label = ' '
+	plot%n_graph = 1
+	plot%x_axis_type = 's'
+/
+
+&tao_template_graph
+	graph_index = 1
+	graph%name = 'u1'
+	graph%type = 'lat_layout'
+	graph%box = 1, 1, 1, 1
+	graph%x%draw_numbers = False
+	graph%ix_universe = -1 !Syntax Changed from 0
+	graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
+  	!graph%y%label = 'Layout'
+ 	graph%y%max =  20
+  	graph%y%min = -20
+ 	graph%y%major_div = 4
+/
+
+!shape(i) = "<key>", "<name>", "<shape>", "<color>", "<v_size>", "<print_Label>" 
+!&element_shapes_lat_layout
+&lat_layout_drawing
+  ele_shape(1) = "Quadrupole::*"   	"asym_var_box"	"Blue"	 .1 		'none'
+ ! ele_shape(1) = "Quadrupole::*"   	"box"	"Blue"	 1 		'none'                ! TEMP
+  ele_shape(2) = "SBend::*"		"Box"		"Red"		1		'none'
+  ele_shape(3) = "lcavity::*"		"XBox"		"Green"		.5		'none'
+  ele_shape(4) = "wiggler::*"		"XBox"		"Orange"	.5		'none'
+  ele_shape(5) = "Sextupole::*"		"asym_var_box"	"magenta"	0.1		'none'
+  !ele_shape(5) = "Sextupole::*"		"box"	"orange"	20		'none'
+  ele_shape(6) = "ECOLLIMATOR::*"	"Xbox"		"Black"		20		'none'
+  ele_shape(7) = "hkicker::*"		"XBox"		"Red"		1		'none'
+  ele_shape(8) = "vkicker::*"		"bow_tie"	"Red"		1		'none'
+  ele_shape(9) = "INSTRUMENT::*BPM*"	"Diamond"	"Black"		1		'none'
+  ele_shape(10) = "kicker::*"		"Box"		"Red"		5		'none'
+  ele_shape(11) = "PIPE::*"		"Box"		"Black" .01		'none'
+  ele_shape(12) = "INSTRUMENT::*"	"Xbox"	  	"Black"		1		'none'
+  ele_shape(13) = "SOLENOID::*"		"Xbox"	  	"Blue"		1		'none'
+  ele_shape(14) = "rfcavity::*"	    	"XBox"		"Red"		100		'none'
+  ele_shape(15) = "E_GUN::*"	    	"XBox"		"Black"		20		'none'
+  ele_shape(16) = "EM_FIELD::*"	    	"Box"		"Blue"		20		'none'
+  !ele_shape(16) = "wall::beam_chamber"	    	"XBox"		"Black"		500		'none'
+/       
+
+!&element_shapes_floor_plan
+&floor_plan_drawing
+  ele_shape(1) = "Quadrupole::*"   	"Box"		"Blue"	15		'none'
+  ele_shape(2) = "SBend::*"		"Box"		"Red"		15		'none'
+  ele_shape(3) = "lcavity::*"		"XBox"		"Green"		20		'none'
+  ele_shape(4) = "wiggler::*"		"XBox"		"Orange"	10		'none'
+  ele_shape(5) = "Sextupole::*"		"Box"	"orange"	4		'none'
+  ele_shape(6) = "ECOLLIMATOR::*"	"Xbox"		"Black"		10		'none'
+  ele_shape(7) = "hkicker::*"		"XBox"		"Red"		5		'none'
+  ele_shape(8) = "vkicker::*"		"bow_tie"	"Red"		5		'none'
+  ele_shape(9) = "INSTRUMENT::*BPM*"	"Diamond"	"Black"		5		'none'
+  ele_shape(10) = "kicker::*"		"Box"		"Red"		5		'none'
+  ele_shape(11) = "PIPE::*"		"Box"		"Black"		2.54		'none'
+  ele_shape(12) = "INSTRUMENT::*"	"Xbox"	  	"Black"		5		'none'
+  ele_shape(13) = "SOLENOID::*"		"Xbox"	  	"Blue"		5		'none'
+  ele_shape(14) = "rfcavity::*"	    	"XBox"		"Red"		10		'none'
+  ele_shape(15) = "E_GUN::*"	    	"XBox"		"Black"		20		'none'
+  ele_shape(16) = "EM_FIELD::*"	    	"Box"		"Blue"		20		'none'
+/  
+         
+         
+!--------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'zphase'
+  default_graph%x%label = 'z (mm)'	
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'z'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Z-Pz'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = '\gd (10\u-3\d)'
+  graph%y%max = 3
+  graph%y%min = -3
+  graph%y%major_div = 4
+  graph%y%label_offset=.2
+  curve(1)%data_type = 'z-pz' 
+  curve(1)%y_axis_scale_factor = 1000.0 !1->10^-3 relative
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = "dot"
+  curve(1)%symbol%color = "blue"
+  
+  ! Color by pz
+  curve(1)%z_color%data_type = 'pz'
+  curve(1)%z_color%min = -.02
+  curve(1)%z_color%max =  .02
+  curve(1)%z_color%is_on = F
+/   
+         
+ 
+&tao_template_plot
+  plot%name = 'zphase2'
+  default_graph%x%min = -6
+  default_graph%x%max =  6
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'z (mm)'	
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'z'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'z-energy'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000 ! m->mm
+  graph%y%label = '\(0555) (MeV)'  ! \(0555) is caligraphic E
+  graph%y%max = 3
+  graph%y%min = -3
+  graph%y%major_div = 4
+  graph%y%label_offset=.2
+  curve(1)%data_type = 'energy' 
+  curve(1)%data_type_x = 'z' 
+  curve(1)%y_axis_scale_factor = 1e-6 ! eV -> MeV
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = "dot"
+  curve(1)%symbol%color = "purple"
+/   
+         
+                                          	
+! Colors: 
+!"BLACK" 
+!"RED" 
+!"ORANGE" 
+!"MAGENTA" 
+!"YELLOW" 
+!"GREEN" 
+!"CYAN" 
+!"BLUE" 
+!"PURPLE" 
+
+
+
+
+
+
+!The Quick Plot line patterns (curve(1)%line%pattern= ) are: 
+!1 -- solid$ Solid 
+!2 -- dashed$ Dashed 
+!3 -- dash_dot$ Dash--dot 
+!4 -- dotted$ Dotted 
+!5 -- dash_dot3$ Dash--dot--dot--dot 
+!The color patterns in Quick Plot are: 
+!0 -- White$ (actually the background color) 
+!1 -- Black$ (actually the foreground color) 
+!2 -- Red$ 
+!3 -- Green$ 
+!4 -- Blue$ 
+!5 -- Cyan$ 
+!6 -- Magenta$ 
+!7 -- Yellow$ 
+!8 -- Orange$ 
+!9 -- Yellow_Green$ 
+!10 -- Light_Green$ 
+!11 -- Navy_Blue$ 
+!12 -- Purple$ 
+!13 -- Reddish_Purple$ 
+!14 -- Dark_Grey$ 
+!15 -- Light_Grey$

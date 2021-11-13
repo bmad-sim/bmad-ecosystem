@@ -1,0 +1,108 @@
+This initialization file defines how plotting is done.
+
+The following namelist block defines how the plot window (also called
+the plot page) is broken up.
+
+&tao_plot_page
+  plot_page%size = 800, 600
+  plot_page%text_height = 12.0 
+  plot_page%border = 0, 0, 0, 0, '%PAGE'
+  plot_page%n_curve_pts = 900
+/
+
+
+!------------------ layout ------
+&tao_template_plot
+  plot%name = 'layout'
+  default_graph%x%label = ' '
+  plot%n_graph = 1
+  plot%x_axis_type = 's'
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'u1'
+  graph%type = 'lat_layout'
+  graph%box = 1, 1, 1, 1
+  graph%x%draw_numbers = False
+  graph%ix_universe = -1 !Syntax Changed from 0
+  graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+/
+
+&lat_layout_drawing
+  ele_shape(1)  = "Quadrupole::*"      "asym_var_box"  "Blue"     1     'none'
+  ele_shape(2)  = "SBend::*"           "Box"           "Red"      1     'none'
+  ele_shape(3)  = "lcavity::*"         "XBox"          "Green"    0.5   'none'
+  ele_shape(4)  = "wiggler::*"         "XBox"          "Orange"   0.5   'none'
+  ele_shape(5)  = "Sextupole::*"       "asym_var_box"  "magenta"  0.1   'none'
+  ele_shape(6)  = "ECOLLIMATOR::*"     "Xbox"          "Black"   20     'none'
+  ele_shape(7)  = "hkicker::*"         "XBox"          "Red"      1     'none'
+  ele_shape(8)  = "vkicker::*"         "bow_tie"       "Red"      1     'none'
+  ele_shape(9)  = "INSTRUMENT::*BPM*"  "Diamond"       "Black"    1     'none'
+  ele_shape(10) = "kicker::*"          "Box"           "Red"      5     'none'
+  ele_shape(11) = "PIPE::*"            "Box"           "Black"    0.01  'none'
+  ele_shape(12) = "INSTRUMENT::*"      "Xbox"          "Black"    1     'none'
+  ele_shape(13) = "SOLENOID::*"        "Xbox"          "Blue"     1     'none'
+  ele_shape(14) = "rfcavity::*"        "XBox"          "Red"    100     'none'
+  ele_shape(15) = "E_GUN::*"           "XBox"          "Black"   20     'none'
+  ele_shape(16) = "EM_FIELD::*"        "Box"           "Blue"    20     'none'
+/       
+
+&floor_plan_drawing
+  ele_shape(1)  = "Quadrupole::*"      "Box"      "Blue"    15    'none'
+  ele_shape(2)  = "SBend::*"           "Box"      "Red"     15    'none'
+  ele_shape(3)  = "lcavity::*"         "XBox"     "Green"   20    'none'
+  ele_shape(4)  = "wiggler::*"         "XBox"     "Orange"  10    'none'
+  ele_shape(5)  = "Sextupole::*"       "Box"      "orange"   4    'none'
+  ele_shape(6)  = "ECOLLIMATOR::*"     "Xbox"     "Black"   10    'none'
+  ele_shape(7)  = "hkicker::*"         "XBox"     "Red"      5    'none'
+  ele_shape(8)  = "vkicker::*"         "bow_tie"  "Red"      5    'none'
+  ele_shape(9)  = "INSTRUMENT::*BPM*"  "Diamond"  "Black"    5    'none'
+  ele_shape(10) = "kicker::*"          "Box"      "Red"      5    'none'
+  ele_shape(11) = "PIPE::*"            "Box"      "Black"    2.5  'none'
+  ele_shape(12) = "INSTRUMENT::*"      "Xbox"     "Black"    5    'none'
+  ele_shape(13) = "SOLENOID::*"        "Xbox"     "Blue"     5    'none'
+  ele_shape(14) = "rfcavity::*"        "XBox"     "Red"     10    'none'
+  ele_shape(15) = "E_GUN::*"           "XBox"     "Black"   20    'none'
+  ele_shape(16) = "EM_FIELD::*"        "Box"      "Blue"    20    'none'
+/  
+                                            
+! Colors: 
+!"BLACK" 
+!"RED" 
+!"ORANGE" 
+!"MAGENTA" 
+!"YELLOW" 
+!"GREEN" 
+!"CYAN" 
+!"BLUE" 
+!"PURPLE" 
+
+
+
+!The Quick Plot line patterns (curve(1)%line%pattern= ) are: 
+!1 -- solid$ Solid 
+!2 -- dashed$ Dashed 
+!3 -- dash_dot$ Dash--dot 
+!4 -- dotted$ Dotted 
+!5 -- dash_dot3$ Dash--dot--dot--dot 
+!The color patterns in Quick Plot are: 
+!0 -- White$ (actually the background color) 
+!1 -- Black$ (actually the foreground color) 
+!2 -- Red$ 
+!3 -- Green$ 
+!4 -- Blue$ 
+!5 -- Cyan$ 
+!6 -- Magenta$ 
+!7 -- Yellow$ 
+!8 -- Orange$ 
+!9 -- Yellow_Green$ 
+!10 -- Light_Green$ 
+!11 -- Navy_Blue$ 
+!12 -- Purple$ 
+!13 -- Reddish_Purple$ 
+!14 -- Dark_Grey$ 
+!15 -- Light_Grey$

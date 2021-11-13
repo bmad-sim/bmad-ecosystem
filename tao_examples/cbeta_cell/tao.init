@@ -1,0 +1,250 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = 'tao_plot.init'
+  startup_file = 'tao.startup'
+/
+!Beam Initialization
+!--------------------------------------------------------
+&tao_design_lattice
+  n_universes = 4
+!design_lattice(1)%file = "cell.lat.bmad"
+  design_lattice(1)%file = "cell1.lat"
+  design_lattice(2)%file = "cell2.lat"
+  design_lattice(3)%file = "cell3.lat"
+  design_lattice(4)%file = "cell4.lat"
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  !global%plot_on = True
+  global%track_type = 'single'
+  !global%track_type = 'beam'
+  global%beam_timer_on = T
+  global%random_engine = 'pseudo'
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = T
+    
+    
+  !bmad_com%taylor_order = 8
+    
+  ! TEMP for EM field tracking  
+    bmad_com%abs_tol_tracking = 1e-7
+      bmad_com%rel_tol_tracking = 1e-7
+  /
+
+
+!------------------------Data--------------------------------------------
+!------------------------------------------------------------------------
+
+
+
+
+
+
+&tao_d2_data
+        d2_data%name = 'floor'
+        universe = '*'
+        n_d1_data= 2
+/
+&tao_d1_data
+        ix_d1_data= 1
+        d1_data%name = "geometry"
+        datum( 1) =  "floor.theta"     '' ''  'FF.Mar.END'  'max'   0.340    1e10
+        datum( 2) =  "s_position"      ''  '' 'FF.Mar.END'  'max'   0.340    1e10
+/
+&tao_d1_data
+        ix_d1_data= 2
+        d1_data%name = 'ele'
+        datum( 1) = 'element_attrib.x_offset'        '' ''  'FF.Qua02'  'max'   0.340    1e10
+        datum( 2) = 'element_attrib.b1_gradient'     '' ''  'FF.Qua02'  'max'   0.340    1e10
+        datum( 3) = 'orbit.x'                        '' ''  'FF.Qua01.Mar.MID'  'max'   0.340    1e10
+/
+
+
+&tao_d2_data
+        d2_data%name = "ff"
+        universe = '*'
+        n_d1_data= 5
+/
+
+&tao_d1_data
+        ix_d1_data= 1
+        d1_data%name = "stability"
+        datum( 1) =  "unstable.lattice"     '' '' ''  'target'   0.0    1e15
+/
+&tao_d1_data
+    ix_d1_data= 2
+	d1_data%name = "orbit"
+	default_weight = 1e2
+	datum( 1) = 'orbit.x'  '' 'FF.Mar.BEG'  'FF.Mar.END'    'min'   -20e-3
+	datum( 2) = 'orbit.x'  '' 'FF.Mar.BEG'  'FF.Mar.END'    'max'    20e-3
+/
+&tao_d1_data
+    ix_d1_data= 3
+	d1_data%name = "phasea"
+	default_weight = 1
+	datum( 1) = 'phase.a'  '' ''  'FF.Mar.END'    'min'   0.314159  ! .05 * 2 pi
+	datum( 2) = 'phase.a'  '' ''  'FF.Mar.END'    'max'   1.88496  ! .3 * 2 pi
+/
+&tao_d1_data
+    ix_d1_data= 4
+	d1_data%name = "phaseb"
+	default_weight = 1
+	datum( 1) = 'phase.b'  '' ''  'FF.Mar.END'    'min'   0.314159  ! .05 * 2 pi
+	datum( 2) = 'phase.b'  '' ''  'FF.Mar.END'    'max'    1.88496  ! .3 * 2 pi
+/
+&tao_d1_data
+        ix_d1_data= 5
+        d1_data%name = 'radius'
+        default_weight = 1e6
+        datum( 1)%data_type =  'expression: -1*data::floor.geometry[2]/data::floor.geometry[1]'
+        datum( 1)%meas = 5
+        datum( 1)%merit_type = 'max'            
+/
+
+
+&tao_d2_data
+        d2_data%name = 'bfield'
+        universe = '*'
+        n_d1_data= 1
+/
+&tao_d1_data
+        ix_d1_data= 1
+        d1_data%name = 'tip'
+        default_weight = 1e6
+        datum( 1)%data_type =  'expression: (data::floor.ele[1]+12e-3 + abs(data::ff.orbit[1])) * abs(data::floor.ele[2]) '
+        !datum( 1)%data_type =  'expression: (data::ff.orbit[1])'
+        datum( 1)%meas = 1
+        datum( 1)%merit_type = 'max'            
+/
+
+
+
+&tao_d2_data
+        d2_data%name = 'tune'
+        universe = '*'
+        n_d1_data= 1
+/
+&tao_d1_data
+        ix_d1_data= 1
+        d1_data%name = 'ab'
+        default_weight = 1e6
+        datum( 1)%data_type =  'expression: (data::ff.phasea[1]/(2*pi)) '
+        datum( 2)%data_type =  'expression: (data::ff.phaseb[1]/(2*pi)) '
+        datum( 1:2)%meas = 0.3333333333
+        datum( 1:2)%merit_type = 'target'          
+/
+
+
+!&tao_d2_data
+        d2_data%name = "N"
+        universe = 1
+        n_d1_data= 1
+/
+
+!&tao_d1_data
+        ix_d1_data= 1
+        d1_data%name = "tx66"
+        datum( 1) =  "periodic.tt.16"       '' '' 'BEGINNING'  "target"   0.0    1e15
+        datum( 2) =  "periodic.tt.166"      '' '' 'BEGINNING'  "target"   0.0    1e15
+        datum( 3) =  "periodic.tt.1666"     '' '' 'BEGINNING'  "target"   0.0    1e15
+        datum( 4) =  "periodic.tt.16666"    '' '' 'BEGINNING'  "target"   0.0    1e15
+        datum( 5) =  "periodic.tt.26"       '' '' 'BEGINNING'  "target"   0.0    1e15
+        datum( 6) =  "periodic.tt.266"      '' '' 'BEGINNING'  "target"   0.0    1e15
+        datum( 7) =  "periodic.tt.2666"     '' '' 'BEGINNING'  "target"   0.0    1e15
+        datum( 8) =  "periodic.tt.26666"    '' '' 'BEGINNING'  "target"   0.0    1e15
+/
+
+
+
+!-----------Variables--------------
+
+!&tao_var
+	v1_var%name = "interactive"
+	default_step = 1e-4
+	default_universe = 'gang' 
+	ix_min_var = 1
+	ix_max_var = 6
+	var(1)%ele_name ="FF.Ben01"
+ 	var(1)%attribute = 'b1_gradient'
+	var(1)%step = 1e-4
+	var(1)%key_delta = 1e-2
+	
+	var(2)%ele_name ="FF.Ben02"
+ 	var(2)%attribute =  'b1_gradient'
+	var(2)%step = 1e-4
+    var(2)%key_delta = 1e-2
+
+	var(3)%ele_name ="FF.PIP01"
+ 	var(3)%attribute = "L"
+	var(3)%step = 1e-4
+	var(3)%key_delta = 1e-3
+
+	var(4)%ele_name ="FF.PIP02"
+ 	var(4)%attribute = "L"
+	var(4)%step = 1e-4
+	var(4)%key_delta = 1e-3
+
+	var(5)%ele_name ="FF.Ben01"
+ 	var(5)%attribute = "L"
+	var(5)%step = 1e-4
+	var(5)%key_delta = 1e-3
+
+	var(6)%ele_name ="FF.Ben01"
+ 	var(6)%attribute = "L"
+	var(6)%step = 1e-4
+	var(6)%key_delta = 1e-3
+
+!default_key_bound = T
+!default_key_delta = 1e-2	
+
+/
+
+
+
+
+&tao_var 
+	v1_var%name = 'q'
+	default_universe = 'gang'
+!	default_attribute = 'b1_gradient'
+	default_weight = 1e6
+	default_step = 1e-4 
+	!default_low_lim  = 0.01
+	!default_high_lim =  1.5
+!default_key_bound = T
+
+	!search_for_lat_eles = "FF.Ben*"
+!	var(1:8)%ele_name = 'FF.Qua01',     'FF.Qua02',    'FF.Qua02', 'FF.Patch01', 'FF.Qua01', 'FF.Qua02', 'FF.PIP01', 'FF.Pip02'
+!  var(1:8)%attribute = 'b1_gradient', 'b1_gradient', 'x_offset', 'x_offset', 'L', 'L', 'L', 'L'
+!  var(1:8)%key_delta = 0.1, 0.1, 0.0001, 0.0001, .001, .001, .001, .001
+!  var(1:8)%low_lim = -50, -50, -.1, -.1, 0.05, 0.05, 0.03, 0.05
+!  var(1:8)%high_lim = 50,  50,  .1,  .1, 0.4, 0.4, 0.5, 0.5
+
+
+var(1:4)%ele_name = 'FF.Qua01',  'FF.Qua02',  'FF.Qua02',  'O_quad_length'
+var(1:4)%attribute = 'b1_gradient', 'b1_gradient', 'x_offset', 'f'
+var(1:4)%key_delta = 0.1, 0.1, 0.0001, .01
+var(1:4)%low_lim = -50, -50, -.1, .2
+var(1:4)%high_lim = 50,  50,  .1, .8
+
+/
+
+
+
+g
+&tao_var 
+	v1_var%name = 'angle'
+	default_universe = 'gang'
+	default_attribute = 'x_pitch'
+	default_weight = 1e6
+	default_step = 1e-4 
+  var(1:1)%ele_name = 'O_FF_angle_deg'
+  var(1:1)%attribute = 'x_pitch'
+/	
+
+

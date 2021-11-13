@@ -1,0 +1,49 @@
+! Figure-8 ring using reversed elements and multipass.
+
+no_digested
+
+beginning[beta_a]   =  10; 
+beginning[beta_b]   =   10
+beginning[alpha_a]  =  0    
+parameter[geometry] = closed
+beginning[E_tot]    = 5.289e9
+
+parameter[ptc_exact_model] = true
+
+!
+
+ang = (twopi * 36.d0 / 360.d0)
+Larc = 2.54948d0
+brho = 1.2d0 * (Larc / ang)
+
+kf =  2d0 / brho  ! Originally: 2.72 / brho
+kd = -2d0 / brho  ! Originally: -1.92 / brho
+
+d1 : drift, L= 2.28646d0
+d2 : drift, L= 0.45d0
+
+qf : quadrupole, l=0.5, k1= kf
+qd : quadrupole, l=0.5, k1= kd 
+b  : rbend,l_arc = larc, angle=ang 
+
+bb: b, g_err = -2*ang/larc
+
+*[ptc_integration_type]=drift_kick
+
+cell3 : LINE=  (d1, qd, d2, bb, d2, qf, d1)
+cell4 : LINE=  (d1, qd, d2,  b, d2, qf, d1)
+
+
+L3 : LINE = (bb, d2, qf, d1, 8*cell3, d1, qd, d2, bb)
+L4 : LINE = ( b, d2, qf, d1, 8*cell4, d1, qd, d2,  b)
+
+
+IR1: line[multipass] = (d1, qd, d2)
+IR2: line[multipass] = (d2, qf, d1)
+
+p1: patch, x_pitch = pi
+p2: patch, x_pitch = -pi
+
+fig8 : line  = (ir1, L4, ir2, ir1, p1, --L3, p2, ir2);
+
+use, fig8

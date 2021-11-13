@@ -1,0 +1,10 @@
+set var steering[1]|model = 1.2e-4  
+set var steering[2]|model = 0.9e-4
+set var quad_k1[1]|model = 0.9
+set var quad_k1[2]|model = -1.05
+set var quad_tilt[1]|model = 0.1    ! Also include tilt errors
+set var quad_tilt[2]|model = -0.05
+show value 1@orbit.x|model + 5e-5*ran_gauss() -form es12.4  ! Add 10um noise
+show value 1@orbit.y|model + 5e-5*ran_gauss() -form es12.4
+show value 2@orbit.x|model + 5e-5*ran_gauss() -form es12.4
+show value 2@orbit.y|model + 5e-5*ran_gauss() -form es12.4

@@ -1,0 +1,168 @@
+This initialization file defines how plotting is done.
+
+The following namelist block defines how the plot window (also called
+the plot page) is broken up.
+
+&tao_plot_page
+  plot_page%size = 400, 500           
+  plot_page%text_height = 12.0 
+  plot_page%border = 0, 0, 0, 0, '%PAGE'  
+/
+
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'ping_ax'
+  default_graph%x%major_div_nominal = 7
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 2
+  plot%autoscale_gang_y = False
+/
+
+&tao_template_graph
+  graph%name = 'amp_x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 2
+  graph%title = 'Ping_a.Amp_x'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Amp_x'
+  graph%y%major_div = 4
+  curve(1)%data_source = 'data'
+  curve(1)%data_type   = 'ping_a.amp_x'
+  curve(1)%draw_symbols = True
+/
+
+&tao_template_graph
+  graph%name = 'phase_x'
+  graph_index = 2
+  graph%box = 1, 2, 1, 2
+  graph%title = 'Ping_a.Phase_x'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x%draw_label = False
+  graph%x%draw_numbers = False
+  graph%y%label = 'Phase_x'
+  graph%y%major_div = 4
+  curve(1)%data_source = 'data'
+  curve(1)%data_type   = 'ping_a.phase_x'
+  curve(1)%draw_symbols = True
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'ping_ay'
+  default_graph%x%major_div_nominal = 7
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 2
+  plot%autoscale_gang_y = False
+/
+
+&tao_template_graph
+  graph%name = 'amp_y'
+  graph_index = 1
+  graph%box = 1, 1, 1, 2
+  graph%title = 'Ping_a.Amp_y'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Amp_y'
+  graph%y%major_div = 4
+  curve(1)%data_source = 'data'
+  curve(1)%data_type   = 'ping_a.amp_y'
+  curve(1)%draw_symbols = True
+/
+
+&tao_template_graph
+  graph%name = 'phase_y'
+  graph_index = 2
+  graph%box = 1, 2, 1, 2
+  graph%title = 'Ping_a.Phase_y'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x%draw_label = False
+  graph%x%draw_numbers = False
+  graph%y%label = 'Phase_y'
+  graph%y%major_div = 4
+  curve(1)%data_source = 'data'
+  curve(1)%data_type   = 'ping_a.phase_y'
+  curve(1)%draw_symbols = True
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'ping_bx'
+  default_graph%x%major_div_nominal = 7
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 2
+  plot%autoscale_gang_y = False
+/
+
+&tao_template_graph
+  graph%name = 'amp_x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 2
+  graph%title = 'Ping_b.Amp_x'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Amp_x'
+  graph%y%major_div = 4
+  curve(1)%data_source = 'data'
+  curve(1)%data_type   = 'ping_b.amp_x'
+  curve(1)%draw_symbols = True
+/
+
+&tao_template_graph
+  graph%name = 'phase_x'
+  graph_index = 2
+  graph%box = 1, 2, 1, 2
+  graph%title = 'Ping_b.Phase_x'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x%draw_label = False
+  graph%x%draw_numbers = False
+  graph%y%label = 'Phase_x'
+  graph%y%major_div = 4
+  curve(1)%data_source = 'data'
+  curve(1)%data_type   = 'ping_b.phase_x'
+  curve(1)%draw_symbols = True
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'ping_b_y'
+  default_graph%x%major_div_nominal = 7
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 2
+  plot%autoscale_gang_y = False
+/
+
+&tao_template_graph
+  graph%name = 'amp_y'
+  graph_index = 1
+  graph%box = 1, 1, 1, 2
+  graph%title = 'Ping_b.Amp_y'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Amp_y'
+  graph%y%major_div = 4
+  curve(1)%data_source = 'data'
+  curve(1)%data_type   = 'ping_b.amp_y'
+  curve(1)%draw_symbols = True
+/
+
+&tao_template_graph
+  graph%name = 'phase_y'
+  graph_index = 2
+  graph%box = 1, 2, 1, 2
+  graph%title = 'Ping_b.Phase_y'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x%draw_label = False
+  graph%x%draw_numbers = False
+  graph%y%label = 'Phase_y'
+  graph%y%major_div = 4
+  curve(1)%data_source = 'data'
+  curve(1)%data_type   = 'ping_b.phase_y'
+  curve(1)%draw_symbols = True
+/
+

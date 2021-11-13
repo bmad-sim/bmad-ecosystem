@@ -1,0 +1,137 @@
+! Quadrupole strengths
+k2dscale :=1.0;
+k1dscale :=1.0;
+
+t1:= -0.541665217;
+t4:= -0.541665217;
+t13:= -0.541665217;
+t16:= -0.541665217;
+
+t2:= 0.503470875;
+t3:= 0.503470875;
+t14:= 0.503470875;
+t15:= 0.503470875;
+
+t5:= 0.715275864;
+t8:= 0.715275864;
+t9:= 0.715275864;
+t12:= 0.715275864;
+
+t6:= -0.659720457;
+t7:= -0.659720457;
+t10:= -0.659720457;
+t11:= -0.659720457;
+
+t17:= -0.607637263;
+t20:= -0.607637263;
+t29:= -0.607637263;
+t32:= -0.607637263;
+
+t18:= 0.562498495;
+t19:= 0.562498495;
+t30:= 0.562498495;
+t31:= 0.562498495;
+
+t21:= -0.598956732;
+t24:= -0.598956732;
+t25:= -0.598956732;
+t28:= -0.598956732;
+
+t22:= 0.552081856;
+t23:= 0.552081856;
+t26:= 0.552081856;
+t27:= 0.552081856;
+
+u1:= -0.272568715;
+u4:= -0.272568715;
+u21:= -0.272568715;
+u24:= -0.272568715;
+
+u2:= 0.371526783;
+u3:= 0.371526783;
+u22:= 0.371526783;
+u23:= 0.371526783;
+
+u5:= -0.272568715;
+u8:= -0.272568715;
+u17:= -0.272568715;
+u20:= -0.272568715;
+
+u6:= 0.371526783;
+u7:= 0.371526783;
+u18:= 0.371526783;
+u19:= 0.371526783;
+
+u9:= -0.272568715;
+u12:= -0.272568715;
+u13:= -0.272568715;
+u16:= -0.272568715;
+
+u10:= 0.371526783;
+u11:= 0.371526783;
+u14:= 0.371526783;
+u15:= 0.371526783;
+
+
+
+!jump quadrupoles JQ1 and JQ2
+j1 = 0 ;
+j2 = 0 ; 
+
+! sextupoles trengths 
+!mxl01 removed for electron cooler MX**
+xl02 = 0;
+xl03 = 0;
+xl04 = 0;
+xl10 = 0;
+xl11 = 0;
+xl12 = 0;
+xl13 = 0;
+xs = 0;
+xg = 0;
+xl = 0;
+xgoff = 0 ;  !removed
+
+factt:=1.0193;
+facufoc:=1.036;
+facudefoc:=1.085;
+facuu:=1;  	!arc
+
+
+! type definition of quadrupole-families
+! facuu:=1;  	!arc
+! factt:=1;	!straight
+! facufoc:=1;	!focussing
+! facudefoc:=1;	!defocussing
+
+! following are the correction factors for 1.92 GeV/c
+!facuu:=1
+!factt:=1.00575
+!facufoc:=0.9967921
+!facudefoc:=0.9778826
+! end of correction factors for 1.92 GeV/c
+! following are the correction factors for injection energy
+! factt:=1.0193
+! facufoc:=1.036
+! facudefoc:=1.085
+! end of correction factors for injection energy
+!following is the value of calibration factors for 1455 MeV/c
+!tele:=1.005
+!arc:=1.028
+!k:=-0.02*tele/1000
+!ks:=0.02*tele/1000
+!kst:=-0.14*tele/1000
+!kss:=-0.16*tele/1000
+!u:=-0.19*arc/1000
+!us:=-1.61*arc/1000
+!ust:=-0.08*arc/1000
+!uss:=-0.23*arc/1000
+! end of calibration factors for 1455 MeV/c
+! following are the correction factors for injection energy
+! factt:=1.0193;
+! facufoc:=1.036;
+! facudefoc:=1.085;
+! end of correction factors for injection energy
+
+
+

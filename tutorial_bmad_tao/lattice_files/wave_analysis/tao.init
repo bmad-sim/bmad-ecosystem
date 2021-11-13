@@ -1,0 +1,52 @@
+!------------------------ General Init -----------------------
+!-------------------------------------------------------------
+
+&tao_start
+  startup_file = 'setup.tao'
+/
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1)%file = "chess-u_6000mev_20181120.lat"
+/
+
+&tao_plot_page
+  plot_page%size = 500, 400
+/
+
+!------------------------ Data -------------------------------
+!-------------------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = 'phase'
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = 'a'
+  search_for_lat_eles = "type::BPM*"
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = 'b'
+  use_same_lat_eles_as = "phase.a"
+/
+
+!------------------------ Variables --------------------------
+!-------------------------------------------------------------
+
+&tao_var
+  v1_var%name = 'quad'
+  search_for_lat_eles = 'Quad::*'
+  default_step = 1e-4
+  default_attribute = 'k1'
+  default_merit_type = 'limit'
+  default_low_lim = -50
+  default_high_lim = 50
+  default_weight = 1
+  ix_min_var = 1
+  default_key_delta = 1e-2
+  default_key_bound = T
+/

@@ -1,0 +1,37 @@
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1)%file = 'small_ring.bmad'
+/
+
+&tao_plot_page
+  plot_page%size = 600, 600
+  place(1) = 'r11', 'multi_turn'
+/
+
+&tao_template_plot
+  plot%name = 'multi_turn'
+  default_graph%x%label = 'x (mm)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'x'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'X-Px'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = 'p\dx\u/p\d0\u (mrad)'
+  graph%y%major_div = 4
+  graph%y%label_offset=.4
+  curve(1)%data_type = 'x-px' 
+  curve(1)%y_axis_scale_factor = 1000 !rad->mrad
+  curve(1)%data_source = 'multi_turn_orbit'
+  curve(1)%ix_universe = 1
+  curve(1)%ele_ref_name = "1"
+  curve(1)%symbol%type = "dot"
+  curve(1)%n_turn = 100
+/
+

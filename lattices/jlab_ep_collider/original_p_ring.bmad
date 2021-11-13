@@ -1,0 +1,220 @@
+p_pgevoc = 60
+p_bp_rho = p_pgevoc/0.2998
+p_dipba = 106.8*degrees/33
+p_dipl = 3
+p_rho = p_dipl/p_dipba
+!!b = p_bp_rho/p_rho
+parameter[particle] = PROTON
+parameter[geometry] = closed
+parameter[p0c] = 60e9
+! ==========================================
+
+p_kmqa = 0.4589538023
+p_kmqb = -0.4608848617
+p_kmqa2 = 0.6098295516
+p_kmqb2 = -0.6024461691
+p_kmqa3 = 0.5948284923
+p_kms1 = -0.5836181346
+p_kms2 = 0.4940494177
+p_kms3 = -0.4739819153
+p_kms4 = 0.4316669796
+p_kmqa5 = 0.3817700698
+p_kmqb5 = -0.3586003719
+p_ku1 = 0.3496724481
+p_ku2 = -0.3544700218
+p_ku3 = 0.2996611876
+p_ku4 = -0.2962133667
+p_ku5 = 0.3106589734
+p_ku6 = -0.3590897724
+p_kmqb3 = 0.5699330401
+p_kmqa4 = -0.4389739262
+p_kmqb4 = 0.5866717019
+p_kqccb1 = -0.07779326324
+p_kqccb2 = 0.2647696863
+p_kqccb3 = -0.1555901935
+p_kqccb4 = 0.08933841503
+p_ksxt1 = 0
+p_ksxt2 = 0
+p_kqffb1 = -0.8747110926
+p_kqffb2 = 0.7677208532
+p_kqbes1 = 0.939454745
+p_kqbes2 = -0.8299596913
+p_kqbes3 = 0.6025549888
+p_kqbes4 = -0.9507796879
+p_kqbes5 = 0.6158648308
+p_kqbes6 = -0.2591740775
+p_kml1 = -0.4465671662
+p_kml2 = 0.4465671662
+p_kml3 = 0.5547079262
+p_kml4 = -0.4699446136
+p_kml5 = 0.7825652836
+p_kml6 = -0.5172032796
+p_kml7 = 0.6058744566
+p_kml09 = -0.3737328353
+p_kml10 = 0.359816604
+p_kml11 = -0.35431923
+p_kml12 = 0.3719682026
+p_kml13 = -0.3796097857
+
+! ==========================================
+p_qmqa: quadrupole, l = 0.5, k1 = p_kmqa
+p_qmqb: quadrupole, l = 0.5, k1 = p_kmqb
+p_barc: sbend, l = 3, angle = 3 * p_dipba/3
+p_barcr: sbend, l = 3, angle = 3 * (-p_dipba)/3
+p_od01: drift, l = 0.5
+p_arcfodo: line = (p_qmqa, p_od01, p_barc, p_od01, p_qmqb, p_od01, p_barc, p_od01)
+p_arcfodor: line = (p_qmqa, p_od01, p_barcr, p_od01, p_qmqb, p_od01, p_barcr, p_od01)
+! ==========================================
+p_qmqa2: quadrupole, l = 0.5, k1 = p_kmqa2
+p_qmqb2: quadrupole, l = 0.5, k1 = p_kmqb2
+p_qmqa3: quadrupole, l = 0.5, k1 = p_kmqa3
+p_dspsp: line = (p_qmqa2, p_od01, p_barc, p_od01, p_qmqb2, p_od01, p_barc, p_od01, 
+          p_qmqa3, p_od01, p_barc, p_od01)
+p_dspspr: line = (p_qmqa2, p_od01, p_barcr, p_od01, p_qmqb2, p_od01, p_barcr, 
+          p_od01, p_qmqa3, p_od01, p_barcr, p_od01)
+! ==========================================
+p_qms1: quadrupole, l = 0.5, k1 = p_kms1
+p_qms2: quadrupole, l = 0.5, k1 = p_kms2
+p_qms3: quadrupole, l = 0.5, k1 = p_kms3
+p_qms4: quadrupole, l = 0.5, k1 = p_kms4
+p_os: drift, l = 2.75
+p_qms4h: quadrupole, l = 0.25, k1 = p_kms4
+p_srtstrh: line = (p_qms1, p_os, p_qms2, p_os, p_qms3, p_os, p_qms4h)
+p_srtstr: line = (p_qms1, p_os, p_qms2, p_os, p_qms3, p_os, p_qms4, 
+                  p_os, p_qms3, p_os, p_qms2, p_os, p_qms1)
+! ==========================================
+p_barc2: sbend, l = 3, angle = 3 * 13.2*degrees/3/3
+p_barc2r: sbend, l = 3, angle = 3 * (-13.2*degrees/3)/3
+p_qu1: quadrupole, l = 0.5, k1 = p_ku1
+p_qu2: quadrupole, l = 0.5, k1 = p_ku2
+p_qu3: quadrupole, l = 0.5, k1 = p_ku3
+p_qu4: quadrupole, l = 0.5, k1 = p_ku4
+p_qu5: quadrupole, l = 0.5, k1 = p_ku5
+p_qu6: quadrupole, l = 0.5, k1 = p_ku6
+p_ou: drift, l = 3.4
+p_oarc: drift, l = 3
+p_qmqb3: quadrupole, l = 0.5, k1 = p_kmqb3
+p_qmqa4: quadrupole, l = 0.5, k1 = p_kmqa4
+p_qmqb4: quadrupole, l = 0.5, k1 = p_kmqb4
+p_qmqa5: quadrupole, l = 0.5, k1 = p_kmqa5
+p_qmqb5: quadrupole, l = 0.5, k1 = p_kmqb5
+p_arcend: line = (p_qmqa5, p_od01, p_barc, p_od01, p_qmqb5, p_od01, p_barc, 
+          p_od01, p_qu1, p_ou, p_qu2, p_ou, p_qu3, p_ou, p_qu4,
+          p_ou, p_qu5, p_ou, p_qu6, p_od01, p_barc2, p_od01, p_qmqb3, p_od01, 
+          p_barc2, p_od01, p_qmqa4, p_od01, p_barc2, p_od01 &
+        , p_qmqb4, p_od01, p_oarc, p_od01)
+p_arcendr: line = (p_qmqa5, p_od01, p_barcr, p_od01, p_qmqb5, p_od01, 
+        p_barcr, p_od01, p_qu1, p_ou, p_qu2, p_ou, p_qu3, p_ou,  &
+        p_qu4, p_ou, p_qu5, p_ou, p_qu6, p_od01, p_barc2r, p_od01, 
+        p_qmqb3, p_od01, p_barc2r, p_od01, p_qmqa4, p_od01, p_barc2r &
+        , p_od01, p_qmqb4, p_od01, p_oarc, p_od01)
+! ==========================================
+p_arc: line = (-p_arcend, p_od01, p_barc, p_od01, p_qmqb, p_od01, 
+        p_barc, p_od01, 13*p_arcfodo, p_dspsp, p_srtstr, -p_dspsp &
+        , p_od01, p_barc, p_od01, p_qmqb, p_od01, p_barc, p_od01, 13*p_arcfodo, p_arcend)
+p_arcr: line = (-p_arcendr, p_od01, p_barcr, p_od01, p_qmqb, p_od01,
+         p_barcr, p_od01, 13*p_arcfodor, p_dspspr, p_srtstr,  &
+        -p_dspspr, p_od01, p_barcr, p_od01, p_qmqb, p_od01, p_barcr, 
+        p_od01, 13*p_arcfodor, p_arcendr)
+! ==========================================
+p_bccb: sbend, l = 3, angle = 3 * 0.075/3
+p_bccb2: sbend, l = 3, angle = 3 * (-0.045)/3
+p_bccbr: sbend, l = 3, angle = 3 * (-0.075)/3
+p_bccb2r: sbend, l = 3, angle = 3 * 0.045/3
+p_qccb1: quadrupole, l = 0.5, k1 = p_kqccb1
+p_qccb2: quadrupole, l = 0.5, k1 = p_kqccb2
+p_qccb3: quadrupole, l = 0.5, k1 = p_kqccb3
+p_qccb4: quadrupole, l = 0.5, k1 = p_kqccb4
+p_qccb4h: quadrupole, l = 0.25, k1 = p_kqccb4
+p_occb1: drift, l = 0.5
+p_occb2: drift, l = 1.5
+p_ccb_h: line = (p_bccb, p_occb1, p_qccb1, p_occb1, p_bccb, p_occb2, p_qccb2, 
+        p_occb2, p_bccb2, p_occb1, p_qccb3, p_occb2,  &
+        p_bccb2, p_occb2, p_qccb4h)
+p_sxt1: sextupole, l = 0.25, k2 = p_ksxt1
+p_sxt1r: sextupole, l = 0.25, k2 = -p_ksxt1
+p_sxt2: sextupole, l = 0.25, k2 = p_ksxt2
+p_sxt2r: sextupole, l = 0.25, k2 = -p_ksxt2
+p_osxt1_1: drift, l = 0.25
+p_osxt1_2: drift, l = 1
+p_osxt2_1: drift, l = 1
+p_osxt2_2: drift, l = 0.25
+p_ccb: line = (p_bccb, p_occb1, p_qccb1, p_occb1, p_bccb, p_occb2, 
+        p_qccb2, p_osxt1_1, p_sxt1, p_osxt1_2, p_bccb2, p_occb1 &
+        , p_qccb3, p_occb2, p_bccb2, p_osxt2_1, p_sxt2, p_osxt2_2, 
+        p_qccb4, p_osxt2_2, p_sxt2, p_osxt2_1, p_bccb2,  &
+        p_occb2, p_qccb3, p_occb1, p_bccb2, p_osxt1_2, p_sxt1, 
+        p_osxt1_1, p_qccb2, p_occb2, p_bccb, p_occb1, p_qccb1,  &
+        p_occb1, p_bccb)
+p_ccbr: line = (p_bccbr, p_occb1, p_qccb1, p_occb1, p_bccbr, p_occb2, 
+        p_qccb2, p_osxt1_1, p_sxt1r, p_osxt1_2, p_bccb2r,  &
+        p_occb1, p_qccb3, p_occb2, p_bccb2r, p_osxt2_1, p_sxt2r, 
+        p_osxt2_2, p_qccb4, p_osxt2_2, p_sxt2r, p_osxt2_1,  &
+        p_bccb2r, p_occb2, p_qccb3, p_occb1, p_bccb2r, p_osxt1_2, 
+        p_sxt1r, p_osxt1_1, p_qccb2, p_occb2, p_bccbr, p_occb1 &
+        , p_qccb1, p_occb1, p_bccbr)
+! ==========================================
+p_qffb1: quadrupole, l = 0.5, k1 = p_kqffb1
+p_qffb2: quadrupole, l = 0.5, k1 = p_kqffb2
+p_offb1: drift, l = 7
+p_offb11: drift, l = 5
+p_offb12: drift, l = 4
+p_offb2: drift, l = 0.5
+! , ks=0;   ! 4.0/p_bp_rho;
+p_ipsole: drift, l = 5
+p_ipsole1 : line= (p_ipsole)
+p_ipsole2 : line= (p_ipsole)
+! ffb: line=(oFFB1,qFFB1,oFFB2,qFFB2,oFFB2);
+p_whole_ffb: line = (p_offb2, p_qffb2, p_offb2, p_qffb1, p_offb11, 
+          p_ipsole, p_offb12, p_qffb1, p_offb2, p_qffb2, p_offb2)
+p_whole_ffb1: line = (p_offb2, p_qffb2, p_offb2, p_qffb1, p_offb11)
+p_whole_ffb2: line = (p_offb12, p_qffb1, p_offb2, p_qffb2, p_offb2 )
+
+! ==========================================
+p_qbes1: quadrupole, l = 0.5, k1 = p_kqbes1
+p_qbes2: quadrupole, l = 0.5, k1 = p_kqbes2
+p_qbes3: quadrupole, l = 0.5, k1 = p_kqbes3
+p_qbes4: quadrupole, l = 0.5, k1 = p_kqbes4
+p_qbes5: quadrupole, l = 0.5, k1 = p_kqbes5
+p_qbes6: quadrupole, l = 0.5, k1 = p_kqbes6
+p_obes1: drift, l = 6
+p_obes2: drift, l = 6
+p_obes3: drift, l = 1
+p_obes4: drift, l = 1
+p_obes5: drift, l = 1
+p_obes6: drift, l = 0.5
+p_bes: line = (p_qbes1, p_obes1, p_qbes2, p_obes2, p_qbes3, 
+          p_obes3, p_qbes4, p_obes4, p_qbes5, p_obes5, p_qbes6, p_obes6)
+! ==========================================
+p_oll = 4.148660859
+p_qml1: quadrupole, l = 0.5, k1 = p_kml1
+p_qml2: quadrupole, l = 0.5, k1 = p_kml2
+p_ol: drift, l = p_oll
+p_strfodo: line = (p_ol, p_qml1, p_ol, p_qml2)
+! ==========================================
+p_qml3: quadrupole, l = 0.5, k1 = p_kml3
+p_qml4: quadrupole, l = 0.5, k1 = p_kml4
+p_qml5: quadrupole, l = 0.5, k1 = p_kml5
+p_qml6: quadrupole, l = 0.5, k1 = p_kml6
+p_qml7: quadrupole, l = 0.5, k1 = p_kml7
+p_strmtch: line = (p_ol, p_qml3, p_ol, p_qml4, p_ol, p_qml5, p_ol, p_qml6, p_ol, p_qml7)
+! ==========================================
+p_qml09: quadrupole, l = 0.5, k1 = p_kml09
+p_qml10: quadrupole, l = 0.5, k1 = p_kml10
+p_qml11: quadrupole, l = 0.5, k1 = p_kml11
+p_qml12: quadrupole, l = 0.5, k1 = p_kml12
+p_qml13: quadrupole, l = 0.5, k1 = p_kml13
+p_strmtch2: line = (p_ol, p_qml09, p_ol, p_qml10, p_ol, p_qml11, p_ol, p_qml12, p_ol, p_qml13)
+! ==========================================
+ n11:marker
+ n12:marker
+ n21:marker
+ n22:marker
+p_whole8: line = (p_whole_ffb1,n21,p_ipsole2,n22,p_whole_ffb2, p_ccbr, -p_bes, p_arcr, -p_strmtch2, 
+       -10*p_strfodo, -p_strmtch, p_bes, p_ccbr,  &
+        p_whole_ffb1,n11,p_ipsole1,n12,p_whole_ffb2, p_ccb, -p_bes, p_arc, -p_strmtch2, -10*p_strfodo, 
+      -p_strmtch, p_bes, p_ccb)
+*[ptc_integration_type]=matrix_kick
+use, p_whole8
+
+

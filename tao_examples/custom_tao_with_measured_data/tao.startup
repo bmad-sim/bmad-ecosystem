@@ -1,0 +1,21 @@
+! pingread is a custom command
+pingread b data/VerKick_VerticalBPMs_refVP605.txt  
+pause
+
+! Setup plots
+place r12 ping_b_y
+place r22 ping_b_y
+set graph r12 component = meas-model
+scale ping_b_y
+pause
+
+! Setup fitting
+veto data ping_b.amp_y
+pause
+
+! Show data and variables
+show data
+show var
+
+! And run the optimizer
+run lm

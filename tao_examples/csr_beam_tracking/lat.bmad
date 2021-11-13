@@ -1,0 +1,68 @@
+
+
+
+
+BEGINNING[beta_a]  =   0.3145469848
+BEGINNING[alpha_a] =  -2.2075642140
+BEGINNING[beta_b]  = 0.3438568976
+BEGINNING[alpha_b] =  1.9751085275
+BEGINNING[eta_x]   =  -0.0065229769 
+BEGINNING[etap_x]  =   0.0671001523
+
+
+parameter[geometry] = open
+
+PARAMETER[particle] = electron
+
+parameter[e_tot] = 42e6
+
+parameter[absolute_time_tracking] = F
+
+
+
+!--- Pipes
+FF.pip: pipe
+FF.Pip00b: FF.pip, L = 0.06
+FF.Pip01:  FF.Pip, L = 0.07
+FF.Pip02a: FF.Pip, L = 0.06
+FF.Pip02:  FF.Pip, L = 0.12  ! Only used in straight cells
+
+FF.Qua: QUAD, fringe_type = full, field_master = T
+FF.Qua01: FF.Qua
+FF.Qua02: FF.Qua
+
+! Scott solution 2016 May 9
+FF.QUA01[B1_GRADIENT] = -10.620985849931532
+FF.QUA02[B1_GRADIENT] =  10.016651755070429
+FF.QUA01[X_OFFSET] = -7.1820899274544639e-03
+FF.QUA02[X_OFFSET] =  20.131871679706329e-03
+
+FF.QUA01[L] = .133
+FF.QUA02[L] = .122
+
+
+Mar.CSR: marker
+Mar.END: marker
+
+
+FF.Ben01: sbend, L = FF.Qua01[L], b_field = .17, b1_gradient = FF.Qua01[b1_gradient]
+ 
+FF.Ben02: sbend, L = FF.Qua02[L], b_field = -0.28, b1_gradient = FF.Qua02[b1_gradient]
+
+p1: patch, x_offset =  -16.98165206e-3, x_pitch = -93.12395012e-3
+
+cell: line = (
+!p1,
+FF.Pip00b,
+FF.Ben01,
+FF.Pip01,
+FF.Ben02,
+FF.Pip02a)   
+ 
+lat: line = (Mar.CSR,
+
+1 *cell,
+Mar.END)
+
+
+use, lat

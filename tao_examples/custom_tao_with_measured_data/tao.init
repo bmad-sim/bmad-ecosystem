@@ -1,0 +1,262 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = 'tao_plot.init'
+/
+
+!------------------------------------------------------------------------
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1) = "RRNOVAMU2E11172016.bmad"
+/
+
+
+!------------------------------------------------------------------------
+
+&tao_params
+  global%prompt_string = 'Ping_Tao'
+/
+
+!------------------------------------------------------------------------
+! Data
+
+&tao_d2_data
+  d2_data%name = "orbit"
+  universe = '*'  ! apply to all universes
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "x"
+  default_weight = 1e6
+  search_for_lat_eles = "hp%%0 hp%%2 hp%%4 hp%%6 hp%%8" 
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "y"  
+  default_weight = 1e6
+  search_for_lat_eles = "vp%%1 vp%%3 vp%%5 vp%%7 vp%%9" 
+/
+
+!------------------------------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = "ping_a"
+  universe = '*'  ! apply to all universes
+  n_d1_data = 4
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "amp_x"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.x'
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "phase_x"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.x'
+/
+
+&tao_d1_data
+  ix_d1_data = 3
+  d1_data%name = "amp_y"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.y'
+/
+
+&tao_d1_data
+  ix_d1_data = 4
+  d1_data%name = "phase_y"
+  default_weight = 1e6
+  use_same_lat_eles_as = 'orbit.y'
+/
+
+!------------------------------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = "ping_b"
+  universe = '*'  ! apply to all universes
+  n_d1_data = 4
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "amp_x"
+  default_weight = 1e0
+  use_same_lat_eles_as = 'orbit.x'
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "phase_x"
+  default_weight = 1e0
+  use_same_lat_eles_as = 'orbit.x'
+/
+
+&tao_d1_data
+  ix_d1_data = 3
+  d1_data%name = "amp_y"
+  default_weight = 1e0
+  use_same_lat_eles_as = 'orbit.y'
+/
+
+&tao_d1_data
+  ix_d1_data = 4
+  d1_data%name = "phase_y"
+  default_weight = 1e0
+  use_same_lat_eles_as = 'orbit.y'
+/
+
+!------------------------------------------------------------------------
+! Data
+
+&tao_d2_data
+  d2_data%name = "tune"
+  universe = '*'  ! apply to all universes
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "a"
+  default_weight = 1e1
+  ix_min_data = 1
+  ix_max_data = 1
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "b"
+  default_weight = 1e1
+  ix_min_data = 1
+  ix_max_data = 1
+/
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+! variables
+
+veto data *
+use data phase 
+
+!&tao_var
+!  v1_var%name  = "qt_k1"
+!  default_attribute = "k1"
+!  default_weight = 1e0
+!  default_step = 2e-2
+!  var(1:18)%ele_name = 
+!    "qt606b", "qt607b", "qt608b", "qt609b",  
+!    "qt301b", "qt302b", "qt303b", "qt304b", "qt305b",
+!    "qt306b", "qt307b", "qt308b", "qt309b",
+!    "qt601b", "qt602b", "qt603b", "qt604b", "qt605b" 
+!/
+
+ &tao_var
+  v1_var%name  = "sgf_k1a"
+  default_attribute = "k1"
+  default_weight = 1.
+  default_step = 0.1e-4
+  
+  var(1:32)%ele_name = 
+     "G100A", "G106A", "G108A", "G218A", "G220A",
+     "G224A", "G226A", "G230A", "G232A", "G310A",
+     "G312A", "G316A", "G318A", "G324A", "G326A",
+     "G340A", "G400A", "G406A", "G408A", "G518A",
+     "G520A", "G524A", "G526A", "G530A", "G532A",
+     "G610A", "G612A", "G616A", "G618A", "G624A",
+     "G626A", "G640A"
+/
+
+
+ &tao_var
+  v1_var%name  = "sgd_k1a"
+  default_attribute = "k1"
+  default_weight = 1.
+  default_step = 0.1e-4
+  
+  var(1:32)%ele_name = 
+     "G105A", "G107A", "G217A", "G219A", "G225A",
+     "G227A", "G231A", "G301A", "G311A", "G313A",
+     "G317A", "G319A", "G323A", "G325A", "G339A",
+     "G341A", "G405A", "G407A", "G517A", "G519A",
+     "G525A", "G527A", "G531A", "G601A", "G611A",
+     "G613A", "G617A", "G619A", "G623A", "G625A",
+     "G639A", "G641A"
+/
+
+
+ &tao_var
+  v1_var%name  = "rgf_k1ad"
+  default_attribute = "k1l"
+  default_weight = 1.
+  default_step = 0.1e-4
+  
+  var(1:54)%ele_name = 
+     "MPS110AD", "MPS112AD", "MPS114AD", "MPS116AD", "MPS118AD",
+     "MPS120AD", "MPS122AD", "MPS124AD", "MPS126AD", "MPS128AD",
+     "MPS130AD", "MPS202AD", "MPS204AD", "MPS206AD", "MPS208AD",
+     "MPS210AD", "MPS212AD", "MPS214AD", "MPS216AD", "MPS228AD",
+     "MPS314AD", "MPS328AD", "MPS330AD", "MPS332AD", "MPS334AD",
+     "MPS336AD", "MPS338AD", "MPS410AD", "MPS412AD", "MPS414AD",
+     "MPS416AD", "MPS418AD", "MPS420AD", "MPS422AD", "MPS424AD",
+     "MPS426AD", "MPS428AD", "MPS430AD", "MPS502AD", "MPS504AD",
+     "MPS506AD", "MPS508AD", "MPS510AD", "MPS512AD", "MPS514AD",
+     "MPS516AD", "MPS528AD", "MPS614AD", "MPS628AD", "MPS630AD",
+     "MPS632AD", "MPS634AD", "MPS636AD", "MPS638AD"
+/
+
+
+ &tao_var
+  v1_var%name  = "rgd_k1ad"
+  default_attribute = "k1l"
+  default_weight = 1.
+  default_step = 0.1e-4
+  
+  var(1:53)%ele_name = 
+     "MPS109AD", "MPS111AD", "MPS113AD", "MPS115AD", "MPS117AD",
+     "MPS119AD", "MPS121AD", "MPS123AD", "MPS125AD", "MPS127AD",
+     "MPS129AD", "MPS201AD", "MPS203AD", "MPS205AD", "MPS207AD",
+     "MPS209AD", "MPS211AD", "MPS213AD", "MPS229AD", "MPS315AD",
+     "MPS327AD", "MPS329AD", "MPS331AD", "MPS333AD", "MPS335AD",
+     "MPS337AD", "MPS409AD", "MPS411AD", "MPS413AD", "MPS415AD",
+     "MPS417AD", "MPS419AD", "MPS421AD", "MPS423AD", "MPS425AD",
+     "MPS427AD", "MPS429AD", "MPS501AD", "MPS503AD", "MPS505AD",
+     "MPS507AD", "MPS509AD", "MPS511AD", "MPS513AD", "MPS515AD",
+     "MPS529AD", "MPS615AD", "MPS627AD", "MPS629AD", "MPS631AD",
+     "MPS633AD", "MPS635AD", "MPS637AD"
+/
+
+
+ &tao_var
+  v1_var%name  = "hquad_k1b"
+  default_attribute = "k1"
+  default_weight = 1.
+  default_step = 0.1e-4
+  
+  var(1:18)%ele_name = 
+     "q100b", "q102b", "q220b", "q222b", "q320b",
+     "q400b", "q402b", "q520b", "q522b", "q602b1",
+     "q604b1", "q606b1", "q608b1", "q620b", "q302b",
+     "q304b", "q306b", "q308b"
+/
+
+
+ &tao_var
+  v1_var%name  = "vquad_k1b"
+  default_attribute = "k1"
+  default_weight = 1.
+  default_step = 0.1e-4
+  
+  var(1:18)%ele_name = 
+     "q101b", "q103b", "q221b", "q319b", "q321b",
+     "q401b", "q403b", "q521b", "q601b1", "q603b1",
+     "q605b1", "q607b1", "q619b", "q621b", "q301b",
+     "q303b", "q305b", "q307b"
+/

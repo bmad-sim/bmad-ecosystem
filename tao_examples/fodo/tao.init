@@ -1,0 +1,126 @@
+&tao_start
+  n_universes = 1
+ ! plot_file    = ''
+ ! startup_file = ''
+/
+
+
+
+
+!--------------------------------------------------------
+&tao_design_lattice
+  design_lattice(1)%file='fodo.bmad'
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  !global%plot_on = T
+  global%track_type = 'single'
+  global%beam_timer_on = T
+  global%random_engine = 'pseudo' ! or: 'quasi'
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+  global%var_out_file = ''
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = T
+/
+
+
+!----MODE X ----
+&tao_beam_init
+  beam_init%n_particle = 10000
+  beam_init%random_engine = 'quasi'
+  !beam_init%random_engine = 'pseudo'
+  ix_universe = 1
+  beam_saved_at =  "MARKER::*"
+  beam_dump_file = 'beam_dump.h5'
+  beam_dump_at = 'm_*'
+  beam_init%a_norm_emit = 2.5e-6
+  beam_init%b_norm_emit = 2.5e-6
+  beam_init%dPz_dz = 0.0
+  beam_init%n_bunch = 1     
+  beam_init%bunch_charge = 1e-9
+  beam_init%sig_pz = 2.5e-4
+  beam_init%sig_z = 0.005
+/
+
+
+
+
+
+
+&tao_d2_data
+        d2_data%name = 'fodo'
+        universe = 1
+        n_d1_data = 2
+        
+/
+&tao_d1_data
+    ix_d1_data = 1
+    d1_data%name = 'betas'
+    
+    datum( 1) =  'beta.a'         '' 'BEGINNING' 'END'   'average'   -2.89835   1e1
+    datum( 2) =  'beta.b'         '' 'BEGINNING' 'END'   'average'   -2.89835   1e1    
+/  
+
+&tao_d1_data
+    ix_d1_data = 2
+    d1_data%name = 'stability'
+    datum( 1) =  'unstable.lattice'         '' '' ''   'target'  0   1e15
+/  
+
+
+
+
+
+
+
+
+!------------------------------------------------------------------------
+
+&tao_var
+    v1_var%name = 'begtwiss'
+    default_step = 1e-4
+    default_universe = '1'
+    ix_min_var = 1
+    ix_max_var = 6
+    var(1:6)%ele_name  = 'beginning', 'beginning', 'beginning', 'beginning', 'beginning', 'beginning'
+    var(1:6)%attribute = 'beta_a', 'alpha_a', 'beta_b', 'alpha_b', 'eta_x', 'etap_x'
+    var(1)%low_lim = 0.01
+    var(3)%low_lim = 0.01
+/
+
+&tao_var
+    v1_var%name = 'begfloor'
+    default_step = 1e-4
+    default_universe = '1'
+    ix_min_var = 1
+    ix_max_var = 3
+    var(1:3)%ele_name  = 'beginning', 'beginning', 'beginning'
+    var(1:3)%attribute = 'x_position', 'z_position', 'theta_position'
+
+/
+
+
+&tao_var
+    v1_var%name = 'quad'
+    default_step = 1e-4
+    default_attribute = 'K1'
+    search_for_lat_eles = "quad::*"
+    default_key_bound = T
+    default_key_delta = 1e-3
+/
+
+
+&tao_var
+default_universe = '1'
+    v1_var%name = 'Lcell'
+    default_step = 1e-4
+    default_attribute = 'Lcell'
+    var(1:)%ele_name = 'O_L'
+    default_key_bound = T
+    default_key_delta = 0.1
+/
+
