@@ -8,4 +8,6 @@
 
 
 *Not Included:*
-- Bmad and Tao manuals (Find these on the Bmad web site)
+- [Bmad manual](https://www.classe.cornell.edu/bmad/manual.html)
+- [Tao manual](https://www.classe.cornell.edu/bmad/tao.html)
+
