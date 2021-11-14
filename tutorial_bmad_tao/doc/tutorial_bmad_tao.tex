@@ -201,15 +201,7 @@ package manager) to download a \tao executable. The other is to compile a \bmad 
 (\sref{s:dist}). Instructions for both are given on the web page at the above URL.
 
 Even if you do use \vn{Conda}, you should also download (but you do not need to compile) a
-Distribution (\sref{s:dist}) since a Distribution contains many useful lattice examples.  This
-tutorial assumes that the environment variable \vn{ACC_ROOT_DIR} is set to point to your Distribution
-(or Release). If you compile a Distribution, this variable will be set by the Distribution compile
-scripts. If you use \vn{Conda}, will will want to set \vn{ACC_ROOT_DIR} via
-\begin{code}
-export ACC_ROOT_DIR=<path-to-your-Distribution>
-\end{code}
-where \vn{<path-to-your-Distribution>} is the path to the root directory of your distribution (and
-make sure there are no spaces around the equal sign).
+Distribution (\sref{s:dist}) since a Distribution contains many useful lattice examples.
 
 If you compile a \vn{Distribution}, (or are using a Release) a useful check that everything is setup
 is the \vn{accinfo} command which shows the environment variables that have been setup by the
@@ -248,7 +240,6 @@ Laboratory for Accelerator-based Sciences and Education). More information can b
 
 The directories in a Distribution are:
 \begin{lstlisting}[mathescape]
-$\BF{> ls \$ACC_ROOT_DIR}$
 INSTALL             fftw               lattice            regression_tests
 PGPLOT              fgsl               lux                sim_utils
 bmad                forest             mad_tpsa           tao
@@ -286,15 +277,10 @@ programs and instructions for downloading and setup. The manuals are at:
   \url{\detokenize{www.classe.cornell.edu/bmad/tao-manual.pdf}}
 \end{display}
 
-After you have finished this tutorial, there are lattice file examples in the directory
+This tutorial, along with associated lattice files and other examples may be obtained from \vn{GitHub}
 (\sref{s:orientation})
 \begin{lstlisting}[mathescape]
-  @!\$!@ACC_ROOT_DIR/examples
-\end{lstlisting}
-[From now on, all directory paths are implicitly assumed to be with respect to \vn{\$ACC_ROOT_DIR}.]
-Example \tao initialization files are in the directory
-\begin{lstlisting}[mathescape]
-  tao/examples
+  \url{github.com/bmad-sim/bmad-examples}
 \end{lstlisting}
 
 To keep in touch with the latest \bmad developments, there are two mailing lists for
@@ -953,7 +939,7 @@ Other Attributes}'' section (\extref{B-s:ele.match}) in the \bmad manual.]
 
 In the examples below a more complicated lattice is used. Start \tao with:
 \begin{code}
-  > tao -lat $ACC_ROOT_DIR/tao/examples/cesr/bmad_L9A18A000-_MOVEREC.lat
+  > tao -lat <path-to bmad-doc>/tao_examples/cesr/bmad_L9A18A000-_MOVEREC.lat
 \end{code}
 For example, to show all elements whose name begins with "Q" use the \vn{show element} command:
 \begin{code}
@@ -3322,18 +3308,14 @@ Calculation Methods''.
 \begin{enumerate}[label=\thesection.\arabic{enumi}]
 \item
 Some tracking methods are faster than others. Some more accurate than others. To see how accurate
-different tracking methods are under different circumstances, there is a test program called 
-\vn{tracking_method_test} in the directory
-\begin{lstlisting}[mathescape]
-  @!\$!@ACC_ROOT_DIR/regression_tests/tracking_method_test
-\end{lstlisting}
-[This program is part of a suite of \vn{regression} tests. A regression test is a test that will
-check to see if results of executing some code change after changes to the code. This is helpful for
-spotting bugs that are introduced.] The \vn{tracking_method_test} program reads in a lattice and,
-for each lattice element, tracks through that element multiple times using all the allowed tracking
-methods for that element type. The particle position at the the beginning of the element is set to
-the settings of any \vn{particle_start} commands in the lattice file. The ending particle position
-(phase space and spin) for each track is printed out.
+different tracking methods are under different circumstances, there is a test program called
+\vn{tracking_method_test}. [This program is part of a suite of \vn{regression} tests. A regression
+test is a test that will check to see if results of executing some code change after changes to the
+code. This is helpful for spotting bugs that are introduced.] The \vn{tracking_method_test} program
+reads in a lattice and, for each lattice element, tracks through that element multiple times using
+all the allowed tracking methods for that element type. The particle position at the the beginning
+of the element is set to the settings of any \vn{particle_start} commands in the lattice file. The
+ending particle position (phase space and spin) for each track is printed out.
 
 Using a lattice file with only one or two lattice elements, run the \vn{tracking_method_test}
 program to see how accurate the different methods are. Vary input parameters like magnet strengths
