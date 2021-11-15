@@ -23,6 +23,9 @@ integer, parameter :: is_done_tag$  = 1001
 integer, parameter :: particle_tag$ = 1002
 integer, parameter :: num_tag$      = 1003
 
+integer, parameter :: in_map$ = 0
+integer, parameter :: not_in_map$ = 1
+
 ! Essentially: The ltt_params_struct holds user setable parameters while the ltt_com_struct holds
 ! parameters that are not setable.
 
@@ -1871,7 +1874,7 @@ do i = 1, branch%n_ele_track
   ele => branch%ele(i)
   if (ele%key == sbend$) then
     n_sec = n_sec + 1
-  elseif (ele%ix_pointer == 1) then
+  elseif (ele%ix_pointer == not_in_map$) then
     n_sec = n_sec + 2
   endif
 enddo
@@ -1894,7 +1897,7 @@ do i = 1, branch%n_ele_track+1
   ele => pointer_to_next_ele(ele, skip_beginning = .false.)
   if (ele%key == marker$ .and. .not. in_map_section) cycle
 
-  if (ele%ix_pointer == 1) then
+  if (ele%ix_pointer == not_in_map$) then
     if (in_map_section) then
       n_sec = n_sec + 1
       allocate(ltt_com%sec(n_sec)%map)
@@ -1962,7 +1965,7 @@ if (err) then
 endif
 
 do ie = 1, n_loc
-  eles(ie)%ele%ix_pointer = 1  ! Mark to exclude from any maps
+  eles(ie)%ele%ix_pointer = not_in_map$  ! Mark to exclude from any maps
 enddo
 
 !
@@ -1973,7 +1976,7 @@ branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
 if (lttp%split_bends_for_radiation) then
   call init_ele(marker, marker$)
   marker%name = 'RADIATION_PT'
-  marker%ix_pointer = 1
+  marker%ix_pointer = not_in_map$
 
   i = 0
   do
@@ -1989,14 +1992,24 @@ if (lttp%split_bends_for_radiation) then
   call lattice_bookkeeper(ltt_com%tracking_lat)
 endif
 
+! Warning if beambeam element is included in amap
+
+do ie = 1, branch%n_ele_track
+  ele => branch%ele(ie)
+  if (ele%ix_pointer == in_map$ .and. ele%key == beambeam$) then
+    print '(a)', 'WARNING! Beambeam element is included in a map.'
+    print '(a)', '          This is incaccurate at amplitudes larger than 1 sigma!'
+  endif
+enddo
+
 ! Mark slaves of lords that are not to be part of any map
 
 do ie = ltt_com%tracking_lat%n_ele_track+1, ltt_com%tracking_lat%n_ele_max
   ele => ltt_com%tracking_lat%ele(ie)
-  if (ele%ix_pointer == 0) cycle
+  if (ele%ix_pointer == in_map$) cycle
   do is = 1, ele%n_slave
     slave => pointer_to_slave(ele, is)
-    slave%ix_pointer = 1
+    slave%ix_pointer = not_in_map$
   enddo
 enddo
 
@@ -2017,7 +2030,6 @@ type (ele_pointer_struct), allocatable :: eles(:)
 
 integer n_loc
 logical err
-
 
 ! @START_ELE and @STOP_ELE strings are set in ltt_init_params
 
