@@ -3,8 +3,6 @@
 !Defaults for namelist
 lat_name = 'lat.bmad'
 ibs_formula = 'bjmt'   ! See ibs_mod
-coulomb_log_to_use = 1 ! 1=Wolski, 2=Raubenheimer Tail Cut, 3=Bane Tail Cut
-tau_a = 0              ! only used with Raubenheimer Tail Cut
 use_beam = .true.      ! Beam is tracked to set sigma_z, emittances for every element 
 ISR_energy_spread_on = .true.      ! For energy spread calc
 radiation_damping_on = .false.     ! For bunch tracking
