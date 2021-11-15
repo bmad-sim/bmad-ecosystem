@@ -8,6 +8,7 @@ use tao_c_interface_mod, only: tao_c_interface_com
 use wall3d_mod
 use pointer_lattice, only: operator(.sub.)
 use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout
+use ptc_map_with_radiation_mod, only: ptc_map_with_rad_struct, ptc_setup_map_with_radiation, tree_element_zhe
 
 type show_common_struct
   type (ele_struct), pointer :: ele 
@@ -204,6 +205,8 @@ type (coord_struct) orbit
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_spin_map_struct), pointer :: sm
 type (normal_modes_struct) norm_mode
+type (ptc_map_with_rad_struct), target :: rad_map
+type (tree_element_zhe), pointer :: rmap(:)
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -234,7 +237,7 @@ real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, gamma2, val, z, z1, z2,
 real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
-real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2)
+real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), s_mat(6,6), m_mat(6,6)
 real(rp), allocatable :: value(:)
 
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
@@ -4130,7 +4133,7 @@ case ('taylor_map', 'matrix')
 
   do
     call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format', &
-                      '-universe', '-running', '-angle_coordinates', '-number_format'], .true., switch, err, ix)
+             '-universe', '-running', '-angle_coordinates', '-number_format', '-radiation'], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
 
@@ -4159,6 +4162,8 @@ case ('taylor_map', 'matrix')
       endif
     case ('-ptc')
       print_ptc = .true.
+    case ('-radiation')
+      disp_fmt = 'RADIATION'
     case ('-running')
       disp_fmt = 'RUNNING'
     case ('-s')
@@ -4185,7 +4190,6 @@ case ('taylor_map', 'matrix')
       endif
     end select
   enddo
-
 
   if (by_s .and. print_ptc) then
     nl=1; lines(1) = 'ERROR: "-ptc" AND "-s" SWITCHES CANNOT BOTH BE PRESENT.'
@@ -4295,6 +4299,47 @@ case ('taylor_map', 'matrix')
         return
       endif
     endif
+
+    !---------------------------------------
+    ! Radiation
+
+    if (disp_fmt == 'RADIATION') then
+      if (.not. bmad_com%radiation_damping_on) then
+        nl=nl+1; lines(nl) = 'RADIATION DAMPING IS NOT TURNED ON!'
+        nl=nl+1; lines(nl) = '   TO TURN ON USE: "set bmad_com radiation_damping_on = T"'
+      endif
+
+      if (.not. s%global%rf_on) then
+        nl=nl+1; lines(nl) = 'RF IS TURNED OFF!'
+        nl=nl+1; lines(nl) = '   TO TURN ON USE: "set global rf_on = T"'
+      endif
+
+      if (.not. associated (branch%ptc%m_t_layout)) call lat_to_ptc_layout (lat)
+      call ptc_setup_map_with_radiation (rad_map, branch%ele(ix1), branch%ele(ix2), &
+                                           1, .true., orbit1 = u%model%tao_branch(ix_branch)%orbit(ix1))
+      rmap => rad_map%sub_map
+      do i = 1, 6
+        s_mat(i,:) = rmap(2)%rad(i,:) * rmap(2)%fix0
+        m_mat(:,i) = rmap(1)%cc(i*6+1:i*6+6)
+      enddo
+      m_mat = matmul(m_mat, rmap(3)%rad)
+      s_mat = matmul(m_mat, s_mat)
+
+      nl=nl+1; write (lines(nl), '(a, 6es16.8)') 'Ref_orb_start: ', rmap(1)%fix0
+      nl=nl+1; write (lines(nl), '(a, 6es16.8)') 'Ref_orb_end:   ', rmap(1)%fix
+      nl=nl+1; lines(nl) = ''
+!      nl=nl+1; call mat_type (m_mat, 0, 'Matrix_with_Damping:', '(4x, 6es16.8)', lines(nl:), n)
+!      nl=nl+7; lines(nl) = ''
+!      nl=nl+1; call mat_type (s_mat, 0, 'Radiation Matrix:', '(4x, 6es16.8)', lines(nl:), n)
+!      nl=nl+7; lines(nl) = ''
+      nl=nl+1; call mat_type (m_mat, 0, 'Matrix_with_Damping:', '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+7; lines(nl) = ''
+      nl=nl+1; call mat_type (s_mat, 0, 'Radiation Matrix:', '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+6
+      return
+    endif
+
+    !---------------------------------------
 
     if (disp_fmt /= 'RUNNING' .and. ele2_name == '') then
       nl=nl+1; lines(nl) = 'From: ' // trim(branch%ele(ix1)%name)
