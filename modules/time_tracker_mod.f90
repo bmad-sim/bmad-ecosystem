@@ -56,7 +56,7 @@ contains
 
 subroutine odeint_bmad_time (orb, dt_ref, ele, param, t_dir, rf_time, err_flag, track, t_end, dt_step)
 
-use nr, only: zbrent
+use super_recipes_mod, only: super_zbrent
 
 implicit none
 
@@ -77,7 +77,7 @@ real(rp), target  :: dvec_dt(10), vec_err(10), s_target, dt_next_save
 real(rp) :: stop_time, s_stop_fwd, old_dt_ref, s_body_old
 real(rp), pointer :: s_body, s_fringe_ptr
 
-integer :: t_dir, n_step, n_pt, old_direction
+integer :: t_dir, n_step, n_pt, old_direction, status
 
 logical :: at_edge_flag, exit_flag, err_flag, err, zbrent_needed, add_ds_safe, has_hit
 logical :: edge_kick_applied, track_spin, stop_time_limited
@@ -162,8 +162,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
     if (zbrent_needed) then
       dt_tol = ds_safe / (orb%beta * c_light)
-      dt = zbrent (delta_s_target, 0.0_rp, dt_did, dt_tol)
-      dummy = delta_s_target(dt) ! Final call to set orb
+      dt = super_zbrent (delta_s_target, 0.0_rp, dt_did, 1e-15_rp, dt_tol, status)
+      dummy = delta_s_target(dt, status) ! Final call to set orb
       dt_did = dt
     endif
 
@@ -205,10 +205,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       ! Skip zbrent if the edge kick moved the particle outside the wall
       dt_tol = ds_safe / (orb%beta * c_light)
       if (n_step /= 1  .and. .not. edge_kick_applied) then
-        dt = zbrent (wall_intersection_func, 0.0_rp, dt_did, dt_tol)
+        dt = super_zbrent (wall_intersection_func, 0.0_rp, dt_did, 1e-15_rp, dt_tol, status)
         ! Due to the zbrent finite tolerance, the particle may not have crossed the wall boundary.
         ! So step a small amount to make sure that the particle is past the wall.
-        dummy = wall_intersection_func(dt+ds_safe/c_light) ! Final call to set orb
+        dummy = wall_intersection_func(dt+ds_safe/c_light, status) ! Final call to set orb
       endif
       orb%location = inside$
       orb%state = lost$
@@ -343,10 +343,11 @@ contains
 
 ! function for zbrent to calculate timestep to exit face surface
 
-function delta_s_target (this_dt)
+function delta_s_target (this_dt, status)
 
 real(rp), intent(in)  :: this_dt
 real(rp) :: delta_s_target
+integer status
 logical err_flag
 !
 call rk_time_step1 (ele, param, old_t, old_orb, old_dt_ref, this_dt, orb, dt_ref, vec_err, err_flag = err_flag)
@@ -358,11 +359,12 @@ end function delta_s_target
 !------------------------------------------------------------------------------------------------
 ! contains
 
-function wall_intersection_func (this_dt) result (d_radius)
+function wall_intersection_func (this_dt, status) result (d_radius)
 
 type (coord_struct) test_orb
 real(rp), intent(in) :: this_dt
 real(rp) d_radius
+integer status
 logical err_flag, no_aperture_here
 
 !

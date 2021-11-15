@@ -662,7 +662,7 @@ END FUNCTION integrand_base_cov
 !-
 FUNCTION exp_bessi0(t, B1, B2)
 
-use nrutil, ONLY: poly
+use super_recipes_mod, only: super_poly
 
 implicit none
 
@@ -670,16 +670,16 @@ REAL(rp), INTENT(IN) :: t, B1, B2
 REAL(rp) :: b2t
 REAL(rp) :: exp_bessi0
 
-REAL(rp), DIMENSION(7) :: p = [1.0_dp, 3.5156229_dp, 3.0899424_dp, 1.2067492_dp, 0.2659732_dp, &
-                              0.360768e-1_dp, 0.45813e-2_dp]
-REAL(rp), DIMENSION(9) :: q = [0.39894228_dp, 0.1328592e-1_dp, 0.225319e-2_dp, -0.157565e-2_dp, &
-                   0.916281e-2_dp, -0.2057706e-1_dp, 0.2635537e-1_dp, -0.1647633e-1_dp, 0.392377e-2_dp]
+REAL(rp), parameter :: p(7) = [1.0_rp, 3.5156229_rp, 3.0899424_rp, 1.2067492_rp, 0.2659732_rp, &
+                                                                          0.360768e-1_rp, 0.45813e-2_rp]
+REAL(rp), parameter :: q(9) = [0.39894228_rp, 0.1328592e-1_rp, 0.225319e-2_rp, -0.157565e-2_rp, &
+                   0.916281e-2_rp, -0.2057706e-1_rp, 0.2635537e-1_rp, -0.1647633e-1_rp, 0.392377e-2_rp]
 b2t = B2 * t
 
 IF (b2t < 3.75) THEN
-  exp_bessi0=POLY(REAL((b2t/3.75_dp)**2,dp),p) * EXP(-B1*t)
+  exp_bessi0=super_POLY(REAL((b2t/3.75_rp)**2,rp),p) * EXP(-B1*t)
 ELSE
-  exp_bessi0=(EXP((B2-B1)*t)/SQRT(b2t))*POLY(REAL(3.75_dp/(b2t),dp),q)
+  exp_bessi0=(EXP((B2-B1)*t)/SQRT(b2t))*super_POLY(REAL(3.75_rp/(b2t),rp),q)
 ENDIF
 
 END FUNCTION exp_bessi0

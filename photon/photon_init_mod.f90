@@ -231,11 +231,12 @@ end subroutine bend_photon_init
 
 function bend_photon_energy_integ_prob (E_photon, g_bend, gamma) result (integ_prob)
 
-use nr, only: zbrent
+use super_recipes_mod, only: super_zbrent
 
 implicit none
 
 real(rp) E_photon, g_bend, gamma, integ_prob, E1, E_rel_target
+integer status
 
 ! Easy cases. photon_e_rel_init gives a finite energy at integ_prob = 1 (in theory 
 ! should be infinity) so return 1.0 if E_photon > E (upper bound).
@@ -256,15 +257,18 @@ endif
 ! bend_photon_e_rel_init calculates photon energy given the integrated probability
 ! so invert using the NR routine zbrent.
 
-integ_prob = zbrent(energy_func, 0.0_rp, 1.0_rp, 1d-12)
+integ_prob = super_zbrent(energy_func, 0.0_rp, 1.0_rp, 1e-15_rp, 1d-12, status)
 
 !----------------------------------------------------------------------------------------
 contains
 
-function energy_func(integ_prob) result (dE)
+function energy_func(integ_prob, status) result (dE)
 
 real(rp), intent(in) :: integ_prob
 real(rp) dE, E_rel
+integer status
+
+!
 
 E_rel = bend_photon_e_rel_init(integ_prob)
 dE = E_rel - E_rel_target

@@ -31,7 +31,6 @@
 
 function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, relative_to_upstream) result(local_position)
 
-use nr, only: zbrent
 use bmad_interface, dummy => coords_floor_to_local_curvilinear
 
 implicit none

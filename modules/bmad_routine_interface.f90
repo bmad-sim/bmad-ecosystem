@@ -1742,10 +1742,11 @@ subroutine rf_coupler_kick (ele, param, particle_at, phase, orbit, mat6, make_ma
   logical, optional :: make_matrix
 end subroutine
 
-function rf_is_on (branch) result (is_on)
+function rf_is_on (branch, ix_ele1, ix_ele2) result (is_on)
   import
   implicit none
   type (branch_struct), target :: branch
+  integer, optional :: ix_ele1, ix_ele2
   logical is_on
 end function
 

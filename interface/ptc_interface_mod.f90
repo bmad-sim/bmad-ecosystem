@@ -1537,7 +1537,7 @@ end subroutine bmad_taylors_equal_ptc_taylors
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine form_complex_taylor(re_taylor, im_taylor, complex_taylor)
+! Subroutine form_complex_taylor (re_taylor, im_taylor, complex_taylor)
 !
 ! Subroutine to form a complex taylor from two taylor series representing 
 !   the real and imaginary parts
@@ -1611,14 +1611,14 @@ do
   n_tot = n_tot + 1
   if (ix1 == ix2) then
     ! re and im parts      
-    call iter1()
-    call iter2()
+    ix1 = iter1()
+    ix2 = iter2()
   else if (ix1 < ix2) then
     ! re term only
-    call iter1()
+    ix1 = iter1()
   else
     ! im term only
-    call iter2()
+    ix2 = iter2()
   endif
 end do
 
@@ -1638,22 +1638,22 @@ do
     expn = taylor1%term(t1)%expn
     re = taylor1%term(t1)%coef
     im = taylor2%term(t2)%coef
-    call iter1()
-    call iter2()
+    ix1 = iter1()
+    ix2 = iter2()
   
   else if (ix1 < ix2) then
     ! re term only
     expn = taylor1%term(t1)%expn
     re = taylor1%term(t1)%coef
     im = 0.0_rp
-    call iter1()
+    ix1 = iter1()
   
   else
     ! im term only
     expn = taylor2%term(t2)%expn
     re = 0.0_rp
     im = taylor2%term(t2)%coef
-    call iter2()
+    ix2 = iter2()
   endif
   
   ! Assign complex coef
@@ -1667,31 +1667,38 @@ end do
 deallocate(taylor1%term)
 deallocate(taylor2%term)
 
+!-----------------------------------------
+! Stepping helper routines
 contains
-  ! Stepping helper routines
-  subroutine iter1()
-  implicit none
-    if (t1 < n1) then
-      t1 = t1 + 1 
-      ix1 = taylor_exponent_index(taylor1%term(t1)%expn)
-    else
-      ix1 = huge(0) ! Set to largest integer
-    endif
-  end subroutine
 
-  subroutine iter2()
-  implicit none
-    if (t2 < n2) then
-      t2 = t2 + 1 
-      ix2 = taylor_exponent_index(taylor2%term(t2)%expn)
-    else
-      ix2 = huge(0)
-    endif
-  end subroutine
+function iter1() result (ix1)
+implicit none
+integer ix1
+!
+if (t1 < n1) then
+  t1 = t1 + 1 
+  ix1 = taylor_exponent_index(taylor1%term(t1)%expn)
+else
+  ix1 = huge(0) ! Set to largest integer
+endif
+end function iter1
 
-end subroutine
+!-----------------------------------------
+! contains
 
+function iter2() result (ix2)
+implicit none
+integer ix2
+!
+if (t2 < n2) then
+  t2 = t2 + 1 
+  ix2 = taylor_exponent_index(taylor2%term(t2)%expn)
+else
+  ix2 = huge(0)
+endif
+end function iter2
 
+end subroutine form_complex_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

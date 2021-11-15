@@ -77,15 +77,17 @@ dependent tracking. That is, the shifting is not applicable to tracking with Tay
 \index{map!with radiation included}
 
 Transport maps which include radiation effects can be constructed\cite{b:ohmi}. The first step is to
-calculate the reference orbit which is the beam centroid orbit with radiation damping but ignoring
-stochastic effects. The transfer map from $s_1$ to $s_2$ will be of the form
+calculate the reference orbit which is the closed orbit for lattices with a closed geometry and for
+lattices with an open geometry the reference orbit is the orbit for some given initial
+position. Orbits here are calculated with radiation damping but ignoring stochastic effects. The
+transfer map from $s_1$ to $s_2$ will be of the form
 \begin{equation}
-  \bfr_2 = \calM_{21}(\bfr_1) + \Cal{S}_{21} \Bf\Xi
+  \delta\bfr_2 = \calM_{21}(\delta\bfr_1) + \Cal{S}_{21} \Bf\Xi
   \label{rmrsx}
 \end{equation}
-where $\bfr_1$ and $\bfr_2$ are the particle positions with respect to the reference orbit at $s_1$
-and $s_2$ respectively and $\calM_{21}$ is the transfer map with damping. The stochastic radiation
-part is represented by a $6\times6$ matrix $\Cal{S}$ times a $6$-vector 
+where $\delta\bfr_1$ and $\delta\bfr_2$ are the particle positions with respect to the reference
+orbit at $s_1$ and $s_2$ respectively and $\calM_{21}$ is the transfer map with damping. The
+stochastic radiation part is represented by a $6\times6$ matrix $\Cal{S}$ times a $6$-vector
 \begin{equation}
   \Bf\Xi = (\xi_1, \xi_2, \xi_3, \xi_4, \xi_5, \xi_6)
 \end{equation}
@@ -113,16 +115,16 @@ with the local damping matrix $\bfd$ being computed from \Eqs{pk1pp}. Notice tha
 is computed with respect to the beam centroid orbit, there is no constant part to the map.
 
 The $\Cal{S}$ matrix is calculated by first noting that, to linear order, the distribution of
-$\bfr_2$ due to stochastic radiation over some length $ds$ as some point $s$ is
+$\delta\bfr_2$ due to stochastic radiation over some length $ds$ as some point $s$ is
 \begin{equation}
-  \bfr_2 = \sqrt{ds} \, \bfM_{2s} \, \bfV_\mk{f}(s) \, \xi
+  \delta\bfr_2 = \sqrt{ds} \, \bfM_{2s} \, \bfV_\mk{f}(s) \, \xi
 \end{equation}
 where $\bfM_{2s}$ is the first order part (matrix) of the map $\calM_{2s}$ from $s$ to $s_2$, and
 $\bfV_\mk{f}$ is (see \sref{s:radiation})
 \begin{equation}
   \bfV_\mk{f} = -\sqrt{k_f} \cdot (0, 0, 0, 0, 0, 1)
 \end{equation}
-where $k_f$ is to be evaluated on the reference orbit. Notice that since $\bfr$ is, by definition,
+where $k_f$ is to be evaluated on the reference orbit. Notice that since $\delta\bfr$ is, by definition,
 the deviation from the reference orbit, $p_x = r_2$ and $p_y = r_4$ will be zero on the reference
 orbit. The covariance matrix $\bfsig_\gamma$ is defined by $\sigma_{\gamma ij} \equiv \langle r_i \, r_j
 \rangle_\gamma$ where $\langle \ldots \rangle_\gamma$ is an average over the photon emission
