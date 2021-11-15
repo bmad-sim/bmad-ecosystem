@@ -69,10 +69,11 @@ if (iu <= 0) then
   if (present(lines)) then
     if (present(header)) then
       n_lines=n_lines+1; write (lines(n_lines), '(a)') header
-      do i = 1, size1
-        n_lines=n_lines+1; call mat_line(lines(n_lines), format1, mat(i,:))
-      enddo
     endif
+
+    do i = 1, size1
+      n_lines=n_lines+1; call mat_line(lines(n_lines), format1, mat(i,:))
+    enddo
 
   else
     if (present(header)) print '(a)', header
