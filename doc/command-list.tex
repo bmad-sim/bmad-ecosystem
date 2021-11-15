@@ -2769,7 +2769,7 @@ Examples:
 Syntax:
 \begin{example}
   show taylor_map \{-angle_coordinates\} \{-eigen_modes\} \{-lattice_format\} 
-            \{-number_format <fmt>\} \{-order <n_order>\} \{-ptc\} 
+            \{-number_format <fmt>\} \{-order <n_order>\} \{-ptc\} \{-radiation\}
             \{-s\} \{-universe\} \{loc1 \{loc2\}\}
 \end{example}
 
@@ -2813,6 +2813,18 @@ of order higher than 1, the \vn{-ptc} switch is ignored for higher orders.
 
 The \vn{-lattice_format} switch, if present, causes the output to be displayed in a format suitable
 for using in a \bmad lattice file.
+
+If the the \vn{-radiation} switch is present, displayed will be the linear map with radiation
+damping and excitation. See the \vn{Synchrotron Radiation} in the \bmad manual for how the matrices
+displayed are used for tracking. Typically, radiation damping should be turned on and RF cavities
+powered since these affect the reference orbit and transfer matrix. This can be done using the
+commands:
+\begin{example}
+  set bmad_com radiation_damping_on = T
+  set global rf_on = T
+\end{example}
+Note that the calculation does not depend upon the radiation excitation being turned on (since
+radiation excitation will not affect the reference orbit or transfer matrix).
 
 The \vn{-angle_coordinates} switch, if present, causes the output to be displayed using ``angle''
 phase space coordinates $(x, x', y, y', z, p_z)$ in place of the standard \bmad canonical
