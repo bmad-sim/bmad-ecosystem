@@ -363,7 +363,6 @@ contains
 subroutine lat_ele1_locator (branch_str, key, name_in, match_name_to, lat, eles, n_loc, err, &
                                                                       above_ub_is_err, ix_dflt_branch, s_ordered)
 
-use nr, only: sort
 use super_recipes_mod
 
 implicit none

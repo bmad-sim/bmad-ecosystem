@@ -41,7 +41,6 @@ contains
 
 subroutine set_z_tune (lat, z_tune, ok)
 
-use nr, only: zbrent
 use expression_mod, only: linear_coef
 
 implicit none
@@ -218,7 +217,7 @@ enddo
 lat%z%stable = .true.
 
 ! Have bracketed index
-! Superfluous? coef = zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), dQz_max)
+! Superfluous? coef = super_zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), dQz_max)
 
 end subroutine set_z_tune
 

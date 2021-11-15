@@ -246,7 +246,7 @@ end subroutine capillary_propagate_photon_a_step
 
 subroutine capillary_photon_hit_spot_calc (photon, ele)
 
-use nr, only: zbrent
+use super_recipes_mod, only: super_zbrent
 
 implicit none
 
@@ -256,7 +256,7 @@ type (photon_track_struct) :: photon1
 
 real(rp) d_rad, track_len0, track_len
 
-integer i
+integer status, i
 
 character(40) :: r_name = 'capillary_photon_hit_spot_calc'
 
@@ -268,7 +268,7 @@ photon1 = photon
 
 track_len0 = (photon%now%track_len + photon%old%track_len) / 2
 do i = 1, 30
-  d_rad = photon_hit_func(track_len0)
+  d_rad = photon_hit_func(track_len0, status)
   if (d_rad < 0) exit
   track_len0 = (track_len0 + photon%old%track_len) / 2
   if (i == 30) then
@@ -279,7 +279,7 @@ enddo
 
 ! Find where the photon hits.
 
-track_len = zbrent (photon_hit_func, track_len0, photon%now%track_len, 1d-10)
+track_len = super_zbrent (photon_hit_func, track_len0, photon%now%track_len, 1e-15_rp, 1d-10, status)
 
 ! Cleanup
 
@@ -294,7 +294,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function photon_hit_func (track_len) result (d_radius)
+! Function photon_hit_func (track_len, status) result (d_radius)
 ! 
 ! Routine to be used as an argument in zbrent in the capillary_photon_hit_spot_calc.
 !
@@ -302,13 +302,15 @@ contains
 !   track_len -- Real(rp): Place to position the photon.
 !
 ! Output:
-!   d_radius -- Real(rp): r_photon - r_wall
-
-function photon_hit_func (track_len) result (d_radius)
+!   d_radius  -- Real(rp): r_photon - r_wall
+!   status    -- integer: Not set.
+!-
+function photon_hit_func (track_len, status) result (d_radius)
 
 real(rp), intent(in) :: track_len
 real(rp) :: d_radius
 real(rp) radius, d_track
+integer status
 
 ! Easy case
 

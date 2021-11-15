@@ -18,6 +18,10 @@ type ptc_map_with_rad_struct
   integer ix_branch
   integer ix_ele_start            ! Start point for making the map
   integer ix_ele_end              ! End point for making the map
+  real(rp) orb_mat(6,6)           ! Linear orbital part of the map with damping
+  real(rp) stoc_mat(6,6)          ! Stochatic part of the orbital map.
+  real(rp) ref0(6)                ! Reference orbit at start.
+  real(rp) ref1(6)                ! Reference orbit at end.
 end type
 
 contains
@@ -65,7 +69,7 @@ contains
 !-
 
 subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, map_order, include_damping, &
-                                                                           create_symplectic_map, orbit1, err_flag)
+                                                create_symplectic_map, orbit1, err_flag)
 
 use pointer_lattice
 
@@ -85,6 +89,7 @@ type (probe_8) pb8
 type (probe) pb
 
 real(rp) orb(6), orb0(6), e_ij(6,6)
+real(rp) ai(6,6), ki(6,6)
 
 integer, optional :: map_order
 integer val_save, nt
@@ -96,24 +101,6 @@ character(*), parameter :: r_name = 'ptc_setup_map_with_radiation'
 !
 
 if (present(err_flag)) err_flag = .true.
-
-call zhe_ini(bmad_com%spin_tracking_on)
-
-if (logic_option(.true., include_damping)) then
-  state = ptc_com%base_state + radiation0 + envelope0
-  map_with_rad%radiation_damping_on = .true.
-else
-  state = ptc_com%base_state + envelope0
-  map_with_rad%radiation_damping_on = .false.
-endif
-
-if (bmad_com%spin_tracking_on) state = state + spin0
-if (.not. rf_is_on(ele1%branch)) state = state + nocavity0
-
-map_with_rad%map_order = integer_option(ptc_com%taylor_order_ptc, map_order)
-if (map_with_rad%map_order < 1) map_with_rad%map_order = ptc_com%taylor_order_ptc
-
-call init_all(state, map_with_rad%map_order, 0)
 
 branch => pointer_to_branch(ele1)
 nt = branch%n_ele_track
@@ -146,6 +133,26 @@ else
   map_with_rad%s_end = ele1%s
   map_with_rad%dref_time = branch%ele(nt)%ref_time - branch%ele(0)%ref_time
 endif
+
+!
+
+call zhe_ini(bmad_com%spin_tracking_on)
+
+if (logic_option(.true., include_damping)) then
+  state = ptc_com%base_state + radiation0 + envelope0
+  map_with_rad%radiation_damping_on = .true.
+else
+  state = ptc_com%base_state + envelope0
+  map_with_rad%radiation_damping_on = .false.
+endif
+
+if (bmad_com%spin_tracking_on) state = state + spin0
+if (.not. rf_is_on(ele1%branch, ele1%ix_ele, ele2%ix_ele)) state = state + nocavity0
+
+map_with_rad%map_order = integer_option(ptc_com%taylor_order_ptc, map_order)
+if (map_with_rad%map_order < 1) map_with_rad%map_order = ptc_com%taylor_order_ptc
+
+call init_all(state, map_with_rad%map_order, 0)
 
 if (map_with_rad%p0c_end /= map_with_rad%p0c_start) then
   call out_io (s_error$, r_name, 'CANNOT HANDLE LATTICE WITH CHANGING REFERENCE ENERGY.')
@@ -187,6 +194,14 @@ c_map1%x0(1:6) = orb   ! This may not be needed but cannot hurt
 sagan_gen = logic_option(.false., create_symplectic_map)
 call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d-10, tree_zhe=map_with_rad%sub_map) 
 sagan_gen = .false.  ! Reset to False so wont affect other PTC calculations.
+
+!
+
+call c_stochastic_kick(c_map1, map_with_rad%orb_mat, map_with_rad%stoc_mat, 1d-18)
+map_with_rad%ref0 = map_with_rad%sub_map(1)%fix0
+map_with_rad%ref1 = map_with_rad%sub_map(1)%fix
+
+!
 
 call set_ptc_quiet(0, unset$, val_save)
 call kill (pb8)
