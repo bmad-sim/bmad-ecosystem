@@ -22,7 +22,6 @@ contains
 
 subroutine tao_init_variables (var_file)
 
-use tao_lattice_calc_mod
 use tao_input_struct
 use random_mod
 
