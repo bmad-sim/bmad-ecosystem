@@ -513,7 +513,7 @@ del = this_max - this_min
 this_min = this_min - graph%scale_margin%y1 * del
 this_max = this_max + graph%scale_margin%y2 * del
 
-if (axis == '' .or. axis == 'y') then
+if (this_axis == '' .or. this_axis == 'y') then
   call qp_calc_axis_params (this_min, this_max, p1, p2, graph%y)
   if (present(y_range)) y_range = [min(y_range(1), this_min), max(y_range(2), this_max)]
 endif
@@ -527,7 +527,7 @@ if (graph%y2_mirrors_y) then
   graph%y2%draw_label   = axis_save%draw_label
   graph%y2%draw_numbers = axis_save%draw_numbers
 
-elseif (axis == '' .or. axis == 'y2') then
+elseif (this_axis == '' .or. this_axis == 'y2') then
   call qp_calc_axis_params (this_min, this_max, p1, p2, graph%y2)
   if (present(y2_range)) y2_range = [min(y2_range(1), this_min), max(y2_range(2), this_max)]
 endif
