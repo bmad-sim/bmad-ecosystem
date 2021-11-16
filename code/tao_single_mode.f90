@@ -40,7 +40,7 @@ character(2) char2
 character(80) this_file, line
 character(40) :: this_opt, r_name = 'tao_single_mode'
 
-logical doit, found, err, abort
+logical doit, found, err, abort, err_is_fatal
 
 
 
@@ -49,7 +49,7 @@ logical doit, found, err, abort
 
 do i = 1, size(s%com%key)
   if (char == s%com%key(i)%name) then
-    call tao_command (s%com%key(i)%expanded_str, err)
+    call tao_command (s%com%key(i)%expanded_str, err, err_is_fatal)
     return
   endif
 enddo
@@ -146,7 +146,7 @@ case ("'")
   do
     call tao_get_user_input (line)
     call tao_hook_command (line, found)
-    if (.not. found) call tao_command (line, err)
+    if (.not. found) call tao_command (line, err, err_is_fatal)
     if (s%com%saved_cmd_line /= '') cycle ! Use up all commands on line
     ! Keep on going if a command file is open
     ix = s%com%cmd_file_level

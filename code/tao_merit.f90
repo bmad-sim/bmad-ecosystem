@@ -13,7 +13,7 @@
 
 function tao_merit (calc_ok) result (this_merit)
 
-use tao_lattice_calc_mod, dummy => tao_merit
+use tao_interface, dummy => tao_merit
 
 implicit none
 

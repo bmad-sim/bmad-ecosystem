@@ -10,14 +10,6 @@ use pointer_lattice, only: operator(.sub.)
 use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout
 use ptc_map_with_radiation_mod, only: ptc_map_with_rad_struct, ptc_setup_map_with_radiation, tree_element_zhe
 
-type show_common_struct
-  type (ele_struct), pointer :: ele 
-  type (coord_struct), pointer :: orbit 
-  type (bunch_params_struct), pointer :: bunch_params
-  type (tao_universe_struct), pointer :: u
-  integer ix_ele
-end type
-
 private write_real
 
 contains

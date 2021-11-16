@@ -4,12 +4,6 @@
 ! Module to define the interfaces for the tao routines.
 !-
 
-! Note: To overcome a problem with the intel compiler, the following routine interfaces
-! Have been deleted:
-!   tao_command
-!   tao_command_end_calc
-!   tao_plot_setup
-
 module tao_interface
 
 use tao_struct
@@ -118,6 +112,12 @@ subroutine tao_clip_cmd (gang, where, value1, value2)
 end subroutine
 
 subroutine tao_close_command_file()
+end subroutine
+
+subroutine tao_command (command_line, err, err_is_fatal)
+  implicit none
+  character(*) :: command_line
+  logical err, err_is_fatal
 end subroutine
 
 subroutine tao_control_tree_list (ele, tree)
@@ -559,6 +559,12 @@ function tao_lat_emit_calc (plane, emit_type, ele, modes) result (emit)
   real(rp) emit
 end function
 
+subroutine tao_lattice_calc (calc_ok, print_err)
+  implicit none
+  logical calc_ok
+  logical, optional :: print_err
+end subroutine
+
 subroutine tao_limit_calc (limited)
   implicit none
   logical limited
@@ -685,7 +691,11 @@ subroutine tao_plot_cmd (where, component)
   character(*) :: where
   character(*) :: component
 end subroutine
- 
+
+subroutine tao_plot_setup ()
+  implicit none
+end subroutine
+
 subroutine tao_plot_struct_transfer (plot_in, plot_out)
   import
   implicit none
