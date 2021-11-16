@@ -304,11 +304,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       tao_lat%tao_branch(ib)%orbit%vec(j) = 0.0
     enddo
 
-    if (.not. s%global%rad_int_calc_on) then
-      if (ib == 0) allocate(tao_lat%rad_int%branch(0:ubound(tao_lat%lat%branch, 1)))
-      allocate(tao_lat%rad_int%branch(ib)%ele(0:branch%n_ele_max))
-    endif
-
     call tao_inject_particle (u, tao_lat, ib)
     call tao_single_track (tao_lat, this_calc_ok, ib)
 

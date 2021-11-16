@@ -558,17 +558,6 @@ elseif (ix /= 0) then
   head_data_type = head_data_type(1:ix) 
 endif
 
-if (head_data_type(1:7)  == 'rad_int.') then
-  if (index(head_data_type, '_e') /= 0 .and. (ix_ref > -1 .or. ix_ele > -1)) then
-    if (.not. allocated(tao_lat%rad_int%branch)) then
-      call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
-      return
-    endif
-  endif
-endif
-
-rad_int_branch => tao_lat%rad_int%branch(ix_branch)
-
 select case (data_source)
 case ('lat', 'beam')
   ! Valid data source
@@ -1485,10 +1474,11 @@ case ('emit.', 'norm_emit.')
   case ('emit.a', 'norm_emit.a')
     if (data_source == 'lat') then
       if (lat%param%geometry == open$ .and. ix_ele > -1) then
-        if (.not. allocated(rad_int_branch%ele)) then
-          call out_io (s_error$, r_name, 'rad_int_branch not allocated')
+        if (.not. allocated(tao_lat%rad_int%branch)) then
+          call out_io (s_error$, r_name, 'tao_lat%rad_int%branch not allocated')
           return
         endif
+        rad_int_branch => tao_lat%rad_int%branch(ix_branch)
         call tao_load_this_datum (rad_int_branch%ele%lin_norm_emit_a, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
         datum_value = datum_value / gamma
@@ -1505,10 +1495,11 @@ case ('emit.', 'norm_emit.')
   case ('emit.b', 'norm_emit.b')  
     if (data_source == 'lat') then
       if (lat%param%geometry == open$ .and. ix_ele > -1) then
-        if (.not. allocated(rad_int_branch%ele)) then
-          call out_io (s_error$, r_name, 'rad_int_branch not allocated')
+        if (.not. allocated(tao_lat%rad_int%branch)) then
+          call out_io (s_error$, r_name, 'tao_lat%rad_int%branch not allocated')
           return
         endif
+        rad_int_branch => tao_lat%rad_int%branch(ix_branch)
         call tao_load_this_datum (rad_int_branch%ele%lin_norm_emit_b, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
         datum_value = datum_value / gamma
@@ -2531,7 +2522,12 @@ case ('rad_int.')
   endif
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
-  if (.not. allocated(rad_int_branch%ele)) return
+
+  if (.not. allocated(tao_lat%rad_int%branch)) then
+    call out_io (s_error$, r_name, 'tao_lat%rad_int%branch not allocated')
+    return
+  endif
+  rad_int_branch => tao_lat%rad_int%branch(ix_branch)
 
   select case (data_type)
   case ('rad_int.i0')
