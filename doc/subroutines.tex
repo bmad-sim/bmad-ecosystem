@@ -193,12 +193,12 @@ This is a plain transfer of information not using the overloaded equal.
 
 \index[routine]{csr_bin_particles}
 \label{r:csr.bin.particles}
-\item[csr_bin_particles (ele, particle, bin)] \Newline 
+\item[csr_bin_particles (ele, particle, csr, err_flag)] \Newline 
 Routine to bin the particles longitudinally in s. 
 
 \index[routine]{csr_bin_kicks}
 \label{r:csr.bin.kicks}
-\item[csr_bin_kicks (lat, ele, s_travel, bin, small_angle_approx)] \Newline 
+\item[csr_bin_kicks (ele, ds_kick_pt, csr, err_flag)] \Newline 
 Routine to cache intermediate values needed for the csr calculations.
 
 \index[routine]{csr_kick_calc}
@@ -208,7 +208,7 @@ Routine to calculate the longitudinal coherent synchrotron radiation kick.
 
 \index[routine]{i_csr}
 \label{r:i.csr}
-\item[i_csr (kick1, i_bin, k_factor, bin) result (i_this)] \Newline 
+\item[i_csr (kick1, i_bin, csr) result (i_this)] \Newline 
 Routine to calculate the CSR kick integral.
 
 \index[routine]{z_calc_csr}
@@ -699,11 +699,6 @@ This subroutine is used to overload the generic name indexx.
 Subroutine to sort a character array.
 This subroutine is used to overload the generic name indexx.
 
-\index[routine]{init_str_indexx_struct}
-\label{r:init.str.indexx.struct}
-\item[init_str_indexx_struct(var_str_indexx, n_min)] \Newline 
-Routine to initialize a str_indexx_struct instance.
-
 \index[routine]{linear_fit}
 \label{r:linear.fit}
 \item[linear_fit (x, y, n_data, a, b, sig_a, sig_b)] \Newline 
@@ -837,7 +832,7 @@ Routine to return the current date and time in a character string.
 
 \index[routine]{err_exit}
 \label{r:err.exit}
-\item[err_exit()] \Newline 
+\item[err_exit(err_str)] \Newline 
 Routine to first show the stack call list before exiting.
 This routine is typically used when a program detects an error condition.
 
@@ -1207,7 +1202,7 @@ Routine to adjust the control structure of a lat so that extra control elements 
 \label{r:add.superimpose}
 \item[\protect\parbox{6in}{
     add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, \\
-    \hspace*{1in} save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names)} ] \Newline
+    \hspace*{1in} save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names, wrap)} ] \Newline
 Routine to make a superimposed element. 
 
 \index[routine]{attribute_bookkeeper}
@@ -1317,7 +1312,7 @@ Routine to point to the appropriate magnetic or electric poles in an element.
 
 \index[routine]{pointer_to_element_at_s}
 \label{r:pointer.to.element.at.s}
-\item[pointer_to_element_at_s (branch, s, choose_max, err_flag, s_eff, position) result (ele)] \Newline 
+\item[pointer_to_element_at_s (branch, s, choose_max, err_flag, s_eff, position, print_err) result (ele)] \Newline 
 Function to return a pointer to the element at position s.
 
 \index[routine]{remove_eles_from_lat}
@@ -1374,12 +1369,6 @@ to another within a bend with curvature g and reference tilt ref_tilt.
 Routine to find the global position of a local lab (x, y, s) position.
 s = position from beginning of lattice branch.
 
-\index[routine]{coords_element_frame_to_local}
-\label{r:coords.element.frame.to.local}
-\item[coords_element_frame_to_local (body_position, ele, w_mat, calculate_angles) result (local_position)] \Newline 
-Returns Cartesian coordinates relative to the exit end lab frame floor coordinates (which
-is ele\%floor if ele\%orientation == 1).
-
 \index[routine]{coords_floor_to_curvilinear}
 \label{r:coords.floor.to.curvilinear}
 \item[coords_floor_to_curvilinear (floor_coords, ele0, ele1, status, w_mat) result (local_coords)] \Newline 
@@ -1403,14 +1392,14 @@ the resulting reference frame.
 \index[routine]{coords_local_curvilinear_to_floor}
 \label{r:position.in.global.frame}
 \item[\protect\parbox{6in}{
-  coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, \\
-  \hspace*{1in} w_mat, calculate_angles, use_patch_entrance) result (global_position) }] \Newline 
+  coords_local_curvilinear_to_floor (local_position, ele, in_body_frame, \\
+  \hspace*{1in} w_mat, calculate_angles, relative_to_upstream) result (global_position) }] \Newline 
 Given a position local to ele, return global floor coordinates.
 
 \index[routine]{coords_floor_to_local_curvilinear}
 \label{r:position.in.local.frame}
 \item[\protect\parbox{6in}{
-      coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat, use_patch_entrance) \\
+      coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat, relative_to_upstream) \\
       \hspace*{1in} \hfill result(local_position)} ] \Newline 
 Given a position in global coordinates, return local curvilinear coordinates in ele
   relative to floor0
@@ -1534,7 +1523,7 @@ This routine is useful for error messages.
 
 \index[routine]{check_if_s_in_bounds}
 \label{r:check.if.s.in.bounds}
-\item[check_if_s_in_bounds (branch, s, err_flag, translated_s)] \Newline 
+\item[check_if_s_in_bounds (branch, s, err_flag, translated_s, print_err)] \Newline 
 Routine to check if a given longitudinal position s is within the bounds of a given branch of a lattice.
 
 \index[routine]{element_at_s}
@@ -1633,7 +1622,7 @@ Function to point to a slave of a lord.
 
 \index[routine]{rf_is_on}
 \label{r:rf.is.on}
-\item[rf_is_on (branch) result (is_on)] \Newline 
+\item[rf_is_on (branch, ix_ele1, ix_ele2) result (is_on)] \Newline 
 Routine to check if any rfcavity is powered in a branch.
 
 \index[routine]{switch_attrib_value_name}
@@ -1742,7 +1731,7 @@ Routine to initialize an element.
 
 \index[routine]{init_lat}
 \label{r:init.lat}
-\item[init_lat (lat, n)] \Newline 
+\item[init_lat (lat, n, init_beginning_ele)] \Newline 
 Routine to initialize a Bmad lat.
 
 \index[routine]{lattice_bookkeeper}
@@ -1943,7 +1932,7 @@ Routine to write a mad or sad lattice file.
 
 \index[routine]{combine_consecutive_elements}
 \label{r:combine.consecutive.elements}
-\item[combine_consecutive_elements (lat)] \Newline 
+\item[combine_consecutive_elements (lat, error)] \Newline 
 Routine to combine consecutive elements in the lattice that have the same name.
 This allows simplification, for example, of lattices where elements have been split 
 to compute the beta function at the center.
@@ -2041,13 +2030,13 @@ coords and vice versa.
 \index[routine]{mat6_from_s_to_s}
 \label{r:mat6.from.s.to.s}
 \item[\protect\parbox{6in}{
-    mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, \\
+    mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ref_orb_in, ref_orb_out, ix_branch, one_turn, \\
     \hspace*{1in} unit_start, err_flag, ele_save)} ] \Newline 
 Subroutine to calculate the transfer map between longitudinal positions
 s1 to s2.
 
 \index[routine]{mat6_to_taylor}
-\item[mat6_to_taylor (vec0, mat6, bmad_taylor)] \Newline
+\item[mat6_to_taylor (vec0, mat6, bmad_taylor, ref_orb)] \Newline
 Routine to form a first order Taylor map from the 6x6 transfer matrix 
 and the 0th order transfer vector. 
 
@@ -2355,7 +2344,7 @@ Routine to calculate the energy, etc. from a particle's momentum.
 \label{r:convert.total.energy.to}
 \item[\protect\parbox{6in}{
     convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, \\
-    \hspace*{1in} beta1, err_flag)} ] \Newline
+    \hspace*{1in} beta1, err_flag, print_err)} ] \Newline
 Routine to calculate the momentum, etc. from a particle's total energy. 
 
 \index[routine]{init_coord}
@@ -2410,7 +2399,7 @@ Routine to concatenate two real_8 taylor series.
 \label{r:ele.to.fibre}
 \item[\protect\parbox{6in}{
     ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, \\
-    \hspace*{1in} for_layout, track_particle) }] \Newline
+    \hspace*{1in} for_layout, ref_in) }] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
@@ -3381,8 +3370,8 @@ Routine to calculate the transfer map between two elements.
 \index[routine]{transfer_map_from_s_to_s}
 \label{r:transfer.map.from.s.to.s}
 \item[\protect\parbox{6in}{
-    transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb, ix_branch, \\
-    \hspace*{1in} one_turn, unit_start, err_flag, concat_if_possible) }] \Newline 
+    transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb_in, ref_orb_out, \\
+    \hspace*{1in} ix_branch, one_turn, unit_start, err_flag, concat_if_possible) }] \Newline 
 Subroutine to calculate the transfer map between longitudinal positions
 s1 to s2.
 
@@ -3479,7 +3468,7 @@ up the calculations.
 \index[routine]{srdt_lsq_solution}
 \label{r:srdt.lsq.solution}
 \item[\protect\parbox{6in}{srdt_lsq_solution(lat, var_indexes, var_names, ls_soln, n_slices_gen_opt, n_slices_sxt_opt,\\
-            chrom_set_x_opt, chrom_set_y_opt)}] \Newline
+            chrom_set_x_opt, chrom_set_y_opt, weight_in)}] \Newline
 Given a lattice and the indices of the sextupole moments to use as variables, finds the least squares solution
 to the sextupole moments that minimize the 1st order driving terms.  If there are more variables than driving
 terms, then the solution sets the driving terms to zero and minimizes the sum of the squares of the variables.  
@@ -3519,11 +3508,6 @@ Routine to calculate the closed orbit at the beginning of the lat.
   closed_orbit_from_tracking (lat, closed_orb, i_dim, eps_rel, eps_abs, \\
   \hspace*{1in} init_guess, err_flag) }] \Newline
 Routine to find the closed orbit via tracking. 
-
-\index[routine]{dynamic_aperture1}
-\label{r:dynamic.aperture1}
-\item[dynamic_aperture1 (branch, orb0, theta_xy, S_xy, aperture_param, aperture, check_xy_init)] \Newline
-Routine to determine the dynamic aperture of a lattice via tracking. 
 
 \index[routine]{multi_turn_tracking_analysis}
 \label{r:multi.turn.tracking.analysis}
@@ -3582,7 +3566,7 @@ instead rotating the particle position with negative the angle.
 \label{r:track1}
 \item[\protect\parbox{6in}{
     track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, \\
-    \hspace*{1in} mat6, make_matrix, init_to_edge)}] \Newline
+    \hspace*{1in} make_map1, init_to_edge)}] \Newline
 Routine to track through a single element. 
 
 \index[routine]{track1_bunch_csr}
