@@ -570,7 +570,10 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
          IPOS = 4
    IEND = 0
  1004    CALL FDJAC2(M,N,X,FVEC,FJAC,LDFJAC,IFLAG,EPSFCN,WA4,ID,IPOS1)
-   IF (ID .EQ. 1) RETURN
+   IF (ID .EQ. 1) THEN
+      IEND = 0
+      RETURN
+   ENDIF
          NFEV = NFEV + N
          IF (IFLAG .LT. 0) GO TO 300
 !
