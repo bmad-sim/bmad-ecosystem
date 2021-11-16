@@ -475,6 +475,7 @@ integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
 integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
 integer, parameter :: pre_born$ = 8    ! EG: For electrons not yet emitted from a cathode.
+integer, parameter :: lost_z_aperture$ = 9
 
 real(rp), parameter :: vec0$(6) = 0
 
@@ -2243,7 +2244,7 @@ end function next_in_branch
 !   coord_state -- integer: coord%state value
 !
 ! Output:
-!   state_str   -- character(12): String representation.
+!   state_str   -- character(16): String representation.
 !-
 
 function coord_state_name (coord_state) result (state_str)
@@ -2251,7 +2252,7 @@ function coord_state_name (coord_state) result (state_str)
 implicit none
 
 integer coord_state
-character(12) state_str
+character(16) state_str
 
 !
 
@@ -2263,7 +2264,8 @@ case (lost_neg_x_aperture$);   state_str = 'Hit -X Side'
 case (lost_pos_x_aperture$);   state_str = 'Hit +X Side'
 case (lost_neg_y_aperture$);   state_str = 'Hit -Y Side'
 case (lost_pos_y_aperture$);   state_str = 'Hit +Y Side'
-case (lost_pz_aperture$);      state_str = 'Hit Z Side'
+case (lost_pz_aperture$);      state_str = 'Hit Energy Aper'
+case (lost_z_aperture$);       state_str = 'Hit Z Side'
 case (pre_born$);              state_str = 'Pre_Born'
 case default;                  state_str = 'UNKNOWN!'
 end select
