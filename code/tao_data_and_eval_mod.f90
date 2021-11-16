@@ -110,14 +110,15 @@ has_assoc_ele = .true.
 ix1 = index(name, '[')
 
 if (ix1 == 0) then
-  has_assoc_ele = (tao_datum_has_associated_ele(name) == yes$)
-  if ((.not. present(dflt_ele) .or. .not. associated(dflt_ele)) .and. has_assoc_ele) then
-    if (print_err) call out_io (s_error$, r_name, 'NO "[" FOUND IN: ' // data_name)
-    return
-  endif
   datum%data_type = name
   if (present(dflt_ele)) then
     if (associated(dflt_ele)) ele_name = dflt_ele%name
+  endif
+
+  has_assoc_ele = (tao_datum_has_associated_ele(name) == yes$)
+  if (ele_name == '' .and. has_assoc_ele) then
+    if (print_err) call out_io (s_error$, r_name, 'NO "[" FOUND IN: ' // data_name)
+    return
   endif
 
 else
