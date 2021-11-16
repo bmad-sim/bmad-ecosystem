@@ -84,7 +84,7 @@ logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 ! Note: The name of the digested file depends upon the real precision.
 
 call cpu_time(bp_com%time0)
-call set_ptc_com_pointers()
+call init_bmad()
 auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .true.  
 

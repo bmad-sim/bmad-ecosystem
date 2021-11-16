@@ -77,8 +77,6 @@ E_MUON = bmad_com%electric_dipole_moment
 CHECK_LONGITUDINAL = .false. ! MAD-X uses the True setting.
 call in_bmad_units
 
-if (.not. associated(ptc_com%exact_model)) call set_ptc_com_pointers ()
-
 ! do not call set_mad
 
 params_present = present(e_tot) .and. present(particle)

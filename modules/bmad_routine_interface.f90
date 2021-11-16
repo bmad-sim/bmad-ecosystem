@@ -911,6 +911,11 @@ subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
   type (coord_struct) orbit
 end subroutine
 
+subroutine init_bmad()
+  import
+  implicit none
+end subroutine
+
 subroutine init_bmad_parser_common()
   import
   implicit none

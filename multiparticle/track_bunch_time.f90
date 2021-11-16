@@ -41,6 +41,7 @@ character(*), parameter :: r_name = 'track_bunch_time'
 !
 
 significant_time = bmad_com%significant_length / (10 * c_light)
+branch => lat%branch(bunch%particle(1)%ix_branch)
 
 do i = 1, size(bunch%particle)
   if (present(dt_step)) then;  dt = dt_step(i)
@@ -54,19 +55,9 @@ do i = 1, size(bunch%particle)
     if (orbit%s >= s_end - 0.1_rp * bmad_com%significant_length) exit
     if (orbit%state /= alive$) exit
 
-    if (orbit%direction == -1) then
-      orbit%state = lost_pz_aperture$
-      exit
-    endif
+    ele => pointer_to_next_track_ele(orbit, branch)
+    if (orbit%state /= alive$) exit
 
-    if (ele%ix_ele == branch%n_ele_track) then
-      call out_io (s_error$, r_name, 'PARTICLE AT END OF LATTICE. WILL BE MARKED AS DEAD')
-      orbit%state = lost_z_aperture$
-      exit
-    endif
-
-    ele => pointer_to_next_track_ele(orbit, lat)
-    branch => pointer_to_branch(ele)
     call track1_time_runge_kutta (orbit, ele, branch%param, orbit, err, t_end = t_end, dt_step = dt)
   enddo
 
@@ -76,23 +67,40 @@ enddo
 !-------------------------------------------------------------------------
 contains
 
-function pointer_to_next_track_ele(orbit, lat) result (ele)
+function pointer_to_next_track_ele(orbit, branch) result (ele)
 
 type (coord_struct) orbit
-type (lat_struct) lat
+type (branch_struct) branch
 type (ele_struct), pointer :: ele
 
 !
 
-ele => lat%branch(orbit%ix_branch)%ele(orbit%ix_ele)
+ele => branch%ele(orbit%ix_ele)
 
 select case (orbit%location)
 case (upstream_end$)
-  if (orbit%direction == -1) ele => pointer_to_next_ele(ele, -1)
+  if (orbit%direction /= -1) return
+
+  if (ele%ix_ele == 1) then
+    orbit%state = lost_z_aperture$
+    return
+  endif
+
+  ele => pointer_to_next_ele(ele, -1)
+
 case (downstream_end$)
-  if (orbit%direction == 1) ele => pointer_to_next_ele(ele, skip_beginning = .true.)
+  if (orbit%direction /= 1) return
+
+  if (ele%ix_ele == branch%n_ele_track) then
+    call out_io (s_error$, r_name, 'PARTICLE AT END OF LATTICE. WILL BE MARKED AS DEAD')
+    orbit%state = lost_z_aperture$
+    return
+  endif
+
+  ele => pointer_to_next_ele(ele)
 end select
 
 end function pointer_to_next_track_ele
 
 end subroutine track_bunch_time
+
