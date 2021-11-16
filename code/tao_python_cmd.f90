@@ -7350,10 +7350,16 @@ err = .true.
 nullify(ele)
 call lat_ele_locator (line, lat, eles, n_loc)
 
-if (n_loc /= 1) then
+select case (n_loc)
+case (0) 
   call invalid ('Cannot locate element.')
   return
-endif
+case (1)
+  ! Good
+case (default)
+  call invalid ('Multiple matches to element.')
+  return
+end select
 
 ele => eles(1)%ele
 err = .false.
