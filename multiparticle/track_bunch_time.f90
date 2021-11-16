@@ -34,8 +34,9 @@ real(rp), optional :: dt_step(:)
 real(rp) dt, significant_time
 
 integer i, j
-
 logical err
+
+character(*), parameter :: r_name = 'track_bunch_time'
 
 !
 
@@ -55,6 +56,12 @@ do i = 1, size(bunch%particle)
 
     if (orbit%direction == -1) then
       orbit%state = lost_pz_aperture$
+      exit
+    endif
+
+    if (ele%ix_ele == branch%n_ele_track) then
+      call out_io (s_error$, r_name, 'PARTICLE AT END OF LATTICE. WILL BE MARKED AS DEAD')
+      orbit%state = lost_z_aperture$
       exit
     endif
 
