@@ -7356,7 +7356,7 @@ case (0)
   return
 case (1)
   ! Good
-case (default)
+case default
   call invalid ('Multiple matches to element.')
   return
 end select
