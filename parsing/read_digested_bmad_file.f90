@@ -58,6 +58,8 @@ logical found_it, mode3, error, is_match, err, err_found
 
 ! init all elements in lat
 
+call init_bmad()
+
 if (present(err_flag)) err_flag = .true.
 err_found = .false.
 parser_call = logic_option(.false., parser_calling)
@@ -263,7 +265,6 @@ read (d_unit, err = 9060, end = 9060) lat%beam_init
 
 ! Read PTC info
 
-call set_ptc_com_pointers()
 read (d_unit, iostat = ios) ptc_com%old_integrator, ptc_com%exact_model, ptc_com%exact_misalign, ptc_com%max_fringe_order
 if (ios /= 0) then
   call out_io(s_error$, r_name, 'ERROR READING PTC PARAMETERS.')
