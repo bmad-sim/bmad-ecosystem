@@ -2716,7 +2716,7 @@ if (all(s%plot_page%template%name /= 'spin_dn_dpz')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title         = 'Spin dn/dpz (x,y,z) & Amplitude'
-  grph%y%label       = 'X, Y, Z, Amp'
+  grph%y%label       = 'dn/dpz X, Y, Z, Amp'
 
   crv => grph%curve(1)
   crv%g => grph
