@@ -22,7 +22,6 @@ use tao_command_mod, only: tao_cmd_split, tao_re_execute
 use tao_data_and_eval_mod, only: tao_to_real
 use tao_misalign_mod, only: tao_misalign
 use tao_scale_mod, only: tao_scale_cmd
-use tao_show_mod, only: tao_show_cmd
 use tao_wave_mod, only: tao_wave_cmd
 use tao_x_scale_mod, only: tao_x_scale_cmd
 use tao_plot_window_mod, only: tao_destroy_plot_window

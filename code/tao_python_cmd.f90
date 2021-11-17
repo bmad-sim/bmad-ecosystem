@@ -46,20 +46,18 @@
 subroutine tao_python_cmd (input_str)
 
 use tao_interface, dummy => tao_python_cmd
-use location_encode_mod
-use em_field_mod
+use location_encode_mod, only: location_encode
+use em_field_mod, only: em_field_calc
+use twiss_and_track_mod, only: twiss_and_track_at_s
+use wall3d_mod, only: calc_wall_radius
 use tao_command_mod, only: tao_next_switch, tao_cmd_split
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var
 use tao_c_interface_mod, only: tao_c_interface_com, re_allocate_c_double
-use twiss_and_track_mod, only: twiss_and_track_at_s
-use tao_show_mod, only: tao_show_this
 use tao_plot_mod, only: tao_set_floor_plan_axis_label
 use tao_data_and_eval_mod, only: tao_evaluate_expression
-use wall3d_mod, only: calc_wall_radius
-use tao_lattice_calc_mod, only: tao_lattice_calc
 use tao_dmerit_mod, only: tao_dmodel_dvar_calc
-use tao_input_struct
+use tao_input_struct, only: tao_ele_shape_input, tao_ele_shape_input_to_struct
 
 
 implicit none

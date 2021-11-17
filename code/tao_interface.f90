@@ -896,6 +896,19 @@ subroutine tao_shape_init (shape, err, print_err)
   logical, optional :: print_err
 end subroutine
 
+subroutine tao_show_cmd (what)
+  implicit none
+  character(*) what
+end subroutine
+
+subroutine tao_show_this (what, result_id, lines, nl)
+  implicit none
+  character(*) :: what
+  character(*) result_id
+  character(*), allocatable :: lines(:)
+  integer nl
+end subroutine
+
 function tao_subin_uni_number (name_in, ix_uni, name_out) result (ok)
   import
   implicit none
