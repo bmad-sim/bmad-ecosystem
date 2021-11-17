@@ -2,7 +2,6 @@ module tao_set_mod
 
 use tao_interface
 use tao_data_and_eval_mod
-use tao_lattice_calc_mod
 
 implicit none
 

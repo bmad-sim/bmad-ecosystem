@@ -1,9 +1,8 @@
 module tao_top10_mod
 
-use tao_struct
 use tao_interface
-use sim_utils
 use tao_dmerit_mod
+use sim_utils
 
 ! structure for making lists of the biggest contributors to the merit function.
 
