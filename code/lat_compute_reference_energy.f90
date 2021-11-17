@@ -577,6 +577,8 @@ case (lcavity$)
     if (abs(orb_end%vec(6)) < bmad_com%rel_tol_tracking) exit
   enddo
 
+  ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
+
 case (custom$, hybrid$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)   ! Delta_ref_time is an independent attrib here.
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
@@ -589,11 +591,11 @@ case (taylor$)
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
   if (err) goto 9000
 
-  if (ele%value(l$) == 0) then
-    ele%ref_time = ref_time_start + ele%value(delta_ref_time$)  ! Delta_ref_time is an independent attrib here.
-  else
-    ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
+  ! Delta_ref_time is an independent attrib if L = 0.
+  if (ele%value(l$) /= 0) then
+    ele%value(delta_ref_time$) = ele%value(l$) * E_tot_start / (p0c_start * c_light)
   endif
+  ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
 case (e_gun$)
   ! Note: Due to the coupling between an e_gun and the begin_ele, autoscaling is
@@ -610,12 +612,14 @@ case (e_gun$)
 
   call track_this_ele (orb_start, orb_end, ref_time_start, .true., err); if (err) goto 9000
   call calc_time_ref_orb_out(orb_end)
+  ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
 
 case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, photon_init$, mask$)
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
 
   ele%value(ref_wavelength$) = c_light * h_planck / E_tot_start
+  ele%value(delta_ref_time$) = 0
   ele%ref_time = ref_time_start
 
 case (patch$)
@@ -647,11 +651,13 @@ case (patch$)
   endif
 
   velocity = c_light * ele%value(p0c$) / ele%value(E_tot$)
-  ele%ref_time = ref_time_start + ele%value(t_offset$) + ele%value(l$) / velocity
+  ele%value(delta_ref_time$) = ele%value(t_offset$) + ele%value(l$) / velocity
+  ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
 case (marker$, fork$, photon_fork$)
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
+  ele%value(delta_ref_time$) = 0
   ele%ref_time = ref_time_start
 
 case default
@@ -670,14 +676,16 @@ case default
 
   if (ele_has_constant_ds_dt_ref(ele)) then
     if (ele%value(l$) == 0) then     ! Must avoid problem with zero length markers and p0c = 0.
-      ele%ref_time = ref_time_start
+      ele%value(delta_ref_time$) = 0
     else
-      ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
+      ele%value(delta_ref_time$) = ele%value(l$) * E_tot_start / (p0c_start * c_light)
     endif
+    ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
   else
     call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
     call calc_time_ref_orb_out(orb_end)
+    ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
   endif
 
   call ele_rad_int_cache_calc (ele, .true.)
@@ -695,7 +703,6 @@ end select
 
 ! If delta_ref_time has shifted then any taylor map must be updated.
 
-ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
 ele%old_value = value_saved
 
 if (abs(ele%value(delta_ref_time$) - ele%old_value(delta_ref_time$)) * c_light > bmad_com%significant_length) then
