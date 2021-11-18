@@ -1,0 +1,559 @@
+!
+!    __      
+!   |__) \_/ 
+!   |  \ / \ 
+!         
+
+!- - - R1 - - - 
+mR1dip01.angle = (30) * pi/180
+mR1dip01.L = 0.2 * mR1dip01.angle/sin(mR1dip01.angle) ! To make projected length 
+mR1dip01: SBEND, L = mR1dip01.L, fringe_type = full
+mR1dip01[angle]  = mR1dip01.angle
+mR1dip01[e1]  = mR1dip01.angle
+
+r1b1.patch : patch
+r1b1.match042 : match
+r1b1.match078 : match
+r1b1.match114 : match
+r1b1.match150 : match
+
+mR1dip08.angle = (30) * pi/180
+mR1dip08.L = 0.2 * mR1dip08.angle/sin(mR1dip08.angle) ! To make projected length 
+mR1dip08: SBEND, L = mR1dip08.L, fringe_type = full
+mR1dip08[angle]  = mR1dip08.angle
+mR1dip08[e2]  = mR1dip08.angle
+
+r1b8.match042 : match
+r1b8.match078 : match
+r1b8.match114 : match
+r1b8.match150 : match
+
+R1.Demer.Mar.BEG: marker
+R1.Merge.Mar.END: marker
+R1.Pip01: pipe, L = 1.2
+
+! Gate valve + space for flanges
+R1.Pip12: FF.Pip01, L = fb.lpip00a - fb.pip34[l]
+R1.Gat01: instrument, L = 7.5e-2, type = 'Gate Valve', superimpose, ref=r1.pip12, ele_origin=beginning, ref_origin=beginning, offset=0.048
+R1.Gat01[descrip] = "3DMODEL=Gate_Valve/Gate_Valve.blend"
+
+R1.Pip13: FF.Pip01, L = 0.02
+R1.Blk01: FF.Blk01
+R1.Pip14: FF.Pip02, L  = 0.15
+
+R1.patch09: FF.patch1
+R1.patch10: FF.patch1
+
+R1_TAIL: line = (R1.Pip12)
+
+!!-----Merge becomes demerge-----
+
+mR1dip99: sbend, L = 0.07, g = 0
+mr1dip99.patch: patch
+o.mr1dip99: overlay={
+ mr1dip99[g_err] : sin(angle)/mr1dip99[l],
+ mr1dip99.patch[x_pitch] : -angle,
+ mr1dip99.patch[x_offset] : -mr1dip99[l]*tan(0.5*angle)},
+ var={angle}
+mr1dip99.match042: match
+mr1dip99.match078: match
+mr1dip99.match114: match
+mr1dip99.match150: match
+R1.Pip00: Pipe, x_limit = 0.02 + 0.012
+
+! Diagnostics downstream of mr1dip01
+ir1scr99: instrument, superimpose, ref=mr1dip01, ref_origin=end, offset = 0.678578
+ir1bpm98: instrument, superimpose, ref=mr1dip01, ref_origin=end, offset = 0.062847
+ir1bpm99: instrument, superimpose, ref=mr1dip99, ref_origin=beginning, offset = -0.097368
+
+R1.Merge.Mar.BEG: MARKER
+R1.Merge.A : line[multipass] = (R1.Merge.Mar.BEG, r1b1.patch)
+R1.Merge.B : line[multipass] = (mR1dip01, R1.Pip01)
+R1.Merge.C : line[multipass] = (mR1dip99, mr1dip99.patch, R1.Pip00, R1.Merge.Mar.END)
+
+!!Will
+R1.MATCH: match
+R2.match: R1.match
+R3.match: R1.match
+R4.match: R1.match
+
+!! Will 
+R1.Demerge.p1 : line[multipass] = (-R1_TAIL)
+R1.Demerge.p2 : line[multipass] = ( R1.Demer.Mar.BEG, mR1dip08)
+R1B8.Align_patch: patch
+
+R1.Ben: SBEND, L = 0.2, fringe_type = full 
+R1.Ben[descrip] = "3DMODEL=Splitter_H_Dipole/Splitter_H_Dipole.blend"
+mR1dip02: R1.Ben
+mR1dip03: R1.Ben
+mR1dip04: R1.Ben
+mR1dip05: R1.Ben
+mR1dip06: R1.Ben
+mR1dip07: R1.Ben
+
+o.mr1dip02: overlay={
+ mr1dip02[l]:lr/sinc(0.5*angle),
+ mr1dip02[g]:2.0*sin(0.5*angle)/lr,
+ mr1dip02[e1]:0.5*angle,
+ mr1dip02[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_3350
+o.mr1dip03: overlay={
+ mr1dip03[l]:lr/sinc(0.5*angle),
+ mr1dip03[g]:2.0*sin(0.5*angle)/lr,
+ mr1dip03[e1]:0.5*angle,
+ mr1dip03[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_4660
+o.mr1dip04: overlay={
+ mr1dip04[l]:lr/sinc(0.5*angle),
+ mr1dip04[g]:2.0*sin(0.5*angle)/lr,
+ mr1dip04[e1]:0.5*angle,
+ mr1dip04[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_3350
+o.mr1dip05: overlay={
+ mr1dip05[l]:lr/sinc(0.5*angle),
+ mr1dip05[g]:2.0*sin(0.5*angle)/lr,
+ mr1dip05[e1]:0.5*angle,
+ mr1dip05[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_3350
+o.mr1dip06: overlay={
+ mr1dip06[l]:lr/sinc(0.5*angle),
+ mr1dip06[g]:2.0*sin(0.5*angle)/lr,
+ mr1dip06[e1]:0.5*angle,
+ mr1dip06[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_4660
+o.mr1dip07: overlay={
+ mr1dip07[l]:lr/sinc(0.5*angle),
+ mr1dip07[g]:2.0*sin(0.5*angle)/lr,
+ mr1dip07[e1]:0.5*angle,
+ mr1dip07[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_3350
+
+! Same pipes as S1
+R1.Pip: S1.Pip
+R1.Pip02: R1.Pip, x_limit=0, y_limit=0
+R1.Pip03: R1.Pip
+R1.Pip04: R1.Pip
+R1.Pip05: R1.Pip
+R1.Pip06: R1.Pip
+R1.Pip07: R1.Pip
+R1.Pip08: R1.Pip
+R1.Pip09: R1.Pip
+R1.Pip10: R1.Pip
+R1.Pip11: R1.Pip
+
+! sliding joints, same as S1
+R1.Sli: instrument, aperture_type = elliptical, aperture_at=both_ends, x_limit=18e-3, y_limit=12e-3
+R1.Sli01: R1.Sli
+R1.Sli02: R1.Sli
+R1.Sli03: R1.Sli
+
+! Path length adjustment. Delta is the actual path length change
+O_R1.Sli: group = {
+ R1.Sli01[L]:0.25*delta/sin(0.5*angle)^2,
+ R1.Sli02[L]:-0.5*delta*cos(angle)/sin(0.5*angle)^2,
+ R1.Sli03[L]:0.25*delta/sin(0.5*angle)^2},
+ var = {delta,angle}
+
+R1.Mar.BEG: MARKER
+R1.Mar.END: MARKER
+
+MR1QUA01: srqua, superimpose, ref = R1.Pip02, ref_origin=beginning, offset = +0.145
+MR1QUA02: srqua, superimpose, ref = R1.Pip03, ref_origin=end,       offset = -0.35
+MR1QUA03: srqua, superimpose, ref = MR1DIP03, ref_origin=beginning, offset = -0.150
+MR1QUA04: srqua, superimpose, ref = MR1DIP04, ref_origin=end,       offset = +0.139506
+MR1QUA05: srqua, superimpose, ref = MR1DIP05, ref_origin=beginning, offset = -0.139506
+MR1QUA06: srqua, superimpose, ref = MR1DIP06, ref_origin=end,       offset = +0.15
+MR1QUA07: srqua, superimpose, ref = R1.Pip10, ref_origin=beginning, offset = +0.35
+MR1QUA08: srqua, superimpose, ref = R1.Pip11, ref_origin=end,       offset = -0.26
+
+MR1CRV01 : vc2, superimpose, ref=MR1QUA01, offset = +0.400
+MR1CRV02 : vc2, superimpose, ref=MR1QUA02, offset = -0.163
+MR1CRV03 : vc2, superimpose, ref=MR1QUA07, offset = +0.150
+MR1CRV04 : vc2, superimpose, ref=MR1QUA08, offset = +0.130
+
+IR1BPM01: instrument, superimpose, ref = MR1DIP02, ref_origin=end, offset = sr_bpm_offset
+IR1BPM02: instrument, superimpose, ref = MR1DIP03, ref_origin=end, offset = sr_bpm_offset
+IR1BPM03: instrument, superimpose, ref = MR1DIP04, ref_origin=end, offset = sr_bpm_offset
+IR1BPM04: instrument, superimpose, ref = MR1DIP05, ref_origin=end, offset = sr_bpm_offset
+IR1BPM05: instrument, superimpose, ref = MR1DIP06, ref_origin=end, offset = sr_bpm_offset
+IR1BPM06: instrument, superimpose, ref = MR1DIP07, ref_origin=end, offset = sr_bpm_offset
+
+IR1SCR01: instrument, superimpose, ref = MR1DIP02, ref_origin=end, offset = +0.300838
+IR1SCR02: instrument, superimpose, ref = MR1DIP07, ref_origin=beginning, offset = -0.502798
+
+r1.part4: line = (r1.mar.beg, r1.pip11, mr1dip07, r1.pip10)
+r1.part3: line = (mr1dip06, r1.pip09, r1.sli03, r1.pip08, mr1dip05, r1.pip07)
+r1.part2: line = (r1.pip06, mr1dip04, r1.pip05, r1.sli01, r1.pip04, mr1dip03)
+r1.part1: line = (r1.pip03, mr1dip02, r1.pip02, r1.mar.end)
+r1.body: line = (r1.part4, r1.part3, r1.sli02, r1.part2, r1.part1)
+
+!- - - R2 - - 
+
+! Multipass bends
+! Multipass bends
+mR2dip01.angle = 7.3823*pi/180
+mR2dip01: SBEND, fringe_type = full
+mR2dip10: SBEND, fringe_type = full
+
+MR2DIP01[L] = +1.94134259200464121E-001
+MR2DIP01[G] = +6.63696361561734838E-001
+MR2DIP01[E1] = +6.44231007429153929E-002
+MR2DIP01[E2] = +6.44231007429153929E-002
+MR2DIP10[L] = +1.94134259200464121E-001
+MR2DIP10[G] = +6.63696361561734838E-001
+MR2DIP10[E1] = +6.44231007429153929E-002
+MR2DIP10[E2] = +6.44231007429153929E-002
+
+! Matches to correct model to match field map
+r2d01.match078 : null_match
+r2d01.match114 : null_match
+r2d01.match150 : null_match
+r2d10.match078 : null_match
+r2d10.match114 : null_match
+r2d10.match150 : null_match
+! Bring 78 MeV orbits back to zero after matches
+r2d01.patch078 : patch
+r2d10.patch078 : patch
+
+! Center bends
+R2.Ben: SBEND, L = 0.2, fringe_type = full 
+R2.Ben[descrip] = "3DMODEL=Splitter_H_Dipole/Splitter_H_Dipole.blend"
+R2.Ben_30cm: SBEND, L = 0.3, fringe_type = full
+R2.Ben_30cm[descrip] = "3DMODEL=Splitter_H_Dipole_30cm/Splitter_H_Dipole_30cm.blend"
+
+mR2dip02: R2.ben
+mR2dip03: R2.Ben
+mR2dip04: R2.Ben_30cm
+mR2dip05: R2.Ben
+mR2dip06: R2.Ben
+mR2dip07: R2.Ben_30cm
+mR2dip08: R2.Ben
+mR2dip09: R2.ben
+
+o.mr2dip02: overlay={
+ mr2dip02[l]:lr/sinc(0.5*angle),
+ mr2dip02[g]:2.0*sin(0.5*angle)/lr,
+ mr2dip02[e1]:0.5*angle,
+ mr2dip02[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip4
+o.mr2dip03: overlay={
+ mr2dip03[l]:lr/sinc(0.5*angle),
+ mr2dip03[g]:2.0*sin(0.5*angle)/lr,
+ mr2dip03[e1]:0.5*angle,
+ mr2dip03[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_3350
+o.mr2dip04: overlay={
+ mr2dip04[l]:lr/sinc(0.5*angle),
+ mr2dip04[g]:2.0*sin(0.5*angle)/lr,
+ mr2dip04[e1]:0.5*angle,
+ mr2dip04[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip2
+o.mr2dip05: overlay={
+ mr2dip05[l]:lr/sinc(0.5*angle),
+ mr2dip05[g]:2.0*sin(0.5*angle)/lr,
+ mr2dip05[e1]:0.5*angle,
+ mr2dip05[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_4660
+o.mr2dip06: overlay={
+ mr2dip06[l]:lr/sinc(0.5*angle),
+ mr2dip06[g]:2.0*sin(0.5*angle)/lr,
+ mr2dip06[e1]:0.5*angle,
+ mr2dip06[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_4660
+o.mr2dip07: overlay={
+ mr2dip07[l]:lr/sinc(0.5*angle),
+ mr2dip07[g]:2.0*sin(0.5*angle)/lr,
+ mr2dip07[e1]:0.5*angle,
+ mr2dip07[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip2
+o.mr2dip08: overlay={
+ mr2dip08[l]:lr/sinc(0.5*angle),
+ mr2dip08[g]:2.0*sin(0.5*angle)/lr,
+ mr2dip08[e1]:0.5*angle,
+ mr2dip08[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_3350
+o.mr2dip09: overlay={
+ mr2dip09[l]:lr/sinc(0.5*angle),
+ mr2dip09[g]:2.0*sin(0.5*angle)/lr,
+ mr2dip09[e1]:0.5*angle,
+ mr2dip09[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip4
+
+R2.Pip: pipe, aperture_type = elliptical, aperture_at=both_ends, x_limit=18e-3, y_limit=12e-3
+R2.Pip01: pipe, x_limit=0, y_limit=0
+R2.Pip02: R2.Pip, L = 0.3
+R2.Pip03: R2.Pip
+R2.Pip04: R2.Pip
+R2.Pip05: R2.Pip
+R2.Pip06: R2.Pip
+R2.Pip07: R2.Pip
+R2.Pip08: R2.Pip
+R2.Pip09: R2.Pip
+R2.Pip10: R2.Pip
+R2.Pip11: R2.Pip
+R2.Pip12: R2.Pip
+R2.Pip13: R2.Pip02
+R2.Pip14: R2.Pip, x_limit=0, y_limit=0
+
+! sliding joints
+R2.Sli: instrument, aperture_type = elliptical, aperture_at=both_ends, x_limit=18e-3, y_limit=12e-3
+R2.Sli01: R2.Sli
+R2.Sli02: R2.Sli
+R2.Sli03: R2.Sli
+
+! Path length adjustment. Delta is the actual path length change
+O_R2.Sli: group = {
+ R2.Sli01[L]:0.25*delta/sin(0.5*angle)^2,
+ R2.Sli02[L]:-0.5*delta*cos(angle)/sin(0.5*angle)^2,
+ R2.Sli03[L]:0.25*delta/sin(0.5*angle)^2},
+ var = {delta,angle}
+
+R2.Mar.END: MARKER
+R2.Mar.BEG: MARKER
+
+!! Merge and Demerge swap
+
+R2.demerge_patch: patch
+R2.merge_patch: patch, flexible = T
+R2.Demerge : line[multipass] = (r2.demerge_patch,R2.Pip14,mR2dip10)
+R2.Merge : line[multipass] = (mR2dip01, R2.Pip01, R2.merge_patch)
+
+MR2QUA01: srqua, superimpose, ref = R2.Pip03, ref_origin=end,       offset = -0.125
+MR2QUA02: srqua, superimpose, ref = R2.Pip04, ref_origin=end,       offset = -0.330
+MR2QUA03: srqua, superimpose, ref = R2.Pip04, ref_origin=beginning, offset = +0.150
+MR2QUA04: srqua, superimpose, ref = R2.Pip06, ref_origin=beginning, offset = +0.14129
+MR2QUA05: srqua, superimpose, ref = R2.Pip09, ref_origin=end,       offset = -0.14129
+MR2QUA06: srqua, superimpose, ref = R2.Pip11, ref_origin=end,       offset = -0.16
+MR2QUA07: srqua, superimpose, ref = R2.Pip11, ref_origin=beginning, offset = +0.295
+MR2QUA08: srqua, superimpose, ref = R2.Pip12, ref_origin=beginning, offset = +0.25
+
+MR2CRV01 : vc2, superimpose, ref=MR2QUA02, offset = +0.135
+MR2CRV02 : vc2, superimpose, ref=MR2QUA03, offset = +0.123
+MR2CRV03 : vc2, superimpose, ref=MR2QUA06, offset = -0.132
+MR2CRV04 : vc2, superimpose, ref=MR2QUA07, offset = -0.130
+
+IR2BPM01: instrument, superimpose, ref = MR2DIP03, ref_origin=end, offset = sr_bpm_offset
+IR2BPM02: instrument, superimpose, ref = MR2DIP04, ref_origin=end, offset = h2_bpm_offset
+IR2BPM03: instrument, superimpose, ref = MR2DIP05, ref_origin=end, offset = sr_bpm_offset
+IR2BPM04: instrument, superimpose, ref = MR2DIP06, ref_origin=end, offset = sr_bpm_offset
+IR2BPM05: instrument, superimpose, ref = MR2DIP07, ref_origin=end, offset = h2_bpm_offset
+IR2BPM06: instrument, superimpose, ref = MR2DIP08, ref_origin=end, offset = sr_bpm_offset
+
+IR2SCR01: instrument, superimpose, ref = MR2DIP02, ref_origin=end, offset = +0.117136, x_offset = -0.221e-3
+IR2SCR02: instrument, superimpose, ref = MR2DIP09, ref_origin=beginning, offset = -0.167663
+
+r2.part2: line = (r2.mar.beg, r2.pip13, mr2dip09, r2.pip12, mr2dip08, r2.pip11,
+ mr2dip07, r2.pip10, r2.sli03, r2.pip09, mr2dip06, r2.pip08)
+r2.part1: line = (r2.pip07, mr2dip05, r2.pip06, r2.sli01, r2.pip05, mr2dip04,
+ r2.pip04, mr2dip03, r2.pip03, mr2dip02, r2.pip02, r2.mar.end)
+r2.body: line = (r2.part2, r2.sli02, r2.part1)
+
+!- - - R3 - - 
+
+R3.Ben: SBEND, L = 0.2, fringe_type = full 
+R3.Ben[descrip] = "3DMODEL=Splitter_H_Dipole/Splitter_H_Dipole.blend"
+R3.Ben_30cm: SBEND, L = 0.3, fringe_type = full
+R3.Ben_30cm[descrip] = "3DMODEL=Splitter_H_Dipole_30cm/Splitter_H_Dipole_30cm.blend"
+
+mR3dip01: R3.Ben
+mR3dip02: R3.Ben_30cm
+mR3dip03: R3.Ben_30cm
+mR3dip04: R3.Ben
+
+o.mr3dip01: overlay={
+ mr3dip01[l]:lr/sinc(0.5*angle),
+ mr3dip01[g]:2.0*sin(0.5*angle)/lr,
+ mr3dip01[e1]:0.5*angle,
+ mr3dip01[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_3350
+o.mr3dip02: overlay={
+ mr3dip02[l]:lr/sinc(0.5*angle),
+ mr3dip02[g]:2.0*sin(0.5*angle)/lr,
+ mr3dip02[e1]:0.5*angle,
+ mr3dip02[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip3
+o.mr3dip03: overlay={
+ mr3dip03[l]:lr/sinc(0.5*angle),
+ mr3dip03[g]:2.0*sin(0.5*angle)/lr,
+ mr3dip03[e1]:0.5*angle,
+ mr3dip03[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip3
+o.mr3dip04: overlay={
+ mr3dip04[l]:lr/sinc(0.5*angle),
+ mr3dip04[g]:2.0*sin(0.5*angle)/lr,
+ mr3dip04[e1]:0.5*angle,
+ mr3dip04[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip1_3350
+
+R3.Pip01: pipe
+R3.Pip02: pipe
+R3.Pip03: pipe
+R3.Pip04: pipe
+R3.Pip05: pipe
+R3.Pip06: pipe
+R3.Pip07: pipe
+R3.Pip08: pipe
+
+! sliding joints
+R3.Sli: instrument, aperture_type = elliptical, aperture_at=both_ends, x_limit=18e-3, y_limit=12e-3
+R3.Sli01: R3.Sli
+R3.Sli02: R3.Sli
+R3.Sli03: R3.Sli
+
+! Path length adjustment. Delta is the actual path length change
+O_R3.Sli: group = {
+ R3.Sli01[L]:0.25*delta/sin(0.5*angle)^2,
+ R3.Sli02[L]:-0.5*delta*cos(angle)/sin(0.5*angle)^2,
+ R3.Sli03[L]:0.25*delta/sin(0.5*angle)^2},
+ var = {delta,angle}
+
+R3.Mar.BEG: MARKER
+R3.Mar.END: MARKER
+
+MR3QUA01: srqua, superimpose, ref = R3.Pip01, ref_origin=beginning, offset = +0.144
+MR3QUA02: srqua, superimpose, ref = R3.Pip02, ref_origin=end,       offset = -0.36
+MR3QUA03: srqua, superimpose, ref = R3.Pip02, ref_origin=end,       offset = -0.669395
+MR3QUA04: srqua, superimpose, ref = R3.Pip04, ref_origin=end,       offset = -0.138723
+MR3QUA05: srqua, superimpose, ref = R3.Pip05, ref_origin=beginning, offset = +0.138723
+MR3QUA06: srqua, superimpose, ref = R3.Pip07, ref_origin=beginning, offset = +0.650379
+MR3QUA07: srqua, superimpose, ref = R3.Pip07, ref_origin=beginning, offset = +0.35
+MR3QUA08: srqua, superimpose, ref = R3.Pip08, ref_origin=end,       offset = -0.175
+
+MR3CRV01 : vc1, superimpose, ref=MR3QUA02, offset = +0.155
+MR3CRV02 : vc1, superimpose, ref=MR3QUA02, offset = -0.155
+MR3CRV03 : vc1, superimpose, ref=MR3QUA07, offset = -0.190
+MR3CRV04 : vc1, superimpose, ref=MR3QUA08, offset = -0.155
+
+IR3BPM01: instrument, superimpose, ref = MR3DIP01, ref_origin=end, offset = sr_bpm_offset
+IR3BPM02: instrument, superimpose, ref = MR3DIP02, ref_origin=end, offset = sr_bpm_offset
+IR3BPM03: instrument, superimpose, ref = MR3DIP03, ref_origin=end, offset = sr_bpm_offset
+IR3BPM04: instrument, superimpose, ref = MR3DIP04, ref_origin=end, offset = sr_bpm_offset
+
+IR3SCR01: instrument, superimpose, ref = MR3DIP01, ref_origin=end, offset = +0.610307, x_offset = +0.039e-3
+IR3SCR02: instrument, superimpose, ref = MR3DIP04, ref_origin=beginning, offset = -0.886662
+
+r3.part2: line = (r3.mar.beg, r3.pip08, mr3dip04, r3.pip07, r3.sli03, r3.pip06, mr3dip03, r3.pip05)
+r3.part1: line = (r3.pip04, mr3dip02, r3.pip03, r3.sli01, r3.pip02, mr3dip01, r3.pip01, r3.mar.end)
+r3.body: line = (r3.part2, r3.sli02, r3.part1)
+
+!- - - R4 - - 
+
+R4.Ben: SBEND, L = 0.2, fringe_type = full 
+R4.Ben[descrip] = "3DMODEL=Splitter_H_Dipole/Splitter_H_Dipole.blend"
+R4.Ben_30cm: SBEND, L = 0.3, fringe_type = full
+R4.Ben_30cm[descrip] = "3DMODEL=Splitter_H_Dipole_30cm/Splitter_H_Dipole_30cm.blend"
+
+
+mR4dip01: septum2
+mR4dip02: R4.Ben
+mR4dip03: R4.Ben_30cm
+mR4dip04: R4.Ben_30cm
+mR4dip05: R4.Ben
+mR4dip06: septum2
+
+o.mr4dip02: overlay={
+ mr4dip02[l]:lr/sinc(0.5*angle),
+ mr4dip02[g]:2.0*sin(0.5*angle)/lr,
+ mr4dip02[e1]:0.5*angle,
+ mr4dip02[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip4
+o.mr4dip03: overlay={
+ mr4dip03[l]:lr/sinc(0.5*angle),
+ mr4dip03[g]:2.0*sin(0.5*angle)/lr,
+ mr4dip03[e1]:0.5*angle,
+ mr4dip03[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip3
+o.mr4dip04: overlay={
+ mr4dip04[l]:lr/sinc(0.5*angle),
+ mr4dip04[g]:2.0*sin(0.5*angle)/lr,
+ mr4dip04[e1]:0.5*angle,
+ mr4dip04[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip3
+o.mr4dip05: overlay={
+ mr4dip05[l]:lr/sinc(0.5*angle),
+ mr4dip05[g]:2.0*sin(0.5*angle)/lr,
+ mr4dip05[e1]:0.5*angle,
+ mr4dip05[e2]:0.5*angle},
+ var={angle,lr}, lr=lr_hdip4
+
+R4.Pip01: pipe
+R4.Pip02: pipe
+R4.Pip03: pipe
+R4.Pip04: pipe
+R4.Pip05: pipe
+R4.Pip06: pipe
+R4.Pip07: pipe
+R4.Pip08: pipe
+R4.Pip09: pipe
+R4.Pip10: pipe
+
+! sliding joints
+R4.Sli: instrument, aperture_type = elliptical, aperture_at=both_ends, x_limit=18e-3, y_limit=12e-3
+R4.Sli01: R4.Sli
+R4.Sli02: R4.Sli
+R4.Sli03: R4.Sli
+
+! Path length adjustment. Delta is the actual path length change
+O_R4.Sli: group = {
+ R4.Sli01[L]:0.25*delta/sin(0.5*angle)^2,
+ R4.Sli02[L]:-0.5*delta*cos(angle)/sin(0.5*angle)^2,
+ R4.Sli03[L]:0.25*delta/sin(0.5*angle)^2},
+ var = {delta,angle}
+
+R4.Mar.BEG: MARKER 
+R4.Mar.END: MARKER
+
+MR4QUA01: srqua, superimpose, ref = mR4dip02, ref_origin=end,       offset = +0.130
+MR4QUA02: srqua, superimpose, ref = mR4dip02, ref_origin=beginning, offset = -0.265
+MR4QUA03: srqua, superimpose, ref = mR4dip03, ref_origin=end,       offset = +0.412
+MR4QUA04: srqua_long, superimpose, ref = r4.pip05, ref_origin=end,       offset = -0.186099
+MR4QUA05: srqua,      superimpose, ref = r4.pip06, ref_origin=beginning, offset = +0.141099
+MR4QUA06: srqua, superimpose, ref = mR4dip04, ref_origin=beginning, offset = -0.471
+MR4QUA07: srqua, superimpose, ref = mR4dip05, ref_origin=end,       offset = +0.284
+MR4QUA08: srqua, superimpose, ref = mR4dip05, ref_origin=beginning, offset = -0.134
+
+MR4CRV01 : vc1, superimpose, ref=MR4QUA02, offset = +0.155
+MR4CRV02 : vc1, superimpose, ref=MR4QUA03, offset = +0.155
+MR4CRV03 : vc1, superimpose, ref=MR4QUA07, offset = +0.160
+MR4CRV04 : vc1, superimpose, ref=MR4QUA07, offset = -0.165
+
+IR4BPM01: instrument, superimpose, ref = MR4DIP02, ref_origin=end, offset = h5_bpm_offset
+IR4BPM02: instrument, superimpose, ref = MR4DIP03, ref_origin=end, offset = sr_bpm_offset
+IR4BPM03: instrument, superimpose, ref = MR4DIP04, ref_origin=end, offset = sr_bpm_offset
+IR4BPM04: instrument, superimpose, ref = MR4DIP05, ref_origin=end, offset = h5_bpm_offset
+
+IR4SCR01: instrument, superimpose, ref = MR4DIP01, ref_origin=end, offset = 0.366174
+IR4SCR02: instrument, superimpose, ref = MR4DIP06, ref_origin=beginning, offset = -0.294344
+
+r4.part1: line = (r4.pip05, mr4dip03, r4.pip04, r4.sli01, r4.pip03, mr4dip02, r4.pip02, mr4dip01, r4.pip01, r4.mar.end)
+r4.part2: line = (r4.mar.beg, r4.pip10, mr4dip06, r4.pip09, mr4dip05, r4.pip08, r4.sli03, r4.pip07, mr4dip04, r4.pip06)
+r4.body: line = (r4.part2, r4.sli02, r4.part1)
+
+!- - - - - - - - Merge control
+R3.demerge_patch: patch
+R4.demerge_patch: patch
+
+!Merge patches
+R1.merge_patch: patch !! merging into injector bending magnet
+R3.merge_patch1: patch, flexible = T
+R4.merge_patch1: patch, flexible = T
+
+!- - - - - - - - Full lines:
+R1_connect: line[multipass] = (R1.merge_patch)
+
+R1: line = (R1.Demerge.p1, R1.MATCH, R1.Demerge.p2, r1b8.match042, R1B8.Align_patch, R1.body, R1.Merge.A, r1b1.match042, R1.Merge.B, mr1dip99.match042, R1.Merge.C)
+R1_multi: line[multipass] = (R1)
+
+R2: line = (R1.Demerge.p1, R2.MATCH, R1.Demerge.p2, r1b8.match078, R2.Demerge, r2d10.match078, r2d10.patch078, R2.body, 
+            r2d01.patch078, r2d01.match078, R2.merge, R1.Merge.A, r1b1.match078, R1.Merge.B, mr1dip99.match078, R1.Merge.C)
+R2_multi: line[multipass] = (R2)
+
+R3: line = (R1.Demerge.p1, R3.MATCH, R1.Demerge.p2, r1b8.match114, R2.Demerge, r2d10.match114, R3.demerge_patch, R3.body, 
+            R3.merge_patch1, r2d01.match114, R2.merge, R1.Merge.A, r1b1.match114, R1.Merge.B, mr1dip99.match114, R1.Merge.C)
+R3_multi: line[multipass] = (R3)
+
+R4: line = (R1.Demerge.p1, R4.MATCH, R1.Demerge.p2, r1b8.match150, R2.Demerge, r2d10.match150, R4.demerge_patch, R4.body, 
+            R4.merge_patch1, r2d01.match150, R2.merge, R1.Merge.A, r1b1.match150, R1.Merge.B, mr1dip99.match150, R1.Merge.C)
+R4_multi: line[multipass] = (R4)
+
+call, file=rx.com.bmad

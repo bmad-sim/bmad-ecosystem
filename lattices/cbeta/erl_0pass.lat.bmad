@@ -1,0 +1,15 @@
+call, file=erl.param.bmad
+parameter[lattice]  = "CBETA, Beam Straight to Dump"
+parameter[geometry] = open
+parameter[particle] = electron
+parameter[absolute_time_tracking] = t
+call, file = beginning/beginning_in_merge.bmad
+call, file = erl.bmad
+
+rd1cav0%[gradient_err] = 0
+
+cbeta_006: line=(
+ in.a3, mirror_merge_fork, in.merge.part1, in.merge.part2, mar.beg, la, setenergy006, la.tail, 
+ du.part1, la.demer.match006, du.part2, du, mar.end)
+
+use, cbeta_006

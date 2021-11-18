@@ -1,0 +1,194 @@
+!
+!    ___  __       
+!   |__  |__) |    
+!   |___ |  \ |___ 
+!               
+
+
+
+! Markers
+
+Mar.BEG: marker
+Mar.END: marker
+
+
+! Time patches
+return1.time_patch: patch
+return2.time_patch: patch
+return3.time_patch: patch
+return4.time_patch: patch
+return5.time_patch: patch
+return6.time_patch: patch
+return7.time_patch: patch
+
+tmatch : match, beta_a0=1, beta_a1=1, beta_b0=1, beta_b1=1
+return1.time_match: tmatch
+return2.time_match: tmatch
+return3.time_match: tmatch
+return4.time_match: tmatch
+return5.time_match: tmatch
+return6.time_match: tmatch
+return7.time_match: tmatch
+
+RETURN1.TIME_PATCH[T_OFFSET] = +1.22459198215588780E-10
+RETURN2.TIME_PATCH[T_OFFSET] = -1.13000153078586955E-10
+RETURN3.TIME_PATCH[T_OFFSET] = +8.26740428593621948E-11
+RETURN4.TIME_PATCH[T_OFFSET] = +4.78800005308298447E-10
+RETURN5.TIME_PATCH[T_OFFSET] = RETURN3.TIME_PATCH[T_OFFSET]
+RETURN6.TIME_PATCH[T_OFFSET] = RETURN2.TIME_PATCH[T_OFFSET]
+RETURN7.TIME_PATCH[T_OFFSET] = RETURN1.TIME_PATCH[T_OFFSET]
+
+RETURN1.TIME_MATCH[DELTA_TIME] =  -8.273e-12
+RETURN2.TIME_MATCH[DELTA_TIME] =  -2.879e-12
+RETURN3.TIME_MATCH[DELTA_TIME] =  -0.878e-12
+RETURN4.TIME_MATCH[DELTA_TIME] =  -8.017e-12
+RETURN5.TIME_MATCH[DELTA_TIME] =  return3.time_match[delta_time]
+RETURN6.TIME_MATCH[DELTA_TIME] =  return2.time_match[delta_time]
+RETURN7.TIME_MATCH[DELTA_TIME] =  return1.time_match[delta_time]
+
+setenergy006: patch, e_tot_set=e006
+setenergy042: patch, e_tot_set=e042
+setenergy078: patch, e_tot_set=e078
+setenergy114: patch, e_tot_set=e114
+setenergy150: patch, e_tot_set=e150
+setenergy042_m: line[multipass] = (setenergy042)
+setenergy078_m: line[multipass] = (setenergy078)
+setenergy114_m: line[multipass] = (setenergy114)
+
+! For simulating dispersion correction
+LA.ORBIT_SHIFT: MATCH, 
+  beta_a0  = 1, alpha_a0 = 0, beta_a1  = 1, alpha_a1 = 0,
+  beta_b0  = 1, alpha_b0 = 0, beta_b1  = 1, alpha_b1 = 0
+
+
+! Linac
+LA.fakecavity: lcavity, L=1, rf_frequency=global_rf_frequency, voltage = 70e6
+!LA: line[multipass] = (LA.fakecavity)
+call, file = in/a3/a3.bmad
+call, file = in/a3/a3.X.bmad
+call, file = in/merge/in.merge.bmad
+call, file = la/la.bmad
+
+! FFAG
+call, file = fx/cell/cell.bmad
+call, file = fx/fx.bmad
+call, file = tx/tx.bmad
+call, file = zx/zx.bmad
+
+! Splitters
+call, file =sx/sx.bmad
+call, file =rx/rx.bmad
+
+! DU
+call, file = du/du.bmad
+call, file = du/du.X.bmad
+
+ZA.extend: drift
+
+mirror_merge_fork: fork, to_line = in.mirror_merge
+
+ffa: line = (fa, ta, za, zb, tb, fb)
+
+!- - - - - - ERL 1 pass - - - - - -
+erl_1pass_half: line = (in.merge.part1, IN.MERGE.part2, Mar.BEG,
+LA, setenergy042, la.tail, DU.part1, la.demer.match042, du.part2,
+S1, 
+FA, 
+ZA)
+
+ 
+erl_1pass: line = (
+in.merge.part1, IN.MERGE.part2, Mar.BEG,
+LA, setenergy042, la.tail, DU.part1, la.demer.match042, du.part2,
+S1,
+FA_single, TA_single, ZA_single, ZB_single, TB_single, FB_single, 
+R1, R1_connect, in.merge.match042, IN.MERGE.part2, return1.time_patch, return1.time_match,
+LA, 
+setenergy006, la.tail, DU.part1, la.demer.match006, du.part2,
+DU,
+!DU.short,
+Mar.END)
+
+fat.end: drift, l=71.65e-3
+
+cbeta_fat: line = (in.a3, mirror_merge_fork, in.merge.part1, in.merge.part2, mar.beg, la, 
+ setenergy042, la.tail, du.part1, la.demer.match042, du.part2,
+ s1_fat, fa.gir01, fat.end)
+
+cbeta_fat_gun: line = (IN_before_MERGE, in.a3, mirror_merge_fork, in.merge.part1, in.merge.part2, mar.beg, la, 
+ setenergy042, la.tail, du.part1, la.demer.match042, du.part2,
+ s1_fat, fa.gir01, fat.end)
+
+!- - - - - - ERL 4 pass - - - - - -
+
+
+erl_4pass1: line = (
+LA, setenergy042_m, la.tail, DU.part1, la.demer.match042.line, du.part2,
+S1_multi, 
+FA, TA, ZA, ZB, TB, FB, 
+R1_multi, R1_connect, in.merge.match042.multi, IN.MERGE.part2, return1.time_patch, return1.time_match,
+LA, setenergy078_m, la.tail, DU.part1, la.demer.match078.line, du.part2) 
+
+erl_4pass2: line = (
+S2_multi, 
+FA, TA, ZA, ZB, TB, FB, 
+R2_multi, R1_connect, in.merge.match078.multi, IN.MERGE.part2, return2.time_patch, return2.time_match,
+LA, setenergy114_m, la.tail, DU.part1, la.demer.match114.line, du.part2) 
+
+erl_4pass3: line = (
+S3_multi, 
+FA, TA, ZA, ZB, TB, FB, 
+R3_multi, R1_connect, in.merge.match114.multi, IN.MERGE.part2, return3.time_patch, return3.time_match,
+LA, setenergy150, la.tail, DU.part1, la.demer.match150, du.part2) 
+
+erl_4pass4: line = (
+S4_multi, 
+FA, TA, ZA, ZB, TB, FB, 
+R4_multi, R1_connect, in.merge.match150, IN.MERGE.part2, return4.time_patch, return4.time_match,
+LA, setenergy114_m, la.tail, DU.part1, la.demer.match114.line, du.part2) 
+
+erl_4pass5: line = (
+S3_multi, 
+FA, TA, ZA, ZB, TB, FB, 
+R3_multi, R1_connect, in.merge.match114.multi, IN.MERGE.part2, return5.time_patch, return5.time_match,
+LA, setenergy078_m, la.tail, DU.part1, la.demer.match078.line, du.part2) 
+ 
+erl_4pass6: line = (
+S2_multi, 
+FA, TA, ZA, ZB, TB, FB,  
+R2_multi, R1_connect, in.merge.match078.multi, IN.MERGE.part2, return6.time_patch, return6.time_match,
+LA, setenergy042_m, la.tail, DU.part1, la.demer.match042.line, du.part2) 
+
+erl_4pass7: line = (
+S1_multi, 
+FA, TA, ZA, ZB, TB, FB, 
+R1_multi, R1_connect, in.merge.match042.multi, IN.MERGE.part2, return7.time_patch, return7.time_match,
+LA, setenergy006, la.tail, DU.part1, la.demer.match006, du.part2) 
+ 
+erl_4pass: line = (in.a3, mirror_merge_fork, in.merge.part1, IN.MERGE.part2, Mar.BEG,
+erl_4pass1, 
+erl_4pass2, 
+erl_4pass3,
+erl_4pass4,
+erl_4pass5,
+erl_4pass6, 
+erl_4pass7,
+DU,
+!!DU.short,
+Mar.END)
+
+cbeta_4pass: line = (IN_before_MERGE, in.a3, mirror_merge_fork, in.merge.part1, IN.MERGE.part2, Mar.BEG,
+erl_4pass1, 
+erl_4pass2, 
+erl_4pass3,
+erl_4pass4,
+erl_4pass5,
+erl_4pass6, 
+erl_4pass7,
+DU,
+Mar.END)
+
+!- - - - - - MLC Test - - - - - -
+mlc_test: line = (IN_before_MERGE, in.a3, mirror_merge_fork, in.merge.part1, IN.MERGE.part2, Mar.BEG,
+LA,
+Mar.END)

@@ -5463,9 +5463,23 @@ The \vn{orbit.bmad} lattice in the \vn{lattice_files} directory can be used here
 
 \begin{enumerate}[label=\ref*{s:opt.cor}.\arabic{enumi}]
 \item
-The ``\vn{measured}'' orbit used for the analysis should be
+The ``\vn{meas}'' orbit used for the analysis should be set to:
 \begin{code}
-  measured = actual_measured - (golden_orbit - design_orbit)
+meas = actual_measured - (golden_orbit - design_orbit)
+\end{code}
+Now fit to \vn{model - meas}. If there is a good fit, the \vn{model} orbit will be equal (more or
+less) to \vn{meas}. In the actual machine, if the parameters corresponding to the optimized
+variables are changed by an amount:
+\begin{code}
+param_change = var_design - var_model
+\end{code}
+this will produce (hopefully) an actual orbit:
+\begin{code}
+end_orbit = beginning_measured_orbit + orbit_change
+          = actual_measured + (design_orbit - model_orbit)
+          = actual_measured + (design_orbit - 
+                     (actual_measured - (golden_orbit - design_orbit)))
+          = gloden_orbit
 \end{code}
 %
 \item
