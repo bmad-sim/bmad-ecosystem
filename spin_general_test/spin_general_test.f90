@@ -9,10 +9,11 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (ele_struct) t_ele
 type (coord_struct) orb0, orb_start, orb_end, orb1, orb2
-type (spin_orbit_map1_struct) map1
+type (spin_orbit_map1_struct) map1, inv_map1
 
 real(rp) spin_a(3), spin_b(3), spin0(3), dr(6), a_quat(0:3), n_vec(3)
-real(rp) mat6(6,6), smap(0:3,0:6), n0(3)
+real(rp) mat6(6,6), smap(0:3,0:6), n0(3), q0(0:3), q1(0:3), t
+
 complex(rp) orb_eval(6), orb_evec(6,6), spin_evec(6,3)
 integer i, nargs
 
@@ -40,6 +41,33 @@ endif
 !
 
 open (1, file = 'output.now')
+
+!---------------------------------
+t = 0.1
+n0 = [0.2, 0.3, 0.5]
+n0 = n0 / norm2(n0)
+map1%spin_q(0:3,0) = [cos(t), sin(t)*n0(1), sin(t)*n0(2), sin(t)*n0(3)]
+map1%spin_q(0,1:) = [1, -2, 3, -4, 5, 6]
+map1%spin_q(0,1:) = [2, 4, -6, 8, 0, -6]
+map1%spin_q(0,1:) = [8, 7, -6, 5, 4, 3]
+map1%spin_q(0,1:) = [5, 7, 9, 2, 3, 5]
+map1%spin_q(0,1:) = [6, -4, 2, -4, 8, 6]
+map1%spin_q(0,1:) = [-7, 1, 9, 2, -4, -3]
+
+call mat_make_unit(map1%orb_mat)
+map1%orb_mat(1,2) = 2
+map1%orb_mat(4,3) = 3
+
+inv_map1 = map1_inverse(map1)
+map1 = map1 * inv_map1
+
+do i = 0, 3
+  write (1, '(a, 7f14.8)') '"sq*sqinv:' // int_str(i) // '" ABS 1e-6', map1%spin_q(i,:)
+enddo
+
+do i = 1, 6
+  write (1, '(a, 6f14.8)') '"m*minv:' // int_str(i) // '" ABS 1e-6', map1%orb_mat(i,:)
+enddo
 
 !---------------------------------
 ! Eigen anal with and without RF.
