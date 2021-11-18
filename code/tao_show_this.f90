@@ -1,7 +1,7 @@
 !+
 ! Subroutine tao_show_this (what, result_id, lines, nl)
 !
-! Routine called by tao_show_cmd. 
+! Routine called by tao_show_cmd and tao_python_cmd. 
 ! This routine is not meant for general use.
 !
 ! Input:
@@ -121,7 +121,7 @@ real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, gamma2, val, z, z1, z2,
 real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
-real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), s_mat(6,6), m_mat(6,6)
+real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), s_mat(6,6), m_mat(6,6), dn_dpz(3), dn_partial(3,3)
 real(rp), allocatable :: value(:)
 
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
@@ -3786,6 +3786,11 @@ case ('spin')
           do ix = 0, 3
             nl=nl+1; write(lines(nl), '(i8, f12.6, 4x, a)') ix, d_ptr%spin_map%map1%spin_q(ix,0), reals_to_string(d_ptr%spin_map%map1%spin_q(ix,1:), 11, 1, 6, 6)
           enddo
+          if (d_ptr%spin_map%ix_ref == d_ptr%spin_map%ix_ele) then
+            dn_dpz = spin_dn_dpz_from_qmap(real(d_ptr%spin_map%map1%orb_mat, rp), real(d_ptr%spin_map%map1%spin_q, rp), dn_partial, err)
+            nl=nl+1; lines(nl) = ''
+            nl=nl+1; write(lines(nl), '(3x, a, 3es14.6)') 'dn/dpz:', dn_dpz
+          endif
         endif
       enddo
     enddo
@@ -3850,6 +3855,11 @@ case ('spin')
       do i = 0, 3
         nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, a)') i, q_name(i), sm%map1%spin_q(i,0), reals_to_string(sm%map1%spin_q(i,1:), 11, 1, 6, 6)
       enddo
+      if (ele_ref%ix_ele == ele%ix_ele) then
+        dn_dpz = spin_dn_dpz_from_qmap(sm%map1%orb_mat, sm%map1%spin_q, dn_partial, err)
+        nl=nl+1; lines(nl) = ''
+        nl=nl+1; write(lines(nl), '(3x, a, 3es14.6)') 'dn/dpz:', dn_dpz
+      endif
     endif
 
     if (ele%ix_ele == ele_ref%ix_ele) then

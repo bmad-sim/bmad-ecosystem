@@ -53,7 +53,7 @@ tao_branch%spin_valid = .true.
 
 call spin_concat_linear_maps (q_1turn, branch, 0, branch%n_ele_track, q_ele, orbit)
 
-tao_branch%spin%tune = 2.0_rp * atan2(norm2(real(q_1turn%spin_q(1:3,0))), real(q_1turn%spin_q(0,0)))
+tao_branch%spin%tune = 2.0_rp * atan2(norm2(q_1turn%spin_q(1:3,0)), q_1turn%spin_q(0,0))
 
 ! Loop over all elements.
 
@@ -67,7 +67,7 @@ integral_dn2_partial = 0
 do ie = 0, branch%n_ele_track
   if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * map1_inverse(q_ele(ie))
   
-  dn_dpz = spin_dn_dpz_from_qmap(real(q_1turn%orb_mat, rp), real(q_1turn%spin_q, rp), partial, err)
+  dn_dpz = spin_dn_dpz_from_qmap(q_1turn%orb_mat, q_1turn%spin_q, partial, err)
   if (err) exit
 
   tao_branch%dn_dpz(ie)%vec = dn_dpz
