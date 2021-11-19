@@ -96,6 +96,7 @@ local_mail_list = '$USER@cornell.edu'
 #-----------------------------------------------------
 
 release_build_list = [
+                'git/bmad-doc',     #RT 60649
                 '/trunk/util',
                 '/trunk/build_system',
                 '/trunk/include',
@@ -252,7 +253,7 @@ repository_addresses = {
     'ACC-CLASSE-local'  : '/mnt/svn',
     'ACC-LEPP'          : 'https://accserv.lepp.cornell.edu/svn',
     'ACC-LEPP-local'    : '/mnt/svn',
-    'UAP-Sourceforge'   : 'https://accelerator-ml.svn.sourceforge.net/svnroot/accelerator-ml/uap'
+    'GitLab'            : 'https://gitlab01.classe.cornell.edu/bmad/'     #RT 60649
     }
 
 
