@@ -1207,38 +1207,29 @@ Example:
   /
 \end{example}
 
-A \vn{tao_var} block is needed for each variable array to be defined.
-\vn{v1_var%name} is the name of the array to be used with \tao
-commands. The \vn{var(N)} array of variables has an index \vn{i} that
-runs from \vni{ix_min_var} to \vni{ix_max_var}. A lattice element name
-\vn{var(N)%ele_name} and the element's attribute to vary
-\vn{var(N)%attribute} needs to specified. Not all elements need to
-\vn{exist} and the element names of non--existent elements should be
-undefined or set to a name with only spaces in it. For those variables
-where \vn{var(N)%attribute} is not specified in the namelist the
-\vn{default_attribute} will be used.
+A \vn{tao_var} block is needed for each variable array to be defined.  \vn{v1_var%name} is the name
+of the array to be used with \tao commands. The \vn{var(N)} array of variables has an index \vn{i}
+that runs from \vni{ix_min_var} to \vni{ix_max_var}. A lattice element name \vn{var(N)%ele_name} and
+the element's attribute to vary \vn{var(N)%attribute} needs to specified. Not all elements need to
+\vn{exist} and the element names of non--existent elements should be undefined or set to a name with
+only spaces in it. For those variables where \vn{var(N)%attribute} is not specified in the namelist
+the \vn{default_attribute} will be used.
 
-\vn{var(N)%key_bound} and \vn{var(N)%key_delta} are used to bind
-variables to keys on the keyboard. The default values for these
-parameters are set by \vn{default_key_bound} and
-\vn{default_key_delta}. If not set, \vn{default_key_bound} is set to
-\vn{False} and \vn{default_key_delta} is set to \vn{0}.
-See~\sref{s:key.bind} for more details.
+\vn{var(N)%key_bound} and \vn{var(N)%key_delta} are used to bind variables to keys on the keyboard
+for use in single mode(\sref{c:single}). The default values for these parameters are set by
+\vn{default_key_bound} and \vn{default_key_delta}. If not set, \vn{default_key_bound} is set to
+\vn{False} and \vn{default_key_delta} is set to \vn{0}. See~\sref{s:key.bind} for more details.
 
-\vn{var(N)%step} establishes what a ``small'' variation of the
-variable is. This is used, for example, by some optimizers when
-varying variables. If \vn{var%step(N)} is not given for a
-particular variable then the default \vn{default_step} is
-used. 
+\vn{var(N)%step} establishes what a ``small'' variation of the variable is. This is used, for
+example, by some optimizers when varying variables. If \vn{var%step(N)} is not given for a
+particular variable then the default \vn{default_step} is used.
 
-\vn{var(N)%good_user} is a logical that the user can toggle when
-running \tao (\sref{c:var}). The initial default value of
-\vn{%good_user} is set by \vn{default_good_user}. If \vn{default_good_user}
+\vn{var(N)%good_user} is a logical that the user can toggle when running \tao (\sref{c:var}). The
+initial default value of \vn{%good_user} is set by \vn{default_good_user}. If \vn{default_good_user}
 is not present, the default is True.
 
-\vn{var(N)%universe} gives the universe that the lattice element lives
-in. Multiple universes can be specified using a comma delimited list.
-For example:
+\vn{var(N)%universe} gives the universe that the lattice element lives in. Multiple universes can be
+specified using a comma delimited list.  For example:
 \begin{example}
   var(10)%universe = "2, 3"
 \end{example}
@@ -1252,17 +1243,14 @@ In addition to a number (or numbers),
   "gang"     -- Multiple universe control (default).
   "clone"    -- Make a var array block for each universe.
 \end{example}
-\vn{"gang"} means that each variable will control the given attribute
-in each universe simultaneously. \vn{"clone"} means that the array of
-variables will be duplicated, one for each universe.  To differentiate
-variables from different universes, \vn{_u<n>} will be appended to each
-\vn{v1_var%name} where \vn{<n>} is the universe number.  For example,
-if \vn{v1_var%name} is \vn{quad_k1} then the variable block name for
-the first universe will be \vn{quad_k1_u1}, 
-second universe will be \vn{quad_k1_u2}, etc. With \vn{"clone"},
-individual \vn{var(N)%universe} may not be set in the namelist. The
-default if both \vn{default_universe} and all \vn{var(N)%universe} are
-not given is for \vn{default_universe} to be \vn{"gang"}. Examples:
+\vn{"gang"} means that each variable will control the given attribute in each universe
+simultaneously. \vn{"clone"} means that the array of variables will be duplicated, one for each
+universe.  To differentiate variables from different universes, \vn{_u<n>} will be appended to each
+\vn{v1_var%name} where \vn{<n>} is the universe number.  For example, if \vn{v1_var%name} is
+\vn{quad_k1} then the variable block name for the first universe will be \vn{quad_k1_u1}, second
+universe will be \vn{quad_k1_u2}, etc. With \vn{"clone"}, individual \vn{var(N)%universe} may not be
+set in the namelist. The default if both \vn{default_universe} and all \vn{var(N)%universe} are not
+given is for \vn{default_universe} to be \vn{"gang"}. Examples:
 \begin{example}
   default_universe = "gang"        ! Gang all universes together.
   default_universe = "gang 2, 3"   ! Gang universes 2 and 3 together.
@@ -1271,13 +1259,11 @@ not given is for \vn{default_universe} to be \vn{"gang"}. Examples:
                                    !   One for universe 2 and one for universe 3. 
 \end{example}
 
-\vn{var(N)%weight} gives the weight coefficient for the contribution
-of a variable to the merit function.  If not present then the default
-weight of \vn{default_weight} is used.  \vn{var(N)%low_lim} and
-\vn{var(N)%high_lim} give the lower and upper bounds outside of which
-the value of a variable should not go. If not present
-\vn{default_low_lim} and \vn{default_high_lim} are used. If these are
-not present as well then by default
+\vn{var(N)%weight} gives the weight coefficient for the contribution of a variable to the merit
+function.  If not present then the default weight of \vn{default_weight} is used.
+\vn{var(N)%low_lim} and \vn{var(N)%high_lim} give the lower and upper bounds outside of which the
+value of a variable should not go. If not present \vn{default_low_lim} and \vn{default_high_lim} are
+used. If these are not present as well then by default
 \begin{example}
   low_lim  = -1e30
   high_lim =  1e30
@@ -1292,9 +1278,8 @@ Possible values are:
 For details on \vn{limit} and \vn{target} constraints see Chapter~\ref{c:opti}
 on Optimization.
 
-If elements in the \vn{var} array do not exist the corresponding
-\vn{var%ele_name} should be left blank. Lists of names can be reused
-using the syntax:
+If elements in the \vn{var} array do not exist the corresponding \vn{var%ele_name} should be left
+blank. Lists of names can be reused using the syntax:
 \index{use_same_lat_eles_as}
 \begin{example}
   use_same_lat_eles_as = "<d1_name>"     ! Reuse a previous element list.
@@ -1310,31 +1295,28 @@ For example:
 \end{example}
 
 \index{search_for_lat_eles}
-Instead of specifying a list of lattice element names for \vn{var(:)%ele_name}, 
-\tao can be told to search for the elements by name using the syntax:
+Instead of specifying a list of lattice element names for \vn{var(:)%ele_name}, \tao can be told to
+search for the elements by name using the syntax:
 \begin{example}
    search_for_lat_eles = "{-no_grouping} <element_list>"  
 \end{example}
 Where \vn{<element_list>} is a list of elements using the element list format
-(\sref{s:ele.list.format}). The searching will
-automatically exclude any superposition and multipass slaves elements.
-If the \vn{-no_grouping} flag is not present, the default behavior
-is that all matched elements with the same name are grouped under a single
-variable. That is, a single variable can control multiple elements.
-On the other hand, if the \vn{-no_grouping} flag is present, each
+(\sref{s:ele.list.format}). The searching will automatically exclude any superposition and multipass
+slaves elements.  If the \vn{-no_grouping} flag is not present, the default behavior is that all
+matched elements with the same name are grouped under a single variable. That is, a single variable
+can control multiple elements.  On the other hand, if the \vn{-no_grouping} flag is present, each
 element will be assigned an individual variable.  For example:
 \begin{example}
   search_for_lat_eles = "sbend::b*"
 \end{example}
-will search for all non-lord bend lattice elements whose names begins
-with \vn{"B"} followed by any set of characters. In this example, if,
-for example, two bends have the name, say "bend0", then a single variable will be
-set up to control these two bends.
+will search for all non-lord bend lattice elements whose names begins with \vn{"B"} followed by any
+set of characters. In this example, if, for example, two bends have the name, say "bend0", then a
+single variable will be set up to control these two bends.
 
 \vn{Warning}: Generally \vn{-no_grouping} should be used with \vn{unique_name_suffix}
 (\sref{s:init.lat}) to avoid the problem that if different lattice elements have the same name but
-differing parameter values, the \vn{write bmad_lattice} command (\sref{s:write}) will not produce
-a valid lattice.
+differing parameter values, the \vn{write bmad_lattice} command (\sref{s:write}) will not produce a
+valid lattice.
 
 Note: \vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be
 used together.
