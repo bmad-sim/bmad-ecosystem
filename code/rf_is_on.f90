@@ -17,7 +17,7 @@
 
 function rf_is_on (branch, ix_ele1, ix_ele2) result (is_on)
 
-use bmad_struct
+use bmad_routine_interface, dummy => rf_is_on
 implicit none
 
 type (branch_struct), target :: branch
@@ -37,25 +37,43 @@ ie2 = integer_option(branch%n_ele_track, ix_ele2)
 if (ie2 > ie1) then
   do i = ie1+1, ie2
     ele => branch%ele(i)
-    if (ele%key /= rfcavity$ .or. .not. ele%is_on .or. ele%value(voltage$) == 0) cycle
-    is_on = .true.
-    return
+    if (ele%key /= rfcavity$) cycle
+    call is_this_cavity_on(ele, is_on)
+    if (is_on) return
   enddo
 
 else
   do i = ie1+1, branch%n_ele_track
     ele => branch%ele(i)
-    if (ele%key /= rfcavity$ .or. .not. ele%is_on .or. ele%value(voltage$) == 0) cycle
-    is_on = .true.
-    return
+    if (ele%key /= rfcavity$) cycle
+    call is_this_cavity_on(ele, is_on)
+    if (is_on) return
   enddo
 
   do i = 1, ie2
     ele => branch%ele(i)
-    if (ele%key /= rfcavity$ .or. .not. ele%is_on .or. ele%value(voltage$) == 0) cycle
-    is_on = .true.
-    return
+    if (ele%key /= rfcavity$) cycle 
+    call is_this_cavity_on(ele, is_on)
+    if (is_on) return
   enddo
 endif
+
+!-----------------------------------------------
+contains
+
+subroutine is_this_cavity_on(ele, is_on)
+
+type (ele_struct) ele
+logical is_on
+
+! It can happen that the User toggles the %is_on attribute but the program has not yet 
+! called make_mat6. So call make_mat6 if needed.
+
+if ((ele%is_on .and. ele%value(voltage$) /= 0 .and. ele%mat6(6,5) == 0) .or. &
+        (.not. ele%is_on .and. ele%mat6(6,5) /= 0)) call make_mat6 (ele, branch%param, ele%map_ref_orb_in)
+
+if (ele%mat6(6,5) /= 0) is_on = .true.
+
+end subroutine is_this_cavity_on
 
 end function rf_is_on
