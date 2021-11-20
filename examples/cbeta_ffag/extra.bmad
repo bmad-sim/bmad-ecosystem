@@ -1,8 +1,0 @@
-! Extra elements
-
-
-call, file = fa.correctors.bmad
-call, file = za.correctors.bmad
-
-call, file = fa.bpms.bmad
-call, file = za.bpms.bmad
