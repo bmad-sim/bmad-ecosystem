@@ -1,3 +1,0 @@
-! 67 MeV beam, reference 158.5 MeV
-parameter[e_tot] = 1.585e8
-particle_start[pz] = -0.5772971639985545
