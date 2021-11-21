@@ -10,6 +10,7 @@ use bmad, dummy => dp
 use s_def_kind, dummy2 => dp
 use ptc_layout_mod
 use ptc_map_with_radiation_mod
+use duan_zhe_map, only: grnf_zhe, get_seed, set_seed
 
 implicit none
 
@@ -17,22 +18,25 @@ type (lat_struct), target :: lat, lat2, lat3
 type (ele_struct), pointer :: ele, ele2
 type (ele_struct) ele0
 type (coord_struct), allocatable :: orbit_track(:)
-type (coord_struct) start_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
+type (coord_struct) start_orb, end_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
 type (coord_struct) end_orb1t, end_orb2t, closed_orb, orbit
 type (normal_modes_struct) mode
-type (taylor_struct) bmad_taylor(6), tmap(6), smap(4)
+type (taylor_struct) bmad_taylor(6), orb_taylor(6), spin_taylor(0:3), tlr
 type (real_8) y8(6)
+type (probe_8) prb
+type (info), pointer :: info0
+type (internal_state) ptc_state
 type (branch_struct), pointer :: branch, branch2
 type (track_struct) orb_track
 type (em_field_struct) field
-type (ptc_map_with_rad_struct) map_with_rad
+type (ptc_rad_map_struct) rad_map
 
-real(rp) diff_mat(6,6), diff_vec(6)
+real(rp) diff_mat(6,6), diff_vec(6), vec(6)
 real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0, beta1 
 real(rp) m6_to_ptc(6,6), m6_to_bmad(6,6), m6(6,6), sigma_mat(6,6)
 real(dp) b_pot, e_pot, b_field_ptc(3), e_field_ptc(3), a(3), da(3,2), x(6), z
 
-integer i, j
+integer i, j, k, seed0, ixd(3)
 character(80) str
 logical err_flag
 
@@ -67,16 +71,38 @@ enddo
 
 !----------------------------
 
-call bmad_parser ('small_ring.bmad', lat)
+call bmad_parser ('tiny_ring.bmad', lat)
 call lat_to_ptc_layout (lat)
 
-call ptc_setup_map_with_radiation (map_with_rad, lat%ele(0), lat%ele(0), map_order = 2)
+call ptc_setup_map_with_radiation (rad_map, lat%ele(0), lat%ele(0), map_order = 1)
 
-orbit%vec = [-0.01664448d-3, 0.03015525d-3, 0.0d-3, 0.0d-3, 2.12971838d-3, -0.00039838d-3]
-do i = 1, 100
-  call ptc_track_map_with_radiation (orbit, map_with_rad, .true., .false.)
+call init_coord (start_orb, [1, 2, 3, 4, 5, 6] * 1e-3_rp, lat%ele(0), upstream_end$)
+orbit = start_orb
+
+call ptc_track_map_with_radiation (orbit, rad_map, .true., .false.)
+end_orb%vec = start_orb%vec - rad_map%ref0
+end_orb%vec = matmul(rad_map%nodamp_mat, end_orb%vec)
+end_orb%vec = matmul(rad_map%damp_mat, end_orb%vec)
+end_orb%vec = end_orb%vec + rad_map%ref1
+
+write (1, '(a, 6f16.10)') '"Damp-Track"      ABS 1E-10', orbit%vec
+write (1, '(a, 6f16.10)') '"Diff-Damp-Track" ABS 1E-10', orbit%vec - end_orb%vec
+
+call get_seed(seed0)
+call init_coord (start_orb, rad_map%ref0, lat%ele(0), upstream_end$)
+orbit = start_orb
+call ptc_track_map_with_radiation (orbit, rad_map, .true., .true.)
+
+call set_seed(seed0)
+do i = 1, 6
+  vec(i) = grnf_zhe()
 enddo
-write (1, '(a, 6f16.10)') '"Rad-Map-Track100" ABS 1E-10', orbit%vec
+vec = matmul(rad_map%stoc_mat, vec)
+vec = vec + rad_map%ref1
+
+write (1, '(a, 6es16.8)') '"Stoc-Track"      REL 1E-8', orbit%vec
+write (1, '(a, 6es16.8)') '"Diff-Stoc-Track" ABS 1E-20', orbit%vec - vec
+
 
 !----------------------------
 
@@ -89,17 +115,43 @@ call bmad_parser ('figure_8.bmad', lat)
 call lat_to_ptc_layout (lat)
 
 bmad_com%spin_tracking_on = .true.
-!!!!!!!call ptc_one_turn_map_at_ele (lat%ele(2), tmap, smap, order = 2)
-call taylor_clean(tmap)
-call taylor_clean(smap)
-call type_taylors (tmap)
-call type_taylors(smap)
+call ptc_one_turn_map_at_ele (lat%ele(2), orbit%vec, prb, ptc_state, order = 2)
+
+orb_taylor = prb%x
+spin_taylor = prb%q%x
+call taylor_clean(orb_taylor)
+call taylor_clean(spin_taylor)
+
+ixd = [1, 4, 5]  ! To cut down on output
+do i = 1, 3
+  j = ixd(i)
+  call sort_taylor_terms(orb_taylor(ixd(i)), tlr)
+  do k = 1, size(tlr%term)
+    write (1, '(a, i0, a, i0, a, f20.12, 6i3)') '"OrbMap-', ixd(i), '-', k, '" ABS 1E-7', &
+                                                                           tlr%term(k)%coef, tlr%term(k)%expn
+  enddo
+enddo
+
+ixd = [1, 2, 0]  ! To cut down on output
+do i = 1, 2
+  j = ixd(i)
+  call sort_taylor_terms(spin_taylor(ixd(i)), tlr)
+  do k = 1, size(tlr%term)
+    write (1, '(a, i0, a, i0, a, f20.12, 6i3)') '"SpinMap-', ixd(i), '-', k, '" ABS 1E-7', &
+                                                                           tlr%term(k)%coef, tlr%term(k)%expn
+  enddo
+enddo
 
 call ptc_one_turn_mat_and_closed_orbit_calc (lat%branch(0))
+info0 => lat%ele(0)%ptc_fibre%i
+write (1, '(a, 6f16.10)') '"1Turn-Fix" ABS 1E-10', info0%fix
+do i = 1, 6
+  write (1, '(a, i0, a, 6es18.10)') '"1Turn-Mat', i, '" ABS 1E10', info0%m(i,:)
+enddo
 
 !----------------------------
 
-call bmad_parser ('small_ring.bmad', lat)
+call bmad_parser ('tiny_ring.bmad', lat)
 call lat_to_ptc_layout (lat)
 
 call ptc_emit_calc (lat%ele(0), mode, sigma_mat, closed_orb)
@@ -124,14 +176,13 @@ z = lat%particle_start%vec(5)
 call b_e_field(ele%ptc_fibre%mag%ab, x, z, e_pot, e_field_ptc, b_pot, b_field_ptc, a, da)
 call em_field_calc (ele, lat%param, z, lat%particle_start, .true., field)
 
-print '(a, 3f14.6)','B PTC:  ', b_field_ptc * ele%value(p0c$) / c_light
-print '(a, 3f14.6)','B Bmad: ', field%b
-print '(a, 3f14.6)','B Diff: ', b_field_ptc * ele%value(p0c$) / c_light - field%b
+write (1, '(a, 3f14.6)') '"B PTC:" 1E-20  ', b_field_ptc * ele%value(p0c$) / c_light
+write (1, '(a, 3f14.6)') '"B Bmad:" 1E-20 ', field%b
+write (1, '(a, 3f14.6)') '"B Diff:" 1E-20 ', b_field_ptc * ele%value(p0c$) / c_light - field%b
 
-print *
-print '(a, 3f14.6)','E PTC:  ', e_field_ptc * ele%value(p0c$)
-print '(a, 3f14.6)','E Bmad: ', field%e
-print '(a, 3f14.6)','E Diff: ', e_field_ptc * ele%value(p0c$) - field%e
+write (1, '(a, 3f14.6)') '"E PTC:" 1E-20  ', e_field_ptc * ele%value(p0c$)
+write (1, '(a, 3f14.6)') '"E Bmad:" 1E-20 ', field%e
+write (1, '(a, 3f14.6)') '"E Diff:" 1E-20 ', e_field_ptc * ele%value(p0c$) - field%e
 
 !----------------------------------------------------------
 ! Check information passing via flat file.
