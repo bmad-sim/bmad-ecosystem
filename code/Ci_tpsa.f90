@@ -12098,7 +12098,12 @@ alpha=2*atan2(q0%x(2),q0%x(0))
     type(c_damap) id,as
  
     logical yhere
+    
+    a=real(m%e_ij)
+    call cholesky_dt(A, ait)
+    ki=1.0_dp
 
+    return
 
 !!!! put stochastic kick in front per Sagan 
     m1=m**(-1)     !matmul(matmul(mat,ma%e_ij),transpose(mat))  not necessary I think
@@ -19517,5 +19522,51 @@ end   SUBROUTINE furman_step
      call kill(s1o)
 
   end subroutine checksympn
+
+! cholesky_d.f -*-f90-*-
+! Using Cholesky decomposition, cholesky_d.f solve a linear equation Ax=b,
+! where A is a n by n positive definite real symmetric matrix, x and b are
+! real*8 vectors length n.
+!
+! Time-stamp: <2015-06-25 18:05:47 takeshi>
+! Author: Takeshi NISHIMATSU
+! Licence: GPLv3
+!
+! [1] A = G tG, where G is a lower triangular matrix and tG is transpose of G.
+! [2] Solve  Gy=b with  forward elimination
+! [3] Solve tGx=y with backward elimination
+!
+! Reference: Taketomo MITSUI: Solvers for linear equations [in Japanese]
+!            http://www2.math.human.nagoya-u.ac.jp/~mitsui/syllabi/sis/info_math4_chap2.pdf
+!
+! Comment:   This Cholesky decomposition is used in src/elastic.F and
+!            src/optimize-inho-strain.F of feram http://loto.sourceforge.net/feram/ .
+!!
+! modified by Etienne Forest and David Sagan
+subroutine cholesky_dt(A, G)
+  implicit none
+  real(dp),     intent(in)    :: A(:,:)
+  real(dp),     intent(out)   :: G(:,:)
+  real(dp) gg
+  integer    :: i,j
+ 
+ 
+  G(:,:)=0.0d0
+  do j = 1, size(A,1)
+     gg = A(j,j) - dot_product(G(j,1:j-1),G(j,1:j-1))
+     if (gg <= 0) then
+       G(j,j) = 0
+    else
+       G(j,j) = sqrt(gg)
+       do i = j+1, size(A,1)
+          G(i,j)  = ( A(i,j) - dot_product(G(i,1:j-1),G(j,1:j-1)) ) / G(j,j)
+       end do
+     endif
+  end do
+
+end subroutine cholesky_dt
+
+
+
 
   END MODULE  c_tpsa

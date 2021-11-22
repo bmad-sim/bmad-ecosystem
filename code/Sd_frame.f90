@@ -491,6 +491,7 @@ end  SUBROUTINE print_triad
        DO J=1,3
           AT=0.0_dp;AT(J)=-ANG(J);
           CALL GEO_ROT(ENT0,ENT,Aa,A,AT,basis)
+          ent0=ent   !  error 2021.09.29
        ENDDO
     ENDIF
 

@@ -201,6 +201,7 @@ type(work) w_bks
  PRIVATE feval_CAV_bmad_prober,rk2bmad_cav_prober,rk4bmad_cav_prober,rk4bmad_cav_probep
  private rk6bmad_cav_prober,rk6bmad_cav_probep
  private INTE_sol5_prober,INTE_SOL5_probep
+ private INT_SAGAN_prober
 
   INTERFACE radiate_2_force
      MODULE PROCEDURE radiate_2_forcer
@@ -236,11 +237,16 @@ type(work) w_bks
      MODULE PROCEDURE INTE_TKTF_prober
      MODULE PROCEDURE INTE_TKTF_probep
   END INTERFACE 
+ 
+  INTERFACE TRACK_SLICE_sagan
+     MODULE PROCEDURE INT_SAGAN_prober
+  END INTERFACE 
 
   INTERFACE TRACK_SLICE_CAV4
      MODULE PROCEDURE INTE_CAV4_PROBER
      MODULE PROCEDURE INTE_CAV4_PROBEP
   END INTERFACE 
+
 
   INTERFACE feval_CAV_bmad_probe
      MODULE PROCEDURE feval_CAV_bmad_prober
@@ -20603,12 +20609,13 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
 
 !!!!! field routine 
 
-  subroutine get_fieldr(EL,B,E,phi,X,k,POS)
+  subroutine get_fieldr(EL,B,E,phi,X,k,POS,zw)
     implicit none
     TYPE(ELEMENT), POINTER::EL
     INTEGER,OPTIONAL,INTENT(IN) ::POS
     REAL(DP),INTENT(INOUT) :: B(3),E(3),phi
     REAL(DP),INTENT(INOUT) :: X(6)
+    REAL(DP),optional,INTENT(IN) :: zw
     REAL(DP) Z,VM,a(3),ad(3)
     INTEGER I
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
@@ -20651,7 +20658,11 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     case(KINDPA)     ! fitted field for real magnet
        CALL B_PANCAkE(EL%PA,B,X,POS)
     case(KINDWIGGLER)
-       CALL get_z_wi(EL%wi,POS,z)
+       if(present(zw)) then
+          z=zw
+       else
+          CALL get_z_wi(EL%wi,POS,z)
+        endif
        CALL B_FIELD(EL%wi,Z,X,B)
 
     CASE(KIND4)      ! Pill box cavity
@@ -21788,12 +21799,13 @@ call kill(vm,phi,z)
 
   END subroutine DIRECTION_VP
 
-  subroutine get_omega_spinr(c,OM,B2,dlds,XP,X,POS,k,ED,B)
+  subroutine get_omega_spinr(c,OM,B2,dlds,XP,X,POS,k,ED,B,zw)
     implicit none
     TYPE(integration_node), POINTER::c
     TYPE(ELEMENT), POINTER::EL
     TYPE(MAGNET_CHART), POINTER::P
     INTEGER,OPTIONAL,INTENT(IN) ::POS
+    real(dp),OPTIONAL,INTENT(IN) ::zw
     REAL(DP),INTENT(INOUT) :: X(6),OM(3),B2,XP(2),DLDS,B(3),ED(3)
     REAL(DP)  BPA(3),BPE(3),D1,D2,GAMMA,EB(3),EFD(3),beta,e(3)
     REAL(DP) BETA0,GAMMA0I,XPA(2),phi,del,z
@@ -21825,7 +21837,7 @@ call kill(vm,phi,z)
     xp(2)=x(4)   !  to prevent a crash in monitors, etc... CERN june 2010
     dlds=0.0_dp
     del=x(5)
-    CALL get_field(EL,B,E,phi,X,k,POS)
+    CALL get_field(EL,B,E,phi,X,k,POS,zw)
 
     SELECT CASE(EL%KIND) 
     case(KIND2,kind3,kind5:kind7,kindwiggler) ! Straight for all practical purposes
@@ -27949,18 +27961,19 @@ endif
   END SUBROUTINE INTE_dkd2_prober
 
 
-SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo)
+SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
     real(dp), INTENT(INOUT) :: x(6),om(3)
     real(dp),INTENT(INOUT) :: fo(6)    
     TYPE(fibre),pointer ::  f
     TYPE(integration_node),pointer :: c
     REAL(DP)  B(3),XP(2),XPA(2),ed(3) 
     REAL(DP) b2,dlds,ff(6)
+    real(dp), optional, intent(in) :: zw
     TYPE(INTERNAL_STATE) k 
      integer i,pos
 
      pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
-     CALL get_omega_spin(c,OM,B2,dlds,XP,X,pos,k,Ed,B)
+     CALL get_omega_spin(c,OM,B2,dlds,XP,X,pos,k,Ed,B,zw)
 
 
    do i=1,3
@@ -28088,11 +28101,12 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo)
 
 
 
-SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds)
+SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds,zw)
     type(probe), INTENT(INOUT) :: p
     TYPE(fibre),pointer ::  f
     TYPE(integration_node),pointer :: c
     real(dp), intent(inout) ::ds
+    real(dp), optional , intent(in) ::zw
     REAL(DP)  B(3),XP(2),XPA(2),ed(3)
     REAL(DP) om(3),b2,dlds,FAC
      TYPE(INTERNAL_STATE) k 
@@ -28102,7 +28116,7 @@ SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds)
      f=> c%parent_fibre
      pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
      before=.true.
-    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B)
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B,zw)
     if((k%radiation.or.k%envelope)) then
        call radiate_2_probe(c,DS,FAC,P,b2,dlds,k,pos)
 !       call radiate_2(c,DS,FAC,P,b2,dlds,before,k,pos)
@@ -28471,5 +28485,192 @@ TYPE(REAL_8) norm,stheta
        call kill(dq)
 
 end SUBROUTINE push_quaternionP
+
+
+
+!!!!
+
+
+  SUBROUTINE INT_SAGAN_prober(p,k,c,i)
+    IMPLICIT NONE
+    integer ipause, mypause
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+     
+    TYPE(SAGAN), pointer :: EL
+    integer,INTENT(IN):: I
+    
+    real(dp) Z
+    real(dp) D,DH
+    real(dp) D1,D2,DK1,DK2
+    real(dp) DF(4),DK(4)
+    INTEGER J
+    TYPE(INTERNAL_STATE),OPTIONAL :: K
+
+    f=>c%parent_fibre
+    el=> f%mag%wi
+
+    SELECT CASE(EL%P%METHOD)
+    CASE(2)
+
+ 
+
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       IF(EL%P%DIR==1) THEN
+          Z=(i-1)*d
+       ELSE
+          Z=EL%L-(i-1)*d
+       ENDIF
+
+       if(el%xprime) then
+        call rk2_sagan(z,d,el,p%x,k)
+       else
+
+          Z=Z+EL%P%DIR*DH
+          CALL driftsagan(EL,DH,Z,1,p%x,k)
+          CALL driftsagan(EL,DH,Z,2,p%x,k)
+          CALL KICKPATH(EL,DH,p%x,k)
+
+       if(k%spin.or.k%radiation) then
+          CALL KICK(EL,DH,Z,P%x,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,d,zw=z)
+          CALL KICK(EL,DH,Z,P%x,k)
+         else
+           CALL KICK(EL,D,Z,P%x,k)
+        endif
+
+          CALL KICKPATH(EL,DH,P%x,k)
+          CALL driftsagan(EL,DH,Z,2,P%x,k)
+          CALL driftsagan(EL,DH,Z,1,P%x,k)
+       !       Z=Z+EL%P%DIR*DH
+      endif
+    CASE(4)
+       D=EL%L/EL%P%NST
+
+       DK1=D*FK1
+       D1=DK1/2.0_dp
+       DK2=D*FK2
+       D2=DK2/2.0_dp
+       IF(EL%P%DIR==1) THEN
+          Z=(i-1)*d
+       ELSE
+          Z=EL%L-(i-1)*d
+       ENDIF
+
+       if(el%xprime) then
+        call rk4_sagan(z,d,el,P%x,k)
+       else
+
+       Z=Z+EL%P%DIR*D1
+       CALL driftsagan(EL,D1,Z,1,P%x,k)
+       CALL driftsagan(EL,D1,Z,2,P%x,k)
+       CALL KICKPATH(EL,D1,P%x,k)
+       if(k%spin.or.k%radiation) then
+          CALL KICK(EL,D1,Z,P%x,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,DK1,zw=z)
+          CALL KICK(EL,D1,Z,P%x,k)
+         else
+          CALL KICK(EL,DK1,Z,P%x,k)
+        endif
+       CALL KICKPATH(EL,D1,P%x,k)
+       CALL driftsagan(EL,D1,Z,2,P%x,k)
+       CALL driftsagan(EL,D1,Z,1,P%x,k)
+       Z=Z+EL%P%DIR*D1+D2
+       CALL driftsagan(EL,D2,Z,1,P%x,k)
+       CALL driftsagan(EL,D2,Z,2,P%x,k)
+       CALL KICKPATH(EL,D2,P%x,k)
+
+       if(k%spin.or.k%radiation) then
+         CALL KICK(EL,D2,Z,P%x,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,DK2,zw=z)
+         CALL KICK(EL,D2,Z,P%x,k)
+         else
+         CALL KICK(EL,DK2,Z,P%x,k)
+        endif
+       CALL KICKPATH(EL,D2,P%x,k)
+       CALL driftsagan(EL,D2,Z,2,P%x,k)
+       CALL driftsagan(EL,D2,Z,1,P%x,k)
+       Z=Z+EL%P%DIR*(D1+D2)
+       CALL driftsagan(EL,D1,Z,1,P%x,k)
+       CALL driftsagan(EL,D1,Z,2,P%x,k)
+       CALL KICKPATH(EL,D1,P%x,k)
+       if(k%spin.or.k%radiation) then
+          CALL KICK(EL,D1,Z,P%x,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,DK1,zw=z)
+          CALL KICK(EL,D1,Z,P%x,k)
+         else
+          CALL KICK(EL,DK1,Z,P%x,k)
+        endif
+       CALL KICKPATH(EL,D1,P%x,k)
+       CALL driftsagan(EL,D1,Z,2,P%x,k)
+       CALL driftsagan(EL,D1,Z,1,P%x,k)
+      endif
+
+
+    CASE(6)
+       DO j =1,4
+          DK(j)=EL%L*YOSK(J)/EL%P%NST
+          DF(j)=DK(j)/2.0_dp
+       ENDDO
+       D=EL%L/EL%P%NST
+       IF(EL%P%DIR==1) THEN
+          Z=(i-1)*d
+       ELSE
+          Z=EL%L-(i-1)*d
+       ENDIF
+
+       if(el%xprime) then
+        call rk6_sagan(z,d,el,P%x,k)
+       else
+
+
+       DO J=4,1,-1
+          Z=Z+EL%P%DIR*DF(J)
+          CALL driftsagan(EL,DF(J),Z,1,P%x,k)
+          CALL driftsagan(EL,DF(J),Z,2,P%x,k)
+          CALL KICKPATH(EL,DF(J),P%x,k)
+            if(k%spin.or.k%radiation) then
+               CALL KICK(EL,DF(J),Z,P%x,k)
+               call RAD_SPIN_qua_PROBE(c,p,k,DK(J),zw=z)
+               CALL KICK(EL,DF(J),Z,P%x,k)
+              else
+               CALL KICK(EL,DK(J),Z,P%x,k)
+             endif
+          CALL KICKPATH(EL,DF(J),P%x,k)
+          CALL driftsagan(EL,DF(J),Z,2,P%x,k)
+          CALL driftsagan(EL,DF(J),Z,1,P%x,k)
+          Z=Z+EL%P%DIR*DF(J)
+       ENDDO
+       DO J=2,4
+          Z=Z+EL%P%DIR*DF(J)
+          CALL driftsagan(EL,DF(J),Z,1,P%x,k)
+          CALL driftsagan(EL,DF(J),Z,2,P%x,k)
+          CALL KICKPATH(EL,DF(J),P%x,k)
+            if(k%spin.or.k%radiation) then
+               CALL KICK(EL,DF(J),Z,P%x,k)
+               call RAD_SPIN_qua_PROBE(c,p,k,DK(J),zw=z)
+               CALL KICK(EL,DF(J),Z,P%x,k)
+              else
+               CALL KICK(EL,DK(J),Z,P%x,k)
+             endif
+          CALL KICKPATH(EL,DF(J),P%x,k)
+          CALL driftsagan(EL,DF(J),Z,2,P%x,k)
+          CALL driftsagan(EL,DF(J),Z,1,P%x,k)
+          Z=Z+EL%P%DIR*DF(J)
+       ENDDO
+
+      endif
+
+
+
+    CASE DEFAULT
+       WRITE(6,*) " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ipause=mypause(357)
+    END SELECT
+
+
+  END SUBROUTINE INT_SAGAN_prober
 
 END MODULE S_DEF_KIND
