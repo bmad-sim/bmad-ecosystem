@@ -531,6 +531,8 @@ syntax as discussed in Section~\sref{s:ele.match}. Example:
   5:32[x_limit] = 0.3         ! Sets elements with indexes 5 through 32 in branch 0.
 \end{example}
 
+\newpage
+
 %---------------------------------------------------------------------------
 \section{Custom Element Attributes}
 \label{s:cust.att}
@@ -692,6 +694,13 @@ of nucleons is not present, the mass is an average weighted by the isotopic abun
 element. The charge may be given by using the appropriate number of plus (+) or minus (-) signs or
 by using a plus or minus sign followed by a number. Thus ``\vn{-{-}-}'' is equivalent to
 ``-3''. Names here are case sensitive. ``@M'' must be used and not ``@m'' for specifying the mass.
+The mass of an atom is adjusted by the number of electrons relative to neutral. That is
+\begin{equation}
+  m_{\mbox{atom}} = m_{\mbox{neutral atom}} - C \cdot m_{\mbox{electron}}
+\end{equation}
+where $C$ is the charge in units number of electrons relative to neutral. No adjustment is made for
+mass shifts due to finite electron binding energies. This shift is small typically being well less
+than 1\% of the mass of the electron.
 
 Another group of particles are the ``known'' molecules. The syntax for these are:
 \begin{example}
@@ -713,7 +722,8 @@ Like with atoms, if the mass is not specified, the average isotopic mass is used
   C2H3@M28.4+     ! Singly charged C2H3 with mass of 28.4
   CH2             ! Neutral CH2
 \end{example}
-Like the atomic formulas, molecular formulas are case sensitive.
+Like the atomic formulas, molecular formulas are case sensitive. Like atoms, the mass of a known molecule
+is adjusted by the number of electrons relative to neutral.
 
 The last group of particle are particles where only the mass and charge are specified.  The syntax
 for these are:

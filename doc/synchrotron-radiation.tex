@@ -104,15 +104,22 @@ energy over the interval $[s_1, s_2]$ is small compared to the energy of a parti
 $\bfM_{21}$, which is the first order part of $\calM_{21}$, is computed via first order perturbation
 theory to be
 \begin{equation}
-  \bfM_{21} = \bfT_{21} + \bfD_{21}
+  \bfM_{21} = \bfT_{21} + \bfZ_{21}
+  \label{mtz}
 \end{equation}
-where $\bfT_{21}$ is the transfer matrix without damping and $\bfD_{21}$ is the damping matrix
-computed via
+where $\bfT_{21}$ is the transfer matrix without damping and $\bfZ_{21}$ is the change in $\bfT$ due
+to damping computed via
 \begin{equation}
-  \bfD_{21} = \int_{s_1}^{s_2} ds \, \bfT_{2s} \, \bfd(s)
+  \bfZ_{21} = \int_{s_1}^{s_2} ds \, \bfT_{2s} \, \bfd(s)
 \end{equation}
 with the local damping matrix $\bfd$ being computed from \Eqs{pk1pp}. Notice that since $\calM_{21}$
-is computed with respect to the beam centroid orbit, there is no constant part to the map.
+is computed with respect to the beam centroid orbit, there is no constant part to the map. Since
+$\bfT_{21}$ is invertable, \Eq{mtz} can be writen in the form
+\begin{equation}
+  \bfM_{21} = \bigl( \boldsymbol{1} + \bfZ_{21} \, \bfT_{21}^{-1} \bigr) \, \bfT_{21} 
+  \equiv \bfD_{21} \, \bfT_{21} 
+\end{equation}
+$\bfD$ is defined by this equation.
 
 The $\Cal{S}$ matrix is calculated by first noting that, to linear order, the distribution of
 $\delta\bfr_2$ due to stochastic radiation over some length $ds$ as some point $s$ is
@@ -139,15 +146,18 @@ stochastic emission over the region between $s_1$ and $s_2$, $\bfsig_\gamma$ is
   \bfM_{2s} \, \big[ \bfV_\mk{f}(s) \otimes \bfV_\mk{f}(s) \big] \, \bfM_{2s}^t
   \label{smvvm}
 \end{equation}
-where $\otimes$ is the outer product and the $t$ superscript indicates transpose. $\bfsig_\gamma$ is related to
-$\Cal{S}$ via
+where $\otimes$ is the outer product and the $t$ superscript indicates transpose. $\bfsig_\gamma$ is
+related to $\Cal{S}$ via
 \begin{equation}
   \bfsig_\gamma = \Cal{S} \, \Cal{S}^t
   \label{sxx}
 \end{equation}
-The calculation of $\Cal{S}$ involves calculating $\bfsig_\gamma$ via \Eq{smvvm} and then using \Eq{sxx}
-to solve for $\Cal{S}$ using, say, a Cholesky decomposition. Notice that while \Eq{sxx} does not have a
-unique solution, what matters here is that $\Cal{S} \, \Bf\Xi$ gives the correct distribution.
+The calculation of $\Cal{S}$ involves calculating $\bfsig_\gamma$ via \Eq{smvvm} and then using
+\Eq{sxx} to solve for $\Cal{S}$ using, say, a Cholesky decomposition. Notice that while \Eq{sxx}
+does not have a unique solution, what matters here is that $\Cal{S} \, \Bf\Xi$ gives the correct
+distribution. Note that the $\Cal{S} matrix$ may contain columns or rows that are all zero. This can
+happen if the there are vectors $\bfz$ where $\bfz^t \bfsig_\gamma \bfz$ is zero. This happens,
+for example, in a plainer ring where the vertical emittance is zero.
 
 %-----------------------------------------------------------------
 \section{Synchrotron Radiation Integrals}
@@ -156,7 +166,7 @@ unique solution, what matters here is that $\Cal{S} \, \Bf\Xi$ gives the correct
 
 The synchrotron radiation integrals are used to compute emittances, the energy spread, etc. The
 standard formulas assume no coupling between the horizontal and vertical
-planes\cite{b:helm,b:jowett}. With coupling, the equations need to be generalized and this is
+plaines\cite{b:helm,b:jowett}. With coupling, the equations need to be generalized and this is
 detailed below.
 
 \index{dispersion}
