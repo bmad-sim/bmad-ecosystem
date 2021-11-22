@@ -1,6 +1,6 @@
 parameter[p0c] = 4e7
 bmad_com[radiation_damping_on] = T
-bmad_com[radiation_fluctuations_on] = T
+bmad_com[radiation_fluctuations_on] = F
 
 q1: quad, l = 0.5, k1 = 0.6, tilt = 0.01
 q2: quad, l = 0.5, k1 = -0.5
