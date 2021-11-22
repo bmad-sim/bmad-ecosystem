@@ -28,7 +28,7 @@ use twiss_and_track_mod, only: twiss_and_track_at_s
 use ptc_spin, only: c_linear_map, assignment(=)
 use pointer_lattice, only: operator(.sub.)
 use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre
-use ptc_map_with_radiation_mod, only: ptc_map_with_rad_struct, ptc_setup_map_with_radiation, tree_element_zhe
+use ptc_map_with_radiation_mod, only: ptc_rad_map_struct, ptc_setup_map_with_radiation, tree_element_zhe
 
 implicit none
 
@@ -89,7 +89,7 @@ type (coord_struct) orbit
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_spin_map_struct), pointer :: sm
 type (normal_modes_struct) norm_mode
-type (ptc_map_with_rad_struct), target :: rad_map
+type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: rmap(:)
 
 type show_lat_column_struct
@@ -142,7 +142,7 @@ character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = '', phase_units_str
 character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, irmt, iimt
-character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname
+character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_name
 character(40) replacement_for_blank
 character(60) nam, attrib_list(20), attrib
 character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
@@ -4198,13 +4198,8 @@ case ('taylor_map', 'matrix')
     ! Radiation
 
     if (disp_fmt == 'RADIATION') then
-      if (.not. bmad_com%radiation_damping_on) then
-        nl=nl+1; lines(nl) = 'RADIATION DAMPING IS NOT TURNED ON!'
-        nl=nl+1; lines(nl) = '   TO TURN ON USE: "set bmad_com radiation_damping_on = T"'
-      endif
-
       if (.not. s%global%rf_on) then
-        nl=nl+1; lines(nl) = 'RF IS TURNED OFF!'
+        nl=nl+1; lines(nl) = 'Note: RF IS TURNED OFF!'
         nl=nl+1; lines(nl) = '   TO TURN ON USE: "set global rf_on = T"'
       endif
 
@@ -4213,22 +4208,25 @@ case ('taylor_map', 'matrix')
                                            1, .true., orbit1 = u%model%tao_branch(ix_branch)%orbit(ix1))
       rmap => rad_map%sub_map
       do i = 1, 6
-        s_mat(i,:) = rmap(2)%rad(i,:) * rmap(2)%fix0
         m_mat(:,i) = rmap(1)%cc(i*6+1:i*6+6)
       enddo
-      m_mat = matmul(m_mat, rmap(3)%rad)
-      s_mat = matmul(m_mat, s_mat)
+      !!m_mat = matmul(m_mat, rmap(3)%rad)
+      s_mat = matmul(matmul(m_mat, rmap(3)%rad), rmap(2)%rad)
 
       nl=nl+1; write (lines(nl), '(a, 6es16.8)') 'Ref_orb_start: ', rmap(1)%fix0
       nl=nl+1; write (lines(nl), '(a, 6es16.8)') 'Ref_orb_end:   ', rmap(1)%fix
       nl=nl+1; lines(nl) = ''
-!      nl=nl+1; call mat_type (m_mat, 0, 'Matrix_with_Damping:', '(4x, 6es16.8)', lines(nl:), n)
-!      nl=nl+7; lines(nl) = ''
-!      nl=nl+1; call mat_type (s_mat, 0, 'Radiation Matrix:', '(4x, 6es16.8)', lines(nl:), n)
-!      nl=nl+7; lines(nl) = ''
-      nl=nl+1; call mat_type (m_mat, 0, 'Matrix_with_Damping:', '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+1; call mat_type (rmap(3)%rad, 0, 'T-Matrix without Damping. Symplectic Error: ' // real_str(mat_symp_error(rmap(3)%rad), 6), '(4x, 6es16.8)', lines(nl:), n)
       nl=nl+7; lines(nl) = ''
-      nl=nl+1; call mat_type (s_mat, 0, 'Radiation Matrix:', '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+1; call mat_type (m_mat, 0, 'D-Damping Matrix. Damp Factor: ' // real_str((1-determinant(m_mat))/10, 6), '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+7; lines(nl) = ''
+      nl=nl+1; call mat_type (s_mat, 0, 'S-Radiation Matrix:', '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+7; lines(nl) = ''
+      nl=nl+1; call mat_type (rad_map%nodamp_mat, 0, 'Matrix without Damping:', '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+7; lines(nl) = ''
+      nl=nl+1; call mat_type (rad_map%damp_mat, 0, 'Damping Matrix:', '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+7; lines(nl) = ''
+      nl=nl+1; call mat_type (rad_map%stoc_mat, 0, 'Radiation Matrix:', '(4x, 6es16.8)', lines(nl:), n)
       nl=nl+6
       return
     endif
@@ -4659,17 +4657,21 @@ case ('universe')
 
   ix_u = s%global%default_universe
   ele_name = ''
+  b_name = ''
 
   do
-    call tao_next_switch (what2, ['-element'], .true., switch, err, ix)
+    call tao_next_switch (what2, ['-element', '-branch'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('')
       exit
 
-    case ('-element');       
+    case ('-element')       
       ele_name = what2(:ix)
       call string_trim(what2(ix+1:), what2, ix)
+
+    case ('-branch')
+      b_name = what2(1:ix)
 
     case default
       read (switch, *, iostat = ios) ix_u
@@ -4688,6 +4690,16 @@ case ('universe')
 
   u => s%u(ix_u)
   lat => u%model%lat
+
+  if (b_name /= '') then
+    branch => pointer_to_branch(b_name, u%model%lat)
+    if (.not. associated(branch)) then
+      nl=1; write(lines(1), *) 'Bad branch name or index: ', b_name
+      return
+    endif
+    ix_branch = branch%ix_branch
+  endif
+
   branch => lat%branch(ix_branch)
   model_branch => u%model_branch(ix_branch)
   tao_branch => u%model%tao_branch(ix_branch)
@@ -4699,23 +4711,7 @@ case ('universe')
   nl = 0
   nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', ix_u, '  of: ', ubound(s%u, 1)
   nl=nl+1; write(lines(nl), imt) 'Branch:   ', ix_branch
-  nl=nl+1; write(lines(nl), imt2) 'n_d2_data_used         = ', u%n_d2_data_used, &
-                                  'n_data_used            = ', u%n_data_used
-  nl=nl+1; write(lines(nl), lmt2) 'do_rad_int_calc        = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting, &
-                                  'do_chrom_calc          = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
-  nl=nl+1; write(lines(nl), lmt2) 'do_beam_sigma_calc     = ', u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting, &
-                                  'one_turn_map_calc      = ', u%calc%one_turn_map
-  nl=nl+1; write(lines(nl), lmt2) 'twiss_calc             = ', u%calc%twiss, &
-                                  'dynamic_aperture_calc  = ', u%calc%dynamic_aperture
-  nl=nl+1; write(lines(nl), lmt2) 'one_turn_map_calc      = ', u%calc%one_turn_map, &
-                                  'track_calc             = ', u%calc%track
-  nl=nl+1; write(lines(nl), lmt2) 'calc%spin_matrices     = ', u%calc%spin_matrices, &
-                                  'is_on                  = ', u%is_on
-  nl=nl+1; write(lines(nl), amt) '%beam%track_data_file  = ', quote(trim(u%beam%track_data_file))
-  nl=nl+1; write(lines(nl), amt) '%beam%saved_at:        = ', quote(trim(u%beam%saved_at))
-  nl=nl+1; write(lines(nl), amt) '%beam%dump_at:         = ', quote(trim(u%beam%dump_at))
-  nl=nl+1; write(lines(nl), amt) '%beam%dump_file:       = ', quote(trim(u%beam%dump_file))
-  nl=nl+1; lines(nl) = ''
+  nl=nl+1; write(lines(nl), lmt) 'is_on:                    ', u%is_on
   nl=nl+1; write(lines(nl), amt) 'Lattice name:             ', quote(lat%lattice)
   nl=nl+1; write(lines(nl), amt) 'Machine name:             ', quote(lat%machine)
   nl=nl+1; write(lines(nl), amt) 'Used line(s) in lat file: ', quote(lat%use_name)
@@ -4750,10 +4746,8 @@ case ('universe')
 
   nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice branch length:      ', branch%param%total_length
   nl=nl+1; write(lines(nl), '(a, es13.6)')   'Lattice branch transit time:', branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time
-  if (branch%ele(0)%s /= 0) then
-    nl=nl+1; write(lines(nl), '(a, 2(f0.3, a))') 'Lattice branch S-range:     [', &
+  nl=nl+1; write(lines(nl), '(a, 2(f0.3, a))') 'Lattice branch S-range:     [', &
                                                 branch%ele(0)%s, ', ', branch%ele(branch%n_ele_track)%s, ']'
-  endif
 
   if (branch%param%geometry == open$ .and. tao_branch%track_state /= moving_forward$) then
     if (s%global%track_type == 'beam') then
