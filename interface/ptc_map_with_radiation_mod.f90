@@ -6,7 +6,7 @@ use ptc_layout_mod
 use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, track_tree_probe_complex_zhe, &
                         zhe_ini
 
-type ptc_map_with_rad_struct
+type ptc_rad_map_struct
   type (tree_element_zhe) sub_map(3)    ! Type tree_element in PTC
   character(200) lattice_file     ! Name of the lattice file
   real(rp) dref_time              ! Time ref particle takes.
@@ -18,8 +18,9 @@ type ptc_map_with_rad_struct
   integer ix_branch
   integer ix_ele_start            ! Start point for making the map
   integer ix_ele_end              ! End point for making the map
-  real(rp) orb_mat(6,6)           ! Linear orbital part of the map with damping
-  real(rp) stoc_mat(6,6)          ! Stochatic part of the orbital map.
+  real(rp) nodamp_mat(6,6)        ! Nondamped orbital matrix. M_orbit = M_damp * M_nodamp
+  real(rp) damp_mat(6,6)          ! Damping "correction" to orbital matrix.
+  real(rp) stoc_mat(6,6)          ! Stochatic matrix for the orbit.
   real(rp) ref0(6)                ! Reference orbit at start.
   real(rp) ref1(6)                ! Reference orbit at end.
 end type
@@ -30,7 +31,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, map_order, include_damping, 
+! Subroutine ptc_setup_map_with_radiation (rad_map, ele1, ele2, map_order, include_damping, 
 !                                                                          create_symplectic_map, orbit1, err_flag)
 !
 ! Routine to construct a map including radiation damping and excitation.
@@ -64,18 +65,18 @@ contains
 !                        inverted map which can be symplecitally tracked.
 !
 ! Output:
-!   map_with_rad    -- ptc_map_with_rad_struct: Transport map.
+!   rad_map         -- ptc_rad_map_struct: Transport map.
 !   err_flag        -- logical, optional: Set True if there is an error such as not associated PTC layout.
 !-
 
-subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, map_order, include_damping, &
+subroutine ptc_setup_map_with_radiation (rad_map, ele1, ele2, map_order, include_damping, &
                                                 create_symplectic_map, orbit1, err_flag)
 
 use pointer_lattice
 
 implicit none
 
-type (ptc_map_with_rad_struct) map_with_rad
+type (ptc_rad_map_struct) rad_map
 type (ele_struct) ele1
 type (ele_struct), optional :: ele2
 type (coord_struct), optional :: orbit1
@@ -92,7 +93,7 @@ real(rp) orb(6), orb0(6), e_ij(6,6)
 real(rp) ai(6,6), ki(6,6)
 
 integer, optional :: map_order
-integer val_save, nt
+integer i, val_save, nt
 
 logical, optional :: err_flag, include_damping, create_symplectic_map
 
@@ -105,8 +106,8 @@ if (present(err_flag)) err_flag = .true.
 branch => pointer_to_branch(ele1)
 nt = branch%n_ele_track
 ptc_layout => branch%ptc%m_t_layout
-map_with_rad%ix_branch = branch%ix_branch
-map_with_rad%lattice_file = branch%lat%input_file_name
+rad_map%ix_branch = branch%ix_branch
+rad_map%lattice_file = branch%lat%input_file_name
 
 if (.not. associated(ptc_layout)) then
   call out_io (s_fatal$, r_name, 'NO ASSOCIATED PTC LAYOUT PRESENT!')
@@ -115,23 +116,23 @@ if (.not. associated(ptc_layout)) then
 endif
 
 f1 => pointer_to_fibre(ele1)
-map_with_rad%ix_ele_start = ele1%ix_ele
-map_with_rad%p0c_start = ele1%value(p0c$)
+rad_map%ix_ele_start = ele1%ix_ele
+rad_map%p0c_start = ele1%value(p0c$)
 
 if (present(ele2)) then
   f2 => pointer_to_fibre(ele2)
-  map_with_rad%ix_ele_end = ele2%ix_ele
-  map_with_rad%p0c_end = ele2%value(p0c$)
-  map_with_rad%s_end = ele2%s
-  map_with_rad%dref_time = ele2%ref_time - ele1%ref_time
-  if (ele2%ix_ele <= ele1%ix_ele) map_with_rad%dref_time = map_with_rad%dref_time + &
+  rad_map%ix_ele_end = ele2%ix_ele
+  rad_map%p0c_end = ele2%value(p0c$)
+  rad_map%s_end = ele2%s
+  rad_map%dref_time = ele2%ref_time - ele1%ref_time
+  if (ele2%ix_ele <= ele1%ix_ele) rad_map%dref_time = rad_map%dref_time + &
                                                   branch%ele(nt)%ref_time - branch%ele(0)%ref_time
 else
   f2 => f1
-  map_with_rad%ix_ele_end = ele1%ix_ele
-  map_with_rad%p0c_start = ele1%value(p0c$)
-  map_with_rad%s_end = ele1%s
-  map_with_rad%dref_time = branch%ele(nt)%ref_time - branch%ele(0)%ref_time
+  rad_map%ix_ele_end = ele1%ix_ele
+  rad_map%p0c_start = ele1%value(p0c$)
+  rad_map%s_end = ele1%s
+  rad_map%dref_time = branch%ele(nt)%ref_time - branch%ele(0)%ref_time
 endif
 
 !
@@ -140,21 +141,21 @@ call zhe_ini(bmad_com%spin_tracking_on)
 
 if (logic_option(.true., include_damping)) then
   state = ptc_com%base_state + radiation0 + envelope0
-  map_with_rad%radiation_damping_on = .true.
+  rad_map%radiation_damping_on = .true.
 else
   state = ptc_com%base_state + envelope0
-  map_with_rad%radiation_damping_on = .false.
+  rad_map%radiation_damping_on = .false.
 endif
 
 if (bmad_com%spin_tracking_on) state = state + spin0
 if (.not. rf_is_on(ele1%branch, ele1%ix_ele, ele2%ix_ele)) state = state + nocavity0
 
-map_with_rad%map_order = integer_option(ptc_com%taylor_order_ptc, map_order)
-if (map_with_rad%map_order < 1) map_with_rad%map_order = ptc_com%taylor_order_ptc
+rad_map%map_order = integer_option(ptc_com%taylor_order_ptc, map_order)
+if (rad_map%map_order < 1) rad_map%map_order = ptc_com%taylor_order_ptc
 
-call init_all(state, map_with_rad%map_order, 0)
+call init_all(state, rad_map%map_order, 0)
 
-if (map_with_rad%p0c_end /= map_with_rad%p0c_start) then
+if (rad_map%p0c_end /= rad_map%p0c_start) then
   call out_io (s_error$, r_name, 'CANNOT HANDLE LATTICE WITH CHANGING REFERENCE ENERGY.')
   return
 endif
@@ -192,14 +193,21 @@ c_map1 = pb8
 c_map1%x0(1:6) = orb   ! This may not be needed but cannot hurt 
 
 sagan_gen = logic_option(.false., create_symplectic_map)
-call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d-10, tree_zhe=map_with_rad%sub_map) 
+call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d-10, tree_zhe=rad_map%sub_map) 
 sagan_gen = .false.  ! Reset to False so wont affect other PTC calculations.
 
 !
+!! call c_stochastic_kick(c_map1, rad_map%stoc_mat, rad_map%orb_mat, 1d-18)
 
-call c_stochastic_kick(c_map1, map_with_rad%orb_mat, map_with_rad%stoc_mat, 1d-18)
-map_with_rad%ref0 = map_with_rad%sub_map(1)%fix0
-map_with_rad%ref1 = map_with_rad%sub_map(1)%fix
+rad_map%ref0 = rad_map%sub_map(1)%fix0
+rad_map%ref1 = rad_map%sub_map(1)%fix
+rad_map%nodamp_mat = rad_map%sub_map(3)%rad
+
+do i = 1, 6
+  rad_map%damp_mat(:,i) = rad_map%sub_map(1)%cc(i*6+1:i*6+6)
+enddo
+
+rad_map%stoc_mat = matmul(matmul(rad_map%damp_mat, rad_map%nodamp_mat), rad_map%sub_map(2)%rad)
 
 !
 
@@ -215,7 +223,7 @@ end subroutine ptc_setup_map_with_radiation
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_track_map_with_radiation (orbit, map_with_rad, rad_damp, rad_fluct)
+! Subroutine ptc_track_map_with_radiation (orbit, rad_map, rad_damp, rad_fluct)
 !
 ! Routine to track through a map that includes radiation.
 ! To construct the map, use the routine ptc_setup_map_with_radiation.
@@ -226,7 +234,7 @@ end subroutine ptc_setup_map_with_radiation
 !
 ! Input:
 !   orbit            -- coord_struct: Starting orbit.
-!   map_with_rad     -- ptc_map_with_rad_struct: Map with radiation included.
+!   rad_map          -- ptc_rad_map_struct: Map with radiation included.
 !   rad_damp         -- logical, optional: Override the setting of bmad_com%radiation_damping_on
 !   rad_fluct        -- logical, optional: Override the setting of bmad_com%radiation_fluctuations_on
 !   
@@ -235,7 +243,7 @@ end subroutine ptc_setup_map_with_radiation
 !     %state            -- Set to lost$ if there is a problem.
 !-
 
-subroutine ptc_track_map_with_radiation (orbit, map_with_rad, rad_damp, rad_fluct)
+subroutine ptc_track_map_with_radiation (orbit, rad_map, rad_damp, rad_fluct)
 
 use rotation_3d_mod
 use duan_zhe_map, only: assignment(=), C_VERBOSE_ZHE
@@ -243,7 +251,7 @@ use duan_zhe_map, only: assignment(=), C_VERBOSE_ZHE
 implicit none
 
 type (coord_struct) orbit
-type (ptc_map_with_rad_struct) map_with_rad
+type (ptc_rad_map_struct) rad_map
 type (probe_zhe) z_probe
 
 real(rp) beta_end
@@ -262,17 +270,17 @@ C_VERBOSE_ZHE = .false.
 z_probe = orbit%vec
 z_probe%q%x = [1, 0, 0, 0]
 
-call track_tree_probe_complex_zhe (map_with_rad%sub_map, z_probe, bmad_com%spin_tracking_on, damp, fluct)
+call track_tree_probe_complex_zhe (rad_map%sub_map, z_probe, bmad_com%spin_tracking_on, damp, fluct)
 if (z_probe%u) orbit%state = lost$   ! %u = T => "unstable".
 
-call convert_pc_to ((1 + z_probe%x(6)) * map_with_rad%p0c_end, orbit%species, beta = beta_end)
-orbit%t = orbit%t + (orbit%vec(5) / orbit%beta - z_probe%x(5) / beta_end) / c_light + map_with_rad%dref_time
+call convert_pc_to ((1 + z_probe%x(6)) * rad_map%p0c_end, orbit%species, beta = beta_end)
+orbit%t = orbit%t + (orbit%vec(5) / orbit%beta - z_probe%x(5) / beta_end) / c_light + rad_map%dref_time
 orbit%beta = beta_end
 orbit%vec = z_probe%x
-orbit%s = map_with_rad%s_end
-orbit%ix_ele = map_with_rad%ix_ele_end
+orbit%s = rad_map%s_end
+orbit%ix_ele = rad_map%ix_ele_end
 
-if (map_with_rad%p0c_end /= map_with_rad%p0c_start) then
+if (rad_map%p0c_end /= rad_map%p0c_start) then
   call err_exit  ! The map does not know about changing reference energy
 endif
 
@@ -288,23 +296,23 @@ end subroutine ptc_track_map_with_radiation
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_write_map_with_radiation(map_with_rad, file_name, file_unit)
+! Subroutine ptc_write_map_with_radiation(rad_map, file_name, file_unit)
 !
-! Routine to create or append to a binary file containing a ptc_map_with_rad_struct map.
+! Routine to create or append to a binary file containing a ptc_rad_map_struct map.
 !
 ! Either file_name or file_unit must be present but not both.
 ! If file_unit is present, it is the responsibility of the calling routine to open the file beforehand
 ! and to close the file afterwards.
 !
 ! Input:
-!   map_with_rad    -- ptc_map_with_rad_struct: Map with radiation included.
+!   rad_map         -- ptc_rad_map_struct: Map with radiation included.
 !   file_name       -- character(*), optional: Name of binary file to create.
 !   file_unit       -- integer, optional: File unit number to append to.
 !-
 
-subroutine ptc_write_map_with_radiation(map_with_rad, file_name, file_unit)
+subroutine ptc_write_map_with_radiation(rad_map, file_name, file_unit)
 
-type (ptc_map_with_rad_struct), target :: map_with_rad
+type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: t
 
 integer i, j, k, iu, ios
@@ -320,13 +328,13 @@ else
   iu = file_unit
 endif
 
-write (iu) map_with_rad%lattice_file
-write (iu) map_with_rad%map_order, map_with_rad%radiation_damping_on, &
-            map_with_rad%ix_branch, map_with_rad%ix_ele_start, map_with_rad%ix_ele_end, &
-            map_with_rad%p0c_start, map_with_rad%p0c_end, map_with_rad%dref_time, map_with_rad%s_end
+write (iu) rad_map%lattice_file
+write (iu) rad_map%map_order, rad_map%radiation_damping_on, &
+            rad_map%ix_branch, rad_map%ix_ele_start, rad_map%ix_ele_end, &
+            rad_map%p0c_start, rad_map%p0c_end, rad_map%dref_time, rad_map%s_end
 
 do k = 1, 3
-  t => map_with_rad%sub_map(k)
+  t => rad_map%sub_map(k)
   call write_real1(t%cc)
   call write_real1(t%fixr)
   call write_real1(t%fix)
@@ -390,9 +398,9 @@ end subroutine ptc_write_map_with_radiation
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_read_map_with_radiation(map_with_rad, err_flag, file_name, file_unit)
+! Subroutine ptc_read_map_with_radiation(rad_map, err_flag, file_name, file_unit)
 !
-! Routine to read a binary file containing a ptc_map_with_rad_struct map
+! Routine to read a binary file containing a ptc_rad_map_struct map
 !
 ! Either file_name or file_unit must be present but not both.
 ! File_unit is used when there are multiple maps in a file.
@@ -404,13 +412,13 @@ end subroutine ptc_write_map_with_radiation
 !   file_unit       -- integer, optional: File unit number read from.
 !
 ! Output:
-!   map_with_rad    -- ptc_map_with_rad_struct: Map with radiation included.
+!   rad_map         -- ptc_rad_map_struct: Map with radiation included.
 !   err_flag        -- Logical: Set True if there is a read error.
 !-
 
-subroutine ptc_read_map_with_radiation(map_with_rad, err_flag, file_name, file_unit)
+subroutine ptc_read_map_with_radiation(rad_map, err_flag, file_name, file_unit)
 
-type (ptc_map_with_rad_struct), target :: map_with_rad
+type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: t
 
 integer i, j, k, iu
@@ -429,13 +437,13 @@ else
   iu = file_unit
 endif
 
-read (iu, err = 9000, end = 9000) map_with_rad%lattice_file
-read (iu, err = 9000, end = 9000) map_with_rad%map_order, map_with_rad%radiation_damping_on, &
-            map_with_rad%ix_branch, map_with_rad%ix_ele_start, map_with_rad%ix_ele_end, &
-            map_with_rad%p0c_start, map_with_rad%p0c_end, map_with_rad%dref_time, map_with_rad%s_end
+read (iu, err = 9000, end = 9000) rad_map%lattice_file
+read (iu, err = 9000, end = 9000) rad_map%map_order, rad_map%radiation_damping_on, &
+            rad_map%ix_branch, rad_map%ix_ele_start, rad_map%ix_ele_end, &
+            rad_map%p0c_start, rad_map%p0c_end, rad_map%dref_time, rad_map%s_end
 
 do k = 1, 3
-  t => map_with_rad%sub_map(k)
+  t => rad_map%sub_map(k)
   if (.not. read_real1(t%cc)) goto 9000
   if (.not. read_real1(t%fixr)) goto 9000
   if (.not. read_real1(t%fix)) goto 9000
@@ -533,27 +541,27 @@ end subroutine ptc_read_map_with_radiation
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_kill_map_with_radiation(map_with_rad)
+! Subroutine ptc_kill_map_with_radiation(rad_map)
 !
-! Routine to kill a binary file containing a ptc_map_with_rad_struct map
+! Routine to kill a binary file containing a ptc_rad_map_struct map
 !
 ! Input:
-!   map_with_rad     -- ptc_map_with_rad_struct: Map with radiation included.
+!   rad_map     -- ptc_rad_map_struct: Map with radiation included.
 !
 ! Output:
-!   map_with_rad     -- ptc_map_with_rad_struct: Deallocated map.
+!   rad_map     -- ptc_rad_map_struct: Deallocated map.
 !-
 
-subroutine ptc_kill_map_with_radiation(map_with_rad)
+subroutine ptc_kill_map_with_radiation(rad_map)
 
-type (ptc_map_with_rad_struct), target :: map_with_rad
+type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: t
 integer k
 
 !
 
 do k = 1, 3
-  t => map_with_rad%sub_map(k)
+  t => rad_map%sub_map(k)
   deallocate(t%cc)
   deallocate(t%fixr)
   deallocate(t%fix)
