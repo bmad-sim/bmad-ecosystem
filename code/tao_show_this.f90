@@ -121,7 +121,7 @@ real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, gamma2, val, z, z1, z2,
 real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
-real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), s_mat(6,6), m_mat(6,6), dn_dpz(3), dn_partial(3,3)
+real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3)
 real(rp), allocatable :: value(:)
 
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
@@ -2181,7 +2181,7 @@ case ('lattice')
   ! get command line switches
 
   do
-    call tao_next_switch (what2, [character(28):: &
+    call tao_next_switch (what2, [character(32):: &
         '-branch', '-blank_replacement', '-lords', '-middle', '-tracking_elements', '-0undef', '-beginning', &
         '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', &
         '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
@@ -4207,26 +4207,14 @@ case ('taylor_map', 'matrix')
       call ptc_setup_map_with_radiation (rad_map, branch%ele(ix1), branch%ele(ix2), &
                                            1, .true., orbit1 = u%model%tao_branch(ix_branch)%orbit(ix1))
       rmap => rad_map%sub_map
-      do i = 1, 6
-        m_mat(:,i) = rmap(1)%cc(i*6+1:i*6+6)
-      enddo
-      !!m_mat = matmul(m_mat, rmap(3)%rad)
-      s_mat = matmul(matmul(m_mat, rmap(3)%rad), rmap(2)%rad)
-
       nl=nl+1; write (lines(nl), '(a, 6es16.8)') 'Ref_orb_start: ', rmap(1)%fix0
       nl=nl+1; write (lines(nl), '(a, 6es16.8)') 'Ref_orb_end:   ', rmap(1)%fix
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; call mat_type (rmap(3)%rad, 0, 'T-Matrix without Damping. Symplectic Error: ' // real_str(mat_symp_error(rmap(3)%rad), 6), '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+1; call mat_type (rad_map%nodamp_mat, 0, 'T-Matrix without Damping. Symplectic Error: ' // real_str(mat_symp_error(rad_map%nodamp_mat), 6), '(4x, 6es16.8)', lines(nl:), n)
       nl=nl+7; lines(nl) = ''
-      nl=nl+1; call mat_type (m_mat, 0, 'D-Damping Matrix. Damp Factor: ' // real_str((1-determinant(m_mat))/10, 6), '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+1; call mat_type (rad_map%damp_mat, 0, 'D-Damping Matrix. Damp Factor: ' // real_str((1-determinant(rad_map%damp_mat))/10, 6), '(4x, 6es16.8)', lines(nl:), n)
       nl=nl+7; lines(nl) = ''
-      nl=nl+1; call mat_type (s_mat, 0, 'S-Radiation Matrix:', '(4x, 6es16.8)', lines(nl:), n)
-      nl=nl+7; lines(nl) = ''
-      nl=nl+1; call mat_type (rad_map%nodamp_mat, 0, 'Matrix without Damping:', '(4x, 6es16.8)', lines(nl:), n)
-      nl=nl+7; lines(nl) = ''
-      nl=nl+1; call mat_type (rad_map%damp_mat, 0, 'Damping Matrix:', '(4x, 6es16.8)', lines(nl:), n)
-      nl=nl+7; lines(nl) = ''
-      nl=nl+1; call mat_type (rad_map%stoc_mat, 0, 'Radiation Matrix:', '(4x, 6es16.8)', lines(nl:), n)
+      nl=nl+1; call mat_type (rad_map%stoc_mat, 0, 'S-Radiation Matrix:', '(4x, 6es16.8)', lines(nl:), n)
       nl=nl+6
       return
     endif
@@ -4660,7 +4648,7 @@ case ('universe')
   b_name = ''
 
   do
-    call tao_next_switch (what2, ['-element', '-branch'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(12):: '-element', '-branch'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('')
