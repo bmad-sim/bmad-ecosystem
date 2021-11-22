@@ -88,7 +88,7 @@ integer, parameter :: map$ = 1, ele$ = 2
 
 type ltt_section_struct
   integer :: type = 0
-  type (ptc_map_with_rad_struct), allocatable :: map
+  type (ptc_rad_map_struct), allocatable :: map
   type (ele_struct), pointer :: ele => null()
 end type
 
@@ -1700,7 +1700,7 @@ type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ltt_section_struct), pointer :: sec
-type (ptc_map_with_rad_struct), pointer :: map
+type (ptc_rad_map_struct), pointer :: map
 
 integer i, ix, n_sec, ib, ie, creation_hash
 real(rp) s
