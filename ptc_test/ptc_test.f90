@@ -100,7 +100,7 @@ enddo
 vec = matmul(rad_map%stoc_mat, vec)
 vec = vec + rad_map%ref1
 
-write (1, '(a, 6es16.8)') '"Stoc-Track"      REL 1E-8', orbit%vec
+write (1, '(a, 6es16.8)') '"Stoc-Track"      REL 1E-5', orbit%vec
 write (1, '(a, 6es16.8)') '"Diff-Stoc-Track" ABS 1E-20', orbit%vec - vec
 
 
@@ -176,13 +176,13 @@ z = lat%particle_start%vec(5)
 call b_e_field(ele%ptc_fibre%mag%ab, x, z, e_pot, e_field_ptc, b_pot, b_field_ptc, a, da)
 call em_field_calc (ele, lat%param, z, lat%particle_start, .true., field)
 
-write (1, '(a, 3f14.6)') '"B PTC:" 1E-20  ', b_field_ptc * ele%value(p0c$) / c_light
-write (1, '(a, 3f14.6)') '"B Bmad:" 1E-20 ', field%b
-write (1, '(a, 3f14.6)') '"B Diff:" 1E-20 ', b_field_ptc * ele%value(p0c$) / c_light - field%b
+write (1, '(a, 3f14.6)') '"B PTC:" ABS 1E-20  ', b_field_ptc * ele%value(p0c$) / c_light
+write (1, '(a, 3f14.6)') '"B Bmad:" ABS 1E-20 ', field%b
+write (1, '(a, 3f14.6)') '"B Diff:" ABS 1E-20 ', b_field_ptc * ele%value(p0c$) / c_light - field%b
 
-write (1, '(a, 3f14.6)') '"E PTC:" 1E-20  ', e_field_ptc * ele%value(p0c$)
-write (1, '(a, 3f14.6)') '"E Bmad:" 1E-20 ', field%e
-write (1, '(a, 3f14.6)') '"E Diff:" 1E-20 ', e_field_ptc * ele%value(p0c$) - field%e
+write (1, '(a, 3f14.6)') '"E PTC:" ABS 1E-20  ', e_field_ptc * ele%value(p0c$)
+write (1, '(a, 3f14.6)') '"E Bmad:" ABS 1E-20 ', field%e
+write (1, '(a, 3f14.6)') '"E Diff:" ABS 1E-20 ', e_field_ptc * ele%value(p0c$) - field%e
 
 !----------------------------------------------------------
 ! Check information passing via flat file.
