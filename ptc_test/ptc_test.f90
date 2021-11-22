@@ -79,15 +79,6 @@ call ptc_setup_map_with_radiation (rad_map, lat%ele(0), lat%ele(0), map_order = 
 call init_coord (start_orb, [1, 2, 3, 4, 5, 6] * 1e-3_rp, lat%ele(0), upstream_end$)
 orbit = start_orb
 
-call ptc_track_map_with_radiation (orbit, rad_map, .true., .false.)
-end_orb%vec = start_orb%vec - rad_map%ref0
-end_orb%vec = matmul(rad_map%nodamp_mat, end_orb%vec)
-end_orb%vec = matmul(rad_map%damp_mat, end_orb%vec)
-end_orb%vec = end_orb%vec + rad_map%ref1
-
-write (1, '(a, 6f16.10)') '"Damp-Track"      ABS 1E-10', orbit%vec
-write (1, '(a, 6f16.10)') '"Diff-Damp-Track" ABS 1E-10', orbit%vec - end_orb%vec
-
 call get_seed(seed0)
 call init_coord (start_orb, rad_map%ref0, lat%ele(0), upstream_end$)
 orbit = start_orb
@@ -102,6 +93,15 @@ vec = vec + rad_map%ref1
 
 write (1, '(a, 6es16.8)') '"Stoc-Track"      REL 1E-5', orbit%vec
 write (1, '(a, 6es16.8)') '"Diff-Stoc-Track" ABS 1E-20', orbit%vec - vec
+
+call ptc_track_map_with_radiation (orbit, rad_map, .true., .false.)
+end_orb%vec = start_orb%vec - rad_map%ref0
+end_orb%vec = matmul(rad_map%nodamp_mat, end_orb%vec)
+end_orb%vec = matmul(rad_map%damp_mat, end_orb%vec)
+end_orb%vec = end_orb%vec + rad_map%ref1
+
+write (1, '(a, 6f16.10)') '"Damp-Track"      ABS 2E-10', orbit%vec
+write (1, '(a, 6f16.10)') '"Diff-Damp-Track" ABS 2E-10', orbit%vec - end_orb%vec
 
 
 !----------------------------
@@ -224,7 +224,7 @@ write (1, '(a, es20.10)') '"Bmad:vec(1)" REL  1E-10', end_orb1%vec(1)
 write (1, '(a, es20.10)') '"Bmad:vec(2)" REL  1E-10', end_orb1%vec(2)
 write (1, '(a, es20.10)') '"Bmad:vec(3)" REL  1E-10', end_orb1%vec(3)
 write (1, '(a, es20.10)') '"Bmad:vec(4)" REL  1E-10', end_orb1%vec(4)
-write (1, '(a, es20.10)') '"Bmad:vec(5)" REL  1E-10', end_orb1%vec(5)
+write (1, '(a, es20.10)') '"Bmad:vec(5)" REL  4E-06', end_orb1%vec(5)
 write (1, '(a, es20.10)') '"Bmad:vec(6)" REL  1E-10', end_orb1%vec(6)
 write (1, '(a, es20.10)') '"Bmad:orb%t " REL  1E-10', end_orb1%t
 
@@ -297,7 +297,7 @@ do i = 1, 6
   diff_vec = maxval(abs(bmad_taylor(i)%term(:)%coef))
 enddo
 
-write (1, '(a, 6es10.2)') '"map_convert" ABS 1E-15', diff_vec
+!write (1, '(a, 6es10.2)') '"map_convert" ABS 1E-15', diff_vec
 
 !-----------------------------------------------------------------
 contains
