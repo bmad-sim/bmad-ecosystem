@@ -2815,10 +2815,15 @@ The \vn{-lattice_format} switch, if present, causes the output to be displayed i
 for using in a \bmad lattice file.
 
 If the the \vn{-radiation} switch is present, displayed will be the linear map with radiation
-damping and excitation. See the \vn{Synchrotron Radiation} in the \bmad manual for how the matrices
-displayed are used for tracking. Typically, radiation damping should be turned on and RF cavities
-powered since these affect the reference orbit and transfer matrix. This can be done using the
-commands:
+damping and excitation. See the \vn{Synchrotron Radiation} chapter in the \bmad manual for how the
+matrices displayed here are defined. The RF cavities should, in general be powered since these
+affect the reference orbit and transfer matrix. The damping matrix will be computed independent of
+whether radiation damping is on or off for tracking. The difference is that the reference orbit is
+affected by having damping on or off. Having radiation damping off in fact may be the preferable
+since in an actual machine the ``sawtooth'' orbit which comes with having damping on will tend to be
+compensated by tuning of the machine to meet the design conditions.
+
+To toggle radiation damping and RF use the commands:
 \begin{example}
   set bmad_com radiation_damping_on = T
   set global rf_on = T
@@ -2986,13 +2991,12 @@ Examples:
 
 Syntax:
 \begin{example}
-  show universe \{universe_number\}
+  show universe \{-branch <branch_name>\} \{universe_number\}
 \end{example}
 
-Shows various parameters associated with a given
-
-universe. If no universe is specified, the current default universe is used. Parameters displayed
-include tune, chromaticity, radiation integrals, etc.
+Shows various parameters associated with a given branch of a given universe. If no universe is
+specified, the current default universe is used. If no branch is given, the current default branch
+is used. Parameters displayed include tune, chromaticity, radiation integrals, etc.
 
 %% show use --------------------------------------------------------------
 
