@@ -1427,7 +1427,8 @@ if (pp == 200) then
   return
 else
   ! known molecule
-  mass = molecular_mass(pp-200) * atomic_mass_unit
+  charge = species / int(z'1000000')  ! Charge encoded in first two hex digits of species.
+  mass = molecular_mass(pp-200) * atomic_mass_unit - charge * m_electron
   return
 endif
 
