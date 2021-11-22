@@ -11,11 +11,11 @@ module sagan_WIGGLER
   private ALLOC_SAGAN,KILL_SAGAN,POINTERS_SAGANR,POINTERS_SAGANP
   private copy_el_elp ,copy_elp_el ,copy_el_el
   private scale_SAGANR,scale_SAGANP,PRINT_,READ_
-  PRIVATE driftsaganR,driftsaganP,driftsagan
-  PRIVATE KICKPATHR,KICKPATHP,KICKPATH
+  PRIVATE driftsaganR,driftsaganP !,driftsagan
+  PRIVATE KICKPATHR,KICKPATHP !,KICKPATH
   PRIVATE COMPX_R,COMPX_P,COMPY_R,COMPY_P,COMPZ_R,COMPZ_P,b_fieldr,b_fieldp
  ! PRIVATE COMPZ  !,B_FIELD
-  PRIVATE KICKR,KICKP,KICK
+  PRIVATE KICKR,KICKP   !,KICK
   PRIVATE KILL_WIGGLER,feval_saganp,feval_saganr,feval_sagan
   PRIVATE ALLOC_WIGGLER
   PRIVATE ZERO_Wr,ZERO_Wp,POINTERS_WP,e_potentialr,e_potentialp
@@ -184,6 +184,11 @@ integer :: put_a_abell = 1
      MODULE PROCEDURE INT_SAGANR
      MODULE PROCEDURE INT_SAGANP
   END INTERFACE
+
+  !INTERFACE TRACK_SLICE_sagan
+ !    MODULE PROCEDURE INT_SAGAN_prober
+ !    MODULE PROCEDURE INT_SAGANP
+ ! END INTERFACE
 
   INTERFACE ADJUST_like_abell
      MODULE PROCEDURE ADJUST_like_abellr
@@ -792,6 +797,7 @@ end subroutine kick_integral_p
 
 
   END SUBROUTINE INT_SAGANR
+
 
 
 
