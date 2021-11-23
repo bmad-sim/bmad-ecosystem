@@ -23,7 +23,7 @@ integer status
 integer gen_slices, sxt_slices
 integer, allocatable :: var_indexes(:)
 
-character(40) var_names(200)
+character(200) var_names
 
 namelist /srdt_lsq/ lat_file, var_names, gen_slices, sxt_slices, chrom_x, chrom_y, &
                     wgt_chrom_x, wgt_chrom_y, wgt_h20001, wgt_h00201, wgt_h10002, &
