@@ -1306,13 +1306,6 @@ subroutine multipole_spin_tracking (ele, param, orbit)
   type (coord_struct) orbit
 end subroutine
 
-subroutine name_to_list (lat, ele_names)
-  import
-  implicit none
-  type (lat_struct), target :: lat
-  character(*) ele_names(:)
-end subroutine
-
 subroutine new_control (lat, ix_ele, ele_name)
   import
   implicit none
@@ -2118,12 +2111,12 @@ subroutine strong_beam_sigma_calc (ele, s_pos, z_strong, sig_x, sig_y, bbi_const
   real(rp) s_pos, z_strong, bbi_const, x_center, y_center, sig_x, sig_y
 end subroutine
 
-subroutine taper_mag_strengths (lat, ref_lat, vary_solenoid)
+subroutine taper_mag_strengths (lat, ref_lat, except)
   import
   implicit none
   type (lat_struct), target :: lat
   type (lat_struct), optional, target :: ref_lat
-  logical, optional :: vary_solenoid
+  character(*), optional :: except
 end subroutine
 
 subroutine tilt_coords (tilt_val, coord, mat6, make_matrix)

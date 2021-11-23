@@ -1,26 +1,26 @@
 !+
-! Subroutine taper_mag_strengths (lat, ref_lat, vary_solenoid)
+! Subroutine taper_mag_strengths (lat, ref_lat, except)
 !
 ! Routine to "correct" magnet strengths in a ring to counteract local radiation damping energy offsets.
 !
 ! Routine will scale magnet strengths around a ring according to the local closed orbit momentum 
 ! so that the normalized strength at the closed orbit momentum is equal to the unshifted normalized 
 ! strength at the reference momentum. Varied will be "multipolar" like strengths. In particular, varied will be:
-!   DG, K1, K2, K3, HKICK, VKICK, KICK, a_pole(:), b_pole(:), KS (if vary_solenoid = T).
+!   DG, K1, K2, K3, HKICK, VKICK, KICK, a_pole(:), b_pole(:), KS.
 ! Notice that something like wiggler strengths are not varied.
 !
 ! Radiation damping needs to be turned on before calling this routine.
 !
 ! Input:
-!   lat             -- lat_struct: Lattice to vary.
-!   ref_lat         -- lat_struct, optional: Reference lattice. If not present, lat will be used as the ref.
-!   vary_solenoid   -- logical, optional: Vary solenoid strengths? Default is False.
+!   lat         -- lat_struct: Lattice to vary.
+!   ref_lat     -- lat_struct, optional: Reference lattice. If not present, lat will be used as the ref.
+!   except      -- character(*), optional: List of elements not to vary.
 !
 ! Output:
-!   lat             -- lat_struct: Lattice with magnet strengths varied.
+!   lat         -- lat_struct: Lattice with magnet strengths varied.
 !-
 
-subroutine taper_mag_strengths (lat, ref_lat, vary_solenoid)
+subroutine taper_mag_strengths (lat, ref_lat, except)
 
 use bmad, dummy => taper_mag_strengths
 
@@ -31,18 +31,29 @@ type (lat_struct), optional, target :: ref_lat
 type (branch_struct), pointer :: branch, branch0
 type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: closed_orb(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) tol, max_change, pz_ave, weight
-integer k, ib, ie
-logical, optional :: vary_solenoid
-logical err_flag, vary_ks
+integer k, ib, ie, n_loc
+logical err_flag
 
+character(*), optional :: except
 character(*), parameter :: r_name = 'taper_mag_strengths'
 
 !
 
+do ib = 0, ubound(lat%branch,1)
+  lat%branch(ib)%ele%select = .true.
+enddo
+
+if (present(except)) then
+  call lat_ele_locator (except, lat, eles, n_loc)
+  do ie = 1, n_loc
+    eles(ie)%ele%select = .false.
+  enddo
+endif
+
 tol = 1e-6
-vary_ks = logic_option(.false., vary_solenoid)
 
 if (present(ref_lat)) then
   lat0 = ref_lat
@@ -74,7 +85,7 @@ branch_loop: do ib = 0, ubound(lat%branch, 1)
 
     max_change = 0
     do ie = 1, branch%n_ele_track
-      max_change = max(max_change, taper_this_ele (branch%ele(ie), lat0, closed_orb(ie), pz_ave, vary_ks))
+      max_change = max(max_change, taper_this_ele (branch%ele(ie), lat0, closed_orb(ie), pz_ave))
     enddo
 
     call lattice_bookkeeper(lat)
@@ -87,7 +98,7 @@ enddo branch_loop
 !-----------------------------------------------
 contains
 
-recursive function taper_this_ele (ele_in, lat0, orb, pz_ave, vary_ks) result (change)
+recursive function taper_this_ele (ele_in, lat0, orb, pz_ave) result (change)
 
 type (ele_struct), target :: ele_in
 type (lat_struct) lat0
@@ -96,7 +107,6 @@ type (coord_struct) :: orb
 
 real(rp) change, pz_ave
 integer i, ip
-logical vary_ks
 
 !
 
@@ -107,11 +117,13 @@ if (ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%lord_status /= super_lord$) return
-    change = max(change, taper_this_ele(lord, lat0, orb, pz_ave, vary_ks))
+    if (.not. lord%select) cycle
+    change = max(change, taper_this_ele(lord, lat0, orb, pz_ave))
   enddo
   return
 endif
 
+if (.not. ele%select) return
 if (ele%slave_status == multipass_slave$) ele => pointer_to_lord(ele, 1)
 ele0 => pointer_to_ele(lat0, ele)
 
@@ -122,6 +134,7 @@ if (has_attribute(ele, 'K3'))    change = max(change, taper_this_attrib(ele, ele
 if (has_attribute(ele, 'HKICK')) change = max(change, taper_this_attrib(ele, ele%value(hkick$), ele0%value(hkick$), orb, pz_ave))
 if (has_attribute(ele, 'VKICK')) change = max(change, taper_this_attrib(ele, ele%value(vkick$), ele0%value(vkick$), orb, pz_ave))
 if (has_attribute(ele, 'KICK'))  change = max(change, taper_this_attrib(ele, ele%value(kick$), ele0%value(kick$), orb, pz_ave))
+if (has_attribute(ele, 'KS'))    change = max(change, taper_this_attrib(ele, ele%value(ks$), ele0%value(ks$), orb, pz_ave))
 
 if (associated(ele%a_pole)) then
   do ip = 0, ubound(ele%a_pole, 1)
@@ -129,8 +142,6 @@ if (associated(ele%a_pole)) then
     change = max(change, taper_this_attrib(ele, ele%b_pole(ip), ele0%b_pole(ip), orb, pz_ave))
   enddo
 endif
-
-if (vary_ks .and. has_attribute(ele, 'KS')) change = max(change, taper_this_attrib(ele, ele%value(ks$), ele0%value(ks$), orb, pz_ave))
 
 end function taper_this_ele
 
