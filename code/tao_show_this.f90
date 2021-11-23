@@ -4204,8 +4204,12 @@ case ('taylor_map', 'matrix')
       endif
 
       if (.not. associated (branch%ptc%m_t_layout)) call lat_to_ptc_layout (lat)
-      call ptc_setup_map_with_radiation (rad_map, branch%ele(ix1), branch%ele(ix2), &
+      if (print_ptc) then
+        call ptc_setup_map_with_radiation (rad_map, branch%ele(ix1), branch%ele(ix2), 1, .true.)
+      else
+        call ptc_setup_map_with_radiation (rad_map, branch%ele(ix1), branch%ele(ix2), &
                                            1, .true., orbit1 = u%model%tao_branch(ix_branch)%orbit(ix1))
+      endif
       rmap => rad_map%sub_map
       nl=nl+1; write (lines(nl), '(a, 6es16.8)') 'Ref_orb_start: ', rmap(1)%fix0
       nl=nl+1; write (lines(nl), '(a, 6es16.8)') 'Ref_orb_end:   ', rmap(1)%fix

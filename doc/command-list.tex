@@ -2809,7 +2809,8 @@ maximum order of the map is limited to the order set by the lattice file.
 The \vn{-ptc} switch is used with \vn{-order 1}. By default, order 1 maps (matrices) are calculated
 using native Bmad code. If the \vn{-ptc} switch is present, the matrix is calculated using the
 \vn{PTC} code (see the \bmad manual for details on PTC). Since PTC is always used to calculate maps
-of order higher than 1, the \vn{-ptc} switch is ignored for higher orders.
+of order higher than 1, the \vn{-ptc} switch is ignored for higher orders. If used with the
+\vn{-radiation} switch, the \vn{-ptc} switch 
 
 The \vn{-lattice_format} switch, if present, causes the output to be displayed in a format suitable
 for using in a \bmad lattice file.
@@ -2821,7 +2822,9 @@ affect the reference orbit and transfer matrix. The damping matrix will be compu
 whether radiation damping is on or off for tracking. The difference is that the reference orbit is
 affected by having damping on or off. Having radiation damping off in fact may be the preferable
 since in an actual machine the ``sawtooth'' orbit which comes with having damping on will tend to be
-compensated by tuning of the machine to meet the design conditions.
+compensated by tuning of the machine to meet the design conditions. If the \vn{-ptc} switch is used
+with \vn{-radiation}, the PTC calculated closed orbit will be used as a reference instead of the
+\bmad one.
 
 To toggle radiation damping and RF use the commands:
 \begin{example}
@@ -3203,7 +3206,7 @@ Examples:
 The \vn{taper} command is used to vary magnet strengths to eliminate the transverse orbital and Twiss
 changes due to the radiation damping induced ``sawtooth'' effect. Format:
 \begin{example}
-  taper \{-universe <ix_uni>\} \{-include_solenoids\}
+  taper \{-universe <ix_uni>\} \{-except <ele_list>\}
 \end{example}
 
 The sawtooth effect is the variation of the energy as a function of longitudinal position due to
@@ -3216,23 +3219,29 @@ True. See the \bmad manual for more details.
 
 The magnet strengths that are tapered are the ``multipole'' like parameters:
 \begin{example}
-  dg, k1, k2, k3, hkick, vkick, kick, a1, a2, ..., b1, b2, ...
+  dg, k1, k2, k3, ks, hkick, vkick, kick, a1, a2, ..., b1, b2, ...
 \end{example}
-Not included is \vn{ks} unless the \vn{-include_solenoids} switch is present. Notice that something
-like wiggler strengths are not included.
+Notice that something like wiggler strengths are not included.
 
-The scaling of the magnet strengths is done with respect to the \vn{base} lattice (which is the same
-as the \vn{design} lattice if the \vn{set lattice base = ...} command has not been issued). That is,
-if two \vn{taper} commands are issued one after another, the second \vn{taper} command will not affect
-magnet strengths.
+The \vn{-except} switch is used select lattice elements to not vary their magnetic strength. 
+
+Note: Tapering must be done with Rf on.
+
+Important! The scaling of the magnet strengths is done with respect to the \vn{base} lattice (which
+is the same as the \vn{design} lattice if the \vn{set lattice base = ...} command has not been
+issued). That is, if two \vn{taper} commands are issued one after another, the second \vn{taper}
+command will not affect magnet strengths. The reason why this is done is so that sucessive
+\vn{taper} commands do not cause the magnet strengths to ``walk''. That is, there is no unique
+solution to the taper problem since a changing all magnet strengths along with a corresponding shift
+in particle energy will not change the orbit.
 
 The \vn{-universe <ix_uni>} switch can be used select the desired universe to taper. If not present,
 the default universe will be used. Set <ix_uni> to ``*'' to choose all universes
 
 Examples:
 \begin{example}
-  taper -uni *      ! Taper all universes
-  taper -inc        ! Taper default uni and include solenoid ks strength.
+  taper -uni *            ! Taper all universes.
+  taper -exc solenoid::*  ! Taper default uni except solenoid elements.
 \end{example}
 
 %% timer --------------------------------------------------------------
