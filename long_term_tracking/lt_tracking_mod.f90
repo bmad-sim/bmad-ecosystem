@@ -1503,7 +1503,7 @@ type (ltt_bunch_data_struct), pointer :: bd
 type (ltt_bunch_data_struct), target :: bd0
 type (bunch_params_struct) bunch_params
 
-real(rp) sig1(6), sigma(6,6)
+real(rp) sig1(6), sigma(6,6), n_count
 integer i, j, nb, iu, ix, ib, n0
 logical error
 character(200) :: file_name
@@ -1550,10 +1550,15 @@ do ib = 0, nb
     endif
 
     if (bd%n_count == 0) exit
+    n_count = bd%n_count  ! Convert to real to avoid round-off errors
 
     do i = 1, 6
     do j = i, 6
-      sigma(i,j) = bd%orb2_sum(i,j) / bd%n_count - bd%orb_sum(i) * bd%orb_sum(j) / real(bd%n_count, rp)**2
+      sigma(i,j) = bd%orb2_sum(i,j) / n_count - bd%orb_sum(i) * bd%orb_sum(j) / n_count**2
+      ! Test if the value of sigma(i,j) is significant. If not set to zero. 
+      ! This is to avoid problems due to round-off errors. 
+      ! One notible case is at the beginning of tracking if a mode has zero emittance.
+      if (abs(sigma(i,j)) < 1e-15_rp * abs(bd%orb_sum(i) * bd%orb_sum(j)) / n_count) sigma(i,j) = 0
       sigma(j,i) = sigma(i,j)
     enddo
     enddo
@@ -1563,8 +1568,8 @@ do ib = 0, nb
     call calc_emittances_and_twiss_from_sigma_matrix (sigma, 0.0_rp, bunch_params, error)
 
     write (iu, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 13es14.6, 2x, 3es14.6)') &
-            beam_data%turn(ix)%i_turn, bd%n_live, bd%time_sum/bd%n_count, norm2(bd%spin_sum/bd%n_count), &
-            bd%spin_sum/bd%n_count, sig1, bd%orb_sum/bd%n_count, bd%p0c_sum/bd%n_count, &
+            beam_data%turn(ix)%i_turn, bd%n_live, bd%time_sum/n_count, norm2(bd%spin_sum/n_count), &
+            bd%spin_sum/n_count, sig1, bd%orb_sum/n_count, bd%p0c_sum/n_count, &
             bunch_params%a%emit, bunch_params%b%emit, bunch_params%c%emit
   enddo
 
@@ -1585,7 +1590,7 @@ type (ltt_bunch_data_struct), pointer :: bd
 type (ltt_bunch_data_struct), target :: bd0
 
 real(rp) sigma(21)
-integer ix, i, j, k, nb, iu, ib, n0
+integer ix, i, j, k, nb, iu, ib, n0, n_count
 character(200) :: file_name
 
 !
@@ -1629,16 +1634,20 @@ do ib = 0, nb
       bd => beam_data%turn(ix)%bunch(ib)
     endif
 
+    n_count = bd%n_count
     if (bd%n_count == 0) exit
     k = 0
     do i = 1, 6
     do j = i, 6
       k = k + 1
-      sigma(k) = bd%orb2_sum(i,j) / bd%n_count - bd%orb_sum(i) * bd%orb_sum(j) / real(bd%n_count, rp)**2
+      sigma(k) = bd%orb2_sum(i,j) / n_count - bd%orb_sum(i) * bd%orb_sum(j) / n_count**2
+      ! Test if the value of sigma(k) is significant. If not set to zero. 
+      ! One notible case is at the beginning of tracking if a mode has zero emittance.
+      if (abs(sigma(k)) < 1e-15_rp * abs(bd%orb_sum(i)*bd%orb_sum(j)) / n_count) sigma(k) = 0
     enddo
     enddo
     write (iu, '(i9, i9, es14.6, 2x, 22es14.6)') beam_data%turn(ix)%i_turn, bd%n_live, &
-                                      bd%time_sum/bd%n_live, bd%p0c_sum/bd%n_count, (sigma(k), k = 1, 21)
+                                      bd%time_sum/bd%n_live, bd%p0c_sum/n_count, (sigma(k), k = 1, 21)
   enddo
 
   close (iu)
