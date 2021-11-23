@@ -652,14 +652,13 @@ end subroutine make_slices
 !   ls_soln(1:size(var_indexes))  -- real(rp): contains K2 for the indexes in var_indexes
 !-
 
-subroutine srdt_lsq_solution(lat, var_indexes, var_names, ls_soln, n_slices_gen_opt, n_slices_sxt_opt, &
+subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slices_sxt_opt, &
                                                                  chrom_set_x_opt, chrom_set_y_opt, weight_in)
 
 implicit none
 
 type(lat_struct) lat
 integer var_indexes(:)
-character(40) var_names(200)
 real(rp), allocatable :: ls_soln(:)
 integer, optional :: n_slices_sxt_opt
 integer, optional :: n_slices_gen_opt
@@ -668,7 +667,7 @@ real(rp), optional :: chrom_set_x_opt, chrom_set_y_opt, weight_in(10)
 type(sliced_eles_struct), allocatable :: eles(:)
 type(sliced_eles_struct), allocatable :: K2eles(:)
 
-integer i, j, w, nK2, nvar, nnames
+integer i, j, w, nK2, nvar
 integer, allocatable :: k2mask(:), mags(:)
 integer n_slices_sext, n_slices_gen
 
@@ -682,7 +681,6 @@ logical, allocatable :: mask(:)
 
 character(8) err_str
 character(17) :: r_name = 'srdt_lsq_solution'
-character(40), allocatable :: A_names(:)
  
 !
 
@@ -757,24 +755,17 @@ do i=1, nvar
   endif
 enddo
 
-!condense A based on variable names
-allocate(A_names(nvar))
-A_names = lat%ele(var_indexes)%name
-nnames = 0
-do i=1, size(var_names)
-  if (var_names(i) == '') then
-    exit
-  endif
-  nnames = nnames + 1
-enddo
-allocate(As(18, nnames))
-allocate(Asp(nnames, 18))
-do i=1, nnames
-  mask = A_names==var_names(i)
+! condense A
+
+allocate(As(18, nvar))
+allocate(Asp(nvar, 18))
+
+do i=1, nvar
   do j=1, 18
-    As(j, i) = sum(A(j, :), mask=mask) !FOO /count(mask)
+    As(j, i) = sum(A(j, :)) !FOO /count(mask)
   enddo
 enddo
+
 call mat_pseudoinverse(As, Asp)
 
 ! C is a vector of the contributions to the DTs from those elements with valid K2 that are not variables. 
@@ -818,7 +809,7 @@ do i=1, 18
 enddo
 
 !ls_soln = 2.0*matmul(Ap, -B-C) 
-allocate(ls_soln(nnames))
+allocate(ls_soln(nvar))
 ls_soln = 2.0*matmul(Asp, V) 
 
 end subroutine srdt_lsq_solution
