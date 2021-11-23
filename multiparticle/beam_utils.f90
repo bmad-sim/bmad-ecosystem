@@ -1545,7 +1545,7 @@ end subroutine calc_bunch_params
 !
 ! Output:
 !   bunch_params    -- bunch_params_struct: Holds Twiss and emittance info.
-!   error           -- Logical: Set True if there is an error.
+!   error           -- Logical: Set True if there is an error. Can happen if the emittance of a mode is zero.
 !-
 
 subroutine calc_emittances_and_twiss_from_sigma_matrix (sigma_mat, gamma, bunch_params, error, print_err)
@@ -1562,18 +1562,20 @@ complex(rp) :: n_cmplx(6,6), q(6,6)
 integer dim
 
 logical, optional :: print_err
-logical error, err
+logical error, err, good(3)
 
 character(*), parameter :: r_name = 'calc_emittances_and_twiss_from_sigma_matrix'
 
 ! X, Y, & Z Projected Parameters
+
+bunch_params = bunch_params_struct()
 
 call projected_twiss_calc ('X', bunch_params%x, sigma_mat(1,1), sigma_mat(2,2), sigma_mat(1,2), sigma_mat(1,6), sigma_mat(2,6))
 call projected_twiss_calc ('Y', bunch_params%y, sigma_mat(3,3), sigma_mat(4,4), sigma_mat(3,4), sigma_mat(3,6), sigma_mat(4,6))
 call projected_twiss_calc ('Z', bunch_params%z, sigma_mat(5,5), sigma_mat(6,6), sigma_mat(5,6), 0.0_rp, 0.0_rp)
      
 ! Normal-Mode Parameters.
-! Use Andy Wolski's eigemode method to find normal-mode beam parameters.
+! See: Andy Wolski "Alternative approach to general coupled linear optics".
 ! find eigensystem of sigma.S 
 
 sigma_s(:,1) = -sigma_mat(:,2)
@@ -1586,7 +1588,7 @@ sigma_s(:,6) =  sigma_mat(:,5)
 call mat_eigen (sigma_s, eigen_val, eigen_vec, err, print_err)
 if (err) return
 
-! The eigen-values of Sigma.S are the normal-mode emittances (eq. 32)
+! The eigen-values of Sigma.S are the normal-mode emittances (Wolski Eq. 32)
 
 bunch_params%a%emit = aimag(eigen_val(1))
 bunch_params%b%emit = aimag(eigen_val(3))
@@ -1597,17 +1599,16 @@ bunch_params%b%norm_emit = bunch_params%b%emit * gamma
 bunch_params%c%norm_emit = bunch_params%c%emit * gamma
 
 ! Now find normal-mode sigma matrix and twiss parameters
-! N = E.Q from Eq. 44
-! Eq. 14
+! Wolski: N = E.Q from Eq. 44 and Eq. 14
 ! mat_eigen finds row vectors, so switch to column vectors
 
 dim = 6
 if (sigma_s(6,6) == 0) dim = 4  ! No energy diviations
 
-call normalize_e (eigen_vec(1:dim,1:dim), dim, err)
+call normalize_e (eigen_vec(1:dim,1:dim), dim, good, err)
 if (err) then
-  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'CANNOT NORMALIZE EIGENVECTORS.')
-  return
+  if (logic_option(.true., print_err)) call out_io (s_warn$, r_name, 'Cannot normalize some eigenvectors.', &
+                                                                     '[Can happen if the emittance of a mode beam is zero.]')
 endif
 
 eigen_vec(1:dim,1:dim) = transpose(eigen_vec(1:dim,1:dim))
@@ -1626,24 +1627,27 @@ q(4,4) = -i_imag / sqrt(2.0)
 q(5,6) =  i_imag / sqrt(2.0) 
 q(6,6) = -i_imag / sqrt(2.0)
 
-! compute N in Eq. 44
+! compute N in Wolski Eq. 44
 n_cmplx(1:dim,1:dim) = matmul(eigen_vec(1:dim,1:dim), q(1:dim,1:dim))
 n_real(1:dim,1:dim) = real(n_cmplx(1:dim,1:dim))
 
-! Twiss parameters come from equations 59, 63 and 64
+! Twiss parameters come from Wolski equations 59, 63 and 64
 
-bunch_params%a%beta = n_real(1,1)**2 + n_real(1,2)**2
-bunch_params%b%beta = n_real(3,3)**2 + n_real(3,4)**2
+if (good(1)) then
+  bunch_params%a%beta = n_real(1,1)**2 + n_real(1,2)**2
+  bunch_params%a%alpha = -(n_real(1,1)*n_real(2,1) + n_real(1,2)*n_real(2,2))
+  bunch_params%a%gamma = n_real(2,1)**2 + n_real(2,2)**2
+endif
 
-bunch_params%a%alpha = -(n_real(1,1)*n_real(2,1) + n_real(1,2)*n_real(2,2))
-bunch_params%b%alpha = -(n_real(3,3)*n_real(4,3) + n_real(3,4)*n_real(4,4))
+if (good(2)) then
+  bunch_params%b%beta = n_real(3,3)**2 + n_real(3,4)**2
+  bunch_params%b%alpha = -(n_real(3,3)*n_real(4,3) + n_real(3,4)*n_real(4,4))
+  bunch_params%b%gamma = n_real(4,3)**2 + n_real(4,4)**2
+endif
 
-bunch_params%a%gamma = n_real(2,1)**2 + n_real(2,2)**2
-bunch_params%b%gamma = n_real(4,3)**2 + n_real(4,4)**2
+! Dispersion comes from Wolski equations 69 and 70
 
-! Dispersion comes from equations 69 and 70
-
-if (dim == 6) then
+if (dim == 6 .and. good(3)) then
   bunch_params%c%beta = n_real(5,5)**2 + n_real(5,6)**2
   bunch_params%c%alpha = -(n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6))
   bunch_params%c%gamma = n_real(6,5)**2 + n_real(6,6)**2
@@ -1712,9 +1716,9 @@ end subroutine projected_twiss_calc
 
 !----------------------------------------------------------------------
 ! contains
-! Eq. 14 But using row vectors to conform to BMAD's mat_eigen
+! Wolski Eq. 14 But using row vectors to conform to BMAD's mat_eigen
 
-subroutine normalize_e (e, dim, err)
+subroutine normalize_e (e, dim, good, err)
 
 implicit none
 
@@ -1724,13 +1728,14 @@ complex(rp) :: s(dim,dim)
 complex(rp) :: e(dim,dim), temp(dim)
 complex(rp) :: wronsk, factor
 
-integer i, j, k
+integer i2, i, j, k
 
-logical err
+logical good(3), err
 
 !
 
-err = .true.
+err = .false.
+good = .false.
 
 s = 0.0
 s(1,2) = ( 1.0,0.0) 
@@ -1742,7 +1747,8 @@ if (dim == 6) then
   s(6,5) = (-1.0,0.0)
 endif
 
-do i = 1, dim, 2
+do i2 = 1, dim/2
+  i = 2*i2 - 1
   e(i,:) = conjg(e(i+1,:)) ! Eq. 14b
   ! set up the normaization factor
   temp = matmul(s,e(i+1,:))
@@ -1750,14 +1756,16 @@ do i = 1, dim, 2
   do j = 1, dim
     wronsk = e(i,j)*temp(j) + wronsk
   enddo
-  if (wronsk == 0) return ! Error   
+  if (wronsk == 0) then
+    err = .true.
+    cycle
+  endif
   factor = sqrt(i_imag) / sqrt(wronsk)
   ! this next step is the actual normalization (Eq. 14a)
   e(i+1,:) = e(i+1,:) * factor 
   e(i,:) = conjg(e(i+1,:))
+  good(i2) = .true.
 enddo
-
-err = .false.
 
 end subroutine normalize_e
   
