@@ -51,10 +51,6 @@ call bmad_parser(lat_file, lat)
 call set_on_off(rfcavity$,lat,off$)
 call twiss_and_track(lat, co, status)
 
-do i=1,size(var_names)
-  var_names(i) = upcase(var_names(i))
-enddo
-
 call lat_ele_locator(var_names, lat, eles, nVar)
 allocate(var_indexes(nVar))
 do i = 1, nVar
@@ -64,12 +60,13 @@ enddo
 weight = [wgt_chrom_x, wgt_chrom_y, wgt_h20001, wgt_h00201, wgt_h10002, &
                         wgt_h21000, wgt_h30000, wgt_h10110, wgt_h10020, wgt_h10200]
 
-call srdt_lsq_solution(lat, var_indexes, var_names, ls_soln, gen_slices, sxt_slices, chrom_x, chrom_y, weight)
+call srdt_lsq_solution(lat, var_indexes, ls_soln, gen_slices, sxt_slices, chrom_x, chrom_y, weight)
 
 open(45,file='srdt_lsq_soln.var')
 do i=1,size(ls_soln)
   !write(45,'(a,a,es16.8)') trim(lat%ele(var_indexes(i))%name), '[k2]=', ls_soln(i)
-  write(45,'(a,a,es16.8)') trim(var_names(i)), '[k2]=', ls_soln(i)
+  j = var_indexes(i)
+  write(45,'(a,a,es16.8)') trim(lat%ele(j)%name), '[k2]=', ls_soln(i)
 enddo
 close(45)
 
