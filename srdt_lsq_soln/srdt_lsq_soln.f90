@@ -11,6 +11,7 @@ type(lat_struct) lat
 type(coord_struct), allocatable :: co(:)
 type(summation_rdt_struct) srdt
 type(summation_rdt_struct), allocatable :: per_ele_rdt(:)
+type(ele_pointer_struct), allocatable :: eles(:)
 
 real(rp), allocatable :: ls_soln(:)
 real(rp) chrom_x, chrom_y, weight(10)
@@ -53,10 +54,12 @@ call twiss_and_track(lat, co, status)
 do i=1,size(var_names)
   var_names(i) = upcase(var_names(i))
 enddo
-call name_to_list(lat,var_names)
-nVar = count(lat%ele(:)%select)
+
+call lat_ele_locator(var_names, lat, eles, nVar)
 allocate(var_indexes(nVar))
-var_indexes = pack([(i,i=0,lat%n_ele_track)],lat%ele(:)%select)
+do i = 1, nVar
+  var_indexes(i) = eles(i)%ele%ix_ele
+enddo
 
 weight = [wgt_chrom_x, wgt_chrom_y, wgt_h20001, wgt_h00201, wgt_h10002, &
                         wgt_h21000, wgt_h30000, wgt_h10110, wgt_h10020, wgt_h10200]
