@@ -917,11 +917,10 @@ function tao_subin_uni_number (name_in, ix_uni, name_out) result (ok)
   logical ok
 end function
 
-subroutine tao_taper_cmd(include_solenoids, uni_names)
+subroutine tao_taper_cmd(except, uni_names)
   import
   implicit none
-  logical include_solenoids
-  character(*) uni_names
+  character(*) except, uni_names
 end subroutine
 
 subroutine tao_top_level (command, errcode)
