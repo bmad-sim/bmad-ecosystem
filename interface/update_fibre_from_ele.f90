@@ -73,7 +73,7 @@ else
 endif
 
 call ele_to_ptc_magnetic_an_bn (ele, branch%param, b_pole, a_pole) ! Yes arg order is b_pole, a_pole.
-if (ele%key == sbend$) b_pole(1) = b_pole(1) + ele%value(g$)	 
+if (ele%key == sbend$) b_pole(0) = b_pole(0) + ele%value(g$)	 
 
 do i = n_pole_maxx, 0, -1
   if (b_pole(i) /= b_ptc(i)) call add (fib,  (i+1), 0, b_pole(i))

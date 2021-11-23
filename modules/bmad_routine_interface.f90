@@ -1614,14 +1614,6 @@ subroutine ptc_transfer_map_with_spin (branch, t_map, s_map, orb0, err_flag, ix1
   logical, optional :: one_turn, unit_start
 end subroutine
 
-subroutine quad_beta_ave (ele, beta_a_ave, beta_b_ave)
-  import
-  implicit none
-  type (ele_struct), target :: ele
-  real(rp) beta_a_ave
-  real(rp) beta_b_ave
-end subroutine
-
 subroutine quad_mat2_calc (k1, length, rel_p, mat2, z_coef, dz_dpz_coef)
   import
   implicit none
