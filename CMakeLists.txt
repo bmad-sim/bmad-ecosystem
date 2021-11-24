@@ -3,6 +3,7 @@ project(ACC)
 
 set (EXE_SPECS 
   cmake.abs_time_test
+  cmake.analysis_test
   cmake.aperture_test
   cmake.autoscale_test
   cmake.backwards_time_track_test
