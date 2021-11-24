@@ -8,3 +8,4 @@ tutorial_bmad_tao/doc/tutorial_bmad_tao.out
 tutorial_bmad_tao/doc/tutorial_bmad_tao.pdf
 tutorial_bmad_tao/doc/tutorial_bmad_tao.toc
 push_all
+*.digested*
