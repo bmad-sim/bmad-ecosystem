@@ -20,7 +20,7 @@
 function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial, error) result (dn_dpz)
 
 use bmad_routine_interface, dummy => spin_dn_dpz_from_mat8
-use f95_lapack
+use f95_lapack, only: zgesv_f95
 
 implicit none
 
