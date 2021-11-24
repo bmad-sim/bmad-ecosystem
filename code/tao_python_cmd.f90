@@ -7223,7 +7223,7 @@ nullify(u)
 err = .false.
 
 if (compound_word) then
-  ix = index(line, '@')
+  ix = tao_uni_ampersand_index(line)
   if (ix == 0) then
     ix_universe = s%global%default_universe
   elseif (line(1:ix-1) == '') then

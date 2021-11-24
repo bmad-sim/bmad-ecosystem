@@ -55,7 +55,7 @@ if (present(ix_uni)) ix_uni = -1
 
 ! No "@" then simply choose s%global%default_universe.
 
-ix = index (name_in, '@')
+ix = tao_uni_ampersand_index(name_in)
 ic = index (name_in, '::')
 
 if (present(explicit_uni)) explicit_uni = (ix /= 0)

@@ -2380,7 +2380,7 @@ case ('lattice')
         width = 12
       end select
 
-      ix = index(attrib, '@')
+      ix = tao_uni_ampersand_index(attrib)
       if (ix /= 0) then
         fmt = attrib(ix+1:)
         attrib = attrib(1:ix-1)
