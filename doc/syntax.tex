@@ -270,7 +270,7 @@ are calculated from the lattice and do not have to be defined at initialization 
 parameter ``\vn{token}'' is a string that specifies a scalar or an array of lattice parameters. The
 general form for data tokens in expressions (\sref{s:arithmetic.exp}) is:
 \begin{example}
-  \{[<universe(s)>]@\}lat::<parameter>[\{<ref_ele>&\}<element_list>]\{|<component>\}
+  \{[<universe(s)>]@\}lat::<parameter>[\{<ref_ele>&\}<element_list>\{@<s_offset>\}]\{|<component>\}
 \end{example}
 where:
 \begin{example}
@@ -278,14 +278,16 @@ where:
   <parameter>         Name of the parameter.
   <ref_ele>           Optional reference element.
   <element_list>      Evaluation point or points.
+  <s_offset>          Longitudinal offset to evaluate at.
   <component>         Optional component. 
 \end{example}
 correspond to the data types as listed in \Sref{s:data.types}. 
 \begin{example}
-  3@lat::orbit.x[34:37]         ! Array of orbits at element 34 through 37 in universe 3.
-  3@lat::orbit.x[q10w]|model    ! Orbit.x model value at element q10w
-  lat::sigma.12[q10w]           ! Beam sigma matrix component at element q10w computed 
-                                !  from lattice parameters.
+  3@lat::orbit.x[34:37]          ! Array of orbits at element 34 through 37 in universe 3.
+  3@lat::orbit.x[q10w]|model     ! Orbit.x model value at element q10w
+  3@lat::orbit.x[q10w@0.1]|model ! Same as above except eval point is shifted 0.1 meters.
+  lat::sigma.12[q10w]            ! Beam sigma matrix component at element q10w computed 
+                                 !  from lattice parameters.
 \end{example}
 
 The list of possible lattice \vn{<parameter>} names is given in \Sref{s:data.types}. The table
@@ -295,18 +297,20 @@ while \vn{data::orbit.x} refers to user defined data whose name corresponds to \
 fact there is nothing to prevent a user from assigning the name \vn{orbit.x} to data that is derived
 from, say, the Twiss beta function.
 
-Also notice the difference between, say, ``\vn{lat::orbit.x[10]}'' and
-``\vn{data::orbit.x[10]}''. With the ``\vn{lat::}'' source, the element index, in this case \vn{10},
-refers to the 10th lattice element. With the ``\vn{data::}'' source, ``\vn{10}'' refers to the 10\Th
-element in the \vn{orbit.x} data array which may or may not correspond to the 10\Th lattice element.
+Also notice the difference between, say, ``\vn{lat::orbit.x[10]}'' and ``\vn{data::orbit.x[10]}''.
+With the ``\vn{lat::}'' source, the element index, in this case \vn{10}, refers to the 10th lattice
+element. With the ``\vn{data::}'' source, ``\vn{10}'' refers to the 10\Th element in the
+\vn{orbit.x} data array which may or may not correspond to the 10\Th lattice element.
 
-The optional \vn{<ref_ele>} specifies a reference
-element for the evaluation. For example
+The optional \vn{<ref_ele>} specifies a reference element for the evaluation. For example
 \begin{example}
   lat::r.56[q0\&qa:qb]
 \end{example}  
 is an array of the $r(5,6)$ matrix element of the transport map between element \vn{q0} and each
 element in the range from element \vn{qa} and \vn{qb}.
+
+The optional \vn{s_offset>} specifies a longitudinal offset for the evaluation point. This may be
+an expression.
 
 %------------------------------------------------------------------------
 \section{Specifying Beam Parameters in Expressions}

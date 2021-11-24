@@ -1065,7 +1065,7 @@ character(*), parameter :: r_name = 'tao_pointer_to_universe_str'
 
 nullify(u)
 
-ix = index(string, '@')
+ix = tao_uni_ampersand_index(string)
 if (ix == 0) then
   u => s%u(tao_universe_number(-1))
   return
@@ -1094,6 +1094,46 @@ endif
 u => s%u(ix_u)
 
 end function tao_pointer_to_universe_str
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function tao_uni_ampersand_index(string) result (ix_amp)
+!
+! Routine to return the index of an ampersand ("@") sign in a string if the ampersand is
+! being used as a separator between a universe spec and the rest of the string.
+!
+! For example:
+!   string = "[1:3]@orbit.x[5] => ix_amp = 6
+!   string = "orbit.x[5@0.2]   => ix_amp = 0 (no universe "@" present)
+!
+! Input:
+!   string      -- character(*): String to parse
+!
+! Output:
+!   ix_amp      -- integer: Index of universe "@". Set to zero if no universe "@" found.
+!-
+
+function tao_uni_ampersand_index(string) result (ix_amp)
+
+implicit none
+
+integer ix_amp, i
+character(*) string
+
+! Any characters before a uni "@" must be in the set '0123456789:,[]'.
+
+ix_amp = 0
+
+do i = 1, len(string)
+  if (index('0123456789:,[]', string(i:i)) == 0 .and. string(i:i) /= '@') return
+  if (string(i:i) /= '@') cycle
+  ix_amp = i
+  return
+enddo
+
+end function tao_uni_ampersand_index
 
 end module
 

@@ -56,6 +56,7 @@ character(*), parameter :: r_name = 'tao_evaluate_lat_or_beam_data'
 
 real(rp), allocatable :: values(:)
 real(rp), optional :: dflt_s_offset
+real(rp) s_offset
 
 integer, optional :: dflt_uni, dflt_eval_point
 integer i, j, num, ix, ix1, ios, n_tot, n_loc, iu
@@ -105,6 +106,7 @@ endif
 ! Get data type
 
 ele_name = ''
+s_offset = real_option(0.0_rp, dflt_s_offset)
 use_dflt_ele = .true.
 has_assoc_ele = .true.
 ix1 = index(name, '[')
@@ -136,7 +138,18 @@ else
   endif
   use_dflt_ele = .false.
 
-  ! Get ele_ref & ele
+  ! Get ele_ref & ele @ s_offset
+
+  ix = index(name, '@')
+  if (ix /= 0) then
+    call tao_evaluate_expression(name(ix+1:), 1, .false., values, err_flag, .true., dflt_ele = dflt_ele)
+    if (err_flag) then
+      if (print_err) call out_io (s_error$, r_name, 'BAD S_OFFSET: ' // data_name)
+      return
+    endif
+    s_offset = values(1)
+    name = name(:ix-1)
+  endif
 
   ix = index(name, '&')
   if (ix /= 0) then
@@ -223,7 +236,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       endif
 
       datum%eval_point = integer_option(anchor_end$, dflt_eval_point)
-      datum%s_offset = real_option(0.0_rp, dflt_s_offset)
+      datum%s_offset = s_offset
     endif
 
     select case (component)
