@@ -110,7 +110,7 @@ end function
 
 function fine_frequency_estimate(data) result(frequency)
 
-use nr, only: dbrent
+use super_recipes_mod, only: super_dbrent
 
 implicit none
 
@@ -119,7 +119,7 @@ real(rp) :: frequency
 real(rp) :: ftry, fbin, fmin, fmax, festimate, df, f1, f2
 real(rp) :: cos_amp, sin_amp, dcos_amp, dsin_amp, omega
 real(rp) :: amp, max_amp
-integer :: i, imax
+integer :: i, imax, status
 integer, parameter :: nscan = 4 !Scan points
 logical :: err
 
@@ -138,22 +138,23 @@ fbin = 1.0_rp/size(data)
 fmin = ftry - fbin
 fmax = ftry + fbin
 
-max_amp =  -dbrent(fmin,ftry,fmax, negative_ampsquared, negative_dampsquared, 1e-12_rp, frequency)
+max_amp =  -super_dbrent(fmin,ftry,fmax, negative_ampsquared, negative_dampsquared, &
+                                                                 1e-12_rp, fbin*1e-15_rp, frequency, status)
 
 !---------------------------------------------------------------------------
 contains
 
-function negative_ampsquared(frequency) result(amp)
+function negative_ampsquared(frequency, status) result(amp)
 
 implicit none
 real(rp) :: cos_amp, sin_amp
-real(rp), intent(in) :: frequency
+real(rp) :: frequency
 real(rp) amp
+integer, optional :: status
 
 !
 
 call fourier_amplitude(data, frequency, cos_amp, sin_amp)
-
 amp = -cos_amp**2 - sin_amp**2
 
 end function negative_ampsquared
@@ -161,13 +162,16 @@ end function negative_ampsquared
 !---------------------------------------------------------------------------
 ! contains
 
-function negative_dampsquared(frequency) result(damp)
+function negative_dampsquared(frequency, status) result(damp)
 implicit none
 real(rp) :: cos_amp, sin_amp, dcos_amp, dsin_amp
-real(rp), intent(in) :: frequency
+real(rp) :: frequency
 real(rp) damp
-call fourier_amplitude(data, frequency, cos_amp, sin_amp, dcos_amp, dsin_amp)
+integer, optional :: status
 
+!
+
+call fourier_amplitude(data, frequency, cos_amp, sin_amp, dcos_amp, dsin_amp)
 damp = -cos_amp*dcos_amp - sin_amp*dsin_amp
 
 end function negative_dampsquared

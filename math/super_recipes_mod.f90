@@ -188,10 +188,10 @@ do
     jstack = jstack-2
   else
     k = (l+r)/2
-    call swap_i(arr(k), arr(l+1))
-    if (arr(l)>arr(r))   call swap_i(arr(l), arr(r))
-    if (arr(l+1)>arr(r)) call swap_i(arr(l+1), arr(r))
-    if (arr(l)>arr(l+1)) call swap_i(arr(l), arr(l+1))
+    call swap(arr(k), arr(l+1))
+    if (arr(l)>arr(r))   call swap(arr(l), arr(r))
+    if (arr(l+1)>arr(r)) call swap(arr(l+1), arr(r))
+    if (arr(l)>arr(l+1)) call swap(arr(l), arr(l+1))
     i = l+1
     j = r
     a = arr(l+1)
@@ -205,7 +205,7 @@ do
         if (arr(j) <= a) exit
       end do
       if (j < i) exit
-      call swap_i(arr(i), arr(j))
+      call swap(arr(i), arr(j))
     end do
     arr(l+1) = arr(j)
     arr(j) = a
@@ -608,6 +608,177 @@ end function super_brent
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Function super_dbrent (ax, bx, cx, func, dfunc, rel_tol, abs_tol, xmin, status) result (func_min)
+!
+! Rotine to find the minimum of a function in the range [ax, cx].
+! This if based on the NR routine dbrent.
+!
+! Input:
+!   ax        -- real(rp): Minimum of the range to search.
+!   bx        -- real(rp): Value in the range [ax, cx] such that func(bx) < min(func(ax), func(bx)).
+!   cx        -- real(rp): Maximum of the range to search.
+!   func      -- function whose minimum is to be found. The interface is:
+!                  function func(x, status) result (value)
+!                    real(rp), intent(in) :: x
+!                    integer, optional :: status  ! If non-zero return value, super_dbrent will terminate.
+!                    real(rp) :: value
+!                  end function func
+!   dfunc     -- function derivative. The interface is:
+!                  function dfunc(x, status) result (value)
+!                    real(rp), intent(in) :: x
+!                    integer, optional :: status  ! If non-zero return value, super_dbrent will terminate.
+!                    real(rp) :: dvalue
+!                  end function dfunc
+!   rel_tol   -- real(rp): Relative tolerance for the error xmin. This is tol in NR brent routine.
+!   abs_tol   -- real(rp): Absolute tolerance for the error xmin. Equivalent to 1e-18*abs(ax) in NR dbrent.
+!
+! Output:
+!   xmin      -- real(rp): x-coordinate at minimum.
+!   status    -- integer: Calculation status:
+!                      -2    => Max iterations exceeded.
+!                       0    => Normal.
+!                       Other => Set by funcs or dfuncs. 
+!   func_min  -- real(rp) value of func(xmin).
+!-
+
+function super_dbrent(ax, bx, cx, func, dfunc, rel_tol, abs_tol, xmin, status) result (func_min)
+
+implicit none
+real(rp), intent(in) :: ax, bx, cx
+real(rp), intent(out) :: xmin
+real(rp) :: rel_tol, abs_tol, func_min
+
+interface
+  function func(x, status) result (dvalue)
+  import
+  implicit none
+  real(rp) :: x
+  real(rp) :: dvalue
+  integer, optional :: status
+  end function func
+
+  function dfunc(x, status) result (value)
+  import
+  implicit none
+  real(rp) :: x
+  real(rp) :: value
+  integer, optional :: status
+  end function dfunc
+end interface
+
+integer, parameter :: itmax = 100
+integer :: status, iter
+real(rp) a, b, d, d1, d2, du, dv, dw, dx, e, fu, fv, fw, fx, olde, tol1, tol2
+real(rp) u, u1, u2, v, w, x, xm
+logical :: ok1, ok2
+
+!
+
+a = min(ax, cx)
+b = max(ax, cx)
+v = bx
+w = v
+x = v
+e = 0.0
+fx = func(x, status); if (status /= 0) return
+fv = fx
+fw = fx
+dx = dfunc(x, status); if (status /= 0) return
+dv = dx
+dw = dx
+
+do iter = 1, itmax
+  xm = 0.5_rp*(a+b)
+  tol1 = rel_tol*abs(x)+abs_tol
+  tol2 = 2.0_rp*tol1
+  if (abs(x-xm) <= (tol2-0.5_rp*(b-a))) exit
+  if (abs(e) > tol1) then
+    d1 = 2.0_rp*(b-a)
+    d2 = d1
+    if (dw /= dx) d1 = (w-x)*dx/(dx-dw)
+    if (dv /= dx) d2 = (v-x)*dx/(dx-dv)
+    u1 = x+d1
+    u2 = x+d2
+    ok1 = ((a-u1)*(u1-b) > 0.0) .and. (dx*d1 <= 0.0)
+    ok2 = ((a-u2)*(u2-b) > 0.0) .and. (dx*d2 <= 0.0)
+    olde = e
+    e = d
+    if (ok1 .or. ok2) then
+      if (ok1 .and. ok2) then
+        d = merge(d1, d2, abs(d1) < abs(d2))
+      else
+        d = merge(d1, d2, ok1)
+      end if
+      if (abs(d) <= abs(0.5_rp*olde)) then
+        u = x+d
+        if (u-a < tol2 .or. b-u < tol2) &
+          d = sign(tol1, xm-x)
+      else
+        e = merge(a, b, dx >= 0.0)-x
+        d = 0.5_rp*e
+      end if
+    else
+      e = merge(a, b, dx >= 0.0)-x
+      d = 0.5_rp*e
+    end if
+  else
+    e = merge(a, b, dx >= 0.0)-x
+    d = 0.5_rp*e
+  end if
+  if (abs(d) >= tol1) then
+    u = x+d
+    fu = func(u, status); if (status /= 0) return
+  else
+    u = x+sign(tol1, d)
+    fu = func(u, status); if (status /= 0) return
+    if (fu > fx) exit
+  end if
+  du = dfunc(u, status); if (status /= 0) return
+  if (fu <= fx) then
+    if (u >= x) then
+      a = x
+    else
+      b = x
+    end if
+    call mov3(v, fv, dv, w, fw, dw)
+    call mov3(w, fw, dw, x, fx, dx)
+    call mov3(x, fx, dx, u, fu, du)
+  else
+    if (u < x) then
+      a = u
+    else
+      b = u
+    end if
+    if (fu <= fw .or. w  == x) then
+      call mov3(v, fv, dv, w, fw, dw)
+      call mov3(w, fw, dw, u, fu, du)
+    else if (fu <= fv .or. v  == x .or. v  == w) then
+      call mov3(v, fv, dv, u, fu, du)
+    end if
+  end if
+end do
+
+status = -2
+xmin = x
+func_min = fx
+
+!---------------------------------------------
+contains
+
+subroutine mov3(a, b, c, d, e, f)
+real(rp), intent(in) :: d, e, f
+real(rp), intent(out) :: a, b, c
+a = d
+b = e
+c = f
+end subroutine mov3
+
+end function super_dbrent
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Function super_zbrent (func, x1, x2, rel_tol, abs_tol, status) result (x_zero)
 !
 ! Routine to find the root of a function.
@@ -799,9 +970,6 @@ end function super_zbrent
 
 recursive subroutine super_mrqmin (y, weight, a, chisq, funcs, storage, alamda, status, maska)
 
-use nr, only: covsrt
-use nrutil, only: diagmult
-
 implicit none
 
 type (super_mrqmin_storage_struct) storage
@@ -811,7 +979,7 @@ real(rp) :: a(:)
 real(rp) :: chisq
 real(rp) :: alamda
 integer :: ma, ndata
-integer status, mfit
+integer status, mfit, j
 
 logical, intent(in), optional :: maska(:)
 
@@ -869,14 +1037,14 @@ else
 end if
 
 storage%covar(1:mfit, 1:mfit) = storage%alpha(1:mfit, 1:mfit)
-call diagmult(storage%covar(1:mfit, 1:mfit), 1.0_rp+alamda)
+forall (j = 1:mfit) storage%covar(j,j) =  storage%covar(j,j) * (1.0_rp+alamda)
 storage%da(1:mfit, 1) = storage%beta(1:mfit)
 call super_gaussj(storage%covar(1:mfit, 1:mfit), storage%da(1:mfit, 1:1), status)
 if (status /= 0) return
 
 if (alamda == 0.0) then
-  call covsrt(storage%covar, storage%mask)
-  call covsrt(storage%alpha, storage%mask)
+  call covar_expand(storage%covar, storage%mask)
+  call covar_expand(storage%alpha, storage%mask)
   deallocate(storage%atry, storage%beta, storage%da)
   deallocate(storage%dyda, storage%dy, storage%wt, storage%ymod)
   return
@@ -1472,5 +1640,54 @@ else
 end if
 
 end function super_poly
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine covar_expand(covar,maska)
+!
+! Routine to expand the covariance matrix covar so as to take into account parameters that have been masked.
+! The rows and columns corresponding to these masked parameters will be set to zero.
+! This is essentially covsrt from NR.
+!
+! Input:
+!   covar(:,:)    -- real(rp): Covariance matrix.
+!   maska(:)      -- real(rp): Mask vector.
+!
+! Output:
+!   covar(:,:)    -- real(rp): Expanded matrix
+!-
+
+subroutine covar_expand(covar, maska)
+
+implicit none
+
+real(rp), intent(inout) :: covar(:, :)
+logical, intent(in) :: maska(:)
+integer :: ma, mfit, j, k
+
+!
+
+ma =  size(maska)
+mfit = count(maska)
+covar(mfit+1:ma, 1:ma) = 0.0
+covar(1:ma, mfit+1:ma) = 0.0
+k = mfit
+do j = ma, 1, -1
+  if (maska(j)) then
+    call swap(covar(1:ma, k), covar(1:ma, j))
+    call swap(covar(k, 1:ma), covar(j, 1:ma))
+    k = k-1
+  end if
+end do
+
+end subroutine covar_expand
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+
 
 end module
