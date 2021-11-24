@@ -891,9 +891,8 @@ case ('building_wall_section')
 !   python constraints {who}
 !
 ! Where:
-!   {who} is one of:
-!     data
-!     var
+!   {who} is one of: "data" or "var"
+!
 ! Data constraints output is:
 !   data name
 !   constraint type
@@ -1982,10 +1981,8 @@ case ('derivative')
 !
 ! Where: 
 !   {ele_id} is an element name or index.
-!   {which} is one of
-!     model
-!     base
-!     design
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:ac_kicker 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -2038,14 +2035,12 @@ case ('ele:ac_kicker')
 ! Command syntax:
 !   python ele:cartesian_map {ele_id}|{which} {index} {who}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {index} is the index number in the ele%cartesian_map(:) array
-! {who} is one of:
-!   base
-!   terms
+! Where:
+!   {ele_id} is an element name or index
+!   {which} is one of: "model", "base" or "design"
+!   {index} is the index number in the ele%cartesian_map(:) array
+!   {who} is one of: "base", or "terms"
+!
 ! Example:
 !   python ele:cartesian_map 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
@@ -2116,14 +2111,13 @@ case ('ele:cartesian_map')
 ! Command syntax:
 !   python ele:chamber_wall {ele_id}|{which} {index} {who}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {index} is index of the wall.
-! {who} is one of:
-!   x       ! Return min/max in horizontal plane
-!   y       ! Return min/max in vertical plane
+! Where:
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {index} is index of the wall.
+!   {who} is one of:
+!     "x"       ! Return min/max in horizontal plane
+!     "y"       ! Return min/max in vertical plane
 ! 
 ! Parameters
 ! ----------
@@ -2185,10 +2179,10 @@ case ('ele:chamber_wall')
 ! Command syntax:
 !   python ele:control_var {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where:
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:control_var 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -2243,14 +2237,12 @@ case ('ele:control_var')
 ! Command syntax:
 !   python ele:cylindrical_map {ele_id}|{which} {index} {who}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {index} is the index number in the ele%cylindrical_map(:) array
-! {who} is one of:
-!   base
-!   terms
+! Where 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {index} is the index number in the ele%cylindrical_map(:) array
+!   {who} is one of: "base", or "terms"
+!
 ! Example:
 !   python ele:cylindrical_map 3@1>>7|model 2 base
 ! This gives map #2 of element number 7 in branch 1 of universe 3.
@@ -2323,10 +2315,10 @@ case ('ele:cylindrical_map')
 ! Command syntax:
 !   python ele:elec_multipoles {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where:
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:elec_multipoles 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -2385,15 +2377,15 @@ case ('ele:elec_multipoles')
 ! Command syntax:
 !   python ele:floor {ele_id}|{which} {where}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {where} is an optional argument which, if present, is one of
-!   beginning  ! Upstream end
-!   center     ! Middle of element
-!   end        ! Downstream end (default)
+! Where:
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {where} is an optional argument which, if present, is one of
+!     beginning  ! Upstream end
+!     center     ! Middle of element
+!     end        ! Downstream end (default)
 ! Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
+!
 ! Example:
 !   python ele:floor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -2475,11 +2467,12 @@ case ('ele:floor')
 ! Command syntax:
 !   python ele:grid_field {ele_id}|{which} {index} {who}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model, base, design
-! {index} is the index number in the ele%grid_field(:) array.
-! {who} is one of:
-!   base, points
+! Where:
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {index} is the index number in the ele%grid_field(:) array.
+!   {who} is one of: "base", or "points"
+!
 ! Example:
 !   python ele:grid_field 3@1>>7|model 2 base
 ! This gives grid #2 of element number 7 in branch 1 of universe 3.
@@ -2573,10 +2566,10 @@ case ('ele:grid_field')
 ! Command syntax:
 !   python ele:gen_attribs {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:gen_attribs 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -2650,10 +2643,10 @@ case ('ele:gen_attribs')
 ! Command syntax:
 !   python ele:head {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:head 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -2735,10 +2728,10 @@ case ('ele:head')
 ! Command syntax:
 !   python ele:lord_slave {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:lord_slave 3@1>>7|model
 ! This gives lord and slave info on element number 7 in branch 1 of universe 3.
@@ -2801,14 +2794,11 @@ case ('ele:lord_slave')
 ! Command syntax:
 !   python ele:mat6 {ele_id}|{which} {who}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {who} is one of:
-!   mat6
-!   vec0
-!   err
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {who} is one of: "mat6", "vec0", or "err"
+!
 ! Example:
 !   python ele:mat6 3@1>>7|model mat6
 ! This gives element number 7 in branch 1 of universe 3.
@@ -2863,10 +2853,10 @@ case ('ele:mat6')
 ! Command syntax:
 !   python ele:methods {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:methods 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -2950,10 +2940,10 @@ case ('ele:methods')
 ! Command syntax:
 !   python ele:multipoles {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:multipoles 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -3034,10 +3024,10 @@ case ('ele:multipoles')
 ! Command syntax:
 !   python ele:orbit {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:orbit 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -3075,13 +3065,11 @@ case ('ele:orbit')
 ! Command syntax:
 !   python ele:param {ele_id}|{which} {who}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! Possible {who} values is the same as possible {who} values for "python lat_list"
-! except for "ele:mat6" and "ele:vec0".
-! Note: Here {who} must be a single parameter and not a list.
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {who} values are the same as {who} values for "python lat_list" except for "ele:mat6" and "ele:vec0".
+!         Note: Here {who} must be a single parameter and not a list.
 !
 ! Example:
 !   python ele:param 3@1>>7|model e_tot
@@ -3135,14 +3123,11 @@ case ('ele:param')
 ! Command syntax:
 !   python ele:photon {ele_id}|{which} {who}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {who} is one of:
-!   base
-!   material
-!   curvature
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {who} is one of: "base", "material", or "curvature"
+!
 ! Example:
 !   python ele:photon 3@1>>7|model base
 ! This gives element number 7 in branch 1 of universe 3.
@@ -3213,10 +3198,10 @@ case ('ele:photon')
 ! Command syntax:
 !   python ele:spin_taylor {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:spin_taylor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -3263,10 +3248,10 @@ case ('ele:spin_taylor')
 ! Command syntax:
 !   python ele:taylor {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:taylor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -3319,14 +3304,12 @@ case ('ele:taylor')
 ! Command syntax:
 !   python ele:taylor_field {ele_id}|{which} {index} {who}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {index} is the index number in the ele%taylor_field(:) array
-! {who} is one of:
-!   base
-!   terms
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {index} is the index number in the ele%taylor_field(:) array
+!   {who} is one of: "base", or "terms".
+!
 ! Example:
 !   python ele:taylor_field 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
@@ -3400,10 +3383,10 @@ case ('ele:taylor_field')
 ! Command syntax:
 !   python ele:twiss {ele_id}|{which}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
 ! Example:
 !   python ele:twiss 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -3449,15 +3432,14 @@ case ('ele:twiss')
 ! Command syntax:
 !   python ele:wake {ele_id}|{which} {who}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {Who} is one of
-!   base
-!   sr_long     sr_long_table
-!   sr_trans    sr_trans_table
-!   lr_mode_table
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {Who} is one of:
+!       "sr_long"        "sr_long_table"
+!       "sr_trans"       "sr_trans_table"
+!       "lr_mode_table"  "base"
+!
 ! Example:
 !   python ele:wake 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -3550,14 +3532,11 @@ case ('ele:wake')
 ! Command syntax:
 !   python ele:wall3d {ele_id}|{which} {index} {who}
 !
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
-! {who} is one of:
-!   base
-!   table
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
+!   {who} is one of: "base", or "table".
 ! Example:
 !   python ele:wall3d 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
@@ -3698,11 +3677,8 @@ case ('evaluate')
 ! Command syntax:
 !   python em_field {ele_id}|{which} {x} {y} {z} {t_or_z}
 !
-! where {which} is one of:
-!   model
-!   base
-!   design
 ! Where:
+!   {which} is one of: "model", "base" or "design"
 !   {x}, {y}  -- Transverse coords.
 !   {z}       -- Longitudinal coord with respect to entrance end of element.
 !   {t_or_z}  -- time or phase space z depending if lattice is setup for absolute time tracking.
@@ -4449,7 +4425,7 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 ! Command syntax:
 !   python lat_list {flags} {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 !
-! where:
+! Where:
 !  Optional {flags} are:
 !   -no_slaves : If present, multipass_slave and super_slave elements will not be matched to.
 !   -track_only : If present, lord elements will not be matched to.
@@ -4458,10 +4434,7 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !     tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
 !     Note: Only a single {who} item permitted when -array_out is present.
 !
-!   {which} is one of:
-!     model
-!     base
-!     design
+!   {which} is one of: "model", "base" or "design"
 ! 
 !   {who} is a comma deliminated list of:
 !     orbit.floor.x, orbit.floor.y, orbit.floor.z    ! Floor coords at particle orbit.
@@ -4715,7 +4688,7 @@ case ('lat_param_units')
 ! Command syntax:
 !   python matrix {ele1_id} {ele2_id}
 !
-! where:
+! Where:
 !   {ele1_id} is the start element.
 !   {ele2_id} is the end element.
 ! If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
@@ -4795,13 +4768,10 @@ case ('merit')
 ! Notes
 ! -----
 ! Command syntax:
-!   python orbit_at_s {ix_uni}@{ix_branch}>>{s}|{which}
+!   python orbit_at_s {ix_uni}@{ix_branch}>>{ele}@{s_offset}|{which}
 !
-! where:
-!   {which} is one of:
-!     model
-!     base
-!     design
+! Where:
+!   {which} is one of: "model", "base" or "design"
 !   {s} is the longitudinal s-position.
 ! 
 ! Parameters
@@ -6023,7 +5993,7 @@ case ('shape_pattern_list')
 ! Command syntax:
 !   python shape_pattern_manage {ix_pattern}^^{pat_name}^^{pat_line_width}
 !
-! where:
+! Where:
 !   {ix_pattern}      -- Pattern index. Patterns with higher indexes will be moved up 
 !                                       if adding a pattern and down if deleting.
 !   {pat_name}        -- Pattern name.
@@ -6082,7 +6052,7 @@ case ('shape_pattern_manage')
 ! Command syntax:
 !   python shape_pattern_point_manage {ix_pattern}^^{ix_point}^^{s}^^{x}
 !
-! where:
+! Where:
 !   {ix_pattern}      -- Pattern index.
 !   {ix_point}        -- Point index. Points of higher indexes will be moved up
 !                                     if adding a point and down if deleting.
@@ -6376,6 +6346,9 @@ case ('spin_polarization')
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm_partial_c;REAL;F;',  tao_branch%spin%pol_limit_dkm_partial(3)
   nl=incr(nl); write (li(nl), rmt) 'polarization_rate_bks;REAL;F;',             tao_branch%spin%pol_rate_bks
   nl=incr(nl); write (li(nl), rmt) 'depolarization_rate;REAL;F;',               tao_branch%spin%depol_rate
+  nl=incr(nl); write (li(nl), rmt) 'depolarization_rate_partial_a;REAL;F;',     tao_branch%spin%depol_rate_partial(1)
+  nl=incr(nl); write (li(nl), rmt) 'depolarization_rate_partial_b;REAL;F;',     tao_branch%spin%depol_rate_partial(2)
+  nl=incr(nl); write (li(nl), rmt) 'depolarization_rate_partial_c;REAL;F;',     tao_branch%spin%depol_rate_partial(3)
 
 !%% spin_resonance -----------------------
 ! Output spin resonance information
@@ -6481,7 +6454,7 @@ case ('super_universe')
 ! Notes
 ! -----
 ! Command syntax:
-!   python twiss_at_s {ix_uni}@{ix_branch}>>{s}|{which}
+!   python twiss_at_s {ix_uni}@{ix_branch}>>{ele}@{s_offset}|{which}
 !
 ! where {which} is one of:
 !   model

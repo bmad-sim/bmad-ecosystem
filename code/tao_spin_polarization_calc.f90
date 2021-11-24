@@ -121,6 +121,7 @@ if (integral_1ns == 0 .or. err) then
   tao_branch%spin%pol_limit_dkm_partial = 0
   tao_branch%spin%pol_rate_bks          = 0
   tao_branch%spin%depol_rate            = 0
+  tao_branch%spin%depol_rate_partial    = 0
 else
   cm_ratio = charge_to_mass_of(branch%param%particle)
   call convert_pc_to ((1 + orbit(0)%vec(6)) * orbit(0)%p0c, branch%param%particle, gamma = gamma)
@@ -130,6 +131,7 @@ else
   tao_branch%spin%pol_limit_dkm_partial = f_limit * (integral_bn - integral_bdn_partial) / (integral_1ns + integral_dn2_partial)
   tao_branch%spin%pol_rate_bks          = f * integral_1ns
   tao_branch%spin%depol_rate            = f * integral_dn2
+  tao_branch%spin%depol_rate_partial    = f * integral_dn2_partial
 endif
 
 end subroutine tao_spin_polarization_calc

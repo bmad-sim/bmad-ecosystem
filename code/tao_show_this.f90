@@ -3740,13 +3740,17 @@ case ('spin')
           nl=nl+1; lines(nl) = 'No bends or other radiation producing lattice elements detected!'
         else
           r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
-          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                ', tao_branch%spin%pol_limit_st
-          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DKM:               ', tao_branch%spin%pol_limit_dkm
-          nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Partial Polarization Limits DKM:      ', tao_branch%spin%pol_limit_dkm_partial
-          nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Polarization Time BKS (minutes, turns): ', &
-                                             real_str(1 / (60*tao_branch%spin%pol_rate_bks), 3), r / tao_branch%spin%pol_rate_bks
-          nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Depolarization Time (minutes, turns):   ', &
-                                             real_str(1 / (60*tao_branch%spin%depol_rate), 3), r / tao_branch%spin%depol_rate
+          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                  ', tao_branch%spin%pol_limit_st
+          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DKM:                 ', tao_branch%spin%pol_limit_dkm
+          nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Polarization Limits DKM (a,b,c-modes):  ', tao_branch%spin%pol_limit_dkm_partial
+          x = 1.0_rp / tao_branch%spin%pol_rate_bks
+          nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Polarization Time BKS (minutes, turns): ', real_str(x/60, 3), r*x
+          x = 1.0_rp / tao_branch%spin%depol_rate
+          nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Depolarization Time (minutes, turns):   ', real_str(x/60, 3), r*x
+          v2 = 1 / tao_branch%spin%depol_rate_partial
+          nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a-mode) (minutes, turns):', real_str(v2(1), 3), r*v2(1)
+          nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b-mode) (minutes, turns):', real_str(v2(2), 3), r*v2(2)
+          nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (c-mode) (minutes, turns):', real_str(v2(3), 3), r*v2(3)
         endif
       else
         nl=nl+1; lines(nl) = 'Polarization calc not valid.'
