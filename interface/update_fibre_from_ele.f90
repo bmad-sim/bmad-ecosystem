@@ -104,8 +104,13 @@ enddo
 ! Note: ele_to_an_bn takes care of such stuff as sextupole strength conversion so
 ! only have to worry about non-multipole components here.
 
-! call set_integer (mp%method, mpp%method, nint(val(integrator_order$)))
-! call set_integer (mp%nst, mpp%nst, nint(val(num_steps$)))
+call set_integer (mp%method, mpp%method, nint(val(integrator_order$)))
+
+if (nint(val(num_steps$)) /= mp%nst) then
+  call set_integer (mp%nst, mpp%nst, nint(val(num_steps$)))
+  call make_node_layout(m_u%end)   !???? or m_t%end ???
+  call survey (m_u%end)            !????
+endif
 
 select case (ele%key)
 
