@@ -286,10 +286,10 @@ select case (command)
 ! Notes
 ! -----
 ! Command syntax:
-!   python beam {ix_universe}
+!   python beam {ix_uni}
 !
 ! Where:
-!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !
 ! Note: To set beam_init parameters use the "set beam" command.
 !
@@ -4768,17 +4768,20 @@ case ('merit')
 ! Notes
 ! -----
 ! Command syntax:
-!   python orbit_at_s {ix_uni}@{ix_branch}>>{ele}@{s_offset}|{which}
+!   python orbit_at_s {ix_uni}@{ele}->{s_offset}|{which}
 !
 ! Where:
-!   {which} is one of: "model", "base" or "design"
-!   {s} is the longitudinal s-position.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ele} is an element name or index. Default at the Beginning element at start of branch 0.
+!   {s_offset} is the offset of the evaluation point from the downstream end of ele. Default is 0.
+!      If {s_offset} is present, the preceeding "->" sign must be present. EG: Something like "23|model" will
+!   {which} is one of: "model", "base" or "design".
 ! 
 ! Parameters
 ! ----------
-! s 
 ! ix_uni : optional
-! ix_branch : optional
+! ele : optional
+! s_offset : optional
 ! which : default=model
 !
 ! Returns
@@ -4791,16 +4794,16 @@ case ('merit')
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
 !    ix_uni: 1
-!    ix_branch: 0
-!    s: 0.001
+!    ele: 10
+!    s_offset: 0.7
 !    which: model
 
 case ('orbit_at_s')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err); if (err) return
-  ix_branch = parse_branch(line, .true., err); if (err) return
-  s_pos = parse_real(line, err); if (err) return
+  s_pos = parse_ele_with_s_offset(line, tao_lat, ele, err); if (err) return
+  ix_branch = ele%ix_branch
 
   call twiss_and_track_at_s (tao_lat%lat, s_pos, orb = tao_lat%tao_branch(ix_branch)%orbit, orb_at_s = orb, ix_branch = ix_branch)
   call orbit_out (orb)
@@ -6358,6 +6361,12 @@ case ('spin_polarization')
 ! Command syntax:
 !   python spin_resonance {ix_uni}@{ix_branch}|{which} {ref_ele}
 !
+! Where:
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
+!   {which} is one of: "model", "base" or "design"
+!   {ref_ele} is an element name or index.
+!
 ! Parameters
 ! ----------
 ! ix_uni : optional
@@ -6365,7 +6374,6 @@ case ('spin_polarization')
 ! which : default=model
 ! ref_ele : default=0
 !   Reference element to calculate at.
-!
 !
 ! Examples
 ! --------
@@ -6454,18 +6462,20 @@ case ('super_universe')
 ! Notes
 ! -----
 ! Command syntax:
-!   python twiss_at_s {ix_uni}@{ix_branch}>>{ele}@{s_offset}|{which}
+!   python twiss_at_s {ix_uni}@{ele}->{s_offset}|{which}
 !
-! where {which} is one of:
-!   model
-!   base
-!   design
+! Where:
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ele} is an element name or index. Default at the Beginning element at start of branch 0.
+!   {s_offset} is the offset of the evaluation point from the downstream end of ele. Default is 0.
+!      If {s_offset} is present, the preceeding "->" sign must be present. EG: Something like "23|model" will
+!   {which} is one of: "model", "base" or "design".
 ! 
 ! Parameters
 ! ----------
-! s
 ! ix_uni : optional
-! ix_branch : optional
+! ele : optional
+! s_offset : optional
 ! which : default=model
 !
 ! Returns
@@ -6478,16 +6488,16 @@ case ('super_universe')
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args: 
 !    ix_uni: 1
-!    ix_branch: 0
-!    s: 0
+!    ele: 10
+!    s_offset: 0.7
 !    which: model 
 
 case ('twiss_at_s')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err); if (err) return
-  ix_branch = parse_branch(line, .true., err); if (err) return
-  s_pos = parse_real(line, err); if (err) return
+  s_pos = parse_ele_with_s_offset(line, tao_lat, ele, err); if (err) return
+  ix_branch = ele%ix_branch
 
   call twiss_and_track_at_s (tao_lat%lat, s_pos, this_ele, tao_lat%tao_branch(ix_branch)%orbit, ix_branch = ix_branch)
   call twiss_out (this_ele%a, 'a')
@@ -7771,13 +7781,15 @@ end function match_ele_name
 !----------------------------------------------------------------------
 ! contains
 
-subroutine invalid (why_invalid)
+subroutine invalid (why_invalid, err)
 
 character(*) why_invalid
+logical, optional :: err
 
 nl=incr(nl); li(nl) = 'INVALID'
 call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": ' // why_invalid)
 call end_stuff(li, nl)
+if (present(err)) err = .true.
 
 end subroutine invalid
 
@@ -8097,5 +8109,86 @@ end select
 err = .false.
 
 end function ele_param_value
+
+!----------------------------------------------------------------------
+! contains
+
+!+
+! Function parse_ele_with_s_offset(line, tao_lat, ele, err) result (s_pos)
+!
+! Parse something like:  "{ix_branch}>>{ele}@{s_offset}".
+!
+! Input:
+!   line      -- character(*): String to parse
+!   tao_lat   -- tao_lattice_struct: Tao structure containing lattice
+!
+! Output:
+!   line      -- character(*): String with parsed stuff removed.
+!   ele       -- ele_struct, pointer: Pointer to element.
+!   err       -- logical: Set True if there is an error.
+!   s_pos     -- real(rp): S-position -> ele%s + offset.
+!-
+
+function parse_ele_with_s_offset(line, tao_lat, ele, err) result (s_pos)
+
+type (tao_lattice_struct) tao_lat
+type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable :: eles(:)
+type (tao_expression_info_struct), allocatable :: info(:)
+
+real(rp) s_pos, s_offset
+real(rp), allocatable :: values(:)
+
+integer ix, ixa, ix_branch, n_loc
+
+character(*) line
+character(40) ele_name
+logical err
+
+!
+
+err = .false.
+s_pos = 0
+
+call string_trim (line, line, ix)
+if (ix == 0) then
+  ele => tao_lat%lat%ele(0)
+  return
+endif
+
+ixa = index(line, '->')
+if (ixa == 0) then
+  ele_name = line(:ix)
+
+else
+  ele_name = line(:ixa-1)
+  if (ix > ixa+1) then
+    call tao_evaluate_expression (line(ixa+2:ix), 1, .false., values, err, .true., info, dflt_uni = tao_lat%u%ix_uni)
+    if (err) return
+    s_pos = values(1)
+  endif
+endif
+
+call string_trim(line(ix+1:), line, ix)
+
+
+if (ele_name /= '') then
+  call lat_ele_locator (ele_name, tao_lat%lat, eles, n_loc, err)
+
+  if (err) return
+  if (n_loc == 0) then
+    call invalid('No element found matching: ' // ele_name, err)
+    return
+  elseif (n_loc > 1) then
+    call invalid('Multiple elements found matching: ' // ele_name, err)
+    return
+  endif
+
+  ele => eles(1)%ele
+endif
+
+s_pos = s_pos + ele%s
+
+end function parse_ele_with_s_offset
 
 end subroutine tao_python_cmd

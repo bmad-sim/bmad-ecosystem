@@ -8,11 +8,11 @@
 Output beam parameters that are not in the beam_init structure.
 
 \begin{example}
-   python beam \{ix_universe\}
+   python beam \{ix_uni\}
 \end{example}
 \begin{verbatim}
 Where:
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
 
 Note: To set beam_init parameters use the "set beam" command.
 \end{verbatim}
@@ -191,9 +191,8 @@ Output optimization data and variable parameters that contribute to the merit fu
 \end{example}
 \begin{verbatim}
 Where:
-  {who} is one of:
-    data
-    var
+  {who} is one of: "data" or "var"
+
 Data constraints output is:
   data name
   constraint type
@@ -491,10 +490,8 @@ Output element ac_kicker parameters
 \begin{verbatim}
 Where: 
   {ele_id} is an element name or index.
-  {which} is one of
-    model
-    base
-    design
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:ac_kicker 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -511,14 +508,12 @@ Output element cartesian_map parameters
    python ele:cartesian_map \{ele_id\}|\{which\} \{index\} \{who\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{index} is the index number in the ele%cartesian_map(:) array
-{who} is one of:
-  base
-  terms
+Where:
+  {ele_id} is an element name or index
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%cartesian_map(:) array
+  {who} is one of: "base", or "terms"
+
 Example:
   python ele:cartesian_map 3@1>>7|model 2 base
 This gives element number 7 in branch 1 of universe 3.
@@ -535,14 +530,13 @@ Output element beam chamber wall parameters
    python ele:chamber_wall \{ele_id\}|\{which\} \{index\} \{who\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{index} is index of the wall.
-{who} is one of:
-  x       ! Return min/max in horizontal plane
-  y       ! Return min/max in vertical plane
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is index of the wall.
+  {who} is one of:
+    "x"       ! Return min/max in horizontal plane
+    "y"       ! Return min/max in vertical plane
 \end{verbatim}
 
 %% python ele:control_var ------------------------------------
@@ -557,10 +551,10 @@ Used for group, overlay and ramper type elements.
    python ele:control_var \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:control_var 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -577,14 +571,12 @@ Output element cylindrical_map
    python ele:cylindrical_map \{ele_id\}|\{which\} \{index\} \{who\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{index} is the index number in the ele%cylindrical_map(:) array
-{who} is one of:
-  base
-  terms
+Where 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%cylindrical_map(:) array
+  {who} is one of: "base", or "terms"
+
 Example:
   python ele:cylindrical_map 3@1>>7|model 2 base
 This gives map #2 of element number 7 in branch 1 of universe 3.
@@ -601,10 +593,10 @@ Output element electric multipoles
    python ele:elec_multipoles \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:elec_multipoles 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -622,15 +614,15 @@ without element misalignments and "Actual" is with misalignments.
    python ele:floor \{ele_id\}|\{which\} \{where\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{where} is an optional argument which, if present, is one of
-  beginning  ! Upstream end
-  center     ! Middle of element
-  end        ! Downstream end (default)
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {where} is an optional argument which, if present, is one of
+    beginning  ! Upstream end
+    center     ! Middle of element
+    end        ! Downstream end (default)
 Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
+
 Example:
   python ele:floor 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -647,11 +639,12 @@ Output element grid_field
    python ele:grid_field \{ele_id\}|\{which\} \{index\} \{who\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model, base, design
-{index} is the index number in the ele%grid_field(:) array.
-{who} is one of:
-  base, points
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%grid_field(:) array.
+  {who} is one of: "base", or "points"
+
 Example:
   python ele:grid_field 3@1>>7|model 2 base
 This gives grid #2 of element number 7 in branch 1 of universe 3.
@@ -668,10 +661,10 @@ Output element general attributes
    python ele:gen_attribs \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:gen_attribs 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -688,10 +681,10 @@ Output "head" Element attributes
    python ele:head \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:head 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -708,10 +701,10 @@ Output the lord/slave tree of an element.
    python ele:lord_slave \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:lord_slave 3@1>>7|model
 This gives lord and slave info on element number 7 in branch 1 of universe 3.
@@ -734,14 +727,11 @@ Output element mat6
    python ele:mat6 \{ele_id\}|\{which\} \{who\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{who} is one of:
-  mat6
-  vec0
-  err
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {who} is one of: "mat6", "vec0", or "err"
+
 Example:
   python ele:mat6 3@1>>7|model mat6
 This gives element number 7 in branch 1 of universe 3.
@@ -758,10 +748,10 @@ Output element methods
    python ele:methods \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:methods 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -778,10 +768,10 @@ Output element multipoles
    python ele:multipoles \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:multipoles 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -798,10 +788,10 @@ Output element orbit
    python ele:orbit \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:orbit 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -818,13 +808,11 @@ Output lattice element parameter
    python ele:param \{ele_id\}|\{which\} \{who\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-Possible {who} values is the same as possible {who} values for "python lat_list"
-except for "ele:mat6" and "ele:vec0".
-Note: Here {who} must be a single parameter and not a list.
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {who} values are the same as {who} values for "python lat_list" except for "ele:mat6" and "ele:vec0".
+        Note: Here {who} must be a single parameter and not a list.
 
 Example:
   python ele:param 3@1>>7|model e_tot
@@ -847,14 +835,11 @@ Output element photon parameters
    python ele:photon \{ele_id\}|\{which\} \{who\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{who} is one of:
-  base
-  material
-  curvature
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {who} is one of: "base", "material", or "curvature"
+
 Example:
   python ele:photon 3@1>>7|model base
 This gives element number 7 in branch 1 of universe 3.
@@ -871,10 +856,10 @@ Output element spin_taylor parameters
    python ele:spin_taylor \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:spin_taylor 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -891,10 +876,10 @@ Output element taylor map
    python ele:taylor \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:taylor 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -911,14 +896,12 @@ Output element taylor_field
    python ele:taylor_field \{ele_id\}|\{which\} \{index\} \{who\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{index} is the index number in the ele%taylor_field(:) array
-{who} is one of:
-  base
-  terms
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%taylor_field(:) array
+  {who} is one of: "base", or "terms".
+
 Example:
   python ele:taylor_field 3@1>>7|model 2 base
 This gives element number 7 in branch 1 of universe 3.
@@ -935,10 +918,10 @@ Output element Twiss parameters
    python ele:twiss \{ele_id\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
 Example:
   python ele:twiss 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -955,15 +938,14 @@ Output element wake.
    python ele:wake \{ele_id\}|\{which\} \{who\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{Who} is one of
-  base
-  sr_long     sr_long_table
-  sr_trans    sr_trans_table
-  lr_mode_table
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {Who} is one of:
+      "sr_long"        "sr_long_table"
+      "sr_trans"       "sr_trans_table"
+      "lr_mode_table"  "base"
+
 Example:
   python ele:wake 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
@@ -980,14 +962,11 @@ Output element wall3d parameters.
    python ele:wall3d \{ele_id\}|\{which\} \{index\} \{who\}
 \end{example}
 \begin{verbatim}
-where {ele_id} is an element name or index and {which} is one of
-  model
-  base
-  design
-{index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
-{who} is one of:
-  base
-  table
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
+  {who} is one of: "base", or "table".
 Example:
   python ele:wall3d 3@1>>7|model 2 base
 This gives element number 7 in branch 1 of universe 3.
@@ -1019,11 +998,8 @@ Output EM field at a given point generated by a given element.
    python em_field \{ele_id\}|\{which\} \{x\} \{y\} \{z\} \{t_or_z\}
 \end{example}
 \begin{verbatim}
-where {which} is one of:
-  model
-  base
-  design
 Where:
+  {which} is one of: "model", "base" or "design"
   {x}, {y}  -- Transverse coords.
   {z}       -- Longitudinal coord with respect to entrance end of element.
   {t_or_z}  -- time or phase space z depending if lattice is setup for absolute time tracking.
@@ -1178,7 +1154,7 @@ Output list of parameters at ends of lattice elements
    python lat_list \{flags\} \{ix_uni\}@\{ix_branch\}>>\{elements\}|\{which\} \{who\}
 \end{example}
 \begin{verbatim}
-where:
+Where:
  Optional {flags} are:
   -no_slaves : If present, multipass_slave and super_slave elements will not be matched to.
   -track_only : If present, lord elements will not be matched to.
@@ -1187,10 +1163,7 @@ where:
     tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
     Note: Only a single {who} item permitted when -array_out is present.
 
-  {which} is one of:
-    model
-    base
-    design
+  {which} is one of: "model", "base" or "design"
 
   {who} is a comma deliminated list of:
     orbit.floor.x, orbit.floor.y, orbit.floor.z    ! Floor coords at particle orbit.
@@ -1245,7 +1218,7 @@ Output matrix value from the exit end of one element to the exit end of the othe
    python matrix \{ele1_id\} \{ele2_id\}
 \end{example}
 \begin{verbatim}
-where:
+Where:
   {ele1_id} is the start element.
   {ele2_id} is the end element.
 If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
@@ -1277,15 +1250,15 @@ Output merit value.
 Output twiss at given s position.
 
 \begin{example}
-   python orbit_at_s \{ix_uni\}@\{ix_branch\}>>\{s\}|\{which\}
+   python orbit_at_s \{ix_uni\}@\{ele\}->\{s_offset\}|\{which\}
 \end{example}
 \begin{verbatim}
-where:
-  {which} is one of:
-    model
-    base
-    design
-  {s} is the longitudinal s-position.
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ele} is an element name or index. Default at the Beginning element at start of branch 0.
+  {s_offset} is the offset of the evaluation point from the downstream end of ele. Default is 0.
+     If {s_offset} is present, the preceeding "->" sign must be present. EG: Something like "23|model" will
+  {which} is one of: "model", "base" or "design".
 \end{verbatim}
 
 %% python place_buffer ------------------------------------
@@ -1611,7 +1584,7 @@ Add or remove shape pattern
    python shape_pattern_manage \{ix_pattern\}^^\{pat_name\}^^\{pat_line_width\}
 \end{example}
 \begin{verbatim}
-where:
+Where:
   {ix_pattern}      -- Pattern index. Patterns with higher indexes will be moved up 
                                       if adding a pattern and down if deleting.
   {pat_name}        -- Pattern name.
@@ -1630,7 +1603,7 @@ Add or remove shape pattern point
    python shape_pattern_point_manage \{ix_pattern\}^^\{ix_point\}^^\{s\}^^\{x\}
 \end{example}
 \begin{verbatim}
-where:
+Where:
   {ix_pattern}      -- Pattern index.
   {ix_point}        -- Point index. Points of higher indexes will be moved up
                                     if adding a point and down if deleting.
@@ -1733,7 +1706,11 @@ Output spin resonance information
    python spin_resonance \{ix_uni\}@\{ix_branch\}|\{which\} \{ref_ele\}
 \end{example}
 \begin{verbatim}
-
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
+  {which} is one of: "model", "base" or "design"
+  {ref_ele} is an element name or index.
 \end{verbatim}
 
 %% python super_universe ------------------------------------
@@ -1758,13 +1735,15 @@ Output super_Universe parameters.
 Output twiss parameters at given s position.
 
 \begin{example}
-   python twiss_at_s \{ix_uni\}@\{ix_branch\}>>\{s\}|\{which\}
+   python twiss_at_s \{ix_uni\}@\{ele\}->\{s_offset\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {which} is one of:
-  model
-  base
-  design
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ele} is an element name or index. Default at the Beginning element at start of branch 0.
+  {s_offset} is the offset of the evaluation point from the downstream end of ele. Default is 0.
+     If {s_offset} is present, the preceeding "->" sign must be present. EG: Something like "23|model" will
+  {which} is one of: "model", "base" or "design".
 \end{verbatim}
 
 %% python universe ------------------------------------
