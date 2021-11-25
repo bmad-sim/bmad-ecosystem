@@ -202,6 +202,10 @@ def search_f90 (file_name, search_com):
     if re_type_var.match(line2): continue
     if line2[0] == '#': continue
     if line2[0:10] == '!---------': continue   # ignore separator comment
+    if line2[:11] == 'recursive &': 
+      comments.append(line)
+      continue
+
 
     # In the header section of a module
 
@@ -345,7 +349,6 @@ def search_f90 (file_name, search_com):
     #
 
     comments = []
-
 
 #------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------
