@@ -10,9 +10,6 @@
 !  "*"  -- Match to any number of characters.
 !  "%"  -- Match to any single character.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   string   -- Character(*): String to be matched to.
 !   template -- Character(*): String with wild cards.

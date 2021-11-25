@@ -3,9 +3,6 @@
 !
 ! Function to return the Factorial n!
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   n -- Integer: Must be non-negative
 !

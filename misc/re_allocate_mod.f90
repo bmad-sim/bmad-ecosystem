@@ -84,9 +84,6 @@ end interface
 !   Subroutine re_allocate2_complex (cmpl, n_min, n_max, exact, init_val)
 !   Subroutine re_allocate2_logical (logic, n_min, n_max, exact, init_val)
 !
-! Modules needed:
-!   use re_allocate_mod
-!
 ! Input:
 !   str(:)        -- character(*), allocatable: String array.
 !   var_str(:)    -- var_length_string_struct, allocatable: Variable length string structure.

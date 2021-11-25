@@ -70,9 +70,6 @@ end function dir_list
 ! Note: calling this routine when there is already an open directory
 !   will close the existing open directory.
 !
-! Modules needed:
-!   use directory_mod
-!
 ! Input:
 !   dir_name -- character(*): Directory name.
 !
@@ -117,9 +114,6 @@ end function dir_open
 !
 ! Note: Files "." and ".." will *not* appear in the list. 
 !
-! Modules needed:
-!   use directory_mod
-!
 ! Output:
 !   file_name -- Character(*): Name of a file.
 !   valid     -- Logical: True if file_name is a valid file name.
@@ -155,9 +149,6 @@ end function dir_read
 ! This routine only needs to be called. when the directory file
 ! list is not fully read.
 !
-! Modules needed:
-!   use directory_mod
-!-
 
 subroutine dir_close () 
 

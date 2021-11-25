@@ -40,9 +40,6 @@ CONTAINS
 ! This subroutine is flop efficient, but has extra overhead since it builds the full Q matrix, rather
 ! than returning just the householder vectors.
 !
-! Modules needed:
-!   use qr_mod
-!
 ! Input:
 !   Ain(:,:)   -- REAL(rp), INTENT(IN):  m*n, m>=n, array of reals.
 ! 
@@ -92,9 +89,6 @@ END SUBROUTINE qr
 ! Only the first n columns of Q are necessary for LS fitting via QR.  This algorithm
 ! is more flop and memory efficient than the full QR factorization.
 !
-! Modules needed:
-!   use qr_mod
-!
 ! Input:
 !   Ain(:,:)   -- REAL(rp), INTENT(IN): m*n, m>=n, array of reals.
 ! 
@@ -132,9 +126,6 @@ END SUBROUTINE thin_qr
 ! Returns the 2-norm of a vector v.  The 2-norm of a vector is the sum of the squares of
 ! its elements.
 ! 
-! Modules needed:
-!   use qr_mod
-!
 ! Input:
 !   v(:)   -- REAL(rp), INTENT(IN): 1-dim array of reals.
 !
@@ -160,9 +151,6 @@ END FUNCTION twonorm2
 ! Returns the householder vector v for the input vector x.
 ! Used in calculation of full QR factorization.
 ! Based on algorithm 5.1.1 from Golub and Van Loan.
-!
-! Modules Needed:
-!   use qr_mod
 !
 ! Input:
 !   x(:)  -- REAL(rp), INTENT(IN): length n vector of reals.
@@ -202,9 +190,6 @@ END FUNCTION house
 !
 ! Solves Rx=b for x assuming R is upper triangular.
 !
-! Modules needed:
-!   use qr_mod
-!
 ! Input:
 !   R(:,:)    -- REAL(rp), INTENT(IN): n*n matrix.  Assumed upper triangular.
 !   b(:)      -- REAL(rp), INTENT(IN): length n vector.
@@ -238,9 +223,6 @@ END SUBROUTINE RbackS
 ! Subroutine print_mat(A)
 !
 ! Formatted display of a n,m matrix in A(row,column) format.
-!
-! Modules needed:
-!   use qr_mod
 !
 ! Input:
 !   A(:,:)    -- REAL(rp), INTENT(IN): n*m matrix.

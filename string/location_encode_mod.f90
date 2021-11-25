@@ -8,9 +8,6 @@ module location_encode_mod
 !  location_encode1 (string, loc, exists, ix_min, names, separator, err_flag)
 !  location_encode2 (string, loc_array, separator, err_flag)
 !
-! Modules needed:
-!   use location_encode_mod
-! 
 ! Input (for location_encode1):
 !   loc(ix_min:)    -- logcial: Array of locations.
 !                        loc(I) = True means include in the location string

@@ -13,9 +13,6 @@ contains
 ! Platform independent function to return the number of command
 ! line arguments. Use this with cesr_getarg.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   none
 !
@@ -48,9 +45,6 @@ end function cesr_iargc
 ! command line with the name of the executable removed from the beginning
 ! of the line. get_command_argument, on the other hand returns the name of the
 ! executable when the argument is 0.
-!
-! Modules needed:
-!   use sim_utils
 !
 ! Input:
 !   i_arg -- Integer: Index of argument to return.

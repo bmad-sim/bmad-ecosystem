@@ -94,9 +94,6 @@ end interface
 ! Note: Use ran_seed_put for initialization.
 ! Note: Use ran_engine to set which random number generator to use.
 !
-! Modules needed:
-!   use random_mod
-!
 ! Input:
 !   ran_state -- random_state_struct, optional: Internal state.
 !                     See the ran_seed_put documentation for more details.
@@ -278,9 +275,6 @@ end subroutine ran_gauss_vector
 ! If this routine is never called then pseudo_random$ is used.
 ! With sobseq quasi-random numbers the maximum dimension is 6.
 !
-! Modules needed:
-!   use random_mod
-! 
 ! Input:
 !   set -- Character(*), optional: Set the random number engine. Possibilities are:
 !                'pseudo' -> Uses ran from Numerical Recipies (F90).
@@ -352,9 +346,6 @@ end subroutine ran_engine
 ! (see the ran_engine routine), the quick_gaussian$ method will automatically be 
 ! used independent of what was set with this routine.
 !
-! Modules needed:
-!   use random_mod
-! 
 ! Input:
 !   set -- Character(*), optional: Set the random number engine. Possibilities are:
 !             'exact'
@@ -452,9 +443,6 @@ end subroutine ran_gauss_converter
 !
 ! Note: Use the subroutine ran_seed_get(seed) to get the seed used.
 !
-! Modules needed:
-!   use random_mod
-!
 ! Input:
 !   seed  -- Integer, optional: Seed number. If seed = 0 then a 
 !              seed will be choosen based upon the system clock.
@@ -537,9 +525,6 @@ end subroutine ran_seed_put
 !
 ! Note: The internal state can be used to put the pseudo-random
 ! number generator into a known state. See ran_seed_put
-!
-! Modules needed:
-!   use random_mod
 !
 ! Input:
 !   ran_state -- random_state_struct, optional: Internal state.

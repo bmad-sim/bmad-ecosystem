@@ -3,9 +3,6 @@
 !
 ! Function for matching with regular expressions
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   str   -- Character(*): string to test
 !   pat   -- Character(*): pattern (regular expression)

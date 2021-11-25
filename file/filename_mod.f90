@@ -386,9 +386,6 @@ end subroutine simplify_path
 !     UNIX       "abc/"     "def"       "abc/def"
 !     UNIX       "abc/"     "/def"      "abc/def"
 !
-! Modules needed:
-!   use filename_mod
-!
 ! Input:
 !   dir     -- Character(*): Head directory.
 !   sub_dir -- Character(*): Subdirectory.

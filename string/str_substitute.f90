@@ -3,9 +3,6 @@
 !
 ! Routine to substitute all instances of one sub-string for another in a string
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   string      -- Character(*): Character string.
 !   str_match   -- Character(*), optional: Sub-string to be replaced. 

@@ -3,9 +3,6 @@
 !
 ! Function to take the symplectic conjugate of a square matrix.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   mat(:, :) -- Real(rp): Input matrix.
 !

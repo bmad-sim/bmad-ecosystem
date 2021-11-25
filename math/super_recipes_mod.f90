@@ -1147,9 +1147,6 @@ end subroutine super_mrqcof
 !
 ! This is the gaussj routine from Num Rec with an added status argument.
 !
-! Modules needed:
-!   super_recipes_mod
-!
 ! Input:
 !   a(:,:) -- Real(rp): matrix.
 !   b(:,:) -- Real(rp): matrix.
@@ -1235,9 +1232,6 @@ end subroutine super_gaussj
 !
 ! This routine is essentially ludcmp from Numerical Recipes with the added feature
 ! that an error flag is set instead of bombing the program when there is a problem.
-!
-! Modules needed:
-!   use super_recipes_mod
 !
 ! Input:
 !   a(:,:) -- Real(rp): Input matrix.

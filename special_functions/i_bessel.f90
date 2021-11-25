@@ -4,9 +4,6 @@
 ! Function to evaluate the modified bessel function of the 
 ! first kind I.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   m    -- Integer: Bessel order.
 !   arg  -- Real(rp): Bessel argument.

@@ -3,9 +3,6 @@
 !
 ! Function to return a free file unit number to be used with an open statement.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Output:
 !   lunget -- Integer: Free file number between 30 and 60
 !

@@ -10,9 +10,6 @@
 !  "*"  -- Match to any number of characters.
 !  "%"  -- Match to any single character.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   str -- Character(*): String to match against.
 !   pat -- Character(*): Regular expression pattern.

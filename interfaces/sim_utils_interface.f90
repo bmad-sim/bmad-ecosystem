@@ -600,12 +600,6 @@ function probability_funct(x) result (prob)
   real(rp) x
 end function
 
-subroutine ps2gif (ps_file, gif_file, kill_ps_file)
-  implicit none
-  character(*) ps_file, gif_file
-  logical, optional :: kill_ps_file
-end subroutine
-
 subroutine query_string (query_str, upcase, return_str, ix, ios)
   implicit none
   character(*) return_str
@@ -748,10 +742,11 @@ elemental function sqrt_one(x, nd) result (ds1)
   integer, optional, intent(in) :: nd
 end function
 
-function str_find_first_in_set(line, set) result (ix_match)
+function str_find_first_in_set(line, set, ignore_clauses) result (ix_match)
   implicit none
   character(*) line
   character(*) set
+  logical, optional :: ignore_clauses
   integer ix_match
 end function
 

@@ -3,9 +3,6 @@
 !
 ! Function to take the symplectic conjugate of a square complex matrix.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   mat(:, :) -- complex(rp): Input matrix.
 !

@@ -84,9 +84,6 @@ private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
 ! code will be used with a gui and it is desired that the level argument represent
 ! the true level of serverity of any error.
 !
-! Modules needed:
-!   use output_mod
-!
 ! Input:
 !   level              -- Integer: Status level flags for messages.
 !       s_nooutput$      -- No output is produced.
@@ -141,9 +138,6 @@ contains
 !
 ! Once set for a given status level, the settings remain until the next call to 
 ! output_direct that cover the same status level.
-!
-! Modules needed:
-!   use output_mod
 !
 ! Input:
 !   file_unit         -- integer, optional: Unit number for writing to a file. 

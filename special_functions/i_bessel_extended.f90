@@ -9,9 +9,6 @@
 ! Also see:
 !   I_bessel
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   m    -- Integer: Bessel order.
 !   arg  -- Real(rp): Bessel argument.

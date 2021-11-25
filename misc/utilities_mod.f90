@@ -13,9 +13,6 @@ contains
 ! Function to return the value of an integer if it is present or a default value
 ! if it is not.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   integer_default -- Integer: Default if opt_integer is not present.
 !   opt_integer     -- Integer, optional: Input integer.
@@ -52,9 +49,6 @@ end function integer_option
 !
 ! Function to return True or False dependending upon the state of an 
 ! optional logical.
-!
-! Modules needed:
-!   use sim_utils
 !
 ! Input:
 !   logic_default -- Logical: Default if opt_logic is not present.
@@ -93,9 +87,6 @@ end function logic_option
 ! Function to return the value of a real if it is present or a default value
 ! if it is not.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   real_default -- Real(rp): Default if opt_real is not present.
 !   opt_real     -- Real(rp), optional: Input real.
@@ -132,9 +123,6 @@ end function real_option
 !
 ! Function to return either opt_string if it is present, or string_default 
 ! if opt_string is not present.
-!
-! Modules needed:
-!   use sim_utils
 !
 ! Input:
 !   string_default -- Character(*): Default if opt_string is not present.
@@ -175,9 +163,6 @@ end function string_option
 !   .TRUE.  .FALSE. 
 !    TRUE    FALSE
 !    T       F
-!
-! Modules needed:
-!   use sim_utils
 !
 ! Input:
 !   word  -- Character(*): Input string.
@@ -220,9 +205,6 @@ end function eval_logical
 ! Function on_off_logic (logic, true_str, false_str) result (string)
 !
 ! Function to encode the state of the logic argument in a string.
-!
-! Modules needed:
-!   use sim_utils
 !
 ! Input:
 !   logic     -- Logical: True or False.
