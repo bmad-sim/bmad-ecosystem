@@ -126,7 +126,7 @@ if (ix1 == 0) then
 else
   datum%data_type = name(1:ix1-1)
   name = name(ix1+1:)
-  ix1 = index(name, ']')
+  ix1 = str_find_first_in_set(name, ']', .true.)
   if (ix1 == 0) then
     if (print_err) call out_io (s_error$, r_name, 'NO "]" FOUND IN: ' // data_name)
     return
@@ -138,11 +138,11 @@ else
   endif
   use_dflt_ele = .false.
 
-  ! Get ele_ref & ele @ s_offset
+  ! Get ele_ref & ele -> s_offset
 
-  ix = index(name, '@')
+  ix = index(name, '->')
   if (ix /= 0) then
-    call tao_evaluate_expression(name(ix+1:), 1, .false., values, err_flag, .true., dflt_ele = dflt_ele)
+    call tao_evaluate_expression(name(ix+2:), 1, .false., values, err_flag, .true., dflt_ele = dflt_ele)
     if (err_flag) then
       if (print_err) call out_io (s_error$, r_name, 'BAD S_OFFSET: ' // data_name)
       return
