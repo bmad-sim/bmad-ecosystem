@@ -97,9 +97,6 @@ end interface
 !   cmplx_mat2vec  (cmplx_mat)  result (cmplx_vec)
 !   bool_mat2vec   (bool_mat)   result (bool_vec)
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   real_mat(:,:)   -- Real(rp): Input matrix
 !   int_mat(:,:)    -- Integer: Input matrix

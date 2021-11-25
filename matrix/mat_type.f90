@@ -4,9 +4,6 @@
 ! subroutine to output matraces to the terminal or to a file
 ! When writing to a file, it is assumed that the file has been opened.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! input: 
 !   mat(:,:)  -- real(rp): Matrix to print out.
 !   nunit     -- integer, optional: Unit for writing:

@@ -10,9 +10,6 @@ use precision_def
 ! where n is an integer chosen such that
 !    -amp <= mod2 < amp
 !
-! Modules needed:
-!   sim_utils_interface
-! 
 ! Input:
 !   x    -- Real(sp), Real(rp), or Integer
 !   amp  -- Real(sp), Real(rp), or Integer: Must be positive.
@@ -40,9 +37,6 @@ contains
 ! where n is an integer chosen such that
 !    -amp <= mod2 < amp
 !
-! Modules needed:
-!   sim_utils_interface
-! 
 ! Input:
 !   x    -- Real(sp): 
 !   amp  -- Real(sp): Must be positive.
@@ -79,9 +73,6 @@ end function
 ! where n is an integer chosen such that
 !    -amp <= mod2 < amp
 !
-! Modules needed:
-!   sim_utils_interface
-! 
 ! Input:
 !   x    -- Real(rp): 
 !   amp  -- Real(rp): Must be positive.
@@ -118,9 +109,6 @@ end function
 ! where n is an integer chosen such that
 !    -amp <= mod2 < amp
 !
-! Modules needed:
-!   sim_utils_interface
-! 
 ! Input:
 !   x    -- Integer: 
 !   amp  -- Integer: Must be positive.

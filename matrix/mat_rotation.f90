@@ -4,9 +4,6 @@
 ! Subroutine to construct a 2x2 rotation matrix for translation from
 ! point 1 to point 2
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   angle          -- Real(rp):  Rotation angle in radians.
 !   bet_1, bet_2   -- Real(rp):  Beta values at points 1 and 2.

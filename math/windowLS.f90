@@ -63,9 +63,6 @@ CONTAINS
 ! See module documentation (getf windowLS_mod) for use details.
 ! Any instance of windowLS created with this module should be destroyed with destFixedWindowLS.
 !
-! Modules Needed:
-!   USE windowLS_mod
-!
 ! Input:
 !   N     -- INTEGER, INTENT(IN): Number of data points to fit over. aka window size.
 !   dt    -- REAL(rp), INTENT(IN): Time interval between data points. It is assumed that the data is 
@@ -139,9 +136,6 @@ END FUNCTION initFixedWindowLS
 ! Destroys an instance of fixedWindowLS.  Deallocates module memory.  This subroutine
 ! should be called before the program closes.
 !
-! Modules Needed
-!   USE windowLS
-!
 ! Input:
 !   id    -- INTEGER, INTENT(IN): id of instance to destroy
 !
@@ -167,9 +161,6 @@ END SUBROUTINE destFixedWindowLS
 !
 ! initFixedWindowLS must be called prior to calling this function.  destFixedWindowLS should be
 ! called when the instance is no longer needed.
-!
-! Modules Needed:
-!   USE windowLS
 !
 ! Input:
 !   ynew:     -- REAL(rp), INTENT(IN): New data point.
@@ -209,9 +200,6 @@ END FUNCTION fixedWindowLS
 ! Function shortFactorial
 !
 ! Computes a truncated factorial.  Eg: shortFactorial(10,4) would return 10*9*8*7
-!
-! Modules Needed:
-!   USE windowLS_mod
 !
 ! Input:
 !   z    -- INTEGER, INTENT(IN): number to obtain truncated factorial of.

@@ -71,9 +71,6 @@ contains
 !     real(rp) merit      ! Output: Merit value corresponting to vec.
 !   end function
 !
-! Modules needed:
-!   use opti_de_mod
-!
 ! Input:
 !   generations -- Integer: Number of generations to evolve.
 !   population  -- Integer: Number of trial solutions in any generation.

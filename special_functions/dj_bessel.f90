@@ -3,9 +3,6 @@
 !
 ! Function to evaluate the derivative of the bessel function J_n.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   n      -- Integer: Bessel order.
 !   arg    -- Real(rp): Bessel argument.

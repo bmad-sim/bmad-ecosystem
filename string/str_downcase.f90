@@ -3,9 +3,6 @@
 !
 ! Subroutine to convert a string to down case.
 !
-! Modules needed:
-!   use sim_utils_interface
-!
 ! Input:
 !   source -- Character(*): Source string.
 !

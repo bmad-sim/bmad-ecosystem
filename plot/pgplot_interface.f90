@@ -748,10 +748,8 @@ end subroutine qp_select_page_basic
 subroutine qp_close_page_basic ()
 
 implicit none
+!
 call pgclos
-!  if (pg_com%page_type(1:3) == 'GIF') then
-!    call ps2gif ('pgplot_temp.ps', pg_com%plot_file, .true.)
-!  endif
 i_save = i_save - 1
 pg_com => pg_interface_save_com(i_save)
 if (i_save /= 0) then

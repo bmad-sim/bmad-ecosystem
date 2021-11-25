@@ -5,9 +5,6 @@
 ! from some reference date (default is January 1, 1970).
 ! Note: Deprecated command = 'STOP' is the same as command = 'READ'.
 !
-! Modules needed:
-!   use sim_utils_interface
-!
 ! Input:
 !   command -- Character(*): 'START', 'READ', 'ABS', 'REF'
 !   time    -- Real(rp), optional: Set reference year. Used with command = 'REF'.

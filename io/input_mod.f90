@@ -19,9 +19,6 @@ contains
 ! Subroutine for getting a single character from the terminal.
 ! Also see: get_a_char
 !
-! Modules needed:
-!   use input_mod
-!
 ! System Libraries that need to be linked to:
 !   readline curses
 !
@@ -70,9 +67,6 @@ end subroutine get_tty_char
 !
 ! Subroutine for getting a single character from the terminal.
 ! Also see: get_tty_char
-!
-! Modules needed:
-!   use input_mod
 !
 ! System Libraries that need to be linked to:
 !   readline curses
@@ -125,9 +119,6 @@ end subroutine get_a_char
 ! Also see:
 !   readline_read_history
 !   readline_write_history
-!
-! Modules needed:
-!   use input_mod
 !
 ! System Libraries that need to be linked to:
 !   readline curses

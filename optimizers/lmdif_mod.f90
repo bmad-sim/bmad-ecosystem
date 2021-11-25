@@ -15,9 +15,6 @@ contains
 !
 ! Initially call Initial_lmdif to initialize everything.
 !
-! Modules needed:
-!   use lmdif_mod
-!
 ! Input:
 !   vec(:)  -- real(dp): Array of variables to vary
 !   n       -- integer: Max number of iterations
@@ -76,9 +73,6 @@ end function opti_lmdif
 !
 ! Subroutine that clears out previous saved values of the optimizer.
 !
-! Modules needed:
-!   use lmdif_mod
-!
 ! Input: none
 !
 ! Output: none
@@ -108,9 +102,6 @@ end subroutine initial_lmdif
 ! the previous value of your merit function.
 !
 ! Use initial_lmdif to initialize internal variables
-!
-! Modules needed: 
-!   use lmdif_mod
 !
 ! Input:
 !   xv(:)      -- real(dp): Array of variables

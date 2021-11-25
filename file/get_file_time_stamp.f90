@@ -3,9 +3,6 @@
 !
 ! Routine to get the "last modified" time stamp for a file.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   file        -- Character(*): File name.
 !

@@ -3,9 +3,6 @@
 !
 ! Routine to execute an operating system command from within the program.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   line -- Character(*): Command to pass to the system shell.
 !
