@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Generate documentation for Tao python commands
-# 
+# # Generate documentation for Tao python commands.
 # This will auto-generate documentation for the tao python commands. 
-# 
-# It extracts a formatted comment above each case statement
+# It extracts a formatted comment above each case statement.
+
+# Note: To run tests, do the following:
+#   1) python generate_tex_for_python_commands.py   # Run this file
+#   2) cd to pytao directory
+#   3) python generate_interface_commands.py
+#   4) python run_tests.py
 
 import json
 import os
