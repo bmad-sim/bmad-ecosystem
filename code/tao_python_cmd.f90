@@ -295,7 +295,7 @@ select case (command)
 !
 ! Parameters
 ! ----------
-! ix_universe : optional
+! ix_uni : optional
 !    
 ! Returns
 ! -------
@@ -306,7 +306,7 @@ select case (command)
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
-!    ix_universe: 1
+!    ix_uni: 1
 
 case ('beam')
 
@@ -326,16 +326,16 @@ case ('beam')
 ! Notes
 ! -----
 ! Command syntax:
-!   python beam_init {ix_universe}
+!   python beam_init {ix_uni}
 !
 ! Where:
-!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !
 ! Note: To set beam_init parameters use the "set beam_init" command
 !
 ! Parameters
 ! ----------
-! ix_universe : optional
+! ix_uni : optional
 !
 ! Returns
 ! -------
@@ -346,7 +346,7 @@ case ('beam')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
-!    ix_universe: 1
+!    ix_uni: 1
 
 case ('beam_init')
 
@@ -449,15 +449,15 @@ case ('bmad_com')
 ! Notes
 ! -----
 ! Command syntax:
-!   python branch1 {ix_universe}@{ix_branch}
+!   python branch1 {ix_uni}@{ix_branch}
 !
 ! Where:
-!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 !
 ! Parameters
 ! ----------
-! ix_universe : ""
+! ix_uni : ""
 ! ix_branch : ""
 ! 
 ! Returns
@@ -469,7 +469,7 @@ case ('bmad_com')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
-!    ix_universe: 1
+!    ix_uni: 1
 !    ix_branch: 0
 
 case ('branch1')
@@ -982,10 +982,10 @@ case ('constraints')
 ! Notes
 ! -----
 ! Command syntax:
-!   python da_aperture {ix_universe}
+!   python da_aperture {ix_uni}
 !
 ! Where:
-!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !
 ! Parameters
 ! ----------
@@ -1021,10 +1021,10 @@ case ('da_aperture')
 ! Notes
 ! -----
 ! Command syntax:
-!   python da_params {ix_universe}
+!   python da_params {ix_uni}
 !
 ! Where:
-!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 ! 
 ! Parameters
 ! ----------
@@ -1063,10 +1063,10 @@ case ('da_params')
 ! Notes
 ! -----
 ! Command syntax:
-!   python data {ix_universe}@{d2_name}.{d1_name}[{dat_index}]
+!   python data {ix_uni}@{d2_name}.{d1_name}[{dat_index}]
 !
 ! Where:
-!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !   {d2_name} is the name of the d2_data structure the datum is in.
 !   {d1_datum} is the name of the d1_data structure the datum is in.
 !   {dat_index} is the index of the datum.
@@ -1080,7 +1080,7 @@ case ('da_params')
 ! ----------
 ! d2_name
 ! d1_name
-! ix_universe : optional
+! ix_uni : optional
 ! dat_index : default=1
 !
 ! Returns
@@ -1093,7 +1093,7 @@ case ('da_params')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
-!    ix_universe:
+!    ix_uni:
 !    d2_name: twiss
 !    d1_name: end 
 !    dat_index: 1  
@@ -1101,7 +1101,7 @@ case ('da_params')
 ! Example: 2
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
-!    ix_universe: 1
+!    ix_uni: 1
 !    d2_name: twiss
 !    d1_name: end
 !    dat_index: 1
@@ -1165,10 +1165,10 @@ case ('data')
 ! Notes
 ! -----
 ! Command syntax:
-!   python data_d2_create {ix_universe}@{d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
+!   python data_d2_create {ix_uni}@{d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
 !
 ! Where:
-!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !   {d2_name} is the name of the d2_data structure to create.
 !   {n_d1_data} is the number of associated d1 data structures.
 !   {d_data_arrays_name_min_max} has the form
@@ -1195,7 +1195,7 @@ case ('data')
 ! d2_name
 ! n_d1_data
 ! d_data_arrays_name_min_max
-! ix_universe : optional
+! ix_uni : optional
 !    
 ! Returns
 ! -------
@@ -1206,7 +1206,7 @@ case ('data')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
-!    ix_universe: 1
+!    ix_uni: 1
 !    d2_name: orbit
 !    n_d1_data: 2 
 !    d_data_arrays_name_min_max: x^^0^^45^^y^^1^^47
@@ -1317,10 +1317,10 @@ case ('data_d2_create')
 ! Notes
 ! -----
 ! Command syntax:
-!   python data_d2_destroy {ix_universe}@{d2_name}
+!   python data_d2_destroy {ix_uni}@{d2_name}
 !
 ! Where:
-!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !   {d2_name} is the name of the d2_data structure to destroy.
 !
 ! Example:
@@ -1330,7 +1330,7 @@ case ('data_d2_create')
 ! Parameters
 ! ----------
 ! d2_name
-! ix_universe : optional
+! ix_uni : optional
 !    
 ! Returns
 ! -------
@@ -1353,16 +1353,16 @@ call destroy_this_data_d2(line)
 ! Notes
 ! -----
 ! Command syntax:
-!   python data_d2 {ix_universe}@{d2_name}
+!   python data_d2 {ix_uni}@{d2_name}
 !
 ! Where:
-!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !   {d2_name} is the name of the d2_data structure.
 !
 ! Parameters
 ! ----------
 ! d2_name
-! ix_universe : optional
+! ix_uni : optional
 !
 ! Returns
 ! -------
@@ -1373,7 +1373,7 @@ call destroy_this_data_d2(line)
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
-!    ix_universe: 1
+!    ix_uni: 1
 !    d2_name: twiss
 
 case ('data_d2')
@@ -1405,10 +1405,10 @@ case ('data_d2')
 ! Notes
 ! -----
 ! Command syntax:
-!   python data_d_array {ix_universe}@{d2_name}.{d1_name}
+!   python data_d_array {ix_uni}@{d2_name}.{d1_name}
 !
 ! Where:
-!   {ix_universe} is a universe index. Defaults to s%global%default_universe.
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !   {d2_name} is the name of the containing d2_data structure.
 !   {d1_name} is the name of the d1_data structure containing the array of datums.
 !
@@ -1419,7 +1419,7 @@ case ('data_d2')
 ! ----------
 ! d2_name
 ! d1_name
-! ix_universe : optional
+! ix_uni : optional
 !
 ! Returns
 ! -------
@@ -1430,7 +1430,7 @@ case ('data_d2')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
-!    ix_universe: 1 
+!    ix_uni: 1 
 !    d2_name: twiss
 !    d1_name: end
 
@@ -1652,14 +1652,14 @@ case ('data_parameter')
 ! Notes
 ! -----
 ! Command syntax:
-!   python data_d2_array {ix_universe}
+!   python data_d2_array {ix_uni}
 !
 ! Example:
 !   python data_d2_array 1
 ! 
 ! Parameters
 ! ----------
-! ix_universe
+! ix_uni
 ! 
 ! Returns
 ! -------
@@ -1670,7 +1670,7 @@ case ('data_parameter')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
-!    ix_universe : 1 
+!    ix_uni : 1 
 
 
 case ('data_d2_array')
@@ -4387,14 +4387,14 @@ case ('lat_ele_list')
 ! Notes
 ! -----
 ! Command syntax:
-!   python lat_branch_list {ix_universe}
+!   python lat_branch_list {ix_uni}
 ! 
 ! Output syntax:
 !   branch_index;branch_name;n_ele_track;n_ele_max
 ! 
 ! Parameters
 ! ----------
-! ix_universe : optional
+! ix_uni : optional
 !
 ! Returns
 ! -------
@@ -4405,7 +4405,7 @@ case ('lat_ele_list')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
-!    ix_universe: 1
+!    ix_uni: 1
 
 case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 
@@ -4919,14 +4919,14 @@ case ('plot_curve')
 ! Notes
 ! -----
 ! Command syntax:
-!   python plot_lat_layout {ix_universe}@{ix_branch}
+!   python plot_lat_layout {ix_uni}@{ix_branch}
 !
 ! Note: The returned list of element positions is not ordered in increasing
 !       longitudinal position.
 ! 
 ! Parameters
 ! ----------
-! ix_universe: 1
+! ix_uni: 1
 ! ix_branch: 0
 !
 ! Returns
@@ -4938,7 +4938,7 @@ case ('plot_curve')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args:
-!    ix_universe: 1
+!    ix_uni: 1
 !    ix_branch: 0 
 
 case ('plot_lat_layout')
@@ -6509,13 +6509,13 @@ case ('twiss_at_s')
 ! Notes
 ! -----
 ! Command syntax:
-!   python universe {ix_universe}
+!   python universe {ix_uni}
 !
 ! Use "python global" to get the number of universes.
 ! 
 ! Parameters
 ! ----------
-! ix_universe
+! ix_uni
 !
 ! Returns
 ! -------
@@ -6526,7 +6526,7 @@ case ('twiss_at_s')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
 !  args: 
-!    ix_universe: 1
+!    ix_uni: 1
 
 case ('universe')
 
