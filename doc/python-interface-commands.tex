@@ -25,11 +25,11 @@ Note: To set beam_init parameters use the "set beam" command.
 Output beam_init parameters.
 
 \begin{example}
-   python beam_init \{ix_universe\}
+   python beam_init \{ix_uni\}
 \end{example}
 \begin{verbatim}
 Where:
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
 
 Note: To set beam_init parameters use the "set beam_init" command
 \end{verbatim}
@@ -56,11 +56,11 @@ Output bmad_com structure components.
 Output lattice branch information for a particular lattice branch.
 
 \begin{example}
-   python branch1 \{ix_universe\}@\{ix_branch\}
+   python branch1 \{ix_uni\}@\{ix_branch\}
 \end{example}
 \begin{verbatim}
 Where:
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 \end{verbatim}
 
@@ -226,11 +226,11 @@ Var constraints output is:
 Output dynamic aperture data
 
 \begin{example}
-   python da_aperture \{ix_universe\}
+   python da_aperture \{ix_uni\}
 \end{example}
 \begin{verbatim}
 Where:
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
 \end{verbatim}
 
 %% python da_params ------------------------------------
@@ -241,11 +241,11 @@ Where:
 Output dynamic aperture input parameters
 
 \begin{example}
-   python da_params \{ix_universe\}
+   python da_params \{ix_uni\}
 \end{example}
 \begin{verbatim}
 Where:
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
 \end{verbatim}
 
 %% python data ------------------------------------
@@ -256,11 +256,11 @@ Where:
 Output Individual datum parameters.
 
 \begin{example}
-   python data \{ix_universe\}@\{d2_name\}.\{d1_name\}[\{dat_index\}]
+   python data \{ix_uni\}@\{d2_name\}.\{d1_name\}[\{dat_index\}]
 \end{example}
 \begin{verbatim}
 Where:
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
   {d2_name} is the name of the d2_data structure the datum is in.
   {d1_datum} is the name of the d1_data structure the datum is in.
   {dat_index} is the index of the datum.
@@ -279,11 +279,11 @@ Example:
 Create a d2 data structure along with associated d1 and data arrays.
 
 \begin{example}
-   python data_d2_create \{ix_universe\}@\{d2_name\}^^\{n_d1_data\}^^\{d_data_arrays_name_min_max\}
+   python data_d2_create \{ix_uni\}@\{d2_name\}^^\{n_d1_data\}^^\{d_data_arrays_name_min_max\}
 \end{example}
 \begin{verbatim}
 Where:
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
   {d2_name} is the name of the d2_data structure to create.
   {n_d1_data} is the number of associated d1 data structures.
   {d_data_arrays_name_min_max} has the form
@@ -314,11 +314,11 @@ Note: When setting multiple data parameters,
 Destroy a d2 data structure along with associated d1 and data arrays.
 
 \begin{example}
-   python data_d2_destroy \{ix_universe\}@\{d2_name\}
+   python data_d2_destroy \{ix_uni\}@\{d2_name\}
 \end{example}
 \begin{verbatim}
 Where:
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
   {d2_name} is the name of the d2_data structure to destroy.
 
 Example:
@@ -334,11 +334,11 @@ This destroys the orbit d2_data structure in universe 2.
 Output information on a d2_datum.
 
 \begin{example}
-   python data_d2 \{ix_universe\}@\{d2_name\}
+   python data_d2 \{ix_uni\}@\{d2_name\}
 \end{example}
 \begin{verbatim}
 Where:
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
   {d2_name} is the name of the d2_data structure.
 \end{verbatim}
 
@@ -350,11 +350,11 @@ Where:
 Output list of datums for a given d1_data structure.
 
 \begin{example}
-   python data_d_array \{ix_universe\}@\{d2_name\}.\{d1_name\}
+   python data_d_array \{ix_uni\}@\{d2_name\}.\{d1_name\}
 \end{example}
 \begin{verbatim}
 Where:
-  {ix_universe} is a universe index. Defaults to s%global%default_universe.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
   {d2_name} is the name of the containing d2_data structure.
   {d1_name} is the name of the d1_data structure containing the array of datums.
 
@@ -401,7 +401,7 @@ Example:
 Output data d2 info for a given universe.
 
 \begin{example}
-   python data_d2_array \{ix_universe\}
+   python data_d2_array \{ix_uni\}
 \end{example}
 \begin{verbatim}
 Example:
@@ -1136,7 +1136,7 @@ Output lattice element list.
 Output lattice branch list
 
 \begin{example}
-   python lat_branch_list \{ix_universe\}
+   python lat_branch_list \{ix_uni\}
 \end{example}
 \begin{verbatim}
 Output syntax:
@@ -1299,7 +1299,7 @@ Output curve information for a plot
 Output plot Lat_layout info
 
 \begin{example}
-   python plot_lat_layout \{ix_universe\}@\{ix_branch\}
+   python plot_lat_layout \{ix_uni\}@\{ix_branch\}
 \end{example}
 \begin{verbatim}
 Note: The returned list of element positions is not ordered in increasing
@@ -1754,7 +1754,7 @@ Where:
 Output universe info.
 
 \begin{example}
-   python universe \{ix_universe\}
+   python universe \{ix_uni\}
 \end{example}
 \begin{verbatim}
 Use "python global" to get the number of universes.
