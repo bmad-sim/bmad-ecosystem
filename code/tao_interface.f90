@@ -1122,12 +1122,12 @@ implicit none
 integer ix_amp, i
 character(*) string
 
-! Any characters before a uni "@" must be in the set '0123456789:,[]'.
+! Any characters before a uni "@" must be in the set '0123456789:,[]*'.
 
 ix_amp = 0
 
 do i = 1, len(string)
-  if (index('0123456789:,[]', string(i:i)) == 0 .and. string(i:i) /= '@') return
+  if (index('0123456789:,[]*', string(i:i)) == 0 .and. string(i:i) /= '@') return
   if (string(i:i) /= '@') cycle
   ix_amp = i
   return
