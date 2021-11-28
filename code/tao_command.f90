@@ -106,9 +106,18 @@ elseif (ix_cmd < 0) then
   return
 endif
 
-! Strip off command name from cmd_line and select the appropriate command.
+! Strip off command name from cmd_line 
 
 call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
+
+! Something like "set global%rf_on" gets translated to "set global rf_on"
+
+if (cmd_name == 'set') then
+  ix = index(cmd_line, '%')
+  if (ix /= 0) cmd_line(ix:ix) = ' '
+endif
+
+! select the appropriate command.
 
 select case (cmd_name)
 
