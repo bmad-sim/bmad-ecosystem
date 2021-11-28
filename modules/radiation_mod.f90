@@ -376,9 +376,9 @@ int_g3 = int_g3 + g3i
 
 if (int_g2 == 0) return
 
-! Apply the radiation kicks
-! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
-! where xi is a random number with sigma = 1.
+! Apply the radiation kicks.
+! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light.
+! where xi is a Gaussian random number with sigma = 1.
 
 mc2 = mass_of(param%particle)
 q_charge2 = charge_of(orbit%species)**2
