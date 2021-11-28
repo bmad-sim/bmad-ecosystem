@@ -2921,7 +2921,7 @@ endif
 ! End stuff
 
 if (n_set /= size(eles)) then
-  call out_io (s_info$, r_name, 'Set successful for \i0\ elements out of \i0\ ', i_array = [n_set, size(eles)])
+  call out_io (s_info$, r_name, 'Note: \i0\ elements (out of \i0\) set.', i_array = [n_set, size(eles)])
 endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
