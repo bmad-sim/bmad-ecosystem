@@ -50,12 +50,10 @@ open (1, file = 'output.now')
 ! Check information passing between bmad element and associated ptc fibre
 
 call bmad_parser ('diff_test.bmad', lat)
+call lattice_bookkeeper (lat)
+call lat_to_ptc_layout(lat)
 
 branch => lat%branch(0)
-call branch_to_ptc_m_u (branch)
-
-call lattice_bookkeeper (lat)
-
 do i = 1, branch%n_ele_track
   ele => branch%ele(i)
   ele0 = ele
