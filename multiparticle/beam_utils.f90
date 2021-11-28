@@ -1430,6 +1430,7 @@ character(*), parameter :: r_name = "calc_bunch_params"
 
 ! Init
 
+bunch_params = bunch_params_struct()
 bunch_params%twiss_valid = .false.  ! Assume the worst
 error = .true.
 
@@ -1464,14 +1465,6 @@ charge_live = sum(charge, mask = (bunch%particle%state == alive$))
 !
 
 if (charge_live == 0) then
-  bunch_params%centroid%vec = 0.0     ! zero everything
-  bunch_params%sigma = 0
-  call zero_plane (bunch_params%x)
-  call zero_plane (bunch_params%y)
-  call zero_plane (bunch_params%z)
-  call zero_plane (bunch_params%a)
-  call zero_plane (bunch_params%b)
-  call zero_plane (bunch_params%c)
   error = .false.
   return
 else
@@ -1507,24 +1500,6 @@ if (bunch_params%n_particle_live < 12) return
 
 call calc_bunch_sigma_matrix (bunch%particle, charge, bunch_params)
 call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, gamma, bunch_params, error, print_err)
-
-!----------------------------------------------------------------------
-contains
-subroutine zero_plane (twiss)
-
-implicit none
-
-type (twiss_struct), intent(out) :: twiss
-
-twiss%beta       = 0
-twiss%alpha      = 0
-twiss%gamma      = 0
-twiss%eta        = 0
-twiss%etap       = 0
-twiss%norm_emit  = 0
-twiss%emit       = 0
-
-end subroutine zero_plane
 
 end subroutine calc_bunch_params
 
@@ -1566,9 +1541,16 @@ logical error, err, good(3)
 
 character(*), parameter :: r_name = 'calc_emittances_and_twiss_from_sigma_matrix'
 
-! X, Y, & Z Projected Parameters
+! Init
 
-bunch_params = bunch_params_struct()
+bunch_params%x = twiss_struct()
+bunch_params%y = twiss_struct()
+bunch_params%z = twiss_struct()
+bunch_params%a = twiss_struct()
+bunch_params%b = twiss_struct()
+bunch_params%c = twiss_struct()
+
+! X, Y, & Z Projected Parameters
 
 call projected_twiss_calc ('X', bunch_params%x, sigma_mat(1,1), sigma_mat(2,2), sigma_mat(1,2), sigma_mat(1,6), sigma_mat(2,6))
 call projected_twiss_calc ('Y', bunch_params%y, sigma_mat(3,3), sigma_mat(4,4), sigma_mat(3,4), sigma_mat(3,6), sigma_mat(4,6))
