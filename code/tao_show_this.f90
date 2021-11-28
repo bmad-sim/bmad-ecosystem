@@ -3646,6 +3646,8 @@ case ('ptc')
   nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'A', norm_mode%a%emittance, norm_mode%a%tune
   nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'B', norm_mode%b%emittance, norm_mode%b%tune
   nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'C', norm_mode%z%emittance, norm_mode%z%tune
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; write(lines(nl), '(1x, a, 6es15.7)') 'Starting orbit:', orb%vec
 
 !----------------------------------------------------------------------
 ! spin
