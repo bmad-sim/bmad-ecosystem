@@ -33,7 +33,7 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 
-integer i, j, iu, ios, n_word, n_eq, stat
+integer i, j, n, iu, ios, n_word, n_eq, stat
 integer ix, ix_line, ix_cmd, which
 integer int1, int2, uni, wrt, n_level
 
@@ -566,6 +566,8 @@ case ('set')
   case ('calculate'); n_word = 1; n_eq = 0
   end select
 
+  ! Split command line into words. Translate "set ele q[k1]" -> "set ele q k1"
+
   call tao_cmd_split (cmd_line, n_word, cmd_word, .false., err, '=')
 
   if  (set_word == 'element' .and. index('-update', trim(cmd_word(1))) == 1 .and. len_trim(cmd_word(1)) > 1) then
@@ -573,6 +575,20 @@ case ('set')
     call tao_cmd_split (cmd_line, 5, cmd_word, .false., err, '=')
     cmd_word(1:4) = cmd_word(2:5)
   endif
+
+  if (set_word == 'element' .and. index(cmd_word(1), '[') /= 0) then
+    n = len_trim(cmd_word(1)) 
+    if (cmd_word(1)(n:n) /= ']') then
+      call out_io (s_error$, r_name, 'CANNOT DECODE: ' // cmd_word(1))
+      goto 9000
+    endif
+    ix = index(cmd_word(1), '[') 
+    cmd_word(3:5) = cmd_word(2:4)
+    cmd_word(2) = cmd_word(1)(ix+1:n-1)
+    cmd_word(1) = cmd_word(1)(1:ix-1)
+  endif
+
+  !
 
   if (set_word == 'universe' .and. cmd_word(3) /= '=') then  ! Old syntax
     cmd_word(4) = cmd_word(3)
