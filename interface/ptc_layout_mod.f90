@@ -520,6 +520,10 @@ if (.not. rf_is_on(branch)) then
   return
 endif
 
+if (.not. bmad_com%radiation_damping_on) then
+  call out_io (s_info$, r_name, 'Note!! Radiation damping is always on for PTC emittance calc.')
+endif
+
 !
 
 ptc_state = ptc_com%base_state - NOCAVITY0 + RADIATION0
@@ -543,7 +547,9 @@ id=xs
 call GET_loss(ptc_layout, energy_loss, dp_loss)
 norm_mode%e_loss = energy_loss * 1e9_rp
 
+c_verbose = .false.
 call c_normal(id, cc_norm)
+c_verbose = .true.
 
 call init_coord(closed_orb, closed_orb, ele, downstream_end$)
 

@@ -28,7 +28,7 @@ real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) a_ptc(0:n_pole_maxx), b_ptc(0:n_pole_maxx)
 real(rp), pointer :: val(:)
 
-integer i, ix, ix_pole_max, n
+integer i, n, ix, ix_pole_max, lpr
 
 character(*), parameter :: r_name = 'update_fibre_from_ele'
 
@@ -104,13 +104,19 @@ enddo
 ! Note: ele_to_an_bn takes care of such stuff as sextupole strength conversion so
 ! only have to worry about non-multipole components here.
 
-call set_integer (mp%method, mpp%method, nint(val(integrator_order$)))
+! PTC does not like %nst for a marker to be anything other than 1.
 
-if (nint(val(num_steps$)) /= mp%nst) then
+if (nint(val(num_steps$)) /= mp%nst .and. ele%key /= marker$) then
   call set_integer (mp%nst, mpp%nst, nint(val(num_steps$)))
-  call make_node_layout(m_u%end)   !???? or m_t%end ???
-  call survey (m_u%end)            !????
+  lpr = lielib_print(12)
+  lielib_print(12) = 0   ! Do not print layout info.
+  call make_node_layout(m_t%end)
+  call survey (m_t%end)
+  lielib_print(12) = lpr
 endif
+
+n = nint(val(integrator_order$))
+if (n /= 0) call set_integer (mp%method, mpp%method, n)
 
 select case (ele%key)
 
