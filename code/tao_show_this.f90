@@ -4705,8 +4705,8 @@ case ('universe')
   design_tao_branch => u%design%tao_branch(ix_branch)
 
   nl = 0
-  nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', ix_u, '  of: ', ubound(s%u, 1)
-  nl=nl+1; write(lines(nl), imt) 'Branch:   ', ix_branch
+  nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', ix_u,      '  Of: ', ubound(s%u, 1)
+  nl=nl+1; write(lines(nl), '(3(a, i0))') 'Branch:   ', ix_branch, '  In range: [0, ', ubound(lat%branch,1), ']'
   nl=nl+1; write(lines(nl), lmt) 'is_on:                    ', u%is_on
   nl=nl+1; write(lines(nl), amt) 'Lattice name:             ', quote(lat%lattice)
   nl=nl+1; write(lines(nl), amt) 'Machine name:             ', quote(lat%machine)
