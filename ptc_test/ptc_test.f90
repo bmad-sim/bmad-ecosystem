@@ -38,7 +38,7 @@ real(dp) b_pot, e_pot, b_field_ptc(3), e_field_ptc(3), a(3), da(3,2), x(6), z
 
 integer i, j, k, seed0, ixd(3)
 character(80) str
-logical err_flag
+logical err_flag, survey_needed
 
 namelist / params / start_orb
 
@@ -59,7 +59,7 @@ do i = 1, branch%n_ele_track
   ele0 = ele
   call vary_ele_attributes(ele)
 
-  call update_fibre_from_ele (ele)
+  call update_fibre_from_ele (ele, survey_needed)
   call update_ele_from_fibre (ele0)
   str = 'NO-DIFF'
   call check_if_ele_different(ele0, ele)
