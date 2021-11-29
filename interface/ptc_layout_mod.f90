@@ -506,7 +506,7 @@ type (probe_8) xs
 type (probe) xs0
 type (c_normal_form) cc_norm
 
-real(rp) sigma_mat(6,6), emit(3), ptc_sigma_mat(6,6), tune(3), damp(3), energy_loss, dp_loss
+real(rp) sigma_mat(6,6), emit(3), ptc_sigma_mat(6,6), tune(3), damp(3), energy_loss, dp_loss, epsc
 complex(rp) cmplx_sigma_mat(6,6)
 
 character(*), parameter :: r_name = 'ptc_emit_calc'
@@ -547,9 +547,12 @@ id=xs
 call GET_loss(ptc_layout, energy_loss, dp_loss)
 norm_mode%e_loss = energy_loss * 1e9_rp
 
-c_verbose = .false.
+lielib_print(16) = 0    ! Do not print eigenvalue info.
+epsc = EPS_EIGENVALUES_OFF_UNIT_CIRCLE
+EPS_EIGENVALUES_OFF_UNIT_CIRCLE = max(1d-3, epsc)  ! Set larger since rad damping is on.
 call c_normal(id, cc_norm)
-c_verbose = .true.
+lielib_print(16) = 1
+EPS_EIGENVALUES_OFF_UNIT_CIRCLE = epsc
 
 call init_coord(closed_orb, closed_orb, ele, downstream_end$)
 

@@ -2785,10 +2785,11 @@ subroutine update_floor_angles (floor, floor0)
   type(floor_position_struct), optional :: floor0
 end subroutine update_floor_angles
 
-subroutine update_fibre_from_ele (ele)
+subroutine update_fibre_from_ele (ele, survey_needed)
   import
   implicit none
   type (ele_struct), target :: ele
+  logical survey_needed
 end subroutine
 
 function valid_field_calc (ele, field_calc) result (is_valid)

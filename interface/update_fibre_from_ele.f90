@@ -1,5 +1,5 @@
 !+
-! Subroutine update_fibre_from_ele (ele)
+! Subroutine update_fibre_from_ele (ele, survey_needed)
 !
 ! Routine to update a fibre when the associated Bmad ele has been modified.
 !
@@ -8,9 +8,12 @@
 !
 ! Output:
 !   ele%ptc_fibre -- PTC fibre.
+!   survey_needed -- logical: Set True if a call to survey will be needed.
+!                      Calling survey is avoided in this routine to save time if multiple elements
+!                      are being updated.
 !-
 
-subroutine update_fibre_from_ele (ele)
+subroutine update_fibre_from_ele (ele, survey_needed)
 
 use ptc_interface_mod, dum1 => update_fibre_from_ele
 use pointer_lattice, dum2 => twopi, dum3 => pi, dum4 => sqrt
@@ -23,17 +26,19 @@ type (element), pointer :: mag
 type (elementp), pointer :: magp
 type (magnet_chart), pointer :: mp, mpp
 
-real(rp) value, hk, vk, phi_tot, fh
+real(rp) value, hk, vk, phi_tot, fh, volt
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) a_ptc(0:n_pole_maxx), b_ptc(0:n_pole_maxx)
 real(rp), pointer :: val(:)
 
-integer i, n, ix, ix_pole_max, lpr
+integer i, n, ns, ix, ix_pole_max
+logical survey_needed, rf_standing_wave
 
 character(*), parameter :: r_name = 'update_fibre_from_ele'
 
 ! Note: change_settings_fibre (in PTC) is an alternative way of setting some element parameters.
 
+survey_needed = .false.
 branch => pointer_to_branch(ele)
 fib => ele%ptc_fibre
 val => ele%value
@@ -44,12 +49,15 @@ magp => fib%magp
 mp => mag%p
 mpp => magp%p
 
+rf_standing_wave = (ele%key == rfcavity$ .and. nint(ele%value(cavity_type$)) == standing_wave$)
+
 !
 
-call set_real_all (mp%ld, mpp%ld, val(l$))
+if (.not. rf_standing_wave) call set_real_all (mp%ld, mpp%ld, val(l$))
+
 if (ele%key == sbend$) then
   call set_real_all (mp%lc, mpp%lc, val(l_chord$))
-else
+elseif (.not. rf_standing_wave) then
   call set_real_all (mp%lc, mpp%lc, val(l$))
 endif
 
@@ -105,14 +113,14 @@ enddo
 ! only have to worry about non-multipole components here.
 
 ! PTC does not like %nst for a marker to be anything other than 1.
+! And don't set drifts.
 
-if (nint(val(num_steps$)) /= mp%nst .and. ele%key /= marker$) then
-  call set_integer (mp%nst, mpp%nst, nint(val(num_steps$)))
-  lpr = lielib_print(12)
-  lielib_print(12) = 0   ! Do not print layout info.
-  call make_node_layout(m_t%end)
-  call survey (m_t%end)
-  lielib_print(12) = lpr
+if (nint(val(num_steps$)) /= mp%nst .and. (mag%kind /= kind0 .and. mag%kind /= kind1)) then
+  ns = nint(val(num_steps$))
+  if (rf_standing_wave) ns = min(5, ns) ! To avoid bug
+  call set_integer (mp%nst, mpp%nst, ns)
+  if (mag%kind /= kind4 .and. mag%kind /= kind21) call add (fib, 1, 1, 0.0_rp)  ! Triggers recompute of matrices.
+  survey_needed = .true.
 endif
 
 n = nint(val(integrator_order$))
@@ -130,8 +138,20 @@ case (rfcavity$, lcavity$, crab_cavity$)
   phi_tot = twopi * (val(phi0$) + val(phi0_multipass$) + val(phi0_err$) + val(phi0_autoscale$))
   if (ele%key == lcavity$) phi_tot = pi / 2 - twopi * phi_tot
 
-  call set_real (mag%phas, magp%phas, -mag%lag)
-  call set_real (mag%volt, magp%volt, 2d-6 * e_accel_field(ele, voltage$))
+  select case (nint(ele%value(cavity_type$)))
+  case (standing_wave$)
+    call set_real_all (mp%ld, mpp%ld, val(l_active$))
+    call set_real_all (mp%lc, mpp%lc, val(l_active$))
+    call set_real (mag%h1, magp%h1, (val(l$) - val(l_active$)) / 2)
+    call set_real (mag%h2, magp%h2, (val(l$) - val(l_active$)) / 2)
+    volt = 2d-6 * e_accel_field(ele, voltage$) / ele%value(l_active$)
+  case default
+    volt = 1d-6 * e_accel_field(ele, voltage$) / ele%value(l$)
+  end select
+
+  mag%lag = phi_tot  ! There is no magp%lat
+  call set_real (mag%phas, magp%phas, -phi_tot)
+  call set_real (mag%volt, magp%volt, volt)
   call set_real (mag%freq, magp%freq, val(rf_frequency$))
 
 case (sad_mult$)
