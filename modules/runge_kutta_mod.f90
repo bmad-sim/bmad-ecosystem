@@ -449,6 +449,26 @@ end subroutine rk_adaptive_step
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! Subroutine rk_step1 (ele, param, orb, dr_ds1, s, ds, orb_new, r_err, err, print_err)
+!
+! Fifth-order Cash–Karp Runge-Kutta step. Adapted from the routine rkqs from NR. Not meant for general use.
+!
+! Input:
+!   ele         -- ele_struct: Elemnet being tracked through.
+!   param       -- lat_param_struct: Some lattice parameters.
+!   orb         -- coord_struct: Initial position.
+!   s           -- real(rp): Initial longitudinal position.
+!   ds          -- real(rp): Step to do.
+!
+! Output:
+!   dr_ds1(11)  -- real(rp): Derivative vector at the initial position.
+!                   See kick_vector_calc for details.
+!   orb_new     -- coord_struct: Ending coords.
+!   r_err(11)   -- real(rp): Error estimates.
+!   err         -- logical: Set True if there is an error.
+!   print_err   -- logical, optional: Print message if there is an error? Default is True.
+!-
 
 recursive subroutine rk_step1 (ele, param, orb, dr_ds1, s, ds, orb_new, r_err, err, print_err)
 
