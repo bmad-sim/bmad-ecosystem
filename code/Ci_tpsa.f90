@@ -10864,7 +10864,7 @@ subroutine c_linear_a(xy,a1)
       !!  c_locate_planes tries to locate the planes: important if there is little coupling
       !! I suppose that this routine can be refined
       call c_locate_planes(vr,vi,idef)
-      if(c_verbose) then
+      if(lielib_print(16)==1) then
         do i=1,nd2harm  !t
           write(6,'(i2,2(1x,G21.14))') i, reval(i),imval(i)
         enddo
