@@ -195,8 +195,8 @@ module precision_constants
   character*255 :: file_block_name="noprint"
   real(dp) :: lmax=1.e38_dp
   logical(lp) :: printdainfo=my_false
-  integer   lielib_print(15)
-  DATA lielib_print /0,0,0,1,0,0,0,0,0,0,0,1,0,1,1/
+  integer   lielib_print(16)
+  DATA lielib_print /0,0,0,1,0,0,0,0,0,0,0,1,0,1,1,0/
   integer :: SECTOR_NMUL_MAX=22
   INTEGER, target :: SECTOR_NMUL = 11
  
@@ -238,6 +238,7 @@ module precision_constants
   !  lielib_print(13)=1  print info of normal form kernel into file kernel.txt and kernel_spin.txt
   !  lielib_print(14)=1  print info about recutting
   !  lielib_print(15)=1  print info during flat file reading and printing
+  !  lielib_print(16)=1  print eigenvalues in c_linear_a 
 
   INTERFACE read
      MODULE PROCEDURE read_d
