@@ -250,7 +250,7 @@ end subroutine super_sort
 !
 !   x1, x2    -- Real(rp): Bracket values.
 !   rel_tol   -- real(rp): Relative tolerance for the error of the root.
-!   abs_tol   -- real(rp): Absolute tolerance for the error of the root.
+!   abs_tol   -- real(rp): Absolute tolerance for the error of the root. This is xacc arg in rtsafe.
 !
 ! Output:
 !   x_zero    -- Real(rp): Root found.
