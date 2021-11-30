@@ -53,11 +53,6 @@ contains
 !                        If not present or less than 1, the currently set order is used.
 !   include_damping -- logical, optional: If True (default), the map will be constructed with radiation damping included.
 !                        If False, the map will not be constructed with radiation dampling included. 
-!                        Since radiation damping can always be turned off when tracking, if you are only 
-!                        concerned about the orbital motion, there is no reason to create a map without damping. 
-!                        However, the spin map is constructed about the closed orbit so the spin map will be 
-!                        affected by whether damping is on or not. 
-!                        To the extent that the damping is small the shift in the spin map will be small.
 !   orbit1          -- coord_struct, optional: Orbit at ele1 about which the map is constructed.
 !                        If not present then the orbit will be computed using PTC tracking.
 !   create_symplectic_map
