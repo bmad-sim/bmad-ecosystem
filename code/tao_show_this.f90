@@ -5238,7 +5238,11 @@ case ('version')
     return
   endif
 
-  read (iu, '(a)') aname
+  read (iu, '(a)', iostat = ios) aname
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'CANNOT READ FILE: ' // name)
+    return
+  endif
   close (iu)
 
   nl=nl+1; lines(nl) = aname
