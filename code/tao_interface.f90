@@ -1136,5 +1136,3 @@ enddo
 end function tao_uni_ampersand_index
 
 end module
-
-

@@ -567,7 +567,7 @@ case ('set')
   case ('calculate'); n_word = 1; n_eq = 0
   end select
 
-  ! Split command line into words. Translate "set ele q[k1]" -> "set ele q k1"
+  ! Split command line into words. Translate "set ele [1,2]@q[k1]" -> "set ele [1,2]@q k1"
 
   call tao_cmd_split (cmd_line, n_word, cmd_word, .false., err, '=')
 
@@ -577,13 +577,13 @@ case ('set')
     cmd_word(1:4) = cmd_word(2:5)
   endif
 
-  if (set_word == 'element' .and. index(cmd_word(1), '[') /= 0) then
+  ix = str_find_last_in_set(cmd_word(1), '[')
+  if (set_word == 'element' .and. ix /= 0 .and. ix > index(cmd_word(1), '@')) then
     n = len_trim(cmd_word(1)) 
     if (cmd_word(1)(n:n) /= ']') then
       call out_io (s_error$, r_name, 'CANNOT DECODE: ' // cmd_word(1))
       goto 9000
     endif
-    ix = index(cmd_word(1), '[') 
     cmd_word(3:5) = cmd_word(2:4)
     cmd_word(2) = cmd_word(1)(ix+1:n-1)
     cmd_word(1) = cmd_word(1)(1:ix-1)
