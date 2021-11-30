@@ -3,19 +3,24 @@
 \label{c:python}
 
 It is sometimes convenient to be able to run Tao via Python. For example, in an online control
-system environment. Or to expidite analysis external to \tao. \tao has scripts for doing this in
-one of two ways. One way is using the \vn{ctypes} module. The other way is using the \vn{pexpect}
-module. A Web search will point to documentation on \vn{ctypes} and \vn{pexpect}. The advantage of
-\vn{ctypes} is that it directly accesses \tao code which makes communication between Python and \tao
-more robust. The disadvantage of \vn{ctypes} is that it needs a shared-object version of the
-\vn{Tao} library. [See the Bmad web site for information on building shared-object libraries.] The
-disadvantage of \vn{pexpect} is that it is slower and it is possible for \vn{pexpect} to time out
-waiting for a response from \tao.
+system environment. Or to expidite analysis external to \tao. The \vn{PyTao} package has been
+developed for this. \vn{PyTao} is hosted on \vn{GitHub} (independent of \bmad distributions) at:
+\begin{example}
+  \url{https://bmad-sim.github.io/pytao}
+\end{example}
+See the \vn{PyTao} documentation for installation instructions, examples, etc. In this chapter, some
+simple examples will be given.
 
-
+There are two ways to interface with Python/PyTao. One way is using the Python \vn{ctypes}
+library. The other way is using the \vn{pexpect} module. A Web search will point to documentation on
+\vn{ctypes} and \vn{pexpect}. The advantage of \vn{ctypes} is that it directly accesses \tao code
+which makes communication between Python and \tao more robust. The disadvantage of \vn{ctypes} is
+that it needs a shared-object version of the \vn{Tao} library. [See the Bmad web site for
+information on building shared-object libraries.] The disadvantage of \vn{pexpect} is that it is
+slower and it is possible for \vn{pexpect} to time out waiting for a response from \tao.
 
 %--------------------------------------------------------------------------
-\section{Python Interface Via Pexpect}
+\section{Python/PyTao Via Pexpect}
 
 A python module, \vn{tao_pipe.py}, for interfacing \tao to \vn{Python} is provided in the directory
 \vn{tao/python/tao_pexpect}.
@@ -24,16 +29,12 @@ The \vn{tao_pipe} module uses the \vn{pexpect} module. The \vn{pexpect} module i
 tool for interfacing Python with programs like \tao. If \vn{pexpect} is not present your system, it
 can be downloaded from \vn{www.noah.org/wiki/pexpect}. Example:
 \begin{example}
-  >>> import tao_pipe                                       # import module
-  >>> p = tao_pipe.tao_io("../bin/tao -lat my_lat.bmad")    # init session
-  >>> p.cmd_in("show global")               # Command to Tao
-  >>> print(p.output)                       # print the output from Tao
-  >>> p.cmd("show global")                  # Like p.cmd_in() excepts prints the output too.
+  >>> from pytao.tao_pexpect import tao_pipe  # import module
+  >>> p = tao_pipe.tao_io("-lat my_lat.bmad") # init session
+  >>> out = p.cmd_in("show global")           # Command to Tao
+  >>> print(out)                              # print the output from Tao
+  >>> p.cmd("show global")                    # Like p.cmd_in() excepts prints the output too.
 \end{example}
-
-After each call to \vn{tao_io.cmd} and \vn{tao_io.cmd_in}, the \vn{tao_io.output} variable is set to
-the multi-line output string returned by \tao. To chop this string into lines, use the splitlines()
-string method.
 
 \index{python}
 To get information from \tao into Python, the output from \tao, contained in \vn{tao_io.output},

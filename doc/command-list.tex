@@ -3236,7 +3236,16 @@ solution to the taper problem since a changing all magnet strengths along with a
 in particle energy will not change the orbit.
 
 The \vn{-universe <ix_uni>} switch can be used select the desired universe to taper. If not present,
-the default universe will be used. Set <ix_uni> to ``*'' to choose all universes
+the default universe will be used. Set <ix_uni> to ``*'' to choose all universes.
+
+The taper command will vary magnet strengths independent of the element's name. That is, the magnet
+strengths of elements which have the same name will be different. If a \bmad lattice file is created
+after tapering using the \vn{write bmad} command, The created lattice file will have the proper
+magnet strengths (the lattice file will use the \vn{\#\#N} construct to set strengths for individual
+elemnts with the same same). However, creating a lattice file in a non-\bmad (MAD, etc.) format will
+be problematical.
+
+No tapering will be applied to strengths that are controlled by an \vn{overlay} controller element.
 
 Examples:
 \begin{example}
