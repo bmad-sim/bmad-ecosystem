@@ -813,7 +813,8 @@ end subroutine photon_reflection
 subroutine photon_diffuse_scattering (graze_angle_in, energy, surface, graze_angle_out, phi_out, diffuse_param)
 
 use random_mod
-use nr, only: rtsafe, chebft, chint, chebev
+use nr, only: chebft, chint, chebev
+use super_recipes_mod, only: super_rtsafe
 
 implicit none
 
@@ -826,7 +827,7 @@ real(rp) graze_angle_in, energy, graze_angle_out,  phi_out
 real(rp) sigma, t, ctheta2, sign_phi, tot_integral, rel_integral_err, integral, old_integral
 real(rp) fl, fh, df, r, p_spec, ran1, ran2, integral_err(0:50)
 
-integer i, ix, j, n_pt
+integer i, ix, j, n_pt, status
 
 character(*), parameter :: r_name = 'photon_diffuse_scattering'
 
@@ -895,7 +896,7 @@ if (diffuse_com%use_spline_fit) then
   d_param%chx_norm = tot_integral
 
   ! Integrate the probability function and find where probability integral from 0 to cos(theta2) equals ran1.
-  ! First integrate over the spline intervals to bracket cos(theta2) and then use rtsafe to interpolate.
+  ! First integrate over the spline intervals to bracket cos(theta2) and then use super_rtsafe to interpolate.
 
   integral = 0
   do j = 0, n_pt-1
@@ -905,7 +906,8 @@ if (diffuse_com%use_spline_fit) then
     if (integral >= ran1 * tot_integral) exit
   enddo
 
-  ctheta2 = rtsafe (d_integral, d_param%prob_spline(j)%x0, d_param%prob_spline(j+1)%x0, 1.0D-5)
+  ctheta2 = super_rtsafe (d_integral, d_param%prob_spline(j)%x0, d_param%prob_spline(j+1)%x0, &
+                                      1.0e-12_rp, 1.0e-5_rp, status)
 
 ! Fit the probability distribution to Chebyshev polynomials.
 ! This is known to produce bad results for smoother surfaces so eventually this
@@ -916,7 +918,7 @@ else
   !  evaluate the normalization constant
   d_param%chx_norm = chebev(0.0D0, 1.0D0, cheb_param%cch_int, 1.0D0)
   ! find the value of x for which the cumulative probability equals the random number
-  ctheta2 = rtsafe(cumulx, 0.0D0, 1.0D0, 1.0D-5)
+  ctheta2 = super_rtsafe(cumulx, 0.0E0_rp, 1.0E0_rp, 1.0e-12_rp, 1.0D-5, status)
 endif
 
 ! Evaluate the normalization constant for the cumulative probability in phi, for this x
@@ -927,14 +929,14 @@ d_param%c_norm = cos_phi(sigma, T, pi, d_param)
 
 ! find the value of phi for which the cumulative probability equals ran2
 
-call cumulr(0.0_rp, fl, df)
-call cumulr(pi, fh, df)
+call cumulr(0.0_rp, fl, df, status)
+call cumulr(pi, fh, df, status)
 if ((fl > 0 .and. fh > 0) .or. (fl < 0 .and. fh < 0)) then 
   call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED FOR PHI CALC!', 'fl, fh: \2es14.5\ ', r_array = [fl, fh])
   call output_specular_reflection_input_params(d_param, surface)
 endif
 
-phi_out = sign_phi * rtsafe(cumulr, 0.0D0, pi, 1.0D-5)
+phi_out = sign_phi * super_rtsafe(cumulr, 0.0E0_rp, pi, 1.0e-12_rp, 1.0e-5_rp, status)
 
 if (present(diffuse_param)) then
   diffuse_param = d_param
@@ -993,13 +995,13 @@ end subroutine integral_err_calc
 ! contains
 
 !+
-! Subroutine d_integral (x, fn, df)
+! Subroutine d_integral (x, fn, df, status)
 !
-! Wrapper function passed to rtsafe.
+! Wrapper function passed to super_rtsafe.
 ! Contained routine to calculate integrated probability distribution in x = sin(graze_angle_out).
 !-
 
-subroutine d_integral (x, fn, df)
+subroutine d_integral (x, fn, df, status)
 
 use nr, only: chebev
 
@@ -1007,6 +1009,7 @@ implicit none
 
 real(rp), intent(in) :: x
 real(rp), intent(out) :: fn, df
+integer status
 
 !
 
@@ -1019,19 +1022,20 @@ end subroutine d_integral
 ! contains
 
 !+
-! Subroutine cumulr (phi, fn, df)
+! Subroutine cumulr (phi, fn, df, status)
 !
-! Wrapper function passed to rtsafe.
+! Wrapper function passed to super_rtsafe.
 ! Contained routine to calculate integrated probability distribution in x = sin(graze_angle_out).
 !-
 
-subroutine cumulr (phi, fn, df)
+subroutine cumulr (phi, fn, df, status)
 
 implicit none
 
 real(rp), intent(in) :: phi 
 real(rp), intent(out) :: fn, df
 real(rp) sigma, T
+integer status
 
 !
 
@@ -1047,13 +1051,13 @@ end subroutine cumulr
 ! contains
 
 !+
-! Subroutine cumulx (x, fn, df)
+! Subroutine cumulx (x, fn, df, status)
 !
 ! Wrapper function passed to rtsafe.
 ! Contained routine to calculate integrated probability distribution in x = sin(graze_angle_out).
 !-
 
-subroutine cumulx (x, fn, df)
+subroutine cumulx (x, fn, df, status)
 
 use nr, only: chebev
 
@@ -1061,11 +1065,12 @@ implicit none
 
 real(rp), intent(in) :: x
 real(rp), intent(out) :: fn, df
+integer status
 
 !
 
-fn = chebev(0.0D0, 1.0D0, cheb_param%cch_int, x) / d_param%chx_norm - ran1
-df = chebev(0.0D0, 1.0D0, cheb_param%cch, x) / d_param%chx_norm
+fn = chebev(0.0E0_rp, 1.0E0_rp, cheb_param%cch_int, x) / d_param%chx_norm - ran1
+df = chebev(0.0E0_rp, 1.0E0_rp, cheb_param%cch, x) / d_param%chx_norm
 
 end subroutine cumulx
 
