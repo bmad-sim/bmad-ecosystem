@@ -114,7 +114,8 @@ call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
 
 if (cmd_name == 'set') then
   ix = index(cmd_line, '%')
-  if (ix /= 0) cmd_line(ix:ix) = ' '
+  j = index(cmd_line, ' ')
+  if (ix /= 0 .and. ix < j) cmd_line(ix:ix) = ' '
 endif
 
 ! select the appropriate command.
