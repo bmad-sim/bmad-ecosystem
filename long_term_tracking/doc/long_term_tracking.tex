@@ -305,7 +305,8 @@ wiggler elements), these elements should be excluded from being included in any 
 
 Maps are saved to a file for use if the program is rerun. The name of a map file is determined, in
 part, by the setting of the \vn{ltt%map_file_prefix} parameter. See the documentation on this
-parameter in \sref{s:out.params}.
+parameter in \sref{s:out.params}. The map file is in a PTC format. For linear maps, an ASCII file
+can be produced by setting \vn{ltt%map_ascii_output_file}.
 
 %------------------------------------------------------------------
 \Section{Tuning Map and PTC Tracking Parameters}
@@ -550,6 +551,7 @@ Example:
   ltt%averaging_window = 1
   ltt%print_on_dead_loss = -1
   ltt%map_file_prefix = "ltt"
+  ltt%map_ascii_output_file = ""
 
   ltt%column(1) = "n_turn", "N_turn", "i7"
   ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
@@ -702,6 +704,9 @@ individually tracking. The default value is \vn{"beambeam::*"} which excludes an
 element. See the Bmad manual section on ``\vn{Matching to Lattice Element Names}'' for details on
 the format for such lists.
 %
+\item[ltt%map_ascii_output_file] \Newline
+For linear maps, An ASCII file of the maps can be produced by setting this parameter.
+&
 \item[ttl\%map_file_prefix] \Newline
 Prefix, including possible directory specification, for creating files in which maps are saved. Map
 files are used to quickly retrieve maps previously computed in prior running of the program. The
