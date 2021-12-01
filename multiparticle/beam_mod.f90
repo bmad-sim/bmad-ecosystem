@@ -204,7 +204,7 @@ call reallocate_bunch(bunch_end, size(bunch_start%particle))
 
 ! Custom tracking
 
-call track1_bunch_hook (bunch_start, lat, ele, bunch_end, err, centroid, direction, finished)
+call track1_bunch_hook (bunch_start, ele, bunch_end, err, centroid, direction, finished)
 if (finished) return
 
 !
