@@ -123,7 +123,7 @@ endif
 n_tot = 0
 
 if (use_dflt_ele) then
-    call re_allocate (values, 1)
+  call re_allocate (values, 1)
   call evaluate_this_parameter(dflt_ele, parameter, component, where, s%u(dflt_uni), n_tot, values, err)
 
 else

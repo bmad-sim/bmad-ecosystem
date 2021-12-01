@@ -47,11 +47,12 @@ type (tao_data_struct) datum
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
+type (ele_struct), pointer :: this_ele
 
 character(*) data_name
 character(*) default_source
 character(*), optional :: dflt_component
-character(100) name, ele_name, component
+character(100) name, ele_name, component, offset_str
 character(*), parameter :: r_name = 'tao_evaluate_lat_or_beam_data'
 
 real(rp), allocatable :: values(:)
@@ -59,7 +60,7 @@ real(rp), optional :: dflt_s_offset
 real(rp) s_offset
 
 integer, optional :: dflt_uni, dflt_eval_point
-integer i, j, num, ix, ix1, ios, n_tot, n_loc, iu
+integer j, num, ix, ix1, ios, n_tot, n_loc, iu
 
 logical err, valid, err_flag
 logical print_err, use_dflt_ele, has_assoc_ele
@@ -106,6 +107,7 @@ endif
 ! Get data type
 
 ele_name = ''
+offset_str = ''
 s_offset = real_option(0.0_rp, dflt_s_offset)
 use_dflt_ele = .true.
 has_assoc_ele = .true.
@@ -142,12 +144,7 @@ else
 
   ix = index(name, '->')
   if (ix /= 0) then
-    call tao_evaluate_expression(name(ix+2:), 1, .false., values, err_flag, .true., dflt_ele = dflt_ele)
-    if (err_flag) then
-      if (print_err) call out_io (s_error$, r_name, 'BAD S_OFFSET: ' // data_name)
-      return
-    endif
-    s_offset = values(1)
+    offset_str = name(ix+2:)
     name = name(:ix-1)
   endif
 
@@ -171,9 +168,9 @@ endif
 ! Evaluate
 
 n_tot = 0
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  if (.not. this_u(i)) cycle
-  u => s%u(i)
+do iu = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. this_u(iu)) cycle
+  u => s%u(iu)
 
   if (has_assoc_ele) then
     if (use_dflt_ele) then
@@ -220,8 +217,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, n_loc
     if (has_assoc_ele) then
       if (use_dflt_ele) then
-        datum%ix_branch = dflt_ele%ix_branch
-        datum%ix_ele = dflt_ele%ix_ele
+        this_ele => dflt_ele
         if (present(dflt_ele_start)) then
           if (associated(dflt_ele_start)) then
             datum%ix_ele = dflt_ele_start%ix_ele + j - 1
@@ -230,9 +226,24 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         endif
 
       else
-        datum%ele_name = eles(j)%ele%name
+        this_ele => eles(j)%ele
         datum%ix_ele = eles(j)%ele%ix_ele
         datum%ix_branch = eles(j)%ele%ix_branch
+      endif
+
+      datum%ele_name  = this_ele%name
+      datum%ix_branch = this_ele%ix_branch
+      datum%ix_ele    = this_ele%ix_ele
+
+      ! Offset_str may be something like "L/2" where L is the element length.
+      if (offset_str /= '') then
+        call tao_evaluate_expression(offset_str, 1, .false., values, err_flag, .true., &
+                                             dflt_source = 'ele', dflt_ele = this_ele, dflt_uni = iu)
+        if (err_flag) then
+          if (print_err) call out_io (s_error$, r_name, 'BAD S_OFFSET: ' // data_name)
+          return
+        endif
+        s_offset = values(1)
       endif
 
       datum%eval_point = integer_option(anchor_end$, dflt_eval_point)
