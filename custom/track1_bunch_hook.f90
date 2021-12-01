@@ -1,11 +1,10 @@
 !+
-! Subroutine track1_bunch_hook (bunch_start, lat, ele, bunch_end, err, centroid, direction, finished)
+! Subroutine track1_bunch_hook (bunch_start, ele, bunch_end, err, centroid, direction, finished)
 !
 ! Routine that can be customized for tracking a bunch through a single element.
 !
 ! Input:
 !   bunch_start   -- Bunch_struct: Starting bunch position.
-!   lat          -- lat_struct: Lattice containing element to be tracked through.
 !   ele          -- Ele_struct: Element to track through.
 !   centroid(0:) -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
 !                     Hint: Calculate this before bunch tracking by tracking a single particle.
@@ -18,16 +17,15 @@
 !   finished    -- logical: When set True, the standard track1_bunch code will not be called.
 !-
 
-subroutine track1_bunch_hook (bunch_start, lat, ele, bunch_end, err, centroid, direction, finished)
+subroutine track1_bunch_hook (bunch_start, ele, bunch_end, err, centroid, direction, finished)
 
 use bmad, dummy => track1_bunch_hook
 
 implicit none
 
-type (bunch_struct) bunch_start
-type (bunch_struct) :: bunch_end
-type (lat_struct) :: lat
-type (ele_struct) ele
+type (bunch_struct), target :: bunch_start
+type (bunch_struct), target :: bunch_end
+type (ele_struct), target :: ele
 type (coord_struct), optional :: centroid(0:)
 
 integer, optional :: direction

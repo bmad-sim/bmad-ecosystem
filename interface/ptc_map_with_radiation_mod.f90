@@ -325,8 +325,12 @@ endif
 
 write (iu) rad_map%lattice_file
 write (iu) rad_map%map_order, rad_map%radiation_damping_on, &
-            rad_map%ix_branch, rad_map%ix_ele_start, rad_map%ix_ele_end, &
-            rad_map%p0c_start, rad_map%p0c_end, rad_map%dref_time, rad_map%s_end
+             rad_map%ix_branch, rad_map%ix_ele_start, rad_map%ix_ele_end, &
+             rad_map%p0c_start, rad_map%p0c_end, rad_map%dref_time, rad_map%s_end
+write (iu) rad_map%nodamp_mat
+write (iu) rad_map%damp_mat
+write (iu) rad_map%stoc_mat
+write (iu) rad_map%ref0, rad_map%ref1
 
 do k = 1, 3
   t => rad_map%sub_map(k)
@@ -436,6 +440,11 @@ read (iu, err = 9000, end = 9000) rad_map%lattice_file
 read (iu, err = 9000, end = 9000) rad_map%map_order, rad_map%radiation_damping_on, &
             rad_map%ix_branch, rad_map%ix_ele_start, rad_map%ix_ele_end, &
             rad_map%p0c_start, rad_map%p0c_end, rad_map%dref_time, rad_map%s_end
+
+read (iu, err = 9000, end = 9000) rad_map%nodamp_mat
+read (iu, err = 9000, end = 9000) rad_map%damp_mat
+read (iu, err = 9000, end = 9000) rad_map%stoc_mat
+read (iu, err = 9000, end = 9000) rad_map%ref0, rad_map%ref1
 
 do k = 1, 3
   t => rad_map%sub_map(k)
