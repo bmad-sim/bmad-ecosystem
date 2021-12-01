@@ -5231,7 +5231,7 @@ case ('version')
   call fullfilename (name, file_name)
 
   iu = lunget()
-  open (iu, file = file_name, iostat = ios)
+  open (iu, file = file_name, iostat = ios, status = 'old')
   if (ios /= 0) then
     call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // name, &
                                    'SEE THE BMAD MANUAL FOR MORE DETAILS.')

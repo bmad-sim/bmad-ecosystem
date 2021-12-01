@@ -270,27 +270,34 @@ are calculated from the lattice and do not have to be defined at initialization 
 parameter ``\vn{token}'' is a string that specifies a scalar or an array of lattice parameters. The
 general form for data tokens in expressions (\sref{s:arithmetic.exp}) is:
 \begin{example}
-  \{[<universe(s)>]@\}lat::<parameter>[\{<ref_ele>&\}<element_list>\{-><s_offset>\}]\{|<component>\}
+  \{[<universe(s)>]@\}lat::<eval_param>[\{<ref_ele>&\}<element_list>\{-><s_offset>\}]\{|<component>\}
 \end{example}
 where:
 \begin{example}
   <universe(s)>       Optional universe specification (\sref{s:universe})
-  <parameter>         Name of the parameter.
+  <eval_param>        Name of the parameter to evaluate. 
+                        Possible data types listed in \Sref{s:data.types}. 
   <ref_ele>           Optional reference element.
   <element_list>      Evaluation point or points.
   <s_offset>          Longitudinal offset to evaluate at.
   <component>         Optional component. 
 \end{example}
-correspond to the data types as listed in \Sref{s:data.types}. 
+The \vn{<s_offset>} string can be an expression. Any parameter in this expression, if not qualified,
+will be interpreted as a parameter of the element containing the evaluation point. For example
 \begin{example}
-  3@lat::orbit.x[34:37]           ! Array of orbits at element 34 through 37 in universe 3.
-  3@lat::orbit.x[q10w]|model      ! Orbit.x model value at element q10w
-  3@lat::orbit.x[q10w->0.1]|model ! Same as above except eval point is shifted 0.1 meters.
-  lat::sigma.12[q10w]             ! Beam sigma matrix component at element q10w computed 
-                                  !  from lattice parameters.
+  3@lat::orbit.x[q10w->-L/2]|model
+\end{example}
+Here ``\vn{L}'' in the \vn{<s_offset>} string ``\vn{-L/2}'' is interpreted as the length of the element
+\vn{q10w}. Other examples:
+\begin{example}
+  3@lat::orbit.x[34:37]            ! Array of orbits at element 34 through 37 in universe 3.
+  3@lat::orbit.x[q10w]|model       ! Orbit.x model value at exit end of element q10w
+  3@lat::orbit.x[q10w->0.1]|model  ! Same as above except eval point is shifted 0.1 meters.
+  lat::sigma.12[q10w]              ! Beam sigma matrix component at element q10w computed 
+                                   !  from lattice parameters.
 \end{example}
 
-The list of possible lattice \vn{<parameter>} names is given in \Sref{s:data.types}. The table
+The list of possible lattice \vn{<eval_param>} names is given in \Sref{s:data.types}. The table
 \ref{t:data.types} shows which data names are associated with the lattice. Lattice parameters are
 independent of \vn{data} parameters. For example, \vn{lat::orbit.x} refers to the horizontal orbit
 while \vn{data::orbit.x} refers to user defined data whose name corresponds to \vn{orbit.x} and in
@@ -321,12 +328,12 @@ from tracking a beam of particles and may only be used in an expression if beam 
 on.  A beam parameter ``\vn{token}'' is a string that specifies a scalar or an array of beam
 parameters. The general form for data tokens in expressions (\sref{s:arithmetic.exp}) is:
 \begin{example}
-  \{[<universe(s)>]@\}beam::<parameter>[\{<ref_ele>&\}<element_list>]\{|<component>\}
+  \{[<universe(s)>]@\}beam::<eval_param>[\{<ref_ele>&\}<element_list>]\{|<component>\}
 \end{example}
 where:
 \begin{example}
   <universe(s)>       Optional universe specification (\sref{s:universe})
-  <parameter>         Name of the parameter
+  <eval_param>        Name of the parameter
   <ref_ele>           Optional reference element.
   <element_list>      Evaluation point or points.
   <component>         Component. 
@@ -337,7 +344,7 @@ Examples:
   beam::n_particle_loss[2&56]     Particle loss between elements 2 and 56.
 \end{example}
 
-The list of possible beam \vn{<parameter>} names is given in \Sref{s:data.types}. The table
+The list of possible beam \vn{<eval_param>} names is given in \Sref{s:data.types}. The table
 \ref{t:data.types} shows which data names are associated with beam tracking.
 
 %------------------------------------------------------------------------
