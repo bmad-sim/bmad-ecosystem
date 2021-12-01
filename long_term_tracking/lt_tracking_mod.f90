@@ -49,6 +49,7 @@ type ltt_params_struct
   character(200) :: sigma_matrix_output_file = ''
   character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
+  character(200) :: map_ascii_output_file = ''
   character(200) :: averages_output_file = ''
   character(200) :: master_output_file = 'master.dat'
   type (ltt_column_struct) column(100)
@@ -1837,9 +1838,11 @@ else
   map_file = lttp%map_file_prefix
 endif
 
-map_damping_on = (bmad_com%radiation_damping_on .and. .not. lttp%split_bends_for_radiation) 
-write (string, '(2a,2l1,i0,l1)') trim(lttp%exclude_from_maps), trim(lttp%ele_start), &
-                                   map_damping_on, lttp%split_bends_for_radiation, lttp%map_order, lttp%rfcavity_on
+! The "2" signifies version 2 of the map with radiation file storage format.
+
+map_damping_on = (bmad_com%radiation_damping_on .and. .not. lttp%split_bends_for_radiation)
+write (string, '(2a,2l1,i0,l1,a)') trim(lttp%exclude_from_maps), trim(lttp%ele_start), &
+                     map_damping_on, lttp%split_bends_for_radiation, lttp%map_order, lttp%rfcavity_on, "2"
 if (lttp%simulation_mode == 'CHECK') string = trim(string) // lttp%ele_stop
 
 hash = djb_hash(string)
