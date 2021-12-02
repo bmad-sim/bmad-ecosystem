@@ -670,6 +670,12 @@ function real_num_fortran_format (number, width, n_blanks) result (fmt_str)
   character(9) fmt_str
 end function
 
+function set_parameter (param_val, set_val) result (save_val)
+  import
+  implicit none
+  real(rp) param_val, set_val, save_val
+end function
+
 subroutine str_set(str_out, str_in)
   implicit none
   character(:), allocatable :: str_out
