@@ -77,6 +77,7 @@ endif
 
 ! Track
 
+if (.false.) then
 do
   t_end = t_now + dt_max
 
@@ -102,6 +103,7 @@ do
   enddo 
   if (finished) exit
 enddo
+endif
 
 !
 
