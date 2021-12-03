@@ -1779,6 +1779,14 @@ subroutine rotate_spin_given_field (orbit, sign_z_vel, BL, EL)
   integer sign_z_vel
 end subroutine
 
+function s_body_calc (orbit, ele) result (s_body)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  real(rp) s_body
+end function
+
 subroutine s_calc (lat)
   import
   implicit none

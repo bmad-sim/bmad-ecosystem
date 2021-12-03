@@ -49,7 +49,7 @@ contains
 !   orb           -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
 !   dt_ref        -- real(rp): Final z phase space coordinate.
 !   err_flag      -- Logical: Set True if there is an error. False otherwise.
-!   track         -- Track_struct: Structure holding the track information.
+!   track         -- Track_struct, optional: Structure holding the track information.
 !   dt_step       -- real(rp), optional: Next RK time step that this tracker would take based on the error tolerance.
 !                     Used by track_bunch_time.
 !-
