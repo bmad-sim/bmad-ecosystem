@@ -2,6 +2,26 @@ module sim_utils_interface
 
 use sim_utils_struct
 
+interface set_parameter
+  function set_parameter_real (param_val, set_val) result (save_val)
+    import
+    implicit none
+    real(rp) param_val, set_val, save_val
+  end function
+  function set_parameter_int (param_val, set_val) result (save_val)
+    import
+    implicit none
+    integer param_val, set_val, save_val
+  end function
+  function set_parameter_logic (param_val, set_val) result (save_val)
+    import
+    implicit none
+    logical param_val, set_val, save_val
+  end function
+end interface
+
+!--------------------------------------------------------------------------------
+
 interface
 
 elemental function cosc(x, nd) result (y)
@@ -668,12 +688,6 @@ function real_num_fortran_format (number, width, n_blanks) result (fmt_str)
   integer, optional :: n_blanks
   integer width
   character(9) fmt_str
-end function
-
-function set_parameter (param_val, set_val) result (save_val)
-  import
-  implicit none
-  real(rp) param_val, set_val, save_val
 end function
 
 subroutine str_set(str_out, str_in)
