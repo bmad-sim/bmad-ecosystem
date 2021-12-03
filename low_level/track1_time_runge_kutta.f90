@@ -73,8 +73,7 @@ set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking
 ! s_lab is longitudinal position relative to entrance end (element body coords).
 ! Remember that if an element has reversed orientation, +s direction in body coords is opposite to
 ! the reference trajectory +s direction.
-! Adjust to match element edges if close enough
-
+! Adjust to match element edges if close enough.
 
 s_lab =  end_orb%s - ele%s_start
 

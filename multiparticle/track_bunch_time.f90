@@ -6,14 +6,14 @@
 !
 ! Input:
 !   lat         -- lat_struct: Lattice to track through.
-!   bunch       -- bunch_struct: Bunch at end of element ix1.
+!   bunch       -- bunch_struct: Coordinates must be time-coords in element body frame.
 !   t_end       -- real(rp): Ending time.
 !   s_end       -- real(rp): Ending s-position.
 !   dt_step(:)  -- real(rp), optional: Initial step to take for each particle. 
 !                   Overrides bmad_com%init_ds_adaptive_tracking.
 !
 ! Output:
-!   bunch       -- bunch_struct: Bunch at end of element ix2.
+!   bunch       -- bunch_struct: Coordinates will be time-coords in element body frame.
 !   dt_step(:)  -- real(rp), optional: Next RK time step that this tracker would take based on the error tolerance.
 !-
 
@@ -58,7 +58,7 @@ do i = 1, size(bunch%particle)
     ele => pointer_to_next_track_ele(orbit, branch)
     if (orbit%state /= alive$) exit
 
-    call track1_time_runge_kutta (orbit, ele, branch%param, orbit, err, t_end = t_end, dt_step = dt)
+    call track1_time_RK (orbit, ele, branch%param, err, t_end = t_end, dt_step = dt)
   enddo
 
   if (present(dt_step)) dt_step(i) = dt
@@ -105,6 +105,65 @@ case (downstream_end$)
 end select
 
 end function pointer_to_next_track_ele
+
+!-------------------------------------------------------------------------
+! contains
+! Similar to track1_time_runge_kutta except that input and output are time coords
+
+subroutine track1_time_RK (orbit, ele, param, err, t_end, dt_step)
+
+use time_tracker_mod, only: odeint_bmad_time
+
+type (coord_struct) orbit
+type (ele_struct) ele
+type (lat_param_struct) param
+real(rp) t_end, dt_step, dt_ref, rf_time
+logical err, set_spin
+
+! If at edge of element 
+
+if (orbit%location /= inside$) then
+  if (orbit%direction == 1) then
+    dt_ref = orbit%t - (ele%ref_time - ele%value(delta_ref_time$))
+  else
+    dt_ref = orbit%t - ele%ref_time
+  endif
+
+  call convert_particle_coordinates_t_to_s(orbit, dt_ref, ele, s_body_calc(orbit, ele))
+
+  if (ele%key /= patch$ .and. ele%value(l$) == 0) then
+    call track_a_zero_length_element (orbit, ele, param, orbit, err)
+    call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation, dt_ref)
+    return
+  endif
+
+  set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
+  call offset_particle (ele, param, set$, orbit, set_hvkicks = .false., set_spin = set_spin)
+  call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation, dt_ref)
+endif
+
+! Track
+
+dt_ref = 0  ! 
+rf_time = particle_rf_time (orbit, ele, .true., orbit%s - ele%s_start)
+call odeint_bmad_time(orbit, dt_ref, ele, param, +1, rf_time, err, t_end = t_end, dt_step = dt_step)
+
+! If at edge of element.
+
+if (orbit%location /= inside$) then
+  if (orbit%direction == 1) then
+    dt_ref = orbit%t - (ele%ref_time - ele%value(delta_ref_time$))
+  else
+    dt_ref = orbit%t - ele%ref_time
+  endif
+
+  call convert_particle_coordinates_t_to_s(orbit, dt_ref, ele, s_body_calc(orbit, ele))
+  set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
+  call offset_particle (ele, param, set$, orbit, set_hvkicks = .false., set_spin = set_spin)
+  call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation, dt_ref)
+endif
+
+end subroutine track1_time_RK
 
 end subroutine track_bunch_time
 
