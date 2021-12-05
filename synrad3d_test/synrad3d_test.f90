@@ -4,6 +4,7 @@ use synrad3d_track_mod
 use synrad3d_parse_wall
 use photon_reflection_mod
 use synrad_mod
+use random_mod
 
 implicit none
 
@@ -15,8 +16,10 @@ type (ele_struct), pointer :: ele
 type (wall3d_section_struct), pointer :: section(:)
 type (walls_struct), target :: walls
 type (wall_struct), pointer :: wall
+type (photon_reflect_surface_struct) surface
+type (diffuse_param_struct) d_param
 
-real(rp) vel
+real(rp) vel, graze_angle_in, energy, theta_out, phi_out
 integer i, ios, num_ignored, n_photon
 
 logical is_inside, err, absorbed
@@ -28,6 +31,16 @@ namelist / in / p, wall_file
 !
 
 open (1, file = 'output.now')
+
+! Diffuse scattering test
+
+call photon_reflection_std_surface_init (surface)
+graze_angle_in = 1
+energy = 1
+call ran_seed_put (1234)
+call photon_diffuse_scattering (graze_angle_in, energy, surface, theta_out, phi_out, d_param)
+
+write (1, '(a, 3f14.9)') '"Diffuse" ABS 1E-8', theta_out, phi_out
 
 ! Conversion to synrad wall test
 
