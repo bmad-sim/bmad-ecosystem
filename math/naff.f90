@@ -317,7 +317,7 @@ end function interpolated_fft_gsl
 !--------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------------
 !+
-!  function interpolated_fft
+!  Function interpolated_fft (cdata, calc_ok, opt_dump_spectrum, opt_dump_index) result (this_fft)
 !
 !  Windows the complex data and used Numerical Recipes four1 to find the peak in the spectrum.
 !  The result is interpolated to improve the accuracy.  Hanning and Gaussian windowing are
@@ -326,8 +326,11 @@ end function interpolated_fft_gsl
 
 function interpolated_fft (cdata, calc_ok, opt_dump_spectrum, opt_dump_index) result (this_fft)
 
-use nr, only: four1
 use sim_utils
+use, intrinsic :: iso_c_binding
+
+implicit none
+include 'fftw3.f03'
 
 complex(rp) cdata(:)
 integer, optional :: opt_dump_spectrum, opt_dump_index
@@ -340,8 +343,8 @@ real(rp) this_fft
 real(rp) window, r, hsamp, denom
 real(rp) lk, lkm, lkp, A
 
-integer n_samples
-integer i, max_ix, isign
+integer n_samples, i, max_ix
+integer(8) plan
 
 logical calc_ok
 
@@ -355,18 +358,20 @@ dump_index = integer_option (0, opt_dump_index)
 
 n_samples = size(cdata)
 hsamp = (n_samples-1)/2.0d0
+call dfftw_plan_dft_1d(plan, n_samples, wcdata, wcdata, FFTW_BACKWARD,FFTW_ESTIMATE)
 
 !apply window
 do i=1, n_samples
   !window = 0.5d0*(1.0d0 + cos(twopi*(i-hsamp-1)/(n_samples-1)))  !hanning, also adjust interpolation below
   r = 8.0
-  window = exp( -0.5d0*(r*(1.0d0*i-hsamp-1.0d0)/(n_samples-1.0d0))**2)  !gaussian, also adjust interpolation below
+  window = exp(-0.5d0*(r*(1.0d0*i-hsamp-1.0d0)/(n_samples-1.0d0))**2)  !gaussian, also adjust interpolation below
   ! window = 1
   wcdata(i)= cdata(i) * window
 enddo
 
-isign = 1
-call four1(wcdata(:), isign)
+call dfftw_execute_dft(plan, wcdata, wcdata)
+call dfftw_destroy_plan(plan)
+
 fft_amp(:)=sqrt(wcdata(:)*conjg(wcdata(:)))
 
 if( dump_spectrum > 10 ) then
