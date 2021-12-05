@@ -1,12 +1,13 @@
 program frequency_map
 
-  use bmad
-  use bsim_interface
-  use nr, only: fourrow
-  use z_tune_mod
-  
-  implicit none
-  
+use bmad
+use bsim_interface
+use z_tune_mod
+use, intrinsic :: iso_c_binding
+
+implicit none
+include 'fftw3.f03'
+
 type (lat_struct), target :: ring
 type (coord_struct), allocatable :: orb(:), co(:), data(:)
 type (coord_struct) start_coord
@@ -27,6 +28,7 @@ integer arg_num, iargc, ind
 integer Nthmin, Nrad
 integer stat
 integer integer_qx, integer_qy
+integer(8) plan(6)
 
 real(rp) rad, th, Ar, Br, Rmax
 real(rp) phy_x_set, phy_y_set
@@ -36,7 +38,7 @@ real(rp) :: dx=0., dy=0., de=0.
 real(rp) :: rf_frequency
 real(rp), ALLOCATABLE :: fft1(:), fft2(:), fft3(:)
 real(rp), ALLOCATABLE :: fft4(:), fft5(:), fft6(:)
-complex(rp), ALLOCATABLE ::  n1(:,:), m1(:,:),  n2(:,:), m2(:,:), n3(:,:), m3(:,:), n4(:,:)
+complex(rp), ALLOCATABLE ::  n1(:), m1(:),  n2(:), m2(:), n3(:), m3(:)
 real(rp), ALLOCATABLE ::  rftxa(:), rftxb(:), rftya(:), rftyb(:), rftea(:), rfteb(:)
 real(rp), allocatable :: grid_pts(:,:)
 real(rp) hanning
@@ -189,12 +191,12 @@ ALLOCATE(fft6(1:n_turn))
 
 if(fft_turns == 0)fft_turns = n_turn / 2
 
-ALLOCATE(n1(1,1:fft_turns))
-ALLOCATE(n2(1,1:fft_turns))
-ALLOCATE(n3(1,1:fft_turns))
-ALLOCATE(m1(1,1:fft_turns))
-ALLOCATE(m2(1,1:fft_turns))
-ALLOCATE(m3(1,1:fft_turns))
+ALLOCATE(n1(1:fft_turns))
+ALLOCATE(n2(1:fft_turns))
+ALLOCATE(n3(1:fft_turns))
+ALLOCATE(m1(1:fft_turns))
+ALLOCATE(m2(1:fft_turns))
+ALLOCATE(m3(1:fft_turns))
 
 ALLOCATE(rftxa(1:fft_turns))
 ALLOCATE(rftxb(1:fft_turns))
@@ -298,32 +300,44 @@ do i = 1, Npts
   if(track_state == moving_forward$)then
      if ((abs(orb(0)%vec(5)) < 0.25*(c_light/rf_frequency)) .or. (.not. z_cut)) then
         !interpolated FFT with Hanning window
+
+        call dfftw_plan_dft_1d(plan(1), fft_turns, n1, n1, FFTW_BACKWARD,FFTW_ESTIMATE)
+        call dfftw_plan_dft_1d(plan(2), fft_turns, n2, n2, FFTW_BACKWARD,FFTW_ESTIMATE)
+        call dfftw_plan_dft_1d(plan(3), fft_turns, n3, n3, FFTW_BACKWARD,FFTW_ESTIMATE)
+        call dfftw_plan_dft_1d(plan(4), fft_turns, m1, m1, FFTW_BACKWARD,FFTW_ESTIMATE)
+        call dfftw_plan_dft_1d(plan(5), fft_turns, m2, m2, FFTW_BACKWARD,FFTW_ESTIMATE)
+        call dfftw_plan_dft_1d(plan(6), fft_turns, m3, m3, FFTW_BACKWARD,FFTW_ESTIMATE)
+
         do j=1, fft_turns
            hanning = 2*(sin(pi*j/fft_turns)**2)
-           n1(1, j)= cmplx(fft1(j),  fft2(j)) * hanning
-           n2(1, j)= cmplx(fft3(j),  fft4(j)) * hanning
-           n3(1, j)= cmplx(fft5(j), -fft6(j)) * hanning
+           n1(j)= cmplx(fft1(j),  fft2(j)) * hanning
+           n2(j)= cmplx(fft3(j),  fft4(j)) * hanning
+           n3(j)= cmplx(fft5(j), -fft6(j)) * hanning
            
            ind = n_turn - fft_turns
-           m1(1, j)= cmplx(fft1(j+ind),  fft2(j+ind)) * hanning
-           m2(1, j)= cmplx(fft3(j+ind),  fft4(j+ind)) * hanning
-           m3(1, j)= cmplx(fft5(j+ind), -fft6(j+ind)) * hanning
+           m1(j)= cmplx(fft1(j+ind),  fft2(j+ind)) * hanning
+           m2(j)= cmplx(fft3(j+ind),  fft4(j+ind)) * hanning
+           m3(j)= cmplx(fft5(j+ind), -fft6(j+ind)) * hanning
         enddo
-        
-        call fourrow(n1(:,1:fft_turns), 1)    ! NR FFT
-        call fourrow(m1(:,1:fft_turns), 1)
-        call fourrow(n2(:,1:fft_turns), 1)
-        call fourrow(m2(:,1:fft_turns), 1)
-        call fourrow(n3(:,1:fft_turns), 1)
-        call fourrow(m3(:,1:fft_turns), 1)
-        
+
+        call dfftw_execute_dft(plan, n1, n1)
+        call dfftw_execute_dft(plan, n2, n2)
+        call dfftw_execute_dft(plan, n3, n3)
+        call dfftw_execute_dft(plan, m1, m1)
+        call dfftw_execute_dft(plan, m2, m2)
+        call dfftw_execute_dft(plan, m3, m3)
+
+        do k = 1, 6
+          call dfftw_destroy_plan(plan(k))
+        enddo
+
         forall(i=1:fft_turns)
-           rftxa(i) = sqrt(n1(1,i)*conjg(n1(1,i)))
-           rftxb(i) = sqrt(m1(1,i)*conjg(m1(1,i)))
-           rftya(i) = sqrt(n2(1,i)*conjg(n2(1,i)))
-           rftyb(i) = sqrt(m2(1,i)*conjg(m2(1,i)))
-           rftea(i) = sqrt(n3(1,i)*conjg(n3(1,i)))
-           rfteb(i) = sqrt(m3(1,i)*conjg(m3(1,i)))
+           rftxa(i) = sqrt(n1(i)*conjg(n1(i)))
+           rftxb(i) = sqrt(m1(i)*conjg(m1(i)))
+           rftya(i) = sqrt(n2(i)*conjg(n2(i)))
+           rftyb(i) = sqrt(m2(i)*conjg(m2(i)))
+           rftea(i) = sqrt(n3(i)*conjg(n3(i)))
+           rfteb(i) = sqrt(m3(i)*conjg(m3(i)))
         end forall
         
         tune(1, 1) = calc_tune(rftxa) !tune of x for 1st half etc.

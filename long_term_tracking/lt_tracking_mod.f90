@@ -358,13 +358,11 @@ real(rp) closed_orb(6)
 
 integer i, ix_branch, ib, n_slice, ie, ir
 
-logical err, map_file_exists, map_damping_on
+logical err, map_file_exists
 
 character(40) start_name, stop_name
 
 ! PTC has an internal aperture of 1.0 meter. To be safe, set default aperture at 0.9 meter
-
-map_damping_on = (bmad_com%radiation_damping_on .and. .not. lttp%split_bends_for_radiation) 
 
 call ltt_make_tracking_lat(lttp, ltt_com)
 lat => ltt_com%tracking_lat
@@ -376,7 +374,7 @@ lttp%ptc_aperture = min([0.9_rp, 0.9_rp], lttp%ptc_aperture)
 
 if (lttp%tracking_method == 'PTC' .or. lttp%simulation_mode == 'CHECK') then
   if (.not. associated(lat%branch(0)%ptc%m_t_layout)) call lat_to_ptc_layout(lat)
-  call ptc_setup_tracking_with_damping_and_excitation(lat%branch(0), map_damping_on, &
+  call ptc_setup_tracking_with_damping_and_excitation(lat%branch(0), bmad_com%radiation_damping_on, &
                                   bmad_com%radiation_fluctuations_on, ltt_com%ptc_state, ltt_com%ptc_closed_orb)
   if (bmad_com%spin_tracking_on) ltt_com%ptc_state = ltt_com%ptc_state + SPIN0
 endif
@@ -1714,7 +1712,7 @@ type (branch_struct), pointer :: branch
 type (ltt_section_struct), pointer :: sec
 type (ptc_rad_map_struct), pointer :: map
 
-integer i, ix, n_sec, ib, ie, creation_hash
+integer i, j, ix, n_sec, ib, ie, creation_hash
 real(rp) s
 logical err_flag, err, map_file_exists
 character(200) map_file 
@@ -1766,6 +1764,31 @@ if (ltt_com%mpi_rank == master_rank$) then
     print '(a)', 'NOTE: LATTICE HAS BEEN MODIFIED SINCE MAP FILE ' // trim(map_file) // ' WAS CREATED.'
     print '(a)', '      WILL MAKE A NEW MAP.'
   endif
+endif
+
+if (lttp%map_ascii_output_file /= '') then
+  open (2, file = lttp%map_ascii_output_file)
+  do i = 1, n_sec
+    if (.not. allocated(ltt_com%sec(i)%map)) cycle
+    map => ltt_com%sec(i)%map
+    if (i > 1) write (2, *)
+    write (2, '(a, i0, a)') 'Map: ', i, ' !-------------------------'
+    write (2, *)
+    ix = map%ix_ele_start
+    write (2, '(a, i5, 2x, a30, f14.6)') 'Start Ele:', ix, branch%ele(ix)%name, branch%ele(ix)%s
+    write (2, '(a, 6f12.6)') 'Orb start:', map%ref0
+    ix = map%ix_ele_end
+    write (2, '(a, i5, 2x, a30, f14.6)') 'End Ele:  ', ix, branch%ele(ix)%name, branch%ele(ix)%s
+    write (2, '(a, 6f12.6)') 'Orb stop:', map%ref1
+    write (2, *)
+    call mat_type (map%nodamp_mat, 2, 'T-Matrix without Damping. Symplectic Error: ' // real_str(mat_symp_error(map%nodamp_mat), 6), '(4x, 6es16.8)')
+    write (2, *)
+    call mat_type (map%damp_mat, 2, 'D-Damping Matrix. Damp Factor: ' // real_str((1-determinant(map%damp_mat))/10, 6), '(4x, 6es16.8)')
+    write (2, *)
+    call mat_type (map%stoc_mat, 2, 'S-Radiation Matrix:', '(4x, 6es16.8)')
+  enddo
+  close(2)
+  print *, 'Written: ', trim(lttp%map_ascii_output_file)
 endif
 
 if (ltt_com%lat%creation_hash == creation_hash) err_flag = .false.
@@ -1828,7 +1851,6 @@ integer hash
 
 character(*) map_file
 character(200) string
-logical map_damping_on
 
 !
 
@@ -1840,9 +1862,8 @@ endif
 
 ! The "2" signifies version 2 of the map with radiation file storage format.
 
-map_damping_on = (bmad_com%radiation_damping_on .and. .not. lttp%split_bends_for_radiation)
 write (string, '(2a,2l1,i0,l1,a)') trim(lttp%exclude_from_maps), trim(lttp%ele_start), &
-                     map_damping_on, lttp%split_bends_for_radiation, lttp%map_order, lttp%rfcavity_on, "2"
+                  bmad_com%radiation_damping_on , lttp%split_bends_for_radiation, lttp%map_order, lttp%rfcavity_on, "2"
 if (lttp%simulation_mode == 'CHECK') string = trim(string) // lttp%ele_stop
 
 hash = djb_hash(string)
@@ -1868,7 +1889,7 @@ type (branch_struct), pointer :: branch
 
 real(rp) time0, time1, time_now
 integer i, n_sec, ib, ie, ix_branch
-logical err, in_map_section, map_damping_on
+logical err, in_map_section
 
 !
 
@@ -1897,7 +1918,6 @@ if (allocated(ltt_com%sec)) deallocate (ltt_com%sec)
 allocate (ltt_com%sec(0:n_sec))
 n_sec = 0
 in_map_section = .false.
-map_damping_on = (bmad_com%radiation_damping_on .and. .not. lttp%split_bends_for_radiation) 
 
 ltt_com%sec(0)%ele => ele_start
 ltt_com%sec(0)%type = ele$
@@ -1915,7 +1935,7 @@ do i = 1, branch%n_ele_track+1
       n_sec = n_sec + 1
       allocate(ltt_com%sec(n_sec)%map)
       call ptc_setup_map_with_radiation (ltt_com%sec(n_sec)%map, ltt_com%sec(n_sec-1)%ele, ele0, &
-                                              lttp%map_order, map_damping_on, lttp%symplectic_map_tracking)
+                                lttp%map_order, bmad_com%radiation_damping_on, lttp%symplectic_map_tracking)
       ltt_com%sec(n_sec)%type = map$
       ltt_com%sec(n_sec)%ele => ele
     endif
@@ -1933,7 +1953,7 @@ do i = 1, branch%n_ele_track+1
       n_sec = n_sec + 1
       allocate(ltt_com%sec(n_sec)%map)
       call ptc_setup_map_with_radiation (ltt_com%sec(n_sec)%map, ltt_com%sec(n_sec-1)%ele, ele, &
-                                             lttp%map_order, map_damping_on, lttp%symplectic_map_tracking)
+                                             lttp%map_order, bmad_com%radiation_damping_on, lttp%symplectic_map_tracking)
       ltt_com%sec(n_sec)%type = map$
       ltt_com%sec(n_sec)%ele => ele
     endif
@@ -2077,13 +2097,11 @@ type (ltt_section_struct), pointer :: sec
 type (branch_struct), pointer :: branch
 
 integer i
-logical map_damping_on, map_fluct_on
+logical map_fluct_on, rad_damp
 
 !
 
-map_damping_on = (bmad_com%radiation_damping_on .and. .not. lttp%split_bends_for_radiation) 
 map_fluct_on = (bmad_com%radiation_fluctuations_on .and. .not. lttp%split_bends_for_radiation) 
-
 branch => ltt_com%tracking_lat%branch(0)
 
 do i = 1, ubound(ltt_com%sec, 1)
@@ -2091,11 +2109,13 @@ do i = 1, ubound(ltt_com%sec, 1)
   if (.not. associated(sec%ele)) exit
 
   if (allocated(sec%map)) then
-    call ptc_track_map_with_radiation (orbit, sec%map, rad_damp = map_damping_on, rad_fluct = map_fluct_on)
+    call ptc_track_map_with_radiation (orbit, sec%map, rad_damp = bmad_com%radiation_damping_on, rad_fluct = map_fluct_on)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
     if (orbit%state /= alive$) return
   elseif (sec%ele%name == 'RADIATION_PT') then
+    rad_damp = set_parameter (bmad_com%radiation_damping_on, .false.)
     call track1_radiation_center(orbit, pointer_to_next_ele(sec%ele, -1), pointer_to_next_ele(sec%ele), branch%param)
+    bmad_com%radiation_damping_on = rad_damp
   else  ! EG: beambeam
     call track1 (orbit, sec%ele, branch%param, orbit)
   endif
