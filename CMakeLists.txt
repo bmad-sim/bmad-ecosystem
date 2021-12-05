@@ -49,6 +49,8 @@ SET (SHARED_DEPS
   blas
   X11
   readline
-  )
+  fftw3
+  fftw3_omp
+)
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
