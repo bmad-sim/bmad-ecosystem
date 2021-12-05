@@ -40,17 +40,9 @@ SET (SRC_DIRS
 SET (SHARED_DEPS
   recipes_f-90_LEPP 
   ${PLOT_LINK_LIBS}
-  forest 
-  fgsl
-  gsl
-  gslcblas
-  lapack95
-  lapack
-  blas
+  $ENV{ACC_BMAD_LINK_LIBS}
   X11
   readline
-  fftw3
-  fftw3_omp
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
