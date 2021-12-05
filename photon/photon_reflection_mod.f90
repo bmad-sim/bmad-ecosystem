@@ -813,7 +813,7 @@ end subroutine photon_reflection
 subroutine photon_diffuse_scattering (graze_angle_in, energy, surface, graze_angle_out, phi_out, diffuse_param)
 
 use random_mod
-use nr, only: chebft, chint, chebev
+!! use nr, only: chebft, chint, chebev   !! NR has been removed from Bmad Distributions.
 use super_recipes_mod, only: super_rtsafe
 
 implicit none
@@ -912,13 +912,14 @@ if (diffuse_com%use_spline_fit) then
 ! Fit the probability distribution to Chebyshev polynomials.
 ! This is known to produce bad results for smoother surfaces so eventually this
 ! will be eliminated. Keep for now for cross-check purposes.
+! NOTE: Due to the removal of NR, the calls to NR routines have been commented out 2021/12. Look for "!!NR"
 else
-  cheb_param%cch = chebft(0.0_rp, 1.0_rp, n_cheb_term$, prob_x_diffuse_vec)
-  cheb_param%cch_int = chint (0.0_rp, 1.0_rp, cheb_param%cch)
-  !  evaluate the normalization constant
-  d_param%chx_norm = chebev(0.0D0, 1.0D0, cheb_param%cch_int, 1.0D0)
-  ! find the value of x for which the cumulative probability equals the random number
-  ctheta2 = super_rtsafe(cumulx, 0.0E0_rp, 1.0E0_rp, 1.0e-12_rp, 1.0D-5, status)
+!!NR  cheb_param%cch = chebft(0.0_rp, 1.0_rp, n_cheb_term$, prob_x_diffuse_vec)
+!!NR  cheb_param%cch_int = chint (0.0_rp, 1.0_rp, cheb_param%cch)
+!!NR  !  evaluate the normalization constant
+!!NR  d_param%chx_norm = chebev(0.0D0, 1.0D0, cheb_param%cch_int, 1.0D0)
+!!NR  ! find the value of x for which the cumulative probability equals the random number
+!!NR  ctheta2 = super_rtsafe(cumulx, 0.0E0_rp, 1.0E0_rp, 1.0e-12_rp, 1.0D-5, status)
 endif
 
 ! Evaluate the normalization constant for the cumulative probability in phi, for this x
@@ -1003,8 +1004,6 @@ end subroutine integral_err_calc
 
 subroutine d_integral (x, fn, df, status)
 
-use nr, only: chebev
-
 implicit none
 
 real(rp), intent(in) :: x
@@ -1059,8 +1058,6 @@ end subroutine cumulr
 
 subroutine cumulx (x, fn, df, status)
 
-use nr, only: chebev
-
 implicit none
 
 real(rp), intent(in) :: x
@@ -1069,8 +1066,10 @@ integer status
 
 !
 
-fn = chebev(0.0E0_rp, 1.0E0_rp, cheb_param%cch_int, x) / d_param%chx_norm - ran1
-df = chebev(0.0E0_rp, 1.0E0_rp, cheb_param%cch, x) / d_param%chx_norm
+fn = 0; df = 0  ! This to keep the compiler from complaining
+
+!!NR  fn = chebev(0.0E0_rp, 1.0E0_rp, cheb_param%cch_int, x) / d_param%chx_norm - ran1
+!!NR  df = chebev(0.0E0_rp, 1.0E0_rp, cheb_param%cch, x) / d_param%chx_norm
 
 end subroutine cumulx
 
