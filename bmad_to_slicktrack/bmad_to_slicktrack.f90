@@ -2,17 +2,24 @@
 ! Program to convert a Bmad lattice file to a SLICKTRACK file.
 !
 ! Usage:
-!   bmad_to_slicktrack <bmad_file_name> {-no_split}
+!   bmad_to_slicktrack <bmad_file_name> {-no_split} {-unique_name_suffix <suffix>}
 !
 ! The output file name will be the bmad_file_name with the '.bmad' suffix
 ! (or whatever suffix is there) replaced by '.slick'.
 !
-! The -no_split argument is optional. if the -no_split argument is present:
+! The -no_split argument is optional. If the -no_split argument is present:
 ! Bends and quadrupoles will be split into two pieces in the slicktrack file and the
 ! resulting elements with have an ending "H" suffix applied.
 ! Exception: If two bends or two quadrupoles have the same name and are next to each other 
 ! then they will will be considered to be split elements and will not be further split
 ! and will have have their names mangled.
+!
+! The -unique_name_suffix is optional. If present, the <suffix> will be used to create unique
+! element names. This is done by appending the "suffix" argument to all elements that share
+! a common name. The "suffix" argument must have a single "?" charater in it.
+! When the suffix is applied, to the n^th element having a common name,
+! the number "n" is substituted for "?". Example:
+!      bmad_to_slicktrack lat.bmad -unique _?
 !-
 
 program bmad_to_slicktrack
@@ -32,7 +39,7 @@ integer i, j, ix, n_arg, slick_class, nb, nq, ne, n_count, n_edge
 logical end_here, added, split_eles
 
 character(200) slick_name, bmad_name
-character(100) line
+character(100) line, unique_name
 character(40) arg, name
 character(*), parameter :: r_name = 'bmad_to_slicktrack'
 
@@ -40,12 +47,18 @@ character(*), parameter :: r_name = 'bmad_to_slicktrack'
 
 n_arg = command_argument_count()
 bmad_name = ''
+unique_name = ''
 split_eles = .true.
 
-do i = 1, n_arg
+i = 0
+do 
+  i = i + 1;  if (i > n_arg) exit
   call get_command_argument (i, arg)
   if (index('-no_split', trim(arg)) == 1) then
     split_eles = .false.
+  elseif (index('-unique_name_suffix', trim(arg)) == 1) then
+    i = i + 1
+    call get_command_argument (i, unique_name)
   elseif (arg(1:1) == '-') then
     print *, 'Bad switch: ', trim(arg)
     bmad_name = ''
@@ -67,6 +80,8 @@ print *, 'Creating slicktrack file: ' // trim(slick_name)
 ! Get the lattice
 
 call bmad_parser (bmad_name, lat)
+
+if (unique_name /= '') call create_unique_ele_names(lat, 0, unique_name)
 
 !-------------------------------------------------------
 ! Write element defs
@@ -317,7 +332,7 @@ case (sbend$)
     else
       slick_class = 16
     endif
-    slick_params = [-len_scale*ele%value(angle$)*sign_of(ele%value(ref_tilt$)), strength_scale*knl(1), len_scale*ele%value(l$)]
+    slick_params = [len_scale*ele%value(angle$)*sign_of(ele%value(ref_tilt$)), strength_scale*knl(1), len_scale*ele%value(l$)]
   endif
 
 case (quadrupole$)
