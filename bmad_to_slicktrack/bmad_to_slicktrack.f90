@@ -36,7 +36,7 @@ type (nametable_struct) nametab
 real(rp) slick_params(3), s_start, length, scale
 integer i, j, ix, n_arg, slick_class, nb, nq, ne, n_count, n_edge
 
-logical end_here, added, split_eles
+logical end_here, added, split_eles, always_include_bend_edges
 
 character(200) slick_name, bmad_name
 character(100) line, unique_name
@@ -49,6 +49,7 @@ n_arg = command_argument_count()
 bmad_name = ''
 unique_name = ''
 split_eles = .true.
+always_include_bend_edges = .true.
 
 i = 0
 do 
@@ -155,8 +156,8 @@ do i = 1, lat%n_ele_track
       call write_insert_ele_def (nb, ['VD'])
     endif
 
-    if (ele%value(e1$) /= 0) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e1$)) * ele%value(g$))
-    if (ele%value(e2$) /= 0) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e2$)) * ele%value(g$))
+    if (ele%value(e1$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e1$)) * ele%value(g$))
+    if (ele%value(e2$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e2$)) * ele%value(g$))
 
   case (quadrupole$)
     if (mod(n_count, 2) == 0) cycle    ! Skip second element in pair
@@ -191,9 +192,9 @@ do i = 1, lat%n_ele_track
   if (.not. split_eles) then
     select case (ele%key)
     case (sbend$)
-      if (ele%value(e1$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
+      if (ele%value(e1$) /= 0 .or. always_include_bend_edges) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
       call write_ele_position (line, ne, ele%name, s_start + 0.5_rp * length)
-      if (ele%value(e2$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
+      if (ele%value(e2$) /= 0 .or. always_include_bend_edges) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
 
     case (solenoid$)
       call write_ele_position (line, ne, ele%name, ele%s_start)
@@ -228,25 +229,25 @@ do i = 1, lat%n_ele_track
     if (ele%select) then  ! If k1 /= 0
       if (2*i < lat%n_ele_track) then
         call write_insert_ele_position (line, ne, nq, ['HC', 'VC'], s_start, .true.)
-        if (ele%value(e1$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], s_start, .true.)
+        if (ele%value(e1$) /= 0 .or. always_include_bend_edges) call write_insert_ele_position (line, ne, n_edge, ['EE'], s_start, .true.)
         call write_ele_position (line, ne, name, s_start + 0.25_rp * length)
         call write_insert_ele_position (line, ne, nq, ['HQ', 'VQ', 'RQ', 'CQ'], s_start + 0.5_rp * length)
         call write_ele_position (line, ne, name, s_start + 0.75_rp * length)
-        if (ele%value(e2$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
+        if (ele%value(e2$) /= 0 .or. always_include_bend_edges) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
       else
-        if (ele%value(e1$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], s_start, .true.)
+        if (ele%value(e1$) /= 0 .or. always_include_bend_edges) call write_insert_ele_position (line, ne, n_edge, ['EE'], s_start, .true.)
         call write_ele_position (line, ne, name, s_start + 0.25_rp * length)
         call write_insert_ele_position (line, ne, nq, ['CQ', 'RQ', 'VQ', 'HQ'], s_start + 0.5_rp * length, .true.)
         call write_ele_position (line, ne, name, s_start + 0.75_rp * length)
-        if (ele%value(e2$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
+        if (ele%value(e2$) /= 0 .or. always_include_bend_edges) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
         call write_insert_ele_position (line, ne, nq, ['VC', 'HC'], ele%s)
       endif
     else
-      if (ele%value(e1$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], s_start, .true.)
+      if (ele%value(e1$) /= 0 .or. always_include_bend_edges) call write_insert_ele_position (line, ne, n_edge, ['EE'], s_start, .true.)
       call write_ele_position (line, ne, name, s_start + 0.25_rp * length)
       call write_insert_ele_position (line, ne, nb, ['VD'], s_start + 0.5_rp * length, .true.)
       call write_ele_position (line, ne, name, s_start + 0.75_rp * length)
-      if (ele%value(e2$) /= 0) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
+      if (ele%value(e2$) /= 0 .or. always_include_bend_edges) call write_insert_ele_position (line, ne, n_edge, ['EE'], ele%s, .true.)
     endif
 
   case (quadrupole$)
