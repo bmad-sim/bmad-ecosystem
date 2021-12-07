@@ -210,8 +210,8 @@ phase_units_str = short_angle_units_name(s%global%phase_units)
 
 result_id = 'ERROR'
 
-if (what == ' ') then
-  nl=1; lines(1) = 'SHOW WHAT?' 
+if (what == '') then
+  nl=1; lines(1) = 'SHOW WHAT? (Use "help show" to see list)' 
   return
 endif
 
