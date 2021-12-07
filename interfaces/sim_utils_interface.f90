@@ -696,6 +696,12 @@ subroutine str_set(str_out, str_in)
   character(*) str_in
 end subroutine
 
+subroutine svd_fit (A, b, cutoff, x_min)
+  import
+  implicit none
+  real(rp) A(:,:), b(:), cutoff, x_min(:)
+end subroutine
+
 function real_path (path_in, path_out) result (is_ok)
   implicit none
   character(*) path_in, path_out
