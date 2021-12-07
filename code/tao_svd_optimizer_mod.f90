@@ -19,18 +19,13 @@ contains
 
 subroutine tao_svd_optimizer (abort)
 
-use LA_PRECISION, ONLY: WP => DP
-use f95_lapack
-
-use nr, only: svbksb
-
 implicit none
 
 type (tao_universe_struct), pointer :: u
 
-real(rp), allocatable :: weight(:), a(:), a_try(:), da(:), b(:), w(:)
+real(rp), allocatable :: weight(:), a(:), a_try(:), da(:), b(:)
 real(rp), allocatable :: y_fit(:)
-real(rp), allocatable :: dy_da(:, :), dy_da_old(:, :), dy_da_out(:, :), v(:, :)
+real(rp), allocatable :: dy_da(:, :), v(:, :)
 real(rp), allocatable :: var_value(:), var_weight(:)
 real(rp) merit0, merit
 
@@ -57,27 +52,18 @@ call tao_get_opt_vars (var_value)
 n_var = size(var_value)
 
 call tao_get_opt_vars (var_weight = var_weight, ignore_if_weight_is_zero = .true., &
-                                                ignore_if_not_limited = .true.)
+                                                             ignore_if_not_limited = .true.)
 
 n_data = size(var_weight)
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. s%u(i)%is_on) cycle
   n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0 .and. &
-                          s%u(i)%data(:)%good_model)
+                                                                     s%u(i)%data(:)%good_model)
 enddo
 
-if (allocated(weight)) then
- if (n_data /= size(dy_da_old, 1) .or. n_var /= size(dy_da_old, 2)) then
-   deallocate(weight, a, a_try, da, y_fit, dy_da, dy_da_old, dy_da_out, b, w, v)
-  endif
-endif
-
-if (.not. allocated(weight)) then
-  allocate (weight(n_data), y_fit(n_data), b(n_data))
-  allocate (a(n_var), a_try(n_var), da(n_var), w(n_var))
-  allocate (dy_da(n_data, n_var), dy_da_old(n_data, n_var), dy_da_out(n_data, n_var), v(n_var, n_var))
-  dy_da_old = 0
-endif
+allocate (weight(n_data), y_fit(n_data), b(n_data))
+allocate (a(n_var), a_try(n_var), da(n_var))
+allocate (dy_da(n_data, n_var), v(n_var, n_var))
 
 ! init a and y arrays
 
@@ -96,6 +82,7 @@ do j = lbound(s%u, 1), ubound(s%u, 1)
     weight(k) = u%data(i)%weight
   enddo
 enddo
+
 !--------------------------
 ! SVD 
 
@@ -109,23 +96,12 @@ do i = 1, n_data
   dy_da(i, :) = dy_da(i, :) * sqrt(weight(i))
 enddo
 
-if (any(dy_da /= dy_da_old)) then
-  dy_da_old = dy_da
-  !Lapack95 routine. Note that this returns V^Transpose, not V, so we need an extra step
-  print *, 'call DGESDD_F95'
-  call DGESDD_F95( dy_da, w(1:min(n_data,n_var)), VT=v, JOB = 'U') 
-  v = transpose(v)
-  dy_da_out = dy_da
-endif
-
-! Set any extra components of singluar value list w to zero
-if (min(n_data,n_var) < n_var) w(min(n_data,n_var)+1:) = 0
-
-where (w < s%global%svd_cutoff * maxval(w)) w = 0
 b = y_fit * sqrt(weight)
-call svbksb (dy_da_out, w, v, b, da)
+
+call svd_fit (dy_da, b, s%global%svd_cutoff, da)
 a_try = a - da
 
+!
 
 call tao_set_opt_vars (a_try, s%global%optimizer_var_limit_warn)
 merit = tao_merit()
@@ -223,6 +199,5 @@ enddo
 status = 0
 
 end subroutine
-
 
 end module
