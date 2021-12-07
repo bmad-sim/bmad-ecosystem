@@ -696,10 +696,11 @@ subroutine str_set(str_out, str_in)
   character(*) str_in
 end subroutine
 
-subroutine svd_fit (A, b, cutoff, x_min)
+subroutine svd_fit (A, b, cutoff, x_min, chisq, w_vec, v_mat)
   import
   implicit none
   real(rp) A(:,:), b(:), cutoff, x_min(:)
+  real(rp), optional :: chisq, w_vec(:), v_mat(:,:)
 end subroutine
 
 function real_path (path_in, path_out) result (is_ok)
