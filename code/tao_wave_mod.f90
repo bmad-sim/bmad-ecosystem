@@ -985,28 +985,14 @@ end subroutine tao_cbar_wave_anal
 
 subroutine tao_wave_fit (curve, ix1, n_dat, coef, rms, f1, f2, f3, f4)
 
-use nr, only: svdfit, svdvar
-
 implicit none
 
-!interface
-!  function tao_wave_funcs(x,n)
-!    use precision_def
-!    implicit none
-!    real(rp), intent(in) :: x
-!    integer, intent(in) :: n
-!    real(rp), dimension(n) :: tao_wave_funcs
-!  end function tao_wave_funcs
-!end interface
-
-
 type (tao_curve_struct) curve
-real(rp), allocatable :: f_com(:,:)
+real(rp), allocatable :: A(:,:), A2(:,:)
 
 real(rp) f1(:), coef(:), rms(:)
 real(rp), optional :: f2(:), f3(:), f4(:)
-real(rp), allocatable :: cvm(:,:), v(:,:)
-real(rp), allocatable :: x(:), sig(:), w(:)
+real(rp), allocatable :: cvm(:,:), v(:,:), w(:), b(:), wti(:)
 real(rp) chisq
 
 integer i, ix1, ix2, n_dat, n_tot, n_f
@@ -1024,44 +1010,28 @@ endif
 ix2 = ix1 + n_dat - 1
 
 n_f = s%wave%n_func
-allocate (x(n_dat), f_com(n_f, n_dat), v(n_f,n_f), w(n_f), cvm(n_f,n_f), sig(n_dat))
+allocate (A(n_dat, n_f), v(n_f,n_f), w(n_f), wti(n_f), cvm(n_f,n_f), b(n_dat))
 
-f_com(1,:) = f1(ix1:ix2)
-if (present(f2)) f_com(2,:) = f2(ix1:ix2)
-if (present(f3)) f_com(3,:) = f3(ix1:ix2)
-if (present(f4)) f_com(4,:) = f4(ix1:ix2)
+A(:,1) = f1(ix1:ix2)
+if (present(f2)) A(:,2) = f2(ix1:ix2)
+if (present(f3)) A(:,3) = f3(ix1:ix2)
+if (present(f4)) A(:,4) = f4(ix1:ix2)
+A2 = A
 
-sig = 1
-x = [(i, i = 1, n_dat)]
+b = curve%y_symb(ix1:ix2)
 
 ! Fit
 
-call svdfit (x, curve%y_symb(ix1:ix2), sig, coef, v, w, chisq, tao_wave_funcs)
-call svdvar (v, w, cvm)
+call svd_fit(A2, b, 1.0e-5_rp, coef, chisq, w, v)
+
+wti = 0
+where (w /= 0) wti = 1.0_rp / (w*w)
+
+cvm = v * spread(wti, dim=1, ncopies=n_f)
+cvm = matmul(cvm, transpose(v))
 
 rms(n_f+1) = sqrt(chisq/n_dat)
 forall (i = 1:n_f) rms(i) = sqrt(cvm(i,i)) * rms(n_f+1)
-
-! Cleanup
-
-deallocate (x, f_com, cvm, v, sig, w)
-
-!---------------------------------------------------------------------------
-contains
-
-function tao_wave_funcs (x, ma) result (value)
-
-implicit none
-
-integer, intent(in) :: ma
-real(rp), intent(in) :: x
-real(rp) value(ma)
-
-!
-
-value = f_com(1:ma, nint(x))
-
-end function tao_wave_funcs
 
 end subroutine tao_wave_fit
 
