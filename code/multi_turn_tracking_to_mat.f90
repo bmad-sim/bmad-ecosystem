@@ -1,5 +1,5 @@
 !+
-! Subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
+! Subroutine multi_turn_tracking_to_mat (track, n_var, map1, map0, track0, chi)
 !
 ! Subroutine to analyze multi-turn tracking data to find the 1-turn transfer
 ! matrix and the closed orbit offset at a given point in the lat.
@@ -7,7 +7,7 @@
 ! Input:
 !   track(:) -- Coord_struct: multi-turn tracking data to analyze. track(i) is the 
 !                particle position at a given point in the lat on the i^th turn.
-!   i_dim    -- Integer: Dimensionality of the data (2, 4, or 6).
+!   n_var    -- Integer: Dimensionality of the data (2, 4, or 6).
 !
 ! Output: 
 !   map1(:,:) -- Real(rp): Calculated 1-turn matrix. 
@@ -18,10 +18,9 @@
 !                   = 1 => terrible fit
 !-
 
-subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
+subroutine multi_turn_tracking_to_mat (track, n_var, map1, map0, track0, chi)
 
 use bmad_interface, except_dummy => multi_turn_tracking_to_mat
-use nr, only: svdfit
 
 implicit none
 
@@ -30,36 +29,18 @@ type (coord_struct), intent(out) :: track0
 
 real(rp), intent(out) :: map1(:,:), map0(:)
 real(rp), intent(out) :: chi
-integer, intent(in) :: i_dim
+integer, intent(in) :: n_var
 
 real(rp) sum2, dsum2, chisq, dtrack(6)
-real(rp), allocatable :: x(:), y(:), sig(:), v(:,:), w(:), a(:), m(:,:)
-type (coord_struct), allocatable, target :: d0track(:)
-integer i, n
-logical orbit_calc
+real(rp), allocatable :: a(:,:), a2(:,:), m(:,:), y(:), x(:)
+integer i, n_dat
 
 ! init
 
-n = size(track)
+n_dat = size(track)
+allocate (y(n_dat-1), A(n_dat-1, n_var+1), A2(n_dat-1, n_var+1), m(n_var,n_var), x(n_var+1))
 
-if (.not. allocated (x)) then
-  allocate (x(n-1), y(n-1), sig(n-1), d0track(n-1))
-elseif (size(x) /= n-1) then
-  deallocate (x, y, sig, d0track)
-  allocate (x(n-1), y(n-1), sig(n-1), d0track(n-1))
-endif
-
-if (.not. allocated (w)) then
-  allocate (w(i_dim+1), v(i_dim+1, i_dim+1), a(i_dim+1), m(i_dim,i_dim))
-elseif (size(w) /= i_dim+1) then
-  deallocate (w, v, a, m)
-  allocate (w(i_dim+1), v(i_dim+1, i_dim+1), a(i_dim+1), m(i_dim,i_dim))
-endif
-
-x = [(i, i=1,n-1) ]
-sig = 1
-
-! Because of possible round-off errors we do the computation in two parts.
+! Because of possible round-off errors the computation is done in two parts.
 !
 ! First: Compute the closed orbit.
 ! Use the relation:
@@ -73,31 +54,35 @@ sig = 1
 !           VV_out = MM VV_in
 ! Which can be solved using svdfit.
 
-
-do i = 1, i_dim
-  y = track(2:n)%vec(i)
-  orbit_calc = .true.
-  call svdfit (x, y, sig, a, v, w, chisq, multi_turn_func)
-  map1(i,1:i_dim) = a(1:i_dim)
-  map0(i) = a(i_dim+1)
+a = 0
+do i = 1, n_dat-1
+  a(i,:) = [track(i)%vec(1:n_var), 1.0_rp]
 enddo
 
-m = -map1(1:i_dim,1:i_dim)
-forall (i = 1:i_dim) m(i,i) = 1 + m(i,i)
+do i = 1, n_var
+  a2 = a
+  y = track(2:n_dat)%vec(i)
+  call svd_fit (a2, y, 1.0e-5_rp, x)
+  map1(i,1:n_var) = x(1:n_var)
+  map0(i) = x(n_var+1)
+enddo
+
+m = -map1(1:n_var,1:n_var)
+forall (i = 1:n_var) m(i,i) = 1 + m(i,i)
 call mat_inverse (m, m)
-track0%vec(1:i_dim) = matmul (m, map0(1:i_dim))
+track0%vec(1:n_var) = matmul (m, map0(1:n_var))
 
 ! Second: Subtract off the closed orbit and calculate the 1-turn matrix.
 
-do i = 1, n-1
-  d0track(i)%vec = track(i)%vec - track0%vec
+do i = 1, n_dat-1
+  a(i,1:n_var) = track(i)%vec(1:n_var)-track0%vec(1:n_var)
 enddo
 
-do i = 1, i_dim
-  y = track(2:n)%vec(i) - track0%vec(i)
-  orbit_calc = .false.
-  call svdfit (x, y, sig, a, v, w, chisq, multi_turn_func)
-  map1(i,1:i_dim) = a(1:i_dim)
+do i = 1, n_var
+  a2 = a
+  y(1:n_dat-1) = track(2:n_dat)%vec(i) - track0%vec(i)
+  call svd_fit (a2(:,1:n_var), y, 1.0e-5_rp, x(1:n_var))
+  map1(i,1:n_var) = x(1:n_var)
 enddo
 
 ! Calculate chi -  the goodness of fit
@@ -105,39 +90,14 @@ enddo
 sum2 = 0
 dsum2 = 0
 
-do i = 1, n-1
-  dtrack(1:i_dim) = track(i+1)%vec(1:i_dim) - &
-                        matmul(map1(1:i_dim,1:i_dim), track(i)%vec(1:i_dim)) - map0(1:i_dim)
-  dsum2 = dsum2 + sum(dtrack(1:i_dim)**2)
-  sum2 = sum(track(i+1)%vec(1:i_dim)**2)
+do i = 1, n_dat-1
+  dtrack(1:n_var) = track(i+1)%vec(1:n_var) - &
+                        matmul(map1(1:n_var,1:n_var), track(i)%vec(1:n_var)) - map0(1:n_var)
+  dsum2 = dsum2 + sum(dtrack(1:n_var)**2)
+  sum2 = sum(track(i+1)%vec(1:n_var)**2)
 enddo
 
 chi = sqrt(dsum2/sum2)
-
-!-------------------------------------------------------------------------
-contains
-
-function multi_turn_func (x, id) result (vec)
-
-implicit none                      
-
-real(rp), intent(in) :: x
-real(rp), dimension(id) :: vec
-
-integer, intent(in) :: id
-integer ix
-
-! id = i_dim+1
-
-ix = nint(x)
-
-if (orbit_calc) then
-  vec = [track(ix)%vec(1:id-1), 1.0_rp]
-else
-  vec = [d0track(ix)%vec(1:id-1), 1.0_rp]
-endif
-
-end function
 
 end subroutine
 
