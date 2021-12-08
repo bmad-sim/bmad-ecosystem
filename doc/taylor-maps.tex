@@ -250,58 +250,44 @@ point 1 then $M_1$ is just the constant map
 \begin{equation}
   M_1: x_1 = c_i
 \end{equation}
-where $c_i$ is the initial starting point. The order of the
-integration is set to 0 so that all non--constant terms are
-ignored. The final map is also just a constant map
+where $c_i$ is the initial starting point. The order of the integration is set to 0 so that all
+non--constant terms are ignored. The final map is also just a constant map
 \begin{equation}
   M_3: x_2 = c_f
 \end{equation}
-If the map from point 1 to point 2 is desired then the map $M_1$ is
-just set to the identity map
+If the map from point 1 to point 2 is desired then the map $M_1$ is just set to the identity map
 \begin{equation}
   M_1: x_1 = x_0
 \end{equation}
-In general it is impossible to exactly integrate any non--linear
-system. In practice, the symplectic integration is achieved by slicing
-the interval between point 1 and point 2 into a number of (generally
-equally spaced) slices. The integration is performed, slice step by
-slice step. This is analogous to integrating a function by evaluating
-the function at a number of points. Using more slices gives better
-results but slows down the calculation. The speed and accuracy of the
-calculation is determined by the number of slices and the \vn{order}
-of the integrator. The concept of integrator order can best be
-understood by analogy by considering the trapezoidal rule for
+In general it is impossible to exactly integrate any non--linear system. In practice, the symplectic
+integration is achieved by slicing the interval between point 1 and point 2 into a number of
+(generally equally spaced) slices. The integration is performed, slice step by slice step. This is
+analogous to integrating a function by evaluating the function at a number of points. Using more
+slices gives better results but slows down the calculation. The speed and accuracy of the
+calculation is determined by the number of slices and the \vn{order} of the integrator. The concept
+of integrator order can best be understood by analogy by considering the trapezoidal rule for
 integrating a function of one variable:
 \begin{equation}
   \int_{y_a}^{y_b} f(y) \, dy = 
   h \left[ \frac{1}{2} f(y_a) + \frac{1}{2} f(y_b) \right] +
   o(h^3 \, f^{(2)})
 \end{equation}
-In the formula $h = y_b - y_a$ is the slice width. $0(h^3 \, f^{(2)})$
-means that the error of the trapezoidal rule scales as the second
-derivative of $f$. Since the error scales as $f^{(2)}$ this is an
-example of a second order integrator. To integrate a function between
-points $y_1$ and $y_N$ we slice the interval at points $y_2 \ldots y_{N-1}$
-and apply the trapezoidal rule to each interval. Examples of higher
-order integrators can be found, for example, in Numerical
-Recipes\cite{b:nr}. The concept of integrator order in symplectic
-integration is analogous. 
+In the formula $h = y_b - y_a$ is the slice width. $0(h^3 \, f^{(2)})$ means that the error of the
+trapezoidal rule scales as the second derivative of $f$. Since the error scales as $f^{(2)}$ this is
+an example of a second order integrator. To integrate a function between points $y_1$ and $y_N$ we
+slice the interval at points $y_2 \ldots y_{N-1}$ and apply the trapezoidal rule to each
+interval. The concept of integrator order in symplectic integration is analogous.
 
-The optimum number of slices is determined by the smallest number that
-gives an acceptable error. The slice size is given by the \vn{ds_step}
-attribute of an element (\sref{s:integ}).  Integrators of higher order
-will generally need a smaller number of slices to achieve a given
-accuracy. However, since integrators of higher order take more time
-per slice step, and since it is computation time and not number of
-slices which is important, only a measurement of error and calculation
-time as a function of slice number and integrator order will
-unambiguously give the optimum integrator order and slice width.  In
-doing a timing test, it must be remembered that since the magnitude of
-any non-nonlinearities will depend upon the starting position, the
-integration error will be dependent upon the starting map $M_1$. \bmad
-has integrators of order 2, 4, and 6 (\sref{s:integ}). Timing tests
-performed for some wiggler elements (which have strong nonlinearities)
-showed that, in this case, the 2\Nd order integrator gave the fastest
-computation time for a given accuracy. However, the higher order
-integrators may give better results for elements with weaker
-nonlinearities.
+The optimum number of slices is determined by the smallest number that gives an acceptable
+error. The slice size is given by the \vn{ds_step} attribute of an element (\sref{s:integ}).
+Integrators of higher order will generally need a smaller number of slices to achieve a given
+accuracy. However, since integrators of higher order take more time per slice step, and since it is
+computation time and not number of slices which is important, only a measurement of error and
+calculation time as a function of slice number and integrator order will unambiguously give the
+optimum integrator order and slice width.  In doing a timing test, it must be remembered that since
+the magnitude of any non-nonlinearities will depend upon the starting position, the integration
+error will be dependent upon the starting map $M_1$. \bmad has integrators of order 2, 4, and 6
+(\sref{s:integ}). Timing tests performed for some wiggler elements (which have strong
+nonlinearities) showed that, in this case, the 2\Nd order integrator gave the fastest computation
+time for a given accuracy. However, the higher order integrators may give better results for
+elements with weaker nonlinearities.

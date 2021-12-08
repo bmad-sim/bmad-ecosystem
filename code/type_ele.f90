@@ -1299,7 +1299,7 @@ character(*) attrib_name
 character(40) a_name, a2_name
 logical is_2nd_col_attrib
 
-character(40), parameter :: att_name(54) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+character(40), parameter :: att_name(75) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
                 'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
                 'KS', 'K1', 'K2', 'G', 'DG', 'H1', 'E1', 'FINT', 'HGAP', &
@@ -1307,9 +1307,12 @@ character(40), parameter :: att_name(54) = [character(40):: 'X_PITCH', 'Y_PITCH'
                 'VOLTAGE', 'PHI0', 'N_CELL', 'X_GAIN_ERR', 'X_GAIN_CALIB', 'X_OFFSET_CALIB', &
                 'BETA_A', 'ALPHA_A', 'CRAB_X1', 'CRAB_X3', 'PX_APERTURE_WIDTH2', 'PY_APERTURE_WIDTH2', &
                 'PZ_APERTURE_WIDTH2', 'Z_APERTURE_WIDTH2', 'CMAT_11', 'CMAT_21', 'X_DISPERSION_ERR', &
-                'X_DISPERSION_CALIB', 'K1X', 'RF_FREQUENCY', 'UPSTREAM_ELE_DIR', 'SIG_X']
+                'X_DISPERSION_CALIB', 'K1X', 'RF_FREQUENCY', 'UPSTREAM_ELE_DIR', 'SIG_X', &
+                'BETA_A0', 'BETA_B0', 'ALPHA_A0', 'ALPHA_B0', 'DPHI_A', 'ETA_X0', 'ETAP_X0', &
+                'ETA_Y0', 'ETAP_Y0', 'MATCH_END_INPUT', 'X0', 'PX0', 'Y0', 'PY0', 'Z0', 'PZ0', &
+                'MATCH_END_ORBIT_INPUT', 'C11_MAT0', 'C12_MAT0', 'C21_MAT0', 'C22_MAT0']
 
-character(40), parameter :: att2_name(54) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+character(40), parameter :: att2_name(75) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'H2', 'E2', 'FINTX', 'HGAPX', &
@@ -1317,7 +1320,10 @@ character(40), parameter :: att2_name(54) = [character(40):: 'X_PITCH_TOT', 'Y_P
                 'GRADIENT', 'PHI0_MULTIPASS', 'CAVITY_TYPE', 'Y_GAIN_ERR', 'Y_GAIN_CALIB', 'Y_OFFSET_CALIB', &
                 'BETA_B', 'ALPHA_B', 'CRAB_X2', 'CRAB_TILT', 'PX_APERTURE_CENTER', 'PY_APERTURE_CENTER', &
                 'PZ_APERTURE_CENTER', 'Z_APERTURE_CENTER', 'CMAT_12', 'CMAT_22', 'Y_DISPERSION_ERR', &
-                'Y_DISPERSION_CALIB', 'K1Y', 'RF_WAVELENGTH', 'DOWNSTREAM_ELE_DIR', 'SIG_Y']
+                'Y_DISPERSION_CALIB', 'K1Y', 'RF_WAVELENGTH', 'DOWNSTREAM_ELE_DIR', 'SIG_Y', &
+                'BETA_A1', 'BETA_B1', 'ALPHA_A1', 'ALPHA_B1', 'DPHI_B', 'ETA_X1', 'ETAP_X1', &
+                'ETA_Y1', 'ETAP_Y1', 'MATCH_END', 'X1', 'PX1', 'Y1', 'PY1', 'Z1', 'PZ1', &
+                'MATCH_END_ORBIT', 'C11_MAT1', 'C12_MAT1', 'C21_MAT1', 'C22_MAT1']
 
 ! Exceptional cases
 

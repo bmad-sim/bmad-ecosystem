@@ -110,20 +110,6 @@ this library for storing particle position data and field grid data.
 \vn{mad_tpsa} is independent of \vn{PTC} so \vn{mad_tpsa} can be used along side \vn{PTC}. Another
 reason is that \vn{mad_tpsa} is more flexible and better structured.
 %
-  \index{numerical recipes!library}
-  \item[recipes] \Newline
-Numerical Recipes is a set of subroutines for doing scientific computing including Runge--Kutta
-integration, FFTs, interpolation and extrapolation, etc., etc. The documentation for this library is
-the books ``Numerical Recipes, in Fortran, The Art of Scientific Computing'' and ``Numerical Recipes
-in Fortran90, the Art of Parallel Scientific Computing''\cite{b:nr}.  The first book explains how
-the subroutines work and the second book explains what the argument lists for the Fortran90 version
-of the subroutines are. You do need both books if you want to use Numerical Recipes. For \bmad, this
-library has been modified to handle double precision reals which is the standard for the other
-libraries (See \sref{s:precision}). Additionally, some routines have been modified so that Numerical
-Recipes can be built as a shared object library. If you get a compiler complaint about a call to a
-Numerical Recipes routine missing a required argument, look in the code for that routine for
-documentation.
-%
   \index{open_spacecharge!library}
   \item[open_spacecharge] \Newline
 The \vn{open_spacecharge} library provides low energy tracking with space charge effects.
