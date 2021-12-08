@@ -120,10 +120,10 @@ permission to use the MAD tracking code within \bmad.
 \index{runge_kutta!tracking_method}
 \item[\vn{runge_kutta}]
 This uses a 4\Th order Runge Kutta integration algorithm with adaptive step size control.  This is
-essentially the \vn{ODEINT} subroutine from Numerical Recipes\cite{b:nr}. This may be slow but it
-should be accurate. This method is non-symplectic. \vn{Warning:} When using \vn{custom} fields, if
-the fields do not obey Maxwell's equation, there is the possibility of the \vn{runge_kutta} tracking
-halting mid way through an element. See section~\sref{s:integ} for more details.
+essentially the Cash-Karp formulation. This may be slow but it should be accurate. This method is
+non-symplectic. \vn{Warning:} When using \vn{custom} fields, if the fields do not obey Maxwell's
+equation, there is the possibility of the \vn{runge_kutta} tracking halting mid way through an
+element. See section~\sref{s:integ} for more details.
 
 \index{symp_lie_Bmad!tracking_method}
 \item[\vn{Symp_Lie_Bmad}]

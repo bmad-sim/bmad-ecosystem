@@ -89,6 +89,7 @@ case (upstream_end$)
   ele => pointer_to_next_ele(ele, -1)
   orbit%location = downstream_end$
   orbit%ix_ele = ele%ix_ele
+  orbit%vec(5) = ele%value(l$)
 
 case (downstream_end$)
   if (orbit%direction /= 1) return
@@ -102,6 +103,7 @@ case (downstream_end$)
   ele => pointer_to_next_ele(ele)
   orbit%location = upstream_end$
   orbit%ix_ele = ele%ix_ele
+  orbit%vec(5) = 0
 end select
 
 end function pointer_to_next_track_ele
