@@ -130,6 +130,16 @@ and projected
     \hspace*{1in} slice_spread, err, print_err) }] \Newline 
 Finds all bunch parameters for a slice through the beam distribution.
 
+\index[routine]{calc_bunch_sigma_matrix}
+\label{r:calc.bunch.sigma.matrix}
+\item[calc_bunch_sigma_matrix (particle, charge, bunch_params)] \Newline 
+Routine to find the sigma matrix elements of a particle distribution.
+
+\index[routine]{calc_emittances_and_twiss_from_sigma_matrix}
+\label{r:calc.emittances.and.twiss.from.sigma.matrix}
+\item[calc_emittances_and_twiss_from_sigma_matrix(sigma_mat, gamma, bunch_params, error, print_err)] \Newline 
+  Routine to calc emittances and Twiss function from a beam sigma matrix.
+  
 \index[routine]{init_beam_distribution}
 \label{r:init.beam.distribution}
 \item[init_beam_distribution (ele, param, beam_init, beam, err_flag, modes)] \Newline 
@@ -301,7 +311,7 @@ Custom routine to add a kick to a particle at periodic times.
 
 \index[routine]{track1_bunch_hook}
 \label{r:track1.bunch.hook}
-\item[track1_bunch_hook (bunch_start, lat, ele, bunch_end, err, centroid, direction, finished)] \Newline 
+\item[track1_bunch_hook (bunch_start, ele, bunch_end, err, centroid, direction, finished)] \Newline 
 Routine that can be customized for tracking a bunch through a single element.
 
 \index[routine]{track1_custom}
@@ -664,41 +674,6 @@ the complex plane.
 \item[cross_product (a, b)] \Newline 
 Returns the cross product of a x b
 
-\index[routine]{find_indexx0}
-\label{r:find.indexx0}
-\item[find_indexx0 (name, var_str_index, ix_match, ix2_match, add_to_list, n_match, has_been_added)] \Newline 
-Subroutine to find a matching name in a list of names.
-This name is overloaded by find_indexx.
-
-\index[routine]{find_indexx1}
-\item[find_indexx1 (name, nametable, ix_match, ix2_match, add_to_list, n_match, has_been_added)] \Newline 
-Subroutine to find a matching name in a list of names.
-This name is overloaded by find_indexx.
-
-\index[routine]{find_indexx2}
-\label{r:find.indexx2}
-\item[find_indexx2 (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)] \Newline 
-Subroutine to find a matching name in a list of names.
-This name is overloaded by find_indexx.
-
-\index[routine]{find_indexx3}
-\label{r:find.indexx3}
-\item[find_indexx3 (name, names, n_min, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)] \Newline 
-Subroutine to find a matching name in a list of names.
-This name is overloaded by find_indexx.
-
-\index[routine]{indexx_str}
-\label{r:indexx.str}
-\item[indexx_str (str_arr, indx_arr)] \Newline 
-Subroutine to sort a character array.
-This subroutine is used to overload the generic name indexx.
-
-\index[routine]{indexx_var_str}
-\label{r:indexx.var.str}
-\item[indexx_var_str (str_arr, indx_arr)] \Newline 
-Subroutine to sort a character array.
-This subroutine is used to overload the generic name indexx.
-
 \index[routine]{linear_fit}
 \label{r:linear.fit}
 \item[linear_fit (x, y, n_data, a, b, sig_a, sig_b)] \Newline 
@@ -910,11 +885,6 @@ Routine to convert a string to lowercase:
 \item[index_nocase (string, match_str) result (indx)] \Newline 
 Function to look for a sub-string of string that matches match_str.
 This routine is similar to the fortran INDEX function
-
-\index[routine]{indexx_str}
-\item[indexx_str (str_arr, indx_arr)] \Newline 
-Subroutine to sort a character array.
-This subroutine is used to overload the generic name indexx.
 
 \index[routine]{int_str}
 \label{r:int.str}
@@ -1583,12 +1553,6 @@ Routine to check the control links in a lat structure, etc.
 Routine to return the maximum number of characters in any attribute
 name known to bmad.
 
-\index[routine]{name_to_list}
-\label{r:name.to.list}
-\item[name_to_list (lat, ele_names)] \Newline
-Routine to make a list of the elements in a lat 
-whose name matches the names in the ele_names list. 
-
 \index[routine]{num_lords}
 \label{r:num.lords}
 \item[num_lords (slave, lord_type) result (num)] \Newline 
@@ -1888,12 +1852,6 @@ Routine to find the index ix_max such that:
 \item[nametable_change1 (nametable, name, ix_name)] \Newline 
 Routine to change one entry in a nametable.
 
-\index[routine]{find_indexx1}
-\label{r:find.indexx1}
-\item[find_indexx1 (name, nametable, ix_match, ix2_match, add_to_list, n_match, has_been_added)] \Newline 
-Subroutine to find a matching name in a list of names.
-This name is overloaded by find_indexx.
-
 \index[routine]{nametable_init}
 \label{r:nametable.init}
 \item[nametable_init(nametable, n_min, n_max)] \Newline 
@@ -2046,7 +2004,7 @@ and the 0th order transfer vector.
 Routine to make the 6 x 6 transfer matrix from the twiss parameters.
 
 \index[routine]{multi_turn_tracking_to_mat}
-\item[multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)] \Newline
+\item[multi_turn_tracking_to_mat (track, n_var, map1, map0, track0, chi)] \Newline
 Routine to analyze 1-turn tracking data to find the 1-turn transfer matrix 
 and the closed orbit offset.
 
@@ -3467,7 +3425,7 @@ up the calculations.
 
 \index[routine]{srdt_lsq_solution}
 \label{r:srdt.lsq.solution}
-\item[\protect\parbox{6in}{srdt_lsq_solution(lat, var_indexes, var_names, ls_soln, n_slices_gen_opt, n_slices_sxt_opt,\\
+\item[\protect\parbox{6in}{srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slices_sxt_opt,\\
             chrom_set_x_opt, chrom_set_y_opt, weight_in)}] \Newline
 Given a lattice and the indices of the sextupole moments to use as variables, finds the least squares solution
 to the sextupole moments that minimize the 1st order driving terms.  If there are more variables than driving
@@ -3896,11 +3854,6 @@ change when then energy is changed.
 \item[chrom_tune (lat, delta_e, target_x, target_y, err_tol, err_flag)] \Newline
 Routine to set the sextupole strengths so that the lat 
 has the desired chromaticities. 
-
-\index[routine]{quad_beta_ave}
-\label{r:quad.beta.ave}
-\item[quad_beta_ave (ele, beta_a_ave, beta_b_ave)] \Newline
-Routine to compute the average betas in a quad.
 
 \index[routine]{radiation_integrals}
 \label{r:radiation.integrals}
