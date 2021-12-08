@@ -156,8 +156,8 @@ do i = 1, lat%n_ele_track
       call write_insert_ele_def (nb, ['VD'])
     endif
 
-    if (ele%value(e1$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e1$)) * ele%value(g$))
-    if (ele%value(e2$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e2$)) * ele%value(g$))
+    if (ele%value(e1$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e1$)) * ele%value(g$), -ele%value(g$))
+    if (ele%value(e2$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e2$)) * ele%value(g$),  ele%value(g$))
 
   case (quadrupole$)
     if (mod(n_count, 2) == 0) cycle    ! Skip second element in pair
@@ -398,9 +398,9 @@ end subroutine ele_to_slick_params
 !---------------------------------------------------------------------------
 ! contains
 
-subroutine write_insert_ele_def (nn, names, edge_kl)
+subroutine write_insert_ele_def (nn, names, edge_kl, g)
 
-real(rp), optional :: edge_kl
+real(rp), optional :: edge_kl, g
 integer nn
 integer i, j
 character(*) names(:)
@@ -422,7 +422,7 @@ do i = 1, size(names)
   case ('CQ'); line = '    3 CQ______  0.00000000  0.00000000  0.00000000    1   0.000000    0'
   case ('VD'); line = '    7 VD______  0.00000000  0.00000000  0.10000000    1   0.000000    0'
   case ('EE'); write (line, '(a, 2f12.8, a)') &
-                      '   97 EE______', edge_kl, edge_kl,    ' 0.00000000    1   0.000000    0'
+                      '   97 EE______', edge_kl, g,    ' 0.00000000    1   0.000000    0'
   end select
 
   line(15-j:14) = nc(1:j)
