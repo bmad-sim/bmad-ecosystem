@@ -327,10 +327,8 @@ end function interpolated_fft_gsl
 function interpolated_fft (cdata, calc_ok, opt_dump_spectrum, opt_dump_index) result (this_fft)
 
 use sim_utils
-use, intrinsic :: iso_c_binding
 
 implicit none
-include 'fftw3.f03'
 
 complex(rp) cdata(:)
 integer, optional :: opt_dump_spectrum, opt_dump_index
@@ -358,7 +356,6 @@ dump_index = integer_option (0, opt_dump_index)
 
 n_samples = size(cdata)
 hsamp = (n_samples-1)/2.0d0
-call dfftw_plan_dft_1d(plan, n_samples, wcdata, wcdata, FFTW_BACKWARD,FFTW_ESTIMATE)
 
 !apply window
 do i=1, n_samples
@@ -369,9 +366,7 @@ do i=1, n_samples
   wcdata(i)= cdata(i) * window
 enddo
 
-call dfftw_execute_dft(plan, wcdata, wcdata)
-call dfftw_destroy_plan(plan)
-
+call fft_1d (wcdata, -1)
 fft_amp(:)=sqrt(wcdata(:)*conjg(wcdata(:)))
 
 if( dump_spectrum > 10 ) then

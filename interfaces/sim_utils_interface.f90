@@ -211,6 +211,12 @@ subroutine fff_sub(line, error)
   logical error
 end subroutine
 
+subroutine fft_1d (arr, isign)
+  import
+  complex(rp) arr(:)
+  integer isign
+end subroutine
+
 subroutine file_directorizer (in_file, out_file, directory, add_switch)
   implicit none
   logical add_switch

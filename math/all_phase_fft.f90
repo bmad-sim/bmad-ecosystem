@@ -1,10 +1,10 @@
 !+
-! module apfft_mod
+! module all_phase_fft
 !
 ! This module implements the All Phase FFT method for obtaining accurate phase from signal data.
 !-
 
-module apfft_mod
+module all_phase_fft
 
 use physical_constants
 
