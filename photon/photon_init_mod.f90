@@ -369,11 +369,13 @@ end function bend_vert_angle_integ_prob
 
 subroutine bend_photon_polarization_init (g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
 
+use fgsl, only: fgsl_sf_bessel_Knu
+
 implicit none
 
 type (coord_struct) :: orbit
 real(rp) g_bend_x, g_bend_y, g_bend, gamma_phi
-real(rp) gp2, xi, dum1, dum2, dum3, k_23, k_13, pol_x, pol_y
+real(rp) gp2, xi, k_23, k_13, pol_x, pol_y
 real(rp) E_rel, E_photon
 
 !
@@ -386,8 +388,8 @@ if (xi > 100) then
   k_13 = 1 
   k_23 = 1  ! Ratio is 1.
 else
-  call bessik(xi, 1.0_rp/3, dum1, k_13, dum2, dum3)
-  call bessik(xi, 2.0_rp/3, dum1, k_23, dum2, dum3)
+  k_13 = fgsl_sf_bessel_Knu(1.0_rp/3, xi)
+  k_23 = fgsl_sf_bessel_Knu(2.0_rp/3, xi)
 endif
 
 pol_x = k_23
