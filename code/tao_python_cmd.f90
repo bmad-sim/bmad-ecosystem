@@ -5439,6 +5439,9 @@ case ('plot_graph_manage')
 ! Returns
 ! -------
 ! string_list
+!   if x_or_y == ''
+! real_array
+!   if x_or_y != ''
 !
 ! Examples
 ! --------
@@ -5449,6 +5452,14 @@ case ('plot_graph_manage')
 !    graph_name: g
 !    curve_name: a
 !    x_or_y:
+!
+! Example: 2
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line -external_plotting
+!  args:
+!    region_name: beta
+!    graph_name: g
+!    curve_name: a
+!    x_or_y: y
 
 case ('plot_line')
 
@@ -5529,7 +5540,9 @@ endif
 ! Returns
 ! -------
 ! string_list
-!
+!   if x_or_y == ''
+! real_array
+!   if x_or_y != ''
 !
 ! Examples
 ! --------
@@ -5540,6 +5553,14 @@ endif
 !    graph_name: g
 !    curve_name: a
 !    x_or_y: 
+!
+! Example: 2
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_plot_line -external_plotting
+!  args:
+!    region_name: r13
+!    graph_name: g
+!    curve_name: a
+!    x_or_y: y
 
 case ('plot_symbol')
 
