@@ -34,7 +34,7 @@ type (ele_struct), pointer :: ele
 type (nametable_struct) nametab
 
 real(rp) slick_params(3), s_start, length, scale
-integer i, j, ix, n_arg, slick_class, nb, nq, ne, n_count, n_edge
+integer i, j, ix, n_arg, slick_class, nb, nq, ne, n_count, n_edge, sgn
 
 logical end_here, added, split_eles, always_include_bend_edges
 
@@ -156,8 +156,14 @@ do i = 1, lat%n_ele_track
       call write_insert_ele_def (nb, ['VD'])
     endif
 
-    if (ele%value(e1$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e1$)) * ele%value(g$), -ele%value(g$))
-    if (ele%value(e2$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], tan(ele%value(e2$)) * ele%value(g$),  ele%value(g$))
+    if (ele%value(ref_tilt$) == 0) then
+      if (ele%value(e1$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], 97, tan(ele%value(e1$))*ele%value(g$), -ele%value(g$))
+      if (ele%value(e2$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], 97, tan(ele%value(e2$))*ele%value(g$),  ele%value(g$))
+    else
+      sgn = -sign_of(ele%value(ref_tilt$))
+      if (ele%value(e1$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], 98, sgn*tan(ele%value(e1$))*ele%value(g$), -sgn*ele%value(g$))
+      if (ele%value(e2$) /= 0 .or. always_include_bend_edges) call write_insert_ele_def (n_edge, ['EE'], 98, sgn*tan(ele%value(e2$))*ele%value(g$),  sgn*ele%value(g$))
+    endif
 
   case (quadrupole$)
     if (mod(n_count, 2) == 0) cycle    ! Skip second element in pair
@@ -333,7 +339,7 @@ case (sbend$)
     else
       slick_class = 16
     endif
-    slick_params = [len_scale*ele%value(angle$)*sign_of(ele%value(ref_tilt$)), strength_scale*knl(1), len_scale*ele%value(l$)]
+    slick_params = [-len_scale*ele%value(angle$)*sign_of(ele%value(ref_tilt$)), strength_scale*knl(1), len_scale*ele%value(l$)]
   endif
 
 case (quadrupole$)
@@ -398,10 +404,11 @@ end subroutine ele_to_slick_params
 !---------------------------------------------------------------------------
 ! contains
 
-subroutine write_insert_ele_def (nn, names, edge_kl, g)
+subroutine write_insert_ele_def (nn, names, id, edge_kl, g)
 
 real(rp), optional :: edge_kl, g
 integer nn
+integer, optional :: id
 integer i, j
 character(*) names(:)
 character(100) line
@@ -421,8 +428,7 @@ do i = 1, size(names)
   case ('RQ'); line = '    4 RQ______  0.00000000  0.00000000  0.00000000    1   0.000000    0'
   case ('CQ'); line = '    3 CQ______  0.00000000  0.00000000  0.00000000    1   0.000000    0'
   case ('VD'); line = '    7 VD______  0.00000000  0.00000000  0.10000000    1   0.000000    0'
-  case ('EE'); write (line, '(a, 2f12.8, a)') &
-                      '   97 EE______', edge_kl, g,    ' 0.00000000    1   0.000000    0'
+  case ('EE'); write (line, '(i5, a, 2f12.8, a)') id, ' EE______', edge_kl, g,    ' 0.00000000    1   0.000000    0'
   end select
 
   line(15-j:14) = nc(1:j)
