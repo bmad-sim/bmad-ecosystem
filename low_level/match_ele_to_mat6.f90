@@ -1,5 +1,5 @@
 !+
-! Subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time)
+! Subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time, set_trombone)
 !
 ! Subroutine to make the 6 x 6 transfer matrix from the twiss parameters
 ! at the entrance and exit ends of a match element. 
@@ -7,20 +7,22 @@
 ! Note: ele%taylor%term will be deallocated if the xfer map has changed.
 !
 ! Input:
-!   ele                -- ele_struct: Match element.
-!   start_orb          -- coord_struct: Starting orbit.
-!   twiss_ele          -- ele_struct, optional: If present and ele%value(match_end$) is True, 
-!                           use the Twiss parameters in this element as the upstream end Twiss.
-!   include_delta_time -- logical, optional: If False, ignore any finite ele%value(delta_time$). 
-!                           Default is True.
+!   ele                 -- ele_struct: Match element.
+!   start_orb           -- coord_struct: Starting orbit.
+!   twiss_ele           -- ele_struct, optional: If present and ele%value(match_end$) is True, 
+!                            use the Twiss parameters in this element as the upstream end Twiss.
+!   include_delta_time  -- logical, optional: If False, ignore any finite ele%value(delta_time$). 
+!                            Default is True.
+!   set_trombone        -- logical, optional: Default is False. If True, set the beginning and ending Twiss
+!                           values in the element to create a phase trombone.
 !
 ! Output:
-!   vec0(6)            -- Real(rp): 0th order part of the transfer map.
-!   mat6(6,6)          -- Real(rp): Transfer matrix (1st order part of xfer map).
-!   err_flag           -- Logical: Set true if there is an error. False otherwise.
+!   vec0(6)             -- Real(rp): 0th order part of the transfer map.
+!   mat6(6,6)           -- Real(rp): Transfer matrix (1st order part of xfer map).
+!   err_flag            -- Logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time)
+subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time, set_trombone)
 
 use equal_mod, dummy => match_ele_to_mat6
 use taylor_mod, only: kill_taylor
@@ -38,8 +40,8 @@ real(rp) old_mat6(6,6), old_vec0(6), E, m56, mass
 
 integer species
 
-logical :: err_flag
-logical, optional :: include_delta_time
+logical :: err_flag, setit
+logical, optional :: include_delta_time, set_trombone
 
 !
 
@@ -51,12 +53,24 @@ else
   t_ele => pointer_to_next_ele (ele, -1)
 endif
 
+! Phase_trombone = True and set_trombone = False means that the trombone is not ready to be set.
+! In this case, just set the trombone to the unit matrix.
+
+setit = logic_option(.false., set_trombone)
+
+if (is_true(ele%value(phase_trombone$)) .and. .not. setit) then
+  call mat_make_unit(mat6)
+  vec0 = [v(x1$)-v(x0$), v(px1$)-v(px0$), v(y1$)-v(y0$), v(py1$)-v(py0$), v(z1$)-v(z0$), v(pz1$)-v(pz0$)]
+  err_flag = .false.
+  return
+endif
+
 ! If no Twiss has been set then just set mat6 to a rotation matrix if the Twiss parameters are available.
 ! If not available, set mat6 to the unit matrix
 
-if (v(beta_a0$) == 0 .and. v(beta_b0$) == 0 .and. v(alpha_a0$) == 0 .and. v(alpha_b0$) == 0 .and. &
-    v(beta_a1$) == 0 .and. v(beta_b1$) == 0 .and. v(alpha_a1$) == 0 .and. v(alpha_b1$) == 0) then
-  if (t_ele%a%beta > 0 .and. t_ele%b%beta > 0) then
+if ((v(beta_a0$) == 0 .and. v(beta_b0$) == 0 .and. v(alpha_a0$) == 0 .and. v(alpha_b0$) == 0 .and. &
+      v(beta_a1$) == 0 .and. v(beta_b1$) == 0 .and. v(alpha_a1$) == 0 .and. v(alpha_b1$) == 0) .or. setit) then
+  if ((t_ele%a%beta > 0 .and. t_ele%b%beta > 0) .or. setit) then
     v(beta_a0$)  = t_ele%a%beta
     v(beta_b0$)  = t_ele%b%beta
     v(alpha_a0$) = t_ele%a%alpha

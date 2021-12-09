@@ -6879,7 +6879,8 @@ case (wiggler$, undulator$)
 
 !------------------
 case (match$)
-  ele%value(match_end_input$) = ele%value(match_end$)
+  ele%value(phase_trombone_input$)  = ele%value(phase_trombone$)
+  ele%value(match_end_input$)       = ele%value(match_end$)
   ele%value(match_end_orbit_input$) = ele%value(match_end_orbit$)
 
 !------------------

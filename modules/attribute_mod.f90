@@ -1193,8 +1193,6 @@ call init_attribute_name1 (match$, eta_x1$,                         'ETA_X1')
 call init_attribute_name1 (match$, etap_x1$,                        'ETAP_X1')
 call init_attribute_name1 (match$, eta_y1$,                         'ETA_Y1')
 call init_attribute_name1 (match$, etap_y1$,                        'ETAP_Y1')
-call init_attribute_name1 (match$, match_end_input$,                'MATCH_END_INPUT', dependent$)
-call init_attribute_name1 (match$, match_end$,                      'MATCH_END')
 call init_attribute_name1 (match$, x0$,                             'X0')
 call init_attribute_name1 (match$, px0$,                            'PX0')
 call init_attribute_name1 (match$, y0$,                             'Y0')
@@ -1207,6 +1205,10 @@ call init_attribute_name1 (match$, y1$,                             'Y1')
 call init_attribute_name1 (match$, py1$,                            'PY1')
 call init_attribute_name1 (match$, z1$,                             'Z1')
 call init_attribute_name1 (match$, pz1$,                            'PZ1')
+call init_attribute_name1 (match$, phase_trombone_input$,           'PHASE_TROMBONE_INPUT', dependent$)
+call init_attribute_name1 (match$, phase_trombone$,                 'PHASE_TROMBONE')
+call init_attribute_name1 (match$, match_end_input$,                'MATCH_END_INPUT', dependent$)
+call init_attribute_name1 (match$, match_end$,                      'MATCH_END')
 call init_attribute_name1 (match$, match_end_orbit_input$,          'MATCH_END_ORBIT_INPUT', dependent$)
 call init_attribute_name1 (match$, match_end_orbit$,                'MATCH_END_ORBIT')
 call init_attribute_name1 (match$, is_on$,                          'IS_ON')
@@ -1802,7 +1804,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', &
-      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR')
+      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'PHASE_TROMBONE', 'PHASE_TROMBONE_INPUT')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &

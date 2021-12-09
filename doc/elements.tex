@@ -2989,10 +2989,12 @@ Attributes specific to a \vn{match} element are:
   x0, px0, y0, py0, z0, pz0 = <Real>               ! Beginning coordinates
   x1, px1, y1, py1, z1, pz1 = <Real>               ! Ending coordinates
   delta_time  = <Real>                             ! Change in time.
-  match_end = <Logic>                              ! See below. Default is False.
-  match_end_orbit = <Logic>                        ! See below. Default is False.
-  match_end_input                                  ! See below. Set by Bmad.
-  match_end_orbit_input                            ! See below. Set by Bmad. 
+  match_end = <Logic>                              ! Twiss matching. Default False.
+  match_end_orbit = <Logic>                        ! Orbit matching. Default False.
+  phase_trombone = <Logic>                         ! Phase shifter. Default False.
+  match_end_input                                  ! Set by Bmad. See below. 
+  match_end_orbit_input                            ! Set by Bmad. See below. 
+  phase_trombone_input                             ! Set by Bmad. See below. 
 \end{example}
 
 The transfer map for a \vn{match} element is a linear transformation 
@@ -3007,23 +3009,17 @@ vector $\Bf V$ is the zeroth order part of the map.
 \index{beta_a0}\index{beta_b0}\index{beta_a1}\index{beta_b1}
 \index{eta_x0}\index{etap_x0}\index{eta_y0}\index{etap_y0}
 \index{dphi_a}\index{dphi_b}
-Nomenclature: The parameters \vn{beta_a0}, \vn{alpha_a0}, etc. of the
-\vn{match} element are called the beginning (upstream) ``design''
-Twiss parameters. The parameters \vn{beta_a1}, \vn{alpha_a1}, etc. of
-the \vn{match} element are called the ending (downstream) ``design'' Twiss
-parameters. Similarly, \vn{c11_mat0}, etc. are the beginning components of the
-$\bfC$ coupling matrix (\sref{s:coupling}).
+Nomenclature: The parameters \vn{beta_a0}, \vn{alpha_a0}, etc. of the \vn{match} element are called
+the beginning (upstream) ``design'' Twiss parameters. The parameters \vn{beta_a1}, \vn{alpha_a1},
+etc. of the \vn{match} element are called the ending (downstream) ``design'' Twiss
+parameters. Similarly, \vn{c11_mat0}, etc. are the beginning components of the $\bfC$ coupling
+matrix (\sref{s:coupling}).
 
 The matrix $\Bf M$ is calculated such that if (and only if) the actual (computed) Twiss coupling
 parameters at the beginning \vn{match} element are equal to the beginning design Twiss and coupling
 parameters, then the computed Twiss and coupling parameters at the end of the \vn{match} element
 will be the end design Twiss and coupling parameters and the phase advances (in radians) will be
 \vn{dphi_a} and \vn{dphi_b} (\sref{s:coupling}).
-
-Note: If all beginning and ending betas and alphas (\vn{beta_a0}, \vn{beta_a1}, etc.) are zero,
-$\Bf M$ will be the appropriate matrix such that the phase advance through the element for the $a$
-and $b$ modes will be \vn{dphi_a} and \vn{dphi_b} respectively, and the ending Twiss parameters will
-be equal to the beginning Twiss parameters.
 
 \index{x0}\index{px0}\index{y0}\index{py0}\index{z0}\index{pz0}
 \index{x1}\index{px1}\index{y1}\index{py1}\index{z1}\index{pz1}
@@ -3068,9 +3064,9 @@ setting the beginning design Twiss parameters from within a program. If the \vn{
 is set to True, the beginning design Twiss parameters are set to be equal to the actual Twiss
 parameters from the exit end of the previous element. In this case, the actual Twiss parameters at
 the end of the match element will be the design Twiss parameters. The \vn{match_end} attribute may
-only be set to True with \vn{open} lattices (\sref{s:param}) since, for a \vn{closed} lattice, it is
-not possible to calculate the Twiss parameters at the previous element independently of the design
-end Twiss parameters at the \vn{match} element.
+only be set to True with lattices with an \vn{open} geometry (\sref{s:param}) since, for a
+\vn{closed} lattice, it is not possible to calculate the Twiss parameters at the previous element
+independently of the design end Twiss parameters at the \vn{match} element.
 
 When running a program, if a \vn{match} element initially has it's \vn{match_end} attribute set to
 True, the \bmad bookkeeping routines will ensure that the \vn{match} element's beginning design
@@ -3081,10 +3077,10 @@ affects the calculated Twiss parameters at the beginning of the \vn{match} eleme
 \vn{match} element's transfer matrix.
 
 When a lattice is read in, the \vn{match_end_input} attribute is set by \bmad to be equal to
-\vn{match_end}. This attribute does not affect any computations and is not settable by the user. It
-is simply present to tell the user (and \bmad) what the setting of \vn{match_end} was in the lattice
-file.
-
+\vn{match_end}. This attribute does not affect any computations and is not settable by the
+user. This attribute is simply present to tell the user (and \bmad) what the setting of
+\vn{match_end} was in the lattice file.
+%
   \index{match_end_orbit}\index{match_end_orbit_input}
   \item[match_end_orbit, match_end_orbit_input] \Newline
 The \vn{match_end_orbit} attribute is similar in operation to the \vn{match_end} attribute. The
@@ -3095,12 +3091,31 @@ coordinates at the exit end of the previous element. That is, the particle will 
 coordinates equal to \vn{(x1, px1, y1, py1, z1, pz1)} at the end of the \vn{match} element.  If
 \vn{match_end_orbit} is now toggled to False by the program, the ending coordinate parameters, and
 hence the $\Bf V$ vector, will become fixed. As with the \vn{match_end} attribute, the
-\vn{match_end_orbit} attribute may only be used with \vn{open} lattices (\sref{s:param}).
+\vn{match_end_orbit} attribute may only be used with lattices with an \vn{open} geometry
+(\sref{s:param}).
 
 When a lattice is read in, the \vn{match_end_orbit_input} attribute is set by \bmad to be equal to
 \vn{match_end_orbit}. This attribute does not affect any computations and is not settable by the
-user. It is simply present to tell the user (and \bmad) what the setting of \vn{match_end_orbit} was
-in the lattice file.
+user. This attribute is simply present to tell the user (and \bmad) what the setting of
+\vn{match_end_orbit} was in the lattice file.
+%
+  \index{phase_trombone}\index{phase_trombone_input}
+  \item[phase_trombone, phase_trombone_input] \Newline
+The \vn{phase_trombone} parameter is used to create a \vn{match} element with a transfer matrix such
+that the actual ending Twiss parameters are the same as the beginning Twiss parameters except that
+there will be a phase advance through the match element that is set by \vn{dphi_a} and \vn{dphi_b}
+for the $a$ and $b$ modes respectively.
+
+If the \vn{phase_trombone} is set True, when running a program, the \bmad bookkeeping code will
+set the values of \vn{beta_a0}, \vn{beta_a1}, \vn{alpha_b0}, etc. appropriately the phase trombone 
+matrix will be calculated. The \bmad bookkeeping code will then set \vn{phase_trombone} to False to
+freeze the transfer matrix against change if the parameters in the lattice are varied.
+
+When a lattice is read in, the \vn{phase_trombone_input} attribute is set by \bmad to be equal to
+\vn{phase_trombone}. This attribute does not affect any computations and is not settable by the
+user. This attribute is simply present to tell the user (and \bmad) what the setting of \vn{phase_trombone}
+was in the lattice file.
+
   \end{description}
 
 A \vn{match} element that is ``turned off'' (\vn{is_on} attribute set to False), is considered to be

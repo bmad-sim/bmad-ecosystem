@@ -1213,7 +1213,7 @@ subroutine mat4_multipole (knl, tilt, n, orbit, kick_mat)
   real(rp) kick_mat(4,4)
 end subroutine
 
-subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time)
+subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time, set_trombone)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -1221,7 +1221,7 @@ subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, i
   real(rp) mat6(6,6), vec0(6)
   type (ele_struct), optional, target :: twiss_ele
   logical :: err_flag
-  logical, optional :: include_delta_time
+  logical, optional :: include_delta_time, set_trombone
 end subroutine
 
 function mexp (x, m) result (this_exp)

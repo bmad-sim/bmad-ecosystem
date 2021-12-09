@@ -28,7 +28,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: lord, slave, ele
+type (ele_struct), pointer :: lord, slave, ele, ele0
 
 real(rp) v_inv_mat(4,4), eta_vec(4)
 
@@ -68,7 +68,13 @@ ele%b%etap = eta_vec(4)
 if (present(err_flag)) err_flag = .true.
 
 do n = i_start+1, i_end
-  call twiss_propagate1 (branch%ele(n-1), branch%ele(n), err)
+  ele => branch%ele(n)
+  if (ele%key == match$ .and. is_true(ele%value(phase_trombone$))) then
+    call match_ele_to_mat6(ele, branch%ele(n-1)%map_ref_orb_out, ele%mat6, ele%vec0, err, set_trombone = .true.)
+    ele%value(phase_trombone$) = false$  ! Trombone has been set.
+  endif
+
+  call twiss_propagate1 (branch%ele(n-1), ele, err)
   if (err) return
 enddo
 
