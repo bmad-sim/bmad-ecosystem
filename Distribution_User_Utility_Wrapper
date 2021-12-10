@@ -22,11 +22,11 @@ if ( [[ "${CONDA_BUILD}" ]] ) ; then
     # We also remove examples and regression tests from the build list
 
     # List of Project Directories - Order here matters!
-    DIRLIST=( forest recipes_f-90_LEPP sim_utils bmad tao cpp_bmad_interface bsim util_programs lux )
+    DIRLIST=( forest sim_utils bmad tao cpp_bmad_interface bsim util_programs lux )
     [ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST=( plplot ${DIRLIST[*]} )
 else
     # List of Project Directories - Order here matters!
-    DIRLIST=( ${ACC_PLOT_PACKAGE_DIR} hdf5 fftw lapack gsl fgsl forest recipes_f-90_LEPP xraylib sim_utils bmad tao cpp_bmad_interface examples bsim util_programs lux regression_tests )
+    DIRLIST=( ${ACC_PLOT_PACKAGE_DIR} hdf5 fftw lapack gsl fgsl forest xraylib sim_utils bmad tao cpp_bmad_interface examples bsim util_programs lux regression_tests )
 
     # Build OpenMPI, if requested
     [ "${ACC_ENABLE_MPI}" == "Y" ] && DIRLIST=( openmpi ${DIRLIST[*]} )
