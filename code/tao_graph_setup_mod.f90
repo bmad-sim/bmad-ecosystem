@@ -1999,11 +1999,10 @@ case ('s')
     do i = 0, branch%n_ele_track
       ele => branch%ele(i)
       if (graph%x%min == graph%x%max) cycle
-      s0 = ele%s_start
       s1 = ele%s
-      ele%logic = (s0 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
+      ele%logic = (s1 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
       if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then
-        ele%logic = ele%logic .or. ((s0-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps))
+        ele%logic = ele%logic .or. ((s1-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps))
       endif
     enddo
     n_dat = count (branch%ele(:)%logic)
