@@ -436,8 +436,8 @@ There are currently three optimizers that can be used:
   \begin{description}
   \index{lm optimizer}
   \item{\vn{lm}} \Newline
-\vn{lm} is an optimizer based upon the Levenburg-Marquardt algorithm as implemented in \vn{Numerical
-Recipes}\cite{b:nr}. This algorithm looks at the local derivative matrix of \vn{dData/dVariable} and
+\vn{lm} is an optimizer based upon the Levenburg-Marquardt algorithm
+\cite{b:nr}. This algorithm looks at the local derivative matrix of \vn{dData/dVariable} and
 takes steps in variable space accordingly. The derivative matrix is calculated beforehand by varying
 all the variables by an amount set by the variable's \vn{step} component (\sref{s:init.var}). The
 \vn{step} size should be chosen large enough so that round-off errors will not make computation of
@@ -502,18 +502,17 @@ There are also a number of parameters that can be set that will affect how the o
 Section~\sref{s:globals} for more details.
   \index{svd optimizer}
   \item{\vn{svd}} \Newline
-The \vn{svd} optimizer uses a singular value decomposition calculation.  See the description of
-\vn{svdfit} from Numerical Recipes\cite{b:nr} for more details. With the \vn{svd} optimizer, the
-setting of the \vn{global%n_opti_cycles} parameter is ignored. One optimization loop consists of
-applying svd to the derivative matrix to locate a new set of variable values.  If the merit function
-decreases with the new set, the new values are retained and the optimization loop is finished. If
-the merit function increases, and if the global variable \vn{global%svd_retreat_on_merit_increase}
-is True (the default), the variables are set to the original variable settings. In either case, an
-increasing merit function will stop the execution of additional loops.
+The \vn{svd} optimizer uses a singular value decomposition calculation. With the \vn{svd}
+optimizer, the setting of the \vn{global%n_opti_cycles} parameter is ignored. One optimization loop
+consists of applying svd to the derivative matrix to locate a new set of variable values.  If the
+merit function decreases with the new set, the new values are retained and the optimization loop is
+finished. If the merit function increases, and if the global variable
+\vn{global%svd_retreat_on_merit_increase} is True (the default), the variables are set to the
+original variable settings. In either case, an increasing merit function will stop the execution of
+additional loops.
 
 The \vn{global%svd_cutoff} variable can be used to vary the cutoff that SVD uses to decide what
-eigenvalues are singular. See the documentation for the Numerical Recipes routine \vn{svdfit} for
-more details.
+eigenvalues are singular.
   \end{description}
 
 %------------------------------------------------------------------------
