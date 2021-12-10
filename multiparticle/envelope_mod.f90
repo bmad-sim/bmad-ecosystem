@@ -99,7 +99,7 @@ integer i
 M0 = ele%mat6
 if(any(ele%key==[sbend$,rbend$])) then
   l = ele%value(l$)
-  call convert_total_energy_to(ele%value(E_TOT$), -1, gamma)
+  call convert_total_energy_to(ele%value(E_TOT$), ele%ref_species, gamma)
   g_tot = ele%value(g$) + ele%value(dg$)
   B0 = ele%value(b_field$) + ele%value(db_field$)
   B1 = ele%value(b1_gradient$)
@@ -452,7 +452,7 @@ do i=1, size(eles)
   vvinv = matmul(eles(i)%mat6, vvinv)
 
   if(any(eles(i)%key==[sbend$, rbend$])) then
-    call convert_total_energy_to(eles(i)%value(E_TOT$), -1, gamma)
+    call convert_total_energy_to(eles(i)%value(E_TOT$), eles(i)%ref_species, gamma)
     delta = coos(i)%vec(6)
     g_tot = eles(i)%value(g$) + eles(i)%value(dg$)
     B0 = eles(i)%value(b_field$) + eles(i)%value(db_field$)
@@ -809,7 +809,7 @@ real(fgsl_double) :: integration_result
 logical ok, error
 
 !
-call convert_total_energy_to(energy, -1, gamma)
+call convert_total_energy_to(energy, species, gamma)
 
 ! ! make transfer matrix from canonical to spatial coordinates
 ! Tspat = 0.0d0
