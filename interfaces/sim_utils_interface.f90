@@ -885,11 +885,11 @@ subroutine word_read (in_str, delim_list, word, ix_word, delim, delim_found, out
   logical, optional :: ignore_interior
 end subroutine
 
-subroutine str_substitute (string, str_match, str_replace, do_trim)
+subroutine str_substitute (string, str_match, str_replace, do_trim, ignore_escaped)
   implicit none
   character(*) string
   character(*), optional :: str_match, str_replace
-  logical, optional :: do_trim
+  logical, optional :: do_trim, ignore_escaped
 end subroutine
 
 recursive function str_match_wild(str, pat) result (a_match)
