@@ -163,7 +163,7 @@ integer eval_pt, n_count
 integer, allocatable :: ix_c(:), ix_remove(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
-logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
+logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag, angle_units
 logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_mat, show_q, print_rms
@@ -3000,7 +3000,8 @@ case ('lattice')
 
       elseif (name /= 'x') then
         write (nam, '(i0, a, i0)') ix_branch, '>>', ie
-        call str_substitute (name, '#', trim(nam))
+        call str_substitute (name, '#', trim(nam), ignore_escaped = .true.)
+        call str_substitute (name, '\#', '#')
         ix = index(name, 'ele::')
 
         select case (where)
@@ -3661,10 +3662,11 @@ case ('spin')
   sm%axis_input = spin_axis_struct()
   ele_ref_name = ''
   ele_ref => null()
+  flip = .false.
 
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
-                                                  '-ref_element', '-q_map', '-g_map'], .true., switch, err, ix)
+                                   '-ref_element', '-q_map', '-g_map', '-flip_n_axis'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
@@ -3679,6 +3681,8 @@ case ('spin')
         ele_name = upcase(what2(1:ix))
         call string_trim(what2(ix+1:), what2, ix)
       endif
+    case ('-flip_n_axis')
+      flip = .true.
     case ('-ref_element')  ! Note: This is old deprecated syntax.
       ele_ref_name = upcase(what2(1:ix))
       call string_trim(what2(ix+1:), what2, ix)
@@ -3822,6 +3826,7 @@ case ('spin')
     if (all(sm%axis_input%n0 == 0) .and. ele_ref%ix_ele /= ele%ix_ele) then
       if (all(u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin == 0)) call tao_lattice_calc(ok)
       sm%axis_input%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele_ref%ix_ele)%spin
+      if (flip) sm%axis_input%n0 = -sm%axis_input%n0 
     endif
 
     datum%ix_branch = ix_branch
