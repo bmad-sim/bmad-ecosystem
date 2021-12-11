@@ -7,11 +7,6 @@
 ! bmad_com common block settings:
 !   bmad_com
 !     %d_orb(6)  -- Real(rp): Vector of offsets to use. 
-!     %mat6_track_symmetric 
-!                -- Logical: If True then track with +/- d_orb offsets so
-!                   the tracking routine is called 12 times. 
-!                   If False use only +d_orb offsets using only 6 tracks.
-!                   Default is True.
 !
 ! Input:
 !   ele       -- Ele_struct: Element with transfer matrix
@@ -46,12 +41,7 @@ character(*), parameter :: r_name = 'make_mat6_tracking'
 
 err_flag = .true.
 del_orb = bmad_com%d_orb
-
-if (bmad_com%mat6_track_symmetric) then
-  abs_p = max(abs(start_orb%vec(2)) + abs(del_orb(2)), abs(start_orb%vec(4)) + abs(del_orb(4)), abs(del_orb(6)))
-else
-  abs_p = max(abs(start_orb%vec(2) + del_orb(2)), abs(start_orb%vec(4) + del_orb(4)), -del_orb(6)) 
-endif
+abs_p = max(abs(start_orb%vec(2)) + abs(del_orb(2)), abs(start_orb%vec(4)) + abs(del_orb(4)), abs(del_orb(6)))
 
 ! The factor of 1.01 is used to avoid roundoff problems.
 ! Note: init_coord is avoided since init_coord will make z and t consistent with the element's t_ref.
@@ -66,50 +56,31 @@ if (end_orb%state /= alive$) then
   return
 endif
 
-! Symmetric tracking uses more tracks but is more accurate
+! Tracking
 
-if (bmad_com%mat6_track_symmetric) then
-  do i = 1, 6
-    start = start_orb0
-    start%vec(6) = start%vec(6) + dorb6
-    start%vec(i) = start%vec(i) + del_orb(i)
-    call adjust_this
-    call track1 (start, ele, param, end2)
-    if (end2%state /= alive$) then
-      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (+). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
-      return
-    endif
+do i = 1, 6
+  start = start_orb0
+  start%vec(6) = start%vec(6) + dorb6
+  start%vec(i) = start%vec(i) + del_orb(i)
+  call adjust_this
+  call track1 (start, ele, param, end2)
+  if (end2%state /= alive$) then
+    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (+). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+    return
+  endif
 
-    start = start_orb0
-    start%vec(6) = start%vec(6) + dorb6
-    start%vec(i) = start%vec(i) - del_orb(i)
-    call adjust_this
-    call track1 (start, ele, param, end1)
-    if (end1%state /= alive$) then
-      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (-). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
-      return
-    endif
+  start = start_orb0
+  start%vec(6) = start%vec(6) + dorb6
+  start%vec(i) = start%vec(i) - del_orb(i)
+  call adjust_this
+  call track1 (start, ele, param, end1)
+  if (end1%state /= alive$) then
+    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (-). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+    return
+  endif
 
-    mat6(1:6, i) = (end2%vec - end1%vec) / (2 * del_orb(i))
-  enddo
-
-! Else non-symmetric tracking only uses one offset for each phase space coordinate.
-
-else  
-
-  do i = 1, 6
-    start = start_orb0
-    start%vec(6) = start%vec(6) + dorb6
-    start%vec(i) = start%vec(i) + del_orb(i)
-    call adjust_this
-    call track1 (start, ele, param, end1)
-    if (end1%state /= alive$) then
-      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING. MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
-      return
-    endif
-    mat6(1:6, i) = (end1%vec - end_orb%vec) / del_orb(i)
-  enddo
-endif
+  mat6(1:6, i) = (end2%vec - end1%vec) / (2 * del_orb(i))
+enddo
 
 ! vestart_orb calc
 
