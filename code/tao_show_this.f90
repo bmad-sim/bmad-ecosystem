@@ -1437,7 +1437,9 @@ case ('element')
   nl = nl + n
 
   stat = ele%lord_status
-  orb = tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele)
+  ele2 => ele
+  if (ele2%lord_status == super_lord$) ele2 => pointer_to_slave(ele2, ele2%n_slave)
+  orb = tao_lat%tao_branch(ele2%ix_branch)%orbit(ele2%ix_ele)
   if (orb%state /= not_set$) then
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; write(lines(nl), '(4a)') 'Orbit:  ', trim(species_name(orb%species)), '   State: ', trim(coord_state_name(orb%state))
@@ -1768,7 +1770,6 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
     nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) '  %mat6_track_symmetric            = ', bmad_com%mat6_track_symmetric
     nl=nl+1; write(lines(nl), lmt) '  %ptc_use_orientation_patches     = ', bmad_com%ptc_use_orientation_patches
     nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                 = ', bmad_com%auto_bookkeeper
     nl=nl+1; write(lines(nl), lmt) '  %csr_and_space_charge_on         = ', bmad_com%csr_and_space_charge_on
