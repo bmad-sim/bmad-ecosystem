@@ -70,7 +70,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
 \index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
 \index{taylor_order}\index{default_integ_order}
 \index{sr_wakes_on}\index{lr_wakes_on}
-\index{mat6_track_symmetric}\index{auto_bookkeeper}\index{csr_and_space_charge_on}
+\index{auto_bookkeeper}\index{csr_and_space_charge_on}
 \index{spin_tracking_on}\index{radiation_damping_on}\index{spin_sokolov_ternov_flipping_on}
 \index{radiation_fluctuations_on}\index{radiation_zero_average}\index{be_thread_safe}
 \index{absolute_time_tracking_default}
@@ -103,7 +103,6 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     logical rf_phase_below_transition_ref = F   ! Autoscale around phase phi0 = 0.5
     logical sr_wakes_on = T                     ! Short range wakefields?
     logical lr_wakes_on = T                     ! Long range wakefields
-    logical mat6_track_symmetric = T            ! symmetric offsets
     logical ptc_use_orientation_patches = T     ! Ele orientation translated to PTC patches?
     logical auto_bookkeeper = T                 ! Automatic bookkeeping?
     logical csr_and_space_charge_on = F         ! CSR and space charge (separate from HE SC).
@@ -178,8 +177,7 @@ calculation (\sref{s:he.space.charge})
 Sets the orbit displacement used in the routine that calculates the transfer matrix through an
 element via tracking. That is, when the \vn{mat6_calc_method} (\sref{s:xfer}) is set to
 \vn{tracking}. \vn{d_orb} needs to be large enough to avoid significant round-off errors but not so
-large that nonlinearities will affect the results. The default value is $10^{-5}$. Also see
-\vn{mat6_track_symmetric}.
+large that nonlinearities will affect the results. The default value is $10^{-5}$.
 %
 \item[\vn{debug}] \Newline
 Used for communication between program units for debugging purposes.
@@ -206,11 +204,6 @@ an ``unphysical'' magnetic or electric field.
 %
 \item[\vn{lr_wakes_on}] \Newline
 Toggle for turning on or off long-range higher order mode wakefield effects.
-%
-\item[\vn{mat6_track_symmetric}] \Newline
-Toggle to turn off whether the transfer matrix from tracking routine
-(\Hyperref{r:twiss.from.tracking}{twiss_from_tracking}) tracks 12 particles at both plus and minus
-\vn{d_orb} values or only tracks 7 particles to save time but is less accurate..
 %
 \item[\vn{max_aperture_limit}] \Newline 
 Sets the maximum amplitude a particle can have during tracking. If this amplitude is exceeded, the
