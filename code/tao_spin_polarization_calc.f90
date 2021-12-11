@@ -82,12 +82,15 @@ do ie = 0, branch%n_ele_track
   s_vec(3) = sqrt(1.0_rp - s_vec(1)**2 - s_vec(2)**2)
 
   ele => branch%ele(ie)
-  call calc_radiation_tracking_integrals (ele, orbit(ie), branch%param, end_edge$, .true., int_gx, int_gy, int_g2, int_g3)
+  call calc_radiation_tracking_integrals (ele, orbit(ie), branch%param, start_edge$, .true., int_gx, int_gy, int_g2, old_int_g3)
+  old_b_vec = [int_gy, -int_gx, 0.0_rp]
+  if (any(old_b_vec /= 0)) old_b_vec = old_b_vec / norm2(old_b_vec)
 
+  call calc_radiation_tracking_integrals (ele, orbit(ie), branch%param, end_edge$, .true., int_gx, int_gy, int_g2, int_g3)
   b_vec = [int_gy, -int_gx, 0.0_rp]
   if (any(b_vec /= 0)) b_vec = b_vec / norm2(b_vec)
 
-  if (ie /= 0 .and. int_g2 /= 0) then
+  if (int_g2 /= 0) then
     integral_bn   = integral_bn  + old_int_g3 * dot_product(old_b_vec, old_n0) + int_g3 * dot_product(b_vec, n0)
     integral_bdn  = integral_bdn + old_int_g3 * dot_product(old_b_vec, old_dn_dpz) + int_g3 * dot_product(b_vec, dn_dpz)
     integral_1ns  = integral_1ns + old_int_g3 * (1 - (2.0_rp/9.0_rp) * dot_product(old_n0, old_s_vec)**2) + &
@@ -102,8 +105,6 @@ do ie = 0, branch%n_ele_track
     enddo
   endif
 
-  old_int_g3 = int_g3
-  old_b_vec = b_vec
   old_dn_dpz = dn_dpz
   old_n0 = n0
   old_partial = partial
