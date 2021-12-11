@@ -1296,7 +1296,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.rf_phase_below_transition_ref == y.rf_phase_below_transition_ref);
   is_eq = is_eq && (x.sr_wakes_on == y.sr_wakes_on);
   is_eq = is_eq && (x.lr_wakes_on == y.lr_wakes_on);
-  is_eq = is_eq && (x.mat6_track_symmetric == y.mat6_track_symmetric);
   is_eq = is_eq && (x.ptc_use_orientation_patches == y.ptc_use_orientation_patches);
   is_eq = is_eq && (x.auto_bookkeeper == y.auto_bookkeeper);
   is_eq = is_eq && (x.csr_and_space_charge_on == y.csr_and_space_charge_on);
@@ -1418,6 +1417,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.map_ref_orb_out == y.map_ref_orb_out);
   is_eq = is_eq && (x.time_ref_orb_in == y.time_ref_orb_in);
   is_eq = is_eq && (x.time_ref_orb_out == y.time_ref_orb_out);
+  is_eq = is_eq && is_all_equal(x.spin_taylor_ref_orb_in, y.spin_taylor_ref_orb_in);
   is_eq = is_eq && is_all_equal(x.value, y.value);
   is_eq = is_eq && is_all_equal(x.old_value, y.old_value);
   is_eq = is_eq && is_all_equal(x.vec0, y.vec0);

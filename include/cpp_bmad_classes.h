@@ -3005,7 +3005,6 @@ public:
   Bool rf_phase_below_transition_ref;
   Bool sr_wakes_on;
   Bool lr_wakes_on;
-  Bool mat6_track_symmetric;
   Bool ptc_use_orientation_patches;
   Bool auto_bookkeeper;
   Bool csr_and_space_charge_on;
@@ -3049,7 +3048,6 @@ public:
     rf_phase_below_transition_ref(false),
     sr_wakes_on(true),
     lr_wakes_on(true),
-    mat6_track_symmetric(true),
     ptc_use_orientation_patches(true),
     auto_bookkeeper(true),
     csr_and_space_charge_on(false),
@@ -3221,6 +3219,7 @@ public:
   CPP_coord map_ref_orb_out;
   CPP_coord time_ref_orb_in;
   CPP_coord time_ref_orb_out;
+  Real_ARRAY spin_taylor_ref_orb_in;
   Real_ARRAY value;
   Real_ARRAY old_value;
   Real_ARRAY vec0;
@@ -3329,6 +3328,7 @@ public:
     map_ref_orb_out(),
     time_ref_orb_in(),
     time_ref_orb_out(),
+    spin_taylor_ref_orb_in(0.0, 6),
     value(double(0), Bmad::NUM_ELE_ATTRIB+1),
     old_value(double(0), Bmad::NUM_ELE_ATTRIB+1),
     vec0(0.0, 6),

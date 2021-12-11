@@ -8451,7 +8451,7 @@ interface
       z_autoscale_amp_rel_tol, z_autoscale_phase_tol, z_electric_dipole_moment, &
       z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max, z_sad_n_div_max, z_taylor_order, &
       z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step, &
-      z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, &
+      z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, &
       z_ptc_use_orientation_patches, z_auto_bookkeeper, z_csr_and_space_charge_on, &
       z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, &
       z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, &
@@ -8464,9 +8464,9 @@ interface
     real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
     real(c_double) :: z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max
     integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step
-    logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_ptc_use_orientation_patches, z_auto_bookkeeper, z_csr_and_space_charge_on
-    logical(c_bool) :: z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps
-    logical(c_bool) :: z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug
+    logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_ptc_use_orientation_patches, z_auto_bookkeeper, z_csr_and_space_charge_on, z_spin_tracking_on
+    logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default
+    logical(c_bool) :: z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug
   end subroutine
 end interface
 
@@ -8489,14 +8489,14 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     F%autoscale_phase_tol, F%electric_dipole_moment, F%ptc_cut_factor, F%sad_eps_scale, &
     F%sad_amp_max, F%sad_n_div_max, F%taylor_order, F%runge_kutta_order, F%default_integ_order, &
     F%max_num_runge_kutta_step, c_logic(F%rf_phase_below_transition_ref), &
-    c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), c_logic(F%mat6_track_symmetric), &
-    c_logic(F%ptc_use_orientation_patches), c_logic(F%auto_bookkeeper), &
-    c_logic(F%csr_and_space_charge_on), c_logic(F%spin_tracking_on), &
-    c_logic(F%backwards_time_tracking_on), c_logic(F%spin_sokolov_ternov_flipping_on), &
-    c_logic(F%radiation_damping_on), c_logic(F%radiation_zero_average), &
-    c_logic(F%radiation_fluctuations_on), c_logic(F%conserve_taylor_maps), &
-    c_logic(F%absolute_time_tracking_default), c_logic(F%convert_to_kinetic_momentum), &
-    c_logic(F%aperture_limit_on), c_logic(F%ptc_print_info_messages), c_logic(F%debug))
+    c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), c_logic(F%ptc_use_orientation_patches), &
+    c_logic(F%auto_bookkeeper), c_logic(F%csr_and_space_charge_on), &
+    c_logic(F%spin_tracking_on), c_logic(F%backwards_time_tracking_on), &
+    c_logic(F%spin_sokolov_ternov_flipping_on), c_logic(F%radiation_damping_on), &
+    c_logic(F%radiation_zero_average), c_logic(F%radiation_fluctuations_on), &
+    c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
+    c_logic(F%convert_to_kinetic_momentum), c_logic(F%aperture_limit_on), &
+    c_logic(F%ptc_print_info_messages), c_logic(F%debug))
 
 end subroutine bmad_common_to_c
 
@@ -8523,12 +8523,11 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_autoscale_phase_tol, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, &
     z_sad_amp_max, z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, &
     z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, &
-    z_mat6_track_symmetric, z_ptc_use_orientation_patches, z_auto_bookkeeper, &
-    z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
-    z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, &
-    z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-    z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug) &
-    bind(c)
+    z_ptc_use_orientation_patches, z_auto_bookkeeper, z_csr_and_space_charge_on, &
+    z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, &
+    z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, &
+    z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, &
+    z_aperture_limit_on, z_ptc_print_info_messages, z_debug) bind(c)
 
 
 implicit none
@@ -8541,9 +8540,9 @@ real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_signifi
 real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
 real(c_double) :: z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max
 integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step
-logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_ptc_use_orientation_patches, z_auto_bookkeeper, z_csr_and_space_charge_on
-logical(c_bool) :: z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps
-logical(c_bool) :: z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug
+logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_ptc_use_orientation_patches, z_auto_bookkeeper, z_csr_and_space_charge_on, z_spin_tracking_on
+logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default
+logical(c_bool) :: z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug
 
 call c_f_pointer (Fp, F)
 
@@ -8599,8 +8598,6 @@ F%rf_phase_below_transition_ref = f_logic(z_rf_phase_below_transition_ref)
 F%sr_wakes_on = f_logic(z_sr_wakes_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%lr_wakes_on = f_logic(z_lr_wakes_on)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%mat6_track_symmetric = f_logic(z_mat6_track_symmetric)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%ptc_use_orientation_patches = f_logic(z_ptc_use_orientation_patches)
 !! f_side.to_f2_trans[logical, 0, NOT]
@@ -8992,17 +8989,18 @@ interface
       z_photon, n_photon, z_rad_int_cache, n_rad_int_cache, z_taylor, z_spin_taylor, z_wake, &
       n_wake, z_wall3d, n1_wall3d, z_cartesian_map, n1_cartesian_map, z_cylindrical_map, &
       n1_cylindrical_map, z_grid_field, n1_grid_field, z_taylor_field, n1_taylor_field, &
-      z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_value, &
-      z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_spin_q, z_s_start, z_s, z_ref_time, &
-      z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, &
-      n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, z_key, z_sub_key, z_ix_ele, &
-      z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field, z_ix1_slave, z_slave_status, &
-      z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, z_izz, &
-      z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, &
-      z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
-      z_aperture_type, z_ref_species, z_orientation, z_symplectify, z_mode_flip, &
-      z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, &
-      z_is_on, z_logic, z_bmad_logic, z_select, z_offset_moves_aperture) bind(c)
+      z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, &
+      z_spin_taylor_ref_orb_in, z_value, z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, &
+      z_spin_q, z_s_start, z_s, z_ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, &
+      z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r, &
+      n1_r, n2_r, n3_r, z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, &
+      z_n_slave_field, z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, &
+      z_ix_pointer, z_ixx, z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, &
+      z_spin_tracking_method, z_csr_method, z_space_charge_method, z_ptc_integration_type, &
+      z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation, &
+      z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, &
+      z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, z_bmad_logic, z_select, &
+      z_offset_moves_aperture) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -9014,9 +9012,9 @@ interface
     type(c_ptr), value :: z_control, z_floor, z_high_energy_space_charge, z_mode3, z_photon, z_rad_int_cache, z_wake
     type(c_ptr), value :: z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out
     type(c_ptr) :: z_taylor(*), z_spin_taylor(*), z_wall3d(*), z_cartesian_map(*), z_cylindrical_map(*), z_grid_field(*), z_taylor_field(*)
-    real(c_double) :: z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c, z_spin_q(*)
-    real(c_double) :: z_s_start, z_s, z_ref_time, z_a_pole(*), z_b_pole(*), z_a_pole_elec(*), z_b_pole_elec(*)
-    real(c_double) :: z_custom(*), z_r(*)
+    real(c_double) :: z_spin_taylor_ref_orb_in(*), z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c
+    real(c_double) :: z_spin_q(*), z_s_start, z_s, z_ref_time, z_a_pole(*), z_b_pole(*), z_a_pole_elec(*)
+    real(c_double) :: z_b_pole_elec(*), z_custom(*), z_r(*)
     integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field
     integer(c_int) :: z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx
     integer(c_int) :: z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, z_space_charge_method
@@ -9189,21 +9187,22 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     z_spin_taylor, c_loc(F%wake), n_wake, z_wall3d, n1_wall3d, z_cartesian_map, &
     n1_cartesian_map, z_cylindrical_map, n1_cylindrical_map, z_grid_field, n1_grid_field, &
     z_taylor_field, n1_taylor_field, c_loc(F%map_ref_orb_in), c_loc(F%map_ref_orb_out), &
-    c_loc(F%time_ref_orb_in), c_loc(F%time_ref_orb_out), fvec2vec(F%value, num_ele_attrib$), &
-    fvec2vec(F%old_value, num_ele_attrib$), fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), &
-    mat2vec(F%c_mat, 2*2), F%gamma_c, mat2vec(F%spin_q, 4*7), F%s_start, F%s, F%ref_time, &
-    fvec2vec(F%a_pole, n1_a_pole), n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), n1_b_pole, &
-    fvec2vec(F%a_pole_elec, n1_a_pole_elec), n1_a_pole_elec, fvec2vec(F%b_pole_elec, &
-    n1_b_pole_elec), n1_b_pole_elec, fvec2vec(F%custom, n1_custom), n1_custom, tensor2vec(F%r, &
-    n1_r*n2_r*n3_r), n1_r, n2_r, n3_r, F%key, F%sub_key, F%ix_ele, F%ix_branch, F%lord_status, &
-    F%n_slave, F%n_slave_field, F%ix1_slave, F%slave_status, F%n_lord, F%n_lord_field, &
-    F%ic1_lord, F%ix_pointer, F%ixx, F%iyy, F%izz, F%mat6_calc_method, F%tracking_method, &
-    F%spin_tracking_method, F%csr_method, F%space_charge_method, F%ptc_integration_type, &
-    F%field_calc, F%aperture_at, F%aperture_type, F%ref_species, F%orientation, &
-    c_logic(F%symplectify), c_logic(F%mode_flip), c_logic(F%multipoles_on), &
-    c_logic(F%scale_multipoles), c_logic(F%taylor_map_includes_offsets), &
-    c_logic(F%field_master), c_logic(F%is_on), c_logic(F%logic), c_logic(F%bmad_logic), &
-    c_logic(F%select), c_logic(F%offset_moves_aperture))
+    c_loc(F%time_ref_orb_in), c_loc(F%time_ref_orb_out), fvec2vec(F%spin_taylor_ref_orb_in, 6), &
+    fvec2vec(F%value, num_ele_attrib$), fvec2vec(F%old_value, num_ele_attrib$), &
+    fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), mat2vec(F%c_mat, 2*2), F%gamma_c, &
+    mat2vec(F%spin_q, 4*7), F%s_start, F%s, F%ref_time, fvec2vec(F%a_pole, n1_a_pole), &
+    n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), n1_b_pole, fvec2vec(F%a_pole_elec, &
+    n1_a_pole_elec), n1_a_pole_elec, fvec2vec(F%b_pole_elec, n1_b_pole_elec), n1_b_pole_elec, &
+    fvec2vec(F%custom, n1_custom), n1_custom, tensor2vec(F%r, n1_r*n2_r*n3_r), n1_r, n2_r, &
+    n3_r, F%key, F%sub_key, F%ix_ele, F%ix_branch, F%lord_status, F%n_slave, F%n_slave_field, &
+    F%ix1_slave, F%slave_status, F%n_lord, F%n_lord_field, F%ic1_lord, F%ix_pointer, F%ixx, &
+    F%iyy, F%izz, F%mat6_calc_method, F%tracking_method, F%spin_tracking_method, F%csr_method, &
+    F%space_charge_method, F%ptc_integration_type, F%field_calc, F%aperture_at, &
+    F%aperture_type, F%ref_species, F%orientation, c_logic(F%symplectify), &
+    c_logic(F%mode_flip), c_logic(F%multipoles_on), c_logic(F%scale_multipoles), &
+    c_logic(F%taylor_map_includes_offsets), c_logic(F%field_master), c_logic(F%is_on), &
+    c_logic(F%logic), c_logic(F%bmad_logic), c_logic(F%select), &
+    c_logic(F%offset_moves_aperture))
 
 end subroutine ele_to_c
 
@@ -9229,17 +9228,17 @@ subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, 
     z_photon, n_photon, z_rad_int_cache, n_rad_int_cache, z_taylor, z_spin_taylor, z_wake, &
     n_wake, z_wall3d, n1_wall3d, z_cartesian_map, n1_cartesian_map, z_cylindrical_map, &
     n1_cylindrical_map, z_grid_field, n1_grid_field, z_taylor_field, n1_taylor_field, &
-    z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_value, &
-    z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_spin_q, z_s_start, z_s, z_ref_time, &
-    z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, &
-    n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, z_key, z_sub_key, z_ix_ele, &
-    z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field, z_ix1_slave, z_slave_status, &
-    z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, z_izz, &
-    z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, &
-    z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
-    z_aperture_type, z_ref_species, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
-    z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, &
-    z_bmad_logic, z_select, z_offset_moves_aperture) bind(c)
+    z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, &
+    z_spin_taylor_ref_orb_in, z_value, z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, &
+    z_spin_q, z_s_start, z_s, z_ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, &
+    z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r, &
+    n1_r, n2_r, n3_r, z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, &
+    z_n_slave_field, z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, &
+    z_ix_pointer, z_ixx, z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, &
+    z_spin_tracking_method, z_csr_method, z_space_charge_method, z_ptc_integration_type, &
+    z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation, z_symplectify, &
+    z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, &
+    z_field_master, z_is_on, z_logic, z_bmad_logic, z_select, z_offset_moves_aperture) bind(c)
 
 
 implicit none
@@ -9265,8 +9264,8 @@ type(photon_element_struct), pointer :: f_photon
 type(rad_int_ele_cache_struct), pointer :: f_rad_int_cache
 type(c_ptr) :: z_taylor(*), z_spin_taylor(*), z_wall3d(*), z_cartesian_map(*), z_cylindrical_map(*), z_grid_field(*), z_taylor_field(*)
 type(wake_struct), pointer :: f_wake
-real(c_double) :: z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c, z_spin_q(*)
-real(c_double) :: z_s_start, z_s, z_ref_time
+real(c_double) :: z_spin_taylor_ref_orb_in(*), z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c
+real(c_double) :: z_spin_q(*), z_s_start, z_s, z_ref_time
 real(c_double), pointer :: f_a_pole(:), f_b_pole(:), f_a_pole_elec(:), f_b_pole_elec(:), f_custom(:), f_r(:)
 integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field
 integer(c_int) :: z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx
@@ -9449,6 +9448,8 @@ call coord_to_f(z_map_ref_orb_out, c_loc(F%map_ref_orb_out))
 call coord_to_f(z_time_ref_orb_in, c_loc(F%time_ref_orb_in))
 !! f_side.to_f2_trans[type, 0, NOT]
 call coord_to_f(z_time_ref_orb_out, c_loc(F%time_ref_orb_out))
+!! f_side.to_f2_trans[real, 1, NOT]
+F%spin_taylor_ref_orb_in = z_spin_taylor_ref_orb_in(1:6)
 !! f_side.to_f2_trans[real, 1, NOT]
 F%value = z_value(2:num_ele_attrib$+1)
 !! f_side.to_f2_trans[real, 1, NOT]

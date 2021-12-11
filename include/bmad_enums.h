@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 263;
+  const int BMAD_INC_VERSION = 268;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -32,7 +32,7 @@ namespace Bmad {
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2, RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, TIME_RUNGE_KUTTA = 6;
   const int FIXED_STEP_RUNGE_KUTTA = 9, SYMP_LIE_BMAD = 10, STATIC = 11;
-  const int FIXED_STEP_TIME_RUNGE_KUTTA = 13, MAD = 14;
+  const int SPRINT = 12, FIXED_STEP_TIME_RUNGE_KUTTA = 13, MAD = 14;
   const int N_METHODS = 14;
   const int DRIFT_KICK = 1, MATRIX_KICK = 2, RIPKEN_KICK = 3;
   const int SECTOR = 1, STRAIGHT = 2;
@@ -83,6 +83,7 @@ namespace Bmad {
   const int LOST_NEG_Y_APERTURE = 5, LOST_POS_Y_APERTURE = 6;
   const int LOST_PZ_APERTURE = 7;
   const int PRE_BORN = 8;
+  const int LOST_Z_APERTURE = 9;
   const int X_POLARIZATION = 2, Y_POLARIZATION = 3;
   const int LEADING = 2, TRAILING = 3;
   const int X_LEADING = 2, Y_LEADING = 3, X_TRAILING = 4, Y_TRAILING = 5;
@@ -119,14 +120,14 @@ namespace Bmad {
   const int DPHI_A = 10, DPHI_B = 11;
   const int ETA_X0 = 12, ETAP_X0 = 13, ETA_Y0 = 14, ETAP_Y0 = 15;
   const int ETA_X1 = 16, ETAP_X1 = 17, ETA_Y1 = 18, ETAP_Y1 = 19;
-  const int MATCH_END_INPUT = 20;
-  const int MATCH_END = 21;
-  const int DELTA_TIME = 22;
-  const int X0 = 24, PX0 = 25, Y0 = 26, PY0 = 27, Z0 = 28, PZ0 = 29;
-  const int X1 = 30, PX1 = 31, Y1 = 32, PY1 = 33, Z1 = 34, PZ1 = 35;
-  const int MATCH_END_ORBIT_INPUT = 36, MATCH_END_ORBIT = 37;
-  const int C11_MAT0 = 40, C12_MAT0 = 41, C21_MAT0 = 42, C22_MAT0 = 43;
-  const int C11_MAT1 = 44, C12_MAT1 = 45, C21_MAT1 = 46, C22_MAT1 = 47;
+  const int C11_MAT0 = 20, C12_MAT0 = 21, C21_MAT0 = 22, C22_MAT0 = 23;
+  const int C11_MAT1 = 24, C12_MAT1 = 25, C21_MAT1 = 26, C22_MAT1 = 27;
+  const int X0 = 28, PX0 = 29, Y0 = 30, PY0 = 31, Z0 = 32, PZ0 = 33;
+  const int X1 = 34, PX1 = 35, Y1 = 36, PY1 = 37, Z1 = 38, PZ1 = 39;
+  const int PHASE_TROMBONE_INPUT = 40, PHASE_TROMBONE = 41;
+  const int MATCH_END_INPUT = 42, MATCH_END = 43;
+  const int MATCH_END_ORBIT_INPUT = 44, MATCH_END_ORBIT = 45;
+  const int DELTA_TIME = 46;
   const int X = 1, PX = 2, Y = 3, PY = 4, Z = 5, PZ = 6;
   const int T = 8;
   const int FIELD_X = 10, FIELD_Y = 11, PHASE_X = 12, PHASE_Y = 13;
@@ -251,9 +252,9 @@ namespace Bmad {
   const int LR_FREQ_SPREAD = 85, Y_REF = 85, ELLIPTICAL_CURVATURE_Y = 85, ETAP_Y = 85;
   const int LATTICE = 86, PHI_A = 86, MULTIPOLES_ON = 86, PY_REF = 86, ELLIPTICAL_CURVATURE_Z = 86;
   const int APERTURE_TYPE = 87, ETA_Z = 87, MACHINE = 87;
-  const int TAYLOR_MAP_INCLUDES_OFFSETS = 88, SURFACE_ATTRIB = 88;
-  const int CSR_METHOD = 89, VAR = 89, Z_REF = 89;
-  const int PZ_REF = 90, SPACE_CHARGE_METHOD = 90;
+  const int TAYLOR_MAP_INCLUDES_OFFSETS = 88, PIXEL = 88, P88 = 88;
+  const int CSR_METHOD = 89, VAR = 89, Z_REF = 89, P89 = 89;
+  const int PZ_REF = 90, SPACE_CHARGE_METHOD = 90, P90 = 90;
   const int MAT6_CALC_METHOD = 91;
   const int TRACKING_METHOD  = 92, S_LONG = 92;
   const int REF_TIME = 93, PTC_INTEGRATION_TYPE = 93;
@@ -265,7 +266,7 @@ namespace Bmad {
   const int APERTURE_LIMIT_ON = 99, ALPHA_A = 99;
   const int EXACT_MISALIGN = 100, PHYSICAL_SOURCE = 100;
   const int SR_WAKE_FILE = 100, ALPHA_B = 100;
-  const int TERM = 101, FREQUENCIES = 101, OLD_INTEGRATOR = 101;
+  const int TERM = 101, FREQUENCIES = 101, OLD_INTEGRATOR = 101, CURVATURE = 101;
   const int X_POSITION = 102, EXACT_MODEL = 102;
   const int SYMPLECTIFY = 103, Y_POSITION = 103, N_SLICE_SPLINE = 103;
   const int Z_POSITION = 104, AMP_VS_TIME = 104;
