@@ -477,7 +477,7 @@ read (d_unit, err = 9100, end = 9100) &
         ele%aperture_type, ele%csr_method, ele%space_charge_method, ele%orientation, &
         ele%map_ref_orb_in, ele%map_ref_orb_out, ele%time_ref_orb_in, ele%time_ref_orb_out, ele%spin_taylor_ref_orb_in, &
         ele%offset_moves_aperture, ele%ix_branch, ele%ref_time, ele%scale_multipoles, &
-        ele%bookkeeping_state, ele%ptc_integration_type
+        ele%bookkeeping_state, ele%ptc_integration_type, ele%ref_species
 
 ! Decompress value array
 

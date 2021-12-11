@@ -192,6 +192,7 @@ else
   sliced_ele%time_ref_orb_in = ele2%time_ref_orb_out
 endif
 
+ele0%ref_species = ele_in%ref_species
 call ele_compute_ref_energy_and_time (ele0, sliced_ele, param, err2_flag)
 if (err2_flag) return
 

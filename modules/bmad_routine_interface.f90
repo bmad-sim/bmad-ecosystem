@@ -848,6 +848,13 @@ subroutine g_bending_strength_from_em_field (ele, param, s_rel, orbit, local_ref
   logical local_ref_frame
 end subroutine
 
+function gamma_ref(ele) result (gamma)
+  import
+  implicit none
+  type (ele_struct) ele
+  real(rp) gamma
+end function
+
 subroutine get_slave_list (lord, slaves, n_slave)
   import
   implicit none

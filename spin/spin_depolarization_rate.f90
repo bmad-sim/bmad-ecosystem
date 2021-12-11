@@ -28,7 +28,7 @@ type (ele_struct), pointer :: ele
 type (spin_matching_struct) match_info(0:)
 type (rad_int_all_ele_struct) rad_int_by_ele
 
-real(rp) depol_rate, gamma
+real(rp) depol_rate
 real(rp), parameter :: factor = 55.0_rp * sqrt(3.0_rp) * classical_radius_factor * h_bar_planck / 144.0_rp
 integer ie, ib
 
@@ -44,7 +44,6 @@ do ie = 1, branch%n_ele_track
                     
 enddo
 
-gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
-depol_rate = depol_rate * factor * gamma**5 / branch%param%total_length
+depol_rate = depol_rate * factor * gamma_ref(branch%ele(0))**5 / branch%param%total_length
 
 end function

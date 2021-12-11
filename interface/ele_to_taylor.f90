@@ -5,14 +5,14 @@
 ! The order of the map is set by set_ptc
 !
 ! Input:
-!   ele     -- Element_struct: 
+!   ele               -- Element_struct: 
 !     %value(integrator_order$)    -- Order for the symplectic integrator: 2, 4, or 6.
 !     %value(ds_step$)             -- Integrater step size.
 !     %taylor_map_includes_offsets -- Make Taylor map with element offsets, pitches, and tilt?
-!   orb0    -- Coord_struct, optional: Starting coords around which the Taylor map is evaluated.
-!   param   -- lat_param_struct: 
-!     %e_tot   -- Needed for wigglers.
-!   taylor_map_includes_offsets -- Logical, optional: If present then overrides 
+!   orb0              -- Coord_struct, optional: Starting coords around which the Taylor map is evaluated.
+!   param             -- lat_param_struct: 
+!     %e_tot            -- Needed for wigglers.
+!   taylor_map_includes_offsets -- Logical, optional: If present then value overrides 
 !                         ele%taylor_map_includes_offsets.
 !
 ! Output:
