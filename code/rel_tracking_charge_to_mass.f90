@@ -26,6 +26,8 @@ real(rp) rel_charge
 
 if (orbit%species == photon$ .or. param%particle == photon$) then
   rel_charge = 0
+elseif (orbit%species == param%particle) then
+  rel_charge = 1
 else
   rel_charge = (charge_of(orbit%species) / mass_of(orbit%species)) / &
                  (charge_of(param%particle) / mass_of(param%particle))

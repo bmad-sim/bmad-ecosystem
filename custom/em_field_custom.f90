@@ -51,7 +51,7 @@ use em_field_mod, except_dummy => em_field_custom
 
 implicit none
 
-type (ele_struct) :: ele
+type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (coord_struct), intent(in) :: orbit
 type (em_field_struct) :: field

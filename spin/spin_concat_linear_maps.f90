@@ -76,9 +76,9 @@ do ie = n1, n2
     st_on = bmad_com%spin_tracking_on
     bmad_com%spin_tracking_on = .true.
     if (present(orbit)) then
-      call ele_to_taylor(ele, branch%param, orbit(ie-1))
+      call ele_to_taylor(ele, branch%param, orbit(ie-1), include_damping = bmad_com%radiation_damping_on)
     else
-      call ele_to_taylor(ele, branch%param, ele%map_ref_orb_in)
+      call ele_to_taylor(ele, branch%param, ele%map_ref_orb_in, include_damping = bmad_com%radiation_damping_on)
     endif
     bmad_com%spin_tracking_on = st_on
   endif

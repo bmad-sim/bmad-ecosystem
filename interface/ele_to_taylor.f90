@@ -1,19 +1,16 @@
 !+
-! Subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, orbital_taylor, spin_taylor)
+! Subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
 !
 ! Subroutine to make orbital and spin (if spin tracking is on) taylor maps for an element. 
 ! The order of the map is set by set_ptc
 !
 ! Input:
-!   ele               -- Element_struct: 
-!     %value(integrator_order$)    -- Order for the symplectic integrator: 2, 4, or 6.
-!     %value(ds_step$)             -- Integrater step size.
-!     %taylor_map_includes_offsets -- Make Taylor map with element offsets, pitches, and tilt?
+!   ele               -- Element_struct: Element to construct map for.
 !   orb0              -- Coord_struct, optional: Starting coords around which the Taylor map is evaluated.
 !   param             -- lat_param_struct: 
-!     %e_tot            -- Needed for wigglers.
-!   taylor_map_includes_offsets -- Logical, optional: If present then value overrides 
-!                         ele%taylor_map_includes_offsets.
+!   taylor_map_includes_offsets 
+!                     -- Logical, optional: If present then value overrides ele%taylor_map_includes_offsets.
+!   include_damping   -- logical, optional: Sets if radiation damping is included. Default is what is set in ptc_com%base_state.
 !
 ! Output:
 !   orbital_taylor(6) -- taylor_struct, optional: Orbital taylor map.
@@ -22,11 +19,11 @@
 !                         If not present then the map is put in ele%spin_taylor.
 !-
 
-subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, orbital_taylor, spin_taylor)
+subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
 
 use ptc_interface_mod, dummy => ele_to_taylor, dummy2 => dp
 use s_tracking
-use mad_like, only: real_8, fibre, ring_l, survey, CONVERSION_XPRIME_IN_ABELL
+use mad_like, only: real_8, fibre, ring_l, survey, CONVERSION_XPRIME_IN_ABELL, internal_state
 use ptc_spin, only: track_probe_x, track_probe
 use ptc_multiparticle, only: survey
 use madx_ptc_module, only: bmadl
@@ -44,11 +41,12 @@ type (probe_8) ptc_probe8
 type (fibre), pointer :: ptc_fibre
 type (real_8) y2(6)
 type (c_damap) ptc_cdamap
+type (internal_state) ptc_state
 
 real(dp) x(6), beta
 integer i, print12
 
-logical, optional :: taylor_map_includes_offsets
+logical, optional :: taylor_map_includes_offsets, include_damping
 logical use_offsets, err_flag
 
 character(16) :: r_name = 'ele_to_taylor'
@@ -67,6 +65,14 @@ if (present(spin_taylor)) then
   spin_tylr => spin_taylor
 else
   spin_tylr => ele%spin_taylor
+endif
+
+ptc_state = ptc_com%base_state
+if (present(include_damping)) then
+  select case (include_damping)
+  case (.true.);  ptc_state = ptc_state + radiation0
+  case default;   ptc_state = ptc_state - radiation0
+  end select
 endif
 
 ! Match elements and helical wiggler/undulators without a map are not implemented in PTC so just use the matrix.

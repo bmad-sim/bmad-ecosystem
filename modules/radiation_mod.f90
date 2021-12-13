@@ -280,7 +280,7 @@ if (int_g2 == 0 .or. orbit%state /= alive$) return
 ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
 ! where xi is a random number with sigma = 1.
 
-mc2 = mass_of(param%particle)
+mc2 = mass_of(ele%ref_species)
 q_charge2 = charge_of(orbit%species)**2
 gamma_0 = ele%value(e_tot$) / mc2
 
@@ -380,7 +380,7 @@ if (int_g2 == 0) return
 ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light.
 ! where xi is a Gaussian random number with sigma = 1.
 
-mc2 = mass_of(param%particle)
+mc2 = mass_of(ele1%ref_species)
 q_charge2 = charge_of(orbit%species)**2
 gamma_0 = ele1%value(e_tot$) / mc2
 
