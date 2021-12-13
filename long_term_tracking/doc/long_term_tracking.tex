@@ -943,6 +943,41 @@ is started with this saved orbital distribution and with all the spins aligned s
 beam is 100\% polarized. A plot of polarization vs time now gives the damping time.
 
 %------------------------------------------------------------------
+\Section{Some Checks to be Done if Particles Cannot be Stability Tracked}
+
+There can be any number of reasons why particles cannot be stably tracked over many turns. The
+following are some checks that can be done.
+\begin{itemize}
+\item
+Check for a resonance condition $l\,Q_x + m\,Q_y + n\,Q_z = p$. The \vn{show universe} command in
+Tao will show the tunes. The \vn{tune_plane_res_plot} program can be used to plot resonance lines in
+the $(Q_x, Q_y)$ tune plane. The \vn{tune_scan} program can be used to simulate the beam at different in
+$(Q_x, Q_y)$ tune plane to see where the beam blows up.
+%
+\item
+Check that radiation damping and excitation are both on or both off.
+%
+\item
+Check that the RF voltage is sufficient considering the average radiation loss plus the energy sigma
+of the beam.
+%
+\item
+If using PTC or MAP tracking, check that enough slices are being used to accurately model the lattice
+%
+\item
+Check 
+%
+\item
+Check that lattice is stable. To do this, check that the damping partition numbers are all
+positive. The damping partition numbers can be seen using the Tao program's \vn{show universe}
+command. Note: Make sure that in Tao that the radiation damping and RF on/off match what is being used in
+the long_term_tracking program.
+%
+\item
+Using SINGLE mode tracking, output a turn-by-turn orbit  (set ltt%particle_output_file and ltt%particle_output_every_n_turns = 1). Then use your favorate plotting program to plot the phase space trajectory. This Will give you a lot of information.
+\end{itemize}
+
+%------------------------------------------------------------------
 \begin{thebibliography}{9}
 
 \bibitem{b:bmad}

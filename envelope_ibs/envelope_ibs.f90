@@ -306,7 +306,7 @@ if (regression_test) then
   write(1, '(a, 3es16.8)') '"emit" REL 1e-8', emit
   write(1, '(a, 3es16.8)') '"alpha" REL 1e-8', alpha
   write(1, '(a, 3es16.8)') '"tao" REL 1e-8', tau
-  write(1, '(a, 3es16.8)') '"normal" REL 1e-6', normal
+  write(1, '(a, 3es16.8)') '"normal" REL 1e-5', normal
 
   do i = 1, 6
     write(1, '(a, 6es16.8)') '"sigma-exi-' // int_str(i) // '" ABS 1e-12', sigma_exit(i,:)
