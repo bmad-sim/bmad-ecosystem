@@ -1520,13 +1520,15 @@ case ('field')
         u => s%u(ix_u)
         call tao_locate_elements (ele_name, ix_u, eles, err, lat_type)
         if (err) return
-        ele => eles(1)%ele
-        call init_coord (orb, ele = ele, element_end = downstream_end$)
+        if (size(eles) == 0) then
+          nl=1; lines(nl) = 'No lattice elements found that match to: ' // quote(ele_name)
+          return
+        endif
 
       case (2)
         call tao_evaluate_expression(switch, 1, .false., value, err)
         if (err) then
-          nl = 1; lines(1) = 'Bad X value';  result_id = 'field:bad-x'
+          nl=1; lines(nl) = 'Bad X value';  result_id = 'field:bad-x'
           return
         endif
         orb%vec(1) = value(1)
@@ -1569,10 +1571,16 @@ case ('field')
     end select
   enddo
 
+  if (n_count == 0) then
+    nl=1; lines(nl) = 'No lattice element name given.'
+    return
+  endif
+
   !
 
   do i = 1, size(eles)
     ele => eles(i)%ele
+    call init_coord (orb, ele = ele, element_end = downstream_end$)
 
     select case (s_fmt)
     case ('percent');   s_pos = s_pos * ele%value(l$)
