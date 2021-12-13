@@ -2376,14 +2376,14 @@ subroutine ele_to_sprint_spin_taylor_map (ele)
   type (ele_struct) ele
 end subroutine
 
-subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, orbital_taylor, spin_taylor)
+subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
   import
   implicit none
   type (ele_struct), target :: ele
   type (lat_param_struct) :: param
   type (coord_struct), optional, intent(in) :: orb0
   type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
-  logical, optional :: taylor_map_includes_offsets
+  logical, optional :: taylor_map_includes_offsets, include_damping
 end subroutine
 
 recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, &
@@ -3026,7 +3026,7 @@ recursive subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame,
                                                   calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
   import
   implicit none
-  type (ele_struct) :: ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   type (coord_struct), intent(in) :: orbit
   type (ele_pointer_struct), allocatable, optional :: used_eles(:)
