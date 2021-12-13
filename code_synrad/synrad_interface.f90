@@ -16,7 +16,7 @@ interface
     import
     implicit none
     type (ray_struct) ray
-    type (walls_struct) walls
+    type (walls_struct), target :: walls
     logical is_outside
   end function
 end interface
@@ -35,7 +35,7 @@ interface
   subroutine break_wall_into_segments (wall, seg_len_max, branch, seg_len_phantom_max)
     import
     implicit none
-    type (wall_struct) wall
+    type (wall_struct), target :: wall
     type (branch_struct) branch
     real(rp) seg_len_max
     real(rp), optional :: seg_len_phantom_max
@@ -83,7 +83,7 @@ interface
   subroutine check_wall (wall, s_lat, lat_type)
     import
     implicit none
-    type (wall_struct) wall
+    type (wall_struct), target :: wall
     real(rp) s_lat
     integer lat_type
   end subroutine
@@ -103,7 +103,7 @@ interface
     import
     implicit none
     type (wall_struct), target :: wall
-    type (branch_struct) branch
+    type (branch_struct), target :: branch
   end subroutine
 end interface
 
@@ -145,7 +145,7 @@ interface
     implicit none
     character(*) wall_file
     type (branch_struct) branch
-    type (walls_struct) walls
+    type (walls_struct), target :: walls
     real(rp) seg_len_max
     real(rp), optional :: seg_len_phantom_max
     logical, optional :: err_flag
@@ -153,14 +153,14 @@ interface
 end interface
 
 interface
-  subroutine seg_power_calc (rays, i_ray, walls, wall_side, branch, gen, power)
+  subroutine seg_power_calc (fan, i_ray, walls, wall_side, branch, gen, power)
     import
     implicit none
-    type (ray_struct) :: rays(:)
+    type (ray_struct), target :: fan(:)
     type (walls_struct), target :: walls
     type (synrad_param_struct) gen
-    type (branch_struct)          branch
-    type (ele_power_struct)     power
+    type (branch_struct) :: branch
+    type (ele_power_struct) power
     integer i_ray, wall_side
   end subroutine
 end interface
@@ -180,7 +180,7 @@ interface
   subroutine synrad_setup_walls (walls, branch, seg_len_max, seg_len_phantom_max)
     import
     implicit none
-    type (walls_struct) walls
+    type (walls_struct), target :: walls
     type (branch_struct) branch
     real(rp), optional :: seg_len_phantom_max
     real(rp) seg_len_max
