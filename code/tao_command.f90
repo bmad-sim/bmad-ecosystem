@@ -18,7 +18,7 @@ subroutine tao_command (command_line, err, err_is_fatal)
 
 use tao_set_mod, dummy2 => tao_command
 use tao_change_mod, only: tao_change_var, tao_change_ele, tao_dmodel_dvar_calc
-use tao_command_mod, only: tao_cmd_split, tao_re_execute
+use tao_command_mod, only: tao_cmd_split, tao_re_execute, tao_next_switch
 use tao_data_and_eval_mod, only: tao_to_real
 use tao_misalign_mod, only: tao_misalign
 use tao_scale_mod, only: tao_scale_cmd
@@ -41,7 +41,7 @@ real(rp) value1, value2, time
 
 character(*) :: command_line
 character(len(command_line)) cmd_line
-character(20) :: r_name = 'tao_command'
+character(*), parameter :: r_name = 'tao_command'
 character(300) :: cmd_word(12)
 character(40) gang_str, switch, word, except
 character(16) cmd_name, set_word, axis_name
@@ -62,7 +62,7 @@ character(16) :: cmd_names_old(6) = [&
     'output       ']
 
 logical quit_tao, err, err_is_fatal, silent, gang, abort, err_flag, ok
-logical include_wall, update, exact, include_this
+logical include_wall, update, exact, include_this, lord_set
 
 ! blank line => nothing to do
 
@@ -507,7 +507,6 @@ case ('scale')
     if (cmd_word(i) == '') exit
     call match_word (cmd_word(i), [character(16):: '-y', '-y2', '-nogang', '-gang', '-include_wall', '-exact'], &
                                                                                      ix, .true., matched_name=switch)
-
     select case (switch)
     case ('-exact');            exact = .true.
     case ('-y', '-y2');         axis_name = switch(2:)
@@ -537,25 +536,32 @@ case ('scale')
 
 case ('set')
   update = .false.
+  lord_set = .true.
+  set_word = ''
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err, '=')
-  if (index('-update', trim(cmd_word(1))) == 1 .and. len_trim(cmd_word(1)) > 1) then
-    update = .true.
-    cmd_line = cmd_word(2)
-    call tao_cmd_split (cmd_line, 2, cmd_word, .false., err, '=')
-  endif
+  do
+    call tao_next_switch (cmd_line, [character(20) :: 'branch', 'data', 'var', 'lattice', &
+      'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
+      'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
+      'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
+      'global', 'region', 'calculate', '-update', '-lord_no_set'], .true., switch, err, ix, print_err = .false.) 
+    select case (switch)
+    case ('-update')
+      update = .true.
+    case ('-lord_no_set')
+      lord_set = .false.
+    case ('branch', 'data', 'var', 'lattice', 'global', 'universe', 'curve', &
+            'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
+            'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
+            'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
+            'region', 'calculate')
+      set_word = switch
+    case default
+      cmd_line = trim(switch) // ' ' // cmd_line
+      exit
+    end select
+  enddo
 
-  call match_word (cmd_word(1), [character(20) :: 'branch', 'data', 'var', 'lattice', 'global', &
-    'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
-    'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
-    'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-    'region', 'calculate'], ix, .true., matched_name = set_word)
-  if (ix < 1) then
-    call out_io (s_error$, r_name, 'NOT RECOGNIZED OR AMBIGUOUS: ' // cmd_word(1))
-    goto 9000
-  endif
-
-  cmd_line = cmd_word(2)
   select case (set_word)
   case ('ran_state'); n_word = 2; n_eq = 1
   case ('beam', 'beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', 'default', &
@@ -565,6 +571,9 @@ case ('set')
   case ('plot_page'); n_word = 4; n_eq = 2
   case ('branch', 'curve', 'element', 'graph', 'plot', 'region'); n_word = 4; n_eq = 3
   case ('calculate'); n_word = 1; n_eq = 0
+  case default
+    call out_io (s_error$, r_name, 'SET WHAT? (MUST BE ON OF "branch", "data", "var", ...etc.')
+    goto 9000
   end select
 
   ! Split command line into words. Translate "set ele [1,2]@q[k1]" -> "set ele [1,2]@q k1"
@@ -628,7 +637,7 @@ case ('set')
   case ('dynamic_aperture')
     call tao_set_dynamic_aperture_cmd (cmd_word(1), cmd_word(3))
   case ('element')
-    call tao_set_elements_cmd (cmd_word(1), cmd_word(2), cmd_word(4), update)
+    call tao_set_elements_cmd (cmd_word(1), cmd_word(2), cmd_word(4), update, lord_set)
   case ('geodesic_lm')
     call tao_set_geodesic_lm_cmd (cmd_word(1), cmd_word(3))
   case ('global')

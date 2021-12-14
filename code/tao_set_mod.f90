@@ -2763,7 +2763,7 @@ end subroutine tao_set_universe_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_elements_cmd (ele_list, attribute, value, update)
+! Subroutine tao_set_elements_cmd (ele_list, attribute, value, update, lord_set)
 !
 ! Sets element parameters.
 !
@@ -2773,7 +2773,7 @@ end subroutine tao_set_universe_cmd
 !   value      -- Character(*): Value to set.
 !-
 
-subroutine tao_set_elements_cmd (ele_list, attribute, value, update)
+subroutine tao_set_elements_cmd (ele_list, attribute, value, update, lord_set)
 
 use attribute_mod, only: attribute_type
 
@@ -2791,7 +2791,7 @@ character(*) ele_list, attribute, value
 character(*), parameter :: r_name = "tao_set_elements_cmd"
 character(100) val_str
 
-logical update
+logical update, lord_set
 logical is_on, err, mat6_toggle
 
 ! Find elements
@@ -2905,7 +2905,7 @@ endif
 n_set = 0
 do i = 1, size(eles)
   u => s%u(eles(i)%id)
-  call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(val_str), err, .false.)
+  call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(val_str), err, .false., lord_set)
   call tao_set_flags_for_changed_attribute (u, eles(i)%ele%name, eles(i)%ele)
   if (.not. err) n_set = n_set + 1
 enddo
@@ -2914,7 +2914,7 @@ enddo
 
 if (n_set == 0) then
   u => s%u(eles(1)%id)
-  call set_ele_attribute (eles(1)%ele, trim(attribute) // '=' // trim(val_str),  err)
+  call set_ele_attribute (eles(1)%ele, trim(attribute) // '=' // trim(val_str),  err, .true., lord_set)
   return
 endif
 
