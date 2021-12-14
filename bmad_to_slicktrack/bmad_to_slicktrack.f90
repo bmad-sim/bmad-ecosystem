@@ -163,7 +163,7 @@ do i = 1, lat%n_ele_track
       if (ins_e1 .and. (ele%value(e1$) /= 0 .or. always_include_bend_edges)) call write_insert_ele_def (n_edge, ['EE'], 97, tan(ele%value(e1$))*ele%value(g$), -ele%value(g$))
       if (ins_e2 .and. (ele%value(e2$) /= 0 .or. always_include_bend_edges)) call write_insert_ele_def (n_edge, ['EE'], 97, tan(ele%value(e2$))*ele%value(g$),  ele%value(g$))
     else
-      sgn = -sign_of(ele%value(ref_tilt$))
+      sgn = sign_of(ele%value(ref_tilt$))
       if (ins_e1 .and. (ele%value(e1$) /= 0 .or. always_include_bend_edges)) call write_insert_ele_def (n_edge, ['EE'], 98, sgn*tan(ele%value(e1$))*ele%value(g$), -sgn*ele%value(g$))
       if (ins_e2 .and. (ele%value(e2$) /= 0 .or. always_include_bend_edges)) call write_insert_ele_def (n_edge, ['EE'], 98, sgn*tan(ele%value(e2$))*ele%value(g$),  sgn*ele%value(g$))
     endif
@@ -347,7 +347,7 @@ case (sbend$)
     else
       slick_class = 16
     endif
-    slick_params = [-len_scale*ele%value(angle$)*sign_of(ele%value(ref_tilt$)), strength_scale*knl(1), len_scale*ele%value(l$)]
+    slick_params = [len_scale*ele%value(angle$)*sign_of(ele%value(ref_tilt$)), strength_scale*knl(1), len_scale*ele%value(l$)]
   endif
 
 case (quadrupole$)
