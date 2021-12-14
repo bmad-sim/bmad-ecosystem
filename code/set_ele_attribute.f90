@@ -76,8 +76,6 @@ case ('SLAVE', 'VAR', 'REF_BEGINNING', 'REF_CENTER', 'REF_END', 'ELE_BEGINNING',
   return
 end select
 
-if (.not. attribute_free (ele, a_name, err_print_flag, dependent_attribs_free = .true.)) return
-
 ! Evaluate and set.
 ! This essentially is a wrapper for the bmad_parser routine parser_set_attribute.
 
@@ -94,18 +92,26 @@ bp_com%current_file => current_file
 bp_com%print_err = logic_option(.true., err_print_flag)
 current_file%full_name = ''
 
-!if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
-!  do i = 1, ele%n_lord
-!    ele2 => pointer_to_lord
-
-call parser_set_attribute (redef$, ele, delim, delim_found, err_flag, set_field_master = .false.)
+if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(ele, 1)
+    if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
+    if (.not. attribute_free (lord, a_name, err_print_flag, dependent_attribs_free = .true.)) return
+    call parser_set_attribute (redef$, lord, delim, delim_found, err_flag, set_field_master = .false.)
+    call attribute_set_bookkeeping (lord, a_name, err_flag)
+    if (err_flag) return
+  enddo
+    
+else
+  if (.not. attribute_free (ele, a_name, err_print_flag, dependent_attribs_free = .true.)) return
+  call parser_set_attribute (redef$, ele, delim, delim_found, err_flag, set_field_master = .false.)
+  call attribute_set_bookkeeping (ele, a_name, err_flag)
+  if (err_flag) return
+endif
 
 bp_com%input_from_file = file_input_save
 bp_com%print_err       = print_save
-
-if (err_flag) return
-
-call attribute_set_bookkeeping (ele, a_name, err_flag)
 
 end subroutine set_ele_attribute
 
