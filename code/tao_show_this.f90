@@ -2021,7 +2021,7 @@ case ('history')
   n_ele = max(1, s%com%ix_history - n_print + 1)
 
   n_count = n_print - s%com%ix_history
-  if (n_count > 0 .and. show_all == .true.) then
+  if (n_count > 0 .and. show_all) then
     iu = lunget()
     open (iu, file = s%global%history_file, status = 'old', iostat = ios)
     ix1 = 0
