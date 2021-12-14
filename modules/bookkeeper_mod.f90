@@ -1199,7 +1199,6 @@ value(num_steps$)      = slave%value(num_steps$)
 ! Note: multipole, and ab_multipole have zero length maps but in this case multipole_ele_to_kt
 ! will scale the multipole strength proportional to the slave length.
 
-slave%is_on = lord%is_on
 has_fringe = .true.
 
 if (lord%key == taylor$) then
@@ -1358,9 +1357,16 @@ endif
 !
 
 slave%value = value
-slave%mat6_calc_method = lord%mat6_calc_method
-slave%tracking_method  = lord%tracking_method
+slave%mat6_calc_method            = lord%mat6_calc_method
+slave%tracking_method             = lord%tracking_method
+slave%field_master                = lord%field_master
+slave%csr_method                  = lord%csr_method
+slave%ptc_integration_type        = lord%ptc_integration_type
 slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
+slave%symplectify                 = lord%symplectify
+slave%multipoles_on               = lord%multipoles_on
+slave%scale_multipoles            = lord%scale_multipoles
+slave%is_on                       = lord%is_on
 
 if (slave%tracking_method == bmad_standard$ .and. slave%key == em_field$) slave%tracking_method = runge_kutta$
 if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave%mat6_calc_method = tracking$

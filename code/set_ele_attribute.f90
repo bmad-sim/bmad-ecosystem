@@ -1,5 +1,5 @@
 !+
-! Subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag)
+! Subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords)
 !
 ! Routine to set an element's attribute.
 ! This routine is useful for parsing user input.
@@ -18,17 +18,19 @@
 !   set_ele_real_attribute
 !   
 ! Input:
-!   ele            -- ele_struct: Element with attribute to set.
-!   set_string     -- character(*): Attribute and value for set.
-!   err_print_flag -- logical, optional: If present and False then suppress printing 
-!                       of an error message if attribute is, for example, not free.
+!   ele             -- ele_struct: Element with attribute to set.
+!   set_string      -- character(*): Attribute and value for set.
+!   err_print_flag  -- logical, optional: If present and False then suppress printing 
+!                        of an error message if attribute is, for example, not free.
+!   set_lords       -- logical, optional: Default False. If True, set the super_lord(s) or multipass_lord
+!                        if the element is a super_slave or multipass_slave.
 !
 ! Output:
 !   ele      -- ele_struct: Element with attribute set.
 !   err_flag -- Logical: Set True if there is an error, False otherwise.
 !-
 
-subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag)
+subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords)
 
 use bmad_parser_mod, dummy => set_ele_attribute
 use bmad_interface, dummy2 => set_ele_attribute
@@ -36,13 +38,14 @@ use bmad_interface, dummy2 => set_ele_attribute
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
 type (stack_file_struct), target :: current_file
 type (bp_common_struct) bp_save
 
-integer ix
+integer i, ix
 
-logical, optional :: err_print_flag
+logical, optional :: err_print_flag, set_lords
 logical err_flag, delim_found, print_save, file_input_save, is_slaved_field_attribute
 
 character(*) set_string
@@ -90,6 +93,10 @@ bp_com%parse_line = string
 bp_com%current_file => current_file
 bp_com%print_err = logic_option(.true., err_print_flag)
 current_file%full_name = ''
+
+!if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+!  do i = 1, ele%n_lord
+!    ele2 => pointer_to_lord
 
 call parser_set_attribute (redef$, ele, delim, delim_found, err_flag, set_field_master = .false.)
 
