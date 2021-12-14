@@ -1813,11 +1813,11 @@ subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_fie
   logical, optional :: save_field, make_matrix
 end subroutine
 
-subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag)
+subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords)
   import
   implicit none
-  type (ele_struct) ele
-  logical, optional :: err_print_flag
+  type (ele_struct), target :: ele
+  logical, optional :: err_print_flag, set_lords
   logical err_flag
   character(*) set_string
 end subroutine
