@@ -279,7 +279,7 @@ end subroutine tao_cmd_split
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, ix_word, neg_num_not_switch)
+! Subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, ix_word, neg_num_not_switch, print_err)
 !
 ! Subroutine look at the next word on the command line and match this word to a list of "switches"
 ! given by the switch_list argument.
@@ -305,18 +305,20 @@ end subroutine tao_cmd_split
 !   return_next_word    -- logical: See above.
 !   neg_num_not_switch  -- logical, optional: If present and True then a word like "-34" will be treated
 !                           as a non-switch.
+!   print_err           -- logical, optional: Default is True. If False, do not print unknown switch error.
 !
 ! Output:
-!   line            -- character(*): Line with first word removed if it is a switch or return_next_word = True.
+!   line            -- character(*): Command line with first word removed if: No error and 
+!                                                                     word is a switch or return_next_word = True.
 !   switch          -- character(*): Switch found or first word on line if not a switch but return_next_word = True.
 !                       If a switch this is the full name even if what was on the command line was an abbreviation.
 !                       See above for more details.
 !   err             -- logical: Set True if the next word begins with '-' but there is no match
-!                       to anything in switch_list. An error message will be printed.
+!                       to anything in switch_list.
 !   ix_word         -- integer: Character length of first word left on line.
 !-
 
-subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, ix_word, neg_num_not_switch)
+subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, ix_word, neg_num_not_switch, print_err)
 
 implicit none
 
@@ -326,6 +328,7 @@ logical err
 logical, optional :: neg_num_not_switch
 
 integer i, ix, n, ix_word
+logical, optional :: print_err
 logical return_next_word, switch_starts_with_hyphon
 character(1) quote_mark
 
@@ -371,7 +374,7 @@ call match_word (line(:ix_word), switch_list, n, .true., matched_name=switch)
 if (n < 1) then
   err = .true.
   if (n == 0) then
-    call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // line(:ix_word))
+    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // line(:ix_word))
   else
     call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // line(:ix_word))
   endif

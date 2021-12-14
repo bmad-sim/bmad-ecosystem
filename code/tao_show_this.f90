@@ -128,7 +128,6 @@ complex(rp) eval(6), evec(6,6), n_eigen(6,3)
 
 character(*) :: what
 character(*), parameter :: r_name = "tao_show_cmd"
-
 character(*), allocatable :: lines(:)
 character(*) result_id
 character(n_char_show) line, line1, line2, line3
@@ -1995,6 +1994,7 @@ case ('history')
 
   show_labels = .true.
   n_print = 50
+  show_all = .false.
 
   do 
     call tao_next_switch (what2, [character(8):: '-no_num', '-all', '-filed'], .true., switch, err, ix_s2)
@@ -2003,41 +2003,64 @@ case ('history')
     if (switch == '') exit
 
     select case (switch)
-    case ('-no_num')
-      show_labels = .false.
-
-    case ('-all')
-      n_print = 100000
-
+    case ('-no_num');   show_labels = .false.
+    case ('-all');      n_print = 9999
+    case ('-filed');    show_all = .true.
     case default
       read (switch, *, iostat = ios) n_print
       if (ios /= 0) then
         call out_io (s_error$, r_name, 'ERROR READING HISTORY NUMBER')
         return
       endif
-
     end select
   enddo
 
   !
 
   if (n_print < 1) return
-  i = max(1, s%com%ix_history - n_print + 1)
+  n_ele = max(1, s%com%ix_history - n_print + 1)
 
-  do
-    if (i > s%com%ix_history) exit
-    if (nl >= size(lines)) call re_allocate (lines, 2*size(lines))
+  n_count = n_print - s%com%ix_history
+  if (n_count > 0 .and. show_all == .true.) then
+    iu = lunget()
+    open (iu, file = s%global%history_file, status = 'old', iostat = ios)
+    ix1 = 0
+    do
+      if (ix1+1 >= size(lines)) call re_allocate (lines, 2*size(lines))
+      read (iu, '(a)', iostat = ios) lines(ix1+1)
+      if (ios /= 0) exit
+      ix1 = ix1 + 1
+    enddo
+    close(1)
 
-    if (s%history(i)%ix /= 0) then
+    ix0 = max(1, ix1-n_count+1)
+    do i = ix0, ix1
       if (show_labels) then
-        nl=nl+1; write (lines(nl), '(i5, 2a)') s%history(i)%ix, ': ', s%history(i)%cmd
+        nl=nl+1; write (lines(nl), '(i5, 2a)') i-ix1, ': ', trim(lines(i))
       else
-        nl=nl+1; write (lines(nl), '(a)') s%history(i)%cmd
+        nl=nl+1; write (lines(nl), '(a)') lines(i)
       endif
-    endif
+    enddo
 
-    i = i + 1
-  enddo
+  !
+  else
+    do
+      if (n_ele > s%com%ix_history) exit
+      if (nl >= size(lines)) call re_allocate (lines, 2*size(lines))
+
+      if (s%history(n_ele)%ix /= 0) then
+        if (show_labels) then
+          nl=nl+1; write (lines(nl), '(i5, 2a)') s%history(n_ele)%ix, ': ', trim(s%history(n_ele)%cmd)
+        else
+          nl=nl+1; write (lines(nl), '(a)') s%history(n_ele)%cmd
+        endif
+      endif
+
+      n_ele = n_ele + 1
+    enddo
+  endif
+
+  !
 
   nl=nl+1; lines(nl) = ''
   nl=nl+1; lines(nl) = 'Note: Commands from previous sessions are stored in: ' // s%global%history_file
