@@ -715,11 +715,12 @@ function real_path (path_in, path_out) result (is_ok)
   logical is_ok
 end function
 
-function real_str(r_num, n_signif) result (str)
+function real_str(r_num, n_signif, n_decimal) result (str)
   import
   implicit none
   real(rp) r_num
   integer n_signif
+  integer, optional :: n_decimal
   character(:), allocatable :: str
 end function
 
