@@ -76,7 +76,7 @@ type (ele_struct) ele1
 type (ele_struct), optional :: ele2
 type (coord_struct), optional :: orbit1
 type (layout), pointer :: ptc_layout
-type (internal_state) state
+type (internal_state) state, state2
 type (branch_struct), pointer :: branch
 type (fibre), pointer :: f1, f2
 type (tree_element) tree_map(3)
@@ -159,7 +159,10 @@ if (present(orbit1)) then
   orb = orbit1%vec
 else
   orb = 0
-  call find_orbit_x(orb, STATE, 1.0d-8, fibre1 = f1)
+  ! For finding the closed orbit the setting of %nocavity must match the setting of %radiaiton
+  state2 = state
+  state2%nocavity = .not. state2%radiation
+  call find_orbit_x(orb, state2, 1.0d-8, fibre1 = f1)
   if (.not. check_stable) then
     call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT WHEN TRCKING WITH RADIATION IN PTC!')
     return
