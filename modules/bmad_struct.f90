@@ -281,12 +281,13 @@ type spin_matching_struct
 end type
 
 ! Note: Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
+! Note: Bmad now uses a (Sx, Sy, Sz) spin representation with quaternions for calculations. 
 
 type spin_polar_struct
   real(rp) :: polarization = 1
-  real(rp) :: theta = 0
-  real(rp) :: phi   = 0
-  real(rp) :: xi    = 0
+  real(rp) :: theta = 0  ! Spherical coords: Angle from z-axis.
+  real(rp) :: phi   = 0  ! Spherical coords: Angle in (x,y) plane.
+  real(rp) :: xi    = 0  ! Spinor phase angle (See Bmad manual). 
 end type
 
 ! Structure holding a spin/orbital first order map
