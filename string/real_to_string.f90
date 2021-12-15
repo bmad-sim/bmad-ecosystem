@@ -7,6 +7,7 @@
 ! See also:
 !   reals_to_string
 !   reals_to_table_row
+!   real_str
 !
 ! Notes:
 !   Keep in mind: With floating format the largest number of digits needed for the exponent is 5. EG: "-1.2e-123".
@@ -26,7 +27,7 @@
 !   real_num    -- real(rp): Real number to encode.
 !   width       -- integer: width of number field. The output string length will also be equal to width.
 !   n_signif    -- integer, optional: Nominal number of significant digits to display. Must be non-negative. Default is 15.
-!                    If n_decimal >= 0: n_signif is ignored is the number can be encoded with fixed format.
+!                    If n_decimal >= 0: n_signif is ignored if the number can be encoded with fixed format.
 !                           n_signif only affects encoding if the number is encoded with a floating point format.
 !                    If n_decimal < 0: Number of significant digits displayed will be reduced if trailing zeros are suppressed.
 !                    
