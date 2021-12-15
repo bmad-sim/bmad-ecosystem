@@ -118,7 +118,7 @@ type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
 
 real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, gamma2, val, z, z1, z2, z_in, s_pos, dt, angle, r
-real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1
+real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, phase
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
 real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3)
@@ -1468,6 +1468,17 @@ case ('element')
         nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), '  | t_part-t_ref [sec]:    ', dt,    'PC:   ', pc
         nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), '  | (t_ref-t_part)*Vel [m]:', z,     'Beta: ', orb%beta
       endif
+      if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
+        if (ele%key == rfcavity$) then
+          phase = ele%value(phi0$) + ele%value(phi0_multipass$) - &
+                (particle_rf_time (orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$)
+        else
+          phase = ele%value(phi0_err$) + ele%value(phi0$) + ele%value(phi0_multipass$) + &
+                (particle_rf_time (orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$)
+        endif
+        if (ele%tracking_method /= bmad_standard$) phase = phase + ele%value(phi0_autoscale$)
+        nl=nl+1; write(lines(nl), '(2x, 2a)') 'Particle Phase relative to RF Phase (rad/2pi): ', real_str(phase, 9, 6)
+      endif
     endif
   endif
 
@@ -2058,12 +2069,10 @@ case ('history')
 
       n_ele = n_ele + 1
     enddo
+
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'Note: Use "-filed" switch to see commands from previous sessions stored in: ' // s%global%history_file
   endif
-
-  !
-
-  nl=nl+1; lines(nl) = ''
-  nl=nl+1; lines(nl) = 'Note: Commands from previous sessions are stored in: ' // s%global%history_file
 
 !----------------------------------------------------------------------
 ! hom
