@@ -2425,7 +2425,7 @@ case ('lattice')
       if (ix /= 0) then
         fmt = attrib(ix+1:)
         attrib = attrib(1:ix-1)
-        nc = str_find_first_in_set(fmt, '0123456789')
+        nc = str_index_first_in_set(fmt, '0123456789')
         width = 0
 
         if (nc /= 0) then
