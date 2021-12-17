@@ -188,7 +188,7 @@ endif
 ! Open file and determine whether the file is binary or ascii
 
 iu = lunget()
-open (iu, file = full_name, status = 'old', iostat = ios)
+open (iu, file = full_name, status = 'old', iostat = ios, action = 'read')
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN BEAM FILE: ' // quote(file_name))
   return
@@ -211,7 +211,7 @@ endif
 
 if (file_type(1:3) == 'BIN') then
   close (iu)
-  open (iu, file = full_name, form = 'unformatted', status = 'old')
+  open (iu, file = full_name, form = 'unformatted', status = 'old', action = 'read')
 endif
 
 ! Read header info
