@@ -424,7 +424,7 @@ namelist / row / ix_row, p_reflect
 ! Open file
 
 iu = lunget()
-open (iu, file = file_name, status = 'old')
+open (iu, file = file_name, status = 'old', action = 'read')
 
 ! Allocate the reflection tables global variables.
 

@@ -50,7 +50,7 @@ if (.not. associated (M_u)) call ptc_ini_no_append
 err_flag = .true.
 
 iu = lunget()
-open(iu, file = flat_file(1), iostat = ios)
+open(iu, file = flat_file(1), iostat = ios, action = 'read')
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // flat_file(1))
   return
