@@ -857,20 +857,23 @@ def parse_ele (head, rest_of_line, sad_info):
     for ix in range(len(line)):
       if line[ix] == ' ': continue
 
-      if ix > len(line) - 3:
+      if ix > len(line) - 2:
         print ('MALFORMED ELEMENT DEFINITION: ' + rest_of_line)
         sys.exit()
 
-      if line[ix] == '=':
+      if line[ix] == '=' or line[ix] == '(':    # Looking for "ename = (..." or "emane (..."
         ele = ele_struct()
         ele.type = head
         ele.name = line[:ix].strip()
         ## print ('Name: "' + ele.name + '"')
-        line = line[ix+1:].lstrip()
+        if line[ix] == '(':
+          line = line[ix:].lstrip()
+        else:
+          line = line[ix+1:].lstrip()
         break
 
     if line[0] != '(':
-      print ('MALFORMED ELEMENT DEFINITION: ' + rest_of_line)
+      print ('MALFORMED ELEMENT DEFINITION. EXPECTING "(": ' + rest_of_line)
       sys.exit()
     line = line[1:].lstrip()
 
