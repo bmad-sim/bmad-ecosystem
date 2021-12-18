@@ -220,6 +220,7 @@ if (beam_type == 'ELECTRON') then
 else if (beam_type == 'POSITRON') then
   branch%param%particle = positron$
 endif
+call lattice_bookkeeper(branch%lat)
 
 call twiss_and_track (lat, orb, ix_branch = 0)
 call calculate_synrad_power(branch, orb, direction, power, walls, sr_param, use_ele_ix, use_ele_ix2)

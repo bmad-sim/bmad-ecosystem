@@ -201,11 +201,6 @@ if (.not. branch%lat%absolute_time_tracking ) then
   stop
 endif
 
-if (branch%param%particle /= electron$ ) then
-  call out_io (s_warn$, r_name, 'LATTICE NOT SET UP FOR ELECTRONS')
-endif
-
-
 !------------------------------------------
 !Track through multiple elements
 
@@ -279,7 +274,7 @@ end if
 max_charge = maxval(start_particles%charge)
 
 !Track electrons
-branch%param%particle = electron$
+branch%param%default_tracking_species = electron$
 
 !write (*, '(a)', advance='no') 'Starting tracking'
 

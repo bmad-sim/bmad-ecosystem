@@ -9,7 +9,7 @@ type (beam_init_struct) beam_init
 type (ltt_com_struct), target :: ltt_com
 type (bunch_struct), pointer :: bunch
 real(rp) del_time
-integer i
+integer i, iu
 character(4) prefix
 
 !
@@ -30,7 +30,10 @@ case default
 end select
 
 call run_timer ('READ', del_time)
-print '(a, f8.2)', 'Tracking time (min)', del_time/60
+iu = lunget()
+open (iu, file = lttp%master_output_file, access = 'append')
+call ltt_write_master('Tracking time (min): ' // real_str(del_time/60, 4, 2), iu = iu)
+close (iu)
 
 ! Regression output is used in conjunction with the Bmad regression test suite.
 
