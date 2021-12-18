@@ -34,8 +34,8 @@ write (1, '(a, 6es16.8)') '"dAngle" ABS 1E-15', orbit%vec - orb0%vec
 orb0%vec = lat%particle_start%vec
 ele => lat%ele(1)
 call init_coord (orbit, orb0%vec, ele, upstream_end$, ele%branch%param%particle)
-call offset_particle (ele, lat%param, set$, orbit)
-call offset_particle (ele, lat%param, unset$, orbit)
+call offset_particle (ele, set$, orbit)
+call offset_particle (ele, unset$, orbit)
 
 write (1, '(a, 6es20.12)') '"orbit1-electron"  ABS 1E-14', orbit%vec
 write (1, '(a, 6es20.12)') '"length1-electron" ABS 1E-14', orbit%s, c_light * orbit%t, orbit%path_len
