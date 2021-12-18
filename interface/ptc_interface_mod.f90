@@ -3060,7 +3060,7 @@ endif
 
 ! Magnetic multipole components
 
-call ele_to_ptc_magnetic_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+call ele_to_ptc_magnetic_an_bn (ele, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
 ! cylindrical field
 
@@ -3208,7 +3208,7 @@ else
   ptc_fibre%magp%p%mass    => ptc_fibre%mass
   ptc_fibre%magp%p%charge  => ptc_fibre%charge
 
-  if (key == beambeam$) call beambeam_fibre_setup(ele, ptc_fibre, param)
+  if (key == beambeam$) call beambeam_fibre_setup(ele, ptc_fibre)
 
   ptc_fibre%dir = ele%orientation
   if (present(ref_in)) ptc_fibre%dir = ptc_fibre%dir * ref_in%direction
@@ -3620,19 +3620,18 @@ end subroutine ele_to_fibre
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine beambeam_fibre_setup(ele, ptc_fibre, param)
+! Subroutine beambeam_fibre_setup(ele, ptc_fibre)
 !
 ! Routine to setup a fibre to handle the beambeam interaction.
 !
 ! Input:
 !   ele       -- ele_struct: Bmad beambeam element.
-!   param     -- lat_param_struct: Lattice parameters.
 !
 ! Output:
 !    ptc_fibre  -- Corresponding PTC fibre.
 !-
 
-subroutine beambeam_fibre_setup (ele, ptc_fibre, param)
+subroutine beambeam_fibre_setup (ele, ptc_fibre)
 
 use madx_ptc_module, only: integration_node, alloc, DO_BEAM_BEAM
 
@@ -3640,7 +3639,6 @@ implicit none
 
 type (ele_struct), target :: ele
 type (fibre), target :: ptc_fibre
-type (lat_param_struct) param
 type (integration_node), pointer :: node
 
 real(rp) sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0, sig_x, sig_y
@@ -3706,7 +3704,7 @@ do i = 1, n_slice
     sig_y = sig_y0 * sqrt(beta / beta_b0)
   endif
 
-  bbi_const = -2.0_rp * param%n_part * ele%value(charge$) * classical_radius_factor / ele%value(e_tot$)
+  bbi_const = -2.0_rp * ele%branch%param%n_part * ele%value(charge$) * classical_radius_factor / ele%value(e_tot$)
 
   node%bb%bbk(i,:) = 0  ! MAD closed orbit kick. Not used here.
   node%bb%xm(i) = (ele%value(crab_x1$) * s_pos + ele%value(crab_x2$) * s_pos**2 + &
@@ -3987,7 +3985,7 @@ end subroutine bmad_patch_parameters_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_ptc_magnetic_an_bn (ele, param, bn, an, n_max)
+! Subroutine ele_to_ptc_magnetic_an_bn (ele, bn, an, n_max)
 !
 ! Routine to compute the a(n) and b(n) magnetic multipole components of a magnet.
 ! This is used to interface between eles and PTC fibres
@@ -3997,7 +3995,6 @@ end subroutine bmad_patch_parameters_to_ptc
 !
 ! Input:
 !   ele                 -- ele_struct: Bmad Element.
-!   param               -- lat_param_struct:
 !
 ! Output:
 !   bn(1:n_pole_maxx+1) -- real(rp): Normal multipole component.
@@ -4005,12 +4002,11 @@ end subroutine bmad_patch_parameters_to_ptc
 !   n_max               -- integer, optional: Maximum non-zero multipole component.
 !-
 
-subroutine ele_to_ptc_magnetic_an_bn (ele, param, bn, an, n_max)
+subroutine ele_to_ptc_magnetic_an_bn (ele, bn, an, n_max)
 
 implicit none
 
 type (ele_struct), target :: ele
-type (lat_param_struct) param
 
 real(rp) bn(:), an(:)
 real(rp) cos_t, sin_t, leng, hk, vk, tilt

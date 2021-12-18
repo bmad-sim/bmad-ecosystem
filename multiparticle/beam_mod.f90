@@ -115,17 +115,17 @@ branch => lat%branch(e1%ix_branch)
 if (integer_option(1, direction) == -1) then
   if (e1%ix_ele > e2%ix_ele) then
     do i = e1%ix_ele, e2%ix_ele+1, -1
-      call track1_bunch (bunch, lat, branch%ele(i), bunch, err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
       if (err) return
     enddo
 
   else
     do i = e1%ix_ele, 1, -1
-      call track1_bunch (bunch, lat, branch%ele(i), bunch, err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
       if (err) return
     enddo
     do i = branch%n_ele_track, e2%ix_ele+1, -1
-      call track1_bunch (bunch, lat, branch%ele(i), bunch, err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
       if (err) return
     enddo
   endif
@@ -135,17 +135,17 @@ if (integer_option(1, direction) == -1) then
 else
   if (e1%ix_ele < e2%ix_ele) then
     do i = e1%ix_ele+1, e2%ix_ele
-      call track1_bunch (bunch, lat, branch%ele(i), bunch, err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
       if (err) return
     enddo
 
   else
     do i = e1%ix_ele+1, branch%n_ele_track
-      call track1_bunch (bunch, lat, branch%ele(i), bunch, err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
       if (err) return
     enddo
     do i = 1, e2%ix_ele
-      call track1_bunch (bunch, lat, branch%ele(i), bunch, err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
       if (err) return
     enddo
   endif
@@ -157,25 +157,24 @@ end subroutine track_bunch
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch (bunch_start, lat, ele, bunch_end, err, centroid, direction)
+! Subroutine track1_bunch (bunch, ele, err, centroid, direction)
 !
 ! Subroutine to track a bunch of particles through an element.
 !
 ! Input:
-!   bunch_start  -- bunch_struct: Starting bunch position.
-!   lat          -- lat_struct: Lattice containing element to be tracked through.
+!   bunch        -- bunch_struct: Starting bunch position.
 !   ele          -- Ele_struct: element to track through.
 !   centroid(0:) -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
 !                     Hint: Calculate this before beam tracking by tracking a single particle.
 !   direction    -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
 !
 ! Output:
-!   bunch_end -- Bunch_struct: Ending bunch position.
+!   bunch     -- Bunch_struct: Ending bunch position.
 !   err       -- Logical: Set true if there is an error. 
 !                  EG: Too many particles lost for a CSR calc.
 !-
 
-subroutine track1_bunch (bunch_start, lat, ele, bunch_end, err, centroid, direction)
+subroutine track1_bunch (bunch, ele, err, centroid, direction)
 
 use csr_old_mod, only: track1_bunch_csr_old
 use csr_and_space_charge_mod, only: track1_bunch_csr, track1_bunch_csr3d
@@ -183,8 +182,7 @@ use beam_utils, only: track1_bunch_hom
 
 implicit none
 
-type (bunch_struct) bunch_start, bunch_end
-type (lat_struct), target :: lat
+type (bunch_struct) bunch
 type (ele_struct) :: ele
 type (ele_struct), pointer :: lord, slave, wake_ele
 type (wake_lr_mode_struct), pointer :: lr, lr_chain
@@ -198,13 +196,9 @@ logical csr_sc_on, err, finished
 
 character(*), parameter :: r_name = 'track1_bunch'
 
-! Init if needed
-
-call reallocate_bunch(bunch_end, size(bunch_start%particle))
-
 ! Custom tracking
 
-call track1_bunch_hook (bunch_start, ele, bunch_end, err, centroid, direction, finished)
+call track1_bunch_hook (bunch, ele, err, centroid, direction, finished)
 if (finished) return
 
 !
@@ -223,14 +217,10 @@ csr_sc_on = bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. 
 
 if (csr_sc_on .and. ele%key /= match$) then
   if (ele%key == e_gun$ .and. ele%value(l_cathode_region$) /= 0) then
-    bunch_end = bunch_start
-    call track1_bunch_e_gun_space_charge (bunch_end, ele, err)
-    
-  elseif (csr_param%use_csr_old) then
-    call track1_bunch_csr_old (bunch_start, lat, ele, bunch_end, err)
+    call track1_bunch_e_gun_space_charge (bunch, ele, err)
     
   elseif (ele%csr_method == steady_state_3d$) then
-     call track1_bunch_csr3d(bunch_start, ele, centroid, bunch_end, err)
+     call track1_bunch_csr3d(bunch, ele, centroid, err)
      
   else
     if (.not. present(centroid)) then
@@ -238,16 +228,16 @@ if (csr_sc_on .and. ele%key /= match$) then
       if (global_com%exit_on_error) call err_exit
       return
     endif
-    call track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err)
+    call track1_bunch_csr (bunch, ele, centroid, err)
 
   endif
-  bunch_end%ix_ele = ele%ix_ele
+  bunch%ix_ele = ele%ix_ele
 
 ! Non csr / non space-charge tracking
 else
   err = .false.
-  call track1_bunch_hom (bunch_start, ele, lat%param, bunch_end, direction)
-  bunch_end%ix_ele = ele%ix_ele
+  call track1_bunch_hom (bunch, ele, direction)
+  bunch%ix_ele = ele%ix_ele
 endif
 
 if (err) return

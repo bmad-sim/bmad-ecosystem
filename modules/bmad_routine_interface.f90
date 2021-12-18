@@ -3080,11 +3080,10 @@ subroutine time_runge_kutta_periodic_kick_hook (orbit, dt_space, ele, param, sto
   integer :: init_needed
 end subroutine
 
-subroutine track1_bunch_hook (bunch_start, ele, bunch_end, err, centroid, direction, finished)
+subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished)
   import
   implicit none
-  type (bunch_struct), target :: bunch_start
-  type (bunch_struct), target :: bunch_end
+  type (bunch_struct), target :: bunch
   type (ele_struct), target :: ele
   type (coord_struct), optional :: centroid(0:)
   integer, optional :: direction

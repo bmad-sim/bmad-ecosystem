@@ -104,12 +104,12 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)
+! Subroutine track1_bunch_csr (bunch, ele, centroid, err, s_start, s_end)
 !
 ! Routine to track a bunch of particles through an element with csr radiation effects.
 !
 ! Input:
-!   bunch_start  -- Bunch_struct: Starting bunch position.
+!   bunch        -- Bunch_struct: Starting bunch position.
 !   ele          -- Ele_struct: The element to track through. Must be part of a lattice.
 !   centroid(0:) -- coord_struct, Approximate beam centroid orbit for the lattice branch.
 !                     Calculate this before beam tracking by tracking a single particle.
@@ -117,15 +117,15 @@ contains
 !   s_end        -- real(rp), optional: Ending position. Default is ele length.
 !
 ! Output:
-!   bunch_end -- Bunch_struct: Ending bunch position.
+!   bunch     -- Bunch_struct: Ending bunch position.
 !   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
 !-
 
-subroutine track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)
+subroutine track1_bunch_csr (bunch, ele, centroid, err, s_start, s_end)
 
 implicit none
 
-type (bunch_struct), target :: bunch_start, bunch_end
+type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: pt, c0
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
@@ -162,7 +162,7 @@ endif
 ! And taylor elements get ignored.
 
 if (ele%value(l$) == 0 .or. ele%key == taylor$) then
-  call track1_bunch_hom (bunch_end, ele, branch%param, bunch_end)
+  call track1_bunch_hom (bunch, ele)
   err = .false.
   if (ele%key == taylor$ .and. ele%value(l$) == 0 .and. csr_param%print_taylor_warning) then
     call out_io (s_warn$, r_name, 'CSR calc for taylor element not done: ' // ele%name)
@@ -172,8 +172,6 @@ endif
 
 ! n_step is the number of steps to take when tracking through the element.
 ! csr%ds_step is the true step length.
-
-bunch_end = bunch_start
 
 if (ele%csr_method == one_dim$ .and. (ele%key == wiggler$ .or. ele%key == undulator$) .and. &
                                 (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$)) then
@@ -193,7 +191,7 @@ if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
             'ALL PARTICLES IN THE BUNCH WILL BE MARKED AS LOST.', &
              i_array = [csr_param%n_bin, csr_param%particle_bin_span])
   endif
-  bunch_end%particle%state = lost$
+  bunch%particle%state = lost$
   return
 endif
 
@@ -274,7 +272,7 @@ enddo
 
 !
 
-csr%species = bunch_start%particle(1)%species
+csr%species = bunch%particle(1)%species
 csr%ix_ele_kick = ele%ix_ele
 csr%actual_track_step = csr%ds_track_step * (csr%eleinfo(ele%ix_ele)%L_chord / ele%value(l$))
 
@@ -291,7 +289,7 @@ do i_step = 0, n_step
 
   if (i_step /= 0) then
     call create_uniform_element_slice (ele, branch%param, i_step, n_step, runt, s_start, s_end)
-    call track1_bunch_hom (bunch_end, runt, branch%param, bunch_end)
+    call track1_bunch_hom (bunch, runt)
   endif
 
   s0_step = i_step * csr%ds_track_step
@@ -299,7 +297,7 @@ do i_step = 0, n_step
 
   ! Cannot do a realistic calculation if there are less particles than bins
 
-  n_live = count(bunch_end%particle%state == alive$)
+  n_live = count(bunch%particle%state == alive$)
   if (n_live < csr_param%n_bin) then
     call out_io (s_error$, r_name, 'NUMBER OF LIVE PARTICLES: \i0\ ', &
                           'LESS THAN NUMBER OF BINS FOR CSR CALC.', &
@@ -316,7 +314,7 @@ do i_step = 0, n_step
   csr%gamma2 = csr%gamma**2
   csr%rel_mass = mass_of(branch%param%particle) / m_electron 
 
-  call csr_bin_particles (ele, bunch_end%particle, csr, err_flag); if (err_flag) return
+  call csr_bin_particles (ele, bunch%particle, csr, err_flag); if (err_flag) return
 
   csr%s_kick = s0_step
   csr%s_chord_kick = s_ref_to_s_chord (s0_step, csr%eleinfo(ele%ix_ele))
@@ -348,9 +346,9 @@ do i_step = 0, n_step
 
   ! Give particles a kick
 
-  call csr_and_sc_apply_kicks (ele, csr, bunch_end%particle)
+  call csr_and_sc_apply_kicks (ele, csr, bunch%particle)
 
-  call save_bunch_track (bunch_end, ele, s0_step)
+  call save_bunch_track (bunch, ele, s0_step)
 
   ! Record to file?
 
@@ -1529,7 +1527,7 @@ end function s_ref_to_s_chord
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_csr3d (bunch_start, ele, centroid, bunch_end, err)
+! Subroutine track1_bunch_csr3d (bunch, ele, centroid, err)
 !
 ! EXPERIMENTAL
 !
@@ -1538,7 +1536,7 @@ end function s_ref_to_s_chord
 !
 !
 ! Input:
-!   bunch_start  -- Bunch_struct: Starting bunch position.
+!   bunch        -- Bunch_struct: Starting bunch position.
 !   ele          -- Ele_struct: The element to track through. Must be part of a lattice.
 !   centroid(0:) -- coord_struct, Approximate beam centroid orbit for the lattice branch.
 !                     Calculate this before beam tracking by tracking a single particle.
@@ -1546,7 +1544,7 @@ end function s_ref_to_s_chord
 !   s_end        -- real(rp), optional: Ending position. Default is ele length.
 !
 ! Output:
-!   bunch_end -- Bunch_struct: Ending bunch position.
+!   bunch     -- Bunch_struct: Ending bunch position.
 !   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
 !
 !
@@ -1556,11 +1554,11 @@ end function s_ref_to_s_chord
 !
 !-
 
-subroutine track1_bunch_csr3d (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)
+subroutine track1_bunch_csr3d (bunch, ele, centroid, err, s_start, s_end)
 
 implicit none
 
-type (bunch_struct), target :: bunch_start, bunch_end
+type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: c0, p
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
@@ -1586,7 +1584,7 @@ branch => pointer_to_branch(ele)
 ! No CSR for a zero length element.
 ! And taylor elements get ignored.
 if (ele%value(l$) == 0 .or. ele%key /= sbend$) then
-  call track1_bunch_hom (bunch_end, ele, branch%param, bunch_end)
+  call track1_bunch_hom (bunch, ele)
   err = .false.
   return
 endif
@@ -1601,8 +1599,7 @@ csr%mesh3d%nhi = csr_param%csr3d_mesh_size
 ! n_step is the number of steps to take when tracking through the element.
 ! csr%ds_step is the true step length.
 
-bunch_end = bunch_start
-particle => bunch_end%particle
+particle => bunch%particle
 ! make sure that ele_len / track_step is an integer.
 
 csr%ds_track_step = ele%value(csr_ds_step$)
@@ -1615,7 +1612,7 @@ endif
 
 n_step = max (1, nint(ele%value(l$) / csr%ds_track_step))
 csr%ds_track_step = ele%value(l$) / n_step
-csr%species = bunch_start%particle(1)%species
+csr%species = bunch%particle(1)%species
 
 auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
 bmad_com%auto_bookkeeper = .false.   ! make things go faster
@@ -1637,9 +1634,9 @@ do i_step = 0, n_step
 
   if (i_step /= 0) then
     call create_uniform_element_slice (ele, branch%param, i_step, n_step, runt, s_start, s_end)
-    call track1_bunch_hom (bunch_end, runt, branch%param, bunch_end)
+    call track1_bunch_hom (bunch, runt)
   endif
-  particle => bunch_end%particle
+  particle => bunch%particle
   
   s0_step = i_step * csr%ds_track_step
   if (present(s_start)) s0_step = s0_step + s_start
@@ -1693,7 +1690,7 @@ do i_step = 0, n_step
     call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = p%beta)
   enddo
   
-  call save_bunch_track (bunch_end, ele, s0_step)
+  call save_bunch_track (bunch, ele, s0_step)
 
 enddo
 
