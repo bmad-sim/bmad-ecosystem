@@ -294,8 +294,8 @@ do ib = 0, ubound(lat_out%branch, 1)
         ele_out%s_start = ele_out%s - ele_out%value(l$)
         if (ele_in%value(hkick$) /= 0 .or. ele_in%value(vkick$) /= 0) then
           c2%vec = 0
-          call offset_particle (ele_in, b_in%param, set$, c2)
-          call offset_particle (ele_in, b_in%param, unset$, c2)
+          call offset_particle (ele_in, set$, c2)
+          call offset_particle (ele_in, unset$, c2)
           ele_out%value(hkick$) = ele_out%value(hkick$) + c2%vec(2)
           ele_out%value(vkick$) = ele_out%value(vkick$) + c2%vec(4)
         endif

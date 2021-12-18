@@ -67,7 +67,7 @@ else
   ky2 = kz**2 + ele%value(kx$)**2
 endif
 
-factor = abs(rel_tracking_charge_to_mass(orbit, param)) * 0.5 * (c_light * ele%value(b_max$) / ele%value(p0c$))**2
+factor = abs(rel_tracking_charge_to_mass(orbit, param%particle)) * 0.5 * (c_light * ele%value(b_max$) / ele%value(p0c$))**2
 if (field_ele%field_calc == helical_model$) then
   k1x = -factor
   k1y = -factor
@@ -78,7 +78,7 @@ endif
 
 !
 
-call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  param%particle, ele, orbit, magnetic$, r_step/2,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, param%particle, ele, orbit, electric$, step_len/2, mat6, make_matrix)
@@ -189,7 +189,7 @@ do i = 1, n_step
   endif
 enddo
 
-call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
 ! Add in term to take care of the fact that the particle's motion undulates
 

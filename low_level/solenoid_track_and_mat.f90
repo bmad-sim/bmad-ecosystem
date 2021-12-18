@@ -35,7 +35,7 @@ real(rp) dpz_dx, dpz_dpx, dpz_dy, dpz_dpy, vec0(6)
 vec0 = start_orb%vec
 end_orb = start_orb
 rel_p = 1 + start_orb%vec(6)
-rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param)
+rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param%particle)
 
 ks0 = rel_tracking_charge * ele%value(ks$)
 kss0 = ks0 / 2

@@ -99,7 +99,7 @@ endif
 
 ! Interior start, reference momentum is at the end.
 if (end_orb%location == inside$) then
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., s_pos =s_lab, s_out = s_body, set_spin = set_spin)
+  call offset_particle (ele, set$, end_orb, set_hvkicks = .false., s_pos =s_lab, s_out = s_body, set_spin = set_spin)
   if (ele%value(l$) < 0) t_dir = -1
 
 elseif (ele%key == patch$) then
@@ -114,7 +114,7 @@ elseif (ele%key == patch$) then
 
 ! Particle is at an end.
 else
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., s_out = s_body, set_spin = set_spin)
+  call offset_particle (ele, set$, end_orb, set_hvkicks = .false., s_out = s_body, set_spin = set_spin)
   if (ele%value(l$) < 0) t_dir = -1
 endif
 
@@ -148,13 +148,13 @@ if (end_orb%location == upstream_end$) then
   end_orb%p0c = ele%value(p0c_start$)
   call convert_particle_coordinates_t_to_s(end_orb, dt_ref, ele, s_body)
   end_orb%direction = -1  ! In case t_to_s conversion confused by roundoff error.
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
+  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
 
 elseif (end_orb%location == downstream_end$) then
   end_orb%p0c = ele%value(p0c$)
   call convert_particle_coordinates_t_to_s(end_orb, dt_ref, ele, s_body)
   end_orb%direction = 1  ! In case t_to_s conversion confused by roundoff error
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
+  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
 
 elseif (end_orb%state /= alive$) then
   ! Particle is lost in the interior of the element.
@@ -168,12 +168,12 @@ elseif (end_orb%state /= alive$) then
   end if
 
   call convert_particle_coordinates_t_to_s(end_orb, dt_ref, ele, s_body)
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
+  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
 
 elseif (present(t_end)) then
   end_orb%p0c = ele%value(p0c$)
   call convert_particle_coordinates_t_to_s(end_orb, dt_ref, ele, s_body)
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
+  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)

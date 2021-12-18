@@ -82,7 +82,7 @@ if (ele%key == patch$) then
   endif
 
 else
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., &
+  call offset_particle (ele, set$, end_orb, set_hvkicks = .false., &
                                       set_spin = set_spin, mat6 = mat6, make_matrix = make_matrix)
   if (ele%orientation*end_orb%direction == 1) then
     s0_body = 0; s1_body = ele%value(l$)
@@ -106,7 +106,7 @@ if (err_flag) return
 ! convert to lab coords.
 
 if (ele%key /= patch$) then
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., &
+  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., &
                                         set_spin = set_spin, mat6 = mat6, make_matrix = make_matrix)
 endif
 

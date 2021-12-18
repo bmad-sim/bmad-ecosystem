@@ -159,7 +159,7 @@ endif
 ! First calculate things in the element body coords.
 
 orbit2 = orbit
-call offset_particle (ele, param, set$, orbit2, s_pos = s_here)
+call offset_particle (ele, set$, orbit2, s_pos = s_here)
 call canonical_to_angle_coords (orbit2)
 orbit2%vec(1) = orbit2%vec(1) + direc * orbit2%vec(2) * eff_len / 2.0_rp ! Extrapolate to center of region 1/4 of way into element.
 orbit2%vec(3) = orbit2%vec(3) + direc * orbit2%vec(4) * eff_len / 2.0_rp

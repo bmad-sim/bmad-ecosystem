@@ -157,7 +157,7 @@ case default
     if (orb2%species == photon$) then
       call offset_photon (ele, orb2, set$)
     else
-      call offset_particle (ele, param, set$, orb2, set_tilt = do_tilt, set_hvkicks = .false., s_pos = s_here)
+      call offset_particle (ele, set$, orb2, set_tilt = do_tilt, set_hvkicks = .false., s_pos = s_here)
     endif
     x_particle = orb2%vec(1)
     y_particle = orb2%vec(3)

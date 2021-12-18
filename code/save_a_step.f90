@@ -86,7 +86,7 @@ else
 endif
 
 if (local_ref_frame) then
-  call offset_particle (ele, param, unset$, tp%orb, drift_to_edge = .false., set_hvkicks = .false., &
+  call offset_particle (ele, unset$, tp%orb, drift_to_edge = .false., set_hvkicks = .false., &
                                                   s_pos = s_rel, s_out = s_lab, mat6 = tp%mat6, make_matrix = make_matrix)
 else
   s_lab = s_rel

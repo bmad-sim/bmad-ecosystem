@@ -86,7 +86,7 @@ endif
 
 if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
 
-call offset_particle (ele, param, set$, orbit)
+call offset_particle (ele, set$, orbit)
 
 ! Find dists that straddle thickness
 
@@ -157,7 +157,7 @@ orbit%vec(4) = orbit%vec(4) + (out1%dxds * sin(azimuth_angle) + out1%dyds * cos(
 orbit%vec(5) = orbit%vec(5) * orb0%beta / orbit%beta
 orbit%spin   = [0, 0, 1] * orbit%spin(3) * out1%rel_spin_z
 
-call offset_particle (ele, param, unset$, orbit)
+call offset_particle (ele, unset$, orbit)
 return
 
 ! Error detected

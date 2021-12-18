@@ -39,7 +39,7 @@ endif
 !
 
 orbit = start_orb
-if (.not. ele%taylor_map_includes_offsets) call offset_particle (ele, param, set$, orbit)
+if (.not. ele%taylor_map_includes_offsets) call offset_particle (ele, set$, orbit)
 
 !
 
@@ -54,7 +54,7 @@ orbit%spin = quat_rotate(quat/norm, orbit%spin)
 
 !
 
-if (.not. ele%taylor_map_includes_offsets) call offset_particle (ele, param, unset$, orbit)
+if (.not. ele%taylor_map_includes_offsets) call offset_particle (ele, unset$, orbit)
 end_orb%spin = orbit%spin
 
 end subroutine track1_spin_taylor

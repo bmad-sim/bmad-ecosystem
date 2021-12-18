@@ -180,7 +180,7 @@ if (ele%field_calc == refer_to_lords$) then
   lab_orb = orbit
 
   if (local_ref_frame) then
-    call offset_particle (ele, param, unset$, lab_orb, set_hvkicks = .false., s_pos = s_pos, s_out = s_lab)
+    call offset_particle (ele, unset$, lab_orb, set_hvkicks = .false., s_pos = s_pos, s_out = s_lab)
   else
     s_lab = s_pos
   endif
@@ -293,7 +293,7 @@ local_orb = orbit
 if (local_ref_frame) then
   s_body = s_pos
 else
-  call offset_particle (ele, param, set$, local_orb, set_hvkicks = .false., s_pos = s_pos, s_out = s_body)
+  call offset_particle (ele, set$, local_orb, set_hvkicks = .false., s_pos = s_pos, s_out = s_body)
 endif
 
 !----------------------------------------------------------------------------
@@ -388,7 +388,7 @@ case (bmad_standard$)
 
     ! The crab cavity is modeled as a TM110 traveling wave mode
     if (ele%value(l$) /= 0) then
-      voltage = e_accel_field(ele, voltage$) * rel_tracking_charge_to_mass(orbit, param)
+      voltage = e_accel_field(ele, voltage$) * rel_tracking_charge_to_mass(orbit, param%particle)
       k_rf = twopi * ele%value(rf_frequency$) / c_light
       if (present(rf_time)) then
         time = rf_time
@@ -1556,7 +1556,7 @@ endif
 if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
   lab_orb = orbit
   if (local_ref_frame) then
-    call offset_particle (ele, param, unset$, lab_orb, set_hvkicks = .false., s_pos = s_body, s_out = s_lab)
+    call offset_particle (ele, unset$, lab_orb, set_hvkicks = .false., s_pos = s_body, s_out = s_lab)
   else
     s_lab = s_body
   endif

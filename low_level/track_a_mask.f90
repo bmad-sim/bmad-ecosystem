@@ -37,7 +37,7 @@ if (.not. ele%is_on) return
 ! Particle is lost if in an opaque section
 
 temp_orb = orbit
-call offset_particle (ele, param, set$, temp_orb, set_hvkicks = .false.)
+call offset_particle (ele, set$, temp_orb, set_hvkicks = .false.)
 
 ix_sec = diffraction_plate_or_mask_hit_spot (ele, temp_orb)
 if (ix_sec == 0) orbit%state = lost$
