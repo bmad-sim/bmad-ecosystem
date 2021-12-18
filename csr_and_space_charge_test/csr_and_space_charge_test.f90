@@ -34,7 +34,8 @@ beam_init%sig_z = 0.000899377 ! 3 ps * cLight
 
 call init_bunch_distribution (branch%ele(0), branch%param, beam_init, 0, bunch_init)
 
-call track1_bunch(bunch_init, lat, branch%ele(1), bunch2, err)
+bunch2 = bunch_init
+call track1_bunch(bunch2, branch%ele(1), err)
 
 ! Branch 0: CSR
 
@@ -57,7 +58,8 @@ call init_coord (centroid(0), lat%particle_start, branch%ele(0), downstream_end$
 call track_all (lat, centroid, branch%ix_branch)
 
 ele => branch%ele(1)
-call track1_bunch(bunch_init, lat, ele, bunch0, err, centroid)
+bunch0 = bunch_init
+call track1_bunch(bunch0, ele, err, centroid)
 p0 => bunch0%particle(10)
 write (1, '(a, 6es16.8)') '"No-CSR-Space-Ch" ABS 1e-14', p0%vec
 
@@ -72,7 +74,8 @@ csr_param%sigma_cutoff = 0.1
 
 bmad_com%csr_and_space_charge_on = .true.
 ele%csr_method = one_dim$
-call track1_bunch(bunch_init, lat, ele, bunch, err, centroid)
+bunch = bunch_init
+call track1_bunch(bunch, ele, err, centroid)
 p => bunch%particle(10)
 write (1, '(a, 6es16.8)') '"CSR"             ABS 1e-14', p%vec - p0%vec
 
@@ -80,7 +83,8 @@ write (1, '(a, 6es16.8)') '"CSR"             ABS 1e-14', p%vec - p0%vec
 
 csr_param%n_shield_images = 4
 csr_param%beam_chamber_height = 0.01
-call track1_bunch(bunch_init, lat, ele, bunch2, err, centroid)
+bunch2 = bunch_init
+call track1_bunch(bunch2, ele, err, centroid)
 p2 => bunch2%particle(10)
 write (1, '(a, 6es16.8)') '"CSR-with-Shield" ABS 1e-14', p2%vec - p%vec
 
@@ -88,7 +92,8 @@ write (1, '(a, 6es16.8)') '"CSR-with-Shield" ABS 1e-14', p2%vec - p%vec
 
 ele%csr_method = off$
 ele%space_charge_method = slice$
-call track1_bunch(bunch_init, lat, ele, bunch, err, centroid)
+bunch = bunch_init
+call track1_bunch(bunch, ele, err, centroid)
 p => bunch%particle(10)
 write (1, '(a, 6es16.8)') '"Space_Charge"    ABS 1e-14', p%vec - p0%vec
 
