@@ -167,7 +167,7 @@ do ix=1, lat%n_ele_track
   call convert_total_energy_to(ele%value(e_tot$), lat%param%particle, gamma)
   
   if (use_beam) then
-    call track1_bunch (bunch, lat, ele, bunch, err)
+    call track1_bunch (bunch, ele, err)
     if (err) then
       print *, 'Bunch tracking error in ele: ', trim(ele%name)
       stop

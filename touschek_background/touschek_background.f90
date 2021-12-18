@@ -423,7 +423,7 @@ if (use_beam) then
   endif
   
   do i = 1, lat%n_ele_track
-    call track1_bunch (bunch, lat, lat%ele(i), bunch, err)
+    call track1_bunch (bunch, lat%ele(i), err)
     if (err) then
       print *, 'Bunch tracking error in ele: ', trim(lat%ele(i)%name)
       stop
