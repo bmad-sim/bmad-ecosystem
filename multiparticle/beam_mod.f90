@@ -176,7 +176,6 @@ end subroutine track_bunch
 
 subroutine track1_bunch (bunch, ele, err, centroid, direction)
 
-use csr_old_mod, only: track1_bunch_csr_old
 use csr_and_space_charge_mod, only: track1_bunch_csr, track1_bunch_csr3d
 use beam_utils, only: track1_bunch_hom
 
