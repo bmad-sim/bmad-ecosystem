@@ -52,7 +52,7 @@ if (ele%value(sig_x$) == 0 .or. ele%value(sig_x$) == 0) then
   return
 endif
 
-call offset_particle (ele, param, set$, orbit)
+call offset_particle (ele, set$, orbit)
 call canonical_to_angle_coords (orbit)
 
 n_slice = max(1, nint(ele%value(n_slice$)))
@@ -110,7 +110,7 @@ enddo
 call track_a_drift (orbit, -s_pos, mat6, make_matrix)
 
 call angle_to_canonical_coords (orbit)
-call offset_particle (ele, param, unset$, orbit)  
+call offset_particle (ele, unset$, orbit)  
 
 end subroutine
 

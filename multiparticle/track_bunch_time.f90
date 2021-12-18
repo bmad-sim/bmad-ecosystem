@@ -140,7 +140,7 @@ if (orbit%location /= inside$) then
   endif
 
   set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
-  call offset_particle (ele, param, set$, orbit, set_hvkicks = .false., set_spin = set_spin)
+  call offset_particle (ele, set$, orbit, set_hvkicks = .false., set_spin = set_spin)
   call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation, dt_ref)
 endif
 
@@ -161,7 +161,7 @@ if (orbit%location /= inside$) then
 
   call convert_particle_coordinates_t_to_s(orbit, dt_ref, ele, s_body_calc(orbit, ele))
   set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
-  call offset_particle (ele, param, set$, orbit, set_hvkicks = .false., set_spin = set_spin)
+  call offset_particle (ele, set$, orbit, set_hvkicks = .false., set_spin = set_spin)
   call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation, dt_ref)
 endif
 

@@ -82,7 +82,7 @@ endif
 ! tracking.
 
 if (.not. ele%taylor_map_includes_offsets) then  ! simple case
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+  call offset_particle (ele, set$, end_orb, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 endif
 
 !
@@ -111,7 +111,7 @@ endif
 !
 
 if (.not. ele%taylor_map_includes_offsets) then  ! simple case
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.)
+  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false.)
 endif
 
 ! Time change of particle

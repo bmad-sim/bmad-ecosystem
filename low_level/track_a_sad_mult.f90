@@ -55,7 +55,7 @@ n_div = nint(ele%value(num_steps$))
 
 rel_pc = 1 + orbit%vec(6)
 orientation = ele%orientation * orbit%direction
-charge_dir = rel_tracking_charge_to_mass(orbit, param) * orientation
+charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * orientation
 
 knl = 0; tilt = 0; knsl = 0
 call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
@@ -71,7 +71,7 @@ ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
 ! If element has zero length then the SAD ignores f1 and f2.
 
 if (length == 0) then
-  call offset_particle (ele2, param, set$, orbit, set_hvkicks = .false., set_tilt = .false., mat6 = mat6, make_matrix = make_matrix)
+  call offset_particle (ele2, set$, orbit, set_hvkicks = .false., set_tilt = .false., mat6 = mat6, make_matrix = make_matrix)
 
   if (ix_pole_max > -1) then
     call multipole_kicks (knl, tilt, param%particle, ele, orbit)
@@ -80,7 +80,7 @@ if (length == 0) then
     endif
   endif
 
-  call offset_particle (ele2, param, unset$, orbit, set_hvkicks = .false., set_tilt = .false., mat6 = mat6, make_matrix = make_matrix)
+  call offset_particle (ele2, unset$, orbit, set_hvkicks = .false., set_tilt = .false., mat6 = mat6, make_matrix = make_matrix)
 
   orbit%s = ele%s
   orbit%location = downstream_end$
@@ -89,7 +89,7 @@ endif
 
 ! Go to frame of reference of the multipole quad component
 
-ks = rel_tracking_charge_to_mass(orbit, param) * ele%value(ks$)
+ks = rel_tracking_charge_to_mass(orbit, param%particle) * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
 
 if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then
@@ -108,7 +108,7 @@ tilt = tilt - tilt(1)
 call multipole_kt_to_ab (knl, knsl, tilt, a_pole, b_pole)
 knl(1) = 0 ! So multipole_kicks does not conflict with sol_quad calc. 
 
-call offset_particle (ele2, param, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele2, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 ! Entrance edge kicks
 ! The multipole hard edge routine takes care of the quadrupole hard edge.
@@ -171,7 +171,7 @@ if (orbit_too_large (orbit, param)) return
 
 ! End stuff
 
-call offset_particle (ele2, param, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele2, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 orbit%vec(2) = orbit%vec(2) - ele%value(y_offset_mult$) * ks / 2
 orbit%vec(4) = orbit%vec(4) + ele%value(x_offset_mult$) * ks / 2

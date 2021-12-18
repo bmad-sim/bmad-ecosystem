@@ -43,16 +43,22 @@ character(*), parameter :: r_name = 'lat_compute_ref_energy_and_time'
 err_flag = .true.
 
 do ib = 0, ubound(lat%branch, 1)
-
   branch => lat%branch(ib)
   branch%param%unstable_factor = 0   ! Set to positive number if there is a problem.
   begin_ele => branch%ele(0)
   nullify(fork_ele)
+
   if (branch%ix_from_branch > -1 .and. branch%ix_to_ele == 0) then
     fork_ele => lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)
     if (fork_ele%key == photon_fork$) branch%param%particle = photon$
   endif
-  begin_ele%ref_species = branch%param%particle
+
+  if (begin_ele%ref_species /= branch%param%particle) then
+    begin_ele%ref_species = branch%param%particle
+    begin_ele%bookkeeping_state%ref_energy = stale$
+    branch%param%bookkeeping_state%ref_energy = stale$
+  endif
+
   if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
   stale = (begin_ele%bookkeeping_state%ref_energy == stale$)
 
@@ -186,6 +192,7 @@ do ib = 0, ubound(lat%branch, 1)
     enddo
     gun_ele%value(e_tot_ref_init$) = begin_ele%value(e_tot_start$) ! In case gun is a super_lord.
     gun_ele%value(p0c_ref_init$) = begin_ele%value(p0c_start$)
+    gun_ele%ref_species = begin_ele%ref_species
 
     if (gun_ele%value(e_tot_ref_init$) + gun_ele%value(voltage$) < mass_of(default_tracking_species(branch%param)) .and. &
         (is_true(gun_ele%value(autoscale_amplitude$)) .or. gun_ele%tracking_method == bmad_standard$)) then

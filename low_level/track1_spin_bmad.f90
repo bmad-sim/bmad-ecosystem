@@ -49,7 +49,7 @@ if (ele%key == crab_cavity$) then
   ave_orb%t    = (start_orb%t    + end_orb%t) / 2
   ave_orb%beta = (start_orb%beta + end_orb%beta) / 2
 
-  voltage = e_accel_field(ele, voltage$) * rel_tracking_charge_to_mass(ave_orb, param)
+  voltage = e_accel_field(ele, voltage$) * rel_tracking_charge_to_mass(ave_orb, param%particle)
   k_rf = twopi * ele%value(rf_frequency$) / c_light
   phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - &
           (particle_rf_time (ave_orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
@@ -74,7 +74,7 @@ endif
 temp_start = start_orb
 call calc_next_fringe_edge (ele, s_edge_track, fringe_info, temp_start, .true.)
 
-call offset_particle (ele, param, set$, temp_start, set_hvkicks = .false., set_spin = .true.)
+call offset_particle (ele, set$, temp_start, set_hvkicks = .false., set_spin = .true.)
 
 if (fringe_info%has_fringe .and. fringe_info%particle_at == first_track_edge$) then
   if (fringe_info%ds_edge /= 0) call track_a_drift (temp_start, fringe_info%ds_edge)
@@ -84,7 +84,7 @@ endif
 
 temp_end  = end_orb
 
-call offset_particle (ele, param, set$, temp_end, set_hvkicks = .false., s_pos = s_end_lab)
+call offset_particle (ele, set$, temp_end, set_hvkicks = .false., s_pos = s_end_lab)
 
 if (fringe_info%has_fringe .and. fringe_info%particle_at == second_track_edge$) then
   if (fringe_info%ds_edge /= 0) call track_a_drift (temp_end, fringe_info%ds_edge)
@@ -114,7 +114,7 @@ if (fringe_info%has_fringe .and. fringe_info%particle_at == second_track_edge$) 
   call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true.)
 endif
 
-call offset_particle (ele, param, unset$, temp_end, set_hvkicks = .false., set_spin = .true.)
+call offset_particle (ele, unset$, temp_end, set_hvkicks = .false., set_spin = .true.)
 
 end_orb%spin = temp_end%spin
 

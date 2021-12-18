@@ -104,7 +104,7 @@ endif
 err = .false.
 
 orient_dir = ele%orientation * end_orb%direction
-rel_tracking_charge = rel_tracking_charge_to_mass(end_orb, param)
+rel_tracking_charge = rel_tracking_charge_to_mass(end_orb, param%particle)
 charge_dir = rel_tracking_charge * orient_dir
 allocated_map = .false.
 num_wig_terms = 0
@@ -114,7 +114,7 @@ num_wig_terms = 0
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$, b1)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-if (do_offset) call offset_particle (ele, param, set$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
+if (do_offset) call offset_particle (ele, set$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  param%particle, ele, end_orb, magnetic$, 1.0_rp/2,   mat6, calculate_mat6)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
@@ -370,7 +370,7 @@ end select
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  param%particle, ele, end_orb, magnetic$, 1.0_rp/2,        mat6, calculate_mat6)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
 
-if (do_offset) call offset_particle (ele, param, unset$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
+if (do_offset) call offset_particle (ele, unset$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 
 ! Correct z-position for wigglers, etc. 
 

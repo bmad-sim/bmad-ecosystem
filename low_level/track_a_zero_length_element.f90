@@ -38,7 +38,7 @@ logical err_flag
 if (present(track)) call save_a_step (track, ele, param, .false., start_orb, 0.0_rp)
 
 end_orb = start_orb
-call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.)
+call offset_particle (ele, set$, end_orb, set_hvkicks = .false.)
 
 call init_fringe_info (fringe_info, ele)
 if (fringe_info%has_fringe) then
@@ -61,7 +61,7 @@ if (fringe_info%has_fringe) then
   call apply_element_edge_kick(end_orb, fringe_info, ele, param, .false.)
 endif
 
-call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.)
+call offset_particle (ele, unset$, end_orb, set_hvkicks = .false.)
 
 if (present(track)) call save_a_step (track, ele, param, .false., start_orb, 0.0_rp)
 

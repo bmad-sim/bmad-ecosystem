@@ -371,7 +371,7 @@ logical err_flag, no_aperture_here
 call rk_time_step1 (ele, param, old_t, old_orb, old_dt_ref, this_dt, orb, dt_ref, vec_err, err_flag = err_flag)
 
 test_orb = orb
-call offset_particle (ele, param, unset$, test_orb, s_pos=s_body, set_hvkicks = .false.)
+call offset_particle (ele, unset$, test_orb, s_pos=s_body, set_hvkicks = .false.)
 d_radius =  distance_to_aperture (test_orb, in_between$, ele, no_aperture_here)
 rf_time = rf_time + this_dt
 
@@ -439,7 +439,7 @@ do
     if (dt * t_dir < 1d-3/c_light) then
       ! Call rk_time_step1 to generate an error message.
       call rk_time_step1 (ele, param, rf_time,  orb, dt_ref, dt, new_orb, new_dt_ref, r_err, dr_dt, err_flag, .true.)
-      call out_io (s_fatal$, r_name, 'CANNOT COMPLETE TIME STEP. ABORTING.')
+      call out_io (s_fatal$, r_name, 'CANNOT COMPLETE TIME STEP. MARKING PARTICLE AS LOST.')
       orb%state = lost$
       return
     endif

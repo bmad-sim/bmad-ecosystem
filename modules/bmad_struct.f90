@@ -1314,6 +1314,7 @@ type lat_param_struct
   real(rp) :: t1_no_RF(6,6) = 0                ! Full 1-turn matrix with RF off.
   real(rp) :: spin_tune = 0                    ! Closed orbit spin tune.
   integer :: particle = not_set$               ! Reference particle: positron$, electron$, etc.
+                                               !   Call lattice_bookkeeper if this is changed.
   integer :: default_tracking_species = ref_particle$  ! Default particle type to use in tracking.
   integer :: geometry = 0                      ! open$ or closed$
   integer :: ixx = 0                           ! Integer for general use

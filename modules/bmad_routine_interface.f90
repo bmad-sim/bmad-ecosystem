@@ -1328,11 +1328,10 @@ function num_lords (slave, lord_type) result (num)
 integer lord_type, num
 end function
 
-subroutine offset_particle (ele, param, set, coord, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
+subroutine offset_particle (ele, set, coord, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
   import
   implicit none
   type (ele_struct) :: ele
-  type (lat_param_struct) param
   type (coord_struct), intent(inout) :: coord
   integer particle
   logical, intent(in) :: set
@@ -1665,11 +1664,11 @@ subroutine reference_energy_correction (ele, orbit, particle_at, mat6, make_matr
   logical, optional :: make_matrix
 end subroutine
 
-function rel_tracking_charge_to_mass (orbit, param) result (rel_charge)
+function rel_tracking_charge_to_mass (orbit, ref_species) result (rel_charge)
   import
   implicit none
   type (coord_struct) orbit
-  type (lat_param_struct) param
+  integer ref_species
   real(rp) rel_charge
 end function
 

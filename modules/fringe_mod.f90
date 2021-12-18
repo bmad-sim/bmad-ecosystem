@@ -172,7 +172,7 @@ character(*), parameter :: r_name = 'linear_bend_edge_kick'
 ! See MAD physics guide for writeup. Note that MAD does not have a dg.
 ! Apply only the first order kick. That is, only edge focusing.
 
-c_dir = rel_tracking_charge_to_mass(orb, param) * ele%orientation * orb%direction
+c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 
 if (ele%is_on) then
@@ -268,7 +268,7 @@ character(24), parameter :: r_name = 'second_order_bend_edge_kick'
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a dg.
 
-c_dir = rel_tracking_charge_to_mass(orb, param) * ele%orientation * orb%direction
+c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 fringe_type = nint(ele%value(fringe_type$))
 e_factor = 1 / (1 + orb%vec(6))
@@ -436,7 +436,7 @@ endif
 !
 
 if (g == 0) return
-c_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation * orbit%direction
+c_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation * orbit%direction
 g = g * c_dir
 
 if (particle_at == second_track_edge$) then
@@ -537,7 +537,7 @@ if (fringe_type /= soft_edge_only$ .and. fringe_type /= full$) return
 if (.not. fringe_here(ele, orbit, particle_at)) return
 
 charge_dir = ele%orientation * orbit%direction
-if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param)
+if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param%particle)
 
 rel_p = 1 + orbit%vec(6)
 
@@ -674,7 +674,7 @@ end select
 if (.not. fringe_here(ele, orbit, particle_at)) return
 
 charge_dir = ele%orientation * orbit%direction
-if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param)
+if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param%particle)
 
 !
 
@@ -910,7 +910,7 @@ end select
 !
 
 if (g == 0) return
-c_dir = rel_tracking_charge_to_mass(orb, param) * ele%orientation * orb%direction
+c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction
 g = g * c_dir
 
 if (particle_at == second_track_edge$) then

@@ -1,5 +1,5 @@
 !+
-! Subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
+! Subroutine offset_particle (ele, set, orbit, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
 !
 ! Routine to transform a particles's coordinates between laboratory and element coordinates
 ! at the ends of the element. Additionally, this routine will:
@@ -33,8 +33,6 @@
 !     %value(x_offset$) -- Horizontal offset of element.
 !     %value(x_pitch$)  -- Horizontal pitch of element.
 !     %value(tilt$)     -- tilt of element.
-!   param          -- lat_param_strcut: 
-!     %particle             -- Reference particle
 !   set            -- Logical: 
 !                    T (= set$)   -> Translate from lab coords to the local element coords.
 !                    F (= unset$) -> Translate back from element to lab coords.
@@ -66,14 +64,13 @@
 !     mat6(6,6)  -- real(rp), optional: Transfer matrix transfer matrix after offsets applied.
 !-
 
-subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
+subroutine offset_particle (ele, set, orbit, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
 
 use bmad_interface, except_dummy => offset_particle
 
 implicit none
 
 type (ele_struct) :: ele
-type (lat_param_struct) param
 type (coord_struct), intent(inout) :: orbit
 type (em_field_struct) field
 type (floor_position_struct) position
@@ -139,7 +136,7 @@ set_t      = logic_option (.true., set_tilt) .and. has_orientation_attributes(el
 do_drift   = logic_option (.true., drift_to_edge) .and. has_orientation_attributes(ele)
 set_spn    = logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on
 
-rel_tracking_charge = rel_tracking_charge_to_mass (orbit, param)
+rel_tracking_charge = rel_tracking_charge_to_mass (orbit, ele%ref_species)
 charge_dir = rel_tracking_charge * sign_z_vel 
 
 if (set_hv) then
@@ -156,7 +153,7 @@ else
   set_hv2 = .false.
 endif
 
-B_factor = ele%value(p0c$) / (charge_of(param%particle) * c_light)
+B_factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
 
 !----------------------------------------------------------------
 ! Set...
