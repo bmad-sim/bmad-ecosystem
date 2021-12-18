@@ -477,7 +477,7 @@ ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 !open(999, file = 'bunch_vec.txt', status = 'unknown')
 do j = ix_ele_start+1, end_ele%ix_ele
 
-  call track1_bunch(bbu_beam%bunch(ib), lat, lat%ele(j), bbu_beam%bunch(ib), err)
+  call track1_bunch(bbu_beam%bunch(ib), lat%ele(j), err)
 
   ! For debug, to extract the bunch orbit.
   !print *, 'Orbit information saved to bunch_vec.txt '

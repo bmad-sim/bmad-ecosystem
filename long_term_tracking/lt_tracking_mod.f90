@@ -867,7 +867,7 @@ do i_turn = 1, lttp%n_turns
       enddo
 
     case ('BMAD')
-      call track_bunch (lat, bunch, ele_start, ele_start, err_flag)
+      call ltt_track_bmad(lttp, ltt_com, ele_start, bunch)
 
     case ('PTC')
       do ip = 1, size(bunch%particle)
@@ -1935,7 +1935,8 @@ do i = 1, branch%n_ele_track+1
       n_sec = n_sec + 1
       allocate(ltt_com%sec(n_sec)%map)
       call ptc_setup_map_with_radiation (ltt_com%sec(n_sec)%map, ltt_com%sec(n_sec-1)%ele, ele0, &
-                                lttp%map_order, bmad_com%radiation_damping_on, lttp%symplectic_map_tracking)
+                   lttp%map_order, bmad_com%radiation_damping_on, lttp%symplectic_map_tracking, err_flag = err)
+      if (err) stop
       ltt_com%sec(n_sec)%type = map$
       ltt_com%sec(n_sec)%ele => ele
     endif
@@ -2008,7 +2009,7 @@ branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
 
 if (lttp%split_bends_for_radiation) then
   call init_ele(marker, marker$)
-  marker%name = 'RADIATION_PT'
+  marker%name = 'Radiation_Point'
   marker%ix_pointer = not_in_map$
 
   i = 0
@@ -2025,7 +2026,7 @@ if (lttp%split_bends_for_radiation) then
   call lattice_bookkeeper(ltt_com%tracking_lat)
 endif
 
-! Warning if beambeam element is included in amap
+! Warning if beambeam element is included in a map
 
 do ie = 1, branch%n_ele_track
   ele => branch%ele(ie)
@@ -2088,6 +2089,45 @@ end subroutine ltt_pointer_to_map_ends
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
+subroutine ltt_track_bmad (lttp, ltt_com, ele_start, bunch)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (bunch_struct) bunch
+type (ele_struct), target :: ele_start
+type (ele_struct), pointer :: ele
+
+integer i
+logical err_flag, rad_damp
+
+!
+
+if (lttp%split_bends_for_radiation) then
+  ele => ele_start
+  do
+    ele => pointer_to_next_ele(ele, skip_beginning = .true.)
+    if (ele%name == 'Radiation_Point') then
+      rad_damp = set_parameter (bmad_com%radiation_damping_on, .false.)
+      do i = 1, size(bunch%particle)
+        call track1_radiation_center(bunch%particle(i), pointer_to_next_ele(ele, -1), &
+                                                            pointer_to_next_ele(ele), ele%branch%param)
+      enddo
+      bmad_com%radiation_damping_on = rad_damp
+    else
+      call track1_bunch (bunch, ele_start, err_flag)
+    endif
+    if (ele%ix_ele == ele_start%ix_ele) return
+  enddo
+else
+  call track_bunch (ele_start%branch%lat, bunch, ele_start, ele_start, err_flag)
+endif
+
+end subroutine ltt_track_bmad
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
 subroutine ltt_track_map (lttp, ltt_com, orbit)
 
 type (ltt_params_struct) lttp
@@ -2112,7 +2152,7 @@ do i = 1, ubound(ltt_com%sec, 1)
     call ptc_track_map_with_radiation (orbit, sec%map, rad_damp = bmad_com%radiation_damping_on, rad_fluct = map_fluct_on)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
     if (orbit%state /= alive$) return
-  elseif (sec%ele%name == 'RADIATION_PT') then
+  elseif (sec%ele%name == 'Radiation_Point') then
     rad_damp = set_parameter (bmad_com%radiation_damping_on, .false.)
     call track1_radiation_center(orbit, pointer_to_next_ele(sec%ele, -1), pointer_to_next_ele(sec%ele), branch%param)
     bmad_com%radiation_damping_on = rad_damp
