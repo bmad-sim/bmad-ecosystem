@@ -124,14 +124,21 @@ Example:
   long_term_tracking my_input_file.init
 \end{code}
 The \vn{<master_input_file_name>} optional argument is used to set the master input file name. The
-default value is ``\vn{long_term_tracking.init}''. 
+default value is ``\vn{long_term_tracking.init}''. The syntax of the master input file is explained
+in \sref{s:input}.
 
 Example input files are in the directory (relative to the root of a Distribution):
 \begin{code}
   bsim/long_turn_tracking/example
 \end{code}
 
-The syntax of the master input file is explained in \sref{s:input}.
+When running the MPI version threaded over multiple computers, the details of how to start the process will
+vary depending upon the installation. See your local Guru for details. When running on a single machine, 
+the typical command will look like
+\begin{example}
+  mpiexec -n <num_processes> long_term_tracking_mpi {<master_input_file_name>}
+\end{example}
+where \vn{<num_processes>} is the number of processes. 
 
 %------------------------------------------------------------------
 \Section{Definition of Some Terms}
