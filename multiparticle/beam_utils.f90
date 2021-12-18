@@ -14,31 +14,30 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_hom (bunch_start, ele, param, bunch_end, direction)
+! Subroutine track1_bunch_hom (bunch, ele, direction)
 !
 ! Subroutine to track a bunch of particles through an element including wakefields.
 !
 ! Input:
-!   bunch_start -- bunch_struct: Starting bunch position.
+!   bunch       -- bunch_struct: Starting bunch position.
 !   ele         -- Ele_struct: The element to track through.
-!   param       -- lat_param_struct: General parameters.
 !   direction   -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
 !
 ! Output:
-!   bunch_end -- Bunch_struct: Ending bunch position.
+!   bunch       -- Bunch_struct: Ending bunch position.
 !-
 
-subroutine track1_bunch_hom (bunch_start, ele, param, bunch_end, direction)
+subroutine track1_bunch_hom (bunch, ele, direction)
 
 use ptc_interface_mod, only: ele_to_taylor
 
 implicit none
 
-type (bunch_struct) bunch_start, bunch_end
+type (bunch_struct) bunch
 type (ele_struct) ele, half_ele
 type (ele_struct), pointer :: wake_ele
 
-type (lat_param_struct) param
+type (branch_struct), pointer :: branch
 
 real(rp) charge, ds_wake
 
@@ -50,8 +49,9 @@ character(*), parameter :: r_name = 'track1_bunch_hom'
 
 ! Note: PTC tracking is not not thread safe.
 
-bunch_start%particle%direction = integer_option(1, direction)
-if (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param)
+branch => pointer_to_branch(ele)
+bunch%particle%direction = integer_option(1, direction)
+if (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, branch%param)
 thread_safe = (ele%tracking_method /= symp_lie_ptc$)
 
 !------------------------------------------------
@@ -61,13 +61,13 @@ wake_ele => pointer_to_wake_ele(ele, ds_wake)
 if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
   !$OMP parallel do if (thread_safe)
-  do j = 1, size(bunch_start%particle)
-    if (bunch_start%particle(j)%state /= alive$) cycle
-    call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
+  do j = 1, size(bunch%particle)
+    if (bunch%particle(j)%state /= alive$) cycle
+    call track1 (bunch%particle(j), ele, branch%param, bunch%particle(j))
   enddo
   !$OMP end parallel do
 
-  bunch_end%charge_live = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
+  bunch%charge_live = sum (bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
   return
 endif
 
@@ -78,9 +78,9 @@ endif
 
 if (ele%value(l$) == 0) then
   !$OMP parallel do if (thread_safe)
-  do j = 1, size(bunch_start%particle)
-    if (bunch_start%particle(j)%state /= alive$) cycle
-    call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
+  do j = 1, size(bunch%particle)
+    if (bunch%particle(j)%state /= alive$) cycle
+    call track1 (bunch%particle(j), ele, branch%param, bunch%particle(j))
   enddo
   !$OMP end parallel do
 
@@ -88,9 +88,9 @@ else
   call transfer_ele (ele, half_ele, .true.)
 
   if (integer_option(1, direction) == 1) then
-    call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, param, .true., .false., err_flag)
+    call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, branch%param, .true., .false., err_flag)
   else
-    call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, param, .false., .true., err_flag, half_ele)
+    call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, branch%param, .false., .true., err_flag, half_ele)
   endif
 
   if (err_flag) then
@@ -98,48 +98,48 @@ else
     return
   endif
 
-  if (half_ele%tracking_method == taylor$ .and. .not. associated(half_ele%taylor(1)%term)) call ele_to_taylor(half_ele, param)
+  if (half_ele%tracking_method == taylor$ .and. .not. associated(half_ele%taylor(1)%term)) call ele_to_taylor(half_ele, branch%param)
 
   !$OMP parallel do if (thread_safe)
-  do j = 1, size(bunch_start%particle)
-    if (bunch_start%particle(j)%state /= alive$) cycle
-    call track1 (bunch_start%particle(j), half_ele, param, bunch_end%particle(j))
+  do j = 1, size(bunch%particle)
+    if (bunch%particle(j)%state /= alive$) cycle
+    call track1 (bunch%particle(j), half_ele, branch%param, bunch%particle(j))
   enddo
   !$OMP end parallel do
 endif
 
 ! Wakefields
 
-call order_particles_in_z (bunch_end)  
+call order_particles_in_z (bunch)  
 
-call track1_wake_hook (bunch_end, ele, finished)
+call track1_wake_hook (bunch, ele, finished)
 
 if (.not. finished) then
-  call track1_sr_wake (bunch_end, wake_ele)
-  call track1_lr_wake (bunch_end, wake_ele)
+  call track1_sr_wake (bunch, wake_ele)
+  call track1_lr_wake (bunch, wake_ele)
 endif
 
 ! Track the last half of the cavity.
 
 if (ele%value(l$) == 0) then
-  bunch_end%charge_live = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
+  bunch%charge_live = sum (bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
   return
 endif
 
 if (integer_option(1, direction) == 1) then
-  call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, param, .false., .true., err_flag, half_ele)
+  call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, branch%param, .false., .true., err_flag, half_ele)
 else
-  call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, param, .true., .false., err_flag)
+  call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, branch%param, .true., .false., err_flag)
 endif
 
 !$OMP parallel do if (thread_safe)
-do j = 1, size(bunch_end%particle)
-  if (bunch_end%particle(j)%state /= alive$) cycle
-  call track1 (bunch_end%particle(j), half_ele, param, bunch_end%particle(j))
+do j = 1, size(bunch%particle)
+  if (bunch%particle(j)%state /= alive$) cycle
+  call track1 (bunch%particle(j), half_ele, branch%param, bunch%particle(j))
 enddo
 !$OMP end parallel do
 
-bunch_end%charge_live = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
+bunch%charge_live = sum (bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
 
 end subroutine track1_bunch_hom
 

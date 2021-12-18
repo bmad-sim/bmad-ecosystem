@@ -162,7 +162,7 @@ do i = 0, ubound(lat%branch, 1)
   do j = 0, branch%n_ele_track
     ele => branch%ele(j)
     call misalign_ptc_fibre (ele, .true., ele%ptc_fibre, .true.)
-    if (ele%key == beambeam$ .and. ele%is_on) call beambeam_fibre_setup(ele, ele%ptc_fibre, branch%param)
+    if (ele%key == beambeam$ .and. ele%is_on) call beambeam_fibre_setup(ele, ele%ptc_fibre)
   enddo
 
 enddo
