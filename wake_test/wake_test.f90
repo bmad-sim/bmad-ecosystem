@@ -131,11 +131,11 @@ beam_init%sig_z = 5.99585e-3  ! 200 ps * cLight
 call init_bunch_distribution (lat%ele(0), lat%param, beam_init, 0, bunch_init)
 bunch = bunch_init
 
-call track1_bunch (bunch, lat, ele, bunch, err_flag)
+call track1_bunch (bunch, ele, err_flag)
 
 bmad_com%sr_wakes_on = .false.
 bunch0 = bunch_init
-call track1_bunch (bunch0, lat, ele, bunch0, err_flag)
+call track1_bunch (bunch0, ele, err_flag)
 
 write (1, '(a, 6es18.9)') '"SR-P20" REL 1E-8' , bunch%particle(20)%vec - bunch0%particle(20)%vec
 write (1, '(a, 6es18.9)') '"SR-P40" REL 1E-8' , bunch%particle(40)%vec - bunch0%particle(40)%vec
@@ -147,7 +147,7 @@ ele => lat%ele(2)
 bunch = bunch_init
 
 do n = 1, 3
-  call track1_bunch (bunch, lat, ele, bunch, err_flag)
+  call track1_bunch (bunch, ele, err_flag)
   do i = 1, size(bunch%particle)
     bunch%particle(i)%t = bunch%particle(i)%t + 1e-7
   enddo
@@ -158,7 +158,7 @@ bmad_com%lr_wakes_on = .false.
 bunch0 = bunch_init
 
 do n = 1, 3
-  call track1_bunch (bunch0, lat, ele, bunch0, err_flag)
+  call track1_bunch (bunch0, ele, err_flag)
   do i = 1, size(bunch0%particle)
     bunch0%particle(i)%t = bunch0%particle(i)%t + 1e-7
   enddo
@@ -176,7 +176,7 @@ bunch2 = bunch_init
 
 do n = 1, 3
   do ie = 3, 5
-    call track1_bunch (bunch2, lat, lat%ele(ie), bunch2, err_flag)
+    call track1_bunch (bunch2, lat%ele(ie), err_flag)
   enddo
   do i = 1, size(bunch2%particle)
     bunch2%particle(i)%t = bunch2%particle(i)%t + 1e-7
@@ -190,12 +190,12 @@ write (1, '(a, 6es18.9)') '"dB-LR-Pipe-P40" ABS 1E-20' , dvec(bunch2%particle(40
 
 bunch0 = bunch_init
 do n = 1, 3
-  call track1_bunch (bunch0, lat, lat%ele(6), bunch0, err_flag)
+  call track1_bunch (bunch0, lat%ele(6), err_flag)
 enddo
 
 bunch2 = bunch_init
 do n = 1, 3
-  call track1_bunch (bunch2, lat, lat%ele(7), bunch2, err_flag)
+  call track1_bunch (bunch2, lat%ele(7), err_flag)
 enddo
 
 bunch2%particle%vec(5) = bunch2%particle%vec(5) - 6d-17       ! Correction due to rf2 having finite length
