@@ -274,7 +274,7 @@ do ib = 0, ubound(lat%branch, 1)
   endif
 
   !----------------------------
-  ! Loop over all elements in the branch
+  ! Loop over all tracking elements in the branch
 
   ix_super_end = 0  ! End index of current super_lord_region
 
@@ -440,6 +440,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   lord%value(p0c$)   = slave%value(p0c$)
   lord%value(E_tot$) = slave%value(E_tot$)
   lord%ref_time      = slave%ref_time
+  lord%ref_species   = slave%ref_species
 
   ! Transfer the starting energy.
 

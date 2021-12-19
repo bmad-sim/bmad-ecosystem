@@ -103,6 +103,20 @@ if (logic_option(.true., init_to_edge)) then
   endif
 endif
 
+! "Preprocess" with custom code.
+! Note: Energy ramping can be done here so track1_preprocess is called before the energy sanity checks below.
+
+finished = .false.
+call track1_preprocess (start2_orb, ele, param, err, finished, radiation_included, track)
+if (err) return
+if (finished) then
+  end_orb = start2_orb
+  if (present(err_flag)) err_flag = err
+  return
+endif
+
+! Energy sanity checks.
+
 if (start2_orb%species /= photon$ .and. start2_orb%state == alive$) then
   err = .false.
 
@@ -143,17 +157,6 @@ endif
 if (start2_orb%state == inside$ .and. .not. time_RK_tracking) then
   call out_io (s_error$, r_name, 'PARTICLE''S STARTING POSITION IS INSIDE THE ELEMENT! ' // ele%name)
   if (global_com%exit_on_error) call err_exit
-endif
-
-! Custom tracking if the custom routine is to do everything.
-
-finished = .false.
-call track1_preprocess (start2_orb, ele, param, err, finished, radiation_included, track)
-if (err) return
-if (finished) then
-  end_orb = start2_orb
-  if (present(err_flag)) err_flag = err
-  return
 endif
 
 ! Init
