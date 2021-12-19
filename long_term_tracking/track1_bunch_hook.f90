@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_bunch_hook (bunch_start, ele, bunch_end, err, centroid, direction, finished)
+! Subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished)
 !
 ! Routine that can be customized for tracking a bunch through a single element.
 !
@@ -17,14 +17,13 @@
 !   finished    -- logical: When set True, the standard track1_bunch code will not be called.
 !-
 
-subroutine track1_bunch_hook (bunch_start, ele, bunch_end, err, centroid, direction, finished)
+subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished)
 
 use lt_tracking_mod, dummy => track1_bunch_hook
 
 implicit none
 
-type (bunch_struct), target :: bunch_start
-type (bunch_struct), target :: bunch_end
+type (bunch_struct), target :: bunch
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
 type (coord_struct), optional :: centroid(0:)
@@ -45,8 +44,8 @@ finished = .false.
 n = ltt_com_global%n_ramper_loc
 if (n == 0) return
 
-t = sum(bunch_start%particle%t, bunch_start%particle%state == alive$) / &
-           count(bunch_start%particle%state == alive$) + 0.5_rp * ele%value(delta_ref_time$) + &
+t = sum(bunch%particle%t, bunch%particle%state == alive$) / &
+           count(bunch%particle%state == alive$) + 0.5_rp * ele%value(delta_ref_time$) + &
            ltt_params_global%ramping_start_time
 
 do ir = 1, ltt_com_global%n_ramper_loc
@@ -69,10 +68,10 @@ endif
 
 ! Adjust particle reference energy if needed.
 
-if (bunch_start%particle(1)%p0c == ele%value(p0c_start$)) return
+if (bunch%particle(1)%p0c == ele%value(p0c_start$)) return
 
-do ip = 1, size(bunch_start%particle)
-  orb => bunch_start%particle(ip)
+do ip = 1, size(bunch%particle)
+  orb => bunch%particle(ip)
   if (orb%state /= alive$) cycle
   r = orb%p0c / ele%value(p0c_start$)
   orb%vec(2) = r * orb%vec(2)
