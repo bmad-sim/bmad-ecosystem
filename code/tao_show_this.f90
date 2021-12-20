@@ -3871,7 +3871,7 @@ case ('spin')
     endif
 
     datum%ix_branch = ix_branch
-    call tao_spin_matrix_calc (datum, u, ele_ref%ix_ele, ele%ix_ele)
+    call tao_spin_matrix_calc (datum, u, ele_ref, ele)
     if (.not. sm%valid) then
       nl=nl+1; lines(nl) = 'INVALID: ' // datum%why_invalid
       return
