@@ -3060,7 +3060,7 @@ case ('spin_tune_ptc.')
 
 case ('spin_g_matrix.')
 
-  call tao_spin_matrix_calc (datum, u, ix_ref, ix_ele)
+  call tao_spin_matrix_calc (datum, u, ele_ref, ele)
   valid_value = datum%spin_map%valid
   why_invalid = datum%why_invalid
 

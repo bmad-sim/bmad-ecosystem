@@ -1023,7 +1023,7 @@ case ('spin_mat8')
 
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
-    call tao_spin_matrix_calc (datum, u, ie-1, ie)
+    call tao_spin_matrix_calc (datum, u, pointer_to_next_ele(ele,-1), ele)
 
     write (iu, *)
     write (iu, '(i6, 2x, a, a16, f16.9)') ie, ele%name, key_name(ele%key), ele%s

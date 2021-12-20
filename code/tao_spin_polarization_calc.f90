@@ -139,9 +139,7 @@ function integ_dn2(old_g3int, old_dn, g3int, dn) result (integral)
 
 real(rp) old_g3int, g3int, old_dn(3), dn(3), integral
 
-
-integral = (old_g3int * dot_product(old_dn, old_dn) + sqrt(old_g3int*g3int) * dot_product(old_dn, dn) + &
-                                                                         g3int * dot_product(dn, dn)) * (2.0_rp / 3.0_rp)
+integral = (old_g3int + g3int) * dot_product(old_dn+dn, old_dn+dn) / 4
 
 end function integ_dn2
 

@@ -540,26 +540,27 @@ case ('set')
   set_word = ''
 
   do
+    if (cmd_line(1:1) == '-') then
+      call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set'], .true., switch, err, ix)
+      if (err) return
+      select case (switch)
+      case ('-update')
+        update = .true.
+      case ('-lord_no_set')
+        lord_set = .false.
+      end select
+      cycle
+    endif
+
+    if (set_word /= '') exit
+
     call tao_next_switch (cmd_line, [character(20) :: 'branch', 'data', 'var', 'lattice', &
       'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
       'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-      'global', 'region', 'calculate', '-update', '-lord_no_set'], .true., switch, err, ix, print_err = .false.) 
-    select case (switch)
-    case ('-update')
-      update = .true.
-    case ('-lord_no_set')
-      lord_set = .false.
-    case ('branch', 'data', 'var', 'lattice', 'global', 'universe', 'curve', &
-            'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
-            'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
-            'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-            'region', 'calculate')
-      set_word = switch
-    case default
-      cmd_line = trim(switch) // ' ' // cmd_line
-      exit
-    end select
+      'global', 'region', 'calculate'], .true., switch, err, ix) 
+    if (err) return
+    set_word = switch
   enddo
 
   select case (set_word)

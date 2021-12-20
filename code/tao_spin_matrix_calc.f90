@@ -1,34 +1,32 @@
 !+
-! Subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele)
+! Subroutine tao_spin_matrix_calc (datum, u, ele_ref, ele_eval)
 !
 ! Routine to calculate the spin g-matrix for a datum.
 !
 ! Input:
 !   datum         -- tao_data_struct: 
 !   u             -- tao_universe_struct: Tao universe used for evaluation.
-!   ix_ref        -- integer: Reference lattice element for the datum
-!   ix_ele        -- integer: Lattice element to evaluate at.
+!   ele_ref       -- ele_struct: Reference lattice element for the datum
+!   ele_eval      -- ele_struct: Lattice element to evaluate at.
 !
 ! Output:
 !   datum%spin_map  -- tao_spin_map_struct, pointer: G-matrix, etc.
 !-
 
-subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele)
+subroutine tao_spin_matrix_calc (datum, u, ele_ref, ele_eval)
 
 use tao_data_and_eval_mod, dummy => tao_spin_matrix_calc
-use ptc_interface_mod
-use pointer_lattice
 
 implicit none
 
 type (tao_data_struct), target :: datum
 type (tao_universe_struct), target :: u
+type (ele_struct), pointer :: ele_ref, ele_eval, ele0, ele1
 type (tao_spin_map_struct), pointer :: spin_map
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
 
 integer ix_ref, ix_ele
-integer ix_r
 
 real(rp) spin_g(2,6)
 real(rp) :: mat3(3,3), quat0(0:3), quat1(0:3), qq(0:3), q0_lnm(0:3)
@@ -50,10 +48,20 @@ spin_map%valid = .false.
 
 ! Concatenate the spin/orbital map
 
-ix_r = ix_ref
-if (ix_r < 0) ix_r = ix_ele
+ele1 => ele_eval
+if (ele1%lord_status == super_lord$) ele1 => pointer_to_slave(ele1, ele1%n_slave)
 
-call spin_concat_linear_maps (spin_map%map1, branch, ix_r, ix_ele, orbit = tao_branch%orbit)
+ele0 => ele_ref
+if (.not. associated(ele0)) then
+  ele0 => ele1
+elseif (ele0%lord_status == super_lord$) then
+  ele0 => pointer_to_slave(ele0, ele0%n_slave)
+endif
+
+ix_ref = ele0%ix_ele
+ix_ele = ele1%ix_ele
+
+call spin_concat_linear_maps (spin_map%map1, branch, ix_ref, ix_ele, orbit = tao_branch%orbit)
 
 quat0 = spin_map%map1%spin_q(:, 0)
 
@@ -61,11 +69,11 @@ quat0 = spin_map%map1%spin_q(:, 0)
 
 if (any(spin_map%axis_input%n0 /= 0)) then
   n0 = spin_map%axis_input%n0 / norm2(spin_map%axis_input%n0)
-elseif (ix_ele == ix_ref) then
+elseif (associated(ele_ref) .and. ix_ele == ix_ref) then
   n0 = real(spin_map%map1%spin_q(1:3,0), rp)
   n0 = n0 / norm2(n0)
 else
-  n0 = u%model%tao_branch(datum%ix_branch)%orbit(ix_r)%spin
+  n0 = u%model%tao_branch(datum%ix_branch)%orbit(ix_ref)%spin
 endif
 
 if (all(n0 == 0)) then
@@ -96,7 +104,7 @@ else
   m0 = cross_product(l0, n0)
 endif
 
-if (ix_r == ix_ele) then
+if (ix_ref == ix_ele) then
   l1 = l0
   m1 = m0
 else
@@ -132,7 +140,12 @@ enddo
 
 !
 
-spin_map%ix_ref   = ix_ref
+if (associated(ele_ref)) then
+  spin_map%ix_ref   = ele_ref%ix_ele
+else
+  spin_map%ix_ref   = -1
+endif
+
 spin_map%ix_ele   = ix_ele
 spin_map%ix_uni   = u%ix_uni
 spin_map%axis0    = spin_axis_struct(l0, n0, m0)
