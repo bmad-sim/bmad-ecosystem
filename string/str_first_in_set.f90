@@ -1,5 +1,5 @@
 !+
-! Function str_find_first_in_set (line, set, ignore_clauses)
+! Function str_first_in_set (line, set, ignore_clauses)
 !
 ! Function to locate the first character in "line" that matches
 ! a character in "set". If no match is found, function returns 0.
@@ -15,7 +15,7 @@
 !   ix_match        -- integer: Index of the first matched character in "line"
 !-
 
-function str_find_first_in_set(line, set, ignore_clauses) result (ix_match)
+function str_first_in_set(line, set, ignore_clauses) result (ix_match)
 
 use sim_utils, only: logic_option
 

@@ -776,7 +776,7 @@ elemental function sqrt_one(x, nd) result (ds1)
   integer, optional, intent(in) :: nd
 end function
 
-function str_find_first_in_set(line, set, ignore_clauses) result (ix_match)
+function str_first_in_set(line, set, ignore_clauses) result (ix_match)
   implicit none
   character(*) line
   character(*) set
@@ -784,21 +784,21 @@ function str_find_first_in_set(line, set, ignore_clauses) result (ix_match)
   integer ix_match
 end function
 
-function str_find_first_not_in_set(line, set) result (ix_match)
+function str_first_not_in_set(line, set) result (ix_match)
   implicit none
   character(*) line
   character(*) set
   integer ix_match
 end function
 
-function str_find_last_in_set(line, set) result (ix_match)
+function str_last_in_set(line, set) result (ix_match)
   implicit none
   character(*) line
   character(*) set
   integer ix_match
 end function
 
-function str_find_last_not_in_set(line, set) result (ix_match)
+function str_last_not_in_set(line, set) result (ix_match)
   implicit none
   character(*) line
   character(*) set
