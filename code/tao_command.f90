@@ -587,7 +587,7 @@ case ('set')
     cmd_word(1:4) = cmd_word(2:5)
   endif
 
-  ix = str_find_last_in_set(cmd_word(1), '[')
+  ix = str_last_in_set(cmd_word(1), '[')
   if (set_word == 'element' .and. ix /= 0 .and. ix > index(cmd_word(1), '@')) then
     n = len_trim(cmd_word(1)) 
     if (cmd_word(1)(n:n) /= ']') then

@@ -82,11 +82,11 @@ do ie = 0, branch%n_ele_track
   s_vec(3) = sqrt(1.0_rp - s_vec(1)**2 - s_vec(2)**2)
 
   ele => branch%ele(ie)
-  call calc_radiation_tracking_integrals (ele, orbit(ie), branch%param, start_edge$, .true., int_gx, int_gy, int_g2, old_int_g3)
+  call calc_radiation_tracking_integrals (ele, orbit(ie), start_edge$, .true., int_gx, int_gy, int_g2, old_int_g3)
   old_b_vec = [int_gy, -int_gx, 0.0_rp]
   if (any(old_b_vec /= 0)) old_b_vec = old_b_vec / norm2(old_b_vec)
 
-  call calc_radiation_tracking_integrals (ele, orbit(ie), branch%param, end_edge$, .true., int_gx, int_gy, int_g2, int_g3)
+  call calc_radiation_tracking_integrals (ele, orbit(ie), end_edge$, .true., int_gx, int_gy, int_g2, int_g3)
   b_vec = [int_gy, -int_gx, 0.0_rp]
   if (any(b_vec /= 0)) b_vec = b_vec / norm2(b_vec)
 
