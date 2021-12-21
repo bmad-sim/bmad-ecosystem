@@ -128,7 +128,7 @@ if (ix1 == 0) then
 else
   datum%data_type = name(1:ix1-1)
   name = name(ix1+1:)
-  ix1 = str_find_first_in_set(name, ']', .true.)
+  ix1 = str_first_in_set(name, ']', .true.)
   if (ix1 == 0) then
     if (print_err) call out_io (s_error$, r_name, 'NO "]" FOUND IN: ' // data_name)
     return
