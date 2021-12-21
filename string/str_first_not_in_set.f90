@@ -1,5 +1,5 @@
 !+
-! Function str_find_first_not_in_set (line, set)
+! Function str_first_not_in_set (line, set)
 !
 ! Function to locate the first character in "line" that
 ! does not match a character in "set". If all characters match,
@@ -12,7 +12,7 @@
 !   ix_match -- integer: Index of the first non-matched character in "line"
 !-
 
-function str_find_first_not_in_set(line, set) result (ix_match)
+function str_first_not_in_set(line, set) result (ix_match)
 
 implicit none
 character(*) line, set

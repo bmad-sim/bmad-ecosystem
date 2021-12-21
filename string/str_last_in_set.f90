@@ -1,5 +1,5 @@
 !+
-! Function str_find_last_in_set (line, set)
+! Function str_last_in_set (line, set)
 !
 ! Function to locate the last character in "line" that matches
 ! a character in "set". If no match is found, function returns 0.
@@ -11,7 +11,7 @@
 !   ix_match -- integer: Index of the last matched character in "line"
 !-
 
-function str_find_last_in_set(line, set) result (ix_match)
+function str_last_in_set(line, set) result (ix_match)
 
 implicit none
 character(*) line, set
