@@ -2601,7 +2601,7 @@ endif
 
 ! Check custom name for invalid characters
 
-if (str_find_first_not_in_set(trim(a_str), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_') > 0) then
+if (str_first_not_in_set(trim(a_str), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_') > 0) then
   call out_io (s_error$, r_name, 'CUSTOM NAME HAS INVALID CHARACTERS: ' // a_str)
   return
 endif

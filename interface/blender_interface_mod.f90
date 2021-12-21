@@ -67,7 +67,7 @@ enddo
 ! Footer
 
 basename = file_name
-ix = str_find_last_in_set (basename, '.')
+ix = str_last_in_set (basename, '.')
 if (ix /= 0) basename = basename(:ix-1)
 
 write (iu, *)

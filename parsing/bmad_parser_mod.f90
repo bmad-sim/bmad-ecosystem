@@ -2335,7 +2335,7 @@ if (logic_option(.false., call_check)) then
   if (str == 'CALL::') then
     bp_com%parse_line = bp_com%parse_line(7:)
     call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)    
-    ix = str_find_last_in_set(line, '.')
+    ix = str_last_in_set(line, '.')
     suffix = ''
     if (ix /= 0 .and. ix > len_trim(line)-10) suffix = line(ix:)
 
