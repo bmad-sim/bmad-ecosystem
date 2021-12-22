@@ -437,11 +437,14 @@ iu = lunget()
 open (iu, file = lttp%master_output_file)
 
 call ltt_write_master('--------------------------------------', iu = iu)
+call ltt_write_master('master_input_file:                  ' // quote(ltt_com%master_input_file), iu = iu)
 call ltt_write_master('ltt%lat_file:                       ' // quote(lttp%lat_file), iu = iu)
-call ltt_write_master('ltt%sigma_matrix_output_file:       ' // quote(lttp%sigma_matrix_output_file), iu = iu)
-call ltt_write_master('ltt%particle_output_file:           ' // quote(lttp%particle_output_file), iu = iu)
 call ltt_write_master('ltt%averages_output_file:           ' // quote(lttp%averages_output_file), iu = iu)
+call ltt_write_master('ltt%beam_binary_output_file:        ' // quote(lttp%beam_binary_output_file), iu = iu)
 call ltt_write_master('ltt%custom_output_file:             ' // quote(lttp%custom_output_file), iu = iu)
+call ltt_write_master('ltt%master_output_file:             ' // quote(lttp%master_output_file), iu = iu)
+call ltt_write_master('ltt%particle_output_file:           ' // quote(lttp%particle_output_file), iu = iu)
+call ltt_write_master('ltt%sigma_matrix_output_file:       ' // quote(lttp%sigma_matrix_output_file), iu = iu)
 call ltt_write_master('ltt%map_file_prefix:                ' // quote(lttp%map_file_prefix), iu = iu)
 call ltt_write_master('ltt%simulation_mode:                ' // trim(lttp%simulation_mode), iu = iu)
 call ltt_write_master('ltt%tracking_method:                ' // trim(lttp%tracking_method), iu = iu)
@@ -450,10 +453,10 @@ if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
   call ltt_write_master('ltt%ele_start:                      ' // quote(lttp%ele_start), iu = iu)
   call ltt_write_master('ltt%ele_stop:                       ' // quote(lttp%ele_stop), iu = iu)
   call ltt_write_master('ltt%exclude_from_maps:              ' // quote(lttp%exclude_from_maps), iu = iu)
-  call ltt_write_master('ltt%split_bends_for_radiation:      ' // logic_str(lttp%split_bends_for_radiation), iu = iu)
   call ltt_write_master('ltt%symplectic_map_tracking:        ' // logic_str(lttp%symplectic_map_tracking), iu = iu)
   call ltt_write_master('Number of maps:                     ' // int_str(nm), iu = iu)
 endif
+call ltt_write_master('ltt%split_bends_for_radiation:      ' // logic_str(lttp%split_bends_for_radiation), iu = iu)
 call ltt_write_master('bmad_com%radiation_damping_on:      ' // logic_str(bmad_com%radiation_damping_on), iu = iu)
 call ltt_write_master('bmad_com%radiation_fluctuations_on: ' // logic_str(bmad_com%radiation_fluctuations_on), iu = iu)
 call ltt_write_master('bmad_com%spin_tracking_on:          ' // logic_str(bmad_com%spin_tracking_on), iu = iu)
@@ -2098,26 +2101,29 @@ type (ele_struct), target :: ele_start
 type (ele_struct), pointer :: ele
 
 integer i
-logical err_flag, rad_damp
+logical err_flag, rad_fluct
 
 !
 
 if (lttp%split_bends_for_radiation) then
+  rad_fluct = set_parameter (bmad_com%radiation_fluctuations_on, .false.)
   ele => ele_start
+
   do
-    ele => pointer_to_next_ele(ele, skip_beginning = .true.)
+    ele => pointer_to_next_ele(ele)
     if (ele%name == 'Radiation_Point') then
-      rad_damp = set_parameter (bmad_com%radiation_damping_on, .false.)
       do i = 1, size(bunch%particle)
         call track1_radiation_center(bunch%particle(i), pointer_to_next_ele(ele, -1), &
-                                                            pointer_to_next_ele(ele), ele%branch%param)
+                                              pointer_to_next_ele(ele), .false., rad_fluct)
       enddo
-      bmad_com%radiation_damping_on = rad_damp
     else
-      call track1_bunch (bunch, ele_start, err_flag)
+      if (ele%ix_ele /= 0) call track1_bunch (bunch, ele, err_flag)
     endif
     if (ele%ix_ele == ele_start%ix_ele) return
   enddo
+
+  bmad_com%radiation_fluctuations_on = rad_fluct
+
 else
   call track_bunch (ele_start%branch%lat, bunch, ele_start, ele_start, err_flag)
 endif
@@ -2137,11 +2143,12 @@ type (ltt_section_struct), pointer :: sec
 type (branch_struct), pointer :: branch
 
 integer i
-logical map_fluct_on, rad_damp
+logical map_fluct_on, pt_fluct_on
 
 !
 
 map_fluct_on = (bmad_com%radiation_fluctuations_on .and. .not. lttp%split_bends_for_radiation) 
+pt_fluct_on = bmad_com%radiation_fluctuations_on
 branch => ltt_com%tracking_lat%branch(0)
 
 do i = 1, ubound(ltt_com%sec, 1)
@@ -2153,9 +2160,7 @@ do i = 1, ubound(ltt_com%sec, 1)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
     if (orbit%state /= alive$) return
   elseif (sec%ele%name == 'Radiation_Point') then
-    rad_damp = set_parameter (bmad_com%radiation_damping_on, .false.)
-    call track1_radiation_center(orbit, pointer_to_next_ele(sec%ele, -1), pointer_to_next_ele(sec%ele), branch%param)
-    bmad_com%radiation_damping_on = rad_damp
+    call track1_radiation_center(orbit, pointer_to_next_ele(sec%ele, -1), pointer_to_next_ele(sec%ele), .false., pt_fluct_on)
   else  ! EG: beambeam
     call track1 (orbit, sec%ele, branch%param, orbit)
   endif
