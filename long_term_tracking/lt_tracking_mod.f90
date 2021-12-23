@@ -486,11 +486,12 @@ end subroutine ltt_print_inital_info
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_master (line, lttp, iu)
+subroutine ltt_write_master (line, lttp, iu, append)
 
 type (ltt_params_struct), optional :: lttp
 integer, optional :: iu
 integer iv
+logical, optional :: append
 character(*) line
 
 !
@@ -501,7 +502,11 @@ if (present(iu)) then
   write (iu, '(a)') trim(line)
 else
   iv = lunget()
-  open (iv, file = lttp%master_output_file)
+  if (logic_option(.false., append)) then
+    open (iv, file = lttp%master_output_file, access = 'append')
+  else
+    open (iv, file = lttp%master_output_file)
+  endif
   write (iv, '(a)') trim(line)
   close(iv)
 endif
@@ -518,7 +523,6 @@ type (ltt_params_struct) lttp
 type (beam_init_struct) beam_init
 type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
-type (coord_struct), allocatable :: orb(:)
 type (coord_struct) orb_map, orb_map1, orb_map2, orb_bmad, orb_bmad1, orb_bmad2, orb_init
 type (ele_struct), pointer :: ele_start, ele_stop
 type (probe) prb_ptc, prb_ptc1, prb_ptc2
@@ -538,11 +542,10 @@ ix_start = ele_start%ix_ele
 ix_stop  = ele_stop%ix_ele
 
 call init_coord (orb_init, beam_init%center, ele_start, downstream_end$, spin = beam_init%spin)
-call reallocate_coord(orb, lat)
 
 if (lttp%add_closed_orbit_to_init_position) orb_init%vec = orb_init%vec + ltt_com%bmad_closed_orb(ix_start)%vec
 
-call track_check_all (orb_init, orb, 0, 0, orb_map, orb_bmad, prb_ptc, spin_ptc, ele_start, ele_stop)
+call track_check_all (orb_init, 0, 0, orb_map, orb_bmad, prb_ptc, spin_ptc, ele_start, ele_stop)
 
 if (allocated(ltt_com%sec(1)%map)) print '(a, 6f14.8)', 'Map closed orbit at start:  ', ltt_com%sec(1)%map%sub_map(1)%fix0
 print '(a, 6f14.8)', 'Bmad closed orbit at start: ', ltt_com%bmad_closed_orb(ix_start)%vec
@@ -571,8 +574,8 @@ print '(a, 6f14.8)', 'Max Diff Spin:   ', max(orb_map%spin, spin_ptc, orb_bmad%s
 !
 
 do i = 1, 6
-  call track_check_all (orb_init, orb, i, -1, orb_map1, orb_bmad1, prb_ptc1, spin_ptc, ele_start, ele_stop)
-  call track_check_all (orb_init, orb, i, +1, orb_map2, orb_bmad2, prb_ptc2, spin_ptc, ele_start, ele_stop)
+  call track_check_all (orb_init, i, -1, orb_map1, orb_bmad1, prb_ptc1, spin_ptc, ele_start, ele_stop)
+  call track_check_all (orb_init, i, +1, orb_map2, orb_bmad2, prb_ptc2, spin_ptc, ele_start, ele_stop)
   mat_ptc(1:6, i)   = (prb_ptc2%x - prb_ptc1%x) / (2 * bmad_com%d_orb(i))
   mat_bmad(1:6, i)  = (orb_bmad2%vec - orb_bmad1%vec) / (2 * bmad_com%d_orb(i))
   mat_map(1:6, i)   = (orb_map2%vec - orb_map1%vec) / (2 * bmad_com%d_orb(i))
@@ -591,9 +594,9 @@ enddo
 !------------------------------------------------------------
 contains
 
-subroutine track_check_all (orb_init, orb, i_ps, sgn, orb_map, orb_bmad, prb_ptc, spin_ptc, ele_start, ele_stop)
+subroutine track_check_all (orb_init, i_ps, sgn, orb_map, orb_bmad, prb_ptc, spin_ptc, ele_start, ele_stop)
 
-type (coord_struct) orb(0:), orb_init, orb_map, orb_bmad, orb_start
+type (coord_struct) orb_init, orb_map, orb_bmad, orb_start
 type (probe) prb_ptc
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele_start, ele_stop
@@ -614,9 +617,8 @@ call ltt_track_map (lttp, ltt_com, orb_map)
 
 ! Bmad
 
-orb(ix_start) = orb_start
-call track_many (lat, orb, ix_start, ix_stop, 1, ix_branch, track_state)
-orb_bmad = orb(ix_stop)
+orb_bmad = orb_start
+call ltt_track_bmad_single (lttp, ltt_com, ele_start, ele_stop, orb_bmad)
 
 ! PTC
 
@@ -701,10 +703,7 @@ do i_turn = 1, lttp%n_turns
   select case (lttp%tracking_method)
 
   case ('BMAD')
-    orb(ele_start%ix_ele) = orbit
-    call track_many (lat, orb, ele_start%ix_ele, ele_start%ix_ele, 1, ix_branch, track_state)
-    orbit = orb(ele_start%ix_ele)
-    if (track_state /= moving_forward$) orbit%state = lost$
+    call ltt_track_bmad_single (lttp, ltt_com, ele_start, ele_start, orbit)
 
   case ('PTC')
     prb = orbit%vec
@@ -870,7 +869,7 @@ do i_turn = 1, lttp%n_turns
       enddo
 
     case ('BMAD')
-      call ltt_track_bmad(lttp, ltt_com, ele_start, bunch)
+      call ltt_track_bmad_bunch (lttp, ltt_com, ele_start, bunch)
 
     case ('PTC')
       do ip = 1, size(bunch%particle)
@@ -2092,7 +2091,42 @@ end subroutine ltt_pointer_to_map_ends
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_track_bmad (lttp, ltt_com, ele_start, bunch)
+subroutine ltt_track_bmad_single (lttp, ltt_com, ele_start, ele_stop, orbit)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (coord_struct) orbit
+type (ele_struct), target :: ele_start, ele_stop
+type (ele_struct), pointer :: ele
+
+integer i
+logical err_flag, rad_fluct
+
+!
+
+if (lttp%split_bends_for_radiation) rad_fluct = set_parameter (bmad_com%radiation_fluctuations_on, .false.)
+ele => ele_start
+
+do
+  ele => pointer_to_next_ele(ele)
+  if (ele%name == 'Radiation_Point') then
+    call track1_radiation_center(orbit, pointer_to_next_ele(ele, -1), &
+                                            pointer_to_next_ele(ele), .false., rad_fluct)
+  else
+    call track1 (orbit, ele, ele%branch%param, orbit, err_flag = err_flag)
+  endif
+  if (ele%ix_ele == ele_stop%ix_ele) exit
+enddo
+
+if (lttp%split_bends_for_radiation) bmad_com%radiation_fluctuations_on = rad_fluct
+
+end subroutine ltt_track_bmad_single
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_track_bmad_bunch (lttp, ltt_com, ele_start, bunch)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -2117,9 +2151,9 @@ if (lttp%split_bends_for_radiation) then
                                               pointer_to_next_ele(ele), .false., rad_fluct)
       enddo
     else
-      if (ele%ix_ele /= 0) call track1_bunch (bunch, ele, err_flag)
+      call track1_bunch (bunch, ele, err_flag)
     endif
-    if (ele%ix_ele == ele_start%ix_ele) return
+    if (ele%ix_ele == ele_start%ix_ele) exit
   enddo
 
   bmad_com%radiation_fluctuations_on = rad_fluct
@@ -2128,7 +2162,7 @@ else
   call track_bunch (ele_start%branch%lat, bunch, ele_start, ele_start, err_flag)
 endif
 
-end subroutine ltt_track_bmad
+end subroutine ltt_track_bmad_bunch
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------

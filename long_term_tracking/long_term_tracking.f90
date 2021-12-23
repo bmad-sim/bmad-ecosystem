@@ -30,10 +30,7 @@ case default
 end select
 
 call run_timer ('READ', del_time)
-iu = lunget()
-open (iu, file = lttp%master_output_file, access = 'append')
-call ltt_write_master('Tracking time (min): ' // real_str(del_time/60, 4, 2), iu = iu)
-close (iu)
+call ltt_write_master('Tracking time (min): ' // real_str(del_time/60, 4, 2), lttp, append = .true.)
 
 ! Regression output is used in conjunction with the Bmad regression test suite.
 
