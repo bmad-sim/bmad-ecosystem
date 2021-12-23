@@ -1116,9 +1116,9 @@ endif ! jumpnot
   do i=1,6
     xr(i)=GRNF_zhe()*t(2)%fix0(i)  
   enddo
-    xr(1:6)=matmul(t(2)%rad,xr)
+    xr =matmul(t(2)%rad,xr)
 
-    x=x+xr(1:6)
+    x(1:6)=x(1:6)+xr 
 
     do i=1,6
       xs%x(i)=x(i)+t(1)%fix0(i)
@@ -1402,7 +1402,7 @@ endif
   enddo
     xr(1:6)=matmul(t(2)%rad,xr)
 
-    x=x+xr(1:6)
+    x(1:6)=x(1:6)+xr(1:6)
 
     do i=1,6
       xs%x(i)=x(i)+t(1)%fix0(i)
@@ -1547,7 +1547,7 @@ endif
   enddo
     xr(1:6)=matmul(t(2)%rad,xr)
 
-    x=x+xr(1:6)
+    x(1:6)=x(1:6)+xr(1:6)
 
     do i=1,6
       xs%x(i)=x(i)+t(1)%fix0(i)
