@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Script to make the GSL libraries.
+# Exit Codes found in /usr/include/sysexits.h
+
+#set -x
+
+# Function to configure, make and then install the Package - contains Package Specific build configuration
+
+func_configure_make_install () {
+
+    case "${ACC_ENABLE_SHARED}" in
+        "Y" | "y" | "1" )
+            BUILD_SHARED=1
+            ;;
+    esac
+
+    cd ${WORK_DIR}
+
+    [ ${BUILD_SHARED} ] && CONFIGURE_FLAGS="--enable-shared" || CONFIGURE_FLAGS="--disable-shared"
+
+    if [ ! -e ALREADY_BUILT ] ; then
+	./configure --prefix ${OUTPUT_DIR} \
+	    ${CONFIGURE_FLAGS}
+
+	func_print_compiler_linker_flags
+
+	${GMAKE} -j ${ACC_SET_GMAKE_JOBS}
+	${GMAKE} install
+	
+	export RETVAL=$?
+
+    fi
+
+    if [ "${ARGUMENTS[1]}" == "-test" ] ; then 
+	echo -e "\nBuilding tests for `echo ${PACKAGE_VERSION}`...\n" 
+
+	${GMAKE} check
+
+	export RETVAL=$?
+
+    fi 
+
+}
+
+
+# Function that contains Package Specific files and directories to be removed
+
+func_remove_package () {
+
+    rm -rf ${OUTPUT_DIR}/include/gsl
+    rm -f ${OUTPUT_DIR}/bin/gsl-*
+    rm -f ${OUTPUT_DIR}/lib/libgsl*
+    rm -f ${OUTPUT_DIR}/lib/pkgconfig/gsl*
+    rm -f ${OUTPUT_DIR}/share/aclocal/gsl*
+    rm -f ${OUTPUT_DIR}/share/info/gsl*
+    rm -f ${OUTPUT_DIR}/share/man/man1/gsl*
+    rm -f ${OUTPUT_DIR}/share/man/man3/gsl*
+    rm -rf ${BUILD_TYPE}
+
+}
+

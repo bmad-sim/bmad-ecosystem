@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# Script to make the FFTW libraries.
+# Exit Codes found in /usr/include/sysexits.h
+
+#set -x
+
+
+# Function to configure, make and then install the Package - contains Package Specific build configuration
+
+func_configure_make_install () {
+
+    case "${ACC_ENABLE_SHARED}" in
+        "Y" | "y" | "1" )
+            BUILD_SHARED=1
+            ;;
+    esac
+
+    cd ${WORK_DIR}
+
+    export F77=${FC}
+
+    [ "${BUILD_TYPE}" == "debug" ] && CONFIGURE_DEBUG="--enable-debug"
+    [ ${BUILD_SHARED} ] && CONFIGURE_FLAGS="--enable-shared"
+    [ ${ACC_ENABLE_FPIC} ] && CONFIGURE_PIC="--with-pic"
+
+    if [ ! -e ALREADY_BUILT ] ; then
+	[ "$ACC_ENABLE_OPENMP" ] && CONFIGURE_FLAGS="${CONFIGURE_FLAGS} --enable-openmp"
+
+	./configure --prefix=${OUTPUT_DIR} \
+            --disable-dependency-tracking \
+            --enable-threads \
+            --includedir=${OUTPUT_DIR}/include \
+            ${CONFIGURE_FLAGS} \
+	    ${CONFIGURE_PIC} \
+            ${CONFIGURE_DEBUG}
+
+	func_print_compiler_linker_flags
+
+	${GMAKE} -j ${ACC_SET_GMAKE_JOBS}
+	${GMAKE} install
+
+	export RETVAL=$?
+
+    fi
+
+    if [ "${ARGUMENTS[1]}" == "-test" ] ; then 
+	echo -e "\nBuilding tests for `echo ${PACKAGE_VERSION}`...\n" 
+
+	${GMAKE} check
+
+	export RETVAL=$?
+
+    fi
+
+}
+
+
+# Function that contains Package Specific files and directories to be removed
+
+func_remove_package () {
+
+    rm -f ${OUTPUT_DIR}/include/fftw3*
+    rm -f ${OUTPUT_DIR}/bin/fftw-wisdom*
+    rm -f ${OUTPUT_DIR}/share/info/fftw3.info*
+    rm -f ${OUTPUT_DIR}/share/man/man1/fftw-wisdom*
+    rm -f ${OUTPUT_DIR}/lib/libfftw3*
+    rm -f ${OUTPUT_DIR}/lib/pkgconfig/fftw3.pc
+    rm -f ${OUTPUT_DIR}/lib/cmake/fftw3
+    rm -rf ${BUILD_TYPE}
+
+}
+
+

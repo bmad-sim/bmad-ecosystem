@@ -1,0 +1,297 @@
+#!/bin/bash
+
+# Script to make the OpenMPI libraries.
+# Exit Codes found in /usr/include/sysexits.h
+
+#set -x
+
+
+# If there is an OpenMPI VERSION file, use it for Package Version information
+
+if ( [ -e VERSION ] && [ "$(grep "Open MPI" VERSION)" ] ) ; then
+    source ./VERSION
+    export PACKAGE_VERSION=$(echo "OpenMPI VERSION ${major}.${minor}.${release} ${date}")
+fi
+
+# Function to configure, make and then install the Package - contains Package Specific build configuration
+
+func_configure_make_install () {
+
+    cd ${WORK_DIR}
+
+    func_check_GCC_version () {
+
+        # Set minimum GCC compiler version
+	GCC_REQ_VER=6.3
+	DEV_TOOLSET_REQ_VER=6
+
+	func_search_devtoolset () {
+            # Check for Red Hat Developer Toolset Distribution - this is RHEL, Centos, SL specific	
+	    if [ $(ls -1 /opt/rh | grep devtoolset &> /dev/null ; echo $?) -eq 0 ] ; then
+		DEVTOOLSET_DIR=/opt/rh/devtoolset
+	    
+		AVAIL_DEV=()
+
+		for ((NUM=${DEV_TOOLSET_REQ_VER} ; NUM < 10 ; NUM++))
+		{
+		    [ -d "${DEVTOOLSET_DIR}-${NUM}" ] && AVAIL_DEV=("${AVAIL_DEV[@]}" "${NUM}")
+		}
+	    
+		if [ -d "${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}" ] ; then
+		    source ${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}/enable
+		    echo -e "\nFound and enabling GCC from the Red Hat Developer Toolset"
+		    echo -e "in ${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}"
+		    func_echo_gcc
+		fi
+	    else
+		func_no_gcc
+	    fi
+	}
+
+	func_no_gcc () {
+	    echo -e "\nWARNING - no compatible GCC compiler found, unable to build ${PACKAGE_VERSION}."
+	    if ( [ $(type gcc &> /dev/null ; echo $?) -eq 0 ] ) ; then
+		echo -e "Please upgrade your version of GNU GCC, to the ${GCC_REQ_VER} version, or later." 
+		exit 69
+	    else
+		echo -e "Please install or set your PATH for the minimum GNU GCC version ${GCC_REQ_VER}, or later."
+		exit 69
+	    fi
+	}
+
+	func_echo_gcc () {
+            echo -e "\nNow using: $(gcc --version | head -1)\n"
+	}
+	
+	unset DEVTOOLSET_DIR
+
+	if ( [ $(type gcc &> /dev/null ; echo $?) -eq 0 ] ) ; then
+
+            GCC_MAJOR_VER=$(gcc --version | head -1 | cut -d')' -f2 | cut -c 2)
+	    GCC_MINOR_VER=$(gcc --version | head -1 | cut -d')' -f2 | cut -c 4)
+
+	    GCC_MIN_MINOR_VER=$(echo ${GCC_REQ_VER} | cut -d. -f2)
+
+	    case "${GCC_MAJOR_VER}" in
+		[1-4]*)
+		    [ "$(uname -s)" == "Linux" ] && func_search_devtoolset
+		    [ "$(uname -s)" == "Darwin" ] && func_no_gcc
+		    if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+			[[ "$(uname -o)" == "Msys" ]] && func_no_gcc
+		    fi
+	            ;;
+
+		5)
+		    if [ "${GCC_MINOR_VER}" -lt ${GCC_MIN_MINOR_VER} ] ; then
+			[ "$(uname -s)" == "Linux" ] && func_search_devtoolset
+			[ "$(uname -s)" == "Darwin" ] && func_no_gcc
+			if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+			    [[ "$(uname -o)" == "Msys" ]] && func_no_gcc
+			fi
+		    else
+			func_echo_gcc
+		    fi
+		    ;;
+
+		[6-9]*)
+		    func_echo_gcc 
+		    ;;
+
+		*)
+		    func_no_gcc
+		    ;;
+	    esac
+	else
+	    func_no_gcc
+	fi
+    }
+
+    # Check to see if OpenMPI is already installed, at a supported version and built with requested Fortran/GCC Compiler.
+    export OPENMPI_CHECK=$(ompi_info &> /dev/null ; echo $?)
+
+    if ( [ "${OPENMPI_CHECK}" -eq 0 ] && [ "${DIST_BUILD}" ] ) ; then
+
+	echo -e "\nChecking installed version OpenMPI..."
+
+	export INSTALLED_OPENMPI_VERSION=$(ompi_info | grep "Open RTE:" | awk ' { print $3} ')
+	export INSTALLED_OPENMPI_MAJOR_VER=$(echo ${INSTALLED_OPENMPI_VERSION} | cut -d. -f1)
+	export INSTALLED_OPENMPI_MINOR_VER=$(echo ${INSTALLED_OPENMPI_VERSION} | cut -d. -f2)
+	export INSTALLED_OPENMPI_PATH=$(type -p ompi_info | sed 's|bin/ompi_info||')
+	export INSTALLED_OPENMPI_FORT_ABS=$(ompi_info | grep "Fort compiler abs:" | awk -v FS="${FC}" ' { print $1 } ')
+	export INSTALLED_OPENMPI_FORT=$(ompi_info | grep "Fort compiler abs:" | sed "s|${INSTALLED_OPENMPI_FORT_ABS}||")
+	export INSTALLED_OPENMPI_C_VER=$(ompi_info | grep "C compiler version:" | awk ' { print $4} ')
+	export REQUESTED_GCC_VER=$(gcc --version | head -1 | awk ' { print $3 } ')
+
+	echo -e "\nFound OpenMPI-"${INSTALLED_OPENMPI_VERSION}
+
+	case "${ACC_FORCE_BUILTIN_MPI}" in
+            "Y" | "y" | "1" )
+		if [ "${INSTALLED_OPENMPI_FORT}" != "${FC}" ] ; then
+                    echo -e "\nInstalled OpenMPI is not built with the requested ${FC} Fortran compiler,"
+                    echo -e "building ${PACKAGE_VERSION}"
+		elif ( [ "${INSTALLED_OPENMPI_C_VER}" != "${REQUESTED_GCC_VER}" ] && [ "${FC}" == "gfortran" ] ) ; then
+                    echo -e "\nInstalled OpenMPI is built with GCC/gfortran version ${INSTALLED_OPENMPI_C_VER} not the requested GCC/gfortran version ${REQUESTED_GCC_VER},"
+                    echo -e "building ${PACKAGE_VERSION}"
+                else
+		    echo -e "\nUsing requested built-in OpenMPI, as set in ACC_FORCE_BUILTIN_MPI - no need to build OpenMPI\n"
+                    exit 0
+                fi
+		;;
+	    *)
+    		if ( [ "${INSTALLED_OPENMPI_MAJOR_VER}" -eq "${major}" ] && [ "${INSTALLED_OPENMPI_MINOR_VER}" -gt "${minor}" ] ) ; then
+		    if [ "${INSTALLED_OPENMPI_FORT}" != "${FC}" ] ; then
+			echo -e "\nInstalled OpenMPI is not built with the requested ${FC} Fortran compiler,"
+			echo -e "building ${PACKAGE_VERSION}"
+		    elif ( [ "${INSTALLED_OPENMPI_C_VER}" != "${REQUESTED_GCC_VER}" ] && [ "${FC}" == "gfortran" ] ) ; then
+			echo -e "\nInstalled OpenMPI is built with GCC/gfortran version ${INSTALLED_OPENMPI_C_VER} not the requested GCC/gfortran version ${REQUESTED_GCC_VER},"
+			echo -e "building ${PACKAGE_VERSION}"
+		    else
+			echo -e "\nUsing installed OpenMPI - no need to build OpenMPI\n"
+			exit 0
+		    fi
+		fi
+		;;
+	esac
+    fi
+
+    # Cannot use OpenMP to build OpenMPI, so remove OpenMP flags if OpenMP is enabled
+    case "${ACC_ENABLE_OPENMP}" in
+        "Y" | "y" | "1" )
+            export CFLAGS=$(echo ${CFLAGS} | sed -e 's/-fopenmp//')
+            if ( [ "${FC}" == "gfortran" ] ) ; then
+		export FCFLAGS=$(echo ${FCFLAGS} | sed -e 's/-fopenmp//')
+		export LDFLAGS=$(echo ${LDFLAGS} | sed -e 's/-lgomp//')
+            elif [ "${IFORT_MAJOR_VERSION}" ] ; then
+                if [ "${IFORT_MAJOR_VERSION}" -gt 15 ] ; then
+		    export FCFLAGS=$(echo ${FCFLAGS} | sed -e 's/-qopenmp//')
+                else
+		    export FCFLAGS=$(echo ${FCFLAGS} | sed -e 's/-openmp//')
+                fi
+                export LDFLAGS="-liomp5"
+		export LDFLAGS=$(echo ${LDFLAGS} | sed -e 's/-liomp5//')
+            fi
+	    export FFLAGS=${FCFLAGS}
+            ;;
+        *)
+            ;;
+    esac
+
+    # Set some variables 
+    export CXXFLAGS="-std=gnu++11" # Required for OpenMPI 1.10.X
+ 
+    [ "${BUILD_TYPE}" == "debug" ] && export FCFLAGS=${FFLAGS}
+ 
+    # Now check for GCC 6.3 before we start
+    func_check_GCC_version
+
+    # Start the build
+    if [ ! -e ALREADY_BUILT ] ; then
+
+#	NOTE: Can not disable RPATHs in binaries nor libraries - hardcoded paths will be inserted!
+#	[ ! "${DIST_BUILD}" ] && sed -i -r 's/(hardcode_into_libs)=.*$/\1=no/' ./configure
+
+	./autogen.pl --force
+
+	./configure \
+	    --prefix=${OUTPUT_DIR} \
+	    --with-sge \
+	    --with-slurm \
+	    ${CONFIGURE_DEBUG} \
+	    CC=gcc \
+	    CXX=g++ \
+	    FC=${FC} 
+
+	func_print_compiler_linker_flags
+
+	${GMAKE} all install
+
+	export RETVAL=$?
+    fi
+
+    if [ "${ARGUMENTS[1]}" == "-test" ] ; then 
+	echo -e "\nBuilding tests for `echo ${PACKAGE_VERSION}`...\n" 
+
+	${GMAKE} check 
+
+	export RETVAL=$?
+    fi
+
+    if ( [ `uname` == "Darwin" ] && [ "${FC}" == "ifort" ] ) ; then 
+	ln -s /opt/intel/lib/* ${OUTPUT_DIR}/lib/ &> /dev/null 2>&1
+    fi
+
+    if [ ! -L ${OUTPUT_DIR}/modules/mpi.mod ] ; then 
+	cd ${OUTPUT_DIR}/modules/
+	ln -s ../lib/*mpi*.mod .
+    fi
+}
+
+
+# Function that contains Package Specific files and directories to be cleaned up
+
+func_remove_package () {
+
+    rm -f ${OUTPUT_DIR}/bin/aggregate_profile.pl
+    rm -f ${OUTPUT_DIR}/bin/profile2mat.pl
+    rm -f ${OUTPUT_DIR}/bin/mpi*
+    rm -f ${OUTPUT_DIR}/bin/ompi*
+    rm -f ${OUTPUT_DIR}/bin/opal_*
+    rm -f ${OUTPUT_DIR}/bin/opari*
+    rm -f ${OUTPUT_DIR}/bin/orte*
+    rm -f ${OUTPUT_DIR}/bin/osh*
+    rm -f ${OUTPUT_DIR}/bin/otf*
+    rm -f ${OUTPUT_DIR}/bin/prun
+    rm -f ${OUTPUT_DIR}/bin/shmem*
+    rm -f ${OUTPUT_DIR}/bin/vt*
+    rm -f ${OUTPUT_DIR}/etc/openmpi-*
+    rm -f ${OUTPUT_DIR}/etc/vt*
+    rm -f ${OUTPUT_DIR}/include/mpi*
+    rm -rf ${OUTPUT_DIR}/include/mpp
+    rm -rf ${OUTPUT_DIR}/include/openmpi
+    rm -f ${OUTPUT_DIR}/include/shmem*.*
+    rm -f ${OUTPUT_DIR}/include/pshmem*.*
+    rm -rf ${OUTPUT_DIR}/include/openshmem
+    rm -rf ${OUTPUT_DIR}/include/vampirtrace
+    rm -f ${OUTPUT_DIR}/lib/libmca_*
+    rm -f ${OUTPUT_DIR}/lib/libmpi*
+    rm -f ${OUTPUT_DIR}/lib/libompi*
+    rm -f ${OUTPUT_DIR}/lib/libopen-*
+    rm -f ${OUTPUT_DIR}/lib/liboshmem.*
+    rm -f ${OUTPUT_DIR}/lib/libotfaux*
+    rm -f ${OUTPUT_DIR}/lib/libvt-*
+    rm -f ${OUTPUT_DIR}/lib/libvt.*
+    rm -f ${OUTPUT_DIR}/lib/mpi*.mod
+    rm -f ${OUTPUT_DIR}/lib/mpi_*.mod
+    rm -f ${OUTPUT_DIR}/lib/ompi*
+    rm -f ${OUTPUT_DIR}/lib/pmpi_*.mod
+    rm -rf ${OUTPUT_DIR}/lib/openmpi
+    rm -f ${OUTPUT_DIR}/lib/pkgconfig/ompi-*
+    rm -f ${OUTPUT_DIR}/lib/pkgconfig/ompi.*
+    rm -f ${OUTPUT_DIR}/lib/pkgconfig/orte.*
+    rm -f ${OUTPUT_DIR}/lib/pkgconfig/pmix.*
+    rm -rf ${OUTPUT_DIR}/lib/pmix
+    rm -f ${OUTPUT_DIR}/modules/*mpi*.mod
+    rm -f ${OUTPUT_DIR}/modules/mpi_*.mod
+    rm -f ${OUTPUT_DIR}/modules/pmpi_*.mod
+    rm -f ${OUTPUT_DIR}/etc/pmix*
+    rm -f ${OUTPUT_DIR}/share/man/man*/mpi*
+    rm -f ${OUTPUT_DIR}/share/man/man*/ompi*
+    rm -f ${OUTPUT_DIR}/share/man/man*/opal*
+    rm -f ${OUTPUT_DIR}/share/man/man*/orte*
+    rm -f ${OUTPUT_DIR}/share/man/man*/oshmem_*
+    rm -f ${OUTPUT_DIR}/share/man/man*/osh*
+    rm -f ${OUTPUT_DIR}/share/man/man*/prun*
+    rm -f ${OUTPUT_DIR}/share/man/man*/*MPI*.3
+    rm -f ${OUTPUT_DIR}/share/man/man*/*_my_pe*
+    rm -f ${OUTPUT_DIR}/share/man/man*/*_num_pes*
+    rm -f ${OUTPUT_DIR}/share/man/man*/*OpenSHMEM*
+    rm -f ${OUTPUT_DIR}/share/man/man*/*shfree*
+    rm -f ${OUTPUT_DIR}/share/man/man*/*shmem*
+    rm -f ${OUTPUT_DIR}/share/man/man*/*shmalloc*
+    rm -f ${OUTPUT_DIR}/share/man/man*/*shrealloc*
+    rm -f ${OUTPUT_DIR}/share/man/man*/*start_pes*
+    rm -rf ${OUTPUT_DIR}/share/openmpi
+    rm -rf ${OUTPUT_DIR}/share/pmix
+    rm -rf ${OUTPUT_DIR}/share/vampirtrace
+    rm -rf ${BUILD_TYPE}
+}

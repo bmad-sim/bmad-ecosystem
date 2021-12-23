@@ -1,0 +1,201 @@
+#!/bin/bash
+
+# Script to make the PLplot libraries.
+# Exit Codes found in /usr/include/sysexits.h
+
+#set -x
+
+
+# Function to configure, make and then install the Package - contains Package Specific build configuration
+
+func_configure_make_install () {
+
+    case "${ACC_ENABLE_SHARED}" in
+        "Y" | "y" | "1" )
+            BUILD_SHARED=1
+            ;;
+    esac
+
+    [ "${BUILD_TYPE}" == "debug" ] \
+	&& CMAKE_BUILD_TYPE="Debug" \
+	||  CMAKE_BUILD_TYPE="Release"
+
+    [ -d ${UTIL_DIR}/bin ] \
+	&& PATH=${UTIL_DIR}/bin${PATH:+:${PATH}}
+
+    [ "${CMAKE_BINARY}" ] \
+	|| CMAKE_BINARY=cmake
+
+    cd ${WORK_DIR}
+
+    export CFLAGS=$(echo ${CFLAGS} | sed -e 's/std=gnu99/std=c99/g')
+    export CFLAGS="-pedantic -D_POSIX_C_SOURCE=200112L ${CFLAGS}"
+
+    export CXXFLAGS="-fvisibility=hidden ${CFLAGS}"
+    export CXXFLAGS=$(echo ${CXXFLAGS} | sed -e 's/std=cc99/std=cc++98/g')
+
+    [ "${FC}" == "gfortran" ] \
+	&& export FFLAGS="-std=legacy -fall-intrinsics -fvisibility=hidden -pedantic ${FFLAGS}"
+
+    # Fix Fortran Compiler flag bug with PLplot Version 5.9.9 for debug build
+    if ( [ "${FC}" == "gfortran" ] && [ "${BUILD_TYPE}" == "debug" ] ) ; then
+	export FFLAGS=$(echo ${FFLAGS} | sed -e 's/-fimplicit-none//g')
+    fi
+
+    if [ `uname` == "Darwin" ] ; then
+	[ -d /opt/X11 ] \
+	    && export CFLAGS="${CFLAGS} -I/opt/X11/include" \
+	    || echo -e "\nPlease install XQuartz - http://xquartz.macosforge.org/landing/ \n" \
+	    || exit 69
+    fi
+
+    export FCFLAGS="${FFLAGS} ${FCFLAGS}"
+
+    if [ "${ARGUMENTS[1]}" == "-test" ] ; then 
+	TEST_STATUS=ON
+	PLD_PSC=ON
+    else 
+	TEST_STATUS=OFF
+	PLD_PSC=OFF
+    fi
+
+    if [[ $ACC_COMPILER_TOOLSET == *msys ]] ; then
+        CMAKE_CONF_OPTIONS=( \
+            -G "MSYS Makefiles" \
+            -DPLD_qtwidget=ON \
+        )
+    else
+        CMAKE_CONF_OPTIONS=( \
+            -DDEFAULT_NO_DEVICES=ON \
+            -DPLD_pdfcairo=ON \
+            -DPLD_pscairo=ON \
+            -DPLD_pngcairo=ON \
+            -DPLD_svgcairo=ON \
+            -DPLD_xwin=ON \
+      #      -DPLD_psttf=OFF \
+      #      -DPLD_psttfc=OFF \
+            -DHAVE_SHAPELIB=OFF \            
+        )
+    fi
+
+    if [ `uname` == "Darwin" ] ; then
+        CMAKE_CONF_OPTIONS=( \
+	    -DBUILD_DOC=OFF \
+	    -DBUILD_DOX_DOC=OFF \
+	    "${CMAKE_CONF_OPTIONS[@]}" \
+        )
+    fi
+
+    if [ "${ACC_PLOT_DISPLAY_TYPE}" == "X" ] ; then
+	CMAKE_CONF_OPTIONS=( \
+	    -DDEFAULT_NO_QT_DEVICES=ON \
+	    "${CMAKE_CONF_OPTIONS[@]}" \
+        )
+    fi
+
+    if ( [ ! -e ALREADY_BUILT ] ) ; then
+
+	if [ ${BUILD_SHARED} ] ; then
+	    echo -e "\nBuilding SHARED Libraries...\n"
+	    BUILD_SHARED_LIBS=ON
+	    SHARED=ON
+	    ${CMAKE_BINARY} -DCMAKE_INSTALL_PREFIX=${OUTPUT_DIR} \
+		-DCMAKE_VERBOSE_MAKEFILE=true \
+		"${CMAKE_CONF_OPTIONS[@]}" \
+		-DBUILD_SHARED_LIBS=${SHARED} \
+		-DUSE_RPATH=OFF \
+		-DPLD_psc=${PLD_PSC} \
+		-DPL_HAVE_QHULL=OFF \
+		-DENABLE_tk=OFF \
+		-DENABLE_tcl=OFF \
+		-DENABLE_ada=OFF \
+		-DENABLE_wxwidgets=OFF \
+		-DENABLE_cxx=OFF \
+		-DBUILD_TEST=${TEST_STATUS} \
+		../
+
+	    func_print_compiler_linker_flags
+
+	    ${GMAKE} -j ${ACC_SET_GMAKE_JOBS} all
+	    ${GMAKE} install
+
+	    export RETVAL=$?
+	fi
+    
+	echo -e "\nBuilding STATIC Libraries...\n"
+	BUILD_SHARED_LIBS=OFF
+	SHARED=OFF
+        ${CMAKE_BINARY} -DCMAKE_INSTALL_PREFIX=${OUTPUT_DIR} \
+	    -DCMAKE_VERBOSE_MAKEFILE=true \
+            "${CMAKE_CONF_OPTIONS[@]}" \
+            -DBUILD_SHARED_LIBS=${SHARED} \
+            -DUSE_RPATH=OFF \
+            -DPLD_psc=${PLD_PSC} \
+            -DPL_HAVE_QHULL=OFF \
+	    -DENABLE_tk=OFF \
+	    -DENABLE_tcl=OFF \
+	    -DENABLE_ada=OFF \
+	    -DENABLE_wxwidgets=OFF \
+	    -DENABLE_cxx=OFF \
+	    -DBUILD_TEST=${TEST_STATUS} \
+		../
+
+	func_print_compiler_linker_flags
+
+	${GMAKE} -j ${ACC_SET_GMAKE_JOBS} all
+	${GMAKE} install
+
+	export RETVAL=$?
+    fi
+
+    if [ "${ARGUMENTS[1]}" == "-test" ] ; then 
+	echo -e "\nBuilding tests for `echo ${PACKAGE_VERSION}`...\n"
+
+	VESRION_NUMBER=$(echo ${PACKAGE_VERSION} | awk ' { print $3 } ')
+	mkdir -p ${OUTPUT_DIR}/share/plplot${VESRION_NUMBER}/examples
+	cd ${OUTPUT_DIR}/share/plplot${VESRION_NUMBER}/examples
+	cmake -DPLD_psc=${PLD_PSC} -DBUILD_TEST=${TEST_STATUS}
+	${GMAKE} -j ${ACC_SET_GMAKE_JOBS} test_noninteractive
+	export RETVAL=$?
+	if [ "${RETVAL}" -eq 0 ] ; then 
+	    echo -e "\nLook for output from all tests in\n\n    ${OUTPUT_DIR}/share/plplot${VESRION_NUMBER}/examples/test_examples_output_dir\n"
+	fi
+    fi
+
+    if ( [ `uname` == "Darwin" ] && [ "${FC}" == "ifort" ] && [ "${RETVAL}" -eq 0 ] ) ; then
+	ln -s /opt/intel/lib/* ${OUTPUT_DIR}/lib/ &> /dev/null 2>&1
+    fi
+
+    if [ -d ${OUTPUT_DIR}/lib/fortran/modules/plplot ] ; then 
+	cp ${OUTPUT_DIR}/lib/fortran/modules/plplot/* ${OUTPUT_DIR}/modules
+    fi
+}
+
+
+# Function that contains Package Specific files and directories to be removed
+
+func_remove_package () {
+
+    rm -f ${OUTPUT_DIR}/bin/plserver
+    rm -f ${OUTPUT_DIR}/bin/pltcl
+    rm -f ${OUTPUT_DIR}/bin/pltek
+    rm -rf ${OUTPUT_DIR}/lib/cmake/plplot
+    rm -f ${OUTPUT_DIR}/lib/libcsirocsa*
+    rm -f ${OUTPUT_DIR}/lib/libplf*demolib*
+    rm -f ${OUTPUT_DIR}/lib/libplplot*
+    rm -f ${OUTPUT_DIR}/lib/libqsastime*
+    rm -f ${OUTPUT_DIR}/lib/libtclmatrixd*
+    rm -rf ${OUTPUT_DIR}/lib/fortran/modules/plplot
+    rm -rf ${OUTPUT_DIR}/lib/fortran/include/plplot
+    rm -f ${OUTPUT_DIR}/lib/pkgconfig/plplot*
+    rm -f ${OUTPUT_DIR}/modules/plf*demolib*
+    rm -f ${OUTPUT_DIR}/modules/plplot*
+    rm -rf ${OUTPUT_DIR}/include/plplot
+    rm -rf ${OUTPUT_DIR}/share/plplot*
+    rm -rf ${OUTPUT_DIR}/share/doc/plplot*
+    rm -rf ${OUTPUT_DIR}/share/man/man1/plserver*
+    rm -rf ${OUTPUT_DIR}/share/man/man1/pltcl*
+    rm -rf ${OUTPUT_DIR}/share/man/man1/pltek*
+    rm -rf ${BUILD_TYPE}
+
+}
