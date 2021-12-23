@@ -1,0 +1,12 @@
+set (EXENAME ptc_spin_orbital_normal_form)
+
+FILE (GLOB SRC_FILES "ptc_spin_orbital_normal_form/*.f90")
+
+# Link libraries
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)
