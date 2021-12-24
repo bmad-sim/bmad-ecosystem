@@ -351,17 +351,8 @@ case (sbend$)
   endif
 
 case (quadrupole$)
-  if (ele%value(tilt$) == 0) then
-    slick_class = 3
-    slick_params = [strength_scale*knl(1), 0.0_rp, len_scale*ele%value(l$)]
-
-  else
-    if (abs(abs(tilt(1)) - pi/4) > 1d-6) then
-      print *, 'Bend element has tilt that is not +/- pi/4! ' // trim(ele%name)
-    endif
-    slick_class = 4
-    slick_params = [strength_scale*knl(1)*sign_of(tilt(1)), 0.0_rp, len_scale*ele%value(l$)]
-  endif
+  slick_class = 4
+  slick_params = [strength_scale*knl(1), ele%value(tilt$), len_scale*ele%value(l$)]
 
 case (rfcavity$)
   slick_class = 5
