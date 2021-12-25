@@ -394,6 +394,15 @@ case (marker$)
 case (drift$, monitor$)
   ! Ignore
 
+case (multipole$, ab_multipole$)
+  call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt, magnetic$)
+  if (knl(0) /= 0 .or. any(knl(2:) /= 0)) then
+    print *, 'Cannot properly translate: ' // trim(ele%name) // ': ' // trim(key_name(ele%key))
+    print *, '  Problem is that there are non-quadrupole kike multipoles. These multipoles will be ignored'
+  endif
+    slick_class = 4
+  slick_params = [strength_scale*knl(1), tilt(1), len_scale*ele%value(l$)]
+
 case default
   print *, 'Cannot translate: ' // trim(ele%name) // ': ' // trim(key_name(ele%key))
 end select
