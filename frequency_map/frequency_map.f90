@@ -60,20 +60,18 @@ character(1) answer
 character(60) in_file
 character(2) grid_type ! 'xy' or 'rt' for rectangular or polar
 
-logical keep_trying/.true./, error
-logical write_orbit/.false./
-logical ok, aperture_limits, err
-logical :: z_cut = .true.
+logical :: keep_trying = .true., write_orbit = .false., z_cut = .true.
+logical ok, aperture_limits, err, error, use_phase_trombone
 
 namelist / parameters /lat_file, out_file_prefix, grid_type, &
-     x0, y0, e0, x1, y1, e1, dx, dy, de, qx, qy, qz, qtune_mask, &
+     x0, y0, e0, x1, y1, e1, dx, dy, de, qx, qy, qz, qtune_mask, use_phase_trombone, &
      n_turn, aperture_limits, fft_turns, z_cut, Rmax, Nrad, Br, Nthmin
 
-arg_num=iargc()
-if(arg_num==0) then
-   file_name='freq_map.in'
+arg_num  = iargc()
+if (arg_num == 0) then
+  file_name='freq_map.in'
 else
-   call getarg(1, file_name)
+  call getarg(1, file_name)
 end if
 call string_trim (file_name, file_name, ix)
 open (unit= 1, file = file_name, status = 'old', iostat = ios)
@@ -83,6 +81,7 @@ if(ios.ne.0)then
    print '(2a)', 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
 endif
 
+use_phase_trombone = .false.
 grid_type = 'xy'
 qx = 0
 qy = 0
@@ -95,7 +94,7 @@ print '(2a)', ' lat_file = ', lat_file
 
 call fullfilename(lat_file, lat_file)
 call bmad_parser(lat_file, ring)
-
+if (use_phase_trombone) call insert_phase_trombone(ring%branch(0))
 
 if (z_cut) then
   rf_frequency = 0
@@ -116,7 +115,7 @@ if (z_cut) then
   endif
 
 else
-   rf_frequency = 1.0d-6 ! something small; prevents longitudinal cuts until much larger
+  rf_frequency = 1.0d-6 ! something small; prevents longitudinal cuts until much larger
 endif
 
 call reallocate_coord(co, ring%n_ele_max)
@@ -124,34 +123,33 @@ call reallocate_coord(orb, ring%n_ele_max)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 bmad_com%aperture_limit_on = aperture_limits
-CALL reallocate_coord(co,ring%n_ele_max)
-CALL set_on_off(rfcavity$, ring, on$)
-CALL twiss_and_track(ring,co)
-CALL calc_z_tune(ring)
+call reallocate_coord(co,ring%n_ele_max)
+call set_on_off(rfcavity$, ring, on$)
+call twiss_and_track(ring,co)
+call calc_z_tune(ring)
 
-IF(qx /= 0. .and. qy /= 0.) THEN
-
-   integer_qx = floor(ring%ele(ring%n_ele_track)%a%phi / (2.*pi))
-   integer_qy = floor(ring%ele(ring%n_ele_track)%b%phi / (2.*pi))
-   target_tunes(1) = (integer_qx + qx)
-   target_tunes(2) = (integer_qy + qy)
+if (qx /= 0 .and. qy /= 0) THEN
+  integer_qx = floor(ring%ele(ring%n_ele_track)%a%phi / twopi)
+  integer_qy = floor(ring%ele(ring%n_ele_track)%b%phi / twopi)
+  target_tunes(1) = (integer_qx + qx)
+  target_tunes(2) = (integer_qy + qy)
+  
+  if(abs(qz) > 0.) then
+    target_tunes(3) = qz
+  else
+    target_tunes(3) = 0.
+  endif
    
-   if(abs(qz) > 0.) then
-      target_tunes(3) = qz
-   else
-      target_tunes(3) = 0.
-   endif
-   
-   call set_tune3(ring, target_tunes, ok, .false., regex_in=qtune_mask)  !takes tunes that have not not been multiplied by 2pi.
+  call set_tune3(ring, target_tunes, use_phase_trombone, qtune_mask, ok)  !takes tunes that have not not been multiplied by 2pi.
 
-   IF(.not. ok) WRITE(*,*) "Qtune failed"
-   CALL twiss_and_track(ring,orb)
-   WRITE(*,*) "After QTune: Qx = ", ring%a%tune/twopi, "  Qy = ", ring%b%tune/twopi
-ENDIF
+  if (.not. ok) WRITE(*,*) "Qtune failed"
+  call twiss_and_track(ring,orb)
+  write(*,*) "After QTune: Qx = ", ring%a%tune/twopi, "  Qy = ", ring%b%tune/twopi
+endif
 
 n_z = nint(abs((e1 - e0)/de))+1
 
-if( grid_type == 'xy' ) then
+if (grid_type == 'xy') then
   n_a = nint(abs((x1 - x0)/dx))+1
   n_b = nint(abs((y1 - y0)/dy))+1
   Npts = n_z*n_b*n_a
@@ -182,45 +180,46 @@ prefix_name = file_name(1:ix_dot-1)
 call string_trim(prefix_name, prefix_name,ix_pn)
 call file_suffixer (file_name, in_file, '.out', .true.)
 
-ALLOCATE(fft1(1:n_turn))
-ALLOCATE(fft2(1:n_turn))
-ALLOCATE(fft3(1:n_turn))
-ALLOCATE(fft4(1:n_turn))
-ALLOCATE(fft5(1:n_turn))
-ALLOCATE(fft6(1:n_turn))
+allocate(fft1(1:n_turn))
+allocate(fft2(1:n_turn))
+allocate(fft3(1:n_turn))
+allocate(fft4(1:n_turn))
+allocate(fft5(1:n_turn))
+allocate(fft6(1:n_turn))
 
 if(fft_turns == 0)fft_turns = n_turn / 2
 
-ALLOCATE(n1(1:fft_turns))
-ALLOCATE(n2(1:fft_turns))
-ALLOCATE(n3(1:fft_turns))
-ALLOCATE(m1(1:fft_turns))
-ALLOCATE(m2(1:fft_turns))
-ALLOCATE(m3(1:fft_turns))
+allocate(n1(1:fft_turns))
+allocate(n2(1:fft_turns))
+allocate(n3(1:fft_turns))
+allocate(m1(1:fft_turns))
+allocate(m2(1:fft_turns))
+allocate(m3(1:fft_turns))
 
-ALLOCATE(rftxa(1:fft_turns))
-ALLOCATE(rftxb(1:fft_turns))
-ALLOCATE(rftya(1:fft_turns))
-ALLOCATE(rftyb(1:fft_turns))
-ALLOCATE(rftea(1:fft_turns))
-ALLOCATE(rfteb(1:fft_turns))
+allocate(rftxa(1:fft_turns))
+allocate(rftxb(1:fft_turns))
+allocate(rftya(1:fft_turns))
+allocate(rftyb(1:fft_turns))
+allocate(rftea(1:fft_turns))
+allocate(rfteb(1:fft_turns))
 
 ! Multiplying coordinated by Tinv will convert them to normal coordinates.
 
-CALL transfer_matrix_calc(ring, one_turn_mat)
-if(one_turn_mat(6,5) == 0) then
+call transfer_matrix_calc(ring, one_turn_mat)
+if (one_turn_mat(6,5) == 0) then
   call mat_symp_decouple (one_turn_mat, stat, U, V, Ubar, Vbar, G, twiss1, twiss2, tgamma, .true.)
-  CALL mat_inverse(V,Vinv)
+  call mat_inverse(V,Vinv)
 else
-  CALL mat_eigen (one_turn_mat, eigen_val, eigen_vec, error)
+  call mat_eigen (one_turn_mat, eigen_val, eigen_vec, error)
   do i=1,6,2
     T(i,:)   =  real(eigen_vec(i,:))
     T(i+1,:) = -aimag(eigen_vec(i,:))
   enddo
-  CALL mat_inverse(T,Tinv)
+  call mat_inverse(T,Tinv)
 endif
 
 !Write grid to file
+
 open(800, file='grid.dat')
 n = 0
 do i_z = 0, n_z-1

@@ -1,0 +1,210 @@
+* Integer part of tune set by current tune.
+
+
+%-----------------------------------------
+% Note: Use pdflatex to process this file.
+%-----------------------------------------
+
+%\documentclass{article}
+\documentclass{hitec}
+\usepackage{color,soul}
+
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{moreverb}    % Defines {listing} environment.
+\usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{subcaption}
+\usepackage{toc-bmad}
+\usepackage{xspace}
+\usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
+\usepackage{longtable}   % For splitting long vertical tables into pieces
+\usepackage{index}
+\usepackage{multirow}
+\usepackage{booktabs}    % For table layouts
+\usepackage{yhmath}      % For widehat
+\usepackage{xcolor}      % Needed for listings package.
+\usepackage{listings}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[pdftex,colorlinks=true]{hyperref}   % Must be last package!
+
+\definecolor{light-gray}{gray}{0.95}
+\lstset{backgroundcolor=\color{light-gray}}
+\lstset{xleftmargin=0cm}
+\lstset{framexleftmargin=0.3em}
+%\lstset{basicstyle = \ttfamily\fontsize{11}{11}\selectfont} 
+\lstset{basicstyle = \small}
+\lstnewenvironment{code}{}{}
+
+%---------------------------------------------------------------------------------
+
+\definecolor{lightestgray}{gray}{0.99}
+\sethlcolor{lightestgray}
+\soulregister{\texttt}{1}
+\newcommand\dottcmd[1]{\hl{\em#1}\endgroup}
+%\newcommand\dottcmd[1]{{#1}\endgroup}
+\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand{\ts}{\vn{tune_scan}\xspace}
+\newcommand{\Newline}{\hfil \\}
+\newcommand{\sref}[1]{$\S$\ref{#1}}
+\newcommand{\Th}{$^{th}$\xspace}
+
+%---------------------------------------------------------------------------------
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\settextfraction{0.9}  % Width of text
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+%\setlength{\textwidth}{6in}
+\newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
+
+\newenvironment{display}
+  {\vspace*{-1.5ex} \begin{alltt}}
+  {\end{alltt} \vspace*{-1.0ex}}
+
+%---------------------------------------------------------------------------------
+
+\title{Tune Scan Program}
+\author{}
+\date{David Sagan \\ November 7, 2021}
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+%---------------------------------------------------------------------------------
+
+\Section{Introduction} 
+\label{s:intro}
+
+A \vn{tune scan} is a way of examining resonances which involves varying the beam $Q_a$ and $Q_b$
+tunes and observing a resonance related beam parameter such as the beam size or the beam lifetime.
+A scan can be done in an actual machine or in simulation which is what \ts program discussed does. 
+
+The \ts program is built atop the Bmad software toolkit \cite{b:bmad}. The Bmad toolkit is a
+library, developed at Cornell, for the modeling relativistic charged particles in storage rings and
+Linacs, as well as modeling photons in x-ray beam lines.
+
+The \ts program comes with the ``Bmad Distribution'' which is a package which contains Bmad along with
+a number of Bmad based programs. See the Bmad web site for more details.
+
+The \ts program comes in two versions: 
+\begin{code}
+tune_scan      ! Single threaded version
+tune_scan_mpi  ! Multi-threaded version
+\end{code}
+The first is a single threaded version and the second is a multi-threaded version using MPI.
+
+[Note to Distribution maintainers: The single threaded version will be built when compiling a Bmad
+Distribution. If MPI is not enabled (which is the default setting), the MPI version will not be built. 
+The MPI version can be built by setting:
+\begin{code}
+  export ACC_ENABLE_MPI=Y
+\end{code}
+and then using the ``\vn{mk}'' command in the \vn{bsim} directory to build the executable. See the
+documentation on the Bmad web site for more details.]
+
+%------------------------------------------------------------------
+\Section{Running the Long Term Tracking Program} 
+\label{s:run}
+
+See the documentation for setting up the Bmad environmental variables at
+\begin{code}
+  https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
+\end{code}
+
+Once the Bmad environmental variables have been set, the syntax for invoking the single threaded
+version of the \ts program is:
+\begin{code}
+  tune_scan {<master_input_file_name>}
+\end{code}
+Example:
+\begin{code}
+  tune_scan my_input_file.init
+\end{code}
+The \vn{<master_input_file_name>} optional argument is used to set the master input file name. The
+default value is ``\vn{tune_scan.init}''. The syntax of the master input file is explained
+in \sref{s:input}.
+
+Example input files are in the directory (relative to the root of a Distribution):
+\begin{code}
+  bsim/long_turn_tracking/example
+\end{code}
+
+When running the MPI version threaded over multiple computers, the details of how to start the process will
+vary depending upon the installation. See your local Guru for details. When running on a single machine, 
+the typical command will look like
+\begin{example}
+  mpiexec -n <num_processes> tune_scan_mpi {<master_input_file_name>}
+\end{example}
+where \vn{<num_processes>} is the number of processes. 
+
+%------------------------------------------------------------------
+\Section{Fortran Namelist Input}
+\label{s:namelist}
+
+Fortran namelist syntax is used for parameter input in the master input file. The general form of a namelist is
+\begin{code}
+&<namelist_name>
+  <var1> = ...
+  <var2> = ...
+  ...
+/
+\end{code}
+The tag \vn{"\&<namelist_name>"} starts the namelist where
+\vn{<namelist_name>} is the name of the namelist. The namelist ends
+with the slash \vn{"/"} tag. Anything outside of this is
+ignored. Within the namelist, anything after an exclamation mark
+\vn{"!"} is ignored including the exclamation mark. \vn{<var1>},
+\vn{<var2>}, etc. are variable names. Example:
+\begin{code}
+&place 
+  section = 0.0, "arc_std", "elliptical", 0.045, 0.025 
+/
+\end{code}
+here \vn{place} is the namelist name and \vn{section} is a
+variable name.  Notice that here \vn{section} is a ``structure'' which
+has five components -- a real number, followed by two strings,
+followed by two real numbers.
+
+Everything is case insensitive except for quoted strings.
+
+Logical values are specified by \vn{True} or \vn{False} or can be
+abbreviated \vn{T} or \vn{F}. Avoid using the dots (periods) that one
+needs in Fortran code.
+
+\newpage
+
+%------------------------------------------------------------------
+\Section{Master Input File}
+\label{s:input}
+
+The \vn{master input file} holds the parameters needed for running the long term tracking
+program. The master input file must contain a single namelist (\sref{s:namelist}) named \vn{params}.
+Example:
+\begin{code}
+&params
+/
+\end{code}
+
+%------------------------------------------------------------------
+\begin{thebibliography}{9}
+
+\bibitem{b:bmad}
+D. Sagan,
+``Bmad: A Relativistic Charged Particle Simulation Library''
+Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
+
+\bibitem{b:ptc}
+É. Forest, Y. Nogiwa, and F. Schmidt. The FPP and PTC libraries. In Int.\ Conf.\ Accel.\
+Phys pp 17–21, (2006).
+
+\end{thebibliography}
+
+\end{document}
+
