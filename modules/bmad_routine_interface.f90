@@ -392,11 +392,11 @@ subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s, print_err)
   logical, optional :: print_err
 end subroutine
 
-subroutine choose_quads_for_set_tune (lat, dk1, regex_mask)
+subroutine choose_quads_for_set_tune (lat, dk1, mask)
   import
   implicit none
-  type (lat_struct) lat
-  character(40), optional :: regex_mask
+  type (lat_struct), target :: lat
+  character(*), optional :: mask
   real(rp), allocatable, intent(inout) :: dk1(:)
 end subroutine
 

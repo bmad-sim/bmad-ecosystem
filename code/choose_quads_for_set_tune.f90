@@ -1,73 +1,69 @@
 !+
-! Subroutine choose_quads_for_set_tune (lat, dk1, regex_mask)
+! Subroutine choose_quads_for_set_tune (lat, dk1, mask)
 !
 ! Routine to choose assign weights for quadrupole changes in a lattice when varying the tune.
 ! The output of this routine, dk1, can be used in the set_tune routine.
 !
 ! Input:
 !   lat         -- lat_struct: lattice.
-!   regex_mask  -- character(*), optional: If present, assign weight of zero for all quads that
-!                   do not match this regular expression. That is, no variation for non-matching quads.
+!   mask        -- character(*), optional: If present, assign weight of zero for all quads that
+!                   do not match. That is, no variation for non-matching quads.
 !
 ! Output:
-!   dk1(:)      -- real(rp): Weights for the quadrupoles.
+!   dk1(:)      -- real(rp): Weights for the quadrupoles. All values will be +1 or -1.
 !-
 
-subroutine choose_quads_for_set_tune (lat, dk1, regex_mask)
+subroutine choose_quads_for_set_tune (lat, dk1, mask)
 
 use bmad_interface, dummy => choose_quads_for_set_tune
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: slave
 type (control_struct), pointer :: ctl
 
 real(rp), allocatable, intent(inout) :: dk1(:)
 
-integer i, j, is
+integer i, j, is, n_loc
 
-character(*), optional :: regex_mask
-character(40) :: r_mask 
+character(*), optional :: mask
 
 logical found
 
 ! find which quads to change
 
 if (.not. allocated(dk1)) allocate(dk1(lat%n_ele_max))
+dk1 = 0
 
-if (present(regex_mask)) then
-  call upcase_string(regex_mask)
-  r_mask = regex_mask
-else
-  r_mask = ''
+lat%ele%select = .true.
+if (present(mask)) then
+  call lat_ele_locator (mask, lat, eles, n_loc)
+  do i = 1, n_loc
+    eles(i)%ele%select = .false.
+  enddo  
 endif
 
 do i = 1, lat%n_ele_max
-  if (lat%ele(i)%key == quadrupole$ .and. &
-    attribute_free(lat%ele(i), 'K1',err_print_flag = .false.) .and. &
-    abs(lat%ele(i)%value(tilt$)) < 0.01) then
-    if (.not. match_reg(lat%ele(i)%name, r_mask)) cycle ! if no mask provided, mask set to '', thereby always matching
-    if (lat%ele(i)%a%beta > lat%ele(i)%b%beta) then
+  ele => lat%ele(i)
+  if (.not. ele%select) cycle
+
+  if (ele%key == quadrupole$ .and. attribute_free(ele, 'K1',err_print_flag = .false.) .and. &
+                                                                      abs(ele%value(tilt$)) < 0.01) then
+    if (ele%a%beta > ele%b%beta) then
       dk1(i) = +1
     else
       dk1(i) = -1
     endif
-  else
-    dk1(i) = 0
   endif
 
-  if (lat%ele(i)%key == match$)then
-    dk1(i) = 1 !If there is a match element we will use it to qtune 
-    cycle
-  endif
-
-  if (lat%ele(i)%lord_status == overlay_lord$) then
+  if (ele%lord_status == overlay_lord$) then
     found = .false.
-    do is = 1, lat%ele(i)%n_slave    
-      slave => pointer_to_slave(lat%ele(i), is, ctl)
+    do is = 1, ele%n_slave    
+      slave => pointer_to_slave(ele, is, ctl)
       if (ctl%ix_attrib == k1$ .and. slave%key == quadrupole$ .and. slave%value(tilt$) == 0) then
-        if (.not. match_reg(slave%name, r_mask)) cycle
         found = .true.
         exit
       endif
