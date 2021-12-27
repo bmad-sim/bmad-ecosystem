@@ -56,6 +56,8 @@ else
   call ts_init_params (ts, ts_com)
 endif
 
+call ts_print_mpi_info (ts, ts_com, 'After init', .true.)
+
 n_run = (ts_com%n_a+1) * (ts_com%n_b+1) * (ts_com%n_z+1)
 n_per_job = max(1, n_run / (2*num_slaves))
 n_job = ceiling(0.9999999_rp * n_run / n_per_job)
@@ -104,6 +106,8 @@ if (ts_com%mpi_rank == master_rank$) then
     call ts_print_mpi_info (ts, ts_com, 'Master: Waiting for data from a Slave... ')
     slave_rank = MPI_ANY_SOURCE
     call mpi_recv (n_track, 1, MPI_INTEGER, slave_rank, have_data_tag$, MPI_COMM_WORLD, stat, ierr)
+    slave_rank = stat(MPI_SOURCE)
+    call ts_print_mpi_info (ts, ts_com, 'Master: Slave ' // int_str(slave_rank) // ' signals have data: ' // int_str(n_track))
     dat_size = n_track * storage_size(dat_arr(1)) / 8
     call mpi_recv(dat_arr(1:n_track), dat_size, MPI_BYTE, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
     j0 = slave_ix_job(slave_rank)
@@ -120,7 +124,10 @@ if (ts_com%mpi_rank == master_rank$) then
 
     ! Send job info to slave
     ix_job_last = ix_job_last + 1
-    if (ix_job_last <= n_job) then
+    if (ix_job_last > n_job) then
+      call ts_print_mpi_info (ts, ts_com, 'Master: Signal slave is done: ' // int_str(slave_rank))
+      call mpi_send(0, 1, MPI_INTEGER, slave_rank, job_tag$, MPI_COMM_WORLD, ierr)
+    else
       call ts_print_mpi_info (ts, ts_com, 'Master: Commanding Slave: ' // int_str(slave_rank) // &
                                               '  For job: ' // int_str(ix_job_last))
       call mpi_send(ix_job_last, 1, MPI_INTEGER, slave_rank, job_tag$, MPI_COMM_WORLD, ierr)
@@ -138,7 +145,6 @@ if (ts_com%mpi_rank == master_rank$) then
 ! Slave
 
 else
-
   call ts_print_mpi_info (ts, ts_com, 'Slave Starting...')
 
   do
@@ -158,8 +164,9 @@ else
     enddo
     n_track = i - 1
 
-    call ts_print_mpi_info (ts, ts_com, 'Slave: Sending data for job: ' // int_str(ix_job))
+    call ts_print_mpi_info (ts, ts_com, 'Slave: have data for job: ' // int_str(ix_job))
     call mpi_send (n_track, 1, MPI_INTEGER, master_rank$, have_data_tag$, MPI_COMM_WORLD, ierr)
+    call ts_print_mpi_info (ts, ts_com, 'Slave: Sending data for job: ' // int_str(ix_job))
     dat_size = n_track * storage_size(dat_arr(1)) / 8
     call mpi_send (dat_arr(1:n_track), dat_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
   enddo
