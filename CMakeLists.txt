@@ -37,11 +37,13 @@ set (EXE_SPECS
 
 if($ENV{ACC_ENABLE_MPI})
   list(APPEND EXE_SPECS "cmake.moga")
-  list(APPEND EXE_SPECS "cmake.long_term_tracking_mpi")
   list(APPEND EXE_SPECS "cmake.aperture_by_tracking")
   list(APPEND EXE_SPECS "cmake.touschek_background")
+  list(APPEND EXE_SPECS "cmake.long_term_tracking_mpi")
+  list(APPEND EXE_SPECS "cmake.tune_scan_mpi")
 else()
   list(APPEND EXE_SPECS "cmake.long_term_tracking")
+  list(APPEND EXE_SPECS "cmake.tune_scan")
 endif()
 
 ## Profiler flags - Note: This is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
