@@ -1,23 +1,24 @@
 &params
   ts%lat_file = "$lat"
-  ts%Q_a0 = 0.5805
-  ts%Q_a1 = 0.6
-  ts%dQ_a = 0.0005
+  ts%Q_a0 = 0.590
+  ts%Q_a1 = 0.600
+  ts%dQ_a = 0.001
   ts%a0_amp = 1
 
   ts%Q_b0 = 0.675
-  ts%Q_b1 = 0.675
-  ts%dQ_b = 0.0005
+  ts%Q_b1 = 0.676
+  ts%dQ_b = 0.001
   ts%b0_amp = 1
 
   ts%Q_z0 = 0.066
-  ts%Q_z1 = 0.066
-  ts%dQ_z = 0.0005
+  ts%Q_z1 = 0.067
+  ts%dQ_z = 0.001
   ts%pz0_amp = 1
 
   ts%n_turn_init = 50
   ts%n_turn_data = 5
   bmad_com%radiation_damping_on = F
   bmad_com%radiation_fluctuations_on = F
+  ts%debug = .true.
 /
 

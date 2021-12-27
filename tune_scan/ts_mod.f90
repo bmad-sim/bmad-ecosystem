@@ -70,9 +70,8 @@ endif
 
 ts_com%master_input_file = 'tune_scan.init'
 if (n_arg == 1) call get_command_argument(1, ts_com%master_input_file)
-print *, 'Opening: ', trim(ts_com%master_input_file)
 
-open (unit= 1, file = ts_com%master_input_file, status = 'old')
+open (unit= 1, file = ts_com%master_input_file, status = 'old', action = 'read')
 read(1, nml = params)
 close (1)
 
@@ -113,13 +112,11 @@ endif
 bmad_com%auto_bookkeeper = .false.
 global_com%exit_on_error = .false.
 call bmad_parser(ts%lat_file, ts_com%ring)
+
 if (ts%use_phase_trombone) call insert_phase_trombone(ts_com%ring%branch(0))
 
 allocate(ts_com%closed_orb(0:ts_com%ring%n_ele_max))
 bmad_com%aperture_limit_on = .true.
-
-print *, "Calculating closed orbit, transfer matrices, and Twiss parameters..."
-call set_on_off(rfcavity$, ts_com%ring, on$)
 
 call closed_orbit_calc(ts_com%ring, ts_com%closed_orb, 6)
 call lat_make_mat6(ts_com%ring, -1, ts_com%closed_orb)
@@ -236,7 +233,7 @@ subroutine ts_write_results (ts, ts_com, ts_dat)
 
 type (ts_params_struct) ts
 type (ts_com_struct) ts_com
-type (ts_data_struct), target :: ts_dat(:,:,:)
+type (ts_data_struct), target :: ts_dat(0:,0:,0:)
 type (ts_data_struct), pointer :: t
 
 integer ja, jb, jz

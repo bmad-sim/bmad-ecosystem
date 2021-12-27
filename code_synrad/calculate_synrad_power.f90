@@ -33,7 +33,7 @@ use synrad_interface, except => calculate_synrad_power
 
 implicit none
 
-type (branch_struct) branch
+type (branch_struct), target :: branch
 type (coord_struct) orb(0:)
 type (walls_struct), target :: walls
 type (wall_struct), pointer :: negative_x_wall, positive_x_wall
