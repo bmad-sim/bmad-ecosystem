@@ -390,16 +390,16 @@ end subroutine xyz_to_action
 ! Where N is from the Eigen decomposition of the 1-turn transfer matrix.
 !
 ! Input:
-!  ring     -- lat_struct: lattice
-!      %a%tune -- a-mode tune (horizontal-like)
-!      %b%tune -- b-mode tune (vertical-like)
-!      %z%tune -- c-mode tune (synchrotron-like)
-!  ix       -- integer: element index at which to calculate J
-!  J(1:6)   -- real(rp): Vector containing normal mode invariants and phases
+!  ring       -- lat_struct: lattice
+!      %a%tune   -- a-mode tune (horizontal-like)
+!      %b%tune   -- b-mode tune (vertical-like)
+!      %z%tune   -- c-mode tune (synchrotron-like)
+!  ix         -- integer: element index at which to calculate J
+!  J(1:6)     -- real(rp): Vector containing normal mode invariants and phases
 !
 ! Output:
-!  X(1:6)   -- real(rp): canonical phase space coordinates of the particle
-!  err_flag    -- logical: Set to true on error.  Often means Eigen decomposition failed.
+!  X(1:6)     -- real(rp): canonical phase space coordinates of the particle
+!  err_flag   -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !-
 subroutine action_to_xyz(ring, ix, J, X, err_flag)
 
