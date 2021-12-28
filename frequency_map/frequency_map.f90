@@ -140,7 +140,7 @@ if (qx /= 0 .and. qy /= 0) THEN
     target_tunes(3) = 0.
   endif
    
-  call set_tune3(ring, target_tunes, use_phase_trombone, qtune_mask, ok)  !takes tunes that have not not been multiplied by 2pi.
+  ok = set_tune_3d(ring, target_tunes, qtune_mask, use_phase_trombone)  !takes tunes that have not not been multiplied by 2pi.
 
   if (.not. ok) WRITE(*,*) "Qtune failed"
   call twiss_and_track(ring,orb)

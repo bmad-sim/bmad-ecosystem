@@ -35,10 +35,11 @@ type ts_com_struct
 end type
 
 type ts_data_struct
-  real(rp) tune(3)
-  real(rp) A_max(3)
-  real(rp) A_rms(3)
-  real(rp) n_turn_track
+  real(rp) :: tune(3) = 0
+  real(rp) :: amp_max(3) = 0
+  real(rp) :: amp_ave(3) = 0
+  real(rp) :: amp_rms(3) = 0
+  integer :: n_data_track = 0
 end type
 
 contains
@@ -151,7 +152,7 @@ end subroutine ts_init_params
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ts_track_particle(ts, ts_com, ja, jb, jz, ts_dat)
+recursive subroutine ts_track_particle(ts, ts_com, ja, jb, jz, ts_dat)
 
 type (ts_params_struct) ts
 type (ts_com_struct) ts_com
@@ -160,7 +161,7 @@ type (coord_struct) coords
 type (lat_struct) ring
 type (coord_struct), allocatable :: closed_orb(:), orbit(:)
 
-real(rp) Jvec0(1:6), Jvec(1:6), init_vec(6), amp(3)
+real(rp) Jvec0(1:6), Jvec(1:6), init_vec(6), amp(3), r(3)
 integer ja, jb, jz, nt, track_state
 logical ok, error
 
@@ -170,14 +171,15 @@ ts_dat%tune(1) = ts_com%int_Qa + ts%Q_a0 + ja*ts%dQ_a
 ts_dat%tune(2) = ts_com%int_Qb + ts%Q_b0 + jb*ts%dQ_b
 ts_dat%tune(3) = -1.0*(ts%Q_z0 + jz*ts%dQ_z)
 
-ts_dat%a_max = 1000.0_rp
-ts_dat%a_rms = 1000.0_rp
-ts_dat%n_turn_track = 0
+ts_dat%amp_max = 1000.0_rp
+ts_dat%amp_ave = 1000.0_rp
+ts_dat%amp_rms = 1000.0_rp
+ts_dat%n_data_track = 0
 
 ring = ts_com%ring              ! Use copy in case tune setting fails, which may garble the lattice
 closed_orb = ts_com%closed_orb  ! Use copy in case tune setting fails, which may garble the closed orbit
 
-call set_tune3 (ring, ts_dat%tune, ts%use_phase_trombone, ts%quad_mask, ok)  ! Takes tunes that have not not been multiplied by 2pi.
+ok = set_tune_3d (ring, ts_dat%tune, ts%quad_mask, ts%use_phase_trombone)  ! Takes tunes that have not not been multiplied by 2pi.
 
 if (.not. ok) return    ! Tunes could not be set, probably on a resonance.
 
@@ -189,6 +191,7 @@ call calc_z_tune (ring)
 
 !---------------------------------------------
 ! Calculate initial vector from particle actions.
+! Note: Use ts_com%ring for converting between action/xyz which makes the conversion consistent between tune points.
 
 Jvec0 = [ts%a0_amp * ts_com%sig_a, 0.0_rp, &
          ts%b0_amp * ts_com%sig_b, 0.0_rp, &
@@ -199,29 +202,33 @@ if (error) return  ! decomposition of the 1-turn matrix failed.
 
 call reallocate_coord(orbit, ring)
 orbit(0)%vec(:) = closed_orb(0)%vec(:) + init_vec(:)
-ts_dat%a_max = 0
-ts_dat%a_rms = 0
+ts_dat%amp_max = 0
+ts_dat%amp_ave = 0
+ts_dat%amp_rms = 0
+ts_dat%n_data_track = 0
 
 do nt = 1, ts%n_turn_init + ts%n_turn_data
   call track_all(ring, orbit, 0, track_state)
   orbit(0) = orbit(ring%n_ele_track)
-
   if (track_state /= moving_forward$) exit
 
   if (nt > ts%n_turn_init) then ! save this data
     coords%vec(:) = orbit(0)%vec(:) - closed_orb(0)%vec(:)
-    call xyz_to_action(ring, 0, coords%vec, Jvec, error)
+    call xyz_to_action(ts_com%ring, 0, coords%vec, Jvec, error)
     if (error) then
        print *, "BAD: xyz_to_action returned error."
     endif
-    amp = [(Jvec(1)**2 + Jvec(2)**2)/2.0d0, (Jvec(3)**2 + Jvec(4)**2)/2.0d0, (Jvec(5)**2 + Jvec(6)**2)/2.0d0]
-    ts_dat%a_max = max(ts_dat%a_max, amp)
-    ts_dat%a_rms = ts_dat%a_rms + amp**2
+    amp = [sqrt(Jvec(1)**2 + Jvec(2)**2)/ts_com%sig_a, sqrt(Jvec(3)**2 + Jvec(4)**2)/ts_com%sig_b, sqrt(Jvec(5)**2 + Jvec(6)**2)/ts_com%sig_pz]
+    ts_dat%amp_max = max(ts_dat%amp_max, amp)
+    ts_dat%amp_rms = ts_dat%amp_rms + amp**2
+    ts_dat%amp_ave = ts_dat%amp_ave + amp
+    ts_dat%n_data_track = ts_dat%n_data_track + 1
   endif
 enddo
 
-ts_dat%n_turn_track = nt
-ts_dat%a_rms = sqrt(ts_dat%a_rms/ts%n_turn_data)
+ts_dat%amp_ave = ts_dat%amp_ave/ts_dat%n_data_track
+r = ts_dat%amp_rms/ts_dat%n_data_track - ts_dat%amp_ave**2
+ts_dat%amp_rms = sqrt(max(0.0_rp, r))
 
 end subroutine ts_track_particle
 
@@ -241,15 +248,15 @@ integer ja, jb, jz
 !
 
 open(unit = 23, file = ts%dat_out_file)
-write(23, '(3a10,3a13,a15, 3a13)') '#      Q_a', 'Q_b', 'Q_z', 'amp_a_max', 'amp_b_max', 'amp_z_max', 'turns', &
-                                                                              'amp_a_rms', 'amp_b_rms', 'amp_z_rms'
+write(23, '(3a10, a12, 3a13, 3a13)') '#      Q_a', 'Q_b', 'Q_z', 'data_turns', 'amp_a_rms', 'amp_b_rms', 'amp_z_rms', &
+                                                                          'amp_a_max', 'amp_b_max', 'amp_z_max'
 
 do jz = 0, ts_com%n_z
 do jb = 0, ts_com%n_b
 do ja = 0, ts_com%n_a
   t => ts_dat(ja, jb, jz)
-  write(23, '(3f10.5, 3es13.4, i15, 3es13.4)') t%tune(1)-ts_com%int_Qa, t%tune(2)-ts_com%int_Qb, t%tune(3), &
-                                                                                t%a_max, t%n_turn_track, t%a_rms
+  write(23, '(3f10.5, i12, 3es13.4, 3es13.4)') t%tune(1)-ts_com%int_Qa, t%tune(2)-ts_com%int_Qb, -t%tune(3), &
+                                                                                t%n_data_track, t%amp_rms, t%amp_max
 enddo
 enddo
 enddo

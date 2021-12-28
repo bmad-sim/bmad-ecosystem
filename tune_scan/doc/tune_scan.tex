@@ -95,14 +95,13 @@ a number of Bmad based programs. See the Bmad web site for more details.
 
 The \ts program comes in two versions: 
 \begin{code}
-tune_scan      ! Single threaded version
-tune_scan_mpi  ! Multi-threaded version
+tune_scan      ! Single threaded version.
+tune_scan_mpi  ! MPI threaded version.
 \end{code}
-The first is a single threaded version and the second is a multi-threaded version using MPI.
+The first version is a single threaded version and the second is a multi-threaded version using MPI.
 
-[Note to Distribution maintainers: The single threaded version will be built when compiling a Bmad
-Distribution. If MPI is not enabled (which is the default setting), the MPI version will not be built. 
-The MPI version can be built by setting:
+[Note to Bmad Distribution maintainers: The single threaded version is built by default when compiling a Bmad
+Distribution. The MPI version can be built by setting in the \vn{dist_prefs} file:
 \begin{code}
   export ACC_ENABLE_MPI=Y
 \end{code}
@@ -142,7 +141,8 @@ the typical command will look like
 \begin{example}
   mpiexec -n <num_processes> tune_scan_mpi {<master_input_file_name>}
 \end{example}
-where \vn{<num_processes>} is the number of processes. 
+where \vn{<num_processes>} is the number of processes. \vn{miprun} is the typical alternative if
+\vn{mpiexec} is not defined.
 
 %------------------------------------------------------------------
 \Section{Fortran Namelist Input}
@@ -189,6 +189,26 @@ program. The master input file must contain a single namelist (\sref{s:namelist}
 Example:
 \begin{code}
 &params
+  ts%lat_file = "$lat"
+  ts%Q_a0 = 0.590
+  ts%Q_a1 = 0.600
+  ts%dQ_a = 0.001
+  ts%a0_amp = 1
+
+  ts%Q_b0 = 0.675
+  ts%Q_b1 = 0.676
+  ts%dQ_b = 0.001
+  ts%b0_amp = 1
+
+  ts%Q_z0 = 0.066
+  ts%Q_z1 = 0.067
+  ts%dQ_z = 0.001
+  ts%pz0_amp = 1
+
+  ts%n_turn_init = 0
+  ts%n_turn_data = 5
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = F
 /
 \end{code}
 

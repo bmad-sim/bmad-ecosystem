@@ -17,7 +17,7 @@ integer ja, jb, jz, omp_threads
 omp_threads = -1
 !$ omp_threads = omp_get_max_threads()
 if (omp_threads == -1) then
-  print *, 'Note: tune_scan program compiled without OpenMP threading.'
+  !! print *, 'Note: tune_scan program compiled without OpenMP threading.'
 else
   print *, 'OpenMP number of threads:', omp_threads
 endif
@@ -28,7 +28,10 @@ allocate (ts_dat(0:ts_com%n_a, 0:ts_com%n_b, 0:ts_com%n_z))
 !---------------------------------------------
 ! Main loop
 
-!$OMP PARALLEL DO COLLAPSE(3)
+! Note: OpenMP does not work here since local variables in ts_track_particle are shared. 
+! The solution would be to make ts_track_particle and all routines called by ts_track_particle recursive.
+
+!! !$OMP PARALLEL DO COLLAPSE(3)
 do ja = 0, ts_com%n_a
 do jb = 0, ts_com%n_b
 do jz = 0, ts_com%n_z
@@ -36,7 +39,7 @@ do jz = 0, ts_com%n_z
 enddo
 enddo
 enddo
-!$OMP END PARALLEL DO
+!! !$OMP END PARALLEL DO
 
 !---------------------------------------------
 ! Write results
