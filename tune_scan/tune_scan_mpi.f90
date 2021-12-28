@@ -12,7 +12,7 @@ type (ts_data_struct), pointer :: t
 
 integer ja, jb, jz
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
-integer i, j0, rc, ierr, mpi_n_proc, leng, ix
+integer i, j0, rc, ierr, mpi_n_proc, leng, ix, num_a, num_b, num_z
 integer n_run, n_per_job, n_job, n_track, dat_size, ix_job, ix_job_last, is
 integer, allocatable :: slave_ix_job(:)
 
@@ -56,15 +56,8 @@ else
   call ts_init_params (ts, ts_com)
 endif
 
-call ts_print_mpi_info (ts, ts_com, 'After init', .true.)
-
-n_run = (ts_com%n_a+1) * (ts_com%n_b+1) * (ts_com%n_z+1)
-n_per_job = max(1, n_run / (2*num_slaves))
-n_job = ceiling(0.9999999_rp * n_run / n_per_job)
-  allocate (dat_arr(n_per_job))
-
 !---------------------------------------------
-! Only one thread!
+! If only one thread!
 
 if (.not. ts_com%using_mpi) then
   print '(a, i0)', 'Note! Number of threads is one!'
@@ -80,6 +73,19 @@ if (.not. ts_com%using_mpi) then
   stop
 endif
 
+!---------------------------------------------
+! Common init
+
+num_a = ts_com%n_a + 1
+num_b = ts_com%n_b + 1
+num_z = ts_com%n_z + 1
+
+n_run = num_a * num_b * num_z
+n_per_job = max(1, n_run / (2*num_slaves))
+n_job = ceiling(0.9999999_rp * n_run / n_per_job)
+allocate (dat_arr(n_per_job))
+
+print '(a, 3(2x, i0))', 'n_run, n_job, n_per_job:', n_run, n_job, n_per_job
 !---------------------------------------------
 ! Master
 
@@ -114,13 +120,13 @@ if (ts_com%mpi_rank == master_rank$) then
     slave_ix_job(slave_rank) = 0
     do i = 1, n_track
       ix = (j0-1)*n_per_job + i - 1
-      ja = ix / (ts_com%n_b+1)*(ts_com%n_z+1)
-      ix = ix - ja * (ts_com%n_b+1)*(ts_com%n_z+1)
+      ja = ix / (num_b*num_z)
+      ix = ix - ja * num_b * num_z
       jb = ix / (ts_com%n_z+1)
-      jz = ix - jb * (ts_com%n_z+1)
+      jz = ix - jb * num_z
       ts_dat(ja,jb,jz) = dat_arr(i)
     enddo
-    call ts_print_mpi_info (ts, ts_com, 'Master: Gathered data from Slave: ' // int_str(slave_rank))
+    call ts_print_mpi_info (ts, ts_com, 'Master: Gathered data from Slave: ' // int_str(slave_rank) // '  For job: ' // int_str(j0), .true.)
 
     ! Send job info to slave
     ix_job_last = ix_job_last + 1
@@ -155,11 +161,11 @@ else
 
     do i = 1, n_job
       ix = (ix_job-1) * n_per_job + i - 1
-      ja = ix / (ts_com%n_b+1)*(ts_com%n_z+1)
+      ja = ix / (num_b * num_z)
       if (ja > ts_com%n_a) exit
-      ix = ix - ja * (ts_com%n_b+1)*(ts_com%n_z+1)
-      jb = ix / (ts_com%n_z+1)
-      jz = ix - jb * (ts_com%n_z+1)
+      ix = ix - ja * num_b * num_z
+      jb = ix / num_z
+      jz = ix - jb * num_z
       call ts_track_particle (ts, ts_com, ja, jb, jz, dat_arr(i))
     enddo
     n_track = i - 1
@@ -171,7 +177,7 @@ else
     call mpi_send (dat_arr(1:n_track), dat_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
   enddo
 
-  call ts_print_mpi_info (ts, ts_com, 'Slave: All done!')
+  call ts_print_mpi_info (ts, ts_com, 'Slave: All done!', .true.)
   call mpi_finalize(ierr)
 endif
 

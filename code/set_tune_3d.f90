@@ -1,15 +1,15 @@
 !+
-! subroutine set_tune3 (lat, target_tunes, use_phase_trombone, quad_mask, everything_ok)
+! function set_tune_3d (lat, target_tunes, use_phase_trombone, quad_mask, everything_ok)
 !
 ! Wrapper for set_tune and set_z_tune together.
 !
 ! Input:
 !   lat                 -- lat_struct:
 !   target_tunes(1:3)   -- real(rp): Integer + fractional tunes for a, b, z modes.
-!   use_phase_trombone  -- logical: If true, use a match element in phase trombone mode to adjust the tunes.
-!                            The match element must be the first element in the lattice. Use insert_phase_trombone to insert one.
 !   quad_mask           -- character(*), optional: Regular expression mask for matching quads to
 !                                 use in qtuneing.
+!   use_phase_trombone  -- logical, optional: Default False. If true, use a match element in phase trombone mode to adjust the tunes.
+!                            The match element must be the first element in the lattice. Use insert_phase_trombone to insert one.
 !   
 !
 ! Output:
@@ -17,7 +17,7 @@
 !   everything_ok       -- logical: Returns true or false if set was successful.  
 !-
 
-subroutine set_tune3 (lat, target_tunes, use_phase_trombone, quad_mask, everything_ok)
+function set_tune_3d (lat, target_tunes, quad_mask, use_phase_trombone) result (everything_ok)
 
 use bmad
 use z_tune_mod
@@ -30,17 +30,20 @@ type(coord_struct), allocatable :: co(:)
 real(rp) target_tunes(3)
 real(rp), allocatable, save :: dk1(:)
 integer n, status
-logical use_phase_trombone, everything_ok, err
+logical, optional :: use_phase_trombone
+logical everything_ok, err
 
-character(*) :: quad_mask
+character(*), optional :: quad_mask
+character(*), parameter :: r_name = 'set_tune3'
 
 !
 
 everything_ok = .true.
 
 if (all(target_tunes < 1)) then
-  write(*,'(a)') "Only fractional tunes given for target_tunes! Must supply integer + fractional tunes."
-  write(*,'(a)') "Stopping here..."
+  call out_io (s_fatal$, r_name, 'Only fractional tunes given for target_tunes!', &
+                                 'Must supply integer + fractional tunes.', &
+                                 'Stopping here...')
   stop
 endif
 
@@ -52,7 +55,7 @@ if (abs(target_tunes(3)) < 1.e-12) target_tunes(3) = lat%z%tune / twopi
 
 ! Phase trombone
 
-if (use_phase_trombone) then
+if (logic_option(.false., use_phase_trombone)) then
   call twiss_and_track(lat, co, status)
   ele => lat%ele(1)
   n = lat%n_ele_track
@@ -73,13 +76,4 @@ call set_tune(twopi*target_tunes(1), twopi*target_tunes(2), dk1, lat, co, everyt
 
 call set_z_tune(lat, twopi*target_tunes(3))
 
-if (.not. everything_ok) then
-  if (global_com%exit_on_error) then 
-    write(*,*) "Could not set tunes! Stopping here..."
-    stop
-  else
-    write(*,*) "Could not set tunes! Continuing..."
-  endif
-endif
-
-end subroutine set_tune3
+end function set_tune_3d
