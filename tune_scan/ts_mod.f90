@@ -179,7 +179,7 @@ ts_dat%n_data_track = 0
 ring = ts_com%ring              ! Use copy in case tune setting fails, which may garble the lattice
 closed_orb = ts_com%closed_orb  ! Use copy in case tune setting fails, which may garble the closed orbit
 
-ok = set_tune_3d (ring, ts_dat%tune, ts%quad_mask, ts%use_phase_trombone)  ! Takes tunes that have not not been multiplied by 2pi.
+ok = set_tune_3d (ring, ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, .false.)  ! Takes tunes that have not not been multiplied by 2pi.
 
 if (.not. ok) return    ! Tunes could not be set, probably on a resonance.
 

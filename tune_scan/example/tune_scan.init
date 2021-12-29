@@ -2,12 +2,12 @@
   ts%lat_file = "small_ring.bmad"
   ts%Q_a0 = 0.200
   ts%Q_a1 = 0.300
-  ts%dQ_a = 0.010
+  ts%dQ_a = 0.020
   ts%a0_amp = 1
 
-  ts%Q_b0 = 0.490
+  ts%Q_b0 = 0.500
   ts%Q_b1 = 0.600
-  ts%dQ_b = 0.010
+  ts%dQ_b = 0.020
   ts%b0_amp = 1
 
   ts%Q_z0 = 0.100
@@ -16,7 +16,7 @@
   ts%pz0_amp = 1
 
   ts%n_turn_init = 0
-  ts%n_turn_data = 2000
+  ts%n_turn_data = 20
   bmad_com%radiation_damping_on = F
   bmad_com%radiation_fluctuations_on = F
   ts%debug = .true.

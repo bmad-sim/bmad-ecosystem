@@ -4,13 +4,13 @@ use bmad_interface
 
 interface
 
-function set_tune_3d (lat, target_tunes, mask, use_phase_trombone) result (everything_ok)
+function set_tune_3d (lat, target_tunes, mask, use_phase_trombone, print_err) result (everything_ok)
   import
   implicit none
   type (lat_struct), target :: lat
   real(rp) target_tunes(3)
   logical everything_ok
-  logical, optional ::use_phase_trombone
+  logical, optional :: use_phase_trombone, print_err
   character(*), optional :: mask
 end function
 
