@@ -881,7 +881,7 @@ end subroutine ptc_closed_orbit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_one_turn_map_at_ele (ele, orb0, map, ptc_state, pz, order)
+! Subroutine ptc_one_turn_map_at_ele (ele, orb0, map, ptc_state, pz, order, rf_on)
 !
 ! Routine to calculate the PTC one turn map for a ring.
 !
@@ -891,6 +891,8 @@ end subroutine ptc_closed_orbit_calc
 !   pz      -- real(rp), optional: momentum deviation of closed orbit. 
 !                                  Default = 0
 !   order   -- integer, optional: Order of the map. If not given then default order is used.
+!   rf_on   -- integer, optional: RF state for calculation. yes$, no$, or maybe$ (default)
+!                   maybe$ means that RF state in branch is used.
 !
 ! Output:
 !   orb0(6)     -- real(rp): Closed orbit around which map is made.
@@ -900,7 +902,7 @@ end subroutine ptc_closed_orbit_calc
 !   ptc_state   -- internal_state: PTC state used for tracking.
 !-
 
-subroutine ptc_one_turn_map_at_ele (ele, orb0, map, ptc_state, pz, order)
+subroutine ptc_one_turn_map_at_ele (ele, orb0, map, ptc_state, pz, order, rf_on)
 
 use madx_ptc_module
 
@@ -915,20 +917,29 @@ real(rp), optional :: pz
 real(dp) orb0(6)
 
 integer :: map_order
-integer, optional :: order
+integer, optional :: order, rf_on
 
-logical rf_on, spin_on
+logical rf_on_state, spin_on
 
 !
 
-rf_on = rf_is_on(ele%branch)
 spin_on = bmad_com%spin_tracking_on
 
-if (rf_on) then
+select case (integer_option(maybe$, rf_on))
+case (yes$)
   ptc_state = ptc_com%base_state - nocavity0
-else
+case (no$)
   ptc_state = ptc_com%base_state + nocavity0
-endif
+case (maybe$)
+  rf_on_state = rf_is_on(ele%branch)
+  if (rf_on_state) then
+    ptc_state = ptc_com%base_state - nocavity0
+  else
+    ptc_state = ptc_com%base_state + nocavity0
+  endif
+case default
+  stop
+end select
 
 if (spin_on) ptc_state = ptc_state + spin0
 
