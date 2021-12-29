@@ -175,10 +175,14 @@ def search_f90 (file_name, search_com):
 
   comments = []
 
-  if sys.version_info[0] < 3:
-    f90_file = open(file_name, 'r')
-  else:
-    f90_file = open(file_name, 'r', encoding = 'ISO-8859-1')
+  try:
+    if sys.version_info[0] < 3:
+      f90_file = open(file_name, 'r')
+    else:
+      f90_file = open(file_name, 'r', encoding = 'ISO-8859-1')
+  except:
+    print (f'Note: Cannot open: {file_name}')
+    return
 
   while True:
     line = f90_file.readline()
