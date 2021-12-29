@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_ptc_normal_form (do_calc, tao_lat, ix_branch)
+! Subroutine tao_ptc_normal_form (do_calc, tao_lat, ix_branch, rf_on)
 !
 ! Routine to calculate normal form quantities.
 !
@@ -7,9 +7,11 @@
 !   do_calc     -- logical: Set True to do the calculation. 
 !   tao_lat     -- tao_lattice_struct: Lattice to work on.
 !   ix_branch   -- integer: Branch of lattice to work on.
+!   rf_on       -- integer, optional: RF state for calculation. yes$, no$, or maybe$ (default)
+!                   maybe$ means that RF state in branch is used.
 !-
 
-subroutine tao_ptc_normal_form (do_calc, tao_lat, ix_branch)
+subroutine tao_ptc_normal_form (do_calc, tao_lat, ix_branch, rf_on)
 
 use tao_interface, dummy => tao_ptc_normal_form
 use ptc_layout_mod
@@ -23,7 +25,8 @@ type (ptc_normal_form_struct), pointer :: ptc_nf
 type (branch_struct), pointer :: branch
 
 integer ix_branch
-logical do_calc, rf_on
+integer, optional :: rf_on
+logical do_calc, this_rf_on
 
 !
 
@@ -46,12 +49,11 @@ if (.not. do_calc .or. branch%param%geometry == open$) return
 !
 
 call set_ptc_verbose(.false.)
-rf_on = rf_is_on(branch)
 
 if (.not. associated(ptc_nf%ele_origin)) ptc_nf%ele_origin => branch%ele(0)
 if (.not. associated(branch%ptc%m_t_layout)) call lat_to_ptc_layout (tao_lat%lat)
 
-call ptc_one_turn_map_at_ele (ptc_nf%ele_origin, ptc_nf%orb0, ptc_nf%one_turn_map, ptc_nf%state, pz = 0.0_rp)
+call ptc_one_turn_map_at_ele (ptc_nf%ele_origin, ptc_nf%orb0, ptc_nf%one_turn_map, ptc_nf%state, pz = 0.0_rp, rf_on = rf_on)
 
 call alloc(ptc_nf%normal_form)
 call alloc(ptc_nf%phase)
@@ -60,9 +62,10 @@ ptc_nf%valid_map = .true.
 
 call ptc_map_to_normal_form (ptc_nf%one_turn_map, ptc_nf%normal_form, ptc_nf%phase, ptc_nf%spin)
 
-! call normal_form_taylors(normal_form%m, rf_on, dhdj = normal_form%dhdj, &
+! this_rf_on = rf_is_on(branch)
+! call normal_form_taylors(normal_form%m, this_rf_on, dhdj = normal_form%dhdj, &
 !                                  A = normal_form%A, A_inverse = normal_form%A_inv)  ! Get A, A_inv, dhdj
-! call normal_form_complex_taylors(normal_form%m, rf_on, F = normal_form%F, L = normal_form%L)  ! Get complex L and F
+! call normal_form_complex_taylors(normal_form%m, this_rf_on, F = normal_form%F, L = normal_form%L)  ! Get complex L and F
 
 call set_ptc_verbose(.true.)
 

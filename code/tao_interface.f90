@@ -734,11 +734,12 @@ subroutine tao_print_command_line_info
   implicit none
 end subroutine
 
-subroutine tao_ptc_normal_form (do_calc, tao_lat, ix_branch)
+subroutine tao_ptc_normal_form (do_calc, tao_lat, ix_branch, rf_on)
   import
   type (tao_lattice_struct), target :: tao_lat
   integer ix_branch
   logical do_calc
+  integer, optional :: rf_on
 end subroutine
 
 subroutine tao_python_cmd (input_str)
