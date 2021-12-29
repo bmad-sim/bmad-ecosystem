@@ -1,18 +1,19 @@
 !+
-! Subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
+! Function set_tune (phi_a_set, phi_b_set, dk1, lat, orb, print_err) result (ok)
 !
-! Subroutine to Q_tune a lat. Program will set the tunes to within 0.001 radian (0.06 deg).
+! Function to Q_tune a lat. Program will set the tunes to within 0.001 radian (0.06 deg).
 ! Note: The tune is computed with reference to the closed orbit.
 !                                    
 ! Input:
-!   phi_a_set -- real(rp): Horizontal set tune (radians)
-!   phi_b_set -- real(rp): Vertical set tune (radians)
-!   dk1(:)    -- real(rp): Relative amount to vary a quad in tuning. That is, the variation will 
-!                  be proportional to dk1. dk1(i) relates to element lat%ele(i). Those quads with a
-!                  positive dk1(i) will be varied as one group and the quads with negative dk1(i)
-!                  will be varied as another group. The routine choose_quads_for_set_tune can be
-!                  used to calculate values for dk1.
+!   phi_a_set     -- real(rp): Horizontal set tune (radians)
+!   phi_b_set     -- real(rp): Vertical set tune (radians)
+!   dk1(:)        -- real(rp): Relative amount to vary a quad in tuning. That is, the variation will 
+!                      be proportional to dk1. dk1(i) relates to element lat%ele(i). Those quads with a
+!                      positive dk1(i) will be varied as one group and the quads with negative dk1(i)
+!                      will be varied as another group. The routine choose_quads_for_set_tune can be
+!                      used to calculate values for dk1.
 !   orb(0)%vec(6) -- Coord_struct: If RF is off: Energy dE/E at which the tune is computed.
+!   print_err     -- logical, optional: Print error message if there is a problem? Default is True.
 !
 ! Output:
 !   lat      -- lat_struct: Q_tuned lat
@@ -20,7 +21,7 @@
 !   ok       -- logical: Set True if everything is ok. False otherwise.
 !-
 
-subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
+function set_tune (phi_a_set, phi_b_set, dk1, lat, orb, print_err) result (ok)
 
 use bmad_interface, except_dummy => set_tune
 
@@ -37,6 +38,7 @@ real(rp) l_beta_a, l_beta_b, dk_x, dk_y, dk1(:)
 
 integer i, j, status
 
+logical, optional :: print_err
 logical ok, err, rf_on, master_saved
 
 character(20) :: r_name = 'set_tune'
@@ -65,16 +67,16 @@ do i = 1, 10
   if (.not. bmad_com%auto_bookkeeper) call lattice_bookkeeper(lat)
 
   if (rf_on) then
-    call closed_orbit_calc (lat, orb, 6, err_flag = err)
+    call closed_orbit_calc (lat, orb, 6, err_flag = err, print_err = print_err)
   else
-    call closed_orbit_calc (lat, orb, 4, err_flag = err)
+    call closed_orbit_calc (lat, orb, 4, err_flag = err, print_err = print_err)
   endif
 
   if (err) return
 
   call lat_make_mat6 (lat, -1, orb)
 
-  call twiss_at_start(lat, status = status)
+  call twiss_at_start(lat, status = status, type_out = print_err)
   if (status /= ok$) return
 
   call twiss_propagate_all (lat, err_flag = err)
@@ -143,4 +145,4 @@ call out_io (s_error$, r_name, 'CANNOT GET TUNE RIGHT.', &
       r_array = [phi_a/twopi, phi_b/twopi, phi_a_set/twopi, phi_b_set/twopi ])
 
 
-end subroutine
+end function
