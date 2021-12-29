@@ -1942,7 +1942,7 @@ subroutine set_ele_defaults (ele, do_allocate)
   logical, optional :: do_allocate
 end subroutine
 
-subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
+function set_tune (phi_a_set, phi_b_set, dk1, lat, orb, print_err) result (ok)
   import
   implicit none
   type (lat_struct), target :: lat
@@ -1950,8 +1950,9 @@ subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
   real(rp) phi_a_set
   real(rp) phi_b_set
   real(rp) dk1(:)
+  logical, optional :: print_err
   logical ok
-end subroutine
+end function
 
 function significant_difference (value1, value2, abs_tol, rel_tol) result (is_different)
   import

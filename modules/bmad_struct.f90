@@ -491,7 +491,7 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: t = 0               ! Absolute time (not relative to reference).
   real(rp) :: spin(3) = 0         ! Spin.
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
-  real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y)
+  real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y).
   real(rp) :: charge = 0          ! Macroparticle weight (in Coulombs).
   real(rp) :: path_len = 0        ! path length (used by coherent photons).
   real(rp) :: r = 0               ! For general use. Not used by Bmad. 
