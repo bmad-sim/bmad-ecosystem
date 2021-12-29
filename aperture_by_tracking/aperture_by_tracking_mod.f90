@@ -74,7 +74,7 @@ SUBROUTINE prep_lat_ring(lat,co,Qx,Qy,Qz,master)
     CALL set_on_off(rfcavity$, lat, off$)
     ALLOCATE(dk1(lat%n_ele_max))
     CALL choose_quads_for_set_tune(lat, dk1)
-    CALL set_tune(Qx*twopi, Qy*twopi, dk1, lat, co, ok)
+    ok = set_tune(Qx*twopi, Qy*twopi, dk1, lat, co)
     DEALLOCATE(dk1)
     CALL set_on_off(rfcavity$, lat, on$)
     IF(master) THEN
