@@ -3205,7 +3205,7 @@ case ('normal_form')
   endif
 
   tao_lat => tao_pointer_to_tao_lat (u, model$)
-  if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., tao_lat, ix_branch)
+  if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., tao_lat, ix_branch, rf_on = no$)
 
   bmad_nf => tao_branch%bmad_normal_form
   ptc_nf  => tao_branch%ptc_normal_form
@@ -3216,11 +3216,16 @@ case ('normal_form')
 
   do i = 0, ptc_com%taylor_order_ptc
     expo = [0, 0, 0, 0, 0, i]
-    nl=nl+1; write (lines(nl), '(i3, 2es18.7, 9x es18.7)') i, real(ptc_nf%phase(1) .sub. expo), real(ptc_nf%phase(2) .sub. expo), &
+    if (i == 0) then
+      nl=nl+1; write (lines(nl), '(i3, 2es18.7, 9x es18.7, a)') i, real(ptc_nf%phase(1) .sub. expo), real(ptc_nf%phase(2) .sub. expo), &
+                      -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length, '  ! 0th order are the tunes (and RF is off for calculation)'
+    elseif (i < ptc_com%taylor_order_ptc) then
+      nl=nl+1; write (lines(nl), '(i3, 2es18.7, 9x es18.7)') i, real(ptc_nf%phase(1) .sub. expo), real(ptc_nf%phase(2) .sub. expo), &
                       -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
+    else
+      nl=nl+1; write (lines(nl), '(i3, 18x, 18x, 9x es18.7)') i, -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
+    endif
   enddo
-
-
 
 !  select case(attrib0(1:5))
 !    case ('dhdj ')
@@ -3927,7 +3932,7 @@ case ('spin')
 
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Resonance strengths:'
-      nl=nl+1; lines(nl) = '            Tune        |Q-Qs|      Xi(quat.v1)  Xi(quat.v2)         Xi(G.v1)     Xi(G.v2)'
+      nl=nl+1; lines(nl) = '            Tune        |Q-Qs|      Xi(quat.v1)  Xi(quat.v2)'     !!         Xi(G.v1)     Xi(G.v2)'
 
       qs = branch%param%spin_tune/twopi
       do i = 1, 3
@@ -3935,8 +3940,8 @@ case ('spin')
         q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
         dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
         call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat)
-        call spin_mat8_resonance_strengths(evec(j,:), sm%mat8, xi_mat8)
-        nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 8(4x, 2es13.5))') abc_name(i), q, dq, xi_quat, xi_mat8
+        !! call spin_mat8_resonance_strengths(evec(j,:), sm%mat8, xi_mat8)
+        nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 8(4x, 2es13.5))') abc_name(i), q, dq, xi_quat !!, xi_mat8
       enddo
       nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
     endif
