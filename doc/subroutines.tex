@@ -91,12 +91,12 @@ That is from large z (head of bunch) to small z.
 
 \index[routine]{track1_bunch}
 \label{r:track1.bunch}
-\item[track1_bunch (bunch_start, lat, ele, bunch_end, err, centroid, direction)] \Newline 
+\item[track1_bunch (bunch, ele, err, centroid, direction)] \Newline 
 Routine to track a bunch of particles through an element.
 
 \index[routine]{track1_bunch_hom}
 \label{r:track1.bunch.hom}
-\item[track1_bunch_hom (bunch_start, ele, param, bunch_end, direction)] \Newline 
+\item[track1_bunch_hom (bunch, ele, direction)] \Newline 
 Routine to track a bunch of particles through an element.
 
 \end{description}
@@ -311,7 +311,7 @@ Custom routine to add a kick to a particle at periodic times.
 
 \index[routine]{track1_bunch_hook}
 \label{r:track1.bunch.hook}
-\item[track1_bunch_hook (bunch_start, ele, bunch_end, err, centroid, direction, finished)] \Newline 
+\item[track1_bunch_hook (bunch, ele, err, centroid, direction, finished)] \Newline 
 Routine that can be customized for tracking a bunch through a single element.
 
 \index[routine]{track1_custom}
@@ -984,7 +984,7 @@ The format will either be "es" for numbers that are very small or very large or 
 
 \index[routine]{real_str}
 \label{r:real.str}
-\item[real_str(r_num, n_signif) result (str)] \Newline 
+\item[real_str(r_num, n_signif, n_decimal) result (str)] \Newline 
 Routine to return a string representing a real number.
 Trailing zeros will be supressed. 
 
@@ -2000,7 +2000,9 @@ and the 0th order transfer vector.
 
 \index[routine]{match_ele_to_mat6}
 \label{r:match.ele.to.mat6}
-\item[match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time)] \Newline 
+\item[\protect\parbox{6in}{
+  match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time, \\
+  \hspace*{1in} set_trombone)}] \Newline 
 Routine to make the 6 x 6 transfer matrix from the twiss parameters.
 
 \index[routine]{multi_turn_tracking_to_mat}
@@ -3275,7 +3277,9 @@ Routine to concatenate two taylor series: taylor3(x) = taylor2(taylor1(x))
 
 \index[routine]{ele_to_taylor}
 \label{r:ele.to.taylor}
-\item[ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, orbital_taylor, spin_taylor)] \Newline
+\item[\protect\parbox{6in}{
+  ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, \\
+  \hspace*{1in} include_damping, orbital_taylor, spin_taylor)}] \Newline
 Routine to make a Taylor map for an element. The order of the map is set by set_ptc.
 
 \index[routine]{equivalent_taylor_attributes}
@@ -3529,7 +3533,7 @@ Routine to track through a single element.
 
 \index[routine]{track1_bunch_csr}
 \label{r:track1.bunch.csr}
-\item[track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)] \Newline 
+\item[track1_bunch_csr (bunch, ele, centroid, err, s_start, s_end)] \Newline 
 Routine to track a bunch of particles through the element lat\%ele(ix_ele)
 with csr radiation effects.
 
