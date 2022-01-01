@@ -89,7 +89,6 @@ if (unique_name /= '') call create_unique_ele_names(lat, 0, unique_name)
 
 write (1, '(a)') '    1 IP        0.00000000  0.00000000  0.00000000    1   0.000000    0'
 
-
 call nametable_init(nametab)
 
 do i = 1, lat%n_ele_track
@@ -210,7 +209,7 @@ do i = 1, lat%n_ele_track
     case (solenoid$)
       call write_ele_position (line, ne, ele%name, ele%s_start)
 
-    case (sextupole$, rfcavity$, beambeam$, hkicker$, vkicker$, kicker$, quadrupole$, marker$)
+    case (sextupole$, rfcavity$, beambeam$, hkicker$, vkicker$, kicker$, quadrupole$, marker$, multipole$, ab_multipole$, octupole$)
       call write_ele_position (line, ne, ele%name, ele%s_start + 0.5_rp * ele%value(l$))
     end select
 
@@ -292,7 +291,7 @@ do i = 1, lat%n_ele_track
   case (solenoid$)
     call write_ele_position (line, ne, ele%name, ele%s_start)
 
-  case (sextupole$, rfcavity$, beambeam$, hkicker$, vkicker$, kicker$, marker$)
+  case (sextupole$, rfcavity$, beambeam$, hkicker$, vkicker$, kicker$, marker$, multipole$, ab_multipole$, octupole$)
     call write_ele_position (line, ne, ele%name, ele%s_start + 0.5_rp * ele%value(l$))
   end select
 enddo
@@ -378,7 +377,7 @@ case (beambeam$)
   slick_class = 17
   slick_params = [0.0_rp, 0.0_rp, 0.0_rp]
 
-case (hkicker$, vkicker$, kicker$)
+case (hkicker$, vkicker$, kicker$, octupole$)
   if (tilt(0) == 0) then
     slick_class = 6
     slick_params = [strength_scale*knl(0), 0.0_rp, len_scale*ele%value(l$)]    
