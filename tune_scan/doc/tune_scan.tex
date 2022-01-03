@@ -82,9 +82,11 @@
 \Section{Introduction} 
 \label{s:intro}
 
-A \vn{tune scan} is a way of examining resonances which involves varying the beam $Q_a$ and $Q_b$
-tunes and observing a resonance related beam parameter such as the beam size or the beam lifetime.
-A scan can be done in an actual machine or in simulation which is what \ts program discussed does. 
+A \vn{tune scan} is a way of examining resonances which involves plotting a resonance related beam
+parameter such as the beam size or the beam lifetime as a function of the transverse $Q_a$ and $Q_b$
+tunes.  A scan can be done in an actual machine or in simulation which is what \ts program documented here
+does. Since lifetimes can be tricky and time intensive to calculate, the \ts program uses variations in the
+amplitude of a tracked particle as the indicator for resonance.
 
 The \ts program is built atop the Bmad software toolkit \cite{b:bmad}. The Bmad toolkit is a
 library, developed at Cornell, for the modeling relativistic charged particles in storage rings and
@@ -109,7 +111,7 @@ and then using the ``\vn{mk}'' command in the \vn{bsim} directory to build the e
 documentation on the Bmad web site for more details.]
 
 %------------------------------------------------------------------
-\Section{Running the Long Term Tracking Program} 
+\Section{Running the Tune Scan Program} 
 \label{s:run}
 
 See the documentation for setting up the Bmad environmental variables at
@@ -132,7 +134,7 @@ in \sref{s:input}.
 
 Example input files are in the directory (relative to the root of a Distribution):
 \begin{code}
-  bsim/long_turn_tracking/example
+  bsim/tune_scan/example
 \end{code}
 
 When running the MPI version threaded over multiple computers, the details of how to start the process will
@@ -143,6 +145,15 @@ the typical command will look like
 \end{example}
 where \vn{<num_processes>} is the number of processes. \vn{miprun} is the typical alternative if
 \vn{mpiexec} is not defined.
+
+%------------------------------------------------------------------
+\Section{Nomenclature}
+\label{s:nomen}
+
+A particle has three modes of oscillation which are labeled $a$, $b$, and $z$. The $a$-mode is the
+``horizontal-like'' mode which, if there is no coupling, will correspond to purely horizontal
+motion.  The $b$ mode is the ``vertical-like'' mode which, if there is no coupling, will correspond
+to purely vertical motion. The \vn{Linear Optics} chapter of the \bmad manual has more details.
 
 %------------------------------------------------------------------
 \Section{Fortran Namelist Input}
@@ -184,33 +195,222 @@ needs in Fortran code.
 \Section{Master Input File}
 \label{s:input}
 
-The \vn{master input file} holds the parameters needed for running the long term tracking
-program. The master input file must contain a single namelist (\sref{s:namelist}) named \vn{params}.
-Example:
+The \vn{master input file} holds the parameters needed for running the tune scan program. The master
+input file must contain a single namelist (\sref{s:namelist}) named \vn{params}.  Example:
 \begin{code}
 &params
-  ts%lat_file = "$lat"
-  ts%Q_a0 = 0.590
-  ts%Q_a1 = 0.600
-  ts%dQ_a = 0.001
-  ts%a0_amp = 1
+  ts%lat_file = "$lat"    ! Bmad lattice file.
+  ts%dat_out_file = ""    ! Data output file name. Default is "tune_scan.dat"
 
-  ts%Q_b0 = 0.675
-  ts%Q_b1 = 0.676
-  ts%dQ_b = 0.001
-  ts%b0_amp = 1
+  ts%Q_a0 = 0.590         ! Q_a range is [Q_a0, Q_a1].
+  ts%Q_a1 = 0.600         ! Units are rad/2pi.
+  ts%dQ_a = 0.001         ! Q_a step size.
 
-  ts%Q_z0 = 0.066
-  ts%Q_z1 = 0.067
-  ts%dQ_z = 0.001
-  ts%pz0_amp = 1
+  ts%Q_b0 = 0.675         ! Q_b range is [Q_b0, Q_b1].
+  ts%Q_b1 = 0.676         ! Units are rad/2pi.
+  ts%dQ_b = 0.001         ! Q_b step size.
 
-  ts%n_turn_init = 0
-  ts%n_turn_data = 5
-  bmad_com%radiation_damping_on = F
-  bmad_com%radiation_fluctuations_on = F
+  ts%use_phase_trombone = F ! Use phase trombone ele to adjust transverse tunes?
+  ts%quad_mask = ""         ! Quadrupole mask used with quadrupole variation.
+
+  ts%Q_z0 = 0.066         ! Q_z range (when RF is on) is [Q_z0, Q_z1].
+  ts%Q_z1 = 0.067         ! Units are rad/2pi.
+  ts%dQ_z = 0.001         ! Q_z step size.
+
+  ts%pz0  = -0.01         ! pz range (when RF is off) is [pz0, pz1].
+  ts%pz1  =  0.01
+  ts%dpz  =  0.005        ! pz setp size.
+
+  ts%a_emit = 0           ! a-mode emit (overrides lattice calc)
+  ts%b_emit = 0           ! b-mode emit (overrides lattice calc)
+  ts%sig_pz = 0           ! z-mode emit (overrides lattice calc)
+  ts%a0_amp = 1           ! Initial a-mode particle amplitude relative to the a-mode beam sigma
+  ts%b0_amp = 1           ! Initial b-mode particle amplitude relative to the b-mode beam sigma
+  ts%pz0_amp = 1          ! z-mode amplitude.
+
+  ts%rf_on = F            ! RF acceleration field on or off?
+  ts%n_turn = 2000        ! Number of turns to track a particle at a tune point.
+  bmad_com%radiation_damping_on = F        ! Set radiation damping on/off.
+  bmad_com%radiation_fluctuations_on = F   ! Set radiation excitation on/off.
 /
 \end{code}
+
+\begin{description}
+\item[ts\%lat_file] \Newline
+Name of the Bmad lattice file to use. This name is required.
+%
+\item[ts\%dat_out_file] \Newline
+Data output file name. Default if blank or not present is \vn{tune_scan.dat}.
+%
+\item[ts\%] \Newline
+%
+\item[ts\%Q_a0, ts\%Q_a1, ts%dQ_a] \Newline
+\vn{[ts%Q_a0, ts%Q_a1]} is the range of the tune plane grid along the $Q_a$ axis and \vn{ts%dQ_a} is
+the spacing between grid points. Tunes are in units of rad/2pi and only the fractional part should
+be specified.
+%
+\item[ts\%Q_b0, ts\%Q_b1, ts%dQ_b] \Newline
+\vn{[ts%Q_b0, ts%Q_b1]} is the range of the tune plane grid along the $Q_b$ axis and \vn{ts%dQ_b} is
+the spacing between grid points. Tunes are in units of rad/2pi and only the fractional part should
+be specified.
+%
+\item[ts\%use_phase_trombone] \Newline
+Use a phase trombone element to vary the lattice $(Q_x, Q_y)$ tunes from point to point
+(\sref{s:sim})? Default is False. Also see \vn{ts%quad_mask}.
+%
+\item[ts\%quad_mask] \Newline
+When {\em not} using a phase trombone element (see \vn{ts%use_phase_trombone}), it is sometimes
+desired not have certain quadrupole strengths varied. This can be achieved by setting
+\vn{ts%quad_mask} which is a list of quadrupoles to be excluded from variation. For example:
+\begin{code}
+ts%quad_mask = "QT* IP:M34"
+\end{code}
+In this example, all quadrupole elements whose name begins with ``\vn{QT}'' along with all
+quadrupoles in between elements \vn{IP} and \vn{M34} are excluded from variation. See the \bmad
+manual for details about element selection.
+%
+\item[ts\%Q_z0, ts\%Q_z1, ts\%dQ_z] \Newline
+Only used when \vn{ts%rf_on} is set to True. In the RF on mode, the longitudinal tune $Q_z$ is set
+to a certain value and a tune plane scan is made. $Q_z$ is then changed and a new tune plane scan is
+made, etc. The range of values for $Q_z$ is set by \vn{[ts%Q_z0, ts%Q_z1]} with a spacing of
+\vn{ts%dQ_z} between points.
+%
+\item[ts\%pz0, ts\%pz1, \ts%dpz] \Newline
+Only used when \vn{ts%rf_on} is set to True. In the RF off mode, the phase space $p_z$ of the
+tracked particle is set to a certain value and a tune plane scan is made. $p_z$ is then changed and
+a new tune plane scan is made, etc. The range of values for $p_z$ is set by \vn{[ts%p_z0, ts%p_z1]}
+with a spacing of \vn{ts%dp_z} between points.
+%
+\item[ts\%a_emit, ts\%b_emit] \Newline
+Emittances of the $a$ and $b$ modes. These are used to calculate the particle starting position when
+tracking (\sref{s:sim}). If not present or set to zero, the emittances as calculated from the
+lattice are used.
+%
+\item[ts\%sig_pz] \Newline
+Sigma of phase space $p_z$ coordinate. This is used to calculate the particle starting position when
+tracking (\sref{s:sim}). If not present or set to zero, the value as calculated from the
+lattice is used. Also see \vn{ts%pz0_amp}
+%
+\item[ts\%a0_amp, ts\%b0_amp] \Newline
+particle starting position $a$ and $b$-mode amplitudes relative to the equilbrium beam size.
+The default is zero.
+%
+\item[ts\%pz0_amp] \Newline
+Particle initial phase space $z$-mode amplitude relative to the equalibrium longitudinal beam
+size. The default is zero.
+
+%
+\item[ts\%rf_on] \Newline
+Determines if the RF is turned on or off. If \vn{False} (the default), the RF is off and if
+\vn{True} the RF is on.
+%
+\item[ts\%n_turn] \Newline
+Number of turns to track a particle.
+%
+\item[bmad_com] \Newline
+\bmad common structure used for setting \bmad global parameters. See the \bmad manual for more
+details. For the \ts program, the two most important parameters are the ones that control whether
+the radiation damping or excitation are on or off.
+\end{description}
+
+%------------------------------------------------------------------
+\Section{Simulation}
+\label{s:sim}
+
+Summary: A grid of points is defined in the $(Q_a, Q_b)$ tune plane. For each point, lattice
+parameters are adjusted so that the lattice tunes are equal to the tunes defined by the tune plane
+point. After this, a particle is tracked and the RMS and maximum amplitudes for each mode of
+oscillation are recoreded in the output file. This is called a tune plane ``\vn{data set}''.
+Multiple data sets may be calculated at a set of longitudinal tunes (if the RF is on) or at a set of
+particle $p_z$ values (if the RF is off).
+
+The $(Q_a, Q_b)$ tune plane grid is defined by setting in the master input file\sref{s:input} the
+$Q_a$ and $Q_b$ ranges which are \vn{[ts%Q_a0, ts%Q_a1]} and \vn{[ts%Q_b0, ts%Q_b1]} respectively
+along with the spacing between points given by \vn{ts%dQ_a} and \vn{ts%dQ_b}.\footnote
+  {
+If the interval size \vn{ts%Q_a1 - ts%Q_a0} is not commensurate with the spacing \vn{ts%dQ_a}, the
+actual grid upper bound is taken to be \vn{ts%Q_a0 + na * ts%dQ_a} where \vn{na} is a integer such
+that the actual upper bound is as close to \vn{ts%Q_a1} as possible. A similar calculation is done
+with the $b$ axis.
+  }
+The units are in radians/2$\pi$. Only the fractional part of the tune should be given.
+
+The transverse $(Q_x, Q_y)$ tunes are set by either varying quadrupole strengths in the lattice or
+by varying the phase advance through a \vn{match} element set in phase trombone mode. Which strategy
+is used is determined by the setting of \vn{ts%use_phase_trombone}. If set to True, a \vn{match}
+element in phase trombone mode is added to the lattice and the phase advance in the element is
+adjusted as needed. This gives a ``smooth'' tune variation in the sense that the Twiss parameters do
+not change around the ring. It is somewhat unrealistic though when trying to simulate an actual
+machine. When not using a phase trombone element, lattice tune variation is achieved by varying
+quadrupole strengths. The general algorithm is to exclude any quadrupoles that are tilted and then
+divide the upright quadrupoles into two groups. One group were $\beta_a > \beta_b$ at the quadtupole
+and the other group with $\beta_a < \beta_b$. The $k_1$ quadrupole strength of the quadrupoles of
+each group are varied in unison. The two groups represent two variables which can be used to match
+the two tune conditions. It may be desireable to not vary selected quadrupoles. For example, the
+quadrupoles in an interaction region. To exclude selected quadrupoles from being varied the
+\vn{ts%quad_mask} string can be set appropriately.
+
+There are two modes of operation. In the \vn{RF off} mode, \vn{ts%rf_on} is set to False (the
+default). In the \vn{RF on} mode, \vn{ts%rf_on} is set to True. In the \vn{RF off} mode, tune plane
+data sets are calculated at a set of particle $p_z$ values. These values are in the range
+\vn{[ts%pz0, ts%pz1]} with a spacing between points given by \vn{ts%dpz}. Generally this mode is
+only used with radiaion damping and excitation turned off. In the \vn{RF on} mode, tune plane data
+sets are calculated at a set of longitudinal tune values in the range \vn{[ts%Q_z0, ts%Q_z1]} with
+the spacing between points given by \vn{ts%dQ_z}. The longitudinal tune is adjusted by varying the
+RF voltage at the RF cavities.
+
+At each tune plane point, a particle is tracked for \vn{ts%n_turn} turns and the variation of the
+amplitude is recorded. Without coupling or dispersion, the initial phase space position of the
+particle is set to:
+\begin{align}
+  (x, p_x, y, p_y, z, p_z) 
+  &= (A_a \, \sigma_a, 0, A_b \, \sigma_b, 0, p_{z0} + n \, dp_z) \qquad \text{! RF off} \nonumber \\
+  &= (A_a \, \sigma_a, 0, A_b \, \sigma_b, 0, A_z \, \sigma_{pz}) \qquad \text{! RF on} \nonumber \\
+\end{align}
+Amplitudes $A_a$, $A_b$, and $A_z$ are set by \vn{ts%a0_amp}, \vn{ts%b0_amp} and \vn{ts%z0_amp}
+respectively. The $\sigma_a$ and $\sigma_b$ beam sizes are calculated using the equilibrium
+emittances $\epsilon_a$ and $\epsilon_b$ and the local Twiss parameters. $\epsilon_a$ and
+$\epsilon_b$ may be set by setting \vn{ts%a_emit} and \vn{ts%b_emit} respectively. If not set, the
+calculated emittences are used. With RF off, the initial $p_z$ coordinate is set to $p_{z0} + n \,
+dp_z$ where $n$ is an integer, $p_{z0}$ is set by \vn{ts%pz0}, and $dp_z$ is set by
+\vn{ts%dpz}. With RF on, $A_z$ is set by \vn{ts%pz0_amp} and $\sigma_{pz} is set by \vn{ts%sig_pz}.
+If \vn{ts%sig_pz} is not set, the equalibrium value as calculated from the lattice is used.  When
+there is coupling or dispersion, the initial phase space position is shifted to keep the initial
+amplitudes of oscillation of the three modes equal to what one would have without coupling and
+dispersion.
+
+%------------------------------------------------------------------
+\Section{Output and Plotting}
+\label{s:output}
+
+The output data file is a table of values with each row being data from one tune plane grid
+point. The thirteen columns are:
+\begin{code}
+  ja, jb, jz      ! Index of the tune plane grid point
+  Q_a, Q_b, Q_z   ! Tunes
+  data_turns      ! Number of turns over which data is taken
+  amp_a_rms, amp_b_rms, amp_z_rms
+                  ! RMS of the amplitude variation for the three modes.
+  amp_a_max, amp_b_max, amp_z_max
+                  ! Max amplitude for the three modes.
+\end{code}
+\begin{description}
+\item[ja, jb, jz] \Newline
+Indexes \vn{ja}, \vn{jb}, and \vn{jz} start from zero which corresponds to tunes \vn{ts%Q_a0},
+\vn{ts%Q_b0}, and \vn{ts%Q_z0} respectively. 
+%
+\item[data_turns] \Newline
+\vn{Data_turns} is the number of turns over which data
+is taken. This is generally equal to \vn{ts%n_turn} unless the particle hits an aperture or it is
+not possible to calculate Twiss parameters due to the lattice being unstable. In the latter case,
+\vn{Data_turns} will be set to zero and the RMS and max amplitudes will be set to -1. 
+%
+\item[amp_a_rms, amp_b_rms, amp_z_rms]
+RMS of the amplitude variation turn-to-turn relative to the equilibrium amplitude.
+%
+\item[amp_a_max, amp_b_max, amp_z_max]
+Maximum of the amplitude variation turn-to-turn relative to the equilibrium amplitude.
+\end{description}
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}

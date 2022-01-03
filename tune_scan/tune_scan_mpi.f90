@@ -81,7 +81,7 @@ num_b = ts_com%n_b + 1
 num_z = ts_com%n_z + 1
 
 n_run = num_a * num_b * num_z
-n_per_job = max(1, n_run / (2*num_slaves))
+n_per_job = 1 + n_run / (2*num_slaves)
 n_job = ceiling(0.9999999_rp * n_run / n_per_job)
 allocate (dat_arr(n_per_job))
 
@@ -159,7 +159,7 @@ else
     call ts_print_mpi_info (ts, ts_com, 'Slave: Starting job: ' // int_str(ix_job))
     if (ix_job == 0) exit
 
-    do i = 1, n_job
+    do i = 1, n_per_job
       ix = (ix_job-1) * n_per_job + i - 1
       ja = ix / (num_b * num_z)
       if (ja > ts_com%n_a) exit
