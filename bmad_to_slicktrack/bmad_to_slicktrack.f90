@@ -350,8 +350,13 @@ case (sbend$)
   endif
 
 case (quadrupole$)
-  slick_class = 4
-  slick_params = [strength_scale*knl(1), ele%value(tilt$), len_scale*ele%value(l$)]
+  if (ele%value(tilt$) == 0) then
+    slick_class = 3
+    slick_params = [strength_scale*knl(1), 0.0_rp, len_scale*ele%value(l$)]
+  else
+    slick_class = 4
+    slick_params = [strength_scale*knl(1), ele%value(tilt$), len_scale*ele%value(l$)]
+  endif
 
 case (rfcavity$)
   slick_class = 5
