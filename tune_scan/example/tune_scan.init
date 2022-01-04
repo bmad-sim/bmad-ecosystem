@@ -1,7 +1,7 @@
 &params
   ts%lat_file = "small_ring.bmad"
 
-  ts%Q_a0 = 0.200
+  ts%Q_a0 = 0.100
   ts%Q_a1 = 0.400
   ts%dQ_a = 0.005
   ts%a0_amp = 1

@@ -1,15 +1,16 @@
 !+
-! function set_tune_3d (lat, target_tunes, use_phase_trombone, quad_mask, print_err) result (everything_ok)
+! function set_tune_3d (lat, target_tunes, use_phase_trombone, quad_mask, z_tune_set, print_err) result (everything_ok)
 !
 ! Wrapper for set_tune and set_z_tune together.
 !
 ! Input:
 !   lat                 -- lat_struct:
-!   target_tunes(1:3)   -- real(rp): Integer + fractional tunes for a, b, z modes.
+!   target_tunes(1:3)   -- real(rp): Integer + fractional tunes for a, b, z modes (rad/2pi).
 !   quad_mask           -- character(*), optional: Regular expression mask for matching quads to
 !                                 use in qtuneing.
 !   use_phase_trombone  -- logical, optional: Default False. If true, use a match element in phase trombone mode to adjust the tunes.
 !                            The match element must be the first element in the lattice. Use insert_phase_trombone to insert one.
+!   z_tune_set          -- logical, optional: Default True. If false, do not try to set the synch tune.
 !   print_err           -- logical, optional: Print error message if there is a problem? Default is True.
 !
 ! Output:
@@ -17,7 +18,7 @@
 !   everything_ok       -- logical: Returns true or false if set was successful.  
 !-
 
-function set_tune_3d (lat, target_tunes, quad_mask, use_phase_trombone, print_err) result (everything_ok)
+function set_tune_3d (lat, target_tunes, quad_mask, use_phase_trombone, z_tune_set, print_err) result (everything_ok)
 
 use bmad
 use z_tune_mod
@@ -30,7 +31,7 @@ type(coord_struct), allocatable :: co(:)
 real(rp) target_tunes(3)
 real(rp), allocatable, save :: dk1(:)
 integer n, status
-logical, optional :: use_phase_trombone, print_err
+logical, optional :: use_phase_trombone, z_tune_set, print_err
 logical everything_ok, err
 
 character(*), optional :: quad_mask
@@ -74,6 +75,6 @@ if (.not. allocated(dk1)) then ! first call to set_tune3; allocate and find quad
 endif
 everything_ok = set_tune(twopi*target_tunes(1), twopi*target_tunes(2), dk1, lat, co, print_err)
 
-call set_z_tune(lat, twopi*target_tunes(3))
+if (logic_option(.true., z_tune_set)) call set_z_tune(lat, twopi*target_tunes(3))
 
 end function set_tune_3d

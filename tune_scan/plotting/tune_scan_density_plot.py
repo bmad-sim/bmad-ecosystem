@@ -21,15 +21,15 @@ if sys.version_info[0] == 2 or sys.version_info[1] < 6: sys.exit("MUST USE PYTHO
 def print_help():
   print ('''
 Usage:
-    det_pix_plot.py {-cmap <color_map>} {-column <col_to_plot>} {-max <max_val>} {-z <z_index>} {<data_file_name>}
+  tune_scan_density_plot.py {-cmap <color_map>} {-column <col_to_plot>} {-min <min_val>} {-max <max_val>} {-z <z_index>} {<data_file_name>}
 
-  Defaults:
-    <color_map>    = "gnuplot2_r" # Color map. Google "matplotlib color maps" for more info.
-    <col_to_plot>  = 9            # Column index (0 = first column, 9 = Amp_b_rms).
-    <max_val>      = -1           # If positive: Set all data values = min(max_val, data_val).
-    <min_val>      = 0            # Set all data values = max(min_val, data_val).
-    <z_index>      = 0            # Qz slice index (0 = first slice at Qx = Q_z0).
-    <data_file_name> = tune_scan.dat
+Defaults:
+  <color_map>    = "gnuplot2_r" # Color map. Google "matplotlib color maps" for more info.
+  <col_to_plot>  = 9            # Column index (0 = first column, 9 = Amp_b_rms).
+  <max_val>      = -1           # If positive: Set all data values = min(max_val, data_val).
+  <min_val>      = 0            # Set all data values = max(min_val, data_val).
+  <z_index>      = 0            # Qz slice index (0 = first slice at Qx = Q_z0).
+  <data_file_name> = tune_scan.dat
 ''')
   exit() 
 
