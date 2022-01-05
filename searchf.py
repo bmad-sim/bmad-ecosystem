@@ -181,7 +181,7 @@ def search_f90 (file_name, search_com):
     else:
       f90_file = open(file_name, 'r', encoding = 'ISO-8859-1')
   except:
-    print (f'Note: Cannot open: {file_name}')
+    print ('Note: Cannot open: ' + file_name)
     return
 
   while True:
