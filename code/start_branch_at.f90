@@ -120,6 +120,7 @@ call deallocate_ele_array_pointers(e2_arr)
 
 ! Finish
 
+call set_flags_for_changed_attribute(branch%ele(0))
 call lattice_bookkeeper (lat)
 
 error = .false.
