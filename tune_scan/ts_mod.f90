@@ -118,7 +118,7 @@ global_com%exit_on_error = .false.
 
 call bmad_parser(ts%lat_file, ts_com%ring)
 
-if (ts%rf_on == .false.) call set_on_off(rfcavity$, ts_com%ring, off$)
+if (.not. ts%rf_on) call set_on_off(rfcavity$, ts_com%ring, off$)
 if (ts%use_phase_trombone) call insert_phase_trombone(ts_com%ring%branch(0))
 
 allocate(ts_com%closed_orb(0:ts_com%ring%n_ele_max))
