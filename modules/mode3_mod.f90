@@ -725,7 +725,7 @@ logical err_flag
 real(rp) abz_tunes(3)
 real(rp) abz(3), dtune(3,3)
 real(rp) val(6)
-integer j, pairindexes(6)
+integer j, pairindexes(6), tz1, tz2
 
 character(*), parameter :: r_name = 'order_evecs_by_tune'
 
@@ -736,15 +736,10 @@ where(abz < 0.0) abz = twopi + abz
 
 err_flag = .true.
 
-if ( any(abs(mat_tunes(1:3)) .lt. 0.0001) ) then
-  call out_io (s_fatal$, r_name, "mat_tunes is not fully populated.  Printing mat_tunes.")
-  write(*, '(3f14.5)') mat_tunes(1:3) / twopi
-  if (global_com%exit_on_error) call err_exit
-  return
-endif
-
-if ( any(abs(abz(1:3)) .lt. 0.0001) ) then
-  call out_io (s_fatal$, r_name, "Input tunes is not fully set: \3f14.5\ ", r_array = abz(1:3)/twopi)
+tz1 = count(abs(mat_tunes(1:3)) < 0.0001)
+tz2 = count(abs(abz(1:3)) < 0.0001)
+if (tz1 > 1 .or. tz1 /= tz2) then
+  call out_io (s_fatal$, r_name, "tunes is not fully populated.")
   if (global_com%exit_on_error) call err_exit
   return
 endif
