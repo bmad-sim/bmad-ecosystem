@@ -1,7 +1,0 @@
-#! /usr/bin/bash
-
-if [[ $1 == -m ]]; then
-  echo "i686"
-else
-  /usr/bin/uname "$@"
-fi
