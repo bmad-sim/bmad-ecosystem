@@ -56,11 +56,12 @@ type ltt_params_struct
   integer :: ix_particle_record = -1    ! Experimental
   integer :: ix_turn_record = -1        ! Experimental
   integer :: n_turns = -1
-  integer :: random_seed = 0
   integer :: map_order = -1
   integer :: averaging_window = 1
   integer :: particle_output_every_n_turns = -1
   integer :: averages_output_every_n_turns = -1
+  integer :: random_seed = 0
+  real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
   real(rp) :: ramping_start_time
   real(rp) :: ptc_aperture(2) = 0.1
   real(rp) :: print_on_dead_loss = -1
@@ -222,6 +223,7 @@ bmad_com%auto_bookkeeper = .false.
 call ran_seed_put (ltt%random_seed)
 call ptc_ran_seed_put (ltt%random_seed)
 call ran_seed_get (ltt_com%random_seed_actual)
+call ran_gauss_converter(set_sigma_cut = ltt%random_sigma_cut)
 
 if (ltt_com%using_mpi) then
   call ran_seed_get (ir)
@@ -464,6 +466,7 @@ call ltt_write_master('bmad_com%sr_wakes_on:               ' // logic_str(bmad_c
 if (bmad_com%sr_wakes_on) then
   call ltt_write_master('Number of wake elements:            ' // int_str(size(ltt_com%ix_wake_ele)), iu = iu)
 endif
+call ltt_write_master('ltt%random_sigma_cut:               ' // real_str(lttp%random_sigma_cut, 6), iu = iu)
 call ltt_write_master('ltt%n_turns:                        ' // int_str(lttp%n_turns), iu = iu)
 call ltt_write_master('ltt%particle_output_every_n_turns:  ' // int_str(lttp%particle_output_every_n_turns), iu = iu)
 call ltt_write_master('ltt%averages_output_every_n_turns:  ' // int_str(lttp%averages_output_every_n_turns), iu = iu)
@@ -1022,7 +1025,7 @@ real(rp) n_particle
 
 !
 
-if (.not. branch%param%high_energy_space_charge_on) return
+if (.not. bmad_com%high_energy_space_charge_on) return
 
 if (lttp%tracking_method == 'MAP') then
   print '(a)', 'NOTE: Space effects are not present when using a map tracking!'
