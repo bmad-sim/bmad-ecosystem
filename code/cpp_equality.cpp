@@ -1085,7 +1085,6 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.default_tracking_species == y.default_tracking_species);
   is_eq = is_eq && (x.geometry == y.geometry);
   is_eq = is_eq && (x.ixx == y.ixx);
-  is_eq = is_eq && (x.high_energy_space_charge_on == y.high_energy_space_charge_on);
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.live_branch == y.live_branch);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
@@ -1298,6 +1297,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.lr_wakes_on == y.lr_wakes_on);
   is_eq = is_eq && (x.ptc_use_orientation_patches == y.ptc_use_orientation_patches);
   is_eq = is_eq && (x.auto_bookkeeper == y.auto_bookkeeper);
+  is_eq = is_eq && (x.high_energy_space_charge_on == y.high_energy_space_charge_on);
   is_eq = is_eq && (x.csr_and_space_charge_on == y.csr_and_space_charge_on);
   is_eq = is_eq && (x.spin_tracking_on == y.spin_tracking_on);
   is_eq = is_eq && (x.backwards_time_tracking_on == y.backwards_time_tracking_on);

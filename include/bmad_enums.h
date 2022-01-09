@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 268;
+  const int BMAD_INC_VERSION = 270;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -232,17 +232,6 @@ namespace Bmad {
   const int CHECK_SUM = 75;
   const int G_ERR = DG;
   const int B_FIELD_ERR = DB_FIELD;
-  const int MAX_APERTURE_LIMIT = 81;
-  const int DEFAULT_DS_STEP = 82;
-  const int SIGNIFICANT_LENGTH = 83;
-  const int REL_TOL_TRACKING = 84;
-  const int ABS_TOL_TRACKING = 85;
-  const int REL_TOL_ADAPTIVE_TRACKING = 86;
-  const int ABS_TOL_ADAPTIVE_TRACKING = 87;
-  const int INIT_DS_ADAPTIVE_TRACKING = 88;
-  const int MIN_DS_ADAPTIVE_TRACKING = 89;
-  const int FATAL_DS_ADAPTIVE_TRACKING = 90;
-  const int MAX_NUM_RUNGE_KUTTA_STEP = 91;
   const int SPHERICAL_CURVATURE = 81, DISTRIBUTION = 81;
   const int TT = 81, X_KNOT = 81;
   const int ALIAS  = 82, MAX_FRINGE_ORDER = 82, ETA_X = 82;

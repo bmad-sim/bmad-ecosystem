@@ -2577,7 +2577,6 @@ public:
   Int default_tracking_species;
   Int geometry;
   Int ixx;
-  Bool high_energy_space_charge_on;
   Bool stable;
   Bool live_branch;
   CPP_bookkeeping_state bookkeeping_state;
@@ -2594,7 +2593,6 @@ public:
     default_tracking_species(Bmad::REF_PARTICLE),
     geometry(0),
     ixx(0),
-    high_energy_space_charge_on(false),
     stable(false),
     live_branch(true),
     bookkeeping_state(),
@@ -3007,6 +3005,7 @@ public:
   Bool lr_wakes_on;
   Bool ptc_use_orientation_patches;
   Bool auto_bookkeeper;
+  Bool high_energy_space_charge_on;
   Bool csr_and_space_charge_on;
   Bool spin_tracking_on;
   Bool backwards_time_tracking_on;
@@ -3050,6 +3049,7 @@ public:
     lr_wakes_on(true),
     ptc_use_orientation_patches(true),
     auto_bookkeeper(true),
+    high_energy_space_charge_on(false),
     csr_and_space_charge_on(false),
     spin_tracking_on(false),
     backwards_time_tracking_on(false),
