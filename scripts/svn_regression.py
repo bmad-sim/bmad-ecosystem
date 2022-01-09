@@ -7,8 +7,6 @@
 
 import subprocess
 svn_repo = {
-  'https://accserv.classe.cornell.edu/svn/trunk/util' :                    '51315',
-  'https://accserv.classe.cornell.edu/svn/trunk/build_system' :            '51314',
   'https://accserv.classe.cornell.edu/svn/trunk/src/open_spacecharge' :    '50675',
   'https://accserv.classe.cornell.edu/svn/packages/PGPLOT' :               '50204',
   'https://accserv.classe.cornell.edu/svn/packages/fftw' :                 '49715',
@@ -20,6 +18,8 @@ svn_repo = {
   'https://accserv.classe.cornell.edu/svn/packages/openmpi' :              '50014',
   'https://accserv.classe.cornell.edu/svn/packages/plplot' :               '50726',
   'https://accserv.classe.cornell.edu/svn/packages/xraylib' :              '45012',
+  'https://accserv.classe.cornell.edu/svn/trunk/util' :                    '51592',
+  'https://accserv.classe.cornell.edu/svn/trunk/build_system' :            '51314',
 }
 
 all_pass = True
@@ -36,4 +36,4 @@ for repo, rev in svn_repo.items():
 if all_pass:
   print ('No SVN repo change.')
 else:
-  print ('\033[1m\033[91mSVN REPO CHANGE!\033[0m')
+  print ('\033[1m\033[91mSVN REPO CHANGE!!!!!!\033[0m')
