@@ -1006,32 +1006,7 @@ Particle momentum amplitude.
 
   %----------------------
   \item[momentum_compaction] \Newline \hlabel{mom.comp}
-Momentum compaction factor. Also see \vn{r56_compaction} and \vn{momentum_compaction_ptc}.
-
-  %----------------------
-  \item[momentum_compaction_ptc.$N$, $N = 1, 2, 3, \ldots$] \Newline \hlabel{mom.comp.ptc}
-Momentum compaction factor. Also see \vn{r56_compaction}.
-
-Momentum compaction Taylor series, which is a function of phase space $p_z$, as calculated from
-Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
-gives the order of the Taylor term
-\begin{equation}
-  \frac{-1}{L} \, \Delta z(p_z) = \alpha_1 \, p_z + \alpha_2 \, p_z^2 + \alpha_3 \, p_z^3 + \ldots
-\end{equation}
-Where $\Delta z$ is the change in phase space $z$ over one turn and $L$ is the machine length.
-$N = 1$, that is \vn{momentum_compaction_ptc.1}, is the momentum compaction at $p_z = 0$, etc.
-
-Since there are differences in the tracking between PTC and \bmad, The momentum compaction
-\vn{momentum_compaction} which is calculated using \bmad will not exactly agree with
-the PTC values.
-
-The momentum compaction Taylor series coefficients $\alpha_N$ are calculated up to order $N_T$ where $N_T$ is the
-Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the default is $N_T=3$). 
-
-To save time when the calculation of momentum compaction terms is not needed, the \vn{one_turn_map_calc} parameter
-(\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
-
-Note: The RF must be turned off for the calculation to work properly.
+Momentum compaction factor. Also see \vn{r56_compaction} and \vn{slip_factor_ptc}.
 
   %----------------------
   \item[n_particle_loss] \Newline \hlabel{n.part.loss}
@@ -1451,6 +1426,30 @@ values will be taken from the \vn{beam_init} structure (\sref{s:beam.init}) and 
 any emittances or longitudinal sigma values specified in the lattice file.
 
   %----------------------
+  \item[slip_factor_ptc.$N$, $N = 1, 2, 3, \ldots$] \Newline \hlabel{slip.ptc}
+Slip factor. Also see \vn{r56_compaction} and \vn{momentum_compaction}.
+
+Momentum compaction Taylor series, which is a function of phase space $p_z$, as calculated from
+Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
+gives the order of the Taylor term
+\begin{equation}
+  \frac{1}{T_0} \, \Delta T(p_z) = \alpha_1 \, p_z + \alpha_2 \, p_z^2 + \alpha_3 \, p_z^3 + \ldots
+\end{equation}
+Where $T$ is the transit time over one turn and $T_0$ is reference transit time.
+$N = 1$, that is \vn{slip_factor_ptc.1}, is the slip factor at $p_z = 0$, etc.
+
+Since there are differences in the tracking between PTC and \bmad, The slip factor as calculated
+with \bmad will not exactly agree with the PTC values.
+
+The slip factor Taylor series coefficients $\alpha_N$ are calculated up to order $N_T$ where $N_T$ is the
+Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the default is $N_T=3$). 
+
+To save time when the calculation of momentum compaction terms is not needed, the \vn{one_turn_map_calc} parameter
+(\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
+
+Note: The RF must be turned off for the calculation to work properly.
+
+  %----------------------
   \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline \hlabel{spin.g.matrix}
 The $\bfG$-matrix is the $2\times6$ sub-matrix of the $8\times8$ spin-orbital transfer matrix $\wt\bfM$
 that describes the coupling between orbital motion and spin precession as discussed in the section
@@ -1838,13 +1837,10 @@ See the previous section for a description of the data types.
   \pref{k.11b}            & k.11b, .12a, .12b, .22a             & Coupling                                  & lat         & Yes \\ \hline   
   \pref{momentum}         & momentum                            & Momentum: P*C_light (eV)                  & lat         & Yes \\ \hline
   \pref{mom.comp}         & momentum_compaction                 & Momentum compaction factor                & lat         & No  \\ \hline
-  \pref{mom.comp.ptc}     & \begin{tabular}{@{}l}
-                              momentum_compaction_ptc.$N$ \\
+  \pref{slip.ptc}         & \begin{tabular}{@{}l}
+                              slip_factor_ptc.$N$ \\
                               \hspace{3em} $N = 0, 1, 2, \ldots$
-                            \end{tabular}                       & \begin{tabular}{@{}l}
-                                                                    Momentum compaction \\
-                                                                    Taylor terms
-                                                                  \end{tabular}                             & lat         & No  \\ \hline
+                            \end{tabular}                       & Slip factor Taylor terms                  & lat         & No  \\ \hline
   \pref{n.part.loss}      & n_particle_loss                     & Number of particles lost                  & beam        & No  \\ \hline 
   \pref{norm.app.emit}    & norm_apparent_emit.x, .y            & Normalized apparent emittance             & lat, beam   & No  \\ \hline
   \pref{norm.emit.a}      & norm_emit.a, .b, .c                 & Normalized beam emittance                 & lat, beam   & No  \\ \hline 
