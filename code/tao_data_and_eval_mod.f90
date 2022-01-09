@@ -1897,35 +1897,6 @@ case ('momentum_compaction')
 
 !-----------
 
-case ('momentum_compaction_ptc.')
-
-  if (data_source == 'beam') goto 9000  ! Set error message and return
-  ptc_nf => tao_branch%ptc_normal_form
-
-  if (.not. ptc_nf%valid_map) then
-    if (.not. u%calc%one_turn_map) then
-      call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE ONE_TURN_MAP_CALC IS NOT SET TO TRUE.', why_invalid)
-    elseif (branch%param%geometry /= closed$) then
-      call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE LATTICE GEOMETRY IS NOT CLOSED.', why_invalid)
-    else
-      call tao_set_invalid (datum, '?????', why_invalid)
-    endif
-    return
-  endif
-
-  if (.not. is_integer(data_type(25:), n)) then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
-    return
-  endif
-
-  expo = 0
-  expo(6) = n 
-
-  datum_value = -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
-  valid_value = .true.
-
-!-----------
-
 case ('n_particle_loss')
   if (data_source /= 'beam') goto 9000  ! Set error message and return
   if (ix_ele < 0) ix_ele = branch%n_ele_track
@@ -2910,6 +2881,35 @@ case ('sigma.')
     return
 
   end select
+
+!-----------
+
+case ('slip_factor_ptc.')
+
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+  ptc_nf => tao_branch%ptc_normal_form
+
+  if (.not. ptc_nf%valid_map) then
+    if (.not. u%calc%one_turn_map) then
+      call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE ONE_TURN_MAP_CALC IS NOT SET TO TRUE.', why_invalid)
+    elseif (branch%param%geometry /= closed$) then
+      call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE LATTICE GEOMETRY IS NOT CLOSED.', why_invalid)
+    else
+      call tao_set_invalid (datum, '?????', why_invalid)
+    endif
+    return
+  endif
+
+  if (.not. is_integer(data_type(25:), n)) then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
+    return
+  endif
+
+  expo = 0
+  expo(6) = n 
+
+  datum_value = -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
+  valid_value = .true.
 
 !-----------
 

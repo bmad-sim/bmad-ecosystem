@@ -89,6 +89,7 @@ type (coord_struct) orbit
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_spin_map_struct), pointer :: sm
 type (normal_modes_struct) norm_mode
+type (normal_modes_struct), pointer :: mode_m, mode_d
 type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: rmap(:)
 
@@ -117,7 +118,7 @@ end type
 type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
 
-real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, gamma2, val, z, z1, z2, z_in, s_pos, dt, angle, r
+real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s_pos, dt, angle, r
 real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, phase
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
@@ -1417,8 +1418,8 @@ case ('element')
   endif
 
   if (mass_of(branch%param%particle) /= 0) then
-    gamma2 = (branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle))**2
-    b_emit = tao_branch%modes%b%emittance + tao_branch%modes%b%synch_int(6) / gamma2
+    gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
+    b_emit = tao_branch%modes%b%emittance + tao_branch%modes%b%synch_int(6) / gamma**2
     ele%a%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance)
     ele%b%sigma = sqrt(ele%b%beta * b_emit)
     ele%x%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance + (ele%x%eta * tao_branch%modes%sigE_E)**2)
@@ -1790,6 +1791,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %ptc_use_orientation_patches     = ', bmad_com%ptc_use_orientation_patches
     nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                 = ', bmad_com%auto_bookkeeper
+    nl=nl+1; write(lines(nl), lmt) '  %high_energy_space_charge_on     = ', bmad_com%high_energy_space_charge_on
     nl=nl+1; write(lines(nl), lmt) '  %csr_and_space_charge_on         = ', bmad_com%csr_and_space_charge_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
@@ -3212,7 +3214,7 @@ case ('normal_form')
 
   expo = [0, 0, 0, 0, 0, 0]   ! Use expo(6) = i to get the i^th Taylor coef in tune vs pz curve.
   nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', real(ptc_nf%spin .sub. expo)
-  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N  momentum_compaction_ptc.N'
+  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N          slip_factor_ptc.N'
 
   do i = 0, ptc_com%taylor_order_ptc
     expo = [0, 0, 0, 0, 0, i]
@@ -4177,7 +4179,7 @@ case ('taylor_map', 'matrix')
 
     call twiss_and_track_at_s (lat, s1, ele0, u%model%tao_branch(ix_branch)%orbit, orb, ix_branch)
 
-    if (n_order > 1 .or. print_ptc .or. disp_fmt == 'BMAD') then
+    if (n_order > 1 .or. print_ptc) then
       call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch = ix_branch, &
                                                         one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
@@ -4287,7 +4289,7 @@ case ('taylor_map', 'matrix')
       nl=nl+1; lines(nl) = 'To:   ' // trim(branch%ele(ix2)%name)
     endif
 
-    if (n_order > 1 .or. print_ptc .or. disp_fmt == 'BMAD') then
+    if (n_order > 1 .or. print_ptc) then
       call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), &
                                                       one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       if (err) then
@@ -4327,11 +4329,15 @@ case ('taylor_map', 'matrix')
     enddo
 
   else
-    if (n_order > 1 .or. disp_fmt == 'BMAD') then
+    if (n_order > 1) then
       if (angle_units) call map_to_angle_coords (taylor, taylor)
       if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
       call type_taylors (taylor, lines = lines, n_lines = nl, out_style = disp_fmt, clean = .true.)
       if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
+
+    elseif (disp_fmt == 'BMAD') then
+      call mat6_to_taylor (vec0, mat6, taylor, ref_vec)
+      call type_taylors (taylor, lines = lines, n_lines = nl, out_style = disp_fmt, clean = .true.)
 
     else
       if (angle_units) then
@@ -4756,6 +4762,7 @@ case ('universe')
   design_lat => u%design%lat
   design_branch => design_lat%branch(ix_branch)
   design_tao_branch => u%design%tao_branch(ix_branch)
+  gamma = branch%ele(0)%value(e_tot$) / mass_of(species)
 
   nl = 0
   nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', ix_u,      '  Of: ', ubound(s%u, 1)
@@ -4776,26 +4783,23 @@ case ('universe')
     nl=nl+1; write(lines(nl), amt) 'photon_type:                 ', photon_type_name(lat%photon_type)
   else
     species = branch%ele(0)%ref_species
-    nl=nl+1; write(lines(nl), rmt) 'a_anomalous_moment * gamma   ', anomalous_moment_of(species) * branch%ele(0)%value(e_tot$) / mass_of(species)
+    nl=nl+1; write(lines(nl), rmt) 'a_anomalous_moment * gamma   ', anomalous_moment_of(species) * gamma
   endif
   nl=nl+1; write(lines(nl), rmt) 'Reference energy:            ', branch%ele(0)%value(e_tot$)
   nl=nl+1; write(lines(nl), rmt) 'Reference momentum:          ', branch%ele(0)%value(p0c$)
   nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking:      ', lat%absolute_time_tracking
-  nl=nl+1; write(lines(nl), amt) 'photon_type:                 ', photon_type_name(lat%photon_type)
   nl=nl+1; write(lines(nl), amt) 'Geometry:                    ', geometry_name(branch%param%geometry)
   nl=nl+1; write(lines(nl), lmt) 'global%rf_on:                ', s%global%rf_on
-  nl=nl+1; write(lines(nl), lmt) 'high_energy_space_charge_on: ', branch%param%high_energy_space_charge_on
   nl=nl+1; write(lines(nl), imt) 'Elements used in tracking: From 1 through ', branch%n_ele_track
   if (branch%n_ele_max > branch%n_ele_track) then
-    nl=nl+1; write(lines(nl), '(2(a, i0))') 'Lord elements:   ', &
-                      branch%n_ele_track+1, '  through ', branch%n_ele_max
+    nl=nl+1; write(lines(nl), '(2(a, i0))') 'Lord elements:   ', branch%n_ele_track+1, '  through ', branch%n_ele_max
   else
     nl=nl+1; write(lines(nl), '(a)') 'There are NO Lord elements'
   endif
 
   nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice branch length:      ', branch%param%total_length
   nl=nl+1; write(lines(nl), '(a, es13.6)')   'Lattice branch transit time:', branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time
-  nl=nl+1; write(lines(nl), '(a, 2(f0.3, a))') 'Lattice branch S-range:     [', &
+  nl=nl+1; write(lines(nl), '(a, 2(f0.6, a))') 'Lattice branch S-range:     [', &
                                                 branch%ele(0)%s, ', ', branch%ele(branch%n_ele_track)%s, ']'
 
   if (branch%param%geometry == open$ .and. tao_branch%track_state /= moving_forward$) then
@@ -4840,9 +4844,10 @@ case ('universe')
   fmt3 = '(1x, a16,        28x, 2es13.5, 2x, a)'
   phase_units = 1 / twopi
   l_lat = branch%param%total_length
-  gamma2 = (branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle))**2
   n = branch%n_ele_track
   time1 = branch%ele(n)%ref_time
+  mode_m => tao_branch%modes
+  mode_d => design_tao_branch%modes
 
   if (branch%param%geometry == closed$ .or. s%global%rad_int_calc_on) then
 
@@ -4855,33 +4860,24 @@ case ('universe')
             phase_units*design_branch%ele(n)%a%phi, phase_units*branch%ele(n)%b%phi, phase_units*design_branch%ele(n)%b%phi,  '! Tune'
       nl=nl+1; write(lines(nl), fmt2) 'Chrom', tao_branch%a%chrom, design_tao_branch%a%chrom, tao_branch%b%chrom, design_tao_branch%b%chrom, '! dQ/(dE/E)'
       if (s%global%rad_int_calc_on) then
-        nl=nl+1; write(lines(nl), fmt2) 'J_damp', tao_branch%modes%a%j_damp, design_tao_branch%modes%a%j_damp, tao_branch%modes%b%j_damp, &
-            design_tao_branch%modes%b%j_damp, '! Damping Partition #'
-        nl=nl+1; write(lines(nl), fmt) 'Emittance', tao_branch%modes%a%emittance, &
-            design_tao_branch%modes%a%emittance, tao_branch%modes%b%emittance, design_tao_branch%modes%b%emittance, '! Meters'
+        nl=nl+1; write(lines(nl), fmt2) 'J_damp', mode_m%a%j_damp, mode_d%a%j_damp, mode_m%b%j_damp, mode_d%b%j_damp, '! Damping Partition #'
+        nl=nl+1; write(lines(nl), fmt) 'Emittance', mode_m%a%emittance, mode_d%a%emittance, mode_m%b%emittance, mode_d%b%emittance, '! Meters'
       endif
     endif
 
     if (s%global%rad_int_calc_on) then
-      if (tao_branch%modes%b%alpha_damp /= 0) then
-        nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', tao_branch%modes%a%alpha_damp, &
-              design_tao_branch%modes%a%alpha_damp, tao_branch%modes%b%alpha_damp, design_tao_branch%modes%b%alpha_damp, '! Damping per turn'
-        nl=nl+1; write(lines(nl), fmt) 'Damping_time', time1/tao_branch%modes%a%alpha_damp, &
-              time1/design_tao_branch%modes%a%alpha_damp, time1/tao_branch%modes%b%alpha_damp, time1/design_tao_branch%modes%b%alpha_damp, '! Sec'
+      if (mode_m%b%alpha_damp /= 0) then
+        nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', mode_m%a%alpha_damp, mode_d%a%alpha_damp, mode_m%b%alpha_damp, mode_d%b%alpha_damp, '! Damping per turn'
+        nl=nl+1; write(lines(nl), fmt) 'Damping_time', time1/mode_m%a%alpha_damp, time1/mode_d%a%alpha_damp, time1/mode_m%b%alpha_damp, time1/mode_d%b%alpha_damp, '! Sec'
       endif
 
-      nl=nl+1; write(lines(nl), fmt) 'I4', tao_branch%modes%a%synch_int(4), &
-            design_tao_branch%modes%a%synch_int(4), tao_branch%modes%b%synch_int(4), design_tao_branch%modes%b%synch_int(4), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt) 'I5', tao_branch%modes%a%synch_int(5), &
-            design_tao_branch%modes%a%synch_int(5), tao_branch%modes%b%synch_int(5), design_tao_branch%modes%b%synch_int(5), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt3) 'I6/gamma^2', tao_branch%modes%b%synch_int(6) / gamma2, &
-            design_tao_branch%modes%b%synch_int(6) / gamma2, '! Radiation Integral'
+      nl=nl+1; write(lines(nl), fmt) 'I4', mode_m%a%synch_int(4), mode_d%a%synch_int(4), mode_m%b%synch_int(4), mode_d%b%synch_int(4), '! Radiation Integral'
+      nl=nl+1; write(lines(nl), fmt) 'I5', mode_m%a%synch_int(5), mode_d%a%synch_int(5), mode_m%b%synch_int(5), mode_d%b%synch_int(5), '! Radiation Integral'
+      nl=nl+1; write(lines(nl), fmt3) 'I6/gamma^2', mode_m%b%synch_int(6) / gamma**2, mode_d%b%synch_int(6) / gamma**2, '! Radiation Integral'
 
       if (branch%param%geometry == open$) then
-        nl=nl+1; write(lines(nl), fmt) 'Final Emittance', tao_branch%modes%lin%a_emittance_end, &
-            design_tao_branch%modes%lin%a_emittance_end, tao_branch%modes%lin%b_emittance_end, design_tao_branch%modes%lin%b_emittance_end, '! Meters'
-        nl=nl+1; write(lines(nl), fmt) 'I5*gamma^6', tao_branch%modes%lin%i5a_e6, &
-            design_tao_branch%modes%lin%i5a_e6, tao_branch%modes%lin%i5b_e6, design_tao_branch%modes%lin%i5b_e6, '! Linac Radiation Integral'
+        nl=nl+1; write(lines(nl), fmt) 'Final Emittance', mode_m%lin%a_emittance_end, mode_d%lin%a_emittance_end, mode_m%lin%b_emittance_end, mode_d%lin%b_emittance_end, '! Meters'
+        nl=nl+1; write(lines(nl), fmt) 'I5*gamma^6', mode_m%lin%i5a_e6, mode_d%lin%i5a_e6, mode_m%lin%i5b_e6, mode_d%lin%i5b_e6, '! Linac Radiation Integral'
       endif
     endif
 
@@ -4909,34 +4905,32 @@ case ('universe')
       endif
 
     elseif (s%global%rad_int_calc_on) then
-      nl=nl+1; write (lines(nl), fmt) 'I2*gamma^4', tao_branch%modes%lin%i2_e4, &
-            design_tao_branch%modes%lin%i2_e4, '! Linac Radiation Integral'
-      nl=nl+1; write (lines(nl), fmt) 'I3*gamma^7', tao_branch%modes%lin%i3_e7, &
-            design_tao_branch%modes%lin%i3_e7, '! Linac Radiation Integral'
+      nl=nl+1; write (lines(nl), fmt) 'I2*gamma^4', mode_m%lin%i2_e4, mode_d%lin%i2_e4, '! Linac Radiation Integral'
+      nl=nl+1; write (lines(nl), fmt) 'I3*gamma^7', mode_m%lin%i3_e7, mode_d%lin%i3_e7, '! Linac Radiation Integral'
     endif
 
     if (s%global%rad_int_calc_on) then
-      if (tao_branch%modes%z%alpha_damp /= 0) then
-        nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', tao_branch%modes%sigE_E, design_tao_branch%modes%sigE_E
-        nl=nl+1; write(lines(nl), fmt) 'Sig_z:  ', tao_branch%modes%sig_z, design_tao_branch%modes%sig_z, '! Only calculated when RF is on'
-        nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', tao_branch%modes%e_loss, design_tao_branch%modes%e_loss, '! Energy_Loss (eV / Turn)'
-        nl=nl+1; write(lines(nl), fmt) 'J_damp:', tao_branch%modes%z%j_damp, design_tao_branch%modes%z%j_damp, '! Longitudinal Damping Partition #'
-        nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', tao_branch%modes%z%alpha_damp, &
-            design_tao_branch%modes%z%alpha_damp, '! Longitudinal Damping per turn'
-        nl=nl+1; write(lines(nl), fmt) 'damp_time:', time1/tao_branch%modes%z%alpha_damp, &
-              time1/design_tao_branch%modes%z%alpha_damp, '! Longitudinal Damping time (sec)'
+      if (mode_m%z%alpha_damp /= 0) then
+        nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', mode_m%sigE_E, mode_d%sigE_E
+        nl=nl+1; write(lines(nl), fmt) 'Sig_z:  ', mode_m%sig_z, mode_d%sig_z, '! Only calculated when RF is on'
+        nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', mode_m%e_loss, mode_d%e_loss, '! Energy_Loss (eV / Turn)'
+        nl=nl+1; write(lines(nl), fmt) 'J_damp:', mode_m%z%j_damp, mode_d%z%j_damp, '! Longitudinal Damping Partition #'
+        nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', mode_m%z%alpha_damp, mode_d%z%alpha_damp, '! Longitudinal Damping per turn'
+        nl=nl+1; write(lines(nl), fmt) 'damp_time:', time1/mode_m%z%alpha_damp, time1/mode_d%z%alpha_damp, '! Longitudinal Damping time (sec)'
       endif
-      nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', tao_branch%modes%synch_int(1)/l_lat, &
-                   design_tao_branch%modes%synch_int(1)/l_lat, '! Momentum Compaction'
-      nl=nl+1; write(lines(nl), fmt) 'I0:', tao_branch%modes%synch_int(0), design_tao_branch%modes%synch_int(0), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt) 'I1:', tao_branch%modes%synch_int(1), design_tao_branch%modes%synch_int(1), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt) 'I2:', tao_branch%modes%synch_int(2), design_tao_branch%modes%synch_int(2), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt) 'I3:', tao_branch%modes%synch_int(3), design_tao_branch%modes%synch_int(3), '! Radiation Integral'
+      nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', mode_m%synch_int(1)/l_lat, mode_d%synch_int(1)/l_lat, '! Momentum Compaction'
+      nl=nl+1; write(lines(nl), fmt) 'Eta_p:', mode_m%synch_int(1)/l_lat - 1.0_rp/gamma**2, mode_d%synch_int(1)/l_lat - 1.0_rp/gamma**2, '! Slip factor'
+      if (mode_m%synch_int(1) < l_lat) then
+        nl=nl+1; write(lines(nl), fmt) 'gamma_trans:', sqrt(l_lat/mode_m%synch_int(1)), sqrt(l_lat/mode_d%synch_int(1)), '! Gamma at transition'
+      endif
+      nl=nl+1; write(lines(nl), fmt) 'I0:', mode_m%synch_int(0), mode_d%synch_int(0), '! Radiation Integral'
+      nl=nl+1; write(lines(nl), fmt) 'I1:', mode_m%synch_int(1), mode_d%synch_int(1), '! Radiation Integral'
+      nl=nl+1; write(lines(nl), fmt) 'I2:', mode_m%synch_int(2), mode_d%synch_int(2), '! Radiation Integral'
+      nl=nl+1; write(lines(nl), fmt) 'I3:', mode_m%synch_int(3), mode_d%synch_int(3), '! Radiation Integral'
     endif
 
     if (bmad_com%spin_tracking_on) then
-      nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', branch%param%spin_tune/twopi, &
-                                            design_branch%param%spin_tune/twopi, '! Spin Tune on Closed Orbit (Units of 2pi)'
+      nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', branch%param%spin_tune/twopi, design_branch%param%spin_tune/twopi, '! Spin Tune on Closed Orbit (Units of 2pi)'
     endif
 
     if (branch%param%geometry == closed$) then
@@ -4952,8 +4946,7 @@ case ('universe')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(23x, a)') '  Model       Design'
     fmt  = '(1x, a16, 2es13.5, 3x, a)'
-    nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', branch%param%spin_tune/twopi, &
-                                            design_branch%param%spin_tune/twopi, '! Spin Tune on Closed Orbit (Units of 2pi)'
+    nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', branch%param%spin_tune/twopi, design_branch%param%spin_tune/twopi, '! Spin Tune on Closed Orbit (Units of 2pi)'
   endif
 
 !----------------------------------------------------------------------
