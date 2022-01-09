@@ -163,8 +163,6 @@ if (lat%param%default_tracking_species /= ref_particle$) then
   write (iu, '(4a)')    'parameter[default_tracking_species] = ', species_name(lat%param%default_tracking_species)
 endif
 
-call write_if_logic_param_changed (lat%param%high_energy_space_charge_on, .false., 'parameter[high_energy_space_charge_on]')
-
 if (lat%param%n_part /= 0)             write (iu, '(2a)') 'parameter[n_part]                 = ', re_str(lat%param%n_part)
 
 write (iu, '(a, l1)') 'parameter[absolute_time_tracking]    = ', lat%absolute_time_tracking
@@ -206,6 +204,7 @@ call write_if_logic_param_changed (bmad_com%sr_wakes_on,                     bma
 call write_if_logic_param_changed (bmad_com%lr_wakes_on,                     bmad_com_default%lr_wakes_on,                      'bmad_com[lr_wakes_on]')
 call write_if_logic_param_changed (bmad_com%ptc_use_orientation_patches,     bmad_com_default%ptc_use_orientation_patches,      'bmad_com[ptc_use_orientation_patches]')
 call write_if_logic_param_changed (bmad_com%auto_bookkeeper,                 bmad_com_default%auto_bookkeeper,                  'bmad_com[auto_bookkeeper]')
+call write_if_logic_param_changed (bmad_com%high_energy_space_charge_on,     bmad_com_default%high_energy_space_charge_on,      'bmad_com[high_energy_space_charge_on]')
 call write_if_logic_param_changed (bmad_com%csr_and_space_charge_on,         bmad_com_default%csr_and_space_charge_on,          'bmad_com[csr_and_space_charge_on]')
 call write_if_logic_param_changed (bmad_com%spin_tracking_on,                bmad_com_default%spin_tracking_on,                 'bmad_com[spin_tracking_on]')
 call write_if_logic_param_changed (bmad_com%backwards_time_tracking_on,      bmad_com_default%backwards_time_tracking_on,       'bmad_com[backwards_time_tracking_on]')
@@ -1296,7 +1295,6 @@ do ib = 0, ubound(lat%branch, 1)
 
   if (is_false(ele0%value(inherit_from_fork$))) write (iu, '(3a)') trim(branch%name), '[particle] = ', trim(species_name(branch%param%particle))
   write (iu, '(3a)') trim(branch%name), '[p0c]      = ', re_str(ele0%value(p0c$))
-  call write_if_logic_param_changed (branch%param%high_energy_space_charge_on, .false., trim(branch%name) // '[high_energy_space_charge_on]')
   if (branch%ix_from_branch >= 0) write (iu, '(2a, l1)') trim(branch%name), '[inherit_from_fork]      = ', is_true(ele0%value(inherit_from_fork$))
 
 enddo

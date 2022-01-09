@@ -436,6 +436,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%ptc_use_orientation_patches))    bp_com%extra%ptc_use_orientation_patches_set     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%auto_bookkeeper))                bp_com%extra%auto_bookkeeper_set                 = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%high_energy_space_charge_on))    bp_com%extra%high_energy_space_charge_on_set     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%csr_and_space_charge_on))        bp_com%extra%csr_and_space_charge_on_set         = .true.
     if (associated(a_ptrs(1)%l, bmad_com%spin_tracking_on))               bp_com%extra%spin_tracking_on_set                = .true.
     if (associated(a_ptrs(1)%l, bmad_com%backwards_time_tracking_on))     bp_com%extra%backwards_time_tracking_on_set      = .true.
@@ -1756,8 +1757,6 @@ case ('GEOMETRY')
 
 case ('HIGH_ENERGY_SPACE_CHARGE_ON')
   call get_logical_real (attrib_word, ele%value(high_energy_space_charge_on$), err_flag); if (err_flag) return
-  j = nint(ele%value(ix_branch$)) 
-  if (j >= 0) lat%branch(j)%param%high_energy_space_charge_on = is_true(ele%value(high_energy_space_charge_on$))
 
 case ('HIGHER_ORDER_FRINGE_TYPE')
   call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return

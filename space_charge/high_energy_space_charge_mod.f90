@@ -47,7 +47,7 @@ logical calc_on
 
 ! Transfer some data to the common block for later use
 
-branch%param%high_energy_space_charge_on = calc_on
+bmad_com%high_energy_space_charge_on = calc_on
 
 if (present(closed_orb)) then
   mc2 = mass_of(closed_orb(0)%species)

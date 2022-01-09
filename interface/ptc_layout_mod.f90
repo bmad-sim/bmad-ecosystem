@@ -717,10 +717,10 @@ end subroutine ptc_spin_calc
 !+
 ! Function pointer_to_fibre (ele) result (assoc_fibre)
 !
-! Routine to return the PTC fibre associated with a given Bmad element.
+! Routine to return the reference PTC fibre associated with a given Bmad element.
 !
 ! The reference fibre is the fibre whose upstream edge corresponds to the downstream end 
-! of the bmad element. 
+! of the bmad element. This is generally ele%ptc_fibre%next.
 !
 ! The reference fibre is so choisen since the referece edge of a Bmad element where such things 
 ! as Twiss parameters are computed is the downstream edge while a PTC fibre uses the upstream 

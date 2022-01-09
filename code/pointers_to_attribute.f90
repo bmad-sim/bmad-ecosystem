@@ -141,6 +141,7 @@ case ('BMAD_COM')
   case ('LR_WAKES_ON');                     ptr_array(1)%l => bmad_com%lr_wakes_on
   case ('PTC_USE_ORIENTATION_PATCHES');     ptr_array(1)%l => bmad_com%ptc_use_orientation_patches
   case ('AUTO_BOOKKEEPER');                 ptr_array(1)%l => bmad_com%auto_bookkeeper
+  case ('HIGH_ENERGY_SPACE_CHARGE_ON');     ptr_array(1)%l => bmad_com%high_energy_space_charge_on
   case ('CSR_AND_SPACE_CHARGE_ON');         ptr_array(1)%l => bmad_com%csr_and_space_charge_on
   case ('SPIN_TRACKING_ON');                ptr_array(1)%l => bmad_com%spin_tracking_on
   case ('BACKWARDS_TIME_TRACKING_ON');      ptr_array(1)%l => bmad_com%backwards_time_tracking_on

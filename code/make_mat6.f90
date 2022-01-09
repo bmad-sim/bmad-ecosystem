@@ -134,7 +134,7 @@ endif
 
 ! Add space charge effects
 
-if (param%high_energy_space_charge_on) call make_mat6_high_energy_space_charge (ele, param)
+if (bmad_com%high_energy_space_charge_on) call make_mat6_high_energy_space_charge (ele, param)
 
 ! symplectify if wanted
 
