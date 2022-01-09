@@ -69,7 +69,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
 \index{rel_tol_tracking}\index{abs_tol_tracking}
 \index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
 \index{taylor_order}\index{default_integ_order}
-\index{sr_wakes_on}\index{lr_wakes_on}
+\index{sr_wakes_on}\index{lr_wakes_on}\index{high_energy_space_charge_on}
 \index{auto_bookkeeper}\index{csr_and_space_charge_on}
 \index{spin_tracking_on}\index{radiation_damping_on}\index{spin_sokolov_ternov_flipping_on}
 \index{radiation_fluctuations_on}\index{radiation_zero_average}\index{be_thread_safe}
@@ -105,6 +105,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     logical lr_wakes_on = T                     ! Long range wakefields
     logical ptc_use_orientation_patches = T     ! Ele orientation translated to PTC patches?
     logical auto_bookkeeper = T                 ! Automatic bookkeeping?
+    logical high_energy_space_charge_on = F     ! High energy space charge calc toggle.
     logical csr_and_space_charge_on = F         ! CSR and space charge (separate from HE SC).
     logical spin_tracking_on = F                ! spin tracking?
     logical spin_sokolov_ternov_flipping_on = F ! Spin flipping during radiation emission?
@@ -201,6 +202,12 @@ This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
 This prevents a program from ``hanging'' due to taking a large number
 of extremely small steps. The most common cause of small step size is
 an ``unphysical'' magnetic or electric field.
+%
+\item[\vn{high_energy_space_charge_on}] \Newline
+Toggle to turn on or off the ultra-relativistic space charge effect in particle tracking
+(\sref{s:he.space.charge}). Computationally, this is separate from the lower energy space charge and
+CSR calculation (\sref{s:csr}). Default is \vn{False}. Notice that including the high energy space
+charge can be done on a branch-by-branch basis (\sref{s:beginning}).
 %
 \item[\vn{lr_wakes_on}] \Newline
 Toggle for turning on or off long-range higher order mode wakefield effects.

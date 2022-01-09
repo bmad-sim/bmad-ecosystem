@@ -936,13 +936,6 @@ branch_loop: do i_loop = 1, n_branch_max
       lat%param%live_branch = is_true(val)
     endif
 
-    ! Set high_energy_space_charge_on.
-
-    val = param_ele%value(high_energy_space_charge_on$)
-    if (val /= real_garbage$) then  ! high_energy_space_charge_on has been set.
-      lat%param%high_energy_space_charge_on = is_true(val)
-    endif
-
     ! Set geometry.
 
     val = param_ele%value(geometry$)
@@ -959,7 +952,7 @@ branch_loop: do i_loop = 1, n_branch_max
   !----
 
   if (ele%value(live_branch$) /= real_garbage$) branch%param%live_branch = is_true(ele%value(live_branch$))
-  if (ele%value(high_energy_space_charge_on$) /= real_garbage$) branch%param%high_energy_space_charge_on = is_true(ele%value(high_energy_space_charge_on$))
+  if (ele%value(high_energy_space_charge_on$) /= real_garbage$ .and. is_true(ele%value(high_energy_space_charge_on$))) bmad_com%high_energy_space_charge_on = .true.
   if (ele%value(geometry$) /= real_garbage$) branch%param%geometry = nint(ele%value(geometry$))
 
   ! Transfer info from line element if parameters have been set.

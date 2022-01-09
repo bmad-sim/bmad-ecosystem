@@ -685,7 +685,6 @@ case ('FIELD_MASTER');                   a_ptr%l => ele%field_master
 case ('SCALE_MULTIPOLES');               a_ptr%l => ele%scale_multipoles
 case ('MULTIPOLES_ON');                  a_ptr%l => ele%multipoles_on
 case ('IS_ON');                          a_ptr%l => ele%is_on
-case ('HIGH_ENERGY_SPACE_CHARGE_ON');    a_ptr%l => branch%param%high_energy_space_charge_on
 !  attrib_type = is_integer$
 case ('N_SLICE');                        a_ptr%r => ele%value(n_slice$)
 case ('MULTIPASS_REF_ENERGY');           a_ptr%r => ele%value(multipass_ref_energy$)

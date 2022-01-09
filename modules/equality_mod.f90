@@ -1931,8 +1931,6 @@ is_eq = is_eq .and. (f1%geometry == f2%geometry)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ixx == f2%ixx)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%high_energy_space_charge_on .eqv. f2%high_energy_space_charge_on)
-!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%live_branch .eqv. f2%live_branch)
@@ -2316,6 +2314,8 @@ is_eq = is_eq .and. (f1%lr_wakes_on .eqv. f2%lr_wakes_on)
 is_eq = is_eq .and. (f1%ptc_use_orientation_patches .eqv. f2%ptc_use_orientation_patches)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%auto_bookkeeper .eqv. f2%auto_bookkeeper)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%high_energy_space_charge_on .eqv. f2%high_energy_space_charge_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%csr_and_space_charge_on .eqv. f2%csr_and_space_charge_on)
 !! f_side.equality_test[logical, 0, NOT]

@@ -20,7 +20,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 269
+integer, parameter :: bmad_inc_version$ = 270
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1318,7 +1318,6 @@ type lat_param_struct
   integer :: default_tracking_species = ref_particle$  ! Default particle type to use in tracking.
   integer :: geometry = 0                      ! open$ or closed$
   integer :: ixx = 0                           ! Integer for general use
-  logical :: high_energy_space_charge_on = .false. ! 
   logical :: stable = .false.                  ! is closed lat stable?
   logical :: live_branch = .true.              ! Should tracking be done on the branch?
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
@@ -1632,18 +1631,6 @@ integer, parameter :: check_sum$ = 75
 integer, parameter :: g_err$ = dg$   ! For backwards compatibility.
 integer, parameter :: B_field_err$ = dB_field$  ! For backwards compatibility
 !!    = 1 + num_ele_attrib$
-
-integer, parameter :: max_aperture_limit$ = 81     ! bmad_com parameters
-integer, parameter :: default_ds_step$ = 82
-integer, parameter :: significant_length$ = 83
-integer, parameter :: rel_tol_tracking$ = 84
-integer, parameter :: abs_tol_tracking$ = 85
-integer, parameter :: rel_tol_adaptive_tracking$ = 86
-integer, parameter :: abs_tol_adaptive_tracking$ = 87
-integer, parameter :: init_ds_adaptive_tracking$ = 88
-integer, parameter :: min_ds_adaptive_tracking$ = 89
-integer, parameter :: fatal_ds_adaptive_tracking$ = 90
-integer, parameter :: max_num_runge_kutta_step$ = 91
 
 integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
 integer, parameter :: tt$ = 81, x_knot$ = 81
@@ -1977,6 +1964,7 @@ type extra_parsing_info_struct
   logical :: lr_wakes_on_set                        = .false.
   logical :: ptc_use_orientation_patches_set        = .false.
   logical :: auto_bookkeeper_set                    = .false.
+  logical :: high_energy_space_charge_on_set        = .false.
   logical :: csr_and_space_charge_on_set            = .false.
   logical :: spin_tracking_on_set                   = .false.
   logical :: backwards_time_tracking_on_set         = .false.
@@ -2035,7 +2023,8 @@ type bmad_common_struct
   logical :: lr_wakes_on = .true.                      ! Long range wakefields
   logical :: ptc_use_orientation_patches = .true.      ! offset, pitch, and tilt attributes are put in ptc patch?
   logical :: auto_bookkeeper = .true.                  ! Automatic bookkeeping?
-  logical :: csr_and_space_charge_on = .false.         ! Space charge switch
+  logical :: high_energy_space_charge_on = .false.     ! High energy space charge effect switch.
+  logical :: csr_and_space_charge_on = .false.         ! Space charge switch.
   logical :: spin_tracking_on = .false.                ! spin tracking?
   logical :: backwards_time_tracking_on = .false.      ! Track backwards in time?
   logical :: spin_sokolov_ternov_flipping_on = .false. ! Spin flipping during synchrotron radiation emission?

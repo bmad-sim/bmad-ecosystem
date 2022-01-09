@@ -282,7 +282,7 @@ endif
 
 ! space charge
 
-if (param%high_energy_space_charge_on .and. do_extra) call track1_high_energy_space_charge (ele, param, end_orb)
+if (bmad_com%high_energy_space_charge_on .and. do_extra) call track1_high_energy_space_charge (ele, param, end_orb)
 
 ! check for particles outside aperture
 

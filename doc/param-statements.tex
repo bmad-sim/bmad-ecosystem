@@ -14,10 +14,8 @@ and \vn{ptc_com} (\sref{s:bmad.ptc.com}).
 
 
 \index{lattice}\index{geometry}\index{photon_type}\index{live_branch}
-\index{taylor_order}\index{e_tot}
-\index{p0c}\index{ran_seed}\index{absolute_time_tracking}
-\index{n_part}\index{no_end_marker}\index{high_energy_space_charge_on}
-\index{ptc_exact_model}\index{ptc_exact_misalign}
+\index{taylor_order}\index{e_tot}\index{p0c}\index{ran_seed}\index{absolute_time_tracking}
+\index{n_part}\index{no_end_marker}\index{ptc_exact_model}\index{ptc_exact_misalign}
 \vn{Parameter} statements are used to set a number of global variables.  If multiple branches are
 present (\sref{s:branch.def}), these variables pertain to the \vn{root} branch. The variables that
 can be set by \vn{parameter} are
@@ -40,7 +38,6 @@ can be set by \vn{parameter} are
   parameter[photon_type]              = <Switch>    ! Incoherent or coherent photons?
   parameter[ran_seed]                 = <Integer>   ! Random number generator init.
   parameter[taylor_order]             = <Integer>   ! Default: 3
-  parameter[high_energy_space_charge_on] = <logical>
 \end{example}
 
 \noindent
@@ -133,12 +130,6 @@ coordinate sense. For example, when a machine has a number of repeating ``period
 convenient to only use one period in a simulation. Since \bmad ignores closure in the global
 coordinate sense, it is up to the lattice designer to ensure that a lattice is truly geometrically
 closed if that is desired.
-%
-\item[{high_energy_space_charge_on}] \Newline
-Toggle to turn on or off the ultra-relativistic space charge effect in particle tracking
-(\sref{s:he.space.charge}). Computationally, this is separate from the lower energy space charge and
-CSR calculation (\sref{s:csr}). Default is \vn{False}. Notice that including the high energy space
-charge can be done on a branch-by-branch basis (\sref{s:beginning}).
 %
   \index{lattice}
   \item[{parameter[lattice]}] \Newline
