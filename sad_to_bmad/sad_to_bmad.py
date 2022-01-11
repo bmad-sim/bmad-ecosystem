@@ -113,6 +113,7 @@ ele_type_to_bmad = {
   'sol':       'marker',
   'cavi':      'rfcavity',
   'moni':      'monitor',
+  'map':       'marker',
   'mark':      'marker',
   'beambeam':  'beambeam',
   'apert':     'rcollimator',
@@ -374,6 +375,11 @@ def output_lattice_line (sad_line, sad_info, sol_status, bz, rf_list):
 
     bmad_ele_def = b_ele.name + ': ' + b_ele.type
     for param in iter(b_ele.param):
+      try:
+        val = float(b_ele.param[param])
+        if val == 0: continue
+      except:
+        pass
       bmad_ele_def += ', ' + param + ' = ' + b_ele.param[param]
 
     WrapWrite(bmad_ele_def)
@@ -604,7 +610,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 
   # If a SAD mult element has acceleration then it become an rfcavity or lcavity.
 
-  if sad_ele.type == 'mult' and 'volt' in sad_ele.param: bmad_ele.type = 'rfcavity'
+  if sad_ele.type == 'mult' and ('freq' in sad_ele.param or 'phi' in sad_ele.param): bmad_ele.type = 'rfcavity'
 
   # Use ptc_standard type cavities
 
@@ -1081,7 +1087,7 @@ f_in = open(sad_lattice_file, 'r')
 f_out = open(bmad_lattice_file, 'w')
 f_out.write ('! Translated from SAD file: ' + sad_lattice_file + "\n\n")
 
-sad_ele_type_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "cavi", "moni", "line", "beambeam", "apert", "mark", "coord")
+sad_ele_type_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "cavi", "map", "moni", "line", "beambeam", "apert", "mark", "coord")
 
 #------------------------------------------------------------------
 # Read in SAD file line-by-line.  Assemble lines into directives, which are delimited by a ; (colon).
