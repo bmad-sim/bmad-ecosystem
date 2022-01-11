@@ -1715,6 +1715,7 @@ Format:
   show beam ...              ! Show beam info \sref{s:show.beam}.
   show branch ...            ! Show lattice branch info \sref{s:show.branch}.
   show building_wall         ! Show building wall info \sref{s:show.building}.
+  show chromaticity ...      ! Show chromaticity, momentum compaction, phase slip \sref{s:show.chrom}.
   show constraints           ! Show optimization constraints \sref{s:show.constraints}.
   show control ...           ! Show lords and slaves of a given element \sref{s:show.control}.
   show curve ...             ! Show plot curve info \sref{s:show.curve}.
@@ -1732,7 +1733,6 @@ Format:
   show lattice ...           ! Lattice element-by-element table \sref{s:show.lattice}.
   show matrix ...            ! Show transport matrix \sref{s:show.matrix}.
   show merit ...             ! Show optimization merit function \sref{s:show.merit}.
-  show normal_form ...       ! Show transport map normal form \sref{s:show.normal}.
   show optimizer ...         ! Show optimizer info \sref{s:show.optimizer}.
   show particle ...          ! Show tracked particle beam info \sref{s:show.particle}.
   show plot ...              ! Show plot info \sref{s:show.plot}.
@@ -1852,6 +1852,19 @@ List all building wall (\sref{s:building.wall}) sections along with the points t
 the sections.
 
 For vacuum_chamber, capillary, and diffraction_plate walls use the ``show wall'' command.
+
+%% show chromaticity --------------------------------------------------------------
+
+\subsection{show chromaticity}
+\label{s:show.chrom}
+
+Syntax:
+\begin{example}
+  show chromaticity
+\end{example}
+
+Shows chromaticity and derivatives as calculated from PTC normal form analysis. Also shown
+is momentum compaction and phase slip and derivatives.
 
 %% show constraints --------------------------------------------------------------
 
@@ -2545,18 +2558,6 @@ Example:
 \begin{example}
   show merit -der     ! Show merit derivative info
 \end{example}
-
-%% show normal_form --------------------------------------------------------------
-
-\subsection{show normal_form}
-\label{s:show.normal}
-
-Syntax:
-\begin{example}
-  show normal_form \{-order <n_order>\} <type>
-\end{example}
-
-Shows normal form parameters such as chromaticity and and momentum compaction.
 
 %% show optimizer --------------------------------------------------------------
 

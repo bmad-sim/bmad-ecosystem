@@ -254,8 +254,7 @@ do
 
     do i = lbound(datum, 1), ubound(datum, 1)
       if (index(datum(i)%data_type, 'dat::') /= 0) then
-        call out_io (s_error$, r_name, &
-                     'DATA_TYPE USES OLD "dat::" PREFIX. PLEASE CHANGE TO "data::": ' // quote(datum(i)%data_type))
+        call out_io (s_error$, r_name, 'DATA_TYPE USES OLD "dat::" PREFIX. PLEASE CHANGE TO "data::": ' // quote(datum(i)%data_type))
         datum(i)%data_type = 'data::' // datum(i)%data_type(6:)
       endif
     enddo
