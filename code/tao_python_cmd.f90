@@ -6364,7 +6364,8 @@ case ('spin_polarization')
   if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc (branch, tao_branch)
 
   z = anomalous_moment_of(branch%param%particle) * branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
-  nl=incr(nl); write (li(nl), rmt) 'anom_moment_times_gamma;REAL;F;',          z
+  nl=incr(nl); write (li(nl), rmt) 'anom_moment_times_gamma;REAL;F;',           z
+  nl=incr(nl); write (li(nl), rmt) 'spin_tune;REAL;F;',                         branch%param%spin_tune/twopi
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_st;REAL;F;',             tao_branch%spin%pol_limit_st
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm;REAL;F;',            tao_branch%spin%pol_limit_dkm
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm_partial_a;REAL;F;',  tao_branch%spin%pol_limit_dkm_partial(1)

@@ -23,7 +23,10 @@ type (tao_lattice_struct), target :: tao_lat
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (ptc_normal_form_struct), pointer :: ptc_nf
 type (branch_struct), pointer :: branch
+type (c_taylor) beta, c_tay(6)
+type (c_damap) c_da
 
+real(rp) mm, beta0
 integer ix_branch
 integer, optional :: rf_on
 logical do_calc, this_rf_on
@@ -39,6 +42,7 @@ if (ptc_nf%valid_map) then
   call kill(ptc_nf%normal_form)
   call kill(ptc_nf%phase)
   call kill(ptc_nf%spin)
+  call kill(ptc_nf%path_length)
   ptc_nf%valid_map = .false.
 endif
 
@@ -58,9 +62,22 @@ call ptc_one_turn_map_at_ele (ptc_nf%ele_origin, ptc_nf%orb0, ptc_nf%one_turn_ma
 call alloc(ptc_nf%normal_form)
 call alloc(ptc_nf%phase)
 call alloc(ptc_nf%spin)
+call alloc(ptc_nf%path_length)
+call alloc(beta)
+call alloc(c_da)
+call alloc(c_tay)
+
 ptc_nf%valid_map = .true.
 
 call ptc_map_to_normal_form (ptc_nf%one_turn_map, ptc_nf%normal_form, ptc_nf%phase, ptc_nf%spin)
+
+mm = mass_of(branch%param%particle) / branch%ele(0)%value(p0c$)
+beta0 = branch%ele(0)%value(p0c$) / branch%ele(0)%value(E_tot$)
+ 
+c_da = 1
+beta = c_da%v(6)
+beta = (1 + beta) / sqrt((1+beta)**2 + mm**2)
+ptc_nf%path_length = (branch%param%total_length - ptc_nf%phase(3)) * beta / beta0
 
 ! this_rf_on = rf_is_on(branch)
 ! call normal_form_taylors(normal_form%m, this_rf_on, dhdj = normal_form%dhdj, &
@@ -68,5 +85,8 @@ call ptc_map_to_normal_form (ptc_nf%one_turn_map, ptc_nf%normal_form, ptc_nf%pha
 ! call normal_form_complex_taylors(normal_form%m, this_rf_on, F = normal_form%F, L = normal_form%L)  ! Get complex L and F
 
 call set_ptc_verbose(.true.)
+call kill (beta)
+call kill (c_da)
+call kill (c_tay)
 
 end subroutine

@@ -120,7 +120,7 @@ type (show_lat_column_info_struct) col_info(60)
 
 real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s_pos, dt, angle, r
 real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, phase
-real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6)
+real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6), beta
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
 real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3)
 real(rp), allocatable :: value(:)
@@ -220,7 +220,7 @@ call match_word (what, [character(20):: 'data', 'variables', 'global', 'alias', 
    'hom', 'key_bindings', 'universe', 'orbit', 'derivative', 'branch', 'use', 'taylor_map', &
    'twiss_and_orbit', 'building_wall', 'wall', 'normal_form', 'dynamic_aperture', 'value', &
    'matrix', 'field', 'wake_elements', 'history', 'symbolic_numbers', 'wave', 'particle', &
-   'merit', 'track', 'spin', 'internal', 'control', 'string', 'version', 'ptc'], &
+   'merit', 'track', 'spin', 'internal', 'control', 'string', 'version', 'ptc', 'chromaticity'], &
                                                                    ix, matched_name = show_what)
 if (ix == 0) then
   nl=1; lines(1) = 'SHOW WHAT? WORD NOT RECOGNIZED: ' // what
@@ -614,6 +614,50 @@ case ('building_wall')
       endif
     enddo
   enddo
+
+!----------------------------------------------------------------------
+! chromaticity
+
+case ('chromaticity')
+
+  if (branch%param%geometry /= closed$) then
+    nl=1;    lines(1) = 'BRANCH GEOMETRY NOT CLOSED'
+    nl=nl+1; lines(2) = 'USE THE "set branch ' // int_str(branch%ix_branch) // ' geometry = closed" TO CHANGE THIS.'
+    return
+  endif
+
+  tao_lat => tao_pointer_to_tao_lat (u, model$)
+  if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., tao_lat, ix_branch, rf_on = no$)
+
+  bmad_nf => tao_branch%bmad_normal_form
+  ptc_nf  => tao_branch%ptc_normal_form
+
+  expo = [0, 0, 0, 0, 0, 0]   ! Use expo(6) = i to get the i^th Taylor coef in tune vs pz curve.
+  nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', real(ptc_nf%spin .sub. expo)
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N'
+
+  do i = 0, ptc_com%taylor_order_ptc-1
+    expo = [0, 0, 0, 0, 0, i]
+    z1 =  real(ptc_nf%phase(1) .sub. expo)
+    z2 =  real(ptc_nf%phase(2) .sub. expo)
+    if (i == 0) then
+      nl=nl+1; write (lines(nl), '(i3, 2es18.7, a)') i, z1, z2, '  ! 0th order are the tunes'
+    else
+      nl=nl+1; write (lines(nl), '(i3, 2es18.7)') i, z1, z2
+    endif
+  enddo
+
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; lines(nl) = '  N   slip_factor_ptc.N   momentum_compaction_ptc.N'
+
+  do i = 1, ptc_com%taylor_order_ptc
+    expo = [0, 0, 0, 0, 0, i]
+    z1 = -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
+    z2 =  real(ptc_nf%path_length .sub. expo) / branch%param%total_length
+    nl=nl+1; write (lines(nl), '(i3, 2x, 2es18.7)') i, z1, z2
+  enddo
+
 
 !----------------------------------------------------------------------
 ! constraints
@@ -3200,34 +3244,8 @@ case ('merit', 'top10')
 
 case ('normal_form')
 
-  if (branch%param%geometry /= closed$) then
-    nl=1;    lines(1) = 'BRANCH GEOMETRY NOT CLOSED'
-    nl=nl+1; lines(2) = 'USE THE "set branch ' // int_str(branch%ix_branch) // ' geometry = closed" TO CHANGE THIS.'
-    return
-  endif
-
-  tao_lat => tao_pointer_to_tao_lat (u, model$)
-  if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., tao_lat, ix_branch, rf_on = no$)
-
-  bmad_nf => tao_branch%bmad_normal_form
-  ptc_nf  => tao_branch%ptc_normal_form
-
-  expo = [0, 0, 0, 0, 0, 0]   ! Use expo(6) = i to get the i^th Taylor coef in tune vs pz curve.
-  nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', real(ptc_nf%spin .sub. expo)
-  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N          slip_factor_ptc.N'
-
-  do i = 0, ptc_com%taylor_order_ptc
-    expo = [0, 0, 0, 0, 0, i]
-    if (i == 0) then
-      nl=nl+1; write (lines(nl), '(i3, 2es18.7, 9x es18.7, a)') i, real(ptc_nf%phase(1) .sub. expo), real(ptc_nf%phase(2) .sub. expo), &
-                      -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length, '  ! 0th order are the tunes (and RF is off for calculation)'
-    elseif (i < ptc_com%taylor_order_ptc) then
-      nl=nl+1; write (lines(nl), '(i3, 2es18.7, 9x es18.7)') i, real(ptc_nf%phase(1) .sub. expo), real(ptc_nf%phase(2) .sub. expo), &
-                      -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
-    else
-      nl=nl+1; write (lines(nl), '(i3, 18x, 18x, 9x es18.7)') i, -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
-    endif
-  enddo
+  nl=nl+1; lines(nl) = 'The "show normal_form" command is currently being reworked.'
+  nl=nl+1; lines(nl) = 'Use "show chromaticity" for the chromaticity, momentum compaction and phase slip Taylor maps.'
 
 !  select case(attrib0(1:5))
 !    case ('dhdj ')
@@ -4762,7 +4780,6 @@ case ('universe')
   design_lat => u%design%lat
   design_branch => design_lat%branch(ix_branch)
   design_tao_branch => u%design%tao_branch(ix_branch)
-  gamma = branch%ele(0)%value(e_tot$) / mass_of(species)
 
   nl = 0
   nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', ix_u,      '  Of: ', ubound(s%u, 1)
@@ -4783,6 +4800,7 @@ case ('universe')
     nl=nl+1; write(lines(nl), amt) 'photon_type:                 ', photon_type_name(lat%photon_type)
   else
     species = branch%ele(0)%ref_species
+    gamma = branch%ele(0)%value(e_tot$) / mass_of(species)
     nl=nl+1; write(lines(nl), rmt) 'a_anomalous_moment * gamma   ', anomalous_moment_of(species) * gamma
   endif
   nl=nl+1; write(lines(nl), rmt) 'Reference energy:            ', branch%ele(0)%value(e_tot$)
