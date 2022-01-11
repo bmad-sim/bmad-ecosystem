@@ -1375,7 +1375,8 @@ type ptc_normal_form_struct
   type (probe_8) one_turn_map                ! One turn map
   real(rp) orb0(6)                           ! Closed orbit at element.
   type (c_normal_form) normal_form           ! Complex normal form
-  type (c_taylor) phase(3)                   ! Phase, chromaticity maps
+  type (c_taylor) phase(3)                   ! Phase/chromaticity maps
+  type (c_taylor) path_length                ! Path length map. Gives momentum compaction.
   type (c_taylor) spin                       ! Spin map
   type (internal_state) state                ! PTC state
   logical :: valid_map = .false.
