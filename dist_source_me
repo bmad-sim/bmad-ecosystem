@@ -73,17 +73,6 @@ func_set_os_env () {
 	    fi
 	fi
     fi
-
-    # For Mac OS X "Darwin"
-    if [ "$(uname)" == "Darwin" ] ; then
-	# Force MacPorts gcc/g++ as GNU compiler
-	if ( [[ "${USE_MACPORTS}" ]] ) ; then
-		if [ -e /opt/local/bin/gcc ] ; then
-		    export CC=gcc
-		    export CXX=g++
-		fi
-	fi
-    fi
 }
 
 
@@ -388,17 +377,38 @@ func_add_bmad_path () {
     fi
 }
 
+
+
+#-----------------------------------------------------------------
+# Function to set CC and CXX to the MacPorts gcc/g++, under macOS.
+# Addresses issue with Conda support Patch (RT#59013).  
+# Issue was raised in RT#61171 by cmayes@stanford.edu
+#-----------------------------------------------------------------
+func_use_MacPorts_gcc () {
+
+    case "${ACC_USE_MACPORTS}" in
+	"Y" | "y" | "1" )
+            USE_MACPORTS=1
+            ;;
+    esac
+
+    if [ "$(uname)" == "Darwin" ] ; then
+	if ( [[ "${USE_MACPORTS}" ]] ) ; then
+		if [ -e /opt/local/bin/gcc ] ; then
+		    export CC=gcc
+		    export CXX=g++
+		fi
+	fi
+    fi
+}
+
+
 case "${ACC_CONDA_BUILD}" in
     "Y" | "y" | "1" )
         CONDA_BUILD=1
         ;;
 esac
 
-case "${ACC_USE_MACPORTS}" in
-    "Y" | "y" | "1" )
-        USE_MACPORTS=1
-        ;;
-esac
 
 #-----------------------------------------------------------------
 # Main Script
@@ -446,7 +456,8 @@ if ( [ "${CWD_DIR_CHECK}" == "Y" ] && [[ ! ${CWD} -ef ${DIST_BASE_DIR} ]]) ; the
     func_set_bmad_env
     func_add_bmad_path
     if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
-        func_check_fortran_version
+	func_check_fortran_version
+	func_use_MacPorts_gcc
     fi
 
 elif ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
@@ -457,7 +468,8 @@ elif ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
     func_set_bmad_env
     func_add_bmad_path
     if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
-        func_check_fortran_version
+	func_check_fortran_version
+	func_use_MacPorts_gcc
     fi
 
 else
