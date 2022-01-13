@@ -1529,16 +1529,6 @@ function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) res
   logical, optional :: skip_beginning, follow_fork
 end function
 
-!function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)
-!  import
-!  implicit none
-!  type (ele_struct), target :: lord
-!  type (control_struct), pointer, optional :: control
-!  type (ele_struct), pointer :: slave_ptr
-!  integer ix_slave
-!  logical, optional :: field_overlap_ptr
-!end function
-
 function pointer_to_wake_ele (ele, delta_s) result (wake_ele)
   import
   implicit none
