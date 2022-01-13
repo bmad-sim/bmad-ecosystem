@@ -20,6 +20,7 @@
 subroutine track_bunch_time (lat, bunch, t_end, s_end, dt_step)
 
 use bmad_interface, dummy => track_bunch_time
+!$ use omp_lib
 
 implicit none
 
@@ -43,6 +44,8 @@ character(*), parameter :: r_name = 'track_bunch_time'
 significant_time = bmad_com%significant_length / (10 * c_light)
 branch => lat%branch(bunch%particle(1)%ix_branch)
 
+!$OMP parallel do default(shared) private(dt, orbit, ele)
+
 do i = 1, size(bunch%particle)
   if (present(dt_step)) then;  dt = dt_step(i)
   else;                        dt = bmad_com%init_ds_adaptive_tracking
@@ -63,6 +66,8 @@ do i = 1, size(bunch%particle)
 
   if (present(dt_step)) dt_step(i) = dt
 enddo
+
+!$OMP end parallel do
 
 !-------------------------------------------------------------------------
 contains

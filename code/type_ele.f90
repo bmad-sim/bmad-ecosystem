@@ -570,11 +570,12 @@ endif
 
 ! ac_kick
 
-if (associated(ele%ac_kick) .and. logic_option(.false., type_field)) then
+if (associated(ele%ac_kick)) then
   ac => ele%ac_kick
   nl=nl+1; li(nl) = ''
 
   if (allocated(ac%amp_vs_time)) then
+    nl=nl+1; li(nl) = 'AC_kicker (time, amplitude) knot points'
     nl=nl+1; li(nl) = '     Indx      Time       Amplitude'    
     do im = 1, size(ac%amp_vs_time)
       nl=nl+1; write (li(nl), '(i9, 2es14.6)') im, ac%amp_vs_time(im)%time, ac%amp_vs_time(im)%amp
@@ -582,6 +583,7 @@ if (associated(ele%ac_kick) .and. logic_option(.false., type_field)) then
   endif
 
   if (allocated(ac%frequencies)) then
+    nl=nl+1; li(nl) = 'AC_kicker frequency components'
     nl=nl+1; li(nl) = '     Indx          Freq     Amplitude           Phi'    
     do im = 1, size(ac%frequencies)
       nl=nl+1; write (li(nl), '(i9, 3es14.6)') im, &
