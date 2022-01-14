@@ -810,7 +810,7 @@ Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the de
 To save time when the calculation of chromatic terms is not needed, the \vn{one_turn_map_calc} parameter
 (\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
 
-Note: Use the \vn{show chromaticity} command to see the series coefficients.
+Note: The \vn{show chromaticity} (\sref{s:show.chrom}) command can be used to see the series coefficients.
 
   %----------------------
   \item[curly_h.a, .b] \Newline \hlabel{curly.h}
@@ -1010,59 +1010,57 @@ Momentum compaction factor. Also see \vn{r56_compaction} and \vn{slip_factor_ptc
 
   %----------------------
   \item[momentum_compaction_ptc.$N$, $N = 1, 2, 3, \ldots$] \Newline \hlabel{mom.comp.ptc}
-Slip factor. Also see \vn{r56_compaction} and \vn{slip_factor_ptc}.
+Momentum compaction factor. Also see \vn{r56_compaction} and \vn{slip_factor_ptc}.
 
-Momentum compaction Taylor series, which is a function of phase space $p_z$, as calculated from
-Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
-gives the order of the Taylor term
+The momentum compaction Taylor series is a function of phase space $p_z$. This Taylor series
+is calculated from Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is
+an integer which gives the order of the Taylor term
 \begin{equation}
-  \frac{1}{T_0} \, \Delta T(p_z) = \alpha_1 \, p_z + \alpha_2 \, p_z^2 + \alpha_3 \, p_z^3 + \ldots
+  \frac{\Delta L(p_z)}{L_0} = \alpha_1 \, p_z + \alpha_2 \, p_z^2 + \alpha_3 \, p_z^3 + \ldots
 \end{equation}
-Where $T$ is the transit time over one turn and $T_0$ is reference transit time.
-$N = 1$, that is \vn{slip_factor_ptc.1}, is the slip factor at $p_z = 0$, etc.
+Where $L$ is the transit distance over one turn and $L_0$ is reference transit distance.  $N = 1$,
+that is \vn{momentum_compaction_ptc.1} ($\alpha_1$) is the momentum compaction at $p_z = 0$, etc.
 
-Since there are differences in the tracking between PTC and \bmad, The slip factor as calculated
+Since there are differences in the tracking between PTC and \bmad, the momentum compaction as calculated
 with \bmad will not exactly agree with the PTC values.
 
-The slip factor Taylor series coefficients $\alpha_N$ are calculated up to order $N_T$ where $N_T$ is the
-Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the default is $N_T=3$). 
+The momentum compactionTaylor series coefficients $\alpha_N$ are calculated up to order $N_T$ where
+$N_T$ is the Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the default
+is $N_T=3$).
 
 To save time when the calculation of momentum compaction terms is not needed, the \vn{one_turn_map_calc} parameter
 (\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
 
-Note: Use the \vn{show chromaticity} command to see the series coefficients.
+Note: The \vn{show chromaticity} (\sref{s:show.chrom}) command can be used to see the series coefficients.
 
   %----------------------
   \item[n_particle_loss] \Newline \hlabel{n.part.loss}
-If the reference element is not specified, \vn{n_particle_loss} gives
-the number of particles lost at the evaluation element. If the
-reference element is specified, \vn{n_particle_loss} gives the
-cumulative loss between the exit end of the reference element and the
-exit end of the evaluation element. That is, this sum does not count
-any losses at the reference element itself. If neither reference nor
-evaluation element is given then the total number of lost particles is
-given.
+If the reference element is not specified, \vn{n_particle_loss} gives the number of particles lost
+at the evaluation element. If the reference element is specified, \vn{n_particle_loss} gives the
+cumulative loss between the exit end of the reference element and the exit end of the evaluation
+element. That is, this sum does not count any losses at the reference element itself. If neither
+reference nor evaluation element is given then the total number of lost particles is given.
 
   %----------------------
   \item[norm_apparent_emit.x, .y] \Newline \hlabel{norm.app.emit}
-Energy normalized apparent emittance. The normalization is the standard gamma factor:
+Apparent emittance normalized with the standard gamma factor:
 \begin{equation}
-  \text{emit}_{\text{norm}} = \gamma \, \text{emit}
+  \text{emit}_{\text{norm}} = \gamma \cdot \text{emit}
 \end{equation}
 See the \vn{apparent_emit.x, .y} data type for more details.
 
   %----------------------
   \item[norm_emit.a, .b, .c] \Newline \hlabel{norm.emit.a}
-Energy normalized normal mode emittance. The normalization is the standard gamma factor:
+Normal mode emittance normalized with the standard gamma factor:
 \begin{equation}
-  \epsilon_{norm} = \gamma \, \epsilon
+  \epsilon_{norm} = \gamma \cdot \epsilon
 \end{equation}
 
   %----------------------
   \item[norm_emit.x, .y, .z] \Newline \hlabel{norm.emit.x}
-Energy normalized projected emittance. The normalization is the standard gamma factor:
+Projected emittance normalized with the standard gamma factor:
 \begin{equation}
-  \epsilon_{norm} = \gamma \, \epsilon
+  \epsilon_{norm} = \gamma \cdot \epsilon
 \end{equation}
 
   %----------------------
@@ -1451,16 +1449,16 @@ any emittances or longitudinal sigma values specified in the lattice file.
 
   %----------------------
   \item[slip_factor_ptc.$N$, $N = 1, 2, 3, \ldots$] \Newline \hlabel{slip.ptc}
-Slip factor. Also see \vn{r56_compaction} and \vn{momentum_compaction}.
+Phase slip factor. Also see \vn{r56_compaction} and \vn{momentum_compaction}.
 
-Phase slip factor Taylor series, which is a function of phase space $p_z$, as calculated from
-Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
-gives the order of the Taylor term
+Phase slip factor Taylor series is a function of phase space $p_z$. The Taylor series is calculated
+from Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer
+which gives the order of the Taylor term
 \begin{equation}
-  \frac{1}{T_0} \, \Delta T(p_z) = \alpha_1 \, p_z + \alpha_2 \, p_z^2 + \alpha_3 \, p_z^3 + \ldots
+  \frac{\Delta T(p_z)}{T_0} = \alpha_1 \, p_z + \alpha_2 \, p_z^2 + \alpha_3 \, p_z^3 + \ldots
 \end{equation}
 Where $T$ is the transit time over one turn and $T_0$ is reference transit time.
-$N = 1$, that is \vn{slip_factor_ptc.1}, is the slip factor at $p_z = 0$, etc.
+$N = 1$, that is \vn{slip_factor_ptc.1} ($\alpha_1$) is the slip factor at $p_z = 0$, etc.
 
 Since there are differences in the tracking between PTC and \bmad, The slip factor as calculated
 with \bmad will not exactly agree with the PTC values.
@@ -1471,7 +1469,7 @@ Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the de
 To save time when the calculation of momentum compaction terms is not needed, the \vn{one_turn_map_calc} parameter
 (\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
 
-Note: Use the \vn{show chromaticity} command to see the series coefficients.
+Note: The \vn{show chromaticity} (\sref{s:show.chrom}) command can be used to see the series coefficients.
 
   %----------------------
   \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline \hlabel{spin.g.matrix}

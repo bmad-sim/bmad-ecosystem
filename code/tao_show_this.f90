@@ -4054,6 +4054,7 @@ case ('symbolic_numbers')
   select case (what_to_print)
   case ('tao')
     if (allocated(s%com%symbolic_num)) then
+      n = nl+10+size(s%com%symbolic_num); if (n > size(lines)) call re_allocate (lines, n, .false.)
       do i = 1, size(s%com%symbolic_num)
         nl=nl+1; write (lines(nl), '(2x, 2a, es22.15)') s%com%symbolic_num(i)%name, '=', s%com%symbolic_num(i)%value
       enddo
@@ -4062,6 +4063,7 @@ case ('symbolic_numbers')
     endif
 
   case ('physical')
+    n = nl+10+size(physical_const_list); if (n > size(lines)) call re_allocate (lines, n, .false.)
     do i = 1, size(physical_const_list)
       if (physical_const_list(i)%name == 'emass' .or. physical_const_list(i)%name == 'pmass') then
         nl=nl+1; write (lines(nl), '(2x, 2a, es22.15, a)') physical_const_list(i)%name, '=', physical_const_list(i)%value, &
@@ -4073,6 +4075,7 @@ case ('symbolic_numbers')
 
   case ('lattice')
     if (allocated(lat%constant)) then
+      n = nl+10+size(lat%constant); if (n > size(lines)) call re_allocate (lines, n, .false.)
       do i = 1, size(lat%constant)
         nl=nl+1; write (lines(nl), '(2x, 2a, es22.15)') lat%constant(i)%name, '=', lat%constant(i)%value
       enddo
