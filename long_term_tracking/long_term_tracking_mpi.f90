@@ -276,7 +276,7 @@ if (ltt_com%mpi_rank == master_rank$) then
   ! And end
 
   call run_timer ('ABS', time_now)
-  call ltt_write_master ('Tracking time (min):' // real_str((time_now - ltt_com%time_start) / 60, 4), lttp, append = .true.)
+  call ltt_write_master('# tracking_time = ' // real_str(del_time/60, 4, 2), lttp, append = .true.)
   call mpi_finalize(ierr)
 
 !------------------------------------------------------------------------------------------
