@@ -18,7 +18,7 @@ type (beam_struct), target :: beam, beam2
 type (bunch_struct), pointer :: bunch
 type (coord_struct) orb
 
-real(rp) time_now, mpi_particles_per_run
+real(rp) mpi_particles_per_run, del_time
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer i, n, nn, nb, ib, ix, ierr, rc, leng, bd_size, storage_size, dat_size
@@ -275,7 +275,7 @@ if (ltt_com%mpi_rank == master_rank$) then
 
   ! And end
 
-  call run_timer ('ABS', time_now)
+  call run_timer ('ABS', del_time)
   call ltt_write_master('# tracking_time = ' // real_str(del_time/60, 4, 2), lttp, append = .true.)
   call mpi_finalize(ierr)
 
