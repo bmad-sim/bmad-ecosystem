@@ -32,6 +32,7 @@ class seq_struct:
     self.seq_ele_dict = OrderedDict()
     self.last_ele_offset = ''
     self.line = ''                   # For when turning a sequence into a line
+    self.drift_list = []
 
 class common_struct:
   def __init__(self):
@@ -796,6 +797,28 @@ def parse_command(command, dlist):
     common.seq_dict[seq.name] = seq
     offset = f'{seq.l} - {add_parens(seq.last_ele_offset, False)}'
 
+    # Replace "[[...]]" marker strings in offsets for elements that have been inserted when ref 
+    # element has not yet been defined at the point the element was parsed.
+
+    
+    for ix, drift in enumerate(seq.drift_list):
+      continue
+      if '[[' not in drift: continue
+      ix1 = drift.find('[[')
+      ix2 = drift.find(']]')
+      ref_ele_name = drift[ix1+2:ix2]
+      from_ref_ele = seq.seq_ele_dict[ref_ele_name]
+      offset = from_ref_ele.at
+      if 'l' in from_ref_ele.param:
+        if seq.refer == 'entry': offset += f' + {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
+        if seq.refer == 'exit': offset += f' - {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
+      seq.drift_list[ix] = f'{drift[:ix1]}({offset}){drift[ix2+2:]}'
+
+    for drift in seq.drift_list:
+      f_out.write(drift + '\n')
+
+    #
+
     if not common.superimpose_eles:
       if is_zero(offset):
         wrap_write (f'{seq.name}: line = ({seq.line[:-2]})', f_out)
@@ -882,11 +905,16 @@ def parse_command(command, dlist):
 
     if is_ele_here:
       if ele.from_ref_ele != '':
-        from_ref_ele = seq.seq_ele_dict[ele.from_ref_ele]
-        offset += f' + {add_parens(bmad_expression(from_ref_ele.at, ""), False)}'
-        if 'l' in from_ref_ele.param:
-          if seq.refer == 'entry': offset += f' + {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
-          if seq.refer == 'exit': offset += f' - {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
+        if ele.from_ref_ele in seq.seq_ele_dict:
+          from_ref_ele = seq.seq_ele_dict[ele.from_ref_ele]
+          offset += f' + {add_parens(bmad_expression(from_ref_ele.at, ""), False)}'
+          if 'l' in from_ref_ele.param:
+            if seq.refer == 'entry': offset += f' + {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
+            if seq.refer == 'exit': offset += f' - {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
+        else:
+          # Ref element is not yet defined so put in marker string "[[...]]" that will be removed later to
+          # be replaced by the actual offset.
+          offset = f'[[{ele.from_ref_ele}]]{offset}'
 
       if common.superimpose_eles:
         f_out.write(f'superimpose, element = {ele_name}, ref = {seq.name}_mark, ' + \
@@ -927,7 +955,7 @@ def parse_command(command, dlist):
         else:
           drift_name = f'drift{common.drift_count}'
           drift_line = f'{drift_name}: drift, l = {this_offset}'
-          f_out.write(drift_line + '\n')
+          seq.drift_list.append(drift_line)
           seq.line += f'{drift_name}, {ele_name}, '
           seq.last_ele_offset = last_offset
           common.drift_count += 1
@@ -956,7 +984,7 @@ def parse_command(command, dlist):
     this_offset = f'{offset}'
 
     if seq2.refpos != '':
-      refpos_ele = seq2.ele_dict[seq2.refpos]
+      refpos_ele = seq2.seq_ele_dict[seq2.refpos]
       offset += f' - {add_parens(refpos_ele.at, False)}'
       last_offset += f' + {refpos_ele.at} - {add_parens(seq2.l, False)}'
     elif seq.refer == 'entry':
