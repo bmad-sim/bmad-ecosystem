@@ -1720,11 +1720,11 @@ integer, parameter :: open$ = 1, closed$ = 2
 character(16), parameter :: lattice_type_name(0:2) = ['GARBAGE!        ', 'Linear_Lattice  ', 'Circular_Lattice']
 character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'Open        ', 'Closed      ']
 
-! The linac_normal_mode_struct is basically the synchrotron integrals with the
-! energy factors thrown in. Useful for linacs.
+! The linac_normal_mode_struct is basically the synchrotron integrals with the energy factors thrown in.
+! Note: The b%emittance calc from radiation integrals will include the photon vertical opening angle in the calc.
 
 type anormal_mode_struct
-  real(rp) :: emittance = 0       ! Beam emittance
+  real(rp) :: emittance = 0       ! Beam emittance.
   real(rp) :: synch_int(4:6) = 0  ! Synchrotron integrals
   real(rp) :: j_damp = 0          ! damping partition number
   real(rp) :: alpha_damp = 0      ! damping per turn
