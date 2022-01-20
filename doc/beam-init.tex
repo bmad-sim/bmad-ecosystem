@@ -292,8 +292,11 @@ component of the structure. Also the bunch charge, bunch number, and number of p
 can be set in the \vn{beam_init_struct}. Additionally, the bunch centroid can be offset by setting
 \vn{beam_init%center} and \vn{beam_init%center_jitter}.
 
-There are two formats for the beam initialization file: ASCII and binary. Currently, the binary file
-format is undergoing revision and will not be discussed here. The ASCII file format is:
+There are two formats for the beam initialization file: ASCII and binary. The binary file format for
+beam position storage is based on the \vn{HDF5} standard. More information is in
+chapter~\sref{c:hdf5}.
+
+The ASCII file format is:
 \begin{example}
   <ix_ele>         ! Lattice element index. This is ignored.
   <n_bunch>        ! Number of bunches.

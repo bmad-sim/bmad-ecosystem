@@ -205,7 +205,7 @@ elseif (index(line, '!BIN::3') /= 0) then
 elseif (index(line, '!ASCII::3') /= 0) then
   file_type = 'ASCII::3'
 else
-  file_type = 'ASCII'
+  file_type = 'ASCII::3'
   rewind (iu)
 endif
 
@@ -216,7 +216,7 @@ endif
 
 ! Read header info
 
-if (file_type(1:5) == 'ASCII') then
+if (file_type == 'ASCII::3') then
   read (iu, *, iostat = ios, err = 9000) ix_ele
   read (iu, *, iostat = ios, err = 9000) n_bunch
   read (iu, *, iostat = ios, err = 9000) n_particle
@@ -244,7 +244,7 @@ do i = 1, n_bunch
   p => bunch%particle
   p = orb_init   ! init with default params
 
-  if (file_type(1:5) == 'ASCII') then
+  if (file_type == 'ASCII::3') then
 
     read (iu, '(a)', iostat = ios) line
     if (ios /= 0 .or. index(upcase(line), 'BEGIN_BUNCH') == 0) then
@@ -332,25 +332,15 @@ do i = 1, n_bunch
       if (.not. remove_first_number (line, ix_word, '', in_parens)) return
 
       if (ix_word == 0) goto 8000
-      if (file_type == 'ASCII::3') then
-        read (line, *, iostat = ios) p(j)%spin
-        if (.not. remove_first_number (line, ix_word, '', in_parens)) return
-        if (.not. remove_first_number (line, ix_word, '', in_parens)) return
-        if (.not. remove_first_number (line, ix_word, '', in_parens)) return
-      else
-        read (line, *, iostat = ios) spinor
-        p(j)%spin = spinor_to_vec(spinor)
-        if (.not. remove_first_number (line, ix_word, '(x', in_parens)) return
-        if (.not. remove_first_number (line, ix_word, 'x)(', in_parens)) return
-        if (.not. remove_first_number (line, ix_word, '', in_parens)) return
-        if (.not. remove_first_number (line, ix_word, 'x)', in_parens)) return
-      endif
-
+      read (line, *, iostat = ios) p(j)%spin
       if (ios /= 0) then
         call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING PARTICLE SPIN', 'IN LINE: ' // trim(line_in))
         return
       endif
 
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
 
       if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%ix_ele
