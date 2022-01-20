@@ -67,7 +67,7 @@ definition \Eq{mgq2m2}. See the discussion after \Eq{mgq2m}.
 \label{s:quat}
 
 \bmad uses a quaternion representation for spin rotations\cite{b:quat} and for the single resonance
-analysis (\sref{s:spin.res}) it is convienient to use biquaternions which are quaternions with
+analysis (\sref{s:spin.res}) it is convenient to use biquaternions which are quaternions with
 complex coefficients. The following is a brief introduction to quaternions and biquaternions. For
 more information, the reader is referred to the literature\cite{b:biquat}.
 
@@ -324,6 +324,7 @@ polarization is called the \vn{Derbenev-Kondratenko-Mane} formula
     \left( \bfn - \frac{\partial \bfn}{\partial \delta} \right) \right>}
   {\displaystyle \oint ds \, \left< g^3 \left( 1 - \frac{2}{9} (\bfn \dotproduct \what\bfs)^2 + 
     \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>}
+  \label{pdk85}
 \end{equation}
 where $<>$ denotes an average over phase space, and $\delta$ is the fractional energy deviation
 which, for ultra-relativistic particles, is the same as phase space $p_z$. Since, away from any
@@ -361,7 +362,25 @@ RHS in \Eq{t583} and the depolarization rate $\tau_{dep}^{-1}$ is given by the t
 \end{align}
 $\tau_{pol}^{-1}$ is generally well approximated by the \vn{Baier-Katkov-Strakhovenko} polarization
 rate (\Eq{tbks}). The difference being that $\tau_{bks}^{-1}$ is evaluated along the closed orbit
-while $\tau_{pol}^{-1}$ takes into account the size of the beam.
+while $\tau_{pol}^{-1}$ involves an average over the transverse beam size.
+
+One problem in evaluating \Eq{pdk85} is that accurately evaluating the $\partial\bfn/\partial\delta$
+terms over the transverse bunch distribution is complicated due to lattice nonlinearities. One way
+to evaluate $P_{dk}$ with nonlinearities included is by tracking a bunch of particles over some
+number of turns. To help minimize the needed tracking, the spin flip process can be neglected. With
+this, and starting with 100\% polarization, a turn-by-turn plot of the polarization will give the
+depolarization rate $\tau_{dep}^{-1}$. The integrals of $g^3 \, \what\bfb \dotproduct \bfn$ and $g^3 \,
+(1 - 2(\bfn \dotproduct \what\bfs)^2/9)$ can be well approximated by the integrals over the closed
+orbit ignoring the finite beam size.  Finally, for most rings, the integral of $g^3 \what\bfb \dotproduct
+\partial\bfn/\partial\delta$ is generally small compared to the integral of $g^3 \, \what\bfb
+\dotproduct \bfn$ since, in most of the machine, $\what\bfb$ and $\bfn$ will point in the vertical
+direction and $\partial\bfn/\partial\delta$ will be perpendicular to the vertical (see \Eq{qq0}).
+Putting this all together, the equilibrium polarization can be computed from
+\begin{equation}
+  P_{dk} \approx P_{bks} \frac{\tau_{bks}^{-1}}{\tau_{bks}^{-1} + \tau_{dep}^{-1}}
+\end{equation}
+where $\tau_{dep}^{-1}$ is calculated via particle tacking and the other quantities are calculated by
+integrals over the closed orbit ignoring beam size effects.
 
 %-----------------------------------------------------------------   
 \section{Linear \texorpdfstring{$\partial\bfn/\partial\delta$}{dn/dpz} Calculation}
@@ -404,6 +423,7 @@ Since $\bfq_s$ is a rotation quaternion, the magnitude of $\bfq_s(\bfr)$ must re
 \Eq{qqqr} in \Eq{1qqq}, to keep the magnitude equal to one to linear order gives the condition
 \begin{equation}
   \bfq_0 \dotproduct \bfq_k = 0, \qquad k = 1, \ldots, 6
+  \label{qq0}
 \end{equation}
 for all $\bfq_k$ components of $\arrowbfq$.
 
