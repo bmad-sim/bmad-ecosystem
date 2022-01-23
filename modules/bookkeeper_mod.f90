@@ -573,6 +573,10 @@ if (slave%key == em_field$) then
   do i = 1, slave%n_lord
     lord => pointer_to_lord(slave, i)
     if (lord%lord_status /= super_lord$) cycle
+    lord%tracking_method = slave%tracking_method  ! Important for lcavity element to make sure 
+                                                  !   tracking along entire element is self-consistent.
+    lord%mat6_calc_method = tracking$
+    lord%spin_tracking_method = tracking$
     select case (lord%key)
     case (lcavity$)
       slave%value(constant_ref_energy$) = false$

@@ -582,7 +582,7 @@ case (lcavity$)
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) goto 9000
-    if (abs(orb_end%vec(6)) < bmad_com%rel_tol_tracking) exit
+    if (abs(orb_end%vec(6)) < small_rel_change$) exit
   enddo
 
   ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
