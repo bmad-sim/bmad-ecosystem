@@ -549,7 +549,6 @@ if (logic_option(.false., create_jumbo_slave)) then
       ele0 => branch%ele(i)
     endif
 
-
     ! If at end of string then mark all elements but ele0 for deletion.
 
     if (i == ix2_split .or. i == branch%n_ele_track .or. branch%ele(i+1)%value(l$) == 0) then
