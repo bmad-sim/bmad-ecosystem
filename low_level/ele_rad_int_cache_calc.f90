@@ -35,6 +35,7 @@ logical force_calc, err_flag
 !
 
 if (ele%key /= wiggler$ .and. ele%key /= undulator$ .and. ele%key /= em_field$) return
+if (ele%value(l$) == 0) return
 
 field_ele => pointer_to_field_ele(ele, 1)
 if (field_ele%field_calc == planar_model$ .or. field_ele%field_calc == helical_model$) return

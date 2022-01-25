@@ -586,6 +586,7 @@ case (lcavity$)
   enddo
 
   ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
+  if (ele%key == em_field$) call ele_rad_int_cache_calc (ele, .true.)
 
 case (custom$, hybrid$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)   ! Delta_ref_time is an independent attrib here.
