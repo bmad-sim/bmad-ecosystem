@@ -144,6 +144,7 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
 
   else
     if (associated(ele%rad_int_cache)) field_ele => ele
+    if (.not. associated(ele%rad_int_cache)) return
     int_g2 = eff_len * (field_ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-field_ele%rad_int_cache%orb0(1:4), field_ele%rad_int_cache%dg2_dorb(1:4)))
     int_g3 = eff_len * (field_ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-field_ele%rad_int_cache%orb0(1:4), field_ele%rad_int_cache%dg3_dorb(1:4)))
     if (int_g3 < 0) int_g3 = 0
