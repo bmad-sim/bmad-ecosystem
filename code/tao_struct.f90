@@ -879,6 +879,10 @@ type tao_spin_polarization_struct
   real(rp) :: pol_rate_bks = real_garbage$             ! BKS Polarization rate (1/sec).
   real(rp) :: depol_rate = real_garbage$               ! Depolarization rate (1/sec).
   real(rp) :: depol_rate_partial(3) = real_garbage$    ! Depolarization rate (1/sec) using only single mode to calc dn_dpz.
+  real(rp) :: integral_bn = real_garbage$              ! Integral of g^3 * b_hat * n_0
+  real(rp) :: integral_bdn = real_garbage$             ! Integral of g^3 * b_hat * dn/ddelta
+  real(rp) :: integral_1ns = real_garbage$             ! Integral of g^3 (1 - 2(n * s_hat)/9)
+  real(rp) :: integral_dn2 = real_garbage$             ! Integral of g^3 * 11 (dn/ddelta)^2 / 9
 end type
 
 ! For caching lattice calculations associated with plotting.

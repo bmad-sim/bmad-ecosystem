@@ -130,6 +130,10 @@ else
   tao_branch%spin%pol_rate_bks          = f * integral_1ns
   tao_branch%spin%depol_rate            = f * integral_dn2
   tao_branch%spin%depol_rate_partial    = f * integral_dn2_partial
+  tao_branch%spin%integral_bn           = integral_bn
+  tao_branch%spin%integral_bdn          = integral_bdn
+  tao_branch%spin%integral_1ns          = integral_1ns
+  tao_branch%spin%integral_dn2          = integral_dn2
 endif
 
 !--------------------------------------
