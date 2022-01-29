@@ -436,11 +436,11 @@ determine the beam center position are
 \begin{code}
   beam_init%center           ! (x, px, y, py, z, pz)
   beam_init%spin             ! (Sx, Sy, Sz)
-  beam_init%use_particle_start_for_center 
+  beam_init%use_particle_start 
   ltt%add_closed_orbit_to_init_position
 \end{code}
-If \vn{beam_init%use_particle_start_for_center} is set to \vn{True}, instead of using
-\vn{beam_init%center}, the \vn{particle_start} parameters that are set in the lattice file will be
+If \vn{beam_init%use_particle_start} is set to \vn{True}, instead of using \vn{beam_init%center} and
+\vn{beam_init%spin}, the \vn{particle_start} parameters that are set in the lattice file will be
 used. If the \vn{ltt%add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed
 orbit position is added in to the center position calculation.
 
@@ -463,7 +463,7 @@ The \vn{beam_init} structure:
     type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
     type (kv_beam_init_struct) KV              ! For KV beam distribution
     type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
-    logical use_particle_start_for_center = F  ! Use particle_start?
+    logical use_particle_start = F     ! Use particle_start?
     character random_engine            ! "pseudo" (default) or "quasi". 
     character random_gauss_converter   ! "exact" (default) or "quick". 
     real center(6) = 0                 ! Bench center offset.
@@ -588,7 +588,7 @@ Example:
 
   ! Beam initialization
   ltt%add_closed_orbit_to_init_position = True
-  beam_init%use_particle_start_for_center = F
+  beam_init%use_particle_start = F
   beam_init%center = 0, 0, 0, 0, 0, 0
   beam_init%n_particle = 10
   beam_init%spin = 0, 0, 0        ! See Bmad manual for 
