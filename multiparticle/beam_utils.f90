@@ -608,12 +608,6 @@ do i = 1, size(bunch%particle)
 
 enddo
 
-! particle spin
-
-call init_spin_distribution (b_init, bunch)
-
-bunch%particle%species = species
-
 ! Photons:
 ! For now just give one half e_field_x = 1 and one half e_field_y = 1
 
@@ -625,7 +619,9 @@ endif
 
 ! End stuff
 
+bunch%particle%species = species
 call bunch_init_end_calc(bunch, b_init, ix_bunch, ele)
+call init_spin_distribution (b_init, bunch, ele)
 
 ! Reset the random number generator parameters.
 
@@ -1288,31 +1284,51 @@ end subroutine combine_bunch_distributions
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_spin_distribution (beam_init, bunch)
+! Subroutine init_spin_distribution (beam_init, bunch, ele)
 !
 ! Initializes a spin distribution according to beam_init%spin.
 !
 ! Input:
 !   beam_init -- beam_init_struct: Initialization parameters 
 !     %spin(3)  -- (x, y, z) spin coordinates
+!   ele 
 !
 ! Output:
 !  bunch    -- bunch_struct: Bunch of particles.
 !   %particle(:)%spin
 !-
 
-subroutine init_spin_distribution (beam_init, bunch)
+subroutine init_spin_distribution (beam_init, bunch, ele)
 
 implicit none
 
 type (beam_init_struct) beam_init
 type (bunch_struct) bunch
+type (ele_struct) ele
+real(rp) spin(3)
 integer i
+character(*), parameter :: r_name = 'init_spin_distribution'
 
-!
+! Note: %use_particle_start_for_center is old deprecated name for %use_particle_start.
+
+if (beam_init%use_particle_start_for_center) beam_init%use_particle_start = beam_init%use_particle_start_for_center
+
+if (beam_init%use_particle_start) then
+  if (.not. associated (ele%branch)) then
+    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START = T.')
+    return
+  endif
+  if (.not. associated (ele%branch%lat)) then
+    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START = T.')
+    return
+  endif
+  spin = spin + ele%branch%lat%particle_start%spin
+else
+  spin = beam_init%spin
+endif
 
 do i = 1, size(bunch%particle)
-  bunch%particle(i)%spin = beam_init%spin
+  bunch%particle(i)%spin = spin
 enddo
 
 end subroutine init_spin_distribution
@@ -1929,17 +1945,19 @@ character(*), parameter :: r_name = 'bunch_init_end_calc'
 logical from_file, h5_file
 
 ! Adjust center
+! Note: %use_particle_start_for_center is old deprecated name for %use_particle_start.
 
 call ran_gauss(ran_vec)
 center = beam_init%center_jitter * ran_vec
 
-if (beam_init%use_particle_start_for_center) then
+if (beam_init%use_particle_start_for_center) beam_init%use_particle_start = beam_init%use_particle_start_for_center
+if (beam_init%use_particle_start) then
   if (.not. associated (ele%branch)) then
-    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
+    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START = T.')
     return
   endif
   if (.not. associated (ele%branch%lat)) then
-    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
+    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START = T.')
     return
   endif
   center = center + ele%branch%lat%particle_start%vec
