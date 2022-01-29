@@ -375,7 +375,7 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), amt) 'species;SPECIES;T;',                       trim(beam_init%species)
   nl=incr(nl); write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
   nl=incr(nl); write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
-  nl=incr(nl); write (li(nl), lmt) 'use_particle_start_for_center;LOGIC;T;',   beam_init%use_particle_start_for_center
+  nl=incr(nl); write (li(nl), lmt) 'use_particle_start;LOGIC;T;',              beam_init%use_particle_start
   nl=incr(nl); write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
   nl=incr(nl); write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
 
@@ -6450,8 +6450,8 @@ case ('spin_resonance')
   nl=incr(nl); write (li(nl), amt) 'dq;REAL_ARR;F',   (';', re_str(dq(k), 6), k = 1, 3)
   nl=incr(nl); write (li(nl), amt) 'xi_res1_quat;REAL_ARR;F',   (';', re_str(xi_quat(k,1), 6), k = 1, 3)
   nl=incr(nl); write (li(nl), amt) 'xi_res2_quat;REAL_ARR;F',   (';', re_str(xi_quat(k,2), 6), k = 1, 3)
-  nl=incr(nl); write (li(nl), amt) 'xi_res1_mat8;REAL_ARR;F',   (';', re_str(xi_mat8(k,1), 6), k = 1, 3)
-  nl=incr(nl); write (li(nl), amt) 'xi_res2_mat8;REAL_ARR;F',   (';', re_str(xi_mat8(k,2), 6), k = 1, 3)
+!  nl=incr(nl); write (li(nl), amt) 'xi_res1_mat8;REAL_ARR;F',   (';', re_str(xi_mat8(k,1), 6), k = 1, 3)
+!  nl=incr(nl); write (li(nl), amt) 'xi_res2_mat8;REAL_ARR;F',   (';', re_str(xi_mat8(k,2), 6), k = 1, 3)
 
 !%% super_universe -----------------------
 ! Output super_Universe parameters.

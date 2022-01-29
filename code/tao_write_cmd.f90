@@ -474,7 +474,27 @@ case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice
   case ('sad_lattice');   file_name0 = 'lat_#.sad';  lat_type = 'SAD'
   end select
 
-  if (word(1) /= '') file_name0 = word(1)
+  turn_rf_on = .true.
+
+  do 
+    ix_word = ix_word + 1
+    if (ix_word == size(word)-1) exit
+
+    call tao_next_switch (word(ix_word), [character(16):: '-no_rf'], .true., switch, err, ix)
+    if (err) return
+
+    select case (switch)
+    case ('');       exit
+    case ('-no_rf');    turn_rf_on = .false.
+
+    case default
+      if (file_name0(1:9) /= 'lat_#.mad') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name0 = switch
+    end select
+  enddo
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return

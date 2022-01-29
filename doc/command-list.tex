@@ -223,10 +223,9 @@ For \vn{change particle_start}, The optional \vn{n@} universe specification (\sr
 be used to specify the universe or universes to apply the change command to.
 
 For lattices with an open geometry, \vn{change particle_start <coordinate> <number>} can be used to
-vary the starting coordinates for single particle tracking. If the
-\vn{use_particle_start_for_center} of the \vn{beam_init} structure (\sref{s:beam.init}) is set to
-True, \vn{particle_start} will also vary the centroid coordinates for beam tracking. Here
-\vn{<coordinate>} is one of:
+vary the starting coordinates for single particle tracking. If the \vn{use_particle_start} of the
+\vn{beam_init} structure (\sref{s:beam.init}) is set to True, \vn{particle_start} will also vary the
+beam centroid and the beam particle spin for tracking. Here \vn{<coordinate>} is one of:
 \begin{example}
   x, px, y, py, z, pz, t
 \end{example}
@@ -1419,9 +1418,9 @@ Format:
   set particle_start \{n@\}<coordinate> = <value>
 \end{example}
 The \vn{set particle_start} command sets the starting coordinates for single particle tracking for
-lattices with an open geometry. If the \vn{use_particle_start_for_center} of the \vn{beam_init}
-structure (\sref{s:beam.init}) is set to True, \vn{particle_start} will also vary the centroid
-coordinates for beam tracking.
+lattices with an open geometry. If the \vn{use_particle_start} of the \vn{beam_init}
+structure (\sref{s:beam.init}) is set to True, \vn{particle_start} will also vary the beam centroid
+and beam particle spin for beam tracking.
 
 The optional \vn{n@} universe specification (\sref{s:universe}) may be used to specify the universe
 or universes to apply the set command to.
@@ -3633,10 +3632,14 @@ Syntax:
 
 Syntax:
 \begin{example}
-    write mad8 \{<file_name>\}  ! Write a MAD-8 lattice file of the model
+    write mad8 \{-no_rf\} \{<file_name>\}  ! Write a MAD-8 lattice file of the model
 \end{example}
 
 The default file name is \vn{lat_\#.mad8} where \vn{\#} is replaced by the universe number. 
+
+By default, the \vn{rfcavities} in the output lattice will be set back \vn{on} if the cavities were
+initially turned off when \tao was started (turning RF off at startup is the default procedure). If
+this is not wanted, the \vn{-no_rf} switch can be used to prevent this.
 
 %% write madx --------------------------------------------------------------
 

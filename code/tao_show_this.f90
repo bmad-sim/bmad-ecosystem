@@ -329,9 +329,10 @@ case ('beam')
     nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
     nl=nl+1; write(lines(nl), amt) '  %position_file          = ', quote(beam_init%position_file)
     nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
-    nl=nl+1; write(lines(nl), lmt) '  %use_particle_start_for_center = ', beam_init%use_particle_start_for_center
-    if (beam_init%use_particle_start_for_center) then
+    nl=nl+1; write(lines(nl), lmt) '  %use_particle_start     = ', beam_init%use_particle_start
+    if (beam_init%use_particle_start) then
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Note: Will use particle_start instead'
+      nl=nl+1; write(lines(nl), '(a, 3es16.8, 3x, a)') '  %spin                   = ', beam_init%spin,   '! Note: Will use particle_start instead'
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[x]       = ', u%model%lat%particle_start%vec(1)
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[px]      = ', u%model%lat%particle_start%vec(2)
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[y]       = ', u%model%lat%particle_start%vec(3)
@@ -339,7 +340,8 @@ case ('beam')
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[z]       = ', u%model%lat%particle_start%vec(5)
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[pz]      = ', u%model%lat%particle_start%vec(6)
     else
-      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center
+      nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
+      nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
     endif
     nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
     nl=nl+1; write(lines(nl), imt) '  %n_particle             = ', beam_init%n_particle
@@ -360,7 +362,6 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) '  %emit_jitter            = ', beam_init%emit_jitter
     nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
     nl=nl+1; write(lines(nl), rmt) '  %sig_pz_jitter          = ', beam_init%sig_pz_jitter
-    nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
     nl=nl+1; write(lines(nl), amt) '  %species                = ', quote(beam_init%species)
     nl=nl+1; write(lines(nl), lmt) '  %renorm_center          = ', beam_init%renorm_center
     nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma           = ', beam_init%renorm_sigma
@@ -3724,6 +3725,7 @@ case ('spin')
   what_to_print = 'standard'
   show_q = .false.
   show_mat = .false.
+  show_all = .false.
   sm => datum%spin_map
   sm%axis_input = spin_axis_struct()
   ele_ref_name = ''
@@ -3731,13 +3733,15 @@ case ('spin')
   flip = .false.
 
   do
-    call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
+    call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', '-all', &
                                    '-ref_element', '-q_map', '-g_map', '-flip_n_axis'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('')
       exit
+    case ('-all')
+      show_all = .true.
     case ('-element')
       what_to_print = 'element'
       ele_name = upcase(what2(1:ix))
@@ -3823,6 +3827,10 @@ case ('spin')
           nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a-mode) (minutes, turns):', real_str(v2(1), 3), r*v2(1)
           nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b-mode) (minutes, turns):', real_str(v2(2), 3), r*v2(2)
           nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (c-mode) (minutes, turns):', real_str(v2(3), 3), r*v2(3)
+          nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 * b_hat * n_0:         ', real_str(tao_branch%spin%integral_bn, 5)
+          nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 * b_hat * dn/ddelta:   ', real_str(tao_branch%spin%integral_bdn, 5)
+          nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 (1 - 2(n * s_hat)/9):  ', real_str(tao_branch%spin%integral_1ns, 5)
+          nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 * 11 (dn/ddelta)^2 / 9:', real_str(tao_branch%spin%integral_dn2, 5)
         endif
       else
         nl=nl+1; lines(nl) = 'Polarization calc not valid.'
@@ -4882,7 +4890,8 @@ case ('universe')
       nl=nl+1; write(lines(nl), fmt2) 'Chrom', tao_branch%a%chrom, design_tao_branch%a%chrom, tao_branch%b%chrom, design_tao_branch%b%chrom, '! dQ/(dE/E)'
       if (s%global%rad_int_calc_on) then
         nl=nl+1; write(lines(nl), fmt2) 'J_damp', mode_m%a%j_damp, mode_d%a%j_damp, mode_m%b%j_damp, mode_d%b%j_damp, '! Damping Partition #'
-        nl=nl+1; write(lines(nl), fmt) 'Emittance', mode_m%a%emittance, mode_d%a%emittance, mode_m%b%emittance, mode_d%b%emittance, '! Meters'
+        nl=nl+1; write(lines(nl), fmt) 'Emittance', mode_m%a%emittance, mode_d%a%emittance, mode_m%b%emittance, mode_d%b%emittance, '! Photon vert opening angle'
+        nl=nl+1; write(lines(nl), '(73x, a)') '!     is included in calc'
       endif
     endif
 
@@ -4894,7 +4903,7 @@ case ('universe')
 
       nl=nl+1; write(lines(nl), fmt) 'I4', mode_m%a%synch_int(4), mode_d%a%synch_int(4), mode_m%b%synch_int(4), mode_d%b%synch_int(4), '! Radiation Integral'
       nl=nl+1; write(lines(nl), fmt) 'I5', mode_m%a%synch_int(5), mode_d%a%synch_int(5), mode_m%b%synch_int(5), mode_d%b%synch_int(5), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt3) 'I6/gamma^2', mode_m%b%synch_int(6) / gamma**2, mode_d%b%synch_int(6) / gamma**2, '! Radiation Integral'
+      nl=nl+1; write(lines(nl), fmt3) 'I6b/gamma^2', mode_m%b%synch_int(6) / gamma**2, mode_d%b%synch_int(6) / gamma**2, '! Radiation Integral'
 
       if (branch%param%geometry == open$) then
         nl=nl+1; write(lines(nl), fmt) 'Final Emittance', mode_m%lin%a_emittance_end, mode_d%lin%a_emittance_end, mode_m%lin%b_emittance_end, mode_d%lin%b_emittance_end, '! Meters'

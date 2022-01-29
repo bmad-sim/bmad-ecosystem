@@ -675,8 +675,9 @@ endif
 
 bb => u%model_branch(0)%beam
 
-if (bb%beam_init%use_particle_start_for_center .and. any(bb%beam_init%center /= u%model%lat%particle_start%vec)) then
+if (bb%beam_init%use_particle_start .and. any(bb%beam_init%center /= u%model%lat%particle_start%vec)) then
   bb%beam_init%center = u%model%lat%particle_start%vec
+  bb%beam_init%spin   = u%model%lat%particle_start%spin
   bb%init_starting_distribution = .true.
 endif
 

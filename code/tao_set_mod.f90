@@ -1179,7 +1179,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   bb%beam_init = beam_init
   bb%init_starting_distribution = .true.  ! Force reinit
-  if (bb%beam_init%use_particle_start_for_center) bb%beam_init%center = u%model%lat%particle_start%vec
+  if (bb%beam_init%use_particle_start) then
+    bb%beam_init%center = u%model%lat%particle_start%vec
+    bb%beam_init%spin = u%model%lat%particle_start%spin
+  endif
   u%calc%lattice = .true.
 enddo
 
