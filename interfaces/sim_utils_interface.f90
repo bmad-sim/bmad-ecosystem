@@ -176,6 +176,12 @@ function djb_hash (str, old_hash) result (hash)
   integer, optional :: old_hash
 end function
 
+function djb_str_hash (in_str) result (hash_str)
+  implicit none
+  character(*) :: in_str
+  character(6) :: hash_str
+end function
+
 subroutine doubleup_quotes (str_in, str_out, quote)
   character(*) str_in
   character(*) str_out
