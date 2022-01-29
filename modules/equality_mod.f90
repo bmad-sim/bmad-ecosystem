@@ -1885,7 +1885,7 @@ is_eq = is_eq .and. (f1%init_spin .eqv. f2%init_spin)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%full_6d_coupling_calc .eqv. f2%full_6d_coupling_calc)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%use_particle_start_for_center .eqv. f2%use_particle_start_for_center)
+is_eq = is_eq .and. (f1%use_particle_start .eqv. f2%use_particle_start)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_t_coords .eqv. f2%use_t_coords)
 !! f_side.equality_test[logical, 0, NOT]

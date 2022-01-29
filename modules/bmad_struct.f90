@@ -1043,13 +1043,14 @@ type beam_init_struct
   logical :: init_spin     = .true.          ! Not used. Deprecated.
   logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
                                              !   Else use 4x4 1-turn mat used.
-  logical :: use_particle_start_for_center = .false. ! Slave beam_init%center(:) to lat%particle_start[...]?
+  logical :: use_particle_start = .false.    ! Use lat%particle_start instead of beam_init%center, %spin?
   logical :: use_t_coords = .false.          ! If true, the distributions will be taken as in t-coordinates  
   logical :: use_z_as_t   = .false.          ! Only used if  use_t_coords = .true.
                                              !   If true,  z describes the t distribution 
                                              !   If false, z describes the s distribution
   real(rp) :: sig_e_jitter     = 0.0         ! DEPRECATED. DO NOT USE. Replaced by sig_pz_jitter.
   real(rp) :: sig_e = 0                      ! DEPRECATED. DO NOT USE. Replaced by sig_pz.
+  logical :: use_particle_start_for_center = .false. ! DEPRECATED. DO NOT USE. Replaced by use_particle_start.
 end type
 
 

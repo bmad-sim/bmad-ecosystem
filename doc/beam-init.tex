@@ -28,7 +28,7 @@ initialize a beam. The parameters of this structure, shown with their default va
     type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
     type (kv_beam_init_struct) KV              ! For KV beam distribution
     type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
-    logical use_particle_start_for_center = F  ! Use particle_start instead of center?
+    logical use_particle_start = F     ! Use particle_start instead of %center and %spin?
     character random_engine            ! "pseudo" (default) or "quasi". 
     character random_gauss_converter   ! "exact" (default) or "quick". 
     real center(6) = 0                 ! Bench center offset.
@@ -85,9 +85,9 @@ charge will be set to the value of \vn{%bunch_charge} except if \vn{%bunch_charg
 of zero in which case the bunch charge as specified in the file is used.
 %
 \item[\%center(6)] \Newline
-The \vn{%center} parameter is used to offset the center position of a bunch when the
-\vn{%use_particle_start_for_center} is set to False. See the description of
-\vn{%use_particle_start_for_center} below for more details.
+The \vn{%center} parameter is used to offset the center position of a bunch. Exception: When
+\vn{%use_particle_start} is set to True, the \vn{particle_start} orbital values are used instead for the
+center position offset. See the description of \vn{%use_particle_start} below for more details.
 %
 \item[\%center_jitter, \%emit_jitter, \%sig_z_jitter, \%sig_pz_jitter] \Newline
 These components can be used to provide a bunch-to-bunch random variation in the emittance and bunch
@@ -244,14 +244,27 @@ lattice using synchrotron radiation integral formulas (\sref{s:synch.ints}).
 Name of the species tracked. If not set then the default tracking particle type is used.
 %
 \item[\%spin] \Newline
-Particle spin in Cartesian $(x, y, z)$ coordinates.
+Particle spin in Cartesian $(x, y, z)$ coordinates. Exception: When \vn{%use_particle_start} is set
+to True, the \vn{particle_start} spin values are used instead.  See the description of
+\vn{%use_particle_start} below for more details.
 %
-\item[\%use_particle_start_for_center] \Newline
-If \vn{%use_particle_start_for_center} is set to \vn{True} (default is \vn{False}), the center of
-the bunch is determined by (\vn{particle_start[x]}, \vn{particle_start[px]}, $\ldots$,
-\vn{particle_start[pz]}) (\sref{s:beam.start}) setting in the lattice file rather than the setting
-of \vn{%center} in the \vn{beam_init_struct}. In this case, \vn{%center} is a dependent parameter
-and will be set to the value of \vn{particle_start}.
+\item[\%use_particle_start] \Newline
+If \vn{%use_particle_start} is set to \vn{True} (default is \vn{False}), the center of
+the bunch is determined by the setting of
+\begin{example}
+  particle_start[x], particle_start[px],
+  particle_start[y], particle_start[py],
+  particle_start[z], particle_start[pz]
+\end{example}
+and the initial spin orientation is determined by the setting of
+\begin{example}
+  particle_start[spin_x], particle_start[spin_y], particle_start[spin_z]
+\end{example}
+See \sref{s:beam.start} for details about the \vn{particle_start} structure. Using the \vn{particle_start}
+structure allows setting center and spin values in the lattice file rather than the setting
+of \vn{%center} and \vn{%spin} in the \vn{beam_init_struct}. In this case, \vn{%center} is a dependent parameter
+and will be set to the value of \vn{particle_start}. Note: Old deprecated name for \vn{%use_particle_start} is
+is \vn{%use_particle_start_for_center}
 %
 \item[\%use_t_coords, \%use_z_as_t] \Newline
 The problem with handling particle distributions at low energies is that when a particle's velocity
@@ -383,5 +396,5 @@ particle's field or the particle's effect on other particles is calculated.
 
 \index{change}\index{beam_init}
 When the particle coordinates are read in the centroid will be shifted by the setting of
-\vn{beam_init%center} (unless \vn{beam_init%use_particle_start_for_center} is set True) and
+\vn{beam_init%center} (unless \vn{beam_init%use_particle_start} is set True) and
 \vn{beam_init%center_jitter}.
