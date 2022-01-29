@@ -302,8 +302,6 @@ if (ltt%simulation_mode == 'CHECK') then
   endif
 endif
 
-if (beam_init%use_particle_start_for_center) beam_init%center = lat%particle_start%vec
-
 !
 
 if (ltt%ramping_on) then
@@ -437,7 +435,32 @@ endif
 
 iu = lunget()
 open (iu, file = lttp%master_output_file)
+call ltt_print_this_info(iu)
+close(iu)
 
+if (lttp%averages_output_file /= '') then
+  open (iu, file = lttp%averages_output_file)
+  call ltt_print_this_info(iu)
+  close(iu)
+endif
+
+!------------------------------------------------
+contains
+
+subroutine ltt_print_this_info(iu)
+integer iu, species
+real(rp) e_tot, a_gam, t0
+
+!
+
+branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
+species = branch%ele(0)%ref_species
+e_tot = branch%ele(0)%value(e_tot$)
+a_gam = anomalous_moment_of(species) * e_tot / mass_of(species)
+t0 = branch%ele(branch%n_ele_track)%ref_time
+call ltt_write_master('# e_tot                              = ' // real_str(e_tot, 6), iu = iu)
+call ltt_write_master('# t_1turn                            = ' // real_str(t0, 6), iu = iu)
+call ltt_write_master('# anom_moment_times_gamma            = ' // real_str(a_gam, 6), iu = iu)
 call ltt_write_master('# master_input_file                  = ' // quote(ltt_com%master_input_file), iu = iu)
 call ltt_write_master('# ltt%lat_file                       = ' // quote(lttp%lat_file), iu = iu)
 call ltt_write_master('# ltt%averages_output_file           = ' // quote(lttp%averages_output_file), iu = iu)
@@ -447,8 +470,8 @@ call ltt_write_master('# ltt%master_output_file             = ' // quote(lttp%ma
 call ltt_write_master('# ltt%particle_output_file           = ' // quote(lttp%particle_output_file), iu = iu)
 call ltt_write_master('# ltt%sigma_matrix_output_file       = ' // quote(lttp%sigma_matrix_output_file), iu = iu)
 call ltt_write_master('# ltt%map_file_prefix                = ' // quote(lttp%map_file_prefix), iu = iu)
-call ltt_write_master('# ltt%simulation_mode                = ' // trim(lttp%simulation_mode), iu = iu)
-call ltt_write_master('# ltt%tracking_method                = ' // trim(lttp%tracking_method), iu = iu)
+call ltt_write_master('# ltt%simulation_mode                = ' // quote(lttp%simulation_mode), iu = iu)
+call ltt_write_master('# ltt%tracking_method                = ' // quote(lttp%tracking_method), iu = iu)
 if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
   call ltt_write_master('# ltt%map_order                      = ' // int_str(lttp%map_order), iu = iu)
   call ltt_write_master('# ltt%ele_start                      = ' // quote(lttp%ele_start), iu = iu)
@@ -474,13 +497,12 @@ call ltt_write_master('# ltt%ramping_start_time             = ' // real_str(lttp
 call ltt_write_master('# ltt%averaging_window               = ' // int_str(lttp%averaging_window), iu = iu)
 call ltt_write_master('# ltt%random_seed                    = ' // int_str(lttp%random_seed), iu = iu)
 if (lttp%random_seed == 0) then
-  call ltt_write_master('# random_seed_actual                  = ' // int_str(ltt_com%random_seed_actual), iu = iu)
+  call ltt_write_master('# random_seed_actual                 = ' // int_str(ltt_com%random_seed_actual), iu = iu)
 endif
-branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
-call ltt_write_master('# RF on (M65 /= 0 ?)                 = ' // logic_str(rf_is_on(branch)), iu = iu)
+call ltt_write_master('# RF_on                              = ' // logic_str(rf_is_on(branch)) // '  #  M65 /= 0 ?', iu = iu)
 call ltt_write_master('#--------------------------------------', iu = iu)
 
-close(iu)
+end subroutine ltt_print_this_info
 
 end subroutine ltt_print_inital_info
 
@@ -1533,14 +1555,11 @@ do ib = 0, nb
     file_name = lttp%averages_output_file(1:ix-1) // 'bunch' // int_str(ib) // lttp%averages_output_file(ix+1:)
   endif
 
+  open (iu, file = file_name, recl = 400, access = 'append')
   if (beam_data%turn(n0)%status == valid$) then
-    open (iu, file = file_name, recl = 400)
     write (iu, '(a1, a8, a9, 2a14, 2x, 3a14, 2x, 13a14, 2x, 3a14)') '#', 'Turn', 'N_live', 'Time', 'Polarization', &
                      '<Sx>', '<Sy>', '<Sz>', 'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz', &
                      '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>', 'emit_a', 'emit_b', 'emit_c'
-                       
-  else
-    open (iu, file = file_name, recl = 400, access = 'append')
   endif
 
   !
