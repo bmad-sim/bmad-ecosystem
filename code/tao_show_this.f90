@@ -397,7 +397,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
     nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_zero_average      = ', bmad_com%radiation_zero_average
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_zero_average          = ', bmad_com%radiation_zero_average
     nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
 
     nl=nl+1; lines(nl) = ''
@@ -5042,6 +5042,13 @@ case ('value')
       s_fmt = what2(1:ix)
       what2 = trim(str) // what2(ix+1:)
     endif
+  endif
+
+  if (index(what2, 'chrom') /= 0) then
+    s%com%force_chrom_calc = .true.
+    s%u%calc%lattice = .true.
+    call tao_lattice_calc(ok)
+    s%com%force_chrom_calc = .false.
   endif
 
   call tao_evaluate_expression (what2, 0, .false., value, err)
