@@ -770,6 +770,7 @@ type tao_common_struct
   logical :: command_arg_has_been_executed = .false. ! Has the -command command line argument been executed?
   logical :: all_merit_weights_positive = .true.  
   logical :: multi_turn_orbit_is_plotted = .false.   ! Is a multi_turn_orbit being plotted?
+  logical :: force_chrom_calc = .false.              ! Used by a routine to force calculation
   character(100) :: cmd = ''                         ! Used for the cmd history
   character(16) :: valid_plot_who(10) = ''           ! model, base, ref etc...
   character(200) :: saved_cmd_line = ''              ! Saved part of command line when there are mulitple commands on a line
