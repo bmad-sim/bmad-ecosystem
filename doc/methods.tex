@@ -108,7 +108,9 @@ to track to the end of the element.
 Linear just uses the 0th order vector with the 1st order 6x6 transfer matrix for an element. Very
 simple. Depending upon how the transfer matrix was generated this may or may not be
 symplectic. Note: a \vn{linear} tracking method may not be used with \vn{mat6_calc_method} set to
-\vn{tracking} since this would give a circular dependency.
+\vn{tracking} since this would give a circular dependency. Note: setting the \vn{tracking_method} to
+\vn{linear} does not affect PTC calculations (\sref{s:ptc.intro}). In particular, Taylor maps will not
+be affected.
 
 \index{MAD!tracking_method}
 \item[\vn{MAD}]

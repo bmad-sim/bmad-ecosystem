@@ -244,27 +244,32 @@ lattice using synchrotron radiation integral formulas (\sref{s:synch.ints}).
 Name of the species tracked. If not set then the default tracking particle type is used.
 %
 \item[\%spin] \Newline
-Particle spin in Cartesian $(x, y, z)$ coordinates. Exception: When \vn{%use_particle_start} is set
-to True, the \vn{particle_start} spin values are used instead.  See the description of
+Particle spin in Cartesian $(x, y, z)$ coordinates. Only used when not reading in particle positions
+from a file. Also: When \vn{%use_particle_start} is set to True, and not reading in particle
+positions form a file, the \vn{particle_start} spin values are used instead. See the description of
 \vn{%use_particle_start} below for more details.
 %
 \item[\%use_particle_start] \Newline
-If \vn{%use_particle_start} is set to \vn{True} (default is \vn{False}), the center of
-the bunch is determined by the setting of
+If \vn{%use_particle_start} is set to \vn{False} (the default) the center of
+the bunch is determined by the setting of the \vn{%center} component. If set to \vn{True}, the
+center is determined by the setting of:
 \begin{example}
   particle_start[x], particle_start[px],
   particle_start[y], particle_start[py],
   particle_start[z], particle_start[pz]
 \end{example}
-and the initial spin orientation is determined by the setting of
+If not reading from from a particle position file, \vn{%use_particle_start} will affect the setting
+of the spin. If \vn{%use_particle_start} is set to \vn{False}, the initial spin orientation is
+determined by the setting of the \vn{%spin} component. If set to \vn{True}, the spin is determined
+by:
 \begin{example}
   particle_start[spin_x], particle_start[spin_y], particle_start[spin_z]
 \end{example}
-See \sref{s:beam.start} for details about the \vn{particle_start} structure. Using the \vn{particle_start}
-structure allows setting center and spin values in the lattice file rather than the setting
-of \vn{%center} and \vn{%spin} in the \vn{beam_init_struct}. In this case, \vn{%center} is a dependent parameter
-and will be set to the value of \vn{particle_start}. Note: Old deprecated name for \vn{%use_particle_start} is
-is \vn{%use_particle_start_for_center}
+See \sref{s:beam.start} for details about the \vn{particle_start} structure. Using the
+\vn{particle_start} structure allows setting center and spin values in the lattice file rather than
+the setting of \vn{%center} and \vn{%spin} in the \vn{beam_init_struct}. In this case, \vn{%center}
+is a dependent parameter and will be set to the value of \vn{particle_start}. Note: Old deprecated
+name for \vn{%use_particle_start} is is \vn{%use_particle_start_for_center}
 %
 \item[\%use_t_coords, \%use_z_as_t] \Newline
 The problem with handling particle distributions at low energies is that when a particle's velocity
