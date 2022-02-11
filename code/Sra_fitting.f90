@@ -345,6 +345,7 @@ end subroutine find_time_patch
     call init_all(STATE,no,0)
 call alloc(c_map,d_map)
 call alloc(id_s)
+call alloc(xs)
  
    m=0.0_dp
  
@@ -377,6 +378,7 @@ enddo
 
 call kill(c_map,d_map)
 call kill(id_s)
+call kill(xs)
 
 end subroutine compute_linear_one_magnet_maps
 
