@@ -98,6 +98,7 @@ do i = 1, size(taylor1)
   y3(i) = y1(i) + y2(i)
 enddo
 
+taylor3 = taylor_struct()   ! Should not need this but gfortran is unhappy without.
 taylor3 = y3
 
 call kill (y1)
@@ -149,6 +150,7 @@ do i = 1, size(taylor1)
   y3(i) = y1(i) - y2(i)
 enddo
 
+taylor3 = taylor_struct()   ! Should not need this but gfortran is unhappy without.
 taylor3 = y3
 
 call kill (y1)
