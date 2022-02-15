@@ -473,7 +473,7 @@ case ('reinitialize')
     call tao_parse_command_args (err, cmd_word(2));  if (err) goto 9000
 
     if (s%init%init_file_arg /= '') call out_io (s_info$, r_name, 'Reinitializing with: ' // s%init%init_file_arg)
-    call tao_init (err_is_fatal)
+    call tao_init (err)
     return
 
   case default

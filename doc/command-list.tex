@@ -984,10 +984,17 @@ Format:
   set branch <branch-id> <parameter> = <value>
 \end{example}
 
-Sets parameters associated with a lattice branch. Use the \vn{show branch} command to see the
-various parameters that can be set. \vn{<branch-id>} may be the branch index or branch name.
-\vn{<branch-id>} may also contain an optional \vn{n@} prefix to specify a particular universe to
-apply the set to. The default is to only set the current viewed universe.
+Sets parameters associated with a lattice branch. The parameters that can be set are:
+\begin{example}
+  particle                  = <species>   ! Reference particle
+  default_tracking_species  = <species>   ! Particle that is tracked.
+  geometry                  = open or closed
+  live_branch               = T or F
+\end{example}
+Use the \vn{show branch} command to see lattice branch information. \vn{<branch-id>} may be the
+branch index or branch name. \vn{<branch-id>} may also contain an optional \vn{n@} prefix to
+specify a particular universe to apply the set to. The default is to only set the current viewed
+universe.
 
 Note: When toggling a branch from closed to open the beginning orbit and Twiss parameters will not
 change. On the other hand, when toggling a branch from open to closed, the orbit and Twiss

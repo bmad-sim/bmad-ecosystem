@@ -543,8 +543,8 @@ case ('branch')
     nl=nl+1; write(lines(nl), '(a, i0)') 'For the lattice of universe: ', ix_u
   endif
 
-  nl=nl+1; lines(nl) = '                          N_ele  N_ele                  Default                       Live'  
-  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Ref_Particle   Tracking_Species    Geometry  Branch  From_Fork'
+  nl=nl+1; lines(nl) = '                          N_ele  N_ele   Reference      Default_                      Live'  
+  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Particle       Tracking_Species    Geometry  Branch  From_Fork'
 
 
   fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a, t87, l2, 6x, a)'
