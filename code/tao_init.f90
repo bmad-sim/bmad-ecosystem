@@ -99,7 +99,7 @@ if (init_tao_file /= '') then
       init_tao_file = ''
     else
       call output_direct (-1, print_and_capture=s%com%print_to_terminal)
-      call out_io (s_abort$, r_name, 'TAO INITIALIZATION FILE NOT FOUND: ' // init_tao_file)
+      call out_io (s_error$, r_name, 'TAO INITIALIZATION FILE NOT FOUND: ' // init_tao_file)
       return
     endif
   endif
