@@ -2052,13 +2052,15 @@ type (bmad_common_struct), save, target :: bmad_com
 type ptc_common_struct
   integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set
   integer :: taylor_order_saved = 3     ! Default to use.
-  logical :: complex_ptc_used = .true.  ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
   logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
   type (internal_state) :: base_state   ! Base PTC state. 
   integer, pointer :: max_fringe_order  => null()  ! Points to PTC HIGHEST_FRINGE. 2 (default) => Quadrupole.
   logical, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR.
   logical, pointer :: exact_model       => null()  ! Points to PTC EXACT_MODEL.
   logical, pointer :: exact_misalign    => null()  ! Points to ptc ALWAYS_EXACTMIS. Notice different names.
+  real(rp) :: e_tot_set = 0
+  logical :: init_ptc_needed = .true.
+  logical :: init_spin_needed = .true.
 end type
 
 type (ptc_common_struct), save, target :: ptc_com, ptc_com_default

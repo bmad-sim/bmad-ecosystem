@@ -573,22 +573,24 @@ doing exact modeling.
   %
   \index{fint}\index{fintx}\index{hgapx}\index{hgapx}
   \item[fint, fintx, \Newline hgap, hgapx] \Newline
-The field integrals for the entrance and
-exit pole faces are give by \vn{fint} and \vn{fintx} respectively
+The field integrals for the entrance pole face is given by the product of the \vn{fint} and
+\vn{hgap} parameters with \vn{hgap} being the half gap between poles at the entrance face
 \begin{equation}
-  F_{int} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
-  {2 \, H_{gap} \, B_{y0}^2}
+  F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
+  {2 \, B_{y0}^2}
   \label{fsbbb}
 \end{equation}
-with a similar equation for \vn{fintx}. In the equation $B_{y0}$ is the field in the
-interior of the dipole and $H_{gap}$ is the pole half gap.  The parameters \vn{hgap} and
-\vn{hgapx} are the half gaps at the entrance and exit faces. If \vn{fint} or \vn{fintx} is
-given without a value then a value of 0.5 is used. If \vn{fint} or \vn{fintx} is not
-present, the default value of 0 is used. Note: \mad does not have the \vn{fintx} and
-\vn{hgapx} attributes. \mad just assumes that the values are the same for the entrance and
-exit faces. For compatibility with \mad, if \vn{fint} is given but \vn{fintx} is not, then
-\vn{fintx} is set equal to \vn{fint}. Similarly, \vn{hgapx} will be set to \vn{hgap} if
-\vn{hgapx} is not given.
+For the exit pole face there is a similar equation using \vn{fintx} and \vn{hgapx}. In the above
+equation $B_{y0}$ is the field in the interior of the dipole. If \vn{fint} or \vn{fintx} is given
+without a value then a value of 0.5 is used. If \vn{fint} or \vn{fintx} is not present, the default
+value of 0 is used. Note: \mad does not have the \vn{fintx} and \vn{hgapx} attributes. \mad just
+assumes that the values are the same for the entrance and exit faces. For compatibility with \mad,
+if \vn{fint} is given but \vn{fintx} is not, then \vn{fintx} is set equal to \vn{fint}. Similarly,
+\vn{hgapx} will be set to \vn{hgap} if \vn{hgapx} is not given. Note that this setting of \vn{fintx}
+or \vn{hgapx} using the value of \vn{fint} or \vn{hgap} will only be done before lattice exapansion
+(\sref{sref{s:expand}).
+
+Note: To have an effect, both \vn{fint} and \vn{hgap} (or \vn{fintx} and \vn{hgapx}) must be non-zero.
 
 Note: The SAD program uses \vn{fb1+f1} for the entrance fringe and \vn{fb2+f1} for the exit
 fringe. The correspondence between the two is

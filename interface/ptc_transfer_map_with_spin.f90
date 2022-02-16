@@ -71,7 +71,6 @@ logical, optional :: one_turn, unit_start
 
 !
 
-call set_ptc(init_complex = .true.)
 if (.not. associated (branch%ptc%m_t_layout)) call lat_to_ptc_layout (branch%lat)
 
 i1 = integer_option(0, ix1) 

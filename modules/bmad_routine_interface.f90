@@ -1881,12 +1881,12 @@ subroutine set_particle_from_rf_time (rf_time, ele, reference_active_edge, orbit
   logical reference_active_edge
 end subroutine
 
-subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, init_complex, force_init) 
+subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, force_init) 
   import
   implicit none
   integer, optional :: integ_order, particle, n_step, taylor_order
   real(rp), optional :: e_tot
-  logical, optional :: no_cavity, init_complex, force_init
+  logical, optional :: no_cavity, force_init
 end subroutine
 
 subroutine set_status_flags (bookkeeping_state, stat)
