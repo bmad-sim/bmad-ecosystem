@@ -8,7 +8,6 @@ implicit none
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
-type (beam_init_struct) beam_init
 type (ltt_beam_data_struct), target :: beam_data, beam_data_sum
 type (ltt_turn_data_struct) :: turn_data
 type (ltt_bunch_data_struct), pointer :: bd
@@ -18,7 +17,7 @@ type (beam_struct), target :: beam, beam2
 type (bunch_struct), pointer :: bunch
 type (coord_struct) orb
 
-real(rp) mpi_particles_per_run, del_time
+real(rp) mpi_particles_per_run, now_time
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer i, n, nn, nb, ib, ix, ierr, rc, leng, bd_size, storage_size, dat_size
@@ -28,6 +27,7 @@ integer, allocatable :: turn(:)
 logical am_i_done, err_flag, ok
 logical, allocatable :: slave_is_done(:)
 
+character(200) pwd
 character(100) line, path, basename
 character(40) file, str
 character(40), allocatable :: file_list(:)
@@ -60,16 +60,74 @@ if (num_slaves /= 0) ltt_com%using_mpi = .true.
 
 ! If not doing BEAM tracking then slaves have nothing to do.
 
-call ltt_init_params(lttp, ltt_com, beam_init)
+call ltt_read_params(lttp, ltt_com)
+call run_timer ('ABS', ltt_com%time_start)
 
 if (lttp%simulation_mode /= 'BEAM' .and. ltt_com%mpi_rank /= master_rank$) then
   call mpi_finalize(ierr)
   stop
 endif
 
+! If %map_constructor_file is non-blank then use that to construct maps for each run.
+
+if (lttp%map_constructor_file /= '') then
+  call get_environment_variable('PWD', pwd)
+
+  if (ltt_com%mpi_rank == master_rank$) then
+    allocate (slave_is_done(num_slaves))
+    slave_is_done = .false.
+    open (1, file = lttp%map_constructor_file, status = 'old')
+
+    do i = 1, num_slaves
+      read (1, '(a)', iostat = ios) path
+      if (ios /= 0) path = ''
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init construct map in ' // quote(path) //' by slave: ' // int_str(i))
+      call mpi_send (path, len(path), MPI_CHARACTER, i, num_tag$, MPI_COMM_WORLD, ierr)
+      if (path == '') slave_is_done(i) = .true.
+    enddo
+
+    do
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Waiting for slave. Num slaves working: ' // &
+                                                                           int_str(count(.not. slave_is_done)))
+      slave_rank = MPI_ANY_SOURCE
+      call mpi_recv (nn, 1, MPI_INTEGER, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: slave ' // int_str(nn) // ' made map.')
+      slave_is_done(nn) = .true.
+      if (ios == 0) read (1, '(a)', iostat = ios) path
+      if (ios /= 0) path = ''
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Construct map in ' // quote(path) //' by slave: ' // int_str(nn))
+      call mpi_send (path, len(path), MPI_CHARACTER, nn, num_tag$, MPI_COMM_WORLD, ierr)
+      if (path /= '') slave_is_done(nn) = .false.
+      if (all(slave_is_done)) exit
+    enddo
+
+  else   ! Is a slave
+    do
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting...')
+      call mpi_recv (path, len(path), MPI_CHARACTER, master_rank$, num_tag$, MPI_COMM_WORLD, stat, ierr)
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Making map: ' // quote(path))
+      if (path == '') exit
+      call set_ptc(force_init = .true.)
+      call ltt_init_params(lttp, ltt_com, path)
+      call chdir (path)
+      call ltt_init_tracking (lttp, ltt_com)
+      call chdir (pwd)
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Made map: ' // quote(path))
+      call mpi_send (ltt_com%mpi_rank, 1, MPI_INTEGER, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
+    enddo
+  endif
+
+  call mpi_finalize(ierr)
+  stop
+endif
+
 ! Only the master should create a map file if a file is to be created.
 
+
+call ltt_init_params(lttp, ltt_com)
+
 if (ltt_com%mpi_rank == master_rank$) then
+  call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init tracking')
   call ltt_init_tracking (lttp, ltt_com)
   call mpi_Bcast (0, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
   call ltt_print_inital_info (lttp, ltt_com)
@@ -81,11 +139,9 @@ endif
 
 ! Calculation start.
 
-call run_timer ('ABS', ltt_com%time_start)
-
 select case (lttp%simulation_mode)
-case ('CHECK');  call ltt_run_check_mode(lttp, ltt_com, beam_init)  ! A single turn tracking check
-case ('SINGLE'); call ltt_run_single_mode(lttp, ltt_com, beam_init) ! Single particle tracking
+case ('CHECK');  call ltt_run_check_mode(lttp, ltt_com)  ! A single turn tracking check
+case ('SINGLE'); call ltt_run_single_mode(lttp, ltt_com) ! Single particle tracking
 case ('STAT');   call ltt_run_stat_mode(lttp, ltt_com)              ! Lattice statistics (radiation integrals, etc.).
 case ('BEAM');   ! Handled below. Only the BEAM simulation mode uses mpi.
 case default;    print *, 'BAD SIMULATION_MODE: ' // lttp%simulation_mode
@@ -95,7 +151,7 @@ end select
 
 if (.not. ltt_com%using_mpi) then
   print '(a, i0)', 'Number of threads is one!'
-  call ltt_run_beam_mode(lttp, ltt_com, beam_init)  ! Beam tracking
+  call ltt_run_beam_mode(lttp, ltt_com)  ! Beam tracking
   stop
 endif
 
@@ -116,8 +172,8 @@ if (ltt_com%mpi_rank == master_rank$) then
 
   lat => ltt_com%tracking_lat
   call ltt_pointer_to_map_ends(lttp, lat, ele_start)
-  call init_beam_distribution (ele_start, lat%param, beam_init, beam, err_flag, modes = ltt_com%modes)
-  mpi_particles_per_run = real(size(beam%bunch(1)%particle), rp) / real((lttp%mpi_runs_per_subprocess * (mpi_n_proc - 1)), rp)
+  call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, modes = ltt_com%modes)
+  mpi_particles_per_run = real(size(beam%bunch(1)%particle), rp) / real((lttp%mpi_runs_per_subprocess * num_slaves), rp)
 
   call ltt_allocate_beam_data(lttp, beam_data_sum, size(beam%bunch))
   call ltt_allocate_beam_data(lttp, beam_data, size(beam%bunch))
@@ -135,7 +191,7 @@ if (ltt_com%mpi_rank == master_rank$) then
 
   n_pass = 0
   ix0_p = 0
-  do i = 1, mpi_n_proc-1
+  do i = 1, num_slaves
     n_pass = n_pass + 1
     ix1_p = min(nint(n_pass * mpi_particles_per_run), size(beam%bunch(1)%particle))
     n = ix1_p-ix0_p
@@ -213,7 +269,6 @@ if (ltt_com%mpi_rank == master_rank$) then
   call ltt_write_beam_averages (lttp, beam_data_sum)
   call ltt_write_sigma_matrix (lttp, beam_data_sum)
   call ltt_print_mpi_info (lttp, ltt_com, 'Master: All done!', .true.)
-  call mpi_finalize(ierr)
 
   ! Gather particle data files
 
@@ -275,8 +330,8 @@ if (ltt_com%mpi_rank == master_rank$) then
 
   ! And end
 
-  call run_timer ('ABS', del_time)
-  call ltt_write_master('# tracking_time = ' // real_str(del_time/60, 4, 2), lttp, append = .true.)
+  call run_timer ('ABS', now_time)
+  call ltt_write_master('# tracking_time = ' // real_str((now_time-ltt_com%time_start)/60, 4, 2), lttp, append = .true.)
   call mpi_finalize(ierr)
 
 !------------------------------------------------------------------------------------------
@@ -292,7 +347,7 @@ else  ! Is a slave
     call mpi_recv (n, 1, MPI_INTEGER, master_rank$, num_tag$, MPI_COMM_WORLD, stat, ierr)
     call mpi_recv (ltt_com%mpi_ix0_particle, 1, MPI_INTEGER, master_rank$, num_tag$, MPI_COMM_WORLD, stat, ierr)
     call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for position info for ' // int_str(n) // ' particles.')
-    call reallocate_beam(beam2, max(1, beam_init%n_bunch), n)
+    call reallocate_beam(beam2, max(1, ltt_com%beam_init%n_bunch), n)
     dat_size = n * storage_size(beam2%bunch(1)%particle(1)) / 8
     do nb = 1, size(beam2%bunch)
       call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for bunch: ' // int_str(nb))
@@ -301,7 +356,7 @@ else  ! Is a slave
 
     ! Run
     call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Track beam.')
-    call ltt_run_beam_mode(lttp, ltt_com, beam_init, beam_data, beam2)  ! Beam tracking
+    call ltt_run_beam_mode(lttp, ltt_com, beam_data, beam2)  ! Beam tracking
     bd_size = size(beam_data%turn(1)%bunch) * storage_size(beam_data%turn(1)%bunch(1)) / 8
 
     ! Send data to master
