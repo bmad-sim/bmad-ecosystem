@@ -2,7 +2,7 @@ module tao_init_variables_mod
 
 use tao_interface
 
-integer, parameter, private :: n_var_maxx      = 1000   ! max index of datum per v1_var 
+integer, parameter, private :: n_var_maxx      = 5000   ! max index of datum per v1_var 
 integer, parameter, private :: n_var_minn      = -100   ! min index of datum per v1_var 
 
 contains
