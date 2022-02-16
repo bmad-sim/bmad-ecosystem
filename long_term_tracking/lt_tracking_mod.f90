@@ -44,6 +44,7 @@ type ltt_params_struct
   character(40) :: ele_start = ''
   character(40) :: ele_stop = ''
   character(200) :: lat_file = ''
+  character(200) :: map_constructor_file = ''
   character(200) :: particle_output_file = ''
   character(200) :: beam_binary_output_file = ''
   character(200) :: sigma_matrix_output_file = ''
@@ -105,6 +106,7 @@ type ltt_com_struct
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
   type (ele_pointer_struct), allocatable :: ramper(:)    ! Ramper element locations.
   type (bunch_struct) bunch                    ! Used when regression testing.
+  type (beam_init_struct) beam_init
   integer :: n_ramper_loc = 0
   integer, allocatable :: ix_wake_ele(:)     ! List of element indexes where a wake is applied.
   integer :: ix_branch = 0                   ! Lattice branch being tracked.
@@ -138,8 +140,8 @@ end type
 
 type ltt_turn_data_struct
   type (ltt_bunch_data_struct), allocatable :: bunch(:)
-  integer :: status = new$  ! Has all data been gathered (valid$)? Has data been written (written$)?
-  integer :: i_turn = 0
+  integer :: status = new$  ! valid$ (data been gathered), or written$ (has been written)
+  INTEGER :: i_turn = 0
 end type
 
 type ltt_beam_data_struct
@@ -155,22 +157,15 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_init_params(ltt, ltt_com, beam_init)
+subroutine ltt_read_params(ltt, ltt_com)
 
 type (ltt_params_struct), target :: ltt
 type (ltt_com_struct), target :: ltt_com
 type (beam_init_struct) beam_init
-type (lat_struct), pointer :: lat
-type (branch_struct), pointer :: branch
-type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_struct), pointer :: ele
 
-real(rp) dummy
-integer ir, i, n, ix, n_loc
+integer i, ix
 character(200) arg
 character(40) m_name
-character(*), parameter :: r_name = 'ltt_init_params'
-logical err
 
 namelist / params / bmad_com, beam_init, ltt
 
@@ -178,11 +173,9 @@ namelist / params / bmad_com, beam_init, ltt
 
 ltt_params_global => ltt
 ltt_com_global => ltt_com
+ltt_com%master_input_file = ''
 
 ! Parse command line
-
-lat => ltt_com%lat
-ltt_com%master_input_file = ''
 
 i = 0
 do while (i < command_argument_count())
@@ -214,10 +207,37 @@ open (1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)
 close (1)
 
+ltt_com%beam_init = beam_init
+
 call upcase_string(ltt%simulation_mode)
+
+end subroutine ltt_read_params
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_init_params(ltt, ltt_com, path)
+
+type (ltt_params_struct), target :: ltt
+type (ltt_com_struct), target :: ltt_com
+type (beam_init_struct) beam_init
+type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
+type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele
+
+real(rp) dummy
+integer ir, i, n, n_loc
+character(*), optional :: path
+character(*), parameter :: r_name = 'ltt_init_params'
+logical err
+
+namelist / params / bmad_com, beam_init, ltt
 
 ! Lattice init
 
+lat => ltt_com%lat
 bmad_com%auto_bookkeeper = .false.
 
 call ran_seed_put (ltt%random_seed)
@@ -231,7 +251,12 @@ if (ltt_com%using_mpi) then
   call ptc_ran_seed_put (ir + ltt_com%mpi_rank)
 endif
 
-call bmad_parser (ltt%lat_file, lat)
+if (present(path)) then
+  call bmad_parser (trim(path) // '/' // ltt%lat_file, lat)
+else
+  call bmad_parser (ltt%lat_file, lat)
+endif
+
 if (.not. ltt%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
 
 ! Read the master input file again so that bmad_com parameters set in the file
@@ -395,10 +420,10 @@ endif
 
 if (lttp%simulation_mode == 'CHECK') bmad_com%radiation_fluctuations_on = .false.
 
-if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
+if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP' .or. lttp%map_constructor_file /= '') then
   call ltt_read_map (lttp, ltt_com, err)
   if (err) then
-    if (ltt_com%mpi_rank == master_rank$) then
+    if (ltt_com%mpi_rank == master_rank$ .or. lttp%map_constructor_file /= '') then
       call ltt_make_map(lttp, ltt_com)
       call ltt_write_map(lttp, ltt_com)
     else
@@ -541,10 +566,9 @@ end subroutine ltt_write_master
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_check_mode (lttp, ltt_com, beam_init)
+subroutine ltt_run_check_mode (lttp, ltt_com)
 
 type (ltt_params_struct) lttp
-type (beam_init_struct) beam_init
 type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (coord_struct) orb_map, orb_map1, orb_map2, orb_bmad, orb_bmad1, orb_bmad2, orb_init
@@ -553,7 +577,7 @@ type (probe) prb_ptc, prb_ptc1, prb_ptc2
 
 real(rp) mat_map(6,6), mat_bmad(6,6), mat_ptc(6,6), spin_ptc(3)
 integer i
-integer track_state, ix_branch, ix_start, ix_stop
+integer ix_branch, ix_start, ix_stop
 
 ! Run serial in check mode.
 
@@ -565,7 +589,7 @@ ix_branch = ltt_com%ix_branch
 ix_start = ele_start%ix_ele
 ix_stop  = ele_stop%ix_ele
 
-call init_coord (orb_init, beam_init%center, ele_start, downstream_end$, spin = beam_init%spin)
+call init_coord (orb_init, ltt_com%beam_init%center, ele_start, downstream_end$, spin = ltt_com%beam_init%spin)
 
 if (lttp%add_closed_orbit_to_init_position) orb_init%vec = orb_init%vec + ltt_com%bmad_closed_orb(ix_start)%vec
 
@@ -664,23 +688,21 @@ end subroutine ltt_run_check_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_single_mode (lttp, ltt_com, beam_init)
+subroutine ltt_run_single_mode (lttp, ltt_com)
 
 use radiation_mod, only: track1_radiation_center
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
-type (beam_init_struct) beam_init
 type (branch_struct), pointer :: branch
 type (lat_struct), pointer :: lat
 type (coord_struct), allocatable :: orb(:)
 type (coord_struct) :: orbit, orbit_old
-type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: ele_start
 type (probe) prb
 
 real(rp) average(6), sigma(6,6), dt
-integer i, n_sum, iu_part, i_turn, track_state, ix_branch
+integer i, n_sum, iu_part, i_turn, ix_branch
 
 character(40) fmt
 
@@ -698,10 +720,10 @@ call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 orbit_old%vec = real_garbage$
 ltt_com%ramp_in_track1_preprocess = .true.
 
-call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch, beam_init)
+call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 
 if (lttp%tracking_method == 'BMAD') call reallocate_coord (orb, lat)
-call init_coord (orbit, beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = beam_init%spin)
+call init_coord (orbit, ltt_com%beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = ltt_com%beam_init%spin)
 
 if (lttp%add_closed_orbit_to_init_position) then
   select case (lttp%tracking_method)
@@ -752,9 +774,7 @@ do i_turn = 1, lttp%n_turns
   endif
 
   if (orbit%state /= alive$) then
-    ele => branch%ele(track_state)
     print '(a, i0, 8a)', 'Particle lost at turn: ', i_turn
-    if (lttp%tracking_method == 'BMAD') print '(5a)', 'Lost at element: ', trim(ele%name), ' (', ele_loc_name(ele), '), State: ', coord_state_name(orb(track_state)%state)
     exit
   endif
 
@@ -780,10 +800,9 @@ end subroutine ltt_run_single_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_beam_mode (lttp, ltt_com, beam_init, beam_data_in, beam_in)
+subroutine ltt_run_beam_mode (lttp, ltt_com, beam_data_in, beam_in)
 
 type (ltt_params_struct) lttp
-type (beam_init_struct) beam_init
 type (beam_struct), target :: beam0
 type (beam_struct), pointer :: beam
 type (beam_struct), optional, target :: beam_in  ! Used with mpi
@@ -821,7 +840,7 @@ if (ltt_com%using_mpi) then
   beam => beam_in
   prefix_str = 'Slave ' // int_str(ltt_com%mpi_rank) // ':'
 else
-  call init_beam_distribution (ele_start, lat%param, beam_init, beam0, err_flag, modes = ltt_com%modes)
+  call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam0, err_flag, modes = ltt_com%modes)
   if (err_flag) stop
   beam => beam0
   print '(a, i8)',   'n_particle:                    ', size(beam%bunch(1)%particle)
@@ -829,14 +848,14 @@ else
   ltt_com%n_particle = size(beam%bunch(1)%particle)
 endif
 
-if (bmad_com%spin_tracking_on .and. all(beam_init%spin == 0)) then
+if (bmad_com%spin_tracking_on .and. all(ltt_com%beam_init%spin == 0)) then
   ie = ele_start%ix_ele
   do ib = 1, size(beam%bunch)
     forall (n = 1:3) beam%bunch(ib)%particle%spin(n) = ltt_com%bmad_closed_orb(ie)%spin(n)
   enddo
 endif
 
-call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch), beam_init)
+call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch))
 
 do ib = 1, size(beam%bunch)
   do n = 1, size(beam%bunch(ib)%particle)
@@ -1035,11 +1054,10 @@ end subroutine ltt_run_stat_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_setup_high_energy_space_charge(lttp, ltt_com, branch, beam_init)
+subroutine ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 
 type (ltt_params_struct) lttp
 type (branch_struct) branch
-type (beam_init_struct) beam_init
 type (ltt_com_struct), target :: ltt_com
 type (normal_modes_struct) modes
 real(rp) n_particle
@@ -1060,9 +1078,9 @@ if (.not. lttp%rfcavity_on) then
 endif
 
 modes = ltt_com%modes
-if (beam_init%a_emit > 0) modes%a%emittance = beam_init%a_emit
-if (beam_init%b_emit > 0) modes%a%emittance = beam_init%b_emit
-n_particle = abs(beam_init%bunch_charge / (e_charge * charge_of(ltt_com%bmad_closed_orb(0)%species)))
+if (ltt_com%beam_init%a_emit > 0) modes%a%emittance = ltt_com%beam_init%a_emit
+if (ltt_com%beam_init%b_emit > 0) modes%a%emittance = ltt_com%beam_init%b_emit
+n_particle = abs(ltt_com%beam_init%bunch_charge / (e_charge * charge_of(ltt_com%bmad_closed_orb(0)%species)))
 call setup_high_energy_space_charge_calc (.true., branch, n_particle, modes)
 
 end subroutine ltt_setup_high_energy_space_charge
@@ -1916,7 +1934,7 @@ logical err, in_map_section
 
 !
 
-print '(a)', 'Creating map(s)...'
+print '(a)', 'Creating map(s) for: ' // ltt_com%lat%input_file_name
 call run_timer ('ABS', time0)
 time1 = time0
 
