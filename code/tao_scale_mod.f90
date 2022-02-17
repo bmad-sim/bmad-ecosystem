@@ -236,7 +236,7 @@ if (present(gang)) then
     do_gang = .false.
   elseif (gang /= '') then
     call out_io (s_error$, r_name, 'BAD GANG SWITCH: ' // gang)
-    call err_exit
+    return
   endif
 endif
 

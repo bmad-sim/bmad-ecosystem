@@ -3041,7 +3041,7 @@ case ('lattice')
               write (line(nc:), column(i)%format, iostat = ios) is_true(a_ptr%r)
             endif
           case (is_real$)
-            call err_exit  ! Should not be here. write (line(nc:), column(i)%format, iostat = ios) a_ptr%r
+            line(nc:) = '?????????' ! Should not be here. write (line(nc:), column(i)%format, iostat = ios) a_ptr%r
           case (is_integer$)
             if (associated(a_ptr%i)) then
               write (line(nc:), column(i)%format, iostat = ios) a_ptr%i
