@@ -100,6 +100,7 @@ if (init_tao_file /= '') then
     else
       call output_direct (-1, print_and_capture=s%com%print_to_terminal)
       call out_io (s_error$, r_name, 'TAO INITIALIZATION FILE NOT FOUND: ' // init_tao_file)
+      call tao_init_global('')
       return
     endif
   endif
