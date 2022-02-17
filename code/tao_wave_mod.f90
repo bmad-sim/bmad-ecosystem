@@ -434,7 +434,8 @@ if (data_type == 'orbit.x' .or. data_type == 'beta.a' .or. data_type(1:6) == 'pi
 elseif (data_type == 'orbit.y' .or. data_type == 'beta.b' .or. data_type(1:6) == 'ping_b') then
   tune = lat%ele(n_track)%b%phi
 else
-  call err_exit
+  call out_io (s_error$, r_name, 'UNKNOWN DATA_TYPE: ' // data_type)
+  return
 endif
 
 do i = 1, n_curve_pt
@@ -617,7 +618,8 @@ case ('phase.a', 'ping_a.phase_x')
 case ('phase.b', 'ping_b.phase_y')
   tune = lat%ele(n_track)%b%phi
 case default
-  call err_exit
+  call out_io (s_error$, r_name, 'UNKNOWN CURVE DATA_TYPE: ' // curve%data_type)
+  return
 end select
 
 do i = 1, n_curve_pt

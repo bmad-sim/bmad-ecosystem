@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_init_lattice (namelist_file)
+! Subroutine tao_init_lattice (namelist_file, err_flag)
 !
 ! Subroutine to initialize the design lattices.
 !
@@ -10,7 +10,7 @@
 !    %u(:)%design -- Initialized design lattices.
 !-
 
-subroutine tao_init_lattice (namelist_file)
+subroutine tao_init_lattice (namelist_file, err_flag)
 
 use tao_interface, except => tao_init_lattice
 use tao_input_struct
@@ -34,7 +34,7 @@ character(*), parameter :: r_name = 'tao_init_lattice'
 
 integer i_uni, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie, status
 
-logical custom_init, combine_consecutive_elements_of_like_name
+logical err_flag, custom_init, combine_consecutive_elements_of_like_name
 logical common_lattice, alternative_lat_file_exists
 logical err, err1, err2
 
@@ -44,6 +44,7 @@ namelist / tao_design_lattice / design_lattice, &
 
 ! Defaults
 
+err_flag = .true.
 design_lattice = tao_design_lat_input()
 design_lattice(0)%file = 'Garbage!!!'
 
@@ -61,7 +62,7 @@ if (s%com%init_read_lat_info) then
     call out_io (s_blank$, r_name, '*Init: Opening Lattice Info File: ' // namelist_file)
     if (iu == 0) then
       call out_io (s_fatal$, r_name, 'ERROR OPENING TAO LATTICE INFO FILE. WILL EXIT HERE...')
-      call err_exit
+      return
     endif
   endif
 
@@ -98,7 +99,7 @@ if (s%com%common_lattice) then
 
   if (any(design_lattice(2:)%file /= '')) then
     call out_io (s_fatal$, r_name, 'ONLY ONE LATTICE MAY BE SPECIFIED WHEN USING COMMON_LATTICE')
-    call err_exit
+    return
   endif
 
 else
@@ -206,14 +207,14 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       call read_digested_bmad_file (design_lat%file, u%design%lat, version, err)
     case default
       call out_io (s_abort$, r_name, 'LANGUAGE NOT RECOGNIZED: ' // design_lat%language)
-      call err_exit
+      return
     end select
 
     if (err .and. .not. s%global%debug_on) then
       call out_io (s_fatal$, r_name, &
               'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
               'EXITING...', i_array = (/ i_uni /))
-      if (s%global%stop_on_error) stop
+      return
     endif
 
     ! Call bmad_parser2 if wanted
@@ -383,5 +384,7 @@ if (s%com%common_lattice) then
   enddo
 
 endif
+
+err_flag = .false.
 
 end subroutine tao_init_lattice

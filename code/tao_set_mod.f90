@@ -837,10 +837,12 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)
 
   case ('track_start', 'beam_track_start')
-    call set_this_track(bb%track_start, bb%ix_track_start)
+    call set_this_track(bb%track_start, bb%ix_track_start, err)
+    if (err) return
 
   case ('track_end', 'beam_track_end')
-    call set_this_track(bb%track_end, bb%ix_track_end)
+    call set_this_track(bb%track_end, bb%ix_track_end, err)
+    if (err) return
 
   case ('track_data_file', 'beam_track_data_file')
     u%beam%track_data_file = value_str
@@ -910,26 +912,31 @@ enddo
 !-------------------------------------------------------------
 contains
 
-subroutine set_this_track (track_ele, ix_track_ele)
+subroutine set_this_track (track_ele, ix_track_ele, err_flag)
 
 type (ele_pointer_struct), allocatable, target :: eles(:)
 integer ix_track_ele, n_loc
 character(*) track_ele
+logical err_flag
 
 !
 
+err_flag = .true.
+
 call lat_ele_locator (value_str, u%design%lat, eles, n_loc, err)
 if (err .or. n_loc == 0) then
-  call out_io (s_fatal$, r_name, 'ELEMENT NOT FOUND: ' // value_str)
-  call err_exit
+  call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // value_str)
+  return
 endif
 if (n_loc > 1) then
-  call out_io (s_fatal$, r_name, 'MULTIPLE ELEMENTS FOUND: ' // value_str)
-  call err_exit
+  call out_io (s_error$, r_name, 'MULTIPLE ELEMENTS FOUND: ' // value_str)
+  return
 endif
 
 track_ele = value_str
 ix_track_ele = eles(1)%ele%ix_ele
+
+err_flag = .false.
 
 end subroutine set_this_track
 

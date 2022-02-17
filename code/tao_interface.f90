@@ -513,9 +513,10 @@ subroutine tao_init_find_elements (u, search_string, eles, attribute, found_one)
   logical, optional :: found_one
 end subroutine
 
-subroutine tao_init_lattice (lat_file)
+subroutine tao_init_lattice (lat_file, err_flag)
   implicit none
   character(*) lat_file
+  logical err_flag
 end subroutine
 
 subroutine tao_init_plotting (plot_file)

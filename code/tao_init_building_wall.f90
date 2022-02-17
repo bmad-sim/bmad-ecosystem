@@ -40,8 +40,8 @@ endif
 call out_io (s_blank$, r_name, '*Init: Opening Building Wall File: ' // wall_file)
 call tao_open_file (wall_file, iu, complete_file_name, s_fatal$)
 if (iu == 0) then
-  call out_io (s_blank$, r_name, 'ERROR OPENING BUILDING WALL FILE. WILL EXIT HERE...')
-  call err_exit
+  call out_io (s_error$, r_name, 'ERROR OPENING BUILDING WALL FILE...')
+  return
 endif
 
 ! Wall orientation
@@ -104,7 +104,7 @@ do i = 1, n_wall
     s%building_wall%section(i)%constraint = constraint
   case default
     call out_io (s_error$, r_name, 'BAD "CONSTRAINT" FOR BUILDING WALL: ' // constraint)
-    call err_exit
+    return
   end select
 
   do j = size(point), 1, -1

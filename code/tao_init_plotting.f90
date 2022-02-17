@@ -492,12 +492,12 @@ do  ! Loop over plot files
       graph_name = trim(plot%name) // '.' // graph%name
       call out_io (s_blank$, r_name, 'Init: Read tao_template_graph namelist: ' // graph_name)
       if (graph_index /= i_graph) then
-        call out_io (s_fatal$, r_name, &
+        call out_io (s_error$, r_name, &
               'BAD "GRAPH_INDEX" FOR PLOT: ' // quote(plot%name), &
               'LOOKING FOR GRAPH_INDEX: \I0\ ', &
               'BUT TAO_TEMPLATE_GRAPH HAD GRAPH_INDEX: \I0\ ', 'IN FILE: ' // plot_file, &
               i_array = [i_graph, graph_index] )
-        call err_exit
+        cycle
       endif
       grph   => plt%graph(i_graph)
       grph%p => plt

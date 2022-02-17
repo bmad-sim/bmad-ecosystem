@@ -440,7 +440,7 @@ elseif (form == 'ALL') then
   nl = 0
 else
   call out_io (s_abort$, r_name, 'UNKNOWN FORM: ' // form)
-  call err_exit
+  return
 endif
 
 ! Find string widths
