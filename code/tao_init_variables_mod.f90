@@ -506,7 +506,7 @@ if (search_for_lat_eles /= '') then
   deallocate(ele_names, an_indexx)
 
   if (.not. found_one) then
-    call out_io (s_error$, r_name, &
+    call out_io (s_warn$, r_name, &
             'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
             'WHILE SETTING UP VARIABLE ARRAY FOR: ' // v1_var%name, &
             'THIS V1_VARIABLE WILL NOT BE CREATED!')
