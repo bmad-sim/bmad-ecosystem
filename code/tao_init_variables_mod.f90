@@ -81,7 +81,7 @@ endif
 ! Standard var init:
 ! First open the var init file.
 
-call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // var_file)
 call tao_open_file (var_file, iu, file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN VARIABLE INIT FILE: ' // var_file)
