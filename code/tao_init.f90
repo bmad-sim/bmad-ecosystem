@@ -429,9 +429,9 @@ if (iu_log > 0) write (iu_log, '(a)') '*Init: End bookkeeping.'
 call tao_set_data_useit_opt()
 call tao_set_var_useit_opt()
 err_flag = .false.
-if (iu_log > -1) close (iu_log)
 
 if (iu_log > 0) write (iu_log, '(a)') '*Init: And done.'
+if (iu_log > 0) close (iu_log)
 
 !------------------------------------------------------------------------------
 contains
