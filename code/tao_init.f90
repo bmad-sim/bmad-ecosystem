@@ -271,11 +271,11 @@ enddo
 ! plotting
 
 call tao_init_plotting (plot_file)
-  
-! Close the log file and route all messages back to the terminal.
+
+
+! Route all messages back to the terminal.
 ! Need to do this before calling tao_lattice_calc since we don't want to supress these messages.
 
-if (iu_log > -1) close (iu_log)
 call output_direct (-1, print_and_capture=s%com%print_to_terminal)
 
 ! Set up model and base lattices.
@@ -286,6 +286,8 @@ if (bmad_com%radiation_fluctuations_on .and. s%global%track_type == 'single') th
 endif
 
 ! Calculate radiation integrals.
+
+if (iu_log > 0) write (iu_log, '(a)') '*Init: Starting radiation and chrom calc.'
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
@@ -341,6 +343,8 @@ enddo
 
 !
 
+if (iu_log > 0) write (iu_log, '(a)') '*Init: Starting lattice calc.'
+
 s%u%calc%lattice = .true.
 call tao_lattice_calc (calc_ok)
 
@@ -364,6 +368,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%design%tao_branch%modes = u%design%tao_branch%modes_rf_on
 enddo
 
+if (iu_log > 0) write (iu_log, '(a)') '*Init: End lattice calc.'
+
 call tao_var_repoint()
 
 ! Normally you will want to use tao_hook_init1. However, tao_hook_init2 can be used, for example, 
@@ -373,10 +379,14 @@ call tao_hook_init2 ()
 
 ! Draw everything
 
+if (iu_log > 0) write (iu_log, '(a)') '*Init: Draw plots.'
+
 call tao_plot_setup ()     ! transfer data to the plotting structures
 call tao_draw_plots ()     ! Update the plotting window
 
 ! Print bad data
+
+if (iu_log > 0) write (iu_log, '(a)') '*Init: Print bad data.'
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(s%u(i)%data)
@@ -389,6 +399,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 enddo
 
 ! Look for a startup file
+
+if (iu_log > 0) write (iu_log, '(a)') '*Init: Execute startup file.'
 
 if (startup_file /= '' .and. s%init%nostartup_arg == '') then
   using_default = (startup_file == 'tao.startup')
@@ -412,9 +424,14 @@ endif
 
 ! Bookkeeping
 
+if (iu_log > 0) write (iu_log, '(a)') '*Init: End bookkeeping.'
+
 call tao_set_data_useit_opt()
 call tao_set_var_useit_opt()
 err_flag = .false.
+if (iu_log > -1) close (iu_log)
+
+if (iu_log > 0) write (iu_log, '(a)') '*Init: And done.'
 
 !------------------------------------------------------------------------------
 contains

@@ -403,7 +403,7 @@ do  ! Loop over plot files
   if (ix == 0) exit
   plot_file = plot_file_array(1:ix)
   plot_file_array = plot_file_array(ix+1:)
-  call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
+  call out_io (s_blank$, r_name, 'Init: Opening another plotting file: ' // plot_file)
   call tao_open_file (plot_file, iu, full_file_name, s_fatal$)
 
   do   ! Loop over templates in a file
