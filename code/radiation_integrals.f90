@@ -46,7 +46,7 @@
 !     %sig_z          -- Bunch Length
 !     %e_loss         -- Energy loss in eV per turn
 !     %a, %b, %z      -- Anormal_mode_struct: Substructure
-!       %emittance      -- Emittance
+!       %emittance      -- Emittance. B-mode emit includes photon opening angle (I6) contribution.
 !       %synch_int(4:6) -- Synchrotron integrals
 !       %j_damp         -- Damping partition factor
 !       %alpha_damp     -- Exponential damping coefficient per turn
