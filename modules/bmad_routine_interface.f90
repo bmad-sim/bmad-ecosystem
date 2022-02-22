@@ -2752,10 +2752,9 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
   type (ele_struct), target :: ele
   integer, optional, intent(in) :: type_mat6
   integer, optional, intent(out) :: n_lines
-  integer, optional, intent(in) :: twiss_out
+  integer, optional, intent(in) :: twiss_out, type_field
   logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
-  logical, optional, intent(in) :: type_zero_attrib, type_wake
-  logical, optional, intent(in) :: type_field, type_wall
+  logical, optional, intent(in) :: type_zero_attrib, type_wake, type_wall
   character(*), optional, allocatable :: lines(:)
 end subroutine
 

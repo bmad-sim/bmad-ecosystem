@@ -7667,7 +7667,7 @@ if (index(debug_line, 'SLAVE') /= 0) then
   do i = 1, lat%n_ele_track
     print *, '-------------'
     print *, 'Ele #', i
-    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., .true., .false., .true., .true.)
+    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., .true., .false., all$, .true.)
   enddo
   found = .true.
 endif
@@ -7679,7 +7679,7 @@ if (index(debug_line, 'LORD') /= 0) then
   do i = lat%n_ele_track+1, lat%n_ele_max
     print *, '-------------'
     print *, 'Ele #', i
-    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., .true., .false., .true., .true.)
+    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., .true., .false., all$, .true.)
   enddo
   found = .true.
 endif
@@ -7713,7 +7713,7 @@ if (ix /= 0) then
     print *
     print *, '----------------------------------------'
     print *, 'Element #', i
-    call type_ele (lat%ele(i), .false., 0, .true., 0, .true., .true., .true., .true., .true.)
+    call type_ele (lat%ele(i), .false., 0, .true., 0, .true., .true., .true., all$, .true.)
     call string_trim (debug_line(ix+1:), debug_line, ix)
   enddo
   found = .true.
