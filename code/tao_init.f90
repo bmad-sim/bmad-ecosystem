@@ -476,12 +476,14 @@ if (allocated(s%key)) deallocate(s%key, stat=istat)
 
 if (allocated(s%plot_page%region)) deallocate (s%plot_page%region)
 
-do i = 1, size(s%plot_page%template)
-  plot => s%plot_page%template(i)
-  if (.not. allocated (plot%graph)) cycle
-  deallocate(plot%graph, stat=istat)
-enddo
-deallocate (s%plot_page%template)
+if (allocated(s%plot_page%template)) then
+  do i = 1, size(s%plot_page%template)
+    plot => s%plot_page%template(i)
+    if (.not. allocated (plot%graph)) cycle
+    deallocate(plot%graph, stat=istat)
+  enddo
+  deallocate (s%plot_page%template)
+endif
 
 if (allocated(s%plot_page%lat_layout%ele_shape)) deallocate (s%plot_page%lat_layout%ele_shape)
 if (allocated(s%plot_page%floor_plan%ele_shape)) deallocate (s%plot_page%floor_plan%ele_shape)
@@ -495,21 +497,23 @@ if (allocated (s%u)) then
 
     u => s%u(i)
     ! radiation integrals cache
-    do ib = 0, ubound(u%model%lat%branch, 1)
-      if (u%model%tao_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%model%tao_branch(ib)%ix_rad_int_cache)
-      if (u%design%tao_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%design%tao_branch(ib)%ix_rad_int_cache)
-      if (u%base%tao_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%base%tao_branch(ib)%ix_rad_int_cache)
-    enddo
+    if (allocated(u%model%tao_branch)) then
+      do ib = 0, ubound(u%model%tao_branch, 1)
+        if (u%model%tao_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%model%tao_branch(ib)%ix_rad_int_cache)
+        if (u%design%tao_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%design%tao_branch(ib)%ix_rad_int_cache)
+        if (u%base%tao_branch(ib)%ix_rad_int_cache /= 0) call release_rad_int_cache(u%base%tao_branch(ib)%ix_rad_int_cache)
+      enddo
 
-    ! Orbits
+      ! Orbits
 
-    deallocate(u%model%tao_branch, stat=istat)
-    deallocate(u%design%tao_branch, stat=istat)
-    deallocate(u%base%tao_branch, stat=istat)
+      deallocate(u%model%tao_branch, stat=istat)
+      deallocate(u%design%tao_branch, stat=istat)
+      deallocate(u%base%tao_branch, stat=istat)
+    endif
 
     ! Beams: All s%u(i)%ele point to the same place with common_lattice.
 
-    if (i == 0 .or. .not. s%com%common_lattice) then
+    if (associated(u%model_branch) .and. (i == 0 .or. .not. s%com%common_lattice)) then
       do ib = 0, ubound(u%model_branch, 1)
         call reallocate_beam(u%model_branch(ib)%ele(0)%beam, 0, 0)
         deallocate (u%model_branch(ib)%ele)
