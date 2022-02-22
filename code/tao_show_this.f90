@@ -120,7 +120,7 @@ type (show_lat_column_info_struct) col_info(60)
 
 real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s_pos, dt, angle, r
 real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, phase
-real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds, ref_vec(6), beta
+real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, time1, ds, ref_vec(6), beta
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
 real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3)
 real(rp), allocatable :: value(:)
@@ -1464,11 +1464,10 @@ case ('element')
 
   if (mass_of(branch%param%particle) /= 0) then
     gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
-    b_emit = tao_branch%modes%b%emittance + tao_branch%modes%b%synch_int(6) / gamma**2
     ele%a%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance)
-    ele%b%sigma = sqrt(ele%b%beta * b_emit)
+    ele%b%sigma = sqrt(ele%b%beta * tao_branch%modes%b%emittance)
     ele%x%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance + (ele%x%eta * tao_branch%modes%sigE_E)**2)
-    ele%y%sigma = sqrt(ele%b%beta * b_emit                       + (ele%y%eta * tao_branch%modes%sigE_E)**2)
+    ele%y%sigma = sqrt(ele%b%beta * tao_branch%modes%b%emittance + (ele%y%eta * tao_branch%modes%sigE_E)**2)
   endif
 
   twiss_out = s%global%phase_units
@@ -4970,18 +4969,6 @@ case ('universe')
       enddo
       nl=nl+1; write(lines(nl), fmt) '<pz>:', pz1, pz2, '! Average closed orbit pz (momentum deviation)'
     endif
-
-    if (branch%param%geometry == closed$ .and. s%global%rad_int_calc_on) then
-      nl=nl+1; lines(nl) = 'Note: Emittance calc includes photon vertical opening angle.'
-      if (.not. bmad_com%radiation_damping_on .and. .not. s%global%rf_on) then
-        nl=nl+1; lines(nl) = 'Note: Emittance calculated with bmad_com%radiation_damping_on = F" and global%rf_on = F. Set True for more realistic calc.'
-      elseif (.not. bmad_com%radiation_damping_on) then
-        nl=nl+1; lines(nl) = 'Note: Emittance calculated with bmad_com%radiation_damping_on = F". Set True for more realistic calc.'
-      elseif (.not. s%global%rf_on) then
-        nl=nl+1; lines(nl) = 'Note: Emittance calculated with global%rf_on = F. Set True for more realistic calc.'
-      endif
-    endif
-
 
   elseif (bmad_com%spin_tracking_on) then
     nl=nl+1; lines(nl) = ''
