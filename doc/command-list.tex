@@ -2077,12 +2077,13 @@ transfer map) along with the zeroth order part of the transfer map are printed.
 The \vn{-all} switch is equivalent to using:
 \begin{example}
   -attributes
-  -field
   -floor_coords
   -taylor
   -wall
   -xfer_mat
 \end{example}
+If the element has a field map, the \vn{-all} switch will print map parameters (such as the spacing between points) but
+not the entire field table itself. To print the field table as well, use the \vn{-field} switch.
 
 Example:
 \begin{example}

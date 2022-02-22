@@ -159,13 +159,13 @@ integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word, species
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
-integer eval_pt, n_count
+integer eval_pt, n_count, print_field
 integer, allocatable :: ix_c(:), ix_remove(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
-logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag, angle_units
+logical show_all, name_found, print_taylor, print_attributes, err_flag, angle_units
 logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_mat, show_q, print_rms
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
@@ -1328,7 +1328,7 @@ case ('element')
 
   print_floor = .false.
   print_taylor = .false.
-  print_em_field = .false.
+  print_field = no$
   print_attributes = .false.
   print_data = .false.
   print_wall = .false.
@@ -1353,8 +1353,8 @@ case ('element')
     case ('-taylor');           print_taylor = .true.
     case ('-design');           lat_type = design$
     case ('-base');             lat_type = base$
-    case ('-em_field');         print_em_field = .true.  ! Old style. Use "-field".
-    case ('-field');            print_em_field = .true.
+    case ('-em_field');         print_field = all$  ! Old style. Use "-field".
+    case ('-field');            print_field = all$
     case ('-attributes');       print_attributes = .true.
     case ('-data');             print_data = .true.
     case ('-no_slaves');        print_slaves = .false.
@@ -1366,7 +1366,7 @@ case ('element')
       xfer_mat_print = 6
       print_taylor = .true.
       print_floor = .true.
-      print_em_field = .true.
+      if (print_field == no$) print_field = short$
       print_wall = .true.
     case default
       if (attrib0 /= '') then
@@ -1474,7 +1474,7 @@ case ('element')
   twiss_out = s%global%phase_units
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
   call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, &
-            twiss_out, .true., .true., print_floor, print_em_field, print_wall, lines = alloc_lines, n_lines = n)
+            twiss_out, .true., .true., print_floor, print_field, print_wall, lines = alloc_lines, n_lines = n)
   if (size(s%u) > 1) alloc_lines(1) = trim(alloc_lines(1)) // ',   Universe: ' // int_str(ix_u)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
@@ -4890,8 +4890,7 @@ case ('universe')
       nl=nl+1; write(lines(nl), fmt2) 'Chrom', tao_branch%a%chrom, design_tao_branch%a%chrom, tao_branch%b%chrom, design_tao_branch%b%chrom, '! dQ/(dE/E)'
       if (s%global%rad_int_calc_on) then
         nl=nl+1; write(lines(nl), fmt2) 'J_damp', mode_m%a%j_damp, mode_d%a%j_damp, mode_m%b%j_damp, mode_d%b%j_damp, '! Damping Partition #'
-        nl=nl+1; write(lines(nl), fmt) 'Emittance', mode_m%a%emittance, mode_d%a%emittance, mode_m%b%emittance, mode_d%b%emittance, '! Photon vert opening angle'
-        nl=nl+1; write(lines(nl), '(73x, a)') '!     is included in calc'
+        nl=nl+1; write(lines(nl), fmt) 'Emittance', mode_m%a%emittance, mode_d%a%emittance, mode_m%b%emittance, mode_d%b%emittance, '! Unnormalized'
       endif
     endif
 
@@ -4971,6 +4970,18 @@ case ('universe')
       enddo
       nl=nl+1; write(lines(nl), fmt) '<pz>:', pz1, pz2, '! Average closed orbit pz (momentum deviation)'
     endif
+
+    if (branch%param%geometry == closed$ .and. s%global%rad_int_calc_on) then
+      nl=nl+1; lines(nl) = 'Note: Emittance calc includes photon vertical opening angle.'
+      if (.not. bmad_com%radiation_damping_on .and. .not. s%global%rf_on) then
+        nl=nl+1; lines(nl) = 'Note: Emittance calculated with bmad_com%radiation_damping_on = F" and global%rf_on = F. Set True for more realistic calc.'
+      elseif (.not. bmad_com%radiation_damping_on) then
+        nl=nl+1; lines(nl) = 'Note: Emittance calculated with bmad_com%radiation_damping_on = F". Set True for more realistic calc.'
+      elseif (.not. s%global%rf_on) then
+        nl=nl+1; lines(nl) = 'Note: Emittance calculated with global%rf_on = F. Set True for more realistic calc.'
+      endif
+    endif
+
 
   elseif (bmad_com%spin_tracking_on) then
     nl=nl+1; lines(nl) = ''
