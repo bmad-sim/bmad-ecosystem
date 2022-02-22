@@ -6,38 +6,40 @@
 ! If the lines(:) argument is not present, the element information is printed to the terminal.
 !
 ! Input:
-!   ele               -- Ele_struct: Element
-!   type_zero_attrib  -- Logical, optional: If False then surpress printing of
+!   ele               -- ele_struct: Element
+!   type_zero_attrib  -- logical, optional: If False then surpress printing of
 !                           real attributes whose value is 0 or switch attributes that have
 !                           their default value. Default is False.
-!   type_mat6         -- Integer, optional:
+!   type_mat6         -- integer, optional:
 !                            = 0   => Do not type ele%mat6
 !                            = 4   => Type 4X4 xy submatrix
 !                            = 6   => Type full 6x6 matrix (Default)
-!   type_taylor       -- Logical, optional: Print out taylor map terms?
+!   type_taylor       -- logical, optional: Print out taylor map terms?
 !                          If ele%taylor is not allocated then this is ignored.
 !                          Default is False.
-!   twiss_out         -- Integer, optional: Print the Twiss parameters at the element end?
+!   twiss_out         -- integer, optional: Print the Twiss parameters at the element end?
 !                          = 0         => Do not print the Twiss parameters
 !                          = radians$  => Print Twiss, phi in radians (Default).
 !                          = degrees$  => Print Twiss, phi in degrees.
 !                          = cycles$   => Print Twiss, phi in radians/2pi.
-!   type_control       -- Logical, optional: Print control status? Default is True.
+!   type_control      -- logical, optional: Print control status? Default is True.
 !                           If ele%branch%lat is not associated cannot print status info.
-!   type_wake         -- Logical, optional: If True then print the long-range and 
+!   type_wake         -- logical, optional: If True then print the long-range and 
 !                          short-range wakes information. If False then just print
 !                          how many terms the wake has. Default is True.
 !                          If ele%wake is not allocated then this is ignored.
-!   type_floor_coords -- Logical, optional: If True then print the global ("floor")
+!   type_floor_coords -- logical, optional: Default is False. If True then print the global ("floor")
 !                          coordinates at the exit end of the element.
-!                          Default is False.
-!   type_field        -- Logical, optional: If True then print field maps, converter info, etc. Default is False.
-!   type_wall         -- Logical, optional: If True then print wall info. Default is False.
+!   type_field        -- integer, optional: Print field maps?
+!                           = no$      => One line of info.
+!                           = short$   => Header info. No tables.
+!                           = all$     => Everything.
+!   type_wall         -- logical, optional: If True then print wall info. Default is False.
 !
 ! Output       
-!   lines(:)     -- Character(200), allocatable, optional: Character array to hold the output. 
+!   lines(:)     -- character(200), allocatable, optional: Character array to hold the output. 
 !                     If not present, the information is printed to the terminal.
-!   n_lines      -- Integer, optional: Number of lines in lines(:) that hold valid output.
+!   n_lines      -- integer, optional: Number of lines in lines(:) that hold valid output.
 !                     n_lines must be present if lines(:) is. 
 !-
 
@@ -75,10 +77,11 @@ type (all_pointer_struct) a_ptr
 type (ac_kicker_struct), pointer :: ac
 type (str_index_struct) str_index
 
-integer, optional, intent(in) :: type_mat6, twiss_out
+integer, optional, intent(in) :: type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
 integer ia, im, i1, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
+integer id1, id2, id3
 
 real(rp) coef, val, L_mis(3), S_mis(3,3) 
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -99,7 +102,7 @@ character(*), parameter :: r_name = 'type_ele'
 
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
-logical, optional, intent(in) :: type_floor_coords, type_field, type_wall
+logical, optional, intent(in) :: type_floor_coords, type_wall
 logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, z1, z2
 
 ! init
@@ -395,7 +398,10 @@ endif
 ! Cartesian map
 
 if (associated(ele%cartesian_map)) then
-  if (logic_option(.false., type_field)) then
+  if (integer_option(no$, type_field) == no$) then
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Cartesian_map modes:', size(ele%cartesian_map)
+  else
+    nl2 = 10; if (type_field == all$) nl2 = 999
     nl=nl+1; li(nl) = ''
     if (ele%field_calc == bmad_standard$) then
       nl=nl+1; li(nl) = 'Cartesian_map: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
@@ -410,7 +416,7 @@ if (associated(ele%cartesian_map)) then
         name = attribute_name(ele, ct_map%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', im
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Cartesian_map mode #: ', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(ct_map%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    field_type        ', trim(em_field_type_name(ct_map%field_type))
       nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
@@ -420,25 +426,26 @@ if (associated(ele%cartesian_map)) then
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', ct_map%ptr%n_link
       nl=nl+1; write (li(nl), '(5x, a, 6x, a, 3(9x, a), 2(12x, a), 9x, a8, a)') 'Term#', &
                                     'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Family Form'
-      do j = 1, min(10, size(ct_map%ptr%term))
+      do j = 1, min(nl2, size(ct_map%ptr%term))
         if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
         ct_term => ct_map%ptr%term(j)
         nl=nl+1; write (li(nl), '(i8, 4f12.6, 3f14.6, 3x, a, 2x, a)') j, ct_term%coef, ct_term%kx, ct_term%ky, ct_term%kz, ct_term%x0, &
                          ct_term%y0, ct_term%phi_z, cartesian_map_family_name(ct_term%family), trim(cartesian_map_form_name(ct_term%form))
       enddo
-      if (size(ct_map%ptr%term) > 10) then
+      if (size(ct_map%ptr%term) > nl2) then
         nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(ct_map%ptr%term), ')' 
       endif
     enddo
-  else
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Cartesian_map modes:', size(ele%cartesian_map)
   endif
 endif
 
 ! Cylindrical_map
 
 if (associated(ele%cylindrical_map)) then
-  if (logic_option(.false., type_field)) then
+  if (integer_option(no$, type_field) == no$) then
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Cylindrical_map modes:', size(ele%cylindrical_map)
+  else
+    nl2 = 10; if (type_field == all$) nl2 = 999
     nl=nl+1; li(nl) = ''
     if (ele%field_calc == bmad_standard$) then
       nl=nl+1; li(nl) = 'Cylindrical_map: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
@@ -453,7 +460,7 @@ if (associated(ele%cylindrical_map)) then
         name = attribute_name(ele, cl_map%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', im
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Cylindrical_map mode #:', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(cl_map%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
       nl=nl+1; write (li(nl), '(a, i0)')      '    harmonic:         ', cl_map%harmonic
@@ -466,24 +473,25 @@ if (associated(ele%cylindrical_map)) then
       nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:    ', anchor_pt_name(cl_map%ele_anchor_pt)
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', cl_map%ptr%n_link
       nl=nl+1; write (li(nl), '(a)')          '    Term                E                           B'
-      do j = 1, min(10, size(cl_map%ptr%term))
+      do j = 1, min(nl2, size(cl_map%ptr%term))
         if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
         cl_term => cl_map%ptr%term(j)
         nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, '(', cl_term%e_coef, ')  (', cl_term%b_coef, ')'
       enddo
-      if (size(cl_map%ptr%term) > 10) then
+      if (size(cl_map%ptr%term) > nl2) then
         nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(cl_map%ptr%term), ')' 
       endif
     enddo
-  else
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Cylindrical_map modes:', size(ele%cylindrical_map)
   endif
 endif
 
 ! Grid_field
 
 if (associated(ele%grid_field)) then
-  if (logic_option(.false., type_field)) then
+  if (integer_option(no$, type_field) == no$) then
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Grid_field modes:', size(ele%grid_field)
+  else
+    nl2 = 10; if (type_field == all$) nl2 = 999
     nl=nl+1; li(nl) = ''
     if (ele%field_calc == bmad_standard$) then
       nl=nl+1; li(nl) = 'Grid_field: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
@@ -498,7 +506,7 @@ if (associated(ele%grid_field)) then
         name = attribute_name(ele, g_field%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', im
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Grid_field mode #:', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:          ', trim(g_field%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    field_type:         ', em_field_type_name(g_field%field_type)
       nl=nl+1; write (li(nl), '(2a)')         '    geometry:           ', grid_field_geometry_name(g_field%geometry)
@@ -527,15 +535,62 @@ if (associated(ele%grid_field)) then
         nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_min:              ', lbound(g_field%ptr%pt)*g_field%dr + g_field%r0
       endif
     enddo
-  else
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Grid_field modes:', size(ele%grid_field)
+
+    j = 0
+    do id1 = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)          
+    do id2 = lbound(g_field%ptr%pt, 2), ubound(g_field%ptr%pt, 2)
+    do id3 = lbound(g_field%ptr%pt, 3), ubound(g_field%ptr%pt, 3)
+      j = j + 1
+      if (j > nl2) exit
+      if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
+      nl = nl + 1
+
+      select case (grid_field_dimension(g_field%geometry))
+      case (1)
+        write (line, '(2x, a, i0, 13a)') 'pt(', id1, ') = ('
+      case (2)
+        write (line, '(2x, 2(a, i0), 13a)') 'pt(', id1, ',', id2, ') = ('
+      case (3)
+        write (line, '(2x, 3(a, i0), 13a)') 'pt(', id1, ',', id2, ',', id3, ') = ('
+      end select
+
+      select case (g_field%field_type)
+      case (mixed$)
+        write (li(nl), '(2x, a, 13a)') trim(line), &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), ',', &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), ')'
+      case (electric$)
+        write (li(nl), '(2x, a, 13a)') trim(line), &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(1))), ',', &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(2))), ',', &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%E(3))), ')'
+      case (magnetic$)
+        write (li(nl), '(2x, a, 13a)') trim(line), &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(1))), ',', &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(2))), ',', &
+                                           trim(cmplx_re_str(g_field%ptr%pt(id1,id2,id3)%B(3))), ')'
+      end select
+    enddo
+    enddo
+    enddo
+
+    if (size(g_field%ptr%pt) > nl2) then
+      nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(g_field%ptr%pt), ')' 
+    endif
   endif
 endif
 
 ! Taylor_field
 
 if (associated(ele%taylor_field)) then
-  if (logic_option(.false., type_field)) then
+  if (integer_option(no$, type_field) == no$) then
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Taylor_field modes:', size(ele%taylor_field)
+  else
+    nl2 = 10; if (type_field == all$) nl2 = 999
     nl=nl+1; li(nl) = ''
     if (ele%field_calc == bmad_standard$) then
       nl=nl+1; li(nl) = 'Taylor_field: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
@@ -550,7 +605,7 @@ if (associated(ele%taylor_field)) then
         name = attribute_name(ele, t_field%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', im
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Taylor_field mode #:', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:         ', trim(t_field%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    field_type:        ', em_field_type_name(t_field%field_type)
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:       ', t_field%field_scale
@@ -563,8 +618,6 @@ if (associated(ele%taylor_field)) then
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:            ', t_field%ptr%n_link
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_plane:           ', size(t_field%ptr%plane)
     enddo
-  else
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Taylor_field modes:', size(ele%taylor_field)
   endif
 endif
 
@@ -1422,5 +1475,23 @@ enddo
 str = str(3:)
 
 end function knots_to_string
+
+!--------------------------------------------------------------------------
+! contains
+
+function cmplx_re_str(cmp) result (str_out)
+
+complex(rp) cmp
+character(40) str_out
+
+!
+
+if (imag(cmp) == 0) then
+  str_out = real_str(real(cmp), 8)
+else
+  str_out = '(' // real_str(real(cmp), 8) // ', ' // real_str(imag(cmp), 8) // ')'
+endif
+
+end function cmplx_re_str
 
 end subroutine type_ele

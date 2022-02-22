@@ -182,7 +182,7 @@ end type
 
 ! Misc parameters
 
-integer, parameter :: include_kicks$ = 1
+integer, parameter :: include_kicks$ = 1, short$ = 8
 
 integer, parameter :: user_set$ = 0, first_pass$ = 1
 character(12), parameter :: multipass_ref_energy_name(0:1) = [character(12):: 'User_Set', 'First_Pass']

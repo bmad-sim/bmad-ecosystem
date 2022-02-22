@@ -1449,7 +1449,14 @@ branch. Example:
   ... etc ...
 \end{example}
 
-Also see the \vn{start_branch_at} statement (\sref{s:start.branch}).
+To create a lattice slice that wraps around the lattice ends, that is, joins a section at the end of
+the lattice followed by a section at the beginning of the lattice, use a \vn{start_branch_at}
+statement before a slice_lattice statement. Example:
+\begin{example}
+  expand_lattice
+  start_branch_at Q9
+  slice_lattice Q9:Q1   ! With Q1 being before Q9 in the original lattice.
+\end{example}
 
 %--------------------------------------------------------------------------
 \section{Start_Branch_At Statement}

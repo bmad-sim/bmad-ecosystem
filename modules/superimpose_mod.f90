@@ -102,6 +102,12 @@ if (l_super < 0) then
   return
 endif
 
+if (super_ele_in%key == drift$) then
+  call out_io (s_abort$, r_name, 'Superposition of drift not allowed: ' // ele%name, &
+                                 'Use a pipe element instead if you want to superimpose a field free region element.')
+  return
+endif
+
 ! We need a copy of super_ele_in since the actual argument may be in the lat
 ! and split_lat can then overwrite it.
 
