@@ -5153,7 +5153,10 @@ call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
 super_ele%name = super_ele_saved%name(:ix)            
 call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, save_null_drift = .true., &
       create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert, mangle_slave_names = .false., wrap = pele%wrap_superimpose)
-if (err_flag) bp_com%error_flag = .true.
+if (err_flag) then
+  bp_com%error_flag = .true.
+  return
+endif
 call control_bookkeeper (lat, super_ele_out)
 
 call s_calc (lat)
