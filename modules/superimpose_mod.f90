@@ -103,7 +103,7 @@ if (l_super < 0) then
 endif
 
 if (super_ele_in%key == drift$) then
-  call out_io (s_abort$, r_name, 'Superposition of drift not allowed: ' // ele%name, &
+  call out_io (s_abort$, r_name, 'Superposition of drift not allowed: ' // super_ele_in%name, &
                                  'Use a pipe element instead if you want to superimpose a field free region element.')
   return
 endif
