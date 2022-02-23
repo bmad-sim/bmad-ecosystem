@@ -321,8 +321,8 @@ parsing_loop: do
 
   select case (word_1(:ix_word))
   case ('SLICE_LATTICE', 'COMBINE_ELEMENTS', 'CALC_REFERENCE_ORBIT', 'START_BRANCH_AT', &
-        'COMBINE_CONSECUTIVE_ELEMENTS', 'MERGE_ELEMENTS')
-    call parser_error ('A ' // word_1(:ix_word) // ' COMMAND CAN ONLY BE USED AFTER A LATTICE_EXPANSION COMMAND.')
+        'COMBINE_CONSECUTIVE_ELEMENTS', 'MERGE_ELEMENTS', 'REMOVE_ELEMENTS')
+    call parser_error ('A ' // word_1(:ix_word) // ' COMMAND CAN ONLY BE USED AFTER AN EXPAND_LATTICE COMMAND.')
     cycle parsing_loop
   end select
 

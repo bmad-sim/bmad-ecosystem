@@ -986,7 +986,7 @@ The following intrinsic functions are recognized by \bmad: \hfil\break
   \vn{ran_gauss}(sig_cut)       & Gaussian distributed random number             \\
   \vn{int}(x)                   & Nearest integer with magnitude less then x     \\
   \vn{nint}(x)                  & Nearest integer to x                           \\
-  \vn{sign}(x)                  & 1 if x positive, -1 if negagive, 0 if zero     \\
+  \vn{sign}(x)                  & 1 if x positive, -1 if negative, 0 if zero     \\
   \vn{floor}(x)                 & Nearest integer less than x                    \\
   \vn{ceiling}(x)               & Nearest integer greater than x                 \\
   \vn{mass_of}(A)               & Mass of particle A                             \\
@@ -1404,6 +1404,24 @@ The \vn{combine_consecutive_elements} statement must come after lattice expansio
   combine_consecutive_elements
 \end{example}
 In this case the finished line will will have a single \vn{q1} element whose length will be twice the length of q1
+
+%--------------------------------------------------------------------------
+\section{Remove_Elements Statement}
+\label{s:remove.ele}
+
+The \vn{remove_elements} statement is used to remove elements from the lattice. The
+\vn{remove_elements} statement must come after lattice expansion (\sref{s:expand}). The syntax of
+the \vn{remove_elements} statement is
+\begin{example}
+  remove_elements <element-list>
+\end{example}
+where \vn{<element-list>} is a list of elements (\sref{s:ele.match}). For example
+\begin{example}
+  expand_lattice              ! Lattice expansion must happen first
+  remove_elements overlay::*
+\end{example}
+In this example, all overlay elements are to be removed. This is useful, for example, when direct control
+of overlay slave parameters is desired.
 
 %--------------------------------------------------------------------------
 \section{Slice_Lattice Statement}
