@@ -4948,7 +4948,7 @@ case ('universe')
       endif
       nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', mode_m%synch_int(1)/l_lat, mode_d%synch_int(1)/l_lat, '! Momentum Compaction'
       nl=nl+1; write(lines(nl), fmt) 'Eta_p:', mode_m%synch_int(1)/l_lat - 1.0_rp/gamma**2, mode_d%synch_int(1)/l_lat - 1.0_rp/gamma**2, '! Slip factor'
-      if (mode_m%synch_int(1) < l_lat) then
+      if (mode_m%synch_int(1) < l_lat .and. mode_m%synch_int(1) /= 0) then
         nl=nl+1; write(lines(nl), fmt) 'gamma_trans:', sqrt(l_lat/mode_m%synch_int(1)), sqrt(l_lat/mode_d%synch_int(1)), '! Gamma at transition'
       endif
       nl=nl+1; write(lines(nl), fmt) 'I0:', mode_m%synch_int(0), mode_d%synch_int(0), '! Radiation Integral'
