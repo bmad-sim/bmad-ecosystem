@@ -336,7 +336,7 @@ do ib = 0, ubound(lat%branch, 1)
   if (branch%ix_to_ele > 0) branch%ix_to_ele = ibr(branch%ix_branch)%loc(branch%ix_to_ele)%new_ix_ele
   if (branch%ix_to_ele < 0) branch%ix_to_ele = -1
 
-  do i = 1, branch%n_ele_max
+  do i = 0, branch%n_ele_max
     ele => branch%ele(i)
 
     ! Update fork element

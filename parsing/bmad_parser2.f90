@@ -248,6 +248,27 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
+  ! REMOVE_ELEMENTS
+
+  if (word_1(:ix_word) == 'REMOVE_ELEMENTS') then
+    call lat_ele_locator(bp_com%parse_line, lat, eles, n_loc, err)
+    if (err) then
+      call parser_error ('ERROR IN ELEMENT LIST FOR REMOVE_ELEMENTS: ' // bp_com%parse_line)
+      bp_com%parse_line = ''
+      cycle parsing_loop
+    endif
+
+    do i = 1, n_loc
+      eles(i)%ele%ix_ele = -1
+    enddo
+
+    call remove_eles_from_lat(lat)
+    bp_com%parse_line = ''
+
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
   ! PARSER_DEBUG
 
   if (word_1(:ix_word) == 'PARSER_DEBUG') then
