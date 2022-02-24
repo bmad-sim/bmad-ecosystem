@@ -3067,7 +3067,7 @@ case ('ele:orbit')
 ! Where: 
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
-!   {who} values are the same as {who} values for "python lat_list" except for "ele:mat6" and "ele:vec0".
+!   {who} values are the same as {who} values for "python lat_list".
 !         Note: Here {who} must be a single parameter and not a list.
 !
 ! Example:
@@ -3105,13 +3105,31 @@ case ('ele:param')
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
   orbit => tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele)
 
-  value = ele_param_value(tail_str, ele, orbit, data_type, err); if (err) return
+  data_type = is_real$
+
+  select case (tail_str)
+  case ('ele.mat6')
+    n_add = 36
+    do ix = 1, 6
+      values(6*(ix-1)+1:6*ix) = ele%mat6(ix,:)
+    enddo
+  case ('ele.vec0')
+    n_add = 6
+    values(1:6) = ele%vec0
+  case ('ele.c_mat')
+    n_add = 4
+    values(1:4) = [ele%c_mat(1,1), ele%c_mat(1,2), ele%c_mat(2,1), ele%c_mat(2,2)]
+  case default
+    n_add = 1
+    values(1) = ele_param_value(tail_str, ele, orbit, data_type, err); if (err) return
+  end select
+
 
   select case (data_type)
   case (is_real$)
-    nl=incr(nl); write (li(nl), rmt) trim(tail_str) // ';REAL;F;',                  value
+    nl=incr(nl); write (li(nl), amt) trim(tail_str) // ';REAL;F',    (';', re_str(values(k), 8), k = 1, n_add)
   case (is_integer$)
-    nl=incr(nl); write (li(nl), imt) trim(tail_str) // ';INT;F;',                   nint(value)
+    nl=incr(nl); write (li(nl), imt) trim(tail_str) // ';INT;F;',     nint(values(1))
   end select
 
 !%% ele:photon -----------------------
@@ -4449,8 +4467,11 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !     ele.y.eta, ele.y.etap,
 !     ele.s, ele.l
 !     ele.e_tot, ele.p0c
-!     ele.mat6, ele.vec0
+!     ele.mat6      ! Output: mat6(1,:), mat6(2,:), ... mat6(6,:)
+!     ele.vec0      ! Output: vec0(1), ... vec0(6)
 !     ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (EG: ele.beta_a, ele.k1, etc.)
+!     ele.c_mat     ! Output: c_mat11, c_mat12, c_mat21, c_mat22.
+!     ele.gamma_c   ! Parameter associated with coupling c-matrix.
 ! 
 !   {elements} is a string to match element names to.
 !     Use "*" to match to all elements.
@@ -4459,7 +4480,6 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
 !   python lat_list 3@0>>Q*|base real:ele.s    
 ! 
-! Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
 ! Also see: "python ele:param"
 !
 ! Parameters
@@ -4594,6 +4614,9 @@ case ('lat_list')
       case ('ele.vec0')
         n_add = 6
         values(1:6) = ele%vec0
+      case ('ele.c_mat')
+        n_add = 4
+        values(1:4) = [ele%c_mat(1,1), ele%c_mat(1,2), ele%c_mat(2,1), ele%c_mat(2,2)]
       case ('ele.name')
         nl=incr(nl); li(nl) = ele%name
         cycle
@@ -8107,6 +8130,8 @@ case ('ele.s')
   value = ele%s
 case ('ele.l')
   value = ele%value(l$)
+case ('ele.gamma_c')
+  value = ele%gamma_c
 case default
   call str_upcase (attrib_name, name)
   ix = index(attrib_name, '.')
