@@ -811,7 +811,7 @@ Output lattice element parameter
 Where: 
   {ele_id} is an element name or index.
   {which} is one of: "model", "base" or "design"
-  {who} values are the same as {who} values for "python lat_list" except for "ele:mat6" and "ele:vec0".
+  {who} values are the same as {who} values for "python lat_list".
         Note: Here {who} must be a single parameter and not a list.
 
 Example:
@@ -1179,8 +1179,11 @@ Where:
     ele.y.eta, ele.y.etap,
     ele.s, ele.l
     ele.e_tot, ele.p0c
-    ele.mat6, ele.vec0
+    ele.mat6      ! Output: mat6(1,:), mat6(2,:), ... mat6(6,:)
+    ele.vec0      ! Output: vec0(1), ... vec0(6)
     ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (EG: ele.beta_a, ele.k1, etc.)
+    ele.c_mat     ! Output: c_mat11, c_mat12, c_mat21, c_mat22.
+    ele.gamma_c   ! Parameter associated with coupling c-matrix.
 
   {elements} is a string to match element names to.
     Use "*" to match to all elements.
@@ -1189,7 +1192,6 @@ Examples:
   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
   python lat_list 3@0>>Q*|base real:ele.s    
 
-Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
 Also see: "python ele:param"
 \end{verbatim}
 
