@@ -407,7 +407,7 @@ if (lord%key == match$) then
     slave%value(eta_y0$)     = slave_val(eta_y0$)
     slave%value(etap_x0$)    = slave_val(etap_x0$)
     slave%value(etap_y0$)    = slave_val(etap_y0$)
-    slave%value(c11_mat0$:c22_mat1$) = slave_val(c11_mat0$:c22_mat1$)
+    slave%value(c11_mat0$:mode_flip1$) = slave_val(c11_mat0$:mode_flip1$)
   endif
 
   if (is_true(lord%value(match_end_orbit$))) then
