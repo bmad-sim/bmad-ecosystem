@@ -238,20 +238,21 @@ if (ele%ref_time /= 0)     write (iu, '(2a)') 'beginning[ref_time] = ', re_str(e
 ! Write beginning Twiss even for closed lattices as that is useful info.
 
 write (iu, '(2a)')
-if (ele%a%beta /= 0)     write (iu, '(2a)') 'beginning[beta_a]   = ', re_str(ele%a%beta)
-if (ele%a%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_a]  = ', re_str(ele%a%alpha)
-if (ele%a%phi /= 0)      write (iu, '(2a)') 'beginning[phi_a]    = ', re_str(ele%a%phi)
-if (ele%x%eta /= 0)      write (iu, '(2a)') 'beginning[eta_x]    = ', re_str(ele%x%eta)
-if (ele%x%etap /= 0)     write (iu, '(2a)') 'beginning[etap_x]   = ', re_str(ele%x%etap)
-if (ele%b%beta /= 0)     write (iu, '(2a)') 'beginning[beta_b]   = ', re_str(ele%b%beta)
-if (ele%b%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_b]  = ', re_str(ele%b%alpha)
-if (ele%b%phi /= 0)      write (iu, '(2a)') 'beginning[phi_b]    = ', re_str(ele%b%phi)
-if (ele%y%eta /= 0)      write (iu, '(2a)') 'beginning[eta_y]    = ', re_str(ele%y%eta)
-if (ele%y%etap /= 0)     write (iu, '(2a)') 'beginning[etap_y]   = ', re_str(ele%y%etap)
-if (ele%c_mat(1,1) /= 0) write (iu, '(2a)') 'beginning[cmat_11]  = ', re_str(ele%c_mat(1,1))
-if (ele%c_mat(1,2) /= 0) write (iu, '(2a)') 'beginning[cmat_12]  = ', re_str(ele%c_mat(1,2))
-if (ele%c_mat(2,1) /= 0) write (iu, '(2a)') 'beginning[cmat_21]  = ', re_str(ele%c_mat(2,1))
-if (ele%c_mat(2,2) /= 0) write (iu, '(2a)') 'beginning[cmat_22]  = ', re_str(ele%c_mat(2,2))
+if (ele%a%beta /= 0)     write (iu, '(2a)') 'beginning[beta_a]    = ', re_str(ele%a%beta)
+if (ele%a%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_a]   = ', re_str(ele%a%alpha)
+if (ele%a%phi /= 0)      write (iu, '(2a)') 'beginning[phi_a]     = ', re_str(ele%a%phi)
+if (ele%x%eta /= 0)      write (iu, '(2a)') 'beginning[eta_x]     = ', re_str(ele%x%eta)
+if (ele%x%etap /= 0)     write (iu, '(2a)') 'beginning[etap_x]    = ', re_str(ele%x%etap)
+if (ele%b%beta /= 0)     write (iu, '(2a)') 'beginning[beta_b]    = ', re_str(ele%b%beta)
+if (ele%b%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_b]   = ', re_str(ele%b%alpha)
+if (ele%b%phi /= 0)      write (iu, '(2a)') 'beginning[phi_b]     = ', re_str(ele%b%phi)
+if (ele%y%eta /= 0)      write (iu, '(2a)') 'beginning[eta_y]     = ', re_str(ele%y%eta)
+if (ele%y%etap /= 0)     write (iu, '(2a)') 'beginning[etap_y]    = ', re_str(ele%y%etap)
+if (ele%c_mat(1,1) /= 0) write (iu, '(2a)') 'beginning[cmat_11]   = ', re_str(ele%c_mat(1,1))
+if (ele%c_mat(1,2) /= 0) write (iu, '(2a)') 'beginning[cmat_12]   = ', re_str(ele%c_mat(1,2))
+if (ele%c_mat(2,1) /= 0) write (iu, '(2a)') 'beginning[cmat_21]   = ', re_str(ele%c_mat(2,1))
+if (ele%c_mat(2,2) /= 0) write (iu, '(2a)') 'beginning[cmat_22]   = ', re_str(ele%c_mat(2,2))
+if (ele%mode_flip)       write (iu, '(a)')  'beginning[mode_flip] = T'
 
 ! particle_start. Note: For an open geometry, orbit0 should be the same as lat%particle_start
 

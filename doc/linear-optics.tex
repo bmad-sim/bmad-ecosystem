@@ -17,6 +17,8 @@ propagating with the transfer map $\bfM_{0s}$ from $0$ to $s$:
     \bfT(s) = \bfM_{0s} \, \bfT(0) \, \bfM_{0s}^{-1}
 \end{equation}
 
+\index{normal mode!a--mode}
+\index{normal mode!b--mode}
 $\bfT$ can be decomposed using a similarity transformation
  can be written as
   \begin{equation}
@@ -25,31 +27,28 @@ $\bfT$ can be decomposed using a similarity transformation
   \end{equation} 
 where $\bfV$ is symplectic, and $\bfU$ is of the form
   \begin{equation}
-    \bfU = 
+    \bfU =
     \begin{pmatrix}
       \bfA & \Bf0 \cr 
       \Bf0 & \bfB \cr
     \end{pmatrix}
     . \label{ua00b}
   \end{equation}
-The two normal modes are denoted $a$ and $b$ and the normal mode phase space coordinates are denoted
-$(a, p_a, b, p_b)$.
-\index{normal mode!a--mode}
-\index{normal mode!b--mode}
-Since $\bfU$ is uncoupled the standard Twiss analysis can be performed on the matrices
-$\bfA$ and $\bfB$. The normal modes are labeled $q$ and $w$ and if the one--turn matrix
-$\bfT$ is uncoupled then $w$ corresponds to the horizontal mode and $w$ corresponds to the
-vertical mode.
-
-The $\bfA$ and $\bfB$ matrices which propagate the $a$ and $b$ modes respectively can be
-parameterized using the standard 1-dimensional Twiss form:
+Since $\bfU$ is uncoupled, the standard Twiss analysis can be performed with the $\bfA$ and $\bfB$
+matrices being parameterized using the standard form:
 \begin{equation}
   \bfA = \begin{pmatrix}
     \cos\theta_a + \alpha_a \, \sin\theta_a & \beta_a \, \sin\theta_a \\
     -\gamma_a \, \sin\theta_a & \cos\theta_a - \alpha_a \, \sin\theta_a
     \end{pmatrix}
 \end{equation}
-with a similar equation for $\bfB$. The $\bfV$ matrix is written in the form
+with a similar equation for $\bfB$. 
+
+The $\bfV$ ``coupling'' matrix is written in the form:\footnote
+  {
+The form of $\bfV$ and $\bfU$ is not unique. The form of $\bfV$ and $\bfU$ used here essentially
+follows the form given by Edwards and Teng\cite{b:edteng}.
+  }
   \begin{equation}
     \bfV = 
     \begin{pmatrix}
@@ -58,8 +57,7 @@ with a similar equation for $\bfB$. The $\bfV$ matrix is written in the form
     \end{pmatrix}
     , \label{vgicc1}
   \end{equation}
-where $\bfC$ is a 2x2 matrix and $+$ superscript 
-denotes the symplectic conjugate:
+where $\bfC$ is a 2x2 matrix and $+$ superscript denotes the symplectic conjugate:
 \index{symplectic!conjugate}
   \begin{equation}
     \bfC^+ = 
@@ -135,7 +133,13 @@ with the normalized matrix $\BAR\bfC$ given by
     . \label{cgcg}
   \end{equation}
 
-The normal mode coordinates ${\bf a} = (a, p_a, b, p_b)$ are related to the laboratory frame via
+The two normal modes of oscillation are denoted $a$ and $b$ with the $a$-mode associated with the
+$\bfA$ matrix and the $b$-mode associated with the $\bfB$ matrix. The normal mode phase space
+coordinates are denoted ${\bf a} = (a, p_a, b, p_b)$. If the one--turn matrix $\bfT$ is uncoupled
+then the $a$-mode is associated with horizontal horizontal motion and $b$-mode is associated with
+vertical motion.
+
+The normal mode coordinates ${\bf a}$ are related to the laboratory frame via
   \begin{equation}
     {\bf a} = \bfV\inv \, {\bf x}
     . \label{avx}
@@ -148,6 +152,47 @@ to the laboratory frame dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y
   \end{equation} 
 When there is no coupling ($\bfC = 0$), $\bfeta_a$ and $\bfeta_x$ are
 equal to each other.
+
+In highly coupled lattices there is the possibility of ``\vn{mode flips}''. An example will make
+this clear. Suppose that at one point in a lattice, which will be labeled $s_1$, the 1-turn matrix
+$\bfT_1$ is uncoupled ($\bfV_1$ is the unit matrix). The two normal modes at this point will be
+labeled $a_1$ and $b_1$. and $\bfT_1$ can be written in the form
+\begin{equation}
+  \bfT_1 = 
+    \begin{pmatrix}
+      \bfA_1 & \Bf0 \cr 
+      \Bf0   & \bfB_1 \cr
+    \end{pmatrix}
+\end{equation}
+Further assume that the transfer matrix $\bfM_{12}$ between point $s_1$ and some other point $s_2$
+is of the form
+\begin{equation}
+  \bfM_{12} = 
+    \begin{pmatrix}
+      \Bf0 & \bfE \cr 
+      \bfF & \Bf0 \cr
+    \end{pmatrix}
+    \label{t0ef0}
+\end{equation}
+The 1-turn matrix $\bfT_2$ at $s_2$ will be
+\begin{equation}
+  \bfT_2 = \bfM_{12}^{-1} \, \bfT_1 \, \bfM_{12}
+  = \begin{pmatrix}
+      \bfF^{-1} \, \bfB_1 \bfF & \Bf0 \cr 
+      \Bf0                     & \bfE^{-1} \, \bfA_1 \, \bfE \cr
+    \end{pmatrix}
+  = \begin{pmatrix}
+      \bfA_2 & \Bf0 \cr 
+      \Bf0   & \bfB_2 \cr
+    \end{pmatrix}
+\end{equation}
+This shows that the at $s_2$ the $a_2$ normal mode is associated with the $b_1$ mode and the $b_2$
+mode is associated with the $a_1$ mode! This is a mode flip. What this means is that in this highly
+coupled lattice the excitation of a given ``physical'' mode will be described using the $a$-mode in
+some places of the lattice and the $b$-mode in other places. In particular, it is important to keep
+track of where there are mode flips when evaluating synchrotron radiation integrals
+like $I_{4a}$ and $I_{4b}$ (\sref{s:synch.ints}) since an individual integral must be evaluated
+using the same physical mode throughout.
 
 %-----------------------------------------------------------------
 \section{Tunes From One-Turn Matrix Eigen Analysis}
