@@ -435,6 +435,7 @@ case ('CMAT_11');         a_ptr%r => ele%c_mat(1,1)
 case ('CMAT_12');         a_ptr%r => ele%c_mat(1,2)
 case ('CMAT_21');         a_ptr%r => ele%c_mat(2,1)
 case ('CMAT_22');         a_ptr%r => ele%c_mat(2,2)
+case ('MODE_FLIP');       a_ptr%l => ele%mode_flip
 case ('X_POSITION');      a_ptr%r => ele%floor%r(1)
 case ('Y_POSITION');      a_ptr%r => ele%floor%r(2)
 case ('Z_POSITION');      a_ptr%r => ele%floor%r(3)

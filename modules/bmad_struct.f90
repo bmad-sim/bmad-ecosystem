@@ -1586,7 +1586,7 @@ integer, parameter :: downstream_coord_dir$ = 30, pz_aperture_width2$ = 30, y_di
 integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
 integer, parameter :: l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31
 integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32
-integer, parameter :: angle$ = 33, n_cell$ = 33
+integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33
 integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  
 integer, parameter :: x_offset$ = 36
