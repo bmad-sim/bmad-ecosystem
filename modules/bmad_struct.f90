@@ -20,7 +20,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 270
+integer, parameter :: bmad_inc_version$ = 271
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1514,14 +1514,14 @@ integer, parameter :: beta_a1$ = 6, alpha_a1$ = 7, beta_b1$ = 8, alpha_b1$ = 9
 integer, parameter :: dphi_a$ = 10, dphi_b$ = 11
 integer, parameter :: eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15
 integer, parameter :: eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19
-integer, parameter :: c11_mat0$ = 20, c12_mat0$ = 21, c21_mat0$ = 22, c22_mat0$ = 23
-integer, parameter :: c11_mat1$ = 24, c12_mat1$ = 25, c21_mat1$ = 26, c22_mat1$ = 27
-integer, parameter :: x0$ = 28, px0$ = 29, y0$ = 30, py0$ = 31, z0$ = 32, pz0$ = 33
-integer, parameter :: x1$ = 34, px1$ = 35, y1$ = 36, py1$ = 37, z1$ = 38, pz1$ = 39
-integer, parameter :: phase_trombone_input$ = 40, phase_trombone$ = 41
-integer, parameter :: match_end_input$ = 42, match_end$ = 43
-integer, parameter :: match_end_orbit_input$ = 44, match_end_orbit$ = 45
-integer, parameter :: delta_time$ = 46
+integer, parameter :: c11_mat0$ = 20, c12_mat0$ = 21, c21_mat0$ = 22, c22_mat0$ = 23, mode_flip0$ = 24
+integer, parameter :: c11_mat1$ = 25, c12_mat1$ = 26, c21_mat1$ = 27, c22_mat1$ = 28, mode_flip1$ = 29
+integer, parameter :: x0$ = 30, px0$ = 31, y0$ = 32, py0$ = 33, z0$ = 34, pz0$ = 35
+integer, parameter :: x1$ = 36, px1$ = 37, y1$ = 38, py1$ = 39, z1$ = 40, pz1$ = 41
+integer, parameter :: phase_trombone_input$ = 42, phase_trombone$ = 43
+integer, parameter :: match_end_input$ = 44, match_end$ = 45
+integer, parameter :: match_end_orbit_input$ = 46, match_end_orbit$ = 47
+integer, parameter :: delta_time$ = 48
 
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 integer, parameter :: t$ = 8

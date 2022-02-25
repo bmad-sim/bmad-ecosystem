@@ -80,6 +80,7 @@ if ((v(beta_a0$) == 0 .and. v(beta_b0$) == 0 .and. v(alpha_a0$) == 0 .and. v(alp
     v(etap_x0$)  = t_ele%x%etap
     v(etap_y0$)  = t_ele%y%etap
     v(c11_mat0$:c22_mat0$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
+    v(mode_flip0$) = int_logic(t_ele%mode_flip)
     v(beta_a1$)  = t_ele%a%beta
     v(beta_b1$)  = t_ele%b%beta
     v(alpha_a1$) = t_ele%a%alpha
@@ -89,6 +90,7 @@ if ((v(beta_a0$) == 0 .and. v(beta_b0$) == 0 .and. v(alpha_a0$) == 0 .and. v(alp
     v(etap_x1$)  = t_ele%x%etap
     v(etap_y1$)  = t_ele%y%etap
     v(c11_mat1$:c22_mat1$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
+    v(mode_flip1$) = int_logic(t_ele%mode_flip)
   else
     call mat_make_unit(mat6)
     vec0 = [v(x1$)-v(x0$), v(px1$)-v(px0$), v(y1$)-v(y0$), v(py1$)-v(py0$), v(z1$)-v(z0$), v(pz1$)-v(pz0$)]
@@ -122,6 +124,7 @@ if (is_true(v(match_end$))) then
   v(etap_x0$)  = t_ele%x%etap
   v(etap_y0$)  = t_ele%y%etap
   v(c11_mat0$:c22_mat0$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
+  v(mode_flip0$) = int_logic(t_ele%mode_flip)
 endif
 
 ! Special case where match_end is set but there is no beginning beta value yet.
@@ -176,10 +179,12 @@ ele1%y%etap   = v(etap_y1$)
 ele0%c_mat(1,:) = [v(c11_mat0$), v(c12_mat0$)]
 ele0%c_mat(2,:) = [v(c21_mat0$), v(c22_mat0$)]
 ele0%gamma_c    = sqrt(1 - determinant(ele0%c_mat))
+ele0%mode_flip  = is_true(ele%value(mode_flip0$))
 
 ele1%c_mat(1,:) = [v(c11_mat1$), v(c12_mat1$)]
 ele1%c_mat(2,:) = [v(c21_mat1$), v(c22_mat1$)]
 ele1%gamma_c    = sqrt(1 - determinant(ele1%c_mat))
+ele1%mode_flip  = is_true(ele%value(mode_flip1$))
 
 ele0%name = ele%name
 ele1%name = ele%name

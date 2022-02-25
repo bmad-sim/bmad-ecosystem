@@ -1204,10 +1204,12 @@ call init_attribute_name1 (match$, c11_mat0$,                       'C11_MAT0')
 call init_attribute_name1 (match$, c12_mat0$,                       'C12_MAT0')
 call init_attribute_name1 (match$, c21_mat0$,                       'C21_MAT0')
 call init_attribute_name1 (match$, c22_mat0$,                       'C22_MAT0')
+call init_attribute_name1 (match$, mode_flip0$,                     'MODE_FLIP0')
 call init_attribute_name1 (match$, c11_mat1$,                       'C11_MAT1')
 call init_attribute_name1 (match$, c12_mat1$,                       'C12_MAT1')
 call init_attribute_name1 (match$, c21_mat1$,                       'C21_MAT1')
 call init_attribute_name1 (match$, c22_mat1$,                       'C22_MAT1')
+call init_attribute_name1 (match$, mode_flip1$,                     'MODE_FLIP1')
 
 attrib_array(instrument$, :)                         = attrib_array(monitor$, :)
 attrib_array(pipe$, :)                               = attrib_array(monitor$, :)
@@ -1792,7 +1794,8 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
-      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'PHASE_TROMBONE', 'PHASE_TROMBONE_INPUT')
+      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'PHASE_TROMBONE', 'PHASE_TROMBONE_INPUT', &
+      'MODE_FLIP0', 'MODE_FLIP1')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
