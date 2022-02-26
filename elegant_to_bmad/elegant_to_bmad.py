@@ -39,72 +39,99 @@ ele_type_translate = {
   'ccbend':     'sbend',
   'csbend':     'sbend',
   'csrcsbend':  'sbend',
-  'csrdrift':   'drift',
-  'cwiggler':   'wiggler',
-  'drif':       'drift',
-  'ecol':       'ecollimator',
-  'edrift':     'drift',
-  'ehkick':     'hkicker',
-  'ekicker':    'kicker',
-  'ematrix':    'taylor',
-  'evkick':     'vkicker',
-  'floor':      'floor_shift',
-  'gfwiggler':  'wiggler',
-  'hkick':      'hkicker',
-  'hmon':       'monitor',
-  'ilmatrix':   'match',
-  'kicker':     'kicker',
-  'koct':       'octupole',
-  'kquad':      'quadrupole',
-  'kquse':      'quadrupole',
-  'ksext':      'sextupole',
-  'malign':     'patch',
-  'mark':       'marker',
-  'modrf':      'rfcavity',
-  'mult':       'multipole',
   'nibend':     'sbend',
-  'octu':       'octupole',
-  'quad':       'quadrupole',
+  'sben':       'sbend',
+  'sbend':      'sbend',
   'rben':       'rbend',
   'rbend':      'rbend',
+  'drift':      'drift',
+  'csrdrift':   'drift',
+  'drif':       'drift',
+  'edrift':     'drift',
+  'cwiggler':   'wiggler',
+  'gfwiggler':  'wiggler',
+  'wiggler':    'wiggler',
+  'ehkick':     'hkicker',
+  'hkick':      'hkicker',
+  'vkick':      'vkicker',
+  'evkick':     'vkicker',
+  'ekicker':    'kicker',
+  'kicker':     'kicker',
+  'ematrix':    'taylor',
+  'hmon':       'monitor',
+  'vmon':       'monitor',
+  'watch':      'monitor',
+  'kquad':      'quadrupole',
+  'kquse':      'quadrupole',
+  'quad':       'quadrupole',
+  'ksext':      'sextupole',
+  'sext':       'sextupole',
+  'octu':       'octupole',
+  'koct':       'octupole',
+  'malign':     'patch',
+  'mark':       'marker',
+  'mult':       'multipole',
+  'ecol':       'ecollimator',
   'rcol':       'rcollimator',
+  'scraper':    'rcollimator',
+  'modrf':      'rfcavity',
   'rfca':       'rfcavity',
   'rfdf':       'rfcavity',
+  'tmcf':       'lcavity',
+  'shrfdf':     'crab_cavity',
+  'sole':       'solenoid',
+  'twiss':      'beginning',
+  'floor':      'floor_shift',
+  'ilmatrix':   'match',
   'rotate':     'marker', #  [exclude_floor != 0, exclude_optics != 0]
                # taylor      [exclude_floor != 0, exclude_optics == 0]
                # floor_shift [exclude_floor == 0, exclude_optics != 0]
                # patch       [exclude_floor == 0, exclude_optics == 0]
-  'sben':       'sbend',
-  'sbend':      'sbend',
-  'scraper':    'rcollimator',
-  'sext':       'sextupole',
-  'shrfdf':     'crab_cavity',
-  'sole':       'solenoid',
-  'tmcf':       'lcavity',
-  'twiss':      'beginning',
-  'vkick':      'vkicker',
-  'vmon':       'monitor',
-  'watch':      'monitor',
-  'wiggler':    'wiggler',
 }
 
 bmad_param_name = {
-  'dx':       'x_offset',
-  'dy':       'y_offset',
-  'dz':       'z_offset',
-  'pitch':    'y_pitch',
-  'yaw':      'x_pitch'
+  'dx':           'x_offset',
+  'dy':           'y_offset',
+  'dz':           'z_offset',
+  'pitch':        'y_pitch',
+  'yaw':          'x_pitch',
+  'l':            'l',
+  'angle':        'angle',
+  'b':            'b_field',
+  'e1':           'e1',
+  'e2':           'e2',
+  'ks':           'ks',
+  'k1':           'k1',
+  'k2':           'k2',
+  'k3':           'k3',
+  'tilt':         'tilt',  # bend ref_tilt handled in bmad_param routine
+  'h1':           'h_gap',
+  'h2':           'h_gapx',
+  'hgap':         'hgap',
+  'hgapx':        'hgapx',
+  'fint':         'fint',
+  'fintx':        'fintx',
+  'fint1':        'fint',
+  'fint2':        'fintx',
+  'xkick':        'hkick',
+  'ykick':        'vkick',
+  'kick':         'kick',
+  'xcenter':      'x_offset',
+  'ycenter':      'y_offset',
+  'xsize':        'sig_x',
+  'ysize':        'sig_y',
+  'charge':       'charge',
+  'b_max':        'b_max',
+  'periods':      'n_period',
+  'vertical':     'tilt = pi/2',
+  'helical':      'field_calc = helical_model',
+  'x_max':        'x_limit',
+  'y_max':        'y_limit',
+  'frequency':    'rf_frequency:1e6',
+  'phase':        'phi0',
+  'fse_dipole':   'dg:(%[angle]/%[L])',
+  'fse':          'dg:(%[angle]/%[L])',
 }
-
-com_param = ['hkick', 'vkick', 'k1', 'k2', 'k3', 'e1', 'e2', 'tilt', 'hgap', 'hgapx', 'fint', 'fintx',
-             'h1', 'h2', 'angle', 'l']
-for param in com_param:
-  bmad_param_name[param] = param
-
-
-#  'fse_dipole': 'dg'
-#  'edge1_effects'
-#  'edge2_effects'
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -201,9 +228,17 @@ def infixer(tokens, ix0, toplevel=True):
 def postfix_to_infix(str):
 
   # Split expression into tokens and recombine numbers like "3.4e-7" into a single token.
+  # Also the minus sign in something like "a -1 *" is a unary minus.
+  # To avoid splitting on a unary minus, substitute "@" for all unary minusus
+
+  for i in range(len(str)-1):
+    if str[i] == '-' and str[i+1] in '0123456789.': str = str[:i] + '@' + str[i+1:]
 
   tokens = re.split('([/\-\*\+\^ ])', str)
   tokens = [val for val in tokens if val != '' and val != ' ']
+
+  for i in range(len(tokens)):
+    if tokens[i][0] == '@': tokens[i] = '-' + tokens[i][1:]
 
   #print (f'{tokens}')
 
@@ -229,24 +264,26 @@ def bmad_param(param, ele_name):
 
   # For the SLAC version there are Rij and Tijk matrix elements
 
+  if len(param) == 2 and param[0] == 'c' and param[1] in '123456':
+    return f'tt{param[1:]}'
+
   if len(param) == 3 and param[0] == 'r' and param[1] in '123456' and param[2] in '123456':
     return f'tt{param[1:]}'
 
   if len(param) == 4 and param[0] == 't' and param[1] in '123456' and param[2] in '123456' and param[3] in '123456':
     return f'tt{param[1:]}'
 
-  elif param in bmad_param_name:
-    return bmad_param_name[param]
+  if param not in bmad_param_name: return '?'
+
+  #
+
+  bparam = bmad_param_name[param]
 
   if ele_name in common.ele_dict:
-    elegant_type = common.ele_dict[ele_name].elegant_type
-  else:
-    elegant_type = 'xxxx'
+    bmad_type = common.ele_dict[ele_name].bmad_type
+    if bparam == 'tilt' and (bmad_type == 'sbend' or bmad_type == 'rbend'): bparam = 'ref_tilt'
 
-  if param == 'tilt':
-    if elegant_type == 'sbend' or elegant_type == 'rbend': return 'ref_tilt'
-
-  return param
+  return bparam
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -316,30 +353,6 @@ def parameter_dictionary(word_lst):
   pdict = OrderedDict()
   while True:
     if len(word_lst) == 0: return pdict
-
-    if 'tilt' in word_lst:
-      ix = word_lst.index('tilt')
-      if len(word_lst) > ix + 1 and word_lst[ix+1] == ',':
-        pdict['tilt'] = ''
-        word_lst.pop(ix+1)
-        word_lst.pop(ix)
-      elif len(word_lst) == ix + 1 and word_lst[ix-1] == ',':
-        pdict['tilt'] = ''
-        word_lst.pop(ix)
-        word_lst.pop(ix-1)
-      elif len(word_lst) > ix + 1 and word_lst[ix+1] == '=':
-        if ',' in word_lst[ix+1:]:
-          ixe = word_lst.index(',', ix+1)
-          pdict['tilt'] = ' '.join(word_lst[ix+2:ixe])
-          word_lst = word_lst[:ix] + word_lst[ixe+1:]
-        else:
-          pdict['tilt'] = ' '.join(word_lst[ix+2:])
-          word_lst = word_lst[:ix]
-          if ix > 0 and word_lst[-1] == ',': word_lst.pop()
-      else:
-        print ('PROBLEM PARSING "TILT" IN PARAMETER LIST: ' + ''.join(orig_word_lst))
-        return dict
-      continue
 
     if word_lst[1] != '=':
       print ('PROBLEM PARSING PARAMETER LIST: ' + ''.join(orig_word_lst))
@@ -439,8 +452,8 @@ def negate(str):
 #------------------------------------------------------------------
 # Parse a lattice element
 
-def parse_element(dlist, write_to_file):
-  global common, ele_type_translate
+def parse_element(dlist):
+  global common, ele_type_translate, bmad_param_name
 
   ele = ele_struct(dlist[0])
 
@@ -464,14 +477,27 @@ def parse_element(dlist, write_to_file):
   ele.param = params
   common.ele_dict[dlist[0]] = ele
 
-  if write_to_file:
-    line = ele.name + ': ' + ele.bmad_type
-    for param in ele.param:
-      value = params[param]
-      if value[0] == '"' or value[0] == "'": value = postfix_to_infix(value[1:-1])[0]
-      line += f', {bmad_param(param, ele.name)} = {value}'
-    f_out = common.f_out[-1]
-    wrap_write(line, f_out)
+  line = ele.name + ': ' + ele.bmad_type
+  for param in ele.param:
+    bparam = bmad_param(param, ele.name)
+    if bparam == '?': continue
+    if ele.bmad_type == 'drift' and bparam != 'l': continue
+    value = params[param]
+    if value[0] == '"' or value[0] == "'": value = postfix_to_infix(value[1:-1])[0]
+    line += f', {bparam} = {value}'
+
+  ee1 = int(params.get('edge1_effects', '1'))
+  ee2 = int(params.get('edge2_effects', '1'))
+
+  if ee1 == 0 and ee2 == 0:
+    line += f', fringe_at = no_end'
+  elif ee1 != 0 and ee2 == 0:
+    line += f', fringe_at = entrance_end'
+  elif ee1 == 0 and ee2 != 0:
+    line += f', fringe_at = exit_end'
+
+  f_out = common.f_out[-1]
+  wrap_write(line, f_out)
 
   return ele
 
@@ -484,7 +510,7 @@ def parse_command(command, dlist):
   f_out = common.f_out[-1]
   if common.debug: print (str(dlist))
 
-  if len(dlist) == 0: 
+  if len(dlist) == 0:
     f_out.write('\n')
     return
 
@@ -572,7 +598,7 @@ def parse_command(command, dlist):
   # Element def
 
   if dlist[1] == ':':
-    parse_element(dlist, True)
+    parse_element(dlist)
     return
 
   # Unknown
@@ -629,11 +655,14 @@ def get_next_command ():
       dlist = ['%', line[1:].strip()]
       return [command, dlist]
 
+    if line.rstrip()[:9].lower() == '#include:':
+      pass
+
     while line != '':
       for ix in range(len(line)):
-        #print (f'Ix: {ix:4} {line[ix]} -{quote_delim}--{line.rstrip()}')
-        #print (f'C: {command}')
-        #print (f'D: {dlist}')
+        #print (f'Ix: {ix} {len(line)} {line[ix]} -{quote_delim}-|{line.rstrip()}')
+        #print (f'  C: {command}')
+        #print (f'  D: {dlist}')
 
         if line[ix] == '"' or line[ix] == "'":
           if line[ix] == quote_delim:      # Found end of string
@@ -653,7 +682,7 @@ def get_next_command ():
         if quote_delim != '': continue     # Cycle if in quote string
 
         if line[ix] == '!':
-          if len(line) > ix+10 and line[ix:ix+10] == '!!verbatim':
+          if line[ix:].startswith('!!verbatim'):
             f_out.write(line[ix+10:].strip() + '\n')
           else:
             f_out.write(line[ix:])
@@ -663,8 +692,7 @@ def get_next_command ():
           if len(dlist) != 0: return [command, dlist]
           break
 
-        if line[ix] == ',': print (f'{ix} {len(line)}: {line}')
-        elif line[ix] == '&' or (line[ix] == ',' and ix == len(line)-1):
+        elif line[ix] == '&' or (line[ix] == ',' and ix == len(line.rstrip())-1):
           line2 = f_in.readline().lstrip()
           while True:
             if line2[0] == '\n' or line2.lstrip()[0] == '!':
@@ -672,7 +700,12 @@ def get_next_command ():
               line2 = f_in.readline().lstrip()
             else:
               break
-          line = line[:ix] + line2
+
+          if line[ix] == '&':
+            line = line[:ix] + line2
+          else:
+            line = line[:ix+1] + line2
+
           break
 
         elif line[ix] == ';':
@@ -682,7 +715,7 @@ def get_next_command ():
             line = line[ix+1:]
             break
           else:
-            common.command = line[ix+1:]
+            common.command = line[ix+1:].strip()
             return [command, dlist]
 
         elif line[ix] in ':,=':
@@ -724,6 +757,7 @@ common.one_file = not arg.many_files
 elegant_lattice_file = arg.elegant_file
 bmad_lattice_file = bmad_file_name(elegant_lattice_file)
 
+print ('*******Note: In beta testing! Please report any problems! **********')
 print ('Input lattice file is:  ' + elegant_lattice_file)
 print ('Output lattice file is: ' + bmad_lattice_file)
 
@@ -784,3 +818,4 @@ for line in lines:
   f_out.write(line)
 
 f_out.close()
+print ('*******Note: In beta testing! Please report any problems! **********')
