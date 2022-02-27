@@ -25,6 +25,7 @@ class common_struct:
   def __init__(self):
     self.debug = False
     self.one_file = True
+    self.add_constants = False       # Add elegant defined constants to lattice file?
     self.ele_dict = {}               # Dict of elements
     self.f_in = []         # Elegant input files
     self.f_out = []        # Bmad output files
@@ -524,6 +525,24 @@ def parse_command(command, dlist):
     wrap_write (f'{toks[2]} = {toks[0]}', f_out)
     return
 
+  # "#include"
+
+  if dlist[0] == '#include:':
+
+    file = dlist[1]
+    if '"' in file or "'" in file:
+      file = file.replace('"', '').replace("'", '')
+    else:
+      file = file.lower()    
+
+    common.f_in.append(open(file, 'r'))  # Store file handle
+    if common.one_file: 
+      f_out.write(f'\n! In File: {common.f_in[-1].name}\n')
+    else:
+      f_out.write(f'call, file = {bmad_file_name(file)}\n')
+      common.f_out.append(open(bmad_file_name(file), 'w'))
+    return
+
   # Everything below has at least 3 words
 
   if len(dlist) < 3:
@@ -563,24 +582,6 @@ def parse_command(command, dlist):
     else:  # In a complete valid lattice, parameter seets always happen after the element has been defined
       name = f'{dlist[0]}[{bmad_param(dlist[2], "???")}]'
     f_out.write(f'{name} = {value}\n')
-    return
-
-  # #include
-
-  if dlist[0] == '#include':
-
-    file = command.split('=')[1].strip()
-    if '"' in file or "'" in file:
-      file = file.replace('"', '').replace("'", '')
-    else:
-      file = file.lower()    
-
-    common.f_in.append(open(file, 'r'))  # Store file handle
-    if common.one_file: 
-      f_out.write(f'\n! In File: {common.f_in[-1].name}\n')
-    else:
-      f_out.write(f'call, file = {bmad_file_name(file)}\n')
-      common.f_out.append(open(bmad_file_name(file), 'w'))
     return
 
   # Use
@@ -646,9 +647,27 @@ def get_next_command ():
 
     # Parse line
 
-    if line.strip() == '':
-      f_out.write('\n')
+    if line.lstrip().startswith('!!verbatim'):
+      f_out.write(line[ix+10:].strip() + '\n')
       continue
+
+    try:
+      ix = line.index('!')
+      f_out.write(line[ix:])
+      line = line[:ix]
+      continue
+    except:
+      if line.strip() == '': 
+        f_out.write('\n')
+        continue
+
+    try:
+      ix = line.index(';')
+      line = line[:ix]
+      print ('L: ' + line)
+      common.command = line[ix+1:].strip()
+    except:
+      if line.strip() == '': continue
 
     if line[0] == '%':
       command = line
@@ -656,11 +675,14 @@ def get_next_command ():
       return [command, dlist]
 
     if line.rstrip()[:9].lower() == '#include:':
-      pass
+      command = line
+      dlist = ['#include:', line[9:].strip()]
+      return [command, dlist]
+
 
     while line != '':
       for ix in range(len(line)):
-        #print (f'Ix: {ix} {len(line)} {line[ix]} -{quote_delim}-|{line.rstrip()}')
+        #print (f'Ix: {ix}/{len(line)} "{line[ix]}" -{quote_delim}-|{line.rstrip()}')
         #print (f'  C: {command}')
         #print (f'  D: {dlist}')
 
@@ -681,18 +703,7 @@ def get_next_command ():
 
         if quote_delim != '': continue     # Cycle if in quote string
 
-        if line[ix] == '!':
-          if line[ix:].startswith('!!verbatim'):
-            f_out.write(line[ix+10:].strip() + '\n')
-          else:
-            f_out.write(line[ix:])
-          command += line[:ix]
-          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
-          line = ''
-          if len(dlist) != 0: return [command, dlist]
-          break
-
-        elif line[ix] == '&' or (line[ix] == ',' and ix == len(line.rstrip())-1):
+        if line[ix] == '&' or (line[ix] == ',' and ix == len(line.rstrip())-1):
           line2 = f_in.readline().lstrip()
           while True:
             if line2[0] == '\n' or line2.lstrip()[0] == '!':
@@ -708,16 +719,6 @@ def get_next_command ():
 
           break
 
-        elif line[ix] == ';':
-          command += line[:ix]
-          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
-          if len(dlist) == 0:
-            line = line[ix+1:]
-            break
-          else:
-            common.command = line[ix+1:].strip()
-            return [command, dlist]
-
         elif line[ix] in ':,=':
           command += line[:ix+1]
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
@@ -726,8 +727,8 @@ def get_next_command ():
           break
 
         elif line[ix] == '\n' or ix == len(line)-1:
-          command += line[:ix+1]
-          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
+          command += line
+          if line.strip() != '': dlist.append(line.strip().lower())
           return [command, dlist]
 
         elif ix == len(line)-1:   # Happens at end of file
@@ -748,11 +749,13 @@ argp = argparse.ArgumentParser()
 argp.add_argument('elegant_file', help = 'Name of input Elegant lattice file')
 argp.add_argument('-d', '--debug', help = 'Print debug info (not of general interest).', action = 'store_true')
 argp.add_argument('-f', '--many_files', help = 'Create a Bmad file for each Elegant input file.', action = 'store_true')
+argp.add_argument('-h', '--constants', help = 'Add to lattice file a list of Elegant defined constant.', action = 'store_false')
 arg = argp.parse_args()
 
 common = common_struct()
 common.debug = arg.debug
 common.one_file = not arg.many_files
+common.add_constants = arg.constants
 
 elegant_lattice_file = arg.elegant_file
 bmad_lattice_file = bmad_file_name(elegant_lattice_file)
@@ -793,6 +796,10 @@ f_out.write (f'''
 ! Translated by elegant_to_bmad.py from Elegant file: {elegant_lattice_file}
 !-
 
+''')
+
+if common.add_constants:
+  f_out.write (f'''
 c_cgs = 2.99792458e10
 c_mks = 2.99792458e8 
 e_cgs = 4.80325e-10

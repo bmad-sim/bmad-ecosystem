@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #+
 # Script to convert from MADX lattice format to Bmad lattice format.
 # See the README file for more details
@@ -800,19 +802,25 @@ def parse_command(command, dlist):
     # Replace "[[...]]" marker strings in offsets for elements that have been inserted when ref 
     # element has not yet been defined at the point the element was parsed.
 
+    if not common.superimpose_eles and not is_zero(offset):
+      drift_name = f'drift{common.drift_count}'
+      seq.drift_list.append(f'{drift_name}: drift, l = {offset}')
+      seq.line += drift_name + ', '
+      common.drift_count += 1
+      print (f'1: {seq.drift_list[-1]}')
     
     for ix, drift in enumerate(seq.drift_list):
-      continue
-      if '[[' not in drift: continue
-      ix1 = drift.find('[[')
-      ix2 = drift.find(']]')
-      ref_ele_name = drift[ix1+2:ix2]
-      from_ref_ele = seq.seq_ele_dict[ref_ele_name]
-      offset = from_ref_ele.at
-      if 'l' in from_ref_ele.param:
-        if seq.refer == 'entry': offset += f' + {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
-        if seq.refer == 'exit': offset += f' - {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
-      seq.drift_list[ix] = f'{drift[:ix1]}({offset}){drift[ix2+2:]}'
+      while '[[' in drift:
+        ix1 = drift.find('[[')
+        ix2 = drift.find(']]')
+        ref_ele_name = drift[ix1+2:ix2]
+        from_ref_ele = seq.seq_ele_dict[ref_ele_name]
+        offset = from_ref_ele.at
+        if 'l' in from_ref_ele.param:
+          if seq.refer == 'entry': offset += f' + {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
+          if seq.refer == 'exit': offset += f' - {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
+        drift = f'{drift[:ix1]}({offset}){drift[ix2+2:]}'
+        seq.drift_list[ix] = drift
 
     for drift in seq.drift_list:
       f_out.write(drift + '\n')
@@ -820,13 +828,7 @@ def parse_command(command, dlist):
     #
 
     if not common.superimpose_eles:
-      if is_zero(offset):
-        wrap_write (f'{seq.name}: line = ({seq.line[:-2]})', f_out)
-      else:
-        drift_name = f'drift{common.drift_count}'
-        f_out.write(f'{drift_name}: drift, l = {offset}\n')
-        wrap_write (f'{seq.name}: line = ({seq.line}{drift_name})', f_out)
-        common.drift_count += 1
+      wrap_write (f'{seq.name}: line = ({seq.line[:-2]})', f_out)
 
     return
 
@@ -897,8 +899,13 @@ def parse_command(command, dlist):
         common.ele_dict[dlist[0]].count += 1
         ele_name = f'{dlist[0]}__{common.ele_dict[dlist[0]].count}'
         ele = parse_and_write_element([ele_name, ':']+dlist, True, command)
+      seq.seq_ele_dict[ele_name] = ele    # In case this element is used as a positional reference
 
-    else:
+    else:   # Subsequence
+      ele = ele_struct(dlist[0])
+      ele.params = parameter_dictionary(dlist[2:])
+      ele.at = ele.params['at']
+      seq.seq_ele_dict[dlist[0]] = ele    # In case this element is used as a positional reference      
       is_ele_here = False
 
     # Finish ele in sequence.
@@ -914,7 +921,10 @@ def parse_command(command, dlist):
         else:
           # Ref element is not yet defined so put in marker string "[[...]]" that will be removed later to
           # be replaced by the actual offset.
-          offset = f'[[{ele.from_ref_ele}]]{offset}'
+          if offset == '':
+            offset = f'[[{ele.from_ref_ele}]]'
+          else:
+            offset += f' + [[{ele.from_ref_ele}]]'
 
       if common.superimpose_eles:
         f_out.write(f'superimpose, element = {ele_name}, ref = {seq.name}_mark, ' + \
@@ -959,6 +969,7 @@ def parse_command(command, dlist):
           seq.line += f'{drift_name}, {ele_name}, '
           seq.last_ele_offset = last_offset
           common.drift_count += 1
+          print (f'2: {seq.drift_list[-1]}')
 
       return
 
@@ -987,12 +998,15 @@ def parse_command(command, dlist):
       refpos_ele = seq2.seq_ele_dict[seq2.refpos]
       offset += f' - {add_parens(refpos_ele.at, False)}'
       last_offset += f' + {refpos_ele.at} - {add_parens(seq2.l, False)}'
+      print (f'A: {last_offset}')
     elif seq.refer == 'entry':
       if length != '': last_offset += f' + {length}'
+      print (f'B: {last_offset}')
     elif seq.refer == 'centre':
       offset += f' - {add_parens(length, False)}/2'
       if length != '': this_offset += f' - {length}/2'
       if length != '': last_offset += f' + {length}/2'
+      print (f'C: {last_offset}')
     else:
       offset += f' - {add_parens(length, False)}'
       if length != '': this_offset += f' - {length}'
@@ -1007,7 +1021,8 @@ def parse_command(command, dlist):
       common.drift_count += 1
 
       if seq.last_ele_offset != '': drift_line += f' - {add_parens(seq.last_ele_offset, False)}'
-      f_out.write(drift_line + '\n')
+      seq.drift_list.append(drift_line)
+      print (f'3: {seq.drift_list[-1]}')
       seq.line += f'{drift_name}, {ele_name}, '
       seq.last_ele_offset = last_offset
 

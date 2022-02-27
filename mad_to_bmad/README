@@ -30,10 +30,10 @@ Minimum python version needed is 3.6.
 The scripts run independently of whether the standard Bmad environmental variables have been setup.
 
 To convert MAD8 files, use the command:
-  python <path-to-script>/mad8_to_bmad {options} <mad8-file-name>
+  python <path-to-script>/mad8_to_bmad.py {options} <mad8-file-name>
 
 To convert MADX files, use the command:
-  python <path-to-script>/madx_to_bmad {options} <madx-file-name>
+  python <path-to-script>/madx_to_bmad.py {options} <madx-file-name>
 
 where <path-to-script> is the path to the directory where the script is.
 

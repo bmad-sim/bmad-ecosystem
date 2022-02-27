@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #+
 # Script to convert from MAD8 lattice format to Bmad lattice format.
 # See the README file for more details
