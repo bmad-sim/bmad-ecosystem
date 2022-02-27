@@ -76,7 +76,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ November 21, 2021}
+\date{David Sagan and Chris Mayes \\ February 26, 2022}
 \begin{document}
 
 \maketitle
@@ -3650,12 +3650,26 @@ The variables that are used in the present example are defined in the bottom sec
   default_key_bound = T
 /
 \end{code}
-Just like \vn{data}, \vn{variables} are grouped into a tree but in this case there are only two
-levels.  The top level nodes of the tree are called \vn{v1_var} structures. In this example a
-\vn{v1_var} structure is defined called \vn{quad} which controls the \vn{k1} attribute of all
-element whose name matches \vn{quad::*}. This will match to all quadrupoles. In this case, the
+Just like \vn{data}, \vn{variables} are grouped into a two level tree as illustrated in
+Fig.~\ref{f:var.tree}.  The top level nodes of the tree are called \vn{v1_var} structures. In this
+example a \vn{v1_var} structure is defined called \vn{quad} which controls the \vn{k1} attribute of
+all element whose name matches \vn{quad::*}. This will match to all quadrupoles. In this case, the
 lattice has 6 quadrupoles named \vn{Q1} through \vn{Q6}. Thus there will be an array of 6
 \vn{variables} associated with the \vn{quad} \vn{v1_var} structure.
+
+%----------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=0.90\textwidth]{var-tree.pdf}
+  \caption{
+Variables are grouped into a two level tree. A \vn{v1_var} structure holds an array of
+\vn{variables}. Illustrated is a \vn{var_var} structure holding an array of variables with each
+variable controlling the \vn{hkick} attribute of a particular lattice element.}
+  \label{f:var.tree}
+\end{figure}
+
+%----------------------------------------------------------
 
 To refer to an individual variable use the syntax:
 \begin{code}
