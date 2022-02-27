@@ -1,4 +1,4 @@
- 2021-09-22 21:32:17 
+ 2022-02-24 21:59:51 
  
    1   Drift                 20   !Bmad_Com
    2   Sbend                 29   !Line
@@ -66,18 +66,6 @@
  
  !---------------------------------
  20  !Bmad_Com           
-        81  MAX_APERTURE_LIMIT                      
-        82  DEFAULT_DS_STEP                         
-        83  SIGNIFICANT_LENGTH                      
-        84  REL_TOL_TRACKING                        
-        85  ABS_TOL_TRACKING                        
-        86  REL_TOL_ADAPTIVE_TRACKING               
-        87  ABS_TOL_ADAPTIVE_TRACKING               
-        88  INIT_DS_ADAPTIVE_TRACKING               
-        89  MIN_DS_ADAPTIVE_TRACKING                
-        90  FATAL_DS_ADAPTIVE_TRACKING              
-        91  MAX_NUM_RUNGE_KUTTA_STEP                
-        99  APERTURE_LIMIT_ON                       
  
  !---------------------------------
  29  !Line               
@@ -780,6 +768,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+       101  CURVATURE                               
        107  WALL                                    
        108  APERTURE_AT                             
        112  DESCRIP                                 
@@ -940,6 +929,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+       101  CURVATURE                               
        105  IS_ON                                   
        107  WALL                                    
        108  APERTURE_AT                             
@@ -999,6 +989,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+       101  CURVATURE                               
        105  IS_ON                                   
        107  WALL                                    
        108  APERTURE_AT                             
@@ -2239,31 +2230,33 @@
         17  ETAP_X1                                 
         18  ETA_Y1                                  
         19  ETAP_Y1                                 
-        20  MATCH_END_INPUT                         
-        21  MATCH_END                               
-        22  DELTA_TIME                              
-        24  X0                                      
-        25  PX0                                     
-        26  Y0                                      
-        27  PY0                                     
-        28  Z0                                      
-        29  PZ0                                     
-        30  X1                                      
-        31  PX1                                     
-        32  Y1                                      
-        33  PY1                                     
-        34  Z1                                      
-        35  PZ1                                     
-        36  MATCH_END_ORBIT_INPUT                   
-        37  MATCH_END_ORBIT                         
-        40  C11_MAT0                                
-        41  C12_MAT0                                
-        42  C21_MAT0                                
-        43  C22_MAT0                                
-        44  C11_MAT1                                
-        45  C12_MAT1                                
-        46  C21_MAT1                                
-        47  C22_MAT1                                
+        20  C11_MAT0                                
+        21  C12_MAT0                                
+        22  C21_MAT0                                
+        23  C22_MAT0                                
+        24  C11_MAT1                                
+        25  C12_MAT1                                
+        26  C21_MAT1                                
+        27  C22_MAT1                                
+        28  X0                                      
+        29  PX0                                     
+        30  Y0                                      
+        31  PY0                                     
+        32  Z0                                      
+        33  PZ0                                     
+        34  X1                                      
+        35  PX1                                     
+        36  Y1                                      
+        37  PY1                                     
+        38  Z1                                      
+        39  PZ1                                     
+        40  PHASE_TROMBONE_INPUT                    
+        41  PHASE_TROMBONE                          
+        42  MATCH_END_INPUT                         
+        43  MATCH_END                               
+        44  MATCH_END_ORBIT_INPUT                   
+        45  MATCH_END_ORBIT                         
+        46  DELTA_TIME                              
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -2348,6 +2341,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+       101  CURVATURE                               
        107  WALL                                    
        108  APERTURE_AT                             
        112  DESCRIP                                 
@@ -2508,6 +2502,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+       101  CURVATURE                               
        107  WALL                                    
        108  APERTURE_AT                             
        112  DESCRIP                                 
@@ -3488,6 +3483,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+       101  CURVATURE                               
        107  WALL                                    
        108  APERTURE_AT                             
        112  DESCRIP                                 
@@ -4282,7 +4278,7 @@
     20    19
     21    19
     22    18
-    23    19
+    23    20
     24    20
     25    16
     26    22
@@ -4297,8 +4293,8 @@
     35    46
     36    48
     37    48
-    38    47
-    39    25
+    38    48
+    39    26
     40    27
     41    26
     42    23
@@ -4306,7 +4302,7 @@
     44     6
     45     8
     46     8
-    47    20
+    47    19
     48     4
     49     6
     50    53
@@ -4340,17 +4336,17 @@
     78     0
     79     0
     80     0
-    81    12
-    82    60
-    83    36
-    84    40
-    85    37
-    86    26
-    87    54
-    88    32
-    89    38
-    90    35
-    91    52
+    81    11
+    82    59
+    83    35
+    84    39
+    85    36
+    86    25
+    87    53
+    88    31
+    89    37
+    90    34
+    91    51
     92    53
     93    53
     94    51
@@ -4358,9 +4354,9 @@
     96    51
     97    50
     98    50
-    99     3
+    99     2
    100    32
-   101     4
+   101    10
    102     4
    103    33
    104     3
@@ -5090,6 +5086,7 @@ Index: 23
     Marker              
     Rbend               
     Lcavity             
+    Match               
     Monitor             
     Instrument          
     !Particle_Start     
@@ -5516,6 +5513,7 @@ Index: 38
     Solenoid            
     Patch               
     Lcavity             
+    Match               
     Monitor             
     Instrument          
     Hkicker             
@@ -5559,6 +5557,7 @@ Index: 39
     Rbend               
     Solenoid            
     Lcavity             
+    Match               
     Monitor             
     Instrument          
     Rcollimator         
@@ -5716,7 +5715,6 @@ Index: 47
     Lcavity             
     !Parameter          
     !Line               
-    Match               
     Hkicker             
     Vkicker             
     EM_Field            
@@ -6889,7 +6887,6 @@ Index: 81
     Group               
     Overlay             
     Taylor              
-    !Bmad_Com           
     Converter           
     Mirror              
     Crystal             
@@ -6920,7 +6917,6 @@ Index: 82
     Octupole            
     Rbend               
     Multipole           
-    !Bmad_Com           
     AB_multipole        
     Solenoid            
     Patch               
@@ -6979,7 +6975,6 @@ Index: 83
     Kicker              
     Octupole            
     Rbend               
-    !Bmad_Com           
     Solenoid            
     Lcavity             
     !Parameter          
@@ -7018,7 +7013,6 @@ Index: 84
     Kicker              
     Octupole            
     Rbend               
-    !Bmad_Com           
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -7059,7 +7053,6 @@ Index: 85
     Kicker              
     Octupole            
     Rbend               
-    !Bmad_Com           
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -7096,7 +7089,6 @@ Index: 86
     Kicker              
     Octupole            
     Rbend               
-    !Bmad_Com           
     AB_multipole        
     Solenoid            
     !Parameter          
@@ -7132,7 +7124,6 @@ Index: 87
     Octupole            
     Rbend               
     Multipole           
-    !Bmad_Com           
     AB_multipole        
     Solenoid            
     Patch               
@@ -7185,7 +7176,6 @@ Index: 88
     Kicker              
     Octupole            
     Rbend               
-    !Bmad_Com           
     Solenoid            
     Lcavity             
     Monitor             
@@ -7222,7 +7212,6 @@ Index: 89
     Kicker              
     Octupole            
     Rbend               
-    !Bmad_Com           
     Solenoid            
     Lcavity             
     Monitor             
@@ -7261,7 +7250,6 @@ Index: 90
     Kicker              
     Octupole            
     Rbend               
-    !Bmad_Com           
     Solenoid            
     Lcavity             
     Monitor             
@@ -7303,7 +7291,6 @@ Index: 91
     Octupole            
     Rbend               
     Multipole           
-    !Bmad_Com           
     AB_multipole        
     Solenoid            
     Patch               
@@ -7720,7 +7707,6 @@ Index: 98
  
  !---------------------------------
 Index: 99
-    !Bmad_Com           
     Beginning_Ele       
     !Line               
  
@@ -7762,7 +7748,13 @@ Index: 100
  !---------------------------------
 Index: 101
     Wiggler             
+    Mirror              
+    Crystal             
+    Multilayer_Mirror   
     Undulator           
+    Diffraction_Plate   
+    Sample              
+    Detector            
     AC_Kicker           
     !PTC_Com            
  
