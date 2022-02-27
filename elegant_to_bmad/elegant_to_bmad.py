@@ -749,7 +749,7 @@ argp = argparse.ArgumentParser()
 argp.add_argument('elegant_file', help = 'Name of input Elegant lattice file')
 argp.add_argument('-d', '--debug', help = 'Print debug info (not of general interest).', action = 'store_true')
 argp.add_argument('-f', '--many_files', help = 'Create a Bmad file for each Elegant input file.', action = 'store_true')
-argp.add_argument('-h', '--constants', help = 'Add to lattice file a list of Elegant defined constant.', action = 'store_false')
+argp.add_argument('-h', '--constants', help = 'Add to lattice file a list of Elegant defined constants.', action = 'store_false')
 arg = argp.parse_args()
 
 common = common_struct()
