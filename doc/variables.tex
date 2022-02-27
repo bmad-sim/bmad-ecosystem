@@ -2,21 +2,34 @@
 \label{c:var}
 \index{variables}
 
-!-------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------
 \section{Overview}
 \label{s:var.overview}
 
 \vn{Variables} can be defined in the \tao initialization files (\sref{s:init.var}) that can also be
-used to vary \vn{model} lattice parameters.  A given \tao variable may control a single attribute of
-one element in one or more universes.  There are a few reasons why one would want to setup such
-variables.  For example, the optimizer (\sref{c:opti}) will only work with \tao variables and blocks
-of these variables can be plotted for visual inspection.
+used to vary \vn{model} lattice parameters. A given \tao variable may control a single attribute of
+one element in one or more universes. The main reason to define variables is to enable optimizations
+(\sref{c:opti}). Another reason is that block variables can be plotted for visual inspection.
+
+%-------------------------------------------------------------------------------
+\begin{figure}
+  \centering
+  \includegraphics[width=4in]{var-tree.pdf}
+  \caption[VAriable tree structure]
+{A \vn{v1_var} structure holds an array of variables. Illustrated is a \vn{var_var} structure
+holding an array of variables with each variable controlling the \vn{hkick} attribute of a
+particular lattice element.}
+  \label{f:var.tree}
+\end{figure}
+
+%-------------------------------------------------------------------------------
 
 \index{variables!v1_var}
-Blocks of variables are associated with what is called a \vn{v1_var} structure and each of these
-structures has a \vn{name} with which to refer to them in \tao commands. For example, if
-\vn{quad_k1} is the name of a \vn{v1_var}, then \vn{quad_k1[5]} referees to the variable with index
-5 in the block.
+Blocks of variables are associated with what is called a \vn{v1_var} structure as illustrated in
+Figure~\ref{f:var.tree}. Each \vn{v1_var} structure defined has a \vn{name} with which to refer to
+in \tao commands. For example, if ``\vn{quad_k1}'' is the name of a \vn{v1_var}, then
+\vn{quad_k1[5]} references the variable with index 5 in the array associated with the \vn{quad_k1}
+\vn{v1_var} structure.
 
 A set of variables within a \vn{v1_var} block can be referred to by using using a comma \vn{,} to
 separate their indexes. Additionally, a Colon ``\vn{:}'' can be use to specify a range of
@@ -43,7 +56,7 @@ denote ``all''. Thus:
   quad_k1|model     ! Same as quad_k1[*]|model
 \end{example}
 
-!-------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------
 \section{Anatomy of a Variable}
 \label{s:var.anatomy}
 
@@ -180,7 +193,7 @@ Weight used in the merit function. $w_j$ in \Eq{m1}
 These components and others can be refereed to in expressions using the notation documented
 in \Sref{s:var.token}.
 
-!-------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------
 \section{Use in Optimization and Graphing}
 \label{s:var.use}
 
@@ -208,7 +221,7 @@ Since \vn{useit_plot} is set on a graph by graph basis, If multipole graphs that
 variable are to be plotted, The setting of \vn{useit_plot} at the end of plotting will just be
 the setting for the last graph that was plotted.
 
-!-------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------
 \section{Slave Value Mismatch}
 \label{s:var.mismatch}
 
