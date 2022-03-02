@@ -61,6 +61,7 @@ ele_type_translate = {
   'ematrix':    'taylor',
   'hmon':       'monitor',
   'vmon':       'monitor',
+  'moni':       'monitor',
   'watch':      'monitor',
   'kquad':      'quadrupole',
   'kquse':      'quadrupole',
@@ -69,7 +70,6 @@ ele_type_translate = {
   'sext':       'sextupole',
   'octu':       'octupole',
   'koct':       'octupole',
-  'malign':     'patch',
   'mark':       'marker',
   'mult':       'multipole',
   'ecol':       'ecollimator',
@@ -77,12 +77,12 @@ ele_type_translate = {
   'scraper':    'rcollimator',
   'modrf':      'rfcavity',
   'rfca':       'rfcavity',
-  'rfdf':       'rfcavity',
-  'tmcf':       'lcavity',
+  'rfcw':       'rfcavity',
+  'rfdf':       'crab_cavity',
   'shrfdf':     'crab_cavity',
   'sole':       'solenoid',
-  'twiss':      'beginning',
   'floor':      'floor_shift',
+  'malign':     'patch',
   'ilmatrix':   'match',
   'rotate':     'marker', #  [exclude_floor != 0, exclude_optics != 0]
                # taylor      [exclude_floor != 0, exclude_optics == 0]
@@ -106,8 +106,8 @@ bmad_param_name = {
   'k2':           'k2',
   'k3':           'k3',
   'tilt':         'tilt',  # bend ref_tilt handled in bmad_param routine
-  'h1':           'h_gap',
-  'h2':           'h_gapx',
+  'h1':           'h1',
+  'h2':           'h2',
   'hgap':         'hgap',
   'hgapx':        'hgapx',
   'fint':         'fint',
@@ -115,23 +115,23 @@ bmad_param_name = {
   'fint1':        'fint',
   'fint2':        'fintx',
   'xkick':        'hkick',
+  'hkick':        'hkick',
   'ykick':        'vkick',
+  'vkick':        'vkick',
   'kick':         'kick',
   'xcenter':      'x_offset',
   'ycenter':      'y_offset',
   'xsize':        'sig_x',
   'ysize':        'sig_y',
-  'charge':       'charge',
   'b_max':        'b_max',
   'periods':      'n_period',
   'vertical':     'tilt = pi/2',
   'helical':      'field_calc = helical_model',
   'x_max':        'x_limit',
   'y_max':        'y_limit',
-  'frequency':    'rf_frequency:1e6',
+  'frequency':    'rf_frequency',
+  'freq':         'rf_frequency',
   'phase':        'phi0',
-  'fse_dipole':   'dg:(%[angle]/%[L])',
-  'fse':          'dg:(%[angle]/%[L])',
 }
 
 #------------------------------------------------------------------
@@ -233,13 +233,14 @@ def postfix_to_infix(str):
   # To avoid splitting on a unary minus, substitute "@" for all unary minusus
 
   for i in range(len(str)-1):
-    if str[i] == '-' and str[i+1] in '0123456789.': str = str[:i] + '@' + str[i+1:]
+    if str[i] == '-' and str[i+1] in '0123456789.': str = str[:i] + '@m' + str[i+1:]
+    if str[i] == '+' and str[i+1] in '0123456789.': str = str[:i] + '@p' + str[i+1:]
 
   tokens = re.split('([/\-\*\+\^ ])', str)
   tokens = [val for val in tokens if val != '' and val != ' ']
 
   for i in range(len(tokens)):
-    if tokens[i][0] == '@': tokens[i] = '-' + tokens[i][1:]
+    tokens[i] = tokens[i].replace('@m', '-').replace('@p', '+')
 
   #print (f'{tokens}')
 
@@ -285,39 +286,6 @@ def bmad_param(param, ele_name):
     if bparam == 'tilt' and (bmad_type == 'sbend' or bmad_type == 'rbend'): bparam = 'ref_tilt'
 
   return bparam
-
-#------------------------------------------------------------------
-#------------------------------------------------------------------
-# Return dictionary of "A = value" parameter definitions.
-# Also see parameter_dictionary routine.
-# The difference is that this routine will not split on commas.
-
-def action_parameter_dictionary(word_lst):
-  pdict = OrderedDict()
-  while True:
-    if len(word_lst) == 0:
-      return pdict
-
-    elif len(word_lst) == 1:
-      pdict[word_lst[0]] = ''
-      return pdict
-
-    elif word_lst[1] == '=':
-      try:
-        ix = word_lst.index(',')
-        pdict[word_lst[0]] = ' '.join(word_lst[2:ix])
-        word_lst = word_lst[ix+1:]
-      except:
-        pdict[word_lst[0]] = ' '.join(word_lst[2:])
-        return pdict
-
-    elif word_lst[1] == ',':
-      pdict[word_lst[0]] = ''
-      word_lst = word_lst[2:]
-
-    else:
-      print (f'CANNOT PARSE: {word_lst}')
-      return pdict
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -454,7 +422,7 @@ def negate(str):
 # Parse a lattice element
 
 def parse_element(dlist):
-  global common, ele_type_translate, bmad_param_name
+  global common, ele_type_translate
 
   ele = ele_struct(dlist[0])
 
@@ -473,19 +441,57 @@ def parse_element(dlist):
 
   params = parameter_dictionary(dlist[4:])
 
+  # If the reference energy changes then a cavity should be an lcavity.
+
+  if ele.bmad_type == 'rfcavity' and params.get('change_p0', '0') != '0': ele.bmad_type = 'lcavity'
+  if elegant_type == 'rotate':
+    if params.get('exclude_floor', '0') == '0' and params.get('exclude_optics', '0') == '0':
+      ele.bmad_type = 'patch'
+    elif params.get('exclude_floor', '0') != '0':
+      ele.bmad_type = 'taylor'
+    elif params.get('exclude_optics', '0') != '0':
+      ele.bmad_type = 'floor_shift'
+
   #
 
   ele.param = params
   common.ele_dict[dlist[0]] = ele
 
-  line = ele.name + ': ' + ele.bmad_type
+  line = f'{ele.name}: {ele.bmad_type}, type = "{elegant_type}"' 
+
   for param in ele.param:
     bparam = bmad_param(param, ele.name)
     if bparam == '?': continue
     if ele.bmad_type == 'drift' and bparam != 'l': continue
     value = params[param]
     if value[0] == '"' or value[0] == "'": value = postfix_to_infix(value[1:-1])[0]
+
+    if bparam == 'phi0':
+      if ele.bmad_type == 'lcavity':
+        value = f'({value} - 90)/360'
+      else:
+        value = f'({value})/360'
+
     line += f', {bparam} = {value}'
+
+  #
+
+  if elegant_type == 'rotate' and ele.bmad_type == 'taylor' and param.get('tilt', '0') != '0':
+    t = param[tilt]
+    line = f'''{ele.name}: {ele.bmad_type}, type = "{elegant_type}", tt11 = cos({t}), tt13 = sin({t}),
+t31 = -sin({t}), t33 = cos({t}), tt22 = cos({t}), tt24 = sin({t}), t42 = -sin({t}), t44 = cos({t})'''
+
+  #
+
+  if 'fse'        in ele.param: line += f', dg = {params["fse"]} * {ele.name}[angle]/{ele.name}[L]'
+  if 'fse_dipole' in ele.param: line += f', dg = {params["fse_dipole"]} * {ele.name}[angle]/{ele.name}[L]'
+  if 'charge'     in ele.param:
+    warp_write('parameter[n_part] = 1.602176634e-19', f_out)
+    line += f', charge = {params["charge"]}'
+
+  if 'knl' in ele.param: line += f', k{params.get("order", "1")}l = {value}'
+
+  #
 
   ee1 = int(params.get('edge1_effects', '1'))
   ee2 = int(params.get('edge2_effects', '1'))
@@ -587,12 +593,7 @@ def parse_command(command, dlist):
   # Use
 
   if dlist[0] == 'use':
-    if len(dlist) == 3:
-      common.use = dlist[2]
-    else:
-      params = action_parameter_dictionary(dlist[2:])
-      if 'period' in params:  common.use = params.get('period')
-
+    common.use = dlist[2]
     f_out.write('use, ' + common.use + '\n')
     return
 
@@ -664,7 +665,6 @@ def get_next_command ():
     try:
       ix = line.index(';')
       line = line[:ix]
-      print ('L: ' + line)
       common.command = line[ix+1:].strip()
     except:
       if line.strip() == '': continue
@@ -749,7 +749,7 @@ argp = argparse.ArgumentParser()
 argp.add_argument('elegant_file', help = 'Name of input Elegant lattice file')
 argp.add_argument('-d', '--debug', help = 'Print debug info (not of general interest).', action = 'store_true')
 argp.add_argument('-f', '--many_files', help = 'Create a Bmad file for each Elegant input file.', action = 'store_true')
-argp.add_argument('-h', '--constants', help = 'Add to lattice file a list of Elegant defined constants.', action = 'store_false')
+argp.add_argument('-c', '--constants', help = 'Add to lattice file a list of Elegant defined constants.', action = 'store_true')
 arg = argp.parse_args()
 
 common = common_struct()
