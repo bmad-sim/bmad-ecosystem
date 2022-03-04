@@ -288,7 +288,7 @@ case ('exit', 'quit')
   call out_io (s_dinfo$, r_name, "Stopping.")
   !MPI !Finalize MPI if it is on
   !MPI if (s%mpi%on) call tao_mpi_finalize()
-  stop
+  err_is_fatal = .true. ! So Tao will stop. 
  
 !--------------------------------
 ! HELP
