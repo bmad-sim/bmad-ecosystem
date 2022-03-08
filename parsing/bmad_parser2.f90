@@ -258,6 +258,10 @@ parsing_loop: do
       cycle parsing_loop
     endif
 
+    ! Need to call lattice_bookkeeper in the case where an overlay is to be removed since slave parameter
+    ! values needs to be set first.
+    call lattice_bookkeeper(lat)
+
     do i = 1, n_loc
       eles(i)%ele%ix_ele = -1
     enddo

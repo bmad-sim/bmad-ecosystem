@@ -194,6 +194,12 @@ track of where there are mode flips when evaluating synchrotron radiation integr
 like $I_{4a}$ and $I_{4b}$ (\sref{s:synch.ints}) since an individual integral must be evaluated
 using the same physical mode throughout.
 
+At any point where \bmad evaluates the Twiss parameters, a \vn{mode_flip} parameter is set. By
+default, \bmad sets the \vn{mode_flip} at the beginning of the lattice to \vn{False}
+(\sref{s:beginning}) and then calculates the \vn{mode_flip} parameter appropriately for any other
+point. For a lattice with a closed geometry, if the lattice is stable, the \vn{mode_flip} state at
+the end of the lattice will be equal to the state at the beginning of the lattice.
+
 %-----------------------------------------------------------------
 \section{Tunes From One-Turn Matrix Eigen Analysis}
 \label{s:eigen.tune}

@@ -688,9 +688,9 @@ else
 endif
 
 if (ele%key == patch$ .and. orbit%direction*ele%orientation == -1) then
-  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time, err_print_out_of_bounds = print_err)
+  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time, print_err = print_err)
 else
-  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time, err_print_out_of_bounds = print_err)
+  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time, print_err = print_err)
 endif
 
 if (err_flag) return

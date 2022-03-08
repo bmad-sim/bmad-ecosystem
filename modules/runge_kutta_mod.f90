@@ -687,13 +687,13 @@ if (ele%key == patch$) then
   ! Particle going towards an end uses the coordinate of that end.
   ! But the field is specified in the exit end coords so must transform if particle is traveling towards the entrance end.
   if (rel_dir == 1) then
-    call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
+    call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, print_err = print_err)
   else
     call floor_angles_to_w_mat(ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat = ww, w_mat_inv = ww_inv)
     orbit2 = orbit
     r_vec = matmul(ww_inv, [orbit%vec(1), orbit%vec(3), s_body] - [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)])
     orbit2%vec(1:3:2) = r_vec(1:2)
-    call em_field_calc (ele, param, r_vec(3)+ele%value(l$), orbit2, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
+    call em_field_calc (ele, param, r_vec(3)+ele%value(l$), orbit2, .true., field, calc_dfield, err, print_err = print_err)
     field%B = matmul(ww, field%B)
     field%E = matmul(ww, field%E)
     if (calc_dfield) then
@@ -705,7 +705,7 @@ if (ele%key == patch$) then
   endif
 
 else
-  call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
+  call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, print_err = print_err)
 endif
 
 if (err) return

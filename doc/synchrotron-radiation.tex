@@ -10,24 +10,25 @@ average energy emitted produces damping while the stochastic fluctuating part of
 produces excitation\cite{b:jowett}.
 
 \index{MAD!radiation}
-The treatment of radiation damping by \bmad essentially follows \mad. The energy loss through and element is
-modeled via 
+The treatment of radiation damping by \bmad essentially follows \mad. The energy loss through and
+element is modeled via
 \begin{equation}
-  \frac{\Delta E}{E_0} = -k_E \equiv -(k_d \, L_p + \sqrt{k_f \, L_p} \, \xi) \, (1 + p_z)^2
+  \frac{\Delta E}{E_0} = 
+  -k_E \equiv -(k_d \, \ave{g^2} \, L_p + \sqrt{k_f \, \ave{g^3} \, L_p} \, \xi) \, (1 + p_z)^2
 \end{equation}
-where $L_p$ is the actual path length, $k_d$ gives the deterministic part of the emission, $\xi$ is
-a Gaussian distributed random number with unit sigma and zero mean, and $k_f$ is the amplitude of
-the stochastic part of the emission. Values for $k_d$ and $k_f$ are calculated via the equations
+where $L_p$ is the actual path length, $g$ is the bending strength ($1/g$ is the bending radius),
+and $\ave{\ldots}$ is an average over the actual path.  In the above equation $k_d$ gives the
+deterministic part of the emission, $\xi$ is a Gaussian distributed random number with unit sigma
+and zero mean, and $k_f$ is the amplitude of the stochastic part of the emission. Values for $k_d$
+and $k_f$ are calculated via the equations
 \begin{align}
-  k_d &= \frac{2 \, r_e}{3} \, \gamma_0^3 \, \ave{g_0^2}
+  k_d &= \frac{2 \, r_e}{3} \, \gamma_0^3
     \label{k2r3g} \\
-  k_f &= \frac{55 \, r_e \, \hbar}{24 \, \sqrt{3} \, m_e \, c} \, 
-    \gamma_0^5 \ave{g_0^3}
+  k_f &= \frac{55 \, r_e \, \hbar}{24 \, \sqrt{3} \, m_e \, c} \, \gamma_0^5
     \label{k55rh}
 \end{align}
-where $r_e$ is the classical electron radius, $\gamma_0$ is the energy factor of an on-energy
-particle, $1/g_0$ is the bending radius of an on--energy particle, and $\ave{g_0^2}$ is an average
-of $g_0^2$ over the actual path.
+where $r_e$ is the classical electron radius and $\gamma_0$ is the energy factor of an on-energy
+particle.
 
 Since the radiation is emitted in the forward direction the angular orientation of the particle
 motion is invariant which leads to the following equations for the changes in momentum phase space
@@ -54,9 +55,10 @@ energy loss along the closed orbit. For this calculation the closed orbit should
 as calculated without radiation damping (in other words the closed orbit without the sawtooth). In
 this case, $k_E$ is calculated by
 \begin{equation}
-  k_E = (k_d \, L_p + \sqrt{k_f \, L_p} \, \xi) \, (1 + p_z)^2 - k_{d0} \, L_p
+  k_E = (k_d \, \ave{g^2} \, L_p + \sqrt{k_f \, \ave{g^3} \, L_p} \, \xi) \, (1 + p_z)^2 - 
+  k_d \, \ave{g_0^2} \, L_p
 \end{equation}
-where $k_{d0}$ is $k_d$ evaluated along the closed orbit. In practice, for the calculation, \bmad
+where $g_0$ is $g$ evaluated along the closed orbit. In practice, for the calculation, \bmad
 approximates the closed orbit as the zero orbit. 
 
 The deterministic and stochastic parts of the emission can be included or excluded from a tracking
@@ -111,10 +113,23 @@ where $\bfT_{21}$ is the transfer matrix without damping and $\bfZ_{21}$ is the 
 to damping computed via
 \begin{equation}
   \bfZ_{21} = \int_{s_1}^{s_2} ds \, \bfT_{2s} \, \bfd(s)
+  \label{zstd}
 \end{equation}
-with the local damping matrix $\bfd$ being computed from \Eqs{pk1pp}. Notice that since $\calM_{21}$
+with the local damping matrix $\bfd$ being computed from \Eqs{pk1pp}
+\begin{equation}
+  \bfd = -k_d \, \begin{pmatrix}
+    0 & 0     & 0 & 0     & 0 & 0        \\
+    0 & 1+p_z & 0 & 0     & 0 & p_x      \\
+    0 & 0     & 0 & 0     & 0 & 0        \\
+    0 & 0     & 0 & 1+p_z & 0 & p_y      \\
+    0 & 0     & 0 & 0     & 0 & 0        \\
+    0 & 0     & 0 & 0     & 0 & 2(1+p_z) \\
+  \end{pmatrix}
+\end{equation}
+where all quantities are evaluated on the closed orbit.
+Notice that since $\calM_{21}$
 is computed with respect to the beam centroid orbit, there is no constant part to the map. Since
-$\bfT_{21}$ is invertable, \Eq{mtz} can be writen in the form
+$\bfT_{21}$ is invertible, \Eq{mtz} can be written in the form
 \begin{equation}
   \bfM_{21} = \bigl( \boldsymbol{1} + \bfZ_{21} \, \bfT_{21}^{-1} \bigr) \, \bfT_{21} 
   \equiv \bfD_{21} \, \bfT_{21} 
@@ -124,40 +139,120 @@ $\bfD$ is defined by this equation.
 The $\Cal{S}$ matrix is calculated by first noting that, to linear order, the distribution of
 $\delta\bfr_2$ due to stochastic radiation over some length $ds$ as some point $s$ is
 \begin{equation}
-  \delta\bfr_2 = \sqrt{ds} \, \bfM_{2s} \, \bfV_\mk{f}(s) \, \xi
+  \delta\bfr_2 = \sqrt{ds} \, \bfM_{2s} \, \bfF_\mk{f}(s) \, \xi
 \end{equation}
 where $\bfM_{2s}$ is the first order part (matrix) of the map $\calM_{2s}$ from $s$ to $s_2$, and
-$\bfV_\mk{f}$ is (see \sref{s:radiation})
+$\bfF_\mk{f}$ is (see \sref{s:radiation})
 \begin{equation}
-  \bfV_\mk{f} = -\sqrt{k_f} \cdot (0, 0, 0, 0, 0, 1)
+  \bfF_\mk{f} = -\sqrt{k_f} \, g_0^3 \, (0, p_x \, (1 + p_z), 0, p_y \, (1 + p_z), 0, (1 + p_z)^2)
+  \label{fk000}
 \end{equation}
-where $k_f$ is to be evaluated on the reference orbit. Notice that since $\delta\bfr$ is, by definition,
-the deviation from the reference orbit, $p_x = r_2$ and $p_y = r_4$ will be zero on the reference
-orbit. The covariance matrix $\bfsig_\gamma$ is defined by $\sigma_{\gamma ij} \equiv \langle r_i \, r_j
-\rangle_\gamma$ where $\langle \ldots \rangle_\gamma$ is an average over the photon emission
-spectrum.\footnote
-  {
-Not to be confused with the beam size matrix $\bfsig$ which is an average over the particles of a beam.
-  }
- At $s_2$, due to the
-stochastic emission over the region between $s_1$ and $s_2$, $\bfsig_\gamma$ is
+where $k_f$ $p_x$, $p_y$ and $p_z$ are to be evaluated on the reference orbit. Notice that since
+$\delta\bfr$ is, by definition, the deviation from the reference orbit, $p_x = r_2$ and $p_y = r_4$
+will be zero on the reference orbit. The covariance matrix $\bfsig_\gamma$ is defined by
+$\sigma_{\gamma ij} \equiv \langle r_i \, r_j \rangle_\gamma$ where $\langle \ldots \rangle_\gamma$
+is an average over the photon emission spectrum. The contribution, $\bfsig_{\gamma21}$, to the
+covariance matrix at $s_2$ due to the stochastic emission over the region between $s_1$ and $s_2$,
+is
 \begin{equation}
-  \bfsig_\gamma(s_2) = \int_{s_1}^{s_2} ds \, 
-  \bfM_{2s} \, \big[ \bfV_\mk{f}(s) \otimes \bfV_\mk{f}(s) \big] \, \bfM_{2s}^t
+  \bfsig_{\gamma21} = \int_{s_1}^{s_2} ds \, 
+  \bfM_{2s} \, \big[ \bfF_\mk{f}(s) \, \bfF_\mk{f}^t(s) \big] \, \bfM_{2s}^t
   \label{smvvm}
 \end{equation}
-where $\otimes$ is the outer product and the $t$ superscript indicates transpose. $\bfsig_\gamma$ is
-related to $\Cal{S}$ via
+where the $t$ superscript indicates transpose. $\bfsig_{\gamma21}$ is related to $\Cal{S}$ via
 \begin{equation}
-  \bfsig_\gamma = \Cal{S} \, \Cal{S}^t
+  \bfsig_{\gamma21} = \Cal{S}_{21} \, \Cal{S}_{21}^t
   \label{sxx}
 \end{equation}
-The calculation of $\Cal{S}$ involves calculating $\bfsig_\gamma$ via \Eq{smvvm} and then using
-\Eq{sxx} to solve for $\Cal{S}$ using, say, a Cholesky decomposition. Notice that while \Eq{sxx}
-does not have a unique solution, what matters here is that $\Cal{S} \, \Bf\Xi$ gives the correct
-distribution. Note that the $\Cal{S} matrix$ may contain columns or rows that are all zero. This can
-happen if the there are vectors $\bfz$ where $\bfz^t \bfsig_\gamma \bfz$ is zero. This happens,
-for example, in a plainer ring where the vertical emittance is zero.
+The calculation of $\Cal{S}_{21}$ involves calculating $\bfsig_{\gamma21}$ via \Eq{smvvm} and then using
+\Eq{sxx} to solve for $\Cal{S}_{21}$ using, say, a Cholesky decomposition. Notice that while \Eq{sxx}
+does not have a unique solution, what matters here is that $\Cal{S}_{21} \, \Bf\Xi$ gives the correct
+distribution. Note that the $\Cal{S}_{21}$ matrix may contain columns or rows that are all zero. This can
+happen if there are vectors $\bfz$ where $\bfz^t \bfsig_{\gamma21} \bfz$ is zero. This happens,
+for example, in a planer ring where the vertical emittance is zero.
+
+The covariance matrix $\bfsig_\gamma(s_2)$ at $s_2$ relative to the covariance matrix at $s_1$ is
+\begin{equation}
+  \bfsig_\gamma(s_2) = \bfsig_{\gamma21} + \bfM_{21} \, \bfsig_\gamma(s_1) \, \bfM_{21}^t
+  \label{ssmsm}
+\end{equation}
+The beam size matrix $\sigma$ is not the same as the covariance matrix since the beam size matrix is
+an average over the particles of a beam and not an average over the photon emission
+spectrum. However, in equilibrium, the two are the same. To calculate the equilibrium beam size
+matrix, \Eq{ssmsm} is recast. For any symmetric $6\times6$ matrix $\bfA$, define the 21-vector
+$\bfV_\bfA$ by
+\begin{equation}
+  \bfV_\bfA = (A_{11}, A_{12}, \ldots, A_{16}, A_{22}, A_{23} \ldots, A_{66})
+\end{equation}
+With $s_1 = s_2 = s$, and using \Eq{ssmsm}, the equilibrium beam size matrix can be calculated via
+\begin{equation}
+  \bfV_\bfsig(s) = \bfsig_{\gamma ss} + \wt\bfM \, \bfV_\bfsig(s)
+  \label{vsmv}
+\end{equation}
+where the $21\times21$ matrix $\wt\bfM$ is defined so that $\wt\bfM \, \bfV_\bfA =
+\bfV_{\bfM\bfA\bfM^t}$. That is
+\begin{equation}
+  \wt\bfM = \begin{pmatrix}
+    M_{11}^2      & M_{11} M_{12} & \cdots & M_{16} M_{16} \\
+    M_{11} M_{21} & M_{11} M_{22} & \cdots & M_{16} M_{26} \\
+    \vdots        & \vdots        & \ddots & \vdots        \\
+    M_{61} M_{61} & M_{61} M_{62} & \cdots & M_{66} M_{66}
+  \end{pmatrix}
+\end{equation}
+\Eq{vsmv} is linear in the unknown $\bfV_\bfsig$ and is easily solved.
+
+The emittances may be calculated from the equilibrium sigma matrix by noting that the emittances are
+the eigenvalues of the matrix $\bfsig \, \bfS$ (Wolski\cite{b:wolski.coupling} Eq.~30) where $\bfS$
+is the matrix
+\begin{equation}
+  \bfS = \begin{pmatrix}
+      0 &  1 &  0 &  0 &  0 &  0 \\
+     -1 &  0 &  0 &  0 &  0 &  0 \\
+      0 &  0 &  0 &  1 &  0 &  0 \\
+      0 &  0 & -1 &  0 &  0 &  0 \\
+      0 &  0 &  0 &  0 &  0 &  1 \\
+      0 &  0 &  0 &  0 & -1 &  0 \\
+  \end{pmatrix}
+\end{equation}
+Specifically
+\begin{equation}
+  \begin{pmatrix}
+        i \, \bfSbar_2 \, \epsilon_I     & & \\
+    &   i \, \bfSbar_2 \, \epsilon_\text{II}  & \\
+    & & i \, \bfSbar_2 \, \epsilon_\text{III}
+  \end{pmatrix} =
+  \bfE^{-1} \, \bfsig \, \bfS \, \bfE
+\end{equation}
+where $\epsilon_I$, $\epsilon_\text{II}$, and $\epsilon_\text{III}$ are the three emittances, 
+$\bfSbar_2$ is the $2\times2$ matrix
+\begin{equation}
+  \bfSbar_2 = \begin{pmatrix}
+    -1 & 0 \\
+     0 & 1
+  \end{pmatrix},
+\end{equation}
+and $\bfE$ is the eigenvector matrix
+\begin{equation}
+  \bfE = (\bfe_\text{-I} \, \bfe_\text{I} \, \bfe_\text{-II} \, \bfe_\text{II} \, \bfe_\text{-III} \, \bfe_\text{III})
+\end{equation}
+where the eigenvectors $\bfe_k$ and $\bfe_{-k}$, $k = I, II, III$ are normalized such that
+\begin{equation}
+   \bfe_{-k}^T \, \bfS \, \bfe_{k'} = i \delta_{kk'} \qquad \bfe_{-k} = \bfe_k^*
+\end{equation}
+
+Unlike the case where radiation is ignored and the motion is symplectic, the calculated emittances
+along with the beam size will vary from point to point in a manner similar to the variation of the average
+beam energy (sawtooth effect) around the ring (\sref{s:radiation}).
+
+The emittance calculation makes a number of approximations. One approximation is embodied in
+\Eq{zstd} which assumes that the damping is weak enough so that second order and higher terms can be
+neglected. Another approximation is that, within the extent of the beam, the damping as a function
+of transverse position is linear. That is, the effect of the damping is well represented by the matrix
+$\bfd$ in \Eq{zstd}. The third major assumption is that, within the extent of the beam, the
+stochastic kick coefficient $\bfF_\mk{f}$ (\Eq{fk000}) is independent of the transverse coordinates.
+Other approximations involve the assumption of linearity of the guide fields and the ignoring of
+any resonance or wakefield effects. To the extent that these assumptions are violated will lead to
+a non-Gaussian beam shape. 
 
 %-----------------------------------------------------------------
 \section{Synchrotron Radiation Integrals}
@@ -166,7 +261,7 @@ for example, in a plainer ring where the vertical emittance is zero.
 
 The synchrotron radiation integrals are used to compute emittances, the energy spread, etc. The
 standard formulas assume no coupling between the horizontal and vertical
-plaines\cite{b:helm,b:jowett}. With coupling, the equations need to be generalized and this is
+plains\cite{b:helm,b:jowett}. With coupling, the equations need to be generalized and this is
 detailed below.
 
 \index{dispersion}

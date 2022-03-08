@@ -30,7 +30,7 @@
 ! Input:
 !   lat        -- lat_struct: Lattice to use. The calculation assumes that 
 !                    the Twiss parameters have been calculated.
-!   orbit(0:)  -- Coord_struct: Closed orbit. for the branch.
+!   orbit(0:)  -- Coord_struct: Closed orbit for the branch.
 !   ix_cache   -- Integer, optional: Cache pointer.
 !                      = -2 --> No temporary wiggler cache. This is slow so only use as a check.
 !                      = -1 --> Use temporary cache for wiggler elements only (default).
@@ -70,7 +70,7 @@
 !
 ! 2) The lin_norm_emit values are running sums from the beginning of the 
 !    lattice and include the beginning emittance stored in lat%a%emit and lat%b%emit.
-!-       
+!-
 
 subroutine radiation_integrals (lat, orbit, mode, ix_cache, ix_branch, rad_int_by_ele)
 
