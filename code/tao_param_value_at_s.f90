@@ -1,5 +1,5 @@
 !+
-! Function tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid) result (value)
+! Function tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid, print_err) result (value)
 !
 ! Routine to evaluate a parameter at a lattice s-position.
 !
@@ -12,9 +12,10 @@
 !   err_flag      -- logical: Set true if data_type does not have a corresponding Bmad parameter.
 !   value         -- real(rp): Parameter value.
 !   why_invalid   -- character(*), optional: Set if  err_flag = True to document why is there a problem.
+!   print_err     -- logical, optional: Print error message on error? Default is True.
 !-
 
-function tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid) result (value)
+function tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid, print_err) result (value)
 
 use tao_interface, except_dummy => tao_param_value_at_s
 use measurement_mod
@@ -38,6 +39,7 @@ character(40) name, prefix, d_type
 integer i, j, ix
 
 logical err_flag
+logical, optional :: print_err
 
 !
 
@@ -124,7 +126,9 @@ case ('b_field', 'b0_field')
     time = particle_rf_time(orb, ele, (ele%field_calc /= fieldmap$), orb%s-ele%s_start)
   endif
 
-  call em_field_calc (ele, branch%param, orb%s-ele%s_start, orb, .false., field, rf_time = time)
+  call em_field_calc (ele, branch%param, orb%s-ele%s_start, orb, .false., field, &
+                                                  err_flag = err_flag, rf_time = time, print_err = print_err)
+  if (err_flag) return
   select case (d_type)
   case ('b_field.x', 'b0_field.x');  value = field%b(1)
   case ('b_field.y', 'b0_field.y');  value = field%b(2)

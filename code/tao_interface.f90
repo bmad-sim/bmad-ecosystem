@@ -66,7 +66,7 @@ function tao_beam_sigma_calc_needed (data_type, data_source) result (do_beam_sig
   logical do_beam_sigma
 end function
  
-function tao_param_value_at_s (dat_name, ele, orbit, err_flag, why_invalid) result (value)
+function tao_param_value_at_s (dat_name, ele, orbit, err_flag, why_invalid, print_err) result (value)
   import
   implicit none
   type (ele_struct) ele
@@ -75,6 +75,7 @@ function tao_param_value_at_s (dat_name, ele, orbit, err_flag, why_invalid) resu
   character(*) dat_name
   character(*), optional :: why_invalid
   logical err_flag
+  logical, optional :: print_err
 end function
 
 subroutine tao_call_cmd (file_name, cmd_arg)
