@@ -242,7 +242,7 @@ else
     if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
     values(n_tot) = norm2(tao_branch%dn_dpz(ixe)%vec)
   case default
-    values(n_tot) = tao_param_value_at_s (parameter, branch%ele(ixe), tao_branch%orbit(ixe), err)
+    values(n_tot) = tao_param_value_at_s (parameter, branch%ele(ixe), tao_branch%orbit(ixe), err, print_err = print_err)
     if (err) then
       call pointer_to_attribute (branch%ele(ixe), parameter, .true., a_ptr, err, print_err)
       if (err) return
