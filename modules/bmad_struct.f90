@@ -873,7 +873,7 @@ end type
 ! Radiation integral data cache
 
 type rad_int_ele_cache_struct
-  real(rp) :: orb0(6) = 0       ! Reference orbit for the calculation
+  real(rp) :: orb0(6) = 0       ! Reference orbit for the calculation at beginning of element.
   real(rp) :: g2_0 = 0          ! g2 factor when orbit = %vec0
   real(rp) :: g3_0 = 0          ! g3 factor when orbit = %vec0
   real(rp) :: dg2_dorb(6) = 0   ! variation of g2 with respect to orbit.
@@ -1012,7 +1012,7 @@ type beam_init_struct
   character(200) :: position_file = ''       ! File with particle positions.
   character(200) :: file_name = ''           ! Old name for position file.
   character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
-                                             ! "ELLIPSE", "KV", "GRID", "FILE", "", or "RAN_GAUSS" 
+                                             ! "ELLIPSE", "KV", "GRID", "FILE", "RAN_GAUSS" or "" = "RAN_GAUSS" 
   real(rp) :: spin(3) = 0                    ! Spin (x, y, z)
   type (ellipse_beam_init_struct) :: ellipse(3) = ellipse_beam_init_struct() ! Ellipse beam distribution
   type (kv_beam_init_struct) :: KV = kv_beam_init_struct()                   ! KV beam distribution

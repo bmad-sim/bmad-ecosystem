@@ -29,7 +29,7 @@ real(rp) grad_shift
 ! 
 
 if (bmad_com%sr_wakes_on .and. ele%value(l$) /= 0) then
-  grad_shift = ele%value(e_loss$) * param%n_part * abs(charge_of(param%particle)) * e_charge / ele%value(l$) 
+  grad_shift = ele%value(e_loss$) * param%n_part * abs(charge_of(ele%ref_species)) * e_charge / ele%value(l$) 
 else
   grad_shift = 0
 endif

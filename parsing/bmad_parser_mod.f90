@@ -1556,13 +1556,13 @@ if (delim /= '=')  then
   if (attrib_word == 'TILT') then
     select case (ele%key)
     case (quadrupole$, sol_quad$) 
-      ele%value(tilt$) = pi / 4
+      ele%value(tilt$) = pi / 4.0_rp
       return
     case (sextupole$) 
-      ele%value(tilt$) = pi / 6
+      ele%value(tilt$) = pi / 6.0_rp
       return
     case (octupole$) 
-      ele%value(tilt$) = pi / 8
+      ele%value(tilt$) = pi / 8.0_rp
       return
     case default
       call parser_error ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
@@ -1575,10 +1575,10 @@ if (delim /= '=')  then
   if (ele%key == sbend$ .or. ele%key == rbend$) then
     select case (ix_attrib)
     case (fint$)
-      ele%value(fint$) = 0.5
+      ele%value(fint$) = 0.5_rp
       return
     case (fintx$)
-      ele%value(fintx$) = 0.5
+      ele%value(fintx$) = 0.5_rp
       return
     end select
   endif
