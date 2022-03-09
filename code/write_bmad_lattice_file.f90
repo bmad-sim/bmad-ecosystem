@@ -1023,8 +1023,9 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
           write (line, '(1000a)') trim(line), ':{', (re_str(ctl%y_knot(ix)), ', ', ix = 1, size(ctl%y_knot))
           n = len_trim(line)
           line(n:) = '}'
-          call write_lat_line(line, iu, .false.)
         endif
+
+        if (len_trim(line) > 1000) call write_lat_line(line, iu, .false.)
       enddo j_loop
     endif
 
