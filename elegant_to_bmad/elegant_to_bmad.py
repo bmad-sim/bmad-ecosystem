@@ -5,7 +5,9 @@
 # See the README file for more details.
 #-
 
-import sys, re, math, argparse, time
+import sys, re, argparse, time
+import math as m
+
 from collections import OrderedDict
 
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
@@ -62,6 +64,7 @@ ele_type_translate = {
   'hmon':       'monitor',
   'vmon':       'monitor',
   'moni':       'monitor',
+  'monitor':    'monitor',
   'watch':      'monitor',
   'kquad':      'quadrupole',
   'kquse':      'quadrupole',
@@ -94,8 +97,6 @@ bmad_param_name = {
   'dx':           'x_offset',
   'dy':           'y_offset',
   'dz':           'z_offset',
-  'pitch':        'y_pitch',
-  'yaw':          'x_pitch',
   'l':            'l',
   'angle':        'angle',
   'b':            'b_field',
@@ -106,6 +107,8 @@ bmad_param_name = {
   'k2':           'k2',
   'k3':           'k3',
   'tilt':         'tilt',  # bend ref_tilt handled in bmad_param routine
+  'pitch':        'y_pitch',
+  'yaw':          'x_pitch',
   'h1':           'h1',
   'h2':           'h2',
   'hgap':         'hgap',
@@ -264,8 +267,6 @@ def postfix_to_infix(str):
 def bmad_param(param, ele_name):
   global common, bmad_param_name
 
-  # For the SLAC version there are Rij and Tijk matrix elements
-
   if len(param) == 2 and param[0] == 'c' and param[1] in '123456':
     return f'tt{param[1:]}'
 
@@ -275,15 +276,15 @@ def bmad_param(param, ele_name):
   if len(param) == 4 and param[0] == 't' and param[1] in '123456' and param[2] in '123456' and param[3] in '123456':
     return f'tt{param[1:]}'
 
-  if param not in bmad_param_name: return '?'
-
   #
 
+  if param not in bmad_param_name: return '?'
   bparam = bmad_param_name[param]
 
   if ele_name in common.ele_dict:
     bmad_type = common.ele_dict[ele_name].bmad_type
-    if bparam == 'tilt' and (bmad_type == 'sbend' or bmad_type == 'rbend'): bparam = 'ref_tilt'
+    if bparam == 'tilt' and (bmad_type == 'sbend' or bmad_type == 'rbend'): return 'ref_tilt'
+    if param == 'l' and bmad_type == 'patch': return '?'
 
   return bparam
 
@@ -300,25 +301,6 @@ def parameter_dictionary(word_lst):
   # replace "0." or "0.0" with "0"
   word_lst = ['0' if x == '0.0' or x == '0.' else x for x in word_lst]
 
-  # Replace "rm" and "tm" matrix constructions with Bmad equivalents
-
-  for ix in range(len(word_lst)):
-    if word_lst[ix].startswith('kick('):  # Something like: ['kick(3)']
-      iz = min(ix+1, len(word_lst))
-      word_lst = word_lst[:ix] + [f'tt{word_lst[ix][-2]}'] + word_lst[iz:]
-
-    elif word_lst[ix].startswith('rm('):  # Something like: ['rm(3', ',', '4)']
-      iz = min(ix+3, len(word_lst))
-      word_lst = word_lst[:ix] + [f'tt{word_lst[ix][-1]}{word_lst[ix+2][0]}'] + word_lst[iz:]
-
-    elif word_lst[ix].startswith('tm('):  # Something like: ['tm(3', ',', '4', ',', '2)']
-      iz = min(ix+5, len(word_lst))
-      word_lst = word_lst[:ix] + [f'tt{word_lst[ix][-1]}{word_lst[ix+2][0]}{word_lst[ix+4][0]}'] + word_lst[iz:]
-
-    if ix > len(word_lst) - 2: break
-
-  # Fill dict
-
   pdict = OrderedDict()
   while True:
     if len(word_lst) == 0: return pdict
@@ -329,7 +311,12 @@ def parameter_dictionary(word_lst):
 
     if '=' in word_lst[2:]:
       ix = word_lst.index('=', 2)
-      pdict[word_lst[0]] = ''.join(word_lst[2:ix-2])
+      if word_lst[0] == 'eyaw':
+        pdict['yaw'] = ''.join(word_lst[2:ix-2])
+      if word_lst[0] == 'epitch':
+        pdict['pitch'] = ''.join(word_lst[2:ix-2])
+      else:
+        pdict[word_lst[0]] = ''.join(word_lst[2:ix-2])
       word_lst = word_lst[ix-1:]
 
     else:
@@ -408,6 +395,15 @@ def add_parens (str):
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
+def float_val (str, default):
+  try:
+    return float(str)
+  except:
+    return default
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+
 def negate(str):
   str = add_parens(str)
   if str[0] == '-':
@@ -472,9 +468,12 @@ def parse_element(dlist):
       else:
         value = f'({value})/360'
 
+    if bparam == 'pitch': value = f'-({value})'   # Corresponds to Bmad y_pitch
+
+    if float_val(value, 0) == 0: continue
     line += f', {bparam} = {value}'
 
-  #
+  # Note that the  Elegant rotate element has a "confusing" sign convention for the tilt parameter.
 
   if elegant_type == 'rotate' and ele.bmad_type == 'taylor' and param.get('tilt', '0') != '0':
     t = param[tilt]
