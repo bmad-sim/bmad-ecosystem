@@ -82,9 +82,10 @@ type (taylor_struct), pointer :: taylor_ptr(:)
 type (all_pointer_struct) a_ptr
 
 real(rp), optional :: dr12_drift_max
-real(rp) field, hk, vk, tilt, limit(2), length, a, b, f, e2, beta, r_max, r0
+real(rp) field, hk, vk, limit(2), length, a, b, f, e2, beta, r_max, r0
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) tilt, x_pitch, y_pitch, etilt, epitch, eyaw, offset(3), w_mat(3,3)
 
 integer, optional :: ix_start, ix_end, ix_branch
 integer, allocatable :: n_repeat(:), an_indexx(:)
@@ -694,6 +695,8 @@ do   ! ix_ele = 1e1, ie2
         write (line_out, '(2a)') trim(ele%name) // ': csrcsbend'
       endif
 
+      if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) line_out = trim(line_out) // ', malign_method = 2'
+
       select case (nint(ele%value(fringe_at$)))
       case (entrance_end$); line_out = trim(line_out) // ', edge2_effects = 0'
       case (exit_end$);     line_out = trim(line_out) // ', edge1_effects = 0'
@@ -722,10 +725,11 @@ do   ! ix_ele = 1e1, ie2
     case (quadrupole$)   ! Elegant
       call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, include_kicks$)
       if (knl(2) == 0) then
+        write (line_out, '(2a)') trim(ele%name) // ': kquad'
+        if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) line_out = trim(line_out) // ', malign_method = 2'
+      else
         write (line_out, '(2a)') trim(ele%name) // ': kquse'
         call value_to_line (line_out, knl(2)*cos(3*(tilts(2)-tilts(1)))/2, 'k2', 'R')
-      else
-        write (line_out, '(2a)') trim(ele%name) // ': kquad'
       endif
 
       call value_to_line (line_out, knl(1), 'k1', 'R')
@@ -733,27 +737,28 @@ do   ! ix_ele = 1e1, ie2
     case (sextupole$)   ! Elegant
       call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, include_kicks$)
       write (line_out, '(2a)') trim(ele%name) // ': ksext'
+      if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) line_out = trim(line_out) // ', malign_method = 2'
       call value_to_line (line_out, knl(2), 'k2', 'R')
-      call value_to_line (line_out, tilts(2), 'tilt', 'R')
       call value_to_line (line_out, knl(1)*cos(0.5_rp*(tilts(1)-tilts(2))), 'k1', 'R')
       call value_to_line (line_out, knl(1)*sin(0.5_rp*(tilts(1)-tilts(2))), 'j1', 'R')
       call value_to_line (line_out, knl(0)*cos(tilts(0)), 'hkick', 'R')
       call value_to_line (line_out, knl(0)*sin(tilts(0)), 'vkick', 'R')
 
-      bmad_params(:6) = [character(40):: 'l', 'y_pitch', 'x_pitch', 'x_offset', 'y_offset', 'z_offset']
-      elegant_params(:6) = [character(40):: 'l', 'pitch', 'yaw', 'dx', 'dy', 'dz']
+      tilt = tilts(2)
+      bmad_params(:1) = [character(40):: 'l']
+      elegant_params(:1) = [character(40):: 'l']
       
 
     case (octupole$)   ! Elegant
       call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, include_kicks$)
       write (line_out, '(2a)') trim(ele%name) // ': koct'
       call value_to_line (line_out, knl(3), 'k3', 'R')
-      call value_to_line (line_out, tilts(3), 'tilt', 'R')
       call value_to_line (line_out, knl(0)*cos(tilts(0)), 'hkick', 'R')
       call value_to_line (line_out, knl(0)*sin(tilts(0)), 'vkick', 'R')
 
-      bmad_params(:6) = [character(40):: 'l', 'y_pitch', 'x_pitch', 'x_offset', 'y_offset', 'z_offset']
-      elegant_params(:6) = [character(40):: 'l', 'pitch', 'yaw', 'dx', 'dy', 'dz']
+      tilt = tilts(3)
+      bmad_params(:1) = [character(40):: 'l']
+      elegant_params(:1) = [character(40):: 'l']
 
     case (solenoid$)   ! Elegant
       write (line_out, '(2a)') trim(ele%name) // ': sole'
@@ -777,8 +782,9 @@ do   ! ix_ele = 1e1, ie2
         enddo
       enddo
 
-      bmad_params(:7) = [character(40):: 'l', 'tilt', 'y_pitch', 'x_pitch', 'x_offset', 'y_offset', 'z_offset']
-      elegant_params(:7) = [character(40):: 'l', 'tilt', 'pitch', 'yaw', 'dx', 'dy', 'dz']
+      tilt = ele%value(tilt$)
+      bmad_params(:1) = [character(40):: 'l']
+      elegant_params(:1) = [character(40):: 'l']
 
     case (beambeam$)   ! Elegant
       write (line_out, '(2a)') trim(ele%name) // ': beambeam'
@@ -855,11 +861,16 @@ do   ! ix_ele = 1e1, ie2
       elegant_params(:7) = [character(40):: 'l', 'voltage', 'frequency', 'tilt', 'dx', 'dy', 'dz']
 
     case (patch$)   ! Elegant
-      write (line_out, '(2a)') trim(ele%name) // ': malign'
-      bmad_params(:5) = [character(40):: 'x_offset', 'y_offset', 'z_offset', 't_offset', 'e_tot_offset']
-      elegant_params(:5) = [character(40):: 'dx', 'dy', 'dz', 'dt', 'de']
-      if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
-        call out_io (s_warn$, r_name, 'PITCH OR TILT PARAMETERS OF A PATCH CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
+      if (all([ele%value(x_pitch$), ele%value(y_pitch$), ele%value(x_offset$), ele%value(x_offset$), ele%value(x_offset$)] == 0)) then
+        write (line_out, '(2a)') trim(ele%name) // ': rotate'
+        call value_to_line (line_out, ele%value(tilt$),  'tilt', 'R')
+      else
+        write (line_out, '(2a)') trim(ele%name) // ': malign'
+        bmad_params(:5) = [character(40):: 'x_offset', 'y_offset', 'z_offset', 't_offset', 'e_tot_offset']
+        elegant_params(:5) = [character(40):: 'dx', 'dy', 'dz', 'dt', 'de']
+        if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
+          call out_io (s_warn$, r_name, 'PITCH OR TILT PARAMETERS OF A PATCH CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
+        endif
       endif
 
     case (floor_shift$)   ! Elegant
@@ -884,6 +895,44 @@ do   ! ix_ele = 1e1, ie2
     end select
 
     !------
+
+    select case (ele%key)
+    case (sbend$)
+    case (sextupole$, octupole$, taylor$)
+      x_pitch = ele%value(x_pitch$)
+      y_pitch = ele%value(y_pitch$)
+      call floor_angles_to_w_mat(x_pitch, y_pitch, tilt, w_mat)
+
+      if (x_pitch == 0 .or. y_pitch == 0) then
+        epitch = -y_pitch  ! alpha_x
+        eyaw = x_pitch     ! alpha_y
+        etilt = tilt       ! alpha_z
+      else
+        epitch = -atan2(w_mat(2,3), w_mat(3,3))
+        etilt = -atan2(w_mat(1,2), w_mat(1,1))
+        eyaw = -atan2(w_mat(1,3), w_mat(2,3)/sin(epitch))
+      endif
+
+      offset = matmul(w_mat, [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)])
+      call value_to_line (line_out, etilt, 'tilt', 'R')
+      call value_to_line (line_out, epitch, 'pitch', 'R')
+      call value_to_line (line_out, eyaw, 'yaw', 'R')
+      call value_to_line (line_out, offset(1), 'dx', 'R')
+      call value_to_line (line_out, offset(2), 'dy', 'R')
+      call value_to_line (line_out, offset(3), 'dz', 'R')
+
+    case (instrument$, detector$, monitor$, hkicker$, vkicker$, kicker$)  ! Has tilt but not pitches.
+      if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) then
+        call out_io (s_warn$, r_name, 'X_PITCH OR Y_PITCH PARAMETERS OF A ' // trim(key_name(ele%key)) // ' CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
+      endif
+
+    case (patch$)
+
+    case default
+      if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
+        call out_io (s_warn$, r_name, 'TILT, X_PITCH OR Y_PITCH PARAMETERS OF A ' // trim(key_name(ele%key)) // ' CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
+      endif
+    end select
 
     do i = 1, size(bmad_params)
       if (bmad_params(i) == '') exit

@@ -118,12 +118,12 @@ to damping computed via
 with the local damping matrix $\bfd$ being computed from \Eqs{pk1pp}
 \begin{equation}
   \bfd = -k_d \, \begin{pmatrix}
-    0 & 0     & 0 & 0     & 0 & 0        \\
-    0 & 1+p_z & 0 & 0     & 0 & p_x      \\
-    0 & 0     & 0 & 0     & 0 & 0        \\
-    0 & 0     & 0 & 1+p_z & 0 & p_y      \\
-    0 & 0     & 0 & 0     & 0 & 0        \\
-    0 & 0     & 0 & 0     & 0 & 2(1+p_z) \\
+    0                           & 0           & 0                           & 0           & 0 & 0       \\
+    \frac{dg^2}{dx} p_x (1+p_z) & g^2 (1+p_z) & \frac{dg^2}{dy} p_x (1+p_z) & 0           & 0 & g^2 p_x \\
+    0                           & 0           & 0                           & 0           & 0 & 0       \\
+    \frac{dg^2}{dx} p_y (1+p_z) & 0           & \frac{dg^2}{dy} p_y (1+p_z) & g^2 (1+p_z) & 0 & g^2 p_x \\
+    0                           & 0           & 0                           & 0           & 0 & 0       \\
+    \frac{dg^2}{dx} (1+p_z)^2   & 0           & \frac{dg^2}{dy} (1+p_z)^2   & 0           & 0 & 2 g^2 (1+p_z) \\
   \end{pmatrix}
 \end{equation}
 where all quantities are evaluated on the closed orbit.
@@ -164,12 +164,12 @@ where the $t$ superscript indicates transpose. $\bfsig_{\gamma21}$ is related to
   \bfsig_{\gamma21} = \Cal{S}_{21} \, \Cal{S}_{21}^t
   \label{sxx}
 \end{equation}
-The calculation of $\Cal{S}_{21}$ involves calculating $\bfsig_{\gamma21}$ via \Eq{smvvm} and then using
-\Eq{sxx} to solve for $\Cal{S}_{21}$ using, say, a Cholesky decomposition. Notice that while \Eq{sxx}
-does not have a unique solution, what matters here is that $\Cal{S}_{21} \, \Bf\Xi$ gives the correct
-distribution. Note that the $\Cal{S}_{21}$ matrix may contain columns or rows that are all zero. This can
-happen if there are vectors $\bfz$ where $\bfz^t \bfsig_{\gamma21} \bfz$ is zero. This happens,
-for example, in a planer ring where the vertical emittance is zero.
+The calculation of $\Cal{S}_{21}$ involves calculating $\bfsig_{\gamma21}$ via \Eq{smvvm} and then
+using \Eq{sxx} to solve for $\Cal{S}_{21}$ using, say, a Cholesky decomposition. Notice that while
+\Eq{sxx} does not have a unique solution, what matters here is that $\Cal{S}_{21} \, \Bf\Xi$ gives
+the correct distribution. The $\Cal{S}_{21}$ matrix may contain columns or rows that are all
+zero. This can happen if there are vectors $\bfz$ where $\bfz^t \bfsig_{\gamma21} \bfz$ is zero. For
+example, in a planer ring where the vertical emittance is zero there will be rows that are zero.
 
 The covariance matrix $\bfsig_\gamma(s_2)$ at $s_2$ relative to the covariance matrix at $s_1$ is
 \begin{equation}
@@ -182,7 +182,7 @@ spectrum. However, in equilibrium, the two are the same. To calculate the equili
 matrix, \Eq{ssmsm} is recast. For any symmetric $6\times6$ matrix $\bfA$, define the 21-vector
 $\bfV_\bfA$ by
 \begin{equation}
-  \bfV_\bfA = (A_{11}, A_{12}, \ldots, A_{16}, A_{22}, A_{23} \ldots, A_{66})
+  \bfV_\bfA = (A_{11}, A_{12}, \ldots, A_{16}, A_{22}, A_{23}, \ldots, A_{66})
 \end{equation}
 With $s_1 = s_2 = s$, and using \Eq{ssmsm}, the equilibrium beam size matrix can be calculated via
 \begin{equation}
