@@ -288,6 +288,17 @@ tracking.
 \label{s:global}
 \index{global coordinates|hyperbf}
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics{global-coords.pdf}
+  \caption[The Global Coordinate System]{
+The local (reference) coordinate system (purple), which is a function of $s$ along the reference
+orbit, is described in the global coordinate system (black) by a position $(X(s), Y(s), Z(s))$ and
+and by angles $\theta(s)$, $\phi(s)$, and $\psi(s)$.
+  }
+  \label{f:global.coords}
+\end{figure}
+
 The Cartesian \vn{global} coordinate system, also called the `floor'' coordinate system, is the
 coordinate system ``attached to the earth'' that is used to describe the local coordinate
 system. Following the \mad\ convention, the \vn{global} coordinate axis are labeled $(X, Y,
@@ -299,30 +310,21 @@ of the local coordinate axes as shown in \fig{f:global.coords}. These three angl
 follows:
 \begin{description}
 %
-\item[$\theta(s)$ Azimuth angle:] 
+\item[$\theta(s)$ Azimuth (yaw) angle:] 
 Angle in the $(X, Z)$ plane between the $Z$--axis and the projection of the $z$--axis onto the $(X,
-Z)$ plane. A positive angle of $\theta = \pi/2$ corresponds to the projected $z$--axis pointing in
-the positive $X$ direction.
+Z)$ plane. Corresponds to the \vn{x_pitch} element attribute (\sref{s:offset}). A positive angle of
+$\theta = \pi/2$ corresponds to the projected $z$--axis pointing in the positive $X$ direction.
 %
 \item[$\phi(s)$ Pitch (elevation) angle:] 
-Angle between the $z$--axis and the $(X,Z)$ plane.  A positive angle of $\phi = \pi/2$ corresponds
-to the $z$--axis pointing in the positive $Y$ direction.
+Angle between the $z$--axis and the $(X,Z)$ plane. Corresponds to the \vn{y_pitch} element attribute
+(\sref{s:offset}). A positive angle of $\phi = \pi/2$ corresponds to the $z$--axis pointing in the
+positive $Y$ direction.
 %
 \item[$\psi(s)$ Roll angle:] 
 Angle of the $x$--axis with respect to the line formed by the intersection of the $(X, Z)$ plane
-with the $(x, y)$ plane. A positive $\psi$ forms a right--handed screw with the $z$--axis.
+with the $(x, y)$ plane. Corresponds to the \vn{tilt} element attribute (\sref{s:offset}). A
+positive $\psi$ forms a right--handed screw with the $z$--axis.
 \end{description}
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics{global-coords.pdf}
-  \caption[The Global Coordinate System]{
-The local (reference) coordinate system (purple), which is a function of $s$ along the reference
-orbit, is described in the global coordinate system (black) by a position $(X(s), Y(s), Z(s))$ and
-and by angles $\theta(s)$, $\phi(s)$, and $\psi(s)$.
-  }
-  \label{f:global.coords}
-\end{figure}
 
 \index{beginning statement}
 \index{reference orbit!origin in global coordinates}
@@ -348,10 +350,17 @@ Following \mad, the global position of an element is characterized by a vector $
 The orientation of an element is described by a unitary rotation matrix $\bfW$. The column vectors
 of $\bfW$ are the unit vectors spanning the local coordinate axes in the order $(x, y, z)$. $\bfW$
 can be expressed in terms of the orientation angles $\theta$, $\phi$, and $\psi$ via the formula
-\begin{equation}
-  \bfW = \bfR_{y}(\theta) \; \bfR_{-x}(\phi) \; \bfR_{z}(\psi)
+\begin{align}
+  \bfW &= \bfR_{y}(\theta) \; \bfR_{-x}(\phi) \; \bfR_{z}(\psi) \\
+  &= \begin{pmatrix}
+    \cos\psi \cos\theta-\sin\psi \sin\phi \sin\theta & -\cos\theta \sin\psi-\cos\psi \sin\phi \sin\theta & 
+                                                                                          \cos\phi \sin\theta \\
+    \cos\phi \sin\psi & \cos\psi \cos\phi & \sin\phi \\
+   -\cos\theta \sin\psi \sin\phi-\cos\psi \sin\theta & \sin\psi \sin\theta-\cos\psi \cos\theta \sin\phi & 
+                                                                                          \cos\phi \cos\theta
+  \end{pmatrix} \nonumber
   \label{wwww}
-\end{equation}
+\end{align}
 where
 \begin{equation}
   \bfR_{y}(\theta) = 
