@@ -57,7 +57,7 @@ type (rad1_map_struct), allocatable :: ds(:)
 type (coord_struct), allocatable :: closed_orb(:)
 
 real(rp) sig_mat(6,6)
-real(rp) damp_mat(6,6), stoc_mat(6,6), damp_typ, stoc_typ, r_e
+real(rp) damp_mat(6,6), stoc_mat(6,6), damp_typ, stoc_typ, radi
 real(rp) :: kd_coef, kf_coef, g2_ave, g3_ave, gamma
 
 integer ie
@@ -94,9 +94,9 @@ do ie = 1, branch%n_ele_track
 enddo
 
 call convert_pc_to (ele1_track%value(p0c$), ele1_track%ref_species, gamma = gamma)
-r_e = classical_radius(ele1_track%ref_species)
-kd_coef = 2.0_rp * r_e * gamma**3 / 3.0_rp
-kf_coef = 55.0_rp * r_e * h_bar_planck * gamma**5 * c_light / (24.0_rp * sqrt_3 * mass_of(ele1_track%ref_species))
+radi = classical_radius(ele1_track%ref_species)
+kd_coef = 2.0_rp * radi * gamma**3 / 3.0_rp
+kf_coef = 55.0_rp * radi * h_bar_planck * gamma**5 * c_light / (24.0_rp * sqrt_3 * mass_of(ele1_track%ref_species))
 damp_typ = kd_coef * g2_ave / branch%param%total_length
 stoc_typ = kf_coef * g3_ave / branch%param%total_length
 
