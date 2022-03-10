@@ -850,7 +850,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   case ('beam_init_position_file', 'beam_init_file_name')
     if (switch == 'beam_init_file_name') call out_io (s_warn$, r_name, 'Note: "beam_init_file_name" has been renamed to "beam_init_position_file".')
     bb%beam_init%position_file = value_str
-
+    bb%init_starting_distribution = .true.
   case ('dump_file', 'beam_dump_file')
     u%beam%dump_file = value_str
 
