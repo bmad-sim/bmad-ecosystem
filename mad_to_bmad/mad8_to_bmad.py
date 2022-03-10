@@ -40,7 +40,7 @@ class common_struct:
     self.seq_dict = OrderedDict()    # List of all sequences.
     self.super_list = []             # List of superimpose statements to be prepended to the bmad file.
     self.ele_dict = {}               # Dict of elements
-    self.var_def_list = []               # List of "A = B" sets after translation to Bmad. Does not Include "A,P = B" parameter sets.
+    self.var_def_list = []           # List of "A = B" sets after translation to Bmad. Does not Include "A,P = B" parameter sets.
     self.var_name_list = []          # List of mad8 variable names.
     self.f_in = []         # MAD8 input files
     self.f_out = []        # Bmad output files
