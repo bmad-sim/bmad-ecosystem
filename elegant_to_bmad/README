@@ -66,6 +66,9 @@ Many Elegant elements do not have an equivalent Bmad element. Additionally, Eleg
 generally have attributes with no Bmad equivalent. Thus case should be taken to verify if the
 translated Bmad lattice is a good approximation to the Elegant lattice.
 
+When there are tilt, x_pitch (yaw), and/or y_pitch (pitch) misalignments, the translation is exact as long
+as either x_pitch or y_pitch is zero. If both are non-zero there is an angular error of order x_pitch*y_pitch.
+
 Notes:
 ------
 
@@ -88,4 +91,4 @@ are any particular spots in the lattice where differences suddenly become much l
 spot such places, you can examine the lattice element at that location. 
 
 * Another diagnosis tool is to back translate the Bmad lattice to Elegant. The resulting lattice can then
-be compared to the original lattice. [Note: Back translation not yet implemented.]
+be compared to the original lattice.
