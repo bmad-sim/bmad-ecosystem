@@ -6436,20 +6436,23 @@ type (lat_struct) lat
 type (control_struct), allocatable, target :: cs(:)
 type (parser_ele_struct), target :: pele
 type (multi_ele_pointer_struct), allocatable :: m_eles(:)
+type (parser_controller_struct), pointer :: pc
 type (all_pointer_struct) a_ptr
 
 integer n_slave
-integer k, ix, ip, ix_pick, ix_lord
+integer k, n, ix, ip, iv, ix_pick, ix_lord
 logical err_flag, err
+character(40) attrib_name
 
 !
 
 err_flag = .true.
 
+n = n_slave * size(lord%control%var)
 if (allocated(cs)) then
-  if (size(cs) < n_slave) deallocate(cs)
+  if (size(cs) < n) deallocate(cs)
 endif
-if (.not. allocated(cs)) allocate (cs(n_slave))
+if (.not. allocated(cs)) allocate (cs(n))
 
 ! Slave setup
 
@@ -6458,41 +6461,49 @@ do ip = 1, size(pele%control)
 
   pc => pele%control(ip)
 
-  ! There might be more than 1 element with same name. 
-  ! Loop over all elements whose name matches name.
-  ! Put the info into the cs structure.
+  do iv = 1, size(lord%control%var)
+    ! Only when attrib_name == '*' is the loop executed multiple times.
+    if (pc%attrib_name /= '*' .and. iv > 1) exit
 
-  do k = 1, m_eles(ip)%n_loc
-    if (ix_pick /= 0 .and. k /= ix_pick) cycle
-    slave => pointer_to_ele (lat, m_eles(ip)%eles(k)%loc)
-    n_slave = n_slave + 1
-    if (allocated(pc%y_knot)) then
-      cs(n_slave)%y_knot = pc%y_knot
-    else
-      call reallocate_expression_stack (cs(n_slave)%stack, pc%n_stk)
-      cs(n_slave)%stack = pc%stack(1:pc%n_stk)
-    endif
-    cs(n_slave)%slave = lat_ele_loc_struct(slave%ix_ele, slave%ix_branch)
-    cs(n_slave)%lord%ix_ele = -1             ! dummy value
-    attrib_name = pc%attrib_name
-    if (attrib_name == blank_name$) attrib_name = pele%default_attrib
-    call pointer_to_attribute (slave, attrib_name, .true., a_ptr, err, .false., ix_attrib = ix)
-    
-    ! If attribute not found it may be a special attribute like accordion_edge$.
-    ! A special attribute will have ix > num_ele_attrib$
-    if (.not. associated(a_ptr%r) .and. lord%key == group$) then
-      ix = attribute_index(lord, attrib_name)
-      if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
-    endif
-    cs(n_slave)%ix_attrib = ix
-    cs(n_slave)%attribute = attrib_name
-    if (ix < 1 .and. .not. associated(a_ptr%r)) then
-      call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
-                    'ATTRIBUTE: ' // attrib_name, &
-                    'IS NOT A VALID ATTRIBUTE OF: ' // slave%name, &
-                    pele = pele)
-      return
-    endif
+    select case (pc%attrib_name)
+    case (blank_name$);   attrib_name = pele%default_attrib
+    case ('*');           attrib_name = lord%control%var(iv)%name
+    case default;         attrib_name = pc%attrib_name
+    end select
+
+    ! There might be more than 1 element with same name. 
+    ! Loop over all elements whose name matches name.
+    ! Put the info into the cs structure.
+
+    do k = 1, m_eles(ip)%n_loc
+      if (ix_pick /= 0 .and. k /= ix_pick) cycle
+      slave => pointer_to_ele (lat, m_eles(ip)%eles(k)%loc)
+      n_slave = n_slave + 1
+      if (allocated(pc%y_knot)) then
+        cs(n_slave)%y_knot = pc%y_knot
+      else
+        call reallocate_expression_stack (cs(n_slave)%stack, pc%n_stk)
+        cs(n_slave)%stack = pc%stack(1:pc%n_stk)
+      endif
+      cs(n_slave)%slave = lat_ele_loc_struct(slave%ix_ele, slave%ix_branch)
+      cs(n_slave)%lord%ix_ele = -1             ! dummy value
+      call pointer_to_attribute (slave, attrib_name, .true., a_ptr, err, .false., ix_attrib = ix)
+      
+      ! If attribute not found it may be a special attribute like accordion_edge$.
+      ! A special attribute will have ix > num_ele_attrib$
+      if (.not. associated(a_ptr%r) .and. lord%key == group$) then
+        ix = attribute_index(lord, attrib_name)
+        if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
+      endif
+      cs(n_slave)%ix_attrib = ix
+      cs(n_slave)%attribute = attrib_name
+      if (ix < 1 .and. .not. associated(a_ptr%r)) then
+        call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, 'ATTRIBUTE: ' // attrib_name, &
+                      'IS NOT A VALID ATTRIBUTE OF: ' // slave%name, pele = pele)
+        return
+      endif
+      if (iv > 1) call parser_transfer_control_struct(cs(n_slave), cs(n_slave), lord, iv)
+    enddo
   enddo
 
 enddo
@@ -9709,5 +9720,115 @@ else
 endif
 
 end subroutine init_surface_segment 
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine parser_transfer_control_struct (con_in, con_out, lord, ix_var)
+!
+! Routine to transfer the information from an input control_struct (which stores
+! the user input parameters) to a control_struct that will be stored in the lat%control
+! or lord%control%ramp for a ramper.
+!
+! Input:
+!   con_in    -- control_struct: Input control structure.
+!   lord      -- ele_struct: Lord element associated with the control_struct.
+!   ix_var    -- integer:  If an expression stack evaluates to a constant, this routine will 
+!                 modify the expression stack to evaluate to the value of: 
+!                     lord%control%var(ix_var) * constant
+!
+! Output:
+!   con_out   -- control_struct: Output control structure.
+!-
+
+subroutine parser_transfer_control_struct (con_in, con_out, lord, ix_var)
+
+type (control_struct) con_in, con_out, con0
+type (ele_struct) lord
+integer ix_var, is, n, iv
+logical err, var_found
+
+!
+
+con0 = con_in  ! In case con_in and con_out actual arguments are the same.
+
+if (lord%control%type == expression$) then
+  do is = 1, size(con0%stack)
+    if (con0%stack(is)%type == end_stack$) exit
+  enddo
+  call reallocate_expression_stack(con_out%stack, is-1)
+
+  con_out%stack = con0%stack(1:is-1)
+
+  ! Convert variable$ type to ramper variable index if name matches an ramper variable name.
+
+  do is = 1, size(con_out%stack)
+    if (con_out%stack(is)%type == end_stack$) exit
+    if (con_out%stack(is)%type /= variable$) cycle
+    do iv = 1, size(lord%control%var)
+      if (upcase(con_out%stack(is)%name) /= lord%control%var(iv)%name) cycle
+      con_out%stack(is)%type = iv + var_offset$
+      exit
+    enddo
+  enddo
+
+  ! Convert a stack of a single constant "const" to "const * control_var(1)"
+  var_found = .false.
+  do is = 1, size(con_out%stack)
+    if (.not. is_attribute (con_out%stack(is)%type, all_control_var$)) cycle
+    if (con_out%stack(is)%type == end_stack$) exit
+    var_found = .true.
+    exit
+  enddo
+
+  if (.not. var_found) then
+    if (size(con_out%stack) == 1 .and. con_out%stack(1)%name == '1' .or. con_out%stack(1)%name == '1.0') then
+      con_out%stack(1) = expression_atom_struct(lord%control%var(ix_var)%name, ix_var+var_offset$, 0.0_rp)
+    else
+      n = size(con_out%stack)
+      call reallocate_expression_stack(con_out%stack, n+2)
+      con_out%stack(n+1) = expression_atom_struct(lord%control%var(ix_var)%name, ix_var+var_offset$, 0.0_rp)
+      con_out%stack(n+2) = expression_atom_struct('', times$, 0.0_rp)
+    endif
+  endif
+
+  ! Evaluate any variable values.
+
+  do is = 1, size(con_out%stack)
+    select case (con_out%stack(is)%type)
+    case (ran$, ran_gauss$)
+      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH A GROUP, OVERLAY, OR RAMPER', &
+                         'FOR ELEMENT: ' // lord%name)
+      if (global_com%exit_on_error) call err_exit
+      return
+    case (variable$)
+      call word_to_value (con_out%stack(is)%name, lord%branch%lat, con_out%stack(is)%value, err)
+      if (err) then
+        call parser_error ('ERROR CONVERTING WORD TO VALUE: ' // con_out%stack(is)%name, &
+                           'FOR ELEMENT: ' // lord%name)
+        return
+      endif
+      ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
+      ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
+      ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
+      ! turn the variable into a numeric$ so the output from the type_ele routine looks "sane".
+      if (index(con_out%stack(is)%name, '[') /= 0) then
+        con_out%stack(is)%type = numeric$
+        con_out%stack(is)%name = ''
+      endif
+    end select
+  enddo
+
+else
+  con_out%y_knot = con0%y_knot
+  if (size(con_out%y_knot) /= size(lord%control%x_knot)) then
+    call parser_error ('NUMBER OF Y_SPLINE POINTS CONTROLLING PARAMETER: ' // con_out%attribute, &
+                       'IS NOT THE SAME AS THE NUMBER OF X_SPLINE POINTS FOR ELEMENT: ' // lord%name)
+    return
+  endif
+endif
+
+end subroutine parser_transfer_control_struct 
 
 end module

@@ -41,7 +41,7 @@ type (control_struct), pointer :: c
 integer i, j, n_control, n_con, is, iv, n, ix_attrib
 integer ix1, ix2, ix_min, ix_max, ix_slave, ix_branch
 
-logical err, err2, free, var_found
+logical err, err2, free
 
 character(40) attrib_name
 
@@ -143,83 +143,10 @@ do i = 1, n_control
   c%attribute = contrl(i)%attribute
   c%lord      = lat_ele_loc_struct(lord%ix_ele, 0)
 
+  call add_lattice_control_structs (slave, n_add_lord = 1)
+  lat%ic(slave%ic1_lord+slave%n_lord-1) = n_con
 
-  if (lord%control%type == expression$) then
-
-    do is = 1, size(contrl(i)%stack)
-      if (contrl(i)%stack(is)%type == end_stack$) exit
-    enddo
-    call reallocate_expression_stack(c%stack, is-1)
-
-    c%stack = contrl(i)%stack(1:is-1)
-
-    ! Convert variable$ type to group variable index if name matches a group variable name
-    do is = 1, size(c%stack)
-      if (c%stack(is)%type == end_stack$) exit
-      if (c%stack(is)%type /= variable$) cycle
-      do iv = 1, size(lord%control%var)
-        if (upcase(c%stack(is)%name) /= lord%control%var(iv)%name) cycle
-        c%stack(is)%type = iv + var_offset$
-        exit
-      enddo
-    enddo
-
-    ! Convert a stack of a single constant "const" to "const * control_var(1)"
-    var_found = .false.
-    do is = 1, size(c%stack)
-      if (.not. is_attribute(c%stack(is)%type, all_control_var$)) cycle
-      if (c%stack(is)%type == end_stack$) exit
-      var_found = .true.
-      exit
-    enddo
-
-    if (.not. var_found) then
-      if (size(c%stack) == 1 .and. c%stack(1)%name == '1' .or. c%stack(1)%name == '1.0') then
-        c%stack(1) = expression_atom_struct(lord%control%var(1)%name, 1+var_offset$, 0.0_rp)
-      else
-        n = size(c%stack)
-        call reallocate_expression_stack(c%stack, n+2)
-        c%stack(n+1) = expression_atom_struct(lord%control%var(1)%name, 1+var_offset$, 0.0_rp)
-        c%stack(n+2) = expression_atom_struct('', times$, 0.0_rp)
-      endif
-    endif
-
-    ! Update controller info for the slave element
-
-    call add_lattice_control_structs (slave, n_add_lord = 1)
-    lat%ic(slave%ic1_lord+slave%n_lord-1) = n_con
-
-    ! Evaluate any variable values.
-
-    do is = 1, size(c%stack)
-      select case (c%stack(is)%type)
-      case (ran$, ran_gauss$)
-        call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH A GROUP', &
-                           'FOR ELEMENT: ' // lord%name)
-        if (global_com%exit_on_error) call err_exit
-        return
-      case (variable$)
-        call word_to_value (c%stack(is)%name, lat, c%stack(is)%value, err); if (err) return
-        ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
-        ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
-        ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
-        ! turn the variable into a numeric$ so the output from the type_ele routine looks "sane".
-        if (index(c%stack(is)%name, '[') /= 0) then
-          c%stack(is)%type = numeric$
-          c%stack(is)%name = ''
-        endif
-      end select
-    enddo
-
-  else
-    c%y_knot = contrl(i)%y_knot
-    if (size(c%y_knot) /= size(lord%control%x_knot)) then
-      call parser_error ('NUMBER OF Y_SPLINE POINTS FOR SLAVE: ' // slave%name, &
-                         'IS NOT THE SAME AS THE NUMBER OF X_SPLINE POINTS FOR ELEMENT: ' // lord%name)
-      if (global_com%exit_on_error) call err_exit
-      return
-    endif
-  endif
+  call parser_transfer_control_struct(contrl(i), c, lord, 1)
 
 enddo
 

@@ -305,10 +305,16 @@ The syntax for specifying an attribute \vn{attrib} of element \vn{ele} to be con
 attribute will be taken to be the name of the first variable. Example:
 \begin{example}
   ov1: overlay = \{sex1:-tan(k2)^b\}, var = \{k2, b\}
+  ov2: overlay = \{sex1[k2]: -tan(k2)^b\}, var = \{k2, b\} ! Equivalent to ov1.
 \end{example}
 In this example, the controlled attribute of element \vn{sex1} is \vn{k2}.  Except in cases where
 this default attribute syntax is used, the names of the variables are arbitrary and do not have to
-correspond to the name of any actual attribute.
+correspond to the name of any actual attribute. If the slave attribute name is set to ``\vn{*}'', 
+multiple slaves will be generated, one for each variable. Example:
+\begin{example}
+  zz1: overlay = \{sb0[*]\}, var = \{g, e1\}   
+  zz2: overlay = \{sb0[g]:g, sb0[e1]:e1\}, var = \{g, e1\} ! Equivalent to zz1.
+\end{example}
 
 The arithmetic expressions used to evaluate controlled attribute value changes may be a constant. In
 this case, the actual expression used is this constant times the first variable. If the expression
