@@ -983,6 +983,8 @@ integer status, mfit, j
 
 logical, intent(in), optional :: maska(:)
 
+character(*), parameter :: r_name = 'super_mrqmin'
+
 interface
   subroutine funcs(a, yfit, dyda, status)
     import
@@ -1040,7 +1042,11 @@ storage%covar(1:mfit, 1:mfit) = storage%alpha(1:mfit, 1:mfit)
 forall (j = 1:mfit) storage%covar(j,j) =  storage%covar(j,j) * (1.0_rp+alamda)
 storage%da(1:mfit, 1) = storage%beta(1:mfit)
 call super_gaussj(storage%covar(1:mfit, 1:mfit), storage%da(1:mfit, 1:1), status)
-if (status /= 0) return
+if (status /= 0) then
+  call out_io (s_error$, r_name, 'Note: Generally a singular matrix means that one or more datum values are', &
+                                 'not affected by any variation of any variable.')
+  return
+endif
 
 if (alamda == 0.0) then
   call covar_expand(storage%covar, storage%mask)

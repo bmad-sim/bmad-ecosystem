@@ -19,6 +19,7 @@ use sim_utils_struct
 !
 ! Note: re_allocate is an overloaded name for: 
 !   Subroutine re_allocate_string (str, n, exact, init_val)
+!   Subroutine re_allocate_var_string1 (vstr, n, exact, init_val)
 !   Subroutine re_allocate_var_string (var_str, n, exact, init_val)
 !   Subroutine re_allocate_integer (inte, n, exact, init_val)
 !   Subroutine re_allocate_real (re, n, exact, init_val)
@@ -28,6 +29,7 @@ use sim_utils_struct
 !
 ! Input:
 !   str(:)      -- character(*), allocatable: String array.
+!   vstr        -- character(:), allocatable: Variable length string
 !   var_str(:)  -- var_length_string_struct, allocatable: Variable length string structure.
 !   inte(:)     -- integer, allocatable: Integer array.
 !   re(:)       -- real(rp), Allocatable: Real array.
@@ -53,6 +55,7 @@ use sim_utils_struct
 
 interface re_allocate
   module procedure re_allocate_string
+  module procedure re_allocate_var_string1
   module procedure re_allocate_var_string
   module procedure re_allocate_integer
   module procedure re_allocate_logical
@@ -324,6 +327,57 @@ else
 endif
 
 end subroutine re_allocate_var_string
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine re_allocate_var_string1 (vstr, n, exact, init_val)
+!
+! Routine to reallocate a variable length string
+! Note: The data of the array is preserved but data at the end of the
+! array will be lost if n is less than the original size of the array
+!
+! Input:
+!   vstr        -- character(:), allocatable: Variable length string.
+!   n           -- integer: Size wanted.
+!   exact       -- logical, optional: If present and False then the size of 
+!                    the output array is permitted to be larger than n. 
+!                    Default is True.
+!
+! Output:
+!   vstr(:)     -- character(:), allocatable: String with size(vstr) >= n.
+!-
+
+subroutine re_allocate_var_string1 (vstr, n, exact, init_val)
+
+implicit none
+
+integer n, n_old, n_save
+character(:), allocatable :: vstr
+character(:), allocatable :: temp_vstr
+character, optional :: init_val
+
+logical, optional :: exact
+
+!
+
+if (allocated(vstr)) then
+  n_old = len(vstr)
+  if (n == n_old) return
+  if (.not. logic_option(.true., exact) .and. n < n_old) return
+  call move_alloc (vstr, temp_vstr)
+  allocate (character(n):: vstr)
+  if (present(init_val)) vstr = init_val
+  n_save = min(n, n_old)
+  vstr(1:n_save) = temp_vstr(1:n_save)
+  deallocate (temp_vstr)  
+else
+  allocate (character(n):: vstr)
+  if (present(init_val)) vstr = init_val
+endif
+
+end subroutine re_allocate_var_string1
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
