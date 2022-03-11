@@ -40,7 +40,7 @@ integer ix_slave, n_slave, ix_attrib, ix_branch
 
 character(40) attrib_name
 
-logical err, err2, free, var_found
+logical err, err2, free
 
 ! Error check
 
@@ -126,85 +126,7 @@ do j = 1, n_slave
   c%lord      = lat_ele_loc_struct(lord%ix_ele, 0)
   nc2 = nc2 + 1
 
-  !
-
-  if (lord%control%type == expression$) then
-
-    do is = 1, size(contrl(j)%stack)
-      if (contrl(j)%stack(is)%type == end_stack$) exit
-    enddo
-    call reallocate_expression_stack(c%stack, is-1)
-
-    c%stack = contrl(j)%stack(1:is-1)
-
-    ! Convert variable$ type to overlay variable index if name matches an overlay variable name.
-
-    do is = 1, size(c%stack)
-      if (c%stack(is)%type == end_stack$) exit
-      if (c%stack(is)%type /= variable$) cycle
-      do iv = 1, size(lord%control%var)
-        if (upcase(c%stack(is)%name) /= lord%control%var(iv)%name) cycle
-        c%stack(is)%type = iv + var_offset$
-        exit
-      enddo
-    enddo
-
-    ! Convert a stack of a single constant "const" to "const * control_var(1)"
-    var_found = .false.
-    do is = 1, size(c%stack)
-      if (.not. is_attribute (c%stack(is)%type, all_control_var$)) cycle
-      if (c%stack(is)%type == end_stack$) exit
-      var_found = .true.
-      exit
-    enddo
-
-    if (.not. var_found) then
-      if (size(c%stack) == 1 .and. c%stack(1)%name == '1' .or. c%stack(1)%name == '1.0') then
-        c%stack(1) = expression_atom_struct(lord%control%var(1)%name, 1+var_offset$, 0.0_rp)
-      else
-        n = size(c%stack)
-        call reallocate_expression_stack(c%stack, n+2)
-        c%stack(n+1) = expression_atom_struct(lord%control%var(1)%name, 1+var_offset$, 0.0_rp)
-        c%stack(n+2) = expression_atom_struct('', times$, 0.0_rp)
-      endif
-    endif
-
-    ! Evaluate any variable values.
-
-    do is = 1, size(c%stack)
-      select case (c%stack(is)%type)
-      case (ran$, ran_gauss$)
-        call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
-                           'FOR ELEMENT: ' // lord%name)
-        return
-      case (variable$)
-        call word_to_value (c%stack(is)%name, lat, c%stack(is)%value, err2)
-        err = (err .or. err2)
-        if (err) then
-          call parser_error ('ERROR CONVERTING WORD TO VALUE: ' // c%stack(is)%name, &
-                             'FOR ELEMENT: ' // lord%name)
-          return
-        endif
-        ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
-        ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
-        ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
-        ! turn the variable into a numeric$ so the output from the type_ele routine looks "sane".
-        if (index(c%stack(is)%name, '[') /= 0) then
-          c%stack(is)%type = numeric$
-          c%stack(is)%name = ''
-        endif
-      end select
-    enddo
-
-  else
-    c%y_knot = contrl(j)%y_knot
-    if (size(c%y_knot) /= size(lord%control%x_knot)) then
-      call parser_error ('NUMBER OF Y_SPLINE POINTS FOR SLAVE: ' // slave%name, &
-                         'IS NOT THE SAME AS THE NUMBER OF X_SPLINE POINTS FOR ELEMENT: ' // lord%name)
-      return
-    endif
-  endif
-
+  call parser_transfer_control_struct(contrl(j), c, lord, 1)
 enddo
 
 lord%n_slave = n_slave
