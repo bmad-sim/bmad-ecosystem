@@ -31,7 +31,7 @@ class common_struct:
     self.ele_dict = {}               # Dict of elements
     self.f_in = []         # Elegant input files
     self.f_out = []        # Bmad output files
-    self.use = ''
+    self.beam_line_name = ''
     self.command = ''
 
 #------------------------------------------------------------------
@@ -136,6 +136,33 @@ bmad_param_name = {
   'freq':         'rf_frequency',
   'phase':        'phi0',
 }
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+# Routine to parse a namelist
+
+def namelist_dict(dlist):
+  nl_name = dlist.pop(0)   # Remove "&namelist-name" and "&end"
+  dlist.pop(-1)
+  ndir = {}
+
+  while True:
+    if len(dlist) == 0: return ndir
+    if len(dlist) < 3 or dlist[1] != '=':
+      print (f'ERROR READING NAMELIST: {nl_name}')
+      return ndir
+
+    name = dlist.pop(0)
+    dlist.pop(0)   # Pop equal sign
+
+    try: 
+      ixe = dlist.index('=')
+      ndir[name] = ''.join(dlist[:ixe-1])
+      if ndir[name][-1] == ',': ndir[name] = ndir[name][:-1]
+      dlist = dlist[ixe-1:]
+    except:
+      ndir[name] = ''.join(dlist)
+      return ndir
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -520,6 +547,41 @@ def parse_command(command, dlist):
     f_out.write('\n')
     return
 
+  # &bunched_beam namelist
+
+  if dlist[0] == '&run_setup':
+    params = namelist_dict(dlist)
+    if 'p_central'     in params: wrap_write(f'parameter[p0c] = {params["p_central"]}', f_out)
+    if 'p_central_mev' in params: wrap_write(f'parameter[p0c] = 1e6*({params["p_central_mev"]})', f_out)
+    if 'use_beamline'  in params: 
+      name = params["use_beamline"].replace('"', '').replace("'", '')
+      wrap_write(f'use, {name}', f_out)
+    return
+
+  # &bunched_beam namelist
+
+  if dlist[0] == '&bunched_beam':
+    params = namelist_dict(dlist)
+    if 'beta_x'     in params: wrap_write(f'beginning[beta_a] = {params["beta_x"]}', f_out)
+    if 'beta_y'     in params: wrap_write(f'beginning[beta_b] = {params["beta_y"]}', f_out)
+    if 'alpha_x'    in params: wrap_write(f'beginning[alpha_a] = {params["alpha_x"]}', f_out)
+    if 'alpha_y'    in params: wrap_write(f'beginning[alpha_b] = {params["alpha_y"]}', f_out)
+    if 'eta_x'      in params: wrap_write(f'beginning[eta_x] = {params["eta_x"]}', f_out)
+    if 'eta_y'      in params: wrap_write(f'beginning[eta_y] = {params["eta_y"]}', f_out)
+    if 'etap_x'     in params: wrap_write(f'beginning[etap_x] = {params["etap_x"]}', f_out)
+    if 'etap_y'     in params: wrap_write(f'beginning[etap_y] = {params["etap_y"]}', f_out)
+    if 'p0'         in params: wrap_write(f'parameter[p0c] = {params["p0"]}', f_out)
+    if 'emit_x'     in params: wrap_write(f'particle_start[emittance_a] = {params["emit_x"]}', f_out)
+    if 'emit_y'     in params: wrap_write(f'particle_start[emittance_b] = {params["emit_y"]}', f_out)
+    if 'emit_nx'    in params: wrap_write(f'particle_start[emittance_a] = {params["emit_nx"]}/parameter[p0c]', f_out)
+    if 'emit_ny'    in params: wrap_write(f'particle_start[emittance_b] = {params["emit_ny"]}/parameter[p0c]', f_out)
+    return
+
+  # Ignore other Namelists
+
+  if dlist[0][0] == '&':
+    return
+
   # "% <expression> sto <var>" construct
 
   if dlist[0] == '%':
@@ -569,6 +631,7 @@ def parse_command(command, dlist):
 
   if ix_colon > 0 and dlist[ix_colon+1] == 'line':
     wrap_write(command, f_out)
+    common.beam_line_name = dlist[0]
     return
 
   # Var definition.
@@ -587,13 +650,6 @@ def parse_command(command, dlist):
     else:  # In a complete valid lattice, parameter seets always happen after the element has been defined
       name = f'{dlist[0]}[{bmad_param(dlist[2], "???")}]'
     f_out.write(f'{name} = {value}\n')
-    return
-
-  # Use
-
-  if dlist[0] == 'use':
-    common.use = dlist[2]
-    f_out.write('use, ' + common.use + '\n')
     return
 
   # Element def
@@ -678,6 +734,12 @@ def get_next_command ():
       dlist = ['#include:', line[9:].strip()]
       return [command, dlist]
 
+    if line[0] == '&':    # Namelist
+      while True:
+        command += line
+        dlist += [val for val in re.split('([=, ])', line.strip()) if val != '' and val != ' ']
+        if '&end' in line: return [command, dlist]
+        line = f_in.readline()
 
     while line != '':
       for ix in range(len(line)):
@@ -822,6 +884,8 @@ Kaq = 75.0499e-2
 
 for line in lines:
   f_out.write(line)
+
+if common.beam_line_name != '': f_out.write(f'\nuse, {common.beam_line_name}\n')
 
 f_out.close()
 print ('*******Note: In beta testing! Please report any problems! **********')
