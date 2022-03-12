@@ -22,9 +22,10 @@ Minimum python version needed is 3.6.
 The scripts run independently of whether the standard Bmad environmental variables have been setup.
 
 To convert Elegant files, use the command:
-  <path-to-script>/elegant_to_bmad.py {options} <elegant-file-name>
+  <path-to-script>/elegant_to_bmad.py {options} <elegant-file1> <elegant-file2> ...
 
-where <path-to-script> is the path to the directory where the script is.
+where <path-to-script> is the path to the directory where the script is and <elegant-file1>,
+<elegant-file2> etc. are the names of the files to convert. 
 
 Example conversion command:
   $ACC_ROOT_DIR/util_programs/elegant_to_bmad/elegant_to_bmad -f a.lte
@@ -80,7 +81,7 @@ in the Bmad file (or use the "!!verbatim" construct discussed above):
 Help:
 -----
 
-If you find a problem with the conversion, please send a message along with the original Elegant files
+* If you find a problem with the conversion, please send a message along with the original Elegant files
 to a Bmad maintainer. Contact info can be obtained on the Bmad site by clicking on the "Help &
 Mailing Lists" button.
 
@@ -90,5 +91,5 @@ diagnose things is to track in Elegant and Bmad as if the lattice had an open ge
 are any particular spots in the lattice where differences suddenly become much larger. If you can
 spot such places, you can examine the lattice element at that location. 
 
-* Another diagnosis tool is to back translate the Bmad lattice to Elegant. The resulting lattice can then
+* Another diagnostic trick is to back translate the Bmad lattice to Elegant. The resulting lattice can then
 be compared to the original lattice.
