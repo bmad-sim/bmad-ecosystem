@@ -268,7 +268,7 @@ T-BMT equation, is the spin part of the map which is a function of $\bfr$. That 
 spin field (ISF) obeys the T-BMT equation. Thus, a particle whose spin points in the direction of
 $\bfn(\bfr, s)$ at some time $t$ will, in the absence of radiation effects, always have its spin
 pointing in the direction of $\bfn(\bfr, s)$. When there are no resonances, $\bfn(\bfr, s)$ is
-unique up to a flip of sign.
+unique up to a flip of sign. 
 
 In general, it is not straightforward to calculate $\bfn$. The exceptional case (besides the cases
 where there is a resonance) is if the particle is on the closed orbit $\bfr_0$. In this case, since
@@ -276,6 +276,22 @@ $\Cal M_r \bfr_0 = \bfr_0$, and since $\Cal M_s(\bfr)$ is a rotation matrix, \Eq
 to give the invariant spin field on the closed orbit denoted by $\bfn_0$.  Over one turn, a spin on
 the closed orbit rotates around $\bfn_0$ by the angle $2 \pi \nu_0$ where $\nu_0$ is the
 closed-orbit spin tune.
+
+Only the fractional part of the closed orbit spin tune $\nu_0$ is generally well defined. That is,
+it is not in general possible to distinguish between tunes $\nu_0+m$ where $m$ is an
+integer.\footnote
+  {
+This is in contrast to the orbital tunes where the integer part is generally well defined (but there
+are exceptions when there is strong coupling). The reason for this is that at all points in the
+ring, the orbital normal mode axes are fairly well defined (see, for example, \Eq{avx}). This means
+that the phase angle of an oscillating particle with respect to the axes is fairly well defined and
+counting full oscillations is unambiguous. With spin, the closed orbit spin oscillations are in the
+plane transverse to $\bfn_0$ and here there is no non-arbitrary way to define the transverse plane
+coordinate axes (there is an exception here if $\bfn_0$ always is pointing in the same general
+direction). This makes the integer part of the spin tune ambiguous.
+  }
+Additionally, if $\bfn_0$ is a valid closed orbit spin field then so is $-\bfn_0$ and the spin tune
+associated with $-\bfn_0$ is the negative of the spin tune associated with $\bfn_0$.
 
 Once the invariant spin field has been calculated, various quantities of interest can be
 computed. For example, given some initial distribution of spins in a beam, the maximum possible time
@@ -707,12 +723,12 @@ The normalized resonance strength $\xi_r$ is defined by
 Combining the above equations along with \Eqs{n6} through \eq{4ggg}, the strength of the sum
 resonance for the $k$ mode of oscillation is
 \begin{equation}
-  \xi_r = \frac{\sqrt{2}}{2\pi} \big| \bf{\cal G} \cdot \bfv_k \big| 
+  \xi_{r1} = \frac{\sqrt{2}}{2\pi} \big| \bf{\cal G} \cdot \bfv_k \big| 
   \label{x12pq1}
 \end{equation}
 and for the difference resonance the strength is
 \begin{equation}
-  \xi_r = \frac{\sqrt{2}}{2\pi} \big|
+  \xi_{r2} = \frac{\sqrt{2}}{2\pi} \big|
   \bf{\cal G} \cdot \bfv_k^* \big| 
   \label{x12pq2}
 \end{equation}
@@ -721,10 +737,14 @@ where $\bf{\cal G}$ is given by
   \bf{\cal G} = 2 \, \bfn_0^\ppls \arrowbfq \bfn_0^\mmin
   \label{g2nqn}
 \end{equation}
+It should be noted that sum resonances are not physically ``distinct'' from difference
+resonances. That is, sum resonances become difference resonances and vice versa if the sign of
+$\bfn$ and $\nu$ are flipped in the analysis (remember that if $\bfn$ is a valid spin field then so
+is $-\bfn$).
 
 The resonance strength can also be calculated within the \vn{SLIM} formalism (\sref{s:slim}) via
 \Eq{x1pg} or \Eq{x2pg}. Comparing \Eqs{x12pq1} or \eq{x12pq2} with \Eq{x2pg} it is seen
-that $\bf{\cal G}$ is the quaternion equivalent of the SLIM $\bfG_{2\cross6}$ matrix.
+that $\bf{\cal G}$ is the quaternion equivalent of the SLIM $\bfG$ $2\cross6$ matrix.
 
 %-----------------------------------------------------------------   
 \section{SLIM Formalism}
