@@ -156,7 +156,7 @@ real(rp) mat6(6,6), vec0(6), array(7)
 real(rp), allocatable :: real_arr(:), value_arr(:)
 
 type (tao_spin_map_struct), pointer :: sm
-real(rp) n0(3), qs, q, dq(3), xi_quat(3,2), xi_mat8(3,2)
+real(rp) n0(3), qs, q, dq, xi_quat(2)
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
 
 integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, md, ct, nl2, n, ix, ix2, iu_write, data_type
@@ -176,14 +176,15 @@ character(len(input_str)) line
 character(n_char_show), allocatable, target :: li(:)
 character(n_char_show), pointer :: li_ptr(:)
 character(n_char_show) li2
+character(300), allocatable :: name_arr(:)
 character(200) file_name, all_who
 character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name, command
+character(40), allocatable :: str_arr(:)
 character(20), allocatable :: name_list(:)
 character(20) cmd, tail_str, which, v_str, head
 character(20) switch, color, shape_shape
-character(300), allocatable :: name_arr(:)
-character(40), allocatable :: str_arr(:)
+character(1) :: mode(3) = ['a', 'b', 'c']
 character(*), parameter :: r_name = 'tao_python_cmd'
 
 !
@@ -6422,6 +6423,12 @@ case ('spin_polarization')
 ! ref_ele : default=0
 !   Reference element to calculate at.
 !
+! Returns
+! -------
+! q_spin                        -- Spin tune
+! dq_a_min, dq_b_min, dq_c_min  -- Minimum tune separation between a,b,c mode tunes and spin tune.
+! xi_res_a, xi_res_b, xi_res_c  -- The linear spin/orbit "sum" and "difference" resonance strengths for a,b,c modes.
+!
 ! Examples
 ! --------
 !
@@ -6431,9 +6438,6 @@ case ('spin_polarization')
 !    ix_uni: 1
 !    ix_branch: 0
 !    which: model
-!
-!
-
 
 case ('spin_resonance')
 
@@ -6461,20 +6465,16 @@ case ('spin_resonance')
   if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
 
   qs = branch%param%spin_tune/twopi
+  nl=incr(nl); write (li(nl), rmt) 'spin_tune;REAL;F;',   qs
+
   do i = 1, 3
     j = 2 * i - 1
     q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
-    dq(i) = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
-    call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat(i,:))
-    call spin_mat8_resonance_strengths(evec(j,:), sm%mat8, xi_mat8(i,:))
+    dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
+    nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), ';REAL;F;', re_str(dq, 6)
+    call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat)
+    nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), ';REAL_ARR;F;', re_str(xi_quat(1), 6), ';', re_str(xi_quat(2), 6) 
   enddo
-
-  nl=incr(nl); write (li(nl), rmt) 'spin_tune;REAL;F;',   qs
-  nl=incr(nl); write (li(nl), amt) 'dq;REAL_ARR;F',   (';', re_str(dq(k), 6), k = 1, 3)
-  nl=incr(nl); write (li(nl), amt) 'xi_res1_quat;REAL_ARR;F',   (';', re_str(xi_quat(k,1), 6), k = 1, 3)
-  nl=incr(nl); write (li(nl), amt) 'xi_res2_quat;REAL_ARR;F',   (';', re_str(xi_quat(k,2), 6), k = 1, 3)
-!  nl=incr(nl); write (li(nl), amt) 'xi_res1_mat8;REAL_ARR;F',   (';', re_str(xi_mat8(k,1), 6), k = 1, 3)
-!  nl=incr(nl); write (li(nl), amt) 'xi_res2_mat8;REAL_ARR;F',   (';', re_str(xi_mat8(k,2), 6), k = 1, 3)
 
 !%% super_universe -----------------------
 ! Output super_Universe parameters.

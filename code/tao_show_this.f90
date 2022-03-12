@@ -3722,9 +3722,7 @@ case ('ptc')
 case ('spin')
 
   what_to_print = 'standard'
-  show_q = .false.
   show_mat = .false.
-  show_all = .false.
   sm => datum%spin_map
   sm%axis_input = spin_axis_struct()
   ele_ref_name = ''
@@ -3733,28 +3731,23 @@ case ('spin')
 
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', '-all', &
-                                   '-ref_element', '-q_map', '-g_map', '-flip_n_axis'], .true., switch, err, ix)
+                                                  '-g_map', '-flip_n_axis'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('')
       exit
-    case ('-all')
-      show_all = .true.
     case ('-element')
       what_to_print = 'element'
-      ele_name = upcase(what2(1:ix))
+      ele_ref_name = upcase(what2(1:ix))
+      ele_name = ele_ref_name
       call string_trim(what2(ix+1:), what2, ix)
       if (what2(1:1) /= '-' .and. what2(1:1) /= ' ') then
-        ele_ref_name = ele_name
         ele_name = upcase(what2(1:ix))
         call string_trim(what2(ix+1:), what2, ix)
       endif
     case ('-flip_n_axis')
       flip = .true.
-    case ('-ref_element')  ! Note: This is old deprecated syntax.
-      ele_ref_name = upcase(what2(1:ix))
-      call string_trim(what2(ix+1:), what2, ix)
     case ('-n_axis')
       read (what2, *, iostat = ios) sm%axis_input%n0
       if (ios /= 0) then
@@ -3776,7 +3769,7 @@ case ('spin')
       call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
       call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
     case ('-q_map')
-      show_q = .true.
+      nl=nl+1; lines(nl) = 'Note: "-q_map" now no longer needed or used.'
     case ('-g_map')
       show_mat = .true.
     end select
@@ -3796,6 +3789,8 @@ case ('spin')
   r = anomalous_moment_of(branch%param%particle) * branch%ele(1)%value(e_tot$) / mass_of(branch%param%particle)
   nl=nl+1; lines(nl) = 'a_anomalous_moment * gamma = ' // real_str(r, 6)
   nl=nl+1; lines(nl) = 'E_tot = ' // real_str(branch%ele(1)%value(e_tot$), 6)
+  qs = branch%param%spin_tune/twopi
+  nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
 
   if (what_to_print == 'standard') then
     ele => branch%ele(0)
@@ -3884,7 +3879,10 @@ case ('spin')
     if (err) return
     u => s%u(ix_u)
     call tao_locate_elements (ele_name, ix_u, eles, err)
-    if (err) return
+    if (err) then
+      nl = 0
+      return
+    endif
     ele => eles(1)%ele
 
     if (ele_ref_name /= '') then
@@ -3959,18 +3957,16 @@ case ('spin')
 
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Resonance strengths:'
-      nl=nl+1; lines(nl) = '            Tune        |Q-Qs|      Xi(quat.v1)  Xi(quat.v2)'     !!         Xi(G.v1)     Xi(G.v2)'
+      nl=nl+1; lines(nl) = '          Orb_Tune   |Q+/-Qs|min           Xi1          Xi2   '
 
-      qs = branch%param%spin_tune/twopi
       do i = 1, 3
         j = 2 * i - 1
         q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
         dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
         call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat)
-        !! call spin_mat8_resonance_strengths(evec(j,:), sm%mat8, xi_mat8)
-        nl=nl+1; write (lines(nl), '(5x, a, 2f12.6, 8(4x, 2es13.5))') abc_name(i), q, dq, xi_quat !!, xi_mat8
+        nl=nl+1; write (lines(nl), '(5x, a, 2f13.7, 8(4x, 2es13.5))') abc_name(i), q, dq, xi_quat 
       enddo
-      nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
+      nl=nl+1; lines(nl) = 'Note: "help show spin" will display information on this table.'
     endif
   endif
 

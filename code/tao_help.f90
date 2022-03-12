@@ -158,7 +158,10 @@ do
 
   has_subbed = .false.
   call substitute (line, "{}", "")
+  call eliminate2 (line, '\vn{', '}', '"', '"')
   call eliminate2 (line, '\item[\vn{\{', '\}}]', '   Argument: ', '')
+  call eliminate2 (line, '\item[', ']', '     ', '')
+  call substitute (line, '\item', '*')
   call substitute (line, "``\vn", '"')
   call substitute (line, "``", '"')
   call substitute (line, "\`", '`')
@@ -172,8 +175,6 @@ do
   call substitute (line, "\%", "%")
   call substitute (line, "\tao", "Tao")
   call substitute (line, "\bmad", "Bmad")
-  call eliminate2 (line, '\item[', ']', '     ', '')
-  call eliminate2 (line, '\vn{', '}', '"', '"')
   call eliminate_inbetween (line, '& \sref{', '}', .true.)
   call eliminate_inbetween (line, '\hspace*{', '}', .true.)
   call eliminate_inbetween (line, '(\sref{', '})', .false.)
