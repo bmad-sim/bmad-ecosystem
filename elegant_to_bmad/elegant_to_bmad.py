@@ -556,6 +556,7 @@ def parse_command(command, dlist):
     if 'use_beamline'  in params: 
       name = params["use_beamline"].replace('"', '').replace("'", '')
       wrap_write(f'use, {name}', f_out)
+      common.beam_line_name = '##'  # Prevent printing of use statement of last defined line
     return
 
   # &bunched_beam namelist
@@ -630,8 +631,8 @@ def parse_command(command, dlist):
   # Line
 
   if ix_colon > 0 and dlist[ix_colon+1] == 'line':
-    wrap_write(command, f_out)
-    common.beam_line_name = dlist[0]
+    wrap_write(command.replace(' ,', ','), f_out)
+    if common.beam_line_name != '##': common.beam_line_name = dlist[0]
     return
 
   # Var definition.
@@ -690,10 +691,11 @@ def get_next_command ():
         
         common.f_in[-1].close()
         common.f_in.pop()          # Remove last file handle
+        if len(common.f_in) == 0: return ['', dlist]
+
         if not common.one_file:
           common.f_out[-1].close()
           common.f_out.pop()       # Remove last file handle
-        if len(common.f_in) == 0: return ['', dlist]
 
     else:
       f_in = common.f_in[-1]
@@ -807,60 +809,45 @@ start_time = time.time()
 # Read the parameter file specifying the Elegant lattice file, etc.
 
 argp = argparse.ArgumentParser()
-argp.add_argument('elegant_file', help = 'Name of input Elegant lattice file')
+argp.add_argument('elegant_files', help = 'Name of input Elegant lattice file', nargs='+')
 argp.add_argument('-d', '--debug', help = 'Print debug info (not of general interest).', action = 'store_true')
 argp.add_argument('-f', '--many_files', help = 'Create a Bmad file for each Elegant input file.', action = 'store_true')
 argp.add_argument('-c', '--constants', help = 'Add to lattice file a list of Elegant defined constants.', action = 'store_true')
 arg = argp.parse_args()
+## print(arg)
 
 common = common_struct()
 common.debug = arg.debug
 common.one_file = not arg.many_files
 common.add_constants = arg.constants
 
-elegant_lattice_file = arg.elegant_file
-bmad_lattice_file = bmad_file_name(elegant_lattice_file)
-
 print ('*******Note: In beta testing! Please report any problems! **********')
-print ('Input lattice file is:  ' + elegant_lattice_file)
-print ('Output lattice file is: ' + bmad_lattice_file)
+print (f'Input lattice file(s) are: {arg.elegant_files[0]}')
 
 # Open files for reading and writing
 
-common.f_in.append(open(elegant_lattice_file, 'r'))  # Store file handle
-common.f_out.append(open(bmad_lattice_file, 'w'))
+# Loop over all input files
 
-f_out = common.f_out[-1]
+for ixf, elegant_lattice_file in enumerate(arg.elegant_files):
+  common.f_in = [open(elegant_lattice_file, 'r')]
 
-#------------------------------------------------------------------
-# parse, convert and output elegant commands
+  if ixf == 0 or not common.one_file:
+    bmad_lattice_file = bmad_file_name(elegant_lattice_file)
+    print (f'Output lattice file: {bmad_lattice_file}')
+    f_out = open(bmad_lattice_file, 'w')
+    common.f_out = [f_out]
 
-common.command = ''  # init
+  common.command = ''  # init
 
-while True:
-  [command, dlist] = get_next_command()
-  if len(common.f_in) == 0: break
-  parse_command(command, dlist)
-  if len(common.f_in) == 0: break   # Hit Quit/Exit/Stop statement.
-
-f_out.close()
-
-#------------------------------------------------------------------
-
-f_out = open(bmad_lattice_file, 'r')
-lines = f_out.readlines()
-f_out.close()
-
-f_out = open(bmad_lattice_file, 'w')
-f_out.write (f'''
+  f_out.write (f'''
 !+
-! Translated by elegant_to_bmad.py from Elegant file: {elegant_lattice_file}
+! Translated by elegant_to_bmad.py from Elegant file(s): {arg.elegant_files}
 !-
 
 ''')
 
-if common.add_constants:
-  f_out.write (f'''
+  if common.add_constants and ixf == 0:
+    f_out.write (f'''
 c_cgs = 2.99792458e10
 c_mks = 2.99792458e8 
 e_cgs = 4.80325e-10
@@ -882,10 +869,20 @@ Kaq = 75.0499e-2
 
 ''')
 
-for line in lines:
-  f_out.write(line)
+  # parse, convert and output elegant commands
 
-if common.beam_line_name != '': f_out.write(f'\nuse, {common.beam_line_name}\n')
+  while True:
+    [command, dlist] = get_next_command()
+    if len(common.f_in) == 0: break
+    parse_command(command, dlist)
+    if len(common.f_in) == 0: break   # Hit Quit/Exit/Stop statement.
 
-f_out.close()
+  #------------------------------------------------------------------
+  f_out = common.f_out[0]  # Should be only one left
+  if common.beam_line_name != '' and common.beam_line_name != '##': 
+    f_out.write(f'\nuse, {common.beam_line_name}\n')
+    common.beam_line_name = ''
+
+#
+
 print ('*******Note: In beta testing! Please report any problems! **********')
