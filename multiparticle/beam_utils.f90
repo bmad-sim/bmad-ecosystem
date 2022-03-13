@@ -6,7 +6,7 @@ use coord_mod
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
-private combine_bunch_distributions, calc_this_emit, bunch_init_end_calc
+private combine_bunch_distributions, bunch_init_end_calc
 
 contains
 
@@ -523,7 +523,7 @@ else
   call transfer_ele (ele, twiss_ele, .true.)
 endif
 
-call calc_this_emit (b_init, twiss_ele, species)
+call calc_emit_from_beam_init (b_init, twiss_ele, species)
 
 covar = b_init%dPz_dz * b_init%sig_z**2
 twiss_ele%z%emit = sqrt((b_init%sig_z*b_init%sig_pz)**2 - covar**2)
@@ -630,68 +630,6 @@ call ran_gauss_converter (old_converter, old_cutoff)
 if (present(err_flag)) err_flag = .false.
   
 end subroutine init_bunch_distribution
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine calc_this_emit (beam_init, ele, species)
-!
-! Private routine to calculate the emittances
-!
-! Input:
-!   beam_init -- beam_init_struct: 
-!   ele       -- ele_struct:
-!   param     -- lat_param_struct:
-!
-! Ouput:
-!   ele%a  -- Real(rp): a emittance
-!   ele%b  -- Real(rp): b emittance
-!-
-
-subroutine calc_this_emit (beam_init, ele, species)
-
-implicit none
-
-type (beam_init_struct) beam_init
-type (ele_struct) ele
-
-real(rp) ran_g(2)
-integer species
-
-character(16) :: r_name = 'calc_this_emit'
-
-! Check
-
-if ((beam_init%a_norm_emit /= 0 .and. beam_init%a_emit /= 0) .or. &
-    (beam_init%b_norm_emit /= 0 .and. beam_init%b_emit /= 0)) then
-  call out_io (s_fatal$, r_name, 'SETTING BOTH NORM_EMIT AND EMIT IN BEAM_INIT STRUCTURE IS NOT ALLOWED.')
-  if (global_com%exit_on_error) call err_exit
-endif
-
-!
-
-if (beam_init%a_norm_emit /= 0) then
-  ele%a%emit = beam_init%a_norm_emit * mass_of(species) / ele%value(e_tot$)
-else
-  ele%a%emit = beam_init%a_emit
-endif
-
-if (beam_init%b_norm_emit /= 0) then
-  ele%b%emit = beam_init%b_norm_emit * mass_of(species) / ele%value(e_tot$)
-else
-  ele%b%emit = beam_init%b_emit 
-endif
-
-! Add jitter if needed
-
-if (any(beam_init%emit_jitter /= 0)) then
-  call ran_gauss(ran_g) ! ran(3:4) for z and e jitter used below
-  ele%a%emit = ele%a%emit * (1 + beam_init%emit_jitter(1) * ran_g(1))
-  ele%b%emit = ele%b%emit * (1 + beam_init%emit_jitter(2) * ran_g(2))
-endif
-
-end subroutine calc_this_emit 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -818,7 +756,7 @@ endif
 
 ! Compute sigmas
 
-call calc_this_emit(beam_init, ele, species)
+call calc_emit_from_beam_init(beam_init, ele, species)
 
 dpz_dz = beam_init%dpz_dz
   
