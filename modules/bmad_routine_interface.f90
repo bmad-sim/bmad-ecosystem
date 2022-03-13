@@ -229,6 +229,14 @@ subroutine c_to_cbar (ele, cbar_mat)
   real(rp) cbar_mat(2,2)
 end subroutine
 
+subroutine calc_emit_from_beam_init (beam_init, ele, species)
+  import
+  implicit none
+  type (beam_init_struct) beam_init
+  type (ele_struct) ele
+  integer species
+end subroutine
+
 subroutine calc_next_fringe_edge (track_ele, s_edge_body, fringe_info, orbit, init_needed, time_tracking)
   import
   type (ele_struct), target :: track_ele
