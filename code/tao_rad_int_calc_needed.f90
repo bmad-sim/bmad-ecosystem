@@ -36,6 +36,6 @@ if (data_type(1:min(11,n)) == 'expression:') then
   if (index(data_type, 'rad_int') /= 0) do_rad_int = .true.
 endif
 
-if (tao_beam_sigma_calc_needed(data_type, data_source)) do_rad_int = .true.
+if (tao_lat_sigma_calc_needed(data_type, data_source)) do_rad_int = .true.
 
 end function tao_rad_int_calc_needed

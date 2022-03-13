@@ -1294,11 +1294,11 @@ case ('damp.')
 case ('dpx_dx') 
   if (data_source == 'lat') then
     if (ix_start == ix_ele) then
-      if (ix_ref > -1) value_vec(ix_ref) = tao_branch%linear(ix_ref)%sigma(1,2) / tao_branch%linear(ix_ref)%sigma(1,1)
-      value_vec(ix_ele) = tao_branch%linear(ix_ele)%sigma(1,2) / tao_branch%linear(ix_ele)%sigma(1,1)
+      if (ix_ref > -1) value_vec(ix_ref) = tao_branch%lat_sigma(ix_ref)%mat(1,2) / tao_branch%lat_sigma(ix_ref)%mat(1,1)
+      value_vec(ix_ele) = tao_branch%lat_sigma(ix_ele)%mat(1,2) / tao_branch%lat_sigma(ix_ele)%mat(1,1)
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
-      call tao_load_this_datum (tao_branch%linear%sigma(1,2) / tao_branch%linear%sigma(1,1), &
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(1,2) / tao_branch%lat_sigma%mat(1,1), &
                           ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
   else
@@ -1315,11 +1315,11 @@ case ('dpx_dx')
 case ('dpy_dy') 
   if (data_source == 'lat') then
     if (ix_start == ix_ele) then
-      if (ix_ref > -1) value_vec(ix_ref) =  tao_branch%linear(ix_ref)%sigma(3,4) / tao_branch%linear(ix_ref)%sigma(3,3)
-      value_vec(ix_ele) = tao_branch%linear(ix_ele)%sigma(3,4) / tao_branch%linear(ix_ele)%sigma(3,3)
+      if (ix_ref > -1) value_vec(ix_ref) =  tao_branch%lat_sigma(ix_ref)%mat(3,4) / tao_branch%lat_sigma(ix_ref)%mat(3,3)
+      value_vec(ix_ele) = tao_branch%lat_sigma(ix_ele)%mat(3,4) / tao_branch%lat_sigma(ix_ele)%mat(3,3)
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
-      call tao_load_this_datum (tao_branch%linear%sigma(3,4) / tao_branch%linear%sigma(3,3), &
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(3,4) / tao_branch%lat_sigma%mat(3,3), &
                           ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
   else
@@ -1336,11 +1336,11 @@ case ('dpy_dy')
 case ('dpz_dz') 
   if (data_source == 'lat') then
     if (ix_start == ix_ele) then
-      if (ix_ref > -1) value_vec(ix_ref) =  tao_branch%linear(ix_ref)%sigma(5,6) / tao_branch%linear(ix_ref)%sigma(5,5)
-      value_vec(ix_ele) = tao_branch%linear(ix_ele)%sigma(5,6) / tao_branch%linear(ix_ele)%sigma(5,5)
+      if (ix_ref > -1) value_vec(ix_ref) =  tao_branch%lat_sigma(ix_ref)%mat(5,6) / tao_branch%lat_sigma(ix_ref)%mat(5,5)
+      value_vec(ix_ele) = tao_branch%lat_sigma(ix_ele)%mat(5,6) / tao_branch%lat_sigma(ix_ele)%mat(5,5)
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
-      call tao_load_this_datum (tao_branch%linear%sigma(5,6) / tao_branch%linear%sigma(5,5), &
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(5,6) / tao_branch%lat_sigma%mat(5,5), &
                           ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
   else
@@ -2821,7 +2821,7 @@ case ('sigma.')
   j = index('123456', data_type(8:8))
   if (i > 0 .and. j > 0) then
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
@@ -2832,7 +2832,7 @@ case ('sigma.')
 
   case ('sigma.x')
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
       datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
@@ -2841,7 +2841,7 @@ case ('sigma.')
 
   case ('sigma.px')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
       datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
@@ -2850,7 +2850,7 @@ case ('sigma.')
 
   case ('sigma.y')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
       datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
@@ -2859,7 +2859,7 @@ case ('sigma.')
     
   case ('sigma.py')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
       datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
@@ -2868,7 +2868,7 @@ case ('sigma.')
     
   case ('sigma.z')
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
       datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
@@ -2878,7 +2878,7 @@ case ('sigma.')
   case ('sigma.pz')  
     if (data_source == 'lat') then
       if (lat%param%geometry == closed$) then
-        call tao_load_this_datum (tao_branch%linear%sigma(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
+        call tao_load_this_datum (tao_branch%lat_sigma%mat(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
         datum_value = sqrt(datum_value)
       else
         if (ix_ele == -1) ix_ele = branch%n_ele_track
@@ -2893,14 +2893,14 @@ case ('sigma.')
     
   case ('sigma.xy')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(1,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(1,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(1,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
   case ('sigma.Lxy')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(1,4) - tao_branch%linear%sigma(2,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(1,4) - tao_branch%lat_sigma%mat(2,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(1,4) - bunch_params(:)%sigma(2,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif

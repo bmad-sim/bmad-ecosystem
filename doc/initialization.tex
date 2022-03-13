@@ -39,7 +39,7 @@ file are:
 %
 \item[-beam_file <file_name>] \Newline
 Sets the name of the file containing the \vn{tao_beam_init} namelist (\sref{s:beam.init}).
-Overrides the setting of \vn{beam_file} (\sref{s:init.global}) specified in the \tao initialization
+Overrides the setting of \vn{beam_file} (\sref{s:init.begin}) specified in the \tao initialization
 file.
 %
 \item[-beam_track_data_file <file_name>] \Newline
@@ -51,12 +51,12 @@ Specifies the file containing initial particle positions.  Overrides the setting
 \vn{beam_init%position_file} (\sref{s:beam.init}) specified in the \vn{tao_beam_init} namelist.
 %
 \item[-building_wall_file <file_name>] \Newline
-Overrides the \vn{building_wall_file} (\sref{s:init.global}) specified in the \tao initialization
+Overrides the \vn{building_wall_file} (\sref{s:init.begin}) specified in the \tao initialization
 file.
 %
 \item[-command <command_list>] \Newline
 List of commands to run at startup. This will be in addition to the commands run by the startup file
-(\sref{s:init.global}). The startup file commands will be run before the commands specified by
+(\sref{s:init.begin}). The startup file commands will be run before the commands specified by
 \vn{-command}. Put the \vn{<command_list>} in quotes in order to embed blanks or if semicolons are
 used to separate multiple commands. The \vn{-command} option is useful when running \tao from a
 script. Example:
@@ -67,7 +67,7 @@ In this example \tao will print some information on lattice elements 12 through 
 output of the \vn{show} command can be captured by a script and processed.
 %
 \item[-data_file <file_name>] \Newline
-Overrides the \vn{data_file} (\sref{s:init.global}) specified in the \tao initialization file.
+Overrides the \vn{data_file} (\sref{s:init.begin}) specified in the \tao initialization file.
 %
 \item[-disable_smooth_line_calc] \Newline
 Disable computation of the ``smooth curves'' used in plotting.  This can be used to speed up \tao as
@@ -125,7 +125,7 @@ things as emittances, etc. Generally the calculation is not a problem but in som
 circumstances the calculation can take appreciable time.
 %
 \item[-plot_file <file_name>] \Newline
-Overrides the \vn{plot_file} (\sref{s:init.global}) specified in the \tao initialization file.
+Overrides the \vn{plot_file} (\sref{s:init.begin}) specified in the \tao initialization file.
 %
 \item[-prompt_color] \Newline
 Sets the prompt string color to Blue. For different colors, use the \vn{set global prompt_color}
@@ -148,7 +148,7 @@ elements the same. This is useful, for example, in storage rings. Note A \vn{sta
 command may also be put directly in the lattice file. See the \bmad manual for more documentation.
 %
 \item[-startup_file <file_name>]
-Overrides the \vn{startup_file} (\sref{s:init.global}) specified in the
+Overrides the \vn{startup_file} (\sref{s:init.begin}) specified in the
 \tao initialization file.
 %
 \item[-symbol_import]
@@ -157,7 +157,7 @@ imported lower cased. Also see \vn{global%symbol_import} (\sref{s:tao.global.str
 details.
 %
 \item[-var_file <file_name>] \Newline
-Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
+Overrides the \vn{var_file} (\sref{s:init.begin}) specified in the
 \tao initialization file.
 
 \end{description}
@@ -289,7 +289,7 @@ with the \vn{multi} structure component for \vn{ele_shape(3)}.
 %-----------------------------------------------------------------
 \section{Beginning Initialization}
 \index{Initialization!beginning}
-\label{s:init.global} 
+\label{s:init.begin} 
 
 \index{tao_start}\index{tao.init}\index{lattice_file}
 \index{data_file}\index{var_file}\index{plot_file}
@@ -382,7 +382,7 @@ first file on the list. All files, however, can contain \vn{tao_template_plot} a
 \section{Lattice Initialization}\index{initialization!lattice}
 \label{s:init.lat} 
 
-In the \vn{tao_start} namelist (\sref{s:init.global}), the \vn{lattice_file} variable gives the name
+In the \vn{tao_start} namelist (\sref{s:init.begin}), the \vn{lattice_file} variable gives the name
 of the file that contains the \vn{tao_design_lattice} namelist. The default, if \vn{lattice_file} is
 not present is to look in the \tao root initialization file. The \vn{tao_design_lattice} namelist
 defines where the lattice input files are. The variables that are set in the \vn{tao_design_lattice}
@@ -563,7 +563,7 @@ The \vn{show global} command (\sref{s:show.global}) can be used to show global p
 
 The \vn{tao_params} namelist is read after reading of the lattice file so settings of \vn{bmad_com}
 and \vn{csr_param} structures in the lattice file will be overwritten by settings in the
-\vn{tao_params} namelist. And settings in any startup command file (\sref{s:init.global}) will
+\vn{tao_params} namelist. And settings in any startup command file (\sref{s:init.begin}) will
 supersede everything else.
 
 %-----------------------------------------------------------------
@@ -619,6 +619,7 @@ type tao_global_struct:
   disable_smooth_line_calc = F     ! Disable the plotting smooth line calc?
   draw_curve_off_scale_warn = T    ! Display warning on graphs when any part of the 
                                    !   curve is out-of-bounds
+  init_lat_sigma_from_beam = F     ! Init sigma mat set equal to beam distribution? 
   label_lattice_elements = T       ! For lat_layout plots
   label_keys = T                   ! For lat_layout plots
   lattice_calc_on = T              ! Turn on/off beam and single particle calculations.
@@ -698,10 +699,18 @@ the up-arrow key and eve recalled between run sessions. The default is to save t
 to the file \vn{\~/.history_tao}. Sometimes is is convenient to have multiple history files and
 in this case the setting of \vn{global%history_file} can varied from init file to init file.
 %
+  \item{\vn{global%init_lat_sigma_from_beam}} \Newline
+In parallel to calculating the beam sigma matrix from the beam distribution, \tao will calculate the
+sigma matrix using lattice twiss parameters and transport matrices (\sref{s:lat.sig.init}). If the
+\vn{global%init_lat_sigma_from_beam} parameter is set True, the initial $6\times6$ sigma matrix at
+the beginning of any lattice branch is set equal to the sigma matrix as calculated from the beam. If
+set False (the default), the initial sigma matrix calculation uses the lattice independent of any
+beam tracking.
+%
   \item{\vn{global%merit_stop_value}} \Newline
-The \vn{global%merit_stop_value} establishes a point such that, during optimization, if
-the merit function falls below that value, the optimization stops. If the value is
-negative (the default), \vn{global%merit_stop_value} is ignored. Also see \vn{global%dmerit_stop_value}.
+The value of \vn{global%merit_stop_value} establishes a point such that, during optimization, if the
+merit function falls below that value, the optimization stops. If the value is negative (the
+default), \vn{global%merit_stop_value} is ignored. Also see \vn{global%dmerit_stop_value}.
 %
   \item{\vn{global%opt_with_ref}} \Newline
 Use the \vn{reference} data and variable values in the calculation of the merit function
@@ -955,7 +964,7 @@ example,
 
 A particle beam is initialized in the \vn{tao_beam_init} namelist block.  The file that \tao looks
 in to find this namelist is set by the \vn{beam_file} component of the \vn{tao_start} namelist
-(\sref{s:init.global}). The default, if \vn{beam_file} is not set, is the root initialization file.
+(\sref{s:init.begin}). The default, if \vn{beam_file} is not set, is the root initialization file.
 
 The syntax of the \vn{tao_beam_init} namelist is:
 \index{tao_beam_init}\index{ix_universe}
@@ -1079,15 +1088,15 @@ If the beam size is large or the number of elements at which the beam is to be s
 may be problematic to store all the beam particle position information in memory until the end of
 tracking. If this is the case, the beam particle position information can be written directly to a
 file during tracking (and not saved in memory) by setting \vn{dump_at} to a list of elements at
-which the position information is to be saved and setting \vn{dump_file} to the name of the
-data file. The data file should have an ".h5" or ".hdf5" suffix to save the data in HDF5
+which the position information is to be saved and setting \vn{dump_file} to the name of the data
+file. The data file should have an ".h5" or ".hdf5" suffix to save the data in HDF5
 format. Otherwise, an ASCII file will be produced. The syntax for \vn{dump_at} is the same at
-\vn{saved_at}. Saving directly to a file using \vn{dump_at} is separate from saving to
-memory using \vn{saved_at}. Example
+\vn{saved_at}. Saving directly to a file using \vn{dump_at} is separate from saving to memory using
+\vn{saved_at}. Example
 \begin{example}
   &tao_beam_init
     dump_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"
-                                      !   and all elements that have "34w" in their name. 
+                                 !  and all elements with "34w" in their name. 
     dump_file = "beam_dump.h5"
   /
 \end{example}
@@ -1108,7 +1117,7 @@ beginning position and end position of beam tracking and at \vn{fork} and \vn{ph
 \begin{example}
   &tao_beam_init
     saved_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"
-                                       !   and all elements that have "34w" in their name. 
+                                  !   and all elements with "34w" in their name. 
   /
 \end{example}
 The elements where the beam is saved may be modified while \tao is running by using the \vn{set beam
@@ -1142,13 +1151,54 @@ After initialization, the \vn{set beam_init} (\sref{s:set.beam.init}) command ca
 \end{description}
 
 %-----------------------------------------------------------------
+\section{Initializing Lattice Sigma Matrix Calculation}
+\index{initialization!lattice sigma matrix}
+\label{s:lat.sig.init}
+
+\tao will calculate a $6\times6$ ``beam sigma matrix'' from the lattice Twiss parameters and element
+transfer matrices. This can be useful for comparisons with the sigma matrix calculated from the
+distribution of a tracked beam (\sref{s:beam.init}) or for fast optimizations (the sigma matrix as
+calculated from the lattice can be done faster than tracking a beam). The \vn{show beam -lattice}
+(\sref{s:show.beam}) will display the lattice derived sigma matrix. For optimizations, the
+\vn{sigma} data type (pg.~\pref{sigma}) with \vn{data_source} is set to \vn{lat} can be used.
+
+The calculation of the lattice based sigma matrix starts at the beginning of a lattice branch. If
+\vn{global} parameter \vn{init_lat_sigma_from_beam} (\sref{s:tao.global.struct}) is set to True, the
+beginning sigma matrix is set equal to the initial sigma matrix as calculated from the beam
+(\sref{s:beam.init}).
+
+If the \vn{global} parameter \vn{init_lat_sigma_from_beam} (\sref{s:tao.global.struct}) is set to
+False, the calculation of the beginning sigma matrix depends upon the branch geometry.  If the
+branch has a closed geometry, the initial sigma matrix is calculated from the eigen modes of the one
+turn matrix along with the following parameters from the \vn{beam_init} structure:
+(\sref{s:beam.init}) are used:
+\begin{example}
+  beam_init%a_emit or beam_init%a_norm_emit
+  beam_init%b_emit or beam_init%b_norm_emit
+  beam_init%sig_z
+  beam_init%sig_pz
+  beam_init%dpz_dz
+\end{example}
+If the branch has an open geometry, the calculation of the initial sigma matrix uses the parameters
+of the \vn{beam_init} structure as listed above along with the initial Twiss and coupling parameters
+set in the lattice file.
+
+Once the initial sigma matrix $\sigma_0$ is calculated, the sigma matrix $\sigma(s)$ at a point
+downstream is calculated using the standard formula
+\begin{equation}
+  \sigma(s) = \bfM \, \sigma_0 \, \bfM^t
+\end{equation}
+where $\bfM$ is the transfer matrix from the beginning to $s$ and the $t$ exponent means
+transpose. This calculation in \tao ignores radiation effects.
+
+%-----------------------------------------------------------------
 \section{Initializing Variables}\index{initialization!variables}
 \label{s:init.var} 
 
 \tao \vn{variable}s (\sref{c:var} are used in lattice correction or design (\sref{c:opti}). 
 
 The file that \tao looks in to find information on \tao variables is set by the \vn{var_file} component of
-the \vn{tao_start} namelist (\sref{s:init.global}). The default, if \vn{data_file} is not set, is
+the \vn{tao_start} namelist (\sref{s:init.begin}). The default, if \vn{data_file} is not set, is
 the root initialization file.
 
 Variables are initialized using the \vn{tao_var} namelist. The format for this is
@@ -1331,7 +1381,7 @@ data is initialized using a \vn{tao_d2_data} namelist block and one or more \vn{
 namelist blocks.
 
 The file that \tao looks in to find these two namelists is set by the \vn{data_file} component of
-the \vn{tao_start} namelist (\sref{s:init.global}). The default, if \vn{data_file} is not set, is
+the \vn{tao_start} namelist (\sref{s:init.begin}). The default, if \vn{data_file} is not set, is
 the root initialization file.
 
 The format of the \vn{tao_d2_data} namelist is
@@ -1633,7 +1683,7 @@ marked ``point(N)''. Each section is defined by a set of points which are connec
 straight lines or circular arcs.
 
 The name of the file containing the building wall definition is given by the \vn{building_wall_file}
-variable in the \vn{tao_start} namelist (\sref{s:init.global}). In general, this file will contain a
+variable in the \vn{tao_start} namelist (\sref{s:init.begin}). In general, this file will contain a
 number of \vn{building_wall_section} namelists. Each \vn{building_wall_section} namelist defines a
 single wall section. The syntax of this namelist is
 \begin{example}
@@ -1812,7 +1862,7 @@ If Tao is compiled with \vn{OpenMP} enabled (\sref{s:openmp}), the dynamic apert
 be done in parallel.
 
 Parameters for the dynamic aperture simulation are set in the \vn{tao_dynamic_aperture} namelist
-(\sref{s:init.global}) in the \tao root initialization file. Multiple \vn{tao_dynamic_aperture}
+(\sref{s:init.begin}) in the \tao root initialization file. Multiple \vn{tao_dynamic_aperture}
 namelists may be present if different universes need different parameter values. Example:
 \begin{example}
   &tao_dynamic_aperture
@@ -1908,7 +1958,7 @@ such things as lattice functions, machine layout, beam positions, etc., can be p
 display is shown in \fig{f:plot.typ}.
 
 Plotting is defined by an initialization file whose name is defined by the \vn{plot_file} component
-of the \vn{tao_start} namelist (\sref{s:init.global}).
+of the \vn{tao_start} namelist (\sref{s:init.begin}).
 
 %-----------------------------------------------------------------
 \subsection{Plot Page and Plot Regions}
@@ -1916,7 +1966,7 @@ of the \vn{tao_start} namelist (\sref{s:init.global}).
 \index{initialization!plotting!plot window}
 
 The \vn{tao_plot_page} namelist (\sref{s:format}) in the plot initialization file
-(\sref{s:init.global}) sets \vn{plot page} (\sref{s:plot.page.def}) parameters including \vn{region}
+(\sref{s:init.begin}) sets \vn{plot page} (\sref{s:plot.page.def}) parameters including \vn{region}
 definitions and the initial placement of plots. The syntax of this namelist is:
 \index{tao_plot_page}\index{plot_page!n_curve_pts}
 \index{plot_page!size}\index{plot_page!border}
@@ -2158,7 +2208,7 @@ be defined.
 A plot \vn{template} (\sref{s:plot.def}) defines a set of parameters used for constructing a
 \vn{displayed} plot. \tao, by default, defines a number of template plots. User defined template
 plots are constructed with a \vn{tao_template_plot} namelist in the plot initialization file
-(\sref{s:init.global}) along with zero or more \vn{tao_template_graph} namelists, one for each
+(\sref{s:init.begin}) along with zero or more \vn{tao_template_graph} namelists, one for each
 \vn{graph} associated with the template plot. The syntax for the \vn{tao_template_plot} is:
 \index{tao_template_plot}
 \index{plot!name}
@@ -3106,7 +3156,7 @@ is determined via two namelists: \vn{lat_layout_drawing} for the lattice layout 
 example, a size that is good for a layout will not necessarily be good for a floor plan.
 
 The file that \tao looks in to find these two namelists is set by the first file specified in the
-\vn{plot_file} array set in the \vn{tao_start} namelist (\sref{s:init.global}). The default, if
+\vn{plot_file} array set in the \vn{tao_start} namelist (\sref{s:init.begin}). The default, if
 \vn{plot_file} is not set, is the root initialization file.
 
 The namelist syntax is the same for both:
