@@ -2124,7 +2124,7 @@ endif
 
 if (curve%data_source == 'lat') then
   select case (data_type(1:5))
-  case ('sigma', 'emitt', 'norm_')
+  case ('emitt', 'norm_')
     curve%g%why_invalid = 'curve%data_source = "lat" is not compatable with data_type: ' // data_type
     call out_io (s_warn$, r_name, curve%g%why_invalid)
     call out_io (s_blank$, r_name, "Will not perform any plot smoothing")
@@ -2522,22 +2522,28 @@ case ('r56_compaction')
   value = sum(m6(5,1:4) * eta_vec) + m6(5,6)
 
 case ('sigma')
-  select case (data_type)
-  case ('sigma.x')
-    value = sqrt(bunch_params%sigma(1,1))
-  case ('sigma.px')
-    value = sqrt(bunch_params%sigma(2,2))
-  case ('sigma.y')
-    value = sqrt(bunch_params%sigma(3,3))
-  case ('sigma.py')
-    value = sqrt(bunch_params%sigma(4,4))
-  case ('sigma.z')
-    value = sqrt(bunch_params%sigma(5,5))
-  case ('sigma.pz')
-    value = sqrt(bunch_params%sigma(6,6))
-  case default
-    goto 9000  ! Error message & Return
-  end select
+  if (curve%data_source == 'beam') then
+    select case (data_type)
+    case ('sigma.x');    value = sqrt(bunch_params%sigma(1,1))
+    case ('sigma.px');   value = sqrt(bunch_params%sigma(2,2))
+    case ('sigma.y');    value = sqrt(bunch_params%sigma(3,3))
+    case ('sigma.py');   value = sqrt(bunch_params%sigma(4,4))
+    case ('sigma.z');    value = sqrt(bunch_params%sigma(5,5))
+    case ('sigma.pz');   value = sqrt(bunch_params%sigma(6,6))
+    case default;        goto 9000  ! Error message & Return
+    end select
+  else
+    m6 = matmul(matmul(mat6, tao_branch%lat_sigma(0)%mat), transpose(mat6))
+    select case (data_type)
+    case ('sigma.x');    value = sqrt(m6(1,1))
+    case ('sigma.px');   value = sqrt(m6(2,2))
+    case ('sigma.y');    value = sqrt(m6(3,3))
+    case ('sigma.py');   value = sqrt(m6(4,4))
+    case ('sigma.z');    value = sqrt(m6(5,5))
+    case ('sigma.pz');   value = sqrt(m6(6,6))
+    case default;        goto 9000  ! Error message & Return
+    end select
+  endif
 
 case ('t', 'tt')
   if (ii == 1) then

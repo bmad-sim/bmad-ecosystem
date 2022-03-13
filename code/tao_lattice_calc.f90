@@ -38,7 +38,7 @@ real(rp) pz0, dvec(6)
 integer iuni, i, j, k, nc, ib, ix, iy, n_max, iu, it, id, n_turn
 
 logical, optional :: print_err
-logical calc_ok, this_calc_ok, err, mat_changed
+logical calc_ok, this_calc_ok, err, mat_changed, track_this_beam
 
 character(*), parameter :: r_name = "tao_lattice_calc"
 character(20) name
@@ -125,8 +125,11 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       ! Need to beam track even if single tracking is not OK since the merit function may depend
       ! upon the beam tracking.
 
-      if (s%global%track_type == 'beam' .and. branch%param%particle /= photon$ .and. u%beam%track_beam_in_universe) then
-        call tao_inject_beam (u, tao_lat, ib, beam, this_calc_ok)
+      track_this_beam = (s%global%track_type == 'beam' .and. branch%param%particle /= photon$ .and. u%beam%track_beam_in_universe) 
+
+      if (track_this_beam .or. s%global%init_lat_sigma_from_beam) call tao_inject_beam (u, tao_lat, ib, beam, this_calc_ok)
+
+      if (track_this_beam) then
         if (.not. this_calc_ok) calc_ok = .false.
         if (this_calc_ok) then
           call tao_beam_track (u, tao_lat, ib, beam, this_calc_ok)
@@ -136,6 +139,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           tao_branch%bunch_params(:)%n_particle_live = 0
         endif
       endif
+
+      call tao_lat_sigma_track (tao_lat, this_calc_ok, ib, print_err)
 
       !
 

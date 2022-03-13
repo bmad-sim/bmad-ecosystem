@@ -678,6 +678,7 @@ type tao_global_struct
   logical :: disable_smooth_line_calc = .false.       ! Global disable of the smooth line calculation.
   logical :: draw_curve_off_scale_warn = .true.       ! Display warning on graphs?
   logical :: external_plotting = .false.              ! Used with matplotlib and gui.
+  logical :: init_lat_sigma_from_beam = .false.       ! Initial lattice derived sigma matrix derived from beam dist?
   logical :: label_lattice_elements = .true.          ! For lat_layout plots
   logical :: label_keys = .true.                      ! For lat_layout plots
   logical :: lattice_calc_on = .true.                 ! Turn on/off beam and single particle calculations.
@@ -863,8 +864,8 @@ type tao_lat_mode_struct
   real(rp) growth_rate
 end type
 
-type tao_sigma_mat_struct
-  real(rp) sigma(6,6)
+type tao_lat_sigma_struct
+  real(rp) mat(6,6)
 end type
 
 type tao_dn_dpz_struct
@@ -899,27 +900,27 @@ end type
 ! tao_lattice_branch_equal_tao_lattice_branch must be modified as well.
 
 type tao_lattice_branch_struct
-  type (tao_lattice_struct), pointer :: tao_lat => null()        ! Parent tao_lat
+  type (tao_lattice_struct), pointer :: tao_lat => null()     ! Parent tao_lat
   type (summation_rdt_struct) srdt
   type (tao_spin_polarization_struct) spin
-  type (tao_dn_dpz_struct), allocatable :: dn_dpz(:)
+  type (tao_dn_dpz_struct), allocatable :: dn_dpz(:)          ! Spin invariant field
   type (bunch_params_struct), allocatable :: bunch_params(:)
-  type (tao_sigma_mat_struct), allocatable :: linear(:) ! Sigma matrix derived from linear lattice.
+  type (tao_lat_sigma_struct), allocatable :: lat_sigma(:)    ! Sigma matrix derived from lattice (not beam).
   type (coord_struct), allocatable :: orbit(:)
-  type (coord_struct) orb0                     ! For saving beginning orbit
+  type (coord_struct) orb0                                    ! For saving beginning orbit
   type (tao_plot_cache_struct), allocatable :: plot_cache(:)  ! Plotting data cache
   type (tao_plot_cache_struct) :: plot_ref_cache              ! Plotting data cache
   integer track_state
   logical has_open_match_element
-  logical :: plot_cache_valid = .false.        ! Valid plotting data cache?
+  logical :: plot_cache_valid = .false.                       ! Valid plotting data cache?
   logical :: spin_valid = .false.
   real(rp) :: cache_x_min = 0, cache_x_max = 0
   integer :: cache_n_pts = 0
-  type (normal_modes_struct) modes             ! Synchrotron integrals stuff
+  type (normal_modes_struct) modes                            ! Synchrotron integrals stuff
   type (tao_lat_mode_struct) a, b
-  integer ix_rad_int_cache                     ! Radiation integrals cache index.
-  integer :: n_hterms = 0                      ! Number of distinct res driving terms to evaluate.
-  type (normal_modes_struct) modes_rf_on       ! Synchrotron integrals stuff
+  integer ix_rad_int_cache                                    ! Radiation integrals cache index.
+  integer :: n_hterms = 0                                     ! Number of distinct res driving terms to evaluate.
+  type (normal_modes_struct) modes_rf_on                      ! Synchrotron integrals stuff
   type (ptc_normal_form_struct) ptc_normal_form
   type (bmad_normal_form_struct) bmad_normal_form
 end type
@@ -989,8 +990,8 @@ type tao_universe_calc_struct
   logical :: rad_int_for_plotting = .false.       !   data or plotting?
   logical :: chrom_for_data = .false.             ! Does the chromaticity need to be computed for
   logical :: chrom_for_plotting = .false.         !   data or plotting? 
-  logical :: beam_sigma_for_data = .false.        ! Do the beam sigmas need to be computed for
-  logical :: beam_sigma_for_plotting = .false.    !   data or plotting? 
+  logical :: lat_sigma_for_data = .false.         ! Do the beam sigmas need to be computed for
+  logical :: lat_sigma_for_plotting = .false.     !   data or plotting? 
   logical :: dynamic_aperture = .false.           ! Do the dynamic_aperture calc?
   logical :: one_turn_map = .false.               ! Compute the one turn map?
   logical :: lattice = .true.                     ! Used to indicate which lattices need tracking done.
@@ -1177,10 +1178,10 @@ else
   if (allocated(tlb1%bunch_params)) deallocate(tlb1%bunch_params)
 endif
 
-if (allocated(tlb2%linear)) then
-  tlb1%linear = tlb2%linear
+if (allocated(tlb2%lat_sigma)) then
+  tlb1%lat_sigma = tlb2%lat_sigma
 else
-  if (allocated(tlb1%linear)) deallocate(tlb1%linear)
+  if (allocated(tlb1%lat_sigma)) deallocate(tlb1%lat_sigma)
 endif
 
 if (allocated(tlb2%orbit)) then

@@ -33,8 +33,6 @@ contains
 
 subroutine tao_single_track (tao_lat, calc_ok, ix_branch, print_err)
 
-use mode3_mod
-
 implicit none
 
 type (tao_lattice_struct), target :: tao_lat
@@ -44,10 +42,8 @@ type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (ele_struct), pointer :: ele
-type (beam_init_struct), pointer :: beam_init
 
 real(rp), parameter :: vec0(6) = 0
-real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6)
 
 integer i, ii, n, nn, ix_branch, status, ix_lost, i_dim
 
@@ -185,94 +181,146 @@ if (branch%param%particle /= photon$ .and. s%global%rad_int_calc_on .and. &
                       tao_branch%modes, tao_branch%ix_rad_int_cache, ix_branch, tao_lat%rad_int)
 endif
 
-! Sigma matric calc.
-
-if ((u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting) .and. &
-                                              branch%param%particle /= photon$) then
-  beam_init => u%model_branch(0)%beam%beam_init
-  ele => branch%ele(0)
-  if (.not. associated(ele%mode3)) allocate (ele%mode3)
-  if (.not. allocated(tao_branch%linear)) allocate(tao_branch%linear(0:branch%n_ele_max))
-
-  if (branch%param%geometry == closed$) then
-    call transfer_matrix_calc (lat, branch%param%t1_with_RF, ix_branch = ix_branch, one_turn=.true.)
-    call make_N (branch%param%t1_with_RF, N_mat, err, tunes_out = tune3)
-    if (err) then
-      call mat_type (branch%param%t1_with_RF, &
-            header = 'SINGULAR ONE-TURN MATRIX WITH RF. WILL NOT BE ABLE TO COMPUTE SIGMAS.', &
-            lines = lines, n_lines = n)
-      call out_io (s_error$, r_name, lines(1:n))
-      return
-    endif
-  
-    D_mat = 0
-    D_mat(1,1) = beam_init%a_emit   ! tao_branch%modes%a%emittance
-    D_mat(2,2) = beam_init%a_emit   ! tao_branch%modes%a%emittance
-    D_mat(3,3) = beam_init%b_emit   ! tao_branch%modes%b%emittance
-    D_mat(4,4) = beam_init%b_emit   ! tao_branch%modes%b%emittance
-    D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz   ! tao_branch%modes%z%emittance
-    D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz   ! tao_branch%modes%z%emittance
-
-    tao_branch%linear(0)%sigma = matmul(matmul(N_mat, D_mat), transpose(N_mat))
-
-  else
-    covar = beam_init%dPz_dz * beam_init%sig_z**2
-    radix = (beam_init%sig_z * beam_init%sig_pz)**2 - covar**2
-    if (radix < 0) then
-      call out_io (s_error$, r_name, 'Beam init: |dPz_dz| must be less than Sig_Pz/Sig_z')
-      calc_ok = .false.
-      return
-    endif
-
-    ele%z%emit  = sqrt(radix)
-
-    if (ele%z%emit == 0) then
-      ele%z%beta  = 1
-      ele%z%alpha = 0
-      ele%z%gamma = 1
-    else
-      ele%z%beta  = beam_init%sig_z**2 / ele%z%emit
-      ele%z%alpha = - covar / ele%z%emit
-      ele%z%gamma = (1 + ele%z%alpha**2) / ele%z%beta
-    endif
-
-    call twiss3_from_twiss2 (branch%ele(0))
-
-    G_inv = 0
-    G_inv(1,1) = sqrt(ele%a%beta)
-    G_inv(2,1:2) = [-ele%a%alpha / sqrt(ele%a%beta), 1/sqrt(ele%a%beta)]
-    G_inv(3,3) = sqrt(ele%b%beta)
-    G_inv(4,3:4) = [-ele%b%alpha / sqrt(ele%b%beta), 1/sqrt(ele%b%beta)]
-    G_inv(5,5) = sqrt(ele%z%beta)
-    G_inv(6,5:6) = [-ele%z%alpha / sqrt(ele%z%beta), 1/sqrt(ele%z%beta)]
-
-    N_mat = matmul(ele%mode3%v, G_inv)
-
-    D_mat = 0
-    D_mat(1,1) = beam_init%a_emit
-    D_mat(2,2) = beam_init%a_emit
-    D_mat(3,3) = beam_init%b_emit
-    D_mat(4,4) = beam_init%b_emit
-    D_mat(5,5) = ele%z%emit
-    D_mat(6,6) = ele%z%emit
-
-    tao_branch%linear(0)%sigma = matmul(matmul(N_mat, D_mat), transpose(N_mat))
-  endif
-
-  do i = 1, branch%n_ele_track
-    ele => branch%ele(i)
-    tao_branch%linear(i)%sigma = matmul(matmul(ele%mat6, tao_branch%linear(i-1)%sigma), transpose(ele%mat6))
-  enddo
-endif
-
 end subroutine tao_single_track
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
+!+
+! Subroutine tao_lat_sigma_track (tao_lat, calc_ok, ix_branch, print_err)
+!
+! Routine to track the 6x6 sigma matrix through the lattice using the lattice linear transfer matrices.
+!
+! Input:
+!   tao_lat   -- tao_lattice_struct: Structure containing the lattice.
+!   ix_branch -- integer: Branch index to track through.
+!   print_err -- logical, optional: Default False. Print error messages if, eg, lattice is unstable?
+!
+! Output:
+!   calc_ok   -- logical: Set True if there were no problems, False otherwise.
+!-
 
-! Right now, there is no beam tracking in circular lattices. 
-! If extracting from a lat then the beam is generated at the extraction point.
+subroutine tao_lat_sigma_track (tao_lat, calc_ok, ix_branch, print_err)
+
+use mode3_mod
+
+implicit none
+
+type (tao_lattice_struct), target :: tao_lat
+type (lat_struct), pointer :: lat
+type (tao_universe_struct), pointer :: u
+type (tao_lattice_branch_struct), pointer :: tao_branch
+type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
+type (beam_init_struct), pointer :: beam_init
+
+real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6)
+
+integer ix_branch
+integer i, n
+
+logical, optional :: print_err
+logical calc_ok, err
+
+character(80) :: lines(10)
+character(*), parameter :: r_name = "tao_lat_sigma_track"
+
+!
+
+u => tao_lat%u
+lat => tao_lat%lat
+branch => tao_lat%lat%branch(ix_branch)
+tao_branch => tao_lat%tao_branch(ix_branch)
+
+if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .or. &
+                                              branch%param%particle == photon$) return
+
+beam_init => u%model_branch(0)%beam%beam_init
+ele => branch%ele(0)
+if (.not. associated(ele%mode3)) allocate (ele%mode3)
+if (.not. allocated(tao_branch%lat_sigma)) allocate(tao_branch%lat_sigma(0:branch%n_ele_max))
+
+call calc_emit_from_beam_init(beam_init, ele, ele%ref_species)
+D_mat = 0
+D_mat(1,1) = ele%a%emit   ! Set by calc_this_emit
+D_mat(2,2) = ele%a%emit
+D_mat(3,3) = ele%b%emit
+D_mat(4,4) = ele%b%emit
+D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz
+D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz
+
+if (branch%param%geometry == closed$) then
+  call transfer_matrix_calc (lat, branch%param%t1_with_RF, ix_branch = ix_branch, one_turn=.true.)
+  call make_N (branch%param%t1_with_RF, N_mat, err, tunes_out = tune3)
+  if (err) then
+    call mat_type (branch%param%t1_with_RF, &
+          header = 'SINGULAR ONE-TURN MATRIX WITH RF. WILL NOT BE ABLE TO COMPUTE SIGMAS.', &
+          lines = lines, n_lines = n)
+    call out_io (s_error$, r_name, lines(1:n))
+    return
+  endif
+
+  tao_branch%lat_sigma(0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+
+else
+  covar = beam_init%dPz_dz * beam_init%sig_z**2
+  radix = (beam_init%sig_z * beam_init%sig_pz)**2 - covar**2
+  if (radix < 0) then
+    call out_io (s_error$, r_name, 'Beam init: |dPz_dz| must be less than Sig_Pz/Sig_z')
+    calc_ok = .false.
+    return
+  endif
+
+  ele%z%emit  = sqrt(radix)
+
+  if (ele%z%emit == 0) then
+    ele%z%beta  = 1
+    ele%z%alpha = 0
+    ele%z%gamma = 1
+  else
+    ele%z%beta  = beam_init%sig_z**2 / ele%z%emit
+    ele%z%alpha = -covar / ele%z%emit
+    ele%z%gamma = (1 + ele%z%alpha**2) / ele%z%beta
+  endif
+
+  call twiss3_from_twiss2 (branch%ele(0))
+
+  G_inv = 0
+  G_inv(1,1) = sqrt(ele%a%beta)
+  G_inv(2,1:2) = [-ele%a%alpha / sqrt(ele%a%beta), 1/sqrt(ele%a%beta)]
+  G_inv(3,3) = sqrt(ele%b%beta)
+  G_inv(4,3:4) = [-ele%b%alpha / sqrt(ele%b%beta), 1/sqrt(ele%b%beta)]
+  G_inv(5,5) = sqrt(ele%z%beta)
+  G_inv(6,5:6) = [-ele%z%alpha / sqrt(ele%z%beta), 1/sqrt(ele%z%beta)]
+
+  N_mat = matmul(ele%mode3%v, G_inv)
+
+  tao_branch%lat_sigma(0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+endif
+
+do i = 1, branch%n_ele_track
+  ele => branch%ele(i)
+  tao_branch%lat_sigma(i)%mat = matmul(matmul(ele%mat6, tao_branch%lat_sigma(i-1)%mat), transpose(ele%mat6))
+enddo
+
+end subroutine tao_lat_sigma_track
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_beam_track (tao_lat, calc_ok, ix_branch, print_err)
+!
+! Routine to track a a beam of particles
+!
+! Input:
+!   tao_lat   -- tao_lattice_struct: Structure containing the lattice.
+!   ix_branch -- integer: Branch index to track through.
+!   print_err -- logical, optional: Default False. Print error messages if, eg, lattice is unstable?
+!
+! Output:
+!   calc_ok   -- logical: Set True if there were no problems, False otherwise.
+!-
 
 subroutine tao_beam_track (u, tao_lat, ix_branch, beam, calc_ok)
 

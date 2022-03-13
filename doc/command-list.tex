@@ -1813,17 +1813,27 @@ Shows a list of defined aliases. See the \vn{alias} command for more details.
 
 Syntax:
 \begin{example}
-  show beam \{-universe <universe>\} \{<element_name_or_index>\}
+  show beam \{-universe <universe>\} \{-lattice\} \{<element_name_or_index>\}
 \end{example}
 
-If \vn{<element_name_or_index>} is absent, \vn{show beam} shows parameters used with beam tracking
-including the number of particles in a bunch, etc. 
+If both \vn{<element_name_or_index>} and \vn{-lattice} are absent, \vn{show beam} shows parameters
+used with beam tracking including the number of particles in a bunch, etc.
 
 If no universe is given, the current default universe (\sref{s:universe}) is used.
 
-If \vn{<element_name_or_index>} is present, \vn{show beam} will show beam parameters at the selected
-element. Also see \vn{show particle}.  Use the \vn{set beam_init} command to set values of the
-\vn{beam_init} structure.
+If \vn{<element_name_or_index>} is present, and \vn{-lattice} is not, \vn{show beam} will show beam
+parameters at the selected element. Also see \vn{show particle}.  Use the \vn{set beam_init} command
+to set values of the \vn{beam_init} structure.
+
+If \vn{-lattice} is present, \vn{show beam} will show the beam sigma matrix as calculated from the
+lattice at the position given by \vn{<element_name_or_index>} (\sref{s:lat.sig.init}). If an
+element is not specified, the beginning element (with index 0) will be used.
+
+Examples:
+\begin{example}
+  show beam          ! Show beam initialization parameters.
+  show beam -lat 37  ! Show sigma matrix calculated from lattice Twiss at element #37
+\end{example}
 
 %% show branch --------------------------------------------------------------
 

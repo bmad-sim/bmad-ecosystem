@@ -59,11 +59,11 @@ function tao_beam_emit_calc (plane, emit_type, ele, bunch_params) result (emit)
   real(rp) emit
 end function
 
-function tao_beam_sigma_calc_needed (data_type, data_source) result (do_beam_sigma)
+function tao_lat_sigma_calc_needed (data_type, data_source) result (do_lat_sigma)
   import
   implicit none
   character(*) data_type, data_source
-  logical do_beam_sigma
+  logical do_lat_sigma
 end function
  
 function tao_param_value_at_s (dat_name, ele, orbit, err_flag, why_invalid, print_err) result (value)

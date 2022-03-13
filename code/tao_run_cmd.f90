@@ -74,8 +74,8 @@ do i = iu0, iu1
   u%calc%rad_int_for_plotting    = .false.
   u%calc%chrom_for_data          = .false.
   u%calc%chrom_for_plotting      = .false.
-  u%calc%beam_sigma_for_data     = .false.
-  u%calc%beam_sigma_for_plotting = .false.
+  u%calc%lat_sigma_for_data      = .false.
+  u%calc%lat_sigma_for_plotting  = .false.
   u%calc%spin_matrices           = .false.
   u%calc%srdt_for_data           = 0
 
@@ -83,7 +83,7 @@ do i = iu0, iu1
     if (.not. u%data(j)%useit_opt) cycle
     if (tao_rad_int_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%rad_int_for_data = .true.
     if (tao_chrom_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%chrom_for_data = .true.
-    if (tao_beam_sigma_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%beam_sigma_for_data = .true.
+    if (tao_lat_sigma_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%lat_sigma_for_data = .true.
     if (tao_spin_matrices_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%spin_matrices = .true.
     if (substr(u%data(j)%data_type,1,11) == 'expression:') s%com%have_datums_using_expressions = .true.
     u%calc%srdt_for_data = max(tao_srdt_calc_needed(u%data(j)%data_type, u%data(j)%data_source), u%calc%srdt_for_data)

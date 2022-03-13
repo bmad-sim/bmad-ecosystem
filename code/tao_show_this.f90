@@ -92,6 +92,7 @@ type (normal_modes_struct) norm_mode
 type (normal_modes_struct), pointer :: mode_m, mode_d
 type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: rmap(:)
+type (tao_lat_sigma_struct), pointer :: lat_sig
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -256,10 +257,12 @@ case ('alias')
 
 case ('beam')
 
-  word1 = ''
+  ele_name = ''
+  what_to_print = ''
 
   do 
-    call tao_next_switch (what2, ['-universe'], .true., switch, err, ix_s2);  if (err) return
+    call tao_next_switch (what2, [character(16):: '-universe', '-lattice'], .true., switch, err, ix_s2)
+    if (err) return
     if (switch == '') exit
 
     select case (switch)
@@ -274,23 +277,64 @@ case ('beam')
       lat => u%model%lat
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
+    case ('-lattice')
+      what_to_print = switch
+
     case default
-      if (word1 /= '') then
+      if (ele_name /= '') then
         nl=1; lines(1) = 'EXTRA STUFF ON THE COMMAND LINE: ' // switch
         return
       endif
 
-      word1 = switch
+      ele_name = switch
 
     end select
   enddo
 
+  ! Sigma calc from lattice Twiss.
+
+  if (what_to_print == '-lattice') then
+    if (ele_name == '') then
+      ele => branch%ele(0)
+    else
+      call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+      if (err) return
+      u => s%u(ix_u)
+      call tao_locate_elements (ele_name, ix_u, eles, err)
+      if (err .or. size(eles) == 0) return
+      ele => eles(1)%ele
+    endif
+
+    ix_branch = ele%ix_branch
+    tao_branch => u%model%tao_branch(ix_branch)
+    lat_sig => tao_branch%lat_sigma(ele%ix_ele)
+
+    nl=nl+1; lines(nl) = 'Sigma calc from lattice Twiss at: ' // trim(ele%name) // ' ' //  ele_loc_name(ele, .false., '()')
+    nl=nl+1; write(lines(nl), rmt)  '  S-position:                 ', ele%s
+    nl=nl+1; write(lines(nl), imt)  '  In branch:                  ', ix_branch
+    nl=nl+1; write(lines(nl), rmt) '  RMS:     ', &
+                      sqrt(lat_sig%mat(1,1)), sqrt(lat_sig%mat(2,2)), sqrt(lat_sig%mat(3,3)), &
+                      sqrt(lat_sig%mat(4,4)), sqrt(lat_sig%mat(5,5)), sqrt(lat_sig%mat(6,6))
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'Sigma Mat       x              px               y              py              z             pz'
+    do i = 1, 6
+      nl=nl+1; write (lines(nl), '(a2, 2x, 6es16.8)') coord_name(i), lat_sig%mat(i,:)
+    enddo
+
+    if (all(lat_sig%mat == 0)) then
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Note: Emittances are set in the beam_init structure.'
+    endif
+
+    result_id = 'beam:lat'
+    return
+  endif
 
   ! no element index
 
   bb => u%model_branch(0)%beam
 
-  if (word1 == '') then
+  if (ele_name == '') then
 
     if (.not. u%beam%track_beam_in_universe) then
       nl=nl+1; lines(nl) = 'Beam tracking not done in universe: ' // int_str(u%ix_uni)
@@ -434,10 +478,10 @@ case ('beam')
   ! have element index
 
   else
-    call tao_pick_universe (word1, word1, picked_uni, err, ix_u)
+    call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
     if (err) return
     u => s%u(ix_u)
-    call tao_locate_elements (word1, ix_u, eles, err)
+    call tao_locate_elements (ele_name, ix_u, eles, err)
     if (err .or. size(eles) == 0) return
     ele => eles(1)%ele
     ix_ele = ele%ix_ele
@@ -971,7 +1015,6 @@ case ('curve')
 
 case ('data')
 
-
   ! If just "show data" then show all names
 
   call tao_pick_universe (word1, line1, picked_uni, err)
@@ -1463,11 +1506,10 @@ case ('element')
   endif
 
   if (mass_of(branch%param%particle) /= 0) then
-    gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
     ele%a%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance)
     ele%b%sigma = sqrt(ele%b%beta * tao_branch%modes%b%emittance)
-    ele%x%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance + (ele%x%eta * tao_branch%modes%sigE_E)**2)
-    ele%y%sigma = sqrt(ele%b%beta * tao_branch%modes%b%emittance + (ele%y%eta * tao_branch%modes%sigE_E)**2)
+    ele%x%sigma = sqrt(tao_branch%lat_sigma(ele%ix_ele)%mat(1,1))
+    ele%y%sigma = sqrt(tao_branch%lat_sigma(ele%ix_ele)%mat(3,3))
   endif
 
   twiss_out = s%global%phase_units
@@ -1694,13 +1736,13 @@ case ('global')
 
   do
     call tao_next_switch (what2, [character(16):: '-optimization', '-bmad_com', &
-                                 '-csr_param', '-ran_state', '-ptc'], .true., switch, err, ix)
+                                 '-csr_param', '-ran_state', '-ptc', '-internal'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('')
       exit
-    case ('-optimization', '-bmad_com', '-csr_param', '-ran_state', '-ptc')
+    case ('-optimization', '-bmad_com', '-csr_param', '-ran_state', '-ptc', '-internal')
       what_to_print = switch
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
@@ -1718,6 +1760,7 @@ case ('global')
     nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
     nl=nl+1; write(lines(nl), lmt) '  %draw_curve_off_scale_warn     = ', s%global%draw_curve_off_scale_warn
+    nl=nl+1; write(lines(nl), lmt) '  %init_lat_sigma_from_beam      = ', s%global%init_lat_sigma_from_beam
     nl=nl+1; write(lines(nl), lmt) '  %label_lattice_elements        = ', s%global%label_lattice_elements
     nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
@@ -1840,7 +1883,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
     nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_zero_average      = ', bmad_com%radiation_zero_average
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_zero_average          = ', bmad_com%radiation_zero_average
     nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
     nl=nl+1; write(lines(nl), lmt) '  %conserve_taylor_maps            = ', bmad_com%conserve_taylor_maps
     nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking_default  = ', bmad_com%absolute_time_tracking_default
@@ -1881,6 +1924,23 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %old_integrator        = ', ptc_com%old_integrator
     nl=nl+1; write(lines(nl), lmt) '  %exact_model           = ', ptc_com%exact_model
     nl=nl+1; write(lines(nl), lmt) '  %exact_misalign        = ', ptc_com%exact_misalign
+
+  ! Internal parameters are not of general interest.
+  case ('-internal')
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), imt) '  u%calc%srdt_for_data              = ', u%calc%srdt_for_data
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%rad_int_for_data           = ', u%calc%rad_int_for_data
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%rad_int_for_plotting       = ', u%calc%rad_int_for_plotting
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%chrom_for_data             = ', u%calc%chrom_for_data
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%chrom_for_plotting         = ', u%calc%chrom_for_plotting
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%lat_sigma_for_data         = ', u%calc%lat_sigma_for_data
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%lat_sigma_for_plotting     = ', u%calc%lat_sigma_for_plotting
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%dynamic_aperture           = ', u%calc%dynamic_aperture
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%one_turn_map               = ', u%calc%one_turn_map
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%lattice                    = ', u%calc%lattice
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%twiss                      = ', u%calc%twiss
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%track                      = ', u%calc%track
+    nl=nl+1; write(lines(nl), lmt) '  u%calc%spin_matrices              = ', u%calc%spin_matrices
   end select
 
 !----------------------------------------------------------------------
