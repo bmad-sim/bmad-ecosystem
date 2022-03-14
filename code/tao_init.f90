@@ -323,7 +323,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
-! Turn off RF. But first calculate the synchrotron tune.
+! Turn off RF if needed. But first calculate the synchrotron tune.
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
@@ -332,9 +332,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   do ib = 0, ubound(u%model%lat%branch, 1)
     if (u%model%lat%branch(ib)%param%geometry == closed$) then
       call calc_z_tune(u%model%lat, ib)
-      if (.not. s%global%rf_on) then
-        call out_io (s_info$, r_name, 'Note: Default is for RFCavities to be turned off. Use the "-rf_on" switch on ', &
-                                      '      the command line or set global%rf_on = True to turn on the RF.')
+      if (s%global%rf_on) then
+        call out_io (s_info$, r_name, 'Note! Default now is for RFcavities is to be left on (used to be off).', &
+                                      'Use the "--rf_on" (notice two dashes) switch on the startup command line', &
+                                      'or "set global%rf_on = False" to turn off the RF.')
+      else
         call set_on_off (rfcavity$, u%model%lat, off$, ix_branch = ib)
       endif
     endif

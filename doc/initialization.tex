@@ -132,10 +132,11 @@ Sets the prompt string color to Blue. For different colors, use the \vn{set glob
 command (\sref{s:set}).
 %
 \item[-rf_on]
-Leaves \vn{rfcavity} elements on. Normally \tao turns off these elements since Twiss and dispersion
-calculations do not make sense with them on.  Note: If you want to see orbit changes with RF
-frequency changes then you will need to set \vn{parameter[absolute_time_tracking]} to True. See the
-``Relative Versus Absolute Time Tracking'' section in the\bmad manual for more details.
+Leaves \vn{rfcavity} elements on. RF on is currently the default so using \vn{-rf_on} will not do
+anything.  To turn the cavities off, use the negation (see below) \vn{--rf_on}. Note: If you want
+to see orbit changes with RF frequency changes then you will need to set
+\vn{parameter[absolute_time_tracking]} to True. See the ``Relative Versus Absolute Time Tracking''
+section in the\bmad manual for more details.
 %
 \item[-slice_lattice <element_list>]
 If present, discard from the lattice all lattice elements that are not in the \vn{<element_list>}.
@@ -1151,16 +1152,17 @@ After initialization, the \vn{set beam_init} (\sref{s:set.beam.init}) command ca
 \end{description}
 
 %-----------------------------------------------------------------
-\section{Initializing Lattice Sigma Matrix Calculation}
+\section{Initializing the Lattice Sigma Matrix Calculation}
 \index{initialization!lattice sigma matrix}
 \label{s:lat.sig.init}
 
 \tao will calculate a $6\times6$ ``beam sigma matrix'' from the lattice Twiss parameters and element
 transfer matrices. This can be useful for comparisons with the sigma matrix calculated from the
 distribution of a tracked beam (\sref{s:beam.init}) or for fast optimizations (the sigma matrix as
-calculated from the lattice can be done faster than tracking a beam). The \vn{show beam -lattice}
-(\sref{s:show.beam}) will display the lattice derived sigma matrix. For optimizations, the
-\vn{sigma} data type (pg.~\pref{sigma}) with \vn{data_source} is set to \vn{lat} can be used.
+calculated from the lattice can be done faster than tracking a beam). The ``\vn{show beam
+-lattice}'' command (\sref{s:show.beam}) will display the lattice derived sigma matrix. For
+optimizations, the \vn{sigma} data type (pg.~\pref{sigma}) with \vn{data_source} is set to \vn{lat}
+can be used.
 
 The calculation of the lattice based sigma matrix starts at the beginning of a lattice branch. If
 \vn{global} parameter \vn{init_lat_sigma_from_beam} (\sref{s:tao.global.struct}) is set to True, the
@@ -1183,10 +1185,10 @@ If the branch has an open geometry, the calculation of the initial sigma matrix 
 of the \vn{beam_init} structure as listed above along with the initial Twiss and coupling parameters
 set in the lattice file.
 
-Once the initial sigma matrix $\sigma_0$ is calculated, the sigma matrix $\sigma(s)$ at a point
+Once the initial sigma matrix $\bfsig_0$ is calculated, the sigma matrix $\bfsig(s)$ at a point
 downstream is calculated using the standard formula
 \begin{equation}
-  \sigma(s) = \bfM \, \sigma_0 \, \bfM^t
+  \bfsig(s) = \bfM \, \bfsig_0 \, \bfM^t
 \end{equation}
 where $\bfM$ is the transfer matrix from the beginning to $s$ and the $t$ exponent means
 transpose. This calculation in \tao ignores radiation effects.
