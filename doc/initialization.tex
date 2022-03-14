@@ -133,7 +133,7 @@ command (\sref{s:set}).
 %
 \item[-rf_on]
 Leaves \vn{rfcavity} elements on. RF on is currently the default so using \vn{-rf_on} will not do
-anything.  To turn the cavities off, use the negation (see below) \vn{--rf_on}. Note: If you want
+anything.  To turn the cavities off, use the negation (see below) \vn{-{}-rf_on}. Note: If you want
 to see orbit changes with RF frequency changes then you will need to set
 \vn{parameter[absolute_time_tracking]} to True. See the ``Relative Versus Absolute Time Tracking''
 section in the\bmad manual for more details.
@@ -167,9 +167,10 @@ To negate an argument, use a two dash prefix instead of a single dash prefix. Fo
 \begin{example}
   tao -noplot --noplot
 \end{example}
-The \vn{-noplot} argument turns off plotting and the following \vn{--noplot} argument negates the
+The \vn{-noplot} argument turns off plotting and the following \vn{-{}-noplot} argument negates the
 effect of \vn{-noplot} and turns plotting back on. This is useful with the \vn{reinit tao} command
-(\sref{s:reinit}) to negate saved command line argument settings.
+(\sref{s:reinit}) to negate saved command line argument settings. Also \vn{-{}-rf_on} is used to
+turn off the RF.
 
 %-----------------------------------------------------------------
 \section{Namelist Syntax}

@@ -192,12 +192,12 @@ end subroutine tao_single_track
 ! Routine to track the 6x6 sigma matrix through the lattice using the lattice linear transfer matrices.
 !
 ! Input:
-!   tao_lat   -- tao_lattice_struct: Structure containing the lattice.
-!   ix_branch -- integer: Branch index to track through.
-!   print_err -- logical, optional: Default False. Print error messages if, eg, lattice is unstable?
+!   tao_lat     -- tao_lattice_struct: Structure containing the lattice.
+!   ix_branch   -- integer: Branch index to track through.
+!   print_err   -- logical, optional: Default False. Print error messages if, eg, lattice is unstable?
 !
 ! Output:
-!   calc_ok   -- logical: Set True if there were no problems, False otherwise.
+!   calc_ok     -- logical: Set True if there were no problems, False otherwise.
 !-
 
 subroutine tao_lat_sigma_track (tao_lat, calc_ok, ix_branch, print_err)
@@ -213,11 +213,13 @@ type (tao_lattice_branch_struct), pointer :: tao_branch
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 type (beam_init_struct), pointer :: beam_init
+type (tao_model_branch_struct), pointer :: model_branch
+type (bunch_params_struct) :: bunch_params
 
 real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6)
 
 integer ix_branch
-integer i, n
+integer i, n, ie0
 
 logical, optional :: print_err
 logical calc_ok, err
@@ -231,74 +233,94 @@ u => tao_lat%u
 lat => tao_lat%lat
 branch => tao_lat%lat%branch(ix_branch)
 tao_branch => tao_lat%tao_branch(ix_branch)
+model_branch => u%model_branch(ix_branch)
+ie0 = model_branch%beam%ix_track_start
 
 if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .or. &
                                               branch%param%particle == photon$) return
 
 beam_init => u%model_branch(0)%beam%beam_init
-ele => branch%ele(0)
+ele => branch%ele(ie0)
 if (.not. associated(ele%mode3)) allocate (ele%mode3)
 if (.not. allocated(tao_branch%lat_sigma)) allocate(tao_branch%lat_sigma(0:branch%n_ele_max))
 
-call calc_emit_from_beam_init(beam_init, ele, ele%ref_species)
-D_mat = 0
-D_mat(1,1) = ele%a%emit   ! Set by calc_this_emit
-D_mat(2,2) = ele%a%emit
-D_mat(3,3) = ele%b%emit
-D_mat(4,4) = ele%b%emit
-D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz
-D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz
+! Sigma mat at beginning
 
-if (branch%param%geometry == closed$) then
-  call transfer_matrix_calc (lat, branch%param%t1_with_RF, ix_branch = ix_branch, one_turn=.true.)
-  call make_N (branch%param%t1_with_RF, N_mat, err, tunes_out = tune3)
-  if (err) then
-    call mat_type (branch%param%t1_with_RF, &
-          header = 'SINGULAR ONE-TURN MATRIX WITH RF. WILL NOT BE ABLE TO COMPUTE SIGMAS.', &
-          lines = lines, n_lines = n)
-    call out_io (s_error$, r_name, lines(1:n))
-    return
-  endif
-
-  tao_branch%lat_sigma(0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+if (s%global%init_lat_sigma_from_beam) then
+  call calc_bunch_params (model_branch%ele(ie0)%beam%bunch(s%global%bunch_to_plot), bunch_params, err, print_err)
+  tao_branch%lat_sigma(ie0)%mat = bunch_params%sigma
 
 else
-  covar = beam_init%dPz_dz * beam_init%sig_z**2
-  radix = (beam_init%sig_z * beam_init%sig_pz)**2 - covar**2
-  if (radix < 0) then
-    call out_io (s_error$, r_name, 'Beam init: |dPz_dz| must be less than Sig_Pz/Sig_z')
-    calc_ok = .false.
-    return
-  endif
+  call calc_emit_from_beam_init(beam_init, ele, ele%ref_species)
+  D_mat = 0
+  D_mat(1,1) = ele%a%emit   ! Set by calc_this_emit
+  D_mat(2,2) = ele%a%emit
+  D_mat(3,3) = ele%b%emit
+  D_mat(4,4) = ele%b%emit
+  D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz
+  D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz
 
-  ele%z%emit  = sqrt(radix)
+  if (branch%param%geometry == closed$) then
+    call transfer_matrix_calc (lat, branch%param%t1_with_RF, ix_branch = ix_branch, one_turn=.true.)
+    call make_N (branch%param%t1_with_RF, N_mat, err, tunes_out = tune3)
+    if (err) then
+      call mat_type (branch%param%t1_with_RF, &
+            header = 'SINGULAR ONE-TURN MATRIX WITH RF. WILL NOT BE ABLE TO COMPUTE SIGMAS.', &
+            lines = lines, n_lines = n)
+      call out_io (s_error$, r_name, lines(1:n))
+      return
+    endif
 
-  if (ele%z%emit == 0) then
-    ele%z%beta  = 1
-    ele%z%alpha = 0
-    ele%z%gamma = 1
+    tao_branch%lat_sigma(0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+
   else
-    ele%z%beta  = beam_init%sig_z**2 / ele%z%emit
-    ele%z%alpha = -covar / ele%z%emit
-    ele%z%gamma = (1 + ele%z%alpha**2) / ele%z%beta
+    covar = beam_init%dPz_dz * beam_init%sig_z**2
+    radix = (beam_init%sig_z * beam_init%sig_pz)**2 - covar**2
+    if (radix < 0) then
+      call out_io (s_error$, r_name, 'Beam init: |dPz_dz| must be less than Sig_Pz/Sig_z')
+      calc_ok = .false.
+      return
+    endif
+
+    ele%z%emit  = sqrt(radix)
+
+    if (ele%z%emit == 0) then
+      ele%z%beta  = 1
+      ele%z%alpha = 0
+      ele%z%gamma = 1
+    else
+      ele%z%beta  = beam_init%sig_z**2 / ele%z%emit
+      ele%z%alpha = -covar / ele%z%emit
+      ele%z%gamma = (1 + ele%z%alpha**2) / ele%z%beta
+    endif
+
+    call twiss3_from_twiss2 (branch%ele(0))
+
+    G_inv = 0
+    G_inv(1,1) = sqrt(ele%a%beta)
+    G_inv(2,1:2) = [-ele%a%alpha / sqrt(ele%a%beta), 1/sqrt(ele%a%beta)]
+    G_inv(3,3) = sqrt(ele%b%beta)
+    G_inv(4,3:4) = [-ele%b%alpha / sqrt(ele%b%beta), 1/sqrt(ele%b%beta)]
+    G_inv(5,5) = sqrt(ele%z%beta)
+    G_inv(6,5:6) = [-ele%z%alpha / sqrt(ele%z%beta), 1/sqrt(ele%z%beta)]
+
+    N_mat = matmul(ele%mode3%v, G_inv)
+
+    tao_branch%lat_sigma(0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
   endif
-
-  call twiss3_from_twiss2 (branch%ele(0))
-
-  G_inv = 0
-  G_inv(1,1) = sqrt(ele%a%beta)
-  G_inv(2,1:2) = [-ele%a%alpha / sqrt(ele%a%beta), 1/sqrt(ele%a%beta)]
-  G_inv(3,3) = sqrt(ele%b%beta)
-  G_inv(4,3:4) = [-ele%b%alpha / sqrt(ele%b%beta), 1/sqrt(ele%b%beta)]
-  G_inv(5,5) = sqrt(ele%z%beta)
-  G_inv(6,5:6) = [-ele%z%alpha / sqrt(ele%z%beta), 1/sqrt(ele%z%beta)]
-
-  N_mat = matmul(ele%mode3%v, G_inv)
-
-  tao_branch%lat_sigma(0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
 endif
 
-do i = 1, branch%n_ele_track
+! And propagate
+
+i = ie0
+do 
+  i = i + 1
+  if (i > branch%n_ele_track) then
+    if (ie0 == 0) exit
+    tao_branch%lat_sigma(0)%mat = tao_branch%lat_sigma(branch%n_ele_track)%mat
+    i = 1
+  endif
+  if (i == ie0) exit
   ele => branch%ele(i)
   tao_branch%lat_sigma(i)%mat = matmul(matmul(ele%mat6, tao_branch%lat_sigma(i-1)%mat), transpose(ele%mat6))
 enddo
@@ -309,16 +331,19 @@ end subroutine tao_lat_sigma_track
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_beam_track (tao_lat, calc_ok, ix_branch, print_err)
+! Subroutine tao_beam_track (u, tao_lat, ix_branch, beam, calc_ok)
 !
-! Routine to track a a beam of particles
+! Routine to track a a beam of particles.
 !
 ! Input:
+!   u         -- tao_universe_struct: Universe to track through.
 !   tao_lat   -- tao_lattice_struct: Structure containing the lattice.
 !   ix_branch -- integer: Branch index to track through.
+!   beam      -- beam_struct: Initial beam distribution
 !   print_err -- logical, optional: Default False. Print error messages if, eg, lattice is unstable?
 !
 ! Output:
+!   beam      -- beam_struct: Final beam distribution.
 !   calc_ok   -- logical: Set True if there were no problems, False otherwise.
 !-
 
@@ -333,7 +358,7 @@ type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 type (tao_universe_struct), target :: u
-type (beam_struct) :: beam
+type (beam_struct) :: init_beam, beam
 type (normal_modes_struct) :: modes
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
