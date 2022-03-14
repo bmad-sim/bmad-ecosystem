@@ -690,7 +690,7 @@ type tao_global_struct
   logical :: orm_analysis = .false.                   ! ORM using MDSA? 
   logical :: plot_on = .true.                         ! Do plotting?
   logical :: rad_int_calc_on = .true.                 ! Radiation integrals calculation on/off.
-  logical :: rf_on = .false.                          ! RFcavities on or off? Does not affect lcavities.
+  logical :: rf_on = .true.                           ! RFcavities on or off? Does not affect lcavities.
   logical :: single_step = .false.                    ! For debugging and demonstrations: Single step through a command file?
   logical :: stop_on_error = .true.                   ! For debugging: False prevents tao from exiting on an error.
   logical :: svd_retreat_on_merit_increase = .true.

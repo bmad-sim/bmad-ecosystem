@@ -35,19 +35,20 @@ call out_io (s_blank$, r_name, [ &
         '  -lattice_file <file_name>            # Bmad lattice file                                      ', &
         '  -log_startup                         # Write startup debugging info                           ', &
         '  -no_stopping                         # For debugging: Prevents Tao from exiting on errors     ', &
-        '  -noinit                              # Do not use Tao init file                               ', &
+        '  -noinit                              # Do not use Tao init file.                              ', &
         '  -noplot                              # Do not open a plotting window                          ', &
         '  -nostartup                           # Do not open a startup command file                     ', &
         '  -no_rad_int                          # Do not do any radiation integrals calculations.        ', &
         '  -plot_file <file_name>               # Plotting initialization file                           ', &
         '  -prompt_color <color>                # Set color of prompt string. Default is blue.           ', &
-        '  -rf_on                               # Keep RF on (Default is to turn off)                    ', &
+        '  -rf_on                               # Use "--rf_on" to turn off RF (default is now RF on)    ', &
         '  -quiet                               # Suppress terminal output when running a command file?  ', &
         '  -slice_lattice <ele_list>            # Discards elements from lattice that are not in the list', &
         '  -start_branch_at <ele_name>          # Start lattice branch at element.                       ', &
         '  -startup_file <file_name>            # Commands to run after parsing Tao init file            ', &
         '  -symbol_import                       # Import symbols defined in lattice files(s)?            ', &
-        '  -var_file <file_name>                # Define variables for plotting and optimization         '])
+        '  -var_file <file_name>                # Define variables for plotting and optimization         ', &
+        'Note: Use "--" instead of "-" prefix to negate an option. See the Tao manual for details.       '])
 
 end subroutine tao_print_command_line_info
 
