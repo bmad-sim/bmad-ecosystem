@@ -17,7 +17,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (orb, dt_ref, ele, param, t_dir, rf_time, err_flag, track, t_end, dt_step)
+! Subroutine odeint_bmad_time (orb, dt_ref, ele, param, t_dir, rf_time, err_flag, track, t_end, dt_step, extra_field)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -25,9 +25,9 @@ contains
 ! Tracking is done until the particle is lost or exits the element.
 !
 ! Input: 
-!   orb           -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
+!   orb           -- coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
 !   dt_ref        -- real(rp): Inital time - time_ref. Needed for phase space z tracking.
-!   ele           -- Ele_struct: Element to track through.
+!   ele           -- ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
@@ -37,24 +37,25 @@ contains
 !                     Will be -1 if element has a negative length.
 !
 !   rf_time       -- real(rp): Time relative to RF clock.
-!   track         -- Track_struct, optional: Structure holding the track information.
+!   track         -- track_struct, optional: Structure holding the track information.
 !     %save_track   -- Logical: Set True if track is to be saved.
 !   t_end         -- real(rp), optional: If present, maximum time to which the particle will be tracked.
 !                     Used for tracking with given time steps. The time orb%t at which tracking stops 
 !                     may be less than this if the particle gets to the end of the element
 !   dt_step       -- real(rp), optional: If positive, next RK time step to take. 
 !                     This overrides bmad_com%init_ds_adaptive_tracking. Used by track_bunch_time.
+!   extra_field   -- em_field_struct, optional: Static field to be added to the element field. Eg used with space charge.
 !
 ! Output:
-!   orb           -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
+!   orb           -- coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
 !   dt_ref        -- real(rp): Final z phase space coordinate.
-!   err_flag      -- Logical: Set True if there is an error. False otherwise.
-!   track         -- Track_struct, optional: Structure holding the track information.
+!   err_flag      -- logical: Set True if there is an error. False otherwise.
+!   track         -- track_struct, optional: Structure holding the track information.
 !   dt_step       -- real(rp), optional: Next RK time step that this tracker would take based on the error tolerance.
 !                     Used by track_bunch_time.
 !-
 
-subroutine odeint_bmad_time (orb, dt_ref, ele, param, t_dir, rf_time, err_flag, track, t_end, dt_step)
+subroutine odeint_bmad_time (orb, dt_ref, ele, param, t_dir, rf_time, err_flag, track, t_end, dt_step, extra_field)
 
 use super_recipes_mod, only: super_zbrent
 
@@ -67,6 +68,7 @@ type (ele_struct), target :: ele
 type (lat_param_struct), target ::  param
 type (em_field_struct) :: saved_field
 type (track_struct), optional :: track
+type (em_field_struct), optional :: extra_field
 type (fringe_field_info_struct) fringe_info
 
 real(rp) dt_ref
@@ -281,7 +283,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   old_t = rf_time
   old_dt_ref = dt_ref
 
-  call rk_adaptive_time_step (ele, param, orb, dt_ref, t_dir, rf_time, dt, dt_did, dt_next, err)
+  call rk_adaptive_time_step (ele, param, orb, dt_ref, t_dir, rf_time, dt, dt_did, dt_next, err, extra_field)
   if (err) return
   if (ele%key == patch$) then
     s_stop_fwd = 0  ! By convention.
@@ -350,7 +352,7 @@ real(rp) :: delta_s_target
 integer status
 logical err_flag
 !
-call rk_time_step1 (ele, param, old_t, old_orb, old_dt_ref, this_dt, orb, dt_ref, vec_err, err_flag = err_flag)
+call rk_time_step1 (ele, param, old_t, old_orb, old_dt_ref, this_dt, orb, dt_ref, vec_err, err_flag = err_flag, extra_field = extra_field)
 delta_s_target = s_body - s_fringe_ptr
 rf_time = old_t + this_dt
   
@@ -368,7 +370,7 @@ integer status
 logical err_flag, no_aperture_here
 
 !
-call rk_time_step1 (ele, param, old_t, old_orb, old_dt_ref, this_dt, orb, dt_ref, vec_err, err_flag = err_flag)
+call rk_time_step1 (ele, param, old_t, old_orb, old_dt_ref, this_dt, orb, dt_ref, vec_err, err_flag = err_flag, extra_field = extra_field)
 
 test_orb = orb
 call offset_particle (ele, unset$, test_orb, s_pos=s_body, set_hvkicks = .false.)
@@ -388,13 +390,14 @@ end subroutine odeint_bmad_time
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine rk_adaptive_time_step (ele, param, orb, dt_ref, t_dir, rf_time, dt_try, dt_did, dt_next, err_flag)
+subroutine rk_adaptive_time_step (ele, param, orb, dt_ref, t_dir, rf_time, dt_try, dt_did, dt_next, err_flag, extra_field)
 
 implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, new_orb
+type (em_field_struct), optional :: extra_field
 
 real(rp) :: rf_time, dt_try
 real(rp) :: dt_did, dt_next
@@ -413,7 +416,7 @@ character(*), parameter :: r_name = 'rk_adaptive_time_step'
 ! Calc tolerances
 ! Note that s is in the element frame
 
-call em_field_kick_vector_time (ele, param, rf_time, orb, dt_ref, dr_dt, err_flag) 
+call em_field_kick_vector_time (ele, param, rf_time, orb, dt_ref, dr_dt, err_flag, extra_field = extra_field) 
 if (err_flag) return
 
 sqrt_N = sqrt(abs(1/(c_light*dt_try)))  ! number of steps we would take to cover 1 meter
@@ -431,14 +434,14 @@ abs_scale = [1d-2, 1d-6*pc_ref, 1d-2, 1d-6*pc_ref, 1d-2, 1d-2*pc_ref, 1.0_rp, 1.
 
 do
 
-  call rk_time_step1 (ele, param, rf_time,  orb, dt_ref, dt, new_orb, new_dt_ref, r_err, dr_dt, err_flag, .false.)
+  call rk_time_step1 (ele, param, rf_time,  orb, dt_ref, dt, new_orb, new_dt_ref, r_err, dr_dt, err_flag, .false., extra_field)
   ! Can get errors due to step size too large. For example, for a field map that is only slightly larger than
   ! the aperture, a particle that is outside the aperture and outside of the fieldmap will generate an error.
   ! The solution is to just take a smaller step.
   if (err_flag) then
     if (dt * t_dir < 1d-3/c_light) then
       ! Call rk_time_step1 to generate an error message.
-      call rk_time_step1 (ele, param, rf_time,  orb, dt_ref, dt, new_orb, new_dt_ref, r_err, dr_dt, err_flag, .true.)
+      call rk_time_step1 (ele, param, rf_time,  orb, dt_ref, dt, new_orb, new_dt_ref, r_err, dr_dt, err_flag, .true., extra_field)
       call out_io (s_fatal$, r_name, 'CANNOT COMPLETE TIME STEP. MARKING PARTICLE AS LOST.')
       orb%state = lost$
       return
@@ -515,13 +518,14 @@ end subroutine rk_adaptive_time_step
 ! Very similar to rk_step1_bmad, except that em_field_kick_vector_time is called
 !  and new_orb%s and %t are updated to the global values
 
-subroutine rk_time_step1 (ele, param, rf_time, orb, dt_ref, dt, new_orb, new_dt_ref, r_err, dr_dt, err_flag, print_err)
+subroutine rk_time_step1 (ele, param, rf_time, orb, dt_ref, dt, new_orb, new_dt_ref, r_err, dr_dt, err_flag, print_err, extra_field)
 
 implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, new_orb, temp_orb
+type (em_field_struct), optional :: extra_field
 
 real(rp), optional, intent(in) :: dr_dt(10)
 real(rp), intent(in) :: rf_time, dt
@@ -550,7 +554,7 @@ logical, optional :: print_err
 if (present(dr_dt)) then
   dr_dt1 = dr_dt
 else
-  call em_field_kick_vector_time(ele, param, rf_time, orb, dt_ref, dr_dt1, err_flag, print_err)
+  call em_field_kick_vector_time(ele, param, rf_time, orb, dt_ref, dr_dt1, err_flag, print_err, extra_field)
   if (err_flag) return
 endif
 
@@ -559,27 +563,27 @@ temp_dt_ref = dt_ref
 
 dt_now = a2*dt
 call transfer_this_orbit (temp_orb, dt_now, temp_dt_ref, orb, dt_ref, b21*dt*dr_dt1)
-call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_dt_ref, dr_dt2, err_flag, print_err)
+call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_dt_ref, dr_dt2, err_flag, print_err, extra_field)
 if (err_flag) return
 
 dt_now = a3*dt
 call transfer_this_orbit (temp_orb, dt_now, temp_dt_ref, orb, dt_ref, dt*(b31*dr_dt1+b32*dr_dt2))
-call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_dt_ref, dr_dt3, err_flag, print_err)
+call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_dt_ref, dr_dt3, err_flag, print_err, extra_field)
 if (err_flag) return
 
 dt_now = a4*dt
 call transfer_this_orbit (temp_orb, dt_now, temp_dt_ref, orb, dt_ref, dt*(b41*dr_dt1+b42*dr_dt2+b43*dr_dt3))
-call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_dt_ref, dr_dt4, err_flag, print_err)
+call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_dt_ref, dr_dt4, err_flag, print_err, extra_field)
 if (err_flag) return
 
 dt_now = a5*dt
 call transfer_this_orbit (temp_orb, dt_now, temp_dt_ref, orb, dt_ref, dt*(b51*dr_dt1+b52*dr_dt2+b53*dr_dt3+b54*dr_dt4))
-call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_dt_ref, dr_dt5, err_flag, print_err)
+call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_dt_ref, dr_dt5, err_flag, print_err, extra_field)
 if (err_flag) return
 
 dt_now = a6*dt
 call transfer_this_orbit (temp_orb, dt_now, temp_dt_ref, orb, dt_ref, dt*(b61*dr_dt1+b62*dr_dt2+b63*dr_dt3+b64*dr_dt4+b65*dr_dt5))
-call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_dt_ref, dr_dt6, err_flag, print_err)
+call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_dt_ref, dr_dt6, err_flag, print_err, extra_field)
 if (err_flag) return
 
 ! Output new orb and error vector
@@ -632,7 +636,7 @@ end subroutine rk_time_step1
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
 !+
-! Subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, dt_ref, dvec_dt, err_flag, print_err))
+! Subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, dt_ref, dvec_dt, err_flag, print_err, extra_field))
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
@@ -644,18 +648,20 @@ end subroutine rk_time_step1
 !   dt_ref          -- real(rp): time - time_ref
 !   err_flag        -- logical: Set True if there is an error. False otherwise.
 !   print_err       -- logical, optional: Passed to em_field_calc
+!   extra_field     -- em_field_struct, optional: Static field to be added to the element field. Eg used with space charge.
 !
 ! Output:
 !    dvec_dt(10)  -- real(rp): Derivatives.
 !-
 
-subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, dt_ref, dvec_dt, err_flag, print_err)
+subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, dt_ref, dvec_dt, err_flag, print_err, extra_field)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) param
+type (em_field_struct), optional :: extra_field
 type (em_field_struct) field
 type (coord_struct), intent(in) :: orbit
 
@@ -694,6 +700,11 @@ else
 endif
 
 if (err_flag) return
+
+if (present(extra_field)) then
+  field%E = field%E + extra_field%E
+  field%B = field%B + extra_field%B
+endif
 
 ! Get e_tot from momentum
 ! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot
