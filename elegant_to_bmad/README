@@ -40,7 +40,7 @@ The optional arguments are:
   -h, --help              Show a help message and exit
   -d, --debug             Print debug info while running (not of general interest).
   -f, --many_files        Create a Bmad file for each Elegant input file.
-	-c  --constants         Add to lattice file a list of Elegant defined constants.
+  -c  --constants         Add to lattice file a list of Elegant defined constants.
 
 If the --debug (or -d) option is present, the script will print information on the parsing process
 to the terminal. This option is only of interest for someone debugging the code.
