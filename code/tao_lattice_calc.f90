@@ -140,7 +140,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         endif
       endif
 
-      call tao_lat_sigma_track (tao_lat, this_calc_ok, ib, print_err)
+      if (this_calc_ok) call tao_lat_sigma_track (tao_lat, this_calc_ok, ib, print_err)
 
       !
 

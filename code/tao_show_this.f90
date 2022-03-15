@@ -486,11 +486,12 @@ case ('beam')
     ele => eles(1)%ele
     ix_ele = ele%ix_ele
     ix_branch = ele%ix_branch
-    n = s%global%bunch_to_plot
+    tao_branch => u%model%tao_branch(ix_branch)
 
     bunch_p => tao_branch%bunch_params(ix_ele)
     n_live = bunch_p%n_particle_live
     n_tot = bunch_p%n_particle_tot
+    n = s%global%bunch_to_plot
 
     if (n_tot == 0) then
       nl=nl+1; lines(nl) = 'Beam not tracked through this element!'
