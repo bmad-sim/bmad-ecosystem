@@ -1165,9 +1165,10 @@ calculated from the lattice can be done faster than tracking a beam). The ``\vn{
 optimizations, the \vn{sigma} data type (pg.~\pref{sigma}) with \vn{data_source} is set to \vn{lat}
 can be used.
 
-The calculation of the lattice based sigma matrix starts at the beginning of a lattice branch. If
-\vn{global} parameter \vn{init_lat_sigma_from_beam} (\sref{s:tao.global.struct}) is set to True, the
-beginning sigma matrix is set equal to the initial sigma matrix as calculated from the beam
+The calculation of the lattice based sigma matrix starts at the beginning of a \vn{root} lattice
+branch (a root branch is a branch where no other branch forks to that branch). If \vn{global}
+parameter \vn{init_lat_sigma_from_beam} (\sref{s:tao.global.struct}) is set to True, the beginning
+sigma matrix is set equal to the initial sigma matrix as calculated from the beam
 (\sref{s:beam.init}).
 
 If the \vn{global} parameter \vn{init_lat_sigma_from_beam} (\sref{s:tao.global.struct}) is set to
@@ -1193,6 +1194,10 @@ downstream is calculated using the standard formula
 \end{equation}
 where $\bfM$ is the transfer matrix from the beginning to $s$ and the $t$ exponent means
 transpose. This calculation in \tao ignores radiation effects.
+
+If a branch has a fork element to another branch, like beam tracking, the lattice sigma matrix is propagated through
+from the fork element to the branch that is forked to. The sigma matrix can then be propagated throughout the second
+branch.
 
 %-----------------------------------------------------------------
 \section{Initializing Variables}\index{initialization!variables}

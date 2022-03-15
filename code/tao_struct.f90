@@ -953,9 +953,8 @@ end type
 ! Beam information for a branch in a universe
 
 type tao_beam_branch_struct
-  type (beam_init_struct) :: beam_init                 ! Beam distrubution at beginning of lattice
   type (beam_struct) beam_at_start                     ! Initial beam 
-  type (ele_struct) ele_at_start                       ! To save starting element parameters.
+  type (beam_init_struct) :: beam_init                 ! Beam distrubution at beginning of lattice
   logical :: init_starting_distribution = .true.       ! Init beam
   character(40) :: track_start = ''
   character(40) :: track_end = ''

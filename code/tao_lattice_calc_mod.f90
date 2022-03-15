@@ -219,7 +219,7 @@ type (bunch_params_struct) :: bunch_params
 real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6)
 
 integer ix_branch
-integer i, n, ie0
+integer i, n, ie0, ibf, ief
 
 logical, optional :: print_err
 logical calc_ok, err
@@ -236,8 +236,7 @@ tao_branch => tao_lat%tao_branch(ix_branch)
 model_branch => u%model_branch(ix_branch)
 ie0 = model_branch%beam%ix_track_start
 
-if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .or. &
-                                              branch%param%particle == photon$) return
+if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .or. branch%param%particle == photon$) return
 
 beam_init => u%model_branch(0)%beam%beam_init
 ele => branch%ele(ie0)
@@ -246,7 +245,12 @@ if (.not. allocated(tao_branch%lat_sigma)) allocate(tao_branch%lat_sigma(0:branc
 
 ! Sigma mat at beginning
 
-if (s%global%init_lat_sigma_from_beam) then
+if (branch%ix_from_branch >= 0) then  ! Propagate through fork
+  ibf = branch%ix_from_branch
+  ief = branch%ix_from_ele
+  tao_branch%lat_sigma(ie0)%mat = tao_lat%tao_branch(ibf)%lat_sigma(ief)%mat
+
+elseif (s%global%init_lat_sigma_from_beam) then
   call calc_bunch_params (model_branch%ele(ie0)%beam%bunch(s%global%bunch_to_plot), bunch_params, err, print_err)
   tao_branch%lat_sigma(ie0)%mat = bunch_params%sigma
 
@@ -271,7 +275,7 @@ else
       return
     endif
 
-    tao_branch%lat_sigma(0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+    tao_branch%lat_sigma(ie0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
 
   else
     covar = beam_init%dPz_dz * beam_init%sig_z**2
@@ -306,7 +310,7 @@ else
 
     N_mat = matmul(ele%mode3%v, G_inv)
 
-    tao_branch%lat_sigma(0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+    tao_branch%lat_sigma(ie0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
   endif
 endif
 
@@ -658,6 +662,10 @@ end subroutine tao_inject_particle
 !
 ! This will initialize the beam for a given lattice branch.
 !
+! Trying to inject a beam of one species into a branch with a different ref species
+! (example: electron bunch into photon branch) is problematical. To avoid problems, Tao
+! will set not inject (init_ok = False) if there is a mismatch.
+!
 ! Input:
 !   u         -- tao_universe_struct: Universe containing the lattice.
 !   model     -- tao_lattice_struct: Universe parameters.
@@ -667,6 +675,7 @@ end subroutine tao_inject_particle
 !   beam          -- beam_struct: Initial beam.
 !   init_ok       -- logical: Set False if there are problems. True otherwise.
 !-
+
 subroutine tao_inject_beam (u, model, ix_branch, beam, init_ok)
 
 use beam_utils
@@ -679,46 +688,42 @@ type (tao_lattice_struct), target :: model
 type (tao_model_branch_struct), pointer :: model_branch
 type (branch_struct), pointer :: branch
 type (beam_struct) :: beam
-type (ele_struct), pointer :: ele0, ele1
+type (ele_struct), pointer :: ele0
 type (coord_struct), pointer :: orbit
 type (tao_beam_branch_struct), pointer :: bb
 
 real(rp) v(6)
-integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib0, ie0
+integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib0, ie0, ie_start
 
 character(*), parameter :: r_name = "tao_inject_beam"
 character(100) line
 
 logical err, init_ok
 
-! If using beam info from a file then no init necessary.
+!
 
 init_ok = .false.
 
+model_branch => u%model_branch(ix_branch)
+bb => model_branch%beam
+branch => model%lat%branch(ix_branch)
+ie_start = bb%ix_track_start
+
+! If using beam info from a file then no init necessary.
+
 if (s%com%use_saved_beam_in_tracking) then
   init_ok = .true.
+  beam = model_branch%ele(ie_start)%beam
+  u%model_branch(ix_branch)%ele(ie_start)%beam = beam
   return
 endif
 
 ! if injecting into a branch then use the branch point as the starting distribution.
 
-model_branch => u%model_branch(ix_branch)
-branch => model%lat%branch(ix_branch)
-
-if (ix_branch > 0) then
-  bb => model_branch%beam
-  bb%ix_track_start = branch%ix_to_ele
-
+if (branch%ix_from_branch >= 0) then  ! Injecting from other branch
   ib0 = branch%ix_from_branch
   ie0 = branch%ix_from_ele
   ele0 => u%model%lat%branch(ib0)%ele(ie0)
-
-  if (branch%param%geometry == open$) then
-    bb%ix_track_end = branch%n_ele_track
-  else
-    bb%ix_track_end = bb%ix_track_start - 1
-    if (bb%ix_track_end == -1) bb%ix_track_end = branch%n_ele_track
-  endif
 
   if (.not. allocated (u%model_branch(ib0)%ele(ie0)%beam%bunch)) then
     call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH: ' // int_str(ix_branch) // &
@@ -730,23 +735,21 @@ if (ix_branch > 0) then
   ! species is not well defined. In this case, don't inject.
 
   beam = u%model_branch(ib0)%ele(ie0)%beam
+  u%model_branch(ix_branch)%ele(ie_start)%beam = beam
 
-  if (beam%bunch(1)%particle(1)%species == u%model%lat%branch(ix_branch)%param%particle) then
-    bb%track_start = branch%ele(bb%ix_track_start)%name
-    bb%track_end   = branch%ele(bb%ix_track_end)%name
-    init_ok = .true.
-  endif
+  if (beam%bunch(1)%particle(1)%species /= u%model%lat%branch(ix_branch)%param%particle) return
+  init_ok = .true.
 
   return
 endif
 
-! Init for main branch...
+! Init for a root branch...
 ! If init is via a call to init_beam_distribution: If the distribution is generated with the help of a random 
 ! number generator, a different distribution is generated each time init_beam_distribution is called. 
 ! This is a problem if, say, we are looking at changes to the beam transport due to changes in lattice parameters. 
 ! Of course if, for example, the beam_init structure is modified then we do want a distribution recalc.
 
-bb => u%model_branch(0)%beam
+bb => u%model_branch(ix_branch)%beam
 
 if (bb%beam_init%use_particle_start .and. any(bb%beam_init%center /= u%model%lat%particle_start%vec)) then
   bb%beam_init%center = u%model%lat%particle_start%vec
@@ -754,21 +757,7 @@ if (bb%beam_init%use_particle_start .and. any(bb%beam_init%center /= u%model%lat
   bb%init_starting_distribution = .true.
 endif
 
-bb%ix_track_start = bb%ix_track_start
-if (bb%ix_track_start == not_set$) bb%ix_track_start = 0
-
-bb%ix_track_end = bb%ix_track_end
-if (bb%ix_track_end == not_set$) then
-  if (branch%param%geometry == open$) then
-    bb%ix_track_end = branch%n_ele_track
-  else
-    bb%ix_track_end = bb%ix_track_start - 1
-    if (bb%ix_track_end == -1) bb%ix_track_end = branch%n_ele_track
-  endif
-endif
-
 ele0 => branch%ele(bb%ix_track_start)
-ele1 => bb%ele_at_start
 
 if (bb%init_starting_distribution .or. u%beam%always_reinit) then
   call init_beam_distribution (ele0, branch%param, bb%beam_init, beam, err, u%model%tao_branch(ix_branch)%modes)
@@ -787,13 +776,13 @@ if (bb%init_starting_distribution .or. u%beam%always_reinit) then
   endif
 
   bb%init_starting_distribution = .false.
-  bb%ele_at_start = ele0
   bb%beam_at_start = beam
 
 else
   beam = bb%beam_at_start
 endif
 
+u%model_branch(ix_branch)%ele(ie_start)%beam = beam
 init_ok = .true.
 
 end subroutine tao_inject_beam
