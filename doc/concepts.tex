@@ -44,6 +44,11 @@ A \vn{lattice} (\sref{s:lattice.def}), has an array of \vn{branches}. Each \vn{b
 is assigned an index starting from 0. Additionally, each \vn{branch} is assigned a name which is the
 \vn{line} that defines the branch (\sref{s:use}).
 
+Branches can be interconnected using \vn{fork} and \vn{photon_fork} elements (\sref{s:fork}). This
+is used to simulate forking beam lines such as a connections to a transfer line, dump line, or an
+X-ray beam line. The \vn{branch} from which other \vn{branches} fork but is not forked to by any
+other \vn{branch} is called a \vn{root} branch.
+
 %---------------------------------------------------------------------------
 \section{Lattice}
 \label{s:lattice.def}
@@ -51,14 +56,15 @@ is assigned an index starting from 0. Additionally, each \vn{branch} is assigned
 \index{lattice}\index{branch} 
 an array of \vn{branches} that can be interconnected together to describe an entire machine
 complex. A \vn{lattice} can include such things as transfer lines, dump lines, x-ray beam lines,
-colliding beam storage rings, etc. All of which are connected together to form a coherent whole. In
+colliding beam storage rings, etc. All of which can be connected together to form a coherent whole. In
 addition, a lattice may contain \vn{controller elements} (Table~\ref{t:control.classes}) which can
 simulate such things as magnet power supplies and lattice element mechanical support structures.
 
-\index{root branch}
+\index{root branches}
 Branches can be interconnected using \vn{fork} and \vn{photon_fork} elements (\sref{s:fork}). This
 is used to simulate forking beam lines such as a connections to a transfer line, dump line, or an
-X-ray beam line. The \vn{branch} from which other \vn{branches} fork is called a \vn{root} branch.
+X-ray beam line. The \vn{branch} from which other \vn{branches} fork but is not forked to by any
+other \vn{branch} is called a \vn{root} branch.
 
 A lattice may contain multiple \vn{root} \vn{branches}. For example, a pair of intersecting storage
 rings will generally have two \vn{root} branches, one for each ring. The \vn{use} statement

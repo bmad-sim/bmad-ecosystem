@@ -15,7 +15,7 @@
 
 subroutine calc_emit_from_beam_init (beam_init, ele, species)
 
-use bmad_routine_interface
+use bmad_routine_interface, dummy => calc_emit_from_beam_init
 
 implicit none
 
