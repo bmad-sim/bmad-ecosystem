@@ -579,13 +579,14 @@ case (lcavity$)
   do i = 1, 5
     call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
     call calc_time_ref_orb_out(orb_end)
-    ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
+    ele%value(p0c$) = orb_end%p0c * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) goto 9000
     if (abs(orb_end%vec(6)) < small_rel_change$) exit
   enddo
 
   ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
+  ele%time_ref_orb_out%p0c = ele%value(p0c$)  ! To prevent small roundoff errors
   if (ele%key == em_field$) call ele_rad_int_cache_calc (ele, .true.)
 
 case (custom$, hybrid$)
