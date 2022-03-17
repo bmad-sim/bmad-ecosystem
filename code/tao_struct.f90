@@ -865,7 +865,7 @@ type tao_lat_mode_struct
 end type
 
 type tao_lat_sigma_struct
-  real(rp) mat(6,6)
+  real(rp) :: mat(6,6) = 0
 end type
 
 type tao_dn_dpz_struct

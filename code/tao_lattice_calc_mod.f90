@@ -241,7 +241,6 @@ if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .or. branch%
 beam_init => u%model_branch(0)%beam%beam_init
 ele => branch%ele(ie0)
 if (.not. associated(ele%mode3)) allocate (ele%mode3)
-if (.not. allocated(tao_branch%lat_sigma)) allocate(tao_branch%lat_sigma(0:branch%n_ele_max))
 
 ! Sigma mat at beginning
 

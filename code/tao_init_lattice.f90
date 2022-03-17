@@ -301,9 +301,15 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     u%design%tao_branch(ib)%modes%a%emittance = u%design%lat%branch(ib)%a%emit
     u%design%tao_branch(ib)%modes%b%emittance = u%design%lat%branch(ib)%b%emit
     n = u%design%lat%branch(ib)%n_ele_max
+
     allocate (u%model%tao_branch(ib)%orbit(0:n), u%model%tao_branch(ib)%bunch_params(0:n))
     allocate (u%design%tao_branch(ib)%orbit(0:n), u%design%tao_branch(ib)%bunch_params(0:n))
     allocate (u%base%tao_branch(ib)%orbit(0:n), u%base%tao_branch(ib)%bunch_params(0:n))
+
+    allocate (u%model%tao_branch(ib)%lat_sigma(0:n))
+    allocate (u%design%tao_branch(ib)%lat_sigma(0:n))
+    allocate (u%base%tao_branch(ib)%lat_sigma(0:n))
+
     allocate (u%model_branch(ib)%ele(-1:n))
   enddo
 
