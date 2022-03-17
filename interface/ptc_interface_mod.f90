@@ -3850,6 +3850,7 @@ elseif (use_offsets) then
 
     dr = [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
     if (any(dr /= 0)) then
+      o_chord = ptc_fibre%mag%p%f%o
       o_arc = o_chord + sagitta * ptc_fibre%mag%p%f%mid(1,1:3)
       basis = orient
       x = 0
