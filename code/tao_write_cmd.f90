@@ -61,7 +61,7 @@ integer i_min, i_max, n_len, len_d_type, ix_branch
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append, write_floor
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
-logical write_high_lim, write_low_lim, tao_format, eq_d_type, delim_found, turn_rf_on
+logical write_high_lim, write_low_lim, tao_format, eq_d_type, delim_found
 
 !
 
@@ -73,10 +73,10 @@ call tao_cmd_split (what2, 10, word, .true., err)
 if (err) return
 
 call match_word (action, [character(20):: &
-              'hard', 'gif', 'ps', 'variable', 'bmad_lattice', 'derivative_matrix', 'digested', &
-              'curve', 'mad_lattice', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', &
-              'mad8_lattice', 'madx_lattice', 'pdf', 'pdf-l', 'opal_lattice', '3d_model', 'gif-l', &
-              'ptc', 'sad_lattice', 'spin_mat8', 'blender', 'namelist', 'xsif_lattice', 'matrix'], &
+              'hard', 'gif', 'ps', 'variable', 'bmad', 'derivative_matrix', 'digested', &
+              'curve', 'mad', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', 'elegant', &
+              'mad8', 'madx', 'pdf', 'pdf-l', 'opal', '3d_model', 'gif-l', &
+              'ptc', 'sad', 'spin_mat8', 'blender', 'namelist', 'xsif', 'matrix'], &
               ix, .true., matched_name = action)
 
 if (ix == 0) then
@@ -204,25 +204,23 @@ case ('blender', '3d_model')
   enddo
 
 !---------------------------------------------------
-! bmad_lattice
+! bmad
 
-case ('bmad_lattice')
+case ('bmad')
 
   file_format = binary$
   file_name0 = 'lat_#.bmad'
   ix_word = 0
-  turn_rf_on = .true.
 
   do 
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), [character(16):: '-one_file', '-format', '-no_rf'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(16):: '-one_file', '-format'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('');       exit
-    case ('-no_rf');    turn_rf_on = .false.
     case ('-one_file'); file_format = one_file$
     case ('-format')
       ix_word = ix_word + 1
@@ -246,20 +244,12 @@ case ('bmad_lattice')
     end select
   enddo
 
-  if (s%global%rf_on) turn_rf_on = .false. ! Do not need to try to turn on RF
-  if (turn_rf_on) then
-    call out_io (s_info$, r_name, 'RF will be turned on in the lattice file. If you do not want this use the "-no_rf" flag.')
-  endif
-
   do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
-    if (turn_rf_on) call set_on_off(rfcavity$, u%model%lat, save_state$, u%model%tao_branch(0)%orbit, saved_values = values)
-    if (turn_rf_on) call set_on_off(rfcavity$, u%model%lat, on$, u%model%tao_branch(0)%orbit)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call write_bmad_lattice_file (file_name, u%model%lat, err, file_format, u%model%tao_branch(0)%orbit(0))
     if (err) return
     call out_io (s_info$, r_name, 'Written: ' // file_name)
-    if (turn_rf_on) call set_on_off(rfcavity$, u%model%lat, restore_state$, u%model%tao_branch(0)%orbit, saved_values = values)
   enddo
 
 !---------------------------------------------------
@@ -463,29 +453,27 @@ case ('hard', 'hard-l')
 !---------------------------------------------------
 ! Foreign lattice format
 
-case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice', 'xsif_lattice')
+case ('mad', 'mad8', 'madx', 'opal_latice', 'sad', 'xsif', 'elegant')
 
   select case (action)
-  case ('mad_lattice');   file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
-  case ('mad8_lattice');  file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
-  case ('madx_lattice');  file_name0 = 'lat_#.madx'; lat_type = 'MAD-X'
-  case ('opal_lattice');  file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
-  case ('xsif_lattice');  file_name0 = 'lat_#.xsif'; lat_type = 'XSIF'
-  case ('sad_lattice');   file_name0 = 'lat_#.sad';  lat_type = 'SAD'
+  case ('mad');     file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
+  case ('mad8');    file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
+  case ('madx');    file_name0 = 'lat_#.madx'; lat_type = 'MAD-X'
+  case ('opal');    file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
+  case ('xsif');    file_name0 = 'lat_#.xsif'; lat_type = 'XSIF'
+  case ('sad');     file_name0 = 'lat_#.sad';  lat_type = 'SAD'
+  case ('elegant'); file_name0 = 'lat_#.lte';  lat_type = 'ELEGANT'
   end select
-
-  turn_rf_on = .true.
 
   do 
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), [character(16):: '-no_rf'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(16):: 'zzz!?'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('');       exit
-    case ('-no_rf');    turn_rf_on = .false.
 
     case default
       if (file_name0(1:9) /= 'lat_#.mad') then
