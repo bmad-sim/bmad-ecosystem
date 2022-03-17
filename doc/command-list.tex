@@ -3438,6 +3438,7 @@ Format:
   write curve ...                 ! \sref{s:write.curve}
   write derivative_matrix ...     ! \sref{s:write.deriv.matrix}
   write digested ...              ! \sref{s:write.digested}
+  write elegant ...               ! \sref{s:write.elegant}
   write gif ...                   ! \sref{s:write.gif}
   write hard                      ! \sref{s:write.hard}
   write mad8 ...                  ! \sref{s:write.mad8}
@@ -3537,7 +3538,7 @@ Generally, one of the latter two environmental variables will be defined.  If no
 
 The \vn{write bmad} command will create a bmad lattice file. Syntax:
 \begin{example}
-    write bmad \{-format <type>\} \{-no_rf\} \{<file_name>\} 
+    write bmad \{-format <type>\} \{<file_name>\} 
 \end{example}
 
 The default file name is \vn{lat_\#.bmad} where \vn{\#} is replaced by the universe number. 
@@ -3563,10 +3564,6 @@ separate secondary lattice files. This is done by setting \vn{format} to either 
 \vn{binary}. The difference between \vn{ascii} and \vn{binary} is that for \vn{grid_field}s, which
 may have a huge amount of associated data, the \vn{binary} format stores \vn{grid_field}s using
 HDF5. The other three field description types are always stored using ASCII files.
-
-By default, the \vn{rfcavities} in the output lattice will be set back \vn{on} if the cavities were
-initially turned off when \tao was started (turning RF off at startup is the default procedure). If
-this is not wanted, the \vn{-no_rf} switch can be used to prevent this.
 
 \begin{example}
   write bmad -format one lat.bmad  ! Single lattice file lat.bmad created.
@@ -3631,6 +3628,19 @@ Syntax:
 The default file name is \vn{lat_\#.digested} where \vn{\#} is replaced by the universe number. 
 
 
+%% write elegant --------------------------------------------------------------
+
+\subsection{write elegant}
+\label{s:write.elegant}
+
+Syntax:
+\begin{example}
+    write elegant \{<file_name>\}           ! Elegant lattice file using the model lattice.
+\end{example}
+
+Write a lattice fiel in \vn{Elegant} format. The default file name is \vn{lat_\#.lte} where \vn{\#}
+is replaced by the universe number.
+
 %% write gif --------------------------------------------------------------
 
 \subsection{write gif}
@@ -3663,14 +3673,10 @@ Syntax:
 
 Syntax:
 \begin{example}
-    write mad8 \{-no_rf\} \{<file_name>\}  ! Write a MAD-8 lattice file of the model
+    write mad8 \{<file_name>\}  ! Write a MAD-8 lattice file of the model
 \end{example}
 
 The default file name is \vn{lat_\#.mad8} where \vn{\#} is replaced by the universe number. 
-
-By default, the \vn{rfcavities} in the output lattice will be set back \vn{on} if the cavities were
-initially turned off when \tao was started (turning RF off at startup is the default procedure). If
-this is not wanted, the \vn{-no_rf} switch can be used to prevent this.
 
 %% write madx --------------------------------------------------------------
 
