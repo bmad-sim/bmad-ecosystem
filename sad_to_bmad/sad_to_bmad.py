@@ -408,11 +408,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
 
   bmad_ele.name = sad_ele.name
 
-  if not sad_ele.type in ele_type_to_bmad:
-    print ('TYPE OF ELEMENT NOT RECOGNIZED: ' + sad_ele.type + '\n' + '    FOR ELEMENT: ' + sad_ele.name)
-    return
-
-  bmad_ele.type = ele_type_to_bmad[sad_ele.type]
+  #
 
   if 'l' in sad_ele.param:
     try:
@@ -431,6 +427,14 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
       zero_field = False
   else:
     zero_field = True
+
+  #
+
+  if not sad_ele.type in ele_type_to_bmad:
+    print ('TYPE OF ELEMENT NOT RECOGNIZED: ' + sad_ele.type + '\n' + '    FOR ELEMENT: ' + sad_ele.name)
+    return
+
+  bmad_ele.type = ele_type_to_bmad[sad_ele.type]
 
   # SAD sol with misalignments becomes a Bmad patch
 
@@ -490,8 +494,6 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
       elif 'fb2' in sad_ele.param:
         bmad_ele.param['hgapx'] = '(' + sad_ele.param['fb2'] + ')/6, fintx = 0.5'
 
-
-
   # Loop over all parameters
 
   for sad_param_name in sad_ele.param:
@@ -536,7 +538,15 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     value_suffix = ''
     bmad_name = sad_param_name
 
-    if sad_param_name == 'k1' and sad_ele.type == 'quad' and zero_length:
+    if sad_param_name == 'k0' and sad_ele.type == 'bend' and zero_length:
+      bmad_ele.type = 'multipole'
+      bmad_name = 'k0l'
+
+    elif sad_param_name == 'k1' and sad_ele.type == 'bend' and zero_length:
+      bmad_ele.type = 'multipole'
+      bmad_name = 'k1l'
+
+    elif sad_param_name == 'k1' and sad_ele.type == 'quad' and zero_length:
       bmad_ele.type = 'multipole'
       bmad_name = 'k1l'
 
@@ -1150,7 +1160,6 @@ for i in range(100):
   ele0_name = sad_info.lat_line_list[ele0_name].list[0].name
 
 ele0 = sad_info.ele_list[ele0_name]
-print ('ele0: ' + ele0.name)
 for key in ele0.param:
   if key in sad_ele0_param_names:
     sad_info.param_list[key] = ele0.param[key]
