@@ -897,7 +897,9 @@ do   ! ix_ele = 1e1, ie2
     !------
 
     select case (ele%key)
-    case (sbend$)
+    case (sbend$, patch$, drift$)
+      ! Pass
+
     case (sextupole$, octupole$, taylor$)
       x_pitch = ele%value(x_pitch$)
       y_pitch = ele%value(y_pitch$)
@@ -921,12 +923,10 @@ do   ! ix_ele = 1e1, ie2
       call value_to_line (line_out, offset(2), 'dy', 'R')
       call value_to_line (line_out, offset(3), 'dz', 'R')
 
-    case (instrument$, detector$, monitor$, hkicker$, vkicker$, kicker$)  ! Has tilt but not pitches.
+    case (quadrupole$, instrument$, detector$, monitor$, hkicker$, vkicker$, kicker$)  ! Has tilt but not pitches.
       if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) then
         call out_io (s_warn$, r_name, 'X_PITCH OR Y_PITCH PARAMETERS OF A ' // trim(key_name(ele%key)) // ' CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
       endif
-
-    case (patch$)
 
     case default
       if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
