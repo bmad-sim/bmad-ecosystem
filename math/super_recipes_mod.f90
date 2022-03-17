@@ -1257,7 +1257,7 @@ real(rp), intent(out) :: d
 real(rp), dimension(size(a,1)) :: vv
 real(rp), parameter :: tiny = 1.0e-20_rp
 integer :: j,n,imax
-character :: r_name = 'super_ludcmp'
+character(*), parameter :: r_name = 'super_ludcmp'
 logical err
 
 !
