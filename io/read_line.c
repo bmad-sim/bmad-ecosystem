@@ -37,9 +37,9 @@ void read_line_(char* tag, char* str, char* hist_file, int tag_len, int str_len,
       if (hist_file[0] == '~') {
         char* home = getenv("HOME");
         const size_t home_len = strlen(home);
-        char* name = malloc(hist_len + home_len);
+        char* name = malloc(hist_len + home_len - 1);
         memcpy (name, home, home_len);
-        memcpy (name + home_len, hist_file+1, hist_len);  // copy with out leading "~".
+        memcpy (name + home_len, hist_file+1, hist_len-1);  // copy with out leading "~".
         int stat = append_history(1, name);
         free(name);
 
