@@ -274,7 +274,6 @@ case ('beam')
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
         return
       endif
-      lat => u%model%lat
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-lattice')
@@ -291,22 +290,27 @@ case ('beam')
     end select
   enddo
 
+  lat => u%model%lat
+  branch => lat%branch(0)
+  bb => u%model_branch(0)%beam
+
+  if (ele_name == '') then
+    ele => branch%ele(bb%ix_track_start)
+  else
+    call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+    if (err) return
+    u => s%u(ix_u)
+    call tao_locate_elements (ele_name, ix_u, eles, err)
+    if (err .or. size(eles) == 0) return
+    ele => eles(1)%ele
+  endif
+
+  ix_branch = ele%ix_branch
+  tao_branch => u%model%tao_branch(ix_branch)
+
   ! Sigma calc from lattice Twiss.
 
   if (what_to_print == '-lattice') then
-    if (ele_name == '') then
-      ele => branch%ele(0)
-    else
-      call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
-      if (err) return
-      u => s%u(ix_u)
-      call tao_locate_elements (ele_name, ix_u, eles, err)
-      if (err .or. size(eles) == 0) return
-      ele => eles(1)%ele
-    endif
-
-    ix_branch = ele%ix_branch
-    tao_branch => u%model%tao_branch(ix_branch)
     lat_sig => tao_branch%lat_sigma(ele%ix_ele)
 
     nl=nl+1; lines(nl) = 'Sigma calc from lattice Twiss at: ' // trim(ele%name) // ' ' //  ele_loc_name(ele, .false., '()')
@@ -332,10 +336,7 @@ case ('beam')
 
   ! no element index
 
-  bb => u%model_branch(0)%beam
-
   if (ele_name == '') then
-
     if (.not. u%beam%track_beam_in_universe) then
       nl=nl+1; lines(nl) = 'Beam tracking not done in universe: ' // int_str(u%ix_uni)
       nl=nl+1; lines(nl) = 'Create a tao_beam_init namelist for this universe in the appropriate init file if beam tracking wanted.'

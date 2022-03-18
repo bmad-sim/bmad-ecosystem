@@ -240,6 +240,7 @@ if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .or. branch%
 
 beam_init => u%model_branch(0)%beam%beam_init
 ele => branch%ele(ie0)
+if (ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_slave)
 if (.not. associated(ele%mode3)) allocate (ele%mode3)
 
 ! Sigma mat at beginning
