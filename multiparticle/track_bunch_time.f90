@@ -1,5 +1,5 @@
 !+
-! Subroutine track_bunch_time (lat, bunch, t_end, s_end, dt_step)
+! Subroutine track_bunch_time (lat, bunch, t_end, s_end, dt_step, extra_field)
 !
 ! Routine to track a particle bunch for a given time step (or if the 
 ! particle position exceeds s_end).
@@ -11,13 +11,14 @@
 !   s_end       -- real(rp): Ending s-position.
 !   dt_step(:)  -- real(rp), optional: Initial step to take for each particle. 
 !                   Overrides bmad_com%init_ds_adaptive_tracking.
+!   extra_field -- em_field_struct, optional: Static field to be added to the element field. Eg used with space charge.
 !
 ! Output:
 !   bunch       -- bunch_struct: Coordinates will be time-coords in element body frame.
 !   dt_step(:)  -- real(rp), optional: Next RK time step that this tracker would take based on the error tolerance.
 !-
 
-subroutine track_bunch_time (lat, bunch, t_end, s_end, dt_step)
+subroutine track_bunch_time (lat, bunch, t_end, s_end, dt_step, extra_field)
 
 use bmad_interface, dummy => track_bunch_time
 !$ use omp_lib
@@ -26,6 +27,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (bunch_struct), target :: bunch
+type (em_field_struct), optional :: extra_field
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct), pointer :: orbit
@@ -61,7 +63,7 @@ do i = 1, size(bunch%particle)
     ele => pointer_to_next_track_ele(orbit, branch)
     if (orbit%state /= alive$) exit
 
-    call track1_time_RK (orbit, ele, branch%param, err, t_end = t_end, dt_step = dt)
+    call track1_time_RK (orbit, ele, branch%param, err, t_end, dt, extra_field)
   enddo
 
   if (present(dt_step)) dt_step(i) = dt
@@ -117,13 +119,14 @@ end function pointer_to_next_track_ele
 ! contains
 ! Similar to track1_time_runge_kutta except that input and output are time coords
 
-subroutine track1_time_RK (orbit, ele, param, err, t_end, dt_step)
+subroutine track1_time_RK (orbit, ele, param, err, t_end, dt_step, extra_field)
 
 use time_tracker_mod, only: odeint_bmad_time
 
 type (coord_struct) orbit
 type (ele_struct) ele
 type (lat_param_struct) param
+type (em_field_struct), optional :: extra_field
 real(rp) t_end, dt_step, dt_ref, rf_time
 logical err, set_spin
 
@@ -153,7 +156,8 @@ endif
 
 dt_ref = 0  ! 
 rf_time = particle_rf_time (orbit, ele, .true., orbit%s - ele%s_start)
-call odeint_bmad_time(orbit, dt_ref, ele, param, +1, rf_time, err, t_end = t_end, dt_step = dt_step)
+call odeint_bmad_time(orbit, dt_ref, ele, param, +1, rf_time, err, &
+                                        t_end = t_end, dt_step = dt_step, extra_field = extra_field)
 
 ! If at edge of element.
 
