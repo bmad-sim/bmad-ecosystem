@@ -3156,6 +3156,9 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
 
   ptc_key%magnet = 'INTERNALPANCAKE'
 
+else
+  allocate (pancake_field(0,0))  ! Needed since corresponding create_fibre_append dummy arg
+                                 !  is an assumed shape array.
 endif
 
 !--------------------------------------------
