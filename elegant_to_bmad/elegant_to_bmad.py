@@ -256,7 +256,9 @@ def infixer(tokens, ix0, toplevel=True):
       
 # Rearrange expression from infix to postfix format
 
-def postfix_to_infix(str):
+def postfix_to_infix(str, return_list = False):
+
+  str = str.strip('\' "')
 
   # Split expression into tokens and recombine numbers like "3.4e-7" into a single token.
   # Also the minus sign in something like "a -1 *" is a unary minus.
@@ -285,7 +287,10 @@ def postfix_to_infix(str):
   # 
 
   tokens, ixn = infixer(tokens, len(tokens))
-  return tokens
+  if return_list:
+    return tokens
+  else:
+    return tokens[0]
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -431,14 +436,23 @@ def float_val (str, default):
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
+def int_val (str, default):
+  try:
+    return int(str)
+  except:
+    return default
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+
 def negate(str):
   str = add_parens(str)
   if str[0] == '-':
     return str[1:]
   elif str[0] == '+':
-    return '-' + str[1:]
+    return '-' + add_parens(str[1:])
   else:
-    return '-' + str
+    return '-' + add_parens(str)
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -482,12 +496,12 @@ def parse_element(dlist):
 
   line = f'{ele.name}: {ele.bmad_type}, type = "{elegant_type}"' 
 
-  for param in ele.param:
-    bparam = bmad_param(param, ele.name)
+  for eparam in ele.param:
+    ## if eparam in ['dx', 'dy', 'dz'] and 'etilt' in params: continue   # Handled later
+    bparam = bmad_param(eparam, ele.name)
     if bparam == '?': continue
     if ele.bmad_type == 'drift' and bparam != 'l': continue
-    value = params[param]
-    if value[0] == '"' or value[0] == "'": value = postfix_to_infix(value[1:-1])[0]
+    value = postfix_to_infix(params[eparam])
 
     if bparam == 'phi0':
       if ele.bmad_type == 'lcavity':
@@ -495,29 +509,38 @@ def parse_element(dlist):
       else:
         value = f'({value})/360'
 
-    if bparam == 'pitch': value = f'-({value})'   # Corresponds to Bmad y_pitch
+    if bparam == 'pitch': value = negate(str)   # Corresponds to Bmad y_pitch
 
-    if float_val(value, 0) == 0: continue
+    if float_val(value, 1) == 0: continue
     line += f', {bparam} = {value}'
 
+  # Below for parameters that do not have a standard translation
   # Note that the  Elegant rotate element has a "confusing" sign convention for the tilt parameter.
 
-  if elegant_type == 'rotate' and ele.bmad_type == 'taylor' and param.get('tilt', '0') != '0':
-    t = param[tilt]
+  if elegant_type == 'rotate' and ele.bmad_type == 'taylor' and params.get('tilt', '0') != '0':
+    t = postfix_to_infix(params['tilt'])
     line = f'''{ele.name}: {ele.bmad_type}, type = "{elegant_type}", tt11 = cos({t}), tt13 = sin({t}),
 t31 = -sin({t}), t33 = cos({t}), tt22 = cos({t}), tt24 = sin({t}), t42 = -sin({t}), t44 = cos({t})'''
 
-  #
+  # FSE
 
-  if 'fse'        in ele.param: line += f', dg = {params["fse"]} * {ele.name}[angle]/{ele.name}[L]'
-  if 'fse_dipole' in ele.param: line += f', dg = {params["fse_dipole"]} * {ele.name}[angle]/{ele.name}[L]'
+  if 'fse'        in ele.param: line += f', dg = {postfix_to_infix(params["fse"])} * {ele.name}[angle]/{ele.name}[L]'
+  if 'fse_dipole' in ele.param: line += f', dg = {postfix_to_infix(params["fse_dipole"])} * {ele.name}[angle]/{ele.name}[L]'
   if 'charge'     in ele.param:
     warp_write('parameter[n_part] = 1.602176634e-19', f_out)
-    line += f', charge = {params["charge"]}'
+    line += f', charge = {postfix_to_infix(params["charge"])}'
 
   if 'knl' in ele.param: line += f', k{params.get("order", "1")}l = {value}'
 
-  #
+  # Etilt
+
+  if 'etilt' in params:
+    value = postfix_to_infix(params['etilt'])
+    if 'etilt_sign' in params and int_val(params['etilt_sign'], 1) == -1: value = negate(value)
+    ang2 = add_parens(params.get('angle', '0')) + '/2'
+    line += f'{line}, roll = {add_parens(value)} * cos({ang2}), y_pitch = {negate(value)} * sin({ang2})'
+
+  # edge effects
 
   ee1 = int(params.get('edge1_effects', '1'))
   ee2 = int(params.get('edge2_effects', '1'))
@@ -586,7 +609,7 @@ def parse_command(command, dlist):
   # "% <expression> sto <var>" construct
 
   if dlist[0] == '%':
-    toks = postfix_to_infix(dlist[1])
+    toks = postfix_to_infix(dlist[1], True)
     if len(toks) != 3 or toks[1] != 'sto':
       print (f'MALFORMED CONSTANT DEFINITION: {command}')
       return
