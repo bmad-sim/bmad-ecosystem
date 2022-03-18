@@ -46,8 +46,9 @@ is assigned an index starting from 0. Additionally, each \vn{branch} is assigned
 
 Branches can be interconnected using \vn{fork} and \vn{photon_fork} elements (\sref{s:fork}). This
 is used to simulate forking beam lines such as a connections to a transfer line, dump line, or an
-X-ray beam line. The \vn{branch} from which other \vn{branches} fork but is not forked to by any
-other \vn{branch} is called a \vn{root} branch.
+X-ray beam line. A \vn{branch} from which other \vn{branches} fork but is not forked to by any
+other \vn{branch} is called a \vn{root} branch. A branch that is forked to by some other branch
+is called a \vn{downstream} branch.
 
 %---------------------------------------------------------------------------
 \section{Lattice}
