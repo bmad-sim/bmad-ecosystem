@@ -5,17 +5,18 @@
 ! particle position exceeds s_end).
 !
 ! Input:
-!   lat         -- lat_struct: Lattice to track through.
-!   bunch       -- bunch_struct: Coordinates must be time-coords in element body frame.
-!   t_end       -- real(rp): Ending time.
-!   s_end       -- real(rp): Ending s-position.
-!   dt_step(:)  -- real(rp), optional: Initial step to take for each particle. 
-!                   Overrides bmad_com%init_ds_adaptive_tracking.
-!   extra_field -- em_field_struct, optional: Static field to be added to the element field. Eg used with space charge.
+!   lat            -- lat_struct: Lattice to track through.
+!   bunch          -- bunch_struct: Coordinates must be time-coords in element body frame.
+!   t_end          -- real(rp): Ending time.
+!   s_end          -- real(rp): Ending s-position.
+!   dt_step(:)     -- real(rp), optional: Initial step to take for each particle. 
+!                      Overrides bmad_com%init_ds_adaptive_tracking.
+!   extra_field(:) -- em_field_struct, optional: Per particle static field to be added to the lattice element field.
+!                        Eg used with space charge.
 !
 ! Output:
-!   bunch       -- bunch_struct: Coordinates will be time-coords in element body frame.
-!   dt_step(:)  -- real(rp), optional: Next RK time step that this tracker would take based on the error tolerance.
+!   bunch          -- bunch_struct: Coordinates will be time-coords in element body frame.
+!   dt_step(:)     -- real(rp), optional: Next RK time step that this tracker would take based on the error tolerance.
 !-
 
 subroutine track_bunch_time (lat, bunch, t_end, s_end, dt_step, extra_field)
@@ -27,7 +28,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (bunch_struct), target :: bunch
-type (em_field_struct), optional :: extra_field
+type (em_field_struct), optional :: extra_field(:)
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct), pointer :: orbit
@@ -63,7 +64,11 @@ do i = 1, size(bunch%particle)
     ele => pointer_to_next_track_ele(orbit, branch)
     if (orbit%state /= alive$) exit
 
-    call track1_time_RK (orbit, ele, branch%param, err, t_end, dt, extra_field)
+    if (present(extra_field)) then
+      call track1_time_RK (orbit, ele, branch%param, err, t_end, dt, extra_field(i))
+    else
+      call track1_time_RK (orbit, ele, branch%param, err, t_end, dt)
+    endif
   enddo
 
   if (present(dt_step)) dt_step(i) = dt

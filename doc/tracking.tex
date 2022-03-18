@@ -342,13 +342,13 @@ exit end of the $n$\Th element.
 
 \index{fork}\index{photon_fork}
 Tracking from a \vn{fork} or \vn{photon_fork} (\sref{s:fork}) element
-to the target \vn{branch} is not ``automatic''. That is, since the
+to the downstream \vn{branch} is not ``automatic''. That is, since the
 requirements of how to handle forking can vary greatly from one
 situation to the next, \bmad does not try to track from one \vn{branch}
 to the next in any one of its tracking routines. 
 
 The discussion here is restricted to the case where the particle being
-tracked is simply transferred from the forking element to the target
+tracked is simply transferred from the forking element to the downstream
 branch. [Thus the subject of photon generation is not covered here.]
 
 There are two cases discussed here. The first case is when a given
@@ -357,7 +357,7 @@ the \vn{from_branch} that forks to the beginning of the
 \vn{to_branch}. Appropriate code is:
 \begin{example}
   type (lat_struct), target :: lat   ! Lattice 
-  type (branch_struct) :: to_branch  ! Given target branch
+  type (branch_struct) :: to_branch  ! Given downstream branch
   type (branch_struct), pointer  :: from_branch ! Base branch
   type (ele_struct), pointer :: fork_ele
   type (coord_struct), allocatable :: from_orbit(:), to_orbit(:)
@@ -388,7 +388,7 @@ element, called \vn{to_ele} in the \vn{to_branch} that is connected to
 \vn{fork_ele} need not be the starting element of \vn{to_branch}.
 \begin{example}
   type (lat_struct), target :: lat   ! Lattice 
-  type (branch_struct), pointer :: to_branch  ! Target branch
+  type (branch_struct), pointer :: to_branch  ! downstream branch
   type (ele_struct), pointer :: to_ele
   type (coord_struct), allocatable :: from_orbit(:), to_orbit(:)
   integer ib_to, ie_to

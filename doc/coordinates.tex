@@ -351,15 +351,16 @@ The orientation of an element is described by a unitary rotation matrix $\bfW$. 
 of $\bfW$ are the unit vectors spanning the local coordinate axes in the order $(x, y, z)$. $\bfW$
 can be expressed in terms of the orientation angles $\theta$, $\phi$, and $\psi$ via the formula
 \begin{align}
-  \bfW &= \bfR_{y}(\theta) \; \bfR_{-x}(\phi) \; \bfR_{z}(\psi) \\
+  \bfW &= \bfR_{y}(\theta) \; \bfR_{-x}(\phi) \; \bfR_{z}(\psi) 
+  \label{wwww} \\
   &= \begin{pmatrix}
     \cos\psi \cos\theta-\sin\psi \sin\phi \sin\theta & -\cos\theta \sin\psi-\cos\psi \sin\phi \sin\theta & 
                                                                                           \cos\phi \sin\theta \\
     \cos\phi \sin\psi & \cos\psi \cos\phi & \sin\phi \\
    -\cos\theta \sin\psi \sin\phi-\cos\psi \sin\theta & \sin\psi \sin\theta-\cos\psi \cos\theta \sin\phi & 
                                                                                           \cos\phi \cos\theta
-  \end{pmatrix} \nonumber
-  \label{wwww}
+  \end{pmatrix}
+  \nonumber
 \end{align}
 where
 \begin{equation}
