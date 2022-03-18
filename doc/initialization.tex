@@ -954,6 +954,15 @@ See \sref{s:lat.correction} for more details on \vn{global%n_opti_cycles} and
 \index{initialization!beams}
 \label{s:beam.init}
 
+Beam tracking involves tracking some number of particles through the lattice to gather statistics
+about the expected distribution of particles in an actual machine.
+
+Beam tracking is started in \vn{root} lattice branches (a root branch is a branch where no other
+branch forks to that branch). Beams will be propagated to through \vn{fork} elements to all
+downstream branches provided that the downstream branch has the same reference particle as the
+upstream branch (this prevents, for example, an electron bunch being injected into an X-ray beam
+line). 
+
 The default is single particle tracking. To turn on particle tracking the \vn{global%track_type}
 parameter must be set to \vn{"beam"}. This can be placed in the \vn{tao_params} namelist above, for
 example,
@@ -1165,6 +1174,17 @@ calculated from the lattice can be done faster than tracking a beam). The ``\vn{
 optimizations, the \vn{sigma} data type (pg.~\pref{sigma}) with \vn{data_source} is set to \vn{lat}
 can be used.
 
+Like tracking particle beams, the calculation of the lattice sigma matrix starts at the lattice
+element defined by the \vn{beam_start} parameter in the \vn{tao_beam_init} namelist
+(\sref{s:beam.init}). Once the initial sigma matrix $\bfsig_0$ is calculated, the sigma matrix
+$\bfsig(s)$ at a point downstream is calculated using the standard formula
+\begin{equation}
+  \bfsig(s) = \bfM \, \bfsig_0 \, \bfM^t
+\end{equation}
+where $\bfM$ is the transfer matrix from the beginning to $s$ and the $t$ exponent means
+transpose. This calculation in \tao ignores radiation effects. Again like tracking particle beams,
+lattice sigma matrices will be propagated through any fork lattice elements to downstream branches.
+
 The calculation of the lattice based sigma matrix starts at the beginning of a \vn{root} lattice
 branch (a root branch is a branch where no other branch forks to that branch). If \vn{global}
 parameter \vn{init_lat_sigma_from_beam} (\sref{s:tao.global.struct}) is set to True, the beginning
@@ -1186,14 +1206,6 @@ turn matrix along with the following parameters from the \vn{beam_init} structur
 If the branch has an open geometry, the calculation of the initial sigma matrix uses the parameters
 of the \vn{beam_init} structure as listed above along with the initial Twiss and coupling parameters
 set in the lattice file.
-
-Once the initial sigma matrix $\bfsig_0$ is calculated, the sigma matrix $\bfsig(s)$ at a point
-downstream is calculated using the standard formula
-\begin{equation}
-  \bfsig(s) = \bfM \, \bfsig_0 \, \bfM^t
-\end{equation}
-where $\bfM$ is the transfer matrix from the beginning to $s$ and the $t$ exponent means
-transpose. This calculation in \tao ignores radiation effects.
 
 If a branch has a fork element to another branch, like beam tracking, the lattice sigma matrix is propagated through
 from the fork element to the branch that is forked to. The sigma matrix can then be propagated throughout the second
