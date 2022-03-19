@@ -352,12 +352,11 @@ case ('beam')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'General beam components (set by "set beam ..."):'
     nl=nl+1; write(lines(nl), lmt) 'always_reinit     = ', u%beam%always_reinit
-    nl=nl+1; write(lines(nl), amt) 'track_data_file   = ', quote(u%beam%track_data_file)
     nl=nl+1; write(lines(nl), amt) 'saved_at          = ', quote(u%beam%saved_at)
     nl=nl+1; write(lines(nl), amt) 'dump_at           = ', quote(u%beam%dump_at)
     nl=nl+1; write(lines(nl), amt) 'dump_file         = ', quote(u%beam%dump_file)
-    nl=nl+1; write(lines(nl), fmt) 'track_start       = ', quote(bb%track_start), ' (', bb%ix_track_start, ')'
-    nl=nl+1; write(lines(nl), fmt) 'track_end         = ', quote(bb%track_end), ' (', bb%ix_track_end, ')'
+    nl=nl+1; write(lines(nl), fmt) 'track_start       = ', quote(bb%track_start)
+    nl=nl+1; write(lines(nl), fmt) 'track_end         = ', quote(bb%track_end)
 
     beam => u%model_branch(0)%ele(bb%ix_track_start)%beam
     if (allocated(beam%bunch)) then
@@ -469,8 +468,7 @@ case ('beam')
         if (bb%ix_track_start == not_set$) then
           nl=nl+1; write (lines(nl), '(i5, 6x, a)') i, '.... No Tracking Done ...'
         else
-          nl=nl+1; write (lines(nl), '(i5, 4x, 4a, t48, 4a)') i, trim(branch%ele(bb%ix_track_start)%name), ' (', int_str(bb%ix_track_start), ')', &
-                                                   trim(branch%ele(bb%ix_track_end)%name), ' (', int_str(bb%ix_track_end), ')'
+          nl=nl+1; write (lines(nl), '(i5, 4x, a, t48, a)') i, trim(bb%track_start), trim(bb%track_end)
         endif
       enddo
     endif
@@ -1806,7 +1804,6 @@ case ('global')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Tao command line startup arguments:'
     call write_this_arg (nl, lines, '  -beam_file', s%init%beam_file_arg)
-    call write_this_arg (nl, lines, '  -beam_track_data_file', s%init%beam_track_data_file_arg)
     call write_this_arg (nl, lines, '  -beam_init_position_file', s%init%beam_init_position_file_arg)
     call write_this_arg (nl, lines, '  -command', s%init%command_arg)
     call write_this_arg (nl, lines, '  -building_wall_file', s%init%building_wall_file_arg)

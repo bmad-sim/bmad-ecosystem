@@ -775,28 +775,29 @@ end subroutine tao_set_wave_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_beam_cmd (who, value_str)
+! Subroutine tao_set_beam_cmd (who, value_str, branch_str)
 !
 ! Routine to set various beam parameters.
 ! 
 ! Input:
-!   who       -- Character(*): which parameter to set.
-!   value_str -- Character(*): Value to set to.
+!   who         -- character(*): which parameter to set.
+!   value_str   -- character(*): Value to set to.
+!   branch_str  -- character(*): Branch to use. '' => branch 0.
 !-
 
-subroutine tao_set_beam_cmd (who, value_str)
+subroutine tao_set_beam_cmd (who, value_str, branch_str)
 
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable, target :: eles(:)
 type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
 type (tao_beam_branch_struct), pointer :: bb
-integer ix, iu, n_loc, ie
+integer ix, iu, n_loc, ie, ix_branch
 
 logical, allocatable :: this_u(:)
 logical err, logic, always_reinit
 
-character(*) who, value_str
+character(*) who, value_str, branch_str
 character(20) switch, who2
 character(*), parameter :: r_name = 'tao_set_beam_cmd'
 
@@ -804,15 +805,16 @@ character(*), parameter :: r_name = 'tao_set_beam_cmd'
 
 call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
 
-call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'beam_track_data_file', &
+call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', &
                     'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
                     'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
-                    'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', 'track_data_file', &
+                    'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', &
                     'always_reinit'], ix, matched_name=switch)
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
   u => s%u(iu)
+
   bb => u%model_branch(0)%beam
 
   if (switch /= 'beginning') then
@@ -822,8 +824,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   select case (switch)
   case ('beginning')
-    call tao_locate_elements (value_str, u%ix_uni, eles, err, multiple_eles_is_err = .true.)
-    ele => eles(1)%ele
+    ele => tao_beam_track_endpoint (value_str, u%model%lat, '', 'BEGGINING')
+    if (.not. associated(ele)) return
     beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
     if (.not. allocated(beam%bunch)) then
       call out_io (s_error$, r_name, 'BEAM NOT SAVED AT: ' // who, 'NOTHING DONE.')
@@ -836,16 +838,19 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   case ('always_reinit')
     call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)
 
-  case ('track_start', 'beam_track_start')
-    call set_this_track(bb%track_start, bb%ix_track_start, err)
-    if (err) return
+  case ('track_start', 'beam_track_start', 'track_end', 'beam_track_end')
+    ele => tao_beam_track_endpoint (value_str, u%model%lat, branch_str, switch)
+    if (.not. associated(ele)) return
 
-  case ('track_end', 'beam_track_end')
-    call set_this_track(bb%track_end, bb%ix_track_end, err)
-    if (err) return
+    bb => u%model_branch(ele%ix_branch)%beam
 
-  case ('track_data_file', 'beam_track_data_file')
-    u%beam%track_data_file = value_str
+    if (switch == 'track_start' .or. switch == 'beam_track_start') then
+      bb%track_start = value_str
+      bb%ix_track_start = ele%ix_ele
+    else
+      bb%track_end = value_str
+      bb%ix_track_end = ele%ix_ele
+    endif
 
   case ('beam_init_position_file', 'beam_init_file_name')
     if (switch == 'beam_init_file_name') call out_io (s_warn$, r_name, 'Note: "beam_init_file_name" has been renamed to "beam_init_position_file".')
@@ -909,139 +914,26 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   end select
 enddo
 
-!-------------------------------------------------------------
-contains
-
-subroutine set_this_track (track_ele, ix_track_ele, err_flag)
-
-type (ele_pointer_struct), allocatable, target :: eles(:)
-integer ix_track_ele, n_loc
-character(*) track_ele
-logical err_flag
-
-!
-
-err_flag = .true.
-
-call lat_ele_locator (value_str, u%design%lat, eles, n_loc, err)
-if (err .or. n_loc == 0) then
-  call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // value_str)
-  return
-endif
-if (n_loc > 1) then
-  call out_io (s_error$, r_name, 'MULTIPLE ELEMENTS FOUND: ' // value_str)
-  return
-endif
-
-track_ele = value_str
-ix_track_ele = eles(1)%ele%ix_ele
-
-err_flag = .false.
-
-end subroutine set_this_track
-
 end subroutine tao_set_beam_cmd 
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_particle_start_cmd (who, value_str)
-!
-! Routine to set particle_start variables.
-! 
-! Input:
-!   who       -- Character(*): which particle_start variable to set
-!   value_str -- Character(*): Value to set to.
-!
-! Output:
-!    s%particle_start  -- Beam_start variables structure.
-!-
-
-subroutine tao_set_particle_start_cmd (who, value_str)
-
-type (tao_universe_struct), pointer :: u
-type (all_pointer_struct), allocatable :: a_ptr(:)
-type (tao_d2_data_array_struct), allocatable :: d2_array(:)
-
-real(rp), allocatable :: set_val(:)
-
-integer ix, iu
-
-character(*) who, value_str
-character(40) who2, name
-
-character(*), parameter :: r_name = 'tao_set_particle_start_cmd'
-
-logical, allocatable :: this_u(:)
-logical err
-
-!
-
-call tao_pick_universe (who, who2, this_u, err); if (err) return
-call string_trim (upcase(who2), who2, ix)
-
-if (who2 == '*') then
-  call tao_evaluate_expression (value_str, 6, .false., set_val, err); if (err) return
-else
-  call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
-endif
-
-!
-
-do iu = lbound(s%u, 1), ubound(s%u, 1)
-  if (.not. this_u(iu)) cycle
-  u => s%u(iu)
-
-  if (who2 == '*') then
-    u%model%lat%particle_start%vec = set_val
-
-  else
-    call pointers_to_attribute (u%model%lat, 'PARTICLE_START', who2, .true., a_ptr, err, .true.)
-    if (err) return
-
-    if (u%model%lat%param%geometry == closed$) then
-      ! All parameters free to vary if multi-turn orbit data is being collected.
-      if (.not. s%com%multi_turn_orbit_is_plotted) then
-        if (who2 == 'PZ') then
-          if (s%global%rf_on) then
-            call out_io (s_warn$, r_name, 'Setting particle_start[pz] will not affect lattice calculations since the rf is on and the lattice is closed.', &
-                              'Note: "set global rf_on = F" or "set branch 0 geometry = open" will change this situation.')
-          endif
-        else
-          call out_io (s_error$, r_name, 'Setting particle_start non-pz parameter will not affect lattice calculations since the lattice is closed.', &
-                              'Note: "set branch 0 geometry = open" will change this situation.')
-        endif
-      endif
-    endif
-
-    ! Set value
-
-    a_ptr(1)%r = set_val(1)
-  endif
-
-  call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START')
-enddo
-
-end subroutine tao_set_particle_start_cmd
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!+
-! Subroutine tao_set_beam_init_cmd (who, value_str)
+! Subroutine tao_set_beam_init_cmd (who, value_str, branch_str)
 !
 ! Routine to set beam_init variables
 ! 
 ! Input:
-!   who       -- Character(*): which beam_init variable to set
-!   value_str -- Character(*): Value to set to.
+!   who         -- character(*): which beam_init variable to set
+!   value_str   -- character(*): Value to set to.
+!   branch_str  -- character(*): Branch to use. '' => branch 0
 !
 ! Output:
 !    s%beam_init  -- Beam_init variables structure.
 !-
 
-subroutine tao_set_beam_init_cmd (who, value_str)
+subroutine tao_set_beam_init_cmd (who, value_str, branch_str)
 
 implicit none
 
@@ -1051,7 +943,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (tao_beam_branch_struct), pointer :: bb
 
-character(*) who, value_str
+character(*) who, value_str, branch_str
 character(40) who2
 character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
 
@@ -1073,27 +965,19 @@ call downcase_string(who2)
 ! Special cases not associated with the beam_init structure
 
 select case (who2)
-case ('beam_track_start', 'beam_track_end')
+case ('track_start', 'beam_track_start', 'track_end', 'beam_track_end')
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. picked_uni(i)) cycle
     u => s%u(i)
     bb => u%model_branch(0)%beam
-    call lat_ele_locator (value_str, u%design%lat, eles, n_loc, err)
-    if (err .or. n_loc == 0) then
-      call out_io (s_fatal$, r_name, 'ELEMENT NOT FOUND: ' // value_str)
-      return
-    endif
-    if (n_loc > 1) then
-      call out_io (s_fatal$, r_name, 'MULTIPLE ELEMENTS FOUND FOR: ' // value_str)
-      return
-    endif
-    ele => eles(1)%ele
+    ele => tao_beam_track_endpoint (value_str, u%design%lat, branch_str, who2)
+    if (.not. associated(ele)) return
 
     select case (who2)
-    case ('beam_track_start')
+    case ('track_start', 'beam_track_start')
       bb%track_start = value_str
       bb%ix_track_start = ele%ix_ele
-    case ('beam_track_end')
+    case ('track_end', 'beam_track_end')
       bb%track_end = value_str
       bb%ix_track_end = ele%ix_ele
     end select
@@ -1197,6 +1081,89 @@ close (iu, status = 'delete')
 deallocate (picked_uni)
 
 end subroutine tao_set_beam_init_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_particle_start_cmd (who, value_str)
+!
+! Routine to set particle_start variables.
+! 
+! Input:
+!   who       -- Character(*): which particle_start variable to set
+!   value_str -- Character(*): Value to set to.
+!
+! Output:
+!    s%particle_start  -- Beam_start variables structure.
+!-
+
+subroutine tao_set_particle_start_cmd (who, value_str)
+
+type (tao_universe_struct), pointer :: u
+type (all_pointer_struct), allocatable :: a_ptr(:)
+type (tao_d2_data_array_struct), allocatable :: d2_array(:)
+
+real(rp), allocatable :: set_val(:)
+
+integer ix, iu
+
+character(*) who, value_str
+character(40) who2, name
+
+character(*), parameter :: r_name = 'tao_set_particle_start_cmd'
+
+logical, allocatable :: this_u(:)
+logical err
+
+!
+
+call tao_pick_universe (who, who2, this_u, err); if (err) return
+call string_trim (upcase(who2), who2, ix)
+
+if (who2 == '*') then
+  call tao_evaluate_expression (value_str, 6, .false., set_val, err); if (err) return
+else
+  call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
+endif
+
+!
+
+do iu = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. this_u(iu)) cycle
+  u => s%u(iu)
+
+  if (who2 == '*') then
+    u%model%lat%particle_start%vec = set_val
+
+  else
+    call pointers_to_attribute (u%model%lat, 'PARTICLE_START', who2, .true., a_ptr, err, .true.)
+    if (err) return
+
+    if (u%model%lat%param%geometry == closed$) then
+      ! All parameters free to vary if multi-turn orbit data is being collected.
+      if (.not. s%com%multi_turn_orbit_is_plotted) then
+        if (who2 == 'PZ') then
+          if (s%global%rf_on) then
+            call out_io (s_warn$, r_name, 'Setting particle_start[pz] will not affect lattice calculations since the rf is on and the lattice is closed.', &
+                              'Note: "set global rf_on = F" or "set branch 0 geometry = open" will change this situation.')
+          endif
+        else
+          call out_io (s_error$, r_name, 'Setting particle_start non-pz parameter will not affect lattice calculations since the lattice is closed.', &
+                              'Note: "set branch 0 geometry = open" will change this situation.')
+        endif
+      endif
+    endif
+
+    ! Set value
+
+    a_ptr(1)%r = set_val(1)
+  endif
+
+  call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START')
+enddo
+
+end subroutine tao_set_particle_start_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
