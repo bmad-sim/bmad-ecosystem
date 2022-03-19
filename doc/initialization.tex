@@ -42,10 +42,6 @@ Sets the name of the file containing the \vn{tao_beam_init} namelist (\sref{s:be
 Overrides the setting of \vn{beam_file} (\sref{s:init.begin}) specified in the \tao initialization
 file.
 %
-\item[-beam_track_data_file <file_name>] \Newline
-Overrides the setting of \vn{beam_track_data_file} (\sref{s:beam.init}) specified in the
-\vn{tao_beam_init} namelist.
-%
 \item[-beam_init_position_file <file_name>] \Newline
 Specifies the file containing initial particle positions.  Overrides the setting of
 \vn{beam_init%position_file} (\sref{s:beam.init}) specified in the \vn{tao_beam_init} namelist.
@@ -992,7 +988,6 @@ The syntax of the \vn{tao_beam_init} namelist is:
   &tao_beam_init
     ix_universe               = <integer>     ! Universe to apply to.
     always_reinit             = <logical>     ! Always reinit the particle distribution?
-    track_data_file           = <string>      ! File used in place of beam tracking.
     saved_at                  = "<ele_list>"  ! At what elements to save beam info.
     dump_file                 = "<file_name>" ! File for saving beam info.
     dump_at                   = "<ele_list>"  ! Save beam info at these elements.
@@ -1135,15 +1130,6 @@ The elements where the beam is saved may be modified while \tao is running by us
 saved_at}, \vn{set beam add_saved_at}, and \vn{set beam subtract_saved_at} commands
 (\sref{s:set.beam}). To write the beam particle positions use the \vn{write beam} command
 (\sref{s:write.beam}).
-%
-\item[track_data_file] \Newline
-The \vn{track_data_file} component specifies a beam tracking data file (which can be created
-with the \vn{write beam} command) which contains the particle coordinates of the tracked beam at
-every element where the beam distribution is saved at. This causes \tao to use the data from the
-file in lieu of actual tracking. This can be helpful when to reanalyze old data if the time for \tao
-to track a bunch through the lattice becomes long. The file name can be overridden by using the
-\vn{-track_data_file} argument on the command line (\sref{s:command.line}). Note: \tao will set
-the variable \vn{use_saved_in_tracking} to \vn{True} to prevent actual tracking.
 %
 \item[track_start, track_end] \Newline
 \vn{track_start} and \vn{track_end} are used when it is desired to only track the beam

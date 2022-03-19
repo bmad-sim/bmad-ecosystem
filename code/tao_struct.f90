@@ -798,14 +798,13 @@ type tao_init_struct
   character(200) :: hook_init_file_arg = ''        ! -hook_init_file      command line argument
   character(200) :: init_file_arg = ''             ! -init_file           command line argument.
   character(200) :: beam_file_arg = ''             ! -beam_file           command line argument.
-  character(200) :: beam_track_data_file_arg = ''  ! -beam_track_data_file       command line argument.
   character(200) :: beam_init_position_file_arg = '' ! -beam_init_position_file command line argument.
   character(500) :: command_arg = ''               ! -command             command line argument.
   character(200) :: data_file_arg = ''             ! -data_file           command line argument.
   character(200) :: plot_file_arg = ''             ! -plot_file           command line argument.
   character(200) :: startup_file_arg = ''          ! -startup_file        command line argument.
   character(200) :: var_file_arg = ''              ! -var_file            command line argument.
-  character(200) :: building_wall_file_arg = ''    ! -building_wtrack_data_file  command line argument.
+  character(200) :: building_wall_file_arg = ''    ! -building_wall_file  command line argument.
   character(16) :: geometry_arg = ''               ! -geometry            command line argument.
   character(80) :: slice_lattice_arg = ''          ! -slice_lattice       command line argument.
   character(40) :: start_branch_at_arg = ''        ! -start_branch_at     command line argument.
@@ -956,10 +955,12 @@ type tao_beam_branch_struct
   type (beam_struct) beam_at_start                     ! Initial beam 
   type (beam_init_struct) :: beam_init                 ! Beam distrubution at beginning of lattice
   logical :: init_starting_distribution = .true.       ! Init beam
-  character(40) :: track_start = ''
+  character(40) :: track_start = ''                    ! Tracking start element.
   character(40) :: track_end = ''
-  integer :: ix_track_start = not_set$                 ! Element start index of tracking
-  integer :: ix_track_end = not_set$                   ! Element end index of tracking
+  integer :: ix_branch = 0                             ! Branch tracked.
+  ! If track_start or track_end is a lord, ix_track_start/end index will be a index of slave.
+  integer :: ix_track_start = not_set$                 ! Element track start index. 
+  integer :: ix_track_end = not_set$                   ! Element track end index
 end type
 
 ! tao_model_branch_struct is for information just used for the model lattice.
@@ -972,7 +973,6 @@ end type
 ! Beam information for a universe 
 
 type tao_beam_uni_struct
-  character(200) :: track_data_file = ''         ! Track data from previous simulation for reanalysis.
   character(200) :: saved_at = ''
   character(200) :: dump_file = ''
   character(200) :: dump_at = ''

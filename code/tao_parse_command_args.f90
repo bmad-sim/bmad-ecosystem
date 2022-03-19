@@ -88,7 +88,7 @@ do
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', &
         '-beam_init_file_name', '-slice_lattice', '-start_branch_at', '-prompt_color', '-beam_init_position_file', &
         '-plot_file', '-external_plotting', '-quiet', '-no_rad_int', '-command', &
-        '-beam_track_data_file', '-symbol_import', '-building_wall_file'], ix, .true., matched_name=switch)
+        '-symbol_import', '-building_wall_file'], ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
 
@@ -98,9 +98,6 @@ do
 
   case ('-beam_file')
     call get_next_arg (arg0, s%init%beam_file_arg, i_arg, n_arg)
-
-  case ('-beam_track_data_file')
-    call get_next_arg (arg0, s%init%beam_track_data_file_arg, i_arg, n_arg)
 
   case ('-beam_position0', '-beam0', '-beam_init_file_name')
     call get_next_arg (arg0, s%init%beam_init_position_file_arg, i_arg, n_arg)
@@ -213,7 +210,6 @@ do
   ! Negate cases
 
   case ('--beam_file');                           s%init%beam_file_arg = ''
-  case ('--beam_track_data_file');                s%init%beam_track_data_file_arg = ''
   case ('--beam_position0', '--beam0', '--beam_init_file_name'); 
                                                   s%init%beam_init_position_file_arg = ''
   case ('--beam_init_position_file');             s%init%beam_init_position_file_arg = ''

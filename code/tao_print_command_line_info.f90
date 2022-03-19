@@ -21,7 +21,6 @@ call out_io (s_blank$, r_name, [ &
         'Options are:                                                                                    ', &
         '  -beam_file <file_name>               # File containing the tao_beam_init namelist.            ', &
         '  -beam_init_position_file <file_name> # File containing initial particle positions.            ', &
-        '  -beam_track_data_file <file_name>    # Beam info from previous tracking                       ', &
         '  -building_wall_file <file_name>      # Define the building tunnel wall                        ', &
         '  -command <command_string>            # Commands to run after startup file commands            ', &
         '  -data_file <file_name>               # Define data for plotting and optimization              ', &

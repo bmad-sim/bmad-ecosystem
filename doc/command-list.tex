@@ -939,8 +939,8 @@ Format:
 The \vn{set beam_init} command sets parameters of the \vn{beam_init} structure (\sref{s:beam.init}).
 Additionally, the \vn{set beam_init} command can set the parameters (\sref{s:beam.init})
 \begin{example}
-  beam_track_start  and
-  beam_track_end
+  track_start  and
+  track_end
 \end{example}
 
 The optional \vn{n@} allows the specification of the universe or universes the set is applied to.
@@ -954,7 +954,7 @@ Examples:
 \begin{example}
   set beam_init 3@center(2) = 0.004   ! Set px center of beam for universe 3.
   set beam_init [1,2]@sig_e = 0.02    ! Set sig_e for universes 1 and 2.
-  set beam_init beam_track_end = q10w ! Set beam_track_end parameter.
+  set beam_init track_end = q10w      ! Set track_end parameter.
 \end{example}
 
 %% set bmad_com --------------------------------------------------------------

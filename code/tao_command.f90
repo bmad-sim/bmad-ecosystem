@@ -43,7 +43,7 @@ character(*) :: command_line
 character(len(command_line)) cmd_line
 character(*), parameter :: r_name = 'tao_command'
 character(300) :: cmd_word(12)
-character(40) gang_str, switch, word, except
+character(40) gang_str, switch, word, except, branch_str
 character(16) cmd_name, set_word, axis_name
 
 character(16) :: cmd_names(41) = [ &
@@ -538,16 +538,20 @@ case ('set')
   update = .false.
   lord_set = .true.
   set_word = ''
+  branch_str = ''
 
   do
     if (cmd_line(1:1) == '-') then
-      call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set'], .true., switch, err, ix)
+      call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set', '-branch'], .true., switch, err, ix)
       if (err) return
       select case (switch)
       case ('-update')
         update = .true.
       case ('-lord_no_set')
         lord_set = .false.
+      case ('-branch')
+        branch_str = cmd_line(:ix)
+        call string_trim(cmd_line(ix+1:), cmd_line, ix)
       end select
       cycle
     endif
@@ -615,9 +619,9 @@ case ('set')
 
   select case (set_word)
   case ('beam')
-    call tao_set_beam_cmd (cmd_word(1), cmd_word(3))
+    call tao_set_beam_cmd (cmd_word(1), cmd_word(3), branch_str)
   case ('beam_init')
-    call tao_set_beam_init_cmd (cmd_word(1), cmd_word(3))
+    call tao_set_beam_init_cmd (cmd_word(1), cmd_word(3), branch_str)
   case ('beam_start', 'particle_start')
     if (set_word == 'beam_start') call out_io (s_warn$, r_name, 'Note: "beam_start" is now named "particle_start".')
     call tao_set_particle_start_cmd (cmd_word(1), cmd_word(3))

@@ -59,6 +59,14 @@ function tao_beam_emit_calc (plane, emit_type, ele, bunch_params) result (emit)
   real(rp) emit
 end function
 
+function tao_beam_track_endpoint (ele_id, lat, branch_str, where) result (ele)
+  import
+  implicit none
+  type (ele_struct), pointer :: ele
+  type (lat_struct), target :: lat
+  character(*) ele_id, where, branch_str
+end function
+
 function tao_lat_sigma_calc_needed (data_type, data_source) result (do_lat_sigma)
   import
   implicit none

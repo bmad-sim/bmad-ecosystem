@@ -235,6 +235,7 @@ branch => tao_lat%lat%branch(ix_branch)
 tao_branch => tao_lat%tao_branch(ix_branch)
 model_branch => u%model_branch(ix_branch)
 ie0 = model_branch%beam%ix_track_start
+if (ie0 == not_set$) return
 
 if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .or. branch%param%particle == photon$) return
 
@@ -407,6 +408,11 @@ new_beam_file = .true.
 
 ie_start = model_branch%beam%ix_track_start
 ie_end   = model_branch%beam%ix_track_end
+
+if (ie_start == not_set$ .or. ie_end == not_set$) then
+  call out_io (s_error$, r_name, 'BEAM END POSITION NOT PROPERLY SET. NO TRACKING DONE.')
+  return
+endif
 
 tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
 tao_branch%bunch_params(:)%n_particle_live = 0
@@ -708,6 +714,10 @@ model_branch => u%model_branch(ix_branch)
 bb => model_branch%beam
 branch => model%lat%branch(ix_branch)
 ie_start = bb%ix_track_start
+if (ie_start == not_set$) then
+  call out_io (s_error$, r_name, 'BEAM STARTING POSITION NOT PROPERLY SET. NO TRACKING DONE.')
+  return
+endif
 
 ! If using beam info from a file then no init necessary.
 
