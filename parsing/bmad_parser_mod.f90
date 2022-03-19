@@ -2023,7 +2023,7 @@ case default   ! normal attribute
           ele%value(p0c$) = -1
         endif
 
-        branch => pointer_to_branch(ele%name, lat, .true.)
+        branch => pointer_to_branch(ele%name, lat, parameter_is_branch0 = .true.)
         if (associated(branch)) then
           branch%ele(0)%value(e_tot$) = value
           call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(e_tot$), &
@@ -2048,7 +2048,7 @@ case default   ! normal attribute
           ele%value(e_tot$) = -1
         endif
 
-        branch => pointer_to_branch(ele%name, lat, .true.)
+        branch => pointer_to_branch(ele%name, lat, parameter_is_branch0 = .true.)
         if (associated(branch)) then
           branch%ele(0)%value(p0c$) = value
           call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(p0c$), &
@@ -2064,7 +2064,7 @@ case default   ! normal attribute
         if (set_done) call bp_set_ran_status
 
       case ('N_PART')
-        branch => pointer_to_branch(ele%name, lat, .true.)
+        branch => pointer_to_branch(ele%name, lat, parameter_is_branch0 = .true.)
         if (associated(branch)) branch%param%n_part = value
 
       case ('RF_FREQUENCY')

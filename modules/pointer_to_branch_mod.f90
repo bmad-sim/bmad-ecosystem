@@ -13,8 +13,8 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 ! or a given element.
 !
 ! This routine is an overloaded name for:
-!   pointer_to_branch_given_ele (ele) result (branch_ptr, parameter_is_branch0, blank_is_branch0)
-!   pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
+!   pointer_to_branch_given_ele (ele) result (branch_ptr))
+!   pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_is_branch0) result (branch_ptr)
 !
 ! The lattice branch *associated* with a given element is not necessarily the
 ! branch where the element is *located*. For example, all lords live in branch #0.
@@ -59,8 +59,10 @@ contains
 ! Input:
 !   branch_name -- Character(*): May be a branch name or a branch index.
 !   lat         -- Lat_struct: Lattice to search.
-!   parameter_is_branch0 -- logical, optional: If True, 'PARAMETER' is taken to be
-!                     an alternative name for branch(0). Default is False.
+!   parameter_is_branch0 -- logical, optional: If True, 'PARAMETER' is taken to be an alternative
+!                             name for branch(0). Default is False. Used by Bmad parser.
+!   blank_is_branch0     -- logical, optional: If True, a blank branch_name is associated with branch 0.
+!                             Default is False.
 !
 ! Output:
 !   branch_ptr  -- branch_struct, pointer: Pointer to the nameed branch.
