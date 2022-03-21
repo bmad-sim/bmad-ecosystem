@@ -909,7 +909,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     enddo
 
   case default
-    call out_io (s_fatal$, r_name, 'PARAMETER NOT RECOGNIZED: ' // who2)
+    call out_io (s_warn$, r_name, 'PARAMETER NOT RECOGNIZED: ' // who2)
     return
   end select
 enddo
