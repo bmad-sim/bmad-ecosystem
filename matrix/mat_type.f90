@@ -12,8 +12,8 @@
 !                    < 0 output to terminal and file with unit = abs(nunit).
 !   header    -- character(*), optional: Title to print above matrix.
 !   num_form  -- character(*), optional: Format for the numbers. 
-!                    Default is "(3x, NNNf11.6)" where NNN is the matrix row size. 
-!                    if any |term| > 100 then "(3x, NNNes14.5)" will be the default.
+!                    Default is "3x, NNNf11.6" where NNN is the matrix row size. 
+!                    if any |term| > 100 then "3x, NNNes14.5" will be the default.
 !   lines(:)  -- character(*), optional: Character array to hold the output.
 !                   If present, output to the terminal will not be done.
 !   n_lines   -- integer, optional: Number of lines in lines(:) that hold valid output.
@@ -33,7 +33,7 @@ real(rp) mat(:,:)
 
 character(*), optional :: header, num_form, lines(:)
 character(400) line
-character(24) format1
+character(24) format1, form
 
 !
 
@@ -45,12 +45,14 @@ size1 = size(mat, 1)
 size2 = size(mat, 2)
 
 if (present(num_form)) then
+  form = '(' // trim(num_form) // ')'
   do i = 1, size1
-    write (line, num_form, iostat = ios) mat(i,:)
+    write (line, form, iostat = ios) mat(i,:)
     if (ios /= 0) exit
   enddo
+
   if (ios == 0) then
-    format1 = num_form
+    format1 = form
   else
     format1 = '(3x, 100es15.5)'
   endif
