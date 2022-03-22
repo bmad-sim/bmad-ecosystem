@@ -628,7 +628,7 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
     choose_path (dir_list, root_dir, 'cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
     choose_path (dir_list, root_dir, 'cesrv', '/code/cesrv_struct.f90', '')
-    choose_path (dir_list, root_dir, 'util_programs', '/bmad_to_mad_and_sad/bmad_to_mad_and_sad.f90', '')
+    choose_path (dir_list, root_dir, 'util_programs', '/mad_to_bmad/madx_to_bmad.py', '')
     choose_path (dir_list, root_dir, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
     choose_path (dir_list, root_dir, 'mpmnet', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'genplt', '/CMakeLists.txt', '')
