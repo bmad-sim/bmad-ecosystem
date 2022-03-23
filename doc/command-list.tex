@@ -2837,14 +2837,14 @@ or indexes. The map will be from the exit end of the \vn{loc1} element to the ex
 \vn{loc2} element. In this case, if \vn{loc2} is not present, the map will be the for the element
 given by \vn{loc1}
 
-If the \vn{-eigen_modes} switch is present, the first order part of the map will be treated
-as a 1-turn matrix and the corresponding eigen values and eigen vectors will be printed.
+If the \vn{-eigen_modes} switch is present, the first order part of the map will be treated as a
+1-turn matrix and the corresponding eigen values and eigen vectors will be printed.
 
 The \vn{-number_format} switch, if present, overrides the default format for the displayed format.
 Examples:
 \begin{example}
-  show taylor -num f12.6  ! Fixed format. 12 char field width, 6 digits after decimal place.
-  show taylor -num es12.4 ! Floating format. 12 char field width, 4 digits after decimal place.
+  show taylor -num f12.6  ! Fixed format. 12 char width, 6 digits after decimal point.
+  show taylor -num es12.4 ! Float format. 12 char width, 4 digits after decimal point.
 \end{example}
 
 The \vn{-order} switch, if present, gives the limiting order to display. In any case, the
@@ -2898,6 +2898,8 @@ Examples:
   show taylor -s 13 23            ! Transfer map from s = 13 meters to 23 meters. 
 \end{example} 
 
+\vfill\break
+
 %% show track -----------------------------------------------------------------------
 
 \subsection{show track}
@@ -2906,10 +2908,10 @@ Examples:
 Syntax:
 \begin{example}
   show track \{-b_field \{<fmt>\}\} \{-base\} \{-branch <name_or_index>\} \{-design\} 
-      \{-dispersion \{<fmt>\}\} \{-e_field \{<fmt>\}\} \{-momentum \{<fmt>\}\} \{-no_label_lines\} 
-      \{-points <num>\} \{-position \{<fmt>\}\} \{-energy \{<fmt>\}\} \{-range <s1> <s2>\}
-      \{-s \{<fmt>\}\} \{-spin \{<fmt>\}\} \{-time \{<fmt>\}\} \{-twiss \{<fmt>\}\}
-      \{-universe <ix_uni>\} \{-velocity \{<fmt>\}\}
+      \{-dispersion \{<fmt>\}\} \{-e_field \{<fmt>\}\} \{-element <ele_id>\} \{-momentum \{<fmt>\}\} 
+      \{-no_label_lines\} \{-points <num>\} \{-position \{<fmt>\}\} \{-energy \{<fmt>\}\} 
+      \{-range <s1> <s2>\} \{-s \{<fmt>\}\} \{-spin \{<fmt>\}\} \{-time \{<fmt>\}\} 
+      \{-twiss \{<fmt>\}\} \{-universe <ix_uni>\} \{-velocity \{<fmt>\}\}
 \end{example}
 
 The \vn{show track} command shows a table of phase space coords, Twiss parameters, EM fields, and
@@ -2924,7 +2926,7 @@ a default format. Example:
 \begin{example}
   show track -b_field      ! Display magnetic field parameters using the default format
   show track -position no  ! Do not display position information.
-  show track -s 3pf12.1    ! Display S-position with decimal point shifted by three places.
+  show track -s 3pf12.1    ! Display S-position with decimal point shifted by 3 places.
                            !   That is, display the S-position in millimeters.
 \end{example}
 When the value of quantities are shifted, using the ``\vn{P}'' prefix, the header string for the
@@ -2954,6 +2956,13 @@ The default is not to print these columns.
 Set the format for the three parameters of the electric field (in V/m). The default is not to print
 the field.
 %
+\item[\vn{\{-element <ele_id>\}}] \Newline
+The \vn{-element} switch can be used instead of \vn{-range} to set the $s$-position. With
+\vn{-element} the track range is the extent of the element given by \vn{<ele_id>}. Note: If the
+element is a \vn{beambeam} element, the track will show the before and after particle positions at each
+strong beam slice. See the documentation on the \vn{beambeam} element for more details on how tracking
+through the element is done.
+%
 \item[\vn{\{-momentum \{<fmt>\}\}}] \Newline
 Set the format for the three phase space momentum parameters $(p_x, p_y, p_z)$. Notice that these
 are canonical momenta and are dimensionless as explained in the \bmad manual. In particular, $p_z$
@@ -2976,7 +2985,7 @@ Set the format for the column showing the total energy (in eV) of the particle. 
 to print this.
 %
 \item[\vn{\{-range <s1> <s2>\}}] \Newline
-Set the S-position min/max bounds for the table. Default is beginning and ending S-positions of the
+Set the S-position min/max bounds for the table. Default is beginning and ending $s$-positions of the
 lattice.
 %
 \item[\vn{\{-s \{<fmt>\}\}}] \Newline
