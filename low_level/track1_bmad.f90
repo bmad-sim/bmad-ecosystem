@@ -1,25 +1,26 @@
 !+
-! Subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, mat6, make_matrix)
+! Subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
 !
 ! Particle tracking through a single element BMAD_standard style.
 !
 ! Input:
-!   start_orb   -- Coord_struct: Starting position
-!   ele         -- Ele_struct: Element
+!   start_orb   -- coord_struct: Starting position
+!   ele         -- ele_struct: Element
 !   param       -- lat_param_struct:
 !     %particle     -- Particle type
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix before the element.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
-!   end_orb     -- Coord_struct: End position
-!   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix propagated through the element.
+!   end_orb       -- coord_struct: End position.
+!   err_flag      -- logical, optional: Set true if there is an error. False otherwise.
+!   track         -- track_struct, optional: Structure holding the track information if the 
+!                      lattice element does tracking step-by-step. See track1 for more details.
+!   mat6(6,6)     -- real(rp), optional: Transfer matrix propagated through the element.
 !-
 
-subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, mat6, make_matrix)
+subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
 
-use fringe_mod, dummy2 => track1_bmad
 use bmad_interface, dummy4 => track1_bmad
 
 implicit none
@@ -28,6 +29,7 @@ type (coord_struct) :: start_orb
 type (coord_struct) :: end_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
+type (track_struct), optional :: track
 
 real(rp), optional :: mat6(6,6)
 real(rp)  knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
@@ -71,7 +73,7 @@ select case (key)
 ! beambeam
                         
 case (beambeam$)
-  call track_a_beambeam (end_orb, ele, param, mat6, make_matrix)
+  call track_a_beambeam (end_orb, ele, param, track, mat6, make_matrix)
 
 !-----------------------------------------------
 ! crab_cavity

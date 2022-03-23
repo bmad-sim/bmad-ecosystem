@@ -243,23 +243,26 @@ used for to compose names for superposition (\sref{s:super}) and multipass (\sre
 slave elements.
 
 \index{reserved names}
-\index{beam}\index{particle_start}\index{beginning}
-\index{end}\index{parameter}\index{root}
+\index{beam}\index{no_digested}\index{root}
+\index{beginning}\index{no_superimpose}\index{slice_lattice}
+\index{call}\index{parameter}\index{start_branch_at}
+\index{calc_reference_orbit}\index{parser_debug}\index{superimpose}
+\index{combine_consecutive_elements}\index{particle_start}\index{title}
+\index{debug_marker}\index{print}\index{use}
+\index{end_file}\index{redef}\index{use_local_lat_file}
+\index{expand_lattice}\index{remove_elements}\index{write_digested}
+\index{merge_elements}\index{retur}\index{}
 There is a short list of names that cannot be used as an element, line or list name. These reserved names are:
 \begin{example}
-  beam
-  particle_start
-  beginning
-  debug_marker
-  end
-  no_digested
-  parameter
-  parser_debug
-  print
-  root
-  title
-  use
-  write_digested
+  beam                             no_digested                  root
+  beginning                        no_superimpose               slice_lattice
+  call                             parameter                    start_branch_at
+  calc_reference_orbit             parser_debug                 superimpose
+  combine_consecutive_elements     particle_start               title
+  debug_marker                     print                        use
+  end_file                         redef                        use_local_lat_file
+  expand_lattice                   remove_elements              write_digested
+  merge_elements                   return
 \end{example}
 Note: The one exception is if \vn{end} is used to define a \vn{marker}. This exception is allowed
 since \bmad uses the \vn{end} name to define a marker in any case.

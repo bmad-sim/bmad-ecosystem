@@ -1786,13 +1786,19 @@ character(30), parameter :: grid_field_geometry_name(0:2) = &
                           [character(30) :: 'GARBAGE!', 'rotationally_symmetric_rz', 'xyz']
 integer, parameter :: grid_field_dimension(2) = [2, 3] 
 
+! Structures for saving the track through an element.
 
-! Structure for saving the track through an element.
+type strong_beam_struct
+  integer :: ix_slice = 0                   ! 0 -> at element center and not at slice.
+  real(rp) :: x_center = 0, y_center = 0    ! Strong beam center
+  real(rp) :: x_sigma = 0, y_sigma = 0      ! Strong beam sigma
+end type
 
 type track_point_struct
   real(rp) s_body                                 ! Longitudinal coords within the element body.
   type (coord_struct) orb                         ! An array of track points indexed from 0 (%orb(0:)).
   type (em_field_struct) field                    ! An array of em fields indexed from 0 (%field(0:)).
+  type (strong_beam_struct) strong_beam           ! Strong beam info for beambeam element.
   real(rp) vec0(6)                                ! 0th order part of xfer map from the beginning.
   real(rp) mat6(6,6)                              ! 1st order part of xfer map (transfer matrix).
 end type

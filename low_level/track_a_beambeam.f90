@@ -1,7 +1,14 @@
 !+
-! Subroutine track_a_beambeam (orbit, ele, param, mat6, make_matrix)
+! Subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
 !
-! Bmad_standard tracking through a beambeam element. 
+! Bmad_standard tracking through a beambeam element.
+!
+! If the track arg is present the track is storage order is:
+!   0) starting orbit at element center
+!   1) orbit before first slice
+!   2) orbit after first slice
+!   .... similarly for all other slices
+!   N) ending orbit at element center    ! N = track%n_pt
 !
 ! Input:
 !   orbit       -- Coord_struct: Starting position.
@@ -10,11 +17,13 @@
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
-!   orbit      -- coord_struct: End position.
-!   mat6(6,6)  -- real(rp), optional: Transfer matrix through the element.
+!   orbit         -- coord_struct: End position.
+!   track         -- track_struct, optional: Structure holding the track information if the 
+!                      lattice element does tracking step-by-step. See track1 for more details.
+!   mat6(6,6)     -- real(rp), optional: Transfer matrix through the element.
 !-
 
-subroutine track_a_beambeam (orbit, ele, param, mat6, make_matrix)
+subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
 
 use fringe_mod, except_dummy => track_a_beambeam
 
@@ -23,7 +32,9 @@ implicit none
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
+  type (track_struct), optional :: track
 type (em_field_struct) field
+type (strong_beam_struct) sbb
 
 real(rp), optional :: mat6(6,6)
 real(rp) sig_x, sig_y, x_center, y_center
@@ -52,8 +63,9 @@ if (ele%value(sig_x$) == 0 .or. ele%value(sig_x$) == 0) then
   return
 endif
 
+if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())
+
 call offset_particle (ele, set$, orbit)
-call canonical_to_angle_coords (orbit)
 
 n_slice = max(1, nint(ele%value(n_slice$)))
 allocate(z_slice(n_slice))
@@ -67,9 +79,13 @@ do i = 1, n_slice
   s_pos = (orbit%vec(5) + z) / 2
   del_s = s_pos - s_pos_old
 
-  call track_a_drift (orbit, del_s, mat6, make_matrix)
-
   call strong_beam_sigma_calc (ele, s_pos, -z, sig_x, sig_y, bbi_const, x_center, y_center)
+
+  call track_a_drift (orbit, del_s, mat6, make_matrix)
+  if (present(track)) then
+    sbb = strong_beam_struct(i, x_center, y_center, sig_x, sig_y)
+    call save_a_step(track, ele, param, .true., orbit, s_pos, strong_beam = sbb)
+  endif
 
   ratio = sig_y / sig_x
 
@@ -78,9 +94,13 @@ do i = 1, n_slice
 
   call bbi_kick (x_pos, y_pos, ratio, k0_x, k0_y)
 
-  coef = bbi_const / (n_slice * (1 + orbit%vec(6)))
+  coef = bbi_const / n_slice
   orbit%vec(2) = orbit%vec(2) + k0_x * coef
   orbit%vec(4) = orbit%vec(4) + k0_y * coef
+
+  if (present(track)) then
+    call save_a_step(track, ele, param, .true., orbit, s_pos, strong_beam = sbb)
+  endif
 
   if (logic_option(.false., make_matrix)) then
     call bbi_kick (x_pos-del, y_pos, ratio, k_xx1, k_yx1)
@@ -88,7 +108,7 @@ do i = 1, n_slice
     call bbi_kick (x_pos+del, y_pos, ratio, k_xx2, k_yx2)
     call bbi_kick (x_pos, y_pos+del, ratio, k_xy2, k_yy2)
 
-    coef = bbi_const / (ele%value(n_slice$) * del * (1 + orbit%vec(6)))
+    coef = bbi_const / (ele%value(n_slice$) * del)
     mat21 = coef * (k_xx2 - k_xx1) / (2 * sig_x)
     mat23 = coef * (k_xy2 - k_xy1) / (2 * sig_y)
     mat41 = coef * (k_yx2 - k_yx1) / (2 * sig_x)
@@ -109,8 +129,9 @@ enddo
 
 call track_a_drift (orbit, -s_pos, mat6, make_matrix)
 
-call angle_to_canonical_coords (orbit)
 call offset_particle (ele, unset$, orbit)  
+
+if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())
 
 end subroutine
 

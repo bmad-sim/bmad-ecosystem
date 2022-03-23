@@ -112,10 +112,10 @@ the quaternion product in terms of $S$ and $\bfV$ is
 \begin{equation}
   \bfp \, \bfq = S(\bfp) S(\bfq) + S(\bfp) \bfV(\bfq) + S(\bfq) \bfV(\bfp) + \bfV(\bfp) \bfV(\bfq)
 \end{equation}
-and, if $\bfV(\bfp)$ and $\bfV(\bfq)$ are considered as vectors, the last term in the above equation
-can be written as
+and, if $\bfV(\bfp)$ and $\bfV(\bfq)$ are considered as vectors, the last term $\bfa \equiv
+\bfV(\bfp) \bfV(\bfq)$ in the above equation can be written as
 \begin{equation}
-  \bfV(\bfp) \bfV(\bfq) = \bfV(\bfp) \dot \bfV(\bfq) \bfV(\bfp) \cross \bfV(\bfq)
+  S(\bfa) = -\bfV(\bfp) \cdot \bfV(\bfq), \qquad \bfV(\bfa) = \bfV(\bfp) \cross \bfV(\bfq)
 \end{equation}
 
 In the literature, the scalar part is sometimes called the \vn{real} part and the vector part is
@@ -380,18 +380,27 @@ $\tau_{pol}^{-1}$ is generally well approximated by the \vn{Baier-Katkov-Strakho
 rate (\Eq{tbks}). The difference being that $\tau_{bks}^{-1}$ is evaluated along the closed orbit
 while $\tau_{pol}^{-1}$ involves an average over the transverse beam size.
 
+The calculation of $P_{dk}$ (\Eq{pdk85}) and $\tao_{dep}^{-1}$ (\Eq{tdep}) involve integrating
+$\partial\bfn/\partial\delta$ around the ring. The calculation of $\partial\bfn/\partial\delta$ at
+any point in the ring involves a sum of eigenvectors $\bfn_k$, $k = 1, \ldots, 6$ (\Eq{ndan}) with
+pairs of eigenvectors being associated with the three orbital modes of oscillation. Insight into the
+decoherence process can had by considering what $P_{dk}$ and $\tao_{dep}^{-1}$ would be if only
+one oscillation mode was being excited. This is done by calulating $\partial\bfn/\partial\delta$ with
+\Eq{ndan} by using the two $\bfn_k$ for one particular mode and taking the other $\bfn_k$ to be zero.
+This is then used in \Eq{pdk85} and \Eq{tdep}.
+
 One problem in evaluating \Eq{pdk85} is that accurately evaluating the $\partial\bfn/\partial\delta$
 terms over the transverse bunch distribution is complicated due to lattice nonlinearities. One way
 to evaluate $P_{dk}$ with nonlinearities included is by tracking a bunch of particles over some
 number of turns. To help minimize the needed tracking, the spin flip process can be neglected. With
 this, and starting with 100\% polarization, a turn-by-turn plot of the polarization will give the
-depolarization rate $\tau_{dep}^{-1}$. The integrals of $g^3 \, \what\bfb \dotproduct \bfn$ and $g^3 \,
-(1 - 2(\bfn \dotproduct \what\bfs)^2/9)$ can be well approximated by the integrals over the closed
-orbit ignoring the finite beam size.  Finally, for most rings, the integral of $g^3 \what\bfb \dotproduct
-\partial\bfn/\partial\delta$ is generally small compared to the integral of $g^3 \, \what\bfb
-\dotproduct \bfn$ since, in most of the machine, $\what\bfb$ and $\bfn$ will point in the vertical
-direction and $\partial\bfn/\partial\delta$ will be perpendicular to the vertical (see \Eq{qq0}).
-Putting this all together, the equilibrium polarization can be computed from
+depolarization rate $\tau_{dep}^{-1}$. The integrals of $g^3 \, \what\bfb \dotproduct \bfn$ and $g^3
+\, (1 - 2(\bfn \dotproduct \what\bfs)^2/9)$ can be well approximated by the integrals over the
+closed orbit ignoring the finite beam size.  Finally, for most rings, the integral of $g^3 \what\bfb
+\dotproduct \partial\bfn/\partial\delta$ is generally small compared to the integral of $g^3 \,
+\what\bfb \dotproduct \bfn$ since, in most of the machine, $\what\bfb$ and $\bfn$ will point in the
+vertical direction and $\partial\bfn/\partial\delta$ will be perpendicular to the vertical (see
+\Eq{qq0}).  Putting this all together, the equilibrium polarization can be computed from
 \begin{equation}
   P_{dk} \approx P_{bks} \frac{\tau_{bks}^{-1}}{\tau_{bks}^{-1} + \tau_{dep}^{-1}}
 \end{equation}
