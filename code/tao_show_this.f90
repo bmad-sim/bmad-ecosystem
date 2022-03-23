@@ -680,19 +680,17 @@ case ('chromaticity')
   bmad_nf => tao_branch%bmad_normal_form
   ptc_nf  => tao_branch%ptc_normal_form
 
-  expo = [0, 0, 0, 0, 0, 0]   ! Use expo(6) = i to get the i^th Taylor coef in tune vs pz curve.
-  nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', real(ptc_nf%spin .sub. expo)
-  nl=nl+1; lines(nl) = ''
-  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N'
+  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N   spin_tune_ptc.N'
 
   do i = 0, ptc_com%taylor_order_ptc-1
     expo = [0, 0, 0, 0, 0, i]
     z1 =  real(ptc_nf%phase(1) .sub. expo)
     z2 =  real(ptc_nf%phase(2) .sub. expo)
+    s0 = real(ptc_nf%spin .sub. expo)
     if (i == 0) then
-      nl=nl+1; write (lines(nl), '(i3, 2es18.7, a)') i, z1, z2, '  ! 0th order are the tunes'
+      nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! 0th order are the tunes'
     else
-      nl=nl+1; write (lines(nl), '(i3, 2es18.7)') i, z1, z2
+      nl=nl+1; write (lines(nl), '(i3, 3es18.7)') i, z1, z2, s0
     endif
   enddo
 

@@ -1472,6 +1472,14 @@ To save time when the calculation of momentum compaction terms is not needed, th
 Note: The \vn{show chromaticity} (\sref{s:show.chrom}) command can be used to see the series coefficients.
 
   %----------------------
+  \item[spin.polarization_limit, .polarization_rate, .depolarization_rate] \Newline \hlabel{spin.pol}
+The spin depolarization limit, $P_{dk}$, is calculated from the Derbenev-Kondratenko-Mane formula as
+discussed in the \vn{Spin Dynamics} chapter of the \bmad manual.  The \vn{Baier-Katkov-Strakhovenko}
+polarization rate, $\tau_{bks}^{-1}$, and the depolarization rate, $\tau_{dep}^{-1}$, are also
+discussed in the this chapter. Note: $\tau_{bks}^{-1}$ is generally a good approximation to the
+\vn{Sokolov-Ternov} polarization rate $\tau_{st}^{-1}$.
+
+  %----------------------
   \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline \hlabel{spin.g.matrix}
 The $\bfG$-matrix is the $2\times6$ sub-matrix of the $8\times8$ spin-orbital transfer matrix $\wt\bfM$
 that describes the coupling between orbital motion and spin precession as discussed in the section
@@ -1507,14 +1515,6 @@ to be the same as the initial coordinates and, in this case, $\bfD$, will be a r
 a rotation angle equal to the spin tune.
 
   %----------------------
-  \item[spin.polarization_limit, .polarization_rate, .depolarization_rate] \Newline \hlabel{spin.pol}
-The spin depolarization limit, $P_{dk}$, is calculated from the Derbenev-Kondratenko-Mane formula as
-discussed in the \vn{Spin Dynamics} chapter of the \bmad manual.  The \vn{Baier-Katkov-Strakhovenko}
-polarization rate, $\tau_{bks}^{-1}$, and the depolarization rate, $\tau_{dep}^{-1}$, are also
-discussed in the this chapter. Note: $\tau_{bks}^{-1}$ is generally a good approximation to the
-\vn{Sokolov-Ternov} polarization rate $\tau_{st}^{-1}$.
-
-  %----------------------
   \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{spin.tune.ptc}
 Terms in the taylor series of the spin tune expanded as a function of $p_z$ as calculated from
 Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
@@ -1526,6 +1526,11 @@ where $Q_s(p_z)$ is the spin tune in units of $2\pi$.
 
 The spin tune Taylor series coefficients $Q_N$ are calculated up to order $N_T$ where $N_T$ is the
 Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the default is $N_T=3$). 
+
+To save time when the calculation of chromatic terms is not needed, the \vn{one_turn_map_calc} parameter
+(\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
+
+Note: The \vn{show chromaticity} (\sref{s:show.chrom}) command can be used to see the series coefficients.
 
   %----------------------
   \item[spin.x, .y, .z, .amp] \Newline \hlabel{spin}
