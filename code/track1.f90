@@ -193,11 +193,11 @@ case (bmad_standard$)
   if (start2_orb%species == photon$) then
     call track1_bmad_photon (start2_orb, ele, param, end_orb, err)
   else
-    call track1_bmad (start2_orb, ele, param, end_orb, err, mat6 = ele%mat6, make_matrix = make_map1)
+    call track1_bmad (start2_orb, ele, param, end_orb, err, track, mat6 = ele%mat6, make_matrix = make_map1)
     if (ele%key == beambeam$) do_spin_tracking = .false.
   endif
 
-  if (present(track)) call add_to_track(start2_orb, end_orb)
+  if (present(track) .and. ele%key /= beambeam$) call add_to_track(start2_orb, end_orb)
   if (err) return
 
 case (runge_kutta$, fixed_step_runge_kutta$) 

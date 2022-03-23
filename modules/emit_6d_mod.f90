@@ -1,8 +1,5 @@
 ! Note: A negative emittance is possible and just means that the beam is
-! unstable. That is, adamping partition number is negative.
-!
-
-
+! unstable. That is, the corresponding damping partition number is negative.
 
 !+
 ! Module emit_6d_mod
@@ -17,7 +14,8 @@ use bmad
 implicit none
 
 type rad1_map_struct
-  real(rp) :: damp_mat(6,6) = 0    ! Transfer matrix with damping.
+  real(rp) :: damp_mat(6,6) = 0    ! Transfer matrix = damp_mat + nodamp_mat.
+  real(rp) :: nodamp_mat(6,6) = 0  !
   real(rp) :: stoc_mat(6,6) = 0    ! Stochastic matrix.
 end type
 
@@ -27,25 +25,32 @@ contains
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine damping_and_stochastic_rad_mats (ele1, ele2, damp_mat, stoc_mat)
+! Subroutine damping_and_stochastic_rad_mats (ele1, ele2, damp_mat, stoc_mat, nodamp_mat)
 !
 ! Routine to calculate the damping and stochastic variance matrices from exit end of ele1
 ! to the exit end of ele2. Use ele1 = ele2 to get 1-turn matrices.
+!
 ! If ele2 is before ele1 the integration range if from ele1 to the branch end plus 
 ! from the beginning to ele2.
 !
-! Note: The branch%mat6 matrices will be remade with damping on.
+! The damping matrix is defined to be:
+!   M_transport = nodamp_mat + damp_mat
+! where M_transport is the full transport matrix including damping.
+!
+! Note: The ele%mat6 matrices will be remade. By convention, these matrices
+! do not include damping.
 !
 ! Input:
 !   ele1          -- ele_struct: Start element of integration range.
 !   ele2          -- ele_struct: End element of integration range.
 !
 ! Output:
-!   damp_mat(6,6) -- real(rp): One-turn transfer matrix with damping.
-!   stoc_mat(6,6) -- real(rp): One-turn stochastic variance matrix.
+!   damp_mat(6,6)   -- real(rp): Damping part of the transfer matrix.
+!   stoc_mat(6,6)   -- real(rp): Stochastic variance matrix.
+!   nodamp_mat(6,6) -- real(rp): Nondamping (symnplectic) part of the transfer matrix.
 !-
 
-subroutine damping_and_stochastic_rad_mats (ele1, ele2, damp_mat, stoc_mat)
+subroutine damping_and_stochastic_rad_mats (ele1, ele2, damp_mat, stoc_mat, nodamp_mat)
 
 use super_recipes_mod
 
@@ -57,7 +62,7 @@ type (rad1_map_struct), allocatable :: ds(:)
 type (coord_struct), allocatable :: closed_orb(:)
 
 real(rp) sig_mat(6,6)
-real(rp) damp_mat(6,6), stoc_mat(6,6), damp_typ, stoc_typ, radi
+real(rp) damp_mat(6,6), stoc_mat(6,6), nodamp_mat(6,6), mt(6,6), damp_coef, stoc_coef, radi
 real(rp) :: kd_coef, kf_coef, g2_ave, g3_ave, gamma
 
 integer ie
@@ -97,18 +102,19 @@ call convert_pc_to (ele1_track%value(p0c$), ele1_track%ref_species, gamma = gamm
 radi = classical_radius(ele1_track%ref_species)
 kd_coef = 2.0_rp * radi * gamma**3 / 3.0_rp
 kf_coef = 55.0_rp * radi * h_bar_planck * gamma**5 * c_light / (24.0_rp * sqrt_3 * mass_of(ele1_track%ref_species))
-damp_typ = kd_coef * g2_ave / branch%param%total_length
-stoc_typ = kf_coef * g3_ave / branch%param%total_length
+damp_coef = kd_coef * g2_ave / branch%param%total_length
+stoc_coef = kf_coef * g3_ave / branch%param%total_length
 
 ! Calculate element-by-element damping and stochastic mats.
 
 do ie = 1, branch%n_ele_track
-  call qromb_rad_mat_int(branch%ele(ie), closed_orb(ie-1), closed_orb(ie), damp_typ, stoc_typ, ds(ie)%damp_mat, ds(ie)%stoc_mat)
+  call qromb_rad_mat_int(branch%ele(ie), closed_orb(ie-1), closed_orb(ie), damp_coef, stoc_coef, ds(ie))
 enddo
 
 !
 
-call mat_make_unit(damp_mat)
+call mat_make_unit(nodamp_mat)
+damp_mat = 0
 stoc_mat = 0
 
 ie = ele1_track%ix_ele
@@ -117,8 +123,10 @@ do
   if (ie > branch%n_ele_track) ie = 0
   if (ie /= 0) then
     ele3 => branch%ele(ie)
-    damp_mat = matmul(ds(ie)%damp_mat, damp_mat)
-    stoc_mat = matmul(matmul(ele3%mat6, stoc_mat), mat_symp_conj(ele3%mat6)) + ds(ie)%stoc_mat
+    mt = ds(ie)%nodamp_mat + ds(ie)%damp_mat
+    nodamp_mat = matmul(ds(ie)%nodamp_mat, nodamp_mat)
+    damp_mat = matmul(mt, damp_mat) + ds(ie)%damp_mat
+    stoc_mat = matmul(matmul(mt, stoc_mat), mat_symp_conj(mt)) + ds(ie)%stoc_mat
   endif
   if (ie == ele2%ix_ele) exit
 enddo
@@ -128,7 +136,7 @@ contains
 
 ! This is adapted from qromb and trapzd from Numerical Recipes.
 
-subroutine qromb_rad_mat_int (ele, orb_in, orb_out, damp_typ, stoc_typ, damp_mat, stoc_mat)
+subroutine qromb_rad_mat_int (ele, orb_in, orb_out, damp_coef, stoc_coef, ds)
 
 type qromb_pt1_struct
   real(rp) xmat(6,6)  ! Transfer map without damping from beginning of element
@@ -142,12 +150,13 @@ end type
 
 type (ele_struct) ele
 type (coord_struct) orb_in, orb_out, orb0, orb1
+type (rad1_map_struct) :: ds
 type (fringe_field_info_struct) fringe_info
 type (qromb_pt1_struct) pt1(0:16)
 type (qromb_int_struct) qi(0:4)
 type (bmad_common_struct) bmad_com_save
 
-real(rp) damp_mat(6,6), damp_mat1(6,6), stoc_mat1(6,6), stoc_mat(6,6), damp_typ, stoc_typ
+real(rp) damp_mat1(6,6), stoc_mat1(6,6), damp_coef, stoc_coef
 real(rp) mat0(6,6), mat1(6,6), ddamp(6,6), dstoc(6,6), damp_mat_sum(6,6), stoc_mat_sum(6,6), mat0_inv(6,6)
 real(rp) del_z, l_ref, rel_tol, eps_damp, eps_stoc, z_pos, d_max
 
@@ -156,12 +165,12 @@ integer :: j_max = 10
 
 ! No radiation cases
 
+ds%nodamp_mat = ele%mat6
+ds%damp_mat = 0
+ds%stoc_mat = 0
+
 if (ele%value(l$) == 0 .or. (orb_out%vec(2) == orb_in%vec(2) .and. &
-                         orb_out%vec(4) == orb_in%vec(4) .and. ele%key /= sbend$)) then
-  damp_mat = ele%mat6
-  stoc_mat = 0
-  return
-endif
+                         orb_out%vec(4) == orb_in%vec(4) .and. ele%key /= sbend$)) return
 
 !
 
@@ -188,17 +197,14 @@ qi(0)%damp_mat = 0
 qi(0)%stoc_mat = 0
 
 rel_tol = 1d-4
-eps_damp = rel_tol * ele%value(l$) * damp_typ 
-eps_stoc = rel_tol * ele%value(l$) * stoc_typ 
+eps_damp = rel_tol * ele%value(l$) * damp_coef 
+eps_stoc = rel_tol * ele%value(l$) * stoc_coef 
 
 j_min_test = 3
 
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
   j_min_test = 5
 endif
-
-damp_mat = 0
-stoc_mat = 0
 
 do j = 1, j_max
   if (j == 1) then
@@ -240,12 +246,13 @@ do j = 1, j_max
 
 enddo
 
-!
+! Reference position for matrices are the element exit end
 
-mat0_inv = mat_symp_conj(mat0)
-stoc_mat = matmul(matmul(mat0_inv, stoc_mat), mat0)
-stoc_mat = matmul(matmul(ele%mat6, stoc_mat), mat_symp_conj(ele%mat6))
-damp_mat = ele%mat6 + matmul(ele%mat6, matmul(mat0_inv, damp_mat)) 
+mat0_inv = mat_symp_conj(mat0)   ! mat0 is transport matrix through the upstream edge
+ds%damp_mat = matmul(ele%mat6, matmul(mat0_inv, damp_mat)) 
+
+ds%stoc_mat = matmul(matmul(mat0_inv, stoc_mat), transpose(mat0_inv))
+ds%stoc_mat = matmul(matmul(ele%mat6, stoc_mat), transpose(ele%mat6))
 
 bmad_com = bmad_com_save
 
@@ -281,9 +288,12 @@ kd = kd_coef
 dg2_dx = 2 * dot_product(g, dg(:,1))
 dg2_dy = 2 * dot_product(g, dg(:,2))
 
-damp_mat1(:,2) = -kd_coef * (dg2_dx*v(2)*rel_p*mb(:,1) + g2*rel_p*mb(:,2) + dg2_dy*v(2)*rel_p*mb(:,3) + g2*v(2)*mb(:,6))
-damp_mat1(:,4) = -kd_coef * (dg2_dx*v(4)*rel_p*mb(:,1) + dg2_dy*v(4)*rel_p*mb(:,3) + g2*rel_p*mb(:,4) + g2*v(4)*mb(:,6))
-damp_mat1(:,6) = -kd_coef * (dg2_dx*rel_p**2*mb(:,1) + dg2_dy*v(4)*rel_p**2*mb(:,3) + 2*g2*rel_p*mb(:,6))
+damp_mat1(:,1) = -kd_coef * (mb(:,2)*dg2_dx*v(2)*rel_p + mb(:,4)*dg2_dx*v(4)*rel_p + mb(:,6)*dg2_dx*rel_p**2)
+damp_mat1(:,2) = -kd_coef * (mb(:,2)*g2*rel_p) 
+damp_mat1(:,3) = -kd_coef * (mb(:,2)*dg2_dy*v(2)*rel_p + mb(:,4)*dg2_dy*v(4)*rel_p + mb(:,6)*dg2_dy*v(4)*rel_p**2)
+damp_mat1(:,4) = -kd_coef * (mb(:,4)*g2*rel_p)
+damp_mat1(:,5) = -kd_coef * (0)
+damp_mat1(:,6) = -kd_coef * (mb(:,2)*g2*v(2) + mb(:,4)*g2*v(4) + mb(:,6)*2*g2*rel_p)
 
 kf = kf_coef * rel_p**2 * sqrt(g2)**3
 forall (i = 1:6)

@@ -1,11 +1,11 @@
 !+
-! Subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time)
+! Subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time, strong_beam)
 !
 ! Routine used by the Runge-Kutta tracking routine to save the trajectory through an element.
 !
-! Notes: 
-!   * It is assumed by this routine that here(:) is the orbit in local 
-!     element coordinates. The actual track saved will be in laboratory coordinates.
+! Notes:
+!   * If local_ref_fram = True then orb%vec (and bbi coords) will be converted to laboratory coords.
+!     That is, this routine always tries to save the coords in the laboratory frame.
 !   * It is up to the calling routine to keep track of track%n_ok and track%n_bad if desired.
 !     These numbers are used by adaptive trackers to record how many times the step size needed 
 !     to be shortened.
@@ -25,12 +25,13 @@
 !   rf_time         -- real(rp), optional: RF clock time used for calculating the field.. 
 !                       If not present then the time will be calculated using the standard algorithm.
 !                       This is only needed if save_field = True.
+!   strong_beam     -- strong_beambeam_struct, optional: Strong beam info if tracking through a beambeam element.
 !
 ! Ouput:
 !   track           -- track_struct: Track with current trajectory info appended on.
 !-
 
-subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time)
+subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time, strong_beam)
 
 use em_field_mod, dummy => save_a_step
 
@@ -39,8 +40,9 @@ implicit none
 type (track_struct), target :: track, track2
 type (ele_struct), target :: ele
 type (lat_param_struct), intent(in) :: param
-type (coord_struct) orb
+type (coord_struct) orb, orb0
 type (track_point_struct), pointer :: tp
+type (strong_beam_struct), optional :: strong_beam
 
 integer n_pt, n, n_old
 real(rp) s_rel
@@ -97,6 +99,19 @@ tp%orb%ix_ele = ele%ix_ele
 
 if (logic_option(.false., save_field)) then
   call em_field_calc (ele, param, s_lab, orb, local_ref_frame, tp%field, .false., rf_time = rf_time)
+endif
+
+! beambeam
+
+if (present(strong_beam)) then
+  tp%strong_beam = strong_beam
+  if (local_ref_frame) then
+    orb0 = orb
+    orb0%vec = [strong_beam%x_center, 0.0_rp, strong_beam%y_center, 0.0_rp, 0.0_rp, 0.0_rp]
+    call offset_particle (ele, unset$, orb0, drift_to_edge = .false., set_hvkicks = .false., s_pos = s_rel, s_out = s_lab)
+    tp%strong_beam%x_center = orb0%vec(1)
+    tp%strong_beam%y_center = orb0%vec(3)
+  endif
 endif
 
 track%n_ok = track%n_ok + 1

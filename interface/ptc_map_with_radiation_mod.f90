@@ -20,7 +20,8 @@ type ptc_rad_map_struct
   integer ix_ele_end              ! End point for making the map
   real(rp) nodamp_mat(6,6)        ! Nondamped orbital matrix. M_orbit = M_damp * M_nodamp
   real(rp) damp_mat(6,6)          ! Damping "correction" to orbital matrix.
-  real(rp) stoc_mat(6,6)          ! Stochatic matrix for the orbit.
+  ! Stoc_mat is referenced to the start of the map. That is, it is applied before the transport matrix.
+  real(rp) stoc_mat(6,6)          ! Stochatic matrix for the orbit. 
   real(rp) ref0(6)                ! Reference orbit at start.
   real(rp) ref1(6)                ! Reference orbit at end.
 end type

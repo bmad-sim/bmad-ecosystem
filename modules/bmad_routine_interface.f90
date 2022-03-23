@@ -1797,13 +1797,14 @@ subroutine s_calc (lat)
   type (lat_struct), target :: lat
 end subroutine
 
-subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time)
+subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time, strong_beam)
   import
   implicit none
   type (track_struct), target :: track
   type (ele_struct), target :: ele
   type (lat_param_struct), intent(in) :: param
   type (coord_struct) orb
+  type (strong_beam_struct), optional :: strong_beam
   real(rp) s_rel
   real(rp), optional :: mat6(6,6), rf_time
   logical local_ref_frame
@@ -2161,12 +2162,13 @@ function time_direction() result (time_sign)
   real(rp) time_sign
 end function
 
-subroutine track_a_beambeam (orbit, ele, param, mat6, make_matrix)
+subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
   type (ele_struct), target :: ele
   type (lat_param_struct) param
+  type (track_struct), optional :: track
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
 end subroutine
@@ -2369,20 +2371,13 @@ subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track
   integer, optional :: ix_branch, track_state
 end subroutine
 
-subroutine ele_to_sprint_spin_taylor_map (ele)
+subroutine track_to_surface (ele, orbit, param, w_surface)
   import
   implicit none
   type (ele_struct) ele
-end subroutine
-
-subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
-  import
-  implicit none
-  type (ele_struct), target :: ele
-  type (lat_param_struct) :: param
-  type (coord_struct), optional, intent(in) :: orb0
-  type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
-  logical, optional :: taylor_map_includes_offsets, include_damping
+  type (coord_struct) orbit
+  type (lat_param_struct) param
+  real(rp) :: w_surface(3,3)
 end subroutine
 
 recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, &
@@ -2398,22 +2393,14 @@ recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, &
   logical, optional :: make_map1
 end subroutine
 
-subroutine track_to_surface (ele, orbit, param, w_surface)
-  import
-  implicit none
-  type (ele_struct) ele
-  type (coord_struct) orbit
-  type (lat_param_struct) param
-  real(rp) :: w_surface(3,3)
-end subroutine
-
-subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, mat6, make_matrix)
+subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) :: start_orb
   type (coord_struct) :: end_orb
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
+  type (track_struct), optional :: track
   logical, optional :: err_flag
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -3042,6 +3029,22 @@ subroutine ele_to_fibre_hook (ele, ptc_fibre, param)
   type (ele_struct) ele
   type (fibre) ptc_fibre
   type (lat_param_struct) param
+end subroutine
+
+subroutine ele_to_sprint_spin_taylor_map (ele)
+  import
+  implicit none
+  type (ele_struct) ele
+end subroutine
+
+subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (lat_param_struct) :: param
+  type (coord_struct), optional, intent(in) :: orb0
+  type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
+  logical, optional :: taylor_map_includes_offsets, include_damping
 end subroutine
 
 subroutine radiation_integrals_custom (lat, ir, orb, rad_int1, err_flag)

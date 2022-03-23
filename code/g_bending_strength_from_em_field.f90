@@ -16,6 +16,7 @@
 ! Output:
 !   g(3)              -- Real(rp): g = (g_x, g_y, g_s) bending strength vector (|g| = 1/bend_radius).
 !   dg(3,3)           -- Real(rp), optional: dg(:)/dr gradient. 
+!                         Takes into account dg_x/dx in a bend due to curvilinear coords.
 !-
 
 subroutine g_bending_strength_from_em_field (ele, param, s_rel, orbit, local_ref_frame, g, dg)
@@ -54,6 +55,14 @@ if (present(dg)) then
   dg(:,1) = g_from_field (field%dB(:,1), field%dE(:,1), orbit, vel_unit, param, fact)
   dg(:,2) = g_from_field (field%dB(:,2), field%dE(:,2), orbit, vel_unit, param, fact)
   dg(:,3) = g_from_field (field%dB(:,3), field%dE(:,3), orbit, vel_unit, param, fact)
+  if (ele%key == sbend$) then
+    if (local_ref_frame .or. ele%value(ref_tilt$) == 0) then
+      dg(1,1) = dg(1,1) + ele%value(g$)**2
+    else
+      dg(1,1:2) = dg(1,1:2) + ele%value(g$)**2 * cos(ele%value(ref_tilt$)) * [cos(ele%value(ref_tilt$)), sin(ele%value(ref_tilt$))]
+      dg(2,1:2) = dg(2,1:2) + ele%value(g$)**2 * sin(ele%value(ref_tilt$)) * [cos(ele%value(ref_tilt$)), sin(ele%value(ref_tilt$))]
+    endif
+  endif
 endif
 
 !---------------------------------------------------------------
