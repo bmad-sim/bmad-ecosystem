@@ -3072,8 +3072,6 @@ case ('spin_tune_ptc.')
     return
   endif
 
-  phase_map => ptc_nf%spin
-
   if (.not. is_integer(data_type(15:), n)) then
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
     return
@@ -3082,7 +3080,7 @@ case ('spin_tune_ptc.')
   expo = 0
   expo(6) = n 
 
-  datum_value = real(phase_map .sub. expo)
+  datum_value = real(ptc_nf%spin .sub. expo)
   valid_value = .true.
 
 !-----------
