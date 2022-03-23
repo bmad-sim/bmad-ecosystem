@@ -5939,7 +5939,7 @@ endif
 select case (datum%data_type)
 case ('floor_orbit.x', 'floor_orbit.y', 'floor_orbit.z')
   position%r = [vec(1), vec(3), orbit%s - ele%s_start]
-  position = coords_local_curvilinear_to_floor (position, ele, .false.)
+  position = coords_local_curvilinear_to_floor (position, ele, .false., relative_to_upstream = .true.)
 case ('floor_orbit.theta', 'floor_orbit.phi', 'floor_orbit.psi')
   position = orbit_to_local_curvilinear(orbit, ele)
   position = coords_local_curvilinear_to_floor (position, ele, .false., calculate_angles = .true.)
