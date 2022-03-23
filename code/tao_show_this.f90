@@ -93,6 +93,9 @@ type (normal_modes_struct), pointer :: mode_m, mode_d
 type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: rmap(:)
 type (tao_lat_sigma_struct), pointer :: lat_sig
+type (track_struct), target :: track
+type (track_point_struct), pointer :: tp
+type (strong_beam_struct), pointer :: sb
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -4477,6 +4480,8 @@ case ('taylor_map', 'matrix')
 
 case ('track')
 
+  what_to_print = ''
+  ele_name = ''
   velocity_fmt = ''
   e_field_fmt = ''
   b_field_fmt = ''
@@ -4499,7 +4504,7 @@ case ('track')
   do 
     call tao_next_switch (what2, [character(16):: '-e_field', '-b_field', '-velocity', '-momentum', &
                 '-energy', '-position', '-no_label_lines', '-s', '-spin', '-points', '-time', &
-                '-range', '-twiss', '-dispersion', '-branch', '-universe', '-design', '-base'], &
+                '-range', '-twiss', '-dispersion', '-branch', '-universe', '-design', '-base', '-element'], &
                 .false., switch, err, ix_s2)
 
     if (err) return
@@ -4510,6 +4515,9 @@ case ('track')
       e_field_fmt = get_this_track_fmt(what2, 'es15.6', err); if (err) return
     case ('-b_field')
       b_field_fmt = get_this_track_fmt(what2, 'es15.6', err); if (err) return
+    case ('-element')
+      ele_name = what2(1:ix_s2)
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
     case ('-energy')
       energy_fmt = get_this_track_fmt(what2, 'es15.6', err); if (err) return
     case ('-velocity')
@@ -4573,8 +4581,39 @@ case ('track')
   branch => lat%branch(branch%ix_branch)
   ix_branch = branch%ix_branch
   tao_branch => tao_lat%tao_branch(ix_branch)
+  if (ele_name /= '') then
+    call tao_locate_elements (ele_name, u%ix_uni, eles, err, lat_type, multiple_eles_is_err = .true.)
+    if (err) return
+    ele => eles(1)%ele
+    s1 = ele%s_start
+    s2 = ele%s
+    if (ele%key == beambeam$) what_to_print = 'beambeam'
+  endif
+
+  ! Beambeam element.
+
+  if (what_to_print == 'beambeam') then
+    call track1 (tao_branch%orbit(ele%ix_ele-1), ele, ele%branch%param, orb2, track, err)
+    call re_allocate(lines, nl+track%n_pt+10)
+
+    nl=nl+1; lines(nl) = '            |                               Tracked particle                                      |                             Strong Beam'
+    nl=nl+1; lines(nl) = '     s_body |       x             xp            y             py            z             pz      | ix_slice     x_center      y_center       x_sigma       y_sigma'
+
+    do i = 0, track%n_pt
+      tp => track%pt(i)
+      sb => tp%strong_beam
+      if (sb%ix_slice == 0) then
+        nl=nl+1; write (lines(nl), '(f12.6, 6es14.6)') tp%s_body, tp%orb%vec
+      else
+        nl=nl+1; write (lines(nl), '(f12.6, 6es14.6, i11, 2x, 4es14.6)') tp%s_body, tp%orb%vec, &
+                                                  sb%ix_slice, sb%x_center, sb%y_center, sb%x_sigma, sb%y_sigma
+      endif
+    enddo
+    return
+  endif
 
   !
+
 
   if (print_header_lines) then
     line1 = '#   Ix'
