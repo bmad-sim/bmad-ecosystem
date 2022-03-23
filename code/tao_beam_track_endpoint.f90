@@ -87,14 +87,12 @@ if (ele0%n_slave /= 0) then
   return
 endif
 
+ele => ele0
+
 if (ix_branch > -1 .and. ele%ix_branch /= ix_branch) then
   call out_io (s_error$, r_name, 'LATTICE ELEMENT: ' // ele_id, &
                                  'NOT IN CORRECT BRANCH: ' // branch_str)
   return
 endif
-
-
-
-ele => ele0
 
 end function tao_beam_track_endpoint
