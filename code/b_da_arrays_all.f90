@@ -15,7 +15,9 @@ module da_arrays
   ! johan
   ! integer,parameter::lno=2,lnv=6,lnomax=8,lnvmax=9,lstmax=800500,ldamax=16000,leamax=5000,liamax=50000
   !
-  integer,parameter::lno=200,lnv=100,lnomax=8,lnvmax=9,lstmax=800500,ldamax=16000,leamax=5000,liamax=50000
+  integer,parameter :: lnv=100,lno=200
+  integer :: lstmax=800500,ldamax=16000,leamax=5000,liamax=50000
+  !integer,parameter::lno=200,lnv=100,lnomax=8,lnvmax=9,lstmax=800500,ldamax=16000,leamax=5000,liamax=50000
   logical(lp) :: reallocate = .true.
   logical(lp) :: notallocated = .true.
   logical(lp),parameter::etiennefix=.true.

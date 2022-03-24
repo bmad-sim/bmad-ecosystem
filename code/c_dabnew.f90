@@ -8,6 +8,7 @@
   implicit none
   !  private
   public
+    public ldamax, lstmax,leamax,liamax
   private daallno1,daall,damult,dasqrt,dacmut,dacma,DALINt,dafunt,dacctt
   private dainvt,dapint,dadert,dacfuRt,dacfuIt,dacfut
   private dadeb,dapac,dachk,damch,dadcd,dancd,hash,dehash

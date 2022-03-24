@@ -8,6 +8,8 @@ module c_dabnew
   implicit none
   private
 !  public
+  public c_ldamax, c_lstmax,c_leamax,c_liamax
+ 
   private daalc_lno1,daall,damult,dasqrt,dacmut,dacma,DALINt,dacctt
   private dainvt,dadert,dacfut
   private dadeb,dapac,dachk,damch,dadcd,dancd,hash,dehash
