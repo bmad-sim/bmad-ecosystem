@@ -34,6 +34,7 @@ module precision_constants
   ! double precision
   integer,parameter::sp=kind(1.e0)
   integer,parameter::dp=selected_real_kind(2*precision(1.e0))
+
   ! quadrupole precision
   !  integer,parameter::sp=selected_real_kind(2*precision(1.e0))
   !  integer,parameter::dp=selected_real_kind(4*precision(1.e0))

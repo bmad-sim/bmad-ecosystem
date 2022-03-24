@@ -13,6 +13,8 @@ module definition
 ! GTPSA REMOVED !  use GTPSA
   implicit none
   public
+  integer,parameter::dpn=selected_real_kind(2*precision(1.e0))
+ ! integer,parameter::dpn=kind(1.e0)
   logical(lp) :: newread=.false. ,newprint =  .false. , first_time = .true.
   logical(lp) :: print77=.true. ,read77 =  .true.
   logical(lp) :: no_ndum_check = .false.
@@ -60,6 +62,7 @@ module definition
    integer(1),allocatable :: vo_berz(:)
    integer(1) ,allocatable ::  mo_gtpsa(:)
 logical :: use_quaternion_in_so3=.false.
+
 TYPE sub_taylor
      INTEGER j(lnv)
      INTEGER min,max
@@ -415,6 +418,7 @@ type c_damap
  type(c_quaternion) q
  complex(dp) x0(lnv)
  logical :: tpsa=.false.
+ real(dpn),pointer :: db(:,:) => null(),m(:,:)=> null()
  complex(dp) e_ij(6,6) !@1 stochastic fluctuation in radiation theory
   real(dp) sm(3,3)
   real(dp) damps(3,3)

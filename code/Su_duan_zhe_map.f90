@@ -6,8 +6,10 @@ implicit none
   public DEFAULT0,TOTALPATH0 ,TIME0,ONLY_4d0,DELTA0,SPIN0,MODULATION0,only_2d0   ,nrmax_zhe
   public RADIATION0, NOCAVITY0, FRINGE0 ,STOCHASTIC0,ENVELOPE0,gaussian_seed_zhe,nrmax_used_zhe,alloc_bunch,kill_bunch
   PUBLIC track_TREE_probe_complex_ji,track_TREE_probe_complex_ji_symp,TRACK_TREE_PROBE_COMPLEX_JI_VEC
- public file_zhe,number_zhe_maps,get_seed,set_seed,ALLOC_TREE,track_TREE_probe_complex_zhe_no_orbital
+ public file_zhe,number_zhe_maps,get_seed,set_seed,ALLOC_TREE,track_TREE_probe_complex_zhe_no_orbital,track_miyajima_zhe
 public track_TREE_probe_complex_zhe_no_orbital_quaternion,GRNF_zhe
+ logical :: use_gaussian_zhe =.false.
+ public use_gaussian_zhe 
  character(255) ::    file_zhe="zhe"
   integer ::  number_zhe_maps = 1
   public use_ji
@@ -34,7 +36,8 @@ public change_ntot
 private subq,unarysubq,addq,unaryADDq,absq,absq2,mulq,divq,ranf
 private EQUALq,EQUALqr,EQUALqi,powq,printq ,invq
 real(dp),parameter::pi=3.141592653589793238462643383279502e0_dp
-real(dp) :: cut_zhe=6.0_dp
+real(dp) :: cut_zhe=6.0_dp,norm_zhe=1
+public norm_zhe
  logical :: use_quaternion = .false.
  public bunch
 TYPE bunch
@@ -1113,9 +1116,15 @@ endif ! jumpnot
     enddo
 
     xr=0.0_dp
-  do i=1,6
-    xr(i)=GRNF_zhe()*t(2)%fix0(i)  
-  enddo
+  if(use_gaussian_zhe) then
+   do i=1,6
+     xr(i)=GRNF_zhe_gaussian()*t(2)%fix0(i)  
+   enddo
+  else
+   do i=1,6
+     xr(i)=GRNF_zhe()*t(2)%fix0(i)  
+   enddo
+  endif
     xr =matmul(t(2)%rad,xr)
 
     x(1:6)=x(1:6)+xr 
@@ -1324,7 +1333,7 @@ do i=1,6
  norm=norm+abs(x(i))
 enddo
 
- if(norm>1) then
+ if(norm>norm_zhe) then
    if(c_verbose_zhe) write(6,*) " unstable " 
    xs%u=.true.
    check_stable_zhe=.false.
@@ -1352,6 +1361,107 @@ endif
     enddo
 
   end SUBROUTINE track_TREE_probe_complex_zhe
+
+
+
+
+  SUBROUTINE track_miyajima_zhe(T,radkick,lam,xs,ks,stoch)
+!    use da_arrays
+    IMPLICIT NONE
+    real(dp) :: T(2,2),radkick(2,2)
+ 
+    type(probe) xs
+!    real(dp) x(size_tree),x0(size_tree),s0(3,3),r(3,3),dx6,beta,q(3),p(3),qg(3),qf(3)
+    real(dp) normb,norm,x0_begin(size_tree),xr(2),normbb,ks,x(2),lam
+    integer i,j,k,ier,is
+    logical, optional  :: stoch 
+    logical   stoch0,doit,as_is0
+    integer no1
+ 
+ 
+ 
+    stoch0=.true.
+ 
+ 
+ 
+  
+     if(present(stoch)) stoch0=stoch
+ 
+  
+ 
+ 
+!    nrmax=1000
+   check_stable_zhe=.true.
+       xs%u=.false.
+
+    do i=1,2
+      x(i)=xs%x(i)
+    enddo
+
+
+
+
+  
+      x(2)=x(2)+ks*x(1)**2
+
+ 
+       x(1:2)=matmul(t(1:2,1:2),x(1:2))
+  
+       x(2)=x(2)-ks*x(1)**2
+
+       x=lam*x
+
+    do i=1,2
+      xs%x(i)=x(i)
+    enddo
+    
+!!!! put stochastic kick in  back like fokker paper
+ if(stoch0) then 
+
+    do i=1,2
+      x(i)=xs%x(i) 
+    enddo
+
+    xr=0.0_dp
+  if(use_gaussian_zhe) then
+   do i=1,2
+     xr(i)=GRNF_zhe_gaussian() 
+   enddo
+  else
+   do i=1,2
+     xr(i)=GRNF_zhe() 
+   enddo
+  endif
+    xr(1:2) =matmul(radkick(1:2,1:2),xr(1:2))
+
+    x(1:2)=x(1:2)+xr(1:2) 
+ endif
+!!!!!!!!!!!!!!!!!!!
+
+    do i=1,2
+      xs%x(i)=x(i)
+    enddo
+
+
+ norm=0
+do i=1,2
+ norm=norm+abs(x(i))
+enddo
+
+ if(norm>norm_zhe) then
+   if(c_verbose_zhe) write(6,*) " unstable " ,norm
+   xs%u=.true.
+   check_stable_zhe=.false.
+  return
+ endif
+
+
+
+
+
+
+
+  end SUBROUTINE track_miyajima_zhe
 
 
 !!!! track_TREE_probe_complex_zhe without orbital

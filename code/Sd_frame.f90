@@ -156,6 +156,8 @@ CONTAINS
        DEALLOCATE(P%O);DEALLOCATE(P%MID);
        DEALLOCATE(P%B);DEALLOCATE(P%EXI);
     endif
+    deallocate(p)   ! scott 2022.3.17
+    nullify(p)
 
   end SUBROUTINE  dealloc_f
 

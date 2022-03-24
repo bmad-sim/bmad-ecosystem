@@ -85,7 +85,7 @@ MODULE S_DEF_KIND
 
   PRIVATE SEPR,SEPP,SYMPSEPR,SYMPSEPP !,SEPTTRACK
   !  PRIVATE IN,IN1,IN2
-  INTEGER IN(4,4),IN1(10),IN2(10)
+ ! INTEGER IN(4,4),IN1(10),IN2(10)
   PRIVATE ZEROR_CAV_TRAV,ZEROP_CAV_TRAV
   private fringe_TEAPOTr,fringe_TEAPOTp,INTER_TEAPOT,INTEP_TEAPOT
   PRIVATE fringe_STREXR,fringe_STREXP
@@ -182,7 +182,7 @@ PRIVATE DIRECTION_VR,DIRECTION_VP   !,DIRECTION_V
   PRIVATE push_quaternionr,push_quaternionP
   PRIVATE get_omega_spinR,get_omega_spinP   !,get_omega_spin 
   private radiate_2p,radiate_2r,radiate_2_prober,radiate_2_probep,radiate_2_probe  !,radiate_2
-  private quaternion_8_to_matrix,crossp,RAD_SPIN_qua_PROBER,RAD_SPIN_qua_PROBEP
+  private quaternion_r_to_matrix,quaternion_8_to_matrix,crossp,RAD_SPIN_qua_PROBER,RAD_SPIN_qua_PROBEP
   logical :: do_d_sij=.false.
   !  INTEGER, PRIVATE :: ISPIN0P=0,ISPIN1P=3
    ! oleksii 
@@ -1126,6 +1126,7 @@ type(work) w_bks
 
 
   INTERFACE makeso3
+     MODULE PROCEDURE quaternion_r_to_matrix
      MODULE PROCEDURE quaternion_8_to_matrix
   END INTERFACE
 
@@ -22993,7 +22994,7 @@ dspin=matmul(s,n_oleksii)
 
   end subroutine crossp 
 
-  subroutine  quaternion_8_to_matrix(q,s)
+  subroutine  quaternion_r_to_matrix(q,s)
     implicit none
     TYPE(quaternion), INTENT(INOUT) :: q
     real(dp) s(3,3)
@@ -23012,9 +23013,37 @@ dspin=matmul(s,n_oleksii)
     enddo
 
 
+    end subroutine  quaternion_r_to_matrix
+
+  subroutine  quaternion_8_to_matrix(q,s)
+    implicit none
+    TYPE(quaternion_8), INTENT(INOUT) :: q
+    type(real_8)  s(3,3)
+    integer i,j
+    type(quaternion_8) sq,sf
+    
+    call alloc(sq)
+    call alloc(sf)
+    do i=1,3
+     do j=1,3
+      s(i,j)=0.d0
+     enddo
+    enddo
+
+ 
+    do i=1,3
+     sq=0.0_dp
+     sq%x(i)=1.0_dp
+     sf=q*sq*q**(-1)
+     do j=1,3
+       s(j,i)=sf%x(j)
+     enddo
+    enddo
+
+    call kill(sq)
+    call kill(sf)
+
     end subroutine  quaternion_8_to_matrix
-
-
 !!!!!!!!!!!!!!! new bmad CAV4 !!!!!!!!!!!!!!
 !                                 (tI,y,q,k,f,q,c)    
   subroutine feval_CAV_bmad_prober(z0,x,qi,k,f,q,c)    !(Z0,X,k,f,D)   ! MODELLED BASED ON DRIFT
