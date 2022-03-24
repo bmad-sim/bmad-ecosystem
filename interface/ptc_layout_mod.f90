@@ -416,6 +416,11 @@ if (include_excitation) then
 
   call kill(prb8)
   call kill(cda)
+
+else
+  ptc_state = ptc_com%base_state 
+  if (include_damping) ptc_state = ptc_state + radiation0
+  call find_orbit_x (branch%ptc%m_t_layout, closed_orb, ptc_state, 1d-8, fibre1 = 1)
 endif
 
 ! Now set ptc_state without envelope on.
