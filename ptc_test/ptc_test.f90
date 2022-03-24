@@ -89,7 +89,7 @@ enddo
 vec = matmul(rad_map%stoc_mat, vec)
 vec = vec + rad_map%ref1
 
-write (1, '(a, 6es16.8)') '"Stoc-Track"      REL 1E-5', orbit%vec
+write (1, '(a, 6es16.8)') '"Stoc-Track"      REL 1E-4', orbit%vec
 write (1, '(a, 6es16.8)') '"Diff-Stoc-Track" ABS 1E-20', orbit%vec - vec
 
 call ptc_track_map_with_radiation (orbit, rad_map, .true., .false.)

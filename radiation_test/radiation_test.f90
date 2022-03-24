@@ -1,6 +1,8 @@
 program radiation_test
 
 use bmad
+use ptc_map_with_radiation_mod
+use emit_6d_mod
 
 implicit none
 
@@ -12,8 +14,9 @@ type (coord_struct), allocatable :: orbit(:)
 type (normal_modes_struct) mode
 type (rad_int_all_ele_struct), target :: ri_cache, ri_no_cache
 type (rad_int1_struct), pointer :: rie1(:), rie2(:), rie3(:), rie4(:)
+type (ptc_rad_map_struct) rad_map
 
-real(rp) vec6(6)
+real(rp) vec6(6), damp_mat(6,6), stoc_mat(6,6), unit_mat(6,6), nodamp_mat(6,6), m(6,6)
 integer i, j, n, ib, ix_cache
 
 !
@@ -22,6 +25,30 @@ open (1, file = 'output.now', recl = 200)
 
 !
 
+call bmad_parser('sigma.bmad', lat)
+call damping_and_stochastic_rad_mats(lat%ele(0), lat%ele(1), damp_mat, stoc_mat, nodamp_mat)
+call lat_to_ptc_layout(lat)
+call ptc_setup_map_with_radiation(rad_map, lat%ele(0), lat%ele(1), 1, .true.)
+call init_coord(orb_start, orb_start%vec, lat%ele(0), upstream_end$)
+orb_start%vec(6) = 0.01_rp
+call ptc_track_map_with_radiation (orb_start, rad_map, .true., .false.)
+call mat_make_unit(unit_mat)
+
+call mat_type (nodamp_mat, 0, 'bmad_nodamp_mat ' // real_str(mat_symp_error(nodamp_mat), 4))
+call mat_type (rad_map%nodamp_mat, 0, 'ptc_nodamp_mat ' // real_str(mat_symp_error(rad_map%nodamp_mat), 4))
+print *, '!------------------------------'
+call mat_type (damp_mat, 0, 'bmad_damp_mat', '3x, 6es12.4')
+call mat_type (matmul(rad_map%damp_mat,rad_map%nodamp_mat) - nodamp_mat, 0, 'ptc_damp_mat', '3x, 6es12.4')
+print *, '!------------------------------'
+m = damp_mat + nodamp_mat
+call mat_type (matmul(matmul(transpose(m), stoc_mat), m), 0, 'bmad_stoc_var_mat (ref beginning)', '3x, 6es12.4')
+print *, '!------------------------------'
+call mat_type (stoc_mat, 0, 'bmad_stoc_var_mat', '3x, 6es12.4')
+call mat_type (matmul(rad_map%stoc_mat,transpose(rad_map%stoc_mat)), 0, 'ptc_stoc_var_mat', '3x, 6es12.4')
+
+!
+
+bmad_com%radiation_damping_on = .false.
 call bmad_parser('radiation_test.bmad', lat)
 
 branch => lat%branch(1)
@@ -58,7 +85,6 @@ do i = 1, branch%n_ele_max
   write (1, '(a, 4es14.6)') '"i5b-' // int_str(i) // '" REL 1E-6', rie1(i)%i5b, rie2(i)%i5b, rie3(i)%i5b, rie4(i)%i5b
   write (1, *)
 enddo
-
 
 !
 
