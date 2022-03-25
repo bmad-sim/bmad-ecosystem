@@ -54,7 +54,7 @@ character(*), parameter :: r_name = 'track_a_lcavity'
 
 ! 
 
-if (ele%value(rf_frequency$) == 0) then
+if (ele%value(rf_frequency$) == 0  .and. (ele%value(voltage$) /= 0 .or. ele%value(voltage_err$) /= 0)) then
   call out_io (s_error$, r_name, 'LCAVITY ELEMENT HAS ZERO RF_FREQUENCY: ' // ele%name)
   orbit%state = lost$
   return
