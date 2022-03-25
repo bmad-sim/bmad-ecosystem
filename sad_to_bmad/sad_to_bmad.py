@@ -87,10 +87,20 @@ def WrapWrite(line):
 # Adds parenteses around expressions with '+' or '-' operators.
 # Otherwise just returns the expression.
 # Eg: '7+3' ->  '(7+3)'
-#     '7*3  ->  '7*3'     If slash_here = False
-#     '7*3  ->  '(7*3)'   If slash_here = True
+#     '7*3  ->  '7*3'     If operand = '/'
+#     '7*3  ->  '(7*3)'   If operand != '/'
 
-def add_parens (str, slash_here):
+def add_parens (str, operand):
+
+  if operand == '-':
+    if str.lstrip()[0] == '-':
+      return '(' + str + ')'
+    else:
+      return str
+
+  #
+  slash_here = (operand == '/')
+
   for ix in range(1, len(str)):
     if slash_here and (str[ix] == '*' or str[ix] == '/'): return '(' + str + ')'
     if str[ix] != '+' and str[ix] != '-': continue
@@ -576,12 +586,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     elif type(result) is list:   # EG: result = ['k1', ' / @l@']
       bmad_name = result[0]
       value_suffix = result[1]
-      value = add_parens(value, False)
+      value = add_parens(value, '')
       if '@' in value_suffix:
         val_parts = value_suffix.split('@')
         if val_parts[1] in sad_ele.param:
-          has_slash = ('/' in val_parts[0])
-          value_suffix = val_parts[0] + add_parens(sad_ele.param[val_parts[1]], has_slash) + val_parts[2]
+          operand = '/' if '/' in val_parts[0] else ''
+          value_suffix = val_parts[0] + add_parens(sad_ele.param[val_parts[1]], operand) + val_parts[2]
         elif '/' not in val_parts[0]:      # Assume zero
           value_suffix = val_parts[0] + '0' + val_parts[2]
         else:
@@ -634,8 +644,8 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
   if bmad_ele.type == 'rfcavity':
     if 'phi0' in bmad_ele.param and 'harmon' not in bmad_ele.param: # If has harmon then must be in a ring
       bmad_ele.type = 'lcavity'
-      bmad_ele.param['phi0'] = '0.25 - ' + add_parens(bmad_ele.param['phi0'], False)
-      if 'phi0_err' in bmad_ele.param: bmad_ele.param['phi0_err'] = '-' + add_parens(bmad_ele.param['phi0_err'], False)
+      bmad_ele.param['phi0'] = '0.25 + ' + add_parens(bmad_ele.param['phi0'], '')
+      if 'phi0_err' in bmad_ele.param: bmad_ele.param['phi0_err'] = '+' + add_parens(bmad_ele.param['phi0_err'], '')
 
     elif 'phi0_err' in bmad_ele.param:
       if 'phi0' in bmad_ele.param:
