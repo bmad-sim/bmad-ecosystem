@@ -9,7 +9,7 @@
 
 module emit_6d_mod
 
-use bmad
+use mode3_mod
 
 implicit none
 
@@ -25,10 +25,74 @@ contains
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Function emit_6d (ele_ref) result (emit)
+! Subroutine emit_6d (ele_ref, sigma_mat, emit)
 !
-! Routine to 
+! Routine to calculate the three normal mode emittances. Since the emattances are
+! only an invariant in the limit of zero damping, the calculated emittance will
+! vary depending upon the reference element.
+!
+! Input:
+!   ele_ref         -- ele_struct: Origin of the 1-turn maps used to evaluate the emittances.
+!
+! Output:
+!   sigma_mat(6,6)  -- real(rp): Sigma matrix
+!   emit(3)         -- real(rp): The three normal mode emittances.
+!-
 
+subroutine emit_6d (ele_ref, sigma_mat, emit)
+
+use f95_lapack, only: dgesv_f95
+
+type (ele_struct) ele_ref
+
+real(rp) sigma_mat(6,6), emit(3)
+real(rp) damp_mat(6,6), stoc_mat(6,6), nodamp_mat(6,6)
+real(rp) mt(21,21), v_sig(21,1)
+
+integer i, j, k, ipev(21), info
+
+integer, parameter :: w1(21) = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6]
+integer, parameter :: w2(21) = [1, 2, 3, 4, 5, 6, 2, 3, 4, 5, 6, 3, 4, 5, 6, 4, 5, 6, 5, 6, 6]
+integer, parameter :: v(6,6) = reshape( &
+            [1,  2,  3,  4,  5,  6,   2,  7,  8,  9, 10, 11,   3,  8, 12, 13, 14, 15, &
+             4,  9, 13, 16, 17, 18,   5, 10, 14, 17, 19, 20,   6, 11, 15, 18, 20, 21], [6,6])
+
+logical err
+
+! Analysis is documented in the Bmad manual
+
+call damping_and_stochastic_rad_mats (ele_ref, ele_ref, damp_mat, stoc_mat, nodamp_mat)
+
+damp_mat = damp_mat + nodamp_mat
+call mat_make_unit(mt)
+
+do i = 1, 21
+  v_sig(i,1) = stoc_mat(w1(i), w2(i))
+
+  do j = 1, 6
+  do k = 1, 6
+    mt(i,v(j,k)) = mt(i,v(j,k)) - damp_mat(w1(i),j) * damp_mat(w2(i),k)
+  enddo
+  enddo
+enddo
+
+call dgesv_f95(mt, v_sig, ipev, info)
+
+if (info /= 0) then
+  sigma_mat = -1
+  emit = -1
+  return
+endif
+
+do j = 1, 6
+do k = 1, 6
+  sigma_mat(j,k) = v_sig(v(j,k), 1)
+enddo
+enddo
+
+call get_emit_from_sigma_mat(sigma_mat, emit, err_flag = err)
+
+end subroutine emit_6d
 
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------

@@ -939,7 +939,7 @@ end subroutine make_N
 !
 ! Input:
 !  sigma_mat(6,6)   -- real(rp): beam envelop sigma matrix
-!  Nmat(6,6)        -- real(rp): If present, then the emittanced will be ordered such that
+!  Nmat(6,6)        -- real(rp), optional: If present, then the emittanced will be ordered such that
 !                                the eigensystem most closely resembles Nmat.
 ! Output:
 !  normal(3)        -- real(rp): normal mode emittances

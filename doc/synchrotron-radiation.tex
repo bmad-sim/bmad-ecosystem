@@ -93,12 +93,13 @@ stochastic radiation part is represented by a $6\times6$ matrix $\Cal{S}$ times 
 \begin{equation}
   \Bf\Xi = (\xi_1, \xi_2, \xi_3, \xi_4, \xi_5, \xi_6)
 \end{equation}
-with each $\xi_i$ being a Gaussian distributed random number with unit sigma. The stochastic
-transport (second term in \Eq{rmrsx}) is treated here only in lowest order. This is a good
-approximation as long as the radiation emitted is small enough in the region between $s_1$ and
-$s_2$. This is true for nearly all practical cases. In the case where this approximation fails, the
-equilibrium beam distribution would not be Gaussian and the standard radiation integral treatment
-(\sref{s:synch.ints}), which relies on this approximation, would not be valid.
+with each $\xi_i$ being an independent Gaussian distributed random number with unit sigma and zero
+mean. The stochastic transport (second term in \Eq{rmrsx}) is treated here only in lowest
+order. This is a good approximation as long as the radiation emitted is small enough in the region
+between $s_1$ and $s_2$. This is true for nearly all practical cases. In the case where this
+approximation fails, the equilibrium beam distribution would not be Gaussian and the standard
+radiation integral treatment (\sref{s:synch.ints}), which relies on this approximation, would not be
+valid.
 
 The transfer map with damping $\calM_{21}$ is calculated by adding in the effect of the damping
 (\Eqs{pk1pp}) when integrating the equations of motion to form the map. Assuming that the change in
@@ -180,26 +181,27 @@ The beam size matrix $\sigma$ is not the same as the covariance matrix since the
 an average over the particles of a beam and not an average over the photon emission
 spectrum. However, in equilibrium, the two are the same. To calculate the equilibrium beam size
 matrix, \Eq{ssmsm} is recast. For any symmetric $6\times6$ matrix $\bfA$, define the 21-vector
-$\bfV_\bfA$ by
+$\bfV(\bfA)$ by
 \begin{equation}
-  \bfV_\bfA = (A_{11}, A_{12}, \ldots, A_{16}, A_{22}, A_{23}, \ldots, A_{66})
+  \bfV(\bfA) \equiv (A_{11}, A_{12}, \ldots, A_{16}, A_{22}, A_{23}, \ldots, A_{56}, A_{66})
 \end{equation}
 With $s_1 = s_2 = s$, and using \Eq{ssmsm}, the equilibrium beam size matrix can be calculated via
 \begin{equation}
-  \bfV_\bfsig(s) = \bfsig_{\gamma ss} + \wt\bfM \, \bfV_\bfsig(s)
+  \bfV(\bfsig(s)) = \bfV(\bfsig_{\gamma ss}) + \wt\bfM \, \bfV(\bfsig(s))
   \label{vsmv}
 \end{equation}
-where the $21\times21$ matrix $\wt\bfM$ is defined so that $\wt\bfM \, \bfV_\bfA =
-\bfV_{\bfM\bfA\bfM^t}$. That is
+where the $21\times21$ matrix $\wt\bfM$ is defined so that for any symmetrix $\bfA$, $\wt\bfM \, \bfV(\bfA) =
+\bfV(\bfM\bfA\bfM^t)$. That is
 \begin{equation}
   \wt\bfM = \begin{pmatrix}
-    M_{11}^2      & M_{11} M_{12} & \cdots & M_{16} M_{16} \\
-    M_{11} M_{21} & M_{11} M_{22} & \cdots & M_{16} M_{26} \\
-    \vdots        & \vdots        & \ddots & \vdots        \\
-    M_{61} M_{61} & M_{61} M_{62} & \cdots & M_{66} M_{66}
+    M_{11}^2      & 2 M_{11} M_{12} & \cdots & 2 M_{15} M_{16} & M_{16} M_{16} \\
+    M_{11} M_{21} & 2 M_{11} M_{22} & \cdots & 2 M_{15} M_{26} & M_{16} M_{26} \\
+    \vdots        & \vdots          & \ddots & \vdots          & \vdots      \\
+    M_{51} M_{61} & 2 M_{51} M_{62} & \cdots & 2 M_{55} M_{66} & M_{56} M_{66} \\
+    M_{61} M_{61} & 2 M_{61} M_{62} & \cdots & 2 M_{65} M_{66} & M_{66} M_{66}
   \end{pmatrix}
 \end{equation}
-\Eq{vsmv} is linear in the unknown $\bfV_\bfsig$ and is easily solved.
+\Eq{vsmv} is linear in the unknown $\bfV(\bfsig)$ and is easily solved.
 
 The emittances may be calculated from the equilibrium sigma matrix by noting that the emittances are
 the eigenvalues of the matrix $\bfsig \, \bfS$ (Wolski\cite{b:wolski.coupling} Eq.~30) where $\bfS$
