@@ -22,6 +22,8 @@ implicit none
 type lord_slave1_struct
   integer :: n_lord = 0
   integer :: n_slave = 0
+  integer :: n_lord_field = 0
+  integer :: n_slave_field = 0
 end type
 
 type lord_slave_struct
@@ -102,10 +104,18 @@ if (problem_found) call create_lat_ele_nametable(lat, nt)
 ! Count lord/slave links
 
 do i = 1, lat%n_control_max
-  b => bls(lat%control(i)%lord%ix_branch)%ele(lat%control(i)%lord%ix_ele)
-  b%n_slave = b%n_slave + 1
-  b => bls(lat%control(i)%slave%ix_branch)%ele(lat%control(i)%slave%ix_ele)
-  b%n_lord = b%n_lord + 1
+  ctl => lat%control(i)
+  if (ctl%attribute == 'FIELD_OVERLAPS') then
+    b => bls(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
+    b%n_slave_field = b%n_slave_field + 1
+    b => bls(ctl%slave%ix_branch)%ele(ctl%slave%ix_ele)
+    b%n_lord_field = b%n_lord_field + 1
+  else
+    b => bls(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
+    b%n_slave = b%n_slave + 1
+    b => bls(ctl%slave%ix_branch)%ele(ctl%slave%ix_ele)
+    b%n_lord = b%n_lord + 1
+  endif
 enddo
 
 do ib = 0, ubound(lat%branch, 1)
@@ -121,6 +131,16 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%n_slave /= bls(ib)%ele(ie)%n_slave) then
       call out_io (s_fatal$, r_name, 'LORD/SLAVE BOOKKEEPING ERROR: ELE%N_SLAVE INCORRECT!', 'PLEASE REPORT THIS!')
+      problem_found = .true.
+    endif
+
+    if (ele%n_lord_field /= bls(ib)%ele(ie)%n_lord_field) then
+      call out_io (s_fatal$, r_name, 'LORD/SLAVE BOOKKEEPING ERROR: ELE%N_LORD_FIELD INCORRECT!', 'PLEASE REPORT THIS!')
+      problem_found = .true.
+    endif
+
+    if (ele%n_slave_field /= bls(ib)%ele(ie)%n_slave_field) then
+      call out_io (s_fatal$, r_name, 'LORD/SLAVE BOOKKEEPING ERROR: ELE%N_SLAVE_FIELD INCORRECT!', 'PLEASE REPORT THIS!')
       problem_found = .true.
     endif
   enddo
