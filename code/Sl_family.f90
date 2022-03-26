@@ -1095,7 +1095,7 @@ CONTAINS
 
 !!! SAME GYMNASTICS AS IN TRANSLATE GIRDER
     IF(FOUND) THEN
-       call alloc(f)
+       call alloc_f(f)
        f%a=CAF%GIRDER_FRAME%a
        f%ent=CAF%GIRDER_FRAME%ent
        f%b=CAF%GIRDER_FRAME%B
@@ -1105,7 +1105,7 @@ CONTAINS
        CAF%GIRDER_FRAME%A=F%A
        CAF%GIRDER_FRAME%EXI=F%EXI
        CAF%GIRDER_FRAME%B=F%B
-       call kill(f)
+       call kill_f(f)
     ENDIF
 
 

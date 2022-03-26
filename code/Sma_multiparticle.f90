@@ -3836,10 +3836,10 @@ SUBROUTINE MOVE_FRAMES(S2,s1,OMEGA,BASIS)
     integer i  !,k
     TYPE (MAGNET_FRAME), pointer :: F0,F,fmag,fbasis
 
-       CALL ALLOC(F)
-       CALL ALLOC(F0)
-       CALL ALLOC(fmag)
-       CALL ALLOC(fbasis)
+       CALL ALLOC_f(F)
+       CALL ALLOC_f(F0)
+       CALL ALLOC_f(fmag)
+       CALL ALLOC_f(fbasis)
  
        DO I=1,3
           D(I)=S1(I);   !D(I)=S1(I);
@@ -3925,10 +3925,10 @@ SUBROUTINE MOVE_FRAMES(S2,s1,OMEGA,BASIS)
        s2%mag%mis=.true.
        s2%magp%mis=.true.
 
-       CALL kill(F)
-       CALL kill(F0)
-       CALL kill(fmag)
-       CALL kill(fbasis)
+       CALL kill_f(F)
+       CALL kill_f(F0)
+       CALL kill_f(fmag)
+       CALL kill_f(fbasis)
 
 
     END SUBROUTINE MOVE_FRAMES
@@ -4179,7 +4179,7 @@ SUBROUTINE MOVE_FRAMES(S2,s1,OMEGA,BASIS)
 
     IF(FOUND) THEN   !!! THE ORIGINAL GIRDER FRAME IS STILL GIRDER_FRAME%ENT AND GIRDER_FRAME%A
        !                    FINAL FRAME AFTER MISALIGNMENTS MUST BE COMPUTED
-       call alloc(f)
+       call alloc_f(f)
        f%a=b
        f%ent=exi
        CALL ROTATE_FRAME(F,OMEGAT,S1(4:6),1,BASIS=BASIST)
@@ -4188,7 +4188,7 @@ SUBROUTINE MOVE_FRAMES(S2,s1,OMEGA,BASIS)
        F%A=F%A+T_GLOBAL
        CAF%GIRDER_FRAME%EXI=F%ent
        CAF%GIRDER_FRAME%B=F%A
-       call kill(f)
+       call kill_f(f)
     ENDIF
 
     if(global_verbose)     write(6,*) k, " magnet misaligned "
