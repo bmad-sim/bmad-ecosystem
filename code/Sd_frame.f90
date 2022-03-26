@@ -6,7 +6,8 @@ module S_FRAME
   public
   PRIVATE ZERO_CHART,COPY_CHART,COPY_CHART1   !,GEO_ROTA,GEO_ROTB
   PRIVATE COPY_PATCH,COPY_PATCH1,ZERO_PATCH,FIND_PATCH_b,FIND_PATCH_bmad0
-  Private alloc_f,dealloc_f,equal_f
+ ! Private alloc_f,dealloc_f,equal_f
+  Private  equal_f
   private make_rot_x,make_rot_y,make_rot_z   !,GEO_ROTAB_no_vec,GEO_ROTA_no_vec
   REAL(DP), public :: GLOBAL_FRAME(3,3)= RESHAPE((/1,0,0  ,0,1,0  ,0,0,1/),(/3,3/))
   REAL(DP), public :: GLOBAL_origin(3)= (/0,0,0/)
@@ -48,13 +49,13 @@ module S_FRAME
      MODULE PROCEDURE FIND_PATCH_bmad0
   end  INTERFACE
 
-  INTERFACE alloc
-     MODULE PROCEDURE alloc_f
-  END INTERFACE
+  !INTERFACE alloc
+  !   MODULE PROCEDURE alloc_f
+  !END INTERFACE
 
-  INTERFACE kill
-     MODULE PROCEDURE dealloc_f
-  END INTERFACE
+ ! INTERFACE kill
+ !    MODULE PROCEDURE dealloc_f
+ ! END INTERFACE
 
   INTERFACE assignment (=)
      MODULE PROCEDURE equal_f
@@ -147,7 +148,7 @@ CONTAINS
 
   end subroutine kill_af
 
-  SUBROUTINE  dealloc_f(p)
+  SUBROUTINE  kill_f(p)
     implicit none
     type (MAGNET_frame), pointer:: P
 
@@ -159,7 +160,7 @@ CONTAINS
     deallocate(p)   ! scott 2022.3.17
     nullify(p)
 
-  end SUBROUTINE  dealloc_f
+  end SUBROUTINE  kill_f
 
   SUBROUTINE  equal_f(elp,el)
     implicit none
@@ -317,7 +318,7 @@ CONTAINS
        nullify(f%f)
        !       NULLIFY(    F%A_XY, F%L,    F%ALPHA)
        NULLIFY( F%d_in, F%ang_in,F%d_out,F%ang_out)
-       call alloc(f%f)
+       call alloc_f(f%f)
        ALLOCATE(F%d_in(3),F%ang_in(3),F%d_out(3),F%ang_out(3))
        !      ALLOCATE(F%A_XY,F%L,F%ALPHA)
        !         F%L=zero
@@ -342,7 +343,7 @@ CONTAINS
        DEALLOCATE(F%d_in,F%ang_in,F%d_out,F%ang_out)
        !       DEALLOCATE(F%A_XY,F%L,F%ALPHA)
        if(associated(f%f)) then
-          call kill(f%f)
+          call kill_f(f%f)
           deallocate(f%f)
        endif
        NULLIFY(F%d_in,F%ang_in,F%d_out,F%ang_out,f%f)
@@ -351,11 +352,11 @@ CONTAINS
        DEALLOCATE(F%d_in,F%ang_in,F%d_out,F%ang_out)
        !       DEALLOCATE(F%A_XY,F%L,F%ALPHA)
        if(associated(f%f)) then
-          call kill(f%f)
+          call kill_f(f%f)
           deallocate(f%f)
        endif
        NULLIFY(F%d_in,F%ang_in,F%d_out,F%ang_out,f%f)
-       call alloc(f%f)
+       call alloc_f(f%f)
        ALLOCATE(F%d_in(3),F%ang_in(3),F%d_out(3),F%ang_out(3))
        !      ALLOCATE(F%A_XY,F%L,F%ALPHA)
        !         F%L=zero

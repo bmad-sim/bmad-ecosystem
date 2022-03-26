@@ -848,7 +848,7 @@ M%B_L=M%B_T
     type(magnet_frame), pointer :: f
     real(dp) d1(3),d2(3)
 
-    call alloc(f)
+    call alloc_f(f)
 
     READ(mf,*) LINE
     if(index(line,"NO")==0) then
@@ -859,7 +859,7 @@ M%B_L=M%B_T
     else
        do_survey=my_true
     endif
-    call kill(f)
+    call kill_f(f)
   end subroutine READ_chart_fake
 
 

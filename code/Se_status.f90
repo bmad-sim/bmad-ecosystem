@@ -371,7 +371,7 @@ CONTAINS
     P%KILL_ENT_SPIN=.FALSE.
     P%KILL_EXI_SPIN=.FALSE.
     P%bend_fringe=.false.
-    call alloc(p%f)
+    call alloc_f(p%f)
     ! if(junk) ccc=ccc+1
 
   end subroutine alloc_p
@@ -393,7 +393,7 @@ CONTAINS
     !    if(associated(p%gambet)) DEALLOCATE(P%gambet);
     if(associated(p%P0C)) DEALLOCATE(P%P0C);
     if(associated(p%f)) then
-       call kill(p%f)
+       call kill_f(p%f)
        DEALLOCATE(P%f);
     endif
     if(associated(p%APERTURE)) then
