@@ -265,7 +265,7 @@ else
   D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz
   D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz
 
-  if (branch%param%geometry == closed$) then
+  if (branch%param%geometry == closed$ .and. branch%param%t1_with_rf(6,5) /= 0) then
     call transfer_matrix_calc (lat, branch%param%t1_with_RF, ix_branch = ix_branch, one_turn=.true.)
     call make_N (branch%param%t1_with_RF, N_mat, err, tunes_out = tune3)
     if (err) then
