@@ -1508,6 +1508,10 @@ CONTAINS
     LOGICAL(lp), optional, INTENT(IN):: pack
     INTEGER, INTENT(IN):: NO1,NP1
     INTEGER,optional :: ND2,NPARA,number_of_clocks
+     do_damping=.false.
+     do_spin=.false.
+    if(state%radiation) do_damping=.true.
+    if(state%spin) do_spin=.true.
 
     use_complex_in_ptc=my_true
     call S_init(STATE,NO1,NP1,pack,ND2,NPARA,number_of_clocks)
@@ -1523,6 +1527,10 @@ CONTAINS
     INTEGER,optional :: ND2,NPARA,number_of_clocks
     INTEGER  ND2l,NPARAl,n_acc,no1c,nv,i
     LOGICAL(lp) package
+     do_damping=.false.
+     do_spin=.false.
+    if(state%radiation) do_damping=.true.
+    if(state%spin) do_spin=.true.
     n_rf=0
 !    call dd_p !valishev
     doing_ac_modulation_in_ptc=.false.

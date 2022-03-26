@@ -693,7 +693,64 @@ endif
     L%HARMONIC_NUMBER=0
   END SUBROUTINE Set_Up
 
+ subroutine zero_d_lattice_function(a)
+ implicit none
+ type(d_lattice_function) , intent(inout) :: a
+  a%e=0
+  a%phase=0
+  a%damping=0
+  a%spin=0
+  a%Spin_lat=0
+  a%fixa=0
+  a%fixb=0
+  a%sigmas=0
+  a%emittance=0
+  end subroutine zero_d_lattice_function
 
+ subroutine alloc_array_of_fibres(a,n,middle)
+ implicit none
+ type(array_of_fibres), pointer :: a(:)
+ integer i,n,m
+ integer(1)   middle
+ allocate(a(n))
+
+ do i=1,n
+   allocate(a(i)%m)
+   a(i)%m=0
+   allocate(a(i)%lf)
+   allocate(a(i)%centre)
+   a(i)%centre=middle
+   call zero_d_lattice_function(a(i)%lf)
+   !allocate(a(i)%state)
+!   a(i)%state=default
+!   a(i)%state%TOTALPATH=-1
+ enddo
+
+ end  subroutine alloc_array_of_fibres
+
+ subroutine kill_d_lattice_functions(lf)
+ implicit none
+ type(d_lattice_function), pointer :: lf
+
+ 
+ deallocate(lf)
+
+ end  subroutine kill_d_lattice_functions
+
+ subroutine kill_array_of_fibres(a)
+ implicit none
+ type(array_of_fibres), pointer :: a(:)
+ integer i
+
+ do i=1,size(a)
+   deallocate(a(i)%m)
+   deallocate(a(i)%centre)
+  ! deallocate(a(i)%state)
+   call kill_d_lattice_functions(a(i)%lf)
+ enddo
+ deallocate(a)
+
+ end  subroutine kill_array_of_fibres
 
 
   SUBROUTINE de_Set_Up( L ) ! deallocates layout content
@@ -704,6 +761,11 @@ endif
     deallocate(L%NTHIN);deallocate(L%THIN);
     deallocate(L%n);          !deallocate(L%parent_universe)   left out
     IF(ASSOCIATED(L%T)) deallocate(L%T);
+    IF(ASSOCIATED(L%A)) then
+       call kill_array_of_fibres(L%A)
+      ! deallocate(L%A);
+    endif
+   IF(ASSOCIATED(L%lf0)) deallocate(L%lf0); 
   END SUBROUTINE de_Set_Up
 
 
@@ -731,7 +793,8 @@ endif
     nullify(L%END )
     nullify(L%START )
     nullify(L%START_GROUND )! STORE THE GROUNDED VALUE OF START DURING CIRCULAR SCANNING
-    nullify(L%END_GROUND )! STORE THE GROUNDED VALUE OF END DURING CIRCULAR SCANNING
+    nullify(L%END_GROUND )
+    !   STORE THE GROUNDED VALUE OF END DURING CIRCULAR SCANNING
     !   nullify(L%NEXT )! STORE THE GROUNDED VALUE OF END DURING CIRCULAR SCANNING
     !   nullify(L%PREVIOUS )! STORE THE GROUNDED VALUE OF END DURING CIRCULAR SCANNING
     !  nullify(L%parent_universe ) ! left out
@@ -742,6 +805,8 @@ endif
     !    write(6,*) " Only =0 permitted (nullify) "
     !    ! call !write_e(100)
     ! endif
+          nullify(L%a)
+         nullify(L%lf0)! 
   END SUBROUTINE nullIFY_LAYOUT
 
 

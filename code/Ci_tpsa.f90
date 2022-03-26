@@ -124,33 +124,18 @@ character(24)  formatlf(6)
 logical :: inside_normal=.false.,bmad_automatic=.false.,spin_automatic=.false.
 real(dp) :: Eigenvalues_off_unit_circle = 1.0_dp
 real(dp) :: eps_Eigenvalues_off_unit_circle =1.d-10
-private in1,in2,in3,in4,in5,in6,posin,sigdis,sigdis0,dfac ,hash,pascal,mono_order
+private in1,in2,in3,in4,in5,in6,posin,sigdis,sigdis0,dfac ,pascal,mono_order
 integer, pointer :: in1(:)=>null(),in2(:)=>null(),in3(:)=>null(),in4(:)=>null(),in5(:)=>null(),in6(:)=>null()
 integer, pointer ::   posin(:) => null()
 integer(2), pointer :: hash(:,:,:,:,:,:) => null(),pascal(:,:) => null(),mono_order(:)=>null()
-real(dpn), pointer :: sigdis(:)=> null(),sigdis0(:)=> null(),dfac(:)=> null()
+real(dpn), pointer :: sigdis(:)=> null(),sigdis0(:)=> null(),dfac(:)=> null(),vsol(:)=> null()
 integer i_alloc
 integer, private :: nmono
 real(dp), private  :: tiny =1e-20_dp
     logical :: sagan_gen =.false.
 integer mf_,n1_,n2_
-
-type c_linear_map
- complex(dp) mat(6,6)
- complex(dp)  q(0:3,0:6) 
-end type c_linear_map
-
-type c_lattice_function
- real(dp) :: E(3,6,6) =0 ,K(3,6,6) =0,B(3,6,6) =0
- real(dp) :: H(3,6,6) = 0
- real(dp) :: S(1:3,1:3,0:6) =0
- real(dp) ::phase(3) =0 ,damping(3) =0 , spin(2) =0,fix(6) =0
- type(fibre), pointer :: f => null()
- type(integration_node), pointer :: t => null()
- logical :: symplectic = .true.
-!!!!  radiation quantity
- real(dp) :: sigmas(6,6)
-end type c_lattice_function 
+logical :: do_damping=.false.,do_spin=.false.,use_radiation_inverse = .true.
+!
 
 type(c_linear_map) q_phasor,qi_phasor
 
@@ -5739,6 +5724,76 @@ endif
 
   end SUBROUTINE  compute_lattice_functions
 
+  SUBROUTINE  d_compute_lattice_functions(a,f)
+    implicit none
+    type(d_lattice_function) f
+    type(c_linear_map) m
+    type(c_linear_map) mi
+    type(c_linear_map) q
+    type(c_damap),intent(in) :: a
+    integer i,j
+ 
+    m=a
+
+     if(do_damping.and.use_radiation_inverse) then
+       mi=m**(-1)
+     else
+       mi=inv_c_linear_map_symplectic(m)     
+     endif
+ 
+ 
+ 
+ 
+    f%e=0
+    f%h=0
+    f%spin_lat=0
+
+ !!!!    computing the de Moivre Lattice Functions  !!!!
+ !!!!  equivalent to Ripken ones
+
+!!!!  Coefficient of vector field matrices  B**2=-H
+  !   do i = 1,3
+  !    f%B(i,:,:)=matmul(matmul(m%mat,jp_mat(i,:,:)),mi%mat)
+  !   enddo
+
+!!!! coefficient of invariants
+   !   do i = 1,3
+   !   f%K(i,:,:)= -matmul(jt_mat,f%B(i,:,:))
+   !  enddo
+!!!! coefficient of moments
+     do i = 1,3
+      f%E(i,:,:)=matmul(matmul(m%mat,jp_mat(i,:,:)),mi%mat)
+     enddo
+     do i = 1,3
+      f%E(i,:,:)= -matmul(f%E(i,:,:),jt_mat)
+     enddo
+
+!!!!  Dispersive quantities containing zeta and eta for example
+     do i = 1,3
+      f%H(i,:,:)=matmul(matmul(m%mat,ip_mat(i,:,:)),mi%mat)
+      enddo
+
+!!!!    computing the n vector using quaternion
+  if(do_spin) then
+     do i = 1,3
+       q=i
+       q=m*q*mi
+       do j=1,3
+        f%Spin_lat(i,j,0:6)=q%q(j,0:6)
+       enddo
+     enddo
+  else
+  f%Spin_lat=0
+  f%spin=0
+  endif
+ ! if(.not.do_damping) d_damping=0
+ !     f%phase=d_phase
+ !     f%damping=d_damping
+ !     f%spin=d_spin_tune
+ !     f%fixa=d_probe_a%x
+ !     f%fixb=d_probe_b%x
+
+  end SUBROUTINE  d_compute_lattice_functions
 !type c_lattice_function
 ! real(dp) E(3,6,6),K(3,6,6),B(3,6,6)
 ! real(dp) H(3,6,6)
@@ -7420,7 +7475,7 @@ endif
 
      if(present(dospin)) dos=dospin
 
-    write(mfi,*) " tpsa staus ",s1%tpsa
+    write(mfi,*) " tpsa status ",s1%tpsa
     if(s1%tpsa) then
      write(mfi,*) s1%n, " Dimensional TPSA map around z=0 "
     else
@@ -17964,12 +18019,15 @@ b=u
  
 if(ndpt/=0)  call extract_a0_mat(b,b0)
 
+if(present(damping).and.do_damping) then
 s=matmul(matmul(b,s),transpose(b))
 damp=0
 do i=1,ndt
     damp(i)=sqrt(abs(s(2*i-1,2*i)))
 enddo
-
+else
+   damp=1
+endif
 !det=FindDet(b(1:nd2,1:nd2), nd2)**(1.0_dp/nd2)
 !write(6,*) damp
 
@@ -18683,12 +18741,14 @@ endif
     endif
     
     if(present(nu_spin)) nu_spin=0.0_dp
-      
-    if(present(phase)) then
-      
-      do i=1,size(phase)
+     if(present(phase))   then
+     do i=1,size(phase)
          phase(i)=0.0_dp
       enddo
+endif
+    if(present(phase).or.present(nu_spin)) then
+
+ 
         
       if(present(rot)) then
         m1=rot
@@ -19137,7 +19197,7 @@ end subroutine fill_tree_element_line_zhe_outside_map
  
  
 if(associated(in1)) then
-  deallocate(in1,in2,in3,in4,in5,in6,posin,sigdis,sigdis0,dfac,pascal,hash,mono_order)
+  deallocate(in1,in2,in3,in4,in5,in6,posin,sigdis,sigdis0,dfac,pascal,hash,mono_order,vsol)
 endif
 
 nd1=iabs(nd11)
@@ -19191,7 +19251,7 @@ endif
   enddo
 
 
- allocate(in1(nmono),in2(nmono),in3(nmono),in4(nmono),in5(nmono),in6(nmono),posin(0:no1),mono_order(nmono))
+ allocate(in1(nmono),in2(nmono),in3(nmono),in4(nmono),in5(nmono),in6(nmono),posin(0:no1),mono_order(nmono),vsol(nmono))
 if(nd1==3) then
  allocate(sigdis(nmono),sigdis0(nmono),dfac(0:no1),pascal(0:no1,0:no1),hash(0:no1,0:no1,0:no1,0:no1,0:no1,0:no1))
 elseif(nd1==2) then
@@ -19200,7 +19260,7 @@ elseif(nd1==1) then
  allocate(sigdis(nmono),sigdis0(nmono),dfac(0:no1),pascal(0:no1,0:no1),hash(0:no1,0:no1,0:0,0:0,0:0,0:0))
 endif
 pascal=0
-
+vsol=0
 
 pascal(0,0)=1
 pascal(1,0)=1
@@ -19319,19 +19379,12 @@ enddo
 
  
  
-!do i=1,nmono
-! sigdis0(i)=dfac(in1(i))*dfac(in2(i))*dfac(in3(i))*dfac(in4(i))*dfac(in5(i))*dfac(in6(i))
-!enddo
-!do i=1,nmono
-!write(6,"(6(1x,i4))") in1(i),in2(i),in3(i),in4(i),in5(i),in6(i)
-!enddo
-!write(6,*) posin
  
  
   end subroutine init_moment_map
 
 
-subroutine create_moment_map(minput,sig,radk,nd11)   ! fix0 is the initial condition for the maps
+subroutine create_moment_map(minput,sig,nd11,radk)   ! fix0 is the initial condition for the maps
 implicit none
  
  
@@ -19359,7 +19412,7 @@ if(present(radk)) radk=radkick
 m=minput  
  
 
-
+sigdis0=0
 
  
 m=0
@@ -19382,11 +19435,13 @@ elseif(nd1==1) then
   stop 889
 endif
  
- if(in1(i)==n1_.and.in2(i)==n2_) then
-   write(mf_,*) " in create map"
-call print(t,mf_)
-call print(m,mf_)
-endif
+! if(in1(i)==n1_.and.in2(i)==n2_) then
+!   write(mf_,*) " in create map"
+!call print(t,mf_)
+!call print(m,mf_)
+!   write(mf_,*) " in cycle"
+
+!endif
 !   t=t.o.m
    t=t*m
  
@@ -19396,20 +19451,27 @@ endif
 je=0
           call  c_cycle(t,j,v ,je); if(j==0) exit;
 !          k=hash(j(1),j(2),j(3),j(4),j(5),j(6))
+! if(in1(i)==n1_.and.in2(i)==n2_) then
+!write(mf_,*) v
+!write(mf_,"(6(1x,i4))") je(1:6)
+!write(mf_,format6) dfac(je(1)),dfac(je(2)),dfac(je(3)),dfac(je(4)),dfac(je(5)),dfac(je(6))
+
+!endif
             sigdis0(i)=sigdis0(i)+dfac(je(1))*dfac(je(2))*dfac(je(3))*dfac(je(4))*dfac(je(5))*dfac(je(6))*v
 
         enddo
- if(in1(i)==n1_.and.in2(i)==n2_) then
+! if(in1(i)==n1_.and.in2(i)==n2_) then
 
-call print(t,mf_)
-   do j=1,nmono
-if( sigdis0(i)/=0) then
-    write(mf_,*) in1(j),in2(j),j
-   write(mf_,*) sigdis0(i)
-endif
-   enddo
- endif
+!  call print(t,mf_)
+! endif
  enddo
+
+!   do j=1,nmono
+!if( sigdis0(j)/=0) then
+!    write(mf_,*) in1(j),in2(j),j
+!   write(mf_,*) sigdis0(j)
+!endif
+!   enddo
 
    allocate(minput%db(nmono,nmono),minput%m(nmono,nmono))
    minput%db=0
@@ -19486,9 +19548,10 @@ endif
   ouch=i2+i1
  
  !  if(ouch>noo)cycle
-   if(mod(ouch,2)==1)cycle
+ !  if(mod(ouch,2)==1)cycle
  
     coe=pascal(in1(i),i1)*pascal(in2(i),i2) 
+  
     mi=hash(in1(i)-i1,in2(i)-i2,0,0,0,0)
 
           k=hash(i1,i2,0,0,0,0)
@@ -19529,37 +19592,14 @@ enddo
         enddo
    enddo
 
-!mat=minput
-!do i=1,6
-!do j=i,6
-!write(6,*) i,j,real(minput%e_ij(i,j))
-!enddo
-!enddo
-!do i=1,6
-! write(6,format6) mat(i,1:6)
-!enddo
-!write(6,*) "nmono , x^2 ",nmono,hash(2,0,0,0,0,0)
-!do i=1,nmono
-! write(6,"(6(1x,i2))") in1(i),in2(i),in3(i),in4(i),in5(i),in6(i)
 
- !write(6,*) minput%db(i,1:nmono)
-
+ 
  
 !minput%m=matmul(minput%m,minput%db)
 minput%m=matmul(minput%db,minput%m)
+ 
 
-!do i=1,nmono
-!do j=1,nmono
-!if(in3(i)+in4(i)+in5(i)+in6(i)/=0)cycle
-!if(in3(j)+in4(j)+in5(j)+in6(j)/=0)cycle
-!write(6,*) i,j
-!write(6,"(6(1x,i2))") in1(i),in2(i),in3(i),in4(i),in5(i),in6(i)
-!write(6,"(6(1x,i2))") in1(j),in2(j),in3(j),in4(j),in5(j),in6(j)
-
-!write(6,*) minput%m(i,j)
-!write(6,*) minput%db(i,j)
-!enddo
-!enddo
+ 
  if(nd11<0) then
    minput%db=minput%m
 
@@ -19610,14 +19650,8 @@ call matinvn(mm,mm,nz,nz,i)
 write(6,*) " success = ",i
 
 vm=matmul(mm,vm)
+vsol(2:nmono)=vm
 
-do i=nmono,2,-1
-
-write(6,*) i
-write(6,"(6(1x,i2))") in1(i),in2(i),in3(i),in4(i),in5(i),in6(i)
-write(6,*) vm(i-1)
-
-enddo
 
 write(6,*) "Quadratic moments to order ", no
 do i=1,2*nd1
@@ -19632,28 +19666,6 @@ if(i<=j) write(6,*) i,j,sig(i,j)
 enddo 
 enddo
 return
-!enddo
-!pause 123
-sigdis=0
-sigdis(1)=1
-
-
-do i=1,nmono
-
-write(6,*) i
-if(nd1==1) then
- write(6,"(2(1x,i2))") in1(i),in2(i) 
-elseif(nd1==2) then
- write(6,"(4(1x,i2))") in1(i),in2(i),in3(i),in4(i) 
-elseif(nd1==3) then
- write(6,"(6(1x,i2))") in1(i),in2(i),in3(i),in4(i),in5(i),in6(i)
-endif
-write(6,*) minput%m(i,1:nmono)
- 
-
-enddo
-
-
 
  
 call kill(t)

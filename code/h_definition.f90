@@ -51,11 +51,12 @@ module definition
   INTEGER,PARAMETER  :: ISPIN0R=1,ISPIN1R=3
   logical(lp) :: doing_ac_modulation_in_ptc=.false.
   integer, target :: nb_ =0   ! global group index
-  integer, parameter :: ndim2t=10   ! maximum complex size
   integer, parameter :: wiggler_suntao=24
   real(dp) :: global_e =0
   integer :: bmadparser = 0
   integer,parameter :: nacmax = 3
+  integer, parameter :: ndim2t=6+2*nacmax   ! maximum complex size
+
   logical :: tangent = .false.,force_rescale=.false.   ! force_rescale for vorname=HELICAL see fibre_work routine
   logical(lp),TARGET :: OLD_PACKAGE = .true.
 ! GTPSA REMOVED !   type(c_ptr)      :: d_berz
