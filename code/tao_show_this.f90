@@ -4982,6 +4982,8 @@ case ('universe')
       if (s%global%rad_int_calc_on) then
         nl=nl+1; write(lines(nl), fmt2) 'J_damp', mode_m%a%j_damp, mode_d%a%j_damp, mode_m%b%j_damp, mode_d%b%j_damp, '! Damping Partition #'
         nl=nl+1; write(lines(nl), fmt) 'Emittance', mode_m%a%emittance, mode_d%a%emittance, mode_m%b%emittance, mode_d%b%emittance, '! Unnormalized'
+        nl=nl+1; write(lines(nl), '(a43, 2x, 2es13.5)') 'Emit (photon vert opening angle ignored)', &
+                                                                      mode_m%b%emittance_no_vert, mode_d%b%emittance_no_vert
       endif
     endif
 

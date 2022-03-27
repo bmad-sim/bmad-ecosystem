@@ -46,17 +46,12 @@ character(300) :: cmd_word(12)
 character(40) gang_str, switch, word, except, branch_str
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(41) = [ &
-    'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
-    'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
-    'run_optimizer', 'flatten      ', 'change       ', 'set          ', 'cut_ring     ', &
-    'call         ', 'ptc          ', 'alias        ', 'help         ', 'single_mode  ', &
-    're_execute   ', 'reinitialize ', 'x_scale      ', 'x_axis       ', 'derivative   ', &
-    'spawn        ', 'xy_scale     ', 'read         ', 'misalign     ', 'end_file     ', &
-    'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
-    'python       ', 'json         ', 'quiet        ', 'ls           ', 'taper        ', &
-    'clear        ']
-
+character(16) :: cmd_names(41) = [character(16):: &
+                      'alias', 'call', 'change', 'clear', 'clip', 'continue', 'cut_ring', 'derivative', &
+                      'end_file', 'exit', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'place', &
+                      'plot', 'ptc', 'python', 'quiet', 'quit', 're_execute', 'read', 'reinitialize', &
+                      'restore', 'run_optimizer', 'scale', 'set', 'show', 'single_mode', 'spawn', 'taper', &
+                      'timer', 'use', 'veto', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale']
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
