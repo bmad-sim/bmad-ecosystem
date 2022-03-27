@@ -1725,12 +1725,13 @@ character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'Open        '
 ! Note: The b%emittance calc from radiation integrals will include the photon vertical opening angle in the calc.
 
 type anormal_mode_struct
-  real(rp) :: emittance = 0       ! Beam emittance.
-  real(rp) :: synch_int(4:6) = 0  ! Synchrotron integrals
-  real(rp) :: j_damp = 0          ! damping partition number
-  real(rp) :: alpha_damp = 0      ! damping per turn
-  real(rp) :: chrom = 0           ! Chromaticity
-  real(rp) :: tune = 0            ! "Fractional" tune in radians
+  real(rp) :: emittance = 0         ! Beam emittance. Includes vertical photon opening angle.
+  real(rp) :: emittance_no_vert = 0 ! Beam emittance without the vertical photon opening angle taken into account.
+  real(rp) :: synch_int(4:6) = 0    ! Synchrotron integrals
+  real(rp) :: j_damp = 0            ! damping partition number
+  real(rp) :: alpha_damp = 0        ! damping per turn
+  real(rp) :: chrom = 0             ! Chromaticity
+  real(rp) :: tune = 0              ! "Fractional" tune in radians
 end type
 
 type linac_normal_mode_struct
