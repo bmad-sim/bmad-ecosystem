@@ -6,9 +6,8 @@
 \index{taylor map|hyperbf}
 \index{symplectic integration}
 
-A transport map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through
-an element or a section of a lattice is a function that maps the
-starting phase space coordinates $\Bf r(\In)$ to the ending
+A transport map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through an element or a section of a
+lattice is a function that maps the starting phase space coordinates $\Bf r(\In)$ to the ending
 coordinates $\Bf r(\Out)$
 \begin{equation}
   \Bf r(\Out) = {\cal M} \, (\delta \bfr)
@@ -17,28 +16,26 @@ where
 \begin{equation}
   \delta \bfr = \bfr(\In) - \bfr_\REF
 \end{equation}
-$\bfr_\REF$ is the reference orbit at the start of the map around which the map is
-made. In many cases the reference orbit is the zero orbit. For a storage ring, the closed
-orbit is commonly used for the reference orbit. For a lattice with an open geometry the
-reference orbit may be the orbit as computed from some given initial coordinates.
+$\bfr_\REF$ is the reference orbit at the start of the map around which the map is made. In many
+cases the reference orbit is the zero orbit. For a storage ring, the closed orbit is commonly used
+for the reference orbit. For a lattice with an open geometry the reference orbit may be the orbit as
+computed from some given initial coordinates.
 
-${\cal M}$ in the above equation is made up of six functions ${\cal M}_i: {\cal R}^6
-\rightarrow {\cal R}$. Each of these functions maps to one of the $r(\Out)$
-coordinates. Each of these functions can be expanded in a Taylor series and truncated at
-some order. Each Taylor series is in the form
+${\cal M}$ in the above equation is made up of six functions ${\cal M}_i: {\cal R}^6 \rightarrow
+{\cal R}$. Each of these functions maps to one of the $r(\Out)$ coordinates. Each of these functions
+can be expanded in a Taylor series and truncated at some order. Each Taylor series is in the form
 \begin{equation}
   r_i(\Out) = \sum_{j = 1}^N \, C_{ij} \, \prod_{k = 1}^6 \, (\delta r_k)^{e_{ijk}}
   \label{rcr}
 \end{equation}
-Where the $C_{ij}$ are coefficients and the $e_{ijk}$ are integer exponents.
-The order of a given term associated with index $i,j$ is the sum over the exponents
+Where the $C_{ij}$ are coefficients and the $e_{ijk}$ are integer exponents.  The order of a given
+term associated with index $i,j$ is the sum over the exponents
 \begin{equation}
   \text{order}_{ij} = \sum_{k = 1}^6 e_{ijk} 
 \end{equation}
 The order of the entire map is the order at which the map is truncated.
 
-The standard \bmad routine for printing a Taylor map might produce something 
-like this: 
+The standard \bmad routine for printing a Taylor map might produce something like this:
 \begin{example}
    Taylor Terms:
    Out      Coef             Exponents          Order       Reference
@@ -65,27 +62,24 @@ like this:
    --------------------------------------------------
     6:      1.000000000000   0  0  0  0  0  1       1       0.000000000
 \end{example}
-Each line in the example represents a single \vn{Taylor term}. The
-Taylor terms are grouped into 6 \vn{Taylor series}. There is one
-series for each of the output phase space coordinate. The first
-column in the example, labeled ``out'', (corresponding to the $i$
-index in \Eq{rcr}) indicates the Taylor series: $1 = x(out)$, $2 =
-p_x(out)$, etc. The 6 exponent columns give the $e_{ijk}$ of
-\Eq{rcr}. In this example, the second Taylor series (\vn{out} = 2),
-when expressed as a formula, would read:
+Each line in the example represents a single \vn{Taylor term}. The Taylor terms are grouped into 6
+\vn{Taylor series}. There is one series for each of the output phase space coordinate. The first
+column in the example, labeled ``out'', (corresponding to the $i$ index in \Eq{rcr}) indicates the
+Taylor series: $1 = x(out)$, $2 = p_x(out)$, etc. The 6 exponent columns give the $e_{ijk}$ of
+\Eq{rcr}. In this example, the second Taylor series (\vn{out} = 2), when expressed as a formula,
+would read:
 \begin{equation}
   p_x(out) = -0.185 + 1.3 \, \delta p_x + 3.8 \, \delta x^2 \, \delta p_z
 \end{equation}
 
 \index{taylor map!reference coordinates}
-The reference column in the above example shows the input coordinates around
-which the Taylor map is calculated. In this case, the reference
-coordinates where 
+The reference column in the above example shows the input coordinates around which the Taylor map is
+calculated. In this case, the reference coordinates where
 \begin{equation}
   (x, p_x, y, p_y, z, p_z)_\REF = (0.2, 0, 0.1, 0, 0, 0, 0)
 \end{equation}
-The choice of the reference point will affect the values of the
-coefficients of the Taylor map. As an example, consider the 1-dimension map
+The choice of the reference point will affect the values of the coefficients of the Taylor map. As
+an example, consider the 1-dimension map
 \begin{equation}
   x(out) = A \, \sin(k \, \delta x)
 \end{equation}
@@ -98,6 +92,9 @@ where
   c_1 &= A \, k \, \cos(k \, x_\REF) \\
   c_0 &= A \, \sin(k \, x_\REF)
 \end{align}
+
+Taylor maps using complex numbers is also used by \bmad. The output of such maps is similar to the
+output for real maps as shown above except that the coefficient has a real and imaginary part.
 
 %-----------------------------------------------------------------
 \section{Spin Taylor Map}

@@ -1022,7 +1022,7 @@ ptc_com%exact_misalign   => ALWAYS_EXACTMIS
 ptc_com%max_fringe_order => HIGHEST_FRINGE
 
 if (init_needed) then
-  ptc_com%exact_model = .false.
+  ptc_com%exact_model = .true.
   ptc_com%exact_misalign = .true.  ! Points to ALWAYS_EXACTMIS
   EPS_EIGENVALUES_OFF_UNIT_CIRCLE = 1d-4
 
