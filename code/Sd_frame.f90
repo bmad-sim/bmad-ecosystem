@@ -344,7 +344,7 @@ CONTAINS
        !       DEALLOCATE(F%A_XY,F%L,F%ALPHA)
        if(associated(f%f)) then
           call kill_f(f%f)
-          deallocate(f%f)
+ !         deallocate(f%f)
        endif
        NULLIFY(F%d_in,F%ang_in,F%d_out,F%ang_out,f%f)
        !       NULLIFY(F%A_XY,F%L,F%ALPHA)
@@ -353,7 +353,7 @@ CONTAINS
        !       DEALLOCATE(F%A_XY,F%L,F%ALPHA)
        if(associated(f%f)) then
           call kill_f(f%f)
-          deallocate(f%f)
+!          deallocate(f%f)
        endif
        NULLIFY(F%d_in,F%ang_in,F%d_out,F%ang_out,f%f)
        call alloc_f(f%f)

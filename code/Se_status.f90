@@ -394,7 +394,7 @@ CONTAINS
     if(associated(p%P0C)) DEALLOCATE(P%P0C);
     if(associated(p%f)) then
        call kill_f(p%f)
-       DEALLOCATE(P%f);
+!       DEALLOCATE(P%f);
     endif
     if(associated(p%APERTURE)) then
        CALL kill(p%APERTURE)
