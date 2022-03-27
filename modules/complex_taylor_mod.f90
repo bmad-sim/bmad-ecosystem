@@ -1,7 +1,7 @@
 !+
 ! Module complex_taylor_mod
 !
-! Note: This module is an exact copy of taylor_mod, with:
+! Note: This module is essentually a copy of taylor_mod, with:
 !   taylor -> complex_taylor
 !   real -> complex
 !   format modifications to: type_complex_taylors 
@@ -261,15 +261,18 @@ end function
 !   max_order      -- integer, optional: Maximum order to print.
 !   file_id        -- integer, optional: If present, write output to a file with handle file_id.
 !   out_type       -- character(*), optional: Determins the string to be used for the output type column.
-!                       '' (default) -> '1', '2', '3', etc.
-!                       'PHASE'      -> 'X', 'Px, 'Y', 'Py', 'Z', 'Pz'
-!                       'SPIN'       -> 'S1', 'Sx', 'Sy', 'Sz' (quaternion representation)
+!                       '' (default)  -> '1', '2', '3', etc.
+!                       'PHASE'       -> 'X', 'Px, 'Y', 'Py', 'Z', 'Pz'
+!                       'SPIN'        -> 'S1', 'Sx', 'Sy', 'Sz' (quaternion representation)
+!                       'NONE'        -> No out column
+!                       Anything else -> Use this for the output column.
 !   clean          -- logical, optional: If True then do not include terms whose coefficients
 !                       are negligible. Default is false
 !
 ! Output:
 !   lines(:)     -- character(*), allocatable, optional :: Character array to hold the output. 
-!                     If not present, the information is printed to the terminal.
+!                     If not present, the information is printed to the terminal. 
+!                     Char width should be 120 or above for out_type = 'PHASE' but can be less for other out_types.
 !   n_lines      -- integer, optional: Number of lines in lines(:) that hold valid output.
 !                     n_lines must be present if lines(:) is. 
 !-
@@ -292,9 +295,9 @@ logical, optional :: clean
 
 character(*), optional :: out_type
 character(*), optional, allocatable :: lines(:)
-character(100), allocatable :: li(:)
+character(120), allocatable :: li(:)
 character(40) fmt1, fmt2, fmt, o_type
-character(4) out_str
+character(20) out_str
 character(2), parameter :: spin_out(4) = ['S1', 'Sx', 'Sy', 'Sz']
 character(2), parameter :: phase_out(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
 
@@ -311,25 +314,32 @@ if (.not. associated(complex_taylor(1)%term)) then
 ! Normal case
 
 else
+
+  fmt1 = '(a, 2f20.12,  1x, 6i3, i8, 2f17.9)'
+  fmt2 = '(a, 2es20.11, 1x, 6i3, i8, 2f17.9)'
+
   o_type = ''
   if (present(out_type)) o_type = out_type
 
-  nl = 8 + nt + sum( [(size(complex_taylor(i)%term), i = 1, nt) ])
+  nl = 20 + nt + sum( [(size(complex_taylor(i)%term), i = 1, nt) ])
   allocate(li(nl))
 
-  write (li(1), '(a)') ' Taylor Terms:'
-  if (o_type == 'SPIN') then
-    write (li(2), '(a)') ' Out      Coef             Exponents           Order'
-  else
-    write (li(2), '(a)') ' Out      Coef             Exponents           Order       Reference'
-  endif
-  nl = 2
+  nl = 0
 
-  fmt1 = '(a, 2f20.12,  1x, 6i3, i9, f18.9)'
-  fmt2 = '(a, 2es20.11, 1x, 6i3, i9, f18.9)'
+  select case (o_type)
+  case ('PHASE')
+    nl=nl+1; write (li(nl), '(a)') ' Out      Re Coef             Im Coef         Exponents          Order      Reference'
+    nl=nl+1; li(nl) =              ' --------------------------------------------------------------------------------------------------------'
+  case ('NONE')
+    nl=nl+1; write (li(nl), '(a)') '       Re Coef             Im Coef         Exponents          Order'
+    nl=nl+1; li(nl) =              '   ----------------------------------------------------------------'
+    fmt1 = '(' // fmt1(5:);  fmt2 = '(' // fmt2(5:)
+  case default
+    nl=nl+1; write (li(nl), '(a)') ' Out      Re Coef             Im Coef         Exponents          Order'
+    nl=nl+1; li(nl) =              ' ---------------------------------------------------------------------'
+  end select
 
   do i = 1, nt
-    nl=nl+1; li(nl) = ' ---------------------------------------------------'
 
     out_str = ' ??:'
     select case(o_type)
@@ -339,6 +349,8 @@ else
       if (i <=6) out_str = ' ' // phase_out(i) // ':'
     case ('SPIN')
       if (i <=4) out_str = ' ' // spin_out(i) // ':'
+    case default
+      out_str = o_type // ':'
     end select
 
     if (logic_option(.false., clean)) then
@@ -349,7 +361,7 @@ else
     endif
 
     if (size(t2%term) == 0) then
-      nl=nl+1; write (li(nl), '(a, 6x, a)') out_str, 'No Terms. Always evaluates to zero.'
+      nl=nl+1; write (li(nl), '(a, 6x, a)') trim(out_str), 'No Terms. Always evaluates to zero.'
 
     else
       nullify (tlr%term)
@@ -368,10 +380,12 @@ else
           fmt = fmt2
         endif
 
-        if (j == 1 .and. o_type /= 'SPIN') then
-          nl=nl+1; write (li(nl), fmt) out_str, tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn), complex_taylor(i)%ref
+        if (j == 1 .and. o_type == 'PHASE') then
+          nl=nl+1; write (li(nl), fmt) trim(out_str), tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn), complex_taylor(i)%ref
+        elseif (o_type == 'NONE') then
+          nl=nl+1; write (li(nl), fmt) tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn)
         else
-          nl=nl+1; write (li(nl), fmt) out_str, tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn)
+          nl=nl+1; write (li(nl), fmt) trim(out_str), tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn)
         endif
       enddo
 
