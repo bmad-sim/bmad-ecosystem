@@ -225,6 +225,10 @@ end subroutine ptc_setup_map_with_radiation
 ! Subroutine ptc_track_map_with_radiation (orbit, rad_map, rad_damp, rad_fluct)
 !
 ! Routine to track through a map that includes radiation.
+! 
+! NOTE! Tracking without damping when the map was made with radiation (and vice versa)
+! will not give good results. So avoid this situation unless testing.
+!
 ! To construct the map, use the routine ptc_setup_map_with_radiation.
 ! To cleanup memory after using, call ptc_kill_map_with_radiation.
 ! To save a map call ptc_write_map_with_radiation.
@@ -234,7 +238,7 @@ end subroutine ptc_setup_map_with_radiation
 ! Input:
 !   orbit            -- coord_struct: Starting orbit.
 !   rad_map          -- ptc_rad_map_struct: Map with radiation included.
-!   rad_damp         -- logical, optional: Override the setting of bmad_com%radiation_damping_on
+!   rad_damp         -- logical, optional: Override the setting of bmad_com%radiation_damping_on.
 !   rad_fluct        -- logical, optional: Override the setting of bmad_com%radiation_fluctuations_on
 !   
 ! Output:

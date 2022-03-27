@@ -600,8 +600,9 @@ mode%b%synch_int(6) = i6b
 if (branch%param%geometry == closed$) then
   if (i2 /= 0) then
 
-    mode%a%emittance = const_q * gamma2_factor * i5a / (i2 - i4a)
-    mode%b%emittance = const_q * (gamma2_factor * i5b + 13 * i6b / 55) / (i2 - i4b)
+    mode%a%emittance         = const_q * gamma2_factor * i5a / (i2 - i4a)
+    mode%b%emittance         = const_q * (gamma2_factor * i5b + 13 * i6b / 55) / (i2 - i4b)
+    mode%b%emittance_no_vert = const_q * (gamma2_factor * i5b) / (i2 - i4b)
 
     mode%a%j_damp = 1 - i4a / i2
     mode%b%j_damp = 1 - i4b / i2

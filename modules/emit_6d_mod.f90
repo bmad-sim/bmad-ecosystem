@@ -199,7 +199,7 @@ do
     mt = ds(ie)%nodamp_mat + ds(ie)%damp_mat
     nodamp_mat = matmul(ds(ie)%nodamp_mat, nodamp_mat)
     damp_mat = matmul(mt, damp_mat) + ds(ie)%damp_mat
-    stoc_mat = matmul(matmul(mt, stoc_mat), mat_symp_conj(mt)) + ds(ie)%stoc_mat
+    stoc_mat = matmul(matmul(mt, stoc_mat), transpose(mt)) + ds(ie)%stoc_mat
   endif
   if (ie == ele2%ix_ele) exit
 enddo
@@ -346,7 +346,8 @@ integer i, j
 
 logical err_flag
 
-!
+! Note: g from g_bending_strength_from_em_field is g of the actual particle and not the ref particle
+! so g has a factor of 1/(1 + pz) in it.
 
 call create_element_slice (runt, ele, z_pos, 0.0_rp, ele%branch%param, .false., .false., err_flag, pointer_to_next_ele(ele, -1))
 call track1(orb0, runt, ele%branch%param, orbz)
@@ -356,6 +357,9 @@ mb = mat_symp_conj(runt%mat6)   ! matrix from z_pos back to 0
 call g_bending_strength_from_em_field (ele, ele%branch%param, z_pos, orbz, .true., g, dg)
 v = orbz%vec
 rel_p = 1 + v(6)
+g = g * rel_p
+dg = dg * rel_p
+
 g2 = sum(g*g)
 kd = kd_coef
 dg2_dx = 2 * dot_product(g, dg(:,1))
@@ -363,7 +367,7 @@ dg2_dy = 2 * dot_product(g, dg(:,2))
 
 damp_mat1(:,1) = -kd_coef * (mb(:,2)*dg2_dx*v(2)*rel_p + mb(:,4)*dg2_dx*v(4)*rel_p + mb(:,6)*dg2_dx*rel_p**2)
 damp_mat1(:,2) = -kd_coef * (mb(:,2)*g2*rel_p) 
-damp_mat1(:,3) = -kd_coef * (mb(:,2)*dg2_dy*v(2)*rel_p + mb(:,4)*dg2_dy*v(4)*rel_p + mb(:,6)*dg2_dy*v(4)*rel_p**2)
+damp_mat1(:,3) = -kd_coef * (mb(:,2)*dg2_dy*v(2)*rel_p + mb(:,4)*dg2_dy*v(4)*rel_p + mb(:,6)*dg2_dy*rel_p**2)
 damp_mat1(:,4) = -kd_coef * (mb(:,4)*g2*rel_p)
 damp_mat1(:,5) = -kd_coef * (0)
 damp_mat1(:,6) = -kd_coef * (mb(:,2)*g2*v(2) + mb(:,4)*g2*v(4) + mb(:,6)*2*g2*rel_p)
