@@ -43,10 +43,10 @@ export DIST_F90_REQUEST="gfortran"
 # Supported options are:
 #   "plplot"         # Only PLPLOT is built
 #   "pgplot"         # Only PGPLOT is built
-#   "none"           # No Plot Libraries are built, for 
-#                      Windows builds only
+#   "none"           # No Plot Libraries are built. For cases
+#                      where plot lib building is problematical.
 #-----------------------------------------------------------
-export ACC_PLOT_PACKAGE="pgplot"
+export ACC_PLOT_PACKAGE="plplot"
 
 
 #-----------------------------------------------------------
