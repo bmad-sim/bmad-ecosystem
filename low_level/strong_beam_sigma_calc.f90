@@ -23,7 +23,7 @@ implicit none
 type (ele_struct) ele
 
 real(rp) s_pos, z_strong, bbi_const, x_center, y_center, sig_x, sig_y
-real(rp) beta, sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0
+real(rp) beta, sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0, r
 
 !
 
@@ -59,9 +59,10 @@ endif
 bbi_const = -ele%branch%param%n_part * ele%value(charge$) * classical_radius_factor /  &
                                       (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
 
-x_center = (ele%value(crab_x1$) * z_strong + ele%value(crab_x2$) * z_strong**2 + &
-                         ele%value(crab_x3$) * z_strong**3) * cos(ele%value(crab_tilt$))
-y_center = (ele%value(crab_x1$) * z_strong + ele%value(crab_x2$) * z_strong**2 + &
-                         ele%value(crab_x3$) * z_strong**3) * sin(ele%value(crab_tilt$))
+r = ((((ele%value(crab_x5$) * z_strong + ele%value(crab_x4$)) * z_strong + ele%value(crab_x3$)) * z_strong + & 
+                                         ele%value(crab_x2$)) * z_strong + ele%value(crab_x1$)) * z_strong
+
+x_center = r * cos(ele%value(crab_tilt$))
+y_center = r * sin(ele%value(crab_tilt$))
 
 end subroutine

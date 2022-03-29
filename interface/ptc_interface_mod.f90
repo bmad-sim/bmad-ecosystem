@@ -3647,7 +3647,7 @@ type (fibre), target :: ptc_fibre
 type (integration_node), pointer :: node
 
 real(rp) sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0, sig_x, sig_y
-real(rp) alpha, beta, s_pos, bbi_const
+real(rp) alpha, beta, s, bbi_const, r
 real(rp), allocatable :: z_slice(:)
 
 integer i, n_slice
@@ -3698,24 +3698,27 @@ if (.not. associated(node%bb)) call alloc(node%bb, n_slice, 0.0_dp)
 node%bb%n = n_slice
 
 do i = 1, n_slice
-  s_pos = z_slice(i) / 2  ! Factor of 2 since strong beam is moving.
+  s = z_slice(i) / 2  ! Factor of 2 since strong beam is moving.
+
   if (beta_a0 == 0 .or. beta_b0 == 0) then
     sig_x = sig_x0
     sig_y = sig_y0
   else
-    beta = beta_a0 - 2 * alpha_a0 * s_pos + (1 + alpha_a0**2) * s_pos**2 / beta_a0
+    beta = beta_a0 - 2 * alpha_a0 * s + (1 + alpha_a0**2) * s**2 / beta_a0
     sig_x = sig_x0 * sqrt(beta / beta_a0)
-    beta = beta_b0 - 2 * alpha_b0 * s_pos + (1 + alpha_b0**2) * s_pos**2 / beta_b0
+    beta = beta_b0 - 2 * alpha_b0 * s + (1 + alpha_b0**2) * s**2 / beta_b0
     sig_y = sig_y0 * sqrt(beta / beta_b0)
   endif
 
   bbi_const = -2.0_rp * ele%branch%param%n_part * ele%value(charge$) * classical_radius_factor / ele%value(e_tot$)
 
   node%bb%bbk(i,:) = 0  ! MAD closed orbit kick. Not used here.
-  node%bb%xm(i) = (ele%value(crab_x1$) * s_pos + ele%value(crab_x2$) * s_pos**2 + &
-                                                 ele%value(crab_x3$) * s_pos**3) * cos(ele%value(crab_tilt$))
-  node%bb%ym(i) = (ele%value(crab_x1$) * s_pos + ele%value(crab_x2$) * s_pos**2 + &
-                                                 ele%value(crab_x3$) * s_pos**3) * sin(ele%value(crab_tilt$))
+
+  r = ((((ele%value(crab_x5$) * s + ele%value(crab_x4$)) * s + ele%value(crab_x3$)) * s + & 
+                                    ele%value(crab_x2$)) * s + ele%value(crab_x1$)) * s
+  node%bb%xm(i) = r * cos(ele%value(crab_tilt$))
+  node%bb%ym(i) = r * sin(ele%value(crab_tilt$))
+
   ! Transverse displacement.
   node%bb%sx(i) = sig_x
   node%bb%sy(i) = sig_y

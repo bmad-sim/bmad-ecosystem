@@ -289,6 +289,8 @@ Attributes specific to a \vn{beambeam} element are:
   crab_x1        = <Real> ! Crabbing linear coefficient.
   crab_x2        = <Real> ! Crabbing quadratic coefficient.
   crab_x3        = <Real> ! Crabbing cubic coefficient.
+  crab_x4        = <Real> ! Crabbing 4th order coefficient.
+  crab_x5        = <Real> ! Crabbing 5th order coefficient.
   crab_tilt      = <Real> ! Crabbing tilt.
   beta_a_strong  = <Real> ! Strong beam $a$-mode beta Twiss parameter
   alpha_a_strong = <Real> ! Strong beam $a$-mode alpha Twiss parameter 
@@ -348,13 +350,14 @@ angle. \vn{x_pitch}, \vn{y_pitch} or some combination of the two should be set t
 of the strong beam with respect to the reference orbit of the weak beam. To curve the strong beam
 centroid to simulate crabbing, the following parameters can be used:
 \begin{example}
-  crab_x1,    crab_x2
-  crab_x3,    crab_tilt
+  crab_x1,    crab_x2,     crab_x3
+  crab_x4,    crab_x5,     crab_tilt
 \end{example}
 If \vn{crab_tilt} is zero (the default), the strong beam centroid $(x_c, y_c)$ will have $y_c$ zero
 and
 \begin{equation}
-  x_c(z) = \text{crab_x1} \cdot z + \text{crab_x2} \cdot z^2 + \text{crab_x3} \cdot z^3
+  x_c(z) = \text{crab_x1} \cdot z + \text{crab_x2} \cdot z^2 + \text{crab_x3} \cdot z^3 + 
+                                    \text{crab_x4} \cdot z^4 + \text{crab_x5} \cdot z^5
 \end{equation}
 where positive $x_c$ and $y_c$ are the same as positive $x$ and positive $y$ for the weak beam and
 $z$ is the longitudinal position with respect to the strong beam center with positive $z$ being

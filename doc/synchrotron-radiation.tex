@@ -101,22 +101,23 @@ approximation fails, the equilibrium beam distribution would not be Gaussian and
 radiation integral treatment (\sref{s:synch.ints}), which relies on this approximation, would not be
 valid.
 
-The transfer map with damping $\calM_{21}$ is calculated by adding in the effect of the damping
-(\Eqs{pk1pp}) when integrating the equations of motion to form the map. Assuming that the change in
-energy over the interval $[s_1, s_2]$ is small compared to the energy of a particle, the matrix
-$\bfM_{21}$, which is the first order part of $\calM_{21}$, is computed via first order perturbation
-theory to be
+The transfer map with damping $\calM$ is calculated by adding in the effect of the damping
+(\Eqs{pk1pp}) when integrating the equations of motion to form the map. Through a given lattice
+element, it is generally very safe to assume that the change in energy is small compared to the
+energy of a particle. Thus the matrix $\bfM$ through an element, which is the first order part of
+$\calM$, can is computed via first order perturbation theory to be
 \begin{equation}
-  \bfM_{21} = \bfT_{21} + \bfZ_{21}
+  \bfM = \bfT + \bfZ
   \label{mtz}
 \end{equation}
-where $\bfT_{21}$ is the transfer matrix without damping and $\bfZ_{21}$ is the change in $\bfT$ due
+where $\bfT$ is the transfer matrix without damping and $\bfZ$ is the change in $\bfT$ due
 to damping computed via
 \begin{equation}
-  \bfZ_{21} = \int_{s_1}^{s_2} ds \, \bfT_{2s} \, \bfd(s)
+  \bfZ = \int_{s_1}^{s_2} ds \, \bfT_{2s} \, \bfd(s) \, \bfT_{s1}
   \label{zstd}
 \end{equation}
-with the local damping matrix $\bfd$ being computed from \Eqs{pk1pp}
+where $s_1$ and $s_2$ are the longitudinal positions at the ends of the element and
+the local damping matrix $\bfd$ is computed from \Eqs{pk1pp}
 \begin{equation}
   \bfd = -k_d \, \begin{pmatrix}
     0                           & 0           & 0                           & 0           & 0 & 0       \\
@@ -127,10 +128,9 @@ with the local damping matrix $\bfd$ being computed from \Eqs{pk1pp}
     \frac{dg^2}{dx} (1+p_z)^2   & 0           & \frac{dg^2}{dy} (1+p_z)^2   & 0           & 0 & 2 g^2 (1+p_z) \\
   \end{pmatrix}
 \end{equation}
-where all quantities are evaluated on the closed orbit.
-Notice that since $\calM_{21}$
-is computed with respect to the beam centroid orbit, there is no constant part to the map. Since
-$\bfT_{21}$ is invertible, \Eq{mtz} can be written in the form
+All quantities are evaluated on the closed orbit. Notice that since $\calM_{21}$ is computed with
+respect to the beam centroid orbit, there is no constant part to the map. Since $\bfT_{21}$ is
+invertible, \Eq{mtz} can be written in the form
 \begin{equation}
   \bfM_{21} = \bigl( \boldsymbol{1} + \bfZ_{21} \, \bfT_{21}^{-1} \bigr) \, \bfT_{21} 
   \equiv \bfD_{21} \, \bfT_{21} 
