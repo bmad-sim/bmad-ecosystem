@@ -26,8 +26,8 @@ use wall3d_mod, only: calc_wall_radius
 use em_field_mod, only: em_field_calc
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use ptc_spin, only: c_linear_map, assignment(=)
-use pointer_lattice, only: operator(.sub.)
-use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre
+use pointer_lattice, only: operator(.sub.), operator(**), operator(*), alloc, kill, print, ci_phasor, assignment(=)
+use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre, assignment(=)
 use ptc_map_with_radiation_mod, only: ptc_rad_map_struct, ptc_setup_map_with_radiation, tree_element_zhe
 
 implicit none
@@ -96,6 +96,8 @@ type (tao_lat_sigma_struct), pointer :: lat_sig
 type (track_struct), target :: track
 type (track_point_struct), pointer :: tp
 type (strong_beam_struct), pointer :: sb
+type (c_taylor) ptc_ctaylor
+type (complex_taylor_struct) bmad_ctaylor
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -140,6 +142,7 @@ character(n_char_show) what2
 
 character(1) delim
 character(3) undef_str 
+character(6) :: mode(4) = [character(6):: 'a-mode', 'b-mode', 'c-mode', 'spin']
 character(9) angle_str
 character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt, energy_fmt, s_fmt
 character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
@@ -583,7 +586,6 @@ case ('branch')
     end select
   enddo
 
-
   lat => u%model%lat
 
   if (size(s%u) > 1) then
@@ -668,6 +670,35 @@ case ('building_wall')
 
 case ('chromaticity')
 
+  what_to_print = ''
+
+  do 
+    call tao_next_switch (what2, [character(16):: '-universe', '-taylor'], .false., switch, err, ix_s2);  if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+
+    case ('-universe')
+      read (what2(1:ix_s2), *, iostat = ios) ix
+      u => tao_pointer_to_universe(ix)
+      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
+        return
+      endif
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+
+    case ('-taylor')
+      what_to_print = switch
+
+    case default
+      call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // what2)
+      return
+
+    end select
+  enddo
+
+  !
+
   if (branch%param%geometry /= closed$) then
     nl=1;    lines(1) = 'BRANCH GEOMETRY NOT CLOSED'
     nl=nl+1; lines(2) = 'USE THE "set branch ' // int_str(branch%ix_branch) // ' geometry = closed" TO CHANGE THIS.'
@@ -704,6 +735,32 @@ case ('chromaticity')
     nl=nl+1; write (lines(nl), '(i3, 2x, 2es18.7)') i, z1, z2
   enddo
 
+  !
+
+  if (what_to_print == '-taylor') then
+    call alloc(ptc_ctaylor)
+
+    do i = 1, 4
+      if (i == 4) then
+        ptc_ctaylor = ptc_nf%spin * ci_phasor() * ptc_nf%normal_form%atot**(-1)
+      else
+        ptc_ctaylor = ptc_nf%phase(i) * ci_phasor() * ptc_nf%normal_form%atot**(-1)
+      endif
+      bmad_ctaylor = ptc_ctaylor
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Taylor series: ' // trim(mode(i)) // ' tune'
+      call type_complex_taylors ([bmad_ctaylor], lines = alloc_lines, n_lines = n, out_type = 'NONE')
+      if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
+      lines(nl+1:nl+n) = alloc_lines(1:n)
+      nl = nl + n
+
+      if (i == 4 .and. .not. associated(bmad_ctaylor%term) .and. .not. bmad_com%spin_tracking_on) then
+        nl=nl+1; lines(nl) = 'Spin tracking is turned on with: "set bmad_com spin_tracking_on = T".'
+      endif
+    enddo
+
+    call kill(ptc_ctaylor)
+  endif
 
 !----------------------------------------------------------------------
 ! constraints
