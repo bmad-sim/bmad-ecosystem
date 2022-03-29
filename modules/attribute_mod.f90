@@ -840,6 +840,8 @@ call init_attribute_name1 (beambeam$, cmat_22$,                     'CMAT_22')
 call init_attribute_name1 (beambeam$, crab_x1$,                     'CRAB_X1')
 call init_attribute_name1 (beambeam$, crab_x2$,                     'CRAB_X2')
 call init_attribute_name1 (beambeam$, crab_x3$,                     'CRAB_X3')
+call init_attribute_name1 (beambeam$, crab_x4$,                     'CRAB_X4')
+call init_attribute_name1 (beambeam$, crab_x5$,                     'CRAB_X5')
 call init_attribute_name1 (beambeam$, crab_tilt$,                   'CRAB_TILT')
 
 call init_attribute_name1 (beginning_ele$, l$,                           'l', private$)

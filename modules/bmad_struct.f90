@@ -1596,8 +1596,8 @@ integer, parameter :: hkick$ = 39, d_spacing$ = 39, x_offset_mult$ = 39, emittan
 integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emittance_b$ = 40, crab_x2$ = 40
 integer, parameter :: BL_hkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41, crab_x3$ = 41
 integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42, crab_tilt$ = 42
-integer, parameter :: BL_kick$ = 43, B_field$ = 43, E_field$ = 43, high_energy_space_charge_on$ = 43
-integer, parameter :: photon_type$ = 44, coupler_phase$ = 44, dB_field$ = 44
+integer, parameter :: BL_kick$ = 43, B_field$ = 43, E_field$ = 43, high_energy_space_charge_on$ = 43, crab_x4$=43
+integer, parameter :: photon_type$ = 44, coupler_phase$ = 44, dB_field$ = 44, crab_x5$=44
 integer, parameter :: lattice_type$ = 45, B1_gradient$ = 45, E1_gradient$ = 45, coupler_angle$ = 45
 integer, parameter :: live_branch$ = 46, B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46
 integer, parameter :: geometry$ = 47, coupler_at$ = 47, E_tot_set$ = 47, ptc_canonical_coords$ = 47
