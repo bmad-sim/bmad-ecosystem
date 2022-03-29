@@ -116,10 +116,10 @@ export ACC_ENABLE_GFORTRAN_OPTIMIZATION="Y"
 
 
 #-----------------------------------------------------------
-# Trying to make shared object libraries with a Distribution 
-# generates a gmake error.  This bug is being worked on and 
-# for now the making of shared object libraries is disabled. 
-# That is, static libraries will be used.
+# If ACC_ENABLE_SHARED is set to "Y", shared versions of the
+# libraries will be created. Static library building will always
+# be done independent of the setting of ACC_ENABLE_SHARED and
+# Executables will always be built using the static libraries.
 #-----------------------------------------------------------
 export ACC_ENABLE_SHARED="N"
 
