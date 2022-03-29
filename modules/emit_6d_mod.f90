@@ -357,8 +357,8 @@ dg2_dx = 2 * dot_product(g, dg(:,1))
 dg2_dy = 2 * dot_product(g, dg(:,2))
 
 if (ele%key == sbend$) then
-  g2 = g2 * (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length
-  dg2_dx = dg2_dx * (1 + ele%value(g$) * orb0%vec(1)) 
+  g2 = g2 * (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length effect
+  dg2_dx = dg2_dx * (1 + ele%value(g$) * orb0%vec(1)) + ele%value(g$)**3
 endif
 
 ! Damping matrix
