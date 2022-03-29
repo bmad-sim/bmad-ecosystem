@@ -4,7 +4,6 @@ use bmad
 use ptc_map_with_radiation_mod
 use ptc_layout_mod
 use emit_6d_mod
-use my_mod
 
 implicit none
 
