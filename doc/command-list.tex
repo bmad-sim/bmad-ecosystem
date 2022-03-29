@@ -58,23 +58,24 @@ possible
   {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \midrule
   alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\
   call          & \sref{s:call}     & read          & \sref{s:read}     \\
-  change        & \sref{s:change}   & restore       & \sref{s:restore}  \\ 
-  clear         & \sref{s:clear}    & reinitialize  & \sref{s:reinit}   \\ 
+  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ 
+  clear         & \sref{s:clear}    & restore       & \sref{s:restore}  \\ 
   clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ 
-  continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ 
-  derivative    & \sref{s:deriv}    & set           & \sref{s:set}      \\  
-  do, enddo     & \sref{s:do}       & show          & \sref{s:show}     \\ 
-  end_file      & \sref{s:end.file} & single_mode   & \sref{s:sing}     \\ 
-  exit          & \sref{s:exit}     & spawn         & \sref{s:spawn}    \\ 
-  flatten       & \sref{s:flatten}  & taper         & \sref{s:taper}    \\
-  help          & \sref{s:help}     & timer         & \sref{s:timer}    \\
-  ls            & \sref{s:ls}       & use           & \sref{s:use}      \\ 
-  misalign      & \sref{s:misalign} & veto          & \sref{s:veto}     \\ 
-  pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\
-  place         & \sref{s:place}    & write         & \sref{s:write}    \\ 
-  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
-  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
-  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\
+  cut_ring      & \sref{s:cut.ring} & scale         & \sref{s:scale}    \\ 
+  continue      & \sref{s:continue} & set           & \sref{s:set}      \\  
+  derivative    & \sref{s:deriv}    & show          & \sref{s:show}     \\ 
+  do, enddo     & \sref{s:do}       & single_mode   & \sref{s:sing}     \\ 
+  end_file      & \sref{s:end.file} & spawn         & \sref{s:spawn}    \\ 
+  exit          & \sref{s:exit}     & taper         & \sref{s:taper}    \\
+  flatten       & \sref{s:flatten}  & timer         & \sref{s:timer}    \\
+  help          & \sref{s:help}     & use           & \sref{s:use}      \\ 
+  ls            & \sref{s:ls}       & veto          & \sref{s:veto}     \\ 
+  misalign      & \sref{s:misalign} & wave          & \sref{s:wave}     \\
+  pause         & \sref{s:pause}    & write         & \sref{s:write}    \\ 
+  place         & \sref{s:place}    & x_axis        & \sref{s:x.axis}   \\ 
+  ptc           & \sref{s:ptc}      & x_scale       & \sref{s:x.scale}  \\ 
+  python        & \sref{s:python}   & xy_scale      & \sref{s:xy.scale} \\
+  quit          & \sref{s:quit}     &               &                   \\
 \bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
@@ -316,6 +317,18 @@ Examples:
   clip -g orbit.x   ! Clip the orbit.x graph and also veto corresponding points
                     ! in other graphs of the orbit plot.
 \end{example}
+
+%% cut_ring --------------------------------------------------------------
+\section{cut_ring}\index{commands!cut_ring}
+\label{s:cut.ring}
+
+Format:
+\begin{example}
+  cut_rung
+\end{example}
+
+The \vn{cut_ring} command is used to switch the geometry of the viewed \vn{model} lattice
+from \vn{closed} to \vn{open}.
 
 %% continue --------------------------------------------------------------
 \section{continue}\index{commands!continue}
@@ -664,29 +677,6 @@ Examples:
   read lat -uni 2,3 lat.bmad ! Modify model lattice universes 2 and 3.
 \end{example}
 
-%% restore --------------------------------------------------------------
-\section{restore}\index{commands!restore}
-\label{s:restore}
-
-The \vn{restore} command cancels data or variable vetoes. Format:
-\begin{example}
-  restore data  <data_name> <locations>
-  restore var <var_name> <locations>
-\end{example}
-
-\vskip 10pt 
-
-See also the \vn{use} and \vn{veto} commands.
-
-Examples:
-\begin{example}
-  restore data orbit.x[23,34:56]   ! un-veto orbit.x 23 and 34 through 56.
-  restore data orbit.x[23,34:56:2] ! un-veto orbit.x 23 and even data between 34 
-                                   !                                          and 56
-  restore data *@orbit[34]         ! un-veto orbit data in all universes.
-  restore var quad_k1[67]          ! un-veto variable
-\end{example}
-
 %% reinitialize -------------------------------------------------------
 \section{reinitialize}\index{commands!reinitialize}
 \label{s:reinit}
@@ -725,6 +715,28 @@ Examples:
   reinit -clear -start my_start      ! Use default init values except for the start file.                    
 \end{example}
 
+%% restore --------------------------------------------------------------
+\section{restore}\index{commands!restore}
+\label{s:restore}
+
+The \vn{restore} command cancels data or variable vetoes. Format:
+\begin{example}
+  restore data  <data_name> <locations>
+  restore var <var_name> <locations>
+\end{example}
+
+\vskip 10pt 
+
+See also the \vn{use} and \vn{veto} commands.
+
+Examples:
+\begin{example}
+  restore data orbit.x[23,34:56]   ! un-veto orbit.x 23 and 34 through 56.
+  restore data orbit.x[23,34:56:2] ! un-veto orbit.x 23 and even data between 34 
+                                   !                                          and 56
+  restore data *@orbit[34]         ! un-veto orbit data in all universes.
+  restore var quad_k1[67]          ! un-veto variable
+\end{example}
 
 %% run --------------------------------------------------------------
 \section{run_optimizer}\index{commands!run}
@@ -1876,11 +1888,18 @@ For vacuum_chamber, capillary, and diffraction_plate walls use the ``show wall''
 
 Syntax:
 \begin{example}
-  show chromaticity
+  show chromaticity \{-taylor\} \{-universe <universe>\} 
 \end{example}
 
 Shows chromaticity and derivatives as calculated from PTC normal form analysis. Also shown
 is momentum compaction and phase slip and derivatives.
+
+If no universe is given, the current default universe (\sref{s:universe}) is used.
+
+The \vn{-taylor} switch will show the Taylor series for the three normal mode tunes and spin tune
+as functions of the phase space coordinates. The computation uses complex series. The imaginary part
+should be zero (or very small). The spin Taylor series is only computed when spin tracking is on.
+
 
 %% show constraints --------------------------------------------------------------
 
