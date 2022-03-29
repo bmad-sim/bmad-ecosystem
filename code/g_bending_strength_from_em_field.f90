@@ -55,14 +55,6 @@ if (present(dg)) then
   dg(:,1) = g_from_field (field%dB(:,1), field%dE(:,1), orbit, vel_unit, param, fact)
   dg(:,2) = g_from_field (field%dB(:,2), field%dE(:,2), orbit, vel_unit, param, fact)
   dg(:,3) = g_from_field (field%dB(:,3), field%dE(:,3), orbit, vel_unit, param, fact)
-  if (ele%key == sbend$) then
-    if (local_ref_frame .or. ele%value(ref_tilt$) == 0) then
-      dg(1,1) = dg(1,1) + ele%value(g$)**2
-    else
-      dg(1,1:2) = dg(1,1:2) + ele%value(g$)**2 * cos(ele%value(ref_tilt$)) * [cos(ele%value(ref_tilt$)), sin(ele%value(ref_tilt$))]
-      dg(2,1:2) = dg(2,1:2) + ele%value(g$)**2 * sin(ele%value(ref_tilt$)) * [cos(ele%value(ref_tilt$)), sin(ele%value(ref_tilt$))]
-    endif
-  endif
 endif
 
 !---------------------------------------------------------------

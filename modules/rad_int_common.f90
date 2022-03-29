@@ -61,8 +61,7 @@ contains
 !+
 ! Subroutine qromb_rad_int(param, do_int, pt, info, int_tot, rad_int)
 !
-! Function to do integration using Romberg's method on the 7 radiation 
-! integrals.
+! Function to do integration using Romberg's method on the 7 radiation integrals.
 ! This is a modified version of QROMB from Num. Rec.
 ! See the Num. Rec. book for further details.
 !
