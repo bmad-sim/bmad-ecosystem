@@ -308,7 +308,7 @@ if (use_cache .or. init_cache) then
       call allocate_cache(cache_ele, track%n_pt)
       do i = 0, track%n_pt
         cache_ele%pt(i)%ref_orb_in  = orb_start
-        call cache_fill(branch, cache_ele%pt(i), track, i, max(0, i-1), min(track%n_pt, i+1))
+        call cache_fill(ele2, branch, cache_ele%pt(i), track, i, max(0, i-1), min(track%n_pt, i+1))
       enddo
 
     ! All else...
@@ -737,8 +737,9 @@ end subroutine cache_this_point
 !------------------------------------------------------------------------
 ! contains
 
-subroutine cache_fill (branch, c_pt, track, ix, ix0, ix1)
+subroutine cache_fill (ele2, branch, c_pt, track, ix, ix0, ix1)
 
+type (ele_struct) ele2
 type (branch_struct) branch
 type (rad_int_track_point_struct) :: c_pt
 type (track_struct) track

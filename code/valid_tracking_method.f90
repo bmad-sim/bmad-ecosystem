@@ -42,10 +42,15 @@ if (species == photon$) then
 endif
 
 ! Save some writting since fixed_step_* versions are valid when non fixed_step_* versions are valid.
+! Exception: patch elements.
 
 method = tracking_method
-if (method == fixed_step_runge_kutta$) method = runge_kutta$
-if (method == fixed_step_time_runge_kutta$) method = time_runge_kutta$
+if (ele%key /= patch$) then
+  if (method == fixed_step_runge_kutta$) method = runge_kutta$
+  if (method == fixed_step_time_runge_kutta$) method = time_runge_kutta$
+endif
+
+!
 
 select case (ele%key)
 
