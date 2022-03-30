@@ -214,7 +214,8 @@ explained in \sref{s:rf.time}.
   \vn{monitor}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\  
   \vn{multipole}               & D & X & X &   &     &     &  X  &  X  &    \\  
   \vn{octupole}                & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
-  \vn{patch}                   & D & X &   &   &X$^c$&     &  X  &  X  &    \\ 
+  \vn{patch}                   & D & X &   &   &X$^{c,d}$
+                                                     &     &  X  &  X  &    \\ 
   \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  &  X  & X  \\ 
   \vn{rbend}                   & D & X & X & X &     &     &  X  &  X  &    \\ 
   \vn{rcollimator}             & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
@@ -231,6 +232,7 @@ explained in \sref{s:rf.time}.
   \multicolumn{10}{l}{$^a$Only if the beginning energy is non-zero.}        \\
   \multicolumn{10}{l}{$^b$See \sref{s:wiggler.periodic} for more details.}  \\
   \multicolumn{10}{l}{$^c$Only available for non-reflection patch elements.}
+  \multicolumn{10}{l}{$^d$Fixed_step_runge_kutta not available.}
 \end{tabular}
 }
 \caption[Table of available tracking_method switches for charged particle tracking.] { 

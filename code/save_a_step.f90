@@ -94,7 +94,7 @@ else
   s_lab = s_rel
 endif
 
-tp%s_body = s_rel
+tp%s_body = s_lab
 tp%orb%ix_ele = ele%ix_ele
 
 if (logic_option(.false., save_field)) then

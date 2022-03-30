@@ -99,15 +99,14 @@ if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) 
     if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
     if (.not. attribute_free (lord, a_name, err_print_flag, dependent_attribs_free = .true.)) return
     call parser_set_attribute (redef$, lord, delim, delim_found, err_flag, set_field_master = .false.)
+    if (err_flag) exit
     call attribute_set_bookkeeping (lord, a_name, err_flag)
-    if (err_flag) return
   enddo
     
 else
   if (.not. attribute_free (ele, a_name, err_print_flag, dependent_attribs_free = .true.)) return
   call parser_set_attribute (redef$, ele, delim, delim_found, err_flag, set_field_master = .false.)
-  call attribute_set_bookkeeping (ele, a_name, err_flag)
-  if (err_flag) return
+  if (.not. err_flag) call attribute_set_bookkeeping (ele, a_name, err_flag)
 endif
 
 bp_com%input_from_file = file_input_save
