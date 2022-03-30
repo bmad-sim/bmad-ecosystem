@@ -5068,7 +5068,7 @@ case ('universe')
     if (branch%param%geometry == closed$) then
       call calc_z_tune(lat, ix_branch)
       if (abs(design_lat%z%tune/twopi)  > 1d-3 .and. abs(branch%z%tune/twopi) > 1d-3) then
-        nl=nl+1; write(lines(nl), fmt) 'Z_tune:', -branch%z%tune/twopi, -design_lat%z%tune/twopi, '! The design value is calculated with RF on'
+        nl=nl+1; write(lines(nl), fmt) 'Z_tune:', -branch%z%tune/twopi, -design_lat%z%tune/twopi
       else
         if (.not. branch%z%stable) then
           str1 = '  Unstable'
