@@ -39,7 +39,7 @@ type (strong_beam_struct) sbb
 real(rp), optional :: mat6(6,6)
 real(rp) sig_x, sig_y, x_center, y_center
 real(rp) s_pos, s_pos_old, k0_x, k0_y, k_xx1, k_xy1, k_yx1, k_yy1, k_xx2, k_xy2, k_yx2, k_yy2, coef, del
-real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const, z
+real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const, z, dx, dy
 real(rp), allocatable :: z_slice(:)
 real(rp) om(3), quat(0:3)
 
@@ -82,15 +82,17 @@ do i = 1, n_slice
   call strong_beam_sigma_calc (ele, s_pos, -z, sig_x, sig_y, bbi_const, x_center, y_center)
 
   call track_a_drift (orbit, del_s, mat6, make_matrix)
-  if (present(track)) then
-    sbb = strong_beam_struct(i, x_center, y_center, sig_x, sig_y)
-    call save_a_step(track, ele, param, .true., orbit, s_pos, strong_beam = sbb)
-  endif
-
   ratio = sig_y / sig_x
 
-  x_pos = (orbit%vec(1) - x_center) / sig_x
-  y_pos = (orbit%vec(3) - y_center) / sig_y
+  dx = orbit%vec(1) - x_center
+  dy = orbit%vec(3) - y_center
+  x_pos = dx / sig_x
+  y_pos = dy / sig_y
+
+  if (present(track)) then
+    sbb = strong_beam_struct(i, x_center, y_center, sig_x, sig_y, dx, dy)
+    call save_a_step(track, ele, param, .true., orbit, s_pos, strong_beam = sbb)
+  endif
 
   call bbi_kick (x_pos, y_pos, ratio, k0_x, k0_y)
 
