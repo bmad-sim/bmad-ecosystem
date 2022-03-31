@@ -1791,8 +1791,9 @@ integer, parameter :: grid_field_dimension(2) = [2, 3]
 
 type strong_beam_struct
   integer :: ix_slice = 0                   ! 0 -> at element center and not at slice.
-  real(rp) :: x_center = 0, y_center = 0    ! Strong beam center
-  real(rp) :: x_sigma = 0, y_sigma = 0      ! Strong beam sigma
+  real(rp) :: x_center = 0, y_center = 0    ! Strong beam slice center.
+  real(rp) :: x_sigma = 0, y_sigma = 0      ! Strong beam slice sigma.
+  real(rp) :: dx = 0, dy = 0                ! Particle - beam slice distance.
 end type
 
 type track_point_struct
