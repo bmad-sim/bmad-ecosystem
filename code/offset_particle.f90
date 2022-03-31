@@ -23,11 +23,6 @@
 !
 ! Note: There are no element coordinates associated with a patch element so this routine will do nothing in this case.
 !
-! Options:
-!   Using the element tilt in the offset.
-!   Using the HV kicks.
-!   Using the multipoles.
-!
 ! Input:
 !   ele            -- Ele_struct: Element
 !     %value(x_offset$) -- Horizontal offset of element.

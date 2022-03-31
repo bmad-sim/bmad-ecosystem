@@ -287,7 +287,7 @@ do j = 1, j_max
 
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
-    call calc_rad_at_pt(ele, orb_in, z_pos, damp_mat1, stoc_mat1)
+    call calc_rad_at_pt(ele, orb0, z_pos, damp_mat1, stoc_mat1)
     damp_mat_sum = damp_mat_sum + damp_mat1 
     stoc_mat_sum = stoc_mat_sum + stoc_mat1 
   enddo
