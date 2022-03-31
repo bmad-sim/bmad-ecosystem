@@ -1741,6 +1741,7 @@ Format:
   show derivative ...        ! Show d_data/d_var optimization info \sref{s:show.derivative}.
   show dynamic_aperture      ! Show DA info \sref{s:show.da}.
   show element ...           ! Show lattice element info \sref{s:show.element}.
+  show emittance             ! Show normal mode emittances \sref{s:show.emit}.
   show field ...             ! Show EM field \sref{s:show.field}.
   show global ...            ! Show Tao global parameters \sref{s:show.global}.
   show graph ...             ! Show plot graph info \sref{s:show.graph}.
@@ -1825,20 +1826,20 @@ Shows a list of defined aliases. See the \vn{alias} command for more details.
 
 Syntax:
 \begin{example}
-  show beam \{-universe <universe>\} \{-lattice\} \{<element_name_or_index>\}
+  show beam \{-universe <uni_index>\} \{-lattice\} \{<element_id>\}
 \end{example}
 
-If both \vn{<element_name_or_index>} and \vn{-lattice} are absent, \vn{show beam} shows parameters
+If both \vn{<element_id>} and \vn{-lattice} are absent, \vn{show beam} shows parameters
 used with beam tracking including the number of particles in a bunch, etc.
 
 If no universe is given, the current default universe (\sref{s:universe}) is used.
 
-If \vn{<element_name_or_index>} is present, and \vn{-lattice} is not, \vn{show beam} will show beam
+If \vn{<element_id>} is present, and \vn{-lattice} is not, \vn{show beam} will show beam
 parameters at the selected element. Also see \vn{show particle}.  Use the \vn{set beam_init} command
 to set values of the \vn{beam_init} structure.
 
 If \vn{-lattice} is present, \vn{show beam} will show the beam sigma matrix as calculated from the
-lattice at the position given by \vn{<element_name_or_index>} (\sref{s:lat.sig.init}). If an
+lattice at the position given by \vn{<element_id>} (\sref{s:lat.sig.init}). If an
 element is not specified, the beginning element (with index 0) will be used.
 
 Examples:
@@ -1854,7 +1855,7 @@ Examples:
 
 Syntax:
 \begin{example}
-  show branch \{-universe <universe>\}
+  show branch \{-universe <uni_index>\}
 \end{example}
 
 Lists the lattice branches of the lattice associated with the given universe along with information
@@ -1888,7 +1889,7 @@ For vacuum_chamber, capillary, and diffraction_plate walls use the ``show wall''
 
 Syntax:
 \begin{example}
-  show chromaticity \{-taylor\} \{-universe <universe>\} 
+  show chromaticity \{-taylor\} \{-universe <uni_index>\} 
 \end{example}
 
 Shows chromaticity and derivatives as calculated from PTC normal form analysis. Also shown
@@ -2122,6 +2123,35 @@ Example:
   show ele -att 105             ! Show element #105 in the lattice.
 \end{example}
 
+%% show emittance --------------------------------------------------------------
+
+\subsection{emittance}
+\label{s:show.emit}
+
+Syntax:
+\begin{example}
+  show emittance \{-element <ele_id>\} \{-universe <uni_index>\}
+\end{example}
+
+The \vn{show emittance} command shows, for a given lattice branch, the three normal mode emittances
+as calculated by PTC, a full non-PTC based 6D calculation, and via radiation integrals evaluation
+(also non-PTC). With radiation damping, the emittance is not an exact invariant of the motion. Thus
+the calculated emittance will vary from element to element.
+
+If the \vn{-element} switch is not present, the beginning element of the default branch (set by
+\vn{set default branch}) is used.
+
+Note: The 6D calculation is new and undergoing testing. Currently the radiation integrals emittances
+are what is shown with the \vn{show universe} command but this is likely to change in the future
+since the 6D calculation is more accurate.
+
+
+
+Examples:
+\begin{example}
+  show emit -ele 1>>q7  ! Use element q7 in branch \#1
+\end{example}
+
 %% show field --------------------------------------------------------------
 
 \subsection{show field}
@@ -2295,7 +2325,7 @@ Syntax:
       \{-no_label_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-no_tail_lines\} \{-orbit\} 
       \{-python\} \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} 
       \{-rms\} \{-s <s1>:<s2>\} \{-spin\} \{-sum_radiation_integrals\} \{-tracking_elements\} 
-      \{-undef0\} \{-universe <index>\} \{<element_list>\} 
+      \{-undef0\} \{-universe <uni_index>\} \{<element_list>\} 
 \end{example}
 
 Show a table of Twiss and orbit data, etc. at the specified element locations. The default is to
@@ -2630,7 +2660,7 @@ Also see:
 Syntax:
 \begin{example}
     show particle \{-bunch <bunch_index>\} \{-particle <particle_index>
-                  \{-element <element_name_or_index>\} \{-lost\} \{-all\}
+                  \{-element <element_id>\} \{-lost\} \{-all\}
 \end{example}
 
 
@@ -2978,9 +3008,9 @@ the field.
 \item[\vn{\{-element <ele_id>\}}] \Newline
 The \vn{-element} switch can be used instead of \vn{-range} to set the $s$-position. With
 \vn{-element} the track range is the extent of the element given by \vn{<ele_id>}. Note: If the
-element is a \vn{beambeam} element, the track will show the before and after particle positions at each
-strong beam slice. See the documentation on the \vn{beambeam} element for more details on how tracking
-through the element is done.
+element is a \vn{beambeam} element, the track will show the before and after particle positions at
+each strong beam slice along with the initial position after tracking through the previous lattice
+element along with the final position which is used to start tracking through the next element.
 %
 \item[\vn{\{-momentum \{<fmt>\}\}}] \Newline
 Set the format for the three phase space momentum parameters $(p_x, p_y, p_z)$. Notice that these

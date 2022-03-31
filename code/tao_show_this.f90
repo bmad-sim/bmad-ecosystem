@@ -29,6 +29,7 @@ use ptc_spin, only: c_linear_map, assignment(=)
 use pointer_lattice, only: operator(.sub.), operator(**), operator(*), alloc, kill, print, ci_phasor, assignment(=)
 use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre, assignment(=)
 use ptc_map_with_radiation_mod, only: ptc_rad_map_struct, ptc_setup_map_with_radiation, tree_element_zhe
+use emit_6d_mod, only: emit_6d
 
 implicit none
 
@@ -128,7 +129,7 @@ real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s
 real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, phase
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, time1, ds, ref_vec(6), beta
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
-real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3)
+real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3), emit(3)
 real(rp), allocatable :: value(:)
 
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
@@ -222,13 +223,13 @@ if (what == '') then
   return
 endif
 
-call match_word (what, [character(20):: 'data', 'variables', 'global', 'alias', 'top10', &
-   'optimizer', 'element', 'lattice', 'constraints', 'plot', 'beam', 'tune', 'graph', 'curve', &
-   'hom', 'key_bindings', 'universe', 'orbit', 'derivative', 'branch', 'use', 'taylor_map', &
-   'twiss_and_orbit', 'building_wall', 'wall', 'normal_form', 'dynamic_aperture', 'value', &
-   'matrix', 'field', 'wake_elements', 'history', 'symbolic_numbers', 'wave', 'particle', &
-   'merit', 'track', 'spin', 'internal', 'control', 'string', 'version', 'ptc', 'chromaticity'], &
-                                                                   ix, matched_name = show_what)
+call match_word (what, [character(20):: 'alias', 'beam', 'branch', 'building_wall', &
+        'chromaticity', 'constraints', 'control', 'curve', &
+        'data', 'derivative', 'dynamic_aperture', 'element', 'emittance', 'field', 'global', 'graph', 'history', &
+        'hom', 'internal', 'key_bindings', 'lattice', 'matrix', 'merit', 'normal_form', 'optimizer', &
+        'orbit', 'particle', 'plot', 'ptc', 'spin', 'string', 'symbolic_numbers', 'taylor_map',  'top10', &
+        'track', 'tune', 'twiss_and_orbit', 'universe', 'use', 'value', 'variables', 'version', &
+        'wake_elements', 'wall', 'wave'], ix, matched_name = show_what)
 if (ix == 0) then
   nl=1; lines(1) = 'SHOW WHAT? WORD NOT RECOGNIZED: ' // what
   return
@@ -1423,7 +1424,7 @@ case ('dynamic_aperture')
   enddo
 
 !----------------------------------------------------------------------
-! ele
+! element
 
 case ('element')
 
@@ -1641,6 +1642,69 @@ case ('element')
                 'NOTE: There is another element with the same name at: ', trim(ele_loc_name(eles(i)%ele))
     enddo
   endif
+
+!----------------------------------------------------------------------
+! field
+
+case ('emittance')
+
+  ele_name = ''
+  what_to_print = ''
+
+  do 
+    call tao_next_switch (what2, [character(16):: '-universe', '-element'], &
+                                                                     .true., switch, err, ix_s2)
+    if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+
+    case ('-universe')
+      read (what2(1:ix_s2), *, iostat = ios) ix
+      u => tao_pointer_to_universe(ix)
+      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
+        return
+      endif
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+
+    case ('-element')
+      ele_name = what2(:ix_word)
+      call string_trim (what2(ix_word+1:), what2, ix_word)
+
+    case default
+      call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+      return
+    end select
+
+  enddo
+
+  if (ele_name == '') then
+    ele => u%model%lat%branch(s%global%default_branch)%ele(0)
+  else
+    call tao_locate_elements (ele_name, ix_u, eles, err)
+    if (err) return
+    ele => eles(1)%ele
+  endif
+
+  tao_branch => u%model%tao_branch(ele%ix_branch)
+  mode_m => tao_branch%modes
+
+  call emit_6d (ele, sig_mat, emit)
+  call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, ele%ix_branch)
+
+  if (.not. associated(branch%ptc%m_t_layout)) then
+    call out_io (s_info$, r_name, 'Note: Creating PTC layout (equivalent to "ptc init").')
+    call lat_to_ptc_layout (lat)
+  endif
+
+  call ptc_emit_calc (branch%ele(0), norm_mode, sig_mat, orb)
+
+  nl=nl+1; lines(nl) = ' Mode     PTC_Emit   Bmad_6D_Emit   Rad_Int_Emit'
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 3es15.7)') 'A', norm_mode%a%emittance, emit(1), mode_m%a%emittance
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 3es15.7)') 'B', norm_mode%b%emittance, emit(2), mode_m%b%emittance
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 3es15.7)') 'C', norm_mode%z%emittance, emit(3), mode_m%sigE_E * mode_m%sig_z
+
 
 !----------------------------------------------------------------------
 ! field
@@ -4651,24 +4715,23 @@ case ('track')
     call track1 (tao_branch%orbit(ele%ix_ele-1), ele, ele%branch%param, orb2, track, err)
     call re_allocate(lines, nl+track%n_pt+10)
 
-    nl=nl+1; lines(nl) = '            |                               Tracked particle                                      |                             Strong Beam'
-    nl=nl+1; lines(nl) = '     s_body |       x             xp            y             py            z             pz      | ix_slice     x_center      y_center       x_sigma       y_sigma'
+    nl=nl+1; lines(nl) = '           |                 Tracked particle (Laboratory Coordinates)                     |         Strong Beam (Lab Coords)                            | Particle - Beam distance'
+    nl=nl+1; lines(nl) = '    s_body |       x            px           y            py           z            pz     | slice     x_center     y_center      x_sigma      y_sigma   |         dx           dy'
 
     do i = 0, track%n_pt
       tp => track%pt(i)
       sb => tp%strong_beam
       if (sb%ix_slice == 0) then
-        nl=nl+1; write (lines(nl), '(f12.6, 6es14.6)') tp%s_body, tp%orb%vec
+        nl=nl+1; write (lines(nl), '(f11.6, 1x, 6es13.5)') tp%s_body, tp%orb%vec
       else
-        nl=nl+1; write (lines(nl), '(f12.6, 6es14.6, i11, 2x, 4es14.6)') tp%s_body, tp%orb%vec, &
-                                                  sb%ix_slice, sb%x_center, sb%y_center, sb%x_sigma, sb%y_sigma
+        nl=nl+1; write (lines(nl), '(f11.6, 1x, 6es13.5, i8, 2x, 4es13.5, 2x, 2es13.5)') tp%s_body, tp%orb%vec, &
+                                  sb%ix_slice, sb%x_center, sb%y_center, sb%x_sigma, sb%y_sigma, sb%dx, sb%dy
       endif
     enddo
     return
   endif
 
   !
-
 
   if (print_header_lines) then
     line1 = '#   Ix'
