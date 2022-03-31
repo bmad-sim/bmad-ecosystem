@@ -4953,7 +4953,7 @@ type (branch_struct), pointer :: ref_branch
 type (lat_struct), pointer :: lat
 
 integer ix, i, j, k, it, nn, i_ele, ib, il
-integer n_con, ix_branch, n_loc, ix_insert, ix_pass
+integer n_con, ix_branch, n_loc, n_loc0, ix_insert, ix_pass
 
 character(40) name, ref_name
 character(80) line
@@ -4987,9 +4987,18 @@ if (err) then
   return
 endif
 
+if (n_loc > 0) then
+  if (eles(1)%ele%key == drift$ .and. index(pele%ref_name, '##') /= 0) then
+    call parser_error ('SUPERPOSITION WITH THE REFERENCE ELEMENT BEING THE N^TH DRIFT OF A CERTAIN NAME: ' // trim(pele%ref_name), &
+                       'NOT ALLOWED SINCE THIS CAN LEAD TO UNEXPECTED BEHAVIOR.')
+    return
+  endif
+endif
+
 ! Throw out super_slave elements.
 ! Throw out elements that are the same physical element.
 
+n_loc0 = n_loc
 i = 1
 do
   if (i > n_loc) exit
@@ -5008,6 +5017,12 @@ do
 
   i = i + 1
 enddo
+
+if (n_loc == 0 .and. n_loc0 > 0) then
+  call parser_error ('SUPERPOSITION WITH THE REFERENCE ELEMENT BEING A SUPER SLAVE NOT ALLOWED: ' // trim(pele%ref_name))
+  return
+endif
+
 
 ! Group and overlay elements may have not yet been transfered from in_lat to lat.
 ! So search in_lat for a match if there has not been a match using lat. 

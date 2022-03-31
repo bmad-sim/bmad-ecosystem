@@ -61,12 +61,13 @@ a distance of +1~meter from the center of \vn{S}. The tracking part of the latti
 What \bmad has done is to split the original elements \vn{(Q, D)} at the edges of \vn{S} and then
 \vn{S} was split where \vn{M} is inserted. The first element in the lattice, \vn{Q\#1}, is the part
 of \vn{Q} that is outside of \vn{S}. Since this is only part of \vn{Q}, \bmad has put a \vn{\#1} in
-the name so that there will be no confusion. (\vn{\#} has no special meaning other than the fact
-that \bmad uses it for mangling names). The next element, \vn{Q{\B}S}, is the part of \vn{Q} that is
-inside \vn{S}. \vn{Q{\B}S} is a combination solenoid/quadrupole element as one would
-expect. \vn{S{\#}1} is the part of \vn{S} that is outside \vn{Q} but before \vn{M}. This element is
-just a solenoid. Next comes \vn{M}, \vn{S{\#}1}, and finally \vn{D\#2} is the rest of the drift
-outside \vn{S}.
+the name so that there will be no confusion. (a single \vn{\#} has no special meaning other than the
+fact that \bmad uses it for mangling names. This is opposed to a double \vn{\#\#} which is used to
+denote the $N$\Th instance of an element (\sref{s:ele.match}). The next element, \vn{Q{\B}S}, is the
+part of \vn{Q} that is inside \vn{S}. \vn{Q{\B}S} is a combination solenoid/quadrupole element as
+one would expect. \vn{S{\#}1} is the part of \vn{S} that is outside \vn{Q} but before \vn{M}. This
+element is just a solenoid. Next comes \vn{M}, \vn{S{\#}1}, and finally \vn{D\#2} is the rest of the
+drift outside \vn{S}.
 
 In the above example, \vn{Q} and \vn{S} will be \vn{super_lord} elements (\vn{s:lord.slave}) and
 four elements in the tracking part of the lattice will be \vn{super_slave} elements. This is
@@ -263,13 +264,21 @@ between split quadrupole halves as there would be if a \vn{marker} element was u
 
 
 \index{drift!superposition}\index{pipe!superposition}
-When a superposition is made that overlaps a drift the drift, not being a "real" element,
+When a superposition is made that overlaps a drift, the drift, not being a "real" element,
 vanishes. That is, it does not get put in the lord section of the lattice.  Note that if aperture
 limits (\sref{s:limit}) have been assigned to a drift, the aperture limits can ``disappear'' when
 the superposition is done. Explicitly, if the exit end of a drift has been assigned aperture limits,
 the limits will disappear if the superimposed element overlays the exit end of the drift. A similar
 situation applies to the entrance end of a drift. If this is not desired, use a \vn{pipe} element
-instead. To simplify bookkeeping, a drift element may not be superimposed.
+instead. 
+
+To simplify bookkeeping, a drift element may not be superimposed. Additionally, since drifts can
+disappear during superposition, to avoid unexpected behavior the superposition reference element may
+not be the $N$\Th instance of a drift with a given name. For example, if there are a number of drift
+elements in the lattice named \vn{a_drft}, the following is not allowed:
+\begin{example}
+  my_oct: octupole, ..., superimpose, ref = a_drft##2  ! This is an error
+\end{example}
 
 When the attributes of a super_slave are computed from the attributes of its super_lords, some types
 of attributes may be ``missing''. For example, it is, in general, not possible to set appropriate
