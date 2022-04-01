@@ -214,7 +214,7 @@ type qromb_int_struct
 end type
 
 type (ele_struct) ele
-type (coord_struct) orb_in, orb_out, orb0, orb1
+type (coord_struct) orb_in, orb_out, orb0, orb1, orb_end
 type (rad1_map_struct) :: ds
 type (fringe_field_info_struct) fringe_info
 type (qromb_pt1_struct) pt1(0:16)
@@ -223,10 +223,12 @@ type (bmad_common_struct) bmad_com_save
 
 real(rp) damp_mat1(6,6), stoc_mat1(6,6), damp_coef, stoc_coef
 real(rp) mat0(6,6), mat1(6,6), ddamp(6,6), dstoc(6,6), damp_mat_sum(6,6), stoc_mat_sum(6,6), mat0_inv(6,6)
-real(rp) del_z, l_ref, rel_tol, eps_damp, eps_stoc, z_pos, d_max
+real(rp) del_z, l_ref, rel_tol, eps_damp, eps_stoc, z_pos, d_max, mat_end(6,6)
 
 integer j, j1, i1, i2, n, j_min_test, ll, n_pts
 integer :: j_max = 10
+
+logical save_orb_mat
 
 ! No radiation cases
 
@@ -263,10 +265,9 @@ qi(0)%stoc_mat = 0
 
 rel_tol = 1d-4
 eps_damp = rel_tol * ele%value(l$) * damp_coef 
-eps_stoc = rel_tol * ele%value(l$) * stoc_coef 
+eps_stoc = rel_tol * ele%value(l$) * stoc_coef
 
 j_min_test = 3
-
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
   j_min_test = 5
 endif
@@ -287,7 +288,8 @@ do j = 1, j_max
 
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
-    call calc_rad_at_pt(ele, orb0, z_pos, damp_mat1, stoc_mat1)
+    save_orb_mat = (j == 1 .and. n == 1)  ! Save if z-position at end of element
+    call calc_rad_at_pt(ele, orb0, z_pos, damp_mat1, stoc_mat1, save_orb_mat, orb_end, mat_end)
     damp_mat_sum = damp_mat_sum + damp_mat1 
     stoc_mat_sum = stoc_mat_sum + stoc_mat1 
   enddo
@@ -311,6 +313,18 @@ do j = 1, j_max
 
 enddo
 
+! Add bend edge if needed
+
+if (ele%key == sbend$) then
+  if (ele%orientation == 1) then
+    call add_bend_edge_to_damp_mat(damp_mat, ele, ele%value(e1$), orb0)
+    call add_bend_edge_to_damp_mat(damp_mat, ele, ele%value(e2$), orb_end, mat_end)
+  else
+    call add_bend_edge_to_damp_mat(damp_mat, ele, ele%value(e2$), orb0)
+    call add_bend_edge_to_damp_mat(damp_mat, ele, ele%value(e1$), orb_end, mat_end)
+  endif
+endif
+
 ! Reference position for matrices are the element exit end
 
 mat0_inv = mat_symp_conj(mat0)   ! mat0 is transport matrix through the upstream edge
@@ -326,17 +340,17 @@ end subroutine qromb_rad_mat_int
 !---------------------------------------------------------------------------------
 ! contains
 
-subroutine calc_rad_at_pt (ele, orb0, z_pos, damp_mat1, stoc_mat1)
+subroutine calc_rad_at_pt (ele, orb0, z_pos, damp_mat1, stoc_mat1, save_orb_mat, orb_save, mat_save)
 
 type (ele_struct) ele, runt
-type (coord_struct) orb0, orbz  ! Orbit at start, orbit at z.
+type (coord_struct) orb0, orbz, orb_save  ! Orbit at start, orbit at z.
 
 real(rp) z_pos, damp_mat1(6,6), stoc_mat1(6,6), g(3), dg(3,3), g2, dg2_dx, dg2_dy
-real(rp) mb(6,6), mb_inv(6,6), kf, rel_p, v(6)
+real(rp) mb(6,6), mb_inv(6,6), kf, rel_p, v(6), mat_save(6,6)
 
 integer i, j
 
-logical err_flag
+logical save_orb_mat, err_flag
 
 ! Note: g from g_bending_strength_from_em_field is g of the actual particle and not the ref particle
 ! so g has a factor of 1/(1 + pz) in it.
@@ -344,6 +358,11 @@ logical err_flag
 call create_element_slice (runt, ele, z_pos, 0.0_rp, ele%branch%param, .false., .false., err_flag, pointer_to_next_ele(ele, -1))
 call track1(orb0, runt, ele%branch%param, orbz)
 call make_mat6(runt, ele%branch%param, orb0, orbz)
+if (save_orb_mat) then
+  orb_save = orbz
+  mat_save = runt%mat6
+endif
+
 mb = mat_symp_conj(runt%mat6)   ! matrix from z_pos back to 0
 
 call g_bending_strength_from_em_field (ele, ele%branch%param, z_pos, orbz, .true., g, dg)
@@ -358,7 +377,7 @@ dg2_dy = 2 * dot_product(g, dg(:,2))
 
 if (ele%key == sbend$) then
   g2 = g2 * (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length effect
-  dg2_dx = dg2_dx * (1 + ele%value(g$) * orb0%vec(1)) + ele%value(g$)**3
+  dg2_dx = dg2_dx * (1 + ele%value(g$) * orb0%vec(1)) + g2*ele%value(g$)
 endif
 
 ! Damping matrix
@@ -383,6 +402,36 @@ forall (i = 1:6)
 end forall
 
 end subroutine calc_rad_at_pt
+
+!---------------------------------------------------------------------------------
+! contains
+
+subroutine add_bend_edge_to_damp_mat(damp_mat, ele, e_edge, orb, mat)
+
+type (ele_struct) ele
+type (coord_struct) orb
+real(rp) damp_mat(6,6), e_edge, dm(6,6), dg2_dx, rel_p
+real(rp), optional :: mat(6,6)
+
+!
+
+if (e_edge == 0) return
+
+dg2_dx = -tan(e_edge) * (ele%value(g$) + ele%value(dg$))**2
+rel_p = 1 + orb%vec(6)
+
+dm = 0
+dm(2,1:3) = -kd_coef * [dg2_dx * orb%vec(2) * rel_p, 0.0_rp, -dg2_dx * orb%vec(2) * rel_p]
+dm(4,1:3) = -kd_coef * [dg2_dx * orb%vec(4) * rel_p, 0.0_rp, -dg2_dx * orb%vec(4) * rel_p]
+dm(6,1:3) = -kd_coef * [dg2_dx * rel_p**2,           0.0_rp, -dg2_dx * rel_p**2]
+
+if (present(mat)) then
+  dm = matmul(matmul(mat_symp_conj(mat), dm), mat)
+endif
+
+damp_mat = damp_mat + dm
+
+end subroutine add_bend_edge_to_damp_mat
 
 end subroutine damping_and_stochastic_rad_mats
 
