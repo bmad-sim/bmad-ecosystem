@@ -2556,12 +2556,14 @@ case ('lattice')
 
     case ('-radiation_integrals')
       what_to_print = 'rad_int'
+      all_lat = .true.  ! Will only print where radiation integrals is non-zero
 
     case ('-rms')
       print_rms = .true.
 
     case ('-sum_radiation_integrals')
       what_to_print = 'sum_rad_int'
+      all_lat = .true. ! Will only print where radiation integrals is non-zero
 
     case ('-remove_line_if_zero')
       n_remove = n_remove + 1
@@ -2926,6 +2928,9 @@ case ('lattice')
       if (print_lords == yes$ .and. eles(i)%ele%lord_status == not_a_lord$) cycle
       picked_ele(eles(i)%ele%ix_ele) = .true.
     enddo
+
+  elseif (what_to_print == 'rad_int' .or. what_to_print == 'sum_rad_int') then
+    picked_ele = .true.
 
   else
     picked_ele = .true.

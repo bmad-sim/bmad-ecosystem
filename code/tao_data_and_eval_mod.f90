@@ -2667,6 +2667,7 @@ case ('rad_int1.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
   if (ix_ele < 0) return
+  rad_int_branch => tao_lat%rad_int%branch(ix_branch)
   if (.not. allocated(rad_int_branch%ele)) return
 
   select case (data_type)
@@ -2882,6 +2883,7 @@ case ('sigma.')
         datum_value = sqrt(datum_value)
       else
         if (ix_ele == -1) ix_ele = branch%n_ele_track
+        rad_int_branch => tao_lat%rad_int%branch(ix_branch)
         datum_value = rad_int_branch%ele(ix_ele)%lin_sig_E / ele%value(E_tot$)
         if (ix_ref > 0) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_sig_E / ele_ref%value(E_tot$)
         valid_value = .true.
