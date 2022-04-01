@@ -14,7 +14,8 @@ The treatment of radiation damping by \bmad essentially follows \mad. The energy
 element is modeled via
 \begin{equation}
   \frac{\Delta E}{E_0} = 
-  -k_E \equiv -(k_d \, \ave{g^2} \, L_p + \sqrt{k_f \, \ave{g^3} \, L_p} \, \xi) \, (1 + p_z)^2
+  -k_E \equiv -\left[ k_d \ave{g^2} \, L_p + \sqrt{k_f \ave{g^3} L_p} \,\, \xi \right] \, (1 + p_z)^2
+  \label{deekk}
 \end{equation}
 where $L_p$ is the actual path length, $g$ is the bending strength ($1/g$ is the bending radius),
 and $\ave{\ldots}$ is an average over the actual path.  In the above equation $k_d$ gives the
@@ -55,7 +56,7 @@ energy loss along the closed orbit. For this calculation the closed orbit should
 as calculated without radiation damping (in other words the closed orbit without the sawtooth). In
 this case, $k_E$ is calculated by
 \begin{equation}
-  k_E = (k_d \, \ave{g^2} \, L_p + \sqrt{k_f \, \ave{g^3} \, L_p} \, \xi) \, (1 + p_z)^2 - 
+  k_E = \left[ k_d \, \ave{g^2} L_p + \sqrt{k_f \ave{g^3} L_p} \,\, \xi \right] \, (1 + p_z)^2 - 
   k_d \, \ave{g_0^2} \, L_p
 \end{equation}
 where $g_0$ is $g$ evaluated along the closed orbit. In practice, for the calculation, \bmad
@@ -72,6 +73,19 @@ The global parameter \vn{bmad_com[radiation_zero_average]} controls the shifting
 spectrum to have zero average. Currently, the shifting of the spectrum only works for non PTC
 dependent tracking. That is, the shifting is not applicable to tracking with Taylor maps and with
 \vn{symp_lie_ptc} (\sref{s:tkm}) tracking.
+
+The fact that an emitted photon is not exactly colinear with the particle direction (often called
+the ``vertical opening angle'') can be modeled as a separate process from the energy loss. With this
+approximation, the change $\Delta p_\perp$ in the momentum transverse to the bending plane is given
+by
+\begin{equation}
+  \Delta p_\perp = \sqrt{k_v \ave{g^3} L_p} \,\, \xi
+  \label{dpkgl}
+\end{equation}
+where the $\xi$ in \Eq{dpkgl} is independent of the $\xi$ in \Eq{deekk} and
+\begin{equation}
+ k_v = \frac{13 \, r_e \, \hbar}{24 \, \sqrt{3} \, m_e \, c} \, \gamma_0^3
+\end{equation}
 
 %-----------------------------------------------------------------
 \section{Transport Map with Radiation Included}
@@ -140,15 +154,18 @@ $\bfD$ is defined by this equation.
 The $\Cal{S}$ matrix is calculated by first noting that, to linear order, the distribution of
 $\delta\bfr_2$ due to stochastic radiation over some length $ds$ as some point $s$ is
 \begin{equation}
-  \delta\bfr_2 = \sqrt{ds} \, \bfM_{2s} \, \bfF_\mk{f}(s) \, \xi
+  \delta\bfr_2 = \sqrt{ds} \, \bfM_{2s} \, \left( \bfF_\mk{f}(s) \, \xi_1 + \bfF_\mk{v} \, \xi_2 \right)
 \end{equation}
-where $\bfM_{2s}$ is the first order part (matrix) of the map $\calM_{2s}$ from $s$ to $s_2$, and
-$\bfF_\mk{f}$ is (see \sref{s:radiation})
-\begin{equation}
-  \bfF_\mk{f} = -\sqrt{k_f} \, g_0^3 \, (0, p_x \, (1 + p_z), 0, p_y \, (1 + p_z), 0, (1 + p_z)^2)
+where $\bfM_{2s}$ is the first order part (matrix) of the map $\calM_{2s}$ from $s$ to $s_2$,
+$\xi_1$ and $xi_2$ are two independent Gaussian random numbers with unit sigma and zero mean, and
+$\bfF_\mk{f}$ and $\bfF_\mk{v}$ are (see \sref{s:radiation})
+\begin{align}
+  \bfF_\mk{f} &= \sqrt{k_f g_0^3} \, (0, p_x \, (1 + p_z), 0, p_y \, (1 + p_z), 0, (1 + p_z)^2) \\
+  \bfF_\mk{v} &= \sqrt{k_v g_0} \, (0, -g_y, 0, g_x, 0, 0)
   \label{fk000}
-\end{equation}
-where $k_f$ $p_x$, $p_y$ and $p_z$ are to be evaluated on the reference orbit. Notice that since
+\end{align}
+where $k_f$ $p_x$, $p_y$ and $p_z$ are to be evaluated on the reference orbit and $(g_x, g_y)$ is the
+curvature vector which points away from the center of curvature of the particle's orbit. Notice that since
 $\delta\bfr$ is, by definition, the deviation from the reference orbit, $p_x = r_2$ and $p_y = r_4$
 will be zero on the reference orbit. The covariance matrix $\bfsig_\gamma$ is defined by
 $\sigma_{\gamma ij} \equiv \langle r_i \, r_j \rangle_\gamma$ where $\langle \ldots \rangle_\gamma$
@@ -157,7 +174,8 @@ covariance matrix at $s_2$ due to the stochastic emission over the region betwee
 is
 \begin{equation}
   \bfsig_{\gamma21} = \int_{s_1}^{s_2} ds \, 
-  \bfM_{2s} \, \big[ \bfF_\mk{f}(s) \, \bfF_\mk{f}^t(s) \big] \, \bfM_{2s}^t
+    \bfM_{2s} \, \big[ 
+    \bfF_\mk{f}(s) \, \bfF_\mk{f}^t(s) + \bfF_\mk{v}(s) \, \bfF_\mk{v}^t(s) \big] \, \bfM_{2s}^t
   \label{smvvm}
 \end{equation}
 where the $t$ superscript indicates transpose. $\bfsig_{\gamma21}$ is related to $\Cal{S}$ via

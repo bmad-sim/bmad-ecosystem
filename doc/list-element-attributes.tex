@@ -74,22 +74,22 @@ field_overlaps                   & offset_moves_aperture            & tracking_m
  \label{s:list.beambeam}
  
  \begin{tabular}{llll} \toprule
-alias                            & crab_x2 [1/m]                    & ref_origin                       & x_limit [m]                      \\
-alpha_a_strong                   & crab_x3 [1/m$^2$]                & reference                        & x_offset [m]                     \\
-alpha_b_strong                   & create_jumbo_slave               & sig_x [m]                        & x_offset_tot [m]                 \\
-aperture [m]                     & delta_ref_time [sec]             & sig_y [m]                        & x_pitch                          \\
-aperture_at                      & descrip                          & sig_z [m]                        & x_pitch_tot                      \\
-aperture_type                    & e_tot [eV]                       & spin_tracking_method             & y1_limit [m]                     \\
-bbi_constant                     & ele_origin                       & superimpose                      & y2_limit [m]                     \\
-beta_a_strong [m]                & field_calc                       & symplectify                      & y_limit [m]                      \\
-beta_b_strong [m]                & is_on                            & tilt [rad]                       & y_offset [m]                     \\
-charge                           & l [m]                            & tilt_tot [rad]                   & y_offset_tot [m]                 \\
-cmat_11                          & mat6_calc_method                 & tracking_method                  & y_pitch                          \\
-cmat_12                          & n_slice                          & type                             & y_pitch_tot                      \\
-cmat_21                          & offset [m]                       & wall                             & z_offset [m]                     \\
-cmat_22                          & offset_moves_aperture            & wrap_superimpose                 & z_offset_tot [m]                 \\
-crab_tilt [rad]                  & p0c [eV]                         & x1_limit [m]                     &                                  \\
-crab_x1                          & ptc_integration_type             & x2_limit [m]                     &                                  \\
+alias                            & crab_x2 [1/m]                    & p0c [eV]                         & x1_limit [m]                     \\
+alpha_a_strong                   & crab_x3 [1/m$^2$]                & ptc_integration_type             & x2_limit [m]                     \\
+alpha_b_strong                   & crab_x4 [???]                    & ref_origin                       & x_limit [m]                      \\
+aperture [m]                     & crab_x5 [???]                    & reference                        & x_offset [m]                     \\
+aperture_at                      & create_jumbo_slave               & sig_x [m]                        & x_offset_tot [m]                 \\
+aperture_type                    & delta_ref_time [sec]             & sig_y [m]                        & x_pitch                          \\
+bbi_constant                     & descrip                          & sig_z [m]                        & x_pitch_tot                      \\
+beta_a_strong [m]                & e_tot [eV]                       & spin_tracking_method             & y1_limit [m]                     \\
+beta_b_strong [m]                & ele_origin                       & superimpose                      & y2_limit [m]                     \\
+charge                           & field_calc                       & symplectify                      & y_limit [m]                      \\
+cmat_11                          & is_on                            & tilt [rad]                       & y_offset [m]                     \\
+cmat_12                          & l [m]                            & tilt_tot [rad]                   & y_offset_tot [m]                 \\
+cmat_21                          & mat6_calc_method                 & tracking_method                  & y_pitch                          \\
+cmat_22                          & n_slice                          & type                             & y_pitch_tot                      \\
+crab_tilt [rad]                  & offset [m]                       & wall                             & z_offset [m]                     \\
+crab_x1                          & offset_moves_aperture            & wrap_superimpose                 & z_offset_tot [m]                 \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -974,18 +974,19 @@ field_x                          & pz                               & t [sec]   
  \label{s:list.patch}
  
  \begin{tabular}{llll} \toprule
-alias                            & ele_origin                       & ref_origin                       & x2_limit [m]                     \\
-aperture [m]                     & field_calc                       & reference                        & x_limit [m]                      \\
-aperture_at                      & flexible                         & spin_tracking_method             & x_offset [m]                     \\
-aperture_type                    & l [m]                            & superimpose                      & x_pitch                          \\
-create_jumbo_slave               & mat6_calc_method                 & t_offset [sec]                   & y1_limit [m]                     \\
-delta_ref_time [sec]             & offset [m]                       & tilt [rad]                       & y2_limit [m]                     \\
-descrip                          & offset_moves_aperture            & tracking_method                  & y_limit [m]                      \\
-downstream_ele_dir               & p0c [eV]                         & type                             & y_offset [m]                     \\
-e_tot [eV]                       & p0c_set [eV]                     & upstream_ele_dir                 & y_pitch                          \\
-e_tot_offset [eV]                & p0c_start [eV]                   & wall                             & z_offset [m]                     \\
-e_tot_set [eV]                   & ptc_integration_type             & wrap_superimpose                 &                                  \\
-e_tot_start [eV]                 & ref_coords                       & x1_limit [m]                     &                                  \\
+alias                            & e_tot_start [eV]                 & ref_origin                       & x2_limit [m]                     \\
+aperture [m]                     & ele_origin                       & reference                        & x_limit [m]                      \\
+aperture_at                      & field_calc                       & space_charge_method              & x_offset [m]                     \\
+aperture_type                    & flexible                         & spin_tracking_method             & x_pitch                          \\
+create_jumbo_slave               & l [m]                            & superimpose                      & y1_limit [m]                     \\
+csr_ds_step [m]                  & mat6_calc_method                 & t_offset [sec]                   & y2_limit [m]                     \\
+csr_method                       & offset [m]                       & tilt [rad]                       & y_limit [m]                      \\
+delta_ref_time [sec]             & offset_moves_aperture            & tracking_method                  & y_offset [m]                     \\
+descrip                          & p0c [eV]                         & type                             & y_pitch                          \\
+downstream_ele_dir               & p0c_set [eV]                     & upstream_ele_dir                 & z_offset [m]                     \\
+e_tot [eV]                       & p0c_start [eV]                   & wall                             &                                  \\
+e_tot_offset [eV]                & ptc_integration_type             & wrap_superimpose                 &                                  \\
+e_tot_set [eV]                   & ref_coords                       & x1_limit [m]                     &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
