@@ -24,21 +24,23 @@ contains
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine emit_6d (ele_ref, sigma_mat, emit)
+! Subroutine emit_6d (ele_ref, include_opening_angle, sigma_mat, emit)
 !
 ! Routine to calculate the three normal mode emittances. Since the emattances are
 ! only an invariant in the limit of zero damping, the calculated emittance will
 ! vary depending upon the reference element.
 !
 ! Input:
-!   ele_ref         -- ele_struct: Origin of the 1-turn maps used to evaluate the emittances.
+!   ele_ref               -- ele_struct: Origin of the 1-turn maps used to evaluate the emittances.
+!   include_opening_angle -- logical: If True include the effect of the vertical opening angle of emitted radiation.
+!                             Generally use True unless comparing against other codes.
 !
 ! Output:
 !   sigma_mat(6,6)  -- real(rp): Sigma matrix
 !   emit(3)         -- real(rp): The three normal mode emittances.
 !-
 
-subroutine emit_6d (ele_ref, sigma_mat, emit)
+subroutine emit_6d (ele_ref, include_opening_angle, sigma_mat, emit)
 
 use f95_lapack, only: dgesv_f95
 
@@ -56,12 +58,12 @@ integer, parameter :: v(6,6) = reshape( &
             [1,  2,  3,  4,  5,  6,   2,  7,  8,  9, 10, 11,   3,  8, 12, 13, 14, 15, &
              4,  9, 13, 16, 17, 18,   5, 10, 14, 17, 19, 20,   6, 11, 15, 18, 20, 21], [6,6])
 
-logical err
+logical include_opening_angle, err
 
 ! Analysis is documented in the Bmad manual.
 ! The 6x6 sigma matrix equation is recast as a linear 21x21 matrix equation and solved.
 
-call damping_and_stochastic_rad_mats (ele_ref, ele_ref, damp_mat, stoc_mat)
+call damping_and_stochastic_rad_mats (ele_ref, ele_ref, include_opening_angle, damp_mat, stoc_mat)
 
 call mat_make_unit(mt)
 
@@ -97,7 +99,7 @@ end subroutine emit_6d
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine damping_and_stochastic_rad_mats (ele1, ele2, damp_mat, stoc_mat)
+! Subroutine damping_and_stochastic_rad_mats (ele1, ele2, include_opening_angle, damp_mat, stoc_mat)
 !
 ! Routine to calculate the damping and stochastic variance matrices from exit end of ele1
 ! to the exit end of ele2. Use ele1 = ele2 to get 1-turn matrices.
@@ -109,15 +111,17 @@ end subroutine emit_6d
 ! do not include damping.
 !
 ! Input:
-!   ele1          -- ele_struct: Start element of integration range.
-!   ele2          -- ele_struct: End element of integration range.
+!   ele1                  -- ele_struct: Start element of integration range.
+!   ele2                  -- ele_struct: End element of integration range.
+!   include_opening_angle -- logical: If True include the effect of the vertical opening angle of emitted radiation.
+!                             Generally use True unless comparing against other codes.
 !
 ! Output:
 !   damp_mat(6,6)   -- real(rp): Transfer matrix with damping.
 !   stoc_mat(6,6)   -- real(rp): Stochastic variance matrix.
 !-
 
-subroutine damping_and_stochastic_rad_mats (ele1, ele2, damp_mat, stoc_mat)
+subroutine damping_and_stochastic_rad_mats (ele1, ele2, include_opening_angle, damp_mat, stoc_mat)
 
 use super_recipes_mod
 
@@ -134,7 +138,7 @@ real(rp) :: kd_coef, kf_coef, g2_ave, g3_ave, gamma
 real(rp), parameter :: cd = 2.0_rp / 3.0_rp, cf = 55.0_rp * h_bar_planck * c_light / (24.0_rp * sqrt_3)
 integer ie
 
-logical err_flag
+logical include_opening_angle, err_flag
 
 !
 
@@ -146,9 +150,15 @@ allocate (ds(branch%n_ele_track))
 
 bmad_com_save = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
-bmad_com%radiation_damping_on = .true.
 
-call closed_orbit_calc(branch%lat, closed_orb, 6, +1, branch%ix_branch, err_flag)
+if (rf_is_on(branch)) then
+  bmad_com%radiation_damping_on = .true.
+  call closed_orbit_calc(branch%lat, closed_orb, 6, +1, branch%ix_branch, err_flag)
+else
+  bmad_com%radiation_damping_on = .false.
+  call closed_orbit_calc(branch%lat, closed_orb, 4, +1, branch%ix_branch, err_flag)
+endif
+
 bmad_com = bmad_com_save
 if (err_flag) return
 
@@ -175,7 +185,7 @@ stoc_coef = kf_coef * g3_ave / branch%param%total_length
 ! Calculate element-by-element damping and stochastic mats.
 
 do ie = 1, branch%n_ele_track
-  call qromb_rad_mat_int(branch%ele(ie), closed_orb(ie-1), closed_orb(ie), damp_coef, stoc_coef, ds(ie))
+  call qromb_rad_mat_int(branch%ele(ie), include_opening_angle, closed_orb(ie-1), closed_orb(ie), damp_coef, stoc_coef, ds(ie))
 enddo
 
 !
@@ -201,7 +211,7 @@ contains
 
 ! This is adapted from qromb and trapzd from Numerical Recipes.
 
-subroutine qromb_rad_mat_int (ele, orb_in, orb_out, damp_coef, stoc_coef, ds)
+subroutine qromb_rad_mat_int (ele, include_opening_angle, orb_in, orb_out, damp_coef, stoc_coef, ds)
 
 type qromb_pt1_struct
   real(rp) xmat(6,6)  ! Transfer map without damping from beginning of element
@@ -228,7 +238,7 @@ real(rp) del_z, l_ref, rel_tol, eps_damp, eps_stoc, z_pos, d_max, mat_end(6,6)
 integer j, j1, i1, i2, n, j_min_test, ll, n_pts
 integer :: j_max = 10
 
-logical save_orb_mat
+logical include_opening_angle, save_orb_mat
 
 ! No radiation cases
 
@@ -289,7 +299,7 @@ do j = 1, j_max
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
     save_orb_mat = (j == 1 .and. n == 1)  ! Save if z-position at end of element
-    call calc_rad_at_pt(ele, orb0, z_pos, damp_mat1, stoc_mat1, save_orb_mat, orb_end, mat_end)
+    call calc_rad_at_pt(ele, include_opening_angle, orb0, z_pos, damp_mat1, stoc_mat1, save_orb_mat, orb_end, mat_end)
     damp_mat_sum = damp_mat_sum + damp_mat1 
     stoc_mat_sum = stoc_mat_sum + stoc_mat1 
   enddo
@@ -340,17 +350,17 @@ end subroutine qromb_rad_mat_int
 !---------------------------------------------------------------------------------
 ! contains
 
-subroutine calc_rad_at_pt (ele, orb0, z_pos, damp_mat1, stoc_mat1, save_orb_mat, orb_save, mat_save)
+subroutine calc_rad_at_pt (ele, include_opening_angle, orb0, z_pos, damp_mat1, stoc_mat1, save_orb_mat, orb_save, mat_save)
 
 type (ele_struct) ele, runt
 type (coord_struct) orb0, orbz, orb_save  ! Orbit at start, orbit at z.
 
 real(rp) z_pos, damp_mat1(6,6), stoc_mat1(6,6), g(3), dg(3,3), g2, dg2_dx, dg2_dy
-real(rp) mb(6,6), mb_inv(6,6), kf, rel_p, v(6), mat_save(6,6)
+real(rp) mb(6,6), mb_inv(6,6), kf, kv, rel_p, v(6), mat_save(6,6)
 
 integer i, j
 
-logical save_orb_mat, err_flag
+logical include_opening_angle, save_orb_mat, err_flag
 
 ! Note: g from g_bending_strength_from_em_field is g of the actual particle and not the ref particle
 ! so g has a factor of 1/(1 + pz) in it.
@@ -400,6 +410,14 @@ forall (i = 1:6)
                                 rel_p * v(4) * (mb(i,4) * mb(:,6) + mb(i,6) * mb(:,4)) + &
                                 v(2) * v(4) * (mb(i,2) * mb(:,4) + mb(i,4) * mb(:,2)))
 end forall
+
+if (include_opening_angle) then
+  kv = kf_coef * 13.0_rp * sqrt(g2) / (55.0_rp * gamma**2)
+  forall (i = 1:6)
+    stoc_mat1(i,:) = stoc_mat1(i,:) + kv * (g(2)**2 * mb(i,2)*mb(:,2) + g(1)**2 * mb(i,4)*mb(:,4) - &
+                                  g(1) * g(2) * (mb(i,2) * mb(:,4) + mb(i,4) * mb(:,2)))
+  end forall
+endif
 
 end subroutine calc_rad_at_pt
 
