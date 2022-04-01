@@ -126,10 +126,11 @@ type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
 
 real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s_pos, dt, angle, r
-real(rp) sig_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, phase
+real(rp) sig_mat(6,6), sig0_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3)
+real(rp) pc, e_tot, value_min, value_here, pz1, phase
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, time1, ds, ref_vec(6), beta
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
-real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3), emit(3)
+real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3), emit(3), emit0(3)
 real(rp), allocatable :: value(:)
 
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
@@ -1690,7 +1691,8 @@ case ('emittance')
   tao_branch => u%model%tao_branch(ele%ix_branch)
   mode_m => tao_branch%modes
 
-  call emit_6d (ele, sig_mat, emit)
+  call emit_6d (ele, .true., sig_mat, emit)
+  call emit_6d (ele, .false., sig0_mat, emit0)
   call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, ele%ix_branch)
 
   if (.not. associated(branch%ptc%m_t_layout)) then
@@ -1700,10 +1702,12 @@ case ('emittance')
 
   call ptc_emit_calc (branch%ele(0), norm_mode, sig_mat, orb)
 
-  nl=nl+1; lines(nl) = ' Mode     PTC_Emit   Bmad_6D_Emit   Rad_Int_Emit'
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, 3es15.7)') 'A', norm_mode%a%emittance, emit(1), mode_m%a%emittance
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, 3es15.7)') 'B', norm_mode%b%emittance, emit(2), mode_m%b%emittance
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, 3es15.7)') 'C', norm_mode%z%emittance, emit(3), mode_m%sigE_E * mode_m%sig_z
+  nl=nl+1; lines(nl) = '                    | Vert opening angle included | Opening angle ignored       |'
+  nl=nl+1; lines(nl) = ' Mode     PTC_Emit  | Bmad_6D_Emit   Rad_Int_Emit | Bmad_6D_Emit   Rad_Int_Emit |'
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'A', norm_mode%a%emittance, emit(1), mode_m%a%emittance, emit0(1), mode_m%a%emittance
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'B', norm_mode%b%emittance, emit(2), mode_m%b%emittance, emit0(2), mode_m%b%emittance_no_vert
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'C', norm_mode%z%emittance, emit(3), mode_m%sigE_E * mode_m%sig_z, &
+                                                                                                    emit0(3), mode_m%sigE_E * mode_m%sig_z
 
 
 !----------------------------------------------------------------------
