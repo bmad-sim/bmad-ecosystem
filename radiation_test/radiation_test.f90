@@ -22,19 +22,24 @@ real(rp) emit(3), sigma_mat(6,6), m(6,6), vec0(6)
 
 integer i, j, n, ib, ix_cache, n1, n2, ie
 logical err
+character(100) file_name
+
 !
 
 open (1, file = 'output.now', recl = 200)
 
 !
 
-call bmad_parser('sigma.bmad', lat)
-call emit_6d (lat%ele(0), sigma_mat, emit)
+file_name = 'sigma.bmad'
+if (cesr_iargc() > 0) call cesr_getarg(1, file_name)
+print *, 'File: ', trim(file_name)
+call bmad_parser(file_name, lat)
+call emit_6d (lat%ele(0), .false., sigma_mat, emit)
 
 n1 = 0
 n2 = lat%n_ele_track
 
-call damping_and_stochastic_rad_mats(lat%ele(n1), lat%ele(n2), damp_mat, stoc_mat)
+call damping_and_stochastic_rad_mats(lat%ele(n1), lat%ele(n2), .false., damp_mat, stoc_mat)
 call lat_to_ptc_layout(lat)
 call ptc_setup_map_with_radiation(rad_map, lat%ele(n1), lat%ele(n2), 1, .true.)
 call init_coord(orb0, lat%ele(n1+1)%map_ref_orb_in, lat%ele(n1+1), upstream_end$)
@@ -47,6 +52,8 @@ call mat_make_unit(unit_mat)
 
 print '(a, 3es12.4)', 'Bmad Emit:', emit 
 print '(a, 3es12.4)', ' PTC Emit:', mode%a%emittance, mode%b%emittance, mode%z%emittance
+print '(a, 3es12.4)', 'Diff Emit:', emit - [mode%a%emittance, mode%b%emittance, mode%z%emittance]
+
 
 !bmad_com%debug = .true.
 !m_damp = unit_mat

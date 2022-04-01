@@ -2,25 +2,37 @@
 parameter[p0c] = 5e9
 bmad_com[radiation_damping_on] = T
 
-q1: quad, l = 0.5, k1 = 0.7, tilt = 0.01
-q2: quad, l = 0.5, k1 = -0.6
+f = 0.0
+
+q1: quad, l = 0.5, k1 = 0.71, tilt = 0.0, y_offset = f
+q2: quad, l = 0.5, k1 = -0.61, y_offset = f
 
 d: drift, l = 0.3
-b: sbend, l = 3, angle = pi/8, e1 = 0.07, e2 = 0.07, num_steps = 10
-b2: sbend, l = 0.1, g = pi/5, num_steps = 10
 
-s1: sextupole, l = 0.01
-s2: sextupole, l = 0.01
+fe = 0
+ff = 1
 
-rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 1e7, phi0 = 0.18
+qb: quad, l = 1e-4, k1 = 0.02*pi * 1e4 * fe * ff
+b2: sbend, l = 0.000001, g = 0.2*pi, num_steps = 10, y_offset = f, e2 = 0.1 * fe
 
-sector: line = (b, s1, d, q1, d, b, d, q2, d, s2, rf, b2)
-!sector: line = (b2, s1, d, q1, d, b2, d, q2, d, s2, rf)
+bb: sbend, l = 3, g = 0.1, num_steps = 20, y_offset = f
+b: bb, y_offset = f
+
+s1: sextupole, l = 0.01, y_offset = f
+s2: sextupole, l = 0.01, y_offset = f
+
+rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 4e7*0, phi0 = 0., y_offset = f
+
+sector: line = (b, s1, d, q1, d, bb, d, q2, d, s2, rf, b2)
+!sector: line = (b2, qb, s1, d, q1, d, d, q2, d, s2, rf)
 !sector: line = (b2, s1, d, q1, d, d, q2, d, s2, rf)
 ring: line = (4*sector)
 
 use, ring
 
+
+
+!-------------------
 end_file
 
 m1: marker, superimpose, ref = b, offset = -1.4
