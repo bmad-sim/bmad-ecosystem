@@ -2937,7 +2937,10 @@ case (rfcavity$, lcavity$)
     return
   endif
 
-  select case (nint(ele%value(cavity_type$)))
+  ix = nint(ele%value(cavity_type$))
+  if (ele%tracking_method == bmad_standard$) ix = ptc_standard$
+
+  select case (ix)
   case (traveling_wave$)
     ptc_key%magnet = 'twcavity'
     ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
