@@ -46,7 +46,7 @@ use f95_lapack, only: dgesv_f95
 
 type (ele_struct) ele_ref
 
-real(rp) sigma_mat(6,6), emit(3)
+real(rp) sigma_mat(6,6), emit(3), rf65
 real(rp) damp_mat(6,6), stoc_mat(6,6)
 real(rp) mt(21,21), v_sig(21,1)
 
@@ -61,9 +61,20 @@ integer, parameter :: v(6,6) = reshape( &
 logical include_opening_angle, err
 
 ! Analysis is documented in the Bmad manual.
-! The 6x6 sigma matrix equation is recast as a linear 21x21 matrix equation and solved.
 
 call damping_and_stochastic_rad_mats (ele_ref, ele_ref, include_opening_angle, damp_mat, stoc_mat)
+
+! If there is no RF then add a small amount to enable the calculation to proceed.
+! The RF is modeled as a unit matrix with M(6,5) = 1d-4.
+
+if (damp_mat(6,5) == 0) then
+  rf65 = 1e-4
+  damp_mat(6,:) = damp_mat(6,:) + rf65 * damp_mat(5,:)
+  stoc_mat(6,:) = stoc_mat(6,:) + rf65 * stoc_mat(5,:)
+  stoc_mat(:,6) = stoc_mat(:,6) + stoc_mat(:,5) * rf65
+endif
+
+! The 6x6 sigma matrix equation is recast as a linear 21x21 matrix equation and solved.
 
 call mat_make_unit(mt)
 
