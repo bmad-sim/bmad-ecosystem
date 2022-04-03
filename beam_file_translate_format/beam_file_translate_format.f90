@@ -24,8 +24,6 @@ if (command_argument_count() < 2) then
   stop
 endif
 
-hdf5_com%debug_on = .false.
-
 call get_command_argument(1, file_name)
 call fullfilename(file_name, full_name)
 
