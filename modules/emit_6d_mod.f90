@@ -58,7 +58,7 @@ integer, parameter :: v(6,6) = reshape( &
             [1,  2,  3,  4,  5,  6,   2,  7,  8,  9, 10, 11,   3,  8, 12, 13, 14, 15, &
              4,  9, 13, 16, 17, 18,   5, 10, 14, 17, 19, 20,   6, 11, 15, 18, 20, 21], [6,6])
 
-logical include_opening_angle, err
+logical include_opening_angle, err, rf_off
 
 ! Analysis is documented in the Bmad manual.
 
@@ -67,7 +67,8 @@ call damping_and_stochastic_rad_mats (ele_ref, ele_ref, include_opening_angle, d
 ! If there is no RF then add a small amount to enable the calculation to proceed.
 ! The RF is modeled as a unit matrix with M(6,5) = 1d-4.
 
-if (damp_mat(6,5) == 0) then
+rf_off = (damp_mat(6,5) == 0)
+if (rf_off) then
   rf65 = 1e-4
   damp_mat(6,:) = damp_mat(6,:) + rf65 * damp_mat(5,:)
   stoc_mat(6,:) = stoc_mat(6,:) + rf65 * stoc_mat(5,:)
@@ -103,6 +104,7 @@ enddo
 enddo
 
 call get_emit_from_sigma_mat(sigma_mat, emit, err_flag = err)
+if (rf_off) emit(3) = -1
 
 end subroutine emit_6d
 
