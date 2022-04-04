@@ -46,10 +46,10 @@ character(300) :: cmd_word(12)
 character(40) gang_str, switch, word, except, branch_str
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(41) = [character(16):: &
+character(16) :: cmd_names(42) = [character(16):: &
                       'alias', 'call', 'change', 'clear', 'clip', 'continue', 'cut_ring', 'derivative', &
                       'end_file', 'exit', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'place', &
-                      'plot', 'ptc', 'python', 'quiet', 'quit', 're_execute', 'read', 'reinitialize', &
+                      'plot', 'ptc', 'python', 'quiet', 'quit', 're_execute', 'read', 'reinitialize', 'reset', &
                       'restore', 'run_optimizer', 'scale', 'set', 'show', 'single_mode', 'spawn', 'taper', &
                       'timer', 'use', 'veto', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale']
 character(16) :: cmd_names_old(6) = [&
@@ -424,6 +424,13 @@ case ('read')
   enddo
 
   call tao_read_cmd (cmd_word(1), word, cmd_word(2), silent)
+
+!--------------------------------
+! RESET
+! This is a private, undocumented command used when debugging.
+
+case ('reset')
+  call system_command ('reset', err)
 
 !--------------------------------
 ! RESTORE, USE, VETO
