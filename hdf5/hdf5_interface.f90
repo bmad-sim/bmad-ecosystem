@@ -43,14 +43,6 @@ type hdf5_info_struct
   integer :: num_attributes = -1       ! Number of associated attributes. Used for groups and datasets only.
 end type
 
-!
-
-type hdf5_common_struct
-  logical :: debug_on = .false.
-end type
-
-type (hdf5_common_struct), save :: hdf5_com
-
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -381,7 +373,7 @@ end subroutine hdf5_write_attribute_real_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_open_file (file_name, action, file_id, error)
+! Subroutine hdf5_open_file (file_name, action, file_id, error, verbose)
 !
 ! Routine to open an HDF5 file.
 !
@@ -395,18 +387,20 @@ end subroutine hdf5_write_attribute_real_rank1
 !                     'WRITE'   -- New file for writing to.
 !                     'APPEND'  -- If file exists, open file for reading/writing. 
 !                                  If file does not exist, create new file.
+!   verbose     -- logical, optional: Default False. If set True, toggle verbose output on.
 !
 ! Output:
 !   file_id     -- integer(hid_t): File handle.
 !   error       -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine hdf5_open_file (file_name, action, file_id, error)
+subroutine hdf5_open_file (file_name, action, file_id, error, verbose)
 
 integer(hid_t) file_id
 integer h5_err, h_err
 
 logical error, exist
+logical, optional :: verbose
 
 character(*) file_name, action
 character(*), parameter :: r_name = 'hdf5_open_file'
@@ -424,7 +418,7 @@ endif
 
 call h5open_f(h5_err)         ! Init Fortran interface.
 
-if (hdf5_com%debug_on) then
+if (logic_option(.false., verbose)) then
   call H5Eset_auto_f(1, h5_err)   ! Verbose
 else
   call H5Eset_auto_f(0, h5_err)   ! Run silent
