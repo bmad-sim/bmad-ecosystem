@@ -17,8 +17,7 @@ type (rad_int_all_ele_struct), target :: ri_cache, ri_no_cache
 type (rad_int1_struct), pointer :: rie1(:), rie2(:), rie3(:), rie4(:)
 type (ptc_rad_map_struct) rad_map
 
-real(rp) vec6(6), damp_mat(6,6), stoc_mat(6,6), unit_mat(6,6), nodamp_mat(6,6), m_damp(6,6), m_nodamp(6,6)
-real(rp) emit(3), sigma_mat(6,6), m(6,6), vec0(6)
+real(rp) vec6(6), emit(3), sigma_mat(6,6), m(6,6), vec0(6)
 
 integer i, j, n, ib, ix_cache, n1, n2, ie
 logical err
@@ -31,57 +30,14 @@ open (1, file = 'output.now', recl = 200)
 !
 
 file_name = 'sigma.bmad'
-if (cesr_iargc() > 0) call cesr_getarg(1, file_name)
-print *, 'File: ', trim(file_name)
 call bmad_parser(file_name, lat)
-call emit_6d (lat%ele(0), .false., sigma_mat, emit)
 
-n1 = 0
-n2 = lat%n_ele_track
+call emit_6d(lat%ele(0), .true., sigma_mat, emit)
 
-call damping_and_stochastic_rad_mats(lat%ele(n1), lat%ele(n2), .false., damp_mat, stoc_mat)
-call lat_to_ptc_layout(lat)
-call ptc_setup_map_with_radiation(rad_map, lat%ele(n1), lat%ele(n2), 1, .true.)
-call init_coord(orb0, lat%ele(n1+1)%map_ref_orb_in, lat%ele(n1+1), upstream_end$)
-
-call transfer_matrix_calc (lat, nodamp_mat, vec0, n1, n2, 0)
-
-call ptc_track_map_with_radiation (orb0, rad_map, .true., .false.)
-call ptc_emit_calc (lat%ele(0), mode, m, orb)
-call mat_make_unit(unit_mat)
-
-print '(a, 3es12.4)', 'Bmad Emit:', emit 
-print '(a, 3es12.4)', ' PTC Emit:', mode%a%emittance, mode%b%emittance, mode%z%emittance
-print '(a, 3es12.4)', 'Diff Emit:', emit - [mode%a%emittance, mode%b%emittance, mode%z%emittance]
-
-
-!bmad_com%debug = .true.
-!m_damp = unit_mat
-!m_nodamp = unit_mat
-!orb = orb0
-!do ie = n1+1, n2
-!  ele => lat%ele(ie)
-!  ele%tracking_method = runge_kutta$
-!  ele%mat6_calc_method = tracking$
-!  mat_damp = .true.
-!  call track1_runge_kutta (orb, ele, lat%param, orb_end, err, mat6 = m_damp, make_matrix = .true.)
-!  mat_damp = .false.
-!  call track1_runge_kutta (orb, ele, lat%param, orb, err, mat6 = m_nodamp, make_matrix = .true.)
-!enddo
-
-call mat_type (nodamp_mat, 0, 'bmad_nodamp_mat ' // real_str(mat_symp_error(nodamp_mat), 4))
-call mat_type (rad_map%nodamp_mat, 0, 'ptc_nodamp_mat ' // real_str(mat_symp_error(rad_map%nodamp_mat), 4))
-!call mat_type (m_nodamp, 0, 'RK_nodamp_mat ' // real_str(mat_symp_error(m_nodamp), 4))
-print *, '!------------------------------'
-call mat_type (damp_mat-nodamp_mat, 0, 'bmad_damp_mat', '3x, 6es12.4')
-call mat_type (matmul(rad_map%damp_mat,rad_map%nodamp_mat) - nodamp_mat, 0, 'ptc_damp_mat', '3x, 6es12.4')
-!call mat_type (m_damp-m_nodamp, 0, 'RK_damp_mat', '3x, 6es12.4')
-print *, '!------------------------------'
-m = damp_mat + nodamp_mat
-call mat_type (matmul(matmul(transpose(m), stoc_mat), m), 0, 'bmad_stoc_var_mat (ref beginning)', '3x, 6es12.4')
-print *, '!------------------------------'
-call mat_type (stoc_mat, 0, 'bmad_stoc_var_mat', '3x, 6es12.4')
-call mat_type (matmul(rad_map%stoc_mat,transpose(rad_map%stoc_mat)), 0, 'ptc_stoc_var_mat', '3x, 6es12.4')
+write (1, '(a, 3es14.6)') '"emit_6d" REL 1e-6', emit
+do i = 1, 6
+  write (1, '(a, i0, a, 6es14.6)') '"sig_mat', i, '" REL 1e-6', emit
+enddo
 
 !
 
