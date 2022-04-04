@@ -155,11 +155,11 @@ call lat_to_ptc_layout (lat)
 call ptc_emit_calc (lat%ele(0), mode, sigma_mat, closed_orb)
 
 write (1, '(a, 3es16.8)') '"layout-tune" REL 1E-8', mode%a%tune, mode%b%tune, mode%z%tune
-write (1, '(a, 3es16.8)') '"layout-emit" REL 1E-8', mode%a%emittance, mode%b%emittance, mode%z%emittance
-write (1, '(a, 3es16.8)') '"layout-damp" REL 1E-8', mode%a%alpha_damp, mode%b%alpha_damp, mode%z%alpha_damp
+write (1, '(a, 3es16.8)') '"layout-emit" REL 1E-4', mode%a%emittance, mode%b%emittance, mode%z%emittance
+write (1, '(a, 3es16.8)') '"layout-damp" REL 1E-5', mode%a%alpha_damp, mode%b%alpha_damp, mode%z%alpha_damp
 write (1, '(a, 6es16.8)') '"layout-orb"  REL 1E-8', closed_orb%vec
 do i = 1, 6
-  write (1, '(a, i0, a, 6es16.8)') '"layout-sigma', i, '" REL 1E-8', sigma_mat(i,:)
+  write (1, '(a, i0, a, 6es16.8)') '"layout-sigma', i, '" REL 3E-5', sigma_mat(i,:)
 enddo
 
 !-------------------------------------------------------
