@@ -2,18 +2,14 @@
 parameter[p0c] = 5e9
 bmad_com[radiation_damping_on] = T
 
-f = 0.0
+f = 0.1
 
-q1: quad, l = 0.5, k1 = 0.71, tilt = 0.0, y_offset = f
+q1: quad, l = 0.5, k1 = 0.71, tilt = 0.01, y_offset = f
 q2: quad, l = 0.5, k1 = -0.61, y_offset = f
 
 d: drift, l = 0.3
 
-fe = 0
-ff = 1
-
-qb: quad, l = 1e-4, k1 = 0.02*pi * 1e4 * fe * ff
-b2: sbend, l = 0.000001, g = 0.2*pi, num_steps = 10, y_offset = f, e2 = 0.1 * fe
+b2: sbend, l = 0.1, g = 0.2, num_steps = 10, y_offset = f, e2 = 0.1, e1 = 0.2
 
 bb: sbend, l = 3, g = 0.1, num_steps = 20, y_offset = f
 b: bb, y_offset = f
@@ -21,48 +17,11 @@ b: bb, y_offset = f
 s1: sextupole, l = 0.01, y_offset = f
 s2: sextupole, l = 0.01, y_offset = f
 
-rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 4e7*0, phi0 = 0., y_offset = f
+rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 0.5e7, phi0 = 0., y_offset = f
 
-sector: line = (b, s1, d, q1, d, bb, d, q2, d, s2, rf, b2)
-!sector: line = (b2, qb, s1, d, q1, d, d, q2, d, s2, rf)
-!sector: line = (b2, s1, d, q1, d, d, q2, d, s2, rf)
+ss: solenoid, l = 0.3, ks = 0.2
+
+sector: line = (b, s1, d, q1, d, bb, d, q2, d, s2, rf, b2, ss)
 ring: line = (4*sector)
 
 use, ring
-
-
-
-!-------------------
-end_file
-
-m1: marker, superimpose, ref = b, offset = -1.4
-m2: marker, superimpose, ref = b, offset = -1.3
-m3: marker, superimpose, ref = b, offset = -1.2
-m4: marker, superimpose, ref = b, offset = -1.1
-m5: marker, superimpose, ref = b, offset = -1.0
-m6: marker, superimpose, ref = b, offset = -0.9
-m7: marker, superimpose, ref = b, offset = -0.8
-m8: marker, superimpose, ref = b, offset = -0.7
-m9: marker, superimpose, ref = b, offset = -0.6
-m10: marker, superimpose, ref = b, offset = -0.5
-m11: marker, superimpose, ref = b, offset = -0.4
-m12: marker, superimpose, ref = b, offset = -0.3
-m13: marker, superimpose, ref = b, offset = -0.2
-m14: marker, superimpose, ref = b, offset = -0.1
-m15: marker, superimpose, ref = b, offset = -0.0
-m16: marker, superimpose, ref = b, offset =  0.1
-m17: marker, superimpose, ref = b, offset =  0.2
-m18: marker, superimpose, ref = b, offset =  0.3
-m19: marker, superimpose, ref = b, offset =  0.4
-m20: marker, superimpose, ref = b, offset =  0.5
-m21: marker, superimpose, ref = b, offset =  0.6
-m22: marker, superimpose, ref = b, offset =  0.7
-m23: marker, superimpose, ref = b, offset =  0.8
-m24: marker, superimpose, ref = b, offset =  0.9
-m25: marker, superimpose, ref = b, offset =  1.0
-m26: marker, superimpose, ref = b, offset =  1.1
-m27: marker, superimpose, ref = b, offset =  1.2
-m28: marker, superimpose, ref = b, offset =  1.3
-m29: marker, superimpose, ref = b, offset =  1.4
-
-
