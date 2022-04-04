@@ -6718,13 +6718,13 @@ select case (ele%key)
 
 case (taylor$)
 
-  if (size(ele%spin_taylor(0)%term) == 0 .and. (size(ele%spin_taylor(1)%term) > 0 .or. &
-                  size(ele%spin_taylor(2)%term) > 0 .or. size(ele%spin_taylor(3)%term) > 0)) then
-    call parser_error ('NO SPIN S1 TERMS BUT THERE ARE SX, SY, OR SZ TERMS PRESENT FOR TAYLOR ELEMENT:' // ele%name)
-    return
-  endif
+!  if (size(ele%spin_taylor(0)%term) == 0 .and. (size(ele%spin_taylor(1)%term) > 0 .or. &
+!                  size(ele%spin_taylor(2)%term) > 0 .or. size(ele%spin_taylor(3)%term) > 0)) then
+!    call parser_error ('NO SPIN S1 TERMS BUT THERE ARE SX, SY, OR SZ TERMS PRESENT FOR TAYLOR ELEMENT:' // ele%name)
+!    return
+!  endif
 
-  if (size(ele%spin_taylor(0)%term) == 0) call add_taylor_term(ele%spin_taylor(0), 1.0_rp, [0, 0, 0, 0, 0, 0])
+!  if (size(ele%spin_taylor(0)%term) == 0) call add_taylor_term(ele%spin_taylor(0), 1.0_rp, [0, 0, 0, 0, 0, 0])
 !  if (size(ele%spin_taylor(1)%term) == 0) call add_taylor_term(ele%spin_taylor(1), 0.0_rp, [0, 0, 0, 0, 0, 0])
 !  if (size(ele%spin_taylor(2)%term) == 0) call add_taylor_term(ele%spin_taylor(2), 0.0_rp, [0, 0, 0, 0, 0, 0])
 !  if (size(ele%spin_taylor(3)%term) == 0) call add_taylor_term(ele%spin_taylor(3), 0.0_rp, [0, 0, 0, 0, 0, 0])

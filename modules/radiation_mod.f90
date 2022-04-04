@@ -272,6 +272,20 @@ character(*), parameter :: r_name = 'track1_radiation'
 
 if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
 
+mc2 = mass_of(ele%ref_species)
+q_charge2 = charge_of(orbit%species)**2
+gamma_0 = ele%value(e_tot$) / mc2
+
+! Use stochastic and damp mats
+
+if (bmad_com%debug) then
+  !if (.not. associated(ele%rad_int_cache)
+
+  return
+endif
+
+!
+
 call calc_radiation_tracking_integrals (ele, orbit, edge, .true., int_gx, int_gy, int_g2, int_g3)
 if (int_g2 == 0 .or. orbit%state /= alive$) return
 
@@ -279,9 +293,6 @@ if (int_g2 == 0 .or. orbit%state /= alive$) return
 ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
 ! where xi is a random number with sigma = 1.
 
-mc2 = mass_of(ele%ref_species)
-q_charge2 = charge_of(orbit%species)**2
-gamma_0 = ele%value(e_tot$) / mc2
 
 fact_d = 0
 if (bmad_com%radiation_damping_on) then

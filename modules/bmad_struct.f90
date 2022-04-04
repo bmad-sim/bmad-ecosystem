@@ -879,7 +879,10 @@ type rad_int_ele_cache_struct
   real(rp) :: dg2_dorb(6) = 0   ! variation of g2 with respect to orbit.
   real(rp) :: dg3_dorb(6) = 0   ! Variation of g3 with respect to orbit.
   logical :: stale = .true.
-end type 
+  ! New 6D emit
+  real(rp) :: stoc_kick_mat1(6,6) = 0, stoc_kick_mat2(6,6) = 0  ! Stochastic kick matrix
+  real(rp) :: damp_only_mat1(6,6) = 0, damp_only_mat2(6,6) = 0  ! Damping part of the transfer matrix.
+end type
 
 ! Structure for surfaces of detectors, mirrors, crystals, etc.
 ! Rule: This structure is always allocated in the ele_struct for elements that can utilize it.
