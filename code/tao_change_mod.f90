@@ -191,15 +191,8 @@ logical, allocatable :: this_u(:), free(:)
 
 !-------------------------------------------------
 
-if (s%com%common_lattice) then
-  call re_allocate2 (this_u, lbound(s%u, 1), ubound(s%u, 1))
-  this_u = .false.
-  this_u(ix_common_uni$) = .true.
-  e_name = ele_name
-else
-  call tao_pick_universe (ele_name, e_name, this_u, err)
-  if (err) return
-endif
+call tao_pick_universe (ele_name, e_name, this_u, err)
+if (err) return
 
 ! 
 

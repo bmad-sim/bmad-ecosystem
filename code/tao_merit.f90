@@ -50,38 +50,19 @@ do j = 1, s%n_var_used
 
   if (.not. var%useit_opt) cycle
 
-  ! The common universe does not have ref or base so turn these off for
-  ! variables that control parameters in the common universe.
-
-  if (var%slave(1)%ix_uni == ix_common_uni$) then
-    opt_with_ref = .false.
-    opt_with_base = .false.
-  else
-    opt_with_ref = s%global%opt_with_ref
-    opt_with_base = s%global%opt_with_base
-  endif
+  opt_with_ref = s%global%opt_with_ref
+  opt_with_base = s%global%opt_with_base
 
   ! Calculate the merit delta
 
   select case (var%merit_type)
   case ('target')
     if (opt_with_ref .and. opt_with_base) then
-      if (s%com%common_lattice) then
-        var%delta_merit = (var%model_value - var%common_slave%model_value) - &
-                                                (var%meas_value - var%ref_value)
-      else
-        var%delta_merit = (var%model_value - var%base_value) - &
-                                                (var%meas_value - var%ref_value)
-      endif
+      var%delta_merit = (var%model_value - var%base_value) - (var%meas_value - var%ref_value)
     elseif (opt_with_ref) then
-      var%delta_merit = (var%model_value - var%design_value) - &
-                                                (var%meas_value - var%ref_value)
+      var%delta_merit = (var%model_value - var%design_value) - (var%meas_value - var%ref_value)
     elseif (opt_with_base) then
-      if (s%com%common_lattice) then
-        var%delta_merit = (var%model_value - var%common_slave%model_value) - var%meas_value
-      else
-        var%delta_merit = (var%model_value - var%base_value) - var%meas_value
-      endif
+      var%delta_merit = (var%model_value - var%base_value) - var%meas_value
     else
       var%delta_merit = var%model_value - var%meas_value
     endif
@@ -102,8 +83,6 @@ enddo
 !----------------------------------------------------------------------
 ! Merit contribution from the data:
 
-if (s%com%common_lattice) iu0 = ix_common_uni$
-
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   data => u%data
@@ -117,13 +96,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! The common universe does not have ref or base so turn these off for
   ! data in the common universe.
 
-  if (i == ix_common_uni$) then
-    opt_with_ref = .false.
-    opt_with_base = .false.
-  else
-    opt_with_ref = s%global%opt_with_ref
-    opt_with_base = s%global%opt_with_base
-  endif
+  opt_with_ref = s%global%opt_with_ref
+  opt_with_base = s%global%opt_with_base
 
   ! Check if universe is turned off
 

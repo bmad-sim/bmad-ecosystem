@@ -252,7 +252,6 @@ do i = 1, s%n_var_used
       if (.not. allocated(s%var(i2)%slave)) cycle
       do j2 = 1, size(s%var(i2)%slave)
         if (i == i2 .and. j == j2) cycle
-        if (s%com%common_lattice .and. s%var(i)%slave(j)%ix_uni /= s%var(i2)%slave(j2)%ix_uni) cycle
         if (associated (s%var(i)%slave(j)%model_value, &
                           s%var(i2)%slave(j2)%model_value)) then
           write (name1, '(2a, i0, a)') trim(s%var(i)%v1%name), '[', s%var(i)%ix_v1, ']'  
@@ -513,9 +512,9 @@ if (allocated (s%u)) then
       deallocate(u%base%tao_branch, stat=istat)
     endif
 
-    ! Beams: All s%u(i)%ele point to the same place with common_lattice.
+    ! Beams
 
-    if (associated(u%model_branch) .and. (i == 0 .or. .not. s%com%common_lattice)) then
+    if (associated(u%model_branch)) then
       do ib = 0, ubound(u%model_branch, 1)
         call reallocate_beam(u%model_branch(ib)%ele(0)%beam, 0, 0)
         deallocate (u%model_branch(ib)%ele)

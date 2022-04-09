@@ -99,6 +99,7 @@ type (track_point_struct), pointer :: tp
 type (strong_beam_struct), pointer :: sb
 type (c_taylor) ptc_ctaylor
 type (complex_taylor_struct) bmad_ctaylor
+type (rad_int_ele_cache_struct), pointer :: ri
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -1560,11 +1561,6 @@ case ('element')
     return
   endif
 
-  if (s%com%common_lattice) then
-    u%calc%lattice = .true.
-    call tao_lattice_calc (ok)
-  endif
-
   if (mass_of(branch%param%particle) /= 0) then
     ele%a%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance)
     ele%b%sigma = sqrt(ele%b%beta * tao_branch%modes%b%emittance)
@@ -1653,7 +1649,7 @@ case ('emittance')
   what_to_print = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-element'], &
+    call tao_next_switch (what2, [character(16):: '-universe', '-element', '-matrices'], &
                                                                      .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -1670,8 +1666,11 @@ case ('emittance')
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-element')
-      ele_name = what2(:ix_word)
-      call string_trim (what2(ix_word+1:), what2, ix_word)
+      ele_name = what2(:ix_s2)
+      call string_trim (what2(ix_s2+1:), what2, ix_word)
+
+    case ('-matrices')
+      what_to_print = switch
 
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
@@ -1683,10 +1682,44 @@ case ('emittance')
   if (ele_name == '') then
     ele => u%model%lat%branch(s%global%default_branch)%ele(0)
   else
-    call tao_locate_elements (ele_name, ix_u, eles, err)
+    call tao_locate_elements (ele_name, u%ix_uni, eles, err)
     if (err) return
     ele => eles(1)%ele
   endif
+
+  !
+
+  if (what_to_print == '-matrices') then
+    if (.not. associated(ele%rad_int_cache)) then
+      nl=nl+1; lines(nl) = 'No radiation matrices associated with element.'
+      return
+    endif
+
+    ri => ele%rad_int_cache
+
+    nl=nl+1; write (lines(nl), '(10x, 30x, a, 64x, a)') 'Upstream half', 'Downstream half'
+
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write (lines(nl), '(a10, 6es12.4, 4x, 6es12.4)') 'Ref Orb:  ', ri%rm0%ref_orb, ri%rm1%ref_orb
+    nl=nl+1; write (lines(nl), '(a10, 6es12.4, 4x, 6es12.4)') 'Damp Vec: ', ri%rm0%damp_vec, ri%rm1%damp_vec
+
+
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write (lines(nl), '(a10, 6es12.4, 4x, 6es12.4)') 'Damp Mat: ', ri%rm0%damp_mat(1,:), ri%rm1%damp_mat(1,:)
+    do i = 2, 6
+      nl=nl+1; write (lines(nl), '(10x, 6es12.4, 4x, 6es12.4)') ri%rm0%damp_mat(i,:), ri%rm1%damp_mat(i,:)
+    enddo
+
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write (lines(nl), '(a10, 6es12.4, 4x, 6es12.4)') 'Stoc Mat: ', ri%rm0%stoc_mat(1,:), ri%rm1%stoc_mat(1,:)
+    do i = 2, 6
+      nl=nl+1; write (lines(nl), '(10x, 6es12.4, 4x, 6es12.4)') ri%rm0%stoc_mat(i,:), ri%rm1%stoc_mat(i,:)
+    enddo
+
+    return
+  endif
+
+  !
 
   tao_branch => u%model%tao_branch(ele%ix_branch)
   mode_m => tao_branch%modes
@@ -1921,7 +1954,6 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
     nl=nl+1; write(lines(nl), amt) '  default_universe:            = ', int_str(s%global%default_universe), '  ! Set using: "set default universe = ..."'
     nl=nl+1; write(lines(nl), amt) '  default_branch:              = ', int_str(s%global%default_branch),   '  ! Set using: "set default branch = ..."'
-!!!!    nl=nl+1; write(lines(nl), lmt) '  common_lattice               = ', s%com%common_lattice
     nl=nl+1; write(lines(nl), imt) '  Number paused command files  = ', count(s%com%cmd_file%paused)
     nl=nl+1; write(lines(nl), amt) '  unique_name_suffix           = ', quote(s%init%unique_name_suffix)
     nl=nl+1; write(lines(nl), lmt) '  Combine_consecutive_elements_of_like_name = ', &
@@ -2066,6 +2098,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  u%calc%twiss                      = ', u%calc%twiss
     nl=nl+1; write(lines(nl), lmt) '  u%calc%track                      = ', u%calc%track
     nl=nl+1; write(lines(nl), lmt) '  u%calc%spin_matrices              = ', u%calc%spin_matrices
+    nl=nl+1; write(lines(nl), lmt) '  bmad_com%debug                    = ', bmad_com%debug
   end select
 
 !----------------------------------------------------------------------
@@ -5449,13 +5482,6 @@ case ('variables')
           nl=nl+1; write(lines(nl), irmt)  '%slave(', i, ')%Base_value:  <not associated>'
         endif
       enddo
-    endif
-
-    if (associated (v_ptr%common_slave%model_value)) then
-      nl=nl+1; write(lines(nl), imt)  '%common_slave%ix_uni:      ', v_ptr%common_slave%ix_uni
-      nl=nl+1; write(lines(nl), imt)  '%common_slave%ix_ele:      ', v_ptr%common_slave%ix_ele
-      nl=nl+1; write(lines(nl), rmt)  '%common_slave%Model_value: ', v_ptr%common_slave%model_value
-      nl=nl+1; write(lines(nl), rmt)  '%common_slave%Base_value:  ', v_ptr%common_slave%base_value
     endif
 
     nl=nl+1; write(lines(nl), rmt)  '%design           = ', v_ptr%design_value

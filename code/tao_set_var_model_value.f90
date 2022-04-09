@@ -56,11 +56,7 @@ do i = 1, size(var%slave)
   var_slave%model_value = value
   u => s%u(var_slave%ix_uni)
 
-  if (s%com%common_lattice .and.  var_slave%ix_uni == ix_common_uni$) then
-    s%u(:)%calc%lattice = .true.
-  else
-    u%calc%lattice = .true.
-  endif
+  u%calc%lattice = .true.
 
   lat => u%model%lat
   if (var%ele_name /= 'PARTICLE_START') then

@@ -553,7 +553,7 @@ do  ! Loop over plot files
 
       call qp_calc_axis_places (grph%y)
 
-      if (.not. s%com%common_lattice .and. grph%ix_universe == 0) then
+      if (grph%ix_universe == 0) then
         call out_io (s_error$, r_name, &
             '**********************************************************', &
             '***** SYNTAX CHANGE: GRAPH%IX_UNIVERSE = 0           *****', &
@@ -711,7 +711,7 @@ do  ! Loop over plot files
 
         ! Enable the radiation integrals calculation if needed.
 
-        if (.not. s%com%common_lattice .and. crv%ix_universe == 0) then
+        if (crv%ix_universe == 0) then
           call out_io (s_error$, r_name, &
             '**********************************************************', &
             '***** SYNTAX CHANGE: CURVE%IX_UNIVERSE = 0           *****', &

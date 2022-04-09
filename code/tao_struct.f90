@@ -17,7 +17,6 @@ use bmad_interface
 use srdt_mod
 
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
-integer, parameter :: ix_common_uni$ = 0
 integer, parameter :: apparent_emit$ = 1, projected_emit$ = 2
 
 character(2), parameter :: tao_floor_plan_view_name(6) = [character(2):: 'xy', 'xz', 'yx', 'yz', 'zx', 'zy']
@@ -536,15 +535,12 @@ end type
 !                  %useit_opt = %exists & %good_user & %good_opt & %good_var
 ! %useit_plot -- If True variable is used in plotting variable values.
 !                  %useit_plot = %exists & %good_plot & %good_user
-!
-! With common_lattice = True => var%slave(:)%model_value will point to the working universe.
 
 type tao_var_struct
   character(40) :: ele_name = ''    ! Associated lattice element name.
   character(40) :: attrib_name = '' ! Name of the attribute to vary.
   character(40) :: id = ''          ! Used by Tao extension code. Not used by Tao directly.
   type (tao_var_slave_struct), allocatable :: slave(:)
-  type (tao_var_slave_struct) :: common_slave
   integer :: ix_v1 = 0              ! Index of this var in the s%v1_var(i)%v(:) array.
   integer :: ix_var = 0             ! Index number of this var in the s%var(:) array.
   integer :: ix_dvar = -1           ! Column in the dData_dVar derivative matrix.
@@ -631,7 +627,6 @@ end type
 
 !------------------------------------------------------------------------
 ! global parameters that the user has direct access to.
-! Also see: tao_common_struct.
 ! If this structure is changed, change tao_set_global_cmd.
 
 type tao_global_struct
@@ -687,7 +682,6 @@ type tao_global_struct
   logical :: opt_with_base = .false.                  ! Use base data in optimization?
   logical :: optimizer_allow_user_abort = .true.      ! See Tao manual for more details.
   logical :: optimizer_var_limit_warn = .true.        ! Warn when vars reach a limit with optimization.
-  logical :: orm_analysis = .false.                   ! ORM using MDSA? 
   logical :: plot_on = .true.                         ! Do plotting?
   logical :: rad_int_calc_on = .true.                 ! Radiation integrals calculation on/off.
   logical :: rf_on = .true.                           ! RFcavities on or off? Does not affect lcavities.
@@ -756,7 +750,6 @@ type tao_common_struct
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
   logical :: combine_consecutive_elements_of_like_name = .false.
-  logical :: common_lattice = .false.      
   logical :: have_tracked_beam = .false.      ! Used to catch error when beam plotting without having tracked a beam.
   logical :: init_plot_needed      = .true.   ! reinitialize plotting?
   logical :: init_beam             = .true.   ! Used by custom programs to control Tao init
@@ -1071,7 +1064,6 @@ end type
 ! A universe is a snapshot of a machine
 
 type tao_universe_struct
-  type (tao_universe_struct), pointer :: common => null()
   type (tao_lattice_struct), pointer :: model, design, base
   type (tao_beam_uni_struct) beam
   type (tao_dynamic_aperture_struct) :: dynamic_aperture
