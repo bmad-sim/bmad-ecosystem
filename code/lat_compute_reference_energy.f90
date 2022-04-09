@@ -587,7 +587,6 @@ case (lcavity$)
 
   ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
   ele%time_ref_orb_out%p0c = ele%value(p0c$)  ! To prevent small roundoff errors
-  if (ele%key == em_field$) call ele_rad_int_cache_calc (ele, .true.)
 
 case (custom$, hybrid$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)   ! Delta_ref_time is an independent attrib here.
@@ -698,9 +697,7 @@ case default
     ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
   endif
 
-  call ele_rad_int_cache_calc (ele, .true.)
-
-  if (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$) then
+  if (.not. bmad_com%debug .and. (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$)) then
     bmad_com%radiation_damping_on = .true.
     orb1 = ele%time_ref_orb_in
     call track1_radiation (orb1, ele, start_edge$)

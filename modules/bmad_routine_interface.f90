@@ -771,11 +771,10 @@ subroutine ele_order_calc (lat, order)
   type (lat_ele_order_struct) order
 end subroutine
 
-subroutine ele_rad_int_cache_calc (ele, force_calc)
+subroutine ele_rad_int_cache_calc (ele)
   import
   implicit none
   type (ele_struct) ele
-  logical force_calc
 end subroutine
 
 function ele_unique_name (ele, order) result (unique_name)
@@ -916,6 +915,12 @@ subroutine hdf5_write_grid_field (file_name, ele, g_field, err_flag)
   type (ele_struct) ele
   logical err_flag
   character(*) file_name
+end subroutine
+
+subroutine i2_i3_rad_int_calc (lat)
+  import
+  implicit none
+  type (lat_struct), target :: lat
 end subroutine
 
 subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)

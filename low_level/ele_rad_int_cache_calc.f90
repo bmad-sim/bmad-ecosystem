@@ -1,19 +1,17 @@
 !+
-! Subroutine ele_rad_int_cache_calc (ele, force_calc)
+! Subroutine ele_rad_int_cache_calc (ele)
 ! 
 ! Routine to calculate the radiation integrals for a lattice element needed when tracking with radiation.
-! Note: Not all lattice elements need to have this calculation done.
 !
 ! Input:
 !   ele          -- ele_struct: Lattice element 
-!   force_calc   -- logical: If True, force calculation even if %stale = False.
 !
 ! Output:
 !   ele          -- ele_struct: Lattice element 
 !     %rad_int_cache
 !-
 
-subroutine ele_rad_int_cache_calc (ele, force_calc)
+subroutine ele_rad_int_cache_calc (ele)
 
 use pointer_to_ele_mod, dummy => ele_rad_int_cache_calc
 use pointer_to_branch_mod
@@ -30,7 +28,7 @@ real(rp) g2, g3
 real(rp), parameter :: del_orb = 1d-4
 
 integer j, track_method_saved
-logical force_calc, err_flag
+logical err_flag
 
 !
 
@@ -41,7 +39,7 @@ field_ele => pointer_to_field_ele(ele, 1)
 if (field_ele%field_calc == planar_model$ .or. field_ele%field_calc == helical_model$) return
 
 if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
-if (.not. ele%rad_int_cache%stale .and. .not. force_calc) return
+if (.not. ele%rad_int_cache%stale .and. all(ele%map_ref_orb_in%vec == ele%rad_int_cache%rm0%ref_orb)) return
 
 ! If %map_ref_orb_in has not been set (can happen before the closed orbit is 
 ! calculated or during optimization), use %time_ref_orb_in.
@@ -51,7 +49,7 @@ if (ele%map_ref_orb_in%state == not_set$ .or. ele%map_ref_orb_in%p0c /= ele%valu
 else
   start0_orb = ele%map_ref_orb_in
 endif
-ele%rad_int_cache%orb0 = start0_orb%vec
+ele%rad_int_cache%rm0%ref_orb = start0_orb%vec
 
 branch => pointer_to_branch(ele)
 
