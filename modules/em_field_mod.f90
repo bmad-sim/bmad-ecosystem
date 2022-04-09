@@ -118,6 +118,7 @@ type (taylor_field_struct), pointer :: t_field
 type (taylor_field_plane1_struct), pointer :: t_plane
 type (floor_position_struct) lab_position, global_position, lord_position
 type (spline_struct) spline
+type (branch_struct), pointer :: branch
 
 real(rp), optional :: rf_time
 real(rp) :: x, y, j1, dj1, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), ref_charge, f_p0c
@@ -198,6 +199,10 @@ if (ele%field_calc == refer_to_lords$) then
       lord%floor = ele%floor  ! Needed if there is field overlap.
     else
       ds = ele%s_start - lord%s_start
+      if (lord%value(l$) > 0 .and. lord%s_start > lord%s) then ! Element wraps around zero
+        branch => pointer_to_branch(lord)
+        ds = modulo2(ds, 0.5_rp*branch%param%total_length)
+      endif
       s_lab2 = s_lab + ds
     endif
 

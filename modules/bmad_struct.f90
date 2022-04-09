@@ -20,7 +20,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 271
+integer, parameter :: bmad_inc_version$ = 272
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -872,16 +872,21 @@ end type
 
 ! Radiation integral data cache
 
+type rad1_mat_struct
+  real(rp) :: ref_orb(6) = -1           ! Reference point around which damp_mat is calculated.
+  real(rp) :: damp_vec(6) = 0          ! 0th order damping. 
+  real(rp) :: damp_mat(6,6) = 0        ! Transfer matrix = damp_mat + no_damp_mat.
+  real(rp) :: stoc_mat(6,6) = 0        ! Stochastic variance or "kick" (Cholesky decomposed) matrix.
+end type
+
 type rad_int_ele_cache_struct
-  real(rp) :: orb0(6) = 0       ! Reference orbit for the calculation at beginning of element.
   real(rp) :: g2_0 = 0          ! g2 factor when orbit = %vec0
   real(rp) :: g3_0 = 0          ! g3 factor when orbit = %vec0
   real(rp) :: dg2_dorb(6) = 0   ! variation of g2 with respect to orbit.
   real(rp) :: dg3_dorb(6) = 0   ! Variation of g3 with respect to orbit.
   logical :: stale = .true.
-  ! New 6D emit
-  real(rp) :: stoc_kick_mat1(6,6) = 0, stoc_kick_mat2(6,6) = 0  ! Stochastic kick matrix
-  real(rp) :: damp_only_mat1(6,6) = 0, damp_only_mat2(6,6) = 0  ! Damping part of the transfer matrix.
+  ! New 6D emit. In this structure rm0%stoc_mat and rm1%stoc_mat are the kick matrices.
+  type (rad1_mat_struct) rm0, rm1  ! upstream and downstream matrices.
 end type
 
 ! Structure for surfaces of detectors, mirrors, crystals, etc.
@@ -1318,12 +1323,14 @@ type lat_param_struct
   real(rp) :: t1_no_RF(6,6) = 0                ! Full 1-turn matrix with RF off.
   real(rp) :: spin_tune = 0                    ! Closed orbit spin tune.
   integer :: particle = not_set$               ! Reference particle: positron$, electron$, etc.
-                                               !   Call lattice_bookkeeper if this is changed.
+                                               !     Call lattice_bookkeeper if this is changed.
   integer :: default_tracking_species = ref_particle$  ! Default particle type to use in tracking.
   integer :: geometry = 0                      ! open$ or closed$
   integer :: ixx = 0                           ! Integer for general use
   logical :: stable = .false.                  ! is closed lat stable?
   logical :: live_branch = .true.              ! Should tracking be done on the branch?
+  real(rp) :: I2_rad_int = -1                  ! I2 radiation integral for branch.
+  real(rp) :: I3_rad_int = -1                  ! I3 radiation integral for branch.
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                                ! Overall status for the branch.
   type (beam_init_struct) :: beam_init = beam_init_struct() ! For beam initialization.

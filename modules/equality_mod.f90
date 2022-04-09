@@ -22,16 +22,16 @@ interface operator (==)
   module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
   module procedure eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field
   module procedure eq_floor_position, eq_high_energy_space_charge, eq_xy_disp, eq_twiss, eq_mode3
-  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_target_point
-  module procedure eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_grid_pt, eq_pixel_grid
-  module procedure eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_control
-  module procedure eq_controller_var1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init
-  module procedure eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
-  module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_point, eq_track
-  module procedure eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_branch
-  module procedure eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch
-  module procedure eq_lat, eq_bunch, eq_bunch_params, eq_beam, eq_aperture_point
-  module procedure eq_aperture_param, eq_aperture_scan
+  module procedure eq_bookkeeping_state, eq_rad1_mat, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid
+  module procedure eq_target_point, eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_grid_pt
+  module procedure eq_pixel_grid, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
+  module procedure eq_control, eq_controller_var1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init
+  module procedure eq_grid_beam_init, eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker
+  module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_strong_beam
+  module procedure eq_track_point, eq_track, eq_synch_rad_common, eq_csr_parameter, eq_bmad_common
+  module procedure eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term
+  module procedure eq_complex_taylor, eq_branch, eq_lat, eq_bunch, eq_bunch_params
+  module procedure eq_beam, eq_aperture_point, eq_aperture_param, eq_aperture_scan
 end interface
 
 contains
@@ -1229,6 +1229,30 @@ end function eq_bookkeeping_state
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_rad1_mat (f1, f2) result (is_eq)
+
+implicit none
+
+type(rad1_mat_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%ref_orb == f2%ref_orb)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%damp_vec == f2%damp_vec)
+!! f_side.equality_test[real, 2, NOT]
+is_eq = is_eq .and. all(f1%damp_mat == f2%damp_mat)
+!! f_side.equality_test[real, 2, NOT]
+is_eq = is_eq .and. all(f1%stoc_mat == f2%stoc_mat)
+
+end function eq_rad1_mat
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_rad_int_ele_cache (f1, f2) result (is_eq)
 
 implicit none
@@ -1239,8 +1263,6 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%orb0 == f2%orb0)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%g2_0 == f2%g2_0)
 !! f_side.equality_test[real, 0, NOT]
@@ -1251,6 +1273,10 @@ is_eq = is_eq .and. all(f1%dg2_dorb == f2%dg2_dorb)
 is_eq = is_eq .and. all(f1%dg3_dorb == f2%dg3_dorb)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%stale .eqv. f2%stale)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%rm0 == f2%rm0)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%rm1 == f2%rm1)
 
 end function eq_rad_int_ele_cache
 
@@ -1894,6 +1920,8 @@ is_eq = is_eq .and. (f1%use_z_as_t .eqv. f2%use_z_as_t)
 is_eq = is_eq .and. (f1%sig_e_jitter == f2%sig_e_jitter)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sig_e == f2%sig_e)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%use_particle_start_for_center .eqv. f2%use_particle_start_for_center)
 
 end function eq_beam_init
 
@@ -1934,6 +1962,10 @@ is_eq = is_eq .and. (f1%ixx == f2%ixx)
 is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%live_branch .eqv. f2%live_branch)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%i2_rad_int == f2%i2_rad_int)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%i3_rad_int == f2%i3_rad_int)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 !! f_side.equality_test[type, 0, NOT]
@@ -2008,6 +2040,8 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%emittance == f2%emittance)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%emittance_no_vert == f2%emittance_no_vert)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%synch_int == f2%synch_int)
 !! f_side.equality_test[real, 0, NOT]
@@ -2120,6 +2154,36 @@ end function eq_em_field
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_strong_beam (f1, f2) result (is_eq)
+
+implicit none
+
+type(strong_beam_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_slice == f2%ix_slice)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_center == f2%x_center)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y_center == f2%y_center)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_sigma == f2%x_sigma)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y_sigma == f2%y_sigma)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dx == f2%dx)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dy == f2%dy)
+
+end function eq_strong_beam
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_track_point (f1, f2) result (is_eq)
 
 implicit none
@@ -2136,6 +2200,8 @@ is_eq = is_eq .and. (f1%s_body == f2%s_body)
 is_eq = is_eq .and. (f1%orb == f2%orb)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%field == f2%field)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%strong_beam == f2%strong_beam)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%vec0 == f2%vec0)
 !! f_side.equality_test[real, 2, NOT]

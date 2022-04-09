@@ -23,13 +23,18 @@ deterministic part of the emission, $\xi$ is a Gaussian distributed random numbe
 and zero mean, and $k_f$ is the amplitude of the stochastic part of the emission. Values for $k_d$
 and $k_f$ are calculated via the equations
 \begin{align}
-  k_d &= \frac{2 \, r_e}{3} \, \gamma_0^3
+  k_d &= \frac{2 \, \rc}{3} \, \gamma_0^3
     \label{k2r3g} \\
-  k_f &= \frac{55 \, r_e \, \hbar}{24 \, \sqrt{3} \, m_e \, c} \, \gamma_0^5
+  k_f &= \frac{55 \, \rc \, \hbar}{24 \, \sqrt{3} \, m \, c} \, \gamma_0^5
     \label{k55rh}
 \end{align}
-where $r_e$ is the classical electron radius and $\gamma_0$ is the energy factor of an on-energy
-particle.
+where $\gamma_0$ is the energy factor of an on-energy particle and $\rc$ is the particles
+``classical radius'' given by
+\begin{equation}
+  \rc = \frac{q^2}{4 \, \pi \, \epsilon_0 \, m \, c^2} 
+  \label{rq4pe}
+\end{equation}
+where $q$ is the particle's charge and $m$ is the particle's mass.
 
 Since the radiation is emitted in the forward direction the angular orientation of the particle
 motion is invariant which leads to the following equations for the changes in momentum phase space
@@ -84,7 +89,7 @@ by
 \end{equation}
 where the $\xi$ in \Eq{dpkgl} is independent of the $\xi$ in \Eq{deekk} and
 \begin{equation}
- k_v = \frac{13 \, r_e \, \hbar}{24 \, \sqrt{3} \, m_e \, c} \, \gamma_0^3
+ k_v = \frac{13 \, \rc \, \hbar}{24 \, \sqrt{3} \, m \, c} \, \gamma_0^3
 \end{equation}
 
 %-----------------------------------------------------------------
@@ -337,15 +342,10 @@ throughout the lattice.
 $I_0$ is not a standard radiation integral. It is useful, though, in calculating the average number
 of photons emitted. For electrons:
   \begin{equation}
-    {\cal N} = \frac{5 \: r_{\! f}}{2 \sqrt{3} \, \hbar \, c} \, I_0 
+    {\cal N} = \frac{5 \: \rc m \, c^2}{2 \sqrt{3} \, \hbar \, c} \, I_0 
   \end{equation}
-where $\cal N$ is the average number of photons emitted by a particle
-over one turn, and the ``classical radius factor'' $r_{\! f}$ is 
-  \begin{equation}
-    r_{\! f} = \frac{e^2}{4 \, \pi \, \epsilon_0} 
-  \end{equation}
-$r_{\! f}$ has a value of $1.4399644 \cdot 10^{-9} \; \text{meters-eV}$
-for all particles of charge $\pm 1$.
+where $\cal N$ is the average number of photons emitted by a particle over one turn, and $\rc$ is
+the the particle's ``classical radius'' given by \Eq{rq4pe}.
 
 In a dipole a non--zero $e_1$ or $e_2$ gives a contribution to $I_4$ via the $\nabla g^2 \dotproduct
 \bfeta$ term. The edge field is modeled as a thin quadrupole of length $\delta$ and strength $k = -g
@@ -380,10 +380,9 @@ factor $\eta_p$ by
 
 The energy loss per turn is related to $I_2$ via
   \begin{equation}
-    U_0 = \frac{2 \, r_e E_0^4}{3 \, (mc^2)^3} I_2
+    U_0 = \frac{2 \, \rc E_0^4}{3 \, (mc^2)^3} I_2
   \end{equation}
-where $E_0$ is the nominal energy and $r_e$ is the classical electron radius (electrons are assumed
-here but the formulas are easily generalized).
+where $E_0$ is the nominal energy.
 
 The damping partition numbers are related to the radiation integrals via
   \begin{equation}
@@ -443,12 +442,12 @@ integrals are not relevant. The other integrals become
   \end{align}
 In terms of these integrals, the energy loss through the lattice is
   \begin{equation}
-    U_0 = \frac{2 \, r_e \, mc^2}{3} L_2
+    U_0 = \frac{2 \, \rc \, mc^2}{3} L_2
   \end{equation}
 The energy spread assuming $\sigma_E$ is zero at the start and neglecting
 any damping is
   \begin{equation}
-    \sigma_E^2 = \frac{4}{3} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
+    \sigma_E^2 = \frac{4}{3} \, C_q \, \rc \, \left( m c^2 \right)^2 \, L_3
   \end{equation}
 The above equation is appropriate for a linac. In a storage ring, where
 there are energy oscillations, the growth of $\sigma_E^2$ due to
@@ -460,9 +459,9 @@ $\sigma_E^2$ by a factor of 2.
 Again neglecting any initial beam width, the transverse beam size
 at the end of the lattice is
   \begin{align}
-    \epsilon_a &= \frac{2}{3} \, C_q \, r_e \, 
+    \epsilon_a &= \frac{2}{3} \, C_q \, \rc \, 
     \frac{L_{5a}}{\gamma_f} \CRNO
-    \epsilon_b &= \frac{2}{3} \, C_q \, r_e \, 
+    \epsilon_b &= \frac{2}{3} \, C_q \, \rc \, 
     \frac{L_{5b}}{\gamma_f} 
   \end{align}
 Where $\gamma_f$ is the final gamma.

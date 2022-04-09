@@ -50,6 +50,7 @@ private reallocate_coord_n, reallocate_coord_lat
 ! This routine is an overloaded name for:
 !   Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
 !   Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+!   Subroutine init_coord1 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
 !
 ! Note: Unless shift_vec6 is set to False, if ele is a beginning_ele (IE, the element at the beginning of the lattice), 
 ! or e_gun, orb%vec(6) is shifted so that a particle with orb%vec(6) = 0 will end up with a value of orb%vec(6) 
@@ -91,6 +92,7 @@ private reallocate_coord_n, reallocate_coord_lat
 interface init_coord
   module procedure init_coord1
   module procedure init_coord2
+  module procedure init_coord3
 end interface
 
 private init_coord1, init_coord2
@@ -254,14 +256,15 @@ implicit none
 
 type (coord_struct) orb, orb_temp
 type (ele_struct), optional :: ele
-real(rp), optional :: vec(:), t_offset, E_photon, spin(3)
+real(rp) :: vec(:)
+real(rp), optional :: t_offset, E_photon, spin(3)
 integer, optional :: element_end, particle, direction
 logical, optional :: shift_vec6
 
 !
 
 orb_temp = coord_struct()
-if (present(vec)) orb_temp%vec = vec
+orb_temp%vec = vec
 
 call init_coord2 (orb, orb_temp, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
 
@@ -455,5 +458,31 @@ endif
 orb_out = orb
 
 end subroutine init_coord2
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine init_coord3 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+! 
+! Subroutine to initialize a coord_struct. 
+! This subroutine is overloaded by init_coord. See init_coord for more details.
+!-
+
+subroutine init_coord3 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+
+implicit none
+
+type (coord_struct) orb
+type (ele_struct), optional :: ele
+real(rp), optional :: t_offset, E_photon, spin(3)
+integer, optional :: element_end, particle, direction
+logical, optional :: shift_vec6
+
+!
+
+call init_coord2 (orb, coord_struct(), ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+
+end subroutine init_coord3
 
 end module

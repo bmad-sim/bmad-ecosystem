@@ -712,7 +712,11 @@ endif
 
 ! Make stale ele%rad_int_cache if allocated
 
-if (associated(ele%rad_int_cache))   ele%rad_int_cache%stale = .true.  ! Forces recalc
+if (associated(ele%rad_int_cache)) then
+  ele%rad_int_cache%stale = .true.  ! Forces recalc
+  ele%rad_int_cache%rm0%ref_orb = -1  ! Forces recalc
+endif
+
 if (allocated(ele%multipole_cache)) then
   ele%multipole_cache%ix_pole_mag_max = invalid$ ! Forces recalc
   ele%multipole_cache%ix_pole_elec_max = invalid$ ! Forces recalc

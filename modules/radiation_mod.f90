@@ -143,10 +143,10 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
     int_g3 = eff_len * g3
 
   else
-    if (associated(ele%rad_int_cache)) field_ele => ele
-    if (.not. associated(ele%rad_int_cache)) return
-    int_g2 = eff_len * (field_ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-field_ele%rad_int_cache%orb0(1:4), field_ele%rad_int_cache%dg2_dorb(1:4)))
-    int_g3 = eff_len * (field_ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-field_ele%rad_int_cache%orb0(1:4), field_ele%rad_int_cache%dg3_dorb(1:4)))
+    call ele_rad_int_cache_calc (ele)
+    if (.not. associated(field_ele%rad_int_cache)) return
+    int_g2 = eff_len * (field_ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-field_ele%rad_int_cache%rm0%ref_orb(1:4), field_ele%rad_int_cache%dg2_dorb(1:4)))
+    int_g3 = eff_len * (field_ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-field_ele%rad_int_cache%rm0%ref_orb(1:4), field_ele%rad_int_cache%dg3_dorb(1:4)))
     if (int_g3 < 0) int_g3 = 0
   endif
 
@@ -256,14 +256,17 @@ implicit none
 
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
+type (rad_int_ele_cache_struct), pointer :: ric
+type (rad1_mat_struct) rad_mat
 
 integer :: edge
 
-real(rp) int_gx, int_gy, this_ran, mc2, int_g2, int_g3
-real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm, rel_p
-real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
-real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
-real(rp), parameter :: damp_const = 2 * classical_radius_factor / 3
+real(rp) int_gx, int_gy, this_ran, mc2, int_g2, int_g3, ran6(6)
+real(rp) gamma_0, dE_p, fact_d, fact_f, p_spin, spin_norm(3), norm, rel_p, c_radius
+real(rp) damp_mat(6,6), stoc_mat(6,6), ref_orb(6)
+real(rp), parameter :: rad_fluct_const = 55.0_rp * h_bar_planck * c_light / (24.0_rp * sqrt_3)
+real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * h_bar_planck * c_light / 16.0_rp
+real(rp), parameter :: damp_const = 2.0_rp / 3.0_rp
 real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
 
 character(*), parameter :: r_name = 'track1_radiation'
@@ -271,15 +274,32 @@ character(*), parameter :: r_name = 'track1_radiation'
 !
 
 if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
+if (ele%key == drift$ .or. ele%value(l$) == 0) return
 
+c_radius = classical_radius(orbit%species)
 mc2 = mass_of(ele%ref_species)
-q_charge2 = charge_of(orbit%species)**2
 gamma_0 = ele%value(e_tot$) / mc2
 
 ! Use stochastic and damp mats
 
 if (bmad_com%debug) then
-  !if (.not. associated(ele%rad_int_cache)
+  call this_rad_mat_setup(ele, edge)
+  ric => ele%rad_int_cache
+  if (edge == start_edge$) then
+    rad_mat = ric%rm0
+  else
+    rad_mat = ric%rm1
+  endif
+
+  if (bmad_com%radiation_damping_on) then
+    orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
+    if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_mat%damp_vec
+  endif
+
+  if (bmad_com%radiation_fluctuations_on) then
+    call ran_gauss (ran6)
+    orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%stoc_mat, ran6)
+  endif
 
   return
 endif
@@ -296,21 +316,21 @@ if (int_g2 == 0 .or. orbit%state /= alive$) return
 
 fact_d = 0
 if (bmad_com%radiation_damping_on) then
-  fact_d = damp_const * q_charge2 * gamma_0**3 * int_g2 / mc2
+  fact_d = damp_const * c_radius * gamma_0**3 * int_g2
   if (bmad_com%backwards_time_tracking_on) fact_d = -fact_d
 endif
 
 fact_f = 0
 if (bmad_com%radiation_fluctuations_on) then
   call ran_gauss (this_ran)
-  fact_f = sqrt(rad_fluct_const * q_charge2 * gamma_0**5 * int_g3) * this_ran / mc2
+  fact_f = sqrt(rad_fluct_const * c_radius * gamma_0**5 * int_g3) * this_ran
 endif
 
 rel_p = 1 + orbit%vec(6)
 dE_p = rel_p * (fact_d + fact_f)
 if (bmad_com%radiation_zero_average) then
-  if (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$) dE_p = &
-                                                  dE_p + ele%value(dpz_rad_damp_ave$) / (2 * rel_p)
+  if (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$) &
+                                                  dE_p = dE_p + ele%value(dpz_rad_damp_ave$) / (2 * rel_p)
 endif
 dE_p = dE_p * synch_rad_com%scale 
 
@@ -326,11 +346,99 @@ orbit%vec(6) = orbit%vec(6) - dE_p * rel_p
 !  if (norm /= 0) then
 !    spin_norm = orbit%spin / norm
 !    call ran_uniform (this_ran)
-!    p_spin = (spin_const * q_charge2 * gamma_0**5 / (orbit%beta * mc2**2)) * &
+!    p_spin = (spin_const * c_radius * gamma_0**5 / (orbit%beta * mc2)) * &
 !          (int_g3 - c1_spin * int_g3 * (spin_norm(3))**2 + c2_spin * int_g2 * dot_product([g_y, -g_x], spin_norm(1:2))) 
 !    if (this_ran < p_spin) orbit%spin = -orbit%spin  ! spin flip
 !  endif
 !endif
+
+!---------------------------------------------------------------------------
+contains
+
+subroutine this_rad_mat_setup (ele, edge)
+
+use emit_6d_mod
+use f95_lapack, only: dpotrf_f95
+
+type (coord_struct) orb1, orb2
+type (ele_struct), target :: ele, runt
+type (rad_int_ele_cache_struct), pointer :: ric
+type (rad1_mat_struct) rad_mat
+type (branch_struct), pointer :: branch
+real(rp) tol, rcond, m_inv(6,6)
+integer i, edge, info
+logical err, rad_damp_on
+
+!
+
+if (.not. associated(ele%rad_int_cache)) allocate(ele%rad_int_cache)
+ric => ele%rad_int_cache
+branch => pointer_to_branch(ele)
+tol = 1d-4 / branch%param%total_length
+
+if (all(ric%rm0%ref_orb == ele%map_ref_orb_in%vec) .or. all(ric%rm1%ref_orb == ele%map_ref_orb_out%vec)) return
+if (all(ric%rm0%ref_orb == ric%rm1%ref_orb) .and. ele%key /= sbend$) then
+  ric%rm0 = rad1_mat_struct()
+  ric%rm1 = rad1_mat_struct()
+  ric%rm0%ref_orb = ele%map_ref_orb_in%vec
+  ric%rm1%ref_orb = ele%map_ref_orb_out%vec
+  return
+endif
+
+ric%rm1%ref_orb = ele%map_ref_orb_out%vec
+rad_damp_on = bmad_com%radiation_damping_on
+bmad_com%radiation_damping_on = .false.
+
+! The Cholesky decomp can fail due to roundoff error in rad1_damp_and_stoc_mats. 
+! This is especially true if there is little radiation. In this case just set the stoc mat to zero.
+
+! Mats for first half of element
+
+call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.0_rp, ele%branch%param, .true., .true., err, pointer_to_next_ele(ele, -1))
+call make_mat6 (runt, branch%param, ele%map_ref_orb_in, orb1)
+call rad1_damp_and_stoc_mats (runt, .true., ele%map_ref_orb_in, orb1, rad_mat, tol * branch%param%i2_rad_int, tol * branch%param%i3_rad_int)
+m_inv = mat_symp_conj(runt%mat6)
+
+ric%rm0 = rad_mat
+ric%rm0%ref_orb = ele%map_ref_orb_in%vec
+
+ric%rm0%damp_mat = matmul(m_inv, ric%rm0%damp_mat)
+ric%rm0%damp_vec = matmul(m_inv, ric%rm0%damp_vec)
+
+ric%rm0%stoc_mat = matmul(matmul(m_inv, ric%rm0%stoc_mat), runt%mat6)
+
+call dpotrf_f95(ric%rm0%stoc_mat, 'U', info = info)
+if (info /= 0) then
+  ric%rm0%stoc_mat = 0  ! Cholesky failed
+endif
+
+do i = 2, 6
+  ric%rm0%stoc_mat(:i-1, i) = 0
+enddo
+
+! Mats for second half of element
+
+call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.5_rp*ele%value(l$), ele%branch%param, .true., .true., err, runt)
+call make_mat6 (runt, branch%param, orb1, orb2)
+call rad1_damp_and_stoc_mats (runt, .true., orb1, orb2, rad_mat, tol * branch%param%i2_rad_int, tol * branch%param%i3_rad_int)
+m_inv = mat_symp_conj(runt%mat6)
+
+ric%rm1 = rad_mat
+
+call dpotrf_f95(ric%rm1%stoc_mat, 'U', info = info)
+if (info /= 0) then
+  ric%rm1%stoc_mat = 0 ! Cholesky failed
+endif
+
+do i = 2, 6
+  ric%rm1%stoc_mat(:i-1, i) = 0
+enddo
+
+!
+
+bmad_com%radiation_damping_on = rad_damp_on
+
+end subroutine this_rad_mat_setup
 
 end subroutine track1_radiation 
 
