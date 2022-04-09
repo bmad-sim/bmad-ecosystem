@@ -221,6 +221,11 @@ typedef valarray<CPP_bookkeeping_state>          CPP_bookkeeping_state_ARRAY;
 typedef valarray<CPP_bookkeeping_state_ARRAY>    CPP_bookkeeping_state_MATRIX;
 typedef valarray<CPP_bookkeeping_state_MATRIX>   CPP_bookkeeping_state_TENSOR;
 
+class CPP_rad1_mat;
+typedef valarray<CPP_rad1_mat>          CPP_rad1_mat_ARRAY;
+typedef valarray<CPP_rad1_mat_ARRAY>    CPP_rad1_mat_MATRIX;
+typedef valarray<CPP_rad1_mat_MATRIX>   CPP_rad1_mat_TENSOR;
+
 class CPP_rad_int_ele_cache;
 typedef valarray<CPP_rad_int_ele_cache>          CPP_rad_int_ele_cache_ARRAY;
 typedef valarray<CPP_rad_int_ele_cache_ARRAY>    CPP_rad_int_ele_cache_MATRIX;
@@ -355,6 +360,11 @@ class CPP_em_field;
 typedef valarray<CPP_em_field>          CPP_em_field_ARRAY;
 typedef valarray<CPP_em_field_ARRAY>    CPP_em_field_MATRIX;
 typedef valarray<CPP_em_field_MATRIX>   CPP_em_field_TENSOR;
+
+class CPP_strong_beam;
+typedef valarray<CPP_strong_beam>          CPP_strong_beam_ARRAY;
+typedef valarray<CPP_strong_beam_ARRAY>    CPP_strong_beam_MATRIX;
+typedef valarray<CPP_strong_beam_MATRIX>   CPP_strong_beam_TENSOR;
 
 class CPP_track_point;
 typedef valarray<CPP_track_point>          CPP_track_point_ARRAY;
@@ -1808,26 +1818,58 @@ bool operator== (const CPP_bookkeeping_state&, const CPP_bookkeeping_state&);
 
 
 //--------------------------------------------------------------------
+// CPP_rad1_mat
+
+class Opaque_rad1_mat_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_rad1_mat {
+public:
+  Real_ARRAY ref_orb;
+  Real_ARRAY damp_vec;
+  Real_MATRIX damp_mat;
+  Real_MATRIX stoc_mat;
+
+  CPP_rad1_mat() :
+    ref_orb(0.0, 6),
+    damp_vec(0.0, 6),
+    damp_mat(Real_ARRAY(0.0, 6), 6),
+    stoc_mat(Real_ARRAY(0.0, 6), 6)
+    {}
+
+  ~CPP_rad1_mat() {
+  }
+
+};   // End Class
+
+extern "C" void rad1_mat_to_c (const Opaque_rad1_mat_class*, CPP_rad1_mat&);
+extern "C" void rad1_mat_to_f (const CPP_rad1_mat&, Opaque_rad1_mat_class*);
+
+bool operator== (const CPP_rad1_mat&, const CPP_rad1_mat&);
+
+
+//--------------------------------------------------------------------
 // CPP_rad_int_ele_cache
 
 class Opaque_rad_int_ele_cache_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_rad_int_ele_cache {
 public:
-  Real_ARRAY orb0;
   Real g2_0;
   Real g3_0;
   Real_ARRAY dg2_dorb;
   Real_ARRAY dg3_dorb;
   Bool stale;
+  CPP_rad1_mat rm0;
+  CPP_rad1_mat rm1;
 
   CPP_rad_int_ele_cache() :
-    orb0(0.0, 6),
     g2_0(0.0),
     g3_0(0.0),
     dg2_dorb(0.0, 6),
     dg3_dorb(0.0, 6),
-    stale(true)
+    stale(true),
+    rm0(),
+    rm1()
     {}
 
   ~CPP_rad_int_ele_cache() {
@@ -2504,11 +2546,12 @@ public:
   string species;
   Bool init_spin;
   Bool full_6d_coupling_calc;
-  Bool use_particle_start_for_center;
+  Bool use_particle_start;
   Bool use_t_coords;
   Bool use_z_as_t;
   Real sig_e_jitter;
   Real sig_e;
+  Bool use_particle_start_for_center;
 
   CPP_beam_init() :
     position_file(),
@@ -2542,11 +2585,12 @@ public:
     species(),
     init_spin(true),
     full_6d_coupling_calc(false),
-    use_particle_start_for_center(false),
+    use_particle_start(false),
     use_t_coords(false),
     use_z_as_t(false),
     sig_e_jitter(0.0),
-    sig_e(0.0)
+    sig_e(0.0),
+    use_particle_start_for_center(false)
     {}
 
   ~CPP_beam_init() {
@@ -2579,6 +2623,8 @@ public:
   Int ixx;
   Bool stable;
   Bool live_branch;
+  Real i2_rad_int;
+  Real i3_rad_int;
   CPP_bookkeeping_state bookkeeping_state;
   CPP_beam_init beam_init;
 
@@ -2595,6 +2641,8 @@ public:
     ixx(0),
     stable(false),
     live_branch(true),
+    i2_rad_int(-1),
+    i3_rad_int(-1),
     bookkeeping_state(),
     beam_init()
     {}
@@ -2682,6 +2730,7 @@ class Opaque_anormal_mode_class {};  // Opaque class for pointers to correspondi
 class CPP_anormal_mode {
 public:
   Real emittance;
+  Real emittance_no_vert;
   Real_ARRAY synch_int;
   Real j_damp;
   Real alpha_damp;
@@ -2690,6 +2739,7 @@ public:
 
   CPP_anormal_mode() :
     emittance(0.0),
+    emittance_no_vert(0.0),
     synch_int(0.0, 3),
     j_damp(0.0),
     alpha_damp(0.0),
@@ -2823,6 +2873,42 @@ bool operator== (const CPP_em_field&, const CPP_em_field&);
 
 
 //--------------------------------------------------------------------
+// CPP_strong_beam
+
+class Opaque_strong_beam_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_strong_beam {
+public:
+  Int ix_slice;
+  Real x_center;
+  Real y_center;
+  Real x_sigma;
+  Real y_sigma;
+  Real dx;
+  Real dy;
+
+  CPP_strong_beam() :
+    ix_slice(0),
+    x_center(0.0),
+    y_center(0.0),
+    x_sigma(0.0),
+    y_sigma(0.0),
+    dx(0.0),
+    dy(0.0)
+    {}
+
+  ~CPP_strong_beam() {
+  }
+
+};   // End Class
+
+extern "C" void strong_beam_to_c (const Opaque_strong_beam_class*, CPP_strong_beam&);
+extern "C" void strong_beam_to_f (const CPP_strong_beam&, Opaque_strong_beam_class*);
+
+bool operator== (const CPP_strong_beam&, const CPP_strong_beam&);
+
+
+//--------------------------------------------------------------------
 // CPP_track_point
 
 class Opaque_track_point_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -2832,6 +2918,7 @@ public:
   Real s_body;
   CPP_coord orb;
   CPP_em_field field;
+  CPP_strong_beam strong_beam;
   Real_ARRAY vec0;
   Real_MATRIX mat6;
 
@@ -2839,6 +2926,7 @@ public:
     s_body(0.0),
     orb(),
     field(),
+    strong_beam(),
     vec0(0.0, 6),
     mat6(Real_ARRAY(0.0, 6), 6)
     {}

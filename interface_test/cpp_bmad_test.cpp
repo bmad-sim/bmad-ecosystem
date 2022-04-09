@@ -2788,29 +2788,92 @@ extern "C" void test_c_bookkeeping_state (Opaque_bookkeeping_state_class* F, boo
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_rad1_mat (CPP_rad1_mat&, bool&);
+
+void set_CPP_rad1_mat_test_pattern (CPP_rad1_mat& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.ref_orb.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.ref_orb[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.damp_vec.size(); i++)
+    {int rhs = 101 + i + 2 + offset; C.damp_vec[i] = rhs;}
+  // c_side.test_pat[real, 2, NOT]
+  for (unsigned int i = 0; i < C.damp_mat.size(); i++)  for (unsigned int j = 0; j < C.damp_mat[0].size(); j++) 
+    {int rhs = 101 + i + 10*(j+1) + 3 + offset; C.damp_mat[i][j] = rhs;}
+  // c_side.test_pat[real, 2, NOT]
+  for (unsigned int i = 0; i < C.stoc_mat.size(); i++)  for (unsigned int j = 0; j < C.stoc_mat[0].size(); j++) 
+    {int rhs = 101 + i + 10*(j+1) + 4 + offset; C.stoc_mat[i][j] = rhs;}
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_rad1_mat (Opaque_rad1_mat_class* F, bool& c_ok) {
+
+  CPP_rad1_mat C, C2;
+
+  c_ok = true;
+
+  rad1_mat_to_c (F, C);
+  set_CPP_rad1_mat_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " rad1_mat: C side convert F->C: Good" << endl;
+  } else {
+    cout << " rad1_mat: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_rad1_mat_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_rad1_mat (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_rad1_mat_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " rad1_mat: F side convert F->C: Good" << endl;
+  } else {
+    cout << " rad1_mat: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_rad1_mat_test_pattern (C2, 4);
+  rad1_mat_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_rad_int_ele_cache (CPP_rad_int_ele_cache&, bool&);
 
 void set_CPP_rad_int_ele_cache_test_pattern (CPP_rad_int_ele_cache& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.orb0.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.orb0[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.g2_0 = rhs;
+  rhs = 1 + offset; C.g2_0 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.g3_0 = rhs;
+  rhs = 2 + offset; C.g3_0 = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.dg2_dorb.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.dg2_dorb[i] = rhs;}
+    {int rhs = 101 + i + 3 + offset; C.dg2_dorb[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.dg3_dorb.size(); i++)
-    {int rhs = 101 + i + 5 + offset; C.dg3_dorb[i] = rhs;}
+    {int rhs = 101 + i + 4 + offset; C.dg3_dorb[i] = rhs;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 6 + offset; C.stale = (rhs % 2 == 0);
+  rhs = 5 + offset; C.stale = (rhs % 2 == 0);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_rad1_mat_test_pattern(C.rm0, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_rad1_mat_test_pattern(C.rm1, ix_patt);
 
 
 }
@@ -4239,7 +4302,7 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
   rhs = 31 + offset; C.full_6d_coupling_calc = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.use_particle_start_for_center = (rhs % 2 == 0);
+  rhs = 32 + offset; C.use_particle_start = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 33 + offset; C.use_t_coords = (rhs % 2 == 0);
@@ -4252,6 +4315,9 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
 
   // c_side.test_pat[real, 0, NOT]
   rhs = 36 + offset; C.sig_e = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 37 + offset; C.use_particle_start_for_center = (rhs % 2 == 0);
 
 
 }
@@ -4336,6 +4402,12 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 12 + offset; C.live_branch = (rhs % 2 == 0);
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 13 + offset; C.i2_rad_int = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 14 + offset; C.i3_rad_int = rhs;
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);
@@ -4521,20 +4593,23 @@ void set_CPP_anormal_mode_test_pattern (CPP_anormal_mode& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 1 + offset; C.emittance = rhs;
 
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.emittance_no_vert = rhs;
+
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.synch_int.size(); i++)
-    {int rhs = 101 + i + 2 + offset; C.synch_int[i] = rhs;}
+    {int rhs = 101 + i + 3 + offset; C.synch_int[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.j_damp = rhs;
+  rhs = 4 + offset; C.j_damp = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.alpha_damp = rhs;
+  rhs = 5 + offset; C.alpha_damp = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.chrom = rhs;
+  rhs = 6 + offset; C.chrom = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.tune = rhs;
+  rhs = 7 + offset; C.tune = rhs;
 
 
 }
@@ -4794,6 +4869,75 @@ extern "C" void test_c_em_field (Opaque_em_field_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_strong_beam (CPP_strong_beam&, bool&);
+
+void set_CPP_strong_beam_test_pattern (CPP_strong_beam& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.ix_slice = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.x_center = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.y_center = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.x_sigma = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.y_sigma = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.dx = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.dy = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_strong_beam (Opaque_strong_beam_class* F, bool& c_ok) {
+
+  CPP_strong_beam C, C2;
+
+  c_ok = true;
+
+  strong_beam_to_c (F, C);
+  set_CPP_strong_beam_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " strong_beam: C side convert F->C: Good" << endl;
+  } else {
+    cout << " strong_beam: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_strong_beam_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_strong_beam (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_strong_beam_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " strong_beam: F side convert F->C: Good" << endl;
+  } else {
+    cout << " strong_beam: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_strong_beam_test_pattern (C2, 4);
+  strong_beam_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_track_point (CPP_track_point&, bool&);
 
 void set_CPP_track_point_test_pattern (CPP_track_point& C, int ix_patt) {
@@ -4809,12 +4953,15 @@ void set_CPP_track_point_test_pattern (CPP_track_point& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_em_field_test_pattern(C.field, ix_patt);
 
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_strong_beam_test_pattern(C.strong_beam, ix_patt);
+
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.vec0.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.vec0[i] = rhs;}
+    {int rhs = 101 + i + 5 + offset; C.vec0[i] = rhs;}
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.mat6.size(); i++)  for (unsigned int j = 0; j < C.mat6[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 5 + offset; C.mat6[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 6 + offset; C.mat6[i][j] = rhs;}
 
 }
 

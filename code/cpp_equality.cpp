@@ -715,14 +715,29 @@ template bool is_all_equal (const CPP_bookkeeping_state_MATRIX&, const CPP_bookk
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_rad1_mat& x, const CPP_rad1_mat& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.ref_orb, y.ref_orb);
+  is_eq = is_eq && is_all_equal(x.damp_vec, y.damp_vec);
+  is_eq = is_eq && is_all_equal(x.damp_mat, y.damp_mat);
+  is_eq = is_eq && is_all_equal(x.stoc_mat, y.stoc_mat);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_rad1_mat_ARRAY&, const CPP_rad1_mat_ARRAY&);
+template bool is_all_equal (const CPP_rad1_mat_MATRIX&, const CPP_rad1_mat_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_rad_int_ele_cache& x, const CPP_rad_int_ele_cache& y) {
   bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.orb0, y.orb0);
   is_eq = is_eq && (x.g2_0 == y.g2_0);
   is_eq = is_eq && (x.g3_0 == y.g3_0);
   is_eq = is_eq && is_all_equal(x.dg2_dorb, y.dg2_dorb);
   is_eq = is_eq && is_all_equal(x.dg3_dorb, y.dg3_dorb);
   is_eq = is_eq && (x.stale == y.stale);
+  is_eq = is_eq && (x.rm0 == y.rm0);
+  is_eq = is_eq && (x.rm1 == y.rm1);
   return is_eq;
 };
 
@@ -1060,11 +1075,12 @@ bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   is_eq = is_eq && (x.species == y.species);
   is_eq = is_eq && (x.init_spin == y.init_spin);
   is_eq = is_eq && (x.full_6d_coupling_calc == y.full_6d_coupling_calc);
-  is_eq = is_eq && (x.use_particle_start_for_center == y.use_particle_start_for_center);
+  is_eq = is_eq && (x.use_particle_start == y.use_particle_start);
   is_eq = is_eq && (x.use_t_coords == y.use_t_coords);
   is_eq = is_eq && (x.use_z_as_t == y.use_z_as_t);
   is_eq = is_eq && (x.sig_e_jitter == y.sig_e_jitter);
   is_eq = is_eq && (x.sig_e == y.sig_e);
+  is_eq = is_eq && (x.use_particle_start_for_center == y.use_particle_start_for_center);
   return is_eq;
 };
 
@@ -1087,6 +1103,8 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.ixx == y.ixx);
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.live_branch == y.live_branch);
+  is_eq = is_eq && (x.i2_rad_int == y.i2_rad_int);
+  is_eq = is_eq && (x.i3_rad_int == y.i3_rad_int);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   is_eq = is_eq && (x.beam_init == y.beam_init);
   return is_eq;
@@ -1130,6 +1148,7 @@ template bool is_all_equal (const CPP_pre_tracker_MATRIX&, const CPP_pre_tracker
 bool operator== (const CPP_anormal_mode& x, const CPP_anormal_mode& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.emittance == y.emittance);
+  is_eq = is_eq && (x.emittance_no_vert == y.emittance_no_vert);
   is_eq = is_eq && is_all_equal(x.synch_int, y.synch_int);
   is_eq = is_eq && (x.j_damp == y.j_damp);
   is_eq = is_eq && (x.alpha_damp == y.alpha_damp);
@@ -1197,11 +1216,29 @@ template bool is_all_equal (const CPP_em_field_MATRIX&, const CPP_em_field_MATRI
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_strong_beam& x, const CPP_strong_beam& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.ix_slice == y.ix_slice);
+  is_eq = is_eq && (x.x_center == y.x_center);
+  is_eq = is_eq && (x.y_center == y.y_center);
+  is_eq = is_eq && (x.x_sigma == y.x_sigma);
+  is_eq = is_eq && (x.y_sigma == y.y_sigma);
+  is_eq = is_eq && (x.dx == y.dx);
+  is_eq = is_eq && (x.dy == y.dy);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_strong_beam_ARRAY&, const CPP_strong_beam_ARRAY&);
+template bool is_all_equal (const CPP_strong_beam_MATRIX&, const CPP_strong_beam_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_track_point& x, const CPP_track_point& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.s_body == y.s_body);
   is_eq = is_eq && (x.orb == y.orb);
   is_eq = is_eq && (x.field == y.field);
+  is_eq = is_eq && (x.strong_beam == y.strong_beam);
   is_eq = is_eq && is_all_equal(x.vec0, y.vec0);
   is_eq = is_eq && is_all_equal(x.mat6, y.mat6);
   return is_eq;

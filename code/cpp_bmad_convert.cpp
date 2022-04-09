@@ -1691,28 +1691,62 @@ extern "C" void bookkeeping_state_to_c2 (CPP_bookkeeping_state& C, c_Int& z_attr
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_rad1_mat
+
+extern "C" void rad1_mat_to_c (const Opaque_rad1_mat_class*, CPP_rad1_mat&);
+
+// c_side.to_f2_arg
+extern "C" void rad1_mat_to_f2 (Opaque_rad1_mat_class*, c_RealArr, c_RealArr, c_RealArr,
+    c_RealArr);
+
+extern "C" void rad1_mat_to_f (const CPP_rad1_mat& C, Opaque_rad1_mat_class* F) {
+  // c_side.to_f_setup[real, 2, NOT]
+  Real z_damp_mat[6*6]; matrix_to_vec(C.damp_mat, z_damp_mat);
+  // c_side.to_f_setup[real, 2, NOT]
+  Real z_stoc_mat[6*6]; matrix_to_vec(C.stoc_mat, z_stoc_mat);
+
+  // c_side.to_f2_call
+  rad1_mat_to_f2 (F, &C.ref_orb[0], &C.damp_vec[0], z_damp_mat, z_stoc_mat);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void rad1_mat_to_c2 (CPP_rad1_mat& C, c_RealArr z_ref_orb, c_RealArr z_damp_vec,
+    c_RealArr z_damp_mat, c_RealArr z_stoc_mat) {
+
+  // c_side.to_c2_set[real, 1, NOT]
+  C.ref_orb << z_ref_orb;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.damp_vec << z_damp_vec;
+  // c_side.to_c2_set[real, 2, NOT]
+  C.damp_mat << z_damp_mat;
+  // c_side.to_c2_set[real, 2, NOT]
+  C.stoc_mat << z_stoc_mat;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_rad_int_ele_cache
 
 extern "C" void rad_int_ele_cache_to_c (const Opaque_rad_int_ele_cache_class*, CPP_rad_int_ele_cache&);
 
 // c_side.to_f2_arg
-extern "C" void rad_int_ele_cache_to_f2 (Opaque_rad_int_ele_cache_class*, c_RealArr, c_Real&,
-    c_Real&, c_RealArr, c_RealArr, c_Bool&);
+extern "C" void rad_int_ele_cache_to_f2 (Opaque_rad_int_ele_cache_class*, c_Real&, c_Real&,
+    c_RealArr, c_RealArr, c_Bool&, const CPP_rad1_mat&, const CPP_rad1_mat&);
 
 extern "C" void rad_int_ele_cache_to_f (const CPP_rad_int_ele_cache& C, Opaque_rad_int_ele_cache_class* F) {
 
   // c_side.to_f2_call
-  rad_int_ele_cache_to_f2 (F, &C.orb0[0], C.g2_0, C.g3_0, &C.dg2_dorb[0], &C.dg3_dorb[0],
-      C.stale);
+  rad_int_ele_cache_to_f2 (F, C.g2_0, C.g3_0, &C.dg2_dorb[0], &C.dg3_dorb[0], C.stale, C.rm0,
+      C.rm1);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_RealArr z_orb0, c_Real&
-    z_g2_0, c_Real& z_g3_0, c_RealArr z_dg2_dorb, c_RealArr z_dg3_dorb, c_Bool& z_stale) {
+extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_Real& z_g2_0, c_Real&
+    z_g3_0, c_RealArr z_dg2_dorb, c_RealArr z_dg3_dorb, c_Bool& z_stale, const
+    Opaque_rad1_mat_class* z_rm0, const Opaque_rad1_mat_class* z_rm1) {
 
-  // c_side.to_c2_set[real, 1, NOT]
-  C.orb0 << z_orb0;
   // c_side.to_c2_set[real, 0, NOT]
   C.g2_0 = z_g2_0;
   // c_side.to_c2_set[real, 0, NOT]
@@ -1723,6 +1757,10 @@ extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_RealArr z_o
   C.dg3_dorb << z_dg3_dorb;
   // c_side.to_c2_set[logical, 0, NOT]
   C.stale = z_stale;
+  // c_side.to_c2_set[type, 0, NOT]
+  rad1_mat_to_c(z_rm0, C.rm0);
+  // c_side.to_c2_set[type, 0, NOT]
+  rad1_mat_to_c(z_rm1, C.rm1);
 }
 
 //--------------------------------------------------------------------
@@ -2526,7 +2564,7 @@ extern "C" void beam_init_to_f2 (Opaque_beam_init_class*, c_Char, c_Char, c_Char
     const CPP_ellipse_beam_init**, const CPP_kv_beam_init&, const CPP_grid_beam_init**,
     c_RealArr, c_RealArr, c_Real&, c_Real&, c_Int&, c_Bool&, c_Bool&, c_Char, c_Char, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Int&, c_Char, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Real&, c_Real&);
+    c_Int&, c_Char, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Real&, c_Real&, c_Bool&);
 
 extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* F) {
   // c_side.to_f_setup[character, 1, NOT]
@@ -2546,8 +2584,8 @@ extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* 
       C.random_engine.c_str(), C.random_gauss_converter.c_str(), C.random_sigma_cutoff,
       C.a_norm_emit, C.b_norm_emit, C.a_emit, C.b_emit, C.dpz_dz, &C.center[0], C.dt_bunch,
       C.sig_z, C.sig_pz, C.bunch_charge, C.n_bunch, C.species.c_str(), C.init_spin,
-      C.full_6d_coupling_calc, C.use_particle_start_for_center, C.use_t_coords, C.use_z_as_t,
-      C.sig_e_jitter, C.sig_e);
+      C.full_6d_coupling_calc, C.use_particle_start, C.use_t_coords, C.use_z_as_t,
+      C.sig_e_jitter, C.sig_e, C.use_particle_start_for_center);
 
 }
 
@@ -2561,8 +2599,9 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
     c_Real& z_a_norm_emit, c_Real& z_b_norm_emit, c_Real& z_a_emit, c_Real& z_b_emit, c_Real&
     z_dpz_dz, c_RealArr z_center, c_Real& z_dt_bunch, c_Real& z_sig_z, c_Real& z_sig_pz,
     c_Real& z_bunch_charge, c_Int& z_n_bunch, c_Char z_species, c_Bool& z_init_spin, c_Bool&
-    z_full_6d_coupling_calc, c_Bool& z_use_particle_start_for_center, c_Bool& z_use_t_coords,
-    c_Bool& z_use_z_as_t, c_Real& z_sig_e_jitter, c_Real& z_sig_e) {
+    z_full_6d_coupling_calc, c_Bool& z_use_particle_start, c_Bool& z_use_t_coords, c_Bool&
+    z_use_z_as_t, c_Real& z_sig_e_jitter, c_Real& z_sig_e, c_Bool&
+    z_use_particle_start_for_center) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.position_file = z_position_file;
@@ -2627,7 +2666,7 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
   // c_side.to_c2_set[logical, 0, NOT]
   C.full_6d_coupling_calc = z_full_6d_coupling_calc;
   // c_side.to_c2_set[logical, 0, NOT]
-  C.use_particle_start_for_center = z_use_particle_start_for_center;
+  C.use_particle_start = z_use_particle_start;
   // c_side.to_c2_set[logical, 0, NOT]
   C.use_t_coords = z_use_t_coords;
   // c_side.to_c2_set[logical, 0, NOT]
@@ -2636,6 +2675,8 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
   C.sig_e_jitter = z_sig_e_jitter;
   // c_side.to_c2_set[real, 0, NOT]
   C.sig_e = z_sig_e;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.use_particle_start_for_center = z_use_particle_start_for_center;
 }
 
 //--------------------------------------------------------------------
@@ -2646,8 +2687,8 @@ extern "C" void lat_param_to_c (const Opaque_lat_param_class*, CPP_lat_param&);
 
 // c_side.to_f2_arg
 extern "C" void lat_param_to_f2 (Opaque_lat_param_class*, c_Real&, c_Real&, c_Real&, c_RealArr,
-    c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, const
-    CPP_bookkeeping_state&, const CPP_beam_init&);
+    c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Real&, c_Real&,
+    const CPP_bookkeeping_state&, const CPP_beam_init&);
 
 extern "C" void lat_param_to_f (const CPP_lat_param& C, Opaque_lat_param_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
@@ -2658,7 +2699,7 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Opaque_lat_param_class* 
   // c_side.to_f2_call
   lat_param_to_f2 (F, C.n_part, C.total_length, C.unstable_factor, z_t1_with_rf, z_t1_no_rf,
       C.spin_tune, C.particle, C.default_tracking_species, C.geometry, C.ixx, C.stable,
-      C.live_branch, C.bookkeeping_state, C.beam_init);
+      C.live_branch, C.i2_rad_int, C.i3_rad_int, C.bookkeeping_state, C.beam_init);
 
 }
 
@@ -2666,9 +2707,9 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Opaque_lat_param_class* 
 extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_total_length,
     c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Real&
     z_spin_tune, c_Int& z_particle, c_Int& z_default_tracking_species, c_Int& z_geometry,
-    c_Int& z_ixx, c_Bool& z_stable, c_Bool& z_live_branch, const
-    Opaque_bookkeeping_state_class* z_bookkeeping_state, const Opaque_beam_init_class*
-    z_beam_init) {
+    c_Int& z_ixx, c_Bool& z_stable, c_Bool& z_live_branch, c_Real& z_i2_rad_int, c_Real&
+    z_i3_rad_int, const Opaque_bookkeeping_state_class* z_bookkeeping_state, const
+    Opaque_beam_init_class* z_beam_init) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.n_part = z_n_part;
@@ -2694,6 +2735,10 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
   C.stable = z_stable;
   // c_side.to_c2_set[logical, 0, NOT]
   C.live_branch = z_live_branch;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.i2_rad_int = z_i2_rad_int;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.i3_rad_int = z_i3_rad_int;
   // c_side.to_c2_set[type, 0, NOT]
   bookkeeping_state_to_c(z_bookkeeping_state, C.bookkeeping_state);
   // c_side.to_c2_set[type, 0, NOT]
@@ -2772,23 +2817,26 @@ extern "C" void pre_tracker_to_c2 (CPP_pre_tracker& C, c_Int& z_who, c_Int& z_ix
 extern "C" void anormal_mode_to_c (const Opaque_anormal_mode_class*, CPP_anormal_mode&);
 
 // c_side.to_f2_arg
-extern "C" void anormal_mode_to_f2 (Opaque_anormal_mode_class*, c_Real&, c_RealArr, c_Real&,
-    c_Real&, c_Real&, c_Real&);
+extern "C" void anormal_mode_to_f2 (Opaque_anormal_mode_class*, c_Real&, c_Real&, c_RealArr,
+    c_Real&, c_Real&, c_Real&, c_Real&);
 
 extern "C" void anormal_mode_to_f (const CPP_anormal_mode& C, Opaque_anormal_mode_class* F) {
 
   // c_side.to_f2_call
-  anormal_mode_to_f2 (F, C.emittance, &C.synch_int[0], C.j_damp, C.alpha_damp, C.chrom,
-      C.tune);
+  anormal_mode_to_f2 (F, C.emittance, C.emittance_no_vert, &C.synch_int[0], C.j_damp,
+      C.alpha_damp, C.chrom, C.tune);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void anormal_mode_to_c2 (CPP_anormal_mode& C, c_Real& z_emittance, c_RealArr
-    z_synch_int, c_Real& z_j_damp, c_Real& z_alpha_damp, c_Real& z_chrom, c_Real& z_tune) {
+extern "C" void anormal_mode_to_c2 (CPP_anormal_mode& C, c_Real& z_emittance, c_Real&
+    z_emittance_no_vert, c_RealArr z_synch_int, c_Real& z_j_damp, c_Real& z_alpha_damp, c_Real&
+    z_chrom, c_Real& z_tune) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.emittance = z_emittance;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.emittance_no_vert = z_emittance_no_vert;
   // c_side.to_c2_set[real, 1, NOT]
   C.synch_int << z_synch_int;
   // c_side.to_c2_set[real, 0, NOT]
@@ -2930,27 +2978,64 @@ extern "C" void em_field_to_c2 (CPP_em_field& C, c_RealArr z_e, c_RealArr z_b, c
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_strong_beam
+
+extern "C" void strong_beam_to_c (const Opaque_strong_beam_class*, CPP_strong_beam&);
+
+// c_side.to_f2_arg
+extern "C" void strong_beam_to_f2 (Opaque_strong_beam_class*, c_Int&, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&);
+
+extern "C" void strong_beam_to_f (const CPP_strong_beam& C, Opaque_strong_beam_class* F) {
+
+  // c_side.to_f2_call
+  strong_beam_to_f2 (F, C.ix_slice, C.x_center, C.y_center, C.x_sigma, C.y_sigma, C.dx, C.dy);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void strong_beam_to_c2 (CPP_strong_beam& C, c_Int& z_ix_slice, c_Real& z_x_center,
+    c_Real& z_y_center, c_Real& z_x_sigma, c_Real& z_y_sigma, c_Real& z_dx, c_Real& z_dy) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_slice = z_ix_slice;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x_center = z_x_center;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y_center = z_y_center;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x_sigma = z_x_sigma;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y_sigma = z_y_sigma;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.dx = z_dx;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.dy = z_dy;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_track_point
 
 extern "C" void track_point_to_c (const Opaque_track_point_class*, CPP_track_point&);
 
 // c_side.to_f2_arg
 extern "C" void track_point_to_f2 (Opaque_track_point_class*, c_Real&, const CPP_coord&, const
-    CPP_em_field&, c_RealArr, c_RealArr);
+    CPP_em_field&, const CPP_strong_beam&, c_RealArr, c_RealArr);
 
 extern "C" void track_point_to_f (const CPP_track_point& C, Opaque_track_point_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_mat6[6*6]; matrix_to_vec(C.mat6, z_mat6);
 
   // c_side.to_f2_call
-  track_point_to_f2 (F, C.s_body, C.orb, C.field, &C.vec0[0], z_mat6);
+  track_point_to_f2 (F, C.s_body, C.orb, C.field, C.strong_beam, &C.vec0[0], z_mat6);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void track_point_to_c2 (CPP_track_point& C, c_Real& z_s_body, const
-    Opaque_coord_class* z_orb, const Opaque_em_field_class* z_field, c_RealArr z_vec0,
-    c_RealArr z_mat6) {
+    Opaque_coord_class* z_orb, const Opaque_em_field_class* z_field, const
+    Opaque_strong_beam_class* z_strong_beam, c_RealArr z_vec0, c_RealArr z_mat6) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.s_body = z_s_body;
@@ -2958,6 +3043,8 @@ extern "C" void track_point_to_c2 (CPP_track_point& C, c_Real& z_s_body, const
   coord_to_c(z_orb, C.orb);
   // c_side.to_c2_set[type, 0, NOT]
   em_field_to_c(z_field, C.field);
+  // c_side.to_c2_set[type, 0, NOT]
+  strong_beam_to_c(z_strong_beam, C.strong_beam);
   // c_side.to_c2_set[real, 1, NOT]
   C.vec0 << z_vec0;
   // c_side.to_c2_set[real, 2, NOT]

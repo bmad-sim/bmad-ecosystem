@@ -4158,6 +4158,112 @@ end subroutine set_bookkeeping_state_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_rad1_mat (ok)
+
+implicit none
+
+type(rad1_mat_struct), target :: f_rad1_mat, f2_rad1_mat
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_rad1_mat (c_rad1_mat, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_rad1_mat
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_rad1_mat_test_pattern (f2_rad1_mat, 1)
+
+call test_c_rad1_mat(c_loc(f2_rad1_mat), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_rad1_mat_test_pattern (f_rad1_mat, 4)
+if (f_rad1_mat == f2_rad1_mat) then
+  print *, 'rad1_mat: C side convert C->F: Good'
+else
+  print *, 'rad1_mat: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_rad1_mat
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_rad1_mat (c_rad1_mat, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_rad1_mat
+type(rad1_mat_struct), target :: f_rad1_mat, f2_rad1_mat
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call rad1_mat_to_f (c_rad1_mat, c_loc(f_rad1_mat))
+
+call set_rad1_mat_test_pattern (f2_rad1_mat, 2)
+if (f_rad1_mat == f2_rad1_mat) then
+  print *, 'rad1_mat: F side convert C->F: Good'
+else
+  print *, 'rad1_mat: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_rad1_mat_test_pattern (f2_rad1_mat, 3)
+call rad1_mat_to_c (c_loc(f2_rad1_mat), c_rad1_mat)
+
+end subroutine test2_f_rad1_mat
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_rad1_mat_test_pattern (F, ix_patt)
+
+implicit none
+
+type(rad1_mat_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%ref_orb,1); lb1 = lbound(F%ref_orb,1) - 1
+  rhs = 100 + jd1 + 1 + offset
+  F%ref_orb(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%damp_vec,1); lb1 = lbound(F%damp_vec,1) - 1
+  rhs = 100 + jd1 + 2 + offset
+  F%damp_vec(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 2, NOT]
+do jd1 = 1, size(F%damp_mat,1); lb1 = lbound(F%damp_mat,1) - 1
+do jd2 = 1, size(F%damp_mat,2); lb2 = lbound(F%damp_mat,2) - 1
+  rhs = 100 + jd1 + 10*jd2 + 3 + offset
+  F%damp_mat(jd1+lb1,jd2+lb2) = rhs
+enddo; enddo
+!! f_side.test_pat[real, 2, NOT]
+do jd1 = 1, size(F%stoc_mat,1); lb1 = lbound(F%stoc_mat,1) - 1
+do jd2 = 1, size(F%stoc_mat,2); lb2 = lbound(F%stoc_mat,2) - 1
+  rhs = 100 + jd1 + 10*jd2 + 4 + offset
+  F%stoc_mat(jd1+lb1,jd2+lb2) = rhs
+enddo; enddo
+
+end subroutine set_rad1_mat_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_rad_int_ele_cache (ok)
 
 implicit none
@@ -4235,27 +4341,26 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%orb0,1); lb1 = lbound(F%orb0,1) - 1
-  rhs = 100 + jd1 + 1 + offset
-  F%orb0(jd1+lb1) = rhs
-enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%g2_0 = rhs
+rhs = 1 + offset; F%g2_0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%g3_0 = rhs
+rhs = 2 + offset; F%g3_0 = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%dg2_dorb,1); lb1 = lbound(F%dg2_dorb,1) - 1
-  rhs = 100 + jd1 + 4 + offset
+  rhs = 100 + jd1 + 3 + offset
   F%dg2_dorb(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%dg3_dorb,1); lb1 = lbound(F%dg3_dorb,1) - 1
-  rhs = 100 + jd1 + 5 + offset
+  rhs = 100 + jd1 + 4 + offset
   F%dg3_dorb(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 6 + offset; F%stale = (modulo(rhs, 2) == 0)
+rhs = 5 + offset; F%stale = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[type, 0, NOT]
+call set_rad1_mat_test_pattern (F%rm0, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_rad1_mat_test_pattern (F%rm1, ix_patt)
 
 end subroutine set_rad_int_ele_cache_test_pattern
 
@@ -6336,7 +6441,7 @@ rhs = 30 + offset; F%init_spin = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 31 + offset; F%full_6d_coupling_calc = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 32 + offset; F%use_particle_start_for_center = (modulo(rhs, 2) == 0)
+rhs = 32 + offset; F%use_particle_start = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 33 + offset; F%use_t_coords = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
@@ -6345,6 +6450,8 @@ rhs = 34 + offset; F%use_z_as_t = (modulo(rhs, 2) == 0)
 rhs = 35 + offset; F%sig_e_jitter = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 36 + offset; F%sig_e = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 37 + offset; F%use_particle_start_for_center = (modulo(rhs, 2) == 0)
 
 end subroutine set_beam_init_test_pattern
 
@@ -6461,6 +6568,10 @@ rhs = 10 + offset; F%ixx = rhs
 rhs = 11 + offset; F%stable = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 12 + offset; F%live_branch = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[real, 0, NOT]
+rhs = 13 + offset; F%i2_rad_int = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 14 + offset; F%i3_rad_int = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -6741,19 +6852,21 @@ offset = 100 * ix_patt
 
 !! f_side.test_pat[real, 0, NOT]
 rhs = 1 + offset; F%emittance = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%emittance_no_vert = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%synch_int,1); lb1 = lbound(F%synch_int,1) - 1
-  rhs = 100 + jd1 + 2 + offset
+  rhs = 100 + jd1 + 3 + offset
   F%synch_int(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%j_damp = rhs
+rhs = 4 + offset; F%j_damp = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%alpha_damp = rhs
+rhs = 5 + offset; F%alpha_damp = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%chrom = rhs
+rhs = 6 + offset; F%chrom = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%tune = rhs
+rhs = 7 + offset; F%tune = rhs
 
 end subroutine set_anormal_mode_test_pattern
 
@@ -7081,6 +7194,104 @@ end subroutine set_em_field_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_strong_beam (ok)
+
+implicit none
+
+type(strong_beam_struct), target :: f_strong_beam, f2_strong_beam
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_strong_beam (c_strong_beam, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_strong_beam
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_strong_beam_test_pattern (f2_strong_beam, 1)
+
+call test_c_strong_beam(c_loc(f2_strong_beam), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_strong_beam_test_pattern (f_strong_beam, 4)
+if (f_strong_beam == f2_strong_beam) then
+  print *, 'strong_beam: C side convert C->F: Good'
+else
+  print *, 'strong_beam: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_strong_beam
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_strong_beam (c_strong_beam, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_strong_beam
+type(strong_beam_struct), target :: f_strong_beam, f2_strong_beam
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call strong_beam_to_f (c_strong_beam, c_loc(f_strong_beam))
+
+call set_strong_beam_test_pattern (f2_strong_beam, 2)
+if (f_strong_beam == f2_strong_beam) then
+  print *, 'strong_beam: F side convert C->F: Good'
+else
+  print *, 'strong_beam: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_strong_beam_test_pattern (f2_strong_beam, 3)
+call strong_beam_to_c (c_loc(f2_strong_beam), c_strong_beam)
+
+end subroutine test2_f_strong_beam
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_strong_beam_test_pattern (F, ix_patt)
+
+implicit none
+
+type(strong_beam_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%ix_slice = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%x_center = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%y_center = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%x_sigma = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%y_sigma = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%dx = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%dy = rhs
+
+end subroutine set_strong_beam_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_track_point (ok)
 
 implicit none
@@ -7164,15 +7375,17 @@ rhs = 1 + offset; F%s_body = rhs
 call set_coord_test_pattern (F%orb, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_em_field_test_pattern (F%field, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_strong_beam_test_pattern (F%strong_beam, ix_patt)
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%vec0,1); lb1 = lbound(F%vec0,1) - 1
-  rhs = 100 + jd1 + 4 + offset
+  rhs = 100 + jd1 + 5 + offset
   F%vec0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%mat6,1); lb1 = lbound(F%mat6,1) - 1
 do jd2 = 1, size(F%mat6,2); lb2 = lbound(F%mat6,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 5 + offset
+  rhs = 100 + jd1 + 10*jd2 + 6 + offset
   F%mat6(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 
