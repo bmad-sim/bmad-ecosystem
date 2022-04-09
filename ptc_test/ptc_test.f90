@@ -89,7 +89,7 @@ enddo
 vec = matmul(rad_map%stoc_mat, vec)
 vec = vec + rad_map%ref1
 
-write (1, '(a, 6es16.8)') '"Stoc-Track"      REL 1E-4', orbit%vec
+write (1, '(a, 6es16.8)') '"Stoc-Track"      ABS 1E-13', orbit%vec
 write (1, '(a, 6es16.8)') '"Diff-Stoc-Track" ABS 1E-20', orbit%vec - vec
 
 call ptc_track_map_with_radiation (orbit, rad_map, .true., .false.)
@@ -155,11 +155,11 @@ call lat_to_ptc_layout (lat)
 call ptc_emit_calc (lat%ele(0), mode, sigma_mat, closed_orb)
 
 write (1, '(a, 3es16.8)') '"layout-tune" REL 1E-8', mode%a%tune, mode%b%tune, mode%z%tune
-write (1, '(a, 3es16.8)') '"layout-emit" REL 1E-4', mode%a%emittance, mode%b%emittance, mode%z%emittance
-write (1, '(a, 3es16.8)') '"layout-damp" REL 1E-5', mode%a%alpha_damp, mode%b%alpha_damp, mode%z%alpha_damp
-write (1, '(a, 6es16.8)') '"layout-orb"  REL 1E-8', closed_orb%vec
+write (1, '(a, 3es16.8)') '"layout-emit" REL 1E-3', mode%a%emittance, mode%b%emittance, mode%z%emittance
+write (1, '(a, 3es16.8)') '"layout-damp" REL 3E-5', mode%a%alpha_damp, mode%b%alpha_damp, mode%z%alpha_damp
+write (1, '(a, 6es16.8)') '"layout-orb"  ABS 1E-14', closed_orb%vec
 do i = 1, 6
-  write (1, '(a, i0, a, 6es16.8)') '"layout-sigma', i, '" REL 3E-5', sigma_mat(i,:)
+  write (1, '(a, i0, a, 6es16.8)') '"layout-sigma', i, '" ABS 2E-12', sigma_mat(i,:)
 enddo
 
 !-------------------------------------------------------
