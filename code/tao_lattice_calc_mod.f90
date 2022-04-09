@@ -647,7 +647,6 @@ endif
 
 ! Not injecting from another branch.
 ! In model%tao_branch()%orb0 is saved the last computed orbit. 
-! This is important when using a common_lattice since tao_lat%tao_branch()%orbit(0) has been overwritten.
 
 orb_out => model%tao_branch(ix_branch)%orbit(0)
 

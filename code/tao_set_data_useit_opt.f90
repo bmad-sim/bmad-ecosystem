@@ -44,7 +44,7 @@ ix_uni = d(1)%d1%d2%ix_universe
 if (s%u(ix_uni)%is_on) then
   d%useit_opt = d%good_opt .and. d%exists .and. d%good_user .and. d%good_meas
   ! common uni data do not have a ref value
-  if (ix_uni /= ix_common_uni$ .and. s%global%opt_with_ref) then
+  if (s%global%opt_with_ref) then
     d%useit_opt = d%useit_opt .and. d%good_ref
   endif
 else   ! data in off universes do not get used in optimizations.

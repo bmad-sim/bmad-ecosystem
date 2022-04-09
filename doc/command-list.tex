@@ -2130,22 +2130,22 @@ Example:
 
 Syntax:
 \begin{example}
-  show emittance \{-element <ele_id>\} \{-universe <uni_index>\}
+  show emittance \{-element <ele_id>\} \{-matrix\} \{-universe <uni_index>\}
 \end{example}
 
 The \vn{show emittance} command shows, for a given lattice branch, the three normal mode emittances
 as calculated by PTC, a full non-PTC based 6D calculation, and via radiation integrals evaluation
-(also non-PTC). With radiation damping, the emittance is not an exact invariant of the motion. Thus
-the calculated emittance will vary from element to element.
+(also non-PTC).
 
-If the \vn{-element} switch is not present, the beginning element of the default branch (set by
-\vn{set default branch}) is used.
+The \vn{-element} switch is used to select what lattice element is used as the end points of the
+one-turn integrals that are used in the calculation. If the \vn{-element} switch is not present, the
+beginning element of the default branch (set by \vn{set default branch}) is used. With radiation
+damping, the emittance is not an exact invariant of the motion. Thus the calculated emittance will
+vary depending upon what lattice element is used.
 
-Note: The 6D calculation is new and undergoing testing. Currently the radiation integrals emittances
-are what is shown with the \vn{show universe} command but this is likely to change in the future
-since the 6D calculation is more accurate.
-
-
+If the \vn{-matrix\} switch is present, instead of showing emittances, the damping and stochastic
+kick matrices used for particle tracking are displayed for the element given by the \vn{-element}
+switch.
 
 Examples:
 \begin{example}

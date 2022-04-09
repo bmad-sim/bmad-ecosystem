@@ -86,26 +86,14 @@ if (s%com%init_read_lat_info) then
   endif
 
   s%com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
-  s%com%common_lattice = common_lattice
   s%com%n_universes = n_universes
   s%init%unique_name_suffix = trim(unique_name_suffix)
 endif
 
 !
 
-if (s%com%common_lattice) then
-  allocate (s%u(0:s%com%n_universes))
-  allocate (s%com%u_working)
-
-  if (any(design_lattice(2:)%file /= '')) then
-    call out_io (s_fatal$, r_name, 'ONLY ONE LATTICE MAY BE SPECIFIED WHEN USING COMMON_LATTICE')
-    return
-  endif
-
-else
-  allocate (s%u(s%com%n_universes))
-  nullify (s%com%u_working)
-endif
+allocate (s%u(s%com%n_universes))
+nullify (s%com%u_working)
 
 ! Read in the lattices
 
@@ -115,10 +103,6 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
   u%is_on = .true.          ! turn universe on
   u%ix_uni = i_uni
   u%calc = tao_universe_calc_struct()
-
-  ! If unified then only read in a lattice for the common universe.
-
-  if (s%com%common_lattice .and. i_uni /= ix_common_uni$) cycle
 
   ! Get the name of the lattice file
   ! The presedence is: 
@@ -351,45 +335,6 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
   call ele_order_calc(u%design%lat, u%ele_order)
 
 enddo
-
-! Working lattice setup
-
-if (s%com%common_lattice) then
-
-  u_work => s%com%u_working
-  u_work%common     => s%u(ix_common_uni$)
-  allocate (u_work%design, u_work%base, u_work%model)
-  u_work%design%lat = u_work%common%design%lat
-  u_work%base%lat   = u_work%common%base%lat
-  u_work%model%lat  = u_work%common%model%lat
-
-  n = ubound(u_work%design%lat%branch, 1)
-  allocate (u_work%model%tao_branch(0:n))
-  allocate (u_work%design%tao_branch(0:n))
-  allocate (u_work%base%tao_branch(0:n))
-  allocate (u_work%model_branch(0:n))
-
-  do k = 0, ubound(u_work%design%lat%branch, 1)
-    n = u_work%design%lat%branch(k)%n_ele_max
-    allocate (u_work%model%tao_branch(k)%orbit(0:n), u_work%model%tao_branch(k)%bunch_params(0:n))
-    allocate (u_work%design%tao_branch(k)%orbit(0:n), u_work%design%tao_branch(k)%bunch_params(0:n))
-    allocate (u_work%base%tao_branch(k)%orbit(0:n), u_work%base%tao_branch(k)%bunch_params(0:n))
-    allocate (u_work%model_branch(k)%ele(-1:n))
-  enddo
-
-  ! If unified then point back to the common universe (#1) and the working universe (#2)
-
-  do i_uni = lbound(s%u, 1), ubound(s%u, 1)
-    if (i_uni == ix_common_uni$) cycle
-    u => s%u(i_uni)
-    u%common     => s%u(ix_common_uni$)
-    u%model_branch => s%u(ix_common_uni$)%model_branch
-    u%design => s%u(ix_common_uni$)%design
-    u%base   => s%u(ix_common_uni$)%base
-    u%model  => s%com%u_working%model
-  enddo
-
-endif
 
 err_flag = .false.
 

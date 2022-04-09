@@ -1209,11 +1209,6 @@ if (allocated(curve%symb_size)) deallocate (curve%symb_size)
 u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 if (.not. tao_curve_check_universe(curve, u)) return
 
-if (s%com%common_lattice) then
-  u%calc%lattice = .true.
-  call tao_lattice_calc (ok)
-endif
-
 model_lat => u%model%lat
 base_lat => u%base%lat
 branch => model_lat%branch(curve%ix_branch)

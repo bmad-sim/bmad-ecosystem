@@ -214,10 +214,6 @@ var_loop: do
 
   if (default_universe == '*' .or. default_universe == '') then
     dflt_good_unis = .true.
-    if (s%com%common_lattice .and. gang) then
-      dflt_good_unis = .false.
-      dflt_good_unis(ix_common_uni$) = .true.
-    endif
 
   else
     call location_decode (default_universe, dflt_good_unis, 1, num)
@@ -794,7 +790,6 @@ character(*), parameter :: r_name = 'tao_pointer_to_var_in_lattice'
 err = .true.
 
 u => s%u(ix_uni)
-if (s%com%common_lattice) u => s%com%u_working
 
 ! allocate space for var%slave.
 
@@ -834,32 +829,6 @@ var_slave%ix_uni    = ix_uni
 var%model_value => var%slave(1)%model_value
 var%base_value  => var%slave(1)%base_value
 var%design_value = var%slave(1)%model_value
-
-! Common pointer
-
-if (associated(u%common)) then
-  ele2 => pointer_to_ele (u%common%model%lat, ele%ix_ele, ele%ix_branch)
-  call pointer_to_attribute (ele,  var%attrib_name, .true., a_ptr,  err)
-  var%common_slave%model_value => a_ptr%r
-  ele2 => pointer_to_ele (u%common%base%lat, ele%ix_ele, ele%ix_branch)
-  call pointer_to_attribute (ele, var%attrib_name, .true., a_ptr, err)
-  var%common_slave%base_value => a_ptr%r
-endif
-
-! With unified lattices: model_value and base_value get their own storage
-! instead of pointing to var%slave(1). 
-! Exception: If variable controls a common parameter
-
-if (s%com%common_lattice) then
-  if (var_slave%ix_uni == ix_common_uni$) then
-    var%model_value => var%common_slave%model_value
-    var%base_value => var%common_slave%base_value
-  else
-    allocate (var%model_value, var%base_value)
-    var%model_value = var_slave%model_value
-    var%base_value = var_slave%base_value
-  endif
-endif
 
 end subroutine tao_pointer_to_var_in_lattice
 
@@ -905,7 +874,6 @@ character(*), parameter :: r_name = 'tao_pointer_to_var_in_lattice'
 err = .true.
 
 u => s%u(ix_uni)
-if (s%com%common_lattice) u => s%com%u_working
 
 call pointers_to_attribute (u%model%lat, var%ele_name, var%attrib_name, .true., a_ptr, err, .false., eles, var%ix_attrib)
 if (err .or. size(a_ptr) == 0) then
@@ -921,10 +889,6 @@ if (err .or. size(a_ptr) == 0) then
 endif
 
 call pointers_to_attribute (u%base%lat, var%ele_name, var%attrib_name, .true., b_ptr, err, .false., eles, var%ix_attrib)
-if (associated(u%common)) then
-  call pointers_to_attribute (u%common%model%lat, var%ele_name, var%attrib_name, .true., cm_ptr, err, .false., eles, var%ix_attrib)
-  call pointers_to_attribute (u%common%base%lat,  var%ele_name, var%attrib_name, .true., cb_ptr, err, .false., eles, var%ix_attrib)
-endif
 
 ! allocate space for var%slave.
 
@@ -953,29 +917,6 @@ do ii = 1, size(a_ptr)
   var%model_value => var%slave(1)%model_value
   var%base_value  => var%slave(1)%base_value
   var%design_value = var%slave(1)%model_value
-
-  ! Common pointer
-
-  if (associated(u%common)) then
-    var%common_slave%model_value => cm_ptr(ii)%r
-    var%common_slave%base_value  => cb_ptr(ii)%r
-  endif
-
-  ! With unified lattices: model_value and base_value get their own storage
-  ! instead of pointing to var%slave(1). 
-  ! Exception: If variable controls a common parameter
-
-  if (s%com%common_lattice) then
-    if (var_slave%ix_uni == ix_common_uni$) then
-      var%model_value => var%common_slave%model_value
-      var%base_value => var%common_slave%base_value
-    else
-      allocate (var%model_value, var%base_value)
-      var%model_value = var_slave%model_value
-      var%base_value = var_slave%base_value
-    endif
-  endif
-
 enddo
 
 end subroutine tao_pointer_to_var_in_lattice2

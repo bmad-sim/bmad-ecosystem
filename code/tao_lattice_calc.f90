@@ -270,15 +270,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       da => u%dynamic_aperture
       call dynamic_aperture_scan(da%scan, da%param, da%pz, tao_lat%lat, print_timing = (.not. s%com%optimizer_running))
     endif
-
-    ! If calc is on common model then transfer data to base of all other universes
-
-    if (s%com%common_lattice .and. iuni == ix_common_uni$) then
-      do j = lbound(s%u, 1), ubound(s%u, 1)
-        if (j == ix_common_uni$) cycle
-        s%u(j)%data(:)%base_value = u%data(:)%model_value
-      enddo
-    endif
   endif  ! if (u%calc%lattice)
 
   ! Calculate non-expression data 

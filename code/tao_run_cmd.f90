@@ -105,16 +105,6 @@ if (n_data == 0) then
   return
 endif
 
-! Save time with orm analysis by turning off transfer matrix calc in
-! everything but the common universe.
-
-if (s%global%orm_analysis) then
-  s%u(:)%calc%twiss = .false.
-  s%u(ix_common_uni$)%calc%twiss = .true.
-  s%u(:)%calc%track = .false.
-  s%u(ix_common_uni$)%calc%track = .true.
-endif
-
 ! Optimize...
 
 s%com%optimizer_running = .true.
@@ -161,12 +151,10 @@ enddo
 ! optimization has not been updated.
 
 s%com%optimizer_running = .false.
-
 s%u(:)%calc = u_calc
 
 call tao_turn_on_special_calcs_if_needed_for_plotting ()
 
-if (s%global%orm_analysis) s%u(:)%calc%twiss = .true.
 s%u(:)%calc%lattice = .true.
 
 end subroutine
