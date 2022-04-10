@@ -1184,6 +1184,7 @@ end subroutine tao_set_particle_start_cmd
 subroutine tao_set_plot_page_cmd (component, value_str, value_str2)
 
 use tao_input_struct, only: tao_plot_page_input, tao_set_plotting
+use tao_plot_window_mod, only: tao_destroy_plot_window, tao_create_plot_window
 
 implicit none
 
@@ -1243,6 +1244,11 @@ if (ios /= 0) then
 endif
 
 call tao_set_plotting (plot_page, s%plot_page, .false.)
+
+if (component == 'size') then
+  call tao_destroy_plot_window()
+  call tao_create_plot_window()
+endif
 
 end subroutine tao_set_plot_page_cmd
 
