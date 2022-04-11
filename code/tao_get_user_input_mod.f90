@@ -147,8 +147,9 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
   call output_direct (print_and_capture = (s%global%quiet /= 'all'), min_level = s_blank$, max_level = s_dwarn$)
 
   if (cmd_out == '') then
+    ix = 0
     do
-      read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000, iostat = ios) cmd_out
+      read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000, iostat = ios) cmd_out(ix+1:)
       if (ios /= 0) then
         call tao_quiet_set('off')
         call out_io (s_error$, r_name, 'CANNOT READ LINE FROM FILE: ' // s%com%cmd_file(n_level)%full_name)
@@ -158,7 +159,15 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
       s%com%cmd_file(n_level)%n_line = s%com%cmd_file(n_level)%n_line + 1
       s%com%cmd_from_cmd_file = .true.
       call string_trim (cmd_out, cmd_out, ix)
-      if (ix /= 0) exit
+      ix = len_trim(cmd_out)
+      if (ix == 0) cycle
+      if (cmd_out(ix:ix) == '&') then
+        cmd_out(ix:ix) == ' '
+        ix = len_trim(cmd_out)
+        cycle
+      endif        
+      if (any(cmd_out(ix:ix) == [',', '(', '{', '[', '='])) cycle
+      exit
     enddo
 
     ! Nothing more to do if an alias definition
