@@ -324,6 +324,7 @@ if (found_it) then
   if (extra%sad_n_div_max_set)                    bmad_com%sad_n_div_max                   = bmad_com_read%sad_n_div_max
   if (extra%max_num_runge_kutta_step_set)         bmad_com%max_num_runge_kutta_step        = bmad_com_read%max_num_runge_kutta_step
   if (extra%ptc_print_info_messages_set)          bmad_com%ptc_print_info_messages         = bmad_com_read%ptc_print_info_messages
+  if (extra%debug_set)                            bmad_com%debug                           = bmad_com_read%debug
 endif
 
 ! Setup any attribute aliases in the global attribute name table.

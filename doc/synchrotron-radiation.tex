@@ -132,7 +132,7 @@ $\calM$, can is computed via first order perturbation theory to be
 where $\bfT$ is the transfer matrix without damping and $\bfZ$ is the change in $\bfT$ due
 to damping computed via
 \begin{equation}
-  \bfZ = \int_{s_1}^{s_2} ds \, \bfT_{2s} \, \bfd(s) \, \bfT_{s1}
+  \bfZ = \int_{s_1}^{s_2} ds \, \bfT_{2,s} \, \bfd(s) \, \bfT_{s,1}
   \label{zstd}
 \end{equation}
 where $s_1$ and $s_2$ are the longitudinal positions at the ends of the element and
@@ -159,9 +159,9 @@ $\bfD$ is defined by this equation.
 The $\Cal{S}$ matrix is calculated by first noting that, to linear order, the distribution of
 $\delta\bfr_2$ due to stochastic radiation over some length $ds$ as some point $s$ is
 \begin{equation}
-  \delta\bfr_2 = \sqrt{ds} \, \bfM_{2s} \, \left( \bfF_\mk{f}(s) \, \xi_1 + \bfF_\mk{v} \, \xi_2 \right)
+  \delta\bfr_2 = \sqrt{ds} \, \bfM_{2,s} \, \left( \bfF_\mk{f}(s) \, \xi_1 + \bfF_\mk{v} \, \xi_2 \right)
 \end{equation}
-where $\bfM_{2s}$ is the first order part (matrix) of the map $\calM_{2s}$ from $s$ to $s_2$,
+where $\bfM_{2,s}$ is the first order part (matrix) of the map $\calM_{2,s}$ from $s$ to $s_2$,
 $\xi_1$ and $xi_2$ are two independent Gaussian random numbers with unit sigma and zero mean, and
 $\bfF_\mk{f}$ and $\bfF_\mk{v}$ are (see \sref{s:radiation})
 \begin{align}
@@ -179,8 +179,8 @@ covariance matrix at $s_2$ due to the stochastic emission over the region betwee
 is
 \begin{equation}
   \bfsig_{\gamma21} = \int_{s_1}^{s_2} ds \, 
-    \bfM_{2s} \, \big[ 
-    \bfF_\mk{f}(s) \, \bfF_\mk{f}^t(s) + \bfF_\mk{v}(s) \, \bfF_\mk{v}^t(s) \big] \, \bfM_{2s}^t
+    \bfM_{2,s} \, \big[ 
+    \bfF_\mk{f}(s) \, \bfF_\mk{f}^t(s) + \bfF_\mk{v}(s) \, \bfF_\mk{v}^t(s) \big] \, \bfM_{2,s}^t
   \label{smvvm}
 \end{equation}
 where the $t$ superscript indicates transpose. $\bfsig_{\gamma21}$ is related to $\Cal{S}$ via
