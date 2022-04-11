@@ -391,11 +391,20 @@ character(40) start_name, stop_name
 
 call ltt_make_tracking_lat(lttp, ltt_com)
 lat => ltt_com%tracking_lat
+branch => lat%branch(ltt_com%ix_branch)
 
 call twiss_and_track (lat, ltt_com%bmad_closed_orb, ix_branch = ltt_com%ix_branch)
 call radiation_integrals (lat, ltt_com%bmad_closed_orb, ltt_com%modes, ix_branch = ltt_com%ix_branch)
 
 lttp%ptc_aperture = min([0.9_rp, 0.9_rp], lttp%ptc_aperture)
+
+!
+
+if (lttp%split_bends_for_radiation .and. bmad_com%debug) then
+  stop
+endif
+
+!
 
 if (lttp%tracking_method == 'PTC' .or. lttp%simulation_mode == 'CHECK') then
   if (.not. associated(lat%branch(0)%ptc%m_t_layout)) call lat_to_ptc_layout(lat)
@@ -410,7 +419,7 @@ if (lttp%ramping_on) then
   do i = 1, ltt_com%n_ramper_loc
     ltt_com%ramper(i)%ele%control%var(1)%value = lttp%ramping_start_time
   enddo
-  branch => lat%branch(ltt_com%ix_branch)
+
   do ie = 0, branch%n_ele_max
     call apply_ramper (branch%ele(ie), ltt_com%ramper(1:ltt_com%n_ramper_loc), err)
   enddo
@@ -689,8 +698,6 @@ end subroutine ltt_run_check_mode
 !-------------------------------------------------------------------------------------------
 
 subroutine ltt_run_single_mode (lttp, ltt_com)
-
-use radiation_mod, only: track1_radiation_center
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -1049,6 +1056,112 @@ print *, 'dQI =',chrom_x
 print *, 'dQII=',chrom_y
 
 end subroutine ltt_run_stat_mode
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine ltt_track1_radiation_center (orbit, ele1, ele2, rad_damp, rad_fluct)
+!
+! Used for elements that have been split in half: This routine applies a kick to a particle 
+! to account for radiation dampling and/or fluctuations.
+!
+! Input:
+!   orbit     -- coord_struct: Particle at center of element before radiation applied.
+!   ele1      -- ele_struct: First half of the split element.
+!   ele2      -- ele_struct: Second half of the split element.
+!   rad_damp  -- logical, optional: If present, override setting of bmad_com%radiation_damping_on.
+!   rad_fluct -- logical, optional: If present, override setting of bmad_com%radiation_fluctuations_on.
+!
+! Output:
+!   orbit     -- coord_struct: Particle position after radiation has been applied.
+!-
+
+subroutine ltt_track1_radiation_center (orbit, ele1, ele2, rad_damp, rad_fluct)
+
+use random_mod
+
+implicit none
+
+type (coord_struct) :: orbit
+type (ele_struct), target :: ele1, ele2
+type (lat_param_struct) :: param
+type (rad1_mat_struct), pointer :: rad_mat
+
+real(rp) int_gx, int_gy, this_ran, mc2, int_g2, int_g3, gxi, gyi, g2i, g3i, ran6(6)
+real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm, rel_p
+real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
+real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
+real(rp), parameter :: damp_const = 2 * classical_radius_factor / 3
+real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
+
+logical, optional :: rad_damp, rad_fluct
+logical r_damp, r_fluct
+character(*), parameter :: r_name = 'ltt_track1_radiation_center'
+
+!
+
+r_damp  = logic_option(bmad_com%radiation_damping_on, rad_damp)
+r_fluct = logic_option(bmad_com%radiation_fluctuations_on, rad_fluct)
+if (.not. r_damp .and. .not. r_fluct) return
+
+if (bmad_com%debug) then
+  rad_mat => ele1%rad_int_cache%rm1
+  if (bmad_com%radiation_damping_on) then
+    orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
+    if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_mat%damp_vec
+  endif
+
+  if (bmad_com%radiation_fluctuations_on) then
+    call ran_gauss (ran6)
+    orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%stoc_mat, ran6)
+  endif
+
+  return
+endif
+
+call calc_radiation_tracking_integrals (ele1, orbit, start_edge$, .false., int_gx, int_gy, int_g2, int_g3)
+call calc_radiation_tracking_integrals (ele2, orbit, end_edge$, .false., gxi, gyi, g2i, g3i)
+int_gx = int_gx + gxi
+int_gy = int_gy + gyi
+int_g2 = int_g2 + g2i
+int_g3 = int_g3 + g3i
+
+if (int_g2 == 0) return
+
+! Apply the radiation kicks.
+! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light.
+! where xi is a Gaussian random number with sigma = 1.
+
+mc2 = mass_of(ele1%ref_species)
+q_charge2 = charge_of(orbit%species)**2
+gamma_0 = ele1%value(e_tot$) / mc2
+
+fact_d = 0
+if (r_damp) then
+  fact_d = damp_const * q_charge2 * gamma_0**3 * int_g2 / mc2
+  if (bmad_com%backwards_time_tracking_on) fact_d = -fact_d
+endif
+
+fact_f = 0
+if (r_fluct) then
+  call ran_gauss (this_ran)
+  fact_f = sqrt(rad_fluct_const * q_charge2 * gamma_0**5 * int_g3) * this_ran / mc2
+endif
+
+rel_p = 1 + orbit%vec(6) 
+dE_p = rel_p * (fact_d + fact_f)
+if (bmad_com%radiation_zero_average) then
+  if (ele1%key == sbend$ .or. ele1%key == wiggler$ .or. ele1%key == undulator$) dE_p = &
+                                dE_p + (ele1%value(dpz_rad_damp_ave$) + ele2%value(dpz_rad_damp_ave$)) / rel_p
+endif
+dE_p = dE_p * synch_rad_com%scale 
+
+orbit%vec(2) = orbit%vec(2) * (1 - dE_p)
+orbit%vec(4) = orbit%vec(4) * (1 - dE_p)
+orbit%vec(6) = orbit%vec(6) - dE_p * rel_p
+
+end subroutine ltt_track1_radiation_center 
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -2149,7 +2262,7 @@ ele => ele_start
 do
   ele => pointer_to_next_ele(ele)
   if (ele%name == 'Radiation_Point') then
-    call track1_radiation_center(orbit, pointer_to_next_ele(ele, -1), &
+    call ltt_track1_radiation_center(orbit, pointer_to_next_ele(ele, -1), &
                                             pointer_to_next_ele(ele), .false., rad_fluct)
   else
     call track1 (orbit, ele, ele%branch%param, orbit, err_flag = err_flag)
@@ -2186,7 +2299,7 @@ if (lttp%split_bends_for_radiation) then
     ele => pointer_to_next_ele(ele)
     if (ele%name == 'Radiation_Point') then
       do i = 1, size(bunch%particle)
-        call track1_radiation_center(bunch%particle(i), pointer_to_next_ele(ele, -1), &
+        call ltt_track1_radiation_center(bunch%particle(i), pointer_to_next_ele(ele, -1), &
                                               pointer_to_next_ele(ele), .false., rad_fluct)
       enddo
     else
@@ -2233,7 +2346,7 @@ do i = 1, ubound(ltt_com%sec, 1)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
     if (orbit%state /= alive$) return
   elseif (sec%ele%name == 'Radiation_Point') then
-    call track1_radiation_center(orbit, pointer_to_next_ele(sec%ele, -1), pointer_to_next_ele(sec%ele), .false., pt_fluct_on)
+    call ltt_track1_radiation_center(orbit, pointer_to_next_ele(sec%ele, -1), pointer_to_next_ele(sec%ele), .false., pt_fluct_on)
   else  ! EG: beambeam
     call track1 (orbit, sec%ele, branch%param, orbit)
   endif
