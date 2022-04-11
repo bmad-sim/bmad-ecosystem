@@ -2174,7 +2174,7 @@ integer, allocatable :: int_save(:)
 character(*) who_str, value_str
 character(20) component
 character(*), parameter :: r_name = 'tao_set_data_cmd'
-character(200) :: tmpstr, why_invalid
+character(100) :: why_invalid, tmpstr
 character, allocatable :: s_save(:)
 
 logical err, l1
@@ -2332,9 +2332,8 @@ elseif (size(s_dat) /= 0) then
     endif
 
     do i = 1, size(s_dat)
-      tmpstr = value_str
-      s_save(i) = tmpstr
-      s_dat(i)%s = tmpstr   ! Use temp due to bug on Windows
+      s_save(i) = value_str
+      s_dat(i)%s = value_str
     enddo
   endif
 
