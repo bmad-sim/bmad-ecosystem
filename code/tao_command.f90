@@ -42,7 +42,7 @@ real(rp) value1, value2, time
 character(*) :: command_line
 character(len(command_line)) cmd_line
 character(*), parameter :: r_name = 'tao_command'
-character(300) :: cmd_word(12)
+character(1000) :: cmd_word(12)
 character(40) gang_str, switch, word, except, branch_str
 character(16) cmd_name, set_word, axis_name
 
