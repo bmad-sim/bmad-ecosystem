@@ -72,6 +72,7 @@ type (em_taylor_term_struct), pointer :: t_term
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 type (bmad_common_struct), parameter :: bmad_com_default = bmad_common_struct()
+type (space_charge_common_struct), parameter :: space_charge_com_default = space_charge_common_struct()
 type (ac_kicker_struct), pointer :: ac
 type (expression_atom_struct), pointer :: stack(:)
 type (str_index_struct) str_index
@@ -222,6 +223,21 @@ call write_if_int_param_changed   (ptc_com%max_fringe_order,          ptc_com_de
 call write_if_logic_param_changed (ptc_com%old_integrator,            ptc_com_default%old_integrator,        'ptc_com[old_integrator]')
 call write_if_logic_param_changed (ptc_com%exact_model,               ptc_com_default%exact_model,           'ptc_com[exact_model]')
 call write_if_logic_param_changed (ptc_com%exact_misalign,            ptc_com_default%exact_misalign,        'ptc_com[exact_misalign]')
+
+call write_if_real_param_changed (space_charge_com%ds_track_step,              space_charge_com_default%ds_track_step,              'space_charge_com[ds_track_step]')
+call write_if_real_param_changed (space_charge_com%dt_track_step,              space_charge_com_default%dt_track_step,              'space_charge_com[dt_track_step]')
+call write_if_real_param_changed (space_charge_com%cathode_strength_cutoff,    space_charge_com_default%cathode_strength_cutoff,    'space_charge_com[cathode_strength_cutoff]')
+call write_if_real_param_changed (space_charge_com%rel_tol_tracking,           space_charge_com_default%rel_tol_tracking,           'space_charge_com[rel_tol_tracking]')
+call write_if_real_param_changed (space_charge_com%abs_tol_tracking,           space_charge_com_default%abs_tol_tracking,           'space_charge_com[abs_tol_tracking]')
+call write_if_real_param_changed (space_charge_com%beam_chamber_height,        space_charge_com_default%beam_chamber_height,        'space_charge_com[beam_chamber_height]')
+call write_if_real_param_changed (space_charge_com%sigma_cutoff,               space_charge_com_default%sigma_cutoff,               'space_charge_com[sigma_cutoff]')
+call write_if_int_param_changed  (space_charge_com%n_bin,                      space_charge_com_default%n_bin,                      'space_charge_com[n_bin]')
+call write_if_int_param_changed  (space_charge_com%particle_bin_span,          space_charge_com_default%particle_bin_span,          'space_charge_com[particle_bin_span]')
+call write_if_int_param_changed  (space_charge_com%n_shield_images,            space_charge_com_default%n_shield_images,            'space_charge_com[n_shield_images]')
+call write_if_int_param_changed  (space_charge_com%sc_min_in_bin,              space_charge_com_default%sc_min_in_bin,              'space_charge_com[sc_min_in_bin]')
+call write_if_logic_param_changed (space_charge_com%lsc_kick_transverse_dependence, space_charge_com_default%lsc_kick_transverse_dependence, 'space_charge_com[lsc_kick_transverse_dependence]')
+
+if (space_charge_com%diagnostic_output_file /= '') write (iu, '(2a)') 'space_charge_com[diagnostic_output_file] = ', quote(space_charge_com%diagnostic_output_file)
 
 ele => lat%ele(0) 
 

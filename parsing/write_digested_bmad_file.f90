@@ -172,6 +172,7 @@ if (present(extra)) then
   write (d_unit) .true.
   write (d_unit) extra
   write (d_unit) bmad_com
+  write (d_unit) space_charge_com
 else
   write (d_unit) .false.
 endif

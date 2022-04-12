@@ -28,7 +28,7 @@ interface operator (==)
   module procedure eq_control, eq_controller_var1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init
   module procedure eq_grid_beam_init, eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker
   module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_strong_beam
-  module procedure eq_track_point, eq_track, eq_synch_rad_common, eq_csr_parameter, eq_bmad_common
+  module procedure eq_track_point, eq_track, eq_synch_rad_common, eq_space_charge_common, eq_bmad_common
   module procedure eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term
   module procedure eq_complex_taylor, eq_branch, eq_lat, eq_bunch, eq_bunch_params
   module procedure eq_beam, eq_aperture_point, eq_aperture_param, eq_aperture_scan
@@ -2268,11 +2268,11 @@ end function eq_synch_rad_common
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_csr_parameter (f1, f2) result (is_eq)
+elemental function eq_space_charge_common (f1, f2) result (is_eq)
 
 implicit none
 
-type(csr_parameter_struct), intent(in) :: f1, f2
+type(space_charge_common_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -2280,6 +2280,14 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%ds_track_step == f2%ds_track_step)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dt_track_step == f2%dt_track_step)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%cathode_strength_cutoff == f2%cathode_strength_cutoff)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%rel_tol_tracking == f2%rel_tol_tracking)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%abs_tol_tracking == f2%abs_tol_tracking)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%beam_chamber_height == f2%beam_chamber_height)
 !! f_side.equality_test[real, 0, NOT]
@@ -2298,18 +2306,10 @@ is_eq = is_eq .and. (f1%n_shield_images == f2%n_shield_images)
 is_eq = is_eq .and. (f1%sc_min_in_bin == f2%sc_min_in_bin)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%lsc_kick_transverse_dependence .eqv. f2%lsc_kick_transverse_dependence)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%print_taylor_warning .eqv. f2%print_taylor_warning)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%write_csr_wake .eqv. f2%write_csr_wake)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%use_csr_old .eqv. f2%use_csr_old)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%small_angle_approx .eqv. f2%small_angle_approx)
 !! f_side.equality_test[character, 0, NOT]
-is_eq = is_eq .and. (f1%wake_output_file == f2%wake_output_file)
+is_eq = is_eq .and. (f1%diagnostic_output_file == f2%diagnostic_output_file)
 
-end function eq_csr_parameter
+end function eq_space_charge_common
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------

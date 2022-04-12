@@ -392,7 +392,7 @@ Transport through a lattice element with SC and CSR involves a beam of particles
 element is divided up into a number of slices. Transport through a slice is a two step process. The
 first step is to give all the particles a kick due to SC and CSR. The second step is transport of
 all particles from one slice to the next without any interaction between particles. User settable
-parameters pertinent to the CSR calculation are listed in \sref{s:csr.params}.
+parameters pertinent to the CSR calculation are listed in \sref{s:sc.com}.
 
 %-----------------------------------------------------------------   
 \subsection{1\_Dim CSR Calculation}
@@ -408,7 +408,7 @@ CSR kick, the density is actually calculated for a second set of staggered bins 
 offset by 1/2 the bin width with respect to the first set. This gives the density at the edges of
 the original set of bins. The density is considered to vary linearly between the computed density
 points. For a description of the parameters that affect the CSR calculation see
-Section~\sref{s:csr.params}.
+Section~\sref{s:sc.com}.
 
 %-----------------------------------------------------------------   
 \subsection{Slice Space Charge Calculation}
@@ -495,7 +495,7 @@ currently ignores image charge forces due to an emitting cathode and so will not
 tracking at the very lowest energies near the emitter.
 
 Note: The mesh size is set by the \vn{csr_pram} parameter \vn{space_charge_mesh_size}
-(\sref{s:csr.params}).
+(\sref{s:sc.com}).
 
 %-----------------------------------------------------------------   
 \section{High Energy Space Charge}

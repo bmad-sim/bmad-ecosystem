@@ -178,43 +178,49 @@ n_max = -1
 
 ! Note: The order of def_parameter and def_mad_beam elements is used by parser_set_attribute
 
-ele => in_lat%ele(0) 
 n_max = n_max + 1
-call init_ele(ele, beginning_ele$, 0, 0, in_lat%branch(0))
+ele => in_lat%ele(n_max)
+call init_ele(ele, beginning_ele$, 0, n_max, in_lat%branch(0))
 ele%name = 'BEGINNING'
 call set_ele_defaults (ele)   ! Defaults for beginning_ele element
 call nametable_add (in_lat%nametable, ele%name, n_max)
 
-ele => in_lat%ele(1) ! Important: def_parameter must come after def_mad_beam due to overlapping parameters.
 n_max = n_max + 1
-call init_ele(ele, def_mad_beam$, 0, 1, in_lat%branch(0))
+ele => in_lat%ele(n_max) ! Important: def_parameter must come after def_mad_beam due to overlapping parameters.
+call init_ele(ele, def_mad_beam$, 0, n_max, in_lat%branch(0))
 ele%name = 'BEAM'                 ! For MAD compatibility.
 call nametable_add (in_lat%nametable, ele%name, n_max)
 ix_mad_beam_ele = 1
 
-ele => in_lat%ele(2)  ! Important: def_parameter comes after def_mad_beam.
 n_max = n_max + 1
-call init_ele(ele, def_parameter$, 0, 2, in_lat%branch(0))
+ele => in_lat%ele(n_max)  ! Important: def_parameter comes after def_mad_beam.
+call init_ele(ele, def_parameter$, 0, n_max, in_lat%branch(0))
 ele%name = 'PARAMETER'           ! For parameters 
 call nametable_add (in_lat%nametable, ele%name, n_max)
 ix_param_ele = 2
 
-ele => in_lat%ele(3)
 n_max = n_max + 1
-call init_ele(ele, def_particle_start$, 0, 3, in_lat%branch(0))
+ele => in_lat%ele(n_max)
+call init_ele(ele, def_particle_start$, 0, n_max, in_lat%branch(0))
 ele%name = 'PARTICLE_START'           ! For beam starting parameters 
 call nametable_add (in_lat%nametable, ele%name, n_max) 
 
-ele => in_lat%ele(4)
 n_max = n_max + 1
-call init_ele(ele, def_ptc_com$, 0, 4, in_lat%branch(0))
+ele => in_lat%ele(n_max)
+call init_ele(ele, def_ptc_com$, 0, n_max, in_lat%branch(0))
 ele%name = 'PTC_COM'           ! Global PTC parameters
 call nametable_add (in_lat%nametable, ele%name, n_max)
 
-ele => in_lat%ele(5)
 n_max = n_max + 1
-call init_ele(ele, def_bmad_com$, 0, 4, in_lat%branch(0))
+ele => in_lat%ele(n_max)
+call init_ele(ele, def_bmad_com$, 0, n_max, in_lat%branch(0))
 ele%name = 'BMAD_COM'           ! Global bmad parameters
+call nametable_add (in_lat%nametable, ele%name, n_max)
+
+n_max = n_max + 1
+ele => in_lat%ele(n_max)
+call init_ele(ele, def_space_charge_com$, 0, n_max, in_lat%branch(0))
+ele%name = 'SPACE_CHARGE_COM'           ! Space charge parameters
 call nametable_add (in_lat%nametable, ele%name, n_max)
 
 lat%n_control_max = 0
@@ -528,7 +534,7 @@ parsing_loop: do
       ! No wild card matches permitted for these.
       if (ele%key == beginning_ele$ .or. ele%key == def_mad_beam$ .or. &
           ele%key == def_parameter$ .or. ele%key == def_particle_start$ .or. &
-          ele%key == def_bmad_com$) cycle
+          ele%key == def_bmad_com$ .or. ele%key == def_space_charge_com$) cycle
       if (.not. match_wild(ele%name, trim(name))) cycle
       ! 
       if (heterogeneous_ele_list .and. attribute_index(ele, word_2) < 1) cycle

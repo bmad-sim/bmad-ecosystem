@@ -38,6 +38,7 @@ type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
 type (extra_parsing_info_struct) :: extra
 type (bmad_common_struct) bmad_com_read
+type (space_charge_common_struct) space_charge_com_read
 real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
@@ -278,8 +279,9 @@ read (d_unit, iostat = ios) found_it
 if (found_it) then
   read (d_unit, iostat = ios) extra
   read (d_unit, iostat = ios2) bmad_com_read
+  read (d_unit, iostat = ios2) space_charge_com_read
   if (ios /= 0 .or. ios2 /= 0) then
-    call out_io (io_err_level, r_name, 'ERROR READING BMAD COMMON PARAMETERS')
+    call out_io (io_err_level, r_name, 'ERROR READING BMAD/SPACE_CHARGE COMMON PARAMETERS')
     close (d_unit)
     return
   endif
@@ -325,6 +327,22 @@ if (found_it) then
   if (extra%max_num_runge_kutta_step_set)         bmad_com%max_num_runge_kutta_step        = bmad_com_read%max_num_runge_kutta_step
   if (extra%ptc_print_info_messages_set)          bmad_com%ptc_print_info_messages         = bmad_com_read%ptc_print_info_messages
   if (extra%debug_set)                            bmad_com%debug                           = bmad_com_read%debug
+
+  if (extra%ds_track_step_set)                    space_charge_com%ds_track_step                    = space_charge_com_read%ds_track_step
+  if (extra%dt_track_step_set)                    space_charge_com%dt_track_step                    = space_charge_com_read%dt_track_step
+  if (extra%cathode_strength_cutoff_set)          space_charge_com%cathode_strength_cutoff          = space_charge_com_read%cathode_strength_cutoff
+  if (extra%sc_rel_tol_tracking_set)              space_charge_com%rel_tol_tracking                 = space_charge_com_read%rel_tol_tracking
+  if (extra%sc_abs_tol_tracking_set)              space_charge_com%abs_tol_tracking                 = space_charge_com_read%abs_tol_tracking
+  if (extra%beam_chamber_height_set)              space_charge_com%beam_chamber_height              = space_charge_com_read%beam_chamber_height
+  if (extra%sigma_cutoff_set)                     space_charge_com%sigma_cutoff                     = space_charge_com_read%sigma_cutoff
+  if (extra%space_charge_mesh_size_set)           space_charge_com%space_charge_mesh_size           = space_charge_com_read%space_charge_mesh_size
+  if (extra%csr3d_mesh_size_set)                  space_charge_com%csr3d_mesh_size                  = space_charge_com_read%csr3d_mesh_size
+  if (extra%n_bin_set)                            space_charge_com%n_bin                            = space_charge_com_read%n_bin
+  if (extra%particle_bin_span_set)                space_charge_com%particle_bin_span                = space_charge_com_read%particle_bin_span
+  if (extra%n_shield_images_set)                  space_charge_com%n_shield_images                  = space_charge_com_read%n_shield_images
+  if (extra%sc_min_in_bin_set)                    space_charge_com%sc_min_in_bin                    = space_charge_com_read%sc_min_in_bin
+  if (extra%lsc_kick_transverse_dependence_set)   space_charge_com%lsc_kick_transverse_dependence   = space_charge_com_read%lsc_kick_transverse_dependence
+  if (extra%diagnostic_output_file_set)           space_charge_com%diagnostic_output_file           = space_charge_com_read%diagnostic_output_file
 endif
 
 ! Setup any attribute aliases in the global attribute name table.
