@@ -3130,36 +3130,44 @@ extern "C" void synch_rad_common_to_c2 (CPP_synch_rad_common& C, c_Real& z_scale
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_csr_parameter
+// CPP_space_charge_common
 
-extern "C" void csr_parameter_to_c (const Opaque_csr_parameter_class*, CPP_csr_parameter&);
+extern "C" void space_charge_common_to_c (const Opaque_space_charge_common_class*, CPP_space_charge_common&);
 
 // c_side.to_f2_arg
-extern "C" void csr_parameter_to_f2 (Opaque_csr_parameter_class*, c_Real&, c_Real&, c_Real&,
-    c_IntArr, c_IntArr, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Char);
+extern "C" void space_charge_common_to_f2 (Opaque_space_charge_common_class*, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_IntArr, c_IntArr, c_Int&, c_Int&, c_Int&,
+    c_Int&, c_Bool&, c_Char);
 
-extern "C" void csr_parameter_to_f (const CPP_csr_parameter& C, Opaque_csr_parameter_class* F) {
+extern "C" void space_charge_common_to_f (const CPP_space_charge_common& C, Opaque_space_charge_common_class* F) {
 
   // c_side.to_f2_call
-  csr_parameter_to_f2 (F, C.ds_track_step, C.beam_chamber_height, C.sigma_cutoff,
+  space_charge_common_to_f2 (F, C.ds_track_step, C.dt_track_step, C.cathode_strength_cutoff,
+      C.rel_tol_tracking, C.abs_tol_tracking, C.beam_chamber_height, C.sigma_cutoff,
       &C.space_charge_mesh_size[0], &C.csr3d_mesh_size[0], C.n_bin, C.particle_bin_span,
       C.n_shield_images, C.sc_min_in_bin, C.lsc_kick_transverse_dependence,
-      C.print_taylor_warning, C.write_csr_wake, C.use_csr_old, C.small_angle_approx,
-      C.wake_output_file.c_str());
+      C.diagnostic_output_file.c_str());
 
 }
 
 // c_side.to_c2_arg
-extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_step, c_Real&
-    z_beam_chamber_height, c_Real& z_sigma_cutoff, c_IntArr z_space_charge_mesh_size, c_IntArr
-    z_csr3d_mesh_size, c_Int& z_n_bin, c_Int& z_particle_bin_span, c_Int& z_n_shield_images,
-    c_Int& z_sc_min_in_bin, c_Bool& z_lsc_kick_transverse_dependence, c_Bool&
-    z_print_taylor_warning, c_Bool& z_write_csr_wake, c_Bool& z_use_csr_old, c_Bool&
-    z_small_angle_approx, c_Char z_wake_output_file) {
+extern "C" void space_charge_common_to_c2 (CPP_space_charge_common& C, c_Real& z_ds_track_step,
+    c_Real& z_dt_track_step, c_Real& z_cathode_strength_cutoff, c_Real& z_rel_tol_tracking,
+    c_Real& z_abs_tol_tracking, c_Real& z_beam_chamber_height, c_Real& z_sigma_cutoff, c_IntArr
+    z_space_charge_mesh_size, c_IntArr z_csr3d_mesh_size, c_Int& z_n_bin, c_Int&
+    z_particle_bin_span, c_Int& z_n_shield_images, c_Int& z_sc_min_in_bin, c_Bool&
+    z_lsc_kick_transverse_dependence, c_Char z_diagnostic_output_file) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ds_track_step = z_ds_track_step;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.dt_track_step = z_dt_track_step;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.cathode_strength_cutoff = z_cathode_strength_cutoff;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.rel_tol_tracking = z_rel_tol_tracking;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.abs_tol_tracking = z_abs_tol_tracking;
   // c_side.to_c2_set[real, 0, NOT]
   C.beam_chamber_height = z_beam_chamber_height;
   // c_side.to_c2_set[real, 0, NOT]
@@ -3178,16 +3186,8 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
   C.sc_min_in_bin = z_sc_min_in_bin;
   // c_side.to_c2_set[logical, 0, NOT]
   C.lsc_kick_transverse_dependence = z_lsc_kick_transverse_dependence;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.print_taylor_warning = z_print_taylor_warning;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.write_csr_wake = z_write_csr_wake;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.use_csr_old = z_use_csr_old;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.small_angle_approx = z_small_angle_approx;
   // c_side.to_c2_set[character, 0, NOT]
-  C.wake_output_file = z_wake_output_file;
+  C.diagnostic_output_file = z_diagnostic_output_file;
 }
 
 //--------------------------------------------------------------------

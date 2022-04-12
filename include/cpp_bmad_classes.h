@@ -381,10 +381,10 @@ typedef valarray<CPP_synch_rad_common>          CPP_synch_rad_common_ARRAY;
 typedef valarray<CPP_synch_rad_common_ARRAY>    CPP_synch_rad_common_MATRIX;
 typedef valarray<CPP_synch_rad_common_MATRIX>   CPP_synch_rad_common_TENSOR;
 
-class CPP_csr_parameter;
-typedef valarray<CPP_csr_parameter>          CPP_csr_parameter_ARRAY;
-typedef valarray<CPP_csr_parameter_ARRAY>    CPP_csr_parameter_MATRIX;
-typedef valarray<CPP_csr_parameter_MATRIX>   CPP_csr_parameter_TENSOR;
+class CPP_space_charge_common;
+typedef valarray<CPP_space_charge_common>          CPP_space_charge_common_ARRAY;
+typedef valarray<CPP_space_charge_common_ARRAY>    CPP_space_charge_common_MATRIX;
+typedef valarray<CPP_space_charge_common_MATRIX>   CPP_space_charge_common_TENSOR;
 
 class CPP_bmad_common;
 typedef valarray<CPP_bmad_common>          CPP_bmad_common_ARRAY;
@@ -1830,7 +1830,7 @@ public:
   Real_MATRIX stoc_mat;
 
   CPP_rad1_mat() :
-    ref_orb(0.0, 6),
+    ref_orb(-1, 6),
     damp_vec(0.0, 6),
     damp_mat(Real_ARRAY(0.0, 6), 6),
     stoc_mat(Real_ARRAY(0.0, 6), 6)
@@ -3007,13 +3007,17 @@ bool operator== (const CPP_synch_rad_common&, const CPP_synch_rad_common&);
 
 
 //--------------------------------------------------------------------
-// CPP_csr_parameter
+// CPP_space_charge_common
 
-class Opaque_csr_parameter_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_space_charge_common_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_csr_parameter {
+class CPP_space_charge_common {
 public:
   Real ds_track_step;
+  Real dt_track_step;
+  Real cathode_strength_cutoff;
+  Real rel_tol_tracking;
+  Real abs_tol_tracking;
   Real beam_chamber_height;
   Real sigma_cutoff;
   Int_ARRAY space_charge_mesh_size;
@@ -3023,14 +3027,14 @@ public:
   Int n_shield_images;
   Int sc_min_in_bin;
   Bool lsc_kick_transverse_dependence;
-  Bool print_taylor_warning;
-  Bool write_csr_wake;
-  Bool use_csr_old;
-  Bool small_angle_approx;
-  string wake_output_file;
+  string diagnostic_output_file;
 
-  CPP_csr_parameter() :
+  CPP_space_charge_common() :
     ds_track_step(0.0),
+    dt_track_step(0.0),
+    cathode_strength_cutoff(0.01),
+    rel_tol_tracking(1e-8),
+    abs_tol_tracking(1e-10),
     beam_chamber_height(0.0),
     sigma_cutoff(0.1),
     space_charge_mesh_size(32, 3),
@@ -3040,22 +3044,18 @@ public:
     n_shield_images(0),
     sc_min_in_bin(10),
     lsc_kick_transverse_dependence(false),
-    print_taylor_warning(true),
-    write_csr_wake(false),
-    use_csr_old(false),
-    small_angle_approx(true),
-    wake_output_file()
+    diagnostic_output_file()
     {}
 
-  ~CPP_csr_parameter() {
+  ~CPP_space_charge_common() {
   }
 
 };   // End Class
 
-extern "C" void csr_parameter_to_c (const Opaque_csr_parameter_class*, CPP_csr_parameter&);
-extern "C" void csr_parameter_to_f (const CPP_csr_parameter&, Opaque_csr_parameter_class*);
+extern "C" void space_charge_common_to_c (const Opaque_space_charge_common_class*, CPP_space_charge_common&);
+extern "C" void space_charge_common_to_f (const CPP_space_charge_common&, Opaque_space_charge_common_class*);
 
-bool operator== (const CPP_csr_parameter&, const CPP_csr_parameter&);
+bool operator== (const CPP_space_charge_common&, const CPP_space_charge_common&);
 
 
 //--------------------------------------------------------------------

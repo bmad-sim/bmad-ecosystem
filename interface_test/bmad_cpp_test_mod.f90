@@ -7591,18 +7591,18 @@ end subroutine set_synch_rad_common_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_csr_parameter (ok)
+subroutine test1_f_space_charge_common (ok)
 
 implicit none
 
-type(csr_parameter_struct), target :: f_csr_parameter, f2_csr_parameter
+type(space_charge_common_struct), target :: f_space_charge_common, f2_space_charge_common
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_csr_parameter (c_csr_parameter, c_ok) bind(c)
+  subroutine test_c_space_charge_common (c_space_charge_common, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_csr_parameter
+    type(c_ptr), value :: c_space_charge_common
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -7610,58 +7610,58 @@ end interface
 !
 
 ok = .true.
-call set_csr_parameter_test_pattern (f2_csr_parameter, 1)
+call set_space_charge_common_test_pattern (f2_space_charge_common, 1)
 
-call test_c_csr_parameter(c_loc(f2_csr_parameter), c_ok)
+call test_c_space_charge_common(c_loc(f2_space_charge_common), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_csr_parameter_test_pattern (f_csr_parameter, 4)
-if (f_csr_parameter == f2_csr_parameter) then
-  print *, 'csr_parameter: C side convert C->F: Good'
+call set_space_charge_common_test_pattern (f_space_charge_common, 4)
+if (f_space_charge_common == f2_space_charge_common) then
+  print *, 'space_charge_common: C side convert C->F: Good'
 else
-  print *, 'csr_parameter: C SIDE CONVERT C->F: FAILED!'
+  print *, 'space_charge_common: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_csr_parameter
+end subroutine test1_f_space_charge_common
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_csr_parameter (c_csr_parameter, c_ok) bind(c)
+subroutine test2_f_space_charge_common (c_space_charge_common, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_csr_parameter
-type(csr_parameter_struct), target :: f_csr_parameter, f2_csr_parameter
+type(c_ptr), value ::  c_space_charge_common
+type(space_charge_common_struct), target :: f_space_charge_common, f2_space_charge_common
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call csr_parameter_to_f (c_csr_parameter, c_loc(f_csr_parameter))
+call space_charge_common_to_f (c_space_charge_common, c_loc(f_space_charge_common))
 
-call set_csr_parameter_test_pattern (f2_csr_parameter, 2)
-if (f_csr_parameter == f2_csr_parameter) then
-  print *, 'csr_parameter: F side convert C->F: Good'
+call set_space_charge_common_test_pattern (f2_space_charge_common, 2)
+if (f_space_charge_common == f2_space_charge_common) then
+  print *, 'space_charge_common: F side convert C->F: Good'
 else
-  print *, 'csr_parameter: F SIDE CONVERT C->F: FAILED!'
+  print *, 'space_charge_common: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_csr_parameter_test_pattern (f2_csr_parameter, 3)
-call csr_parameter_to_c (c_loc(f2_csr_parameter), c_csr_parameter)
+call set_space_charge_common_test_pattern (f2_space_charge_common, 3)
+call space_charge_common_to_c (c_loc(f2_space_charge_common), c_space_charge_common)
 
-end subroutine test2_f_csr_parameter
+end subroutine test2_f_space_charge_common
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_csr_parameter_test_pattern (F, ix_patt)
+subroutine set_space_charge_common_test_pattern (F, ix_patt)
 
 implicit none
 
-type(csr_parameter_struct) F
+type(space_charge_common_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -7671,43 +7671,43 @@ offset = 100 * ix_patt
 !! f_side.test_pat[real, 0, NOT]
 rhs = 1 + offset; F%ds_track_step = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%beam_chamber_height = rhs
+rhs = 2 + offset; F%dt_track_step = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%sigma_cutoff = rhs
+rhs = 3 + offset; F%cathode_strength_cutoff = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%rel_tol_tracking = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%abs_tol_tracking = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%beam_chamber_height = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%sigma_cutoff = rhs
 !! f_side.test_pat[integer, 1, NOT]
 do jd1 = 1, size(F%space_charge_mesh_size,1); lb1 = lbound(F%space_charge_mesh_size,1) - 1
-  rhs = 100 + jd1 + 4 + offset
+  rhs = 100 + jd1 + 8 + offset
   F%space_charge_mesh_size(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[integer, 1, NOT]
 do jd1 = 1, size(F%csr3d_mesh_size,1); lb1 = lbound(F%csr3d_mesh_size,1) - 1
-  rhs = 100 + jd1 + 5 + offset
+  rhs = 100 + jd1 + 9 + offset
   F%csr3d_mesh_size(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%n_bin = rhs
+rhs = 10 + offset; F%n_bin = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%particle_bin_span = rhs
+rhs = 11 + offset; F%particle_bin_span = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%n_shield_images = rhs
+rhs = 12 + offset; F%n_shield_images = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 9 + offset; F%sc_min_in_bin = rhs
+rhs = 13 + offset; F%sc_min_in_bin = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 10 + offset; F%lsc_kick_transverse_dependence = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%write_csr_wake = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 13 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 14 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
+rhs = 14 + offset; F%lsc_kick_transverse_dependence = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[character, 0, NOT]
-do jd1 = 1, len(F%wake_output_file)
-  F%wake_output_file(jd1:jd1) = char(ichar("a") + modulo(100+15+offset+jd1, 26))
+do jd1 = 1, len(F%diagnostic_output_file)
+  F%diagnostic_output_file(jd1:jd1) = char(ichar("a") + modulo(100+15+offset+jd1, 26))
 enddo
 
-end subroutine set_csr_parameter_test_pattern
+end subroutine set_space_charge_common_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------

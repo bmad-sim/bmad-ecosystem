@@ -674,7 +674,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine csr_parameter_to_f (C, Fp) bind(c)
+  subroutine space_charge_common_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -8519,41 +8519,41 @@ end subroutine synch_rad_common_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine csr_parameter_to_c (Fp, C) bind(c)
+! Subroutine space_charge_common_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad csr_parameter_struct to a C++ CPP_csr_parameter structure
+! Routine to convert a Bmad space_charge_common_struct to a C++ CPP_space_charge_common structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad csr_parameter_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad space_charge_common_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_csr_parameter struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_space_charge_common struct.
 !-
 
-subroutine csr_parameter_to_c (Fp, C) bind(c)
+subroutine space_charge_common_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine csr_parameter_to_c2 (C, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
-      z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, z_particle_bin_span, &
-      z_n_shield_images, z_sc_min_in_bin, z_lsc_kick_transverse_dependence, &
-      z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx, &
-      z_wake_output_file) bind(c)
+  subroutine space_charge_common_to_c2 (C, z_ds_track_step, z_dt_track_step, &
+      z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, &
+      z_sigma_cutoff, z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, &
+      z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
+      z_lsc_kick_transverse_dependence, z_diagnostic_output_file) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
+    real(c_double) :: z_ds_track_step, z_dt_track_step, z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, z_sigma_cutoff
     integer(c_int) :: z_space_charge_mesh_size(*), z_csr3d_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
-    logical(c_bool) :: z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx
-    character(c_char) :: z_wake_output_file(*)
+    logical(c_bool) :: z_lsc_kick_transverse_dependence
+    character(c_char) :: z_diagnostic_output_file(*)
   end subroutine
 end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(csr_parameter_struct), pointer :: F
+type(space_charge_common_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 
@@ -8563,53 +8563,60 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call csr_parameter_to_c2 (C, F%ds_track_step, F%beam_chamber_height, F%sigma_cutoff, &
+call space_charge_common_to_c2 (C, F%ds_track_step, F%dt_track_step, F%cathode_strength_cutoff, &
+    F%rel_tol_tracking, F%abs_tol_tracking, F%beam_chamber_height, F%sigma_cutoff, &
     fvec2vec(F%space_charge_mesh_size, 3), fvec2vec(F%csr3d_mesh_size, 3), F%n_bin, &
     F%particle_bin_span, F%n_shield_images, F%sc_min_in_bin, &
-    c_logic(F%lsc_kick_transverse_dependence), c_logic(F%print_taylor_warning), &
-    c_logic(F%write_csr_wake), c_logic(F%use_csr_old), c_logic(F%small_angle_approx), &
-    trim(F%wake_output_file) // c_null_char)
+    c_logic(F%lsc_kick_transverse_dependence), trim(F%diagnostic_output_file) // c_null_char)
 
-end subroutine csr_parameter_to_c
+end subroutine space_charge_common_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine csr_parameter_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine space_charge_common_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_csr_parameter structure to a Bmad csr_parameter_struct structure.
-! This routine is called by csr_parameter_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_space_charge_common structure to a Bmad space_charge_common_struct structure.
+! This routine is called by space_charge_common_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the csr_parameter_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the space_charge_common_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad csr_parameter_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad space_charge_common_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine csr_parameter_to_f2 (Fp, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
-    z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, z_particle_bin_span, &
+subroutine space_charge_common_to_f2 (Fp, z_ds_track_step, z_dt_track_step, &
+    z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, &
+    z_sigma_cutoff, z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, z_particle_bin_span, &
     z_n_shield_images, z_sc_min_in_bin, z_lsc_kick_transverse_dependence, &
-    z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx, &
-    z_wake_output_file) bind(c)
+    z_diagnostic_output_file) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(csr_parameter_struct), pointer :: F
+type(space_charge_common_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
+real(c_double) :: z_ds_track_step, z_dt_track_step, z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, z_sigma_cutoff
 integer(c_int) :: z_space_charge_mesh_size(*), z_csr3d_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
-logical(c_bool) :: z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx
-character(c_char) :: z_wake_output_file(*)
+logical(c_bool) :: z_lsc_kick_transverse_dependence
+character(c_char) :: z_diagnostic_output_file(*)
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[real, 0, NOT]
 F%ds_track_step = z_ds_track_step
+!! f_side.to_f2_trans[real, 0, NOT]
+F%dt_track_step = z_dt_track_step
+!! f_side.to_f2_trans[real, 0, NOT]
+F%cathode_strength_cutoff = z_cathode_strength_cutoff
+!! f_side.to_f2_trans[real, 0, NOT]
+F%rel_tol_tracking = z_rel_tol_tracking
+!! f_side.to_f2_trans[real, 0, NOT]
+F%abs_tol_tracking = z_abs_tol_tracking
 !! f_side.to_f2_trans[real, 0, NOT]
 F%beam_chamber_height = z_beam_chamber_height
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -8628,18 +8635,10 @@ F%n_shield_images = z_n_shield_images
 F%sc_min_in_bin = z_sc_min_in_bin
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%lsc_kick_transverse_dependence = f_logic(z_lsc_kick_transverse_dependence)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%print_taylor_warning = f_logic(z_print_taylor_warning)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%write_csr_wake = f_logic(z_write_csr_wake)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%use_csr_old = f_logic(z_use_csr_old)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%small_angle_approx = f_logic(z_small_angle_approx)
 !! f_side.to_f2_trans[character, 0, NOT]
-call to_f_str(z_wake_output_file, F%wake_output_file)
+call to_f_str(z_diagnostic_output_file, F%diagnostic_output_file)
 
-end subroutine csr_parameter_to_f2
+end subroutine space_charge_common_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

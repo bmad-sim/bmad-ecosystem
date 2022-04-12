@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 270;
+  const int BMAD_INC_VERSION = 273;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -53,7 +53,7 @@ namespace Bmad {
   const int OK = 1, IN_STOP_BAND = 2, NON_SYMPLECTIC = 3, UNSTABLE = 4;
   const int UNSTABLE_A = 5, UNSTABLE_B = 6;
   const int XFER_MAT_CALC_FAILURE = 7, TWISS_PROPAGATE_FAILURE = 8, NO_CLOSED_ORBIT = 9;
-  const int INCLUDE_KICKS = 1;
+  const int INCLUDE_KICKS = 1, SHORT = 8;
   const int USER_SET = 0, FIRST_PASS = 1;
   const int ASCII = 1, BINARY = 2, HDF5 = 3, ONE_FILE = 4;
   const int NUM_ELE_ATTRIB = 75;
@@ -110,8 +110,8 @@ namespace Bmad {
   const int FLOOR_SHIFT = 49, FIDUCIAL = 50, UNDULATOR = 51, DIFFRACTION_PLATE = 52;
   const int PHOTON_INIT = 53, SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56, MASK = 57;
   const int AC_KICKER = 58, LENS = 59, BEAM_INIT = 60, CRAB_CAVITY = 61, RAMPER = 62;
-  const int DEF_PTC_COM = 63;
-  const int N_KEY = 63;
+  const int DEF_PTC_COM = 63, DEF_SPACE_CHARGE_COM = 64;
+  const int N_KEY = 64;
   const int VAL1=11, VAL2=12, VAL3=13, VAL4=14, VAL5=15, 
             VAL6=16, VAL7=17, VAL8=18, VAL9=19, VAL10=20, VAL11=21, 
             VAL12=22;
@@ -120,14 +120,14 @@ namespace Bmad {
   const int DPHI_A = 10, DPHI_B = 11;
   const int ETA_X0 = 12, ETAP_X0 = 13, ETA_Y0 = 14, ETAP_Y0 = 15;
   const int ETA_X1 = 16, ETAP_X1 = 17, ETA_Y1 = 18, ETAP_Y1 = 19;
-  const int C11_MAT0 = 20, C12_MAT0 = 21, C21_MAT0 = 22, C22_MAT0 = 23;
-  const int C11_MAT1 = 24, C12_MAT1 = 25, C21_MAT1 = 26, C22_MAT1 = 27;
-  const int X0 = 28, PX0 = 29, Y0 = 30, PY0 = 31, Z0 = 32, PZ0 = 33;
-  const int X1 = 34, PX1 = 35, Y1 = 36, PY1 = 37, Z1 = 38, PZ1 = 39;
-  const int PHASE_TROMBONE_INPUT = 40, PHASE_TROMBONE = 41;
-  const int MATCH_END_INPUT = 42, MATCH_END = 43;
-  const int MATCH_END_ORBIT_INPUT = 44, MATCH_END_ORBIT = 45;
-  const int DELTA_TIME = 46;
+  const int C11_MAT0 = 20, C12_MAT0 = 21, C21_MAT0 = 22, C22_MAT0 = 23, MODE_FLIP0 = 24;
+  const int C11_MAT1 = 25, C12_MAT1 = 26, C21_MAT1 = 27, C22_MAT1 = 28, MODE_FLIP1 = 29;
+  const int X0 = 30, PX0 = 31, Y0 = 32, PY0 = 33, Z0 = 34, PZ0 = 35;
+  const int X1 = 36, PX1 = 37, Y1 = 38, PY1 = 39, Z1 = 40, PZ1 = 41;
+  const int PHASE_TROMBONE_INPUT = 42, PHASE_TROMBONE = 43;
+  const int MATCH_END_INPUT = 44, MATCH_END = 45;
+  const int MATCH_END_ORBIT_INPUT = 46, MATCH_END_ORBIT = 47;
+  const int DELTA_TIME = 48;
   const int X = 1, PX = 2, Y = 3, PY = 4, Z = 5, PZ = 6;
   const int T = 8;
   const int FIELD_X = 10, FIELD_Y = 11, PHASE_X = 12, PHASE_Y = 13;
@@ -188,7 +188,7 @@ namespace Bmad {
   const int CMAT_21 = 31, L_ACTIVE = 31, DPHI_ORIGIN = 31, REF_CAP_GAMMA = 31;
   const int L_SOFT_EDGE = 31, TRANSVERSE_SIGMA_CUT = 31, PZ_APERTURE_CENTER = 31;
   const int CMAT_22 = 32, DPSI_ORIGIN = 32, T_OFFSET = 32, DS_SLICE = 32;
-  const int ANGLE = 33, N_CELL = 33;
+  const int ANGLE = 33, N_CELL = 33, MODE_FLIP = 33;
   const int X_PITCH = 34;
   const int Y_PITCH = 35;
   const int X_OFFSET = 36;
@@ -198,8 +198,8 @@ namespace Bmad {
   const int VKICK = 40, Y_OFFSET_MULT = 40, P0C_REF_INIT = 40, EMITTANCE_B = 40, CRAB_X2 = 40;
   const int BL_HKICK = 41, X_PITCH_MULT = 41, E_TOT_REF_INIT = 41, EMITTANCE_Z = 41, CRAB_X3 = 41;
   const int BL_VKICK = 42, Y_PITCH_MULT = 42, CRAB_TILT = 42;
-  const int BL_KICK = 43, B_FIELD = 43, E_FIELD = 43, HIGH_ENERGY_SPACE_CHARGE_ON = 43;
-  const int PHOTON_TYPE = 44, COUPLER_PHASE = 44, DB_FIELD = 44;
+  const int BL_KICK = 43, B_FIELD = 43, E_FIELD = 43, HIGH_ENERGY_SPACE_CHARGE_ON = 43, CRAB_X4=43;
+  const int PHOTON_TYPE = 44, COUPLER_PHASE = 44, DB_FIELD = 44, CRAB_X5=44;
   const int LATTICE_TYPE = 45, B1_GRADIENT = 45, E1_GRADIENT = 45, COUPLER_ANGLE = 45;
   const int LIVE_BRANCH = 46, B2_GRADIENT = 46, E2_GRADIENT = 46, COUPLER_STRENGTH = 46;
   const int GEOMETRY = 47, COUPLER_AT = 47, E_TOT_SET = 47, PTC_CANONICAL_COORDS = 47;

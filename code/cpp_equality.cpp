@@ -1279,9 +1279,13 @@ template bool is_all_equal (const CPP_synch_rad_common_MATRIX&, const CPP_synch_
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
+bool operator== (const CPP_space_charge_common& x, const CPP_space_charge_common& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.ds_track_step == y.ds_track_step);
+  is_eq = is_eq && (x.dt_track_step == y.dt_track_step);
+  is_eq = is_eq && (x.cathode_strength_cutoff == y.cathode_strength_cutoff);
+  is_eq = is_eq && (x.rel_tol_tracking == y.rel_tol_tracking);
+  is_eq = is_eq && (x.abs_tol_tracking == y.abs_tol_tracking);
   is_eq = is_eq && (x.beam_chamber_height == y.beam_chamber_height);
   is_eq = is_eq && (x.sigma_cutoff == y.sigma_cutoff);
   is_eq = is_eq && is_all_equal(x.space_charge_mesh_size, y.space_charge_mesh_size);
@@ -1291,16 +1295,12 @@ bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
   is_eq = is_eq && (x.n_shield_images == y.n_shield_images);
   is_eq = is_eq && (x.sc_min_in_bin == y.sc_min_in_bin);
   is_eq = is_eq && (x.lsc_kick_transverse_dependence == y.lsc_kick_transverse_dependence);
-  is_eq = is_eq && (x.print_taylor_warning == y.print_taylor_warning);
-  is_eq = is_eq && (x.write_csr_wake == y.write_csr_wake);
-  is_eq = is_eq && (x.use_csr_old == y.use_csr_old);
-  is_eq = is_eq && (x.small_angle_approx == y.small_angle_approx);
-  is_eq = is_eq && (x.wake_output_file == y.wake_output_file);
+  is_eq = is_eq && (x.diagnostic_output_file == y.diagnostic_output_file);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_csr_parameter_ARRAY&, const CPP_csr_parameter_ARRAY&);
-template bool is_all_equal (const CPP_csr_parameter_MATRIX&, const CPP_csr_parameter_MATRIX&);
+template bool is_all_equal (const CPP_space_charge_common_ARRAY&, const CPP_space_charge_common_ARRAY&);
+template bool is_all_equal (const CPP_space_charge_common_MATRIX&, const CPP_space_charge_common_MATRIX&);
 
 //--------------------------------------------------------------
 

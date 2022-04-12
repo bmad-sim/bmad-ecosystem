@@ -5135,9 +5135,9 @@ extern "C" void test_c_synch_rad_common (Opaque_synch_rad_common_class* F, bool&
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_csr_parameter (CPP_csr_parameter&, bool&);
+extern "C" void test2_f_space_charge_common (CPP_space_charge_common&, bool&);
 
-void set_CPP_csr_parameter_test_pattern (CPP_csr_parameter& C, int ix_patt) {
+void set_CPP_space_charge_common_test_pattern (CPP_space_charge_common& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -5145,84 +5145,84 @@ void set_CPP_csr_parameter_test_pattern (CPP_csr_parameter& C, int ix_patt) {
   rhs = 1 + offset; C.ds_track_step = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.beam_chamber_height = rhs;
+  rhs = 2 + offset; C.dt_track_step = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.sigma_cutoff = rhs;
+  rhs = 3 + offset; C.cathode_strength_cutoff = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.rel_tol_tracking = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.abs_tol_tracking = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.beam_chamber_height = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.sigma_cutoff = rhs;
 
   // c_side.test_pat[integer, 1, NOT]
   for (unsigned int i = 0; i < C.space_charge_mesh_size.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.space_charge_mesh_size[i] = rhs;}
+    {int rhs = 101 + i + 8 + offset; C.space_charge_mesh_size[i] = rhs;}
   // c_side.test_pat[integer, 1, NOT]
   for (unsigned int i = 0; i < C.csr3d_mesh_size.size(); i++)
-    {int rhs = 101 + i + 5 + offset; C.csr3d_mesh_size[i] = rhs;}
+    {int rhs = 101 + i + 9 + offset; C.csr3d_mesh_size[i] = rhs;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.n_bin = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 7 + offset; C.particle_bin_span = rhs;
+  rhs = 10 + offset; C.n_bin = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.n_shield_images = rhs;
+  rhs = 11 + offset; C.particle_bin_span = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 9 + offset; C.sc_min_in_bin = rhs;
+  rhs = 12 + offset; C.n_shield_images = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 13 + offset; C.sc_min_in_bin = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 10 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.print_taylor_warning = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.write_csr_wake = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 13 + offset; C.use_csr_old = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 14 + offset; C.small_angle_approx = (rhs % 2 == 0);
+  rhs = 14 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
 
   // c_side.test_pat[character, 0, NOT]
-  C.wake_output_file.resize(200);
-  for (unsigned int i = 0; i < C.wake_output_file.size(); i++)
-    {int rhs = 101 + i + 15 + offset; C.wake_output_file[i] = 'a' + rhs % 26;}
+  C.diagnostic_output_file.resize(200);
+  for (unsigned int i = 0; i < C.diagnostic_output_file.size(); i++)
+    {int rhs = 101 + i + 15 + offset; C.diagnostic_output_file[i] = 'a' + rhs % 26;}
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_csr_parameter (Opaque_csr_parameter_class* F, bool& c_ok) {
+extern "C" void test_c_space_charge_common (Opaque_space_charge_common_class* F, bool& c_ok) {
 
-  CPP_csr_parameter C, C2;
+  CPP_space_charge_common C, C2;
 
   c_ok = true;
 
-  csr_parameter_to_c (F, C);
-  set_CPP_csr_parameter_test_pattern (C2, 1);
+  space_charge_common_to_c (F, C);
+  set_CPP_space_charge_common_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " csr_parameter: C side convert F->C: Good" << endl;
+    cout << " space_charge_common: C side convert F->C: Good" << endl;
   } else {
-    cout << " csr_parameter: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " space_charge_common: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_csr_parameter_test_pattern (C2, 2);
+  set_CPP_space_charge_common_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_csr_parameter (C2, c_ok2);
+  test2_f_space_charge_common (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_csr_parameter_test_pattern (C, 3);
+  set_CPP_space_charge_common_test_pattern (C, 3);
   if (C == C2) {
-    cout << " csr_parameter: F side convert F->C: Good" << endl;
+    cout << " space_charge_common: F side convert F->C: Good" << endl;
   } else {
-    cout << " csr_parameter: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " space_charge_common: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_csr_parameter_test_pattern (C2, 4);
-  csr_parameter_to_f (C2, F);
+  set_CPP_space_charge_common_test_pattern (C2, 4);
+  space_charge_common_to_f (C2, F);
 
 }
 

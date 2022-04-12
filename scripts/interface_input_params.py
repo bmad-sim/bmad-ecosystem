@@ -92,7 +92,7 @@ struct_list = [
     'track_point_struct',
     'track_struct',
     'synch_rad_common_struct',
-    'csr_parameter_struct',
+    'space_charge_common_struct',
     'bmad_common_struct',
     'rad_int1_struct',
     'rad_int_branch_struct',
