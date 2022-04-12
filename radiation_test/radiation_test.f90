@@ -36,7 +36,7 @@ call emit_6d(lat%ele(0), .true., sigma_mat, emit)
 
 write (1, '(a, 3es14.6)') '"emit_6d" REL 1e-6', emit
 do i = 1, 6
-  write (1, '(a, i0, a, 6es14.6)') '"sig_mat', i, '" REL 1e-6', emit
+  write (1, '(a, i0, a, 6es14.6)') '"sig_mat', i, '" REL 1e-6', sigma_mat(i,:)
 enddo
 
 !
