@@ -834,7 +834,6 @@ The \vn{set} command is used to set values for data, variables, etc. Subcommands
   set bmad_com <parameter> = <value>                        ! \sref{s:set.bmad.com}
   set branch <branch> <parameter> = <value>                 ! \sref{s:set.branch}
   set calculate <on/off>                                    ! \sref{s:set.calc}
-  set csr_param <parameter> = <value>                       ! \sref{s:set.csr.param}
   set curve <curve> <parameter> = <value>                   ! \sref{s:set.curve}
   set data <data_name>|<parameter> = <value>                ! \sref{s:set.data}
   set default <parameter> = <value>                         ! \sref{s:set.default}
@@ -853,6 +852,7 @@ The \vn{set} command is used to set values for data, variables, etc. Subcommands
   set plot_page <parameter> = <value1> \{<value2>\}           ! \sref{s:set.plot.page}
   set ran_state = <random_number_generator_state>           ! \sref{s:set.ran.state}
   set region <region> <parameter> = <value>                 ! \sref{s:set.region}
+  set space_charge_com <parameter> = <value>                ! \sref{s:set.sc.com}
   set symbolic_number <name> = <value>                      ! \sref{s:set.symbolic}
   set universe <what_universe> <on/off>                     ! \sref{s:set.universe}
   set universe <what_universe> <calc_name> <on/off>         ! \sref{s:set.universe}
@@ -979,7 +979,8 @@ Format:
   set bmad_com <parameter> = <value>
 \end{example}
 
-For \vn{set bmad_com}: The \vn{show global} command will give a list of \vn{<parameter>}s.
+Sets global \bmad parameters. Use the \vn{show global -bmad_com} command to see a list of
+\vn{<parameter>}s. See the \bmad manual for information on this structure.
 
 Example:
 \begin{example}
@@ -1042,24 +1043,6 @@ Examples:
   set calc off   ! Sets lattice calc and plot_on to False
   set call       ! Toggles lattice_calc and sets plot_on to
                  !  the same value as lattice_calc.
-\end{example}
-
-%% set csr_param --------------------------------------------------------------
-
-\subsection{set csr_param}
-\label{s:set.csr.param}
-
-Format:
-\begin{example}
-  set csr_param <parameter> = <value>
-\end{example}
-
-Sets coherent synchrotron radiation parameters. Use the \vn{show global -csr_param}
-command to see a list of \vn{<parameter>}s.
-
-Example:
-\begin{example}
-  set csr_param n_bin = 30  ! Set number of bins used in the csr calc.
 \end{example}
 
 %% set curve --------------------------------------------------------------
@@ -1573,6 +1556,24 @@ Use the \vn{show plot} command to see a listing of region parameters.
 Example:
 \begin{example}
   set region r13 y2 = 0.3  ! Set y2 parameter of region r13
+\end{example}
+
+%% set space_charge_com --------------------------------------------------------------
+
+\subsection{set space_charge_com}
+\label{s:set.sc.com}
+
+Format:
+\begin{example}
+  set space_charge_com <parameter> = <value>
+\end{example}
+
+Sets global space charge (including CSR) parameters. Use the \vn{show global -space_charge_com}
+command to see a list of \vn{<parameter>}s. See the \bmad manual for information on this structure.
+
+Example:
+\begin{example}
+  set space_charge_com n_bin = 30  ! Set number of bins used in the csr calc.
 \end{example}
 
 %% set symbolic_number --------------------------------------------------------------
@@ -2143,7 +2144,7 @@ beginning element of the default branch (set by \vn{set default branch}) is used
 damping, the emittance is not an exact invariant of the motion. Thus the calculated emittance will
 vary depending upon what lattice element is used.
 
-If the \vn{-matrix\} switch is present, instead of showing emittances, the damping and stochastic
+If the \vn{-matrix} switch is present, instead of showing emittances, the damping and stochastic
 kick matrices used for particle tracking are displayed for the element given by the \vn{-element}
 switch.
 
@@ -2202,21 +2203,21 @@ the downstream end.
 
 Syntax:
 \begin{example}
-  show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
+  show global \{-bmad_com\} \{-space_charge_com\} \{-optimization\} \{-ptc\} \{-ran_state\} 
 \end{example}
 
-The \vn{show global} command prints lists of global parameters.  
+The \vn{show global} command prints lists of global parameters. 
 
 Note: The state of the random number generator is only used for debugging purposes and is not of
 interest to the typical user.
 
 Specifically:
 \begin{example}
-  show global               ! Displays \tao's global parameters.
-  show global -bmad_com     ! Displays \vn{bmad_com} parameters (\sref{s:globals}).
-  show global -csr_param    ! Displays \vn{csr_param} parameters (\sref{s:globals}).
-  show global -optimization ! Displays optimization parameters.
-  show global -ran_state    ! Displays the state of the random number generator.
+  show global                   ! Displays \tao's global parameters.
+  show global -bmad_com         ! Displays \vn{bmad_com} parameters (\sref{s:globals}).
+  show global -space_charge_com ! Displays \vn{space_charge_com} parameters (\sref{s:globals}).
+  show global -optimization     ! Displays optimization parameters.
+  show global -ran_state        ! Displays the state of the random number generator.
 \end{example}
 
 %% show graph --------------------------------------------------------------
