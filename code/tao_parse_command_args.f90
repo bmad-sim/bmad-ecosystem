@@ -46,7 +46,7 @@ endif
   
 s%global  = tao_global_struct()
 bmad_com  = bmad_common_struct()
-csr_param = csr_parameter_struct()
+space_charge_com = space_charge_common_struct()
 
 ! Get command line input
 

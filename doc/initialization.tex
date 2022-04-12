@@ -534,16 +534,16 @@ can be printed using the \vn{show symbolic_number} command (\sref{s:show.symboli
 \index{initialization!globals}
 \label{s:globals} 
 
-\index{tao_params}\index{global}\index{bmad_com}\index{csr_param}\index{opti_de_param}
+\index{tao_params}\index{global}\index{bmad_com}\index{space_charge_com}\index{opti_de_param}
 Global parameters are grouped into a number of structures. Four global structures are of interest here:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
-  {\it Instance Name}  & {\it Structure}       & {\it Notes}              &                               \\ \midrule
-  global               & tao_global_struct     & Tao global parameters    & \sref{s:tao.global.struct}    \\
-  bmad_com             & bmad_common_struct    & Bmad global parameters   & \sref{s:bmad.com.struct}      \\
-  csr_param            & csr_parameter_struct  & CSR global parameters    & \sref{s:csr.param.struct}     \\
-  opti_de_param        & opti_de_param_struct  & DE optimizer parameters  & \sref{s:opti.de.param.struct} \\ \bottomrule
+  {\it Instance Name}  & {\it Structure}            & {\it Notes}              &                               \\ \midrule
+  global               & tao_global_struct          & Tao global parameters    & \sref{s:tao.global.struct}    \\
+  bmad_com             & bmad_common_struct         & Bmad global parameters   & \sref{s:bmad.com.struct}      \\
+  space_charge_com     & space_charge_common_struct & CSR global parameters    & \sref{s:csr.param.struct}     \\
+  opti_de_param        & opti_de_param_struct       & DE optimizer parameters  & \sref{s:opti.de.param.struct} \\ \bottomrule
 \end{tabular}
 \end{center}
 These instances are initialized in the root initialization file using a namelist named
@@ -559,7 +559,7 @@ The \vn{show global} command (\sref{s:show.global}) can be used to show global p
 \vn{show optimizer} (\sref{s:show}) commands.
 
 The \vn{tao_params} namelist is read after reading of the lattice file so settings of \vn{bmad_com}
-and \vn{csr_param} structures in the lattice file will be overwritten by settings in the
+and \vn{space_charge_com} structures in the lattice file will be overwritten by settings in the
 \vn{tao_params} namelist. And settings in any startup command file (\sref{s:init.begin}) will
 supersede everything else.
 
@@ -885,13 +885,13 @@ The \vn{bmad_com_struct} holds bmad global variables.
 See the \bmad manual for more details.
 
 %-----------------------------------------------------------------
-\subsection{csr\_param\_struct Structure}
+\subsection{space\_charge\_common\_struct Structure}
 \label{s:csr.param.struct} 
 
-The \vn{csr_parameter_struct} holds global variables for the coherent
-synchrotron radiation calculations. 
+The \vn{space_charge_commandstruct} holds global variables for space charge, including coherent
+synchrotron radiation (CSR), calculations. 
 \begin{example}
-  type csr_parameter_struct:
+  type space_charge_common_struct:
     real(rp) ds_track_step = 0          ! Tracking step size
     real(rp) beam_chamber_height = 0    ! Used in shielding calculation.
     real(rp) sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
@@ -904,19 +904,9 @@ synchrotron radiation calculations.
     logical write_csr_wake = False      ! Write the CSR wake? For diagnostics.
     logical lsc_kick_transverse_dependence = F
 \end{example}
-See the \bmad manual on the \vn{csr_parameter_struct} for more details. In \tao,
-Besides setting the \vn{csr_parameter_struct} components, the following must
-be done to enable CSR computations:
-\begin{Itemize}
-\item 
-The \vn{global%track_type} (see above this section) must be set to \vn{"beam"} and the appropriate
-beam initialization parameters (\sref{s:beam.init}) must be set.
-\item 
-The parameter \vn{bmad_com%coherent_synch_radiation} (see above this section) must be set to \vn{True}.
-\item
-In the \bmad lattice file, \vn{csr_calc_on} must be set for the elements where CSR tracking is to be
-done (see the \bmad manual).
-\end{Itemize}
+It is important to note that space charge / CSR calculations also depend upon settings in the
+\vn{bmad_common_struct} strucuture as well as individual lattice element parameters.  See the \bmad
+manual for more details.
 
 %-----------------------------------------------------------------
 \subsection{opti\_de\_param\_struct Structure}

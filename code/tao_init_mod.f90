@@ -41,7 +41,7 @@ character(100) line
 
 logical err, xxx
 
-namelist / tao_params / global, bmad_com, csr_param, opti_de_param, &
+namelist / tao_params / global, bmad_com, space_charge_com, opti_de_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
 !-----------------------------------------------------------------------

@@ -564,14 +564,17 @@ case ('set')
       'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
       'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-      'global', 'region', 'calculate'], .true., switch, err, ix) 
+      'global', 'region', 'calculate', 'space_charge_com'], .true., switch, err, ix) 
     if (err) return
     set_word = switch
   enddo
 
   select case (set_word)
+  case ('csr_param')
+    call out_io (s_warn$, r_name, '"csr_param" structure is now called "space_charge_com"')
+    goto 9000
   case ('ran_state'); n_word = 2; n_eq = 1
-  case ('beam', 'beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', 'default', &
+  case ('beam', 'beam_init', 'bmad_com', 'space_charge_com', 'data', 'global', 'lattice', 'default', &
         'opti_de_param', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm', 'key', 'symbolic_number', &
         'var', 'beam_start', 'particle_start', 'dynamic_aperture'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 4; n_eq = 3
@@ -633,8 +636,8 @@ case ('set')
     call tao_set_branch_cmd (cmd_word(1), cmd_word(2), cmd_word(4)) 
   case ('calculate')
     call tao_set_calculate_cmd (cmd_word(1))
-  case ('csr_param')
-    call tao_set_csr_param_cmd (cmd_word(1), cmd_word(3))
+  case ('space_charge_com')
+    call tao_set_space_charge_com_cmd (cmd_word(1), cmd_word(3))
   case ('curve')
     call tao_set_curve_cmd (cmd_word(1), cmd_word(2), cmd_word(4)) 
   case ('data')

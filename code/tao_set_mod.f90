@@ -493,39 +493,39 @@ end subroutine tao_set_global_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_csr_param_cmd (who, value_str)
+! Subroutine tao_set_space_charge_com_cmd (who, value_str)
 !
-! Routine to set csr_param variables
+! Routine to set space_charge_com variables
 ! 
 ! Input:
-!   who       -- Character(*): which csr_param variable to set
+!   who       -- Character(*): which space_charge_com variable to set
 !   value_str -- Character(*): Value to set to.
 !
 ! Output:
-!    csr_param  -- Csr_param variables structure.
+!    space_charge_com  -- space_charge_com variables structure.
 !-
 
-subroutine tao_set_csr_param_cmd (who, value_str)
+subroutine tao_set_space_charge_com_cmd (who, value_str)
 
 implicit none
 
-type (csr_parameter_struct) local_csr_param
+type (space_charge_common_struct) local_space_charge_com
 
 character(*) who, value_str
 character(len(value_str)+24) val
-character(*), parameter :: r_name = 'tao_set_csr_param_cmd'
+character(*), parameter :: r_name = 'tao_set_space_charge_com_cmd'
 
 real(rp), allocatable :: set_val(:)
 integer iu, ios
 logical err
 
-namelist / params / local_csr_param
+namelist / params / local_space_charge_com
 
 ! open a scratch file for a namelist read
 
 select case (who)
-case ('wake_output_file')
-  csr_param%wake_output_file = value_str
+case ('diagnostic_output_file')
+  space_charge_com%diagnostic_output_file = value_str
   return
 
 case ('ds_track_step', 'beam_chamber_height', 'sigma_cutoff')
@@ -543,10 +543,10 @@ end select
 iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
-write (iu, '(a)') ' local_csr_param%' // trim(who) // ' = ' // trim(val)
+write (iu, '(a)') ' local_space_charge_com%' // trim(who) // ' = ' // trim(val)
 write (iu, '(a)') '/'
 rewind (iu)
-local_csr_param = csr_param  ! set defaults
+local_space_charge_com = space_charge_com  ! set defaults
 read (iu, nml = params, iostat = ios)
 close (iu, status = 'delete')
 
@@ -555,10 +555,10 @@ if (ios /= 0) then
   return
 endif
 
-csr_param = local_csr_param
+space_charge_com = local_space_charge_com
 s%u%calc%lattice = .true.
 
-end subroutine tao_set_csr_param_cmd
+end subroutine tao_set_space_charge_com_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

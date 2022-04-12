@@ -454,18 +454,22 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
 
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'csr_param components (set by "set csr_param ..."):'
-    nl=nl+1; write(lines(nl), rmt) '  %ds_track_step                  = ', csr_param%ds_track_step
-    nl=nl+1; write(lines(nl), rmt) '  %beam_chamber_height            = ', csr_param%beam_chamber_height
-    nl=nl+1; write(lines(nl), rmt) '  %sigma_cutoff                   = ', csr_param%sigma_cutoff
-    nl=nl+1; write(lines(nl), imt) '  %n_bin                          = ', csr_param%n_bin
-    nl=nl+1; write(lines(nl), imt) '  %particle_bin_span              = ', csr_param%particle_bin_span
-    nl=nl+1; write(lines(nl), imt) '  %n_shield_images                = ', csr_param%n_shield_images
-    nl=nl+1; write(lines(nl), imt) '  %sc_min_in_bin                  = ', csr_param%sc_min_in_bin
-    nl=nl+1; write(lines(nl), lmt) '  %print_taylor_warning           = ', csr_param%print_taylor_warning
-    nl=nl+1; write(lines(nl), lmt) '  %lsc_kick_transverse_dependence = ', csr_param%lsc_kick_transverse_dependence
-    nl=nl+1; write(lines(nl), lmt) '  %write_csr_wake                 = ', csr_param%write_csr_wake
-    nl=nl+1; write(lines(nl), amt) '  %wake_output_file               = ', quote(csr_param%wake_output_file)
+    nl=nl+1; lines(nl) = 'space_charge_com components (set by "set space_charge_com ..."):'
+    nl=nl+1; write(lines(nl), rmt) '  %ds_track_step                  = ', space_charge_com%ds_track_step
+    nl=nl+1; write(lines(nl), rmt) '  %dt_track_step                  = ', space_charge_com%dt_track_step
+    nl=nl+1; write(lines(nl), rmt) '  %cathode_strength_cutoff        = ', space_charge_com%cathode_strength_cutoff
+    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_tracking               = ', space_charge_com%rel_tol_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_tracking               = ', space_charge_com%abs_tol_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %beam_chamber_height            = ', space_charge_com%beam_chamber_height
+    nl=nl+1; write(lines(nl), rmt) '  %sigma_cutoff                   = ', space_charge_com%sigma_cutoff
+    nl=nl+1; write(lines(nl), imt) '  %space_charge_mesh_size         = ', space_charge_com%space_charge_mesh_size
+    nl=nl+1; write(lines(nl), imt) '  %csr3d_mesh_size                = ', space_charge_com%csr3d_mesh_size
+    nl=nl+1; write(lines(nl), imt) '  %n_bin                          = ', space_charge_com%n_bin
+    nl=nl+1; write(lines(nl), imt) '  %particle_bin_span              = ', space_charge_com%particle_bin_span
+    nl=nl+1; write(lines(nl), imt) '  %n_shield_images                = ', space_charge_com%n_shield_images
+    nl=nl+1; write(lines(nl), imt) '  %sc_min_in_bin                  = ', space_charge_com%sc_min_in_bin
+    nl=nl+1; write(lines(nl), lmt) '  %lsc_kick_transverse_dependence = ', space_charge_com%lsc_kick_transverse_dependence
+    nl=nl+1; write(lines(nl), amt) '  %diagnostic_output_file         = ', quote(space_charge_com%diagnostic_output_file)
 
     if (size(lat%branch) > 1) then
       nl=nl+1; lines(nl) = ''
@@ -1894,14 +1898,14 @@ case ('global')
   what_to_print = 'global'
 
   do
-    call tao_next_switch (what2, [character(16):: '-optimization', '-bmad_com', &
-                                 '-csr_param', '-ran_state', '-ptc', '-internal'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(20):: '-optimization', '-bmad_com', &
+                    '-csr_param', '-space_charge_com', '-ran_state', '-ptc', '-internal'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('')
       exit
-    case ('-optimization', '-bmad_com', '-csr_param', '-ran_state', '-ptc', '-internal')
+    case ('-optimization', '-bmad_com', '-csr_param', '-space_charge_com', '-ran_state', '-ptc', '-internal')
       what_to_print = switch
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
@@ -2057,21 +2061,26 @@ case ('global')
     endif
 
   case ('-csr_param')
+    nl=nl+1; lines(nl) = '"-csr_param" is now "-space_charge_com".'
+
+  case ('-space_charge_com')
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'CSR_param Parameters (set by "set csr_param ..."):'
-    nl=nl+1; write(lines(nl), rmt) '  %ds_track_step                  = ', csr_param%ds_track_step
-    nl=nl+1; write(lines(nl), rmt) '  %beam_chamber_height            = ', csr_param%beam_chamber_height
-    nl=nl+1; write(lines(nl), rmt) '  %sigma_cutoff                   = ', csr_param%sigma_cutoff
-    nl=nl+1; write(lines(nl), imt) '  %n_bin                          = ', csr_param%n_bin
-    nl=nl+1; write(lines(nl), imt) '  %particle_bin_span              = ', csr_param%particle_bin_span
-    nl=nl+1; write(lines(nl), imt) '  %n_shield_images                = ', csr_param%n_shield_images
-    nl=nl+1; write(lines(nl), imt) '  %sc_min_in_bin                  = ', csr_param%sc_min_in_bin
-    nl=nl+1; write(lines(nl), imt) '  %space_charge_mesh_size         = ', csr_param%space_charge_mesh_size
-    nl=nl+1; write(lines(nl), imt) '  %csr3d_mesh_size                = ', csr_param%csr3d_mesh_size
-    nl=nl+1; write(lines(nl), lmt) '  %print_taylor_warning           = ', csr_param%print_taylor_warning
-    nl=nl+1; write(lines(nl), lmt) '  %lsc_kick_transverse_dependence = ', csr_param%lsc_kick_transverse_dependence
-    nl=nl+1; write(lines(nl), lmt) '  %write_csr_wake                 = ', csr_param%write_csr_wake
-    nl=nl+1; write(lines(nl), amt) '  %wake_output_file               = ', quote(csr_param%wake_output_file)
+    nl=nl+1; lines(nl) = 'space_charge_com Parameters (set by "set space_charge_com ..."):'
+    nl=nl+1; write(lines(nl), rmt) '  %ds_track_step                  = ', space_charge_com%ds_track_step
+    nl=nl+1; write(lines(nl), rmt) '  %dt_track_step                  = ', space_charge_com%dt_track_step
+    nl=nl+1; write(lines(nl), rmt) '  %cathode_strength_cutoff        = ', space_charge_com%cathode_strength_cutoff
+    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_tracking               = ', space_charge_com%rel_tol_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_tracking               = ', space_charge_com%abs_tol_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %beam_chamber_height            = ', space_charge_com%beam_chamber_height
+    nl=nl+1; write(lines(nl), rmt) '  %sigma_cutoff                   = ', space_charge_com%sigma_cutoff
+    nl=nl+1; write(lines(nl), imt) '  %space_charge_mesh_size         = ', space_charge_com%space_charge_mesh_size
+    nl=nl+1; write(lines(nl), imt) '  %csr3d_mesh_size                = ', space_charge_com%csr3d_mesh_size
+    nl=nl+1; write(lines(nl), imt) '  %n_bin                          = ', space_charge_com%n_bin
+    nl=nl+1; write(lines(nl), imt) '  %particle_bin_span              = ', space_charge_com%particle_bin_span
+    nl=nl+1; write(lines(nl), imt) '  %n_shield_images                = ', space_charge_com%n_shield_images
+    nl=nl+1; write(lines(nl), imt) '  %sc_min_in_bin                  = ', space_charge_com%sc_min_in_bin
+    nl=nl+1; write(lines(nl), lmt) '  %lsc_kick_transverse_dependence = ', space_charge_com%lsc_kick_transverse_dependence
+    nl=nl+1; write(lines(nl), amt) '  %diagnostic_output_file         = ', quote(space_charge_com%diagnostic_output_file)
 
   case ('-ptc')
     nl=nl+1; lines(nl) = ''
