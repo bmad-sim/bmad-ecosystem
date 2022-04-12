@@ -76,7 +76,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ February 26, 2022}
+\date{David Sagan and Chris Mayes \\ April 12, 2022}
 \begin{document}
 
 \maketitle
@@ -528,7 +528,7 @@ Subcommands are:
   set beam_init {n@}<component> = <value>
   set particle_start {n@}<coordinate> = <value>
   set bmad_com <component> = <value>
-  set csr_param <component> = <value>
+  set space_charge_com <component> = <value>
   set curve <curve> <component> = <value>
   set data <data_name>|<component> = <value>
   set default <parameter> = <value>
@@ -655,7 +655,7 @@ section ``Command Files and Aliases'' (\extref{T-s:command.files}) in the \tao m
 %
 \item
 In your \vn{tao.init} initialization file from the first exercise, put in a \vn{tao_start} namelist
-(See \extref{T-s:init.global} ``Beginning Initialization'' in the \tao manual) that sets the \vn{startup_file}
+(See \extref{T-s:init.begin} ``Beginning Initialization'' in the \tao manual) that sets the \vn{startup_file}
 parameter of this namelist to the name of the command file from the second exercise. What happens when
 you start \tao?
 \end{enumerate}
