@@ -545,12 +545,13 @@ attribute_array_init_needed = .false.
 
 do i = 1, n_key$
 
-  if (i == def_bmad_com$)       cycle
-  if (i == def_mad_beam$)       cycle
-  if (i == def_particle_start$) cycle
-  if (i == def_line$)           cycle
-  if (i == def_parameter$)      cycle
-  if (i == def_ptc_com$)        cycle
+  if (i == def_bmad_com$)         cycle
+  if (i == def_space_charge_com$) cycle
+  if (i == def_mad_beam$)         cycle
+  if (i == def_particle_start$)   cycle
+  if (i == def_line$)             cycle
+  if (i == def_parameter$)        cycle
+  if (i == def_ptc_com$)          cycle
 
   call init_attribute_name1 (i, check_sum$, 'check_sum', private$)
 
@@ -2649,7 +2650,7 @@ if (key == 0) then
 
   do i = 1, n_key$
     select case (i)
-    case (def_parameter$, def_mad_beam$, def_bmad_com$, def_particle_start$, def_line$); cycle
+    case (def_parameter$, def_mad_beam$, def_bmad_com$, def_particle_start$, def_line$, def_space_charge_com$); cycle
     end select
     old_attrib = attribute_name(i, ix_attrib+custom_attribute0$)
     if (old_attrib /= null_name$) cycle
@@ -2737,7 +2738,7 @@ do ic = 1, custom_attribute_num$
 
   do is = 1, n_key$
     select case (is)
-    case (def_mad_beam$, def_bmad_com$, def_particle_start$, def_line$); cycle
+    case (def_mad_beam$, def_bmad_com$, def_space_charge_com$, def_particle_start$, def_line$); cycle
     end select
     if (attribute_name(is, icc) == null_name$) cycle
     if (attribute_name(is, icc) == common_name) cycle

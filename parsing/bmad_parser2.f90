@@ -92,7 +92,7 @@ endif
 ! due to overlapping parameters
 
 n_max => lat%n_ele_max
-n_def_ele = 5 + size(lat%branch)
+n_def_ele = 6 + size(lat%branch)
 call allocate_plat (plat, n_def_ele)
 if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat, n_max+n_def_ele+100)
 
@@ -135,14 +135,21 @@ ele%ixx  = 5                    ! Pointer to plat%ele() array
 extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
 call nametable_add(lat%nametable, ele%name, n_max+5)
 
+ele => lat%ele(n_max+6)
+call init_ele (ele, def_space_charge_com$, 0, n_max+6, lat%branch(0))
+ele%name = 'SPACE_CHARGE_COM'
+ele%ixx  = 6                    ! Pointer to plat%ele() array
+extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
+call nametable_add(lat%nametable, ele%name, n_max+6)
+
 do i = 0, ubound(lat%branch, 1)
-  ele => lat%ele(n_max+6+i)
-  call init_ele(ele, def_line$, 0, n_max+6+i, lat%branch(0))
+  ele => lat%ele(n_max+7+i)
+  call init_ele(ele, def_line$, 0, n_max+7+i, lat%branch(0))
   ele%name = lat%branch(i)%name
   ele%value(ix_branch$) = i
-  ele%ixx = 6 + i
+  ele%ixx = 7 + i
   extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
-  call nametable_add(lat%nametable, ele%name, n_max+6+i)
+  call nametable_add(lat%nametable, ele%name, n_max+7+i)
 enddo
 
 n_plat_ele = n_def_ele
@@ -467,7 +474,7 @@ parsing_loop: do
       ele => eles(i)%ele
 
       ! No wild card matches permitted for these
-      if (ele%name == 'BEGINNING' .or. ele%name == 'BEAM' .or. &
+      if (ele%name == 'BEGINNING' .or. ele%name == 'BEAM' .or. ele%name == 'SPACE_CHARGE_COM' .or. &
           ele%name == 'PARAMETER' .or. ele%name == 'PARTICLE_START' .or. ele%name == 'BMAD_COM') then
         if (word_1 /= ele%name) cycle
       endif
@@ -718,6 +725,8 @@ bp_com%input_line_meaningful = .false.
 
 lat%input_taylor_order = bmad_com%taylor_order
 call set_ptc()   ! Will set Taylor_order
+
+! Must deal with fact that some parameters (geometry, etc) can be set in different places.
 
 call lat_ele_locator ('BEAM', lat, eles, n_loc, err)
 if (n_loc /= 1 .or. err) call err_exit

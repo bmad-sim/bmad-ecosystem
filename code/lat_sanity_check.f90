@@ -267,7 +267,8 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ! Do not check the extra elements temporarily inserted by bmad_parser2.
 
     select case (ele%key)
-    case (def_mad_beam$, def_parameter$, def_particle_start$, def_bmad_com$, def_line$, def_ptc_com$) 
+    case (def_mad_beam$, def_parameter$, def_particle_start$, def_bmad_com$, def_line$, def_ptc_com$, &
+                                                                                      def_space_charge_com$) 
       cycle
     end select
 

@@ -20,7 +20,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 272
+integer, parameter :: bmad_inc_version$ = 273
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1482,10 +1482,10 @@ integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46, e_gu
 integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffraction_plate$ = 52
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 integer, parameter :: ac_kicker$ = 58, lens$ = 59, beam_init$ = 60, crab_cavity$ = 61, ramper$ = 62
-integer, parameter :: def_ptc_com$ = 63
-integer, parameter :: n_key$ = 63
+integer, parameter :: def_ptc_com$ = 63, def_space_charge_com$ = 64
+integer, parameter :: n_key$ = 64
 
-! An "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
+! A "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
 character(20), parameter :: key_name(n_key$) = [ &
     'Drift             ', 'Sbend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
@@ -1500,7 +1500,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
     'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', 'Beam_Init         ', &
-    'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ']
+    'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ', '!Space_Charge_Com ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1900,33 +1900,28 @@ type aperture_scan_struct
 end type
 
 !-------------------------------------------------------------------------
-! CSR parameters
+! Space charge parameters
 
-!+
-! Note: Shielding is simulated via the image current due to the 
-! top and bottom walls. The side walls are neglected.
-!-
-
-type csr_parameter_struct                  ! Common block for csr calc
-  real(rp) :: ds_track_step = 0            ! Tracking step size
-  real(rp) :: beam_chamber_height = 0      ! Used in shielding calculation.
-  real(rp) :: sigma_cutoff = 0.1           ! Cutoff for the lsc calc. If a bin sigma
-                                           !  is < cutoff * sigma_ave then ignore.
+type space_charge_common_struct                   ! Common block for space charge
+  real(rp) :: ds_track_step = 0                   ! CSR tracking step size
+  real(rp) :: dt_track_step = 0                   ! Time based space charge step
+  real(rp) :: cathode_strength_cutoff = 0.01      ! Cutoff for the cathode field calc.
+  real(rp) :: rel_tol_tracking = 1d-8
+  real(rp) :: abs_tol_tracking = 1d-10            
+  real(rp) :: beam_chamber_height = 0             ! Used in shielding calculation.
+  real(rp) :: sigma_cutoff = 0.1                  ! Cutoff for the lsc calc. If a bin sigma
+                                                  !  is < cutoff * sigma_ave then ignore.
   integer :: space_charge_mesh_size(3) = [32, 32, 64]  ! Gird size for fft_3d space charge calc.
   integer :: csr3d_mesh_size(3) = [32, 32, 64]         ! Gird size for CSR.
-  integer :: n_bin = 0                     ! Number of bins used
-  integer :: particle_bin_span = 2         ! Longitudinal particle length / dz_bin
-  integer :: n_shield_images = 0           ! Chamber wall shielding. 0 = no shielding.
-  integer :: sc_min_in_bin = 10            ! Minimum number of particles in a bin for sigmas to be valid.
+  integer :: n_bin = 0                            ! Number of bins used
+  integer :: particle_bin_span = 2                ! Longitudinal particle length / dz_bin
+  integer :: n_shield_images = 0                  ! Chamber wall shielding. 0 = no shielding.
+  integer :: sc_min_in_bin = 10                   ! Minimum number of particles in a bin for sigmas to be valid.
   logical :: lsc_kick_transverse_dependence = .false.
-  logical :: print_taylor_warning = .true. ! Print warning if Taylor element is present?
-  logical :: write_csr_wake = .false.      ! Write the CSR wake to %wake_output_file for diagnostics?
-  logical :: use_csr_old = .false.         ! Use old CSR tracking? Should only be done for testing.
-  logical :: small_angle_approx = .true.   ! Use small angle approximation? ONLY USED WITH OLD CSR.
-  character(200) :: wake_output_file = 'csr_wake.dat'  
+  character(200) :: diagnostic_output_file = ''   ! If non-blank write a diagnostic (EG wake) file
 end type
 
-type (csr_parameter_struct), save, target :: csr_param
+type (space_charge_common_struct), save, target :: space_charge_com
 
 !------------------------------------------------------------------------------
 ! This is for debugging radiation damping and fluctuations.
@@ -1947,12 +1942,12 @@ integer, parameter :: is_struct$ = 6, unknown$ = 7
 integer, parameter :: patch_problem$ = 2, outside$ = 3, cannot_find$ = 4
 
 ! extra_parsing_info_struct is used by parsing routines.
-! %deterministic:
+! %deterministic settings:
 !   0 = Not, 1 = Ran state on input deterministic, 2 = ran state deterministice
 !   will be generated in exactly the same way every time?
-! %ran_function_was_called:
+! %ran_function_was_called setting:
 !   Only set True when ran function is called with ran_determinisitc = 0.
-! %determinisitc_ran_function_was_called:
+! %determinisitc_ran_function_was_called setting:
 !   Only set True when ran function is called with ran_determinisitc = 1.
 
 type extra_parsing_info_struct
@@ -1960,6 +1955,7 @@ type extra_parsing_info_struct
   integer :: deterministic                          = 0
   logical :: ran_function_was_called                = .false.
   logical :: deterministic_ran_function_was_called  = .false.
+  ! Used with bmad_com
   logical :: d_orb_set                              = .false.
   logical :: max_aperture_limit_set                 = .false.
   logical :: default_ds_step_set                    = .false.
@@ -2002,6 +1998,22 @@ type extra_parsing_info_struct
   logical :: max_num_runge_kutta_step_set           = .false.
   logical :: ptc_print_info_messages_set            = .false.
   logical :: debug_set                              = .false.
+  ! Used with space_charge_com
+  logical :: ds_track_step_set                      = .false.
+  logical :: dt_track_step_set                      = .false.
+  logical :: cathode_strength_cutoff_set            = .false.
+  logical :: sc_rel_tol_tracking_set                = .false.  ! For: space_charge_com%rel_tol_tracking
+  logical :: sc_abs_tol_tracking_set                = .false.  ! For: space_charge_com%abs_tol_tracking
+  logical :: beam_chamber_height_set                = .false.
+  logical :: sigma_cutoff_set                       = .false.
+  logical :: space_charge_mesh_size_set             = .false.
+  logical :: csr3d_mesh_size_set                    = .false.
+  logical :: n_bin_set                              = .false.
+  logical :: particle_bin_span_set                  = .false.
+  logical :: n_shield_images_set                    = .false.
+  logical :: sc_min_in_bin_set                      = .false.
+  logical :: lsc_kick_transverse_dependence_set     = .false.
+  logical :: diagnostic_output_file_set             = .false.
 end type
 
 !------------------------------------------------------------------------------

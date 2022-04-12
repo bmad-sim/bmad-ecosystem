@@ -100,14 +100,12 @@ case ('BMAD_COM')
     if (str /= ')') err_flag = .true.
     if (.not. err_flag) then
       call re_allocate (ptr_array, 1)
-      if (present(eles)) call re_allocate_eles (eles, 1)
       ptr_array(1)%r => bmad_com%d_orb(n)
       return
     endif
   endif    
 
   call re_allocate (ptr_array, 1)
-  if (present(eles)) call re_allocate_eles (eles, 1)
 
   select case(attrib_name)
   case ('PTC_MAX_FRINGE_ORDER');            ptr_array(1)%i => ptc_com%max_fringe_order
@@ -160,7 +158,47 @@ case ('BMAD_COM')
     if (do_print) call out_io (s_error$, r_name, &
              'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
     call re_allocate(ptr_array, 0)
-    if (present(eles)) call re_allocate_eles (eles, 0)
+    err_flag = .true.
+  end select
+
+  return
+
+! space_charge_com
+
+case ('SPACE_CHARGE_COM')
+  select case (attrib_name)
+
+  case ('SPACE_CHARGE_MESH_SIZE')
+    call re_allocate (ptr_array, 3)
+    do i = 1, 3
+      ptr_array(i)%i => space_charge_com%space_charge_mesh_size(i)
+    enddo
+
+  case ('CSR3D_MESH_SIZE')
+    call re_allocate (ptr_array, 3)
+    do i = 1, 3
+      ptr_array(i)%i => space_charge_com%csr3d_mesh_size(i)
+    enddo
+
+  call re_allocate (ptr_array, 1)
+
+  case ('DS_TRACK_STEP');                   ptr_array(1)%r => space_charge_com%ds_track_step
+  case ('DT_TRACK_STEP');                   ptr_array(1)%r => space_charge_com%dt_track_step
+  case ('CATHODE_STRENGTH_CUTOFF');         ptr_array(1)%r => space_charge_com%cathode_strength_cutoff
+  case ('REL_TOL_TRACKING');                ptr_array(1)%r => space_charge_com%rel_tol_tracking
+  case ('ABS_TOL_TRACKING');                ptr_array(1)%r => space_charge_com%abs_tol_tracking
+  case ('BEAM_CHAMBER_HEIGHT');             ptr_array(1)%r => space_charge_com%beam_chamber_height
+  case ('SIGMA_CUTOFF');                    ptr_array(1)%r => space_charge_com%sigma_cutoff
+  case ('N_BIN');                           ptr_array(1)%i => space_charge_com%n_bin
+  case ('PARTICLE_BIN_SPAN');               ptr_array(1)%i => space_charge_com%particle_bin_span
+  case ('N_SHIELD_IMAGES');                 ptr_array(1)%i => space_charge_com%n_shield_images
+  case ('SC_MIN_IN_BIN');                   ptr_array(1)%i => space_charge_com%sc_min_in_bin
+  case ('LSC_KICK_TRANSVERSE_DEPENDENCE');  ptr_array(1)%l => space_charge_com%lsc_kick_transverse_dependence
+
+  case default
+    if (do_print) call out_io (s_error$, r_name, &
+             'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
+    call re_allocate(ptr_array, 0)
     err_flag = .true.
   end select
 

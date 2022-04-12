@@ -155,7 +155,7 @@ branch => pointer_to_branch(ele)
 if (ele%space_charge_method == fft_3d$) then
   c0 => centroid(ele%ix_ele)
   call convert_pc_to((1+c0%vec(6)) * c0%p0c, c0%species, gamma = csr%mesh3d%gamma)
-  csr%mesh3d%nhi = csr_param%space_charge_mesh_size
+  csr%mesh3d%nhi = space_charge_com%space_charge_mesh_size
 endif
 
 ! No CSR for a zero length element.
@@ -164,9 +164,6 @@ endif
 if (ele%value(l$) == 0 .or. ele%key == taylor$) then
   call track1_bunch_hom (bunch, ele)
   err = .false.
-  if (ele%key == taylor$ .and. ele%value(l$) == 0 .and. csr_param%print_taylor_warning) then
-    call out_io (s_warn$, r_name, 'CSR calc for taylor element not done: ' // ele%name)
-  endif
   return
 endif
 
@@ -180,16 +177,16 @@ if (ele%csr_method == one_dim$ .and. (ele%key == wiggler$ .or. ele%key == undula
                                 'FOR: ' // ele%name)
 endif
 
-if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
-  if (csr_param%n_bin == 0) then
+if (space_charge_com%n_bin <= space_charge_com%particle_bin_span + 1) then
+  if (space_charge_com%n_bin == 0) then
     call out_io (s_error$, r_name, &
-            'CSR_PARAM%N_BIN IS ZERO WHICH INDICATES THAT THE CSR_PARAM STRUCTURE HAS NOT BEEN SET BY THE USER.', &
+            'SPACE_CHARGE_COM%N_BIN IS ZERO WHICH INDICATES THAT THE SPACE_CHARGE_COM STRUCTURE HAS NOT BEEN SET BY THE USER.', &
             'ALL PARTICLES IN THE BUNCH WILL BE MARKED AS LOST.')
   else
     call out_io (s_error$, r_name, &
-            'CSR_PARAM%N_BIN (= \i0\) MUST BE GREATER THAN CSR_PARAM%PARTICLE_BIN_SPAN+1 (= \i0\+1)!', &
+            'SPACE_CHARGE_COM%N_BIN (= \i0\) MUST BE GREATER THAN SPACE_CHARGE_COM%PARTICLE_BIN_SPAN+1 (= \i0\+1)!', &
             'ALL PARTICLES IN THE BUNCH WILL BE MARKED AS LOST.', &
-             i_array = [csr_param%n_bin, csr_param%particle_bin_span])
+             i_array = [space_charge_com%n_bin, space_charge_com%particle_bin_span])
   endif
   bunch%particle%state = lost$
   return
@@ -198,9 +195,9 @@ endif
 ! make sure that ele_len / track_step is an integer.
 
 csr%ds_track_step = ele%value(csr_ds_step$)
-if (csr%ds_track_step == 0) csr%ds_track_step = csr_param%ds_track_step
+if (csr%ds_track_step == 0) csr%ds_track_step = space_charge_com%ds_track_step
 if (csr%ds_track_step == 0) then
-  call out_io (s_fatal$, r_name, 'NEITHER CSR_PARAM%DS_TRACK_STEP NOR CSR_TRACK_STEP FOR THIS ELEMENT ARE SET! ' // ele%name)
+  call out_io (s_fatal$, r_name, 'NEITHER SPACE_CHARGE_COM%DS_TRACK_STEP NOR CSR_TRACK_STEP FOR THIS ELEMENT ARE SET! ' // ele%name)
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -298,7 +295,7 @@ do i_step = 0, n_step
   ! Cannot do a realistic calculation if there are less particles than bins
 
   n_live = count(bunch%particle%state == alive$)
-  if (n_live < csr_param%n_bin) then
+  if (n_live < space_charge_com%n_bin) then
     call out_io (s_error$, r_name, 'NUMBER OF LIVE PARTICLES: \i0\ ', &
                           'LESS THAN NUMBER OF BINS FOR CSR CALC.', &
                           'AT ELEMENT: ' // trim(ele%name) // '  [# \i0\] ', &
@@ -328,7 +325,7 @@ do i_step = 0, n_step
   ! ns = 0 is the unshielded kick.
 
   if (ele%space_charge_method == slice$ .or. ele%csr_method == one_dim$) then
-    do ns = 0, csr_param%n_shield_images
+    do ns = 0, space_charge_com%n_shield_images
       ! The factor of -1^ns accounts for the sign of the image currents
       ! Take into account that at the endpoints we are only putting in a half kick.
       ! The factor of two is due to there being image currents both above and below.
@@ -337,7 +334,7 @@ do i_step = 0, n_step
       if (i_step == 0 .or. i_step == n_step) csr%kick_factor = csr%kick_factor / 2
       if (ns /= 0) csr%kick_factor = 2* csr%kick_factor
 
-      csr%y_source = ns * csr_param%beam_chamber_height
+      csr%y_source = ns * space_charge_com%beam_chamber_height
 
       call csr_bin_kicks (ele, s0_step, csr, err_flag)
       if (err_flag) return
@@ -350,11 +347,11 @@ do i_step = 0, n_step
 
   call save_bunch_track (bunch, ele, s0_step)
 
-  ! Record to file?
+  ! Record wake to file?
 
-  if (csr_param%write_csr_wake) then
+  if (space_charge_com%diagnostic_output_file /= '') then
     iu_wake = lunget()
-    open (iu_wake, file = csr_param%wake_output_file, access = 'append')
+    open (iu_wake, file = space_charge_com%diagnostic_output_file, access = 'append')
     if (i_step == 0) then
       write (iu_wake, '(a)') '!------------------------------------------------------------'
       write (iu_wake, '(a, i6, 2x, a)') '! ', ele%ix_ele, trim(ele%name)
@@ -365,7 +362,7 @@ do i_step = 0, n_step
     write (iu_wake, '(a)') '!         Z   Charge/Meter    CSR_Kick/m       I_CSR/m      S_Source' 
     if (allocated(csr%kick1)) then
       ds_step = csr%kick_factor * csr%actual_track_step
-      do j = 1, csr_param%n_bin
+      do j = 1, space_charge_com%n_bin
         ele0 => branch%ele(csr%kick1(j)%ix_ele_source)
         write (iu_wake, '(f14.10, 4es14.6)') csr%slice(j)%z_center, &
                     csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr/ds_step, &
@@ -395,20 +392,22 @@ end subroutine track1_bunch_csr
 !
 ! To avoid noise in the cacluation, every particle is considered to have a 
 ! triangular distribution with a base length  given by
-!   csr_param%particle_bin_span * csr%dz_slice.
+!   space_charge_com%particle_bin_span * csr%dz_slice.
 ! That is, particles will, in general, overlap multiple bins. 
 !
 ! Input:
 !   ele                  -- ele_struct: Element being tracked through.
-!   particle(:)          -- Coord_struct: Array of particles
-!   csr_param            -- Csr_parameter_struct: CSR common block (not an argument).
-!     %n_bin             -- Number of bins.
-!     %particle_bin_span -- Particle length / dz_slice. 
+!   particle(:)          -- coord_struct: Array of particles
+!
+! Other:
+!   space_charge_com     -- space_charge_common_struct: Space charte/CSR common block
+!     %n_bin                 -- Number of bins.
+!     %particle_bin_span     -- Particle length / dz_slice. 
 !
 ! Output:
-!   csr         -- Csr_struct: The bin structure.
-!     %dz_slice     -- Bin longitudinal length
-!     %slice(1:) -- Array of bins.
+!   csr                  -- csr_struct: The bin structure.
+!     %dz_slice             -- Bin longitudinal length
+!     %slice(1:)            -- Array of bins.
 !-
 
 subroutine csr_bin_particles (ele, particle, csr, err_flag)
@@ -438,10 +437,10 @@ err_flag = .false.
 
 if (ele%space_charge_method /= slice$ .and. ele%csr_method /= one_dim$) return
 
-n_bin_eff = csr_param%n_bin - 2 - (csr_param%particle_bin_span + 1)
+n_bin_eff = space_charge_com%n_bin - 2 - (space_charge_com%particle_bin_span + 1)
 if (n_bin_eff < 1) then
   call out_io (s_abort$, r_name, 'NUMBER OF CSR BINS TOO SMALL: \i0\ ', &
-              'MUST BE GREATER THAN 3 + PARTICLE_BIN_SPAN.', i_array = [csr_param%n_bin])
+              'MUST BE GREATER THAN 3 + PARTICLE_BIN_SPAN.', i_array = [space_charge_com%n_bin])
   if (global_com%exit_on_error) call err_exit
   particle%state = lost$
   err_flag = .true.
@@ -454,9 +453,9 @@ dz = z_maxval - z_minval
 csr%dz_slice = dz / n_bin_eff
 csr%dz_slice = 1.0000001 * csr%dz_slice     ! to prevent round off problems
 z_center = (z_maxval + z_minval) / 2
-z_min = z_center - csr_param%n_bin * csr%dz_slice / 2
-z_max = z_center + csr_param%n_bin * csr%dz_slice / 2
-dz_particle = csr_param%particle_bin_span * csr%dz_slice
+z_min = z_center - space_charge_com%n_bin * csr%dz_slice / 2
+z_max = z_center + space_charge_com%n_bin * csr%dz_slice / 2
+dz_particle = space_charge_com%particle_bin_span * csr%dz_slice
 
 if (dz == 0) then
   call out_io (s_fatal$, r_name, 'LONGITUDINAL WIDTH OF BEAM IS ZERO!')
@@ -468,17 +467,17 @@ endif
 ! allocate memeory for the bins
 
 if (allocated(csr%slice)) then
-  if (size(csr%slice, 1) < csr_param%n_bin) deallocate (csr%slice)
+  if (size(csr%slice, 1) < space_charge_com%n_bin) deallocate (csr%slice)
 endif
 
 if (.not. allocated(csr%slice)) &
-    allocate (csr%slice(csr_param%n_bin), csr%kick1(-csr_param%n_bin:csr_param%n_bin))
+    allocate (csr%slice(space_charge_com%n_bin), csr%kick1(-space_charge_com%n_bin:space_charge_com%n_bin))
 
 csr%slice(:) = csr_bunch_slice_struct()  ! Zero everything
 
 ! Fill in some z information
 
-do i = 1, csr_param%n_bin
+do i = 1, space_charge_com%n_bin
   csr%slice(i)%z0_edge  = z_min + (i - 1) * csr%dz_slice
   csr%slice(i)%z_center = csr%slice(i)%z0_edge + csr%dz_slice / 2
   csr%slice(i)%z1_edge  = csr%slice(i)%z0_edge + csr%dz_slice
@@ -497,7 +496,7 @@ do i = 1, size(particle)
   zp0 = zp_center - dz_particle / 2       ! particle left edge 
   zp1 = zp_center + dz_particle / 2       ! particle right edge 
   ix0 = nint((zp0 - z_min) / csr%dz_slice)  ! left most bin index
-  do j = 0, csr_param%particle_bin_span+1
+  do j = 0, space_charge_com%particle_bin_span+1
     ib = j + ix0
     slice => csr%slice(ib)
     zb0 = csr%slice(ib)%z0_edge
@@ -512,11 +511,11 @@ do i = 1, size(particle)
   enddo
 enddo
 
-do ib = 1, csr_param%n_bin
+do ib = 1, space_charge_com%n_bin
   if (ib /= 1) csr%slice(ib)%edge_dcharge_density_dz = (csr%slice(ib)%charge - csr%slice(ib-1)%charge) / csr%dz_slice**2
   if (ib == 1) then
     csr%slice(ib)%dcharge_density_dz = (csr%slice(ib+1)%charge - csr%slice(ib)%charge) / csr%dz_slice**2
-  elseif (ib == csr_param%n_bin) then
+  elseif (ib == space_charge_com%n_bin) then
     csr%slice(ib)%dcharge_density_dz = (csr%slice(ib)%charge - csr%slice(ib-1)%charge) / csr%dz_slice**2
   else
     csr%slice(ib)%dcharge_density_dz = (csr%slice(ib+1)%charge - csr%slice(ib-1)%charge) / (2 * csr%dz_slice**2)
@@ -541,7 +540,7 @@ do i = 1, size(particle)
   zp0 = zp_center - dz_particle / 2       ! particle left edge 
   zp1 = zp_center + dz_particle / 2       ! particle right edge 
   ix0 = nint((zp0 - z_min) / csr%dz_slice)  ! left most bin index
-  do j = 0, csr_param%particle_bin_span+1
+  do j = 0, space_charge_com%particle_bin_span+1
     ib = j + ix0
     slice => csr%slice(ib)
     zb0 = csr%slice(ib)%z0_edge
@@ -555,9 +554,9 @@ enddo
 
 charge_tot = 0;  sig_x_ave = 0;  sig_y_ave = 0
 f = sqrt(pi/2)  ! This corrects for the fact that |x - x0| is used instead of (x - x0)^2 to compute the sigma.
-do ib = 1, csr_param%n_bin
+do ib = 1, space_charge_com%n_bin
   slice => csr%slice(ib)
-  if (slice%n_particle < csr_param%sc_min_in_bin) cycle
+  if (slice%n_particle < space_charge_com%sc_min_in_bin) cycle
   slice%sig_x = f * slice%sig_x / slice%charge
   slice%sig_y = f * slice%sig_y / slice%charge
   charge_tot = charge_tot + slice%charge
@@ -577,25 +576,25 @@ sig_y_ave = sig_y_ave / charge_tot
 ! At the ends, for bins where there are not enough particles to calculate sigma, use
 ! the sigmas of nearest bin that has a valid sigmas
 
-do ib = csr_param%n_bin/2, csr_param%n_bin
+do ib = space_charge_com%n_bin/2, space_charge_com%n_bin
   slice => csr%slice(ib)
-  if (slice%n_particle < csr_param%sc_min_in_bin) then
+  if (slice%n_particle < space_charge_com%sc_min_in_bin) then
     slice%sig_x = csr%slice(ib-1)%sig_x
     slice%sig_y = csr%slice(ib-1)%sig_y
   else
-    if (slice%sig_x < sig_x_ave * csr_param%sigma_cutoff) slice%sig_x = sig_x_ave * csr_param%sigma_cutoff
-    if (slice%sig_y < sig_y_ave * csr_param%sigma_cutoff) slice%sig_y = sig_y_ave * csr_param%sigma_cutoff
+    if (slice%sig_x < sig_x_ave * space_charge_com%sigma_cutoff) slice%sig_x = sig_x_ave * space_charge_com%sigma_cutoff
+    if (slice%sig_y < sig_y_ave * space_charge_com%sigma_cutoff) slice%sig_y = sig_y_ave * space_charge_com%sigma_cutoff
   endif
 enddo
 
-do ib = csr_param%n_bin/2, 1, -1
+do ib = space_charge_com%n_bin/2, 1, -1
   slice => csr%slice(ib)
-  if (slice%n_particle < csr_param%sc_min_in_bin) then
+  if (slice%n_particle < space_charge_com%sc_min_in_bin) then
     slice%sig_x = csr%slice(ib+1)%sig_x
     slice%sig_y = csr%slice(ib+1)%sig_y
   else
-    if (slice%sig_x < sig_x_ave * csr_param%sigma_cutoff) slice%sig_x = sig_x_ave * csr_param%sigma_cutoff
-    if (slice%sig_y < sig_y_ave * csr_param%sigma_cutoff) slice%sig_y = sig_y_ave * csr_param%sigma_cutoff
+    if (slice%sig_x < sig_x_ave * space_charge_com%sigma_cutoff) slice%sig_x = sig_x_ave * space_charge_com%sigma_cutoff
+    if (slice%sig_y < sig_y_ave * space_charge_com%sigma_cutoff) slice%sig_y = sig_y_ave * space_charge_com%sigma_cutoff
   endif
 enddo
 
@@ -706,7 +705,7 @@ enddo
 
 coef = csr%actual_track_step * classical_radius(csr%species) / &
                               (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
-n_bin = csr_param%n_bin
+n_bin = space_charge_com%n_bin
 
 ! CSR & Image charge kick
 
@@ -1021,11 +1020,11 @@ factor = csr%kick_factor * csr%actual_track_step * classical_radius(csr%species)
 ! Compute the kick at the center of each bin
 ! i = index of slice where kick is computed
 
-do i = 1, csr_param%n_bin
+do i = 1, space_charge_com%n_bin
 
   ! Loop over all slices and calculate kick at slice i due to slice j.
 
-  do j = 1, csr_param%n_bin
+  do j = 1, space_charge_com%n_bin
     slice => csr%slice(j)
     sx = slice%sig_x
     sy = slice%sig_y
@@ -1073,7 +1072,7 @@ do i = 1, csr_param%n_bin
 
     csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + sign_of_z_slice * dk0
 
-    if (csr_param%lsc_kick_transverse_dependence) then
+    if (space_charge_com%lsc_kick_transverse_dependence) then
       f00 = 1 / dk0
       g_z1 = a * (b2cz1*bcd + 4*abcz1*atz1*bcd*c - drho_dz*radix) / (2*abcz1*c*radix)
       g_z2 = a * (b2cz2*bcd + 4*abcz2*atz2*bcd*c - drho_dz*radix) / (2*abcz2*c*radix)
@@ -1301,7 +1300,7 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
     r1 = (zp - csr%slice(i0)%z_center) / csr%dz_slice
     r0 = 1 - r1
 
-    if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= csr_param%n_bin) then
+    if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= space_charge_com%n_bin) then
       print *, 'CSR INTERNAL ERROR!'
       if (global_com%exit_on_error) call err_exit
     endif
@@ -1316,7 +1315,7 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
   ! Slice space charge kick
 
   if (ele%space_charge_method == slice$) then
-    if (csr_param%lsc_kick_transverse_dependence) then
+    if (space_charge_com%lsc_kick_transverse_dependence) then
       x = p%vec(1)
       y = p%vec(3)
       dpz = 0
@@ -1592,9 +1591,7 @@ endif
 ! Set gamma, mesh size
 c0 => centroid(ele%ix_ele)
 call convert_pc_to((1+c0%vec(6)) * c0%p0c, c0%species, gamma = csr%mesh3d%gamma)
-! TODO: add bmad_com%csr3d_mesh_size
-csr%mesh3d%nhi = csr_param%csr3d_mesh_size
-
+csr%mesh3d%nhi = space_charge_com%csr3d_mesh_size
 
 ! n_step is the number of steps to take when tracking through the element.
 ! csr%ds_step is the true step length.
@@ -1603,9 +1600,9 @@ particle => bunch%particle
 ! make sure that ele_len / track_step is an integer.
 
 csr%ds_track_step = ele%value(csr_ds_step$)
-if (csr%ds_track_step == 0) csr%ds_track_step = csr_param%ds_track_step
+if (csr%ds_track_step == 0) csr%ds_track_step = space_charge_com%ds_track_step
 if (csr%ds_track_step == 0) then
-  call out_io (s_fatal$, r_name, 'NEITHER CSR_PARAM%DS_TRACK_STEP NOR CSR_TRACK_STEP FOR THIS ELEMENT ARE SET! ' // ele%name)
+  call out_io (s_fatal$, r_name, 'NEITHER SPACE_CHARGE_COM%DS_TRACK_STEP NOR CSR_TRACK_STEP FOR THIS ELEMENT ARE SET! ' // ele%name)
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -1662,10 +1659,7 @@ do i_step = 0, n_step
   print *, '---------- CSR Steady_State_3D ----------'
   
   call csr3d_steady_state_solver(csr%mesh3d%rho/product(csr%mesh3d%delta), &
-    csr%mesh3d%gamma, &
-    ele%value(rho$), &
-    csr%mesh3d%delta, &
-    csr%mesh3d%efield, normalize=.false.)
+              csr%mesh3d%gamma, ele%value(rho$), csr%mesh3d%delta, csr%mesh3d%efield, normalize=.false.)
   
   ! Handle first and last steps for half-kicks
   csr%kick_factor = csr%ds_track_step
@@ -1678,8 +1672,7 @@ do i_step = 0, n_step
     p => particle(i)
     if (p%state /= alive$) cycle
     call interpolate_field(p%vec(1), p%vec(3), p%vec(5), csr%mesh3d, E=Evec)
-     
-    
+
     factor = csr%kick_factor / (p%p0c  * p%beta) 
 
     pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 

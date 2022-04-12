@@ -353,7 +353,7 @@ if (key == rfcavity$ .and. word == 'LAG') word = 'PHI0'   ! For MAD compatibilit
 ! particle_start and bmad_com element can have attributes that are not part of the element so
 ! Need to use pointers_to_attribute.
 
-if (key == def_particle_start$ .or. key == def_bmad_com$) then
+if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_charge_com$) then
   name = ele%name
   if (ele%name == 'PARAMETER') name = 'BMAD_COM'
 
@@ -392,6 +392,24 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     return
   endif
 
+  if (name == 'SPACE_CHARGE_MESH_SIZE') then
+    if (.not. parse_integer_list (trim(ele%name) // ' ' // word, lat, space_charge_com%space_charge_mesh_size, .true., delim, delim_found)) return
+    bp_com%extra%space_charge_mesh_size_set = .true.
+    return
+  endif
+
+  if (name == 'CSR3D_MESH_SIZE') then
+    if (.not. parse_integer_list (trim(ele%name) // ' ' // word, lat, space_charge_com%csr3d_mesh_size, .true., delim, delim_found)) return
+    bp_com%extra%csr3d_mesh_size_set = .true.
+    return
+  endif
+
+  if (name == 'DIAGNOSTIC_OUTPUT_FILE') then
+    call get_next_word (space_charge_com%diagnostic_output_file, ix_word, ',', delim, delim_found)
+    bp_com%extra%diagnostic_output_file_set = .true.
+    return
+  endif
+
   if (associated(a_ptrs(1)%r)) then
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
     if (err_flag) return
@@ -413,6 +431,19 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%r, bmad_com%ptc_cut_factor))                 bp_com%extra%ptc_cut_factor_set                  = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_eps_scale))                  bp_com%extra%sad_eps_scale_set                   = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_amp_max))                    bp_com%extra%sad_amp_max_set                     = .true.
+
+    if (associated(a_ptrs(1)%r, space_charge_com%ds_track_step))            bp_com%extra%ds_track_step_set                 = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%dt_track_step))            bp_com%extra%dt_track_step_set                 = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%cathode_strength_cutoff))  bp_com%extra%cathode_strength_cutoff_set       = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%rel_tol_tracking))         bp_com%extra%sc_rel_tol_tracking_set           = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%abs_tol_tracking))         bp_com%extra%sc_abs_tol_tracking_set           = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%beam_chamber_height))      bp_com%extra%beam_chamber_height_set           = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%sigma_cutoff))             bp_com%extra%sigma_cutoff_set                  = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%n_bin))                    bp_com%extra%n_bin_set                         = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%particle_bin_span))        bp_com%extra%particle_bin_span_set             = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%n_shield_images))          bp_com%extra%n_shield_images_set               = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%sc_min_in_bin))            bp_com%extra%sc_min_in_bin_set                 = .true.
+    if (associated(a_ptrs(1)%l, space_charge_com%lsc_kick_transverse_dependence)) bp_com%extra%lsc_kick_transverse_dependence_set = .true.
 
   elseif (associated(a_ptrs(1)%i)) then
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
