@@ -788,7 +788,7 @@ do   ! ix_ele = 1e1, ie2
 
     case (beambeam$)   ! Elegant
       write (line_out, '(2a)') trim(ele%name) // ': beambeam'
-      call value_to_line (line_out, ele%value(charge$)*branch%param%n_part*e_charge, 'charge', 'R')
+      call value_to_line (line_out, strong_beam_strength(ele)*e_charge, 'charge', 'R')
       bmad_params(:4) = [character(40):: 'x_offset', 'y_offset', 'sig_x', 'sig_y']
       elegant_params(:4) = [character(40):: 'xcenter', 'ycenter', 'xsize', 'ysize']
 

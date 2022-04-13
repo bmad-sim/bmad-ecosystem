@@ -32,7 +32,7 @@ implicit none
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
-  type (track_struct), optional :: track
+type (track_struct), optional :: track
 type (em_field_struct) field
 type (strong_beam_struct) sbb
 
@@ -51,9 +51,9 @@ character(*), parameter :: r_name = 'track_a_beambeam'
 
 !
 
-if (ele%value(charge$) == 0 .or. param%n_part == 0) return
-
 if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
+
+if (strong_beam_strength(ele) == 0) return
 
 del = 0.001
 if (ele%value(sig_x$) == 0 .or. ele%value(sig_x$) == 0) then
@@ -68,21 +68,25 @@ if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, 
 call offset_particle (ele, set$, orbit)
 
 n_slice = max(1, nint(ele%value(n_slice$)))
-allocate(z_slice(n_slice))
+allocate(z_slice(n_slice+1))
 call bbi_slice_calc (ele, n_slice, z_slice)
 
 s_pos = 0    ! end at the ip
 
-do i = 1, n_slice
+do i = 1, n_slice+1
   z = z_slice(i)   ! Positive z_slice is the tail of the strong beam.
   s_pos_old = s_pos
   s_pos = (orbit%vec(5) + z) / 2
+  if (i == n_slice+1) s_pos = 0
+
   del_s = s_pos - s_pos_old
 
-  call strong_beam_sigma_calc (ele, s_pos, -z, sig_x, sig_y, bbi_const, x_center, y_center)
+  call offset_particle(ele, unset$, orbit, drift_to_edge = .false., s_pos = s_pos_old, mat6 = mat6, make_matrix = make_matrix)
+  call solenoid_track_and_mat (ele, del_s, param, orbit, orbit, mat6, make_matrix)
+  if (i == n_slice+1) exit
+  call offset_particle(ele, set$,   orbit, drift_to_edge = .false., s_pos = s_pos, mat6 = mat6, make_matrix = make_matrix)
 
-  call track_a_drift (orbit, del_s, mat6, make_matrix)
-  ratio = sig_y / sig_x
+  call strong_beam_sigma_calc (ele, s_pos, -z, sig_x, sig_y, bbi_const, x_center, y_center)
 
   dx = orbit%vec(1) - x_center
   dy = orbit%vec(3) - y_center
@@ -94,6 +98,7 @@ do i = 1, n_slice
     call save_a_step(track, ele, param, .true., orbit, s_pos, strong_beam = sbb)
   endif
 
+  ratio = sig_y / sig_x
   call bbi_kick (x_pos, y_pos, ratio, k0_x, k0_y)
 
   coef = bbi_const / n_slice
@@ -128,10 +133,6 @@ do i = 1, n_slice
     orbit%spin = quat_rotate(quat, orbit%spin)
   endif
 enddo
-
-call track_a_drift (orbit, -s_pos, mat6, make_matrix)
-
-call offset_particle (ele, unset$, orbit)  
 
 if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())
 

@@ -1,5 +1,5 @@
 !+
-! Subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
+! Subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6, make_matrix)
 !
 ! Routine to track a particle through a solenoid element.
 !
@@ -8,14 +8,15 @@
 !   length       -- real(rp): Length to track
 !   param        -- lat_param_struct: Lattice parameters.
 !   start_orb    -- Coord_struct: Starting position.
-!   make_matrix  -- Logical: If True then make the transfer matrix.
+!   mat6(6,6)    -- real(rp), optional :: Transfer matrix befor solenoid. 
+!   make_matrix  -- Logical, optional: If True then make the transfer matrix.
 !
 ! Output:
 !   end_orb      -- Coord_struct: End position.
-!   mat6(6,6)    -- real(rp), optional :: Transfer matrix. 
+!   mat6(6,6)    -- real(rp), optional :: Transfer matrix with solenoid included. 
 !-
 
-subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
+subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6, make_matrix)
 
 use equal_mod, except_dummy => solenoid_track_and_mat
 
@@ -28,7 +29,9 @@ type (coord_struct) start_orb, end_orb
 real(rp), optional :: mat6(:,:)
 real(rp) ks, rel_p, length, kss, c, s, c2, s2, cs, c2s2, ll, kssl, kssl2, ks0, kss0
 real(rp) mat4(4,4), xp, yp, pz, rel_tracking_charge, ff, e_tot, lpz
-real(rp) dpz_dx, dpz_dpx, dpz_dy, dpz_dpy, vec0(6)
+real(rp) dpz_dx, dpz_dpx, dpz_dy, dpz_dpy, vec0(6), xmat(6,6)
+
+logical, optional :: make_matrix
 
 !
 
@@ -105,7 +108,7 @@ endif
 
 ! Mat6
 
-if (.not. present(mat6)) return
+if (.not. logic_option (.false., make_matrix)) return
 
 if (abs(length * kss) < 1d-10) then ! must define c, s, etc.
   c = 1
@@ -122,51 +125,53 @@ dpz_dpy = -yp / pz
 c2s2 = c2 - s2
 lpz = length / pz
 
-mat6 = 0
+xmat = 0
 
 ff = -2 * kss0 * vec0(1) * cs + vec0(2) * c2s2 + kss0 * vec0(3) * c2s2 + 2 * vec0(4) * cs
-mat6(1,1) = mat4(1,1) - ff * dpz_dx  * lpz / pz
-mat6(1,2) = mat4(1,2) - ff * dpz_dpx * lpz / pz
-mat6(1,3) = mat4(1,3) - ff * dpz_dy  * lpz / pz
-mat6(1,4) = mat4(1,4) - ff * dpz_dpy * lpz / pz
+xmat(1,1) = mat4(1,1) - ff * dpz_dx  * lpz / pz
+xmat(1,2) = mat4(1,2) - ff * dpz_dpx * lpz / pz
+xmat(1,3) = mat4(1,3) - ff * dpz_dy  * lpz / pz
+xmat(1,4) = mat4(1,4) - ff * dpz_dpy * lpz / pz
 
 ff = -vec0(1) * kss0 * c2s2 - 2 * vec0(2) * cs - 2 * vec0(3) * kss0 * cs + vec0(4) * c2s2
-mat6(2,1) = mat4(2,1) - ff * dpz_dx  * kssl / pz
-mat6(2,2) = mat4(2,2) - ff * dpz_dpx * kssl / pz
-mat6(2,3) = mat4(2,3) - ff * dpz_dy  * kssl / pz
-mat6(2,4) = mat4(2,4) - ff * dpz_dpy * kssl / pz
+xmat(2,1) = mat4(2,1) - ff * dpz_dx  * kssl / pz
+xmat(2,2) = mat4(2,2) - ff * dpz_dpx * kssl / pz
+xmat(2,3) = mat4(2,3) - ff * dpz_dy  * kssl / pz
+xmat(2,4) = mat4(2,4) - ff * dpz_dpy * kssl / pz
 
 ff = -kss0 * vec0(1) * c2s2 - 2 * vec0(2) * cs - 2 * kss0 * vec0(3) * cs + vec0(4) * c2s2
-mat6(3,1) = mat4(3,1) - ff * dpz_dx  * lpz / pz
-mat6(3,2) = mat4(3,2) - ff * dpz_dpx * lpz / pz
-mat6(3,3) = mat4(3,3) - ff * dpz_dy  * lpz / pz
-mat6(3,4) = mat4(3,4) - ff * dpz_dpy * lpz / pz
+xmat(3,1) = mat4(3,1) - ff * dpz_dx  * lpz / pz
+xmat(3,2) = mat4(3,2) - ff * dpz_dpx * lpz / pz
+xmat(3,3) = mat4(3,3) - ff * dpz_dy  * lpz / pz
+xmat(3,4) = mat4(3,4) - ff * dpz_dpy * lpz / pz
 
 ff = 2 * vec0(1) * kss0 * cs - vec0(2) * c2s2 - vec0(3) * kss0 * c2s2 - 2 * vec0(4) * cs
-mat6(4,1) = mat4(4,1) - ff * dpz_dx  * kssl / pz
-mat6(4,2) = mat4(4,2) - ff * dpz_dpx * kssl / pz
-mat6(4,3) = mat4(4,3) - ff * dpz_dy  * kssl / pz
-mat6(4,4) = mat4(4,4) - ff * dpz_dpy * kssl / pz
+xmat(4,1) = mat4(4,1) - ff * dpz_dx  * kssl / pz
+xmat(4,2) = mat4(4,2) - ff * dpz_dpx * kssl / pz
+xmat(4,3) = mat4(4,3) - ff * dpz_dy  * kssl / pz
+xmat(4,4) = mat4(4,4) - ff * dpz_dpy * kssl / pz
 
 
-! the mat6(i,6) terms are constructed so that mat6 is sympelctic
+! the xmat(i,6) terms are constructed so that xmat is sympelctic
 
-mat6(5,1) = dpz_dx  * length * rel_p / pz**2
-mat6(5,2) = dpz_dpx * length * rel_p / pz**2
-mat6(5,3) = dpz_dy  * length * rel_p / pz**2
-mat6(5,4) = dpz_dpy * length * rel_p / pz**2
-mat6(5,5) = 1
+xmat(5,1) = dpz_dx  * length * rel_p / pz**2
+xmat(5,2) = dpz_dpx * length * rel_p / pz**2
+xmat(5,3) = dpz_dy  * length * rel_p / pz**2
+xmat(5,4) = dpz_dpy * length * rel_p / pz**2
+xmat(5,5) = 1
 
-mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
-mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
-mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
-mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
-mat6(6,6) = 1
+xmat(1,6) = xmat(5,2) * xmat(1,1) - xmat(5,1) * xmat(1,2) + xmat(5,4) * xmat(1,3) - xmat(5,3) * xmat(1,4)
+xmat(2,6) = xmat(5,2) * xmat(2,1) - xmat(5,1) * xmat(2,2) + xmat(5,4) * xmat(2,3) - xmat(5,3) * xmat(2,4)
+xmat(3,6) = xmat(5,4) * xmat(3,3) - xmat(5,3) * xmat(3,4) + xmat(5,2) * xmat(3,1) - xmat(5,1) * xmat(3,2)
+xmat(4,6) = xmat(5,4) * xmat(4,3) - xmat(5,3) * xmat(4,4) + xmat(5,2) * xmat(4,1) - xmat(5,1) * xmat(4,2)
+xmat(6,6) = 1
 
-! mat6(5,6) 
+! xmat(5,6) 
 
 e_tot = ele%value(p0c$) * (1 + vec0(6)) / start_orb%beta
-mat6(5,6) = length * (mass_of(start_orb%species)**2 * ele%value(e_tot$) / e_tot**3 - 1/pz + (rel_p/pz)**2 / pz)
+xmat(5,6) = length * (mass_of(start_orb%species)**2 * ele%value(e_tot$) / e_tot**3 - 1/pz + (rel_p/pz)**2 / pz)
+
+mat6 = matmul(xmat, mat6)
 
 end subroutine solenoid_track_and_mat
 

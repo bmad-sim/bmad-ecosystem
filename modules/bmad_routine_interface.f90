@@ -1985,7 +1985,7 @@ subroutine sol_quad_mat6_calc (ks, k1, s_len, ele, orbit, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
+subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6, make_matrix)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -1993,6 +1993,7 @@ subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
   type (coord_struct) start_orb, end_orb
   real(rp) length
   real(rp), optional :: mat6(:,:)
+  logical, optional :: make_matrix
 end subroutine
 
 subroutine spin_concat_linear_maps (mat1, branch, n1, n2, mat1_ele, orbit)
@@ -2129,6 +2130,13 @@ subroutine strong_beam_sigma_calc (ele, s_pos, z_strong, sig_x, sig_y, bbi_const
   type (ele_struct) ele
   real(rp) s_pos, z_strong, bbi_const, x_center, y_center, sig_x, sig_y
 end subroutine
+
+function strong_beam_strength (ele) result (strength)
+  import
+  implicit none
+  type (ele_struct) ele
+  real(rp) strength
+end function
 
 subroutine taper_mag_strengths (lat, ref_lat, except, err_flag)
   import

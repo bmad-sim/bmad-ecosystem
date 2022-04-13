@@ -8,7 +8,8 @@
 !   n_slice    -- integer: Number of slices
 !
 ! Output:
-!   z_slice(:) -- real(rp): Array of slice positions 
+!   z_slice(:) -- real(rp): Array of slice positions 1:n_slice.
+!                   zero padded for indexes greater than n_slice
 !-
 
 subroutine bbi_slice_calc (ele, n_slice, z_slice)
@@ -24,6 +25,8 @@ real(rp) z_slice(:), y
 real(rp) :: z_norm
 
 !
+
+z_slice = 0  
 
 if (n_slice == 1) then
   z_slice(1) = ele%value(z_offset$)

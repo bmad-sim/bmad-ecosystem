@@ -26,7 +26,7 @@ type (lat_param_struct) :: param
 type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
-real(rp) kmat(6,6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), vec0(6), mc2
+real(rp) mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), vec0(6), mc2
 real(rp) rel_tracking_charge, charge_dir, r_step, step_len, s_off, ks, k1, b1, dz4_coef(4,4)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx), e_tot
 
@@ -73,13 +73,8 @@ do i = 1, n_step
   rel_p = 1 + orbit%vec(6)  ! Can change when there are electric fields
 
   if (ele%key == solenoid$ .or. b1 == 0) then
-    if (logic_option(.false., make_matrix)) then
-      call solenoid_track_and_mat (ele, step_len, param, orbit, orbit, kmat)
-      mat6 = matmul(kmat, mat6)
-    else
-      call solenoid_track_and_mat (ele, step_len, param, orbit, orbit)
-      if (orbit%state /= alive$) return
-    endif
+    call solenoid_track_and_mat (ele, step_len, param, orbit, orbit, mat6, make_matrix)
+    if (orbit%state /= alive$) return
 
   else
     ks = rel_tracking_charge * ele%value(ks$)
