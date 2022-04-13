@@ -35,12 +35,12 @@ character(*), parameter :: r_name = 'tao_init_lattice'
 integer i_uni, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie, status
 
 logical err_flag, custom_init, combine_consecutive_elements_of_like_name
-logical common_lattice, alternative_lat_file_exists
+logical alternative_lat_file_exists
 logical err, err1, err2
 
 namelist / tao_design_lattice / design_lattice, &
        combine_consecutive_elements_of_like_name, unique_name_suffix, &
-       common_lattice, n_universes
+       n_universes
 
 ! Defaults
 
@@ -68,7 +68,6 @@ if (s%com%init_read_lat_info) then
 
   ! Defaults
 
-  common_lattice = .false.
   n_universes = s%com%n_universes
   combine_consecutive_elements_of_like_name = .false.
   unique_name_suffix = ''

@@ -386,13 +386,12 @@ not present is to look in the \tao root initialization file. The \vn{tao_design_
 defines where the lattice input files are. The variables that are set in the \vn{tao_design_lattice}
 namelist are:
 \index{tao_design_lattice}\index{design_lattice}\index{design_lattice!file}
-\index{design_lattice!parser}\index{n_universes}\index{common_lattice}
+\index{design_lattice!parser}\index{n_universes}
 \begin{example}
   &tao_design_lattice
     n_universes        = <integer>      ! Number of universes. Default = 1.
     unique_name_suffix = "<string>"
     combine_consecutive_elements_of_like_name = <logical>
-    common_lattice = <logical>                        ! Default = False
     design_lattice(N) = "<lattice_file>", \{"<lattice2_file>"\}
     design_lattice(N)%one_turn_map_calc = <logical>     ! Default = False
     design_lattice(N)%dynamic_aperture_calc = <logical> ! Default = False
