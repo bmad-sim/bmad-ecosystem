@@ -219,7 +219,7 @@ The \vn{%param} component within each \vn{lat%branch(:)} is a
 \centering
 \begin{verbatim}
   type lat_param_struct
-    real(rp) n_part             ! Particles/bunch (for beambeam elements).
+    real(rp) n_part             ! Particles/bunch.
     real(rp) total_length       ! total_length of lattice
     real(rp) unstable_factor    ! closed branch: growth rate/turn. 
                                 !   all branches: |orbit/limit|
@@ -251,36 +251,32 @@ Normally \vn{%ele(0)%s} = 0 so \vn{%param%total_length} =
 \index{lat_param_struct!\%n_part}
 \index{beambeam}
 \index{lcavity!and param\%n_part}
-\vn{%param%n_part} is the number of particles in a bunch and is used
-by \vn{beambeam} element to determine the strength of the beambeam
-interaction. \vn{%param%n_part} is also used by \vn{lcavity} elements
-for wakefield calculations.
+\vn{%param%n_part} is the number of particles in a bunch and is used in various calculations.
+Historically, this parameter has been used to set the number of strong beam particle with
+\vn{BeamBeam} elements but it is strongly recommended to use the \vn{beambeam} element's
+\vn{n_particle} parameter instead.
 
 \index{lat_param_struct!\%t1_with_RF}
 \index{lat_param_struct!\%t1_no_RF}
 \index{lat_param_struct!\%stable}
-For closed branches, \vn{%param%t1_with_RF} and \vn{%param%t1_no_RF}
-are the 1--turn transfer matrices from the start of the branch to the
-end. \vn{%param%t1_with_RF} is the full transfer matrix with RF
-on. \vn{%param%t1_no_RF} is the transverse transfer matrix with RF
-off. \vn{%param%t1_no_RF} is used to compute the Twiss
-parameters. When computing the Twiss parameters \vn{%param%stable} is
-set according to whether the matrix is stable or not. If the matrix is
-not stable the Twiss parameters cannot be computed. If unstable,
-\vn{%param%unstable_factor} will be set to the growth rate per turn of
-the unstable mode.
+For closed branches, \vn{%param%t1_with_RF} and \vn{%param%t1_no_RF} are the 1--turn transfer
+matrices from the start of the branch to the end. \vn{%param%t1_with_RF} is the full transfer matrix
+with RF on. \vn{%param%t1_no_RF} is the transverse transfer matrix with RF off. \vn{%param%t1_no_RF}
+is used to compute the Twiss parameters. When computing the Twiss parameters \vn{%param%stable} is
+set according to whether the matrix is stable or not. If the matrix is not stable the Twiss
+parameters cannot be computed. If unstable, \vn{%param%unstable_factor} will be set to the growth
+rate per turn of the unstable mode.
 
-Besides being set when the 1--turn transfer matrix is calculated, \vn{%param%unstable_factor}
-will be set if a particle is lost in tracking to:
+Besides being set when the 1--turn transfer matrix is calculated, \vn{%param%unstable_factor} will
+be set if a particle is lost in tracking to:
 \begin{example}
   orbit_amplitude / limit - 1
 \end{example}
 
-The particle type for a branch is stored in the integer variable \vn{%param%particle}. The
-value of this variable will encode for a fundamental particle, atom, or molecule. See the
-file \vn{particle_species_mod.f90} for more details. If the particle corresponds to a
-fundamental particle, \vn{%param%particle} will correspond to one of the following
-constants:
+The particle type for a branch is stored in the integer variable \vn{%param%particle}. The value of
+this variable will encode for a fundamental particle, atom, or molecule. See the file
+\vn{particle_species_mod.f90} for more details. If the particle corresponds to a fundamental
+particle, \vn{%param%particle} will correspond to one of the following constants:
 \index{positron\$}\index{electron\$}\index{proton\$}\index{antiproton\$}
 \index{muon\$}\index{antimuon\$}\index{pion_0\$}\index{pion_minus\$}
 \index{pion_plus\$}

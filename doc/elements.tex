@@ -285,6 +285,7 @@ Attributes specific to a \vn{beambeam} element are:
   sig_y          = <Real> ! Vertical strong beam sigma at the center
   sig_z          = <Real> ! Strong beam length
   charge         = <Real> ! Strong beam charge. Default = -1
+  n_particle     = <Real> ! Number of particles in strong beam.
   n_slice        = <Int>  ! Number of strong beam slices
   crab_x1        = <Real> ! Crabbing linear coefficient.
   crab_x2        = <Real> ! Crabbing quadratic coefficient.
@@ -297,39 +298,45 @@ Attributes specific to a \vn{beambeam} element are:
   beta_b_strong  = <Real> ! Strong beam $b$-mode beta Twiss parameter
   alpha_b_strong = <Real> ! Strong beam $b$-mode alpha Twiss parameter
   bbi_constant            ! See below. Dependent attribute (\sref{s:depend}).
+  ks             = <Real> ! Solenoid strength.
+  bs_field       = <Real> ! Field strength. (\sref{s:depend}).
 \end{example}
 
 \index{n_part!in BeamBeam element}
-The number of particles in the strong beam is set by
+The strength of the strong beam is set by:
 \begin{example}
-  charge * parameter[n_part]
+  charge * n_particle
 \end{example}
-\vn{parameter[n_part]} is the nominal number of particles of the strong beam. \vn{parameter[n_part]}
-is a global setting (\sref{s:param}) and is used for all \vn{beambeam} elements.  To vary the number
-of particles in an individual \vn{beambeam} element, the \vn{charge} attribute is used.  The default
-is \vn{charge} = -1 which indicates that the strong beam has the opposite charge of the weak beam.
+The default The default value of \vn{charge} is -1 which indicates that the strong beam has the
+opposite charge of the weak beam. The default for \vn{n_particle} is 0.
+
+For historical reasons, the global parameter \vn{parameter[n_part]} (\sref{s:param}) will be used in
+place of \vn{n_particle} if \vn{n_particle} has a value of 0.
 
 \index{sig_z}\index{n_slice}
 \vn{sig_z} are the strong beam's longitudinal sigma.  The strong beam is divided up into
 \vn{n_slice} equal charge (not equal thickness) slices. Propagation through the strong beam involves
-a kick at the charge center of each slice with drifts in between the kicks. The kicks are calculated
-using the standard Bassetti--Erskine complex error function formula\cite{b:talman}. Even though the
-strong beam can have a finite \vn{sig_z}, the length of the \vn{beambeam} element is zero. This is
-achieved by drifting a particle at the beginning and at the end of tracking so that the longitudinal
-starting point and ending points are at the \vn{beambeam} element. For example, with \vn{n_slice} =
-2 the calculation would proceed as follows:
+a kick at the charge center of each slice with propagation between slice centers. A solenoid field
+can be set for the regions in between the slice centers. The kicks are calculated using the standard
+Bassetti--Erskine complex error function formula\cite{b:talman}. Even though the strong beam can
+have a finite \vn{sig_z}, the length of the \vn{beambeam} element is zero. This is achieved by
+propagating a particle at the beginning and at the end of tracking so that the longitudinal starting
+point and ending points are at the \vn{beambeam} element. For example, with \vn{n_slice} = 2 the
+calculation would proceed as follows:
 \begin{example}
   0. Start with the particle longitudinally at the \vn{beambeam} element.
   1. Offsets, pitches and tilt are applied to convert from laboratory to element 
        body coordinates (\sref{s:lab.body.transform}).
-  2. Propagate (drift) backwards to the center of the first slice.
+  2. Propagate backwards to the center of the first slice.
   3. Apply the beam--beam kick due to the first slice.
-  4. Propagate (drift) forwards to the center of the second slice.
+  4. Propagate forwards to the center of the second slice.
   5. Apply the beam--beam kick due to the second slice.
-  6. Propagate (drift) backwards to the body coordinate longitudinal center.
+  6. Propagate backwards to the body coordinate longitudinal center.
   7. Offsets, pitches and tilt are applied to convert from element body to 
        laboratory coordinates.
 \end{example}
+The \vn{ks} or \vn{bs_field} parameters can be used to set the field strength. If the beambeam
+element is superimposed on top of a solenoid, the beambeam element will inherit the solenoid field.
 
 \index{sig_x}\index{sig_y}
 \index{beta_a_strong}\index{beta_b_strong}\index{alpha_a_strong}\index{alpha_b_strong}
@@ -385,8 +392,7 @@ The beam--beam tune shift is
 
 Example:
 \begin{example}
-  parameter[n_part] = 1.34e10     ! Used for all beambeam eles
-  bbi: beambeam, sig_x = 3e-3, sig_y = 3e-4, x_offset = 0.05
+  bbi: beambeam, sig_x = 3e-3, sig_y = 3e-4, x_offset = 0.05, n_particle = 1.3e9
 \end{example}
 
 %-----------------------------------------------------------------

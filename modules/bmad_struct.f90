@@ -1557,7 +1557,7 @@ integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7, bragg_angle_in$ = 7
 integer, parameter :: rho$ = 8, delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8
-integer, parameter :: eps_step_scale$ = 9, voltage_err$ = 9, bragg_angle$ = 9, k1y$ = 9
+integer, parameter :: eps_step_scale$ = 9, voltage_err$ = 9, bragg_angle$ = 9, k1y$ = 9, n_particle$ = 9
 integer, parameter :: fringe_type$ = 10, dbragg_angle_de$ = 10
 integer, parameter :: fringe_at$ = 11, gang$ = 11, darwin_width_sigma$ = 11
 integer, parameter :: higher_order_fringe_type$ = 12, darwin_width_pi$ = 12

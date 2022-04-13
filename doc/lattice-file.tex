@@ -77,15 +77,13 @@ A single line in a lattice file is limited to 500 characters. Commands have no r
 the number of lines they may be continued over and there is no limit to the length of a command.
 
 \index{lattice files!name syntax}
-Names of constants, elements, lines, etc. are limited to 40
-characters. The first character must be a letter (\vn{A} --- \vn{Z}).
-The other characters may be a letter, a digit (\vn{0} --- \vn{9}) or
-an underscore (\vn{_}). Other characters may appear but should be avoided
-since they are used by Bmad for various purposes. For example, the 
-backslash (\vn{\B}) character is used to by Bmad when forming the names of
-superposition slaves (\sref{s:super}) and dots (\vn{.}) are used by Bmad 
-when creating names of \vn{tagged} elements (\sref{s:tag}). Also use of
-special characters may make the lattice files less portable to non-Bmad programs.
+Names of constants, elements, lines, etc. are limited to 40 characters. The first character must be
+a letter (\vn{A} --- \vn{Z}).  The other characters may be a letter, a digit (\vn{0} --- \vn{9}) or
+an underscore (\vn{_}). Other characters may appear but should be avoided since they are used by
+Bmad for various purposes. For example, the backslash (\vn{\B}) character is used to by Bmad when
+forming the names of superposition slaves (\sref{s:super}) and dots (\vn{.}) are used by Bmad when
+creating names of \vn{tagged} elements (\sref{s:tag}). Also use of special characters may make the
+lattice files less portable to non-Bmad programs.
 
 \index{parameter statement}
 \index{parameter statement}
@@ -105,60 +103,50 @@ The following example constructs a linear lattice with two elements:
   t: line = (q, d)
   use, t 
 \end{example}
-here \vn{parameter[geometry]} (\sref{s:param}) is set to \vn{open}
-which specifies that the lattice is not circular. In this case, the beginning 
-Twiss parameters need to be specified and this is done by the \vn{beginning}
-statements (\sref{s:beginning}). A quadrupole named \vn{q}
-and a drift element named \vn{d} are specified
-and the entire lattice consists of element \vn{q} followed by element \vn{d}.
+here \vn{parameter[geometry]} (\sref{s:param}) is set to \vn{open} which specifies that the lattice
+is not circular. In this case, the beginning Twiss parameters need to be specified and this is done
+by the \vn{beginning} statements (\sref{s:beginning}). A quadrupole named \vn{q} and a drift element
+named \vn{d} are specified and the entire lattice consists of element \vn{q} followed by element
+\vn{d}.
 
 %----------------------------------------------------------------------------
 \section{Digested Files}
 \label{s:digested}
 \index{digested files}
 
-Normally the \bmad parser routine will create what is called a
-``digested file'' after it has parsed a lattice file so that when a
-program is run and the same lattice file is to be read in again, to save
-time, the digested file can be used to load in the lattice information.
-This digested file is in binary format and is not human readable. The
-digested file will contain the transfer maps for all the elements. 
-Using a digested file can save considerable time if some of the
-elements in the lattice need to have Taylor maps computed.
-(this occurs typically with map--type wigglers).
+Normally the \bmad parser routine will create what is called a ``digested file'' after it has parsed
+a lattice file so that when a program is run and the same lattice file is to be read in again, to
+save time, the digested file can be used to load in the lattice information.  This digested file is
+in binary format and is not human readable. The digested file will contain the transfer maps for all
+the elements.  Using a digested file can save considerable time if some of the elements in the
+lattice need to have Taylor maps computed.  (this occurs typically with map--type wigglers).
 
-\bmad creates the digested file in the same area as the lattice file.
-If \bmad is not able to create a digested file (typically because it
-does not have write permission in the directory), an error message will
-be generated but otherwise program operation will be normal.
+\bmad creates the digested file in the same area as the lattice file.  If \bmad is not able to
+create a digested file (typically because it does not have write permission in the directory), an
+error message will be generated but otherwise program operation will be normal.
 
-Digested files contain the names of the lattice files used to create
-them. If a lattice file has been modified since the digested file has
-been created then the lattice files will be reread and a new
-digested file will be generated. 
+Digested files contain the names of the lattice files used to create them. If a lattice file has
+been modified since the digested file has been created then the lattice files will be reread and a
+new digested file will be generated.
 
 \index{ran}
 \index{ran_gauss}
-Note: If any of the random number functions (\sref{s:functions}) are
-used in the process of creating the lattice, the digested file will be
-ignored. In this case, each time the lattice is read into a program,
-different random numbers will be generated for expressions that use such
-random numbers.
+Note: If any of the random number functions (\sref{s:functions}) are used in the process of creating
+the lattice, the digested file will be ignored. In this case, each time the lattice is read into a
+program, different random numbers will be generated for expressions that use such random numbers.
 
-Digested files can also be used for easy transport of lattices between
-programs or between sessions of a program. For example, using one
-program you might read in a lattice, make some adjustments (say to model
-shifts in magnet positions) and then write out a digested version of the
-lattice. This adjusted lattice can now be read in by another program.
+Digested files can also be used for easy transport of lattices between programs or between sessions
+of a program. For example, using one program you might read in a lattice, make some adjustments (say
+to model shifts in magnet positions) and then write out a digested version of the lattice. This
+adjusted lattice can now be read in by another program.
 
 %---------------------------------------------------------------------------
 \section{Element Sequence Definition}
 
 \index{line}\index{use statement|hyperbf}
-A \vn{line} defines a sequence of elements. \vn{lines} may contain
-other \vn{lines} and so a hierarchy may be established. One line is
-selected, via a \vn{use} statement, that defines the lattice. For
-example:
+A \vn{line} defines a sequence of elements. \vn{lines} may contain other \vn{lines} and so a
+hierarchy may be established. One line is selected, via a \vn{use} statement, that defines the
+lattice. For example:
 \begin{example}
   l3: line = (l1, l2)   ! Concatenate two lines
   l1: line = (a, b, c)  ! Line with 3 elements
@@ -173,11 +161,9 @@ In this case the lattice would be
 details.
 
 \index{superimpose}
-The \vn{superimpose} construct allows elements to be placed in a
-lattice at a definite longitudinal position. What happens is that
-after a lattice is expanded, there is a reshuffling of the elements to
-accommodate any new superimpose elements. See \sref{s:super} for more
-details.
+The \vn{superimpose} construct allows elements to be placed in a lattice at a definite longitudinal
+position. What happens is that after a lattice is expanded, there is a reshuffling of the elements
+to accommodate any new superimpose elements. See \sref{s:super} for more details.
 
 %---------------------------------------------------------------------------
 \section{Lattice Elements}

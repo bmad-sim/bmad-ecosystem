@@ -13,13 +13,10 @@ For a listing of element attributes for each type of element, see Chapter~\sref{
 \index{dependent attribute}
 For convenience, \bmad computes the values of some attributes based upon the values of other
 attributes. Some of these dependent variables are listed in Table~\ref{t:dependent}. Also shown in
-Table~\ref{t:dependent} are the independent variables they are calculated from.  In the table
-\vn{n_part} and \vn{l_lattice} (lattice length) are lattice attributes, not element attributes. The
-first two are set by the \vn{parameter} statement (See \sref{s:param}). \vn{l_lattice} is calculated
-when the lattice is read in.
+Table~\ref{t:dependent} are the independent variables they are calculated from.
 
 \index{bbi_constant}\index{charge}\index{sig_x}\index{sig_y}
-\index{e_tot}\index{n_part}\index{e_field}\index{voltage}
+\index{e_tot}\index{e_field}\index{voltage}
 \index{hkick}\index{vkick}\index{gap}\index{l}
 \index{e_tot}\index{e_loss}\index{delta_e}\index{gradient}
 \index{l}\index{rho}\index{angle}\index{l_chord}
@@ -31,7 +28,7 @@ when the lattice is read in.
 \begin{tabular}{lll} \toprule
  {\em Element}                & {\em Independent Variables}    & {\em Dependent Variables}          \\ \midrule
  All elements                 & \vn{ds_step}                   & \vn{num_steps}                     \\
- \vn{BeamBeam}                & \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{e_tot}, \vn{n_part}
+ \vn{BeamBeam}                & \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{e_tot}
                                                                & \vn{bbi_constant}                  \\
  \vn{Elseparator}             & \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{e_tot}      
                                                                & \vn{e_field}, \vn{voltage}         \\

@@ -443,6 +443,17 @@ endif
 
 select case (ele%key)
 
+! BeamBeam
+
+case (beambeam$)
+  if (dep2_set) then
+    if (associated(a_ptr, ele%value(ks$))) then
+      ele%value(bs_field$) = ele%value(ks$) * p0c_factor
+    elseif (associated(a_ptr, ele%value(bs_field$))) then
+      ele%value(ks$) = ele%value(bs_field$) / p0c_factor
+    endif
+  endif
+
 ! Beginning_ele
 
 case (beginning_ele$) 

@@ -138,9 +138,11 @@ does not otherwise effect any \bmad routines.
 %
   \index{n_part}\index{beambeam}\index{lcavity}
   \item[{parameter[n_part]}] \Newline
-The \vn{parameter[n_part]} is the number of particle in a bunch.  it is used with \vn{BeamBeam}
-elements and is used to calculate the change in energy through an \vn{Lcavity}. See~\sref{s:lcav}
-for more details.
+The \vn{parameter[n_part]} is the number of particle in a bunch. This parameter is used in a number
+of calculations, for example, with intrabeam scattering and to calculate the change in energy
+through an \vn{Lcavity} (\sref{s:lcav}). Historically, this parameter has been used to set the
+number of strong beam particle with \vn{BeamBeam} elements but it is strongly recommended to use
+the \vn{beambeam} element's \vn{n_particle} parameter instead.
 %
   \index{no_end_marker}\index{end element}
   \item[{parameter[no_end_marker]}] \Newline

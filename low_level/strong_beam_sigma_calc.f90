@@ -16,7 +16,7 @@
 
 subroutine strong_beam_sigma_calc (ele, s_pos, z_strong, sig_x, sig_y, bbi_const, x_center, y_center)
 
-use bmad_struct
+use bmad_routine_interface, dummy => strong_beam_sigma_calc
 
 implicit none
 
@@ -56,7 +56,7 @@ else
   sig_y = sig_y0 * sqrt(beta / beta_b0)
 endif
 
-bbi_const = -ele%branch%param%n_part * ele%value(charge$) * classical_radius_factor /  &
+bbi_const = -strong_beam_strength(ele) * classical_radius_factor /  &
                                       (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
 
 r = ((((ele%value(crab_x5$) * z_strong + ele%value(crab_x4$)) * z_strong + ele%value(crab_x3$)) * z_strong + & 

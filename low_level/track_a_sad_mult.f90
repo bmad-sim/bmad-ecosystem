@@ -134,9 +134,7 @@ do nd = 0, n_div
   ! 
 
   if (abs(k1) < 1d-40) then
-    call solenoid_track_and_mat (ele, ll, param, orbit, orbit, mat1)
-    if (logic_option(.false., make_matrix)) mat6 = matmul(mat1, mat6)
-
+    call solenoid_track_and_mat (ele, ll, param, orbit, orbit, mat6, make_matrix)
   else
     call sol_quad_mat6_calc (ks, k1, ll, ele, orbit, mat6, make_matrix)
   endif

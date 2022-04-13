@@ -3713,7 +3713,7 @@ do i = 1, n_slice
     sig_y = sig_y0 * sqrt(beta / beta_b0)
   endif
 
-  bbi_const = -2.0_rp * ele%branch%param%n_part * ele%value(charge$) * classical_radius_factor / ele%value(e_tot$)
+  bbi_const = -2.0_rp * strong_beam_strength(ele) * classical_radius_factor / ele%value(e_tot$)
 
   node%bb%bbk(i,:) = 0  ! MAD closed orbit kick. Not used here.
 

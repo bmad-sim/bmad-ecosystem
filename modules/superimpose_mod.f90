@@ -60,6 +60,8 @@ contains
 subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, &
                                  save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names, wrap)
 
+use attribute_mod, only: has_attribute
+
 implicit none
 
 type (lat_struct), target :: lat
@@ -185,6 +187,17 @@ if (super_saved%value(l$) == 0) then
   if (logic_option(.true., mangle_slave_names)) call adjust_super_slave_names (lat, lat%n_ele_track+1, lat%n_ele_max)
   call adjust_drift_names (lat, branch%ele(ix1_split))
   err_flag = .false.
+
+  ! beambeam element inherits solenoid field if in a solenoid
+  if (super_saved%key == beambeam$) then
+    ele0 => branch%ele(ix_super+1)
+    if (has_attribute(ele0, 'KS')) then
+      lord => branch%ele(ix_super)
+      lord%value(ks$) = ele0%value(ks$)
+      lord%value(bs_field$) = ele0%value(bs_field$)
+    endif
+  endif
+
   return
 endif
 
@@ -416,6 +429,18 @@ do
   if (ix_slave == branch%n_ele_track + 1) ix_slave = 1
 
   slave => branch%ele(ix_slave)
+
+  ! beambeam elements that are in a solenoid region inherit the solenoid field
+
+  if (slave%key == beambeam$) then
+    if (has_attribute(super_saved, 'KS')) then
+      slave%value(ks$) = super_saved%value(ks$)
+      slave%value(bs_field$) = super_saved%value(bs_field$)
+    endif
+  endif
+
+  !
+
   call transfer_ele(slave, slave_saved)
   if (slave_saved%value(l$) == 0 .or. slave_saved%key == converter$) cycle
 
