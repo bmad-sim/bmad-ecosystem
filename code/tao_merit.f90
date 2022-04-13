@@ -28,7 +28,7 @@ integer i, j, k, n, iu0
 character(*), parameter :: r_name = "tao_merit"
 
 logical, optional :: calc_ok
-logical ok, opt_with_ref, opt_with_base
+logical ok
 
 
 ! make sure all calculations are up to date.
@@ -50,18 +50,15 @@ do j = 1, s%n_var_used
 
   if (.not. var%useit_opt) cycle
 
-  opt_with_ref = s%global%opt_with_ref
-  opt_with_base = s%global%opt_with_base
-
   ! Calculate the merit delta
 
   select case (var%merit_type)
   case ('target')
-    if (opt_with_ref .and. opt_with_base) then
+    if (s%global%opt_with_ref .and. s%global%opt_with_base) then
       var%delta_merit = (var%model_value - var%base_value) - (var%meas_value - var%ref_value)
-    elseif (opt_with_ref) then
+    elseif (s%global%opt_with_ref) then
       var%delta_merit = (var%model_value - var%design_value) - (var%meas_value - var%ref_value)
-    elseif (opt_with_base) then
+    elseif (s%global%opt_with_base) then
       var%delta_merit = (var%model_value - var%base_value) - var%meas_value
     else
       var%delta_merit = var%model_value - var%meas_value
@@ -93,12 +90,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   call tao_scale_ping_data(u)
 
-  ! The common universe does not have ref or base so turn these off for
-  ! data in the common universe.
-
-  opt_with_ref = s%global%opt_with_ref
-  opt_with_base = s%global%opt_with_base
-
   ! Check if universe is turned off
 
   if (.not. u%is_on) cycle
@@ -108,8 +99,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(data)
     if (.not. data(j)%useit_opt) cycle
 
-    if (.not. data(j)%good_model .or. (opt_with_ref .and. .not. data(j)%good_design) .or. &
-                                      (opt_with_base .and. .not. data(j)%good_base)) then
+    if (.not. data(j)%good_model .or. (s%global%opt_with_ref .and. .not. data(j)%good_design) .or. &
+                                      (s%global%opt_with_base .and. .not. data(j)%good_base)) then
       data(j)%delta_merit = data(j)%invalid_value
       cycle
     endif
@@ -133,11 +124,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       ref_value  = ref_value  * u%ping_scale%b_mode_ref
     endif
 
-    if (opt_with_ref .and. opt_with_base) then
+    if (s%global%opt_with_ref .and. s%global%opt_with_base) then
       data(j)%delta_merit = (model_value - data(j)%base_value) - (meas_value - ref_value) 
-    elseif (opt_with_ref) then
+    elseif (s%global%opt_with_ref) then
       data(j)%delta_merit = (model_value - data(j)%design_value) - (meas_value - ref_value)
-    elseif (opt_with_base) then
+    elseif (s%global%opt_with_base) then
       data(j)%delta_merit = (model_value - data(j)%base_value) - meas_value
     else
       data(j)%delta_merit = model_value - meas_value 
