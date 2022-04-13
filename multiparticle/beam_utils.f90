@@ -399,8 +399,21 @@ logical ran_gauss_here, err
 
 if (present(err_flag)) err_flag = .true.
 
-if (beam_init%sig_e /= 0 .and. beam_init%sig_pz == 0) beam_init%sig_pz = beam_init%sig_e
-if (beam_init%sig_e_jitter /= 0 .and. beam_init%sig_pz_jitter == 0) beam_init%sig_pz = beam_init%sig_e_jitter
+if (beam_init%sig_e /= 0) then
+  call out_io (s_error$, r_name, '===========================================================', &
+                                 '==== BEAM_INIT%SIG_E IS DEPRECATED! PLEASE DO NOT USE! ====', &
+                                 '==== USE BEAM_INIT%SIG_PZ INSTEAD!                     ====', &
+                                 '===========================================================')
+  if (beam_init%sig_pz == 0) beam_init%sig_pz = beam_init%sig_e
+endif
+
+if (beam_init%sig_e_jitter /= 0) then
+  call out_io (s_error$, r_name, '==================================================================', &
+                                 '==== BEAM_INIT%SIG_E_JITTER IS DEPRECATED! PLEASE DO NOT USE! ====', &
+                                 '==== USE BEAM_INIT%SIG_PZ_JITTER INSTEAD!                     ====', &
+                                 '==================================================================')
+  if (beam_init%sig_pz_jitter == 0) beam_init%sig_pz_jitter = beam_init%sig_e_jitter
+endif
 
 ! Read from file?
 
@@ -1249,7 +1262,13 @@ character(*), parameter :: r_name = 'init_spin_distribution'
 
 ! Note: %use_particle_start_for_center is old deprecated name for %use_particle_start.
 
-if (beam_init%use_particle_start_for_center) beam_init%use_particle_start = beam_init%use_particle_start_for_center
+if (beam_init%use_particle_start_for_center) then
+  call out_io (s_error$, r_name, '===================================================================================', &
+                                 '==== BEAM_INIT%USE_PARTICLE_START_FOR_CENTER IS DEPRECATED! PLEASE DO NOT USE! ====', &
+                                 '==== USE BEAM_INIT%USE_PARTICLE_START INSTEAD!                                 ====', &
+                                 '===================================================================================')
+  beam_init%use_particle_start = beam_init%use_particle_start_for_center
+endif
 
 if (beam_init%use_particle_start) then
   if (.not. associated (ele%branch)) then
