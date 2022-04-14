@@ -1086,7 +1086,7 @@ implicit none
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele1, ele2
 type (lat_param_struct) :: param
-type (rad1_mat_struct), pointer :: rad_mat
+type (rad_map_struct), pointer :: rad_mat
 
 real(rp) int_gx, int_gy, this_ran, mc2, int_g2, int_g3, gxi, gyi, g2i, g3i, ran6(6)
 real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm, rel_p
