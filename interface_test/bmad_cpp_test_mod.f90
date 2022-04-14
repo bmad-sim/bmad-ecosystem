@@ -4158,18 +4158,18 @@ end subroutine set_bookkeeping_state_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_rad1_mat (ok)
+subroutine test1_f_rad_map (ok)
 
 implicit none
 
-type(rad1_mat_struct), target :: f_rad1_mat, f2_rad1_mat
+type(rad_map_struct), target :: f_rad_map, f2_rad_map
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_rad1_mat (c_rad1_mat, c_ok) bind(c)
+  subroutine test_c_rad_map (c_rad_map, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_rad1_mat
+    type(c_ptr), value :: c_rad_map
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -4177,58 +4177,58 @@ end interface
 !
 
 ok = .true.
-call set_rad1_mat_test_pattern (f2_rad1_mat, 1)
+call set_rad_map_test_pattern (f2_rad_map, 1)
 
-call test_c_rad1_mat(c_loc(f2_rad1_mat), c_ok)
+call test_c_rad_map(c_loc(f2_rad_map), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_rad1_mat_test_pattern (f_rad1_mat, 4)
-if (f_rad1_mat == f2_rad1_mat) then
-  print *, 'rad1_mat: C side convert C->F: Good'
+call set_rad_map_test_pattern (f_rad_map, 4)
+if (f_rad_map == f2_rad_map) then
+  print *, 'rad_map: C side convert C->F: Good'
 else
-  print *, 'rad1_mat: C SIDE CONVERT C->F: FAILED!'
+  print *, 'rad_map: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_rad1_mat
+end subroutine test1_f_rad_map
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_rad1_mat (c_rad1_mat, c_ok) bind(c)
+subroutine test2_f_rad_map (c_rad_map, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_rad1_mat
-type(rad1_mat_struct), target :: f_rad1_mat, f2_rad1_mat
+type(c_ptr), value ::  c_rad_map
+type(rad_map_struct), target :: f_rad_map, f2_rad_map
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call rad1_mat_to_f (c_rad1_mat, c_loc(f_rad1_mat))
+call rad_map_to_f (c_rad_map, c_loc(f_rad_map))
 
-call set_rad1_mat_test_pattern (f2_rad1_mat, 2)
-if (f_rad1_mat == f2_rad1_mat) then
-  print *, 'rad1_mat: F side convert C->F: Good'
+call set_rad_map_test_pattern (f2_rad_map, 2)
+if (f_rad_map == f2_rad_map) then
+  print *, 'rad_map: F side convert C->F: Good'
 else
-  print *, 'rad1_mat: F SIDE CONVERT C->F: FAILED!'
+  print *, 'rad_map: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_rad1_mat_test_pattern (f2_rad1_mat, 3)
-call rad1_mat_to_c (c_loc(f2_rad1_mat), c_rad1_mat)
+call set_rad_map_test_pattern (f2_rad_map, 3)
+call rad_map_to_c (c_loc(f2_rad_map), c_rad_map)
 
-end subroutine test2_f_rad1_mat
+end subroutine test2_f_rad_map
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_rad1_mat_test_pattern (F, ix_patt)
+subroutine set_rad_map_test_pattern (F, ix_patt)
 
 implicit none
 
-type(rad1_mat_struct) F
+type(rad_map_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -4258,7 +4258,7 @@ do jd2 = 1, size(F%stoc_mat,2); lb2 = lbound(F%stoc_mat,2) - 1
   F%stoc_mat(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 
-end subroutine set_rad1_mat_test_pattern
+end subroutine set_rad_map_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -4358,9 +4358,9 @@ enddo
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 5 + offset; F%stale = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, NOT]
-call set_rad1_mat_test_pattern (F%rm0, ix_patt)
+call set_rad_map_test_pattern (F%rm0, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
-call set_rad1_mat_test_pattern (F%rm1, ix_patt)
+call set_rad_map_test_pattern (F%rm1, ix_patt)
 
 end subroutine set_rad_int_ele_cache_test_pattern
 
@@ -7064,6 +7064,14 @@ rhs = 4 + offset; F%e_loss = rhs
 rhs = 5 + offset; F%rf_voltage = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 6 + offset; F%pz_aperture = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%pz_average = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 8 + offset; F%momentum_compaction = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 9 + offset; F%dpz_damp = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 10 + offset; F%m56_no_rf = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_anormal_mode_test_pattern (F%a, ix_patt)
 !! f_side.test_pat[type, 0, NOT]

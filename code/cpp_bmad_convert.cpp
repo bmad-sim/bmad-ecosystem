@@ -1691,27 +1691,27 @@ extern "C" void bookkeeping_state_to_c2 (CPP_bookkeeping_state& C, c_Int& z_attr
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_rad1_mat
+// CPP_rad_map
 
-extern "C" void rad1_mat_to_c (const Opaque_rad1_mat_class*, CPP_rad1_mat&);
+extern "C" void rad_map_to_c (const Opaque_rad_map_class*, CPP_rad_map&);
 
 // c_side.to_f2_arg
-extern "C" void rad1_mat_to_f2 (Opaque_rad1_mat_class*, c_RealArr, c_RealArr, c_RealArr,
+extern "C" void rad_map_to_f2 (Opaque_rad_map_class*, c_RealArr, c_RealArr, c_RealArr,
     c_RealArr);
 
-extern "C" void rad1_mat_to_f (const CPP_rad1_mat& C, Opaque_rad1_mat_class* F) {
+extern "C" void rad_map_to_f (const CPP_rad_map& C, Opaque_rad_map_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_damp_mat[6*6]; matrix_to_vec(C.damp_mat, z_damp_mat);
   // c_side.to_f_setup[real, 2, NOT]
   Real z_stoc_mat[6*6]; matrix_to_vec(C.stoc_mat, z_stoc_mat);
 
   // c_side.to_f2_call
-  rad1_mat_to_f2 (F, &C.ref_orb[0], &C.damp_vec[0], z_damp_mat, z_stoc_mat);
+  rad_map_to_f2 (F, &C.ref_orb[0], &C.damp_vec[0], z_damp_mat, z_stoc_mat);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void rad1_mat_to_c2 (CPP_rad1_mat& C, c_RealArr z_ref_orb, c_RealArr z_damp_vec,
+extern "C" void rad_map_to_c2 (CPP_rad_map& C, c_RealArr z_ref_orb, c_RealArr z_damp_vec,
     c_RealArr z_damp_mat, c_RealArr z_stoc_mat) {
 
   // c_side.to_c2_set[real, 1, NOT]
@@ -1732,7 +1732,7 @@ extern "C" void rad_int_ele_cache_to_c (const Opaque_rad_int_ele_cache_class*, C
 
 // c_side.to_f2_arg
 extern "C" void rad_int_ele_cache_to_f2 (Opaque_rad_int_ele_cache_class*, c_Real&, c_Real&,
-    c_RealArr, c_RealArr, c_Bool&, const CPP_rad1_mat&, const CPP_rad1_mat&);
+    c_RealArr, c_RealArr, c_Bool&, const CPP_rad_map&, const CPP_rad_map&);
 
 extern "C" void rad_int_ele_cache_to_f (const CPP_rad_int_ele_cache& C, Opaque_rad_int_ele_cache_class* F) {
 
@@ -1745,7 +1745,7 @@ extern "C" void rad_int_ele_cache_to_f (const CPP_rad_int_ele_cache& C, Opaque_r
 // c_side.to_c2_arg
 extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_Real& z_g2_0, c_Real&
     z_g3_0, c_RealArr z_dg2_dorb, c_RealArr z_dg3_dorb, c_Bool& z_stale, const
-    Opaque_rad1_mat_class* z_rm0, const Opaque_rad1_mat_class* z_rm1) {
+    Opaque_rad_map_class* z_rm0, const Opaque_rad_map_class* z_rm1) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.g2_0 = z_g2_0;
@@ -1758,9 +1758,9 @@ extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_Real& z_g2_
   // c_side.to_c2_set[logical, 0, NOT]
   C.stale = z_stale;
   // c_side.to_c2_set[type, 0, NOT]
-  rad1_mat_to_c(z_rm0, C.rm0);
+  rad_map_to_c(z_rm0, C.rm0);
   // c_side.to_c2_set[type, 0, NOT]
-  rad1_mat_to_c(z_rm1, C.rm1);
+  rad_map_to_c(z_rm1, C.rm1);
 }
 
 //--------------------------------------------------------------------
@@ -2896,22 +2896,24 @@ extern "C" void normal_modes_to_c (const Opaque_normal_modes_class*, CPP_normal_
 
 // c_side.to_f2_arg
 extern "C" void normal_modes_to_f2 (Opaque_normal_modes_class*, c_RealArr, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, const CPP_anormal_mode&, const CPP_anormal_mode&, const
-    CPP_anormal_mode&, const CPP_linac_normal_mode&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, const CPP_anormal_mode&,
+    const CPP_anormal_mode&, const CPP_anormal_mode&, const CPP_linac_normal_mode&);
 
 extern "C" void normal_modes_to_f (const CPP_normal_modes& C, Opaque_normal_modes_class* F) {
 
   // c_side.to_f2_call
   normal_modes_to_f2 (F, &C.synch_int[0], C.sige_e, C.sig_z, C.e_loss, C.rf_voltage,
-      C.pz_aperture, C.a, C.b, C.z, C.lin);
+      C.pz_aperture, C.pz_average, C.momentum_compaction, C.dpz_damp, C.m56_no_rf, C.a, C.b,
+      C.z, C.lin);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void normal_modes_to_c2 (CPP_normal_modes& C, c_RealArr z_synch_int, c_Real&
     z_sige_e, c_Real& z_sig_z, c_Real& z_e_loss, c_Real& z_rf_voltage, c_Real& z_pz_aperture,
-    const Opaque_anormal_mode_class* z_a, const Opaque_anormal_mode_class* z_b, const
-    Opaque_anormal_mode_class* z_z, const Opaque_linac_normal_mode_class* z_lin) {
+    c_Real& z_pz_average, c_Real& z_momentum_compaction, c_Real& z_dpz_damp, c_Real&
+    z_m56_no_rf, const Opaque_anormal_mode_class* z_a, const Opaque_anormal_mode_class* z_b,
+    const Opaque_anormal_mode_class* z_z, const Opaque_linac_normal_mode_class* z_lin) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.synch_int << z_synch_int;
@@ -2925,6 +2927,14 @@ extern "C" void normal_modes_to_c2 (CPP_normal_modes& C, c_RealArr z_synch_int, 
   C.rf_voltage = z_rf_voltage;
   // c_side.to_c2_set[real, 0, NOT]
   C.pz_aperture = z_pz_aperture;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.pz_average = z_pz_average;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.momentum_compaction = z_momentum_compaction;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.dpz_damp = z_dpz_damp;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.m56_no_rf = z_m56_no_rf;
   // c_side.to_c2_set[type, 0, NOT]
   anormal_mode_to_c(z_a, C.a);
   // c_side.to_c2_set[type, 0, NOT]

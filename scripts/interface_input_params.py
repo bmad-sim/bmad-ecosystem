@@ -60,7 +60,7 @@ struct_list = [
     'twiss_struct',
     'mode3_struct',
     'bookkeeping_state_struct',
-    'rad1_mat_struct',
+    'rad_map_struct',
     'rad_int_ele_cache_struct',
     'surface_grid_pt_struct',
     'surface_grid_struct',

@@ -221,10 +221,10 @@ typedef valarray<CPP_bookkeeping_state>          CPP_bookkeeping_state_ARRAY;
 typedef valarray<CPP_bookkeeping_state_ARRAY>    CPP_bookkeeping_state_MATRIX;
 typedef valarray<CPP_bookkeeping_state_MATRIX>   CPP_bookkeeping_state_TENSOR;
 
-class CPP_rad1_mat;
-typedef valarray<CPP_rad1_mat>          CPP_rad1_mat_ARRAY;
-typedef valarray<CPP_rad1_mat_ARRAY>    CPP_rad1_mat_MATRIX;
-typedef valarray<CPP_rad1_mat_MATRIX>   CPP_rad1_mat_TENSOR;
+class CPP_rad_map;
+typedef valarray<CPP_rad_map>          CPP_rad_map_ARRAY;
+typedef valarray<CPP_rad_map_ARRAY>    CPP_rad_map_MATRIX;
+typedef valarray<CPP_rad_map_MATRIX>   CPP_rad_map_TENSOR;
 
 class CPP_rad_int_ele_cache;
 typedef valarray<CPP_rad_int_ele_cache>          CPP_rad_int_ele_cache_ARRAY;
@@ -1818,33 +1818,33 @@ bool operator== (const CPP_bookkeeping_state&, const CPP_bookkeeping_state&);
 
 
 //--------------------------------------------------------------------
-// CPP_rad1_mat
+// CPP_rad_map
 
-class Opaque_rad1_mat_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_rad_map_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_rad1_mat {
+class CPP_rad_map {
 public:
   Real_ARRAY ref_orb;
   Real_ARRAY damp_vec;
   Real_MATRIX damp_mat;
   Real_MATRIX stoc_mat;
 
-  CPP_rad1_mat() :
+  CPP_rad_map() :
     ref_orb(-1, 6),
     damp_vec(0.0, 6),
     damp_mat(Real_ARRAY(0.0, 6), 6),
     stoc_mat(Real_ARRAY(0.0, 6), 6)
     {}
 
-  ~CPP_rad1_mat() {
+  ~CPP_rad_map() {
   }
 
 };   // End Class
 
-extern "C" void rad1_mat_to_c (const Opaque_rad1_mat_class*, CPP_rad1_mat&);
-extern "C" void rad1_mat_to_f (const CPP_rad1_mat&, Opaque_rad1_mat_class*);
+extern "C" void rad_map_to_c (const Opaque_rad_map_class*, CPP_rad_map&);
+extern "C" void rad_map_to_f (const CPP_rad_map&, Opaque_rad_map_class*);
 
-bool operator== (const CPP_rad1_mat&, const CPP_rad1_mat&);
+bool operator== (const CPP_rad_map&, const CPP_rad_map&);
 
 
 //--------------------------------------------------------------------
@@ -1859,8 +1859,8 @@ public:
   Real_ARRAY dg2_dorb;
   Real_ARRAY dg3_dorb;
   Bool stale;
-  CPP_rad1_mat rm0;
-  CPP_rad1_mat rm1;
+  CPP_rad_map rm0;
+  CPP_rad_map rm1;
 
   CPP_rad_int_ele_cache() :
     g2_0(0.0),
@@ -2807,6 +2807,10 @@ public:
   Real e_loss;
   Real rf_voltage;
   Real pz_aperture;
+  Real pz_average;
+  Real momentum_compaction;
+  Real dpz_damp;
+  Real m56_no_rf;
   CPP_anormal_mode a;
   CPP_anormal_mode b;
   CPP_anormal_mode z;
@@ -2819,6 +2823,10 @@ public:
     e_loss(0.0),
     rf_voltage(0.0),
     pz_aperture(0.0),
+    pz_average(0.0),
+    momentum_compaction(0.0),
+    dpz_damp(0.0),
+    m56_no_rf(0.0),
     a(),
     b(),
     z(),

@@ -715,7 +715,7 @@ template bool is_all_equal (const CPP_bookkeeping_state_MATRIX&, const CPP_bookk
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_rad1_mat& x, const CPP_rad1_mat& y) {
+bool operator== (const CPP_rad_map& x, const CPP_rad_map& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.ref_orb, y.ref_orb);
   is_eq = is_eq && is_all_equal(x.damp_vec, y.damp_vec);
@@ -724,8 +724,8 @@ bool operator== (const CPP_rad1_mat& x, const CPP_rad1_mat& y) {
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_rad1_mat_ARRAY&, const CPP_rad1_mat_ARRAY&);
-template bool is_all_equal (const CPP_rad1_mat_MATRIX&, const CPP_rad1_mat_MATRIX&);
+template bool is_all_equal (const CPP_rad_map_ARRAY&, const CPP_rad_map_ARRAY&);
+template bool is_all_equal (const CPP_rad_map_MATRIX&, const CPP_rad_map_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -1187,6 +1187,10 @@ bool operator== (const CPP_normal_modes& x, const CPP_normal_modes& y) {
   is_eq = is_eq && (x.e_loss == y.e_loss);
   is_eq = is_eq && (x.rf_voltage == y.rf_voltage);
   is_eq = is_eq && (x.pz_aperture == y.pz_aperture);
+  is_eq = is_eq && (x.pz_average == y.pz_average);
+  is_eq = is_eq && (x.momentum_compaction == y.momentum_compaction);
+  is_eq = is_eq && (x.dpz_damp == y.dpz_damp);
+  is_eq = is_eq && (x.m56_no_rf == y.m56_no_rf);
   is_eq = is_eq && (x.a == y.a);
   is_eq = is_eq && (x.b == y.b);
   is_eq = is_eq && (x.z == y.z);

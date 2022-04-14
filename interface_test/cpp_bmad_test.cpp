@@ -2788,9 +2788,9 @@ extern "C" void test_c_bookkeeping_state (Opaque_bookkeeping_state_class* F, boo
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_rad1_mat (CPP_rad1_mat&, bool&);
+extern "C" void test2_f_rad_map (CPP_rad_map&, bool&);
 
-void set_CPP_rad1_mat_test_pattern (CPP_rad1_mat& C, int ix_patt) {
+void set_CPP_rad_map_test_pattern (CPP_rad_map& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -2811,37 +2811,37 @@ void set_CPP_rad1_mat_test_pattern (CPP_rad1_mat& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_rad1_mat (Opaque_rad1_mat_class* F, bool& c_ok) {
+extern "C" void test_c_rad_map (Opaque_rad_map_class* F, bool& c_ok) {
 
-  CPP_rad1_mat C, C2;
+  CPP_rad_map C, C2;
 
   c_ok = true;
 
-  rad1_mat_to_c (F, C);
-  set_CPP_rad1_mat_test_pattern (C2, 1);
+  rad_map_to_c (F, C);
+  set_CPP_rad_map_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " rad1_mat: C side convert F->C: Good" << endl;
+    cout << " rad_map: C side convert F->C: Good" << endl;
   } else {
-    cout << " rad1_mat: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " rad_map: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_rad1_mat_test_pattern (C2, 2);
+  set_CPP_rad_map_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_rad1_mat (C2, c_ok2);
+  test2_f_rad_map (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_rad1_mat_test_pattern (C, 3);
+  set_CPP_rad_map_test_pattern (C, 3);
   if (C == C2) {
-    cout << " rad1_mat: F side convert F->C: Good" << endl;
+    cout << " rad_map: F side convert F->C: Good" << endl;
   } else {
-    cout << " rad1_mat: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " rad_map: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_rad1_mat_test_pattern (C2, 4);
-  rad1_mat_to_f (C2, F);
+  set_CPP_rad_map_test_pattern (C2, 4);
+  rad_map_to_f (C2, F);
 
 }
 
@@ -2870,10 +2870,10 @@ void set_CPP_rad_int_ele_cache_test_pattern (CPP_rad_int_ele_cache& C, int ix_pa
   rhs = 5 + offset; C.stale = (rhs % 2 == 0);
 
   // c_side.test_pat[type, 0, NOT]
-  set_CPP_rad1_mat_test_pattern(C.rm0, ix_patt);
+  set_CPP_rad_map_test_pattern(C.rm0, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
-  set_CPP_rad1_mat_test_pattern(C.rm1, ix_patt);
+  set_CPP_rad_map_test_pattern(C.rm1, ix_patt);
 
 
 }
@@ -4745,6 +4745,18 @@ void set_CPP_normal_modes_test_pattern (CPP_normal_modes& C, int ix_patt) {
 
   // c_side.test_pat[real, 0, NOT]
   rhs = 6 + offset; C.pz_aperture = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.pz_average = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 8 + offset; C.momentum_compaction = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 9 + offset; C.dpz_damp = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.m56_no_rf = rhs;
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_anormal_mode_test_pattern(C.a, ix_patt);
