@@ -22,7 +22,7 @@ interface operator (==)
   module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
   module procedure eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field
   module procedure eq_floor_position, eq_high_energy_space_charge, eq_xy_disp, eq_twiss, eq_mode3
-  module procedure eq_bookkeeping_state, eq_rad1_mat, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid
+  module procedure eq_bookkeeping_state, eq_rad_map, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid
   module procedure eq_target_point, eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_grid_pt
   module procedure eq_pixel_grid, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
   module procedure eq_control, eq_controller_var1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init
@@ -1229,11 +1229,11 @@ end function eq_bookkeeping_state
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_rad1_mat (f1, f2) result (is_eq)
+elemental function eq_rad_map (f1, f2) result (is_eq)
 
 implicit none
 
-type(rad1_mat_struct), intent(in) :: f1, f2
+type(rad_map_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -1248,7 +1248,7 @@ is_eq = is_eq .and. all(f1%damp_mat == f2%damp_mat)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%stoc_mat == f2%stoc_mat)
 
-end function eq_rad1_mat
+end function eq_rad_map
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -2110,6 +2110,14 @@ is_eq = is_eq .and. (f1%e_loss == f2%e_loss)
 is_eq = is_eq .and. (f1%rf_voltage == f2%rf_voltage)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%pz_aperture == f2%pz_aperture)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%pz_average == f2%pz_average)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%momentum_compaction == f2%momentum_compaction)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dpz_damp == f2%dpz_damp)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%m56_no_rf == f2%m56_no_rf)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%a == f2%a)
 !! f_side.equality_test[type, 0, NOT]

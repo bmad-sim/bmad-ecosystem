@@ -19,11 +19,11 @@ contains
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine emit_6d (ele_ref, include_opening_angle, sigma_mat, emit)
+! Subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat)
 !
-! Routine to calculate the three normal mode emittances. Since the emattances are
-! only an invariant in the limit of zero damping, the calculated emittance will
-! vary depending upon the reference element.
+! Routine to calculate the three normal mode emittances, damping partition numbers, etc. 
+! Since the emattances, etc. are only an invariant in the limit of zero damping, the calculated
+! values will vary depending upon the reference element.
 !
 ! Input:
 !   ele_ref               -- ele_struct: Origin of the 1-turn maps used to evaluate the emittances.
@@ -31,19 +31,22 @@ contains
 !                             Generally use True unless comparing against other codes.
 !
 ! Output:
+!   mode            -- normal_modes_struct: Emittance and other info.
 !   sigma_mat(6,6)  -- real(rp): Sigma matrix
-!   emit(3)         -- real(rp): The three normal mode emittances.
 !-
 
-subroutine emit_6d (ele_ref, include_opening_angle, sigma_mat, emit)
+subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat)
 
 use f95_lapack, only: dgesv_f95
 
 type (ele_struct) ele_ref
+type (normal_modes_struct) mode
+type (rad_map_struct) rmap
 
-real(rp) sigma_mat(6,6), emit(3), rf65
-real(rp) damp_xfer_mat(6,6), stoc_var_mat(6,6)
+real(rp) sigma_mat(6,6), rf65, sig_s(6,6)
 real(rp) mt(21,21), v_sig(21,1)
+
+complex(rp) eval(6), evec(6,6)
 
 integer i, j, k, ipev(21), info
 
@@ -57,17 +60,17 @@ logical include_opening_angle, err, rf_off
 
 ! Analysis is documented in the Bmad manual.
 
-call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, damp_xfer_mat, stoc_var_mat)
+call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode)
 
 ! If there is no RF then add a small amount to enable the calculation to proceed.
 ! The RF is modeled as a unit matrix with M(6,5) = 1d-4.
 
-rf_off = (damp_xfer_mat(6,5) == 0)
+rf_off = (rmap%damp_mat(6,5) == 0)
 if (rf_off) then
   rf65 = 1e-4
-  damp_xfer_mat(6,:) = damp_xfer_mat(6,:) + rf65 * damp_xfer_mat(5,:)
-  stoc_var_mat(6,:) = stoc_var_mat(6,:) + rf65 * stoc_var_mat(5,:)
-  stoc_var_mat(:,6) = stoc_var_mat(:,6) + stoc_var_mat(:,5) * rf65
+  rmap%damp_mat(6,:) = rmap%damp_mat(6,:) + rf65 * rmap%damp_mat(5,:)
+  rmap%stoc_mat(6,:) = rmap%stoc_mat(6,:) + rf65 * rmap%stoc_mat(5,:)
+  rmap%stoc_mat(:,6) = rmap%stoc_mat(:,6) + rmap%stoc_mat(:,5) * rf65
 endif
 
 ! The 6x6 sigma matrix equation is recast as a linear 21x21 matrix equation and solved.
@@ -75,11 +78,11 @@ endif
 call mat_make_unit(mt)
 
 do i = 1, 21
-  v_sig(i,1) = stoc_var_mat(w1(i), w2(i))
+  v_sig(i,1) = rmap%stoc_mat(w1(i), w2(i))
 
   do j = 1, 6
   do k = 1, 6
-    mt(i,v(j,k)) = mt(i,v(j,k)) - damp_xfer_mat(w1(i),j) * damp_xfer_mat(w2(i),k)
+    mt(i,v(j,k)) = mt(i,v(j,k)) - rmap%damp_mat(w1(i),j) * rmap%damp_mat(w2(i),k)
   enddo
   enddo
 enddo
@@ -88,7 +91,7 @@ call dgesv_f95(mt, v_sig, ipev, info)
 
 if (info /= 0) then
   sigma_mat = -1
-  emit = -1
+  mode%a%emittance = -1; mode%b%emittance = -1; mode%z%emittance = -1
   return
 endif
 
@@ -98,8 +101,44 @@ do k = 1, 6
 enddo
 enddo
 
-call get_emit_from_sigma_mat(sigma_mat, emit, err_flag = err)
-if (rf_off) emit(3) = -1
+!!call get_emit_from_sigma_mat(sigma_mat, emit, err_flag = err)
+
+sig_s(:,1) = -sigma_mat(:,2)
+sig_s(:,2) =  sigma_mat(:,1)
+sig_s(:,3) = -sigma_mat(:,4)
+sig_s(:,4) =  sigma_mat(:,3)
+sig_s(:,5) = -sigma_mat(:,6)
+sig_s(:,6) =  sigma_mat(:,5)
+
+call mat_eigen(sig_s, eval, evec, err)
+
+mode%a%emittance = aimag(eval(1))
+mode%b%emittance = aimag(eval(3))
+mode%z%emittance = aimag(eval(5))
+
+mode%e_loss = mode%dpz_damp * ele_ref%value(e_tot$)
+
+if (sigma_mat(5,5) < 0 .or. sigma_mat(6,6) < 0) then
+  mode%sig_z = -1
+  mode%sigE_E = -1
+else
+  mode%sig_z = sqrt(sigma_mat(5,5))
+  mode%sigE_E = sqrt(sigma_mat(6,6))
+endif
+
+call mat_eigen(rmap%damp_mat, eval, evec, err)
+
+mode%a%alpha_damp = aimag(eval(1))
+mode%b%alpha_damp = aimag(eval(3))
+mode%z%alpha_damp = aimag(eval(5))
+
+mode%a%j_damp = 2 * aimag(eval(1)) / mode%dpz_damp
+mode%b%j_damp = 2 * aimag(eval(3)) / mode%dpz_damp
+mode%z%j_damp = 2 * aimag(eval(5)) / mode%dpz_damp
+
+if (rf_off) then
+  mode%z%emittance = -1
+endif
 
 end subroutine emit_6d
 
@@ -107,7 +146,7 @@ end subroutine emit_6d
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, damp_xfer_mat, stoc_var_mat)
+! Subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode)
 !
 ! Routine to calculate the damping and stochastic variance matrices from exit end of ele1
 ! to the exit end of ele2. Use ele1 = ele2 to get 1-turn matrices.
@@ -125,21 +164,26 @@ end subroutine emit_6d
 !                             Generally use True unless comparing against other codes.
 !
 ! Output:
-!   damp_xfer_mat(6,6)   -- real(rp): Transfer matrix with damping.
-!   stoc_var_mat(6,6)   -- real(rp): Stochastic variance matrix.
+!   rmap                  -- rad_map_struct: Damping and stochastic mats 
+!     %stoc_mat               --  stochastic variance matrix.
+!   mode                  -- normal_modes_struct:
+!     %dpz_damp                 -- Change in pz without RF.
+!     %pz_average               -- Average pz due to damping.
+!     %m56_no_rf                -- M56 matrix component without RF.
 !-
 
-subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, damp_xfer_mat, stoc_var_mat)
+subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode)
 
 type (ele_struct), target :: ele1, ele2
+type (rad_map_struct) rmap
+type (normal_modes_struct) mode
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele1_track, ele2_track, ele3
 type (bmad_common_struct) bmad_com_save
-type (rad1_mat_struct), allocatable :: ds(:)
+type (rad_map_struct), allocatable :: rm1(:)
 type (coord_struct), allocatable :: closed_orb(:)
 
-real(rp) sig_mat(6,6)
-real(rp) damp_xfer_mat(6,6), stoc_var_mat(6,6), mt(6,6), tol
+real(rp) sig_mat(6,6), mt(6,6), tol, length
 integer ie
 
 logical include_opening_angle, err_flag
@@ -150,7 +194,7 @@ call find_element_ends(ele1, ele3, ele1_track)
 call find_element_ends(ele2, ele3, ele2_track)
 
 branch => ele1_track%branch
-allocate (ds(branch%n_ele_track))
+allocate (rm1(branch%n_ele_track))
 
 bmad_com_save = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
@@ -174,13 +218,18 @@ if (err_flag) return
 tol = 1d-4 / branch%param%total_length
 do ie = 1, branch%n_ele_track
   call rad1_damp_and_stoc_mats(branch%ele(ie), include_opening_angle, closed_orb(ie-1), closed_orb(ie), &
-                                          ds(ie), tol * branch%param%i2_rad_int, tol * branch%param%i3_rad_int)
+                                          rm1(ie), tol * branch%param%i2_rad_int, tol * branch%param%i3_rad_int)
 enddo
 
 !
 
-call mat_make_unit(damp_xfer_mat)
-stoc_var_mat = 0
+call mat_make_unit(rmap%damp_mat)
+rmap%damp_vec = 0
+rmap%stoc_mat = 0
+mode%dpz_damp = 0
+mode%m56_no_rf = 0
+mode%pz_average = 0
+length = 0
 
 ie = ele1_track%ix_ele
 do 
@@ -188,12 +237,22 @@ do
   if (ie > branch%n_ele_track) ie = 0
   if (ie /= 0) then
     ele3 => branch%ele(ie)
-    mt = ds(ie)%damp_mat + ele3%mat6
-    damp_xfer_mat = matmul(mt, damp_xfer_mat)
-    stoc_var_mat = matmul(matmul(mt, stoc_var_mat), transpose(mt)) + ds(ie)%stoc_mat
+    mt = rm1(ie)%damp_mat + ele3%mat6
+    rmap%damp_vec = matmul(mt, rmap%damp_vec) + rm1(ie)%damp_vec
+    rmap%damp_mat = matmul(mt, rmap%damp_mat)
+    rmap%stoc_mat = matmul(matmul(mt, rmap%stoc_mat), transpose(mt)) + rm1(ie)%stoc_mat
+
+    mode%pz_average = mode%pz_average + 0.5_rp * ele3%value(l$) * (closed_orb(ie-1)%vec(6) + closed_orb(ie)%vec(6))
+    length = length + ele3%value(l$)
+    if (ele3%key /= rfcavity$) then
+      mode%m56_no_rf = mode%m56_no_rf + ele3%mat6(5,6)
+      mode%dpz_damp = mode%dpz_damp + rm1(ie)%damp_vec(6)
+    endif
   endif
   if (ie == ele2%ix_ele) exit
 enddo
+
+if (length /= 0) mode%pz_average = mode%pz_average / length
 
 end subroutine rad_damp_and_stoc_mats
 
@@ -203,7 +262,7 @@ end subroutine rad_damp_and_stoc_mats
 !+
 ! Subroutine rad1_damp_and_stoc_mats (ele, include_opening_angle, orb_in, orb_out, rad_mat, g2_tol, g3_tol)
 !
-! Routine to calculate the damping and stochastic matrices for a lattice element.
+! Routine to calculate the damping and stochastic matrices for a given lattice element.
 !
 ! Input:
 !   ele                   -- ele_struct: Element under consideration.
@@ -215,7 +274,7 @@ end subroutine rad_damp_and_stoc_mats
 !   g3_tol                -- real(rp): Tollerance on g^3 per unit length (stocastic tolerance).
 !
 ! Output:
-!   rad_mat               -- rad1_mat_strct: Damping and stochastic matrices.
+!   rad_mat               -- rad_map_strct: Damping and stochastic matrices.
 !     %stoc_mat             -- Variance matrix.
 !-
 
@@ -238,7 +297,7 @@ end type
 
 type (ele_struct) ele
 type (coord_struct) orb_in, orb_out, orb0, orb1, orb_end
-type (rad1_mat_struct) :: rad_mat
+type (rad_map_struct) :: rad_mat
 type (fringe_field_info_struct) fringe_info
 type (qromb_pt1_struct) pt1(0:16)
 type (qromb_int_struct) qi(0:4)
@@ -257,7 +316,7 @@ logical include_opening_angle, save_orb_mat
 
 ! No radiation cases
 
-rad_mat = rad1_mat_struct()
+rad_mat = rad_map_struct()
 rad_mat%ref_orb = orb_out%vec
 
 if (ele%value(l$) == 0 .or. (orb_out%vec(2) == orb_in%vec(2) .and. &

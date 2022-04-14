@@ -256,7 +256,7 @@ implicit none
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (rad_int_ele_cache_struct), pointer :: ric
-type (rad1_mat_struct) rad_mat
+type (rad_map_struct) rad_mat
 
 integer :: edge
 
@@ -362,7 +362,7 @@ use f95_lapack, only: dpotrf_f95
 type (coord_struct) orb1, orb2
 type (ele_struct), target :: ele, runt
 type (rad_int_ele_cache_struct), pointer :: ric
-type (rad1_mat_struct) rad_mat
+type (rad_map_struct) rad_mat
 type (branch_struct), pointer :: branch
 real(rp) tol, rcond, m_inv(6,6)
 integer i, edge, info
@@ -377,8 +377,8 @@ tol = 1d-4 / branch%param%total_length
 
 if (all(ric%rm0%ref_orb == ele%map_ref_orb_in%vec) .or. all(ric%rm1%ref_orb == ele%map_ref_orb_out%vec)) return
 if (all(ric%rm0%ref_orb == ric%rm1%ref_orb) .and. ele%key /= sbend$) then
-  ric%rm0 = rad1_mat_struct()
-  ric%rm1 = rad1_mat_struct()
+  ric%rm0 = rad_map_struct()
+  ric%rm1 = rad_map_struct()
   ric%rm0%ref_orb = ele%map_ref_orb_in%vec
   ric%rm1%ref_orb = ele%map_ref_orb_out%vec
   return

@@ -870,12 +870,12 @@ type multipole_cache_struct
   integer :: ix_kick_elec_max = invalid$
 end type
 
-! Radiation integral data cache
+! Radiation damping and stochastic maps
 
-type rad1_mat_struct
-  real(rp) :: ref_orb(6) = -1           ! Reference point around which damp_mat is calculated.
+type rad_map_struct
+  real(rp) :: ref_orb(6) = -1          ! Reference point around which damp_mat is calculated.
   real(rp) :: damp_vec(6) = 0          ! 0th order damping. 
-  real(rp) :: damp_mat(6,6) = 0        ! Transfer matrix = damp_mat + no_damp_mat.
+  real(rp) :: damp_mat(6,6) = 0        ! Transfer matrix = no_damp_mat + damp_correction.
   real(rp) :: stoc_mat(6,6) = 0        ! Stochastic variance or "kick" (Cholesky decomposed) matrix.
 end type
 
@@ -886,7 +886,7 @@ type rad_int_ele_cache_struct
   real(rp) :: dg3_dorb(6) = 0   ! Variation of g3 with respect to orbit.
   logical :: stale = .true.
   ! New 6D emit. In this structure rm0%stoc_mat and rm1%stoc_mat are the kick matrices.
-  type (rad1_mat_struct) rm0, rm1  ! upstream and downstream matrices.
+  type (rad_map_struct) rm0, rm1  ! Upstream half and downstream half matrices for an element.
 end type
 
 ! Structure for surfaces of detectors, mirrors, crystals, etc.
@@ -1761,6 +1761,10 @@ type normal_modes_struct
   real(rp) :: e_loss = 0          ! Energy loss / turn (eV)
   real(rp) :: rf_voltage = 0      ! Total rfcavity voltage (eV)
   real(rp) :: pz_aperture = 0     ! pz aperture limit
+  real(rp) :: pz_average = 0      ! Average over branch due to damping.
+  real(rp) :: momentum_compaction = 0
+  real(rp) :: dpz_damp = 0        ! Change in pz without RF
+  real(rp) :: m56_no_rf = 0       ! M56 without RF.
   type (anormal_mode_struct) :: a = anormal_mode_struct()
   type (anormal_mode_struct) :: b = anormal_mode_struct()
   type (anormal_mode_struct) :: z = anormal_mode_struct()

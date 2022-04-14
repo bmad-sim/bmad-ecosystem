@@ -59,7 +59,7 @@ case (ac_kicker$)
 
 case (beambeam$)
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
