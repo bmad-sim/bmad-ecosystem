@@ -65,25 +65,23 @@ endif
 
 if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())
 
-call offset_particle (ele, set$, orbit)
+call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
 n_slice = max(1, nint(ele%value(n_slice$)))
-allocate(z_slice(n_slice+1))
+allocate(z_slice(n_slice))
 call bbi_slice_calc (ele, n_slice, z_slice)
 
 s_pos = 0    ! end at the ip
 
-do i = 1, n_slice+1
+do i = 1, n_slice
   z = z_slice(i)   ! Positive z_slice is the tail of the strong beam.
   s_pos_old = s_pos
   s_pos = (orbit%vec(5) + z) / 2
-  if (i == n_slice+1) s_pos = 0
 
   del_s = s_pos - s_pos_old
 
   call offset_particle(ele, unset$, orbit, drift_to_edge = .false., s_pos = s_pos_old, mat6 = mat6, make_matrix = make_matrix)
   call solenoid_track_and_mat (ele, del_s, param, orbit, orbit, mat6, make_matrix)
-  if (i == n_slice+1) exit
   call offset_particle(ele, set$,   orbit, drift_to_edge = .false., s_pos = s_pos, mat6 = mat6, make_matrix = make_matrix)
 
   call strong_beam_sigma_calc (ele, s_pos, -z, sig_x, sig_y, bbi_const, x_center, y_center)
@@ -133,6 +131,9 @@ do i = 1, n_slice+1
     orbit%spin = quat_rotate(quat, orbit%spin)
   endif
 enddo
+
+call offset_particle(ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+call solenoid_track_and_mat (ele, -s_pos, param, orbit, orbit, mat6, make_matrix)
 
 if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())
 

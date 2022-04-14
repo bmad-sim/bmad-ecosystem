@@ -226,44 +226,11 @@ where the $21\times21$ matrix $\wt\bfM$ is defined so that for any symmetrix $\b
 \end{equation}
 \Eq{vsmv} is linear in the unknown $\bfV(\bfsig)$ and is easily solved.
 
-The emittances may be calculated from the equilibrium sigma matrix by noting that the emittances are
-the eigenvalues of the matrix $\bfsig \, \bfS$ (Wolski\cite{b:wolski.coupling} Eq.~30) where $\bfS$
-is the matrix
-\begin{equation}
-  \bfS = \begin{pmatrix}
-      0 &  1 &  0 &  0 &  0 &  0 \\
-     -1 &  0 &  0 &  0 &  0 &  0 \\
-      0 &  0 &  0 &  1 &  0 &  0 \\
-      0 &  0 & -1 &  0 &  0 &  0 \\
-      0 &  0 &  0 &  0 &  0 &  1 \\
-      0 &  0 &  0 &  0 & -1 &  0 \\
-  \end{pmatrix}
-\end{equation}
-Specifically
-\begin{equation}
-  \begin{pmatrix}
-        i \, \bfSbar_2 \, \epsilon_I     & & \\
-    &   i \, \bfSbar_2 \, \epsilon_\text{II}  & \\
-    & & i \, \bfSbar_2 \, \epsilon_\text{III}
-  \end{pmatrix} =
-  \bfE^{-1} \, \bfsig \, \bfS \, \bfE
-\end{equation}
-where $\epsilon_I$, $\epsilon_\text{II}$, and $\epsilon_\text{III}$ are the three emittances, 
-$\bfSbar_2$ is the $2\times2$ matrix
-\begin{equation}
-  \bfSbar_2 = \begin{pmatrix}
-    -1 & 0 \\
-     0 & 1
-  \end{pmatrix},
-\end{equation}
-and $\bfE$ is the eigenvector matrix
-\begin{equation}
-  \bfE = (\bfe_\text{-I} \, \bfe_\text{I} \, \bfe_\text{-II} \, \bfe_\text{II} \, \bfe_\text{-III} \, \bfe_\text{III})
-\end{equation}
-where the eigenvectors $\bfe_k$ and $\bfe_{-k}$, $k = I, II, III$ are normalized such that
-\begin{equation}
-   \bfe_{-k}^T \, \bfS \, \bfe_{k'} = i \delta_{kk'} \qquad \bfe_{-k} = \bfe_k^*
-\end{equation}
+The emittances can be calculated from the eigenvalues of the matrix $\bfsig \, \bfS$
+(Wolski\cite{b:wolski.coupling} Eq.~30) where $\bfS$ is given by \$q{s010000}. Specifically, the
+eigenvalues of $\bfsig \, \bfS$ are pure imaginary and, using the eigenvector ordering given by
+\Eq{vsvi0} (which is opposite that of Wolski), the emittances are the imaginary part of the odd
+eigenvalues $(\epsilon_a, \epsilon_b, \epsilon_c) = (\im{\lambda_1}, \im{\lambda_3}, \im{\lambda_5})$.
 
 Unlike the case where radiation is ignored and the motion is symplectic, the calculated emittances
 along with the beam size will vary from point to point in a manner similar to the variation of the average
@@ -284,8 +251,35 @@ a non-Gaussian beam shape.
 \label{s:synch.ints}
 \index{synchrotron radiation!integrals}
 
-The synchrotron radiation integrals are used to compute emittances, the energy spread, etc. The
-standard formulas assume no coupling between the horizontal and vertical
+The synchrotron radiation integrals were the original method used in \bmad to compute emittances,
+the energy spread, etc. Currently, the use of radiation integrals is being retired in favor of
+calculating emittances, etc. via the 6D damped and stochastic transport matrices
+(\sref{s:map.rad}). Using these matrices has a number of advantages.
+\begin{itemize}
+%
+\item
+Unlike the radiation integrals, the 6D calculation does not make the approximation that the
+synchrotron frequency is negligible. Therefore, the 6D calculation will be more accurate.
+%
+\item
+The 6D calculation is simpler: Not as many integrals needed (only 2) and the 6D calculation does not
+depend upon calculation of the Twiss parameters.
+%
+\item
+When doing any lattice design which involves constraining the emittances: Since the integrals of the
+6D calculation are local (the integrations through any given lattice element are only dependent upon
+the properties of that lattice element), by caching integrals element-by-element, the computation of
+the emittances can be speeded up. That is, in a design problem, only the parameters of some subset
+of all the lattice elements will be varied (for example, a design may only involve varying the
+strength of quadrupoles), only this subset of elements needs to have their integrals recomputed.  On
+the other hand, the radiation integrals are dependent on the Twiss, dispersion, and coupling
+parameters which make the integrals nonlocal.
+%
+\item
+The 6D formalism can be used to construct transport maps with radiation damping and excitation for efficient particle tracking.
+\end{itemize}
+
+The standard radiation formulas assume no coupling between the horizontal and vertical
 plains\cite{b:helm,b:jowett}. With coupling, the equations need to be generalized and this is
 detailed below.
 
