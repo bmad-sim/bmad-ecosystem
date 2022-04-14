@@ -2131,7 +2131,7 @@ Example:
 
 Syntax:
 \begin{example}
-  show emittance \{-element <ele_id>\} \{-matrix\} \{-universe <uni_index>\}
+  show emittance \{-element <ele_id>\} \{-sigma_matrix\} \{-universe <uni_index>\} \{-xmatrix\} 
 \end{example}
 
 The \vn{show emittance} command shows, for a given lattice branch, the three normal mode emittances
@@ -2144,9 +2144,12 @@ beginning element of the default branch (set by \vn{set default branch}) is used
 damping, the emittance is not an exact invariant of the motion. Thus the calculated emittance will
 vary depending upon what lattice element is used.
 
-If the \vn{-matrix} switch is present, instead of showing emittances, the damping and stochastic
-kick matrices used for particle tracking are displayed for the element given by the \vn{-element}
-switch.
+If the \vn{-sigma_matrix} switch is present, the sigma matrix at the given element will be displayed
+along with the emittances.
+
+If the \vn{-xmatrix} switch is present, instead of showing emittances, the damping and stochastic
+kick transfer matrices used for particle tracking are displayed for the element given by the
+\vn{-element} switch.
 
 Examples:
 \begin{example}

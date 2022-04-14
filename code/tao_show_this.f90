@@ -89,7 +89,7 @@ type (aperture_scan_struct), pointer :: aperture_scan
 type (coord_struct) orbit
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_spin_map_struct), pointer :: sm
-type (normal_modes_struct) norm_mode
+type (normal_modes_struct) norm_mode, mode_6d, mode0_6d
 type (normal_modes_struct), pointer :: mode_m, mode_d
 type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: rmap(:)
@@ -131,7 +131,7 @@ real(rp) sig_mat(6,6), sig0_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3)
 real(rp) pc, e_tot, value_min, value_here, pz1, phase
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, time1, ds, ref_vec(6), beta
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
-real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3), emit(3), emit0(3)
+real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3)
 real(rp), allocatable :: value(:)
 
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
@@ -1653,7 +1653,7 @@ case ('emittance')
   what_to_print = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-element', '-matrices'], &
+    call tao_next_switch (what2, [character(16):: '-universe', '-element', '-xmatrix', '-sigma_matrix'], &
                                                                      .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -1673,7 +1673,7 @@ case ('emittance')
       ele_name = what2(:ix_s2)
       call string_trim (what2(ix_s2+1:), what2, ix_word)
 
-    case ('-matrices')
+    case ('-xmatrix', '-sigma_matrix')
       what_to_print = switch
 
     case default
@@ -1693,7 +1693,7 @@ case ('emittance')
 
   !
 
-  if (what_to_print == '-matrices') then
+  if (what_to_print == '-xmatrix') then
     if (.not. associated(ele%rad_int_cache)) then
       nl=nl+1; lines(nl) = 'No radiation matrices associated with element.'
       return
@@ -1728,8 +1728,8 @@ case ('emittance')
   tao_branch => u%model%tao_branch(ele%ix_branch)
   mode_m => tao_branch%modes
 
-  call emit_6d (ele, .true., sig_mat, emit)
-  call emit_6d (ele, .false., sig0_mat, emit0)
+  call emit_6d (ele, .false., mode0_6d, sig0_mat)
+  call emit_6d (ele, .true., mode_6d, sig_mat)
   call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, ele%ix_branch)
 
   if (.not. associated(branch%ptc%m_t_layout)) then
@@ -1741,11 +1741,28 @@ case ('emittance')
 
   nl=nl+1; lines(nl) = '                    | Vert opening angle included | Opening angle ignored       |'
   nl=nl+1; lines(nl) = ' Mode     PTC_Emit  | Bmad_6D_Emit   Rad_Int_Emit | Bmad_6D_Emit   Rad_Int_Emit |'
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'A', norm_mode%a%emittance, emit(1), mode_m%a%emittance, emit0(1), mode_m%a%emittance
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'B', norm_mode%b%emittance, emit(2), mode_m%b%emittance, emit0(2), mode_m%b%emittance_no_vert
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'C', norm_mode%z%emittance, emit(3), mode_m%sigE_E * mode_m%sig_z, &
-                                                                                                    emit0(3), mode_m%sigE_E * mode_m%sig_z
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'A', norm_mode%a%emittance, mode_6d%a%emittance, &
+                                                           mode_m%a%emittance, mode0_6d%a%emittance, mode_m%a%emittance
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'B', norm_mode%b%emittance, mode_6d%b%emittance, &
+                                                           mode_m%b%emittance, mode0_6d%b%emittance, mode_m%b%emittance_no_vert
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'C', norm_mode%z%emittance, mode_6d%z%emittance, &
+                                                           mode_m%sigE_E * mode_m%sig_z, mode0_6d%z%emittance, mode_m%sigE_E * mode_m%sig_z
 
+  nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'J_damp:    ', mode_6d%a%j_damp, mode_6d%b%j_damp, mode_6d%z%j_damp
+  nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'Alpha_damp:', mode_6d%a%alpha_damp, mode_6d%b%alpha_damp, mode_6d%z%alpha_damp
+  nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'SigE/E:    ', mode_6d%sige_e
+  nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'Sig_z:     ', mode_6d%sig_z
+  nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'Alpha_p:   ', mode_6d%m56_no_rf
+
+
+  if (what_to_print == '-sigma_matrix') then
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write (lines(nl), '(a11, 6es12.4, 4x, 6es12.4)') 'Sigma Mat: ', sig_mat(1,:)
+    do i = 2, 6
+      nl=nl+1; write (lines(nl), '(11x, 6es12.4, 4x, 6es12.4)') sig_mat(i,:)
+    enddo
+
+  endif
 
 !----------------------------------------------------------------------
 ! field
