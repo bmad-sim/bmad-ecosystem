@@ -2116,8 +2116,6 @@ is_eq = is_eq .and. (f1%pz_average == f2%pz_average)
 is_eq = is_eq .and. (f1%momentum_compaction == f2%momentum_compaction)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dpz_damp == f2%dpz_damp)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%m56_no_rf == f2%m56_no_rf)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%a == f2%a)
 !! f_side.equality_test[type, 0, NOT]

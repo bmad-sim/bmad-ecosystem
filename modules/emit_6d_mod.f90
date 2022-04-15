@@ -39,11 +39,14 @@ subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat)
 
 use f95_lapack, only: dgesv_f95
 
-type (ele_struct) ele_ref
+type (ele_struct), target :: ele_ref
+type (ele_struct), pointer :: ele
+type (coord_struct) orbit
+type (branch_struct), pointer :: branch
 type (normal_modes_struct) mode
 type (rad_map_struct) rmap
 
-real(rp) sigma_mat(6,6), rf65, sig_s(6,6)
+real(rp) sigma_mat(6,6), rf65, sig_s(6,6), mat6(6,6)
 real(rp) mt(21,21), v_sig(21,1)
 
 complex(rp) eval(6), evec(6,6)
@@ -128,13 +131,13 @@ endif
 
 call mat_eigen(rmap%damp_mat, eval, evec, err)
 
-mode%a%alpha_damp = aimag(eval(1))
-mode%b%alpha_damp = aimag(eval(3))
-mode%z%alpha_damp = aimag(eval(5))
+mode%a%alpha_damp = 1.0_rp - abs(eval(1))
+mode%b%alpha_damp = 1.0_rp - abs(eval(3))
+mode%z%alpha_damp = 1.0_rp - abs(eval(5))
 
-mode%a%j_damp = 2 * aimag(eval(1)) / mode%dpz_damp
-mode%b%j_damp = 2 * aimag(eval(3)) / mode%dpz_damp
-mode%z%j_damp = 2 * aimag(eval(5)) / mode%dpz_damp
+mode%a%j_damp = -2 * mode%a%alpha_damp / mode%dpz_damp
+mode%b%j_damp = -2 * mode%b%alpha_damp / mode%dpz_damp
+mode%z%j_damp = -2 * mode%z%alpha_damp / mode%dpz_damp
 
 if (rf_off) then
   mode%z%emittance = -1
@@ -169,7 +172,6 @@ end subroutine emit_6d
 !   mode                  -- normal_modes_struct:
 !     %dpz_damp                 -- Change in pz without RF.
 !     %pz_average               -- Average pz due to damping.
-!     %m56_no_rf                -- M56 matrix component without RF.
 !-
 
 subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode)
@@ -227,7 +229,6 @@ call mat_make_unit(rmap%damp_mat)
 rmap%damp_vec = 0
 rmap%stoc_mat = 0
 mode%dpz_damp = 0
-mode%m56_no_rf = 0
 mode%pz_average = 0
 length = 0
 
@@ -245,7 +246,6 @@ do
     mode%pz_average = mode%pz_average + 0.5_rp * ele3%value(l$) * (closed_orb(ie-1)%vec(6) + closed_orb(ie)%vec(6))
     length = length + ele3%value(l$)
     if (ele3%key /= rfcavity$) then
-      mode%m56_no_rf = mode%m56_no_rf + ele3%mat6(5,6)
       mode%dpz_damp = mode%dpz_damp + rm1(ie)%damp_vec(6)
     endif
   endif

@@ -1251,6 +1251,14 @@ function mexp (x, m) result (this_exp)
   integer m
 end function
 
+function momentum_compaction(branch, mat6) result (mom_comp)
+  import
+  implicit none
+  type (branch_struct), optional, target :: branch
+  real(rp), optional :: mat6(6,6)
+  real(rp) mom_comp
+end function
+
 subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, stable, growth_rate, chi, err_flag)
   import
   implicit none
