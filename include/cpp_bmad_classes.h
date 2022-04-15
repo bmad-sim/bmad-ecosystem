@@ -2810,7 +2810,6 @@ public:
   Real pz_average;
   Real momentum_compaction;
   Real dpz_damp;
-  Real m56_no_rf;
   CPP_anormal_mode a;
   CPP_anormal_mode b;
   CPP_anormal_mode z;
@@ -2826,7 +2825,6 @@ public:
     pz_average(0.0),
     momentum_compaction(0.0),
     dpz_damp(0.0),
-    m56_no_rf(0.0),
     a(),
     b(),
     z(),

@@ -4755,9 +4755,6 @@ void set_CPP_normal_modes_test_pattern (CPP_normal_modes& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 9 + offset; C.dpz_damp = rhs;
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.m56_no_rf = rhs;
-
   // c_side.test_pat[type, 0, NOT]
   set_CPP_anormal_mode_test_pattern(C.a, ix_patt);
 

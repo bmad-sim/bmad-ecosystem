@@ -2896,24 +2896,23 @@ extern "C" void normal_modes_to_c (const Opaque_normal_modes_class*, CPP_normal_
 
 // c_side.to_f2_arg
 extern "C" void normal_modes_to_f2 (Opaque_normal_modes_class*, c_RealArr, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, const CPP_anormal_mode&,
-    const CPP_anormal_mode&, const CPP_anormal_mode&, const CPP_linac_normal_mode&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, const CPP_anormal_mode&, const
+    CPP_anormal_mode&, const CPP_anormal_mode&, const CPP_linac_normal_mode&);
 
 extern "C" void normal_modes_to_f (const CPP_normal_modes& C, Opaque_normal_modes_class* F) {
 
   // c_side.to_f2_call
   normal_modes_to_f2 (F, &C.synch_int[0], C.sige_e, C.sig_z, C.e_loss, C.rf_voltage,
-      C.pz_aperture, C.pz_average, C.momentum_compaction, C.dpz_damp, C.m56_no_rf, C.a, C.b,
-      C.z, C.lin);
+      C.pz_aperture, C.pz_average, C.momentum_compaction, C.dpz_damp, C.a, C.b, C.z, C.lin);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void normal_modes_to_c2 (CPP_normal_modes& C, c_RealArr z_synch_int, c_Real&
     z_sige_e, c_Real& z_sig_z, c_Real& z_e_loss, c_Real& z_rf_voltage, c_Real& z_pz_aperture,
-    c_Real& z_pz_average, c_Real& z_momentum_compaction, c_Real& z_dpz_damp, c_Real&
-    z_m56_no_rf, const Opaque_anormal_mode_class* z_a, const Opaque_anormal_mode_class* z_b,
-    const Opaque_anormal_mode_class* z_z, const Opaque_linac_normal_mode_class* z_lin) {
+    c_Real& z_pz_average, c_Real& z_momentum_compaction, c_Real& z_dpz_damp, const
+    Opaque_anormal_mode_class* z_a, const Opaque_anormal_mode_class* z_b, const
+    Opaque_anormal_mode_class* z_z, const Opaque_linac_normal_mode_class* z_lin) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.synch_int << z_synch_int;
@@ -2933,8 +2932,6 @@ extern "C" void normal_modes_to_c2 (CPP_normal_modes& C, c_RealArr z_synch_int, 
   C.momentum_compaction = z_momentum_compaction;
   // c_side.to_c2_set[real, 0, NOT]
   C.dpz_damp = z_dpz_damp;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.m56_no_rf = z_m56_no_rf;
   // c_side.to_c2_set[type, 0, NOT]
   anormal_mode_to_c(z_a, C.a);
   // c_side.to_c2_set[type, 0, NOT]

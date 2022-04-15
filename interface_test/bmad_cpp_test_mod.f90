@@ -7070,8 +7070,6 @@ rhs = 7 + offset; F%pz_average = rhs
 rhs = 8 + offset; F%momentum_compaction = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 9 + offset; F%dpz_damp = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%m56_no_rf = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_anormal_mode_test_pattern (F%a, ix_patt)
 !! f_side.test_pat[type, 0, NOT]

@@ -7950,13 +7950,13 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine normal_modes_to_c2 (C, z_synch_int, z_sige_e, z_sig_z, z_e_loss, z_rf_voltage, &
-      z_pz_aperture, z_pz_average, z_momentum_compaction, z_dpz_damp, z_m56_no_rf, z_a, z_b, &
-      z_z, z_lin) bind(c)
+      z_pz_aperture, z_pz_average, z_momentum_compaction, z_dpz_damp, z_a, z_b, z_z, z_lin) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_synch_int(*), z_sige_e, z_sig_z, z_e_loss, z_rf_voltage, z_pz_aperture, z_pz_average
-    real(c_double) :: z_momentum_compaction, z_dpz_damp, z_m56_no_rf
+    real(c_double) :: z_momentum_compaction, z_dpz_damp
     type(c_ptr), value :: z_a, z_b, z_z, z_lin
   end subroutine
 end interface
@@ -7974,8 +7974,8 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call normal_modes_to_c2 (C, fvec2vec(F%synch_int, 4), F%sige_e, F%sig_z, F%e_loss, &
-    F%rf_voltage, F%pz_aperture, F%pz_average, F%momentum_compaction, F%dpz_damp, F%m56_no_rf, &
-    c_loc(F%a), c_loc(F%b), c_loc(F%z), c_loc(F%lin))
+    F%rf_voltage, F%pz_aperture, F%pz_average, F%momentum_compaction, F%dpz_damp, c_loc(F%a), &
+    c_loc(F%b), c_loc(F%z), c_loc(F%lin))
 
 end subroutine normal_modes_to_c
 
@@ -7996,8 +7996,8 @@ end subroutine normal_modes_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine normal_modes_to_f2 (Fp, z_synch_int, z_sige_e, z_sig_z, z_e_loss, z_rf_voltage, &
-    z_pz_aperture, z_pz_average, z_momentum_compaction, z_dpz_damp, z_m56_no_rf, z_a, z_b, z_z, &
-    z_lin) bind(c)
+    z_pz_aperture, z_pz_average, z_momentum_compaction, z_dpz_damp, z_a, z_b, z_z, z_lin) &
+    bind(c)
 
 
 implicit none
@@ -8007,7 +8007,7 @@ type(normal_modes_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_synch_int(*), z_sige_e, z_sig_z, z_e_loss, z_rf_voltage, z_pz_aperture, z_pz_average
-real(c_double) :: z_momentum_compaction, z_dpz_damp, z_m56_no_rf
+real(c_double) :: z_momentum_compaction, z_dpz_damp
 type(c_ptr), value :: z_a, z_b, z_z, z_lin
 
 call c_f_pointer (Fp, F)
@@ -8030,8 +8030,6 @@ F%pz_average = z_pz_average
 F%momentum_compaction = z_momentum_compaction
 !! f_side.to_f2_trans[real, 0, NOT]
 F%dpz_damp = z_dpz_damp
-!! f_side.to_f2_trans[real, 0, NOT]
-F%m56_no_rf = z_m56_no_rf
 !! f_side.to_f2_trans[type, 0, NOT]
 call anormal_mode_to_f(z_a, c_loc(F%a))
 !! f_side.to_f2_trans[type, 0, NOT]

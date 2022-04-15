@@ -1190,7 +1190,6 @@ bool operator== (const CPP_normal_modes& x, const CPP_normal_modes& y) {
   is_eq = is_eq && (x.pz_average == y.pz_average);
   is_eq = is_eq && (x.momentum_compaction == y.momentum_compaction);
   is_eq = is_eq && (x.dpz_damp == y.dpz_damp);
-  is_eq = is_eq && (x.m56_no_rf == y.m56_no_rf);
   is_eq = is_eq && (x.a == y.a);
   is_eq = is_eq && (x.b == y.b);
   is_eq = is_eq && (x.z == y.z);
