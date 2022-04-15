@@ -1764,7 +1764,6 @@ type normal_modes_struct
   real(rp) :: pz_average = 0      ! Average over branch due to damping.
   real(rp) :: momentum_compaction = 0
   real(rp) :: dpz_damp = 0        ! Change in pz without RF
-  real(rp) :: m56_no_rf = 0       ! M56 without RF.
   type (anormal_mode_struct) :: a = anormal_mode_struct()
   type (anormal_mode_struct) :: b = anormal_mode_struct()
   type (anormal_mode_struct) :: z = anormal_mode_struct()
