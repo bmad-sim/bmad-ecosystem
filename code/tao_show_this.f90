@@ -149,7 +149,7 @@ character(6) :: mode(4) = [character(6):: 'a-mode', 'b-mode', 'c-mode', 'spin']
 character(9) angle_str
 character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt, energy_fmt, s_fmt
 character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
-character(24) show_name, show2_name, what_to_print
+character(24) show_name, show2_name, what_to_show
 character(24) :: var_name, blank_str = '', phase_units_str
 character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_name
@@ -267,7 +267,7 @@ case ('alias')
 case ('beam')
 
   ele_name = ''
-  what_to_print = ''
+  what_to_show = ''
 
   do 
     call tao_next_switch (what2, [character(16):: '-universe', '-lattice'], .true., switch, err, ix_s2)
@@ -286,7 +286,7 @@ case ('beam')
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-lattice')
-      what_to_print = switch
+      what_to_show = switch
 
     case default
       if (ele_name /= '') then
@@ -319,7 +319,7 @@ case ('beam')
 
   ! Sigma calc from lattice Twiss.
 
-  if (what_to_print == '-lattice') then
+  if (what_to_show == '-lattice') then
     lat_sig => tao_branch%lat_sigma(ele%ix_ele)
 
     nl=nl+1; lines(nl) = 'Sigma calc from lattice Twiss at: ' // trim(ele%name) // ' ' //  ele_loc_name(ele, .false., '()')
@@ -677,7 +677,7 @@ case ('building_wall')
 
 case ('chromaticity')
 
-  what_to_print = ''
+  what_to_show = ''
 
   do 
     call tao_next_switch (what2, [character(16):: '-universe', '-taylor'], .false., switch, err, ix_s2);  if (err) return
@@ -695,7 +695,7 @@ case ('chromaticity')
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-taylor')
-      what_to_print = switch
+      what_to_show = switch
 
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // what2)
@@ -744,7 +744,7 @@ case ('chromaticity')
 
   !
 
-  if (what_to_print == '-taylor') then
+  if (what_to_show == '-taylor') then
     call alloc(ptc_ctaylor)
 
     do i = 1, 4
@@ -1650,7 +1650,7 @@ case ('element')
 case ('emittance')
 
   ele_name = ''
-  what_to_print = ''
+  what_to_show = ''
 
   do 
     call tao_next_switch (what2, [character(16):: '-universe', '-element', '-xmatrix', '-sigma_matrix'], &
@@ -1674,7 +1674,7 @@ case ('emittance')
       call string_trim (what2(ix_s2+1:), what2, ix_word)
 
     case ('-xmatrix', '-sigma_matrix')
-      what_to_print = switch
+      what_to_show = switch
 
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
@@ -1693,7 +1693,7 @@ case ('emittance')
 
   !
 
-  if (what_to_print == '-xmatrix') then
+  if (what_to_show == '-xmatrix') then
     if (.not. associated(ele%rad_int_cache)) then
       nl=nl+1; lines(nl) = 'No radiation matrices associated with element.'
       return
@@ -1748,14 +1748,15 @@ case ('emittance')
   nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'C', norm_mode%z%emittance, mode_6d%z%emittance, &
                                                            mode_m%sigE_E * mode_m%sig_z, mode0_6d%z%emittance, mode_m%sigE_E * mode_m%sig_z
 
+  nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'J_damp:    ', mode_6d%a%j_damp, mode_6d%b%j_damp, mode_6d%z%j_damp
   nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'Alpha_damp:', mode_6d%a%alpha_damp, mode_6d%b%alpha_damp, mode_6d%z%alpha_damp
   nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'SigE/E:    ', mode_6d%sige_e
   nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'Sig_z:     ', mode_6d%sig_z
-  nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'Alpha_p:   ', mode_6d%m56_no_rf
+  nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'Alpha_p:   ', momentum_compaction(branch)
 
 
-  if (what_to_print == '-sigma_matrix') then
+  if (what_to_show == '-sigma_matrix') then
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write (lines(nl), '(a11, 6es12.4, 4x, 6es12.4)') 'Sigma Mat: ', sig_mat(1,:)
     do i = 2, 6
@@ -1912,7 +1913,7 @@ case ('field')
 
 case ('global')
 
-  what_to_print = 'global'
+  what_to_show = 'global'
 
   do
     call tao_next_switch (what2, [character(20):: '-optimization', '-bmad_com', &
@@ -1923,14 +1924,14 @@ case ('global')
     case ('')
       exit
     case ('-optimization', '-bmad_com', '-csr_param', '-space_charge_com', '-ran_state', '-ptc', '-internal')
-      what_to_print = switch
+      what_to_show = switch
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
       return
     end select
   enddo
 
-  select case (what_to_print)
+  select case (what_to_show)
   case ('global')
     nl=nl+1; lines(nl) = 'Tao Global parameters [Note: To print optimizer globals use: "show optimizer"]'
     nl=nl+1; write(lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
@@ -2497,7 +2498,7 @@ case ('lattice')
   ix_branch = s%global%default_branch
   undef_str = '---'
   print_lords = maybe$
-  what_to_print = 'standard'
+  what_to_show = 'standard'
   allocate (ix_remove(size(column)))
   n_remove = 0
   lat_type = model$
@@ -2536,7 +2537,7 @@ case ('lattice')
       all_lat = .true. 
 
     case ('-attribute')
-      what_to_print = 'attributes'
+      what_to_show = 'attributes'
       n_attrib = n_attrib + 1
       attrib_list(n_attrib) = what2(1:ix_s2)
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
@@ -2558,7 +2559,7 @@ case ('lattice')
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-custom')
-      what_to_print = 'custom'
+      what_to_show = 'custom'
       file_name = what2(1:ix_s2)
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
       iu = lunget()
@@ -2579,10 +2580,10 @@ case ('lattice')
       lat_type = design$
 
     case ('-energy')
-      what_to_print = 'energy'
+      what_to_show = 'energy'
 
     case ('-floor_coords')
-      what_to_print = 'floor_coords'
+      what_to_show = 'floor_coords'
 
     case ('-lords')
       print_lords = yes$
@@ -2607,10 +2608,10 @@ case ('lattice')
       print_tail_lines = .false.
 
     case ('-orbit')
-      if (what_to_print == 'spin') then
-        what_to_print = 'orbit:spin'
+      if (what_to_show == 'spin') then
+        what_to_show = 'orbit:spin'
       else
-        what_to_print = 'orbit'
+        what_to_show = 'orbit'
       endif
 
     case ('-python')
@@ -2618,14 +2619,14 @@ case ('lattice')
       print_tail_lines = .false.
 
     case ('-radiation_integrals')
-      what_to_print = 'rad_int'
+      what_to_show = 'rad_int'
       all_lat = .true.  ! Will only print where radiation integrals is non-zero
 
     case ('-rms')
       print_rms = .true.
 
     case ('-sum_radiation_integrals')
-      what_to_print = 'sum_rad_int'
+      what_to_show = 'sum_rad_int'
       all_lat = .true. ! Will only print where radiation integrals is non-zero
 
     case ('-remove_line_if_zero')
@@ -2641,10 +2642,10 @@ case ('lattice')
       by_s = .true.
 
     case ('-spin')
-      if (what_to_print == 'orbit') then
-        what_to_print = 'orbit:spin'
+      if (what_to_show == 'orbit') then
+        what_to_show = 'orbit:spin'
       else
-        what_to_print = 'spin'
+        what_to_show = 'spin'
       endif
 
     case ('-universe')
@@ -2673,7 +2674,7 @@ case ('lattice')
 
   ! Construct columns if needed.
 
-  select case (what_to_print)
+  select case (what_to_show)
   case ('attributes')
     column( 1)  = show_lat_column_struct('#',                      'i7',        7, '', .false., 1.0_rp)
     column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false., 1.0_rp)
@@ -2992,7 +2993,7 @@ case ('lattice')
       picked_ele(eles(i)%ele%ix_ele) = .true.
     enddo
 
-  elseif (what_to_print == 'rad_int' .or. what_to_print == 'sum_rad_int') then
+  elseif (what_to_show == 'rad_int' .or. what_to_show == 'sum_rad_int') then
     picked_ele = .true.
 
   else
@@ -3059,7 +3060,7 @@ case ('lattice')
 
     ! Use finer scale for s and l if needed.
 
-    if (branch%param%total_length < 1.0_rp .and. what_to_print /= 'custom') then
+    if (branch%param%total_length < 1.0_rp .and. what_to_show /= 'custom') then
       select case (column(i)%name)
       case ('ele::#[s]')
         column(i)%format = 'f13.6'
@@ -3937,7 +3938,7 @@ case ('plot')
 
 case ('ptc')
 
-  what_to_print = ''
+  what_to_show = ''
 
   do
     call tao_next_switch (what2, [character(24):: '-emittance'], .true., switch, err, ix)
@@ -3947,7 +3948,7 @@ case ('ptc')
     case ('')
       exit
     case ('-emittance')
-      what_to_print = switch
+      what_to_show = switch
     end select
   enddo
 
@@ -3970,7 +3971,7 @@ case ('ptc')
 
 case ('spin')
 
-  what_to_print = 'standard'
+  what_to_show = 'standard'
   show_mat = .false.
   sm => datum%spin_map
   sm%axis_input = spin_axis_struct()
@@ -3987,7 +3988,7 @@ case ('spin')
     case ('')
       exit
     case ('-element')
-      what_to_print = 'element'
+      what_to_show = 'element'
       ele_ref_name = upcase(what2(1:ix))
       ele_name = ele_ref_name
       call string_trim(what2(ix+1:), what2, ix)
@@ -4033,7 +4034,7 @@ case ('spin')
     bmad_com%spin_tracking_on = .true.
   endif
 
-  ! what_to_print = standard
+  ! what_to_show = standard
 
   r = anomalous_moment_of(branch%param%particle) * branch%ele(1)%value(e_tot$) / mass_of(branch%param%particle)
   nl=nl+1; lines(nl) = 'a_anomalous_moment * gamma = ' // real_str(r, 6)
@@ -4041,7 +4042,7 @@ case ('spin')
   qs = branch%param%spin_tune/twopi
   nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
 
-  if (what_to_print == 'standard') then
+  if (what_to_show == 'standard') then
     ele => branch%ele(0)
 
     nl=nl+1; write(lines(nl), lmt) 'bmad_com%spin_tracking_on                = ', bmad_com%spin_tracking_on
@@ -4122,7 +4123,7 @@ case ('spin')
       enddo
     enddo
 
-  ! what_to_print = element
+  ! what_to_show = element
   else
     call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
     if (err) return
@@ -4219,7 +4220,7 @@ case ('spin')
     endif
   endif
 
-  result_id = 'spin:' // what_to_print
+  result_id = 'spin:' // what_to_show
   return
 
 !----------------------------------------------------------------------
@@ -4291,19 +4292,19 @@ case ('string')
 
 case ('symbolic_numbers')
 
-  what_to_print = 'tao'
+  what_to_show = 'tao'
 
   do
     call tao_next_switch (what2, [character(24):: '-physical_constants', '-lattice_constants'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('');           exit
-    case ('-physical_constants');    what_to_print = 'physical'
-    case ('-lattice_constants');     what_to_print = 'lattice'
+    case ('-physical_constants');    what_to_show = 'physical'
+    case ('-lattice_constants');     what_to_show = 'lattice'
     end select
   enddo
 
-  select case (what_to_print)
+  select case (what_to_show)
   case ('tao')
     if (allocated(s%com%symbolic_num)) then
       n = nl+10+size(s%com%symbolic_num); if (n > size(lines)) call re_allocate (lines, n, .false.)
@@ -4667,7 +4668,7 @@ case ('taylor_map', 'matrix')
 
 case ('track')
 
-  what_to_print = ''
+  what_to_show = ''
   ele_name = ''
   velocity_fmt = ''
   e_field_fmt = ''
@@ -4774,12 +4775,12 @@ case ('track')
     ele => eles(1)%ele
     s1 = ele%s_start
     s2 = ele%s
-    if (ele%key == beambeam$) what_to_print = 'beambeam'
+    if (ele%key == beambeam$) what_to_show = 'beambeam'
   endif
 
   ! Beambeam element.
 
-  if (what_to_print == 'beambeam') then
+  if (what_to_show == 'beambeam') then
     call track1 (tao_branch%orbit(ele%ix_ele-1), ele, ele%branch%param, orb2, track, err)
     call re_allocate(lines, nl+track%n_pt+10)
 
@@ -5021,20 +5022,25 @@ case ('universe')
   ix_u = s%global%default_universe
   ele_name = ''
   b_name = ''
+  what_to_show = '-radiation_integrals'
 
   do
-    call tao_next_switch (what2, [character(12):: '-element', '-branch'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(20):: '-element', '-branch', '-radiation_integrals'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('')
       exit
 
+    case ('-branch')
+      b_name = what2(1:ix)
+
     case ('-element')       
       ele_name = what2(:ix)
       call string_trim(what2(ix+1:), what2, ix)
 
-    case ('-branch')
-      b_name = what2(1:ix)
+    case ('-radiation_integrals')
+      what_to_show = switch
+      what_to_show = ''
 
     case default
       read (switch, *, iostat = ios) ix_u
