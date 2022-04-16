@@ -1251,11 +1251,11 @@ function mexp (x, m) result (this_exp)
   integer m
 end function
 
-function momentum_compaction(branch, mat6) result (mom_comp)
+function momentum_compaction(branch, mat6, branch_len) result (mom_comp)
   import
   implicit none
   type (branch_struct), optional, target :: branch
-  real(rp), optional :: mat6(6,6)
+  real(rp), optional :: mat6(6,6), branch_len
   real(rp) mom_comp
 end function
 
