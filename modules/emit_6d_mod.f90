@@ -9,7 +9,7 @@
 
 module emit_6d_mod
 
-use mode3_mod
+use bmad_routine_interface
 
 implicit none
 
@@ -115,11 +115,17 @@ sig_s(:,6) =  sigma_mat(:,5)
 
 call mat_eigen(sig_s, eval, evec, err)
 
-mode%a%emittance = aimag(eval(1))
-mode%b%emittance = aimag(eval(3))
-mode%z%emittance = aimag(eval(5))
+if (include_opening_angle) then
+  mode%a%emittance = aimag(eval(1))
+  mode%b%emittance = aimag(eval(3))
+  mode%z%emittance = aimag(eval(5))
+else
+  mode%a%emittance_no_vert = aimag(eval(1))
+  mode%b%emittance_no_vert = aimag(eval(3))
+  mode%z%emittance_no_vert = aimag(eval(5))
+endif
 
-mode%e_loss = mode%dpz_damp * ele_ref%value(e_tot$)
+mode%e_loss = -mode%dpz_damp * ele_ref%value(e_tot$)
 
 if (sigma_mat(5,5) < 0 .or. sigma_mat(6,6) < 0) then
   mode%sig_z = -1
