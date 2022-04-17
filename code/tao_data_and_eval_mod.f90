@@ -699,7 +699,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
   case ('apparent_emit.x', 'norm_apparent_emit.x')
     do i = ix_start, ix_ele
       if (data_source == 'lat') then
-        value_vec(i) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(i), tao_branch%modes)
+        value_vec(i) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(i), tao_branch%modes_ri)
       else
         value_vec(i) = tao_beam_emit_calc (x_plane$, apparent_emit$, branch%ele(i), bunch_params(i))
       endif
@@ -707,7 +707,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
     if (ix_ref > -1) then
       if (data_source == 'lat') then
-        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes)
+        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes_ri)
       else
         value_vec(ix_ref) = tao_beam_emit_calc (x_plane$, apparent_emit$, branch%ele(i), bunch_params(ix_ref))
       endif
@@ -723,7 +723,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
   case ('apparent_emit.y', 'norm_apparent_emit.y')
     do i = ix_start, ix_ele
       if (data_source == 'lat') then
-        value_vec(i) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(i), tao_branch%modes)
+        value_vec(i) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(i), tao_branch%modes_ri)
       else
         value_vec(i) = tao_beam_emit_calc (y_plane$, apparent_emit$, branch%ele(i), bunch_params(i))
       endif
@@ -731,7 +731,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
     if (ix_ref > -1) then
       if (data_source == 'lat') then
-        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes)
+        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes_ri)
         call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
       else
         value_vec(ix_ref) = tao_beam_emit_calc (y_plane$, apparent_emit$, branch%ele(i), bunch_params(ix_ref))
@@ -1272,15 +1272,15 @@ case ('damp.')
   select case (data_type)
 
   case ('damp.j_a')
-    datum_value = tao_branch%modes%a%j_damp
+    datum_value = tao_branch%modes_ri%a%j_damp
     valid_value = .true.
 
   case ('damp.j_b')
-    datum_value = tao_branch%modes%b%j_damp
+    datum_value = tao_branch%modes_ri%b%j_damp
     valid_value = .true.
 
   case ('damp.j_z')
-    datum_value = tao_branch%modes%z%j_damp
+    datum_value = tao_branch%modes_ri%z%j_damp
     valid_value = .true.
 
   case default
@@ -1460,10 +1460,10 @@ case ('emit.', 'norm_emit.')
   case ('emit.x', 'norm_emit.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(i), tao_branch%modes)
+        value_vec(i) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(i), tao_branch%modes_ri)
       enddo
       if (ix_ref > -1) then
-        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(ix_ref), tao_branch%modes)
+        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(ix_ref), tao_branch%modes_ri)
       endif
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
@@ -1475,10 +1475,10 @@ case ('emit.', 'norm_emit.')
   case ('emit.y', 'norm_emit.y')  
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(i), tao_branch%modes)
+        value_vec(i) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(i), tao_branch%modes_ri)
       enddo
       if (ix_ref > -1) then
-        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(ix_ref), tao_branch%modes)
+        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(ix_ref), tao_branch%modes_ri)
       endif
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
@@ -1508,7 +1508,7 @@ case ('emit.', 'norm_emit.')
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
         datum_value = datum_value / gamma
       else
-        datum_value = tao_branch%modes%a%emittance
+        datum_value = tao_branch%modes_ri%a%emittance
         valid_value = .true.
       endif
     elseif (data_source == 'beam') then
@@ -1529,7 +1529,7 @@ case ('emit.', 'norm_emit.')
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
         datum_value = datum_value / gamma
       else
-        datum_value = tao_branch%modes%b%emittance
+        datum_value = tao_branch%modes_ri%b%emittance
         valid_value = .true.
       endif
     elseif (data_source == 'beam') then
@@ -2559,98 +2559,98 @@ case ('rad_int.')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i0)
     else
-      datum_value = tao_branch%modes%synch_int(0)
+      datum_value = tao_branch%modes_ri%synch_int(0)
     endif
 
   case ('rad_int.i1')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i1)
     else
-      datum_value = tao_branch%modes%synch_int(1)
+      datum_value = tao_branch%modes_ri%synch_int(1)
     endif
 
   case ('rad_int.i2')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i2)
     else
-      datum_value = tao_branch%modes%synch_int(2)
+      datum_value = tao_branch%modes_ri%synch_int(2)
     endif
 
   case ('rad_int.i2_e4')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i2_e4)
     else
-      datum_value = tao_branch%modes%lin%i2_e4
+      datum_value = tao_branch%modes_ri%lin%i2_e4
     endif
 
   case ('rad_int.i3')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i3)
     else
-      datum_value = tao_branch%modes%synch_int(3)
+      datum_value = tao_branch%modes_ri%synch_int(3)
     endif
 
   case ('rad_int.i3_e7')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i3_e7)
     else
-      datum_value = tao_branch%modes%lin%i3_e7
+      datum_value = tao_branch%modes_ri%lin%i3_e7
     endif
 
   case ('rad_int.i4a')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i4a)
     else
-      datum_value = tao_branch%modes%a%synch_int(4)
+      datum_value = tao_branch%modes_ri%a%synch_int(4)
     endif
 
   case ('rad_int.i4b')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i4b)
     else
-      datum_value = tao_branch%modes%b%synch_int(4)
+      datum_value = tao_branch%modes_ri%b%synch_int(4)
     endif
 
   case ('rad_int.i4z')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i4z)
     else
-      datum_value = tao_branch%modes%z%synch_int(4)
+      datum_value = tao_branch%modes_ri%z%synch_int(4)
     endif
 
   case ('rad_int.i5a')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i5a)
     else
-      datum_value = tao_branch%modes%a%synch_int(5)
+      datum_value = tao_branch%modes_ri%a%synch_int(5)
     endif
 
   case ('rad_int.i5a_e6')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i5a_e6)
     else
-      datum_value = tao_branch%modes%lin%i5a_e6
+      datum_value = tao_branch%modes_ri%lin%i5a_e6
     endif
 
   case ('rad_int.i5b')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i5b)
     else
-      datum_value = tao_branch%modes%b%synch_int(5)
+      datum_value = tao_branch%modes_ri%b%synch_int(5)
     endif
 
   case ('rad_int.i5b_e6')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i5b_e6)
     else
-      datum_value = tao_branch%modes%lin%i5b_e6
+      datum_value = tao_branch%modes_ri%lin%i5b_e6
     endif
 
   case ('rad_int.i6b')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i6b)
     else
-      datum_value = tao_branch%modes%b%synch_int(6)
+      datum_value = tao_branch%modes_ri%b%synch_int(6)
     endif
 
   case default

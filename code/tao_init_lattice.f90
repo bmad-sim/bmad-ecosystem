@@ -281,8 +281,8 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
   allocate (u%model_branch(0:n))
 
   do ib = 0, ubound(u%design%lat%branch, 1)
-    u%design%tao_branch(ib)%modes%a%emittance = u%design%lat%branch(ib)%a%emit
-    u%design%tao_branch(ib)%modes%b%emittance = u%design%lat%branch(ib)%b%emit
+    u%design%tao_branch(ib)%modes_ri%a%emittance = u%design%lat%branch(ib)%a%emit
+    u%design%tao_branch(ib)%modes_ri%b%emittance = u%design%lat%branch(ib)%b%emit
     n = u%design%lat%branch(ib)%n_ele_max
 
     allocate (u%model%tao_branch(ib)%orbit(0:n), u%model%tao_branch(ib)%bunch_params(0:n))

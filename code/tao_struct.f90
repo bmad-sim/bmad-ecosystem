@@ -50,8 +50,8 @@ logical, save, target :: forever_true$ = .true.  ! Used for pointer init.
 
 interface assignment (=)
   module procedure tao_lattice_equal_tao_lattice
-  module procedure tao_lattice_branch_equal_tao_lattice_branch
   module procedure tao_lattice_branches_equal_tao_lattice_branches
+!  module procedure tao_lattice_branch_equal_tao_lattice_branch
 end interface
 
 !---------
@@ -893,28 +893,28 @@ end type
 
 type tao_lattice_branch_struct
   type (tao_lattice_struct), pointer :: tao_lat => null()     ! Parent tao_lat
-  type (summation_rdt_struct) srdt
-  type (tao_spin_polarization_struct) spin
+  type (tao_lat_sigma_struct), allocatable :: lat_sigma(:)    ! Sigma matrix derived from lattice (not beam).
   type (tao_dn_dpz_struct), allocatable :: dn_dpz(:)          ! Spin invariant field
   type (bunch_params_struct), allocatable :: bunch_params(:)
-  type (tao_lat_sigma_struct), allocatable :: lat_sigma(:)    ! Sigma matrix derived from lattice (not beam).
   type (coord_struct), allocatable :: orbit(:)
-  type (coord_struct) orb0                                    ! For saving beginning orbit
   type (tao_plot_cache_struct), allocatable :: plot_cache(:)  ! Plotting data cache
   type (tao_plot_cache_struct) :: plot_ref_cache              ! Plotting data cache
+  type (tao_lat_mode_struct) a, b
+  type (tao_spin_polarization_struct) spin
+  type (summation_rdt_struct) srdt
+  type (coord_struct) orb0                                    ! For saving beginning orbit
+  type (normal_modes_struct) modes_ri                         ! Synchrotron integrals stuff
+  type (normal_modes_struct) modes_6d                         ! 6D radiation matrices.
+  type (ptc_normal_form_struct) ptc_normal_form
+  type (bmad_normal_form_struct) bmad_normal_form
+  real(rp) :: cache_x_min = 0, cache_x_max = 0
   integer track_state
+  integer :: cache_n_pts = 0
+  integer ix_rad_int_cache                                    ! Radiation integrals cache index.
+  integer :: n_hterms = 0                                     ! Number of distinct res driving terms to evaluate.
   logical has_open_match_element
   logical :: plot_cache_valid = .false.                       ! Valid plotting data cache?
   logical :: spin_valid = .false.
-  real(rp) :: cache_x_min = 0, cache_x_max = 0
-  integer :: cache_n_pts = 0
-  type (normal_modes_struct) modes                            ! Synchrotron integrals stuff
-  type (tao_lat_mode_struct) a, b
-  integer ix_rad_int_cache                                    ! Radiation integrals cache index.
-  integer :: n_hterms = 0                                     ! Number of distinct res driving terms to evaluate.
-  type (normal_modes_struct) modes_rf_on                      ! Synchrotron integrals stuff
-  type (ptc_normal_form_struct) ptc_normal_form
-  type (bmad_normal_form_struct) bmad_normal_form
 end type
 
 ! Structure to hold a single lat_struct (model, base, or design) in
@@ -1149,76 +1149,6 @@ do i = 1, size(tlb1)
 enddo
 
 end subroutine tao_lattice_branches_equal_tao_lattice_branches
-
-!-----------------------------------------------------------------------
-! contains
-
-subroutine tao_lattice_branch_equal_tao_lattice_branch (tlb1, tlb2)
-
-implicit none
-
-type (tao_lattice_branch_struct), intent(inout) :: tlb1
-type (tao_lattice_branch_struct), intent(in) :: tlb2
-integer n1, n2, i
-
-!
-
-if (allocated(tlb2%bunch_params)) then
-  tlb1%bunch_params = tlb2%bunch_params
-else
-  if (allocated(tlb1%bunch_params)) deallocate(tlb1%bunch_params)
-endif
-
-if (allocated(tlb2%lat_sigma)) then
-  tlb1%lat_sigma = tlb2%lat_sigma
-else
-  if (allocated(tlb1%lat_sigma)) deallocate(tlb1%lat_sigma)
-endif
-
-if (allocated(tlb2%orbit)) then
-  tlb1%orbit = tlb2%orbit
-else
-  if (allocated(tlb1%orbit)) deallocate(tlb1%orbit)
-endif
-
-if (allocated(tlb2%dn_dpz)) then
-  tlb1%dn_dpz = tlb2%dn_dpz
-else
-  if (allocated(tlb1%dn_dpz)) deallocate(tlb1%dn_dpz)
-endif
-
-tlb1%srdt                   = tlb2%srdt
-tlb1%orb0                   = tlb2%orb0
-tlb1%track_state            = tlb2%track_state
-tlb1%has_open_match_element = tlb2%has_open_match_element
-tlb1%plot_cache_valid       = tlb2%plot_cache_valid
-tlb1%cache_x_min            = tlb2%cache_x_min
-tlb1%cache_x_max            = tlb2%cache_x_max
-tlb1%cache_n_pts            = tlb2%cache_n_pts
-tlb1%modes                  = tlb2%modes
-tlb1%a                      = tlb2%a
-tlb1%b                      = tlb2%b
-tlb1%ix_rad_int_cache       = tlb2%ix_rad_int_cache
-tlb1%modes_rf_on            = tlb2%modes_rf_on
-
-
-n1 = -1
-if (allocated(tlb1%plot_cache)) n1 = size(tlb1%plot_cache)
-
-n2 = -1
-if (allocated(tlb2%plot_cache)) n2 = size(tlb2%plot_cache)
-
-if (n1 > -1 .and. n1 /= n2) call tao_deallocate_plot_cache(tlb1%plot_cache)
-
-if (n2 > -1) then
-  if (.not. allocated(tlb1%plot_cache)) allocate (tlb1%plot_cache(n2))
-  do i = 1, n2
-    tlb1%plot_cache(i)%ele   = tlb2%plot_cache(i)%ele
-    tlb1%plot_cache(i)%orbit = tlb2%plot_cache(i)%orbit
-  enddo
-endif
-
-end subroutine tao_lattice_branch_equal_tao_lattice_branch 
 
 !-----------------------------------------------------------------------
 ! contains

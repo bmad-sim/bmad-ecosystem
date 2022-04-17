@@ -311,7 +311,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
     if (branch%param%particle /= photon$) then
       call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
-                                  tao_branch%modes_rf_on, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
+                                  tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
     endif
 
     if (branch%param%geometry == closed$) then
@@ -366,7 +366,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%data%base_value   = u%data%model_value
   u%data%good_design  = u%data%good_model
   u%data%good_base    = u%data%good_model
-  u%design%tao_branch%modes = u%design%tao_branch%modes_rf_on
 enddo
 
 if (iu_log > 0) write (iu_log, '(a)') '*Init: End lattice calc.'

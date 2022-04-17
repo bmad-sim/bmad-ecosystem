@@ -178,7 +178,7 @@ endif
 if (branch%param%particle /= photon$ .and. s%global%rad_int_calc_on .and. &
             (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. s%global%track_type == 'beam')) then
   call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
-                      tao_branch%modes, tao_branch%ix_rad_int_cache, ix_branch, tao_lat%rad_int)
+                      tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix_branch, tao_lat%rad_int)
 endif
 
 end subroutine tao_single_track
@@ -769,7 +769,7 @@ endif
 ele0 => branch%ele(bb%ix_track_start)
 
 if (bb%init_starting_distribution .or. u%beam%always_reinit) then
-  call init_beam_distribution (ele0, branch%param, bb%beam_init, beam, err, u%model%tao_branch(ix_branch)%modes)
+  call init_beam_distribution (ele0, branch%param, bb%beam_init, beam, err, u%model%tao_branch(ix_branch)%modes_ri)
   if (err) then
     call out_io (s_error$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT PROPERLY SET FOR UNIVERSE: ' // int_str(u%ix_uni))
     return

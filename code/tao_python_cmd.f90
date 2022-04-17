@@ -5832,7 +5832,7 @@ case ('ring_general')
   call chrom_calc (branch%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
                                                   pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch)
   call calc_z_tune(branch%lat, branch%ix_branch)
-  call radiation_integrals (branch%lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, branch%ix_branch)
+  call radiation_integrals (branch%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, branch%ix_branch)
 
   n = branch%n_ele_track
   time1 = branch%ele(n)%ref_time
@@ -5845,29 +5845,29 @@ case ('ring_general')
   nl=incr(nl); write (li(nl), rmt) 'Q_spin;REAL;F;',                            branch%param%spin_tune/twopi
   nl=incr(nl); write (li(nl), rmt) 'chrom_a;REAL;F;',                           tao_branch%a%chrom
   nl=incr(nl); write (li(nl), rmt) 'chrom_b;REAL;F;',                           tao_branch%b%chrom
-  nl=incr(nl); write (li(nl), rmt) 'J_damp_a;REAL;F;',                          tao_branch%modes%a%j_damp
-  nl=incr(nl); write (li(nl), rmt) 'J_damp_b;REAL;F;',                          tao_branch%modes%b%j_damp
-  nl=incr(nl); write (li(nl), rmt) 'J_damp_z;REAL;F;',                          tao_branch%modes%z%j_damp
-  nl=incr(nl); write (li(nl), rmt) 'emit_a;REAL;F;',                            tao_branch%modes%a%emittance
-  nl=incr(nl); write (li(nl), rmt) 'emit_b;REAL;F;',                            tao_branch%modes%b%emittance
-  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_a;REAL;F;',                      tao_branch%modes%a%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_b;REAL;F;',                      tao_branch%modes%b%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_z;REAL;F;',                      tao_branch%modes%z%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'damping_time_a;REAL;F;',                    time1/tao_branch%modes%a%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'damping_time_b;REAL;F;',                    time1/tao_branch%modes%b%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'damping_time_z;REAL;F;',                    time1/tao_branch%modes%z%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'sigE_E;REAL;F;',                            tao_branch%modes%sigE_E
-  nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;F;',                             tao_branch%modes%sig_z
-  nl=incr(nl); write (li(nl), rmt) 'energy_loss;REAL;F;',                       tao_branch%modes%e_loss
-  nl=incr(nl); write (li(nl), rmt) 'I0;REAL;F;',                                tao_branch%modes%synch_int(0)
-  nl=incr(nl); write (li(nl), rmt) 'I1;REAL;F;',                                tao_branch%modes%synch_int(1)
-  nl=incr(nl); write (li(nl), rmt) 'I2;REAL;F;',                                tao_branch%modes%synch_int(2)
-  nl=incr(nl); write (li(nl), rmt) 'I3;REAL;F;',                                tao_branch%modes%synch_int(3)
-  nl=incr(nl); write (li(nl), rmt) 'I4_a;REAL;F;',                              tao_branch%modes%a%synch_int(4)
-  nl=incr(nl); write (li(nl), rmt) 'I4_b;REAL;F;',                              tao_branch%modes%b%synch_int(4)
-  nl=incr(nl); write (li(nl), rmt) 'I5_a;REAL;F;',                              tao_branch%modes%a%synch_int(5)
-  nl=incr(nl); write (li(nl), rmt) 'I5_b;REAL;F;',                              tao_branch%modes%b%synch_int(5)
-  nl=incr(nl); write (li(nl), rmt) 'I6_g2_b;REAL;F;',                           tao_branch%modes%b%synch_int(6) / gamma**2
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_a;REAL;F;',                          tao_branch%modes_ri%a%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_b;REAL;F;',                          tao_branch%modes_ri%b%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_z;REAL;F;',                          tao_branch%modes_ri%z%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'emit_a;REAL;F;',                            tao_branch%modes_ri%a%emittance
+  nl=incr(nl); write (li(nl), rmt) 'emit_b;REAL;F;',                            tao_branch%modes_ri%b%emittance
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_a;REAL;F;',                      tao_branch%modes_ri%a%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_b;REAL;F;',                      tao_branch%modes_ri%b%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_z;REAL;F;',                      tao_branch%modes_ri%z%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_a;REAL;F;',                    time1/tao_branch%modes_ri%a%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_b;REAL;F;',                    time1/tao_branch%modes_ri%b%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_z;REAL;F;',                    time1/tao_branch%modes_ri%z%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'sigE_E;REAL;F;',                            tao_branch%modes_ri%sigE_E
+  nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;F;',                             tao_branch%modes_ri%sig_z
+  nl=incr(nl); write (li(nl), rmt) 'energy_loss;REAL;F;',                       tao_branch%modes_ri%e_loss
+  nl=incr(nl); write (li(nl), rmt) 'I0;REAL;F;',                                tao_branch%modes_ri%synch_int(0)
+  nl=incr(nl); write (li(nl), rmt) 'I1;REAL;F;',                                tao_branch%modes_ri%synch_int(1)
+  nl=incr(nl); write (li(nl), rmt) 'I2;REAL;F;',                                tao_branch%modes_ri%synch_int(2)
+  nl=incr(nl); write (li(nl), rmt) 'I3;REAL;F;',                                tao_branch%modes_ri%synch_int(3)
+  nl=incr(nl); write (li(nl), rmt) 'I4_a;REAL;F;',                              tao_branch%modes_ri%a%synch_int(4)
+  nl=incr(nl); write (li(nl), rmt) 'I4_b;REAL;F;',                              tao_branch%modes_ri%b%synch_int(4)
+  nl=incr(nl); write (li(nl), rmt) 'I5_a;REAL;F;',                              tao_branch%modes_ri%a%synch_int(5)
+  nl=incr(nl); write (li(nl), rmt) 'I5_b;REAL;F;',                              tao_branch%modes_ri%b%synch_int(5)
+  nl=incr(nl); write (li(nl), rmt) 'I6_g2_b;REAL;F;',                           tao_branch%modes_ri%b%synch_int(6) / gamma**2
 
 !%% shape_list -----------------------
 ! Output lat_layout or floor_plan shapes list
