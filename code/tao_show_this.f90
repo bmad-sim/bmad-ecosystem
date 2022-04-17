@@ -1566,8 +1566,8 @@ case ('element')
   endif
 
   if (mass_of(branch%param%particle) /= 0) then
-    ele%a%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance)
-    ele%b%sigma = sqrt(ele%b%beta * tao_branch%modes%b%emittance)
+    ele%a%sigma = sqrt(ele%a%beta * tao_branch%modes_ri%a%emittance)
+    ele%b%sigma = sqrt(ele%b%beta * tao_branch%modes_ri%b%emittance)
     ele%x%sigma = sqrt(tao_branch%lat_sigma(ele%ix_ele)%mat(1,1))
     ele%y%sigma = sqrt(tao_branch%lat_sigma(ele%ix_ele)%mat(3,3))
   endif
@@ -1726,11 +1726,11 @@ case ('emittance')
   !
 
   tao_branch => u%model%tao_branch(ele%ix_branch)
-  mode_m => tao_branch%modes
+  mode_m => tao_branch%modes_ri
 
   call emit_6d (ele, .false., mode0_6d, sig0_mat)
   call emit_6d (ele, .true., mode_6d, sig_mat)
-  call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, ele%ix_branch)
+  call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ele%ix_branch)
 
   if (.not. associated(branch%ptc%m_t_layout)) then
     call out_io (s_info$, r_name, 'Note: Creating PTC layout (equivalent to "ptc init").')
@@ -2926,10 +2926,10 @@ case ('lattice')
   do i = 1, size(column)
     if (index(column(i)%name, 'rad_int') /= 0) then
       ix = ix_branch
-      call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, ix, u%model%rad_int)
-      call radiation_integrals (u%design%lat, design_tao_branch%orbit, design_tao_branch%modes, &
+      call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix, u%model%rad_int)
+      call radiation_integrals (u%design%lat, design_tao_branch%orbit, design_tao_branch%modes_ri, &
                                                             design_tao_branch%ix_rad_int_cache, ix, u%design%rad_int)
-      call radiation_integrals (u%base%lat, u%base%tao_branch(ix)%orbit, u%base%tao_branch(ix)%modes, &
+      call radiation_integrals (u%base%lat, u%base%tao_branch(ix)%orbit, u%base%tao_branch(ix)%modes_ri, &
                                                   u%base%tao_branch(ix)%ix_rad_int_cache, ix, u%base%rad_int)
       exit
     endif
@@ -5143,7 +5143,7 @@ case ('universe')
   endif
  
   if (s%global%rad_int_calc_on) then
-    call radiation_integrals (lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, ix_branch)
+    call radiation_integrals (lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix_branch)
   else
     nl= nl+1; lines(nl) = ' Note: User has turned radiation integrals calculations off so emittances, etc. will not be displayed.'
   endif
@@ -5154,14 +5154,14 @@ case ('universe')
   endif
 
   fmt  = '(1x, a16, 2es13.5, 2x, 2es13.5, 2x, a)'
-  fmt2 = '(1x, a16, 2f13.6, 2x, 2f13.6, 2x, a)'
-  fmt3 = '(1x, a16,        28x, 2es13.5, 2x, a)'
+  fmt2 = '(1x, a16,  2f13.6, 2x,  2f13.6, 2x, a)'
+  fmt3 = '(1x, a16,         28x, 2es13.5, 2x, a)'
   phase_units = 1 / twopi
   l_lat = branch%param%total_length
   n = branch%n_ele_track
   time1 = branch%ele(n)%ref_time
-  mode_m => tao_branch%modes
-  mode_d => design_tao_branch%modes
+  mode_m => tao_branch%modes_ri
+  mode_d => design_tao_branch%modes_ri
 
   if (branch%param%geometry == closed$ .or. s%global%rad_int_calc_on) then
 
