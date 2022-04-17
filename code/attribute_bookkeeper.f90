@@ -480,10 +480,13 @@ case (lcavity$)
     val(rf_wavelength$) = 0
   endif
 
-  if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
-    val(l_active$) = 0.5_rp * val(rf_wavelength$) * nint(val(n_cell$))
-  else
-    val(l_active$) = val(l$)
+  ! multipass_slaves will inherit from lord
+  if (ele%slave_status /= multipass_slave$) then
+    if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
+      val(l_active$) = 0.5_rp * val(rf_wavelength$) * nint(val(n_cell$))
+    else
+      val(l_active$) = val(l$)
+    endif
   endif
 
 ! Patch
@@ -516,10 +519,13 @@ case (rfcavity$)
     val(rf_wavelength$) = 0
   endif
 
-  if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
-    val(l_active$) = 0.5_rp * val(rf_wavelength$) * nint(val(n_cell$))
-  else
-    val(l_active$) = val(l$)
+  ! multipass_slaves will inherit from lord
+  if (ele%slave_status /= multipass_slave$) then
+    if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
+      val(l_active$) = 0.5_rp * val(rf_wavelength$) * nint(val(n_cell$))
+    else
+      val(l_active$) = val(l$)
+    endif
   endif
 
   if (val(voltage$) == 0) then
