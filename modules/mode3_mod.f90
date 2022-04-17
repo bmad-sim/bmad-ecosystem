@@ -19,8 +19,8 @@ real(rp), parameter :: S(6,6) = reshape( [o, -l, o, o, o, o, l, o, o, o, o, o, &
 real(rp), parameter :: I2_mat(2, 2) = reshape( [1, 0, 0, 1], [2, 2] )
 
 private m, o, l
-private Qr, Qi
-private S
+private Q, Qr, Qi
+private S, I2_mat
 
 contains
 
