@@ -165,8 +165,8 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
         cmd_out(ix:ix) = ' '
         ix = len_trim(cmd_out)
         cycle
-      endif        
-      if (any(cmd_out(ix:ix) == [',', '(', '{', '[', '='])) cycle
+      endif
+      !!!! if (any(cmd_out(ix:ix) == [',', '(', '{', '[', '='])) cycle
       exit
     enddo
 
