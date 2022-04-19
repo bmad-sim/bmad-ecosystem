@@ -156,6 +156,15 @@ invertible, \Eq{mtz} can be written in the form
 \end{equation}
 $\bfD$ is defined by this equation.
 
+The 1-turn damping decrement $\alpha$ for each mode $a$, $b$, and $c$ of oscillation can be
+calculated from the eigen values $\lambda_i$ (cf. \Eq{llee}) of the one-turn matrix with damping via
+\begin{equation}
+  \alpha_a = 1 - |\lambda_1| = 1 - |\lambda_2|, \quad 
+  \alpha_b = 1 - |\lambda_3| = 1 - |\lambda_4|, \quad 
+  \alpha_c = 1 - |\lambda_5| = 1 - |\lambda_6|
+  \label{allall}
+\end{equation}
+
 The $\Cal{S}$ matrix is calculated by first noting that, to linear order, the distribution of
 $\delta\bfr_2$ due to stochastic radiation over some length $ds$ as some point $s$ is
 \begin{equation}
@@ -213,7 +222,7 @@ With $s_1 = s_2 = s$, and using \Eq{ssmsm}, the equilibrium beam size matrix can
   \bfV(\bfsig(s)) = \bfV(\bfsig_{\gamma ss}) + \wt\bfM \, \bfV(\bfsig(s))
   \label{vsmv}
 \end{equation}
-where the $21\times21$ matrix $\wt\bfM$ is defined so that for any symmetrix $\bfA$, $\wt\bfM \, \bfV(\bfA) =
+where the $21\times21$ matrix $\wt\bfM$ is defined so that for any symmetric $\bfA$, $\wt\bfM \, \bfV(\bfA) =
 \bfV(\bfM\bfA\bfM^t)$. That is
 \begin{equation}
   \wt\bfM = \begin{pmatrix}
@@ -239,22 +248,28 @@ beam energy (sawtooth effect) around the ring (\sref{s:radiation}).
 The emittance calculation makes a number of approximations. One approximation is embodied in
 \Eq{zstd} which assumes that the damping is weak enough so that second order and higher terms can be
 neglected. Another approximation is that, within the extent of the beam, the damping as a function
-of transverse position is linear. That is, the effect of the damping is well represented by the matrix
-$\bfd$ in \Eq{zstd}. The third major assumption is that, within the extent of the beam, the
+of transverse position is linear. That is, the effect of the damping is well represented by the
+matrix $\bfd$ in \Eq{zstd}. The third major assumption is that, within the extent of the beam, the
 stochastic kick coefficient $\bfF_\mk{f}$ (\Eq{fk000}) is independent of the transverse coordinates.
-Other approximations involve the assumption of linearity of the guide fields and the ignoring of
-any resonance or wakefield effects. To the extent that these assumptions are violated will lead to
-a non-Gaussian beam shape. 
+Other approximations involve the assumption of linearity of the guide fields and the ignoring of any
+resonance or wakefield effects. To the extent that these assumptions are violated, this will lead to
+a non-Gaussian beam shape.
+
+The accuracy of the calculation of the emittance and other parameters derived from the damping
+matrix will scale with the damping decrement (\Eq{allall}).  For most practical cases this is not an
+issue. For example, a calculation using double precision numbers (with have a precision of order
+$10^{-16}$) for a machine with a 1-turn damping decrement of $10^{-7}$ will lead to an accuracy of
+order $10^{-16}/10^{-7} = 10^{-9}$. It should be kept in mind that in any case in the limit of zero
+damping the approximations made as discussed in the previous paragraph will not be valid.
 
 %-----------------------------------------------------------------
 \section{Synchrotron Radiation Integrals}
 \label{s:synch.ints}
 \index{synchrotron radiation!integrals}
 
-The synchrotron radiation integrals were the original method used in \bmad to compute emittances,
-the energy spread, etc. Currently, the use of radiation integrals is being retired in favor of
-calculating emittances, etc. via the 6D damped and stochastic transport matrices
-(\sref{s:map.rad}). Using these matrices has a number of advantages.
+the synchrotron radiation integrals can be used to compute emittances, the energy spread,
+etc. However, using the 6D damped and stochastic transport matrices (\sref{s:map.rad}) has
+a number of advantages
 \begin{itemize}
 %
 \item
@@ -276,7 +291,8 @@ the other hand, the radiation integrals are dependent on the Twiss, dispersion, 
 parameters which make the integrals nonlocal.
 %
 \item
-The 6D formalism can be used to construct transport maps with radiation damping and excitation for efficient particle tracking.
+The 6D formalism can be used to construct transport maps with radiation damping and excitation for
+efficient particle tracking.
 \end{itemize}
 
 The standard radiation formulas assume no coupling between the horizontal and vertical
