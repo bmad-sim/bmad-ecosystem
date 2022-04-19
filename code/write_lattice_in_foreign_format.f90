@@ -703,11 +703,11 @@ do   ! ix_ele = 1e1, ie2
       case (no_end$);       line_out = trim(line_out) // ', edge1_effects = 0, edge2_effects = 0'
       end select
 
-      call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, include_kicks$)
+      call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, magnetic$, include_kicks$)
       call value_to_line (line_out, ele%value(dg$)*ele%value(rho$), 'fse_dipole', 'R')
       call value_to_line (line_out, b_pole(0) - ele%value(dg$)*ele%value(l$), 'xkick', 'R')
       do n = 1, 8
-        call value_to_line (line_out, b_pole(n)*factorial(n), 'k' // int_str(n), 'R')
+        call value_to_line (line_out, b_pole(n)*factorial(n)/ele%value(l$), 'k' // int_str(n), 'R')
       enddo
 
 
@@ -723,7 +723,9 @@ do   ! ix_ele = 1e1, ie2
       elegant_params(:12) = [character(40):: 'l', 'angle', 'e1', 'e2', 'tilt', 'etilt', 'h1', 'h2', 'ykick', 'dx', 'dy', 'dz']
 
     case (quadrupole$)   ! Elegant
-      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, include_kicks$)
+      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
+      knl = knl / ele%value(l$)
+
       if (knl(2) == 0) then
         write (line_out, '(2a)') trim(ele%name) // ': kquad'
         if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) line_out = trim(line_out) // ', malign_method = 2'
@@ -732,10 +734,16 @@ do   ! ix_ele = 1e1, ie2
         call value_to_line (line_out, knl(2)*cos(3*(tilts(2)-tilts(1)))/2, 'k2', 'R')
       endif
 
+      tilt = tilts(1)
       call value_to_line (line_out, knl(1), 'k1', 'R')
 
+      bmad_params(:1) = [character(40):: 'l']
+      elegant_params(:1) = [character(40):: 'l']
+
     case (sextupole$)   ! Elegant
-      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, include_kicks$)
+      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
+      knl = knl / ele%value(l$)
+
       write (line_out, '(2a)') trim(ele%name) // ': ksext'
       if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) line_out = trim(line_out) // ', malign_method = 2'
       call value_to_line (line_out, knl(2), 'k2', 'R')
@@ -747,10 +755,11 @@ do   ! ix_ele = 1e1, ie2
       tilt = tilts(2)
       bmad_params(:1) = [character(40):: 'l']
       elegant_params(:1) = [character(40):: 'l']
-      
 
     case (octupole$)   ! Elegant
-      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, include_kicks$)
+      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
+      knl = knl / ele%value(l$)
+
       write (line_out, '(2a)') trim(ele%name) // ': koct'
       call value_to_line (line_out, knl(3), 'k3', 'R')
       call value_to_line (line_out, knl(0)*cos(tilts(0)), 'hkick', 'R')
@@ -900,7 +909,7 @@ do   ! ix_ele = 1e1, ie2
     case (sbend$, patch$, drift$)
       ! Pass
 
-    case (sextupole$, octupole$, taylor$)
+    case (quadrupole$, sextupole$, octupole$, taylor$)
       x_pitch = ele%value(x_pitch$)
       y_pitch = ele%value(y_pitch$)
       call floor_angles_to_w_mat(x_pitch, y_pitch, tilt, w_mat)
@@ -923,7 +932,7 @@ do   ! ix_ele = 1e1, ie2
       call value_to_line (line_out, offset(2), 'dy', 'R')
       call value_to_line (line_out, offset(3), 'dz', 'R')
 
-    case (quadrupole$, instrument$, detector$, monitor$, hkicker$, vkicker$, kicker$)  ! Has tilt but not pitches.
+    case (instrument$, detector$, monitor$, hkicker$, vkicker$, kicker$)  ! Has tilt but not pitches.
       if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) then
         call out_io (s_warn$, r_name, 'X_PITCH OR Y_PITCH PARAMETERS OF A ' // trim(key_name(ele%key)) // ' CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
       endif
