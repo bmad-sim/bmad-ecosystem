@@ -465,24 +465,12 @@ case ('mad', 'mad8', 'madx', 'opal_latice', 'sad', 'xsif', 'elegant')
   case ('elegant'); file_name0 = 'lat_#.lte';  lat_type = 'ELEGANT'
   end select
 
-  do 
-    ix_word = ix_word + 1
-    if (ix_word == size(word)-1) exit
+  if (word(1) /= '') file_name0 = word(1) 
 
-    call tao_next_switch (word(ix_word), [character(16):: 'zzz!?'], .true., switch, err, ix)
-    if (err) return
-
-    select case (switch)
-    case ('');       exit
-
-    case default
-      if (file_name0(1:9) /= 'lat_#.mad') then
-        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
-        return
-      endif
-      file_name0 = switch
-    end select
-  enddo
+  if (word(2) /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+    return
+  endif
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
