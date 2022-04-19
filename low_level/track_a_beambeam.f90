@@ -53,10 +53,9 @@ character(*), parameter :: r_name = 'track_a_beambeam'
 
 if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
 
-if (strong_beam_strength(ele) == 0) return
-
 del = 0.001
 if (ele%value(sig_x$) == 0 .or. ele%value(sig_x$) == 0) then
+  if (strong_beam_strength(ele) == 0) return
   call out_io (s_error$, r_name, 'STRONG BEAM SIGMAS NOT SET FOR BEAMBEAM ELEMENT: ' // ele%name, &
                                  'PARTICLE WILL BE MARKED AS LOST.')
   orbit%state = lost$
@@ -132,7 +131,7 @@ do i = 1, n_slice
   endif
 enddo
 
-call offset_particle(ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+call offset_particle(ele, unset$, orbit, s_pos = s_pos, mat6 = mat6, make_matrix = make_matrix)
 call solenoid_track_and_mat (ele, -s_pos, param, orbit, orbit, mat6, make_matrix)
 
 if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())
