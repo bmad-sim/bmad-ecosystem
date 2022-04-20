@@ -126,8 +126,8 @@ end type
 type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
 
-real(rp) phase_units, l_lat, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s_pos, dt, angle, r
-real(rp) sig_mat(6,6), sig0_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3)
+real(rp) phase_units, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s_pos, dt, angle, r
+real(rp) sig_mat(6,6), sig0_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), l_lat
 real(rp) pc, e_tot, value_min, value_here, pz1, phase
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, time1, ds, ref_vec(6), beta
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
@@ -169,7 +169,7 @@ integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word, species
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
-integer eval_pt, n_count, print_field
+integer eval_pt, n_count, print_field, nt
 integer, allocatable :: ix_c(:), ix_remove(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
@@ -226,10 +226,11 @@ if (what == '') then
 endif
 
 call match_word (what, [character(20):: 'alias', 'beam', 'branch', 'building_wall', &
-        'chromaticity', 'constraints', 'control', 'curve', &
-        'data', 'derivative', 'dynamic_aperture', 'element', 'emittance', 'field', 'global', 'graph', 'history', &
-        'hom', 'internal', 'key_bindings', 'lattice', 'matrix', 'merit', 'normal_form', 'optimizer', &
-        'orbit', 'particle', 'plot', 'ptc', 'spin', 'string', 'symbolic_numbers', 'taylor_map',  'top10', &
+        'chromaticity', 'constraints', 'control', 'curve', 'data', &
+        'derivative', 'dynamic_aperture', 'element', 'emittance', 'field', 'global', 'graph', &
+        'history', 'hom', 'internal', 'key_bindings', 'lattice', 'matrix', 'merit', 'normal_form', &
+        'optimizer', 'orbit', 'particle', 'plot', 'ptc', 'radiation_integrals', 'spin', 'string', &
+        'symbolic_numbers', 'taylor_map',  'top10', &
         'track', 'tune', 'twiss_and_orbit', 'universe', 'use', 'value', 'variables', 'version', &
         'wake_elements', 'wall', 'wave'], ix, matched_name = show_what)
 if (ix == 0) then
@@ -3967,6 +3968,134 @@ case ('ptc')
   nl=nl+1; write(lines(nl), '(1x, a, 6es15.7)') 'Starting orbit:', orb%vec
 
 !----------------------------------------------------------------------
+! radiation_integrals
+
+case ('radiation_integrals')
+
+  ix_u = s%global%default_universe
+  b_name = ''
+
+  do
+    call tao_next_switch (what2, [character(20):: '-branch'], .true., switch, err, ix)
+    if (err) return
+    select case (switch)
+    case ('')
+      exit
+
+    case ('-branch')
+      b_name = what2(1:ix)
+
+    case default
+      read (switch, *, iostat = ios) ix_u
+      if (ios /= 0) then
+        nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
+        return
+      endif
+      if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
+        nl=1; lines(1) = 'UNIVERSE NUMBER OUT OF RANGE'
+        return
+      endif
+    end select
+  enddo
+
+  !
+
+  u => s%u(ix_u)
+  lat => u%model%lat
+
+  if (b_name /= '') then
+    branch => pointer_to_branch(b_name, u%model%lat)
+    if (.not. associated(branch)) then
+      nl=1; write(lines(1), *) 'Bad branch name or index: ', b_name
+      return
+    endif
+    ix_branch = branch%ix_branch
+  endif
+
+  branch => lat%branch(ix_branch)
+  model_branch => u%model_branch(ix_branch)
+  tao_branch => u%model%tao_branch(ix_branch)
+
+  design_lat => u%design%lat
+  design_branch => design_lat%branch(ix_branch)
+  design_tao_branch => u%design%tao_branch(ix_branch)
+
+  nl = 0
+  nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', ix_u,      '  Of: ', ubound(s%u, 1)
+  nl=nl+1; write(lines(nl), '(3(a, i0))') 'Branch:   ', ix_branch, '  In range: [0, ', ubound(lat%branch,1), ']'
+
+  call radiation_integrals (lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix_branch)
+
+  mode_d => design_tao_branch%modes_ri
+  mode_m => tao_branch%modes_ri
+  l_lat = branch%param%total_length
+  mode_d%momentum_compaction = mode_d%synch_int(1)/l_lat
+  mode_m%momentum_compaction = mode_m%synch_int(1)/l_lat
+
+  nt = branch%n_ele_track
+  time1 = branch%ele(nt)%ref_time
+  gamma = branch%ele(0)%value(e_tot$) / mass_of(species)
+
+  fmt  = '(1x, a16, 2es13.5, 2x, 2es13.5, 2x, a)'
+  fmt2 = '(1x, a16,  2f13.6, 2x,  2f13.6, 2x, a)'
+  fmt3 = '(1x, a16,         28x, 2es13.5, 2x, a)'
+
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; write(lines(nl), '(23x, a)') '         X            |              Y'
+  nl=nl+1; write(lines(nl), '(23x, a)') '  Model       Design  |       Model       Design'
+
+  if (branch%param%geometry == closed$) then
+    nl=nl+1; write(lines(nl), fmt2) 'J_damp', mode_m%a%j_damp, mode_d%a%j_damp, mode_m%b%j_damp, mode_d%b%j_damp, '! Damping Partition #'
+    nl=nl+1; write(lines(nl), fmt) 'Emittance', mode_m%a%emittance, mode_d%a%emittance, mode_m%b%emittance, mode_d%b%emittance, '! Unnormalized'
+    nl=nl+1; write(lines(nl), '(a43, 2x, 2es13.5)') 'Emit (photon vert opening angle ignored)', &
+                                                                      mode_m%b%emittance_no_vert, mode_d%b%emittance_no_vert
+    if (mode_m%b%alpha_damp /= 0) then
+      nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', mode_m%a%alpha_damp, mode_d%a%alpha_damp, mode_m%b%alpha_damp, mode_d%b%alpha_damp, '! Damping per turn'
+      nl=nl+1; write(lines(nl), fmt) 'Damping_time', time1/mode_m%a%alpha_damp, time1/mode_d%a%alpha_damp, time1/mode_m%b%alpha_damp, time1/mode_d%b%alpha_damp, '! Sec'
+    endif
+
+    nl=nl+1; write(lines(nl), fmt) 'I4', mode_m%a%synch_int(4), mode_d%a%synch_int(4), mode_m%b%synch_int(4), mode_d%b%synch_int(4), '! Radiation Integral'
+    nl=nl+1; write(lines(nl), fmt) 'I5', mode_m%a%synch_int(5), mode_d%a%synch_int(5), mode_m%b%synch_int(5), mode_d%b%synch_int(5), '! Radiation Integral'
+    nl=nl+1; write(lines(nl), fmt3) 'I6b/gamma^2', mode_m%b%synch_int(6) / gamma**2, mode_d%b%synch_int(6) / gamma**2, '! Radiation Integral'
+  else
+    nl=nl+1; write(lines(nl), fmt) 'Final Emittance', mode_m%lin%a_emittance_end, mode_d%lin%a_emittance_end, mode_m%lin%b_emittance_end, mode_d%lin%b_emittance_end, '! Meters'
+    nl=nl+1; write(lines(nl), fmt) 'I5*gamma^6', mode_m%lin%i5a_e6, mode_d%lin%i5a_e6, mode_m%lin%i5b_e6, mode_d%lin%i5b_e6, '! Linac Radiation Integral'
+  endif
+
+  fmt  = '(1x, a16, 2es13.5, 3x, a)'
+  fmt2 = '(1x, a16, 2f13.7, 3x, a)'
+
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; write(lines(nl), '(23x, a)') '  Model       Design'
+
+  if (branch%param%geometry == closed$) then
+    if (mode_m%z%alpha_damp /= 0) then
+      nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', mode_m%sigE_E, mode_d%sigE_E
+      nl=nl+1; write(lines(nl), fmt) 'Sig_z:  ', mode_m%sig_z, mode_d%sig_z, '! Only calculated when RF is on'
+      nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', mode_m%e_loss, mode_d%e_loss, '! Energy_Loss (eV / Turn)'
+      nl=nl+1; write(lines(nl), fmt) 'J_damp:', mode_m%z%j_damp, mode_d%z%j_damp, '! Longitudinal Damping Partition #'
+      nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', mode_m%z%alpha_damp, mode_d%z%alpha_damp, '! Longitudinal Damping per turn'
+      nl=nl+1; write(lines(nl), fmt) 'damp_time:', time1/mode_m%z%alpha_damp, time1/mode_d%z%alpha_damp, '! Longitudinal Damping time (sec)'
+    endif
+
+    nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', mode_m%momentum_compaction, mode_d%momentum_compaction, '! Momentum Compaction'
+    nl=nl+1; write(lines(nl), fmt) 'Eta_p:', mode_m%momentum_compaction - 1.0_rp/gamma**2, mode_d%momentum_compaction - 1.0_rp/gamma**2, '! Slip factor'
+    if (mode_m%momentum_compaction > 0) then
+      nl=nl+1; write(lines(nl), fmt) 'gamma_trans:', sqrt(1.0_rp/mode_m%momentum_compaction), sqrt(1.0_rp/mode_d%momentum_compaction), '! Gamma at transition'
+    endif
+
+    nl=nl+1; write(lines(nl), fmt) 'I0:', mode_m%synch_int(0), mode_d%synch_int(0), '! Radiation Integral'
+    nl=nl+1; write(lines(nl), fmt) 'I1:', mode_m%synch_int(1), mode_d%synch_int(1), '! Radiation Integral'
+    nl=nl+1; write(lines(nl), fmt) 'I2:', mode_m%synch_int(2), mode_d%synch_int(2), '! Radiation Integral'
+    nl=nl+1; write(lines(nl), fmt) 'I3:', mode_m%synch_int(3), mode_d%synch_int(3), '! Radiation Integral'
+  else
+    nl=nl+1; write(lines(nl), fmt) 'I1:', mode_m%synch_int(1), mode_d%synch_int(1), '! Radiation Integral'
+    nl=nl+1; write(lines(nl), fmt) 'I2*gamma^4', mode_m%lin%i2_e4, mode_d%lin%i2_e4, '! Linac Radiation Integral'
+    nl=nl+1; write(lines(nl), fmt) 'I3*gamma^7', mode_m%lin%i3_e7, mode_d%lin%i3_e7, '! Linac Radiation Integral'
+  endif
+
+
+!----------------------------------------------------------------------
 ! spin
 
 case ('spin')
@@ -5020,12 +5149,10 @@ case ('twiss_and_orbit')
 case ('universe')
 
   ix_u = s%global%default_universe
-  ele_name = ''
   b_name = ''
-  what_to_show = '-radiation_integrals'
 
   do
-    call tao_next_switch (what2, [character(20):: '-element', '-branch', '-radiation_integrals'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(20):: '-branch'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('')
@@ -5033,14 +5160,6 @@ case ('universe')
 
     case ('-branch')
       b_name = what2(1:ix)
-
-    case ('-element')       
-      ele_name = what2(:ix)
-      call string_trim(what2(ix+1:), what2, ix)
-
-    case ('-radiation_integrals')
-      what_to_show = switch
-      what_to_show = ''
 
     case default
       read (switch, *, iostat = ios) ix_u
@@ -5076,6 +5195,8 @@ case ('universe')
   design_lat => u%design%lat
   design_branch => design_lat%branch(ix_branch)
   design_tao_branch => u%design%tao_branch(ix_branch)
+  nt = branch%n_ele_track
+  species = branch%param%default_tracking_species
 
   nl = 0
   nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', ix_u,      '  Of: ', ubound(s%u, 1)
@@ -5086,12 +5207,13 @@ case ('universe')
   nl=nl+1; write(lines(nl), amt) 'Used line(s) in lat file: ', quote(lat%use_name)
   nl=nl+1; write(lines(nl), amt) 'Lattice file name:        ', quote(lat%input_file_name)
   nl=nl+1; write(lines(nl), amt) 'Reference species:        ', species_name(branch%param%particle)
-  species = branch%param%default_tracking_species
+
   if (species == ref_particle$ .or. species == anti_ref_particle$) then
     nl=nl+1; write(lines(nl), amt) 'Default tracking species: ', trim(species_name(species)), ' (', trim(species_name(default_tracking_species(branch%param))), ')'
   else
     nl=nl+1; write(lines(nl), amt) 'Default tracking species: ', species_name(species)
   endif
+
   if (branch%param%particle == photon$) then
     nl=nl+1; write(lines(nl), amt) 'photon_type:                 ', photon_type_name(lat%photon_type)
   else
@@ -5099,22 +5221,31 @@ case ('universe')
     gamma = branch%ele(0)%value(e_tot$) / mass_of(species)
     nl=nl+1; write(lines(nl), rmt) 'a_anomalous_moment * gamma   ', anomalous_moment_of(species) * gamma
   endif
-  nl=nl+1; write(lines(nl), rmt) 'Reference energy:            ', branch%ele(0)%value(e_tot$)
-  nl=nl+1; write(lines(nl), rmt) 'Reference momentum:          ', branch%ele(0)%value(p0c$)
+
+  if (branch%param%geometry == closed$ .or. branch%param%particle == photon$) then
+    nl=nl+1; write(lines(nl), rmt) 'Reference energy:            ', branch%ele(0)%value(e_tot$)
+    nl=nl+1; write(lines(nl), rmt) 'Reference momentum:          ', branch%ele(0)%value(p0c$)
+  else
+    nl=nl+1; write(lines(nl), rmt) 'Starting reference energy:   ', branch%ele(0)%value(e_tot$)
+    nl=nl+1; write(lines(nl), rmt) 'Starting reference momentum: ', branch%ele(0)%value(p0c$)
+    nl=nl+1; write(lines(nl), rmt) 'Ending reference energy:     ', branch%ele(nt)%value(e_tot$)
+    nl=nl+1; write(lines(nl), rmt) 'Ending reference momentum:   ', branch%ele(nt)%value(p0c$)
+  endif
+
   nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking:      ', lat%absolute_time_tracking
   nl=nl+1; write(lines(nl), amt) 'Geometry:                    ', geometry_name(branch%param%geometry)
   nl=nl+1; write(lines(nl), lmt) 'global%rf_on:                ', s%global%rf_on
-  nl=nl+1; write(lines(nl), imt) 'Elements used in tracking: From 1 through ', branch%n_ele_track
-  if (branch%n_ele_max > branch%n_ele_track) then
-    nl=nl+1; write(lines(nl), '(2(a, i0))') 'Lord elements:   ', branch%n_ele_track+1, '  through ', branch%n_ele_max
+  nl=nl+1; write(lines(nl), imt) 'Elements used in tracking: From 1 through ', nt
+  if (branch%n_ele_max > nt) then
+    nl=nl+1; write(lines(nl), '(2(a, i0))') 'Lord elements:   ', nt+1, '  through ', branch%n_ele_max
   else
-    nl=nl+1; write(lines(nl), '(a)') 'There are NO Lord elements'
+    nl=nl+1; write(lines(nl), '(a)') 'There are no Lord elements'
   endif
 
-  nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice branch length:      ', branch%param%total_length
-  nl=nl+1; write(lines(nl), '(a, es13.6)')   'Lattice branch transit time:', branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time
+  nl=nl+1; write(lines(nl), '(a, f0.3)')       'Lattice branch length:      ', branch%param%total_length
+  nl=nl+1; write(lines(nl), '(a, es13.6)')     'Lattice branch transit time:', branch%ele(nt)%ref_time - branch%ele(0)%ref_time
   nl=nl+1; write(lines(nl), '(a, 2(f0.6, a))') 'Lattice branch S-range:     [', &
-                                                branch%ele(0)%s, ', ', branch%ele(branch%n_ele_track)%s, ']'
+                                                branch%ele(0)%s, ', ', branch%ele(nt)%s, ']'
 
   if (branch%param%geometry == open$ .and. tao_branch%track_state /= moving_forward$) then
     if (s%global%track_type == 'beam') then
@@ -5142,128 +5273,97 @@ case ('universe')
     enddo
   endif
  
-  if (s%global%rad_int_calc_on) then
-    call radiation_integrals (lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix_branch)
-  else
-    nl= nl+1; lines(nl) = ' Note: User has turned radiation integrals calculations off so emittances, etc. will not be displayed.'
-  endif
-
-  if (lat%param%geometry == closed$) then
-    call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
-                          pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch)
-  endif
-
   fmt  = '(1x, a16, 2es13.5, 2x, 2es13.5, 2x, a)'
   fmt2 = '(1x, a16,  2f13.6, 2x,  2f13.6, 2x, a)'
   fmt3 = '(1x, a16,         28x, 2es13.5, 2x, a)'
   phase_units = 1 / twopi
-  l_lat = branch%param%total_length
-  n = branch%n_ele_track
-  time1 = branch%ele(n)%ref_time
-  mode_m => tao_branch%modes_ri
-  mode_d => design_tao_branch%modes_ri
+  time1 = branch%ele(nt)%ref_time
 
-  if (branch%param%geometry == closed$ .or. s%global%rad_int_calc_on) then
+  !
+
+  if (lat%param%geometry == closed$) then
+    call emit_6d (branch%ele(0), .false., tao_branch%modes_6d, sig_mat)
+    call emit_6d (branch%ele(0), .true., tao_branch%modes_6d, sig_mat)
+
+    call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
+                          pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch)
+
+    mode_d => design_tao_branch%modes_6d
+    mode_m => tao_branch%modes_6d
+    mode_m%momentum_compaction = momentum_compaction(branch)
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(23x, a)') '         X            |              Y'
     nl=nl+1; write(lines(nl), '(23x, a)') '  Model       Design  |       Model       Design'
 
-    if (branch%param%geometry == closed$) then
-      nl=nl+1; write(lines(nl), fmt2) 'Q', phase_units*branch%ele(n)%a%phi, &
-            phase_units*design_branch%ele(n)%a%phi, phase_units*branch%ele(n)%b%phi, phase_units*design_branch%ele(n)%b%phi,  '! Tune'
-      nl=nl+1; write(lines(nl), fmt2) 'Chrom', tao_branch%a%chrom, design_tao_branch%a%chrom, tao_branch%b%chrom, design_tao_branch%b%chrom, '! dQ/(dE/E)'
-      if (s%global%rad_int_calc_on) then
-        nl=nl+1; write(lines(nl), fmt2) 'J_damp', mode_m%a%j_damp, mode_d%a%j_damp, mode_m%b%j_damp, mode_d%b%j_damp, '! Damping Partition #'
-        nl=nl+1; write(lines(nl), fmt) 'Emittance', mode_m%a%emittance, mode_d%a%emittance, mode_m%b%emittance, mode_d%b%emittance, '! Unnormalized'
-        nl=nl+1; write(lines(nl), '(a43, 2x, 2es13.5)') 'Emit (photon vert opening angle ignored)', &
-                                                                      mode_m%b%emittance_no_vert, mode_d%b%emittance_no_vert
-      endif
+    nl=nl+1; write(lines(nl), fmt2) 'Q', phase_units*branch%ele(nt)%a%phi, &
+          phase_units*design_branch%ele(nt)%a%phi, phase_units*branch%ele(nt)%b%phi, phase_units*design_branch%ele(nt)%b%phi,  '! Tune'
+    nl=nl+1; write(lines(nl), fmt2) 'Chrom', tao_branch%a%chrom, design_tao_branch%a%chrom, tao_branch%b%chrom, design_tao_branch%b%chrom, '! dQ/(dE/E)'
+    nl=nl+1; write(lines(nl), fmt2) 'J_damp', mode_m%a%j_damp, mode_d%a%j_damp, mode_m%b%j_damp, mode_d%b%j_damp, '! Damping Partition #'
+    nl=nl+1; write(lines(nl), fmt) 'Emittance', mode_m%a%emittance, mode_d%a%emittance, mode_m%b%emittance, mode_d%b%emittance, '! Unnormalized'
+    nl=nl+1; write(lines(nl), '(a43, 2x, 2es13.5)') 'Emit (photon vert opening angle ignored)', &
+                                                                    mode_m%b%emittance_no_vert, mode_d%b%emittance_no_vert
+    if (mode_m%b%alpha_damp /= 0) then
+      nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', mode_m%a%alpha_damp, mode_d%a%alpha_damp, mode_m%b%alpha_damp, mode_d%b%alpha_damp, '! Damping per turn'
+      nl=nl+1; write(lines(nl), fmt) 'Damping_time', time1/mode_m%a%alpha_damp, time1/mode_d%a%alpha_damp, time1/mode_m%b%alpha_damp, time1/mode_d%b%alpha_damp, '! Sec'
     endif
+  endif
 
-    if (s%global%rad_int_calc_on) then
-      if (mode_m%b%alpha_damp /= 0) then
-        nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', mode_m%a%alpha_damp, mode_d%a%alpha_damp, mode_m%b%alpha_damp, mode_d%b%alpha_damp, '! Damping per turn'
-        nl=nl+1; write(lines(nl), fmt) 'Damping_time', time1/mode_m%a%alpha_damp, time1/mode_d%a%alpha_damp, time1/mode_m%b%alpha_damp, time1/mode_d%b%alpha_damp, '! Sec'
-      endif
+  !
 
-      nl=nl+1; write(lines(nl), fmt) 'I4', mode_m%a%synch_int(4), mode_d%a%synch_int(4), mode_m%b%synch_int(4), mode_d%b%synch_int(4), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt) 'I5', mode_m%a%synch_int(5), mode_d%a%synch_int(5), mode_m%b%synch_int(5), mode_d%b%synch_int(5), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt3) 'I6b/gamma^2', mode_m%b%synch_int(6) / gamma**2, mode_d%b%synch_int(6) / gamma**2, '! Radiation Integral'
+  fmt  = '(1x, a16, 2es13.5, 3x, a)'
+  fmt2 = '(1x, a16, 2f13.7, 3x, a)'
 
-      if (branch%param%geometry == open$) then
-        nl=nl+1; write(lines(nl), fmt) 'Final Emittance', mode_m%lin%a_emittance_end, mode_d%lin%a_emittance_end, mode_m%lin%b_emittance_end, mode_d%lin%b_emittance_end, '! Meters'
-        nl=nl+1; write(lines(nl), fmt) 'I5*gamma^6', mode_m%lin%i5a_e6, mode_d%lin%i5a_e6, mode_m%lin%i5b_e6, mode_d%lin%i5b_e6, '! Linac Radiation Integral'
-      endif
-    endif
-
+  if (branch%param%geometry == closed$) then
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(23x, a)') '  Model       Design'
-    fmt  = '(1x, a16, 2es13.5, 3x, a)'
-    fmt2 = '(1x, a16, 2f13.7, 3x, a)'
 
-    if (branch%param%geometry == closed$) then
-      call calc_z_tune(lat, ix_branch)
-      if (abs(design_lat%z%tune/twopi)  > 1d-3 .and. abs(branch%z%tune/twopi) > 1d-3) then
-        nl=nl+1; write(lines(nl), fmt) 'Z_tune:', -branch%z%tune/twopi, -design_lat%z%tune/twopi
+    call calc_z_tune(lat, ix_branch)
+    if (abs(design_lat%z%tune/twopi)  > 1d-3 .and. abs(branch%z%tune/twopi) > 1d-3) then
+      nl=nl+1; write(lines(nl), fmt) 'Z_tune:', -branch%z%tune/twopi, -design_lat%z%tune/twopi
+    else
+      if (.not. branch%z%stable) then
+        str1 = '  Unstable'
       else
-        if (.not. branch%z%stable) then
-          str1 = '  Unstable'
-        else
-          write (str1, '(f13.7)') -branch%z%tune/twopi
-        endif
-        if (.not. design_lat%z%stable) then
-          str2 = '  Unstable'
-        else
-          write (str2, '(f13.7)') -design_lat%z%tune/twopi
-        endif
-        nl=nl+1; write(lines(nl), '(1x, a16, 2a13, 3x, a)') 'Z_tune:', str1, str2, '! The design value is calculated with RF on'
+        write (str1, '(f13.7)') -branch%z%tune/twopi
       endif
-
-    elseif (s%global%rad_int_calc_on) then
-      nl=nl+1; write (lines(nl), fmt) 'I2*gamma^4', mode_m%lin%i2_e4, mode_d%lin%i2_e4, '! Linac Radiation Integral'
-      nl=nl+1; write (lines(nl), fmt) 'I3*gamma^7', mode_m%lin%i3_e7, mode_d%lin%i3_e7, '! Linac Radiation Integral'
+      if (.not. design_lat%z%stable) then
+        str2 = '  Unstable'
+      else
+        write (str2, '(f13.7)') -design_lat%z%tune/twopi
+      endif
+      nl=nl+1; write(lines(nl), '(1x, a16, 2a13, 3x, a)') 'Z_tune:', str1, str2, '! The design value is calculated with RF on'
     endif
 
-    if (s%global%rad_int_calc_on) then
-      if (mode_m%z%alpha_damp /= 0) then
-        nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', mode_m%sigE_E, mode_d%sigE_E
-        nl=nl+1; write(lines(nl), fmt) 'Sig_z:  ', mode_m%sig_z, mode_d%sig_z, '! Only calculated when RF is on'
-        nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', mode_m%e_loss, mode_d%e_loss, '! Energy_Loss (eV / Turn)'
-        nl=nl+1; write(lines(nl), fmt) 'J_damp:', mode_m%z%j_damp, mode_d%z%j_damp, '! Longitudinal Damping Partition #'
-        nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', mode_m%z%alpha_damp, mode_d%z%alpha_damp, '! Longitudinal Damping per turn'
-        nl=nl+1; write(lines(nl), fmt) 'damp_time:', time1/mode_m%z%alpha_damp, time1/mode_d%z%alpha_damp, '! Longitudinal Damping time (sec)'
-      endif
-      nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', mode_m%synch_int(1)/l_lat, mode_d%synch_int(1)/l_lat, '! Momentum Compaction'
-      nl=nl+1; write(lines(nl), fmt) 'Eta_p:', mode_m%synch_int(1)/l_lat - 1.0_rp/gamma**2, mode_d%synch_int(1)/l_lat - 1.0_rp/gamma**2, '! Slip factor'
-      if (mode_m%synch_int(1) < l_lat .and. mode_m%synch_int(1) /= 0) then
-        nl=nl+1; write(lines(nl), fmt) 'gamma_trans:', sqrt(l_lat/mode_m%synch_int(1)), sqrt(l_lat/mode_d%synch_int(1)), '! Gamma at transition'
-      endif
-      nl=nl+1; write(lines(nl), fmt) 'I0:', mode_m%synch_int(0), mode_d%synch_int(0), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt) 'I1:', mode_m%synch_int(1), mode_d%synch_int(1), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt) 'I2:', mode_m%synch_int(2), mode_d%synch_int(2), '! Radiation Integral'
-      nl=nl+1; write(lines(nl), fmt) 'I3:', mode_m%synch_int(3), mode_d%synch_int(3), '! Radiation Integral'
+    if (mode_m%z%alpha_damp /= 0) then
+      nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', mode_m%sigE_E, mode_d%sigE_E
+      nl=nl+1; write(lines(nl), fmt) 'Sig_z:  ', mode_m%sig_z, mode_d%sig_z, '! Only calculated when RF is on'
+      nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', mode_m%e_loss, mode_d%e_loss, '! Energy_Loss (eV / Turn)'
+      nl=nl+1; write(lines(nl), fmt) 'J_damp:', mode_m%z%j_damp, mode_d%z%j_damp, '! Longitudinal Damping Partition #'
+      nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', mode_m%z%alpha_damp, mode_d%z%alpha_damp, '! Longitudinal Damping per turn'
+      nl=nl+1; write(lines(nl), fmt) 'damp_time:', time1/mode_m%z%alpha_damp, time1/mode_d%z%alpha_damp, '! Longitudinal Damping time (sec)'
+    endif
+
+    nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', mode_m%momentum_compaction, mode_d%momentum_compaction, '! Momentum Compaction'
+    nl=nl+1; write(lines(nl), fmt) 'Eta_p:', mode_m%momentum_compaction - 1.0_rp/gamma**2, mode_d%momentum_compaction - 1.0_rp/gamma**2, '! Slip factor'
+    if (mode_m%momentum_compaction > 0) then
+      nl=nl+1; write(lines(nl), fmt) 'gamma_trans:', sqrt(1.0_rp/mode_m%momentum_compaction), sqrt(1.0_rp/mode_d%momentum_compaction), '! Gamma at transition'
     endif
 
     if (bmad_com%spin_tracking_on) then
       nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', branch%param%spin_tune/twopi, design_branch%param%spin_tune/twopi, '! Spin Tune on Closed Orbit (Units of 2pi)'
     endif
 
-    if (branch%param%geometry == closed$) then
-      pz1 = 0;  pz2 = 0
-      do i = 1, branch%n_ele_track
-        pz1 = pz1 + branch%ele(i)%value(l$) * (tao_branch%orbit(i-1)%vec(6) + tao_branch%orbit(i)%vec(6)) / (2 * branch%param%total_length)
-        pz2 = pz2 + branch%ele(i)%value(l$) * (design_tao_branch%orbit(i-1)%vec(6) + design_tao_branch%orbit(i)%vec(6)) / (2 * branch%param%total_length)
-      enddo
-      nl=nl+1; write(lines(nl), fmt) '<pz>:', pz1, pz2, '! Average closed orbit pz (momentum deviation)'
-    endif
-
-  elseif (bmad_com%spin_tracking_on) then
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), '(23x, a)') '  Model       Design'
-    fmt  = '(1x, a16, 2es13.5, 3x, a)'
-    nl=nl+1; write(lines(nl), fmt) 'Spin Tune:', branch%param%spin_tune/twopi, design_branch%param%spin_tune/twopi, '! Spin Tune on Closed Orbit (Units of 2pi)'
+    pz1 = 0;  pz2 = 0
+    do i = 1, branch%n_ele_track
+      pz1 = pz1 + branch%ele(i)%value(l$) * (tao_branch%orbit(i-1)%vec(6) + tao_branch%orbit(i)%vec(6)) / (2 * branch%param%total_length)
+      pz2 = pz2 + branch%ele(i)%value(l$) * (design_tao_branch%orbit(i-1)%vec(6) + design_tao_branch%orbit(i)%vec(6)) / (2 * branch%param%total_length)
+    enddo
+    nl=nl+1; write(lines(nl), fmt) '<pz>:', pz1, pz2, '! Average closed orbit pz (momentum deviation)'
   endif
+
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; lines(nl) = '[Note: The emittance, energy loss, etc. calcs have changed. Use "help show universe" for more info.]'
 
 !----------------------------------------------------------------------
 ! variable

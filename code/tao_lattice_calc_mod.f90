@@ -43,6 +43,7 @@ type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (ele_struct), pointer :: ele
 
+real(rp) sigma(6,6)
 real(rp), parameter :: vec0(6) = 0
 
 integer i, ii, n, nn, ix_branch, status, ix_lost, i_dim
@@ -179,6 +180,7 @@ if (branch%param%particle /= photon$ .and. s%global%rad_int_calc_on .and. &
             (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. s%global%track_type == 'beam')) then
   call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                       tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix_branch, tao_lat%rad_int)
+  if (branch%param%geometry == closed$) call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma)
 endif
 
 end subroutine tao_single_track

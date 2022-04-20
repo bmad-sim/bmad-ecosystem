@@ -1515,6 +1515,11 @@ to be the same as the initial coordinates and, in this case, $\bfD$, will be a r
 a rotation angle equal to the spin tune.
 
   %----------------------
+  \item[spin_res.a1, .a2, .b1, .b2, .c1, .c2] \Newline \hlabel{spin.res}
+Spin resonance values. \vn{.a1}, \vn{.a2} are the resonance values for the $a$-mode, etc. The \vn{show
+spin -ele ...} command will print the values.
+
+  %----------------------
   \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{spin.tune.ptc}
 Terms in the taylor series of the spin tune expanded as a function of $p_z$ as calculated from
 Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
@@ -1940,19 +1945,23 @@ See the previous section for a description of the data types.
   \pref{slip.ptc}         & \begin{tabular}{@{}l}
                               slip_factor_ptc.$N$ \\
                               \hspace{3em} $N = 0, 1, 2, \ldots$
-                            \end{tabular}                       & Slip factor Taylor terms                  & lat         & No  \\ \hline
+                            \end{tabular}                       & Slip factor Taylor terms                  & lat        & No  \\ \hline
   \pref{spin}             & spin.x, .y, .z                      & Particle spin                             & lat, beam  & No  \\ \hline 
   \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate.                 & lat        & No  \\ \hline
   \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate.                   & lat        & No  \\ \hline
   \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit.                  & lat        & No  \\ \hline
+  \pref{spin.g.matrix}    & \begin{tabular}{@{}l}
+                              spin_g_matrix.$ij$ \\
+                              \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
+                            \end{tabular}                       & Spin G-matrix components                  & lat        & No  \\ \hline
+  \pref{spin.res}         & \begin{tabular}{@{}l}
+                              spin_res.a1, .a2, \\
+                              \hspace{10pt} .b1, .b2, .c1, .c2
+                            \end{tabular}                       & Spin resonance strengths                  & lat        & No  \\ \hline
   \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
                               spin_tune_ptc.$N$, \\
                               \hspace{10pt} $N = 0, 1, \ldots$
                             \end{tabular}                       & Spin Tune Taylor terms                    & lat        & no  \\ \hline
-  \pref{spin.g.matrix}    & \begin{tabular}{@{}l}   
-                              spin_g_matrix.$ij$ \\
-                              \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
-                            \end{tabular}                       & Spin G-matrix components                  & lat        & No  \\ \hline
   \pref{srdt.h}           & srdt.h<monomial>.\{r,i,a\}          & \begin{tabular}{@{}l}
                                                                     Normal form driving terms \\
                                                                     calculated by summation 

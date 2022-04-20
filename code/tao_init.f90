@@ -34,7 +34,7 @@ type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
 
-real(rp) value
+real(rp) value, sigma(6,6)
 real(rp), pointer :: ptr_attrib
 
 character(100) line, line2
@@ -317,6 +317,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (branch%param%geometry == closed$) then
       call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
                  tao_branch%orbit(0)%vec(6), low_E_lat=tao_lat%low_E_lat, high_E_lat=tao_lat%high_E_lat, ix_branch = ib)
+      call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma)
+      call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma)
+      tao_branch%modes_6d%momentum_compaction = momentum_compaction(branch)
     endif
 
   enddo

@@ -476,7 +476,7 @@ type (twiss_struct), pointer :: z0, z1, z2
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
-real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len
+real(rp) gamma, one_pz, xi_quat(2), w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
 real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi, amp_a, amp_b
@@ -484,7 +484,7 @@ real(rp), allocatable :: value_vec(:)
 real(rp), allocatable :: expression_value_vec(:)
 real(rp) theta, phi, psi
 
-complex(rp) eigen_val(6), eigen_vec(6,6)
+complex(rp) eval(6), evec(6,6), n_eigen(6,3)
 complex(rp) temp_cplx
 
 integer i, j, jj, k, m, n, k_old, ix, ie, is, iz, ix_ele, ix_start, ix_ref, ie0, ie1
@@ -3058,35 +3058,6 @@ case ('spin_dn_dpz.')
 
 !-----------
 
-case ('spin_tune_ptc.')
-
-  if (data_source == 'beam') goto 9000  ! Set error message and return
-  ptc_nf => tao_branch%ptc_normal_form
-
-  if (.not. ptc_nf%valid_map) then
-    if (.not. u%calc%one_turn_map) then
-      call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE ONE_TURN_MAP_CALC IS NOT SET TO TRUE.', why_invalid)
-    elseif (branch%param%geometry /= closed$) then
-      call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE LATTICE GEOMETRY IS NOT CLOSED.', why_invalid)
-    else
-      call tao_set_invalid (datum, '?????', why_invalid)
-    endif
-    return
-  endif
-
-  if (.not. is_integer(data_type(15:), n)) then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
-    return
-  endif
-
-  expo = 0
-  expo(6) = n 
-
-  datum_value = real(ptc_nf%spin .sub. expo)
-  valid_value = .true.
-
-!-----------
-
 case ('spin_g_matrix.')
 
   call tao_spin_matrix_calc (datum, u, ele_ref, ele)
@@ -3114,6 +3085,72 @@ case ('spin_g_matrix.')
     valid_value = .false.
     return
   end select
+
+!-----------
+
+case ('spin_res.')
+
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+
+  if (.not. bmad_com%spin_tracking_on) then
+    call out_io (s_info$, r_name, 'Note: Turning on spin tracking (setting: bmad_com%spin_tracking_on = T)')
+    bmad_com%spin_tracking_on = .true.
+  endif
+
+  call tao_spin_matrix_calc (datum, u, ele, ele)
+
+  call spin_mat_to_eigen (datum%spin_map%map1%orb_mat, datum%spin_map%map1%spin_q, eval, evec, n0, n_eigen, err)
+  if (err) then
+    call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE ONE_TURN_MAP_CALC IS NOT SET TO TRUE.', why_invalid)
+    return
+  endif
+
+  j = index('abc', data_type(10:10))
+  if (j == 0 .or. len_trim(data_type) > 11) then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
+    return
+  endif
+
+  call spin_quat_resonance_strengths(evec(2*j-1,:), datum%spin_map%map1%spin_q, xi_quat)
+
+  select case (data_type(11:11))
+  case ('1');  datum_value = xi_quat(1)
+  case ('2');  datum_value = xi_quat(2)
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
+    return
+  end select
+
+  valid_value = .true.
+
+!-----------
+
+case ('spin_tune_ptc.')
+
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+  ptc_nf => tao_branch%ptc_normal_form
+
+  if (.not. ptc_nf%valid_map) then
+    if (.not. u%calc%one_turn_map) then
+      call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE ONE_TURN_MAP_CALC IS NOT SET TO TRUE.', why_invalid)
+    elseif (branch%param%geometry /= closed$) then
+      call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE LATTICE GEOMETRY IS NOT CLOSED.', why_invalid)
+    else
+      call tao_set_invalid (datum, '?????', why_invalid)
+    endif
+    return
+  endif
+
+  if (.not. is_integer(data_type(15:), n)) then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
+    return
+  endif
+
+  expo = 0
+  expo(6) = n 
+
+  datum_value = real(ptc_nf%spin .sub. expo)
+  valid_value = .true.
 
 !-----------
 
@@ -3273,17 +3310,17 @@ case ('unstable.')
 
   case ('unstable.eigen', 'unstable.eigen.a', 'unstable.eigen.b', 'unstable.eigen.c')
     call transfer_matrix_calc (lat, mat6, vec0, 0, branch%n_ele_track, branch%ix_branch, one_turn = .true.)
-    call mat_eigen (mat6, eigen_val, eigen_vec, err)
+    call mat_eigen (mat6, eval, evec, err)
     if (err) then
       call tao_set_invalid (datum, 'CANNOT COMPUTE EIGENVALUES FOR TRANSFER MATRIX', why_invalid)
       return
     endif
 
     select case (data_type)
-    case ('unstable.eigen');    datum_value = maxval(abs(eigen_val))
-    case ('unstable.eigen.a');  datum_value = max(abs(eigen_val(1)), abs(eigen_val(2)))
-    case ('unstable.eigen.b');  datum_value = max(abs(eigen_val(3)), abs(eigen_val(4)))
-    case ('unstable.eigen.c');  datum_value = max(abs(eigen_val(5)), abs(eigen_val(6)))
+    case ('unstable.eigen');    datum_value = maxval(abs(eval))
+    case ('unstable.eigen.a');  datum_value = max(abs(eval(1)), abs(eval(2)))
+    case ('unstable.eigen.b');  datum_value = max(abs(eval(3)), abs(eval(4)))
+    case ('unstable.eigen.c');  datum_value = max(abs(eval(5)), abs(eval(6)))
     end select
     valid_value = .true.
     
