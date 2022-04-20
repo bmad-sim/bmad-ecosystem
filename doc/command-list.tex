@@ -13,23 +13,17 @@
 
 \chapter{Commands}
 \label{c:command}
+\index{commands!Command list} 
 
-\tao has two \vn{modes} for entering commands. In \vn{Line Mode}, described in this chapter, \tao
+\tao has two \vn{modes} for entering commands. In \vn{line mode}'', described in this chapter, \tao
 waits until the \vn{return} key is depressed to execute a command. That is, a command consists of a
 single line of input. Conversely, \vn{Single Mode}, which is described in \vn{Single Mode} chapter
 (\sref{c:single}), interprets each keystroke as a command. Single Mode is useful for quickly varying
 parameters to see how they affect a lattice but the number of commands in Single Mode is limited. To
 put \tao into \vn{single mode} use the \vn{single_mode} command (\sref{s:sing}).
 
-\index{commands!Command List} 
-Commands are case sensitive. The list of commands is shown in Table~\ref{t:commands}. Multiple
-commands may be entered on one line using the semicolon ``;'' character as a separator.  [However, a
-semicolon used as as part of an \vn{alias} (\sref{s:alias}) definition is part of that definition.]
-An exclamation mark ``\vn{!}''  denotes the beginning of a comment and the exclamation mark and
-everything after it to the end of the line is ignored.  Example:
-\begin{example}
-  set default uni = 2; show global  ! Two commands and a comment
-\end{example}
+The syntax for \vn{line mode} commands is discussed in Section~\sref{s:com.syntax}. The list of
+commands is shown in Table~\ref{t:commands}.
 
 This chapter uses the following special characters to define the command line syntax:
 \begin{example}
@@ -327,8 +321,8 @@ Format:
   cut_rung
 \end{example}
 
-The \vn{cut_ring} command is used to switch the geometry of the viewed \vn{model} lattice
-from \vn{closed} to \vn{open}.
+The \vn{cut_ring} command is used to switch the geometry of the viewed \vn{model} lattice from
+\vn{closed} to \vn{open} and vice versa.
 
 %% continue --------------------------------------------------------------
 \section{continue}\index{commands!continue}
@@ -1730,49 +1724,50 @@ Format:
 
 \vn{<subcommand>} subcommands may be one of:
 \begin{example}
-  show alias                 ! Show aliases \sref{s:show.alias}.
-  show beam ...              ! Show beam info \sref{s:show.beam}.
-  show branch ...            ! Show lattice branch info \sref{s:show.branch}.
-  show building_wall         ! Show building wall info \sref{s:show.building}.
-  show chromaticity ...      ! Show chromaticity, momentum compaction, phase slip \sref{s:show.chrom}.
-  show constraints           ! Show optimization constraints \sref{s:show.constraints}.
-  show control ...           ! Show lords and slaves of a given element \sref{s:show.control}.
-  show curve ...             ! Show plot curve info \sref{s:show.curve}.
-  show data ...              ! Show optimization data info \sref{s:show.data}.
-  show derivative ...        ! Show d_data/d_var optimization info \sref{s:show.derivative}.
-  show dynamic_aperture      ! Show DA info \sref{s:show.da}.
-  show element ...           ! Show lattice element info \sref{s:show.element}.
-  show emittance             ! Show normal mode emittances \sref{s:show.emit}.
-  show field ...             ! Show EM field \sref{s:show.field}.
-  show global ...            ! Show Tao global parameters \sref{s:show.global}.
-  show graph ...             ! Show plot graph info \sref{s:show.graph}.
-  show history ...           ! Show command history \sref{s:show.history}.
-  show hom                   ! Show Higher Order Mode info \sref{s:show.hom}.
-  show internal ...          ! Used for code debugging \sref{s:show.internal}.
-  show key_bindings          ! Show single mode key bindings \sref{s:show.key}.
-  show lattice ...           ! Lattice element-by-element table \sref{s:show.lattice}.
-  show matrix ...            ! Show transport matrix \sref{s:show.matrix}.
-  show merit ...             ! Show optimization merit function \sref{s:show.merit}.
-  show optimizer ...         ! Show optimizer info \sref{s:show.optimizer}.
-  show particle ...          ! Show tracked particle beam info \sref{s:show.particle}.
-  show plot ...              ! Show plot info \sref{s:show.plot}.
-  show ptc ...               ! Show PTC calculated parameters \sref{s:show.ptc}.
-  show spin ...              ! Show information on spin simulations \sref{s:show.spin}.
-  show string ...            ! Print a string \sref{s:show.string}.
-  show symbolic_numbers ...  ! Show symbolic constants \sref{s:show.symbolic}.
-  show taylor_map ...        ! Show transport Taylor map\sref{s:show.taylor}.
-  show track ...             ! Show phase space coords, Twiss, EM field, 
-                             !   and other info along the tracked orbit \sref{s:show.track}.
-  show twiss_and_orbit ...   ! Show Twiss and orbit info at given position including
-                             !   synchrotron radiation related parameters \sref{s:show.twiss}.
-  show universe ...          ! Show universe info \sref{s:show.universe}.
-  show use                   ! Show data and vars used in optimization \sref{s:show.use}.
-  show value ...             ! Show value of an expression \sref{s:show.value}.
-  show variables ...         ! Show optimization variable info \sref{s:show.variables}.
-  show version               ! Show Tao version.
-  show wakes                 ! Show wake info \sref{s:show.wakes}.
-  show wall ...              ! Show vacuum chamber wall info \sref{s:show.wall}.
-  show wave                  ! Show wave analysis info \sref{s:show.wave}.
+  show alias                   ! Show aliases \sref{s:show.alias}.
+  show beam ...                ! Show beam info \sref{s:show.beam}.
+  show branch ...              ! Show lattice branch info \sref{s:show.branch}.
+  show building_wall           ! Show building wall info \sref{s:show.building}.
+  show chromaticity ...        ! Show chromaticity, momentum compaction, phase slip \sref{s:show.chrom}.
+  show constraints             ! Show optimization constraints \sref{s:show.constraints}.
+  show control ...             ! Show lords and slaves of a given element \sref{s:show.control}.
+  show curve ...               ! Show plot curve info \sref{s:show.curve}.
+  show data ...                ! Show optimization data info \sref{s:show.data}.
+  show derivative ...          ! Show d_data/d_var optimization info \sref{s:show.derivative}.
+  show dynamic_aperture        ! Show DA info \sref{s:show.da}.
+  show element ...             ! Show lattice element info \sref{s:show.element}.
+  show emittance               ! Show normal mode emittances \sref{s:show.emit}.
+  show field ...               ! Show EM field \sref{s:show.field}.
+  show global ...              ! Show Tao global parameters \sref{s:show.global}.
+  show graph ...               ! Show plot graph info \sref{s:show.graph}.
+  show history ...             ! Show command history \sref{s:show.history}.
+  show hom                     ! Show Higher Order Mode info \sref{s:show.hom}.
+  show internal ...            ! Used for code debugging \sref{s:show.internal}.
+  show key_bindings            ! Show single mode key bindings \sref{s:show.key}.
+  show lattice ...             ! Lattice element-by-element table \sref{s:show.lattice}.
+  show matrix ...              ! Show transport matrix \sref{s:show.matrix}.
+  show merit ...               ! Show optimization merit function \sref{s:show.merit}.
+  show optimizer ...           ! Show optimizer info \sref{s:show.optimizer}.
+  show particle ...            ! Show tracked particle beam info \sref{s:show.particle}.
+  show plot ...                ! Show plot info \sref{s:show.plot}.
+  show ptc ...                 ! Show PTC calculated parameters \sref{s:show.ptc}.
+  show radiation_integrals ... ! Show synchrotron radiation integrals \sref{s:show.rad.int}.
+  show spin ...                ! Show information on spin simulations \sref{s:show.spin}.
+  show string ...              ! Print a string \sref{s:show.string}.
+  show symbolic_numbers ...    ! Show symbolic constants \sref{s:show.symbolic}.
+  show taylor_map ...          ! Show transport Taylor map\sref{s:show.taylor}.
+  show track ...               ! Show phase space coords, Twiss, EM field, 
+                               !   and other info along the tracked orbit \sref{s:show.track}.
+  show twiss_and_orbit ...     ! Show Twiss and orbit info at given position including
+                               !   synchrotron radiation related parameters \sref{s:show.twiss}.
+  show universe ...            ! Show universe info \sref{s:show.universe}.
+  show use                     ! Show data and vars used in optimization \sref{s:show.use}.
+  show value ...               ! Show value of an expression \sref{s:show.value}.
+  show variables ...           ! Show optimization variable info \sref{s:show.variables}.
+  show version                 ! Show Tao version.
+  show wakes                   ! Show wake info \sref{s:show.wakes}.
+  show wall ...                ! Show vacuum chamber wall info \sref{s:show.wall}.
+  show wave                    ! Show wave analysis info \sref{s:show.wave}.
 \end{example}
 
 \vskip 10pt 
@@ -2260,7 +2255,7 @@ Syntax:
 
 Shows the command history. Each command is given an index number starting from 1 for the first
 command. This index is printed with the command unless the \vn{-no_num} switch is present. If the
-\vn{-filed} switch is present, the numbering is shifter so that the current \vn{show history} command
+\vn{-filed} switch is present, the numbering is shifted so that the current \vn{show history} command
 has index zero.
 
 The number of commands printed is, by default, the last 50. Setting the \vn{<num_to_display>} will
@@ -2752,6 +2747,23 @@ Syntax:
 Show quantities as calculated by PTC. This command is under development. Currently emittances and
 tunes are shown.
 
+%% show radiation_integrals --------------------------------------------------------------
+
+\subsection{show radiation_integrals}
+\label{s:show.rad.int}
+
+Syntax:
+\begin{example}
+  show  \{-branch <branch_name>\} \{universe_number\}
+\end{example}
+
+Show radiation integrals along with associated parameters computed from the integrals like the
+emittance, damping decrement, etc. Values for the associated parameters like the emittance will vary
+from the values shown by the \vn{show universe} command since the \vn{show universe} command uses a
+computation that derives from the transport matrices with included radiation effects. Differences
+between the two are due to differing approximations as explained in the \bmad manual (See the
+chapter on \vn{Synchrotron Radiation}).
+
 %% show spin --------------------------------------------------------------
 
 \subsection{show spin}
@@ -2787,7 +2799,7 @@ between axis parameters are optional. If \vn{q_map} is present, or if the G-matr
 printed, the quaternion form of the map will be printed.
 
 To see the linear spin-orbit resonance strengths, use the \vn{-ele} switch with either
-\vn{<ref_ele_name>} beging blank or the same as \vn{<ele_name>}. The spin-orbit resonance strength
+\vn{<ref_ele_name>} being blank or the same as \vn{<ele_name>}. The spin-orbit resonance strength
 table has three rows for the three orbital modes $a$, $b$, and $c$. The columns of the table are:
 \begin{Itemize}
   \item Col 1: Orbital tune.
@@ -3105,7 +3117,19 @@ Syntax:
 
 Shows various parameters associated with a given branch of a given universe. If no universe is
 specified, the current default universe is used. If no branch is given, the current default branch
-is used. Parameters displayed include tune, chromaticity, radiation integrals, etc.
+is used. Parameters displayed include tune, emittances, etc. 
+
+Here quantities like the emittance or momentum compaction factor are calculated from the transport
+matrices with included radiation effects. Previously (pre April 2022), such quantities where
+calculated from evaluation of the synchrotron radiation integrals. To see the radiation integral
+derived values use the command \vn{show} \vn{radiation_integrals}. Differences between the results
+of the transport matrix and radiation integral treatments are due to differing approximations as
+explained in the \bmad manual (See the chapter on \vn{Synchrotron Radiation}).
+
+Example:
+\begin{example}
+  show universe -branch 1 3  ! Show info on branch 1 of universe 3.
+\end{example}
 
 %% show use --------------------------------------------------------------
 
@@ -3336,7 +3360,7 @@ Note: Tapering must be done with Rf on.
 Important! The scaling of the magnet strengths is done with respect to the \vn{base} lattice (which
 is the same as the \vn{design} lattice if the \vn{set lattice base = ...} command has not been
 issued). That is, if two \vn{taper} commands are issued one after another, the second \vn{taper}
-command will not affect magnet strengths. The reason why this is done is so that sucessive
+command will not affect magnet strengths. The reason why this is done is so that successive
 \vn{taper} commands do not cause the magnet strengths to ``walk''. That is, there is no unique
 solution to the taper problem since a changing all magnet strengths along with a corresponding shift
 in particle energy will not change the orbit.
@@ -3348,7 +3372,7 @@ The taper command will vary magnet strengths independent of the element's name. 
 strengths of elements which have the same name will be different. If a \bmad lattice file is created
 after tapering using the \vn{write bmad} command, The created lattice file will have the proper
 magnet strengths (the lattice file will use the \vn{\#\#N} construct to set strengths for individual
-elemnts with the same same). However, creating a lattice file in a non-\bmad (MAD, etc.) format will
+elements with the same same). However, creating a lattice file in a non-\bmad (MAD, etc.) format will
 be problematical.
 
 No tapering will be applied to strengths that are controlled by an \vn{overlay} controller element.
@@ -3700,7 +3724,7 @@ Syntax:
     write elegant \{<file_name>\}           ! Elegant lattice file using the model lattice.
 \end{example}
 
-Write a lattice fiel in \vn{Elegant} format. The default file name is \vn{lat_\#.lte} where \vn{\#}
+Write a lattice file in \vn{Elegant} format. The default file name is \vn{lat_\#.lte} where \vn{\#}
 is replaced by the universe number.
 
 %% write gif --------------------------------------------------------------

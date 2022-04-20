@@ -2,6 +2,27 @@
 \label{c:syntax}
 
 %------------------------------------------------------------------------
+\section{Command Line Syntax}
+\label{s:com.syntax}
+
+In ``\vn{line mode}'' (\sref{c:command}), commands are case sensitive. Multiple commands may be
+entered on one line using the semicolon ``;'' character as a separator.  [However, a semicolon used
+as as part of an \vn{alias} (\sref{s:alias}) definition is part of that definition.]  An exclamation
+mark ``\vn{!}''  denotes the beginning of a comment and the exclamation mark and everything after it
+to the end of the line is ignored.  Example:
+\begin{example}
+  set default uni = 2; show global  ! Two commands and a comment
+\end{example}
+
+The length of a command on a single line is currently limited to 300 characters. Multiple lines may
+be used for a single command by putting a ``\&'' character at the end of a line to be
+continued. Example:
+\begin{example}
+  set default &    ! Continue command to next line
+  uni = 2
+\end{example}
+     
+%------------------------------------------------------------------------
 \section{Specifying a Single Lattice Element}
 \label{s:ele.name}
 
@@ -44,7 +65,7 @@ Example element list:
   23, 45:74 quad::q*
 \end{example}
 
-The wild card characters ``*'' and/or ``\%'' can be used. The ``*''wildcard matches any number of
+The wild card characters ``*'' and/or ``\%'' can be used. The ``*'' wildcard matches any number of
 characters, The ``\%'' wildcard matches a single character. For example, ``q\%1*'' matches any
 element whose name begins with ``q'' and whose third character is ``1''.  If there are multiple
 elements in the lattice that match a given name, all such elements are included. Thus ``d12'' will

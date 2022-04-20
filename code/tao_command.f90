@@ -231,7 +231,12 @@ case ('cut_ring')
   u => tao_pointer_to_universe(-1)
   lat => u%model%lat
 
-  lat%param%geometry = open$
+  if (lat%param%geometry == closed$) then
+    lat%param%geometry = open$
+  else
+    lat%param%geometry = closed$
+  endif
+
   u%calc%lattice = .true.
   u%model%lat%particle_start%vec = 0
   call tao_lattice_calc (ok)
