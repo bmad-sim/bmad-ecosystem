@@ -373,15 +373,18 @@ end subroutine ltt_init_params
 
 subroutine ltt_init_tracking (lttp, ltt_com)
 
+use f95_lapack, only: dpotrf_f95
+
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, ele_start, ele_stop
+type (rad_int_ele_cache_struct), pointer :: ri
 
-real(rp) closed_orb(6)
+real(rp) closed_orb(6), f_tol
 
-integer i, ix_branch, ib, n_slice, ie, ir
+integer i, ix_branch, ib, n_slice, ie, ir, info
 
 logical err, map_file_exists
 
@@ -401,7 +404,28 @@ lttp%ptc_aperture = min([0.9_rp, 0.9_rp], lttp%ptc_aperture)
 !
 
 if (lttp%split_bends_for_radiation .and. bmad_com%debug) then
-  stop
+  do ie = 1, branch%n_ele_track
+    ele => branch%ele(ie)
+    if (ele%name /= 'Radiation_Point') cycle
+    if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
+    ri => ele%rad_int_cache
+    call tracking_rad_mat_setup(branch%ele(ie-1), 1e-4_rp, downstream_end$, ri%rm0)
+    call tracking_rad_mat_setup(branch%ele(ie+1), 1e-4_rp, upstream_end$,   ri%rm1)
+
+    ! Combine matrices for quicker evaluation
+    ri%rm1%stoc_mat = matmul(ri%rm0%stoc_mat, transpose(ri%rm0%stoc_mat)) + matmul(ri%rm1%stoc_mat, transpose(ri%rm1%stoc_mat))
+    call dpotrf_f95 (ri%rm1%stoc_mat, 'U', info = info)
+    if (info /= 0) then
+      ri%rm1%stoc_mat = 0  ! Cholesky failed
+    endif
+
+    do i = 2, 6
+      ri%rm1%stoc_mat(i, 1:i-1) = 0
+    enddo
+
+    ri%rm1%damp_mat = ri%rm0%damp_mat + ri%rm1%damp_mat
+    ri%rm1%damp_vec = ri%rm0%damp_vec + ri%rm1%damp_vec
+  enddo
 endif
 
 !
@@ -1061,15 +1085,14 @@ end subroutine ltt_run_stat_mode
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine ltt_track1_radiation_center (orbit, ele1, ele2, rad_damp, rad_fluct)
+! Subroutine ltt_track1_radiation_center (orbit, ele, rad_damp, rad_fluct)
 !
 ! Used for elements that have been split in half: This routine applies a kick to a particle 
 ! to account for radiation dampling and/or fluctuations.
 !
 ! Input:
 !   orbit     -- coord_struct: Particle at center of element before radiation applied.
-!   ele1      -- ele_struct: First half of the split element.
-!   ele2      -- ele_struct: Second half of the split element.
+!   ele       -- ele_struct: Radiation point
 !   rad_damp  -- logical, optional: If present, override setting of bmad_com%radiation_damping_on.
 !   rad_fluct -- logical, optional: If present, override setting of bmad_com%radiation_fluctuations_on.
 !
@@ -1077,14 +1100,15 @@ end subroutine ltt_run_stat_mode
 !   orbit     -- coord_struct: Particle position after radiation has been applied.
 !-
 
-subroutine ltt_track1_radiation_center (orbit, ele1, ele2, rad_damp, rad_fluct)
+subroutine ltt_track1_radiation_center (orbit, ele, rad_damp, rad_fluct)
 
 use random_mod
 
 implicit none
 
 type (coord_struct) :: orbit
-type (ele_struct), target :: ele1, ele2
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele1, ele2
 type (lat_param_struct) :: param
 type (rad_map_struct), pointer :: rad_mat
 
@@ -1106,7 +1130,7 @@ r_fluct = logic_option(bmad_com%radiation_fluctuations_on, rad_fluct)
 if (.not. r_damp .and. .not. r_fluct) return
 
 if (bmad_com%debug) then
-  rad_mat => ele1%rad_int_cache%rm1
+  rad_mat => ele%rad_int_cache%rm1
   if (bmad_com%radiation_damping_on) then
     orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
     if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_mat%damp_vec
@@ -1119,6 +1143,11 @@ if (bmad_com%debug) then
 
   return
 endif
+
+!
+
+ele1 => pointer_to_next_ele(ele, -1)
+ele2 => pointer_to_next_ele(ele)
 
 call calc_radiation_tracking_integrals (ele1, orbit, start_edge$, .false., int_gx, int_gy, int_g2, int_g3)
 call calc_radiation_tracking_integrals (ele2, orbit, end_edge$, .false., gxi, gyi, g2i, g3i)
@@ -2262,8 +2291,7 @@ ele => ele_start
 do
   ele => pointer_to_next_ele(ele)
   if (ele%name == 'Radiation_Point') then
-    call ltt_track1_radiation_center(orbit, pointer_to_next_ele(ele, -1), &
-                                            pointer_to_next_ele(ele), .false., rad_fluct)
+    call ltt_track1_radiation_center(orbit, ele, .false., rad_fluct)
   else
     call track1 (orbit, ele, ele%branch%param, orbit, err_flag = err_flag)
   endif
@@ -2299,8 +2327,7 @@ if (lttp%split_bends_for_radiation) then
     ele => pointer_to_next_ele(ele)
     if (ele%name == 'Radiation_Point') then
       do i = 1, size(bunch%particle)
-        call ltt_track1_radiation_center(bunch%particle(i), pointer_to_next_ele(ele, -1), &
-                                              pointer_to_next_ele(ele), .false., rad_fluct)
+        call ltt_track1_radiation_center(bunch%particle(i), ele, .false., rad_fluct)
       enddo
     else
       call track1_bunch (bunch, ele, err_flag)
@@ -2346,7 +2373,7 @@ do i = 1, ubound(ltt_com%sec, 1)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
     if (orbit%state /= alive$) return
   elseif (sec%ele%name == 'Radiation_Point') then
-    call ltt_track1_radiation_center(orbit, pointer_to_next_ele(sec%ele, -1), pointer_to_next_ele(sec%ele), .false., pt_fluct_on)
+    call ltt_track1_radiation_center(orbit, sec%ele, .false., pt_fluct_on)
   else  ! EG: beambeam
     call track1 (orbit, sec%ele, branch%param, orbit)
   endif
