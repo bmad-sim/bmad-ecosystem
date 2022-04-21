@@ -3456,7 +3456,7 @@ case ('major_div')
   if (.not. error) qp_axis%major_div_nominal = qp_axis%major_div
 
 case ('major_div_nominal')
-  call tao_set_integer_value (qp_axis%major_div_nominal, qp_axis_name, value, error, 1)
+  call tao_set_integer_value (qp_axis%major_div_nominal, qp_axis_name, value, error)
 case ('minor_div')
   call tao_set_integer_value (qp_axis%minor_div, qp_axis_name, value, error, 0)
 case ('minor_div_max')
