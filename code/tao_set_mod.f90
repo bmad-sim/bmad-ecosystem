@@ -3204,7 +3204,9 @@ if (ix /= 0) then
   case ('shape', 'color', 'label', 'ele_name')
     needs_quotes = .true.
   end select
-  if (value_str(1:1) == "'" .or. value_str(1:1) == '"') needs_quotes = .false.
+  ! Something like 30*"XXX" does not need quotes
+  n = len_trim(value_str)
+  if (value_str(n:n) == "'" .or. value_str(n:n) == '"') needs_quotes = .false.
 endif
 
 ! open a scratch file for a namelist read
