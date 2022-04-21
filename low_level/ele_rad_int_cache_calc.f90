@@ -14,7 +14,6 @@
 subroutine ele_rad_int_cache_calc (ele)
 
 use pointer_to_ele_mod, dummy => ele_rad_int_cache_calc
-use pointer_to_branch_mod
 
 implicit none
 

@@ -8,7 +8,6 @@ use equality_mod
 use multipole_mod
 use pointer_to_ele_mod
 use changed_attribute_bookkeeper
-use pointer_to_branch_mod
 use taylor_mod
 
 implicit none
