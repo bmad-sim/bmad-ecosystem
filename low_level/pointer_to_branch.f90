@@ -1,51 +1,3 @@
-module pointer_to_branch_mod
-
-use bmad_struct
-
-implicit none
-
-private pointer_to_branch_given_name, pointer_to_branch_given_ele
-
-!+
-! Function pointer_to_branch
-!
-! Routine to return a pointer to the lattice branch associated with a given name
-! or a given element.
-!
-! This routine is an overloaded name for:
-!   pointer_to_branch_given_ele (ele) result (branch_ptr))
-!   pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_is_branch0) result (branch_ptr)
-!
-! The lattice branch *associated* with a given element is not necessarily the
-! branch where the element is *located*. For example, all lords live in branch #0.
-! But the branch associated with a super_lord element is the branch of its slaves.
-!
-! To get the branch where the element is located, simply use ele%ix_branch.
-! 
-! Note: Result is ambiguous if ele argument is associated with multiple branches 
-! which can happen, for example, with overlay elements.
-!
-! Input:
-!   ele                  -- Ele_struct: Element contained in the branch.
-!   branch_name          -- Character(*): May be a branch name or a branch index.
-!   lat                  -- Lat_struct: Lattice to search.
-!   parameter_is_branch0 -- logical, optional: If True, 'PARAMETER' is taken to be
-!                             an alternative name for branch(0). Default is False.
-!   blank_is_branch0     -- logical, optional: If True, branch_name = '' is taken to be
-!                             an alternative name for branch(0). Default is False.
-!
-! Output:
-!   branch_ptr  -- branch_struct, pointer: Pointer to the branch.
-!                   Nullified if there is no associated branch.
-!-
-
-interface pointer_to_branch
-  module procedure pointer_to_branch_given_ele
-  module procedure pointer_to_branch_given_name
-end interface
-
-contains
-
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -70,6 +22,10 @@ contains
 !-
 
 function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_is_branch0) result (branch_ptr)
+
+use bmad_struct
+
+implicit none
 
 type (branch_struct), pointer :: branch_ptr
 type (lat_struct), target :: lat
@@ -144,6 +100,10 @@ end function pointer_to_branch_given_name
 
 recursive function pointer_to_branch_given_ele (ele) result (branch_ptr)
 
+use bmad_struct
+
+implicit none
+
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele2
 type (branch_struct), pointer :: branch_ptr
@@ -185,5 +145,3 @@ endif
 branch_ptr => pointer_to_branch_given_ele(pointer_to_slave(ele2, 1))
 
 end function pointer_to_branch_given_ele
-
-end module

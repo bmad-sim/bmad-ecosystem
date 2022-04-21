@@ -364,7 +364,7 @@ type (ele_struct), target :: ele, runt
 type (rad_int_ele_cache_struct), pointer :: ric
 type (rad_map_struct) rad_mat
 type (branch_struct), pointer :: branch
-real(rp) tol, rcond, m_inv(6,6)
+real(rp) tol, m_inv(6,6)
 integer i, edge, info
 logical err, rad_damp_on
 
@@ -373,10 +373,8 @@ logical err, rad_damp_on
 if (.not. associated(ele%rad_int_cache)) allocate(ele%rad_int_cache)
 ric => ele%rad_int_cache
 branch => pointer_to_branch(ele)
-tol = 1d-4 / branch%param%total_length
 
-if (all(ric%rm0%ref_orb == ele%map_ref_orb_in%vec) .or. all(ric%rm1%ref_orb == ele%map_ref_orb_out%vec)) return
-if (all(ric%rm0%ref_orb == ric%rm1%ref_orb) .and. ele%key /= sbend$) then
+if (all(ric%rm0%ref_orb(2:4:2) == ric%rm1%ref_orb(2:4:2)) .and. ele%key /= sbend$) then
   ric%rm0 = rad_map_struct()
   ric%rm1 = rad_map_struct()
   ric%rm0%ref_orb = ele%map_ref_orb_in%vec
@@ -384,56 +382,20 @@ if (all(ric%rm0%ref_orb == ric%rm1%ref_orb) .and. ele%key /= sbend$) then
   return
 endif
 
-ric%rm1%ref_orb = ele%map_ref_orb_out%vec
 rad_damp_on = bmad_com%radiation_damping_on
 bmad_com%radiation_damping_on = .false.
-
-! The Cholesky decomp can fail due to roundoff error in rad1_damp_and_stoc_mats. 
-! This is especially true if there is little radiation. In this case just set the stoc mat to zero.
 
 ! Mats for first half of element
 
 call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.0_rp, ele%branch%param, .true., .true., err, pointer_to_next_ele(ele, -1))
 call make_mat6 (runt, branch%param, ele%map_ref_orb_in, orb1)
-call rad1_damp_and_stoc_mats (runt, .true., ele%map_ref_orb_in, orb1, rad_mat, tol * branch%param%i2_rad_int, tol * branch%param%i3_rad_int)
-m_inv = mat_symp_conj(runt%mat6)
-
-ric%rm0 = rad_mat
-ric%rm0%ref_orb = ele%map_ref_orb_in%vec
-
-ric%rm0%damp_mat = matmul(m_inv, ric%rm0%damp_mat)
-ric%rm0%damp_vec = matmul(m_inv, ric%rm0%damp_vec)
-
-ric%rm0%stoc_mat = matmul(matmul(m_inv, ric%rm0%stoc_mat), transpose(m_inv))
-
-call dpotrf_f95(ric%rm0%stoc_mat, 'U', info = info)
-if (info /= 0) then
-  ric%rm0%stoc_mat = 0  ! Cholesky failed
-endif
-
-do i = 2, 6
-  ric%rm0%stoc_mat(i, 1:i-1) = 0
-enddo
+call tracking_rad_mat_setup (runt, 1e-4_rp, upstream_end$, ric%rm0)
 
 ! Mats for second half of element
 
 call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.5_rp*ele%value(l$), ele%branch%param, .true., .true., err, runt)
 call make_mat6 (runt, branch%param, orb1, orb2)
-call rad1_damp_and_stoc_mats (runt, .true., orb1, orb2, rad_mat, tol * branch%param%i2_rad_int, tol * branch%param%i3_rad_int)
-m_inv = mat_symp_conj(runt%mat6)
-
-ric%rm1 = rad_mat
-
-call dpotrf_f95(ric%rm1%stoc_mat, 'U', info = info)
-if (info /= 0) then
-  ric%rm1%stoc_mat = 0 ! Cholesky failed
-endif
-
-do i = 2, 6
-  ric%rm1%stoc_mat(i, 1:i-1) = 0
-enddo
-
-!
+call tracking_rad_mat_setup (runt, 1e-4_rp, downstream_end$, ric%rm1)
 
 bmad_com%radiation_damping_on = rad_damp_on
 
