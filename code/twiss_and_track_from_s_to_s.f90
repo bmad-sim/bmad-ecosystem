@@ -85,8 +85,12 @@ endif
 
 orbit = orbit_start
 if (orbit%location == downstream_end$) then
-  orbit%ix_ele = orbit%ix_ele + 1
+  orbit%ix_ele = modulo(orbit%ix_ele, branch%n_ele_track) + 1
   orbit%location = upstream_end$
+  if (orbit%ix_ele == 1) then ! Have wrapped
+    orbit%s = branch%ele(1)%s_start
+    s_start = orbit%s
+  endif
 endif
 
 ix_start = orbit%ix_ele
@@ -96,7 +100,7 @@ if (orbit%location == downstream_end$) then
     if (present(err)) err = .false.
     return
   endif
-  ix_start = ix_start + 1
+  ix_start = modulo(ix_start, branch%n_ele_track) + 1
 endif
 
 if (present(err)) err = err_flag
@@ -128,7 +132,7 @@ if (.not. particle_is_moving_forward(orbit_end)) return
 
 ! Track to ending element
 
-ix_ele = ix_start + 1
+ix_ele = modulo(ix_start, branch%n_ele_track) + 1
 do
   if (ix_ele == ix_end) exit
   ele_track => branch%ele(ix_ele)
