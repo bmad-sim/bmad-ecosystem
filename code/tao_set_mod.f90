@@ -3453,7 +3453,7 @@ case ('label_color')
 
 case ('major_div')
   call tao_set_integer_value (qp_axis%major_div, qp_axis_name, value, error, 1)
-  if (.not. error) qp_axis%major_div_nominal = qp_axis%major_div
+  if (.not. error .and. qp_axis%major_div_nominal > 0) qp_axis%major_div_nominal = qp_axis%major_div
 
 case ('major_div_nominal')
   call tao_set_integer_value (qp_axis%major_div_nominal, qp_axis_name, value, error)
