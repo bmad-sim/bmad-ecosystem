@@ -196,7 +196,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     if (err .and. .not. s%global%debug_on) then
       call out_io (s_fatal$, r_name, &
               'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
-              'EXITING...', i_array = (/ i_uni /))
+              'EXITING...', i_array = [i_uni])
       return
     endif
 
@@ -241,13 +241,17 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
     if (design_lat%slice_lattice /= '') then
       call slice_lattice (u%design%lat, design_lat%slice_lattice, err)
+      if (err) call out_io (s_error$, r_name, 'ERROR SLICING LATTICE FOR UNIVERSE: ' // int_str(i_uni))
     endif
 
     if (design_lat%reverse_lattice) then
       lat => u%design%lat
       call reallocate_coord (orbit, lat)
       call init_coord (orbit(0), lat%particle_start, lat%ele(0), downstream_end$)
-      call twiss_and_track(lat, orbit)
+      call twiss_and_track(lat, orbit, status)
+      if (status /= ok$) then
+        call out_io (s_error$, r_name, 'PROBLEM CALCULATING TWISS/ORBIT FOR UNIVERSE: '// int_str(i_uni)) 
+      endif
       call reverse_lat(lat, lat)
       lat%particle_start = orbit(lat%n_ele_track)
       lat%particle_start%vec(2) = -lat%particle_start%vec(2)
