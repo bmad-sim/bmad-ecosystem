@@ -106,6 +106,9 @@ if (logic_option(.true., do_bookkeeping)) then
       lat%particle_start = orbit(ie-1)
       exit
     enddo
+  else
+    call out_io (s_error$, r_name, 'PROBLEM CALCULATING TWISS/ORBIT.', &
+           'WILL NOT BE ABLE TO SET THE BEGINNING TWISS PARAMETERS CORRECTLY IN THE SLICED LATTICE.')
   endif
 endif
 
@@ -186,7 +189,7 @@ enddo
 
 call lattice_bookkeeper (lat)
 
-error = .false.
+if (status == ok$) error = .false.
 
 !-------------------------------------------------------------------------------------
 contains
