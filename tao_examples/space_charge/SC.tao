@@ -1,7 +1,7 @@
 
 
-set csr_param n_bin = 40
-set csr_param ds_track_step = 0.01
+set space_charge_com n_bin = 40
+set space_charge_com ds_track_step = 0.01
 
 
 
@@ -10,6 +10,7 @@ set ele * space_charge_method = fft_3d
 
 set bmad_com csr_and_space_charge_on = T
 
+set global track_type = beam
 
 
 place * none
@@ -20,7 +21,6 @@ place middle2 zphase
 
 
 
-set global track_type = beam
 !set global track_type = beam
 
 sc
