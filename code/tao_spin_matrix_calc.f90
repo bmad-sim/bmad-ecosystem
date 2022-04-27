@@ -48,8 +48,12 @@ spin_map%valid = .false.
 
 ! Concatenate the spin/orbital map
 
-ele1 => ele_eval
-if (ele1%lord_status == super_lord$) ele1 => pointer_to_slave(ele1, ele1%n_slave)
+if (associated(ele1)) then
+  ele1 => ele_eval
+  if (ele1%lord_status == super_lord$) ele1 => pointer_to_slave(ele1, ele1%n_slave)
+else
+  ele1 => branch%ele(0)
+endif
 
 ele0 => ele_ref
 if (.not. associated(ele0)) then
