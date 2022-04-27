@@ -89,7 +89,7 @@ type (aperture_scan_struct), pointer :: aperture_scan
 type (coord_struct) orbit
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_spin_map_struct), pointer :: sm
-type (normal_modes_struct) norm_mode, mode_6d, mode0_6d
+type (normal_modes_struct) norm_mode, mode_6d
 type (normal_modes_struct), pointer :: mode_m, mode_d
 type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: rmap(:)
@@ -1729,7 +1729,7 @@ case ('emittance')
   tao_branch => u%model%tao_branch(ele%ix_branch)
   mode_m => tao_branch%modes_ri
 
-  call emit_6d (ele, .false., mode0_6d, sig0_mat)
+  call emit_6d (ele, .false., mode_6d, sig0_mat)
   call emit_6d (ele, .true., mode_6d, sig_mat)
   call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ele%ix_branch)
 
@@ -1743,11 +1743,11 @@ case ('emittance')
   nl=nl+1; lines(nl) = '                    | Vert opening angle included | Opening angle ignored       |'
   nl=nl+1; lines(nl) = ' Mode     PTC_Emit  | Bmad_6D_Emit   Rad_Int_Emit | Bmad_6D_Emit   Rad_Int_Emit |'
   nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'A', norm_mode%a%emittance, mode_6d%a%emittance, &
-                                                           mode_m%a%emittance, mode0_6d%a%emittance, mode_m%a%emittance
+                                                           mode_m%a%emittance, mode_6d%a%emittance_no_vert, mode_m%a%emittance_no_vert
   nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'B', norm_mode%b%emittance, mode_6d%b%emittance, &
-                                                           mode_m%b%emittance, mode0_6d%b%emittance, mode_m%b%emittance_no_vert
+                                                           mode_m%b%emittance, mode_6d%b%emittance_no_vert, mode_m%b%emittance_no_vert
   nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'C', norm_mode%z%emittance, mode_6d%z%emittance, &
-                                                           mode_m%sigE_E * mode_m%sig_z, mode0_6d%z%emittance, mode_m%sigE_E * mode_m%sig_z
+                                                           mode_m%sigE_E * mode_m%sig_z, mode_6d%z%emittance_no_vert, mode_m%sigE_E * mode_m%sig_z
 
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'J_damp:    ', mode_6d%a%j_damp, mode_6d%b%j_damp, mode_6d%z%j_damp
@@ -4034,7 +4034,7 @@ case ('radiation_integrals')
 
   nt = branch%n_ele_track
   time1 = branch%ele(nt)%ref_time
-  gamma = branch%ele(0)%value(e_tot$) / mass_of(species)
+  gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%ele(0)%ref_species)
 
   fmt  = '(1x, a16, 2es13.5, 2x, 2es13.5, 2x, a)'
   fmt2 = '(1x, a16,  2f13.6, 2x,  2f13.6, 2x, a)'
