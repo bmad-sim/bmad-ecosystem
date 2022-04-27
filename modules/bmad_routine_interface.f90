@@ -453,12 +453,13 @@ subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s, print_err)
   logical, optional :: print_err
 end subroutine
 
-subroutine choose_quads_for_set_tune (lat, dk1, mask)
+subroutine choose_quads_for_set_tune (lat, dk1, mask, err_flag)
   import
   implicit none
   type (lat_struct), target :: lat
   character(*), optional :: mask
   real(rp), allocatable, intent(inout) :: dk1(:)
+  logical, optional :: err_flag
 end subroutine
 
 subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &

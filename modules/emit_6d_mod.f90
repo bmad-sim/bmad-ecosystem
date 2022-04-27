@@ -94,7 +94,11 @@ call dgesv_f95(mt, v_sig, ipev, info)
 
 if (info /= 0) then
   sigma_mat = -1
-  mode%a%emittance = -1; mode%b%emittance = -1; mode%z%emittance = -1
+  if (include_opening_angle) then
+    mode%a%emittance = -1; mode%b%emittance = -1; mode%z%emittance = -1
+  else
+    mode%a%emittance_no_vert = -1; mode%b%emittance_no_vert = -1; mode%z%emittance_no_vert = -1
+  endif
   return
 endif
 
