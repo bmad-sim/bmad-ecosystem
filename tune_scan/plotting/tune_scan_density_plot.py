@@ -51,7 +51,7 @@ while i < len(sys.argv):
     print_help()
 
   elif sys.argv[i] == '-column'[:n]:
-    dat_col = float(sys.argv[i+1])
+    dat_col = int(sys.argv[i+1])
     i += 1
 
   elif sys.argv[i] == '-max'[:n]:

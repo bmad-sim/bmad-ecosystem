@@ -18,6 +18,7 @@ type ts_params_struct
   real(rp) :: pz0 = 0, pz1 = 0, dpz = 0
   real(rp) :: a_emit = 0, b_emit = 0, sig_pz
   real(rp) :: a0_amp = 0, b0_amp = 0, pz0_amp = 0
+  real(rp) :: timer_print_dtime = 120
   integer :: n_turn = 0
   logical :: use_phase_trombone = .false.
   logical :: debug = .false.
@@ -58,6 +59,7 @@ type (normal_modes_struct) mode
 type (ele_struct), pointer :: ele
 
 integer n_arg
+logical err
 
 namelist / params / bmad_com, ts
 
@@ -116,7 +118,8 @@ endif
 bmad_com%auto_bookkeeper = .false.
 global_com%exit_on_error = .false.
 
-call bmad_parser(ts%lat_file, ts_com%ring)
+call bmad_parser(ts%lat_file, ts_com%ring, err_flag = err)
+if (err) stop
 
 if (.not. ts%rf_on) call set_on_off(rfcavity$, ts_com%ring, off$)
 if (ts%use_phase_trombone) call insert_phase_trombone(ts_com%ring%branch(0))
@@ -189,7 +192,8 @@ ring = ts_com%ring              ! Use copy in case tune setting fails, which may
 closed_orb = ts_com%closed_orb  ! Use copy in case tune setting fails, which may garble the closed orbit
 ele => ring%ele(0)
 
-ok = set_tune_3d (ring, ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on, .false.)  ! Takes tunes that have not not been multiplied by 2pi.
+ok = set_tune_3d (ring, ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on, .false.)  ! Tunes in radians.
+if (.not. ok) stop
 
 if (.not. ok) return    ! Tunes could not be set, probably on a resonance.
 
