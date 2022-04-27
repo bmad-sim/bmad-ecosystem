@@ -68,7 +68,7 @@
 
 \title{Tune Scan Program}
 \author{}
-\date{David Sagan \\ November 7, 2021}
+\date{David Sagan \\ April 26, 2022}
 \begin{document}
 \maketitle
 
@@ -225,6 +225,8 @@ input file must contain a single namelist (\sref{s:namelist}) named \vn{params}.
 
   ts%rf_on = F            ! RF acceleration field on or off?
   ts%n_turn = 2000        ! Number of turns to track a particle.
+  ts%timer_print_dtime = 120  ! Time (sec) between progress printouts.
+
   bmad_com%radiation_damping_on = F        ! Set radiation damping on/off.
   bmad_com%radiation_fluctuations_on = F   ! Set radiation excitation on/off.
 /
@@ -300,6 +302,9 @@ Determines if the RF is turned on or off. If \vn{False} (the default), the RF is
 %
 \item[ts\%n_turn] \Newline
 Number of turns to track a particle.
+%
+\item[ts\%timer_print_dtime] \Newline
+Time (seconds) between progress printouts.
 %
 \item[bmad_com] \Newline
 Bmad common structure used for setting Bmad global parameters. See the Bmad manual for more
