@@ -1,10 +1,9 @@
 !+
 ! Subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling, lat_files)
 !
-! Subroutine to read in a digested file. The subroutine will check that
-! the version of the digested file is up to date and that the digested file
-! is current with respect to the original BMAD files that were used. [See
-! write_digested_bmad_file.]
+! Subroutine to read in a digested file. The subroutine will check that the version of the digested file 
+! is up to date and that the digested file is current with respect to the original BMAD files that were used. 
+! [See write_digested_bmad_file.]
 !
 ! Note: This subroutine also reads in the common structures for bmad_parser2
 !
@@ -57,7 +56,7 @@ logical, optional :: err_flag, parser_calling
 logical is_ok, parser_call
 logical found_it, mode3, error, is_match, err, err_found
 
-! init all elements in lat
+! Init all elements in lat
 
 call init_bmad()
 
@@ -71,10 +70,14 @@ else
   io_err_level = s_error$
 endif
 
+if (digested_file == '') then ! For some reason the inquire statement will not catch this error.
+  call out_io (io_err_level, r_name, 'DIGESTED FILE NAME IS BLANK!')
+  return
+endif
+
 call init_lat (lat)
 
 ! Read the digested file.
-! Some old versions can be read even though they are not the current version.
 
 d_unit = lunget()
 inc_version = -1
@@ -83,8 +86,7 @@ lat%n_ele_track = 0
 call fullfilename (digested_file, fname_full)
 inquire (file = fname_full, name = full_digested_file)
 call simplify_path (full_digested_file, full_digested_file)
-open (unit = d_unit, file = full_digested_file, status = 'old',  &
-                     form = 'unformatted', action = 'READ', err = 9000)
+open (unit = d_unit, file = full_digested_file, status = 'old',  form = 'unformatted', action = 'READ', err = 9000)
 
 read (d_unit, err = 9010, end = 9010) n_files, file_version
 if (present(lat_files)) call re_allocate (lat_files, n_files)

@@ -252,7 +252,7 @@ case (rfcavity$)
 
 case (sad_mult$)
   select case (method)
-  case (bmad_standard$, custom$, symp_lie_ptc$, linear$, taylor$)
+  case (bmad_standard$, custom$, symp_lie_ptc$, linear$, taylor$, runge_kutta$)
     is_valid = .true.
   end select
 
