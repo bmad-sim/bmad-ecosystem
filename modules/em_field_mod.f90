@@ -268,14 +268,14 @@ endif
 
 if (ele%key == sad_mult$ .and. ele%value(sad_flag$) == 0) then
   call transfer_ele(ele, ele2)
-  ele2%value(sad_flag$) = 1  ! To prevent infinite recursion
 
   ! Solenoid calc. Ignore multipoles
-  nullify(ele2%a_pole)
-  nullify(ele2%b_pole)
+  ele2%value(sad_flag$) = 1.0_rp  ! Signal solenoid calc. Sad_flag is only used here and nowhere else.
   call em_field_calc (ele2, param, s_pos, orbit, local_ref_frame, field1, calc_dfield, err_flag, calc_potential, &
                                 use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err)
-  ! multipole calc
+
+  ! Multipole calc. Ignore solenoid
+  ele2%value(sad_flag$) = 2.0_rp  ! Signal solenoid calc. Sad_flag is only used here and nowhere else.
   ele2%value(ks$) = 0
   ele2%value(bs_field$) = 0
   ele2%value(x_pitch_tot$) = ele%value(x_pitch_tot$) + ele%value(x_pitch_mult$)
@@ -649,9 +649,9 @@ case (bmad_standard$)
     endif
 
   !------------------
-  ! Solenoid
+  ! Solenoid / sad_mult
 
-  case (solenoid$, sad_mult$)
+  case (solenoid$)
 
     field%b(3) = ele%value(ks$) * f_p0c
 
@@ -661,6 +661,20 @@ case (bmad_standard$)
 
     if (logic_option(.false., calc_potential)) then
       field%A = (0.5_rp * field%b(3)) * [-y, x, 0.0_rp]      
+    endif
+
+  case (sad_mult$)
+    if (ele%value(sad_flag$) == 1.0_rp) then
+      field%b(3) = ele%value(ks$) * f_p0c
+
+      if (do_df_calc) then
+        dfield_computed = .true.
+      endif
+
+      if (logic_option(.false., calc_potential)) then
+        field%A = (0.5_rp * field%b(3)) * [-y, x, 0.0_rp]      
+      endif
+      return
     endif
 
   !------------------
