@@ -1,5 +1,5 @@
 !+
-! Subroutine choose_quads_for_set_tune (lat, dk1, mask)
+! Subroutine choose_quads_for_set_tune (lat, dk1, mask, err_flag)
 !
 ! Routine to choose assign weights for quadrupole changes in a lattice when varying the tune.
 ! The output of this routine, dk1, can be used in the set_tune routine.
@@ -11,9 +11,11 @@
 !
 ! Output:
 !   dk1(:)      -- real(rp): Weights for the quadrupoles. All values will be +1 or -1.
+!   err_flag    -- logical, optional: Set True if there is not one quad with positive dk1 and 
+!                   one quad with negative dk1.
 !-
 
-subroutine choose_quads_for_set_tune (lat, dk1, mask)
+subroutine choose_quads_for_set_tune (lat, dk1, mask, err_flag)
 
 use bmad_interface, dummy => choose_quads_for_set_tune
 
@@ -31,12 +33,14 @@ integer i, j, is, n_loc
 
 character(*), optional :: mask
 
-logical found
+logical, optional :: err_flag
+logical found, found_plus, found_minus
 
 ! find which quads to change
 
 if (.not. allocated(dk1)) allocate(dk1(lat%n_ele_max))
 dk1 = 0
+found_plus = .false.; found_minus = .false.
 
 lat%ele%select = .true.
 if (present(mask)) then
@@ -54,12 +58,13 @@ do i = 1, lat%n_ele_max
                                                                       abs(ele%value(tilt$)) < 0.01) then
     if (ele%a%beta > ele%b%beta) then
       dk1(i) = +1
+      found_plus = .true.
     else
       dk1(i) = -1
+      found_minus = .true.
     endif
-  endif
 
-  if (ele%lord_status == overlay_lord$) then
+  elseif (ele%lord_status == overlay_lord$) then
     found = .false.
     do is = 1, ele%n_slave    
       slave => pointer_to_slave(ele, is, ctl)
@@ -71,10 +76,14 @@ do i = 1, lat%n_ele_max
     if (.not. found) cycle
     if (slave%a%beta > slave%b%beta) then
       dk1(i) = +1
+      found_plus = .true.
     else
       dk1(i) = -1
+      found_minus = .true.
     endif
   endif
 enddo
+
+if (present(err_flag)) err_flag = (.not. (found_plus .and. found_minus))
 
 end subroutine choose_quads_for_set_tune
