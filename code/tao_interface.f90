@@ -1140,6 +1140,7 @@ ix_amp = 0
 do i = 1, len(string)
   if (index('-0123456789:,[]*', string(i:i)) == 0 .and. string(i:i) /= '@') return
   if (string(i:i) /= '@') cycle
+  if (index(string(1:i), '::') /= 0) return
   ix_amp = i
   return
 enddo
