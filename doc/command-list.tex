@@ -1604,15 +1604,14 @@ Format:
   set universe <what_universe> track_calc <on/off>
 \end{example}
 
-The \vn{<what_universe>} argument may be a list of universes enclosed in brackets ``[...]''. See
-below for an example.
-
 The \vn{set universe <what_universe> ...} command will turn on or off specified lattice/tracking
 calculations for the specified universe(s). Turning specified calculations off for a universe is
-useful to speed up lattice calculations when the calculation is not necessary. To specify the
-currently default universe (\sref{s:universe}), you can use \vn{-1} as the \vn{<what_universe>}
-index. To specify all universes, use \vn{*}. Use the \vn{show universe} command to see the state of
-these switches are.
+useful to speed up lattice calculations when the calculation is not necessary. 
+
+To specify the currently default universe (\sref{s:universe}), you can use \vn{-1} as the
+\vn{<what_universe>} index. To specify all universes, use \vn{*}. Use the \vn{show universe} command
+to see the state of these switches are. The \vn{<what_universe>} argument may be a list of universes
+enclosed in brackets ``[...]''. See below for an example.
 
 Note: The global logical \vn{lattice_calc_on} (\sref{s:globals}) is separate from the logicals set
 by \vn{set universe}. That is, toggling the state of \vn{lattice_calc_on} will not affect the

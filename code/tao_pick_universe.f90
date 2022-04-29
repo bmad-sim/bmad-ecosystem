@@ -67,7 +67,7 @@ if (logic_option(.false., pure_uni)) then
   do i = 1, len(name_out)
     ch = name_out(i:i)
     if (ch == ' ' .and. name_out(1:1) /= '[') exit  ! Blanks allowed in bracket construct.
-    if (index('[],-*0123456789', ch) == 0) exit
+    if (index('[],-*:0123456789', ch) == 0) exit
     j = max(1, i-1)
     if (name_out(j:j) == ']') exit
   enddo
