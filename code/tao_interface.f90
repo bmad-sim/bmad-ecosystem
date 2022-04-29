@@ -679,14 +679,14 @@ subroutine tao_pause_cmd (time)
   real(rp) time
 end subroutine
 
-subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni, explicit_uni, dflt_uni)
+subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni, explicit_uni, dflt_uni, pure_uni)
   import
   implicit none
   character(*) name_in, name_out
   integer, optional :: ix_uni, dflt_uni
   logical, allocatable :: picked(:)
   logical err
-  logical, optional :: explicit_uni
+  logical, optional :: explicit_uni, pure_uni
 end subroutine
  
 subroutine tao_place_cmd (where, who, no_buffer)
@@ -1133,12 +1133,12 @@ implicit none
 integer ix_amp, i
 character(*) string
 
-! Any characters before a uni "@" must be in the set '0123456789:,[]*'.
+! Any characters before a uni "@" must be in the set '-0123456789:,[]*'.
 
 ix_amp = 0
 
 do i = 1, len(string)
-  if (index('0123456789:,[]*', string(i:i)) == 0 .and. string(i:i) /= '@') return
+  if (index('-0123456789:,[]*', string(i:i)) == 0 .and. string(i:i) /= '@') return
   if (string(i:i) /= '@') cycle
   ix_amp = i
   return

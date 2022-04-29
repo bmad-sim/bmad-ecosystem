@@ -2592,153 +2592,139 @@ subroutine tao_set_universe_cmd (uni, who, what)
 
 implicit none
 
-integer i, n_uni
+type (tao_universe_struct), pointer :: u
+
+integer i, iu
 
 character(*) uni, who, what
 character(*), parameter :: r_name = "tao_set_universe_cmd"
+character(40) str
 
-logical is_on, err, mat6_toggle
+logical err, mat6_toggle, calc_ok
+logical, allocatable :: picked(:)
 
 
 ! Pick universe
 
 call downcase_string(what)
 
-if (uni /= '*') then
-  call tao_to_int (uni, n_uni, err)
-  if (err) return
-  if (n_uni < -1 .or. n_uni > ubound(s%u, 1)) then
-    call out_io (s_warn$, r_name, "Invalid Universe specifier")
-    return 
-  endif
-  n_uni = tao_universe_number (n_uni)
+call tao_pick_universe(uni, str, picked, err, dflt_uni = -1, pure_uni = .true.)
+if (err) return
+if (str /= '') then
+  call out_io (s_error$, r_name, 'MALFORMED "SET UNIVERSE" COMMAND.')
 endif
 
-! Twiss calc.
-! "mat6_recalc" is old style
+s%u%picked_uni = .false.  ! Used by recalculate command.
 
-if (index('twiss_calc', trim(who)) == 1 .or. index('mat6_recalc', trim(who)) == 1) then
-  if (what == 'on') then
-    is_on = .true.
-  elseif (what == 'off') then
-    is_on = .false.
-  else
-    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> twiss_calc on/off"')
+do iu = 1, ubound(s%u, 1)
+  if (.not. picked(iu)) cycle
+  u => s%u(iu)
+
+  ! Twiss calc.
+  ! "mat6_recalc" is old style
+
+  if (index('twiss_calc', trim(who)) == 1 .or. index('mat6_recalc', trim(who)) == 1) then
+    if (what == 'on') then
+      u%calc%twiss = .true.
+      u%calc%lattice = .true.
+    elseif (what == 'off') then
+      u%calc%twiss = .false.
+    else
+      call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> twiss_calc on/off"')
+      return
+    endif
+    cycle
+  endif
+
+  ! Track calc
+  ! "track_recalc" is old style.
+
+  if (index('track_calc', trim(who)) == 1 .or. index('track_recalc', trim(who)) == 1) then
+    if (what == 'on') then
+      u%calc%track = .true.
+      u%calc%lattice = .true.
+    elseif (what == 'off') then
+      u%calc%track = .false.
+    else
+      call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> track_calc on/off"')
+      return
+    endif
+
+    cycle
+  endif
+
+  ! Dynamic aperture calc.
+
+  if (index('dynamic_aperture_calc', trim(who)) == 1) then
+    if (what == 'on') then
+      u%calc%dynamic_aperture = .true.
+      u%calc%lattice = .true.
+    elseif (what == 'off') then
+      u%calc%lattice = .false.
+    else
+      call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> dynamic_aperture_calc on/off"')
+      return
+    endif
+
+    cycle
+  endif  
+
+  ! One turn map calc.
+
+  if ('one_turn_map_calc' == trim(who)) then
+    if (what == 'on' .or. index('true', trim(what)) == 1) then
+      u%calc%one_turn_map = .true.
+      u%calc%lattice = .true.
+    elseif (what == 'off' .or. index('false', trim(what)) == 1) then
+      u%calc%one_turn_map = .false.
+    else
+      call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> one_turn_map_calc on/off"')
+      return
+    endif
+
+    cycle
+  endif  
+    
+  ! Recalc.
+  ! If universe is off then turn on and mark it to be turned off after a recalc.
+
+  if (what /= '') then
+    call out_io (s_error$, r_name, 'Extra stuff on line. Nothing done.')
     return
   endif
-  if (uni == '*') then
-    s%u(:)%calc%twiss = is_on
-    if (is_on) s%u(:)%calc%lattice = .true.
-  else
-    s%u(n_uni)%calc%twiss = is_on
-    if (is_on) s%u(n_uni)%calc%lattice = .true.
+
+  if (index('recalculate', trim(who)) == 1) then
+    u%calc%lattice = .true.
+    if (.not. u%is_on) then
+      u%is_on = .true.
+      u%picked_uni = .true.
+    endif
+    cycle
   endif
-  return
-endif
 
-! Track calc
-! "track_recalc" is old style.
+  !
 
-if (index('track_calc', trim(who)) == 1 .or. index('track_recalc', trim(who)) == 1) then
-  if (what == 'on') then
-    is_on = .true.
-  elseif (what == 'off') then
-    is_on = .false.
+  if (who == 'on') then
+    u%is_on = .true.
+  elseif (who == 'off') then
+    u%is_on = .false.
   else
-    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> track_calc on/off"')
+    call out_io (s_error$, r_name, 'Choices are: "on", "off", "recalculate", "track_recalc", "twiss_calc", etc.')
     return
   endif
 
-  if (uni == '*') then
-    s%u(:)%calc%track = is_on
-    if (is_on) s%u(:)%calc%lattice = .true.
-  else
-    s%u(n_uni)%calc%track = is_on
-    if (is_on) s%u(n_uni)%calc%lattice = .true.
-  endif
-  return
-endif
-
-! Dynamic aperture calc.
-
-if (index('dynamic_aperture_calc', trim(who)) == 1) then
-  if (what == 'on') then
-    is_on = .true.
-  elseif (what == 'off') then
-    is_on = .false.
-  else
-    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> dynamic_aperture_calc on/off"')
-    return
-  endif
-
-  if (uni == '*') then
-    s%u(:)%calc%dynamic_aperture = is_on
-    if (is_on) s%u(:)%calc%lattice = .true.
-  else
-    s%u(n_uni)%calc%dynamic_aperture = is_on
-    if (is_on) s%u(n_uni)%calc%lattice = .true.
-  endif
-  return
-endif  
-
-! One turn map calc.
-
-if ('one_turn_map_calc' == trim(who)) then
-  if (what == 'on' .or. index('true', trim(what)) == 1) then
-    is_on = .true.
-  elseif (what == 'off' .or. index('false', trim(what)) == 1) then
-    is_on = .false.
-  else
-    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> one_turn_map_calc on/off"')
-    return
-  endif
-  if (uni == '*') then
-    s%u(:)%calc%one_turn_map = is_on
-    if (is_on) s%u(:)%calc%lattice = .true.
-  else
-    s%u(n_uni)%calc%one_turn_map = is_on
-    if (is_on) s%u(n_uni)%calc%lattice = .true.
-  endif
-  return
-endif  
-  
-! Recalc.
-
-if (what /= '') then
-  call out_io (s_error$, r_name, 'Extra stuff on line. Nothing done.')
-  return
-endif
-
-if (index('recalculate', trim(who)) == 1) then
-  if (uni == '*') then
-    s%u(:)%calc%lattice = .true.
-  else
-    s%u(n_uni)%calc%lattice = .true.
-  endif
-  return
-endif
+enddo
 
 !
 
-if (who == 'on') then
-  is_on = .true.
-elseif (who == 'off') then
-  is_on = .false.
-else
-  call out_io (s_error$, r_name, "Choices are: 'on', 'off', 'recalculate', 'track_recalc', 'twiss_calc', etc.")
-  return
-endif
-
-if (uni == '*') then
-  call out_io (s_blank$, r_name, "Setting all universes to: " // on_off_logic(is_on))
-  s%u(:)%is_on = is_on
-else
-  s%u(n_uni)%is_on = is_on
-  call out_io (s_blank$, r_name, "Setting universe \i0\ to: " // on_off_logic(is_on), n_uni)
-endif
-
 call tao_set_data_useit_opt()
+call tao_lattice_calc (calc_ok)
   
+do iu = 1, ubound(s%u, 1)
+  u => s%u(iu)
+  if (u%picked_uni) u%is_on = .false.
+enddo
+
 end subroutine tao_set_universe_cmd
 
 !-----------------------------------------------------------------------------
