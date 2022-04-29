@@ -548,7 +548,8 @@ case ('set')
   branch_str = ''
 
   do
-    if (cmd_line(1:1) == '-') then
+    ! "-1" is a universe index and not a switch.
+    if (cmd_line(1:1) == '-' .and. cmd_line(1:2) /= '-1') then
       call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set', '-branch'], .true., switch, err, ix)
       if (err) return
       select case (switch)

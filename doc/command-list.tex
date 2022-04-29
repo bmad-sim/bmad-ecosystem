@@ -1604,6 +1604,9 @@ Format:
   set universe <what_universe> track_calc <on/off>
 \end{example}
 
+The \vn{<what_universe>} argument may be a list of universes enclosed in brackets ``[...]''. See
+below for an example.
+
 The \vn{set universe <what_universe> ...} command will turn on or off specified lattice/tracking
 calculations for the specified universe(s). Turning specified calculations off for a universe is
 useful to speed up lattice calculations when the calculation is not necessary. To specify the
@@ -1647,9 +1650,9 @@ case where the transfer matrices and/or orbit is not being used.
 
 Example:
 \begin{example}
-  set universe 1 off
-  set universe -1 on    ! Set on currently default universe.
-  set universe * recalc ! Recalculate in all universes.
+  set universe [1,3] off ! Set universes 1 and 3 off.
+  set universe -1 on     ! Set on currently default universe.
+  set universe * recalc  ! Recalculate in all universes.
 \end{example}
 
 %% set variable --------------------------------------------------------------
