@@ -1,12 +1,12 @@
 !+
-! Subroutine track_bunch_time (lat, bunch, t_end, s_end, dt_step, extra_field)
+! Subroutine track_bunch_time (bunch, ele_in, t_end, s_end, dt_step, extra_field)
 !
 ! Routine to track a particle bunch for a given time step (or if the 
 ! particle position exceeds s_end).
 !
 ! Input:
-!   lat            -- lat_struct: Lattice to track through.
 !   bunch          -- bunch_struct: Coordinates must be time-coords in element body frame.
+!   ele_in         -- ele_struct: Nominal lattice being tracked through.
 !   t_end          -- real(rp): Ending time.
 !   s_end          -- real(rp): Ending s-position.
 !   dt_step(:)     -- real(rp), optional: Initial step to take for each particle. 
@@ -19,18 +19,18 @@
 !   dt_step(:)     -- real(rp), optional: Next RK time step that this tracker would take based on the error tolerance.
 !-
 
-subroutine track_bunch_time (lat, bunch, t_end, s_end, dt_step, extra_field)
+subroutine track_bunch_time (bunch, ele_in, t_end, s_end, dt_step, extra_field)
 
 use bmad_interface, dummy => track_bunch_time
 !$ use omp_lib
 
 implicit none
 
-type (lat_struct), target :: lat
+type (ele_struct), target :: ele_in
+type (ele_struct), pointer :: ele_here
 type (bunch_struct), target :: bunch
 type (em_field_struct), optional :: extra_field(:)
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele
 type (coord_struct), pointer :: orbit
 
 real(rp) t_end, s_end
@@ -45,9 +45,9 @@ character(*), parameter :: r_name = 'track_bunch_time'
 !
 
 significant_time = bmad_com%significant_length / (10 * c_light)
-branch => lat%branch(bunch%particle(1)%ix_branch)
+branch => pointer_to_branch(ele_in)
 
-!$OMP parallel do default(shared) private(dt, orbit, ele)
+!$OMP parallel do default(shared) private(dt, orbit, ele_here)
 
 do i = 1, size(bunch%particle)
   if (present(dt_step)) then;  dt = dt_step(i)
@@ -61,13 +61,13 @@ do i = 1, size(bunch%particle)
     if (orbit%s >= s_end - 0.1_rp * bmad_com%significant_length) exit
     if (orbit%state /= alive$) exit
 
-    ele => pointer_to_next_track_ele(orbit, branch)
+    ele_here => pointer_to_next_track_ele(orbit, branch)
     if (orbit%state /= alive$) exit
 
     if (present(extra_field)) then
-      call track1_time_RK (orbit, ele, branch%param, err, t_end, dt, extra_field(i))
+      call track1_time_RK (orbit, ele_here, branch%param, err, t_end, dt, extra_field(i))
     else
-      call track1_time_RK (orbit, ele, branch%param, err, t_end, dt)
+      call track1_time_RK (orbit, ele_here, branch%param, err, t_end, dt)
     endif
   enddo
 
@@ -79,42 +79,42 @@ enddo
 !-------------------------------------------------------------------------
 contains
 
-function pointer_to_next_track_ele(orbit, branch) result (ele)
+function pointer_to_next_track_ele(orbit, branch) result (ele_here)
 
 type (coord_struct) orbit
 type (branch_struct) branch
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele_here
 
 !
 
-ele => branch%ele(orbit%ix_ele)
+ele_here => branch%ele(orbit%ix_ele)
 
 select case (orbit%location)
 case (upstream_end$)
   if (orbit%direction /= -1) return
 
-  if (ele%ix_ele == 1) then
+  if (ele_here%ix_ele == 1) then
     orbit%state = lost_z_aperture$
     return
   endif
 
-  ele => pointer_to_next_ele(ele, -1)
+  ele_here => pointer_to_next_ele(ele_here, -1)
   orbit%location = downstream_end$
-  orbit%ix_ele = ele%ix_ele
-  orbit%vec(5) = ele%value(l$)
+  orbit%ix_ele = ele_here%ix_ele
+  orbit%vec(5) = ele_here%value(l$)
 
 case (downstream_end$)
   if (orbit%direction /= 1) return
 
-  if (ele%ix_ele == branch%n_ele_track) then
+  if (ele_here%ix_ele == branch%n_ele_track) then
     call out_io (s_error$, r_name, 'PARTICLE AT END OF LATTICE. WILL BE MARKED AS DEAD')
     orbit%state = lost_z_aperture$
     return
   endif
 
-  ele => pointer_to_next_ele(ele)
+  ele_here => pointer_to_next_ele(ele_here)
   orbit%location = upstream_end$
-  orbit%ix_ele = ele%ix_ele
+  orbit%ix_ele = ele_here%ix_ele
   orbit%vec(5) = 0
 end select
 

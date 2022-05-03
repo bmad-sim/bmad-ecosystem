@@ -7,7 +7,7 @@
 ! Input:
 !   lat         -- lat_struct: lattice.
 !   mask        -- character(*), optional: If present, assign weight of zero for all quads that
-!                   do not match. That is, no variation for non-matching quads.
+!                   do not match. That is, no variation for matching quads.
 !
 ! Output:
 !   dk1(:)      -- real(rp): Weights for the quadrupoles. All values will be +1 or -1.
