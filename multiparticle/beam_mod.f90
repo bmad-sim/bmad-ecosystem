@@ -211,15 +211,21 @@ endif
 !------------------------------------------------
 ! Tracking
 
+if (ele%space_charge_method == cathode_fft_3d$ .and. ele%csr_method /= off$) then
+  call out_io (s_error$, r_name, 'WITH SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D, CSR EFFECTS CANNOT BE HANDLED SO', &
+                                 'CSR_METHOD NEEDS TO BE SET TO OFF. FOR LATTICE ELEMENT: ' // ele%name)
+endif
+
+if (ele%space_charge_method == cathode_fft_3d$ .and. ele%tracking_method /= time_runge_kutta$ .and. &
+                                                     ele%tracking_method /= fixed_step_time_runge_kutta$) then
+  call out_io (s_error$, r_name, 'WITH SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D, THE TRACKING_METHOD SHOULD BE SET TO', &
+                                 'TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA. FOR LATTICE ELEMENT: ' // ele%name)
+endif
+
 csr_sc_on = bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$)
 
 if (csr_sc_on .and. ele%key /= match$) then
-  if (ele%space_charge_method == cathode_fft_3d$ .or. &
-              (ele%space_charge_method == fft_3d$ .and. ele%csr_method == off$)) then
-    !if (ele%tracking_method /= time_runge_kutta$ .and. ele%tracking_method /= fixed_step_time_runge_kutta$) then
-    !  call out_io (s_error$, r_name, 'SPACE CHARGE TRACKING (SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D OR FFT_3D
-    !endif
-
+  if (ele%tracking_method == time_runge_kutta$ .or. ele%tracking_method == fixed_step_time_runge_kutta$) then
     call track1_bunch_space_charge (bunch, ele, err)
     
   elseif (ele%csr_method == steady_state_3d$) then
