@@ -35,7 +35,7 @@ beam_init%sig_z = 0.000899377 ! 3 ps * cLight
 call init_bunch_distribution (branch%ele(0), branch%param, beam_init, 0, bunch_init)
 
 bunch2 = bunch_init
-call track1_bunch(bunch2, branch%ele(1), err)
+!!call track1_bunch(bunch2, branch%ele(1), err)
 
 ! Branch 0: CSR
 
