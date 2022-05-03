@@ -80,7 +80,7 @@ end subroutine
 !------------------------------------------------------------------------
 !+
 
-subroutine space_charge_cathodeimages(mesh3d, direct_field_calc, integrated_green_function,image_method)
+subroutine space_charge_cathodeimages(mesh3d, direct_field_calc, integrated_green_function, image_method)
 type(mesh3d_struct) :: mesh3d
 integer :: idirectfieldcalc=1
 integer :: igfflag=1
@@ -392,7 +392,7 @@ end subroutine
 
 !------------------------------------------------------------------------
 !+
-! Subroutine space_charge_3d(mesh3d, offset, at_cathode, calc_bfield)
+! Subroutine space_charge_3d(mesh3d, offset, at_cathode, calc_bfield, image_efield)
 !
 ! Performs the space charge calculation using the integrated Green function method
 ! and FFT-based convolutions. 
@@ -409,10 +409,12 @@ end subroutine
 !   at_cathode    -- logical, optional: Maintain constant voltage at the cathode 
 !                       using image charges. Default is False. 
 !
-!   calc_bfield    -- logical, optional: Calculate the magnetic field mesh3d%bfield
+!   calc_bfield   -- logical, optional: Calculate the magnetic field mesh3d%bfield
 !
 !                     Default: False
 !
+!   image_efield(:,:,:,:) -- real(dp), allocatable, optional: Must be present when at_cathode if true.
+!                       
 !
 ! Output:
 !   mesh3d        -- mesh3d_struct: populated with %efield, and optionally %bfield                             
@@ -428,9 +430,9 @@ end subroutine
 !     
 !
 !-
-subroutine space_charge_3d(mesh3d, offset, at_cathode, calc_bfield)
+subroutine space_charge_3d(mesh3d, offset, at_cathode, calc_bfield, image_efield)
 type(mesh3d_struct) :: mesh3d
-real(dp), allocatable, dimension(:,:,:,:) :: image_efield   ! electric field grid
+real(dp), allocatable, dimension(:,:,:,:), optional :: image_efield   ! electric field grid
 real(dp), optional :: offset(3)
 real(dp) :: offset0(3), beta
 real(dp), parameter :: c_light = 299792458.0
@@ -465,7 +467,9 @@ if (.not. present(at_cathode)) return
 if (.not. at_cathode) return
 
 ! Allocate scratch array for the image field
-allocate(image_efield, mold=mesh3d%efield)
+if (present(image_efield)) then
+  if (.not. allocated(image_efield)) allocate(image_efield, mold=mesh3d%efield)
+endif
 
 ! Image field, with an offset assuming the cathode is at z=0.
 ! The offset is the z width of the mesh, plus 2 times the distance of the mesh from the cathode.
@@ -477,7 +481,6 @@ call osc_freespace_solver2(-mesh3d%rho(:,:,size(mesh3d%rho,3):1:-1), &
   
   
 ! Finally add fields
-
 if (bcalc) then
   ! Opposite sign for beta, because image charges are moving in the negative z direction
   mesh3d%bfield(:,:,:,1) = mesh3d%bfield(:,:,:,1) + (beta/c_light)*image_efield(:,:,:,2)

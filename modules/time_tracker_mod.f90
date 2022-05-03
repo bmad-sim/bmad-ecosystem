@@ -42,8 +42,6 @@ contains
 !   t_end         -- real(rp), optional: If present, maximum time to which the particle will be tracked.
 !                     Used for tracking with given time steps. The time orb%t at which tracking stops 
 !                     may be less than this if the particle gets to the end of the element
-!   dt_step       -- real(rp), optional: If positive, next RK time step to take. 
-!                     This overrides bmad_com%init_ds_adaptive_tracking. Used by track_bunch_time.
 !   extra_field   -- em_field_struct, optional: Static field to be added to the element field. Eg used with space charge.
 !
 ! Output:

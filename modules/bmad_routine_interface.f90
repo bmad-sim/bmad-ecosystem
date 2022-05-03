@@ -2415,10 +2415,10 @@ subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
   logical, optional :: err_flag
 end subroutine
 
-subroutine track_bunch_time (lat, bunch, t_end, s_end, dt_step, extra_field)
+subroutine track_bunch_time (bunch, ele, t_end, s_end, dt_step, extra_field)
   import
   implicit none
-  type (lat_struct), target :: lat
+  type (ele_struct), target :: ele
   type (bunch_struct), target :: bunch
   real(rp) t_end, s_end
   real(rp), optional :: dt_step(:)
@@ -2491,7 +2491,7 @@ subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine track1_bunch_e_gun_space_charge (bunch, ele, err)
+subroutine track1_bunch_space_charge (bunch, ele, err)
   import
   implicit none
   type (bunch_struct), target :: bunch
