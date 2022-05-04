@@ -64,12 +64,12 @@ possible
   flatten       & \sref{s:flatten}  & timer         & \sref{s:timer}    \\
   help          & \sref{s:help}     & use           & \sref{s:use}      \\ 
   ls            & \sref{s:ls}       & veto          & \sref{s:veto}     \\ 
-  misalign      & \sref{s:misalign} & wave          & \sref{s:wave}     \\
-  pause         & \sref{s:pause}    & write         & \sref{s:write}    \\ 
-  place         & \sref{s:place}    & x_axis        & \sref{s:x.axis}   \\ 
-  ptc           & \sref{s:ptc}      & x_scale       & \sref{s:x.scale}  \\ 
-  python        & \sref{s:python}   & xy_scale      & \sref{s:xy.scale} \\
-  quit          & \sref{s:quit}     &               &                   \\
+  misalign      & \sref{s:misalign} & view          & \sref{s:view}     \\
+  pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\
+  place         & \sref{s:place}    & write         & \sref{s:write}    \\ 
+  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
+  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
+  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\
 \bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
@@ -226,7 +226,7 @@ beam centroid and the beam particle spin for tracking. Here \vn{<coordinate>} is
 \end{example}
 For photons, \vn{<coordinate>} may also be:
 \begin{example}
-  field_x, field_y, phase_x, phase_y
+  e_photon, field_x, field_y, phase_x, phase_y
 \end{example}
 For closed lattices only the \vn{pz} component is applicable. For lattices that have an \vn{e_gun}
 (which necessarily implies that the lattice has an open geometry), the time \vn{t} coordinate must
@@ -3464,6 +3464,21 @@ Note: The command `\cmd{veto data *.*[10:20]}' will veto all \vn{d1_data} elemen
 10:20 \textit{using the index convention for each \vn{d1_data} structure separately}. This may produce
 curious results if the indexes for the \vn{d1_data} structures do not all point to the same lattice
 elements.
+
+%% view --------------------------------------------------------------
+
+\section{view}\index{commands!view}
+\label{s:view}
+
+The \vn{view} command is just a shortcut for the \vn{set default universe} command. Format:
+\begin{example}
+  view <universe-index>
+\end{example}
+
+Example:
+\begin{example}
+  view 2   ! Same as "set default uni = 2".
+\end{example}
 
 %% wave --------------------------------------------------------------
 

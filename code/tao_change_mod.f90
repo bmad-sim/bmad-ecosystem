@@ -231,8 +231,9 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   call re_allocate (free, nd)
 
   if (e_name == 'PARTICLE_START') then
-    free = .false.
+    free = .true.
     if (u%model%lat%param%geometry == closed$) then
+      free = .false.
       if (a_name == 'PZ' .and. .not. s%global%rf_on) free = .true.
       if (s%com%multi_turn_orbit_is_plotted) free = .true.
     endif

@@ -46,12 +46,12 @@ character(1000) :: cmd_word(12)
 character(40) gang_str, switch, word, except, branch_str
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(42) = [character(16):: &
+character(16) :: cmd_names(43) = [character(16):: &
                       'alias', 'call', 'change', 'clear', 'clip', 'continue', 'cut_ring', 'derivative', &
                       'end_file', 'exit', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'place', &
                       'plot', 'ptc', 'python', 'quiet', 'quit', 're_execute', 'read', 'reinitialize', 'reset', &
                       'restore', 'run_optimizer', 'scale', 'set', 'show', 'single_mode', 'spawn', 'taper', &
-                      'timer', 'use', 'veto', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale']
+                      'timer', 'use', 'veto', 'view', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale']
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
@@ -763,7 +763,15 @@ case ('timer')
   return
 
 !--------------------------------
-! WAVE
+! view
+
+case ('view')
+  call tao_set_default_cmd ('universe', cmd_line)
+  call tao_cmd_end_calc
+  return 
+
+!--------------------------------
+! wave
 
 case ('wave')
 
