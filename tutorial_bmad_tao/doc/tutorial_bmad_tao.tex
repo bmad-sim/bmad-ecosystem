@@ -76,7 +76,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ April 12, 2022}
+\date{David Sagan and Chris Mayes \\ April 15, 2022}
 \begin{document}
 
 \maketitle
@@ -242,7 +242,7 @@ The directories in a Distribution are:
 \begin{lstlisting}[mathescape]
 INSTALL             fftw                lattice            regression_tests
 PGPLOT              fgsl                lux                sim_utils
-bmad                bmad-sim            forest             mad_tpsa
+bmad                bmad-doc            forest             mad_tpsa
 tao                 bsim                gnu_utilities_src  open_spacecharge
 util                build_system        gsl                openmpi
 util_programs       cpp_bmad_interface  hdf5               plplot
@@ -330,7 +330,7 @@ not contain anything of interest.
 \vspace{-0.4 ex}
 \item[tao] \Newline
 The \vn{tao} directory holds the code for the \tao program as well as example input
-files in the \vn{bmad-sim/tao_examples/} directory.
+files in the \vn{bmad-doc/tao_examples/} directory.
 %
 \vspace{-0.4 ex}
 \item[util] \Newline
@@ -464,13 +464,13 @@ site (\sref{s:resources}), Follow a link to either the \bmad or \tao manual page
 be a further link to example lattice files. Alternatively, the lattice files are available in any
 \vn{Distribution} or \vn{Release} (\sref{s:orientation}) in the directory:
 \begin{code}
-bmad-sim/tutorial_bmad_tao/lattice_files
+bmad-doc/tutorial_bmad_tao/lattice_files
 \end{code}
 And each lattice shown in this tutorial lists the lattice file name on the first line.
 
 Note: Other lattice examples can be obtained from the directory:
 \begin{code}
-bmad-sim/lattices
+bmad-doc/lattices
 \end{code}
 
 As an example of how to run \tao, the lattice file shown in section~\sref{s:bmad.intro} will be
@@ -559,7 +559,7 @@ in the \vn{Tao Initialization} chapter of the \tao manual.
 Besides the initialization files supplied for this tutorial, example \tao initialization files can
 be found in a \vn{Distribution} or \vn{Release} in the directory:
 \begin{code}
-bmad-sim/tao_examples
+bmad-doc/tao_examples
 \end{code}
 
 \tao initialization can be split among several initialization files but there is always one main
@@ -1474,7 +1474,7 @@ Universes are discussed in the \tao manual in the chapter titled ``Overall Organ
 
 The example files used to illustrate multiple universes are in the directory 
 \begin{code}
-bmad_sim/tutorial_bmad_tao/lattice_files/multiple_universes
+bmad-doc/tutorial_bmad_tao/lattice_files/multiple_universes
 \end{code}
 Copy these files to your working directory. There are four files here:
 \begin{lstlisting}[mathescape]
@@ -3257,7 +3257,7 @@ Using the \vn{fork.bmad} lattice, vary the beginning Twiss and orbit (using \vn{
 \item
 For a more complicated example, play around with the lattice:
 \begin{lstlisting}[mathescape]
-bmad-sim/tutorial_bmad_tao/lattice_files/
+bmad-doc/tutorial_bmad_tao/lattice_files/
                               wave_analysis/chess-u_6000mev_20181120.lat
 \end{lstlisting}
 This is a lattice that is used for simulation of the Cornell CESR storage ring. The lattice includes
@@ -3410,7 +3410,7 @@ chapter~\sref{s:opt.cor}.
 
 The files used to illustrate lattice design optimization are in the directory 
 \begin{code}
-bmad-sim/tutorial_bmad_tao/lattice_files/lattice_optimization
+bmad-doc/tutorial_bmad_tao/lattice_files/lattice_optimization
 \end{code}
 Copy these files to your working directory. Here the main initialization file is named
 \vn{tao.init}. Since this is the default name for initialization files (\sref{s:init.file}), and
@@ -3949,7 +3949,7 @@ safely inside the walls.}
 %------------------------
 \item
 \label{s:opt.ex1}
-Start with the files in \vn{bmad-sim/tutorial_bmad_tao/lattice_files/lattice_optimization}. Change
+Start with the files in \vn{bmad-doc/tutorial_bmad_tao/lattice_files/lattice_optimization}. Change
 all the quadrupole strengths to zero in \vn{lat.bmad} and change the alpha Twiss \vn{meas} targets
 to -1. Now run with the \vn{opt} command and verify that the optimizer does not not find a good
 solution! Why is this? The problem is that the good solutions (and there is more than one) are
@@ -3977,7 +3977,7 @@ This exercise shows how to do an optimization with a constraint that the machine
 existing building walls. If you get stuck, a working example can be viewed in the
 directory:
 \begin{code}
-bmad-sim/tutorial_bmad_tao/lattice_files/building_wall_optimization
+bmad-doc/tutorial_bmad_tao/lattice_files/building_wall_optimization
 \end{code}
 
 \begin{enumerate}
@@ -4127,7 +4127,7 @@ itself gives values for the optics in the current state of the machine.
 
 The example files used to illustrate correction of the Twiss parameters are in the directory 
 \begin{code}
-bmad-sim/tutorial_bmad_tao/lattice_files/twiss_correction
+bmad-doc/tutorial_bmad_tao/lattice_files/twiss_correction
 \end{code}
 Copy these files to your working directory. There are six files:
 \begin{lstlisting}[mathescape]
@@ -4509,7 +4509,7 @@ be simulated, for example, Coherent synchrotron Radiation (CSR).
 
 The example files used to illustrate optimization are in the directory 
 \begin{code}
-bmad-sim/tutorial_bmad_tao/lattice_files/beam_tracking
+bmad-doc/tutorial_bmad_tao/lattice_files/beam_tracking
 \end{code}
 There are five files here:
 \begin{lstlisting}[mathescape]
@@ -4841,7 +4841,7 @@ amplitude. This being the case, it is the betatron phase that will be analyzed h
 
 Input files for this example are in the directory:
 \begin{code}
-bmad-sim/tutorial_bmad_tao/lattice_files/wave_analysis
+bmad-doc/tutorial_bmad_tao/lattice_files/wave_analysis
 \end{code}
 The relevant files are 
 \begin{code}
