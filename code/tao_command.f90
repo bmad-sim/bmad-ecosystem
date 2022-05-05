@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_command (command_line, err, err_is_fatal)
+! Subroutine tao_command (command_line, err_flag, err_is_fatal)
 !
 ! Interface to all standard (non hook) tao commands. 
 ! This routine esentially breaks the command line into words
@@ -10,11 +10,11 @@
 !   command_line  -- character(*): command line
 !
 ! Output:
-!  err            -- logical: Set True on error. False otherwise.
+!  err_flag       -- logical: Set True on error. False otherwise.
 !  err_is_fatal   -- logical: Set True on non-recoverable error. False otherwise
 !-
 
-subroutine tao_command (command_line, err, err_is_fatal)
+subroutine tao_command (command_line, err_flag, err_is_fatal)
 
 use tao_set_mod, dummy2 => tao_command
 use tao_change_mod, only: tao_change_var, tao_change_ele, tao_dmodel_dvar_calc
@@ -62,7 +62,7 @@ logical include_wall, update, exact, include_this, lord_set
 ! blank line => nothing to do
 
 err_is_fatal = .false.
-err = .false.
+err_flag = .false.
 
 call string_trim (command_line, cmd_line, ix_line)
 if (ix_line == 0 .or. cmd_line(1:1) == '!') return
@@ -122,7 +122,7 @@ select case (cmd_name)
 
 case ('alias')
 
-  call tao_cmd_split(cmd_line, 2, cmd_word, .false., err); if (err) return
+  call tao_cmd_split(cmd_line, 2, cmd_word, .false., err_flag); if (err_flag) return
   call tao_alias_cmd (cmd_word(1), cmd_word(2))
   return
 
@@ -131,7 +131,7 @@ case ('alias')
 
 case ('call')
 
-  call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) goto 9000
+  call tao_cmd_split(cmd_line, 10, cmd_word, .true., err_flag); if (err_flag) goto 9000
   call tao_call_cmd (cmd_word(1), cmd_word(2:10))
   return
 
@@ -140,7 +140,7 @@ case ('call')
 
 case ('change')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) goto 9000
+  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err_flag); if (err_flag) goto 9000
 
   silent = .false.
   update = .false.
@@ -149,29 +149,29 @@ case ('change')
 
     if (index('-silent', trim(cmd_word(1))) == 1) then
       silent = .true.
-      call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
+      call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err_flag); if (err_flag) goto 9000
     elseif (index('-update', trim(cmd_word(1))) == 1) then
       update = .true.
-      call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
+      call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err_flag); if (err_flag) goto 9000
     else
       exit
     endif
   enddo
 
   if (index ('variable', trim(cmd_word(1))) == 1) then
-    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
-    call tao_change_var (cmd_word(1), cmd_word(2), silent)
+    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err_flag); if (err_flag) goto 9000
+    call tao_change_var (cmd_word(1), cmd_word(2), silent, err_flag)
   elseif (index('element', trim(cmd_word(1))) == 1) then
     if (index('-update', trim(cmd_word(1))) == 1) then
       update = .true.
-      call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
+      call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err_flag); if (err_flag) goto 9000
     endif
-    call tao_cmd_split (cmd_word(2), 3, cmd_word, .false., err); if (err) goto 9000
-    call tao_change_ele (cmd_word(1), cmd_word(2), cmd_word(3), update)
+    call tao_cmd_split (cmd_word(2), 3, cmd_word, .false., err_flag); if (err_flag) goto 9000
+    call tao_change_ele (cmd_word(1), cmd_word(2), cmd_word(3), update, err_flag)
   elseif (index(trim(cmd_word(1)), 'particle_start') /= 0) then     ! Could be "2@particle_start"
     word = cmd_word(1)
-    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
-    call tao_change_ele (word, cmd_word(1), cmd_word(2), .false.)
+    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err_flag); if (err_flag) goto 9000
+    call tao_change_ele (word, cmd_word(1), cmd_word(2), .false., err_flag)
   else
     call out_io (s_error$, r_name, 'Change who? (should be: "element", "particle_start", or "variable")')
   endif
@@ -188,7 +188,7 @@ case ('clear')
 
 case ('clip')
 
-  call tao_cmd_split (cmd_line, 4, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 4, cmd_word, .true., err_flag); if (err_flag) return
 
   gang = .false.
   if (index('-gang', trim(cmd_word(1))) == 1 .and. len_trim(cmd_word(1)) > 1) then
@@ -199,9 +199,9 @@ case ('clip')
   if (cmd_word(2) == ' ') then
     call tao_clip_cmd (gang, cmd_word(1), 0.0_rp, 0.0_rp) 
   else
-    call tao_to_real (cmd_word(2), value1, err);  if (err) return
+    call tao_to_real (cmd_word(2), value1, err_flag);  if (err_flag) return
     if (cmd_word(3) /= ' ') then
-      call tao_to_real (cmd_word(3), value2, err);  if (err) return
+      call tao_to_real (cmd_word(3), value2, err_flag);  if (err_flag) return
     else
       value2 = value1
       value1 = -value1
@@ -295,7 +295,7 @@ case ('exit', 'quit')
 
 case ('help')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err_flag); if (err_flag) return
   call tao_help (cmd_word(1), cmd_word(2))
   return
 
@@ -304,7 +304,6 @@ case ('help')
 
 case ('ls')
   call system_command ('ls ' // cmd_line, err)
-  if (err) call tao_abort_command_file()
   return
 
 
@@ -323,7 +322,7 @@ case ('json')
 
 case ('misalign')
 
-  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) goto 9000
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err_flag); if (err_flag) goto 9000
   call tao_misalign (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4), cmd_word(5))
 
 !--------------------------------
@@ -332,7 +331,7 @@ case ('misalign')
 case ('pause')
 
   time = 0
-  call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 1, cmd_word, .true., err_flag); if (err_flag) return
   if (cmd_word(1) /= '') then
     read (cmd_word(1), *, iostat = ios) time
     if (ios /= 0) then
@@ -349,7 +348,7 @@ case ('pause')
 
 case ('place')
 
-  call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 3, cmd_word, .true., err_flag); if (err_flag) return
 
   if (index('-no_buffer', trim(cmd_word(1))) == 1) then
     call tao_place_cmd (cmd_word(2), cmd_word(3), .true.)
@@ -376,7 +375,7 @@ case ('plot')
 
 case ('ptc')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) goto 9000
+  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err_flag); if (err_flag) goto 9000
 
   call tao_ptc_cmd (cmd_word(1), cmd_word(2))
   return
@@ -404,7 +403,7 @@ endif
 
 case ('re_execute')
 
-  call tao_re_execute (cmd_line, err)
+  call tao_re_execute (cmd_line, err_flag)
   return
 
 !--------------------------------
@@ -413,7 +412,7 @@ case ('re_execute')
 case ('read')
 
   silent = .false.
-  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) goto 9000
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err_flag); if (err_flag) goto 9000
   word = ''
   do i = 1, 5
     if (cmd_word(i) == '') exit
@@ -435,14 +434,14 @@ case ('read')
 ! This is a private, undocumented command used when debugging.
 
 case ('reset')
-  call system_command ('reset', err)
+  call system_command ('reset', err_flag)
 
 !--------------------------------
 ! RESTORE, USE, VETO
 
 case ('restore', 'use', 'veto')
 
-  call tao_cmd_split(cmd_line, 2, cmd_word, .true., err);  if (err) goto 9000
+  call tao_cmd_split(cmd_line, 2, cmd_word, .true., err_flag);  if (err_flag) goto 9000
   
   call match_word (cmd_word(1), [character(8) :: "data", "variable"], which, .true., matched_name = switch)
 
@@ -461,7 +460,7 @@ case ('restore', 'use', 'veto')
 
 case ('reinitialize')
 
-  call tao_cmd_split(cmd_line, 2, cmd_word, .false., err);  if (err) goto 9000
+  call tao_cmd_split(cmd_line, 2, cmd_word, .false., err_flag);  if (err_flag) goto 9000
 
   call match_word (cmd_word(1), ['data', 'tao ', 'beam'], ix, .true., matched_name=word)
 
@@ -477,10 +476,10 @@ case ('reinitialize')
     s%u(:)%calc%lattice = .true.
 
   case ('tao') 
-    call tao_parse_command_args (err, cmd_word(2));  if (err) goto 9000
+    call tao_parse_command_args (err, cmd_word(2));  if (err_flag) goto 9000
 
     if (s%init%init_file_arg /= '') call out_io (s_info$, r_name, 'Reinitializing with: ' // s%init%init_file_arg)
-    call tao_init (err)
+    call tao_init (err_flag)
     return
 
   case default
@@ -494,7 +493,7 @@ case ('reinitialize')
 
 case ('run_optimizer', 'flatten')
 
-  call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) goto 9000
+  call tao_cmd_split (cmd_line, 1, cmd_word, .true., err_flag); if (err_flag) goto 9000
   call tao_run_cmd (cmd_word(1), abort)
 
 !--------------------------------
@@ -502,7 +501,7 @@ case ('run_optimizer', 'flatten')
 
 case ('scale')
 
-  call tao_cmd_split (cmd_line, 7, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 7, cmd_word, .true., err_flag); if (err_flag) return
 
   axis_name = ''
   gang_str = ''
@@ -528,9 +527,9 @@ case ('scale')
   if (cmd_word(2) == ' ') then
     call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, axis_name, include_wall, gang_str)
   else
-    call tao_to_real (cmd_word(2), value1, err);  if (err) return
+    call tao_to_real (cmd_word(2), value1, err_flag);  if (err_flag) return
     if (cmd_word(3) /= ' ') then
-      call tao_to_real (cmd_word(3), value2, err);  if (err) return
+      call tao_to_real (cmd_word(3), value2, err_flag);  if (err_flag) return
     else
       value2 = value1
       value1 = -value1
@@ -551,7 +550,7 @@ case ('set')
     ! "-1" is a universe index and not a switch.
     if (cmd_line(1:1) == '-' .and. cmd_line(1:2) /= '-1') then
       call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set', '-branch'], .true., switch, err, ix)
-      if (err) return
+      if (err_flag) return
       select case (switch)
       case ('-update')
         update = .true.
@@ -571,7 +570,7 @@ case ('set')
       'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
       'global', 'region', 'calculate', 'space_charge_com'], .true., switch, err, ix) 
-    if (err) return
+    if (err_flag) return
     set_word = switch
   enddo
 
@@ -685,7 +684,7 @@ case ('set')
   case ('var')
     call tao_set_var_cmd (cmd_word(1), cmd_word(3))
   case ('wave')
-    call tao_set_wave_cmd (cmd_word(1), cmd_word(3), err);  if (err) goto 9000
+    call tao_set_wave_cmd (cmd_word(1), cmd_word(3), err_flag);  if (err_flag) goto 9000
     call tao_cmd_end_calc
     call tao_show_cmd ('wave')
   end select
@@ -717,8 +716,8 @@ case ('single_mode')
 
 case ('spawn')
 
-  call system_command (cmd_line, err)
-  if (err) call tao_abort_command_file()
+  call system_command (cmd_line, err_flag)
+  if (err_flag) call tao_abort_command_file()
   return
 
 !--------------------------------
@@ -729,7 +728,7 @@ case ('taper')
   except = ''
   word = ''
 
-  call tao_cmd_split (cmd_line, 4, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 4, cmd_word, .true., err_flag); if (err_flag) return
 
   i = 0
   do
@@ -775,8 +774,8 @@ case ('view')
 
 case ('wave')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
-  call tao_wave_cmd (cmd_word(1), cmd_word(2), err); if (err) return
+  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err_flag); if (err_flag) return
+  call tao_wave_cmd (cmd_word(1), cmd_word(2), err_flag); if (err_flag) return
   call tao_cmd_end_calc
   call tao_show_cmd ('wave')
   return
@@ -794,7 +793,7 @@ case ('write')
 
 case ('x_axis')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err_flag); if (err_flag) return
   call tao_x_axis_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
@@ -802,7 +801,7 @@ case ('x_axis')
 
 case ('x_scale')
 
-  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err_flag); if (err_flag) return
 
   gang_str = ''
   include_wall = .false.
@@ -827,8 +826,8 @@ case ('x_scale')
   if (cmd_word(2) == ' ') then
     call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err, include_wall, gang_str)
   else
-    call tao_to_real (cmd_word(2), value1, err); if (err) return
-    call tao_to_real (cmd_word(3), value2, err); if (err) return
+    call tao_to_real (cmd_word(2), value1, err_flag); if (err_flag) return
+    call tao_to_real (cmd_word(3), value2, err_flag); if (err_flag) return
     call tao_x_scale_cmd (cmd_word(1), value1, value2, err, include_wall, gang_str, exact)
   endif
 
@@ -837,7 +836,7 @@ case ('x_scale')
 
 case ('xy_scale')
 
-  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err_flag); if (err_flag) return
 
   include_wall = .false.
   exact = .false.
@@ -861,9 +860,9 @@ case ('xy_scale')
     call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err, include_wall = include_wall)
     call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, include_wall = include_wall) 
   else
-    call tao_to_real (cmd_word(2), value1, err);  if (err) return
+    call tao_to_real (cmd_word(2), value1, err_flag);  if (err_flag) return
     if (cmd_word(3) /= ' ') then
-      call tao_to_real (cmd_word(3), value2, err);  if (err) return
+      call tao_to_real (cmd_word(3), value2, err_flag);  if (err_flag) return
     else
       value2 = value1
       value1 = -value1
