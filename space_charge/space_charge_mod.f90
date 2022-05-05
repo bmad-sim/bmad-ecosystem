@@ -32,7 +32,7 @@ type (em_field_struct) :: sc_field(size(bunch%particle))
 type (mesh3d_struct) :: mesh3d, mesh3d_image
 
 integer :: n, i, imin(1)
-real(rp) :: dt_step, beta, ratio
+real(rp) :: beta, ratio
 real(rp) :: Evec(3), Bvec(3), Evec_image(3)
 logical :: image
 
@@ -95,7 +95,7 @@ end subroutine sc_field_calc
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine sc_step(bunch, ele, t_end, dt_step)
+! Subroutine sc_step(bunch, ele, t_end)
 !
 ! Subroutine to track a bunch through a given time step with space charge
 !
@@ -103,13 +103,12 @@ end subroutine sc_field_calc
 !   bunch        -- bunch_struct: Starting bunch position in t-based coordinates
 !   ele          -- ele_struct: Element being tracked through.
 !   t_end        -- real(rp): Time at which the tracking ends
-!   dt_step      -- real(rp): Size of the tracking time step, used to calculate space charge kick
 !
 ! Output:
 !   bunch        -- bunch_struct: Ending bunch position in t-based coordinates after space charge kick
 !-
 
-subroutine sc_step(bunch, ele, t_end, dt_step)
+subroutine sc_step(bunch, ele, t_end)
 
 implicit none
 
@@ -118,7 +117,7 @@ type (ele_struct) :: ele
 type (em_field_struct) :: extra_field(size(bunch%particle))
 type (coord_struct), pointer :: p
 
-real(rp) t_end, dt_step, sum_z
+real(rp) t_end, sum_z
 logical include_image
 integer i
 
@@ -158,6 +157,7 @@ end subroutine sc_step
 ! Output:
 !   bunch     -- bunch_struct: Ending bunch position in t-based coordinates 
 !   dt_next   -- real(rp): Next SC time step the tracker would take based on the error tolerance
+!   dt_step   -- real(rp): Step done.
 !-
 
 subroutine sc_adaptive_step(bunch, ele, t_now, dt_step, dt_next)
@@ -186,10 +186,10 @@ dt_next = dt_step
 
 do
   ! Full step
-  call sc_step(bunch_half, ele, t_now+dt_step, dt_step)
+  call sc_step(bunch_half, ele, t_now+dt_step)
   ! Two half steps
-  call sc_step(bunch_half, ele, t_now+dt_step/2, dt_step/2)
-  call sc_step(bunch_half, ele, t_now+dt_step,   dt_step/2)
+  call sc_step(bunch_half, ele, t_now+dt_step/2)
+  call sc_step(bunch_half, ele, t_now+dt_step)
 
   r_err = [0,0,0,0,0,0]
   N = 0
@@ -251,5 +251,54 @@ rms_vec = sqrt(rms_vec/N)
 end function bunch_rms_vec
 
 end subroutine sc_adaptive_step
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Drift a bunch of particles to the same s coordinate
+!
+! Input:
+!   bunch_in  -- bunch_struct: input bunch position in t-based coordinate
+!   s         -- real(rp): target s coordinate
+!   lat       -- lat_struct: lattice particles is tracking through
+!
+! Output:
+!   bunch_out -- bunch_struct: output bunch position in t-based coordinate. Particles will be at the same s coordinate
+!-
+
+subroutine drift_to_s (bunch_in, s, lat, bunch_out)
+  
+  use bmad
+  
+  implicit none
+  
+  type (bunch_struct), target :: bunch_in, bunch_out
+  type (coord_struct), pointer :: p
+  type (lat_struct) :: lat
+
+  integer i
+  real(rp) s, pz0, E_tot, dt
+
+  bunch_out = bunch_in
+
+  ! Convert bunch to s-based coordinates
+  do i = 1, size(bunch_out%particle) 
+    call convert_particle_coordinates_t_to_s(bunch_out%particle(i), 0.0_rp, lat%ele(bunch_out%particle(i)%ix_ele))
+  enddo
+
+  do i = 1, size(bunch_out%particle)
+    p => bunch_out%particle(i)
+    pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
+    E_tot = sqrt((1.0_rp + p%vec(6))**2 + (mass_of(p%species)/p%p0c)**2) ! * p0
+    dt = (s-p%s)/(c_light*pz0/E_tot)
+  
+    p%vec(1) = p%vec(1) + dt*c_light*p%vec(2)/E_tot
+    p%vec(3) = p%vec(3) + dt*c_light*p%vec(4)/E_tot
+    p%s = s
+    p%t = p%t + dt
+  enddo
+
+end subroutine drift_to_s
 
 end module
