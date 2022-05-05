@@ -10,22 +10,23 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_change_var (name, num_str, silent)
+! Subroutine tao_change_var (name, num_str, silent, err_flag)
 !
 ! Routine to change a variable in the model lattice.
 !
 ! Input:
-!   name     -- Character(*): Name of variable or element.
-!   num_str  -- Character(*): Change in value. 
+!   name      -- Character(*): Name of variable or element.
+!   num_str   -- Character(*): Change in value. 
 !                                A '@' signifies a absolute set.
 !                                A 'd' signifies a set relative design.        
-!   silent   -- Logical: If True then do not print any info.
+!   silent    -- Logical: If True then do not print any info.
 !
 ! Output:
-!    %u(s%global%default_universe)%model -- model lattice where the variable lives.
+!   err_flag  -- logical, Set true if there is an error, false otherwise.
+!   s%u(s%global%default_universe)%model -- model lattice where the variable lives.
 !-
 
-subroutine tao_change_var (name, num_str, silent)
+subroutine tao_change_var (name, num_str, silent, err_flag)
 
 implicit none
 
@@ -45,12 +46,12 @@ character(20) abs_or_rel, component, str
 character(100) l1, num, fmt
 character(200), allocatable :: lines(:)
 
-logical err, exists, silent
+logical err_flag, exists, silent
 
 !-------------------------------------------------
 
-call tao_find_var (err, name, v_array = v_array, component = component)
-if (err) return
+call tao_find_var (err_flag, name, v_array = v_array, component = component)
+if (err_flag) return
 if (.not. allocated(v_array)) then
   call out_io (s_error$, r_name, 'BAD VARIABLE NAME: ' // name)
   return
@@ -64,7 +65,7 @@ endif
 
 ! find change value(s)
 
-call tao_to_change_number (num_str, size(v_array), change_number, abs_or_rel, err);  if (err) return
+call tao_to_change_number (num_str, size(v_array), change_number, abs_or_rel, err_flag);  if (err_flag) return
 old_merit = tao_merit()
 
 ! We need at least one variable to exist.
@@ -147,7 +148,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_change_ele (ele_name, attrib_name, num_str, update)
+! Subroutine tao_change_ele (ele_name, attrib_name, num_str, update, err_flag)
 !
 ! Routine to change a variable in the model lattice.
 !
@@ -159,10 +160,11 @@ end subroutine
 !                                A 'd' signifies a set relative design.        
 !
 ! Output:
-!    %u(s%global%default_universe)%model -- model lattice where the variable lives.
+!   err_flag  -- logical, Set true if there is an error, false otherwise.
+!   s%u(s%global%default_universe)%model -- model lattice where the variable lives.
 !-
 
-subroutine tao_change_ele (ele_name, attrib_name, num_str, update)
+subroutine tao_change_ele (ele_name, attrib_name, num_str, update, err_flag)
 
 use attribute_mod, only: attribute_free
 
@@ -186,13 +188,13 @@ character(20) :: r_name = 'tao_change_ele'
 character(len_lines), allocatable :: lines(:)
 character(20) abs_or_rel, str
 
-logical err, etc_added, update
+logical err_flag, etc_added, update
 logical, allocatable :: this_u(:), free(:)
 
 !-------------------------------------------------
 
-call tao_pick_universe (ele_name, e_name, this_u, err)
-if (err) return
+call tao_pick_universe (ele_name, e_name, this_u, err_flag)
+if (err_flag) return
 
 ! 
 
@@ -212,11 +214,11 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
   u => s%u(iu)
 
-  call pointers_to_attribute (u%design%lat, e_name, a_name, .true., d_ptr, err, .true., eles)
-  if (err) return
+  call pointers_to_attribute (u%design%lat, e_name, a_name, .true., d_ptr, err_flag, .true., eles)
+  if (err_flag) return
 
-  call pointers_to_attribute (u%model%lat, e_name, a_name, .true., m_ptr, err, .true., eles)
-  if (err) return
+  call pointers_to_attribute (u%model%lat, e_name, a_name, .true., m_ptr, err_flag, .true., eles)
+  if (err_flag) return
 
   eles%id = iu  ! Used by tao_var_check
 
@@ -255,12 +257,13 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     else
       call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE')
     endif
+    err_flag = .true.
     return
   endif
 
   ! Find change value(s)
 
-  call tao_to_change_number (num_str, nd, change_number, abs_or_rel, err);  if (err) return
+  call tao_to_change_number (num_str, nd, change_number, abs_or_rel, err_flag);  if (err_flag) return
   old_merit = tao_merit()
 
   ! put in change

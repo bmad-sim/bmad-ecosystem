@@ -91,6 +91,7 @@ do
     call tao_hook_command (cmd_out, found)
     if (.not. found) call tao_command (cmd_out, err, err_is_fatal)
     if (err_is_fatal) exit
+    if (err) call tao_abort_command_file()
     call tao_cmd_history_record (cmd_out)
   endif
 
