@@ -112,9 +112,11 @@ do i = 1, s%global%n_opti_cycles+1
     call tao_var_write (s%global%var_out_file)
   endif
 
-  call super_mrqmin (y, weight, a, chi_sq, tao_mrq_func, storage, a_lambda, status) 
-  s%com%covar = storage%covar
-  s%com%alpha = storage%alpha
+  call super_mrqmin (y, weight, a, chi_sq, tao_mrq_func, storage, a_lambda, status)
+  if (status == 0) then  ! If everything OK
+    s%com%covar = storage%covar
+    s%com%alpha = storage%alpha
+  endif
 
   call tao_mrq_func (a, y_fit, dy_da, status2)  ! put a -> model
   write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
