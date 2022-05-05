@@ -376,8 +376,8 @@ and an \vn{instance name} of \vn{space_charge_com}. This structure has component
 \begin{example}
   type space_charge_common_struct 
     ds_track_step = 0                   ! Tracking step size
-    beam_chamber_height = 0             ! Used in shielding calculation.
     dt_track_step = 0                   ! Time based space charge step
+    beam_chamber_height = 0             ! Used in shielding calculation.
     cathode_strength_cutoff = 0.01      ! Cutoff for the cathode field calc.
     rel_tol_tracking = 1d-8
     abs_tol_tracking = 1d-10            
@@ -390,20 +390,24 @@ and an \vn{instance name} of \vn{space_charge_com}. This structure has component
     space_charge_mesh_size = [32,32,64] ! Mesh size with fft_3d space charge calc.
     csr_3d_mesh_size = [32,32,64]       ! Mesh size for 3D CSR calc.
     print_taylor_warning = T            ! Print Taylor element warning?
-    write_csr_wake = F                  ! Write a CSR wake file?
+    diagnostic_output_file = ""         ! Wake file name
   end type
 \end{example}
 The values for the various quantities shown above are their default values. 
 
 \begin{description}
 \item{ds_track_step} \Newline
-\vn{ds_track_step} is the nominal longitudinal distance traveled by the bunch between CSR kicks if
-the lattice element in which the bunch is being tracked has not set element's \vn{csr_ds_track}
-parameter. The actual distance between kicks within a lattice element is adjusted so that there is
-an integer number of steps from the element entrance to the element exit. Either \vn{ds_track_step}
-or the element's \vn{csr_track_step} must be set to something positive otherwise an error will
-result when doing CSR or space charge tracking. Larger values will speed up the calculation at the
-expense of accuracy.
+The \vn{ds_track_step} parameter sets the nominal longitudinal distance traveled by the bunch
+between CSR kicks if the lattice element in which the bunch is being tracked has not set element's
+\vn{csr_ds_track} parameter. The actual distance between kicks within a lattice element is adjusted
+so that there is an integer number of steps from the element entrance to the element exit. Either
+\vn{ds_track_step} or the element's \vn{csr_track_step} must be set to something positive otherwise
+an error will result when doing CSR or space charge tracking. Larger values will speed up the
+calculation at the expense of accuracy.
+%
+\item{dt_track_step} \Newline
+The \vn{dt_track_step} parameter is used when the \vn{tracking_method} of the lattice element the
+bunch is passing through is set to \vn{time_runge_kutta} or \vn{fixed_step_time_runge_kutta}. 
 %
 \item{beam_chamber_height} \Newline
 \vn{beam_chamber_height} is the height of the beam chamber in meters. This parameter is used when
@@ -452,11 +456,11 @@ sigmas are taken to be equal to the beam sigmas of a nearby bin where there are 
 compute the sigma. The beam sigmas are needed for the CS calculation but not need for the CSR
 calculation.
 %
-\item{write_csr_wake} \Newline
-If True (default is False), an output file called \vn{csr_wake.dat} is created that contains a table
-of the CSR wake at each track step (the track step size is set by \vn{ds_track_step}). If tracking is 
-done through multiple lattice elements, the wake tables for the elements are appended to the file. This
-file is useful for visualization of the wake.
+\item{diagnostic_output_file} \Newline
+If set nonblank, an output file of this name is created that contains a table of the CSR wake at
+each track step (the track step size is set by \vn{ds_track_step}). If tracking is done through
+multiple lattice elements, the wake tables for the elements are appended to the file. This file is
+useful for visualization of the wake.
 \end{description}
 
 Note: \vn{Taylor} map elements (\sref{s:taylor}) that have a finite length cannot be subdivided for

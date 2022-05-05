@@ -37,7 +37,7 @@ character(*), parameter :: r_name = 'track1_bunch_space_charge'
 
 t_now = 1e30_rp
 branch => pointer_to_branch(ele)
-dt_step = bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
+dt_step = space_charge_com%dt_track_step  ! Init time step.
 dt_next = dt_step
 t_now = minval(bunch%particle(:)%t)
 
@@ -51,13 +51,13 @@ endif
 ! Track
 do
   if (ele%tracking_method==fixed_step_time_runge_kutta$) then
-    call sc_step(bunch, ele, t_now+dt_step, dt_step)
+    call sc_step(bunch, ele, t_now+dt_step)
   else
     call sc_adaptive_step(bunch, ele, t_now, dt_step, dt_next)
+    dt_step = dt_next
   end if
 
   t_now = t_now + dt_step
-  dt_step = dt_next
 
   ! Check if all particles are finished
   finished = .true.
@@ -76,50 +76,3 @@ if (logic_option(.true., to_s_coords)) call drift_to_s(bunch, ele%s, branch%lat,
 err = .false.
 
 end subroutine track1_bunch_space_charge
-
-!+
-! Drift a bunch of particles to the same s coordinate
-!
-! Input:
-!   bunch_in  -- bunch_struct: input bunch position in t-based coordinate
-!   s         -- real(rp): target s coordinate
-!   lat       -- lat_struct: lattice particles is tracking through
-!
-! Output:
-!   bunch_out -- bunch_struct: output bunch position in t-based coordinate. Particles will be at the same s coordinate
-!-
-
-subroutine drift_to_s (bunch_in, s, lat, bunch_out)
-  
-  use bmad
-  
-  implicit none
-  
-  type (bunch_struct), target :: bunch_in, bunch_out
-  type (coord_struct), pointer :: p
-  type (lat_struct) :: lat
-
-  integer i
-  real(rp) s, pz0, E_tot, dt
-
-  bunch_out = bunch_in
-
-  ! Convert bunch to s-based coordinates
-  do i = 1, size(bunch_out%particle) 
-    call convert_particle_coordinates_t_to_s(bunch_out%particle(i), 0.0_rp, lat%ele(bunch_out%particle(i)%ix_ele))
-  enddo
-
-  do i = 1, size(bunch_out%particle)
-    p => bunch_out%particle(i)
-    pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
-    E_tot = sqrt((1.0_rp + p%vec(6))**2 + (mass_of(p%species)/p%p0c)**2) ! * p0
-    dt = (s-p%s)/(c_light*pz0/E_tot)
-  
-    p%vec(1) = p%vec(1) + dt*c_light*p%vec(2)/E_tot
-    p%vec(3) = p%vec(3) + dt*c_light*p%vec(4)/E_tot
-    p%s = s
-    p%t = p%t + dt
-  enddo
-
-end subroutine drift_to_s
-

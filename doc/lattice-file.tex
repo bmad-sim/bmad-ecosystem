@@ -1108,8 +1108,8 @@ The \vn{print} statement is useful to remind someone using the lattice of import
 \section{Title Statement}
 \index{title statement|hyperbf}
 
-The \vn{title} statement sets a title string which can be used by a program. 
-For consistency with \mad there are two possible syntaxes
+The \vn{title} statement sets a title string which can be used by a program.  For consistency with
+\mad there are two possible syntaxes
 \begin{example}
   title, <String>
 \end{example}
@@ -1129,14 +1129,12 @@ For example
 \label{s:call}
 \index{call statement|hyperbf}
 
-It is frequently convenient to separate the lattice definition into
-several files.  Typically there might be a file (or files) that define
-the layout of the lattice (something that doesn't change often) and a
-file (or files) that define magnet strengths (something that changes
-more often).  The \vn{call} is used to read in separated lattice
-files. The syntax is
+It is frequently convenient to separate the lattice definition into several files.  Typically there
+might be a file (or files) that define the layout of the lattice (something that doesn't change
+often) and a file (or files) that define magnet strengths (something that changes more often).  The
+\vn{call} is used to read in separated lattice files. The syntax is
 \begin{example}
-  call, filename = <String>
+  call, filename = <file-name>
 \end{example}
 Example:
 \begin{example}
@@ -1144,25 +1142,23 @@ Example:
   call, filename = "/nfs/cesr/lat/my_layout.bmad"  ! Absolute pathname
   call, filename = "$LATDIR/my_layout.bmad"        ! Absolute pathname
 \end{example}
-\bmad will read the called file until a \vn{return} or \vn{end_file}
-statement is encountered or the end of the file is reached.
+Environmental variables in the file name will be expanded. \bmad will read the called file until a
+\vn{return} or \vn{end_file} statement is encountered or the end of the file is reached.
 
-For filenames that have a relative pathname, the called file will be
-searched for relative to the directory of the calling file.  Thus, in
-the above example, if the file containing the call statements is in the
-directory \vn{/path/to/lat_dir}, the first call will open the file:
+For filenames that have a relative pathname, the called file will be searched for relative to the
+directory of the calling file.  Thus, in the above example, if the file containing the call
+statements is in the directory \vn{/path/to/lat_dir}, the first call will open the file:
 \begin{example}
   /path/to/lat_dir/../layout/my_layout.bmad 
 \end{example}
-To call a file relative to the current working directory, use the
-environment variable \vn{PWD}. Example:
+To call a file relative to the current working directory, use the environment variable
+\vn{PWD}. Example:
 \begin{example}
   call, filename = $PWD/here.bmad
 \end{example}
 
-Where a called file is searched for may be modified by using a
-\vn{use_local_lat_file} statement. See Section~\sref{s:use.loc} for
-more details.
+Where a called file is searched for may be modified by using a \vn{use_local_lat_file}
+statement. See Section~\sref{s:use.loc} for more details.
 
 %--------------------------------------------------------------------------
 \section{Inline Call}
@@ -1171,24 +1167,17 @@ more details.
 
 Any lattice elements will have a set of attributes that need to be defined.  As a convenience, it is
 possible to segregate an element attribute or attributes into a separate file and then ``call'' this
-file using an ``inline call''. The inline call has three forms. In an element definition, the inline
-call has the form
+file using an ``inline call''. The inline call has three forms:
 \begin{example}
-  <ele_name>: <ele_type>, ..., call::<file_name>, ...
-\end{example}
-or
-\begin{example}
-  <ele_name>: <ele_type>, ..., <attribute_name> = call::<file_name>, ...
-\end{example}
-where \vn{<attribute_name>} is the name of the attribute and \vn{<file_name>} is the name of the
-where the attribute structure is given.  The third form of the inline call occurs when an element
-attribute is redefined and has the form
-\begin{example}
+  <ele_name>: <ele_type>, ..., call::<file_name>, ...                       ! or
+  <ele_name>: <ele_type>, ..., <attribute_name> = call::<file_name>, ...    ! or
   <ele_name>[<attribute_name>] = call::<file_name>
 \end{example}
+where \vn{<attribute_name>} is the name of the attribute and \vn{<file_name>} is the name of the
+where the attribute structure is given. The Environmental variables in the file name will be expanded.
 Example:
 \begin{example}
-  c: crystal, call::my_curvature.bmad, h_misalign = call::my_surface.bmad, ...
+  c: crystal, call::$AB/my_curvature.bmad, h_misalign = call::my_surface.bmad, ...
 \end{example}  
 
 For \vn{grid_fields}, which can take some time to parse, a \vn{HDF5} binary file can to created and then

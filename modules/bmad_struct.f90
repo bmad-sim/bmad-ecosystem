@@ -1907,7 +1907,7 @@ end type
 
 type space_charge_common_struct                   ! Common block for space charge
   real(rp) :: ds_track_step = 0                   ! CSR tracking step size
-  real(rp) :: dt_track_step = 0                   ! Time based space charge step
+  real(rp) :: dt_track_step = 1d-12               ! Time Runge kutta initial step.
   real(rp) :: cathode_strength_cutoff = 0.01      ! Cutoff for the cathode field calc.
   real(rp) :: rel_tol_tracking = 1d-8
   real(rp) :: abs_tol_tracking = 1d-10            

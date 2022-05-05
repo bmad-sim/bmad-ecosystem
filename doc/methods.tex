@@ -582,14 +582,15 @@ Example:
 \label{s:csr.sc.meth}
 \index{csr and space charge methods}
 
-When doing beam tracking through an element (\sref{c:multi.sim}), Coherent Synchrotron Radiation (CSR) and Space Charge (SC)
-effects can be included by setting the appropriate method switches in that element. These switches are:
+When doing beam tracking through an element (\sref{c:multi.sim}), Coherent Synchrotron Radiation
+(CSR) and Space Charge (SC) effects can be included by setting the appropriate method switches in
+that element. These switches are:
 \begin{example}
   csr_method          = <Switch>   ! Coherent Synchrotron Radiation 
   space_charge_method = <Switch>   ! Space charge method
 \end{example}
-Note: For CSR or SC effects to be included in tracking the \vn{bmad_com} logical \vn{csr_and_space_charge_on} must be
-set to \vn{True} (\sref{s:bmad.common}). 
+Note: For CSR or SC effects to be included in tracking the \vn{bmad_com} logical
+\vn{csr_and_space_charge_on} must be set to \vn{True} (\sref{s:bmad.common}).
 
 The possible settings for \vn{csr_method} are
 \begin{example}
@@ -602,7 +603,11 @@ The possible settings of \vn{space_charge_method} are
   off             ! No SC. Default.
   slice           ! SC using slices (\sref{s:sc.slice}).
   fft_3d          ! SC using a 3D grid (\sref{s:sc.fft}).
+  cathode_fft_3d  ! Same as fft_3d with cathode image charge included (\sref{s:sc.fft}).
 \end{example}
+The \vn{cathode_fft_3d} setting can only be used with \vn{csr_method} set to \vn{off}. Additionally,
+the \vn{cathode_fft_3d} setting can only be used with the element \vn{tracking_method} set to
+\vn{time_runge_kutta} or \vn{fixed_step_time_runge_kutta}.
 
 Example:
 \begin{example}
