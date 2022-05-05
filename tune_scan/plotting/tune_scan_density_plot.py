@@ -112,8 +112,8 @@ for pix in pix_dat:
 
 x_min = Q_a0
 x_max = Q_a1
-y_min = Q_a0 + na_max * dQ_a
-y_max = Q_b0 + nb_max * dQ_b
+y_min = Q_b0
+y_max = Q_b1
 
 if 'ix_plot' not in locals(): ix_plot = 0
 ix_plot = ix_plot + 1
@@ -130,8 +130,8 @@ else:
 
 dens = ax.imshow(np.transpose(pix_mat), origin = 'lower', extent = (x_min, x_max, y_min, y_max))
 dens.set_cmap(cmap)
-ax.set_xlabel('Qx')
-ax.set_ylabel('Qy')
+ax.set_xlabel('Qa')
+ax.set_ylabel('Qb')
 if rf_on:
   ax.set_title(f'{col_label[dat_col]}  Qz: {Q_z0+z_index*dQ_z}')
 else:
