@@ -20,6 +20,7 @@ type ts_params_struct
   real(rp) :: a0_amp = 0, b0_amp = 0, pz0_amp = 0
   real(rp) :: timer_print_dtime = 120
   integer :: n_turn = 0
+  integer :: ix_branch = 0
   logical :: use_phase_trombone = .false.
   logical :: debug = .false.
   logical :: rf_on = .false.
@@ -38,6 +39,7 @@ type ts_com_struct
 end type
 
 type ts_data_struct
+  integer :: ix_q(3) = 0
   real(rp) :: tune(3) = 0   ! Either (Qa, Qb, Qz) with RF on or (Qa, Qb, pz) with RF off.
   real(rp) :: amp_max(3) = -1
   real(rp) :: amp_ave(3) = -1
@@ -173,12 +175,13 @@ type (coord_struct), allocatable :: closed_orb(:), orbit(:)
 type (ele_struct), pointer :: ele
 
 real(rp) Jvec0(1:6), Jvec(1:6), init_vec(6), amp(3), r(3), v_mat(4,4)
-integer ja, jb, jz, nt, track_state
+integer ja, jb, jz, nt, track_state, status
 logical ok, error
 
 !
 
 ts_dat = ts_data_struct()
+ts_dat%ix_q = [ja, jb, jz]
 
 ts_dat%tune(1) = ts_com%int_Qa + ts%Q_a0 + ja*ts%dQ_a
 ts_dat%tune(2) = ts_com%int_Qb + ts%Q_b0 + jb*ts%dQ_b
@@ -192,9 +195,7 @@ ring = ts_com%ring              ! Use copy in case tune setting fails, which may
 closed_orb = ts_com%closed_orb  ! Use copy in case tune setting fails, which may garble the closed orbit
 ele => ring%ele(0)
 
-ok = set_tune_3d (ring, ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on, .false.)  ! Tunes in radians.
-if (.not. ok) stop
-
+ok = set_tune_3d (ring, ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on)  ! Tunes in radians.
 if (.not. ok) return    ! Tunes could not be set, probably on a resonance.
 
 if (ts%rf_on) then
@@ -205,7 +206,12 @@ else
 endif
 
 call lat_make_mat6(ring, -1, closed_orb)
-call twiss_at_start(ring)
+call twiss_at_start(ring, status, ts%ix_branch)
+if (status /= ok$) then
+  print '(a, 3f10.4)', 'Twiss calc fail at tunes:', ts_dat%tune/twopi
+  return
+endif
+
 call twiss_propagate_all(ring)
 call calc_z_tune (ring)
 
@@ -278,40 +284,42 @@ integer ja, jb, jz
 
 open(unit = 23, file = ts%dat_out_file)
 
-write (23, '(a, a)')         '# lat_file           = ', quote(ts%lat_file)
-write (23, '(a, a)')         '# quad_mask          = ', quote(ts%quad_mask)
-write (23, '(a, es12.4)')    '# Q_a0               = ', ts%Q_a0
-write (23, '(a, es12.4)')    '# Q_a1               = ', ts%Q_a1
-write (23, '(a, es12.4)')    '# dQ_a               = ', ts%dQ_a
-write (23, '(a, es12.4)')    '# a0_amp             = ', ts%a0_amp
-write (23, '(a, es12.4)')    '# Q_b0               = ', ts%Q_b0
-write (23, '(a, es12.4)')    '# Q_b1               = ', ts%Q_b1
-write (23, '(a, es12.4)')    '# dQ_b               = ', ts%dQ_b
-write (23, '(a, es12.4)')    '# b0_amp             = ', ts%b0_amp
+write (23, '(a, a)')         '# lat_file                   = ', quote(ts%lat_file)
+write (23, '(a, a)')         '# quad_mask                  = ', quote(ts%quad_mask)
+write (23, '(a, es12.4)')    '# Q_a0                       = ', ts%Q_a0
+write (23, '(a, es12.4)')    '# Q_a1                       = ', ts%Q_a1
+write (23, '(a, es12.4)')    '# dQ_a                       = ', ts%dQ_a
+write (23, '(a, es12.4)')    '# a0_amp                     = ', ts%a0_amp
+write (23, '(a, es12.4)')    '# Q_b0                       = ', ts%Q_b0
+write (23, '(a, es12.4)')    '# Q_b1                       = ', ts%Q_b1
+write (23, '(a, es12.4)')    '# dQ_b                       = ', ts%dQ_b
+write (23, '(a, es12.4)')    '# b0_amp                     = ', ts%b0_amp
 if (ts%rf_on) then
-  write (23, '(a, es12.4)')  '# Q_z0               = ', ts%Q_z0
-  write (23, '(a, es12.4)')  '# Q_z1               = ', ts%Q_z1
-  write (23, '(a, es12.4)')  '# dQ_z               = ', ts%dQ_z
-  write (23, '(a, es12.4)')  '# pz0_amp            = ', ts%pz0_amp
+  write (23, '(a, es12.4)')  '# Q_z0                       = ', ts%Q_z0
+  write (23, '(a, es12.4)')  '# Q_z1                       = ', ts%Q_z1
+  write (23, '(a, es12.4)')  '# dQ_z                       = ', ts%dQ_z
+  write (23, '(a, es12.4)')  '# pz0_amp                    = ', ts%pz0_amp
 else
-  write (23, '(a, es12.4)')  '# pz0                = ', ts%pz0
-  write (23, '(a, es12.4)')  '# pz1                = ', ts%pz1
-  write (23, '(a, es12.4)')  '# dpz                = ', ts%dpz
+  write (23, '(a, es12.4)')  '# pz0                        = ', ts%pz0
+  write (23, '(a, es12.4)')  '# pz1                        = ', ts%pz1
+  write (23, '(a, es12.4)')  '# dpz                        = ', ts%dpz
 endif
-write (23, '(a, es12.4)')    '# a_emit             = ', ts%a_emit
-write (23, '(a, es12.4)')    '# b_emit             = ', ts%b_emit
-write (23, '(a, es12.4)')    '# sig_pz             = ', ts%sig_pz
-write (23, '(a, i8)')        '# na_max             = ', ts_com%n_a
-write (23, '(a, i8)')        '# nb_max             = ', ts_com%n_b
-write (23, '(a, i8)')        '# nz_max             = ', ts_com%n_z
-write (23, '(a, i8)')        '# n_turn             = ', ts%n_turn
-write (23, '(a, l4)')        '# rf_on              = ', ts%rf_on
-write (23, '(a, l4)')        '# use_phase_trombone = ', ts%use_phase_trombone
-write (23, '(a, es12.4, a)') '# sigma_a            = ', ts_com%sig_a,  '  # Used in calculation'
-write (23, '(a, es12.4, a)') '# sigma_b            = ', ts_com%sig_b,    '  # Used in calculation'
-write (23, '(a, es12.4, a)') '# sigma_pz           = ', ts_com%sig_pz, '  # Used in calculation'
-write (23, '(a, es12.4, a)') '# emittance_a        = ', ts_com%a_emit, '  # Used in calculation'
-write (23, '(a, es12.4, a)') '# emittance_b        = ', ts_com%b_emit, '  # Used in calculation'
+write (23, '(a, es12.4)')    '# a_emit                     = ', ts%a_emit
+write (23, '(a, es12.4)')    '# b_emit                     = ', ts%b_emit
+write (23, '(a, es12.4)')    '# sig_pz                     = ', ts%sig_pz
+write (23, '(a, i8)')        '# na_max                     = ', ts_com%n_a
+write (23, '(a, i8)')        '# nb_max                     = ', ts_com%n_b
+write (23, '(a, i8)')        '# nz_max                     = ', ts_com%n_z
+write (23, '(a, i8)')        '# n_turn                     = ', ts%n_turn
+write (23, '(a, l4)')        '# rf_on                      = ', ts%rf_on
+write (23, '(a, l4)')        '# use_phase_trombone         = ', ts%use_phase_trombone
+write (23, '(a, es12.4, a)') '# sigma_a                    = ', ts_com%sig_a,  '  # Used in calculation'
+write (23, '(a, es12.4, a)') '# sigma_b                    = ', ts_com%sig_b,  '  # Used in calculation'
+write (23, '(a, es12.4, a)') '# sigma_pz                   = ', ts_com%sig_pz, '  # Used in calculation'
+write (23, '(a, es12.4, a)') '# emittance_a                = ', ts_com%a_emit, '  # Used in calculation'
+write (23, '(a, es12.4, a)') '# emittance_b                = ', ts_com%b_emit, '  # Used in calculation'
+write (23, '(a, es12.4)')    '# radiation_damping_on       = ', bmad_com%radiation_damping_on
+write (23, '(a, es12.4)')    '# radiation_fluctuations_on  = ', bmad_com%radiation_fluctuations_on
 
 if (ts%rf_on) then
   write (23, '(a, a4, 2a6, 3a10, a12, 3a13, 3a13)') '#-', 'ja', 'jb', 'jz', 'Q_a', 'Q_b', 'Q_z', 'data_turns', &

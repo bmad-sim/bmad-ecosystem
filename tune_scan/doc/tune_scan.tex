@@ -258,13 +258,8 @@ Use a phase trombone element to vary the lattice $(Q_x, Q_y)$ tunes from point t
 \item[ts\%quad_mask] \Newline
 When {\em not} using a phase trombone element (see \vn{ts%use_phase_trombone}), it is sometimes
 desired not have certain quadrupole strengths varied. This can be achieved by setting
-\vn{ts%quad_mask} which is a list of quadrupoles to be excluded from variation. For example:
-\begin{code}
-ts%quad_mask = "QT* IP:M34"
-\end{code}
-In this example, all quadrupole elements whose name begins with ``\vn{QT}'' along with all
-quadrupoles in between elements \vn{IP} and \vn{M34} are excluded from variation. See the Bmad
-manual for details about element selection.
+\vn{ts%quad_mask} which is a list of quadrupoles to be excluded from variation. See \sref{s:sim} for
+more details.
 %
 \item[ts\%Q_z0, ts\%Q_z1, ts\%dQ_z] \Newline
 Only used when \vn{ts%rf_on} is set to True. In the RF on mode, the longitudinal tune $Q_z$ is set
@@ -346,8 +341,22 @@ divide the upright quadrupoles into two groups. One group were $\beta_a > \beta_
 and the other group with $\beta_a < \beta_b$. The $k_1$ quadrupole strength of the quadrupoles of
 each group are varied in unison. The two groups represent two variables which can be used to match
 the two tune conditions. It may be desirable to not vary selected quadrupoles. For example, the
-quadrupoles in an interaction region. To exclude selected quadrupoles from being varied the
-\vn{ts%quad_mask} string can be set appropriately.
+quadrupoles in an interaction region. 
+
+To exclude quadrupoles from being varied the \vn{ts%quad_mask} string can be set appropriately. See
+the Bmad manual for details about element selection. For example:
+\begin{code}
+ts%quad_mask = "QT* IP:M34"
+\end{code}
+In this example, all quadrupole elements whose name begins with ``\vn{QT}'' along with all
+quadrupoles in between elements \vn{IP} and \vn{M34} are excluded from variation. Example:
+\begin{code}
+ts%quad_mask = "* ~qt%"
+\end{code}
+In this example all quadrupole elements are vetoed except for quadrupoles whose name begins with
+``\vn{QT}'' and has three letters. That is, only quadrupoles whose name begins with ``\vn{QT}'' and
+has three letters will be varied.
+
 
 There are two modes of operation. In the \vn{RF off} mode, \vn{ts%rf_on} is set to False (the
 default). In the \vn{RF on} mode, \vn{ts%rf_on} is set to True. In the \vn{RF off} mode, tune plane

@@ -167,10 +167,12 @@ else
       jb = ix / num_z
       jz = ix - jb * num_z
       call ts_track_particle (ts, ts_com, ja, jb, jz, dat_arr(i))
+      call ts_print_mpi_info (ts, ts_com, 'Slave: Tracked particle at index: ' // &
+                                    int_str(ja) // ', ' // int_str(jb) // ', ' // int_str(jz))
     enddo
     n_track = i - 1
 
-    call ts_print_mpi_info (ts, ts_com, 'Slave: have data for job: ' // int_str(ix_job))
+    call ts_print_mpi_info (ts, ts_com, 'Slave: Have data for job: ' // int_str(ix_job))
     call mpi_send (n_track, 1, MPI_INTEGER, master_rank$, have_data_tag$, MPI_COMM_WORLD, ierr)
     call ts_print_mpi_info (ts, ts_com, 'Slave: Sending data for job: ' // int_str(ix_job))
     dat_size = n_track * storage_size(dat_arr(1)) / 8

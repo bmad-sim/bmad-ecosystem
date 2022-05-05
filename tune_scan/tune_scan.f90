@@ -1,7 +1,6 @@
 program tune_scan
 
 use ts_mod
-!$ use omp_lib
 
 implicit none
 
@@ -10,18 +9,10 @@ type (ts_com_struct) ts_com
 type (ts_data_struct), allocatable, target :: ts_dat(:,:,:)
 
 real(rp) del_time, time0
-integer ja, jb, jz, omp_threads
+integer ja, jb, jz
 
 !---------------------------------------------
 ! Init
-
-omp_threads = -1
-!$ omp_threads = omp_get_max_threads()
-if (omp_threads == -1) then
-  !! print *, 'Note: tune_scan program compiled without OpenMP threading.'
-else
-  print *, 'OpenMP number of threads:', omp_threads
-endif
 
 call ts_init_params (ts, ts_com)
 allocate (ts_dat(0:ts_com%n_a, 0:ts_com%n_b, 0:ts_com%n_z))
@@ -31,10 +22,6 @@ time0 = 0
 !---------------------------------------------
 ! Main loop
 
-! Note: OpenMP does not work here since local variables in ts_track_particle are shared. 
-! The solution would be to make ts_track_particle and all routines called by ts_track_particle recursive.
-
-!! !$OMP PARALLEL DO COLLAPSE(3)
 do ja = 0, ts_com%n_a
 do jb = 0, ts_com%n_b
 do jz = 0, ts_com%n_z
@@ -48,7 +35,6 @@ do jz = 0, ts_com%n_z
 enddo
 enddo
 enddo
-!! !$OMP END PARALLEL DO
 
 !---------------------------------------------
 ! Write results

@@ -1,5 +1,6 @@
 &params
   ts%lat_file = "small_ring.bmad"
+  ts%dat_out_file = "tune_scan.dat"
 
   ts%Q_a0 = 0.100
   ts%Q_a1 = 0.400
