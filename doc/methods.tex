@@ -597,6 +597,7 @@ The possible settings for \vn{csr_method} are
   off             ! No CSR. Default.
   1_dim           ! One dimensional calculation (\sref{s:csr.1d}).
 \end{example}
+The \vn{1_dim} setting cannot be used when \vn{space_charge_method} is set to  \vn{cathode_fft_3d}.
 
 The possible settings of \vn{space_charge_method} are
 \begin{example}
@@ -613,6 +614,9 @@ Example:
 \begin{example}
   q1: quadrupole, l = 0.6, csr_method = 1_dim, space_charge_method = slice, ...
 \end{example}
+
+Also see the \vn{space_charge_com} structure (\sref{s:sc.com}) which contains parameters used in
+space charge and CSR calculations.
 
 Note: There is also high energy space charge calculation that can be used with single particle
 tracking and is discussed in \sref{s:he.space.charge}.

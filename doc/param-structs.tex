@@ -358,9 +358,14 @@ prior lattice file.
 \index{space_charge_common_struct|hyperbf}
 
 The \vn{space_charge_common_struct} structure holds parameters for space charge (including CSR
-(\sref{s:csr})) calculations. Note: This structure was formally called the
-\vn{csr_parameter_struct}. The name was changed to reflect the fact that the sturucture has
-parameters for space charge calculations that do not involve CSR.
+(\sref{s:csr})) calculations.\footnote
+  {
+This structure was formally called the \vn{csr_parameter_struct}. The name was changed to reflect
+the fact that the sturucture has parameters for space charge calculations that do not involve CSR.
+  }
+The setting of the \vn{csr_method} and \vn{space_charge_method} element parameters
+(\sref{s:csr.sc.meth}) will also affect space charge calculations as well as the setting of the
+\vn{bmad_com} logical \vn{csr_and_space_charge_on} (\sref{s:bmad.common}).
 
 Besides the parameters discussed below, the \vn{csr_and_space_charge_on} parameter of \vn{bmad_com}
 (\sref{s:bmad.ptc.com}) must be set True to enable the space charge/CSR calculations. Additionally,
@@ -412,6 +417,12 @@ bunch is passing through is set to \vn{time_runge_kutta} or \vn{fixed_step_time_
 \item{beam_chamber_height} \Newline
 \vn{beam_chamber_height} is the height of the beam chamber in meters. This parameter is used when
 shielding is taken into account.  See also the description of the parameter \vn{n_shield_images}.
+%
+\item{cathode_strength_cutoff} \Newline
+When tracking through an element whose \vn{space_charge_method} is set to \vn{cathode_fft_3d}
+(\sref{s:csr.sc.meth}, The value of \vn{cathode_strength_cutoff} is used to determine at how far
+from the cathode the cathode image field is included. If the image field is less than
+\vn{cathode_strength_cutoff} * bunch field, the image field will be ignored.
 %
 \item{sigma_cutoff} \Newline
 \vn{sigma_cutoff} is used in the longitudinal space charge (LSC) calculation and is used to prevent
