@@ -485,14 +485,12 @@ algorithm. For this reason, match elements are ignored in the CSR calculation.
 \subsection{FFT_3D Space Charge Calculation}
 \label{s:sc.fft}
 
-When an element's \vn{space_charge_method} is set to \vn{fft_3d} (\sref{s:csr.sc.meth}), the space
-charge calculation uses code from the OpenSC package developed by Rob Ryne and Chris Mayes
-\cite{b:opensc}. The method works by calculating the field due to the particle on a 3D grid and then
-interpolating the field to the points where the particles are. This method will be able to handle
-lower energy bunches than the \vn{slice} method (\sref{s:sc.slice}) the disadvantage is that the
-\vn{fft_3d} method will be slower. Another point to keep in mind is that the \vn{fft_3d} method
-currently ignores image charge forces due to an emitting cathode and so will not be accurate for
-tracking at the very lowest energies near the emitter.
+When an element's \vn{space_charge_method} is set to \vn{fft_3d} or \vn{cathode_fft_3d}
+(\sref{s:csr.sc.meth}), the space charge calculation uses code from the OpenSC package developed by
+Rob Ryne and Chris Mayes \cite{b:opensc}. The method works by calculating the field due to the
+particle on a 3D grid and then interpolating the field to the points where the particles are. This
+method will be able to handle lower energy bunches than the \vn{slice} method (\sref{s:sc.slice})
+the disadvantage is that the \vn{fft_3d} and \vn{cathode_fft_3d} methods will be slower.
 
 Note: The mesh size is set by the \vn{csr_pram} parameter \vn{space_charge_mesh_size}
 (\sref{s:sc.com}).
