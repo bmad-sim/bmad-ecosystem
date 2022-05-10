@@ -2097,7 +2097,7 @@ endif
 
 call match_word (component_str, [character(28):: 'particle', 'default_tracking_species', 'geometry', 'live_branch'], &
                                                                                                     ix, matched_name = c_str)
-if (ix < 1) THEN
+if (ix < 1) then
   call out_io (s_error$, r_name, 'BAD BRANCH COMPONENT NAME: ' // component_str)
   return
 endif
@@ -2124,6 +2124,7 @@ case ('geometry')
   if (err) return
   branch%param%geometry = ix
   if (ix == open$) u%model%lat%particle_start = u%model%tao_branch(branch%ix_branch)%orbit(0)
+  if (ix == closed$) s%com%force_chrom_calc = .true.
 
 case ('live_branch')
   call tao_set_logical_value (branch%param%live_branch, c_str, value_str, err)

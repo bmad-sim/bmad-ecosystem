@@ -168,7 +168,7 @@ integer, target :: nl
 integer, pointer :: nl_ptr
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
-logical first_time, found_one, calc_ok, no_slaves, index_order
+logical first_time, found_one, calc_ok, no_slaves, index_order, ok
 logical, allocatable :: picked(:), logic_arr(:)
 
 character(*) input_str
@@ -3666,6 +3666,12 @@ case ('evaluate')
   if (index('-array_out', line(1:ix_line)) == 1) then
     call string_trim(line(ix_line+1:), line, ix_line)
     use_real_array_buffer = .true.
+  endif
+
+  if (index(line, 'chrom') /= 0) then
+    s%com%force_chrom_calc = .true.
+    s%u%calc%lattice = .true.
+    call tao_lattice_calc(ok)
   endif
 
   call tao_evaluate_expression (line, 0, .false., value_arr, err)

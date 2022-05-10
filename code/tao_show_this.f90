@@ -4169,7 +4169,7 @@ case ('spin')
   nl=nl+1; lines(nl) = 'a_anomalous_moment * gamma = ' // real_str(r, 6)
   nl=nl+1; lines(nl) = 'E_tot = ' // real_str(branch%ele(1)%value(e_tot$), 6)
   qs = branch%param%spin_tune/twopi
-  nl=nl+1; write (lines(nl), '(2x, a, f12.6, es12.4)') 'Spin', qs
+  nl=nl+1; write (lines(nl), '(a, f12.6, a)') 'Spin Tune', qs, 'rad/2pi'
 
   if (what_to_show == 'standard') then
     ele => branch%ele(0)
@@ -5434,7 +5434,6 @@ case ('value')
     s%com%force_chrom_calc = .true.
     s%u%calc%lattice = .true.
     call tao_lattice_calc(ok)
-    s%com%force_chrom_calc = .false.
   endif
 
   call tao_evaluate_expression (what2, 0, .false., value, err)
