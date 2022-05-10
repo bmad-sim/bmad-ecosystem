@@ -508,7 +508,7 @@ valid_value = .false.
 
 if (.not. datum%exists) then
   datum_value = real_garbage$
-  if (present(why_invalid)) why_invalid = 'Datum does not exist.'
+  call tao_set_invalid(datum, 'Datum does not exist.')
   return
 endif
 
@@ -536,7 +536,7 @@ lat => tao_lat%lat
 
 if (head_data_type == 'null') then
   datum_value = 0
-  why_invalid = 'Datum data_type is set to "null".'
+  call tao_set_invalid (datum, 'Datum data_type is set to "null".')
   valid_value = .false.
   return
 endif
@@ -1078,11 +1078,11 @@ case ('chrom.')
 
   if (.not. allocated(tao_lat%low_E_lat%branch)) then
     if (branch%param%geometry == open$) then
-      why_invalid = 'Cannot calc ' // trim(data_type) // ' with an open geometry.'
+      call tao_set_invalid (datum, 'Cannot calc ' // trim(data_type) // ' with an open geometry.')
     elseif (branch%param%unstable_factor == 0) then
-      why_invalid = 'Chrom bookkeeping problem. Please contact DCS.'
+      call tao_set_invalid (datum, 'Chrom bookkeeping problem. Please contact DCS.')
     else
-      why_invalid = 'Unstable lattice.'
+      call tao_set_invalid (datum, 'Unstable lattice.')
     endif
     return
   endif
@@ -3062,7 +3062,7 @@ case ('spin_g_matrix.')
 
   call tao_spin_matrix_calc (datum, u, ele_ref, ele)
   valid_value = datum%spin_map%valid
-  why_invalid = datum%why_invalid
+  call tao_set_invalid (datum, datum%why_invalid)
 
   if (.not. valid_value) return
 
@@ -3474,7 +3474,7 @@ case ('wall.')
 
   if (.not. allocated(s%building_wall%section)) then
     valid_value = .false.
-    why_invalid = 'No building wall sections defined.'
+    call tao_set_invalid (datum, 'No building wall sections defined.')
     return
   endif
 
@@ -3546,7 +3546,7 @@ case ('wall.')
 
   enddo
 
-  if (.not. valid_value) why_invalid = 'No wall section found in the transverse plane of the evaluation point.'
+  if (.not. valid_value) call tao_set_invalid (datum, 'No wall section found in the transverse plane of the evaluation point.')
 
 !-----------
 
