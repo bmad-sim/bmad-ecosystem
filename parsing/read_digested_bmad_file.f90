@@ -740,8 +740,8 @@ if (ix_s /= 0) then
 
   if (is_alloc_pix) then
     read (d_unit, err = 9361, end = 9361) i0, j0, i1, j1
-    allocate(ph%grid%pt(i0:i1, j0:j1))
-    ! Detectors do not have any grid data that needs saving
+    allocate(ph%pixel%pt(i0:i1, j0:j1))
+    ! Note: At startup detectors do not have any grid data that needs saving
   endif
 endif
 
