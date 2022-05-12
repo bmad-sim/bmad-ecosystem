@@ -2491,12 +2491,13 @@ subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine track1_bunch_space_charge (bunch, ele, err)
+subroutine track1_bunch_space_charge (bunch, ele, err, to_s_coords)
   import
   implicit none
   type (bunch_struct), target :: bunch
   type (ele_struct), target :: ele
   logical err
+  logical, optional :: to_s_coords
 end subroutine
 
 subroutine track1_linear (start_orb, ele, param, end_orb)
