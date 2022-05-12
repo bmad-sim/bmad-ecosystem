@@ -25,7 +25,7 @@ type (branch_struct), pointer :: branch
 type (spin_orbit_map1_struct) map_start, map_ele, map_end
 type (track_struct) track
 
-real(rp) gma, l, g, k1, k0, ks, kx, m, a, q
+real(rp) gma, l, g, k1, k0, ks, kx, m, a, q, e1, e2
 real(rp) cx, sx, cy, sy, omega, omegax, omegay, taux, tauy
 real(rp) chi, zeta, psi, alpha, beta, sigma, xi
 real(rp) d, cd, cdh, sd, sdh, e, ce, ceh, se, seh
@@ -37,6 +37,8 @@ integer i, j, fringe_at
 
 m = mass_of(ele%ref_species)
 e = ele%value(e_tot$)
+e1 = ele%value(e1$)
+e2 = ele%value(e2$)
 gma = e/m
 a = anomalous_moment_of(ele%ref_species)
 q = charge_of(ele%ref_species)
@@ -71,8 +73,6 @@ call init_coord(orb_start, ele%spin_taylor_ref_orb_in, ele, upstream_end$, ele%r
 call init_coord(orb_end, ele%spin_taylor_ref_orb_in, ele, downstream_end$, ele%ref_species)
 call init_coord(orb_ele, ele%spin_taylor_ref_orb_in, ele, upstream_end$, ele%ref_species)
 
-
-! call init_coord (orb, ele%spin_taylor_ref_orb_in, ele, upstream_end$, ele%ref_species)
 branch => pointer_to_branch(ele)
 
 !update transfer matrices
@@ -120,18 +120,17 @@ case (quadrupole$)
     sy = sin(l*omega)/omega
     cy = (1-cos(l*omega))/omega**2
   endif
-  !Scalar terms
   map_ele%spin_q(0,0) = 1.
-  !q_x terms
+
   map_ele%spin_q(1,3) = 0.5_rp*chi*k1*sy
   map_ele%spin_q(1,4) = 0.5_rp*chi*k1*cy
-  !q_y terms
+
   map_ele%spin_q(2,1) = 0.5_rp*chi*k1*sx
   map_ele%spin_q(2,2) = 0.5_rp*chi*k1*cx
 
 ! SBend
 
-case (sbend$)
+case (sbend$, rbend$)
 
   d = k0*l
   cd = cos(d)
@@ -145,18 +144,26 @@ case (sbend$)
   se = sin(e)
   seh = sin(0.5_rp*e)
 
-  map_start%spin_q(3,3) = -(1+a)*k0/2.
-  map_end%spin_q(3,3) = (1+a)*k0/2.
-  !constants
+  if (spin_fringe) then
+    map_start%spin_q(1,3) = 0.5_rp*(1+a)*k0*sin(e1)
+    map_start%spin_q(2,1) = 0.5_rp*chi*k0*tan(e1)
+    map_start%spin_q(3,3) = -0.5_rp*(1+a)*k0*cos(e1)
+    map_end%spin_q(1,3) = 0.5_rp*(1+a)*k0*sin(e2)
+    map_end%spin_q(2,1) = 0.5_rp*chi*k0*tan(e2)
+    map_end%spin_q(3,3) = 0.5_rp*(1+a)*k0*cos(e2)
+  endif
+
   if (k1 == 0) then
     map_ele%spin_q(0,0) = ceh
     map_ele%spin_q(0,1) = -0.5_rp*g*chi*sd*seh
     map_ele%spin_q(0,2) = 0.5_rp*chi*(cd-1)*seh
     map_ele%spin_q(0,6) = (1/(2*gma))*(gma*chi*sd-a*psi*d)*seh
+
     map_ele%spin_q(2,0) = -seh
     map_ele%spin_q(2,1) = -0.5_rp*g*chi*sd*ceh
     map_ele%spin_q(2,2) = 0.5_rp*chi*(cd-1)*ceh
     map_ele%spin_q(2,6) = (1/(2*gma))*(gma*chi*sd-a*psi*d)*ceh
+
     map_ele%spin_q(3,4) = (1/gma)*zeta*seh
 
   else
@@ -188,24 +195,28 @@ case (sbend$)
     beta = a*g*k1*(gma*chi-zeta)
     sigma = (k1+a*k1*gma+a**2*g**2*zeta*gma)*omegay
     xi = (k1*chi+a**2*g**2*zeta*gma)*omegay
+
     map_ele%spin_q(0,0) = ceh
     map_ele%spin_q(0,1) = -(1/(2*omegax))*kx*chi*sx*seh
     map_ele%spin_q(0,2) = (1/(2*omegax**2))*kx*chi*taux*(1-cx)*seh
     map_ele%spin_q(0,6) = -0.5_rp*g*((a*l*psi/gma)-(chi*sx/omegax))*seh
+
     map_ele%spin_q(1,3) = -(1/alpha)*(beta*(1+cy)*seh + tauy*sigma*sy*ceh)
     map_ele%spin_q(1,4) = -(1/(omegay*alpha))*(xi*(-1+cy)*ceh + beta*sy*seh)
+
     map_ele%spin_q(2,0) = -seh
     map_ele%spin_q(2,1) = -(1/(2*omegax))*kx*chi*sx*ceh
     map_ele%spin_q(2,2) = (1/(2*omegax**2))*kx*chi*taux*(1-cx)*ceh
     map_ele%spin_q(2,6) = -0.5_rp*g*((a*l*psi/gma)-(chi*sx/omegax))*ceh
+
     map_ele%spin_q(3,3) = -(1/alpha)*(beta*(-1+cy)*ceh - tauy*sigma*sy*seh)
     map_ele%spin_q(3,4) = (1/(omegay*alpha))*(xi*(1 + cy)*seh - beta*ceh*sy)
   endif
 
+
 ! Solenoid
 
 case (solenoid$)
-
   s = a*ks*l
   cs = cos(s)
   csh = cos(s/2.)
@@ -218,13 +229,15 @@ case (solenoid$)
   st = sin(t)
   sth = sin(t/2.)
 
-  map_start%spin_q(1,1) = ks*chi/4.
-  map_start%spin_q(2,3) = ks*chi/4.
+  if (spin_fringe) then
+    map_start%spin_q(1,1) = ks*chi/4.
+    map_start%spin_q(2,3) = ks*chi/4.
 
-  map_end%spin_q(1,1) = -ks*chi/4.
-  map_end%spin_q(2,3) = -ks*chi/4.
+    map_end%spin_q(1,1) = -ks*chi/4.
+    map_end%spin_q(2,3) = -ks*chi/4.
+  endif
 
-  map_ele%spin_q(0, 0) =  cth
+  map_ele%spin_q(0, 0) = cth
   map_ele%spin_q(0,6) = 0.5_rp*t*sth
 
   map_ele%spin_q(1, 1) = 0.25_rp*ks*zeta*((1-cs)*cth - ss * sth)
@@ -245,17 +258,15 @@ case default
 
 end select
 
-!
-
-if (spin_fringe) then
-  if (fringe_at == both_ends$ .or. fringe_at == entrance_end$) then
-    map_ele = map_ele * map_start
-  endif
-  if (fringe_at == both_ends$ .or. fringe_at == exit_end$) then
-    map_ele = map_end * map_ele
-  endif
+!Concatenate quaternions and maps.
+if (fringe_at == both_ends$ .or. fringe_at == entrance_end$) then
+  map_ele = map_ele * map_start
+endif
+if (fringe_at == both_ends$ .or. fringe_at == exit_end$) then
+  map_ele = map_end * map_ele
 endif
 
+!Convert map%spin_q to ele%spin_taylor
 do i = 0,3
   do j = 0,6
     if (j == 0) then
