@@ -166,6 +166,8 @@ case ('BMAD_COM')
 ! space_charge_com
 
 case ('SPACE_CHARGE_COM')
+  call re_allocate (ptr_array, 1)
+
   select case (attrib_name)
 
   case ('SPACE_CHARGE_MESH_SIZE')
@@ -179,8 +181,6 @@ case ('SPACE_CHARGE_COM')
     do i = 1, 3
       ptr_array(i)%i => space_charge_com%csr3d_mesh_size(i)
     enddo
-
-  call re_allocate (ptr_array, 1)
 
   case ('DS_TRACK_STEP');                   ptr_array(1)%r => space_charge_com%ds_track_step
   case ('DT_TRACK_STEP');                   ptr_array(1)%r => space_charge_com%dt_track_step

@@ -374,39 +374,40 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     return
   endif
 
-
-  call pointers_to_attribute (lat, name, word, .false., a_ptrs, err_flag, .false.)
-  if (err_flag .or. size(a_ptrs) == 0) then
-    call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
-    return
-  endif
-
   if (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON') then
     call parser_error ('SYNTAX HAS CHANGED: PARAMETER[APERTURE_LIMIT_ON] = ... NEEDS TO BE REPLACED BY BMAD_COM[APERTURE_LIMIT_ON] = ...', &
                        'THIS IS A WARNING ONLY. THE PROGRAM WILL RUN NORMALLY.', level = s_warn$)
   endif
 
-  if (name == 'D_ORB') then
+  if (word == 'D_ORB') then
     if (.not. parse_real_list (lat, trim(ele%name) // ' ' // word, bmad_com%d_orb, .true., delim, delim_found)) return
     bp_com%extra%d_orb_set = .true.
     return
   endif
 
-  if (name == 'SPACE_CHARGE_MESH_SIZE') then
+  if (word == 'SPACE_CHARGE_MESH_SIZE') then
     if (.not. parse_integer_list (trim(ele%name) // ' ' // word, lat, space_charge_com%space_charge_mesh_size, .true., delim, delim_found)) return
     bp_com%extra%space_charge_mesh_size_set = .true.
     return
   endif
 
-  if (name == 'CSR3D_MESH_SIZE') then
+  if (word == 'CSR3D_MESH_SIZE') then
     if (.not. parse_integer_list (trim(ele%name) // ' ' // word, lat, space_charge_com%csr3d_mesh_size, .true., delim, delim_found)) return
     bp_com%extra%csr3d_mesh_size_set = .true.
     return
   endif
 
-  if (name == 'DIAGNOSTIC_OUTPUT_FILE') then
+  if (word == 'DIAGNOSTIC_OUTPUT_FILE') then
     call get_next_word (space_charge_com%diagnostic_output_file, ix_word, ',', delim, delim_found)
     bp_com%extra%diagnostic_output_file_set = .true.
+    return
+  endif
+
+  !
+
+  call pointers_to_attribute (lat, name, word, .false., a_ptrs, err_flag, .false.)
+  if (err_flag .or. size(a_ptrs) == 0) then
+    call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
@@ -3370,6 +3371,13 @@ else
   lat%constant(n+1)%value = bp_com2%const(i_const)%value
 endif
 
+!
+
+if (.not. verify_valid_name(word, len_trim(word), .true.)) then
+  call parser_error ('MALFORMED CONSTANT NAME: ' // word)
+  return
+endif
+
 if (delim_found .and. .not. err_flag) call parser_error  &
                   ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
                    'FOR CONSTANT: ' // bp_com2%const(i_const)%name)
@@ -4433,24 +4441,40 @@ end subroutine get_overlay_group_names
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Function verify_valid_name (name, ix_name, pure_name) result (is_valid)
+!
+! Routine to check if a name is well formed. Examples:
+!   "0>>Q0"                           -- Invalid
+!   "Q1##1"                           -- Invalid (double hash not accepted).
+!   "Q2A_C.\7#"                       -- Pure name (no "[", "]", "(", ")", "%" characters present).
+!   "Q3[GRID_FIELD(1)%FIELD_SCALE]"   -- Valid but not a pure name.
+!
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !
-! Note: Lattice element names like "0>>1" are not not considered valid by this routine.
+!
+! Input:
+!   name        -- character(*): Name(1:ix_name) is the string to check.
+!   ix_name     -- integer: Number of characters in the name.
+!   pure_name   -- logical, optional: If tu
+!
+! Output:
+!   is_valid    -- logical: True if name is well formed. False otherwise.   
 !-
 
-
-function verify_valid_name (name, ix_name) result (is_valid)
+function verify_valid_name (name, ix_name, pure_name) result (is_valid)
 
 implicit none
 
 integer i, ix_name, ix1, ix2
 
 character(*) name
-character(27), parameter :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
-character(45), parameter :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#%'
+character(*), parameter :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
+character(*), parameter :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#%'
+character(*), parameter :: pure_chars  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_.#'
 character(1), parameter :: tab = achar(9)
 
+logical, optional :: pure_name
 logical OK, is_valid
 
 ! Check for blank spaces
@@ -4485,9 +4509,15 @@ endif
 OK = .true.
 if (index(letters, name(1:1)) == 0) OK = .false.
 
-do i = 1, ix_name
-  if (index(valid_chars, name(i:i)) == 0) OK = .false.
-enddo
+if (logic_option(.false., pure_name)) then
+  do i = 1, ix_name
+    if (index(pure_chars, name(i:i)) == 0) OK = .false.
+  enddo
+else
+  do i = 1, ix_name
+    if (index(valid_chars, name(i:i)) == 0) OK = .false.
+  enddo
+endif
 
 if (.not. OK) then
   call parser_error ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: ' // name)
