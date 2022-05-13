@@ -1295,7 +1295,6 @@ the ends are displaced from one another.
 \end{figure}
 
 %---------------------------------------------------------------------------------
-%---------------------------------------------------------------------------------
 \section{Solenoid Tracking}
 \label{s:solenoid.std}
 \index{solenoid}
@@ -1341,15 +1340,15 @@ fringe field is assumed to end abruptly at the edges of the solenoid
 $x$ = $y$ = 0) is placed along the centerline of the solenoid so that
 there is cylindrical symmetry around the $\Bf z$-axis.
 
-%---------------------------------------------------------------------------------
-\section{Spin Tracking}
-\label{s:spin.std}
-\index{spin!tracking}
+%-----------------------------------------------------------------------------------------
+\section{Sprint Spin Tracking}
+\label{s:sprint.std}
+\index{sprint spin tracking}
 
-\section{Sprint Spin Tracking} Bmad includes precalculated first-order spin transfer quaternions for
-simple lattice elements. This method is much faster than PTC integration, and its runtime does not
-increase proportionally to element length. Currently, the supported lattice elements are bends
-(including bends with $k_1 \neq 0$), quadrupoles, and solenoids.
+Bmad includes precalculated first-order spin transfer quaternions for simple lattice elements. This
+method is much faster than PTC integration, and its runtime does not increase proportionally to
+element length. Currently, the supported lattice elements are bends (including bends with $k_1 \neq
+0$), quadrupoles, and solenoids.
 
 Elements with fringe field contributions are split into three quaternions representing the entrance,
 body, and exit of the element. Before propagation, the exit fringe quaternion is always equivalent
@@ -1358,12 +1357,11 @@ with $-e_2$. The exit quaternion is then propagated to the end of the element vi
 tools. Appropriate quaternions are concatenated according to the values of \vn{spin_fringe_on} and
 \vn{fringe_at}.
 
-\begin{alignat}{4}
-  \chi   &= 1+a\gamma           & \zeta  &= \gamma - 1   \qquad & \psi  &= \gamma^2 - 1     &        &                      \CRNO   
-  {d}    &= g \, l              & {e}    &= a \, g \, l\gamma   & s     &= a \, k_s l       & {t}    &= (1+a) k_s l         \\
-  c_{d}  &= \cos({d})    \qquad & s_{e2} &= \sin(\frac{{e}}{2}) & c_{s} &= \cos({s}) \qquad & c_{t}  &= \cos({t})           \CRNO
-  c_{d2} &= \cos(\frac{{d}}{2}) & c_{e2} &= \cos(\frac{{e}}{2}) & s_{s} &= \sin({s})        & s_{t2} &= \sin(\frac{{t}}{2}) \CRNO
-  s_{d}  &= \sin({d})           &        &                      &       &                   & c_{t2} &= \cos(\frac{{t}}{2}) \nonumber
+\begin{alignat}{8}
+ & {d}    &&= g \, l              && {e}    &&= a \, g \, l\gamma   && s     &&= a \, k_s l       && {t}    &&= (1+a) k_s l         \CRNO
+ & c_{d}  &&= \cos({d})    \qquad && s_{e2} &&= \sin(\frac{{e}}{2}) && c_{s} &&= \cos({s}) \qquad && c_{t}  &&= \cos({t})           \\
+ & s_{d}  &&= \sin({d})           && c_{e2} &&= \cos(\frac{{e}}{2}) && s_{s} &&= \sin({s})        && s_{t2} &&= \sin(\frac{{t}}{2}) \CRNO
+ & \chi   &&= 1+a\gamma           && \zeta  &&= \gamma - 1   \qquad && \psi  &&= \gamma^2 - 1     && c_{t2} &&= \cos(\frac{{t}}{2}) \nonumber
 \end{alignat}
 
 %-----------------------------------------------------------------------------------------
@@ -1402,9 +1400,9 @@ tools. Appropriate quaternions are concatenated according to the values of \vn{s
 \begin{center}
 \begin{tabular}{cccc}
   $k_x > 0$                  & $k_x < 0$              & $k_1 > 0$                   & $k_1 < 0$  \\
-  $s_x = \sin{(l \omega_x)}$ & $ \sinh{(l \omega_x)}$ & $s_y = \sinh{(l \omega_y)}$ & $ \sin{(l \omega_y)}$ \\     
+  $s_x = \sin{(l \omega_x)}$ & $ \sinh{(l \omega_x)}$ & $s_y = \sinh{(l \omega_y)}$ & $ \sin{(l \omega_y)}$ \\
   $c_x = \cos{(l \omega_x)}$ & $ \cosh{(l \omega_x)}$ & $c_y = \cosh{(l \omega_y)}$ & $ \cos{(l \omega_y)}$ \\
-  $\tau_x = -1$              & $+1$                   & $\tau_y = +1$               & $-1$      
+  $\tau_x = -1$              & $+1$                   & $\tau_y = +1$               & $-1$
 \end{tabular}
 \end{center}
 
@@ -1412,12 +1410,12 @@ tools. Appropriate quaternions are concatenated according to the values of \vn{s
 \begin{tabular}{lllll} \toprule
         & $q_0$    & $q_x$ & $q_y$     & $q_z$ \\ \midrule
   1     & $c_{e2}$ &       & $-s_{e2}$ &       \\ \addlinespace[1ex]
-  $x$   & $\frac{-k_x \chi}{2 \omega_x} s_x s_{e2}$            &   & 
+  $x$   & $\frac{-k_x \chi}{2 \omega_x} s_x s_{e2}$            &   &
     $\frac{-k_x \chi}{2 \omega_x} s_x c_{e2}$ & \\ \addlinespace[1ex]
-  $p_x$ & $\frac{k_x \chi}{2\omega_x^2} \tau_x (1-c_x) s_{e2}$ &   & 
+  $p_x$ & $\frac{k_x \chi}{2\omega_x^2} \tau_x (1-c_x) s_{e2}$ &   &
     $\frac{k_x \chi}{2 \omega_x^2} \tau_x \left(1-c_x\right) c_{e2}$ & \\ \addlinespace[1ex]
-  $y$   &          & 
-    {$\begin{aligned} 
+  $y$   &          &
+    {$\begin{aligned}
       \frac{-1}{\alpha} &\bigl[ \beta (1+ c_y) s_{e2} +{} \\[-1.5ex]
       & \hskip4.5em \tau_y \sigma s_y c_{e2} \bigr]
     \end{aligned}$} &  &
@@ -1425,7 +1423,7 @@ tools. Appropriate quaternions are concatenated according to the values of \vn{s
        \frac{1}{\alpha} &\bigl[ \beta (1-c_y) c_{e2} + {} \\[-1.5ex]
        & \hskip4.5em \tau_y \sigma s_y s_{e2} \bigr]
     \end{aligned}$} \\ \addlinespace[1ex]
-  $p_y$ &          & 
+  $p_y$ &          &
     {$\begin{aligned}
       \frac{1}{\omega_y \alpha} &\bigl[ \xi (1 - c_y) c_{e2} - {} \\[-1.5ex]
       & \hskip5em \beta s_y s_{e2} \bigr]
@@ -1434,14 +1432,14 @@ tools. Appropriate quaternions are concatenated according to the values of \vn{s
       \frac{1}{\omega_y \alpha} &\bigl[ \xi (1+c_y) s_{e2} - {} \\[-1.5ex]
       & \hskip5em \beta s_y c_{e2}\bigr]
     \end{aligned}$} \\ \addlinespace[1ex]
-  $p_z$ & $\frac{g}{2}\left(\frac{\chi s_x}{\omega_x} - \frac{a l \psi}{\gamma}\right) s_{e2}$ &    & 
+  $p_z$ & $\frac{g}{2}\left(\frac{\chi s_x}{\omega_x} - \frac{a l \psi}{\gamma}\right) s_{e2}$ &    &
     $\frac{g}{2}\left(\frac{\chi s_x}{\omega_x} - \frac{a l \psi}{\gamma}\right) c_{e2}$ & \\
   \bottomrule
   \end{tabular}
 \end{center}
 
 %-----------------------------------------------------------------------------------------
-\subsection{Sbend Entrance Fringe} 
+\subsection{Sbend Entrance Fringe}
 
 To calculate the exit fringe, multiply all field strengths $g$ by
 -1, and replace all entrance face angles $e_1$ with exit face angles $-e_2$. The negative exit face
@@ -1466,7 +1464,7 @@ angle is used due to Bmad convention.
 \begin{center}
 \begin{tabular}{cccc}
   $k_1 > 0$ & $k_1 < 0$ & $k_1 > 0$ & $k_1 < 0$  \\
-  $s_x = \frac{\sin{(l \omega)}}{\omega}$ & $ \frac{\sinh{(l \omega)}}{\omega}$ &$s_y = \frac{\sinh{(l \omega)}}{\omega}$ & $ \frac{\sin{(l \omega)}}{\omega}$ \\     
+  $s_x = \frac{\sin{(l \omega)}}{\omega}$ & $ \frac{\sinh{(l \omega)}}{\omega}$ &$s_y = \frac{\sinh{(l \omega)}}{\omega}$ & $ \frac{\sin{(l \omega)}}{\omega}$ \\
   $c_x = \frac{1 - \cos{(l \omega)}}{\omega^2}$ & $ \frac{-1 + \cosh{(l \omega)}}{\omega^2}$ &$c_y = \frac{-1 + \cosh{(l \omega)}}{\omega^2}$ & $ \frac{1 - \cos{(l \omega)}}{\omega^2}$ \\
 \end{tabular}
 \end{center}
