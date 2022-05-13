@@ -28,7 +28,7 @@ type (track_struct) track
 real(rp) gma, l, g, k1, k0, ks, kx, m, a, q, e1, e2
 real(rp) cx, sx, cy, sy, omega, omegax, omegay, taux, tauy
 real(rp) chi, zeta, psi, alpha, beta, sigma, xi
-real(rp) d, cd, cdh, sd, sdh, e, ce, ceh, se, seh
+real(rp) d, c_d, c_d2, s_d, s_d2, e, c_e, c_e2, s_e, s_e2
 real(rp) s, cs, csh, ss, ssh, t, ct, cth, st, sth
 logical err_flag, spin_fringe
 integer i, j, fringe_at
@@ -133,16 +133,16 @@ case (quadrupole$)
 case (sbend$, rbend$)
 
   d = k0*l
-  cd = cos(d)
-  cdh = cos(0.5_rp*d)
-  sd = sin(d)
-  sdh = sin(0.5_rp*d)
+  c_d = cos(d)
+  c_d2 = cos(0.5_rp*d)
+  s_d = sin(d)
+  s_d2 = sin(0.5_rp*d)
 
   e = a*k0*l*gma
-  ce = cos(e)
-  ceh = cos(0.5_rp*e)
-  se = sin(e)
-  seh = sin(0.5_rp*e)
+  c_e = cos(e)
+  c_e2 = cos(0.5_rp*e)
+  s_e = sin(e)
+  s_e2 = sin(0.5_rp*e)
 
   if (spin_fringe) then
     map_start%spin_q(1,3) = 0.5_rp*(1+a)*k0*sin(e1)
@@ -154,17 +154,17 @@ case (sbend$, rbend$)
   endif
 
   if (k1 == 0) then
-    map_ele%spin_q(0,0) = ceh
-    map_ele%spin_q(0,1) = -0.5_rp*g*chi*sd*seh
-    map_ele%spin_q(0,2) = 0.5_rp*chi*(cd-1)*seh
-    map_ele%spin_q(0,6) = (1/(2*gma))*(gma*chi*sd-a*psi*d)*seh
+    map_ele%spin_q(0,0) = c_e2
+    map_ele%spin_q(0,1) = -0.5_rp*g*chi*s_d*s_e2
+    map_ele%spin_q(0,2) = 0.5_rp*chi*(c_d-1)*s_e2
+    map_ele%spin_q(0,6) = (1/(2*gma))*(gma*chi*s_d-a*psi*d)*s_e2
 
-    map_ele%spin_q(2,0) = -seh
-    map_ele%spin_q(2,1) = -0.5_rp*g*chi*sd*ceh
-    map_ele%spin_q(2,2) = 0.5_rp*chi*(cd-1)*ceh
-    map_ele%spin_q(2,6) = (1/(2*gma))*(gma*chi*sd-a*psi*d)*ceh
+    map_ele%spin_q(2,0) = -s_e2
+    map_ele%spin_q(2,1) = -0.5_rp*g*chi*s_d*c_e2
+    map_ele%spin_q(2,2) = 0.5_rp*chi*(c_d-1)*c_e2
+    map_ele%spin_q(2,6) = (1/(2*gma))*(gma*chi*s_d-a*psi*d)*c_e2
 
-    map_ele%spin_q(3,4) = (1/gma)*zeta*seh
+    map_ele%spin_q(3,4) = (1/gma)*zeta*s_e2
 
   else
     if (kx > 0) then
@@ -196,21 +196,21 @@ case (sbend$, rbend$)
     sigma = (k1+a*k1*gma+a**2*g**2*zeta*gma)*omegay
     xi = (k1*chi+a**2*g**2*zeta*gma)*omegay
 
-    map_ele%spin_q(0,0) = ceh
-    map_ele%spin_q(0,1) = -(1/(2*omegax))*kx*chi*sx*seh
-    map_ele%spin_q(0,2) = (1/(2*omegax**2))*kx*chi*taux*(1-cx)*seh
-    map_ele%spin_q(0,6) = -0.5_rp*g*((a*l*psi/gma)-(chi*sx/omegax))*seh
+    map_ele%spin_q(0,0) = c_e2
+    map_ele%spin_q(0,1) = -(1/(2*omegax))*kx*chi*sx*s_e2
+    map_ele%spin_q(0,2) = (1/(2*omegax**2))*kx*chi*taux*(1-cx)*s_e2
+    map_ele%spin_q(0,6) = -0.5_rp*g*((a*l*psi/gma)-(chi*sx/omegax))*s_e2
 
-    map_ele%spin_q(1,3) = -(1/alpha)*(beta*(1+cy)*seh + tauy*sigma*sy*ceh)
-    map_ele%spin_q(1,4) = -(1/(omegay*alpha))*(xi*(-1+cy)*ceh + beta*sy*seh)
+    map_ele%spin_q(1,3) = -(1/alpha)*(beta*(1+cy)*s_e2 + tauy*sigma*sy*c_e2)
+    map_ele%spin_q(1,4) = -(1/(omegay*alpha))*(xi*(-1+cy)*c_e2 + beta*sy*s_e2)
 
-    map_ele%spin_q(2,0) = -seh
-    map_ele%spin_q(2,1) = -(1/(2*omegax))*kx*chi*sx*ceh
-    map_ele%spin_q(2,2) = (1/(2*omegax**2))*kx*chi*taux*(1-cx)*ceh
-    map_ele%spin_q(2,6) = -0.5_rp*g*((a*l*psi/gma)-(chi*sx/omegax))*ceh
+    map_ele%spin_q(2,0) = -s_e2
+    map_ele%spin_q(2,1) = -(1/(2*omegax))*kx*chi*sx*c_e2
+    map_ele%spin_q(2,2) = (1/(2*omegax**2))*kx*chi*taux*(1-cx)*c_e2
+    map_ele%spin_q(2,6) = -0.5_rp*g*((a*l*psi/gma)-(chi*sx/omegax))*c_e2
 
-    map_ele%spin_q(3,3) = -(1/alpha)*(beta*(-1+cy)*ceh - tauy*sigma*sy*seh)
-    map_ele%spin_q(3,4) = (1/(omegay*alpha))*(xi*(1 + cy)*seh - beta*ceh*sy)
+    map_ele%spin_q(3,3) = -(1/alpha)*(beta*(-1+cy)*c_e2 - tauy*sigma*sy*s_e2)
+    map_ele%spin_q(3,4) = (1/(omegay*alpha))*(xi*(1 + cy)*s_e2 - beta*c_e2*sy)
   endif
 
 

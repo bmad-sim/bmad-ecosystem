@@ -1346,232 +1346,172 @@ there is cylindrical symmetry around the $\Bf z$-axis.
 \label{s:spin.std}
 \index{spin!tracking}
 
-\section{Sprint Spin Tracking}
-Bmad includes precalculated first-order spin transfer quaternions for simple lattice elements. This method is much faster than PTC integration, and its runtime does not increase proportionally to element length. Currently, the supported lattice elements are bends (including bends with $k_1 \neq 0$), quadrupoles, and solenoids.
+\section{Sprint Spin Tracking} Bmad includes precalculated first-order spin transfer quaternions for
+simple lattice elements. This method is much faster than PTC integration, and its runtime does not
+increase proportionally to element length. Currently, the supported lattice elements are bends
+(including bends with $k_1 \neq 0$), quadrupoles, and solenoids.
 
-Elements with fringe field contributions are split into three quaternions representing the entrance, body, and exit of the element. Before propagation, the exit fringe quaternion is always equivalent to the entrance fringe quaternion, with all field strengths multiplied by -1, and $e_1$ replaced with $-e_2$. The exit quaternion is then propagated to the end of the element via Bmad mapping tools. Appropriate quaternions are concatenated according to the values of spin\_fringe\_on and fringe\_at.
+Elements with fringe field contributions are split into three quaternions representing the entrance,
+body, and exit of the element. Before propagation, the exit fringe quaternion is always equivalent
+to the entrance fringe quaternion, with all field strengths multiplied by -1, and $e_1$ replaced
+with $-e_2$. The exit quaternion is then propagated to the end of the element via Bmad mapping
+tools. Appropriate quaternions are concatenated according to the values of \vn{spin_fringe_on} and
+\vn{fringe_at}.
 
+\begin{alignat}{4}
+  \chi   &= 1+a\gamma           & \zeta  &= \gamma - 1   \qquad & \psi  &= \gamma^2 - 1     &        &                      \CRNO   
+  {d}    &= g \, l              & {e}    &= a \, g \, l\gamma   & s     &= a \, k_s l       & {t}    &= (1+a) k_s l         \\
+  c_{d}  &= \cos({d})    \qquad & s_{e2} &= \sin(\frac{{e}}{2}) & c_{s} &= \cos({s}) \qquad & c_{t}  &= \cos({t})           \CRNO
+  c_{d2} &= \cos(\frac{{d}}{2}) & c_{e2} &= \cos(\frac{{e}}{2}) & s_{s} &= \sin({s})        & s_{t2} &= \sin(\frac{{t}}{2}) \CRNO
+  s_{d}  &= \sin({d})           &        &                      &       &                   & c_{t2} &= \cos(\frac{{t}}{2}) \nonumber
+\end{alignat}
 
-The precalculated quaternions, with empty components omitted, are as follows:
+%-----------------------------------------------------------------------------------------
+\subsection{SBend Body, $k_1 = 0$}
 
-\subsection{Constants}
-To improve readability, the following definitions will be used. Many of these definitions and symbol choices are taken from Weisbaecker (how to cite?).
+\begin{center}
+\begin{tabular}{llll} \toprule
+        & $q_0$    & $q_y$     & $q_z$ \\ \midrule
+  $1$   & $c_{e2}$ & $-s_{e2}$ &       \\ \addlinespace[1ex]
+  $x$   & $-\frac{1}{2} g \chi s_{d} s_{e2}$ & $-\frac{1}{2} g \chi \, s_{d} c_{e2}$ & \\ \addlinespace[1ex]
+  $p_x$ & $\frac{1}{2} \chi \, (c_{d} - 1)  s_{e2}$ & $\frac{1}{2} \chi \, (c_{d} - 1) c_{e2}$ & \\ \addlinespace[1ex]
+  $p_y$ &          &           & $\frac{1}{\gamma} \zeta \, s_{e2}$ \\ \addlinespace[1ex]
+  $p_z$ & $\frac{1}{2 \gamma} \left(\gamma \, \chi \, s_{d} -a \, \psi \, {d} \right) s_{e2}$ & & \\
+  \bottomrule
+\end{tabular}
+\end{center}
 
-\begin{table}[h]
-    \centering
-    \begin{tabular}{l l l l}
-        \bf{d} = $gl$ & \bf{e} = $agl\gamma$ & \bf{s} = $a k_s l$ & \bf{t} = $(1+a) k_s l$\\
-        \bf{cd} = $\cos(\textbf{d})$ & & \bf{cs} = $\cos(\textbf{s})$ &  \bf{ct} = $\cos(\textbf{t})$ \\
-        \bf{cdh} = $\cos(\frac{\textbf{d}}{2})$ & \bf{ceh} = $\cos(\frac{\textbf{e}}{2})$& & \bf{cth} = $\cos(\frac{\textbf{t}}{2})$ \\
-        \bf{sd} = $\sin(\textbf{d})$ & & \bf{ss} = $\sin(\textbf{s})$ & \\
-        & \bf{seh} = $\sin(\frac{\textbf{e}}{2})$& &\bf{sth} = $\sin(\frac{\textbf{t}}{2})$ \\
-    \end{tabular}
-\end{table}
-    \centering
-     \begin{tabular}{l l l}
-        $\chi = 1+a\gamma$ & $\zeta = \gamma - 1$ & $\psi = \gamma^2 - 1$
-    \end{tabular}
-\begin{table}[h]
-\end{table}
-
-\subsection{Bends}
-
-\subsubsection{Element Body, $k_1 = 0$}
-\begin{table}[h]
-    \centering
-    \begin{tabular}{|l|l|l|l|}
-    \hline
-    &
-    \multicolumn{1}{|c|}{$q_0$} & \multicolumn{1}{|c|}{$q_y$} & \multicolumn{1}{|c|}{$q_z$} \\
-
-    $1$ & \bf{ceh} & -\bf{seh} & \\
-    
-    $x$ & $-\frac{1}{2} g \chi \textbf{sd seh}$ & $-\frac{1}{2} g \chi \: \textbf{sd ceh}$& \\
-    
-    $p_x$ & $\frac{1}{2} \chi  \: (\textbf{cd} - 1)  \textbf{seh}$ & $\frac{1}{2} \chi \: (\textbf{cd} - 1) \textbf{ceh}$ & \\
-    
-    $p_y$ & & & $\frac{1}{\gamma} \zeta \: \textbf{seh}$ \\
-    
-     $p_z$ & $\frac{1}{2 \gamma} \left(\gamma  \: \chi \: \textbf{sd} -a \: \psi \: \textbf{d} \right) \textbf{seh}$ & & \\
-    \hline
-    \end{tabular}
-\end{table}
-
-\subsubsection{Element Body, $k_1 \neq 0$}
-
-To increase readability, the following constants are used:
+%-----------------------------------------------------------------------------------------
+\subsection{Sbend Body, $k_1 \neq 0$}
 
 \begin{equation}
 \begin{aligned}
-    &k_x = k_1 + g^2 \\
-    &\omega_x = \sqrt{|k_x|} \\
-    &\omega_y = \sqrt{|k_1|}
+  &  k_x = k_1 + g^2 \\
+  & \omega_x = \sqrt{|k_x|} \\
+  & \omega_y = \sqrt{|k_1|}
 \end{aligned}
 \qquad\qquad\qquad
 \begin{aligned}
-    & \alpha = 2(a^2 g^2 \gamma^2 + k_1) \\ \nonumber
-    & \beta = a g k_1 (\gamma \chi - \zeta) \\ \nonumber
-    & \sigma = \omega_y (k_1 + a k_1 \gamma + a^2g^2 \zeta \gamma)\\ \nonumber
-    & \xi = \omega_y (k_1 \chi + a^2 g^2 \zeta \gamma) \nonumber
+  & \alpha = 2(a^2 g^2 \gamma^2 + k_1) \\ \nonumber
+  & \beta = a g k_1 (\gamma \chi - \zeta) \\ \nonumber
+  & \sigma = \omega_y (k_1 + a k_1 \gamma + a^2g^2 \zeta \gamma)\\ \nonumber
+  & \xi = \omega_y (k_1 \chi + a^2 g^2 \zeta \gamma) \nonumber
 \end{aligned}
 \end{equation}
 
-\begin{table}[h]
-    \centering
-    \begin{tabular}{c c c c}
-         $k_x > 0$ & $k_x < 0$ & $k_1 > 0$ & $k_1 < 0$  \\
-         $s_x = \sin{(l \omega_x)}$& $ \sinh{(l \omega_x)}$&$s_y = \sinh{(l \omega_y)}$& $ \sin{(l \omega_y)}$ \\
-         
-         $c_x = \cos{(l \omega_x)}$& $ \cosh{(l \omega_x)}$&$c_y = \cosh{(l \omega_y)}$& $ \cos{(l \omega_y)}$ \\
-         
-         $\tau_x = -1$ & $+1$ &$\tau_y = +1$ & $-1$
-    \end{tabular}
-\end{table}
+\begin{center}
+\begin{tabular}{cccc}
+  $k_x > 0$                  & $k_x < 0$              & $k_1 > 0$                   & $k_1 < 0$  \\
+  $s_x = \sin{(l \omega_x)}$ & $ \sinh{(l \omega_x)}$ & $s_y = \sinh{(l \omega_y)}$ & $ \sin{(l \omega_y)}$ \\     
+  $c_x = \cos{(l \omega_x)}$ & $ \cosh{(l \omega_x)}$ & $c_y = \cosh{(l \omega_y)}$ & $ \cos{(l \omega_y)}$ \\
+  $\tau_x = -1$              & $+1$                   & $\tau_y = +1$               & $-1$      
+\end{tabular}
+\end{center}
 
-\begin{table}[h]
-    \centering
-    \begin{tabular}{|l|l|l|}
-    \hline
-    &
-    \multicolumn{1}{|c|}{$q_0$} & \multicolumn{1}{|c|}{$q_x$} \\
-    
-    1 & \bf{ceh} & \\
-    
-    $x$ & $- \frac{1}{2 \omega_x} k_x \chi s_x \textbf{seh}$ & \\
-    
-    $p_x$ & $\frac{1}{2\omega_x^2}k_x \chi \tau_x (1-c_x) \textbf{seh}$& \\
-    
-    $y$ & &$-\frac{1}{\alpha} \left(\beta (1+c_y) \textbf{seh}+\tau_y \sigma s_y \textbf{ceh}\right)$\\
-    
-    $p_y$ & &$-\frac{1}{\omega_y \alpha}\left(\xi (-1 + c_y) \textbf{ceh} + \beta s_y \textbf{seh} \right)$ \\
-    
-    $p_z$ & $-\frac{1}{2}g\left(\frac{a l \psi}{\gamma} - \frac{\chi s_x}{\omega_x}\right) \textbf{seh}$ &\\
-    \hline
-    \end{tabular}
-\end{table}
+\begin{center}
+\begin{tabular}{lllll} \toprule
+        & $q_0$    & $q_x$ & $q_y$     & $q_z$ \\ \midrule
+  1     & $c_{e2}$ &       & $-s_{e2}$ &       \\ \addlinespace[1ex]
+  $x$   & $\frac{-k_x \chi}{2 \omega_x} s_x s_{e2}$            &   & 
+    $\frac{-k_x \chi}{2 \omega_x} s_x c_{e2}$ & \\ \addlinespace[1ex]
+  $p_x$ & $\frac{k_x \chi}{2\omega_x^2} \tau_x (1-c_x) s_{e2}$ &   & 
+    $\frac{k_x \chi}{2 \omega_x^2} \tau_x \left(1-c_x\right) c_{e2}$ & \\ \addlinespace[1ex]
+  $y$   &          & 
+    {$\begin{aligned} 
+      \frac{-1}{\alpha} &\bigl[ \beta (1+ c_y) s_{e2} +{} \\[-1.5ex]
+      & \hskip4.5em \tau_y \sigma s_y c_{e2} \bigr]
+    \end{aligned}$} &  &
+    {$\begin{aligned}
+       \frac{1}{\alpha} &\bigl[ \beta (1-c_y) c_{e2} + {} \\[-1.5ex]
+       & \hskip4.5em \tau_y \sigma s_y s_{e2} \bigr]
+    \end{aligned}$} \\ \addlinespace[1ex]
+  $p_y$ &          & 
+    {$\begin{aligned}
+      \frac{1}{\omega_y \alpha} &\bigl[ \xi (1 - c_y) c_{e2} - {} \\[-1.5ex]
+      & \hskip5em \beta s_y s_{e2} \bigr]
+    \end{aligned}$} &   &
+    {$\begin{aligned}
+      \frac{1}{\omega_y \alpha} &\bigl[ \xi (1+c_y) s_{e2} - {} \\[-1.5ex]
+      & \hskip5em \beta s_y c_{e2}\bigr]
+    \end{aligned}$} \\ \addlinespace[1ex]
+  $p_z$ & $\frac{g}{2}\left(\frac{\chi s_x}{\omega_x} - \frac{a l \psi}{\gamma}\right) s_{e2}$ &    & 
+    $\frac{g}{2}\left(\frac{\chi s_x}{\omega_x} - \frac{a l \psi}{\gamma}\right) c_{e2}$ & \\
+  \bottomrule
+  \end{tabular}
+\end{center}
 
-\begin{table}[h]
-    \centering
-    \begin{tabular}{|l|l|l|}
-    \hline
-    &
-    \multicolumn{1}{|c|}{$q_y$} & \multicolumn{1}{|c|}{$q_z$}\\
-    
-    1 & -\bf{seh} &\\
-    
-    $x$ & $-\frac{1}{2 \omega_x} k_x \chi s_x \textbf{ceh}$ & \\
-    
-    $p_x$ & $\frac{1}{2 \omega_x^2} k_x \chi \tau_x \left(1-c_x\right) \textbf{ceh}$& \\
-    
-    $y$ & &$-\frac{1}{\alpha} (\beta (-1+c_y) \textbf{ceh} - \tau_y \sigma s_y \textbf{seh})$\\
-    
-    $p_y$ & &$\frac{1}{\omega_y \alpha} \left(\xi (1+c_y) \textbf{seh} - \beta s_y \textbf{ceh}\right)$ \\
-    
-    $p_z$ & $-\frac{1}{2}g\left(\frac{a l \psi}{\gamma} - \frac{\chi s_x}{\omega_x}\right) \textbf{ceh}$& \\
-    \hline
-    \end{tabular}
-\end{table}
+%-----------------------------------------------------------------------------------------
+\subsection{Sbend Entrance Fringe} 
 
+To calculate the exit fringe, multiply all field strengths $g$ by
+-1, and replace all entrance face angles $e_1$ with exit face angles $-e_2$. The negative exit face
+angle is used due to Bmad convention.
+\begin{center}
+  \begin{tabular}{lllll} \toprule
+      & $q_0$ & $q_x$                         & $q_y$                          & $q_z$ \\ \midrule
+  1   & 1     &                               &                                & \\ \addlinespace[1ex]
+  $x$ &       &                               & $\frac{1}{2} \chi g \tan(e_1)$ & \\ \addlinespace[1ex]
+  $y$ &       & $\frac{1}{2}(1+a)g \sin(e_1)$ &                                & $-\frac{1}{2}(1+a)g \cos(e_1)$ \\
+  \bottomrule
+  \end{tabular}
+\end{center}
 
-\subsubsection{Entrance Fringe}
-To calculate the exit fringe, multiply all field strengths $g$ by -1, and replace all entrance face angles $e_1$ with exit face angles $-e_2$. The negative exit face angle is used due to Bmad convention.
-\begin{table}[h]
-    \centering
-    \begin{tabular}{|l|l|l|l|l|}
-    \hline
-    &
-    \multicolumn{1}{|c|}{$q_0$} & \multicolumn{1}{|c|}{$q_x$}& \multicolumn{1}{|c|}{$q_y$}& \multicolumn{1}{|c|}{$q_z$} \\
-    
-    1 & 1 & & &\\
-    $x$ & & & $\frac{1}{2} \chi g \tan(e_1)$& \\
-    $y$ & &$\frac{1}{2}(1+a)g \sin(e_1)$& & $-\frac{1}{2}(1+a)g \cos(e_1)$ \\
-    \hline
-    \end{tabular}
-    
-    
-\end{table}
+%-----------------------------------------------------------------------------------------
 \subsection{Quadrupole}
 
 \begin{equation}
-    \omega = \sqrt{|k_1|} \nonumber
+  \omega = \sqrt{|k_1|} \nonumber
 \end{equation}
 
-\everymath{\displaystyle}
-\begin{table}[h]
-    \centering
-    \begin{tabular}{c c c c}
-         $k_1 > 0$ & $k_1 < 0$ & $k_1 > 0$ & $k_1 < 0$  \\
-         $s_x = \frac{\sin{(l \omega)}}{\omega}$& $ \frac{\sinh{(l \omega)}}{\omega}$&$s_y = \frac{\sinh{(l \omega)}}{\omega}$& $ \frac{\sin{(l \omega)}}{\omega}$ \\
-         
-         $c_x = \frac{1 - \cos{(l \omega)}}{\omega^2}$& $ \frac{-1 + \cosh{(l \omega)}}{\omega^2}$&$c_y = \frac{-1 + \cosh{(l \omega)}}{\omega^2}$& $ \frac{1 - \cos{(l \omega)}}{\omega^2}$ \\
-    \end{tabular}
-\end{table}
+\begin{center}
+\begin{tabular}{cccc}
+  $k_1 > 0$ & $k_1 < 0$ & $k_1 > 0$ & $k_1 < 0$  \\
+  $s_x = \frac{\sin{(l \omega)}}{\omega}$ & $ \frac{\sinh{(l \omega)}}{\omega}$ &$s_y = \frac{\sinh{(l \omega)}}{\omega}$ & $ \frac{\sin{(l \omega)}}{\omega}$ \\     
+  $c_x = \frac{1 - \cos{(l \omega)}}{\omega^2}$ & $ \frac{-1 + \cosh{(l \omega)}}{\omega^2}$ &$c_y = \frac{-1 + \cosh{(l \omega)}}{\omega^2}$ & $ \frac{1 - \cos{(l \omega)}}{\omega^2}$ \\
+\end{tabular}
+\end{center}
 \everymath{}
 
-\begin{table}[h]
-    \centering
-    \begin{tabular}{|l|l|l|l|}
-    \hline
-    &
-    \multicolumn{1}{|c|}{$q_0$} & \multicolumn{1}{|c|}{$q_x$} & \multicolumn{1}{|c|}{$q_y$}\\
-    
-    1 & 1 & & \\
-    
-    $x$ & & &$-\frac{1}{2} k_1 \chi s_x$\\
-    
-    $p_x$ & & &$-\frac{1}{2} k_1 \chi c_x$\\
-    
-    $y$ & &$-\frac{1}{2} k_1 \chi s_y$ & \\
-    
-    $p_y$ & &$-\frac{1}{2} k_1 \chi c_y$ &\\
-    \hline
-    \end{tabular}
-\end{table}
+\begin{center}
+\begin{tabular}{llll} \toprule
+        & $q_0$ & $q_x$ & $q_y$ \\ \midrule
+  1     & 1     &       &       \\ \addlinespace[1ex]
+  $x$   &       &       & $-\frac{1}{2} k_1 \chi s_x$ \\ \addlinespace[1ex]
+  $p_x$ &       &       & $-\frac{1}{2} k_1 \chi c_x$ \\ \addlinespace[1ex]
+  $y$   &       & $-\frac{1}{2} k_1 \chi s_y$ & \\ \addlinespace[1ex]
+  $p_y$ &       & $-\frac{1}{2} k_1 \chi c_y$ & \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-\subsection{Solenoid}
+%-----------------------------------------------------------------------------------------
+\subsection{Solenoid Element Body}
 
-\subsubsection{Element Body}
-\begin{table}[h]
-    \centering
-    \begin{tabular}{|l|l|l|l|l|}
-    \hline
-    &
-    \multicolumn{1}{|c|}{$q_0$} & \multicolumn{1}{|c|}{$q_x$} & \multicolumn{1}{|c|}{$q_y$} & \multicolumn{1}{|c|}{$q_z$} \\
-    
-    1 & \bf{cth} & & &-\bf{sth}\\
-    
-    $x$ & &$\frac{1}{4} k_s \zeta ((1 - \textbf{cs}) \textbf{cth} - \textbf{ss sth})$&$\frac{1}{4} k_s \zeta ((-1 + \textbf{cs}) \textbf{sth} - \textbf{ss cth})$&\\
-    
-    $p_x$ & &$\frac{1}{2} \zeta ((1-\textbf{cs}) \textbf{sth} + \textbf{ss cth})$&$\frac{1}{2} \zeta ((1 - \textbf{cs}) \textbf{cth} - \textbf{ss sth})$&  \\
-    
-    $y$ & &$\frac{1}{4} k_s \zeta ((1 - \textbf{cs}) \textbf{sth} + \textbf{ss cth})$&$\frac{1}{4} k_s \zeta ((1 - \textbf{cs}) \textbf{cth} - \textbf{ss sth})$&\\
-    
-    $p_y$ & &$\frac{1}{2} \zeta ((-1 + \textbf{cs}) \textbf{cth} + \textbf{ss sth})$&$\frac{1}{2} \zeta ((1-\textbf{cs}) \textbf{sth} + \textbf{ss cth})$& \\
-    
-    $p_z$ & $\frac{1}{2} \textbf{t sth}$& & & $\frac{1}{2} \textbf{t cth}$ \\
-    \hline
-    \end{tabular}
-\end{table}
+\begin{center}
+\begin{tabular}{lllll} \toprule
+  &  $q_0$ & $q_x$ & $q_y$ & $q_z$ \\ \midrule
+  1 & $c_{t2}$ & & & $-s_{t2}$ \\ \addlinespace[1ex]
+  $x$ & & $\frac{1}{4} k_s \zeta ((1 - c_{s}) c_{t2} - s_{s} s_{t2})$ & $\frac{1}{4} k_s \zeta ((-1 + c_{s}) s_{t2} - s_{s} c_{t2})$ & \\ \addlinespace[1ex]
+  $p_x$ & & $\frac{1}{2} \zeta ((1-c_{s}) {st2} + s_{s} c_{t2})$ & $\frac{1}{2} \zeta ((1 - c_{s}) c_{t2} - s_{s} s_{t2})$ & \\ \addlinespace[1ex]
+  $y$ & & $\frac{1}{4} k_s \zeta ((1 - c_{s}) s_{t2} + s_{s} c_{t2})$ & $\frac{1}{4} k_s \zeta ((1 - c_{s}) c_{t2} - s_{s} s_{t2})$ &\\ \addlinespace[1ex]
+  $p_y$ & & $\frac{1}{2} \zeta ((-1 + c_{s}) c_{t2} + s_{s} s_{t2})$ & $\frac{1}{2} \zeta ((1-c_{s}) s_{t2} + s_{s} c_{t2})$ & \\ \addlinespace[1ex]
+  $p_z$ & $\frac{1}{2} {t} s_{t2}$ & & & $\frac{1}{2} {t} c_{t2}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-\subsubsection{Entrance Fringe}
+%-----------------------------------------------------------------------------------------
+\subsection{Solenoid Entrance Fringe}
 To calculate the exit fringe, multiply all field strengths $k_s$ by -1.
-\begin{table}[h]
-    \centering
-    \begin{tabular}{|l|l|l|l|}
-    \hline
-    &
-    \multicolumn{1}{|c|}{$q_0$} & \multicolumn{1}{|c|}{$q_x$} & \multicolumn{1}{|c|}{$q_y$} \\
-    
-    1 & 1 & & \\
-    
-    $x$ & & $\frac{1}{4} k_s \chi $ &  \\
-    
-    $y$ & & & $\frac{1}{4} k_s \chi $ \\
-    \hline
-    \end{tabular}
-\end{table}
-
-
+\begin{center}
+\begin{tabular}{llll} \toprule
+  & $q_0$ & $q_x$ & $q_y$ \\ \midrule
+  1 & 1 & & \\
+  $x$ & & $\frac{1}{4} k_s \chi $ &  \\
+  $y$ & & & $\frac{1}{4} k_s \chi $ \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 %---------------------------------------------------------------------------------
 \section{Symplectic Tracking with Cartesian Modes}
