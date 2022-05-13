@@ -71,9 +71,7 @@ ix = str_last_in_set (basename, '.')
 if (ix /= 0) basename = basename(:ix-1)
 
 write (iu, *)
-write (iu, '(a)') "bmad_base_dir = os.getenv('BMAD_BASE_DIR')"
-write (iu, '(a)') "if bmad_base_dir == None: bmad_base_dir = os.getenv('DIST_BASE_DIR')"
-write (iu, '(a)') "if bmad_base_dir == None: bmad_base_dir = os.getenv('ACC_RELEASE_DIR')"
+write (iu, '(a)') "bmad_base_dir = os.getenv('ACC_ROOT_DIR')"
 write (iu, '(a)') "basename = '" // trim(basename) // "'"
 write (iu, '(a)') "template_file = bmad_base_dir + '/bmad/scripts/blender_base.py'"
 write (iu, '(a)') "exec(open(template_file).read())"

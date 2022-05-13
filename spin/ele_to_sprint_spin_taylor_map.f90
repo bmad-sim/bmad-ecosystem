@@ -28,8 +28,8 @@ type (track_struct) track
 real(rp) gma, l, g, k1, k0, ks, kx, m, a, q, e1, e2
 real(rp) cx, sx, cy, sy, omega, omegax, omegay, taux, tauy
 real(rp) chi, zeta, psi, alpha, beta, sigma, xi
-real(rp) d, c_d, c_d2, s_d, s_d2, e, c_e, c_e2, s_e, s_e2
-real(rp) s, cs, csh, ss, ssh, t, ct, cth, st, sth
+real(rp) d, c_d, s_d, e, c_e2, s_e2
+real(rp) s, c_s, s_s, t, c_t2, s_t2
 logical err_flag, spin_fringe
 integer i, j, fringe_at
 
@@ -134,14 +134,10 @@ case (sbend$, rbend$)
 
   d = k0*l
   c_d = cos(d)
-  c_d2 = cos(0.5_rp*d)
   s_d = sin(d)
-  s_d2 = sin(0.5_rp*d)
 
   e = a*k0*l*gma
-  c_e = cos(e)
   c_e2 = cos(0.5_rp*e)
-  s_e = sin(e)
   s_e2 = sin(0.5_rp*e)
 
   if (spin_fringe) then
@@ -218,16 +214,12 @@ case (sbend$, rbend$)
 
 case (solenoid$)
   s = a*ks*l
-  cs = cos(s)
-  csh = cos(s/2.)
-  ss = sin(s)
-  ssh = sin(s/2.)
+  c_s = cos(s)
+  s_s = sin(s)
 
   t = (1+a)*ks*l
-  ct = cos(t)
-  cth = cos(t/2.)
-  st = sin(t)
-  sth = sin(t/2.)
+  c_t2 = cos(t/2.)
+  s_t2 = sin(t/2.)
 
   if (spin_fringe) then
     map_start%spin_q(1,1) = ks*chi/4.
@@ -237,20 +229,20 @@ case (solenoid$)
     map_end%spin_q(2,3) = -ks*chi/4.
   endif
 
-  map_ele%spin_q(0, 0) = cth
-  map_ele%spin_q(0,6) = 0.5_rp*t*sth
+  map_ele%spin_q(0, 0) = c_t2
+  map_ele%spin_q(0,6) = 0.5_rp*t*s_t2
 
-  map_ele%spin_q(1, 1) = 0.25_rp*ks*zeta*((1-cs)*cth - ss * sth)
-  map_ele%spin_q(1, 2) = 0.5_rp*zeta*((1-cs)*sth + ss*cth)
-  map_ele%spin_q(1, 3) = 0.25_rp*ks*zeta*((1-cs)*sth + ss * cth)
-  map_ele%spin_q(1, 4) = 0.5_rp*zeta*((-1+cs)*cth + ss*sth)
-  map_ele%spin_q(2, 1) = 0.25_rp*ks*zeta*((-1+cs)*sth - ss * cth)
-  map_ele%spin_q(2, 2) = 0.5_rp*zeta*((1-cs)*cth - ss*sth)
-  map_ele%spin_q(2, 3) = 0.25_rp*ks*zeta*((1-cs)*cth - ss * sth)
-  map_ele%spin_q(2, 4) = 0.5_rp*zeta*((1-cs)*sth + ss*cth)
+  map_ele%spin_q(1, 1) = 0.25_rp*ks*zeta*((1-c_s)*c_t2 - s_s * s_t2)
+  map_ele%spin_q(1, 2) = 0.5_rp*zeta*((1-c_s)*s_t2 + s_s*c_t2)
+  map_ele%spin_q(1, 3) = 0.25_rp*ks*zeta*((1-c_s)*s_t2 + s_s * c_t2)
+  map_ele%spin_q(1, 4) = 0.5_rp*zeta*((-1+c_s)*c_t2 + s_s*s_t2)
+  map_ele%spin_q(2, 1) = 0.25_rp*ks*zeta*((-1+c_s)*s_t2 - s_s * c_t2)
+  map_ele%spin_q(2, 2) = 0.5_rp*zeta*((1-c_s)*c_t2 - s_s*s_t2)
+  map_ele%spin_q(2, 3) = 0.25_rp*ks*zeta*((1-c_s)*c_t2 - s_s * s_t2)
+  map_ele%spin_q(2, 4) = 0.5_rp*zeta*((1-c_s)*s_t2 + s_s*c_t2)
 
-  map_ele%spin_q(3,0) = -sth
-  map_ele%spin_q(3,6) = 0.5_rp*t*cth
+  map_ele%spin_q(3,0) = -s_t2
+  map_ele%spin_q(3,6) = 0.5_rp*t*c_t2
 
 case default
   print *, 'HELP! I SHOULD NOT BE HERE!!!!'
