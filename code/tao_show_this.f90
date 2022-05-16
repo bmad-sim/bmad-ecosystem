@@ -30,6 +30,7 @@ use pointer_lattice, only: operator(.sub.), operator(**), operator(*), alloc, ki
 use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre, assignment(=)
 use ptc_map_with_radiation_mod, only: ptc_rad_map_struct, ptc_setup_map_with_radiation, tree_element_zhe
 use emit_6d_mod, only: emit_6d
+use photon_target_mod, only: to_surface_coords
 
 implicit none
 
@@ -72,7 +73,7 @@ type (control_struct), pointer :: contl
 type (bunch_struct), pointer :: bunch
 type (wake_struct), pointer :: wake
 type (wake_lr_mode_struct), pointer :: lr_mode
-type (coord_struct), target :: orb, orb0, orb2
+type (coord_struct), target :: orb, orb0, orb2, orbit
 type (bunch_params_struct) bunch_params
 type (bunch_params_struct), pointer :: bunch_p
 type (taylor_struct) taylor(6)
@@ -86,7 +87,6 @@ type (random_state_struct) ran_state
 type (bmad_normal_form_struct), pointer :: bmad_nf
 type (ptc_normal_form_struct), pointer :: ptc_nf
 type (aperture_scan_struct), pointer :: aperture_scan
-type (coord_struct) orbit
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_spin_map_struct), pointer :: sm
 type (normal_modes_struct) norm_mode, mode_6d
@@ -1594,9 +1594,16 @@ case ('element')
       fmt  = '(2x, a, 2f15.8, f15.6, f11.6, 7x, a, f11.3)'
       fmt2 = '(2x, a, 2f15.8, a, es16.8)'
       nl=nl+1; lines(nl) = '         Position[mm]            V/C      Intensity      Phase  '
-      nl=nl+1; write(lines(nl), fmt)  'X:  ', orb%vec(1:2), orb%field(1)**2, orb%phase(1), 'E: ', orb%p0c
-      nl=nl+1; write(lines(nl), fmt)  'Y:  ', orb%vec(3:4), orb%field(2)**2, orb%phase(2), 'dE:', orb%p0c - ele%value(p0c$)
-      nl=nl+1; write(lines(nl), fmt2) 'Z:  ', orb%vec(5:6)
+      nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1), orb%vec(2), orb%field(1)**2, orb%phase(1), 'E: ', orb%p0c
+      nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3), orb%vec(4), orb%field(2)**2, orb%phase(2), 'dE:', orb%p0c - ele%value(p0c$)
+      nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5), orb%vec(6)
+
+      if (associated(ele%photon)) then
+        call to_surface_coords(orb, ele, orb2)
+        nl=nl+1; lines(nl) = ''
+        nl=nl+1; write(lines(nl), '(2x, a, 3f15.8)') 'Surface (x,y,z) [mm]:', orb2%vec(1:5:2)
+      endif
+
     else
       z = (ele%ref_time - orb%t) * orb%beta * c_light
       dt = orb%t - ele%ref_time
@@ -2104,6 +2111,7 @@ case ('global')
   case ('-ptc')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'PTC_com Parameters:'
+    nl=nl+1; write(lines(nl), rmt) '  %vertical_kick         = ', ptc_com%vertical_kick
     nl=nl+1; write(lines(nl), imt) '  %taylor_order_ptc      = ', ptc_com%taylor_order_ptc
     nl=nl+1; write(lines(nl), imt) '  %max_fringe_order      = ', ptc_com%max_fringe_order
     nl=nl+1; write(lines(nl), lmt) '  %old_integrator        = ', ptc_com%old_integrator
