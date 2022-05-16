@@ -4153,7 +4153,9 @@ end  function asin_coeff_set
        !w_p%fc='((1X,A72,/,1x,a72))'
        !w_p%fi='(2((1X,i4)))'
          write(6,*) " trouble in dmulsc "
-         write(6,*) "s1%kind   "
+         write(6,*) "s1%kind  input for characters crash "
+         read(5,*) sinhx_x_minp
+       
        !w_p=(/s1%kind  /)
        ! call !write_e(0)
     end select

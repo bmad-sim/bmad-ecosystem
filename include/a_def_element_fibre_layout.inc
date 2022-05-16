@@ -31,9 +31,14 @@ type d_lattice_function
  real(dp) :: Spin_lat(1:3,1:3,0:6) =0
  real(dp) ::phase(3) =0 ,damping(3) =0 , spin(2) =0,fixa(6) =0,fixb(6) =0
  real(dp) emittance(3) 
+ type(c_linear_map) a0,a1i
  type(fibre), pointer :: f => null()
 !!!!  radiation quantity
  real(dp) :: sigmas(6,6)
+!!!!  map
+type(c_damap), pointer :: m  => null()
+!type(universal_taylor), pointer :: re=> null(),im=> null()
+type(c_universal_taylor), pointer :: ut=> null() 
 end type d_lattice_function 
 
 TYPE  array_of_fibres   !!! for Demin program

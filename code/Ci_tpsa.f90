@@ -89,7 +89,8 @@ private equal_real8_cmap,equal_cmap_real8,EQUAL_c_map_RAY8,EQUAL_RAY8_c_map,c_ad
 private c_sub_vf,c_spinor_sub_spinor,matmult_33,EQUALq_i
 private c_IdentityEQUALfactored,c_log_spinmatrix,c_concat_c_ray,equalc_ray_r6,equalc_r6_ray
 private dotc_spinor,c_spinor_spinor,c_read_spinmatrix,c_read_map,c_concat_spinmatrix_ray
- 
+private GETdiff_universal
+
 integer,private,parameter::ndd=6
 private c_concat_vector_field_ray,CUTORDERVEC,kill_c_vector_field_fourier,alloc_c_vector_field_fourier
 private complex_mul_vec,equal_c_vector_field_fourier,c_IdentityEQUALVECfourier
@@ -135,7 +136,9 @@ real(dp), private  :: tiny =1e-20_dp
     logical :: sagan_gen =.false.
 integer mf_,n1_,n2_
 logical :: do_damping=.false.,do_spin=.false.,use_radiation_inverse = .true.
-!
+logical :: force_spin_input_normal=.false.
+private c_clean_linear_map
+private c_fill_uni_r,c_null_uni,c_fill_uni,c_refill_uni
 
 type(c_linear_map) q_phasor,qi_phasor
 
@@ -232,6 +235,14 @@ type(c_linear_map) q_phasor,qi_phasor
       MODULE PROCEDURE copy_tree_into_tree_zhe
   end  INTERFACE
 
+     ! UNIVERSAL_TAYLOR
+
+  INTERFACE assignment (=)
+     MODULE PROCEDURE c_fill_uni_r
+     MODULE PROCEDURE c_null_uni
+     MODULE PROCEDURE c_fill_uni  ! new sagan
+     MODULE PROCEDURE c_refill_uni
+  end  INTERFACE
 
   INTERFACE OPERATOR (+)
      MODULE PROCEDURE unaryADD  !@2 This is a unary operation
@@ -395,6 +406,7 @@ type(c_linear_map) q_phasor,qi_phasor
 
   INTERFACE OPERATOR (.d.)
      MODULE PROCEDURE getdiff    !@1 takes derivatives
+     MODULE PROCEDURE GETdiff_universal !@1 takes derivatives of c_universal_taylor
   END INTERFACE
 
   INTERFACE OPERATOR (.i.)
@@ -499,6 +511,7 @@ type(c_linear_map) q_phasor,qi_phasor
 
   INTERFACE clean
 !     MODULE PROCEDURE c_clean
+     MODULE PROCEDURE  c_clean_linear_map
      MODULE PROCEDURE c_clean_spinor
      MODULE PROCEDURE c_clean_taylor
      MODULE PROCEDURE c_clean_spinmatrix
@@ -701,6 +714,7 @@ type(c_linear_map) q_phasor,qi_phasor
        MODULE PROCEDURE c_pri_quaternion
        MODULE PROCEDURE print_ql
       MODULE PROCEDURE c_pri_c_ray
+      MODULE PROCEDURE c_printunitaylor
     END INTERFACE
 
 
@@ -786,7 +800,13 @@ type(c_linear_map) q_phasor,qi_phasor
      MODULE PROCEDURE c_AVERAGE   !2000.12.25
   END INTERFACE
 
+  INTERFACE alloc
+     MODULE PROCEDURE c_alloc_u
+  END INTERFACE
 
+  INTERFACE KILL
+     MODULE PROCEDURE c_kill_uni
+  END INTERFACE
 
 
 CONTAINS
@@ -4502,6 +4522,52 @@ endif
 
   END FUNCTION GETdiff
 
+  FUNCTION GETdiff_universal( S1, S2 )
+    implicit none
+    TYPE (c_taylor) GETdiff_universal
+    TYPE (c_universal_taylor), INTENT (IN) :: S1
+    INTEGER, INTENT (IN) ::  S2
+    integer localmaster,i
+    integer, allocatable :: J(:)
+
+    IF(.NOT.C_STABLE_DA) then
+     GETdiff_universal%i=0
+     RETURN
+    endif
+
+     allocate(J(s1%nv))
+    
+     localmaster=c_master
+    
+
+    !    call check(s1)
+    call ass(GETdiff_universal)
+    c_temp=0.0_dp
+    ! if(old) then
+  !  CALL c_dader(S2,S1%I,c_temp%i)
+    do i=1,s1%n
+     if(s2<=s1%nv) then
+     if(s1%j(i,s2)>0) then
+       j=s1%j(i,:)
+       j(s2)=j(s2)-1
+       c_temp=c_temp+((s1%j(i,s2)*s1%c(i)).cmono.j)
+     endif
+    endif
+    enddo
+
+    GETdiff_universal=c_temp
+    !    else
+    !       CALL NEWdader(S2,S1%J,TEMPL)
+    !       call NEWc_dacop(tempL,GETdiff%J)
+    !    endif
+ 
+ 
+    c_master=localmaster
+    deallocate(J)
+  END FUNCTION GETdiff_universal
+
+
+
   FUNCTION GETINTegrate( S1, S2 )
     implicit none
     TYPE (c_taylor) GETINTegrate
@@ -4612,6 +4678,7 @@ endif
     c_master=localmaster
 
   END FUNCTION getpb
+
 
     FUNCTION cgetpb( S1, s1p,S2 )  
     implicit none
@@ -4760,7 +4827,53 @@ endif
      if(complex_extra_order==1.and.special_extra_order_1) getvectorfield=getvectorfield.cut.no
 
       END FUNCTION getvectorfield 
+ 
+
+    FUNCTION getvectorfield_universal( S1 )  
+    implicit none
+    TYPE (c_vector_field) getvectorfield_universal
+    TYPE (c_universal_taylor), INTENT (IN) :: S1
+ 
+    integer localmaster ,i 
+    localmaster=master
     
+    getvectorfield_universal%n=nd2
+    call c_ass_vector_field(getvectorfield_universal)
+
+   getvectorfield_universal=0
+ 
+     do i=1,nd-rf
+      getvectorfield_universal%v(2*i-1) = -(s1.d.(2*i))
+      getvectorfield_universal%v(2*i) =  s1.d.(2*i-1)
+     enddo
+ 
+     c_master=localmaster
+     if(complex_extra_order==1.and.special_extra_order_1) getvectorfield_universal=getvectorfield_universal.cut.no
+    END FUNCTION getvectorfield_universal 
+    
+    FUNCTION cgetvectorfield_universal( S1 )  
+    implicit none
+    TYPE (c_vector_field) cgetvectorfield_universal
+    TYPE (c_universal_taylor), INTENT (IN) :: S1
+ 
+    integer localmaster ,i 
+    localmaster=master
+    
+    cgetvectorfield_universal%n=nd2
+    call c_ass_vector_field(cgetvectorfield_universal)
+
+   cgetvectorfield_universal=0
+ 
+     do i=1,nd-rf
+      cgetvectorfield_universal%v(2*i-1)= -n_cai*(s1.d.(2*i))
+      cgetvectorfield_universal%v(2*i)=  n_cai*(s1.d.(2*i-1))
+     enddo
+ 
+     c_master=localmaster
+     if(complex_extra_order==1.and.special_extra_order_1) cgetvectorfield_universal=cgetvectorfield_universal.cut.no
+    END FUNCTION cgetvectorfield_universal 
+    
+   
     FUNCTION cgetvectorfield( S1 )  
     implicit none
     TYPE (c_vector_field) cgetvectorfield
@@ -5724,13 +5837,14 @@ endif
 
   end SUBROUTINE  compute_lattice_functions
 
-  SUBROUTINE  d_compute_lattice_functions(a,f)
+  SUBROUTINE  d_compute_lattice_functions(a,f,a_l,a_li)
     implicit none
     type(d_lattice_function) f
     type(c_linear_map) m
     type(c_linear_map) mi
     type(c_linear_map) q
     type(c_damap),intent(in) :: a
+    type(c_linear_map),optional, intent(inout):: a_l,a_li
     integer i,j
  
     m=a
@@ -5742,7 +5856,8 @@ endif
      endif
  
  
- 
+     if(present(a_l))  a_l =m
+     if(present(a_li)) a_li=mi
  
     f%e=0
     f%h=0
@@ -5761,13 +5876,14 @@ endif
    !   f%K(i,:,:)= -matmul(jt_mat,f%B(i,:,:))
    !  enddo
 !!!! coefficient of moments
+ 
      do i = 1,3
       f%E(i,:,:)=matmul(matmul(m%mat,jp_mat(i,:,:)),mi%mat)
      enddo
      do i = 1,3
       f%E(i,:,:)= -matmul(f%E(i,:,:),jt_mat)
      enddo
-
+ 
 !!!!  Dispersive quantities containing zeta and eta for example
      do i = 1,3
       f%H(i,:,:)=matmul(matmul(m%mat,ip_mat(i,:,:)),mi%mat)
@@ -8504,6 +8620,32 @@ end   SUBROUTINE  c_clean_yu_w
   END SUBROUTINE c_clean_taylor
 
 
+ 
+
+  SUBROUTINE  c_clean_linear_map(S1,S2,prec)
+    implicit none
+    type (c_linear_map),INTENT(INOUT)::S2
+    type (c_linear_map), intent(INOUT):: s1
+    real(dp) prec
+    INTEGER i,j 
+
+     s2=s1
+
+     do i=1,6
+      do j=1,6
+        s2%mat(i,j)=c_clean(s2%mat(i,j),prec)
+      enddo
+     enddo
+
+
+     do i=0,3
+      do j=0,6
+        s2%q(i,j)=c_clean(s2%q(i,j),prec)
+      enddo
+     enddo
+ 
+  END SUBROUTINE c_clean_linear_map
+
   SUBROUTINE  c_clean_spinmatrix(S1,S2,prec,r) ! spin routine
     implicit none
     type (c_spinmatrix),INTENT(INOUT)::S2
@@ -8636,11 +8778,12 @@ end subroutine c_bmad_reinit
    do i=1,3
     ip_mat(i,2*i-1,2*i-1)=1
     ip_mat(i,2*i,2*i)=1
-    jp_mat(i,2*i-1,2*i)=-1
-    jp_mat(i,2*i,2*i-1)=1
-    jt_mat(2*i-1,2*i)=-1
-    jt_mat(2*i,2*i-1)=1
+    jp_mat(i,2*i-1,2*i)=1
+    jp_mat(i,2*i,2*i-1)=-1
+    jt_mat(2*i-1,2*i)=1
+    jt_mat(2*i,2*i-1)=-1
    enddo
+  
 formatlf(1)="(6(1x,g23.16,1x))       "
 formatlf(2)="(1(25x),5(1x,g23.16,1x))"
 formatlf(3)="(2(25x),4(1x,g23.16,1x))"
@@ -8791,7 +8934,14 @@ endif
     k1_spin(8)=3;k2_spin(8)=2;
     k1_spin(9)=3;k2_spin(9)=3;
 
-
+   if(ndpt==6) then
+      jp_mat(3,6,5)=0
+      jp_mat(3,5,6)=1
+    endif
+   if(ndpt==5) then
+      jp_mat(3,6,5)=1
+      jp_mat(3,5,6)=0
+    endif 
  
  
   end subroutine c_init
@@ -13199,6 +13349,8 @@ c_master=localmaster
 !       call daadd(b4,b1,b3)
        r=full_abs(b1)
  !      call daabs(b1,r)
+!write(6,*) " i",i,r
+
        if(more) then
           if(r.gt.h%eps) then
              rbefore=r
@@ -14398,25 +14550,27 @@ function c_vector_field_quaternion(h,ds) ! spin routine
 
  subroutine exp_mat(f,m)
     implicit none
-    real(dp), intent(in) :: f(:,:) 
-    real(dp), intent(out) ::  m(:,:)
+    real(dp), intent(inout) :: f(:,:) 
+    real(dp), intent(inout) ::  m(:,:)
     integer i,n
     real(dp) norma,normb,x,y
-    real(dp), allocatable :: t(:,:)
+    real(dp), allocatable :: t(:,:),ft(:,:)
     y=1.d-7
     
     n=size(m,1)
      allocate(t(n,n))
+     allocate(ft(n,n))
+ft=f
  t=0
  m=0
   do i=1,n
    m(i,i)=1
    t(i,i)=1
  enddo
-       normb=norm_matrix(f)
+       normb=norm_matrix(ft)
     x=1
     do i=1,10000
-      t=matmul(f,t)/x
+      t=matmul(ft,t)/x
       norma=norm_matrix(t)
       m= m+t
       x=x+1
@@ -14426,6 +14580,7 @@ function c_vector_field_quaternion(h,ds) ! spin routine
     enddo
    if(i>10000-10)  write(6,*) "exp_mat",i
   deallocate(t)
+  deallocate(ft)
   end  subroutine exp_mat
 
     function norm_matrix(f)
@@ -18000,7 +18155,14 @@ logical dos
 logical, optional :: dospin
 
 dos=.false.
-if(present(dospin)) dos=dospin
+if(present(dospin)) then
+  dos=dospin
+else
+      if(force_spin_input_normal) then
+        write(6,*) " your default forces you to include dospin in the input of c_fast_canonise"
+        stop
+      endif
+endif
 s=0
 b0=0
 do i=1,nd
@@ -18120,7 +18282,7 @@ q=1
  endif
  qc=q*qr
  
- if(present(spin_tune)) then
+ if(present(spin_tune).and.dos) then
   spin_tune(1)=spin_tune(1)+aq/pi   ! changed 2018.11.01
  endif
 cri=ri
@@ -18141,7 +18303,7 @@ endif
 
 endif
  
- if(present(spin_tune)) then
+ if(present(spin_tune).and.dos) then
   spin_tune(2)=spin_tune(2)+daq/pi   ! changed 2018.11.01
  endif
 
@@ -18274,7 +18436,16 @@ END FUNCTION FindDet
     endif
 
     dospinr=.false.
-    if(present(dospin)) dospinr=dospin
+    if(present(dospin)) then
+     dospinr=dospin
+     else
+      if(force_spin_input_normal) then
+        write(6,*) " your default forces you to include dospin in the input of c_normal"
+        stop
+      endif
+    endif
+
+
 
 if(bmad_automatic) then
   if(nd2t+ndc2t/=6) then
@@ -20354,6 +20525,186 @@ subroutine cholesky_dt(A, G)
 end subroutine cholesky_dt
 
 
+  ! Complex Universal Taylor Routines   (Sagan's Stuff made complex)
+
+  SUBROUTINE  c_kill_uni(S2)
+    implicit none
+    type (c_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
+
+    DEALLOCATE(S2%N,S2%NV,S2%C,S2%J)
+    NULLIFY(S2%N,S2%NV,S2%C,S2%J)
+
+  END SUBROUTINE  c_kill_uni
+
+  SUBROUTINE  c_null_uni(S2,S1)
+    implicit none
+    type (c_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
+    integer, intent(in):: s1
+    IF(S1==0) THEN
+       NULLIFY(S2%N,S2%NV,S2%C,S2%J)
+    ELSEIF(S1==-1) THEN
+       DEALLOCATE(S2%N,S2%NV,S2%C,S2%J,S2%nd2)
+       NULLIFY(S2%N,S2%NV,S2%C,S2%J,S2%nd2)
+    ENDIF
+  END SUBROUTINE c_null_uni
+
+
+  SUBROUTINE  c_ALLOC_U(S2,N,NV,nd2)
+    implicit none
+    type (C_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
+    integer, intent(in):: N,NV,nd2
+    ALLOCATE(S2%N,S2%NV,S2%nd2)
+    if(N==0) then
+       allocate(S2%C(1),S2%J(1,NV));S2%C(1)=0.0_dp;S2%J(:,:)=0;
+    else
+       allocate(S2%C(N),S2%J(N,NV))
+    endif
+    S2%N=N
+    S2%NV=NV
+    S2%nd2=nd2
+  END SUBROUTINE c_ALLOC_U
+
+  SUBROUTINE  c_fill_uni_r(S2,S1)  !new sagan
+    implicit none
+    type (C_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
+    complex (dp), intent(in):: s1
+    INTEGER n,J(LNV)
+
+
+    IF(ASSOCIATED(S2%N)) S2=-1
+    S2=0
+    CALL c_ALLOC_U(S2,1,nv,nd2)
+    J=0
+    DO N=1,S2%NV
+       S2%J(1,N)=J(N)
+    ENDDO
+    S2%C(1)=S1
+
+  END SUBROUTINE c_fill_uni_r
+
+  SUBROUTINE  c_FILL_UNI(S2,S1)
+    implicit none
+    type (c_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
+    type (c_TAYLOR), intent(in):: s1
+    INTEGER ipresent,k,n,I
+    complex(dp) value
+    INTEGER, allocatable :: j(:)
+    call c_check_snake
+
+    ! if(old) then
+   ! if(s1%i==0)  call crap1("FILL_N 1")
+    !    else
+    !       IF (.NOT. ASSOCIATED(s1%j%r)) call crap1("FILL_N 2")
+    !    endif
+
+
+    IF(ASSOCIATED(S2%N)) S2=-1
+    S2=0
+    ipresent=1
+    call c_taylor_cycle(S1,n)
+    CALL c_ALLOC_U(S2,N,c_%nv,c_%nd2)
+    allocate(j(c_%nv))
+
+    do i=1,N
+       call c_taylor_cycle(S1,ii=i,value=value,j=j)
+       S2%C(I)=value
+       DO k=1,S2%NV
+          S2%J(i,k)=J(k)
+       ENDDO
+    ENDDO
+
+    deallocate(j)
+
+  END SUBROUTINE c_FILL_UNI
+
+
+
+
+  SUBROUTINE  c_REFILL_UNI(S1,S2)
+    implicit none
+    type (c_UNIVERSAL_TAYLOR),INTENT(IN)::S2
+    type (c_TAYLOR), intent(inOUT):: s1
+    INTEGER I,K,J(LNV)
+    logical(lp) DOIT
+
+    ! if(old) then
+    !if(s1%i==0)  call crap1("REFILL_N 1")
+    !    else
+    !       IF (.NOT. ASSOCIATED(s1%j%r)) call crap1("REFILL_N 2")
+    !    endif
+
+
+    S1=0.0_dp
+
+    IF(.not.ASSOCIATED(S2%N)) THEN
+
+         write(6,*) " ERROR IN REFILL_N: UNIVERSAL_TAYLOR DOES NOT EXIST"
+       ! call !write_e(123)
+    ENDIF
+
+    DO I=1,S2%N
+    J=0
+       DOIT=.TRUE.
+       IF(S2%NV>NV) THEN
+          K=NV
+          DO WHILE(DOIT.AND.K<=S2%NV)
+             IF(S2%J(I,K)/=0) DOIT=.FALSE.
+             K=K+1
+          ENDDO
+       ENDIF
+
+       IF(DOIT) THEN
+          !DO K=1,NV
+          !   J(K)=S2%J(I,K)
+          !ENDDO
+
+           s1=s1+(S2%C(I).cmono.S2%J(I,1:nv))
+         ! CALL c_POK(S1,S2%J(I,1:nv),S2%C(I))
+          !CALL c_POK(S1,J,S2%C(I))
+       ENDIF
+    ENDDO
+
+  END SUBROUTINE c_REFILL_UNI
+
+
+  !_________________________________________________________________________________
+
+
+  subroutine c_printunitaylor(ut,iunit)
+    implicit none
+    type(c_universal_taylor) :: ut
+    integer, optional               :: iunit
+    integer                :: i,ii
+    integer inuit0
+    inuit0=6
+    if(present(iunit)) inuit0=iunit
+    if (.not. associated(ut%n)) then
+       write(iunit,'(A)') '    C_UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
+       write(6,'(A)') '    C_UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
+       return
+    endif
+
+    write(iunit,'(/1X,A,I5,A,I5,A/1X,A/)') 'UNIV_TAYLOR   NO =',ut%n,', NV =',ut%nv,', INA = unita',&
+         '*********************************************'
+    if(ut%n /= 0) then
+       write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
+    else
+       write(iunit,'(A)') '   ALL COMPONENTS 0.0_dp '
+    endif
+
+    do i = 1,ut%n
+       write(iunit,'(I6,2X,(G21.14,1x,G21.14),I5,4X,18(2I2,1X))') i,ut%c(i),sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
+       if( .not. print77) then
+          write(iunit,*)  ut%c(i)
+       endif
+    enddo
+
+    write(iunit,'(A)') '                                      '
+
+  end subroutine c_printunitaylor
+
+
+  ! End of Universal complex Taylor Routines
 
 
   END MODULE  c_tpsa

@@ -1151,11 +1151,13 @@ CONTAINS
     MODULATION=MODULATION0
   end subroutine clear_states  !%nxyz
 
-  subroutine print_s(S,MF)
+  subroutine print_s(S,MFi)
     implicit none
     type (INTERNAL_STATE) S
-    INTEGER MF
-
+    INTEGER,optional, intent(in) :: MFi
+     integer mf
+     mf=6
+     if(present(mfi)) mf=mfi
 
     write(mf,*) "************ State Summary ****************"
     write(mf,'((1X,a16,1x,i4,1x,a24))' ) "MADTHICK=>KIND =", MADKIND2,Mytype(MADKIND2)
