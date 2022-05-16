@@ -220,6 +220,7 @@ call write_if_logic_param_changed (bmad_com%aperture_limit_on,               bma
 call write_if_logic_param_changed (bmad_com%ptc_print_info_messages,         bmad_com_default%ptc_print_info_messages,          'bmad_com[ptc_print_info_messages]')
 
 call write_if_int_param_changed   (ptc_com%max_fringe_order,          ptc_com_default%max_fringe_order,      'ptc_com[max_fringe_order]')
+call write_if_real_param_changed  (ptc_com%vertical_kick,             ptc_com_default%vertical_kick,         'ptc_com[vertical_kick]')
 call write_if_logic_param_changed (ptc_com%old_integrator,            ptc_com_default%old_integrator,        'ptc_com[old_integrator]')
 call write_if_logic_param_changed (ptc_com%exact_model,               ptc_com_default%exact_model,           'ptc_com[exact_model]')
 call write_if_logic_param_changed (ptc_com%exact_misalign,            ptc_com_default%exact_misalign,        'ptc_com[exact_misalign]')

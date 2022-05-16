@@ -268,7 +268,7 @@ read (d_unit, err = 9060, end = 9060) lat%beam_init
 
 ! Read PTC info
 
-read (d_unit, iostat = ios) ptc_com%old_integrator, ptc_com%exact_model, ptc_com%exact_misalign, ptc_com%max_fringe_order
+read (d_unit, iostat = ios) ptc_com%vertical_kick, ptc_com%old_integrator, ptc_com%exact_model, ptc_com%exact_misalign, ptc_com%max_fringe_order
 if (ios /= 0) then
   call out_io(io_err_level, r_name, 'ERROR READING PTC PARAMETERS.')
   close (d_unit)

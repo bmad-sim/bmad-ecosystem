@@ -164,7 +164,7 @@ write (d_unit) lat%beam_init
 
 ! Write PTC info
 
-write (d_unit) ptc_com%old_integrator, ptc_com%exact_model, ptc_com%exact_misalign, ptc_com%max_fringe_order
+write (d_unit) ptc_com%vertical_kick, ptc_com%old_integrator, ptc_com%exact_model, ptc_com%exact_misalign, ptc_com%max_fringe_order
 
 ! Write random state info
 
