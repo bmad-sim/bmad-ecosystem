@@ -16,6 +16,8 @@ set (SRC_DIRS
 set (EXE_SPECS
   #cmake.ansga2
   #cmake.aspea2
+  cmake.long_term_tracking
+  cmake.tune_scan
   cmake.dark_current_tracker
   cmake.envelope_ibs
   cmake.srdt_lsq_soln
@@ -41,9 +43,6 @@ if($ENV{ACC_ENABLE_MPI})
   list(APPEND EXE_SPECS "cmake.touschek_background")
   list(APPEND EXE_SPECS "cmake.long_term_tracking_mpi")
   list(APPEND EXE_SPECS "cmake.tune_scan_mpi")
-else()
-  list(APPEND EXE_SPECS "cmake.long_term_tracking")
-  list(APPEND EXE_SPECS "cmake.tune_scan")
 endif()
 
 ## Profiler flags - Note: This is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
