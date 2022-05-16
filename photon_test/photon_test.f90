@@ -10,7 +10,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (coord_struct) orbit, orb_start, orb_end
 
-real(rp) E_rel, prob, w_surf(3,3)
+real(rp) E_rel, prob
 integer i, ix_pt, iy_pt
 
 !
@@ -29,9 +29,7 @@ orbit = orb_start
 orbit%vec = [0.010, 0.2, 0.020, 0.3, 0.0, sqrt(1.0 - 0.2**2 - 0.3**2)]
 orbit%field = [1, 2]
 
-call offset_photon (ele, orbit, set$)  ! Go to coordinates of the detector
-call track_to_surface (ele, orbit, lat%param, w_surf)
-call to_detector_surface_coords (orbit, ele)
+call to_surface_coords (orbit, ele, orbit)
 call photon_add_to_detector_statistics (orb_start, orbit, lat%ele(2), ix_pt, iy_pt) 
 
 write (1, '(a, 6f16.10)') '"Pix-Orb" ABS 1E-8 ', orbit%vec
