@@ -756,6 +756,10 @@ endif
           sagan_even=my_true
           THIN=-1
           CALL THIN_LENS_resplit(my_ering,THIN,lim=limit_int0)
+       case('MANUALTHINLENSWITHLMAX')
+          sagan_even=my_true
+          THIN=-1
+          CALL THIN_LENS_resplit(my_ering,THIN,lim=limit_int0,lmax0=lmax)
        case('THINLENS')
          sagan_even=my_true
           READ(MF,*) THIN

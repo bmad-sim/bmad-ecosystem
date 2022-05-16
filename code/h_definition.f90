@@ -85,6 +85,12 @@ TYPE sub_taylor
      REAL(DP), POINTER,dimension(:)::C  ! Coefficients C(N)
      INTEGER, POINTER,dimension(:,:)::J ! Exponents of each coefficients J(N,NV)
   END TYPE UNIVERSAL_TAYLOR
+
+  TYPE c_UNIVERSAL_TAYLOR
+     INTEGER, POINTER:: N,NV,nd2    !  Number of coeeficients and number of variables
+     complex(DP), POINTER,dimension(:)::C  ! Coefficients C(N)
+     INTEGER, POINTER,dimension(:,:)::J ! Exponents of each coefficients J(N,NV)
+  END TYPE c_UNIVERSAL_TAYLOR
   !@3 ---------------------------------------------</br>
   TYPE complextaylor
      type (taylor) r  !@1 Real part

@@ -186,6 +186,7 @@ PRIVATE DIRECTION_VR,DIRECTION_VP   !,DIRECTION_V
   logical :: do_d_sij=.false.
   !  INTEGER, PRIVATE :: ISPIN0P=0,ISPIN1P=3
    ! oleksii 
+  real(dp), target :: vertical_kick = 0
   real(dp) n_oleksii(3)
   real(dp) :: t_ns_oleksii=0,t_nb_oleksii=0,t_bks_approx=0, i_bks=0 ,theta_oleksii=0
   integer :: print_oleksii =0
@@ -202,7 +203,7 @@ type(work) w_bks
  private rk6bmad_cav_prober,rk6bmad_cav_probep
  private INTE_sol5_prober,INTE_SOL5_probep
  private INT_SAGAN_prober
-
+!type(real_8) radcoe
   INTERFACE radiate_2_force
      MODULE PROCEDURE radiate_2_forcer
      MODULE PROCEDURE radiate_2_forcep
@@ -22181,6 +22182,7 @@ call kill(vm,phi,z)
     endif
 
   f=0
+!   f(5)=f(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
    f(5)=f(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
  
 
@@ -22258,6 +22260,7 @@ call kill(vm,phi,z)
      f(i)=0
     enddo
    f(5)=f(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
+!   f(5)=f(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS!
  
 
     if(el%kind/=kindpa) then
@@ -22327,6 +22330,7 @@ call kill(vm,phi,z)
     endif
 
   
+!    if(K%radiation) X(5)=X(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
     if(K%radiation) X(5)=X(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
 
 
@@ -22391,7 +22395,7 @@ call kill(vm,phi,z)
     TYPE(REAL_8), intent(in):: B2,dlds
     TYPE(REAL_8) st,z,x(6),av(3)
  
-    real(dp) b30,x1,x3,denf,denf0    
+    real(dp) b30,x1,x3,denf,denf0,denv
     type(damap) xpmap
  
     integer i,j   !,ja,ia
@@ -22414,17 +22418,19 @@ call kill(vm,phi,z)
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
        denf=denf0*b30 *FAC*DS*denf
- 
+!
+       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/110.0_dp    !(  55 is doubled because of x and y)
+
        call alloc(xpmap)
 
        xpmap%v(1)=x(1)
        xpmap%v(3)=x(3)
        xpmap%v(5)=x(5)
        xpmap%v(6)=x(6)
-     !  xpmap%v(2)=xp(1)
-     !  xpmap%v(4)=xp(2)
-       xpmap%v(2)=x(2)
-       xpmap%v(4)=x(4)
+       xpmap%v(2)=xp(1)
+       xpmap%v(4)=xp(2)
+     !  xpmap%v(2)=x(2)
+     !  xpmap%v(4)=x(4)
 
        xpmap=xpmap**(-1)
 
@@ -22433,6 +22439,12 @@ call kill(vm,phi,z)
              X1=(xpmap%v(i)).sub.'000010'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
              X3=(xpmap%v(j)).sub.'000010'
              P%E_IJ(i,j)=p%E_IJ(i,j)+denf*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+             X1=(xpmap%v(i)).sub.'000100'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
+             X3=(xpmap%v(j)).sub.'000100'
+             P%E_IJ(i,j)=p%E_IJ(i,j)+denv*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+             X1=(xpmap%v(i)).sub.'010000'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
+             X3=(xpmap%v(j)).sub.'010000'
+             P%E_IJ(i,j)=p%E_IJ(i,j)+denv*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
           enddo
        enddo    
        call kill(xpmap)
@@ -22452,6 +22464,7 @@ call kill(vm,phi,z)
     endif
 
    if(K%radiation)  X(5)=X(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
+!   if(K%radiation)  X(5)=X(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
 
 
     if(el%kind/=kindpa) then
@@ -22540,6 +22553,7 @@ call kill(vm,phi,z)
 
   
     if(K%radiation) X(5)=X(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
+!    if(K%radiation) X(5)=X(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
     if(k%stochastic) then
        !         t=sqrt(12.e0_dp)*(bran(bran_init)-half)
        t=RANF()
@@ -22626,6 +22640,7 @@ call kill(vm,phi,z)
     type(internal_state) k
     real(dp) Sm(3,3),sdelta(3,3)
     type(quaternion) qdelta
+    real(dp) denv
     IF(.NOT.CHECK_STABLE) return
 !!!  ee =  ray direction
 !!!  bb =  b field
@@ -22651,6 +22666,8 @@ call kill(vm,phi,z)
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
        denf=denf0*b30 *FAC*DS*denf
+       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/110.0_dp    !(  55 is doubled because of x and y)
+
 !       if(doone.and.c%parent_fibre%magp%name(1:5)/="BENDT") denf=0
 !       if(c%pos_in_fibre/=3.and.c%parent_fibre%magp%name(1:5)=="BENDT") denf=0
 !denf=denf*4
@@ -22674,6 +22691,12 @@ call kill(vm,phi,z)
              X1=(xpmap%v(i)).sub.'000010'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
              X3=(xpmap%v(j)).sub.'000010'
              P%E_IJ(i,j)=p%E_IJ(i,j)+denf*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+             X1=(xpmap%v(i)).sub.'000100'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
+             X3=(xpmap%v(j)).sub.'000100'
+             P%E_IJ(i,j)=p%E_IJ(i,j)+denv*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+             X1=(xpmap%v(i)).sub.'010000'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
+             X3=(xpmap%v(j)).sub.'010000'
+             P%E_IJ(i,j)=p%E_IJ(i,j)+denv*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
           enddo
        enddo    
        call kill(xpmap)
@@ -22795,6 +22818,7 @@ dspin=matmul(s,n_oleksii)
     !   X(5)=one/(one/(one+X(5))-B2*FAC*DS)-one
     !   X(5)=one/(one/(one+X(5))+CRADF(EL%P)*(one+X(5))*B2*DLDS*FAC*DS)-one
     !          X(5)=X(5)-CRADF(EL%P)*(one+X(5))**3*B2*FAC*DS/SQRT((one+X(5))**2-X(2)**2-X(4)**2)
+!  if(K%radiation)  X(5)=X(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
   if(K%radiation)  X(5)=X(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
 
 
@@ -22855,6 +22879,8 @@ dspin=matmul(s,n_oleksii)
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
        denf=denf0*b30 *FAC*DS*denf
+       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/110.0_dp    !(  55 is doubled because of x and y)
+
   !     if(doone) denf=0
  
        call alloc(xpmap)
@@ -22869,9 +22895,15 @@ dspin=matmul(s,n_oleksii)
        xpmap=xpmap**(-1)
        do i=1,6
           do j=1,6
-             X1=(xpmap%v(i)).sub.'000010'
+             X1=(xpmap%v(i)).sub.'000010'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
              X3=(xpmap%v(j)).sub.'000010'
-             p%E_IJ(i,j)=p%E_IJ(i,j)+denf*x1*x3
+             P%E_IJ(i,j)=p%E_IJ(i,j)+denf*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+             X1=(xpmap%v(i)).sub.'000100'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
+             X3=(xpmap%v(j)).sub.'000100'
+             P%E_IJ(i,j)=p%E_IJ(i,j)+denv*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+             X1=(xpmap%v(i)).sub.'010000'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
+             X3=(xpmap%v(j)).sub.'010000'
+             P%E_IJ(i,j)=p%E_IJ(i,j)+denv*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
           enddo
        enddo
        call kill(xpmap)
@@ -28072,7 +28104,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
     TYPE(REAL_8), intent(in):: B2,dlds
     TYPE(REAL_8) st,av(3),z,x(6)
     type(quaternion) q
-    real(dp) b30,x1,x3,denf  , denf0
+    real(dp) b30,x1,x3,denf  , denf0,denv
     type(damap) xpmap
     integer i,j 
     type(internal_state) k
@@ -28093,17 +28125,18 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
        denf=denf0*b30 *denf
- 
+       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/110.0_dp    !(  55 is doubled because of x and y)
+
        call alloc(xpmap)
 
        xpmap%v(1)=x(1)
        xpmap%v(3)=x(3)
        xpmap%v(5)=x(5)
        xpmap%v(6)=x(6)
-     !  xpmap%v(2)=xp(1)
-     !  xpmap%v(4)=xp(2)
-       xpmap%v(2)=x(2)
-       xpmap%v(4)=x(4)
+       xpmap%v(2)=xp(1)
+       xpmap%v(4)=xp(2)
+     !  xpmap%v(2)=x(2)
+     !  xpmap%v(4)=x(4)
 
        xpmap=xpmap**(-1)
 
@@ -28111,7 +28144,13 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
           do j=1,6
              X1=(xpmap%v(i)).sub.'000010'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
              X3=(xpmap%v(j)).sub.'000010'
-            E_IJ(i,j)=E_IJ(i,j)+denf*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+             E_IJ(i,j)=E_IJ(i,j)+denf*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+             X1=(xpmap%v(i)).sub.'000100'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
+             X3=(xpmap%v(j)).sub.'000100'
+             E_IJ(i,j)=E_IJ(i,j)+denv*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
+             X1=(xpmap%v(i)).sub.'010000'   ! Still works if BMAD units are used because xpmax**(-1) is needed!!!
+             X3=(xpmap%v(j)).sub.'010000'
+             E_IJ(i,j)=E_IJ(i,j)+denv*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
           enddo
        enddo    
        call kill(xpmap)
