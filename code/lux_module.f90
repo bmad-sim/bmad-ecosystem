@@ -47,6 +47,7 @@ type lux_param_struct
   real(rp) :: intensity_normalization_coef = 1e6
   real(rp) :: stop_num_photons = 0               ! stop number. Use real for clearer input
   real(rp) :: mpi_run_size = 0.1                 ! Normalized number of photons to track
+  real(rp) :: timer_print_dtime = 300
   integer :: random_seed = 0
   integer :: n_photon1_out_max = 100     ! Max number of photons allowed in photon1_out_file.
   logical :: debug = .false.             ! For debugging
@@ -64,9 +65,10 @@ type lux_common_struct
   type (lat_struct) :: lat
   type (branch_struct), pointer :: physical_source_branch, tracking_branch
   type (ele_struct), pointer :: physical_source_ele, photon_init_ele, fork_ele, detec_ele, photon1_ele
+  type (pixel_grid_struct), pointer :: pixel
   type (bunch_params_struct), allocatable :: stat(:)
   integer n_bend_slice             ! Number of slices
-  integer(8) :: n_photon_stop1     ! Number of photons to track per processor.
+  integer(8) :: n_photon_stop1 = 0 ! Number of photons to track per processor.
                                    ! This is equal to lux_param%stop_num_photons when not using mpi.
   integer :: mpi_rank  = -1
   integer :: mpi_n_proc = 1        ! Number of processeses including master
@@ -80,9 +82,6 @@ type lux_common_struct
 end type
 
 type lux_output_data_struct
-  integer(8) :: n_track_tot = 0
-  integer(8) :: n_live = 0
-  integer(8) :: n_lost = 0
   integer :: nx_min = 0, nx_max = 0, ny_min = 0, ny_max = 0
 end type
 
@@ -103,7 +102,6 @@ implicit none
 
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
-type (lux_output_data_struct) lux_data
 type (lat_struct), pointer :: lat
 
 integer nx, ny
@@ -111,10 +109,10 @@ integer nx, ny
 !------------------------------------------
 
 call lux_init (lux_param, lux_com)
-call lux_init_data (lux_param, lux_com, lux_data)
-call lux_track_photons (lux_param, lux_com, lux_data)
+call lux_init_data (lux_param, lux_com)
+call lux_track_photons (lux_param, lux_com)
 if (lux_param%photon1_out_file /= '') close (lux_com%iu_photon1_out)
-call lux_write_data (lux_param, lux_com, lux_data)
+call lux_write_data (lux_param, lux_com)
 
 end subroutine lux_run_serial
 
@@ -191,11 +189,7 @@ if (.not. lux_com%verbose) call output_direct (-1, .false., max_level = s_succes
 
 ! Negative radom_seed is used for testing and turns off the dithering with MPI
 
-call ran_seed_put (abs(lux_param%random_seed))
-if (lux_com%using_mpi .and. lux_param%random_seed >= 0) then
-  call ran_seed_get (ir)
-  call ran_seed_put (ir + 100 * lux_com%mpi_rank)
-endif
+call ran_seed_put (abs(lux_param%random_seed), mpi_offset = lux_com%mpi_rank)
 
 if (lux_param%random_engine == 'quasi') then
   if (lux_param%random_seed == 0) then
@@ -293,6 +287,7 @@ elseif (n_loc > 1) then
 endif
 
 lux_com%detec_ele => eles(1)%ele
+lux_com%pixel => lux_com%detec_ele%photon%pixel
 lux_com%tracking_branch => lux_com%detec_ele%branch
 allocate(lux_com%stat(0:lux_com%tracking_branch%n_ele_track))
 
@@ -385,44 +380,36 @@ end subroutine lux_init
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine lux_init_data (lux_param, lux_com, lux_data)
+! Subroutine lux_init_data (lux_param, lux_com)
 !
 ! Routine to initialize the output data.
 !
 ! Input:
 !   lux_param   -- lux_param_struct: Lux input parameters.
 !   lux_com     -- lux_common_struct: Common parameters.
-!
-! Ouput:
-!   lux_data    -- lux_output_data_struct: Initialized data.
 !-
 
-subroutine lux_init_data (lux_param, lux_com, lux_data)
+subroutine lux_init_data (lux_param, lux_com)
 
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
-type (lux_output_data_struct) lux_data
-type (pixel_grid_struct), pointer :: detec_grid
 
 character(*), parameter :: r_name = 'lux_init_data'
 
 !
 
-detec_grid => lux_com%detec_ele%photon%pixel
+lux_com%pixel => lux_com%pixel
 
-if (.not. allocated(detec_grid%pt)) then
+if (.not. allocated(lux_com%pixel%pt)) then
   call out_io (s_fatal$, r_name, 'DETECTOR GRID NOT SET!')
   stop
 endif
 
-lux_data%nx_min = lbound(detec_grid%pt, 1)
-lux_data%nx_max = ubound(detec_grid%pt, 1)
-lux_data%ny_min = lbound(detec_grid%pt, 2)
-lux_data%ny_max = ubound(detec_grid%pt, 2)
+lux_com%pixel%n_track_tot = 0
+lux_com%pixel%n_live = 0
+lux_com%pixel%n_lost = 0
 
-lux_data%n_track_tot = 0
-
-detec_grid%pt = pixel_grid_pt_struct()
+lux_com%pixel%pt = pixel_grid_pt_struct()
 
 end subroutine lux_init_data
 
@@ -749,33 +736,29 @@ end subroutine lux_tracking_setup
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine lux_track_photons (lux_param, lux_com, lux_data)
+! Subroutine lux_track_photons (lux_param, lux_com)
 !
-! Routine to init Lux.
+! Routine to track photons.
 !
 ! Input:
 !   lux_param   -- lux_param_struct: Lux input parameters.
 !   lux_com     -- lux_common_struct: Common parameters.
-!
-! Output:
-!   lux_data    -- lux_output_data_struct: 
 !-
 
-subroutine lux_track_photons (lux_param, lux_com, lux_data)
+subroutine lux_track_photons (lux_param, lux_com)
 
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
-type (lux_output_data_struct) lux_data
 type (lux_photon_struct), target :: photon
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: detec_ele, photon_init_ele, photon1_ele
 type (branch_struct), pointer :: s_branch, t_branch
 type (bunch_struct) bunch, bunch_stop1, bunch_start
-type (pixel_grid_struct), pointer :: detec_grid
+type (pixel_grid_struct), pointer :: detec_pixel
 type (pixel_grid_pt_struct), pointer :: pix
 type (pixel_grid_pt_struct) :: pixel
 
-real(rp) phase, intensity_tot, intens
+real(rp) phase, intensity_tot, intens, time0, time
 
 integer i, ix, n, nt, nx, ny, track_state, ip, ie
 
@@ -787,7 +770,7 @@ character(*), parameter :: r_name = 'lux_track_photons'
 
 lat => lux_com%lat
 detec_ele => lux_com%detec_ele
-detec_grid => lux_com%detec_ele%photon%pixel
+detec_pixel => lux_com%pixel
 photon_init_ele => lux_com%photon_init_ele
 photon1_ele => lux_com%photon1_ele
 t_branch => lux_com%tracking_branch
@@ -800,13 +783,14 @@ call reallocate_coord (photon%orb, lat, t_branch%ix_branch)
 !
 
 intensity_tot = 0
+time0 = 0
 
-do 
-  if (lux_com%n_photon_stop1 > 0 .and. lux_data%n_track_tot >= lux_com%n_photon_stop1) exit
+do
+  if (lux_com%n_photon_stop1 > 0 .and. detec_pixel%n_track_tot >= lux_com%n_photon_stop1) exit
   if (.not. lux_com%using_mpi .and. lux_param%stop_total_intensity > 0 .and. &
                                              intensity_tot >= lux_param%stop_total_intensity) exit
-  lux_data%n_track_tot = lux_data%n_track_tot + 1
-  photon%n_photon_generated = lux_data%n_track_tot
+  detec_pixel%n_track_tot = detec_pixel%n_track_tot + 1
+  photon%n_photon_generated = detec_pixel%n_track_tot
 
   call lux_generate_photon (photon%orb(0), lux_param, lux_com)
   if (lux_param%debug) then
@@ -816,7 +800,16 @@ do
 
   call track_all (lat, photon%orb, t_branch%ix_branch, track_state)
 
-  call add_this_to_detector_statistics (photon%orb(0), photon%orb(nt), intens)
+  if (.not. lux_com%using_mpi) then
+    call run_timer('READ', time)
+    if (time > time0 + lux_param%timer_print_dtime) then
+      time0 = time
+      print '(a, f10.2, a, i0, a, es16.5)', 'Time (min): ', time/60, &
+                    ': N_track_tot: ', detec_pixel%n_track_tot, '  Intensity_tot:', intensity_tot
+    endif
+  endif
+
+  call add_this_to_detector_statistics (photon%orb(0), photon%orb(nt), intens, intensity_tot)
   do i = 1, nt
     if (photon%orb(i)%state == alive$) lux_com%stat(i)%n_particle_live = lux_com%stat(i)%n_particle_live + 1
   enddo
@@ -824,7 +817,7 @@ do
   ! Write to photon1_out_file
 
   if (lux_param%photon1_out_file /= '') then
-    call photon1_out (photon%orb(1), photon%orb(photon1_ele%ix_ele), photon%orb(detec_ele%ix_ele), int(lux_data%n_track_tot))
+    call photon1_out (photon%orb(1), photon%orb(photon1_ele%ix_ele), photon%orb(detec_ele%ix_ele), int(detec_pixel%n_track_tot))
   endif
 enddo
 
@@ -856,43 +849,40 @@ end subroutine photon1_out
 !--------------------------------------------------------------------
 ! contains
 
-subroutine add_this_to_detector_statistics (start_orb, det_orb, intens)
+subroutine add_this_to_detector_statistics (start_orb, det_orb, intens, intensity_tot)
 
-type (coord_struct) start_orb, det_orb, orb0, orb, d_orb
+type (coord_struct) start_orb, det_orb, orb0, orb, surf_orb
 type (pixel_grid_pt_struct), allocatable :: temp_bin(:)
-real(rp) intens, w_surf(3,3)
+real(rp) intens, intensity_tot
 integer ix, i1, i2
 
 !
 
 if (det_orb%state /= alive$) then
-  lux_data%n_lost = lux_data%n_lost + 1
+  lux_com%pixel%n_lost = lux_com%pixel%n_lost + 1
   return
 endif
 
-d_orb = det_orb
-call offset_photon (detec_ele, d_orb, set$)  ! Go to coordinates of the detector
-call track_to_surface (detec_ele, d_orb, detec_ele%branch%param, w_surf)
-call to_detector_surface_coords (d_orb, detec_ele)
+call to_surface_coords (det_orb, detec_ele, surf_orb)
 
 !
 
-if (d_orb%state /= alive$) then
-  lux_data%n_lost = lux_data%n_lost + 1
+if (surf_orb%state /= alive$) then
+  lux_com%pixel%n_lost = lux_com%pixel%n_lost + 1
   return
 endif
 
-lux_data%n_live = lux_data%n_live + 1
+lux_com%pixel%n_live = lux_com%pixel%n_live + 1
 
-intens = d_orb%field(1)**2 + d_orb%field(2)**2
+intens = surf_orb%field(1)**2 + surf_orb%field(2)**2
 intensity_tot = intensity_tot + intens
 
-call photon_add_to_detector_statistics (start_orb, d_orb, detec_ele)
+call photon_add_to_detector_statistics (start_orb, surf_orb, detec_ele)
 
 ! Histogram
 
 if (lux_param%det_pix_out_file /= '' .and. lux_param%histogram_variable /= '') then
-  orb  = to_photon_angle_coords (d_orb, detec_ele)
+  orb  = to_photon_angle_coords (surf_orb, detec_ele)
   orb0 = to_photon_angle_coords (start_orb, detec_ele)
 
   select case (lux_param%histogram_variable)
@@ -924,7 +914,7 @@ if (lux_param%det_pix_out_file /= '' .and. lux_param%histogram_variable /= '') t
     lux_com%histogram_bin(i1:i2) = temp_bin
   endif
 
-  call photon_add_to_detector_statistics (start_orb, d_orb, detec_ele, pixel_pt = lux_com%histogram_bin(ix))
+  call photon_add_to_detector_statistics (start_orb, surf_orb, detec_ele, pixel_pt = lux_com%histogram_bin(ix))
 endif
 
 end subroutine add_this_to_detector_statistics
@@ -936,36 +926,45 @@ end subroutine lux_track_photons
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine lux_add_in_slave_data (slave_pt, lux_param, lux_com, lux_data)
+! Subroutine lux_add_in_slave_data (slave_pt, lux_param, lux_com)
 !
 ! Routine to combine data from an MPI slave to the master data structure.
 !
 ! Input:
-!   slave_pt(:,:) -- pixel_grid_struct: Grid of data points
+!   slave_pixel   -- pixel_grid_struct: Slave data.
 !   lux_param     -- lux_param_struct: Lux input parameters.
 !   lux_com       -- lux_common_struct: Common parameters.
-!   lux_data      -- lux_output_data_struct: Tracking data.
 !
 ! Output:
-!   lux_com%lat%detec_ele%photon%pixel%pt
+!   lux_com%lat%pixel%pt
 !-
 
-subroutine lux_add_in_mpi_slave_data (slave_pt, lux_param, lux_com, lux_data)
+subroutine lux_add_in_mpi_slave_data (slave_pixel, lux_param, lux_com)
 
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
-type (lux_output_data_struct) lux_data
-type (pixel_grid_pt_struct) slave_pt(:,:)
-type (pixel_grid_pt_struct), pointer :: pt(:,:)
+type (pixel_grid_struct) slave_pixel
+integer i, j
 
 !
 
-pt => lux_com%detec_ele%photon%pixel%pt
-pt = pixel_grid_pt_struct()
+do i = lbound(lux_com%pixel%pt, 1), ubound(lux_com%pixel%pt, 1)
+do j = lbound(lux_com%pixel%pt, 2), ubound(lux_com%pixel%pt, 2)
+  lux_com%pixel%pt(i,j)%E_x            = lux_com%pixel%pt(i,j)%E_x            + slave_pixel%pt(i,j)%E_x
+  lux_com%pixel%pt(i,j)%E_y            = lux_com%pixel%pt(i,j)%E_y            + slave_pixel%pt(i,j)%E_y
+  lux_com%pixel%pt(i,j)%intensity_x    = lux_com%pixel%pt(i,j)%intensity_x    + slave_pixel%pt(i,j)%intensity_x
+  lux_com%pixel%pt(i,j)%intensity_y    = lux_com%pixel%pt(i,j)%intensity_y    + slave_pixel%pt(i,j)%intensity_y
+  lux_com%pixel%pt(i,j)%intensity      = lux_com%pixel%pt(i,j)%intensity      + slave_pixel%pt(i,j)%intensity
+  lux_com%pixel%pt(i,j)%orbit          = lux_com%pixel%pt(i,j)%orbit          + slave_pixel%pt(i,j)%orbit
+  lux_com%pixel%pt(i,j)%orbit_rms      = lux_com%pixel%pt(i,j)%orbit_rms      + slave_pixel%pt(i,j)%orbit_rms
+  lux_com%pixel%pt(i,j)%init_orbit     = lux_com%pixel%pt(i,j)%init_orbit     + slave_pixel%pt(i,j)%init_orbit
+  lux_com%pixel%pt(i,j)%init_orbit_rms = lux_com%pixel%pt(i,j)%init_orbit_rms + slave_pixel%pt(i,j)%init_orbit_rms
+enddo
+enddo
 
-lux_data%n_track_tot   = lux_data%n_track_tot   + lux_com%n_photon_stop1
-lux_data%n_live        = lux_data%n_live        + sum(slave_pt%n_photon)
-lux_data%n_lost        = lux_data%n_lost        + lux_com%n_photon_stop1 - sum(slave_pt%n_photon)
+lux_com%pixel%n_track_tot   = lux_com%pixel%n_track_tot   + slave_pixel%n_track_tot
+lux_com%pixel%n_live        = lux_com%pixel%n_live        + slave_pixel%n_live
+lux_com%pixel%n_lost        = lux_com%pixel%n_lost        + slave_pixel%n_lost
 
 end subroutine lux_add_in_mpi_slave_data 
 
@@ -973,22 +972,20 @@ end subroutine lux_add_in_mpi_slave_data
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine lux_write_data (lux_param, lux_com, lux_data)
+! Subroutine lux_write_data (lux_param, lux_com)
 !
 ! Routine to write the photon tracking data.
 !
 ! Output:
 !   lux_param   -- lux_param_struct: Lux input parameters.
 !   lux_com     -- lux_common_struct: Common parameters.
-!   lux_data    -- lux_output_data_struct: Tracking data.
 !-
 
-subroutine lux_write_data (lux_param, lux_com, lux_data)
+subroutine lux_write_data (lux_param, lux_com)
 
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
-type (lux_output_data_struct) lux_data
-type (pixel_grid_struct), pointer :: detec_grid
+type (pixel_grid_struct), pointer :: pixel
 type (pixel_grid_pt_struct), pointer :: pix
 type (pixel_grid_pt_struct) :: p
 type (lat_struct), pointer :: lat
@@ -1010,13 +1007,12 @@ character(200) params_out, param
 
 !------------------------------------------
 
-detec_grid => lux_com%detec_ele%photon%pixel
+pixel => lux_com%pixel
 lat => lux_com%lat
 
-!
-
-do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_max
-  pix => detec_grid%pt(nx,ny)
+do nx = lbound(pixel%pt, 1), ubound(pixel%pt, 1)
+do ny = lbound(pixel%pt, 2), ubound(pixel%pt, 2)
+  pix => pixel%pt(nx,ny)
 
   if (lat%photon_type == coherent$) then
     pix%intensity_x = abs(pix%E_x)
@@ -1029,14 +1025,15 @@ do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_m
   pix%orbit_rms      = pix%orbit_rms / pix%intensity
   pix%init_orbit     = pix%init_orbit / pix%intensity
   pix%init_orbit_rms = pix%init_orbit_rms / pix%intensity
-enddo; enddo
+enddo
+enddo
 
 !
 
 do n = 1, 6
-  intens_tot = sum(detec_grid%pt%intensity)
-  p%orbit(n) = sum(detec_grid%pt%orbit(n)) / intens_tot
-  p%orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt%orbit_rms(n)) / intens_tot - p%orbit(n)**2))
+  intens_tot = sum(pixel%pt%intensity)
+  p%orbit(n) = sum(pixel%pt%orbit(n)) / intens_tot
+  p%orbit_rms(n) = sqrt(max(0.0_rp, sum(pixel%pt%orbit_rms(n)) / intens_tot - p%orbit(n)**2))
 enddo
 
 !------------------------------------------
@@ -1047,22 +1044,22 @@ intens_tot_x = 0
 intens_tot_y = 0
 intens_tot = 0
 
-normalization = lux_param%intensity_normalization_coef / lux_data%n_track_tot 
+normalization = lux_param%intensity_normalization_coef / pixel%n_track_tot 
 if (lux_param%normalization_includes_pixel_area) then
-  normalization = normalization / (detec_grid%dr(1) * detec_grid%dr(2))
+  normalization = normalization / (pixel%dr(1) * pixel%dr(2))
 endif
 
 if (lux_param%det_pix_out_file /= '') then
   open (3, file = lux_param%det_pix_out_file, recl = 300)
-  intens_max = maxval(detec_grid%pt%intensity)
+  intens_max = maxval(pixel%pt%intensity)
   cut = max(0.0_rp, intens_max * lux_param%intensity_min_det_pixel_cutoff)
 
-  nx_active_min = lux_data%nx_max;    nx_active_max = lux_data%nx_min
-  ny_active_min = lux_data%ny_max;    ny_active_max = lux_data%ny_min
+  nx_active_min = ubound(pixel%pt, 1);  nx_active_max = ubound(pixel%pt, 1)
+  ny_active_min = ubound(pixel%pt, 2);  ny_active_max = ubound(pixel%pt, 2)
 
-  do i = lux_data%nx_min, lux_data%nx_max
-  do j = lux_data%ny_min, lux_data%ny_max
-    if (detec_grid%pt(i,j)%intensity <= cut) cycle
+  do i = lbound(pixel%pt, 1), ubound(pixel%pt, 1)
+  do j = lbound(pixel%pt, 2), ubound(pixel%pt, 2)
+    if (pixel%pt(i,j)%intensity <= cut) cycle
     nx_active_min = min(nx_active_min, i);  nx_active_max = max(nx_active_max, i)
     ny_active_min = min(ny_active_min, j);  ny_active_max = max(ny_active_max, j)
   enddo
@@ -1073,15 +1070,15 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a, es12.4)')    'intensity_normalization_coef      =', lux_param%intensity_normalization_coef
   write (3, '(a, l2)')        'normalization_includes_pixel_area =', lux_param%normalization_includes_pixel_area
   write (3, '(a, es14.6)')    'normalization       =', normalization
-  write (3, '(a, es16.5)')    'intensity_x_unnorm  =', sum(detec_grid%pt(:,:)%intensity_x)
-  write (3, '(a, es16.5)')    'intensity_x_norm    =', sum(detec_grid%pt(:,:)%intensity_x) * normalization
-  write (3, '(a, es16.5)')    'intensity_y_unnorm  =', sum(detec_grid%pt(:,:)%intensity_y)
-  write (3, '(a, es16.5)')    'intensity_y_norm    =', sum(detec_grid%pt(:,:)%intensity_y) * normalization
-  write (3, '(a, es16.5)')    'intensity_unnorm    =', sum(detec_grid%pt(:,:)%intensity)
-  write (3, '(a, es16.5)')    'intensity_norm      =', sum(detec_grid%pt(:,:)%intensity) * normalization
-  write (3, '(a, f10.6)')     'dx_pixel            =', detec_grid%dr(1)
-  write (3, '(a, f10.6)')     'dy_pixel            =', detec_grid%dr(2)
-  write (3, '(a, i0)')        'photons_tracked     =', lux_data%n_track_tot
+  write (3, '(a, es16.5)')    'intensity_x_unnorm  =', sum(pixel%pt(:,:)%intensity_x)
+  write (3, '(a, es16.5)')    'intensity_x_norm    =', sum(pixel%pt(:,:)%intensity_x) * normalization
+  write (3, '(a, es16.5)')    'intensity_y_unnorm  =', sum(pixel%pt(:,:)%intensity_y)
+  write (3, '(a, es16.5)')    'intensity_y_norm    =', sum(pixel%pt(:,:)%intensity_y) * normalization
+  write (3, '(a, es16.5)')    'intensity_unnorm    =', sum(pixel%pt(:,:)%intensity)
+  write (3, '(a, es16.5)')    'intensity_norm      =', sum(pixel%pt(:,:)%intensity) * normalization
+  write (3, '(a, f10.6)')     'dx_pixel            =', pixel%dr(1)
+  write (3, '(a, f10.6)')     'dy_pixel            =', pixel%dr(2)
+  write (3, '(a, i0)')        'photons_tracked     =', pixel%n_track_tot
   write (3, '(a, i8)')        'nx_active_min       =', nx_active_min
   write (3, '(a, i8)')        'nx_active_max       =', nx_active_max
   write (3, '(a, i8)')        'ny_active_min       =', ny_active_min
@@ -1127,17 +1124,17 @@ if (lux_param%det_pix_out_file /= '') then
 
   enddo param_loop
 
-  write (3, '(a, es16.5, 3a)') 'x_center_det        =', p%orbit(1),     '  # ', to_str(p%orbit(1) / detec_grid%dr(1), 4), ' pixels'
-  write (3, '(a, es16.5, 3a)') 'y_center_det        =', p%orbit(3),     '  # ', to_str(p%orbit(3) / detec_grid%dr(2), 4), ' pixels'
-  write (3, '(a, es16.5, 3a)') 'x_rms_det           =', p%orbit_rms(1), '  # ', to_str(p%orbit_rms(1) / detec_grid%dr(1), 4), ' pixels'
-  write (3, '(a, es16.5, 3a)') 'y_rms_det           =', p%orbit_rms(3), '  # ', to_str(p%orbit_rms(3) / detec_grid%dr(2), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') 'x_center_det        =', p%orbit(1),     '  # ', to_str(p%orbit(1) / pixel%dr(1), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') 'y_center_det        =', p%orbit(3),     '  # ', to_str(p%orbit(3) / pixel%dr(2), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') 'x_rms_det           =', p%orbit_rms(1), '  # ', to_str(p%orbit_rms(1) / pixel%dr(1), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') 'y_rms_det           =', p%orbit_rms(3), '  # ', to_str(p%orbit_rms(3) / pixel%dr(2), 4), ' pixels'
   write (3, '(a)') '#-----------------------------------------------------'
   write (3, '(a)') '#                                                                                                                                                                    |                                          Init'
   write (3, '(a)') '#   ix    iy      x_pix      y_pix   Intens_x    Phase_x   Intens_y    Phase_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
-  do i = lux_data%nx_min, lux_data%nx_max
-  do j = lux_data%ny_min, lux_data%ny_max
-    pix => detec_grid%pt(i,j)
+  do i = lbound(pixel%pt, 1), ubound(pixel%pt, 1)
+  do j = lbound(pixel%pt, 2), ubound(pixel%pt, 2)
+    pix => pixel%pt(i,j)
     intens_tot = intens_tot + pix%intensity 
     if (pix%intensity <= cut .or. pix%n_photon == 0) cycle
     phase_x = 0; phase_y = 0
@@ -1153,7 +1150,7 @@ if (lux_param%det_pix_out_file /= '') then
       p%init_orbit_rms(n) = sqrt(max(0.0_rp, pix%init_orbit_rms(n) - pix%init_orbit(n)**2))
     enddo
 
-    write (3, '(2i6, 2es11.3, 5es11.3, i12, 2f10.3, 12es11.3)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
+    write (3, '(2i6, 2es11.3, 5es11.3, i12, 2f10.3, 12es11.3)') i, j, [i,j]*pixel%dr+pixel%r0, &
            p%intensity_x * normalization, phase_x, p%intensity_y * normalization, phase_y, &
            p%intensity * normalization, p%n_photon, p%orbit(6), p%orbit_rms(6), &
            p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
@@ -1170,23 +1167,23 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a)') '#                                                                                                                             |                    Init'
   write (3, '(a)') '#   ix      x_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
-  do i = lux_data%nx_min, lux_data%nx_max
+  do i = lbound(pixel%pt, 1), ubound(pixel%pt, 1)
     p = pixel_grid_pt_struct()
-    p%intensity_x = sum(detec_grid%pt(i,:)%intensity_x)
-    p%intensity_y = sum(detec_grid%pt(i,:)%intensity_y)
-    p%intensity   = sum(detec_grid%pt(i,:)%intensity)
-    p%n_photon    = sum(detec_grid%pt(i,:)%n_photon)
+    p%intensity_x = sum(pixel%pt(i,:)%intensity_x)
+    p%intensity_y = sum(pixel%pt(i,:)%intensity_y)
+    p%intensity   = sum(pixel%pt(i,:)%intensity)
+    p%n_photon    = sum(pixel%pt(i,:)%n_photon)
 
     if (p%intensity /= 0) then
       do n = 1, 6
-        p%orbit(n) = sum(detec_grid%pt(i,:)%orbit(n) * detec_grid%pt(i,:)%intensity) / p%intensity
-        p%orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%orbit_rms(n) * detec_grid%pt(i,:)%intensity) / p%intensity - p%orbit(n)**2))
-        p%init_orbit(n) = sum(detec_grid%pt(i,:)%init_orbit(n) * detec_grid%pt(i,:)%intensity) / p%intensity
-        p%init_orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%init_orbit_rms(n) * detec_grid%pt(i,:)%intensity) / p%intensity - p%init_orbit(n)**2))
+        p%orbit(n) = sum(pixel%pt(i,:)%orbit(n) * pixel%pt(i,:)%intensity) / p%intensity
+        p%orbit_rms(n) = sqrt(max(0.0_rp, sum(pixel%pt(i,:)%orbit_rms(n) * pixel%pt(i,:)%intensity) / p%intensity - p%orbit(n)**2))
+        p%init_orbit(n) = sum(pixel%pt(i,:)%init_orbit(n) * pixel%pt(i,:)%intensity) / p%intensity
+        p%init_orbit_rms(n) = sqrt(max(0.0_rp, sum(pixel%pt(i,:)%init_orbit_rms(n) * pixel%pt(i,:)%intensity) / p%intensity - p%init_orbit(n)**2))
       enddo
     endif
 
-    write (3, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
+    write (3, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') i, i*pixel%dr(1)+pixel%r0(1), &
                        p%intensity_x * normalization, p%intensity_y * normalization, p%intensity * normalization, &
                        p%n_photon, p%orbit(6), p%orbit_rms(6), p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
                        p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
@@ -1199,23 +1196,23 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a)') '#-----------------------------------------------------'
   write (3, '(a)') '#                                                                                                                             |                    Init'
   write (3, '(a)') '#   iy      y_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
-  do j = lux_data%ny_min, lux_data%ny_max
+  do j = lbound(pixel%pt, 2), ubound(pixel%pt, 2)
     p = pixel_grid_pt_struct()
-    p%intensity_x = sum(detec_grid%pt(:,j)%intensity_x)
-    p%intensity_y = sum(detec_grid%pt(:,j)%intensity_y)
-    p%intensity   = sum(detec_grid%pt(:,j)%intensity)
-    p%n_photon    = sum(detec_grid%pt(:,j)%n_photon)
+    p%intensity_x = sum(pixel%pt(:,j)%intensity_x)
+    p%intensity_y = sum(pixel%pt(:,j)%intensity_y)
+    p%intensity   = sum(pixel%pt(:,j)%intensity)
+    p%n_photon    = sum(pixel%pt(:,j)%n_photon)
 
     if (p%intensity /= 0) then
       do n = 1, 6
-        p%orbit(n) = sum(detec_grid%pt(:,j)%orbit(n) * detec_grid%pt(:,j)%intensity) / p%intensity
-        p%orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%orbit_rms(n) * detec_grid%pt(:,j)%intensity) / p%intensity - p%orbit(n)**2)) 
-        p%init_orbit(n) = sum(detec_grid%pt(:,j)%init_orbit(n) * detec_grid%pt(:,j)%intensity) / p%intensity
-        p%init_orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%init_orbit_rms(n) * detec_grid%pt(:,j)%intensity) / p%intensity - p%init_orbit(n)**2)) 
+        p%orbit(n) = sum(pixel%pt(:,j)%orbit(n) * pixel%pt(:,j)%intensity) / p%intensity
+        p%orbit_rms(n) = sqrt(max(0.0_rp, sum(pixel%pt(:,j)%orbit_rms(n) * pixel%pt(:,j)%intensity) / p%intensity - p%orbit(n)**2)) 
+        p%init_orbit(n) = sum(pixel%pt(:,j)%init_orbit(n) * pixel%pt(:,j)%intensity) / p%intensity
+        p%init_orbit_rms(n) = sqrt(max(0.0_rp, sum(pixel%pt(:,j)%init_orbit_rms(n) * pixel%pt(:,j)%intensity) / p%intensity - p%init_orbit(n)**2)) 
       enddo
     endif
 
-    write (3, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
+    write (3, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j*pixel%dr(2)+pixel%r0(2), &
                        p%intensity_x * normalization, p%intensity_y * normalization, p%intensity * normalization, &
                        p%n_photon, p%orbit(6), p%orbit_rms(6), p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
                        p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
@@ -1275,9 +1272,9 @@ endif
 call run_timer ('READ', dtime)
 
 if (lux_com%verbose) then
-  print '(a, t35, i0, 5x, es10.2)', 'Photons Tracked:', lux_data%n_track_tot, float(lux_data%n_track_tot)
-  print '(a, t35, i0)',      'Photons at detector:', lux_data%n_live
-  print '(a, t35, i0)',      'Photons hitting pix:', int(sum(detec_grid%pt%n_photon), 8)
+  print '(a, t35, i0, 5x, es10.2)', 'Photons Tracked:', pixel%n_track_tot, float(pixel%n_track_tot)
+  print '(a, t35, i0)',      'Photons at detector:', pixel%n_live
+  print '(a, t35, i0)',      'Photons hitting pix:', int(sum(pixel%pt%n_photon), 8)
   print '(a, t45, es12.4)', 'Normalization factor:', normalization
   print '(a, t45, es12.4)', 'Total intensity on pix (unnormalized):', intens_tot
   print '(a, t45, es12.4)', 'Total intensity on pix (normalized):', intens_tot * normalization
@@ -1285,11 +1282,11 @@ if (lux_com%verbose) then
   if (intens_tot /= 0) then
     x_sum = 0; x2_sum = 0; y_sum = 0; y2_sum = 0
     e_ave = 0; e_rms = 0
-    do nx = lux_data%nx_min, lux_data%nx_max
-    do ny = lux_data%ny_min, lux_data%ny_max
-      pix => detec_grid%pt(nx,ny)
-      x = nx*detec_grid%dr(1) + detec_grid%r0(1)
-      y = ny*detec_grid%dr(2) + detec_grid%r0(2)
+    do nx = lbound(pixel%pt, 1), ubound(pixel%pt, 1)
+    do ny = lbound(pixel%pt, 2), ubound(pixel%pt, 2)
+      pix => pixel%pt(nx,ny)
+      x = nx*pixel%dr(1) + pixel%r0(1)
+      y = ny*pixel%dr(2) + pixel%r0(2)
       x_sum  = x_sum  + pix%intensity * x
       x2_sum = x2_sum + pix%intensity * x**2
       y_sum  = y_sum  + pix%intensity * y
@@ -1322,7 +1319,7 @@ endif
 
 if (lux_param%plotting /= '') then
   if (index('detector', trim(lux_param%plotting)) == 1) then
-    call lux_plot_detector (lux_param, lux_com, detec_grid)
+    call lux_plot_detector (lux_param, lux_com)
   endif
 endif
 
@@ -1332,18 +1329,17 @@ end subroutine lux_write_data
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine lux_plot_detector (lux_param, lux_com, detector)
+! subroutine lux_plot_detector (lux_param, lux_com)
 !
 ! Routine to plot the intensity at the detector pixels
 !-
 
-subroutine lux_plot_detector (lux_param, lux_com, detector)
+subroutine lux_plot_detector (lux_param, lux_com)
 
 type (lat_struct), pointer:: lat
 type (ele_struct), pointer :: ele
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
-type (pixel_grid_struct) detector
 
 real(rp) x1, x2, y1, y2
 integer ix, iy, i_chan
@@ -1363,8 +1359,8 @@ call qp_calc_and_set_axis ('Y', -ele%value(y1_limit$), ele%value(y2_limit$), 6, 
 
 call qp_draw_axes ('X', 'Y', 'Detector Pixels')
 
-do ix = 1, lbound(detector%pt, 1), ubound(detector%pt, 1)
-do iy = 1, lbound(detector%pt, 2), ubound(detector%pt, 2)
+do ix = 1, lbound(lux_com%pixel%pt, 1), ubound(lux_com%pixel%pt, 1)
+do iy = 1, lbound(lux_com%pixel%pt, 2), ubound(lux_com%pixel%pt, 2)
   call qp_paint_rectangle (x1, x2, y1, y2, color = 'red')
 enddo
 enddo

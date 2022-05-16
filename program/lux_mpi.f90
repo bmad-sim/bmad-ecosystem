@@ -7,14 +7,13 @@ implicit none
 
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
-type (lux_output_data_struct) lux_data
 type (pixel_grid_struct) :: slave_grid
-type (pixel_grid_struct), pointer :: detec_grid
+type (pixel_grid_struct), pointer :: pixel
 
 integer master_rank, ierr, rc, leng, i, stat(MPI_STATUS_SIZE)
-integer data_size, num_slaves
+integer pixel_grid_size, num_slaves
 integer results_tag, is_done_tag, slave_rank
-integer(8) num_photons_left
+integer(8) num_photons_left, pnum(3)
 
 logical am_i_done
 logical, allocatable :: slave_is_done(:)
@@ -59,11 +58,9 @@ endif
 lux_com%using_mpi = .true.
 call lux_init (lux_param, lux_com)
 
-detec_grid => lux_com%detec_ele%photon%pixel
-allocate (slave_grid%pt(size(detec_grid%pt, 1), size(detec_grid%pt, 1)))
-
 ! storage_size returns size in bytes per point
-data_size = size(detec_grid%pt, 1) * size(detec_grid%pt, 2) * storage_size(detec_grid%pt) / 8
+pixel => lux_com%pixel
+pixel_grid_size = size(pixel%pt, 1) * size(pixel%pt, 2) * storage_size(pixel%pt) / 8
 
 results_tag = 1000
 is_done_tag = 1001
@@ -79,17 +76,21 @@ if (lux_com%mpi_rank == master_rank) then
   slave_is_done = .false.
 
   ! Init the output arrays.
-  call lux_init_data (lux_param, lux_com, lux_data)
+  call lux_init_data (lux_param, lux_com)
 
   ! Slaves automatically start one round of tracking
   num_photons_left = lux_param%stop_num_photons - num_slaves * lux_com%n_photon_stop1
 
+  allocate (slave_grid%pt(lbound(pixel%pt,1):ubound(pixel%pt,1),lbound(pixel%pt,2):ubound(pixel%pt,2)))
+
   do
     ! Get data from a slave
     call print_mpi_info ('Master: Waiting for a Slave...')
-    call mpi_recv (slave_grid%pt, data_size, MPI_REAL8, MPI_ANY_SOURCE, results_tag, MPI_COMM_WORLD, stat, ierr)
-    call lux_add_in_mpi_slave_data (slave_grid%pt, lux_param, lux_com, lux_data)
+    call mpi_recv (slave_grid%pt, pixel_grid_size, MPI_REAL8, MPI_ANY_SOURCE, results_tag, MPI_COMM_WORLD, stat, ierr)
     slave_rank = stat(MPI_SOURCE)
+    call mpi_recv (pnum, 3, MPI_INTEGER8, slave_rank, results_tag, MPI_COMM_WORLD, stat, ierr)
+    slave_grid%n_track_tot = pnum(1);  slave_grid%n_live = pnum(2);  slave_grid%n_lost = pnum(3)  
+    call lux_add_in_mpi_slave_data (slave_grid, lux_param, lux_com)
     call print_mpi_info ('Master: Gathered data from Slave: ', slave_rank)
 
     ! Tell slave if more tracking needed
@@ -106,7 +107,7 @@ if (lux_com%mpi_rank == master_rank) then
 
   ! write results and quit
 
-  call lux_write_data (lux_param, lux_com, lux_data)
+  call lux_write_data (lux_param, lux_com)
 
   call mpi_finalize(ierr)
   stop
@@ -121,12 +122,14 @@ call print_mpi_info ('Slave: Starting...')
 do
   ! Init the output arrays
   call print_mpi_info ('Slave: Tracking Photons...')
-  call lux_init_data (lux_param, lux_com, lux_data)
-  call lux_track_photons (lux_param, lux_com, lux_data)
+  call lux_init_data (lux_param, lux_com)
+  call lux_track_photons (lux_param, lux_com)
 
   ! Send results to the Master
   call print_mpi_info ('Slave: Sending Data...')
-  call mpi_send (detec_grid%pt, data_size, MPI_BYTE, master_rank, results_tag, MPI_COMM_WORLD, ierr)
+  call mpi_send (lux_com%pixel%pt, pixel_grid_size, MPI_BYTE, master_rank, results_tag, MPI_COMM_WORLD, ierr)
+  call mpi_send ([lux_com%pixel%n_track_tot, lux_com%pixel%n_live, lux_com%pixel%n_lost], &
+                                   3, MPI_INTEGER8, master_rank, results_tag, MPI_COMM_WORLD, ierr)
 
   ! Query Master if more tracking needed
   call print_mpi_info ('Slave: Query to master...')

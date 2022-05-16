@@ -14,19 +14,21 @@ F = False
 
 # Check version
 
-if sys.version_info[0] == 2 and sys.version_info[1] < 7: sys.exit("MUST USE PYTHON 2.7 OR GREATER!")
+if sys.version_info[0] < 3: sys.exit("MUST USE PYTHON3!")
 
 # Help
 
 def print_help():
   print ('''
 Usage:
-    det_pix_plot.py {-scale <scale>} {-plot <who_to_plot>} {<data_file_name>}
+  det_pix_plot.py {-aspect <aspect_ratio>} {-scale <scale>} {-plot <who_to_plot>} {<data_file_name>}
+
   <who_to_plot> = x         # Intensity of x-polarized photons
                 = y         # Intensity of y-polarized photons
                 = i         # Total intensity (sum of x & y polarizations)
                 = e         # Energy
   Defaults:
+    <aspect_ratio>   = 1
     <scale>          = 1e3
     <data_file_name> = det_pix
     <who_to_plot>    = i
@@ -38,6 +40,7 @@ Usage:
 dat_file_name = 'det.pix'
 
 scale = 1e3
+aspect = 1
 
 x_margin = 10
 y_margin = 10
@@ -52,7 +55,11 @@ while i < len(sys.argv):
     print_help()
     
   if sys.argv[i] == '-scale'[:n]:
-    scale = sys.argv[i+1]
+    scale = float(sys.argv[i+1])
+    i += 1
+
+  if sys.argv[i] == '-aspect'[:n]:
+    aspect = float(sys.argv[i+1])
     i += 1
 
   elif sys.argv[i] == '-plot'[:n]:
@@ -132,7 +139,7 @@ else:
   it = max(1, int((x_max-x_min) * 8 / (y_max-y_min)))
   ax.xaxis.set_major_locator(ticker.MaxNLocator(it))
 
-dens = ax.imshow(np.transpose(pix_mat), origin = 'lower', extent = (x_min, x_max, y_min, y_max))
+dens = ax.imshow(np.transpose(pix_mat), origin = 'lower', extent = (x_min, x_max, y_min, y_max), aspect = aspect)
 dens.set_cmap('gnuplot2')
 
 ##plt.set_cmap('gnuplot2_r')

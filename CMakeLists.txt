@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 project(ACC)
 
+set(EXE_SPECS cmake.lux)
+
 if ($ENV{ACC_ENABLE_MPI})
   message ('Building MPI version...')
-  set(EXE_SPECS cmake.lux_mpi)
-else ()
-  set(EXE_SPECS cmake.lux)
+  list (APPEND EXE_SPECS cmake.lux_mpi)
 endif ()
 
 # For profiling...
