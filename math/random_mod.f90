@@ -415,7 +415,7 @@ end subroutine ran_gauss_converter
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_seed_put (seed, ran_state)
+! Subroutine ran_seed_put (seed, ran_state, mpi_offset)
 !
 ! Routine to seed a random number generator. 
 !
@@ -444,12 +444,14 @@ end subroutine ran_gauss_converter
 ! Note: Use the subroutine ran_seed_get(seed) to get the seed used.
 !
 ! Input:
-!   seed  -- Integer, optional: Seed number. If seed = 0 then a 
-!              seed will be choosen based upon the system clock.
-!   ran_state -- random_state_struct, optional: Internal state.
+!   seed        -- integer, optional: Seed number. If seed = 0 then a 
+!                   seed will be choosen based upon the system clock.
+!   ran_state   -- random_state_struct, optional: Internal state.
+!   mpi_offset  -- integer, optional: Offset added to seed. Default is zero.
+!                   Used with MPI processes ensure different threads use different random numbers.
 !-
 
-subroutine ran_seed_put (seed, ran_state)
+subroutine ran_seed_put (seed, ran_state, mpi_offset)
 
 !$ use omp_lib, only: OMP_GET_THREAD_NUM, OMP_GET_MAX_THREADS
 
@@ -459,6 +461,7 @@ type (random_state_struct), optional, target :: ran_state
 
 integer :: seed
 integer nt, max_t, n
+integer, optional :: mpi_offset
 
 real(rp) dum(2)
 
@@ -469,7 +472,7 @@ real(rp) dum(2)
 !$  max_t = OMP_GET_MAX_THREADS()
 !$  if (nt == 0) then
 !$    do n = 0, max_t-1
-!$      call this_seed_put(n, seed, ran_state)
+!$      call this_seed_put(seed, ran_state, n)
 !$    enddo
 !$  endif
 !$OMP BARRIER
@@ -477,12 +480,12 @@ real(rp) dum(2)
 
 ! Non-OpenMP put
 
-call this_seed_put (0, seed, ran_state)
+call this_seed_put (seed, ran_state, integer_option(0, mpi_offset))
 
 !---------------------------------------------
 contains
 
-subroutine this_seed_put (nt, seed, ran_state)
+subroutine this_seed_put (seed, ran_state, nt)
 
 type (random_state_struct), pointer :: r_state
 type (random_state_struct), optional, target :: ran_state
