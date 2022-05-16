@@ -230,11 +230,7 @@ type (branch_struct), pointer :: branch
 real(rp) phase, intens_x, intens_y, intens, dE
 
 integer, optional :: ix_pt, iy_pt
-integer nx, ny
-
-! Convert to angle coords.
-
-orb = to_photon_angle_coords (orbit, ele)
+integer ix_pix(2)
 
 ! Find grid pt to update.
 ! Note: dr(i) can be zero for 1-dim grid
@@ -244,20 +240,17 @@ if (present(pixel_pt)) then
 
 else
   pixel => ele%photon%pixel
-  nx = 0; ny = 0
+  ix_pix = detector_pixel_pt(orbit, ele)
 
-  if (pixel%dr(1) /= 0) nx = nint((orb%vec(1) - pixel%r0(1)) / pixel%dr(1))
-  if (pixel%dr(2) /= 0) ny = nint((orb%vec(3) - pixel%r0(2)) / pixel%dr(2))
-
-  if (present(ix_pt)) ix_pt = nx
-  if (present(iy_pt)) iy_pt = ny
+  if (present(ix_pt)) ix_pt = ix_pix(1)
+  if (present(iy_pt)) iy_pt = ix_pix(2)
 
   ! If outside of detector region then do nothing.
 
-  if (nx < lbound(pixel%pt, 1) .or. nx > ubound(pixel%pt, 1) .or. &
-      ny < lbound(pixel%pt, 2) .or. ny > ubound(pixel%pt, 2)) return
+  if (ix_pix(1) < lbound(pixel%pt, 1) .or. ix_pix(1) > ubound(pixel%pt, 1) .or. &
+      ix_pix(2) < lbound(pixel%pt, 2) .or. ix_pix(2) > ubound(pixel%pt, 2)) return
 
-  pix => pixel%pt(nx,ny)
+  pix => pixel%pt(ix_pix(1), ix_pix(2))
 endif
 
 ! Add to det stat
@@ -265,10 +258,10 @@ endif
 branch => pointer_to_branch(ele)
 pix%n_photon  = pix%n_photon + 1
 if (branch%lat%photon_type == coherent$) then
-  phase = orb%phase(1) 
-  pix%E_x = pix%E_x + orb%field(1) * cmplx(cos(phase), sin(phase), rp)
-  phase = orb%phase(2) 
-  pix%E_y = pix%E_y + orb%field(2) * cmplx(cos(phase), sin(phase), rp)
+  phase = orbit%phase(1) 
+  pix%E_x = pix%E_x + orbit%field(1) * cmplx(cos(phase), sin(phase), rp)
+  phase = orbit%phase(2) 
+  pix%E_y = pix%E_y + orbit%field(2) * cmplx(cos(phase), sin(phase), rp)
 else
   intens_x = orbit%field(1)**2
   intens_y = orbit%field(2)**2
@@ -276,6 +269,8 @@ else
   pix%intensity_x     = pix%intensity_x    + intens_x
   pix%intensity_y     = pix%intensity_y    + intens_y
   pix%intensity       = pix%intensity      + intens
+
+  orb = to_photon_angle_coords (orbit, ele)
   pix%orbit           = pix%orbit          + intens * orb%vec
   pix%orbit_rms       = pix%orbit_rms      + intens * orb%vec**2
 
@@ -285,6 +280,40 @@ else
 endif
 
 end subroutine photon_add_to_detector_statistics
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Function detector_pixel_pt (orbit, ele) result (ix_pix)
+!
+! Routine to return the pixel a particle is hitting.
+!
+! Input:
+!   orbit     -- coord_struct: Orbit at surface.
+!   ele       -- ele_struct: Detector element.
+!
+! Output:
+!   ix_pix(2) -- integer: index of ele%photon%pixel%pt(:,:) the particle is in.
+!- 
+
+function detector_pixel_pt (orbit, ele) result (ix_pix)
+
+type (coord_struct) orbit
+type (ele_struct), target :: ele
+type (pixel_grid_struct), pointer :: pixel
+
+integer ix_pix(2)
+
+!
+
+ix_pix = 0
+pixel => ele%photon%pixel
+if (pixel%dr(1) /= 0) ix_pix(1) = nint((orbit%vec(1) - pixel%r0(1)) / pixel%dr(1))
+if (pixel%dr(2) /= 0) ix_pix(2) = nint((orbit%vec(3) - pixel%r0(2)) / pixel%dr(2))
+
+
+end function detector_pixel_pt
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -322,48 +351,53 @@ end function to_photon_angle_coords
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine to_detector_surface_coords (orbit, ele)
+! Subroutine to_surface_coords (lab_orbit, ele, surface_orbit)
 !
-! Routine to convert orbit (x,y) (%vec(1), %vec(3)) to "surface" ("pixel") coordinates which
-! is the distance along the surface. This is needed if surface is curved.
+! Routine to convert lab_orbit laboratory coordinates to surface body coordinates.
 !
 ! Input:
-!   orbit       -- coord_struct: Photon position in element body coordinates.
-!   ele         -- ele_struct: Detector element.
+!   lab_orbit     -- coord_struct: Photon position in laboratory coords.
+!   ele           -- ele_struct: Detector element.
 !
 ! Output:
-!   orbit       -- coord_struct: Position with (x, y) modified.
+!   surface_orbit -- coord_struct: Photon position in element body coordinates.
 !     %state      -- Set to lost$ if orbit outside of surface (can happen with sperical surface).
 !-
 
-subroutine to_detector_surface_coords (orbit, ele)
+subroutine to_surface_coords (lab_orbit, ele, surface_orbit)
 
 use super_recipes_mod, only: super_qromb
 
-type (coord_struct) orbit
+type (coord_struct) lab_orbit, surface_orbit
 type (ele_struct) ele
 
-real(rp) z
+real(rp) w_surf(3,3), z
 integer idim
 logical err_flag
 
 !
 
+surface_orbit = lab_orbit
+call offset_photon (ele, surface_orbit, set$)  ! Go to coordinates of the detector
+call track_to_surface (ele, surface_orbit, ele%branch%param, w_surf)
+
 if (.not. has_curvature(ele%photon)) return
 
-z = z_at_surface(ele, orbit%vec(1), orbit%vec(3), err_flag)
+z = z_at_surface(ele, surface_orbit%vec(1), surface_orbit%vec(3), err_flag)
 if (err_flag) then
-  orbit%state = lost$
+  surface_orbit%state = lost$
   return
 endif
 
 !
 
 idim = 1
-orbit%vec(1) = super_qromb(qfunc, 0.0_rp, orbit%vec(1), 1e-6_rp, 1e-8_rp, 4, err_flag)
+surface_orbit%vec(1) = super_qromb(qfunc, 0.0_rp, surface_orbit%vec(1), 1e-6_rp, 1e-8_rp, 4, err_flag)
 
 idim = 2
-orbit%vec(3) = super_qromb(qfunc, 0.0_rp, orbit%vec(3), 1e-6_rp, 1e-8_rp, 4, err_flag)
+surface_orbit%vec(3) = super_qromb(qfunc, 0.0_rp, surface_orbit%vec(3), 1e-6_rp, 1e-8_rp, 4, err_flag)
+
+surface_orbit%vec(5) = z_at_surface(ele, surface_orbit%vec(1), surface_orbit%vec(3), err_flag, .true.)
 
 !------------------------------------------------------
 contains
@@ -389,6 +423,6 @@ enddo
 
 end function qfunc
 
-end subroutine to_detector_surface_coords
+end subroutine to_surface_coords
 
 end module

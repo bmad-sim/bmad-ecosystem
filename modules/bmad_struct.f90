@@ -8,9 +8,7 @@ use random_mod
 use spline_mod
 use cubic_interpolation_mod
 
-use definition, only: 
-use ptc_spin, only: EXACT_MODEL, ALWAYS_EXACTMIS, OLD_INTEGRATOR, HIGHEST_FRINGE, &
-                    genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state
+use ptc_spin, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state
 
 private next_in_branch
 
@@ -20,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 273
+integer, parameter :: bmad_inc_version$ = 274
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -929,6 +927,9 @@ end type
 
 type pixel_grid_struct
   real(rp) :: dr(2) = 0, r0(2) = 0
+  integer(8) :: n_track_tot = 0
+  integer(8) :: n_live = 0
+  integer(8) :: n_lost = 0
   type (pixel_grid_pt_struct), allocatable :: pt(:,:) 
 end type
 
@@ -1672,7 +1673,7 @@ integer, parameter :: term$ = 101, frequencies$ = 101, old_integrator$ = 101, cu
 integer, parameter :: x_position$ = 102, exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
 integer, parameter :: z_position$ = 104, amp_vs_time$ = 104
-integer, parameter :: is_on$ = 105, theta_position$ = 105
+integer, parameter :: is_on$ = 105, theta_position$ = 105, vertical_kick$ = 105
 integer, parameter :: field_calc$ = 106, phi_position$ = 106
 integer, parameter :: psi_position$ = 107, wall$ = 107
 integer, parameter :: aperture_at$ = 108, beta_a$ = 108
@@ -2090,7 +2091,8 @@ type ptc_common_struct
   integer, pointer :: max_fringe_order  => null()  ! Points to PTC HIGHEST_FRINGE. 2 (default) => Quadrupole.
   logical, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR.
   logical, pointer :: exact_model       => null()  ! Points to PTC EXACT_MODEL.
-  logical, pointer :: exact_misalign    => null()  ! Points to ptc ALWAYS_EXACTMIS. Notice different names.
+  logical, pointer :: exact_misalign    => null()  ! Points to PTC ALWAYS_EXACTMIS. Notice different names.
+  real(rp), pointer :: vertical_kick    => null()  ! Points to PTC VERTICAL_KICK for 6D emittance calc. 0 => off, 1 => on.
   real(rp) :: e_tot_set = 0
   logical :: init_ptc_needed = .true.
   logical :: init_spin_needed = .true.

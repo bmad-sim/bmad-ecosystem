@@ -1007,6 +1007,7 @@ end function kind_name
 subroutine set_ptc_com_pointers ()
 
 use c_tpsa, only: EPS_EIGENVALUES_OFF_UNIT_CIRCLE
+use ptc_spin, only: EXACT_MODEL, ALWAYS_EXACTMIS, VERTICAL_KICK, OLD_INTEGRATOR, HIGHEST_FRINGE
 
 implicit none
 
@@ -1016,6 +1017,7 @@ logical init_needed
 
 init_needed = (.not. associated(ptc_com%exact_model))
 
+ptc_com%vertical_kick    => VERTICAL_KICK
 ptc_com%old_integrator   => OLD_INTEGRATOR
 ptc_com%exact_model      => EXACT_MODEL
 ptc_com%exact_misalign   => ALWAYS_EXACTMIS
@@ -1024,11 +1026,13 @@ ptc_com%max_fringe_order => HIGHEST_FRINGE
 if (init_needed) then
   ptc_com%exact_model = .true.
   ptc_com%exact_misalign = .true.  ! Points to ALWAYS_EXACTMIS
+  ptc_com%vertical_kick = 0        ! Off
   EPS_EIGENVALUES_OFF_UNIT_CIRCLE = 1d-4
 
-  allocate (ptc_com_default%old_integrator, ptc_com_default%exact_model, &
+  allocate (ptc_com_default%vertical_kick, ptc_com_default%old_integrator, ptc_com_default%exact_model, &
             ptc_com_default%exact_misalign, ptc_com_default%max_fringe_order)
 
+  ptc_com_default%vertical_kick    = ptc_com%vertical_kick
   ptc_com_default%old_integrator   = ptc_com%old_integrator
   ptc_com_default%exact_model      = ptc_com%exact_model
   ptc_com_default%exact_misalign   = ptc_com%exact_misalign
