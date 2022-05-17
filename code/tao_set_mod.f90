@@ -615,6 +615,44 @@ end subroutine tao_set_bmad_com_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine tao_set_ptc_com_cmd (who, value_str)
+!
+! Routine to set ptc_com variables
+! 
+! Input:
+!   who       -- Character(*): which ptc_com variable to set
+!   value_str -- Character(*): Value to set to.
+!-
+
+subroutine tao_set_ptc_com_cmd (who, value_str)
+
+implicit none
+
+character(*) who, value_str
+character(*), parameter :: r_name = 'tao_set_ptc_com_cmd'
+
+logical err
+
+!
+
+select case (who)
+case ('vertical_kick');           call tao_set_real_value (ptc_com%vertical_kick, who, value_str, err)
+case ('cut_factor');              call tao_set_real_value (ptc_com%cut_factor, who, value_str, err)
+case ('max_fringe_order');        call tao_set_integer_value (ptc_com%max_fringe_order, who, value_str, err)
+case ('exact_model');             call tao_set_logical_value (ptc_com%exact_model, who, value_str, err)
+case ('exact_misalign');          call tao_set_logical_value (ptc_com%exact_misalign, who, value_str, err)
+case ('old_integrator');          call tao_set_logical_value (ptc_com%old_integrator, who, value_str, err)
+case ('use_orientation_patches'); call tao_set_logical_value (ptc_com%use_orientation_patches, who, value_str, err)
+case ('print_info_messages');     call tao_set_logical_value (ptc_com%print_info_messages, who, value_str, err)
+case default;                     call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+end select
+
+end subroutine tao_set_ptc_com_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_geodesic_lm_cmd (who, value_str)
 !
 ! Routine to set geodesic_lm variables
