@@ -728,7 +728,7 @@ case ('PARTICLE')
     a_ptr%i => branch%param%particle
   endif
 
-case ('VERTICAL_KICK');                             a_ptr%r => ptc_com%vertical_kick
+case ('VERTICAL_KICK', 'PTC_VERTICAL_KICK');        a_ptr%r => ptc_com%vertical_kick
 case ('OLD_INTEGRATOR');                            a_ptr%l => ptc_com%old_integrator
 case ('EXACT_MODEL', 'PTC_EXACT_MODEL');            a_ptr%l => ptc_com%exact_model
 case ('EXACT_MISALIGN', 'PTC_EXACT_MISALIGN');      a_ptr%l => ptc_com%exact_misalign

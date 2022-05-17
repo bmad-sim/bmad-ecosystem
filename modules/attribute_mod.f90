@@ -988,6 +988,7 @@ call init_attribute_name1 (def_ptc_com$, exact_model$,                    'EXACT
 call init_attribute_name1 (def_ptc_com$, exact_misalign$,                 'EXACT_MISALIGN')
 call init_attribute_name1 (def_ptc_com$, old_integrator$,                 'OLD_INTEGRATOR')
 call init_attribute_name1 (def_ptc_com$, max_fringe_order$,               'MAX_FRINGE_ORDER')
+call init_attribute_name1 (def_ptc_com$, vertical_kick$,                  'VERTICAL_KICK')
 
 call init_attribute_name1 (detector$, l$,                               'L', dependent$)
 call init_attribute_name1 (detector$, pixel$,                           'PIXEL')
