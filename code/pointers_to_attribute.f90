@@ -108,8 +108,6 @@ case ('BMAD_COM')
   call re_allocate (ptr_array, 1)
 
   select case(attrib_name)
-  case ('PTC_MAX_FRINGE_ORDER');            ptr_array(1)%i => ptc_com%max_fringe_order
-
   case ('MAX_APERTURE_LIMIT');              ptr_array(1)%r => bmad_com%max_aperture_limit
   case ('DEFAULT_DS_STEP');                 ptr_array(1)%r => bmad_com%default_ds_step
   case ('SIGNIFICANT_LENGTH');              ptr_array(1)%r => bmad_com%significant_length

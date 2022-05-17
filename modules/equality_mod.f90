@@ -1493,6 +1493,12 @@ is_eq = .true.
 is_eq = is_eq .and. all(f1%dr == f2%dr)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%r0 == f2%r0)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_track_tot == f2%n_track_tot)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_live == f2%n_live)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_lost == f2%n_lost)
 !! f_side.equality_test[type, 2, ALLOC]
 is_eq = is_eq .and. (allocated(f1%pt) .eqv. allocated(f2%pt))
 if (.not. is_eq) return

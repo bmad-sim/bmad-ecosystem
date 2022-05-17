@@ -916,7 +916,7 @@ character(16), parameter :: surface_grid_type_name(0:3) = [character(16):: 'GARB
 ! Photon statistics at a detector
 
 type pixel_grid_pt_struct
-  integer :: n_photon = 0
+  integer(8) :: n_photon = 0
   complex(rp) :: E_x  = 0, E_y = 0
   real(rp) ::  intensity_x = 0, intensity_y = 0, intensity = 0
   real(rp) :: orbit(6) = 0            ! x, Vx/c, y, Vy/c, dummy, E - E_ref.
