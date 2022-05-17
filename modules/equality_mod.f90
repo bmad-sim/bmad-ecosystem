@@ -1453,7 +1453,7 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[integer, 0, NOT]
+!! f_side.equality_test[integer8, 0, NOT]
 is_eq = is_eq .and. (f1%n_photon == f2%n_photon)
 !! f_side.equality_test[complex, 0, NOT]
 is_eq = is_eq .and. (f1%e_x == f2%e_x)
@@ -1493,11 +1493,11 @@ is_eq = .true.
 is_eq = is_eq .and. all(f1%dr == f2%dr)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%r0 == f2%r0)
-!! f_side.equality_test[integer, 0, NOT]
+!! f_side.equality_test[integer8, 0, NOT]
 is_eq = is_eq .and. (f1%n_track_tot == f2%n_track_tot)
-!! f_side.equality_test[integer, 0, NOT]
+!! f_side.equality_test[integer8, 0, NOT]
 is_eq = is_eq .and. (f1%n_live == f2%n_live)
-!! f_side.equality_test[integer, 0, NOT]
+!! f_side.equality_test[integer8, 0, NOT]
 is_eq = is_eq .and. (f1%n_lost == f2%n_lost)
 !! f_side.equality_test[type, 2, ALLOC]
 is_eq = is_eq .and. (allocated(f1%pt) .eqv. allocated(f2%pt))
@@ -2367,8 +2367,6 @@ is_eq = is_eq .and. (f1%autoscale_phase_tol == f2%autoscale_phase_tol)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%electric_dipole_moment == f2%electric_dipole_moment)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%ptc_cut_factor == f2%ptc_cut_factor)
-!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sad_eps_scale == f2%sad_eps_scale)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sad_amp_max == f2%sad_amp_max)
@@ -2388,8 +2386,6 @@ is_eq = is_eq .and. (f1%rf_phase_below_transition_ref .eqv. f2%rf_phase_below_tr
 is_eq = is_eq .and. (f1%sr_wakes_on .eqv. f2%sr_wakes_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%lr_wakes_on .eqv. f2%lr_wakes_on)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%ptc_use_orientation_patches .eqv. f2%ptc_use_orientation_patches)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%auto_bookkeeper .eqv. f2%auto_bookkeeper)
 !! f_side.equality_test[logical, 0, NOT]
@@ -2416,8 +2412,6 @@ is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tr
 is_eq = is_eq .and. (f1%convert_to_kinetic_momentum .eqv. f2%convert_to_kinetic_momentum)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%ptc_print_info_messages .eqv. f2%ptc_print_info_messages)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%debug .eqv. f2%debug)
 

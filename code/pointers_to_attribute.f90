@@ -122,7 +122,6 @@ case ('BMAD_COM')
   case ('AUTOSCALE_AMP_REL_TOL');           ptr_array(1)%r => bmad_com%autoscale_amp_rel_tol
   case ('AUTOSCALE_PHASE_TOL');             ptr_array(1)%r => bmad_com%autoscale_phase_tol
   case ('ELECTRIC_DIPOLE_MOMENT');          ptr_array(1)%r => bmad_com%electric_dipole_moment
-  case ('PTC_CUT_FACTOR');                  ptr_array(1)%r => bmad_com%ptc_cut_factor
   case ('SAD_EPS_SCALE');                   ptr_array(1)%r => bmad_com%sad_eps_scale
   case ('SAD_AMP_MAX');                     ptr_array(1)%r => bmad_com%sad_amp_max
 
@@ -135,7 +134,6 @@ case ('BMAD_COM')
   case ('RF_PHASE_BELOW_TRANSITION_REF');   ptr_array(1)%l => bmad_com%rf_phase_below_transition_ref
   case ('SR_WAKES_ON');                     ptr_array(1)%l => bmad_com%sr_wakes_on
   case ('LR_WAKES_ON');                     ptr_array(1)%l => bmad_com%lr_wakes_on
-  case ('PTC_USE_ORIENTATION_PATCHES');     ptr_array(1)%l => bmad_com%ptc_use_orientation_patches
   case ('AUTO_BOOKKEEPER');                 ptr_array(1)%l => bmad_com%auto_bookkeeper
   case ('HIGH_ENERGY_SPACE_CHARGE_ON');     ptr_array(1)%l => bmad_com%high_energy_space_charge_on
   case ('CSR_AND_SPACE_CHARGE_ON');         ptr_array(1)%l => bmad_com%csr_and_space_charge_on
@@ -149,7 +147,6 @@ case ('BMAD_COM')
   case ('ABSOLUTE_TIME_TRACKING_DEFAULT');  ptr_array(1)%l => bmad_com%absolute_time_tracking_default
   case ('CONVERT_TO_KINETIC_MOMENTUM');     ptr_array(1)%l => bmad_com%convert_to_kinetic_momentum
   case ('APERTURE_LIMIT_ON');               ptr_array(1)%l => bmad_com%aperture_limit_on
-  case ('PTC_PRINT_INFO_MESSAGES');         ptr_array(1)%l => bmad_com%ptc_print_info_messages
   case ('DEBUG');                           ptr_array(1)%l => bmad_com%debug
 
   case default
