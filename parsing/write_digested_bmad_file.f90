@@ -162,17 +162,17 @@ enddo
 write (d_unit) lat%particle_start
 write (d_unit) lat%beam_init
 
-! Write PTC info
+! Write common stuff
 
-write (d_unit) ptc_com%vertical_kick, ptc_com%old_integrator, ptc_com%exact_model, ptc_com%exact_misalign, ptc_com%max_fringe_order
-
-! Write random state info
 
 if (present(extra)) then
   write (d_unit) .true.
   write (d_unit) extra
   write (d_unit) bmad_com
   write (d_unit) space_charge_com
+  write (d_unit) ptc_com%max_fringe_order, ptc_com%exact_model, ptc_com%exact_misalign, &
+          ptc_com%vertical_kick, ptc_com%cut_factor, ptc_com%old_integrator, &
+          ptc_com%use_orientation_patches, ptc_com%print_info_messages
 else
   write (d_unit) .false.
 endif

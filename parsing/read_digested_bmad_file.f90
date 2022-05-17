@@ -276,7 +276,10 @@ if (found_it) then
   read (d_unit, iostat = ios) extra
   read (d_unit, iostat = ios2) bmad_com_read
   read (d_unit, iostat = ios3) space_charge_com_read
-  read (d_unit, iostat = ios4) ptc_com_read
+  read (d_unit, iostat = ios4) ptc_com_read%max_fringe_order, ptc_com_read%exact_model, ptc_com_read%exact_misalign, &
+          ptc_com_read%vertical_kick, ptc_com_read%cut_factor, ptc_com_read%old_integrator, &
+          ptc_com_read%use_orientation_patches, ptc_com_read%print_info_messages
+
 
   if (ios /= 0 .or. ios2 /= 0 .or. ios3 /= 0 .or. ios4 /= 0) then
     call out_io (io_err_level, r_name, 'ERROR READING BMAD/SPACE_CHARGE/PTC COMMON PARAMETERS')
