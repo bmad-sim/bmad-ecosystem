@@ -1925,13 +1925,13 @@ case ('global')
 
   do
     call tao_next_switch (what2, [character(20):: '-optimization', '-bmad_com', &
-                    '-csr_param', '-space_charge_com', '-ran_state', '-ptc', '-internal'], .true., switch, err, ix)
+                    '-csr_param', '-space_charge_com', '-ran_state', '-ptc_com', '-internal'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('')
       exit
-    case ('-optimization', '-bmad_com', '-csr_param', '-space_charge_com', '-ran_state', '-ptc', '-internal')
+    case ('-optimization', '-bmad_com', '-csr_param', '-space_charge_com', '-ran_state', '-ptc_com', '-internal')
       what_to_show = switch
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
@@ -2036,7 +2036,7 @@ case ('global')
 
   case ('-bmad_com')
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
+    nl=nl+1; lines(nl) = 'Bmad_com Parameters (use "set bmad_com" to change):'
     nl=nl+1; write(lines(nl), rmt) '  %max_aperture_limit              = ', bmad_com%max_aperture_limit
     nl=nl+1; write(lines(nl), rmt) '  %d_orb                           = ', bmad_com%d_orb
     nl=nl+1; write(lines(nl), rmt) '  %default_ds_step                 = ', bmad_com%default_ds_step
@@ -2051,7 +2051,6 @@ case ('global')
     nl=nl+1; write(lines(nl), rmt) '  %init_ds_adaptive_tracking       = ', bmad_com%init_ds_adaptive_tracking
     nl=nl+1; write(lines(nl), rmt) '  %min_ds_adaptive_tracking        = ', bmad_com%min_ds_adaptive_tracking
     nl=nl+1; write(lines(nl), rmt) '  %electric_dipole_moment          = ', bmad_com%electric_dipole_moment
-    nl=nl+1; write(lines(nl), rmt) '  %ptc_cut_factor                  = ', bmad_com%ptc_cut_factor
     nl=nl+1; write(lines(nl), rmt) '  %sad_eps_scale                   = ', bmad_com%sad_eps_scale
     nl=nl+1; write(lines(nl), rmt) '  %sad_amp_max                     = ', bmad_com%sad_amp_max
 
@@ -2063,7 +2062,6 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
     nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) '  %ptc_use_orientation_patches     = ', bmad_com%ptc_use_orientation_patches
     nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                 = ', bmad_com%auto_bookkeeper
     nl=nl+1; write(lines(nl), lmt) '  %high_energy_space_charge_on     = ', bmad_com%high_energy_space_charge_on
     nl=nl+1; write(lines(nl), lmt) '  %csr_and_space_charge_on         = ', bmad_com%csr_and_space_charge_on
@@ -2108,9 +2106,9 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %lsc_kick_transverse_dependence = ', space_charge_com%lsc_kick_transverse_dependence
     nl=nl+1; write(lines(nl), amt) '  %diagnostic_output_file         = ', quote(space_charge_com%diagnostic_output_file)
 
-  case ('-ptc')
+  case ('-ptc_com')
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'PTC_com Parameters:'
+    nl=nl+1; lines(nl) = 'PTC_com Parameters (set using "set ptc_com ..."):'
     nl=nl+1; write(lines(nl), rmt) '  %vertical_kick         = ', ptc_com%vertical_kick
     nl=nl+1; write(lines(nl), imt) '  %taylor_order_ptc      = ', ptc_com%taylor_order_ptc
     nl=nl+1; write(lines(nl), imt) '  %max_fringe_order      = ', ptc_com%max_fringe_order
