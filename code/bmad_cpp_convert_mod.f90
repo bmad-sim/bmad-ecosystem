@@ -839,7 +839,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine spline_to_c2 (C, z_x0, z_y0, z_x1, z_coef) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_x0, z_y0, z_x1, z_coef(*)
@@ -924,7 +924,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine spin_polar_to_c2 (C, z_polarization, z_theta, z_phi, z_xi) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_polarization, z_theta, z_phi, z_xi
@@ -1010,7 +1010,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine surface_orientation_to_c2 (C, z_dz_dx, z_dz_dy, z_dz_dx_rms, z_dz_dy_rms, &
       z_dz2_dxdy) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_dz_dx, z_dz_dy, z_dz_dx_rms, z_dz_dy_rms, z_dz2_dxdy
@@ -1098,7 +1098,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine ac_kicker_time_to_c2 (C, z_amp, z_time, z_spline) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_amp, z_time
@@ -1183,7 +1183,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine ac_kicker_freq_to_c2 (C, z_f, z_amp, z_phi) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_f, z_amp, z_phi
@@ -1267,7 +1267,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine ac_kicker_to_c2 (C, z_amp_vs_time, n1_amp_vs_time, z_frequencies, n1_frequencies) &
       bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_amp_vs_time(*), z_frequencies(*)
@@ -1397,7 +1397,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine interval1_coef_to_c2 (C, z_c0, z_c1, z_n_exp) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_c0, z_c1, z_n_exp
@@ -1482,7 +1482,7 @@ interface
   subroutine photon_reflect_table_to_c2 (C, z_angle, n1_angle, z_energy, n1_energy, z_int1, &
       n1_int1, z_p_reflect, n1_p_reflect, n2_p_reflect, z_max_energy, z_p_reflect_scratch, &
       n1_p_reflect_scratch) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_angle(*), z_energy(*), z_p_reflect(*), z_max_energy, z_p_reflect_scratch(*)
@@ -1678,7 +1678,7 @@ interface
   subroutine photon_reflect_surface_to_c2 (C, z_name, z_description, z_reflectivity_file, &
       z_table, n1_table, z_surface_roughness_rms, z_roughness_correlation_len, z_initialized, &
       z_ix_surface) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_name(*), z_description(*), z_reflectivity_file(*)
@@ -1810,7 +1810,7 @@ interface
   subroutine coord_to_c2 (C, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_path_len, &
       z_r, z_p0c, z_e_potential, z_beta, z_ix_ele, z_ix_branch, z_ix_user, z_state, &
       z_direction, z_species, z_location) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_vec(*), z_s, z_t, z_spin(*), z_field(*), z_phase(*), z_charge
@@ -1933,7 +1933,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine coord_array_to_c2 (C, z_orbit, n1_orbit) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_orbit(*)
@@ -2038,7 +2038,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bpm_phase_coupling_to_c2 (C, z_k_22a, z_k_12a, z_k_11b, z_k_12b, z_cbar22_a, &
       z_cbar12_a, z_cbar11_b, z_cbar12_b, z_phi_a, z_phi_b) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_k_22a, z_k_12a, z_k_11b, z_k_12b, z_cbar22_a, z_cbar12_a, z_cbar11_b
@@ -2139,7 +2139,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine expression_atom_to_c2 (C, z_name, z_type, z_value) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_name(*)
@@ -2227,7 +2227,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wake_sr_mode_to_c2 (C, z_amp, z_damp, z_k, z_phi, z_b_sin, z_b_cos, z_a_sin, &
       z_a_cos, z_polarization, z_position_dependence) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_amp, z_damp, z_k, z_phi, z_b_sin, z_b_cos, z_a_sin
@@ -2331,7 +2331,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wake_sr_to_c2 (C, z_file, z_long, n1_long, z_trans, n1_trans, z_z_ref_long, &
       z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
@@ -2483,7 +2483,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wake_lr_mode_to_c2 (C, z_freq, z_freq_in, z_r_over_q, z_q, z_damp, z_phi, z_angle, &
       z_b_sin, z_b_cos, z_a_sin, z_a_cos, z_m, z_polarized) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_freq, z_freq_in, z_r_over_q, z_q, z_damp, z_phi, z_angle
@@ -2595,7 +2595,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wake_lr_to_c2 (C, z_file, z_mode, n1_mode, z_t_ref, z_freq_spread, z_amp_scale, &
       z_time_scale, z_self_wake_on) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
@@ -2719,7 +2719,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine lat_ele_loc_to_c2 (C, z_ix_ele, z_ix_branch) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_ix_ele, z_ix_branch
@@ -2800,7 +2800,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wake_to_c2 (C, z_sr, z_lr) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_sr, z_lr
@@ -2881,7 +2881,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine taylor_term_to_c2 (C, z_coef, z_expn) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_coef
@@ -2964,7 +2964,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine taylor_to_c2 (C, z_ref, z_term, n1_term) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_ref
@@ -3072,7 +3072,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine em_taylor_term_to_c2 (C, z_coef, z_expn) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_coef
@@ -3155,7 +3155,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine em_taylor_to_c2 (C, z_ref, z_term, n1_term) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_ref
@@ -3264,7 +3264,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine cartesian_map_term1_to_c2 (C, z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z, &
       z_family, z_form) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_x0, z_y0, z_phi_z
@@ -3363,7 +3363,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine cartesian_map_term_to_c2 (C, z_file, z_n_link, z_term, n1_term) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
@@ -3476,7 +3476,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine cartesian_map_to_c2 (C, z_field_scale, z_r0, z_master_parameter, z_ele_anchor_pt, &
       z_field_type, z_ptr, n_ptr) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_field_scale, z_r0(*)
@@ -3584,7 +3584,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine cylindrical_map_term1_to_c2 (C, z_e_coef, z_b_coef) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     complex(c_double_complex) :: z_e_coef, z_b_coef
@@ -3665,7 +3665,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine cylindrical_map_term_to_c2 (C, z_file, z_n_link, z_term, n1_term) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
@@ -3778,7 +3778,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine cylindrical_map_to_c2 (C, z_m, z_harmonic, z_phi0_fieldmap, z_theta0_azimuth, &
       z_field_scale, z_master_parameter, z_ele_anchor_pt, z_dz, z_r0, z_ptr, n_ptr) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_m, z_harmonic, z_master_parameter, z_ele_anchor_pt
@@ -3895,7 +3895,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine grid_field_pt1_to_c2 (C, z_e, z_b) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     complex(c_double_complex) :: z_e(*), z_b(*)
@@ -3976,7 +3976,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine grid_field_pt_to_c2 (C, z_file, z_n_link, z_pt, n1_pt, n2_pt, n3_pt) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
@@ -4095,7 +4095,7 @@ interface
   subroutine grid_field_to_c2 (C, z_geometry, z_harmonic, z_phi0_fieldmap, z_field_scale, &
       z_field_type, z_master_parameter, z_ele_anchor_pt, z_interpolation_order, z_dr, z_r0, &
       z_curved_ref_frame, z_ptr, n_ptr) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_geometry, z_harmonic, z_field_type, z_master_parameter, z_ele_anchor_pt, z_interpolation_order
@@ -4219,7 +4219,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine taylor_field_plane1_to_c2 (C, z_field) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_field(*)
@@ -4305,7 +4305,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine taylor_field_plane_to_c2 (C, z_file, z_n_link, z_plane, n1_plane) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
@@ -4418,7 +4418,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine taylor_field_to_c2 (C, z_ele_anchor_pt, z_field_type, z_dz, z_r0, z_field_scale, &
       z_master_parameter, z_curved_ref_frame, z_canonical_tracking, z_ptr, n_ptr) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_ele_anchor_pt, z_field_type, z_master_parameter
@@ -4535,7 +4535,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine floor_position_to_c2 (C, z_r, z_w, z_theta, z_phi, z_psi) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_r(*), z_w(*), z_theta, z_phi, z_psi
@@ -4623,7 +4623,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine high_energy_space_charge_to_c2 (C, z_closed_orb, z_kick_const, z_sig_x, z_sig_y, &
       z_phi, z_sin_phi, z_cos_phi, z_sig_z) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_closed_orb
@@ -4720,7 +4720,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine xy_disp_to_c2 (C, z_eta, z_etap, z_sigma) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_eta, z_etap, z_sigma
@@ -4804,7 +4804,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine twiss_to_c2 (C, z_beta, z_alpha, z_gamma, z_phi, z_eta, z_etap, z_sigma, &
       z_sigma_p, z_emit, z_norm_emit) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_beta, z_alpha, z_gamma, z_phi, z_eta, z_etap, z_sigma
@@ -4905,7 +4905,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine mode3_to_c2 (C, z_v, z_a, z_b, z_c, z_x, z_y) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_v(*)
@@ -4998,7 +4998,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bookkeeping_state_to_c2 (C, z_attributes, z_control, z_floor_position, &
       z_s_position, z_ref_energy, z_mat6, z_rad_int, z_ptc) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_attributes, z_control, z_floor_position, z_s_position, z_ref_energy, z_mat6, z_rad_int
@@ -5095,7 +5095,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine rad_map_to_c2 (C, z_ref_orb, z_damp_vec, z_damp_mat, z_stoc_mat) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_ref_orb(*), z_damp_vec(*), z_damp_mat(*), z_stoc_mat(*)
@@ -5182,7 +5182,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine rad_int_ele_cache_to_c2 (C, z_g2_0, z_g3_0, z_dg2_dorb, z_dg3_dorb, z_stale, &
       z_rm0, z_rm1) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_g2_0, z_g3_0, z_dg2_dorb(*), z_dg3_dorb(*)
@@ -5280,7 +5280,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine surface_grid_pt_to_c2 (C, z_orientation, z_z0, z_x0, z_y0, z_dz_dx, z_dz_dy, &
       z_d2z_dxdy) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_orientation
@@ -5375,7 +5375,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine surface_grid_to_c2 (C, z_active, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_active
@@ -5499,7 +5499,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine target_point_to_c2 (C, z_r) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_r(*)
@@ -5579,7 +5579,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine surface_curvature_to_c2 (C, z_xy, z_spherical, z_elliptical, z_has_curvature) &
       bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_xy(*), z_spherical, z_elliptical(*)
@@ -5668,7 +5668,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine photon_target_to_c2 (C, z_type, z_n_corner, z_ele_loc, z_corner, z_center) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_type, z_n_corner
@@ -5767,7 +5767,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine photon_material_to_c2 (C, z_f0_m1, z_f0_m2, z_f_0, z_f_h, z_f_hbar, z_f_hkl, &
       z_h_norm, z_l_ref) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     complex(c_double_complex) :: z_f0_m1, z_f0_m2, z_f_0, z_f_h, z_f_hbar, z_f_hkl
@@ -5865,7 +5865,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine pixel_grid_pt_to_c2 (C, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, &
       z_intensity, z_orbit, z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
-    import
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_long) :: z_n_photon
@@ -5924,7 +5924,7 @@ real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_orbit(*), z_orbit
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[integer, 0, NOT]
+!! f_side.to_f2_trans[integer8, 0, NOT]
 F%n_photon = z_n_photon
 !! f_side.to_f2_trans[complex, 0, NOT]
 F%e_x = z_e_x
@@ -5970,7 +5970,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine pixel_grid_to_c2 (C, z_dr, z_r0, z_n_track_tot, z_n_live, z_n_lost, z_pt, n1_pt, &
       n2_pt) bind(c)
-    import
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_dr(*), z_r0(*)
@@ -6048,11 +6048,11 @@ call c_f_pointer (Fp, F)
 F%dr = z_dr(1:2)
 !! f_side.to_f2_trans[real, 1, NOT]
 F%r0 = z_r0(1:2)
-!! f_side.to_f2_trans[integer, 0, NOT]
+!! f_side.to_f2_trans[integer8, 0, NOT]
 F%n_track_tot = z_n_track_tot
-!! f_side.to_f2_trans[integer, 0, NOT]
+!! f_side.to_f2_trans[integer8, 0, NOT]
 F%n_live = z_n_live
-!! f_side.to_f2_trans[integer, 0, NOT]
+!! f_side.to_f2_trans[integer8, 0, NOT]
 F%n_lost = z_n_lost
 !! f_side.to_f2_trans[type, 2, ALLOC]
 if (n1_pt == 0) then
@@ -6096,7 +6096,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine photon_element_to_c2 (C, z_curvature, z_target, z_material, z_grid, z_pixel) &
       bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel
@@ -6186,7 +6186,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wall3d_vertex_to_c2 (C, z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, z_x0, &
       z_y0, z_type) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, z_x0
@@ -6290,7 +6290,7 @@ interface
       z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_vertices_state, z_patch_in_region, &
       z_thickness, z_s, z_r0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, &
       z_p2_coef) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_name(*), z_material(*)
@@ -6464,7 +6464,7 @@ interface
   subroutine wall3d_to_c2 (C, z_name, z_type, z_ix_wall3d, z_n_link, z_thickness, &
       z_clear_material, z_opaque_material, z_superimpose, z_ele_anchor_pt, z_section, &
       n1_section) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_name(*), z_clear_material(*), z_opaque_material(*)
@@ -6599,7 +6599,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine control_to_c2 (C, z_value, z_y_knot, n1_y_knot, z_stack, n1_stack, z_slave, &
       z_lord, z_attribute, z_slave_name, z_ix_attrib) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_value, z_y_knot(*)
@@ -6746,7 +6746,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine controller_var1_to_c2 (C, z_name, z_value, z_old_value) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_name(*)
@@ -6832,7 +6832,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine controller_to_c2 (C, z_type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) &
       bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_type
@@ -6990,7 +6990,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine ellipse_beam_init_to_c2 (C, z_part_per_ellipse, z_n_ellipse, z_sigma_cutoff) &
       bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_part_per_ellipse, z_n_ellipse
@@ -7076,7 +7076,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine kv_beam_init_to_c2 (C, z_part_per_phi, z_n_i2, z_a) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_part_per_phi(*), z_n_i2
@@ -7162,7 +7162,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine grid_beam_init_to_c2 (C, z_n_x, z_n_px, z_x_min, z_x_max, z_px_min, z_px_max) &
       bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_n_x, z_n_px
@@ -7260,7 +7260,7 @@ interface
       z_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, z_species, &
       z_init_spin, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t, &
       z_sig_e_jitter, z_sig_e, z_use_particle_start_for_center) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_position_file(*), z_file_name(*), z_random_engine(*), z_random_gauss_converter(*), z_species(*)
@@ -7471,7 +7471,7 @@ interface
       z_t1_no_rf, z_spin_tune, z_particle, z_default_tracking_species, z_geometry, z_ixx, &
       z_stable, z_live_branch, z_i2_rad_int, z_i3_rad_int, z_bookkeeping_state, z_beam_init) &
       bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*), z_spin_tune, z_i2_rad_int
@@ -7594,7 +7594,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine mode_info_to_c2 (C, z_stable, z_tune, z_emit, z_chrom, z_sigma, z_sigmap) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_stable
@@ -7685,7 +7685,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine pre_tracker_to_c2 (C, z_who, z_ix_ele_start, z_ix_ele_end, z_input_file) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_who, z_ix_ele_start, z_ix_ele_end
@@ -7774,7 +7774,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine anormal_mode_to_c2 (C, z_emittance, z_emittance_no_vert, z_synch_int, z_j_damp, &
       z_alpha_damp, z_chrom, z_tune) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_emittance, z_emittance_no_vert, z_synch_int(*), z_j_damp, z_alpha_damp, z_chrom, z_tune
@@ -7868,7 +7868,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine linac_normal_mode_to_c2 (C, z_i2_e4, z_i3_e7, z_i5a_e6, z_i5b_e6, z_sig_e1, &
       z_a_emittance_end, z_b_emittance_end) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_i2_e4, z_i3_e7, z_i5a_e6, z_i5b_e6, z_sig_e1, z_a_emittance_end, z_b_emittance_end
@@ -7963,7 +7963,7 @@ interface
   subroutine normal_modes_to_c2 (C, z_synch_int, z_sige_e, z_sig_z, z_e_loss, z_rf_voltage, &
       z_pz_aperture, z_pz_average, z_momentum_compaction, z_dpz_damp, z_a, z_b, z_z, z_lin) &
       bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_synch_int(*), z_sige_e, z_sig_z, z_e_loss, z_rf_voltage, z_pz_aperture, z_pz_average
@@ -8074,7 +8074,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine em_field_to_c2 (C, z_e, z_b, z_de, z_db, z_phi, z_phi_b, z_a) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_e(*), z_b(*), z_de(*), z_db(*), z_phi, z_phi_b, z_a(*)
@@ -8167,7 +8167,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine strong_beam_to_c2 (C, z_ix_slice, z_x_center, z_y_center, z_x_sigma, z_y_sigma, &
       z_dx, z_dy) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_ix_slice
@@ -8263,7 +8263,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine track_point_to_c2 (C, z_s_body, z_orb, z_field, z_strong_beam, z_vec0, z_mat6) &
       bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_s_body, z_vec0(*), z_mat6(*)
@@ -8356,7 +8356,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine track_to_c2 (C, z_pt, n1_pt, z_ds_save, z_n_pt, z_n_bad, z_n_ok) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_pt(*)
@@ -8472,7 +8472,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine synch_rad_common_to_c2 (C, z_scale, z_i2, z_i3, z_i5a, z_i5b) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_scale, z_i2, z_i3, z_i5a, z_i5b
@@ -8563,7 +8563,7 @@ interface
       z_sigma_cutoff, z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, &
       z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
       z_lsc_kick_transverse_dependence, z_diagnostic_output_file) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_ds_track_step, z_dt_track_step, z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, z_sigma_cutoff
@@ -8688,25 +8688,23 @@ interface
       z_rel_tol_adaptive_tracking, z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, &
       z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, &
       z_autoscale_amp_rel_tol, z_autoscale_phase_tol, z_electric_dipole_moment, &
-      z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max, z_sad_n_div_max, z_taylor_order, &
-      z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step, &
-      z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, &
-      z_ptc_use_orientation_patches, z_auto_bookkeeper, z_high_energy_space_charge_on, &
+      z_sad_eps_scale, z_sad_amp_max, z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, &
+      z_default_integ_order, z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, &
+      z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, &
       z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
       z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, &
       z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-      z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug) &
-      bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+      z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
     real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
-    real(c_double) :: z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max
+    real(c_double) :: z_electric_dipole_moment, z_sad_eps_scale, z_sad_amp_max
     integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step
-    logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_ptc_use_orientation_patches, z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on
-    logical(c_bool) :: z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps
-    logical(c_bool) :: z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug
+    logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, z_spin_tracking_on
+    logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default
+    logical(c_bool) :: z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug
   end subroutine
 end interface
 
@@ -8726,17 +8724,16 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     F%significant_length, F%rel_tol_tracking, F%abs_tol_tracking, F%rel_tol_adaptive_tracking, &
     F%abs_tol_adaptive_tracking, F%init_ds_adaptive_tracking, F%min_ds_adaptive_tracking, &
     F%fatal_ds_adaptive_tracking, F%autoscale_amp_abs_tol, F%autoscale_amp_rel_tol, &
-    F%autoscale_phase_tol, F%electric_dipole_moment, F%ptc_cut_factor, F%sad_eps_scale, &
-    F%sad_amp_max, F%sad_n_div_max, F%taylor_order, F%runge_kutta_order, F%default_integ_order, &
+    F%autoscale_phase_tol, F%electric_dipole_moment, F%sad_eps_scale, F%sad_amp_max, &
+    F%sad_n_div_max, F%taylor_order, F%runge_kutta_order, F%default_integ_order, &
     F%max_num_runge_kutta_step, c_logic(F%rf_phase_below_transition_ref), &
-    c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), c_logic(F%ptc_use_orientation_patches), &
-    c_logic(F%auto_bookkeeper), c_logic(F%high_energy_space_charge_on), &
-    c_logic(F%csr_and_space_charge_on), c_logic(F%spin_tracking_on), &
-    c_logic(F%backwards_time_tracking_on), c_logic(F%spin_sokolov_ternov_flipping_on), &
-    c_logic(F%radiation_damping_on), c_logic(F%radiation_zero_average), &
-    c_logic(F%radiation_fluctuations_on), c_logic(F%conserve_taylor_maps), &
-    c_logic(F%absolute_time_tracking_default), c_logic(F%convert_to_kinetic_momentum), &
-    c_logic(F%aperture_limit_on), c_logic(F%ptc_print_info_messages), c_logic(F%debug))
+    c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), c_logic(F%auto_bookkeeper), &
+    c_logic(F%high_energy_space_charge_on), c_logic(F%csr_and_space_charge_on), &
+    c_logic(F%spin_tracking_on), c_logic(F%backwards_time_tracking_on), &
+    c_logic(F%spin_sokolov_ternov_flipping_on), c_logic(F%radiation_damping_on), &
+    c_logic(F%radiation_zero_average), c_logic(F%radiation_fluctuations_on), &
+    c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
+    c_logic(F%convert_to_kinetic_momentum), c_logic(F%aperture_limit_on), c_logic(F%debug))
 
 end subroutine bmad_common_to_c
 
@@ -8760,15 +8757,14 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking, &
     z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, &
     z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, &
-    z_autoscale_phase_tol, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, &
-    z_sad_amp_max, z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, &
+    z_autoscale_phase_tol, z_electric_dipole_moment, z_sad_eps_scale, z_sad_amp_max, &
+    z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, &
     z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, &
-    z_ptc_use_orientation_patches, z_auto_bookkeeper, z_high_energy_space_charge_on, &
-    z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
-    z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, &
-    z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-    z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug) &
-    bind(c)
+    z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, &
+    z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, &
+    z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, &
+    z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, &
+    z_aperture_limit_on, z_debug) bind(c)
 
 
 implicit none
@@ -8779,11 +8775,11 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
 real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
-real(c_double) :: z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max
+real(c_double) :: z_electric_dipole_moment, z_sad_eps_scale, z_sad_amp_max
 integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step
-logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_ptc_use_orientation_patches, z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on
-logical(c_bool) :: z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps
-logical(c_bool) :: z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug
+logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, z_spin_tracking_on
+logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default
+logical(c_bool) :: z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug
 
 call c_f_pointer (Fp, F)
 
@@ -8818,8 +8814,6 @@ F%autoscale_phase_tol = z_autoscale_phase_tol
 !! f_side.to_f2_trans[real, 0, NOT]
 F%electric_dipole_moment = z_electric_dipole_moment
 !! f_side.to_f2_trans[real, 0, NOT]
-F%ptc_cut_factor = z_ptc_cut_factor
-!! f_side.to_f2_trans[real, 0, NOT]
 F%sad_eps_scale = z_sad_eps_scale
 !! f_side.to_f2_trans[real, 0, NOT]
 F%sad_amp_max = z_sad_amp_max
@@ -8839,8 +8833,6 @@ F%rf_phase_below_transition_ref = f_logic(z_rf_phase_below_transition_ref)
 F%sr_wakes_on = f_logic(z_sr_wakes_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%lr_wakes_on = f_logic(z_lr_wakes_on)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%ptc_use_orientation_patches = f_logic(z_ptc_use_orientation_patches)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%auto_bookkeeper = f_logic(z_auto_bookkeeper)
 !! f_side.to_f2_trans[logical, 0, NOT]
@@ -8867,8 +8859,6 @@ F%absolute_time_tracking_default = f_logic(z_absolute_time_tracking_default)
 F%convert_to_kinetic_momentum = f_logic(z_convert_to_kinetic_momentum)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%aperture_limit_on = f_logic(z_aperture_limit_on)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%ptc_print_info_messages = f_logic(z_ptc_print_info_messages)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%debug = f_logic(z_debug)
 
@@ -8898,7 +8888,7 @@ interface
   subroutine rad_int1_to_c2 (C, z_i0, z_i1, z_i2, z_i3, z_i4a, z_i4b, z_i4z, z_i5a, z_i5b, &
       z_i6b, z_lin_i2_e4, z_lin_i3_e7, z_lin_i5a_e6, z_lin_i5b_e6, z_lin_norm_emit_a, &
       z_lin_norm_emit_b, z_lin_sig_e, z_n_steps) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_i0, z_i1, z_i2, z_i3, z_i4a, z_i4b, z_i4z
@@ -9019,7 +9009,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine rad_int_branch_to_c2 (C, z_ele, n1_ele) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_ele(*)
@@ -9123,7 +9113,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine rad_int_all_ele_to_c2 (C, z_branch, n1_branch) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_branch(*)
@@ -9244,14 +9234,13 @@ interface
       z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, &
       z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, z_bmad_logic, z_select, &
       z_offset_moves_aperture) bind(c)
-    import
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_name(*), z_type(*), z_alias(*), z_component_name(*), z_descrip(*)
-    integer(c_int), value :: n_descrip, n_ac_kick, n_control, n_high_energy_space_charge, n_mode3, n_rad_int_cache
+    integer(c_int), value :: n_descrip, n_ac_kick, n_control, n_high_energy_space_charge, n_mode3, n_photon, n_rad_int_cache
     integer(c_int), value :: n_wake, n1_wall3d, n1_cartesian_map, n1_cylindrical_map, n1_grid_field, n1_taylor_field, n1_a_pole
     integer(c_int), value :: n1_b_pole, n1_a_pole_elec, n1_b_pole_elec, n1_custom, n1_r, n2_r, n3_r
-    integer(c_long), value :: n_photon
     type(c_ptr), value :: z_a, z_b, z_z, z_x, z_y, z_ac_kick, z_bookkeeping_state
     type(c_ptr), value :: z_control, z_floor, z_high_energy_space_charge, z_mode3, z_photon, z_rad_int_cache, z_wake
     type(c_ptr), value :: z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out
@@ -9279,7 +9268,7 @@ integer(c_int) :: n_ac_kick
 integer(c_int) :: n_control
 integer(c_int) :: n_high_energy_space_charge
 integer(c_int) :: n_mode3
-integer(c_long) :: n_photon
+integer(c_int) :: n_photon
 integer(c_int) :: n_rad_int_cache
 type(c_ptr) :: z_taylor(6)
 type(c_ptr) :: z_spin_taylor(4)
@@ -9893,7 +9882,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine complex_taylor_term_to_c2 (C, z_coef, z_expn) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     complex(c_double_complex) :: z_coef
@@ -9976,7 +9965,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine complex_taylor_to_c2 (C, z_ref, z_term, n1_term) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     complex(c_double_complex) :: z_ref
@@ -10086,7 +10075,7 @@ interface
   subroutine branch_to_c2 (C, z_name, z_ix_branch, z_ix_from_branch, z_ix_from_ele, &
       z_ix_to_ele, z_n_ele_track, z_n_ele_max, z_a, z_b, z_z, z_ele, n1_ele, z_param, z_wall3d, &
       n1_wall3d) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_name(*)
@@ -10253,7 +10242,7 @@ interface
       z_version, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_n_control_max, &
       z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash, &
       z_absolute_time_tracking) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_use_name(*), z_lattice(*), z_machine(*), z_input_file_name(*), z_title(*)
@@ -10641,7 +10630,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bunch_to_c2 (C, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge_tot, &
       z_charge_live, z_z_center, z_t_center, z_ix_ele, z_ix_bunch, z_n_live) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_particle(*)
@@ -10788,7 +10777,7 @@ interface
   subroutine bunch_params_to_c2 (C, z_centroid, z_x, z_y, z_z, z_a, z_b, z_c, z_spin, z_sigma, &
       z_rel_max, z_rel_min, z_s, z_charge_live, z_charge_tot, z_n_particle_tot, &
       z_n_particle_live, z_n_particle_lost_in_ele, z_twiss_valid) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_centroid, z_x, z_y, z_z, z_a, z_b, z_c
@@ -10912,7 +10901,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine beam_to_c2 (C, z_bunch, n1_bunch) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_bunch(*)
@@ -11016,7 +11005,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine aperture_point_to_c2 (C, z_x, z_y, z_plane, z_ix_ele, z_i_turn) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_x, z_y
@@ -11106,7 +11095,7 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine aperture_param_to_c2 (C, z_min_angle, z_max_angle, z_n_angle, z_n_turn, z_x_init, &
       z_y_init, z_rel_accuracy, z_abs_accuracy, z_start_ele) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_min_angle, z_max_angle, z_x_init, z_y_init, z_rel_accuracy, z_abs_accuracy
@@ -11207,7 +11196,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine aperture_scan_to_c2 (C, z_point, n1_point, z_ref_orb, z_pz_start) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_point(*)

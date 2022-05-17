@@ -24,7 +24,7 @@ import textwrap
 ##################################################################################
 # Init
 
-##master_input_file = 'test_interface_input'
+## master_input_file = 'test_interface_input'   # Used for testing
 master_input_file = 'interface_input_params'
 
 n_char_max = 95
@@ -76,6 +76,7 @@ F = False
 REAL   = 'real'
 CMPLX  = 'complex'
 INT    = 'integer'
+INT8   = 'integer8'
 LOGIC  = 'logical'
 CHAR   = 'character'
 STRUCT = 'type'
@@ -154,7 +155,7 @@ class f_side_trans_class:
     return '%s,  %s,  %s :: %s' % (self.to_c2_call, self.to_c2_type, self.to_c2_name, 
                                    self.to_f2_trans, self.to_f2_type, self.to_f2_name)
 
-#------------------------
+#--------------------------------------
 
 x2 = ' ' * 2
 x4 = ' ' * 4
@@ -203,7 +204,7 @@ n_str = {0:'', 1:'1', 2:'2', 3:'3'}
 
 f_side_trans = {}
 
-for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
+for type in [REAL, CMPLX, INT, INT8, LOGIC, STRUCT, SIZE]:
   for dim in range(4):
     f_side_trans[type, dim, NOT] = copy.deepcopy(f_side_trans_class())
     f = f_side_trans[type, dim, NOT]
@@ -218,6 +219,10 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
 
     if type == INT:
       f.to_c2_type = 'integer(c_int)'
+      test_value = 'rhs'
+
+    if type == INT8:
+      f.to_c2_type = 'integer(c_long)'
       test_value = 'rhs'
 
     if type == LOGIC:
@@ -605,8 +610,6 @@ else
 endif
 '''
 
-    #----------
-
 #---------------------------
 # CHAR 0 NOT
 
@@ -810,7 +813,7 @@ test_pat3 = for1 + for2 + for3 + '\n' + x4 +\
 
 c_side_trans = {}
 
-for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
+for type in [REAL, CMPLX, INT, INT8, LOGIC, STRUCT, SIZE]:
   for dim in range(4):
     c_side_trans[type, dim, NOT] = c_side_trans_class()
     c = c_side_trans[type, dim, NOT]
@@ -830,6 +833,12 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     if type == INT:
       c_type = 'Int'
       c_arg  = 'c_Int'
+      test_value = 'rhs'
+      c.construct_value = '0'
+
+    if type == INT8:
+      c_type = 'Int8'
+      c_arg  = 'c_Int8'
       test_value = 'rhs'
       c.construct_value = '0'
 
@@ -1356,6 +1365,7 @@ for file_name in params.struct_def_files:
       split_line = re_match1.split(line, 1)
       print_debug('P2: ' + str(split_line))
       base_arg.type = split_line.pop(0)
+      if base_arg.type == 'integer' and split_line[0][0] == '(': base_arg.type = 'integer8'
 
       if split_line[0][0] == ' ': 
         split_line = re_match2.split(split_line[1], 1)
@@ -1852,7 +1862,7 @@ interface
 
   f_face.write ('  !! f_side.to_c2_f2_sub_arg\n')
   f_face.write (wrap_line(line, '  ', ' &'))
-  f_face.write ('    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex\n')
+  f_face.write ('    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex\n')
   f_face.write ('    !! f_side.to_c2_type :: f_side.to_c2_name\n')
   f_face.write ('    type(c_ptr), value :: C\n')
   for arg_type, args in list(to_c2_call_def.items()):

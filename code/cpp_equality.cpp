@@ -1327,7 +1327,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.autoscale_amp_rel_tol == y.autoscale_amp_rel_tol);
   is_eq = is_eq && (x.autoscale_phase_tol == y.autoscale_phase_tol);
   is_eq = is_eq && (x.electric_dipole_moment == y.electric_dipole_moment);
-  is_eq = is_eq && (x.ptc_cut_factor == y.ptc_cut_factor);
   is_eq = is_eq && (x.sad_eps_scale == y.sad_eps_scale);
   is_eq = is_eq && (x.sad_amp_max == y.sad_amp_max);
   is_eq = is_eq && (x.sad_n_div_max == y.sad_n_div_max);
@@ -1338,7 +1337,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.rf_phase_below_transition_ref == y.rf_phase_below_transition_ref);
   is_eq = is_eq && (x.sr_wakes_on == y.sr_wakes_on);
   is_eq = is_eq && (x.lr_wakes_on == y.lr_wakes_on);
-  is_eq = is_eq && (x.ptc_use_orientation_patches == y.ptc_use_orientation_patches);
   is_eq = is_eq && (x.auto_bookkeeper == y.auto_bookkeeper);
   is_eq = is_eq && (x.high_energy_space_charge_on == y.high_energy_space_charge_on);
   is_eq = is_eq && (x.csr_and_space_charge_on == y.csr_and_space_charge_on);
@@ -1352,7 +1350,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
   is_eq = is_eq && (x.convert_to_kinetic_momentum == y.convert_to_kinetic_momentum);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
-  is_eq = is_eq && (x.ptc_print_info_messages == y.ptc_print_info_messages);
   is_eq = is_eq && (x.debug == y.debug);
   return is_eq;
 };

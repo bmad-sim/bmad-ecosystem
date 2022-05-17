@@ -3092,7 +3092,6 @@ public:
   Real autoscale_amp_rel_tol;
   Real autoscale_phase_tol;
   Real electric_dipole_moment;
-  Real ptc_cut_factor;
   Real sad_eps_scale;
   Real sad_amp_max;
   Int sad_n_div_max;
@@ -3103,7 +3102,6 @@ public:
   Bool rf_phase_below_transition_ref;
   Bool sr_wakes_on;
   Bool lr_wakes_on;
-  Bool ptc_use_orientation_patches;
   Bool auto_bookkeeper;
   Bool high_energy_space_charge_on;
   Bool csr_and_space_charge_on;
@@ -3117,7 +3115,6 @@ public:
   Bool absolute_time_tracking_default;
   Bool convert_to_kinetic_momentum;
   Bool aperture_limit_on;
-  Bool ptc_print_info_messages;
   Bool debug;
 
   CPP_bmad_common() :
@@ -3136,7 +3133,6 @@ public:
     autoscale_amp_rel_tol(1e-6),
     autoscale_phase_tol(1e-5),
     electric_dipole_moment(0.0),
-    ptc_cut_factor(0.006),
     sad_eps_scale(5.0e-3),
     sad_amp_max(5.0e-2),
     sad_n_div_max(1000),
@@ -3147,7 +3143,6 @@ public:
     rf_phase_below_transition_ref(false),
     sr_wakes_on(true),
     lr_wakes_on(true),
-    ptc_use_orientation_patches(true),
     auto_bookkeeper(true),
     high_energy_space_charge_on(false),
     csr_and_space_charge_on(false),
@@ -3161,7 +3156,6 @@ public:
     absolute_time_tracking_default(false),
     convert_to_kinetic_momentum(false),
     aperture_limit_on(true),
-    ptc_print_info_messages(false),
     debug(false)
     {}
 
