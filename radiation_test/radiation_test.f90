@@ -31,6 +31,7 @@ open (1, file = 'output.now', recl = 200)
 
 file_name = 'sigma.bmad'
 call bmad_parser(file_name, lat)
+ptc_com%vertical_kick = 0
 
 call emit_6d(lat%ele(0), .true., mode, sigma_mat)
 

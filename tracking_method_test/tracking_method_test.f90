@@ -174,9 +174,9 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == symp_lie_ptc$) end_ptc = end_orb
 
       if (j == symp_lie_ptc$ .and. .not. debug_mode) then
-        bmad_com%ptc_use_orientation_patches = .false.
+        ptc_com%use_orientation_patches = .false.
         call track1 (start_orb, ele, branch%param, end_orb)
-        bmad_com%ptc_use_orientation_patches = .true.
+        ptc_com%use_orientation_patches = .true.
         write (1,fmt) quote(trim(out_str) // '-OD'), 'ABS 1e-10', end_orb%vec - end_ptc%vec
       endif
 
@@ -191,6 +191,16 @@ do ib = 0, ubound(lat%branch, 1)
         write (1, '(3a, t50, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 1E-07', end_orb%field
       endif
     end do
+
+    if (debug_mode .and. valid_spin_tracking_method(ele, sprint$)) then
+      ele%spin_tracking_method = sprint$
+      deallocate (ele%spin_taylor(0)%term)
+      call track1 (start_orb, ele, branch%param, end_orb)
+      out_str = trim(ele%name) // ': Sprint dSpin'
+      isn=isn+1; write (line(isn), '(a, t50, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
+                                                              end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
+      if (debug_mode) write(line_debug(isn), '(a40, 3f14.9, 4x, f14.9)') out_str, end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
+    endif
 
     if (isn == 0) cycle
 
