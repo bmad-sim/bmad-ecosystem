@@ -313,7 +313,6 @@ endif
 key = ele%key
 if (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON') key = def_bmad_com$
 if (ele%key == def_parameter$ .and. word == 'ELECTRIC_DIPOLE_MOMENT') key = def_bmad_com$
-if (ele%key == def_parameter$ .and. word == 'PTC_CUT_FACTOR') key = def_bmad_com$
 
 if (word == 'SPINOR_POLARIZATION' .or. word == 'SPINOR_PHI' .or. word == 'SPINOR_THETA' .or. word == 'SPINOR_XI') then
   call parser_error ('DUE TO BOOKKEEPING COMPLICATIONS, THE OLD SPINOR ATTRIBUTES NO LONGER EXIST: ' // word, &
@@ -353,9 +352,14 @@ if (key == rfcavity$ .and. word == 'LAG') word = 'PHI0'   ! For MAD compatibilit
 ! particle_start and bmad_com element can have attributes that are not part of the element so
 ! Need to use pointers_to_attribute.
 
-if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_charge_com$) then
+if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
+                            key == def_space_charge_com$ .or. key == def_ptc_com$) then
   name = ele%name
-  if (ele%name == 'PARAMETER') name = 'BMAD_COM'
+  if (word(1:4) == 'PTC_') then    ! For backwards compatibility
+    name = 'PTC_COM'
+  elseif (ele%name == 'PARAMETER') then
+    name = 'BMAD_COM'
+  endif
 
   if (delim == '(') then
     ix = index(bp_com%parse_line, '=')
@@ -415,36 +419,44 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
     if (err_flag) return
     a_ptrs(1)%r = value
-    if (associated(a_ptrs(1)%r, bmad_com%max_aperture_limit))             bp_com%extra%max_aperture_limit_set              = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%default_ds_step))                bp_com%extra%default_ds_step_set                 = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%significant_length))             bp_com%extra%significant_length_set              = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%rel_tol_tracking))               bp_com%extra%rel_tol_tracking_set                = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%abs_tol_tracking))               bp_com%extra%abs_tol_tracking_set                = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%rel_tol_adaptive_tracking))      bp_com%extra%rel_tol_adaptive_tracking_set       = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%abs_tol_adaptive_tracking))      bp_com%extra%abs_tol_adaptive_tracking_set       = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%init_ds_adaptive_tracking))      bp_com%extra%init_ds_adaptive_tracking_set       = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%min_ds_adaptive_tracking))       bp_com%extra%min_ds_adaptive_tracking_set        = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%fatal_ds_adaptive_tracking))     bp_com%extra%fatal_ds_adaptive_tracking_set      = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%autoscale_amp_abs_tol))          bp_com%extra%autoscale_amp_abs_tol_set           = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%autoscale_amp_rel_tol))          bp_com%extra%autoscale_amp_rel_tol_set           = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%autoscale_phase_tol))            bp_com%extra%autoscale_phase_tol_set             = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%electric_dipole_moment))         bp_com%extra%electric_dipole_moment_set          = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%ptc_cut_factor))                 bp_com%extra%ptc_cut_factor_set                  = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%sad_eps_scale))                  bp_com%extra%sad_eps_scale_set                   = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%sad_amp_max))                    bp_com%extra%sad_amp_max_set                     = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%max_aperture_limit))              bp_com%extra%max_aperture_limit_set          = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%default_ds_step))                 bp_com%extra%default_ds_step_set             = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%significant_length))              bp_com%extra%significant_length_set          = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%rel_tol_tracking))                bp_com%extra%rel_tol_tracking_set            = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%abs_tol_tracking))                bp_com%extra%abs_tol_tracking_set            = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%rel_tol_adaptive_tracking))       bp_com%extra%rel_tol_adaptive_tracking_set   = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%abs_tol_adaptive_tracking))       bp_com%extra%abs_tol_adaptive_tracking_set   = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%init_ds_adaptive_tracking))       bp_com%extra%init_ds_adaptive_tracking_set   = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%min_ds_adaptive_tracking))        bp_com%extra%min_ds_adaptive_tracking_set    = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%fatal_ds_adaptive_tracking))      bp_com%extra%fatal_ds_adaptive_tracking_set  = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%autoscale_amp_abs_tol))           bp_com%extra%autoscale_amp_abs_tol_set       = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%autoscale_amp_rel_tol))           bp_com%extra%autoscale_amp_rel_tol_set       = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%autoscale_phase_tol))             bp_com%extra%autoscale_phase_tol_set         = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%electric_dipole_moment))          bp_com%extra%electric_dipole_moment_set      = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%sad_eps_scale))                   bp_com%extra%sad_eps_scale_set               = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%sad_amp_max))                     bp_com%extra%sad_amp_max_set                 = .true.
 
-    if (associated(a_ptrs(1)%r, space_charge_com%ds_track_step))            bp_com%extra%ds_track_step_set                 = .true.
-    if (associated(a_ptrs(1)%r, space_charge_com%dt_track_step))            bp_com%extra%dt_track_step_set                 = .true.
-    if (associated(a_ptrs(1)%r, space_charge_com%cathode_strength_cutoff))  bp_com%extra%cathode_strength_cutoff_set       = .true.
-    if (associated(a_ptrs(1)%r, space_charge_com%rel_tol_tracking))         bp_com%extra%sc_rel_tol_tracking_set           = .true.
-    if (associated(a_ptrs(1)%r, space_charge_com%abs_tol_tracking))         bp_com%extra%sc_abs_tol_tracking_set           = .true.
-    if (associated(a_ptrs(1)%r, space_charge_com%beam_chamber_height))      bp_com%extra%beam_chamber_height_set           = .true.
-    if (associated(a_ptrs(1)%r, space_charge_com%sigma_cutoff))             bp_com%extra%sigma_cutoff_set                  = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%n_bin))                    bp_com%extra%n_bin_set                         = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%particle_bin_span))        bp_com%extra%particle_bin_span_set             = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%n_shield_images))          bp_com%extra%n_shield_images_set               = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%sc_min_in_bin))            bp_com%extra%sc_min_in_bin_set                 = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%ds_track_step))           bp_com%extra%ds_track_step_set               = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%dt_track_step))           bp_com%extra%dt_track_step_set               = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%cathode_strength_cutoff)) bp_com%extra%cathode_strength_cutoff_set     = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%rel_tol_tracking))        bp_com%extra%sc_rel_tol_tracking_set         = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%abs_tol_tracking))        bp_com%extra%sc_abs_tol_tracking_set         = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%beam_chamber_height))     bp_com%extra%beam_chamber_height_set         = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%sigma_cutoff))            bp_com%extra%sigma_cutoff_set                = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%n_bin))                   bp_com%extra%n_bin_set                       = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%particle_bin_span))       bp_com%extra%particle_bin_span_set           = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%n_shield_images))         bp_com%extra%n_shield_images_set             = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%sc_min_in_bin))           bp_com%extra%sc_min_in_bin_set               = .true.
     if (associated(a_ptrs(1)%l, space_charge_com%lsc_kick_transverse_dependence)) bp_com%extra%lsc_kick_transverse_dependence_set = .true.
+
+    if (associated(a_ptrs(1)%l, ptc_com%old_integrator))                   bp_com%extra%old_integrator_set              = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%use_orientation_patches))          bp_com%extra%use_orientation_patches_set     = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%print_info_messages))              bp_com%extra%print_info_messages_set         = .true.
+    if (associated(a_ptrs(1)%i, ptc_com%max_fringe_order))                 bp_com%extra%max_fringe_order_set            = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%exact_model))                      bp_com%extra%exact_model_set                 = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%exact_misalign))                   bp_com%extra%exact_misalign_set              = .true.
+    if (associated(a_ptrs(1)%r, ptc_com%vertical_kick))                    bp_com%extra%vertical_kick_set               = .true.
+    if (associated(a_ptrs(1)%r, ptc_com%cut_factor))                       bp_com%extra%cut_factor_set                  = .true.
 
   elseif (associated(a_ptrs(1)%i)) then
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
@@ -466,7 +478,6 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     if (associated(a_ptrs(1)%l, bmad_com%rf_phase_below_transition_ref))  bp_com%extra%rf_phase_below_transition_ref_set   = .true.
     if (associated(a_ptrs(1)%l, bmad_com%sr_wakes_on))                    bp_com%extra%sr_wakes_on_set                     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%ptc_use_orientation_patches))    bp_com%extra%ptc_use_orientation_patches_set     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%auto_bookkeeper))                bp_com%extra%auto_bookkeeper_set                 = .true.
     if (associated(a_ptrs(1)%l, bmad_com%high_energy_space_charge_on))    bp_com%extra%high_energy_space_charge_on_set     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%csr_and_space_charge_on))        bp_com%extra%csr_and_space_charge_on_set         = .true.
@@ -479,7 +490,6 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     if (associated(a_ptrs(1)%l, bmad_com%absolute_time_tracking_default)) bp_com%extra%absolute_time_tracking_default_set  = .true.
     if (associated(a_ptrs(1)%l, bmad_com%convert_to_kinetic_momentum))    bp_com%extra%convert_to_kinetic_momentum_set     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%aperture_limit_on))              bp_com%extra%aperture_limit_on_set               = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%ptc_print_info_messages))        bp_com%extra%ptc_print_info_messages_set         = .true.
     if (associated(a_ptrs(1)%l, bmad_com%debug))                          bp_com%extra%debug_set                           = .true.
 
   else

@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 274
+integer, parameter :: bmad_inc_version$ = 275
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -752,7 +752,7 @@ real(rp), parameter :: r0_vec$(3) = 0
 real(rp), parameter :: w_unit$(3,3) = reshape( [1, 0, 0, 0, 1, 0, 0, 0, 1], [3,3])
 
 type floor_position_struct
-  real(rp) :: r(3) = [0.0_rp, 0.0_rp, 0.0_rp] ! (x, y, z) offset from origin
+  real(rp) :: r(3) = r0_vec$                 ! (x, y, z) offset from origin
   real(rp) :: w(3,3) =  w_unit$               ! W matrix. Columns are unit vectors of the frame axes.
   real(rp) :: theta = 0, phi = 0, psi = 0     ! angular orientation consistent with W matrix
 end type
@@ -973,7 +973,7 @@ type photon_element_struct
   type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
   type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
-  type (pixel_grid_struct) :: pixel = pixel_grid_struct(0, 0, null())
+  type (pixel_grid_struct) :: pixel = pixel_grid_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
 end type
 
 !------------------------------------------------------------------------------
@@ -1976,13 +1976,11 @@ type extra_parsing_info_struct
   logical :: autoscale_phase_tol_set                = .false.
   logical :: rf_phase_below_transition_ref_set      = .false.
   logical :: electric_dipole_moment_set             = .false.
-  logical :: ptc_cut_factor_set                     = .false.
   logical :: taylor_order_set                       = .false.
   logical :: runge_kutta_order_set                  = .false.
   logical :: default_integ_order_set                = .false.
   logical :: sr_wakes_on_set                        = .false.
   logical :: lr_wakes_on_set                        = .false.
-  logical :: ptc_use_orientation_patches_set        = .false.
   logical :: auto_bookkeeper_set                    = .false.
   logical :: high_energy_space_charge_on_set        = .false.
   logical :: csr_and_space_charge_on_set            = .false.
@@ -2000,7 +1998,6 @@ type extra_parsing_info_struct
   logical :: sad_amp_max_set                        = .false.
   logical :: sad_n_div_max_set                      = .false.
   logical :: max_num_runge_kutta_step_set           = .false.
-  logical :: ptc_print_info_messages_set            = .false.
   logical :: debug_set                              = .false.
   ! Used with space_charge_com
   logical :: ds_track_step_set                      = .false.
@@ -2018,6 +2015,15 @@ type extra_parsing_info_struct
   logical :: sc_min_in_bin_set                      = .false.
   logical :: lsc_kick_transverse_dependence_set     = .false.
   logical :: diagnostic_output_file_set             = .false.
+  ! Used with ptc_com
+  logical :: old_integrator_set                     = .false.
+  logical :: use_orientation_patches_set            = .false.
+  logical :: print_info_messages_set                = .false.
+  logical :: max_fringe_order_set                   = .false.
+  logical :: exact_model_set                        = .false.
+  logical :: exact_misalign_set                     = .false.
+  logical :: vertical_kick_set                      = .false.
+  logical :: cut_factor_set                         = .false.
 end type
 
 !------------------------------------------------------------------------------
@@ -2045,7 +2051,6 @@ type bmad_common_struct
   real(rp) :: autoscale_amp_rel_tol = 1d-6             ! Autoscale relative amplitude tolerance
   real(rp) :: autoscale_phase_tol = 1d-5               ! Autoscale phase tolerance.
   real(rp) :: electric_dipole_moment = 0               ! Particle's EDM. Call set_ptc to transfer value to PTC.
-  real(rp) :: ptc_cut_factor = 0.006                   ! Cut factor for PTC tracking
   real(rp) :: sad_eps_scale = 5.0d-3                   ! Used in sad_mult step length calc.
   real(rp) :: sad_amp_max = 5.0d-2                     ! Used in sad_mult step length calc.
   integer :: sad_n_div_max = 1000                      ! Used in sad_mult step length calc.
@@ -2057,7 +2062,6 @@ type bmad_common_struct
   logical :: rf_phase_below_transition_ref = .false.   ! Autoscale uses below transition stable point for RFCavities?
   logical :: sr_wakes_on = .true.                      ! Short range wakefields?
   logical :: lr_wakes_on = .true.                      ! Long range wakefields
-  logical :: ptc_use_orientation_patches = .true.      ! offset, pitch, and tilt attributes are put in ptc patch?
   logical :: auto_bookkeeper = .true.                  ! Automatic bookkeeping?
   logical :: high_energy_space_charge_on = .false.     ! High energy space charge effect switch.
   logical :: csr_and_space_charge_on = .false.         ! Space charge switch.
@@ -2072,7 +2076,6 @@ type bmad_common_struct
   logical :: convert_to_kinetic_momentum = .false.     ! Cancel kicks due to finite vector potential when doing symplectic tracking?
                                                        !   Set to True to test symp_lie_bmad against runge_kutta.
   logical :: aperture_limit_on = .true.                ! use apertures in tracking?
-  logical :: ptc_print_info_messages = .false.         ! Allow PTC to print informational messages (which can clutter the output)?
   logical :: debug = .false.                           ! Used for code debugging.
 end type
   
@@ -2084,16 +2087,21 @@ type (bmad_common_struct), save, target :: bmad_com
 ! When parsing a lattice file, %taylor_order_saved will be set to the taylor order of the lattice.
 
 type ptc_common_struct
-  integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set
-  integer :: taylor_order_saved = 3     ! Default to use.
-  logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
-  type (internal_state) :: base_state   ! Base PTC state. 
   integer, pointer :: max_fringe_order  => null()  ! Points to PTC HIGHEST_FRINGE. 2 (default) => Quadrupole.
-  logical, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR.
   logical, pointer :: exact_model       => null()  ! Points to PTC EXACT_MODEL.
   logical, pointer :: exact_misalign    => null()  ! Points to PTC ALWAYS_EXACTMIS. Notice different names.
   real(rp), pointer :: vertical_kick    => null()  ! Points to PTC VERTICAL_KICK for 6D emittance calc. 0 => off, 1 => on.
+  real(rp) :: cut_factor = 0.006                   ! Cut factor for PTC tracking
+  ! Stuff that should not be set except by experts
+  logical, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR.
+  logical :: use_orientation_patches = .true.      ! offset, pitch, and tilt attributes are put in ptc patch?
+  logical :: print_info_messages = .false.         ! Allow PTC to print informational messages (which can clutter the output)?
+  ! Stuff that is private
+  type (internal_state) :: base_state   ! Base PTC state. 
   real(rp) :: e_tot_set = 0
+  integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set
+  integer :: taylor_order_saved = 3     ! Default to use.
+  logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
   logical :: init_ptc_needed = .true.
   logical :: init_spin_needed = .true.
 end type

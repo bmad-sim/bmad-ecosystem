@@ -327,8 +327,24 @@ values are:
   end type
 \end{example}
 
+\begin{description}
+%
+  \index{ptc_exact_model}\index{exact_misalign}
+  \item[{parameter[ptc_exact_model]}] \Newline
+Deprecated. Replaced by \vn{ptc_com[exact_model]} (\sref{s:bmad.ptc.com}).
+
+The \vn{ptc_exact_model} and \vn{ptc_exact_misalign} switches affect tracking using the \vn{PTC}
+library. See \sref{s:integ} for more details.
+%
+  \index{max_fringe_order}
+  \item[{ptc_com[max_fringe_order]}] \Newline
+When using PTC tracking (\sref{s:ptc.intro}), the \vn{parameter[ptc_max_fringe_order]} determines
+the maximum order of the calculated fringe fields. The default is 2 which means that fringe fields
+due to a quadrupolar field. These fields are 3\Rd order in the transverse coordinates.
+  \end{description}
+
 %-----------------------------------------------------------------
-\section{Bmad_Com and PTC_Com}
+\section{Bmad_Com}
 \label{s:bmad.ptc.com}
 \index{bmad_com}
 

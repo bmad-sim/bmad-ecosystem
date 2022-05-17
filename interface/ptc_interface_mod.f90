@@ -1029,9 +1029,9 @@ if (init_needed) then
   ptc_com%vertical_kick = 1        ! On
   EPS_EIGENVALUES_OFF_UNIT_CIRCLE = 1d-4
 
+  ptc_com_default = ptc_com
   allocate (ptc_com_default%vertical_kick, ptc_com_default%old_integrator, ptc_com_default%exact_model, &
             ptc_com_default%exact_misalign, ptc_com_default%max_fringe_order)
-
   ptc_com_default%vertical_kick    = ptc_com%vertical_kick
   ptc_com_default%old_integrator   = ptc_com%old_integrator
   ptc_com_default%exact_model      = ptc_com%exact_model
@@ -2866,7 +2866,7 @@ case (sad_mult$)
     ! in the Matrix step. Thus PTC may need a smaller step size.
     if (.not. present(integ_order) .and. .not. present(steps)) then
       call multipole_ele_to_kt (ele, .false., ix_pole_max, kl, t, magnetic$)
-      ptc_key%nstep = max(ptc_key%nstep, nint(ele%value(l$) * abs(kl(1)) / (ele%value(eps_step_scale$) * bmad_com%ptc_cut_factor)))
+      ptc_key%nstep = max(ptc_key%nstep, nint(ele%value(l$) * abs(kl(1)) / (ele%value(eps_step_scale$) * ptc_com%cut_factor)))
       ptc_key%method = 2
       if (ptc_key%nstep > 18) then
         ptc_key%nstep = nint(ptc_key%nstep / 7.0)
@@ -3953,7 +3953,7 @@ elseif (use_offsets) then
 
   ! Put misalignmnets in patches?
 
-  if (.not. bmad_com%ptc_use_orientation_patches) then
+  if (.not. ptc_com%use_orientation_patches) then
     call convert_mis_to_patch(ptc_fibre, .true.)
   endif
 
@@ -4246,7 +4246,7 @@ end subroutine apply_patch_to_ptc_fibre
 ! Routine to set the lielib_print(:) array or c_verbose logical to suppress informational messages
 ! that can clutter the output from a program using PTC.
 !
-! Note: Only suppress printing if bmad_com%ptc_print_info_messages = F.
+! Note: Only suppress printing if ptc_com%print_info_messages = F.
 !
 ! Input:
 !   channel     -- integer: Index in the lielib_print(:) array to set. 0 => c_verbose.
@@ -4268,7 +4268,7 @@ logical set
 
 !
 
-if (bmad_com%ptc_print_info_messages) return
+if (ptc_com%print_info_messages) return
 
 if (set .eqv. set$) then
   if (channel == 0) then

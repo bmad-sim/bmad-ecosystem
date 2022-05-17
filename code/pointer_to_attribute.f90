@@ -75,6 +75,24 @@ do_print = logic_option (.true., err_print_flag)
 call str_upcase (a_name, attrib_name)
 if (present(ix_attrib)) ix_attrib = 0
 
+!
+
+if (ele%key == def_ptc_com$) then
+  select case (a_name)
+  case ('VERTICAL_KICK');                             a_ptr%r => ptc_com%vertical_kick
+  case ('CUT_FACTOR');                                a_ptr%r => ptc_com%cut_factor
+  case ('PRINT_INFO_MESSAGES');                       a_ptr%l => ptc_com%print_info_messages
+  case ('USE_ORIENTATION_PATCHES');                   a_ptr%l => ptc_com%use_orientation_patches
+  case ('OLD_INTEGRATOR');                            a_ptr%l => ptc_com%old_integrator
+  case ('EXACT_MODEL', 'PTC_EXACT_MODEL');            a_ptr%l => ptc_com%exact_model
+  case ('EXACT_MISALIGN', 'PTC_EXACT_MISALIGN');      a_ptr%l => ptc_com%exact_misalign
+  case ('MAX_FRINGE_ORDER', 'PTC_MAX_FRINGE_ORDER');  a_ptr%i => ptc_com%max_fringe_order
+  case default; goto 9000
+  end select
+  err_flag = .false.
+  return
+endif
+
 !--------------------
 ! If a controller with a defined list of variables
 
@@ -727,12 +745,6 @@ case ('PARTICLE')
   else
     a_ptr%i => branch%param%particle
   endif
-
-case ('VERTICAL_KICK', 'PTC_VERTICAL_KICK');        a_ptr%r => ptc_com%vertical_kick
-case ('OLD_INTEGRATOR');                            a_ptr%l => ptc_com%old_integrator
-case ('EXACT_MODEL', 'PTC_EXACT_MODEL');            a_ptr%l => ptc_com%exact_model
-case ('EXACT_MISALIGN', 'PTC_EXACT_MISALIGN');      a_ptr%l => ptc_com%exact_misalign
-case ('MAX_FRINGE_ORDER', 'PTC_MAX_FRINGE_ORDER');  a_ptr%i => ptc_com%max_fringe_order
 
 ! No corresponding attribute in element.
 case ('TAYLOR_ORDER')

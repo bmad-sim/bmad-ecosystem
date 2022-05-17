@@ -38,11 +38,12 @@ type (branch_struct), pointer :: branch
 type (extra_parsing_info_struct) :: extra
 type (bmad_common_struct) bmad_com_read
 type (space_charge_common_struct) space_charge_com_read
+type (ptc_common_struct) ptc_com_read
 real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
 integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, nk, control_type, coupler_at
-integer ierr, stat, ios, ios2, n_wall_section, garbage, j1, j2, io_err_level, n_custom, n_print
+integer ierr, stat, ios, ios2, ios3, ios4, n_wall_section, garbage, j1, j2, io_err_level, n_custom, n_print
 integer, allocatable :: index_list(:)
 
 character(*) digested_file
@@ -266,24 +267,19 @@ enddo
 read (d_unit, err = 9060, end = 9060) lat%particle_start
 read (d_unit, err = 9060, end = 9060) lat%beam_init
 
-! Read PTC info
-
-read (d_unit, iostat = ios) ptc_com%vertical_kick, ptc_com%old_integrator, ptc_com%exact_model, ptc_com%exact_misalign, ptc_com%max_fringe_order
-if (ios /= 0) then
-  call out_io(io_err_level, r_name, 'ERROR READING PTC PARAMETERS.')
-  close (d_unit)
-  return
-endif
-
 ! Read extra state info.
 
 read (d_unit, iostat = ios) found_it
 if (found_it) then
+  allocate (ptc_com_read%vertical_kick, ptc_com_read%old_integrator, ptc_com_read%exact_model, &
+            ptc_com_read%exact_misalign, ptc_com_read%max_fringe_order)
   read (d_unit, iostat = ios) extra
   read (d_unit, iostat = ios2) bmad_com_read
-  read (d_unit, iostat = ios2) space_charge_com_read
-  if (ios /= 0 .or. ios2 /= 0) then
-    call out_io (io_err_level, r_name, 'ERROR READING BMAD/SPACE_CHARGE COMMON PARAMETERS')
+  read (d_unit, iostat = ios3) space_charge_com_read
+  read (d_unit, iostat = ios4) ptc_com_read
+
+  if (ios /= 0 .or. ios2 /= 0 .or. ios3 /= 0 .or. ios4 /= 0) then
+    call out_io (io_err_level, r_name, 'ERROR READING BMAD/SPACE_CHARGE/PTC COMMON PARAMETERS')
     close (d_unit)
     return
   endif
@@ -302,14 +298,12 @@ if (found_it) then
   if (extra%autoscale_phase_tol_set)              bmad_com%autoscale_phase_tol             = bmad_com_read%autoscale_phase_tol
   if (extra%rf_phase_below_transition_ref_set)    bmad_com%rf_phase_below_transition_ref   = bmad_com_read%rf_phase_below_transition_ref
   if (extra%electric_dipole_moment_set)           bmad_com%electric_dipole_moment          = bmad_com_read%electric_dipole_moment
-  if (extra%ptc_cut_factor_set)                   bmad_com%ptc_cut_factor                  = bmad_com_read%ptc_cut_factor
   if (extra%taylor_order_set)                     bmad_com%taylor_order                    = bmad_com_read%taylor_order
   if (extra%d_orb_set)                            bmad_com%d_orb                           = bmad_com_read%d_orb
   if (extra%default_integ_order_set)              bmad_com%default_integ_order             = bmad_com_read%default_integ_order
   if (extra%runge_kutta_order_set)                bmad_com%runge_kutta_order               = bmad_com_read%runge_kutta_order
   if (extra%sr_wakes_on_set)                      bmad_com%sr_wakes_on                     = bmad_com_read%sr_wakes_on
   if (extra%lr_wakes_on_set)                      bmad_com%lr_wakes_on                     = bmad_com_read%lr_wakes_on
-  if (extra%ptc_use_orientation_patches_set)      bmad_com%ptc_use_orientation_patches     = bmad_com_read%ptc_use_orientation_patches
   if (extra%auto_bookkeeper_set)                  bmad_com%auto_bookkeeper                 = bmad_com_read%auto_bookkeeper
   if (extra%high_energy_space_charge_on_set)      bmad_com%high_energy_space_charge_on     = bmad_com_read%high_energy_space_charge_on
   if (extra%csr_and_space_charge_on_set)          bmad_com%csr_and_space_charge_on         = bmad_com_read%csr_and_space_charge_on
@@ -327,7 +321,6 @@ if (found_it) then
   if (extra%sad_amp_max_set)                      bmad_com%sad_amp_max                     = bmad_com_read%sad_amp_max
   if (extra%sad_n_div_max_set)                    bmad_com%sad_n_div_max                   = bmad_com_read%sad_n_div_max
   if (extra%max_num_runge_kutta_step_set)         bmad_com%max_num_runge_kutta_step        = bmad_com_read%max_num_runge_kutta_step
-  if (extra%ptc_print_info_messages_set)          bmad_com%ptc_print_info_messages         = bmad_com_read%ptc_print_info_messages
   if (extra%debug_set)                            bmad_com%debug                           = bmad_com_read%debug
 
   if (extra%ds_track_step_set)                    space_charge_com%ds_track_step                    = space_charge_com_read%ds_track_step
@@ -345,6 +338,15 @@ if (found_it) then
   if (extra%sc_min_in_bin_set)                    space_charge_com%sc_min_in_bin                    = space_charge_com_read%sc_min_in_bin
   if (extra%lsc_kick_transverse_dependence_set)   space_charge_com%lsc_kick_transverse_dependence   = space_charge_com_read%lsc_kick_transverse_dependence
   if (extra%diagnostic_output_file_set)           space_charge_com%diagnostic_output_file           = space_charge_com_read%diagnostic_output_file
+
+  if (extra%use_orientation_patches_set)          ptc_com%use_orientation_patches                   = ptc_com_read%use_orientation_patches
+  if (extra%print_info_messages_set)              ptc_com%print_info_messages                       = ptc_com_read%print_info_messages
+  if (extra%cut_factor_set)                       ptc_com%cut_factor                                = ptc_com_read%cut_factor
+  if (extra%max_fringe_order_set)                 ptc_com%max_fringe_order                          = ptc_com_read%max_fringe_order
+  if (extra%vertical_kick_set)                    ptc_com%vertical_kick                             = ptc_com_read%vertical_kick
+  if (extra%old_integrator_set)                   ptc_com%old_integrator                            = ptc_com_read%old_integrator
+  if (extra%exact_model_set)                      ptc_com%exact_model                               = ptc_com_read%exact_model
+  if (extra%exact_misalign_set)                   ptc_com%exact_misalign                            = ptc_com_read%exact_misalign
 endif
 
 ! Setup any attribute aliases in the global attribute name table.
