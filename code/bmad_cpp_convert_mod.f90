@@ -5865,10 +5865,10 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine pixel_grid_pt_to_c2 (C, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, &
       z_intensity, z_orbit, z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int) :: z_n_photon
+    integer(c_long) :: z_n_photon
     complex(c_double_complex) :: z_e_x, z_e_y
     real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
   end subroutine
@@ -5918,7 +5918,7 @@ type(c_ptr), value :: Fp
 type(pixel_grid_pt_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_n_photon
+integer(c_long) :: z_n_photon
 complex(c_double_complex) :: z_e_x, z_e_y
 real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
 
@@ -5968,11 +5968,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine pixel_grid_to_c2 (C, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+  subroutine pixel_grid_to_c2 (C, z_dr, z_r0, z_n_track_tot, z_n_live, z_n_lost, z_pt, n1_pt, &
+      n2_pt) bind(c)
+    import
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_dr(*), z_r0(*)
+    integer(c_long) :: z_n_track_tot, z_n_live, z_n_lost
     type(c_ptr) :: z_pt(*)
     integer(c_int), value :: n1_pt, n2_pt
   end subroutine
@@ -6004,7 +6006,8 @@ else
 endif
 
 !! f_side.to_c2_call
-call pixel_grid_to_c2 (C, fvec2vec(F%dr, 2), fvec2vec(F%r0, 2), z_pt, n1_pt, n2_pt)
+call pixel_grid_to_c2 (C, fvec2vec(F%dr, 2), fvec2vec(F%r0, 2), F%n_track_tot, F%n_live, &
+    F%n_lost, z_pt, n1_pt, n2_pt)
 
 end subroutine pixel_grid_to_c
 
@@ -6024,7 +6027,8 @@ end subroutine pixel_grid_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine pixel_grid_to_f2 (Fp, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
+subroutine pixel_grid_to_f2 (Fp, z_dr, z_r0, z_n_track_tot, z_n_live, z_n_lost, z_pt, n1_pt, &
+    n2_pt) bind(c)
 
 
 implicit none
@@ -6034,6 +6038,7 @@ type(pixel_grid_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_dr(*), z_r0(*)
+integer(c_long) :: z_n_track_tot, z_n_live, z_n_lost
 type(c_ptr) :: z_pt(*)
 integer(c_int), value :: n1_pt, n2_pt
 
@@ -6043,6 +6048,12 @@ call c_f_pointer (Fp, F)
 F%dr = z_dr(1:2)
 !! f_side.to_f2_trans[real, 1, NOT]
 F%r0 = z_r0(1:2)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_track_tot = z_n_track_tot
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_live = z_n_live
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_lost = z_n_lost
 !! f_side.to_f2_trans[type, 2, ALLOC]
 if (n1_pt == 0) then
   if (allocated(F%pt)) deallocate(F%pt)
@@ -9233,13 +9244,14 @@ interface
       z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, &
       z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, z_bmad_logic, z_select, &
       z_offset_moves_aperture) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    import
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_name(*), z_type(*), z_alias(*), z_component_name(*), z_descrip(*)
-    integer(c_int), value :: n_descrip, n_ac_kick, n_control, n_high_energy_space_charge, n_mode3, n_photon, n_rad_int_cache
+    integer(c_int), value :: n_descrip, n_ac_kick, n_control, n_high_energy_space_charge, n_mode3, n_rad_int_cache
     integer(c_int), value :: n_wake, n1_wall3d, n1_cartesian_map, n1_cylindrical_map, n1_grid_field, n1_taylor_field, n1_a_pole
     integer(c_int), value :: n1_b_pole, n1_a_pole_elec, n1_b_pole_elec, n1_custom, n1_r, n2_r, n3_r
+    integer(c_long), value :: n_photon
     type(c_ptr), value :: z_a, z_b, z_z, z_x, z_y, z_ac_kick, z_bookkeeping_state
     type(c_ptr), value :: z_control, z_floor, z_high_energy_space_charge, z_mode3, z_photon, z_rad_int_cache, z_wake
     type(c_ptr), value :: z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out
@@ -9267,7 +9279,7 @@ integer(c_int) :: n_ac_kick
 integer(c_int) :: n_control
 integer(c_int) :: n_high_energy_space_charge
 integer(c_int) :: n_mode3
-integer(c_int) :: n_photon
+integer(c_long) :: n_photon
 integer(c_int) :: n_rad_int_cache
 type(c_ptr) :: z_taylor(6)
 type(c_ptr) :: z_spin_taylor(4)

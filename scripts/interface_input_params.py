@@ -141,6 +141,7 @@ component_no_translate_list = set([
 interface_ignore_list = set([
   'ele_struct%branch',
   'branch_struct%lat',
+  'pixel_grid_struct',
 ])
 
 # List of structure components that are structures and are defined externally.

@@ -2082,7 +2082,7 @@ class Opaque_pixel_grid_pt_class {};  // Opaque class for pointers to correspond
 
 class CPP_pixel_grid_pt {
 public:
-  Int n_photon;
+  Int8 n_photon;
   Complex e_x;
   Complex e_y;
   Real intensity_x;
@@ -2126,11 +2126,17 @@ class CPP_pixel_grid {
 public:
   Real_ARRAY dr;
   Real_ARRAY r0;
+  Int8 n_track_tot;
+  Int8 n_live;
+  Int8 n_lost;
   CPP_pixel_grid_pt_MATRIX pt;
 
   CPP_pixel_grid() :
     dr(0.0, 2),
     r0(0.0, 2),
+    n_track_tot(0),
+    n_live(0),
+    n_lost(0),
     pt(CPP_pixel_grid_pt_ARRAY(CPP_pixel_grid_pt(), 0), 0)
     {}
 
@@ -3037,7 +3043,7 @@ public:
 
   CPP_space_charge_common() :
     ds_track_step(0.0),
-    dt_track_step(0.0),
+    dt_track_step(1e-12),
     cathode_strength_cutoff(0.01),
     rel_tol_tracking(1e-8),
     abs_tol_tracking(1e-10),

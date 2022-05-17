@@ -5170,6 +5170,12 @@ do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
   rhs = 100 + jd1 + 2 + offset
   F%r0(jd1+lb1) = rhs
 enddo
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 3 + offset; F%n_track_tot = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 4 + offset; F%n_live = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 5 + offset; F%n_lost = rhs
 !! f_side.test_pat[type, 2, ALLOC]
 
 if (ix_patt < 3) then

@@ -860,6 +860,9 @@ bool operator== (const CPP_pixel_grid& x, const CPP_pixel_grid& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.dr, y.dr);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
+  is_eq = is_eq && (x.n_track_tot == y.n_track_tot);
+  is_eq = is_eq && (x.n_live == y.n_live);
+  is_eq = is_eq && (x.n_lost == y.n_lost);
   is_eq = is_eq && is_all_equal(x.pt, y.pt);
   return is_eq;
 };
