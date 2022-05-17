@@ -206,7 +206,7 @@ endif
 
 ! Add number to file name
 
-if (index(lux_param%photon1_out_file, '#') /= 0 .or. index(lux_param%det_pix_out_file, '#') /= 0) then
+if (lux_com%mpi_rank < 1 .and. (index(lux_param%photon1_out_file, '#') /= 0 .or. index(lux_param%det_pix_out_file, '#') /= 0)) then
   number_file = 'lux_out_file.number'
   inquire(file = number_file, exist = is_there)
   if (.not. is_there) then
@@ -793,10 +793,10 @@ do
   photon%n_photon_generated = detec_pixel%n_track_tot
 
   call lux_generate_photon (photon%orb(0), lux_param, lux_com)
-  if (lux_param%debug) then
-    call init_coord (photon%orb(0), lat%particle_start, t_branch%ele(0), downstream_end$, photon$, &
-                                        1, t_branch%ele(0)%value(E_tot$) * (1 + lat%particle_start%vec(6)))
-  endif
+  !if (lux_param%debug) then
+  !  call init_coord (photon%orb(0), lat%particle_start, t_branch%ele(0), downstream_end$, photon$, &
+  !                                      1, t_branch%ele(0)%value(E_tot$) * (1 + lat%particle_start%vec(6)))
+  !endif
 
   call track_all (lat, photon%orb, t_branch%ix_branch, track_state)
 
@@ -950,6 +950,7 @@ integer i, j
 
 do i = lbound(lux_com%pixel%pt, 1), ubound(lux_com%pixel%pt, 1)
 do j = lbound(lux_com%pixel%pt, 2), ubound(lux_com%pixel%pt, 2)
+  lux_com%pixel%pt(i,j)%n_photon       = lux_com%pixel%pt(i,j)%n_photon       + slave_pixel%pt(i,j)%n_photon
   lux_com%pixel%pt(i,j)%E_x            = lux_com%pixel%pt(i,j)%E_x            + slave_pixel%pt(i,j)%E_x
   lux_com%pixel%pt(i,j)%E_y            = lux_com%pixel%pt(i,j)%E_y            + slave_pixel%pt(i,j)%E_y
   lux_com%pixel%pt(i,j)%intensity_x    = lux_com%pixel%pt(i,j)%intensity_x    + slave_pixel%pt(i,j)%intensity_x
@@ -1076,9 +1077,11 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a, es16.5)')    'intensity_y_norm    =', sum(pixel%pt(:,:)%intensity_y) * normalization
   write (3, '(a, es16.5)')    'intensity_unnorm    =', sum(pixel%pt(:,:)%intensity)
   write (3, '(a, es16.5)')    'intensity_norm      =', sum(pixel%pt(:,:)%intensity) * normalization
+  write (3, '(a, i0)')        'n_track_tot         = ', pixel%n_track_tot
+  write (3, '(a, i0)')        'n_at_det            = ', pixel%n_live
+  write (3, '(a, i0)')        'n_hit_pix           = ', sum(pixel%pt(:,:)%n_photon)
   write (3, '(a, f10.6)')     'dx_pixel            =', pixel%dr(1)
   write (3, '(a, f10.6)')     'dy_pixel            =', pixel%dr(2)
-  write (3, '(a, i0)')        'photons_tracked     =', pixel%n_track_tot
   write (3, '(a, i8)')        'nx_active_min       =', nx_active_min
   write (3, '(a, i8)')        'nx_active_max       =', nx_active_max
   write (3, '(a, i8)')        'ny_active_min       =', ny_active_min
@@ -1274,7 +1277,7 @@ call run_timer ('READ', dtime)
 if (lux_com%verbose) then
   print '(a, t35, i0, 5x, es10.2)', 'Photons Tracked:', pixel%n_track_tot, float(pixel%n_track_tot)
   print '(a, t35, i0)',      'Photons at detector:', pixel%n_live
-  print '(a, t35, i0)',      'Photons hitting pix:', int(sum(pixel%pt%n_photon), 8)
+  print '(a, t35, i0)',      'Photons hitting pix:', sum(pixel%pt%n_photon)
   print '(a, t45, es12.4)', 'Normalization factor:', normalization
   print '(a, t45, es12.4)', 'Total intensity on pix (unnormalized):', intens_tot
   print '(a, t45, es12.4)', 'Total intensity on pix (normalized):', intens_tot * normalization
