@@ -729,7 +729,7 @@ def get_next_command ():
     # Parse line
 
     if line.lstrip().startswith('!!verbatim'):
-      f_out.write(line[ix+10:].strip() + '\n')
+      f_out.write(line[10:].strip() + '\n')
       continue
 
     try:
@@ -845,7 +845,7 @@ common.one_file = not arg.many_files
 common.add_constants = arg.constants
 
 print ('*******Note: In beta testing! Please report any problems! **********')
-print (f'Input lattice file(s) are: {arg.elegant_files[0]}')
+print (f'Input lattice file(s) are: {arg.elegant_files}')
 
 # Open files for reading and writing
 
