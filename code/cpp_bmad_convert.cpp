@@ -1988,25 +1988,25 @@ extern "C" void photon_material_to_c2 (CPP_photon_material& C, c_Complex& z_f0_m
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_pixel_grid_pt
+// CPP_pixel_pt
 
-extern "C" void pixel_grid_pt_to_c (const Opaque_pixel_grid_pt_class*, CPP_pixel_grid_pt&);
+extern "C" void pixel_pt_to_c (const Opaque_pixel_pt_class*, CPP_pixel_pt&);
 
 // c_side.to_f2_arg
-extern "C" void pixel_grid_pt_to_f2 (Opaque_pixel_grid_pt_class*, c_Int8&, c_Complex&,
-    c_Complex&, c_Real&, c_Real&, c_Real&, c_RealArr, c_RealArr, c_RealArr, c_RealArr);
+extern "C" void pixel_pt_to_f2 (Opaque_pixel_pt_class*, c_Int8&, c_Complex&, c_Complex&,
+    c_Real&, c_Real&, c_Real&, c_RealArr, c_RealArr, c_RealArr, c_RealArr);
 
-extern "C" void pixel_grid_pt_to_f (const CPP_pixel_grid_pt& C, Opaque_pixel_grid_pt_class* F) {
+extern "C" void pixel_pt_to_f (const CPP_pixel_pt& C, Opaque_pixel_pt_class* F) {
 
   // c_side.to_f2_call
-  pixel_grid_pt_to_f2 (F, C.n_photon, C.e_x, C.e_y, C.intensity_x, C.intensity_y, C.intensity,
+  pixel_pt_to_f2 (F, C.n_photon, C.e_x, C.e_y, C.intensity_x, C.intensity_y, C.intensity,
       &C.orbit[0], &C.orbit_rms[0], &C.init_orbit[0], &C.init_orbit_rms[0]);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void pixel_grid_pt_to_c2 (CPP_pixel_grid_pt& C, c_Int8& z_n_photon, c_Complex&
-    z_e_x, c_Complex& z_e_y, c_Real& z_intensity_x, c_Real& z_intensity_y, c_Real& z_intensity,
+extern "C" void pixel_pt_to_c2 (CPP_pixel_pt& C, c_Int8& z_n_photon, c_Complex& z_e_x,
+    c_Complex& z_e_y, c_Real& z_intensity_x, c_Real& z_intensity_y, c_Real& z_intensity,
     c_RealArr z_orbit, c_RealArr z_orbit_rms, c_RealArr z_init_orbit, c_RealArr
     z_init_orbit_rms) {
 
@@ -2034,38 +2034,38 @@ extern "C" void pixel_grid_pt_to_c2 (CPP_pixel_grid_pt& C, c_Int8& z_n_photon, c
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_pixel_grid
+// CPP_pixel_detec
 
-extern "C" void pixel_grid_to_c (const Opaque_pixel_grid_class*, CPP_pixel_grid&);
+extern "C" void pixel_detec_to_c (const Opaque_pixel_detec_class*, CPP_pixel_detec&);
 
 // c_side.to_f2_arg
-extern "C" void pixel_grid_to_f2 (Opaque_pixel_grid_class*, c_RealArr, c_RealArr, c_Int8&,
-    c_Int8&, c_Int8&, const CPP_pixel_grid_pt**, Int, Int);
+extern "C" void pixel_detec_to_f2 (Opaque_pixel_detec_class*, c_RealArr, c_RealArr, c_Int8&,
+    c_Int8&, c_Int8&, const CPP_pixel_pt**, Int, Int);
 
-extern "C" void pixel_grid_to_f (const CPP_pixel_grid& C, Opaque_pixel_grid_class* F) {
+extern "C" void pixel_detec_to_f (const CPP_pixel_detec& C, Opaque_pixel_detec_class* F) {
   // c_side.to_f_setup[type, 2, ALLOC]
 
   int n1_pt = C.pt.size(), n2_pt = 0;
-  const CPP_pixel_grid_pt** z_pt = NULL;
+  const CPP_pixel_pt** z_pt = NULL;
   if (n1_pt > 0) {
     n2_pt = C.pt[0].size();
-    z_pt = new const CPP_pixel_grid_pt* [n1_pt*n2_pt];
+    z_pt = new const CPP_pixel_pt* [n1_pt*n2_pt];
     for (int i = 0; i < n1_pt; i++) {
       for (int j = 0; j < n2_pt; j++) z_pt[i*n2_pt + j] = &C.pt[i][j];}
   }
 
   // c_side.to_f2_call
-  pixel_grid_to_f2 (F, &C.dr[0], &C.r0[0], C.n_track_tot, C.n_live, C.n_lost, z_pt, n1_pt,
-      n2_pt);
+  pixel_detec_to_f2 (F, &C.dr[0], &C.r0[0], C.n_track_tot, C.n_hit_detec, C.n_hit_pixel, z_pt,
+      n1_pt, n2_pt);
 
   // c_side.to_f_cleanup[type, 2, ALLOC]
   delete[] z_pt;
 }
 
 // c_side.to_c2_arg
-extern "C" void pixel_grid_to_c2 (CPP_pixel_grid& C, c_RealArr z_dr, c_RealArr z_r0, c_Int8&
-    z_n_track_tot, c_Int8& z_n_live, c_Int8& z_n_lost, Opaque_pixel_grid_pt_class** z_pt, Int
-    n1_pt, Int n2_pt) {
+extern "C" void pixel_detec_to_c2 (CPP_pixel_detec& C, c_RealArr z_dr, c_RealArr z_r0, c_Int8&
+    z_n_track_tot, c_Int8& z_n_hit_detec, c_Int8& z_n_hit_pixel, Opaque_pixel_pt_class** z_pt,
+    Int n1_pt, Int n2_pt) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.dr << z_dr;
@@ -2074,14 +2074,14 @@ extern "C" void pixel_grid_to_c2 (CPP_pixel_grid& C, c_RealArr z_dr, c_RealArr z
   // c_side.to_c2_set[integer8, 0, NOT]
   C.n_track_tot = z_n_track_tot;
   // c_side.to_c2_set[integer8, 0, NOT]
-  C.n_live = z_n_live;
+  C.n_hit_detec = z_n_hit_detec;
   // c_side.to_c2_set[integer8, 0, NOT]
-  C.n_lost = z_n_lost;
+  C.n_hit_pixel = z_n_hit_pixel;
   // c_side.to_c2_set[type, 2, ALLOC]
   C.pt.resize(n1_pt);
   for (int i = 0; i < n1_pt; i++) {
     C.pt[i].resize(n2_pt);
-    for (int j = 0; j < n2_pt; j++) pixel_grid_pt_to_c(z_pt[n2_pt*i+j], C.pt[i][j]);
+    for (int j = 0; j < n2_pt; j++) pixel_pt_to_c(z_pt[n2_pt*i+j], C.pt[i][j]);
   }
 
 }
@@ -2095,7 +2095,7 @@ extern "C" void photon_element_to_c (const Opaque_photon_element_class*, CPP_pho
 // c_side.to_f2_arg
 extern "C" void photon_element_to_f2 (Opaque_photon_element_class*, const
     CPP_surface_curvature&, const CPP_photon_target&, const CPP_photon_material&, const
-    CPP_surface_grid&, const CPP_pixel_grid&);
+    CPP_surface_grid&, const CPP_pixel_detec&);
 
 extern "C" void photon_element_to_f (const CPP_photon_element& C, Opaque_photon_element_class* F) {
 
@@ -2108,7 +2108,7 @@ extern "C" void photon_element_to_f (const CPP_photon_element& C, Opaque_photon_
 extern "C" void photon_element_to_c2 (CPP_photon_element& C, const
     Opaque_surface_curvature_class* z_curvature, const Opaque_photon_target_class* z_target,
     const Opaque_photon_material_class* z_material, const Opaque_surface_grid_class* z_grid,
-    const Opaque_pixel_grid_class* z_pixel) {
+    const Opaque_pixel_detec_class* z_pixel) {
 
   // c_side.to_c2_set[type, 0, NOT]
   surface_curvature_to_c(z_curvature, C.curvature);
@@ -2119,7 +2119,7 @@ extern "C" void photon_element_to_c2 (CPP_photon_element& C, const
   // c_side.to_c2_set[type, 0, NOT]
   surface_grid_to_c(z_grid, C.grid);
   // c_side.to_c2_set[type, 0, NOT]
-  pixel_grid_to_c(z_pixel, C.pixel);
+  pixel_detec_to_c(z_pixel, C.pixel);
 }
 
 //--------------------------------------------------------------------

@@ -458,7 +458,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine pixel_grid_pt_to_f (C, Fp) bind(c)
+  subroutine pixel_pt_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -467,7 +467,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine pixel_grid_to_f (C, Fp) bind(c)
+  subroutine pixel_detec_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -5846,24 +5846,24 @@ end subroutine photon_material_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine pixel_grid_pt_to_c (Fp, C) bind(c)
+! Subroutine pixel_pt_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad pixel_grid_pt_struct to a C++ CPP_pixel_grid_pt structure
+! Routine to convert a Bmad pixel_pt_struct to a C++ CPP_pixel_pt structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad pixel_grid_pt_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad pixel_pt_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_pixel_grid_pt struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_pixel_pt struct.
 !-
 
-subroutine pixel_grid_pt_to_c (Fp, C) bind(c)
+subroutine pixel_pt_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine pixel_grid_pt_to_c2 (C, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, &
+  subroutine pixel_pt_to_c2 (C, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, &
       z_intensity, z_orbit, z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
@@ -5876,7 +5876,7 @@ end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(pixel_grid_pt_struct), pointer :: F
+type(pixel_pt_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 
@@ -5886,36 +5886,36 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call pixel_grid_pt_to_c2 (C, F%n_photon, F%e_x, F%e_y, F%intensity_x, F%intensity_y, &
-    F%intensity, fvec2vec(F%orbit, 6), fvec2vec(F%orbit_rms, 6), fvec2vec(F%init_orbit, 6), &
+call pixel_pt_to_c2 (C, F%n_photon, F%e_x, F%e_y, F%intensity_x, F%intensity_y, F%intensity, &
+    fvec2vec(F%orbit, 6), fvec2vec(F%orbit_rms, 6), fvec2vec(F%init_orbit, 6), &
     fvec2vec(F%init_orbit_rms, 6))
 
-end subroutine pixel_grid_pt_to_c
+end subroutine pixel_pt_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine pixel_grid_pt_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine pixel_pt_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_pixel_grid_pt structure to a Bmad pixel_grid_pt_struct structure.
-! This routine is called by pixel_grid_pt_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_pixel_pt structure to a Bmad pixel_pt_struct structure.
+! This routine is called by pixel_pt_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the pixel_grid_pt_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the pixel_pt_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad pixel_grid_pt_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad pixel_pt_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine pixel_grid_pt_to_f2 (Fp, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, &
+subroutine pixel_pt_to_f2 (Fp, z_n_photon, z_e_x, z_e_y, z_intensity_x, z_intensity_y, &
     z_intensity, z_orbit, z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(pixel_grid_pt_struct), pointer :: F
+type(pixel_pt_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_long) :: z_n_photon
@@ -5945,36 +5945,36 @@ F%init_orbit = z_init_orbit(1:6)
 !! f_side.to_f2_trans[real, 1, NOT]
 F%init_orbit_rms = z_init_orbit_rms(1:6)
 
-end subroutine pixel_grid_pt_to_f2
+end subroutine pixel_pt_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine pixel_grid_to_c (Fp, C) bind(c)
+! Subroutine pixel_detec_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad pixel_grid_struct to a C++ CPP_pixel_grid structure
+! Routine to convert a Bmad pixel_detec_struct to a C++ CPP_pixel_detec structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad pixel_grid_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad pixel_detec_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_pixel_grid struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_pixel_detec struct.
 !-
 
-subroutine pixel_grid_to_c (Fp, C) bind(c)
+subroutine pixel_detec_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine pixel_grid_to_c2 (C, z_dr, z_r0, z_n_track_tot, z_n_live, z_n_lost, z_pt, n1_pt, &
-      n2_pt) bind(c)
+  subroutine pixel_detec_to_c2 (C, z_dr, z_r0, z_n_track_tot, z_n_hit_detec, z_n_hit_pixel, &
+      z_pt, n1_pt, n2_pt) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_dr(*), z_r0(*)
-    integer(c_long) :: z_n_track_tot, z_n_live, z_n_lost
+    integer(c_long) :: z_n_track_tot, z_n_hit_detec, z_n_hit_pixel
     type(c_ptr) :: z_pt(*)
     integer(c_int), value :: n1_pt, n2_pt
   end subroutine
@@ -5982,7 +5982,7 @@ end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(pixel_grid_struct), pointer :: F
+type(pixel_detec_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 type(c_ptr), allocatable :: z_pt(:)
@@ -6006,39 +6006,39 @@ else
 endif
 
 !! f_side.to_c2_call
-call pixel_grid_to_c2 (C, fvec2vec(F%dr, 2), fvec2vec(F%r0, 2), F%n_track_tot, F%n_live, &
-    F%n_lost, z_pt, n1_pt, n2_pt)
+call pixel_detec_to_c2 (C, fvec2vec(F%dr, 2), fvec2vec(F%r0, 2), F%n_track_tot, F%n_hit_detec, &
+    F%n_hit_pixel, z_pt, n1_pt, n2_pt)
 
-end subroutine pixel_grid_to_c
+end subroutine pixel_detec_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine pixel_grid_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine pixel_detec_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_pixel_grid structure to a Bmad pixel_grid_struct structure.
-! This routine is called by pixel_grid_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_pixel_detec structure to a Bmad pixel_detec_struct structure.
+! This routine is called by pixel_detec_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the pixel_grid_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the pixel_detec_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad pixel_grid_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad pixel_detec_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine pixel_grid_to_f2 (Fp, z_dr, z_r0, z_n_track_tot, z_n_live, z_n_lost, z_pt, n1_pt, &
-    n2_pt) bind(c)
+subroutine pixel_detec_to_f2 (Fp, z_dr, z_r0, z_n_track_tot, z_n_hit_detec, z_n_hit_pixel, &
+    z_pt, n1_pt, n2_pt) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(pixel_grid_struct), pointer :: F
+type(pixel_detec_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_dr(*), z_r0(*)
-integer(c_long) :: z_n_track_tot, z_n_live, z_n_lost
+integer(c_long) :: z_n_track_tot, z_n_hit_detec, z_n_hit_pixel
 type(c_ptr) :: z_pt(*)
 integer(c_int), value :: n1_pt, n2_pt
 
@@ -6051,9 +6051,9 @@ F%r0 = z_r0(1:2)
 !! f_side.to_f2_trans[integer8, 0, NOT]
 F%n_track_tot = z_n_track_tot
 !! f_side.to_f2_trans[integer8, 0, NOT]
-F%n_live = z_n_live
+F%n_hit_detec = z_n_hit_detec
 !! f_side.to_f2_trans[integer8, 0, NOT]
-F%n_lost = z_n_lost
+F%n_hit_pixel = z_n_hit_pixel
 !! f_side.to_f2_trans[type, 2, ALLOC]
 if (n1_pt == 0) then
   if (allocated(F%pt)) deallocate(F%pt)
@@ -6065,13 +6065,13 @@ else
   if (.not. allocated(F%pt)) allocate(F%pt(1:n1_pt+1-1, 1:n2_pt+1-1))
   do jd1 = 1, n1_pt
   do jd2 = 1, n2_pt
-    call pixel_grid_pt_to_f (z_pt(n2_pt*(jd1-1) + jd2), c_loc(F%pt(jd1+1-1,jd2+1-1)))
+    call pixel_pt_to_f (z_pt(n2_pt*(jd1-1) + jd2), c_loc(F%pt(jd1+1-1,jd2+1-1)))
   enddo
   enddo
 endif
 
 
-end subroutine pixel_grid_to_f2
+end subroutine pixel_detec_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -6159,7 +6159,7 @@ call photon_material_to_f(z_material, c_loc(F%material))
 !! f_side.to_f2_trans[type, 0, NOT]
 call surface_grid_to_f(z_grid, c_loc(F%grid))
 !! f_side.to_f2_trans[type, 0, NOT]
-call pixel_grid_to_f(z_pixel, c_loc(F%pixel))
+call pixel_detec_to_f(z_pixel, c_loc(F%pixel))
 
 end subroutine photon_element_to_f2
 

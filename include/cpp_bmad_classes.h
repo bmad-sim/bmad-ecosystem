@@ -261,15 +261,15 @@ typedef valarray<CPP_photon_material>          CPP_photon_material_ARRAY;
 typedef valarray<CPP_photon_material_ARRAY>    CPP_photon_material_MATRIX;
 typedef valarray<CPP_photon_material_MATRIX>   CPP_photon_material_TENSOR;
 
-class CPP_pixel_grid_pt;
-typedef valarray<CPP_pixel_grid_pt>          CPP_pixel_grid_pt_ARRAY;
-typedef valarray<CPP_pixel_grid_pt_ARRAY>    CPP_pixel_grid_pt_MATRIX;
-typedef valarray<CPP_pixel_grid_pt_MATRIX>   CPP_pixel_grid_pt_TENSOR;
+class CPP_pixel_pt;
+typedef valarray<CPP_pixel_pt>          CPP_pixel_pt_ARRAY;
+typedef valarray<CPP_pixel_pt_ARRAY>    CPP_pixel_pt_MATRIX;
+typedef valarray<CPP_pixel_pt_MATRIX>   CPP_pixel_pt_TENSOR;
 
-class CPP_pixel_grid;
-typedef valarray<CPP_pixel_grid>          CPP_pixel_grid_ARRAY;
-typedef valarray<CPP_pixel_grid_ARRAY>    CPP_pixel_grid_MATRIX;
-typedef valarray<CPP_pixel_grid_MATRIX>   CPP_pixel_grid_TENSOR;
+class CPP_pixel_detec;
+typedef valarray<CPP_pixel_detec>          CPP_pixel_detec_ARRAY;
+typedef valarray<CPP_pixel_detec_ARRAY>    CPP_pixel_detec_MATRIX;
+typedef valarray<CPP_pixel_detec_MATRIX>   CPP_pixel_detec_TENSOR;
 
 class CPP_photon_element;
 typedef valarray<CPP_photon_element>          CPP_photon_element_ARRAY;
@@ -2076,11 +2076,11 @@ bool operator== (const CPP_photon_material&, const CPP_photon_material&);
 
 
 //--------------------------------------------------------------------
-// CPP_pixel_grid_pt
+// CPP_pixel_pt
 
-class Opaque_pixel_grid_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_pixel_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_pixel_grid_pt {
+class CPP_pixel_pt {
 public:
   Int8 n_photon;
   Complex e_x;
@@ -2093,7 +2093,7 @@ public:
   Real_ARRAY init_orbit;
   Real_ARRAY init_orbit_rms;
 
-  CPP_pixel_grid_pt() :
+  CPP_pixel_pt() :
     n_photon(0),
     e_x(0.0),
     e_y(0.0),
@@ -2106,49 +2106,49 @@ public:
     init_orbit_rms(0.0, 6)
     {}
 
-  ~CPP_pixel_grid_pt() {
+  ~CPP_pixel_pt() {
   }
 
 };   // End Class
 
-extern "C" void pixel_grid_pt_to_c (const Opaque_pixel_grid_pt_class*, CPP_pixel_grid_pt&);
-extern "C" void pixel_grid_pt_to_f (const CPP_pixel_grid_pt&, Opaque_pixel_grid_pt_class*);
+extern "C" void pixel_pt_to_c (const Opaque_pixel_pt_class*, CPP_pixel_pt&);
+extern "C" void pixel_pt_to_f (const CPP_pixel_pt&, Opaque_pixel_pt_class*);
 
-bool operator== (const CPP_pixel_grid_pt&, const CPP_pixel_grid_pt&);
+bool operator== (const CPP_pixel_pt&, const CPP_pixel_pt&);
 
 
 //--------------------------------------------------------------------
-// CPP_pixel_grid
+// CPP_pixel_detec
 
-class Opaque_pixel_grid_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_pixel_detec_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_pixel_grid {
+class CPP_pixel_detec {
 public:
   Real_ARRAY dr;
   Real_ARRAY r0;
   Int8 n_track_tot;
-  Int8 n_live;
-  Int8 n_lost;
-  CPP_pixel_grid_pt_MATRIX pt;
+  Int8 n_hit_detec;
+  Int8 n_hit_pixel;
+  CPP_pixel_pt_MATRIX pt;
 
-  CPP_pixel_grid() :
+  CPP_pixel_detec() :
     dr(0.0, 2),
     r0(0.0, 2),
     n_track_tot(0),
-    n_live(0),
-    n_lost(0),
-    pt(CPP_pixel_grid_pt_ARRAY(CPP_pixel_grid_pt(), 0), 0)
+    n_hit_detec(0),
+    n_hit_pixel(0),
+    pt(CPP_pixel_pt_ARRAY(CPP_pixel_pt(), 0), 0)
     {}
 
-  ~CPP_pixel_grid() {
+  ~CPP_pixel_detec() {
   }
 
 };   // End Class
 
-extern "C" void pixel_grid_to_c (const Opaque_pixel_grid_class*, CPP_pixel_grid&);
-extern "C" void pixel_grid_to_f (const CPP_pixel_grid&, Opaque_pixel_grid_class*);
+extern "C" void pixel_detec_to_c (const Opaque_pixel_detec_class*, CPP_pixel_detec&);
+extern "C" void pixel_detec_to_f (const CPP_pixel_detec&, Opaque_pixel_detec_class*);
 
-bool operator== (const CPP_pixel_grid&, const CPP_pixel_grid&);
+bool operator== (const CPP_pixel_detec&, const CPP_pixel_detec&);
 
 
 //--------------------------------------------------------------------
@@ -2162,7 +2162,7 @@ public:
   CPP_photon_target target;
   CPP_photon_material material;
   CPP_surface_grid grid;
-  CPP_pixel_grid pixel;
+  CPP_pixel_detec pixel;
 
   CPP_photon_element() :
     curvature(),

@@ -836,7 +836,7 @@ template bool is_all_equal (const CPP_photon_material_MATRIX&, const CPP_photon_
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_pixel_grid_pt& x, const CPP_pixel_grid_pt& y) {
+bool operator== (const CPP_pixel_pt& x, const CPP_pixel_pt& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.n_photon == y.n_photon);
   is_eq = is_eq && (x.e_x == y.e_x);
@@ -851,24 +851,24 @@ bool operator== (const CPP_pixel_grid_pt& x, const CPP_pixel_grid_pt& y) {
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_pixel_grid_pt_ARRAY&, const CPP_pixel_grid_pt_ARRAY&);
-template bool is_all_equal (const CPP_pixel_grid_pt_MATRIX&, const CPP_pixel_grid_pt_MATRIX&);
+template bool is_all_equal (const CPP_pixel_pt_ARRAY&, const CPP_pixel_pt_ARRAY&);
+template bool is_all_equal (const CPP_pixel_pt_MATRIX&, const CPP_pixel_pt_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_pixel_grid& x, const CPP_pixel_grid& y) {
+bool operator== (const CPP_pixel_detec& x, const CPP_pixel_detec& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.dr, y.dr);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
   is_eq = is_eq && (x.n_track_tot == y.n_track_tot);
-  is_eq = is_eq && (x.n_live == y.n_live);
-  is_eq = is_eq && (x.n_lost == y.n_lost);
+  is_eq = is_eq && (x.n_hit_detec == y.n_hit_detec);
+  is_eq = is_eq && (x.n_hit_pixel == y.n_hit_pixel);
   is_eq = is_eq && is_all_equal(x.pt, y.pt);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_pixel_grid_ARRAY&, const CPP_pixel_grid_ARRAY&);
-template bool is_all_equal (const CPP_pixel_grid_MATRIX&, const CPP_pixel_grid_MATRIX&);
+template bool is_all_equal (const CPP_pixel_detec_ARRAY&, const CPP_pixel_detec_ARRAY&);
+template bool is_all_equal (const CPP_pixel_detec_MATRIX&, const CPP_pixel_detec_MATRIX&);
 
 //--------------------------------------------------------------
 
