@@ -752,7 +752,7 @@ real(rp), parameter :: r0_vec$(3) = 0
 real(rp), parameter :: w_unit$(3,3) = reshape( [1, 0, 0, 0, 1, 0, 0, 0, 1], [3,3])
 
 type floor_position_struct
-  real(rp) :: r(3) = r0_vec$                 ! (x, y, z) offset from origin
+  real(rp) :: r(3) = 0                        ! (x, y, z) offset from origin
   real(rp) :: w(3,3) =  w_unit$               ! W matrix. Columns are unit vectors of the frame axes.
   real(rp) :: theta = 0, phi = 0, psi = 0     ! angular orientation consistent with W matrix
 end type
@@ -915,7 +915,7 @@ character(16), parameter :: surface_grid_type_name(0:3) = [character(16):: 'GARB
 
 ! Photon statistics at a detector
 
-type pixel_grid_pt_struct
+type pixel_pt_struct
   integer(8) :: n_photon = 0
   complex(rp) :: E_x  = 0, E_y = 0
   real(rp) ::  intensity_x = 0, intensity_y = 0, intensity = 0
@@ -925,12 +925,12 @@ type pixel_grid_pt_struct
   real(rp) :: init_orbit_rms(6) = 0   ! Initial orbit at start of lattice RMS statistics.
 end type
 
-type pixel_grid_struct
+type pixel_detec_struct
   real(rp) :: dr(2) = 0, r0(2) = 0
-  integer(8) :: n_track_tot = 0
-  integer(8) :: n_live = 0
-  integer(8) :: n_lost = 0
-  type (pixel_grid_pt_struct), allocatable :: pt(:,:) 
+  integer(8) :: n_track_tot = 0       ! How many photons were launched from source element.
+  integer(8) :: n_hit_detec = 0         ! How many photons hit the detector.
+  integer(8) :: n_hit_pixel = 0       ! How many photons hit the pixel grid of the detector.
+  type (pixel_pt_struct), allocatable :: pt(:,:) ! Grid of pixels
 end type
 
 ! Surface container structure
@@ -973,7 +973,7 @@ type photon_element_struct
   type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
   type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
-  type (pixel_grid_struct) :: pixel = pixel_grid_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
+  type (pixel_detec_struct) :: pixel = pixel_detec_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
 end type
 
 !------------------------------------------------------------------------------

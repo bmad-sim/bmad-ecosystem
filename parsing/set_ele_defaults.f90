@@ -108,6 +108,7 @@ case (def_parameter$)
   ele%value(ix_branch$) = -1
 
 case (detector$)
+  ele%aperture_at = surface$
   ele%aperture_type = auto_aperture$
   if (logic_option(.true., do_allocate)) then
     ! Avoid "ele%photon = photon_element_struct()" to get around ifort bug. 4/10/2019
