@@ -7,8 +7,8 @@ implicit none
 
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
-type (pixel_grid_struct) :: slave_grid
-type (pixel_grid_struct), pointer :: pixel
+type (pixel_detec_struct) :: slave_pixel
+type (pixel_detec_struct), pointer :: pixel
 
 integer master_rank, ierr, rc, leng, i, stat(MPI_STATUS_SIZE)
 integer pixel_grid_size, num_slaves
@@ -81,16 +81,16 @@ if (lux_com%mpi_rank == master_rank) then
   ! Slaves automatically start one round of tracking
   num_photons_left = lux_param%stop_num_photons - num_slaves * lux_com%n_photon_stop1
 
-  allocate (slave_grid%pt(lbound(pixel%pt,1):ubound(pixel%pt,1),lbound(pixel%pt,2):ubound(pixel%pt,2)))
+  allocate (slave_pixel%pt(lbound(pixel%pt,1):ubound(pixel%pt,1),lbound(pixel%pt,2):ubound(pixel%pt,2)))
 
   do
     ! Get data from a slave
     call print_mpi_info ('Master: Waiting for a Slave...')
-    call mpi_recv (slave_grid%pt, pixel_grid_size, MPI_REAL8, MPI_ANY_SOURCE, results_tag, MPI_COMM_WORLD, stat, ierr)
+    call mpi_recv (slave_pixel%pt, pixel_grid_size, MPI_REAL8, MPI_ANY_SOURCE, results_tag, MPI_COMM_WORLD, stat, ierr)
     slave_rank = stat(MPI_SOURCE)
     call mpi_recv (pnum, 3, MPI_INTEGER8, slave_rank, results_tag, MPI_COMM_WORLD, stat, ierr)
-    slave_grid%n_track_tot = pnum(1);  slave_grid%n_live = pnum(2);  slave_grid%n_lost = pnum(3)  
-    call lux_add_in_mpi_slave_data (slave_grid, lux_param, lux_com)
+    slave_pixel%n_track_tot = pnum(1);  slave_pixel%n_hit_detec = pnum(2);  slave_pixel%n_hit_pixel = pnum(3)  
+    call lux_add_in_mpi_slave_data (slave_pixel, lux_param, lux_com)
     call print_mpi_info ('Master: Gathered data from Slave: ', slave_rank)
 
     ! Tell slave if more tracking needed
@@ -128,7 +128,7 @@ do
   ! Send results to the Master
   call print_mpi_info ('Slave: Sending Data...')
   call mpi_send (lux_com%pixel%pt, pixel_grid_size, MPI_BYTE, master_rank, results_tag, MPI_COMM_WORLD, ierr)
-  call mpi_send ([lux_com%pixel%n_track_tot, lux_com%pixel%n_live, lux_com%pixel%n_lost], &
+  call mpi_send ([lux_com%pixel%n_track_tot, lux_com%pixel%n_hit_detec, lux_com%pixel%n_hit_pixel], &
                                    3, MPI_INTEGER8, master_rank, results_tag, MPI_COMM_WORLD, ierr)
 
   ! Query Master if more tracking needed

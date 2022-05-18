@@ -65,7 +65,7 @@ type lux_common_struct
   type (lat_struct) :: lat
   type (branch_struct), pointer :: physical_source_branch, tracking_branch
   type (ele_struct), pointer :: physical_source_ele, photon_init_ele, fork_ele, detec_ele, photon1_ele
-  type (pixel_grid_struct), pointer :: pixel
+  type (pixel_detec_struct), pointer :: pixel
   type (bunch_params_struct), allocatable :: stat(:)
   integer n_bend_slice             ! Number of slices
   integer(8) :: n_photon_stop1 = 0 ! Number of photons to track per processor.
@@ -75,7 +75,7 @@ type lux_common_struct
   integer :: n_photon1_out = 0     ! Count of photons in photon1_out_file
   integer :: iu_photon1_out        ! File I/O unit number.
   type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
-  type (pixel_grid_pt_struct), allocatable :: histogram_bin(:)
+  type (pixel_pt_struct), allocatable :: histogram_bin(:)
   real(rp) E_min, E_max                                      ! Photon energy range for bends and wigglers
   logical :: verbose = .false.
   logical :: using_mpi = .false.
@@ -406,10 +406,10 @@ if (.not. allocated(lux_com%pixel%pt)) then
 endif
 
 lux_com%pixel%n_track_tot = 0
-lux_com%pixel%n_live = 0
-lux_com%pixel%n_lost = 0
+lux_com%pixel%n_hit_detec = 0
+lux_com%pixel%n_hit_pixel = 0
 
-lux_com%pixel%pt = pixel_grid_pt_struct()
+lux_com%pixel%pt = pixel_pt_struct()
 
 end subroutine lux_init_data
 
@@ -754,9 +754,9 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: detec_ele, photon_init_ele, photon1_ele
 type (branch_struct), pointer :: s_branch, t_branch
 type (bunch_struct) bunch, bunch_stop1, bunch_start
-type (pixel_grid_struct), pointer :: detec_pixel
-type (pixel_grid_pt_struct), pointer :: pix
-type (pixel_grid_pt_struct) :: pixel
+type (pixel_detec_struct), pointer :: detec_pixel
+type (pixel_pt_struct), pointer :: pix
+type (pixel_pt_struct) :: pixel
 
 real(rp) phase, intensity_tot, intens, time0, time
 
@@ -852,27 +852,20 @@ end subroutine photon1_out
 subroutine add_this_to_detector_statistics (start_orb, det_orb, intens, intensity_tot)
 
 type (coord_struct) start_orb, det_orb, orb0, orb, surf_orb
-type (pixel_grid_pt_struct), allocatable :: temp_bin(:)
+type (pixel_pt_struct), allocatable :: temp_bin(:)
 real(rp) intens, intensity_tot
 integer ix, i1, i2
 
 !
 
-if (det_orb%state /= alive$) then
-  lux_com%pixel%n_lost = lux_com%pixel%n_lost + 1
-  return
-endif
+if (det_orb%state /= alive$) return
 
 call to_surface_coords (det_orb, detec_ele, surf_orb)
 
-!
-
 if (surf_orb%state /= alive$) then
-  lux_com%pixel%n_lost = lux_com%pixel%n_lost + 1
+  lux_com%pixel%n_hit_detec = lux_com%pixel%n_hit_detec + 1
   return
 endif
-
-lux_com%pixel%n_live = lux_com%pixel%n_live + 1
 
 intens = surf_orb%field(1)**2 + surf_orb%field(2)**2
 intensity_tot = intensity_tot + intens
@@ -931,7 +924,7 @@ end subroutine lux_track_photons
 ! Routine to combine data from an MPI slave to the master data structure.
 !
 ! Input:
-!   slave_pixel   -- pixel_grid_struct: Slave data.
+!   slave_pixel   -- pixel_detec_struct: Slave data.
 !   lux_param     -- lux_param_struct: Lux input parameters.
 !   lux_com       -- lux_common_struct: Common parameters.
 !
@@ -943,7 +936,7 @@ subroutine lux_add_in_mpi_slave_data (slave_pixel, lux_param, lux_com)
 
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
-type (pixel_grid_struct) slave_pixel
+type (pixel_detec_struct) slave_pixel
 integer i, j
 
 !
@@ -964,8 +957,8 @@ enddo
 enddo
 
 lux_com%pixel%n_track_tot   = lux_com%pixel%n_track_tot   + slave_pixel%n_track_tot
-lux_com%pixel%n_live        = lux_com%pixel%n_live        + slave_pixel%n_live
-lux_com%pixel%n_lost        = lux_com%pixel%n_lost        + slave_pixel%n_lost
+lux_com%pixel%n_hit_detec   = lux_com%pixel%n_hit_detec   + slave_pixel%n_hit_detec
+lux_com%pixel%n_hit_pixel   = lux_com%pixel%n_hit_pixel   + slave_pixel%n_hit_pixel
 
 end subroutine lux_add_in_mpi_slave_data 
 
@@ -986,9 +979,9 @@ subroutine lux_write_data (lux_param, lux_com)
 
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
-type (pixel_grid_struct), pointer :: pixel
-type (pixel_grid_pt_struct), pointer :: pix
-type (pixel_grid_pt_struct) :: p
+type (pixel_detec_struct), pointer :: pixel
+type (pixel_pt_struct), pointer :: pix
+type (pixel_pt_struct) :: p
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 type (all_pointer_struct), allocatable :: ptr_array(:)
@@ -1078,8 +1071,8 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a, es16.5)')    'intensity_unnorm    =', sum(pixel%pt(:,:)%intensity)
   write (3, '(a, es16.5)')    'intensity_norm      =', sum(pixel%pt(:,:)%intensity) * normalization
   write (3, '(a, i0)')        'n_track_tot         = ', pixel%n_track_tot
-  write (3, '(a, i0)')        'n_at_det            = ', pixel%n_live
-  write (3, '(a, i0)')        'n_hit_pix           = ', sum(pixel%pt(:,:)%n_photon)
+  write (3, '(a, i0)')        'n_at_detec          = ', pixel%n_hit_detec
+  write (3, '(a, i0)')        'n_hit_pixel         = ', pixel%n_hit_pixel
   write (3, '(a, f10.6)')     'dx_pixel            =', pixel%dr(1)
   write (3, '(a, f10.6)')     'dy_pixel            =', pixel%dr(2)
   write (3, '(a, i8)')        'nx_active_min       =', nx_active_min
@@ -1171,7 +1164,7 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a)') '#   ix      x_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
   do i = lbound(pixel%pt, 1), ubound(pixel%pt, 1)
-    p = pixel_grid_pt_struct()
+    p = pixel_pt_struct()
     p%intensity_x = sum(pixel%pt(i,:)%intensity_x)
     p%intensity_y = sum(pixel%pt(i,:)%intensity_y)
     p%intensity   = sum(pixel%pt(i,:)%intensity)
@@ -1200,7 +1193,7 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a)') '#                                                                                                                             |                    Init'
   write (3, '(a)') '#   iy      y_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
   do j = lbound(pixel%pt, 2), ubound(pixel%pt, 2)
-    p = pixel_grid_pt_struct()
+    p = pixel_pt_struct()
     p%intensity_x = sum(pixel%pt(:,j)%intensity_x)
     p%intensity_y = sum(pixel%pt(:,j)%intensity_y)
     p%intensity   = sum(pixel%pt(:,j)%intensity)
@@ -1275,9 +1268,12 @@ endif
 call run_timer ('READ', dtime)
 
 if (lux_com%verbose) then
+  if (pixel%n_hit_pixel /= sum(pixel%pt%n_photon)) then
+    print '(a, i0)', 'PARITY CHECK FAILED! PLEASE CONTACT DAVID SAGAN! ', pixel%n_hit_pixel - sum(pixel%pt%n_photon)
+  endif
   print '(a, t35, i0, 5x, es10.2)', 'Photons Tracked:', pixel%n_track_tot, float(pixel%n_track_tot)
-  print '(a, t35, i0)',      'Photons at detector:', pixel%n_live
-  print '(a, t35, i0)',      'Photons hitting pix:', sum(pixel%pt%n_photon)
+  print '(a, t35, i0)',      'Photons at detector:', pixel%n_hit_detec
+  print '(a, t35, i0)',      'Photons hitting pix:', pixel%n_hit_pixel
   print '(a, t45, es12.4)', 'Normalization factor:', normalization
   print '(a, t45, es12.4)', 'Total intensity on pix (unnormalized):', intens_tot
   print '(a, t45, es12.4)', 'Total intensity on pix (normalized):', intens_tot * normalization
