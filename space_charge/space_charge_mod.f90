@@ -51,8 +51,8 @@ do i = 1, size(bunch%particle)
   position(n)%charge = p%charge * charge_of(p%species)
   beta = beta + p%beta
 enddo
-beta = beta/n
 if (n<2) return
+beta = beta/n
 
 ! Calculate space charge field
 mesh3d%gamma = 1/sqrt(1- beta**2)
@@ -135,7 +135,7 @@ enddo
 
 ! And track
 
-call track_bunch_time(bunch, ele, t_end, 1e30_rp)
+call track_bunch_time(bunch, ele, t_end, 1e30_rp, extra_field=extra_field)
 
 end subroutine sc_step
 
@@ -186,7 +186,7 @@ dt_next = dt_step
 
 do
   ! Full step
-  call sc_step(bunch_half, ele, t_now+dt_step)
+  call sc_step(bunch_full, ele, t_now+dt_step)
   ! Two half steps
   call sc_step(bunch_half, ele, t_now+dt_step/2)
   call sc_step(bunch_half, ele, t_now+dt_step)
@@ -212,6 +212,8 @@ do
   ! If error is larger than tolerance, try again with a smaller step
   if (err_max <= 1.0) exit
   dt_step = safety * dt_step * (err_max**p_shrink)
+  bunch_full = bunch
+  bunch_half = bunch
 enddo
 
 ! Adjust next step size
