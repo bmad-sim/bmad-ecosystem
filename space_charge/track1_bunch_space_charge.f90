@@ -6,7 +6,7 @@
 ! Input:
 !   bunch       -- bunch_struct: Starting bunch position.
 !   ele         -- ele_struct: E_gun element to track through. Must be part of a lattice.
-!   to_s_coords -- logical, optional: Default is True. If False lease bunch in time coords at end of tracking.
+!   to_s_coords -- logical, optional: Default is True. If False leave bunch in time coords at end of tracking.
 !
 ! Output:
 !   bunch     -- bunch_struct: Ending bunch position.

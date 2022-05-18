@@ -26,7 +26,7 @@ use bmad_interface, dummy => track_bunch_time
 
 implicit none
 
-type (ele_struct), target :: ele_in
+type (ele_struct), target :: ele_in, drift_ele
 type (ele_struct), pointer :: ele_here
 type (bunch_struct), target :: bunch
 type (em_field_struct), optional :: extra_field(:)
@@ -84,6 +84,7 @@ function pointer_to_next_track_ele(orbit, branch) result (ele_here)
 type (coord_struct) orbit
 type (branch_struct) branch
 type (ele_struct), pointer :: ele_here
+logical err_flag
 
 !
 
@@ -106,9 +107,12 @@ case (upstream_end$)
 case (downstream_end$)
   if (orbit%direction /= 1) return
 
+  ! Put a drift at end of branch if needed.
   if (ele_here%ix_ele == branch%n_ele_track) then
-    call out_io (s_error$, r_name, 'PARTICLE AT END OF LATTICE. WILL BE MARKED AS DEAD')
-    orbit%state = lost_z_aperture$
+    call init_ele (drift_ele, drift$, ix_ele = ele_here%ix_ele + 1, branch = branch)
+    drift_ele%value(l$) = 100
+    call ele_compute_ref_energy_and_time(ele_here, drift_ele, branch%param, err_flag)
+    ele_here => drift_ele
     return
   endif
 
