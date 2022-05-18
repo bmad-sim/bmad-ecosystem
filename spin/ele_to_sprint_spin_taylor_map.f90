@@ -37,17 +37,10 @@ integer i, j, fringe_at
 
 m = mass_of(ele%ref_species)
 e = ele%value(e_tot$)
-e1 = ele%value(e1$)
-e2 = ele%value(e2$)
 gma = e/m
 a = anomalous_moment_of(ele%ref_species)
 q = charge_of(ele%ref_species)
 l = ele%value(l$)
-k1 = ele%value(k1$)
-ks = ele%value(ks$)
-g = ele%value(g$)
-k0 = g + ele%value(dg$)
-kx = k1+g*k0
 
 chi = 1 + a*gma
 zeta = gma - 1
@@ -106,6 +99,7 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker
 ! Quadrupole
 
 case (quadrupole$)
+  k1 = ele%value(k1$)
 
   if (k1 > 0) then
     omega = sqrt(k1)
@@ -131,6 +125,12 @@ case (quadrupole$)
 ! SBend
 
 case (sbend$, rbend$)
+  e1 = ele%value(e1$)
+  e2 = ele%value(e2$)
+  k1 = ele%value(k1$)
+  g = ele%value(g$)
+  k0 = g + ele%value(dg$)
+  kx = k1+g*k0
 
   d = k0*l
   c_d = cos(d)
@@ -213,6 +213,8 @@ case (sbend$, rbend$)
 ! Solenoid
 
 case (solenoid$)
+  ks = ele%value(ks$)
+
   s = a*ks*l
   c_s = cos(s)
   s_s = sin(s)
@@ -260,9 +262,9 @@ endif
 
 !Convert map%spin_q to ele%spin_taylor
 do i = 0,3
-  do j = 0,6
-    if (j == 0) then
-      call add_taylor_term(ele%spin_taylor(i), map_ele%spin_q(i, j), [0,0,0,0,0,0])
+do j = 0,6
+  if (j == 0) then
+    call add_taylor_term(ele%spin_taylor(i), map_ele%spin_q(i, j), [0,0,0,0,0,0])
   else
     call add_taylor_term(ele%spin_taylor(i), map_ele%spin_q(i, j), taylor_expn([j]))
   endif

@@ -1,8 +1,9 @@
 !+
 ! Subroutine track_bunch_time (bunch, ele_in, t_end, s_end, dt_step, extra_field)
 !
-! Routine to track a particle bunch for a given time step (or if the 
-! particle position exceeds s_end).
+! Routine to track a particle bunch for a given time step (or if the ! particle position exceeds s_end).
+!
+! Note: If a particle passes the end of the lattice, the particle will be tracked as if it was in a drift.
 !
 ! Input:
 !   bunch          -- bunch_struct: Coordinates must be time-coords in element body frame.
