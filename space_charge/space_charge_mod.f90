@@ -8,18 +8,20 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine sc_field_calc (bunch, image, sc_field)
+! Subroutine sc_field_calc (bunch, include_image, sc_field)
 !
 ! Routine to calculate the space charge field of a bunch
 !
 ! Input:
-!   bunch      -- bunch_struct: Starting bunch position in time-based coordinates
-!   image      -- logical: True if cathode image charge fields are included
+!   bunch           -- bunch_struct: Starting bunch position in time-based coordinates
+!   include_image   -- logical: True if cathode image charge fields are to be included.
+!
 ! Output:
-!   sc_field   -- em_field_struct: space charge field at particle positions
+!   include_image   -- logical: Set False if image charge calc no longer needed (Note: never set True).
+!   sc_field        -- em_field_struct: space charge field at particle positions
 !-
 
-subroutine sc_field_calc (bunch, image, sc_field)
+subroutine sc_field_calc (bunch, include_image, sc_field)
 
 use csr_and_space_charge_mod
 
@@ -34,7 +36,7 @@ type (mesh3d_struct) :: mesh3d, mesh3d_image
 integer :: n, i, imin(1)
 real(rp) :: beta, ratio
 real(rp) :: Evec(3), Bvec(3), Evec_image(3)
-logical :: image
+logical :: include_image
 
 ! Initialize variables
 mesh3d%nhi = space_charge_com%space_charge_mesh_size
@@ -57,10 +59,10 @@ beta = beta/n
 ! Calculate space charge field
 mesh3d%gamma = 1/sqrt(1- beta**2)
 call deposit_particles (position(1:n)%r(1), position(1:n)%r(2), position(1:n)%r(3), mesh3d, qa=position(1:n)%charge)
-call space_charge_3d(mesh3d, at_cathode=image, calc_bfield=.true., image_efield=mesh3d_image%efield)
+call space_charge_3d(mesh3d, at_cathode=include_image, calc_bfield=.true., image_efield=mesh3d_image%efield)
 
 ! Determine if cathode image field should be turned off
-if (image) then
+if (include_image) then
   ! Copy mesh3d dimensions and allocate image_efield
   mesh3d_image%nlo = mesh3d%nlo
   mesh3d_image%nhi = mesh3d%nhi
@@ -75,7 +77,7 @@ if (image) then
   call interpolate_field(p%vec(1), p%vec(3), p%s,  mesh3d_image, E=Evec_image)
   ratio = maxval(abs(Evec_image/Evec))
   ! If image field is small compared to the bunch field, turn it off from here on
-  if (ratio <= space_charge_com%cathode_strength_cutoff) image = .false.
+  if (ratio <= space_charge_com%cathode_strength_cutoff) include_image = .false.
 endif
 
 ! Calculate field at particle locations
@@ -95,20 +97,22 @@ end subroutine sc_field_calc
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine sc_step(bunch, ele, t_end)
+! Subroutine sc_step(bunch, ele, include_image, t_end)
 !
 ! Subroutine to track a bunch through a given time step with space charge
 !
 ! Input:
-!   bunch        -- bunch_struct: Starting bunch position in t-based coordinates
-!   ele          -- ele_struct: Element being tracked through.
-!   t_end        -- real(rp): Time at which the tracking ends
+!   bunch         -- bunch_struct: Starting bunch position in t-based coordinates
+!   ele           -- ele_struct: Element being tracked through.
+!   include_image -- logical: Include image charge forces?
+!   t_end         -- real(rp): Time at which the tracking ends.
 !
 ! Output:
-!   bunch        -- bunch_struct: Ending bunch position in t-based coordinates after space charge kick
+!   bunch         -- bunch_struct: Ending bunch position in t-based coordinates after space charge kick.
+!   include_image -- logical: Set False if image charge calc no longer needed (Note: never set True).
 !-
 
-subroutine sc_step(bunch, ele, t_end)
+subroutine sc_step(bunch, ele, include_image, t_end)
 
 implicit none
 
@@ -123,7 +127,6 @@ integer i
 
 !
 
-include_image = (ele%space_charge_method == cathode_fft_3d$) ! Include cathode image charge?
 call sc_field_calc (bunch, include_image, extra_field)
 
 ! Generate particles at the cathode
@@ -143,24 +146,26 @@ end subroutine sc_step
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine sc_adaptive_step(bunch, ele, t_now, dt_step, dt_next)
+! Subroutine sc_adaptive_step(bunch, ele, include_image, t_now, dt_step, dt_next)
 !
 ! Routine to track a bunch of particles with space charge for one step using
 ! adaptive step size control and determine appropriate step size for the next step
 !
 ! Input:
-!   bunch     -- bunch_struct: Starting bunch position in t-based coordinates
-!   ele       -- ele_struct: Nominal lattice element being tracked through.
-!   t_now     -- real(rp): Current time at the beginning of tracking
-!   dt_step   -- real(rp): Initial SC time step to take
+!   bunch         -- bunch_struct: Starting bunch position in t-based coordinates
+!   ele           -- ele_struct: Nominal lattice element being tracked through.
+!   include_image -- logical: Include image charge forces?
+!   t_now         -- real(rp): Current time at the beginning of tracking
+!   dt_step       -- real(rp): Initial SC time step to take
 !
 ! Output:
-!   bunch     -- bunch_struct: Ending bunch position in t-based coordinates 
-!   dt_next   -- real(rp): Next SC time step the tracker would take based on the error tolerance
-!   dt_step   -- real(rp): Step done.
+!   bunch         -- bunch_struct: Ending bunch position in t-based coordinates.
+!   include_image -- logical: Set False if image charge calc no longer needed (Note: never set True).
+!   dt_next       -- real(rp): Next SC time step the tracker would take based on the error tolerance
+!   dt_step       -- real(rp): Step done.
 !-
 
-subroutine sc_adaptive_step(bunch, ele, t_now, dt_step, dt_next)
+subroutine sc_adaptive_step(bunch, ele, include_image, t_now, dt_step, dt_next)
 
 implicit none
 
@@ -175,6 +180,9 @@ real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
 real(rp), parameter :: tiny = 1.0e-30_rp
 
 integer i, N
+logical include_image
+
+!
 
 sqrt_N = sqrt(abs(1/(c_light*dt_step)))  ! number of steps we would take to cover 1 meter
 rel_tol = space_charge_com%rel_tol_tracking / sqrt_N
@@ -186,10 +194,10 @@ dt_next = dt_step
 
 do
   ! Full step
-  call sc_step(bunch_full, ele, t_now+dt_step)
+  call sc_step(bunch_full, ele, include_image, t_now+dt_step)
   ! Two half steps
-  call sc_step(bunch_half, ele, t_now+dt_step/2)
-  call sc_step(bunch_half, ele, t_now+dt_step)
+  call sc_step(bunch_half, ele, include_image, t_now+dt_step/2)
+  call sc_step(bunch_half, ele, include_image, t_now+dt_step)
 
   r_err = [0,0,0,0,0,0]
   N = 0
@@ -258,6 +266,8 @@ end subroutine sc_adaptive_step
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
+! Subroutine drift_to_s (bunch_in, s, lat, bunch_out)
+!
 ! Drift a bunch of particles to the same s coordinate
 !
 ! Input:
@@ -270,36 +280,37 @@ end subroutine sc_adaptive_step
 !-
 
 subroutine drift_to_s (bunch_in, s, lat, bunch_out)
-  
-  use bmad
-  
-  implicit none
-  
-  type (bunch_struct), target :: bunch_in, bunch_out
-  type (coord_struct), pointer :: p
-  type (lat_struct) :: lat
 
-  integer i
-  real(rp) s, pz0, E_tot, dt
+use bmad
 
-  bunch_out = bunch_in
+implicit none
 
-  ! Convert bunch to s-based coordinates
-  do i = 1, size(bunch_out%particle) 
-    call convert_particle_coordinates_t_to_s(bunch_out%particle(i), 0.0_rp, lat%ele(bunch_out%particle(i)%ix_ele))
-  enddo
+type (bunch_struct), target :: bunch_in, bunch_out
+type (coord_struct), pointer :: p
+type (lat_struct) :: lat
 
-  do i = 1, size(bunch_out%particle)
-    p => bunch_out%particle(i)
-    pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
-    E_tot = sqrt((1.0_rp + p%vec(6))**2 + (mass_of(p%species)/p%p0c)**2) ! * p0
-    dt = (s-p%s)/(c_light*pz0/E_tot)
-  
-    p%vec(1) = p%vec(1) + dt*c_light*p%vec(2)/E_tot
-    p%vec(3) = p%vec(3) + dt*c_light*p%vec(4)/E_tot
-    p%s = s
-    p%t = p%t + dt
-  enddo
+integer i
+real(rp) s, pz0, E_tot, dt
+
+! Convert bunch to s-based coordinates
+
+bunch_out = bunch_in
+
+do i = 1, size(bunch_out%particle) 
+  call convert_particle_coordinates_t_to_s(bunch_out%particle(i), 0.0_rp, lat%ele(bunch_out%particle(i)%ix_ele))
+enddo
+
+do i = 1, size(bunch_out%particle)
+  p => bunch_out%particle(i)
+  pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
+  E_tot = sqrt((1.0_rp + p%vec(6))**2 + (mass_of(p%species)/p%p0c)**2) ! * p0
+  dt = (s-p%s)/(c_light*pz0/E_tot)
+
+  p%vec(1) = p%vec(1) + dt*c_light*p%vec(2)/E_tot
+  p%vec(3) = p%vec(3) + dt*c_light*p%vec(4)/E_tot
+  p%s = s
+  p%t = p%t + dt
+enddo
 
 end subroutine drift_to_s
 

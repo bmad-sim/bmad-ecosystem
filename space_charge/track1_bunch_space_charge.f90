@@ -25,7 +25,7 @@ type (branch_struct), pointer :: branch
 type (coord_struct), pointer :: p
 
 integer i
-logical err, finished
+logical err, finished, include_image
 logical, optional :: to_s_coords
 real(rp) :: dt_step, dt_next, t_now, t_end
 
@@ -40,6 +40,7 @@ branch => pointer_to_branch(ele)
 dt_step = space_charge_com%dt_track_step  ! Init time step.
 dt_next = dt_step
 t_now = minval(bunch%particle(:)%t)
+include_image = (ele%space_charge_method == cathode_fft_3d$) ! Include cathode image charge?
 
 ! Don't track zero-length elements
 if (ele%value(l$) == 0) then
@@ -51,9 +52,9 @@ endif
 ! Track
 do
   if (ele%tracking_method==fixed_step_time_runge_kutta$) then
-    call sc_step(bunch, ele, t_now+dt_step)
+    call sc_step(bunch, ele, include_image, t_now+dt_step)
   else
-    call sc_adaptive_step(bunch, ele, t_now, dt_step, dt_next)
+    call sc_adaptive_step(bunch, ele, include_image, t_now, dt_step, dt_next)
     dt_step = dt_next
   end if
 
