@@ -116,11 +116,11 @@ case (quadrupole$)
   endif
   map_ele%spin_q(0,0) = 1.
 
-  map_ele%spin_q(1,3) = 0.5_rp*chi*k1*sy
-  map_ele%spin_q(1,4) = 0.5_rp*chi*k1*cy
+  map_ele%spin_q(1,3) = -0.5_rp*chi*k1*sy
+  map_ele%spin_q(1,4) = -0.5_rp*chi*k1*cy
 
-  map_ele%spin_q(2,1) = 0.5_rp*chi*k1*sx
-  map_ele%spin_q(2,2) = 0.5_rp*chi*k1*cx
+  map_ele%spin_q(2,1) = -0.5_rp*chi*k1*sx
+  map_ele%spin_q(2,2) = -0.5_rp*chi*k1*cx
 
 ! SBend
 
