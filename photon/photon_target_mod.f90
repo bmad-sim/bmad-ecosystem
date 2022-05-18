@@ -208,7 +208,7 @@ end subroutine photon_target_corner_calc
 !   orbit0    -- coord_struct: Photon coords at beginning of lattice
 !   orbit     -- coord_struct: Photon coords at the detector.
 !   ele       -- ele_struct: Element with grid.
-!   pixel_pt  -- pixel_grid_pt_struct, optional: If present then use this grid point
+!   pixel_pt  -- pixel_pt_struct, optional: If present then use this grid point
 !                 instead of the grid point determined by the (x, y) coords of the photon
 !   
 !
@@ -222,9 +222,9 @@ subroutine photon_add_to_detector_statistics (orbit0, orbit, ele, ix_pt, iy_pt, 
 
 type (coord_struct) orbit0, orbit, orb
 type (ele_struct), target :: ele
-type (pixel_grid_pt_struct), optional, target :: pixel_pt
-type (pixel_grid_pt_struct), pointer :: pix
-type (pixel_grid_struct), pointer :: pixel
+type (pixel_pt_struct), optional, target :: pixel_pt
+type (pixel_pt_struct), pointer :: pix
+type (pixel_detec_struct), pointer :: pixel
 type (branch_struct), pointer :: branch
 
 real(rp) phase, intens_x, intens_y, intens, dE
@@ -247,10 +247,12 @@ else
 
   ! If outside of detector region then do nothing.
 
+  pixel%n_hit_detec = pixel%n_hit_detec + 1
   if (ix_pix(1) < lbound(pixel%pt, 1) .or. ix_pix(1) > ubound(pixel%pt, 1) .or. &
       ix_pix(2) < lbound(pixel%pt, 2) .or. ix_pix(2) > ubound(pixel%pt, 2)) return
 
   pix => pixel%pt(ix_pix(1), ix_pix(2))
+  pixel%n_hit_pixel = pixel%n_hit_pixel + 1
 endif
 
 ! Add to det stat
@@ -301,7 +303,7 @@ function detector_pixel_pt (orbit, ele) result (ix_pix)
 
 type (coord_struct) orbit
 type (ele_struct), target :: ele
-type (pixel_grid_struct), pointer :: pixel
+type (pixel_detec_struct), pointer :: pixel
 
 integer ix_pix(2)
 

@@ -23,8 +23,8 @@ interface operator (==)
   module procedure eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field
   module procedure eq_floor_position, eq_high_energy_space_charge, eq_xy_disp, eq_twiss, eq_mode3
   module procedure eq_bookkeeping_state, eq_rad_map, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid
-  module procedure eq_target_point, eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_grid_pt
-  module procedure eq_pixel_grid, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
+  module procedure eq_target_point, eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_pt
+  module procedure eq_pixel_detec, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
   module procedure eq_control, eq_controller_var1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init
   module procedure eq_grid_beam_init, eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker
   module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_strong_beam
@@ -1443,11 +1443,11 @@ end function eq_photon_material
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_pixel_grid_pt (f1, f2) result (is_eq)
+elemental function eq_pixel_pt (f1, f2) result (is_eq)
 
 implicit none
 
-type(pixel_grid_pt_struct), intent(in) :: f1, f2
+type(pixel_pt_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -1474,16 +1474,16 @@ is_eq = is_eq .and. all(f1%init_orbit == f2%init_orbit)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%init_orbit_rms == f2%init_orbit_rms)
 
-end function eq_pixel_grid_pt
+end function eq_pixel_pt
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_pixel_grid (f1, f2) result (is_eq)
+elemental function eq_pixel_detec (f1, f2) result (is_eq)
 
 implicit none
 
-type(pixel_grid_struct), intent(in) :: f1, f2
+type(pixel_detec_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -1496,9 +1496,9 @@ is_eq = is_eq .and. all(f1%r0 == f2%r0)
 !! f_side.equality_test[integer8, 0, NOT]
 is_eq = is_eq .and. (f1%n_track_tot == f2%n_track_tot)
 !! f_side.equality_test[integer8, 0, NOT]
-is_eq = is_eq .and. (f1%n_live == f2%n_live)
+is_eq = is_eq .and. (f1%n_hit_detec == f2%n_hit_detec)
 !! f_side.equality_test[integer8, 0, NOT]
-is_eq = is_eq .and. (f1%n_lost == f2%n_lost)
+is_eq = is_eq .and. (f1%n_hit_pixel == f2%n_hit_pixel)
 !! f_side.equality_test[type, 2, ALLOC]
 is_eq = is_eq .and. (allocated(f1%pt) .eqv. allocated(f2%pt))
 if (.not. is_eq) return
@@ -1506,7 +1506,7 @@ if (allocated(f1%pt)) is_eq = all(shape(f1%pt) == shape(f2%pt))
 if (.not. is_eq) return
 if (allocated(f1%pt)) is_eq = all(f1%pt == f2%pt)
 
-end function eq_pixel_grid
+end function eq_pixel_detec
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
