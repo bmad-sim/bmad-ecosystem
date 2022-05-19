@@ -1,5 +1,6 @@
 !+
-! Subroutine offset_particle (ele, set, orbit, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
+! Subroutine offset_particle (ele, set, orbit, set_tilt, set_hvkicks, drift_to_edge, &
+!                                                           s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot)
 !
 ! Routine to transform a particles's coordinates between laboratory and element coordinates
 ! at the ends of the element. Additionally, this routine will:
@@ -24,42 +25,44 @@
 ! Note: There are no element coordinates associated with a patch element so this routine will do nothing in this case.
 !
 ! Input:
-!   ele            -- Ele_struct: Element
-!     %value(x_offset$) -- Horizontal offset of element.
-!     %value(x_pitch$)  -- Horizontal pitch of element.
-!     %value(tilt$)     -- tilt of element.
-!   set            -- Logical: 
-!                    T (= set$)   -> Translate from lab coords to the local element coords.
-!                    F (= unset$) -> Translate back from element to lab coords.
-!   orbit          -- Coord_struct: Coordinates of the particle.
-!   set_tilt       -- Logical, optional: Default is True.
-!                    T -> Rotate using ele%value(tilt$) and ele%value(roll$) for sbends.
-!                    F -> Do not rotate
-!   set_hvkicks    -- Logical, optional: Default is True.
-!                    T -> Apply 1/2 any hkick or vkick.
-!   drift_to_edge  -- Logical, optional: Default is True.
-!                    T -> Particle will be propagated from where the particle is (at the
-!                           nominal edge of the element) and the true physical edge of the element.
-!                    F -> Do no propagate. Used by save_a_step routine.
-!   s_pos         -- Real(rp), optional: Longitudinal particle position:
-!                     If set = set$: Relative to upstream end (That is, in lab coords).
-!                     If set = unset$: Relative to entrance end (Thant is, in body coords).
-!                    If not present then, for orbit%direction = 1,  s_pos = 0 is assumed when set = T and 
-!                    s_pos = ele%value(l$) when set = F. And vice versa when orbit%direction = -1.
-!   set_spin       -- Logical, optional: Default if False.
-!                    Rotate spin coordinates? Also bmad_com%spin_tracking_on must be T to rotate.
-!   mat6(6,6)      -- Real(rp), optional: Transfer matrix before off setting.
-!   make_matrix    -- logical, optional: Propagate the transfer matrix? Default is false.
+!   ele               -- Ele_struct: Element
+!     %value(x_offset$)   -- Horizontal offset of element.
+!     %value(x_pitch$)    -- Horizontal pitch of element.
+!     %value(tilt$)       -- tilt of element.
+!   set               -- Logical: 
+!                       T (= set$)   -> Translate from lab coords to the local element coords.
+!                       F (= unset$) -> Translate back from element to lab coords.
+!   orbit             -- Coord_struct: Coordinates of the particle.
+!   set_tilt          -- Logical, optional: Default is True.
+!                       T -> Rotate using ele%value(tilt$) and ele%value(roll$) for sbends.
+!                       F -> Do not rotate
+!   set_hvkicks       -- Logical, optional: Default is True.
+!                       T -> Apply 1/2 any hkick or vkick.
+!   drift_to_edge     -- Logical, optional: Default is True.
+!                       T -> Particle will be propagated from where the particle is (at the
+!                              nominal edge of the element) and the true physical edge of the element.
+!                       F -> Do no propagate. Used by save_a_step routine.
+!   s_pos             -- Real(rp), optional: Longitudinal particle position:
+!                         If set = set$: Relative to upstream end (That is, in lab coords).
+!                         If set = unset$: Relative to entrance end (Thant is, in body coords).
+!                         If not present then, for orbit%direction = 1,  s_pos = 0 is assumed when set = T and 
+!                         s_pos = ele%value(l$) when set = F. And vice versa when orbit%direction = -1.
+!   set_spin          -- Logical, optional: Default if False.
+!                         Rotate spin coordinates? Also bmad_com%spin_tracking_on must be T to rotate.
+!   mat6(6,6)         -- Real(rp), optional: Transfer matrix before off setting.
+!   make_matrix       -- logical, optional: Propagate the transfer matrix? Default is false.
 !                                               
 ! Output:
-!     orbit      -- coord_struct: Coordinates of particle.
-!                     If set = set$: In body coords.
-!                     If set = unset$: In lab coords.
-!     s_out      -- real(rp), optional: Longitudinal particle position. 
-!     mat6(6,6)  -- real(rp), optional: Transfer matrix transfer matrix after offsets applied.
+!     orbit           -- coord_struct: Coordinates of particle.
+!                         If set = set$: In body coords.
+!                         If set = unset$: In lab coords.
+!     s_out           -- real(rp), optional: Longitudinal particle position. 
+!     mat6(6,6)       -- real(rp), optional: Transfer matrix transfer matrix after offsets applied.
+!     spin_qrot(0:3)  -- real(rp), optional: Spin rotation quaternion
 !-
 
-subroutine offset_particle (ele, set, orbit, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
+subroutine offset_particle (ele, set, orbit, set_tilt, set_hvkicks, drift_to_edge, &
+                                                            s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot)
 
 use bmad_interface, except_dummy => offset_particle
 
@@ -70,7 +73,7 @@ type (coord_struct), intent(inout) :: orbit
 type (em_field_struct) field
 type (floor_position_struct) position
 
-real(rp), optional :: s_pos, s_out, mat6(6,6)
+real(rp), optional :: s_pos, s_out, mat6(6,6), spin_qrot(0:3)
 real(rp) rel_p, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx, f, B_factor, ds_center
 real(rp) angle, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3), pz
 real(rp) beta_ref, charge_dir, dz, rel_tracking_charge, rtc, Ex, Ey, kx, ky, length
@@ -120,6 +123,7 @@ else
 endif
 
 if (ele%key == patch$) return
+if (present(spin_qrot)) spin_qrot = [1, 0, 0, 0]
 
 !---------------------------------------------------------------         
 
@@ -129,7 +133,7 @@ set_hv     = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t      = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
 do_drift   = logic_option (.true., drift_to_edge) .and. has_orientation_attributes(ele)
-set_spn    = logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on
+set_spn    = (logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on) .or. present(spin_qrot)
 
 rel_tracking_charge = rel_tracking_charge_to_mass (orbit, ele%ref_species)
 charge_dir = rel_tracking_charge * sign_z_vel 
@@ -219,7 +223,7 @@ if (set) then
       endif
     
       if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
-
+      if (present(spin_qrot)) spin_qrot = quat_mul(w_mat_to_quat(position%w), spin_qrot)
 
     endif    ! has nonzero offset or pitch
 
@@ -234,14 +238,14 @@ if (set) then
   if (set_hv1) then
     orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(hkick$) / 2
     orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(vkick$) / 2
-    if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
+    if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
   endif
 
   ! Set: Tilt
 
   if (set_t .and. ele%key /= sbend$ .and. ele%value(tilt_tot$) /= 0) then
     call tilt_coords (ele%value(tilt_tot$), orbit%vec, mat6, make_matrix)
-    if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, -ele%value(tilt_tot$)], orbit%spin)
+    if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, -ele%value(tilt_tot$)], orbit%spin, qrot = spin_qrot)
   endif
 
   ! Set: HV kicks for kickers and separators only.
@@ -253,17 +257,17 @@ if (set) then
       orbit%vec(2) = orbit%vec(2) + rtc * ele%value(hkick$) / 2
       orbit%vec(4) = orbit%vec(4) + rtc * ele%value(vkick$) / 2
       if (set_spn .and. ele%value(e_field$) /= 0) call rotate_spin_given_field (orbit, sign_z_vel, &
-                                             EL = [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * (ele%value(p0c$) / 2))
+                                      EL = [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * (ele%value(p0c$) / 2), qrot = spin_qrot)
     elseif (ele%key == hkicker$) then
       orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [0.0_rp, -ele%value(kick$), 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [0.0_rp, -ele%value(kick$), 0.0_rp], qrot = spin_qrot)
     elseif (ele%key == vkicker$) then
       orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(kick$), 0.0_rp, 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(kick$), 0.0_rp, 0.0_rp], qrot = spin_qrot)
     else
       orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(hkick$) / 2
       orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(vkick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
     endif
   endif
 
@@ -280,17 +284,17 @@ else
       orbit%vec(2) = orbit%vec(2) + rtc * ele%value(hkick$) / 2
       orbit%vec(4) = orbit%vec(4) + rtc * ele%value(vkick$) / 2
       if (set_spn .and. ele%value(e_field$) /= 0) call rotate_spin_given_field (orbit, sign_z_vel, &
-                                         EL = [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * (ele%value(p0c$) / 2))
+                                         EL = [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * (ele%value(p0c$) / 2), qrot = spin_qrot)
     elseif (ele%key == hkicker$) then
       orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [0.0_rp, -ele%value(kick$), 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [0.0_rp, -ele%value(kick$), 0.0_rp], qrot = spin_qrot)
     elseif (ele%key == vkicker$) then
       orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(kick$), 0.0_rp, 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(kick$), 0.0_rp, 0.0_rp], qrot = spin_qrot)
     else
       orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(hkick$) / 2
       orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(vkick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
     endif
   endif
 
@@ -298,7 +302,7 @@ else
 
   if (set_t .and. ele%key /= sbend$) then
     call tilt_coords (-ele%value(tilt_tot$), orbit%vec, mat6, make_matrix)
-    if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(tilt_tot$)], orbit%spin)
+    if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(tilt_tot$)], orbit%spin, qrot = spin_qrot)
   endif
 
   ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
@@ -309,7 +313,7 @@ else
   if (set_hv1) then
     orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(hkick$) / 2
     orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(vkick$) / 2
-    if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
+    if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
   endif
 
   ! Unset: Offset and pitch
@@ -376,6 +380,7 @@ else
       endif
     
       if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
+      if (present(spin_qrot)) spin_qrot = quat_mul(w_mat_to_quat(position%w), spin_qrot)
 
     endif    ! has nonzero offset or pitch
 

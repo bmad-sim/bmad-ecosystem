@@ -1,24 +1,25 @@
 !+
-! Subroutine ele_to_sprint_spin_taylor_map (ele)
+! Subroutine sprint_spin_taylor_map (ele, start_orbit)
 !
 ! Routine to calculate the spin Taylor map for a lattice element using the sprint formalism.
 !
 ! Input:
-!   ele       -- ele_struct: Element to form map for.
+!   ele         -- ele_struct: Element to form map for.
+!   start_orbit -- coord_struct, optional: Reference orbit for the map. Default is zero orbit. 
 !
 ! Output:
 !   ele       -- ele_struct: Element with map.
 !     %spin_taylor(:)   -- Taylor map.
 !-
 
-subroutine ele_to_sprint_spin_taylor_map (ele)
+subroutine sprint_spin_taylor_map (ele, start_orbit)
 
-use bmad, dummy => ele_to_sprint_spin_taylor_map
+use bmad, dummy => sprint_spin_taylor_map
 
 implicit none
 
 type (ele_struct) ele
-type (coord_struct) orb_start, orb_end, orb_ele
+type (coord_struct) start_orbit, orb_start, orb_end, orb_ele
 type (taylor_struct) spin_taylor(0:3)
 type (fringe_field_info_struct) fringe_info
 type (branch_struct), pointer :: branch
