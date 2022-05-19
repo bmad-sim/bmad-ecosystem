@@ -1,5 +1,5 @@
 !+
-! Subroutine rotate_spin (rot_vec, spin)
+! Subroutine rotate_spin (rot_vec, spin, qrot)
 !
 ! Routine to rotate a spin.
 !
@@ -9,14 +9,16 @@
 !
 ! Output:
 !   spin(3)     -- real(rp): Final coords.
+!   qrot(0:3)   -- real(rp), optional :: rotation quaternion.
 !-
 
-subroutine rotate_spin (rot_vec, spin)
+subroutine rotate_spin (rot_vec, spin, qrot)
 
 use equal_mod, dummy_except => rotate_spin
 
 implicit none
 
+real(rp), optional :: qrot(0:3)
 real(rp) :: spin(3), rot_vec(3), axis(3), angle
 
 !
@@ -27,6 +29,8 @@ if (angle == 0) return
 axis = rot_vec / angle
 
 spin = rotate_vec_given_axis_angle (spin, axis, angle)
+
+if (present(qrot)) qrot = axis_angle_to_quat(axis, angle)
 
 end subroutine rotate_spin
 
