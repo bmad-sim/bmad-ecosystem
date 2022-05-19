@@ -38,6 +38,7 @@ class common_struct:
 #------------------------------------------------------------------
 
 ele_type_translate = {
+  'alph':       'marker',
   'beambeam':   'beambeam',
   'ccbend':     'sbend',
   'csbend':     'sbend',
@@ -75,6 +76,7 @@ ele_type_translate = {
   'koct':       'octupole',
   'mark':       'marker',
   'mult':       'multipole',
+  'apcontour':  'ecollimator',
   'ecol':       'ecollimator',
   'rcol':       'rcollimator',
   'scraper':    'rcollimator',
@@ -92,6 +94,8 @@ ele_type_translate = {
                # floor_shift [exclude_floor == 0, exclude_optics != 0]
                # patch       [exclude_floor == 0, exclude_optics == 0]
 }
+
+bad_translation_list = ['alph', 'apcontour']
 
 bmad_param_name = {
   'dx':           'x_offset',
@@ -469,12 +473,15 @@ def parse_element(dlist):
       ele.elegant_type = elegant_type
       ele.bmad_type = ele_type_translate[elegant_type]
       found = True
+      if ele.elegant_type in bad_translation_list: 
+        print (f'NOTE: {dlist[2].upper()} TYPE ELEMENT IN ELEGANT LATTICE. TRANSLATION IS POTENTIALLY PROBLEMATICAL!')
       break
 
   if not found:
-    print (f'{dlist[2].upper()} TYPE ELEMENT WILL BE TRANSLATED TO A DRIFT!')
+    print (f'{dlist[2].upper()} TYPE ELEMENT NOT FOUND IN TRANSLATION TABLE. WILL BE TRANSLATED TO A DRIFT!')
     ele.elegant_type = dlist[2]
     ele.bmad_type = 'drift'
+  
 
   params = parameter_dictionary(dlist[4:])
 
@@ -527,7 +534,7 @@ t31 = -sin({t}), t33 = cos({t}), tt22 = cos({t}), tt24 = sin({t}), t42 = -sin({t
   if 'fse'        in ele.param: line += f', dg = {postfix_to_infix(params["fse"])} * {ele.name}[angle]/{ele.name}[L]'
   if 'fse_dipole' in ele.param: line += f', dg = {postfix_to_infix(params["fse_dipole"])} * {ele.name}[angle]/{ele.name}[L]'
   if 'charge'     in ele.param:
-    warp_write('parameter[n_part] = 1.602176634e-19', f_out)
+    wrap_write('parameter[n_part] = 1.602176634e-19', f_out)
     line += f', charge = {postfix_to_infix(params["charge"])}'
 
   if 'knl' in ele.param: line += f', k{params.get("order", "1")}l = {value}'
