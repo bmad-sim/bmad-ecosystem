@@ -29,7 +29,7 @@ type (track_struct) track
 
 real(rp) gma, l, g, k1, k0, ks, kx, m, a, q, e1, e2
 real(rp) cx, sx, cy, sy, omega, omegax, omegay, taux, tauy, f_renorm
-real(rp) chi, zeta, psi, alpha, beta, sigma, xi
+real(rp) chi, zeta, psi, alpha, beta, sigma, xi, hkick, vkick
 real(rp) d, c_d, s_d, e, c_e2, s_e2
 real(rp) s, c_s, s_s, t, c_t2, s_t2
 
@@ -97,7 +97,17 @@ case (drift$)
 ! Kicker
 
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$)
-  map_ele%spin_q(0,0) = 1
+  select case (ele%key)
+  case (hkicker$)
+    hkick = ele%value(kick$)
+    vkick = 0
+  case (vkicker$)
+    hkick = 0
+    vkick = ele%value(kick$)
+  case default
+    hkick = ele%value(hkick$)
+    vkick = ele%value(vkick$)
+  end select
 
 ! Quadrupole
 
