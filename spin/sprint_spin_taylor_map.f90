@@ -28,12 +28,13 @@ type (spin_orbit_map1_struct) map_start, map_ele, map_end
 type (track_struct) track
 
 real(rp) gma, l, g, k1, k0, ks, kx, m, a, q, e1, e2
-real(rp) cx, sx, cy, sy, omega, omegax, omegay, taux, tauy
+real(rp) cx, sx, cy, sy, omega, omegax, omegay, taux, tauy, f_renorm
 real(rp) chi, zeta, psi, alpha, beta, sigma, xi
 real(rp) d, c_d, s_d, e, c_e2, s_e2
 real(rp) s, c_s, s_s, t, c_t2, s_t2
-logical err_flag, spin_fringe
+
 integer i, j, fringe_at
+logical err_flag, spin_fringe
 
 ! Constants
 
@@ -91,12 +92,12 @@ select case (ele%key)
 ! Drift
 
 case (drift$)
-  call add_taylor_term(ele%spin_taylor(0), 1.0_rp, [0,0,0,0,0,0])
+  map_ele%spin_q(0,0) = 1
 
 ! Kicker
 
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$)
-  call add_taylor_term(ele%spin_taylor(0), 1.0_rp, [0,0,0,0,0,0])
+  map_ele%spin_q(0,0) = 1
 
 ! Quadrupole
 
@@ -262,27 +263,29 @@ if (fringe_at == both_ends$ .or. fringe_at == exit_end$) then
   map_ele = map_end * map_ele
 endif
 
-! Convert map%spin_q to ele%spin_taylor
-
-do i = 0,3
-do j = 0,6
-  if (j == 0) then
-    call add_taylor_term(ele%spin_taylor(i), map_ele%spin_q(i, j), [0,0,0,0,0,0])
-  else
-    call add_taylor_term(ele%spin_taylor(i), map_ele%spin_q(i, j), taylor_expn([j]))
-  endif
-enddo
-enddo
-
 ! Shift to reference orbit
 
 if (present(start_orbit)) then
-  do j = 1,6
-    if (start_orbit%vec(j) == 0) cycle
-    do i = 0,3
-      !!call add_taylor_term
-    enddo
+  do j = 1, 6
+    map_ele%spin_q(:,0) = map_ele%spin_q(:,0) + start_orbit%vec(j) * map_ele%spin_q(:,j)
+  enddo
+
+  f_renorm = 1.0_rp / norm2(map_ele%spin_q(:,0))
+  do j = 0, 6
+    map_ele%spin_q(:,j) = map_ele%spin_q(:,j)  * f_renorm
   enddo
 endif
+
+! Convert map%spin_q to ele%spin_taylor
+
+do i = 0, 3
+do j = 0, 6
+  if (j == 0) then
+    call add_taylor_term(ele%spin_taylor(i), map_ele%spin_q(i,j), [0,0,0,0,0,0])
+  else
+    call add_taylor_term(ele%spin_taylor(i), map_ele%spin_q(i,j), taylor_expn([j]))
+  endif
+enddo
+enddo
 
 end subroutine
