@@ -736,7 +736,7 @@ def get_next_command ():
       ix = line.index('!')
       f_out.write(line[ix:])
       line = line[:ix]
-      continue
+      if line.strip() == '': continue
     except:
       if line.strip() == '': 
         f_out.write('\n')
