@@ -19,7 +19,8 @@ use bmad, dummy => sprint_spin_taylor_map
 implicit none
 
 type (ele_struct) ele
-type (coord_struct) start_orbit, orb_start, orb_end, orb_ele
+type (coord_struct), optional :: start_orbit
+type (coord_struct) orb1, orb2, orb3, orb4
 type (taylor_struct) spin_taylor(0:3)
 type (fringe_field_info_struct) fringe_info
 type (branch_struct), pointer :: branch
@@ -49,8 +50,8 @@ psi = gma**2 - 1
 
 spin_fringe = is_true(ele%value(spin_fringe_on$))
 fringe_at = nint(ele%value(fringe_at$))
+branch => pointer_to_branch(ele)
 
-ele%spin_taylor_ref_orb_in = 0  ! Sprint ref is always the zero orbit
 do i = 0, 3
   call init_taylor_series(ele%spin_taylor(i), 0)
 enddo
@@ -59,28 +60,28 @@ call mat_make_unit(map_start%orb_mat)
 call mat_make_unit(map_end%orb_mat)
 call mat_make_unit(map_ele%orb_mat)
 
-map_start%vec0 = ele%spin_taylor_ref_orb_in
-map_end%vec0 = ele%spin_taylor_ref_orb_in
-map_ele%vec0 = ele%spin_taylor_ref_orb_in
+! Transfer matrices.
+! Currently, the sprint spin transport is with respect to the zero orbit
 
-call init_coord(orb_start, ele%spin_taylor_ref_orb_in, ele, upstream_end$, ele%ref_species)
-call init_coord(orb_end, ele%spin_taylor_ref_orb_in, ele, downstream_end$, ele%ref_species)
-call init_coord(orb_ele, ele%spin_taylor_ref_orb_in, ele, upstream_end$, ele%ref_species)
-
-branch => pointer_to_branch(ele)
-
-!update transfer matrices
+call init_coord(orb1, vec0$, ele, upstream_end$, ele%ref_species)
 
 err_flag = .false.
 call init_fringe_info (fringe_info, ele)
-i = ele%value(fringe_at$)
 fringe_info%particle_at = first_track_edge$
-call apply_element_edge_kick(orb_start, fringe_info, ele, branch%param, .false., map_start%orb_mat, .true.)
+orb2 = orb1
+call apply_element_edge_kick(orb2, fringe_info, ele, branch%param, .false., map_start%orb_mat, .true.)
+map_start%vec0 = orb2%vec - matmul(map_start%orb_mat, orb1%vec)
+
+i = ele%value(fringe_at$)
 ele%value(fringe_at$) = no_end$
-call track1_bmad(orb_ele, ele, branch%param, orb_end, err_flag, track, map_ele%orb_mat, .true.)
+call track1_bmad(orb2, ele, branch%param, orb3, err_flag, track, map_ele%orb_mat, .true.)
 ele%value(fringe_at$) = i
+map_ele%vec0 = orb3%vec - matmul(map_ele%orb_mat, orb2%vec)
+
 fringe_info%particle_at = second_track_edge$
-call apply_element_edge_kick(orb_end, fringe_info, ele, branch%param, .false., map_end%orb_mat, .true.)
+orb4 = orb3
+call apply_element_edge_kick(orb4, fringe_info, ele, branch%param, .false., map_end%orb_mat, .true.)
+map_end%vec0 = orb4%vec - matmul(map_end%orb_mat, orb3%vec)
 
 map_start%spin_q(0,0) = 1
 map_end%spin_q(0,0) = 1
@@ -125,7 +126,7 @@ case (quadrupole$)
 
 ! SBend
 
-case (sbend$, rbend$)
+case (sbend$)
   e1 = ele%value(e1$)
   e2 = ele%value(e2$)
   k1 = ele%value(k1$)
@@ -210,7 +211,6 @@ case (sbend$, rbend$)
     map_ele%spin_q(3,4) = (1/(omegay*alpha))*(xi*(1 + cy)*s_e2 - beta*c_e2*sy)
   endif
 
-
 ! Solenoid
 
 case (solenoid$)
@@ -253,7 +253,8 @@ case default
 
 end select
 
-!Concatenate quaternions and maps.
+! Concatenate quaternions and maps.
+
 if (fringe_at == both_ends$ .or. fringe_at == entrance_end$) then
   map_ele = map_ele * map_start
 endif
@@ -261,7 +262,8 @@ if (fringe_at == both_ends$ .or. fringe_at == exit_end$) then
   map_ele = map_end * map_ele
 endif
 
-!Convert map%spin_q to ele%spin_taylor
+! Convert map%spin_q to ele%spin_taylor
+
 do i = 0,3
 do j = 0,6
   if (j == 0) then
@@ -271,5 +273,16 @@ do j = 0,6
   endif
 enddo
 enddo
+
+! Shift to reference orbit
+
+if (present(start_orbit)) then
+  do j = 1,6
+    if (start_orbit%vec(j) == 0) cycle
+    do i = 0,3
+      !!call add_taylor_term
+    enddo
+  enddo
+endif
 
 end subroutine

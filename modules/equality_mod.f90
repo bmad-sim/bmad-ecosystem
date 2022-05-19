@@ -2631,8 +2631,6 @@ is_eq = is_eq .and. (f1%time_ref_orb_in == f2%time_ref_orb_in)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%time_ref_orb_out == f2%time_ref_orb_out)
 !! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%spin_taylor_ref_orb_in == f2%spin_taylor_ref_orb_in)
-!! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%value == f2%value)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%old_value == f2%old_value)
