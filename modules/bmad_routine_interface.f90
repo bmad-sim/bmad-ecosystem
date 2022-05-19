@@ -1403,7 +1403,8 @@ function num_lords (slave, lord_type) result (num)
 integer lord_type, num
 end function
 
-subroutine offset_particle (ele, set, coord, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
+subroutine offset_particle (ele, set, coord, set_tilt, set_hvkicks, drift_to_edge, &
+                                        s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot)
   import
   implicit none
   type (ele_struct) :: ele
@@ -1411,7 +1412,7 @@ subroutine offset_particle (ele, set, coord, set_tilt, set_hvkicks, drift_to_edg
   integer particle
   logical, intent(in) :: set
   logical, optional, intent(in) :: set_tilt, set_hvkicks, drift_to_edge, set_spin
-  real(rp), optional :: s_pos, mat6(6,6), s_out
+  real(rp), optional :: s_pos, mat6(6,6), s_out, spin_qrot(0:3)
   logical, optional :: make_matrix
 end subroutine
 
@@ -1827,10 +1828,11 @@ subroutine rotate_for_curved_surface (ele, orbit, set, rot_mat)
   logical set
 end subroutine
 
-subroutine rotate_spin (rot_vec, spin)
+subroutine rotate_spin (rot_vec, spin, qrot)
   import
   implicit none
   real(rp) :: spin(3), rot_vec(3)
+  real(rp), optional :: qrot(0:3)
 end subroutine
 
 subroutine rotate_spin_a_step (orbit, field, ele, ds)
@@ -1842,11 +1844,11 @@ subroutine rotate_spin_a_step (orbit, field, ele, ds)
   real(rp) ds
 end subroutine
 
-subroutine rotate_spin_given_field (orbit, sign_z_vel, BL, EL)
+subroutine rotate_spin_given_field (orbit, sign_z_vel, BL, EL, qrot)
   import
   implicit none
   type (coord_struct) orbit
-  real(rp), optional :: BL(3), EL(3)
+  real(rp), optional :: BL(3), EL(3), qrot(0:3)
   integer sign_z_vel
 end subroutine
 
@@ -3116,10 +3118,11 @@ subroutine ele_to_fibre_hook (ele, ptc_fibre, param)
   type (lat_param_struct) param
 end subroutine
 
-subroutine ele_to_sprint_spin_taylor_map (ele)
+subroutine sprint_spin_taylor_map (ele, start_orbit)
   import
   implicit none
   type (ele_struct) ele
+  type (coord_struct), optional :: start_orbit
 end subroutine
 
 subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)

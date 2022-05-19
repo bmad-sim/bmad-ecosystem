@@ -79,7 +79,7 @@ bmad_com%radiation_fluctuations_on = .false.
 ! Spin?
 
 if (ele%spin_tracking_method == sprint$) then
-  call ele_to_sprint_spin_taylor_map(ele)
+  call sprint_spin_taylor_map(ele, a_start_orb)
 endif
 
 ! Compute matrix

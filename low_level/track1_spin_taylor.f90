@@ -30,7 +30,7 @@ character(*), parameter :: r_name = 'track1_spin_taylor'
 
 if (.not. associated(ele%spin_taylor(0)%term)) then
   if (ele%spin_tracking_method == sprint$) then
-    call ele_to_sprint_spin_taylor_map(ele)
+    call sprint_spin_taylor_map(ele)
   else
     call ele_to_taylor(ele, param)
   endif

@@ -7,6 +7,7 @@
 ! Input:
 !   ele               -- Element_struct: Element to construct map for.
 !   orb0              -- Coord_struct, optional: Starting coords around which the Taylor map is evaluated.
+!                         Default is the zero orbit.
 !   param             -- lat_param_struct: 
 !   taylor_map_includes_offsets 
 !                     -- Logical, optional: If present then value overrides ele%taylor_map_includes_offsets.
