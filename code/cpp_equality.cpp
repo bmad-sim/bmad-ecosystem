@@ -1457,7 +1457,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.map_ref_orb_out == y.map_ref_orb_out);
   is_eq = is_eq && (x.time_ref_orb_in == y.time_ref_orb_in);
   is_eq = is_eq && (x.time_ref_orb_out == y.time_ref_orb_out);
-  is_eq = is_eq && is_all_equal(x.spin_taylor_ref_orb_in, y.spin_taylor_ref_orb_in);
   is_eq = is_eq && is_all_equal(x.value, y.value);
   is_eq = is_eq && is_all_equal(x.old_value, y.old_value);
   is_eq = is_eq && is_all_equal(x.vec0, y.vec0);

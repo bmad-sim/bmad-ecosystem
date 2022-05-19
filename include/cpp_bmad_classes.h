@@ -3313,7 +3313,6 @@ public:
   CPP_coord map_ref_orb_out;
   CPP_coord time_ref_orb_in;
   CPP_coord time_ref_orb_out;
-  Real_ARRAY spin_taylor_ref_orb_in;
   Real_ARRAY value;
   Real_ARRAY old_value;
   Real_ARRAY vec0;
@@ -3422,7 +3421,6 @@ public:
     map_ref_orb_out(),
     time_ref_orb_in(),
     time_ref_orb_out(),
-    spin_taylor_ref_orb_in(0.0, 6),
     value(double(0), Bmad::NUM_ELE_ATTRIB+1),
     old_value(double(0), Bmad::NUM_ELE_ATTRIB+1),
     vec0(0.0, 6),
