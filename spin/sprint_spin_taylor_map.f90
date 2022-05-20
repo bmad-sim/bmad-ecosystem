@@ -28,7 +28,7 @@ type (spin_orbit_map1_struct) map_start, map_ele, map_end
 type (track_struct) track
 
 real(rp) gma, l, g, k1, k0, ks, kx, m, a, q, e1, e2
-real(rp) cx, sx, cy, sy, omega, omegax, omegay, taux, tauy, f_renorm
+real(rp) cx, sx, cy, sy, omega, omegax, omegay, taux, tauy, f_renorm, f0
 real(rp) chi, zeta, psi, alpha, beta, sigma, xi, hkick, vkick
 real(rp) d, c_d, s_d, e, c_e2, s_e2
 real(rp) s, c_s, s_s, t, c_t2, s_t2
@@ -280,9 +280,14 @@ if (present(start_orbit)) then
     map_ele%spin_q(:,0) = map_ele%spin_q(:,0) + start_orbit%vec(j) * map_ele%spin_q(:,j)
   enddo
 
+  ! Renormalize to make 0th order qaternion have unit length
   f_renorm = 1.0_rp / norm2(map_ele%spin_q(:,0))
-  do j = 0, 6
-    map_ele%spin_q(:,j) = map_ele%spin_q(:,j)  * f_renorm
+  map_ele%spin_q(:,:) = map_ele%spin_q(:,:)  * f_renorm
+
+  ! Now make first order quaternions perpendicular to the 0th order quaternions.
+  do j = 1, 6
+    f_renorm = dot_product(map_ele%spin_q(:,0), map_ele%spin_q(:,j))
+    map_ele%spin_q(:,j) = map_ele%spin_q(:,j) - f_renorm
   enddo
 endif
 
