@@ -555,6 +555,7 @@ def parse_element(dlist):
   global common, ele_type_translate
 
   ele = ele_struct(dlist[0])
+  f_out = common.f_out[-1]
 
   found = False
   for elegant_type in ele_type_translate:
@@ -648,7 +649,6 @@ t31 = -sin({t}), t33 = cos({t}), tt22 = cos({t}), tt24 = sin({t}), t42 = -sin({t
   elif ee1 == 0 and ee2 != 0:
     line += f', fringe_at = exit_end'
 
-  f_out = common.f_out[-1]
   wrap_write(line, f_out)
 
   return ele
