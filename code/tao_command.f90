@@ -569,8 +569,8 @@ case ('set')
       'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
       'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-      'global', 'region', 'calculate', 'space_charge_com'], .true., switch, err, ix) 
-    if (err_flag) return
+      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com'], .true., switch, err, ix) 
+    if (err) return
     set_word = switch
   enddo
 
@@ -581,7 +581,7 @@ case ('set')
   case ('ran_state'); n_word = 2; n_eq = 1
   case ('beam', 'beam_init', 'bmad_com', 'space_charge_com', 'data', 'global', 'lattice', 'default', &
         'opti_de_param', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm', 'key', 'symbolic_number', &
-        'var', 'beam_start', 'particle_start', 'dynamic_aperture'); n_word = 3; n_eq = 2
+        'var', 'beam_start', 'particle_start', 'dynamic_aperture', 'ptc_com'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 4; n_eq = 3
   case ('plot_page'); n_word = 4; n_eq = 2
   case ('branch', 'curve', 'element', 'graph', 'plot', 'region'); n_word = 4; n_eq = 3
@@ -641,8 +641,6 @@ case ('set')
     call tao_set_branch_cmd (cmd_word(1), cmd_word(2), cmd_word(4)) 
   case ('calculate')
     call tao_set_calculate_cmd (cmd_word(1))
-  case ('space_charge_com')
-    call tao_set_space_charge_com_cmd (cmd_word(1), cmd_word(3))
   case ('curve')
     call tao_set_curve_cmd (cmd_word(1), cmd_word(2), cmd_word(4)) 
   case ('data')
@@ -671,8 +669,12 @@ case ('set')
     call tao_set_plot_page_cmd (cmd_word(1), cmd_word(3), cmd_word(4))
   case ('ran_state')
     call tao_set_ran_state_cmd (cmd_word(2))
+  case ('ptc_com')
+    call tao_set_ptc_com_cmd (cmd_word(1), cmd_word(3))
   case ('region')
     call tao_set_region_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
+  case ('space_charge_com')
+    call tao_set_space_charge_com_cmd (cmd_word(1), cmd_word(3))
   case ('symbolic_number')
     call tao_set_symbolic_number_cmd(cmd_word(1), cmd_word(3))
   case ('floor_plan')

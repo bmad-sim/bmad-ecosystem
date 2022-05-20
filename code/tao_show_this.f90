@@ -721,7 +721,7 @@ case ('chromaticity')
 
   nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N   spin_tune_ptc.N'
 
-  do i = 0, ptc_com%taylor_order_ptc-1
+  do i = 0, bmad_com%taylor_order-1
     expo = [0, 0, 0, 0, 0, i]
     z1 =  real(ptc_nf%phase(1) .sub. expo)
     z2 =  real(ptc_nf%phase(2) .sub. expo)
@@ -736,7 +736,7 @@ case ('chromaticity')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; lines(nl) = '  N   slip_factor_ptc.N   momentum_compaction_ptc.N'
 
-  do i = 1, ptc_com%taylor_order_ptc
+  do i = 1, bmad_com%taylor_order
     expo = [0, 0, 0, 0, 0, i]
     z1 = -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
     z2 =  real(ptc_nf%path_length .sub. expo) / branch%param%total_length
@@ -2055,8 +2055,10 @@ case ('global')
     nl=nl+1; write(lines(nl), rmt) '  %sad_amp_max                     = ', bmad_com%sad_amp_max
 
     nl=nl+1; write(lines(nl), imt) '  %sad_n_div_max                   = ', bmad_com%sad_n_div_max
-    nl=nl+1; write(lines(nl), iimt)'  %taylor_order                    = ', bmad_com%taylor_order, ' ! Input order'
-    nl=nl+1; write(lines(nl), iimt)'   [Actual taylor_order in PTC:    = ', ptc_com%taylor_order_ptc, ']'
+    nl=nl+1; write(lines(nl), iimt)'  %taylor_order                    = ', bmad_com%taylor_order
+    if (bmad_com%taylor_order /= ptc_private%taylor_order_ptc) then
+      nl=nl+1; write(lines(nl), imt)'   Actual taylor_order in PTC! Please REPORT! ', ptc_private%taylor_order_ptc
+    endif
     nl=nl+1; write(lines(nl), imt) '  %default_integ_order             = ', bmad_com%default_integ_order
 
     nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
@@ -2110,7 +2112,6 @@ case ('global')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'PTC_com Parameters (set using "set ptc_com ..."):'
     nl=nl+1; write(lines(nl), rmt) '  %vertical_kick         = ', ptc_com%vertical_kick
-    nl=nl+1; write(lines(nl), imt) '  %taylor_order_ptc      = ', ptc_com%taylor_order_ptc
     nl=nl+1; write(lines(nl), imt) '  %max_fringe_order      = ', ptc_com%max_fringe_order
     nl=nl+1; write(lines(nl), lmt) '  %old_integrator        = ', ptc_com%old_integrator
     nl=nl+1; write(lines(nl), lmt) '  %exact_model           = ', ptc_com%exact_model
@@ -4516,10 +4517,9 @@ case ('taylor_map', 'matrix')
         return
       endif
       call string_trim (what2(ix+1:), what2, ix)
-      if (n_order > ptc_com%taylor_order_ptc) then
+      if (n_order > bmad_com%taylor_order) then
         nl=1; write(lines(nl), '(a, i0)') &
-                  'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS ', &
-                  ptc_com%taylor_order_ptc
+                  'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS ', bmad_com%taylor_order
         return
       endif
     case ('-ptc')
