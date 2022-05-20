@@ -48,8 +48,8 @@ contains
 
 subroutine ptc_set_taylor_order_if_needed ()
 
-if ((bmad_com%taylor_order /= 0 .and. bmad_com%taylor_order /= ptc_com%taylor_order_ptc) .or. &
-                                                                    ptc_com%taylor_order_ptc == 0) then
+if ((bmad_com%taylor_order /= 0 .and. bmad_com%taylor_order /= ptc_private%taylor_order_ptc) .or. &
+                                                                    ptc_private%taylor_order_ptc == 0) then
   call set_ptc (taylor_order = bmad_com%taylor_order)
 endif
 
@@ -318,7 +318,7 @@ end subroutine type_map1
 !
 ! Input:
 !   intern_state -- Internal_state, optional: PTC state. If not present then the 
-!                     ptc_com%base_state is used.
+!                     ptc_private%base_state is used.
 !
 ! Output:
 !   lines(:)  -- character(100), optional, allocatable: Character array to hold the output.
@@ -340,7 +340,7 @@ character(100), allocatable :: li(:)
 
 !
 
-state_ptr => ptc_com%base_state
+state_ptr => ptc_private%base_state
 if (present(intern_state)) state_ptr => intern_state
 
 allocate (li(20))
@@ -1911,7 +1911,7 @@ do i = 1, size(taylor_in)
       c0(i) = taylor_in(i)%term(j)%coef
     endif
     if (remove_higher_order_terms) then
-      if (sum(taylor_in(i)%term(j)%expn) > ptc_com%taylor_order_ptc) n = n - 1
+      if (sum(taylor_in(i)%term(j)%expn) > ptc_private%taylor_order_ptc) n = n - 1
     endif
   enddo
 
@@ -1923,7 +1923,7 @@ do i = 1, size(taylor_in)
   nn = 0
   do j = 1, size(taylor_in(i)%term)
     ss = sum(taylor_in(i)%term(j)%expn)
-    if (ss == 0 .or. (remove_higher_order_terms .and. ss > ptc_com%taylor_order_ptc)) cycle
+    if (ss == 0 .or. (remove_higher_order_terms .and. ss > ptc_private%taylor_order_ptc)) cycle
     nn = nn + 1
     taylor_out(i)%term(nn) = taylor_in(i)%term(j)
   enddo
@@ -2174,12 +2174,12 @@ else
 endif
 
 call dtiltd (tilt, 1, x_ele)
-call mis_fib (fib, x_ele, ptc_com%base_state, .true., entering = .true.)
+call mis_fib (fib, x_ele, ptc_private%base_state, .true., entering = .true.)
 
 x_body = ele%taylor
 
 call concat_real_8 (x_ele, x_body, x_ele)
-call mis_fib (fib, x_ele, ptc_com%base_state, .true., entering = .false.)
+call mis_fib (fib, x_ele, ptc_private%base_state, .true., entering = .false.)
 call dtiltd (tilt, 2, x_ele)
 
 ! Concat with taylor1
@@ -2469,7 +2469,7 @@ ptc_tlr = bmad_taylor
 ! track the map
 
 call ele_to_fibre (ele, ptc_fibre, param, .true., ref_in = ref_in)
-call track_probe_x (ptc_tlr, ptc_com%base_state, fibre1 = bmadl%start)
+call track_probe_x (ptc_tlr, ptc_private%base_state, fibre1 = bmadl%start)
 
 ! transfer ptc map back to bmad map
 
@@ -3241,7 +3241,7 @@ endif
 
 if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
   call kill_for_pancake(pancake_field)
-  call init_all (ptc_com%base_state, ptc_com%taylor_order_saved, 0)
+  call init_all (ptc_private%base_state, ptc_private%taylor_order_saved, 0)
 endif
 
 call set_ptc_quiet(12, unset$, n)

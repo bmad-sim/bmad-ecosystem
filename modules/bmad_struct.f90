@@ -2053,8 +2053,7 @@ type bmad_common_struct
   real(rp) :: sad_eps_scale = 5.0d-3                   ! Used in sad_mult step length calc.
   real(rp) :: sad_amp_max = 5.0d-2                     ! Used in sad_mult step length calc.
   integer :: sad_n_div_max = 1000                      ! Used in sad_mult step length calc.
-  integer :: taylor_order = 0                          ! Input Taylor order. 0 -> default = ptc%taylor_order_saved
-                                                       !   ptc_com%taylor_order_ptc gives actual order in use. 
+  integer :: taylor_order = 0                          ! Taylor order to use. 0 -> default = ptc_private%taylor_order_saved.
   integer :: runge_kutta_order = 4                     ! Runge Kutta order.
   integer :: default_integ_order = 2                   ! PTC integration order. 
   integer :: max_num_runge_kutta_step = 10000          ! Maximum number of RK steps before particle is considered lost.
@@ -2081,9 +2080,6 @@ end type
 type (bmad_common_struct), save, target :: bmad_com
 
 ! ptc_com common block.
-! %taylor_order_saved is what is used if bmad_com%taylor_order is not set ( =  0).
-! %taylor_order_saved is initially 3.
-! When parsing a lattice file, %taylor_order_saved will be set to the taylor order of the lattice.
 
 type ptc_common_struct
   integer, pointer :: max_fringe_order  => null()  ! Points to PTC HIGHEST_FRINGE. 2 (default) => Quadrupole.
@@ -2095,17 +2091,31 @@ type ptc_common_struct
   logical, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR.
   logical :: use_orientation_patches = .true.      ! offset, pitch, and tilt attributes are put in ptc patch?
   logical :: print_info_messages = .false.         ! Allow PTC to print informational messages (which can clutter the output)?
-  ! Stuff that is private
+end type
+
+type (ptc_common_struct), save, target :: ptc_com, ptc_com_default
+
+! PTC related parameters that should not be set by non-Bmad routines.
+!
+! %taylor_order_saved is what is used if bmad_com%taylor_order is not set ( =  0).
+! %taylor_order_saved is initially 3.
+! When parsing a lattice file, %taylor_order_saved will be set to the taylor order of the lattice.
+!
+! %taylor_order_ptc is used to keep track as to what has been actually set for PTC. 
+! If different from bmad_com[taylor_order], the Bmad bookkeeping will set PTC's order to bmad_com[taylor_order] and
+! then set %taylor_order_ptc to bmad_com[taylor_order].
+
+type ptc_private_struct
   type (internal_state) :: base_state   ! Base PTC state. 
   real(rp) :: e_tot_set = 0
-  integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set
-  integer :: taylor_order_saved = 3     ! Default to use.
+  integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set. See above.
+  integer :: taylor_order_saved = 3     ! Default to use at startup.
   logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
   logical :: init_ptc_needed = .true.
   logical :: init_spin_needed = .true.
 end type
 
-type (ptc_common_struct), save, target :: ptc_com, ptc_com_default
+type (ptc_private_struct), save, target :: ptc_private
 
 real(rp), parameter :: small_rel_change$ = 1d-14
 

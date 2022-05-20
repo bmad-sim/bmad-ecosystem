@@ -58,7 +58,7 @@ character(16) :: r_name = 'set_ptc'
 
 ! ptc cannot be used with photons
 
-if (logic_option(.false., force_init)) ptc_com%init_ptc_needed = .true.
+if (logic_option(.false., force_init)) ptc_private%init_ptc_needed = .true.
 
 if (present(particle)) then
   if (particle == photon$) return
@@ -77,7 +77,7 @@ call in_bmad_units
 
 params_present = present(e_tot) .and. present(particle)
 
-if (ptc_com%init_ptc_needed .and. params_present) then
+if (ptc_private%init_ptc_needed .and. params_present) then
   if (particle == muon$ .or. particle == antimuon$) then
     call make_states (pmaMUON/pmaE)
   elseif (particle == positron$ .or. particle == electron$) then
@@ -93,12 +93,12 @@ if (ptc_com%init_ptc_needed .and. params_present) then
   endif
 
   ! Use PTC time tracking
-  ptc_com%base_state = ptc_com%base_state + TIME0
+  ptc_private%base_state = ptc_private%base_state + TIME0
   PHASE0 = 0
 endif
 
-if (present(no_cavity))           ptc_com%base_state = ptc_com%base_state + NOCAVITY0
-if (bmad_com%spin_tracking_on)    ptc_com%base_state = ptc_com%base_state + SPIN0
+if (present(no_cavity))           ptc_private%base_state = ptc_private%base_state + NOCAVITY0
+if (bmad_com%spin_tracking_on)    ptc_private%base_state = ptc_private%base_state + SPIN0
 
 if (present (integ_order)) then
   this_method = integ_order
@@ -115,45 +115,45 @@ endif
 
 if (present(taylor_order)) then
   t_order = taylor_order
-  if (t_order == 0) t_order = ptc_com%taylor_order_saved
-  ptc_com%taylor_order_saved = t_order
+  if (t_order == 0) t_order = ptc_private%taylor_order_saved
+  ptc_private%taylor_order_saved = t_order
 endif
 
 if (params_present) then
-  if (ptc_com%init_ptc_needed .or. ptc_com%e_tot_set /= e_tot .or. present(integ_order) .or. present(n_step)) then
+  if (ptc_private%init_ptc_needed .or. ptc_private%e_tot_set /= e_tot .or. present(integ_order) .or. present(n_step)) then
     this_energy = 1d-9 * e_tot
     if (this_energy == 0) then
       call out_io (s_fatal$, r_name, 'E_TOT IS 0.')
       if (global_com%exit_on_error) call err_exit
     endif
     call set_madx (energy = this_energy, method = this_method, step = this_steps)
-    ptc_com%e_tot_set  = e_tot
+    ptc_private%e_tot_set  = e_tot
     ! Only do this once
-    if (ptc_com%init_ptc_needed) call ptc_ini_no_append 
-    ptc_com%init_ptc_needed = .false.
+    if (ptc_private%init_ptc_needed) call ptc_ini_no_append 
+    ptc_private%init_ptc_needed = .false.
   endif
 endif
 
 ! Do not call init before the call to make_states.
 
-if (.not. ptc_com%init_ptc_needed .or. logic_option(.false., force_init)) then  ! If make_states has been called
+if (.not. ptc_private%init_ptc_needed .or. logic_option(.false., force_init)) then  ! If make_states has been called
   t_order = 0
   if (present(taylor_order)) t_order = taylor_order
   if (t_order == 0) t_order = bmad_com%taylor_order
-  if (t_order == 0) t_order = ptc_com%taylor_order_saved
-  if (ptc_com%taylor_order_ptc /= t_order) then
+  if (t_order == 0) t_order = ptc_private%taylor_order_saved
+  if (ptc_private%taylor_order_ptc /= t_order) then
     ! Due to Bmad vs PTC units bug, call init with nocavity
-    call init (ptc_com%base_state+NOCAVITY0, t_order, 0)
-    ptc_com%init_spin_needed = .true.
+    call init (ptc_private%base_state+NOCAVITY0, t_order, 0)
+    ptc_private%init_spin_needed = .true.
     c_verbose_save = c_verbose
     c_verbose = .false.
     c_verbose = c_verbose_save
-    ptc_com%taylor_order_ptc = t_order
+    ptc_private%taylor_order_ptc = t_order
   endif
 
-  if (ptc_com%init_spin_needed) then
-    call init_all (ptc_com%base_state, t_order, 0)
-    ptc_com%init_spin_needed = .false.
+  if (ptc_private%init_spin_needed) then
+    call init_all (ptc_private%base_state, t_order, 0)
+    ptc_private%init_spin_needed = .false.
   endif
 endif
 

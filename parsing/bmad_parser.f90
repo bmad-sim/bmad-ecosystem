@@ -121,14 +121,14 @@ if (present(use_line)) then
 endif
 
 if (.not. err .and. .not. bp_com%always_parse) then
-  if (ptc_com%taylor_order_ptc /= 0 .and. lat%input_taylor_order /= 0 .and. &
-                                             lat%input_taylor_order /= ptc_com%taylor_order_ptc) then
+  if (ptc_private%taylor_order_ptc /= 0 .and. lat%input_taylor_order /= 0 .and. &
+                                             lat%input_taylor_order /= ptc_private%taylor_order_ptc) then
      call out_io (s_info$, r_name, 'Taylor_order has changed.', &
            'Taylor_order in digested file: \i4\ ', &
            'Taylor_order now:              \i4\ ', &
            'Will now set to the new Taylor order...', &
-           i_array = [lat%input_taylor_order, ptc_com%taylor_order_ptc])
-    if (lat%input_taylor_order > ptc_com%taylor_order_ptc) bp_com%write_digested = .false.
+           i_array = [lat%input_taylor_order, ptc_private%taylor_order_ptc])
+    if (lat%input_taylor_order > ptc_private%taylor_order_ptc) bp_com%write_digested = .false.
 
   else
     if (present(digested_read_ok)) digested_read_ok = .true.
@@ -1132,7 +1132,7 @@ endif
 ! Use arbitrary energy above the rest mass energy since when tracking individual elements the
 ! true reference energy is used.
 
-if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
+if (lat%input_taylor_order /= 0) ptc_private%taylor_order_saved = lat%input_taylor_order
 call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
 
 ! Error check that if a superposition attribute was set that "superposition" was set.

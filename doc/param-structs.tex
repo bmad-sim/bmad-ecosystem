@@ -316,8 +316,6 @@ this instance has the name \vn{ptc_com}. The components of this structure along 
 values are:
 \begin{example}
   type ptc_common_struct
-    taylor_order_ptc = 3    ! What has been set in PTC. 0 -> not yet set
-    taylor_order_saved = 3  ! Default to use.
     max_fringe_order  = 2   ! 2 => Quadrupole.
     complex_ptc_used = True ! Complex PTC code in use? 
     use_totalpath  = False  ! phase space z = time instead of time - ref_time?
@@ -326,6 +324,8 @@ values are:
     exact_misalign = True   ! PTC ALWAYS_EXACTMIS.
   end type
 \end{example}
+
+Note: To set the Taylor map order for PTC, set the \vn{taylor_order} parameter of \vn{bmad_com}.
 
 \begin{description}
 %

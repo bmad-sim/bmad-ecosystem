@@ -171,7 +171,7 @@ subroutine get_taylor (ns, ut, a_fibre, y, orbit)
   call alloc (y)
 
   y = orbit
-  call ptc_track (a_fibre, y, ptc_com%base_state)  ! "track" in PTC
+  call ptc_track (a_fibre, y, ptc_private%base_state)  ! "track" in PTC
   
   do iz = 1, 6
     if (associated(ut(iz)%c)) ut(iz) = -1

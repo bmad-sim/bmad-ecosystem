@@ -136,18 +136,18 @@ endif
 call zhe_ini(bmad_com%spin_tracking_on)
 
 if (logic_option(.true., include_damping)) then
-  state = ptc_com%base_state + radiation0 + envelope0
+  state = ptc_private%base_state + radiation0 + envelope0
   rad_map%radiation_damping_on = .true.
 else
-  state = ptc_com%base_state + envelope0
+  state = ptc_private%base_state + envelope0
   rad_map%radiation_damping_on = .false.
 endif
 
 if (bmad_com%spin_tracking_on) state = state + spin0
 if (.not. rf_is_on(ele1%branch, ele1%ix_ele, ele2%ix_ele)) state = state + nocavity0
 
-rad_map%map_order = integer_option(ptc_com%taylor_order_ptc, map_order)
-if (rad_map%map_order < 1) rad_map%map_order = ptc_com%taylor_order_ptc
+rad_map%map_order = integer_option(ptc_private%taylor_order_ptc, map_order)
+if (rad_map%map_order < 1) rad_map%map_order = ptc_private%taylor_order_ptc
 
 call init_all(state, rad_map%map_order, 0)
 

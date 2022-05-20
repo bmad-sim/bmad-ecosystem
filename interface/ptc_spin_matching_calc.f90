@@ -52,14 +52,14 @@ logical rf_on
 
 rf_on = rf_is_on(branch)
 if (rf_on) then
-  ptc_state = ptc_com%base_state - NOCAVITY0 + SPIN0
+  ptc_state = ptc_private%base_state - NOCAVITY0 + SPIN0
 else
-  ptc_state = ptc_com%base_state + NOCAVITY0 + SPIN0
+  ptc_state = ptc_private%base_state + NOCAVITY0 + SPIN0
 endif
 
 ! Need to call init otherwise FPP is not properly setup and c_normal can bomb.
 
-!!! call init (ptc_state, ptc_com%taylor_order_ptc, 0)
+!!! call init (ptc_state, ptc_private%taylor_order_ptc, 0)
 
 !
 
@@ -245,8 +245,8 @@ call kill (p8_a)
 call kill (p8_ele)
 call kill (cc_norm)
 
-!!!call init (ptc_com%base_state, ptc_com%taylor_order_ptc, 0)
-call init_all (ptc_com%base_state, ptc_com%taylor_order_ptc, 0)
+!!!call init (ptc_private%base_state, ptc_private%taylor_order_ptc, 0)
+call init_all (ptc_private%base_state, ptc_private%taylor_order_ptc, 0)
 
 end subroutine ptc_spin_matching_calc
 

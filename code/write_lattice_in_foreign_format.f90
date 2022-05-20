@@ -178,7 +178,7 @@ call out_io (s_info$, r_name, &
 ! open file
 
 if (present(err)) err = .true.
-n_taylor_order_saved = ptc_com%taylor_order_ptc
+n_taylor_order_saved = ptc_private%taylor_order_ptc
 
 iu = lunget()
 call fullfilename (out_file_name, line)
@@ -351,7 +351,7 @@ do
     quad_ele = ele
     ele%value(fringe_type$) = none$
 
-    if (ptc_com%taylor_order_ptc /= 2) call set_ptc (taylor_order = 2) 
+    if (ptc_private%taylor_order_ptc /= 2) call set_ptc (taylor_order = 2) 
 
     f_count = f_count + 1
     ie = ix_ele
@@ -384,7 +384,7 @@ do
   iv = nint(ele%value(fringe_type$))
   if (ele%key == sbend$ .and. ((mad_out .and. iv == sad_full$) .or. (out_type == 'MAD-8' .and. ele%value(dg$) /= 0))) then
 
-    if (ptc_com%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1)
+    if (ptc_private%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1)
 
     f_count = f_count + 1
     ie = ix_ele
@@ -450,7 +450,7 @@ do
   f = ele%value(l$) / (1 + orbit_out(ele%ix_ele)%vec(6))
   if (mad_out .and. ele%key == drift$ .and. ele%name(1:7) /= 'DRIFT_Z' .and. &
                                                abs(ele%mat6(1,2) - f) > real_option(1d-5, dr12_drift_max)) then
-    if (ptc_com%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1) 
+    if (ptc_private%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1) 
 
     drift_ele = ele
     drift_ele%value(l$) = -ele%value(l$)
@@ -1208,7 +1208,7 @@ do   ! ix_ele = 1e1, ie2
                       'A LATTICE WITH A SAD_MULT OR PATCH ELEMENT')           
         cycle
       endif
-      if (ptc_com%taylor_order_ptc /= 2) call set_ptc (taylor_order = 2) 
+      if (ptc_private%taylor_order_ptc /= 2) call set_ptc (taylor_order = 2) 
       call ele_to_taylor (ele, branch%param, orbit_out(ix_ele-1), .true., orbital_taylor = taylor_ptr)
     endif
 
@@ -1536,7 +1536,7 @@ call deallocate_lat_pointers (lat_model)
 
 ! Restore ptc settings
 
-if (n_taylor_order_saved /= ptc_com%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
+if (n_taylor_order_saved /= ptc_private%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
 ptc_com%exact_model = ptc_exact_model
 
 close(iu)

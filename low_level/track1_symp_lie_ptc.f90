@@ -44,8 +44,8 @@ character(20) :: r_name = 'track1_symp_lie_ptc'
 
 CONVERSION_XPRIME_IN_ABELL = (.not. bmad_com%convert_to_kinetic_momentum) ! Only affects cylindrical map eles
 
-STATE0 = ptc_com%base_state
-if (ptc_com%use_totalpath) STATE0 = STATE0 + TOTALPATH0
+STATE0 = ptc_private%base_state
+if (ptc_private%use_totalpath) STATE0 = STATE0 + TOTALPATH0
 
 STATE = STATE0
 if (bmad_com%spin_tracking_on) STATE = STATE0 + SPIN0
@@ -105,7 +105,7 @@ endif
 end_orb%s = ele%s
 end_orb%p0c = ele%value(p0c$)
 
-if (ptc_com%use_totalpath) then
+if (ptc_private%use_totalpath) then
   end_orb%t = start2_orb%t + start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 else
   end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + &

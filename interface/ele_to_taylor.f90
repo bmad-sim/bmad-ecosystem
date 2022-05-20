@@ -11,7 +11,7 @@
 !   param             -- lat_param_struct: 
 !   taylor_map_includes_offsets 
 !                     -- Logical, optional: If present then value overrides ele%taylor_map_includes_offsets.
-!   include_damping   -- logical, optional: Sets if radiation damping is included. Default is what is set in ptc_com%base_state.
+!   include_damping   -- logical, optional: Sets if radiation damping is included. Default is what is set in ptc_private%base_state.
 !
 ! Output:
 !   orbital_taylor(6) -- taylor_struct, optional: Orbital taylor map.
@@ -68,7 +68,7 @@ else
   spin_tylr => ele%spin_taylor
 endif
 
-ptc_state = ptc_com%base_state
+ptc_state = ptc_private%base_state
 if (present(include_damping)) then
   select case (include_damping)
   case (.true.);  ptc_state = ptc_state + radiation0
@@ -119,14 +119,14 @@ ptc_probe8 = ptc_cdamap + ptc_probe ! = IdentityMap + const
 ! It does not make sense to do spin tracking if spin_taylor is not present but orbital_taylor is.
 
 if (bmad_com%spin_tracking_on .and. (present(spin_taylor) .or. (.not. present(spin_taylor) .and. .not. present(orbital_taylor)))) then
-  call track_probe (ptc_probe8, ptc_com%base_state+SPIN0, fibre1 = bmadl%start)
+  call track_probe (ptc_probe8, ptc_private%base_state+SPIN0, fibre1 = bmadl%start)
 
   do i = 0, 3
     spin_tylr(i) = ptc_probe8%q%x(i)%t
   enddo
 
 else
-  call track_probe (ptc_probe8, ptc_com%base_state-SPIN0, fibre1 = bmadl%start)
+  call track_probe (ptc_probe8, ptc_private%base_state-SPIN0, fibre1 = bmadl%start)
 endif
 
 ! take out the offset
