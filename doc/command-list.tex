@@ -844,6 +844,7 @@ The \vn{set} command is used to set values for data, variables, etc. Subcommands
   set particle_start \{n@\}<coordinate> = <value>             ! \sref{s:set.particle.start}
   set plot <plot> <parameter> = <value>                     ! \sref{s:set.plot}
   set plot_page <parameter> = <value1> \{<value2>\}           ! \sref{s:set.plot.page}
+  set ptc_com <parameter> = <value>                         ! \sref{s:set.ptc.com}
   set ran_state = <random_number_generator_state>           ! \sref{s:set.ran.state}
   set region <region> <parameter> = <value>                 ! \sref{s:set.region}
   set space_charge_com <parameter> = <value>                ! \sref{s:set.sc.com}
@@ -1513,6 +1514,29 @@ use the \vn{show plot -page} command to see a list of plot page parameters.
 Example:
 \begin{example}
   set plot_page title = 'XYZ'  ! Set plot page title string
+\end{example}
+
+%% set ptc_com --------------------------------------------------------------
+
+\subsection{set ptc_com}
+\label{s:set.ptc.com}
+
+Format:
+\begin{example}
+  set ptc_com <parameter> = <value>
+\end{example}
+
+Sets global PTC parameters. Use the \vn{show global -ptc_com} command to see a list of
+\vn{<parameter>}s. See the \bmad manual for information on this structure.
+
+Note: to set the Taylor map order, use the command:
+\begin{example}
+  set bmad_com taylor_order = ...
+\end{example}
+
+Example:
+\begin{example}
+  set ptc_com exact_model = F ! Non-exact is not as accurate but faster.
 \end{example}
 
 %% set ran_state --------------------------------------------------------------
