@@ -1057,9 +1057,17 @@ def parse_command(command, dlist):
       common.var_def_list.append([name, value])
     return
 
-  # Ele param set
+  # "qf, k1 = ..." parameter set
+
+  if len(dlist) > 4 and dlist[0] in common.ele_dict and dlist[1] == ',' and dlist[3] == '=':
+    f_out.write(dlist[0] + '[' + bmad_param(dlist[2]) + '] = ' + bmad_expression(''.join(dlist[4:]), dlist[2]) + '\n')
+    return
+
+
+  # Ele "qf->k1 = ..." parameter set
 
   if dlist[1] == '=' and '->' in dlist[0]:
+    print ('H1')
     [ele_name, dummy, param] = dlist[0].partition('->')
     value = bmad_expression(command.split('=')[1].strip(), param)
     name = f'{ele_name}[{bmad_param(param, ele_name)}]'
@@ -1130,19 +1138,6 @@ def parse_command(command, dlist):
     if 'y'      in param: f_out.write(f'particle_start[y] = {bmad_expression(param["y"], "")}\n')
     if 'px'     in param: f_out.write(f'particle_start[px] = {bmad_expression(param["px"], "")}\n')
     if 'py'     in param: f_out.write(f'particle_start[py] = {bmad_expression(param["py"], "")}\n')
-    return
-
-  # "qf, k1 = ..." parameter set
-
-  if len(dlist) > 4 and dlist[0] in common.ele_dict and dlist[1] == ',' and dlist[3] == '=':
-    f_out.write(dlist[0] + '[' + bmad_param(dlist[2]) + '] = ' + bmad_expression(''.join(dlist[4:]), dlist[2]) + '\n')
-    return
-
-  # "qf->k1 = ..." parameter set
-
-  if '->' in dlist[0] and dlist[1] == '=':
-    p = dlist[0].split('->')
-    f_out.write(p[0] + '[' + bmad_param(p[1]) + '] = ' + bmad_expression(''.join(dlist[2:]), p[1]) + '\n')
     return
 
   # Element def

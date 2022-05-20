@@ -79,10 +79,10 @@ do ie = 1, lat%n_ele_track
     map0 = new(is-1)%map
 
     print *
-    print '(2a)',    'Element: ', trim(ele%name)
-    print '(a, i3)', 'Taylor_order:     ', ptc_com%taylor_order_ptc
-    print '(a, i3)', 'Integrator_order: ', nint(ele%value(integrator_order$))
-    print '(a, l1)', 'Exact_model:      ', ptc_com%exact_model
+    print '(2a)',     'Element: ', trim(ele%name)
+    print '(a, 2i3)', 'Taylor_order:     ', bmad_com%taylor_order, ptc_private%taylor_order_ptc
+    print '(a, i3)',  'Integrator_order: ', nint(ele%value(integrator_order$))
+    print '(a, l1)',  'Exact_model:      ', ptc_com%exact_model
     print '(a)', '                                 old                                                   new'
     print '(a)', 'Steps | %spin_diff    orb_diff   t_probe   t_fibre  t_taylor | %spin_diff    orb_diff   t_probe   t_fibre  t_taylor'
 
@@ -161,7 +161,7 @@ do
   ptc_cdamap = 1
   ptc_probe8 = ptc_cdamap + ptc_probe
 
-  call track_probe (ptc_probe8, ptc_com%base_state+SPIN0, fibre1 = bmadl%start)
+  call track_probe (ptc_probe8, ptc_private%base_state+SPIN0, fibre1 = bmadl%start)
   ic = ic + 1
 
   call kill (ptc_probe8)
