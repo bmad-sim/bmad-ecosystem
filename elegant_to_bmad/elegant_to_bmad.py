@@ -172,14 +172,13 @@ ele_type_translate = {
   'gfwiggler':   'wiggler',
   'wiggler':     'wiggler',
 }
-}
 
-bad_translation_list = ['corgpipe', 'hkpoly', 'lscdrift', 'matter', 'peppot', 'qufringe', 'maxamp', 
+problematical_translation_list = ['corgpipe', 'hkpoly', 'lscdrift', 'matter', 'peppot', 'qufringe', 'maxamp', 
           'slice', 'alph', 'branch', 'charge', 'clean', 'cpickup', 'emittance', 'frfmode', 'ftrfmode',
           'ibscatter', 'ioneffects', 'lrwake', 'mhistogram', 'pfilter', 'recirc', 'reflect',
           'remcor', 'rfmode', 'rimult', 'scatter', 'scmult', 'script', 'shrfdf', 'sreffects',
           'tfbdriver', 'tfbpickup', 'trcount', 'trfmode', 'trwake', 'tscatter', 'twiss',
-          'wake', 'zlongit', 'ztransverse', 'center', 'rftm110', 'bumper',kicker 'mbumper',
+          'wake', 'zlongit', 'ztransverse', 'center', 'rftm110', 'bumper', 'mbumper',
           'bggexp', 'bmapxy', 'bmxyz', 'boffaxe', 'fmult', 'gkickmap', 'polyseries', 'apcontour',
           'dscatter', 'rampp', 'brat', 'ftable', 'mapsolenoid', 'matr', 'gfwiggler', 'cepl',
           'mrfdf', 'rmdf', 'twpl', 'stray', 'speedbump', 'taperapc', 'taperape', 'lthinlens',
@@ -563,7 +562,7 @@ def parse_element(dlist):
       ele.elegant_type = elegant_type
       ele.bmad_type = ele_type_translate[elegant_type]
       found = True
-      if ele.elegant_type in bad_translation_list: 
+      if ele.elegant_type in problematical_translation_list: 
         print (f'NOTE: {dlist[2].upper()} TYPE ELEMENT IN ELEGANT LATTICE. TRANSLATION IS POTENTIALLY PROBLEMATICAL!')
       break
 
