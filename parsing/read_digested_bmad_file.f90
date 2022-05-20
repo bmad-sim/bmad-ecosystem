@@ -379,7 +379,7 @@ if (.not. err_found .and. allocated(lat%print_str)) then
 endif
 
 if (.not. err_found) then
-  if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
+  if (lat%input_taylor_order /= 0) ptc_private%taylor_order_saved = lat%input_taylor_order
   call set_ptc (1.0e12_rp, lat%param%particle)  ! Energy value used does not matter here
   call parser_init_custom_elements (lat)
 endif

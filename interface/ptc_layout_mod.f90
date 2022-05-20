@@ -404,7 +404,7 @@ if (include_excitation) then
   call alloc(prb8)
   call alloc(cda) 
 
-  ptc_state = ptc_com%base_state + envelope0 + radiation0 
+  ptc_state = ptc_private%base_state + envelope0 + radiation0 
   call find_orbit_x (branch%ptc%m_t_layout, closed_orb, ptc_state, 1d-8, fibre1 = 1)
 
   cda = 1
@@ -418,14 +418,14 @@ if (include_excitation) then
   call kill(cda)
 
 else
-  ptc_state = ptc_com%base_state 
+  ptc_state = ptc_private%base_state 
   if (include_damping) ptc_state = ptc_state + radiation0
   call find_orbit_x (branch%ptc%m_t_layout, closed_orb, ptc_state, 1d-8, fibre1 = 1)
 endif
 
 ! Now set ptc_state without envelope on.
 
-ptc_state = ptc_com%base_state
+ptc_state = ptc_private%base_state
 if (include_damping)    ptc_state = ptc_state + radiation0
 if (include_excitation) ptc_state = ptc_state + stochastic0
 
@@ -468,7 +468,7 @@ integer i
 !
 
 ptc_fibre => branch%ele(1)%ptc_fibre
-call compute_linear_one_magnet_maps (ptc_fibre, ptc_com%base_state, pz)
+call compute_linear_one_magnet_maps (ptc_fibre, ptc_private%base_state, pz)
 
 end subroutine ptc_one_turn_mat_and_closed_orbit_calc
 
@@ -531,7 +531,7 @@ endif
 
 !
 
-ptc_state = ptc_com%base_state - NOCAVITY0 + RADIATION0
+ptc_state = ptc_private%base_state - NOCAVITY0 + RADIATION0
 
 ptc_fibre => pointer_to_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
@@ -581,7 +581,7 @@ call kill (id)
 call kill (xs)
 call kill (cc_norm)
 
-call init_all (ptc_com%base_state, ptc_com%taylor_order_ptc, 0)
+call init_all (ptc_private%base_state, ptc_private%taylor_order_ptc, 0)
 
 end subroutine ptc_emit_calc 
 
@@ -642,7 +642,7 @@ endif
 
 !
 
-ptc_state = ptc_com%base_state - NOCAVITY0 + RADIATION0 + SPIN0
+ptc_state = ptc_private%base_state - NOCAVITY0 + RADIATION0 + SPIN0
 
 ptc_fibre => pointer_to_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
@@ -812,7 +812,7 @@ do i = 1, branch%n_ele_track
   endif
 
   fib => branch%ele(i)%ptc_fibre%next
-  call track_probe_x (x, ptc_com%base_state, branch%ele(i-1)%ptc_fibre%next, fib)
+  call track_probe_x (x, ptc_private%base_state, branch%ele(i-1)%ptc_fibre%next, fib)
   call init_coord (orbit(i), x, ele, downstream_end$)
 
   call check_aperture_limit (orbit(i), ele, second_track_edge$, branch%param)
@@ -862,9 +862,9 @@ logical, optional :: radiation_damping_on
 !
 
 if (logic_option(bmad_com%radiation_damping_on, radiation_damping_on)) then
-  ptc_state = ptc_com%base_state + radiation0
+  ptc_state = ptc_private%base_state + radiation0
 else
-  ptc_state = ptc_com%base_state - radiation0
+  ptc_state = ptc_private%base_state - radiation0
 endif
 
 call reallocate_coord(closed_orbit, branch%n_ele_max)
@@ -932,15 +932,15 @@ spin_on = bmad_com%spin_tracking_on
 
 select case (integer_option(maybe$, rf_on))
 case (yes$)
-  ptc_state = ptc_com%base_state - nocavity0
+  ptc_state = ptc_private%base_state - nocavity0
 case (no$)
-  ptc_state = ptc_com%base_state + nocavity0
+  ptc_state = ptc_private%base_state + nocavity0
 case (maybe$)
   rf_on_state = rf_is_on(ele%branch)
   if (rf_on_state) then
-    ptc_state = ptc_com%base_state - nocavity0
+    ptc_state = ptc_private%base_state - nocavity0
   else
-    ptc_state = ptc_com%base_state + nocavity0
+    ptc_state = ptc_private%base_state + nocavity0
   endif
 case default
   stop
@@ -951,7 +951,7 @@ if (spin_on) ptc_state = ptc_state + spin0
 ! The call to init is needed since otherwiase FPP is not properly setup and a 
 ! call to something like c_normal will then bomb.
 
-map_order = integer_option(ptc_com%taylor_order_ptc, order)
+map_order = integer_option(ptc_private%taylor_order_ptc, order)
 call init_all (ptc_state, map_order, 0) ! The third argument is the number of parametric variables
 
 ! Find closed orbit
@@ -1058,12 +1058,12 @@ logical :: rf_on
 !
 
 if (rf_on) then
-  state = ptc_com%base_state - nocavity0
+  state = ptc_private%base_state - nocavity0
 else
-  state = ptc_com%base_state + nocavity0
+  state = ptc_private%base_state + nocavity0
 endif
 
-!! call init_all (state, ptc_com%taylor_order_ptc, 0) 
+!! call init_all (state, ptc_private%taylor_order_ptc, 0) 
 call alloc(map8)
 call alloc(da_map)
 call alloc(normal)
@@ -1099,7 +1099,7 @@ call kill(map8)
 call kill(da_map)
 call kill(normal)
 
-!! call init_all (ptc_com%base_state, ptc_com%taylor_order_ptc, 0)
+!! call init_all (ptc_private%base_state, ptc_private%taylor_order_ptc, 0)
 
 end subroutine normal_form_taylors
 
@@ -1134,16 +1134,16 @@ logical :: rf_on, c_verbose_save
 order_for_normal_form = integer_option(1, order)
 
 if (rf_on) then
-  state = ptc_com%base_state - nocavity0
+  state = ptc_private%base_state - nocavity0
 else
-  state = ptc_com%base_state + nocavity0
+  state = ptc_private%base_state + nocavity0
 endif
 
 ! Set PTC state
 !no longer needed: use_complex_in_ptc=my_true
 c_verbose_save = c_verbose
 c_verbose = .false.
-!! call init_all (state, ptc_com%taylor_order_ptc, 0)
+!! call init_all (state, ptc_private%taylor_order_ptc, 0)
 call alloc(map8)
 call alloc(da)
 call alloc(cda)
@@ -1204,7 +1204,7 @@ call kill(complex_normal_form)
 ! Reset PTC state
 use_complex_in_ptc=my_false
 c_verbose = c_verbose_save
-!! call init_all (ptc_com%base_state, ptc_com%taylor_order_ptc, 0)
+!! call init_all (ptc_private%base_state, ptc_private%taylor_order_ptc, 0)
 
 end subroutine normal_form_complex_taylors
 
@@ -1249,19 +1249,19 @@ type (internal_state) :: state
 
 if (.not. allocated(normal_form%h)) return
 
-order_for_normal_form = integer_option(ptc_com%taylor_order_ptc, order)
+order_for_normal_form = integer_option(ptc_private%taylor_order_ptc, order)
 
 if (rf_on) then
-  state = ptc_com%base_state - nocavity0
+  state = ptc_private%base_state - nocavity0
 else
-  state = ptc_com%base_state + nocavity0
+  state = ptc_private%base_state + nocavity0
 endif
 
 ! Set PTC state
 
 c_verbose_save = c_verbose
 c_verbose = .false.
-!! call init_all (state, ptc_com%taylor_order_ptc, 0) 
+!! call init_all (state, ptc_private%taylor_order_ptc, 0) 
 
 call alloc(vb)
 call alloc(F)

@@ -1692,7 +1692,7 @@ case ('TAYLOR_ORDER')
     call parser_error ('TAYLOR_ORDER IS LESS THAN 1')
     return
   endif
-  ptc_com%taylor_order_saved = ix
+  ptc_private%taylor_order_saved = ix
   lat%input_taylor_order = ix
 
 case ('RUNGE_KUTTA_ORDER')

@@ -66,7 +66,7 @@ type (taylor_struct) :: t_map(:), a_map(6)
 type (coord_struct), optional :: ref_orb
 type (coord_struct) orb0
 
-real(rp) :: ex_factor(0:ptc_com%taylor_order_ptc)
+real(rp) :: ex_factor(0:ptc_private%taylor_order_ptc)
 
 integer, intent(in), optional :: ix1, ix2, ix_branch
 integer i, i1, i2

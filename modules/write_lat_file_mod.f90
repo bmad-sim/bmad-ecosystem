@@ -1,6 +1,5 @@
 module write_lat_file_mod
 
-use expression_mod
 use element_modeling_mod
 use binary_parser_mod
 use multipole_mod
@@ -431,7 +430,7 @@ call out_io (s_info$, r_name, &
 ! open file
 
 if (present(err)) err = .true.
-n_taylor_order_saved = ptc_com%taylor_order_ptc
+n_taylor_order_saved = ptc_private%taylor_order_ptc
 
 iu = lunget()
 call fullfilename (out_file_name, line)
@@ -1241,7 +1240,7 @@ call deallocate_lat_pointers (lat_model)
 
 ! Restore ptc settings
 
-if (n_taylor_order_saved /= ptc_com%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
+if (n_taylor_order_saved /= ptc_private%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
 ptc_com%exact_model = ptc_exact_model
 
 close (iu)
