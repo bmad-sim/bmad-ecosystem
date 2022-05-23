@@ -781,7 +781,7 @@ function ele_has_nonzero_kick (ele) result (has_kick)
   logical has_kick
 end function
 
-function ele_has_offset (ele) result (has_offset)
+function ele_has_nonzero_offset (ele) result (has_offset)
   import
   implicit none
   type (ele_struct) ele
@@ -2132,10 +2132,11 @@ subroutine spin_quat_resonance_strengths (orb_evec, spin_q, xi_quat)
   complex(rp) orb_evec(6)
 end subroutine
 
-function spin_taylor_to_linear (spin_taylor, dref_orb) result (spin_map1)
+function spin_taylor_to_linear (spin_taylor, normalize, dref_orb) result (spin_map1)
   import
   implicit none
   type (taylor_struct), target :: spin_taylor(0:3)
+  logical normalize
   real(rp) dref_orb(6), spin_map1(0:3,0:6)
 end function
 
@@ -3122,7 +3123,7 @@ subroutine sprint_spin_taylor_map (ele, start_orbit)
   import
   implicit none
   type (ele_struct) ele
-  type (coord_struct), optional :: start_orbit
+  real(rp), optional :: start_orbit(6)
 end subroutine
 
 subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)

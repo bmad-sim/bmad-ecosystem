@@ -76,12 +76,6 @@ ele%map_ref_orb_in = a_start_orb
 rad_fluct_save = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.
 
-! Spin?
-
-if (ele%spin_tracking_method == sprint$) then
-  call sprint_spin_taylor_map(ele, a_start_orb)
-endif
-
 ! Compute matrix
 
 err = .false.
@@ -157,6 +151,17 @@ if (present(end_orb)) then
   endif
 endif
 
+! Spin
+
+if (bmad_com%spin_tracking_on == .true.) then
+  if (ele%spin_tracking_method == sprint$ .and. .not. associated(ele%spin_taylor(0)%term)) then
+    call sprint_spin_taylor_map(ele, ele%taylor%ref)
+  endif
+
+  if (associated(ele%spin_taylor(0)%term)) then
+    ele%spin_q = spin_taylor_to_linear (ele%spin_taylor, .true., a_start_orb%vec-ele%spin_taylor_ref_orb_in)
+  endif
+endif
 
 ! Finish up
 

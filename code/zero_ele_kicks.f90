@@ -2,7 +2,7 @@
 ! Subroutine zero_ele_kicks (ele)
 !
 ! Subroutine to zero any kick attributes like hkick$, bl_vkick$, etc.
-! See also: ele_has_nonzero_kick, ele_has_offset, zero_ele_offsets.
+! See also: ele_has_nonzero_kick, ele_has_nonzero_offset, zero_ele_offsets.
 !
 ! Input
 !   ele -- Ele_struct: Element with possible nonzero kicks.

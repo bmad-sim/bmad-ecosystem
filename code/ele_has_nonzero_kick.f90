@@ -3,7 +3,7 @@
 !
 ! Function to determine if an element has nonzero kick values.
 ! Kicks are something hkick$, bl_vkick$, etc.
-! See also: zero_ele_kicks, ele_has_offset, zero_ele_offsets.
+! See also: zero_ele_kicks, ele_has_nonzero_offset, zero_ele_offsets.
 !
 ! Input
 !   ele -- Ele_struct: Element with possible nonzero kicks.

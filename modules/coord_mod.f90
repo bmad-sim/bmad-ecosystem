@@ -49,7 +49,7 @@ private reallocate_coord_n, reallocate_coord_lat
 ! This routine is an overloaded name for:
 !   Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
 !   Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
-!   Subroutine init_coord1 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+!   Subroutine init_coord3 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
 !
 ! Note: Unless shift_vec6 is set to False, if ele is a beginning_ele (IE, the element at the beginning of the lattice), 
 ! or e_gun, orb%vec(6) is shifted so that a particle with orb%vec(6) = 0 will end up with a value of orb%vec(6) 
@@ -255,7 +255,7 @@ implicit none
 
 type (coord_struct) orb, orb_temp
 type (ele_struct), optional :: ele
-real(rp) :: vec(:)
+real(rp) :: vec(6)
 real(rp), optional :: t_offset, E_photon, spin(3)
 integer, optional :: element_end, particle, direction
 logical, optional :: shift_vec6

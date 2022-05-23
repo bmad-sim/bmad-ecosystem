@@ -2,7 +2,7 @@
 ! Subroutine zero_ele_offsets (ele)
 !
 ! Subroutine to zero the offsets, pitches, tilt and ref_tilt of an element.
-! Also see: ele_has_offset, zero_ele_kicks, ele_has_nonzero_kick
+! Also see: ele_has_nonzero_offset, zero_ele_kicks, ele_has_nonzero_kick
 !
 ! Input
 !   ele -- Ele_struct: Element with possible nonzero offsets, etc.

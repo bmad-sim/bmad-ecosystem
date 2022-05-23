@@ -83,7 +83,7 @@ do ie = n1, n2
     bmad_com%spin_tracking_on = st_on
   endif
 
-  q1%spin_q = spin_taylor_to_linear(ele%spin_taylor, ref_orb - ele%map_ref_orb_in%vec)
+  q1%spin_q = spin_taylor_to_linear(ele%spin_taylor, .false., ref_orb - ele%map_ref_orb_in%vec)
 
   call taylor_to_mat6 (ele%taylor, ref_orb, vec0, q1%orb_mat)
   if (present(map1_ele)) then

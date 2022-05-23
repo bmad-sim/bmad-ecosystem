@@ -1,17 +1,21 @@
 !+
-! Function spin_taylor_to_linear (spin_taylor, dref_orb) result (spin_map1)
+! Function spin_taylor_to_linear (spin_taylor, normalize, dref_orb) result (spin_map1)
 !
 ! Routine to truncate a Taylor spin map to order 1.
 !
+! Linear map normalization involves adjusting the 0th order quaternion to have unit magnitude
+! and the first order quaternions to be perpendicular to the 0th order quaternion.
+!
 ! Input:
 !   spin_taylor(0:3)    -- taylor_struct: Taylor spin map.
+!   normalize           -- logical: If True, normalize the linear map.
 !   dref_orb(6)         -- real(rp): Change in Reference orbit: output_map1_ref - input_taylor_ref.
 !
 ! Output:
 !   spin_map1(0:3,0:6)  -- real(rp): First order spin map.
 !-
 
-function spin_taylor_to_linear (spin_taylor, dref_orb) result (spin_map1)
+function spin_taylor_to_linear (spin_taylor, normalize, dref_orb) result (spin_map1)
 
 use bmad_routine_interface, dummy => spin_taylor_to_linear
 
@@ -22,9 +26,10 @@ type (taylor_struct), pointer :: st
 type (taylor_term_struct), pointer :: term
 
 real(rp) dref_orb(6), spin_map1(0:3,0:6)
-real(rp) t(6), t_out, prod
+real(rp) t(6), t_out, prod, f_norm
 
 integer i, j, k, l, n, p
+logical normalize
 
 !
 
@@ -89,5 +94,19 @@ else
     enddo
   enddo
 endif
+
+! Normalize
+
+if (.not. normalize) return
+
+! Renormalize to make 0th order qaternion have unit length
+f_norm = 1.0_rp / norm2(spin_map1(:,0))
+spin_map1(:,:) = spin_map1(:,:)  * f_norm
+
+! Now make first order quaternions perpendicular to the 0th order quaternions.
+do j = 1, 6
+  f_norm = dot_product(spin_map1(:,0), spin_map1(:,j))
+  spin_map1(:,j) = spin_map1(:,j) - f_norm * spin_map1(:,0)
+enddo
 
 end function
