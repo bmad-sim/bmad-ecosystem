@@ -4,12 +4,12 @@
 ! Routine to calculate the spin Taylor map for a lattice element using the sprint formalism.
 !
 ! Input:
-!   ele         -- ele_struct: Element to form map for.
-!   start_orbit -- coord_struct, optional: Reference orbit for the map. Default is zero orbit. 
+!   ele             -- ele_struct: Element to form map for.
+!   start_orbit(6)  -- real(rp), optional: Reference orbit for the map. Default is zero orbit. 
 !
 ! Output:
-!   ele       -- ele_struct: Element with map.
-!     %spin_taylor(:)   -- Taylor map.
+!   ele             -- ele_struct: Element with map.
+!     %spin_taylor(0:3)   -- Taylor map.
 !-
 
 subroutine sprint_spin_taylor_map (ele, start_orbit)
@@ -19,16 +19,16 @@ use bmad, dummy => sprint_spin_taylor_map
 implicit none
 
 type (ele_struct) ele
-type (coord_struct), optional :: start_orbit
 type (coord_struct) orb1, orb2, orb3, orb4
 type (taylor_struct) spin_taylor(0:3)
 type (fringe_field_info_struct) fringe_info
 type (branch_struct), pointer :: branch
-type (spin_orbit_map1_struct) map_start, map_ele, map_end
+type (spin_orbit_map1_struct) map_start, map_ele, map_end, map_mis
 type (track_struct) track
 
+real(rp), optional :: start_orbit(6)
 real(rp) gma, l, g, k1, k0, ks, kx, m, a, q, e1, e2
-real(rp) cx, sx, cy, sy, omega, omegax, omegay, taux, tauy, f_renorm, f0
+real(rp) cx, sx, cy, sy, omega, omegax, omegay, taux, tauy
 real(rp) chi, zeta, psi, alpha, beta, sigma, xi, hkick, vkick
 real(rp) d, c_d, s_d, e, c_e2, s_e2
 real(rp) s, c_s, s_s, t, c_t2, s_t2
@@ -273,22 +273,34 @@ if (fringe_at == both_ends$ .or. fringe_at == exit_end$) then
   map_ele = map_end * map_ele
 endif
 
-! Shift to reference orbit
+! Add in misalignments and h/vkicks
 
 if (present(start_orbit)) then
-  do j = 1, 6
-    map_ele%spin_q(:,0) = map_ele%spin_q(:,0) + start_orbit%vec(j) * map_ele%spin_q(:,j)
-  enddo
+  ele%spin_taylor_ref_orb_in = start_orbit
+else
+  ele%spin_taylor_ref_orb_in = 0
+endif
 
-  ! Renormalize to make 0th order qaternion have unit length
-  f_renorm = 1.0_rp / norm2(map_ele%spin_q(:,0))
-  map_ele%spin_q(:,:) = map_ele%spin_q(:,:)  * f_renorm
+if (ele_has_nonzero_offset(ele)) then
+  call init_coord (orb1, ele%spin_taylor_ref_orb_in, ele, upstream_end$)
+  orb2 = orb1
+  call mat_make_unit(map_mis%orb_mat)
+  call offset_particle (ele, set$, orb2, mat6 = map_mis%orb_mat, make_matrix = .true., spin_qrot = map_mis%spin_q)
+  map_mis%vec0 = orb2%vec - matmul(map_mis%orb_mat, orb1%vec)
 
-  ! Now make first order quaternions perpendicular to the 0th order quaternions.
-  do j = 1, 6
-    f_renorm = dot_product(map_ele%spin_q(:,0), map_ele%spin_q(:,j))
-    map_ele%spin_q(:,j) = map_ele%spin_q(:,j) - f_renorm
-  enddo
+  call shift_to_reference_orbit(map_ele, orb2%vec)
+  map_ele = map_ele * map_mis
+
+  orb2%vec = matmul(map_ele%orb_mat, orb1%vec) + map_ele%vec0
+  orb3 = orb2
+  call mat_make_unit(map_mis%orb_mat)
+  call offset_particle (ele, unset$, orb3, mat6 = map_mis%orb_mat, make_matrix = .true., spin_qrot = map_mis%spin_q)
+  map_mis%vec0 = orb3%vec - matmul(map_mis%orb_mat, orb2%vec)
+
+  map_ele = map_mis * map_ele
+
+else
+  call shift_to_reference_orbit(map_ele, start_orbit)
 endif
 
 ! Convert map%spin_q to ele%spin_taylor
@@ -302,5 +314,36 @@ do j = 0, 6
   endif
 enddo
 enddo
+
+!-----------------------------------------------------------
+contains
+
+subroutine shift_to_reference_orbit (map_ele, ref_orbit)
+
+type (spin_orbit_map1_struct) map_ele
+real(rp), optional :: ref_orbit(6)
+real(rp) f_norm
+integer j
+
+!
+
+if (.not. present(ref_orbit)) return
+if (all(ref_orbit == 0)) return
+
+do j = 1, 6
+  map_ele%spin_q(:,0) = map_ele%spin_q(:,0) + ref_orbit(j) * map_ele%spin_q(:,j)
+enddo
+
+! Renormalize to make 0th order qaternion have unit length
+f_norm = 1.0_rp / norm2(map_ele%spin_q(:,0))
+map_ele%spin_q(:,:) = map_ele%spin_q(:,:)  * f_norm
+
+! Now make first order quaternions perpendicular to the 0th order quaternions.
+do j = 1, 6
+  f_norm = dot_product(map_ele%spin_q(:,0), map_ele%spin_q(:,j))
+  map_ele%spin_q(:,j) = map_ele%spin_q(:,j) - f_norm * map_ele%spin_q(:,0)
+enddo
+
+end subroutine shift_to_reference_orbit
 
 end subroutine

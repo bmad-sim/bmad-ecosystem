@@ -125,6 +125,8 @@ if (bmad_com%spin_tracking_on .and. (present(spin_taylor) .or. (.not. present(sp
     spin_tylr(i) = ptc_probe8%q%x(i)%t
   enddo
 
+  if (.not. present(spin_taylor)) ele%spin_taylor_ref_orb_in = x
+
 else
   call track_probe (ptc_probe8, ptc_private%base_state-SPIN0, fibre1 = bmadl%start)
 endif

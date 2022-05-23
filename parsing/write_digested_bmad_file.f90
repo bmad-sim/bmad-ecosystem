@@ -316,7 +316,7 @@ write (d_unit) &
         ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
         ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
         ele%multipoles_on, ele%taylor_map_includes_offsets, ele%Field_master, &
-        ele%logic, ele%field_calc, ele%aperture_at, &
+        ele%logic, ele%field_calc, ele%aperture_at, ele%spin_taylor_ref_orb_in, &
         ele%aperture_type, ele%csr_method, ele%space_charge_method, ele%orientation, &
         ele%map_ref_orb_in, ele%map_ref_orb_out, ele%time_ref_orb_in, ele%time_ref_orb_out, &
         ele%offset_moves_aperture, ele%ix_branch, ele%ref_time, ele%scale_multipoles, &

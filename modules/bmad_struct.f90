@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 276
+integer, parameter :: bmad_inc_version$ = 277
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1235,7 +1235,9 @@ type ele_struct
   type (photon_element_struct), pointer :: photon => null()
   type (multipole_cache_struct), allocatable :: multipole_cache
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() ! Radiation integral calc cached values 
+  ! Note: The reference orbits for spin and orbit Taylor maps are not necessarily the same
   type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.
+  real(rp) :: spin_taylor_ref_orb_in(6) = real_garbage$
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()   ! Quaternion Spin Taylor map.
   type (wake_struct), pointer :: wake => null()                ! Wakes
   type (wall3d_struct), pointer :: wall3d(:) => null()         ! Chamber or capillary wall
@@ -1253,11 +1255,12 @@ type ele_struct
   type (coord_struct) :: time_ref_orb_out = coord_struct()     ! Reference orbit at exit end for ref_time calc.
   real(rp) :: value(num_ele_attrib$) = 0                       ! attribute values.
   real(rp) :: old_value(num_ele_attrib$) = 0                   ! Used to see if %value(:) array has changed.
+  ! Note: The reference orbit for spin/orbit matrices is %map_ref_orb_in/out
+  real(rp) :: spin_q(0:3,0:6) = real_garbage$                  ! 0th and 1st order Spin transport quaternion.
   real(rp) :: vec0(6) = 0                                      ! 0th order transport vector.
   real(rp) :: mat6(6,6) = 0                                    ! 1st order transport matrix.
   real(rp) :: c_mat(2,2) = 0                                   ! 2x2 C coupling matrix
   real(rp) :: gamma_c = 1                                      ! gamma associated with C matrix
-  real(rp) :: spin_q(0:3,0:6) = real_garbage$                  ! 0th and 1st order Spin transport quaternion.
   real(rp) :: s_start = 0                                      ! longitudinal ref position at entrance_end
   real(rp) :: s = 0                                            ! longitudinal ref position at the exit end.
   real(rp) :: ref_time = 0                                     ! Time ref particle passes exit end.
