@@ -153,7 +153,7 @@ endif
 
 ! Spin
 
-if (bmad_com%spin_tracking_on == .true.) then
+if (bmad_com%spin_tracking_on) then
   if (ele%spin_tracking_method == sprint$ .and. .not. associated(ele%spin_taylor(0)%term)) then
     call sprint_spin_taylor_map(ele, ele%taylor%ref)
   endif
