@@ -6,7 +6,7 @@ beginning[beta_a] = 10
 beginning[beta_b] = 10
 parameter[particle] = positron
 
-particle_start[x]  = 0.0001
+particle_start[x]  = 0.000
 particle_start[px] = 0.00
 particle_start[y]  = 0.00
 particle_start[py] = 0.00
@@ -16,11 +16,11 @@ particle_start[pz] = 0.00
 quadrupole1: quadrupole, l = 0.6, k1 = 0.4
 quadrupole2: quadrupole, l = 0.6, k1 = -0.4
 
-solenoid1: solenoid, l = 0.6, ks = 0.4
+solenoid1: solenoid, l = 0.6, ks = 0.04
 
 sbend1: sbend, l = 0.6, g = 0.1, e1 = 0.2, e2 = 0.4, k1 = 0.1
 drift1: drift, l = 0.6
-q: quadrupole, l = 1, k1 = 0.01
+q: quadrupole, l = 1, k1 = 0.01, x_offset = -1e-4
 
 l1: line = (q)
 
