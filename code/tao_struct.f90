@@ -373,8 +373,6 @@ end type
 
 type tao_spin_map_struct
   logical :: valid = .false.
-  type (taylor_struct) :: orbit_taylor(6) = taylor_struct()  ! Not yet used.
-  type (taylor_struct) :: spin_taylor(0:3) = taylor_struct() ! Not yet used.
   type (spin_orbit_map1_struct) :: map1 = spin_orbit_map1_struct()
   type (spin_axis_struct) :: axis_input = spin_axis_struct() ! Input axes.
   type (spin_axis_struct) :: axis0 = spin_axis_struct()      ! Initial axes.
