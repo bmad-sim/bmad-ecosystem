@@ -95,7 +95,9 @@ dat_file = open (dat_file_name)
 for n_header in range(1, 1000):
   line = dat_file.readline()
   if line[0:3] == '#--': break
-  print (line.strip())
+  if (line[0] == '#'): line = line[1:] # Remove beginning "#". Old style did not have beginning "#".
+  line = line.strip() 
+  print (line) 
   exec (line)
 
 dat_file.close()

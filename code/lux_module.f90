@@ -1045,11 +1045,14 @@ endif
 
 if (lux_param%det_pix_out_file /= '') then
   open (3, file = lux_param%det_pix_out_file, recl = 300)
+  open (4, file = trim(lux_param%det_pix_out_file) // '.x', recl = 240)
+  open (5, file = trim(lux_param%det_pix_out_file) // '.y', recl = 240)
+
   intens_max = maxval(pixel%pt%intensity)
   cut = max(0.0_rp, intens_max * lux_param%intensity_min_det_pixel_cutoff)
 
-  nx_active_min = ubound(pixel%pt, 1);  nx_active_max = ubound(pixel%pt, 1)
-  ny_active_min = ubound(pixel%pt, 2);  ny_active_max = ubound(pixel%pt, 2)
+  nx_active_min = ubound(pixel%pt, 1);  nx_active_max = lbound(pixel%pt, 1)
+  ny_active_min = ubound(pixel%pt, 2);  ny_active_max = lbound(pixel%pt, 2)
 
   do i = lbound(pixel%pt, 1), ubound(pixel%pt, 1)
   do j = lbound(pixel%pt, 2), ubound(pixel%pt, 2)
@@ -1059,26 +1062,26 @@ if (lux_param%det_pix_out_file /= '') then
   enddo
   enddo
 
-  write (3, '(2a)')           'master_parameter_file             = ', quote(lux_param%param_file)
-  write (3, '(2a)')           'lattice_file                      = ', quote(lux_param%lattice_file)
-  write (3, '(a, es12.4)')    'intensity_normalization_coef      =', lux_param%intensity_normalization_coef
-  write (3, '(a, l2)')        'normalization_includes_pixel_area =', lux_param%normalization_includes_pixel_area
-  write (3, '(a, es14.6)')    'normalization       =', normalization
-  write (3, '(a, es16.5)')    'intensity_x_unnorm  =', sum(pixel%pt(:,:)%intensity_x)
-  write (3, '(a, es16.5)')    'intensity_x_norm    =', sum(pixel%pt(:,:)%intensity_x) * normalization
-  write (3, '(a, es16.5)')    'intensity_y_unnorm  =', sum(pixel%pt(:,:)%intensity_y)
-  write (3, '(a, es16.5)')    'intensity_y_norm    =', sum(pixel%pt(:,:)%intensity_y) * normalization
-  write (3, '(a, es16.5)')    'intensity_unnorm    =', sum(pixel%pt(:,:)%intensity)
-  write (3, '(a, es16.5)')    'intensity_norm      =', sum(pixel%pt(:,:)%intensity) * normalization
-  write (3, '(a, i0)')        'n_track_tot         = ', pixel%n_track_tot
-  write (3, '(a, i0)')        'n_at_detec          = ', pixel%n_hit_detec
-  write (3, '(a, i0)')        'n_hit_pixel         = ', pixel%n_hit_pixel
-  write (3, '(a, f10.6)')     'dx_pixel            =', pixel%dr(1)
-  write (3, '(a, f10.6)')     'dy_pixel            =', pixel%dr(2)
-  write (3, '(a, i8)')        'nx_active_min       =', nx_active_min
-  write (3, '(a, i8)')        'nx_active_max       =', nx_active_max
-  write (3, '(a, i8)')        'ny_active_min       =', ny_active_min
-  write (3, '(a, i8)')        'ny_active_max       =', ny_active_max
+  call lux_write_header ('master_parameter_file             = ' // quote(lux_param%param_file))
+  call lux_write_header ('lattice_file                      = ' // quote(lux_param%lattice_file))
+  call lux_write_header ('intensity_normalization_coef      = ', 'es12.4', re = lux_param%intensity_normalization_coef)
+  call lux_write_header ('normalization_includes_pixel_area = ', 'l2', logic = lux_param%normalization_includes_pixel_area)
+  call lux_write_header ('normalization       = ', 'es14.6', re = normalization)
+  call lux_write_header ('intensity_x_unnorm  = ', 'es16.5', re = sum(pixel%pt(:,:)%intensity_x))
+  call lux_write_header ('intensity_x_norm    = ', 'es16.5', re = sum(pixel%pt(:,:)%intensity_x) * normalization)
+  call lux_write_header ('intensity_y_unnorm  = ', 'es16.5', re = sum(pixel%pt(:,:)%intensity_y))
+  call lux_write_header ('intensity_y_norm    = ', 'es16.5', re = sum(pixel%pt(:,:)%intensity_y) * normalization)
+  call lux_write_header ('intensity_unnorm    = ', 'es16.5', re = sum(pixel%pt(:,:)%intensity))
+  call lux_write_header ('intensity_norm      = ', 'es16.5', re = sum(pixel%pt(:,:)%intensity) * normalization)
+  call lux_write_header ('n_track_tot         = ', 'i0',    int8 = pixel%n_track_tot)
+  call lux_write_header ('n_at_detec          = ', 'i0',    int8 = pixel%n_hit_detec)
+  call lux_write_header ('n_hit_pixel         = ', 'i0',    int8 = pixel%n_hit_pixel)
+  call lux_write_header ('dx_pixel            = ', 'f10.6',  re = pixel%dr(1))
+  call lux_write_header ('dy_pixel            = ', 'f10.6',  re = pixel%dr(2))
+  call lux_write_header ('nx_active_min       = ', 'i8',    int = nx_active_min)
+  call lux_write_header ('nx_active_max       = ', 'i8',    int = nx_active_max)
+  call lux_write_header ('ny_active_min       = ', 'i8',    int = ny_active_min)
+  call lux_write_header ('ny_active_max       = ', 'i8',    int = ny_active_max)
 
   params_out = lux_param%bmad_parameters_out
   param_loop: do 
@@ -1158,10 +1161,9 @@ if (lux_param%det_pix_out_file /= '') then
 
   ! det_pix_out_file.x
 
-  open (3, file = trim(lux_param%det_pix_out_file) // '.x', recl = 240)
-  write (3, '(a)') '#-----------------------------------------------------'
-  write (3, '(a)') '#                                                                                                                             |                    Init'
-  write (3, '(a)') '#   ix      x_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
+  write (4, '(a)') '#-----------------------------------------------------'
+  write (4, '(a)') '#                                                                                                                             |                    Init'
+  write (4, '(a)') '#   ix      x_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
   do i = lbound(pixel%pt, 1), ubound(pixel%pt, 1)
     p = pixel_pt_struct()
@@ -1179,19 +1181,18 @@ if (lux_param%det_pix_out_file /= '') then
       enddo
     endif
 
-    write (3, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') i, i*pixel%dr(1)+pixel%r0(1), &
+    write (4, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') i, i*pixel%dr(1)+pixel%r0(1), &
                        p%intensity_x * normalization, p%intensity_y * normalization, p%intensity * normalization, &
                        p%n_photon, p%orbit(6), p%orbit_rms(6), p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
                        p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
   enddo
-  close(3)
+  close(4)
 
   ! det_pix_out_file.y
 
-  open (3, file = trim(lux_param%det_pix_out_file) // '.y', recl = 240)
-  write (3, '(a)') '#-----------------------------------------------------'
-  write (3, '(a)') '#                                                                                                                             |                    Init'
-  write (3, '(a)') '#   iy      y_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
+  write (5, '(a)') '#-----------------------------------------------------'
+  write (5, '(a)') '#                                                                                                                             |                    Init'
+  write (5, '(a)') '#   iy      y_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
   do j = lbound(pixel%pt, 2), ubound(pixel%pt, 2)
     p = pixel_pt_struct()
     p%intensity_x = sum(pixel%pt(:,j)%intensity_x)
@@ -1208,22 +1209,22 @@ if (lux_param%det_pix_out_file /= '') then
       enddo
     endif
 
-    write (3, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j*pixel%dr(2)+pixel%r0(2), &
+    write (5, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j*pixel%dr(2)+pixel%r0(2), &
                        p%intensity_x * normalization, p%intensity_y * normalization, p%intensity * normalization, &
                        p%n_photon, p%orbit(6), p%orbit_rms(6), p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
                        p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
   enddo
-  close(3)
+  close(5)
 
   !------------------------------------------
   ! det_pix_out_file.histogram
 
   if (lux_param%histogram_variable /= '') then
     nrm2 = normalization / lux_param%histogram_bin_width
-    open (3, file = trim(lux_param%det_pix_out_file) // '.histogram', recl = 240)
-    write (3, '(a)')  '#-----------------------------------------------------'
-    write (3, '(a, t130, a)')  '#', '|                    Init'
-    write (3, '(3a)') '# indx', adjustr(lux_param%histogram_variable(1:14)), '   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms |    X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
+    open (6, file = trim(lux_param%det_pix_out_file) // '.histogram', recl = 240)
+    write (6, '(a)')  '#-----------------------------------------------------'
+    write (6, '(a, t130, a)')  '#', '|                    Init'
+    write (6, '(3a)') '# indx', adjustr(lux_param%histogram_variable(1:14)), '   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms |    X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
     do j = ubound(lux_com%histogram_bin,1), lbound(lux_com%histogram_bin,1), -1
       pix => lux_com%histogram_bin(j)
@@ -1240,13 +1241,13 @@ if (lux_param%det_pix_out_file /= '') then
         p%init_orbit_rms(n) = sqrt(max(0.0_rp, p%init_orbit_rms(n) - p%init_orbit(n)**2))
       enddo
 
-      write (3, '(i6, es14.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j * lux_param%histogram_bin_width, p%intensity_x * nrm2, &
+      write (6, '(i6, es14.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j * lux_param%histogram_bin_width, p%intensity_x * nrm2, &
                          p%intensity_y * nrm2, p%intensity * nrm2, p%n_photon, p%orbit(6), p%orbit_rms(6), &
                          p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
                          p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
     enddo
 
-    close(3)
+    close(6)
   endif
 endif
 
@@ -1254,13 +1255,13 @@ endif
 ! Track out file
 
 if (lux_param%track_out_file /= '') then
-  open (3, file = lux_param%track_out_file)
-  write (3, '(3x, a, 2x, a, 16x, a, 20x, a, 4x, a)') 'Ix', 'Name', 'Class', 'S', '#Lost'
+  open (7, file = lux_param%track_out_file)
+  write (7, '(3x, a, 2x, a, 16x, a, 20x, a, 4x, a)') 'Ix', 'Name', 'Class', 'S', '#Lost'
   do n = 0, lux_com%tracking_branch%n_ele_track
     ele => lux_com%tracking_branch%ele(n)
-    write (3, '(i4, 2x, a20, a16, f10.3, i8)') n, ele%name, key_name(ele%key), ele%s, ele%ix_pointer
+    write (7, '(i4, 2x, a20, a16, f10.3, i8)') n, ele%name, key_name(ele%key), ele%s, ele%ix_pointer
   enddo
-  close(3)
+  close(7)
 endif
 
 !------------------------------------------
@@ -1323,6 +1324,50 @@ if (lux_param%plotting /= '') then
 endif
 
 end subroutine lux_write_data
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine lux_write_header (who, fmt, re, int, logic)
+!
+! Routine to write header info to data files.
+!-
+
+subroutine lux_write_header (who, fmt, re, int, int8, logic)
+
+character(*) who
+character(*), optional :: fmt
+character(200) str
+
+real(rp), optional :: re
+integer, optional :: int
+integer(8), optional :: int8
+logical, optional :: logic
+
+!
+
+if (present(re)) then
+  write (str, '('//fmt//')') re
+  str = who // str
+elseif (present(int)) then
+  write (str, '('//fmt//')') int
+  str = who // str
+elseif (present(int8)) then
+  write (str, '('//fmt//')') int8
+  str = who // str
+elseif (present(logic)) then
+  write (str, '('//fmt//')') logic
+  str = who // str
+else
+  str = who
+endif
+
+write (3, '(a)') trim('# ' // str)
+write (4, '(a)') trim('# ' // str)
+write (5, '(a)') trim('# ' // str)
+
+end subroutine lux_write_header
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
