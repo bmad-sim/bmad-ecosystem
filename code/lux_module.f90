@@ -1123,10 +1123,10 @@ if (lux_param%det_pix_out_file /= '') then
 
   enddo param_loop
 
-  write (3, '(a, es16.5, 3a)') 'x_center_det        =', p%orbit(1),     '  # ', to_str(p%orbit(1) / pixel%dr(1), 4), ' pixels'
-  write (3, '(a, es16.5, 3a)') 'y_center_det        =', p%orbit(3),     '  # ', to_str(p%orbit(3) / pixel%dr(2), 4), ' pixels'
-  write (3, '(a, es16.5, 3a)') 'x_rms_det           =', p%orbit_rms(1), '  # ', to_str(p%orbit_rms(1) / pixel%dr(1), 4), ' pixels'
-  write (3, '(a, es16.5, 3a)') 'y_rms_det           =', p%orbit_rms(3), '  # ', to_str(p%orbit_rms(3) / pixel%dr(2), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') '# x_center_det        =', p%orbit(1),     '  # ', to_str(p%orbit(1) / pixel%dr(1), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') '# y_center_det        =', p%orbit(3),     '  # ', to_str(p%orbit(3) / pixel%dr(2), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') '# x_rms_det           =', p%orbit_rms(1), '  # ', to_str(p%orbit_rms(1) / pixel%dr(1), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') '# y_rms_det           =', p%orbit_rms(3), '  # ', to_str(p%orbit_rms(3) / pixel%dr(2), 4), ' pixels'
   write (3, '(a)') '#-----------------------------------------------------'
   write (3, '(a)') '#                                                                                                                                                                    |                                          Init'
   write (3, '(a)') '#   ix    iy      x_pix      y_pix   Intens_x    Phase_x   Intens_y    Phase_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
