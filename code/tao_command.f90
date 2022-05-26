@@ -237,6 +237,8 @@ case ('cut_ring')
     lat%param%geometry = closed$
   endif
 
+  call out_io (s_error$, r_name, 'The lattice geometry is now: ' // geometry_name(lat%param%geometry))
+
   u%calc%lattice = .true.
   u%model%lat%particle_start%vec = 0
   call tao_lattice_calc (ok)
