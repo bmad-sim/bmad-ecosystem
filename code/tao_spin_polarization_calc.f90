@@ -115,8 +115,8 @@ enddo
 
 if (integral_1ns == 0 .or. err) then
   tao_branch%spin%pol_limit_st          = 0
-  tao_branch%spin%pol_limit_dkm         = 0
-  tao_branch%spin%pol_limit_dkm_partial = 0
+  tao_branch%spin%pol_limit_dk         = 0
+  tao_branch%spin%pol_limit_dk_partial = 0
   tao_branch%spin%pol_rate_bks          = 0
   tao_branch%spin%depol_rate            = 0
   tao_branch%spin%depol_rate_partial    = 0
@@ -125,8 +125,8 @@ else
   call convert_pc_to ((1 + orbit(0)%vec(6)) * orbit(0)%p0c, branch%param%particle, gamma = gamma)
   f = f_rate * gamma**5 * cm_ratio**2 / branch%param%total_length
   tao_branch%spin%pol_limit_st          = f_limit * integral_bn / integral_1ns
-  tao_branch%spin%pol_limit_dkm         = f_limit * (integral_bn - integral_bdn) / (integral_1ns + integral_dn2)
-  tao_branch%spin%pol_limit_dkm_partial = f_limit * (integral_bn - integral_bdn_partial) / (integral_1ns + integral_dn2_partial)
+  tao_branch%spin%pol_limit_dk         = f_limit * (integral_bn - integral_bdn) / (integral_1ns + integral_dn2)
+  tao_branch%spin%pol_limit_dk_partial = f_limit * (integral_bn - integral_bdn_partial) / (integral_1ns + integral_dn2_partial)
   tao_branch%spin%pol_rate_bks          = f * integral_1ns
   tao_branch%spin%depol_rate            = f * integral_dn2
   tao_branch%spin%depol_rate_partial    = f * integral_dn2_partial
