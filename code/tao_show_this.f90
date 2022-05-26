@@ -89,7 +89,7 @@ type (ptc_normal_form_struct), pointer :: ptc_nf
 type (aperture_scan_struct), pointer :: aperture_scan
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_spin_map_struct), pointer :: sm
-type (normal_modes_struct) norm_mode, mode_6d
+type (normal_modes_struct) mode_ptc, mode_ptc_no_vert, mode_6d
 type (normal_modes_struct), pointer :: mode_m, mode_d
 type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: rmap(:)
@@ -1745,16 +1745,21 @@ case ('emittance')
     call lat_to_ptc_layout (lat)
   endif
 
-  call ptc_emit_calc (branch%ele(0), norm_mode, sig_mat, orb)
+  r = ptc_com%vertical_kick
+  ptc_com%vertical_kick = 0
+  call ptc_emit_calc (branch%ele(0), mode_ptc_no_vert, sig_mat, orb)
+  ptc_com%vertical_kick = 1
+  call ptc_emit_calc (branch%ele(0), mode_ptc, sig_mat, orb)
+  ptc_com%vertical_kick = r
 
-  nl=nl+1; lines(nl) = '                    | Vert opening angle included | Opening angle ignored       |'
-  nl=nl+1; lines(nl) = ' Mode     PTC_Emit  | Bmad_6D_Emit   Rad_Int_Emit | Bmad_6D_Emit   Rad_Int_Emit |'
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'A', norm_mode%a%emittance, mode_6d%a%emittance, &
-                                                           mode_m%a%emittance, mode_6d%a%emittance_no_vert, mode_m%a%emittance_no_vert
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'B', norm_mode%b%emittance, mode_6d%b%emittance, &
-                                                           mode_m%b%emittance, mode_6d%b%emittance_no_vert, mode_m%b%emittance_no_vert
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, 5es15.7)') 'C', norm_mode%z%emittance, mode_6d%z%emittance, &
-                                                           mode_m%sigE_E * mode_m%sig_z, mode_6d%z%emittance_no_vert, mode_m%sigE_E * mode_m%sig_z
+  nl=nl+1; lines(nl) = '      |        Vert opening angle included        |           Opening angle ignored           |'
+  nl=nl+1; lines(nl) = ' Mode |   PTC_Emit    Bmad_6D_Emit   Rad_Int_Emit | PTC_Emit      Bmad_6D_Emit   Rad_Int_Emit |'
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 6es15.7)') 'A', mode_ptc%a%emittance, mode_6d%a%emittance, mode_m%a%emittance, &
+                                             mode_ptc_no_vert%a%emittance, mode_6d%a%emittance_no_vert, mode_m%a%emittance_no_vert
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 6es15.7)') 'B', mode_ptc%b%emittance, mode_6d%b%emittance, mode_m%b%emittance, &
+                                             mode_ptc_no_vert%b%emittance, mode_6d%b%emittance_no_vert, mode_m%b%emittance_no_vert
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 6es15.7)') 'C', mode_ptc%z%emittance, mode_6d%z%emittance, mode_m%sigE_E * mode_m%sig_z, &
+                                  mode_ptc_no_vert%z%emittance, mode_6d%z%emittance_no_vert, mode_m%sigE_E * mode_m%sig_z
 
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'J_damp:    ', mode_6d%a%j_damp, mode_6d%b%j_damp, mode_6d%z%j_damp
@@ -3966,11 +3971,11 @@ case ('ptc')
   endif
 
 
-  call ptc_emit_calc (branch%ele(0), norm_mode, sig_mat, orb)
+  call ptc_emit_calc (branch%ele(0), mode_ptc, sig_mat, orb)
   nl=nl+1; lines(nl) = '  Mode      Emit        Tune'
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'A', norm_mode%a%emittance, norm_mode%a%tune
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'B', norm_mode%b%emittance, norm_mode%b%tune
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'C', norm_mode%z%emittance, norm_mode%z%tune
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'A', mode_ptc%a%emittance, mode_ptc%a%tune
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'B', mode_ptc%b%emittance, mode_ptc%b%tune
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, es15.7, f12.6)') 'C', mode_ptc%z%emittance, mode_ptc%z%tune
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), '(1x, a, 6es15.7)') 'Starting orbit:', orb%vec
 
