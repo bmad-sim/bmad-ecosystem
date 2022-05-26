@@ -3000,7 +3000,7 @@ case ('spin.')
     case ('spin.polarization_rate')
       datum_value = tao_branch%spin%pol_rate_bks
     case ('spin.polarization_limit')
-      datum_value = tao_branch%spin%pol_limit_dkm
+      datum_value = tao_branch%spin%pol_limit_dk
     end select
 
   case default

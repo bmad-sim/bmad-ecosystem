@@ -6393,10 +6393,10 @@ case ('spin_polarization')
   nl=incr(nl); write (li(nl), rmt) 'anom_moment_times_gamma;REAL;F;',           z
   nl=incr(nl); write (li(nl), rmt) 'spin_tune;REAL;F;',                         branch%param%spin_tune/twopi
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_st;REAL;F;',             tao_branch%spin%pol_limit_st
-  nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm;REAL;F;',            tao_branch%spin%pol_limit_dkm
-  nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm_partial_a;REAL;F;',  tao_branch%spin%pol_limit_dkm_partial(1)
-  nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm_partial_b;REAL;F;',  tao_branch%spin%pol_limit_dkm_partial(2)
-  nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dkm_partial_c;REAL;F;',  tao_branch%spin%pol_limit_dkm_partial(3)
+  nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dk;REAL;F;',            tao_branch%spin%pol_limit_dk
+  nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dk_partial_a;REAL;F;',  tao_branch%spin%pol_limit_dk_partial(1)
+  nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dk_partial_b;REAL;F;',  tao_branch%spin%pol_limit_dk_partial(2)
+  nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dk_partial_c;REAL;F;',  tao_branch%spin%pol_limit_dk_partial(3)
   nl=incr(nl); write (li(nl), rmt) 'polarization_rate_bks;REAL;F;',             tao_branch%spin%pol_rate_bks
   nl=incr(nl); write (li(nl), rmt) 'depolarization_rate;REAL;F;',               tao_branch%spin%depol_rate
   nl=incr(nl); write (li(nl), rmt) 'depolarization_rate_partial_a;REAL;F;',     tao_branch%spin%depol_rate_partial(1)
