@@ -4201,17 +4201,17 @@ case ('spin')
           nl=nl+1; lines(nl) = 'No bends or other radiation producing lattice elements detected!'
         else
           r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
-          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                  ', tao_branch%spin%pol_limit_st
+          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                 ', tao_branch%spin%pol_limit_st
           nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DK:                 ', tao_branch%spin%pol_limit_dk
           nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Polarization Limits DK (a,b,c-modes):  ', tao_branch%spin%pol_limit_dk_partial
           x = 1.0_rp / tao_branch%spin%pol_rate_bks
-          nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Polarization Time BKS (minutes, turns): ', real_str(x/60, 3), r*x
+          nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Polarization Time BKS (minutes, turns): ', real_str(x/60.0_rp, 3), r*x
           x = 1.0_rp / tao_branch%spin%depol_rate
-          nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Depolarization Time (minutes, turns):   ', real_str(x/60, 3), r*x
+          nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Depolarization Time (minutes, turns):   ', real_str(x/60.0_rp, 3), r*x
           v2 = 1 / tao_branch%spin%depol_rate_partial
-          nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a-mode) (minutes, turns):', real_str(v2(1), 3), r*v2(1)
-          nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b-mode) (minutes, turns):', real_str(v2(2), 3), r*v2(2)
-          nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (c-mode) (minutes, turns):', real_str(v2(3), 3), r*v2(3)
+          nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a-mode) (minutes, turns):', real_str(v2(1)/60.0_rp, 3), r*v2(1)
+          nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b-mode) (minutes, turns):', real_str(v2(2)/60.0_rp, 3), r*v2(2)
+          nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (c-mode) (minutes, turns):', real_str(v2(3)/60.0_rp, 3), r*v2(3)
           nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 * b_hat * n_0:         ', real_str(tao_branch%spin%integral_bn, 5)
           nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 * b_hat * dn/ddelta:   ', real_str(tao_branch%spin%integral_bdn, 5)
           nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 (1 - 2(n * s_hat)/9):  ', real_str(tao_branch%spin%integral_1ns, 5)
