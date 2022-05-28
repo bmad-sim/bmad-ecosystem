@@ -410,6 +410,7 @@ def bmad_param(param, ele_name):
     bmad_type = common.ele_dict[ele_name].bmad_type
     if bparam == 'tilt' and (bmad_type == 'sbend' or bmad_type == 'rbend'): return 'ref_tilt'
     if param == 'l' and bmad_type == 'patch': return '?'
+    if param == 'phase' and bmad_type != 'rfcavity' and bmad_type != 'lcavity': return '?'
 
   return bparam
 
@@ -591,7 +592,7 @@ def parse_element(dlist):
   ele.param = params
   common.ele_dict[dlist[0]] = ele
 
-  line = f'{ele.name}: {ele.bmad_type}, type = "{elegant_type}"' 
+  line = f'{ele.name}: {ele.bmad_type}, type = "{elegant_type}"'
 
   for eparam in ele.param:
     ## if eparam in ['dx', 'dy', 'dz'] and 'etilt' in params: continue   # Handled later
@@ -635,7 +636,7 @@ t31 = -sin({t}), t33 = cos({t}), tt22 = cos({t}), tt24 = sin({t}), t42 = -sin({t
     value = postfix_to_infix(params['etilt'])
     if 'etilt_sign' in params and int_val(params['etilt_sign'], 1) == -1: value = negate(value)
     ang2 = add_parens(params.get('angle', '0')) + '/2'
-    line += f'{line}, roll = {add_parens(value)} * cos({ang2}), y_pitch = {negate(value)} * sin({ang2})'
+    line += f', roll = {add_parens(value)} * cos({ang2}), y_pitch = {negate(value)} * sin({ang2})'
 
   # edge effects
 
