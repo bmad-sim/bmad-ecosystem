@@ -3,6 +3,8 @@ set (EXENAME lux)
 FILE (GLOB SRC_FILES "code/*.f90")
 set (SRC_FILES program/lux.f90 ${SRC_FILES})
 
+set (LINK_FLAGS ${READLINE_LINK_FLAGS})  # Needed for shared builds
+
 set (LINK_LIBS
   bmad
   sim_utils
