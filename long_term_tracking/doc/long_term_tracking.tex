@@ -68,7 +68,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ November 7, 2021}
+\date{David Sagan \\ April 22, 2022}
 \begin{document}
 \maketitle
 
@@ -135,9 +135,9 @@ Example input files are in the directory (relative to the root of a Distribution
 When running the MPI version threaded over multiple computers, the details of how to start the process will
 vary depending upon the installation. See your local Guru for details. When running on a single machine, 
 the typical command will look like
-\begin{example}
+\begin{code}
   mpiexec -n <num_processes> long_term_tracking_mpi {<master_input_file_name>}
-\end{example}
+\end{code}
 where \vn{<num_processes>} is the number of processes. 
 
 %------------------------------------------------------------------
@@ -659,21 +659,35 @@ value of \vn{ltt%averaging_window} should be set to an odd number. If the value 
 \vn{ltt%averaging_window} is even, the effective averaging window with will be one more than the set
 number.
 %
-\item[ltt\%beam_binary_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file
-that is created to hold the particle positions at the end of tracking. This is similar to
-\vn{ltt%particle_output_file} but here the file will be a binary file that is portable to other
-programs and can also be used as input to the \ltt program.
-%
 \item[ltt\%averages_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the file that contain orbital
-and spin positions averaged over all the particles of the bunches as well as the six bunch size sigmas
-($\sigma_x$, $\sigma_{px}$, etc.).  Each line in the file represents the averages at the end of a
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the file that contain the following
+columns:
+\begin{code}
+  Turn                          -- Turn number
+  N_live                        -- Number of live particles
+  Time                          -- Time from start
+  Polarization                  -- Spin polarization
+  <Sx>, <Sy>, <Sz>              -- Average spin componants
+  Sig_x, Sig_px, Sig_y, 
+        Sig_py, Sig_z, Sig_pz   -- Phase space sigmas
+  <x>, <px>, <y>, 
+        <py>, <z>, <pz>         -- Beam centroid.
+  <p0c>                         -- Reference momentum
+  emit_a, emit_b, emit_c        -- Normal mode emittances
+\end{code}
+
+Each line in the file represents the averages at the end of a
 turn and a new line is added every \vn{ltt%averages_ouput_every_n_turns} number of turns. If
 \vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded when
 the beam is at the \vn{ltt%ele_start} position independent of where the lattice begins and
 ends. To reduce noise, the \vn{ltt%averaging_window} parameter can be set appropriately.
 Note: The file \vn{ltt%sigma_matrix_output_file} will show the 6x6 sigma matrix.
+%
+\item[ltt\%beam_binary_output_file] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file
+that is created to hold the particle positions at the end of tracking. This is similar to
+\vn{ltt%particle_output_file} but here the file will be a binary file that is portable to other
+programs and can also be used as input to the \ltt program.
 %
 \item[ltt\%custom_output_file]\Newline
 A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
@@ -711,9 +725,9 @@ individually tracking. The default value is \vn{"beambeam::*"} which excludes an
 element. See the Bmad manual section on ``\vn{Matching to Lattice Element Names}'' for details on
 the format for such lists.
 %
-\item[ltt%map_ascii_output_file] \Newline
+\item[ltt\%map_ascii_output_file] \Newline
 For linear maps, An ASCII file of the maps can be produced by setting this parameter.
-&
+%
 \item[ttl\%map_file_prefix] \Newline
 Prefix, including possible directory specification, for creating files in which maps are saved. Map
 files are used to quickly retrieve maps previously computed in prior running of the program. The
