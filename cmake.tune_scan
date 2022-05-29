@@ -1,7 +1,6 @@
 set(EXENAME tune_scan)
 set (SRC_FILES
   tune_scan/tune_scan.f90
-	tune_scan/ts_mod.f90
 )
 
 set (LINK_LIBS
