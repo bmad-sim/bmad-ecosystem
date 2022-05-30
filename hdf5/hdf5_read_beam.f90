@@ -181,7 +181,7 @@ mom_z_off = 0
 
 call reallocate_bunch(bunch, n)
 bunch%particle = coord_struct()
-bunch%particle%state = alive$
+bunch%particle%state = alive$  ! alive$ = 1 which is same as OpenPMD standard.
 bunch%particle%charge = 1
 
 bunch%charge_tot = 0
@@ -338,13 +338,22 @@ do ip = 1, size(bunch%particle)
     return
   endif
 
-  if (p%state == alive$ .and. abs(p0c_initial - p0c_final) > 1e-12 * p0c_final) then
-    call out_io (s_warn$, r_name, 'REFERENCE MOMENTUM OF PARTICLE IN BEAM FILE:  \es20.12\ ', &
-                                  'FROM FILE: ' // file_name, &
-                                  'DIFFERENT FROM REFERNECE MOMENTUM IN LATTICE: \es20.12\ ', &
-                                  'THIS WILL CAUSE A SHIFT IN PHASE SPACE pz = (P - P0)/P', &
-                                  r_array = [p0c_initial, p0c_final])
-  endif
+  select case (p%state)
+  case (alive$)
+    if (abs(p0c_initial - p0c_final) > 1e-12 * p0c_final) then
+      call out_io (s_warn$, r_name, 'REFERENCE MOMENTUM OF PARTICLE IN BEAM FILE:  \es20.12\ ', &
+                                    'FROM FILE: ' // file_name, &
+                                    'DIFFERENT FROM REFERNECE MOMENTUM IN LATTICE: \es20.12\ ', &
+                                    'THIS WILL CAUSE A SHIFT IN PHASE SPACE pz = (P - P0)/P', &
+                                    r_array = [p0c_initial, p0c_final])
+    endif
+
+  case (pre_born$)
+    ! Nothing to be done
+
+  case default
+    if (pmd_head%software /= 'Bmad') p%state = lost$
+  end select
 
   if (tot_mom(ip) == real_garbage$ .or. p0c_initial == 0) then 
     p%vec(6) = (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2) - p0c_final) / p0c_final

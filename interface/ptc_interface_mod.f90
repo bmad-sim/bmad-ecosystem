@@ -1025,9 +1025,10 @@ ptc_com%max_fringe_order => HIGHEST_FRINGE
 
 if (init_needed) then
   ptc_com%exact_model = .true.
-  ptc_com%exact_misalign = .true.  ! Points to ALWAYS_EXACTMIS
+  ptc_com%exact_misalign = .true.  ! Note: Points to ALWAYS_EXACTMIS
   ptc_com%vertical_kick = 1        ! On
-  EPS_EIGENVALUES_OFF_UNIT_CIRCLE = 1d-4
+  ptc_com%old_integrator = .true. ! Using new integrator.
+  EPS_EIGENVALUES_OFF_UNIT_CIRCLE = 1d-3
 
   ptc_com_default = ptc_com
   allocate (ptc_com_default%vertical_kick, ptc_com_default%old_integrator, ptc_com_default%exact_model, &
