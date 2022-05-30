@@ -601,6 +601,7 @@ if (branch%param%geometry == closed$) then
   if (i2 /= 0) then
 
     mode%a%emittance         = const_q * gamma2_factor * i5a / (i2 - i4a)
+    mode%a%emittance_no_vert = mode%a%emittance
     mode%b%emittance         = const_q * (gamma2_factor * i5b + 13 * i6b / 55) / (i2 - i4b)
     mode%b%emittance_no_vert = const_q * (gamma2_factor * i5b) / (i2 - i4b)
 
@@ -630,6 +631,7 @@ if (branch%param%geometry == closed$) then
   endif
 
   mode%z%emittance = mode%sig_z * mode%sigE_E
+  mode%z%emittance_no_vert = mode%z%emittance
 endif
 
 bmad_com = bmad_com_save

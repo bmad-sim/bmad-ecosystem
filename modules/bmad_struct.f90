@@ -468,12 +468,12 @@ character(2), parameter :: field_plane_name(3) = ['Bx', 'By', 'Bz']
 ! Use coord_state_name for getting the string representation of coord%state
 
 integer, parameter :: moving_forward$ = -9
-
-integer, parameter :: alive$ = 1, lost$ = 2
+integer, parameter :: pre_born$ = 0    ! EG: before cathode emission. Conforms to OpenPMD standard.
+integer, parameter :: alive$ = 1       ! Conforms to OpenPMD standard.
+integer, parameter :: lost$ = 2
 integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4 
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
 integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
-integer, parameter :: pre_born$ = 8    ! EG: For electrons not yet emitted from a cathode.
 integer, parameter :: lost_z_aperture$ = 9
 
 real(rp), parameter :: vec0$(6) = 0
@@ -2083,15 +2083,16 @@ end type
 type (bmad_common_struct), save, target :: bmad_com
 
 ! ptc_com common block.
+! Setup in: set_ptc_com_pointers
 
 type ptc_common_struct
   integer, pointer :: max_fringe_order  => null()  ! Points to PTC HIGHEST_FRINGE. 2 (default) => Quadrupole.
-  logical, pointer :: exact_model       => null()  ! Points to PTC EXACT_MODEL.
-  logical, pointer :: exact_misalign    => null()  ! Points to PTC ALWAYS_EXACTMIS. Notice different names.
-  real(rp), pointer :: vertical_kick    => null()  ! Points to PTC VERTICAL_KICK for 6D emittance calc. 0 => off, 1 => on.
+  logical, pointer :: exact_model       => null()  ! Points to PTC EXACT_MODEL. Default True.
+  logical, pointer :: exact_misalign    => null()  ! Points to PTC ALWAYS_EXACTMIS. Default True. Notice different names.
+  real(rp), pointer :: vertical_kick    => null()  ! Points to PTC VERTICAL_KICK for 6D emittance calc. 0 => off, 1 => on (default).
   real(rp) :: cut_factor = 0.006                   ! Cut factor for PTC tracking
   ! Stuff that should not be set except by experts
-  logical, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR.
+  logical, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR. Default False.
   logical :: use_orientation_patches = .true.      ! offset, pitch, and tilt attributes are put in ptc patch?
   logical :: print_info_messages = .false.         ! Allow PTC to print informational messages (which can clutter the output)?
 end type
@@ -2304,6 +2305,7 @@ character(16) state_str
 !
 
 select case (coord_state)
+case (pre_born$);              state_str = 'Pre_Born'
 case (alive$);                 state_str = 'Alive'
 case (lost$);                  state_str = 'Lost'
 case (not_set$);               state_str = 'Not_Set'
@@ -2313,7 +2315,6 @@ case (lost_neg_y_aperture$);   state_str = 'Hit -Y Side'
 case (lost_pos_y_aperture$);   state_str = 'Hit +Y Side'
 case (lost_pz_aperture$);      state_str = 'Hit Energy Aper'
 case (lost_z_aperture$);       state_str = 'Hit Z Side'
-case (pre_born$);              state_str = 'Pre_Born'
 case default;                  state_str = 'UNKNOWN!'
 end select
 
