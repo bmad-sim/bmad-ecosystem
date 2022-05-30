@@ -687,12 +687,13 @@ case ('building_wall_list')
 !
 ! Notes
 ! -----
-! The graph defines the coordinate system for the (x, y) points.
 ! Command syntax:
 !   python building_wall_graph {graph}
 !
 ! Where:
 !   {graph} is a plot region graph name.
+!
+! Note: The graph defines the coordinate system for the (x, y) points.
 !
 ! Parameters
 ! ----------

@@ -1,33 +1,61 @@
-\chapter{PyTao: Python/Tao Interface}
+\chapter{Python/Tao Interface}
 \index{python interface}
 \label{c:python}
 
-It is sometimes convenient to be able to run Tao via Python. For example, in an online control
-system environment. Or to expidite analysis external to \tao. The \vn{PyTao} package has been
-developed for this. \vn{PyTao} is hosted on \vn{GitHub} (independent of \bmad distributions) at:
-\begin{example}
-  \url{https://bmad-sim.github.io/pytao}
-\end{example}
+It is sometimes convenient to interface \tao to an external program.\footnote
+  { 
+Commonly the external program is \vn{Python}. 
+  }
+For example, to analyze Tao generated data in an external program. Another application is to
+interface \tao to an online control system environment. In this case, \tao can be used for such
+things as flattening orbits.
+
+To aid in interfacing, \tao has the \vn{python} command (\sref{s:python.python}).\footnote
+  {
+Dispite its name, \tao's \vn{python} command can be used with any external program. 
+  }
+The \vn{python} command defaines a standardized syntax with which to communicate with \tao.
+
+Another aid is the \vn{PyTao} package which is an interface layer to be used between \tao and
+\vn{Python}. See \sref{s:pytao} for more details.
+
+%--------------------------------------------------------------------------
+\section{PyTao Interface}
+\label{s:pytao}
+
+The \vn{PyTao} package is an interface layer to be used between \tao and
+\vn{Python}. \vn{PyTao} is hosted on \vn{GitHub}
+(independent of \bmad distributions) at:
+\vspace{-2ex}
+\begin{itemize}
+  \item[] \url{https://bmad-sim.github.io/pytao}
+\end{itemize}
+\vspace{-2ex}
 See the \vn{PyTao} documentation for installation instructions, examples, etc. In this chapter, some
 simple examples will be given.
 
 There are two ways to interface with Python/PyTao. One way is using the Python \vn{ctypes}
 library. The other way is using the \vn{pexpect} module. A Web search will point to documentation on
-\vn{ctypes} and \vn{pexpect}. The advantage of \vn{ctypes} is that it directly accesses \tao code
+\vn{ctypes} and \vn{pexpect}. 
+
+\vn{ctypes} is a foreign function library for Python which can be used to link to a \tao shared
+library.  The \vn{pexpect} module is a general purpose tool for interfacing Python with programs
+like \tao. If \vn{pexpect} is not present your system, it can be downloaded from
+\vn{www.noah.org/wiki/pexpect}.
+
+The advantage of \vn{ctypes} is that it directly accesses \tao code
 which makes communication between Python and \tao more robust. The disadvantage of \vn{ctypes} is
 that it needs a shared-object version of the \vn{Tao} library. [See the Bmad web site for
 information on building shared-object libraries.] The disadvantage of \vn{pexpect} is that it is
 slower and it is possible for \vn{pexpect} to time out waiting for a response from \tao.
 
 %--------------------------------------------------------------------------
-\section{Python/PyTao Via Pexpect}
+\subsection{Python/PyTao Via Pexpect}
 
-A python module, \vn{tao_pipe.py}, for interfacing \tao to \vn{Python} is provided in the directory
-\vn{tao/python/tao_pexpect}.
+For communicaiton via \vn{pexpect} (\sref{s:pytao}), the python module \vn{tao_pipe.py}, is
+provided by \vn{PyTao} in the directory \vn{pytao/tao_pexpect}.
 
-The \vn{tao_pipe} module uses the \vn{pexpect} module. The \vn{pexpect} module is a general purpose
-tool for interfacing Python with programs like \tao. If \vn{pexpect} is not present your system, it
-can be downloaded from \vn{www.noah.org/wiki/pexpect}. Example:
+Example Python session:
 \begin{example}
   >>> from pytao.tao_pexpect import tao_pipe  # import module
   >>> p = tao_pipe.tao_io("-lat my_lat.bmad") # init session
@@ -36,17 +64,11 @@ can be downloaded from \vn{www.noah.org/wiki/pexpect}. Example:
   >>> p.cmd("show global")                    # Like p.cmd_in() excepts prints the output too.
 \end{example}
 
-\index{python}
-To get information from \tao into Python, the output from \tao, contained in \vn{tao_io.output},
-needs to be parsed. For long term maintainability of python scripts, use the \vn{python}
-(\sref{s:python}) command as opposed to the \vn{show} command . See the \vn{python} command for more
-details.
-
 %--------------------------------------------------------------------------
-\section{Python Interface Via Ctypes}
+\subsection{Python/PyTao Interface Via Ctypes}
 
-A \vn{ctypes} based python module \vn{pytao.py} for interfacing \tao to \vn{Python} is provided in
-the directory \vn{tao/python/pytao}.
+A \vn{ctypes} based python module \vn{pytao.py} for interfacing \tao to \vn{Python} is provided by
+\vn{PyTao} (\sref{s:pytao}) in the directory \vn{pytao/tao_pexpect}.
 
 A test driver script named \vn{pytao_example.py} is in the same directory. See the documentation in
 both of these files for further information.
@@ -54,20 +76,35 @@ both of these files for further information.
 %--------------------------------------------------------------------------
 \section{Tao Python Command}
 \label{s:python.python}
-\tao's \vn{python} command was developed to
+
+\tao's \vn{python} (\sref{s:python}) command was developed to:
 %
 \begin{itemize}
 \item 
-Standardize output of information (data, parameters, etc.) to simplify the task of interfacing \tao
-to external programs including the \vn{Python} program.
+Standardize output of information (data, parameters, etc.) from \tao to simplify the task of
+interfacing \tao to external programs especially scripting languages like \vn{Python}.
 % 
 \item 
 Act as an intermediate layer for the control of \tao by such things as machine online control
 programs or the planned graphical user interface for \tao.
 \end{itemize}
+Dispite its name, \tao's \vn{python} command can be used with any external program. However, the
+\vn{PyTao} package has code that uses the \vn{python} command to ease integration with \vn{Python}.
+
 Using the \vn{python} command to control \tao will not be covered here. The interested reader is
 invited to read the sections of this manual on the coding of \tao and look at the \tao code itself
 (which is heavily documented).
+
+Using the \vn{python} command is far superior to using the \vn{show} command when interfacing to an
+external program. For one, the \vn{python} command is formatted for ease of parsing. Another reason
+to use the \vn{python} command is that, as \tao is developed over time, the output format of the
+\vn{python} command is much more stable than output from the \vn{show} command.\footnote
+  {
+The output of the \vn{python} command will change when \tao's or \bmad's internal structures are
+modified. This is in contrast to the \vn{show} command whose output is formated to be human readible
+and whose output format may change on a whim.
+  }
+Thus the risk of User developed interface code breaking is much reduced by using the \vn{python} command.
 
 The general form of the \vn{python} command is:
 \begin{example}
@@ -79,25 +116,8 @@ The \vn{python} command has a number of \vn{subcommands} (over 100) that are lis
 and data for use in an optimization). The other category are the ``\vn{output}'' subcommands which
 output information from \tao.
 
-Using the \vn{python} command is far superior to using the \vn{show} command when interfacing to an
-external program. For one, the \vn{python} command is formatted to be easily parsable. And the
-\vn{PyTao} (\sref{s:pytao}) Python module can be used for easy parsing. Another reason to use the
-\vn{python} command is that the output is generally stable over time as the \tao program is
-developed to ensure that external code that interfaces to the \vn{python} command does not
-break.\footnote
-  {
-The output of the \vn{python} command will change when \tao's or \bmad's internal structures are
-modified in the course of time.
-  }
-This is in contrast to the \vn{show} command whose output is formated to be human readible and whose
-output format may change on a whim.
-
-The output of the \vn{python} command are semi-colon delimited lists. Example: With the subcommand
-\vn{global} the output looks like:
-\begin{example}
-  python global
-\end{example}
-will produce as output:
+The output of the \vn{python} command are semi-colon delimited lists. Example: With the
+\vn{python global} the output looks like:
 \begin{example}
   lm_opt_deriv_reinit;REAL;T; -1.0000000000000000E+00
   de_lm_step_ratio;REAL;T;  1.0000000000000000E+00
