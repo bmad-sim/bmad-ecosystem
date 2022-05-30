@@ -311,15 +311,15 @@ write (23, '(a, i8)')        '# na_max                     = ', ts_com%n_a
 write (23, '(a, i8)')        '# nb_max                     = ', ts_com%n_b
 write (23, '(a, i8)')        '# nz_max                     = ', ts_com%n_z
 write (23, '(a, i8)')        '# n_turn                     = ', ts%n_turn
-write (23, '(a, l4)')        '# rf_on                      = ', ts%rf_on
-write (23, '(a, l4)')        '# use_phase_trombone         = ', ts%use_phase_trombone
 write (23, '(a, es12.4, a)') '# sigma_a                    = ', ts_com%sig_a,  '  # Used in calculation'
 write (23, '(a, es12.4, a)') '# sigma_b                    = ', ts_com%sig_b,  '  # Used in calculation'
 write (23, '(a, es12.4, a)') '# sigma_pz                   = ', ts_com%sig_pz, '  # Used in calculation'
 write (23, '(a, es12.4, a)') '# emittance_a                = ', ts_com%a_emit, '  # Used in calculation'
 write (23, '(a, es12.4, a)') '# emittance_b                = ', ts_com%b_emit, '  # Used in calculation'
-write (23, '(a, es12.4)')    '# radiation_damping_on       = ', bmad_com%radiation_damping_on
-write (23, '(a, es12.4)')    '# radiation_fluctuations_on  = ', bmad_com%radiation_fluctuations_on
+write (23, '(a, l4)')        '# radiation_damping_on       = ', bmad_com%radiation_damping_on
+write (23, '(a, l4)')        '# radiation_fluctuations_on  = ', bmad_com%radiation_fluctuations_on
+write (23, '(a, l4)')        '# rf_on                      = ', ts%rf_on
+write (23, '(a, l4)')        '# use_phase_trombone         = ', ts%use_phase_trombone
 
 if (ts%rf_on) then
   write (23, '(a, a4, 2a6, 3a10, a12, 3a13, 3a13)') '#-', 'ja', 'jb', 'jz', 'Q_a', 'Q_b', 'Q_z', 'data_turns', &
