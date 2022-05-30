@@ -1758,8 +1758,8 @@ case ('emittance')
                                              mode_ptc_no_vert%a%emittance, mode_6d%a%emittance_no_vert, mode_m%a%emittance_no_vert
   nl=nl+1; write(lines(nl), '(1x, a, 2x, 6es15.7)') 'B', mode_ptc%b%emittance, mode_6d%b%emittance, mode_m%b%emittance, &
                                              mode_ptc_no_vert%b%emittance, mode_6d%b%emittance_no_vert, mode_m%b%emittance_no_vert
-  nl=nl+1; write(lines(nl), '(1x, a, 2x, 6es15.7)') 'C', mode_ptc%z%emittance, mode_6d%z%emittance, mode_m%sigE_E * mode_m%sig_z, &
-                                  mode_ptc_no_vert%z%emittance, mode_6d%z%emittance_no_vert, mode_m%sigE_E * mode_m%sig_z
+  nl=nl+1; write(lines(nl), '(1x, a, 2x, 6es15.7)') 'C', mode_ptc%z%emittance, mode_6d%z%emittance, mode_m%z%emittance, &
+                                  mode_ptc_no_vert%z%emittance, mode_6d%z%emittance_no_vert, mode_m%z%emittance
 
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'J_damp:    ', mode_6d%a%j_damp, mode_6d%b%j_damp, mode_6d%z%j_damp
@@ -5348,7 +5348,8 @@ case ('universe')
 
     if (mode_m%z%alpha_damp /= 0) then
       nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', mode_m%sigE_E, mode_d%sigE_E
-      nl=nl+1; write(lines(nl), fmt) 'Sig_z:  ', mode_m%sig_z, mode_d%sig_z, '! Only calculated when RF is on'
+      nl=nl+1; write(lines(nl), fmt) 'Sig_z:', mode_m%sig_z, mode_d%sig_z, '! Only calculated when RF is on'
+      nl=nl+1; write(lines(nl), fmt) 'Emittance_z:', mode_m%z%emittance, mode_d%z%emittance, '! Only calculated when RF is on'
       nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', mode_m%e_loss, mode_d%e_loss, '! Energy_Loss (eV / Turn)'
       nl=nl+1; write(lines(nl), fmt) 'J_damp:', mode_m%z%j_damp, mode_d%z%j_damp, '! Longitudinal Damping Partition #'
       nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', mode_m%z%alpha_damp, mode_d%z%alpha_damp, '! Longitudinal Damping per turn'
