@@ -8,6 +8,8 @@ implicit none
   PUBLIC track_TREE_probe_complex_ji,track_TREE_probe_complex_ji_symp,TRACK_TREE_PROBE_COMPLEX_JI_VEC
  public file_zhe,number_zhe_maps,get_seed,set_seed,ALLOC_TREE,track_TREE_probe_complex_zhe_no_orbital,track_miyajima_zhe
 public track_TREE_probe_complex_zhe_no_orbital_quaternion,GRNF_zhe
+! absoft
+!public spinor,quaternion
  logical :: use_gaussian_zhe =.false.
  public use_gaussian_zhe 
  character(255) ::    file_zhe="zhe"
@@ -1146,20 +1148,20 @@ x0_begin=0.0_dp
    !   x(7:12)=x(1:6)  remove4/9/2018
 
 
-if(doit) then
+!if(doit) then
 
      do i=1,6
       x(i)=x(i)-t(1)%fix0(i)
       x0(i)=x0(i)-t(1)%fix0(i)
       x0_begin(i)=x0_begin(i)-t(1)%fix0(i)
      enddo
-else
-     do i=1,6
-      x(i)=x(i)-t(3)%fix0(i)
-      x0(i)=x0(i)-t(3)%fix0(i)
-      x0_begin(i)=x0_begin(i)-t(3)%fix0(i)
-     enddo
-endif
+!else
+!     do i=1,6
+!      x(i)=x(i)-t(3)%fix0(i)
+!      x0(i)=x0(i)-t(3)%fix0(i)
+!      x0_begin(i)=x0_begin(i)-t(3)%fix0(i)
+!     enddo
+!endif
       x(7:12)=x(1:6)
       x0_begin(7:12)= x0_begin(1:6)
 
