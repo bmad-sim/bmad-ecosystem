@@ -186,7 +186,7 @@ PRIVATE DIRECTION_VR,DIRECTION_VP   !,DIRECTION_V
   logical :: do_d_sij=.false.
   !  INTEGER, PRIVATE :: ISPIN0P=0,ISPIN1P=3
    ! oleksii 
-  real(dp), target :: vertical_kick = 0
+  real(dp),target :: vertical_kick = 0
   real(dp) n_oleksii(3)
   real(dp) :: t_ns_oleksii=0,t_nb_oleksii=0,t_bks_approx=0, i_bks=0 ,theta_oleksii=0
   integer :: print_oleksii =0
@@ -203,6 +203,7 @@ type(work) w_bks
  private rk6bmad_cav_prober,rk6bmad_cav_probep
  private INTE_sol5_prober,INTE_SOL5_probep
  private INT_SAGAN_prober
+ logical :: gaussian_stoch=.false.
 !type(real_8) radcoe
   INTERFACE radiate_2_force
      MODULE PROCEDURE radiate_2_forcer
@@ -22419,7 +22420,7 @@ call kill(vm,phi,z)
        denf0=cflucf(el%p)
        denf=denf0*b30 *FAC*DS*denf
 !
-       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/110.0_dp    !(  55 is doubled because of x and y)
+       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/55.0_dp     
 
        call alloc(xpmap)
 
@@ -22556,6 +22557,10 @@ call kill(vm,phi,z)
 !    if(K%radiation) X(5)=X(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
     if(k%stochastic) then
        !         t=sqrt(12.e0_dp)*(bran(bran_init)-half)
+
+ if(gaussian_stoch) then
+     call grnf(t,9.d0)
+ else
        t=RANF()
        !         t=sqrt(12.d0)*(RANF()-half)
        if(t>0.5_dp) then
@@ -22563,6 +22568,7 @@ call kill(vm,phi,z)
        else
           t=-1.0_dp
        endif
+ endif
        if(before) then
           x(5)=x(5)+t*c%delta_rad_in
        else
@@ -22666,7 +22672,7 @@ call kill(vm,phi,z)
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
        denf=denf0*b30 *FAC*DS*denf
-       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/110.0_dp    !(  55 is doubled because of x and y)
+       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/55.0_dp     
 
 !       if(doone.and.c%parent_fibre%magp%name(1:5)/="BENDT") denf=0
 !       if(c%pos_in_fibre/=3.and.c%parent_fibre%magp%name(1:5)=="BENDT") denf=0
@@ -22879,7 +22885,7 @@ dspin=matmul(s,n_oleksii)
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
        denf=denf0*b30 *FAC*DS*denf
-       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/110.0_dp    !(  55 is doubled because of x and y)
+       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/55.0_dp    
 
   !     if(doone) denf=0
  
@@ -28125,7 +28131,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
        denf=denf0*b30 *denf
-       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/110.0_dp    !(  55 is doubled because of x and y)
+       denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/55.0_dp    
 
        call alloc(xpmap)
 

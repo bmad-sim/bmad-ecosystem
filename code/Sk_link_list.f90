@@ -203,7 +203,7 @@ CONTAINS
     ENDIF
     IF(ASSOCIATED(L%lf0)) THEN
        call kill_d_lattice_functions(L%lf0) 
-       DEALLOCATE(L%lf0)
+       !DEALLOCATE(L%lf0)
        if(lielib_print(12)==1) WRITE(6,*) " lf0 HAS BEEN DEALLOCATED "
     ENDIF
 

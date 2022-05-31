@@ -125,13 +125,14 @@ character(24)  formatlf(6)
 logical :: inside_normal=.false.,bmad_automatic=.false.,spin_automatic=.false.
 real(dp) :: Eigenvalues_off_unit_circle = 1.0_dp
 real(dp) :: eps_Eigenvalues_off_unit_circle =1.d-10
-private in1,in2,in3,in4,in5,in6,posin,sigdis,sigdis0,dfac ,pascal,mono_order
+!private in1,in2,in3,in4,in5,in6,posin,sigdis,sigdis0,dfac ,pascal,mono_order
 integer, pointer :: in1(:)=>null(),in2(:)=>null(),in3(:)=>null(),in4(:)=>null(),in5(:)=>null(),in6(:)=>null()
 integer, pointer ::   posin(:) => null()
 integer(2), pointer :: hash(:,:,:,:,:,:) => null(),pascal(:,:) => null(),mono_order(:)=>null()
 real(dpn), pointer :: sigdis(:)=> null(),sigdis0(:)=> null(),dfac(:)=> null(),vsol(:)=> null()
 integer i_alloc
 integer, private :: nmono
+integer  nmono_from_moment
 real(dp), private  :: tiny =1e-20_dp
     logical :: sagan_gen =.false.
 integer mf_,n1_,n2_
@@ -7789,7 +7790,7 @@ endif
     implicit none
         INTEGER,OPTIONAL,INTENT(IN)::MFILE
     REAL(DP),OPTIONAL,INTENT(INOUT)::DEPS
-    type (c_factored_lie),INTENT(IN)::S1
+    type (c_factored_lie),INTENT(INout)::S1
     integer i,mfi
      mfi=6
      if(present(mfile)) mfi=mfile
@@ -18997,14 +18998,14 @@ inside_normal=.false.
     TYPE(taylor), ALLOCATABLE :: M(:), MG(:)
     TYPE(damap) ms
     integer js(6)
-    type(c_damap) L_ns , N_pure_ns , N_s , L_s
+    type(c_damap) L_r , N_r , N_s , L_s
 
 
  
 
-    call alloc(L_ns , N_pure_ns , N_s , L_s)
+    call alloc(L_r , N_r , N_s , L_s)
     
-     if(.not.sagan_gen) call symplectify_for_zhe(ma,L_ns , N_pure_ns, L_s , N_s )
+     if(.not.sagan_gen) call symplectify_for_zhe(ma,L_r , N_r, L_s , N_s )
 
      
 
@@ -19041,21 +19042,21 @@ inside_normal=.false.
     enddo
 
 if(.not.sagan_gen) then
-      L_ns = L_ns*N_pure_ns
+      L_r = L_r*N_r
 else
-   !  L_ns=L_ns*L_s
+   !  L_r=L_r*L_s
        L_s=ma.sub.1
-       L_ns=L_s**(-1)*ma
+       L_r=L_s**(-1)*ma
  
 endif
 
 if(.not.sagan_gen) then
 
-     do i=1,L_ns%n
-      m(i)=L_ns%v(i)   ! orbital part
+     do i=1,L_r%n
+      m(i)=L_r%v(i)   ! orbital part
      enddo
 else
-     do i=1,L_ns%n
+     do i=1,L_r%n
       m(i)= 1.0_dp.mono.i
      enddo
 
@@ -19100,7 +19101,7 @@ if(.not.sagan_gen) then
 
 else
 
-      ms =   L_ns
+      ms =   L_r
 
 endif
 
@@ -19151,7 +19152,7 @@ endif
 
     call kill(m); call kill(mg);
     deallocate(M);    deallocate(Mg);
-    call kill(L_ns , N_pure_ns , N_s , L_s)
+    call kill(L_r , N_r , N_s , L_s)
 
   END SUBROUTINE SET_TREE_G_complex_zhe
 
@@ -19421,6 +19422,7 @@ endif
       write(6,*) "nmono original",nmono
   enddo
 
+nmono_from_moment=nmono
 
  allocate(in1(nmono),in2(nmono),in3(nmono),in4(nmono),in5(nmono),in6(nmono),posin(0:no1),mono_order(nmono),vsol(nmono))
 if(nd1==3) then
@@ -19836,13 +19838,268 @@ je(j)=je(j)-1
 if(i<=j) write(6,*) i,j,sig(i,j)
 enddo 
 enddo
-return
+!return
 
- 
+  deallocate(mm,vm)
 call kill(t)
  call kill(m) 
 
 end subroutine create_moment_map
+
+
+subroutine create_moment_map_one(mtotal,minput,sig,nd11,fin)   ! fix0 is the initial condition for the maps
+implicit none
+ 
+ 
+complex(dp)v
+integer i1,i2,i3,i4,i5,i6,no1,je(6),noo,k,mi,ouch,nz
+ 
+real(dp)   coe,radkick(6,6),a(6,6),sig(6,6),ki(6),eps
+real(dpn) r2
+real(dpn), allocatable :: mm(:,:),vm(:)
+type(c_damap) m,minput,mtotal
+type(c_taylor) t
+integer  i,inf,j,nd1,nd11
+ logical,optional :: fin
+logical ende
+
+ende=.false.
+if(present(fin)) ende=fin
+ nd1=iabs(nd11)
+ 
+ call alloc(m); 
+ sig=0
+    a=real(minput%e_ij)
+    call cholesky_dt(A, radkick)  ! in back
+ 
+
+ 
+ 
+m=minput  
+ 
+
+sigdis0=0
+
+ 
+m=0
+m=radkick
+ 
+call alloc(t)
+ 
+nmono=size(in1)
+ do i = 1,nmono
+ 
+  if(nd1==3) then
+   t=dz_c(1)**in1(i)*dz_c(2)**in2(i)*dz_c(3)**in3(i)*dz_c(4)**in4(i)*dz_c(5)**in5(i)*dz_c(6)**in6(i)
+  elseif(nd1==2)  then
+   t=dz_c(1)**in1(i)*dz_c(2)**in2(i)*dz_c(3)**in3(i)*dz_c(4)**in4(i) 
+
+elseif(nd1==1) then
+   t=dz_c(1)**in1(i)*dz_c(2)**in2(i)
+ 
+ else
+  stop 889
+endif
+
+   t=t*m
+ 
+       j=1
+
+        do while(.true.)
+je=0
+          call  c_cycle(t,j,v ,je); if(j==0) exit;
+ 
+            sigdis0(i)=sigdis0(i)+dfac(je(1))*dfac(je(2))*dfac(je(3))*dfac(je(4))*dfac(je(5))*dfac(je(6))*v
+
+        enddo
+ 
+ enddo
+
+ 
+
+   allocate(minput%db(nmono,nmono),minput%m(nmono,nmono))
+   minput%db=0
+  minput%m=0
+ 
+ if(nd1==3) then
+   do i=1,nmono
+   noo=mono_order(i)
+ 
+  do i6=0,in6(i)
+  
+  do i5=0,in5(i)
+ 
+  do i4=0,in4(i)
+ 
+  do i3=0,in3(i)
+ 
+  do i2=0,in2(i)
+   do i1=0,in1(i)
+  ouch=i6+i5+i4+i3+i2+i1
+ 
+    if(mod(ouch,2)==1)cycle
+ 
+    coe=pascal(in1(i),i1)*pascal(in2(i),i2)*pascal(in3(i),i3)*pascal(in4(i),i4)*pascal(in5(i),i5)*pascal(in6(i),i6)
+    mi=hash(in1(i)-i1,in2(i)-i2,in3(i)-i3,in4(i)-i4,in5(i)-i5,in6(i)-i6)
+
+          k=hash(i1,i2,i3,i4,i5,i6)
+ 
+        coe=coe*sigdis0(k)
+        minput%db(i,mi)=minput%db(i,mi)+coe
+ 
+  enddo
+  enddo
+  enddo
+  enddo
+  enddo
+  enddo    
+
+   enddo
+ 
+ elseif(nd1==2) then
+   do i=1,nmono
+   noo=mono_order(i)
+ 
+  do i4=0,in4(i)
+ 
+  do i3=0,in3(i)
+   do i2=0,in2(i)
+   do i1=0,in1(i)
+  ouch=i4+i3+i2+i1
+ 
+    if(mod(ouch,2)==1)cycle
+     coe=pascal(in1(i),i1)*pascal(in2(i),i2)*pascal(in3(i),i3)*pascal(in4(i),i4) 
+    mi=hash(in1(i)-i1,in2(i)-i2,in3(i)-i3,in4(i)-i4,0,0)
+
+          k=hash(i1,i2,i3,i4,0,0)
+         coe=coe*sigdis0(k)
+        minput%db(i,mi)=minput%db(i,mi)+coe
+   enddo
+  enddo
+  enddo
+  enddo
+    
+
+   enddo
+
+ elseif(nd1==1) then
+   do i=1,nmono
+   noo=mono_order(i)
+ 
+  do i2=0,in2(i)
+ 
+  do i1=0,in1(i)
+  ouch=i2+i1
+ 
+ 
+    coe=pascal(in1(i),i1)*pascal(in2(i),i2) 
+  
+    mi=hash(in1(i)-i1,in2(i)-i2,0,0,0,0)
+
+          k=hash(i1,i2,0,0,0,0)
+         coe=coe*sigdis0(k)
+        minput%db(i,mi)=minput%db(i,mi)+coe
+   enddo
+  enddo
+   
+
+   enddo
+
+endif ! nd1==3
+ 
+m=minput 
+do i=1,nd2
+m%v(i)=m%v(i)-(m%v(i).sub.0)
+enddo
+   do i=1,nmono
+    
+     t=  m%v(1)**in1(i)
+     t=t*m%v(2)**in2(i)
+   if(nd1>1) then
+     t=t*m%v(3)**in3(i)
+     t=t*m%v(4)**in4(i)
+   endif
+   if(nd1>2) then
+
+     t=t*m%v(5)**in5(i)
+     t=t*m%v(6)**in6(i)
+   endif
+       j=1
+
+        do while(.true.)
+
+          call  c_cycle(t,j,v ,je); if(j==0) exit;
+            k=hash(je(1),je(2),je(3),je(4),je(5),je(6))
+            minput%m(i,k)=v
+        enddo
+   enddo
+
+
+  
+minput%m=matmul(minput%db,minput%m)
+ 
+mtotal%m=matmul(minput%m,mtotal%m)
+ 
+
+deallocate(minput%db)
+ 
+deallocate(minput%m)
+
+
+if(ende) then
+nz=nmono-1
+ 
+
+allocate(mm(nz,nz),vm(nz))
+ 
+
+
+mm=0
+
+
+do i=1,nz
+ vm(i)=mtotal%m(i+1,1)
+ mm(i,i)=1
+enddo
+
+do i=1,nz
+do j=1,nz
+ mm(i,j)=mm(i,j)-mtotal%m(1+i,1+j)
+enddo
+enddo
+
+ 
+
+
+call matinvn(mm,mm,nz,nz,i)
+ 
+write(6,*) " success = ",i
+
+vm=matmul(mm,vm)
+vsol(2:nmono)=vm
+
+
+write(6,*) "Quadratic moments to order ", no
+do i=1,2*nd1
+je=0
+je(i)=je(i)+1
+do j=1,2*nd1
+je(j)=je(j)+1
+sig(i,j)=vm(hash(je(1),je(2),je(3),je(4),je(5),je(6))-1)
+je(j)=je(j)-1
+
+if(i<=j) write(6,*) i,j,sig(i,j)
+enddo 
+enddo
+
+ deallocate(mm,vm)
+
+endif ! final 
+
+call kill(t)
+ call kill(m) 
+
+end subroutine create_moment_map_one
 
 subroutine norm_moment_matrix(m,norm)
 implicit none
@@ -20138,9 +20395,9 @@ integer i,mf
 
 end subroutine read_tree_elements
 
-subroutine symplectify_for_zhe(m,L_ns , N_pure_ns , L_s, N_s )
+subroutine symplectify_for_zhe(m,L_r , N_r , L_s, N_s )
 implicit none
-TYPE(c_damap),intent(inout):: m ,L_ns , N_pure_ns , N_s , L_s
+TYPE(c_damap),intent(inout):: m ,L_r , N_r , N_s , L_s
 type(c_vector_field) f,fs,ft
 complex(dp) v
 type(c_taylor) t,dt
@@ -20151,8 +20408,8 @@ real(dp) dm,norm,normb,norma,h(4)
 TYPE(c_damap) mt,ids,m4,ml
 real(dp),allocatable::   S(:,:),id(:,:)
 
-! m = L_ns o N_pure_ns o L_s o N_s
-! d= = L_ns o N_pure_ns
+! m = L_r o N_r o L_s o N_s
+! d= = L_r o N_r
 ! ms= L_s o N_s
 
 allocate(S(m%n,m%n),id(m%n,m%n))
@@ -20258,9 +20515,9 @@ endif
 
 
 mt=m*L_s**(-1)
-L_ns=mt.sub.1
+L_r=mt.sub.1
 
-mt=L_ns**(-1)*mt
+mt=L_r**(-1)*mt
 
 f=log(mt)
 
@@ -20377,7 +20634,7 @@ endif
 
 
 N_s=exp(fs)
-N_pure_ns= mt*N_s**(-1)
+N_r= mt*N_s**(-1)
 
 N_s= L_s**(-1)*N_s*L_s 
 
