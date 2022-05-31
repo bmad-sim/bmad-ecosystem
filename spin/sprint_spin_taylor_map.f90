@@ -89,25 +89,12 @@ map_end%spin_q(0,0) = 1
 
 select case (ele%key)
 
-! Drift
-
-case (drift$)
-  map_ele%spin_q(0,0) = 1
-
 ! Kicker
+! Note: Kicks are put in at the end by offset_particle.
 
-case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$)
-  select case (ele%key)
-  case (hkicker$)
-    hkick = ele%value(kick$)
-    vkick = 0
-  case (vkicker$)
-    hkick = 0
-    vkick = ele%value(kick$)
-  case default
-    hkick = ele%value(hkick$)
-    vkick = ele%value(vkick$)
-  end select
+case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, &
+      kicker$, hkicker$, vkicker$, sextupole$, octupole$)
+  map_ele%spin_q(0,0) = 1
 
 ! Quadrupole
 
@@ -273,7 +260,8 @@ if (fringe_at == both_ends$ .or. fringe_at == exit_end$) then
   map_ele = map_end * map_ele
 endif
 
-! Add in misalignments and h/vkicks
+! Add in misalignments and h/vkicks.
+! Note: 1st order quaternion for h/vkicks is absent.
 
 if (present(start_orbit)) then
   ele%spin_taylor_ref_orb_in = start_orbit
@@ -281,7 +269,7 @@ else
   ele%spin_taylor_ref_orb_in = 0
 endif
 
-if (ele_has_nonzero_offset(ele)) then
+if (ele_has_nonzero_offset(ele) .or. ele_has_nonzero_kick(ele)) then
   call init_coord (orb1, ele%spin_taylor_ref_orb_in, ele, upstream_end$)
   orb2 = orb1
   call mat_make_unit(map_mis%orb_mat)
