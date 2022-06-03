@@ -241,6 +241,15 @@ subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
   integer ix_universe, ix_branch, ix_ele, ix_ele_track
 end subroutine
 
+function tao_evaluate_tune (q_str, q0, delta_input) result (q_val)
+  import
+  implicit none
+  real(rp) q0, q_val
+  real(rp), allocatable :: set_val(:)
+  character(*) q_str
+  logical delta_input
+end function
+
 subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_ele, &
                                                        dflt_source, dflt_component, dflt_uni, eval_point)
   import
@@ -654,6 +663,15 @@ function tao_pointer_to_datum (d1, ele_name) result (datum_ptr)
   type (tao_data_struct), pointer :: datum_ptr
   character(*) ele_name
 end function
+
+subroutine tao_pointer_to_branches (branch_str, branches, unis, err)
+  import
+  implicit none
+  character(*) branch_str
+  type (branch_pointer_struct), allocatable :: branches(:)
+  type (tao_universe_pointer_struct), allocatable, target :: unis(:)
+  logical err
+end subroutine
 
 subroutine tao_pointer_to_universes (name_in, unis, err, name_out, explicit_uni, dflt_uni)
   import

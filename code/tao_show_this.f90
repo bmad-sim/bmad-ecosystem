@@ -5329,7 +5329,7 @@ case ('universe')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(23x, a)') '  Model       Design'
 
-    call calc_z_tune(lat, ix_branch)
+    call calc_z_tune(branch)
     if (abs(design_lat%z%tune/twopi)  > 1d-3 .and. abs(branch%z%tune/twopi) > 1d-3) then
       nl=nl+1; write(lines(nl), fmt) 'Z_tune:', -branch%z%tune/twopi, -design_lat%z%tune/twopi
     else

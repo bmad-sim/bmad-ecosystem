@@ -334,7 +334,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   do ib = 0, ubound(u%model%lat%branch, 1)
     if (u%model%lat%branch(ib)%param%geometry == closed$) then
-      call calc_z_tune(u%model%lat, ib)
+      call calc_z_tune(u%model%lat%branch(ib))
       if (s%global%rf_on .and. do_print) then
         call out_io (s_info$, r_name, 'Note! Default now is for RFcavities is to be left on (used to be off).', &
                                       'Use the "--rf_on" (notice two dashes) switch on the startup command line', &

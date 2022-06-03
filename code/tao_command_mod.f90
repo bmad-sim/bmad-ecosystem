@@ -123,7 +123,7 @@ end subroutine tao_re_execute
 !+
 ! Subroutine tao_cmd_split (cmd_line, n_word, cmd_word, extra_words_is_error, err, separator)
 !
-! This routine splits the command line into words.
+! This routine splits the command line into "words" (everything between separators).
 !
 ! Input: 
 !   cmd_line        -- Character(*): The command line.
@@ -150,6 +150,7 @@ end subroutine tao_re_execute
 !
 ! Notes:
 !   Anything between single or double quotes is treated as a single word.
+!   Quoted words have quote marks removed.
 !   Whitespace or a separator inside of "{}", "()", or "[]" is ignored.
 !   Whitespace after or before a comma is ignored.
 !-
@@ -204,16 +205,14 @@ nw_loop: do
     return
   endif
 
-  if (line(1:1) == '"') then
-    ix = index(line(2:), '"')
-    if (ix == 0) ix = len(line)
-    nw=nw+1; cmd_word(nw) = line(2:ix)
-    line = line(ix+1:)
-    cycle
-  elseif (line(1:1) == "'") then
-    ix = index(line(2:), "'")
-    if (ix == 0) ix = len(line)
-    nw=nw+1; cmd_word(nw) = line(2:ix)
+  if (line(1:1) == '"' .or. line(1:1) == "'") then
+    ix = index(line(2:), line(1:1)) + 1
+    if (ix == 1) then
+      call out_io (s_error$, r_name, 'UNBALANCED QUOTE MARK: ' // line)
+      err = .true.
+      return
+    endif
+    nw=nw+1; cmd_word(nw) = line(2:ix-1)
     line = line(ix+1:)
     cycle
   endif

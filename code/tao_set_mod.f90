@@ -11,6 +11,116 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine tao_set_tune_cmd (branch_str, mask_str, qa_str, qb_str, delta_input)
+!
+! Routine to set the transverse tunes.
+!
+! Input:
+!   branch_str    -- character(*): List of branches to apply tune set to.
+!   mask_str      -- character(*): List of quadrupoles to veto.
+!   qa_str        -- character(*): Expression for Qa tune.
+!   qb_str        -- character(*): Expression for Qb tune.
+!   delta_input   -- logical: If true then qa_str and qb_str are deltas from present tune.
+!-
+
+subroutine tao_set_tune_cmd (branch_str, mask_str, qa_str, qb_str, delta_input)
+
+implicit none
+
+type (branch_pointer_struct), allocatable, target :: branches(:)
+type (branch_struct), pointer :: branch
+type (tao_universe_pointer_struct), allocatable, target :: unis(:)
+type (tao_universe_struct), pointer :: u
+type (ele_pointer_struct), allocatable :: eles(:)
+
+real(rp) qa_val, qb_val
+real(rp), allocatable :: dk1(:)
+
+integer n, i
+logical delta_input, err
+
+character(*) branch_str, mask_str, qa_str, qb_str
+character(*), parameter :: r_name = 'tao_set_tune_cmd'
+
+! Evaluate expressions
+
+call tao_pointer_to_branches(branch_str, branches, unis, err); if (err) return
+
+do i = 1, size(branches)
+  u => unis(i)%u
+  branch => branches(i)%branch
+
+  n = branch%n_ele_track
+  qa_val = tao_evaluate_tune (qa_str, branch%ele(n)%a%phi/twopi, delta_input); if (qa_val == 0) return
+  qb_val = tao_evaluate_tune (qb_str, branch%ele(n)%b%phi/twopi, delta_input); if (qb_val == 0) return
+
+  call choose_quads_for_set_tune(branch, dk1, eles, mask_str, err)
+  if (err) then
+    call out_io (s_error$, r_name, &
+      'CANNOT FIND A QUAD WITH BETA_A < BETA_B AND A QUAD WITH BETA_A > BETA_B (BOTH WITH NO TILT).')
+    return
+  endif
+
+  err = .not. set_tune(twopi*qa_val, twopi*qb_val, dk1, eles, branch, u%model%tao_branch(branch%ix_branch)%orbit)
+  u%calc%lattice = .true.
+enddo
+
+end subroutine tao_set_tune_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine tao_set_z_tune_cmd (branch_str, mask_str, q_str, delta_input)
+!
+! Routine to set the z-tune.
+!
+! Input:
+!   branch_str    -- character(*): List of branches to apply tune set to.
+!   mask_str      -- character(*): Not currently used.
+!   q_str         -- character(*): Expression for Qc tune.
+!   delta_input   -- logical: If true then qa_str and qb_str are deltas from present tune.
+!-
+
+subroutine tao_set_z_tune_cmd (branch_str, mask_str, q_str, delta_input)
+
+implicit none
+
+type (branch_pointer_struct), allocatable, target :: branches(:)
+type (branch_struct), pointer :: branch
+type (tao_universe_pointer_struct), allocatable, target :: unis(:)
+type (tao_universe_struct), pointer :: u
+
+real(rp) q_val 
+real(rp), allocatable :: dk1(:)
+
+integer n, i
+logical delta_input, err, ok
+
+character(*) branch_str, mask_str, q_str
+character(*), parameter :: r_name = 'tao_set_z_tune_cmd'
+
+! Evaluate expressions
+
+call tao_pointer_to_branches(branch_str, branches, unis, err); if (err) return
+
+do i = 1, size(branches)
+  u => unis(i)%u
+  branch => branches(i)%branch
+
+  call calc_z_tune(branch)
+  q_val = tao_evaluate_tune (q_str, branch%z%tune/twopi, delta_input); if (q_val == 0) return
+
+  call set_z_tune(branch, twopi*q_val, ok)
+  u%calc%lattice = .true.
+enddo
+
+end subroutine tao_set_z_tune_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_calculate_cmd (switch)
 !
 ! Toggles off lattice calc and plotting.

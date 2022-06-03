@@ -5836,7 +5836,7 @@ case ('ring_general')
 
   call chrom_calc (branch%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
                                                   pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch)
-  call calc_z_tune(branch%lat, branch%ix_branch)
+  call calc_z_tune(branch)
   call radiation_integrals (branch%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, branch%ix_branch)
 
   n = branch%n_ele_track

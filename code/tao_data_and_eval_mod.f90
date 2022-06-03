@@ -3222,7 +3222,7 @@ case ('tune.')
     valid_value = .true.
 
   case ('tune.z')
-    call calc_z_tune (branch%lat, branch%ix_branch)
+    call calc_z_tune (branch)
     datum_value = -branch%z%tune
     valid_value = .true.
 

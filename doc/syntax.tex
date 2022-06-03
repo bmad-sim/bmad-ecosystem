@@ -47,7 +47,10 @@ Note: element names are {\em not} case sensitive.
 \label{s:ele.list.format}
 
 The syntax for specifying a set of lattice elements is called \vn{element list} format. 
-A element list is a list of items separated by a blank character or a comma.
+A element list is a list of items separated by a comma.\footnote
+  {
+ A blank space may be acceptable in some circumstances but a comma is always safe.
+  }
 Each item of the list is one of:
 \begin{center}
 \begin{tabular}{ll}
@@ -62,7 +65,7 @@ Each item of the list is one of:
 
 Example element list:
 \begin{example}
-  23, 45:74 quad::q*
+  23, 45:74, quad::q*
 \end{example}
 
 The wild card characters ``*'' and/or ``\%'' can be used. The ``*'' wildcard matches any number of
