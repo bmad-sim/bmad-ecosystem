@@ -154,7 +154,7 @@ else
   ! associate tunes with modes
   lat%a%tune = mod(lat%ele(lat%n_ele_track)%a%phi,twopi)
   lat%b%tune = mod(lat%ele(lat%n_ele_track)%b%phi,twopi)
-  call calc_z_tune(lat)
+  call calc_z_tune(lat%branch(0))
   mode%a%tune = lat%a%tune
   mode%b%tune = lat%b%tune
   if(lat%z%tune .lt. 0) then

@@ -77,7 +77,7 @@ bmad_com%radiation_fluctuations_on = .false.
 
 call bmad_parser(lat_file, lat)
 call twiss_and_track(lat,co,status)
-call calc_z_tune(lat)
+call calc_z_tune(lat%branch(0))
 
 npart = current / e_charge * lat%param%total_length / c_light
 

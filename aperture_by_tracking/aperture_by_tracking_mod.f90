@@ -46,12 +46,12 @@ END SUBROUTINE progress_indicator
 ! Subroutine prep_lat_ring(lat,co,Qx,Qy,Qz,master)
 !-
 SUBROUTINE prep_lat_ring(lat,co,Qx,Qy,Qz,master)
-  USE z_tune_mod
 
   IMPLICIT NONE
 
   TYPE(lat_struct) lat
   TYPE(coord_struct), ALLOCATABLE :: co(:)
+  type (ele_pointer_struct), allocatable :: eles(:)
   REAL(rp), ALLOCATABLE :: dk1(:)
   REAL(rp) Qx, Qy, Qz
   LOGICAL master
@@ -73,8 +73,8 @@ SUBROUTINE prep_lat_ring(lat,co,Qx,Qy,Qz,master)
     ENDIF
     CALL set_on_off(rfcavity$, lat, off$)
     ALLOCATE(dk1(lat%n_ele_max))
-    CALL choose_quads_for_set_tune(lat, dk1)
-    ok = set_tune(Qx*twopi, Qy*twopi, dk1, lat, co)
+    CALL choose_quads_for_set_tune(lat%branch(0), dk1, eles)
+    ok = set_tune(Qx*twopi, Qy*twopi, dk1, eles, lat%branch(0), co)
     DEALLOCATE(dk1)
     CALL set_on_off(rfcavity$, lat, on$)
     IF(master) THEN
@@ -87,10 +87,10 @@ SUBROUTINE prep_lat_ring(lat,co,Qx,Qy,Qz,master)
   IF( Qz .gt. -998.0 ) THEN
     IF(master) THEN
       WRITE(*,*) "before tuning:"
-      CALL calc_z_tune(lat)
+      CALL calc_z_tune(lat%branch(0))
       WRITE(*,'(A,F11.3)') "  z tune: ", lat%z%tune/twopi
     ENDIF
-    CALL set_z_tune(lat, Qz*twopi, ok)
+    CALL set_z_tune(lat%branch(0), Qz*twopi, ok)
     IF(master) THEN
       WRITE(*,*) "after tuning:"
       WRITE(*,'(A,F11.3)') "  z tune: ", lat%z%tune/twopi

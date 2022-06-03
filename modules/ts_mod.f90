@@ -139,7 +139,7 @@ call lat_make_mat6(ts_com%ring, -1, ts_com%closed_orb)
 call twiss_at_start(ts_com%ring)
 call twiss_propagate_all(ts_com%ring)
 call radiation_integrals (ts_com%ring, ts_com%closed_orb, mode)
-call calc_z_tune (ts_com%ring)
+call calc_z_tune (ts_com%ring%branch(0))
 
 !---------------------------------------------
 
@@ -195,7 +195,7 @@ ring = ts_com%ring              ! Use copy in case tune setting fails, which may
 closed_orb = ts_com%closed_orb  ! Use copy in case tune setting fails, which may garble the closed orbit
 ele => ring%ele(0)
 
-ok = set_tune_3d (ring, ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on)  ! Tunes in radians.
+ok = set_tune_3d (ring%branch(0), ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on)  ! Tunes in radians.
 if (.not. ok) return    ! Tunes could not be set, probably on a resonance.
 
 if (ts%rf_on) then
@@ -213,7 +213,7 @@ if (status /= ok$) then
 endif
 
 call twiss_propagate_all(ring)
-call calc_z_tune (ring)
+call calc_z_tune (ring%branch(0))
 
 !---------------------------------------------
 ! Calculate initial vector from particle actions.
