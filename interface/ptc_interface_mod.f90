@@ -2899,6 +2899,7 @@ case (sbend$)
   ptc_key%list%t2   = e2
 
   ptc_key%list%b0   = ele%value(g$) * leng
+  if (abs(ptc_key%list%b0) < 1e-30_rp) ptc_key%list%b0 = 0  ! To get around PTC bug.
   ptc_key%list%hgap = ele%value(hgap$)
   ptc_key%list%fint = ele%value(fint$)
   ptc_key%list%hgap2 = ele%value(hgapx$)

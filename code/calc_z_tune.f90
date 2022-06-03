@@ -1,5 +1,5 @@
 !+
-! Subroutine calc_z_tune (lat, ix_branch)
+! Subroutine calc_z_tune (branch)
 !
 ! Routine to calculate the synchrotron tune from the full 6X6 1-turn matrix.
 !
@@ -7,38 +7,33 @@
 ! counter-clockwise rotation in z-pz space.
 !
 ! Input:
-!   lat       -- lat_struct: Lat
-!   ix_branch -- integer, optional: Branch of lattice to analyze. Default is 0.
+!   branch   -- branch_struct: Lattice branch
 !
 ! Output:
-!   lat -- lat_struct
+!   branch -- branch_struct
 !     branch(ix_branch)%z%tune            -- Synchrotron tune (radians). If unstable tune = 0.
 !     branch(ix_branch)%z%stable          -- Is the mode stable? If no rf then tune is zero but is stable.
 !     branch(ix_branch)%param%t1_with_RF  -- 6x6 1-turn matrix.
 !-
 
-subroutine calc_z_tune (lat, ix_branch)
+subroutine calc_z_tune (branch)
 
 use bmad_interface, except_dummy => calc_z_tune
 
 implicit none
 
-type (lat_struct), target :: lat
-type (branch_struct), pointer :: branch
+type (branch_struct), target :: branch
 
 real(rp) a(6,6), cos_z, denom
 complex(rp) eval(6), evec(6,6)
 
-integer, optional :: ix_branch
 integer i, sgn
 
 logical err
 
 !
 
-branch => lat%branch(integer_option(0, ix_branch))
-
-call transfer_matrix_calc (lat, a, ix_branch = ix_branch)
+call transfer_matrix_calc (branch%lat, a, ix_branch = branch%ix_branch)
 branch%param%t1_with_RF = a
 
 denom = 2 * (a(5,5)*a(6,6) - a(5,6)*a(6,5))

@@ -812,7 +812,7 @@ type lat_ele_order_struct
   type (lat_ele_order_array_struct), allocatable :: branch(:)
 end type
 
-! Structure to be used for an array of pointers to elements.
+! Structure to be used for an array of pointers to lattice elements.
 ! The id component is not set by any Bmad routines and can be used, for example, by programs that 
 ! handle multiple lattices to indicate which lattice the element pointer is pointing to.
 ! A pointer to an element in a lattice is not usable if the number of elements in the 
@@ -823,6 +823,12 @@ type ele_pointer_struct
   type (ele_struct), pointer :: ele => null()
   type (lat_ele_loc_struct) :: loc = lat_ele_loc_struct()
   integer :: id = -1                    ! For general use. Not used by Bmad.
+end type
+
+! Structure to be used for an array of pointers to branches.
+
+type branch_pointer_struct
+  type (branch_struct), pointer :: branch => null()
 end type
 
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.

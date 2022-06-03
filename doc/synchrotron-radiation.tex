@@ -159,9 +159,9 @@ $\bfD$ is defined by this equation.
 The 1-turn damping decrement $\alpha$ for each mode $a$, $b$, and $c$ of oscillation can be
 calculated from the eigen values $\lambda_i$ (cf. \Eq{llee}) of the one-turn matrix with damping via
 \begin{equation}
-  \alpha_a = 1 - |\lambda_1| = 1 - |\lambda_2|, \quad 
-  \alpha_b = 1 - |\lambda_3| = 1 - |\lambda_4|, \quad 
-  \alpha_c = 1 - |\lambda_5| = 1 - |\lambda_6|
+  \alpha_a = -\re(\log\lambda_1), \quad 
+  \alpha_b = -\re(\log\lambda_3), \quad 
+  \alpha_c = -\re(\log\lambda_5)
   \label{allall}
 \end{equation}
 
@@ -236,7 +236,7 @@ where the $21\times21$ matrix $\wt\bfM$ is defined so that for any symmetric $\b
 \Eq{vsmv} is linear in the unknown $\bfV(\bfsig)$ and is easily solved.
 
 The emittances can be calculated from the eigenvalues of the matrix $\bfsig \, \bfS$
-(Wolski\cite{b:wolski.coupling} Eq.~30) where $\bfS$ is given by \$q{s010000}. Specifically, the
+(Wolski\cite{b:wolski.coupling} Eq.~30) where $\bfS$ is given by \Eq{s010000}. Specifically, the
 eigenvalues of $\bfsig \, \bfS$ are pure imaginary and, using the eigenvector ordering given by
 \Eq{vsvi0} (which is opposite that of Wolski), the emittances are the imaginary part of the odd
 eigenvalues $(\epsilon_a, \epsilon_b, \epsilon_c) = (\im{\lambda_1}, \im{\lambda_3}, \im{\lambda_5})$.
