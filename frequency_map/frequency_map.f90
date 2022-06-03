@@ -2,7 +2,6 @@ program frequency_map
 
 use bmad
 use bsim_interface
-use z_tune_mod
 use, intrinsic :: iso_c_binding
 
 implicit none
@@ -126,7 +125,7 @@ bmad_com%aperture_limit_on = aperture_limits
 call reallocate_coord(co,ring%n_ele_max)
 call set_on_off(rfcavity$, ring, on$)
 call twiss_and_track(ring,co)
-call calc_z_tune(ring)
+call calc_z_tune(ring%branch(0))
 
 if (qx /= 0 .and. qy /= 0) THEN
   integer_qx = floor(ring%ele(ring%n_ele_track)%a%phi / twopi)
@@ -140,7 +139,7 @@ if (qx /= 0 .and. qy /= 0) THEN
     target_tunes(3) = 0.
   endif
    
-  ok = set_tune_3d(ring, target_tunes, qtune_mask, use_phase_trombone)  !takes tunes that have not not been multiplied by 2pi.
+  ok = set_tune_3d(ring%branch(0), target_tunes, qtune_mask, use_phase_trombone)  !takes tunes that have not not been multiplied by 2pi.
 
   if (.not. ok) WRITE(*,*) "Qtune failed"
   call twiss_and_track(ring,orb)

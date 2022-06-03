@@ -1114,7 +1114,7 @@ close(22)
 
 ring_length = branch%param%total_length
 call chrom_calc(lat, 1.0d-6, chrom_x, chrom_y, err_flag, ix_branch = branch%ix_branch)
-call calc_z_tune (lat)
+call calc_z_tune (branch)
 
 print *, 'Momentum Compaction:', ltt_com%modes%synch_int(1)/ring_length
 print *, 'dE/E=', ltt_com%modes%sigE_E
