@@ -73,7 +73,7 @@ write (1, '(3a, i0, a, t35, a, t50, f12.8)') '"', trim(lat_file), '-', which,  '
 call lat_make_mat6(lat, -1, orb)
 call twiss_at_start(lat)
 call twiss_propagate_all(lat)
-call calc_z_tune(lat)
+call calc_z_tune(lat%branch(0))
 write (1, '(3a, i0, a, t35, a, t50, f14.10)') '"', trim(lat_file), '-', which,  '-B Z_tune"', 'ABS 2E-8', lat%z%tune / twopi
 
 end subroutine

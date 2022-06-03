@@ -16,13 +16,11 @@ particle_start[pz] = 0.00
 quadrupole1: quadrupole, l = 0.6, k1 = 0.4
 quadrupole2: quadrupole, l = 0.6, k1 = -0.4
 
-solenoid1: solenoid, l = 0.6, ks = 0.04
 
-sbend1: sbend, l = 0.6, g = 0.1, e1 = 0.2, e2 = 0.4, k1 = 0.1
-drift1: drift, l = 0.6
-q: quadrupole, l = 1, k1 = 0.01, x_offset = -1e-4
+s: sbend, l = 0.6, g = 1e-100, k1 = 1, num_steps = 10, ptc_integration_type = drift_kick
+q: quadrupole, l = 0.6, k1 = 1
 
-l1: line = (q)
+l1: line = (s)
 
 use, l1
 
