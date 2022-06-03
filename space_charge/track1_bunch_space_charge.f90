@@ -55,10 +55,10 @@ do
     call sc_step(bunch, ele, include_image, t_now+dt_step)
   else
     call sc_adaptive_step(bunch, ele, include_image, t_now, dt_step, dt_next)
-    dt_step = dt_next
   end if
 
   t_now = t_now + dt_step
+  dt_step = dt_next
 
   ! Check if all particles are finished
   finished = .true.
