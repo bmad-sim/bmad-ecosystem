@@ -1,7 +1,6 @@
 program twiss_track_test
 
 use bmad
-use z_tune_mod
 
 implicit none
 
@@ -176,7 +175,7 @@ call data_out (mode%b%synch_int(4),  1.0D-07, 'Lat1:B%Synch_int(4)')
 call data_out (mode%b%synch_int(5),  1.0D-11, 'Lat1:B%Synch_int(5)')
 call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat1:Z%Synch_int(4)')
  
-call set_z_tune (lat, -0.05 * twopi)
+call set_z_tune (lat%branch(0), -0.05 * twopi)
 
 !--------------------------------
 
