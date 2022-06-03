@@ -306,11 +306,10 @@ subroutine calc_super_slave_key (lord1, lord2, slave, create_jumbo_slave)
   logical, optional :: create_jumbo_slave
 end subroutine
 
-subroutine calc_z_tune (lat, ix_branch)
+subroutine calc_z_tune (branch)
   import
   implicit none
-  type (lat_struct), target :: lat
-  integer, optional :: ix_branch
+  type (branch_struct), target :: branch
 end subroutine
 
 subroutine canonical_to_angle_coords (orbit, coord_type)
@@ -453,12 +452,13 @@ subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s, print_err)
   logical, optional :: print_err
 end subroutine
 
-subroutine choose_quads_for_set_tune (lat, dk1, mask, err_flag)
+subroutine choose_quads_for_set_tune (branch, dk1, eles, mask, err_flag)
   import
   implicit none
-  type (lat_struct), target :: lat
+  type (branch_struct), target :: branch
+  type (ele_pointer_struct), allocatable :: eles(:)
   character(*), optional :: mask
-  real(rp), allocatable, intent(inout) :: dk1(:)
+  real(rp), allocatable :: dk1(:)
   logical, optional :: err_flag
 end subroutine
 
@@ -1974,6 +1974,14 @@ subroutine set_status_flags (bookkeeping_state, stat)
   integer stat
 end subroutine
 
+subroutine set_z_tune (branch, z_tune, ok)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  real(rp) :: z_tune
+  logical, optional :: ok
+end subroutine
+
 subroutine save_bunch_track (bunch, ele, s_travel)
   import
   implicit none
@@ -2010,11 +2018,12 @@ subroutine set_ele_defaults (ele, do_allocate)
   logical, optional :: do_allocate
 end subroutine
 
-function set_tune (phi_a_set, phi_b_set, dk1, lat, orb, print_err) result (ok)
+function set_tune (phi_a_set, phi_b_set, dk1, eles, branch, orb, print_err) result (ok)
   import
   implicit none
-  type (lat_struct), target :: lat
+  type (branch_struct), target :: branch
   type (coord_struct), allocatable :: orb(:)
+  type (ele_pointer_struct) eles(:)
   real(rp) phi_a_set
   real(rp) phi_b_set
   real(rp) dk1(:)

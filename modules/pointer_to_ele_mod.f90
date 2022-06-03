@@ -15,17 +15,9 @@ private pointer_to_ele1, pointer_to_ele2, pointer_to_ele3
 ! Routine to return a pointer to an element.
 ! pointer_to_ele is an overloaded name for:
 !     Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
-!     Function pointer_to_ele1 (lat, ix_nametable) result (ele_ptr)
 !     Function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
 !     Function pointer_to_ele3 (lat, ele_name) result (ele_ptr)
 !     Function pointer_to_ele4 (lat, foreign_ele) result (ele_ptr)
-!
-! Ix_nametable is a mapping of ele locations to integers. The mapping is:
-!   ix_nametable = ele%ix_ele                             For elements in branch 0
-!   ix_nametable = ele%ix_ele + branch(0)%n_ele_max + 1   For elements in branch 1
-!   etc., etc.
-!
-! The reverse routine to pointer_to_ele1 (lat, ix_nametable) is ele_nametable_index.
 !
 ! pointer_to_ele4(lat, foreign_ele) is useful when foreign_ele is associated with a separate
 ! lattice that has an identical layout. pointer_to_ele4 will then return the corresponding

@@ -1,31 +1,16 @@
-module z_tune_mod
-
-use bmad_interface
-
-type (lat_struct), private, pointer :: lat_com
-type (all_pointer_struct) :: voltage_control(100)
-real(rp), private :: volt0(100), z_tune_wanted
-integer, private :: ix_rf(100), n_rf
-
-contains
-
-!----------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------
 !+
-! Subroutine set_z_tune (lat, z_tune, ok)
+! Subroutine set_z_tune (branch, z_tune, ok)
 !
 ! Subroutine to set the longitudinal tune by scalling the RF voltages
 ! in the RF cavities. Note: RF cavity elements that are set OFF will not
 ! have their voltages varied.
 !
 ! Input:
-!   lat    -- lat_struct:
-!   z_tune -- Real(rp), optional: Longitudinal tune in radians (must be negative). 
-!               If not present, lat%z%tune will be used instead.
+!   branch    -- branch_struct:
+!   z_tune    -- real(rp): Longitudinal tune in radians (must be negative above transition). 
 !
 ! Output:
-!   lat
+!   branch
 !     %ele(i_rf)%value(voltage$) -- Voltage on the cavity.
 !     %z%tune                    -- equal to z_tune.
 !   ok                           -- logical.  If present, returns true or false if set was
@@ -39,43 +24,48 @@ contains
 !      the longitudinal tune is negative above transition.
 !-
 
-subroutine set_z_tune (lat, z_tune, ok)
+subroutine set_z_tune (branch, z_tune, ok)
 
+use bmad_interface, dummy => set_z_tune
 use expression_mod, only: linear_coef
+use super_recipes_mod, only: super_zbrent
 
 implicit none
 
-type (lat_struct), target :: lat
+type (branch_struct), target :: branch
 type (ele_struct), pointer :: ele, ele2, lord
 type (control_struct), pointer :: ctl
 
-real(rp) dQz_max
+real(rp) Qz_rel_tol, Qz_abs_tol
 real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, coef, dz_tune
-real(rp), optional :: z_tune
+real(rp) :: z_tune
 logical, optional :: ok
 
-integer i, j, k, ix, is
+integer i, j, k, ix, is, status
 integer :: loop_max = 10
 
-logical found_control, rf_is_on, err_flag
+logical found_control, err_flag
+
+! common
+
+type (all_pointer_struct) :: voltage_control(100)
+real(rp) :: volt0(100)
+integer :: ix_rf(100), n_rf
 
 character(16), parameter :: r_name = 'set_z_tune'
 
 ! Error detec and init.
 
-dQz_max = 0.0001
-
-if (present (z_tune)) lat%z%tune = z_tune
+Qz_rel_tol = 0.0001
+Qz_abs_tol = 0.000001
 
 if (present (ok)) ok = .true.
 
-if (lat%z%tune > 0) then
-  call out_io (s_warn$, r_name, 'LAT%Z%TUNE IS POSITIVE!', &
+if (branch%z%tune > 0) then
+  call out_io (s_warn$, r_name, 'BRANCH%Z%TUNE IS POSITIVE!', &
                   'I AM ASSUMING THIS IS INCORRECT AND AM SWITCHING THE SIGN.')
-  lat%z%tune = -lat%z%tune
+  branch%z%tune = -branch%z%tune
 endif
-
-z_tune_wanted = lat%z%tune
 
 ! Make a list of controllers for the voltage of the RFcavities.
 ! The list is:
@@ -83,15 +73,14 @@ z_tune_wanted = lat%z%tune
 !      controlled by an overlay.
 !   2) overlays that control the voltage of an RFcavity
 
-E0 = lat%ele(0)%value(E_TOT$)
+E0 = branch%ele(0)%value(E_TOT$)
 
 n_rf = 0
 coef_tot = 0
-rf_is_on = .false.
 
-do i = 1, lat%n_ele_max
+do i = 1, branch%n_ele_max
 
-  ele => lat%ele(i)
+  ele => branch%ele(i)
 
   ! RFcavity element
 
@@ -156,94 +145,92 @@ endif
 ! If the voltage is near zero then start from scratch.
 ! This is only approximate.
 
-call calc_z_tune (lat)
+call calc_z_tune (branch)
 
-if (lat%z%tune == 0) then
+if (branch%z%tune == 0) then
   call out_io (s_error$, r_name, 'CALCULATED Z TUNE IS ZERO. CANNOT SET THE TUNE.')
   if (global_com%exit_on_error) call err_exit
   return
 endif
 
-if (abs(lat%z%tune) < dQz_max .or. z_tune_wanted == 0) then
-  volt = -z_tune_wanted**2 / (lat%param%t1_with_RF(5,6) * coef_tot)
+if (abs(branch%z%tune) < Qz_abs_tol .or. z_tune == 0) then
+  volt = -z_tune**2 / (branch%param%t1_with_RF(5,6) * coef_tot)
   do i = 1, n_rf
-    ele => lat%ele(ix_rf(i))
+    ele => branch%ele(ix_rf(i))
     voltage_control(i)%r = volt
     call set_flags_for_changed_attribute (ele, voltage_control(i)%r)
-    call lat_make_mat6 (lat, ix_rf(i))
+    call lat_make_mat6 (branch%lat, ix_rf(i), ix_branch = branch%ix_branch)
   enddo
-  call calc_z_tune (lat)
+  call calc_z_tune (branch)
 endif
 
 ! record
 
 do i = 1, n_rf
-  ele => lat%ele(ix_rf(i))
+  ele => branch%ele(ix_rf(i))
   volt0(i) = voltage_control(i)%r
 enddo
 
-dz_tune = lat%z%tune - z_tune_wanted
+dz_tune = branch%z%tune - z_tune
 dz_tune0 = dz_tune
-lat_com => lat
 coef = 1
 
 ! now set cavity voltage to get the correct tune
 
 do k = 1, loop_max
-
-  if (abs(dz_tune) < dQz_max) return
+  if (abs(dz_tune) < Qz_abs_tol) return
 
   if (dz_tune * dz_tune0 < 0) exit  ! Have bracketed solution
 
   coef0 = coef
-  coef = coef * (z_tune_wanted / (dz_tune + z_tune_wanted))**2 
+  coef = coef * (z_tune / (dz_tune + z_tune))**2 
 
-  dz_tune = dz_tune_func(coef)
+  dz_tune = dz_tune_func(coef, status)
 
   if (k == loop_max) then
     call out_io (s_error$, r_name, 'I CANNOT SET THE TUNE TO THE CORRECT VALUE.', &
                                    '      VALUE WANTED:   \f12.3\ ', '      VALUE OBTAINED: \f12.3\ ', &
-                                   r_array = [z_tune_wanted, lat%z%tune])
+                                   r_array = [z_tune, branch%z%tune])
     if (present(ok)) then
       ok = .false.
     else
       if (global_com%exit_on_error) call err_exit
     endif
-    lat%z%stable = .false.
+    branch%z%stable = .false.
     return
   endif
 enddo
 
-lat%z%stable = .true.
+! Have bracketed index so now find solution
 
-! Have bracketed index
-! Superfluous? coef = super_zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), dQz_max)
-
-end subroutine set_z_tune
+coef = super_zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), Qz_rel_tol, Qz_abs_tol, status)
+branch%z%stable = .true.
 
 !-------------------------------------------------------------------------------------
+contains
 
-function dz_tune_func (coef) result (dz_tune)
+function dz_tune_func (coef, status) result (dz_tune)
 
 type (ele_struct), pointer :: ele
 real(rp), intent(in) :: coef
 real(rp) dz_tune
-integer i
+integer status, i
 
 !
 
 do i = 1, n_rf
-  ele => lat_com%ele(ix_rf(i))
+  ele => branch%ele(ix_rf(i))
   voltage_control(i)%r = volt0(i) * coef
   call set_flags_for_changed_attribute (ele, voltage_control(i)%r)
-  call lat_make_mat6 (lat_com, ix_rf(i))
+  call lat_make_mat6 (branch%lat, ix_rf(i), ix_branch = branch%ix_branch)
 enddo
 
-call calc_z_tune (lat_com)
-dz_tune = lat_com%z%tune - z_tune_wanted
+call calc_z_tune (branch)
+dz_tune = branch%z%tune - z_tune
 
 
-end function
+end function dz_tune_func
 
-end module
+end subroutine set_z_tune
+
 
