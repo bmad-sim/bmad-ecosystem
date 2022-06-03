@@ -192,7 +192,9 @@ lattice. Format:
 \begin{example}
   change \{-update\} element <element_list> <attribute> \{prefix>\} <number>
   change \{-silent\} variable <name>[<locations>] \{<prefix>\} <number>
-  change  \{n@\}particle_start <coordinate> \{prefix>\} <number>
+  change \{n@\}particle_start <coordinate> \{prefix>\} <number>
+  change \{-branch <branch_list>\} \{-mask <veto_list>\} tune Qa Qb
+  change \{-branch <branch_list>\} z_tune Qz
 \end{example}
 
 \vskip 10pt 
@@ -239,6 +241,11 @@ parameters where \vn{<twiss>} is one of:
   eta_a, eta_b,etap_a, etap_b    
 \end{example}
 
+The \vn{change tune} and \vn{change z_tune} commands will vary the transverse and longitudinal tunes
+respectively. The \vn{<branch_list>} is a list of lattice branches with optional universe prefix, to
+vary the tunes. The \vn{<veto_list>} of the \vn{-mask} option gives a list of quadrupoles {\em not}
+to use for varying the tune. See the \vn{set tune} (\sref{s:set.tune}) command for more details.
+
 The \vn{-silent} switch, if present, suppresses the printing of what variables are changed.
 
 The \vn{-update} switch, if present, suppresses \tao from printing error messages if a ``variable
@@ -257,6 +264,9 @@ Examples:
   change var steering[34:36] @1e-3     ! set the steering strength #34-36 to 0.001
   change var steering[*] \%10           ! vary all steering strengths by 10\%
   change 2@particle_start x @0.001     ! set beginning x position in universe 2 to 1 mm.
+  change -mask Q1* tune 0 0.01         ! Change transverse tunes without using quadrupoles
+                                       !   whose names start with "Q1".
+  change -branch 2@1 z_tune 0.02       ! Change z-tune of branch #1 of universe #2.
 \end{example}
 
 
@@ -875,15 +885,15 @@ To set the prompt color, use the command
 \end{example}
 Where \vn{<value>} may be one of:
 \begin{example}
-  'BLACK'
-  'RED'
-  'GREEN'
-  'YELLOW'
-  'BLUE'
-  'MAGENTA'
-  'CYAN'
-  'GRAY'
-  'DEFAULT'       ! Default foreground color
+  "BLACK"
+  "RED"
+  "GREEN"
+  "YELLOW"
+  "BLUE"
+  "MAGENTA"
+  "CYAN"
+  "GRAY"
+  "DEFAULT"       ! Default foreground color
 \end{example}
 
 % Use the command:

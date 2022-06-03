@@ -1,7 +1,8 @@
 !+
 ! Subroutine tao_pointer_to_universes (name_in, unis, err, name_out, explicit_uni, dflt_uni)
 !
-! Subroutine to pick what universe the data name is comming from.
+! Routine to pick what universes to use.
+
 ! Examples:
 !   "*@..."           -- Choose all universes.
 !   "3@..."           -- Choose universe 3. 
@@ -48,6 +49,7 @@ logical, optional :: explicit_uni
 
 err = .false.
 this_name = name_in
+if (present(name_out)) name_out = ''
 
 ! No "@" then simply choose s%global%default_universe.
 
