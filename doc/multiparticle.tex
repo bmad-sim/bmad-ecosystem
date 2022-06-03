@@ -487,9 +487,18 @@ algorithm. For this reason, match elements are ignored in the CSR calculation.
 
 When an element's \vn{space_charge_method} is set to \vn{fft_3d} or \vn{cathode_fft_3d}
 (\sref{s:csr.sc.meth}), the space charge calculation uses code from the OpenSC package developed by
-Rob Ryne and Chris Mayes \cite{b:opensc}. The method works by calculating the field due to the
-particle on a 3D grid and then interpolating the field to the points where the particles are. This
-method will be able to handle lower energy bunches than the \vn{slice} method (\sref{s:sc.slice})
+Rob Ryne and Christopher Mayes \cite{b:opensc}. The method works by calculating the field due to the
+particles deposited on a 3D grid using an integrated Green function method for the Poisson equation. The steps are:
+
+\begin{enumerate}
+\item Deposit weighted charged particles on a 3D rectangular grid.
+\item Calculate the space charge fields on this grid by FFT convolution. 
+\item Interpolate the field to an arbitrary point within its domain.
+\end{enumerate}
+
+The FFT convolution is done using FFTs from the FFTW package, is parallelized using OpenMP.
+Special options allow the consideration of image charges at a cathode.
+This method will be able to handle lower energy bunches than the \vn{slice} method (\sref{s:sc.slice})
 the disadvantage is that the \vn{fft_3d} and \vn{cathode_fft_3d} methods will be slower.
 
 Note: The mesh size is set by the \vn{csr_pram} parameter \vn{space_charge_mesh_size}
