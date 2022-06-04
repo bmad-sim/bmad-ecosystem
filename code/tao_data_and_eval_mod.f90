@@ -1666,8 +1666,9 @@ case ('expression:', 'expression.')
   enddo
 
   printit = (s%com%n_err_messages_printed < s%global%datum_err_messages_max) 
-  call tao_evaluate_expression (e_str, 0, .false., expression_value_vec, err, printit, info, datum%stack, tao_lat%name, &
-                 datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni, datum%eval_point, datum%s_offset)
+  call tao_evaluate_expression (e_str, 0, .false., expression_value_vec, err, printit, info, &
+                  datum%stack, tao_lat%name, datum%data_source, ele_ref, ele_start, ele, &
+                  dflt_dat_index, u%ix_uni, datum%eval_point, datum%s_offset, datum = datum)
   if (err) then
     call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // e_str, why_invalid)
     return
@@ -4338,7 +4339,7 @@ end subroutine tao_to_real
 !+
 ! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, err_flag, print_err, &
 !                   info, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
-!                   dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
+!                   dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
 !
 ! Mathematically evaluates a character expression.
 !
@@ -4361,6 +4362,8 @@ end subroutine tao_to_real
 !   dflt_eval_point -- integer, optional: Default eval_point. anchor_end$ (default), anchor_center$, or anchor_beginning$.
 !   dflt_s_offset   -- real(rp), optional: Default offset of eval_point. Default = 0.
 !   dflt_orbit      -- coord_struct, optional: Default orbit to evaluate at.
+!   datum           -- tao_data_struct, optional: If present, check to see that the expression does not depend upon
+!                       a datum that will be evaluated after this datum. If so, this is an error.
 !
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
@@ -4378,7 +4381,7 @@ end subroutine tao_to_real
 recursive &
 subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, err_flag, print_err, &
                       info, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
-                      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
+                      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
 
 use random_mod
 use expression_mod
@@ -4394,6 +4397,7 @@ type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (coord_struct), optional :: dflt_orbit
 type (tao_expression_info_struct), allocatable, optional :: info(:)
+type (tao_data_struct), optional :: datum
 type (expression_func_struct) func(0:20)
 
 integer, optional :: dflt_uni, dflt_eval_point
@@ -4715,7 +4719,7 @@ parsing_loop: do
       call pushit2 (stk, i_lev, numeric$)
       call tao_param_value_routine (word, use_good_user, saved_prefix, stk(i_lev), err, printit, &
              dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
-             dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
+             dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -4786,7 +4790,7 @@ parsing_loop: do
     call pushit2 (stk, i_lev, numeric$)
     call tao_param_value_routine (word, use_good_user, saved_prefix, stk(i_lev), err, printit, &
             dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
-            dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
+            dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -4957,7 +4961,7 @@ end subroutine tao_evaluate_expression
 recursive &
 subroutine tao_param_value_routine (str, use_good_user, saved_prefix, stack, err_flag, print_err, dflt_component, &
                     dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, &
-                    dflt_eval_point, dflt_s_offset, dflt_orbit)
+                    dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
 
 type (tao_eval_stack1_struct) stack
 type (tao_eval_stack1_struct), allocatable :: stack2(:)
@@ -4965,13 +4969,13 @@ type (tao_real_pointer_struct), allocatable :: re_array(:)
 type (tao_data_array_struct), allocatable :: d_array(:)
 type (tao_integer_array_struct), allocatable :: int_array(:)
 type (tao_var_array_struct), allocatable :: v_array(:)
-type (tao_data_struct) datum
 type (tao_data_struct), pointer :: d
 type (tao_var_struct), pointer :: v
 type (tao_lattice_struct), pointer :: tao_lat
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (coord_struct), optional :: dflt_orbit
 type (tao_expression_info_struct), allocatable :: info(:)
+type (tao_data_struct), optional :: datum
 
 real(rp), optional :: dflt_s_offset
 real(rp), allocatable :: value(:)
@@ -5153,6 +5157,17 @@ else
     call tao_find_data (err_flag, name, d_array = d_array, re_array = re_array, int_array = int_array, &
                         dflt_index = dflt_dat_or_var_index, print_err = print_error, ix_uni = dflt_uni)
     stack%type = data_num$
+    ! Error if datum associated with the expression is evaluated before the datum evaluated here.
+    if (present(datum) .and. .not. err_flag) then
+      if (datum%ix_uni > 0 .and. datum%ix_data > 0) then  ! Only check if this is a user defined datum (not temp datum used for plotting).
+        if (datum%ix_uni < d_array(1)%d%ix_uni .or. (datum%ix_uni == d_array(1)%d%ix_uni .and. datum%ix_data < d_array(1)%d%ix_data)) then
+          err_flag = .true.
+          if (print_err) call out_io (s_error$, r_name, 'THE EXPRESSION ASSOCIATED WITH DATUM: ' // tao_datum_name(datum), &
+                          'DEPENDS UPON A DATUM (' // trim(tao_datum_name(d_array(1)%d)) // ') WHICH IS EVALUATED AFTER ' // tao_datum_name(datum))
+          return
+        endif
+      endif
+    endif
   endif
 
   if (err_flag) then

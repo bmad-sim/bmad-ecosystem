@@ -301,19 +301,23 @@ else
       ele%z%gamma = (1 + ele%z%alpha**2) / ele%z%beta
     endif
 
-    call twiss3_from_twiss2 (branch%ele(0))
+    call twiss3_from_twiss2 (ele)
 
-    G_inv = 0
-    G_inv(1,1) = sqrt(ele%a%beta)
-    G_inv(2,1:2) = [-ele%a%alpha / sqrt(ele%a%beta), 1/sqrt(ele%a%beta)]
-    G_inv(3,3) = sqrt(ele%b%beta)
-    G_inv(4,3:4) = [-ele%b%alpha / sqrt(ele%b%beta), 1/sqrt(ele%b%beta)]
-    G_inv(5,5) = sqrt(ele%z%beta)
-    G_inv(6,5:6) = [-ele%z%alpha / sqrt(ele%z%beta), 1/sqrt(ele%z%beta)]
+    if (ele%a%beta == 0 .or. ele%b%beta == 0) then  ! Twiss not set in lattice?
+      tao_branch%lat_sigma(ie0)%mat = 0
+    else
+      G_inv = 0
+      G_inv(1,1) = sqrt(ele%a%beta)
+      G_inv(2,1:2) = [-ele%a%alpha / sqrt(ele%a%beta), 1/sqrt(ele%a%beta)]
+      G_inv(3,3) = sqrt(ele%b%beta)
+      G_inv(4,3:4) = [-ele%b%alpha / sqrt(ele%b%beta), 1/sqrt(ele%b%beta)]
+      G_inv(5,5) = sqrt(ele%z%beta)
+      G_inv(6,5:6) = [-ele%z%alpha / sqrt(ele%z%beta), 1/sqrt(ele%z%beta)]
 
-    N_mat = matmul(ele%mode3%v, G_inv)
+      N_mat = matmul(ele%mode3%v, G_inv)
 
-    tao_branch%lat_sigma(ie0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+      tao_branch%lat_sigma(ie0)%mat = matmul(matmul(N_mat, D_mat), transpose(N_mat))
+    endif
   endif
 endif
 
