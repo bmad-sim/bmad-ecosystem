@@ -3353,10 +3353,10 @@ if (i /= 0) then
     if (bp_com2%const(i)%value == old_val) then
       call parser_error ('CONSTANTS ARE NOT ALLOWED TO BE REDEFINED: ' // word, &
                          'BUT SINCE OLD_VALUE = NEW_VALUE THIS IS ONLY A WARNING...', &
-                         'USE "REDEF:" CONSTRUCT TO GET AROUND THIS (BUT NOT RECOMMENDED IF NOT NECESSARY).', level = s_warn$)
+                         'USE "REDEF:" CONSTRUCT TO GET AROUND THIS (BUT NOT RECOMMENDED).', level = s_warn$)
     else
       call parser_error ('CONSTANTS ARE NOT ALLOWED TO BE REDEFINED: ' // word, &
-                         'USE "REDEF:" CONSTRUCT TO GET AROUND THIS (BUT NOT RECOMMENDED IF NOT NECESSARY).')
+                         'USE "REDEF:" CONSTRUCT TO GET AROUND THIS (BUT NOT RECOMMENDED).')
     endif
   endif
 
@@ -6114,7 +6114,7 @@ end subroutine allocate_plat
 !   lat         -- lat_struct: Lattice to add lord elements to.
 !   check_lat   -- lat_struct, optional: If slave elements of a lord are not in lat but
 !                   are in check_lat, do not issue error message about slave elements
-!                   no found. 
+!                   not found. 
 !-
 
 subroutine parser_add_lord (lord_lat, n_ele_max, plat, lat, check_lat)

@@ -573,8 +573,7 @@ parsing_loop: do
 
   ele => lat2%ele(1)
   ele = ele_struct()
-  ele%branch => lat%branch(0)  ! To fool set_element_attribute
-  call set_ele_name(ele, word_1)
+  ele%name = word_1
 
   n_plat_ele = n_plat_ele + 1     ! next free slot
   ele%ixx = n_plat_ele
