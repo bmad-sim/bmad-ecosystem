@@ -2543,7 +2543,6 @@ case ('push', 'push_inline')
     bp_com%error_flag = .false.  ! set to true on an error
     bp_com%current_file%full_name = ' '
     bp_com%input_line_meaningful = .false.
-    call init_bmad_parser_common
   endif
 
   call fullfilename (file_name_in, file_name2, valid)
@@ -2607,15 +2606,6 @@ case ('push', 'push_inline')
   ! Note: The same file may be validly called multiple times if it is an inline file.
   ! EG: A wall file called inline.
   ! Therefore the warning is disabled.
-
-!  if (how == 'push') then
-!    do i = 1, n_file - 1
-!      if (bp_com%lat_file_names(i) /= bp_com%lat_file_names(n_file)) cycle
-!      call parser_error ('Same lattice file called multiple times: ' // trim(bp_com%lat_file_names(n_file)), &
-!                         level = s_warn$)
-!      exit
-!    enddo
-!  endif
 
 ! "pop" means close the current file and pop its name off the stack
 
