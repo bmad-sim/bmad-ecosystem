@@ -553,7 +553,7 @@ function nametable_bracket_indexx (nametable, name, n_match) result (ix_max)
   import
   implicit none
   type (nametable_struct) nametable
-  character(40) name
+  character(*) name
   integer ix_max
   integer, optional :: n_match
 end function

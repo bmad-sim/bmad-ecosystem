@@ -6,7 +6,7 @@
 !
 ! Input:
 !   nametable   -- nametable_struct: Nametable.
-!   name        -- character(*): Name to match against.
+!   name        -- character(*): Name to match against. Names are limited to 40 characters.
 !
 ! Output:
 !   n_match     -- integer, optional: Number of matches.
@@ -20,7 +20,7 @@ use sim_utils, dummy => nametable_bracket_indexx
 implicit none
 
 type (nametable_struct) nametable
-character(40) name
+character(*) name
 integer, optional :: n_match
 integer ix_max
 integer ix1, ix3
