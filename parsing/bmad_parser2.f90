@@ -55,7 +55,7 @@ integer, pointer :: n_max
 character(*) lat_file
 character(1) delim 
 character(16) :: r_name = 'bmad_parser2'
-character(40) word_1, slice_start, slice_end
+character(40) word_1, slice_start, slice_end, temp_ele_name
 character(40) word_2, name, this_name, old_parser_name
 character(80) debug_line
 character(280) parse_line_save, string, extra_ele_names
@@ -94,7 +94,7 @@ call init_bmad_parser_common(lat)
 ! due to overlapping parameters
 
 n_max => lat%n_ele_max
-n_def_ele = 6 + size(lat%branch)
+n_def_ele = 7 + size(lat%branch)
 call allocate_plat (plat, n_def_ele)
 if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat, n_max+n_def_ele+100)
 
@@ -144,14 +144,21 @@ ele%ixx  = 6                    ! Pointer to plat%ele() array
 extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
 call nametable_add(lat%nametable, ele%name, n_max+6)
 
+ele => lat%ele(n_max+7)
+call init_ele (ele, null_ele$, 0, n_max+7, lat%branch(0))
+ele%name = '<TEMP_ELE>'  ! Used for new element parameter storage
+extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
+call nametable_add(lat%nametable, ele%name, n_max+7)
+temp_ele_name = ele%name
+
 do i = 0, ubound(lat%branch, 1)
-  ele => lat%ele(n_max+7+i)
-  call init_ele(ele, def_line$, 0, n_max+7+i, lat%branch(0))
+  ele => lat%ele(n_max+8+i)
+  call init_ele(ele, def_line$, 0, n_max+8+i, lat%branch(0))
   ele%name = lat%branch(i)%name
   ele%value(ix_branch$) = i
-  ele%ixx = 7 + i
+  ele%ixx = 8 + i
   extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
-  call nametable_add(lat%nametable, ele%name, n_max+7+i)
+  call nametable_add(lat%nametable, ele%name, n_max+8+i)
 enddo
 
 n_plat_ele = n_def_ele
@@ -573,8 +580,15 @@ parsing_loop: do
   !-------------------------------------------------------
   ! if none of the above then must be an element
 
-  ele => lat2%ele(1)
-  ele = ele_struct()
+  call lat_ele_locator (word_1, lat, eles, n_loc, err)
+  if (n_loc > 0) then
+    call parser_error ('DUPLICATE ELEMENT NAME ' // ele%name)
+    exit
+  endif
+
+  call lat_ele_locator (temp_ele_name, lat, eles, n_loc, err)
+  ele => eles(1)%ele
+  call init_ele(ele, null_ele$, 0, ele%ix_ele, lat%branch(0))
   ele%name = word_1
 
   n_plat_ele = n_plat_ele + 1     ! next free slot
@@ -585,28 +599,20 @@ parsing_loop: do
   pele%lat_file = bp_com%current_file%full_name
   pele%ix_line_in_file = bp_com%current_file%i_line
 
-  do i = 1, n_max
-    if (ele%name == lat%ele(i)%name) then
-      call parser_error ('DUPLICATE ELEMENT NAME ' // ele%name)
-      exit
-    endif
-  enddo
-
   ! Check for valid element key name or if element is part of a element key.
   ! If none of the above then we have an error.
 
   found = .false.  ! found a match?
 
-  do i = 1, n_max-1
-    if (word_2 == lat%ele(i)%name) then
-      ixx = ele%ixx  ! save
-      ele = lat%ele(i)
-      ele%ixx = ixx   ! Restore correct value
-      call set_ele_name (ele, word_1)
-      found = .true.
-      exit
-    endif
-  enddo
+  call lat_ele_locator (word_2, lat, eles, n_loc, err)
+  if (n_loc > 0) then
+    ixx = ele%ixx  ! save
+    ele = eles(1)%ele
+    ele%ixx = ixx   ! Restore correct value
+    call set_ele_name (ele, word_1)
+    found = .true.
+    exit
+  endif
 
   if (.not. found) then
     ele%key = key_name_to_key_index(word_2, .true.)
@@ -687,9 +693,12 @@ parsing_loop: do
 
   call drift_multipass_name_correction(lat) ! In case superimposing upon multipass elements.
 
+  lat2%ele(1) = ele
+  call set_ele_name (ele, temp_ele_name)
+
   if (ele%lord_status == super_lord$) then
     ixx = ele%ixx
-    call parser2_add_superimpose (lat, ele, plat%ele(ixx), in_lat)
+    call parser2_add_superimpose (lat, lat2%ele(1), plat%ele(ixx), in_lat)
 
   elseif (key == overlay$ .or. key == group$ .or. key == girder$ .or. key == ramper$) then
     call parser_add_lord (lat2, 1, plat, lat, in_lat)
