@@ -990,9 +990,10 @@ subroutine init_bmad()
   implicit none
 end subroutine
 
-subroutine init_bmad_parser_common()
+subroutine init_bmad_parser_common(lat)
   import
   implicit none
+  type (lat_struct), optional:: lat
 end subroutine
 
 subroutine init_ele (ele, key, sub_key, ix_ele, branch)

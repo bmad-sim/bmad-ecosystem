@@ -88,6 +88,8 @@ if (lat_file /= 'FROM: BMAD_PARSER') then
   if (err) return
 endif
 
+call init_bmad_parser_common(lat)
+
 ! Note: The order of def_parameter and def_mad_beam elements is used by parser_set_attribute
 ! due to overlapping parameters
 

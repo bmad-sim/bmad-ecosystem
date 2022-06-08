@@ -162,6 +162,7 @@ endif
 iseq_tot = 0                            ! number of sequences encountered
 allocate(sequence(500))
 
+call init_bmad_parser_common()
 bp_com%extra = extra_parsing_info_struct()
 
 call ran_default_state (get_state = bp_com%extra%initial_state) ! Get initial random state.
