@@ -29,12 +29,14 @@ subroutine set_z_tune (branch, z_tune, ok)
 use bmad_interface, dummy => set_z_tune
 use expression_mod, only: linear_coef
 use super_recipes_mod, only: super_zbrent
+use twiss_and_track_mod, only: twiss_and_track
 
 implicit none
 
 type (branch_struct), target :: branch
 type (ele_struct), pointer :: ele, ele2, lord
 type (control_struct), pointer :: ctl
+type (coord_struct), allocatable :: orbit(:)
 
 real(rp) Qz_rel_tol, Qz_abs_tol
 real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, coef, dz_tune
@@ -56,8 +58,8 @@ character(16), parameter :: r_name = 'set_z_tune'
 
 ! Error detec and init.
 
-Qz_rel_tol = 0.0001
-Qz_abs_tol = 0.000001
+Qz_rel_tol = 1d-5
+Qz_abs_tol = 1d-7
 
 if (present (ok)) ok = .true.
 
@@ -204,6 +206,7 @@ enddo
 ! Have bracketed index so now find solution
 
 coef = super_zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), Qz_rel_tol, Qz_abs_tol, status)
+dz_tune = dz_tune_func(coef, status)
 branch%z%stable = .true.
 
 !-------------------------------------------------------------------------------------
@@ -222,12 +225,19 @@ do i = 1, n_rf
   ele => branch%ele(ix_rf(i))
   voltage_control(i)%r = volt0(i) * coef
   call set_flags_for_changed_attribute (ele, voltage_control(i)%r)
-  call lat_make_mat6 (branch%lat, ix_rf(i), ix_branch = branch%ix_branch)
+enddo
+call lattice_bookkeeper(branch%lat)
+
+call twiss_and_track(branch%lat, orbit, status, branch%ix_branch)
+if (status == ok$) status = 0
+
+do i = 1, n_rf
+  ele => branch%ele(ix_rf(i))
+  call lat_make_mat6 (branch%lat, ix_rf(i), orbit, ix_branch = branch%ix_branch)
 enddo
 
 call calc_z_tune (branch)
 dz_tune = branch%z%tune - z_tune
-
 
 end function dz_tune_func
 
