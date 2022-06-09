@@ -1,5 +1,5 @@
 !+
-! Subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
+! Subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag, parse_lat)
 !
 ! Subroutine to parse a BMAD input file and put the information in lat.
 !
@@ -11,24 +11,26 @@
 ! is up-to-date and if not the digested file will not be used.
 !
 ! Input:
-!   lat_file   -- Character(*): Name of the input file.
-!   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the Elements?
+!   lat_file   -- character(*): Name of the input file.
+!   make_mats6 -- logical, optional: Compute the 6x6 transport matrices for the Elements?
 !                   Default is True. Do not set False unless you know what you are doing.
-!   use_line   -- Character(*), optional: If present and not blank, override the use 
+!   use_line   -- character(*), optional: If present and not blank, override the use 
 !                   statement in the lattice file and use use_line instead.
 !
 ! Output:
 !   lat              -- lat_struct: Lat structure. See bmad_struct.f90 for more details.
 !     %ele(:)%mat6      -- This is computed assuming an on-axis orbit if make_mats6 = T.
-!   digested_read_ok -- Logical, optional: Set True if the digested file was
+!   digested_read_ok -- logical, optional: Set True if the digested file was
 !                        successfully read. False otherwise.
-!   err_flag         -- Logical, optional: Set true if there is an error, false otherwise.
+!   err_flag         -- logical, optional: Set true if there is an error, false otherwise.
 !                         Note: err_flag does *not* include errors in lat_make_mat6 since
 !                         if there is a match element, there is an error raised since
 !                         the Twiss parameters have not been set but this is expected. 
+!   parse_lat        -- lat_struct, optional: List of elements used to construct the lattice.
+!                         Useful if bmad_parser2 will be called. See bmad_parser2 documentation.
 !-
 
-subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
+subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag, parse_lat)
 
 use bmad_parser_mod, dummy1 => bmad_parser
 use wall3d_mod, dummy3 => bmad_parser
@@ -39,6 +41,7 @@ use random_mod
 implicit none
 
 type (lat_struct), target :: lat, in_lat
+type (lat_struct), optional :: parse_lat
 type (ele_struct) this_ele
 type (ele_struct), pointer :: ele, slave, lord, ele2, ele0, param_ele
 type (ele_struct), save :: marker_ele
@@ -1221,7 +1224,7 @@ if (bp_com%detected_expand_lattice_cmd) then
   global_com%exit_on_error = .false.
   bp_com%bmad_parser_calling = .true.
   bp_com%old_lat => in_lat
-  call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = .false., in_lat = in_lat)
+  call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = .false., parse_lat = in_lat)
   bp_com%bmad_parser_calling = .false.
   global_com%exit_on_error = exit_on_error
 
@@ -1312,6 +1315,8 @@ character(200) name
 
 ! Calculate the creation hash which can be used by programs to verify that the lattice has not been changed since
 ! the last time the lattice was read in.
+
+if (present(parse_lat)) parse_lat = lat0
 
 lat%creation_hash = djb_hash(int_str(bmad_inc_version$))
 do i = 1, bp_com%num_lat_files

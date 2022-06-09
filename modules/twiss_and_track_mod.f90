@@ -223,8 +223,8 @@ if (err) then
   return
 endif
 
-if (lat%param%geometry == closed$) then
-  call twiss_at_start (lat, status)
+if (branch%param%geometry == closed$) then
+  call twiss_at_start (lat, status, branch%ix_branch)
   if (status /= ok$) then
     status = -status  ! To differentiate a failure here from the first call to twiss_at_start.
     return

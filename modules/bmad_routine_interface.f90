@@ -239,22 +239,23 @@ subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, us
   character(*), optional :: use_line
 end subroutine
 
-subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
+subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag, parse_lat)
   import
   implicit none
   character(*) lat_file
   type (lat_struct), target :: lat
+  type (lat_struct), optional :: parse_lat
   logical, optional :: make_mats6
   logical, optional :: digested_read_ok, err_flag
   character(*), optional :: use_line
 end subroutine
 
-subroutine bmad_parser2 (in_file, lat, orbit, make_mats6, err_flag, in_lat)
+subroutine bmad_parser2 (in_file, lat, orbit, make_mats6, err_flag, parse_lat)
   import
   implicit none
   character(*) in_file
   type (lat_struct), target :: lat
-  type (lat_struct), optional :: in_lat
+  type (lat_struct), optional :: parse_lat
   type (coord_struct), optional :: orbit(0:)
   logical, optional :: make_mats6, err_flag
 end subroutine

@@ -1,5 +1,5 @@
 !+
-! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag, in_lat)
+! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag, parse_lat)
 !
 ! Subroutine parse (read in) a BMAD input file.
 ! This subrotine assumes that lat already holds an existing lattice.
@@ -22,14 +22,16 @@
 !                           bmad_parser2 calls lat_make_mat6
 !   make_mats6  -- Logical, optional: Make the 6x6 transport matrices for then
 !                   Elements? Default is True.
-!   in_lat      -- lat_struct, optional: Used by bmad_parser to pass to bmad_parser2 a 
+!   parse_lat   -- lat_struct, optional: Used by bmad_parser to pass to bmad_parser2 a 
 !                    list of elements that were defined in the lattice file but not used.
+!                    This is useful in preventing errors being generated if group/overlay
+!                    elements definded by lat_file refer to unused slaves in parse_lat.
 !
 ! Output:
 !   lat    -- lat_struct: lattice with modifications.
 !-
 
-subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag, in_lat)
+subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag, parse_lat)
 
 use bmad_parser_mod, except_dummy => bmad_parser2
 use twiss_and_track_mod, except_dummy2 => bmad_parser2
@@ -37,7 +39,7 @@ use twiss_and_track_mod, except_dummy2 => bmad_parser2
 implicit none
   
 type (lat_struct), target :: lat
-type (lat_struct), optional :: in_lat
+type (lat_struct), optional :: parse_lat
 type (lat_struct) :: lat2
 type (ele_struct), pointer :: ele, param_ele, lord, slave, slave2
 type (ele_pointer_struct), allocatable :: eles(:)
@@ -349,7 +351,7 @@ parsing_loop: do
       call parser_error ('CANNOT FIND ELEMENT FOR SUPERPOSITION: ' // pele%ele_name)
       cycle parsing_loop    
     endif
-    call parser2_add_superimpose (lat, eles(1)%ele, pele, in_lat)
+    call parser2_add_superimpose (lat, eles(1)%ele, pele, parse_lat)
     cycle parsing_loop    
   endif
 
@@ -698,10 +700,10 @@ parsing_loop: do
 
   if (ele%lord_status == super_lord$) then
     ixx = ele%ixx
-    call parser2_add_superimpose (lat, lat2%ele(1), plat%ele(ixx), in_lat)
+    call parser2_add_superimpose (lat, lat2%ele(1), plat%ele(ixx), parse_lat)
 
   elseif (key == overlay$ .or. key == group$ .or. key == girder$ .or. key == ramper$) then
-    call parser_add_lord (lat2, 1, plat, lat, in_lat)
+    call parser_add_lord (lat2, 1, plat, lat, parse_lat)
 
   else
     call parser_error ('ERROR FOR ELEMENT: ' // word_1, &
