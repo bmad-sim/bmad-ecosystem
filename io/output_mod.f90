@@ -87,7 +87,7 @@ private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
 ! Input:
 !   level              -- Integer: Status level flags for messages.
 !       s_nooutput$      -- No output is produced.
-!       s_blank$         -- Information message. No tag line is inserted.
+!       s_blank$         -- Informational message. No tag line is inserted in the output.
 !       s_info$          -- Informational message. (no timestamp)
 !       s_dinfo$         -- Info message (w/timestamp).
 !       s_success$       -- Successful completion. (no timestamp)
