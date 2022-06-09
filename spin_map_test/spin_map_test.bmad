@@ -1,6 +1,6 @@
 no_digested
 parameter[e_tot] = 1e10
-parameter[ptc_exact_model] = true
+parameter[ptc_exact_model] = T
 parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
@@ -17,7 +17,7 @@ quadrupole1: quadrupole, l = 0.6, k1 = 0.4
 quadrupole2: quadrupole, l = 0.6, k1 = -0.4
 
 
-s: sbend, l = 0.6, g = 1e-100, k1 = 1, num_steps = 10, ptc_integration_type = drift_kick
+s: sbend, l = 0.6, g = 1e-18, k1 = 1, num_steps = 10!, ptc_integration_type = drift_kick
 q: quadrupole, l = 0.6, k1 = 1
 
 l1: line = (s)
