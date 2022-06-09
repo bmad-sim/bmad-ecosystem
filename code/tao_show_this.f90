@@ -31,6 +31,7 @@ use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre, assi
 use ptc_map_with_radiation_mod, only: ptc_rad_map_struct, ptc_setup_map_with_radiation, tree_element_zhe
 use emit_6d_mod, only: emit_6d
 use photon_target_mod, only: to_surface_coords
+use expression_mod, only: expression_stack_to_string
 
 implicit none
 
@@ -2444,18 +2445,18 @@ case ('internal')
 
     ele => eles(1)%ele
     nl=nl+1; lines(nl) = 'For element: (' // trim(ele_loc_name(ele)) // ')  ' // ele%name
-    fmt = '(4x, a14, i6, i8, i10, 4x, a10, a)'
+    fmt = '(4x, a14, i6, i8, i10, 4x, a10, a30, a)'
 
     if (ele%n_slave + ele%n_slave_field /= 0) then 
       nl=nl+1; lines(nl) = 'Slaves: Type         %ic  %control  ix_back   Slave'
       do i = 1, ele%n_slave + ele%n_slave_field
         slave => pointer_to_slave (ele, i, contl, .false., j, i_con, i_ic)
         if (i <= ele%n_slave) then
-          nl=nl+1; write (lines(nl), fmt) &
-                      control_name(ele%lord_status), i_ic, i_con, j, ele_loc_name(slave, .true.), trim(slave%name)
+          nl=nl+1; write (lines(nl), fmt) control_name(ele%lord_status), i_ic, i_con, j, &
+                      ele_loc_name(slave, .true.), slave%name, expression_stack_to_string(contl%stack)
         else
-          nl=nl+1; write (lines(nl), fmt)  &
-                                    'Field_Overlap', i_ic, i_con, j, ele_loc_name(slave, .true.), trim(slave%name)
+          nl=nl+1; write (lines(nl), fmt)  'Field_Overlap', i_ic, i_con, j, &
+                                              ele_loc_name(slave, .true.), slave%name
         endif
       enddo
     endif
@@ -2465,11 +2466,11 @@ case ('internal')
       do i = 1, ele%n_lord + ele%n_lord_field
         lord => pointer_to_lord (ele, i, contl, j, .false., i_con, i_ic)
         if (i <= ele%n_lord) then
-          nl=nl+1; write (lines(nl), fmt) &
-                      control_name(lord%lord_status), i_ic, i_con, j, ele_loc_name(lord, .true.), trim(lord%name)
+          nl=nl+1; write (lines(nl), fmt) control_name(lord%lord_status), i_ic, i_con, j, &
+                      ele_loc_name(lord, .true.), lord%name, expression_stack_to_string(contl%stack)
         else
           nl=nl+1; write (lines(nl), fmt)  &
-                                     'Field_Overlap', i_ic, i_con, j, ele_loc_name(lord, .true.), trim(lord%name)
+                                     'Field_Overlap', i_ic, i_con, j, ele_loc_name(lord, .true.), lord%name
         endif
       enddo
     endif
