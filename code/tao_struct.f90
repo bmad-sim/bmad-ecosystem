@@ -839,7 +839,6 @@ type tao_scratch_space_struct
   type (tao_expression_info_struct), allocatable :: info(:)
   type (tao_expression_info_struct), allocatable :: info_x(:), info_y(:), info_ix(:)
   logical, allocatable :: picked(:)
-  logical, allocatable :: this_u(:)
   real(rp), allocatable :: axis1(:), axis2(:), axis3(:)
   real(rp), allocatable :: x(:), y(:), err(:)
   real(rp), allocatable :: y_value(:)

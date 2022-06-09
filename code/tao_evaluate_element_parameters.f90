@@ -3,10 +3,10 @@
 !                                                 dflt_source, dflt_component, dflt_uni, dflt_eval_point)
 !
 ! Routine to evaluate a lattice element parameter of the form 
-!     <universe>@ele::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
+!     <universe>@ele::{<ele_class>}::<ele_name_or_num>[<parameter>]{|<component>}
 ! or to evaluate at the middle of the element
-!     <universe>@ele_mid::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
-! Note: size(values) can be zero without an error
+!     <universe>@ele_mid::{<ele_class>}::<ele_name_or_num>[<parameter>]{|<component>}
+! Note: size(values) can be zero without an error.
 ! 
 ! Input:
 !   param_name      -- character(*): parameter name.
@@ -46,10 +46,11 @@ integer i, j, ix, num, ix1, ios, n_tot, ix_start, where
 
 logical err, valid, use_dflt_ele
 logical :: print_err
+logical, allocatable :: this_u(:)
 
 !
 
-call tao_pick_universe (param_name, name, scratch%this_u, err, dflt_uni = dflt_uni)
+call tao_pick_universe (param_name, name, this_u, err, dflt_uni = dflt_uni)
 if (err) return
 
 err = .true.
@@ -84,7 +85,7 @@ else
   name = name(1:ix-1)
 endif
 
-! Get class:name
+! Get class::name
 
 if (use_dflt_ele) then
   parameter = name
@@ -128,7 +129,7 @@ if (use_dflt_ele) then
 
 else
   do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. scratch%this_u(i)) cycle
+    if (.not. this_u(i)) cycle
     u => s%u(i)
     call tao_locate_elements (class_ele, u%ix_uni, scratch%eles, err)
     if (err) return

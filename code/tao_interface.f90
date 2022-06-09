@@ -67,25 +67,6 @@ function tao_beam_track_endpoint (ele_id, lat, branch_str, where) result (ele)
   character(*) ele_id, where, branch_str
 end function
 
-function tao_lat_sigma_calc_needed (data_type, data_source) result (do_lat_sigma)
-  import
-  implicit none
-  character(*) data_type, data_source
-  logical do_lat_sigma
-end function
- 
-function tao_param_value_at_s (dat_name, ele, orbit, err_flag, why_invalid, print_err) result (value)
-  import
-  implicit none
-  type (ele_struct) ele
-  type (coord_struct) orbit
-  real(rp) value
-  character(*) dat_name
-  character(*), optional :: why_invalid
-  logical err_flag
-  logical, optional :: print_err
-end function
-
 subroutine tao_call_cmd (file_name, cmd_arg)
   implicit none
   character(*) :: file_name
@@ -578,6 +559,13 @@ function tao_lat_emit_calc (plane, emit_type, ele, modes) result (emit)
   real(rp) emit
 end function
 
+function tao_lat_sigma_calc_needed (data_type, data_source) result (do_lat_sigma)
+  import
+  implicit none
+  character(*) data_type, data_source
+  logical do_lat_sigma
+end function
+ 
 subroutine tao_lattice_calc (calc_ok, print_err)
   implicit none
   logical calc_ok
@@ -684,11 +672,31 @@ subroutine tao_pointer_to_universes (name_in, unis, err, name_out, explicit_uni,
   logical, optional :: explicit_uni
 end subroutine
 
+function tao_param_value_at_s (dat_name, ele, orbit, err_flag, why_invalid, print_err) result (value)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (coord_struct) orbit
+  real(rp) value
+  character(*) dat_name
+  character(*), optional :: why_invalid
+  logical err_flag
+  logical, optional :: print_err
+end function
+
 subroutine tao_parse_command_args (error, cmd_line)
   import
   implicit none
   character(*), optional :: cmd_line
   logical error
+end subroutine
+
+subroutine tao_parse_element_param_str (err, in_str, uni, element, parameter, where, component)
+  import
+  implicit none
+  character(*) in_str, uni, element, parameter, component
+  integer where
+  logical err
 end subroutine
 
 subroutine tao_pause_cmd (time)
