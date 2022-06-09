@@ -193,8 +193,8 @@ lattice. Format:
   change \{-update\} element <element_list> <attribute> \{prefix>\} <number>
   change \{-silent\} variable <name>[<locations>] \{<prefix>\} <number>
   change \{n@\}particle_start <coordinate> \{prefix>\} <number>
-  change \{-branch <branch_list>\} \{-mask <veto_list>\} tune Qa Qb
-  change \{-branch <branch_list>\} z_tune Qz
+  change \{-branch <branch_list>\} \{-listing\} \{-mask <veto_list>\} tune \{dQa\} \{dQb\}
+  change \{-branch <branch_list>\} z_tune dQz
 \end{example}
 
 \vskip 10pt 
@@ -241,10 +241,19 @@ parameters where \vn{<twiss>} is one of:
   eta_a, eta_b,etap_a, etap_b    
 \end{example}
 
-The \vn{change tune} and \vn{change z_tune} commands will vary the transverse and longitudinal tunes
-respectively. The \vn{<branch_list>} is a list of lattice branches with optional universe prefix, to
-vary the tunes. The \vn{<veto_list>} of the \vn{-mask} option gives a list of quadrupoles {\em not}
-to use for varying the tune. See the \vn{set tune} (\sref{s:set.tune}) command for more details.
+The \vn{change z_tune} command will vary the longitudinal tune by \vn{<dQz>}. The \vn{<branch_list>}
+is used to select which lattice branches the tune is varied in. Each branch listed can have an
+optional universe prefix. The default is to vary branch 0 of the current default universe.
+
+The \vn{change tune} command will vary the transverse tunes by \vn{<dQa>} and \vn{<dQb>} and 
+the \vn{change z_tune} command will vary the longitudinal tune by \vn{<dQz>}. Units are in radians/2pi
+With the \vn{change tune} command, if \vn{<dQa>} or \vn{<dQb>} is not given, the value will
+be taken to be zero (that is, no change). The \vn{<branch_list>} is a list of lattice
+branches with optional universe prefix, to vary the tunes. The \vn{<veto_list>} of the \vn{-mask}
+option gives a list of quadrupoles {\em not} to use for varying the tune. See the \vn{set tune}
+(\sref{s:set.tune}) command for more details. The \vn{-listing} option, if present, will, in
+addition to the tune change, generate a list of quadrupoles varied along with variation
+coefficients.
 
 The \vn{-silent} switch, if present, suppresses the printing of what variables are changed.
 
@@ -859,10 +868,12 @@ The \vn{set} command is used to set values for data, variables, etc. Subcommands
   set region <region> <parameter> = <value>                 ! \sref{s:set.region}
   set space_charge_com <parameter> = <value>                ! \sref{s:set.sc.com}
   set symbolic_number <name> = <value>                      ! \sref{s:set.symbolic}
+  set tune <Qa> <Qb>                                        ! \sref{s:set.tune}
   set universe <what_universe> <on/off>                     ! \sref{s:set.universe}
   set universe <what_universe> <calc_name> <on/off>         ! \sref{s:set.universe}
   set variable <var_name>|<parameter> = <value>             ! \sref{s:set.variable}
   set wave <parameter> = <value>                            ! \sref{s:set.wave}
+  set z_tune <Qz>                                           ! \sref{s:set.z.tune}
 \end{example}
 
 \vskip 10pt 
@@ -1623,6 +1634,55 @@ Example:
   set sym aa = 23.4 * pi  ! Define the symbol "aa"
 \end{example}
 
+%% set tune --------------------------------------------------------------
+
+\subsection{set tune}
+\label{s:set.tune}
+
+Format:
+\begin{example}
+  set tune \{-branch <branch_list>\} \{-listing\} \{-mask <veto_list>\} \{<Qa>\} \{<Qb>\}
+\end{example}
+
+Set the two transverse tunes. Units for \vn{<Qa>} and \vn{<Qb>} are radians/2pi. If only the
+fractional part of \vn{<Qa>} and \vn{<Qb>} is given, the integer part will be taken to be the
+integer part of the tunes in the model lattice. If not given, \vn{<Qa>} and \vn{<Qb>} will
+default to the model lattice tunes.
+
+The \vn{<branch_list>} is a list of lattice branches with optional universe prefix.
+
+The algorithm used to vary the tunes starts by selecting all quadrupole elements or overlay elements
+whose slave parameters are all quadrupole \vn{k1}. From this list all quadrupoles that have a
+non-zero tilt are thrown out. The list is divided up into two groups: One group where $\beta_a >
+\beta_b$ at the quadrupole and the other group is where $\beta_a > \beta_b$. The elements in each
+group are assigned a weight. Currently the weights assigned is +1 for all the elements in one group
+and -1 for all elements in the other group. To get the desired tune, the \vn{k1} strengths of the
+elements of each group are are varied such that the fractional change of \vn{k1} for all
+quadrupoles in a group is proportional to the weights. 
+
+The \vn{-listing} option, if present, will, in addition to the tune change, generate a list of
+quadrupoles varied along with variation coefficients.
+
+It is sometimes desireable to veto from changing certain quadrupols (or overlays). The
+\vn{<veto_list>} of the \vn{-mask} option gives a list of quadrupoles {\em not} to use.
+A tilde \vn{~} in front of an element name means that the element will not be vetoed. This
+can be used to specify what quadrupoles to use (not veto). For example:
+\begin{example}
+  set tune -mask *,~qf_\%\%,~qd_\% 0.23 0.45
+\end{example}
+In this example, the mask string has three ``words'' speparated by commas. The first word is
+``\vn{*}'' which will veto everything. The second word \vn{~qf_\%} reinstates all elements whose
+name starts with \vn{qf_} and has exactly two characters after the beginning \vn{qf_}. The third
+word reinstates all elements that match the wild card pattern \vn{qd_\%}. The upshot is that only
+elements whose names match \vn{qf_\%\%} or \vn{qd_\%} will be varied.
+
+The tunes can also be varied using the \vn{change tune} command. For the longitudinal tune there is
+the \vn{set z_tune} and \vn{change z_tune} commands. Note that with the present algorithms used for
+varying the transverse and longitudinal tunes, varying the transverse tunes will vary the
+longitudinal tune somewhat and vice versa.
+
+Examples:
+
 %% set universe --------------------------------------------------------------
 
 \subsection{set universe}
@@ -1745,6 +1805,27 @@ Example:
 \end{example}
 
 Note: Use the \vn{wave} command (\sref{s:wave}) first to setup the display of the wave analysis.
+
+%% set z_tune --------------------------------------------------------------
+
+\subsection{set z_tune
+\label{s:set.z.tune}
+
+Format:
+\begin{example}
+  set z_tune <Qz>
+\end{example}
+
+Set the longitudinal tune by varying RF cavity voltages. 
+
+Also see the \vn{change z_tune} command as well as the \vn{set tune} and \vn{change_tune} commands.
+Note that with the present algorithms used for varying the transverse and longitudinal tunes,
+varying the transverse tunes will vary the longitudinal tune somewhat and vice versa.
+
+Example:
+\begin{example}
+  set z_tune 0.023
+\end{example}
 
 %% show --------------------------------------------------------------
 
