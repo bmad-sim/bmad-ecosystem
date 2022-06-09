@@ -43,7 +43,7 @@ character(*) :: command_line
 character(len(command_line)) cmd_line
 character(*), parameter :: r_name = 'tao_command'
 character(1000) :: cmd_word(12)
-character(200) list
+character(200) list, mask
 character(40) gang_str, switch, word, except, branch_str
 character(16) cmd_name, set_word, axis_name
 
@@ -58,7 +58,7 @@ character(16) :: cmd_names_old(6) = [&
     'output       ']
 
 logical quit_tao, err, err_is_fatal, silent, gang, abort, err_flag, ok
-logical include_wall, update, exact, include_this, lord_set
+logical include_wall, update, exact, include_this, lord_set, listing
 
 ! blank line => nothing to do
 
@@ -141,35 +141,41 @@ case ('call')
 
 case ('change')
 
-  call tao_cmd_split (cmd_line, 7, cmd_word, .false., err_flag); if (err_flag) goto 9000
+  call tao_cmd_split (cmd_line, 8, cmd_word, .false., err_flag); if (err_flag) goto 9000
 
   silent = .false.
   update = .false.
-  list = ''
+  mask = ''
   branch_str = ''
+  listing = .false.
+  n = size(cmd_word)
 
-  do i = 2, 5
+  do i = 2, 8
     if (len_trim(cmd_word(i)) < 2) cycle
 
     if (index('-silent', trim(cmd_word(i))) == 1) then
       silent = .true.
-      cmd_word(i:i+4) = cmd_word(i+1:i+5)
+      cmd_word(i:n-1) = cmd_word(i+1:n)
 
     elseif (index('-update', trim(cmd_word(i))) == 1) then
       update = .true.
-      cmd_word(i:i+4) = cmd_word(i+1:i+5)
+      cmd_word(i:n-1) = cmd_word(i+1:n)
+
+    elseif (index('-listing', trim(cmd_word(i))) == 1) then
+      listing = .true.
+      cmd_word(i:n-1) = cmd_word(i+1:n)
 
     elseif (index('-branch', trim(cmd_word(i))) == 1) then
       branch_str = cmd_word(i+1)
-      cmd_word(i:i+3) = cmd_word(i+2:i+5)      
+      cmd_word(i:n-2) = cmd_word(i+2:n)      
 
     elseif (index('-mask', trim(cmd_word(i))) == 1) then
-      list = cmd_word(i+1)
-      cmd_word(i:i+3) = cmd_word(i+2:i+5)      
+      mask = cmd_word(i+1)
+      cmd_word(i:n-2) = cmd_word(i+2:n)      
     endif
   enddo
 
-  cmd_word(4) = cmd_word(4)//cmd_word(5)//cmd_word(6)//cmd_word(7)
+  cmd_word(4) = cmd_word(4)//cmd_word(5)//cmd_word(6)//cmd_word(7)//cmd_word(8)
 
   if (index ('variable', trim(cmd_word(1))) == 1) then
     call tao_change_var (cmd_word(2), cmd_word(3)//cmd_word(4), silent, err_flag)
@@ -178,10 +184,10 @@ case ('change')
     call tao_change_ele (cmd_word(2), cmd_word(3), cmd_word(4), update, err_flag)
 
   elseif (index('tune', trim(cmd_word(1))) == 1) then
-    call tao_change_tune (branch_str, list, cmd_word(2), cmd_word(3)//cmd_word(4), err_flag)
+    call tao_change_tune (branch_str, mask, listing, cmd_word(2), cmd_word(3)//cmd_word(4), err_flag)
 
   elseif (index('z_tune', trim(cmd_word(1))) == 1) then
-    call tao_change_z_tune (branch_str, list, cmd_word(2)//cmd_word(3)//cmd_word(4), err_flag)
+    call tao_change_z_tune (branch_str, cmd_word(2)//cmd_word(3)//cmd_word(4), err_flag)
 
   elseif (index(trim(cmd_word(1)), 'particle_start') /= 0) then     ! Could be "2@particle_start"
     word = cmd_word(1)
@@ -562,23 +568,27 @@ case ('set')
   lord_set = .true.
   set_word = ''
   branch_str = ''
-  list = ''
+  mask = ''
+  listing = .false.
 
   do
     ! "-1" is a universe index and not a switch.
     if (cmd_line(1:1) == '-' .and. cmd_line(1:2) /= '-1') then
-      call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set', '-branch'], .true., switch, err, ix)
+      call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set', '-mask', '-branch', '-listing'], &
+                                                                                              .true., switch, err_flag, ix)
       if (err_flag) return
       select case (switch)
       case ('-update')
         update = .true.
+      case ('-listing')
+        listing = .true.
       case ('-lord_no_set')
         lord_set = .false.
       case ('-branch')
         branch_str = cmd_line(:ix)
         call string_trim(cmd_line(ix+1:), cmd_line, ix)
       case ('-mask')
-        list = cmd_line(:ix)
+        mask = cmd_line(:ix)
         call string_trim(cmd_line(ix+1:), cmd_line, ix)
       end select
       cycle
@@ -590,8 +600,8 @@ case ('set')
       'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
       'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune'], .true., switch, err, ix) 
-    if (err) return
+      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune'], .true., switch, err_flag, ix) 
+    if (err_flag) return
     set_word = switch
   enddo
 
@@ -616,17 +626,23 @@ case ('set')
 
   ! Split command line into words. Translate "set ele [1,2]@q[k1]" -> "set ele [1,2]@q k1"
 
+  n = size(cmd_word)
   call tao_cmd_split (cmd_line, n_word, cmd_word, .false., err, '=')
 
   if (set_word == 'tune' .or. set_word == 'z_tune') then
+    j = 1
     do i = 1, n_word
       if (index('-mask', cmd_word(i)) == 1 .and. len_trim(cmd_word(i)) > 1) then
-        list = cmd_word(i+1)
-        cmd_word(i:i+3) = cmd_word(i+2:i+5)
-      endif
-      if (index('-branch', cmd_word(i)) == 1 .and. len_trim(cmd_word(i)) > 1) then
+        mask = cmd_word(i+1)
+        cmd_word(i:n-2) = cmd_word(i+2:n)
+      elseif (index('-branch', cmd_word(i)) == 1 .and. len_trim(cmd_word(i)) > 1) then
         branch_str= cmd_word(i+1)
-        cmd_word(i:i+3) = cmd_word(i+2:i+5)
+        cmd_word(i:n-2) = cmd_word(i+2:n)
+      elseif (index('-listing', cmd_word(i)) == 1 .and. len_trim(cmd_word(i)) > 1) then
+        listing = .true.
+        cmd_word(i:n-1) = cmd_word(i+1:n)
+      else
+        j = j + 1
       endif
     enddo
   endif
@@ -719,7 +735,7 @@ case ('set')
     call tao_set_symbolic_number_cmd(cmd_word(1), cmd_word(3))
   case ('tune')
     if (cmd_word(1) == '=') cmd_word(1:2) = cmd_word(2:3)
-    call tao_set_tune_cmd (branch_str, list, cmd_word(1), cmd_word(2), .false.)
+    call tao_set_tune_cmd (branch_str, mask, listing, cmd_word(1), cmd_word(2), .false.)
   case ('universe')    
     call tao_set_universe_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
   case ('var')
@@ -730,7 +746,7 @@ case ('set')
     call tao_show_cmd ('wave')
   case ('z_tune')
     if (cmd_word(1) == '=') cmd_word(1:2) = cmd_word(2:3)
-    call tao_set_z_tune_cmd (branch_str, list, cmd_word(1), .false.)
+    call tao_set_z_tune_cmd (branch_str, cmd_word(1), .false.)
   end select
 
 !--------------------------------

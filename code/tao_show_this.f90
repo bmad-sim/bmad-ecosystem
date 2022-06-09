@@ -1736,8 +1736,10 @@ case ('emittance')
   tao_branch => u%model%tao_branch(ele%ix_branch)
   mode_m => tao_branch%modes_ri
 
-  call emit_6d (ele, .false., mode_6d, sig0_mat)
-  call emit_6d (ele, .true., mode_6d, sig_mat)
+  u%model%high_e_lat = u%model%lat
+  ele2 => u%model%high_e_lat%branch(ele%ix_branch)%ele(ele%ix_ele)
+  call emit_6d (ele2, .false., mode_6d, sig0_mat)
+  call emit_6d (ele2, .true., mode_6d, sig_mat)
   call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ele%ix_branch)
 
   if (.not. associated(branch%ptc%m_t_layout)) then
@@ -5293,8 +5295,10 @@ case ('universe')
   !
 
   if (lat%param%geometry == closed$) then
-    call emit_6d (branch%ele(0), .false., tao_branch%modes_6d, sig_mat)
-    call emit_6d (branch%ele(0), .true., tao_branch%modes_6d, sig_mat)
+    u%model%high_e_lat = u%model%lat
+    ele2 => u%model%high_e_lat%branch(ix_branch)%ele(0)
+    call emit_6d (ele2, .false., tao_branch%modes_6d, sig_mat)
+    call emit_6d (ele2, .true., tao_branch%modes_6d, sig_mat)
 
     call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
                           pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch)

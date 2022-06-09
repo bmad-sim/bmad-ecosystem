@@ -11,19 +11,20 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_set_tune_cmd (branch_str, mask_str, qa_str, qb_str, delta_input)
+! Subroutine tao_set_tune_cmd (branch_str, mask_str, print_list, qa_str, qb_str, delta_input)
 !
 ! Routine to set the transverse tunes.
 !
 ! Input:
 !   branch_str    -- character(*): List of branches to apply tune set to.
 !   mask_str      -- character(*): List of quadrupoles to veto.
+!   print_list    -- logical: If True, print a list of elements varied and coefficients.
 !   qa_str        -- character(*): Expression for Qa tune.
 !   qb_str        -- character(*): Expression for Qb tune.
 !   delta_input   -- logical: If true then qa_str and qb_str are deltas from present tune.
 !-
 
-subroutine tao_set_tune_cmd (branch_str, mask_str, qa_str, qb_str, delta_input)
+subroutine tao_set_tune_cmd (branch_str, mask_str, print_list, qa_str, qb_str, delta_input)
 
 implicit none
 
@@ -32,13 +33,18 @@ type (branch_struct), pointer :: branch
 type (tao_universe_pointer_struct), allocatable, target :: unis(:)
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
+type (lat_ele_order_struct) order
+type (nametable_struct) nametab
 
 real(rp) qa_val, qb_val
 real(rp), allocatable :: dk1(:)
 
-integer n, i
-logical delta_input, err
+integer n, i, j, k, n_match
+integer, allocatable :: indx(:)
 
+logical print_list, delta_input, err
+
+character(40) ele_name
 character(*) branch_str, mask_str, qa_str, qb_str
 character(*), parameter :: r_name = 'tao_set_tune_cmd'
 
@@ -61,6 +67,26 @@ do i = 1, size(branches)
     return
   endif
 
+  if (print_list .and. i == 1) then
+    call ele_order_calc (branch%lat, order)
+    allocate(indx(size(dk1)))
+    call nametable_init(nametab)
+    do j = 1, size(dk1)
+      ele_name = eles(j)%ele%name
+      n = nametable_bracket_indexx (nametab, ele_name, n_match)
+      if (n_match == 0) then
+        call nametable_add (nametab, ele_name, nametab%n_max+1)
+        indx(nametab%n_max) = j
+        call out_io (s_blank$, r_name, ele_name // real_str(dk1(j), 4))
+
+      else
+        k = nametab%index(n)
+        if (dk1(j) == dk1(indx(k))) cycle
+        call out_io (s_blank$, r_name, ele_unique_name(eles(j)%ele, order) // real_str(dk1(j), 4))
+      endif
+    enddo
+  endif
+
   err = .not. set_tune(twopi*qa_val, twopi*qb_val, dk1, eles, branch, u%model%tao_branch(branch%ix_branch)%orbit)
   u%calc%lattice = .true.
 enddo
@@ -71,18 +97,17 @@ end subroutine tao_set_tune_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_set_z_tune_cmd (branch_str, mask_str, q_str, delta_input)
+! Subroutine tao_set_z_tune_cmd (branch_str, q_str, delta_input)
 !
 ! Routine to set the z-tune.
 !
 ! Input:
 !   branch_str    -- character(*): List of branches to apply tune set to.
-!   mask_str      -- character(*): Not currently used.
 !   q_str         -- character(*): Expression for Qc tune.
 !   delta_input   -- logical: If true then qa_str and qb_str are deltas from present tune.
 !-
 
-subroutine tao_set_z_tune_cmd (branch_str, mask_str, q_str, delta_input)
+subroutine tao_set_z_tune_cmd (branch_str, q_str, delta_input)
 
 implicit none
 
@@ -97,7 +122,7 @@ real(rp), allocatable :: dk1(:)
 integer n, i
 logical delta_input, err, ok
 
-character(*) branch_str, mask_str, q_str
+character(*) branch_str, q_str
 character(*), parameter :: r_name = 'tao_set_z_tune_cmd'
 
 ! Evaluate expressions

@@ -10,11 +10,12 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_change_tune (branch_str, mask_str, dqa_str, dqb_str, err_flag)
+! Subroutine tao_change_tune (branch_str, mask_str, print_list, dqa_str, dqb_str, err_flag)
 !
 ! Input:
 !   branch_str    -- character(*): List of branches to apply tune set to.
 !   mask_str      -- character(*): List of quadrupoles to veto.
+!   print_list    -- logical: If True, print a list of elements varied and coefficients.
 !   dqa_str       -- character(*): Expression for dQa tune.
 !   dqb_str       -- character(*): Expression for dQb tune.
 !
@@ -22,17 +23,18 @@ contains
 !   err_flag      -- logical, Set true if there is an error, false otherwise.
 !-
 
-subroutine tao_change_tune (branch_str, mask_str, dqa_str, dqb_str, err_flag)
+subroutine tao_change_tune (branch_str, mask_str, print_list, dqa_str, dqb_str, err_flag)
 
 use tao_set_mod, only: tao_set_tune_cmd
 implicit none
 
 character(*) branch_str, mask_str, dqa_str, dqb_str
-logical err_flag
+character(*), parameter :: r_name = 'tao_change_tune'
+logical print_list, err_flag
 
 !
 
-call tao_set_tune_cmd (branch_str, mask_str, dqa_str, dqb_str, .true.)
+call tao_set_tune_cmd (branch_str, mask_str, print_list, dqa_str, dqb_str, .true.)
 
 end subroutine tao_change_tune
 
@@ -41,28 +43,27 @@ end subroutine tao_change_tune
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_change_z_tune (branch_str, mask_str, dq_str, err_flag)
+! Subroutine tao_change_z_tune (branch_str, dq_str, err_flag)
 !
 ! Input:
 !   branch_str    -- character(*): List of branches to apply tune set to.
-!   mask_str      -- character(*): Not currently used.
 !   dq_str        -- character(*): Expression for dQc tune.
 !
 ! output:
 !   err_flag      -- logical, Set true if there is an error, false otherwise.
 !-
 
-subroutine tao_change_z_tune (branch_str, mask_str, dq_str, err_flag)
+subroutine tao_change_z_tune (branch_str, dq_str, err_flag)
 
 use tao_set_mod, only: tao_set_z_tune_cmd
 implicit none
 
-character(*) branch_str, mask_str, dq_str
+character(*) branch_str, dq_str
 logical err_flag
 
 !
 
-call tao_set_z_tune_cmd (branch_str, mask_str, dq_str, .true.)
+call tao_set_z_tune_cmd (branch_str, dq_str, .true.)
 
 end subroutine tao_change_z_tune
 

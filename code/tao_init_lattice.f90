@@ -21,6 +21,7 @@ implicit none
 type (tao_design_lat_input), target :: design_lattice(0:200)
 type (tao_design_lat_input), pointer :: design_lat, dl0
 type (lat_struct), pointer :: lat
+type (lat_struct) parse_lat
 type (ele_struct), pointer :: ele1, ele2
 type (tao_universe_struct), pointer :: u, u_work
 type (branch_struct), pointer :: branch
@@ -184,7 +185,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     case ('bmad')
       call out_io (s_blank$, r_name, 'Reading Bmad file: ' // design_lat%file)
       if (design_lat%use_line /= '') call out_io (s_blank$, r_name, '  Line used is: ' // design_lat%use_line)
-      call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err)
+      call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err, parse_lat = parse_lat)
     case ('digested')
       call out_io (s_blank$, r_name, "Reading digested Bmad file: " // trim(design_lat%file))
       call read_digested_bmad_file (design_lat%file, u%design%lat, version, err)
@@ -203,8 +204,10 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     ! Call bmad_parser2 if wanted
 
     if (design_lat%file2 /= '') then
-      call bmad_parser2 (design_lat%file2, u%design%lat)
+      call bmad_parser2 (design_lat%file2, u%design%lat, parse_lat = parse_lat)
     endif
+
+    if (design_lat%language == 'bmad') call deallocate_lat_pointers(parse_lat)
 
     !
 
