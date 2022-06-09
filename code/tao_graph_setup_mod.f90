@@ -1183,7 +1183,7 @@ integer, allocatable :: xx_arr(:)
 
 logical err, err_flag, smooth_curve, found, zero_average_phase, ok
 logical straight_line_between_syms, valid, in_graph
-logical, allocatable :: good(:)
+logical, allocatable :: good(:), this_u(:)
 
 character(200) data_type, name
 character(100) str
@@ -1320,8 +1320,8 @@ case ('plot_x_axis_var')
 
   if (plot%x_axis_type == 'lat') then
 
-    call tao_pick_universe (curve%data_type_x, name, scratch%this_u, err, ix_uni)
-    if (err .or. count(scratch%this_u) /= 1) then
+    call tao_pick_universe (curve%data_type_x, name, this_u, err, ix_uni)
+    if (err .or. count(this_u) /= 1) then
       call tao_set_curve_invalid (curve, 'BAD UNIVERSE CONSTRUCT IN CURVE%DATA_TYPE_X: ' //curve%data_type_x)
       return
     endif

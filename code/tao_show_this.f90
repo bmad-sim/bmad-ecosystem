@@ -153,8 +153,8 @@ character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
 character(24) show_name, show2_name, what_to_show
 character(24) :: var_name, blank_str = '', phase_units_str
 character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, irmt, iimt
-character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_name
-character(40) replacement_for_blank
+character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_name, param_name, uni_str
+character(40) replacement_for_blank, component
 character(60) nam, attrib_list(20), attrib
 character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
 character(200) header, str, attrib0, file_name, name
@@ -4404,8 +4404,33 @@ case ('string')
       str = str(:n-1)
     endif
 
-    call tao_evaluate_expression (str, 0, .false., value, err)
-    if (err) return
+    ! If str evaluates to an element parameter. EG: "ele::34[name]".
+
+    call tao_parse_element_param_str(err, str, uni_str, ele_name, param_name, loc, component)
+    param_name = upcase(param_name)
+    if (.not. err .and. loc == anchor_end$ .and. ele_name /= '' .and. component == ''.and. &
+                                                            attribute_type(param_name) == is_string$) then
+      u => tao_pointer_to_universe(uni_str)
+      if (associated(u)) then
+        call tao_locate_elements(ele_name, u%ix_uni, eles, err, multiple_eles_is_err = .true.)
+        if (.not. err) then
+          call string_attrib(param_name, eles(1)%ele, str)
+          line = line(1:nc) // str
+          nc = len_trim(line)
+          cycle
+        endif
+      endif
+    else
+      call tao_evaluate_expression (str, 0, .false., value, err)
+    endif
+
+    if (err) then
+      line = line(1:nc) // '??????'
+      nc = len_trim(line)
+      cycle
+    endif
+
+    !
 
     if (size(value) == 1) then
       line = line(1:nc) // real_str(value(1), n_order)
