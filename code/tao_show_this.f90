@@ -151,7 +151,7 @@ character(9) angle_str
 character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt, energy_fmt, s_fmt
 character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
 character(24) show_name, show2_name, what_to_show
-character(24) :: var_name, blank_str = '', phase_units_str
+character(24) :: var_name, blank_str = '', phase_units_str, val_str
 character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_name, param_name, uni_str
 character(40) replacement_for_blank, component
@@ -2445,10 +2445,10 @@ case ('internal')
 
     ele => eles(1)%ele
     nl=nl+1; lines(nl) = 'For element: (' // trim(ele_loc_name(ele)) // ')  ' // ele%name
-    fmt = '(2x, a14, i6, i8, i6, 3x, a, t65, a20, a)'
+    fmt = '(2x, a14, i6, i8, i6, 3x, a, t70, a15, a, es12.4, 3x, a)'
 
     if (ele%n_slave + ele%n_slave_field /= 0) then 
-      nl=nl+1; lines(nl) = 'Slaves: Type       %ic  %cntrl  back   Slave                    Param               Expression'
+      nl=nl+1; lines(nl) = 'Slaves: Type       %ic  %cntrl  back   Slave                         Param          Expression'
       do i = 1, ele%n_slave + ele%n_slave_field
         slave => pointer_to_slave (ele, i, contl, .false., j, i_con, i_ic)
         if (i <= ele%n_slave) then
@@ -2463,13 +2463,19 @@ case ('internal')
     endif
 
     if (ele%n_lord + ele%n_lord_field /= 0) then 
-      nl=nl+1; lines(nl) = 'Lords:  Type       %ic  %cntrl  back   Lord                     Param               Expression'
+      nl=nl+1; lines(nl) = 'Lords:  Type       %ic  %cntrl  back   Lord                          Param          Attrib_Value  Expssn_val  Expression'
       do i = 1, ele%n_lord + ele%n_lord_field
         lord => pointer_to_lord (ele, i, contl, j, .false., i_con, i_ic)
         if (i <= ele%n_lord) then
+          call pointer_to_attribute(ele, contl%attribute, .false., a_ptr, err_flag)
+          if (associated(a_ptr%r)) then
+            write (val_str, '(es12.4)') a_ptr%r
+          else
+            val_str = ' ----'
+          endif
           nl=nl+1; write (lines(nl), fmt) control_name(lord%lord_status), i_ic, i_con, j, &
                       trim(lord%name) // ' ' // trim(ele_loc_name(lord, .true., '()')), &
-                      contl%attribute, expression_stack_to_string(contl%stack)
+                      contl%attribute, val_str(1:12), contl%value, expression_stack_to_string(contl%stack)
 
         else
           nl=nl+1; write (lines(nl), fmt)  &
