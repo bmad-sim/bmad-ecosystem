@@ -2463,7 +2463,7 @@ case ('internal')
     endif
 
     if (ele%n_lord + ele%n_lord_field /= 0) then 
-      nl=nl+1; lines(nl) = 'Lords:  Type       %ic  %cntrl  back   Slave                    Param               Expression'
+      nl=nl+1; lines(nl) = 'Lords:  Type       %ic  %cntrl  back   Lord                     Param               Expression'
       do i = 1, ele%n_lord + ele%n_lord_field
         lord => pointer_to_lord (ele, i, contl, j, .false., i_con, i_ic)
         if (i <= ele%n_lord) then
