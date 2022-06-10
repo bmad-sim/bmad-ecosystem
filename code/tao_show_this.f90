@@ -2445,15 +2445,16 @@ case ('internal')
 
     ele => eles(1)%ele
     nl=nl+1; lines(nl) = 'For element: (' // trim(ele_loc_name(ele)) // ')  ' // ele%name
-    fmt = '(4x, a14, i6, i8, i10, 4x, a10, a30, a)'
+    fmt = '(2x, a14, i6, i8, i6, 3x, a, t65, a20, a)'
 
     if (ele%n_slave + ele%n_slave_field /= 0) then 
-      nl=nl+1; lines(nl) = 'Slaves: Type         %ic  %control  ix_back   Slave'
+      nl=nl+1; lines(nl) = 'Slaves: Type       %ic  %cntrl  back   Slave                    Param               Expression'
       do i = 1, ele%n_slave + ele%n_slave_field
         slave => pointer_to_slave (ele, i, contl, .false., j, i_con, i_ic)
         if (i <= ele%n_slave) then
           nl=nl+1; write (lines(nl), fmt) control_name(ele%lord_status), i_ic, i_con, j, &
-                      ele_loc_name(slave, .true.), slave%name, expression_stack_to_string(contl%stack)
+                      trim(slave%name) // ' ' // trim(ele_loc_name(slave, .true., '()')), &
+                      contl%attribute, expression_stack_to_string(contl%stack)
         else
           nl=nl+1; write (lines(nl), fmt)  'Field_Overlap', i_ic, i_con, j, &
                                               ele_loc_name(slave, .true.), slave%name
@@ -2462,12 +2463,14 @@ case ('internal')
     endif
 
     if (ele%n_lord + ele%n_lord_field /= 0) then 
-      nl=nl+1; lines(nl) = 'Lords:  Type         %ic  %control  ix_back   Lord'
+      nl=nl+1; lines(nl) = 'Lords:  Type       %ic  %cntrl  back   Slave                    Param               Expression'
       do i = 1, ele%n_lord + ele%n_lord_field
         lord => pointer_to_lord (ele, i, contl, j, .false., i_con, i_ic)
         if (i <= ele%n_lord) then
           nl=nl+1; write (lines(nl), fmt) control_name(lord%lord_status), i_ic, i_con, j, &
-                      ele_loc_name(lord, .true.), lord%name, expression_stack_to_string(contl%stack)
+                      trim(lord%name) // ' ' // trim(ele_loc_name(lord, .true., '()')), &
+                      contl%attribute, expression_stack_to_string(contl%stack)
+
         else
           nl=nl+1; write (lines(nl), fmt)  &
                                      'Field_Overlap', i_ic, i_con, j, ele_loc_name(lord, .true.), lord%name
