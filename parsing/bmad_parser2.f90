@@ -588,6 +588,8 @@ parsing_loop: do
     exit
   endif
 
+  ! Element must be stored tempararily in lat to keep set_element_attribute happy.
+
   call lat_ele_locator (temp_ele_name, lat, eles, n_loc, err)
   ele => eles(1)%ele
   call init_ele(ele, null_ele$, 0, ele%ix_ele, lat%branch(0))
@@ -697,6 +699,7 @@ parsing_loop: do
 
   lat2%ele(1) = ele
   call set_ele_name (ele, temp_ele_name)
+  ele => lat2%ele(1) ! Needed since call to add superimpose will shift elements in lat.
 
   if (ele%lord_status == super_lord$) then
     ixx = ele%ixx
