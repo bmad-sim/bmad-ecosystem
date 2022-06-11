@@ -255,6 +255,11 @@ computed. Table~\ref{t:mat6.methods} gives which methods are available for each 
 Note: Table~\ref{t:mat6.methods} is for charged-particle tracking only. When tracking photons,
 transfer matrices (which are not very useful) are not computed.
 
+If the element \vn{static_mat6} parameter is set to \vn{True} (the default is \vn{False}, this
+prevents the transfer matrix from being recomputed. For example, if a steering is changed which
+shifts the reference orbit, the transfer matrix will, in general, vary but having \vn{static_mat6}
+set to \vn{True} will prevent this variation.
+
 \index{sympliectify}
 \index{taylor_map_includes_offsets}
 In addition to the \vn{mat6_calc_method} switch, two element attributes that can affect the way the
@@ -295,12 +300,6 @@ This uses the MAD 2nd transfer map. This method is not able to handle element mi
 kicks, and becomes inaccurate as the particle energy deviates from the reference energy. MAD
 tracking is generally only used for testing purposes. Thanks must be given to CERN and Frank Schmidt
 for permission to use the MAD tracking code within \bmad.
-
-\index{static!mat6_calc_method}
-\item[\vn{Static}]
-This prevents the transfer matrix from being recomputed.  Using \vn{Static} in the input file is
-generally not a good idea since it prevents the matrix from being computed in the first place.
-Typically \vn{Static} is used internally in a program to prevent recomputation.
 
 \index{symp_lie_bmad!mat6_calc_method}
 \item[\vn{Symp_Lie_Bmad}]

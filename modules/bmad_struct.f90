@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 277
+integer, parameter :: bmad_inc_version$ = 278
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -60,14 +60,14 @@ end type
 
 integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2, runge_kutta$ = 3 
 integer, parameter :: linear$ = 4, tracking$ = 5, time_runge_kutta$ = 6
-integer, parameter :: fixed_step_runge_kutta$ = 9, symp_lie_bmad$ = 10, static$ = 11
+integer, parameter :: fixed_step_runge_kutta$ = 9, symp_lie_bmad$ = 10
 integer, parameter :: sprint$ = 12, fixed_step_time_runge_kutta$ = 13, mad$ = 14
 integer, parameter :: n_methods$ = 14
 
 character(28), parameter :: tracking_method_name(0:n_methods$) = [character(28) :: &
       'GARBAGE!', 'Bmad_Standard',               'Symp_Lie_PTC',     'Runge_Kutta', &
       'Linear',   'GARBAGE!',                    'Time_Runge_Kutta', 'Custom', &
-      'Taylor',   'Fixed_Step_Runge_Kutta',      'Symp_Lie_Bmad',    'Static', &
+      'Taylor',   'Fixed_Step_Runge_Kutta',      'Symp_Lie_Bmad',    'GARBAGE!', &
       'GARBAGE!', 'Fixed_Step_Time_Runge_kutta', 'MAD']
 
 character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
@@ -79,7 +79,7 @@ character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
 character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &
       'Linear          ', 'Tracking        ', 'GARBAGE!        ', 'Custom          ', &
-      'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'Static          ', &
+      'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'GARBAGE!        ', &
       'GARBAGE!        ', 'GARBAGE!        ', 'MAD             ']
 
 integer, parameter :: drift_kick$ = 1, matrix_kick$ = 2, ripken_kick$ = 3
@@ -1524,9 +1524,9 @@ logical has_kick_attributes(n_key$)
 
 ! Element attribute name logical definitions
 
-integer, parameter :: val1$=11, val2$=12, val3$=13, val4$=14, val5$=15, &
-          val6$=16, val7$=17, val8$=18, val9$=19, val10$=20, val11$=21, &
-          val12$=22
+integer, parameter :: val1$=19, val2$=20, val3$=21, val4$=22, val5$=23, &
+          val6$=24, val7$=25, val8$=26, val9$=27, val10$=28, val11$=29, &
+          val12$=30
 
 integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, alpha_b0$ = 5
 integer, parameter :: beta_a1$ = 6, alpha_a1$ = 7, beta_b1$ = 8, alpha_b1$ = 9
@@ -1574,7 +1574,7 @@ integer, parameter :: spin_fringe_on$ = 13, pendellosung_period_sigma$ = 13
 integer, parameter :: sig_x$ = 14, exact_multipoles$ = 14, pendellosung_period_pi$ = 14
 integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15
 integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16
-integer, parameter :: sig_vx$ = 17
+integer, parameter :: sig_vx$ = 17, static_mat6$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19, sig_pz$ = 19
 integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direction_particle_start$ = 20
