@@ -62,12 +62,13 @@ def keep_bbu_param ( bbu_params, temp_dir ):
 
 #==========================================================
 def prepare_lat (py_par, lat_file):
-## Create "temp_lat.lat" with command lines to call the lattice file 
-##########################################################
-  f_lat = open(os.path.join(py_par['temp_dir'],'temp_lat.lat'), 'w')
+### Create "temp_lat.lat" with command lines to call the lattice file 
+###########################################################
+  print(lat_file)
+  f_name = os.path.join(py_par['temp_dir'],'temp_lat.lat')
+  f_lat = open(f_name, 'w')
   f_lat.write('call, file = '+lat_file+'\n')
   f_lat.close()
-
 
 #==========================================================
 def prepare_HOM ( py_par ):

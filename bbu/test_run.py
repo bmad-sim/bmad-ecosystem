@@ -7,13 +7,7 @@ from bbu import bbu_main, find_threshold, drscan, phase_scan  #imports bbu packa
 #bbu settings
 bbu_par = {  \
 # Make sure the correct lattice is called 
-#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/examples/oneturn_lat.bmad'",  
-#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/mlc/mlc.lat'",   
-'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/1pass_lat.bmad'",  
-#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/2pass_lat.bmad'", 
-#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/3pass_lat.bmad'", 
-#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/4pass_lat.bmad'", 
-#'lat_filename': "'~/nfs/linux_lib/bsim/bbu/lattice/eRHIC/eRHIC_lat.bmad'", # Make sure f_b changes accordingly
+'lat_filename':"'$DIST_BASE_DIR/bsim/bbu/examples/oneturn_lat.bmad'",
 'bunch_freq': 1.3e9,                # Freq in Hz.
 'limit_factor': 3,                  # Init_hom_amp * limit_factor = simulation unstable limit  !! Must be >2
 'simulation_turns_max': 30,         # Must be > 10. More turns => more accurate but slower
@@ -38,15 +32,14 @@ bbu_par = {  \
 ###############################################################################
 # python parameters
 py_par = {  \
-'exec_path':'/home/wl528/nfs/linux_lib/production/bin/bbu',   # Production version
-#'exec_path':'/home/wl528/nfs/linux_lib/debug/bin/bbu',        # Debug version ( slow )
+'exec_path':'$DIST_BASE_DIR/production/bin/bbu',   # Production version
 'temp_dir': '',                # Will be created, LEAVE IT EMPTY
 'threshold_start_curr': 0.1,  # Initial test current for all modes
 'final_rel_tol': 1e-2,                     # Final threshold current accuracy. Small => slow
 
 ############## Parameters for DR_SCAN  mode:   #################################
 
-'ndata_pnts_DR': 21,   # integer >=1 required
+'ndata_pnts_DR': 3,   # integer >=1 required
 
 # For something like the PRSTAB 7, Fig. 3, try startarctime = 4.028E-9, endarctime = 4.725E-9, bunch_freq = 1.3E9
 #'start_dr_arctime': 96.5/1.3e9,  
@@ -77,28 +70,21 @@ py_par = {  \
 
 # If random_homs is False, hom_dir is not used 
 # Make sure hom_dir has the desired HOMs to be RANDOMLY/FIXEDLY assigned
-#'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/threshold/HOM_lists_250mm/',
-'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/threshold/vHOM_125um_top3/',
-#'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/threshold/vHOM_250um_top3/',
-#'hom_dir': '/home/wl528/nfs/linux_lib/bsim/bbu/threshold/vHOM_125um_top1/',
+#'hom_dir': '$DIST_BASE_DIR/bsim/bbu/threshold/HOM_lists_250mm/',
 #'hom_dir_number': 125,  # Can be 125,250,500, or 1000 (micrometer). Make sure hom_dir has consistent name!!! 
 'hom_fixed_file_number': -1 # Do not modify 
                             #The 5th argument from user (if given) to assign all cavities with the same HOMs
 }
 
 # This runs the code below from the command line:
-# python3 .../test_run.py #Thresholds #ID '~/nfs/linux_lib/bsim/bbu/target_directory/'
+# python3 .../test_run.py #Thresholds #ID '$DIST_BASE_DIR/bsim/bbu/target_directory/'
 
 def main(argv):
   print(time.time())
 # Decides which mode the program runs based on the number of arguments
   if (len(sys.argv) == 1):
     print('1 argumnet (including python script) given. DR-SCAN mode.')
-    bbu_par['lat_filename']= "'~/nfs/linux_lib/bsim/bbu/examples/oneturn_lat.bmad'"
-    #bbu_par['lat_filename']= "'~/nfs/linux_lib/bsim/bbu/drscan_coupling/oneturn_lat.bmad'"
-    #bbu_par['lat_filename']= "'~/nfs/linux_lib/bsim/bbu/2pass_1cav_1HOM/2pass_lat.bmad'"
-    #bbu_par['lat_filename']= "'~/nfs/linux_lib/bsim/bbu/1pass_3cav_1HOM/1pass_lat.bmad'"
-    #bbu_par['lat_filename']= "'~/nfs/linux_lib/bsim/bbu/1pass_2cav_1HOM/1pass_lat.bmad'"
+    bbu_par['lat_filename']= "'$DIST_BASE_DIR/bsim/bbu/examples/oneturn_lat.bmad'"
     mode = 'dr_scan'
     working_dir = os.getcwd() # current directory
     print('WORKING DIR ',os.getcwd())
@@ -147,6 +133,7 @@ def main(argv):
 
   # creates bbu_template.init which stores all bbu_par
   find_threshold.keep_bbu_param( bbu_par, py_par['temp_dir'] )
+  #find_threshold.prepare_lat( py_par, user_lattice, working_dir )  
   find_threshold.prepare_lat( py_par, user_lattice )  
 
 
