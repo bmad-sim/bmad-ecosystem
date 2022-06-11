@@ -70,6 +70,11 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele)
 
 mat6_calc_method = ele%mat6_calc_method
 if (.not. ele%is_on) mat6_calc_method = bmad_standard$
+if (is_true(ele%value(static_mat6$))) then
+  if (present(err_flag)) err_flag = .false.
+  if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
+  return
+endif
 
 ele%map_ref_orb_in = a_start_orb
 
@@ -108,11 +113,6 @@ case (mad$)
   call make_mat6_mad (ele, param, a_start_orb, a_end_orb)
 
 ! Static is used with hybrid elements since, in this case, the transfer map is not recomputable.
-
-case (static$)
-  if (present(err_flag)) err_flag = .false.
-  if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
-  return
 
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN MAT6_CALC_METHOD: ' // mat6_calc_method_name(ele%mat6_calc_method))

@@ -7,10 +7,11 @@
 ! Additionally, the length of an optional orbit array can be correspondingly increased
 ! by addition of an element at the corresponding point in the orbit array.
 !
-! Note: This routine is not for creating new control elements. For creating
+! Notes:
+! 1) This routine is not for creating new control elements. For creating
 !   new control elements use the routine new_control.
-! Note: Bookkeeping like recalculating s-positions, reference energy, etc. is not done by this routine.
-! Note: set_flags_for_changed_attribute is called for the inserted element.
+! 2) Bookkeeping like recalculating s-positions, reference energy, etc. is not done by this routine.
+! 3) set_flags_for_changed_attribute is called for the inserted element.
 !
 ! Input:
 !   lat          -- lat_struct: lattice that will be modified

@@ -289,8 +289,7 @@ endif
 
 ! Transfer matrix calc needs to be flagged
 
-if (ele%key /= overlay$ .and. ele%key /= group$ .and. &
-    ele%lord_status /= multipass_lord$) then
+if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%lord_status /= multipass_lord$) then
   call set_ele_status_stale (ele, mat6_group$)
 endif
 

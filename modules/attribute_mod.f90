@@ -669,12 +669,10 @@ do i = 1, n_key$
   call init_attribute_name1 (i, symplectify$,          'SYMPLECTIFY')
   call init_attribute_name1 (i, taylor_map_includes_offsets$,    'TAYLOR_MAP_INCLUDES_OFFSETS')
 
-  if (i == sad_mult$)      cycle
-
   call init_attribute_name1 (i, lord_pad1$,            'LORD_PAD1', quasi_free$)
   call init_attribute_name1 (i, lord_pad2$,            'LORD_PAD2', quasi_free$)
 
-  if (i == taylor$)       cycle
+  if (i == taylor$)            cycle
 
   call init_attribute_name1 (i, integrator_order$,     'INTEGRATOR_ORDER')
   call init_attribute_name1 (i, num_steps$,            'NUM_STEPS', quasi_free$)
@@ -684,8 +682,10 @@ do i = 1, n_key$
   call init_attribute_name1 (i, csr_ds_step$,          'CSR_DS_STEP')
   call init_attribute_name1 (i, space_charge_method$,  'SPACE_CHARGE_METHOD')
   call init_attribute_name1 (i, multipass_ref_energy$, 'MULTIPASS_REF_ENERGY', dependent$)
+  call init_attribute_name1 (i, static_mat6$,          'STATIC_MAT6')
 
-  if (i == drift$)        cycle
+  if (i == sad_mult$)          cycle
+  if (i == drift$)             cycle
 
   call init_attribute_name1 (i, field_overlaps$,       'FIELD_OVERLAPS')
 
@@ -1477,8 +1477,6 @@ call init_attribute_name1 (ab_multipole$, y_pitch$,       null_name$, does_not_e
 call init_attribute_name1 (ab_multipole$, x_pitch_tot$,   null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (ab_multipole$, y_pitch_tot$,   null_name$, does_not_exist$, .true.)
 
-call init_attribute_name1 (sad_mult$, num_steps$,              'NUM_STEPS', dependent$)
-call init_attribute_name1 (sad_mult$, ds_step$,                'DS_STEP', dependent$)
 call init_attribute_name1 (sad_mult$, eps_step_scale$,         'EPS_STEP_SCALE')
 call init_attribute_name1 (sad_mult$, fringe_at$,              'FRINGE_AT')    ! SAD: fringe
 call init_attribute_name1 (sad_mult$, fringe_type$,            'FRINGE_TYPE')  ! SAD: disfrin
@@ -1804,7 +1802,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
       'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'PHASE_TROMBONE', 'PHASE_TROMBONE_INPUT', &
-      'MODE_FLIP0', 'MODE_FLIP1')
+      'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_MAT6')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
@@ -2072,6 +2070,8 @@ integer ib, ie
 attrib_value = ''
 
 select case (attrib_name)
+case ('NAME')
+  attrib_value = ele%name
 case ('TYPE')
   attrib_value = ele%type
 case ('ALIAS')
@@ -2101,8 +2101,6 @@ case ('TO_ELEMENT')
   endif
 case ('ORIGIN_ELE')
   if (attribute_index(ele, attrib_name) /= 0) attrib_value = ele%component_name
-case ('NAME')
-  attrib_value = ele%name
 end select
 
 

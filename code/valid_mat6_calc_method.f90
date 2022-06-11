@@ -34,7 +34,7 @@ is_valid = .false.
 
 if (species == photon$) then
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
+  case (bmad_standard$, tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -47,19 +47,19 @@ select case (ele%key)
 
 case (ab_multipole$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (ac_kicker$)
   select case (mat6_calc_method)
-  case (static$, tracking$, custom$)
+  case (tracking$, custom$)
     is_valid = .true.
   end select
 
 case (beambeam$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -71,69 +71,69 @@ case (beginning_ele$)
 
 case (converter$)
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, custom$)
+  case (bmad_standard$, custom$)
     is_valid = .true.
   end select
 
 case (crab_cavity$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$, taylor$)
+  case (bmad_standard$, symp_lie_ptc$, tracking$, custom$, taylor$)
     is_valid = .true.
   end select
 
 case (fork$, photon_fork$)
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
+  case (bmad_standard$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (crystal$, diffraction_plate$, mirror$, multilayer_mirror$, capillary$)
   if (species == not_set$) then
     select case (mat6_calc_method)
-    case (bmad_standard$, static$, tracking$, custom$)
+    case (bmad_standard$, tracking$, custom$)
       is_valid = .true.
     end select
   endif
 
 case (custom$)
   select case (mat6_calc_method)
-  case (static$, tracking$, custom$)
+  case (tracking$, custom$)
     is_valid = .true.
   end select
 
 case (drift$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (e_gun$)
   select case (mat6_calc_method)
-  case (static$, tracking$, custom$)
+  case (tracking$, custom$)
     is_valid = .true.
   end select
 
 case (ecollimator$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (elseparator$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (em_field$)
   select case (mat6_calc_method)
-  case (symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (fiducial$, floor_shift$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -142,61 +142,61 @@ case (group$, overlay$, girder$, ramper$)
 
 case (hkicker$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (hybrid$)
   select case (mat6_calc_method)
-  case (taylor$, static$)
+  case (taylor$)
     is_valid = .true.
   end select
 
 case (instrument$, pipe$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (kicker$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (lcavity$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (mask$)
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
+  case (bmad_standard$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (marker$, detector$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (match$)
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
+  case (bmad_standard$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (monitor$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (multipole$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -205,73 +205,73 @@ case (null_ele$)
 
 case (octupole$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (patch$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (photon_init$)
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
+  case (bmad_standard$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (quadrupole$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, mad$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, mad$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (rcollimator$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (sad_mult$)
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$, symp_lie_ptc$, taylor$)
+  case (bmad_standard$, tracking$, custom$, symp_lie_ptc$, taylor$)
     is_valid = .true.
   end select
 
 case (sample$)
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
+  case (bmad_standard$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (sbend$, rbend$, sextupole$, rfcavity$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (solenoid$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, mad$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, mad$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (sol_quad$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (taylor$)
   select case (mat6_calc_method)
-  case (taylor$, static$, custom$, symp_lie_ptc$)
+  case (taylor$, custom$, symp_lie_ptc$)
     is_valid = .true.
   end select
 
 case (vkicker$)
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -281,22 +281,22 @@ case (wiggler$, undulator$)
   select case (field_ele%field_calc)
   case (int_garbage$)
     select case (mat6_calc_method)
-    case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
+    case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, tracking$, custom$)
       is_valid = .true.
     end select
   case (fieldmap$)       ! Is map type
     select case (mat6_calc_method)
-    case (symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
+    case (symp_lie_ptc$, taylor$, symp_lie_bmad$, tracking$, custom$)
       is_valid = .true.
     end select
   case (planar_model$)   ! Is periodic type
     select case (mat6_calc_method)
-    case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
+    case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, tracking$, custom$)
       is_valid = .true.
     end select
   case (helical_model$)  ! Is periodic type
     select case (mat6_calc_method)
-    case (bmad_standard$, symp_lie_bmad$, static$, tracking$, custom$)
+    case (bmad_standard$, symp_lie_bmad$, tracking$, custom$)
       is_valid = .true.
     end select
   end select
