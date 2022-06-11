@@ -49,7 +49,6 @@ real(rp) :: color
 real(rp) :: r1, plot_y_min, plot_y_max, plot_color_scale, plot_x_min, plot_x_max, plot_x_size, plot_y_size
 real(rp) :: rel_tol_adaptive_tracking, abs_tol_adaptive_tracking
 !real(rp) :: ref_p0c, ref_time
-real(rp) :: dt_dummy
 integer :: outfile, namelist_file, monitor_file
 integer :: plot_every_n, species
 integer, allocatable :: omp_counter(:), omp_particle_id(:)
@@ -573,9 +572,8 @@ integer ix_ele
 !
 
 particle%species = species
-dt_dummy = 0
 !if s < 0, drift particle forward to s = 0
-if (particle%s < 0) call drift_orbit_time(particle, dt_dummy, 1.0_rp,  delta_s =  -particle%s)
+if (particle%s < 0) call drift_orbit_time(particle, 1.0_rp,  delta_s =  -particle%s)
   
   ! Info to screen
   !print *, 'test' 
@@ -601,7 +599,7 @@ e_tot = sqrt(pc2 + mass_of(particle%species)**2)
 particle%beta = sqrt(pc2)/e_tot
 
 
-call convert_particle_coordinates_t_to_s(particle, dt_dummy, ele, ele%ref_time)
+call convert_particle_coordinates_t_to_s(particle, ele, ele%ref_time)
 
 
 

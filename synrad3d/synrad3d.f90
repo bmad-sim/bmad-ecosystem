@@ -746,7 +746,7 @@ character(40) wall_name
 branch => lat%branch(photon%now%ix_branch)
 start_vec = [photon%start%orb%vec(1:4), photon%start%orb%s, photon%start%orb%vec(6)]
 now_vec = [photon%now%orb%vec(1:4), photon%now%orb%s, photon%now%orb%vec(6)]
-dtrack = photon%now%orb%path_len - photon_direction * modulo2((photon%now%orb%s - photon%start%orb%s), branch%param%total_length/2)
+dtrack = photon%now%orb%dt_ref*c_light - photon_direction * modulo2((photon%now%orb%s - photon%start%orb%s), branch%param%total_length/2)
 j = photon%now%orb%ix_ele
 wall_name = branch%wall3d(photon%now%ix_wall3d)%name
 if (wall_name == '') wall_name = '<default_subchamber>'
@@ -754,7 +754,7 @@ if (wall_name == '') wall_name = '<default_subchamber>'
 iu = sr3d_params%iu_dat_file
 write (iu, '(i8, i6, es14.6, (4f12.6, f12.4, f12.6), i4, (4f12.6, f12.4, f12.6), f11.6, 2f12.6, i4, i7, 3x, a16, 3x, a)') &
         n_photon, photon%n_wall_hit, photon%start%orb%p0c, start_vec, photon%start%ix_branch, now_vec, &
-        wall_hit(photon%n_wall_hit)%cos_perp_in,  photon%now%orb%path_len, dtrack, branch%ix_branch, j, &
+        wall_hit(photon%n_wall_hit)%cos_perp_in,  photon%now%orb%dt_ref*c_light, dtrack, branch%ix_branch, j, &
         key_name(branch%ele(j)%key), trim(wall_name)
 
 end subroutine write_photon_data
