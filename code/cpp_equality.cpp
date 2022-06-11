@@ -209,7 +209,7 @@ bool operator== (const CPP_coord& x, const CPP_coord& y) {
   is_eq = is_eq && is_all_equal(x.field, y.field);
   is_eq = is_eq && is_all_equal(x.phase, y.phase);
   is_eq = is_eq && (x.charge == y.charge);
-  is_eq = is_eq && (x.path_len == y.path_len);
+  is_eq = is_eq && (x.dt_ref == y.dt_ref);
   is_eq = is_eq && (x.r == y.r);
   is_eq = is_eq && (x.p0c == y.p0c);
   is_eq = is_eq && (x.e_potential == y.e_potential);
@@ -1444,6 +1444,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   if (!is_eq) return false;
   if (x.rad_int_cache != NULL) is_eq = (*x.rad_int_cache == *y.rad_int_cache);
   is_eq = is_eq && is_all_equal(x.taylor, y.taylor);
+  is_eq = is_eq && is_all_equal(x.spin_taylor_ref_orb_in, y.spin_taylor_ref_orb_in);
   is_eq = is_eq && is_all_equal(x.spin_taylor, y.spin_taylor);
   is_eq = is_eq && ((x.wake == NULL) == (y.wake == NULL));
   if (!is_eq) return false;
@@ -1459,11 +1460,11 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.time_ref_orb_out == y.time_ref_orb_out);
   is_eq = is_eq && is_all_equal(x.value, y.value);
   is_eq = is_eq && is_all_equal(x.old_value, y.old_value);
+  is_eq = is_eq && is_all_equal(x.spin_q, y.spin_q);
   is_eq = is_eq && is_all_equal(x.vec0, y.vec0);
   is_eq = is_eq && is_all_equal(x.mat6, y.mat6);
   is_eq = is_eq && is_all_equal(x.c_mat, y.c_mat);
   is_eq = is_eq && (x.gamma_c == y.gamma_c);
-  is_eq = is_eq && is_all_equal(x.spin_q, y.spin_q);
   is_eq = is_eq && (x.s_start == y.s_start);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.ref_time == y.ref_time);

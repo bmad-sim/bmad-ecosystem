@@ -749,7 +749,7 @@ public:
   Real_ARRAY field;
   Real_ARRAY phase;
   Real charge;
-  Real path_len;
+  Real dt_ref;
   Real r;
   Real p0c;
   Real e_potential;
@@ -770,7 +770,7 @@ public:
     field(0.0, 2),
     phase(0.0, 2),
     charge(0.0),
-    path_len(0.0),
+    dt_ref(0.0),
     r(0.0),
     p0c(0.0),
     e_potential(0.0),
@@ -3302,6 +3302,7 @@ public:
   CPP_photon_element* photon;
   CPP_rad_int_ele_cache* rad_int_cache;
   CPP_taylor_ARRAY taylor;
+  Real_ARRAY spin_taylor_ref_orb_in;
   CPP_taylor_ARRAY spin_taylor;
   CPP_wake* wake;
   CPP_wall3d_ARRAY wall3d;
@@ -3315,11 +3316,11 @@ public:
   CPP_coord time_ref_orb_out;
   Real_ARRAY value;
   Real_ARRAY old_value;
+  Real_MATRIX spin_q;
   Real_ARRAY vec0;
   Real_MATRIX mat6;
   Real_MATRIX c_mat;
   Real gamma_c;
-  Real_MATRIX spin_q;
   Real s_start;
   Real s;
   Real ref_time;
@@ -3410,6 +3411,7 @@ public:
     photon(NULL),
     rad_int_cache(NULL),
     taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
+    spin_taylor_ref_orb_in(Bmad::REAL_GARBAGE, 6),
     spin_taylor(CPP_taylor_ARRAY(CPP_taylor(), 4)),
     wake(NULL),
     wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0)),
@@ -3423,11 +3425,11 @@ public:
     time_ref_orb_out(),
     value(double(0), Bmad::NUM_ELE_ATTRIB+1),
     old_value(double(0), Bmad::NUM_ELE_ATTRIB+1),
+    spin_q(Real_ARRAY(Bmad::REAL_GARBAGE, 7), 4),
     vec0(0.0, 6),
     mat6(Real_ARRAY(0.0, 6), 6),
     c_mat(Real_ARRAY(0.0, 2), 2),
     gamma_c(1),
-    spin_q(Real_ARRAY(Bmad::REAL_GARBAGE, 7), 4),
     s_start(0.0),
     s(0.0),
     ref_time(0.0),
