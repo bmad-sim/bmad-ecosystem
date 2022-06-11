@@ -60,7 +60,7 @@ if (sign_of(photon%start%orb%vec(6)) /= photon%start%orb%direction) then
   call err_exit
 endif
 
-photon%start%orb%path_len = 0
+photon%start%orb%dt_ref = 0
 photon%now = photon%start
 photon%crossed_lat_end = .false.
 wall_hit(0)%before_reflect = photon%start%orb
@@ -759,7 +759,7 @@ propagation_loop: do
   ! Path length increases even when moving though an element with negative length.
   ! This is important when zbrent is called to find the hit spot.
 
-  now_orb%path_len = now_orb%path_len + abs(dl_1hop)
+  now_orb%dt_ref = now_orb%dt_ref + abs(dl_1hop)/c_light
   dl_left = dl_left - abs(dl_1hop)
   now_orb%location = stop_location
 
@@ -819,8 +819,8 @@ if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
   print *, 'Hit:', photon%n_wall_hit
   call sr3d_photon_d_radius (photon%old, branch, no_wall_here)
   call sr3d_photon_d_radius (photon%now, branch, no_wall_here)
-  print *, 'photon%old:', photon%old%orb%vec, photon%old%orb%path_len, photon%old%d_radius
-  print *, 'photon%now:', photon%now%orb%vec, photon%now%orb%path_len, photon%now%d_radius
+  print *, 'photon%old:', photon%old%orb%vec, photon%old%orb%dt_ref*c_light, photon%old%d_radius
+  print *, 'photon%now:', photon%now%orb%vec, photon%now%orb%dt_ref*c_light, photon%now%d_radius
 endif
 
 ! Bracket the hit point. 
@@ -829,24 +829,24 @@ endif
 
 wall3d => branch%wall3d(photon%now%ix_wall3d)
 photon1 = photon
-path_len1 = photon%now%orb%path_len
+path_len1 = photon%now%orb%dt_ref*c_light
 d_rad0 = real_garbage$
 d_rad1 = real_garbage$
 in_zbrent = .false.
 
-if (wall_hit(photon%n_wall_hit)%after_reflect%path_len == photon%old%orb%path_len) then
+if (wall_hit(photon%n_wall_hit)%after_reflect%dt_ref == photon%old%orb%dt_ref) then
 
-  path_len0 = (photon%now%orb%path_len + 3*photon%old%orb%path_len) / 4
+  path_len0 = (photon%now%orb%dt_ref + 3*photon%old%orb%dt_ref) * c_light / 4
   do i = 1, 30
     d_rad0 = sr3d_photon_hit_func(path_len0, status)
     if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
       print *
       print *, 'path_len, d_rad0:', path_len0, d_rad0
-      print *, 'photon1%now:', i, photon1%now%orb%vec, photon1%now%orb%path_len
+      print *, 'photon1%now:', i, photon1%now%orb%vec, photon1%now%orb%dt_ref*c_light
     endif
     if (d_rad0 < 0) exit
     path_len1 = path_len0; d_rad1 = d_rad0
-    path_len0 = (path_len0 + 3*photon%old%orb%path_len) / 4
+    path_len0 = (path_len0 + 3*photon%old%orb%dt_ref*c_light) / 4
     if (i == 30) then
       print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
       print '(8x, a)', 'WILL IGNORE THIS PHOTON.'
@@ -859,7 +859,7 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%path_len == photon%old%orb%path_le
   enddo
 
 else
-  path_len0 = photon%old%orb%path_len
+  path_len0 = photon%old%orb%dt_ref * c_light
 endif
 
 ! Find where the photon hits.
@@ -878,7 +878,7 @@ endif
 ! Cleanup
 
 photon%now = photon%old
-dl = path_len-photon%now%orb%path_len
+dl = path_len - photon%now%orb%dt_ref*c_light
 if (abs(dl) > 0.1 * sr3d_params%significant_length) call sr3d_propagate_photon_a_step (photon, branch, dl, .false.)
 call sr3d_photon_d_radius (photon%now, branch, no_wall_here)
 
@@ -922,19 +922,19 @@ if (in_zbrent) then
 endif
 
 ! Determine start of tracking.
-! If path_length > photon1%now%orb%path_len: 
+! If path_length > photon1%now%orb%dt_ref*c_light: 
 !   Track starting from the present position (photon1%now).
 ! Otherwise:
 !   Track starting from the beginning of the region (photon%old).
 
-if (path_len < photon1%now%orb%path_len) then
+if (path_len < photon1%now%orb%dt_ref*c_light) then
   photon1 = photon
   photon1%now = photon%old
 endif
 
 ! And track to path_len position.
 
-d_track = path_len - photon1%now%orb%path_len
+d_track = path_len - photon1%now%orb%dt_ref*c_light
 call sr3d_propagate_photon_a_step (photon1, branch, d_track, .false.)
 
 call sr3d_photon_d_radius (photon1%now, branch, no_wall_here)
@@ -1133,7 +1133,7 @@ wall_hit(n_wall_hit)%cos_perp_out = dot_product (photon%now%orb%vec(2:6:2), dw_p
 ! positive and small, Vy small but finite, and Vs ~ 1.
 
 n = n_wall_hit
-dlen = wall_hit(n)%before_reflect%path_len - wall_hit(n-1)%before_reflect%path_len
+dlen = (wall_hit(n)%before_reflect%dt_ref - wall_hit(n-1)%before_reflect%dt_ref) * c_light
 cos_perp = abs(wall_hit(n_wall_hit)%cos_perp_out)
 if (dlen*cos_perp < 1d-7 .and. cos_perp < 1d-4) absorbed = .true.
 
