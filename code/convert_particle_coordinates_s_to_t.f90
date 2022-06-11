@@ -1,5 +1,5 @@
 !+
-! Subroutine convert_particle_coordinates_s_to_t  (particle, s_body, orientation, dt)
+! Subroutine convert_particle_coordinates_s_to_t  (particle, s_body, orientation)
 !
 ! Subroutine to convert particle coordinates from s-based to t-based system. 
 !
@@ -18,10 +18,9 @@
 !
 ! Output:
 !   particle    -- coord_struct: Particle with %vec(:) in t-coords.
-!   dt          -- real(rp), optional: time - time_ref
 !-
 
-subroutine convert_particle_coordinates_s_to_t (particle, s_body, orientation, dt)
+subroutine convert_particle_coordinates_s_to_t (particle, s_body, orientation)
 
 use bmad_struct
 
@@ -29,7 +28,6 @@ implicit none
 
 type (coord_struct), intent(inout), target :: particle
 real(rp) s_body
-real(rp), optional :: dt
 real(rp), pointer :: vec(:)
 integer :: orientation
 
@@ -37,12 +35,10 @@ integer :: orientation
 
 vec => particle%vec
 
-if (present(dt)) then
-  if (particle%beta == 0) then
-    dt = 0
-  else
-    dt = -vec(5) / (c_light * particle%beta)
-  endif
+if (particle%beta == 0) then
+  particle%dt_ref = 0
+else
+  particle%dt_ref = -vec(5) / (c_light * particle%beta)
 endif
 
 vec(6) = particle%direction * orientation * particle%p0c * sqrt(((1+vec(6)))**2 - vec(2)**2 -vec(4)**2)

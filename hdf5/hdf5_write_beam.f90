@@ -142,7 +142,7 @@ do ib = 1, size(bunches)
 
     !
 
-    call pmd_write_real_to_dataset(b2_id, 'pathLength', 'Path Length', unit_m, p(:)%path_len, err)
+    call pmd_write_real_to_dataset(b2_id, 'pathLength', 'Path Length', unit_m, p(:)%dt_ref*c_light, err)
 
   ! Non-photons...
 

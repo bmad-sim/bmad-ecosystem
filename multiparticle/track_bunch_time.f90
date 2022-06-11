@@ -137,51 +137,37 @@ type (coord_struct) orbit
 type (ele_struct) ele
 type (lat_param_struct) param
 type (em_field_struct), optional :: extra_field
-real(rp) t_end, dt_step, dt_ref, rf_time
+real(rp) t_end, dt_step, rf_time
 logical err, set_spin
 
 ! If at edge of element 
 
 if (orbit%location /= inside$) then
-  if (orbit%direction == 1) then
-    dt_ref = orbit%t - (ele%ref_time - ele%value(delta_ref_time$))
-  else
-    dt_ref = orbit%t - ele%ref_time
-  endif
-
-  call convert_particle_coordinates_t_to_s(orbit, dt_ref, ele, s_body_calc(orbit, ele))
+  call convert_particle_coordinates_t_to_s(orbit, ele, s_body_calc(orbit, ele))
 
   if (ele%key /= patch$ .and. ele%value(l$) == 0) then
     call track_a_zero_length_element (orbit, ele, param, orbit, err)
-    call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation, dt_ref)
+    call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation)
     return
   endif
 
   set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
   call offset_particle (ele, set$, orbit, set_hvkicks = .false., set_spin = set_spin)
-  call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation, dt_ref)
+  call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation)
 endif
 
 ! Track
 
-dt_ref = 0  ! 
 rf_time = particle_rf_time (orbit, ele, .true., orbit%s - ele%s_start)
-call odeint_bmad_time(orbit, dt_ref, ele, param, +1, rf_time, err, &
-                                        t_end = t_end, dt_step = dt_step, extra_field = extra_field)
+call odeint_bmad_time(orbit, ele, param, +1, rf_time, err, t_end = t_end, dt_step = dt_step, extra_field = extra_field)
 
 ! If at edge of element.
 
 if (orbit%location /= inside$) then
-  if (orbit%direction == 1) then
-    dt_ref = orbit%t - (ele%ref_time - ele%value(delta_ref_time$))
-  else
-    dt_ref = orbit%t - ele%ref_time
-  endif
-
-  call convert_particle_coordinates_t_to_s(orbit, dt_ref, ele, s_body_calc(orbit, ele))
+  call convert_particle_coordinates_t_to_s(orbit, ele, s_body_calc(orbit, ele))
   set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
   call offset_particle (ele, set$, orbit, set_hvkicks = .false., set_spin = set_spin)
-  call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation, dt_ref)
+  call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation)
 endif
 
 end subroutine track1_time_RK

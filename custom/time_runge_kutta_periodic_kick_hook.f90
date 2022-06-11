@@ -1,5 +1,5 @@
 !+
-! Subroutine time_runge_kutta_periodic_kick_hook (orbit, dt_ref, ele, param, stop_time, init_needed)
+! Subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)
 !
 ! Custom routine to add a kick to a particle at periodic times.
 !
@@ -20,19 +20,17 @@
 ! Input:
 !   orbit       -- coord_struct: Particle orbit.
 !     %vec(6)       -- "time" units: See convert_particle_coordinates_s_to_t for more details.
-!   dt_ref      -- real(rp): time - time_ref at start
 !   ele         -- ele_struct: Element to propagate the geometry through.
 !   param       -- lat_param_struct: Branch parameters.
 !   init_needed -- integer: Initialization needed? See above for details.
 !
 ! Output:
 !   orbit       -- coord_struct: Possibly modified particle orbit.
-!   dt_ref      -- real(rp): time - time_ref at end
 !   stop_time   -- real(rp): Set to time when time_runge_kutta should next call this routine.
 !                    Set to real_garbage$ to prevent time_runge_kutta from stopping and calling this routine.
 !-
 
-subroutine time_runge_kutta_periodic_kick_hook (orbit, dt_ref, ele, param, stop_time, init_needed)
+subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)
 
 use bmad, except_dummy => time_runge_kutta_periodic_kick_hook
 
@@ -42,7 +40,7 @@ type (coord_struct) orbit
 type (ele_struct) ele
 type (lat_param_struct) param
 
-real(rp) dt_ref, stop_time
+real(rp) stop_time
 integer init_needed
 
 ! Init needed?

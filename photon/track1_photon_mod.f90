@@ -378,10 +378,10 @@ case (rectangular$)
 
   if (photon_type(ele) == coherent$) then
     orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / max_target_area
-    ! If path_len = 0 then assume that photon is being initialized so only normalize field if path_len /= 0
-    if (orbit%path_len /= 0) then
-      orbit%field = orbit%field * orbit%path_len
-      orbit%path_len = 0
+    ! If dt_ref = 0 then assume that photon is being initialized so only normalize field if dt_ref /= 0
+    if (orbit%dt_ref /= 0) then
+      orbit%field = orbit%field * orbit%dt_ref
+      orbit%dt_ref = 0
     endif
   else
     orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / max_target_area)
@@ -398,10 +398,10 @@ case (off$)
   ! Without targeting photons are emitted into twopi solid angle.
   if (photon_type(ele) == coherent$) then
     orbit%field = orbit%field * twopi / max_target_area
-    ! If path_len = 0 then assume that photon is being initialized so only normalize field if path_len /= 0
-    if (orbit%path_len /= 0) then
-      orbit%field = orbit%field * orbit%path_len
-      orbit%path_len = 0
+    ! If dt_ref = 0 then assume that photon is being initialized so only normalize field if dt_ref /= 0
+    if (orbit%dt_ref /= 0) then
+      orbit%field = orbit%field * orbit%dt_ref
+      orbit%dt_ref = 0
     endif
   else
     orbit%field = orbit%field * sqrt(twopi / max_target_area)

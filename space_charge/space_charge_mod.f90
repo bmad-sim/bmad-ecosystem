@@ -297,7 +297,7 @@ real(rp) s, pz0, E_tot, dt
 bunch_out = bunch_in
 
 do i = 1, size(bunch_out%particle) 
-  call convert_particle_coordinates_t_to_s(bunch_out%particle(i), 0.0_rp, lat%ele(bunch_out%particle(i)%ix_ele))
+  call convert_particle_coordinates_t_to_s(bunch_out%particle(i), lat%ele(bunch_out%particle(i)%ix_ele))
 enddo
 
 do i = 1, size(bunch_out%particle)
