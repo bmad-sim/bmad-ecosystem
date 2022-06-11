@@ -537,21 +537,19 @@ subroutine control_bookkeeper (lat, ele, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine convert_particle_coordinates_s_to_t (particle, s_body, orientation, dt)
+subroutine convert_particle_coordinates_s_to_t (particle, s_body, orientation)
   import
   implicit none
   type (coord_struct), intent(inout), target :: particle
   real(rp) s_body
-  real(rp), optional :: dt
   integer :: orientation
 end subroutine
 
-subroutine convert_particle_coordinates_t_to_s (particle, dt, ele, s_body)
+subroutine convert_particle_coordinates_t_to_s (particle, ele, s_body)
   import
   implicit none
   type (coord_struct), intent(inout), target :: particle
   type (ele_struct) ele
-  real(rp) :: dt
   real(rp), optional :: s_body
 end subroutine
 
@@ -3173,12 +3171,12 @@ subroutine make_mat6_custom (ele, param, start_orb, end_orb, err_flag)
   logical err_flag, finished
 end subroutine
 
-subroutine time_runge_kutta_periodic_kick_hook (orbit, dt_space, ele, param, stop_time, init_needed)
+subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)
   import
   type (coord_struct) orbit
   type (ele_struct) ele
   type (lat_param_struct) param
-  real(rp) dt_space, stop_time
+  real(rp) stop_time
   integer :: init_needed
 end subroutine
 

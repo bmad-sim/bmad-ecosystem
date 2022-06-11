@@ -316,7 +316,7 @@ is_eq = is_eq .and. all(f1%phase == f2%phase)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%charge == f2%charge)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%path_len == f2%path_len)
+is_eq = is_eq .and. (f1%dt_ref == f2%dt_ref)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%r == f2%r)
 !! f_side.equality_test[real, 0, NOT]
@@ -2585,6 +2585,8 @@ if (.not. is_eq) return
 if (associated(f1%rad_int_cache)) is_eq = (f1%rad_int_cache == f2%rad_int_cache)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%taylor == f2%taylor)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%spin_taylor_ref_orb_in == f2%spin_taylor_ref_orb_in)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%spin_taylor == f2%spin_taylor)
 !! f_side.equality_test[type, 0, PTR]
@@ -2634,6 +2636,8 @@ is_eq = is_eq .and. (f1%time_ref_orb_out == f2%time_ref_orb_out)
 is_eq = is_eq .and. all(f1%value == f2%value)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%old_value == f2%old_value)
+!! f_side.equality_test[real, 2, NOT]
+is_eq = is_eq .and. all(f1%spin_q == f2%spin_q)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%vec0 == f2%vec0)
 !! f_side.equality_test[real, 2, NOT]
@@ -2642,8 +2646,6 @@ is_eq = is_eq .and. all(f1%mat6 == f2%mat6)
 is_eq = is_eq .and. all(f1%c_mat == f2%c_mat)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%gamma_c == f2%gamma_c)
-!! f_side.equality_test[real, 2, NOT]
-is_eq = is_eq .and. all(f1%spin_q == f2%spin_q)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%s_start == f2%s_start)
 !! f_side.equality_test[real, 0, NOT]

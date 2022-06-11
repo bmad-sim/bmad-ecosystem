@@ -292,12 +292,6 @@ call track1_postprocess (start2_orb, ele, param, end_orb)
 
 if (present(err_flag)) err_flag = .false.
 
-! Self consistancy check between t and z. Use unused path_len compoenent to record this.
-
-if (end_orb%species /= photon$) then
-  end_orb%path_len = end_orb%vec(5) - end_orb%beta * c_light * (ele%ref_time - end_orb%t)
-endif
-
 !--------------------------------------------------------------------
 contains
 

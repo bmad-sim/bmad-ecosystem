@@ -39,8 +39,8 @@ orb%vec(1) = orb%vec(1) + path_len * orb%vec(2)
 orb%vec(3) = orb%vec(3) + path_len * orb%vec(4)
 orb%vec(5) = orb%vec(5) + l
 orb%s      = orb%s      + l
-orb%t = orb%t + path_len / c_light
-orb%path_len = orb%path_len + path_len
+orb%t      = orb%t + path_len / c_light
+orb%dt_ref = orb%dt_ref + path_len / c_light
 
 if (phase_relative_to_ref) then
   v2 = orb%vec(2)**2 + orb%vec(4)**2

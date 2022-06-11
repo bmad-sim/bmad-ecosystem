@@ -380,7 +380,7 @@ if (orb%species == photon$) then
     endif
   endif
 
-  orb%path_len = 0
+  orb%dt_ref = 0
   orb%beta = 1
 
   if (present(E_photon)) then

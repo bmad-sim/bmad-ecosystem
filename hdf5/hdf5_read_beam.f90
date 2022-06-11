@@ -253,7 +253,8 @@ do idx = 0, n_links-1
     call pmd_read_real_dataset(g2_id, 'velocity/y', c_light, mom_y_off, error)
     call pmd_read_real_dataset(g2_id, 'velocity/z', c_light, mom_z_off, error)
   case ('pathLength')
-    call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%path_len, error)
+    call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%dt_ref, error)
+    bunch%particle%dt_ref = bunch%particle%dt_ref/c_light
   case ('photonPolarizationAmplitude')
     call pmd_read_real_dataset(g2_id, 'photonPolarizationAmplitude/x', 1.0_rp, bunch%particle%field(1), error)
     call pmd_read_real_dataset(g2_id, 'photonPolarizationAmplitude/y', 1.0_rp, bunch%particle%field(2), error)

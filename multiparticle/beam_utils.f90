@@ -1952,8 +1952,9 @@ do i = 1, size(bunch%particle)
 
     ! Convert to s coordinates
     p%p0c = ele%value(p0c$)
-    call convert_pc_to (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2), p%species, beta = p%beta)  
-    call convert_particle_coordinates_t_to_s (p, p%t-ele%ref_time, ele)
+    call convert_pc_to (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2), p%species, beta = p%beta)
+    p%dt_ref = p%t-ele%ref_time
+    call convert_particle_coordinates_t_to_s (p, ele)
     if (.not. from_file) p%state = alive$
     p%ix_ele    = ele%ix_ele
     p%ix_branch = ele%ix_branch
