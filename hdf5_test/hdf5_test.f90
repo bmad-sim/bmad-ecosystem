@@ -54,7 +54,7 @@ do i = 1, n_part
   bunch2%particle(i)%species = photon$
   bunch2%particle(i)%spin = 0
   bunch2%particle(i)%field = [i, i+1]
-  bunch2%particle(i)%path_len = 100_rp * (i+5.0_rp)
+  bunch2%particle(i)%dt_ref = 100_rp * (i+5.0_rp)
   bunch2%particle(i)%phase = 1d-3 * [j, j-1]
   bunch2%particle(i)%beta = 1
   bunch2%particle(i)%s = j
@@ -109,7 +109,7 @@ equal = equal .and. is_eq_rv(p1%phase, p2%phase, 'bunch phase')
 equal = equal .and. is_eq_r(p1%s, p2%s, 'bunch s')
 equal = equal .and. is_eq_r(p1%t, p2%t, 'bunch t')
 equal = equal .and. is_eq_r(p1%charge, p2%charge, 'bunch charge')
-equal = equal .and. is_eq_r(p1%path_len, p2%path_len, 'bunch path_len')
+equal = equal .and. is_eq_r(p1%dt_ref, p2%dt_ref, 'bunch dt_ref')
 equal = equal .and. is_eq_r(p1%p0c, p2%p0c, 'bunch p0c')
 equal = equal .and. is_eq_r(p1%beta, p2%beta, 'bunch beta')
 
