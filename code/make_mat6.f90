@@ -70,16 +70,19 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele)
 
 mat6_calc_method = ele%mat6_calc_method
 if (.not. ele%is_on) mat6_calc_method = bmad_standard$
-if (is_true(ele%value(static_mat6$))) then
-  if (present(err_flag)) err_flag = .false.
-  if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
-  return
-endif
 
 ele%map_ref_orb_in = a_start_orb
 
 rad_fluct_save = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.
+
+! if mat6(6,6) = 0 then %mat6 has not yet been computed. In this case ignore the setting of static_mat6.
+
+if (is_true(ele%value(static_mat6$)) .and. ele%mat6(6,6) /= 0) then
+  if (present(end_orb)) call track1(a_start_orb, ele, param, end_orb)
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
 
 ! Compute matrix
 
