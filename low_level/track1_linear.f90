@@ -26,6 +26,18 @@ type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
 real(rp) dtime_ref, mat6(6,6), vec(6)
+character(*), parameter :: r_name = 'track1_linear'
+
+! If ele%mat6 is out-of-date must recompute this first
+
+if (ele%bookkeeping_state%mat6 /= ok$ .and. is_false(ele%value(static_linear_map$))) then
+  if (ele%mat6_calc_method == tracking$) then
+    call out_io(s_error$, r_name, 'MAT6_CALC_METHOD = TRACKING INCOMPATIBLE WITH TRACKING METHOD = LINEAR.', &
+                                  'FOR ELEMENT: ' // ele%name)
+  else
+    call make_mat6(ele, param, start_orb, end_orb)
+  endif
+endif
 
 ! Note: ele%mat6 holds the matrix for forward tracking (start_orb%direction == 1) independent
 ! of whether the element is reversed (ele%orientation = -1) or not.
