@@ -48,7 +48,7 @@ character(*), parameter :: r_name = 'track_bunch_time'
 significant_time = bmad_com%significant_length / (10 * c_light)
 branch => pointer_to_branch(ele_in)
 
-!$OMP parallel do default(shared) private(dt, orbit, ele_here)
+!$OMP parallel do default(shared) private(dt, orbit, ele_here, drift_ele)
 
 do i = 1, size(bunch%particle)
   if (present(dt_step)) then;  dt = dt_step(i)
@@ -108,7 +108,7 @@ case (upstream_end$)
 case (downstream_end$)
   if (orbit%direction /= 1) return
 
-  ! Put a drift at end of branch if needed.
+  ! If needed, setup a drift to take care of particles past the end of the branch.
   if (ele_here%ix_ele == branch%n_ele_track) then
     call init_ele (drift_ele, drift$, ix_ele = ele_here%ix_ele + 1, branch = branch)
     drift_ele%value(l$) = 100
