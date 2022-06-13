@@ -62,7 +62,7 @@ do i = 1, size(bunch%particle)
     if (orbit%s >= s_end - 0.1_rp * bmad_com%significant_length) exit
     if (orbit%state /= alive$) exit
 
-    ele_here => pointer_to_next_track_ele(orbit, branch)
+    ele_here => pointer_to_next_track_ele(orbit, branch, drift_ele)
     if (orbit%state /= alive$) exit
 
     if (present(extra_field)) then
@@ -80,11 +80,12 @@ enddo
 !-------------------------------------------------------------------------
 contains
 
-function pointer_to_next_track_ele(orbit, branch) result (ele_here)
+function pointer_to_next_track_ele(orbit, branch, drift_ele) result (ele_here)
 
 type (coord_struct) orbit
 type (branch_struct) branch
 type (ele_struct), pointer :: ele_here
+type (ele_struct), target :: drift_ele
 logical err_flag
 
 !
