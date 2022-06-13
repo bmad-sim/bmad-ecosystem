@@ -682,7 +682,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, csr_ds_step$,          'CSR_DS_STEP')
   call init_attribute_name1 (i, space_charge_method$,  'SPACE_CHARGE_METHOD')
   call init_attribute_name1 (i, multipass_ref_energy$, 'MULTIPASS_REF_ENERGY', dependent$)
-  call init_attribute_name1 (i, static_mat6$,          'STATIC_MAT6')
+  call init_attribute_name1 (i, static_linear_map$,          'STATIC_LINEAR_MAP')
 
   if (i == sad_mult$)          cycle
   if (i == drift$)             cycle
@@ -1802,7 +1802,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
       'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'PHASE_TROMBONE', 'PHASE_TROMBONE_INPUT', &
-      'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_MAT6')
+      'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &

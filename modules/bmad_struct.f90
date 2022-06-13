@@ -1574,7 +1574,7 @@ integer, parameter :: spin_fringe_on$ = 13, pendellosung_period_sigma$ = 13
 integer, parameter :: sig_x$ = 14, exact_multipoles$ = 14, pendellosung_period_pi$ = 14
 integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15
 integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16
-integer, parameter :: sig_vx$ = 17, static_mat6$ = 17
+integer, parameter :: sig_vx$ = 17, static_linear_map$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19, sig_pz$ = 19
 integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direction_particle_start$ = 20
