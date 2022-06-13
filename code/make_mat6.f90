@@ -77,8 +77,9 @@ rad_fluct_save = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.
 
 ! if mat6(6,6) = 0 then %mat6 has not yet been computed. In this case ignore the setting of static_mat6.
+! Exception: Slice_slave is always recomputed.
 
-if (is_true(ele%value(static_mat6$)) .and. ele%mat6(6,6) /= 0) then
+if (is_true(ele%value(static_mat6$)) .and. ele%mat6(6,6) /= 0 .and. ele%slave_status /= slice_slave$) then
   if (present(end_orb)) call track1(a_start_orb, ele, param, end_orb)
   if (present(err_flag)) err_flag = .false.
   return
