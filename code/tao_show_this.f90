@@ -102,13 +102,22 @@ type (c_taylor) ptc_ctaylor
 type (complex_taylor_struct) bmad_ctaylor
 type (rad_int_ele_cache_struct), pointer :: ri
 
-type show_lat_column_struct
+type old_show_lat_column_struct
   character(80) :: name = ''
   character(40) :: format = ''
   integer :: width = 0
   character(40) :: label = ''
   logical :: remove_line_if_zero = .false.
   real(rp) :: scale_factor = 1
+end type
+
+type show_lat_column_struct
+  character(80) :: name = ''
+  character(40) :: format = ''
+  character(40) :: label = ''
+  logical :: remove_line_if_zero = .false.
+  real(rp) :: scale_factor = 1
+  integer :: width = 0
 end type
 
 type show_lat_column_info_struct
@@ -124,7 +133,8 @@ type show_lat_column_info_struct
   integer :: indent = 0   ! Spacing from start of line to beginning of column.
 end type
 
-type (show_lat_column_struct) column(60)
+type (old_show_lat_column_struct) column(60)
+type (show_lat_column_struct) col(60)
 type (show_lat_column_info_struct) col_info(60) 
 
 real(rp) phase_units, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s_pos, dt, angle, r
@@ -182,7 +192,7 @@ logical valid_value, print_floor, show_section, is_complex, print_header, print_
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
 
-namelist / custom_show_list / column
+namelist / custom_show_list / column, col
 
 !
 
@@ -2524,7 +2534,7 @@ case ('lattice')
   undef_str = '---'
   print_lords = maybe$
   what_to_show = 'standard'
-  allocate (ix_remove(size(column)))
+  allocate (ix_remove(size(col)))
   n_remove = 0
   lat_type = model$
   n_attrib = 0
@@ -2533,7 +2543,8 @@ case ('lattice')
   called_from_python_cmd = .false.
   print_rms = .false.
 
-  column(:) = show_lat_column_struct()
+  column(:) = old_show_lat_column_struct()
+  col(:)    = show_lat_column_struct()
 
   ! get command line switches
 
@@ -2593,12 +2604,21 @@ case ('lattice')
         nl=1; lines(1) = 'CANNOT OPEN FILE: ' // file_name
         return
       endif
-      column(:) = show_lat_column_struct()
+      column(:) = old_show_lat_column_struct()
+      col(:)    = show_lat_column_struct()
       read (iu, nml = custom_show_list, iostat = ios)
       close (iu)
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ "CUSTOM_SHOW_LIST" NAMELIST IN FILE: ' // file_name
         return
+      endif
+
+      if (column(1)%name /= '') then ! Old style
+        do i = 1, size(column)
+          col(i) = setup_lat_column(column(i)%name, column(i)%format, column(i)%label, &
+                                                       column(i)%remove_line_if_zero, column(i)%scale_factor)
+          col(i)%width = column(i)%width
+        enddo
       endif
 
     case ('-design')
@@ -2657,7 +2677,7 @@ case ('lattice')
     case ('-remove_line_if_zero')
       n_remove = n_remove + 1
       read (what2(1:ix_s2), *, iostat = ios) ix_remove(n_remove)
-      if (ios /= 0 .or. ix_remove(n_remove) < 1 .or. ix_remove(n_remove) > size(column)) then
+      if (ios /= 0 .or. ix_remove(n_remove) < 1 .or. ix_remove(n_remove) > size(col)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-remove_line_if_zero" argument'
         return
       endif
@@ -2701,12 +2721,12 @@ case ('lattice')
 
   select case (what_to_show)
   case ('attributes')
-    column( 1)  = show_lat_column_struct('#',                      'i7',        7, '', .false., 1.0_rp)
-    column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false., 1.0_rp)
-    column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false., 1.0_rp)
-    column( 4)  = show_lat_column_struct('ele::#[key]',            'a16',      16, '', .false., 1.0_rp)
-    column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false., 1.0_rp)
-    column( 6)  = show_lat_column_struct('ele::#[l]',              'f8.3',      8, '', .false., 1.0_rp)
+    col( 1)  = setup_lat_column('#',             'i7',    '', .false., 1.0_rp)
+    col( 2)  = setup_lat_column('x',             '2x',    '', .false., 1.0_rp)
+    col( 3)  = setup_lat_column('ele::#[name]',  'a0',    '', .false., 1.0_rp)
+    col( 4)  = setup_lat_column('ele::#[key]',   'a16',   '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',     'f10.3', '', .false., 1.0_rp)
+    col( 6)  = setup_lat_column('ele::#[l]',     'f8.3',  '', .false., 1.0_rp)
     i0 = 6
 
     do i = 1, n_attrib
@@ -2717,26 +2737,20 @@ case ('lattice')
       select case (a_type)
       case (is_logical$)
         fmt = 'l12'
-        width = 12
       case (is_real$)
         fmt = 'es12.4'
-        width = 12
       case (is_integer$)
         fmt = 'i12'
-        width = 12
       case (is_switch$)
-        column(i0+i) = show_lat_column_struct('x', 'x', 2, '', .false., 1.0_rp)
+        col(i0+i) = setup_lat_column('x', '2x', '', .false., 1.0_rp)
         i0 = i0 + 1
-        fmt = 'a'
-        width = 20
+        fmt = 'a20'
       case (is_string$)
-        column(i0+i) = show_lat_column_struct('x', 'x', 2, '', .false., 1.0_rp)
+        col(i0+i) = setup_lat_column('x', '2x', '', .false., 1.0_rp)
         i0 = i0 + 1
-        fmt = 'a'
-        width = 20
+        fmt = 'a20'
       case default
         fmt = 'es12.4'
-        width = 12
       end select
 
       ix = index(attrib, '@')
@@ -2744,186 +2758,172 @@ case ('lattice')
         fmt = attrib(ix+1:)
         attrib = attrib(1:ix-1)
         nc = str_first_in_set(fmt, '0123456789')
-        width = 0
-
-        if (nc /= 0) then
-          word1 = fmt(nc:)
-          ix = index(word1, '.')
-          if (ix /= 0) word1 = word1(1:ix-1)
-          if (is_integer(word1)) then
-            read (word1, *) width
-          else
-            call out_io (s_error$, r_name, 'BAD FORTRAN FORMAT.')
-            return
-          endif
-        endif
       endif
 
-      column(i0+i) = show_lat_column_struct(attrib, fmt, width, attrib, .false., 1.0_rp)
+      col(i0+i) = setup_lat_column(attrib, fmt, attrib, .false., 1.0_rp)
     enddo
 
   case ('energy')
-    column( 1)  = show_lat_column_struct('#',                      'i7',        7, '', .false., 1.0_rp)
-    column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false., 1.0_rp)
-    column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false., 1.0_rp)
-    column( 4)  = show_lat_column_struct('ele::#[key]',            'a17',      17, '', .false., 1.0_rp)
-    column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false., 1.0_rp)
-    column( 6)  = show_lat_column_struct('ele::#[orbit_x]',        'es14.6',   14, '', .false., 1.0_rp)
-    column( 7)  = show_lat_column_struct('ele::#[orbit_y]',        'es14.6',   14, '', .false., 1.0_rp)
-    column( 8)  = show_lat_column_struct('ele::#[orbit_z]',        'es14.6',   14, '', .false., 1.0_rp)
-    column( 9)  = show_lat_column_struct('ele::#[orbit_pz]',       'es14.6',   14, '', .false., 1.0_rp)
-    column(10)  = show_lat_column_struct('ele::#[e_tot]',          'es14.6',   14, '', .false., 1.0_rp)
-    column(11)  = show_lat_column_struct('ele::#[pc]',             'es14.6',   14, '', .false., 1.0_rp)
+    col( 1)  = setup_lat_column('#',                      'i7',       '', .false., 1.0_rp)
+    col( 2)  = setup_lat_column('x',                      '2x',       '', .false., 1.0_rp)
+    col( 3)  = setup_lat_column('ele::#[name]',           'a0',       '', .false., 1.0_rp)
+    col( 4)  = setup_lat_column('ele::#[key]',            'a17',      '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',              'f10.3',    '', .false., 1.0_rp)
+    col( 6)  = setup_lat_column('ele::#[orbit_x]',        'es14.6',   '', .false., 1.0_rp)
+    col( 7)  = setup_lat_column('ele::#[orbit_y]',        'es14.6',   '', .false., 1.0_rp)
+    col( 8)  = setup_lat_column('ele::#[orbit_z]',        'es14.6',   '', .false., 1.0_rp)
+    col( 9)  = setup_lat_column('ele::#[orbit_pz]',       'es14.6',   '', .false., 1.0_rp)
+    col(10)  = setup_lat_column('ele::#[e_tot]',          'es14.6',   '', .false., 1.0_rp)
+    col(11)  = setup_lat_column('ele::#[pc]',             'es14.6',   '', .false., 1.0_rp)
 
   case ('floor_coords')
-    column( 1)  = show_lat_column_struct('#',                      'i7',        7, '', .false., 1.0_rp)
-    column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false., 1.0_rp)
-    column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false., 1.0_rp)
-    column( 4)  = show_lat_column_struct('ele::#[key]',            'a17',      17, '', .false., 1.0_rp)
-    column( 5)  = show_lat_column_struct('ele::#[s]',              'f12.5',    12, '', .false., 1.0_rp)
-    column( 6)  = show_lat_column_struct('ele::#[l]',              'f10.5',    10, '', .false., 1.0_rp)
-    column( 7)  = show_lat_column_struct('ele::#[x_position]',     'f12.5',    12, 'X',     .false., 1.0_rp)
-    column( 8)  = show_lat_column_struct('ele::#[y_position]',     'f12.5',    12, 'Y',     .false., 1.0_rp)
-    column( 9)  = show_lat_column_struct('ele::#[z_position]',     'f12.5',    12, 'Z',     .false., 1.0_rp)
-    column(10)  = show_lat_column_struct('ele::#[theta_position]', 'f12.5',    12, 'Theta', .false., 1.0_rp)
-    column(11)  = show_lat_column_struct('ele::#[phi_position]',   'f12.5',    12, 'Phi',   .false., 1.0_rp)
-    column(12)  = show_lat_column_struct('ele::#[psi_position]',   'f12.5',    12, 'Psi',   .false., 1.0_rp)
+    col( 1)  = setup_lat_column('#',                      'i7',       '', .false., 1.0_rp)
+    col( 2)  = setup_lat_column('x',                      '2x',       '', .false., 1.0_rp)
+    col( 3)  = setup_lat_column('ele::#[name]',           'a0',       '', .false., 1.0_rp)
+    col( 4)  = setup_lat_column('ele::#[key]',            'a17',      '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',              'f12.5',    '', .false., 1.0_rp)
+    col( 6)  = setup_lat_column('ele::#[l]',              'f10.5',    '', .false., 1.0_rp)
+    col( 7)  = setup_lat_column('ele::#[x_position]',     'f12.5',    'X',     .false., 1.0_rp)
+    col( 8)  = setup_lat_column('ele::#[y_position]',     'f12.5',    'Y',     .false., 1.0_rp)
+    col( 9)  = setup_lat_column('ele::#[z_position]',     'f12.5',    'Z',     .false., 1.0_rp)
+    col(10)  = setup_lat_column('ele::#[theta_position]', 'f12.5',    'Theta', .false., 1.0_rp)
+    col(11)  = setup_lat_column('ele::#[phi_position]',   'f12.5',    'Phi',   .false., 1.0_rp)
+    col(12)  = setup_lat_column('ele::#[psi_position]',   'f12.5',    'Psi',   .false., 1.0_rp)
 
   case ('orbit')
-    column( 1)  = show_lat_column_struct('#',                      'i7',        7, '', .false., 1.0_rp)
-    column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false., 1.0_rp)
-    column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false., 1.0_rp)
-    column( 4)  = show_lat_column_struct('ele::#[key]',            'a17',      17, '', .false., 1.0_rp)
-    column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false., 1.0_rp)
-    column( 6)  = show_lat_column_struct('ele::#[orbit_x]',        'es14.6',   14, '', .false., 1.0_rp)
-    column( 7)  = show_lat_column_struct('ele::#[orbit_px]',       'es14.6',   14, '', .false., 1.0_rp)
-    column( 8)  = show_lat_column_struct('ele::#[orbit_y]',        'es14.6',   14, '', .false., 1.0_rp)
-    column( 9)  = show_lat_column_struct('ele::#[orbit_py]',       'es14.6',   14, '', .false., 1.0_rp)
-    column(10)  = show_lat_column_struct('ele::#[orbit_z]',        'es14.6',   14, '', .false., 1.0_rp)
-    column(11)  = show_lat_column_struct('ele::#[orbit_pz]',       'es14.6',   14, '', .false., 1.0_rp)
+    col( 1)  = setup_lat_column('#',                      'i7',       '', .false., 1.0_rp)
+    col( 2)  = setup_lat_column('x',                      '2x',       '', .false., 1.0_rp)
+    col( 3)  = setup_lat_column('ele::#[name]',           'a0',       '', .false., 1.0_rp)
+    col( 4)  = setup_lat_column('ele::#[key]',            'a17',      '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',              'f10.3',    '', .false., 1.0_rp)
+    col( 6)  = setup_lat_column('ele::#[orbit_x]',        'es14.6',   '', .false., 1.0_rp)
+    col( 7)  = setup_lat_column('ele::#[orbit_px]',       'es14.6',   '', .false., 1.0_rp)
+    col( 8)  = setup_lat_column('ele::#[orbit_y]',        'es14.6',   '', .false., 1.0_rp)
+    col( 9)  = setup_lat_column('ele::#[orbit_py]',       'es14.6',   '', .false., 1.0_rp)
+    col(10)  = setup_lat_column('ele::#[orbit_z]',        'es14.6',   '', .false., 1.0_rp)
+    col(11)  = setup_lat_column('ele::#[orbit_pz]',       'es14.6',   '', .false., 1.0_rp)
 
   case ('orbit:spin')
-    column( 1)  = show_lat_column_struct('#',                      'i7',        7, '', .false., 1.0_rp)
-    column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false., 1.0_rp)
-    column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false., 1.0_rp)
-    column( 4)  = show_lat_column_struct('ele::#[key]',            'a17',      17, '', .false., 1.0_rp)
-    column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false., 1.0_rp)
-    column( 6)  = show_lat_column_struct('ele::#[orbit_x]',        'es14.6',   14, '', .false., 1.0_rp)
-    column( 7)  = show_lat_column_struct('ele::#[orbit_px]',       'es14.6',   14, '', .false., 1.0_rp)
-    column( 8)  = show_lat_column_struct('ele::#[orbit_y]',        'es14.6',   14, '', .false., 1.0_rp)
-    column( 9)  = show_lat_column_struct('ele::#[orbit_py]',       'es14.6',   14, '', .false., 1.0_rp)
-    column(10)  = show_lat_column_struct('ele::#[orbit_z]',        'es14.6',   14, '', .false., 1.0_rp)
-    column(11)  = show_lat_column_struct('ele::#[orbit_pz]',       'es14.6',   14, '', .false., 1.0_rp)
-    column(12)  = show_lat_column_struct('ele::#[spin_x]',         'es14.6',   14, '', .false., 1.0_rp)
-    column(13)  = show_lat_column_struct('ele::#[spin_y]',         'es14.6',   14, '', .false., 1.0_rp)
-    column(14)  = show_lat_column_struct('ele::#[spin_z]',         'es14.6',   14, '', .false., 1.0_rp)
+    col( 1)  = setup_lat_column('#',                      'i7',       '', .false., 1.0_rp)
+    col( 2)  = setup_lat_column('x',                      '2x',       '', .false., 1.0_rp)
+    col( 3)  = setup_lat_column('ele::#[name]',           'a0',       '', .false., 1.0_rp)
+    col( 4)  = setup_lat_column('ele::#[key]',            'a17',      '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',              'f10.3',    '', .false., 1.0_rp)
+    col( 6)  = setup_lat_column('ele::#[orbit_x]',        'es14.6',   '', .false., 1.0_rp)
+    col( 7)  = setup_lat_column('ele::#[orbit_px]',       'es14.6',   '', .false., 1.0_rp)
+    col( 8)  = setup_lat_column('ele::#[orbit_y]',        'es14.6',   '', .false., 1.0_rp)
+    col( 9)  = setup_lat_column('ele::#[orbit_py]',       'es14.6',   '', .false., 1.0_rp)
+    col(10)  = setup_lat_column('ele::#[orbit_z]',        'es14.6',   '', .false., 1.0_rp)
+    col(11)  = setup_lat_column('ele::#[orbit_pz]',       'es14.6',   '', .false., 1.0_rp)
+    col(12)  = setup_lat_column('ele::#[spin_x]',         'es14.6',   '', .false., 1.0_rp)
+    col(13)  = setup_lat_column('ele::#[spin_y]',         'es14.6',   '', .false., 1.0_rp)
+    col(14)  = setup_lat_column('ele::#[spin_z]',         'es14.6',   '', .false., 1.0_rp)
 
   case ('spin')
-    column( 1)  = show_lat_column_struct('#',                        'i7',        7, '', .false., 1.0_rp)
-    column( 2)  = show_lat_column_struct('x',                        'x',         2, '', .false., 1.0_rp)
-    column( 3)  = show_lat_column_struct('ele::#[name]',             'a',         0, '', .false., 1.0_rp)
-    column( 4)  = show_lat_column_struct('ele::#[key]',              'a17',      17, '', .false., 1.0_rp)
-    column( 5)  = show_lat_column_struct('ele::#[s]',                'f10.3',    10, '', .false., 1.0_rp)
-    column( 6)  = show_lat_column_struct('ele::#[spin_x]',           'es14.6',   14, '', .false., 1.0_rp)
-    column( 7)  = show_lat_column_struct('ele::#[spin_y]',           'es14.6',   14, '', .false., 1.0_rp)
-    column( 8)  = show_lat_column_struct('ele::#[spin_z]',           'es14.6',   14, '', .false., 1.0_rp)
+    col( 1)  = setup_lat_column('#',                        'i7',       '', .false., 1.0_rp)
+    col( 2)  = setup_lat_column('x',                        '2x',       '', .false., 1.0_rp)
+    col( 3)  = setup_lat_column('ele::#[name]',             'a0',       '', .false., 1.0_rp)
+    col( 4)  = setup_lat_column('ele::#[key]',              'a17',      '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',                'f10.3',    '', .false., 1.0_rp)
+    col( 6)  = setup_lat_column('ele::#[spin_x]',           'es14.6',   '', .false., 1.0_rp)
+    col( 7)  = setup_lat_column('ele::#[spin_y]',           'es14.6',   '', .false., 1.0_rp)
+    col( 8)  = setup_lat_column('ele::#[spin_z]',           'es14.6',   '', .false., 1.0_rp)
     if (branch%param%geometry == closed$) then
-      column( 9)  = show_lat_column_struct('ele::#[spin_dn_dpz.x]',    'es14.6',   14, '', .false., 1.0_rp)
-      column(10)  = show_lat_column_struct('ele::#[spin_dn_dpz.y]',    'es14.6',   14, '', .false., 1.0_rp)
-      column(11)  = show_lat_column_struct('ele::#[spin_dn_dpz.z]',    'es14.6',   14, '', .false., 1.0_rp)
-      column(12)  = show_lat_column_struct('ele::#[spin_dn_dpz.amp]',  'es14.6',   14, '', .false., 1.0_rp)
+      col( 9)  = setup_lat_column('ele::#[spin_dn_dpz.x]',    'es14.6', '', .false., 1.0_rp)
+      col(10)  = setup_lat_column('ele::#[spin_dn_dpz.y]',    'es14.6', '', .false., 1.0_rp)
+      col(11)  = setup_lat_column('ele::#[spin_dn_dpz.z]',    'es14.6', '', .false., 1.0_rp)
+      col(12)  = setup_lat_column('ele::#[spin_dn_dpz.amp]',  'es14.6', '', .false., 1.0_rp)
     endif
 
   case ('rad_int')
-    column(1)  = show_lat_column_struct('#',                     'i7',        7, '', .false., 1.0_rp)
-    column(2)  = show_lat_column_struct('x',                     'x',         2, '', .false., 1.0_rp)
-    column(3)  = show_lat_column_struct('ele::#[name]',          'a',         0, '', .false., 1.0_rp)
-    column(4)  = show_lat_column_struct('ele::#[key]',           'a17',      17, '', .false., 1.0_rp)
-    column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '', .false., 1.0_rp)
+    col(1)  = setup_lat_column('#',                     'i7',       '', .false., 1.0_rp)
+    col(2)  = setup_lat_column('x',                     '2x',       '', .false., 1.0_rp)
+    col(3)  = setup_lat_column('ele::#[name]',          'a0',       '', .false., 1.0_rp)
+    col(4)  = setup_lat_column('ele::#[key]',           'a17',      '', .false., 1.0_rp)
+    col(5)  = setup_lat_column('ele::#[s]',             'f10.3',    '', .false., 1.0_rp)
     if (branch%param%geometry == open$) then
-      column(6)  = show_lat_column_struct('lat::rad_int1.i0[#]',     'es10.2',  10, '', .true., 1.0_rp)
-      column(7)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true., 1.0_rp)
-      column(8)  = show_lat_column_struct('lat::rad_int1.i2_e4[#]',  'es10.2',  10, '', .false., 1.0_rp)
-      column(9)  = show_lat_column_struct('lat::rad_int1.i3_e7[#]',  'es10.2',  10, '', .false., 1.0_rp)
-      column(10) = show_lat_column_struct('lat::rad_int1.i5a_e6[#]', 'es10.2',  10, '', .false., 1.0_rp)
-      column(11) = show_lat_column_struct('lat::rad_int1.i5b_e6[#]', 'es10.2',  10, '', .false., 1.0_rp)
+      col(6)  = setup_lat_column('lat::rad_int1.i0[#]',     'es10.2',  '', .true., 1.0_rp)
+      col(7)  = setup_lat_column('lat::rad_int1.i1[#]',     'es10.2',  '', .true., 1.0_rp)
+      col(8)  = setup_lat_column('lat::rad_int1.i2_e4[#]',  'es10.2',  '', .false., 1.0_rp)
+      col(9)  = setup_lat_column('lat::rad_int1.i3_e7[#]',  'es10.2',  '', .false., 1.0_rp)
+      col(10) = setup_lat_column('lat::rad_int1.i5a_e6[#]', 'es10.2',  '', .false., 1.0_rp)
+      col(11) = setup_lat_column('lat::rad_int1.i5b_e6[#]', 'es10.2',  '', .false., 1.0_rp)
     else
-      column(6)  = show_lat_column_struct('lat::rad_int1.i0[#]',     'es10.2',  10, '', .true., 1.0_rp)
-      column(7)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true., 1.0_rp)
-      column(8)  = show_lat_column_struct('lat::rad_int1.i2[#]',     'es10.2',  10, '', .false., 1.0_rp)
-      column(9)  = show_lat_column_struct('lat::rad_int1.i3[#]',     'es10.2',  10, '', .false., 1.0_rp)
-      column(10) = show_lat_column_struct('lat::rad_int1.i4a[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(11) = show_lat_column_struct('lat::rad_int1.i5a[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(12) = show_lat_column_struct('lat::rad_int1.i4b[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(13) = show_lat_column_struct('lat::rad_int1.i5b[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(14) = show_lat_column_struct('lat::rad_int1.i6b[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      col(6)  = setup_lat_column('lat::rad_int1.i0[#]',     'es10.2',  '', .true., 1.0_rp)
+      col(7)  = setup_lat_column('lat::rad_int1.i1[#]',     'es10.2',  '', .true., 1.0_rp)
+      col(8)  = setup_lat_column('lat::rad_int1.i2[#]',     'es10.2',  '', .false., 1.0_rp)
+      col(9)  = setup_lat_column('lat::rad_int1.i3[#]',     'es10.2',  '', .false., 1.0_rp)
+      col(10) = setup_lat_column('lat::rad_int1.i4a[#]',    'es10.2',  '', .false., 1.0_rp)
+      col(11) = setup_lat_column('lat::rad_int1.i5a[#]',    'es10.2',  '', .false., 1.0_rp)
+      col(12) = setup_lat_column('lat::rad_int1.i4b[#]',    'es10.2',  '', .false., 1.0_rp)
+      col(13) = setup_lat_column('lat::rad_int1.i5b[#]',    'es10.2',  '', .false., 1.0_rp)
+      col(14) = setup_lat_column('lat::rad_int1.i6b[#]',    'es10.2',  '', .false., 1.0_rp)
     endif
 
   case ('sum_rad_int')
-    column(1)  = show_lat_column_struct('#',                     'i7',        7, '', .false., 1.0_rp)
-    column(2)  = show_lat_column_struct('x',                     'x',         2, '', .false., 1.0_rp)
-    column(3)  = show_lat_column_struct('ele::#[name]',          'a',         0, '', .false., 1.0_rp)
-    column(4)  = show_lat_column_struct('ele::#[key]',           'a17',      17, '', .false., 1.0_rp)
-    column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '', .false., 1.0_rp)
+    col(1)  = setup_lat_column('#',                     'i7',       '', .false., 1.0_rp)
+    col(2)  = setup_lat_column('x',                     '2x',       '', .false., 1.0_rp)
+    col(3)  = setup_lat_column('ele::#[name]',          'a0',       '', .false., 1.0_rp)
+    col(4)  = setup_lat_column('ele::#[key]',           'a17',      '', .false., 1.0_rp)
+    col(5)  = setup_lat_column('ele::#[s]',             'f10.3',    '', .false., 1.0_rp)
     if (branch%param%geometry == open$) then
-      column(6)  = show_lat_column_struct('lat::rad_int.i0[#]',     'es10.2',  10, '', .true., 1.0_rp)
-      column(7)  = show_lat_column_struct('lat::rad_int.i1[#]',     'es10.2',  10, '', .true., 1.0_rp)
-      column(8)  = show_lat_column_struct('lat::rad_int.i2_e4[#]',  'es10.2',  10, '', .false., 1.0_rp)
-      column(9)  = show_lat_column_struct('lat::rad_int.i3_e7[#]',  'es10.2',  10, '', .false., 1.0_rp)
-      column(10) = show_lat_column_struct('lat::rad_int.i5a_e6[#]', 'es10.2',  10, '', .false., 1.0_rp)
-      column(11) = show_lat_column_struct('lat::rad_int.i5b_e6[#]', 'es10.2',  10, '', .false., 1.0_rp)
-      column(12) = show_lat_column_struct('lat::emit.a[#]',         'es10.2',  10, '', .false., 1.0_rp)
-      column(13) = show_lat_column_struct('lat::emit.b[#]',         'es10.2',  10, '', .false., 1.0_rp)
-      column(14) = show_lat_column_struct('lat::sigma.pz[#]',       'es10.2',  10, '', .false., 1.0_rp)
+      col(6)  = setup_lat_column('lat::rad_int.i0[#]',     'es10.2',  '', .true., 1.0_rp)
+      col(7)  = setup_lat_column('lat::rad_int.i1[#]',     'es10.2',  '', .true., 1.0_rp)
+      col(8)  = setup_lat_column('lat::rad_int.i2_e4[#]',  'es10.2',  '', .false., 1.0_rp)
+      col(9)  = setup_lat_column('lat::rad_int.i3_e7[#]',  'es10.2',  '', .false., 1.0_rp)
+      col(10) = setup_lat_column('lat::rad_int.i5a_e6[#]', 'es10.2',  '', .false., 1.0_rp)
+      col(11) = setup_lat_column('lat::rad_int.i5b_e6[#]', 'es10.2',  '', .false., 1.0_rp)
+      col(12) = setup_lat_column('lat::emit.a[#]',         'es10.2',  '', .false., 1.0_rp)
+      col(13) = setup_lat_column('lat::emit.b[#]',         'es10.2',  '', .false., 1.0_rp)
+      col(14) = setup_lat_column('lat::sigma.pz[#]',       'es10.2',  '', .false., 1.0_rp)
     else
-      column(6)  = show_lat_column_struct('lat::rad_int.i0[#]',     'es10.2',  10, '', .true., 1.0_rp)
-      column(7)  = show_lat_column_struct('lat::rad_int.i1[#]',     'es10.2',  10, '', .true., 1.0_rp)
-      column(8)  = show_lat_column_struct('lat::rad_int.i2[#]',     'es10.2',  10, '', .false., 1.0_rp)
-      column(9)  = show_lat_column_struct('lat::rad_int.i3[#]',     'es10.2',  10, '', .false., 1.0_rp)
-      column(10) = show_lat_column_struct('lat::rad_int.i4a[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(11) = show_lat_column_struct('lat::rad_int.i5a[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(12) = show_lat_column_struct('lat::rad_int.i4b[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(13) = show_lat_column_struct('lat::rad_int.i5b[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(14) = show_lat_column_struct('lat::rad_int.i6b[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      col(6)  = setup_lat_column('lat::rad_int.i0[#]',     'es10.2',  '', .true., 1.0_rp)
+      col(7)  = setup_lat_column('lat::rad_int.i1[#]',     'es10.2',  '', .true., 1.0_rp)
+      col(8)  = setup_lat_column('lat::rad_int.i2[#]',     'es10.2',  '', .false., 1.0_rp)
+      col(9)  = setup_lat_column('lat::rad_int.i3[#]',     'es10.2',  '', .false., 1.0_rp)
+      col(10) = setup_lat_column('lat::rad_int.i4a[#]',    'es10.2',  '', .false., 1.0_rp)
+      col(11) = setup_lat_column('lat::rad_int.i5a[#]',    'es10.2',  '', .false., 1.0_rp)
+      col(12) = setup_lat_column('lat::rad_int.i4b[#]',    'es10.2',  '', .false., 1.0_rp)
+      col(13) = setup_lat_column('lat::rad_int.i5b[#]',    'es10.2',  '', .false., 1.0_rp)
+      col(14) = setup_lat_column('lat::rad_int.i6b[#]',    'es10.2',  '', .false., 1.0_rp)
     endif
 
   case ('standard')
     if (branch%param%particle == photon$) then
-      column( 1) = show_lat_column_struct('#',                   'i7',          7, '', .false., 1.0_rp)
-      column( 2) = show_lat_column_struct('x',                   'x',           2, '', .false., 1.0_rp)
-      column( 3) = show_lat_column_struct('ele::#[name]',        'a',           0, '', .false., 1.0_rp)
-      column( 4) = show_lat_column_struct('ele::#[key]',         'a17',        17, '', .false., 1.0_rp)
-      column( 5) = show_lat_column_struct('ele::#[s]',           'f10.3',      10, '', .false., 1.0_rp)
-      column( 6) = show_lat_column_struct('ele::#[l]',           'f8.3',        8, '', .false., 1.0_rp)
-      column( 7) = show_lat_column_struct('ele::#[orbit_x]',     '3p, f10.5',  10, 'x [mm]', .false., 1.0_rp)
-      column( 8) = show_lat_column_struct('ele::#[orbit_px]',    '3p, f10.5',  10, 'px [mr]', .false., 1.0_rp)
-      column( 9) = show_lat_column_struct('ele::#[orbit_y]',     '3p, f10.5',  10, 'y [mm]', .false., 1.0_rp)
-      column(10) = show_lat_column_struct('ele::#[orbit_py]',    '3p, f10.5',  10, 'py [mr]', .false., 1.0_rp)
-      column(11) = show_lat_column_struct('ele::#[energy] - ele::#[E_tot]', &
-                                                                 'f10.4',      10, 'dE [eV]', .false., 1.0_rp)
-      column(12) = show_lat_column_struct('ele::#[intensity_x]', 'f8.4',        8, 'I_x', .false., 1.0_rp)
-      column(13) = show_lat_column_struct('ele::#[intensity_y]', 'f8.4',        8, 'I_y', .false., 1.0_rp)
-      column(14) = show_lat_column_struct('ele::#[phase_x]',     'f10.4',      10, 'phase_x', .false., 1.0_rp)
-      column(15) = show_lat_column_struct('ele::#[phase_y]',     'f10.4',      10, 'phase_y', .false., 1.0_rp)
-      column(16) = show_lat_column_struct('x',                   'x',           3, '', .false., 1.0_rp)
-      column(17) = show_lat_column_struct('ele::#[state]',       'a11',        11, 'Track|State', .false., 1.0_rp)
+      col( 1) = setup_lat_column('#',                   'i7',         '', .false., 1.0_rp)
+      col( 2) = setup_lat_column('x',                   '2x',         '', .false., 1.0_rp)
+      col( 3) = setup_lat_column('ele::#[name]',        'a0',         '', .false., 1.0_rp)
+      col( 4) = setup_lat_column('ele::#[key]',         'a17',        '', .false., 1.0_rp)
+      col( 5) = setup_lat_column('ele::#[s]',           'f10.3',      '', .false., 1.0_rp)
+      col( 6) = setup_lat_column('ele::#[l]',           'f8.3',       '', .false., 1.0_rp)
+      col( 7) = setup_lat_column('ele::#[orbit_x]',     '3pf10.5',    'x [mm]', .false., 1.0_rp)
+      col( 8) = setup_lat_column('ele::#[orbit_px]',    '3pf10.5',    'px [mr]', .false., 1.0_rp)
+      col( 9) = setup_lat_column('ele::#[orbit_y]',     '3pf10.5',    'y [mm]', .false., 1.0_rp)
+      col(10) = setup_lat_column('ele::#[orbit_py]',    '3pf10.5',    'py [mr]', .false., 1.0_rp)
+      col(11) = setup_lat_column('ele::#[energy] - ele::#[E_tot]', 'f10.4', 'dE [eV]', .false., 1.0_rp)
+      col(12) = setup_lat_column('ele::#[intensity_x]', 'f8.4',       'I_x', .false., 1.0_rp)
+      col(13) = setup_lat_column('ele::#[intensity_y]', 'f8.4',       'I_y', .false., 1.0_rp)
+      col(14) = setup_lat_column('ele::#[phase_x]',     'f10.4',      'phase_x', .false., 1.0_rp)
+      col(15) = setup_lat_column('ele::#[phase_y]',     'f10.4',      'phase_y', .false., 1.0_rp)
+      col(16) = setup_lat_column('x',                   '2x',         '', .false., 1.0_rp)
+      col(17) = setup_lat_column('ele::#[state]',       'a11',        'Track|State', .false., 1.0_rp)
     else
-      column(1)  = show_lat_column_struct('#',                   'i7',          7, '', .false., 1.0_rp)
-      column(2)  = show_lat_column_struct('x',                   'x',           2, '', .false., 1.0_rp)
-      column(3)  = show_lat_column_struct('ele::#[name]',        'a',           0, '', .false., 1.0_rp)
-      column(4)  = show_lat_column_struct('ele::#[key]',         'a17',        17, '', .false., 1.0_rp)
-      column(5)  = show_lat_column_struct('ele::#[s]',           'f10.3',      10, '', .false., 1.0_rp)
-      column(6)  = show_lat_column_struct('ele::#[l]',           'f8.3',        8, '', .false., 1.0_rp)
-      column(7)  = show_lat_column_struct('ele::#[beta_a]',      'f8.2',        8, '', .false., 1.0_rp)
-      column(8)  = show_lat_column_struct('ele::#[phi_a]',       'f8.3',        8, 'phi_a|[2pi]', .false., 1/twopi)
-      column(9)  = show_lat_column_struct('ele::#[eta_x]',       'f7.2',        7, '', .false., 1.0_rp)
-      column(10) = show_lat_column_struct('ele::#[orbit_x]',     '3p, f8.3',    8, 'orbit|x [mm]', .false., 1.0_rp)
-      column(11) = show_lat_column_struct('ele::#[beta_b]',      'f8.2',        8, '', .false., 1.0_rp)
-      column(12) = show_lat_column_struct('ele::#[phi_b]',       'f8.3',        8, 'phi_b|[2pi]', .false., 1/twopi)
-      column(13) = show_lat_column_struct('ele::#[eta_y]',       'f7.2',        7, '', .false., 1.0_rp)
-      column(14) = show_lat_column_struct('ele::#[orbit_y]',     '3p, f8.3',    8, 'orbit|y [mm]', .false., 1.0_rp)
-      column(15) = show_lat_column_struct('x',                   'x',           3, '', .false., 1.0_rp)
-      column(16) = show_lat_column_struct('ele::#[state]',       'a11',        11, 'Track|State', .false., 1.0_rp)
+      col(1)  = setup_lat_column('#',                   'i7',         '', .false., 1.0_rp)
+      col(2)  = setup_lat_column('x',                   '2x',         '', .false., 1.0_rp)
+      col(3)  = setup_lat_column('ele::#[name]',        'a0',         '', .false., 1.0_rp)
+      col(4)  = setup_lat_column('ele::#[key]',         'a17',        '', .false., 1.0_rp)
+      col(5)  = setup_lat_column('ele::#[s]',           'f10.3',      '', .false., 1.0_rp)
+      col(6)  = setup_lat_column('ele::#[l]',           'f8.3',       '', .false., 1.0_rp)
+      col(7)  = setup_lat_column('ele::#[beta_a]',      'f8.2',       '', .false., 1.0_rp)
+      col(8)  = setup_lat_column('ele::#[phi_a]',       'f8.3',       'phi_a|[2pi]', .false., 1/twopi)
+      col(9)  = setup_lat_column('ele::#[eta_x]',       'f7.2',       '', .false., 1.0_rp)
+      col(10) = setup_lat_column('ele::#[orbit_x]',     '3pf8.3',     'orbit|x [mm]', .false., 1.0_rp)
+      col(11) = setup_lat_column('ele::#[beta_b]',      'f8.2',       '', .false., 1.0_rp)
+      col(12) = setup_lat_column('ele::#[phi_b]',       'f8.3',       'phi_b|[2pi]', .false., 1/twopi)
+      col(13) = setup_lat_column('ele::#[eta_y]',       'f7.2',       '', .false., 1.0_rp)
+      col(14) = setup_lat_column('ele::#[orbit_y]',     '3pf8.3',     'orbit|y [mm]', .false., 1.0_rp)
+      col(15) = setup_lat_column('x',                   '2x',         '', .false., 1.0_rp)
+      col(16) = setup_lat_column('ele::#[state]',       'a11',        'Track|State', .false., 1.0_rp)
     endif
 
   end select
@@ -2933,10 +2933,10 @@ case ('lattice')
   do ix = 1, n_remove
     j = 0
     do i = 1, size(column)
-      if (column(i)%name == 'x') cycle
+      if (col(i)%name == 'x') cycle
       j = j + 1
       if (j == ix_remove(ix)) then
-        column(i)%remove_line_if_zero = .true.
+        col(i)%remove_line_if_zero = .true.
         exit
       endif
       if (i == size(column)) then
@@ -2949,7 +2949,7 @@ case ('lattice')
   ! Need to compute radiation integrals?
 
   do i = 1, size(column)
-    if (index(column(i)%name, 'rad_int') /= 0) then
+    if (index(col(i)%name, 'rad_int') /= 0) then
       ix = ix_branch
       call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix, u%model%rad_int)
       call radiation_integrals (u%design%lat, design_tao_branch%orbit, design_tao_branch%modes_ri, &
@@ -2965,7 +2965,7 @@ case ('lattice')
   col_info = show_lat_column_info_struct()
 
   do i = 1, size(column)
-    name = column(i)%name
+    name = col(i)%name
 
     if (name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) then
       ix = index(name, ']')-1
@@ -3081,43 +3081,43 @@ case ('lattice')
   ! Setup columns
 
   do i = 1, size(column)
-    if (column(i)%name == '') cycle
+    if (col(i)%name == '') cycle
 
     ! Use finer scale for s and l if needed.
 
     if (branch%param%total_length < 1.0_rp .and. what_to_show /= 'custom') then
-      select case (column(i)%name)
+      select case (col(i)%name)
       case ('ele::#[s]')
-        column(i)%format = 'f13.6'
-        column(i)%width = 13
+        col(i)%format = 'F13.6'
+        col(i)%width = 13
 
       case ('ele::#[l]')
-        column(i)%format = 'f11.6'
-        column(i)%width = 11
+        col(i)%format = 'F11.6'
+        col(i)%width = 11
       end select
     endif
 
     !
 
-    column(i)%format = '(' // trim(upcase(column(i)%format)) // ')'
+    col(i)%format = '(' // trim(upcase(col(i)%format)) // ')'
 
-    if (column(i)%width == 0) then
-      if (column(i)%name /= 'ele::#[name]') then
+    if (col(i)%width == 0) then
+      if (col(i)%name /= 'ele::#[name]') then
         call out_io (s_error$, r_name, &
             'WIDTH = 0 CAN ONLY BE USED WITH "ele::#[name]" TYPE COLUMNS')
         return
       endif
-      column(i)%width = 5
+      col(i)%width = 5
       do ie = 0, branch%n_ele_max
         if (.not. picked_ele(ie)) cycle
-        column(i)%width = max(column(i)%width, len_trim(branch%ele(ie)%name)+1)
+        col(i)%width = max(col(i)%width, len_trim(branch%ele(ie)%name)+1)
       enddo
     endif
 
-    ix2 = ix1 + column(i)%width
+    ix2 = ix1 + col(i)%width
 
-    if (column(i)%label == '') then
-      name = column(i)%name
+    if (col(i)%label == '') then
+      name = col(i)%name
       if (index(name, 'ele::') /= 0) then
         i1 = index(name, '[')
         i2 = index(name, ']')
@@ -3156,9 +3156,9 @@ case ('lattice')
       n = len_trim(name)
 
       if (called_from_python_cmd) then
-        call set_this_show_lat_header (line2, line3, name, column(i)%format, called_from_python_cmd)
+        call set_this_show_lat_header (line2, line3, name, col(i)%format, called_from_python_cmd)
 
-      elseif (index(column(i)%format, 'A') /= 0) then
+      elseif (index(col(i)%format, 'A') /= 0) then
         line2(ix1:) = name
 
       elseif (ix == 0) then
@@ -3178,26 +3178,26 @@ case ('lattice')
       endif
 
     else
-      if (index(column(i)%name, '[') /= 0 .and. index(column(i)%label, '|') == 0) then
-        i1 = index(column(i)%name, '[')
-        i2 = index(column(i)%name, ']')
-        name = upcase(column(i)%name(i1+1:i2-1))
+      if (index(col(i)%name, '[') /= 0 .and. index(col(i)%label, '|') == 0) then
+        i1 = index(col(i)%name, '[')
+        i2 = index(col(i)%name, ']')
+        name = upcase(col(i)%name(i1+1:i2-1))
         if (attribute_units(name) == 'rad') then
-          column(i)%label = trim(column(i)%label) // '|[' // trim(phase_units_str) // ']'
-          column(i)%scale_factor = phase_units
+          col(i)%label = trim(col(i)%label) // '|[' // trim(phase_units_str) // ']'
+          col(i)%scale_factor = phase_units
         endif
       endif
 
-      name = column(i)%label
+      name = col(i)%label
 
       ix = index(name, '|')
 
       if (called_from_python_cmd) then
         if (ix /= 0) name(ix:ix) = '_'
-        call set_this_show_lat_header (line2, line3, name, column(i)%format, called_from_python_cmd)
+        call set_this_show_lat_header (line2, line3, name, col(i)%format, called_from_python_cmd)
 
       elseif (ix == 0) then
-        if (index(column(i)%format, 'A') /= 0) then
+        if (index(col(i)%format, 'A') /= 0) then
           line2(ix1:) = name
         else
           j = len_trim(name)
@@ -3205,7 +3205,7 @@ case ('lattice')
         endif
 
       else
-        if (index(column(i)%format, 'A') /= 0) then
+        if (index(col(i)%format, 'A') /= 0) then
           line2(ix1:) = name(1:ix-1)
           line3(ix1:) = trim(name(ix+1:))
         else
@@ -3271,10 +3271,10 @@ case ('lattice')
     do i = 1, size(column)
 
       j = max(i-1, 1)
-      if (i > 1 .and. column(j)%name /= '') then
+      if (i > 1 .and. col(j)%name /= '') then
         if (called_from_python_cmd) then
-          if (column(j)%name /= 'x') then
-            do i0 = nc, nc+column(j)%width
+          if (col(j)%name /= 'x') then
+            do i0 = nc, nc+col(j)%width
               if (line(i0:i0) /= ' ') exit
             enddo
             if (i0 > nc) line(nc:) = line(i0:)
@@ -3282,14 +3282,14 @@ case ('lattice')
             line(nc-1:nc-1) = ';'
           endif
         else
-          nc  = nc + column(i-1)%width
+          nc  = nc + col(i-1)%width
         endif
       endif
 
-      name = column(i)%name
+      name = col(i)%name
       if (name == '') cycle
 
-      if (column(i)%remove_line_if_zero) n_remove = n_remove + 1
+      if (col(i)%remove_line_if_zero) n_remove = n_remove + 1
 
       if ((name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) .or. &
               col_info(i)%attrib_type == is_string$ .or. col_info(i)%attrib_type == is_switch$) then
@@ -3303,24 +3303,24 @@ case ('lattice')
         case (is_logical$, is_integer$, is_switch$)
           call pointer_to_attribute(ele, sub_name, .true., a_ptr, err, .false.)
           if (err) then
-            write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
+            write (line(nc:), col(i)%format, iostat = ios) replacement_for_blank
             cycle
           endif
 
           select case (a_type)
           case (is_logical$)
             if (associated(a_ptr%l)) then
-              write (line(nc:), column(i)%format, iostat = ios) a_ptr%l
+              write (line(nc:), col(i)%format, iostat = ios) a_ptr%l
             else  ! Must be stored as a real
-              write (line(nc:), column(i)%format, iostat = ios) is_true(a_ptr%r)
+              write (line(nc:), col(i)%format, iostat = ios) is_true(a_ptr%r)
             endif
           case (is_real$)
-            line(nc:) = '?????????' ! Should not be here. write (line(nc:), column(i)%format, iostat = ios) a_ptr%r
+            line(nc:) = '?????????' ! Should not be here. write (line(nc:), col(i)%format, iostat = ios) a_ptr%r
           case (is_integer$)
             if (associated(a_ptr%i)) then
-              write (line(nc:), column(i)%format, iostat = ios) a_ptr%i
+              write (line(nc:), col(i)%format, iostat = ios) a_ptr%i
             else  ! Must be stored as a real
-              write (line(nc:), column(i)%format, iostat = ios) nint(a_ptr%r)
+              write (line(nc:), col(i)%format, iostat = ios) nint(a_ptr%r)
             endif
           case (is_switch$)
             if (associated(a_ptr%r)) then
@@ -3328,15 +3328,15 @@ case ('lattice')
             else
               r = a_ptr%i
             endif
-            write (line(nc:), column(i)%format, iostat = ios) switch_attrib_value_name(sub_name, r, ele)
+            write (line(nc:), col(i)%format, iostat = ios) switch_attrib_value_name(sub_name, r, ele)
           end select
 
-          if (line(nc:) == '') write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
+          if (line(nc:) == '') write (line(nc:), col(i)%format, iostat = ios) replacement_for_blank
           cycle
 
         case (is_string$)
           call string_attrib (sub_name, ele, line(nc:))
-          if (line(nc:) == '') write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
+          if (line(nc:) == '') write (line(nc:), col(i)%format, iostat = ios) replacement_for_blank
           cycle
         end select
       endif
@@ -3346,18 +3346,18 @@ case ('lattice')
       if (name == '#' .or. name == '#index') then
         if (ele%ix_branch /= ix_branch) then
           aname = ele_loc_name(ele, .true.)
-          line(nc:) = adjustr(aname(1:column(i)%width))
+          line(nc:) = adjustr(aname(1:col(i)%width))
         else
-          write (line(nc:), column(i)%format, iostat = ios) ele%ix_ele
+          write (line(nc:), col(i)%format, iostat = ios) ele%ix_ele
         endif
 
       elseif (name == '#branch') then
-        write (line(nc:), column(i)%format, iostat = ios) ele%ix_branch
+        write (line(nc:), col(i)%format, iostat = ios) ele%ix_branch
 
       elseif (name == 'ele::#[type]') then
         if (ele%type == '') then
         else
-          write (line(nc:), column(i)%format, iostat = ios) ele%type
+          write (line(nc:), col(i)%format, iostat = ios) ele%type
         endif
 
       elseif (name /= 'x') then
@@ -3377,38 +3377,38 @@ case ('lattice')
                       dflt_uni = u%ix_uni, dflt_eval_point = eval_pt)
 
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
-          if (column(i)%remove_line_if_zero) n_zeros_found = n_zeros_found + 1
-          if (undef_uses_column_format .and. index(column(i)%format, 'A') == 0) then
-            if (index(column(i)%format, 'I') /= 0) then
-              write (line(nc:), column(i)%format, iostat = ios) 0
+          if (col(i)%remove_line_if_zero) n_zeros_found = n_zeros_found + 1
+          if (undef_uses_column_format .and. index(col(i)%format, 'A') == 0) then
+            if (index(col(i)%format, 'I') /= 0) then
+              write (line(nc:), col(i)%format, iostat = ios) 0
             else
-              write (line(nc:), column(i)%format, iostat = ios) 0.0_rp
+              write (line(nc:), col(i)%format, iostat = ios) 0.0_rp
             endif
           else
             n = len(undef_str)
-            k = min(n, column(i)%width - 1)
-            j = nc + column(i)%width - k
+            k = min(n, col(i)%width - 1)
+            j = nc + col(i)%width - k
             line(j:) = undef_str(n-k+1:n)
           endif
 
-        elseif (column(i)%name == 'ele::#[state]') then
-          write (line(nc:), column(i)%format, iostat = ios) coord_state_name(nint(value(1)))
+        elseif (col(i)%name == 'ele::#[state]') then
+          write (line(nc:), col(i)%format, iostat = ios) coord_state_name(nint(value(1)))
 
-        elseif (index(column(i)%format, 'L') /= 0) then
+        elseif (index(col(i)%format, 'L') /= 0) then
           if (value(1) == 0) then
-            write (line(nc:), column(i)%format, iostat = ios) .false.
+            write (line(nc:), col(i)%format, iostat = ios) .false.
           else
-            write (line(nc:), column(i)%format, iostat = ios) .true.
+            write (line(nc:), col(i)%format, iostat = ios) .true.
           endif
 
-        elseif (index(column(i)%format, 'I') /= 0) then
-          write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
-          if (column(i)%remove_line_if_zero .and. nint(value(1)) == 0) n_zeros_found = n_zeros_found + 1
+        elseif (index(col(i)%format, 'I') /= 0) then
+          write (line(nc:), col(i)%format, iostat = ios) nint(value(1))
+          if (col(i)%remove_line_if_zero .and. nint(value(1)) == 0) n_zeros_found = n_zeros_found + 1
 
         else
-          r = value(1) * column(i)%scale_factor
-          call write_real (line(nc:), column(i)%format, r)
-          if (column(i)%remove_line_if_zero .and. value(1) == 0) then
+          r = value(1) * col(i)%scale_factor
+          call write_real (line(nc:), col(i)%format, r)
+          if (col(i)%remove_line_if_zero .and. value(1) == 0) then
             n_zeros_found = n_zeros_found + 1
           else
             col_info(i)%indent = nc
@@ -3428,8 +3428,8 @@ case ('lattice')
       endif
 
       if (ios /= 0) then
-        lines(1) = 'WIDTH TOO SMALL FOR NUMBER OR BAD FORMAT: ' // column(i)%format
-        lines(2) = 'FOR DISPLAYING: ' // column(i)%name
+        lines(1) = 'WIDTH TOO SMALL FOR NUMBER OR BAD FORMAT: ' // col(i)%format
+        lines(2) = 'FOR DISPLAYING: ' // col(i)%name
         nl = 2
         return
       endif
@@ -3476,8 +3476,8 @@ case ('lattice')
 
       mean = col_info(i)%sum / n
       rms = sqrt(max(0.0_rp, col_info(i)%sum2 / n - mean**2))
-      write (lines(nl+1)(nc:), column(i)%format) mean 
-      write (lines(nl+2)(nc:), column(i)%format) rms
+      write (lines(nl+1)(nc:), col(i)%format) mean 
+      write (lines(nl+2)(nc:), col(i)%format) rms
 
       aname = int_str(n)
       nc = len_trim(lines(nl+2)) - len_trim(aname) + 1
@@ -3487,8 +3487,8 @@ case ('lattice')
       if (ds /= 0) then
         mean = col_info(i)%int_sum / ds
         rms = sqrt(max(0.0_rp, col_info(i)%int_sum2 / ds - mean**2))
-        write (lines(nl+4)(nc:), column(i)%format) mean 
-        write (lines(nl+5)(nc:), column(i)%format) rms
+        write (lines(nl+4)(nc:), col(i)%format) mean 
+        write (lines(nl+5)(nc:), col(i)%format) rms
       endif
     enddo
 
@@ -6354,5 +6354,31 @@ line = ''
 line(wid-ix+1:) = num_str
 
 end subroutine write_real
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+! contains
+
+function setup_lat_column(name, format, label, remove_line_if_zero, scale_factor) result (col)
+
+type (show_lat_column_struct) col
+character(*) :: name, format, label
+character(4) descrip
+character(20) fmt
+logical :: remove_line_if_zero
+real(rp) :: scale_factor
+integer :: width, multi, power, digits
+
+!
+
+fmt = upcase(format)
+col = show_lat_column_struct(name, fmt, label, remove_line_if_zero, scale_factor, 0)
+
+call parse_fortran_format (fmt, multi, power, descrip, col%width, digits)
+call upcase_string(descrip)
+if (descrip == 'X') col%width = max(1, multi, col%width) 
+if (fmt == 'A') col%width = 0
+
+end function setup_lat_column
 
 end subroutine tao_show_this

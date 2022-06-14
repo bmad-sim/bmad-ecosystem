@@ -40,7 +40,7 @@ real(rp) default_low_lim, default_high_lim, default_key_delta
 real(rp), allocatable :: default_key_d(:)
 
 integer ios, iu, i, j, j1, j2, k, ix, num
-integer n, iostat, n_list, n_nml
+integer n, n0, iostat, n_list, n_nml
 integer ix_min_var, ix_max_var, ix_ele, n_v1, n_v1_var_max
 
 character(*) var_file
@@ -109,17 +109,23 @@ do
     enddo
   endif
   if (ios < 0 .and. v1_var%name == '') exit  ! Exit on end-of-file and no namelist read
+
+  n0 = n
   if (index(default_universe, 'clone') == 0) then
     n = n + 1
   else
     n = n + size(s%u)
   endif
+
   if (n >= size(default_key_b)) then
     call re_allocate (default_key_b, 2*size(default_key_b))
     call re_allocate (default_key_d, 2*size(default_key_d))
   endif
-  call transfer_logical (default_key_bound, default_key_b(n))
-  default_key_d(n) = default_key_delta
+
+  do i = n0+1, n
+    call transfer_logical (default_key_bound, default_key_b(i))
+    default_key_d(i) = default_key_delta
+  enddo
 enddo
 
 call tao_allocate_v1_var (n, .false.)

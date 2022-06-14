@@ -2521,24 +2521,22 @@ specifies a file containing a description of the custom columns or by using one 
 \vn{-attribute} switches. Example customization file:
 \begin{example}
   &custom_show_list
-    column(1)  = "#",                      "i6",     6 
-    column(2)  = "x",                      "x"       1   ! blank space
-    column(3)  = "ele::#[name]",           "a",      0
-    column(4)  = "ele::#[key]",            "a16",   16
-    column(5)  = "ele::#[s]",              "f10.3", 10
-    column(6)  = "ele::#[l]",              "f10.3", 10
-    column(7)  = "ele::#[beta_a]",         "f7.2",   7
-    column(8)  = "1e3 * ele::#[orbit_x]",  "f8.3",   8, "Orbit_x| (mm)" 
-    column(9)  = "lat::unstable.orbit[#]", "f9.3",   9
-    column(10) = "beam::n_particle_loss[#]", "i8",   8 
+    col(1)  = "#",                      "i6"  
+    col(2)  = "x",                      "2x"    ! two blank spaces
+    col(3)  = "ele::#[name]",           "a"  
+    col(4)  = "ele::#[key]",            "a16"
+    col(5)  = "ele::#[s]",              "f10.3"
+    col(6)  = "ele::#[l]",              "f10.3"
+    col(7)  = "ele::#[beta_a]",         "f7.2"
+    col(8)  = "1e3 * ele::#[orbit_x]",  "f8.3", "Orbit_x| (mm)" 
+    col(9)  = "lat::unstable.orbit[#]", "f9.3"
+    col(10) = "beam::n_particle_loss[#]", "i8"
   /
 \end{example}
-each \vn{column(n)} line has four parameters. The first parameter is what is to be displayed in that
-column. Algebraic expressions are permitted (\sref{s:arithmetic.exp}).
-
-The second parameter is the Fortran edit descriptor. The third column is the total width of the
-field. Notice that strings (like the element name) are left justified and numbers are right
-justified. In the case of a number followed by a string, there will be no white space in
+each \vn{col(n)} line has three parameters. The first parameter is what is to be displayed in that
+column. Algebraic expressions are permitted (\sref{s:arithmetic.exp}). The second parameter is the
+Fortran edit descriptor. Notice that strings (like the element name) are left justified and numbers
+are right justified. In the case of a number followed by a string, there will be no white space in
 between. The use of an "x" column can solve this problem. A field width of 0, which can only be used
 for an \vn{ele::\#[name]} column, indicates that the field width will be taken to be one greater
 then the maximum characters of any element name.
