@@ -604,10 +604,10 @@ function outer_product (a, b) result (c)
   real(rp) c(size(a), size(b))
 end function
 
-subroutine parse_fortran_format (format_str, multiplyer, power, code, width, digits)
+subroutine parse_fortran_format (format_str, n_repeat, power, descrip, width, digits)
   implicit none
-  integer multiplyer, power, width, digits
-  character(*) format_str, code
+  integer n_repeat, power, width, digits
+  character(*) format_str, descrip
 end subroutine
 
 subroutine pointer_to_locations(string, array, num, ix_min, ix_max, names, exact_case, print_err)
