@@ -37,10 +37,9 @@ type (ele_struct), pointer :: ele
 real(rp) default_weight        ! default merit function weight
 real(rp) default_step          ! default "small" step size
 real(rp) default_low_lim, default_high_lim, default_key_delta
-real(rp), allocatable :: default_key_d(:)
 
 integer ios, iu, i, j, j1, j2, k, ix, num
-integer n, n0, iostat, n_list, n_nml
+integer n, iostat, n_list, n_nml
 integer ix_min_var, ix_max_var, ix_ele, n_v1, n_v1_var_max
 
 character(*) var_file
@@ -52,10 +51,10 @@ character(200) file_name
 character(200) line, search_for_lat_eles
 
 logical(4) default_key_bound, default_good_user
-logical, allocatable :: default_key_b(:)
 logical err, free, gang
 logical searching, limited
 logical, allocatable :: dflt_good_unis(:), good_unis(:)
+logical :: logical_is_garbage
 
 namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
                     ix_min_var, ix_max_var, default_universe, default_attribute, &
@@ -90,12 +89,9 @@ endif
 
 ! Count how many v1_var definitions there are
 
-allocate (default_key_b(100), default_key_d(100))
 n = 0
 n_nml = 0
 do
-  call set_logical_to_garbage(default_key_bound)
-  default_key_delta = 0
   v1_var%name = ''
   n_nml = n_nml + 1
   read (iu, nml = tao_var, iostat = ios)
@@ -109,23 +105,11 @@ do
     enddo
   endif
   if (ios < 0 .and. v1_var%name == '') exit  ! Exit on end-of-file and no namelist read
-
-  n0 = n
   if (index(default_universe, 'clone') == 0) then
     n = n + 1
   else
     n = n + size(s%u)
   endif
-
-  if (n >= size(default_key_b)) then
-    call re_allocate (default_key_b, 2*size(default_key_b))
-    call re_allocate (default_key_d, 2*size(default_key_d))
-  endif
-
-  do i = n0+1, n
-    call transfer_logical (default_key_bound, default_key_b(i))
-    default_key_d(i) = default_key_delta
-  enddo
 enddo
 
 call tao_allocate_v1_var (n, .false.)
@@ -164,13 +148,15 @@ var_loop: do
   var%low_lim        = default_low_lim
   var%high_lim       = default_high_lim
   ! Transfer defaults
-  call transfer_logical (default_key_b(n_v1), var(0)%key_bound)
   call set_logical_to_garbage(default_good_user)
+  call set_logical_to_garbage(default_key_bound)
+  default_key_delta = 0d0
+  
   do i = lbound(var, 1), ubound(var, 1)
-    call set_logical_to_garbage (var(i)%good_user)
+     call set_logical_to_garbage (var(i)%good_user)
+     call set_logical_to_garbage (var(i)%key_bound)
   enddo
-  var%key_bound      = var(0)%key_bound
-  var%key_delta      = default_key_d(n_v1)
+  var%key_delta      = 0d0
 
   read (iu, nml = tao_var, iostat = ios)
   if (ios < 0 .and. v1_var%name == '') exit         ! exit on end-of-file
@@ -198,6 +184,8 @@ var_loop: do
   do i = lbound(var, 1), ubound(var, 1)
     call str_upcase (var(i)%attribute, var(i)%attribute)
     call str_upcase (var(i)%ele_name, var(i)%ele_name)
+    if (logical_is_garbage(var(i)%key_bound)) call transfer_logical(default_key_bound,var(i)%key_bound)
+    if (var(i)%key_delta.eq.0d0) var(i)%key_delta = default_key_delta
   enddo
 
   if (v1_var%name == '') then
@@ -292,7 +280,6 @@ enddo var_loop
 
 close (iu)
 deallocate (dflt_good_unis, good_unis)
-deallocate (default_key_b, default_key_d)
 
 ! For a variable pointing to a term in a taylor map, the pointer can get messed up if a later variable points to a taylor term
 ! that does not exist forcing the reallocation of the map to create the taylor term.
