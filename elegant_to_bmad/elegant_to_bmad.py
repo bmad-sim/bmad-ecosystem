@@ -408,9 +408,12 @@ def bmad_param(param, ele_name):
 
   if ele_name in common.ele_dict:
     bmad_type = common.ele_dict[ele_name].bmad_type
+    elegant_type = common.ele_dict[ele_name].elegant_type
     if bparam == 'tilt' and (bmad_type == 'sbend' or bmad_type == 'rbend'): return 'ref_tilt'
     if param == 'l' and bmad_type == 'patch': return '?'
     if param == 'phase' and bmad_type != 'rfcavity' and bmad_type != 'lcavity': return '?'
+    if param == 'b' and elegant_type in ['kquad', 'ksext', 'koct']: return '?'
+    if param == 'fse' and elegant_type in ['kquad', 'ksext', 'koct']: return '?'
 
   return bparam
 
