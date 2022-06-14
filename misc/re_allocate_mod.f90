@@ -620,7 +620,7 @@ implicit none
 logical, allocatable :: logic(:), temp_logic(:)
 
 integer, intent(in) :: n
-integer n_save, n_old
+integer i, n_save, n_old
 
 logical, optional :: exact
 logical, optional :: init_val
@@ -635,7 +635,9 @@ if (allocated(logic)) then
   allocate (logic(n))
   if (present(init_val)) logic = init_val
   n_save = min(n, n_old)
-  logic(1:n_save) = temp_logic(1:n_save)
+  do i = 1, n_save
+    call transfer_logical (temp_logic(i), logic(i)) 
+  enddo
   deallocate (temp_logic)  
 else
   allocate (logic(n))

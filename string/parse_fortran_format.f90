@@ -1,9 +1,10 @@
 !+
-! Subroutine parse_fortran_format (format_str, multiplyer, power, code, width, digits)
+! Subroutine parse_fortran_format (format_str, n_repeat, power, descrip, width, digits)
 !
 ! Routine to parse a Fortran edit descriptor.
+!
 ! This routine assumes that format_str will be a edit descriptor for a single entity like '3f10.6'.
-! format_str must only have a single edit descriptor. That is, format_str must not have any commas.
+! format_str must only have a single edit descriptor.
 !
 ! Also see: real_num_fortran_format
 !
@@ -11,174 +12,114 @@
 !   format_str  -- character(*): Format string.
 !
 ! Output:
-!   multiplyer  -- integer: Multiplyer prefix before the code string. EG '5I2' -> multiplyer = 5, 
-!                   'es12.6' -> multiplyer = 1 (default).
+!   n_repeat    -- integer: Repeat Count prefix before the descrip string. EG '5I2' -> n_repeat = 5, 
+!                   'es12.6' -> n_repeat = 1 (default). '3x' -> n_repeat = 3, width = 1.
 !   power       -- integer: Power scale factor. EG: '3pf12.2' -> power = 3. Set to 0 if no power factor present.
-!   code        -- character(*): Format code. EG 't37' -> code = 'T'. Will be upper case. Set to '' if there is a decode error.
-!                   Note: If a power factor is present, code will *not* contain "p". EG: '3pf12.5' -> code = 'f'.
+!   descrip     -- character(*): Format descrip. EG 't37' -> descrip = 'T'. Will be upper case. Set to '' if there is a decode error.
+!                   Note: If a power factor is present, descrip will *not* contain "p". EG: '3pf12.5' -> descrip = 'F'.
+!                   descrip will be blank if there is an error.
 !   width       -- integer: Field width. EG 'A23' -> width = 23. Set to -1 if not present (EG: '34X')
 !   digits      -- integer: number of digits after the decimal place for real numbers. EG '4f10.3' -> digits = 3.
 !                   Set to -1 if not present.
 !-
 
-subroutine parse_fortran_format (format_str, multiplyer, power, code, width, digits)
+subroutine parse_fortran_format (format_str, n_repeat, power, descrip, width, digits)
 
 use sim_utils_interface, dummy => parse_fortran_format
 
 implicit none
 
-integer multiplyer, width, digits
-integer i1, i0, nn, power, n_parens
-character(*) format_str, code
+integer n_repeat, width, digits
+integer n, i1, nn, power, n_parens, ios
+character(*) format_str, descrip
+character(40) fmt
 logical found_parens
 
 ! Init
 
-multiplyer = 1
-code = ''
+n_repeat = 1
+descrip = ''
 width = -1
 digits = -1
 power = 0
 n_parens = 0
-nn = len(format_str)
+
+call string_trim(format_str, fmt, nn)
 if (nn == 0) return
 
-! ignore leading spaces
+! Example formats:
+!   "7(-3p, f12.3)"  "7pes12.1" "2pes12.1" "2(-3pf12.1)"
 
-do i1 = 1, nn
-  if (format_str(i1:i1) /= ' ') exit
-enddo
+! Look for "p"
 
-call check_for_open_parens (i1)
-if (i1 > nn) return
-
-! Look for multiplyer
-
-if (index('1234567890', format_str(i1:i1)) /= 0) then
-  i0 = i1
-  do i1 = i0, nn
-    if (index('1234567890', format_str(i1:i1)) == 0) exit
+i1 = index(fmt, 'p')
+if (i1 /= 0) then
+  do n = i1-1, 1, -1
+    if (index('-1234567890', fmt(n:n)) == 0) exit
   enddo
-  read (format_str(i0:i1-1), *) multiplyer
+  if (n == i1-1) return
+  read(fmt(n+1:i1-1), *, iostat = ios) power
+  if (ios /= 0) return
+  fmt(n+1:) = fmt(i1+1:)
 endif
 
-! Look for power factor
+! Remove commas and parens.
 
-call check_for_open_parens (i1, found_parens)
-if (i1 > nn .or. (found_parens .and. i1 >= nn)) return
+n = 1
+nn = len_trim(fmt)
 
-if (found_parens .and. index('1234567890', format_str(i1:i1)) /= 0) then ! If something like '3(4pf12.4)' then 
-  i0 = i1
-  do i1 = i0, nn
-    if (index('1234567890', format_str(i1:i1)) == 0) exit
-  enddo
-  read (format_str(i0:i1-1), *) power
-  if (i1 > nn-1) return
-  if (format_str(i1:i1) /= 'p' .and. format_str(i1:i1) /= 'P') return
-  i1 = i1 + 1
-
-elseif (format_str(i1:i1) == 'p' .or. format_str(i1:i1) == 'P') then  ! If something like '4pf12.4'
-  power = multiplyer
-  multiplyer = 1
-  i1 = i1 + 1
-endif
-
-! Look for code
-
-if (i1 > nn .or. (found_parens .and. i1 >= nn)) return
-
-i0 = i1
-do i1 = i0, nn
-  if (.not. is_alphabetic(format_str(i1:i1))) exit
+do
+  select case (fmt(n:n))
+  case (' ', ',', '(', ')')
+    fmt(n:) = fmt(n+1:)
+  case default
+    n = n + 1
+    if (n > nn) exit
+  end select
 enddo
 
-if (i1 == i0) return
-code = upcase(format_str(i0:i1-1))
-if (no_more(i1)) return
+! Look for n_repeat
+
+do n = 1, nn
+  if (index('1234567890', fmt(n:n)) == 0) exit
+enddo
+
+if (n > 1) then
+  read (fmt(:n-1), *, iostat = ios) n_repeat
+  if (ios /= 0) return
+  fmt = fmt(n:)
+endif
+
+! Look for descrip
+
+do n = 1, nn
+  if (.not. is_alphabetic(fmt(n:n))) exit
+enddo
+
+if (n == 1) return
+descrip = upcase(fmt(:n-1))
+fmt = fmt(n:)
+if (fmt == '') return
 
 ! Look for width
 
-i0 = i1
-do i1 = i0, nn
-  if (index('1234567890', format_str(i1:i1)) == 0) exit
+do n = 1, nn
+  if (index('1234567890', fmt(n:n)) == 0) exit
 enddo
 
-if (i1 == i0 .or. .not. is_integer(format_str(i0:i1-1))) then
-  code = ''   ! Decode error
-  return
+if (n > 1) then
+  read (fmt(1:n-1), *, iostat = ios) width
+  if (ios /= 0) then
+    descrip = ''
+    return
+  endif
 endif
-
-read (format_str(i0:i1-1), *) width
-if (no_more(i1)) return
 
 ! Look for digits
 
-if (format_str(i1:i1) /= '.') then
-  code = ''   ! Decode error
-  return
-endif
+if (fmt(1:1) /= '.') return
+read (fmt, *, iostat = ios) digits
+if (ios /= 0) descrip = ''
 
-i0 = i1 + 1
-do i1 = i0, nn
-  if (index('1234567890', format_str(i1:i1)) == 0) exit
-enddo
-
-if (i1 == i0 .or. .not. is_integer(format_str(i0:i1-1))) then
-  code = ''   ! Decode error
-  return
-endif
-
-read (format_str(i0:i1-1), *) digits
-if (no_more(i1)) return
-
-!----------------------------------------
-contains
-
-function no_more(i1) result (nothing_else)
-
-logical nothing_else
-integer i1
-
-!
-
-do
-  if (i1 == nn + 1) then
-    nothing_else = .true.
-    if (n_parens /= 0) code = ''
-    return
-  endif
-
-  if (format_str(i1:i1) == ')') then
-    n_parens = n_parens - 1
-    i1 = i1 + 1
-  else
-    exit
-  endif
-enddo
-
-nothing_else = (format_str(i1:i1) == '')
-if (nothing_else .and. format_str(i1+1:) /= '') code = ''   ! Decode error
-
-end function no_more
-
-!----------------------------------------
-! contains
-
-subroutine check_for_open_parens(i1, found_parens)
-
-integer i1
-logical, optional :: found_parens
-
-! 
-
-if (present(found_parens)) found_parens = .false.
-if (i1 > nn) return
-if (format_str(i1:i1) /= '(') return
-
-if (present(found_parens)) found_parens = .true.
-n_parens = n_parens + 1
-i1 = i1 + 1
-
-end subroutine check_for_open_parens
 
 end subroutine
