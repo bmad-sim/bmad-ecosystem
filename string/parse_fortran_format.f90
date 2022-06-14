@@ -52,7 +52,7 @@ if (nn == 0) return
 
 ! Look for "p"
 
-i1 = index(fmt, 'p')
+i1 = max(index(fmt, 'p'), index(fmt, 'P'))
 if (i1 /= 0) then
   do n = i1-1, 1, -1
     if (index('-1234567890', fmt(n:n)) == 0) exit
@@ -113,12 +113,13 @@ if (n > 1) then
     descrip = ''
     return
   endif
+  fmt = fmt(n:)
 endif
 
 ! Look for digits
 
 if (fmt(1:1) /= '.') return
-read (fmt, *, iostat = ios) digits
+read (fmt(2:), *, iostat = ios) digits
 if (ios /= 0) descrip = ''
 
 
