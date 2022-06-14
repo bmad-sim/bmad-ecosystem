@@ -68,7 +68,7 @@ endif
 n = 1
 nn = len_trim(fmt)
 
-do
+do i1 = 1, nn
   select case (fmt(n:n))
   case (' ', ',', '(', ')')
     fmt(n:) = fmt(n+1:)
