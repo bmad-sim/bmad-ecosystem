@@ -161,7 +161,7 @@ endif
 
 ! Track
 
-rf_time = particle_rf_time (orbit, ele, .true., orbit%s - ele%s_start)
+rf_time = particle_rf_time (orbit, ele, .true., orbit%s - ele%s_start, time_coords = .true.)
 call odeint_bmad_time(orbit, ele, param, +1, rf_time, err, t_end = t_end, dt_step = dt_step, extra_field = extra_field)
 
 ! If at edge of element.

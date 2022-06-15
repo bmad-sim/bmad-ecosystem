@@ -6,7 +6,7 @@
 ! coordinates before and after tracking.
 !
 ! Input:
-!   start_orb   -- coord_struct: starting position, t-based global
+!   start_orb   -- coord_struct: starting position, z-based coords
 !   ele         -- ele_struct: element
 !   param       -- lat_param_struct: lattice parameters
 !   t_end       -- real(rp), optional: If present, maximum time to which the particle will be tracked.
@@ -16,7 +16,7 @@
 !                   This overrides bmad_com%init_ds_adaptive_tracking. Used by track_bunch_time.
 !
 ! Output:
-!   end_orb     -- coord_struct: end position, t-based global
+!   end_orb     -- coord_struct: end position, z-based coords
 !   err_flag    -- Logical: Set True if there is an error. False otherwise
 !   track       -- track_struct (optional): Contains array of the step-by-step particle
 !                    trajectory along with the field at these positions.

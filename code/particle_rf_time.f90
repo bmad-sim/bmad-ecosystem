@@ -1,5 +1,5 @@
 !+
-! Function particle_rf_time (orbit, ele, reference_active_edge, s_rel) result (time)
+! Function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords) result (time)
 !
 ! Routine to return the reference time used to calculate the phase of
 ! time-dependent EM fields.
@@ -11,18 +11,19 @@
 ! Also see set_particle_from_rf_time which is the inverse of this routine.
 !
 ! Input:
-!   orbit     -- Coord_struct: Particle coordinates
-!   ele       -- ele_struct: Element being tracked through.
+!   orbit       -- Coord_struct: Particle coordinates
+!   ele         -- ele_struct: Element being tracked through.
 !   reference_active_edge 
-!             -- logical: If True, and ele is a rfcavity or lcavity, use the active edge as the reference point.
-!   s_rel     -- real(rp), optional: Longitudinal position relative to the upstream edge of the element.
-!                 Needed for relative time tracking when the particle is inside the element. Default is 0.
+!               -- logical: If True, and ele is a rfcavity or lcavity, use the active edge as the reference point.
+!   s_rel       -- real(rp), optional: Longitudinal position relative to the upstream edge of the element.
+!                   Needed for relative time tracking when the particle is inside the element. Default is 0.
+!   time_coords -- logical, optional: Default False. If True then orbit is using time based coordinates.
 !
 ! Ouput:
 !   time      -- Real(rp): Current time.
 !-
 
-function particle_rf_time (orbit, ele, reference_active_edge, s_rel) result (time)
+function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords) result (time)
 
 use equal_mod, dummy_except => particle_rf_time
 use attribute_mod, only: has_attribute
@@ -38,6 +39,7 @@ real(rp) time, s_hard_offset, beta0
 real(rp), optional :: s_rel
 integer ix_pass, n_links
 logical reference_active_edge, abs_time
+logical, optional :: time_coords
 
 character(*), parameter :: r_name = 'particle_rf_time'
 
@@ -64,7 +66,12 @@ else
     time = orbit%t  ! Just to keep on going
     return
   endif
-  time = -orbit%vec(5) / (orbit%beta * c_light)
+
+  if (logic_option(.false., time_coords)) then
+    time = orbit%dt_ref
+  else
+    time = -orbit%vec(5) / (orbit%beta * c_light)
+  endif
 
   if (present(s_rel)) then
     ! The effective reference velocity is different from the velocity of the reference particle for wigglers where the reference particle
