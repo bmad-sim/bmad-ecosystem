@@ -38,7 +38,7 @@ real(rp) t_end, s_end
 real(rp), optional :: dt_step(:)
 real(rp) dt, significant_time
 
-integer i, j
+integer i, j, n
 logical err
 
 character(*), parameter :: r_name = 'track_bunch_time'
@@ -48,7 +48,12 @@ character(*), parameter :: r_name = 'track_bunch_time'
 significant_time = bmad_com%significant_length / (10 * c_light)
 branch => pointer_to_branch(ele_in)
 
-!$OMP parallel do default(shared) private(dt, orbit, ele_here, drift_ele)
+n = branch%n_ele_track
+call init_ele (drift_ele, drift$, ix_ele = n + 1, branch = branch)
+drift_ele%value(l$) = 100
+call ele_compute_ref_energy_and_time(branch%ele(n), drift_ele, branch%param, err)
+
+!$OMP parallel do default(shared) private(dt, orbit, ele_here)
 
 do i = 1, size(bunch%particle)
   if (present(dt_step)) then;  dt = dt_step(i)
@@ -111,9 +116,6 @@ case (downstream_end$)
 
   ! If needed, setup a drift to take care of particles past the end of the branch.
   if (ele_here%ix_ele == branch%n_ele_track) then
-    call init_ele (drift_ele, drift$, ix_ele = ele_here%ix_ele + 1, branch = branch)
-    drift_ele%value(l$) = 100
-    call ele_compute_ref_energy_and_time(ele_here, drift_ele, branch%param, err_flag)
     ele_here => drift_ele
     return
   endif
