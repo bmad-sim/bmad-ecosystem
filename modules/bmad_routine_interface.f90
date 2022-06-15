@@ -1496,7 +1496,7 @@ function particle_is_moving_forward (orbit) result (is_moving_forward)
   logical is_moving_forward
 end function
 
-function particle_rf_time (orbit, ele, reference_active_edge, s_rel) result (time)
+function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords) result (time)
   import
   implicit none
   type (coord_struct) orbit
@@ -1504,6 +1504,7 @@ function particle_rf_time (orbit, ele, reference_active_edge, s_rel) result (tim
   real(rp), optional :: s_rel
   real(rp) time
   logical reference_active_edge
+  logical, optional :: time_coords
 end function
 
 function patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)
