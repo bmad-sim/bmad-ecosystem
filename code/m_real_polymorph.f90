@@ -4675,8 +4675,8 @@ end  function asin_coeff_set
  
     i=6
     if(present(mf)) i=mf
-    write(mf,*)  s2
-
+    write(i,*)  s2
+! sagan 2022/6/01
   END SUBROUTINE printdouble
 
   SUBROUTINE  printsingle(S2,mf)
@@ -4687,8 +4687,8 @@ end  function asin_coeff_set
  
     i=6
     if(present(mf)) i=mf
-    write(mf,*)  s2
-
+    write(i,*)  s2
+! sagan 2022/6/01
   END SUBROUTINE printsingle
 
   SUBROUTINE  resetpoly(S2)

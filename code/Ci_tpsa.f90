@@ -3238,6 +3238,82 @@ endif
 
   END FUNCTION c_logc
 
+
+
+! inspired by Mr. LU Yao
+subroutine get_log(one_turn_map,vflog,n)
+implicit none
+type(c_damap),intent(in):: one_turn_map
+type(c_vector_field),intent(inout):: vflog
+integer i,j,n,m
+integer, parameter :: nt=5
+real(dp) k1,k0
+type(c_damap) id,rot
+type(c_vector_field)  vtt  ,vt
+logical  descent
+real(dp), allocatable :: b(:)
+
+allocate(b(n))
+b=0
+
+call alloc(vt)
+call alloc(vtt)
+call alloc(id,rot)
+
+vflog=0
+vt=0
+ 
+id=one_turn_map
+rot=one_turn_map
+
+ 
+id=1
+do i=1,n
+
+ do j=1,id%n
+  vt%v(j)=rot%v(j) - ID%v(j)
+  vtt%v(j)=-0.5d0*(vt*vt%v(j))
+ enddo
+ vt=vt+vtt
+vtt=0.5d0*(vflog.lb.vt)
+vtt=vtt+vt
+!vflog=vflog+vt
+vflog=vflog+vtt
+
+ 
+rot=exp(-vflog,one_turn_map)
+
+call c_full_norm_vector_field(vtt,k1)
+
+if(i==1) then
+  k0=k1/100
+endif
+
+!call c_full_norm_damap(rot,k1)
+ b(i)=k1
+ 
+ if(i>=nt+1) then
+   descent=.true.
+   do m=i-nt,i-1
+    descent=descent.and.(b(m)>b(m+1))
+   enddo
+  if(k1<=k0.and.(.not.descent)) goto 1
+ endif
+ 
+enddo
+
+write(6,*) " did not converged in", n, "steps",k1
+n=-n
+1 continue
+ 
+deallocate(b)
+
+call kill(vt)
+call kill(vtt)
+call kill(id,rot)
+
+end subroutine get_log
+
   FUNCTION FULL_ABST( S1 )
 !#general: manipulation
 !# This routine computes the norm of the c_taylor s1.

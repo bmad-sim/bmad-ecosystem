@@ -164,6 +164,7 @@ module precision_constants
   ! end of symplectic integrator coefficients
   !Initialized numbers
   real(dp)::eps=1e-38_dp
+  real(dp)::eps_da=1e-40_dp
   real(dp)::EPSdol=1e-37_dp
   LOGICAL(lp),target  :: s_aperture_CHECK=.TRUE.
   LOGICAL(lp),TARGET  :: ROOT_CHECK=.TRUE.

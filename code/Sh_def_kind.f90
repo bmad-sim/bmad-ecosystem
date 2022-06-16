@@ -11653,12 +11653,18 @@ integer :: kkk=0
     real(dp),INTENT(IN):: DL
     TYPE(TEAPOTP),INTENT(IN):: EL
     TYPE(REAL_8) XN(6),PZ,PT,A,ah
-    real(dp)  b,R
+    real(dp)  b,R,eps
+    logical ic
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    
     call PRTP("SPROT:0", X)
-
+     ic=.false.
     if(EL%P%B0/=0.0_dp) then
+     if(abs(EL%P%B0)<10*eps_da) then
+      eps=eps_da
+      eps_da=EL%P%B0/1000
+      ic=.true.
+     endif
        CALL ALLOC( XN,6)
        CALL ALLOC( PZ)
        CALL ALLOC( PT)
@@ -11694,6 +11700,9 @@ integer :: kkk=0
        CALL KILL( PZ)
        CALL KILL( PT)
        CALL KILL( A,ah)
+     if(ic) then
+      eps_da=eps
+     endif
     else
        CALL DRIFT(YL,DL,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
     endif
@@ -11849,10 +11858,17 @@ endif
     TYPE(TEAPOTP),INTENT(IN):: EL
     TYPE(REAL_8) XN(6),PZ,PT,A,PZS,DPX
     TYPE(REAL_8)  dpxn,xt1,xt2,xi,zeta,v,w
-
-    real(dp)  b,R
+    logical ic
+    real(dp)  b,R,eps
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) dir
+
+      ic=.false.
+     if(abs(EL%P%B0)<10*eps_da) then
+      eps=eps_da
+      eps_da=EL%P%B0/1000
+      ic=.true.
+     endif
 
     if(old_thick_bend) then
 
@@ -12011,6 +12027,9 @@ xn(3)= ARCSIN_x(xt1*DIR*EL%BN(1))*xt1
     call PRTP("SSEC:1", X)
 
 endif
+     if(ic) then
+      eps_da=eps 
+     endif
   END SUBROUTINE SsecP
 
   SUBROUTINE SKICKR(EL,YL,X,k)

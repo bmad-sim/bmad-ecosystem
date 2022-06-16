@@ -1109,7 +1109,7 @@ contains
        ic2 = 0
     endif
     !
-    if(abs(ckon).gt.eps) then
+    if(abs(ckon).gt.eps_da) then
        idall(ina) = 2
        cc(ipoa) = ckon
        i_1(ipoa) = 0
@@ -1163,7 +1163,7 @@ contains
     cc(ipoa) = ckon
     i_1(ipoa) = 0
     i_2(ipoa) = 0
-    if(abs(ckon).lt.eps) idall(ina) = 0
+    if(abs(ckon).lt.eps_da) idall(ina) = 0
     !
     return
       end subroutine dacon
@@ -1225,9 +1225,9 @@ contains
     real(dp) deps
     !
     if(deps.ge.zero) then
-       eps = deps
+       eps_da = deps
     else
-       deps=eps
+       deps=eps_da
     endif
     !
     return
@@ -1489,7 +1489,7 @@ contains
     !
 100 continue
     !
-    if(abs(cjj).lt.eps) return
+    if(abs(cjj).lt.eps_da) return
     !
     do ii=ipoa+illa,i+1,-1
        cc(ii) = cc(ii-1)
@@ -1514,7 +1514,7 @@ contains
     !     *********************************************
     !
 200 continue
-    if(abs(cjj).lt.eps) then
+    if(abs(cjj).lt.eps_da) then
        do ii=i,ipoa+illa-2
           cc(ii) = cc(ii+1)
           i_1(ii) = i_1(ii+1)
@@ -2269,7 +2269,7 @@ contains
        endif
        return
     endif
-    if(abs(ckon).lt.eps) then
+    if(abs(ckon).lt.eps_da) then
        idall(inb) = 0
        return
     endif
@@ -2559,7 +2559,7 @@ contains
     !
 20  continue
     ccc = cc(ia)*afac + cc(ib)*bfac
-    if(abs(ccc).lt.eps) goto 25
+    if(abs(ccc).lt.eps_da) goto 25
     if(ieo(ia1(i_1(ia))+ia2(i_2(ia))).gt.nocut) goto 25
     ic = ic + 1
     cc(ic) = ccc
@@ -2590,7 +2590,7 @@ contains
 30  continue
     if(ieo(ia1(i_1(ia))+ia2(i_2(ia))).gt.nocut) goto 35
     ccc = cc(ia)*afac
-    if(abs(ccc).lt.eps) goto 35
+    if(abs(ccc).lt.eps_da) goto 35
     ic = ic + 1
     cc(ic) = ccc
     i_1(ic) = i_1(ia)
@@ -2612,7 +2612,7 @@ contains
 40  continue
     if(ieo(ia1(i_1(ib))+ia2(i_2(ib))).gt.nocut) goto 45
     ccc = cc(ib)*bfac
-    if(abs(ccc).lt.eps) goto 45
+    if(abs(ccc).lt.eps_da) goto 45
     ic = ic + 1
     cc(ic) = ccc
     i_1(ic) = i_1(ib)
@@ -2635,7 +2635,7 @@ contains
     do is=ismin,ismax
        if(ieo(ia1(i_1(is))+ia2(i_2(is))).gt.nocut) goto 60
        ccc = cc(is)*copf
-       if(abs(ccc).lt.eps) goto 60
+       if(abs(ccc).lt.eps_da) goto 60
        ic = ic + 1
        cc(ic) = ccc
        i_1(ic) = i_1(is)
@@ -3134,7 +3134,7 @@ contains
        do iv=1,ia
           !
           ccf = cc(idapo(icc(iv))+i)
-          if(abs(ccf).gt.eps) call dacma(ma(iv),mon(jl+1),ccf,ma(iv))
+          if(abs(ccf).gt.eps_da) call dacma(ma(iv),mon(jl+1),ccf,ma(iv))
           !
        enddo
     enddo
@@ -3665,7 +3665,7 @@ contains
           enddo
           jj(j) = 1
           call dapek(ma(i),jj,amjj)
-          if(abs(amjj).gt.eps) call dapok(ma(i),jj,zero)
+          if(abs(amjj).gt.eps_da) call dapok(ma(i),jj,zero)
           aa(i,j) = amjj
        enddo
        call dacmu(ma(i),-one,ma(i))
@@ -3711,7 +3711,7 @@ contains
                 return
              else
                 write(line,'(a50,2(1x,i4),3(1x,g13.6))')  'ERROR IN DAINV, INVERSION DID NOT WORK,I,J,PROD = ' &
-                     &  ,i,j,prod,epsmac,eps
+                     &  ,i,j,prod,epsmac,eps_da
                 ipause=mypauses(35,line)
                 ier = 1
                 !ETIENNE
@@ -4143,7 +4143,7 @@ contains
        cfac = REAL(fun(j),kind=DP)
        !      IF(abs(CFAC).LT.EPS) GOTO 100
        !      IF(abs(CFAC*CC(IA)).LT.EPS) GOTO 100
-       if(abs(cfac*cc(ia)).lt.eps.or.abs(cc(ia)).lt.eps) goto 100
+       if(abs(cfac*cc(ia)).lt.eps_da.or.abs(cc(ia)).lt.eps_da) goto 100
        !
        ic = ic + 1
        cc(ic) = cc(ia)*cfac
@@ -4310,7 +4310,7 @@ contains
        cfac = aimag(fun(j))
        !      IF(abs(CFAC).LT.EPS) GOTO 100
        !      IF(abs(CFAC*CC(IA)).LT.EPS) GOTO 100
-       if(abs(cfac*cc(ia)).lt.eps.or.abs(cc(ia)).lt.eps) goto 100
+       if(abs(cfac*cc(ia)).lt.eps_da.or.abs(cc(ia)).lt.eps_da) goto 100
        !
        ic = ic + 1
        cc(ic) = cc(ia)*cfac
@@ -4403,7 +4403,7 @@ contains
        cfac = fun(j)
        !      IF(abs(CFAC).LT.EPS) GOTO 100
        !      IF(abs(CFAC*CC(IA)).LT.EPS) GOTO 100
-       if(abs(cfac*cc(ia)).lt.eps.or.abs(cc(ia)).lt.eps) goto 100
+       if(abs(cfac*cc(ia)).lt.eps_da.or.abs(cc(ia)).lt.eps_da) goto 100
        !
        ic = ic + 1
        cc(ic) = cc(ia)*cfac
@@ -4495,7 +4495,7 @@ contains
              if(ieo(ia1(i_1(ii))+ia2(i_2(ii))).ne.ioa) goto 100
              call dancd(i_1(ii),i_2(ii),j)
              !ETIENNE
-             if(abs(cc(ii)).gt.eps) then
+             if(abs(cc(ii)).gt.eps_da) then
                 !ETIENNE
                 iout = iout+1
                 write(iunit,'(I6,2X,G20.13,I5,4X,18(2i2,1X))') iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
@@ -4569,7 +4569,7 @@ contains
              if(ieo(ia1(i_1(ii))+ia2(i_2(ii))).ne.ioa) goto 100
           endif
           !ETIENNE
-          if(abs(cc(ii)).gt.eps) then
+          if(abs(cc(ii)).gt.eps_da) then
              !ETIENNE
              if(nomax.ne.1) then
                 call dancd(i_1(ii),i_2(ii),j)
@@ -4585,9 +4585,9 @@ contains
              endif
              !
              !      WRITE(IUNIT,*) IOA,CC(II),(J(I),I=1,INVA)
-             if(abs(cc(ii)).gt.eps) then
+             if(abs(cc(ii)).gt.eps_da) then
                  some=.true.
-                if(eps.gt.c_1d_37) then
+                if(eps_da.gt.c_1d_37) then
                    write(iunit,501) ioa,cc(ii),(j(i),i=1,inva)
                 else
                    write(iunit,503) ioa,cc(ii),(j(i),i=1,inva)
@@ -4651,7 +4651,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
              if(ieo(ia1(i_1(ii))+ia2(i_2(ii))).ne.ioa) goto 100
           endif
           !ETIENNE
-          if(abs(cc(ii)).gt.eps) then
+          if(abs(cc(ii)).gt.eps_da) then
              !ETIENNE
              if(nomax.ne.1) then
                 call dancd(i_1(ii),i_2(ii),j)
@@ -4673,8 +4673,8 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
              enddo
              !
              !      WRITE(IUNIT,*) IOA,CC(II),(J(I),I=1,INVA)
-             if(abs(cc(ii)).gt.eps) then
-                if(eps.gt.c_1d_37) then
+             if(abs(cc(ii)).gt.eps_da) then
+                if(eps_da.gt.c_1d_37) then
                    !       write(iunit,501) ioa,cc(ii),(j(i),i=1,inva)
                    ich=1
                    do ik=1,ishift
@@ -4979,7 +4979,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     !
     do i=1,nmmax
        ccc = cc(i)
-       if(abs(ccc).lt.eps) goto 100
+       if(abs(ccc).lt.eps_da) goto 100
        ic = ic + 1
        cc(ic) = ccc
        i_1(ic) = ie1(i)
