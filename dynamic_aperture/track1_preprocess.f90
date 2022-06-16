@@ -31,7 +31,7 @@
 
 subroutine track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)
 
-use lt_tracking_mod, except_dummy => track1_preprocess
+use da_program_mod, except_dummy => track1_preprocess
 
 implicit none
 
@@ -40,6 +40,7 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
+type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) r, t
 integer ir, n, iu
@@ -47,33 +48,22 @@ logical err_flag, finished, radiation_included, is_there
 
 character(*), parameter :: r_name = 'track1_preprocess'
 
-! Recording a particle track?
-
-if (start_orb%ix_user > 0 .and. start_orb%state == alive$) then
-  iu = lunget()
-  if (ele%ix_ele <= 1) then
-    open (iu, file = 'particle_track.dat')
-  else
-    open (iu, file = 'particle_track.dat', access = 'append')
-  endif
-  write (iu, '(i8, 2x, a20, 6es16.8)') ele%ix_ele, ele%name, start_orb%vec
-  close (iu)
-endif
-
-! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
+!
 
 err_flag = .false.
-if (.not. ltt_params_global%ramp_update_each_particle) return 
+if (.not. da_com%ramping_on) return 
+t = start_orb%t + 0.5_rp * ele%value(delta_ref_time$) + da_com%ramping_start_time
 
-t = start_orb%t + 0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
-
-do ir = 1, ltt_com_global%n_ramper_loc
-  if (ltt_com_global%ramper(ir)%ele%control%var(1)%name /= 'TIME') cycle
-  ltt_com_global%ramper(ir)%ele%control%var(1)%value = t
+n = da_com%n_ramper_loc
+allocate(eles(n))
+do ir = 1, n
+  ele0 => pointer_to_ele(ele%branch%lat, da_com%ramper(ir))
+  eles(ir)%ele => ele0
+  if (ele0%control%var(1)%name /= 'TIME') cycle
+  ele0%control%var(1)%value = t
 enddo
 
-n = ltt_com_global%n_ramper_loc
-call apply_ramper (ele, ltt_com_global%ramper(1:n), err_flag)
+call apply_ramper (ele, eles, err_flag)
 
 ! The beginning element is never tracked through. If there is energy ramping and the user is writing out 
 ! p0c or E_tot from the beginning element, the user may be confused since these values will not change. 

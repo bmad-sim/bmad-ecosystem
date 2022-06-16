@@ -63,7 +63,7 @@ type ltt_params_struct
   integer :: averages_output_every_n_turns = -1
   integer :: random_seed = 0
   real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
-  real(rp) :: ramping_start_time
+  real(rp) :: ramping_start_time = 0
   real(rp) :: ptc_aperture(2) = 0.1
   real(rp) :: print_on_dead_loss = -1
   real(rp) :: timer_print_dtime = 120
@@ -72,6 +72,7 @@ type ltt_params_struct
   real(rp) :: b_emittance = 0   ! Used for space charge calculation.
   logical :: only_live_particles_out = .true.
   logical :: ramping_on = .false.
+  logical :: ramp_update_each_particle = .true.
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: symplectic_map_tracking = .false.
@@ -114,7 +115,6 @@ type ltt_com_struct
   real(rp) :: ptc_closed_orb(6) = 0
   real(rp) :: time_start = 0
   logical :: wrote_particle_file_header = .false.
-  logical :: ramp_in_track1_preprocess = .false.
   logical :: debug = .false.
   integer :: n_particle      ! Num particles per bunch. Needed with MPI.
   integer :: mpi_rank = master_rank$
@@ -327,7 +327,7 @@ if (ltt%simulation_mode == 'CHECK') then
   endif
 endif
 
-!
+! Ramper setup
 
 if (ltt%ramping_on) then
   if (ltt%tracking_method /= 'BMAD') THEN
@@ -602,6 +602,7 @@ call ltt_write_master('# ltt%n_turns                        = ' // int_str(lttp%
 call ltt_write_master('# ltt%particle_output_every_n_turns  = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_master('# ltt%averages_output_every_n_turns  = ' // int_str(lttp%averages_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_master('# ltt%ramping_on                     = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
+call ltt_write_master('# ltt%ramp_update_each_particle      = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
 call ltt_write_master('# ltt%ramping_start_time             = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
 call ltt_write_master('# ltt%averaging_window               = ' // int_str(lttp%averaging_window), lttp, iu, print_this)
 call ltt_write_master('# ltt%random_seed                    = ' // int_str(lttp%random_seed), lttp, iu, print_this)
@@ -800,7 +801,6 @@ branch => lat%branch(ix_branch)
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 
 orbit_old%vec = real_garbage$
-ltt_com%ramp_in_track1_preprocess = .true.
 
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 
@@ -1558,6 +1558,7 @@ endif
 write (iu,  '(a, i8)')   '# n_particle                     = ', n_particle
 write (iu,  '(a, i8)')   '# n_turns                        = ', lttp%n_turns
 write (iu,  '(a, l1)')   '# ramping_on                     = ', lttp%ramping_on
+write (iu,  '(a, l1)')   '# ramp_update_each_particle      = ', lttp%ramp_update_each_particle
 write (iu,  '(2a)')      '# ramping_start_time             = ', real_str(lttp%ramping_start_time, 6)
 write (iu,  '(a, i8)')   '# particle_output_every_n_turns  = ', lttp%particle_output_every_n_turns
 write (iu,  '(a, i8)')   '# averages_output_every_n_turns  = ', lttp%averages_output_every_n_turns
