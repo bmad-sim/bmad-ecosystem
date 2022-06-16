@@ -66,7 +66,7 @@
 "34pf12.3" STR "1(34pF12.3)"
 "x" STR "1(0pX-1.-1)"
 "(7(4pi17))" STR "7(4pI17.-1)"
-"BAD-FMT" STR "1(0p17.-1)"
+"BAD-FMT" STR "1(0pI17.-1)"
 "rot X-X" ABS 1E-16   0.000E+00
 "rot Y-Y" ABS 1E-16   0.000E+00
 "rot Z-Z" ABS 1E-16   0.000E+00
