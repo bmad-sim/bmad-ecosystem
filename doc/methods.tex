@@ -255,11 +255,12 @@ computed. Table~\ref{t:mat6.methods} gives which methods are available for each 
 Note: Table~\ref{t:mat6.methods} is for charged-particle tracking only. When tracking photons,
 transfer matrices (which are not very useful) are not computed.
 
-If the element \vn{static_linear_map} parameter is set to \vn{True} (the default is \vn{False}, this
-prevents the linear map which consists of the transfer matrix and the zeroth order part of the map
-from being recomputed. For example, if a steering is changed which shifts the reference orbit, the
-transfer matrix will, in general, vary but having \vn{static_linear_map} set to \vn{True} will
-prevent this variation.
+If an element's \vn{static_linear_map} parameter is set to \vn{True} (the default is \vn{False},
+this prevents the linear map, which consists of the transfer matrix and the zeroth order part of the
+map, from being recomputed. For example, if somewhere in a lattice a steering is changed, this will
+shift the reference orbit and the linear transfer map in elements where the reference orbit changes
+will, in general, vary. However, having \vn{static_linear_map} set to \vn{True} will prevent this
+variation.
 
 \index{sympliectify}
 \index{taylor_map_includes_offsets}

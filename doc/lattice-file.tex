@@ -1142,7 +1142,7 @@ Example:
   call, filename = "/nfs/cesr/lat/my_layout.bmad"  ! Absolute pathname
   call, filename = "$LATDIR/my_layout.bmad"        ! Absolute pathname
 \end{example}
-Environmental variables in the file name will be expanded. \bmad will read the called file until a
+Environment variables in the file name will be expanded. \bmad will read the called file until a
 \vn{return} or \vn{end_file} statement is encountered or the end of the file is reached.
 
 For filenames that have a relative pathname, the called file will be searched for relative to the
@@ -1174,7 +1174,7 @@ file using an ``inline call''. The inline call has three forms:
   <ele_name>[<attribute_name>] = call::<file_name>
 \end{example}
 where \vn{<attribute_name>} is the name of the attribute and \vn{<file_name>} is the name of the
-where the attribute structure is given. The Environmental variables in the file name will be expanded.
+where the attribute structure is given. The Environment variables in the file name will be expanded.
 Example:
 \begin{example}
   c: crystal, call::$AB/my_curvature.bmad, h_misalign = call::my_surface.bmad, ...

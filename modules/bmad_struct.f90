@@ -831,6 +831,12 @@ type branch_pointer_struct
   type (branch_struct), pointer :: branch => null()
 end type
 
+! Structure to be used for an array of pointers to lattices.
+
+type lat_pointer_struct
+  type (lat_struct), pointer :: lat => null()
+end type
+
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.
 
 type mode3_struct

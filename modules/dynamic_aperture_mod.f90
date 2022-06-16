@@ -35,7 +35,8 @@ type (coord_struct), allocatable :: orbit(:)
 type (coord_struct) orb0
 type (ele_struct), pointer :: ele0
 type (ele_pointer_struct), allocatable :: eles(:)
-
+type (lat_pointer_struct), allocatable :: lats(:)
+type (lat_ele_loc_struct) ele0_loc
 type (aperture_scan_struct), allocatable, target :: aperture_scan(:)
 type (aperture_scan_struct), pointer :: ap_scan
 type (aperture_point_struct) :: ap_point, x_point, y_point
@@ -48,7 +49,7 @@ real(rp), allocatable  :: angle_list(:)
 real(rp) :: delta_angle, time0, time1, time2
 real(rp) Sx, Sy
 
-integer :: i, omp_n, n_loc, ns
+integer :: i, omp_n, n_loc, ns, ix_lat
 logical err, thread_safe
 logical, optional :: print_timing
 
@@ -81,6 +82,8 @@ else
   branch => lat%branch(ele0%ix_branch)
 endif
 
+ele0_loc = lat_ele_loc_struct(ele0%ix_branch, ele0%ix_ele)
+
 allocate(angle_list(ap_param%n_angle))
 
 if (ap_param%n_angle == 1) then
@@ -99,9 +102,17 @@ do i = 1, branch%n_ele_track
   if (branch%ele(i)%tracking_method /= symp_lie_ptc$) cycle
   thread_safe = .false.
   !$ call out_io (s_warn$, r_name, 'Element with symp_lie_ptc tracking detected: ' // branch%ele(i)%name, &
-  !$                               'PTC is not thread safe so Will NOT run multithreaded!')
+  !$                               'PTC is not thread safe so will NOT run multithreaded!')
   exit
 enddo
+
+! Need separate lat instances when ramping since ramping will modify a lattice.
+
+allocate (lats(max(2,ap_param%n_angle)))
+lats(1)%lat => lat
+lats(2)%lat => lat
+!$ allocate(lats(2)%lat)
+!$ lats(2)%lat = lat
 
 !---------------
 
@@ -150,14 +161,16 @@ do ns = 1, size(pz_start)
   if (ap_param%x_init == 0) ap_param%x_init = 0.001_rp
   if (ap_param%y_init == 0) ap_param%y_init = 0.001_rp
 
-  !$OMP parallel sections if (thread_safe)
+  !$OMP parallel sections if (thread_safe) private(branch, ele0)
   !$OMP section
 
+  call set_branch_and_ele_for_omp(1, ele0_loc, lats, lat, branch, ele0)
   call dynamic_aperture_point (branch, ele0, ap_scan%ref_orb, 0.0_rp, ap_param, x_point, .false.)
   ap_param%x_init = x_point%x
 
   !$OMP section
 
+  call set_branch_and_ele_for_omp(2, ele0_loc, lats, lat, branch, ele0)
   call dynamic_aperture_point (branch, ele0, ap_scan%ref_orb, pi/2, ap_param, y_point, .false.)
   ap_param%y_init = y_point%y
 
@@ -167,8 +180,12 @@ do ns = 1, size(pz_start)
   if (logic_option(.true., print_timing)) call out_io (s_blank$, r_name, '  Scale factors calculated. dTime(min): \f8.2\ ', &
                                                                                 r_array = [(time1-time0)/60])
 
-  !$OMP parallel do if (thread_safe)
+  !$OMP parallel do if (thread_safe) private(branch, ele0)
   do i = 1, ap_param%n_angle
+    ix_lat = 1
+    !$ ix_lat = omp_get_thread_num() + 1
+    call set_branch_and_ele_for_omp(ix_lat, ele0_loc, lats, lat, branch, ele0)
+
     if (abs(angle_list(i)) < 1d-6) then
       ap_points(i) = x_point
     elseif (abs(angle_list(i) - pi/2) < 1d-6) then
@@ -189,6 +206,57 @@ enddo
 deallocate (ap_points)
 
 end subroutine dynamic_aperture_scan
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine set_branch_and_ele_for_omp(ix_lat, ele0_loc, lats, lat, branch, ele0)
+!
+! Routine to set branch and ele for the lattice to be used to track through.
+!
+! Different lattices are used to avoid problems when there is ramping since ramping
+! will modify lattice element parameters.
+!
+! Input:
+!   ix_lat      -- integer: Lattice index.
+!   ele0_loc    -- lat_ele_loc_struct: ele0 location in lattice.
+!   lats(:)     -- lat_pointer_struct: Pointers to lattices to track through.
+!   lat         -- lat_struct: Original lattice.
+!
+! Output:
+!   lats(:)     -- lat_pointer_struct: Properly initialized if needed.
+!   branch      -- branch_struct, pointer: Branch to track through
+!   ele0        -- starting element for tracking.
+!-
+
+subroutine set_branch_and_ele_for_omp(ix_lat, ele0_loc, lats, lat, branch, ele0)
+
+type (lat_ele_loc_struct) ele0_loc
+type (lat_pointer_struct) lats(:)
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele0
+
+integer ix_lat
+character(*), parameter :: r_name = 'set_branch_and_ele_for_omp'
+
+!
+
+if (ix_lat > size(lats)) then
+  call out_io (s_fatal$, r_name, 'IX_LAT INDEX OUT OF RANGE! PLEASE REPORT THIS! ' // int_str(ix_lat))
+  stop
+endif
+
+if (.not. associated(lats(ix_lat)%lat)) then
+  allocate (lats(ix_lat)%lat)
+  lats(ix_lat)%lat = lat
+endif
+
+branch => lats(ix_lat)%lat%branch(ele0_loc%ix_branch)
+ele0 => branch%ele(ele0_loc%ix_ele)
+
+end subroutine set_branch_and_ele_for_omp
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
