@@ -392,13 +392,14 @@ The coordinates of the particle at the exit face is $(u_2, 0)$ where
   u_2 = u_0 + \sqrt{\rho_p^2 - v_0^2}
 \end{equation}
 After some manipulation, the offset of the particle $x_2$ from the design point at the exit face is
+\begin{equation}
+  x_2 = u_2 - \rho = x_1 \, \cos(\theta) - L^2 \, g \, \cosc(\theta) + \xi
+\end{equation}
+where $\xi$ can be expressed in two different ways
 \begin{align}
-  x_2 &= u_2 - \rho \nonumber \\
-  &= x_1 \, \cos(\theta) - L^2 \, g \, \cosc(\theta) + 
-    \frac{\alpha}{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} + \cos(\theta + \phi_1)} 
-    \label{xctlg1} \\
-  &= x_1 \, \cos(\theta) - L^2 \, g \, \cosc(\theta) + 
-    \frac{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} - \cos(\theta + \phi_1)}{g_p}
+  \xi &= \frac{\alpha}{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} + \cos(\theta + \phi_1)} 
+    \quad \text{or} \label{xctlg1} \\
+  &= \frac{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} - \cos(\theta + \phi_1)}{g_p}
     \label{xctlg2}
 \end{align}
 where $g \equiv 1/\rho$  and 
@@ -407,11 +408,11 @@ where $g \equiv 1/\rho$  and
         g_p \, (1 + g \, x_1)^2 \, L^2 \, \sinc^2(\theta) \\
   g_p &= \frac{1}{\rho_p} = \frac{g_\tot}{\sqrt{(1 + p_z)^2 - p_y^2}} \label{g1rg}
 \end{align}
-and $g_\tot$ is the bending strength of the actual field. Both \Eq{xctlg1} and \Eq{xctlg2} are
-needed since \Eq{xctlg1} is singular when $\alpha = 0$ and $\theta + \phi_1 = \pi$ (which happens
-when the particle is bent by 180\Deg), and \Eq{xctlg2} is singular when $g_p$ is zero. A simple way
-to implement the calculation for $x_2$ is to use \Eq{xctlg1} when $|\theta + \phi_1| < \pi/2$ and
-otherwise use \Eq{xctlg2}.
+In the above equation $g_\tot$ is the bending strength of the actual field. Both \Eq{xctlg1} and
+\Eq{xctlg2} are needed since \Eq{xctlg1} is singular when $\alpha = 0$ and $\theta + \phi_1 = \pi$
+(which happens when the particle is bent by 180\Deg), and \Eq{xctlg2} is singular when $g_p$ is
+zero. A simple way to implement the calculation for $x_2$ is to use \Eq{xctlg1} when $|\theta +
+\phi_1| < \pi/2$ and otherwise use \Eq{xctlg2}.
 
 Once $x_2$ is computed, the arc length of the particle $L_p$ is 
 \begin{equation}
@@ -420,8 +421,7 @@ Once $x_2$ is computed, the arc length of the particle $L_p$ is
 where $\bfL_c$ is the vector (chord) from point 1 and point 2
 \begin{equation}
   \bfL_c = (L_{cu}, L_{cv}) =
-  \left( x_2 + L^2 \, g \, \cosc(\theta) - x_1 \, \cos(\theta),
-                  -L \, \sinc(\theta) - x_1 \, \sin(\theta) \right) 
+  \left( \xi, -L \, \sinc(\theta) - x_1 \, \sin(\theta) \right) 
 \end{equation}
 and $\theta_p$ is the angle made by the particle trajectory which is twice the angle between
 the initial particle trajectory $\Bf P$ and the vector $\bfL_c$
