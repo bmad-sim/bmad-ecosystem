@@ -68,7 +68,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ April 22, 2022}
+\date{David Sagan \\ June 15, 2022}
 \begin{document}
 \maketitle
 
@@ -109,12 +109,12 @@ documentation on the Bmad web site for more details.]
 \Section{Running the Long Term Tracking Program} 
 \label{s:run}
 
-See the documentation for setting up the Bmad environmental variables at
+See the documentation for setting up the Bmad environment variables at
 \begin{code}
   https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
 \end{code}
 
-Once the Bmad environmental variables have been set, the syntax for invoking the single threaded
+Once the Bmad environment variables have been set, the syntax for invoking the single threaded
 version of the \ltt program is:
 \begin{code}
   long_term_tracking {<master_input_file_name>}
@@ -365,18 +365,22 @@ time. Ramping examples include changing magnet and RF strengths to ramp the beam
 magnet strengths to squeeze beta at the interaction pont of a colliding beam machine.
 
 Ramping is accomplished by defining \vn{ramper} elements in the lattice file. These ramper elements
-will be applied to each element in turn before particles are tracked through them. Example:
+will be applied to each lattice element in turn before particles are tracked through the
+element. Restriction: Only those ramper elements that have \vn{time} as the first variable will be
+used. See the Bmad manual for documentation on \vn{ramper} syntax.
+
+Example:
 \begin{code}
   ramp_e: ramper = \{*[e_tot]:\{4e+08, 4.00532e+08, 4.01982e+08, ...\}\},
                 var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}
+
   amp = 1e9;  omega = 0.167;  t0 = 0.053
-  ramp_rf: ramper = \{rfcavity::*[voltage]:amp*sin(omega *(t + t0)),
-        rfcavity::*[phi0]:0.00158*t^2 + 2*q \}, var = \{t, q\}
+  ramp_rf: ramper = \{rfcavity::*[voltage]:amp*sin(omega *(time + t0)),
+        rfcavity::*[phi0]:0.00158*time^2 + 2*q \}, var = \{time, q\}
 \end{code}
-See the Bmad manual for documentation on \vn{ramper} syntax. The ``\vn{*[e_tot]}'' construct in the
-definition of \vn{ramp_e} means that the ramper will be applied all elements (since the wild card
-character ``\vn{*}'' will match to any element name), and it is the element's \vn{e_tot} attribute
-(the element's reference energy) that will be varied.
+The ``\vn{*[e_tot]}'' construct in the definition of \vn{ramp_e} means that the ramper will be
+applied all elements (since the wild card character ``\vn{*}'' will match to any element name), and
+it is the element's \vn{e_tot} attribute (the element's reference energy) that will be varied.
 
 In the above example, the \vn{ramp_rf} ramper will be applied to all \vn{rfcavity} elements with
 the cavity voltage and phase (\vn{phi0}) being varied.
@@ -399,16 +403,19 @@ proportion to the reference momentum. With \vn{q2}, since \vn{field_master} is T
 unnormalized strength \vn{B1_gradient} will remain fixed and normalized \vn{k1} will vary
 inversely with the reference momentum.
 
-Before ramper elements are applied to an element, the time bench center is at the center of the
-element is computed and this value is applied to the first variable of each ramper. For example,
-with the \vn{ramp_rf} element defined above, the \vn{t} variable will be set to the time. particle
-time The \ltt program assumes that the fist variable of a ramper element is that the ramper control
-variable is time. Implicit in this is the assumption that controlled parameters are varying slow
-enough so that the rampers only need be applied once per beam passage. This is done to minimize
-computational time.
+There are two modes that can be selected to determine how ramper elements are applied. If
+\vn{ltt%ramp_update_each_particle} is set to True (the default), rampers are applied to a given
+lattice element as each particle of the beam passes through the element using the time the particle
+would pass through the center of the element. If set to False, rampers are applied to a given
+element only once per beam passage using the time of the center of the bunch passing the center of
+the element. This will be less accurate but will speed up the calculation. Implicit in this is the
+assumption that controlled parameters are varying slow enough so that the rampers only need be
+applied once per beam passage. This is done to minimize computational time. If ramper controlled
+parameters are slowly varying, for example if ramping magnet strengths with energy ramping which
+occurs over many turns, calculating once per beam passage should be a good apporoximation.
 
-In the lattice file, individual ramper elements may be toggled on or off using the element's
-\vn{is_on} attribute. 
+Before a simulation, individual ramper elements may be toggled on or off by setting the element's
+\vn{is_on} attribute in the lattice file: 
 \begin{code}
   ramp_rf: ramper = ...  ! Ramper element defined.
   ramp_rf[is_on] = F     ! After being defined, ramper may be turned off.
@@ -544,6 +551,7 @@ Example:
   ! Input
   ltt%lat_file   =  "lat.bmad"     ! Bmad lattice file
   ltt%ramping_on = False
+  ltt%ramp_update_each_particle = True
   ltt%ramping_start_time = 0
 
   ! Output parameters
@@ -728,7 +736,7 @@ the format for such lists.
 \item[ltt\%map_ascii_output_file] \Newline
 For linear maps, An ASCII file of the maps can be produced by setting this parameter.
 %
-\item[ttl\%map_file_prefix] \Newline
+\item[ltt\%map_file_prefix] \Newline
 Prefix, including possible directory specification, for creating files in which maps are saved. Map
 files are used to quickly retrieve maps previously computed in prior running of the program. The
 default prefix is \vn{"ltt"}.  The general form of a map file name is
@@ -868,6 +876,10 @@ subprocess can have on the simulation time.
 \item[ltt\%n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.methods}.
 %
+\item[ltt\%ramp_update_each_particle] \Newline
+Default is True. If set to false, to save time, only apply rampers to a given lattice element once
+per beam passage (\sref{s:ramp}).
+%
 \item[ltt\%ramping_on] \Newline
 If set to True, \vn{ramper} control elements will be use to modify the lattice during tracking
 (\sref{s:ramp}). Default is False.
@@ -972,8 +984,8 @@ following are some checks that can be done.
 \item
 Check for a resonance condition $l\,Q_x + m\,Q_y + n\,Q_z = p$. The \vn{show universe} command in
 Tao will show the tunes. The \vn{tune_plane_res_plot} program can be used to plot resonance lines in
-the $(Q_x, Q_y)$ tune plane. The \vn{tune_scan} program can be used to simulate the beam at different in
-$(Q_x, Q_y)$ tune plane to see where the beam blows up.
+the $(Q_x, Q_y)$ tune plane. Also the \vn{tune_scan} program can be used to see where
+the beam blows up in the $(Q_x, Q_y)$ tune plane.
 %
 \item
 Check that radiation damping and excitation are both on or both off.
@@ -986,16 +998,19 @@ of the beam.
 If using PTC or MAP tracking, check that enough slices are being used to accurately model the lattice
 %
 \item
-Check 
-%
-\item
 Check that lattice is stable. To do this, check that the damping partition numbers are all
 positive. The damping partition numbers can be seen using the Tao program's \vn{show universe}
 command. Note: Make sure that in Tao that the radiation damping and RF on/off match what is being used in
 the long_term_tracking program.
 %
 \item
-Using SINGLE mode tracking, output a turn-by-turn orbit  (set ltt%particle_output_file and ltt%particle_output_every_n_turns = 1). Then use your favorate plotting program to plot the phase space trajectory. This Will give you a lot of information.
+Using SINGLE mode tracking, output a turn-by-turn orbit by setting:
+\begin{code}
+ltt%particle_output_file = "some-nonblank-name" 
+ltt%particle_output_every_n_turns = 1
+\end{code}
+Use your favorate plotting program to plot the phase space trajectory. This will give a lot of information. For
+example, look to see in which plane an instability starts.
 \end{itemize}
 
 %------------------------------------------------------------------

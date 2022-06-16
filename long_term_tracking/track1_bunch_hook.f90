@@ -40,7 +40,10 @@ logical err, finished
 ! That is, it is assumed that the ramper control function variation is negligible over the
 ! time scale of a bunch passage.
 
+err = .false.
 finished = .false.
+if (ltt_params_global%ramp_update_each_particle) return 
+
 n = ltt_com_global%n_ramper_loc
 if (n == 0) return
 

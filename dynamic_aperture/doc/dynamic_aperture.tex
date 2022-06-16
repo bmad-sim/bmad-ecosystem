@@ -1,0 +1,340 @@
+%-----------------------------------------
+% Note: Use pdflatex to process this file.
+%-----------------------------------------
+
+%\documentclass{article}
+\documentclass{hitec}
+\usepackage{color,soul}
+
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{moreverb}    % Defines {listing} environment.
+\usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{subcaption}
+\usepackage{toc-bmad}
+\usepackage{xspace}
+\usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
+\usepackage{longtable}   % For splitting long vertical tables into pieces
+\usepackage{index}
+\usepackage{multirow}
+\usepackage{booktabs}    % For table layouts
+\usepackage{yhmath}      % For widehat
+\usepackage{xcolor}      % Needed for listings package.
+\usepackage{listings}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[pdftex,colorlinks=true]{hyperref}   % Must be last package!
+
+\definecolor{light-gray}{gray}{0.95}
+\lstset{backgroundcolor=\color{light-gray}}
+\lstset{xleftmargin=0cm}
+\lstset{framexleftmargin=0.3em}
+%\lstset{basicstyle = \ttfamily\fontsize{11}{11}\selectfont} 
+\lstset{basicstyle = \small}
+\lstnewenvironment{code}{}{}
+
+%---------------------------------------------------------------------------------
+
+\definecolor{lightestgray}{gray}{0.99}
+\sethlcolor{lightestgray}
+\soulregister{\texttt}{1}
+\newcommand\dottcmd[1]{\hl{\em#1}\endgroup}
+%\newcommand\dottcmd[1]{{#1}\endgroup}
+\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand{\da}{\vn{dynamic_aperture}\xspace}
+\newcommand{\Newline}{\hfil \\}
+\newcommand{\sref}[1]{$\S$\ref{#1}}
+\newcommand{\Th}{$^{th}$\xspace}
+
+%---------------------------------------------------------------------------------
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\settextfraction{0.9}  % Width of text
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+%\setlength{\textwidth}{6in}
+\newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
+
+\newenvironment{display}
+  {\vspace*{-1.5ex} \begin{alltt}}
+  {\end{alltt} \vspace*{-1.0ex}}
+
+%---------------------------------------------------------------------------------
+
+\title{Dynamic_Aperture Program}
+\author{}
+\date{David Sagan \\ April 22, 2022}
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+%---------------------------------------------------------------------------------
+\Section{Introduction} 
+\label{s:intro}
+
+The \da program is for measuring the dynamic aperture. The concept of \vn{dynamic aperture} is that
+a particle reaching a certain amplitude will quickly be resonantly driven to large amplitude where
+it is lost. This amplitude where the particle becomes unstable is the dynamic aperture. This is to
+be contrasted by the \vn{physical aperture} which is the aperture where a particle stricks the wall
+of the beam chamber. The general idea in designing lattices is to make sure that the dynamic
+aperture is large enough so that, in the normal course of events, particles in the beam have a very
+small probability of getting lost due to their amplitude exceeding the dynamic aperture. For long
+term stability, a common rule of thumb is to design lattices such that the dynamic aperture is 10 times
+the beam sigma.\footnote
+  {
+While this might seem excessive, this rule of thumb gives some safety margin which is desireable
+since designs are never exact.
+  }
+For injection studies, the minimum dynamic aperture will be determined in part by the size of the
+injected beam. In any case, if the dynamic aperture is larger than the physical aperture, increasing
+the dynamic aperture further will not help beam stability. 
+
+If there are no apertures set in lattice used by the \da program, the calculated aperture will be the
+dynamic aperture. If apertures are set in the lattice, the calculated aperture will be the minimum of
+the dynamic and physical apertures.
+
+The \da program is built atop the Bmad software toolkit \cite{b:bmad}. The Bmad toolkit is a
+library, developed at Cornell, for the modeling relativistic charged particles in storage rings and
+Linacs, as well as modeling photons in x-ray beam lines.
+
+The \da program comes with the ``Bmad Distribution'' which is a package which contains Bmad along with
+a number of Bmad based programs. See the Bmad web site for more details.
+
+If the Bmad Distribution is compiled with \vn{OpenMP} enabled (see the documentation on the Bmad
+Distribution ``Off-Site'' setup for more details), the \da program can be run parallel. With OpenMP
+the computation load is distributed over a number of cores on the machine you are using. To set the
+number of cores set the \vn{OMP_NUM_THREADS} environment variable. Example:
+\begin{code}
+export OMP_NUM_THREADS=8
+\end{code}
+And run the program as normal.
+
+%------------------------------------------------------------------
+\Section{Running the Dynamic Aperture Program} 
+\label{s:run}
+
+See the documentation for setting up the Bmad environment variables at
+\begin{code}
+  https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
+\end{code}
+
+Once the Bmad environment variables have been set, the syntax for invoking the single threaded
+version of the \da program is:
+\begin{code}
+  dynamic_aperture {<master_input_file_name>}
+\end{code}
+Example:
+\begin{code}
+  dynamic_aperture my_input_file.init
+\end{code}
+The \vn{<master_input_file_name>} optional argument is used to set the master input file name. The
+default value is ``\vn{dynamic_aperture.init}''. The syntax of the master input file is explained
+in \sref{s:input}.
+
+Example input files are in the directory (relative to the root of a Distribution):
+\begin{code}
+  bsim/dynamic_aperture/example
+\end{code}
+
+%------------------------------------------------------------------
+\Section{Time Ramping --- Time Varying Element Parameters}
+\label{s:ramp}
+
+%------------------------------------------------------------------
+\Section{Time Ramping --- Time Varying Element Parameters}
+\label{s:ramp}
+
+``\vn{Ramping}'' is the situation where lattice parameters are changing as a function of
+time. Ramping examples include changing magnet and RF strengths to ramp the beam energy or changing
+magnet strengths to squeeze beta at the interaction pont of a colliding beam machine.
+
+Ramping is accomplished by defining \vn{ramper} elements in the lattice file and setting
+\vn{ramping_on} to True in the master input file (\sref{s:input}). Ramper elements will be applied
+to each lattice element in turn before particles are tracked through them. Restriction: Only those
+ramper elements that have \vn{time} as the first variable will be used. See the Bmad manual for
+documentation on \vn{ramper} syntax.
+
+Example:
+\begin{code}
+  ramp_e: ramper = \{*[e_tot]:\{4e+08, 4.00532e+08, 4.01982e+08, ...\}\},
+                var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}
+
+  amp = 1e9;  omega = 0.167;  t0 = 0.053
+  ramp_rf: ramper = \{rfcavity::*[voltage]:amp*sin(omega *(time + t0)),
+        rfcavity::*[phi0]:0.00158*time^2 + 2*q \}, var = \{time, q\}
+\end{code}
+The ``\vn{*[e_tot]}'' construct in the definition of \vn{ramp_e} means that the ramper will be
+applied all elements (since the wild card character ``\vn{*}'' will match to any element name), and
+it is the element's \vn{e_tot} attribute (the element's reference energy) that will be varied.
+
+In the above example, the \vn{ramp_rf} ramper will be applied to all \vn{rfcavity} elements with
+the cavity voltage and phase (\vn{phi0}) being varied.
+
+Important! Only rampers that use \vn{time} as the variable name will be directly varied in the
+tracking.
+
+In the case where the reference energy \vn{e_tot} or reference momentum \vn{p0c} is being varied, the
+effect on an element will depend upon the setting of the element's \vn{field_master} parameter. For
+example:
+\begin{code}
+  q1: quadrupole, k1 = 0.3
+  q2: quadrupole, k1 = 0.3, field_master = T
+\end{code}
+In this example, \vn{q1} will have its \vn{field_master} parameter set to \vn{False} since the
+quadrupole strength was specified using the normalized strength \vn{k1}. With \vn{q1}, since
+\vn{field_master} is False, varying the reference energy or momentum will result in the normalized
+strength \vn{k1} remaining fixed and the unnormalized strength \vn{B1_gradient} varying in
+proportion to the reference momentum. With \vn{q2}, since \vn{field_master} is True, the
+unnormalized strength \vn{B1_gradient} will remain fixed and normalized \vn{k1} will vary
+inversely with the reference momentum.
+
+Before a simulation, individual ramper elements may be toggled on or off by setting the element's
+\vn{is_on} attribute in the lattice file: 
+\begin{code}
+  ramp_rf: ramper = ...  ! Ramper element defined.
+  ramp_rf[is_on] = F     ! After being defined, ramper may be turned off.
+\end{code}
+
+%------------------------------------------------------------------
+\Section{Fortran Namelist Input}
+\label{s:namelist}
+
+Fortran namelist syntax is used for parameter input in the master input file. The general form of a namelist is
+\begin{code}
+&<namelist_name>
+  <var1> = ...
+  <var2> = ...
+  ...
+/
+\end{code}
+The tag \vn{"\&<namelist_name>"} starts the namelist where \vn{<namelist_name>} is the name of the
+namelist. The namelist ends with the slash \vn{"/"} tag. Anything outside of this is ignored. Within
+the namelist, anything after an exclamation mark \vn{"!"} is ignored including the exclamation
+mark. \vn{<var1>}, \vn{<var2>}, etc. are variable names. Example:
+\begin{code}
+&place 
+  section = 0.0, "arc_std", "elliptical", 0.045, 0.025 
+/
+\end{code}
+here \vn{place} is the namelist name and \vn{section} is a variable name.  Notice that here
+\vn{section} is a ``structure'' which has five components -- a real number, followed by two strings,
+followed by two real numbers.
+
+Everything is case insensitive except for quoted strings.
+
+Logical values are specified by \vn{True} or \vn{False} or can be abbreviated \vn{T} or
+\vn{F}. Avoid using the dots (periods) that one needs in Fortran code.
+
+%------------------------------------------------------------------
+\Section{Master Input File}
+\label{s:input}
+
+The \vn{master input file} holds the parameters needed for running the \da program. The master input
+file must contain a single namelist (\sref{s:namelist}) named \vn{params}.  Example:
+\begin{code}
+&params
+  lat_file   =  "lat.bmad"     ! Bmad lattice file
+  ramping_on = False
+  ramping_start_time = 0
+  dat_file = "da.dat"
+  set_rf_off = False
+  dpz = 0.000, 0.005, 0.010
+  bmad_com
+  da_param%min_angle = 0
+  da_param%max_angle = 3.1415926
+  da_param%n_angle = 0
+  da_param%n_turn = 2000
+  da_param%x_init = 1e-3
+  da_param%y_init = 1e-3
+  da_param%rel_accuracy = 1e-2
+  da_param%abs_accuracy = 1e-5
+  da_param%start_ele = ''
+/
+\end{code}
+
+Parameters in the master input file that are:
+\begin{description}
+\item[lat_file] \Newline
+Name of the Bmad lattice file to use. This name is required.
+%
+\item[bmad_com\%...] \Newline
+The \vn{bmad_com} structure contains various parameters that affect tracking. For example, whether
+radiation damping and fluctuations are included in tracking. A full list of \vn{bmad_com} parameters
+is detailed in the Bmad reference manual. Note: \vn{bmad_com} parameters can be set in the Bmad
+lattice file as well. \vn{Bmad_com} parameter set in the master input file will take precedence over
+parameters set in the lattice file.
+%
+\item[ele_start] \Newline
+Name or element index of the element to start the tracking. Examples:
+\begin{code}
+  ele_start = "Q3##2"   ! 2nd element named Q3 in the lattice.
+  ele_start = 37        ! 37th element in the lattice.
+\end{code}
+The default is to start at the beginning of the lattice. Notice that the tracking starts at the
+downstream end of the element so the first element tracked through is the element after the chosen
+one. Also see \vn{ele_stop}.
+%
+\item[n_turns] \Newline
+Number of turns to track. See Section~\sref{s:track.methods}.
+%
+\item[ramping_on] \Newline
+If set to True, \vn{ramper} control elements will be use to modify the lattice during tracking
+(\sref{s:ramp}). Default is False.
+%
+\item[ramping_start_time] \Newline
+The starting (offset) time used to set \vn{ramper} elements. This enables simulations to start in the middle
+of a ramp cycle. Default is 0.
+%
+\item[rfcavity_on] \Newline
+If set to \vn{False}, the voltage on all RF cavity elements will be turned off. Default is \vn{True}.
+%
+\end{description}
+
+%------------------------------------------------------------------
+\Section{Data Output}
+\label{s:part.out}
+
+The following describes the particle data output format. Particle data is outputted when the
+\vn{simulation_mode} is set to \vn{"BEAM"}.
+
+Particle data is always recorded when the beam is at the \vn{ele_start} position independent of
+where the lattice begins and ends.
+
+An output data file will be produced every \vn{particle_output_every_n_turns} turns. Each line
+in this file records a particle's orbital and spin position. The name of the data file is derived
+from the \vn{particle_output_file} string.  If \vn{particle_output_file} contains a hash
+character ''\#'', the data file name is formed by substituting the turn number for the hash
+token. If there is no hash character, the data file name is formed by appending the turn number to
+the \vn{particle_output_file} string. If there are multiple bunches, instead of using the turn
+number, the substituted string will be of the form
+\begin{code}
+  {bunch_index}-{turn_number}
+\end{code}
+
+Nominally particle data is recorded every \vn{particle_output_every_n_turns} number of
+turns. However, if \vn{particle_output_every_n_turns} is set to 0, particle data is recorded
+only at the start and end of the tracking. If \vn{particle_output_every_n_turns} is set to -1,
+particle data is only recorded at the end of tracking.
+
+%------------------------------------------------------------------
+\Section{Plotting}
+\label{s:plot}
+
+%------------------------------------------------------------------
+\begin{thebibliography}{9}
+
+\bibitem{b:bmad}
+D. Sagan,
+``Bmad: A Relativistic Charged Particle Simulation Library''
+Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
+
+\end{thebibliography}
+
+\end{document}
+
