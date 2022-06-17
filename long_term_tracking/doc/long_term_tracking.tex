@@ -79,40 +79,44 @@
 \Section{Introduction} 
 \label{s:intro}
 
-The \ltt program is for long term tracking of a particle or a beam possibly including tracking of the
-spin.
+The \ltt program is for long term (over many turns) tracking of a particle or a beam in a ring.  The
+\ltt program can track spin as well as simulate such things as element misalignments, wake fields,
+higher order mode cavity resonances, energy ramping, beta squeesing, etc. The output of the program
+will be such things as turn-by-turn particle tracks or beam statistics including beam sizes and
+polarizations.
 
 The \ltt program is built atop the Bmad software toolkit \cite{b:bmad}. The Bmad toolkit is a
 library, developed at Cornell, for the modeling relativistic charged particles in storage rings and
 Linacs, as well as modeling photons in x-ray beam lines.
 
-The \ltt program comes with the ``Bmad Distribution'' which is a package which contains Bmad along with
-a number of Bmad based programs. See the Bmad web site for more details.
+%------------------------------------------------------------------
+\Section{Running the Long Term Tracking Program} 
+\label{s:run}
+
+The \ltt program comes with the ``Bmad Distribution'' which is a package which contains the Bmad
+toolkit library along with a number of Bmad based programs. See the Bmad web site for more details.
+
+See the documentation for setting up the Bmad environment variables at
+\begin{code}
+  https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
+\end{code}
 
 The \ltt program comes in two versions: 
 \begin{code}
 long_term_tracking      ! Single threaded version
 long_term_tracking_mpi  ! Multi-threaded version
 \end{code}
-The first is a single threaded version and the second is a multi-threaded version using MPI.
-
-[Note to Distribution maintainers: The single threaded version will be built when compiling a Bmad
+The first is a single threaded version and the second is a multi-threaded version using MPI.\footnote
+  {
+Note to Distribution maintainers: The single threaded version will be built when compiling a Bmad
 Distribution. If MPI is not enabled (which is the default setting), the MPI version will not be built. 
 The MPI version can be built by setting:
 \begin{code}
   export ACC_ENABLE_MPI=Y
 \end{code}
 and then using the ``\vn{mk}'' command in the \vn{bsim} directory to build the executable. See the
-documentation on the Bmad web site for more details.]
-
-%------------------------------------------------------------------
-\Section{Running the Long Term Tracking Program} 
-\label{s:run}
-
-See the documentation for setting up the Bmad environment variables at
-\begin{code}
-  https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
-\end{code}
+documentation on the Bmad web site for more details.
+  }
 
 Once the Bmad environment variables have been set, the syntax for invoking the single threaded
 version of the \ltt program is:
@@ -360,14 +364,13 @@ well. How to do this is covered in the Bmad and Tao Cookbook available from the 
 \Section{Time Ramping --- Time Varying Element Parameters}
 \label{s:ramp}
 
-``\vn{Ramping}'' is the situation where lattice parameters are changing as a function of
-time. Ramping examples include changing magnet and RF strengths to ramp the beam energy or changing
-magnet strengths to squeeze beta at the interaction pont of a colliding beam machine.
+``\vn{Ramping}'' is the situation where lattice parameters are changing as a function of time over
+many turns. Ramping examples include changing magnet and RF strengths to ramp the beam energy or
+changing magnet strengths to squeeze beta at the interaction pont of a colliding beam machine.
 
 Ramping is accomplished by defining \vn{ramper} elements in the lattice file. These ramper elements
 will be applied to each lattice element in turn before particles are tracked through the
-element. Restriction: Only those ramper elements that have \vn{time} as the first variable will be
-used. See the Bmad manual for documentation on \vn{ramper} syntax.
+element. See the Bmad manual for documentation on \vn{ramper} syntax.
 
 Example:
 \begin{code}
@@ -385,8 +388,9 @@ it is the element's \vn{e_tot} attribute (the element's reference energy) that w
 In the above example, the \vn{ramp_rf} ramper will be applied to all \vn{rfcavity} elements with
 the cavity voltage and phase (\vn{phi0}) being varied.
 
-Important! Only rampers that use \vn{time} as the variable name will be directly varied in the
-tracking.
+Important restriction: Only those
+ramper elements that have \vn{time} as the first variable will be used and it will be this variable
+that is varied over time. 
 
 In the case where the reference energy \vn{e_tot} or reference momentum \vn{p0c} is being varied, the
 effect on an element will depend upon the setting of the element's \vn{field_master} parameter. For
@@ -412,13 +416,13 @@ the element. This will be less accurate but will speed up the calculation. Impli
 assumption that controlled parameters are varying slow enough so that the rampers only need be
 applied once per beam passage. This is done to minimize computational time. If ramper controlled
 parameters are slowly varying, for example if ramping magnet strengths with energy ramping which
-occurs over many turns, calculating once per beam passage should be a good apporoximation.
+occurs over many turns, calculating once per beam passage should be a good approximation.
 
 Before a simulation, individual ramper elements may be toggled on or off by setting the element's
 \vn{is_on} attribute in the lattice file: 
 \begin{code}
   ramp_rf: ramper = ...  ! Ramper element defined.
-  ramp_rf[is_on] = F     ! After being defined, ramper may be turned off.
+  ramp_rf[is_on] = F     ! Ramper element turned off.
 \end{code}
 
 If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulation_mode} is set to
@@ -675,7 +679,7 @@ columns:
   N_live                        -- Number of live particles
   Time                          -- Time from start
   Polarization                  -- Spin polarization
-  <Sx>, <Sy>, <Sz>              -- Average spin componants
+  <Sx>, <Sy>, <Sz>              -- Average spin components
   Sig_x, Sig_px, Sig_y, 
         Sig_py, Sig_z, Sig_pz   -- Phase space sigmas
   <x>, <px>, <y>, 
@@ -1009,7 +1013,7 @@ Using SINGLE mode tracking, output a turn-by-turn orbit by setting:
 ltt%particle_output_file = "some-nonblank-name" 
 ltt%particle_output_every_n_turns = 1
 \end{code}
-Use your favorate plotting program to plot the phase space trajectory. This will give a lot of information. For
+Use your favorite plotting program to plot the phase space trajectory. This will give a lot of information. For
 example, look to see in which plane an instability starts.
 \end{itemize}
 

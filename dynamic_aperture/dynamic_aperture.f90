@@ -19,6 +19,7 @@ type (aperture_scan_struct), pointer :: da
 type (coord_struct), allocatable :: closed_orb(:)
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
 
 real(rp) dpz(20)
 real(rp) :: ramping_start_time = 0
@@ -88,8 +89,8 @@ endif
 
 print *, 'Data file: ', trim(dat_file)
 
-write (gnu_command, '(a, i0, 3a)') 'gnuplot plotting command: plot for [IDX=1:', &
-                  n_dpz, '] "', trim(dat_file), '" index (IDX-1) u 1:2 w lines title columnheader(1)'
+write (gnu_command, '(a, i0, 3a)') 'plot for [IDX=1:', n_dpz, '] "', &
+                  trim(dat_file), '" index (IDX-1) u 1:2 w lines title columnheader(1)'
 
 ! Ramper setup
 
@@ -123,27 +124,29 @@ write (1, '(a, f10.5)')  '# da_param%x_init       =', da_param%x_init
 write (1, '(a, f10.5)')  '# da_param%y_init       =', da_param%y_init
 write (1, '(a, i0)')     '# da_param%n_turn       = ', da_param%n_turn
 write (1, '(a, i0)')     '# da_param%n_angle      = ', da_param%n_angle
-write (1, '(2a)')        '# ', trim(gnu_command)
+write (1, '(a)')         '# gnuplot plotting command:'
+write (1, '(2a)')        '#   ', trim(gnu_command)
 
 call dynamic_aperture_scan (aperture_scan, da_param, dpz(1:n_dpz), lat)
 
 do i = 1, n_dpz
   da => aperture_scan(i)
+  branch => pointer_to_branch(pointer_to_ele(da%ref_orb%ix_ele, da%ref_orb%ix_ele)
 
   write (1, *)
   write (1, *)
-  write (1, '(a, f10.6, a)') '"Dpz =', dpz(i), '"'
+  write (1, '(a, f10.6, a)') '"dpz =', dpz(i), '"'
   write (1, '(a, f10.6, a)') '"x_ref_orb =', da%ref_orb%vec(1), '"'
-  write (1, '(a, f10.6, a)') '"y_ref_orb =', da%ref_orb%vec(1), '"'
+  write (1, '(a, f10.6, a)') '"y_ref_orb =', da%ref_orb%vec(3), '"'
   do j = 1, da_param%n_angle
     da_point => da%point(j)
     write (1, '(2f11.6, i7, 6x, a, 3x, a)') da_point%x, da_point%y, da_point%i_turn, &
-                              coord_state_name(da_point%plane), trim(lat%ele(da_point%ix_ele)%name)
+                              coord_state_name(da_point%plane), trim(branch%ele(da_point%ix_ele)%name)
   enddo
 enddo
 
 close (1)
 
-print '(a)', trim(gnu_command)
+print '(2a)', 'gnuplot plotting command: ', trim(gnu_command)
 
 end program
