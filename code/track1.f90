@@ -258,9 +258,11 @@ if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb, make_ma
 
 if (ele%slave_status == slice_slave$) then
   lord => pointer_to_lord (ele, 1)
-  end_orb%ix_ele = lord%ix_ele
+  end_orb%ix_ele    = lord%ix_ele
+  end_orb%ix_branch = lord%ix_branch
 else
-  end_orb%ix_ele = ele%ix_ele
+  end_orb%ix_ele    = ele%ix_ele
+  end_orb%ix_branch = ele%ix_branch
 endif
 
 if (.not. time_RK_tracking) then
