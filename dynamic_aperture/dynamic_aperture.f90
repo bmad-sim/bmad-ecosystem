@@ -131,7 +131,7 @@ call dynamic_aperture_scan (aperture_scan, da_param, dpz(1:n_dpz), lat)
 
 do i = 1, n_dpz
   da => aperture_scan(i)
-  branch => pointer_to_branch(pointer_to_ele(da%ref_orb%ix_ele, da%ref_orb%ix_ele)
+  branch => pointer_to_branch(pointer_to_ele(lat, da%ref_orb%ix_ele, da%ref_orb%ix_ele))
 
   write (1, *)
   write (1, *)
