@@ -30,7 +30,7 @@ case default
 end select
 
 call run_timer ('READ', del_time)
-call ltt_write_master('# tracking_time = ' // real_str(del_time/60, 4, 2), lttp, append = .true.)
+call ltt_write_line('# tracking_time = ' // real_str(del_time/60, 4, 2), lttp, 0)
 
 ! Regression output is used in conjunction with the Bmad regression test suite.
 
