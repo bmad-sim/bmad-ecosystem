@@ -696,16 +696,6 @@ case default
     call calc_time_ref_orb_out(orb_end)
     ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
   endif
-
-  if (.not. bmad_com%debug .and. (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$)) then
-    bmad_com%radiation_damping_on = .true.
-    orb1 = ele%time_ref_orb_in
-    call track1_radiation (orb1, ele, start_edge$)
-    orb2 = ele%time_ref_orb_out
-    call track1_radiation (orb2, ele, end_edge$)
-    bmad_com%radiation_damping_on = .false.
-    ele%value(dpz_rad_damp_ave$) = (orb1%vec(6) - orb_start%vec(6)) + (orb2%vec(6) - orb_end%vec(6))
-  endif
 end select
 
 ! If delta_ref_time has shifted then any taylor map must be updated.

@@ -1,6 +1,6 @@
 !+
-! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, 
-!        type_control, type_wake, type_floor_coords, type_field, type_wall, lines, n_lines)
+! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, type_control, 
+!              type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, lines, n_lines)
 !
 ! Subroutine to print or put in a string array information on a lattice element.
 ! If the lines(:) argument is not present, the element information is printed to the terminal.
@@ -34,7 +34,8 @@
 !                           = no$      => One line of info.
 !                           = short$   => Header info. No tables.
 !                           = all$     => Everything.
-!   type_wall         -- logical, optional: If True then print wall info. Default is False.
+!   type_wall         -- logical, optional: Default is False. If True, print wall info. 
+!   type_rad_kick     -- logical, optional: Default is False. If True, print synch rad kick info.
 !
 ! Output       
 !   lines(:)     -- character(200), allocatable, optional: Character array to hold the output. 
@@ -43,8 +44,8 @@
 !                     n_lines must be present if lines(:) is. 
 !-
 
-subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
-             type_control, type_wake, type_floor_coords, type_field, type_wall, lines, n_lines)
+subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, type_control, &
+             type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, lines, n_lines)
 
 use bmad_interface, except_dummy => type_ele
 use expression_mod
@@ -76,10 +77,11 @@ type (control_struct), pointer :: ctl
 type (all_pointer_struct) a_ptr
 type (ac_kicker_struct), pointer :: ac
 type (str_index_struct) str_index
+type (rad_map_struct), pointer :: rm0, rm1
 
 integer, optional, intent(in) :: type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
-integer ia, im, i1, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
+integer ia, im, i1, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
 integer id1, id2, id3
 
@@ -102,7 +104,7 @@ character(*), parameter :: r_name = 'type_ele'
 
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
-logical, optional, intent(in) :: type_floor_coords, type_wall
+logical, optional, intent(in) :: type_floor_coords, type_wall, type_rad_kick
 logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, z1, z2
 
 ! init
@@ -645,13 +647,36 @@ if (associated(ele%ac_kick)) then
   endif
 endif
 
+! Radiation kick values
+
+if (logic_option(.false., type_rad_kick)) then
+  rm0 => ele%rad_int_cache%rm0
+  rm1 => ele%rad_int_cache%rm1
+
+  nl=nl+1; li(nl) = ''
+  nl=nl+1; li(nl) = 'Matrices used for radiation stochastic and damping kicks:'
+  nl=nl+1; write (li(nl), '(23x, a, 41x, a)') '1st half of element', '2nd half of element'
+  nl=nl+1; li(nl) = 'Damping mat:'
+  do i = 1, 6
+    nl=nl+1; write (li(nl), '(2x, 6es10.2, 5x, 6es10.2)') rm0%damp_mat(i,:), rm1%damp_mat(i,:)
+  enddo
+  nl=nl+1; li(nl) = 'Damping vec:'
+  nl=nl+1; write (li(nl), '(2x, 6es10.2, 5x, 6es10.2)') rm0%damp_vec(:), rm1%damp_vec(:)
+  nl=nl+1; li(nl) = 'Damping ref_orb:'
+  nl=nl+1; write (li(nl), '(2x, 6es10.2, 5x, 6es10.2)') rm0%ref_orb(:), rm1%ref_orb(:)
+  nl=nl+1; li(nl) = 'Stochastic mat:'
+  do i = 1, 6
+    nl=nl+1; write (li(nl), '(2x, 6es10.2, 5x, 6es10.2)') rm0%stoc_mat(i,:), rm1%stoc_mat(i,:)
+  enddo
+endif
+
 ! wall3d cross-sections.
 ! Do not print more than 100 sections.
 
 if (associated(ele%wall3d)) then
   do iw = 1, size(ele%wall3d)
     wall3d => ele%wall3d(iw)
-    nl=nl+1; write (li(nl), '(a, i5)') ''
+    nl=nl+1; li(nl) = ''
     nl=nl+1; write (li(nl), '(2a)') 'Wall name: ', trim(wall3d%name)
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(wall3d%section)
     nl=nl+1; write (li(nl), '(a, 2f11.5)') 'Wall region:',  wall3d%section(1)%s, wall3d%section(size(wall3d%section))%s

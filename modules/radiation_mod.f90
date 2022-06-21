@@ -273,69 +273,31 @@ character(*), parameter :: r_name = 'track1_radiation'
 !
 
 if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
-if (ele%key == drift$ .or. ele%value(l$) == 0) return
-
-c_radius = classical_radius(orbit%species)
-mc2 = mass_of(ele%ref_species)
-gamma_0 = ele%value(e_tot$) / mc2
+if (ele%value(l$) == 0) return
+if (ele%tracking_method == taylor$ .and. ele%mat6_calc_method == taylor$) return
+select case (ele%key)
+case (drift$, taylor$, multipole$, ab_multipole$, mask$, marker$);  return
+end select
 
 ! Use stochastic and damp mats
 
-if (bmad_com%debug) then
-  call this_rad_mat_setup(ele, edge)
-  ric => ele%rad_int_cache
-  if (edge == start_edge$) then
-    rad_mat = ric%rm0
-  else
-    rad_mat = ric%rm1
-  endif
-
-  if (bmad_com%radiation_damping_on) then
-    orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
-    if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_mat%damp_vec
-  endif
-
-  if (bmad_com%radiation_fluctuations_on) then
-    call ran_gauss (ran6)
-    orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%stoc_mat, ran6)
-  endif
-
-  return
+call this_rad_mat_setup(ele, edge)
+ric => ele%rad_int_cache
+if (edge == start_edge$) then
+  rad_mat = ric%rm0
+else
+  rad_mat = ric%rm1
 endif
 
-!
-
-call calc_radiation_tracking_integrals (ele, orbit, edge, .true., int_gx, int_gy, int_g2, int_g3)
-if (int_g2 == 0 .or. orbit%state /= alive$) return
-
-! Apply the radiation kicks
-! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
-! where xi is a random number with sigma = 1.
-
-
-fact_d = 0
 if (bmad_com%radiation_damping_on) then
-  fact_d = damp_const * c_radius * gamma_0**3 * int_g2
-  if (bmad_com%backwards_time_tracking_on) fact_d = -fact_d
+  orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
+  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_mat%damp_vec
 endif
 
-fact_f = 0
 if (bmad_com%radiation_fluctuations_on) then
-  call ran_gauss (this_ran)
-  fact_f = sqrt(rad_fluct_const * c_radius * gamma_0**5 * int_g3 / mc2) * this_ran
+  call ran_gauss (ran6)
+  orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%stoc_mat, ran6)
 endif
-
-rel_p = 1 + orbit%vec(6)
-dE_p = rel_p * (fact_d + fact_f)
-if (bmad_com%radiation_zero_average) then
-  if (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$) &
-                                                  dE_p = dE_p + ele%value(dpz_rad_damp_ave$) / (2 * rel_p)
-endif
-dE_p = dE_p * synch_rad_com%scale 
-
-orbit%vec(2) = orbit%vec(2) * (1 - dE_p)
-orbit%vec(4) = orbit%vec(4) * (1 - dE_p)
-orbit%vec(6) = orbit%vec(6) - dE_p * rel_p
 
 ! Sokolov-Ternov Spin flip
 ! The equation is not correct
@@ -345,6 +307,9 @@ orbit%vec(6) = orbit%vec(6) - dE_p * rel_p
 !  if (norm /= 0) then
 !    spin_norm = orbit%spin / norm
 !    call ran_uniform (this_ran)
+!    c_radius = classical_radius(orbit%species)
+!    mc2 = mass_of(ele%ref_species)
+!    gamma_0 = ele%value(e_tot$) / mc2
 !    p_spin = (spin_const * c_radius * gamma_0**5 / (orbit%beta * mc2)) * &
 !          (int_g3 - c1_spin * int_g3 * (spin_norm(3))**2 + c2_spin * int_g2 * dot_product([g_y, -g_x], spin_norm(1:2))) 
 !    if (this_ran < p_spin) orbit%spin = -orbit%spin  ! spin flip
@@ -357,7 +322,6 @@ contains
 subroutine this_rad_mat_setup (ele, edge)
 
 use emit_6d_mod
-use f95_lapack, only: dpotrf_f95
 
 type (coord_struct) orb1, orb2
 type (ele_struct), target :: ele, runt
@@ -373,6 +337,8 @@ logical err, rad_damp_on
 if (.not. associated(ele%rad_int_cache)) allocate(ele%rad_int_cache)
 ric => ele%rad_int_cache
 branch => pointer_to_branch(ele)
+
+if (all(ric%rm0%ref_orb == ele%map_ref_orb_in%vec) .and. all(ric%rm1%ref_orb == ele%map_ref_orb_out%vec)) return
 
 if (all(ric%rm0%ref_orb(2:4:2) == ric%rm1%ref_orb(2:4:2)) .and. ele%key /= sbend$) then
   ric%rm0 = rad_map_struct()
@@ -395,6 +361,7 @@ call tracking_rad_mat_setup (runt, 1e-4_rp, upstream_end$, ric%rm0)
 
 call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.5_rp*ele%value(l$), ele%branch%param, .true., .true., err, runt)
 call make_mat6 (runt, branch%param, orb1, orb2)
+runt%map_ref_orb_out = ele%map_ref_orb_out  ! Important for if test above
 call tracking_rad_mat_setup (runt, 1e-4_rp, downstream_end$, ric%rm1)
 
 bmad_com%radiation_damping_on = rad_damp_on
@@ -402,5 +369,52 @@ bmad_com%radiation_damping_on = rad_damp_on
 end subroutine this_rad_mat_setup
 
 end subroutine track1_radiation 
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine track1_radiation_center (orbit, ele1, ele2, rad_damp, rad_fluct)
+!
+! Used for elements that have been split in half: This routine applies a kick to a particle 
+! to account for radiation dampling and/or fluctuations.
+!
+! Also see: track1_radiation.
+!
+! Input:
+!   orbit     -- coord_struct: Particle at center of element before radiation applied.
+!   ele1      -- ele_struct: First half of the split element.
+!   ele2      -- ele_struct: Second half of the split element.
+!   rad_damp  -- logical, optional: If present, override setting of bmad_com%radiation_damping_on.
+!   rad_fluct -- logical, optional: If present, override setting of bmad_com%radiation_fluctuations_on.
+!
+! Output:
+!   orbit     -- coord_struct: Particle position after radiation has been applied.
+!-
+
+subroutine track1_radiation_center (orbit, ele1, ele2, rad_damp, rad_fluct)
+
+use random_mod
+
+implicit none
+
+type (coord_struct) :: orbit
+type (ele_struct), target :: ele1, ele2
+type (lat_param_struct) :: param
+
+real(rp) int_gx, int_gy, this_ran, mc2, int_g2, int_g3, gxi, gyi, g2i, g3i
+real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm, rel_p
+real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
+real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
+real(rp), parameter :: damp_const = 2 * classical_radius_factor / 3
+real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
+
+logical, optional :: rad_damp, rad_fluct
+logical r_damp, r_fluct
+character(*), parameter :: r_name = 'track1_radiation_center'
+
+!
+
+end subroutine track1_radiation_center 
 
 end module

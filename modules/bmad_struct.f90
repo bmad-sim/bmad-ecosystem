@@ -1601,7 +1601,7 @@ integer, parameter :: eta_y_out$ = 26, bend_tilt$ = 26, mode$ = 26, velocity_dis
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27
 integer, parameter :: x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27
-integer, parameter :: py_aperture_center$ = 27, dpz_rad_damp_ave$ = 27, x_dispersion_err$ = 27
+integer, parameter :: py_aperture_center$ = 27, x_dispersion_err$ = 27
 integer, parameter :: etap_y_out$ = 28, phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28
 integer, parameter :: y_dispersion_err$ = 28, z_aperture_width2$ = 28
 integer, parameter :: upstream_coord_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29, z_aperture_center$ = 29

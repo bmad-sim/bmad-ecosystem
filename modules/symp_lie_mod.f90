@@ -1424,12 +1424,7 @@ g3 = g2 * sqrt(g2)
 
 rel_p = 1 + end_orb%vec(6)
 call ran_gauss (this_ran)
-dE_p = rel_p * (fact_d * g2 + fact_f * sqrt(g3) * this_ran)
-if (bmad_com%radiation_zero_average) then
-  if (ele%key == sbend$ .or. ele%key == wiggler$ .or. ele%key == undulator$) dE_p = &
-                                         dE_p + ds * ele%value(dpz_rad_damp_ave$) / (ele%value(l$) * rel_p)
-endif
-dE_p = dE_p * synch_rad_com%scale 
+dE_p = synch_rad_com%scale * rel_p * (fact_d * g2 + fact_f * sqrt(g3) * this_ran)
 
 ! And kick the particle.
 

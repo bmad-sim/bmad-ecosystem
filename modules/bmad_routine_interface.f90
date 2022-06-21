@@ -2839,8 +2839,8 @@ subroutine type_coord (coord)
   type (coord_struct) coord
 end subroutine
 
-subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
-      type_control, type_wake, type_floor_coords, type_field, type_wall, lines, n_lines)
+subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, type_control, &
+      type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, lines, n_lines)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -2848,7 +2848,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
   integer, optional, intent(out) :: n_lines
   integer, optional, intent(in) :: twiss_out, type_field
   logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
-  logical, optional, intent(in) :: type_zero_attrib, type_wake, type_wall
+  logical, optional, intent(in) :: type_zero_attrib, type_wake, type_wall, type_rad_kick
   character(*), optional, allocatable :: lines(:)
 end subroutine
 

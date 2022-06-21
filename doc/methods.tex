@@ -143,12 +143,14 @@ associated electric field and when tracking through a \vn{taylor} element.
 
 \index{taylor!tracking_method}
 \item[\vn{Taylor}]
-This uses a Taylor map generated from the PTC (\sref{s:ptc.intro}) package. Generating the map may
-take time but once you have it it should be very fast. One possible problem with using a Taylor map
-is that you have to worry about the accuracy if you do tracking at points that are far from the
-expansion point about which the map was made. This method is non-symplectic away from the expansion
-point. Whether the Taylor map is generated taking into account the offset an element has is governed
-by the \vn{taylor_map_includes_offsets} attribute (\sref{s:mapoff}).
+The tracking uses a Taylor map. The map is either explicitly given in the lattice file, that is, the
+element must be of type \vn{taylor} (\sref{s:taylor}), or the Taylor map is generated from the PTC
+(\sref{s:ptc.intro}) package. Generating the map may take time but once you have it it should be
+very fast. One possible problem with using a Taylor map is that you have to worry about the accuracy
+if you do tracking at points that are far from the expansion point about which the map was
+made. This method is non-symplectic away from the expansion point. Whether the Taylor map is
+generated taking into account the offset an element has is governed by the
+\vn{taylor_map_includes_offsets} attribute (\sref{s:mapoff}).
 
 The order of a Taylor map is set by the \vn{parameter[taylor_order]}
 parameter (\sref{s:param}).

@@ -554,7 +554,7 @@ norm_mode%e_loss = energy_loss * 1e9_rp
 
 lielib_print(16) = 0    ! Do not print eigenvalue info.
 epsc = EPS_EIGENVALUES_OFF_UNIT_CIRCLE
-EPS_EIGENVALUES_OFF_UNIT_CIRCLE = max(1d-3, epsc)  ! Set larger since rad damping is on.
+EPS_EIGENVALUES_OFF_UNIT_CIRCLE = max(1d-1, epsc)  ! Set larger since rad damping is on.
 call c_normal(id, cc_norm)
 lielib_print(16) = 1
 EPS_EIGENVALUES_OFF_UNIT_CIRCLE = epsc
