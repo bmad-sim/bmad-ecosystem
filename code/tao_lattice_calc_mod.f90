@@ -595,7 +595,7 @@ no_beam = .false.
 
 n_bunch = s%global%bunch_to_plot
 p =>beam%bunch(n_bunch)%particle(:)
-all_lost = all(p%state /= alive$)
+all_lost = .not. any(p%state == alive$ .or. p%state == pre_born$)
 
 if (particle == photon$) then
   if (sum(p%field(1)**2) + sum(p%field(2)**2) == 0 .or. all_lost) no_beam = .true.
