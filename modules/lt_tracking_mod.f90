@@ -76,7 +76,8 @@ type ltt_params_struct
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: symplectic_map_tracking = .false.
-  logical :: split_bends_for_radiation = .false.
+  logical :: split_bends_for_radiation = .false.   ! Old style. 
+  logical :: split_bends_for_stochastic_rad = .false.
   integer :: mpi_runs_per_subprocess = 4        ! Number of runs a slave process will take on average.
   logical :: debug = .false.
   logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
@@ -210,6 +211,13 @@ close (1)
 ltt_com%beam_init = beam_init
 
 call upcase_string(ltt%simulation_mode)
+
+if (ltt%split_bends_for_radiation) then
+  print *, '"ltt%split_bends_for_radiation" has been renamed "ltt%split_bends_for_stochastic_rad".'
+  print *, 'And the manual has been updated to correctly describe what this parameter does.'
+  print *, 'Please change in the init file! Stopping here.'
+  stop
+endif
 
 end subroutine ltt_read_params
 
@@ -409,7 +417,7 @@ lttp%ptc_aperture = min([0.9_rp, 0.9_rp], lttp%ptc_aperture)
 
 !
 
-if (lttp%split_bends_for_radiation .and. bmad_com%debug) then
+if (lttp%split_bends_for_stochastic_rad) then
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
     if (ele%name /= 'Radiation_Point') cycle
@@ -420,13 +428,13 @@ if (lttp%split_bends_for_radiation .and. bmad_com%debug) then
 
     ! Combine matrices for quicker evaluation
     ri%rm1%stoc_mat = matmul(ri%rm0%stoc_mat, transpose(ri%rm0%stoc_mat)) + matmul(ri%rm1%stoc_mat, transpose(ri%rm1%stoc_mat))
-    call dpotrf_f95 (ri%rm1%stoc_mat, 'U', info = info)
+    call dpotrf_f95 (ri%rm1%stoc_mat, 'L', info = info)
     if (info /= 0) then
       ri%rm1%stoc_mat = 0  ! Cholesky failed
     endif
 
     do i = 2, 6
-      ri%rm1%stoc_mat(i, 1:i-1) = 0
+      ri%rm1%stoc_mat(1:i-1, i) = 0
     enddo
 
     ri%rm1%damp_mat = ri%rm0%damp_mat + ri%rm1%damp_mat
@@ -501,6 +509,7 @@ endif
 !
 
 nb = max(1, ltt_com%beam_init%n_bunch)
+iu = lunget()
 
 if (lttp%averages_output_file /= '') then
   do ib = 0, nb
@@ -581,15 +590,15 @@ call ltt_write_line('# ltt%sigma_matrix_output_file       = ' // quote(lttp%sigm
 call ltt_write_line('# ltt%map_file_prefix                = ' // quote(lttp%map_file_prefix), lttp, iu, print_this)
 call ltt_write_line('# ltt%simulation_mode                = ' // quote(lttp%simulation_mode), lttp, iu, print_this)
 call ltt_write_line('# ltt%tracking_method                = ' // quote(lttp%tracking_method), lttp, iu, print_this)
+call ltt_write_line('# ltt%ele_start                      = ' // quote(lttp%ele_start), lttp, iu, print_this)
+call ltt_write_line('# ltt%ele_stop                       = ' // quote(lttp%ele_stop), lttp, iu, print_this)
 if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
   call ltt_write_line('# ltt%map_order                      = ' // int_str(lttp%map_order), lttp, iu, print_this)
-  call ltt_write_line('# ltt%ele_start                      = ' // quote(lttp%ele_start), lttp, iu, print_this)
-  call ltt_write_line('# ltt%ele_stop                       = ' // quote(lttp%ele_stop), lttp, iu, print_this)
   call ltt_write_line('# ltt%exclude_from_maps              = ' // quote(lttp%exclude_from_maps), lttp, iu, print_this)
   call ltt_write_line('# ltt%symplectic_map_tracking        = ' // logic_str(lttp%symplectic_map_tracking), lttp, iu, print_this)
   call ltt_write_line('# Number_of_maps                     = ' // int_str(nm), lttp, iu, print_this)
 endif
-call ltt_write_line('# ltt%split_bends_for_radiation      = ' // logic_str(lttp%split_bends_for_radiation), lttp, iu, print_this)
+call ltt_write_line('# ltt%split_bends_for_stochastic_rad = ' // logic_str(lttp%split_bends_for_stochastic_rad), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%radiation_damping_on      = ' // logic_str(bmad_com%radiation_damping_on), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%radiation_fluctuations_on = ' // logic_str(bmad_com%radiation_fluctuations_on), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%spin_tracking_on          = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, print_this)
@@ -1168,66 +1177,16 @@ r_damp  = logic_option(bmad_com%radiation_damping_on, rad_damp)
 r_fluct = logic_option(bmad_com%radiation_fluctuations_on, rad_fluct)
 if (.not. r_damp .and. .not. r_fluct) return
 
-if (bmad_com%debug) then
-  rad_mat => ele%rad_int_cache%rm1
-  if (bmad_com%radiation_damping_on) then
-    orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
-    if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_mat%damp_vec
-  endif
-
-  if (bmad_com%radiation_fluctuations_on) then
-    call ran_gauss (ran6)
-    orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%stoc_mat, ran6)
-  endif
-
-  return
-endif
-
-!
-
-ele1 => pointer_to_next_ele(ele, -1)
-ele2 => pointer_to_next_ele(ele)
-
-call calc_radiation_tracking_integrals (ele1, orbit, start_edge$, .false., int_gx, int_gy, int_g2, int_g3)
-call calc_radiation_tracking_integrals (ele2, orbit, end_edge$, .false., gxi, gyi, g2i, g3i)
-int_gx = int_gx + gxi
-int_gy = int_gy + gyi
-int_g2 = int_g2 + g2i
-int_g3 = int_g3 + g3i
-
-if (int_g2 == 0) return
-
-! Apply the radiation kicks.
-! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light.
-! where xi is a Gaussian random number with sigma = 1.
-
-mc2 = mass_of(ele1%ref_species)
-q_charge2 = charge_of(orbit%species)**2
-gamma_0 = ele1%value(e_tot$) / mc2
-
-fact_d = 0
+rad_mat => ele%rad_int_cache%rm1
 if (r_damp) then
-  fact_d = damp_const * q_charge2 * gamma_0**3 * int_g2 / mc2
-  if (bmad_com%backwards_time_tracking_on) fact_d = -fact_d
+  orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
+  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_mat%damp_vec
 endif
 
-fact_f = 0
 if (r_fluct) then
-  call ran_gauss (this_ran)
-  fact_f = sqrt(rad_fluct_const * q_charge2 * gamma_0**5 * int_g3) * this_ran / mc2
+  call ran_gauss (ran6)
+  orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%stoc_mat, ran6)
 endif
-
-rel_p = 1 + orbit%vec(6) 
-dE_p = rel_p * (fact_d + fact_f)
-if (bmad_com%radiation_zero_average) then
-  if (ele1%key == sbend$ .or. ele1%key == wiggler$ .or. ele1%key == undulator$) dE_p = &
-                                dE_p + (ele1%value(dpz_rad_damp_ave$) + ele2%value(dpz_rad_damp_ave$)) / rel_p
-endif
-dE_p = dE_p * synch_rad_com%scale 
-
-orbit%vec(2) = orbit%vec(2) * (1 - dE_p)
-orbit%vec(4) = orbit%vec(4) * (1 - dE_p)
-orbit%vec(6) = orbit%vec(6) - dE_p * rel_p
 
 end subroutine ltt_track1_radiation_center 
 
@@ -1565,7 +1524,7 @@ write (iu, '(3a)')       '# Map_file_prefix                = ', quote(lttp%map_f
 if (lttp%tracking_method == 'MAP') then
   write (iu, '(a, i0)')  '# map_order                      = ', ltt_com%sec(1)%map%map_order
   write (iu, '(a, a)')   '# exclude_from_maps              = ', lttp%exclude_from_maps
-  write (iu, '(a, l1)')  '# split_bends_for_radiation      = ', lttp%split_bends_for_radiation
+  write (iu, '(a, l1)')  '# split_bends_for_stochastic_rad      = ', lttp%split_bends_for_stochastic_rad
   write (iu, '(a, l1)')  '# symplectic_map_tracking        = ', lttp%symplectic_map_tracking
 endif
 write (iu, '(a)') '#'
@@ -2074,7 +2033,7 @@ endif
 ! The "2" signifies version 2 of the map with radiation file storage format.
 
 write (string, '(2a,2l1,i0,l1,a)') trim(lttp%exclude_from_maps), trim(lttp%ele_start), &
-                  bmad_com%radiation_damping_on , lttp%split_bends_for_radiation, lttp%map_order, lttp%rfcavity_on, "2"
+                  bmad_com%radiation_damping_on , lttp%split_bends_for_stochastic_rad, lttp%map_order, lttp%rfcavity_on, "2"
 if (lttp%simulation_mode == 'CHECK') string = trim(string) // lttp%ele_stop
 
 hash = djb_hash(string)
@@ -2218,7 +2177,7 @@ enddo
 ltt_com%tracking_lat = ltt_com%lat
 branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
 
-if (lttp%split_bends_for_radiation) then
+if (lttp%split_bends_for_stochastic_rad) then
   call init_ele(marker, marker$)
   marker%name = 'Radiation_Point'
   marker%ix_pointer = not_in_map$
@@ -2313,7 +2272,7 @@ logical err_flag, rad_fluct
 
 !
 
-if (lttp%split_bends_for_radiation) rad_fluct = set_parameter (bmad_com%radiation_fluctuations_on, .false.)
+if (lttp%split_bends_for_stochastic_rad) rad_fluct = set_parameter (bmad_com%radiation_fluctuations_on, .false.)
 ele => ele_start
 
 do
@@ -2326,7 +2285,7 @@ do
   if (ele%ix_ele == ele_stop%ix_ele) exit
 enddo
 
-if (lttp%split_bends_for_radiation) bmad_com%radiation_fluctuations_on = rad_fluct
+if (lttp%split_bends_for_stochastic_rad) bmad_com%radiation_fluctuations_on = rad_fluct
 
 end subroutine ltt_track_bmad_single
 
@@ -2347,7 +2306,7 @@ logical err_flag, rad_fluct
 
 !
 
-if (lttp%split_bends_for_radiation) then
+if (lttp%split_bends_for_stochastic_rad) then
   rad_fluct = set_parameter (bmad_com%radiation_fluctuations_on, .false.)
   ele => ele_start
 
@@ -2388,7 +2347,7 @@ logical map_fluct_on, pt_fluct_on
 
 !
 
-map_fluct_on = (bmad_com%radiation_fluctuations_on .and. .not. lttp%split_bends_for_radiation) 
+map_fluct_on = (bmad_com%radiation_fluctuations_on .and. .not. lttp%split_bends_for_stochastic_rad) 
 pt_fluct_on = bmad_com%radiation_fluctuations_on
 branch => ltt_com%tracking_lat%branch(0)
 
