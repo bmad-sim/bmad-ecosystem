@@ -43,12 +43,6 @@ orb0 = ele%map_ref_orb_in
 orb1 = ele%map_ref_orb_out
 
 rad_map = rad_map_struct()
-select case (ref_edge)
-case (upstream_end$);   rad_map%ref_orb = orb0%vec
-case (downstream_end$); rad_map%ref_orb = orb1%vec
-case default;           stop
-end select
-
 if (orb0%vec(2) == orb1%vec(2) .and. orb0%vec(4) == orb1%vec(4) .and. ele%key /= sbend$) return
 
 !
@@ -60,20 +54,23 @@ case (upstream_end$)
   m_inv = mat_symp_conj(ele%mat6)
   rad_map%damp_mat = matmul(m_inv, rad_map%damp_mat)
   rad_map%damp_vec = matmul(m_inv, rad_map%damp_vec)
-
   rad_map%stoc_mat = matmul(matmul(m_inv, rad_map%stoc_mat), transpose(m_inv))
+  rad_map%ref_orb = orb0%vec
+case (downstream_end$)
+  rad_map%ref_orb = orb1%vec
 end select
 
 ! The Cholesky decomp can fail due to roundoff error in rad1_damp_and_stoc_mats. 
 ! This is especially true if there is little radiation. In this case just set the stoc mat to zero.
 
-call dpotrf_f95 (rad_map%stoc_mat, 'U', info = info)
+call dpotrf_f95 (rad_map%stoc_mat, 'L', info = info)
 if (info /= 0) then
   rad_map%stoc_mat = 0  ! Cholesky failed
+  return
 endif
 
 do i = 2, 6
-  rad_map%stoc_mat(i, 1:i-1) = 0
+  rad_map%stoc_mat(1:i-1, i) = 0
 enddo
 
 end subroutine

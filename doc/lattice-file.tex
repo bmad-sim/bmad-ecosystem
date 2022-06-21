@@ -253,6 +253,17 @@ There is a short list of names that cannot be used as an element, line or list n
 Note: The one exception is if \vn{end} is used to define a \vn{marker}. This exception is allowed
 since \bmad uses the \vn{end} name to define a marker in any case.
 
+It is perfectly acceptable for multiple lattice elements to have the same name. Example:
+\begin{example}
+  q: quadrupole, ...
+  aline: line = (5*q)
+  use, aline
+\end{example}
+This will produce a lattice with five elements named ``\vn{q}''. The exception is \vn{group}
+(\sref{s:group}) and \vn{overlay} (\sref{s:overlay}) controller elements will always have unique
+names. It is important to keep in mind that elements with the same name do not necessarily have
+the same parameter values. See Section~\sref{s:ele.match} for an example. 
+
 %---------------------------------------------------------------------------
 \section{Matching to Lattice Element Names}
 \label{s:ele.match}

@@ -1417,7 +1417,6 @@ call init_attribute_name1 (sbend$, grid_field$,                     'GRID_FIELD'
 call init_attribute_name1 (sbend$, taylor_field$,                   'TAYLOR_FIELD')
 call init_attribute_name1 (sbend$, ptc_canonical_coords$,           'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (sbend$, exact_multipoles$,               'EXACT_MULTIPOLES')
-call init_attribute_name1 (sbend$, dpz_rad_damp_ave$,               'dpz_rad_damp_ave', private$)
 call init_attribute_name1 (sbend$, ptc_field_geometry$,             'PTC_FIELD_GEOMETRY')
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
@@ -1560,7 +1559,6 @@ call init_attribute_name1 (wiggler$, grid_field$,                   'GRID_FIELD'
 call init_attribute_name1 (wiggler$, taylor_field$,                 'TAYLOR_FIELD')
 call init_attribute_name1 (wiggler$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (wiggler$, osc_amplitude$,                'OSC_AMPLITUDE')
-call init_attribute_name1 (wiggler$, dpz_rad_damp_ave$,             'dpz_rad_damp_ave', private$)
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
