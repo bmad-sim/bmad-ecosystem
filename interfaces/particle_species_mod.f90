@@ -1376,17 +1376,18 @@ endif
 
 ! |species| > 1000, decode CC PP MMMM
 pp = mod(abs(species), int(z'1000000')) / int(z'10000')
+charge = species / int(z'1000000')  ! Charge encoded in first two hex digits of species.
 
 ! Atom
 if (pp<200) then
   n_nuc = mod(abs(species), int(z'10000'))
+
   if (n_nuc == 0) then
     ! Average naturally occuring mass
-    mass = atom(pp)%mass(0) * atomic_mass_unit
+    mass = atom(pp)%mass(0) * atomic_mass_unit - charge * m_electron
   else
     ! Isotope. In general the mass is calculated using the neutral atom plus/minus the weight of any added/missing electrons.
     ! This will be off very slightly due to binding energy effects. 
-    charge = species / int(z'1000000')  ! Charge encoded in first two hex digits of species.
 
     ! For #1H+ (proton) and #2H+ (deuteron) use the exact mass.
     if (pp == 1 .and. n_nuc == 1 .and. charge == 1) then 
@@ -1427,7 +1428,6 @@ if (pp == 200) then
   return
 else
   ! known molecule
-  charge = species / int(z'1000000')  ! Charge encoded in first two hex digits of species.
   mass = molecular_mass(pp-200) * atomic_mass_unit - charge * m_electron
   return
 endif
