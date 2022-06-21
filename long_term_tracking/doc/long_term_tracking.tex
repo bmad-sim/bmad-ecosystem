@@ -68,7 +68,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ June 15, 2022}
+\date{David Sagan \\ June 20, 2022}
 \begin{document}
 \maketitle
 
@@ -296,12 +296,13 @@ bmad_com%radiation_fluctuations_on
 The problem with trying to use a map to track a particle's spin when there are radiation effects
 present is that a map may not properly model the effect of the radiation fluctuations on the spin
 precession (radiation damping is not problematic in itself but that is small comfort). To get around
-this, the switch \vn{ltt%split_bends_for_radiation} may be set True. In this case, all bend elements
-are split in the center and special radiation marker elements are placed in between the split
-bends. These radiation marker elements are excluded when constructing maps so the result is many
-maps whose boundaries will be at the bend centers. When tracking, the maps will not incorporate any
-radiation effects and a radiation kick will be put in at the radiation marker elements as well as any
-other elements that are excluded from the maps.
+this, the switch \vn{ltt%split_bends_for_stochastic_rad} may be set True. In this case, all bend
+elements are split in the center and special radiation marker elements are placed in between the
+split bends. These radiation marker elements are excluded when constructing maps so the result is
+many maps whose boundaries will be at the bend centers. When tracking, the maps will not incorporate
+stochastice radiation effects (but will still have radiation damping) and a stochastic radiation
+kick will be put in at the radiation marker elements as well as any other elements that are excluded
+from the maps.
 
 This technique of bend splitting for the purposes of including radiation effects was originally
 implemented in a program called \vn{SLICK} and later in the offshoot program \vn{SLICKTRACK}. As
@@ -588,7 +589,7 @@ Example:
   ltt%random_seed        = 0
   ltt%ptc_aperture       = 0.1, 0.1
   ltt%exclude_from_maps  = "beambeam::*"
-  ltt%split_bends_for_radiation = False
+  ltt%split_bends_for_stochastic_rad = False
   ltt%symplectic_map_tracking = False
   ltt%dead_cutoff        = 1
   ltt%b_emittance        = 1e-9          ! Used with space charge calc.
@@ -902,9 +903,10 @@ If set to \vn{False}, the voltage on all RF cavity elements will be turned off. 
 \item[ltt\%simulation_mode] \Newline
 Sets the simulation mode for the program. See Section~\sref{s:sim.modes} for more details.
 %
-\item[ltt\%split_bends_for_radiation] \Newline
-Use a radiation point in the middle of all the bends instead of including radiation effects in the
-transport maps? Default is False. For testing, can also be used with non-map tracking.
+\item[ltt\%split_bends_for_stochastic_rad] \Newline
+Use a stochastic radiation point in the middle of all the bends instead of including stochastic
+radiation effects in the transport maps (\sref{s:map})? Default is False. For testing, can also be
+used with non-map tracking.
 %
 \item[ltt\%symplectic_map_tracking]\Newline
 If False (the default), the maps used for tracking will be a set of truncated Taylor series
