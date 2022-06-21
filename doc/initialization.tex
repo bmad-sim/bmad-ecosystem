@@ -26,12 +26,17 @@ directory:
 \index{command line}
 \label{s:command.line} 
 
+\vn{OpenMP} is a standard that enables programs to run calculations with multiple threads which will
+reduce computation time. Certain calculations done by \tao, including beam tracking and dynamic
+aperture calculations, can be run multithreaded via OpenMP if the \tao executable file has been
+properly compiled. See \sref{s:openmp} for more details.
+
 The syntax of the command line for starting \tao is:
 \begin{example}
   EXE-DIRECTORY/tao \{OPTIONS\}
 \end{example}
 where \vn{EXE-DIRECTORY} is the directory where the tao executable lives. If this directory is
-listed in your \vn{PATH} environmental variable then the directory specification may be omitted.
+listed in your \vn{PATH} environment variable then the directory specification may be omitted.
 
 The optional arguments, which will always supersede equivalent parameters set in an initialization
 file are:
@@ -1794,6 +1799,12 @@ to find the boundary between stable (green dots) and unstable (red dots) motion.
   \label{f:da-rays}
 \end{figure}
 
+For historical reasons, the \vn{dynamic_aperture} program (another Bmad based program included
+in Bmad Distributions) is also capable of calculating the dynamic aperture. In fact both programs
+use the same underlying code for the tracking and analysis. Currently, the basic difference is that
+the \vn{dynamic_aperture} program can handle \vn{ramper} elements while \vn{Tao} is not set up for
+this.
+
 In a storage ring, the ``\vn{dynamic aperture}'' is the region in phase space within which a
 particle will stably oscillate. That is, the region within which the motion is bounded. This is in
 contrast to the ``\vn{physical aperture}'' which is defined by the vacuum chamber walls. Since it
@@ -1910,7 +1921,6 @@ should vertically symmetric as well.
 The angles between adjacent rays is not uniform but are rather calculated to give a roughly
 equal spacing between boundary points. This is done by looking at the aperture
 points on a horizontal and a vertical ray and then scaling the ray angles appropriately).
-
 %
 \item[da_param\%rel_accuracy, da_param\%abs_accuracy] \Newline
 These parameters set the relative and absolute accuracies that determine when the search for a
@@ -2132,7 +2142,7 @@ window used. possibilities are:
   "TK"     tk window
   "QT"     Available only when using PLPLOT (and not the default PGPLOT)
 \end{example}
-Note: The environmental variable \vn{ACC_PLOT_DISPLAY_TYPE} sets the default display type. You can
+Note: The environment variable \vn{ACC_PLOT_DISPLAY_TYPE} sets the default display type. You can
 set this variable in your login file to avoid having to setup a \tao init file to set this.
 %
 \item[plot_page\%size] \Newline

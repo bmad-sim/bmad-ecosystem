@@ -87,7 +87,8 @@ type (wall3d_vertex_struct), pointer :: v
 type (random_state_struct) ran_state
 type (bmad_normal_form_struct), pointer :: bmad_nf
 type (ptc_normal_form_struct), pointer :: ptc_nf
-type (aperture_scan_struct), pointer :: aperture_scan
+type (aperture_scan_struct), pointer :: da_scan
+type (aperture_point_struct), pointer :: da_pt
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_spin_map_struct), pointer :: sm
 type (normal_modes_struct) mode_ptc, mode_ptc_no_vert, mode_6d
@@ -186,7 +187,7 @@ integer, allocatable :: ix_c(:), ix_remove(:)
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
-logical show_all, name_found, print_taylor, print_attributes, err_flag, angle_units
+logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units
 logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_mat, show_q, print_rms
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
@@ -1427,16 +1428,19 @@ case ('dynamic_aperture')
   nl=nl+1; write(lines(nl), rmt)            'ellipse_scale:          ', da%ellipse_scale
 
   do k = 1, size(da%scan)
-    aperture_scan => da%scan(k) 
+    da_scan => da%scan(k) 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(a, 99f11.6)') 'pz:        ', da%pz(k)
-    if (.not. allocated(aperture_scan%point)) then
+    if (.not. allocated(da_scan%point)) then
       nl=nl+1; write(lines(nl), '(a)') 'aperture not calculated for this universe'
     else
-      nl=nl+1; write(lines(nl), '(a, 6es14.5)') 'ref_orb%vec:   ', aperture_scan%ref_orb%vec
+      branch => pointer_to_branch(pointer_to_ele(u%design%lat, da_scan%ref_orb%ix_ele, da_scan%ref_orb%ix_branch))
+      nl=nl+1; write(lines(nl), '(a, 6es14.5)') 'ref_orb%vec:   ', da_scan%ref_orb%vec
       nl=nl+1; write(lines(nl), '(2a15)') 'aperture.x', 'aperture.y' 
-      do j = 1, size(aperture_scan%point)
-        nl=nl+1; write(lines(nl), '(2es15.7)')   aperture_scan%point(j)%x, aperture_scan%point(j)%y
+      do j = 1, size(da_scan%point)
+        da_pt => da_scan%point(j)
+        nl=nl+1; write(lines(nl), '(2f11.6, 6x, a, 3x, a)')  da_pt%x, da_pt%y, &
+                          coord_state_name(da_pt%plane), trim(branch%ele(da_pt%ix_ele)%name)
       enddo
     endif
   enddo
@@ -1452,6 +1456,7 @@ case ('element')
   print_attributes = .false.
   print_data = .false.
   print_wall = .false.
+  print_rad  = .false.
   xfer_mat_print = 0
   print_slaves = .true.
   print_super_slaves = .true.
@@ -1464,7 +1469,7 @@ case ('element')
     call tao_next_switch (what2, [character(16):: '-taylor', '-em_field', &
                 '-all', '-data', '-design', '-no_slaves', '-wall', '-base', &
                 '-field', '-floor_coords', '-xfer_mat', '-ptc', '-everything', &
-                '-attributes', '-no_super_slaves'], .true., switch, err, ix)
+                '-attributes', '-no_super_slaves', '-radiation_kick'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('');                  exit
@@ -1480,6 +1485,7 @@ case ('element')
     case ('-no_slaves');        print_slaves = .false.
     case ('-no_super_slaves');  print_super_slaves = .false.
     case ('-wall');             print_wall = .true.
+    case ('-radiation_kick');   print_rad = .true.
     case ('-ptc');              print_ptc = .true.
     case ('-everything', '-all')
       print_attributes = .true.
@@ -1488,6 +1494,7 @@ case ('element')
       print_floor = .true.
       if (print_field == no$) print_field = short$
       print_wall = .true.
+      print_rad  = .true.
     case default
       if (attrib0 /= '') then
         call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
@@ -1586,8 +1593,8 @@ case ('element')
 
   twiss_out = s%global%phase_units
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
-  call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, &
-            twiss_out, .true., .true., print_floor, print_field, print_wall, lines = alloc_lines, n_lines = n)
+  call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, twiss_out, .true., .true., &
+            print_floor, print_field, print_wall, print_rad, lines = alloc_lines, n_lines = n)
   if (size(s%u) > 1) alloc_lines(1) = trim(alloc_lines(1)) // ',   Universe: ' // int_str(ix_u)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
@@ -1750,7 +1757,7 @@ case ('emittance')
   u%model%high_e_lat = u%model%lat
   ele2 => u%model%high_e_lat%branch(ele%ix_branch)%ele(ele%ix_ele)
   call emit_6d (ele2, .false., mode_6d, sig0_mat)
-  call emit_6d (ele2, .true., mode_6d, sig_mat)
+  call emit_6d (ele2, .true., mode_6d, sig0_mat)
   call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ele%ix_branch)
 
   if (.not. associated(branch%ptc%m_t_layout)) then
@@ -1760,9 +1767,9 @@ case ('emittance')
 
   r = ptc_com%vertical_kick
   ptc_com%vertical_kick = 0
-  call ptc_emit_calc (branch%ele(0), mode_ptc_no_vert, sig_mat, orb)
+  call ptc_emit_calc (branch%ele(ele%ix_ele), mode_ptc_no_vert, sig_mat, orb)
   ptc_com%vertical_kick = 1
-  call ptc_emit_calc (branch%ele(0), mode_ptc, sig_mat, orb)
+  call ptc_emit_calc (branch%ele(ele%ix_ele), mode_ptc, sig_mat, orb)
   ptc_com%vertical_kick = r
 
   nl=nl+1; lines(nl) = '      |        Vert opening angle included        |           Opening angle ignored           |'
@@ -1784,11 +1791,16 @@ case ('emittance')
 
   if (what_to_show == '-sigma_matrix') then
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write (lines(nl), '(a11, 6es12.4, 4x, 6es12.4)') 'Sigma Mat: ', sig_mat(1,:)
-    do i = 2, 6
-      nl=nl+1; write (lines(nl), '(11x, 6es12.4, 4x, 6es12.4)') sig_mat(i,:)
+    nl=nl+1; write (lines(nl), '(a)') 'PTC Sigma Mat (w/vert angle):'
+    do i = 1, 6
+      nl=nl+1; write (lines(nl), '(5x, 6es12.4, 4x, 6es12.4)') sig_mat(i,:)
     enddo
 
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write (lines(nl), '(a)') 'Bmad Sigma Mat (w/vert angle):'
+    do i = 1, 6
+      nl=nl+1; write (lines(nl), '(5x, 6es12.4, 4x, 6es12.4)') sig0_mat(i,:)
+    enddo
   endif
 
 !----------------------------------------------------------------------

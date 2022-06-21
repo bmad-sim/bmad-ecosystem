@@ -66,6 +66,8 @@ integral_dn2         = 0
 integral_bdn_partial = 0
 integral_dn2_partial = 0
 
+print *, 'Det: ', determinant(q_1turn%orb_mat)
+
 do ie = 0, branch%n_ele_track
   if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * map1_inverse(q_ele(ie))
   
