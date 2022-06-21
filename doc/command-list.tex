@@ -183,7 +183,7 @@ Examples:
 In the above example the argument ``abc'' is substituted for any ``[[1]]'' appearing the
 file and ``def'' is substituted for any ``[[2]]''.  \Newline
 
-%% change --------------------------------------------------------------
+%% change * --------------------------------------------------------------
 \section{change}\index{commands!change}
 \label{s:change}
 
@@ -446,7 +446,7 @@ Examples:
 
 The \vn{help} command works by parsing the file \vn{\$TAO_DIR/doc/command-list.tex} which is the
 LaTeX file for the \vn{Tao Commands} chapter of the \tao manual. For the \vn{help} command to work
-properly, the environmental variable \vn{TAO_DIR} must be appropriately defined. Generally,
+properly, the environment variable \vn{TAO_DIR} must be appropriately defined. Generally,
 \vn{TAO_DIR} will be defined if the appropriate \bmad setup script has been run. For
 ``Distributions'', this is the same setup script used to setup a distribution. See your local \bmad
 guru for details.
@@ -1682,6 +1682,9 @@ varying the transverse and longitudinal tunes, varying the transverse tunes will
 longitudinal tune somewhat and vice versa.
 
 Examples:
+\begin{example}
+  set tune -mask qd* 0.45 0.67  ! Use all quads except with name starting with "qd".
+\end{example}
 
 %% set universe --------------------------------------------------------------
 
@@ -3341,7 +3344,7 @@ with \tao is a date encoded in the form
 \end{example}
 where \vn{YYYY} is the four digit year, \vn{MM} is the two digit month, and \vn{DD} is the two digit
 day. The version string is stored in the file \vn{\$TAO_DIR/VERSION}.  For the \vn{show version}
-command to work properly, the environmental variable \vn{TAO_DIR} must be appropriately
+command to work properly, the environment variable \vn{TAO_DIR} must be appropriately
 defined. Generally, \vn{TAO_DIR} will be defined if the appropriate \bmad setup script has been
 run. For ``Bmad Distributions'', this is the same setup script used to setup a distribution. See
 your local \bmad guru for details.\footnote
@@ -3740,13 +3743,13 @@ videos. A good place to start is:
 \end{example}
 Note: In order of the script to work, the script must be able to find the ``base'' file
 \vn{blender_base.py}. This base file lives in the \vn{bmad/scripts} directory and the \vn{bmad}
-directory is found using one of the following environmental variables:
+directory is found using one of the following environment variables:
 \begin{example}
   BMAD_BASE_DIR
   DIST_BASE_DIR
   ACC_RELEASE_DIR
 \end{example}
-Generally, one of the latter two environmental variables will be defined.  If not, a copy of the
+Generally, one of the latter two environment variables will be defined.  If not, a copy of the
 \bmad directory must be created and then \vn{BMAD_BASE_DIR} be appropriately defined.
 
 %% write bmad --------------------------------------------------------------
