@@ -8,6 +8,7 @@
 program dynamic_aperture_program
 
 use da_program_mod
+!$ use omp_lib
 
 implicit none
 
@@ -23,7 +24,7 @@ type (branch_struct), pointer :: branch
 
 real(rp) dpz(20)
 real(rp) :: ramping_start_time = 0
-integer nargs, ios, i, j, n_dpz
+integer nargs, ios, i, j, n_dpz, nt
 
 logical :: ramping_on = .false.
 logical set_rf_off, err
@@ -68,6 +69,13 @@ da_param%max_angle = da_param%max_angle * pi / 180
 
 da_com%ramping_on = ramping_on
 da_com%ramping_start_time = ramping_start_time
+
+! Print number of threads
+
+nt = 0
+!$ nt = omp_get_max_threads()
+!$ print '(a, i0)', 'Note: Maximum number of OpenMP threads available: ', nt
+if (nt == 0) print '(a)', 'Note: Program has been compiled without OpenMP threading.'
 
 ! Read in lattice
 
