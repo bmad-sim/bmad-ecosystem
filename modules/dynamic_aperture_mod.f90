@@ -180,7 +180,7 @@ do ns = 1, size(pz_start)
   if (logic_option(.true., print_timing)) call out_io (s_blank$, r_name, '  Scale factors calculated. dTime(min): \f8.2\ ', &
                                                                                 r_array = [(time1-time0)/60])
 
-  !$OMP parallel do if (thread_safe) private(branch, ele0)
+  !$OMP parallel do if (thread_safe) private(branch, ele0, lat, ix_lat)
   do i = 1, ap_param%n_angle
     ix_lat = 1
     !$ ix_lat = omp_get_thread_num() + 1
