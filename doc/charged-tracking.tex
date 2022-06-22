@@ -375,9 +375,9 @@ bend is given by
 where $\rho$ is the design radius of curvature, $x_1$ is the offset of the particle from the design
 at the entrance point, and $\theta$ is the design bend angle
 \begin{equation}
-  \theta = \frac{L}{\rho}
+  \theta = \frac{L}{\rho} = g \, L
 \end{equation}
-with $L$ being the design arc length.
+with $L$ being the design arc length and $g \equiv 1/\rho$.
 
 The coordinates $(u_0, v_0)$ of the center of curvature of the particle trajectory is
 \begin{align}
@@ -402,7 +402,7 @@ where $\xi$ can be expressed in two different ways
   &= \frac{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} - \cos(\theta + \phi_1)}{g_p}
     \label{xctlg2}
 \end{align}
-where $g \equiv 1/\rho$  and 
+where
 \begin{align}
   \alpha &= 2 \, (1 + g \, x_1) \, \sin(\theta + \phi_1) \, L \, \sinc(\theta) - 
         g_p \, (1 + g \, x_1)^2 \, L^2 \, \sinc^2(\theta) \\
@@ -426,7 +426,7 @@ where $\bfL_c$ is the vector (chord) from point 1 and point 2
 and $\theta_p$ is the angle made by the particle trajectory which is twice the angle between
 the initial particle trajectory $\Bf P$ and the vector $\bfL_c$
 \begin{equation}
-  \theta_p = 2 \, \left( \theta + \phi_1 - \frac{\pi}{2} - \atantwo \left( L_{cv}, L_{cu} \right) \right)
+  \theta_p = 2 \, \left( \theta + \phi_1 - \atantwo \left( L_{cu}, -L_{cv} \right) \right)
 \end{equation}
 where $\atantwo(y, x)$ is the standard two argument arctangent function.
 
