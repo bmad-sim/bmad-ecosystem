@@ -124,6 +124,7 @@ type ltt_com_struct
   logical :: using_mpi = .false.
   character(200) :: mpi_data_dir = ''          ! Temporary directory For storing particle position data when running with mpi.
   character(200) :: master_input_file = ''
+  character(40) :: fmt = '(2i7, 6es16.8, 3x, 3f10.6, 4x, a)'
 end type
 
 integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
@@ -777,14 +778,12 @@ type (ltt_com_struct), target :: ltt_com
 type (branch_struct), pointer :: branch
 type (lat_struct), pointer :: lat
 type (coord_struct), allocatable :: orb(:)
-type (coord_struct) :: orbit, orbit_old
-type (ele_struct), pointer :: ele_start
+type (coord_struct) :: orbit
+type (ele_struct), pointer :: ele_start, ele0, ele1
 type (probe) prb
 
 real(rp) average(6), sigma(6,6), dt
 integer i, n_sum, iu_part, i_turn, ix_branch
-
-character(40) fmt
 
 ! Run serial in single mode.
 
@@ -796,8 +795,6 @@ average = 0
 ix_branch = ltt_com%ix_branch
 branch => lat%branch(ix_branch)
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
-
-orbit_old%vec = real_garbage$
 
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 
@@ -814,13 +811,12 @@ endif
 
 !
 
-fmt = '(i6, 6es16.8, 3x, 3f10.6)'
 iu_part = lunget()
 if (lttp%particle_output_file == '') lttp%particle_output_file = 'single.dat'
 open(iu_part, file = lttp%particle_output_file, recl = 200)
 call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
-write (iu_part, '(a)') '# Turn |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z'
-write (iu_part, fmt) 0, orbit%vec, orbit%spin
+write (iu_part, '(a)') '#  Turn ix_ele |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z  | Element'
+write (iu_part, ltt_com%fmt) 0, ele_start%ix_ele, orbit%vec, orbit%spin, trim(ele_start%name)
 
 if (lttp%custom_output_file /= '') call ltt_write_custom (0, lttp, ltt_com, orbit = orbit)
 
@@ -828,28 +824,43 @@ do i_turn = 1, lttp%n_turns
   select case (lttp%tracking_method)
 
   case ('BMAD')
-    call ltt_track_bmad_single (lttp, ltt_com, ele_start, ele_start, orbit)
+    call ltt_track_bmad_single (lttp, ltt_com, ele_start, ele_start, orbit, i_turn, iu_part)
 
   case ('PTC')
-    prb = orbit%vec
-    prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
-    call track_probe (prb, ltt_com%ptc_state, fibre1 = pointer_to_fibre(ele_start))
-    orbit%vec = prb%x
-    orbit%spin = quat_rotate(prb%q%x, orbit%spin)
-    if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2) .or. &
-                                                   orbit_too_large(orbit) .or. prb%u) orbit%state = lost$
-    orbit_old%vec = orbit%vec
+    ele0 => ele_start
+    do
+      prb = orbit%vec
+      prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
+      ele1 => pointer_to_next_ele(ele0)
+      call track_probe (prb, ltt_com%ptc_state, fibre1 = pointer_to_fibre(ele0), fibre2 = pointer_to_fibre(ele1))
+      orbit%vec = prb%x
+      orbit%spin = quat_rotate(prb%q%x, orbit%spin)
+      if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2) .or. &
+                                                     orbit_too_large(orbit) .or. prb%u) orbit%state = lost$
+
+      if (lttp%particle_output_every_n_turns < 1) then
+        write (iu_part, ltt_com%fmt) i_turn, ele1%ix_ele, orbit%vec, orbit%spin, trim(ele1%name)
+      endif
+
+      if (orbit%state == lost$) exit
+      if (ele1%ix_ele == ele_start%ix_ele) exit
+      ele0 => ele1
+    enddo
 
   case ('MAP')
-    call ltt_track_map(lttp, ltt_com, orbit)
+    call ltt_track_map(lttp, ltt_com, orbit, i_turn, iu_part)
 
   case default
     print '(a)', 'Unknown tracking_method: ' // lttp%tracking_method
     stop
   end select
 
-  if (lttp%particle_output_every_n_turns > 0 .and. modulo(i_turn, lttp%particle_output_every_n_turns) == 0) then
-    write (iu_part, fmt) i_turn, orbit%vec, orbit%spin
+  !
+
+  if (lttp%particle_output_every_n_turns > 0) then
+    if (modulo(i_turn, lttp%particle_output_every_n_turns) == 0) then
+      write (iu_part, ltt_com%fmt) i_turn, ele_start%ix_ele, orbit%vec, orbit%spin, trim(ele_start%name)
+    endif
   endif
 
   if (orbit%state /= alive$) then
@@ -2259,7 +2270,7 @@ end subroutine ltt_pointer_to_map_ends
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_track_bmad_single (lttp, ltt_com, ele_start, ele_stop, orbit)
+subroutine ltt_track_bmad_single (lttp, ltt_com, ele_start, ele_stop, orbit, i_turn, iu_part)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -2267,6 +2278,7 @@ type (coord_struct) orbit
 type (ele_struct), target :: ele_start, ele_stop
 type (ele_struct), pointer :: ele
 
+integer, optional :: i_turn, iu_part
 integer i
 logical err_flag, rad_fluct
 
@@ -2282,6 +2294,11 @@ do
   else
     call track1 (orbit, ele, ele%branch%param, orbit, err_flag = err_flag)
   endif
+
+  if (present(iu_part) .and. lttp%particle_output_every_n_turns < 1) then
+    write (iu_part, ltt_com%fmt) i_turn, ele%ix_ele, orbit%vec, orbit%spin, trim(ele%name)
+  endif
+
   if (ele%ix_ele == ele_stop%ix_ele) exit
 enddo
 
@@ -2334,14 +2351,16 @@ end subroutine ltt_track_bmad_bunch
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_track_map (lttp, ltt_com, orbit)
+subroutine ltt_track_map (lttp, ltt_com, orbit, i_turn, iu_part)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (coord_struct) orbit
 type (ltt_section_struct), pointer :: sec
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
 
+integer, optional :: i_turn, iu_part
 integer i
 logical map_fluct_on, pt_fluct_on
 
@@ -2349,7 +2368,7 @@ logical map_fluct_on, pt_fluct_on
 
 map_fluct_on = (bmad_com%radiation_fluctuations_on .and. .not. lttp%split_bends_for_stochastic_rad) 
 pt_fluct_on = bmad_com%radiation_fluctuations_on
-branch => ltt_com%tracking_lat%branch(0)
+branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
 
 do i = 1, ubound(ltt_com%sec, 1)
   sec => ltt_com%sec(i)
@@ -2358,12 +2377,21 @@ do i = 1, ubound(ltt_com%sec, 1)
   if (allocated(sec%map)) then
     call ptc_track_map_with_radiation (orbit, sec%map, rad_damp = bmad_com%radiation_damping_on, rad_fluct = map_fluct_on)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
-    if (orbit%state /= alive$) return
+    ele => branch%ele(sec%map%ix_ele_end)
   elseif (sec%ele%name == 'Radiation_Point') then
     call ltt_track1_radiation_center(orbit, sec%ele, .false., pt_fluct_on)
+    ele => sec%ele
   else  ! EG: beambeam
     call track1 (orbit, sec%ele, branch%param, orbit)
+    ele => sec%ele
   endif
+
+  if (present(iu_part) .and. lttp%particle_output_every_n_turns < 1) then
+    write (iu_part, ltt_com%fmt) i_turn, ele%ix_ele, orbit%vec, orbit%spin, trim(ele%name)
+  endif
+
+  if (orbit%state /= alive$) return
+
 enddo
 
 end subroutine ltt_track_map

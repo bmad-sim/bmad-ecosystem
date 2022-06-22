@@ -68,8 +68,11 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ June 20, 2022}
+\date{David Sagan \\ June 22, 2022}
+
 \begin{document}
+\pdfbookmark[1]{Contents}{contents}
+
 \maketitle
 
 \tableofcontents
@@ -109,13 +112,10 @@ long_term_tracking_mpi  ! Multi-threaded version
 The first is a single threaded version and the second is a multi-threaded version using MPI.\footnote
   {
 Note to Distribution maintainers: The single threaded version will be built when compiling a Bmad
-Distribution. If MPI is not enabled (which is the default setting), the MPI version will not be built. 
-The MPI version can be built by setting:
-\begin{code}
-  export ACC_ENABLE_MPI=Y
-\end{code}
-and then using the ``\vn{mk}'' command in the \vn{bsim} directory to build the executable. See the
-documentation on the Bmad web site for more details.
+Distribution. If MPI is not enabled (which is the default setting), the MPI version will not be
+built.  The MPI version can be built by setting \vn{export ACC_ENABLE_MPI=Y} and then using the
+``\vn{mk}'' command in the \vn{bsim} directory to build the executable. See the documentation on the
+Bmad web site for more details.
   }
 
 Once the Bmad environment variables have been set, the syntax for invoking the single threaded
@@ -207,9 +207,12 @@ turned on.
 
 %
 \item["SINGLE"] \Newline
-In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The name of the data file is set
-by the \vn{ltt%particle_output_file} parameter (\sref{s:input}). The particle position will be output every
-\vn{ltt%particle_output_every_n_turns} turns.
+In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The starting coordinates are
+set by \vn{particle_start} commands in the lattice file. 
+
+The name of the data file is set by the \vn{ltt%particle_output_file} parameter
+(\sref{s:input}). The particle position will be output every \vn{ltt%particle_output_every_n_turns}
+turns. If this parameter is zero or negative, the position will be outputted at every element.
 %
 \item["BEAM"] \Newline
 In this mode a particle beam is tracked for \vn{ltt%n_turns} turns. The output data file(s) format is
