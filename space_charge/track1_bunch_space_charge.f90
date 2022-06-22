@@ -44,10 +44,15 @@ include_image = (ele%space_charge_method == cathode_fft_3d$) ! Include cathode i
 
 ! Don't track zero-length elements
 if (ele%value(l$) == 0) then
-  if (logic_option(.true., to_s_coords)) call drift_to_s(bunch, ele%s, branch%lat, bunch)
+  if (logic_option(.true., to_s_coords)) call drift_to_s(bunch, ele%s, bunch)
   err = .false.
   return
 endif
+
+do i = 1, size(bunch%particle) 
+  p => bunch%particle(i)
+  call convert_particle_coordinates_s_to_t(p, s_body_calc(p, branch%lat%ele(p%ix_ele)), branch%lat%ele(p%ix_ele)%orientation)
+enddo
 
 ! Track
 do
@@ -72,8 +77,12 @@ do
   if (finished) exit
 enddo
 
-if (logic_option(.true., to_s_coords)) call drift_to_s(bunch, ele%s, branch%lat, bunch)
+do i= 1, size(bunch%particle) 
+  p => bunch%particle(i)
+  call convert_particle_coordinates_t_to_s(p, branch%lat%ele(p%ix_ele))
+enddo
 
+if (logic_option(.true., to_s_coords)) call drift_to_s(bunch, ele%s, bunch)
 err = .false.
 
 end subroutine track1_bunch_space_charge

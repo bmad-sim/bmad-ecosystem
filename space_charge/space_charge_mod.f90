@@ -266,20 +266,19 @@ end subroutine sc_adaptive_step
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine drift_to_s (bunch_in, s, lat, bunch_out)
+! Subroutine drift_to_s (bunch_in, s, bunch_out)
 !
 ! Drift a bunch of particles to the same s coordinate
 !
 ! Input:
 !   bunch_in  -- bunch_struct: input bunch position in t-based coordinate
 !   s         -- real(rp): target s coordinate
-!   lat       -- lat_struct: lattice particles is tracking through
 !
 ! Output:
 !   bunch_out -- bunch_struct: output bunch position in t-based coordinate. Particles will be at the same s coordinate
 !-
 
-subroutine drift_to_s (bunch_in, s, lat, bunch_out)
+subroutine drift_to_s (bunch_in, s, bunch_out)
 
 use bmad
 
@@ -287,7 +286,6 @@ implicit none
 
 type (bunch_struct), target :: bunch_in, bunch_out
 type (coord_struct), pointer :: p
-type (lat_struct) :: lat
 
 integer i
 real(rp) s, pz0, E_tot, dt
@@ -295,10 +293,6 @@ real(rp) s, pz0, E_tot, dt
 ! Convert bunch to s-based coordinates
 
 bunch_out = bunch_in
-
-do i = 1, size(bunch_out%particle) 
-  call convert_particle_coordinates_t_to_s(bunch_out%particle(i), lat%ele(bunch_out%particle(i)%ix_ele))
-enddo
 
 do i = 1, size(bunch_out%particle)
   p => bunch_out%particle(i)
