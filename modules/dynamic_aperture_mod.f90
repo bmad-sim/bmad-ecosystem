@@ -82,7 +82,7 @@ else
   branch => lat%branch(ele0%ix_branch)
 endif
 
-ele0_loc = lat_ele_loc_struct(ele0%ix_branch, ele0%ix_ele)
+ele0_loc = lat_ele_loc_struct(ele0%ix_ele, ele0%ix_branch)
 
 allocate(angle_list(ap_param%n_angle))
 
