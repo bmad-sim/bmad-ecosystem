@@ -15,7 +15,7 @@
   ltt%n_turns = 20                         ! Number of turns to track
   ltt%rfcavity_on = T
   ltt%map_order = 3
-  ltt%split_bends_for_radiation = T
+  ltt%split_bends_for_stochastic_rad = T
   ltt%random_seed = 0                       ! Random number seed. 0 => use system clock.
   ltt%timer_print_dtime = 300
   ltt%add_closed_orbit_to_init_position = F
