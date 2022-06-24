@@ -231,9 +231,9 @@ character(*) :: instr
 ! There can be differences between debug and non-debug output.
 
   select case (instr)
-    case("RBEND4: Bmad_Standard")                      ; tolerance = 'ABS 2E-13'
+    case("RBEND4: Bmad_Standard")                      ; tolerance = 'ABS 1E-12'
     case("RBEND4: Runge_Kutta")                        ; tolerance = 'ABS 1E-12'
-    case("RBEND4: Linear")                             ; tolerance = 'ABS 2E-13'
+    case("RBEND4: Linear")                             ; tolerance = 'ABS 1E-12'
     case("RBEND4: Time_Runge_Kutta")                   ; tolerance = 'ABS 1E-12'
     case("RBEND6: Symp_Lie_PTC")                       ; tolerance = 'ABS 1E-13'
     case("RFCAVITY1: Time_Runge_Kutta")                ; tolerance = 'ABS 2E-12'
@@ -245,7 +245,7 @@ character(*) :: instr
     case("LCAVITY1-Anti_D: Runge_Kutta")               ; tolerance = 'ABS 2e-13'
     case("RBEND4-Anti_D: Bmad_Standard")               ; tolerance = 'ABS 4e-13'
     case("RBEND4-Anti_OD: Bmad_Standard")              ; tolerance = 'ABS 4e-13'
-    case("RBEND4-Anti_O: Bmad_Standard")               ; tolerance = 'ABS 2e-13'
+    case("RBEND4-Anti_O: Bmad_Standard")               ; tolerance = 'ABS 1e-14'
     case("RBEND4-Anti_O: Runge_Kutta")                 ; tolerance = 'ABS 1e-12'
     case("RBEND4-Anti_O: Time_Runge_Kutta")            ; tolerance = 'ABS 1e-12'
     case("RBEND6-Anti_O: Symp_Lie_PTC")                ; tolerance = 'ABS 1E-13'
