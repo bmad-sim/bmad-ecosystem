@@ -21,22 +21,24 @@ integer, parameter :: numeric$ = 29, variable$ = 30
 integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_const$ = 35
 integer, parameter :: sinc$ = 36, constant$ = 37, comma$ = 38, rms$ = 39, average$ = 40, sum$ = 41, l_func_parens$ = 42
 integer, parameter :: arg_count$ = 43, antiparticle$ = 44, cot$ = 45, sec$ = 46, csc$ = 47, sign$ = 48
+integer, parameter :: sinh$ = 49, cosh$ = 50, tanh$ = 51, coth$ = 52, asinh$ = 53, acosh$ = 54, atanh$ = 55, acoth$ = 56
 
 ! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
 ! Note: "rms" and "average" are not implemented here but is used by Tao.
 
-character(20), parameter :: expression_op_name(48) = [character(20) :: '+', '-', '*', '/', &
+character(20), parameter :: expression_op_name(56) = [character(20) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                     'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                     'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
                                     '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', &
                                     'species', '?!+Species', 'sinc', '?!+Constant', ',', 'rms', 'average', 'sum', &
-                                    '(', '?!+Arg Count', 'antiparticle', 'cot', 'sec', 'csc', 'sign']
+                                    '(', '?!+Arg Count', 'antiparticle', 'cot', 'sec', 'csc', 'sign', &
+                                    'sinh', 'cosh', 'tanh', 'coth', 'asinh', 'acosh', 'atanh', 'acoth']
 
 
-integer, parameter :: expression_eval_level(48) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+integer, parameter :: expression_eval_level(56) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
               9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, &
-              9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9]
+              9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
 private pushit
 
@@ -249,6 +251,14 @@ parsing_loop: do
       case ('SPECIES');       call pushit (op, i_op, species$)
       case ('ANTIPARTICLE');  call pushit (op, i_op, antiparticle$)
       case ('ANOMALOUS_MOMENT_OF'); call pushit (op, i_op, anomalous_moment_of$)
+      case ('COTH');           call pushit (op, i_op, coth$)
+      case ('SINH');           call pushit (op, i_op, sinh$)
+      case ('COSH');           call pushit (op, i_op, cosh$)
+      case ('TANH');           call pushit (op, i_op, tanh$)
+      case ('ACOTH');          call pushit (op, i_op, acoth$)
+      case ('ASINH');          call pushit (op, i_op, asinh$)
+      case ('ACOSH');          call pushit (op, i_op, acosh$)
+      case ('ATANH');          call pushit (op, i_op, atanh$)
       case default
         err_str = 'UNEXPECTED CHARACTERS IN EXPRESSION BEFORE "(": ' // word
         return
@@ -758,6 +768,38 @@ do i = 1, size(stack)
   case (atan2$)
     stack2(i2-1)%value = atan2(stack2(i2-1)%value, stack2(i2)%value)
     i2 = i2 - 1
+
+  case (sinh$)
+    stack2(i2)%value = sinh(stack2(i2)%value)
+
+  case (cosh$)
+    stack2(i2)%value = cosh(stack2(i2)%value)
+
+  case (tanh$)
+    stack2(i2)%value = tanh(stack2(i2)%value)
+
+  case (coth$)
+    if (stack2(i2)%value == 0) then
+      err_str = 'DIVIDE BY 0 IN EXPRESSION'
+      return
+    endif
+    stack2(i2)%value = 1.0_rp / tanh(stack2(i2)%value)
+
+  case (asinh$)
+    stack2(i2)%value = asinh(stack2(i2)%value)
+
+  case (acosh$)
+    stack2(i2)%value = acosh(stack2(i2)%value)
+
+  case (atanh$)
+    stack2(i2)%value = atanh(stack2(i2)%value)
+
+  case (acoth$)
+    if (stack2(i2)%value == 0) then
+      err_str = 'DIVIDE BY 0 IN EXPRESSION'
+      return
+    endif
+    stack2(i2)%value = 1.0_rp / atanh(stack2(i2)%value)
 
   case (abs$)
     stack2(i2)%value = abs(stack2(i2)%value)
