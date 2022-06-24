@@ -35,7 +35,7 @@ if (ele%bookkeeping_state%mat6 /= ok$ .and. is_false(ele%value(static_linear_map
     call out_io(s_error$, r_name, 'MAT6_CALC_METHOD = TRACKING INCOMPATIBLE WITH TRACKING METHOD = LINEAR.', &
                                   'FOR ELEMENT: ' // ele%name)
   else
-    call make_mat6(ele, param, start_orb, end_orb)
+    call make_mat6(ele, param)
   endif
 endif
 
