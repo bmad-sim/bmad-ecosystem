@@ -202,7 +202,7 @@ type(work) w_bks
  PRIVATE feval_CAV_bmad_prober,rk2bmad_cav_prober,rk4bmad_cav_prober,rk4bmad_cav_probep
  private rk6bmad_cav_prober,rk6bmad_cav_probep
  private INTE_sol5_prober,INTE_SOL5_probep
- private INT_SAGAN_prober
+ private INT_SAGAN_prober,INT_SAGAN_probep
  logical :: gaussian_stoch=.false.
 !type(real_8) radcoe
   INTERFACE radiate_2_force
@@ -242,6 +242,7 @@ type(work) w_bks
  
   INTERFACE TRACK_SLICE_sagan
      MODULE PROCEDURE INT_SAGAN_prober
+     MODULE PROCEDURE INT_SAGAN_probep
   END INTERFACE 
 
   INTERFACE TRACK_SLICE_CAV4
@@ -28765,5 +28766,200 @@ end SUBROUTINE push_quaternionP
 
 
   END SUBROUTINE INT_SAGAN_prober
+
+
+  SUBROUTINE INT_SAGAN_probep(p,k,c,i)
+    IMPLICIT NONE
+    integer ipause, mypause
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+     
+    TYPE(SAGANP), pointer :: EL
+    integer,INTENT(IN):: I
+    
+    TYPE(REAL_8) Z
+    TYPE(REAL_8) D,DH
+    TYPE(REAL_8)   D1,D2,DK1,DK2
+    TYPE(REAL_8) DF(4),DK(4)
+    INTEGER J
+    TYPE(INTERNAL_STATE),OPTIONAL :: K
+
+
+
+    f=>c%parent_fibre
+    el=> f%magp%wi
+
+    SELECT CASE(EL%P%METHOD)
+    CASE(2)
+
+     call alloc(d,dh,z)
+
+       DH=EL%L/2.0_dp/EL%P%NST
+       D=EL%L/EL%P%NST
+       IF(EL%P%DIR==1) THEN
+          Z=(i-1)*d
+       ELSE
+          Z=EL%L-(i-1)*d
+       ENDIF
+
+       if(el%xprime) then
+        call rk2_sagan(z,d,el,p%x,k)
+       else
+
+          Z=Z+EL%P%DIR*DH
+          CALL driftsagan(EL,DH,Z,1,p%x,k)
+          CALL driftsagan(EL,DH,Z,2,p%x,k)
+          CALL KICKPATH(EL,DH,p%x,k)
+
+       if(k%spin.or.k%radiation) then
+          CALL KICK(EL,DH,Z,P%x,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,d)  !,zw=z)
+          CALL KICK(EL,DH,Z,P%x,k)
+         else
+           CALL KICK(EL,D,Z,P%x,k)
+        endif
+
+          CALL KICKPATH(EL,DH,P%x,k)
+          CALL driftsagan(EL,DH,Z,2,P%x,k)
+          CALL driftsagan(EL,DH,Z,1,P%x,k)
+       !       Z=Z+EL%P%DIR*DH
+      endif
+     call kill(d,dh,z)
+
+    CASE(4)
+     call alloc(d,d1,d2,dk1,dk2,z)
+
+       D=EL%L/EL%P%NST
+
+       DK1=D*FK1
+       D1=DK1/2.0_dp
+       DK2=D*FK2
+       D2=DK2/2.0_dp
+       IF(EL%P%DIR==1) THEN
+          Z=(i-1)*d
+       ELSE
+          Z=EL%L-(i-1)*d
+       ENDIF
+
+       if(el%xprime) then
+        call rk4_sagan(z,d,el,P%x,k)
+       else
+
+       Z=Z+EL%P%DIR*D1
+       CALL driftsagan(EL,D1,Z,1,P%x,k)
+       CALL driftsagan(EL,D1,Z,2,P%x,k)
+       CALL KICKPATH(EL,D1,P%x,k)
+       if(k%spin.or.k%radiation) then
+          CALL KICK(EL,D1,Z,P%x,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,DK1)  !,zw=z)
+          CALL KICK(EL,D1,Z,P%x,k)
+         else
+          CALL KICK(EL,DK1,Z,P%x,k)
+        endif
+       CALL KICKPATH(EL,D1,P%x,k)
+       CALL driftsagan(EL,D1,Z,2,P%x,k)
+       CALL driftsagan(EL,D1,Z,1,P%x,k)
+       Z=Z+EL%P%DIR*D1+D2
+       CALL driftsagan(EL,D2,Z,1,P%x,k)
+       CALL driftsagan(EL,D2,Z,2,P%x,k)
+       CALL KICKPATH(EL,D2,P%x,k)
+
+       if(k%spin.or.k%radiation) then
+         CALL KICK(EL,D2,Z,P%x,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,DK2)  !,zw=z)
+         CALL KICK(EL,D2,Z,P%x,k)
+         else
+         CALL KICK(EL,DK2,Z,P%x,k)
+        endif
+       CALL KICKPATH(EL,D2,P%x,k)
+       CALL driftsagan(EL,D2,Z,2,P%x,k)
+       CALL driftsagan(EL,D2,Z,1,P%x,k)
+       Z=Z+EL%P%DIR*(D1+D2)
+       CALL driftsagan(EL,D1,Z,1,P%x,k)
+       CALL driftsagan(EL,D1,Z,2,P%x,k)
+       CALL KICKPATH(EL,D1,P%x,k)
+       if(k%spin.or.k%radiation) then
+          CALL KICK(EL,D1,Z,P%x,k)
+          call RAD_SPIN_qua_PROBE(c,p,k,DK1) !,zw=z)
+          CALL KICK(EL,D1,Z,P%x,k)
+         else
+          CALL KICK(EL,DK1,Z,P%x,k)
+        endif
+       CALL KICKPATH(EL,D1,P%x,k)
+       CALL driftsagan(EL,D1,Z,2,P%x,k)
+       CALL driftsagan(EL,D1,Z,1,P%x,k)
+      endif
+     call kill(d,d1,d2,dk1,dk2,z)
+
+
+    CASE(6)
+     call alloc(d,z)
+     call alloc(dk)
+     call alloc(df)
+       DO j =1,4
+          DK(j)=EL%L*YOSK(J)/EL%P%NST
+          DF(j)=DK(j)/2.0_dp
+       ENDDO
+       D=EL%L/EL%P%NST
+       IF(EL%P%DIR==1) THEN
+          Z=(i-1)*d
+       ELSE
+          Z=EL%L-(i-1)*d
+       ENDIF
+
+       if(el%xprime) then
+        call rk6_sagan(z,d,el,P%x,k)
+       else
+
+
+       DO J=4,1,-1
+          Z=Z+EL%P%DIR*DF(J)
+          CALL driftsagan(EL,DF(J),Z,1,P%x,k)
+          CALL driftsagan(EL,DF(J),Z,2,P%x,k)
+          CALL KICKPATH(EL,DF(J),P%x,k)
+            if(k%spin.or.k%radiation) then
+               CALL KICK(EL,DF(J),Z,P%x,k)
+               call RAD_SPIN_qua_PROBE(c,p,k,DK(J))  !,zw=z)
+               CALL KICK(EL,DF(J),Z,P%x,k)
+              else
+               CALL KICK(EL,DK(J),Z,P%x,k)
+             endif
+          CALL KICKPATH(EL,DF(J),P%x,k)
+          CALL driftsagan(EL,DF(J),Z,2,P%x,k)
+          CALL driftsagan(EL,DF(J),Z,1,P%x,k)
+          Z=Z+EL%P%DIR*DF(J)
+       ENDDO
+       DO J=2,4
+          Z=Z+EL%P%DIR*DF(J)
+          CALL driftsagan(EL,DF(J),Z,1,P%x,k)
+          CALL driftsagan(EL,DF(J),Z,2,P%x,k)
+          CALL KICKPATH(EL,DF(J),P%x,k)
+            if(k%spin.or.k%radiation) then
+               CALL KICK(EL,DF(J),Z,P%x,k)
+               call RAD_SPIN_qua_PROBE(c,p,k,DK(J))  !,zw=z)
+               CALL KICK(EL,DF(J),Z,P%x,k)
+              else
+               CALL KICK(EL,DK(J),Z,P%x,k)
+             endif
+          CALL KICKPATH(EL,DF(J),P%x,k)
+          CALL driftsagan(EL,DF(J),Z,2,P%x,k)
+          CALL driftsagan(EL,DF(J),Z,1,P%x,k)
+          Z=Z+EL%P%DIR*DF(J)
+       ENDDO
+
+      endif
+
+     call kill(d,z)
+     call kill(dk)
+     call kill(df)
+
+    CASE DEFAULT
+       WRITE(6,*) " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ipause=mypause(357)
+    END SELECT
+
+
+  END SUBROUTINE INT_SAGAN_probep
 
 END MODULE S_DEF_KIND
