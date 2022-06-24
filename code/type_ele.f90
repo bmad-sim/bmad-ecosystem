@@ -649,7 +649,7 @@ endif
 
 ! Radiation kick values
 
-if (logic_option(.false., type_rad_kick)) then
+if (logic_option(.false., type_rad_kick) .and. associated(ele%rad_int_cache)) then
   rm0 => ele%rad_int_cache%rm0
   rm1 => ele%rad_int_cache%rm1
 

@@ -1027,7 +1027,7 @@ if (init_needed) then
   ptc_com%exact_model = .true.
   ptc_com%exact_misalign = .true.  ! Note: Points to ALWAYS_EXACTMIS
   ptc_com%vertical_kick = 1        ! On
-  ptc_com%old_integrator = .true. ! Using new integrator.
+  ptc_com%old_integrator = .false. ! Using new integrator.
   EPS_EIGENVALUES_OFF_UNIT_CIRCLE = 1d-3
 
   ptc_com_default = ptc_com
