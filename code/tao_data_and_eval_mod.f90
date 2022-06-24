@@ -4639,6 +4639,14 @@ parsing_loop: do
       case ('atan2')
         call pushit (op, i_op, atan2$)
         func(n_func)%n_arg_target = 2
+      case ('sinh');            call pushit (op, i_op, sinh$)
+      case ('cosh');            call pushit (op, i_op, cosh$)
+      case ('tanh');            call pushit (op, i_op, tanh$)
+      case ('coth');            call pushit (op, i_op, coth$)
+      case ('asinh');           call pushit (op, i_op, asinh$)
+      case ('acosh');           call pushit (op, i_op, acosh$)
+      case ('atanh');           call pushit (op, i_op, atanh$)
+      case ('acoth');           call pushit (op, i_op, acoth$)
       case ('abs');             call pushit (op, i_op, abs$)
       case ('rms');             call pushit (op, i_op, rms$)
       case ('average', 'mean'); call pushit (op, i_op, average$)
@@ -5614,6 +5622,30 @@ do i = 1, size(stack)
   case (atan2$) 
     stk2(i2-1)%value = atan2(stk2(i2-1)%value, stk2(i2)%value)
     i2 = i2 - 1
+
+  case (sinh$)
+    stk2(i2)%value = sinh(stk2(i2)%value)
+
+  case (cosh$) 
+    stk2(i2)%value = cosh(stk2(i2)%value)
+
+  case (tanh$) 
+    stk2(i2)%value = tanh(stk2(i2)%value)
+
+  case (coth$)
+    stk2(i2)%value = 1.0_rp / tanh(stk2(i2)%value)
+
+  case (asinh$) 
+    stk2(i2)%value = asinh(stk2(i2)%value)
+
+  case (acosh$) 
+    stk2(i2)%value = acosh(stk2(i2)%value)
+
+  case (atanh$) 
+    stk2(i2)%value = atanh(stk2(i2)%value)
+
+  case (acoth$)
+    stk2(i2)%value = 1.0_rp / atanh(stk2(i2)%value)
 
   case (abs$) 
     stk2(i2)%value = abs(stk2(i2)%value)
