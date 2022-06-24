@@ -425,7 +425,9 @@ type c_damap
  type(c_quaternion) q
  complex(dp) x0(lnv)
  logical :: tpsa=.false.
- real(dpn),pointer :: db(:,:) => null(),m(:,:)=> null()
+ !real(dpn),pointer :: db(:,:) => null(),m(:,:)=> null()
+ real(dpn),pointer :: m(:,:)=> null()
+ complex(dp), pointer :: cm(:,:)=> null()   !  to look at Yu matrix in phasors
  complex(dp) e_ij(6,6) !@1 stochastic fluctuation in radiation theory
   real(dp) sm(3,3)
   real(dp) damps(3,3)
