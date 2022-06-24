@@ -33,7 +33,7 @@ implicit none
 type (ele_struct), target :: ele
 type (coord_struct), optional :: start_orb, end_orb
 type (lat_param_struct)  param
-type (coord_struct) a_start_orb, a_end_orb
+type (coord_struct) a_start_orb, a_end_orb, b_start_orb
 
 real(rp), parameter :: zero_vec(6) = 0
 integer mat6_calc_method, species
@@ -76,18 +76,24 @@ ele%map_ref_orb_in = a_start_orb
 rad_fluct_save = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.
 
-! if mat6(6,6) = 0 then %mat6 has not yet been computed. In this case ignore the setting of static_linear_map.
+! If mat6(6,6) = 0 then %mat6 has not yet been computed. In this case ignore the setting of static_linear_map.
 ! Exception: Slice_slave is always recomputed.
 
 if (is_true(ele%value(static_linear_map$)) .and. ele%mat6(6,6) /= 0 .and. ele%slave_status /= slice_slave$) then
+  ! Just track if needed and do not modify ele%mat6
   if (present(end_orb)) call track1(a_start_orb, ele, param, end_orb)
   if (present(err_flag)) err_flag = .false.
   return
 endif
 
 ! Compute matrix
+! Matrix must be made around the zero orbit for linear tracking.
 
 err = .false.
+if (ele%tracking_method == linear$) then
+  b_start_orb = a_start_orb
+  a_start_orb%vec = 0  
+endif
 
 select case (mat6_calc_method)
 
@@ -140,8 +146,8 @@ if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6, ele%value(p0c$)/e
 ! If the tracking_method is not consistant with the mat6_calc_method then need to track.
 
 if (present(end_orb)) then
-  if (.not. ele%is_on .or. mat6_calc_method == tracking$ .or. &
-          mat6_calc_method == ele%tracking_method .or. ele%tracking_method == linear$) then
+  if (ele%tracking_method == linear$) a_start_orb = b_start_orb
+  if (.not. ele%is_on .or. mat6_calc_method == tracking$ .or. mat6_calc_method == ele%tracking_method) then
     end_orb = a_end_orb
   else
     call track1 (a_start_orb, ele, param, end_orb)

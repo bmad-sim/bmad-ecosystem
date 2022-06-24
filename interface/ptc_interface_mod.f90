@@ -3468,7 +3468,8 @@ if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. key
   if (ele%is_on) then
     do i = 1, size(ptc_fibre%mag%wi%w%a(1:n_term))
       wt => cm%ptr%term(i)
-      ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
+      ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * &
+                                    charge_of(ele2%ref_species) * wt%coef / ele%value(p0c$)
     enddo
   else
     ptc_fibre%mag%wi%w%a(1:n_term) = 0

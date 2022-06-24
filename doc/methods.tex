@@ -105,12 +105,17 @@ to track to the end of the element.
 
 \index{linear!tracking_method}
 \item[\vn{Linear}]
-Linear just uses the 0th order vector with the 1st order 6x6 transfer matrix for an element. Very
-simple. Depending upon how the transfer matrix was generated this may or may not be
-symplectic. Note: a \vn{linear} tracking method may not be used with \vn{mat6_calc_method} set to
-\vn{tracking} since this would give a circular dependency. Note: setting the \vn{tracking_method} to
-\vn{linear} does not affect PTC calculations (\sref{s:ptc.intro}). In particular, Taylor maps will not
-be affected.
+The \vn{linear} method just tracks particles using the 0th order vector with the 1st order 6x6
+transfer matrix of an element. Depending upon how the transfer matrix was generated this may or may
+not be symplectic. Since there would be a circular dependency to have the orbital tracking dependent
+upon the transfer matrix and the transfer matrix dependent upon the determination of the reference
+orbit, the calculation of the transfer matrix when the \vn{tracking_method} is set to \vn{linear}
+will always use the zero orbit as the reference orbit.
+
+Additionally, a \vn{linear} tracking method may not be used with \vn{mat6_calc_method} set to
+\vn{tracking} since this would also give a circular dependency. Note: setting the
+\vn{tracking_method} to \vn{linear} does not affect PTC calculations (\sref{s:ptc.intro}). In
+particular, Taylor maps will not be affected.
 
 \index{MAD!tracking_method}
 \item[\vn{MAD}]
