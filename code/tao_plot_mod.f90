@@ -1872,7 +1872,7 @@ else
   call qp_set_graph (title = '')
 endif
 
-call qp_draw_axes (draw_grid = graph%draw_grid)
+if (graph%draw_axes) call qp_draw_axes (draw_grid = graph%draw_grid)
 
 ! Draw the default x-axis label if there is none. 
 
