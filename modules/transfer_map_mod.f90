@@ -215,7 +215,7 @@ do
 
   if (track_entire_ele) then
     runt => ele
-  elseif (global_com%be_thread_safe) then
+  elseif (.not. global_com%mp_threading_is_safe) then
     runt => runt_nosave
     runt = ele
   else if (.not. associated(runt, ele) .or. .not. associated(runt, runt_save)) then ! partial track
@@ -230,7 +230,7 @@ do
   if (.not. track_entire_ele) then
     create_it = .false.
 
-    if (global_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
+    if (.not. global_com%mp_threading_is_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
       create_it = .true.
     elseif (ele%key == sbend$) then
       if (track_upstream_end .or. track_downstream_end .or. old_track_end) create_it = .true.
@@ -276,7 +276,7 @@ enddo
 
 ! Cleanup
 
-if (global_com%be_thread_safe) then
+if (.not. global_com%mp_threading_is_safe) then
   call deallocate_ele_pointers (runt_nosave)
 endif
 
@@ -517,7 +517,7 @@ enddo
 
 ! Cleanup
 
-if (global_com%be_thread_safe) then
+if (.not. global_com%mp_threading_is_safe) then
   call deallocate_ele_pointers (runt_nosave)
 endif
 

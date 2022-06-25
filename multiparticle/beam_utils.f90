@@ -52,7 +52,7 @@ character(*), parameter :: r_name = 'track1_bunch_hom'
 branch => pointer_to_branch(ele)
 bunch%particle%direction = integer_option(1, direction)
 if (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, branch%param)
-thread_safe = (ele%tracking_method /= symp_lie_ptc$)
+thread_safe = (ele%tracking_method /= symp_lie_ptc$ .and. global_com%mp_threading_is_safe)
 
 !------------------------------------------------
 ! Without wakefields just track through.
