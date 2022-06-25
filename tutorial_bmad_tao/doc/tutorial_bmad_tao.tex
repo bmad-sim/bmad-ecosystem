@@ -98,6 +98,7 @@ charged--particle and X-Ray simulations. Additionally, this tutorial serves as a
 to \tao which is a simulation program based upon the \bmad toolkit.
 
 It is assumed that you know something about accelerator physics. For example, it is assumed that
+\reversemarginpar\marginpar{\raggedleft\includegraphics[width=55pt]{maimonides2.pdf}\vspace*{10pt}}
 you know something about beta functions, dispersion and closed orbits. It is also assumed that
 you are familiar with the basics of Unix and how to use a command line interface.
 
@@ -399,10 +400,6 @@ The source code is in the \vn{lux} directory.
 These python programs will convert \vn{MAD8} and \vn{MADX} lattice files to to \bmad format. The
 scripts are in the \vn{util_program/mad_to_bmad} directory
 %
-  \item[moga] \Newline
-The \vn{moga} (multiobjective genetic algorithms) program does multiobjective
-optimization. The source code is in the \vn{util_programs/moga} directory.
-%
   \item[synrad] \Newline
 The \vn{synrad} program computes the power deposited on the inside of a vacuum chamber
 wall due to synchrotron radiation from a particle beam. The calculation is essentially two
@@ -418,6 +415,12 @@ in the \vn{bsim/synrad3d} and \vn{bsim/code_synrad3d} directories.
   \item[tao] \Newline
 \tao is a general purpose simulation program described in \sref{s:overview}. The source code can be
 found in the \vn{tao} directory. Documentation is available from the web (\sref{s:resources}).
+%
+  \item[tune_scan] \Newline
+The \vn{tune_scan} program produces data for plotting resonances in the transverse $(Q_a, Q_b)$ tune
+plane.  This is done by adjusting the lattice tunes $Q_a$ and $Q_b$ to some values and then tracking
+a beam of particles while recording various parameters like the beam size. This is done repeatedly
+on a grid of points in the $(Q_a, Q_b)$ tune plane.
   \end{description}
 
 \newpage

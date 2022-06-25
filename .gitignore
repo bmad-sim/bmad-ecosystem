@@ -7,5 +7,13 @@ tutorial_bmad_tao/doc/tutorial_bmad_tao.log
 tutorial_bmad_tao/doc/tutorial_bmad_tao.out
 tutorial_bmad_tao/doc/tutorial_bmad_tao.pdf
 tutorial_bmad_tao/doc/tutorial_bmad_tao.toc
+cookbook_bmad_tao/doc/cookbook_bmad_tao.aux
+cookbook_bmad_tao/doc/cookbook_bmad_tao.bbl
+cookbook_bmad_tao/doc/cookbook_bmad_tao.blg
+cookbook_bmad_tao/doc/cookbook_bmad_tao.log
+cookbook_bmad_tao/doc/cookbook_bmad_tao.out
+cookbook_bmad_tao/doc/cookbook_bmad_tao.pdf
+cookbook_bmad_tao/doc/cookbook_bmad_tao.toc
+tao_examples/csr_beam_tracking/csr_wake.dat
 push_all
 *.digested*
