@@ -220,6 +220,8 @@ if (ltt%split_bends_for_radiation) then
   stop
 endif
 
+if (ltt%ramping_on) global_com%mp_threading_is_safe = .false.
+
 end subroutine ltt_read_params
 
 !-------------------------------------------------------------------------------------------
