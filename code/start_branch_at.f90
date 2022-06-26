@@ -90,6 +90,8 @@ enddo
 do ic = 1, lat%n_control_max
   ctl => lat%control(ic)
   if (ctl%slave%ix_branch /= branch%ix_branch) cycle
+  if (ctl%slave%ix_ele > branch%n_ele_track) cycle  ! slave is a lord so do nothing
+ 
   if (ctl%slave%ix_ele < ie1) then
     ctl%slave%ix_ele = ctl%slave%ix_ele + 1 + iet - ie1
   else
@@ -120,6 +122,7 @@ call deallocate_ele_array_pointers(e2_arr)
 
 ! Finish
 
+call create_lat_ele_nametable(lat, lat%nametable)
 call set_flags_for_changed_attribute(branch%ele(0))
 call lattice_bookkeeper (lat)
 
