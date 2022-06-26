@@ -67,7 +67,7 @@ create_jumbo_slave               & lord_pad1 [m]                    & spin_fring
 csr_ds_step [m]                  & lord_pad2 [m]                    & spin_tracking_method             & x_pitch                          \\
 csr_method                       & lr_freq_spread [Hz]              & sr_wake                          & x_pitch_tot                      \\
 cylindrical_map                  & lr_self_wake_on                  & sr_wake_file                     & y1_limit [m]                     \\
-delta_ref_time [sec]             & lr_wake                          & static_mat6                      & y2_limit [m]                     \\
+delta_ref_time [sec]             & lr_wake                          & static_linear_map                & y2_limit [m]                     \\
 descrip                          & lr_wake_file                     & superimpose                      & y_limit [m]                      \\
 ds_step [m]                      & mat6_calc_method                 & symplectify                      & y_offset [m]                     \\
 e_tot [eV]                       & multipass_ref_energy             & t_offset [sec]                   & y_offset_tot [m]                 \\
@@ -116,7 +116,7 @@ aperture_at                      & is_on                            & spin_fring
 aperture_type                    & l [m]                            & spin_tracking_method             & x_offset_tot [m]                 \\
 bl_hkick [T*m]                   & lord_pad1 [m]                    & sr_wake                          & x_pitch                          \\
 bl_vkick [T*m]                   & lord_pad2 [m]                    & sr_wake_file                     & x_pitch_tot                      \\
-create_jumbo_slave               & lr_freq_spread [Hz]              & static_mat6                      & y1_limit [m]                     \\
+create_jumbo_slave               & lr_freq_spread [Hz]              & static_linear_map                & y1_limit [m]                     \\
 csr_ds_step [m]                  & lr_self_wake_on                  & superimpose                      & y2_limit [m]                     \\
 csr_method                       & lr_wake                          & symplectify                      & y_limit [m]                      \\
 delta_ref_time [sec]             & lr_wake_file                     & taylor_map_includes_offsets      & y_offset [m]                     \\
@@ -180,7 +180,7 @@ e2 [rad]                         & lord_pad2 [m]                    & spin_fring
 e_tot [eV]                       & lr_freq_spread [Hz]              & spin_tracking_method             & z_offset [m]                     \\
 ele_origin                       & lr_self_wake_on                  & sr_wake                          & z_offset_tot [m]                 \\
 exact_multipoles                 & lr_wake                          & sr_wake_file                     &                                  \\
-field_calc                       & lr_wake_file                     & static_mat6                      &                                  \\
+field_calc                       & lr_wake_file                     & static_linear_map                &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -227,7 +227,7 @@ bl_hkick [T*m]                   & lr_freq_spread [Hz]              & spin_fring
 bl_vkick [T*m]                   & lr_self_wake_on                  & spin_tracking_method             & x_pitch_tot                      \\
 create_jumbo_slave               & lr_wake                          & sr_wake                          & y1_limit [m]                     \\
 csr_ds_step [m]                  & lr_wake_file                     & sr_wake_file                     & y2_limit [m]                     \\
-csr_method                       & mat6_calc_method                 & static_mat6                      & y_limit [m]                      \\
+csr_method                       & mat6_calc_method                 & static_linear_map                & y_limit [m]                      \\
 delta_ref_time [sec]             & multipass_ref_energy             & superimpose                      & y_offset [m]                     \\
 descrip                          & num_steps                        & symplectify                      & y_offset_tot [m]                 \\
 ds_step [m]                      & offset [m]                       & taylor_map_includes_offsets      & y_pitch                          \\
@@ -279,7 +279,7 @@ bl_vkick [T*m]                   & l [m]                            & space_char
 cartesian_map                    & lord_pad1 [m]                    & spin_tracking_method             & x_offset_tot [m]                 \\
 create_jumbo_slave               & lord_pad2 [m]                    & sr_wake                          & x_pitch                          \\
 csr_ds_step [m]                  & lr_freq_spread [Hz]              & sr_wake_file                     & x_pitch_tot                      \\
-csr_method                       & lr_self_wake_on                  & static_mat6                      & y1_limit [m]                     \\
+csr_method                       & lr_self_wake_on                  & static_linear_map                & y1_limit [m]                     \\
 cylindrical_map                  & lr_wake                          & superimpose                      & y2_limit [m]                     \\
 delta_ref_time [sec]             & lr_wake_file                     & symplectify                      & y_limit [m]                      \\
 descrip                          & mat6_calc_method                 & taylor_field                     & y_offset [m]                     \\
@@ -328,7 +328,7 @@ displacement                     & pendellosung_period_sigma [m]    & v_unitcell
  \label{s:list.custom}
  
  \begin{tabular}{llll} \toprule
-alias                            & lord_pad1 [m]                    & static_mat6                      & wall                             \\
+alias                            & lord_pad1 [m]                    & static_linear_map                & wall                             \\
 aperture [m]                     & lord_pad2 [m]                    & superimpose                      & wrap_superimpose                 \\
 aperture_at                      & lr_freq_spread [Hz]              & symplectify                      & x1_limit [m]                     \\
 aperture_type                    & lr_self_wake_on                  & taylor_map_includes_offsets      & x2_limit [m]                     \\
@@ -405,7 +405,7 @@ elliptical_curvature_x [1/m]     & reference                        & x_limit [m
  \label{s:list.drift}
  
  \begin{tabular}{llll} \toprule
-alias                            & l [m]                            & static_mat6                      & x_offset_tot [m]                 \\
+alias                            & l [m]                            & static_linear_map                & x_offset_tot [m]                 \\
 aperture [m]                     & lord_pad1 [m]                    & superimpose                      & x_pitch                          \\
 aperture_at                      & lord_pad2 [m]                    & symplectify                      & x_pitch_tot                      \\
 aperture_type                    & mat6_calc_method                 & taylor_map_includes_offsets      & y1_limit [m]                     \\
@@ -438,7 +438,7 @@ create_jumbo_slave               & lord_pad1 [m]                    & spin_fring
 csr_ds_step [m]                  & lord_pad2 [m]                    & spin_tracking_method             & x_pitch                          \\
 csr_method                       & lr_freq_spread [Hz]              & sr_wake                          & x_pitch_tot                      \\
 cylindrical_map                  & lr_self_wake_on                  & sr_wake_file                     & y1_limit [m]                     \\
-delta_ref_time [sec]             & lr_wake                          & static_mat6                      & y2_limit [m]                     \\
+delta_ref_time [sec]             & lr_wake                          & static_linear_map                & y2_limit [m]                     \\
 descrip                          & lr_wake_file                     & superimpose                      & y_limit [m]                      \\
 ds_step [m]                      & mat6_calc_method                 & symplectify                      & y_offset [m]                     \\
 e_field [V/m]                    & multipass_ref_energy             & taylor_field                     & y_offset_tot [m]                 \\
@@ -471,7 +471,7 @@ csr_ds_step [m]                  & lr_freq_spread [Hz]              & spin_fring
 csr_method                       & lr_self_wake_on                  & spin_tracking_method             & x_pitch_tot                      \\
 cylindrical_map                  & lr_wake                          & sr_wake                          & y1_limit [m]                     \\
 delta_ref_time [sec]             & lr_wake_file                     & sr_wake_file                     & y2_limit [m]                     \\
-descrip                          & mat6_calc_method                 & static_mat6                      & y_limit [m]                      \\
+descrip                          & mat6_calc_method                 & static_linear_map                & y_limit [m]                      \\
 ds_step [m]                      & multipass_ref_energy             & superimpose                      & y_offset [m]                     \\
 e_tot [eV]                       & num_steps                        & symplectify                      & y_offset_tot [m]                 \\
 e_tot_start [eV]                 & offset [m]                       & taylor_field                     & y_pitch                          \\
@@ -498,7 +498,7 @@ create_jumbo_slave               & l [m]                            & spin_fring
 csr_ds_step [m]                  & lord_pad1 [m]                    & spin_tracking_method             & x_pitch                          \\
 csr_method                       & lord_pad2 [m]                    & sr_wake                          & x_pitch_tot                      \\
 cylindrical_map                  & lr_freq_spread [Hz]              & sr_wake_file                     & y1_limit [m]                     \\
-delta_ref_time [sec]             & lr_self_wake_on                  & static_mat6                      & y2_limit [m]                     \\
+delta_ref_time [sec]             & lr_self_wake_on                  & static_linear_map                & y2_limit [m]                     \\
 descrip                          & lr_wake                          & superimpose                      & y_limit [m]                      \\
 ds_step [m]                      & lr_wake_file                     & symplectify                      & y_offset [m]                     \\
 dt_max [sec]                     & mat6_calc_method                 & taylor_field                     & y_offset_tot [m]                 \\
@@ -620,7 +620,7 @@ alias                            & integrator_order                 & spin_fring
 aperture [m]                     & is_on                            & spin_tracking_method             & x_offset [m]                     \\
 aperture_at                      & l [m]                            & sr_wake                          & x_offset_calib [m]               \\
 aperture_type                    & lord_pad1 [m]                    & sr_wake_file                     & x_offset_tot [m]                 \\
-bl_hkick [T*m]                   & lord_pad2 [m]                    & static_mat6                      & x_pitch                          \\
+bl_hkick [T*m]                   & lord_pad2 [m]                    & static_linear_map                & x_pitch                          \\
 bl_vkick [T*m]                   & lr_freq_spread [Hz]              & superimpose                      & x_pitch_tot                      \\
 create_jumbo_slave               & lr_self_wake_on                  & symplectify                      & y1_limit [m]                     \\
 crunch [rad]                     & lr_wake                          & taylor_map_includes_offsets      & y2_limit [m]                     \\
@@ -658,7 +658,7 @@ cartesian_map                    & lord_pad1 [m]                    & spin_fring
 create_jumbo_slave               & lord_pad2 [m]                    & spin_tracking_method             & x_pitch                          \\
 csr_ds_step [m]                  & lr_freq_spread [Hz]              & sr_wake                          & x_pitch_tot                      \\
 csr_method                       & lr_self_wake_on                  & sr_wake_file                     & y1_limit [m]                     \\
-cylindrical_map                  & lr_wake                          & static_mat6                      & y2_limit [m]                     \\
+cylindrical_map                  & lr_wake                          & static_linear_map                & y2_limit [m]                     \\
 delta_ref_time [sec]             & lr_wake_file                     & superimpose                      & y_limit [m]                      \\
 descrip                          & mat6_calc_method                 & symplectify                      & y_offset [m]                     \\
 ds_step [m]                      & multipass_ref_energy             & taylor_field                     & y_offset_tot [m]                 \\
@@ -688,7 +688,7 @@ create_jumbo_slave               & lord_pad1 [m]                    & spin_fring
 csr_ds_step [m]                  & lord_pad2 [m]                    & spin_tracking_method             & x_pitch                          \\
 csr_method                       & lr_freq_spread [Hz]              & sr_wake                          & x_pitch_tot                      \\
 cylindrical_map                  & lr_self_wake_on                  & sr_wake_file                     & y1_limit [m]                     \\
-delta_ref_time [sec]             & lr_wake                          & static_mat6                      & y2_limit [m]                     \\
+delta_ref_time [sec]             & lr_wake                          & static_linear_map                & y2_limit [m]                     \\
 descrip                          & lr_wake_file                     & superimpose                      & y_limit [m]                      \\
 ds_step [m]                      & mat6_calc_method                 & symplectify                      & y_offset [m]                     \\
 e_tot [eV]                       & multipass_ref_energy             & taylor_field                     & y_offset_tot [m]                 \\
@@ -723,7 +723,7 @@ create_jumbo_slave               & longitudinal_mode                & spin_fring
 csr_ds_step [m]                  & lord_pad1 [m]                    & spin_tracking_method             & y2_limit [m]                     \\
 csr_method                       & lord_pad2 [m]                    & sr_wake                          & y_limit [m]                      \\
 cylindrical_map                  & lr_freq_spread [Hz]              & sr_wake_file                     & y_offset [m]                     \\
-delta_ref_time [sec]             & lr_self_wake_on                  & static_mat6                      & y_offset_tot [m]                 \\
+delta_ref_time [sec]             & lr_self_wake_on                  & static_linear_map                & y_offset_tot [m]                 \\
 descrip                          & lr_wake                          & superimpose                      & y_pitch                          \\
 ds_step [m]                      & lr_wake_file                     & symplectify                      & y_pitch_tot                      \\
 e_loss [eV]                      & mat6_calc_method                 & taylor_field                     & z_offset [m]                     \\
@@ -929,7 +929,7 @@ cartesian_map                    & lord_pad1 [m]                    & spin_fring
 create_jumbo_slave               & lord_pad2 [m]                    & spin_tracking_method             & x_pitch_tot                      \\
 csr_ds_step [m]                  & lr_freq_spread [Hz]              & sr_wake                          & y1_limit [m]                     \\
 csr_method                       & lr_self_wake_on                  & sr_wake_file                     & y2_limit [m]                     \\
-cylindrical_map                  & lr_wake                          & static_mat6                      & y_limit [m]                      \\
+cylindrical_map                  & lr_wake                          & static_linear_map                & y_limit [m]                      \\
 delta_ref_time [sec]             & lr_wake_file                     & superimpose                      & y_offset [m]                     \\
 descrip                          & mat6_calc_method                 & symplectify                      & y_offset_tot [m]                 \\
 ds_step [m]                      & multipass_ref_energy             & taylor_field                     & y_pitch                          \\
@@ -1049,7 +1049,7 @@ csr_ds_step [m]                  & lord_pad1 [m]                    & spin_fring
 csr_method                       & lord_pad2 [m]                    & spin_tracking_method             & x_pitch_tot                      \\
 cylindrical_map                  & lr_freq_spread [Hz]              & sr_wake                          & y1_limit [m]                     \\
 delta_ref_time [sec]             & lr_self_wake_on                  & sr_wake_file                     & y2_limit [m]                     \\
-descrip                          & lr_wake                          & static_mat6                      & y_limit [m]                      \\
+descrip                          & lr_wake                          & static_linear_map                & y_limit [m]                      \\
 ds_step [m]                      & lr_wake_file                     & superimpose                      & y_offset [m]                     \\
 e_tot [eV]                       & mat6_calc_method                 & symplectify                      & y_offset_tot [m]                 \\
 ele_origin                       & multipass_ref_energy             & taylor_field                     & y_pitch                          \\
@@ -1082,7 +1082,7 @@ coupler_strength                 & longitudinal_mode                & spin_fring
 create_jumbo_slave               & lord_pad1 [m]                    & spin_tracking_method             & y1_limit [m]                     \\
 csr_ds_step [m]                  & lord_pad2 [m]                    & sr_wake                          & y2_limit [m]                     \\
 csr_method                       & lr_freq_spread [Hz]              & sr_wake_file                     & y_limit [m]                      \\
-cylindrical_map                  & lr_self_wake_on                  & static_mat6                      & y_offset [m]                     \\
+cylindrical_map                  & lr_self_wake_on                  & static_linear_map                & y_offset [m]                     \\
 delta_ref_time [sec]             & lr_wake                          & superimpose                      & y_offset_tot [m]                 \\
 descrip                          & lr_wake_file                     & symplectify                      & y_pitch                          \\
 ds_step [m]                      & mat6_calc_method                 & taylor_field                     & y_pitch_tot                      \\
@@ -1114,7 +1114,7 @@ alias                            & fq1 [m]                          & rho [m]   
 aperture [m]                     & fq2 [m]                          & space_charge_method              & x_pitch                          \\
 aperture_at                      & fringe_at                        & spin_fringe_on                   & x_pitch_mult                     \\
 aperture_type                    & fringe_type                      & spin_tracking_method             & x_pitch_tot                      \\
-bs_field [T]                     & integrator_order                 & static_mat6                      & y1_limit [m]                     \\
+bs_field [T]                     & integrator_order                 & static_linear_map                & y1_limit [m]                     \\
 create_jumbo_slave               & is_on                            & superimpose                      & y2_limit [m]                     \\
 csr_ds_step [m]                  & ks [1/m]                         & symplectify                      & y_limit [m]                      \\
 csr_method                       & l [m]                            & taylor_map_includes_offsets      & y_offset [m]                     \\
@@ -1171,7 +1171,7 @@ cartesian_map                    & lord_pad1 [m]                    & spin_fring
 create_jumbo_slave               & lord_pad2 [m]                    & spin_tracking_method             & x_pitch_tot                      \\
 csr_ds_step [m]                  & lr_freq_spread [Hz]              & sr_wake                          & y1_limit [m]                     \\
 csr_method                       & lr_self_wake_on                  & sr_wake_file                     & y2_limit [m]                     \\
-cylindrical_map                  & lr_wake                          & static_mat6                      & y_limit [m]                      \\
+cylindrical_map                  & lr_wake                          & static_linear_map                & y_limit [m]                      \\
 delta_ref_time [sec]             & lr_wake_file                     & superimpose                      & y_offset [m]                     \\
 descrip                          & mat6_calc_method                 & symplectify                      & y_offset_tot [m]                 \\
 ds_step [m]                      & multipass_ref_energy             & taylor_field                     & y_pitch                          \\
@@ -1203,7 +1203,7 @@ create_jumbo_slave               & lord_pad1 [m]                    & spin_fring
 csr_ds_step [m]                  & lord_pad2 [m]                    & spin_tracking_method             & x_pitch_tot                      \\
 csr_method                       & lr_freq_spread [Hz]              & sr_wake                          & y1_limit [m]                     \\
 cylindrical_map                  & lr_self_wake_on                  & sr_wake_file                     & y2_limit [m]                     \\
-delta_ref_time [sec]             & lr_wake                          & static_mat6                      & y_limit [m]                      \\
+delta_ref_time [sec]             & lr_wake                          & static_linear_map                & y_limit [m]                      \\
 descrip                          & lr_wake_file                     & superimpose                      & y_offset [m]                     \\
 ds_step [m]                      & mat6_calc_method                 & symplectify                      & y_offset_tot [m]                 \\
 e_tot [eV]                       & multipass_ref_energy             & taylor_field                     & y_pitch                          \\
@@ -1233,7 +1233,7 @@ csr_ds_step [m]                  & lord_pad2 [m]                    & spin_fring
 csr_method                       & lr_freq_spread [Hz]              & spin_tracking_method             & x_pitch_tot                      \\
 cylindrical_map                  & lr_self_wake_on                  & sr_wake                          & y1_limit [m]                     \\
 delta_ref_time [sec]             & lr_wake                          & sr_wake_file                     & y2_limit [m]                     \\
-descrip                          & lr_wake_file                     & static_mat6                      & y_limit [m]                      \\
+descrip                          & lr_wake_file                     & static_linear_map                & y_limit [m]                      \\
 ds_step [m]                      & mat6_calc_method                 & superimpose                      & y_offset [m]                     \\
 e_tot [eV]                       & multipass_ref_energy             & symplectify                      & y_offset_tot [m]                 \\
 ele_origin                       & multipoles_on                    & taylor_field                     & y_pitch                          \\
@@ -1287,7 +1287,7 @@ csr_method                       & lord_pad2 [m]                    & spin_fring
 cylindrical_map                  & lr_freq_spread [Hz]              & spin_tracking_method             & y1_limit [m]                     \\
 delta_ref_time [sec]             & lr_self_wake_on                  & sr_wake                          & y2_limit [m]                     \\
 descrip                          & lr_wake                          & sr_wake_file                     & y_limit [m]                      \\
-ds_step [m]                      & lr_wake_file                     & static_mat6                      & y_offset [m]                     \\
+ds_step [m]                      & lr_wake_file                     & static_linear_map                & y_offset [m]                     \\
 e_tot [eV]                       & mat6_calc_method                 & superimpose                      & y_offset_tot [m]                 \\
 ele_origin                       & multipass_ref_energy             & symplectify                      & y_pitch                          \\
 field_calc                       & multipoles_on                    & taylor_field                     & y_pitch_tot                      \\
