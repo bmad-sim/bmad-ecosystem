@@ -340,7 +340,8 @@ branch => pointer_to_branch(ele)
 
 if (all(ric%rm0%ref_orb == ele%map_ref_orb_in%vec) .and. all(ric%rm1%ref_orb == ele%map_ref_orb_out%vec)) return
 
-if (all(ric%rm0%ref_orb(2:4:2) == ric%rm1%ref_orb(2:4:2)) .and. ele%key /= sbend$) then
+if (all(ric%rm0%ref_orb(2:4:2) == ric%rm1%ref_orb(2:4:2)) .and. &
+        ele%key /= sbend$ .and. ele%key /= wiggler$ .and. ele%key /= undulator$) then
   ric%rm0 = rad_map_struct()
   ric%rm1 = rad_map_struct()
   ric%rm0%ref_orb = ele%map_ref_orb_in%vec
