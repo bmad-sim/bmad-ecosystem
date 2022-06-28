@@ -414,7 +414,7 @@ def bmad_param(param, ele_name):
     if param == 'phase' and bmad_type != 'rfcavity' and bmad_type != 'lcavity': return '?'
     if param == 'b' and bmad_type[1:] != 'bend': return '?'
     if param == 'fse' and bmad_type[1:] != 'bend': return '?'
-
+    if param == 'angle' and bmad_type[1:] != 'bend': return '?'
   return bparam
 
 #------------------------------------------------------------------
