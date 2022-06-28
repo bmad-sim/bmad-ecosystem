@@ -635,11 +635,11 @@ t31 = -sin({t}), t33 = cos({t}), tt22 = cos({t}), tt24 = sin({t}), t42 = -sin({t
 
   # Etilt
 
-  if 'etilt' in params:
+  if 'etilt' in params and 'bend' == ele.bmad_type[1:]:
     value = postfix_to_infix(params['etilt'])
     if 'etilt_sign' in params and int_val(params['etilt_sign'], 1) == -1: value = negate(value)
     ang2 = add_parens(params.get('angle', '0')) + '/2'
-    line += f', roll = {add_parens(value)} * cos({ang2}), y_pitch = {negate(value)} * sin({ang2})'
+    line += f', roll = {add_parens(value)} * cos({ang2})'
 
   # edge effects
 

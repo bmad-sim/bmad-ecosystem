@@ -147,6 +147,7 @@ ele_param_translate = {
     'sext:k2': ['k2', ' / @l@'],
     'oct:k3': ['k3', ' / @l@'],
     'bend:rotate': ['ref_tilt', ' * -1'],
+    'bend:drotate': ['roll', ' * -1'],
     'l': 'l',
     'radius': 'aperture',
     'offset': 'offset',
