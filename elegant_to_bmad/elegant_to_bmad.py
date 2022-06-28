@@ -412,8 +412,8 @@ def bmad_param(param, ele_name):
     if bparam == 'tilt' and (bmad_type == 'sbend' or bmad_type == 'rbend'): return 'ref_tilt'
     if param == 'l' and bmad_type == 'patch': return '?'
     if param == 'phase' and bmad_type != 'rfcavity' and bmad_type != 'lcavity': return '?'
-    if param == 'b' and elegant_type in ['kquad', 'ksext', 'koct']: return '?'
-    if param == 'fse' and elegant_type in ['kquad', 'ksext', 'koct']: return '?'
+    if param == 'b' and bmad_type[1:] != 'bend': return '?'
+    if param == 'fse' and bmad_type[1:] != 'bend': return '?'
 
   return bparam
 
@@ -625,8 +625,8 @@ t31 = -sin({t}), t33 = cos({t}), tt22 = cos({t}), tt24 = sin({t}), t42 = -sin({t
 
   # FSE
 
-  if 'fse'        in ele.param: line += f', dg = {postfix_to_infix(params["fse"])} * {ele.name}[angle]/{ele.name}[L]'
-  if 'fse_dipole' in ele.param: line += f', dg = {postfix_to_infix(params["fse_dipole"])} * {ele.name}[angle]/{ele.name}[L]'
+  if 'fse' in ele.param and 'bend' == ele.bmad_type[1:]: line += f', dg = {postfix_to_infix(params["fse"])} * {ele.name}[angle]/{ele.name}[L]'
+  if 'fse_dipole' in ele.param and 'bend' == ele.bmad_type[1:]: line += f', dg = {postfix_to_infix(params["fse_dipole"])} * {ele.name}[angle]/{ele.name}[L]'
   if 'charge'     in ele.param:
     wrap_write('parameter[n_part] = 1.602176634e-19', f_out)
     line += f', charge = {postfix_to_infix(params["charge"])}'
