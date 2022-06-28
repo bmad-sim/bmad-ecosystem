@@ -47,12 +47,13 @@ type ltt_params_struct
   character(200) :: map_constructor_file = ''
   character(200) :: particle_output_file = ''
   character(200) :: beam_binary_output_file = ''
-  character(200) :: sigma_matrix_output_file = ''
   character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: map_ascii_output_file = ''
   character(200) :: averages_output_file = ''
-  character(200) :: master_output_file = ''
+  character(200) :: sigma_matrix_output_file = ''  ! No longer used
+  character(200) :: master_output_file = ''        ! No longer used
+  character(8) :: ran_engine = ''
   type (ltt_column_struct) column(100)
   integer :: ix_particle_record = -1    ! Experimental
   integer :: ix_turn_record = -1        ! Experimental
@@ -134,6 +135,8 @@ type ltt_bunch_data_struct
   integer :: n_count = 0    ! Number of particles counted over all turns used for averaging.
   real(rp) :: orb_sum(6) = 0    ! Orbit average
   real(rp) :: orb2_sum(6,6) = 0
+  real(rp) :: orb3_sum(6) = 0   ! Skew
+  real(rp) :: orb4_sum(6) = 0   ! Kurtosis
   real(rp) :: spin_sum(3) = 0   ! Spin
   real(rp) :: p0c_sum = 0
   real(rp) :: time_sum = 0
@@ -252,6 +255,14 @@ if (ltt%master_output_file /= '') then
   call out_io (s_info$, r_name, &
         'Note: The master_output_file no longer created since data in this file is written to other files.')
 endif
+
+if (ltt%sigma_matrix_output_file /= '') then
+  call out_io (s_info$, r_name, &
+          'Note: ltt%sigma_matrix_output_file now no longer used and will be ignored.', &
+          'Essentially now ltt%averages_output_file sets the name of the sigma matrix file.', &
+          'See manual for details.')
+endif
+
 ! Lattice init
 
 lat => ltt_com%lat
@@ -261,6 +272,7 @@ call ran_seed_put (ltt%random_seed)
 call ptc_ran_seed_put (ltt%random_seed)
 call ran_seed_get (ltt_com%random_seed_actual)
 call ran_gauss_converter(set_sigma_cut = ltt%random_sigma_cut)
+if (ltt%ran_engine /= '') call ran_engine (set = ltt%ran_engine)
 
 if (ltt_com%using_mpi) then
   call ran_seed_get (ir)
@@ -379,7 +391,6 @@ enddo
 !
 
 call fullfilename (ltt%particle_output_file, ltt%particle_output_file)
-call fullfilename (ltt%sigma_matrix_output_file, ltt%sigma_matrix_output_file)
 call fullfilename (ltt%custom_output_file, ltt%custom_output_file)
 
 end subroutine ltt_init_params
@@ -513,57 +524,56 @@ endif
 
 nb = max(1, ltt_com%beam_init%n_bunch)
 iu = lunget()
+if (lttp%averages_output_file == '') return
 
-if (lttp%averages_output_file /= '') then
-  do ib = 0, nb
-    if (ib == 0 .and. nb == 1) cycle  ! zero is for all bunch averages if there are more than one bunch
-    if (nb == 1) then
-      file_name = lttp%averages_output_file
-    else
-      ix = index(lttp%averages_output_file, '#')
-      if (ix == 0) ix = len_trim(lttp%averages_output_file) + 1
-      file_name = lttp%averages_output_file(1:ix-1) // 'bunch' // int_str(ib) // lttp%averages_output_file(ix+1:)
-    endif
+do ib = 0, nb
+  if (ib == 0 .and. nb == 1) cycle  ! ib = zero is for all bunch averages if there is more than one bunch
+  call ltt_data_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
+  open (iu, file = file_name, recl = 400)
 
-    open (iu, file = file_name, recl = 400)
-    call ltt_print_this_info(iu, .false.)
+  call ltt_print_this_info(iu, .false.)
 
-    write (iu, '(a1, a8, a9, 2a14, 2x, 3a14, 2x, 13a14, 2x, 3a14)') '#', '1', '2', '3', '4', '5', '6', '7', &
-                    '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'
-    write (iu, '(a1, a8, a9, 2a14, 2x, 3a14, 2x, 13a14, 2x, 3a14)') '#', 'Turn', 'N_live', 'Time', 'Polarization', &
-                     '<Sx>', '<Sy>', '<Sz>', 'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz', &
-                     '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>', 'emit_a', 'emit_b', 'emit_c'
+  write (iu, '(a1, a8, a9, 2a14, 3a14, 2x, 7a14)') '#', '1', '2', '3', '4', '5', '6', '7', &
+                  '8', '9', '10', '11', '12', '13', '14'
+  write (iu, '(a1, a8, a9, 2a14, 3a14, 2x, 7a14)') '#', 'Turn', 'N_live', 'Time', 'Polarization', &
+                   '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>'
 
-    close(iu)
-  enddo
-endif
+  close(iu)
 
-!
+  !
 
-if (lttp%sigma_matrix_output_file /= '') then
-  do ib = 0, nb
-    if (ib == 0 .and. nb == 1) cycle  ! zero is for all bunch averages if there are more than one bunch
-    if (nb == 1) then
-      file_name = lttp%sigma_matrix_output_file
-    else
-      ix = index(lttp%sigma_matrix_output_file, '#')
-      if (ix == 0) ix = len_trim(lttp%sigma_matrix_output_file) + 1
-      file_name = lttp%sigma_matrix_output_file(1:ix-1) // 'bunch' // int_str(ib) // lttp%sigma_matrix_output_file(ix+1:)
-    endif
+  call ltt_data_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
+  open (iu, file = file_name, recl = 400)
 
-    open (iu, file = file_name, recl = 400)
-    call ltt_print_this_info(iu, .false.)
+  call ltt_print_this_info(iu, .false.)
 
-    write (iu, '(a1, a8, a9, a12, 2x, 22a14)') '#', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', &
-                    '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25'
+  write (iu, '(a1, a8, a9, a12, 2x, 21a14)') '#', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', &
+                  '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24'
 
-    write (iu, '(a1, a8, a9, a12, 2x, 22a14)') '#', 'Turn', 'N_live', 'Time', '<p0c>', &
-      '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
-      '<y.y>', '<y.py>', '<y.z>', '<y.pz>', '<py.py>', '<py.z>', '<py.pz>', '<z.z>', '<z.pz>', '<pz.pz>'
+  write (iu, '(a1, a8, a9, a12, 2x, 21a14)') '#', 'Turn', 'N_live', 'Time', &
+    '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
+    '<y.y>', '<y.py>', '<y.z>', '<y.pz>', '<py.py>', '<py.z>', '<py.pz>', '<z.z>', '<z.pz>', '<pz.pz>'
 
-    close(iu)
-  enddo
-endif
+  close(iu)
+
+  !
+
+  call ltt_data_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
+  open (iu, file = file_name, recl = 400)
+
+  call ltt_print_this_info(iu, .false.)
+
+  write (iu, '(a1, a8, a9, a12, 2x, 3a14, 2x, 6a14, 2x, 3a14, 2x, 3a14)') '#', '1', '2', '3', &
+                  '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18'
+
+  write (iu, '(a1, a8, a9, a12, 2x, 3a14, 2x, 6a14, 2x, 3a14, 2x, 3a14)') '#', 'Turn', 'N_live', 'Time', &
+                      'Emit_a', 'Emit_b', 'Emit_c', 'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz', &
+                      'Kurtosis_x', 'Kurtosis_y', 'Kurtosis_z', 'Skew_x', 'Skew_y', 'Skew_z'
+
+
+  close(iu)
+
+enddo
 
 !------------------------------------------------
 contains
@@ -589,7 +599,6 @@ call ltt_write_line('# ltt%averages_output_file           = ' // quote(lttp%aver
 call ltt_write_line('# ltt%beam_binary_output_file        = ' // quote(lttp%beam_binary_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%custom_output_file             = ' // quote(lttp%custom_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%particle_output_file           = ' // quote(lttp%particle_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%sigma_matrix_output_file       = ' // quote(lttp%sigma_matrix_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%map_file_prefix                = ' // quote(lttp%map_file_prefix), lttp, iu, print_this)
 call ltt_write_line('# ltt%simulation_mode                = ' // quote(lttp%simulation_mode), lttp, iu, print_this)
 call ltt_write_line('# ltt%tracking_method                = ' // quote(lttp%tracking_method), lttp, iu, print_this)
@@ -870,7 +879,7 @@ do i_turn = 1, lttp%n_turns
     exit
   endif
 
-  if (lttp%sigma_matrix_output_file /= '') then
+  if (lttp%averages_output_file /= '') then
     average = average + orbit%vec
     sigma = sigma + outer_product(orbit%vec, orbit%vec)
     n_sum = n_sum + 1
@@ -882,7 +891,7 @@ enddo
 print '(2a)', 'Particle output file: ', trim(lttp%particle_output_file)
 close (iu_part)
 
-if (lttp%sigma_matrix_output_file /= '') then
+if (lttp%averages_output_file /= '') then
   call ltt_write_single_mode_sigma_file (lttp, n_sum, average, sigma)
 endif
 
@@ -977,8 +986,7 @@ call ltt_write_particle_data (lttp, ltt_com, 0, beam)
 ! Here partial writes are used so the user can monitor progress if they want.
 call ltt_calc_bunch_sums (lttp, 0, beam, beam_data)
 if (.not. ltt_com%using_mpi) then
-  call ltt_write_beam_averages(lttp, beam_data)
-  call ltt_write_sigma_matrix (lttp, beam_data)
+  call ltt_write_averages_data(lttp, beam_data)
   where (beam_data%turn%status == valid$) beam_data%turn%status = written$
 endif
 
@@ -1055,8 +1063,7 @@ do i_turn = 1, lttp%n_turns
   call ltt_calc_bunch_sums (lttp, i_turn, beam, beam_data)
 
   if (.not. ltt_com%using_mpi) then
-    call ltt_write_beam_averages(lttp, beam_data)
-    call ltt_write_sigma_matrix (lttp, beam_data)
+    call ltt_write_averages_data(lttp, beam_data)
     where (beam_data%turn%status == valid$) beam_data%turn%status = written$
   endif
 
@@ -1261,9 +1268,11 @@ logical using_mpi
 !
 
 if (lttp%particle_output_file == '') return
-if (lttp%particle_output_every_n_turns == -1 .and. i_turn /= lttp%n_turns) return
-if (lttp%particle_output_every_n_turns == 0 .and. i_turn /= 0 .and. i_turn /= lttp%n_turns) return
-if (lttp%particle_output_every_n_turns > 0 .and. modulo(i_turn, lttp%particle_output_every_n_turns) /= 0) return
+select case (lttp%particle_output_every_n_turns)
+case (-1);    if (i_turn /= lttp%n_turns) return
+case (0);     if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
+case default; if (modulo(i_turn, lttp%particle_output_every_n_turns) /= 0) return
+end select
 
 !
 
@@ -1580,6 +1589,7 @@ type (bunch_struct), pointer :: bunch
 type (ltt_beam_data_struct), target :: beam_data
 type (ltt_bunch_data_struct), pointer :: bd
 
+real(rp) ave
 integer i, j, ib, ix, i_turn, this_turn, n2w
 
 !
@@ -1613,11 +1623,17 @@ do ib = 1, size(beam%bunch)
   bd%n_count = bd%n_count + bd%n_live
   bd%species = bunch%particle(1)%species
 
+  if (bd%n_live == 0) cycle
+
   do i = 1, 6
-    bd%orb_sum(i) = bd%orb_sum(i) + sum(bunch%particle%vec(i), bunch%particle%state == alive$) 
+    bd%orb_sum(i)  = bd%orb_sum(i)  + sum(bunch%particle%vec(i), bunch%particle%state == alive$)
     do j = i, 6
       bd%orb2_sum(i,j) = bd%orb2_sum(i,j) + sum(bunch%particle%vec(i) * bunch%particle%vec(j), bunch%particle%state == alive$) 
     enddo
+
+    ave = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / bd%n_live
+    bd%orb3_sum(i) = bd%orb3_sum(i) + sum((bunch%particle%vec(i)-ave)**3, bunch%particle%state == alive$) 
+    bd%orb4_sum(i) = bd%orb4_sum(i) + sum((bunch%particle%vec(i)-ave)**4, bunch%particle%state == alive$) 
   enddo
 
   do i = 1, 3
@@ -1678,7 +1694,9 @@ all_bunch%p0c_sum = sum(turn_data%bunch%p0c_sum)
 all_bunch%time_sum = sum(turn_data%bunch%time_sum)
 
 do i = 1, 6
-  all_bunch%orb_sum(i) = sum(turn_data%bunch%orb_sum(i))
+  all_bunch%orb_sum(i)  = sum(turn_data%bunch%orb_sum(i))
+  all_bunch%orb3_sum(i) = sum(turn_data%bunch%orb3_sum(i))
+  all_bunch%orb4_sum(i) = sum(turn_data%bunch%orb4_sum(i))
   do j = 1, 6
     all_bunch%orb2_sum(i,j) = sum(turn_data%bunch%orb2_sum(i,j))
   end do
@@ -1694,7 +1712,41 @@ end function ltt_calc_all_bunch_sums
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_beam_averages (lttp, beam_data)
+subroutine ltt_data_file_name (template_name, suffix, ix_bunch, n_bunch, file_name)
+
+character(*) template_name, suffix, file_name
+integer ix_bunch, n_bunch   ! Index of bunch and number of bunches
+integer ix
+
+!
+
+file_name = template_name
+ix = index(file_name, '#')
+
+if (n_bunch > 1) then
+  if (ix == 0) then
+    file_name = trim(file_name) // '.bunch' // int_str(ix_bunch) // '.#'
+  else
+    file_name = file_name(1:ix-1) // 'bunch' // int_str(ix_bunch) // '.#' // file_name(ix+1:) 
+  endif
+  ix = index(file_name, '#')
+endif
+
+if (suffix == '') return
+
+if (ix == 0) then
+  file_name = trim(file_name) // '.' // suffix
+else
+    file_name = file_name(1:ix-1) // trim(suffix) // file_name(ix+1:) 
+endif
+
+end subroutine ltt_data_file_name
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_write_averages_data (lttp, beam_data)
 
 type (ltt_params_struct) lttp
 type (ltt_beam_data_struct), target :: beam_data
@@ -1702,8 +1754,8 @@ type (ltt_bunch_data_struct), pointer :: bd
 type (ltt_bunch_data_struct), target :: bd0
 type (bunch_params_struct) bunch_params
 
-real(rp) sig1(6), sigma(6,6), n_count
-integer i, j, nb, iu, ix, ib, n0
+real(rp) sig1(6), sigma(27), n_count, kurt(3), skew(3), sig_mat(6,6)
+integer i, j, k, nb, iu1, iu2, iu3, ix, ib, n0
 logical error
 character(200) :: file_name
 
@@ -1712,22 +1764,20 @@ character(200) :: file_name
 if (lttp%averages_output_file == '') return
 if (all(beam_data%turn%status /= valid$)) return
 
-iu = lunget()
 n0 = lbound(beam_data%turn, 1)
 nb = size(beam_data%turn(n0)%bunch)
 
 do ib = 0, nb
   if (ib == 0 .and. nb == 1) cycle  ! zero is for all bunch averages if there are more than one bunch
 
-  if (nb == 1) then
-    file_name = lttp%averages_output_file
-  else
-    ix = index(lttp%averages_output_file, '#')
-    if (ix == 0) ix = len_trim(lttp%averages_output_file) + 1
-    file_name = lttp%averages_output_file(1:ix-1) // 'bunch' // int_str(ib) // lttp%averages_output_file(ix+1:)
-  endif
+  !
 
-  open (iu, file = file_name, recl = 400, access = 'append')
+  call ltt_data_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
+  iu1 = lunget(); open (iu1, file = file_name, recl = 400, access = 'append')
+  call ltt_data_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
+  iu2 = lunget(); open (iu2, file = file_name, recl = 400, access = 'append')
+  call ltt_data_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
+  iu3 = lunget(); open (iu3, file = file_name, recl = 400, access = 'append')
 
   !
 
@@ -1743,101 +1793,51 @@ do ib = 0, nb
     if (bd%n_count == 0) exit
     n_count = bd%n_count  ! Convert to real to avoid round-off errors
 
-    do i = 1, 6
-    do j = i, 6
-      sigma(i,j) = bd%orb2_sum(i,j) / n_count - bd%orb_sum(i) * bd%orb_sum(j) / n_count**2
-      ! Test if the value of sigma(i,j) is significant. If not set to zero. 
-      ! This is to avoid problems due to round-off errors. 
-      ! One notible case is at the beginning of tracking if a mode has zero emittance.
-      if (abs(sigma(i,j)) < 1e-15_rp * abs(bd%orb_sum(i) * bd%orb_sum(j)) / n_count) sigma(i,j) = 0
-      sigma(j,i) = sigma(i,j)
-    enddo
-    enddo
-
-    forall (i = 1:6) sig1(i) = sqrt(max(0.0_rp, sigma(i,i)))
-
-    call calc_emittances_and_twiss_from_sigma_matrix (sigma, 0.0_rp, bunch_params, error)
-
-    write (iu, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 13es14.6, 2x, 3es14.6)') &
-            beam_data%turn(ix)%i_turn, bd%n_live, bd%time_sum/n_count, norm2(bd%spin_sum/n_count), &
-            bd%spin_sum/n_count, sig1, bd%orb_sum/n_count, bd%p0c_sum/n_count, &
-            bunch_params%a%emit, bunch_params%b%emit, bunch_params%c%emit
-  enddo
-
-  close (iu)
-enddo
-
-end subroutine ltt_write_beam_averages
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-
-subroutine ltt_write_sigma_matrix (lttp, beam_data)
-
-type (ltt_params_struct) lttp
-type (ltt_beam_data_struct), target :: beam_data
-type (ltt_bunch_data_struct), pointer :: bd
-type (ltt_bunch_data_struct), target :: bd0
-
-real(rp) sigma(21)
-integer ix, i, j, k, nb, iu, ib, n0, n_count
-character(200) :: file_name
-
-!
-
-if (lttp%sigma_matrix_output_file == '') return
-if (all(beam_data%turn%status /= valid$)) return
-
-iu = lunget()
-n0 = lbound(beam_data%turn, 1)
-nb = size(beam_data%turn(n0)%bunch)
-
-do ib = 0, nb
-  if (ib == 0 .and. nb == 1) cycle  ! zero is for all bunch averages if there are more than one bunch
-
-  if (nb == 1) then
-    file_name = lttp%sigma_matrix_output_file
-  else
-    ix = index(lttp%sigma_matrix_output_file, '#')
-    if (ix == 0) ix = len_trim(lttp%sigma_matrix_output_file) + 1
-    file_name = lttp%sigma_matrix_output_file(1:ix-1) // 'bunch' // int_str(ib) // lttp%sigma_matrix_output_file(ix+1:)
-  endif
-
-  open (iu, file = file_name, recl = 400, access = 'append')
-
-  !
-
-  do ix = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
-    if (beam_data%turn(ix)%status /= valid$) cycle
-
-    if (ib == 0) then
-      bd0 = ltt_calc_all_bunch_sums(beam_data%turn(ix))
-      bd => bd0
-    else
-      bd => beam_data%turn(ix)%bunch(ib)
-    endif
-
-    n_count = bd%n_count
-    if (bd%n_count == 0) exit
     k = 0
     do i = 1, 6
     do j = i, 6
       k = k + 1
-      sigma(k) = bd%orb2_sum(i,j) / n_count - bd%orb_sum(i) * bd%orb_sum(j) / n_count**2
-      ! Test if the value of sigma(k) is significant. If not set to zero. 
+      ! Test if the value of sigma(i,j) is significant. If not set to zero. 
+      ! This is to avoid problems due to round-off errors. 
       ! One notible case is at the beginning of tracking if a mode has zero emittance.
+      sigma(k) = bd%orb2_sum(i,j) / n_count - bd%orb_sum(i) * bd%orb_sum(j) / n_count**2
       if (abs(sigma(k)) < 1e-15_rp * abs(bd%orb_sum(i)*bd%orb_sum(j)) / n_count) sigma(k) = 0
+      sig_mat(i,j) = sigma(k)
+      sig_mat(j,i) = sigma(k)
+      if (i == j) sig1(i) = sqrt(max(0.0_rp, sigma(k)))
     enddo
     enddo
-    write (iu, '(i9, i9, es14.6, 2x, 22es14.6)') beam_data%turn(ix)%i_turn, bd%n_live, &
-                                      bd%time_sum/bd%n_live, bd%p0c_sum/n_count, (sigma(k), k = 1, 21)
+
+    kurt = 0; skew = 0
+    if (sig1(1) /= 0) skew(1) = bd%orb3_sum(1) / (n_count * sig1(1)**3)
+    if (sig1(1) /= 0) kurt(1) = bd%orb4_sum(1) / (n_count * sig1(1)**4) - 3.0_rp
+    if (sig1(3) /= 0) skew(2) = bd%orb3_sum(3) / (n_count * sig1(3)**3)
+    if (sig1(3) /= 0) kurt(2) = bd%orb4_sum(3) / (n_count * sig1(3)**4) - 3.0_rp
+    if (sig1(5) /= 0) skew(3) = bd%orb3_sum(5) / (n_count * sig1(5)**3)
+    if (sig1(5) /= 0) kurt(3) = bd%orb4_sum(5) / (n_count * sig1(5)**4) - 3.0_rp
+
+    call calc_emittances_and_twiss_from_sigma_matrix (sig_mat, 0.0_rp, bunch_params, error)
+
+    !
+
+    write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 7es14.6)') &
+            beam_data%turn(ix)%i_turn, bd%n_live, bd%time_sum/n_count, norm2(bd%spin_sum/n_count), &
+            bd%spin_sum/n_count, bd%orb_sum/n_count, bd%p0c_sum/n_count
+
+    write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)')  &
+            beam_data%turn(ix)%i_turn, bd%n_live, bd%time_sum/bd%n_count, (sigma(k), k = 1, 21)
+
+    write (iu3, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 6es14.6, 2x, 3es14.6, 2x, 3es14.6)') &
+            beam_data%turn(ix)%i_turn, bd%n_live, bd%time_sum/n_count, &
+            bunch_params%a%emit, bunch_params%b%emit, bunch_params%c%emit, sig1, kurt, skew
   enddo
 
-  close (iu)
+  close (iu1)
+  close (iu2)
+  close (iu3)
 enddo
 
-end subroutine ltt_write_sigma_matrix
+end subroutine ltt_write_averages_data
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
