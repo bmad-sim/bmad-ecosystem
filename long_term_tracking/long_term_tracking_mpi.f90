@@ -229,6 +229,8 @@ if (ltt_com%mpi_rank == master_rank$) then
         bd%n_count  = bd%n_count + turn_data%bunch(ib)%n_count
         bd%orb_sum  = bd%orb_sum + turn_data%bunch(ib)%orb_sum
         bd%orb2_sum = bd%orb2_sum + turn_data%bunch(ib)%orb2_sum
+        bd%orb3_sum = bd%orb3_sum + turn_data%bunch(ib)%orb3_sum
+        bd%orb4_sum = bd%orb4_sum + turn_data%bunch(ib)%orb4_sum
         bd%spin_sum = bd%spin_sum + turn_data%bunch(ib)%spin_sum
         bd%p0c_sum  = bd%p0c_sum + turn_data%bunch(ib)%p0c_sum
         bd%time_sum = bd%time_sum + turn_data%bunch(ib)%time_sum
