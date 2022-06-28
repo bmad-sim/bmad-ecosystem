@@ -1,3 +1,9 @@
+!+
+! Program ptc_profiler
+!
+! Program to profile (show computation times) for PTC.
+!-
+
 program ptc_profiler
 
 use bmad
@@ -83,7 +89,7 @@ do ie = 1, lat%n_ele_track
     print '(a, 2i3)', 'Taylor_order:     ', bmad_com%taylor_order, ptc_private%taylor_order_ptc
     print '(a, i3)',  'Integrator_order: ', nint(ele%value(integrator_order$))
     print '(a, l1)',  'Exact_model:      ', ptc_com%exact_model
-    print '(a)', '                                 old                                                   new'
+    print '(a)', '      |                    old spin integrator               |                    new spin integrator'
     print '(a)', 'Steps | %spin_diff    orb_diff   t_probe   t_fibre  t_taylor | %spin_diff    orb_diff   t_probe   t_fibre  t_taylor'
 
     do is = 1, size(num_steps)
