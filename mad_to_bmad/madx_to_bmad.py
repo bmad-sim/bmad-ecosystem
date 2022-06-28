@@ -608,7 +608,7 @@ def parse_and_write_element(dlist, write_to_file, command):
 
   if 'apertype' in params:
     aperture = bmad_expression(params.pop('aperture').replace('{', '').replace('}', ''), '')
-    [params['x_limit'], params['y_limit']] = aperture.split(',')[0:2]
+    [params['x_limit'], params['y_limit']] = aperture.split(',')[2:4]
 
     if params['apertype'] in ['ellipse', 'circle']:
       params['aperture_type'] = 'elliptical'
@@ -807,7 +807,6 @@ def parse_command(command, dlist):
       seq.drift_list.append(f'{drift_name}: drift, l = {offset}')
       seq.line += drift_name + ', '
       common.drift_count += 1
-      print (f'1: {seq.drift_list[-1]}')
     
     for ix, drift in enumerate(seq.drift_list):
       while '[[' in drift:
@@ -969,7 +968,6 @@ def parse_command(command, dlist):
           seq.line += f'{drift_name}, {ele_name}, '
           seq.last_ele_offset = last_offset
           common.drift_count += 1
-          print (f'2: {seq.drift_list[-1]}')
 
       return
 
@@ -1067,7 +1065,6 @@ def parse_command(command, dlist):
   # Ele "qf->k1 = ..." parameter set
 
   if dlist[1] == '=' and '->' in dlist[0]:
-    print ('H1')
     [ele_name, dummy, param] = dlist[0].partition('->')
     value = bmad_expression(command.split('=')[1].strip(), param)
     name = f'{ele_name}[{bmad_param(param, ele_name)}]'
