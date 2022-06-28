@@ -253,7 +253,7 @@ def bmad_param(param, ele_name):
   elif len(param) == 5 and param[0:2] == 'tm' and param[2] in '123456' and param[3] in '123456' and param[4] in '123456':
     return f'tt{param[2:]}'
 
-  # Translate something like "k1s" to "k1" in the hopes that k1 on the MADX side is zero so on the 
+  # Translate something like "k1s" to "k1" in the hopes that k1 on the MADX side is zero so the 
   # translation is k1s -> k1, tilt -> tilt + pi/2
   elif len(param) == 3 and param[0] == 'k' and param[1].isdigit() and param[2] == 's':
     return f'{param[:-1]}'

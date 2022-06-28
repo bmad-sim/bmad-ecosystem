@@ -245,7 +245,7 @@ def namelist_dict(dlist):
       print (f'ERROR READING NAMELIST: {nl_name}')
       return ndir
 
-    name = dlist.pop(0)
+    name = dlist.pop(0).lower()
     dlist.pop(0)   # Pop equal sign
 
     try: 
@@ -670,7 +670,7 @@ def parse_command(command, dlist):
     f_out.write('\n')
     return
 
-  # &bunched_beam namelist
+  # &run_setup namelist
 
   if dlist[0] == '&run_setup':
     params = namelist_dict(dlist)
@@ -699,6 +699,18 @@ def parse_command(command, dlist):
     if 'emit_y'     in params: wrap_write(f'particle_start[emittance_b] = {params["emit_y"]}', f_out)
     if 'emit_nx'    in params: wrap_write(f'particle_start[emittance_a] = {params["emit_nx"]}/parameter[p0c]', f_out)
     if 'emit_ny'    in params: wrap_write(f'particle_start[emittance_b] = {params["emit_ny"]}/parameter[p0c]', f_out)
+    return
+
+  # &bunched_beam namelist
+
+  if dlist[0] == '&floor_coordinates':
+    params = namelist_dict(dlist)
+    if 'x0'         in params: wrap_write(f'beginning[x_position] = {params["x0"]}', f_out)
+    if 'y0'         in params: wrap_write(f'beginning[y_position] = {params["y0"]}', f_out)
+    if 'z0'         in params: wrap_write(f'beginning[z_position] = {params["z0"]}', f_out)
+    if 'theta0'     in params: wrap_write(f'beginning[theta_position] = {params["theta0"]}', f_out)
+    if 'phi0'       in params: wrap_write(f'beginning[phi_position] = {params["phi0"]}', f_out)
+    if 'psi0'       in params: wrap_write(f'beginning[psi_position] = {params["psi0"]}', f_out)
     return
 
   # Ignore other Namelists
