@@ -8,8 +8,7 @@
   ltt%mpi_runs_per_subprocess = 2
 
   ltt%particle_output_file = ''
-  ltt%averages_output_file = 'ave.dat'
-  ltt%sigma_matrix_output_file = 'mat.dat'
+  ltt%averages_output_file = 'out'
   ltt%custom_output_file = 'custom.dat'
   ltt%averages_output_every_n_turns = 10
   ltt%averaging_window = 1

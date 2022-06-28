@@ -266,8 +266,7 @@ if (ltt_com%mpi_rank == master_rank$) then
 
   ! Write results
 
-  call ltt_write_beam_averages (lttp, beam_data_sum)
-  call ltt_write_sigma_matrix (lttp, beam_data_sum)
+  call ltt_write_averages_data (lttp, beam_data_sum)
   call ltt_print_mpi_info (lttp, ltt_com, 'Master: All done!', .true.)
 
   ! Gather particle data files
