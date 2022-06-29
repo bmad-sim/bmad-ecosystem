@@ -1775,7 +1775,7 @@ type normal_modes_struct
   real(rp) :: sig_z = 0           ! Sigma_Z
   real(rp) :: e_loss = 0          ! Energy loss / turn (eV)
   real(rp) :: rf_voltage = 0      ! Total rfcavity voltage (eV)
-  real(rp) :: pz_aperture = 0     ! pz aperture limit
+  real(rp) :: pz_aperture = 0     ! pz aperture limit. Used with Touschek calculations.
   real(rp) :: pz_average = 0      ! Average over branch due to damping.
   real(rp) :: momentum_compaction = 0
   real(rp) :: dpz_damp = 0        ! Change in pz without RF

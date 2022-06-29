@@ -73,7 +73,7 @@ do ie = n1, n2
   endif
 
   if (.not. associated(ele%spin_taylor(0)%term) .or. &
-        (.not. associated(ele%taylor(1)%term) .and. any(ele%map_ref_orb_in%vec /= ref_orb))) then
+        (.not. associated(ele%taylor(1)%term) .and. any(ele%map_ref_orb_in%vec /= ele%spin_taylor_ref_orb_in))) then
     st_on = bmad_com%spin_tracking_on
     bmad_com%spin_tracking_on = .true.
     if (present(orbit)) then
