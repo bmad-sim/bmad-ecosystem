@@ -55,7 +55,7 @@ type (ele_struct), pointer :: ele
 type (taylor_struct), pointer :: st
 type (spin_orbit_map1_struct) q1
 
-real(rp) vec0(6), ref_orb(6)
+real(rp) vec0(6), ref_orb(6), mat6(6,6)
 integer n1, n2
 integer ie, i, k, n, p
 logical st_on
@@ -72,7 +72,8 @@ do ie = n1, n2
     ref_orb = 0
   endif
 
-  if (.not. associated(ele%spin_taylor(0)%term)) then
+  if (.not. associated(ele%spin_taylor(0)%term) .or. &
+        (.not. associated(ele%taylor(1)%term) .and. any(ele%map_ref_orb_in%vec /= ref_orb))) then
     st_on = bmad_com%spin_tracking_on
     bmad_com%spin_tracking_on = .true.
     if (present(orbit)) then
@@ -83,9 +84,17 @@ do ie = n1, n2
     bmad_com%spin_tracking_on = st_on
   endif
 
-  q1%spin_q = spin_taylor_to_linear(ele%spin_taylor, .false., ref_orb - ele%map_ref_orb_in%vec)
+  q1%spin_q = spin_taylor_to_linear(ele%spin_taylor, .false., ref_orb - ele%spin_taylor_ref_orb_in)
 
-  call taylor_to_mat6 (ele%taylor, ref_orb, vec0, q1%orb_mat)
+  if (associated(ele%taylor(1)%term)) then
+    call taylor_to_mat6 (ele%taylor, ref_orb, q1%vec0, q1%orb_mat)
+  elseif (all(ele%map_ref_orb_in%vec == ele%spin_taylor_ref_orb_in)) then
+    q1%orb_mat = ele%mat6
+    q1%vec0 = ele%vec0
+  else
+    call err_exit
+  endif
+
   if (present(map1_ele)) then
     map1_ele(ie) = q1
   endif
