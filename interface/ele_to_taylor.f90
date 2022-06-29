@@ -84,6 +84,7 @@ if (ele%key == match$ .or. &
             ele%field_calc == helical_model$)) then
   call mat6_to_taylor (ele%vec0, ele%mat6, orb_tylr)
   call taylor_make_quaternion_unit (ele%spin_taylor)
+  if (.not. present(spin_taylor)) ele%spin_taylor_ref_orb_in = 0
   return
 endif
 
@@ -128,7 +129,7 @@ if (bmad_com%spin_tracking_on .and. (present(spin_taylor) .or. (.not. present(sp
   if (.not. present(spin_taylor)) ele%spin_taylor_ref_orb_in = x
 
 else
-  call track_probe (ptc_probe8, ptc_state+SPIN0, fibre1 = bmadl%start)
+  call track_probe (ptc_probe8, ptc_state-SPIN0, fibre1 = bmadl%start)
 endif
 
 ! take out the offset
