@@ -333,17 +333,15 @@ Laboratory and Element Coordinates}
 \label{s:crystal.trans.le}
 
 \index{z_offset_tot}
-With photons, the intensities must also be transformed.
-The transformation from the entrance laboratory coordinates to
-the entrance element coordinates is:
+With photons, the intensities must also be transformed.  The transformation from the entrance
+laboratory coordinates to the entrance element coordinates is:
 \begin{enumerate}
 \item
 Track as in a drift a distance \vn{z_offset_tot}.
 \item
 \index{x_offset}\index{x_pitch}\index{y_offset}\index{y_pitch}
-Apply offsets and pitches: The effective ``length'' of the element is
-zero (\sref{s:mirror.coords}) so the origin of the element coordinates
-is the same point around which the element is pitched so
+Apply offsets and pitches: The effective ``length'' of the element is zero (\sref{s:mirror.coords})
+so the origin of the element coordinates is the same point around which the element is pitched so
 \begin{align}
   x_1    &= x_0 - x_{\text{off}} \CRNO
   p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch} \CRNO
@@ -390,24 +388,20 @@ The \vn{tilt_corr} correction is explained in \sref{s:crystal.trans}.
 \subsection{Transformation from Element to Laboratory Coordinates}
 \label{s:crystal.trans.el}
 
-The back transformation from exit element coordinates to exit
-laboratory coordinates is accomplished by the transformation
+The back transformation from exit element coordinates to exit laboratory coordinates is accomplished
+by the transformation
   \begin{enumerate}
   \item
-Apply \vn{ref_tilt} and \vn{tilt}: \vn{ref_tilt} rotates the exit
-laboratory coordinates with respect to the exit element coordinates in
-the same way \vn{ref_tilt} rotates the entrance laboratory coordinates
-with respect to the entrance element coordinates. The forward and back
-transformations are thus just inverses of each other.  With
-\vn{tilt}, this is not true. \vn{tilt}, unlike \vn{ref_tilt}, does
-not rotate the output laboratory coordinates.  There is the further
-complication in that \vn{tilt} is a rotation about the {\em
-entrance} laboratory coordinates. The first step is to express
-\vn{tilt} with respect to the exit coordinates. This is done with
-the help of the $\bfS$ matrix of \Eq{ustt} with $\alpha_t$ given by
-\Eq{agg}. The effect of the \vn{tilt} can be modeled as a rotation
-vector $\Bf e_{in}$ in the entrance laboratory coordinates pointing
-along the $z$-axis
+Apply \vn{ref_tilt} and \vn{tilt}: \vn{ref_tilt} rotates the exit laboratory coordinates with
+respect to the exit element coordinates in the same way \vn{ref_tilt} rotates the entrance
+laboratory coordinates with respect to the entrance element coordinates. The forward and back
+transformations are thus just inverses of each other.  With \vn{tilt}, this is not true. \vn{tilt},
+unlike \vn{ref_tilt}, does not rotate the output laboratory coordinates.  There is the further
+complication in that \vn{tilt} is a rotation about the {\em entrance} laboratory coordinates. The
+first step is to express \vn{tilt} with respect to the exit coordinates. This is done with the help
+of the $\bfS$ matrix of \Eq{ustt} with $\alpha_t$ given by \Eq{agg}. The effect of the \vn{tilt} can
+be modeled as a rotation vector $\Bf e_{in}$ in the entrance laboratory coordinates pointing along
+the $z$-axis
 \begin{equation}
  \Bf e_{in} = (0, 0, \text{tilt})
 \end{equation}
@@ -433,23 +427,21 @@ of $\Bf e_{out}$ give rotations around the $x$ and $y$ axes
   z_3    &= z_2 + x_2 \, \Bf e_{out,y} - y_2 \, \Bf e_{out,x}
 \end{align}
   \item
-Apply pitches: Since pitches are defined with
-respect to the entrance laboratory coordinates, they have to be
-translated to the exit laboratory coordinates
+Apply pitches: Since pitches are defined with respect to the entrance laboratory coordinates, they
+have to be translated to the exit laboratory coordinates
 \begin{equation}
   \bfP_{out} = \bfS \, \bfP_{in}
 \end{equation}
-where $\bfP_{in} = (x'_{pitch}, y'_{pitch}, 0)$ is the pitch vector in
-the entrance laboratory frame and $\bfP_{out}$ is the vector in the exit
-laboratory frame. The transformation is then
+where $\bfP_{in} = (x'_{pitch}, y'_{pitch}, 0)$ is the pitch vector in the entrance laboratory frame
+and $\bfP_{out}$ is the vector in the exit laboratory frame. The transformation is then
 \begin{align}
   p_{x4} &= p_{x3} - \bfP_{out,y} \CRNO
   p_{y4} &= p_{y3} + \bfP_{out,x} \\
   z_4    &= z_3 + x_3 \, \bfP_{out,y} - y_3 \, \bfP_{out,x}
 \end{align}
   \item
-Apply offsets: Again, offsets are defined with respect to the
-entrance laboratory coordinates. Like pitches, the translation is
+Apply offsets: Again, offsets are defined with respect to the entrance laboratory coordinates. Like
+pitches, the translation is
 \begin{equation}
   \bfO_{out} = \bfS \, \bfO_{in}
 \end{equation}
@@ -468,19 +460,15 @@ entrance laboratory frame. The transformation is
   \centering
   \includegraphics[width=5in]{crystal-diffraction.pdf}
   \caption[Reference trajectory reciprocal space diagram for crystal diffraction.]
-{Reference trajectory reciprocal space diagram for for A) Bragg
-diffraction and B) Laue diffraction. The bar over the vectors
-indicates that they refer to the reference trajectory. The $x$-$z$
-coordinates shown are the element surface coordinates. All points in the
-diagram are in the plane of the paper except for the tip of $\bfH$.
-$\bfKbar_{0}$, and $\bfKbar_{H}$ are the wave vectors inside the
-crystal and $\bfkbar_{0}$ and $\bfkbar_{H}$ are the wave vectors
-outside the crystal. The reference photon traveling along the
-reference trajectory has $\bfKbar_0$ and $\bfKbar_H$ originating at
-the $Q$ point. For Laue diffraction, the crystal faces are assumed
-parallel.  For Bragg diffraction the crystal normal is in the $-\bfhat
-x$ direction while for Laue diffraction the crystal normal is in the
-$-\bfhat z$ direction
+{Reference trajectory reciprocal space diagram for for A) Bragg diffraction and B) Laue
+diffraction. The bar over the vectors indicates that they refer to the reference trajectory. The
+$x$-$z$ coordinates shown are the element surface coordinates. All points in the diagram are in the
+plane of the paper except for the tip of $\bfH$.  $\bfKbar_{0}$, and $\bfKbar_{H}$ are the wave
+vectors inside the crystal and $\bfkbar_{0}$ and $\bfkbar_{H}$ are the wave vectors outside the
+crystal. The reference photon traveling along the reference trajectory has $\bfKbar_0$ and
+$\bfKbar_H$ originating at the $Q$ point. For Laue diffraction, the crystal faces are assumed
+parallel.  For Bragg diffraction the crystal normal is in the $-\bfhat x$ direction while for Laue
+diffraction the crystal normal is in the $-\bfhat z$ direction
   }
   \label{f:crystal.diffraction}
 \end{figure}
@@ -492,27 +480,23 @@ $-\bfhat z$ direction
 
 \textit{\large [Crystal tracking developed by Jing Yee Chee, Ken Finkelstein, and David Sagan]}
 
-Crystal diffraction is modeled using dynamical diffraction theory. The
-notation here follows Batterman and Cole\cite{b:batterman}.  The
-problem can be divided up into two parts. First the reference
-trajectory must be calculated. This means calculating the incoming
-grazing angle $\theta_{B,in}$ and outgoing grazing angle
-$\theta_{B,out}$ as well as calculating the transformations between
-the various coordinate systems. This is done in \sref{s:crystal.ref},
-\sref{s:crystal.trans}, and \sref{s:laue.ref}.  The second part
-is the actual tracking of the photon and this is covered in
-\sref{s:bragg.track} \sref{s:coherent.laue} and \sref{s:incoherent.laue}.
+Crystal diffraction is modeled using dynamical diffraction theory. The notation here follows
+Batterman and Cole\cite{b:batterman}.  The problem can be divided up into two parts. First the
+reference trajectory must be calculated. This means calculating the incoming grazing angle
+$\theta_{B,in}$ and outgoing grazing angle $\theta_{B,out}$ as well as calculating the
+transformations between the various coordinate systems. This is done in \sref{s:crystal.ref},
+\sref{s:crystal.trans}, and \sref{s:laue.ref}.  The second part is the actual tracking of the photon
+and this is covered in \sref{s:bragg.track} and \sref{s:coherent.laue}
+%% and \sref{s:incoherent.laue}.
 
 %-------------------------------------------------------------------------
 \subsection{Calculation of Entrance and Exit Bragg Angles}
 \label{s:crystal.ref}
 
-\fig{f:crystal.diffraction} shows the geometry of the
-problem. The bar over the vectors indicates that they refer to the
-reference trajectory. The reference trajectory is calculated such that
-the reference photon will be in the center of the Darwin curve. That
-is, the internal wave vectors $\bfKbar_0$ and $\bfKbar_H$ originate
-from the $Q$ point (See \cite{b:batterman} Figs.~8 and 29).
+\fig{f:crystal.diffraction} shows the geometry of the problem. The bar over the vectors indicates
+that they refer to the reference trajectory. The reference trajectory is calculated such that the
+reference photon will be in the center of the Darwin curve. That is, the internal wave vectors
+$\bfKbar_0$ and $\bfKbar_H$ originate from the $Q$ point (See \cite{b:batterman} Figs.~8 and 29).
 
 The external wave vectors $\bf k_0$, and $\bf k_H$ and the internal wave vectors
 have magnitude
@@ -527,23 +511,20 @@ where $\lambda$ is the wavelength, and $\delta$ is
   \delta = \frac{\lambda^2 r_e}{2 \, \pi \, V} \, F_0' = \frac{\Gamma}{2} \, F_0'
   = \frac{1}{2} \, \Gamma \, F_0'
 \end{equation}
-with $r_e$ being the classical electron radius, $V$ the unit cell
-volume, and $F_0'$ is the real part of the $F_0$ structure factor. 
+with $r_e$ being the classical electron radius, $V$ the unit cell volume, and $F_0'$ is the real
+part of the $F_0$ structure factor.
 
-In element surface coordinates (which will be the coordinate system used
-henceforth), $\bfkbar_0$ lies in the $x$-$z$ plane. $\bfKbar_0$ is
-related to $\bfkbar_0$ via Batterman Eq.~(25)
+In element surface coordinates (which will be the coordinate system used henceforth), $\bfkbar_0$
+lies in the $x$-$z$ plane. $\bfKbar_0$ is related to $\bfkbar_0$ via Batterman Eq.~(25)
 \begin{equation}
   \bfK_0 = \bfk_0 + q_0 \, \bfhat n
   \label{kkqn1}
 \end{equation}
-where the value of $q_0$ is to be determined. Here, and in equations
-below, if the equation is true in general, and not just for the
-reference trajectory, the bar superscript is dropped.
+where the value of $q_0$ is to be determined. Here, and in equations below, if the equation is true
+in general, and not just for the reference trajectory, the bar superscript is dropped.
 
-Since $\bfhat n$ is in the $-\bfhat x$ direction, $\bfKbar_0$ is also
-in the $x$-$z$ plane. Thus $\bfkbar_0$ and $\bfKbar_0$ can be written
-in the form
+Since $\bfhat n$ is in the $-\bfhat x$ direction, $\bfKbar_0$ is also in the $x$-$z$ plane. Thus
+$\bfkbar_0$ and $\bfKbar_0$ can be written in the form
 \begin{alignat}{3}
   \bfkbar_0 &= \frac{1}{\lambda} \, 
     \begin{pmatrix}
