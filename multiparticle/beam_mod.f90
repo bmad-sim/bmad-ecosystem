@@ -191,7 +191,7 @@ type (coord_struct), optional :: centroid(0:)
 integer, optional :: direction
 integer i, j, n, im, ix_pass, ixs, ix, n_links
 
-logical csr_sc_on, err, finished
+logical csr_sc_on, err, finished, track1_bunch_space_charge_called
 
 character(*), parameter :: r_name = 'track1_bunch'
 
@@ -210,6 +210,8 @@ endif
 
 !------------------------------------------------
 ! Tracking
+
+track1_bunch_space_charge_called = .false.
 
 if (ele%space_charge_method == cathode_fft_3d$) then
   if (ele%csr_method /= off$) then
@@ -232,7 +234,8 @@ if (csr_sc_on .and. ele%key /= match$) then
                     'THIS IS INCOMPATIBLE WITH TRACKING_METHOD SET TO TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA.')
     endif
     call track1_bunch_space_charge (bunch, ele, err)
-    
+    track1_bunch_space_charge_called = .true.
+
   elseif (ele%csr_method == steady_state_3d$) then
      call track1_bunch_csr3d(bunch, ele, centroid, err)
      
@@ -255,6 +258,10 @@ else
 endif
 
 if (err) return
+
+! Set bunch%t0 to real_garbage if there has been tracking outside of track1_bunch_space_charge
+
+if (.not. track1_bunch_space_charge_called .and. ele%value(l$) /= 0) bunch%t0 = real_garbage$
 
 ! If there are wakes...
 

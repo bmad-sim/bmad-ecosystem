@@ -994,13 +994,14 @@ end type
 type bunch_struct
   type (coord_struct), allocatable :: particle(:)
   integer, allocatable :: ix_z(:)  ! bunch%ix_z(1) is index of head particle, etc.
-  real(rp) :: charge_tot = 0  ! Total charge in a bunch (Coul).
-  real(rp) :: charge_live = 0 ! Charge of live particles (Coul).
-  real(rp) :: z_center = 0    ! Longitudinal center of bunch (m). Note: Generally, z_center of 
-                              !   bunch #1 is 0 and z_center of the other bunches is negative.
-  real(rp) :: t_center = 0    ! Center of bunch creation time relative to head bunch.
-  integer :: ix_ele = 0       ! Nominal element this bunch is at. But, EG, dead particles can be someplace else.
-  integer :: ix_bunch = 0     ! Bunch index. Head bunch = 1, etc.
+  real(rp) :: charge_tot = 0      ! Total charge in a bunch (Coul).
+  real(rp) :: charge_live = 0     ! Charge of live particles (Coul).
+  real(rp) :: z_center = 0        ! Longitudinal center of bunch (m). Note: Generally, z_center of 
+                                  !   bunch #1 is 0 and z_center of the other bunches is negative.
+  real(rp) :: t_center = 0        ! Center of bunch creation time relative to head bunch.
+  real(rp) :: t0 = real_garbage$  ! Used by track1_bunch_space_charge for tracking so particles have constant t.
+  integer :: ix_ele = 0           ! Nominal element bunch is at. But, EG, dead particles can be someplace else.
+  integer :: ix_bunch = 0         ! Bunch index. Head bunch = 1, etc.
   integer :: n_live = 0
 end type
 
