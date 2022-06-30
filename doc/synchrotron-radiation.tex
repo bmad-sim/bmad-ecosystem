@@ -14,18 +14,18 @@ The treatment of radiation damping by \bmad essentially follows \mad. The energy
 element is modeled via
 \begin{equation}
   \frac{\Delta E}{E_0} = 
-  -k_E \equiv -\left[ k_d \ave{g^2} \, L_p + \sqrt{k_f \ave{g^3} L_p} \,\, \xi \right] \, (1 + p_z)^2
+  -k_E \equiv -\left[ k_d \ave{g^2} \, L_p + \sqrt{k_\mk{f} \ave{g^3} L_p} \,\, \xi \right] \, (1 + p_z)^2
   \label{deekk}
 \end{equation}
 where $L_p$ is the actual path length, $g$ is the bending strength ($1/g$ is the bending radius),
 and $\ave{\ldots}$ is an average over the actual path.  In the above equation $k_d$ gives the
 deterministic part of the emission, $\xi$ is a Gaussian distributed random number with unit sigma
-and zero mean, and $k_f$ is the amplitude of the stochastic part of the emission. Values for $k_d$
-and $k_f$ are calculated via the equations
+and zero mean, and $k_\mk{f}$ is the amplitude of the stochastic part of the emission. Values for $k_d$
+and $k_\mk{f}$ are calculated via the equations
 \begin{align}
   k_d &= \frac{2 \, \rc}{3} \, \gamma_0^3
     \label{k2r3g} \\
-  k_f &= \frac{55 \, \rc \, \hbar}{24 \, \sqrt{3} \, m \, c} \, \gamma_0^5
+  k_\mk{f} &= \frac{55 \, \rc \, \hbar}{24 \, \sqrt{3} \, m \, c} \, \gamma_0^5
     \label{k55rh}
 \end{align}
 where $\gamma_0$ is the energy factor of an on-energy particle and $\rc$ is the particles
@@ -61,7 +61,7 @@ energy loss along the closed orbit. For this calculation the closed orbit should
 as calculated without radiation damping (in other words the closed orbit without the sawtooth). In
 this case, $k_E$ is calculated by
 \begin{equation}
-  k_E = \left[ k_d \, \ave{g^2} L_p + \sqrt{k_f \ave{g^3} L_p} \,\, \xi \right] \, (1 + p_z)^2 - 
+  k_E = \left[ k_d \, \ave{g^2} L_p + \sqrt{k_\mk{f} \ave{g^3} L_p} \,\, \xi \right] \, (1 + p_z)^2 - 
   k_d \, \ave{g_0^2} \, L_p
 \end{equation}
 where $g_0$ is $g$ evaluated along the closed orbit. In practice, for the calculation, \bmad
@@ -157,7 +157,7 @@ invertible, \Eq{mtz} can be written in the form
 $\bfD$ is defined by this equation.
 
 The 1-turn damping decrement $\alpha$ for each mode $a$, $b$, and $c$ of oscillation can be
-calculated from the eigen values $\lambda_i$ (cf. \Eq{llee}) of the one-turn matrix with damping via
+calculated from the eigen values $\lambda_i$ (cf. \Eq{lleit}) of the one-turn matrix with damping via
 \begin{equation}
   \alpha_a = -\re(\log\lambda_1), \quad 
   \alpha_b = -\re(\log\lambda_3), \quad 
@@ -171,14 +171,14 @@ $\delta\bfr_2$ due to stochastic radiation over some length $ds$ as some point $
   \delta\bfr_2 = \sqrt{ds} \, \bfM_{2,s} \, \left( \bfF_\mk{f}(s) \, \xi_1 + \bfF_\mk{v} \, \xi_2 \right)
 \end{equation}
 where $\bfM_{2,s}$ is the first order part (matrix) of the map $\calM_{2,s}$ from $s$ to $s_2$,
-$\xi_1$ and $xi_2$ are two independent Gaussian random numbers with unit sigma and zero mean, and
+$\xi_1$ and $\xi_2$ are two independent Gaussian random numbers with unit sigma and zero mean, and
 $\bfF_\mk{f}$ and $\bfF_\mk{v}$ are (see \sref{s:radiation})
 \begin{align}
-  \bfF_\mk{f} &= \sqrt{k_f g_0^3} \, (0, p_x \, (1 + p_z), 0, p_y \, (1 + p_z), 0, (1 + p_z)^2) \\
+  \bfF_\mk{f} &= \sqrt{k_\mk{f} g_0^3} \, (0, p_x \, (1 + p_z), 0, p_y \, (1 + p_z), 0, (1 + p_z)^2) \\
   \bfF_\mk{v} &= \sqrt{k_v g_0} \, (0, -g_y, 0, g_x, 0, 0)
   \label{fk000}
 \end{align}
-where $k_f$ $p_x$, $p_y$ and $p_z$ are to be evaluated on the reference orbit and $(g_x, g_y)$ is the
+where $k_\mk{f}$ $p_x$, $p_y$ and $p_z$ are to be evaluated on the reference orbit and $(g_x, g_y)$ is the
 curvature vector which points away from the center of curvature of the particle's orbit. Notice that since
 $\delta\bfr$ is, by definition, the deviation from the reference orbit, $p_x = r_2$ and $p_y = r_4$
 will be zero on the reference orbit. The covariance matrix $\bfsig_\gamma$ is defined by
