@@ -124,7 +124,7 @@ end type
 integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
 
 type ltt_bunch_data_struct
-  integer :: n_live = 0     ! Number alive on last turn used for averaging.
+  real(rp) :: n_live = 0        ! Number alive. Use real to avoid roundoff error.
   real(rp) :: orb_sum(6) = 0    ! Orbit average
   real(rp) :: orb2_sum(6,6) = 0
   real(rp) :: orb3_sum(6) = 0   ! Skew
@@ -132,6 +132,8 @@ type ltt_bunch_data_struct
   real(rp) :: spin_sum(3) = 0   ! Spin
   real(rp) :: p0c_sum = 0
   real(rp) :: time_sum = 0
+  real(rp) :: sig1(6) = 0, sigma(27) = 0, sig_mat(6,6) = 0
+  real(rp) :: kurt(3) = 0, skew(3) = 0
   type (bunch_params_struct) :: params = bunch_params_struct()
 end type
 
@@ -1542,7 +1544,8 @@ type (bunch_struct), target :: bunch
 type (ltt_bunch_data_struct) :: bd
 
 real(rp) ave
-integer i, j, ib, ix, i_turn, this_turn, n2w
+integer i, j, k, ib, ix, i_turn, this_turn, n2w
+logical error
 
 !
 
@@ -1567,6 +1570,32 @@ enddo
 
 bd%p0c_sum = bd%p0c_sum + sum(bunch%particle%p0c, bunch%particle%state == alive$)
 bd%time_sum = bd%time_sum + sum(bunch%particle%t, bunch%particle%state == alive$)
+
+!
+
+k = 0
+do i = 1, 6
+do j = i, 6
+  k = k + 1
+  ! Test if the value of sigma(i,j) is significant. If not set to zero. 
+  ! This is to avoid problems due to round-off errors. 
+  ! One notible case is at the beginning of tracking if a mode has zero emittance.
+  bd%sigma(k) = bd%orb2_sum(i,j) / bd%n_live - bd%orb_sum(i) * bd%orb_sum(j) / bd%n_live**2
+  if (abs(bd%sigma(k)) < 1e-15_rp * abs(bd%orb_sum(i)*bd%orb_sum(j)) / bd%n_live) bd%sigma(k) = 0
+  bd%sig_mat(i,j) = bd%sigma(k)
+  bd%sig_mat(j,i) = bd%sigma(k)
+  if (i == j) bd%sig1(i) = sqrt(max(0.0_rp, bd%sigma(k)))
+enddo
+enddo
+
+if (bd%sig1(1) /= 0) bd%skew(1) = bd%orb3_sum(1) / (bd%n_live * bd%sig1(1)**3)
+if (bd%sig1(1) /= 0) bd%kurt(1) = bd%orb4_sum(1) / (bd%n_live * bd%sig1(1)**4) - 3.0_rp
+if (bd%sig1(3) /= 0) bd%skew(2) = bd%orb3_sum(3) / (bd%n_live * bd%sig1(3)**3)
+if (bd%sig1(3) /= 0) bd%kurt(2) = bd%orb4_sum(3) / (bd%n_live * bd%sig1(3)**4) - 3.0_rp
+if (bd%sig1(5) /= 0) bd%skew(3) = bd%orb3_sum(5) / (bd%n_live * bd%sig1(5)**3)
+if (bd%sig1(5) /= 0) bd%kurt(3) = bd%orb4_sum(5) / (bd%n_live * bd%sig1(5)**4) - 3.0_rp
+
+call calc_emittances_and_twiss_from_sigma_matrix (bd%sig_mat, 0.0_rp, bd%params, error)
 
 end subroutine ltt_calc_bunch_data
 
@@ -1615,8 +1644,7 @@ type (ltt_bunch_data_struct) bd
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 
-real(rp) sig1(6), sigma(27), n_live, kurt(3), skew(3), sig_mat(6,6)
-integer ix_turn, i, j, k, nb, iu1, iu2, iu3, ix, ib
+integer ix_turn, k, nb, iu1, iu2, iu3, ix, ib
 logical error
 character(200) :: file_name
 
@@ -1634,7 +1662,6 @@ nb = size(beam%bunch)
 do ib = 1, nb
   bunch => beam%bunch(ib)
   if (bunch%n_live == 0) exit
-  n_live = bunch%n_live  ! Convert to real to avoid round-off errors
 
   call ltt_calc_bunch_data(bunch, bd)
 
@@ -1647,43 +1674,13 @@ do ib = 1, nb
 
   !
 
-  k = 0
-  do i = 1, 6
-  do j = i, 6
-    k = k + 1
-    ! Test if the value of sigma(i,j) is significant. If not set to zero. 
-    ! This is to avoid problems due to round-off errors. 
-    ! One notible case is at the beginning of tracking if a mode has zero emittance.
-    sigma(k) = bd%orb2_sum(i,j) / n_live - bd%orb_sum(i) * bd%orb_sum(j) / n_live**2
-    if (abs(sigma(k)) < 1e-15_rp * abs(bd%orb_sum(i)*bd%orb_sum(j)) / n_live) sigma(k) = 0
-    sig_mat(i,j) = sigma(k)
-    sig_mat(j,i) = sigma(k)
-    if (i == j) sig1(i) = sqrt(max(0.0_rp, sigma(k)))
-  enddo
-  enddo
+  write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 7es14.6)') ix_turn, nint(bd%n_live), &
+          bd%time_sum/bd%n_live, norm2(bd%spin_sum/bd%n_live), bd%spin_sum/bd%n_live, bd%orb_sum/bd%n_live, bd%p0c_sum/bd%n_live
 
-  kurt = 0; skew = 0
-  if (sig1(1) /= 0) skew(1) = bd%orb3_sum(1) / (n_live * sig1(1)**3)
-  if (sig1(1) /= 0) kurt(1) = bd%orb4_sum(1) / (n_live * sig1(1)**4) - 3.0_rp
-  if (sig1(3) /= 0) skew(2) = bd%orb3_sum(3) / (n_live * sig1(3)**3)
-  if (sig1(3) /= 0) kurt(2) = bd%orb4_sum(3) / (n_live * sig1(3)**4) - 3.0_rp
-  if (sig1(5) /= 0) skew(3) = bd%orb3_sum(5) / (n_live * sig1(5)**3)
-  if (sig1(5) /= 0) kurt(3) = bd%orb4_sum(5) / (n_live * sig1(5)**4) - 3.0_rp
+  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)')  ix_turn, nint(bd%n_live), bd%time_sum/bd%n_live, (bd%sigma(k), k = 1, 21)
 
-  call calc_emittances_and_twiss_from_sigma_matrix (sig_mat, 0.0_rp, bd%params, error)
-
-  !
-
-  write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 7es14.6)') &
-          ix_turn, bd%n_live, bd%time_sum/n_live, norm2(bd%spin_sum/n_live), &
-          bd%spin_sum/n_live, bd%orb_sum/n_live, bd%p0c_sum/n_live
-
-  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)')  &
-          ix_turn, bd%n_live, bd%time_sum/bd%n_live, (sigma(k), k = 1, 21)
-
-  write (iu3, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 6es14.6, 2x, 3es14.6, 2x, 3es14.6)') &
-          ix_turn, bd%n_live, bd%time_sum/n_live, &
-          bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, sig1, kurt, skew
+  write (iu3, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 6es14.6, 2x, 3es14.6, 2x, 3es14.6)') ix_turn, nint(bd%n_live), &
+          bd%time_sum/bd%n_live, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%sig1, bd%kurt, bd%skew
 
   close (iu1)
   close (iu2)
