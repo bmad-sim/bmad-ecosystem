@@ -7,7 +7,6 @@
   ltt%averages_output_file = '#.dat'
   ltt%beam_binary_output_file = ''
   ltt%averages_output_every_n_turns = 1
-  ltt%averaging_window = 1
 
   ltt%simulation_mode = 'CHECK'
   ltt%tracking_method = 'MAP'   !
