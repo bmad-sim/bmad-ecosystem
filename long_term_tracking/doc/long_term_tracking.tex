@@ -570,7 +570,6 @@ Example:
   ltt%averages_output_every_n_turns = 200
   ltt%particle_output_every_n_turns = 200
   ltt%only_live_particles_out = T
-  ltt%averaging_window = 1
   ltt%print_on_dead_loss = -1
   ltt%map_file_prefix = "ltt"
   ltt%map_ascii_output_file = ""
@@ -596,7 +595,6 @@ Example:
   ltt%dead_cutoff        = 1
   ltt%b_emittance        = 1e-9          ! Used with space charge calc.
   ltt%debug              = F
-  ltt%mpi_runs_per_subprocess = 4
   bmad_com%spin_tracking_on = T          ! See Bmad manual for 
   bmad_com%radiation_damping_on = F      !    bmad_com parameters.
   bmad_com%radiation_fluctuations_on = F 
@@ -646,28 +644,6 @@ happen on the beginning turn (turn 0) and the last turn. Example:
   ltt%averages_output_every_n_turns = 1000
 \end{code}
 In this example, output will happen every 1000 turns.  Also see: \vn{particle_output_every_n_turns}.
-%
-\item[ltt\%averaging_window] \Newline
-Number of turns to average over when computing beam sigma matrix and averaged positions. Default is
-1. This affects the files specified by \vn{ltt%averages_output_file}.
-
-For example:
-\begin{code}
-  ltt%averages_output_every_n_turns = 1000
-  ltt%averaging_window = 201
-  ltt%n_turns = 20040
-\end{code}
-This would average over 201 turns and this averaging would be done every 1000 turns. That is, the
-beam sigma matrix and position is output every 1000 turns and the sigma matrix and position numbers
-for, say, turn 6000 are computed by averaging over all particle positions in the window from turn
-5900 through turn 6100. The averaging window used with turn 0 will be the half interval from 0
-through \vn{(ltt%averaging_window-1)/2}. The number of turns averaged over for the last point will
-extend from \vn{n_last - (ltt%averaging_window-1)/2} up through \vn{ltt%n_turns} where \vn{n_last}
-is the number of turns of the nominal ``center'' of the last averaging window. In the above example,
-\vn{n_last} will be 20000 and the averaging window will extend from turn 19900 through 20040. The
-value of \vn{ltt%averaging_window} should be set to an odd number. If the value of
-\vn{ltt%averaging_window} is even, the effective averaging window with will be one more than the set
-number.
 %
 \item[ltt\%averages_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. There are three data files generated here.
@@ -731,7 +707,7 @@ Each line in the file represents the averages at the end of a
 turn and a new line is added every \vn{ltt%averages_ouput_every_n_turns} number of turns. If
 \vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded when
 the beam is at the \vn{ltt%ele_start} position independent of where the lattice begins and
-ends. To reduce noise, the \vn{ltt%averaging_window} parameter can be set appropriately.
+ends.
 %
 \item[ltt\%beam_binary_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file
@@ -888,17 +864,6 @@ Map order. See Section~\sref{s:track.methods}. The default is what is set in the
 file and if not set in the lattice file the default is 3. Note: \vn{ltt%map_order} is only used when
 generating a map.  When a map is read in from a file, the order of this map is independent of the
 current setting of \vn{ltt%map_order}.
-%
-\item[ltt\%mpi_runs_per_subprocess] \Newline
-Only used when the MPI version of the \ltt program is used (\sref{s:intro}). This parameter
-determines the number of times, on average, the simulation will be run in a given subprocess. The
-default value is 4. For example, if there are 11 subprocesses, one of these will be designated the
-``master'' subprocess and will just be responsible for collecting the data together. The other 10
-subprocesses will run simulations. If, say, there are 1M particles in each of two bunches, and if
-\vn{ltt%mpi_runs_per_subprocess} has the default value of 4, then each simulation will use 50K
-particles (= 2 * 1M / (4 * 10)) and each of the 10 subprocesses will run the simulation about 4
-times. The reason why the work is broken up this way is to minimize the effect that one slow
-subprocess can have on the simulation time.
 %
 \item[ltt\%n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.methods}.

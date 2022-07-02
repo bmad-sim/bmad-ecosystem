@@ -5,13 +5,10 @@
   ltt%ele_start = ''                   ! Where to start in the lattice
   ltt%ele_stop = ''                     ! Where to start in the lattice
 
-  ltt%mpi_runs_per_subprocess = 2
-
   ltt%particle_output_file = ''
   ltt%averages_output_file = 'out'
   ltt%custom_output_file = 'custom.dat'
   ltt%averages_output_every_n_turns = 10
-  ltt%averaging_window = 1
 
   ltt%column(1) = 'n_turn', 'N_turn', 'i7'
   ltt%column(2) = 'time',   'Time',   'f12.7'

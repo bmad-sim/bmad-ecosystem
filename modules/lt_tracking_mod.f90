@@ -18,11 +18,6 @@ use expression_mod
 implicit none
 
 integer, parameter :: master_rank$  = 0
-integer, parameter :: results_tag$  = 1000
-integer, parameter :: is_done_tag$  = 1001
-integer, parameter :: particle_tag$ = 1002
-integer, parameter :: num_tag$      = 1003
-
 integer, parameter :: in_map$ = 0
 integer, parameter :: not_in_map$ = 1
 
@@ -44,22 +39,18 @@ type ltt_params_struct
   character(40) :: ele_start = ''
   character(40) :: ele_stop = ''
   character(200) :: lat_file = ''
-  character(200) :: map_constructor_file = ''
   character(200) :: particle_output_file = ''
   character(200) :: beam_binary_output_file = ''
   character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: map_ascii_output_file = ''
   character(200) :: averages_output_file = ''
-  character(200) :: sigma_matrix_output_file = ''  ! No longer used
-  character(200) :: master_output_file = ''        ! No longer used
   character(8) :: ran_engine = ''
   type (ltt_column_struct) column(100)
   integer :: ix_particle_record = -1    ! Experimental
   integer :: ix_turn_record = -1        ! Experimental
   integer :: n_turns = -1
   integer :: map_order = -1
-  integer :: averaging_window = 1
   integer :: particle_output_every_n_turns = -1
   integer :: averages_output_every_n_turns = -1
   integer :: random_seed = 0
@@ -79,9 +70,13 @@ type ltt_params_struct
   logical :: symplectic_map_tracking = .false.
   logical :: split_bends_for_radiation = .false.   ! Old style. 
   logical :: split_bends_for_stochastic_rad = .false.
-  integer :: mpi_runs_per_subprocess = 4        ! Number of runs a slave process will take on average.
   logical :: debug = .false.
   logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
+  !
+  character(200) :: sigma_matrix_output_file = ''  ! No longer used
+  character(200) :: master_output_file = ''        ! No longer used
+  integer :: averaging_window = 1                  ! No longer used
+  integer :: mpi_runs_per_subprocess = 4           ! No longer used
 end type
 
 ! A section structure is either:
@@ -108,7 +103,6 @@ type ltt_com_struct
   type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
   type (ele_pointer_struct), allocatable :: ramper(:)    ! Ramper element locations.
-  type (bunch_struct) bunch                    ! Used when regression testing.
   type (beam_init_struct) beam_init
   integer :: n_ramper_loc = 0
   integer, allocatable :: ix_wake_ele(:)     ! List of element indexes where a wake is applied.
@@ -123,7 +117,6 @@ type ltt_com_struct
   integer :: mpi_run_index = 0                 ! Run index
   integer :: mpi_ix0_particle = 0              ! Index of first particle
   logical :: using_mpi = .false.
-  character(200) :: mpi_data_dir = ''          ! Temporary directory For storing particle position data when running with mpi.
   character(200) :: master_input_file = ''
   character(40) :: fmt = '(2i7, 6es16.8, 3x, 3f10.6, 4x, a)'
 end type
@@ -132,7 +125,6 @@ integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
 
 type ltt_bunch_data_struct
   integer :: n_live = 0     ! Number alive on last turn used for averaging.
-  integer :: n_count = 0    ! Number of particles counted over all turns used for averaging.
   real(rp) :: orb_sum(6) = 0    ! Orbit average
   real(rp) :: orb2_sum(6,6) = 0
   real(rp) :: orb3_sum(6) = 0   ! Skew
@@ -140,17 +132,7 @@ type ltt_bunch_data_struct
   real(rp) :: spin_sum(3) = 0   ! Spin
   real(rp) :: p0c_sum = 0
   real(rp) :: time_sum = 0
-  integer :: species = 0
-end type
-
-type ltt_turn_data_struct
-  type (ltt_bunch_data_struct), allocatable :: bunch(:)
-  integer :: status = new$  ! valid$ (data been gathered), or written$ (has been written)
-  INTEGER :: i_turn = 0
-end type
-
-type ltt_beam_data_struct
-  type (ltt_turn_data_struct), allocatable :: turn(:)
+  type (bunch_params_struct) :: params = bunch_params_struct()
 end type
 
 type (ltt_params_struct), pointer, save :: ltt_params_global   ! Needed for track1_preprocess and track1_bunch_hook
@@ -253,14 +235,25 @@ namelist / params / bmad_com, beam_init, ltt
 
 if (ltt%master_output_file /= '') then
   call out_io (s_info$, r_name, &
-        'Note: The master_output_file no longer created since data in this file is written to other files.')
+        'Note: The master_output_file is no longer created since data in this file is written to other files.')
 endif
 
 if (ltt%sigma_matrix_output_file /= '') then
   call out_io (s_info$, r_name, &
-          'Note: ltt%sigma_matrix_output_file now no longer used and will be ignored.', &
-          'Essentially now ltt%averages_output_file sets the name of the sigma matrix file.', &
-          'See manual for details.')
+        'Note: ltt%sigma_matrix_output_file is no longer used and will be ignored.', &
+        '  Essentially now ltt%averages_output_file sets the name of the sigma matrix file.', &
+        '  See manual for details.')
+endif
+
+if (ltt%averaging_window /= 1) then
+  call out_io (s_info$, r_name, &
+        'Note: ltt%averaging_window is no longer used and will be ignored.', &
+        '  Reason: The advantage of averaging over multiple turns was not worth the complications', &
+        '  to the program internal bookkeeping') 
+endif
+
+if (ltt%mpi_runs_per_subprocess /= 4) then
+  call out_io (s_info$, r_name, 'Note: ltt%mpi_runs_per_subprocess is no longer used and will be ignored.')
 endif
 
 ! Lattice init
@@ -481,10 +474,10 @@ endif
 
 if (lttp%simulation_mode == 'CHECK') bmad_com%radiation_fluctuations_on = .false.
 
-if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP' .or. lttp%map_constructor_file /= '') then
+if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
   call ltt_read_map (lttp, ltt_com, err)
   if (err) then
-    if (ltt_com%mpi_rank == master_rank$ .or. lttp%map_constructor_file /= '') then
+    if (ltt_com%mpi_rank == master_rank$) then
       call ltt_make_map(lttp, ltt_com)
       call ltt_write_map(lttp, ltt_com)
     else
@@ -625,7 +618,6 @@ call ltt_write_line('# ltt%averages_output_every_n_turns  = ' // int_str(lttp%av
 call ltt_write_line('# ltt%ramping_on                     = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramp_update_each_particle      = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_start_time             = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
-call ltt_write_line('# ltt%averaging_window               = ' // int_str(lttp%averaging_window), lttp, iu, print_this)
 call ltt_write_line('# ltt%random_seed                    = ' // int_str(lttp%random_seed), lttp, iu, print_this)
 if (lttp%random_seed == 0) then
   call ltt_write_line('# random_seed_actual                 = ' // int_str(ltt_com%random_seed_actual), lttp, iu, print_this)
@@ -829,7 +821,7 @@ call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
 write (iu_part, '(a)') '#  Turn ix_ele |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z  | Element'
 write (iu_part, ltt_com%fmt) 0, ele_start%ix_ele, orbit%vec, orbit%spin, trim(ele_start%name)
 
-if (lttp%custom_output_file /= '') call ltt_write_custom (0, lttp, ltt_com, orbit = orbit)
+if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, 0, orbit = orbit)
 
 do i_turn = 1, lttp%n_turns
   select case (lttp%tracking_method)
@@ -885,7 +877,7 @@ do i_turn = 1, lttp%n_turns
     n_sum = n_sum + 1
   endif
 
-  if (lttp%custom_output_file /= '') call ltt_write_custom (i_turn, lttp, ltt_com, orbit = orbit)
+  if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, i_turn, orbit = orbit)
 enddo
 
 print '(2a)', 'Particle output file: ', trim(lttp%particle_output_file)
@@ -901,53 +893,33 @@ end subroutine ltt_run_single_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_beam_mode (lttp, ltt_com, beam_data_in, beam_in)
+subroutine ltt_init_beam_distribution (lttp, ltt_com, beam)
 
 type (ltt_params_struct) lttp
-type (beam_struct), target :: beam0
-type (beam_struct), pointer :: beam
-type (beam_struct), optional, target :: beam_in  ! Used with mpi
+type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
-type (coord_struct), allocatable :: orb(:)
-type (coord_struct), pointer :: p
-type (ltt_beam_data_struct), optional :: beam_data_in
-type (ltt_beam_data_struct), target :: beam_data
 type (ele_struct), pointer :: ele_start
-type (probe) prb
+type (coord_struct), pointer :: p
 
-real(rp) time0, time1, time_now
-
-integer n, n_print_dead_loss, i_turn, ie, n_part_tot
-integer ip, ib, n_live_old, n_live, ix_branch
-
+integer ix_branch, ie, ib, n
 logical err_flag
-
-character(16) prefix_str
-character(200) file_name
 
 ! Init
 
-ltt_com%mpi_run_index = ltt_com%mpi_run_index + 1
 lat => ltt_com%tracking_lat
-call run_timer('ABS', time0)
-time1 = time0
+call run_timer('ABS', ltt_com%time_start)
 
 ix_branch = ltt_com%ix_branch
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
-  
-if (ltt_com%using_mpi) then
-  beam => beam_in
-  prefix_str = 'Slave ' // int_str(ltt_com%mpi_rank) // ':'
-else
-  call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam0, err_flag, modes = ltt_com%modes)
-  if (err_flag) stop
-  beam => beam0
-  print '(a, i8)',   'n_particle:                    ', size(beam%bunch(1)%particle)
-  prefix_str = ''
-  ltt_com%n_particle = size(beam%bunch(1)%particle)
-endif
+
+!
+
+call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, modes = ltt_com%modes)
+if (err_flag) stop
+print '(a, i8)',   'n_particle:                    ', size(beam%bunch(1)%particle)
+ltt_com%n_particle = size(beam%bunch(1)%particle)
 
 if (bmad_com%spin_tracking_on .and. all(ltt_com%beam_init%spin == 0)) then
   ie = ele_start%ix_ele
@@ -971,6 +943,50 @@ do ib = 1, size(beam%bunch)
   enddo
 enddo
 
+end subroutine ltt_init_beam_distribution
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_run_beam_mode (lttp, ltt_com, ix_start_turn, ix_end_turn, beam)
+
+type (ltt_params_struct) lttp
+type (beam_struct), target :: beam
+type (bunch_struct), pointer :: bunch
+type (ltt_com_struct), target :: ltt_com
+type (lat_struct), pointer :: lat
+type (coord_struct), allocatable :: orb(:)
+type (coord_struct), pointer :: p
+type (ele_struct), pointer :: ele_start
+type (probe) prb
+
+real(rp) time0, time1, time_now
+
+integer ix_start_turn, ix_end_turn
+integer n, n_print_dead_loss, i_turn, ie, n_part_tot
+integer ip, ib, n_live_old, n_live, ix_branch
+
+logical err_flag
+
+character(16) prefix_str
+character(200) file_name
+
+! Init
+
+lat => ltt_com%tracking_lat
+time0 = ltt_com%time_start
+time1 = time0
+
+ix_branch = ltt_com%ix_branch
+call ltt_pointer_to_map_ends(lttp, lat, ele_start)
+
+if (ltt_com%using_mpi) then
+  prefix_str = 'Slave ' // int_str(ltt_com%mpi_rank) // ':'
+else
+  prefix_str = ''
+endif
+
 n_part_tot = 0
 do ib = 1, size(beam%bunch)
   n_part_tot = n_part_tot + size(beam%bunch(ib)%particle)
@@ -978,22 +994,17 @@ enddo
 n_print_dead_loss = max(1, nint(lttp%print_on_dead_loss * n_part_tot))
 n_live_old = n_part_tot
 
-! 
+! If using mpi then beam data will be written out by the master thread.
 
-call ltt_write_particle_data (lttp, ltt_com, 0, beam)
-
-! If using mpi then this data will all be written out at the end.
-! Here partial writes are used so the user can monitor progress if they want.
-call ltt_calc_bunch_sums (lttp, 0, beam, beam_data)
-if (.not. ltt_com%using_mpi) then
-  call ltt_write_averages_data(lttp, beam_data)
-  where (beam_data%turn%status == valid$) beam_data%turn%status = written$
+if (ix_start_turn == 0 .and. .not. ltt_com%using_mpi) then
+  call ltt_write_particle_data (lttp, ltt_com, 0, beam)
+  call ltt_write_averages_data(lttp, 0, beam)
+  call ltt_write_custom (lttp, ltt_com, 0, beam = beam)
 endif
 
-if (lttp%custom_output_file /= '' .and. (ltt_com%mpi_rank == master_rank$ .or. ltt_com%mpi_rank == 1) .and. &
-                          ltt_com%mpi_run_index == 1) call ltt_write_custom (0, lttp, ltt_com, beam = beam)
+!
 
-do i_turn = 1, lttp%n_turns
+do i_turn = ix_start_turn+1, ix_end_turn
   n_live = 0
   do ib = 1, size(beam%bunch)
     bunch => beam%bunch(ib)
@@ -1055,33 +1066,19 @@ do i_turn = 1, lttp%n_turns
     time1 = time_now
   endif
 
-  call ltt_write_particle_data (lttp, ltt_com, i_turn, beam)
-
   ! If using mpi then this data will all be written out at the end.
   ! Here partial writes are used so the user can monitor progress if they want.
 
-  call ltt_calc_bunch_sums (lttp, i_turn, beam, beam_data)
-
   if (.not. ltt_com%using_mpi) then
-    call ltt_write_averages_data(lttp, beam_data)
-    where (beam_data%turn%status == valid$) beam_data%turn%status = written$
+    call ltt_write_particle_data (lttp, ltt_com, i_turn, beam)
+    call ltt_write_averages_data(lttp, i_turn, beam)
+    call ltt_write_custom (lttp, ltt_com, i_turn, beam = beam)
   endif
-
-  if (lttp%custom_output_file /= '' .and. (ltt_com%mpi_rank == master_rank$ .or. ltt_com%mpi_rank == 1) .and. &
-                          ltt_com%mpi_run_index == 1) call ltt_write_custom (i_turn, lttp, ltt_com, beam = beam)
 end do
 
-if (lttp%beam_binary_output_file /= '') then
-  if (ltt_com%using_mpi) then
-    file_name = trim(ltt_com%mpi_data_dir) // 'b' // int_str(ltt_com%mpi_ix0_particle)
-  else
-    file_name = lttp%beam_binary_output_file
-  endif
-  call hdf5_write_beam (file_name, beam%bunch, .false., err_flag)
+if (lttp%beam_binary_output_file /= '' .and. .not. ltt_com%using_mpi) then
+  call write_beam_file (lttp%beam_binary_output_file, beam)
 endif
-
-if (present(beam_data_in)) beam_data_in = beam_data
-if (lttp%regression_test) ltt_com%bunch = beam%bunch(1)
 
 end subroutine ltt_run_beam_mode
 
@@ -1249,7 +1246,7 @@ end subroutine ltt_setup_high_energy_space_charge
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_particle_data (lttp, ltt_com, i_turn, beam, use_mpi)
+subroutine ltt_write_particle_data (lttp, ltt_com, i_turn, beam)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -1263,8 +1260,6 @@ integer iu_part
 character(200) file_name
 character(40) fmt, str
 
-logical, optional :: use_mpi
-logical using_mpi
 !
 
 if (lttp%particle_output_file == '') return
@@ -1276,38 +1271,27 @@ end select
 
 !
 
-using_mpi = logic_option(ltt_com%using_mpi, use_mpi)
-
 do ib = 1, size(beam%bunch)
   bunch => beam%bunch(ib)
 
-  if (using_mpi) then
-    file_name = trim(ltt_com%mpi_data_dir) // int_str(i_turn) // '_' // int_str(ib) // '_' // &
-                                                       int_str(ltt_com%mpi_rank) // '_' // int_str(ltt_com%mpi_run_index)
-  else
-    j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
-    str = int_str(i_turn, j)
-    if (size(beam%bunch) > 1) str = 'bunch' // int_str(ib) // '-' // str
+  j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
+  str = int_str(i_turn, j)
+  if (size(beam%bunch) > 1) str = 'bunch' // int_str(ib) // '-' // str
 
-    ix = index(lttp%particle_output_file, '#')
-    if (ix == 0) then
-      file_name = trim(lttp%particle_output_file) // str
-    else
-      file_name = lttp%particle_output_file(1:ix-1) // trim(str) // trim(lttp%particle_output_file(ix+1:))
-    endif
+  ix = index(lttp%particle_output_file, '#')
+  if (ix == 0) then
+    file_name = trim(lttp%particle_output_file) // str
+  else
+    file_name = lttp%particle_output_file(1:ix-1) // trim(str) // trim(lttp%particle_output_file(ix+1:))
   endif
 
   !
 
   iu_part = lunget()
 
-  if (using_mpi) then
-    open (iu_part, file = file_name, recl = 300)
-  else
-    open (iu_part, file = file_name, recl = 300)
-    call ltt_write_params_header(lttp, ltt_com, iu_part, ltt_com%n_particle, size(beam%bunch))
-    write (iu_part, '(a)')  '#      Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
-  endif
+  open (iu_part, file = file_name, recl = 300)
+  call ltt_write_params_header(lttp, ltt_com, iu_part, ltt_com%n_particle, size(beam%bunch))
+  write (iu_part, '(a)')  '#      Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
 
   ltt_com%wrote_particle_file_header = .true.
 
@@ -1316,12 +1300,8 @@ do ib = 1, size(beam%bunch)
   do ip = 1, size(bunch%particle)
     p => bunch%particle(ip)
     ix = ip + ltt_com%mpi_ix0_particle
-    if (using_mpi) then
-      write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, i5)')  ix, i_turn, p%vec, p%spin, p%state
-    else
-      if (lttp%only_live_particles_out .and. p%state /= alive$) cycle
-      write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
-    endif
+    if (lttp%only_live_particles_out .and. p%state /= alive$) cycle
+    write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
   enddo
 
   close(iu_part)
@@ -1335,7 +1315,7 @@ end subroutine ltt_write_particle_data
 ! The optional argument "beam" is passed when doing beam tracking. Otherwise orbit is passed. Never both.
 
 
-subroutine ltt_write_custom (i_turn, lttp, ltt_com, orbit, beam)
+subroutine ltt_write_custom (lttp, ltt_com, i_turn, orbit, beam)
 
 type (ltt_params_struct), target :: lttp
 type (ltt_com_struct), target :: ltt_com
@@ -1531,7 +1511,6 @@ write (iu,  '(a, l1)')   '# ramp_update_each_particle      = ', lttp%ramp_update
 write (iu,  '(2a)')      '# ramping_start_time             = ', real_str(lttp%ramping_start_time, 6)
 write (iu,  '(a, i8)')   '# particle_output_every_n_turns  = ', lttp%particle_output_every_n_turns
 write (iu,  '(a, i8)')   '# averages_output_every_n_turns  = ', lttp%averages_output_every_n_turns
-write (iu,  '(a, i8)')   '# averaging_window               = ', lttp%averaging_window
 write (iu,  '(a, i0)')   '# random_seed                    = ', lttp%random_seed
 write (iu,  '(a, i0)')   '# random_seed_actual             = ', ltt_com%random_seed_actual
 write (iu,  '(a, l1)')   '# Radiation_Damping_on           = ', bmad_com%radiation_damping_on
@@ -1557,156 +1536,39 @@ end subroutine ltt_write_params_header
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_allocate_beam_data (lttp, beam_data, n_bunch)
+subroutine ltt_calc_bunch_data (bunch, bd)
 
-type (ltt_params_struct) lttp
-type (ltt_beam_data_struct), target :: beam_data
-integer n_bunch, i
-
-!
-
-select case (lttp%averages_output_every_n_turns)
-case (-1);      allocate (beam_data%turn(1))    ! Stats only for end.
-case (0);       allocate (beam_data%turn(0:1))  ! Stats for beginning and end
-case default;   allocate (beam_data%turn(0:1+lttp%n_turns/lttp%averages_output_every_n_turns)) ! Stats for every %averages_output_every_n_turns 
-end select
-
-do i = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
-  allocate (beam_data%turn(i)%bunch(n_bunch))
-enddo
-
-end subroutine ltt_allocate_beam_data
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-
-subroutine ltt_calc_bunch_sums (lttp, i_turn, beam, beam_data)
-
-type (ltt_params_struct) lttp
-type (beam_struct), target :: beam
-type (bunch_struct), pointer :: bunch
-type (ltt_beam_data_struct), target :: beam_data
-type (ltt_bunch_data_struct), pointer :: bd
+type (bunch_struct), target :: bunch
+type (ltt_bunch_data_struct) :: bd
 
 real(rp) ave
 integer i, j, ib, ix, i_turn, this_turn, n2w
 
 !
 
-if (.not. allocated(beam_data%turn)) call ltt_allocate_beam_data (lttp, beam_data, size(beam%bunch))
-
-select case (lttp%averages_output_every_n_turns)
-! Stats only for end.
-case (-1)
-  ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, beam_data)
-  if (ix < 1) return   ! Out of window. Do not do any averaging
-
-! Stats for beginning and end
-case (0)
-  ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, beam_data)
-  if (ix < 0) return   ! Out of window. Do not do any averaging
-
-! Stats for every %averages_output_every_n_turns 
-case default
-  ix = in_this_window(i_turn, lttp%averages_output_every_n_turns, lttp%averaging_window, beam_data)
-  if (ix < 0) return   ! Out of window. Do not do any averaging
-end select
-
-!
-
-do ib = 1, size(beam%bunch)
-  bunch => beam%bunch(ib)
-  bd => beam_data%turn(ix)%bunch(ib)
-
-  bd%n_live = count(bunch%particle%state == alive$)
-  bd%n_count = bd%n_count + bd%n_live
-  bd%species = bunch%particle(1)%species
-
-  if (bd%n_live == 0) cycle
-
-  do i = 1, 6
-    bd%orb_sum(i)  = bd%orb_sum(i)  + sum(bunch%particle%vec(i), bunch%particle%state == alive$)
-    do j = i, 6
-      bd%orb2_sum(i,j) = bd%orb2_sum(i,j) + sum(bunch%particle%vec(i) * bunch%particle%vec(j), bunch%particle%state == alive$) 
-    enddo
-
-    ave = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / bd%n_live
-    bd%orb3_sum(i) = bd%orb3_sum(i) + sum((bunch%particle%vec(i)-ave)**3, bunch%particle%state == alive$) 
-    bd%orb4_sum(i) = bd%orb4_sum(i) + sum((bunch%particle%vec(i)-ave)**4, bunch%particle%state == alive$) 
-  enddo
-
-  do i = 1, 3
-    bd%spin_sum(i) = bd%spin_sum(i) + sum(bunch%particle%spin(i), bunch%particle%state == alive$)
-  enddo
-
-  bd%p0c_sum = bd%p0c_sum + sum(bunch%particle%p0c, bunch%particle%state == alive$)
-  bd%time_sum = bd%time_sum + sum(bunch%particle%t, bunch%particle%state == alive$)
-enddo
-
-!-------------------------------------------------------------------------------------------
-contains
-
-function in_this_window(i_turn, n_every, window_width, beam_data) result (ix_this)
-
-type (ltt_beam_data_struct), target :: beam_data
-integer i_turn, n_every, window_width, n2w, n, ix_this
-
-!
-
-ix_this = nint(i_turn * 1.0_rp / n_every)
-n2w = window_width/2
-
-do n = lbound(beam_data%turn,1), floor(real(i_turn-n2w)/n_every)
-  if (beam_data%turn(n)%status == new$) beam_data%turn(n)%status = valid$
-enddo
-
-if (i_turn < ix_this*n_every - n2w .or. i_turn > ix_this*n_every + n2w) then
-  ix_this = -1  ! Out of window
-  return
-endif
-
-if (ix_this >= lbound(beam_data%turn,1) .and. ix_this <= ubound(beam_data%turn,1)) &
-                                        beam_data%turn(ix_this)%i_turn = ix_this * n_every
-
-end function in_this_window
-
-end subroutine ltt_calc_bunch_sums
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-
-function ltt_calc_all_bunch_sums (turn_data) result (all_bunch)
-
-type (ltt_turn_data_struct) turn_data
-type (ltt_bunch_data_struct) all_bunch
-
-integer i, j
-
-!
-
-all_bunch%species = turn_data%bunch(1)%species
-
-all_bunch%n_live = sum(turn_data%bunch%n_live)
-all_bunch%n_count = sum(turn_data%bunch%n_count)
-all_bunch%p0c_sum = sum(turn_data%bunch%p0c_sum)
-all_bunch%time_sum = sum(turn_data%bunch%time_sum)
+bd = ltt_bunch_data_struct()
+bd%n_live = count(bunch%particle%state == alive$)
+if (bd%n_live == 0) return
 
 do i = 1, 6
-  all_bunch%orb_sum(i)  = sum(turn_data%bunch%orb_sum(i))
-  all_bunch%orb3_sum(i) = sum(turn_data%bunch%orb3_sum(i))
-  all_bunch%orb4_sum(i) = sum(turn_data%bunch%orb4_sum(i))
-  do j = 1, 6
-    all_bunch%orb2_sum(i,j) = sum(turn_data%bunch%orb2_sum(i,j))
-  end do
+  bd%orb_sum(i)  = bd%orb_sum(i)  + sum(bunch%particle%vec(i), bunch%particle%state == alive$)
+  do j = i, 6
+    bd%orb2_sum(i,j) = bd%orb2_sum(i,j) + sum(bunch%particle%vec(i) * bunch%particle%vec(j), bunch%particle%state == alive$) 
+  enddo
+
+  ave = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / bd%n_live
+  bd%orb3_sum(i) = bd%orb3_sum(i) + sum((bunch%particle%vec(i)-ave)**3, bunch%particle%state == alive$) 
+  bd%orb4_sum(i) = bd%orb4_sum(i) + sum((bunch%particle%vec(i)-ave)**4, bunch%particle%state == alive$) 
 enddo
 
 do i = 1, 3
-  all_bunch%spin_sum(i) = sum(turn_data%bunch%spin_sum(i))
+  bd%spin_sum(i) = bd%spin_sum(i) + sum(bunch%particle%spin(i), bunch%particle%state == alive$)
 enddo
 
-end function ltt_calc_all_bunch_sums
+bd%p0c_sum = bd%p0c_sum + sum(bunch%particle%p0c, bunch%particle%state == alive$)
+bd%time_sum = bd%time_sum + sum(bunch%particle%t, bunch%particle%state == alive$)
+
+end subroutine ltt_calc_bunch_data
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -1746,31 +1608,35 @@ end subroutine ltt_data_file_name
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_averages_data (lttp, beam_data)
+subroutine ltt_write_averages_data (lttp, ix_turn, beam)
 
 type (ltt_params_struct) lttp
-type (ltt_beam_data_struct), target :: beam_data
-type (ltt_bunch_data_struct), pointer :: bd
-type (ltt_bunch_data_struct), target :: bd0
-type (bunch_params_struct) bunch_params
+type (ltt_bunch_data_struct) bd
+type (beam_struct), target :: beam
+type (bunch_struct), pointer :: bunch
 
-real(rp) sig1(6), sigma(27), n_count, kurt(3), skew(3), sig_mat(6,6)
-integer i, j, k, nb, iu1, iu2, iu3, ix, ib, n0
+real(rp) sig1(6), sigma(27), n_live, kurt(3), skew(3), sig_mat(6,6)
+integer ix_turn, i, j, k, nb, iu1, iu2, iu3, ix, ib
 logical error
 character(200) :: file_name
 
 !
 
 if (lttp%averages_output_file == '') return
-if (all(beam_data%turn%status /= valid$)) return
 
-n0 = lbound(beam_data%turn, 1)
-nb = size(beam_data%turn(n0)%bunch)
+select case (lttp%averages_output_every_n_turns)
+case (-1);    if (ix_turn /= lttp%n_turns) return
+case (0);     if (modulo(ix_turn, lttp%n_turns) /= 0) return
+case default; if (modulo(ix_turn, lttp%averages_output_every_n_turns) /= 0) return
+end select
 
-do ib = 0, nb
-  if (ib == 0 .and. nb == 1) cycle  ! zero is for all bunch averages if there are more than one bunch
+nb = size(beam%bunch)
+do ib = 1, nb
+  bunch => beam%bunch(ib)
+  if (bunch%n_live == 0) exit
+  n_live = bunch%n_live  ! Convert to real to avoid round-off errors
 
-  !
+  call ltt_calc_bunch_data(bunch, bd)
 
   call ltt_data_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
   iu1 = lunget(); open (iu1, file = file_name, recl = 400, access = 'append')
@@ -1781,56 +1647,43 @@ do ib = 0, nb
 
   !
 
-  do ix = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
-    if (beam_data%turn(ix)%status /= valid$) cycle
-    if (ib == 0) then
-      bd0 = ltt_calc_all_bunch_sums(beam_data%turn(ix))
-      bd => bd0
-    else
-      bd => beam_data%turn(ix)%bunch(ib)
-    endif
-
-    if (bd%n_count == 0) exit
-    n_count = bd%n_count  ! Convert to real to avoid round-off errors
-
-    k = 0
-    do i = 1, 6
-    do j = i, 6
-      k = k + 1
-      ! Test if the value of sigma(i,j) is significant. If not set to zero. 
-      ! This is to avoid problems due to round-off errors. 
-      ! One notible case is at the beginning of tracking if a mode has zero emittance.
-      sigma(k) = bd%orb2_sum(i,j) / n_count - bd%orb_sum(i) * bd%orb_sum(j) / n_count**2
-      if (abs(sigma(k)) < 1e-15_rp * abs(bd%orb_sum(i)*bd%orb_sum(j)) / n_count) sigma(k) = 0
-      sig_mat(i,j) = sigma(k)
-      sig_mat(j,i) = sigma(k)
-      if (i == j) sig1(i) = sqrt(max(0.0_rp, sigma(k)))
-    enddo
-    enddo
-
-    kurt = 0; skew = 0
-    if (sig1(1) /= 0) skew(1) = bd%orb3_sum(1) / (n_count * sig1(1)**3)
-    if (sig1(1) /= 0) kurt(1) = bd%orb4_sum(1) / (n_count * sig1(1)**4) - 3.0_rp
-    if (sig1(3) /= 0) skew(2) = bd%orb3_sum(3) / (n_count * sig1(3)**3)
-    if (sig1(3) /= 0) kurt(2) = bd%orb4_sum(3) / (n_count * sig1(3)**4) - 3.0_rp
-    if (sig1(5) /= 0) skew(3) = bd%orb3_sum(5) / (n_count * sig1(5)**3)
-    if (sig1(5) /= 0) kurt(3) = bd%orb4_sum(5) / (n_count * sig1(5)**4) - 3.0_rp
-
-    call calc_emittances_and_twiss_from_sigma_matrix (sig_mat, 0.0_rp, bunch_params, error)
-
-    !
-
-    write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 7es14.6)') &
-            beam_data%turn(ix)%i_turn, bd%n_live, bd%time_sum/n_count, norm2(bd%spin_sum/n_count), &
-            bd%spin_sum/n_count, bd%orb_sum/n_count, bd%p0c_sum/n_count
-
-    write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)')  &
-            beam_data%turn(ix)%i_turn, bd%n_live, bd%time_sum/bd%n_count, (sigma(k), k = 1, 21)
-
-    write (iu3, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 6es14.6, 2x, 3es14.6, 2x, 3es14.6)') &
-            beam_data%turn(ix)%i_turn, bd%n_live, bd%time_sum/n_count, &
-            bunch_params%a%emit, bunch_params%b%emit, bunch_params%c%emit, sig1, kurt, skew
+  k = 0
+  do i = 1, 6
+  do j = i, 6
+    k = k + 1
+    ! Test if the value of sigma(i,j) is significant. If not set to zero. 
+    ! This is to avoid problems due to round-off errors. 
+    ! One notible case is at the beginning of tracking if a mode has zero emittance.
+    sigma(k) = bd%orb2_sum(i,j) / n_live - bd%orb_sum(i) * bd%orb_sum(j) / n_live**2
+    if (abs(sigma(k)) < 1e-15_rp * abs(bd%orb_sum(i)*bd%orb_sum(j)) / n_live) sigma(k) = 0
+    sig_mat(i,j) = sigma(k)
+    sig_mat(j,i) = sigma(k)
+    if (i == j) sig1(i) = sqrt(max(0.0_rp, sigma(k)))
   enddo
+  enddo
+
+  kurt = 0; skew = 0
+  if (sig1(1) /= 0) skew(1) = bd%orb3_sum(1) / (n_live * sig1(1)**3)
+  if (sig1(1) /= 0) kurt(1) = bd%orb4_sum(1) / (n_live * sig1(1)**4) - 3.0_rp
+  if (sig1(3) /= 0) skew(2) = bd%orb3_sum(3) / (n_live * sig1(3)**3)
+  if (sig1(3) /= 0) kurt(2) = bd%orb4_sum(3) / (n_live * sig1(3)**4) - 3.0_rp
+  if (sig1(5) /= 0) skew(3) = bd%orb3_sum(5) / (n_live * sig1(5)**3)
+  if (sig1(5) /= 0) kurt(3) = bd%orb4_sum(5) / (n_live * sig1(5)**4) - 3.0_rp
+
+  call calc_emittances_and_twiss_from_sigma_matrix (sig_mat, 0.0_rp, bd%params, error)
+
+  !
+
+  write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 7es14.6)') &
+          ix_turn, bd%n_live, bd%time_sum/n_live, norm2(bd%spin_sum/n_live), &
+          bd%spin_sum/n_live, bd%orb_sum/n_live, bd%p0c_sum/n_live
+
+  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)')  &
+          ix_turn, bd%n_live, bd%time_sum/bd%n_live, (sigma(k), k = 1, 21)
+
+  write (iu3, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 6es14.6, 2x, 3es14.6, 2x, 3es14.6)') &
+          ix_turn, bd%n_live, bd%time_sum/n_live, &
+          bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, sig1, kurt, skew
 
   close (iu1)
   close (iu2)
@@ -1857,7 +1710,6 @@ if (lttp%sigma_matrix_output_file == '') return
 open (1, file = lttp%sigma_matrix_output_file)
 
 if (n_sum == 0) then
-  write (1, '(a, i0)') '# averaging_window = ', lttp%averaging_window
   write (1, '(a)') '# NO DATA TO AVERAGE OVER!'
   return
 endif
@@ -1867,7 +1719,6 @@ endif
 average = average / n_sum
 sigma = sigma / n_sum - outer_product(average, average)
 
-write (1, '(a, i0)') '# averaging_window = ', lttp%averaging_window
 write (1, '(a)') '# Average:'
 write (1, '(5x, 6es16.8)') average
 write (1, *)

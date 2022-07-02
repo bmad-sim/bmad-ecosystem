@@ -8,30 +8,28 @@ implicit none
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
-type (ltt_beam_data_struct), target :: beam_data, beam_data_sum
-type (ltt_turn_data_struct) :: turn_data
-type (ltt_bunch_data_struct), pointer :: bd
-type (ele_struct), pointer :: ele_start
-type (lat_struct), pointer :: lat
 type (beam_struct), target :: beam, beam2
 type (bunch_struct), pointer :: bunch
 type (coord_struct) orb
 
-real(rp) mpi_particles_per_run, now_time
+real(rp) particles_per_thread, now_time
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
-integer i, n, nn, nb, ib, ix, ierr, rc, leng, bd_size, storage_size, dat_size
-integer ix0_p, ix1_p, mpi_n_proc, n_pass, ix_path, n_out, iu, ios, i_turn, iarr(2)
-integer, allocatable :: turn(:)
+integer i, n, nn, nb, ib, ix, ierr, rc, leng, bd_size, storage_size, dat_size, ix_stage
+integer ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn
+integer, allocatable :: ix_stop_turn(:), ixp_slave(:)
+
+integer, parameter :: base_tag$  = 1000
 
 logical am_i_done, err_flag, ok
-logical, allocatable :: slave_is_done(:)
+logical, allocatable :: slave_is_done(:), stop_here(:)
 
 character(200) pwd
 character(100) line, path, basename
 character(40) file, str
 character(40), allocatable :: file_list(:)
 character(MPI_MAX_PROCESSOR_NAME) name
+
 
 ! Initialize MPI
 
@@ -68,72 +66,20 @@ if (lttp%simulation_mode /= 'BEAM' .and. ltt_com%mpi_rank /= master_rank$) then
   stop
 endif
 
-! If %map_constructor_file is non-blank then use that to construct maps for each run.
-
-if (lttp%map_constructor_file /= '') then
-  call get_environment_variable('PWD', pwd)
-
-  if (ltt_com%mpi_rank == master_rank$) then
-    allocate (slave_is_done(num_slaves))
-    slave_is_done = .false.
-    open (1, file = lttp%map_constructor_file, status = 'old')
-
-    do i = 1, num_slaves
-      read (1, '(a)', iostat = ios) path
-      if (ios /= 0) path = ''
-      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init construct map in ' // quote(path) //' by slave: ' // int_str(i))
-      call mpi_send (path, len(path), MPI_CHARACTER, i, num_tag$, MPI_COMM_WORLD, ierr)
-      if (path == '') slave_is_done(i) = .true.
-    enddo
-
-    do
-      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Waiting for slave. Num slaves working: ' // &
-                                                                           int_str(count(.not. slave_is_done)))
-      slave_rank = MPI_ANY_SOURCE
-      call mpi_recv (nn, 1, MPI_INTEGER, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
-      call ltt_print_mpi_info (lttp, ltt_com, 'Master: slave ' // int_str(nn) // ' made map.')
-      slave_is_done(nn) = .true.
-      if (ios == 0) read (1, '(a)', iostat = ios) path
-      if (ios /= 0) path = ''
-      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Construct map in ' // quote(path) //' by slave: ' // int_str(nn))
-      call mpi_send (path, len(path), MPI_CHARACTER, nn, num_tag$, MPI_COMM_WORLD, ierr)
-      if (path /= '') slave_is_done(nn) = .false.
-      if (all(slave_is_done)) exit
-    enddo
-
-  else   ! Is a slave
-    do
-      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting...')
-      call mpi_recv (path, len(path), MPI_CHARACTER, master_rank$, num_tag$, MPI_COMM_WORLD, stat, ierr)
-      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Making map: ' // quote(path))
-      if (path == '') exit
-      call set_ptc(force_init = .true.)
-      call ltt_init_params(lttp, ltt_com, path)
-      call chdir (path)
-      call ltt_init_tracking (lttp, ltt_com)
-      call chdir (pwd)
-      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Made map: ' // quote(path))
-      call mpi_send (ltt_com%mpi_rank, 1, MPI_INTEGER, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
-    enddo
-  endif
-
-  call mpi_finalize(ierr)
-  stop
-endif
-
 ! Only the master should create a map file if a file is to be created.
-
 
 call ltt_init_params(lttp, ltt_com)
 
 if (ltt_com%mpi_rank == master_rank$) then
-  call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init tracking')
+  call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init tracking', .true.)
   call ltt_init_tracking (lttp, ltt_com)
   call mpi_Bcast (0, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
+  if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call ltt_print_inital_info (lttp, ltt_com)
 
 else
   call mpi_Bcast (ix, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
+  if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call ltt_init_tracking (lttp, ltt_com)
 endif
 
@@ -150,187 +96,148 @@ end select
 ! Not using mpi if there is only one thread.
 
 if (.not. ltt_com%using_mpi) then
-  print '(a, i0)', 'Number of threads is one!'
-  call ltt_run_beam_mode(lttp, ltt_com)  ! Beam tracking
+  print '(a, i0)', 'Number of threads is one! (Need to use mpirun or mpiexec if on a single machine.)'
+  call ltt_init_beam_distribution(lttp, ltt_com, beam)
+  call ltt_run_beam_mode(lttp, ltt_com, 0, lttp%n_turns, beam)
   stop
 endif
 
 !-----------------------------------------
 ! MPI BEAM simulation
 
-ix_path = splitfilename (lttp%particle_output_file, path, basename)
-ltt_com%mpi_data_dir = trim(path) // 'mpi_temp_dir/'
+! Init beam distribution in master
 
+if (ltt_com%mpi_rank == master_rank$) then
+  call ltt_init_beam_distribution(lttp, ltt_com, beam)
+  n_particle = size(beam%bunch(1)%particle)
+
+  do i = 1, num_slaves
+    call mpi_send (n_particle, 1, MPI_INTEGER, i, base_tag$-1, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
+  enddo
+
+else
+  call mpi_recv(n_particle, 1, MPI_INTEGER, master_rank$, base_tag$-1, MPI_COMM_WORLD, stat, ierr)
+  if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
+endif
+
+! Calculate which particles go to which slaves and 
+! at what turns the slaves have to report back the beam distribution to the master.
+
+particles_per_thread = real(n_particle, rp) / real((num_slaves), rp)
+allocate (ixp_slave(0:num_slaves), stop_here(lttp%n_turns))
+
+ixp_slave(0) = 0
+do i = 1, num_slaves
+  ixp_slave(i) = ixp_slave(i-1) + nint(particles_per_thread)
+  if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ixp:', i, ixp_slave(i)
+enddo
+ixp_slave(num_slaves) = n_particle
+if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ixp:', num_slaves, ixp_slave(num_slaves)
+
+!
+
+stop_here = .false.
+
+select case (lttp%averages_output_every_n_turns)
+case (-1)  ! Nothing to do
+case (0);  stop_here(lttp%n_turns) = .true.
+case default
+  do i = 1, lttp%n_turns/lttp%averages_output_every_n_turns + 1
+    n = i * lttp%averages_output_every_n_turns 
+    if (n > lttp%n_turns) exit
+    stop_here(n) = .true.
+  enddo
+end select
+
+select case (lttp%particle_output_every_n_turns)
+case (-1)  ! Nothing to do
+case (0);  stop_here(lttp%n_turns) = .true.
+case default
+  do i = 1, lttp%n_turns/lttp%particle_output_every_n_turns + 1
+    n = i * lttp%particle_output_every_n_turns 
+    if (n > lttp%n_turns) exit
+    stop_here(n) = .true.
+  enddo
+end select
+
+n = count(stop_here)
+allocate (ix_stop_turn(0:n))
+ix_stop_turn(0) = 0
+n = 0
+do i = 1, lttp%n_turns
+  if (.not. stop_here(i)) cycle
+  n = n + 1
+  ix_stop_turn(n) = i
+  if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ix_stop:', n, ix_stop_turn(n)
+enddo
+
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
 ! Master:
 
 if (ltt_com%mpi_rank == master_rank$) then
-  call system_command ('rm -rf ' // trim(ltt_com%mpi_data_dir))
-  call system_command ('mkdir ' // trim(ltt_com%mpi_data_dir))
-
   allocate (slave_is_done(num_slaves))
   slave_is_done = .false.
 
-  lat => ltt_com%tracking_lat
-  call ltt_pointer_to_map_ends(lttp, lat, ele_start)
-  call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, modes = ltt_com%modes)
-  mpi_particles_per_run = real(size(beam%bunch(1)%particle), rp) / real((lttp%mpi_runs_per_subprocess * num_slaves), rp)
-
-  call ltt_allocate_beam_data(lttp, beam_data_sum, size(beam%bunch))
-  call ltt_allocate_beam_data(lttp, beam_data, size(beam%bunch))
-  allocate (turn_data%bunch(size(beam%bunch)))
-  bd_size = size(turn_data%bunch) * storage_size(turn_data%bunch(1)) / 8
-
-  print '(a, f12.3)', '*** Size of data storage (MB) needed per process: ', bd_size * size(beam_data_sum%turn) * 8e-6
-  print *
-
   print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
-  print '(a, i0, 2x, i0)', 'Nominal number of particles per pass: ', nint(mpi_particles_per_run)
-  call ltt_print_mpi_info (lttp, ltt_com, 'Master: Starting...', .true.)
 
   ! Init positions to slaves
 
-  n_pass = 0
-  ix0_p = 0
   do i = 1, num_slaves
-    n_pass = n_pass + 1
-    ix1_p = min(nint(n_pass * mpi_particles_per_run), size(beam%bunch(1)%particle))
-    n = ix1_p-ix0_p
+    ip0 = ixp_slave(i-1)+1; ip1 = ixp_slave(i)
+    n = ip1 + 1 - ip0
     dat_size = n * storage_size(beam%bunch(1)%particle(1)) / 8
-    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init data size to slave: ' // int_str(i))
-    call mpi_send (size(beam%bunch(1)%particle), 1, MPI_INTEGER, i, num_tag$, MPI_COMM_WORLD, ierr)
-    call mpi_send (n, 1, MPI_INTEGER, i, num_tag$, MPI_COMM_WORLD, ierr)       ! Number of particles to track.
-    call mpi_send (ix0_p, 1, MPI_INTEGER, i, num_tag$, MPI_COMM_WORLD, ierr)   ! Index of 1st particle - 1.
     call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial positions to slave: ' // int_str(i) // &
-                                                '  For particles: [' // int_str(ix0_p+1) // ':' // int_str(ix1_p) // ']', .true.)
+                                                '  For particles: [' // int_str(ip0) // ':' // int_str(ip1) // ']')
     do nb = 1, size(beam%bunch)
-      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial send bunch: ' // int_str(nb))
-      call mpi_send (beam%bunch(nb)%particle(ix0_p+1:ix1_p), dat_size, MPI_BYTE, i, particle_tag$, MPI_COMM_WORLD, ierr)
+      call mpi_send (beam%bunch(nb)%particle(ip0:ip1), dat_size, MPI_BYTE, i, base_tag$, MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
     enddo
-
-    ix0_p = ix1_p
   enddo
 
-  ! Get data and initiate more tracking loop
+  call ltt_write_particle_data (lttp, ltt_com, 0, beam)
+  call ltt_write_averages_data (lttp, 0, beam)
+  call ltt_write_custom (lttp, ltt_com, 0, beam = beam)
 
-  do
-    ! Get data from slave. Since arrays of beam_data are allocatable, need to communicate in pieces.
-    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Waiting for data from a Slave... ' // int_str(bd_size))
-    slave_rank = MPI_ANY_SOURCE
-    do ix = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
-      call mpi_recv (iarr, 2, MPI_INTEGER, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
-      turn_data%status = iarr(1);  turn_data%i_turn = iarr(2)
-      slave_rank = stat(MPI_SOURCE)
-      call mpi_recv (turn_data%bunch, bd_size, MPI_BYTE, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
-      ! Merge with existing data
-      if (turn_data%status /= valid$) cycle
-      do ib = 1, size(beam%bunch)
-        bd => beam_data_sum%turn(ix)%bunch(ib)
-        bd%n_live   = bd%n_live + turn_data%bunch(ib)%n_live
-        bd%n_count  = bd%n_count + turn_data%bunch(ib)%n_count
-        bd%orb_sum  = bd%orb_sum + turn_data%bunch(ib)%orb_sum
-        bd%orb2_sum = bd%orb2_sum + turn_data%bunch(ib)%orb2_sum
-        bd%orb3_sum = bd%orb3_sum + turn_data%bunch(ib)%orb3_sum
-        bd%orb4_sum = bd%orb4_sum + turn_data%bunch(ib)%orb4_sum
-        bd%spin_sum = bd%spin_sum + turn_data%bunch(ib)%spin_sum
-        bd%p0c_sum  = bd%p0c_sum + turn_data%bunch(ib)%p0c_sum
-        bd%time_sum = bd%time_sum + turn_data%bunch(ib)%time_sum
-        bd%species  = beam%bunch(1)%particle(1)%species
+  ! Loop over tracking states
+
+  do ix_stage = 1, ubound(ix_stop_turn, 1)
+    do i = 1, num_slaves
+      ! Get data from slave.
+      slave_rank = MPI_ANY_SOURCE
+
+      call mpi_recv (i, 1, MPI_INTEGER, slave_rank, base_tag$+ix_stage, MPI_COMM_WORLD, stat, ierr)
+      if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
+      slave_rank = stat(MPI_SOURCE)  ! Slave rank
+      ip0 = ixp_slave(slave_rank-1)+1; ip1 = ixp_slave(slave_rank)
+      n = ip1 + 1 - ip0
+      dat_size = n * storage_size(beam%bunch(1)%particle(1)) / 8
+      do nb = 1, size(beam%bunch)
+        call mpi_recv(beam%bunch(nb)%particle(ip0:ip1), dat_size, MPI_BYTE, slave_rank, base_tag$+ix_stage, MPI_COMM_WORLD, stat, ierr)
+        if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
       enddo
-      beam_data_sum%turn(ix)%i_turn = turn_data%i_turn
-      beam_data_sum%turn(ix)%status = valid$
+
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Gathered data for stage ' // int_str(ix_stage) // ' from Slave: ' // int_str(slave_rank))
     enddo
 
-    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Gathered data from Slave: ' // int_str(slave_rank))
+    ! Write results
 
-    ! Tell slave if more tracking needed
-    if (ix0_p == size(beam%bunch(1)%particle)) slave_is_done(slave_rank) = .true.
-    call mpi_send (slave_is_done(slave_rank), 1, MPI_LOGICAL, slave_rank, is_done_tag$, MPI_COMM_WORLD, ierr)
-    if (all(slave_is_done)) exit       ! All done?
-    if (ix0_p == size(beam%bunch(1)%particle)) cycle
-    
-    ! Give slave particle positions
-    n_pass = n_pass + 1
-    ix1_p = min(nint(n_pass*mpi_particles_per_run), size(beam%bunch(1)%particle))
-
-    n = ix1_p-ix0_p
-    dat_size = n * storage_size(beam%bunch(1)%particle(1)) / 8
-    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Position data size to slave: ' // int_str(slave_rank))
-    call mpi_send (n, 1, MPI_INTEGER, slave_rank, num_tag$, MPI_COMM_WORLD, ierr)
-    call mpi_send (ix0_p, 1, MPI_INTEGER, slave_rank, num_tag$, MPI_COMM_WORLD, ierr)
-    call ltt_print_mpi_info (lttp, ltt_com, 'Master: More Initial positions to slave: ' // int_str(slave_rank) // &
-                                                 '  For particles: [' // int_str(ix0_p+1) // ':' // int_str(ix1_p) // ']', .true.)
-    do nb = 1, size(beam%bunch)
-      call mpi_send (beam%bunch(nb)%particle(ix0_p+1:ix1_p), dat_size, MPI_BYTE, slave_rank, particle_tag$, MPI_COMM_WORLD, ierr)
-    enddo
-
-    ix0_p = ix1_p
+    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Writing data for stage ' // int_str(ix_stage), .true.)
+    i_turn = ix_stop_turn(ix_stage)
+    call ltt_write_particle_data (lttp, ltt_com, i_turn, beam)
+    call ltt_write_averages_data (lttp, i_turn, beam)
+    call ltt_write_custom (lttp, ltt_com, i_turn, beam = beam)
   enddo
-
-  ! Write results
-
-  call ltt_write_averages_data (lttp, beam_data_sum)
-  call ltt_print_mpi_info (lttp, ltt_com, 'Master: All done!', .true.)
-
-  ! Gather particle data files
-
-  ok = dir_list (ltt_com%mpi_data_dir, file_list)
-  iu = lunget()
-
-  if (lttp%particle_output_file /= '') then
-    n_out = 0   ! Number of output files to generage
-    call re_allocate (turn, size(file_list))
-    do i = 1, size(file_list)
-      file = file_list(i)
-      if (file(1:1) == 'b') cycle  ! Skip binary files
-      ix = index(file, '_')
-      read (file(1:ix-1), *) n
-      if (any(n == turn(1:n_out))) cycle
-      n_out = n_out + 1
-      turn(n_out) = n
-    enddo
-
-    do nn = 1, n_out
-      do i = 1, size(file_list)
-        file = file_list(i)
-        if (file(1:1) == 'b') cycle   ! Skip binary files
-        ix = index(file, '_')
-        read (file(1:ix-1), *) n
-        if (n /= turn(nn)) cycle
-
-        str = file(ix+1:)
-        ix = index(str, '_')
-        read (str(1:ix-1), *) ib
-        
-        open (iu, file = trim(ltt_com%mpi_data_dir) // file, status = 'OLD')
-        do
-          read (iu, *, iostat = ios) ix, i_turn, orb%vec, orb%spin, orb%state
-          if (ios /= 0) exit
-          beam%bunch(ib)%particle(ix) = orb
-        enddo
-        close (iu)
-      enddo
-      call ltt_write_particle_data (lttp, ltt_com, i_turn, beam, .false.)
-    enddo
-  endif
 
   if (lttp%beam_binary_output_file /= '') then
-    do i = 1, size(file_list)
-      file = file_list(i)
-      if (file(1:1) /= 'b') cycle
-      call hdf5_read_beam(trim(ltt_com%mpi_data_dir) // file, beam2, err_flag)
-      read (file(2:), *) ix
-      do ib = 1, size(beam2%bunch)
-        n = size(beam2%bunch(ib)%particle)
-        beam%bunch(ib)%particle(ix+1:ix+n) = beam2%bunch(ib)%particle
-      enddo
-    enddo
     call write_beam_file (lttp%beam_binary_output_file, beam)
   endif
 
-  call system_command ('rm -rf ' // trim(ltt_com%mpi_data_dir))
-
   ! And end
 
+  call ltt_print_mpi_info (lttp, ltt_com, 'Master: All done!', .true.)
   call run_timer ('ABS', now_time)
   call ltt_write_line('# tracking_time = ' // real_str((now_time-ltt_com%time_start)/60, 4, 2), lttp, 0)
   call mpi_finalize(ierr)
@@ -339,44 +246,36 @@ if (ltt_com%mpi_rank == master_rank$) then
 !------------------------------------------------------------------------------------------
 else  ! Is a slave
 
-  call ltt_print_mpi_info (lttp, ltt_com, 'Slave Starting...')
-  call mpi_recv (ltt_com%n_particle, 1, MPI_INTEGER, master_rank$, num_tag$, MPI_COMM_WORLD, stat, ierr)
+  call ltt_print_mpi_info (lttp, ltt_com, 'Slave Starting...', .true.)
+  ip0 = ixp_slave(ltt_com%mpi_rank-1)+1; ip1 = ixp_slave(ltt_com%mpi_rank)
+  n = ip1 + 1 - ip0
 
-  do
-    ! Init positions from master
-    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for data size info.')
-    call mpi_recv (n, 1, MPI_INTEGER, master_rank$, num_tag$, MPI_COMM_WORLD, stat, ierr)
-    call mpi_recv (ltt_com%mpi_ix0_particle, 1, MPI_INTEGER, master_rank$, num_tag$, MPI_COMM_WORLD, stat, ierr)
-    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for position info for ' // int_str(n) // ' particles.')
-    call reallocate_beam(beam2, max(1, ltt_com%beam_init%n_bunch), n)
-    dat_size = n * storage_size(beam2%bunch(1)%particle(1)) / 8
-    do nb = 1, size(beam2%bunch)
-      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for bunch: ' // int_str(nb))
-      call mpi_recv (beam2%bunch(nb)%particle, dat_size, MPI_BYTE, master_rank$, particle_tag$, MPI_COMM_WORLD, stat, ierr)
-    enddo
-
-    ! Run
-    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Track beam.')
-    call ltt_run_beam_mode(lttp, ltt_com, beam_data, beam2)  ! Beam tracking
-    bd_size = size(beam_data%turn(1)%bunch) * storage_size(beam_data%turn(1)%bunch(1)) / 8
-
-    ! Send data to master
-    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Sending Beam Size Data... ' // int_str(bd_size))
-    do ix = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
-      call mpi_send ([beam_data%turn(ix)%status, beam_data%turn(ix)%i_turn], 2, MPI_INTEGER, &
-                                                            master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
-      call mpi_send (beam_data%turn(ix)%bunch, bd_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
-    enddo
-
-    ! Query Master if more tracking needed
-    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Query am-i-done to master...')
-    call mpi_recv (am_i_done, 1, MPI_LOGICAL, master_rank$, is_done_tag$, MPI_COMM_WORLD, stat, ierr)
-    if (am_i_done) exit
+  ! Init positions from master
+  call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for init position info for ' // int_str(n) // ' particles.')
+  call reallocate_beam(beam2, max(1, ltt_com%beam_init%n_bunch), n)
+  dat_size = n * storage_size(beam2%bunch(1)%particle(1)) / 8
+  do nb = 1, size(beam2%bunch)
+    call mpi_recv (beam2%bunch(nb)%particle, dat_size, MPI_BYTE, master_rank$, base_tag$, MPI_COMM_WORLD, stat, ierr)
+    if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   enddo
 
-  call ltt_print_mpi_info (lttp, ltt_com, 'Slave: All done!')
-  call mpi_finalize(ierr)
+  do ix_stage = 1, ubound(ix_stop_turn, 1)
+    nt0 = ix_stop_turn(ix_stage-1); nt1 = ix_stop_turn(ix_stage)
+    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Track beam for stage: ' // int_str(ix_stage), .true.)
+    call ltt_run_beam_mode(lttp, ltt_com, nt0, nt1, beam2)  ! Beam tracking
 
+    ! Send data to master
+    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Send particle data for stage: ' // int_str(ix_stage))
+    call mpi_send (ltt_com%mpi_rank, 1, MPI_INTEGER, master_rank$, base_tag$+ix_stage, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
+    do nb = 1, size(beam2%bunch)
+      call mpi_send (beam2%bunch(nb)%particle, dat_size, MPI_BYTE, master_rank$, base_tag$+ix_stage, MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
+    enddo
+  enddo
+
+  call ltt_print_mpi_info (lttp, ltt_com, 'Slave: All done!', .true.)
+  call mpi_finalize(ierr)
 endif
 
 end program
