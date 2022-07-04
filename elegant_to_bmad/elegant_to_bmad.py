@@ -228,6 +228,7 @@ bmad_param_name = {
   'frequency':    'rf_frequency',
   'freq':         'rf_frequency',
   'phase':        'phi0',
+  'volt':         'voltage',
 }
 
 #------------------------------------------------------------------
