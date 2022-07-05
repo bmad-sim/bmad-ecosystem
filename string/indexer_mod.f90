@@ -469,14 +469,14 @@ end subroutine find_index3
 !                    str_arr(i1) < str_arr(i2) where i1 = indx_arr(j), i2 = indx_arr(j+1).
 !-
 
-SUBROUTINE indexer_str(str_arr, indx_arr)
+subroutine indexer_str(str_arr, indx_arr)
 
 character(*) :: str_arr(:)
-INTEGER :: indx_arr(:)
-INTEGER, PARAMETER :: NN = 15, NSTACK = 50
+integer :: indx_arr(:)
+integer, parameter :: nn = 15, nstack = 50
 character(len(str_arr)) :: a
-INTEGER :: n, k, i, j, indext, jstack, l, r
-INTEGER, DIMENSION(NSTACK) :: istack
+integer :: n, k, i, j, indext, jstack, l, r
+integer, dimension(nstack) :: istack
 n = assert_equal([size(indx_arr), size(str_arr)], 'indexer_str')
 indx_arr = [(k, k = 1, n)]
 jstack = 0
