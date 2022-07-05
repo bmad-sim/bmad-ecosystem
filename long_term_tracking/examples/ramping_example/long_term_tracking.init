@@ -5,7 +5,7 @@
   ltt%ele_start = ''                   ! Where to start in the lattice
   ltt%ele_stop = ''                     ! Where to start in the lattice
 
-  ltt%particle_output_file = ''
+  ltt%phase_space_output_file = ''
   ltt%averages_output_file = 'out'
   ltt%custom_output_file = 'custom.dat'
   ltt%averages_output_every_n_turns = 10
