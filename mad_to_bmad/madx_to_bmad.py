@@ -1048,7 +1048,7 @@ def parse_command(command, dlist):
              f'  You may have to edit the Bmad lattice file by hand to resolve this.')
     common.var_name_list.append(dlist[0])
     name = dlist[0]
-    value = bmad_expression(command.split('=')[1].strip(), dlist[0])
+    value = bmad_expression(command.split('=')[1].strip(), '')
     if '[' in value or not common.prepend_vars:    # Involves an element parameter
       f_out.write(f'{name} = {value}\n')
     else:
