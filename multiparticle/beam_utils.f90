@@ -1380,15 +1380,18 @@ end subroutine calc_bunch_params_slice
 ! Output     
 !   bunch_params -- bunch_params_struct:
 !   error        -- Logical: Set True if there is an error.
+!   n_mat(6,6)      -- real(rp), optional: N matrix defined in Wolski Eq 44 and used to convert 
+!                       from action-angle coords to lab coords (Wolski Eq 51.).
 !-
 
-subroutine calc_bunch_params (bunch, bunch_params, error, print_err)
+subroutine calc_bunch_params (bunch, bunch_params, error, print_err, n_mat)
 
 implicit none
 
-type (bunch_struct), intent(in) :: bunch
+type (bunch_struct) :: bunch
 type (bunch_params_struct) bunch_params
 
+real(rp), optional :: n_mat(6,6)
 real(rp) eta, etap, gamma
 real(rp) :: sigma(6,6) = 0.0
 real(rp) :: charge_live, avg_energy
@@ -1407,11 +1410,6 @@ bunch_params = bunch_params_struct()
 bunch_params%twiss_valid = .false.  ! Assume the worst
 error = .true.
 
-if (bunch%charge_tot == 0) then
-  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'CHARGE OF PARTICLES IN BUNCH NOT SET. CALCULATION CANNOT BE DONE.')
-  return
-endif
-
 call re_allocate (charge, size(bunch%particle))
 
 species = bunch%particle(1)%species
@@ -1422,10 +1420,17 @@ bunch_params%n_particle_tot = size(bunch%particle)
 bunch_params%n_particle_live = count(bunch%particle%state == alive$)
 bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%state == alive$))
 bunch_params%charge_tot = sum(bunch%particle%charge)
+bunch%charge_tot = bunch_params%charge_tot
+bunch%charge_live = bunch_params%charge_live
 
-bunch_params%centroid          = bunch%particle(1)
+bunch_params%centroid          = bunch%particle(1)  ! Note: centroid%vec gets set by calc_bunch_sigma_matrix
 bunch_params%centroid%field(1) = sum(bunch%particle%field(1), mask = (bunch%particle%state == alive$))
 bunch_params%centroid%field(2) = sum(bunch%particle%field(2), mask = (bunch%particle%state == alive$))
+
+if (bunch%charge_tot == 0) then
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'CHARGE OF PARTICLES IN BUNCH NOT SET. CALCULATION CANNOT BE DONE.')
+  return
+endif
 
 if (species == photon$) then
   charge = bunch%particle%field(1)**2 + bunch%particle%field(2)**2
@@ -1472,7 +1477,7 @@ if (bunch_params%n_particle_live < 12) return
 ! Sigma matrix calc
 
 call calc_bunch_sigma_matrix (bunch%particle, charge, bunch_params)
-call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, gamma, bunch_params, error, print_err)
+call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, gamma, bunch_params, error, print_err, n_mat)
 
 end subroutine calc_bunch_params
 
@@ -1480,29 +1485,33 @@ end subroutine calc_bunch_params
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine calc_emittances_and_twiss_from_sigma_matrix(sigma_mat, gamma, bunch_params, error, print_err)
+! Subroutine calc_emittances_and_twiss_from_sigma_matrix(sigma_mat, gamma, bunch_params, error, print_err, n_mat)
 !
 ! Routine to calc emittances and Twiss function from a beam sigma matrix.
+! See: Andy Wolski "Alternative approach to general coupled linear optics".
 !
 ! Input:
 !   sigma_mat(6,6)  -- real(rp): Sigma matrix.
 !   gamma           -- real(rp): Relativistic gamma factor (Energy/mass). 
 !                        Just used to calculate the normalized emittances.
-!   print_err       -- Logical, optional: If present and False then suppress 
+!   print_err       -- logical, optional: If present and False then suppress 
 !                        "no eigen-system found" messages.
 !
 ! Output:
 !   bunch_params    -- bunch_params_struct: Holds Twiss and emittance info.
-!   error           -- Logical: Set True if there is an error. Can happen if the emittance of a mode is zero.
+!   error           -- logical: Set True if there is an error. Can happen if the emittance of a mode is zero.
+!   n_mat(6,6)      -- real(rp), optional: N matrix defined in Wolski Eq 44 and used to convert 
+!                       from action-angle coords to lab coords (Wolski Eq 51.).
 !-
 
-subroutine calc_emittances_and_twiss_from_sigma_matrix (sigma_mat, gamma, bunch_params, error, print_err)
+subroutine calc_emittances_and_twiss_from_sigma_matrix (sigma_mat, gamma, bunch_params, error, print_err, n_mat)
 
 implicit none
 
 type (bunch_params_struct) bunch_params
 
 real(rp) sigma_mat(6,6), sigma_s(6,6), avg_energy, n_real(6,6), gamma
+real(rp), optional :: n_mat(6,6)
 
 complex(rp) :: eigen_val(6) = 0.0, eigen_vec(6,6)
 complex(rp) :: n_cmplx(6,6), q(6,6)
@@ -1530,7 +1539,6 @@ call projected_twiss_calc ('Y', bunch_params%y, sigma_mat(3,3), sigma_mat(4,4), 
 call projected_twiss_calc ('Z', bunch_params%z, sigma_mat(5,5), sigma_mat(6,6), sigma_mat(5,6), 0.0_rp, 0.0_rp)
      
 ! Normal-Mode Parameters.
-! See: Andy Wolski "Alternative approach to general coupled linear optics".
 ! find eigensystem of sigma.S 
 
 sigma_s(:,1) = -sigma_mat(:,2)
@@ -1558,7 +1566,7 @@ bunch_params%c%norm_emit = bunch_params%c%emit * gamma
 ! mat_eigen finds row vectors, so switch to column vectors
 
 dim = 6
-if (sigma_s(6,6) == 0) dim = 4  ! No energy diviations
+if (sigma_mat(6,6) == 0) dim = 4  ! No energy diviations
 
 call normalize_e (eigen_vec(1:dim,1:dim), dim, good, err)
 if (err) then
@@ -1582,9 +1590,11 @@ q(4,4) = -i_imag / sqrt(2.0)
 q(5,6) =  i_imag / sqrt(2.0) 
 q(6,6) = -i_imag / sqrt(2.0)
 
-! compute N in Wolski Eq. 44
-n_cmplx(1:dim,1:dim) = matmul(eigen_vec(1:dim,1:dim), q(1:dim,1:dim))
+! Compute N in Wolski Eq. 44
+n_cmplx(1:dim,1:dim) = matmul(eigen_vec(1:dim,1:dim), q(1:dim,1:dim))  ! Imaginary part is zero.
 n_real(1:dim,1:dim) = real(n_cmplx(1:dim,1:dim))
+
+if (present(n_mat)) n_mat = n_real
 
 ! Twiss parameters come from Wolski equations 59, 63 and 64
 
@@ -1783,7 +1793,7 @@ end subroutine calc_spin_params
 !
 ! Output:
 !   bunch_params -- bunch_params_struct: Bunch parameters.
-!     %sigma(21)   
+!     %sigma(6,6)   
 !     %centroid%vec(6)
 !     %rel_max(6)
 !     %rel_min(6)

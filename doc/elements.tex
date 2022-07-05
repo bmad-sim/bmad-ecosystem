@@ -2813,7 +2813,7 @@ be modeled.
 When an element's \vn{tracking_method} is set to \vn{runge_kutta}, the fields used with
 \vn{field_calc} set to \vn{bmad_standard} are described in Section~(\sref{s:rf.fields}). With
 \vn{cavity_type} set to \vn{standing_wave}, the longitudinal mode is set by the
-\vn{longitudinal_mode} parameter. The possible values are 0 or 1 and the default setting is 1. 
+\vn{longitudinal_mode} parameter. The possible values are 0 or 1 and the default setting is 0.
 
 If an element's \vn{cavity_type} parameter is set to \vn{standing_wave}, and if the \vn{field_calc}
 parameter is set to \vn{bmad_standard}, and if an element's \vn{tracking_method} is set to
@@ -4087,6 +4087,7 @@ Attributes specific to an \vn{rfcavity} are:
   phi0_multipass  = <Real>    ! Phase variation with multipass (rad/2pi).
   phi0_autoscale  = <Real>    ! Set by Bmad if autoscaling is turned on (rad/2pi).
   gradient        = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
+  longitudinal_mode = <Int>   ! Longitudinal mode. Default is 1. May be 0 or 1.
 \end{example}
 
 The integrated energy kick felt by a particle, assuming no phase slippage, is 
@@ -4136,10 +4137,10 @@ be modeled. In addition, if a field map is specified
 \index{runge_kutta!and field maps}
 \index{symp_lie_bmad!and field maps}
 If a field map is specified (\sref{s:fieldmap}), tracking using an integrator is possible. A field
-map is only used for \vn{runge_kutta}, \vn{fixed_step_runge_kutta}, and \vn{symp_lie_bmad}
-tracking (\sref{s:tkm}).  Only the fundamental mode has an analytical formula for the symplectic
-tracking. In the future, the other modes could be used with \vn{symp_lie_bmad} tracking using a
-field expansion about the centerline.
+map is only used for \vn{runge_kutta}, \vn{fixed_step_runge_kutta}, and \vn{symp_lie_bmad} tracking
+(\sref{s:tkm}). Only the fundamental mode has an analytical formula for the symplectic
+tracking. With \vn{cavity_type} set to \vn{standing_wave}, the longitudinal mode is set by the
+\vn{longitudinal_mode} parameter. The possible values are 0 or 1 and the default setting is 0.
 
 The \vn{cavity_type} is the type of cavity being simulated. Possible
 settings are:

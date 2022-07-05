@@ -259,7 +259,7 @@ endif
 
 if (err) return
 
-! Set bunch%t0 to real_garbage if there has been tracking outside of track1_bunch_space_charge
+! Set bunch%t0 to real_garbage if there has been significant tracking outside of track1_bunch_space_charge
 
 if (.not. track1_bunch_space_charge_called .and. ele%value(l$) /= 0) bunch%t0 = real_garbage$
 
