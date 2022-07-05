@@ -821,46 +821,97 @@ computed field to the extent that Maxwell's equations have to be modified to tak
 account the coordinate curvature.
 
 %-----------------------------------------------------------------
-\section{RF fields for Field_Calc = Bmad_Standard}
+\section{RF fields}
 \label{s:rf.fields}
 \index{RF fields|hyperbf}
 
 The following describes the how RF fields are calculated when the the \vn{field_calc}
-attribute of an RF element is set to \vn{bmad_standard}.
+attribute of an RF element is set to \vn{bmad_standard}.\footnote
+  {
+Notice that the equations here are only relavent with the \vn{tracking_method} for an RF element set
+to a method like \vn{runge_kutta} where tracking through the field of an element is done.  For
+\vn{bmad_standard} tracking, Equations for \vn{lcavity} tracking are shown in \sref{s:lcavity.std}
+and \vn{rfcavity} tracking in \sref{s:rfcavity.std}.
+  }
+Also see Section~\sref{s:rf.fringe} for how fringe fields are calculated.
 
-The traveling wave model for RF cavities the field, in cylindrical coordinates is
+With \vn{cavity_type} set to \vn{traveling_wave}, the setting of \vn{longitudinal_mode} is ignored
+and the field is given by
 \begin{align}
-  E_s(r, \phi, s, t) &= G \, \cos\bigl( k \, s - \omega \, t + 2 \, \pi \, \phi \bigr) \CRNO
-  E_r(r, \phi, s, t) &= \frac{1}{2} \, G \, k \, r \, \sin\bigl( k \, s - \omega \, t + 2 \, \pi \, \phi \bigr) \\
-  B_\phi(r, \phi, s, t) &= \frac{1}{2 \, c} \, G \, k \, r \, \sin\bigl( k \, s - \omega \, t + 2 \, \pi \, \phi \bigr) \nonumber
+  E_s(r, \phi, s, t) &= G \, \cos\bigl( \omega \, t - k \, s + 2 \, \pi \, \phi \bigr) \CRNO
+  E_r(r, \phi, s, t) &= -\frac{r}{2} \, G \, k \, \sin\bigl( \omega \, t - k \, s + 2 \, \pi \, \phi \bigr) \\
+  B_\phi(r, \phi, s, t) &= -\frac{r}{2 \, c} \, G \, k \, \sin\bigl( \omega \, t - k \, s + 2 \, \pi \, \phi \bigr) \nonumber
   \label{egot}
 \end{align}
 where $G$ is the accelerating gradient, $k = \omega / c$ is the wave number with $\omega$ being the
 RF frequency.
 
-For standing wave cavities, the RF fields are modeled as $N$ half-wave cells, each having a length
-of $\lambda/2$ where $\lambda = 2 \, \pi / k$ is the wavelength. If the length of the RF element is
-not equal to the length of $N$ cells, the ``active region'' is centered in the element and the
-regions to either side are treated as field free.
+For standing wave cavities, with \vn{cavity_type} set to \vn{standing_wave}, the RF fields are
+modeled as $N$ half-wave cells, each having a length of $\lambda/2$ where $\lambda = 2 \, \pi / k$
+is the wavelength. If the length of the RF element is not equal to the length of $N$ cells, the
+``active region'' is centered in the element and the regions to either side are treated as field
+free.
 
-The field in the standing wave cell is modeled either with a $p = 0$ or $p = 1$ longitudinal
-mode. The $p = 1$ longitudinal mode (which is the default if the longitudinal mode is not set in the
-element), models the fields as a pillbox with the transverse wall at infinity as detailed in Chapter
-3, Section VI of reference \cite{b:lee}
+The field in the standing wave cell is modeled either with a $p = 0$ or $p = 1$ longitudinal mode
+(set by the \vn{longitudinal_mode} element parameter). The $p = 1$ longitudinal mode models the
+fields as a pillbox with the transverse wall at infinity as detailed in Chapter 3, Section VI of
+reference \cite{b:lee}
 \begin{align}
-  E_s(r, \phi, s, t)    &= 2 \, G \,                         \cos(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \CRNO
-  E_r(r, \phi, s, t)    &= G \, k \, r \,                    \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \\
-  B_\phi(r, \phi, s, t) &= \frac{-1}{c} \, G \, \, k \, r \, \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi) \nonumber
+  E_s(r, \phi, s, t)    &= 2 \, G \,                 \cos(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \CRNO
+  E_r(r, \phi, s, t)    &= r \, G \, k \,            \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \\
+  B_\phi(r, \phi, s, t) &= -\frac{r}{c} \, G \, k \, \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi) \nonumber
   \label{egot2}
 \end{align}
 The overall factor of 2 in the equation is present to ensure that an ultra-relativistic particle
 entering with $\phi = 0$ will experience an average gradient equal to $G$.
 
-For the $p = 0$ longitudinal mode, a ``pseudo TM$_{010}$'' mode is used that has the correct symmetry:
+For the $p = 0$ longitudinal mode (which is the default), a ``pseudo TM$_{010}$'' mode is used that
+has the correct symmetry:
 \begin{align}
-  E_s(r, \phi, s, t)    &= 2 \, G \,                        \sin(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi) \CRNO
-  E_r(r, \phi, s, t)    &= -G \, k \, r \,                  \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi) \\
-  B_\phi(r, \phi, s, t) &= \frac{1}{c} \, G \, \, k \, r \, \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \nonumber
+  E_s(r, \phi, s, t)    &= 2 \, G \,                \sin(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi) \CRNO
+  E_r(r, \phi, s, t)    &= -r \, G \, k \,          \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi) \\
+  B_\phi(r, \phi, s, t) &= \frac{r}{c} \, G \, k \, \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \nonumber
   \label{egot3}
 \end{align}
 
+%---------------------------------------------------------------------------------
+\section{RF Fringe Fields}
+\label{s:rf.fringe}
+
+Assuming cylindrical symmetry, the radial and azimuthal fields near the axis 
+can be related to the longitudinal electric field via Maxwell's equations\cite{b:hartman}
+\begin{equation}
+  E_r = -\frac{r}{2} \, \frac{\partial E_z}{\partial z}, \qquad
+  B_\phi = \frac{r}{2 \, c} \, \frac{\partial E_z}{\partial t}
+\end{equation}
+Assuming the particle velocity is $c$, these equations can be combined with the force equation
+\begin{equation}
+  F_r = q \, \left( E_r - c \, B_\phi \right)
+\end{equation}
+to give\cite{b:rosenzweig}
+\begin{equation}
+  F_r = - \frac{q \, r}{2} \, \frac{d E_z}{dz}
+  \label{fqr2}
+\end{equation}
+where the total derivative is used here\footnote
+  {
+Hartman\cite{b:hartman} Eq~(16) is not valid for a forward propagating wave component of
+the field. Thus Hartman Eq~(17) is only valid for a backward propagating wave component. \Eq{fqr2},
+on the other hand, is valid for all wave components.
+  }.
+From \Eq{fqr2}, the fringe field kick in the horizontal plane at the entrance end, valid for both
+traveling wave and standing wave cavities, is (cf. Rosenzweig\cite{b:rosenzweig} Eq~(10))
+\begin{equation}
+  \Delta p_x = - \frac{q \, \what E_z}{2 \, c \, P_0} \, x
+  \label{pqe2c}
+\end{equation}
+with a similar equation in the vertical. Here $\what E_z$ is the longitudinal electric field just inside
+the fringe, and $P_0$ is the reference momentum. At the exit end, the kick is the negative of
+\Eq{pqe2c}. This fringe kick is built into \vn{xxpc}.
+
+The integrated fringe fields, needed to calculate the spin precession, are at the entrance end
+\begin{align}
+  \int E_r \, ds &= -\frac{r}{4} \, \what E_z \CRNO
+  \int B_\phi \, ds &= \frac{r}{4 \, c} \, \what E_z
+\end{align}
+The integrated fields at the exit end are obtained by negating the RHS of these equations.

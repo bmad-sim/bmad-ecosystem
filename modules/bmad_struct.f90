@@ -1002,6 +1002,7 @@ type bunch_struct
   real(rp) :: t0 = real_garbage$  ! Used by track1_bunch_space_charge for tracking so particles have constant t.
   integer :: ix_ele = 0           ! Nominal element bunch is at. But, EG, dead particles can be someplace else.
   integer :: ix_bunch = 0         ! Bunch index. Head bunch = 1, etc.
+  integer :: ix_turn = 0          ! Turn index for long term tracking. ix_turn = 0 before end of first turn, etc.
   integer :: n_live = 0
 end type
 

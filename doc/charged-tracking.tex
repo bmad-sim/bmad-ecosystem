@@ -851,8 +851,8 @@ The generalization when the kick is not in the horizontal plane is easily derive
 \label{s:lcavity.std}
 \index{lcavity}
 
-%---------------------------------------------------------------------------------
-\subsection{LCavity Bmad\_Standard Tracking}
+For tracking using something like \vn{runge_kutta}, with \vn{field_calc} set to \vn{bmad_standard},
+the fields are modeled by the equations given in Sections~\sref{s:rf.fields} and \sref{s:rf.fringe}.
 
 For \vn{bmad_standard} tracking, and with \vn{cavity_type} set to \vn{standing_wave}, the transverse
 trajectory through an \vn{Lcavity} is modeled using equations developed by Rosenzweig and
@@ -915,79 +915,6 @@ reference particle.
 Note that the above transport equations are only symplectic on-axis There are second order terms in
 the transverse coordinates that are missing. To obtain a proper symplectic matrix, the
 \vn{symplectify} attribute of an \vn{lcavity} element (\sref{s:symp}) can be set to True.
-
-%---------------------------------------------------------------------------------
-\subsection{LCavity Runge Kutta Tracking}
-
-With \vn{cavity_type} set to \vn{standing_wave}, and with \vn{longitudinal_mode} set to 0 (the
-default), the field in a cavity, in cylindrical coordinates, is modeled by
-\begin{align}
-  E_z    &=           2 \, G \,      \sin(k \, s) \, \sin(2 \, \pi \, (f \, t + \phi_\text{ref})) \CRNO
-  E_r    &=          -r \, G \, k \, \cos(k \, s) \, \sin(2 \, \pi \, (f \, t + \phi_\text{ref})) \\
-  B_\phi &= \frac{r}{c} \, G \, k \, \sin(k \, s) \, \cos(2 \, \pi \, (f \, t + \phi_\text{ref})) \nonumber
-\end{align}
-where $G$ is the voltage gradient, $r$ is the radius, $f$ is the frequency, $\phi_\text{ref}$ is the
-reference phase, and $k$ is the wave number
-\begin{equation}
-  k = \frac{2 \, \pi \, f}{c}
-\end{equation}
-
-With \vn{cavity_type} set to \vn{standing_wave} and with \vn{longitudinal_mode} set to 1, the field is modeled as
-\begin{align}
-  E_z    &=            2 \, G \,      \cos(k \, s) \, \cos(2 \, \pi \, (f \, t + \phi_\text{ref})) \CRNO
-  E_r    &=            r \, G \, k \, \sin(k \, s) \, \cos(2 \, \pi \, (f \, t + \phi_\text{ref})) \\
-  B_\phi &= -\frac{r}{c} \, G \, k \, \cos(k \, s) \, \sin(2 \, \pi \, (f \, t + \phi_\text{ref})) \nonumber
-\end{align}
-
-With \vn{cavity_type} set to \vn{traveling_wave}, the setting of \vn{longitudinal_mode} is ignored
-and the field is given by
-\begin{align}
-  E_z    &=                      G \,      \cos(\theta) \CRNO
-  E_r    &= -\frac{r}{2}      \, G \, k \, \sin(\theta) \\
-  B_\phi &= -\frac{r}{2 \, c} \, G \, k \, \sin(\theta) \CRNO
-  \theta &= 2 \, \pi \, (f \, t + \phi_\text{ref}) - k \, s \nonumber
-\end{align}
-
-%---------------------------------------------------------------------------------
-\subsection{LCavity Fringe Fields}
-
-Assuming cylindrical symmetry, the radial and azimuthal fields near the axis 
-can be related to the longitudinal electric field via Maxwell's equations\cite{b:hartman}
-\begin{equation}
-  E_r = -\frac{r}{2} \, \frac{\partial E_z}{\partial z}, \qquad
-  B_\phi = \frac{r}{2 \, c} \, \frac{\partial E_z}{\partial t}
-\end{equation}
-Assuming the particle velocity is $c$, these equations can be combined with the force equation
-\begin{equation}
-  F_r = q \, \left( E_r - c \, B_\phi \right)
-\end{equation}
-to give\cite{b:rosenzweig}
-\begin{equation}
-  F_r = - \frac{q \, r}{2} \, \frac{d E_z}{dz}
-  \label{fqr2}
-\end{equation}
-where the total derivative is used here\footnote
-  {
-Hartman\cite{b:hartman} Eq~(16) is not valid for a forward propagating wave component of
-the field. Thus Hartman Eq~(17) is only valid for a backward propagating wave component. \Eq{fqr2},
-on the other hand, is valid for all wave components.
-  }.
-From \Eq{fqr2}, the fringe field kick in the horizontal plane at the entrance end, valid for both
-traveling wave and standing wave cavities, is (cf. Rosenzweig\cite{b:rosenzweig} Eq~(10))
-\begin{equation}
-  \Delta p_x = - \frac{q \, \what E_z}{2 \, c \, P_0} \, x
-  \label{pqe2c}
-\end{equation}
-with a similar equation in the vertical. Here $\what E_z$ is the longitudinal electric field just inside
-the fringe, and $P_0$ is the reference momentum. At the exit end, the kick is the negative of
-\Eq{pqe2c}. This fringe kick is built into \vn{xxpc}.
-
-The integrated fringe fields, needed to calculate the spin precession, are at the entrance end
-\begin{align}
-  \int E_r \, ds &= -\frac{r}{4} \, \what E_z \CRNO
-  \int B_\phi \, ds &= \frac{r}{4 \, c} \, \what E_z
-\end{align}
-The integrated fields at the exit end are obtained by negating the RHS of these equations.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
@@ -1126,15 +1053,17 @@ with this
 \label{s:rfcavity.std}
 \index{rfcavity}
 
-Tracking through an rfcavity uses a kick-drift-kick model. The kick is
-a pure energy kick (see equations in \sref{s:rfcav}) and the phase of
-the RF is calculated under the assumption that the waveform moves at a
-phase velocity equal to the velocity of the reference particle.
+For tracking using something like \vn{runge_kutta}, with \vn{field_calc} set to \vn{bmad_standard},
+the fields are modeled by the equations given in Sections~\sref{s:rf.fields} and \sref{s:rf.fringe}.
 
-\index{lcavity}
-The transverse forces due to the RF are ignored. This is a reasonable
-approximation when the acceleration is small. \vn{Lcavity} elements
-should be used in place of \vn{rfcavity} elements when this is not so.
+With \vn{bmad_standard} tracking, a kick-drift-kick model is used. The kick is a
+pure energy kick (see equations in \sref{s:rfcav}) and the phase of the RF is calculated under the
+assumption that the waveform moves at a phase velocity equal to the velocity of the reference
+particle.
+
+With \vn{bmad_standard} tracking, the transverse forces due to the RF are ignored. This is generally
+a reasonable approximation when the acceleration is small as is standard in rings. \vn{Lcavity}
+elements should be used in place of \vn{rfcavity} elements when this is not so.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
