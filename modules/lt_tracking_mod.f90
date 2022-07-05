@@ -39,12 +39,13 @@ type ltt_params_struct
   character(40) :: ele_start = ''
   character(40) :: ele_stop = ''
   character(200) :: lat_file = ''
-  character(200) :: particle_output_file = ''
   character(200) :: beam_binary_output_file = ''
   character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: map_ascii_output_file = ''
   character(200) :: averages_output_file = ''
+  character(200) :: phase_space_output_file = ''
+  character(200) :: action_angle_output_file = ''
   character(8) :: ran_engine = ''
   type (ltt_column_struct) column(100)
   integer :: ix_particle_record = -1    ! Experimental
@@ -55,8 +56,9 @@ type ltt_params_struct
   integer :: averages_output_every_n_turns = -1
   integer :: random_seed = 0
   real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
+  real(rp) :: core_emit_cutoff = 0.5_rp
   real(rp) :: ramping_start_time = 0
-  real(rp) :: ptc_aperture(2) = 0.1
+  real(rp) :: ptc_aperture(2) = 0.1_rp
   real(rp) :: print_on_dead_loss = -1
   real(rp) :: timer_print_dtime = 120
   real(rp) :: dead_cutoff = 1
@@ -75,6 +77,7 @@ type ltt_params_struct
   !
   character(200) :: sigma_matrix_output_file = ''  ! No longer used
   character(200) :: master_output_file = ''        ! No longer used
+  character(200) :: particle_output_file = ''      ! Replaced by phase_space_output_file
   integer :: averaging_window = 1                  ! No longer used
   integer :: mpi_runs_per_subprocess = 4           ! No longer used
 end type
@@ -110,7 +113,8 @@ type ltt_com_struct
   integer :: random_seed_actual = 0
   real(rp) :: ptc_closed_orb(6) = 0
   real(rp) :: time_start = 0
-  logical :: wrote_particle_file_header = .false.
+  logical :: wrote_phase_space_file_header = .false.
+  logical :: wrote_action_angle_file_header = .false.
   logical :: debug = .false.
   integer :: n_particle      ! Num particles per bunch. Needed with MPI.
   integer :: mpi_rank = master_rank$
@@ -134,6 +138,7 @@ type ltt_bunch_data_struct
   real(rp) :: time_sum = 0
   real(rp) :: sig1(6) = 0, sigma(27) = 0, sig_mat(6,6) = 0
   real(rp) :: kurt(3) = 0, skew(3) = 0
+  real(rp) :: core_emit(3) = 0
   type (bunch_params_struct) :: params = bunch_params_struct()
 end type
 
@@ -256,6 +261,17 @@ endif
 
 if (ltt%mpi_runs_per_subprocess /= 4) then
   call out_io (s_info$, r_name, 'Note: ltt%mpi_runs_per_subprocess is no longer used and will be ignored.')
+endif
+
+if (ltt%core_emit_cutoff < 1d-3 .or. ltt%core_emit_cutoff > 1.0_rp) then
+  call out_io (s_fatal$, r_name, 'ltt%core_emit_cutoff MUST BE GREATER THAN ZERO AND LESS THAN OR EQUAL TO ONE. STOPPING HERE.')
+  stop
+endif
+
+if (ltt%particle_output_file /= '') then
+  call out_io (s_error$, r_name, 'Note: ltt%particle_output_file replaced by ltt%phase_space_output_file.', &
+                                 ' Also see ltt%action_angle_output_file.')
+  ltt%phase_space_output_file = ltt%particle_output_file
 endif
 
 ! Lattice init
@@ -385,7 +401,8 @@ enddo
 
 !
 
-call fullfilename (ltt%particle_output_file, ltt%particle_output_file)
+call fullfilename (ltt%phase_space_output_file, ltt%phase_space_output_file)
+call fullfilename (ltt%action_angle_output_file, ltt%action_angle_output_file)
 call fullfilename (ltt%custom_output_file, ltt%custom_output_file)
 
 end subroutine ltt_init_params
@@ -558,13 +575,12 @@ do ib = 0, nb
 
   call ltt_print_this_info(iu, .false.)
 
-  write (iu, '(a1, a8, a9, a12, 2x, 3a14, 2x, 6a14, 2x, 3a14, 2x, 3a14)') '#', '1', '2', '3', &
-                  '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18'
+  write (iu, '(a1, a8, a10, a12, 2x, 3a14, 2x, 6a14, 2x, 3a14, 2x, 3a14, 2x, 3a14)') '#', '1', '2', '3', &
+                '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'
 
-  write (iu, '(a1, a8, a9, a12, 2x, 3a14, 2x, 6a14, 2x, 3a14, 2x, 3a14)') '#', 'Turn', 'N_live', 'Time', &
-                      'Emit_a', 'Emit_b', 'Emit_c', 'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz', &
-                      'Kurtosis_x', 'Kurtosis_y', 'Kurtosis_z', 'Skew_x', 'Skew_y', 'Skew_z'
-
+  write (iu, '(a1, a8, a10, a12, 2x, 3a14, 2x, 6a14, 2x, 3a14, 2x, 3a14, 2x, 3a14)') '#', 'Turn', 'N_live', 'Time', &
+                'Emit_a', 'Emit_b', 'Emit_c', 'Core_Emit_a', 'Core_Emit_b', 'Core_Emit_c', 'Sig_x', 'Sig_px', 'Sig_y', &
+                'Sig_py', 'Sig_z', 'Sig_pz', 'Kurtosis_x', 'Kurtosis_y', 'Kurtosis_z', 'Skew_x', 'Skew_y', 'Skew_z'
 
   close(iu)
 
@@ -593,7 +609,8 @@ call ltt_write_line('# ltt%lat_file                       = ' // quote(lttp%lat_
 call ltt_write_line('# ltt%averages_output_file           = ' // quote(lttp%averages_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%beam_binary_output_file        = ' // quote(lttp%beam_binary_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%custom_output_file             = ' // quote(lttp%custom_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%particle_output_file           = ' // quote(lttp%particle_output_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%phase_space_output_file        = ' // quote(lttp%phase_space_output_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%action_angle_output_file       = ' // quote(lttp%action_angle_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%map_file_prefix                = ' // quote(lttp%map_file_prefix), lttp, iu, print_this)
 call ltt_write_line('# ltt%simulation_mode                = ' // quote(lttp%simulation_mode), lttp, iu, print_this)
 call ltt_write_line('# ltt%tracking_method                = ' // quote(lttp%tracking_method), lttp, iu, print_this)
@@ -613,6 +630,7 @@ call ltt_write_line('# bmad_com%sr_wakes_on               = ' // logic_str(bmad_
 if (bmad_com%sr_wakes_on) then
   call ltt_write_line('# Number_of_wake_elements            = ' // int_str(size(ltt_com%ix_wake_ele)), lttp, iu, print_this)
 endif
+call ltt_write_line('# ltt%core_emit_cutoff               = ' // real_str(lttp%core_emit_cutoff, 2), lttp, iu, print_this)
 call ltt_write_line('# ltt%random_sigma_cut               = ' // real_str(lttp%random_sigma_cut, 6), lttp, iu, print_this)
 call ltt_write_line('# ltt%n_turns                        = ' // int_str(lttp%n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%particle_output_every_n_turns  = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
@@ -817,8 +835,8 @@ endif
 !
 
 iu_part = lunget()
-if (lttp%particle_output_file == '') lttp%particle_output_file = 'single.dat'
-open(iu_part, file = lttp%particle_output_file, recl = 200)
+if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
+open (iu_part, file = lttp%phase_space_output_file, recl = 200)
 call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
 write (iu_part, '(a)') '#  Turn ix_ele |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z  | Element'
 write (iu_part, ltt_com%fmt) 0, ele_start%ix_ele, orbit%vec, orbit%spin, trim(ele_start%name)
@@ -882,7 +900,7 @@ do i_turn = 1, lttp%n_turns
   if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, i_turn, orbit = orbit)
 enddo
 
-print '(2a)', 'Particle output file: ', trim(lttp%particle_output_file)
+print '(2a)', 'Particle output file: ', trim(lttp%phase_space_output_file)
 close (iu_part)
 
 if (lttp%averages_output_file /= '') then
@@ -933,8 +951,10 @@ endif
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch))
 
 do ib = 1, size(beam%bunch)
+  bunch => beam%bunch(ib)
+  if (all(bunch%particle%charge == 0)) bunch%particle%charge = 1
   do n = 1, size(beam%bunch(ib)%particle)
-    p => beam%bunch(ib)%particle(n)
+    p => bunch%particle(n)
     if (lttp%add_closed_orbit_to_init_position) then
       select case (lttp%tracking_method)
       case ('MAP');    p%vec = p%vec + ltt_com%bmad_closed_orb(ele_start%ix_ele)%vec
@@ -1254,17 +1274,11 @@ type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
-type (coord_struct), pointer :: p
 
-integer i_turn, ix, ip, ib, j
-integer iu_part
-
-character(200) file_name
-character(40) fmt, str
+integer i_turn, ib, nb
 
 !
 
-if (lttp%particle_output_file == '') return
 select case (lttp%particle_output_every_n_turns)
 case (-1);    if (i_turn /= lttp%n_turns) return
 case (0);     if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
@@ -1273,41 +1287,87 @@ end select
 
 !
 
-do ib = 1, size(beam%bunch)
+nb = size(beam%bunch)
+
+do ib = 1, nb
   bunch => beam%bunch(ib)
 
-  j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
-  str = int_str(i_turn, j)
-  if (size(beam%bunch) > 1) str = 'bunch' // int_str(ib) // '-' // str
+  if (lttp%phase_space_output_file /= '') call write_this_data (lttp, ltt_com, 'phase_space', &
+            lttp%phase_space_output_file, bunch, i_turn, ib, nb, ltt_com%wrote_phase_space_file_header)
 
-  ix = index(lttp%particle_output_file, '#')
-  if (ix == 0) then
-    file_name = trim(lttp%particle_output_file) // str
-  else
-    file_name = lttp%particle_output_file(1:ix-1) // trim(str) // trim(lttp%particle_output_file(ix+1:))
-  endif
-
-  !
-
-  iu_part = lunget()
-
-  open (iu_part, file = file_name, recl = 300)
-  call ltt_write_params_header(lttp, ltt_com, iu_part, ltt_com%n_particle, size(beam%bunch))
-  write (iu_part, '(a)')  '#      Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
-
-  ltt_com%wrote_particle_file_header = .true.
-
-  !
-
-  do ip = 1, size(bunch%particle)
-    p => bunch%particle(ip)
-    ix = ip + ltt_com%mpi_ix0_particle
-    if (lttp%only_live_particles_out .and. p%state /= alive$) cycle
-    write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
-  enddo
-
-  close(iu_part)
+  if (lttp%action_angle_output_file /= '') call write_this_data (lttp, ltt_com, 'action_angle', &
+            lttp%action_angle_output_file, bunch, i_turn, ib, nb, ltt_com%wrote_action_angle_file_header)
 enddo
+
+!--------------------------------------------------
+contains
+
+subroutine write_this_data (lttp, ltt_com, who, base_name, bunch, i_turn, ix_bunch, n_bunch, wrote_header)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (bunch_struct), target :: bunch
+type (coord_struct), pointer :: p
+type (bunch_params_struct) b_params
+
+real(rp) n_inv_mat(6,6), jvec(6), jamp(3), jphase(3)
+integer i_turn, ix_bunch, n_bunch, j, ix, iu, ip
+logical wrote_header, error
+character(*) who, base_name
+character(200) file_name
+character(40) str, fmt
+
+!
+
+if (base_name == '') return
+
+iu = lunget()
+
+j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
+str = int_str(i_turn, j)
+if (n_bunch > 1) str = 'bunch' // int_str(ix_bunch) // '-' // str
+
+ix = index(base_name, '#')
+if (ix == 0) then
+  file_name = trim(base_name) // str
+else
+  file_name = base_name(1:ix-1) // trim(str) // trim(base_name(ix+1:))
+endif
+
+if (wrote_header) then
+  open (iu, file = file_name, recl = 300, access = 'append')
+else
+  open (iu, file = file_name, recl = 300)
+  call ltt_write_params_header(lttp, ltt_com, iu, ltt_com%n_particle, size(beam%bunch))
+  if (who == 'phase_space') then
+    write (iu, '(a)')  '#      Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
+  else
+    write (iu, '(a)')  '#      Ix     Turn |          Jx         Angle_x              Jy         Angle_y              Jz         Angle_z   |     spin_x    spin_y    spin_z    State'
+  endif
+  wrote_header = .true.
+endif
+
+!
+
+do ip = 1, size(bunch%particle)
+  p => bunch%particle(ip)
+  ix = ip + ltt_com%mpi_ix0_particle
+  if (lttp%only_live_particles_out .and. p%state /= alive$) cycle
+  if (who == 'phase_space') then
+    write (iu, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
+  else
+    call calc_bunch_params (bunch, b_params, error, n_mat = n_inv_mat)
+    call mat_inverse (n_inv_mat, n_inv_mat)
+    jvec = matmul(n_inv_mat, p%vec-b_params%centroid%vec)
+    jamp = 0.5_rp * [jvec(1)**2 + jvec(2)**2, jvec(3)**2 + jvec(4)**2, jvec(5)**2 + jvec(6)**2]
+    jphase = [atan2(jvec(2), jvec(1)), atan2(jvec(3), jvec(4)), atan2(jvec(5), jvec(6))]
+    write (iu, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, jamp(1), jphase(1), jamp(2), jphase(2), jamp(3), jphase(3), p%spin, trim(coord_state_name(p%state))
+  endif
+enddo
+
+close(iu)
+
+end subroutine write_this_data
 
 end subroutine ltt_write_particle_data
 
@@ -1538,13 +1598,19 @@ end subroutine ltt_write_params_header
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_calc_bunch_data (bunch, bd)
+subroutine ltt_calc_bunch_data (lttp, bunch, bd)
 
-type (bunch_struct), target :: bunch
+type (ltt_params_struct) lttp
+type (bunch_struct), target :: bunch, core_bunch
 type (ltt_bunch_data_struct) :: bd
+type (bunch_params_struct) b_params
 
-real(rp) ave
-integer i, j, k, ib, ix, i_turn, this_turn, n2w
+real(rp) ave, n_inv_mat(6,6), f, z, sig_cut, center(6)
+real(rp), allocatable :: jamp(:)
+
+integer i, j, k, n, ib, ix, i_turn, this_turn, n2w, n_cut
+integer, allocatable :: indx(:)
+
 logical error
 
 !
@@ -1570,6 +1636,7 @@ enddo
 
 bd%p0c_sum = bd%p0c_sum + sum(bunch%particle%p0c, bunch%particle%state == alive$)
 bd%time_sum = bd%time_sum + sum(bunch%particle%t, bunch%particle%state == alive$)
+center = bd%orb_sum / bd%n_live
 
 !
 
@@ -1595,7 +1662,75 @@ if (bd%sig1(3) /= 0) bd%kurt(2) = bd%orb4_sum(3) / (bd%n_live * bd%sig1(3)**4) -
 if (bd%sig1(5) /= 0) bd%skew(3) = bd%orb3_sum(5) / (bd%n_live * bd%sig1(5)**3)
 if (bd%sig1(5) /= 0) bd%kurt(3) = bd%orb4_sum(5) / (bd%n_live * bd%sig1(5)**4) - 3.0_rp
 
-call calc_emittances_and_twiss_from_sigma_matrix (bd%sig_mat, 0.0_rp, bd%params, error)
+call calc_emittances_and_twiss_from_sigma_matrix (bd%sig_mat, 0.0_rp, bd%params, error, n_mat = n_inv_mat)
+call mat_inverse (n_inv_mat, n_inv_mat)
+
+! Calc core emit
+
+n = bd%n_live
+n_cut = nint(lttp%core_emit_cutoff * n)
+allocate (core_bunch%particle(n_cut))
+if (lttp%core_emit_cutoff > 1.0_rp - 1e-6_rp) then
+  f = 1.0_rp
+else
+  sig_cut = -log(1-lttp%core_emit_cutoff)
+  f =  lttp%core_emit_cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
+endif
+
+
+n = size(bunch%particle)
+allocate(jamp(n), indx(n))
+
+do i = 1, 3
+  call core_bunch_construct(i, bunch, center, n_inv_mat, n_cut, core_bunch)
+
+  call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
+  call mat_inverse (n_inv_mat, n_inv_mat)
+  call core_bunch_construct(i, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch)
+
+  call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
+  select case (i)
+  case (1); bd%core_emit(1) = f * b_params%a%emit
+  case (2); bd%core_emit(2) = f * b_params%b%emit
+  case (3); bd%core_emit(3) = f * b_params%c%emit
+  end select
+enddo
+
+!------------------------------------------------
+contains
+
+subroutine core_bunch_construct(ix_mode, bunch, center, n_inv_mat, n_cut, core_bunch)
+
+type (bunch_struct), target :: bunch, core_bunch
+type (coord_struct), pointer :: p
+
+real(rp) n_inv_mat(6,6), center(6)
+real(rp) jvec(6)
+
+integer ix_mode, n_cut
+integer k, j, ip, ix
+
+!
+
+do ip = 1, size(bunch%particle)
+  p => bunch%particle(ip)
+  if (p%state /= alive$) cycle
+  jvec = matmul(n_inv_mat, p%vec-center)
+  ix = ix_mode * 2 - 1
+  jamp(ip) = 0.5_rp * (jvec(ix)**2 + jvec(ix+1)**2)
+enddo
+
+call indexer(jamp(:), indx)
+k = 0
+do ip = 1, size(bunch%particle)
+  j = indx(ip)
+  if (bunch%particle(j)%state /= alive$) cycle
+  k = k + 1
+  core_bunch%particle(k) = bunch%particle(j)
+  if (k == n_cut) exit
+enddo
+
+end subroutine core_bunch_construct
 
 end subroutine ltt_calc_bunch_data
 
@@ -1663,7 +1798,7 @@ do ib = 1, nb
   bunch => beam%bunch(ib)
   if (bunch%n_live == 0) exit
 
-  call ltt_calc_bunch_data(bunch, bd)
+  call ltt_calc_bunch_data(lttp, bunch, bd)
 
   call ltt_data_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
   iu1 = lunget(); open (iu1, file = file_name, recl = 400, access = 'append')
@@ -1677,10 +1812,10 @@ do ib = 1, nb
   write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 7es14.6)') ix_turn, nint(bd%n_live), &
           bd%time_sum/bd%n_live, norm2(bd%spin_sum/bd%n_live), bd%spin_sum/bd%n_live, bd%orb_sum/bd%n_live, bd%p0c_sum/bd%n_live
 
-  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)')  ix_turn, nint(bd%n_live), bd%time_sum/bd%n_live, (bd%sigma(k), k = 1, 21)
+  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)') ix_turn, nint(bd%n_live), bd%time_sum/bd%n_live, (bd%sigma(k), k = 1, 21)
 
-  write (iu3, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 6es14.6, 2x, 3es14.6, 2x, 3es14.6)') ix_turn, nint(bd%n_live), &
-          bd%time_sum/bd%n_live, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%sig1, bd%kurt, bd%skew
+  write (iu3, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 6es14.6, 2x, 3es14.6, 2x, 3es14.6, 2x, 3es14.6)') ix_turn, nint(bd%n_live), &
+          bd%time_sum/bd%n_live, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%core_emit, bd%sig1, bd%kurt, bd%skew
 
   close (iu1)
   close (iu2)

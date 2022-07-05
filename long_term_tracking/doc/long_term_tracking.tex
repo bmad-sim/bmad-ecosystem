@@ -68,7 +68,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ June 27, 2022}
+\date{David Sagan \\ July 4, 2022}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -84,7 +84,7 @@
 
 The \ltt program is for long term (over many turns) tracking of a particle or a beam in a ring.  The
 \ltt program can track spin as well as simulate such things as element misalignments, wake fields,
-higher order mode cavity resonances, energy ramping, beta squeesing, etc. The output of the program
+higher order mode cavity resonances, energy ramping, beta squeezing, etc. The output of the program
 will be such things as turn-by-turn particle tracks or beam statistics including beam sizes and
 polarizations.
 
@@ -210,7 +210,7 @@ turned on.
 In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The starting coordinates are
 set by \vn{particle_start} commands in the lattice file. 
 
-The name of the data file is set by the \vn{ltt%particle_output_file} parameter
+The name of the data file is set by the \vn{ltt%phase_space_output_file} parameter
 (\sref{s:input}). The particle position will be output every \vn{ltt%particle_output_every_n_turns}
 turns. If this parameter is zero or negative, the position will be outputted at every element.
 %
@@ -303,7 +303,7 @@ this, the switch \vn{ltt%split_bends_for_stochastic_rad} may be set True. In thi
 elements are split in the center and special radiation marker elements are placed in between the
 split bends. These radiation marker elements are excluded when constructing maps so the result is
 many maps whose boundaries will be at the bend centers. When tracking, the maps will not incorporate
-stochastice radiation effects (but will still have radiation damping) and a stochastic radiation
+stochastic radiation effects (but will still have radiation damping) and a stochastic radiation
 kick will be put in at the radiation marker elements as well as any other elements that are excluded
 from the maps.
 
@@ -318,9 +318,7 @@ tracking is also potentially problematical in that radiation effects are not tak
 non-dipole elements that are included in any map. If there are any such elements (for example,
 wiggler elements), these elements should be excluded from being included in any map.
 
-Maps are saved to a file for use if the program is rerun. The name of a map file is determined, in
-part, by the setting of the \vn{ltt%map_file_prefix} parameter. See the documentation on this
-parameter in \sref{s:out.params}. The map file is in a PTC format. For linear maps, an ASCII file
+Maps are saved to a file for use if the program is rerun. For linear maps, an ASCII file
 can be produced by setting \vn{ltt%map_ascii_output_file}.
 
 %------------------------------------------------------------------
@@ -563,13 +561,15 @@ Example:
   ltt%ramping_start_time = 0
 
   ! Output parameters
-  ltt%particle_output_file = "snap.dat"
+  ltt%phase_space_output_file = ""
+  ltt%action_angle_output_file = ""
   ltt%beam_binary_output_file = "beam.dat"
   ltt%averages_output_file = "average.dat"
   ltt%custom_output_file = ""
   ltt%averages_output_every_n_turns = 200
   ltt%particle_output_every_n_turns = 200
   ltt%only_live_particles_out = T
+  ltt%core_emit_cutoff   = 0.5
   ltt%print_on_dead_loss = -1
   ltt%map_file_prefix = "ltt"
   ltt%map_ascii_output_file = ""
@@ -604,8 +604,8 @@ Example:
   beam_init%use_particle_start = F
   beam_init%center = 0, 0, 0, 0, 0, 0
   beam_init%n_particle = 10
-  beam_init%spin = 0, 0, 0        ! See Bmad manual for 
-  beam_init%a_emit = 1e-8         !    beam_init_struct parameters.
+  beam_init%spin = 0, 0, 0        ! See Bmad manual for complete list
+  beam_init%a_emit = 1e-8         !    of beam_init_struct parameters.
   beam_init%b_emit = 1e-8
   beam_init%sig_z = 1e-4
   beam_init%sig_pz = 1e-4
@@ -627,11 +627,20 @@ Name of the Bmad lattice file to use. This name is required.
 \end{description}
 
 %----------------------------------------------------
-\subsection{Output Parameters}
-\label{s:out.params}
+\subsection{Output Files}
+\label{s:out.files}
 
 Parameters in the master input file that affect the output are:
 \begin{description}
+%
+\item[ltt\%action_angle_output_file] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the ASCII file or files that are
+created to hold the particle positions in action-angle coordinates. A file is created every
+\vn{ltt%particle_output_every_n_turns} turns. See Section~\sref{s:part.out} for more details. If
+\vn{ltt%action_angle_output_file} is blank, no particle output file is created. See also
+\vn{ltt%beam_binary_output_file} which will produce a portable binary file. Also see
+\vn{ltt%phase_space_output_file}.
+%
 \item[ltt\%averages_output_every_n_turns] \Newline
 Sets the number of turns between data rows of data files specified by:
 \begin{code}
@@ -649,7 +658,7 @@ In this example, output will happen every 1000 turns.  Also see: \vn{particle_ou
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. There are three data files generated here.
 The reason to generate multiple data files is to avoid a file with extremely long lines.  the names
 of the three files will be generated by appending the suffixes ``\vn{.ave}'', ``\vn{.sigma}'', and
-``\vn{.emit}'' to the name. If the \vn{ltt\%averages_output_file} string contains a hash ``\vn{#}''
+``\vn{.emit}'' to the name. If the \vn{ltt%averages_output_file} string contains a hash ``\vn{\#}''
 character, rather than appending the suffixes, the suffixes, minus the beginning dot character, will
 be substituted for the hash mark.
 
@@ -672,7 +681,7 @@ The \vn{sigma} file with the \vn{.sigma} suffix will contain the following colum
   Time                          -- Time from start
   $\Sigma_{ij}$
 \end{code}
-The 6x6 sigma matrix $\boldsymbol{\sigma}$ is a measure of the beam size defined by
+The 6x6 sigma matrix $\boldsymbol{\Sigma}$ is a measure of the beam size defined by
 \begin{equation}\large
   \Sigma_{ij} = \left< dr_i \, dr_j \right>
 \end{equation}
@@ -685,6 +694,8 @@ The \vn{emittance} file with the \vn{.emit} suffix will contain the following co
   N_live                        -- Number of live particles
   Time                          -- Time from start
   emit_a, emit_b, emit_c        -- Normal mode emittances
+  core_emit_a, core_emit_b,
+        core_emit_c             -- ``Core'' emittances
   Sig_x, Sig_px, Sig_y, 
         Sig_py, Sig_z, Sig_pz   -- Phase space sigmas
   kurtosis_x, kurtosis_y, 
@@ -694,17 +705,12 @@ The \vn{emittance} file with the \vn{.emit} suffix will contain the following co
 Skewness $\kappa_3$ is defined by
 \begin{equation}
   \kappa_{3i} \equiv \frac{\left< dr_i^3 \right>}{\sigma_i^3}, \quad 
-  i = $x$, $y$, \text{or}, $z$
+  i = x, y, \text{or}, z
 \end{equation}
-And kurtosis \kappa_4$ is defined by
-\begin{equation}
-  \kappa_{4i} \equiv \frac{\left< dr_i^4 \right>}{\sigma_i^4} - 3, \quad 
-  i = $x$, $y$, \text{or}, $z$
-\end{equation}
-With this definition, a beam with a Gaussian distribution will have zero kurtosis.
+And kurtosis $\kappa_4$ is covered in Section~\ref{s:kurtosis}.
 
 Each line in the file represents the averages at the end of a
-turn and a new line is added every \vn{ltt%averages_ouput_every_n_turns} number of turns. If
+turn and a new line is added every \vn{ltt%averages_output_every_n_turns} number of turns. If
 \vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded when
 the beam is at the \vn{ltt%ele_start} position independent of where the lattice begins and
 ends.
@@ -712,13 +718,15 @@ ends.
 \item[ltt\%beam_binary_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file
 that is created to hold the particle positions at the end of tracking. This is similar to
-\vn{ltt%particle_output_file} but here the file will be a binary file that is portable to other
+\vn{ltt%phase_space_output_file} but here the file will be a binary file that is portable to other
 programs and can also be used as input to the \ltt program.
 %
-\item[ltt\%custom_output_file]\Newline
+\item[ltt\%column(:)] \Newline
 A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
-$N$ is set by \vn{ltt%averages_output_every_n_turns}. Columns are specified by setting
-\vn{ltt%column(<i>)}. The general syntax is:
+$N$ is set by \vn{ltt%averages_output_every_n_turns}. The name of the file is set by
+\vn{ltt%custom_output_file}.
+
+Columns in the custom file are specified by setting \vn{ltt%column(<i>)}. The general syntax is:
 \begin{code}
   ltt%column(<i>) = "<expression>", "<header-name>",  "<format>"
 \end{code}
@@ -731,10 +739,11 @@ converting the value of an expression into a string. Example:
   ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
   ltt%column(3) = "rf0##1[phi0] + z/rf0##1[rf_wavelength]", "dPhi", "es12.8"
 \end{code}
-Here three columns are specified. Parameters that are used in a column's \vn{<expression>} can be element
-attributes or beam quantities. Using element attributes can be helpful when ramping is used. In the above
-example, the second column's expression is the \vn{voltage} of the first element named \vn{rf0} in the
-lattice (see the Bmad manual for lists of element parameters). Other parameters are:
+Here three columns are specified. Parameters that are used in a column's \vn{<expression>} can be
+element attributes or beam quantities. Using element attributes can be helpful when ramping is
+used. In the above example, the second column's expression is the \vn{voltage} of the first element
+named \vn{rf0} in the lattice (see the Bmad manual for lists of element parameters). Other
+parameters are:
 \begin{code}
   n_turn    -- Turn number
   time      -- Time at the N\Th turn averaged over the beam.
@@ -744,12 +753,6 @@ lattice (see the Bmad manual for lists of element parameters). Other parameters 
 Thus the third column in the above example is the averaged particle phase with respect to the zero
 crossing phase of the first element named \vn{rf0} in the lattice. [Note that $z$ is always evaluated
 at the start of the turn and not at the position of the RF cavity.]
-%
-\item[ltt\%exclude_from_maps] \Newline
-List of elements to exclude when constructing maps for \vn{SLICK} tracking. These elements will be
-individually tracking. The default value is \vn{"beambeam::*"} which excludes any \vn{beambeam}
-element. See the Bmad manual section on ``\vn{Matching to Lattice Element Names}'' for details on
-the format for such lists.
 %
 \item[ltt\%map_ascii_output_file] \Newline
 For linear maps, An ASCII file of the maps can be produced by setting this parameter.
@@ -765,27 +768,38 @@ where \vn{<hash>} is a hash string that represents input parameters (like the or
 to compute the map(s). This hash string is used so that map(s) constructed with one set of
 parameters are not used if the parameters are changed.
 %
+\item[ltt\%core_emit_cutoff] \Newline
+Cutoff used to calculate the ``core'' emittance. Default value is 0.5. See Section~\sref{s:core} for
+more details. The value of \vn{ltt%core_emit_cutoff} must be greater than zero and less than or
+equal to one. Using a \vn{ltt%core_emit_cutoff} near zero may lead to invalid results if the number
+of particle to be retained is too small since there will be statistical fluctuations of order
+$1/\sqrt{N_c}$ where $N_c$ is the number of particles in the core.
+%
+\item[ltt\%custom_output_file] \Newline
+A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
+$N$ is set by \vn{ltt%averages_output_every_n_turns}. The columns of the file are set by the
+\vn{ltt%column(:)} parameters.
+%
 \item[ltt\%only_live_particles_out] \Newline
 If this parameter is True (the default), dead particles will not be recorded in the
-\vn{ltt%particles_ouput_file}. If set to False, all particles will be recorded. Note: The last
+\vn{ltt%particles_output_file}. If set to False, all particles will be recorded. Note: The last
 column of this file indicates if the particle is alive or dead.
 %
 \item[ltt\%particle_output_every_n_turns] \Newline
-Sets the number of turns between particle position data files.
-If set to -1 (the default), a file will only be generated at the last turn. If set to 0, a file 
-will be generated at the beginning turn (turn 0) and at the last turn. Example:
+Sets the number of turns between particle position data files. If set to -1 (the default), a file
+will only be generated at the last turn. If set to 0, a file will be generated at the beginning turn
+(turn 0) and at the last turn. Example:
 \begin{code}
   ltt%particle_output_every_n_turns = 1000
 \end{code}
-In this example, output will happen every 1000 turns.
-Also see: \vn{averages_output_every_n_turns}.
+In this example, output will happen every 1000 turns. Also see: \vn{averages_output_every_n_turns}.
 %
-\item[ltt\%particle_output_file] \Newline
+\item[ltt\%phase_space_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the ASCII file or files that are
-created to hold the particle positions. A file is created every \vn{ltt%particle_ouput_every_n_turns}
-turns. See Section~\sref{s:part.out} for more details. If \vn{ltt%particle_ouput_file} is blank, no
+created to hold the particle positions. A file is created every \vn{ltt%particle_output_every_n_turns}
+turns. See Section~\sref{s:part.out} for more details. If \vn{ltt%phase_space_output_file} is blank, no
 particle output file is created. See also \vn{ltt%beam_binary_output_file} which will produce a
-portable binary file.
+portable binary file. Also see \vn{ltt%action_angle_output_file}.
 %
 \item[ltt\%print_on_dead_loss] \Newline
 After each turn, the number of particles that are still living (have not hit an aperture) are
@@ -794,17 +808,6 @@ printed, is larger than \vn{ltt%print_on_dead_loss}, a message is printed. For e
 \vn{ltt%print_on_dead_loss} is set to 0.01, every time the beam loses 1\% of the particles a message is printed.
 Default is -1 which will cause a message printed every turn where there is particle loss.
 %
-\item[ltt\%ptc_aperture] \Newline
-The PTC code does not have apertures. This being the case, for \vn{ltt%tracking_method} set to
-\vn{"MAP"} or \vn{"PTC"}, \vn{ltt%ptc_aperture}, which is a 2-vector, defines \vn{x} and \vn{y}
-apertures. The default is 0.1~meter in both the horizontal and vertical. When used, the aperture is
-applied at the beginning/end of the lattice. PTC has an internal aperture of 1.0~meter. To be safe,
-the \ltt program will additionally impose a 0.9~meters aperture independent of the setting of
-\vn{ltt%ptc_aperture}.
-%
-\item[ltt\%sigma_matrix_output_file] \Newline \notenotenote
-
-
 \end{description}
 
 %----------------------------------------------------
@@ -859,6 +862,12 @@ Used when \vn{ltt%simulation_mode} is set to \vn{"CHECK"}. \vn{ttl%ele_stop} set
 point for tracking to be the downstream edge of the element. Also see \vn{ltt%ele_start}. Default
 if not set or set to a blank string is for \vn{ltt%ele_stop} to be equal to \vn{tll%ele_start}.
 %
+\item[ltt\%exclude_from_maps] \Newline
+List of elements to exclude when constructing maps for \vn{SLICK} tracking. These elements will be
+individually tracking. The default value is \vn{"beambeam::*"} which excludes any \vn{beambeam}
+element. See the Bmad manual section on ``\vn{Matching to Lattice Element Names}'' for details on
+the format for such lists.
+%
 \item[ltt\%map_order] \Newline
 Map order. See Section~\sref{s:track.methods}. The default is what is set in the lattice
 file and if not set in the lattice file the default is 3. Note: \vn{ltt%map_order} is only used when
@@ -867,6 +876,14 @@ current setting of \vn{ltt%map_order}.
 %
 \item[ltt\%n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.methods}.
+%
+\item[ltt\%ptc_aperture] \Newline
+The PTC code does not have apertures. This being the case, for \vn{ltt%tracking_method} set to
+\vn{"MAP"} or \vn{"PTC"}, \vn{ltt%ptc_aperture}, which is a 2-vector, defines \vn{x} and \vn{y}
+apertures. The default is 0.1~meter in both the horizontal and vertical. When used, the aperture is
+applied at the beginning/end of the lattice. PTC has an internal aperture of 1.0~meter. To be safe,
+the \ltt program will additionally impose a 0.9~meters aperture independent of the setting of
+\vn{ltt%ptc_aperture}.
 %
 \item[ltt\%ramp_update_each_particle] \Newline
 Default is True. If set to false, to save time, only apply rampers to a given lattice element once
@@ -933,6 +950,122 @@ coupling, the $a$ mode corresponds to the ``horizontal'' mode and the $b$ mode c
 integral calculation. Additionally, the longitudinal beam size is calculated via radiation integrals.
 
 %------------------------------------------------------------------
+\Section{Core Emittance}
+\label{s:core}
+
+The ``\vn{core}'' emittance is defined by the \ltt program to be the emittance as
+computed using some fraction of the beam set by \vn{ltt%core_emit_cuttoff}. For example, if this
+parameter is set to 0.9, The 10\% of a bunch with the largest amplitudes will be ignored and the
+core emittance is computed from the remaining 90\%. On a given turn, there are actually three 
+separate calculations, one for each normal mode of oscillation. The calculation of the core emittance for
+a given normal mode precedes in a number of steps:
+\begin{enumerate}
+%
+\item
+The beam size sigma matrix $\Sigma_{ij}$ for the whole bunch is analyzed to extract the 
+normal mode eigenvectors as as shown in a paper by Wolski\cite{b:wolski}.
+%
+\item
+Particles that have the largest amplitudes for the mode under consideration are removed from the
+bunch to give a core bunch.
+%
+\item
+The beam size sigma matrix for the core bunch is analyzed to extract the normal mode eigenvectors
+exactly as in the first step.
+%
+\item
+Starting with whole bunch, but using the core bunch eigenvectors, particles that have the largest
+amplitudes for the mode under consideration are removed from the bunch to give a new core bunch.
+The reason for going through the winnowing process twice is to remove, to a good degree, any influence
+that the non-core particles will have on the calculation.
+%
+\item
+The sigma matrix of this new core bunch is computed and, from the sigma matrix, a (unnormalized)
+core emittance for the mode under consideration is calculated.
+%
+\item 
+The emittance value as calculated in the last step will be smaller than the whole beam emittance
+since large amplitude particles are ignored. To compensate for this, the emittance is normalized by
+a factor $f_n$ such that if the beam shape were Gaussian, the value of the normalized core emittance
+will be the same as the whole beam emittance. How $f_n$ is calculated is discussed below.
+\end{enumerate}
+
+Notice that the analysis for different modes will ignore different sets of particles. The analysis is
+also disjoint in that the calculation of the emittance of one mode does not affect the analysis for
+the other two modes.
+
+The factor $f_n$ in step 6 above is calculated by first calculating the action cutoff $J_C$ so 
+that the probability of a particle having an amplitude less than $J_c$ is $C$ (equal to
+\vn{ltt%core_emit_cuttoff}). $J_c$ is calculated from the equation
+\begin{equation}
+  C = \int_0^{J_c} \! dJ \, \rho(J) = 
+  \int_0^{J_c} \! dJ \, \frac{1}{\epsilon} \, \exp(-J/\epsilon) = 
+  1 - \exp(-J_c/\epsilon)
+\end{equation}
+where $\rho$ is the particle probability density. Solving for $J_c$ gives
+\begin{equation}
+  J_c = -\epsilon \, \log(1 - C)
+\end{equation}
+Assuming a Gaussian distribution, The computed unnormalized core emittance will be
+\begin{equation}
+  \epsilon_c(\text{unnorm}) = \frac{1}{C} \, \int_0^{J_c} \! dJ \, \rho(J) \, J
+\end{equation}
+Combining everything gives the normalization factor
+\begin{equation}
+  f_n = \frac{\epsilon_c(\text{norm})}{\epsilon_c(\text{unnorm})} = 
+  \frac{\epsilon}{\epsilon_c(\text{unnorm})} = 
+  \frac{C}{1 - (1 + \tilde J_c) \, \exp(-\tilde J_c)}
+\end{equation}
+where $\tilde J_c \equiv J_c / \epsilon = -\log(1-C)$. The factor $f_n$ will be the same for all
+three core emittance calculations.
+
+The core emittance is a way for characterizing the core of the beam. To characterize the tails there
+is kurtosis\sref{s:kurtosis}.
+
+Other methods for computing a core emittance exist. For example, Gulliford et. al.\cite{b:gulliford}
+use the beam density at the beam center as a measure of core emittance. With realistic beam
+distributions, the above algorithm should give comparable results for \vn{ltt%core_emit_cuttoff} $C$ set
+low enough. The advantage of the above algorithm is that it is flexible and can include particles
+that are further away from the center. In any case, it should always be keep in mind that using only
+a few numbers, like emittance, core emittance, and kurtosis, to characterize the entire particle
+distribution, can potentially be very misleading.
+
+\begin{figure}
+  \centering
+  \includegraphics[width= 5in]{gauss.pdf}
+  \caption{}
+  \label{f:gauss}
+\end{figure}
+
+%------------------------------------------------------------------
+\Section{kurtosis}
+\label{s:kurtosis}
+
+The kurtosis $\kappa_{4i}$ is defined by
+\begin{equation}
+  \kappa_{4i} \equiv \frac{\left< dr_i^4 \right>}{\sigma_i^4} - 3, \quad 
+  i = x, y, \text{or}, z
+\end{equation}
+With this definition,\footnote
+  {
+Be aware when reading the literature that there are two definitions of kurtosis in general use. The
+difference being whether three is subtracted off or not.
+  }
+a beam with a Gaussian distribution will have zero kurtosis. A positive kurtosis indicates more
+particle in the tail than a standard Gaussian and a negative kurtosis indicates less particles.
+
+It is important to keep in mind that the value of the kurtosis says nothing about the distribution
+of particles near the center of the bunch. This is illustrated in Fig.~\ref{f:gauss}. This figure
+shows three particle density curves which have been constructed to illustrate this point. The curve
+drawn with a solid line is a Gaussian and the other two dashed curves are non-Gaussian. Each curve
+has been constructed to have the same sigma equal to one. The Gaussian curve has a kurtosis of 0 as
+expected and the other two have a kurtosis equal to 2 due to each having a tail that varies as
+$1/x^6$ for $|x|$ large. Despite the two non-Gaussian curves having the same kurtosis, the shape of
+the distributions in the core region are quite different with one being peaked in the center
+relative to the Gaussian and the other being flattened relative to the Gaussian. To characterize the
+core, there is the core emittance (\sref{s:core}).
+
+%------------------------------------------------------------------
 \Section{Particle Data Output}
 \label{s:part.out}
 
@@ -944,11 +1077,11 @@ where the lattice begins and ends.
 
 An output data file will be produced every \vn{ltt%particle_output_every_n_turns} turns. Each line
 in this file records a particle's orbital and spin position. The name of the data file is derived
-from the \vn{ltt%particle_output_file} string.  If \vn{ltt%particle_output_file} contains a hash
-character ''\#'', the data file name is formed by substituting the turn number for the hash
-token. If there is no hash character, the data file name is formed by appending the turn number to
-the \vn{ltt%particle_output_file} string. If there are multiple bunches, instead of using the turn
-number, the substituted string will be of the form
+from the \vn{ltt%phase_space_output_file} or \vn{ltt%action_angle_output_file} string.  If the file
+name contains a hash character ''\#'', the data file name is formed by substituting the turn number
+for the hash token. If there is no hash character, the data file name is formed by appending the
+turn number to the file name If there are multiple bunches, instead of using the turn number, the
+substituted string will be of the form
 \begin{code}
   {bunch_index}-{turn_number}
 \end{code}
@@ -1000,7 +1133,7 @@ the long_term_tracking program.
 \item
 Using SINGLE mode tracking, output a turn-by-turn orbit by setting:
 \begin{code}
-ltt%particle_output_file = "some-nonblank-name" 
+ltt%phase_space_output_file = "some-nonblank-name" 
 ltt%particle_output_every_n_turns = 1
 \end{code}
 Use your favorite plotting program to plot the phase space trajectory. This will give a lot of information. For
@@ -1018,6 +1151,15 @@ Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
 \bibitem{b:ptc}
 É. Forest, Y. Nogiwa, and F. Schmidt. The FPP and PTC libraries. In Int.\ Conf.\ Accel.\
 Phys pp 17–21, (2006).
+
+\bibitem{b:wolski}
+A. Wolski, "Alternate approach to general coupled linear optics",
+Phys.\ Rev.\ Special Topics, Accel \& Beams, \bf{9}, 024001 (2006).
+
+\bibitem{b:gulliford}
+Colwyn Gulliford, Adam Bartnik, Ivan Bazarov, Bruce Dunham, and Luca Cultrera,
+``Demonstration of Cathode Emittance Dominated High Bunch Charge Beams in a DC gun-based Photoinjector'',
+Appl. Phys. Lett. {\bf 106}, 094101 (2015). https://doi.org/10.1063/1.4913678
 
 \end{thebibliography}
 
