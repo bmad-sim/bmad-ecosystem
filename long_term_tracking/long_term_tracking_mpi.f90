@@ -22,7 +22,7 @@ integer, allocatable :: ix_stop_turn(:), ixp_slave(:)
 integer, parameter :: base_tag$  = 1000
 
 logical am_i_done, err_flag, ok
-logical, allocatable :: slave_is_done(:), stop_here(:)
+logical, allocatable :: stop_here(:)
 
 character(200) pwd
 character(100) line, path, basename
@@ -124,10 +124,16 @@ endif
 ! Calculate which particles go to which slaves and 
 ! at what turns the slaves have to report back the beam distribution to the master.
 
-particles_per_thread = real(n_particle, rp) / real((num_slaves), rp)
+! A complication is that a custom data file may need to print lattice parameters and if there is ramping
+! then the master lattice needs to get tracked through.
+! So allocate a 1/2 share of particles to the Master for tracking.
+
+particles_per_thread = n_particle / (num_slaves + 0.5)
 allocate (ixp_slave(0:num_slaves), stop_here(lttp%n_turns))
 
-ixp_slave(0) = 0
+ixp_slave(0) = nint(0.5 * particles_per_thread) ! Share for Master
+if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ixp:', 0, ixp_slave(0)
+
 do i = 1, num_slaves
   ixp_slave(i) = ixp_slave(i-1) + nint(particles_per_thread)
   if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ixp:', i, ixp_slave(i)
@@ -135,7 +141,7 @@ enddo
 ixp_slave(num_slaves) = n_particle
 if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ixp:', num_slaves, ixp_slave(num_slaves)
 
-!
+! Calc stopping points.
 
 stop_here = .false.
 
@@ -178,13 +184,12 @@ enddo
 ! Master:
 
 if (ltt_com%mpi_rank == master_rank$) then
-  allocate (slave_is_done(num_slaves))
-  slave_is_done = .false.
-
   print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
+  call reallocate_beam(beam2, max(1, ltt_com%beam_init%n_bunch), ixp_slave(0))
 
   ! Init positions to slaves
 
+  call ltt_print_mpi_info (lttp, ltt_com, 'Master: Master will track particles: [1:' // int_str(ixp_slave(0)) // ']')
   do i = 1, num_slaves
     ip0 = ixp_slave(i-1)+1; ip1 = ixp_slave(i)
     n = ip1 + 1 - ip0
@@ -220,6 +225,21 @@ if (ltt_com%mpi_rank == master_rank$) then
       enddo
 
       call ltt_print_mpi_info (lttp, ltt_com, 'Master: Gathered data for stage ' // int_str(ix_stage) // ' from Slave: ' // int_str(slave_rank))
+    enddo
+
+    ! Track with particles assigned to master
+
+    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Track beam for stage: ' // int_str(ix_stage), .true.)
+
+    do nb = 1, size(beam%bunch)
+      beam2%bunch(nb)%particle = beam%bunch(nb)%particle(1:ixp_slave(0))
+    enddo
+
+    nt0 = ix_stop_turn(ix_stage-1); nt1 = ix_stop_turn(ix_stage)
+    call ltt_run_beam_mode(lttp, ltt_com, nt0, nt1, beam2)
+
+    do nb = 1, size(beam%bunch)
+      beam%bunch(nb)%particle(1:ixp_slave(0)) = beam2%bunch(nb)%particle
     enddo
 
     ! Write results

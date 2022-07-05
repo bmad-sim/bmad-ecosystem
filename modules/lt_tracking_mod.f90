@@ -1426,6 +1426,7 @@ iu = lunget()
 
 if (i_turn == 0 .or. lttp%averages_output_every_n_turns == -1) then
   open (iu, file = lttp%custom_output_file, recl = 1000)
+  call ltt_write_params_header(lttp, ltt_com, iu, size(beam%bunch))
   line = '#'
   do i = 1, size(lttp%column)
     col => lttp%column(i)
