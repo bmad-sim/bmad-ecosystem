@@ -33,6 +33,8 @@ character(MPI_MAX_PROCESSOR_NAME) name
 
 ! Initialize MPI
 
+call run_timer ('ABS', ltt_com%time_start)
+
 call mpi_init(ierr)
 if (ierr /= MPI_SUCCESS) then
   print *,'Error starting MPI program. Terminating.'
@@ -59,7 +61,6 @@ if (num_slaves /= 0) ltt_com%using_mpi = .true.
 ! If not doing BEAM tracking then slaves have nothing to do.
 
 call ltt_read_params(lttp, ltt_com)
-call run_timer ('ABS', ltt_com%time_start)
 
 if (lttp%simulation_mode /= 'BEAM' .and. ltt_com%mpi_rank /= master_rank$) then
   call mpi_finalize(ierr)
@@ -71,6 +72,8 @@ endif
 call ltt_init_params(lttp, ltt_com)
 
 if (ltt_com%mpi_rank == master_rank$) then
+  call mpi_Bcast (ltt_com%time_start, 1, MPI_DOUBLE_PRECISION, master_rank$, MPI_COMM_WORLD, ierr)
+  if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init tracking', .true.)
   call ltt_init_tracking (lttp, ltt_com)
   call mpi_Bcast (0, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
@@ -78,6 +81,8 @@ if (ltt_com%mpi_rank == master_rank$) then
   call ltt_print_inital_info (lttp, ltt_com)
 
 else
+  call mpi_Bcast (ltt_com%time_start, 1, MPI_DOUBLE_PRECISION, master_rank$, MPI_COMM_WORLD, ierr)
+  if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call mpi_Bcast (ix, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
   if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call ltt_init_tracking (lttp, ltt_com)
@@ -202,6 +207,7 @@ if (ltt_com%mpi_rank == master_rank$) then
     enddo
   enddo
 
+  call ltt_print_mpi_info (lttp, ltt_com, 'Master: Writing initial data.', .true.)
   call ltt_write_particle_data (lttp, ltt_com, 0, beam)
   call ltt_write_averages_data (lttp, 0, beam)
   call ltt_write_custom (lttp, ltt_com, 0, beam = beam)
@@ -209,11 +215,12 @@ if (ltt_com%mpi_rank == master_rank$) then
   ! Loop over tracking states
 
   do ix_stage = 1, ubound(ix_stop_turn, 1)
+    call mpi_barrier(MPI_COMM_WORLD, ierr)
+
     do i = 1, num_slaves
       ! Get data from slave.
       slave_rank = MPI_ANY_SOURCE
-
-      call mpi_recv (i, 1, MPI_INTEGER, slave_rank, base_tag$+ix_stage, MPI_COMM_WORLD, stat, ierr)
+      call mpi_recv (nn, 1, MPI_INTEGER, slave_rank, base_tag$+ix_stage, MPI_COMM_WORLD, stat, ierr)
       if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
       slave_rank = stat(MPI_SOURCE)  ! Slave rank
       ip0 = ixp_slave(slave_rank-1)+1; ip1 = ixp_slave(slave_rank)
@@ -223,19 +230,17 @@ if (ltt_com%mpi_rank == master_rank$) then
         call mpi_recv(beam%bunch(nb)%particle(ip0:ip1), dat_size, MPI_BYTE, slave_rank, base_tag$+ix_stage, MPI_COMM_WORLD, stat, ierr)
         if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
       enddo
-
       call ltt_print_mpi_info (lttp, ltt_com, 'Master: Gathered data for stage ' // int_str(ix_stage) // ' from Slave: ' // int_str(slave_rank))
     enddo
 
     ! Track with particles assigned to master
-
-    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Track beam for stage: ' // int_str(ix_stage), .true.)
 
     do nb = 1, size(beam%bunch)
       beam2%bunch(nb)%particle = beam%bunch(nb)%particle(1:ixp_slave(0))
     enddo
 
     nt0 = ix_stop_turn(ix_stage-1); nt1 = ix_stop_turn(ix_stage)
+    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Track beam for stage: ' // int_str(ix_stage) // ' (End turn: ' // int_str(nt1) // ')', .true.)
     call ltt_run_beam_mode(lttp, ltt_com, nt0, nt1, beam2)
 
     do nb = 1, size(beam%bunch)
@@ -280,8 +285,10 @@ else  ! Is a slave
   enddo
 
   do ix_stage = 1, ubound(ix_stop_turn, 1)
+    call mpi_barrier(MPI_COMM_WORLD, ierr)
+
     nt0 = ix_stop_turn(ix_stage-1); nt1 = ix_stop_turn(ix_stage)
-    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Track beam for stage: ' // int_str(ix_stage), .true.)
+    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Track beam for stage: ' // int_str(ix_stage) // ' (End turn: ' // int_str(nt1) // ')', .true.)
     call ltt_run_beam_mode(lttp, ltt_com, nt0, nt1, beam2)  ! Beam tracking
 
     ! Send data to master

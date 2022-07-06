@@ -1004,7 +1004,7 @@ ix_branch = ltt_com%ix_branch
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 
 if (ltt_com%using_mpi) then
-  prefix_str = 'Slave ' // int_str(ltt_com%mpi_rank) // ':'
+  prefix_str = 'Thread ' // int_str(ltt_com%mpi_rank) // ':'
 else
   prefix_str = ''
 endif
