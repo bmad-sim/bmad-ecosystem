@@ -5383,7 +5383,7 @@ case ('universe')
     mode_m%momentum_compaction = momentum_compaction(branch)
 
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), '(23x, a)') '         X            |              Y'
+    nl=nl+1; write(lines(nl), '(23x, a)') '       A-Mode         |            B-Mode'
     nl=nl+1; write(lines(nl), '(23x, a)') '  Model       Design  |       Model       Design'
 
     nl=nl+1; write(lines(nl), fmt2) 'Q', phase_units*branch%ele(nt)%a%phi, &
@@ -5509,8 +5509,10 @@ case ('use')
 
 case ('value')
 
+
   s_fmt = 'es24.16'
   ix = index(what2, '-f')
+
   if (ix /= 0) then
     ix2 = index(what2(ix:), ' ')
     if (index('-format', what2(ix:ix+ix2-2)) == 1) then
@@ -5520,6 +5522,7 @@ case ('value')
       what2 = trim(str) // what2(ix+1:)
     endif
   endif
+
 
   if (index(what2, 'chrom') /= 0) then
     s%com%force_chrom_calc = .true.
@@ -5539,15 +5542,21 @@ case ('value')
     endif
 
   else
-    s_fmt = '(i5, a, ' // trim(s_fmt) // ')'
-    call re_allocate (lines, size(value)+100, .false.)
-    do i = 1, size(value)
-      nl=nl+1; write(lines(nl), s_fmt, iostat = ios) i, ':  ', value(i)
-      ! For some funny reason ios can be zero on a bad format so check for a star in the string.
-      if (ios /= 0 .or. index(lines(nl), '*') /= 0) then
-        write(lines(nl), '(i5, a, es24.16, a)', iostat = ios) i, ':  ', value(i), '  ! Note: Value/format mismatch detected'
-      endif
-    enddo
+    if (is_integer(s_fmt(1:1)) .or. index(s_fmt, ',') /= 0) then   ! print value on a single line
+      s_fmt = '(5x, ' // trim(s_fmt) // ')'    
+      nl=nl+1; write(lines(nl), s_fmt, iostat = ios) value
+
+    else
+      s_fmt = '(i5, a, ' // trim(s_fmt) // ')'    
+      call re_allocate (lines, size(value)+100, .false.)
+      do i = 1, size(value)
+        nl=nl+1; write(lines(nl), s_fmt, iostat = ios) i, ':  ', value(i)
+        ! For some funny reason ios can be zero on a bad format so check for a star in the string.
+        if (ios /= 0 .or. index(lines(nl), '*') /= 0) then
+          write(lines(nl), '(i5, a, es24.16, a)', iostat = ios) i, ':  ', value(i), '  ! Note: Value/format mismatch detected'
+        endif
+      enddo
+    endif
   endif
 
 !----------------------------------------------------------------------

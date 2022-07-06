@@ -4514,12 +4514,13 @@ parsing_loop: do
     ix_word = len_trim(word)
   endif
 
-  ! Something like "lcav[lr(2).freq]" or "[2,4]@orbit.x[1,4] will get split on the "["
+  ! Something like "lcav[lr(2).freq]" or "[2,4]@orbit.x[1,4] or "[ele::q20w[hkick], ele::q20w[hkick]]"
+  ! will get split on the "["
 
   do
     if (delim /= '[') exit
 
-    call word_read (phrase, ']', word2, ix_word2, delim, delim_found, phrase)
+    call word_read (phrase, ']', word2, ix_word2, delim, delim_found, phrase, ignore_interior = .true.)
     if (.not. delim_found) then
       call out_io (s_warn$, r_name, "NO MATCHING ']' FOR OPENING '[':" // expression)
       return
