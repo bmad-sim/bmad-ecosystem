@@ -93,7 +93,7 @@ select case (ele%key)
 ! Note: Kicks are put in at the end by offset_particle.
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, &
-      kicker$, hkicker$, vkicker$, sextupole$, octupole$)
+      kicker$, hkicker$, vkicker$, sextupole$, octupole$, rfcavity$)
   map_ele%spin_q(0,0) = 1
 
 ! Quadrupole
