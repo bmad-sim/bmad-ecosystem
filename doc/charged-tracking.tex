@@ -766,29 +766,23 @@ The Hamiltonian for an electric separator is
   \wt m^2 - p_x^2 - p_y^2 \right\}^{1/2}
   \label{hp1b}
 \end{equation}
-Here the canonical coordinates $(-c \, t, \delta$ are being used,
-$\wt m$ is defined in \Eq{mmccp}, and $p_s = -H$ is just the
-longitudinal momentum.  In the above equation, $k_E$ is the normalized
+Here the canonical coordinates $(-c \, t, \delta$ are being used, $\wt m$ is defined in \Eq{mmccp},
+and $p_s = -H$ is just the longitudinal momentum.  In the above equation, $k_E$ is the normalized
 field
 \begin{equation}
   k_E = \frac{q \, E}{P_0 \, c}
 \end{equation}
-The field is taken to be pointing along the $x$-axis with positive
-$k_E$ accelerating a particle in the positive $x$ direction. To solve
-the equations of motion, a ``hard edge'' model is used where $k_E$ is
-constant inside the separator and the field ends abruptly at the
-separator edges.
+The field is taken to be pointing along the $x$-axis with positive $k_E$ accelerating a particle in
+the positive $x$ direction. To solve the equations of motion, a ``hard edge'' model is used where
+$k_E$ is constant inside the separator and the field ends abruptly at the separator edges.
 
 \index{solenoid}
-Since, as shown in \fig{f:elsep}, the fringe fields break the
-translational invariance in $x$, it is important here that the $x = 0$
-plane be centered within the separator plates. With this, the
-canonical momentum $\delta$ just outside the separator assumes its
-free space form of $\delta = (E - E_0) / E_0)$. This is analogous to
-the case of a \vn{solenoid} where, to ensure that the canonical
-transverse momenta assume their free space form just outside the
-solenoid, the $\Bf z$-axis must be along the centerline of the
-solenoid.
+Since, as shown in \fig{f:elsep}, the fringe fields break the translational invariance in $x$, it is
+important here that the $x = 0$ plane be centered within the separator plates. With this, the
+canonical momentum $\delta$ just outside the separator assumes its free space form of $\delta = (E -
+E_0) / E_0)$. This is analogous to the case of a \vn{solenoid} where, to ensure that the canonical
+transverse momenta assume their free space form just outside the solenoid, the $\Bf z$-axis must be
+along the centerline of the solenoid.
 
 The solution of the equations of motion is:
 \begin{align}
@@ -1216,9 +1210,8 @@ brevity are not reproduced here.
   \includegraphics[width=5in]{solenoid.pdf}
   \caption[Solenoid with a hard edge.]
   {
-Solenoid with a hard edge. The field is assumed to end abruptly at the
-edges of the solenoid. Here, for purposes of illustration, the field lines at
-the ends are displaced from one another.
+Solenoid with a hard edge. The field is assumed to end abruptly at the edges of the solenoid. Here,
+for purposes of illustration, the field lines at the ends are displaced from one another.
   }
   \label{f:solenoid}.
 \end{figure}
@@ -1228,16 +1221,8 @@ the ends are displaced from one another.
 \label{s:solenoid.std}
 \index{solenoid}
 
-The Hamiltonian for a solenoid is
-\begin{equation}
-  H = \frac{ \left( p_x + \frac{k_s}{2} \, y \right)^2}{2 \, (1 + p_z)} + 
-  \frac{ \left( p_y - \frac{k_s}{2} \, x \right)^2}{2 \, (1 + p_z)} 
-\end{equation}
-where the normalized field $k_s$ is
-\begin{equation}
-  k_s = \frac{B}{P_0}
-\end{equation}
-The solution to the equations of motion for a constant $k_s$ are
+The \vn{bmad_standard} solenoid tracking does not make the small angle approximation.
+The transfer map for the solenoid is:
 \begin{align}
   x_2    &= \frac{1 + c}{2} \, x_1 + \frac{s}{k_s} \, p_{x1} +
            \frac{s}{2} \, y_1 + \frac{1 - c}{k_s} \, p_{y1} \CRNO
@@ -1247,27 +1232,28 @@ The solution to the equations of motion for a constant $k_s$ are
            \frac{1 + c}{2} \, y_1 + \frac{s}{k_s} \, p_{y1} \\      
   p_{y2} &= \frac{k_s \, (1 - c)}{4} \, x_1 + \frac{-s}{2} \, p_{x1} -
             \frac{k_s \, s}{4} \, y_1 + \frac{1 + c}{2} \, p_{y1} \CRNO 
-  z_2    &= z_1 + \frac{L}{2 \, (1 + p_{z1})^2} \, 
+  z_2    &= z_1 + \frac{L \, (1 + p_{z1})^2}{2 \, p_r^3} \, 
                    \left[ \left( p_{x1} + \frac{k_s}{2} \, y_1 \right)^2 +
                           \left( p_{y1} - \frac{k_s}{2} \, x_1 \right)^2 \right] \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
-where
+where $k_s = B/P_0$ is the normalized field and
 \begin{align}
-  c &= \cos \left( k_s L \right) \CRNO
-  s &= \sin \left( k_s L \right)
+  c &= \cos \left( k_s L / p_r \right) \CRNO
+  s &= \sin \left( k_s L / p_r \right)
 \end{align}
+with
+\begin{equation}
+  p_r = \sqrt{(1 + p_z)^2 - (p_x + y_1 \, k_s/2)^2 - (p_y - x_1 \, k_s/2)^2}
+\end{equation}
 
-To be useful, the canonical momenta $p_x$ and $p_y$ in the above
-equations must be connected to the canonical momenta used for other
-elements (drifts, quadrupoles, etc.) that may be placed to either side
-of the solenoid. These side elements use zero $a_x$ and $a_y$
-(cf. \Eq{pmc2pc}). The vector potential used in the solenoid canonical
-momenta may be made zero at the edges of the solenoid if the solenoid
-fringe field is assumed to end abruptly at the edges of the solenoid
-(as shown in \fig{f:solenoid}), and the reference axis $\Bf z$-axis (at
-$x$ = $y$ = 0) is placed along the centerline of the solenoid so that
-there is cylindrical symmetry around the $\Bf z$-axis.
+To be useful, the canonical momenta $p_x$ and $p_y$ in the above equations must be connected to the
+canonical momenta used for other elements (drifts, quadrupoles, etc.) that may be placed to either
+side of the solenoid. These side elements use zero $a_x$ and $a_y$ (cf. \Eq{pmc2pc}). The vector
+potential used in the solenoid canonical momenta may be made zero at the edges of the solenoid if
+the solenoid fringe field is assumed to end abruptly at the edges of the solenoid (as shown in
+\fig{f:solenoid}), and the reference axis $\Bf z$-axis (at $x$ = $y$ = 0) is placed along the
+centerline of the solenoid so that there is cylindrical symmetry around the $\Bf z$-axis.
 
 %-----------------------------------------------------------------------------------------
 \section{Sprint Spin Tracking}

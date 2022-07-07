@@ -4,11 +4,11 @@
 ! Routine to return whether a given spin_tracking method is valid for a given element.
 !
 ! Input:
-!   ele              -- ele_struct: Lattice element.
-!   spin_tracking_method -- integer: bmad_standard$, etc.
+!   ele                   -- ele_struct: Lattice element.
+!   spin_tracking_method  -- integer: bmad_standard$, etc.
 !
 ! Output:
-!   is_valid  -- logical: True if a valid method. False otherwise.
+!   is_valid              -- logical: True if a valid method. False otherwise.
 !-
 
 function valid_spin_tracking_method (ele, spin_tracking_method) result (is_valid)
@@ -68,6 +68,12 @@ case (group$, overlay$, girder$, ramper$, null_ele$)
 
 case (sbend$, quadrupole$, solenoid$, sextupole$, octupole$, drift$, &
       rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$)
+  select case (spin_tracking_method)
+  case (custom$, symp_lie_ptc$, tracking$, sprint$)
+    is_valid = .true.
+  end select
+
+case (rfcavity$)
   select case (spin_tracking_method)
   case (custom$, symp_lie_ptc$, tracking$, sprint$)
     is_valid = .true.
