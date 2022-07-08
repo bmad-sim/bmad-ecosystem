@@ -273,6 +273,72 @@ Example:
   python data 1@orbit.x[10]
 \end{verbatim}
 
+%% python data_d_array ------------------------------------
+\subsection{python data_d_array}
+\index{python!data_d_array}
+\label{p:data.d.array}
+
+Output list of datums for a given d1_data structure.
+
+\begin{example}
+   python data_d_array \{ix_uni\}@\{d2_name\}.\{d1_name\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {d2_name} is the name of the containing d2_data structure.
+  {d1_name} is the name of the d1_data structure containing the array of datums.
+
+Example:
+  python data_d_array 1@orbit.x
+\end{verbatim}
+
+%% python data_d1_array ------------------------------------
+\subsection{python data_d1_array}
+\index{python!data_d1_array}
+\label{p:data.d1.array}
+
+Output list of d1 arrays for a given data_d2.
+
+\begin{example}
+   python data_d1_array \{d2_datum\}
+\end{example}
+\begin{verbatim}
+{d2_datum} should be of the form
+  {ix_uni}@{d2_datum_name}
+\end{verbatim}
+
+%% python data_d2 ------------------------------------
+\subsection{python data_d2}
+\index{python!data_d2}
+\label{p:data.d2}
+
+Output information on a d2_datum.
+
+\begin{example}
+   python data_d2 \{ix_uni\}@\{d2_name\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {d2_name} is the name of the d2_data structure.
+\end{verbatim}
+
+%% python data_d2_array ------------------------------------
+\subsection{python data_d2_array}
+\index{python!data_d2_array}
+\label{p:data.d2.array}
+
+Output data d2 info for a given universe.
+
+\begin{example}
+   python data_d2_array \{ix_uni\}
+\end{example}
+\begin{verbatim}
+Example:
+  python data_d2_array 1
+\end{verbatim}
+
 %% python data_d2_create ------------------------------------
 \subsection{python data_d2_create}
 \index{python!data_d2_create}
@@ -328,57 +394,6 @@ Example:
 This destroys the orbit d2_data structure in universe 2.
 \end{verbatim}
 
-%% python data_d2 ------------------------------------
-\subsection{python data_d2}
-\index{python!data_d2}
-\label{p:data.d2}
-
-Output information on a d2_datum.
-
-\begin{example}
-   python data_d2 \{ix_uni\}@\{d2_name\}
-\end{example}
-\begin{verbatim}
-Where:
-  {ix_uni} is a universe index. Defaults to s%global%default_universe.
-  {d2_name} is the name of the d2_data structure.
-\end{verbatim}
-
-%% python data_d_array ------------------------------------
-\subsection{python data_d_array}
-\index{python!data_d_array}
-\label{p:data.d.array}
-
-Output list of datums for a given d1_data structure.
-
-\begin{example}
-   python data_d_array \{ix_uni\}@\{d2_name\}.\{d1_name\}
-\end{example}
-\begin{verbatim}
-Where:
-  {ix_uni} is a universe index. Defaults to s%global%default_universe.
-  {d2_name} is the name of the containing d2_data structure.
-  {d1_name} is the name of the d1_data structure containing the array of datums.
-
-Example:
-  python data_d_array 1@orbit.x
-\end{verbatim}
-
-%% python data_d1_array ------------------------------------
-\subsection{python data_d1_array}
-\index{python!data_d1_array}
-\label{p:data.d1.array}
-
-Output list of d1 arrays for a given data_d2.
-
-\begin{example}
-   python data_d1_array \{d2_datum\}
-\end{example}
-\begin{verbatim}
-{d2_datum} should be of the form
-  {ix_uni}@{d2_datum_name}
-\end{verbatim}
-
 %% python data_parameter ------------------------------------
 \subsection{python data_parameter}
 \index{python!data_parameter}
@@ -393,21 +408,6 @@ Output an array of values for a particular datum parameter for a given array of 
 {parameter} may be any tao_data_struct parameter.
 Example:
   python data_parameter orbit.x model_value
-\end{verbatim}
-
-%% python data_d2_array ------------------------------------
-\subsection{python data_d2_array}
-\index{python!data_d2_array}
-\label{p:data.d2.array}
-
-Output data d2 info for a given universe.
-
-\begin{example}
-   python data_d2_array \{ix_uni\}
-\end{example}
-\begin{verbatim}
-Example:
-  python data_d2_array 1
 \end{verbatim}
 
 %% python data_set_design_value ------------------------------------
