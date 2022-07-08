@@ -397,7 +397,7 @@ endif
 if (u%beam%saved_at /= '') then
   call tao_locate_elements (u%beam%saved_at, u%ix_uni, eles, err, ignore_blank = .false.)
   if (err) then
-    call out_io (s_error$, r_name, 'BAD "saved_at" ELEMENT: ' // u%beam%saved_at)
+    call out_io (s_warn$, r_name, 'BAD "saved_at" ELEMENT: ' // u%beam%saved_at)
   else
     do k = 1, size(eles)
       ele => eles(k)%ele
@@ -410,7 +410,7 @@ endif
 if (u%beam%dump_at /= '') then
   call tao_locate_elements (u%beam%dump_at, u%ix_uni, eles, err, ignore_blank = .false.)
   if (err) then
-    call out_io (s_error$, r_name, 'BAD "dump_at" ELEMENT: ' // u%beam%dump_at)
+    call out_io (s_warn$, r_name, 'BAD "dump_at" ELEMENT: ' // u%beam%dump_at)
   else
     do k = 1, size(eles)
       ele => eles(k)%ele
