@@ -76,14 +76,14 @@ if (ltt_com%mpi_rank == master_rank$) then
   if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init tracking', .true.)
   call ltt_init_tracking (lttp, ltt_com)
-  call mpi_Bcast (0, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
+  call mpi_barrier (MPI_COMM_WORLD, ierr)
   if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call ltt_print_inital_info (lttp, ltt_com)
 
 else
   call mpi_Bcast (ltt_com%time_start, 1, MPI_DOUBLE_PRECISION, master_rank$, MPI_COMM_WORLD, ierr)
   if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
-  call mpi_Bcast (ix, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
+  call mpi_barrier (MPI_COMM_WORLD, ierr)
   if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call ltt_init_tracking (lttp, ltt_com)
 endif

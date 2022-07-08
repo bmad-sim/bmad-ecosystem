@@ -429,6 +429,7 @@ integer i, ix_branch, ib, n_slice, ie, ir, info
 logical err, map_file_exists
 
 character(40) start_name, stop_name
+character(*), parameter :: r_name = 'ltt_init_tracking'
 
 ! PTC has an internal aperture of 1.0 meter. To be safe, set default aperture at 0.9 meter
 
@@ -440,6 +441,13 @@ call twiss_and_track (lat, ltt_com%bmad_closed_orb, ix_branch = ltt_com%ix_branc
 call radiation_integrals (lat, ltt_com%bmad_closed_orb, ltt_com%modes, ix_branch = ltt_com%ix_branch)
 
 lttp%ptc_aperture = min([0.9_rp, 0.9_rp], lttp%ptc_aperture)
+
+if ((lttp%tracking_method == 'PTC' .or. lttp%tracking_method == 'MAP') .and. &
+                                             abs(ltt_com%bmad_closed_orb(0)%vec(5)) > 0.8) then
+  call out_io(s_fatal$, r_name, 'Z PHASE SPACE COORDINATE HAS MAGNITUDE TOO LARGE FOR PTC TRACKING (PTC HAS AN', &
+                                'APERTURE LIMIT OF 1 METER). SOLUTION: SHIFT ALL RF PHI0 TO MAKE Z SMALLER.')
+  stop
+endif
 
 !
 
