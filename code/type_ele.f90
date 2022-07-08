@@ -639,10 +639,11 @@ if (associated(ele%ac_kick)) then
 
   if (allocated(ac%frequencies)) then
     nl=nl+1; li(nl) = 'AC_kicker frequency components'
-    nl=nl+1; li(nl) = '     Indx          Freq     Amplitude           Phi'    
+    nl=nl+1; li(nl) = '     Indx          Freq     Amplitude           Phi  Harmonic_Num'    
     do im = 1, size(ac%frequencies)
-      nl=nl+1; write (li(nl), '(i9, 3es14.6)') im, &
-                                ac%frequencies(im)%f, ac%frequencies(im)%amp, ac%frequencies(im)%phi
+      n = branch%n_ele_track
+      nl=nl+1; write (li(nl), '(i9, 4es14.6)') im, ac%frequencies(im)%f, &
+                         ac%frequencies(im)%amp, ac%frequencies(im)%phi, ac%frequencies(im)%f * branch%ele(n)%ref_time
     enddo
   endif
 endif
