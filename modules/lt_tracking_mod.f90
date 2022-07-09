@@ -1035,7 +1035,6 @@ endif
 !
 
 do i_turn = ix_start_turn+1, ix_end_turn
-  n_live = 0
   do ib = 1, size(beam%bunch)
     bunch => beam%bunch(ib)
     if (i_turn == lttp%ix_turn_record .and. lttp%ix_particle_record > 0) then
@@ -1072,9 +1071,10 @@ do i_turn = ix_start_turn+1, ix_end_turn
       stop
     end select
 
-    n_live = n_live + count(bunch%particle%state == alive$)
+    bunch%n_live = count(bunch%particle%state == alive$)
   enddo
 
+  n_live = sum(beam%bunch%n_live)
   if (n_live_old - n_live >= n_print_dead_loss) then
     print '(2a, i0, a, i0)', trim(prefix_str), ' Cumulative number dead on turn ', i_turn, ': ', n_part_tot - n_live
     n_live_old = n_live
@@ -1085,8 +1085,8 @@ do i_turn = ix_start_turn+1, ix_end_turn
     exit
   endif
 
-  if (n_part_tot - n_live > lttp%dead_cutoff * n_part_tot .and. .not. ltt_com%using_mpi) then
-    print '(2a)', trim(prefix_str), ' Particle loss greater than set by dead_cutoff. Stopping now.'
+  if (n_part_tot - n_live >= nint(lttp%dead_cutoff * n_part_tot) .and. .not. ltt_com%using_mpi) then
+    print '(2a)', trim(prefix_str), ' PARTICLE LOSS GREATER THAN SET BY DEAD_CUTOFF. STOPPING NOW.'
     exit
   endif
 

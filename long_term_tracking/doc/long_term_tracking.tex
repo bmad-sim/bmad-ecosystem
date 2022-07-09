@@ -592,7 +592,7 @@ Example:
   ltt%exclude_from_maps  = "beambeam::*"
   ltt%split_bends_for_stochastic_rad = False
   ltt%symplectic_map_tracking = False
-  ltt%dead_cutoff        = 1
+  ltt%dead_cutoff        = 0.99
   ltt%b_emittance        = 1e-9          ! Used with space charge calc.
   ltt%debug              = F
   bmad_com%spin_tracking_on = T          ! See Bmad manual for 
@@ -842,7 +842,7 @@ parameters set in the lattice file.
 \item[ltt\%dead_cutoff] \Newline
 Sets the cutoff for the number of dead particles below which the simulation will stop. For example,
 if \vn{ltt%dead_cutoff} is set to 0.01, when 1\% of the beam has been lost, the simulation will stop. The
-default value for \vn{ltt%dead_cutoff} is 1.
+default value for \vn{ltt%dead_cutoff} is 0.99
 %
 \item[ltt\%debug] \Newline
 This parameter is used for debugging the program. This is not of interest to the general user.

@@ -16,12 +16,12 @@ real(rp) particles_per_thread, now_time
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer i, n, nn, nb, ib, ix, ierr, rc, leng, bd_size, storage_size, dat_size, ix_stage
-integer ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn
+integer ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn, n_part_tot
 integer, allocatable :: ix_stop_turn(:), ixp_slave(:)
 
 integer, parameter :: base_tag$  = 1000
 
-logical am_i_done, err_flag, ok
+logical am_i_done, err_flag, ok, too_many_dead
 logical, allocatable :: stop_here(:)
 
 character(200) pwd
@@ -136,15 +136,13 @@ endif
 particles_per_thread = n_particle / (num_slaves + 0.5)
 allocate (ixp_slave(0:num_slaves), stop_here(lttp%n_turns))
 
-ixp_slave(0) = nint(0.5 * particles_per_thread) ! Share for Master
+ixp_slave(0) = nint(0.5_rp * particles_per_thread) ! Share for Master
 if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ixp:', 0, ixp_slave(0)
 
 do i = 1, num_slaves
-  ixp_slave(i) = ixp_slave(i-1) + nint(particles_per_thread)
+  ixp_slave(i) = nint((i+0.5_rp)*particles_per_thread)
   if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ixp:', i, ixp_slave(i)
 enddo
-ixp_slave(num_slaves) = n_particle
-if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ixp:', num_slaves, ixp_slave(num_slaves)
 
 ! Calc stopping points.
 
@@ -217,6 +215,18 @@ if (ltt_com%mpi_rank == master_rank$) then
   do ix_stage = 1, ubound(ix_stop_turn, 1)
     call mpi_barrier(MPI_COMM_WORLD, ierr)
 
+    n_part_tot = 0
+    do nb = 1, size(beam%bunch)
+      beam%bunch(nb)%n_live = count(beam%bunch(nb)%particle%state == alive$)
+      n_part_tot = n_part_tot + size(beam%bunch(nb)%particle)
+    enddo
+    too_many_dead = (n_part_tot - sum(beam%bunch%n_live) >= nint(lttp%dead_cutoff * n_part_tot))
+    call mpi_Bcast(too_many_dead, 1, MPI_LOGICAL, master_rank$, MPI_COMM_WORLD, ierr)
+    if (too_many_dead) then
+      call ltt_print_mpi_info (lttp, ltt_com, 'PARTICLE LOSS GREATER THAN SET BY DEAD_CUTOFF. STOPPING NOW.', .true.)
+      exit
+    endif
+
     do i = 1, num_slaves
       ! Get data from slave.
       slave_rank = MPI_ANY_SOURCE
@@ -286,6 +296,8 @@ else  ! Is a slave
 
   do ix_stage = 1, ubound(ix_stop_turn, 1)
     call mpi_barrier(MPI_COMM_WORLD, ierr)
+    call mpi_Bcast(too_many_dead, 1, MPI_LOGICAL, master_rank$, MPI_COMM_WORLD, ierr)
+    if (too_many_dead) exit
 
     nt0 = ix_stop_turn(ix_stage-1); nt1 = ix_stop_turn(ix_stage)
     call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Track beam for stage: ' // int_str(ix_stage) // ' (End turn: ' // int_str(nt1) // ')', .true.)
