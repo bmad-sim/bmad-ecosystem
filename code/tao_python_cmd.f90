@@ -1905,7 +1905,10 @@ case ('datum_create')
   d_ptr%ele_name = ele_name
   if (ele_name /= '') then
     call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
-    if (err .or. n_loc /= 1) then
+    if (err .or. n_loc == 0) then
+      call invalid('LATTICE ELEMENT NOT FOUND FOR: ' // ele_name)
+      return
+    elseif (n_loc > 1) then
       call invalid('UNIQUE LATTICE ELEMENT NOT FOUND FOR: ' // ele_name)
       return
     endif
@@ -1914,6 +1917,7 @@ case ('datum_create')
   endif
 
   d_ptr%merit_type  = name_arr(6)
+  if (d_ptr%merit_type == '') d_ptr%merit_type = 'target'
   d_ptr%meas_value  = real_val(name_arr(7), 0.0_rp, err);      if (err) return
   d_ptr%good_meas   = logic_val(name_arr(8), .false., err);    if (err) return
   d_ptr%ref_value   = real_val(name_arr(9), 0.0_rp, err);      if (err) return

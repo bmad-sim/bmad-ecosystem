@@ -1173,12 +1173,8 @@ case ('data')
     nl=nl+1; write(lines(nl), lmt)    '%useit_plot        = ', d_ptr%useit_plot
     nl=nl+1; write(lines(nl), '(a, l1, 3x, a)')    '%useit_opt         = ', d_ptr%useit_opt, tao_optimization_status(d_ptr)
 
-    if (d_ptr%exists) then
-      u => s%u(d_ptr%d1%d2%ix_universe)
-      call tao_evaluate_a_datum (d_ptr, u, u%model, val, valid_value, why_invalid)
-      if (.not. valid_value) then
-        nl=nl+1; lines(nl) = 'Model value is invalid since: ' // why_invalid
-      endif
+    if (d_ptr%exists .and. d_ptr%why_invalid /= '') then
+      nl=nl+1; lines(nl) = 'Model value is invalid since: ' // d_ptr%why_invalid
     endif
 
     if (d_ptr%d1%d2%name(1:4) == 'ping') call show_ping(d_ptr%d1%d2%ix_universe)
