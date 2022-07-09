@@ -505,6 +505,7 @@ logical, allocatable :: good(:)
 ! If does not exist
 
 valid_value = .false.
+datum%why_invalid = ''
 
 if (.not. datum%exists) then
   datum_value = real_garbage$
@@ -5875,6 +5876,8 @@ character(40) :: err_str(2) = [character(40):: 'NO BEAM TRACKING HAS BEEN DONE',
 
 
 ! The idea with err_str is to limit the number of error messages generated of a given type.
+
+datum%why_invalid = message
 
 if (logic_option(.false., exterminate)) then
   datum%exists = .false. 
