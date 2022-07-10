@@ -68,7 +68,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ July 4, 2022}
+\date{David Sagan \\ July 10, 2022}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -569,7 +569,7 @@ Example:
   ltt%averages_output_every_n_turns = 200
   ltt%particle_output_every_n_turns = 200
   ltt%only_live_particles_out = T
-  ltt%core_emit_cutoff   = 0.5
+  ltt%core_emit_cutoff   = 0.2, 0.5
   ltt%print_on_dead_loss = -1
   ltt%map_file_prefix = "ltt"
   ltt%map_ascii_output_file = ""
@@ -672,6 +672,8 @@ The \vn{averages} file with the \vn{.ave} suffix will contain the following colu
   <x>, <px>, <y>, 
         <py>, <z>, <pz>         -- Beam centroid.
   <p0c>                         -- Reference momentum
+  Sig_x, Sig_px, Sig_y, 
+        Sig_py, Sig_z, Sig_pz   -- Phase space sigmas
 \end{code}
 
 The \vn{sigma} file with the \vn{.sigma} suffix will contain the following columns:
@@ -694,13 +696,14 @@ The \vn{emittance} file with the \vn{.emit} suffix will contain the following co
   N_live                        -- Number of live particles
   Time                          -- Time from start
   emit_a, emit_b, emit_c        -- Normal mode emittances
-  core_emit_a, core_emit_b,
-        core_emit_c             -- ``Core'' emittances
-  Sig_x, Sig_px, Sig_y, 
-        Sig_py, Sig_z, Sig_pz   -- Phase space sigmas
   kurtosis_x, kurtosis_y, 
         kurtosis_z              -- Kurtosis in $x$, $y$, and $z$ directions
   skew_x, skew_y, skew_z        -- Skewness in $x$, $y$, and $z$ directions
+  core_emit_a, core_emit_b,
+        core_emit_c             -- ``Core'' emittance or ltt%core_emit_cutoff(1)
+  core_emit_a, core_emit_b,
+        core_emit_c             -- ``Core'' emittance or ltt%core_emit_cutoff(2)
+  core_emit_a, ... etc...
 \end{code}
 Skewness $\kappa_3$ is defined by
 \begin{equation}
@@ -769,11 +772,14 @@ to compute the map(s). This hash string is used so that map(s) constructed with 
 parameters are not used if the parameters are changed.
 %
 \item[ltt\%core_emit_cutoff] \Newline
-Cutoff used to calculate the ``core'' emittance. Default value is 0.5. See Section~\sref{s:core} for
-more details. The value of \vn{ltt%core_emit_cutoff} must be greater than zero and less than or
-equal to one. Using a \vn{ltt%core_emit_cutoff} near zero may lead to invalid results if the number
-of particle to be retained is too small since there will be statistical fluctuations of order
-$1/\sqrt{N_c}$ where $N_c$ is the number of particles in the core.
+The \vn{ltt%core_emit_cutoff} parameter is an array of values used to calculate the ``core''
+emittances. Up to ten values can be given. If a value is non-positive, that value and any value
+after that are ignored. The default first value is 0.5 and the reset default to negative. See
+Section~\sref{s:core} for more details. The value of \vn{ltt%core_emit_cutoff} must be less than or
+equal to one. Using a value near zero may lead to invalid results if the number of particle to be
+retained is too small since there will be statistical fluctuations of order $1/\sqrt{N_c}$ where
+$N_c$ is the number of particles in the core. The core emittance will be in the \vn{.emit} output
+data file (\sref{s:out.files}).
 %
 \item[ltt\%custom_output_file] \Newline
 A custom output file can be created that records beam and lattice parameters every $N$\Th turn where

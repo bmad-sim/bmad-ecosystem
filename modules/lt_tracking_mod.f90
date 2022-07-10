@@ -20,6 +20,7 @@ implicit none
 integer, parameter :: master_rank$  = 0
 integer, parameter :: in_map$ = 0
 integer, parameter :: not_in_map$ = 1
+integer, private :: i_loop
 
 ! Essentially: The ltt_params_struct holds user setable parameters while the ltt_com_struct holds
 ! parameters that are not setable.
@@ -56,7 +57,7 @@ type ltt_params_struct
   integer :: averages_output_every_n_turns = -1
   integer :: random_seed = 0
   real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
-  real(rp) :: core_emit_cutoff = 0.5_rp
+  real(rp) :: core_emit_cutoff(10) = [0.5_rp, (-1.0_rp, i_loop = 2, 10)]
   real(rp) :: ramping_start_time = 0
   real(rp) :: ptc_aperture(2) = 0.1_rp
   real(rp) :: print_on_dead_loss = -1
@@ -129,16 +130,13 @@ integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
 
 type ltt_bunch_data_struct
   real(rp) :: n_live = 0        ! Number alive. Use real to avoid roundoff error.
-  real(rp) :: orb_sum(6) = 0    ! Orbit average
-  real(rp) :: orb2_sum(6,6) = 0
-  real(rp) :: orb3_sum(6) = 0   ! Skew
-  real(rp) :: orb4_sum(6) = 0   ! Kurtosis
-  real(rp) :: spin_sum(3) = 0   ! Spin
-  real(rp) :: p0c_sum = 0
-  real(rp) :: time_sum = 0
+  real(rp) :: orb_ave(6) = 0    ! Orbit average
+  real(rp) :: spin_ave(3) = 0   ! Spin
+  real(rp) :: p0c_ave = 0
+  real(rp) :: time_ave = 0
   real(rp) :: sig1(6) = 0, sigma(27) = 0, sig_mat(6,6) = 0
   real(rp) :: kurt(3) = 0, skew(3) = 0
-  real(rp) :: core_emit(3) = 0
+  real(rp) :: core_emit(10,3) = 0
   type (bunch_params_struct) :: params = bunch_params_struct()
 end type
 
@@ -263,7 +261,7 @@ if (ltt%mpi_runs_per_subprocess /= 4) then
   call out_io (s_info$, r_name, 'Note: ltt%mpi_runs_per_subprocess is no longer used and will be ignored.')
 endif
 
-if (ltt%core_emit_cutoff < 1d-3 .or. ltt%core_emit_cutoff > 1.0_rp) then
+if (any(ltt%core_emit_cutoff > 1.0_rp)) then
   call out_io (s_fatal$, r_name, 'ltt%core_emit_cutoff MUST BE GREATER THAN ZERO AND LESS THAN OR EQUAL TO ONE. STOPPING HERE.')
   stop
 endif
@@ -530,6 +528,7 @@ type (ltt_com_struct), target :: ltt_com
 type (branch_struct), pointer :: branch
 integer i, nm, ix, iu, nb, ib
 character(200) :: file_name
+character(1000) :: line1, line2
 
 ! Print some info.
 
@@ -553,10 +552,11 @@ do ib = 0, nb
 
   call ltt_print_this_info(iu, .false.)
 
-  write (iu, '(a1, a8, a9, 2a14, 3a14, 2x, 7a14)') '#', '1', '2', '3', '4', '5', '6', '7', &
-                  '8', '9', '10', '11', '12', '13', '14'
-  write (iu, '(a1, a8, a9, 2a14, 3a14, 2x, 7a14)') '#', 'Turn', 'N_live', 'Time', 'Polarization', &
-                   '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>'
+  write (iu, '(a1, a8, a9, 2a14, 3a14, 2x, 7a14, 2x, 6a14)') '#', '1', '2', '3', '4', '5', '6', '7', &
+                  '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'
+  write (iu, '(a1, a8, a9, 2a14, 3a14, 2x, 7a14, 2x, 6a14)') '#', 'Turn', 'N_live', 'Time', 'Polarization', &
+                   '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>', &
+                   'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz'
 
   close(iu)
 
@@ -579,16 +579,27 @@ do ib = 0, nb
   !
 
   call ltt_data_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
-  open (iu, file = file_name, recl = 400)
+  open (iu, file = file_name, recl = 1000)
 
   call ltt_print_this_info(iu, .false.)
 
-  write (iu, '(a1, a8, a10, a12, 2x, 3a14, 2x, 6a14, 2x, 3a14, 2x, 3a14, 2x, 3a14)') '#', '1', '2', '3', &
-                '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'
+  write (line1, '(a1, a8, a10, a12, 2x, 3a14, 2x, 3a14, 2x, 3a14, a)') '#', '1', '2', '3', &
+                '4', '5', '6', '7', '8', '9', '10', '11', '12', '  |'
 
-  write (iu, '(a1, a8, a10, a12, 2x, 3a14, 2x, 6a14, 2x, 3a14, 2x, 3a14, 2x, 3a14)') '#', 'Turn', 'N_live', 'Time', &
-                'Emit_a', 'Emit_b', 'Emit_c', 'Core_Emit_a', 'Core_Emit_b', 'Core_Emit_c', 'Sig_x', 'Sig_px', 'Sig_y', &
-                'Sig_py', 'Sig_z', 'Sig_pz', 'Kurtosis_x', 'Kurtosis_y', 'Kurtosis_z', 'Skew_x', 'Skew_y', 'Skew_z'
+  write (line2, '(a1, a8, a10, a12, 2x, 3a14, 2x, 3a14, 2x, 3a14, a)') '#', 'Turn', 'N_live', 'Time', &
+                'Emit_a', 'Emit_b', 'Emit_c', 'Kurtosis_x', 'Kurtosis_y', 'Kurtosis_z', 'Skew_x', 'Skew_y', 'Skew_z', '  |'
+
+
+  do i = 1, size(lttp%core_emit_cutoff)
+    if (lttp%core_emit_cutoff(i) <= 0) exit
+    line1 = trim(line1) // '                   ZZ% Core                |'
+    line2 = trim(line2) // '      Emit_a        Emit_b        Emit_c   |'
+    ix = index(line1, 'ZZ')
+    line1 = line1(1:ix-1) // int_str(nint(lttp%core_emit_cutoff(i)*100)) // line1(ix+2:)
+  enddo
+
+  write (iu, '(a)') trim(line1)
+  write (iu, '(a)') trim(line2)
 
   close(iu)
 
@@ -638,7 +649,6 @@ call ltt_write_line('# bmad_com%sr_wakes_on               = ' // logic_str(bmad_
 if (bmad_com%sr_wakes_on) then
   call ltt_write_line('# Number_of_wake_elements            = ' // int_str(size(ltt_com%ix_wake_ele)), lttp, iu, print_this)
 endif
-call ltt_write_line('# ltt%core_emit_cutoff               = ' // real_str(lttp%core_emit_cutoff, 2), lttp, iu, print_this)
 call ltt_write_line('# ltt%random_sigma_cut               = ' // real_str(lttp%random_sigma_cut, 6), lttp, iu, print_this)
 call ltt_write_line('# ltt%n_turns                        = ' // int_str(lttp%n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%particle_output_every_n_turns  = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
@@ -1610,42 +1620,39 @@ end subroutine ltt_write_params_header
 subroutine ltt_calc_bunch_data (lttp, bunch, bd)
 
 type (ltt_params_struct) lttp
-type (bunch_struct), target :: bunch, core_bunch
+type (bunch_struct), target :: bunch
 type (ltt_bunch_data_struct) :: bd
-type (bunch_params_struct) b_params
 
-real(rp) ave, n_inv_mat(6,6), f, z, sig_cut, center(6)
-real(rp), allocatable :: jamp(:)
+real(rp) ave, z, n_inv_mat(6,6)
+real(rp) :: orb2_sum(6,6), orb3_sum(6), orb4_sum(6), orb_sum(6)
 
-integer i, j, k, n, ib, ix, i_turn, this_turn, n2w, n_cut
-integer, allocatable :: indx(:)
-
+integer i, j, k, n, ib, ic, ix, i_turn, this_turn, n2w
 logical error
 
 !
 
+orb_sum = 0;  orb2_sum = 0;  orb3_sum = 0;  orb4_sum = 0
 bd = ltt_bunch_data_struct()
 bd%n_live = count(bunch%particle%state == alive$)
 if (bd%n_live == 0) return
 
 do i = 1, 6
-  bd%orb_sum(i)  = bd%orb_sum(i)  + sum(bunch%particle%vec(i), bunch%particle%state == alive$)
+  orb_sum(i)  = orb_sum(i)  + sum(bunch%particle%vec(i), bunch%particle%state == alive$)
   do j = i, 6
-    bd%orb2_sum(i,j) = bd%orb2_sum(i,j) + sum(bunch%particle%vec(i) * bunch%particle%vec(j), bunch%particle%state == alive$) 
+    orb2_sum(i,j) = orb2_sum(i,j) + sum(bunch%particle%vec(i) * bunch%particle%vec(j), bunch%particle%state == alive$) 
   enddo
 
   ave = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / bd%n_live
-  bd%orb3_sum(i) = bd%orb3_sum(i) + sum((bunch%particle%vec(i)-ave)**3, bunch%particle%state == alive$) 
-  bd%orb4_sum(i) = bd%orb4_sum(i) + sum((bunch%particle%vec(i)-ave)**4, bunch%particle%state == alive$) 
+  orb3_sum(i) = orb3_sum(i) + sum((bunch%particle%vec(i)-ave)**3, bunch%particle%state == alive$) 
+  orb4_sum(i) = orb4_sum(i) + sum((bunch%particle%vec(i)-ave)**4, bunch%particle%state == alive$) 
 enddo
 
 do i = 1, 3
-  bd%spin_sum(i) = bd%spin_sum(i) + sum(bunch%particle%spin(i), bunch%particle%state == alive$)
+  bd%spin_ave(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$) / bd%n_live
 enddo
-
-bd%p0c_sum = bd%p0c_sum + sum(bunch%particle%p0c, bunch%particle%state == alive$)
-bd%time_sum = bd%time_sum + sum(bunch%particle%t, bunch%particle%state == alive$)
-center = bd%orb_sum / bd%n_live
+bd%p0c_ave = sum(bunch%particle%p0c, bunch%particle%state == alive$) / bd%n_live
+bd%time_ave = sum(bunch%particle%t, bunch%particle%state == alive$) / bd%n_live
+bd%orb_ave = orb_sum / bd%n_live
 
 !
 
@@ -1656,42 +1663,62 @@ do j = i, 6
   ! Test if the value of sigma(i,j) is significant. If not set to zero. 
   ! This is to avoid problems due to round-off errors. 
   ! One notible case is at the beginning of tracking if a mode has zero emittance.
-  bd%sigma(k) = bd%orb2_sum(i,j) / bd%n_live - bd%orb_sum(i) * bd%orb_sum(j) / bd%n_live**2
-  if (abs(bd%sigma(k)) < 1e-15_rp * abs(bd%orb_sum(i)*bd%orb_sum(j)) / bd%n_live) bd%sigma(k) = 0
+  bd%sigma(k) = orb2_sum(i,j) / bd%n_live - orb_sum(i) * orb_sum(j) / bd%n_live**2
+  if (abs(bd%sigma(k)) < 1e-15_rp * abs(orb_sum(i)*orb_sum(j)) / bd%n_live) bd%sigma(k) = 0
   bd%sig_mat(i,j) = bd%sigma(k)
   bd%sig_mat(j,i) = bd%sigma(k)
   if (i == j) bd%sig1(i) = sqrt(max(0.0_rp, bd%sigma(k)))
 enddo
 enddo
 
-if (bd%sig1(1) /= 0) bd%skew(1) = bd%orb3_sum(1) / (bd%n_live * bd%sig1(1)**3)
-if (bd%sig1(1) /= 0) bd%kurt(1) = bd%orb4_sum(1) / (bd%n_live * bd%sig1(1)**4) - 3.0_rp
-if (bd%sig1(3) /= 0) bd%skew(2) = bd%orb3_sum(3) / (bd%n_live * bd%sig1(3)**3)
-if (bd%sig1(3) /= 0) bd%kurt(2) = bd%orb4_sum(3) / (bd%n_live * bd%sig1(3)**4) - 3.0_rp
-if (bd%sig1(5) /= 0) bd%skew(3) = bd%orb3_sum(5) / (bd%n_live * bd%sig1(5)**3)
-if (bd%sig1(5) /= 0) bd%kurt(3) = bd%orb4_sum(5) / (bd%n_live * bd%sig1(5)**4) - 3.0_rp
+if (bd%sig1(1) /= 0) bd%skew(1) = orb3_sum(1) / (bd%n_live * bd%sig1(1)**3)
+if (bd%sig1(1) /= 0) bd%kurt(1) = orb4_sum(1) / (bd%n_live * bd%sig1(1)**4) - 3.0_rp
+if (bd%sig1(3) /= 0) bd%skew(2) = orb3_sum(3) / (bd%n_live * bd%sig1(3)**3)
+if (bd%sig1(3) /= 0) bd%kurt(2) = orb4_sum(3) / (bd%n_live * bd%sig1(3)**4) - 3.0_rp
+if (bd%sig1(5) /= 0) bd%skew(3) = orb3_sum(5) / (bd%n_live * bd%sig1(5)**3)
+if (bd%sig1(5) /= 0) bd%kurt(3) = orb4_sum(5) / (bd%n_live * bd%sig1(5)**4) - 3.0_rp
 
 call calc_emittances_and_twiss_from_sigma_matrix (bd%sig_mat, 0.0_rp, bd%params, error, n_mat = n_inv_mat)
 call mat_inverse (n_inv_mat, n_inv_mat)
 
 ! Calc core emit
 
+do ic = 1, size(lttp%core_emit_cutoff)
+  if (lttp%core_emit_cutoff(ic) <= 0) exit
+  call this_core_calc(bunch, bd, lttp%core_emit_cutoff(ic), bd%core_emit(ic,:))
+enddo
+
+!------------------------------------------------
+contains
+
+subroutine this_core_calc(bunch, bd, core_emit_cutoff, core_emit)
+
+type (bunch_struct), target :: bunch, core_bunch
+type (ltt_bunch_data_struct) :: bd
+type (bunch_params_struct) b_params
+
+real(rp) core_emit_cutoff, core_emit(3)
+real(rp) f, sig_cut, n_inv_mat(6,6)
+
+integer i, n, n_cut
+
+logical error
+
+!
+
 n = bd%n_live
-n_cut = nint(lttp%core_emit_cutoff * n)
+n_cut = nint(core_emit_cutoff * n)
 allocate (core_bunch%particle(n_cut))
-if (lttp%core_emit_cutoff > 1.0_rp - 1e-6_rp) then
+if (core_emit_cutoff > 1.0_rp - 1e-6_rp) then
   f = 1.0_rp
 else
-  sig_cut = -log(1-lttp%core_emit_cutoff)
-  f =  lttp%core_emit_cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
+  sig_cut = -log(1-core_emit_cutoff)
+  f =  core_emit_cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
 endif
 
 
-n = size(bunch%particle)
-allocate(jamp(n), indx(n))
-
 do i = 1, 3
-  call core_bunch_construct(i, bunch, center, n_inv_mat, n_cut, core_bunch)
+  call core_bunch_construct(i, bunch, bd%orb_ave, n_inv_mat, n_cut, core_bunch)
 
   call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
   call mat_inverse (n_inv_mat, n_inv_mat)
@@ -1699,27 +1726,33 @@ do i = 1, 3
 
   call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
   select case (i)
-  case (1); bd%core_emit(1) = f * b_params%a%emit
-  case (2); bd%core_emit(2) = f * b_params%b%emit
-  case (3); bd%core_emit(3) = f * b_params%c%emit
+  case (1); core_emit(1) = f * b_params%a%emit
+  case (2); core_emit(2) = f * b_params%b%emit
+  case (3); core_emit(3) = f * b_params%c%emit
   end select
 enddo
 
+end subroutine this_core_calc
+
 !------------------------------------------------
-contains
+! contains
 
 subroutine core_bunch_construct(ix_mode, bunch, center, n_inv_mat, n_cut, core_bunch)
 
 type (bunch_struct), target :: bunch, core_bunch
 type (coord_struct), pointer :: p
 
-real(rp) n_inv_mat(6,6), center(6)
-real(rp) jvec(6)
+real(rp) n_inv_mat(6,6), center(6), jvec(6)
+real(rp), allocatable :: jamp(:)
 
 integer ix_mode, n_cut
-integer k, j, ip, ix
+integer n, k, j, ip, ix
+integer, allocatable :: indx(:)
 
 !
+
+n = size(bunch%particle)
+allocate(jamp(n), indx(n))
 
 do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
@@ -1788,9 +1821,10 @@ type (ltt_bunch_data_struct) bd
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 
-integer ix_turn, k, nb, iu1, iu2, iu3, ix, ib
+integer i, ix_turn, k, nb, iu1, iu2, iu3, ix, ib
 logical error
 character(200) :: file_name
+character(1000) :: line
 
 !
 
@@ -1818,13 +1852,20 @@ do ib = 1, nb
 
   !
 
-  write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 7es14.6)') ix_turn, nint(bd%n_live), &
-          bd%time_sum/bd%n_live, norm2(bd%spin_sum/bd%n_live), bd%spin_sum/bd%n_live, bd%orb_sum/bd%n_live, bd%p0c_sum/bd%n_live
+  write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 7es14.6, 2x, 6es14.6)') ix_turn, nint(bd%n_live), &
+          bd%time_ave, norm2(bd%spin_ave), bd%spin_ave, bd%orb_ave, bd%p0c_ave, bd%sig1
 
-  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)') ix_turn, nint(bd%n_live), bd%time_sum/bd%n_live, (bd%sigma(k), k = 1, 21)
+  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)') ix_turn, nint(bd%n_live), bd%time_ave, (bd%sigma(k), k = 1, 21)
 
-  write (iu3, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 6es14.6, 2x, 3es14.6, 2x, 3es14.6, 2x, 3es14.6)') ix_turn, nint(bd%n_live), &
-          bd%time_sum/bd%n_live, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%core_emit, bd%sig1, bd%kurt, bd%skew
+  write (line, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 3es14.6, 2x, 3es14.6)') ix_turn, nint(bd%n_live), &
+          bd%time_ave, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%kurt, bd%skew
+
+  do i = 1, size(lttp%core_emit_cutoff)
+    if (lttp%core_emit_cutoff(i) <= 0) exit
+    write (line, '(a, 2x, 3es14.6)') trim(line), bd%core_emit(i,:)
+  enddo
+
+  write (iu3, '(a)') trim(line)
 
   close (iu1)
   close (iu2)
