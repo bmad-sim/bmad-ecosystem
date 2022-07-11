@@ -9,7 +9,7 @@
 ! Input:
 !   r_num     -- real(rp): Real number
 !   n_signif  -- integer: Number of significant places.
-!   n_deciaml -- integer, optional: If present, maximum number of places after the decimal point.
+!   n_decimal -- integer, optional: If present, maximum number of places after the decimal point.
 !
 ! Output:
 !   str       -- character(:), allocatable: String representation with no tailing blanks or zeros.
