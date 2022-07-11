@@ -162,6 +162,8 @@ do i = 1, 6
   write (1, '(a, i0, a, 6es16.8)') '"layout-sigma', i, '" ABS 2E-12', sigma_mat(i,:)
 enddo
 
+bmad_com%radiation_damping_on = .false.
+
 !-------------------------------------------------------
 
 call bmad_parser ('single_quad.bmad', lat)
