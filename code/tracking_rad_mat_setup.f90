@@ -17,7 +17,7 @@
 
 subroutine tracking_rad_mat_setup (ele, tollerance, ref_edge, rad_map)
 
-use emit_6d_mod, dummy => tracking_rad_mat_setup
+use rad_6d_mod, dummy => tracking_rad_mat_setup
 use f95_lapack, only: dpotrf_f95
 
 implicit none
@@ -47,7 +47,8 @@ if (orb0%vec(2) == orb1%vec(2) .and. orb0%vec(4) == orb1%vec(4) .and. ele%key /=
 
 !
 
-call rad1_damp_and_stoc_mats (ele, .true., orb0, orb1, rad_map, tol*branch%param%i2_rad_int, tol*branch%param%i3_rad_int)
+call rad1_damp_and_stoc_mats (ele, .true., orb0, orb1, rad_map, &
+                                                  tol*branch%param%g2_integral, tol*branch%param%g3_integral)
 
 select case (ref_edge)
 case (upstream_end$)

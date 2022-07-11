@@ -1260,7 +1260,7 @@ call cpu_time(bp_com%time2)
 bmad_com%auto_bookkeeper = auto_bookkeeper_saved  ! potentially saves time with lat_make_mat6
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, ix_branch = -1) 
 
-call i2_i3_rad_int_calc(lat)
+call g_integrals_calc(lat)
 
 call cpu_time(bp_com%time3)
 

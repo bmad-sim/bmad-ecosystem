@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 278
+integer, parameter :: bmad_inc_version$ = 279
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -317,7 +317,7 @@ character(16), parameter :: mode_name(0:2) = [character(16) :: 'GARBAGE!', 'Refl
 integer, parameter :: anchor_beginning$ = 1, anchor_center$ = 2, anchor_end$ = 3
 character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Center   ', 'End      ']
 
-! Note: upstream_end$ = entrance_end$ & downstream_end$ = exit_end$
+! Note: upstream_end$ = entrance_end$ & downstream_end$ = exit_end$ for ele with %orientation = 1.
 
 ! first_track_edge$ is the edge a particle enters the element at. 
 ! This edge will depend upon whether a particle is moving in +s or -s direction.
@@ -890,13 +890,9 @@ type rad_map_struct
 end type
 
 type rad_int_ele_cache_struct
-  real(rp) :: g2_0 = 0          ! g2 factor when orbit = %vec0
-  real(rp) :: g3_0 = 0          ! g3 factor when orbit = %vec0
-  real(rp) :: dg2_dorb(6) = 0   ! variation of g2 with respect to orbit.
-  real(rp) :: dg3_dorb(6) = 0   ! Variation of g3 with respect to orbit.
-  logical :: stale = .true.
-  ! New 6D emit. In this structure rm0%stoc_mat and rm1%stoc_mat are the kick matrices.
+  ! 6D emit. In this structure rm0%stoc_mat and rm1%stoc_mat are the kick matrices.
   type (rad_map_struct) rm0, rm1  ! Upstream half and downstream half matrices for an element.
+  logical :: stale = .true.
 end type
 
 ! Structure for surfaces of detectors, mirrors, crystals, etc.
@@ -1346,8 +1342,9 @@ type lat_param_struct
   integer :: ixx = 0                           ! Integer for general use
   logical :: stable = .false.                  ! is closed lat stable?
   logical :: live_branch = .true.              ! Should tracking be done on the branch?
-  real(rp) :: I2_rad_int = -1                  ! I2 radiation integral for branch.
-  real(rp) :: I3_rad_int = -1                  ! I3 radiation integral for branch.
+  real(rp) :: g1_integral = -1                 ! Approximate |g| (bending strength) integral of branch. 
+  real(rp) :: g2_integral = -1                 ! Approximate g^2 integral of branch. 
+  real(rp) :: g3_integral = -1                 ! Approximate g^2 integral of branch. 
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                                ! Overall status for the branch.
   type (beam_init_struct) :: beam_init = beam_init_struct() ! For beam initialization.
@@ -1790,6 +1787,7 @@ end type
 integer, parameter :: bends$ = 201
 integer, parameter :: wigglers$ = 202
 integer, parameter :: all$ = 203
+integer, parameter :: upstream$ = 1, downstream$ = 2
 
 !---------------------------------------------------------------------------
 ! Units
@@ -2120,8 +2118,8 @@ type (ptc_common_struct), save, target :: ptc_com, ptc_com_default
 ! When parsing a lattice file, %taylor_order_saved will be set to the taylor order of the lattice.
 !
 ! %taylor_order_ptc is used to keep track as to what has been actually set for PTC. 
-! If different from bmad_com[taylor_order], the Bmad bookkeeping will set PTC's order to bmad_com[taylor_order] and
-! then set %taylor_order_ptc to bmad_com[taylor_order].
+! If different from bmad_com[taylor_order], and bmad_com[taylor_order] is nonzero, the Bmad bookkeeping will 
+! set PTC's order to bmad_com[taylor_order] and then set %taylor_order_ptc to bmad_com[taylor_order].
 
 type ptc_private_struct
   type (internal_state) :: base_state   ! Base PTC state. 

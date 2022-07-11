@@ -1263,20 +1263,12 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%g2_0 == f2%g2_0)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%g3_0 == f2%g3_0)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%dg2_dorb == f2%dg2_dorb)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%dg3_dorb == f2%dg3_dorb)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%stale .eqv. f2%stale)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%rm0 == f2%rm0)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%rm1 == f2%rm1)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%stale .eqv. f2%stale)
 
 end function eq_rad_int_ele_cache
 
@@ -1969,9 +1961,11 @@ is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%live_branch .eqv. f2%live_branch)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%i2_rad_int == f2%i2_rad_int)
+is_eq = is_eq .and. (f1%g1_integral == f2%g1_integral)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%i3_rad_int == f2%i3_rad_int)
+is_eq = is_eq .and. (f1%g2_integral == f2%g2_integral)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%g3_integral == f2%g3_integral)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 !! f_side.equality_test[type, 0, NOT]
@@ -3016,10 +3010,14 @@ is_eq = is_eq .and. (f1%charge_live == f2%charge_live)
 is_eq = is_eq .and. (f1%z_center == f2%z_center)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%t_center == f2%t_center)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%t0 == f2%t0)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_bunch == f2%ix_bunch)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_turn == f2%ix_turn)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_live == f2%n_live)
 
