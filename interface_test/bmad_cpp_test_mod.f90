@@ -4341,26 +4341,12 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%g2_0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%g3_0 = rhs
-!! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%dg2_dorb,1); lb1 = lbound(F%dg2_dorb,1) - 1
-  rhs = 100 + jd1 + 3 + offset
-  F%dg2_dorb(jd1+lb1) = rhs
-enddo
-!! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%dg3_dorb,1); lb1 = lbound(F%dg3_dorb,1) - 1
-  rhs = 100 + jd1 + 4 + offset
-  F%dg3_dorb(jd1+lb1) = rhs
-enddo
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 5 + offset; F%stale = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, NOT]
 call set_rad_map_test_pattern (F%rm0, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_rad_map_test_pattern (F%rm1, ix_patt)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 3 + offset; F%stale = (modulo(rhs, 2) == 0)
 
 end subroutine set_rad_int_ele_cache_test_pattern
 
@@ -6575,9 +6561,11 @@ rhs = 11 + offset; F%stable = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 12 + offset; F%live_branch = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[real, 0, NOT]
-rhs = 13 + offset; F%i2_rad_int = rhs
+rhs = 13 + offset; F%g1_integral = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 14 + offset; F%i3_rad_int = rhs
+rhs = 14 + offset; F%g2_integral = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 15 + offset; F%g3_integral = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -9303,12 +9291,16 @@ rhs = 6 + offset; F%charge_live = rhs
 rhs = 7 + offset; F%z_center = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 8 + offset; F%t_center = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 9 + offset; F%t0 = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 9 + offset; F%ix_ele = rhs
+rhs = 10 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 10 + offset; F%ix_bunch = rhs
+rhs = 11 + offset; F%ix_bunch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 11 + offset; F%n_live = rhs
+rhs = 12 + offset; F%ix_turn = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 13 + offset; F%n_live = rhs
 
 end subroutine set_bunch_test_pattern
 

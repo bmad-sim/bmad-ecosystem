@@ -5180,14 +5180,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine rad_int_ele_cache_to_c2 (C, z_g2_0, z_g3_0, z_dg2_dorb, z_dg3_dorb, z_stale, &
-      z_rm0, z_rm1) bind(c)
+  subroutine rad_int_ele_cache_to_c2 (C, z_rm0, z_rm1, z_stale) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_g2_0, z_g3_0, z_dg2_dorb(*), z_dg3_dorb(*)
-    logical(c_bool) :: z_stale
     type(c_ptr), value :: z_rm0, z_rm1
+    logical(c_bool) :: z_stale
   end subroutine
 end interface
 
@@ -5203,8 +5201,7 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call rad_int_ele_cache_to_c2 (C, F%g2_0, F%g3_0, fvec2vec(F%dg2_dorb, 6), fvec2vec(F%dg3_dorb, &
-    6), c_logic(F%stale), c_loc(F%rm0), c_loc(F%rm1))
+call rad_int_ele_cache_to_c2 (C, c_loc(F%rm0), c_loc(F%rm1), c_logic(F%stale))
 
 end subroutine rad_int_ele_cache_to_c
 
@@ -5224,8 +5221,7 @@ end subroutine rad_int_ele_cache_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine rad_int_ele_cache_to_f2 (Fp, z_g2_0, z_g3_0, z_dg2_dorb, z_dg3_dorb, z_stale, z_rm0, &
-    z_rm1) bind(c)
+subroutine rad_int_ele_cache_to_f2 (Fp, z_rm0, z_rm1, z_stale) bind(c)
 
 
 implicit none
@@ -5234,26 +5230,17 @@ type(c_ptr), value :: Fp
 type(rad_int_ele_cache_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_g2_0, z_g3_0, z_dg2_dorb(*), z_dg3_dorb(*)
-logical(c_bool) :: z_stale
 type(c_ptr), value :: z_rm0, z_rm1
+logical(c_bool) :: z_stale
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[real, 0, NOT]
-F%g2_0 = z_g2_0
-!! f_side.to_f2_trans[real, 0, NOT]
-F%g3_0 = z_g3_0
-!! f_side.to_f2_trans[real, 1, NOT]
-F%dg2_dorb = z_dg2_dorb(1:6)
-!! f_side.to_f2_trans[real, 1, NOT]
-F%dg3_dorb = z_dg3_dorb(1:6)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%stale = f_logic(z_stale)
 !! f_side.to_f2_trans[type, 0, NOT]
 call rad_map_to_f(z_rm0, c_loc(F%rm0))
 !! f_side.to_f2_trans[type, 0, NOT]
 call rad_map_to_f(z_rm1, c_loc(F%rm1))
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%stale = f_logic(z_stale)
 
 end subroutine rad_int_ele_cache_to_f2
 
@@ -7469,13 +7456,13 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine lat_param_to_c2 (C, z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf, &
       z_t1_no_rf, z_spin_tune, z_particle, z_default_tracking_species, z_geometry, z_ixx, &
-      z_stable, z_live_branch, z_i2_rad_int, z_i3_rad_int, z_bookkeeping_state, z_beam_init) &
-      bind(c)
+      z_stable, z_live_branch, z_g1_integral, z_g2_integral, z_g3_integral, &
+      z_bookkeeping_state, z_beam_init) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*), z_spin_tune, z_i2_rad_int
-    real(c_double) :: z_i3_rad_int
+    real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*), z_spin_tune, z_g1_integral
+    real(c_double) :: z_g2_integral, z_g3_integral
     integer(c_int) :: z_particle, z_default_tracking_species, z_geometry, z_ixx
     logical(c_bool) :: z_stable, z_live_branch
     type(c_ptr), value :: z_bookkeeping_state, z_beam_init
@@ -7496,8 +7483,8 @@ call c_f_pointer (Fp, F)
 !! f_side.to_c2_call
 call lat_param_to_c2 (C, F%n_part, F%total_length, F%unstable_factor, mat2vec(F%t1_with_rf, &
     6*6), mat2vec(F%t1_no_rf, 6*6), F%spin_tune, F%particle, F%default_tracking_species, &
-    F%geometry, F%ixx, c_logic(F%stable), c_logic(F%live_branch), F%i2_rad_int, F%i3_rad_int, &
-    c_loc(F%bookkeeping_state), c_loc(F%beam_init))
+    F%geometry, F%ixx, c_logic(F%stable), c_logic(F%live_branch), F%g1_integral, F%g2_integral, &
+    F%g3_integral, c_loc(F%bookkeeping_state), c_loc(F%beam_init))
 
 end subroutine lat_param_to_c
 
@@ -7519,8 +7506,8 @@ end subroutine lat_param_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine lat_param_to_f2 (Fp, z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf, &
     z_t1_no_rf, z_spin_tune, z_particle, z_default_tracking_species, z_geometry, z_ixx, &
-    z_stable, z_live_branch, z_i2_rad_int, z_i3_rad_int, z_bookkeeping_state, z_beam_init) &
-    bind(c)
+    z_stable, z_live_branch, z_g1_integral, z_g2_integral, z_g3_integral, z_bookkeeping_state, &
+    z_beam_init) bind(c)
 
 
 implicit none
@@ -7529,8 +7516,8 @@ type(c_ptr), value :: Fp
 type(lat_param_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*), z_spin_tune, z_i2_rad_int
-real(c_double) :: z_i3_rad_int
+real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*), z_spin_tune, z_g1_integral
+real(c_double) :: z_g2_integral, z_g3_integral
 integer(c_int) :: z_particle, z_default_tracking_species, z_geometry, z_ixx
 logical(c_bool) :: z_stable, z_live_branch
 type(c_ptr), value :: z_bookkeeping_state, z_beam_init
@@ -7562,9 +7549,11 @@ F%stable = f_logic(z_stable)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%live_branch = f_logic(z_live_branch)
 !! f_side.to_f2_trans[real, 0, NOT]
-F%i2_rad_int = z_i2_rad_int
+F%g1_integral = z_g1_integral
 !! f_side.to_f2_trans[real, 0, NOT]
-F%i3_rad_int = z_i3_rad_int
+F%g2_integral = z_g2_integral
+!! f_side.to_f2_trans[real, 0, NOT]
+F%g3_integral = z_g3_integral
 !! f_side.to_f2_trans[type, 0, NOT]
 call bookkeeping_state_to_f(z_bookkeeping_state, c_loc(F%bookkeeping_state))
 !! f_side.to_f2_trans[type, 0, NOT]
@@ -10628,14 +10617,15 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bunch_to_c2 (C, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge_tot, &
-      z_charge_live, z_z_center, z_t_center, z_ix_ele, z_ix_bunch, z_n_live) bind(c)
+      z_charge_live, z_z_center, z_t_center, z_t0, z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_particle(*)
     integer(c_int), value :: n1_particle, n1_ix_z
-    integer(c_int) :: z_ix_z(*), z_ix_ele, z_ix_bunch, z_n_live
-    real(c_double) :: z_charge_tot, z_charge_live, z_z_center, z_t_center
+    integer(c_int) :: z_ix_z(*), z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live
+    real(c_double) :: z_charge_tot, z_charge_live, z_z_center, z_t_center, z_t0
   end subroutine
 end interface
 
@@ -10669,7 +10659,7 @@ endif
 
 !! f_side.to_c2_call
 call bunch_to_c2 (C, z_particle, n1_particle, fvec2vec(F%ix_z, n1_ix_z), n1_ix_z, F%charge_tot, &
-    F%charge_live, F%z_center, F%t_center, F%ix_ele, F%ix_bunch, F%n_live)
+    F%charge_live, F%z_center, F%t_center, F%t0, F%ix_ele, F%ix_bunch, F%ix_turn, F%n_live)
 
 end subroutine bunch_to_c
 
@@ -10690,7 +10680,8 @@ end subroutine bunch_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine bunch_to_f2 (Fp, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge_tot, &
-    z_charge_live, z_z_center, z_t_center, z_ix_ele, z_ix_bunch, z_n_live) bind(c)
+    z_charge_live, z_z_center, z_t_center, z_t0, z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live) &
+    bind(c)
 
 
 implicit none
@@ -10703,8 +10694,8 @@ type(c_ptr) :: z_particle(*)
 integer(c_int), value :: n1_particle, n1_ix_z
 type(c_ptr), value :: z_ix_z
 integer(c_int), pointer :: f_ix_z(:)
-real(c_double) :: z_charge_tot, z_charge_live, z_z_center, z_t_center
-integer(c_int) :: z_ix_ele, z_ix_bunch, z_n_live
+real(c_double) :: z_charge_tot, z_charge_live, z_z_center, z_t_center, z_t0
+integer(c_int) :: z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live
 
 call c_f_pointer (Fp, F)
 
@@ -10743,10 +10734,14 @@ F%charge_live = z_charge_live
 F%z_center = z_z_center
 !! f_side.to_f2_trans[real, 0, NOT]
 F%t_center = z_t_center
+!! f_side.to_f2_trans[real, 0, NOT]
+F%t0 = z_t0
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_bunch = z_ix_bunch
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_turn = z_ix_turn
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_live = z_n_live
 

@@ -2854,26 +2854,14 @@ void set_CPP_rad_int_ele_cache_test_pattern (CPP_rad_int_ele_cache& C, int ix_pa
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.g2_0 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.g3_0 = rhs;
-
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.dg2_dorb.size(); i++)
-    {int rhs = 101 + i + 3 + offset; C.dg2_dorb[i] = rhs;}
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.dg3_dorb.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.dg3_dorb[i] = rhs;}
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 5 + offset; C.stale = (rhs % 2 == 0);
-
   // c_side.test_pat[type, 0, NOT]
   set_CPP_rad_map_test_pattern(C.rm0, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_rad_map_test_pattern(C.rm1, ix_patt);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 3 + offset; C.stale = (rhs % 2 == 0);
 
 
 }
@@ -4413,10 +4401,13 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
   rhs = 12 + offset; C.live_branch = (rhs % 2 == 0);
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 13 + offset; C.i2_rad_int = rhs;
+  rhs = 13 + offset; C.g1_integral = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 14 + offset; C.i3_rad_int = rhs;
+  rhs = 14 + offset; C.g2_integral = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 15 + offset; C.g3_integral = rhs;
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);
@@ -6498,14 +6489,20 @@ void set_CPP_bunch_test_pattern (CPP_bunch& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 8 + offset; C.t_center = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 9 + offset; C.ix_ele = rhs;
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 9 + offset; C.t0 = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 10 + offset; C.ix_bunch = rhs;
+  rhs = 10 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 11 + offset; C.n_live = rhs;
+  rhs = 11 + offset; C.ix_bunch = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 12 + offset; C.ix_turn = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 13 + offset; C.n_live = rhs;
 
 
 }

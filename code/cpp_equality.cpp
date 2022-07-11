@@ -731,13 +731,9 @@ template bool is_all_equal (const CPP_rad_map_MATRIX&, const CPP_rad_map_MATRIX&
 
 bool operator== (const CPP_rad_int_ele_cache& x, const CPP_rad_int_ele_cache& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.g2_0 == y.g2_0);
-  is_eq = is_eq && (x.g3_0 == y.g3_0);
-  is_eq = is_eq && is_all_equal(x.dg2_dorb, y.dg2_dorb);
-  is_eq = is_eq && is_all_equal(x.dg3_dorb, y.dg3_dorb);
-  is_eq = is_eq && (x.stale == y.stale);
   is_eq = is_eq && (x.rm0 == y.rm0);
   is_eq = is_eq && (x.rm1 == y.rm1);
+  is_eq = is_eq && (x.stale == y.stale);
   return is_eq;
 };
 
@@ -1106,8 +1102,9 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.ixx == y.ixx);
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.live_branch == y.live_branch);
-  is_eq = is_eq && (x.i2_rad_int == y.i2_rad_int);
-  is_eq = is_eq && (x.i3_rad_int == y.i3_rad_int);
+  is_eq = is_eq && (x.g1_integral == y.g1_integral);
+  is_eq = is_eq && (x.g2_integral == y.g2_integral);
+  is_eq = is_eq && (x.g3_integral == y.g3_integral);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   is_eq = is_eq && (x.beam_init == y.beam_init);
   return is_eq;
@@ -1627,8 +1624,10 @@ bool operator== (const CPP_bunch& x, const CPP_bunch& y) {
   is_eq = is_eq && (x.charge_live == y.charge_live);
   is_eq = is_eq && (x.z_center == y.z_center);
   is_eq = is_eq && (x.t_center == y.t_center);
+  is_eq = is_eq && (x.t0 == y.t0);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_bunch == y.ix_bunch);
+  is_eq = is_eq && (x.ix_turn == y.ix_turn);
   is_eq = is_eq && (x.n_live == y.n_live);
   return is_eq;
 };

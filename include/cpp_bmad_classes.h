@@ -1854,22 +1854,14 @@ class Opaque_rad_int_ele_cache_class {};  // Opaque class for pointers to corres
 
 class CPP_rad_int_ele_cache {
 public:
-  Real g2_0;
-  Real g3_0;
-  Real_ARRAY dg2_dorb;
-  Real_ARRAY dg3_dorb;
-  Bool stale;
   CPP_rad_map rm0;
   CPP_rad_map rm1;
+  Bool stale;
 
   CPP_rad_int_ele_cache() :
-    g2_0(0.0),
-    g3_0(0.0),
-    dg2_dorb(0.0, 6),
-    dg3_dorb(0.0, 6),
-    stale(true),
     rm0(),
-    rm1()
+    rm1(),
+    stale(true)
     {}
 
   ~CPP_rad_int_ele_cache() {
@@ -2629,8 +2621,9 @@ public:
   Int ixx;
   Bool stable;
   Bool live_branch;
-  Real i2_rad_int;
-  Real i3_rad_int;
+  Real g1_integral;
+  Real g2_integral;
+  Real g3_integral;
   CPP_bookkeeping_state bookkeeping_state;
   CPP_beam_init beam_init;
 
@@ -2647,8 +2640,9 @@ public:
     ixx(0),
     stable(false),
     live_branch(true),
-    i2_rad_int(-1),
-    i3_rad_int(-1),
+    g1_integral(-1),
+    g2_integral(-1),
+    g3_integral(-1),
     bookkeeping_state(),
     beam_init()
     {}
@@ -3702,8 +3696,10 @@ public:
   Real charge_live;
   Real z_center;
   Real t_center;
+  Real t0;
   Int ix_ele;
   Int ix_bunch;
+  Int ix_turn;
   Int n_live;
 
   CPP_bunch() :
@@ -3713,8 +3709,10 @@ public:
     charge_live(0.0),
     z_center(0.0),
     t_center(0.0),
+    t0(Bmad::REAL_GARBAGE),
     ix_ele(0),
     ix_bunch(0),
+    ix_turn(0),
     n_live(0)
     {}
 
