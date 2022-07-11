@@ -3,7 +3,7 @@ program radiation_test
 use bmad
 use ptc_map_with_radiation_mod
 use ptc_layout_mod
-use emit_6d_mod
+use rad_6d_mod
 
 implicit none
 
