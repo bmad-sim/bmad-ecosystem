@@ -970,7 +970,7 @@ subroutine hdf5_write_grid_field (file_name, ele, g_field, err_flag)
   character(*) file_name
 end subroutine
 
-subroutine i2_i3_rad_int_calc (lat)
+subroutine g_integrals_calc (lat)
   import
   implicit none
   type (lat_struct), target :: lat

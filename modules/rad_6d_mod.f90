@@ -2,12 +2,12 @@
 ! unstable. That is, the corresponding damping partition number is negative.
 
 !+
-! Module emit_6d_mod
+! Module rad_6d_mod
 !
-! Module for calculating the equilibrium sigma matrix for a closed geometry lattice.
+! Module for 6D radiation calculations. EG: the equilibrium sigma matrix for a closed geometry lattice.
 !-
 
-module emit_6d_mod
+module rad_6d_mod
 
 use bmad_routine_interface
 
@@ -230,7 +230,7 @@ if (err_flag) return
 tol = 1d-4 / branch%param%total_length
 do ie = 1, branch%n_ele_track
   call rad1_damp_and_stoc_mats(branch%ele(ie), include_opening_angle, closed_orb(ie-1), closed_orb(ie), &
-                                          rm1(ie), tol * branch%param%i2_rad_int, tol * branch%param%i3_rad_int)
+                                          rm1(ie), tol * branch%param%g2_integral, tol * branch%param%g3_integral)
 enddo
 
 !
@@ -294,10 +294,6 @@ use super_recipes_mod, only: super_polint
 
 !
 
-type qromb_pt1_struct
-  real(rp) xmat(6,6)  ! Transfer map without damping from beginning of element
-end type
-
 type qromb_int_struct
   real(rp) :: h = 0
   real(rp) :: damp_mat(6,6) = 0
@@ -309,7 +305,6 @@ type (ele_struct) ele
 type (coord_struct) orb_in, orb_out, orb0, orb1, orb_end
 type (rad_map_struct) :: rad_mat
 type (fringe_field_info_struct) fringe_info
-type (qromb_pt1_struct) pt1(0:16)
 type (qromb_int_struct) qi(0:4)
 type (bmad_common_struct) bmad_com_save
 
@@ -361,8 +356,8 @@ radi = classical_radius(ele%ref_species)
 kd_coef = cd * radi * gamma**3
 kf_coef = cf * radi * gamma**5 / mass_of(ele%ref_species)
 
-eps_damp = kd_coef * g2_tol * ele%value(l$)
-eps_stoc = kf_coef * g3_tol * ele%value(l$)
+eps_damp = kd_coef * g2_tol / ele%value(l$)
+eps_stoc = kf_coef * g3_tol / ele%value(l$)
 
 j_min_test = 3
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
@@ -445,15 +440,15 @@ subroutine calc_rad_at_pt (ele, include_opening_angle, orb0, z_pos, damp_mat1, d
 type (ele_struct) ele, runt
 type (coord_struct) orb0, orbz, orb_save  ! Orbit at start, orbit at z.
 
-real(rp) z_pos, damp_mat1(6,6), damp_vec1(6), stoc_var_mat1(6,6), g(3), dg(3,3), g2, dg2_dx, dg2_dy
+real(rp) z_pos, damp_mat1(6,6), damp_vec1(6), stoc_var_mat1(6,6), g(3), dg(3,3), g1, g2, g3, dg2_dx, dg2_dy
 real(rp) mb(6,6), mb_inv(6,6), kf, kv, rel_p, v(6), mat_save(6,6)
 
 integer i, j
 
 logical include_opening_angle, save_orb_mat, err_flag
 
-! Note: g from g_bending_strength_from_em_field is g of the actual particle and not the ref particle
-! so g has a factor of 1/(1 + pz) in it that is corrected for.
+! Note: g from g_bending_strength_from_em_field is g of the particle and not the zero pz particle.
+! So g will have a factor of (1 + pz) but the equations for the mats was developed for g of the zero pz particle
 
 call create_element_slice (runt, ele, z_pos, 0.0_rp, ele%branch%param, .false., .false., err_flag, pointer_to_next_ele(ele, -1))
 call track1(orb0, runt, ele%branch%param, orbz)
@@ -471,12 +466,16 @@ rel_p = 1 + v(6)
 g = g * rel_p
 dg = dg * rel_p
 
-g2 = sum(g*g)
+g1 = norm2(g)
+g2 = g1**2
+g3 = g1 * g2
 dg2_dx = 2 * dot_product(g, dg(:,1))
 dg2_dy = 2 * dot_product(g, dg(:,2))
 
 if (ele%key == sbend$) then
+  g1 = g1 * (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length effect
   g2 = g2 * (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length effect
+  g3 = g3 * (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length effect
   dg2_dx = dg2_dx * (1 + ele%value(g$) * orb0%vec(1)) + g2*ele%value(g$)
 endif
 
@@ -495,7 +494,7 @@ damp_vec1 = -kd_coef * matmul(mb, [0.0_rp, v(2)*g2*rel_p, 0.0_rp, v(4)*g2*rel_p,
 
 ! Stochastic matrix
 
-kf = kf_coef * rel_p**2 * sqrt(g2)**3
+kf = kf_coef * rel_p**2 * g3
 forall (i = 1:6)
   stoc_var_mat1(i,:) = kf * (rel_p**2 * mb(i,6)*mb(:,6) + v(2)**2 * mb(i,2)*mb(:,2) + v(4)**2 * mb(i,4)*mb(:,4) + &
                                 rel_p * v(2) * (mb(i,2) * mb(:,6) + mb(i,6) * mb(:,2)) + &
@@ -504,7 +503,7 @@ forall (i = 1:6)
 end forall
 
 if (include_opening_angle) then
-  kv = kf_coef * 13.0_rp * sqrt(g2) / (55.0_rp * gamma**2)
+  kv = kf_coef * 13.0_rp * g1 / (55.0_rp * gamma**2)
   forall (i = 1:6)
     stoc_var_mat1(i,:) = stoc_var_mat1(i,:) + kv * (g(2)**2 * mb(i,2)*mb(:,2) + g(1)**2 * mb(i,4)*mb(:,4) - &
                                   g(1) * g(2) * (mb(i,2) * mb(:,4) + mb(i,4) * mb(:,2)))
@@ -544,5 +543,239 @@ damp_mat = damp_mat + dm
 end subroutine add_bend_edge_to_damp_mat
 
 end subroutine rad1_damp_and_stoc_mats
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!+
+! Subroutine rad_g_integrals (ele, where, orb_in, orb_out, int_g, int_g2, int_g3, g_tol, g2_tol, g3_tol)
+!
+! Routine to calculate bending strength integrals (g(s) = 1/trajectory_bending_radius(s)) in
+! laboratory coords.
+!
+! Input:
+!   ele                   -- ele_struct: Element under consideration.
+!   where                 -- integer: What part of ele to integrate over. 
+!                               upstream$ -> 1st half of element, downsteam$ -> 2nd half, all$ -> everything.
+!   orb_in                -- coord_struct: Entrance orbit about which to compute the matrices.
+!   orb_out               -- coord_struct: Exit orbit.
+!   g_tol                 -- real(rp): Tollerance on |g| per unit length.
+!   g2_tol                -- real(rp): Tollerance on g^2 per unit length.
+!   g3_tol                -- real(rp): Tollerance on g^3 per unit length.
+!
+! Output:
+!   int_g(2)              -- real(rp): Integrals of (gx,gy) vector.
+!   gint_g2, int_g3       -- real(rp): integrals of |g|^2 and |g|^3.
+!-
+
+subroutine rad_g_integrals (ele, where, orb_in, orb_out, int_g, int_g2, int_g3, g_tol, g2_tol, g3_tol)
+
+use super_recipes_mod, only: super_polint
+
+!
+
+type qromb_int_struct
+  real(rp) :: h = 0
+  real(rp) :: int_g(2) = 0,  int_g2 = 0,  int_g3 = 0
+end type
+
+type (ele_struct) ele
+type (coord_struct) orb_in, orb_out, orb0, orb1, orb_end
+type (rad_map_struct) :: rad_mat
+type (fringe_field_info_struct) fringe_info
+type (qromb_int_struct) qi(0:4)
+type (bmad_common_struct) bmad_com_save
+
+real(rp) int_g(2), int_g2, int_g3, g_tol, g2_tol, g3_tol, g_vec(3), g2, g3
+real(rp) g_sum(2), g2_sum, g3_sum, dgx, dgy, dg2, dg3, len_int, s0, s1, dg(3,3)
+real(rp) del_z, l_ref, rel_tol, eps_damp, eps_stoc, z_pos, d_max, mat_end(6,6)
+real(rp) tilt, sin_t, cos_t
+
+integer where, j, j1, i1, i2, n, j_min_test, ll, n_pts
+integer :: j_max = 10
+
+logical include_opening_angle, save_orb_mat
+
+! No radiation cases
+
+int_g = 0;  int_g2 = 0;  int_g3 = 0 
+
+if (ele%value(l$) == 0 .or. (orb_out%vec(2) == orb_in%vec(2) .and. &
+                             orb_out%vec(4) == orb_in%vec(4) .and. ele%key /= sbend$)) return
+
+!
+
+bmad_com_save = bmad_com
+bmad_com%radiation_fluctuations_on = .false.
+bmad_com%radiation_damping_on = .false.
+
+! Offsets and fringes at upstream end.
+
+orb0 = orb_in
+
+call offset_particle (ele, set$, orb0, set_hvkicks = .false.)
+call init_fringe_info (fringe_info, ele)
+if (fringe_info%has_fringe) then
+  fringe_info%particle_at = first_track_edge$
+  call apply_element_edge_kick(orb0, fringe_info, ele, ele%branch%param, .false.)
+endif
+
+select case (where)
+case (upstream$)
+  s0 = 0
+  s1 = 0.5_rp * ele%value(l$)
+case (downstream$)
+  s0 = 0.5_rp * ele%value(l$)
+  s1 = ele%value(l$)
+case (all$)
+  s0 = 0
+  s1 = ele%value(l$)
+case default
+  call err_exit
+end select
+
+len_int = s1 - s0
+
+! Integrate through body.
+! This is adapted from qromb and trapzd from Numerical Recipes.
+
+qi(0) = qromb_int_struct()
+qi(0)%h = 4
+
+j_min_test = 3
+if (ele%key == wiggler$ .or. ele%key == undulator$) then
+  j_min_test = 5
+endif
+
+do j = 1, j_max
+  if (j == 1) then
+    n_pts = 2
+    del_z = len_int
+    l_ref = 0
+  else
+    n_pts = 2**(j-2)
+    del_z = len_int / n_pts
+    l_ref = del_z / 2
+  endif
+
+  g_sum = 0;  g2_sum = 0; g3_sum = 0
+  do n = 1, n_pts
+    z_pos = s0 + l_ref + (n-1) * del_z
+    save_orb_mat = (j == 1 .and. n == 1)  ! Save if z-position at end of element
+    call calc_g_at_pt(ele, orb0, z_pos, g_vec, g2, g3, save_orb_mat, orb_end, mat_end)
+    g_sum  = g_sum  + g_vec(1:2)
+    g2_sum = g2_sum + g2
+    g3_sum = g3_sum + g3
+  enddo
+
+  j1 = min(j, 4)
+  if (j > 4) qi(0:3) = qi(1:4)
+  qi(j1)%h = 0.25_rp * qi(j1-1)%h
+  qi(j1)%int_g  = 0.5_rp * (qi(j1-1)%int_g  + del_z * g_sum)
+  qi(j1)%int_g2 = 0.5_rp * (qi(j1-1)%int_g2 + del_z * g2_sum)
+  qi(j1)%int_g3 = 0.5_rp * (qi(j1-1)%int_g3 + del_z * g3_sum)
+
+  if (j < j_min_test) cycle
+
+  call super_polint(qi(1:j1)%h, qi(1:j1)%int_g(1), 0.0_rp, int_g(1), dgx)
+  call super_polint(qi(1:j1)%h, qi(1:j1)%int_g(2), 0.0_rp, int_g(2), dgy)
+  call super_polint(qi(1:j1)%h, qi(1:j1)%int_g2,   0.0_rp, int_g2,   dg2)
+  call super_polint(qi(1:j1)%h, qi(1:j1)%int_g3,   0.0_rp, int_g3,   dg3)
+  d_max = max(g_tol*abs(dgx), g_tol*abs(dgy), g2_tol*abs(dg2), g3_tol*abs(dg3)) / len_int
+  if (d_max < 1) exit
+enddo
+
+! Add bend edge if needed
+! And rotate to laboratory coords
+
+if (ele%key == sbend$) then
+  if (ele%orientation == 1) then
+    if (s0 == 0)             call add_bend_edge_to_ints(int_g, int_g2, int_g3, ele, ele%value(e1$), orb0)
+    if (s1 == ele%value(l$)) call add_bend_edge_to_ints(int_g, int_g2, int_g3, ele, ele%value(e2$), orb_end)
+  else
+    if (s0 == 0)             call add_bend_edge_to_ints(int_g, int_g2, int_g3, ele, ele%value(e2$), orb0)
+    if (s1 == ele%value(l$)) call add_bend_edge_to_ints(int_g, int_g2, int_g3, ele, ele%value(e1$), orb_end)
+  endif
+
+  tilt = ele%value(tilt$) + ele%value(roll$) ! Should be a good approximation.
+
+else
+  tilt = ele%value(tilt$)
+endif
+
+! Rotate to laboratory coords
+
+if (tilt /= 0) then
+  cos_t = cos(tilt)
+  sin_t = sin(tilt)
+  int_g(1) = (int_g(1) * cos_t - int_g(2) * sin_t)
+  int_g(2) = (int_g(1) * sin_t + int_g(2) * cos_t)
+endif
+
+bmad_com = bmad_com_save
+
+!---------------------------------------------------------------------------------
+contains
+
+subroutine calc_g_at_pt (ele, orb0, z_pos, g_vec, g2, g3, save_orb_mat, orb_save, mat_save)
+
+type (ele_struct) ele, runt
+type (coord_struct) orb0, orbz, orb_save  ! Orbit at start, orbit at z.
+
+real(rp) g2, g3, f
+real(rp) z_pos, g_vec(3), mat_save(6,6)
+
+integer i, j
+
+logical save_orb_mat, err_flag
+
+! Note: g from g_bending_strength_from_em_field is g of the actual particle and not the ref particle
+! so g has a factor of 1/(1 + pz) in it that is corrected for.
+
+call create_element_slice (runt, ele, z_pos, 0.0_rp, ele%branch%param, .false., .false., err_flag, pointer_to_next_ele(ele, -1))
+call track1(orb0, runt, ele%branch%param, orbz)
+call make_mat6(runt, ele%branch%param, orb0, orbz)
+if (save_orb_mat) then
+  orb_save = orbz
+  mat_save = runt%mat6
+endif
+
+call g_bending_strength_from_em_field (ele, ele%branch%param, z_pos, orbz, .true., g_vec, dg)
+
+g2 = sum(g_vec * g_vec)
+g3 = sqrt(g2)**3
+
+if (ele%key == sbend$) then
+  f = (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length effect
+  g_vec = g_vec * f
+  g2 = g2 * f
+  g3 = g3 * f
+endif
+
+end subroutine calc_g_at_pt
+
+!---------------------------------------------------------------------------------
+! contains
+
+subroutine add_bend_edge_to_ints(int_g, int_g2, int_g3, ele, e_edge, orb)
+
+type (ele_struct) ele
+type (coord_struct) orb
+real(rp) int_g(2), int_g2, int_g3
+real(rp) e_edge, dg(2), dg_mag
+
+!
+
+if (e_edge == 0) return
+
+dg = e_edge * ele%value(g$) * [-orb%vec(1), orb%vec(3)]
+dg_mag = norm2(dg)
+int_g  = int_g + dg
+int_g2 = int_g2 + dg_mag**2
+int_g3 = int_g3 + dg_mag**3
+
+end subroutine add_bend_edge_to_ints
+
+end subroutine rad_g_integrals
 
 end module
