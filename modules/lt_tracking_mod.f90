@@ -1848,7 +1848,7 @@ do ib = 1, nb
   call ltt_data_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
   iu2 = lunget(); open (iu2, file = file_name, recl = 400, access = 'append')
   call ltt_data_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
-  iu3 = lunget(); open (iu3, file = file_name, recl = 400, access = 'append')
+  iu3 = lunget(); open (iu3, file = file_name, recl = 1000, access = 'append')
 
   !
 
