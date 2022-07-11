@@ -33,7 +33,7 @@ real(rp) chi, zeta, psi, alpha, beta, sigma, xi, hkick, vkick
 real(rp) d, c_d, s_d, e, c_e2, s_e2
 real(rp) s, c_s, s_s, t, c_t2, s_t2
 
-integer i, j, fringe_at
+integer i, j, fringe_at, key
 logical err_flag, spin_fringe
 
 ! Constants
@@ -87,7 +87,10 @@ map_end%vec0 = orb4%vec - matmul(map_end%orb_mat, orb3%vec)
 map_start%spin_q(0,0) = 1
 map_end%spin_q(0,0) = 1
 
-select case (ele%key)
+key = ele%key
+if (key == quadrupole$ .and. abs(ele%value(k1$) < 1e-20)) key = pipe$
+
+select case (key)
 
 ! Kicker
 ! Note: Kicks are put in at the end by offset_particle.
