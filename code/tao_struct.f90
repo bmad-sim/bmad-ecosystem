@@ -15,7 +15,7 @@ use dynamic_aperture_mod
 use complex_taylor_mod
 use bmad_interface
 use srdt_mod
-use emit_6d_mod
+use rad_6d_mod
 
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
 integer, parameter :: apparent_emit$ = 1, projected_emit$ = 2

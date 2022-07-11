@@ -34,8 +34,9 @@ type (ele_struct), pointer :: ele
 
 real(rp) n0(3), dn_dpz(3), integral_bdn_partial(3), partial(3,3)
 real(rp) integral_bn, integral_bdn, integral_1ns, integral_dn2, integral_dn2_partial(3)
-real(rp) int_gx, int_gy, int_g, int_g2, int_g3, b_vec(3), s_vec(3), del_p, cm_ratio, gamma, f
+real(rp) int_g(2), g, int_g2, int_g3, b_vec(3), s_vec(3), del_p, cm_ratio, gamma, f
 real(rp) old_int_g3, old_b_vec(3), old_dn_dpz(3), old_s_vec(3), old_n0(3), old_partial(3,3)
+real(rp) g_tol, g2_tol, g3_tol
 real(rp), parameter :: f_limit = 8 / (5 * sqrt(3.0_rp))
 real(rp), parameter :: f_rate = 5 * sqrt(3.0_rp) * classical_radius_factor * h_bar_planck * c_light**2 / 8
 
@@ -59,6 +60,10 @@ tao_branch%spin%tune = 2.0_rp * atan2(norm2(q_1turn%spin_q(1:3,0)), q_1turn%spin
 ! Loop over all elements.
 ! Assume that dn_dpz varies linearly within an element so dn_dpz varies quadratically.
 
+g_tol  = 1e-4_rp * branch%param%g_integral / branch%param%total_length
+g2_tol = 1e-4_rp * branch%param%g2_integral / branch%param%total_length
+g3_tol = 1e-4_rp * branch%param%g3_integral / branch%param%total_length
+
 integral_bn          = 0
 integral_bdn         = 0
 integral_1ns         = 0
@@ -66,9 +71,7 @@ integral_dn2         = 0
 integral_bdn_partial = 0
 integral_dn2_partial = 0
 
-print *, 'Det: ', determinant(q_1turn%orb_mat)
-
-do ie = 0, branch%n_ele_track
+do ie = 1, branch%n_ele_track
   if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * map1_inverse(q_ele(ie))
   
   dn_dpz = spin_dn_dpz_from_qmap(q_1turn%orb_mat, q_1turn%spin_q, partial, err)
@@ -84,12 +87,12 @@ do ie = 0, branch%n_ele_track
   s_vec(3) = sqrt(1.0_rp - s_vec(1)**2 - s_vec(2)**2)
 
   ele => branch%ele(ie)
-  call calc_radiation_tracking_integrals (ele, orbit(ie), start_edge$, .true., int_gx, int_gy, int_g2, old_int_g3)
-  old_b_vec = [int_gy, -int_gx, 0.0_rp]
+  call rad_g_integrals (ele, upstream$, orbit(ie-1), orbit(ie), int_g, int_g2, old_int_g3, g_tol, g2_tol, g3_tol)
+  old_b_vec = [int_g(2), -int_g(1), 0.0_rp]
   if (any(old_b_vec /= 0)) old_b_vec = old_b_vec / norm2(old_b_vec)
 
-  call calc_radiation_tracking_integrals (ele, orbit(ie), end_edge$, .true., int_gx, int_gy, int_g2, int_g3)
-  b_vec = [int_gy, -int_gx, 0.0_rp]
+  call rad_g_integrals (ele, downstream$, orbit(ie-1), orbit(ie), int_g, int_g2, int_g3, g_tol, g2_tol, g3_tol)
+  b_vec = [int_g(2), -int_g(1), 0.0_rp]
   if (any(b_vec /= 0)) b_vec = b_vec / norm2(b_vec)
 
   if (int_g2 /= 0) then
