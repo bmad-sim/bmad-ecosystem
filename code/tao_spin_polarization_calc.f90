@@ -60,7 +60,7 @@ tao_branch%spin%tune = 2.0_rp * atan2(norm2(q_1turn%spin_q(1:3,0)), q_1turn%spin
 ! Loop over all elements.
 ! Assume that dn_dpz varies linearly within an element so dn_dpz varies quadratically.
 
-g_tol  = 1e-4_rp * branch%param%g_integral / branch%param%total_length
+g_tol  = 1e-4_rp * branch%param%g1_integral / branch%param%total_length
 g2_tol = 1e-4_rp * branch%param%g2_integral / branch%param%total_length
 g3_tol = 1e-4_rp * branch%param%g3_integral / branch%param%total_length
 
