@@ -19,10 +19,17 @@ implicit none
 
 real(rp) spin1(0:3,0:6), f
 integer i
+character(*), parameter :: r_name = 'spin_map1_normalize'
 
 !
 
-spin1(:,0) = spin1(:,0) / norm2(spin1(:,0))
+f = norm2(spin1(:,0))
+if (f < 0.5 .or. f > 2) then
+  call out_io (s_warn$, r_name, 'Spin map norm is: ' // real_str(f, 3) // ' which is very different from 1.', &
+                                '  This will make spin tracking unreliable')
+endif
+
+spin1(:,0) = spin1(:,0) / f
 
 do i = 1, 6
   f = dot_product(spin1(:,0), spin1(:,i))
