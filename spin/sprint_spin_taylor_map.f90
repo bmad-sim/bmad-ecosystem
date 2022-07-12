@@ -88,7 +88,7 @@ map_start%spin_q(0,0) = 1
 map_end%spin_q(0,0) = 1
 
 key = ele%key
-if (key == quadrupole$ .and. abs(ele%value(k1$) < 1e-20)) key = pipe$
+if (key == quadrupole$ .and. abs(ele%value(k1$)) < 1e-20) key = pipe$
 
 select case (key)
 
