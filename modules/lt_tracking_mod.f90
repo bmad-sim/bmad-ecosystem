@@ -1716,7 +1716,6 @@ else
   f =  core_emit_cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
 endif
 
-
 do i = 1, 3
   call core_bunch_construct(i, bunch, bd%orb_ave, n_inv_mat, n_cut, core_bunch)
 
@@ -1756,20 +1755,24 @@ allocate(jamp(n), indx(n))
 
 do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
-  if (p%state /= alive$) cycle
-  jvec = matmul(n_inv_mat, p%vec-center)
-  ix = ix_mode * 2 - 1
-  jamp(ip) = 0.5_rp * (jvec(ix)**2 + jvec(ix+1)**2)
+  if (p%state == alive$) then
+    jvec = matmul(n_inv_mat, p%vec-center)
+    ix = ix_mode * 2 - 1
+    jamp(ip) = 0.5_rp * (jvec(ix)**2 + jvec(ix+1)**2)
+  else
+    jamp(ip) = 1e100_rp  ! Something large
+  endif
 enddo
 
-call indexer(jamp(:), indx)
-k = 0
-do ip = 1, size(bunch%particle)
+call indexer(jamp, indx)
+
+do ip = 1, n_cut
   j = indx(ip)
-  if (bunch%particle(j)%state /= alive$) cycle
-  k = k + 1
-  core_bunch%particle(k) = bunch%particle(j)
-  if (k == n_cut) exit
+  if (bunch%particle(j)%state /= alive$) then
+    print *, 'ERROR IN CORE EMIT CALC. PLEASE REPORT!'
+    stop
+  endif
+  core_bunch%particle(ip) = bunch%particle(j)
 enddo
 
 end subroutine core_bunch_construct
