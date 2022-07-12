@@ -394,6 +394,7 @@ call tao_draw_plots ()     ! Update the plotting window
 if (iu_log > 0) write (iu_log, '(a)') '*Init: Print bad data.'
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. s%u(i)%is_on .or. .not. s%global%lattice_calc_on) cycle
   do j = 1, size(s%u(i)%data)
     data => s%u(i)%data(j)
     if (data%exists .and. data%data_type /= 'null' .and. .not. data%good_model) then
