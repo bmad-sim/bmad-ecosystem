@@ -63,6 +63,7 @@ logical include_opening_angle, err, rf_off
 
 ! Analysis is documented in the Bmad manual.
 
+mode = normal_modes_struct()
 call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode)
 
 ! If there is no RF then add a small amount to enable the calculation to proceed.
@@ -108,8 +109,6 @@ do k = 1, 6
 enddo
 enddo
 
-!!call get_emit_from_sigma_mat(sigma_mat, emit, err_flag = err)
-
 sig_s(:,1) = -sigma_mat(:,2)
 sig_s(:,2) =  sigma_mat(:,1)
 sig_s(:,3) = -sigma_mat(:,4)
@@ -139,15 +138,19 @@ else
   mode%sigE_E = sqrt(sigma_mat(6,6))
 endif
 
-call mat_eigen(rmap%damp_mat, eval, evec, err)
+! E_loss = 0 can happen in toy lattices without bends.
 
-mode%a%alpha_damp = 1.0_rp - abs(eval(1))
-mode%b%alpha_damp = 1.0_rp - abs(eval(3))
-mode%z%alpha_damp = 1.0_rp - abs(eval(5))
+if (mode%e_loss /= 0) then
+  call mat_eigen(rmap%damp_mat, eval, evec, err)
 
-mode%a%j_damp = -2 * mode%a%alpha_damp / mode%dpz_damp
-mode%b%j_damp = -2 * mode%b%alpha_damp / mode%dpz_damp
-mode%z%j_damp = -2 * mode%z%alpha_damp / mode%dpz_damp
+  mode%a%alpha_damp = 1.0_rp - abs(eval(1))
+  mode%b%alpha_damp = 1.0_rp - abs(eval(3))
+  mode%z%alpha_damp = 1.0_rp - abs(eval(5))
+
+  mode%a%j_damp = -2 * mode%a%alpha_damp / mode%dpz_damp
+  mode%b%j_damp = -2 * mode%b%alpha_damp / mode%dpz_damp
+  mode%z%j_damp = -2 * mode%z%alpha_damp / mode%dpz_damp
+endif
 
 if (rf_off) then
   mode%z%emittance = -1
