@@ -203,7 +203,6 @@ call write_if_int_param_changed   (bmad_com%max_num_runge_kutta_step,        bma
 call write_if_logic_param_changed (bmad_com%rf_phase_below_transition_ref,   bmad_com_default%rf_phase_below_transition_ref,    'bmad_com[rf_phase_below_transition_ref]')
 call write_if_logic_param_changed (bmad_com%sr_wakes_on,                     bmad_com_default%sr_wakes_on,                      'bmad_com[sr_wakes_on]')
 call write_if_logic_param_changed (bmad_com%lr_wakes_on,                     bmad_com_default%lr_wakes_on,                      'bmad_com[lr_wakes_on]')
-call write_if_logic_param_changed (bmad_com%auto_bookkeeper,                 bmad_com_default%auto_bookkeeper,                  'bmad_com[auto_bookkeeper]')
 call write_if_logic_param_changed (bmad_com%high_energy_space_charge_on,     bmad_com_default%high_energy_space_charge_on,      'bmad_com[high_energy_space_charge_on]')
 call write_if_logic_param_changed (bmad_com%csr_and_space_charge_on,         bmad_com_default%csr_and_space_charge_on,          'bmad_com[csr_and_space_charge_on]')
 call write_if_logic_param_changed (bmad_com%spin_tracking_on,                bmad_com_default%spin_tracking_on,                 'bmad_com[spin_tracking_on]')
