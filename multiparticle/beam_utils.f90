@@ -1938,52 +1938,54 @@ from_file = (beam_init%position_file /= '')
 n = len_trim(beam_init%position_file)
 h5_file = (beam_init%position_file(max(1,n-4):n) == '.hdf5' .or. beam_init%position_file(max(1,n-2):n) == '.h5')
 
-do i = 1, size(bunch%particle)
-  p => bunch%particle(i)
-  p%vec = p%vec + center
-  p%s = ele%s
+if (.not. h5_file) then
+  do i = 1, size(bunch%particle)
+    p => bunch%particle(i)
+    p%vec = p%vec + center
+    p%s = ele%s
 
-  ! Time coordinates. HDF5 files have full particle information so time conversion is ignored.
+    ! Time coordinates. HDF5 files have full particle information so time conversion is ignored.
 
-  if (beam_init%use_t_coords .and. .not. h5_file) then
-    
-    if (beam_init%use_z_as_t) then
-      ! Fixed s, particles distributed in time using vec(5)
-      p%t = p%vec(5)
-      p%location = downstream_end$
-      p%vec(5) = 0 !init_coord will not complain when beta == 0 and vec(5) == 0
+    if (beam_init%use_t_coords) then
       
+      if (beam_init%use_z_as_t) then
+        ! Fixed s, particles distributed in time using vec(5)
+        p%t = p%vec(5)
+        p%location = downstream_end$
+        p%vec(5) = 0 !init_coord will not complain when beta == 0 and vec(5) == 0
+        
+      else
+        ! Fixed time, particles distributed in space using vec(5)
+        p%s = p%vec(5)
+        p%t = ele%ref_time + bunch%t_center
+        p%location = inside$
+      endif
+
+      ! Convert to s coordinates
+      p%p0c = ele%value(p0c$)
+      call convert_pc_to (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2), p%species, beta = p%beta)
+      p%dt_ref = p%t-ele%ref_time
+      call convert_particle_coordinates_t_to_s (p, ele)
+      if (.not. from_file) p%state = alive$
+      p%ix_ele    = ele%ix_ele
+      p%ix_branch = ele%ix_branch
+
+    ! Usual s-coordinates
     else
-      ! Fixed time, particles distributed in space using vec(5)
-      p%s = p%vec(5)
-      p%t = ele%ref_time + bunch%t_center
-      p%location = inside$
+      call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)
+      p%t = ele%ref_time - p%vec(5) / (p%beta * c_light)
+      if (from_file .and. p%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
+      ! If from a file then no vec6 shift needed.
+      call init_coord (p, p, ele, downstream_end$, p%species, shift_vec6 = .not. from_file)
+
+      ! With an e_gun, the particles will have nearly zero momentum (pz ~ -1).
+      ! In this case, we need to take care that (1 + pz)^2 >= px^2 + py^2 otherwise, with
+      ! an unphysical pz, the particle will be considered to be dead.
+      pz_min = 1.000001_rp * sqrt(p%vec(2)**2 + p%vec(4)**2) - 1 ! 1.000001 factor to avoid roundoff problems.
+      p%vec(6) = max(p%vec(6), pz_min)
     endif
-
-    ! Convert to s coordinates
-    p%p0c = ele%value(p0c$)
-    call convert_pc_to (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2), p%species, beta = p%beta)
-    p%dt_ref = p%t-ele%ref_time
-    call convert_particle_coordinates_t_to_s (p, ele)
-    if (.not. from_file) p%state = alive$
-    p%ix_ele    = ele%ix_ele
-    p%ix_branch = ele%ix_branch
-
-  ! Usual s-coordinates
-  else
-    call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)
-    p%t = ele%ref_time - p%vec(5) / (p%beta * c_light)
-    if (from_file .and. p%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
-    ! If from a file then no vec6 shift needed.
-    call init_coord (p, p, ele, downstream_end$, p%species, shift_vec6 = .not. from_file)
-
-    ! With an e_gun, the particles will have nearly zero momentum (pz ~ -1).
-    ! In this case, we need to take care that (1 + pz)^2 >= px^2 + py^2 otherwise, with
-    ! an unphysical pz, the particle will be considered to be dead.
-    pz_min = 1.000001_rp * sqrt(p%vec(2)**2 + p%vec(4)**2) - 1 ! 1.000001 factor to avoid roundoff problems.
-    p%vec(6) = max(p%vec(6), pz_min)
-  endif
-enddo
+  enddo
+endif
 
 !
 
