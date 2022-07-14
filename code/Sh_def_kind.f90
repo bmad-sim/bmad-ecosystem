@@ -1657,10 +1657,12 @@ CONTAINS !----------------------------------------------------------------------
 
        if(J==1) then
           if(EL7%P%DIR==1) THEN
+ 
              CALL EDGE(EL7%P,EL7%BN,EL7%H1,EL7%H2,EL7%FINT,EL7%HGAP,1,X,k)
              IF(k%FRINGE.or.el7%p%permfringe==1.or.el7%p%permfringe==3) CALL MULTIPOLE_FRINGE(EL7%P,EL7%AN,EL7%BN,1,X,k)
              IF(el7%p%permfringe==2.or.el7%p%permfringe==3) &
              CALL FRINGE2QUAD(EL7%P,EL7%bn(2),EL7%an(2),EL7%VA,EL7%VS,1,X,k)
+ 
           ELSE
              CALL EDGE(EL7%P,EL7%BN,EL7%H1,EL7%H2,EL7%FINT,EL7%HGAP,2,X,k)
              IF(k%FRINGE.or.el7%p%permfringe==1.or.el7%p%permfringe==3) CALL MULTIPOLE_FRINGE(EL7%P,EL7%AN,EL7%BN,2,X,k)
@@ -8573,13 +8575,13 @@ integer :: kkk=0
 
        DK2=EL%L/EL%P%NST
        DK=DK2/2.0_dp
-
+ 
        CALL PUSHTKT7(EL,X,k)
        CALL KICKPATH(EL,DK,X,k)
        CALL KICKTKT7(EL,DK2,X,k)
        CALL KICKPATH(EL,DK,X,k)
        CALL PUSHTKT7(EL,X,k)
-
+ 
 
        CALL KILL(DK,DK2)
 
@@ -22436,12 +22438,21 @@ call kill(vm,phi,z)
  
 
        b30=b2
+!write(6,*) " oldb2 ",b30   
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
        denf=denf0*b30 *FAC*DS*denf
 !
        denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/55.0_dp     
 
+
+
+
+
+!write(6,*) "denf ",denf
+!write(6,*) "FAC,DS,L ",FAC,DS%r,c%parent_fibre%mag%L
+
+!eeeeeeeeeee
        call alloc(xpmap)
 
        xpmap%v(1)=x(1)
@@ -22470,10 +22481,10 @@ call kill(vm,phi,z)
        enddo    
        call kill(xpmap)
 ! new eq 15
- 
+! remove fac 
        if(compute_stoch_kick) then 
-        c%delta_rad_in=(denf)+c%delta_rad_in
-        c%delta_rad_out=(denf)+c%delta_rad_out
+        c%delta_rad_in=(denf)/2+c%delta_rad_in
+        c%delta_rad_out=denf/2+c%delta_rad_out
        endif
 
     call alloc(st)
@@ -22828,7 +22839,7 @@ dspin=matmul(s,n_oleksii)
  
        endif
 
-       if(compute_stoch_kick) c%delta_rad_out=root(denf)
+       if(compute_stoch_kick) c%delta_rad_out=sqrt(denf)
     endif
 
 
@@ -23025,7 +23036,7 @@ dspin=matmul(s,n_oleksii)
         endif
  
        endif
-       if(compute_stoch_kick) c%delta_rad_in=root(denf)
+       if(compute_stoch_kick) c%delta_rad_in=sqrt(denf)
     endif
     p%x=x
     call kill(x)
@@ -23175,7 +23186,7 @@ endif
 
   END subroutine feval_CAV_bmad_prober
 
-  subroutine feval_CAV_bmad_probep(z0,x,qi,k,f,q,e_ij,denf,c)    !(Z0,X,k,f,D)   ! MODELLED BASED ON DRIFT
+  subroutine feval_CAV_bmad_probep(z0,x,qi,k,f,q,e_ij,denf,c,fac,ds)    !(Z0,X,k,f,D)   ! MODELLED BASED ON DRIFT
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
     type(real_8), INTENT(INout) :: x(6)
@@ -23186,6 +23197,7 @@ endif
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     type(real_8) A(3),AD(3),PZ
     REAL(DP),intent(inout):: e_ij(6,6),denf
+    real(dp),intent(in) ::fac,ds   !
 
     d=>c%parent_fibre%magp%c4
     
@@ -23242,7 +23254,7 @@ endif
 !  
 
 !    
-if(k%radiation.or.k%spin.or.k%envelope) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,e_ij,denf)
+if(k%radiation.or.k%spin.or.k%envelope) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,e_ij,denf,fac,ds)
 
  
 if(k%spin) then
@@ -23352,11 +23364,11 @@ endif
     hr=h
    cr=0.5_dp
                
-    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,c)   
+    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,c,cr,hr)   
 
   if(compute_stoch_kick) then 
-  c%delta_rad_in=(hr*denf*cr)+c%delta_rad_in 
-  c%delta_rad_out=(hr*denf*cr)+c%delta_rad_out 
+  c%delta_rad_in=denf+c%delta_rad_in 
+  c%delta_rad_out=denf+c%delta_rad_out 
   endif
 
 
@@ -23379,10 +23391,10 @@ endif
     endif
 
     tt=tI+h/2.0_dp
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,c)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,c,cr,hr)
   if(compute_stoch_kick) then 
-  c%delta_rad_in=(hr*denf*cr)+c%delta_rad_in 
-  c%delta_rad_out=(hr*denf*cr)+c%delta_rad_out 
+  c%delta_rad_in=denf+c%delta_rad_in 
+  c%delta_rad_out=denf+c%delta_rad_out 
   endif
     do  j=1,ne
        b(j)=h*f(j)
@@ -23555,10 +23567,10 @@ subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     hr=h
    cr=0.25_dp
 
-    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,ct)   
+    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,ct,cr,hr)   
 if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
 
 
@@ -23582,10 +23594,10 @@ if(compute_stoch_kick) then
  
 
     tt=tI+h/2.0_dp
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
  if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
 
 
@@ -23608,10 +23620,10 @@ if(compute_stoch_kick) then
        yt(j)=y(j)+b(j)/2.0_dp
     enddo
 
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
    if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
 
 
@@ -23634,10 +23646,10 @@ if(compute_stoch_kick) then
     endif
 
     tt=tI+h
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
  if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
 
 
@@ -23896,10 +23908,10 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     y=p%x
     hr=h
    cr=0.125_dp
-    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,ct)   
+    call feval_CAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,ct,cr,hr)   
  if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
 
     do  j=1,ne
@@ -23922,10 +23934,10 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
  
 
     tt=tI+h/9.0_dp
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
   do  j=1,ne
        b(j)=h*f(j)
@@ -23949,10 +23961,10 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
      
     tt=tI+h/6.0_dp
 
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
  if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
 
     do  j=1,ne
@@ -23977,10 +23989,10 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
  
 
    tt=tI+h/3.0_dp
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
  if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
 
 
@@ -24002,10 +24014,10 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     enddo
 
    tt=tI+0.5_dp*h
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
  if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
     do  j=1,ne
        e(j)=h*f(j)
@@ -24026,10 +24038,10 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     endif
 
      tt = tI+2.0_dp*h/3.0_dp
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
  if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
 
     do   j=1,ne
@@ -24051,10 +24063,10 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     endif
 
     tt = tI + 5.0_dp*h/6.0_dp
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
  if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
 
     do  j=1,ne
@@ -24075,10 +24087,10 @@ subroutine rk6bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     endif
 
     tt = tI + h
-    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_CAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
  if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in 
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
   endif
 
     do  j=1,ne
@@ -24211,7 +24223,7 @@ endif
    END subroutine feval_teapot_quar
 
 
- subroutine feval_teapot_quap(x,qi,k,f,q,e_ij,denf,c)   !electric teapot s
+ subroutine feval_teapot_quap(x,qi,k,f,q,e_ij,denf,c,cr,hr)   !electric teapot s
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
     type(real_8), INTENT(INout) :: x(6)
@@ -24224,7 +24236,7 @@ endif
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer i
     type(fibre), pointer :: fi
-
+    real(dp), intent(in)  :: cr,hr
     fi=>c%parent_fibre
     el=>fi%magp%tp10
    
@@ -24239,7 +24251,7 @@ endif
  
      DIR=EL%P%DIR*EL%P%CHARGE
 
-
+ 
 
 
      IF(EL%P%EXACT) THEN
@@ -24296,7 +24308,7 @@ endif
 
 ! patrice 
 !        
-if(k%radiation.or.k%spin.or.k%envelope) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,e_ij,denf)
+if(k%radiation.or.k%spin.or.k%envelope) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,e_ij,denf,cr,hr)
  
 if(k%spin) then
  q%x(0)=0.0_dp
@@ -24637,11 +24649,11 @@ enddo
     cr=0.5_dp
 
 
-    call feval_teapot_qua(y,qy,k,f,q,de_ij,denf,c)
+    call feval_teapot_qua(y,qy,k,f,q,de_ij,denf,c,cr,hr)
 
   if(compute_stoch_kick) then 
-  c%delta_rad_in=(hr*denf*cr)+c%delta_rad_in
-  c%delta_rad_out=(hr*denf*cr)+c%delta_rad_out
+  c%delta_rad_in=denf+c%delta_rad_in
+  c%delta_rad_out=denf+c%delta_rad_out
   endif
 
     do  j=1,ne
@@ -24665,10 +24677,10 @@ enddo
     endif
 
 
-    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,c)
+    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,c,cr,hr)
   if(compute_stoch_kick) then 
-  c%delta_rad_in=(hr*denf*cr)+c%delta_rad_in
-  c%delta_rad_out=(hr*denf*cr)+c%delta_rad_out
+  c%delta_rad_in=denf+c%delta_rad_in
+  c%delta_rad_out=denf+c%delta_rad_out
   endif
 
 
@@ -24728,10 +24740,10 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     y=p%x
     hr=h
 
-    call feval_teapot_qua(y,qy,k,f,q,de_ij,denf,ct)
+    call feval_teapot_qua(y,qy,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
     do  j=1,ne
@@ -24753,10 +24765,10 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     endif
 
 
-    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
 
@@ -24778,10 +24790,10 @@ subroutine rk4_teapot_probep(p,k,ct,h)
       e_ijb =hr*de_ij
     endif
 
-    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+    call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
 
@@ -24803,10 +24815,10 @@ subroutine rk4_teapot_probep(p,k,ct,h)
       e_ijc =hr*de_ij
     endif
 
-    call feval_teapot_qua(yt,qyt,k,f,q,e_ijd,denf,ct)
+    call feval_teapot_qua(yt,qyt,k,f,q,e_ijd,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
   
@@ -24873,10 +24885,10 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     y=pf%x
     hr=h
     cr=0.125_dp
-     call feval_teapot_qua(y,qy,k,f,q,de_ij,denf,ct)
+     call feval_teapot_qua(y,qy,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
     do  j=1,ne
@@ -24895,10 +24907,10 @@ subroutine rk4_teapot_probep(p,k,ct,h)
       e_ija =hr*de_ij
     endif
 
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
 
@@ -24918,10 +24930,10 @@ subroutine rk4_teapot_probep(p,k,ct,h)
       e_ijb =hr*de_ij
     endif
 
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
     do  j=1,ne
@@ -24939,10 +24951,10 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     if(k%envelope)  then
       e_ijc =hr*de_ij
     endif
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
     do  j=1,ne
@@ -24960,10 +24972,10 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     if(k%envelope)  then
       e_ijd =hr*de_ij
     endif
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
     do  j=1,ne
@@ -24981,10 +24993,10 @@ subroutine rk4_teapot_probep(p,k,ct,h)
     if(k%envelope)  then
       e_ije =hr*de_ij
     endif
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
     do   j=1,ne
@@ -25002,10 +25014,10 @@ enddo
     if(k%envelope)  then
       e_ijg =hr*de_ij
     endif
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
     do  j=1,ne
@@ -25025,10 +25037,10 @@ enddo
       e_ijo =hr*de_ij
     endif
 
-     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct)
+     call feval_teapot_qua(yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
   if(compute_stoch_kick) then 
-  ct%delta_rad_in=(hr*denf*cr)+ct%delta_rad_in
-  ct%delta_rad_out=(hr*denf*cr)+ct%delta_rad_out
+  ct%delta_rad_in=denf+ct%delta_rad_in
+  ct%delta_rad_out=denf+ct%delta_rad_out
   endif
 
     do  j=1,ne
@@ -28074,7 +28086,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
 
  end SUBROUTINE RAD_SPIN_force_PROBER
 
- SUBROUTINE RAD_SPIN_force_PROBEp(c,x,om,k,fo,e_ij,denf)
+ SUBROUTINE RAD_SPIN_force_PROBEp(c,x,om,k,fo,e_ij,denf,cr,hr)
     type(real_8), INTENT(INOUT) :: x(6),om(3)
     type(real_8),INTENT(INOUT) :: fo(6)    
     TYPE(fibre),pointer ::  f
@@ -28083,6 +28095,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
     type(real_8)  b2,dlds ,ff(6)
     TYPE(INTERNAL_STATE) k 
     real(dp),intent(inout) :: e_ij(6,6),denf
+    real(dp),intent(in) ::cr,hr
      integer i,pos
 
      call alloc(b2,dlds)
@@ -28096,7 +28109,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
      pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
      CALL get_omega_spin(c,OM,B2,dlds,XP,X,pos,k,Ed,B)
 
-
+ 
    do i=1,3
      om(i)=om(i)/2.0_dp
  
@@ -28109,7 +28122,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
      enddo
     endif
     if(k%envelope) then
-    call radiate_envelope(c,x,b2,dlds,XP,k, e_ij,denf)
+    call radiate_envelope(c,x,b2,dlds,XP,k, e_ij,denf,cr,hr)
     endif
      call kill(b2,dlds)
      call kill(ff)
@@ -28120,7 +28133,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
  end SUBROUTINE RAD_SPIN_force_PROBEp
 
 
-  subroutine radiate_envelope(c,xx,b2,dlds,XP,k, e_ij,denf)
+  subroutine radiate_envelope(c,xx,b2,dlds,XP,k, e_ij,denf,fac,ds)
     implicit none
     TYPE(integration_node), POINTER::c
     TYPE(ELEMENTP), POINTER::EL
@@ -28129,8 +28142,9 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
     real(dp),INTENT(INOUT) :: e_ij(6,6)
     TYPE(REAL_8), intent(in):: B2,dlds
     TYPE(REAL_8) st,av(3),z,x(6)
+    real(dp),intent(in) ::fac,ds
     type(quaternion) q
-    real(dp) b30,x1,x3,denf  , denf0,denv
+    real(dp) b30,x1,x3,denf,denf0,denv 
     type(damap) xpmap
     integer i,j 
     type(internal_state) k
@@ -28148,10 +28162,21 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
  
 
        b30=b2
+!write(6,*) "b2 ",b30
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
-       denf=denf0*b30 *denf
+       denf=denf0*b30 *denf!    *FAC*DS
        denv=vertical_kick*denf*el%p%GAMMA0I**2*13.0/55.0_dp    
+
+!write(6,*) "denf ",denf
+!write(6,*) "FAC,DS,L ",FAC,DS,c%parent_fibre%mag%L
+
+     !  b30=b2
+     !  b30=b30**1.5e0_dp
+     !  denf0=cflucf(el%p)
+     !  denf=denf0*b30 *FAC*DS*denf
+ !eeeeeeeeeeeeeeeeeeeeeee
+
 
        call alloc(xpmap)
 
@@ -28181,7 +28206,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
        enddo    
        call kill(xpmap)
  
-
+   denf=denf*FAC*DS*0.5e0_dp
    !    if(compute_stoch_kick) then 
    !     c%delta_rad_in=(denf)+c%delta_rad_in
    !     c%delta_rad_out=(denf)+c%delta_rad_out
@@ -28288,7 +28313,7 @@ SUBROUTINE kick_stochastic_before(c,p)
           t=-1.0_dp
        endif
           p%x(5)=p%x(5)+t*c%delta_rad_in
-          p%x(5)=p%x(5)+t*c%delta_rad_out
+
        
 end SUBROUTINE kick_stochastic_before
 
@@ -28325,20 +28350,7 @@ end SUBROUTINE kick_stochastic_after
 
    end subroutine  clear_compute_stoch_kick
 
-  subroutine  root_stoch_kick(L)
-   implicit none
-   type(layout), pointer :: L
-   type(integration_node), pointer :: c
-   integer i
 
-    c=>l%t%start
-    do i=1,L%t%n
-     c%delta_rad_in =sqrt(c%delta_rad_in/2.0_DP)
-     c%delta_rad_out=sqrt(c%delta_rad_out/2.0_DP)
-    c=>c%next
-    enddo
-
-   end subroutine  root_stoch_kick
 
   SUBROUTINE INTE_dkd2_probep(p,k,c)
     IMPLICIT NONE

@@ -56,7 +56,7 @@ module definition
   integer :: bmadparser = 0
   integer,parameter :: nacmax = 3
   integer, parameter :: ndim2t=6+2*nacmax   ! maximum complex size
-
+  integer :: start_stochastic_computation = 0
   logical :: tangent = .false.,force_rescale=.false.   ! force_rescale for vorname=HELICAL see fibre_work routine
   logical(lp),TARGET :: OLD_PACKAGE = .true.
 ! GTPSA REMOVED !   type(c_ptr)      :: d_berz

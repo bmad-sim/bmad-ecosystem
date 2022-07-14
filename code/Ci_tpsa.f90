@@ -338,7 +338,7 @@ type(c_linear_map) q_phasor,qi_phasor
  !    MODULE PROCEDURE c_spinor_spinmatrix    !# spinor.L   spinmatrix
      MODULE PROCEDURE c_vector_field_quaternion  !# (f.grad + q)quaternion
                                                  !  bra_v_q(f,quaternion) = f.grad quaternion
-!    uses  map_mul_vec 
+     !!  uses map_mul_vec for the orbital part 
      MODULE PROCEDURE map_mul_vec_q  !   c_damap * c_vector_field means "transform field by map" 
   END INTERFACE
 
@@ -12749,6 +12749,39 @@ end subroutine c_stochastic_kick
 
     end subroutine check_resonance_spin
 
+   SUBROUTINE c_kernel(F,F_FLOQUET) 
+!#internal: normal
+!# This routine extracts circles : equal powers of phasors
+    IMPLICIT NONE
+    TYPE(c_TAYLOR) F,F_FLOQUET,FQ
+    complex(dp) v
+    INTEGER I
+    logical(lp) removeit
+    integer, allocatable :: je(:)
+
+    allocate(je(nv))  
+         
+     call alloc(fq)
+ 
+      F_FLOQUET=F  
+ 
+
+    i=1
+    do while(.true.) 
+     call  c_cycle(F_FLOQUET,i,v ,je); if(i==0) exit;   
+     call check_kernel(0,c_%nd2,je,removeit) 
+     if(.not.removeit) then
+       fq=fq+(v.cmono.je)
+     endif
+    enddo
+     
+    f_floquet=fq
+    call kill(fq)
+
+    deallocate(je)
+
+   END SUBROUTINE c_kernel 
+
    SUBROUTINE C_AVERAGE(F,A,F_FLOQUET) 
 !#internal: normal
 !# This routine averages a function F using the canonical trnsformation A.
@@ -21141,40 +21174,40 @@ end subroutine cholesky_dt
     integer                :: i,ii
     logical, optional :: abs
     logical abst
-    integer inuit0
+    integer iunit0
     real(dp) xr
-    inuit0=6
+    iunit0=6
     abst=.false.
     if(present(abs)) abst=abs
-    if(present(iunit)) inuit0=iunit
+    if(present(iunit)) iunit0=iunit
     if (.not. associated(ut%n)) then
-       write(iunit,'(A)') '    C_UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
+       write(iunit0,'(A)') '    C_UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
        write(6,'(A)') '    C_UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
        return
     endif
 
-    write(iunit,'(/1X,A,I5,A,I5,A/1X,A/)') 'UNIV_TAYLOR   NO =',ut%n,', NV =',ut%nv,', INA = unita',&
+    write(iunit0,'(/1X,A,I5,A,I5,A/1X,A/)') 'UNIV_TAYLOR   NO =',ut%n,', NV =',ut%nv,', INA = unita',&
          '*********************************************'
     if(ut%n /= 0) then
-       write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
+       write(iunit0,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
     else
-       write(iunit,'(A)') '   ALL COMPONENTS 0.0_dp '
+       write(iunit0,'(A)') '   ALL COMPONENTS 0.0_dp '
     endif
 
     do i = 1,ut%n
      if(abst) then
        xr=sqrt(real(ut%c(i))**2+aimag(ut%c(i))**2)
-write(iunit,'(I6,2X,(G21.14,1x,G21.14,3x,G21.14),I5,4X,18(2I2,1X))') i,ut%c(i),xr,   &
+write(iunit0,'(I6,2X,(G21.14,1x,G21.14,3x,G21.14),I5,4X,18(2I2,1X))') i,ut%c(i),xr,   &
 sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
      else
-       write(iunit,'(I6,2X,(G21.14,1x,G21.14),I5,4X,18(2I2,1X))') i,ut%c(i),sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
+       write(iunit0,'(I6,2X,(G21.14,1x,G21.14),I5,4X,18(2I2,1X))') i,ut%c(i),sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
      endif
        if( .not. print77) then
-          write(iunit,*)  ut%c(i)
+          write(iunit0,*)  ut%c(i)
        endif
     enddo
 
-    write(iunit,'(A)') '                                      '
+    write(iunit0,'(A)') '                                      '
 
   end subroutine c_printunitaylor
 

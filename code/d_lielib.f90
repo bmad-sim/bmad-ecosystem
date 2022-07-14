@@ -3544,7 +3544,7 @@ endif
  
           if(lielib_print(4)==1) then
  
-             write(6,*) sqrt(reval(i)**2+aieval(i)**2)
+             write(6,*) "in eig6 k_tpsalie_analysis",sqrt(reval(i)**2+aieval(i)**2)
           endif
        endif
     enddo
