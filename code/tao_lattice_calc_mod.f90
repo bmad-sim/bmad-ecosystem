@@ -493,7 +493,7 @@ do
   ! Lost particles
 
   n_bunch = s%global%bunch_to_plot
-  n_lost = count(beam%bunch(n_bunch)%particle(:)%state /= alive$)
+  n_lost = count(beam%bunch(n_bunch)%particle(:)%state /= alive$ .and. beam%bunch(n_bunch)%particle(:)%state /= pre_born$)
   if (n_lost /= n_lost_old) then
     n = size(beam%bunch(n_bunch)%particle(:))
     if (size(s%u) == 1) then
@@ -562,7 +562,7 @@ enddo
 
 n_lost = 0
 do n_bunch = 1, size(beam%bunch)
-  n_lost = n_lost + count(beam%bunch(n_bunch)%particle%state /= alive$)
+  n_lost = n_lost + count(beam%bunch(n_bunch)%particle(:)%state /= alive$ .and. beam%bunch(n_bunch)%particle(:)%state /= pre_born$)
 enddo
 if (n_lost /= 0) &
   call out_io (s_blank$, r_name, &
