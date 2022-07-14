@@ -1473,7 +1473,7 @@ case ('emit.', 'norm_emit.')
 
     if (data_type == 'norm_emit.x') datum_value = datum_value * gamma
 
-  case ('emit.y', 'norm_emit.y')  
+  case ('emit.y', 'norm_emit.y')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
         value_vec(i) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(i), tao_branch%modes_ri)
@@ -1518,7 +1518,7 @@ case ('emit.', 'norm_emit.')
 
     if (data_type == 'norm_emit.a') datum_value = datum_value * gamma
     
-  case ('emit.b', 'norm_emit.b')  
+  case ('emit.b', 'norm_emit.b')
     if (data_source == 'lat') then
       if (lat%param%geometry == open$ .and. ix_ele > -1) then
         if (.not. allocated(tao_lat%rad_int%branch)) then
@@ -1539,7 +1539,7 @@ case ('emit.', 'norm_emit.')
 
     if (data_type == 'norm_emit.b') datum_value = datum_value * gamma
 
-  case ('emit.c', 'norm_emit.c')  
+  case ('emit.c', 'norm_emit.c')
     if (data_source == 'lat') then
       goto 9001     ! Error message and return
     elseif (data_source == 'beam') then
