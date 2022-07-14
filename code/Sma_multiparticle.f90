@@ -1056,7 +1056,7 @@ endif
 
     !dt1=ttime1-ttime0+dt1
 
-    if(k%stochastic) call kick_stochastic_before(t,p)
+!    if(k%stochastic) call kick_stochastic_before(t,p)
 
     SELECT CASE(T%CAS)
     CASE(CASEP1)
@@ -1268,7 +1268,7 @@ endif
     END SELECT
     ! CASE(CASE100)  ! FAKE BEAM BEAM CAKE AT SOME S
 
-     if(k%stochastic) call kick_stochastic_after(t,p)
+ !    if(k%stochastic) call kick_stochastic_after(t,p)
 
     !    T%PARENT_FIBRE%MAG=DEFAULT
     if(wherelost==2.and.(.not.check_stable)) then
@@ -1845,6 +1845,7 @@ endif
 
     SELECT CASE(T%CAS)
     CASE(CASEP1)
+
        CALL TRACK_FIBRE_FRONT(T%PARENT_FIBRE,X,K)
        if(associated(T%PARENT_FIBRE%MAGP%p%aperture)) then
           TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==-1 .OR.  &
