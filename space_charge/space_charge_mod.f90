@@ -36,7 +36,7 @@ type (mesh3d_struct) :: mesh3d, mesh3d_image
 integer :: n, i, imin(1)
 real(rp) :: beta, ratio
 real(rp) :: Evec(3), Bvec(3), Evec_image(3)
-logical :: include_image
+logical :: include_image, err
 
 ! Initialize variables
 mesh3d%nhi = space_charge_com%space_charge_mesh_size
@@ -55,6 +55,8 @@ do i = 1, size(bunch%particle)
 enddo
 if (n<2) return
 beta = beta/n
+
+call hdf5_write_beam('sc_bunch.h5', [bunch], .false., err)
 
 ! Calculate space charge field
 mesh3d%gamma = 1/sqrt(1- beta**2)
@@ -271,11 +273,11 @@ end subroutine sc_adaptive_step
 ! Drift a bunch of particles to the same s coordinate
 !
 ! Input:
-!   bunch_in  -- bunch_struct: input bunch position in t-based coordinate
+!   bunch_in  -- bunch_struct: input bunch position in s-based coordinate
 !   s         -- real(rp): target s coordinate
 !
 ! Output:
-!   bunch_out -- bunch_struct: output bunch position in t-based coordinate. Particles will be at the same s coordinate
+!   bunch_out -- bunch_struct: output bunch position in s-based coordinate. Particles will be at the same s coordinate
 !-
 
 subroutine drift_to_s (bunch_in, s, bunch_out)
@@ -288,7 +290,7 @@ type (bunch_struct), target :: bunch_in, bunch_out
 type (coord_struct), pointer :: p
 
 integer i
-real(rp) s, pz0, E_tot, dt
+real(rp) s, ds
 
 ! Convert bunch to s-based coordinates
 
@@ -296,16 +298,55 @@ bunch_out = bunch_in
 
 do i = 1, size(bunch_out%particle)
   p => bunch_out%particle(i)
-  pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
-  E_tot = sqrt((1.0_rp + p%vec(6))**2 + (mass_of(p%species)/p%p0c)**2) ! * p0
-  dt = (s-p%s)/(c_light*pz0/E_tot)
-
-  p%vec(1) = p%vec(1) + dt*c_light*p%vec(2)/E_tot
-  p%vec(3) = p%vec(3) + dt*c_light*p%vec(4)/E_tot
-  p%s = s
-  p%t = p%t + dt
+  if (p%state /= alive$) cycle
+  ds = s - p%s
+  call track_a_drift(p,ds)
 enddo
 
 end subroutine drift_to_s
 
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine drift_to_t (bunch_in, t, bunch_out)
+!
+! Drift a bunch of particles to the same t coordinate
+!
+! Input:
+!   bunch_in  -- bunch_struct: input bunch position in s-based coordinate
+!   t         -- real(rp): target t coordinate
+!
+! Output:
+!   bunch_out -- bunch_struct: output bunch position in s-based coordinate. Particles will be at the same t coordinate
+!-
+
+subroutine drift_to_t (bunch_in, t, bunch_out)
+
+  use bmad
+  
+  implicit none
+  
+  type (bunch_struct), target :: bunch_in, bunch_out
+  type (coord_struct), pointer :: p
+  
+  integer i
+  real(rp) t, pz0, E_tot, dt, ds
+  
+  ! Convert bunch to s-based coordinates
+  
+  bunch_out = bunch_in
+  
+  do i = 1, size(bunch_out%particle)
+    p => bunch_out%particle(i)
+    if (p%state /= alive$) cycle
+    pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
+    E_tot = sqrt((1.0_rp + p%vec(6))**2 + (mass_of(p%species)/p%p0c)**2) ! * p0
+    dt = t - p%t
+    ds = dt*(c_light*pz0/E_tot)
+    call track_a_drift(p,ds)
+  enddo
+  
+  end subroutine drift_to_t
+  
 end module
