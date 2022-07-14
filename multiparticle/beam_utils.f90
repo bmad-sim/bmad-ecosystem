@@ -1551,6 +1551,16 @@ sigma_s(:,6) =  sigma_mat(:,5)
 call mat_eigen (sigma_s, eigen_val, eigen_vec, err, print_err)
 if (err) return
 
+dim = 6
+if (abs(sigma_mat(6,6)) < 1e-20_rp * maxval(abs(sigma_mat))) dim = 4  ! No energy oscillations.
+
+call normalize_e (eigen_vec(1:dim,1:dim), dim, good, err)
+if (err .or. dim == 4) then
+  if (logic_option(.true., print_err)) call out_io (s_warn$, r_name, 'Cannot normalize some eigenvectors.', &
+                         'Note: This can happen if the emittance of a normal mode is very small or zero.', &
+                         'This will throw off the emittance and other calculations.')
+endif
+
 ! The eigen-values of Sigma.S are the normal-mode emittances (Wolski Eq. 32)
 
 bunch_params%a%emit = aimag(eigen_val(1))
@@ -1564,15 +1574,6 @@ bunch_params%c%norm_emit = bunch_params%c%emit * gamma
 ! Now find normal-mode sigma matrix and twiss parameters
 ! Wolski: N = E.Q from Eq. 44 and Eq. 14
 ! mat_eigen finds row vectors, so switch to column vectors
-
-dim = 6
-if (sigma_mat(6,6) == 0) dim = 4  ! No energy diviations
-
-call normalize_e (eigen_vec(1:dim,1:dim), dim, good, err)
-if (err) then
-  if (logic_option(.true., print_err)) call out_io (s_warn$, r_name, 'Cannot normalize some eigenvectors.', &
-                                                                     '[Can happen if the emittance of a mode beam is zero.]')
-endif
 
 eigen_vec(1:dim,1:dim) = transpose(eigen_vec(1:dim,1:dim))
 
