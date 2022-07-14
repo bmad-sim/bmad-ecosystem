@@ -1000,9 +1000,9 @@ Notice that the analysis for different modes will ignore different sets of parti
 also disjoint in that the calculation of the emittance of one mode does not affect the analysis for
 the other two modes.
 
-The factor $f_n$ in step 6 above is calculated by first calculating the action cutoff $J_C$ so 
-that the probability of a particle having an amplitude less than $J_c$ is $C$ (equal to
-\vn{ltt%core_emit_cuttoff}). $J_c$ is calculated from the equation
+The factor $f_n$ in step 6 above is calculated by first calculating the action cutoff $J_c$ so that,
+with a Gaussian distribution, the probability of a particle having an amplitude less than $J_c$ is
+$\vn{ltt%core_emit_cuttoff} which here will be denoted by $C$. $J_c$ is calculated from the equation
 \begin{equation}
   C = \int_0^{J_c} \! dJ \, \rho(J) = 
   \int_0^{J_c} \! dJ \, \frac{1}{\epsilon} \, \exp(-J/\epsilon) = 

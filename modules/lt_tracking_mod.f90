@@ -65,6 +65,7 @@ type ltt_params_struct
   real(rp) :: dead_cutoff = 1
   real(rp) :: a_emittance = 0   ! Used for space charge calculation.
   real(rp) :: b_emittance = 0   ! Used for space charge calculation.
+  logical :: core_emit_combined_calc = .false.
   logical :: only_live_particles_out = .true.
   logical :: ramping_on = .false.
   logical :: ramp_update_each_particle = .true.
@@ -642,6 +643,7 @@ if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
   call ltt_write_line('# Number_of_maps                     = ' // int_str(nm), lttp, iu, print_this)
 endif
 call ltt_write_line('# ltt%split_bends_for_stochastic_rad = ' // logic_str(lttp%split_bends_for_stochastic_rad), lttp, iu, print_this)
+call ltt_write_line('# ltt%core_emit_combined_calc        = ' // logic_str(lttp%core_emit_combined_calc), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%radiation_damping_on      = ' // logic_str(bmad_com%radiation_damping_on), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%radiation_fluctuations_on = ' // logic_str(bmad_com%radiation_fluctuations_on), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%spin_tracking_on          = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, print_this)
@@ -1341,8 +1343,13 @@ if (base_name == '') return
 
 iu = lunget()
 
-j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
-str = int_str(i_turn, j)
+if (lttp%n_turns > 0) then
+  j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
+  str = int_str(i_turn, j)
+else
+  j = 1
+endif
+
 if (n_bunch > 1) str = 'bunch' // int_str(ix_bunch) // '-' // str
 
 ix = index(base_name, '#')
@@ -1367,6 +1374,11 @@ endif
 
 !
 
+if (who == 'action_angle') then
+  call calc_bunch_params (bunch, b_params, error, n_mat = n_inv_mat)
+  call mat_inverse (n_inv_mat, n_inv_mat)
+endif
+
 do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
   ix = ip + ltt_com%mpi_ix0_particle
@@ -1374,8 +1386,6 @@ do ip = 1, size(bunch%particle)
   if (who == 'phase_space') then
     write (iu, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
   else
-    call calc_bunch_params (bunch, b_params, error, n_mat = n_inv_mat)
-    call mat_inverse (n_inv_mat, n_inv_mat)
     jvec = matmul(n_inv_mat, p%vec-b_params%centroid%vec)
     jamp = 0.5_rp * [jvec(1)**2 + jvec(2)**2, jvec(3)**2 + jvec(4)**2, jvec(5)**2 + jvec(6)**2]
     jphase = [atan2(jvec(2), jvec(1)), atan2(jvec(3), jvec(4)), atan2(jvec(5), jvec(6))]
@@ -1683,6 +1693,7 @@ call mat_inverse (n_inv_mat, n_inv_mat)
 
 ! Calc core emit
 
+bd%core_emit = 0
 do ic = 1, size(lttp%core_emit_cutoff)
   if (lttp%core_emit_cutoff(ic) <= 0) exit
   call this_core_calc(bunch, bd, lttp%core_emit_cutoff(ic), bd%core_emit(ic,:))
@@ -1708,37 +1719,64 @@ logical error
 
 n = bd%n_live
 n_cut = nint(core_emit_cutoff * n)
-allocate (core_bunch%particle(n_cut))
-if (core_emit_cutoff > 1.0_rp - 1e-6_rp) then
-  f = 1.0_rp
-else
-  sig_cut = -log(1-core_emit_cutoff)
-  f =  core_emit_cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
-endif
+if (n_cut == 0) return
 
-do i = 1, 3
-  call core_bunch_construct(i, bunch, bd%orb_ave, n_inv_mat, n_cut, core_bunch)
+allocate (core_bunch%particle(n_cut))
+
+if (lttp%core_emit_combined_calc) then
+  sig_cut = -log(inverse(beam_fraction, core_emit_cutoff, 1e-10_rp, 1.0_rp, 1e-8_rp))
+  f = core_emit_cutoff / (1 - (1 + sig_cut + sig_cut**2/2 + sig_cut**3/6) * exp(-sig_cut))
+
+  call core_bunch_construct(0, bunch, bd%orb_ave, n_inv_mat, n_cut, core_bunch, bd%params)
 
   call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
   call mat_inverse (n_inv_mat, n_inv_mat)
-  call core_bunch_construct(i, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch)
+  call core_bunch_construct(0, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch, b_params)
 
   call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
-  select case (i)
-  case (1); core_emit(1) = f * b_params%a%emit
-  case (2); core_emit(2) = f * b_params%b%emit
-  case (3); core_emit(3) = f * b_params%c%emit
-  end select
-enddo
+  core_emit(1) = f * b_params%a%emit
+  core_emit(2) = f * b_params%b%emit
+  core_emit(3) = f * b_params%c%emit
+
+else
+  sig_cut = -log(1- min(1.0_rp-1e-8_rp, core_emit_cutoff))
+  f =  core_emit_cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
+
+  do i = 1, 3
+    call core_bunch_construct(i, bunch, bd%orb_ave, n_inv_mat, n_cut, core_bunch)
+
+    call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
+    call mat_inverse (n_inv_mat, n_inv_mat)
+    call core_bunch_construct(i, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch)
+
+    call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
+    select case (i)
+    case (1); core_emit(1) = f * b_params%a%emit
+    case (2); core_emit(2) = f * b_params%b%emit
+    case (3); core_emit(3) = f * b_params%c%emit
+    end select
+  enddo
+endif
 
 end subroutine this_core_calc
 
 !------------------------------------------------
 ! contains
+! Fraction of the beam within region jx+jy+jz < jc where jx,jy,jz are normalized action coordinates.
 
-subroutine core_bunch_construct(ix_mode, bunch, center, n_inv_mat, n_cut, core_bunch)
+function beam_fraction(exp_njc) result (fract)
+real(rp) exp_njc, jc, fract
+jc = -log(exp_njc)
+fract = 1.0_rp - exp_njc * (1 + jc + 0.5_rp*jc**2)
+end function beam_fraction
+
+!------------------------------------------------
+! contains
+
+subroutine core_bunch_construct(ix_mode, bunch, center, n_inv_mat, n_cut, core_bunch, b_params)
 
 type (bunch_struct), target :: bunch, core_bunch
+type (bunch_params_struct), optional :: b_params
 type (coord_struct), pointer :: p
 
 real(rp) n_inv_mat(6,6), center(6), jvec(6)
@@ -1757,8 +1795,13 @@ do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
   if (p%state == alive$) then
     jvec = matmul(n_inv_mat, p%vec-center)
-    ix = ix_mode * 2 - 1
-    jamp(ip) = 0.5_rp * (jvec(ix)**2 + jvec(ix+1)**2)
+    if (ix_mode == 0) then
+      jamp(ip) = (jvec(1)**2 + jvec(2)**2) / b_params%a%emit + (jvec(3)**2 + jvec(4)**2) / b_params%b%emit + &
+                                                               (jvec(5)**2 + jvec(6)**2) / b_params%c%emit
+    else
+      ix = ix_mode * 2 - 1
+      jamp(ip) = 0.5_rp * (jvec(ix)**2 + jvec(ix+1)**2)
+    endif
   else
     jamp(ip) = 1e100_rp  ! Something large
   endif
