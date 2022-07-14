@@ -120,6 +120,7 @@ release_build_list = [
                 '/CESR/CESR_instr/nonlin_bpm',
                 '/CESR/CESR_libs/mpm_utils',
                 '/CESR/CESR_libs/rf',
+                '/CESR/CESR_progs/gen_gui',
                 '/CESR/CESR_progs/diagnose',
                 '/CESR/CESR_services/automail',
                 '/CESR/CESR_services/averager',
