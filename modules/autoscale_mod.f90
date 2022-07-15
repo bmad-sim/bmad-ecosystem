@@ -113,7 +113,8 @@ if (ele%tracking_method == mad$) return
 
 ! bmad_standard just needs to set e_tot$, p0c$, and phi0_autoscale$
 
-if (ele%tracking_method == bmad_standard$) then
+if (ele%tracking_method == bmad_standard$ .or. &
+        (ele%tracking_method == linear$ .and. ele%mat6_calc_method == bmad_standard$)) then
   if (ele%key == lcavity$) then 
     ! Set e_tot$ and p0c$ 
     phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$)) 
@@ -521,6 +522,9 @@ logical err_flag
 
 time_runge_kutta_com%print_too_many_step_err = .false.
 ele%value(phi0_autoscale$) = phi
+call attribute_bookkeeper(ele, .true.)
+if (ele%tracking_method == linear$) call make_mat6(ele, param)
+
 call init_coord (start_orb, ele = ele, element_end = upstream_end$)
 call track1 (start_orb, ele, param, end_orb, err_flag = err_flag, ignore_radiation = .true.)
 time_runge_kutta_com%print_too_many_step_err = .true.
