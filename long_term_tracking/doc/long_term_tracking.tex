@@ -47,6 +47,8 @@
 \newcommand{\Newline}{\hfil \\}
 \newcommand{\sref}[1]{$\S$\ref{#1}}
 \newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\norm}{\text{norm}}
+\newcommand{\unnorm}{\text{unnorm}}
 
 %---------------------------------------------------------------------------------
 
@@ -962,9 +964,97 @@ integral calculation. Additionally, the longitudinal beam size is calculated via
 The ``\vn{core}'' emittance is defined by the \ltt program to be the emittance as
 computed using some fraction of the beam set by \vn{ltt%core_emit_cuttoff}. For example, if this
 parameter is set to 0.9, The 10\% of a bunch with the largest amplitudes will be ignored and the
-core emittance is computed from the remaining 90\%. On a given turn, there are actually three 
-separate calculations, one for each normal mode of oscillation. The calculation of the core emittance for
-a given normal mode precedes in a number of steps:
+core emittance is computed from the remaining 90\%. The computation proceeds as follows:
+\begin{enumerate}
+%
+\item
+The beam size sigma matrix $\Sigma_{ij}$ for the whole bunch is analyzed to extract the 
+normal mode eigenvectors and emittances as as shown in a paper by Wolski\cite{b:wolski}.
+%
+\item
+The ``6D amplitude'' $A$ of a particle is defined to be
+\begin{equation}
+  A(J_x, J_y, J_z) \equiv \frac{J_x}{\epsilon_x} + \frac{J_y}{\epsilon_z} + \frac{J_y}{\epsilon_z}
+\end{equation}
+where $J_{x,y,z}$ are the three normal mode actions of the particle as calculated from Wolski Eq.~(51) and
+$\epsilon_{x,y,z}$ are the three emittances as calculated from Wolski Eq.~(30). 
+
+Particles with
+the largest 6D amplitudes are removed from the bunch to give a ``core'' bunch.
+%
+\item
+The beam size sigma matrix for the core bunch is analyzed to extract the normal mode eigenvectors
+and emittances exactly as in the first step.
+%
+\item
+Starting with whole bunch, but using the core bunch eigenvectors and emittances, particles that have
+the largest 6D amplitudes are removed from the bunch to give a new core bunch.  The reason for going
+through the winnowing process twice is to minimize, to a good degree, any influence that the
+non-core particles will have on the calculation.
+%
+\item
+The sigma matrix of this new core bunch is computed and, from the sigma matrix, ``unnormalized''
+core emittances $\epsilon(\unnorm)$ are calculated.
+%
+\item
+The core emittance values, as calculated in the last step, will be smaller than the whole beam
+emittances since large amplitude particles are ignored. One way to think about emittance is that it
+is a measure of the area of phase space a beam inhabits so smaller core emittance values are to be
+expected.  However, such core emittance values are not very insiteful. To get around this, core
+emittance values are normalized so that {\em if} the beam had a Gaussian distribution, the
+normalized core emittance values will be the same as the emittance values of the whole beam. One way
+to think about this is to view the normalized core emittance values as a measure of the density of
+particles at the core of the beam. Since the core density is independent of the distribution in the
+tails, the normalized core emittance values will be independent of how much of the tails are cutoff.
+At least this will be true for a Gaussian beam. For an actual beam, the difference between the
+normalized core emittances and the whole beam emittance will be an indicator for how non-Gaussian
+the distribution near the core is.
+\end{enumerate}
+
+Normalized core emittances $\epsilon(\norm)$ are calculated from the unnormalized values by multiplying
+by a factor $f_n$ such that if the beam shape were Gaussian, the value of the normalized core emittance
+will be the same as the whole beam emittance. $f_n$ is calculated by first calculating the 
+6D amplitude cutoff $A_c$ so that,
+with a Gaussian distribution, the probability of a particle having a 6D amplitude less than $A_c$ is
+$\vn{ltt%core_emit_cuttoff} which here will be denoted by $C$. $A_c$ is calculated from the equation
+\begin{equation}
+  C = \int \int \int_{A \le A_c} \!\! dJ_x dJ_y dJ_z \, \rho(J_x,J_y,J_z) = 
+  \int_0^A_c \! dJ_x \int_0^{A_c-J_x} \! dJ_y \int_0^{A_c-J_x-J_y} \! dJ_z \, \exp{-(J_x+J_y+J_z} =
+  1 - \Left( 1 + A_c + \frac{1}{2} A_c^2 \Right) \exp{-A_c}
+\end{equation}
+  
+\end{equation}
+where $\rho$ is the particle probability density. Solving for $J_c$ gives
+\begin{equation}
+  J_c = -\epsilon \, \log(1 - C)
+\end{equation}
+Assuming a Gaussian distribution, The computed unnormalized core emittance will be
+\begin{equation}
+  \epsilon_c(\unnorm) = \frac{1}{C} \, \int_0^{J_c} \! dJ \, \rho(J) \, J
+\end{equation}
+Combining everything gives the normalization factor
+\begin{equation}
+  f_n = \frac{\epsilon_c(\norm)}{\epsilon_c(\unnorm)} = 
+  \frac{\epsilon}{\epsilon_c(\unnorm)} = 
+  \frac{C}{1 - (1 + \tilde J_c) \, \exp(-\tilde J_c)}
+\end{equation}
+where $\tilde J_c \equiv J_c / \epsilon = -\log(1-C)$. The factor $f_n$ will be the same for all
+three core emittance calculations.
+
+
+dfadfadfadf
+
+
+
+
+
+
+
+
+
+On a given turn, there are actually three separate calculations, one for each normal mode of
+oscillation. The calculation of the core emittance for a given normal mode preceedes in a number of
+steps:
 \begin{enumerate}
 %
 \item
@@ -982,7 +1072,7 @@ exactly as in the first step.
 \item
 Starting with whole bunch, but using the core bunch eigenvectors, particles that have the largest
 amplitudes for the mode under consideration are removed from the bunch to give a new core bunch.
-The reason for going through the winnowing process twice is to remove, to a good degree, any influence
+The reason for going through the winnowing process twice is to minimize, to a good degree, any influence
 that the non-core particles will have on the calculation.
 %
 \item
@@ -1014,12 +1104,12 @@ where $\rho$ is the particle probability density. Solving for $J_c$ gives
 \end{equation}
 Assuming a Gaussian distribution, The computed unnormalized core emittance will be
 \begin{equation}
-  \epsilon_c(\text{unnorm}) = \frac{1}{C} \, \int_0^{J_c} \! dJ \, \rho(J) \, J
+  \epsilon_c(\unnorm) = \frac{1}{C} \, \int_0^{J_c} \! dJ \, \rho(J) \, J
 \end{equation}
 Combining everything gives the normalization factor
 \begin{equation}
-  f_n = \frac{\epsilon_c(\text{norm})}{\epsilon_c(\text{unnorm})} = 
-  \frac{\epsilon}{\epsilon_c(\text{unnorm})} = 
+  f_n = \frac{\epsilon_c(\norm)}{\epsilon_c(\unnorm)} = 
+  \frac{\epsilon}{\epsilon_c(\unnorm)} = 
   \frac{C}{1 - (1 + \tilde J_c) \, \exp(-\tilde J_c)}
 \end{equation}
 where $\tilde J_c \equiv J_c / \epsilon = -\log(1-C)$. The factor $f_n$ will be the same for all

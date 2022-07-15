@@ -262,7 +262,8 @@ if (ltt%mpi_runs_per_subprocess /= 4) then
   call out_io (s_info$, r_name, 'Note: ltt%mpi_runs_per_subprocess is no longer used and will be ignored.')
 endif
 
-if (any(ltt%core_emit_cutoff > 1.0_rp)) then
+if (any(ltt%core_emit_cutoff > 1.00000001_rp .or. &
+              (ltt%core_emit_cutoff < 0 .and. ltt%core_emit_cutoff /= -1.0_rp))) then
   call out_io (s_fatal$, r_name, 'ltt%core_emit_cutoff MUST BE GREATER THAN ZERO AND LESS THAN OR EQUAL TO ONE. STOPPING HERE.')
   stop
 endif
@@ -1709,7 +1710,7 @@ type (ltt_bunch_data_struct) :: bd
 type (bunch_params_struct) b_params
 
 real(rp) core_emit_cutoff, core_emit(3)
-real(rp) f, sig_cut, n_inv_mat(6,6)
+real(rp) f, sig_cut, n_inv_mat(6,6), cutoff
 
 integer i, n, n_cut
 
@@ -1722,10 +1723,11 @@ n_cut = nint(core_emit_cutoff * n)
 if (n_cut == 0) return
 
 allocate (core_bunch%particle(n_cut))
-
+cutoff = min(1.0_rp-1e-8_rp, core_emit_cutoff)
+ 
 if (lttp%core_emit_combined_calc) then
-  sig_cut = -log(inverse(beam_fraction, core_emit_cutoff, 1e-10_rp, 1.0_rp, 1e-8_rp))
-  f = core_emit_cutoff / (1 - (1 + sig_cut + sig_cut**2/2 + sig_cut**3/6) * exp(-sig_cut))
+  sig_cut = -log(inverse(beam_fraction, cutoff, 1e-12_rp, 1.0_rp, 1e-8_rp))
+  f = cutoff / (1 - (1 + sig_cut + sig_cut**2/2 + sig_cut**3/6) * exp(-sig_cut))
 
   call core_bunch_construct(0, bunch, bd%orb_ave, n_inv_mat, n_cut, core_bunch, bd%params)
 
@@ -1739,8 +1741,8 @@ if (lttp%core_emit_combined_calc) then
   core_emit(3) = f * b_params%c%emit
 
 else
-  sig_cut = -log(1- min(1.0_rp-1e-8_rp, core_emit_cutoff))
-  f =  core_emit_cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
+  sig_cut = -log(1 - cutoff)
+  f =  cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
 
   do i = 1, 3
     call core_bunch_construct(i, bunch, bd%orb_ave, n_inv_mat, n_cut, core_bunch)
