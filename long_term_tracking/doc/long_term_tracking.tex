@@ -10,6 +10,7 @@
 \usepackage{graphicx}
 \usepackage{moreverb}    % Defines {listing} environment.
 \usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
+\usepackage{relsize}     % Make letters smaller/larger
 \usepackage{alltt}
 \usepackage{rotating}
 \usepackage{subcaption}
@@ -49,6 +50,10 @@
 \newcommand{\Th}{$^{th}$\xspace}
 \newcommand{\norm}{\text{norm}}
 \newcommand{\unnorm}{\text{unnorm}}
+\newcommand{\Eq}[1]{Eq.~\ref{#1}}
+\newcommand{\tJ}{\widetilde J}
+\newcommand{\eps}{{\mathlarger\varepsilon}}
+\newcommand{\core}{\text{core}}
 
 %---------------------------------------------------------------------------------
 
@@ -61,7 +66,6 @@
 \setlength{\parskip}{1ex}
 %\setlength{\textwidth}{6in}
 \newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
-
 \newenvironment{display}
   {\vspace*{-1.5ex} \begin{alltt}}
   {\end{alltt} \vspace*{-1.0ex}}
@@ -974,10 +978,10 @@ normal mode eigenvectors and emittances as as shown in a paper by Wolski\cite{b:
 \item
 The ``6D amplitude'' $A$ of a particle is defined to be
 \begin{equation}
-  A(J_x, J_y, J_z) \equiv \frac{J_x}{\epsilon_x} + \frac{J_y}{\epsilon_z} + \frac{J_y}{\epsilon_z}
+  A(J_a, J_b, J_c) \equiv \frac{J_a}{\eps_a} + \frac{J_b}{\eps_b} + \frac{J_c}{\eps_c}
 \end{equation}
-where $J_{x,y,z}$ are the three normal mode actions of the particle as calculated from Wolski Eq.~(51) and
-$\epsilon_{x,y,z}$ are the three emittances as calculated from Wolski Eq.~(30). 
+where $J_{a,b,c}$ are the three normal mode actions of the particle as calculated from Wolski Eq.~(51) and
+$\eps_{a,b,c}$ are the three emittances as calculated from Wolski Eq.~(30). 
 
 Particles with
 the largest 6D amplitudes are removed from the bunch to give a ``core'' bunch.
@@ -994,7 +998,7 @@ non-core particles will have on the calculation.
 %
 \item
 The sigma matrix of this new core bunch is computed and, from the sigma matrix, ``unnormalized''
-core emittances $\epsilon(\unnorm)$ are calculated.
+core emittances $\eps_\core(\unnorm)$ are calculated.
 %
 \item
 The core emittance values, as calculated in the last step, will be smaller than the whole beam
@@ -1007,36 +1011,36 @@ to think about this is to view the normalized core emittance values as a measure
 particles at the core of the beam. Since the core density is independent of the distribution in the
 tails, the normalized core emittance values will be independent of how much of the tails are cutoff.
 At least this will be true for a Gaussian beam. For an actual beam, the difference between the
-normalized core emittances and the whole beam emittance will be an indicator for how non-Gaussian
+normalized core emittances and the whole beam emittances will be an indicator of how non-Gaussian
 the distribution near the core is.
 \end{enumerate}
 
-Normalized core emittances $\epsilon(\norm)$ are calculated from the unnormalized values by multiplying
-by a factor $f_n$ such that if the beam shape were Gaussian, the value of the normalized core emittance
-will be the same as the whole beam emittance. $f_n$ is calculated by first calculating the 
-6D amplitude cutoff $A_c$ so that,
-with a Gaussian distribution, the probability of a particle having a 6D amplitude less than $A_c$ is
-$\vn{ltt%core_emit_cuttoff} which here will be denoted by $C$. $A_c$ is calculated from the equation
+Normalized core emittances $\eps_\core(\norm)$ values are calculated from the unnormalized values by
+multiplying by a factor $f_n$ such that, if the beam shape were Gaussian, the value of the
+normalized core emittance will be the same as the whole beam emittance $\eps_\core(\norm) =
+\eps$. $f_n$ is calculated by first calculating the 6D amplitude cutoff $A_C$ so that, with a
+Gaussian distribution, the probability of a particle having a 6D amplitude less than $A_C$ is equal
+to \vn{ltt%core_emit_cuttoff} which here will be denoted by $C$. $A_C$ is calculated from the
+equation
+\begin{align}
+  C &= \iiint_{A \le A_C} \!\! dJ_a \, dJ_b \, dJ_c \, \rho(J_a,J_b,J_c) \nonumber \\
+  & = \int_0^{A_C} \! d\tJ_a \int_0^{A_C-\tJ_a} \! d\tJ_b \int_0^{A_C-\tJ_a-\tJ_b} \! d\tJ_c \,
+  \exp \left[ -\tJ_a - \tJ_b - \tJ_c \right] \nonumber \\
+  &= 1 - \bigl( 1 + A_C + \frac{1}{2} A_C^2 \bigr) \exp \left[ -A_C \right] \label{cjjj}
+\end{align}
+where $\rho$ is the particle probability density and $\tJ_a = J_a/\eps_a$, etc. are normalized
+actions. Given some value for $C$, $A_C$ can be calculated from \Eq{cjjj} using a Newton
+search. For a Gaussian distribution, the unnormalized core emittance for, say, the $a$-mode will be
 \begin{equation}
-  C = \iiint_{A \le A_c} \!\! dJ_x dJ_y dJ_z \, \rho(J_x,J_y,J_z) = 
-  \int_0^A_c \! d\tJ_x \int_0^{A_c-\tJ_x/} \! d\tJ_y \int_0^{A_c-\tJ_x-\tJ_y} \! d\tJ_z \, \exp{-(\tJ_x+\tJ_y+\tJ_z} =
-  1 - \Left( 1 + A_c + \frac{1}{2} A_c^2 \Right) \exp{-A_c}
-  \label{cjjj}
+  \eps_{a,\core}(\unnorm) = 
+  \frac{1}{C} \, \iiint_{A \le A_C} \!\! dJ_a \, dJ_b \, dJ_c \, J_a \, \rho(J_a,J_b,J_c)
 \end{equation}
-where $\rho$ is the particle probability density and $\tJ_x = J_x/\epsilon_x$, etc. \Eq{cjjj} is
-easily numerically solved for $A_c$ given some value for $C$.  Assuming a Gaussian distribution, The
-computed unnormalized core emittance will be
+Doing this integral and combining everything gives the normalization factor which is the same for all modes
 \begin{equation}
-  \epsilon_(\unnorm) = \frac{1}{C} \, \iiint_{A \le A_c} \!\! dJ_x dJ_y dJ_z \, \rho(J_x,J_y,J_z) =
+  f_n = \frac{\eps_\core(\norm)}{\eps_\core(\unnorm)} = 
+  \frac{\eps}{\eps_\core(\unnorm)} = 
+  \frac{C}{1 - \bigl( 1 + A_C + \frac{1}{2} A_C^2 + \frac{1}{6} A_C^3 \bigr) \exp \left[ -A_c \right]}
 \end{equation}
-Combining everything gives the normalization factor
-\begin{equation}
-  f_n = \frac{\epsilon_c(\norm)}{\epsilon_c(\unnorm)} = 
-  \frac{\epsilon}{\epsilon_c(\unnorm)} = 
-  \frac{C}{1 - (1 + \tilde J_c) \, \exp(-\tilde J_c)}
-\end{equation}
-where $\tilde J_c \equiv J_c / \epsilon = -\log(1-C)$. The factor $f_n$ will be the same for all
-three core emittance calculations.
 
 
 dfadfadfadf
@@ -1089,27 +1093,27 @@ the other two modes.
 
 The factor $f_n$ in step 6 above is calculated by first calculating the action cutoff $J_c$ so that,
 with a Gaussian distribution, the probability of a particle having an amplitude less than $J_c$ is
-$\vn{ltt%core_emit_cuttoff} which here will be denoted by $C$. $J_c$ is calculated from the equation
+\vn{ltt%core_emit_cuttoff} which here will be denoted by $C$. $J_c$ is calculated from the equation
 \begin{equation}
   C = \int_0^{J_c} \! dJ \, \rho(J) = 
-  \int_0^{J_c} \! dJ \, \frac{1}{\epsilon} \, \exp(-J/\epsilon) = 
-  1 - \exp(-J_c/\epsilon)
+  \int_0^{J_c} \! dJ \, \frac{1}{\eps} \, \exp(-J/\eps) = 
+  1 - \exp(-J_c/\eps)
 \end{equation}
 where $\rho$ is the particle probability density. Solving for $J_c$ gives
 \begin{equation}
-  J_c = -\epsilon \, \log(1 - C)
+  J_c = -\eps \, \log(1 - C)
 \end{equation}
 Assuming a Gaussian distribution, The computed unnormalized core emittance will be
 \begin{equation}
-  \epsilon_c(\unnorm) = \frac{1}{C} \, \int_0^{J_c} \! dJ \, \rho(J) \, J
+  \eps_\core(\unnorm) = \frac{1}{C} \, \int_0^{J_c} \! dJ \, \rho(J) \, J
 \end{equation}
 Combining everything gives the normalization factor
 \begin{equation}
-  f_n = \frac{\epsilon_c(\norm)}{\epsilon_c(\unnorm)} = 
-  \frac{\epsilon}{\epsilon_c(\unnorm)} = 
+  f_n = \frac{\eps_\core(\norm)}{\eps_\core(\unnorm)} = 
+  \frac{\eps}{\eps_\core(\unnorm)} = 
   \frac{C}{1 - (1 + \tilde J_c) \, \exp(-\tilde J_c)}
 \end{equation}
-where $\tilde J_c \equiv J_c / \epsilon = -\log(1-C)$. The factor $f_n$ will be the same for all
+where $\tilde J_c \equiv J_c / \eps = -\log(1-C)$. The factor $f_n$ will be the same for all
 three core emittance calculations.
 
 The core emittance is a way for characterizing the core of the beam. To characterize the tails there
