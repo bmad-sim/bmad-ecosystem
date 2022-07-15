@@ -1018,19 +1018,16 @@ will be the same as the whole beam emittance. $f_n$ is calculated by first calcu
 with a Gaussian distribution, the probability of a particle having a 6D amplitude less than $A_c$ is
 $\vn{ltt%core_emit_cuttoff} which here will be denoted by $C$. $A_c$ is calculated from the equation
 \begin{equation}
-  C = \int \int \int_{A \le A_c} \!\! dJ_x dJ_y dJ_z \, \rho(J_x,J_y,J_z) = 
-  \int_0^A_c \! dJ_x \int_0^{A_c-J_x} \! dJ_y \int_0^{A_c-J_x-J_y} \! dJ_z \, \exp{-(J_x+J_y+J_z} =
+  C = \iiint_{A \le A_c} \!\! dJ_x dJ_y dJ_z \, \rho(J_x,J_y,J_z) = 
+  \int_0^A_c \! d\tJ_x \int_0^{A_c-\tJ_x/} \! d\tJ_y \int_0^{A_c-\tJ_x-\tJ_y} \! d\tJ_z \, \exp{-(\tJ_x+\tJ_y+\tJ_z} =
   1 - \Left( 1 + A_c + \frac{1}{2} A_c^2 \Right) \exp{-A_c}
+  \label{cjjj}
 \end{equation}
-  
-\end{equation}
-where $\rho$ is the particle probability density. Solving for $J_c$ gives
+where $\rho$ is the particle probability density and $\tJ_x = J_x/\epsilon_x$, etc. \Eq{cjjj} is
+easily numerically solved for $A_c$ given some value for $C$.  Assuming a Gaussian distribution, The
+computed unnormalized core emittance will be
 \begin{equation}
-  J_c = -\epsilon \, \log(1 - C)
-\end{equation}
-Assuming a Gaussian distribution, The computed unnormalized core emittance will be
-\begin{equation}
-  \epsilon_c(\unnorm) = \frac{1}{C} \, \int_0^{J_c} \! dJ \, \rho(J) \, J
+  \epsilon_(\unnorm) = \frac{1}{C} \, \iiint_{A \le A_c} \!\! dJ_x dJ_y dJ_z \, \rho(J_x,J_y,J_z) =
 \end{equation}
 Combining everything gives the normalization factor
 \begin{equation}

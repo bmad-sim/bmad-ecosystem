@@ -1697,20 +1697,20 @@ call mat_inverse (n_inv_mat, n_inv_mat)
 bd%core_emit = 0
 do ic = 1, size(lttp%core_emit_cutoff)
   if (lttp%core_emit_cutoff(ic) <= 0) exit
-  call this_core_calc(bunch, bd, lttp%core_emit_cutoff(ic), bd%core_emit(ic,:))
+  call this_core_calc(bunch, bd, lttp%core_emit_cutoff(ic), n_inv_mat, bd%core_emit(ic,:))
 enddo
 
 !------------------------------------------------
 contains
 
-subroutine this_core_calc(bunch, bd, core_emit_cutoff, core_emit)
+subroutine this_core_calc(bunch, bd, core_emit_cutoff, n_inv_mat0, core_emit)
 
 type (bunch_struct), target :: bunch, core_bunch
 type (ltt_bunch_data_struct) :: bd
 type (bunch_params_struct) b_params
 
 real(rp) core_emit_cutoff, core_emit(3)
-real(rp) f, sig_cut, n_inv_mat(6,6), cutoff
+real(rp) f, sig_cut, n_inv_mat0(6,6), n_inv_mat(6,6), cutoff
 
 integer i, n, n_cut
 
@@ -1729,13 +1729,13 @@ if (lttp%core_emit_combined_calc) then
   sig_cut = -log(inverse(beam_fraction, cutoff, 1e-12_rp, 1.0_rp, 1e-8_rp))
   f = cutoff / (1 - (1 + sig_cut + sig_cut**2/2 + sig_cut**3/6) * exp(-sig_cut))
 
-  call core_bunch_construct(0, bunch, bd%orb_ave, n_inv_mat, n_cut, core_bunch, bd%params)
+  call core_bunch_construct(0, bunch, bd%orb_ave, n_inv_mat0, n_cut, core_bunch, bd%params)
 
   call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
   call mat_inverse (n_inv_mat, n_inv_mat)
   call core_bunch_construct(0, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch, b_params)
 
-  call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
+  call calc_bunch_params(core_bunch, b_params, error)
   core_emit(1) = f * b_params%a%emit
   core_emit(2) = f * b_params%b%emit
   core_emit(3) = f * b_params%c%emit
@@ -1745,13 +1745,13 @@ else
   f =  cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
 
   do i = 1, 3
-    call core_bunch_construct(i, bunch, bd%orb_ave, n_inv_mat, n_cut, core_bunch)
+    call core_bunch_construct(i, bunch, bd%orb_ave, n_inv_mat0, n_cut, core_bunch)
 
     call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
     call mat_inverse (n_inv_mat, n_inv_mat)
     call core_bunch_construct(i, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch)
 
-    call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
+    call calc_bunch_params(core_bunch, b_params, error)
     select case (i)
     case (1); core_emit(1) = f * b_params%a%emit
     case (2); core_emit(2) = f * b_params%b%emit
