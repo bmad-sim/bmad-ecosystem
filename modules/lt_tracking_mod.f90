@@ -57,7 +57,7 @@ type ltt_params_struct
   integer :: averages_output_every_n_turns = -1
   integer :: random_seed = 0
   real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
-  real(rp) :: core_emit_cutoff(10) = [0.5_rp, (-1.0_rp, i_loop = 2, 10)]
+  real(rp) :: core_emit_cutoff(30) = [0.5_rp, (-1.0_rp, i_loop = 2, 30)]
   real(rp) :: ramping_start_time = 0
   real(rp) :: ptc_aperture(2) = 0.1_rp
   real(rp) :: print_on_dead_loss = -1
