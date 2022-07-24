@@ -2141,7 +2141,7 @@ case ('ele:cartesian_map')
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', ct_map%r0(i), i = 1, 3)
     name = attribute_name(ele, ct_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(ct_map%ele_anchor_pt))
     nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(ct_map%field_type))
 
@@ -2354,7 +2354,7 @@ case ('ele:cylindrical_map')
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', cy_map%r0(i), i = 1, 3)
     name = attribute_name(ele, cy_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(cy_map%ele_anchor_pt))
 
   case ('terms')
@@ -2584,7 +2584,7 @@ case ('ele:grid_field')
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
     name = attribute_name(ele, g_field%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(g_field%ele_anchor_pt))
     nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    trim(em_field_type_name(g_field%field_type))
     nl=incr(nl); write (li(nl), amt) 'grid_field^geometry;ENUM;T;',           trim(grid_field_geometry_name(g_field%geometry))
@@ -3465,7 +3465,7 @@ case ('ele:taylor_field')
     nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            t_field%dz
     name = attribute_name(ele, t_field%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(t_field%ele_anchor_pt))
     nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(t_field%field_type))
     nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             t_field%curved_ref_frame
