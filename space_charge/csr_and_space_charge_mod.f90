@@ -285,7 +285,7 @@ do i_step = 0, n_step
   ! track through the runt
 
   if (i_step /= 0) then
-    call create_uniform_element_slice (ele, branch%param, i_step, n_step, runt, s_start, s_end)
+    call element_slice_iterator (ele, branch%param, i_step, n_step, runt, s_start, s_end)
     call track1_bunch_hom (bunch, runt)
   endif
 
@@ -1630,7 +1630,7 @@ do i_step = 0, n_step
   ! track through the runt
 
   if (i_step /= 0) then
-    call create_uniform_element_slice (ele, branch%param, i_step, n_step, runt, s_start, s_end)
+    call element_slice_iterator (ele, branch%param, i_step, n_step, runt, s_start, s_end)
     call track1_bunch_hom (bunch, runt)
   endif
   particle => bunch%particle
