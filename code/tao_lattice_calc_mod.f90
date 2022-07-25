@@ -372,6 +372,7 @@ implicit none
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
+type (ele_struct) slice_ele
 type (tao_universe_struct), target :: u
 type (beam_struct) :: init_beam, beam
 type (normal_modes_struct) :: modes
@@ -382,26 +383,26 @@ type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (tao_model_element_struct), pointer :: tao_model_ele(:)
 type (tao_model_branch_struct), pointer :: model_branch
-type (bunch_params_struct), pointer :: bunch_params
+type (bunch_params_struct) :: bunch_params
 
-real(rp) sig(6,6)
+real(rp) sig(6,6), significant_length, s_slice_start, s_next_comb, s_slice_end, s_travel
+real(rp) :: value1, value2, f, time, old_time, s_start, s_end, s_target, ds_step
 
-integer what_lat, n_lost_old, ie_start, ie_end
 integer i, n, i_uni, ip, ig, ic, ie
-integer n_bunch, n_part, i_uni_to, ix_track
-integer n_lost, ix_branch
+integer what_lat, n_lost_old, ie_start, ie_end, i_uni_to, ix_track
+integer n_bunch, n_part, n_lost, ix_branch, ix_comb, ix_slice
 integer, allocatable :: ix_ele(:)
 
 character(*), parameter :: r_name = "tao_beam_track"
 
-real(rp) :: value1, value2, f, time, old_time
-
 logical calc_ok, print_err, err, lost, new_beam_file, can_save
+logical old_at_ele_end, at_ele_end, at_comb_pt, comb_calc_on
 
 ! Initialize 
 
 call re_allocate (ix_ele, 1)
 
+significant_length = bmad_com%significant_length
 s%com%have_tracked_beam = .true.
 branch => tao_lat%lat%branch(ix_branch)
 tao_branch => tao_lat%tao_branch(ix_branch)
@@ -418,6 +419,8 @@ new_beam_file = .true.
 
 ie_start = model_branch%beam%ix_track_start
 ie_end   = model_branch%beam%ix_track_end
+s_start = branch%ele(ie_start)%s
+s_end = branch%ele(ie_end)%s
 
 if (ie_start == not_set$ .or. ie_end == not_set$) then
   call out_io (s_error$, r_name, 'BEAM END POSITION NOT PROPERLY SET. NO TRACKING DONE.')
@@ -428,6 +431,29 @@ tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
 tao_branch%bunch_params(:)%n_particle_live = 0
 tao_branch%bunch_params(:)%n_particle_live = 0
 tao_branch%bunch_params(:)%twiss_valid = .false.
+
+ds_step = u%beam%comb_ds_step
+comb_calc_on = (ds_step > 0)
+
+if (comb_calc_on) then
+  if (s_end < s_start) then
+    s_travel = s_end + branch%param%total_length - s_start
+  else
+    s_travel = s_end - s_start
+  endif
+
+  n = nint(s_travel/ds_step)
+  ds_step = s_travel / n
+
+  if (allocated(tao_branch%bunch_params_comb)) then
+    if (n /= ubound(tao_branch%bunch_params_comb, 1)) deallocate(tao_branch%bunch_params_comb)
+  endif
+
+  if (.not. allocated(tao_branch%bunch_params_comb)) allocate(tao_branch%bunch_params_comb(0:n))
+
+else
+  if (allocated(tao_branch%bunch_params_comb)) deallocate(tao_branch%bunch_params_comb)
+endif
 
 ! Transfer wakes from  design
 
@@ -454,23 +480,53 @@ if (ie_end < ie_start .and. branch%param%geometry == open$) then
 endif
 
 n_lost_old = 0
-ie = ie_start - 1
+ie = ie_start
+s_target = s_start
+ele => branch%ele(ie)
+old_at_ele_end = .true.
+at_ele_end = .true.        ! Status when reaching s_target
+at_comb_pt = comb_calc_on  ! Status when reaching s_target
+ix_comb = -1
 
-do 
-  ie = ie + 1
-  if (ie > branch%n_ele_track) ie = 1
-
-  bunch_params => tao_branch%bunch_params(ie)
-  ele => branch%ele(ie)
-
+do
   ! track to the element and save for phase space plot
 
-  if (s%com%use_saved_beam_in_tracking) then
+  if (comb_calc_on .and. bmad_com%csr_and_space_charge_on .and. ele%csr_method /= steady_state_3d$ .and. &
+                                             (ele%csr_method /= off$ .or. ele%space_charge_method /= off$)) then
+    call out_io (s_warn$, r_name, 'comb_ds_step positive not compatable with CSR calc.', &
+                                  'comb_ds_step will be set negative.')
+    u%beam%comb_ds_step = -1
+    comb_calc_on = .false.
+    deallocate (tao_branch%bunch_params_comb)
+  endif
+
+  if (s%com%use_saved_beam_in_tracking .and. ele%s == s_target .and. at_ele_end) then
     beam = tao_model_ele(ie)%beam
 
   else
     if (ie /= ie_start) then
-      call track_beam (lat, beam, branch%ele(ie-1), ele, err, centroid = tao_branch%orbit)
+      if (old_at_ele_end .and. at_ele_end) then
+        call track_beam (lat, beam, branch%ele(ie-1), ele, err, centroid = tao_branch%orbit)
+      else
+        if (old_at_ele_end .and. .not. at_ele_end) then
+          ix_slice = 1
+          s_slice_end = s_next_comb - ele%s_start
+          call element_slice_iterator(ele, branch%param, ix_slice, 9, slice_ele, 0.0_rp, s_slice_end)
+        elseif (.not. old_at_ele_end .and. .not. at_ele_end) then
+          ix_slice = ix_slice + 1
+          s_slice_end = s_slice_end + ds_step
+          call element_slice_iterator(ele, branch%param, ix_slice, -1, slice_ele, s_slice_end-ds_step, s_slice_end)
+        else 
+          ix_slice = ix_slice + 1
+          call element_slice_iterator(ele, branch%param, ix_slice, ix_slice, slice_ele, s_slice_end, ele%value(l$))
+        endif
+
+        do i = 1, size(beam%bunch)
+          call track1_bunch (beam%bunch(i), slice_ele, err)
+        enddo
+      endif
+
+
       if (err) then
         calc_ok = .false.
         return
@@ -478,9 +534,9 @@ do
     endif
 
     can_save = (ie == ie_start .or. ie == ie_end .or. ele%key == fork$ .or. ele%key == photon_fork$)
-    if (tao_model_ele(ie)%save_beam_internally .or. can_save) tao_model_ele(ie)%beam = beam
+    if (at_ele_end .and. (tao_model_ele(ie)%save_beam_internally .or. can_save)) tao_model_ele(ie)%beam = beam
 
-    if (u%beam%dump_file /= '' .and. tao_model_ele(ie)%save_beam_to_file) then
+    if (at_ele_end .and. (u%beam%dump_file /= '' .and. tao_model_ele(ie)%save_beam_to_file)) then
       if (index(u%beam%dump_file, '.h5') == 0 .and. index(u%beam%dump_file, '.hdf5') == 0) then
         call write_beam_file (u%beam%dump_file, beam, new_beam_file, ascii$, lat)
       else
@@ -515,8 +571,7 @@ do
     ix_track = ie
     lost = .true.
     call out_io (s_warn$, r_name, &
-            'TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT ' // trim(ele_loc_name(ele)) // &
-                                          ': ' // trim(ele%name))
+            'TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT ' // trim(ele_loc_name(ele)) // ': ' // trim(ele%name))
   endif
 
   ! calc bunch params
@@ -539,12 +594,18 @@ do
 
   if (ie == ie_start) then
     bunch_params%n_particle_lost_in_ele = 0
+    if (comb_calc_on) tao_branch%bunch_params_comb(0) = bunch_params
   else
-    bunch_params%n_particle_lost_in_ele = tao_branch%bunch_params(ie-1)%n_particle_live - &
-                                                     bunch_params%n_particle_live
+    bunch_params%n_particle_lost_in_ele = tao_branch%bunch_params(ie-1)%n_particle_live - bunch_params%n_particle_live
   endif
 
-  ! Timer 
+  if (at_ele_end) tao_branch%bunch_params(ie) = bunch_params
+  if (at_comb_pt) then
+    ix_comb = ix_comb + 1
+    tao_branch%bunch_params_comb(ix_comb) = bunch_params
+  endif
+
+  ! Timer
 
   if (s%global%beam_timer_on) then
     call run_timer ('READ', time)
@@ -555,7 +616,32 @@ do
     endif
   endif
 
-  if (ie == ie_end) exit
+  if (ie == ie_end .and. at_ele_end) exit
+
+  ! Calc next step
+
+  if (at_ele_end) then
+    ie = ie + 1
+    if (ie > branch%n_ele_track) then
+      ie = 1
+      s_target = s_target - branch%param%total_length
+      s_start = s_start - branch%param%total_length
+    endif
+    ele => branch%ele(ie)
+  endif
+
+  old_at_ele_end = at_ele_end
+
+  s_next_comb = s_start + (ix_comb+1) * ds_step
+  if (comb_calc_on .and. ele%s > s_next_comb + significant_length) then
+    s_target = s_next_comb
+    at_ele_end = .false.
+    at_comb_pt = .true.
+  else
+    s_target = ele%s
+    at_ele_end = .true.
+    at_comb_pt = (comb_calc_on .and. abs(s_target - s_next_comb) < significant_length) 
+  endif
 enddo
 
 ! only post total lost if no extraction or extracting to a turned off lattice
@@ -565,12 +651,12 @@ do n_bunch = 1, size(beam%bunch)
   n_lost = n_lost + count(beam%bunch(n_bunch)%particle(:)%state /= alive$ .and. beam%bunch(n_bunch)%particle(:)%state /= pre_born$)
 enddo
 if (n_lost /= 0) &
-  call out_io (s_blank$, r_name, &
-      "Total number of lost particles by the end of universe \I2\: \I5\.", &
+  call out_io (s_blank$, r_name, "Total number of lost particles by the end of universe \I2\: \I5\.", &
                                   i_array = [u%ix_uni, n_lost])
 
 tao_branch%track_state = ix_track
- 
+if (allocated(tao_branch%bunch_params_comb)) tao_branch%n_bunch_params_comb = ix_comb
+
 end subroutine tao_beam_track
 
 !------------------------------------------------------------------------------
