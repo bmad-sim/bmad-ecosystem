@@ -588,21 +588,21 @@ type tao_global_struct:
   lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
   de_lm_step_ratio = 1             ! Step sizes between DE and LM optimizers.
   de_var_to_population_factor = 5 
-  lmdif_eps = 1e-12                ! tolerance for lmdif optimizer.
+  lmdif_eps = 1e-12                ! Tolerance for lmdif optimizer.
   lmdif_negligible_merit = 1d-30   ! lmdif stops if merit is smaller.
   svd_cutoff = 1e-5                ! SVD singular value cutoff limit.
   unstable_penalty = 1e-3          ! Used in unstable.lattice datum merit calculation.
   merit_stop_value = -1            ! Value below which an optimizer will stop.
   dmerit_stop_value = 0            ! Fractional change below which an optimizer will stop.
   random_sigma_cutoff = -1         ! Cut-off in sigmas.
-  delta_e_chrom = 0                ! delta E used from chromaticity calc.
+  delta_e_chrom = 0                ! Delta E used from chromaticity calc.
   n_opti_cycles = 20               ! number of optimization cycles
   n_opti_loops = 1                 ! number of optimization loops
   n_lat_layout_label_rows = 1      ! How many rows with a lat_layout
   datum_err_messages_max = 10      ! Max number of error messages per cycle.
   phase_units = radians\$           ! Phase units on output.
   bunch_to_plot = 1                ! Which bunch to plot
-  random_seed = 0                  ! use system clock by default
+  random_seed = 0                  ! Use system clock by default
   n_top10_merit = 10               ! Number of top constraints to print.
   random_engine = "pseudo"         ! Random number engine to use
   random_gauss_converter = "exact" ! Uniform to gauss conversion method
@@ -654,7 +654,7 @@ will only have an associate map if the \vn{tracking_method} or \vn{make_mat6_met
 of the lattice element are such that a map is needed for tracking (see the \bmad manual for more
 details).
 %
-  \item{\vn{datum_err_messages_max}} \Newline
+  \item{\vn{global%datum_err_messages_max}} \Newline
 Sets the maximum number of error messages per cycle generated when evaluating all datums. A
 ``cycle'', which generally happens after most commands or every optimization cycle, consists of the
 reevaluation of lattice parameters and subsequent datum evaluations. Limiting the number of error
@@ -892,7 +892,7 @@ See the \bmad manual for more details.
 \subsection{space\_charge\_common\_struct Structure}
 \label{s:csr.param.struct} 
 
-The \vn{space_charge_commandstruct} holds global variables for space charge, including coherent
+The \vn{space_charge_command_struct} holds global variables for space charge, including coherent
 synchrotron radiation (CSR), calculations. 
 \begin{example}
   type space_charge_common_struct:
@@ -909,7 +909,7 @@ synchrotron radiation (CSR), calculations.
     logical lsc_kick_transverse_dependence = F
 \end{example}
 It is important to note that space charge / CSR calculations also depend upon settings in the
-\vn{bmad_common_struct} strucuture as well as individual lattice element parameters.  See the \bmad
+\vn{bmad_common_struct} structure as well as individual lattice element parameters.  See the \bmad
 manual for more details.
 
 %-----------------------------------------------------------------
@@ -986,6 +986,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     dump_at                   = "<ele_list>"  ! Save beam info at these elements.
     track_start               = "<ele_id>"    ! Beam tracking start element.
     track_end                 = "<ele_id>"    ! Beam tracking end element.
+    comb_ds_step              = <real>        ! Step size for beam parameter evaluation.
     beam_init%position_file   = <string>      ! Beam position init file.
     beam_init%distribution_type(3) = "<type>" ! "ELLIPSE", "KV", "GRID", or 
                                               !   "RAN_GAUSS" (default).
@@ -1041,6 +1042,13 @@ Note that if the initial distribution is read in from a file, no random number g
   }
 variations of the initial distribution will cause values calculated from the beam to ``jitter''. This
 can be especially problematical when doing an optimization as it may hinder finding the merit function minimum.
+%
+  \item[comb_ds_step] \Newline
+When tracking a beam, the beam parameters (like centroid, beam size matrix, etc) can be saved at 
+equally spaced points by setting \vn{comb_ds_step} to a positive number representing the
+spacing between points. Default is -1 (no comb generated). Using a comb can give better detail 
+when plotting beam parameters as a function of $s$. Note: The actual spacing between points will
+be adjusted to give an integer number of points over the region of travel.
 %
 \item[beam_init] \Newline
 The \vn{beam_init} parameter is an instance of a \vn{beam_init_struct} structure which holds

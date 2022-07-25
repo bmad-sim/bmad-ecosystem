@@ -1937,11 +1937,11 @@ case ('s')
       case ('') 
         cycle
       case ('model')
-        call tao_calc_data_at_s (u%model, curve, scratch%comp(m)%sign, good)
+        call tao_calc_data_at_s_pts (u%model, curve, scratch%comp(m)%sign, good)
       case ('base')  
-        call tao_calc_data_at_s (u%base, curve, scratch%comp(m)%sign, good)
+        call tao_calc_data_at_s_pts (u%base, curve, scratch%comp(m)%sign, good)
       case ('design')  
-        call tao_calc_data_at_s (u%design, curve, scratch%comp(m)%sign, good)
+        call tao_calc_data_at_s_pts (u%design, curve, scratch%comp(m)%sign, good)
       case default
         call tao_set_curve_invalid (curve, 'BAD CURVE COMPONENT: ' // curve%component)
         return
@@ -2060,7 +2060,7 @@ end subroutine tao_curve_data_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_calc_data_at_s (tao_lat, curve, comp_sign, good)
+subroutine tao_calc_data_at_s_pts (tao_lat, curve, comp_sign, good)
 
 use transfer_map_mod
 use twiss_and_track_mod, only: twiss_and_track_at_s
@@ -2070,7 +2070,7 @@ implicit none
 type (tao_lattice_struct), target :: tao_lat
 type (tao_curve_struct) curve
 type (tao_lattice_branch_struct), pointer :: tao_branch
-type (bunch_params_struct), pointer :: bunch_params0, bunch_params1
+type (bunch_params_struct), pointer :: bunch_params0, bunch_params1, bunch_params_array(:)
 type (bunch_params_struct) :: bunch_params
 type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end, orbit_last, orbit
@@ -2093,7 +2093,7 @@ integer, parameter :: loading_cache$ = 1, using_cache$ = 2
 character(40) name, sub_data_type, data_type_select, data_source
 character(100) why_invalid
 character(200) data_type
-character(*), parameter :: r_name = 'tao_calc_data_at_s'
+character(*), parameter :: r_name = 'tao_calc_data_at_s_pts'
 logical err, good(:), first_time, radiation_fluctuations_on, ok, gd
 
 ! Some init
@@ -2184,8 +2184,8 @@ end select
 
 do ii = 1, size(curve%x_line)
 
-  ! Good(ii) may be false if this is not first time tao_calc_data_at_s is called from tao_curve_data_setup.
-  ! For example, tao_calc_data_at_s is called twice when plotting "meas - design".
+  ! Good(ii) may be false if this is not first time tao_calc_data_at_s_pts is called from tao_curve_data_setup.
+  ! For example, tao_calc_data_at_s_pts is called twice when plotting "meas - design".
 
   if (.not. good(ii)) then
     first_time = .true.
@@ -2238,9 +2238,17 @@ do ii = 1, size(curve%x_line)
       return
     endif
  
-    ix = bracket_index (s_now, tao_branch%bunch_params(0:n_ele_track)%s, 0)
-    bunch_params0 => tao_branch%bunch_params(ix)
-    bunch_params1 => tao_branch%bunch_params(min(ix,n_ele_track))
+    if (allocated(tao_branch%bunch_params_comb)) then
+      bunch_params_array => tao_branch%bunch_params_comb
+      np = tao_branch%n_bunch_params_comb
+    else
+      bunch_params_array => tao_branch%bunch_params
+      np = n_ele_track
+    endif
+
+    ix = bracket_index (s_now, bunch_params_array(0:np)%s, 0)
+    bunch_params0 => bunch_params_array(ix)
+    bunch_params1 => bunch_params_array(min(ix,np))
 
     if (bunch_params0%s == bunch_params1%s) then
       r_bunch = 0
@@ -2618,7 +2626,7 @@ ok = .false.
 
 end subroutine this_value_at_s
 
-end subroutine tao_calc_data_at_s
+end subroutine tao_calc_data_at_s_pts
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

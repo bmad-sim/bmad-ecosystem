@@ -282,7 +282,7 @@ case ('beam')
   what_to_show = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-lattice'], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb_index'], .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
 
@@ -297,7 +297,7 @@ case ('beam')
       endif
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
-    case ('-lattice')
+    case ('-lattice', '-comb_index')
       what_to_show = switch
 
     case default
@@ -317,6 +317,12 @@ case ('beam')
 
   if (ele_name == '') then
     ele => branch%ele(bb%ix_track_start)
+  elseif (what_to_show == '-comb_index') then
+    read (ele_name, *, iostat = ios) ix_s2
+    if (ios /= 0) then
+      nl=1; lines(1) = 'CANNOT DECODE COMB INDEX: ' // ele_name
+      return
+    endif
   else
     call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
     if (err) return
@@ -324,9 +330,10 @@ case ('beam')
     call tao_locate_elements (ele_name, ix_u, eles, err)
     if (err .or. size(eles) == 0) return
     ele => eles(1)%ele
+    branch => ele%branch
   endif
 
-  ix_branch = ele%ix_branch
+  ix_branch = branch%ix_branch
   tao_branch => u%model%tao_branch(ix_branch)
 
   ! Sigma calc from lattice Twiss.
@@ -355,7 +362,7 @@ case ('beam')
     return
   endif
 
-  ! no element index
+  ! No element index
 
   if (ele_name == '') then
     if (.not. u%beam%track_beam_in_universe) then
@@ -376,6 +383,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt) 'saved_at          = ', quote(u%beam%saved_at)
     nl=nl+1; write(lines(nl), amt) 'dump_at           = ', quote(u%beam%dump_at)
     nl=nl+1; write(lines(nl), amt) 'dump_file         = ', quote(u%beam%dump_file)
+    nl=nl+1; write(lines(nl), rmt) 'comb_ds_step      = ', u%beam%comb_ds_step
     nl=nl+1; write(lines(nl), fmt) 'track_start       = ', quote(bb%track_start)
     nl=nl+1; write(lines(nl), fmt) 'track_end         = ', quote(bb%track_end)
 
@@ -502,17 +510,26 @@ case ('beam')
   ! have element index
 
   else
-    call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
-    if (err) return
-    u => s%u(ix_u)
-    call tao_locate_elements (ele_name, ix_u, eles, err)
-    if (err .or. size(eles) == 0) return
-    ele => eles(1)%ele
-    ix_ele = ele%ix_ele
-    ix_branch = ele%ix_branch
-    tao_branch => u%model%tao_branch(ix_branch)
+    if (what_to_show == '-comb_index') then
+      if (.not. allocated(tao_branch%bunch_params_comb)) then
+        nl=nl+1; lines(nl) = 'Beam parameter comb not calculated (check comb_ds_step)' 
+        return
+      endif
 
-    bunch_p => tao_branch%bunch_params(ix_ele)
+      n = ubound(tao_branch%bunch_params_comb, 1)
+      if (ix_s2 < 0 .or. ix_s2 > n) then
+        nl=nl+1; lines(nl) = 'Comb index out of range: [0, ' // int_str(n) // ']'
+        return
+      endif
+      bunch_p => tao_branch%bunch_params_comb(ix_s2)
+      nl=nl+1; lines(nl) = 'Bunch parameters at comb index: ' // int_str(ix_s2)
+
+    else
+      bunch_p => tao_branch%bunch_params(ele%ix_ele)
+      nl=nl+1; lines(nl) = 'Bunch parameters at: ' // trim(ele%name) // ' ' //  ele_loc_name(ele, .false., '()')
+      found = (allocated(u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam%bunch))
+    endif
+
     n_live = bunch_p%n_particle_live
     n_tot = bunch_p%n_particle_tot
     n = s%global%bunch_to_plot
@@ -530,9 +547,9 @@ case ('beam')
     endif
 
 
-    nl=nl+1; lines(nl) = 'Bunch parameters at: ' // trim(ele%name) // ' ' //  ele_loc_name(ele, .false., '()')
+
     nl=nl+1; write(lines(nl), imt)  '  Parameters for bunch:       ', n
-    nl=nl+1; write(lines(nl), rmt)  '  S-position:                 ', ele%s
+    nl=nl+1; write(lines(nl), rmt)  '  S-position:                 ', bunch_p%s
     nl=nl+1; write(lines(nl), imt)  '  In branch:                  ', ix_branch
     nl=nl+1; write(lines(nl), imt)  '  Particles surviving:        ', n_live
     nl=nl+1; write(lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
@@ -547,7 +564,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) '  RMS:     ', &
                       sqrt(bunch_p%sigma(1,1)), sqrt(bunch_p%sigma(2,2)), sqrt(bunch_p%sigma(3,3)), &
                       sqrt(bunch_p%sigma(4,4)), sqrt(bunch_p%sigma(5,5)), sqrt(bunch_p%sigma(6,6))
-    if (u%model%lat%branch(ele%ix_branch)%param%particle /= photon$) then
+    if (u%model%lat%branch(ix_branch)%param%particle /= photon$) then
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), rmt) '               norm_emitt            emit            beta           alpha'
       nl=nl+1; write(lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%emit, bunch_p%a%beta, bunch_p%a%alpha
@@ -567,13 +584,13 @@ case ('beam')
       endif
     endif
 
-    beam => u%model_branch(ele%ix_branch)%ele(ix_ele)%beam
-    nl=nl+1; lines(nl) = ''
-    if (allocated(beam%bunch)) then
-      bunch => beam%bunch(n)
-      nl=nl+1; lines(nl) = 'Note: Individual particle positions are saved at this element.'
-    else
-      nl=nl+1; lines(nl) = 'Note: Individual particle positions are not saved at this element.'
+    if (what_to_show == '') then
+      nl=nl+1; lines(nl) = ''
+      if (found) then
+        nl=nl+1; lines(nl) = 'Note: Individual particle positions are saved at this element.'
+      else
+        nl=nl+1; lines(nl) = 'Note: Individual particle positions are not saved at this element.'
+      endif
     endif
   
   endif
@@ -3608,7 +3625,6 @@ case ('particle')
   ix_p = 1
 
   do
-
     call tao_next_switch (what2, [character(16):: '-element', '-particle', '-bunch', '-lost', '-all'], &
                           .true., switch, err, ix_word)
     if (err) return

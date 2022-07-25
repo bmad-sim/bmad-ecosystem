@@ -1940,9 +1940,9 @@ Shows a list of defined aliases. See the \vn{alias} command for more details.
 \subsection{show beam}
 \label{s:show.beam}
 
-Syntax:
+Command to show beam parameters. Syntax:
 \begin{example}
-  show beam \{-universe <uni_index>\} \{-lattice\} \{<element_id>\}
+  show beam \{-comb_index\} \{-universe <uni_index>\} \{-lattice\} \{<element_id>\}
 \end{example}
 
 If both \vn{<element_id>} and \vn{-lattice} are absent, \vn{show beam} shows parameters
@@ -1951,17 +1951,26 @@ used with beam tracking including the number of particles in a bunch, etc.
 If no universe is given, the current default universe (\sref{s:universe}) is used.
 
 If \vn{<element_id>} is present, and \vn{-lattice} is not, \vn{show beam} will show beam
-parameters at the selected element. Also see \vn{show particle}.  Use the \vn{set beam_init} command
-to set values of the \vn{beam_init} structure.
+parameters at the selected element. 
 
 If \vn{-lattice} is present, \vn{show beam} will show the beam sigma matrix as calculated from the
 lattice at the position given by \vn{<element_id>} (\sref{s:lat.sig.init}). If an
 element is not specified, the beginning element (with index 0) will be used.
 
+If the \vn{-comb_index} is present, \vn{<element_id>} should be an integer which is the index
+of the comb of longitudinally equally spaced points where the beam parameters are evaluated at.
+Note: \vn{comb_ds_step} (\sref{s:tao.global.struct}) is used to set the spacing between points.
+
+Note: To show individual particle positions, see the \vn{show particle} command
+(\sref{s:show.particle}).
+
+Note: Use the \vn{set beam_init} command to set values of the \vn{beam_init} structure.
+
 Examples:
 \begin{example}
   show beam          ! Show beam initialization parameters.
-  show beam -lat 37  ! Show sigma matrix calculated from lattice Twiss at element #37
+  show beam -lat 37  ! Show sigma matrix, etc. calculated at element #37.
+  show beam -comb 3  ! Show sigma matrix, etc. calculated at comb index #3.
 \end{example}
 
 %% show branch --------------------------------------------------------------

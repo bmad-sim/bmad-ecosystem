@@ -162,6 +162,8 @@ type (beam_init_struct) beam_init
 type (tao_beam_branch_struct), pointer :: bb
 type (branch_struct), pointer :: branch
 
+real(rp) comb_ds_step
+
 integer i, k, iu, ios, ib, n_uni, ib0, ie0
 integer n, iostat, ix_universe
 
@@ -178,7 +180,7 @@ logical err, always_reinit
 namelist / tao_beam_init / ix_universe, beam_init, always_reinit, &
             beam0_file, beam_init_file_name, beam_position0_file, &
             beam_track_start, beam_track_end, beam_saved_at, beam_dump_at, beam_dump_file, &
-            track_start, track_end, saved_at, dump_at, dump_file
+            track_start, track_end, saved_at, dump_at, dump_file, comb_ds_step
 
 !-----------------------------------------------------------------------
 ! Init Beams
@@ -252,6 +254,7 @@ do
   dump_file = ''
   track_start = ''
   track_end = ''
+  comb_ds_step = -1
 
   ! Read beam parameters
 
@@ -316,7 +319,7 @@ do
   call out_io (s_blank$, r_name, 'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
   if (ix_universe == -1) then
     do i = lbound(s%u, 1), ubound(s%u, 1)
-      s%u(i)%beam = tao_beam_uni_struct(saved_at, dump_file, dump_at, .true., always_reinit)
+      s%u(i)%beam = tao_beam_uni_struct(saved_at, dump_file, dump_at, comb_ds_step, .true., always_reinit)
       call tao_init_beam_in_universe(s%u(i), beam_init, track_start, track_end)
     enddo
   else
@@ -324,7 +327,7 @@ do
       call out_io (s_error$, r_name, 'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
       return
     endif
-    s%u(ix_universe)%beam = tao_beam_uni_struct(saved_at, dump_file, dump_at, .true., always_reinit)
+    s%u(ix_universe)%beam = tao_beam_uni_struct(saved_at, dump_file, dump_at, comb_ds_step, .true., always_reinit)
     call tao_init_beam_in_universe(s%u(ix_universe), beam_init, track_start, track_end)
   endif
 

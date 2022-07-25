@@ -3356,7 +3356,7 @@ case ('unstable.')
         datum_value = datum_value + (n - j + 1) * bunch_params(jj)%n_particle_lost_in_ele
         if (jj == ie1) exit
       enddo
-      datum_value = datum_value / tao_branch%bunch_params(ie0)%n_particle_tot
+      datum_value = datum_value / bunch_params(ie0)%n_particle_tot
       datum%ix_ele_merit = -1
 
     elseif (lat%param%geometry == open$) then
