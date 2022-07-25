@@ -645,7 +645,7 @@ subroutine create_ramper (lord, contl, err)
   logical err
 end subroutine
 
-subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
+subroutine element_slice_iterator (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
   import
   implicit none
   type (ele_struct) ele, sliced_ele
