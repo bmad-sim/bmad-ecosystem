@@ -1872,7 +1872,7 @@ type (bunch_struct), pointer :: bunch
 integer i, ix_turn, k, nb, iu1, iu2, iu3, ix, ib
 logical error
 character(200) :: file_name
-character(1000) :: line
+character(2000) :: line
 
 !
 
