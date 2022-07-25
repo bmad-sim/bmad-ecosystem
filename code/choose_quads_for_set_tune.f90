@@ -28,7 +28,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: slave
 type (control_struct), pointer :: ctl
 
-real(rp), allocatable, intent(inout) :: dk1(:)
+real(rp), allocatable :: dk1(:)
 
 integer i, j, is, n_loc, iq
 
