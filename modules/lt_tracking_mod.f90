@@ -57,7 +57,7 @@ type ltt_params_struct
   integer :: averages_output_every_n_turns = -1
   integer :: random_seed = 0
   real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
-  real(rp) :: core_emit_cutoff(30) = [0.5_rp, (-1.0_rp, i_loop = 2, 30)]
+  real(rp) :: core_emit_cutoff(40) = [0.5_rp, (-1.0_rp, i_loop = 2, 40)]
   real(rp) :: ramping_start_time = 0
   real(rp) :: ptc_aperture(2) = 0.1_rp
   real(rp) :: print_on_dead_loss = -1
@@ -530,7 +530,7 @@ type (ltt_com_struct), target :: ltt_com
 type (branch_struct), pointer :: branch
 integer i, nm, ix, iu, nb, ib
 character(200) :: file_name
-character(1000) :: line1, line2
+character(2000) :: line1, line2
 
 ! Print some info.
 
@@ -581,7 +581,7 @@ do ib = 0, nb
   !
 
   call ltt_data_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
-  open (iu, file = file_name, recl = 1000)
+  open (iu, file = file_name, recl = 2000)
 
   call ltt_print_this_info(iu, .false.)
 
@@ -1454,7 +1454,7 @@ end select
 iu = lunget()
 
 if (i_turn == 0 .or. lttp%averages_output_every_n_turns == -1) then
-  open (iu, file = lttp%custom_output_file, recl = 1000)
+  open (iu, file = lttp%custom_output_file, recl = 2000)
   call ltt_write_params_header(lttp, ltt_com, iu, size(beam%bunch))
   line = '#'
   do i = 1, size(lttp%column)
@@ -1466,7 +1466,7 @@ if (i_turn == 0 .or. lttp%averages_output_every_n_turns == -1) then
   write (iu, '(a)') trim(line)
 
 else
-  open (iu, file = lttp%custom_output_file, access = 'append', recl = 1000)
+  open (iu, file = lttp%custom_output_file, access = 'append', recl = 2000)
 endif
 
 !
@@ -1896,7 +1896,7 @@ do ib = 1, nb
   call ltt_data_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
   iu2 = lunget(); open (iu2, file = file_name, recl = 400, access = 'append')
   call ltt_data_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
-  iu3 = lunget(); open (iu3, file = file_name, recl = 1000, access = 'append')
+  iu3 = lunget(); open (iu3, file = file_name, recl = 2000, access = 'append')
 
   !
 
