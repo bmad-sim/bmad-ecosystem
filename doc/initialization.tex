@@ -2893,9 +2893,9 @@ plot visibility.
 \label{s:plot.var}
 
 Data can be plotted as a function of a lattice parameter by setting \vn{plot%x_axis_type} to
-\vn{"lat"} (for lattice variables) or \vn{"var"} (for \tao variables) and setting
-\vn{curve(:)%data_type_x} to the name of the variable. In this case, the \vn{curve(:)%data_type}
-must evaluate to a single number.
+\vn{"lat"} (for lattice parameters including lattice element parameters) or \vn{"var"} (for \tao
+variables) and setting \vn{curve(:)%data_type_x} to the name of the variable. In this case, the
+\vn{curve(:)%data_type} must evaluate to a single number (not a vector).
 
 Example:
 \begin{example}
