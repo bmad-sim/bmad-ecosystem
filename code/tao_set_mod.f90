@@ -1132,38 +1132,27 @@ integer i, ix, iu, ios, ib, n_loc
 logical err, eval_err
 logical, allocatable :: picked_uni(:)
 
-character(40) name
+character(40) name, switch
 
 namelist / params / beam_init
 
 ! get universe
 
-call tao_pick_universe (who, who2, picked_uni, err)
+call tao_pick_universe (unquote(who), who2, picked_uni, err)
 call downcase_string(who2)
 
 ! Special cases not associated with the beam_init structure
 
-select case (who2)
-case ('track_start', 'beam_track_start', 'track_end', 'beam_track_end')
-  do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. picked_uni(i)) cycle
-    u => s%u(i)
-    bb => u%model_branch(0)%beam
-    ele => tao_beam_track_endpoint (value_str, u%design%lat, branch_str, who2)
-    if (.not. associated(ele)) return
+call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_step', &
+                    'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
+                    'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
+                    'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', &
+                    'always_reinit'], ix, matched_name=switch)
 
-    select case (who2)
-    case ('track_start', 'beam_track_start')
-      bb%track_start = value_str
-      bb%ix_track_start = ele%ix_ele
-    case ('track_end', 'beam_track_end')
-      bb%track_end = value_str
-      bb%ix_track_end = ele%ix_ele
-    end select
-  enddo
-
+if (ix > 0) then
+  call tao_set_beam_cmd(who, value_str, branch_str)
   return
-end select
+endif
 
 ! Beam_init. open a scratch file for a namelist read
 
