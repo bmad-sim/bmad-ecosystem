@@ -20,6 +20,7 @@ implicit none
 integer, parameter :: master_rank$  = 0
 integer, parameter :: in_map$ = 0
 integer, parameter :: not_in_map$ = 1
+integer, parameter :: core_max$ = 40
 integer, private :: i_loop
 
 ! Essentially: The ltt_params_struct holds user setable parameters while the ltt_com_struct holds
@@ -57,7 +58,7 @@ type ltt_params_struct
   integer :: averages_output_every_n_turns = -1
   integer :: random_seed = 0
   real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
-  real(rp) :: core_emit_cutoff(40) = [0.5_rp, (-1.0_rp, i_loop = 2, 40)]
+  real(rp) :: core_emit_cutoff(40) = [0.5_rp, (-1.0_rp, i_loop = 2, core_max$)]
   real(rp) :: ramping_start_time = 0
   real(rp) :: ptc_aperture(2) = 0.1_rp
   real(rp) :: print_on_dead_loss = -1
@@ -137,7 +138,7 @@ type ltt_bunch_data_struct
   real(rp) :: time_ave = 0
   real(rp) :: sig1(6) = 0, sigma(27) = 0, sig_mat(6,6) = 0
   real(rp) :: kurt(3) = 0, skew(3) = 0
-  real(rp) :: core_emit(10,3) = 0
+  real(rp) :: core_emit(core_max$,3) = 0
   type (bunch_params_struct) :: params = bunch_params_struct()
 end type
 
@@ -592,7 +593,7 @@ do ib = 0, nb
                 'Emit_a', 'Emit_b', 'Emit_c', 'Kurtosis_x', 'Kurtosis_y', 'Kurtosis_z', 'Skew_x', 'Skew_y', 'Skew_z', '  |'
 
 
-  do i = 1, size(lttp%core_emit_cutoff)
+  do i = 1, core_max$
     if (lttp%core_emit_cutoff(i) <= 0) exit
     line1 = trim(line1) // '                   ZZ% Core                |'
     line2 = trim(line2) // '      Emit_a        Emit_b        Emit_c   |'
@@ -1695,7 +1696,7 @@ call mat_inverse (n_inv_mat, n_inv_mat)
 ! Calc core emit
 
 bd%core_emit = 0
-do ic = 1, size(lttp%core_emit_cutoff)
+do ic = 1, core_max$
   if (lttp%core_emit_cutoff(ic) <= 0) exit
   call this_core_calc(bunch, bd, lttp%core_emit_cutoff(ic), n_inv_mat, bd%core_emit(ic,:))
 enddo
@@ -1908,7 +1909,7 @@ do ib = 1, nb
   write (line, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 3es14.6, 2x, 3es14.6)') ix_turn, nint(bd%n_live), &
           bd%time_ave, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%kurt, bd%skew
 
-  do i = 1, size(lttp%core_emit_cutoff)
+  do i = 1, core_max$
     if (lttp%core_emit_cutoff(i) <= 0) exit
     write (line, '(a, 2x, 3es14.6)') trim(line), bd%core_emit(i,:)
   enddo
