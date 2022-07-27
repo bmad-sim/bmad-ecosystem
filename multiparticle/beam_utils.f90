@@ -1551,7 +1551,7 @@ sigma_s(:,6) =  sigma_mat(:,5)
 dim = 6
 if (abs(sigma_mat(6,6)) < 1e-20_rp * maxval(abs(sigma_mat))) dim = 4  ! No energy oscillations.
 
-call mat_eigen (sigma_s, eigen_val(1:dim), eigen_vec(1:dim,1:dim), err, print_err)
+call mat_eigen (sigma_s(1:dim,1:dim), eigen_val(1:dim), eigen_vec(1:dim,1:dim), err, print_err)
 if (err) return
 
 call normalize_e (eigen_vec(1:dim,1:dim), dim, good, err)

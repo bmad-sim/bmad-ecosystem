@@ -281,25 +281,26 @@ See \sref{s:list.beambeam} for a full list of element attributes along with a th
 \index{beta_a}\index{beta_b}\index{alpha_a}\index{alpha_b}
 Attributes specific to a \vn{beambeam} element are:
 \begin{example}
-  sig_x          = <Real> ! Horizontal strong beam sigma at the center 
-  sig_y          = <Real> ! Vertical strong beam sigma at the center
-  sig_z          = <Real> ! Strong beam length
-  charge         = <Real> ! Strong beam charge. Default = -1
-  n_particle     = <Real> ! Number of particles in strong beam.
-  n_slice        = <Int>  ! Number of strong beam slices
-  crab_x1        = <Real> ! Crabbing linear coefficient.
-  crab_x2        = <Real> ! Crabbing quadratic coefficient.
-  crab_x3        = <Real> ! Crabbing cubic coefficient.
-  crab_x4        = <Real> ! Crabbing 4th order coefficient.
-  crab_x5        = <Real> ! Crabbing 5th order coefficient.
-  crab_tilt      = <Real> ! Crabbing tilt.
-  beta_a_strong  = <Real> ! Strong beam $a$-mode beta Twiss parameter
-  alpha_a_strong = <Real> ! Strong beam $a$-mode alpha Twiss parameter 
-  beta_b_strong  = <Real> ! Strong beam $b$-mode beta Twiss parameter
-  alpha_b_strong = <Real> ! Strong beam $b$-mode alpha Twiss parameter
-  bbi_constant            ! See below. Dependent attribute (\sref{s:depend}).
-  ks             = <Real> ! Solenoid strength.
-  bs_field       = <Real> ! Field strength. (\sref{s:depend}).
+  sig_x          = <Real>  ! Horizontal strong beam sigma at the center 
+  sig_y          = <Real>  ! Vertical strong beam sigma at the center
+  sig_z          = <Real>  ! Strong beam length
+  charge         = <Real>  ! Strong beam charge. Default = -1
+  n_particle     = <Real>  ! Number of particles in strong beam.
+  n_slice        = <Int>   ! Number of strong beam slices
+  crab_x1        = <Real>  ! Crabbing linear coefficient.
+  crab_x2        = <Real>  ! Crabbing quadratic coefficient.
+  crab_x3        = <Real>  ! Crabbing cubic coefficient.
+  crab_x4        = <Real>  ! Crabbing 4th order coefficient.
+  crab_x5        = <Real>  ! Crabbing 5th order coefficient.
+  crab_tilt      = <Real>  ! Crabbing tilt.
+  beta_a_strong  = <Real>  ! Strong beam $a$-mode beta Twiss parameter
+  alpha_a_strong = <Real>  ! Strong beam $a$-mode alpha Twiss parameter 
+  beta_b_strong  = <Real>  ! Strong beam $b$-mode beta Twiss parameter
+  alpha_b_strong = <Real>  ! Strong beam $b$-mode alpha Twiss parameter
+  bbi_constant             ! See below. Dependent attribute (\sref{s:depend}).
+  ks             = <Real>  ! Solenoid strength.
+  bs_field       = <Real>  ! Solenoid field strength.
+  field_master   = <Logic> ! Is ks or bs_field value the master (\sref{s:field.master})?
 \end{example}
 
 \index{n_part!in BeamBeam element}
@@ -335,8 +336,10 @@ calculation would proceed as follows:
   7. Offsets, pitches and tilt are applied to convert from element body to 
        laboratory coordinates.
 \end{example}
-The \vn{ks} or \vn{bs_field} parameters can be used to set the field strength. If the beambeam
-element is superimposed on top of a solenoid, the beambeam element will inherit the solenoid field.
+The \vn{ks} and \vn{bs_field} parameters are the normalized and unnormalized solenoid strengths
+(\sref{s:field.master}) related through \Eq{kqlbp}. If the beambeam element is superimposed on top
+of a solenoid, the beambeam element will inherit the solenoid field strength from the solenoid
+element instead.
 
 \index{sig_x}\index{sig_y}
 \index{beta_a_strong}\index{beta_b_strong}\index{alpha_a_strong}\index{alpha_b_strong}
@@ -482,6 +485,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   ptc_field_geometry = <Switch> ! See below.
   rho                = <Real>   ! Design bend radius. Settable dependent param (\sref{s:depend}).
   roll               = <Real>   ! See \ref{s:offset}.
+  field_master       = <Logic>  ! See \ref{s:field.master}.
 \end{example}
 
 \begin{figure}[tb]
@@ -650,6 +654,9 @@ Changing \vn{dg} leaves the design orbit and the positions of all downstream lat
 unchanged but will vary a particle's orbit. One common mistake when designing lattices is to vary
 \vn{g} and not \vn{dg} which results in downstream elements moving around. See \Sref{s:ex.chicane}
 for an example.
+
+Note: A positive \vn{g}, which will bend particles and the reference orbit in the $-x$ direction
+represents a field of opposite sign as the field due a positive \vn{hkick}.
   %
   \index{h1}\index{h2}
   \item[h1, h2] \Newline
@@ -659,11 +666,12 @@ calculations.
   %
   \index{k1}\index{b1_gradient}
   \item[k1, b1_gradient] \Newline
-The normalized and unnormalized quadrupole strength.
+The normalized and unnormalized (\sref{s:field.master}) quadrupole strength. See \Eqs{bbb} and \eq{kqlbp}.
+
   %
   \index{k2}\index{b2_gradient}
   \item[k2, b2_gradient] \Newline
-The normalized and unnormalized sextupole strength. 
+The normalized and unnormalized (\sref{s:field.master}) sextupole strength. See \Eqs{bbb} and \eq{kqlbp}.
   %
   \index{l}\index{l_chord}\index{l_arc}\index{l_sagitta}
   \item[l, l_arc, l_chord, l_sagitta]  \Newline
@@ -3349,9 +3357,12 @@ See \sref{s:list.octupole} for a full list of element attributes along with a th
 \index{b3_gradient}
 Attributes specific to an \vn{octupole} element are:
 \begin{example}
-  k3          = <Real>   ! Octupole strength.
-  b3_gradient = <Real>   ! Field strength. (\sref{s:depend}).
+  k3           = <Real>   ! Octupole strength.
+  b3_gradient  = <Real>   ! Field strength. (\sref{s:depend}).
+  field_master = <Logic>  ! See \sref{s:field.master}.
 \end{example}
+The normalized octupole \vn{k3} strength is related to the unnormalized \vn{b3_gradient} field
+strength through \Eq{kqlbp}.
 
 \index{tilt}
 If the \vn{tilt} attribute is present without a value then a value of 
@@ -3929,11 +3940,14 @@ See \sref{s:list.quadrupole} for a full list of element attributes along with a 
 \index{k1}\index{b1_gradient}
 Attributes specific to a \vn{quadrupole} element are:
 \begin{example}
-  b1_gradient    = <Real>    ! Field strength. (\sref{s:depend}).
-  k1             = <Real>    ! Quadrupole strength.
-  fq1            = <Real>    ! Soft edge fringe parameter.
-  fq2            = <Real>    ! Soft edge fringe parameter.
+  b1_gradient  = <Real>    ! Field strength. (\sref{s:depend}).
+  k1           = <Real>    ! Quadrupole strength.
+  fq1          = <Real>    ! Soft edge fringe parameter.
+  fq2          = <Real>    ! Soft edge fringe parameter.
+  field_master = <Logic>   ! See \sref{s:field.master}.
  \end{example}
+The normalized quadrupole \vn{k1} strength is related to the unnormalized \vn{b1_gradient} field
+strength through \Eq{kqlbp}.
 
 \index{tilt}
 If the \vn{tilt} attribute is present without a value then a value of $\pi/4$
@@ -4190,10 +4204,10 @@ See \sref{s:list.sad.mult} for a full list of element attributes along with a th
 Attributes specific to an \vn{sextupole} element are:
 \begin{example}
   bs_field        = <Real>    ! Solenoid field. SAD equivalent: BZ.
+  ks              = <Real>    ! Solenoid strength. 
   e1, e2          = <Real>    ! Bend face angles.
   eps_step_scale  = <Real>    ! Step size scale. Default = 1. SAD equivalent: EPS.
   fq1, fq2        = <Real>    ! Quadrupole fringe integral. SAD equivalents: F1, F2.
-  ks              = <Real>    ! Solenoid strength. 
   x_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DX.
   y_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DY.
   x_pitch_mult    = <Real>    ! Mult component pitch. SAD equivalent: DPX or CHI1.
@@ -4357,10 +4371,12 @@ Attributes specific to an \vn{sextupole} element are:
 \begin{example}
   k2          = <Real>   ! Sextupole strength.
   b2_gradient = <Real>   ! Field strength. (\sref{s:depend}).
+  field_master = <Logic>  ! See \sref{s:field.master}.
 \end{example}
+The normalized sextupole \vn{k2} strength is related to the unnormalized \vn{b2_gradient} field
+strength through \Eq{kqlbp}.
 
-The \vn{bmad_standard}
-calculation treats a sextupole using a kick--drift--kick model.
+The \vn{bmad_standard} calculation treats a sextupole using a kick--drift--kick model.
 
 If the \vn{tilt} attribute is present without a value then a value of 
 $\pi/6$ is used.
@@ -4400,11 +4416,15 @@ See \sref{s:list.solenoid} for a full list of element attributes along with a th
 \index{bs_gradient}
 Attributes specific to an \vn{solenoid} element are:
 \begin{example}
-  ks          = <Real>   ! Solenoid strength.
-  bs_field    = <Real>   ! Field strength. (\sref{s:depend}).
-  l_soft_edge = <Real>   ! For modeling a ``soft" fringe.
-  r_solenoid  = <Real>   ! Solenoid radius.
+  ks           = <Real>  ! Solenoid strength.
+  bs_field     = <Real>  ! Solenoid field strength.
+  field_master = <Logic> ! See \sref{s:field.master}.
+  l_soft_edge  = <Real>  ! For modeling a ``soft" fringe.
+  r_solenoid   = <Real>  ! Solenoid radius.
 \end{example}
+
+The \vn{ks} and \vn{bs_field} parameters are the normalized and unnormalized solenoid strengths related
+through \Eq{kqlbp}.
 
 The \vn{bmad_standard} tracking model (\sref{s:tkm}) uses a ``hard edge'' model where the field
 goes from zero to full strength. 
@@ -4460,11 +4480,14 @@ See \sref{s:list.sol.quad} for a full list of element attributes along with a th
 \index{k1}\index{ks}\index{bs_field}\index{b1_gradient}
 Attributes specific to a \vn{sol_quad} element are:
 \begin{example}
-  k1          = <Real>    ! Quadrupole strength.
-  ks          = <Real>    ! Solenoid strength.
-  bs_field    = <Real>    ! Solenoid Field strength.
-  b1_gradient = <Real>    ! Quadrupole Field strength.
+  k1           = <Real>    ! Quadrupole strength.
+  ks           = <Real>    ! Solenoid strength.
+  bs_field     = <Real>    ! Solenoid Field strength.
+  b1_gradient  = <Real>    ! Quadrupole Field strength.
+  field_master = <Logic>   ! See \sref{s:field.master}.
 \end{example}
+The normalized quadrupole \vn{k1} and solenoid \vn{ks} field strengths are related to the
+unnormalized \vn{b1_gradient} and \vn{bs_field} field strengths through \Eq{kqlbp}.
 
 Example:
 \begin{example}
