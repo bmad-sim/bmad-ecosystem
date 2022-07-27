@@ -56,8 +56,6 @@ enddo
 if (n<2) return
 beta = beta/n
 
-call hdf5_write_beam('sc_bunch.h5', [bunch], .false., err)
-
 ! Calculate space charge field
 mesh3d%gamma = 1/sqrt(1- beta**2)
 call deposit_particles (position(1:n)%r(1), position(1:n)%r(2), position(1:n)%r(3), mesh3d, qa=position(1:n)%charge)
