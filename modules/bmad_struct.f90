@@ -1090,6 +1090,7 @@ type bunch_params_struct
   real(rp) :: rel_max(6) = 0             ! Max orbit relative to centroid
   real(rp) :: rel_min(6) = 0             ! Min orbit relative to_centroid
   real(rp) :: s = -1                     ! Longitudinal position.
+  real(rp) :: t = -1                     ! Time.
   real(rp) :: charge_live = 0            ! Charge of all non-lost particle
   real(rp) :: charge_tot = 0             ! Charge of all particles.
   integer :: n_particle_tot = 0          ! Total number of particles

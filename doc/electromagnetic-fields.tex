@@ -18,22 +18,23 @@ Assuming that the reference orbit is locally straight (there are correction term
 reference orbit is curved (\sref{s:field.exact})), the field is
 \begin{alignat}{5}
   B_x &=           &&B_1 y \plus         &&B_2 \, xy       
-                   && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
+                   && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \CRNO
   B_y &= B_0 \plus &&B_1 x + \frac{1}{2} &&B_2 (x^2 - y^2) 
                    && \plus && \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
+  \label{bbb}
 \end{alignat}
-For some fields, the normalized integrated multipole $K_nL$ can be used when specifying
-magnetic multipole components
+The relation between the field $B_n$ and the normalized field $K_n$ is:
 \index{multipole!KnL, Tn|hyperbf}
 \begin{equation}
-  K_nL \equiv \frac{q \, L \, B_n}{P_0}
+  K_n \equiv \frac{q \, B_n}{P_0}
+  \label{kqlbp}
 \end{equation}
-where $q$ is the charge of the reference particle (in units of the elementary charge), $L$ is the
-element length, and $P_0$ is the reference momentum (in units of eV/c).  Note that $P_0/q$ is
-sometimes written as $B\rho$. This is just an old notation where $\rho$ is the bending radius of a
-particle with the reference energy in a field of strength $B$. Notice that $P_0$ is the local
-reference momentum at the element which may not be the same as the reference energy at the beginning
-of the lattice if there are \vn{lcavity} elements (\sref{s:lcav}) present.
+where $q$ is the charge of the reference particle (in units of the elementary charge), and $P_0$ is
+the reference momentum (in units of eV/c).  Note that $P_0/q$ is sometimes written as $B\rho$. This
+is just an old notation where $\rho$ is the bending radius of a particle with the reference energy
+in a field of strength $B$. Notice that $P_0$ is the local reference momentum at the element which
+may not be the same as the reference energy at the beginning of the lattice if there are
+\vn{lcavity} elements (\sref{s:lcav}) present.
 
 The kicks $\Delta p_x$ and $\Delta p_y$ that a
 particle experiences going through a multipole field is

@@ -77,20 +77,20 @@ will never be set by the bookkeeping routine.
 \end{table}
 
 %-----------------------------------------------------------------
-\section{Field_Master}
+\section{Field_Master and Normalized Vs. Unnormalized Field Strengths}
 \label{s:field.master}
 \index{field_master}
 
 The \vn{field_master} attribute of an element sets whether the element's normalized (normalized by
 the reference energy) field strengths or the unnormalized strengths are the independent variables
-(\sref{s:depend}).  The setting of \vn{field_master} also sets whether an element's magnetic
-multipoles (\sref{s:multip}) are interpreted as normalized or unnormalized (electric multipoles are
-always treated as unnormalized).
+(\sref{s:depend}). See \sref{s:mag.field} for details as to how they are related. The setting of
+\vn{field_master} also sets whether an element's magnetic multipoles (\sref{s:multip}) are
+interpreted as normalized or unnormalized (electric multipoles are always treated as unnormalized).
 
 Table~\ref{t:dep.field} shows some normalized and unnormalized field strength attributes.  The
 default value of \vn{field_master} for an element is False if there are no field values set in the
-lattice file for that element. If normalized field values are present then the default is also False
-and if there are unnormalized field values present then the default is True.
+lattice file for that element. If normalized field values are present then the default is also False.
+If there are unnormalized field values present then the default is True.
 
 For example:
 \begin{example}
@@ -119,7 +119,7 @@ permitted. For example:
 \begin{tabular}{lll} \toprule
   {\em Element}              & {\em Normalized} & {\em Unnormalized}   \\ \midrule
   \vn{Sbend}, \vn{Rbend}     & \vn{g}           &  \vn{b_field}        \\
-  \vn{Sbend}, \vn{Rbend}     & \vn{dg}       &  \vn{db_field}    \\
+  \vn{Sbend}, \vn{Rbend}     & \vn{dg}          &  \vn{db_field}       \\
   \vn{Solenoid, Sol_quad}    & \vn{ks}          &  \vn{bs_field}       \\
   \vn{Quadrupole, Sol_quad, Sbend, Rbend}            
                              & \vn{k1}          &  \vn{b1_gradient}    \\
