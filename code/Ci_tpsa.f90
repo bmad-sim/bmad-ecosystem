@@ -717,6 +717,7 @@ type(c_linear_map) q_phasor,qi_phasor
        MODULE PROCEDURE print_ql
       MODULE PROCEDURE c_pri_c_ray
       MODULE PROCEDURE c_printunitaylor
+      MODULE PROCEDURE c_printunitaylors
       MODULE PROCEDURE print_vector_field_fourier
     END INTERFACE
 
@@ -805,10 +806,12 @@ type(c_linear_map) q_phasor,qi_phasor
 
   INTERFACE alloc
      MODULE PROCEDURE c_alloc_u
+     MODULE PROCEDURE c_alloc_us
   END INTERFACE
 
   INTERFACE KILL
      MODULE PROCEDURE c_kill_uni
+     MODULE PROCEDURE c_kill_unis
   END INTERFACE
 
 
@@ -21033,6 +21036,20 @@ end subroutine cholesky_dt
 
   END SUBROUTINE  c_kill_uni
 
+  SUBROUTINE  c_kill_Unis(S2)
+    implicit none
+    type (C_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2(:)
+     integer k,i
+    k=size(s2)
+    do i=1,k
+    DEALLOCATE(S2(i)%N,S2(i)%NV,S2(i)%C,S2(i)%J)
+    NULLIFY(S2(i)%N,S2(i)%NV,S2(i)%C,S2(i)%J)    
+    enddo
+
+  END SUBROUTINE c_kill_Unis
+ 
+
+
   SUBROUTINE  c_null_uni(S2,S1)
     implicit none
     type (c_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
@@ -21060,6 +21077,26 @@ end subroutine cholesky_dt
     S2%NV=NV
     S2%nd2=nd2
   END SUBROUTINE c_ALLOC_U
+
+  SUBROUTINE  c_ALLOC_Us(S2,N,NV,nd2)
+    implicit none
+    type (C_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2(:)
+    integer, intent(in):: N,NV,nd2
+     integer k,i
+    k=size(s2)
+    do i=1,k
+      ALLOCATE(S2(i)%N,S2(i)%NV,S2(i)%nd2)
+    if(N==0) then
+       allocate(S2(i)%C(1),S2(i)%J(1,NV));S2(i)%C(1)=0.0_dp;S2(i)%J(:,:)=0;
+    else
+       allocate(S2(i)%C(N),S2(i)%J(N,NV))
+    endif
+    S2(i)%N=N
+    S2(i)%NV=NV
+    S2(i)%nd2=nd2
+    enddo
+
+  END SUBROUTINE c_ALLOC_Us
 
   SUBROUTINE  c_fill_uni_r(S2,S1)  !new sagan
     implicit none
@@ -21166,8 +21203,21 @@ end subroutine cholesky_dt
 
   !_________________________________________________________________________________
 
+  subroutine c_printunitaylors(ut,iunit,abs,prec)
+    implicit none
+    type(c_universal_taylor) :: ut(:)
+    integer, optional               :: iunit
+    integer                :: i,k
+    logical, optional :: abs
+    real(dp), optional ::prec
+    k=size(ut)
 
-  subroutine c_printunitaylor(ut,iunit,abs)
+    do i=1,k
+      call c_printunitaylor(ut(i),iunit,abs,prec)
+   enddo
+  end subroutine c_printunitaylors
+
+  subroutine c_printunitaylor(ut,iunit,abs,prec)
     implicit none
     type(c_universal_taylor) :: ut
     integer, optional               :: iunit
@@ -21175,9 +21225,14 @@ end subroutine cholesky_dt
     logical, optional :: abs
     logical abst
     integer iunit0
-    real(dp) xr
+    real(dp) xr,prec0
+    real(dp), optional ::prec
+      complex(dp) v
     iunit0=6
     abst=.false.
+     prec0=0
+
+    if(present(prec)) prec0=prec
     if(present(abs)) abst=abs
     if(present(iunit)) iunit0=iunit
     if (.not. associated(ut%n)) then
@@ -21195,12 +21250,20 @@ end subroutine cholesky_dt
     endif
 
     do i = 1,ut%n
+     v=0
+    if(abs(real(ut%c(i))>prec0)) then
+      v=real(ut%c(i))
+    endif
+    if(abs(aimag(ut%c(i))>prec0)) then
+      v=i_*aimag(ut%c(i))+v
+    endif 
+       if(abs( v)<=prec0)   cycle
      if(abst) then
        xr=sqrt(real(ut%c(i))**2+aimag(ut%c(i))**2)
-write(iunit0,'(I6,2X,(G21.14,1x,G21.14,3x,G21.14),I5,4X,18(2I2,1X))') i,ut%c(i),xr,   &
+write(iunit0,'(I6,2X,(G21.14,1x,G21.14,3x,G21.14),I5,4X,18(2I2,1X))') i,v,xr,   &
 sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
      else
-       write(iunit0,'(I6,2X,(G21.14,1x,G21.14),I5,4X,18(2I2,1X))') i,ut%c(i),sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
+       write(iunit0,'(I6,2X,(G21.14,1x,G21.14),I5,4X,18(2I2,1X))') i,v,sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
      endif
        if( .not. print77) then
           write(iunit0,*)  ut%c(i)
@@ -21210,6 +21273,7 @@ sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
     write(iunit0,'(A)') '                                      '
 
   end subroutine c_printunitaylor
+
 
 
   ! End of Universal complex Taylor Routines

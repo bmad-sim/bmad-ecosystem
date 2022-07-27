@@ -4041,15 +4041,14 @@ endif
   end SUBROUTINE PUTbend_fringe
 
 
-  SUBROUTINE MESS_UP_ALIGNMENT(R,SIG,cut)
+  SUBROUTINE MESS_UP_ALIGNMENT(R,SIG,cut,add)
     use gauss_dis
     IMPLICIT NONE
     TYPE(LAYOUT),TARGET :: R
     integer J,I
     type(fibre), pointer :: P
     REAL(DP) SIG(:),X,MIS(6),cut
-
-
+    logical, optional :: add
     p=>r%start
     do i=1,r%n
 
@@ -4058,8 +4057,7 @@ endif
              call GRNF(X,cut)
              MIS(J)=X*SIG(J)
           ENDDO
-          call MISALIGN_FIBRE(p,mis)
-     !  ENDIF
+            call MISALIGN_FIBRE(p,mis,add=add)
        P=>P%NEXT
     ENDDO
   end SUBROUTINE MESS_UP_ALIGNMENT

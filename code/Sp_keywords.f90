@@ -2646,7 +2646,7 @@ type(layout),target :: r
 character(*) filename
 logical(lp), optional :: arpent
 integer , optional :: mfile
-logical(lp) doneit,surv
+logical(lp) doneit,surv,do_extrasurvey
 character(120) line
 type(fibre),pointer :: s22
 type(element),pointer :: s2
@@ -2819,6 +2819,12 @@ enddo
  if(present(arpent)) surv=arpent
 
    if(surv) then
+     call check_mis_presence(r,do_extrasurvey)
+     if(do_extrasurvey) then
+      do_mis=.false.
+      call survey(r)
+      do_mis=.true.
+     endif
      call survey(r)
    endif
 
@@ -2827,6 +2833,27 @@ enddo
 if(.not.present(mfile)) close(mf)
 
 end subroutine read_lattice
+
+subroutine check_mis_presence(r,do_extrasurvey)
+implicit none
+type(layout), target :: r
+logical do_extrasurvey
+type(fibre), pointer :: p
+integer i
+
+do_extrasurvey=.false.
+p=>r%start
+do i=1,r%n
+if(p%mag%mis) then
+ do_extrasurvey=.true.
+ return
+endif
+p=>p%next
+enddo
+
+
+end subroutine check_mis_presence
+
 
   subroutine read_ElementLIST(kind,mf)
     implicit none
