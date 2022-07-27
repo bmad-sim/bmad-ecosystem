@@ -26,7 +26,7 @@ module ptc_multiparticle
 private MISALIGN_FIBRE_EQUAL
 
 
- LOGICAL :: no_mis=.TRUE. 
+ LOGICAL :: do_mis=.true.  
   !  LOGICAL :: OLD_MOD=.TRUE.
 
   logical(lp),private, parameter :: dobb=.true.
@@ -3108,7 +3108,7 @@ ang=ang/2
 p%mag%p%f%o=0.5_dp*(p%mag%p%f%a+p%mag%p%f%b)
 CALL GEO_ROT(p%mag%p%f%mid,ANG,1,basis=p%mag%p%f%ent)
 
-if(.not.p%mag%mis) then
+if(.not.p%mag%mis.or.(.not.do_mis)) then
 p%magp%p%f%mid=p%mag%p%f%mid
 p%magp%p%f%o=p%mag%p%f%o
 endif
@@ -3175,7 +3175,7 @@ pix1=0.0_dp
 
 
 
-    IF(f%MAG%MIS) THEN
+    IF(f%MAG%MIS.and.do_mis) THEN
  
         call MIS_survey(a0,exi0,f,a0,exi0,ENTERING)
  
@@ -3185,14 +3185,14 @@ pix1=0.0_dp
  if(f%dir==1) then
   f%mag%p%f%ent=exi0
   f%mag%p%f%a=a0
-  if(.not.f%mag%mis) then
+  if(.not.f%mag%mis.or.(.not.do_mis)) then
   f%magp%p%f%ent=exi0
   f%magp%p%f%a=a0
   endif
 else
   f%mag%p%f%exi=exi0
   f%mag%p%f%b=a0
-  if(.not.f%mag%mis) then
+  if(.not.f%mag%mis.or.(.not.do_mis)) then
   f%magp%p%f%exi=exi0
   f%magp%p%f%b=a0
  endif
@@ -3237,23 +3237,24 @@ f=>t%parent_fibre
  if(f%dir==-1) then
   f%mag%p%f%ent=ent0
   f%mag%p%f%a=a0
-  if(.not. f%mag%mis) then
+  if(.not. f%mag%mis.or.(.not.do_mis)) then
   f%magp%p%f%ent=ent0
   f%magp%p%f%a=a0
   endif
 else
   f%mag%p%f%exi=ent0
   f%mag%p%f%b=a0
-  if(.not. f%mag%mis) then
+  if(.not. f%mag%mis.or.(.not.do_mis)) then
   f%magp%p%f%exi=ent0
   f%magp%p%f%b=a0
  endif
 endif
 
- 
-        call MIS_survey(a0,exi0,f,a0,exi0,.not.ENTERING)
- 
+     IF(f%MAG%MIS.and.do_mis) THEN    ! added with do_mis addition
 
+      call MIS_survey(a0,exi0,f,a0,exi0,.not.ENTERING)
+ 
+    endif
 
 pix1=0.0_dp
 !if(f%dir==1) then
@@ -4400,4 +4401,5 @@ endif
 
 
 end subroutine convert_mis_to_patch
+
 end module ptc_multiparticle
