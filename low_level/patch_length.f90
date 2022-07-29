@@ -25,6 +25,11 @@ integer, optional :: ref_coords
 
 !
 
+if (is_true(patch%value(user_sets_length$))) then
+  length = patch%value(l$)
+  return
+endif
+
 select case (integer_option(nint(patch%value(ref_coords$)), ref_coords))
 case (entrance_end$)
   length = patch%value(z_offset$)

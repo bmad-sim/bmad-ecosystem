@@ -162,7 +162,7 @@ See \sref{s:list.ac.kicker} for a full list of element attributes along with a t
 Attributes specific to a \vn{ac_kicker} element are:
 \begin{example}
   t_offset        = <Real>              ! Time offset of field waveform.
-  ref_time_offset = <Logic>             ! Relative to the ref time? (Default: True).
+  ref_time_offset = <T/F>               ! Relative to the ref time? (Default: True).
   interpolation   = <switch>            ! spline (default) or linear.
   amp_vs_time = \{(<time1>, <Amp1>), (<time2>, <Amp2>), ...\}  ! Field amp vs Time.
   frequencies = \{(<freq1>, <Amp1>, <phi1>), 
@@ -300,7 +300,7 @@ Attributes specific to a \vn{beambeam} element are:
   bbi_constant             ! See below. Dependent attribute (\sref{s:depend}).
   ks             = <Real>  ! Solenoid strength.
   bs_field       = <Real>  ! Solenoid field strength.
-  field_master   = <Logic> ! Is ks or bs_field value the master (\sref{s:field.master})?
+  field_master   = <T/F>   ! Is ks or bs_field value the master (\sref{s:field.master})?
 \end{example}
 
 \index{n_part!in BeamBeam element}
@@ -485,7 +485,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   ptc_field_geometry = <Switch> ! See below.
   rho                = <Real>   ! Design bend radius. Settable dependent param (\sref{s:depend}).
   roll               = <Real>   ! See \ref{s:offset}.
-  field_master       = <Logic>  ! See \ref{s:field.master}.
+  field_master       = <T/F>    ! See \ref{s:field.master}.
 \end{example}
 
 \begin{figure}[tb]
@@ -3015,14 +3015,14 @@ Attributes specific to a \vn{match} element are:
   etap_x1, etap_y1   = <Real>                      ! Ending eta'
   c11_mat0, c12_mat0, c21_mat0, c22_mat0 = <Real>  ! Beginning coupling.
   c11_mat1, c12_mat1, c21_mat1, c22_mat1 = <Real>  ! Ending coupling.
-  mode_flip0, mode_flip1 = <Logic>                 ! Mode flip status (\sref{s:coupling}). Default is False.
+  mode_flip0, mode_flip1 = <T/F>                   ! Mode flip status (\sref{s:coupling}). Default is False.
   dphi_a, dphi_b     = <Real>                      ! Phase advances
   x0, px0, y0, py0, z0, pz0 = <Real>               ! Beginning coordinates
   x1, px1, y1, py1, z1, pz1 = <Real>               ! Ending coordinates
   delta_time  = <Real>                             ! Change in time.
-  match_end = <Logic>                              ! Twiss matching. Default False.
-  match_end_orbit = <Logic>                        ! Orbit matching. Default False.
-  phase_trombone = <Logic>                         ! Phase shifter. Default False.
+  match_end = <T/F>                                ! Twiss matching. Default False.
+  match_end_orbit = <T/F>                          ! Orbit matching. Default False.
+  phase_trombone = <T/F>                           ! Phase shifter. Default False.
   match_end_input                                  ! Set by Bmad. See below. 
   match_end_orbit_input                            ! Set by Bmad. See below. 
   phase_trombone_input                             ! Set by Bmad. See below. 
@@ -3359,7 +3359,7 @@ Attributes specific to an \vn{octupole} element are:
 \begin{example}
   k3           = <Real>   ! Octupole strength.
   b3_gradient  = <Real>   ! Field strength. (\sref{s:depend}).
-  field_master = <Logic>  ! See \sref{s:field.master}.
+  field_master = <T/F>    ! See \sref{s:field.master}.
 \end{example}
 The normalized octupole \vn{k3} strength is related to the unnormalized \vn{b3_gradient} field
 strength through \Eq{kqlbp}.
@@ -3498,9 +3498,10 @@ length of the patch will be equal to the \vn{z_offset}.}
 
 %-----------------
 
-A \vn{patch} element shifts the reference orbit and time. Also see
-\vn{floor_shift} (\sref{s:floor.ele}) and \vn{fiducial}
-(\sref{s:fiducial}) elements.
+A \vn{patch} element shifts the reference orbit and time. Also see \vn{floor_shift}
+(\sref{s:floor.ele}) and \vn{fiducial} (\sref{s:fiducial}) elements. A common application of a patch
+is to orient two lines with respect to each other. For example, to orient an injection line with the
+ring it is injecting into (\sref{s:ex.inj}).
 
 General \vn{patch} element attributes are:
 \begin{center}
@@ -3533,22 +3534,17 @@ Attributes specific to a \vn{patch} elements are:
   tilt            = <Real>    ! Exit face orientation from Entrance.
   E_tot_offset    = <Real>    ! Reference energy offset (eV).
   E_tot_set       = <Real>    ! Reference energy at exit end (eV).
-  flexible        = <Logic>   ! Default: False.
+  flexible        = <T/F>     ! Default: False.
   p0c_set         = <Real>    ! Reference momentum at exit end (eV).
   ref_coords      = <Switch>  ! Coordinate system defining the length.
-  l               = <Real>    ! Reference length. Dependent attribute (\sref{s:depend}). 
+  user_sets_length = <T/F>    ! User sets element length? Default is F.
+  l               = <Real>    ! Reference length. 
 \end{example}
 \index{x_offset}
 
 A straight line element like a \vn{drift} or a \vn{quadrupole} has the exit face parallel to the
 entrance face. With a \vn{patch} element, the entrance and exit faces can be arbitrarily oriented
-with respect to one another as shown in \fig{f:patch}A. The length \vn{l} of a \vn{patch} is a
-dependent (\sref{s:depend}) parameter and is the longitudinal ($z$ component) distance from the
-entrance origin to the exit origin using the exit end reference coordinates as shown in
-\fig{f:patch}B. See \sref{s:patch.prob} for a further discussion on the coordinate system of a
-\vn{patch}. Notice that while the length of the patch is defined with respect to the exit
-coordinates, the offsets that define the position of the exit end coordinates are defined with
-respect to the entrance coordinates.
+with respect to one another as shown in \fig{f:patch}A.
 
 \index{rigid patch}\index{inflexible patch}
 \index{flexible patch}
@@ -3557,7 +3553,7 @@ determined by the setting of the \vn{flexible} attribute.  With the \vn{flexible
 \vn{False}, the default, The exit face of the \vn{patch} will be determined from the offset, tilt
 and pitch attributes as described in \sref{s:patch.coords}. This type of \vn{patch} is called
 ``rigid'' or ``inflexible'' since the geometry of the \vn{patch} is solely determined by the
-\vn{patch}'s attributes as set in the lattice file and is independent of everything else.  Example:
+\vn{patch}'s attributes as set in the lattice file and is independent of everything else. Example:
 \begin{example}
   pt: patch, z_offset = 3.2   ! Equivalent to a drift
 \end{example}
@@ -3626,19 +3622,14 @@ coordinates. For this, the \vn{ref_coords}
 parameter of a patch can be used. Possible settings are:
 \vn{ref_coords} are:
 \begin{example}
-  entrance_end  ! Results in L = z_offset
+  entrance_end  !
   exit_end      ! Default
 \end{example}
-The default setting of \vn{ref_coords} is \vn{exit_end} and with this, the reference coordinates are
-set by the exit end coordinate system (see \fig{f:patch}). In this case, the length of the patch is
-calculated as the perpendicular distance between the origin of the patch's entrance coordinate
-system and the exit face of the patch as shown in \fig{f:patch}B. If \vn{ref_coords} is set to
-\vn{entrance_end}, The reference coordinates are set by the entrance end coordinate system. In this
-case the length is calculated as the perpendicular distance between the entrance face and the origin
-of the exit coordinate system which is equal to the value of
-\vn{z_offset}. Example:
+The default setting of \vn{ref_coords} is \vn{exit_end} and with this the reference coordinates are
+set by the exit end coordinate system (see \fig{f:patch}). If \vn{ref_coords} is set to
+\vn{entrance_end}, the reference coordinates are set by the entrance end coordinate system. Example:
 \begin{example}
-  p1: patch, x_offset = 1, x_pitch = 0.4   ! L = 0.289418
+  p1: patch, x_offset = 1, x_pitch = 0.4   ! L = 0.289418 see below
   p2: p1, ref_coords = entrance_end        ! L = 0
 \end{example}
 Here \vn{p1} has \vn{ref_coords} set to \vn{exit_end} (the default). \vn{p2} inherits the parameters
@@ -3659,7 +3650,16 @@ above but the total length of the \vn{(pA, pB)} line is zero which is different 
 Unfortunately, there is no intuitive way to define the ``\vn{length}'' \vn{L} of a patch. This is
 important since the transit time of the reference particle is the element length divided by the
 reference velocity. And the reference transit time will affect how the phase space $z$ coordinate
-changes through the patch via \Eq{zbctt}. To provide flexibility, the \vn{t_offset} attribute can be
+changes through the patch via \Eq{zbctt}. If the parameter \vn{user_sets_length} is set to True, the
+value of \vn{l} set in the lattice file will be used (default is zero). \vn{user_sets_length} is set
+to False (the default), the length of a patch is calculated depending upon the setting of
+\vn{ref_coords}.  If \vn{ref_coords} is set to \vn{exit_end}, the length of the patch is calculated
+as the perpendicular distance between the origin of the patch's entrance coordinate system and the
+exit face of the patch as shown in \fig{f:patch}B. If \vn{ref_coords} is set to \vn{entrance_end},
+the length is calculated as the perpendicular distance between the entrance face and the origin of
+the exit coordinate system. In this case, the length will be equal to \vn{z_offset}.
+
+To provide flexibility, the \vn{t_offset} attribute can be
 used to offset the reference time. The reference time at the exit end of the patch
 \vn{t_ref(exit)} is related to the reference time at the beginning of the patch \vn{t_ref(entrance)}
 via
@@ -3739,7 +3739,7 @@ Attributes specific to an \vn{photon_init} element are:
   E_center                 = <Real>    ! Average init photon energy of 1st mode (eV).
   E2_center                = <Real>    ! Average init photon energy of 2nd mode (eV).
   E2_probability           = <Real>    ! Probability of 2nd mode.
-  E_center_relative_to_ref = <Logic>   ! E_center relative to reference E?
+  E_center_relative_to_ref = <T/F>     ! E_center relative to reference E?
   e_field_x                = <Real>    ! Polarization. x & y = 0 -> random
   e_field_y                = <Real>
   energy_distribution      = <Switch>  ! Gaussian or uniform
@@ -3952,7 +3952,7 @@ Attributes specific to a \vn{quadrupole} element are:
   k1           = <Real>    ! Quadrupole strength.
   fq1          = <Real>    ! Soft edge fringe parameter.
   fq2          = <Real>    ! Soft edge fringe parameter.
-  field_master = <Logic>   ! See \sref{s:field.master}.
+  field_master = <T/F>     ! See \sref{s:field.master}.
  \end{example}
 The normalized quadrupole \vn{k1} strength is related to the unnormalized \vn{b1_gradient} field
 strength through \Eq{kqlbp}.
@@ -4379,7 +4379,7 @@ Attributes specific to an \vn{sextupole} element are:
 \begin{example}
   k2          = <Real>   ! Sextupole strength.
   b2_gradient = <Real>   ! Field strength. (\sref{s:depend}).
-  field_master = <Logic>  ! See \sref{s:field.master}.
+  field_master = <T/F>    ! See \sref{s:field.master}.
 \end{example}
 The normalized sextupole \vn{k2} strength is related to the unnormalized \vn{b2_gradient} field
 strength through \Eq{kqlbp}.
@@ -4426,7 +4426,7 @@ Attributes specific to an \vn{solenoid} element are:
 \begin{example}
   ks           = <Real>  ! Solenoid strength.
   bs_field     = <Real>  ! Solenoid field strength.
-  field_master = <Logic> ! See \sref{s:field.master}.
+  field_master = <T/F>   ! See \sref{s:field.master}.
   l_soft_edge  = <Real>  ! For modeling a ``soft" fringe.
   r_solenoid   = <Real>  ! Solenoid radius.
 \end{example}
@@ -4492,7 +4492,7 @@ Attributes specific to a \vn{sol_quad} element are:
   ks           = <Real>    ! Solenoid strength.
   bs_field     = <Real>    ! Solenoid Field strength.
   b1_gradient  = <Real>    ! Quadrupole Field strength.
-  field_master = <Logic>   ! See \sref{s:field.master}.
+  field_master = <T/F>     ! See \sref{s:field.master}.
 \end{example}
 The normalized quadrupole \vn{k1} and solenoid \vn{ks} field strengths are related to the
 unnormalized \vn{b1_gradient} and \vn{bs_field} field strengths through \Eq{kqlbp}.

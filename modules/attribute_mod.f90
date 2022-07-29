@@ -1323,7 +1323,8 @@ call init_attribute_name1 (octupole$, grid_field$,                  'GRID_FIELD'
 call init_attribute_name1 (octupole$, taylor_field$,                'TAYLOR_FIELD')
 call init_attribute_name1 (octupole$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 
-call init_attribute_name1 (patch$, l$,                              'L', dependent$)
+call init_attribute_name1 (patch$, l$,                              'L', quasi_free$)
+call init_attribute_name1 (patch$, user_sets_length$,               'USER_SETS_LENGTH')
 call init_attribute_name1 (patch$, t_offset$,                       'T_OFFSET')
 call init_attribute_name1 (patch$, e_tot_set$,                      'E_TOT_SET')
 call init_attribute_name1 (patch$, p0c_set$,                        'P0C_SET')
@@ -1800,7 +1801,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
       'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'PHASE_TROMBONE', 'PHASE_TROMBONE_INPUT', &
-      'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP')
+      'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP', 'USER_SETS_LENGTH')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
