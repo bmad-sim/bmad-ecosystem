@@ -21251,13 +21251,13 @@ end subroutine cholesky_dt
 
     do i = 1,ut%n
      v=0
-    if(abs(real(ut%c(i))>prec0)) then
+    if (norm2([real(ut%c(i))]) > prec0) then
       v=real(ut%c(i))
     endif
-    if(abs(aimag(ut%c(i))>prec0)) then
+    if(norm2([aimag(ut%c(i))]) >prec0) then
       v=i_*aimag(ut%c(i))+v
     endif 
-       if(abs( v)<=prec0)   cycle
+       if(norm2([real(v), aimag(v)])<=prec0)   cycle
      if(abst) then
        xr=sqrt(real(ut%c(i))**2+aimag(ut%c(i))**2)
 write(iunit0,'(I6,2X,(G21.14,1x,G21.14,3x,G21.14),I5,4X,18(2I2,1X))') i,v,xr,   &
