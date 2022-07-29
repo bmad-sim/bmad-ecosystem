@@ -6,7 +6,7 @@
 !
 ! Input:
 !   patch       -- ele_struct: Patch element.
-!   ref_coords  -- integer, optional: Reference coords to use. entrance_end$, exit_end, no_end$.
+!   ref_coords  -- integer, optional: Reference coords to use. entrance_end$, exit_end$
 !                    Default is nint(patch%value(ref_coords$)).
 !
 ! Output:
@@ -32,9 +32,6 @@ case (entrance_end$)
 case (exit_end$)
   call floor_angles_to_w_mat (patch%value(x_pitch$), patch%value(y_pitch$), patch%value(tilt$), w_mat_inv = ww)
   length = (ww(3,1) * patch%value(x_offset$) + ww(3,2) * patch%value(y_offset$) + ww(3,3) * patch%value(z_offset$))
-
-case (no_end$)
-  length = 0
 
 case default
   call err_exit  ! Should not be here
