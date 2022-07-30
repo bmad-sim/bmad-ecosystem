@@ -22,7 +22,7 @@ particle_start[pz] = 0.00
 q1: quadrupole, l = 1, k1 = 0.4, tracking_method = runge_kutta, x_pitch = 0.002
 q2: quadrupole, l = 1, k1 = 0.4, tracking_method = runge_kutta, x_pitch = 0.002
 p1: patch, z_offset = 1, mat6_calc_method = tracking, tracking_method = runge_kutta, x_pitch = 0.002
-p2: patch, flexible = True, ref_coords = no_end
+p2: patch, flexible = True, user_sets_length = T
 
 pp: patch, mat6_calc_method = tracking, x_offset = 0.01, y_offset = 0.02, tilt = 1, y_pitch = 0.005
 p_norm: pp, z_offset =  1, x_pitch = 0.002
@@ -41,7 +41,7 @@ l2[beta_a] = 10
 l2[beta_b] = 10
 
 pp1: patch, z_offset = 0.001, x_offset = 0.002, x_pitch = 0.5
-pp2: pp1, ref_coords = no_end
+pp2: pp1, user_sets_length = T
 pp3: pp1, ref_coords = entrance_end
 
 l3: line = (pp1, pp2, pp3)
