@@ -90,7 +90,7 @@ type (aperture_scan_struct), pointer :: da_scan
 type (aperture_point_struct), pointer :: da_pt
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_spin_map_struct), pointer :: sm
-type (normal_modes_struct) mode_ptc, mode_ptc_no_vert, mode_6d
+type (normal_modes_struct) mode_ptc, mode_ptc_no_vert, mode_6d, mode_6d_no_vert
 type (normal_modes_struct), pointer :: mode_m, mode_d
 type (ptc_rad_map_struct), target :: rad_map
 type (tree_element_zhe), pointer :: rmap(:)
@@ -1768,7 +1768,7 @@ case ('emittance')
 
   u%model%high_e_lat = u%model%lat
   ele2 => u%model%high_e_lat%branch(ele%ix_branch)%ele(ele%ix_ele)
-  call emit_6d (ele2, .false., mode_6d, sig0_mat)
+  call emit_6d (ele2, .false., mode_6d_no_vert, sig0_mat)
   call emit_6d (ele2, .true., mode_6d, sig0_mat)
   call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ele%ix_branch)
 
@@ -1784,14 +1784,14 @@ case ('emittance')
   call ptc_emit_calc (branch%ele(ele%ix_ele), mode_ptc, sig_mat, orb)
   ptc_com%vertical_kick = r
 
-  nl=nl+1; lines(nl) = '      |        Vert opening angle included        |           Opening angle ignored           |'
+  nl=nl+1; lines(nl) = '      |       Photon Opening Angle Included       |      Photon Opening Angle Ignored         |'
   nl=nl+1; lines(nl) = ' Mode |   PTC_Emit    Bmad_6D_Emit   Rad_Int_Emit | PTC_Emit      Bmad_6D_Emit   Rad_Int_Emit |'
   nl=nl+1; write(lines(nl), '(1x, a, 2x, 6es15.7)') 'A', mode_ptc%a%emittance, mode_6d%a%emittance, mode_m%a%emittance, &
-                                             mode_ptc_no_vert%a%emittance, mode_6d%a%emittance_no_vert, mode_m%a%emittance_no_vert
+                                             mode_ptc_no_vert%a%emittance, mode_6d_no_vert%a%emittance_no_vert, mode_m%a%emittance_no_vert
   nl=nl+1; write(lines(nl), '(1x, a, 2x, 6es15.7)') 'B', mode_ptc%b%emittance, mode_6d%b%emittance, mode_m%b%emittance, &
-                                             mode_ptc_no_vert%b%emittance, mode_6d%b%emittance_no_vert, mode_m%b%emittance_no_vert
+                                             mode_ptc_no_vert%b%emittance, mode_6d_no_vert%b%emittance_no_vert, mode_m%b%emittance_no_vert
   nl=nl+1; write(lines(nl), '(1x, a, 2x, 6es15.7)') 'C', mode_ptc%z%emittance, mode_6d%z%emittance, mode_m%z%emittance, &
-                                  mode_ptc_no_vert%z%emittance, mode_6d%z%emittance_no_vert, mode_m%z%emittance
+                                             mode_ptc_no_vert%z%emittance, mode_6d_no_vert%z%emittance_no_vert, mode_m%z%emittance
 
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), '(a, 3es12.4)') 'J_damp:    ', mode_6d%a%j_damp, mode_6d%b%j_damp, mode_6d%z%j_damp

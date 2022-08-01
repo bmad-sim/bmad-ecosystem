@@ -120,8 +120,8 @@ enddo
 
 if (integral_1ns == 0 .or. err) then
   tao_branch%spin%pol_limit_st          = 0
-  tao_branch%spin%pol_limit_dk         = 0
-  tao_branch%spin%pol_limit_dk_partial = 0
+  tao_branch%spin%pol_limit_dk          = 0
+  tao_branch%spin%pol_limit_dk_partial  = 0
   tao_branch%spin%pol_rate_bks          = 0
   tao_branch%spin%depol_rate            = 0
   tao_branch%spin%depol_rate_partial    = 0
