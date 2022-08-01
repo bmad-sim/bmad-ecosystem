@@ -168,6 +168,13 @@ bmad_param_name = {
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
+# Is character a valid character to be used in a label?
+
+def is_label_char(char):
+  return char.isalnum() or char in '._'
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
 # Order var defs so that vars that depend upon other vars are come later.
 # Also comment out first occurances if there are multiple defs of the same var.
 
@@ -200,7 +207,17 @@ def order_var_def_list():
 
     moved = False
     for ix2 in range(len(new_def_list)-1, ix, -1):
-      if new_def_list[ix2][0] in vdef[1]:
+      sub = new_def_list[ix2][0]
+      str = vdef[1]
+      ns = len(str)
+      found = False
+
+      for match in re.finditer(sub, str):
+        j = match.start()
+        k = match.end()
+        if (j == 0 or not is_label_char(str[j-1])) and (k > len(str)-1 or not is_label_char(str[k])): found = True
+
+      if found:
         new_def_list.pop(ix)
         new_def_list.insert(ix2, vdef)
         moved = True
