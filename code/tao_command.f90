@@ -47,10 +47,10 @@ character(200) list, mask
 character(40) gang_str, switch, word, except, branch_str
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(43) = [character(16):: &
+character(16) :: cmd_names(42) = [character(16):: &
                       'alias', 'call', 'change', 'clear', 'clip', 'continue', 'cut_ring', 'derivative', &
                       'end_file', 'exit', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'place', &
-                      'plot', 'ptc', 'python', 'quiet', 'quit', 're_execute', 'read', 'reinitialize', 'reset', &
+                      'plot', 'ptc', 'python', 'quit', 're_execute', 'read', 'reinitialize', 'reset', &
                       'restore', 'run_optimizer', 'scale', 'set', 'show', 'single_mode', 'spawn', 'taper', &
                       'timer', 'use', 'veto', 'view', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale']
 character(16) :: cmd_names_old(6) = [&
@@ -83,6 +83,11 @@ if (ix /= 0) cmd_line = cmd_line(:ix-1)        ! strip off comments
 
 ! match first word to a command name
 
+if (cmd_line(1:5) == 'quiet') then 
+  call out_io (s_warn$, r_name, 'The "quiet" command has been replaced by the "set global quiet = <action>" command.')
+  return
+endif
+
 call match_word (cmd_line, cmd_names, ix_cmd, .true., matched_name = cmd_name)
 
 if (ix_cmd == 0) then  ! Accept old-style names with "-" instead of "_".
@@ -97,7 +102,7 @@ if (ix_cmd == 0) then
   call tao_abort_command_file()
   return
 elseif (ix_cmd < 0) then
-  call out_io (s_error$, r_name, 'AMBIGUOUS COMMAND')
+  call out_io (s_error$, r_name, 'Ambiguous command (the "help" command will show a list of commands).')
   call tao_abort_command_file()
   return
 endif
@@ -410,16 +415,6 @@ case ('python')
 
   call tao_python_cmd (cmd_line)
   return
-
-!--------------------------------
-! QUIET
-
-case ('quiet')
-
-if (s%com%cmd_file_level == 0) then 
-  call out_io (s_error$, r_name, 'The "quiet" command has been replaced by the "set global quiet = <action>" command.')
-  return
-endif
 
 !--------------------------------
 ! RE_EXECUTE

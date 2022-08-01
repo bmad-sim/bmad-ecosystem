@@ -8255,7 +8255,7 @@ data_type = is_real$
 select case (name)
 case ('orbit.floor.x', 'orbit.floor.y', 'orbit.floor.z')
   floor%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
-  floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+  floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
   select case (name)
   case ('orbit.floor.x')
     value = floor1%r(1)
