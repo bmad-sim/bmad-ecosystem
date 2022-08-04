@@ -1349,7 +1349,7 @@ if (lttp%n_turns > 0) then
   j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
   str = int_str(i_turn, j)
 else
-  j = 1
+  str = '000'
 endif
 
 if (n_bunch > 1) str = 'bunch' // int_str(ix_bunch) // '-' // str
@@ -1361,7 +1361,10 @@ else
   file_name = base_name(1:ix-1) // trim(str) // trim(base_name(ix+1:))
 endif
 
-if (wrote_header) then
+! Currently str is always non-blank and a new file is created (no appending is done).
+! Modifying the code to put every in one file is a consideration but it is not clear if this is useful.
+
+if (wrote_header .and. str == '') then
   open (iu, file = file_name, recl = 300, access = 'append')
 else
   open (iu, file = file_name, recl = 300)
