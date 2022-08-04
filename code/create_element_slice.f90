@@ -155,14 +155,14 @@ select case (sliced_ele%mat6_calc_method)
 case (taylor$, symp_lie_ptc$)
   if (sliced_ele%field_calc == fieldmap$) then
     select case (sliced_ele%key)
-    case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
-    case default;                sliced_ele%tracking_method = symp_lie_ptc$
+    case (wiggler$, undulator$); sliced_ele%mat6_calc_method = symp_lie_bmad$
+    case default;                sliced_ele%mat6_calc_method = symp_lie_ptc$
     end select
   else
     select case (sliced_ele%key)
-    case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
-    case (em_field$);            sliced_ele%tracking_method = symp_lie_ptc$
-    case default;                sliced_ele%tracking_method = bmad_standard$
+    case (wiggler$, undulator$); sliced_ele%mat6_calc_method = symp_lie_bmad$
+    case (em_field$);            sliced_ele%mat6_calc_method = symp_lie_ptc$
+    case default;                sliced_ele%mat6_calc_method = bmad_standard$
     end select
   endif
 end select

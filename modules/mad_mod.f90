@@ -1640,7 +1640,7 @@ end subroutine track1_mad
 ! Subroutine mad_map_to_taylor (map, energy, taylor)
 !
 ! Subroutine to convert a MAD order 2 map to a Bmad taylor map.
-! The conversion will also convert between MAD's (dE, t) and Bmad's (dP, beta*t) coords.
+! The conversion will also convert between MAD's (t, dE) and Bmad's (beta*t, dP) coords.
 !
 ! Input:
 !   map       -- Mad_map_struct: Order 2 map.
@@ -1656,43 +1656,44 @@ type (mad_map_struct) map, m
 type (mad_energy_struct) energy
 type (taylor_struct) taylor(:)
 
-real(rp) dMAD_dBmad, d2MAD_dBmad2
+real(rp) beta, dbeta
 
 integer i, j, k, n, nt
 
 ! Convert to Bmad phase space coords
-! dMAD_dBmad = dE/dP = dct/dz
 
 taylor%ref = 0
-dMAD_dBmad = energy%beta
-d2MAD_dBmad2 = 1 / (energy%gamma**2 * energy%total)
+beta = energy%beta
+dbeta = 1 / (energy%gamma**2 * energy%total)
 
 m = map
 
+m%k(5) = m%k(5) * beta
+m%k(6) = m%k(6) / beta
+
 do i = 1, 6
+
   do j = 1, 6
 
     do k = 1, 6
-      if (j == 5 .or. j == 6) m%t(i,j,k) = m%t(i,j,k) * dMAD_dBmad
-      if (k == 5 .or. k == 6) m%t(i,j,k) = m%t(i,j,k) * dMAD_dBmad
+      if (i == 5 .or. j == 6 .or. k == 6) m%t(i,j,k) = m%t(i,j,k) * beta
+      if (i == 6 .or. j == 6) m%t(i,j,k) = m%t(i,j,k) / beta
     enddo
 
-    if (j == 5 .or. j == 6) then
-      m%r(i,j) = m%r(i,j) * dMAD_dBmad
-      m%t(i,j,j) = m%t(i,j,j) + m%r(i,j) * d2MAD_dBmad2
+    if (i == 5 .or. j == 6) then
+      m%r(i,j) = m%r(i,j) * beta
+      m%t(i,j,j) = m%t(i,j,j) + m%r(i,j) * dbeta
     endif
 
-    if (i == 5 .or. i == 6) then
-      m%r(i,j) = m%r(i,j) / dMAD_dBmad
+    if (i == 6 .or. j == 5) then
+      m%r(i,j) = m%r(i,j) / beta
       do k = 1, 6
-        m%t(i,j,k) = m%t(i,j,k) * dMAD_dBmad
-        m%t(i,j,k) = m%t(i,j,k) - m%r(i,j) * m%r(i,k) * d2MAD_dBmad2 / dMAD_dBmad 
+        m%t(i,j,k) = m%t(i,j,k) * beta
+        m%t(i,j,k) = m%t(i,j,k) - m%r(i,j) * m%r(i,k) * dbeta / beta 
       enddo
     endif  
-    
-  enddo
 
-  if (i == 5 .or. i == 6) m%k(i) = m%k(i) / dMAD_dBmad
+  enddo
 
 enddo
 
