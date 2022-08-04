@@ -177,12 +177,12 @@ character(n_char_show), allocatable, target :: li(:)
 character(n_char_show), pointer :: li_ptr(:)
 character(n_char_show) li2
 character(300), allocatable :: name_arr(:)
-character(200) file_name, all_who
+character(200) file_name, all_who, tail_str
 character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name, command
 character(40), allocatable :: str_arr(:)
 character(20), allocatable :: name_list(:)
-character(20) cmd, tail_str, which, v_str, head
+character(20) cmd, which, v_str, head
 character(20) switch, color, shape_shape
 character(1) :: mode(3) = ['a', 'b', 'c']
 character(*), parameter :: r_name = 'tao_python_cmd'
