@@ -1881,8 +1881,12 @@ case ('REF_ORIGIN')
 
 case ('REF_COORDS')
   call get_switch (attrib_word, ref_coords_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(ref_coords$) = ix
-  if (ix == no_end$) call parser_error ('"REF_COORDS = NO_END" NOW NO LONGER PERMITTED. PLEASE CHANGE.')
+  if (ix == no_end$) then
+    call parser_error ('"REF_COORDS = NO_END" NOW SHOULD BE "USER_SETS_LENGTH = T". PLEASE CHANGE.', level = s_warn$)
+    ele%value(user_sets_length$) = 1
+  else
+    ele%value(ref_coords$) = ix
+  endif
 
 case ('REF_ORBIT_FOLLOWS')
   call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
