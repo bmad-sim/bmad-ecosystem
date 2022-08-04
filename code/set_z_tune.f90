@@ -39,7 +39,7 @@ type (control_struct), pointer :: ctl
 type (coord_struct), allocatable :: orbit(:)
 
 real(rp) Qz_rel_tol, Qz_abs_tol
-real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, coef, dz_tune
+real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, dz_tune, coef
 real(rp) :: z_tune
 logical, optional :: ok
 
@@ -173,9 +173,11 @@ do i = 1, n_rf
   volt0(i) = voltage_control(i)%r
 enddo
 
-dz_tune = branch%z%tune - z_tune
-dz_tune0 = dz_tune
 coef = 1
+dz_tune = dz_tune_func(coef, status)
+
+coef0 = 1
+dz_tune0 = dz_tune
 
 ! now set cavity voltage to get the correct tune
 
@@ -185,8 +187,9 @@ do k = 1, loop_max
   if (dz_tune * dz_tune0 < 0) exit  ! Have bracketed solution
 
   coef0 = coef
-  coef = coef * (z_tune / (dz_tune + z_tune))**2 
+  dz_tune0 = dz_tune
 
+  coef = coef * (z_tune / (dz_tune + z_tune))**2 
   dz_tune = dz_tune_func(coef, status)
 
   if (k == loop_max) then
