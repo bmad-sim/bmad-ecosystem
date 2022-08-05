@@ -716,8 +716,9 @@ type(c_linear_map) q_phasor,qi_phasor
        MODULE PROCEDURE c_pri_quaternion
        MODULE PROCEDURE print_ql
       MODULE PROCEDURE c_pri_c_ray
-      MODULE PROCEDURE c_printunitaylor
+  !    MODULE PROCEDURE c_printunitaylor
       MODULE PROCEDURE c_printunitaylors
+      MODULE PROCEDURE c_printunitaylor_old
       MODULE PROCEDURE print_vector_field_fourier
     END INTERFACE
 
@@ -21203,26 +21204,88 @@ end subroutine cholesky_dt
 
   !_________________________________________________________________________________
 
-  subroutine c_printunitaylors(ut,iunit,abs,prec)
+  subroutine c_printunitaylors(ut,iunit,print_abs,prec)
     implicit none
     type(c_universal_taylor) :: ut(:)
     integer, optional               :: iunit
     integer                :: i,k
-    logical, optional :: abs
+    logical, optional :: print_abs
     real(dp), optional ::prec
     k=size(ut)
 
     do i=1,k
-      call c_printunitaylor(ut(i),iunit,abs,prec)
+      call c_printunitaylor_old(ut(i),iunit,print_abs,prec)
    enddo
   end subroutine c_printunitaylors
 
-  subroutine c_printunitaylor(ut,iunit,abs,prec)
+  !subroutine c_printunitaylor(ut,iunit,abs,prec)
+  !  implicit none
+  !  type(c_universal_taylor) :: ut
+  !  integer, optional               :: iunit
+  !  integer                :: i,ii
+  !  logical, optional :: abs
+  !  logical abst
+  !  integer iunit0
+  !  real(dp) xr,prec0
+  !  real(dp), optional ::prec
+  !    complex(dp) v
+  !  iunit0=6
+  !  abst=.false.
+  !   prec0=0
+
+!    if(present(prec)) prec0=prec
+!    if(present(abs)) abst=abs
+!    if(present(iunit)) iunit0=iunit
+!    if (.not. associated(ut%n)) then
+!       write(iunit0,'(A)') '    C_UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
+!       write(6,'(A)') '    C_UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
+!       return
+!    endif
+
+!    write(iunit0,'(/1X,A,I5,A,I5,A/1X,A/)') 'UNIV_TAYLOR   NO =',ut%n,', NV =',ut%nv,', INA = unita',&
+!         '*********************************************'
+!    if(ut%n /= 0) then
+!       write(iunit0,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
+!    else
+!       write(iunit0,'(A)') '   ALL COMPONENTS 0.0_dp '
+!    endif
+!
+!
+!
+!
+!
+!
+!    do i = 1,ut%n
+!     v=0
+!    if(norm2([real(ut%c(i))])>prec0) then
+!      v=real(ut%c(i))
+!    endif
+!    if(norm2([aimag(ut%c(i))])>prec0) then
+!      v=i_*aimag(ut%c(i))+v
+!    endif 
+!       if(norm2([ real(v),aimag(v)])<=prec0)   cycle
+!     if(abst) then
+!       xr=sqrt(real(ut%c(i))**2+aimag(ut%c(i))**2)
+!write(iunit0,'(I6,2X,(G21.14,1x,G21.14,3x,G21.14),I5,4X,18(2I2,1X))') i,v,xr,   &
+!sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
+!     else
+!       write(iunit0,'(I6,2X,(G21.14,1x,G21.14),I5,4X,18(2I2,1X))') i,v,sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
+!     endif
+!       if( .not. print77) then
+!          write(iunit0,*)  ut%c(i)
+!       endif
+!    enddo
+!
+!    write(iunit0,'(A)') '                                      '
+!
+!  end subroutine c_printunitaylor
+
+  subroutine c_printunitaylor_old(ut,iunit,print_abs,prec)
     implicit none
     type(c_universal_taylor) :: ut
     integer, optional               :: iunit
     integer                :: i,ii
-    logical, optional :: abs
+    logical, optional :: print_abs
     logical abst
     integer iunit0
     real(dp) xr,prec0
@@ -21233,7 +21296,7 @@ end subroutine cholesky_dt
      prec0=0
 
     if(present(prec)) prec0=prec
-    if(present(abs)) abst=abs
+    if(present(print_abs)) abst=print_abs
     if(present(iunit)) iunit0=iunit
     if (.not. associated(ut%n)) then
        write(iunit0,'(A)') '    C_UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
@@ -21251,13 +21314,13 @@ end subroutine cholesky_dt
 
     do i = 1,ut%n
      v=0
-    if (norm2([real(ut%c(i))]) > prec0) then
+    if(abs(real(ut%c(i)))>prec0) then
       v=real(ut%c(i))
     endif
-    if(norm2([aimag(ut%c(i))]) >prec0) then
+    if(abs(aimag(ut%c(i)))>prec0) then
       v=i_*aimag(ut%c(i))+v
     endif 
-       if(norm2([real(v), aimag(v)])<=prec0)   cycle
+       if(abs(v)<=prec0)   cycle
      if(abst) then
        xr=sqrt(real(ut%c(i))**2+aimag(ut%c(i))**2)
 write(iunit0,'(I6,2X,(G21.14,1x,G21.14,3x,G21.14),I5,4X,18(2I2,1X))') i,v,xr,   &
@@ -21272,8 +21335,7 @@ sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
 
     write(iunit0,'(A)') '                                      '
 
-  end subroutine c_printunitaylor
-
+  end subroutine c_printunitaylor_old
 
 
   ! End of Universal complex Taylor Routines

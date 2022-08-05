@@ -28141,7 +28141,8 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
     TYPE(REAL_8),INTENT(INOUT) :: xx(6)
     real(dp),INTENT(INOUT) :: e_ij(6,6)
     TYPE(REAL_8), intent(in):: B2,dlds
-    TYPE(REAL_8) st,av(3),z,x(6)
+    TYPE(REAL_8)  x(6)
+!    TYPE(REAL_8) st,av(3),z,x(6)
     real(dp),intent(in) ::fac,ds
     type(quaternion) q
     real(dp) b30,x1,x3,denf,denf0,denv 
@@ -28152,7 +28153,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
  
     e_ij=0
 
- 
+     call alloc(x)
      x=xx
 
     el=>c%parent_fibre%magp
@@ -28205,7 +28206,8 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,zw)
           enddo
        enddo    
        call kill(xpmap)
- 
+      call kill(x)
+
    denf=denf*FAC*DS*0.5e0_dp
    !    if(compute_stoch_kick) then 
    !     c%delta_rad_in=(denf)+c%delta_rad_in
