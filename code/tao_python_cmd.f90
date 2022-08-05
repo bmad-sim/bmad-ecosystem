@@ -4592,6 +4592,7 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !     ele.b.beta, ele.b.alpha, ele.b.eta, ele.b.etap, ele.b.gamma, ele.b.phi,
 !     ele.x.eta, ele.x.etap,
 !     ele.y.eta, ele.y.etap,
+!     ele.ref_time, ele.ref_time_start
 !     ele.s, ele.l
 !     ele.e_tot, ele.p0c
 !     ele.mat6      ! Output: mat6(1,:), mat6(2,:), ... mat6(6,:)
@@ -8326,6 +8327,10 @@ case ('ele.e_tot')
   value = ele%value(e_tot$)
 case ('ele.p0c')
   value = ele%value(p0c$)
+case ('ele.ref_time')
+  value = ele%ref_time
+case ('ele.ref_time_start')
+  value = ele%value(ref_time_start$)
 case ('ele.x.eta')
   value = ele%x%eta
 case ('ele.x.etap')
