@@ -324,7 +324,8 @@ ENDIF ()
 IF (${DISTRIBUTION_BUILD})
     SET (ACC_LINK_FLAGS ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS} ${STDCXX_LINK_FLAGS})
 ELSE ()
-    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread ${STDCXX_LINK_FLAGS} -lactivemq-cpp ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS}")
+    # Added support for linking SHARED ZMQ libraries, as requested in RT#63682
+    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread ${STDCXX_LINK_FLAGS} -lactivemq-cpp -lzmq ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS}")
 ENDIF ()
 
 if (FORTRAN_COMPILER MATCHES "gfortran")
