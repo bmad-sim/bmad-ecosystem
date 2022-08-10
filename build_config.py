@@ -243,6 +243,7 @@ packages_build_list = [
                 '/packages/openmpi',
                 '/packages/hdf5',
                 '/packages/jsonfortran',
+                '/packages/libzmq',
 ]
 
 #-----------------------------------------------------
