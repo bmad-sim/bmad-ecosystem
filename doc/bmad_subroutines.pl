@@ -21,7 +21,6 @@ $pl_hash{"re_allocate_logical2d"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_string2d"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_integer2d"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_real2d"} = "re_allocate_mod.f90";
-$pl_hash{"lsc_y0_kick_calc"} = "csr_mod.f90";
 $pl_hash{"re_allocate2_real"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate2_integer"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate2_string"} = "re_allocate_mod.f90";
