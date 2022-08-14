@@ -44,7 +44,7 @@ solely meant for \bmad internal use.
   Overload Equal Sign                         & \ref{r:equal}          \\
   Particle Coordinate Stuff                   & \ref{r:coord.stuff}    \\
   Photon Routines                             & \ref{r:photon}         \\
-  PTC Interface                               & \ref{r:ptc}            \\
+  PTC Interface Routines                      & \ref{r:ptc}            \\
   Quick Plot                                  & \ref{r:qp}             \\
   Spin                                        & \ref{r:spin}           \\
   Transfer Maps: Routines Called by make_mat6 & \ref{r:mat6}           \\
@@ -80,7 +80,7 @@ Reverse tracking starts with the particle just outside the bend and
 
 \index[routine]{init_spin_distribution}
 \label{r:init.spin.distribution}
-\item[init_spin_distribution (beam_init, bunch)] \Newline 
+\item[init_spin_distribution (beam_init, bunch, ele)] \Newline 
 Initializes a spin distribution according to init_beam\%spin
 
 \index[routine]{order_particles_in_z}
@@ -119,7 +119,7 @@ interaction using the normalized position for input.
 
 \index[routine]{calc_bunch_params}
 \label{r:calc.bunch.params}
-\item[calc_bunch_params (bunch, bunch_params, error, print_err)] \Newline 
+\item[calc_bunch_params (bunch, bunch_params, error, print_err, n_mat)] \Newline 
 Finds all bunch parameters defined in bunch_params_struct, both normal-mode
 and projected
 
@@ -135,9 +135,16 @@ Finds all bunch parameters for a slice through the beam distribution.
 \item[calc_bunch_sigma_matrix (particle, charge, bunch_params)] \Newline 
 Routine to find the sigma matrix elements of a particle distribution.
 
+\index[routine]{calc_emit_from_beam_init}
+\label{r:calc.emit.from.beam.init}
+\item[calc_emit_from_beam_init (beam_init, ele, species)] \Newline 
+Routine to calculate the emittances from the beam_init structure.
+
 \index[routine]{calc_emittances_and_twiss_from_sigma_matrix}
 \label{r:calc.emittances.and.twiss.from.sigma.matrix}
-\item[calc_emittances_and_twiss_from_sigma_matrix(sigma_mat, gamma, bunch_params, error, print_err)] \Newline 
+\item[\protect\parbox{6in}{
+    calc_emittances_and_twiss_from_sigma_matrix(sigma_mat, gamma, \\
+    \hspace*{1in} bunch_params, error, print_err, n_mat) }] \Newline 
   Routine to calc emittances and Twiss function from a beam sigma matrix.
   
 \index[routine]{init_beam_distribution}
@@ -150,6 +157,11 @@ the Twiss parameters, centroid position, and Energy - z correlation
 \label{r:init.bunch.distribution}
 \item[init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes)] \Newline 
 Routine to initialize either a random or tail-weighted distribution of particles.  
+
+\index[routine]{read_beam_file}
+\label{r:read.beam.file}
+\item[read_beam_file (file_name, beam, beam_init, err_flag, ele)] \Newline 
+Subroutine to read in a beam definition file.
 
 \index[routine]{reallocate_beam}
 \label{r:reallocate.beam}
@@ -166,6 +178,27 @@ Subroutine to reallocate particles within a bunch_struct.
 \item[track_beam (lat, beam, ele1, ele2, err, centroid, direction)] \Newline 
      Routine to track a beam of particles from the end of
      lat\%ele(ix1) Through to the end of lat\%ele(ix2).
+
+\index[routine]{track_bunch}
+\label{r:track.bunch}
+\item[track_bunch (lat, bunch, ele1, ele2, err, centroid, direction)] \Newline 
+Subroutine to track a particle bunch from the end of ele1 Through to the end of ele2.
+Both must be in the same lattice branch.
+
+\index[routine]{track_bunch_time}
+\label{r:track.bunch.time}
+\item[track_bunch_time (bunch, ele_in, t_end, s_end, dt_step, extra_field)] \Newline 
+Routine to track a particle bunch for a given time step (or if the ! particle position exceeds s_end).
+
+\index[routine]{write_beam_file}
+\label{r:write.beam.file}
+\item[write_beam_file (file_name, beam, new_file, file_format, lat)] \Newline 
+Routine to write a beam file.
+
+\index[routine]{write_beam_floor_positions}
+\label{r:write.beam.floor.positions}
+\item[write_beam_floor_positions (file_name, beam, ele, new_file)] \Newline 
+Routine to write a file of beam positions in global floor coordinates.
 
 \end{description}
 
@@ -210,11 +243,6 @@ Routine to bin the particles longitudinally in s.
 \label{r:csr.bin.kicks}
 \item[csr_bin_kicks (ele, ds_kick_pt, csr, err_flag)] \Newline 
 Routine to cache intermediate values needed for the csr calculations.
-
-\index[routine]{csr_kick_calc}
-\label{r:csr.kick.calc}
-\item[csr_kick_calc (ele, bin, particle)] \Newline 
-Routine to calculate the longitudinal coherent synchrotron radiation kick.
 
 \index[routine]{i_csr}
 \label{r:i.csr}
@@ -295,7 +323,7 @@ a custom element.
 
 \index[routine]{time_runge_kutta_periodic_kick_hook}
 \label{r:time.runge.kutta.periodic.kick.hook}
-\item[time_runge_kutta_periodic_kick_hook (orbit, dt_ref, ele, param, stop_time, init_needed)] \Newline 
+\item[time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)] \Newline 
 Custom routine to add a kick to a particle at periodic times.
 
 \index[routine]{track1_bunch_hook}
@@ -346,13 +374,14 @@ This routine is called by the Runge-Kutta integrator odeint_bmad when a particle
 \label{r:em.field.calc}
 \item[\protect\parbox{6in}{
     em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, \\
-    \hspace*{1in} calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, \\
-    \hspace*{1in} err_print_out_of_bounds) }] \Newline 
+    \hspace*{1in} calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, \\
+    \hspace*{1in} used_eles, print_err) }] \Newline 
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
 \item[\protect\parbox{6in}{
-  em_field_custom(orbit, ele, param, s1_body, s2_body, err_flag, track, mat6, make_matrix) }] \Newline
+    em_field_custom(orbit, ele, param, s1_body, s2_body, err_flag, track, mat6, \\
+    \hspace*{1in} make_matrix) }] \Newline
 Custom routine for calculating fields.
 
 \end{description}
@@ -370,7 +399,7 @@ Routine to create an HDF5 attribute whose value is a string.
 
 \index[routine]{hdf5_open_file}
 \label{r:hdf5.open.file}
-\item[hdf5_open_file (file_name, action, file_id, error)] \Newline 
+\item[hdf5_open_file (file_name, action, file_id, error, verbose)] \Newline 
 Routine to open an HDF5 file.
 
 \index[routine]{hdf5_open_object}
@@ -421,12 +450,16 @@ Routine to get information on an object (group or dataset).
 
 \index[routine]{hdf5_read_attribute_int}
 \label{r:hdf5.read.attribute.int}
-\item[hdf5_read_attribute_int(root_id, attrib_name, attrib_value, error, print_error, dflt_value)] \Newline 
+\item[\protect\parbox{6in}{
+    hdf5_read_attribute_int(root_id, attrib_name, attrib_value, error, \\
+    \hspace*{1in} print_error, dflt_value)} ] \Newline 
 Routine to read a integer attribute value or array.
 
 \index[routine]{hdf5_read_attribute_real}
 \label{r:hdf5.read.attribute.real}
-\item[hdf5_read_attribute_real(root_id, attrib_name, attrib_value, error, print_error, dflt_value)] \Newline 
+\item[\protect\parbox{6in}{
+    hdf5_read_attribute_real(root_id, attrib_name, attrib_value, error, \\
+    \hspace*{1in} print_error, dflt_value)} ] \Newline 
 Routine to read a real attribute value or array.
 
 \index[routine]{hdf5_read_attribute_alloc_string}
@@ -468,7 +501,9 @@ Note: Conventionally, the file name should have an ".h5" suffix.
 
 \index[routine]{pmd_write_int_to_pseudo_dataset}
 \label{r:pmd.write.int.to.pseudo.dataset}
-\item[pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_shape, error)] \Newline 
+\item[\protect\parbox{6in}{
+    pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, \\
+    \hspace*{1in} value, v_shape, error)} ] \Newline 
 
 \index[routine]{pmd_write_real_to_dataset}
 \label{r:pmd.write.real.to.dataset}
@@ -476,7 +511,9 @@ Note: Conventionally, the file name should have an ".h5" suffix.
 
 \index[routine]{pmd_write_real_to_pseudo_dataset}
 \label{r:pmd.write.real.to.pseudo.dataset}
-\item[pmd_write_real_to_pseudo_dataset (root_id, dataset_name, bmad_name, unit, value, v_shape, error)] \Newline 
+\item[\protect\parbox{6in}{
+    pmd_write_real_to_pseudo_dataset (root_id, dataset_name, bmad_name, unit, \\
+    \hspace*{1in} value, v_shape, error)} ] \Newline 
 
 \index[routine]{pmd_write_complex_to_dataset}
 \label{r:pmd.write.complex.to.dataset}
@@ -693,7 +730,7 @@ uniformly distributed random numbers to Gaussian distributed random numbers.
 
 \index[routine]{ran_seed_put}
 \label{r:ran.seed.put}
-\item[ran_seed_put (seed, ran_state)] \Newline 
+\item[ran_seed_put (seed, ran_state, mpi_offset)] \Newline 
 Routine to seed the random number generator. 
 
 \index[routine]{ran_seed_get}
@@ -949,7 +986,7 @@ EG n = 1 -> "1st", n = 2 -> "2nd", etc.
 
 \index[routine]{parse_fortran_format}
 \label{r:parse.fortran.format}
-\item[parse_fortran_format (format_str, multiplyer, power, code, width, digits)] \Newline 
+\item[parse_fortran_format (format_str, n_repeat, power, descrip, width, digits)] \Newline 
 Routine to parse a Fortran edit descriptor.
 This routine assumes that format_str will be a edit descriptor for a single entity like '3f10.6'.
 
@@ -994,30 +1031,6 @@ Routine to turn a n array of reals into a string for printing.
 Routine to turn an array of real numbers into a string for printing tables.
 Fixed format is preferred and floating format will only be used if necessary.
 
-\index[routine]{str_find_first_in_set}
-\label{r:str.find.first.in.set}
-\item[str_find_first_in_set (line, set)] \Newline 
-Function to locate the first character in "line" that matches
-a character in "set". If no match is found, function returns 0.
-
-\index[routine]{str_find_first_not_in_set}
-\label{r:str.find.first.not.in.set}
-\item[str_find_first_not_in_set (line, set)] \Newline 
-Function to locate the first character in "line" that
-does not match a character in "set". If all characters match,
-
-\index[routine]{str_find_last_in_set}
-\label{r:str.find.last.in.set}
-\item[str_find_last_in_set (line, set)] \Newline 
-Function to locate the last character in "line" that matches
-a character in "set". If no match is found, function returns 0.
-
-\index[routine]{str_find_last_not_in_set}
-\label{r:str.find.last.not.in.set}
-\item[str_find_last_not_in_set (line, set)] \Newline 
-Function to locate the last character in "line" that
-does not match a character in "set". If all characters match,
-
 \index[routine]{str_match_wild}
 \label{r:str.match.wild}
 \item[str_match_wild(str, pat) result (a_match)] \Newline 
@@ -1059,7 +1072,7 @@ Routine to convert a string to down case.
 
 \index[routine]{str_substitute}
 \label{r:str.substitute}
-\item[str_substitute (string, str_match, str_replace, do_trim)] \Newline 
+\item[str_substitute (string, str_match, str_replace, do_trim, ignore_escaped)] \Newline 
 Routine to substitute all instances of one sub-string for another in a string
 
 \index[routine]{to_str}
@@ -1271,7 +1284,9 @@ Routine to point to the appropriate magnetic or electric poles in an element.
 
 \index[routine]{pointer_to_element_at_s}
 \label{r:pointer.to.element.at.s}
-\item[pointer_to_element_at_s (branch, s, choose_max, err_flag, s_eff, position, print_err) result (ele)] \Newline 
+\item[\protect\parbox{6in}{
+    pointer_to_element_at_s (branch, s, choose_max, err_flag, s_eff, position, \\
+    \hspace*{1in} print_err) result (ele)} ] \Newline 
 Function to return a pointer to the element at position s.
 
 \index[routine]{remove_eles_from_lat}
@@ -1281,7 +1296,7 @@ Routine to remove an elements from the lattice.
 
 \index[routine]{set_ele_attribute}
 \label{r:set.ele.attribute}
-\item[set_ele_attribute (ele, set_string, err_flag, err_print_flag)] \Newline 
+\item[set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords)] \Newline 
 Routine to set an element's attribute.
 
 \index[routine]{set_ele_status_stale}
@@ -1298,13 +1313,15 @@ Routine to set the bookkeeping status block.
 \index[routine]{split_lat}
 \label{r:split.lat}
 \item[\protect\parbox{6in}{
-    split_lat (lat, s_split, ix_branch, ix_split, split_done, \\
-    \hspace*{1in} add_suffix, check_sanity, save_null_drift, err_flag, choose_max, ix_insert)} ] \Newline
+    split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, \\
+    \hspace*{1in} save_null_drift, err_flag, choose_max, ix_insert)} ] \Newline
 Routine to split a lat at a point.
 
 \index[routine]{value_of_attribute}
 \label{r:value.of.attribute}
-\item[value_of_attribute (ele, attrib_name, err_flag, err_print_flag, err_value) result (value)] \Newline 
+\item[\protect\parbox{6in}{
+    value_of_attribute (ele, attrib_name, err_flag, err_print_flag, \\
+    \hspace*{1in} err_value) result (value)} ] \Newline 
 Returns the value of an element attribute.
 
 \end{description}
@@ -1351,15 +1368,15 @@ the resulting reference frame.
 \index[routine]{coords_local_curvilinear_to_floor}
 \label{r:position.in.global.frame}
 \item[\protect\parbox{6in}{
-  coords_local_curvilinear_to_floor (local_position, ele, in_body_frame, \\
-  \hspace*{1in} w_mat, calculate_angles, relative_to_upstream) result (global_position) }] \Newline 
+  coords_local_curvilinear_to_floor (local_position, ele, in_body_frame, w_mat, \\
+  \hspace*{1in} calculate_angles, relative_to_upstream) result (global_position) }] \Newline 
 Given a position local to ele, return global floor coordinates.
 
 \index[routine]{coords_floor_to_local_curvilinear}
 \label{r:position.in.local.frame}
 \item[\protect\parbox{6in}{
-      coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat, relative_to_upstream) \\
-      \hspace*{1in} \hfill result(local_position)} ] \Newline 
+      coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat, \\
+      \hspace*{1in} relative_to_upstream) result(local_position)} ] \Newline 
 Given a position in global coordinates, return local curvilinear coordinates in ele
   relative to floor0
 
@@ -1490,11 +1507,6 @@ Routine to check if a given longitudinal position s is within the bounds of a gi
 \item[element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff, position) result (ix_ele)] \Newline 
 Routine to return the index of the element at position s.
 
-\index[routine]{ele_has_offset}
-\label{r:ele.has.offset}
-\item[ele_has_offset (ele) result (has_offset)] \Newline 
-Function to tell if an element has a non-zero offset, pitch or tilt.
-
 \index[routine]{ele_loc_name}
 \label{r:ele.loc.name}
 \item[ele_loc_to_string (ele, show_branch0, parens) result (str)] \Newline 
@@ -1527,8 +1539,9 @@ Function to convert a character string  (eg: "drift") to an index (eg: drift\$).
 
 \index[routine]{lat_ele_locator}
 \label{r:lat.ele.locator}
-\item[lat_ele_locator (loc_str, lat, eles, n_loc, err, 
-            above_ubound_is_err, ix_dflt_branch, order_by_index)] \Newline 
+\item[\protect\parbox{6in}{
+    lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, \\
+    \hspace*{1in} ix_dflt_branch, order_by_index)} ] \Newline 
 Routine to locate all the elements in a lattice that corresponds to loc_str. 
 
 \index[routine]{lat_sanity_check}
@@ -1559,7 +1572,9 @@ Returns a pointer to an attribute of an element ele with attribute index ix_attr
 
 \index[routine]{pointer_to_lord}
 \label{r:pointer.to.lord}
-\item[pointer_to_lord (slave, ix_lord, control, ix_slave_back, field_overlap_ptr, ix_control, ix_ic) result (lord_ptr)] \Newline 
+\item[\protect\parbox{6in}{
+    pointer_to_lord (slave, ix_lord, control, ix_slave_back, field_overlap_ptr, \\
+    \hspace*{1in} ix_control, ix_ic) result (lord_ptr)}] \Newline 
 Function to point to a lord of a slave.
 
 \index[routine]{pointer_to_multipass_lord}
@@ -1589,7 +1604,7 @@ Routine to return the name corresponding to the value of a given switch attribut
 \label{r:type.ele}
 \item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, type_taylor, \\
 \hspace*{1in} twiss_out, type_control, type_wake, type_floor_coords, \\
-\hspace*{1in} type_field, type_wall, lines, n_lines)}] \Newline
+\hspace*{1in} type_field, type_wall, type_rad_kick, lines, n_lines)}] \Newline
 Subroutine to print or put in a string array information on a lattice element.
 
 \index[routine]{type_twiss}
@@ -1862,12 +1877,14 @@ Routine to remove a name from the nametable at index ix_name.
 
 \index[routine]{bmad_parser}
 \label{r:bmad.parser}
-\item[bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)] \Newline
+\item[\protect\parbox{6in}{
+    bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, \\
+    \hspace*{1in} err_flag, parse_lat)} ] \Newline
 Routine to parse (read in) a Bmad input file. 
 
 \index[routine]{bmad_parser2}
 \label{r:bmad.parser2}
-\item[bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag, in_lat)] \Newline
+\item[bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag, parse_lat)] \Newline
 Routine to parse (read in) a Bmad input file to modify an existing lattice. 
 
 \index[routine]{write_lattice_in_foreign_format}
@@ -1977,8 +1994,8 @@ coords and vice versa.
 \index[routine]{mat6_from_s_to_s}
 \label{r:mat6.from.s.to.s}
 \item[\protect\parbox{6in}{
-    mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ref_orb_in, ref_orb_out, ix_branch, one_turn, \\
-    \hspace*{1in} unit_start, err_flag, ele_save)} ] \Newline 
+    mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ref_orb_in, ref_orb_out, ix_branch, \\
+    \hspace*{1in} one_turn, unit_start, err_flag, ele_save)} ] \Newline 
 Subroutine to calculate the transfer map between longitudinal positions
 s1 to s2.
 
@@ -1990,8 +2007,8 @@ and the 0th order transfer vector.
 \index[routine]{match_ele_to_mat6}
 \label{r:match.ele.to.mat6}
 \item[\protect\parbox{6in}{
-  match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time, \\
-  \hspace*{1in} set_trombone)}] \Newline 
+  match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, \\
+  \hspace*{1in} include_delta_time, set_trombone)}] \Newline 
 Routine to make the 6 x 6 transfer matrix from the twiss parameters.
 
 \index[routine]{multi_turn_tracking_to_mat}
@@ -2132,7 +2149,9 @@ A multi_lord will be found for:
 
 \index[routine]{ab_multipole_kick}
 \label{r:ab.multipole.kick}
-\item[ab_multipole_kick (a, b, n, ref_species, ele_orientation, coord, kx, ky, dk, pole_type, scale)] \Newline 
+\item[\protect\parbox{6in}{
+    ab_multipole_kick (a, b, n, ref_species, ele_orientation, coord, kx, ky, dk, \\
+    \hspace*{1in} pole_type, scale)} ] \Newline 
 Routine to put in the kick due to an ab_multipole.
 
 \index[routine]{multipole_kicks}
@@ -2152,12 +2171,16 @@ Routine to convert ab type multipoles to kt (MAD standard) multipoles.
 
 \index[routine]{multipole_ele_to_ab}
 \label{r:multipole.ele.to.ab}
-\item[multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)] \Newline
+\item[\protect\parbox{6in}{
+    multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, \\
+    \hspace*{1in} include_kicks, b1)} ] \Newline
 Routine to put the scaled element multipole components (normal and skew) into 2 vectors. 
 
 \index[routine]{multipole_ele_to_kt}
 \label{r:multipole.ele.to.kt}
-\item[multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type, include_kicks)] \Newline
+\item[\protect\parbox{6in}{
+    multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, \\
+    \hspace*{1in} pole_type, include_kicks)} ] \Newline
 Routine to put the scaled element multipole components (strength and tilt) 
 into 2 vectors. 
 
@@ -2320,8 +2343,9 @@ Routine to type out a coordinate.
 \index[routine]{bend_photon_init}
 \label{r:bend.photon.init}
 \item[\protect\parbox{6in}{
-  bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob, \\
-  \hspace*{1in} vert_angle_min, vert_angle_max, vert_angle_symmetric, emit_probability) }] \Newline 
+  bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, \\
+  \hspace*{1in} E_integ_prob, vert_angle_min, vert_angle_max, \\
+  \hspace*{1in} vert_angle_symmetric, emit_probability) }] \Newline 
 Routine to initialize a photon generated by a charged particle in a bend.
 
 \index[routine]{bend_photon_vert_angle_init}
@@ -2333,7 +2357,7 @@ angle for a simple bend.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Interface to PTC}
+\section{PTC Interface Routines}
 \label{r:ptc}      
 \index{PTC/FPP!list of routines}
 
@@ -2351,11 +2375,6 @@ Routine to concatenate two real_8 taylor series.
     \hspace*{1in} for_layout, ref_in) }] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
-\index[routine]{map_coef}
-\label{r:map.coef}
-\item[map_coef (y, i, j, k, l)] \Newline
-Function to return the coefficient of the map y(:) up to 3rd order. 
-
 \index[routine]{kill_ptc_layouts}
 \label{r:kill.ptc.layouts}
 \item[kill_ptc_layouts (lat)] \Newline 
@@ -2366,32 +2385,48 @@ Routine to kill the layouts associated with a Bmad lattice.
 \item[kind_name (this_kind)] \Newline
 Function to return the name of a PTC kind. 
 
+\index[routine]{lat_to_ptc_layout}
+\label{r:lat.to.ptc.layout}
+\item[lat_to_ptc_layout (lat)] \Newline
+Routine to create a PTC layout from a Bmad lat. 
+
+\index[routine]{map_coef}
+\label{r:map.coef}
+\item[map_coef (y, i, j, k, l)] \Newline
+Function to return the coefficient of the map y(:) up to 3rd order. 
+
 \index[routine]{normal_form_rd_terms}
 \label{r:normal.form.rd.terms}
 \item[normal_form_rd_terms(one_turn_map, normal_form, rf_on, order)] \Newline
 Calculates driving terms \`a la \cite{b:bengtsson} from the one-turn map.
+
+\index[routine]{ptc_transfer_map_with_spin}
+\label{r:ptc.transfer.map.with.spin}
+\item[ptc_transfer_map_with_spin (branch, t_map, s_map, orb0, err_flag, ix1, ix2, one_turn, unit_start)] \Newline 
+Subroutine to calculate the transfer map between two elements.
+To calculate just the first order transfer matrices see the routine:
 
 \index[routine]{remove_constant_taylor}
 \label{r:remove.constant.taylor}
 \item[remove_constant_taylor (taylor_in, taylor_out, c0, remove_higher_order_terms)] \Newline
 Routine to remove the constant part of a taylor series. 
 
-\index[routine]{lat_to_ptc_layout}
-\label{r:lat.to.ptc.layout}
-\item[lat_to_ptc_layout (lat)] \Newline
-Routine to create a PTC layout from a Bmad lat. 
-
 \index[routine]{set_ptc}
 \label{r:set.ptc}
 \item[\protect\parbox{6in}{
     set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, \\
-    \hspace*{1in} init_complex, force_init) }] \Newline
+    \hspace*{1in} force_init) }] \Newline
 Routine to initialize PTC. 
 
 \index[routine]{sort_universal_terms}
 \label{r:sort.universal.terms}
 \item[sort_universal_terms (ut_in, ut_sorted)] \Newline
 Routine to sort the taylor terms from "lowest" to "highest". 
+
+\index[routine]{taylor_to_genfield}
+\label{r:taylor.to.genfield}
+\item[taylor_to_genfield (bmad_taylor, ptc_genfield, c0)] \Newline
+Routine to construct a genfield (partially inverted map) from a taylor map. 
 
 \index[routine]{taylor_to_real_8}
 \label{r:taylor.to.real.8}
@@ -2403,6 +2438,11 @@ Routine to convert from a taylor map in Bmad to a real_8 taylor map in \'Etienne
 \item[type_layout (lay)] \Newline
 Routine to print the global information in a PTC layout.
 
+\index[routine]{type_map}
+\label{r:type.map}
+\item[type_map (y)] \Newline
+Routine to type the transfer maps of a real_8 array. 
+
 \index[routine]{type_map1}
 \label{r:type.map1}
 \item[type_map1 (y, type0, n_dim)] \Newline
@@ -2413,20 +2453,10 @@ Routine to type the transfer map up to first order.
 \item[type_fibre (ptc_fibre, print_coords, lines, n_lines)] \Newline
 Routine to print the global information in a fibre.
 
-\index[routine]{type_map}
-\label{r:type.map}
-\item[type_map (y)] \Newline
-Routine to type the transfer maps of a real_8 array. 
-
 \index[routine]{type_real_8_taylors}
 \label{r:type.real.8.taylors}
 \item[type_real_8_taylors (y)] \Newline
 Routine to type out the taylor series from a real_8 array. 
-
-\index[routine]{taylor_to_genfield}
-\label{r:taylor.to.genfield}
-\item[taylor_to_genfield (bmad_taylor, ptc_genfield, c0)] \Newline
-Routine to construct a genfield (partially inverted map) from a taylor map. 
 
 \index[routine]{universal_to_bmad_taylor}
 \label{r:universal.to.bmad.taylor}
@@ -3061,11 +3091,16 @@ Function to find the length of a text string.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Spin Tracking}
+\section{Spin}
 \label{r:spin}    
 \index{spin tracking!list of routines}
 
 \begin{description}
+
+\index[routine]{calc_spin_params}
+\label{r:calc.spin.params}
+\item[calc_spin_params (bunch, bunch_params)] \Newline 
+Rotine to calculate spin averages
 
 \index[routine]{spinor_to_polar}
 \label{r:spinor.to.polar}
@@ -3411,15 +3446,15 @@ cross-products of the linear optics at each sextupole moment.
 
 \index[routine]{srdt_calc_with_cache}
 \label{r:srdt.calc.with.cache}
-\item[\protect\parbox{6in}{srdt_calc_with_cache(lat, srdt_sums, order, n_slices_gen_opt, n_slices_sxt_opt,\\
-            cache, per_ele_out)}] \Newline
+\item[\protect\parbox{6in}{srdt_calc_with_cache(lat, srdt_sums, order, n_slices_gen_opt, \\
+    \hspace*{1in} n_slices_sxt_opt, cache, per_ele_out)}] \Newline
 Same as \ref{r:srdt.calc}, but makes use of a cache precomputed by \ref{r:make.srdt.cache} to speed
 up the calculations.
 
 \index[routine]{srdt_lsq_solution}
 \label{r:srdt.lsq.solution}
-\item[\protect\parbox{6in}{srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slices_sxt_opt,\\
-            chrom_set_x_opt, chrom_set_y_opt, weight_in)}] \Newline
+\item[\protect\parbox{6in}{srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, \\
+    \hspace*{1in} n_slices_sxt_opt, chrom_set_x_opt, chrom_set_y_opt, weight_in)}] \Newline
 Given a lattice and the indices of the sextupole moments to use as variables, finds the least squares solution
 to the sextupole moments that minimize the 1st order driving terms.  If there are more variables than driving
 terms, then the solution sets the driving terms to zero and minimizes the sum of the squares of the variables.  
@@ -3478,8 +3513,8 @@ matrix and the closed orbit offset.
 \index[routine]{offset_particle}
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{
-    offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, \\
-    \hspace*{1in} drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)} ] \Newline
+    offset_particle (ele, set, orbit, set_tilt, set_hvkicks, drift_to_edge, \\
+    \hspace*{1in} s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot)} ] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
@@ -3603,16 +3638,9 @@ element should use absolute time or time relative to the reference particle.
 \index[routine]{odeint_bmad}
 \label{r:odeint.bmad}
 \item[\protect\parbox{6in}{
-    odeint_bmad (orbit, ele, param, s1_body, s2_body, err_flag, track, mat6, make_matrix) }] \Newline
+    odeint_bmad (orbit, ele, param, s1_body, s2_body, err_flag, track, \\
+    \hspace*{1in} mat6, make_matrix) }] \Newline
 Routine to do Runge Kutta tracking. 
-
-\index[routine]{create_uniform_element_slice}
-\label{r:create.uniform.element.slice}
-\item[\protect\parbox{6in}{
-    create_uniform_element_slice (ele, param, i_slice, \\
-    \hspace*{1in} n_slice_tot, sliced_ele, s_start, s_end)} ] \Newline 
-Routine to create an element that represents a slice of another element.
-This routine can be used for detailed tracking through an element.
 
 \index[routine]{track_a_drift}
 \label{r:track.a.drift}
@@ -3768,12 +3796,14 @@ track1.
 
 \index[routine]{symp_lie_bmad}
 \label{r:symp.lie.bmad}
-\item[symp_lie_bmad (ele, param, start_orb, end_orb, track, mat6, make_matrix, offset_ele)] \Newline
+\item[\protect\parbox{6in}{
+  symp_lie_bmad (ele, param, start_orb, end_orb, track, mat6, \\
+  \hspace*{1in} make_matrix, offset_ele)} ] \Newline
 Symplectic integration through an element to 0th or 1st order.
 
 \index[routine]{track1_bmad}
 \label{r:track1.bmad}
-\item[track1_bmad (start_orb, ele, param, end_orb, err_flag, mat6, make_matrix)] \Newline
+\item[track1_bmad (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)] \Newline
 Particle tracking through a single element BMAD_standard style. 
 
 \index[routine]{track1_custom}
@@ -3795,12 +3825,14 @@ Dummy routine for pre processing at the start of the track1 routine.
 
 \index[routine]{track1_radiation}
 \label{r:track1.radiation}
-\item[track1_radiation (orbit, ele, param, edge)] \Newline
+\item[track1_radiation (orbit, ele, edge)] \Newline
 Routine to put in radiation damping and/or fluctuations. 
 
 \index[routine]{track1_runge_kutta}
 \label{r:track1.runge.kutta}
-\item[track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)] \Newline
+\item[\protect\parbox{6in}{
+    track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, \\
+    \hspace*{1in} mat6, make_matrix)}] \Newline
 Routine to do tracking using Runge-Kutta integration. 
 
 \index[routine]{track1_symp_lie_ptc}
@@ -3816,7 +3848,9 @@ Routine to track through an element using the elements taylor series.
 
 \index[routine]{track1_time_runge_kutta}
 \label{r:track1.time.runge.kutta}
-\item[track1_time_runge_kutta(start_orb, ele, param, end_orb, err_flag, track, t_end, dt_step)] \Newline 
+\item[\protect\parbox{6in}{
+  track1_time_runge_kutta(start_orb, ele, param, end_orb, err_flag, track, \\
+  \hspace*{1in} t_end, dt_step)} ] \Newline 
 Routine to track a particle through an element using 
 Runge-Kutta time-based tracking.
 
@@ -3831,7 +3865,7 @@ Runge-Kutta time-based tracking.
 
 \index[routine]{calc_z_tune}
 \label{r:calc.z.tune}
-\item[calc_z_tune (lat, ix_branch)] \Newline
+\item[calc_z_tune (branch)] \Newline
 Routine to calculate the synchrotron tune from the full 6X6 1 turn matrix. 
 
 \index[routine]{chrom_calc}
@@ -3865,12 +3899,12 @@ Function to see if the modes of ELE1 are flipped relative to ELE2.
 
 \index[routine]{set_tune}
 \label{r:set.tune}
-\item[set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)] \Newline
+\item[set_tune (phi_a_set, phi_b_set, dk1, eles, branch, orb, print_err)] \Newline
 Routine to Q_tune a lat. This routine will set the tunes to within 0.001 radian (0.06 deg). 
 
 \index[routine]{set_z_tune}
 \label{r:set.z.tune}
-\item[set_z_tune (lat, z_tune, ok)] \Newline
+\item[set_z_tune (branch, z_tune, ok)] \Newline
 Routine to set the longitudinal tune by setting the RF voltages in the RF cavities. 
 
 \index[routine]{transfer_twiss}
