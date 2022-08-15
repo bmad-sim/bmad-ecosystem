@@ -8290,9 +8290,9 @@ case ('orbit.beta')
 case ('orbit.state')
   value = orbit%state
   data_type = is_integer$
-case ('orbit.energy')
+case ('orbit.pc')  
   value = (1 + orbit%vec(6)) * orbit%p0c
-case ('orbit.pc')
+case ('orbit.energy')
   call convert_pc_to ((1 + orbit%vec(6)) * orbit%p0c, orbit%species, E_tot = value)
 case ('ele.ix_ele')
   value = ele%ix_ele
