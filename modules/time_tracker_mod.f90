@@ -173,7 +173,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       if (.not. fringe_info%has_fringe .or. .not. associated(fringe_info%hard_ele)) exit
       if ((s_body-s_fringe_edge)*sign_of(orb%vec(6)) < -ds_safe) exit
       ! Get radius before first edge kick
-      if (.not. edge_kick_applied) edge_kick_applied = .true. 
+      if (.not. edge_kick_applied) edge_kick_applied = .true.
       call convert_particle_coordinates_t_to_s(orb, ele, s_save)
       track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
       call apply_element_edge_kick (orb, fringe_info, ele, param, track_spin, rf_time = rf_time)
