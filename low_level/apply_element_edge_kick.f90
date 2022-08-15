@@ -59,6 +59,8 @@ integer hard_ele_field_calc
 logical, optional :: make_matrix, apply_sol_fringe
 logical finished, track_spin, track_spn, err_flag
 
+character(*), parameter :: r_name = 'apply_element_edge_kick'
+
 ! The setting of fringe_info%hard_location is used by calc_next_fringe_edge to calculate the next fringe location.
 
 particle_at = fringe_info%particle_at
@@ -114,6 +116,13 @@ else
 endif
 
 sign_z_vel = orb%direction * track_ele%orientation
+
+if (orb%beta == 0) then
+  call out_io(s_error$, r_name, 'FRINGE OF ELEMENT: ' // hard_ele%name, &
+                                'AT SPOT WHERE VELOCITY IS ZERO. WILL MARK AS DEAD.', &
+                                'POSSIBLE SOLUTION: SET "FRINGE_AT = EXIT_END" FOR ELEMENT.')
+  orb%state = lost$
+endif
 
 ! Edge field when %field_calc = fieldmap$
 
