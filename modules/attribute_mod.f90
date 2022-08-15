@@ -1464,14 +1464,12 @@ attrib_array(multipole$, t0$:t21$)%name = ['T0 ', &
              'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
 attrib_array(multipole$, k0l$:t21$)%state = is_free$
 call init_attribute_name1 (multipole$, l$,                          'L')
-call init_attribute_name1 (multipole$, field_master$,               'FIELD_MASTER')
 call init_attribute_name1 (multipole$, x_pitch$,          null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (multipole$, y_pitch$,          null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (multipole$, x_pitch_tot$,      null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (multipole$, y_pitch_tot$,      null_name$, does_not_exist$, .true.)
 
 call init_attribute_name1 (ab_multipole$, l$,                       'L')
-call init_attribute_name1 (ab_multipole$, field_master$,            'FIELD_MASTER')
 call init_attribute_name1 (ab_multipole$, x_pitch$,       null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (ab_multipole$, y_pitch$,       null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (ab_multipole$, x_pitch_tot$,   null_name$, does_not_exist$, .true.)
