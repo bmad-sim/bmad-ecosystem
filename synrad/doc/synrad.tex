@@ -16,8 +16,7 @@
 %\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 \usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
 \usepackage[strings]{underscore}    % to use "_" in text
-
-\usepackage{hyperref}
+\usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}   % Must be last package!
 
 %---------------------------------------------------------------------------------
 
