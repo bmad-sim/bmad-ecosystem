@@ -123,7 +123,7 @@ subroutine multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 
-real(rp) knl(0:), tilt(0:), a(0:n_pole_maxx), b(0:n_pole_maxx)
+real(rp) knl(0:), tilt(0:), a(0:n_pole_maxx), b(0:n_pole_maxx), factor
 real(rp), pointer :: knl_pole(:), tilt_pole(:), ksl_pole(:)
 
 integer ix_pole_max
@@ -162,6 +162,12 @@ if (ele%key == multipole$) then
       endif
     enddo
   endif
+
+  if (ele%field_master .and. ele%value(p0c$) /= 0) then
+    factor = charge_of(ele%ref_species) * c_light / ele%value(p0c$)
+    knl = factor * knl
+  endif
+
   ix_pole_max = max_nonzero(0, knl)
   return
 endif

@@ -309,12 +309,6 @@ if (ele%key == beambeam$) then
   end select
 endif
 
-if ((ele%key == ab_multipole$ .or. ele%key == multipole$) .and. word == 'FIELD_MASTER') then
-  call parser_error ('THE "FIELD_MASTER" PARAMETER FOR A MULITPOLE OR AB_MULTIPOLE DOES NOT MAKE SENSE AND', &
-                     'IS NO LONGER ALLOWED. PLEASE REMOVE THE "FIELD_MASTER" SET FOR ELEMENT: ' // ele%name)
-  return
-endif
-
 ! For historical reasons, a few paramter[...] parameters are actually in bmad_com.
 
 key = ele%key
