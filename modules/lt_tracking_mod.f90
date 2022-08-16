@@ -66,7 +66,7 @@ type ltt_params_struct
   real(rp) :: dead_cutoff = 1
   real(rp) :: a_emittance = 0   ! Used for space charge calculation.
   real(rp) :: b_emittance = 0   ! Used for space charge calculation.
-  logical :: core_emit_combined_calc = .false.
+  logical :: core_emit_combined_calc = .true.
   logical :: only_live_particles_out = .true.
   logical :: ramping_on = .false.
   logical :: ramp_update_each_particle = .true.
@@ -555,9 +555,9 @@ do ib = 0, nb
 
   call ltt_print_this_info(iu, .false.)
 
-  write (iu, '(a1, a8, a9, 2a14, 3a14, 2x, 7a14, 2x, 6a14)') '#', '1', '2', '3', '4', '5', '6', '7', &
+  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 7a14, 2x, 6a14)') '##', '1', '2', '3', '4', '5', '6', '7', &
                   '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'
-  write (iu, '(a1, a8, a9, 2a14, 3a14, 2x, 7a14, 2x, 6a14)') '#', 'Turn', 'N_live', 'Time', 'Polarization', &
+  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 7a14, 2x, 6a14)') '##', 'Turn', 'N_live', 'Time', 'Polarization', &
                    '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>', &
                    'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz'
 
@@ -570,10 +570,10 @@ do ib = 0, nb
 
   call ltt_print_this_info(iu, .false.)
 
-  write (iu, '(a1, a8, a9, a12, 2x, 21a14)') '#', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', &
+  write (iu, '(a2, a7, a9, a12, 2x, 21a14)') '##', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', &
                   '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24'
 
-  write (iu, '(a1, a8, a9, a12, 2x, 21a14)') '#', 'Turn', 'N_live', 'Time', &
+  write (iu, '(a2, a7, a9, a12, 2x, 21a14)') '##', 'Turn', 'N_live', 'Time', &
     '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
     '<y.y>', '<y.py>', '<y.z>', '<y.pz>', '<py.py>', '<py.z>', '<py.pz>', '<z.z>', '<z.pz>', '<pz.pz>'
 
@@ -586,10 +586,10 @@ do ib = 0, nb
 
   call ltt_print_this_info(iu, .false.)
 
-  write (line1, '(a1, a8, a10, a12, 2x, 3a14, 2x, 3a14, 2x, 3a14, a)') '#', '1', '2', '3', &
+  write (line1, '(a2, a7, a10, a12, 2x, 3a14, 2x, 3a14, 2x, 3a14, a)') '##', '1', '2', '3', &
                 '4', '5', '6', '7', '8', '9', '10', '11', '12', '  |'
 
-  write (line2, '(a1, a8, a10, a12, 2x, 3a14, 2x, 3a14, 2x, 3a14, a)') '#', 'Turn', 'N_live', 'Time', &
+  write (line2, '(a2, a7, a10, a12, 2x, 3a14, 2x, 3a14, 2x, 3a14, a)') '##', 'Turn', 'N_live', 'Time', &
                 'Emit_a', 'Emit_b', 'Emit_c', 'Kurtosis_x', 'Kurtosis_y', 'Kurtosis_z', 'Skew_x', 'Skew_y', 'Skew_z', '  |'
 
 
@@ -860,7 +860,7 @@ iu_part = lunget()
 if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
 open (iu_part, file = lttp%phase_space_output_file, recl = 200)
 call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
-write (iu_part, '(a)') '#  Turn ix_ele |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z  | Element'
+write (iu_part, '(a)') '## Turn ix_ele |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z  | Element'
 write (iu_part, ltt_com%fmt) 0, ele_start%ix_ele, orbit%vec, orbit%spin, trim(ele_start%name)
 
 if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, 0, orbit = orbit)
@@ -1370,9 +1370,9 @@ else
   open (iu, file = file_name, recl = 300)
   call ltt_write_params_header(lttp, ltt_com, iu, ltt_com%n_particle, size(beam%bunch))
   if (who == 'phase_space') then
-    write (iu, '(a)')  '#      Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
+    write (iu, '(a)')  '##     Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
   else
-    write (iu, '(a)')  '#      Ix     Turn |          Jx         Angle_x              Jy         Angle_y              Jz         Angle_z   |     spin_x    spin_y    spin_z    State'
+    write (iu, '(a)')  '##     Ix     Turn |          Jx         Angle_x              Jy         Angle_y              Jz         Angle_z   |     spin_x    spin_y    spin_z    State'
   endif
   wrote_header = .true.
 endif

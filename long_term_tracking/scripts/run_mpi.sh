@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# The following is for using the Cornell Compute Farm for running lux_mpi.
-# For Off-Site work see the documentation for running programs on the Bmad Web site
-#		https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
+# The following is for using the Cornell Compute Farm for running long_term_tracking_mpi.
+#
+# This is meant as an example as to how to construct a grid engine script.
+# Different computer clusters will have their own quirks so you must consult your local Guru! 
 
 # To use this script, use the command:
 #   qsub run_mpi.sh
@@ -32,9 +33,8 @@
 #kinit -k -t /home/$USER/etc/$USER-keytab $USER
 
 # Set OpenMPI Program
-export EXEC="long_term_tracking_mpi"
 export BINDIR="/home/dcs16/linux_lib/production/bin"
-export BINARY=${BINDIR}/${EXEC}
+export BINARY=${BINDIR}/long_term_tracking_mpi
 
 # These exports needed for OpenMPI
 export MPIDIR=/nfs/acc/libs/Linux_x86_64_intel/devel/packages/production
