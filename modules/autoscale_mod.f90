@@ -78,7 +78,7 @@ type (coord_struct) orbit0
 type (em_field_struct) field1, field2
 integer, parameter :: n_sample = 16
 
-real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut, E_tol
+real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
 real(rp) value_saved(num_ele_attrib$), phi0_autoscale_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
 real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s
@@ -154,16 +154,21 @@ case default
   return
 end select
 
-sign_of_dE = sign_of (dE_peak_wanted)
+sign_of_dE = sign_of(dE_peak_wanted)
 
 ! Auto scale amplitude when dE_peak_wanted is zero or very small is not possible.
 ! Therefore if dE_peak_wanted is less than dE_cut then do nothing.
 
+! scale_tol is the tolerance for scale_correct.
+! scale_tol = E_tol / dE_peak_wanted corresponds to a tolerance in dE_peak_wanted of E_tol. 
+
 if (do_scale_amp) then
   dE_cut = 10 ! eV
   if (abs(dE_peak_wanted) < dE_cut) return
+  scale_tol = max(bmad_com%autoscale_amp_rel_tol, bmad_com%autoscale_amp_abs_tol / abs(dE_peak_wanted))
 else
-  if (dE_peak_wanted == 0) return
+  if (dE_peak_wanted == 0) sign_of_dE = 1    ! Assume want accelerating.
+  scale_tol = 1
 endif
 
 if (ele%value(field_autoscale$) == 0) then
@@ -179,11 +184,7 @@ endif
 
 ! scale_correct is the correction factor applied to ele%value(field_autoscale$) on each iteration:
 !  ele%value(field_autoscale$)(new) = ele%value(field_autoscale$)(old) * scale_correct
-! scale_tol is the tolerance for scale_correct.
-! scale_tol = E_tol / dE_peak_wanted corresponds to a tolerance in dE_peak_wanted of E_tol. 
 
-E_tol = bmad_com%autoscale_amp_abs_tol ! eV
-scale_tol = max(bmad_com%autoscale_amp_rel_tol, E_tol / abs(dE_peak_wanted)) ! tolerance for scale_correct
 phi_tol = bmad_com%autoscale_phase_tol
 
 !------------------------------------------------------
