@@ -2130,7 +2130,7 @@ endif
 
 ! The "2" signifies version 2 of the map with radiation file storage format.
 
-write (string, '(2a,2l1,i0,l1,i0,4l1)') trim(lttp%exclude_from_maps), trim(lttp%ele_start), &
+write (string, '(2a,2l1,i0,l1,i0,l1,es12.3,2l1)') trim(lttp%exclude_from_maps), trim(lttp%ele_start), &
               bmad_com%radiation_damping_on , lttp%split_bends_for_stochastic_rad, lttp%map_order, lttp%rfcavity_on, &
               ptc_com%max_fringe_order, ptc_com%old_integrator, ptc_com%vertical_kick, ptc_com%exact_misalign, ptc_com%exact_model
 if (lttp%simulation_mode == 'CHECK') string = trim(string) // lttp%ele_stop
