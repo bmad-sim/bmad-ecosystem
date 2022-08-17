@@ -998,6 +998,7 @@ subroutine ltt_run_beam_mode (lttp, ltt_com, ix_start_turn, ix_end_turn, beam)
 type (ltt_params_struct) lttp
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
+type (branch_struct), pointer :: branch
 type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (coord_struct), allocatable :: orb(:)
@@ -1005,7 +1006,7 @@ type (coord_struct), pointer :: p
 type (ele_struct), pointer :: ele_start
 type (probe) prb
 
-real(rp) time0, time1, time_now
+real(rp) time0, time1, time_now, dref_time, beta_new
 
 integer ix_start_turn, ix_end_turn
 integer n, n_print_dead_loss, i_turn, ie, n_part_tot
@@ -1023,6 +1024,7 @@ time0 = ltt_com%time_start
 time1 = time0
 
 ix_branch = ltt_com%ix_branch
+branch => lat%branch(ix_branch)
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 
 if (ltt_com%using_mpi) then
@@ -1069,12 +1071,19 @@ do i_turn = ix_start_turn+1, ix_end_turn
       call ltt_track_bmad_bunch (lttp, ltt_com, ele_start, bunch)
 
     case ('PTC')
+      dref_time = branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time
       do ip = 1, size(bunch%particle)
         p => bunch%particle(ip)
         if (p%state /= alive$) cycle
+
         prb = p%vec
         prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
         call track_probe (prb, ltt_com%ptc_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
+
+        call convert_pc_to ((1 + prb%x(6)) * p%p0c, p%species, beta = beta_new)
+        p%t = p%t + (p%vec(5) / p%beta - prb%x(5) / beta_new) / c_light + dref_time
+        p%beta = beta_new
+
         p%vec = prb%x
         p%spin = quat_rotate(prb%q%x, p%spin)
         if (abs(p%vec(1)) > lttp%ptc_aperture(1) .or. abs(p%vec(3)) > lttp%ptc_aperture(2) .or. prb%u) p%state = lost$
@@ -1694,11 +1703,18 @@ if (bd%sig1(5) /= 0) bd%skew(3) = orb3_sum(5) / (bd%n_live * bd%sig1(5)**3)
 if (bd%sig1(5) /= 0) bd%kurt(3) = orb4_sum(5) / (bd%n_live * bd%sig1(5)**4) - 3.0_rp
 
 call calc_emittances_and_twiss_from_sigma_matrix (bd%sig_mat, 0.0_rp, bd%params, error, n_mat = n_inv_mat)
-call mat_inverse (n_inv_mat, n_inv_mat)
 
 ! Calc core emit
 
 bd%core_emit = 0
+
+if (bd%params%a%emit == 0 .or. bd%params%b%emit == 0 .or. bd%params%c%emit == 0) then
+  print '(a)', 'WARNING IN LTT_CALC_BUNCH_DATA: ZERO BEAM EMITTANCE MEANS I CANNOT DO CORE EMIT CALC.'
+  return
+endif
+
+call mat_inverse (n_inv_mat, n_inv_mat)
+
 do ic = 1, core_max$
   if (lttp%core_emit_cutoff(ic) <= 0) exit
   call this_core_calc(bunch, bd, lttp%core_emit_cutoff(ic), n_inv_mat, bd%core_emit(ic,:))
@@ -1752,6 +1768,7 @@ else
     call core_bunch_construct(i, bunch, bd%orb_ave, n_inv_mat0, n_cut, core_bunch)
 
     call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
+
     call mat_inverse (n_inv_mat, n_inv_mat)
     call core_bunch_construct(i, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch)
 
