@@ -184,6 +184,15 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
               crv(1:nc-1) = crv_temp
               deallocate(crv_temp)
             endif
+
+            if (curve%n_turn < 1) then
+              call out_io (s_warn$, r_name, 'Multi-turn orbit curve has %n_turn component non-positive! ' // &
+                                                tao_curve_name(curve))
+              curve%why_invalid = '%n_turn component is not positive.'
+              curve%valid = .false.
+              cycle
+            endif
+
             crv(nc)%c => curve
             n_turn = max(n_turn, curve%n_turn)
             curve%valid = .true.

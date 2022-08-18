@@ -664,6 +664,21 @@ do  ! Loop over plot files
           crv%why_invalid = 'FLOOR_PLAN GRAPHS DO NOT HAVE ASSOCIATED CURVES.'
         endif
 
+        ! multi_turn
+
+        if (crv%n_turn < 0 .and. &
+              (crv%data_source == 'multi_turn_orbit' .or. crv%data_source == 'rel_multi_turn_orbit')) then
+          call out_io (s_warn$, r_name, 'Curves with %data_source set to "multi_turn_orbit" must now explicity set', &
+                                        'the curve''s %n_turn component. In plot: ' // plot%name)
+        endif
+
+        if (crv%n_turn > 0 .and. &
+              .not. (crv%data_source == 'multi_turn_orbit' .or. crv%data_source == 'rel_multi_turn_orbit')) then
+          call out_io (s_warn$, r_name, 'Curve has %n_turn component set positive but %data_source is not set to', &
+                                        '"multi_turn_orbit" or "rel_multi_turn_orbit". Multi-turn tracking will', &
+                                        '*not* be done for this curve in plot: ' // plot%name)
+        endif
+
         ! Default data type
 
         if (crv%data_type == '') then
