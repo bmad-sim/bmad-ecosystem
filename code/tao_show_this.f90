@@ -2155,7 +2155,7 @@ case ('global')
     nl=nl+1; lines(nl) = 'PTC_com Parameters (set using "set ptc_com ..."):'
     nl=nl+1; write(lines(nl), rmt) '  %vertical_kick         = ', ptc_com%vertical_kick
     nl=nl+1; write(lines(nl), imt) '  %max_fringe_order      = ', ptc_com%max_fringe_order
-    nl=nl+1; write(lines(nl), lmt) '  %old_integrator        = ', ptc_com%old_integrator
+    nl=nl+1; write(lines(nl), imt) '  %old_integrator        = ', ptc_com%old_integrator
     nl=nl+1; write(lines(nl), lmt) '  %exact_model           = ', ptc_com%exact_model
     nl=nl+1; write(lines(nl), lmt) '  %exact_misalign        = ', ptc_com%exact_misalign
 

@@ -5941,7 +5941,7 @@ case ('plot1')
 case ('ptc_com')
 
   nl=incr(nl); write (li(nl), imt) 'max_fringe_order;INT;T;',               ptc_com%max_fringe_order
-  nl=incr(nl); write (li(nl), lmt) 'old_integrator;LOGIC;T;',               ptc_com%old_integrator
+  nl=incr(nl); write (li(nl), imt) 'old_integrator;INT;T;',                 ptc_com%old_integrator
   nl=incr(nl); write (li(nl), lmt) 'exact_model;LOGIC;T;',                  ptc_com%exact_model
   nl=incr(nl); write (li(nl), lmt) 'exact_misalign;LOGIC;T;',               ptc_com%exact_misalign
 
