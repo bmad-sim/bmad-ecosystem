@@ -846,7 +846,8 @@ fa = func(a, status); if (status /= 0) return
 fb = func(b, status); if (status /= 0) return
 
 if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) then
-  call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!')
+  call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!, \es12.4\ at \es12.4\ and \es12.4\ at \es12.4\ ', &
+                  r_array = [fa, a, fb, b])
   x_zero = 1d100
   status = -1
   return
