@@ -197,8 +197,8 @@ module precision_constants
   character*255 :: file_block_name="noprint"
   real(dp) :: lmax=1.e38_dp
   logical(lp) :: printdainfo=my_false
-  integer   lielib_print(16)
-  DATA lielib_print /0,0,0,1,0,0,0,0,0,0,0,1,0,1,1,0/
+  integer   lielib_print(17)
+  DATA lielib_print /0,0,0,1,0,0,0,0,0,0,0,1,0,1,1,0,0/
   integer :: SECTOR_NMUL_MAX=22
   INTEGER, target :: SECTOR_NMUL = 11
  
@@ -207,6 +207,7 @@ module precision_constants
   logical(lp) :: change_sector=my_true
   real(dp) :: xlost(6)=0.0_dp
   integer :: limit_int0(2) =(/4,18/)
+  integer :: limit_int0_new(3) =(/4,18,36/)
   character(1024) :: messagelost
   integer, target :: ndpt_bmad = 0, only2d =0, addclock=0
   integer,TARGET :: HIGHEST_FRINGE=2
@@ -241,7 +242,7 @@ module precision_constants
   !  lielib_print(14)=1  print info about recutting
   !  lielib_print(15)=1  print info during flat file reading and printing
   !  lielib_print(16)=1  print eigenvalues in c_linear_a 
-
+  !  lielib_print(17)=1  print magnets with excessive cutting
   INTERFACE read
      MODULE PROCEDURE read_d
      MODULE PROCEDURE read_int

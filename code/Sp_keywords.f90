@@ -2646,15 +2646,17 @@ type(layout),target :: r
 character(*) filename
 logical(lp), optional :: arpent
 integer , optional :: mfile
-logical(lp) doneit,surv,do_extrasurvey
+logical(lp) doneit,surv,do_extrasurvey,change
 character(120) line
 type(fibre),pointer :: s22
 type(element),pointer :: s2
 type(elementp), pointer :: s2p
 integer se2,se1
+logical :: excess,switch
+integer mf,n,met,nst,met0,nst0
 
-integer mf,n
-
+excess=.true.
+switch=.true.
 
 if(present(mfile)) then
  mf=mfile
@@ -2749,10 +2751,52 @@ ENDIF
  !pause 78
     call MC_MC0(s2%p,my_false)
 
+ change=.false.
+if(check_excessive_cutting) then
+  if(lielib_print(17)==1) write(6,*)s2%p%method,s2%p%nst, ELE0%name_vorname(1),ELE0%kind
+ call against_the_method(s2%p%method,s2%p%nst,met,nst,ELE0%kind,change)
+  if(change) then
+    s2%p%nst=s2%p%nst*faclim
+if(excess) write(6,*) "At least one magnet had its method changed due to excessive cutting ",ELE0%name_vorname(1)
+   excess=.false.
+  endif
+ !if(switch_to_drift_kick.and.change) then
+ ! ! Restoring the user input times faclim
+ ! s2%p%method=met
+ ! s2%p%nst=nst*faclim
+ !endif
+ if(lielib_print(17)==1) write(6,*) 1,s2%p%method,s2%p%nst
+     if(switch_to_drift_kick.and.change) then
+       if(switch) write(6,*) "all changed magnets are switched to drift-kick-drift"
+     if(lielib_print(17)==1) write(6,*)s2%p%method,s2%p%nst, ELE0%name_vorname(1)
+     s2%p%nst=s2%p%nst*faclim
+      switch=.false.
+      if(lielib_print(17)==1)write(6,*)  2,s2%p%method,s2%p%nst
+     endif
+! else
+ elseif(switch_to_drift_kick) then
+       if(switch) write(6,*) "all  magnets are switched to drift-kick-drift"
+     if(lielib_print(17)==1) write(6,*)s2%p%method,s2%p%nst, ELE0%name_vorname(1)
+     s2%p%nst=s2%p%nst*faclim
+     change=.true.
+      switch=.false.
+      if(lielib_print(17)==1)write(6,*)  3,s2%p%method,s2%p%nst
+    ! endif
+else
+met0 =s2%p%method
+nst0=s2%p%nst
+ call against_the_method(met0,nst0,met,nst,ELE0%kind,change)
+  if(change) then
+   if(excess.or.(lielib_print(17)==1)) then
+     write(6,*) " Looks like excessive cutting might take place "
+     write(6,*) " met0,nst0,met,nst ", met0,nst0,met,nst
+     excess=.false.
+   endif
+  endif
 
+ endif
 
- !pause 79
-    call el_el0(s2,my_false)
+    call el_el0(s2,dir=my_false,ch=change)
 
 
 
@@ -2773,7 +2817,7 @@ ENDIF
 
  
 
-    call print_ElementLIST(s2,my_false)
+    call print_ElementLIST(s2,dir=my_false,ch=change)
 
     s2p=0   
  
@@ -2833,6 +2877,43 @@ enddo
 if(.not.present(mfile)) close(mf)
 
 end subroutine read_lattice
+
+subroutine against_the_method(m,n,met,nst,kind0,change)
+implicit none
+integer, intent(inout) :: m,n,met,nst
+integer kind0
+logical change
+change=.false.
+met=m
+nst=n
+
+if(n>limit_int0_new(1).and.n<=limit_int0_new(2)) then
+ n=n/3
+ m=4
+ change=.true.
+ return
+endif
+
+if(n>limit_int0_new(2).and.n<=limit_int0_new(3)) then
+ n=n/7
+ m=6
+ change=.true.
+return
+endif
+
+if(n>limit_int0_new(3)) then
+ change=.true.
+ if(kind0==kindwiggler) then
+  n=n/7
+  m=6
+else
+ n=n/15
+ m=8
+ endif
+return
+endif
+
+end subroutine against_the_method
 
 subroutine check_mis_presence(r,do_extrasurvey)
 implicit none
@@ -3096,13 +3177,18 @@ endif
 endif
 end subroutine MC_MC0
 
-subroutine  el_el0(f,dir,mf)
+subroutine  el_el0(f,dir,mf,ch)
 implicit none
 type(element), target :: f
 logical(lp),optional ::  dir
 integer,optional :: mf
 character(nlp+3) nname
 integer n,np,no,inf,i
+logical, optional :: ch
+logical change
+
+change=.false.
+if(present(ch)) change=ch
 
 if(present(dir)) then
 if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
@@ -3193,6 +3279,14 @@ else
      read(mf,NML=ELEname)
     endif   
 
+if(change.and.switch_to_drift_kick) then
+ if(ELE0%KIND==kind7.or.ELE0%KIND==kind6 ) then
+ IF(.not.f%p%exact) then
+  ELE0%KIND = kind2
+ endif
+  if(lielib_print(17)==1)write(6,*) "element ",ELE0%name_vorname(1)," changed to drift-kick "
+endif
+endif
 
  F%KIND=ELE0%KIND  
   call context(ELE0%name_vorname(1))
@@ -3310,15 +3404,17 @@ end subroutine el_el0
 
 
 
-  subroutine print_ElementLIST(el,dir,mf)
+  subroutine print_ElementLIST(el,dir,mf,ch)
     implicit none
     type(element), pointer :: el
     integer i
      logical(lp),optional ::  dir
      integer,optional :: mf
     character*255 line
-
-
+     logical(lp),optional ::  ch
+    logical(lp) change
+    change=.false.
+    if(present(ch)) change=ch
     select case(el%kind)
     CASE(KIND0,KIND1,kind2,kind6,kind7,kind8,kind9,KIND11:KIND15,kind17)
   case(kind3)
@@ -3328,12 +3424,13 @@ end subroutine el_el0
     case(kind5)
         call sol5_sol50(EL,dir,mf)
     case(kind10)
-        call tp10_tp100(EL,dir,mf)
+        call tp10_tp100(EL,dir,mf,ch)
+ 
     case(kindabell)
         call ab_ab0(EL,dir,mf)
 
     case(kind16,kind20)
-        call k16_k160(EL,dir,mf)
+        call k16_k160(EL,dir,mf,ch)
 
     case(kind18)
 !       WRITE(MF,*) " RCOLLIMATOR HAS AN INTRINSIC APERTURE "
@@ -3659,12 +3756,15 @@ endif
 endif
 end subroutine thin3_thin30
 
-subroutine  tp10_tp100(f,dir,mf)
+subroutine  tp10_tp100(f,dir,mf,ch)
 implicit none
 type(element), target :: f
 logical(lp),optional ::  dir
 integer,optional :: mf
- 
+     logical(lp),optional ::  ch
+    logical(lp) change
+    change=.false.
+    if(present(ch)) change=ch 
 
 if(present(dir)) then
 if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
@@ -3694,6 +3794,10 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  endif
 
  F%tp10%DRIFTKICK=tp100%DRIFTKICK
+  if(change.and.switch_to_drift_kick) then
+   F%tp10%DRIFTKICK=.true.
+    if(lielib_print(17)==1)write(6,*) "TP10 changed to drift-kick ",f%name
+   endif
 endif
 endif
 end subroutine tp10_tp100
@@ -3767,11 +3871,15 @@ endif
 endif
 end subroutine ab_ab0
 
-subroutine  k16_k160(f,dir,mf)
+subroutine  k16_k160(f,dir,mf,ch)
 implicit none
 type(element), target :: f
 logical(lp),optional ::  dir
 integer,optional :: mf
+     logical(lp),optional ::  ch
+    logical(lp) change
+    change=.false.
+    if(present(ch)) change=ch 
 
 if(present(dir)) then
 if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
@@ -3786,7 +3894,13 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
     if(present(mf)) then
      read(mf,NML=k160name)
     endif   
- !F%k16%DRIFTKICK=k160%DRIFTKICK
+!!! bug by etienne since this line was commented off
+ F%k16%DRIFTKICK=k160%DRIFTKICK
+
+ if(change.and.switch_to_drift_kick) then
+   F%k16%DRIFTKICK=.true.
+    if(lielib_print(17)==1) write(6,*) "K16 changed to drift-kick ",f%name
+  endif
 ! F%k16%LIKEMAD=k160%LIKEMAD
 endif
 endif

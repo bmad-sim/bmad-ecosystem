@@ -1331,7 +1331,7 @@ else
 endif
 
  norm=0
-do i=1,6
+do i=1,4    !!!  changed from 6 2022.06.08
  norm=norm+abs(x(i))
 enddo
 
