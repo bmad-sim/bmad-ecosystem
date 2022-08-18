@@ -11,7 +11,7 @@
 \usepackage{alltt}
 \usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
 \usepackage[strings]{underscore}    % to use "_" in text
-\usepackage[pdftex,colorlinks=true]{hyperref}
+\usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}
 
 \newcommand{\fig}[1]{Figure~\ref{#1}}
 \newcommand{\lux}{Lux\xspace}
@@ -20,7 +20,7 @@
 \newcommand{\Endeq}{\end{equation}}
 \newcommand{\CRNO}{\nonumber \\}
 \newcommand{\Eq}[1]{{Eq.~(\protect\ref{#1})}}
-\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}  % Must be last package!
 \newcommand\dottcmd[1]{\texttt{#1}\endgroup}
 \newcommand{\vn}{\ttcmd}   
 
@@ -60,7 +60,7 @@
 
 \title{Lux Program}
 \author{D. Sagan, K. Finkelstein}
-\date{May 17, 2022}
+\date{June 3, 2022}
 
 %---------------------------------------------------------------------------------
 
@@ -81,19 +81,19 @@ detector. \lux uses the Bmad subroutine library\cite{b:bmad} for tracking and la
 \lux comes in two versions: A single threaded version whose executable is called \vn{lux} and an
 parallel compute version using MPI whose executable is called \vn{lux_mpi}. [Note to Distribution
 maintainers: The single threaded version will always be built when compiling the Distribution. The
-MPI version is built by building the Distribution with MPI enabled. See the documentation on the Bmad
-web site for more details.]
+MPI version is built by building the Distribution with MPI enabled. See the documentation on the
+Bmad web site for more details.]
 
 %------------------------------------------------------------------
 \section{Running \lux} 
 \label{s:run}
 
-See the documentation for setting up the Bmad environmental variables at
+See the documentation for setting up the Bmad environment variables at
 \begin{example}
   \url{https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms}
 \end{example}
 
-Once the Bmad environmental variables have bee set, the syntax for invoking the single threaded
+Once the Bmad environment variables have bee set, the syntax for invoking the single threaded
 version of \lux is
 \begin{example}
   lux \{-silent\} \{<master-input-file-name>\}
@@ -107,7 +107,11 @@ a run. This is useful to avoid long output when \lux is run repeatedly via a scr
 Example input files are in the \vn{\$ACC_ROOT_DIR/lux/examples} subdirectory.
 
 To run the parallel version of \lux, see the documentation on running programs on the Bmad web site
-for more details.
+for more details. If running on a single machine (as opposed to multiple machines in a cluster),
+typically \vn{mpirun} or \vn{mpiexec} is used. Example:
+\begin{example}
+  mpirun -np 8 lux_mpi
+\end{example}
 
 Note that two input files are always required to run \lux: The master input file
 (\sref{s:master.file}) and the Bmad lattice file (\sref{s:lat.file}).
