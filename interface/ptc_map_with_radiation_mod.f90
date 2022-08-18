@@ -257,7 +257,7 @@ type (coord_struct) orbit
 type (ptc_rad_map_struct) rad_map
 type (probe_zhe) z_probe
 
-real(rp) beta_end
+real(rp) beta_new
 
 logical, optional :: rad_damp, rad_fluct
 logical damp, fluct, dummy
@@ -276,9 +276,9 @@ z_probe%q%x = [1, 0, 0, 0]
 call track_tree_probe_complex_zhe (rad_map%sub_map, z_probe, bmad_com%spin_tracking_on, damp, fluct)
 if (z_probe%u) orbit%state = lost$   ! %u = T => "unstable".
 
-call convert_pc_to ((1 + z_probe%x(6)) * rad_map%p0c_end, orbit%species, beta = beta_end)
-orbit%t = orbit%t + (orbit%vec(5) / orbit%beta - z_probe%x(5) / beta_end) / c_light + rad_map%dref_time
-orbit%beta = beta_end
+call convert_pc_to ((1 + z_probe%x(6)) * rad_map%p0c_end, orbit%species, beta = beta_new)
+orbit%t = orbit%t + (orbit%vec(5) / orbit%beta - z_probe%x(5) / beta_new) / c_light + rad_map%dref_time
+orbit%beta = beta_new
 orbit%vec = z_probe%x
 orbit%s = rad_map%s_end
 orbit%ix_ele = rad_map%ix_ele_end

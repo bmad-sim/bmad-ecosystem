@@ -83,7 +83,7 @@ if (ele%key == def_ptc_com$) then
   case ('CUT_FACTOR');                                a_ptr%r => ptc_com%cut_factor
   case ('PRINT_INFO_MESSAGES');                       a_ptr%l => ptc_com%print_info_messages
   case ('USE_ORIENTATION_PATCHES');                   a_ptr%l => ptc_com%use_orientation_patches
-  case ('OLD_INTEGRATOR');                            a_ptr%l => ptc_com%old_integrator
+  case ('OLD_INTEGRATOR');                            a_ptr%i => ptc_com%old_integrator
   case ('EXACT_MODEL', 'PTC_EXACT_MODEL');            a_ptr%l => ptc_com%exact_model
   case ('EXACT_MISALIGN', 'PTC_EXACT_MISALIGN');      a_ptr%l => ptc_com%exact_misalign
   case ('MAX_FRINGE_ORDER', 'PTC_MAX_FRINGE_ORDER');  a_ptr%i => ptc_com%max_fringe_order
