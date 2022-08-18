@@ -42,7 +42,7 @@ module ptc_spin
   REAL(DP) :: bran_init=pi  
   logical :: locate_with_no_cavity = .false.,full_way=.true.
   integer  :: item_min=3,mfdebug
-   logical, target :: old_integrator =.true.
+  integer , target :: old_integrator =1
 
 
 
@@ -1871,7 +1871,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     type(probe), INTENT(INOUT) :: xs
     TYPE(INTERNAL_STATE) K
 
-    if(old_integrator) then
+    if(2*old_integrator+c%parent_fibre%mag%old_integrator>0) then
      call TRACK_NODE_FLAG_probe_R(C,XS,K)
     else
       SELECT CASE(C%parent_fibre%mag%KIND)
@@ -1897,10 +1897,9 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
       c%delta_rad_in=0
       c%delta_rad_out=0 
     endif
-    if(old_integrator) then
+    if(2*old_integrator+c%parent_fibre%magp%old_integrator>0) then
      call TRACK_NODE_FLAG_probe_p(C,XS,K)
     else
-
       SELECT CASE(C%parent_fibre%magp%KIND)
 CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND19, &
       KIND21,KIND22,KINDPA,KINDabell,kindsuperdrift)

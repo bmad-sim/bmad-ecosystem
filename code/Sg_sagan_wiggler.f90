@@ -746,7 +746,7 @@ end subroutine kick_integral_p
       endif
 
 
-    CASE(6)
+    CASE(6,8)
        DO j =1,4
           DK(j)=EL%L*YOSK(J)/EL%P%NST
           DF(j)=DK(j)/2.0_dp
@@ -915,7 +915,7 @@ end subroutine kick_integral_p
       endif
 
 
-    CASE(6)
+    CASE(6,8)
        DO j =1,4
           DK(j)=EL%L*YOSK(J)/EL%P%NST
           DF(j)=DK(j)/2.0_dp

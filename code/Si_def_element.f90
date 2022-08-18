@@ -2660,6 +2660,7 @@ ENDIF
     IMPLICIT NONE
     TYPE(ELEMENT), INTENT(INOUT)::EL
     nullify(EL%KIND);
+    nullify(EL%old_integrator);
     nullify(EL%PLOT);
     nullify(EL%NAME);nullify(EL%vorname);nullify(EL%electric);
 nullify(EL%filef,el%fileb);
@@ -2720,6 +2721,7 @@ nullify(EL%filef,el%fileb);
     TYPE(ELEMENTP), INTENT(INOUT)::EL
 
     nullify(EL%KNOB);
+    nullify(EL%old_integrator);
     nullify(EL%probe);
     nullify(EL%KIND);
     nullify(EL%NAME);nullify(EL%vorname);nullify(EL%electric);
@@ -2778,6 +2780,7 @@ nullify(EL%filef,el%fileb);
     INTEGER, INTENT(IN)::I
 
     IF(I==-1) THEN
+       DEALLOCATE(el%old_integrator);
        DEALLOCATE(EL%KIND);
        DEALLOCATE(EL%PLOT);
        DEALLOCATE(EL%recut);
@@ -2959,6 +2962,7 @@ nullify(EL%filef,el%fileb);
        call alloc(el%P);
 
        ALLOCATE(EL%KIND);EL%KIND=0;
+       ALLOCATE(el%old_integrator); el%old_integrator=old_integrator_init;
        ALLOCATE(EL%PLOT);EL%PLOT=MY_TRUE;
        ALLOCATE(EL%RECUT);EL%RECUT=MY_TRUE;
        ALLOCATE(EL%probe);EL%probe=my_false;
@@ -3165,6 +3169,7 @@ nullify(EL%filef,el%fileb);
 
 
        DEALLOCATE(EL%KIND);DEALLOCATE(EL%KNOB);DEALLOCATE(EL%probe);
+       deallocate(el%old_integrator)
        DEALLOCATE(EL%NAME);DEALLOCATE(EL%VORNAME);DEALLOCATE(EL%electric);
 !       DEALLOCATE(EL%PERMFRINGE);
        CALL KILL(EL%L);DEALLOCATE(EL%L);
@@ -3252,6 +3257,8 @@ nullify(EL%filef,el%fileb);
        call alloc(el%P)
 
        ALLOCATE(EL%KIND);EL%KIND=0;ALLOCATE(EL%KNOB);EL%KNOB=.FALSE.;ALLOCATE(EL%probe);EL%probe=.FALSE.;
+       ALLOCATE(el%old_integrator); el%old_integrator=old_integrator_init;
+
        ALLOCATE(EL%NAME);ALLOCATE(EL%VORNAME);ALLOCATE(EL%electric);
        ALLOCATE(EL%skip_ptc_f);   EL%skip_ptc_f=0 ;   ALLOCATE(EL%skip_ptc_b);EL%skip_ptc_b=0  ;
        ALLOCATE(el%do1mapb);   el%do1mapb=.false. ;   ALLOCATE(el%do1mapf);el%do1mapf=.false.  ;
@@ -3321,6 +3328,8 @@ nullify(EL%filef,el%fileb);
     ELP%electric=EL%electric
     ELP%vorname=EL%vorname
     ELP%KIND=EL%KIND
+    ELP%old_integrator=EL%old_integrator
+
     ELP%L=EL%L
     ELP%FINT(1)=EL%FINT(1)
     ELP%FINT(2)=EL%FINT(2)
@@ -3743,6 +3752,8 @@ nullify(EL%filef,el%fileb);
     ELP%electric=EL%electric
     ELP%vorname=EL%vorname
     ELP%KIND=EL%KIND
+    ELP%old_integrator=EL%old_integrator
+
     ELP%L=EL%L
     ELP%FINT(1)=EL%FINT(1)
     ELP%FINT(2)=EL%FINT(2)
@@ -4150,6 +4161,8 @@ nullify(EL%filef,el%fileb);
     ELP%probe=EL%probe
     ELP%even=EL%even
     ELP%KIND=EL%KIND
+    ELP%old_integrator=EL%old_integrator
+
     ELP%PLOT=EL%PLOT
     ELP%L=EL%L
     ELP%FINT(1)=EL%FINT(1)

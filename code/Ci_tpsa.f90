@@ -3284,7 +3284,7 @@ do i=1,n
   vtt%v(j)=-0.5d0*(vt*vt%v(j))
  enddo
  vt=vt+vtt
-vtt=0.5d0*(vflog.lb.vt)
+vtt=0.5_dp*(vflog.lb.vt)
 vtt=vtt+vt
 !vflog=vflog+vt
 vflog=vflog+vtt
@@ -10850,6 +10850,20 @@ SUBROUTINE  c_EQUALcray(S2,S1)
   END SUBROUTINE c_IdentityEQUALMAP
 
 
+  SUBROUTINE  c_zero_constant_in_MAP(S2)
+!*
+    implicit none
+    type (c_damap),INTENT(inOUT)::S2
+    integer i
+     IF(.NOT.C_STABLE_DA) RETURN
+
+     do i=1,s2%n
+      s2%v(i)=s2%v(i)-(s2%v(i).sub.'0')
+     enddo
+ 
+  END SUBROUTINE c_zero_constant_in_MAP
+
+
   SUBROUTINE  c_IdentityEQUALSPIN(S2,S1)
 !*
     implicit none
@@ -11845,7 +11859,7 @@ endif
     return
   end subroutine c_gofix
 
- 
+ ! dragt-finn
 subroutine c_factor_map(m,l,f,dir)  
 !#general: manipulation
 !#  This routine factors a map m as:

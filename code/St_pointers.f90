@@ -3101,11 +3101,11 @@ call read_tree_zhe(t_olek_map(1:3),mapfile)
   
  do i=1,bunch_zhe%n
  
-    bunch_zhe%xs(i)%q=1.e0_dp
+    bunch_zhe%xs(i)%q=1   !  etienne 2022 not sure
   
  enddo
 
-xs0_zhe=closed_orbit  
+xs0_zhe%x(1:6)=closed_orbit      !  etienne 2022 not sure
 write(6,*)  " XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX "
  xj=0
 j=0
