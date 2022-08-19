@@ -1101,6 +1101,14 @@ type bunch_params_struct
                                          !   this case the z-twiss will not be valid.
 end type
 
+! Bunch_track_struct is the bunch alalogue of a particle track_struct
+
+type bunch_track_struct
+  type (bunch_params_struct), allocatable :: pt(:)     ! Array indexed from 0
+  real(rp) :: ds_save = 1d-2                           ! Min distance between points
+  integer :: n_pt = -1                                 ! Track upper bound
+end type
+
 !------------------------------------------------------------------------
 
 ! Converter structure for Probability(pc_out, r_out; pc_in, thickness)
@@ -1403,7 +1411,7 @@ type ptc_normal_form_struct
   type (c_normal_form) normal_form           ! Complex normal form
   type (c_taylor) phase(3)                   ! Phase/chromaticity maps
   type (c_taylor) path_length                ! Path length map. Gives momentum compaction.
-  type (c_taylor) spin                       ! Spin map
+  type (c_taylor) spin_tune                  ! Spin map
   type (internal_state) state                ! PTC state
   logical :: valid_map = .false.
 end type
@@ -1839,7 +1847,7 @@ end type
 type track_struct
   type (track_point_struct), allocatable :: pt(:) ! Array of track points indexed from 0.
   real(rp) :: ds_save = 1d-3  ! Min distance between points. Not positive => Save at all points.
-  integer :: n_pt = -1        ! Track upper bound for %orb(0:), etc. arrays.
+  integer :: n_pt = -1        ! Track upper bound for %pt(0:) array.
   ! n_bad and n_ok are used by adaptive trackers to record the number of times the step length had to be shortened.
   integer :: n_bad = 0        ! Number of "bad" steps where the step length was shortened.
   integer :: n_ok = 0         ! Number of "good" steps where the step length was not shortened.
@@ -2052,7 +2060,7 @@ end type
 type bmad_common_struct
   real(rp) :: max_aperture_limit = 1d3                 ! Max Aperture.
   real(rp) :: d_orb(6)           = 1d-5                ! Orbit deltas for the mat6 via tracking calc.
-  real(rp) :: default_ds_step    = 0.2_rp              ! Integration step size.  
+  real(rp) :: default_ds_step    = 0.2_rp              ! Default integration step for eles without an explicit step calc.
   real(rp) :: significant_length = 1d-10               ! meter 
   real(rp) :: rel_tol_tracking = 1d-8                  ! Closed orbit relative tolerance.
   real(rp) :: abs_tol_tracking = 1d-11                 ! Closed orbit absolute tolerance.

@@ -5142,8 +5142,10 @@ if (n_loc == 1) then
   if (ref_ele%iyy == 0 .and. ref_branch%ix_branch == branch%ix_branch) then
     call compute_super_lord_s (eles(1)%ele, super_ele, pele, ix_insert)
     ele_at_s => pointer_to_element_at_s (branch, super_ele%s_start, .true., err_flag)
-    if (ele_at_s%slave_status == super_slave$) ele_at_s => pointer_to_lord(ele_at_s, 1)
-    if (.not. err_flag) then
+    if (err_flag) then
+      call parser_error ('PROBLEM SUPERIMPOSING: ' // super_ele%name)
+    else
+      if (ele_at_s%slave_status == super_slave$) ele_at_s => pointer_to_lord(ele_at_s, 1)
       if (ele_at_s%iyy /= 0) then  ! If in multipass region...
         pele%ref_name = ele_at_s%name
         pele%ref_pt = anchor_end$
@@ -7157,6 +7159,7 @@ fork_ele%component_name = plat%ele(fork_ele%ixx)%ele_name  ! Substitute element 
 
 if (created_new_branch) then
   call parser_expand_line (1, branch_name, sequence, seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat)
+  if (bp_com%error_flag) return
   nb = nb + 1
   fork_ele%value(ix_to_branch$) = nb
   branch => lat%branch(nb)

@@ -8,7 +8,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track_beam (lat, beam, ele1, ele2, err, centroid, direction)
+! Subroutine track_beam (lat, beam, ele1, ele2, err, centroid, direction, bunch_track)
 !
 ! Subroutine to track a beam of particles from the end of
 ! ele1 Through to the end of ele2. Both must be in the same lattice branch.
@@ -16,23 +16,28 @@ contains
 ! Note: To zero wakes between runs, zero_lr_wakes_in_lat needs to be called.
 !
 ! Input:
-!   lat          -- lat_struct: Lattice to track through.
-!   beam         -- Beam_struct: Beam at end of element ix1.
-!   ele1         -- Ele_struct, optional: Starting element (this element 
-!                     is NOT tracked through). Default is lat%ele(0).
-!   ele2         -- Ele_struct, optional: Ending element.
-!                     Default is lat%ele(lat%n_ele_track).
-!   centroid(0:) -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
-!                     Hint: Calculate this before beam tracking by tracking a single particle.
-!   direction    -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
+!   lat             -- lat_struct: Lattice to track through.
+!   beam            -- beam_struct: Beam at end of element ix1.
+!   ele1            -- ele_struct, optional: Starting element (this element 
+!                        is NOT tracked through). Default is lat%ele(0).
+!   ele2            -- ele_struct, optional: Ending element.
+!                        Default is lat%ele(lat%n_ele_track).
+!   centroid(0:)    -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
+!                        Hint: Calculate this before beam tracking by tracking a single particle.
+!   direction       -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
+!   bunch_track(:)  -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
+!                        Overwrite any existing track.
 !
 ! Output:
-!   beam   -- beam_struct: Beam at end of element ix2.
-!   err    -- Logical: Set true if there is an error. 
-!                  EG: Too many particles lost for a CSR calc.
+!   beam            -- beam_struct: Beam at end of element ix2.
+!   err             -- logical: Set true if there is an error. 
+!                        EG: Too many particles lost for a CSR calc.
+!   bunch_track(:)  -- bunch_track_struct, optional: track information if the tracking method does 
+!                        tracking step-by-step. When tracking through multiple elements, the 
+!                        trajectory in an element is appended to the existing trajectory. 
 !-
 
-subroutine track_beam (lat, beam, ele1, ele2, err, centroid, direction)
+subroutine track_beam (lat, beam, ele1, ele2, err, centroid, direction, bunch_track)
 
 implicit none
 
@@ -40,6 +45,7 @@ type (lat_struct), target :: lat
 type (beam_struct) :: beam
 type (ele_struct), optional, target :: ele1, ele2
 type (coord_struct), optional :: centroid(0:)
+type (bunch_track_struct), optional :: bunch_track(:)
 
 integer, optional :: direction
 integer i
@@ -49,7 +55,7 @@ logical err
 !
 
 do i = 1, size(beam%bunch)
-  call track_bunch(lat, beam%bunch(i), ele1, ele2, err, centroid, direction)
+  call track_bunch(lat, beam%bunch(i), ele1, ele2, err, centroid, direction, bunch_track(i))
   if (err) return
 enddo
 
@@ -59,7 +65,7 @@ end subroutine track_beam
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track_bunch (lat, bunch, ele1, ele2, err, centroid, direction)
+! Subroutine track_bunch (lat, bunch, ele1, ele2, err, centroid, direction, bunch_track)
 !
 ! Subroutine to track a particle bunch from the end of ele1 Through to the end of ele2.
 ! Both must be in the same lattice branch.
@@ -69,23 +75,28 @@ end subroutine track_beam
 ! Note: To zero wakes between runs, zero_lr_wakes_in_lat needs to be called.
 !
 ! Input:
-!   lat          -- lat_struct: Lattice to track through.
-!   bunch        -- Bunch_struct: Bunch at end of element ix1.
-!   ele1         -- Ele_struct, optional: Starting element (this element 
-!                     is NOT tracked through). Default is lat%ele(0).
-!   ele2         -- Ele_struct, optional: Ending element.
-!                     Default is lat%ele(lat%n_ele_track).
-!   centroid(0:) -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
-!                     Hint: Calculate this before bunch tracking by tracking a single particle.
-!   direction    -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
+!   lat           -- lat_struct: Lattice to track through.
+!   bunch         -- Bunch_struct: Bunch at end of element ix1.
+!   ele1          -- Ele_struct, optional: Starting element (this element 
+!                      is NOT tracked through). Default is lat%ele(0).
+!   ele2          -- Ele_struct, optional: Ending element.
+!                      Default is lat%ele(lat%n_ele_track).
+!   centroid(0:)  -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
+!                      Hint: Calculate this before bunch tracking by tracking a single particle.
+!   direction     -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
+!   bunch_track   -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
+!                        Overwrite any existing track.
 !
 ! Output:
-!   bunch     -- bunch_struct: Bunch at end of element ix2.
-!   err       -- Logical: Set true if there is an error. 
-!                  EG: Too many particles lost for a CSR calc.
+!   bunch       -- bunch_struct: Bunch at end of element ix2.
+!   err         -- Logical: Set true if there is an error. 
+!                    EG: Too many particles lost for a CSR calc.
+!   bunch_track -- bunch_track_struct, optional: track information if the tracking method does 
+!                        tracking step-by-step. When tracking through multiple elements, the 
+!                        trajectory in an element is appended to the existing trajectory. 
 !-
 
-subroutine track_bunch (lat, bunch, ele1, ele2, err, centroid, direction)
+subroutine track_bunch (lat, bunch, ele1, ele2, err, centroid, direction, bunch_track)
 
 implicit none
 
@@ -95,6 +106,7 @@ type (branch_struct), pointer :: branch
 type (ele_struct), optional, target :: ele1, ele2
 type (ele_struct), pointer :: e1, e2
 type (coord_struct), optional :: centroid(0:)
+type (bunch_track_struct), optional :: bunch_track
 
 integer, optional :: direction
 integer i, j
@@ -115,17 +127,17 @@ branch => lat%branch(e1%ix_branch)
 if (integer_option(1, direction) == -1) then
   if (e1%ix_ele > e2%ix_ele) then
     do i = e1%ix_ele, e2%ix_ele+1, -1
-      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction, bunch_track)
       if (err) return
     enddo
 
   else
     do i = e1%ix_ele, 1, -1
-      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction, bunch_track)
       if (err) return
     enddo
     do i = branch%n_ele_track, e2%ix_ele+1, -1
-      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction, bunch_track)
       if (err) return
     enddo
   endif
@@ -135,17 +147,17 @@ if (integer_option(1, direction) == -1) then
 else
   if (e1%ix_ele < e2%ix_ele) then
     do i = e1%ix_ele+1, e2%ix_ele
-      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction, bunch_track)
       if (err) return
     enddo
 
   else
     do i = e1%ix_ele+1, branch%n_ele_track
-      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction, bunch_track)
       if (err) return
     enddo
     do i = 1, e2%ix_ele
-      call track1_bunch (bunch, branch%ele(i), err, centroid, direction)
+      call track1_bunch (bunch, branch%ele(i), err, centroid, direction, bunch_track)
       if (err) return
     enddo
   endif
@@ -157,24 +169,27 @@ end subroutine track_bunch
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch (bunch, ele, err, centroid, direction)
+! Subroutine track1_bunch (bunch, ele, err, centroid, direction, bunch_track)
 !
 ! Subroutine to track a bunch of particles through an element.
 !
 ! Input:
-!   bunch        -- bunch_struct: Starting bunch position.
-!   ele          -- Ele_struct: element to track through.
-!   centroid(0:) -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
-!                     Hint: Calculate this before beam tracking by tracking a single particle.
-!   direction    -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
+!   bunch         -- bunch_struct: Starting bunch position.
+!   ele           -- Ele_struct: element to track through.
+!   centroid(0:)  -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
+!                      Hint: Calculate this before beam tracking by tracking a single particle.
+!   direction     -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
+!   bunch_track   -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
+!                        Overwrite any existing track.
 !
 ! Output:
-!   bunch     -- Bunch_struct: Ending bunch position.
-!   err       -- Logical: Set true if there is an error. 
-!                  EG: Too many particles lost for a CSR calc.
+!   bunch       -- Bunch_struct: Ending bunch position.
+!   err         -- Logical: Set true if there is an error. 
+!                    EG: Too many particles lost for a CSR calc.
+!   bunch_track -- bunch_track_struct, optional: Track information appended to track.
 !-
 
-subroutine track1_bunch (bunch, ele, err, centroid, direction)
+subroutine track1_bunch (bunch, ele, err, centroid, direction, bunch_track)
 
 use csr_and_space_charge_mod, only: track1_bunch_csr, track1_bunch_csr3d
 use beam_utils, only: track1_bunch_hom
@@ -187,6 +202,7 @@ type (ele_struct), pointer :: lord, slave, wake_ele
 type (wake_lr_mode_struct), pointer :: lr, lr_chain
 type (ele_pointer_struct), allocatable :: chain_ele(:)
 type (coord_struct), optional :: centroid(0:)
+type (bunch_track_struct), optional :: bunch_track
 
 integer, optional :: direction
 integer i, j, n, im, ix_pass, ixs, ix, n_links
@@ -197,7 +213,7 @@ character(*), parameter :: r_name = 'track1_bunch'
 
 ! Custom tracking
 
-call track1_bunch_hook (bunch, ele, err, centroid, direction, finished)
+call track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
 if (finished) return
 
 !
@@ -233,11 +249,11 @@ if (csr_sc_on .and. ele%key /= match$) then
       call out_io (s_error$, r_name, 'CSR_METHOD IS NOT OFF FOR LATTICE ELEMENT: ' // ele%name, &
                     'THIS IS INCOMPATIBLE WITH TRACKING_METHOD SET TO TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA.')
     endif
-    call track1_bunch_space_charge (bunch, ele, err)
+    call track1_bunch_space_charge (bunch, ele, err, bunch_track = bunch_track)
     track1_bunch_space_charge_called = .true.
 
   elseif (ele%csr_method == steady_state_3d$) then
-     call track1_bunch_csr3d(bunch, ele, centroid, err)
+     call track1_bunch_csr3d(bunch, ele, centroid, err, bunch_track = bunch_track)
      
   else
     if (.not. present(centroid)) then
@@ -245,7 +261,7 @@ if (csr_sc_on .and. ele%key /= match$) then
       if (global_com%exit_on_error) call err_exit
       return
     endif
-    call track1_bunch_csr (bunch, ele, centroid, err)
+    call track1_bunch_csr (bunch, ele, centroid, err, bunch_track = bunch_track)
 
   endif
   bunch%ix_ele = ele%ix_ele
@@ -253,7 +269,7 @@ if (csr_sc_on .and. ele%key /= match$) then
 ! Non csr / non space-charge tracking
 else
   err = .false.
-  call track1_bunch_hom (bunch, ele, direction)
+  call track1_bunch_hom (bunch, ele, direction, bunch_track = bunch_track)
   bunch%ix_ele = ele%ix_ele
 endif
 

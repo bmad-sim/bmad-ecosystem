@@ -1867,6 +1867,14 @@ subroutine s_calc (lat)
   type (lat_struct), target :: lat
 end subroutine
 
+subroutine save_a_bunch_step (bunch_track, ele, bunch)
+  import
+  implicit none
+  type (bunch_track_struct), target :: bunch_track
+  type (ele_struct), target :: ele
+  type (bunch_struct) bunch
+end subroutine
+
 subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time, strong_beam)
   import
   implicit none
@@ -2504,11 +2512,12 @@ subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine track1_bunch_space_charge (bunch, ele, err, to_s_coords)
+subroutine track1_bunch_space_charge (bunch, ele, err, to_s_coords, bunch_track)
   import
   implicit none
   type (bunch_struct), target :: bunch
   type (ele_struct), target :: ele
+  type (bunch_track_struct), optional :: bunch_track
   logical err
   logical, optional :: to_s_coords
 end subroutine
@@ -3181,12 +3190,13 @@ subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, in
   integer :: init_needed
 end subroutine
 
-subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished)
+subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
   import
   implicit none
   type (bunch_struct), target :: bunch
   type (ele_struct), target :: ele
   type (coord_struct), optional :: centroid(0:)
+  type (bunch_track_struct), optional :: bunch_track
   integer, optional :: direction
   logical err, finished
 end subroutine

@@ -16,7 +16,7 @@
 !   orbit(0:) -- coord_struct, optional: Reference orbit used if maps must be created.
 !
 ! Output:
-!   map1     -- spin_orbit_map1_struct: Map with element spin/orbit maps concatenated.
+!   map1      -- spin_orbit_map1_struct: Map with element spin/orbit maps concatenated.
 !   q_ele(:)  -- spin_orbit_map1_struct, optional: Individual spin/orbit maps.
 !-
 

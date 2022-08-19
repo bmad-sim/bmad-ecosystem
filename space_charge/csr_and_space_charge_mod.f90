@@ -104,30 +104,36 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_csr (bunch, ele, centroid, err, s_start, s_end)
+! Subroutine track1_bunch_csr (bunch, ele, centroid, err, s_start, s_end, bunch_track)
 !
 ! Routine to track a bunch of particles through an element with csr radiation effects.
 !
 ! Input:
-!   bunch        -- Bunch_struct: Starting bunch position.
-!   ele          -- Ele_struct: The element to track through. Must be part of a lattice.
-!   centroid(0:) -- coord_struct, Approximate beam centroid orbit for the lattice branch.
-!                     Calculate this before beam tracking by tracking a single particle.
-!   s_start      -- real(rp), optional: Starting position relative to ele. Default = 0
-!   s_end        -- real(rp), optional: Ending position. Default is ele length.
+!   bunch         -- Bunch_struct: Starting bunch position.
+!   ele           -- Ele_struct: The element to track through. Must be part of a lattice.
+!   centroid(0:)  -- coord_struct, Approximate beam centroid orbit for the lattice branch.
+!                      Calculate this before beam tracking by tracking a single particle.
+!   s_start       -- real(rp), optional: Starting position relative to ele. Default = 0
+!   s_end         -- real(rp), optional: Ending position. Default is ele length.
+!   bunch_track   -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
+!                        Overwrite any existing track.
 !
 ! Output:
-!   bunch     -- Bunch_struct: Ending bunch position.
-!   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
+!   bunch       -- Bunch_struct: Ending bunch position.
+!   err         -- Logical: Set true if there is an error. EG: Too many particles lost.
+!   bunch_track -- bunch_track_struct, optional: track information if the tracking method does
+!                        tracking step-by-step. When tracking through multiple elements, the 
+!                        trajectory in an element is appended to the existing trajectory. 
 !-
 
-subroutine track1_bunch_csr (bunch, ele, centroid, err, s_start, s_end)
+subroutine track1_bunch_csr (bunch, ele, centroid, err, s_start, s_end, bunch_track)
 
 implicit none
 
 type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: pt, c0
 type (ele_struct), target :: ele
+type (bunch_track_struct), optional :: bunch_track
 type (branch_struct), pointer :: branch
 type (ele_struct) :: runt
 type (ele_struct), pointer :: ele0, s_ele
@@ -1526,7 +1532,7 @@ end function s_ref_to_s_chord
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_csr3d (bunch, ele, centroid, err)
+! Subroutine track1_bunch_csr3d (bunch, ele, centroid, err, bunch_track)
 !
 ! EXPERIMENTAL
 !
@@ -1535,16 +1541,21 @@ end function s_ref_to_s_chord
 !
 !
 ! Input:
-!   bunch        -- Bunch_struct: Starting bunch position.
-!   ele          -- Ele_struct: The element to track through. Must be part of a lattice.
-!   centroid(0:) -- coord_struct, Approximate beam centroid orbit for the lattice branch.
-!                     Calculate this before beam tracking by tracking a single particle.
-!   s_start      -- real(rp), optional: Starting position relative to ele. Default = 0
-!   s_end        -- real(rp), optional: Ending position. Default is ele length.
+!   bunch         -- Bunch_struct: Starting bunch position.
+!   ele           -- Ele_struct: The element to track through. Must be part of a lattice.
+!   centroid(0:)  -- coord_struct, Approximate beam centroid orbit for the lattice branch.
+!                      Calculate this before beam tracking by tracking a single particle.
+!   s_start       -- real(rp), optional: Starting position relative to ele. Default = 0
+!   s_end         -- real(rp), optional: Ending position. Default is ele length.
+!   bunch_track   -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
+!                        Overwrite any existing track.
 !
 ! Output:
-!   bunch     -- Bunch_struct: Ending bunch position.
-!   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
+!   bunch       -- Bunch_struct: Ending bunch position.
+!   err         -- Logical: Set true if there is an error. EG: Too many particles lost.
+!   bunch_track -- bunch_track_struct, optional: track information if the tracking method does
+!                        tracking step-by-step. When tracking through multiple elements, the 
+!                        trajectory in an element is appended to the existing trajectory. 
 !
 !
 ! Notes:
@@ -1553,18 +1564,20 @@ end function s_ref_to_s_chord
 !
 !-
 
-subroutine track1_bunch_csr3d (bunch, ele, centroid, err, s_start, s_end)
+subroutine track1_bunch_csr3d (bunch, ele, centroid, err, s_start, s_end, bunch_track)
 
 implicit none
 
 type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: c0, p
 type (ele_struct), target :: ele
+type (bunch_track_struct), optional :: bunch_track
 type (branch_struct), pointer :: branch
 type (ele_struct) :: runt
 type (csr_struct), target :: csr
 type (coord_struct), target :: centroid(0:)
 type (coord_struct), pointer :: particle(:)
+
 real(rp), optional :: s_start, s_end
 real(rp) s0_step
 real(rp) e_tot, ds_step

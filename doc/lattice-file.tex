@@ -1,4 +1,4 @@
-\chapter{Lattice File Format}
+\chapter{Lattice File Statements}
 \label{c:lat.file}
 \index{lattice files|hyperbf}
 
@@ -1234,6 +1234,18 @@ The second new file is the modified \vn{sub.bmad} and it must be in the director
 program is run.
 
 %--------------------------------------------------------------------------
+\section{No_Superimpose Statement}
+\label{s:no.sup}
+\index{no_superimpose statement}
+
+In certain cases it is useful to turn off superposition (\sref{s:super}). The \vn{no_superposition}
+statement will do this. To turn off all superpositioning, this statement can appear anywhere as long
+as it is before any \vn{expand_lattice} (\sref{s:expand.lat}) statement. If the lattice has an
+\vn{expand_lattice} statement, and the \vn{no_superposition} statement appears after, the
+\vn{no_superposition} statement will only block superpositions that are defined after the
+\vn{no_superposition} statement.
+
+%--------------------------------------------------------------------------
 \section{Return and End_File Statements}
 \index{return statement|hyperbf}
 \index{end_file statement|hyperbf}
@@ -1516,7 +1528,6 @@ Also see the \vn{slice_lattice} statement (\sref{s:slice}).
 \label{s:debug}
 \index{write_digested statement}
 \index{no_digested statement}
-\index{no_superimpose statement}
 \index{parser_debug statement}
 \index{debug_marker statement}
 \index{no_digested statement}
@@ -1527,7 +1538,6 @@ these statements are generally only used by programmers.  These statements are:
 \begin{example}
   debug_marker
   no_digested
-  no_superimpose
   parser_debug
   write_digested
 \end{example}
@@ -1540,9 +1550,6 @@ The \vn{no_digested} statement if present, will prevent \bmad from
 creating a digested file (\sref{s:digested}). That is, the lattice file will always
 be parsed when a program is run. The \vn{write_digested} statement will cancel a
 \vn{no_digested} statement.
-
-The \vn{no_superimpose} statement is used to suppress superpositions
-(\sref{s:super}). This is useful for debugging purposes.
 
 The \vn{parser_debug} statement will cause information about the lattice to be printed out at the
 terminal. The syntax is
