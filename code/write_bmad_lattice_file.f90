@@ -758,7 +758,8 @@ do ib = 0, ubound(lat%branch, 1)
         this_ele%value(num_steps$) = 0
         this_ele%value(integrator_order$) = 0
         call attribute_bookkeeper (this_ele, .true.)
-        if (attrib%name == 'DS_STEP' .and. val == this_ele%value(ds_step$)) cycle
+        print '(3es20.12)', val, this_ele%value(ds_step$), abs(val - this_ele%value(ds_step$)) 
+        if (attrib%name == 'DS_STEP' .and. abs(val - this_ele%value(ds_step$)) < 1e-6*val) cycle
         if (attrib%name == 'INTEGRATOR_ORDER' .and. val == this_ele%value(integrator_order$)) cycle        
       endif
 

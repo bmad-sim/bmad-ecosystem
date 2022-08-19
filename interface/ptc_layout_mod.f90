@@ -979,7 +979,7 @@ end subroutine ptc_one_turn_map_at_ele
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_map_to_normal_form (one_turn_map, normal_form, phase_map, spin_map)
+! Subroutine ptc_map_to_normal_form (one_turn_map, normal_form, phase_map, spin_tune)
 !
 ! Routine to do normal form analysis on a map.
 ! Note: All output quantities must be allocated prior to calling this routine.
@@ -990,10 +990,10 @@ end subroutine ptc_one_turn_map_at_ele
 ! Output:
 !   normal_form     -- c_normal_form: Normal form decomposition.
 !   phase_map(3)    -- c_taylor: Phase Taylor maps.
-!   spin_map        -- c_taylor, optional: Spin quaternion Taylor map.
+!   spin_tune       -- c_taylor, optional: Spin tune Taylor map.
 !-
 
-subroutine ptc_map_to_normal_form (one_turn_map, normal_form, phase_map, spin_map)
+subroutine ptc_map_to_normal_form (one_turn_map, normal_form, phase_map, spin_tune)
 
 use pointer_lattice
 
@@ -1002,15 +1002,35 @@ implicit none
 type (probe_8) one_turn_map
 type (c_normal_form) normal_form
 type (c_taylor) phase_map(3)
-type (c_taylor), optional :: spin_map
+type (c_taylor), optional :: spin_tune
 type (c_damap) c_map
+!! type (c_damap) as, a2, a1, a0
+!! integer n(6)
 
 !
 
 call alloc(c_map)
 c_map = one_turn_map
-call c_normal (c_map, normal_form, dospin = bmad_com%spin_tracking_on, phase = phase_map, nu_spin = spin_map)
+call c_normal (c_map, normal_form, dospin = bmad_com%spin_tracking_on, phase = phase_map, nu_spin = spin_tune)
 call kill(c_map)
+
+
+!! call c_full_factor_map (normal_form%atot, as, a0, a1, a2)  ! as = spin, a0 = closed orbit, a1 = linear, a2 = non-linear
+!! call clean(a0, a0, prec = 1d-10)
+!! call clean(a1, a1, prec = 1d-10)
+!! call clean(a2, a2, prec = 1d-10)
+!! call clean(as, as, prec = 1d-10)
+!! 
+!! call print (a0)   ! a_tot = a_0 o a_1 o a_2 o a_s
+!! print *, '===================================='
+!! call print (a1)
+!! n = 0
+!! n(6) = 3
+!! print *, (a0%v(1).sub.n)
+!! print *, (normal_form%atot%v(1).sub.n)
+!! call kill(c_map, as, a2, a1, a0)
+
+call print (normal_form%atot)
 
 end subroutine ptc_map_to_normal_form
 

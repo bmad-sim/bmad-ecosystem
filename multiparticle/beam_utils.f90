@@ -14,20 +14,23 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_hom (bunch, ele, direction)
+! Subroutine track1_bunch_hom (bunch, ele, direction, bunch_track)
 !
 ! Subroutine to track a bunch of particles through an element including wakefields.
 !
 ! Input:
-!   bunch       -- bunch_struct: Starting bunch position.
-!   ele         -- Ele_struct: The element to track through.
-!   direction   -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
+!   bunch         -- bunch_struct: Starting bunch position.
+!   ele           -- Ele_struct: The element to track through.
+!   direction     -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
+!   bunch_track   -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
+!                        Overwrite any existing track.
 !
 ! Output:
 !   bunch       -- Bunch_struct: Ending bunch position.
+!   bunch_track -- bunch_track_struct, optional: Track information appended to track.
 !-
 
-subroutine track1_bunch_hom (bunch, ele, direction)
+subroutine track1_bunch_hom (bunch, ele, direction, bunch_track)
 
 use ptc_interface_mod, only: ele_to_taylor
 
@@ -35,6 +38,7 @@ implicit none
 
 type (bunch_struct) bunch
 type (ele_struct) ele, half_ele
+type (bunch_track_struct), optional :: bunch_track
 type (ele_struct), pointer :: wake_ele
 
 type (branch_struct), pointer :: branch
