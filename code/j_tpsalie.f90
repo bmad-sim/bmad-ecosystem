@@ -2818,18 +2818,26 @@ concat=t2
 
   END FUNCTION POWMAP_INV
 
-  subroutine checksympo(s1,norm,orthogonal)
+  subroutine checksympo(s1,norm,orthogonal,normt)
     implicit none
     TYPE (damap) s1
-    real(dp)  norm1,mat(8,8),xj(8,8)
+    real(dp)  norm1,mat(8,8),xj(8,8),normt1
     real(dp), optional :: norm
     integer i,j
     logical(lp), optional :: orthogonal
+    real(dp), optional :: normt 
     logical(lp) nn
     ! checks symplectic conditions on linear map
     nn=.not.present(norm)
     mat=0.d0
     mat=s1
+!call PRINt(s1,6)
+!write(6,format6) mat(1,1:6)
+!write(6,format6) mat(2,1:6)
+!write(6,format6) mat(3,1:6)
+!write(6,format6) mat(4,1:6)
+!write(6,format6) mat(5,1:6)
+!write(6,format6) mat(6,1:6)
     xj=0.d0
     if(present(orthogonal)) then
        if(orthogonal) then
@@ -2851,12 +2859,13 @@ concat=t2
     endif
     xj= MATMUL( transpose(mat),MATMUL(xj,mat))
 
-    norm1=0.d0
+    norm1=0.0_dp
+   normt1=0.0_dp
     do i=1,nd2
        if(lielib_print(9)==1.or.nn)     write(6,'(6(1x,E15.8))') xj(i,1:nd2)
        do j=1,nd2
-
           norm1=norm1+abs(xj(i,j))
+          if(i<5.and.j<5) normt1=normt1+abs(xj(i,j))
        enddo
     enddo
     norm1=abs(norm1-nd2)
