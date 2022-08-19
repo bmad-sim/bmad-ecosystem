@@ -3151,7 +3151,7 @@ case ('spin_tune_ptc.')
   expo = 0
   expo(6) = n 
 
-  datum_value = real(ptc_nf%spin .sub. expo)
+  datum_value = real(ptc_nf%spin_tune .sub. expo)
   valid_value = .true.
 
 !-----------

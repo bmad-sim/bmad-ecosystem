@@ -41,7 +41,7 @@ if (ptc_nf%valid_map) then
   call kill(ptc_nf%one_turn_map)
   call kill(ptc_nf%normal_form)
   call kill(ptc_nf%phase)
-  call kill(ptc_nf%spin)
+  call kill(ptc_nf%spin_tune)
   call kill(ptc_nf%path_length)
   ptc_nf%valid_map = .false.
 endif
@@ -61,7 +61,7 @@ call ptc_one_turn_map_at_ele (ptc_nf%ele_origin, ptc_nf%orb0, ptc_nf%one_turn_ma
 
 call alloc(ptc_nf%normal_form)
 call alloc(ptc_nf%phase)
-call alloc(ptc_nf%spin)
+call alloc(ptc_nf%spin_tune)
 call alloc(ptc_nf%path_length)
 call alloc(beta)
 call alloc(c_da)
@@ -69,7 +69,7 @@ call alloc(c_tay)
 
 ptc_nf%valid_map = .true.
 
-call ptc_map_to_normal_form (ptc_nf%one_turn_map, ptc_nf%normal_form, ptc_nf%phase, ptc_nf%spin)
+call ptc_map_to_normal_form (ptc_nf%one_turn_map, ptc_nf%normal_form, ptc_nf%phase, ptc_nf%spin_tune)
 
 mm = mass_of(branch%param%particle) / branch%ele(0)%value(p0c$)
 beta0 = branch%ele(0)%value(p0c$) / branch%ele(0)%value(E_tot$)
