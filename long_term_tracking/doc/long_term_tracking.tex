@@ -75,7 +75,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ August 15, 2022}
+\date{David Sagan \\ August 19, 2022}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -332,16 +332,24 @@ can be produced by setting \vn{ltt%map_ascii_output_file}.
 \Section{Tuning Map and PTC Tracking Parameters}
 \label{s:map.tuning}
 
-When tracking using maps or element-by-element with PTC 
-there are a few points to keep in mind. First is that \vn{PTC} tracks through a lattice element
-step by step. This is true for both map creation and symplectic integration. This means that the
-setting of the element parameter \vn{num_steps} (or equivalently \vn{ds_step}) for each element will
-affect the accuracy and speed of the computations. Bmad tries to choose reasonable default settings
-for the number of steps however the calculation is not perfect. To make sure that the number of
-steps is set properly, vary the number of steps and choose a step size (which can be different for
-different elements) such that the number of steps is minimal (to minimize computation time) while at
-the same time is large enough so that results do not change significantly if the number of steps is
-increased.
+When tracking using maps or element-by-element with PTC there are a few points to keep in
+mind. First is that \vn{PTC} tracks through a lattice element step by step. This is true for both
+map creation and symplectic integration. This means that the setting of the element parameter
+\vn{integration_order}\footnote
+  {
+Note: Valid settings for \vn{integration_order} are 2, 4, and 6
+  }
+or \vn{num_steps} (or \vn{ds_step}) for each element will affect the accuracy and speed of the
+computations. Bmad tries to choose reasonable default settings for the integration order and number
+of steps however the calculation is not perfect. To make sure that the integration order and number
+of steps is set properly, vary both and choose values (which can be different for different
+elements) such that the number of steps and integration order is minimal (to minimize computation
+time) while at the same time is large enough so that results do not change significantly if the
+number of steps or is varied. Generally it is much better to use a large integration order and a
+small step size rather than vice versa with the proviso that for elements with a longitudinally
+varying field (think wigglers or undulators), the step size must be small compared to the typical
+longitudinal length scale over which the field is varying (this length scale is the pole period
+length with with wigglers and undulators).
 
 Another thing to keep in mind is that whether a map will give accurate results is dependent on a
 number of factors. One factor is the order of the map. Generally higher order is better but will
@@ -1029,7 +1037,7 @@ core emittances $\eps_\core(\unnorm)$ are calculated.
 The core emittance values, as calculated in the last step, will be smaller than the whole beam
 emittances since large amplitude particles are ignored. One way to think about emittance is that it
 is a measure of the area of phase space a beam inhabits so smaller core emittance values are to be
-expected.  However, such core emittance values are not very insiteful. To get around this, core
+expected.  However, such core emittance values are not very insightful. To get around this, core
 emittance values are normalized so that {\em if} the beam had a Gaussian distribution, the
 normalized core emittance values will be the same as the emittance values of the whole beam. One way
 to think about this is to view the normalized core emittance values as a measure of the density of

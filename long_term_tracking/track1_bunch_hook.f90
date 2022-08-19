@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished)
+! Subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
 !
 ! Routine that can be customized for tracking a bunch through a single element.
 !
@@ -17,7 +17,7 @@
 !   finished    -- logical: When set True, the standard track1_bunch code will not be called.
 !-
 
-subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished)
+subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
 
 use lt_tracking_mod, dummy => track1_bunch_hook
 
@@ -26,6 +26,7 @@ implicit none
 type (bunch_struct), target :: bunch
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
+type (bunch_track_struct), optional :: bunch_track
 type (coord_struct), optional :: centroid(0:)
 type (coord_struct), pointer :: orb
 
