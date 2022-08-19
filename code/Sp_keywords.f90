@@ -2753,9 +2753,9 @@ ENDIF
 
  change=.false.
 if(check_excessive_cutting) then
-  if(lielib_print(17)==1) write(6,*)s2%p%method,s2%p%nst, ELE0%name_vorname(1),ELE0%kind
  call against_the_method(s2%p%method,s2%p%nst,met,nst,ELE0%kind,change)
   if(change) then
+    if(lielib_print(17)==1) write(6,*)s2%p%method,s2%p%nst, ELE0%name_vorname(1),met,nst,ELE0%kind
     s2%p%nst=s2%p%nst*faclim
 if(excess) write(6,*) "At least one magnet had its method changed due to excessive cutting ",ELE0%name_vorname(1)
    excess=.false.
@@ -2765,7 +2765,7 @@ if(excess) write(6,*) "At least one magnet had its method changed due to excessi
  ! s2%p%method=met
  ! s2%p%nst=nst*faclim
  !endif
- if(lielib_print(17)==1) write(6,*) 1,s2%p%method,s2%p%nst
+! if(lielib_print(17)==1) write(6,*) 1,s2%p%method,s2%p%nst
      if(switch_to_drift_kick.and.change) then
        if(switch) write(6,*) "all changed magnets are switched to drift-kick-drift"
      if(lielib_print(17)==1) write(6,*)s2%p%method,s2%p%nst, ELE0%name_vorname(1)

@@ -4177,28 +4177,33 @@ X(6)=X(6)+((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2)*(1.0_dp/b+x(5))*L/pz + x(5)*L/pz 
     TYPE(REAL_8) PZ
     logical(lp) EXACT,ctime
     real(dp) b
-
+ 
     call PRTP("DRIFT:0", X)
-
+ 
     IF(EXACT) THEN
        CALL ALLOC(PZ)
        if(ctime) then
+ 
           PZ=SQRT(1.0_dp+2.0_dp*X(5)/b+x(5)**2-X(2)**2-X(4)**2)
           X(1)=X(1)+L*X(2)/PZ
           X(3)=X(3)+L*X(4)/PZ
        !   X(6)=X(6)+L*(1.0_dp/b+X(5))/PZ-(1-T)*LD/b
           X(6)=X(6)+(L/B)*(-2.0_dp*X(5)/B-x(5)**2+X(2)**2+X(4)**2)/pz/(1.0_dp+pz) &
  + L*X(5)/PZ + (L-LD)/B + T*LD/B
+ 
+ 
        else
           call PRTP("********* UNEXPECTED TIME=FALSE **********")
+
+ 
 
           PZ=SQRT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           X(1)=X(1)+L*X(2)/PZ
           X(3)=X(3)+L*X(4)/PZ
-          X(6)=X(6)+L*(1.0_dp+X(5))/PZ-(1-T)*LD
+ !         X(6)=X(6)+L*(1.0_dp+X(5))/PZ-(1-T)*LD
           X(6)=X(6)+L*(-2.0_dp*X(5) -x(5)**2+X(2)**2+X(4)**2)/pz/(1.0_dp+pz) &
  + L*X(5)/PZ + (L-LD)  + T*LD 
-
+ 
        endif
        CALL KILL(PZ)
     ELSE
@@ -11707,7 +11712,9 @@ integer :: kkk=0
       eps_da=eps
      endif
     else
+ 
        CALL DRIFT(YL,DL,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+ 
     endif
 
     call PRTP("SPROT:1", X)
@@ -12083,9 +12090,10 @@ endif
 
    !call PRTP1("B1=", B(1)*YL)
    !call PRTP1("B2=", B(2)*YL)
-
+ 
     X(2)=X(2)+YL*DIR*B(1)
     X(4)=X(4)+YL*DIR*B(2)
+ 
 
     IF(.NOT.EL%DRIFTKICK) THEN
        X(2)=X(2)+YL*DIR*EL%BN(1)*(1.0_dp+X(1)*EL%P%B0)
