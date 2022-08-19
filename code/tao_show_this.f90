@@ -753,7 +753,7 @@ case ('chromaticity')
     expo = [0, 0, 0, 0, 0, i]
     z1 =  real(ptc_nf%phase(1) .sub. expo)
     z2 =  real(ptc_nf%phase(2) .sub. expo)
-    s0 = real(ptc_nf%spin .sub. expo)
+    s0 = real(ptc_nf%spin_tune .sub. expo)
     if (i == 0) then
       nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! 0th order are the tunes'
     else
@@ -778,7 +778,7 @@ case ('chromaticity')
 
     do i = 1, 4
       if (i == 4) then
-        ptc_ctaylor = ptc_nf%spin * ci_phasor() * ptc_nf%normal_form%atot**(-1)
+        ptc_ctaylor = ptc_nf%spin_tune * ci_phasor() * ptc_nf%normal_form%atot**(-1)
       else
         ptc_ctaylor = ptc_nf%phase(i) * ci_phasor() * ptc_nf%normal_form%atot**(-1)
       endif
