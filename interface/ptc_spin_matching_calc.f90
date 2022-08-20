@@ -91,7 +91,6 @@ ptc_layout => ptc_fibre%parent_layout
 !
 
 if (branch%param%geometry == closed$) then
-
   call find_orbit_x (minfo%orb0, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
 
   probe_orb = minfo%orb0
