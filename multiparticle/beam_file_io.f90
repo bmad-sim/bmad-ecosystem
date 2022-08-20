@@ -164,6 +164,7 @@ endif
 n = len_trim(full_name)
 if (full_name(max(1,n-4):n) == '.hdf5' .or. full_name(max(1,n-2):n) == '.h5') then
   call hdf5_read_beam (full_name, beam, err_flag, ele)
+  if (err_flag) return
 
   np = beam_init%n_particle
   if (np > 0) then
