@@ -36,7 +36,7 @@ enddo
 call multi_turn_tracking_to_mat (track, 6, map1, vec0, track0, chi)
 
 do i = 1, 6
-  write (1, '(a, i0, a, 6es12.4)') '"mt_mat', i, '" ABS 1E-13', map1(i,:) - m_in(i,:)
+  write (1, '(a, i0, a, 6es12.4)') '"mt_mat', i, '" ABS 2E-13', map1(i,:) - m_in(i,:)
 enddo
 
 write (1, '(a, 6es12.4)') '"mt_vec" ABS 1E-13', track0%vec - v_const
