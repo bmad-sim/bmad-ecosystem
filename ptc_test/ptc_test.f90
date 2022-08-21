@@ -62,7 +62,7 @@ do i = 1, branch%n_ele_track
   call update_fibre_from_ele (ele, survey_needed)
   call update_ele_from_fibre (ele0)
   str = 'NO-DIFF'
-  call check_if_ele_different(ele0, ele)
+  call check_if_ele_different(ele0, ele, str)
 
   write (1, '(6a)') '"IN-OUT:', trim(ele%name), '" STR  "', trim(str), '"'
 enddo
@@ -346,12 +346,13 @@ end subroutine vary_ele_attributes
 !-----------------------------------------------------------------
 ! contains
 
-subroutine check_if_ele_different(ele, ele2)
+subroutine check_if_ele_different(ele, ele2, str)
 
 type (ele_struct) ele, ele2
 type (ele_attribute_struct) attrib
 real(rp) a_pole, b_pole, a_pole2, b_pole2
 integer j
+character(*) str
 
 !
 
