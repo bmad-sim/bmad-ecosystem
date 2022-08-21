@@ -1109,6 +1109,12 @@ subroutine lat_sanity_check (lat, err_flag)
   logical, intent(out) :: err_flag
 end subroutine
 
+subroutine lat_to_ptc_layout (lat)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+end subroutine
+
 subroutine lattice_bookkeeper (lat, err_flag)
   import
   implicit none
@@ -1559,6 +1565,13 @@ subroutine pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
   integer, optional :: pole_type
 end subroutine
 
+function pointer_to_fibre(ele) result (assoc_fibre)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (fibre), pointer :: assoc_fibre
+end function
+
 function pointer_to_girder(ele, ix_slave_back) result (girder)
   import
   implicit none
@@ -1646,6 +1659,13 @@ subroutine ptc_bookkeeper (lat)
   import
   implicit none
   type (lat_struct), target :: lat
+end subroutine
+
+subroutine ptc_linear_isf_calc (branch, ele_isf)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  type (linear_ele_isf_struct), allocatable, target :: ele_isf(:)
 end subroutine
 
 subroutine ptc_ran_seed_put (iseed)

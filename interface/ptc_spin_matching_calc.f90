@@ -146,7 +146,7 @@ do ie = 0, branch%n_ele_track
   minfo%orb0 = p8_a%x
 
   u = p8_a
-  q_invar = u%q * u
+  q_invar = u
 
   q2 = q_invar * q_y * q_invar**(-1)
   minfo%dn_dpz = q2%q(1:3,6)

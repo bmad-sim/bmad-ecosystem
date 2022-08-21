@@ -296,6 +296,21 @@ type spin_orbit_map1_struct
   real(rp) :: spin_q(0:3,0:6) = 0   ! 0th and 1st order quaternion spin map
 end type
 
+! Structure for linear Invariant Spin Field map
+
+type linear_isf1_struct
+  real(rp) :: orb0(6) = 0        ! Closed orbit.
+  real(rp) :: isf(0:3, 0:6) = 0    ! Linear ISF map at a given point.
+  !!! real(rp) :: m_1turn(6,6) = 0   ! Orbital 1-turn matrix.
+end type
+
+! Holds ISF info for one Bmad element.
+
+type linear_ele_isf_struct
+  type (linear_isf1_struct), allocatable :: node(:)   ! Array per PTC integration node.
+end type
+
+
 !
 
 real(rp), parameter :: x_unit_vec(3) = [1, 0, 0], y_unit_vec(3) = [0, 1, 0], z_unit_vec(3) = [0, 0, 1]
