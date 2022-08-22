@@ -63,6 +63,10 @@ endif
 
 call set_real_all (mp%p0c, mpp%p0c, 1e-9_rp * val(p0c$))
 
+!
+
+if (ele%key == marker$) return
+
 ! Must set all poles even if zero since they might have been non-zero beforehand.
 ! Note: On ptc side bn(1) is error field when creating a fibre but is total field when fibre is being modified.	 
 
