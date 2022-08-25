@@ -299,8 +299,9 @@ end type
 ! Structure for linear Invariant Spin Field map
 
 type linear_isf1_struct
-  real(rp) :: orb0(6) = 0        ! Closed orbit.
+  real(rp) :: orb0(6) = 0          ! Closed orbit.
   real(rp) :: isf(0:3, 0:6) = 0    ! Linear ISF map at a given point.
+  real(rp) :: s = 0                ! Offset from beginning of element.
   !!! real(rp) :: m_1turn(6,6) = 0   ! Orbital 1-turn matrix.
 end type
 
@@ -1015,6 +1016,8 @@ type bunch_struct
   integer :: ix_bunch = 0         ! Bunch index. Head bunch = 1, etc.
   integer :: ix_turn = 0          ! Turn index for long term tracking. ix_turn = 0 before end of first turn, etc.
   integer :: n_live = 0
+  integer :: n_good = 0           ! Number of accepted steps when using adaptive step size control.
+  integer :: n_bad = 0            ! Number of rejected steps when using adaptive step size control.
 end type
 
 type beam_struct
