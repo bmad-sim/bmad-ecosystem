@@ -237,6 +237,7 @@ packages_build_list = [
                 '/packages/gsl',
                 '/packages/fgsl',
                 '/packages/lapack',
+                '/packages/lapack95',
                 '/packages/fftw',
                 '/packages/root',
                 '/packages/xraylib',
