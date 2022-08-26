@@ -13,6 +13,7 @@ set (EXE_SPECS
   cmake_files/cmake.coord_test
   cmake_files/cmake.csr_and_space_charge
   cmake_files/cmake.bookkeeper_test
+  cmake_files/cmake.cathode_sc_test
   cmake_files/cmake.em_field_test
   cmake_files/cmake.field_test
   cmake_files/cmake.fringe_test
