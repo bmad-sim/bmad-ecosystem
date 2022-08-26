@@ -5,6 +5,7 @@ autoscale_test
 beam_test
 bbu_test   
 bookkeeper_test
+! cathode_sc_test
 closed_orbit_test
 coord_test
 csr_and_space_charge_test
