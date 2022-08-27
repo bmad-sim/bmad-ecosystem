@@ -2178,7 +2178,7 @@ endif
        L%END%pos=k;k=k+1;
        L%END%PARENT_NODE_LAYOUT=>L
        L%END%PARENT_FIBRE=>P
-
+       if(p%mag%kind==kind4) L%END%DS_AC=p%mag%h1
 doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
    if(doit) then
     j0=0
@@ -2235,6 +2235,7 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
        L%END%pos_in_fibre=P%MAG%P%NST+3
        L%END%pos=k;k=k+1;
        L%END%PARENT_FIBRE=>P
+       if(p%mag%kind==kind4) L%END%DS_AC=p%mag%h2   ! 2022.8.24
 
        CALL APPEND_EMPTY_THIN( L )
        L%END%TEAPOT_LIKE=TEAPOT_LIKE

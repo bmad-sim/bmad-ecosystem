@@ -2349,7 +2349,7 @@ fringe,permfringe,bend_like,fint,hgap)
     TYPE(ELEMENT), INTENT(INOUT) ::EL
     real(dp), INTENT(IN) ::V
     INTEGER, INTENT(IN) ::NM,F
-    INTEGER I,N
+    INTEGER I,N,n_old
     real(dp), ALLOCATABLE,dimension(:)::AN,BN
     logical(lp), optional :: electric
     logical(lp) elec
@@ -2365,6 +2365,7 @@ fringe,permfringe,bend_like,fint,hgap)
     if(present(electric)) elec=electric
     if(elec.and.(.not.EL%KIND==kind10)) return
 
+n_old=EL%P%NMUL
 
 if(elec) then
     N=NM
@@ -2432,6 +2433,43 @@ else
        EL%AN(I)=AN(I)
        EL%BN(I)=BN(I)
     ENDDO
+!!!!1 added 2022/8/23
+    DO I=1,EL%P%NMUL
+     AN(I)=0.0_dp
+     BN(I)=0.0_dp
+    enddo
+    DO I=1,n_old
+     AN(I)= EL%d0_AN(I) 
+     BN(I)= EL%d0_BN(I)
+    enddo
+    DEALLOCATE(EL%d0_BN)
+    DEALLOCATE(EL%d0_AN)
+    ALLOCATE(EL%d0_AN(EL%P%NMUL),EL%d0_BN(EL%P%NMUL))
+    DO I=1,EL%P%NMUL
+       EL%d0_AN(I) = AN(i)
+       EL%d0_BN(I) = BN(I)
+    ENDDO
+
+if(associated(EL%d_BN))  then
+    DO I=1,EL%P%NMUL
+     AN(I)=0.0_dp
+     BN(I)=0.0_dp
+    enddo
+    DO I=1,n_old
+     AN(I)= EL%d_AN(I) 
+     BN(I)= EL%d_BN(I)
+    enddo
+endif
+    DEALLOCATE(EL%d_BN)
+    DEALLOCATE(EL%d_AN)
+    ALLOCATE(EL%d_AN(EL%P%NMUL),EL%d_BN(EL%P%NMUL))
+    DO I=1,EL%P%NMUL
+       EL%d_AN(I) = AN(i)
+       EL%d_BN(I) = BN(I)
+    ENDDO   
+!!!!!!!!!!    end of changes   !!!!!!!!!!!!!!
+
+ 
 
     DEALLOCATE(AN);DEALLOCATE(BN);
 
@@ -2496,6 +2534,8 @@ else
     END SELECT
 endif
 
+
+
     !    if(el%kind==kind10) then
     !    call GETANBN(EL%TP10)
     !    endif
@@ -2510,13 +2550,16 @@ endif
     TYPE(ELEMENTP), INTENT(INOUT) ::EL
     real(dp), INTENT(IN) ::V
     INTEGER, INTENT(IN) ::NM,F
-    INTEGER I,N
+    INTEGER I,N,N_OLD
     TYPE(REAL_8), ALLOCATABLE,dimension(:)::AN,BN
     logical(lp), optional :: electric
     logical(lp) elec
     elec=my_false
     if(present(electric)) elec=electric
     if(elec.and.(.not.EL%KIND==kind10)) return
+n_old=EL%P%NMUL
+
+
 if(elec) then
     N=NM
     IF(NM<0) N=-N
@@ -2582,6 +2625,50 @@ else
        EL%AN(I)=AN(I)
        EL%BN(I)=BN(I)
     ENDDO
+
+!!!!1 added 2022/8/23
+    DO I=1,EL%P%NMUL
+     AN(I)=0.0_dp
+     BN(I)=0.0_dp
+    enddo
+    DO I=1,n_old
+     AN(I)= EL%d0_AN(I) 
+     BN(I)= EL%d0_BN(I)
+    enddo
+    CALL KILL(EL%D0_AN);CALL KILL(EL%D0_BN);
+    DEALLOCATE(EL%d0_BN)
+    DEALLOCATE(EL%d0_AN)
+    ALLOCATE(EL%d0_AN(EL%P%NMUL),EL%d0_BN(EL%P%NMUL))
+    CALL ALLOC(EL%D0_AN);CALL ALLOC(EL%D0_BN);
+
+    DO I=1,EL%P%NMUL
+       EL%d0_AN(I) = AN(i)
+       EL%d0_BN(I) = BN(I)
+    ENDDO
+
+if(associated(EL%d_BN))  then
+    DO I=1,EL%P%NMUL
+     AN(I)=0.0_dp
+     BN(I)=0.0_dp
+    enddo
+    DO I=1,n_old
+     AN(I)= EL%d_AN(I) 
+     BN(I)= EL%d_BN(I)
+    enddo
+endif
+    CALL KILL(EL%D_AN);CALL KILL(EL%D_BN);
+    DEALLOCATE(EL%d_BN)
+    DEALLOCATE(EL%d_AN)
+    ALLOCATE(EL%d_AN(EL%P%NMUL),EL%d_BN(EL%P%NMUL))
+    ALLOCATE(EL%d_AN(EL%P%NMUL),EL%d_BN(EL%P%NMUL))
+    CALL ALLOC(EL%D_AN);CALL KILL(EL%D_BN);
+
+    DO I=1,EL%P%NMUL
+       EL%d_AN(I) = AN(i)
+       EL%d_BN(I) = BN(I)
+    ENDDO   
+!!!!!!!!!!    end of changes   !!!!!!!!!!!!!!
+
 
     DEALLOCATE(AN);DEALLOCATE(BN);
 

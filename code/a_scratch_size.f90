@@ -207,7 +207,6 @@ module precision_constants
   logical(lp) :: change_sector=my_true
   real(dp) :: xlost(6)=0.0_dp
   integer :: limit_int0(2) =(/4,18/)
-  integer :: limit_int0_new(3) =(/4,18,36/)
   character(1024) :: messagelost
   integer, target :: ndpt_bmad = 0, only2d =0, addclock=0
   integer,TARGET :: HIGHEST_FRINGE=2
