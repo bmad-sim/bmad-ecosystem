@@ -35,7 +35,7 @@ module tree_element_MODULE
 
 
   private EQUAL_RF8_RF8 !,extract_envelope_probe8
-  PRIVATE EQUAL_RF8_RF,EQUAL_RF_RF8,print_rf_phasor_8 !,extract_envelope_damap
+  PRIVATE EQUAL_RF8_RF,EQUAL_RF_RF8,print_rf_phasor_8,print_rf_phasor !,extract_envelope_damap
   private EQUAL_DAMAP_RAY8,cross_spinor,cross_spinor8
   private flip  ! flip in lielib
   integer, target :: spin_extra_tpsa = 0 ,n0_normal= 2
@@ -118,6 +118,7 @@ module tree_element_MODULE
      MODULE PROCEDURE PRINT_probe8
      MODULE PROCEDURE PRINT_spinor_8
      MODULE PROCEDURE print_rf_phasor_8
+     MODULE PROCEDURE print_rf_phasor
   END INTERFACE
 
 
@@ -1182,7 +1183,15 @@ CONTAINS
     WRITE(MFi,*) " SPIN Z "
        write(mfi,'(3(1X,G20.13))') ds%s(3)%x 
    endif
- 
+     if(doing_ac_modulation_in_ptc) then
+      write(mfi,*) ds%nac, " clocks "
+       do i=1,ds%nac
+        call print(ds%ac(i),mfi)
+       enddo
+    else
+       WRITE(MFi,*) "NO MODULATION  "
+
+    endif
 
   END subroutine print_probe
 
@@ -1265,6 +1274,22 @@ CONTAINS
 
   END subroutine print_rf_phasor_8
 
+  subroutine print_rf_phasor(S,MF)
+    implicit none
+    TYPE(rf_phasor), INTENT(INOUT) :: s
+    INTEGER MFi,I
+    integer,optional :: mf
+     mfi=6
+     if(present(mf)) mfi=mf
+
+    write(mfi,*) ' AC INFORMATION : omega, pseudo-time, hands of the clock'
+    write(mfi,*) s%om 
+    write(mfi,*) s%t 
+    do i=1,2
+        write(mfi,*)s%x(i),mfi 
+    enddo
+
+  END subroutine print_rf_phasor
 
   subroutine print_spinor_8(S,MF)
     implicit none

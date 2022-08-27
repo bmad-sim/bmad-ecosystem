@@ -63,10 +63,13 @@ module definition
    integer(1),allocatable :: vo_berz(:)
    integer(1) ,allocatable ::  mo_gtpsa(:)
 logical :: use_quaternion_in_so3=.false.
+!  used for removing excessive cuting
 logical :: check_excessive_cutting =.true.
 logical :: switch_to_drift_kick =.true.
+integer :: limit_int0_new(3) =(/20,30,36/)    !(/4,18,36/)
 integer :: m6lim =10
-integer :: faclim =1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!integer :: faclim =1
 integer  :: old_integrator_init =1
 
 TYPE sub_taylor

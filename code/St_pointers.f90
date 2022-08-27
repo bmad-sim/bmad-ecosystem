@@ -8,6 +8,7 @@ module pointer_lattice
   ! stuff for main program
   type(layout),pointer :: my_ering => null(), my_fring => null()
   type(internal_state),pointer :: my_estate => null()
+  type(probe), pointer :: my_eprobe => null()
 !  type(internal_state),pointer :: my_old_state
   integer ,pointer :: my_start, MY_ORDER, MY_NP,MY_END,my_start_t
   real(dp), pointer :: my_fix(:),MY_DELTA
