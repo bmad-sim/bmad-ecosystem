@@ -65,7 +65,7 @@ do ie = 1, lat%n_ele_track
       ele%value(num_steps$) = num_steps(is)
       call set_flags_for_changed_attribute(ele, ele%value(num_steps$))
 
-      ptc_com%old_integrator = .true.
+      ptc_com%old_integrator = 1   ! True
       call kill_taylor (ele%taylor);  call kill_taylor(ele%spin_taylor)
       call spin_concat_linear_maps(old(is)%map, lat%branch(0), ie-1, ie, orbit = orbit)
 
@@ -73,7 +73,7 @@ do ie = 1, lat%n_ele_track
       old(is)%t_probe  = probe_timer(ele, orbit(ie-1), stop_time, n_time_calc)
       old(is)%t_fibre  = fibre_timer(ele, orbit(ie-1), stop_time, n_time_calc)
 
-      ptc_com%old_integrator = .false.
+      ptc_com%old_integrator = -1  ! False
       call kill_taylor (ele%taylor);  call kill_taylor(ele%spin_taylor)
       call spin_concat_linear_maps(new(is)%map, lat%branch(0), ie-1, ie, orbit = orbit)
 
