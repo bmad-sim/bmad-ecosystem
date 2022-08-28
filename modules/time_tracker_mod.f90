@@ -360,7 +360,7 @@ function wall_intersection_func (this_dt, status) result (d_radius)
 
 type (coord_struct) test_orb
 real(rp), intent(in) :: this_dt
-real(rp) d_radius
+real(rp) d_radius, s_here
 integer status
 logical err_flag, no_aperture_here
 
@@ -368,7 +368,8 @@ logical err_flag, no_aperture_here
 call rk_time_step1 (ele, param, old_t, old_orb, this_dt, orb, vec_err, err_flag = err_flag, extra_field = extra_field)
 
 test_orb = orb
-call offset_particle (ele, unset$, test_orb, s_pos=s_body, set_hvkicks = .false.)
+call convert_particle_coordinates_t_to_s(test_orb, ele, s_here)
+call offset_particle (ele, unset$, test_orb, s_pos=s_here, set_hvkicks = .false.)
 d_radius =  distance_to_aperture (test_orb, in_between$, ele, no_aperture_here)
 rf_time = rf_time + this_dt
 

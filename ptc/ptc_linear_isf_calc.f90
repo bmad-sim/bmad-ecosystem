@@ -117,6 +117,7 @@ do ie = 0, branch%n_ele_track
 
     eisf => ele_isf(ie)
     eisf%node(ii)%orb0 = p8_a%x
+    eisf%node(ii)%s = node_now%s(2)  ! Offset from start of element.
 
     u = p8_a
     q_invar = u

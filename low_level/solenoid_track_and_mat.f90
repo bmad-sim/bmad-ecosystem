@@ -52,7 +52,7 @@ if (ff <= 0) then
 endif
 pz = sqrt(ff)
 
-end_orb%vec(5) = end_orb%vec(5) + length * ((end_orb%beta * ele%value(E_tot$) / ele%value(p0c$)) - rel_p/pz)
+end_orb%vec(5) = end_orb%vec(5) + length * (end_orb%direction*(end_orb%beta * ele%value(E_tot$) / ele%value(p0c$)) - rel_p/pz)
 
 ks = ks0 / pz
 kss = ks / 2

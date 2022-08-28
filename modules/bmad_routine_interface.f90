@@ -2319,12 +2319,13 @@ subroutine track_a_crab_cavity (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine track_a_drift (orb, length, mat6, make_matrix, include_ref_motion)
+subroutine track_a_drift (orb, length, mat6, make_matrix, ele_orientation, include_ref_motion)
   import
   implicit none
   type (coord_struct) orb
   real(rp) length
   real(rp), optional :: mat6(6,6)
+  integer, optional :: ele_orientation
   logical, optional :: make_matrix, include_ref_motion
 end subroutine
 
