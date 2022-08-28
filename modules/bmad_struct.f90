@@ -2125,7 +2125,7 @@ type (bmad_common_struct), save, target :: bmad_com
 
 type ptc_common_struct
   integer, pointer :: max_fringe_order  => null()  ! Points to PTC HIGHEST_FRINGE. 2 (default) => Quadrupole.
-  integer, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR. Default False.
+  integer, pointer :: old_integrator    => null()  ! Points to PTC OLD_INTEGRATOR. -1 = False, 1 = True.
   logical, pointer :: exact_model       => null()  ! Points to PTC EXACT_MODEL. Default True.
   logical, pointer :: exact_misalign    => null()  ! Points to PTC ALWAYS_EXACTMIS. Default True. Notice different names.
   real(rp), pointer :: vertical_kick    => null()  ! Points to PTC VERTICAL_KICK for 6D emittance calc. 0 => off, 1 => on (default).

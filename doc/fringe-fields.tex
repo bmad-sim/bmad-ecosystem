@@ -13,6 +13,13 @@ The advantage of separating the fringe kick in this way is that the hard fringe 
 be used without having to know anything about the longitudinal extent of the fringe
 field. In many cases, this is a good enough approximation. 
 
+Currently, the only magnetic elements where a fringe kick is applied are:
+\begin{example}
+  sbend \& rbend
+  quadrupole
+  sad_mult
+\end{example}
+
 %---------------------------------------------------------------------------------
 \section{Dipole Soft Edge Fringe Map for Bends and Sad_Mult}
 \label{s:fringe.bend.soft}
@@ -136,8 +143,8 @@ The transport for the exit fringe is
   \Delta p_y &= y \left[ -g_\tot \, \tan (e_2)
     + \frac{g^2_\tot \, [1 + \sin^2 (e_2)] \, \sec^3 (e_2)}{1 + p_z} \, f_{int} \,  h_{gap} \right]
     + \frac{x \, y \, g^2_\tot \, \sec^2 (e_2) \, \tan (e_2)}{1 + p_z} \CRNO
-    &\qquad\qquad + \frac{(x \, p_y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} 
-    + \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{1 + p_z} 
+    &\qquad\qquad + \frac{(x \, p_y \, g_\tot \, \tan^2 (e_2)}{1 + p_z} 
+    + \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_2)]}{1 + p_z} 
     - \frac{2 \, x \, y \, K_1 \tan (e_2)}{(1 + p_z)} \CRNO
   \Delta z &= \frac{\Omega_{M2} - (x^2 - y^2) \, g_\tot \, \tan (e_2)/2}{1 + p_z} \nonumber
 \end{align}

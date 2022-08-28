@@ -119,7 +119,11 @@ endif
 
 !
 
-if (ele%key == patch$) return
+if (ele%key == patch$) then
+  if (present(s_out)) s_out = s_pos0
+  return
+endif
+
 if (present(spin_qrot)) spin_qrot = [1, 0, 0, 0]
 
 !---------------------------------------------------------------         
@@ -218,14 +222,14 @@ if (set) then
     pz = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
     if (pz <= 0) then
       orbit%state = lost_pz_aperture$
-      return
+    else
+      p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
+      p_vec = matmul(position%w, p_vec0)
+      orbit%vec(2:4:2) = p_vec(1:2)
+      orbit%vec(1:3:2) = position%r(1:2)
+      if (logic_option(.false., make_matrix)) call apply_offsets_to_matrix (p_vec0, p_vec, position%w, mat6)
     endif
-    p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
-    p_vec = matmul(position%w, p_vec0)
-    orbit%vec(2:4:2) = p_vec(1:2)
-    orbit%vec(1:3:2) = position%r(1:2)
 
-    if (logic_option(.false., make_matrix)) call apply_offsets_to_matrix (p_vec0, p_vec, position%w, mat6)
 
     if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
     if (present(spin_qrot)) spin_qrot = quat_mul(w_mat_to_quat(position%w), spin_qrot)
@@ -241,7 +245,7 @@ if (set) then
   ! When drifting the reference particle does not move! That is, the reference time is the time the 
   ! referece particle reaches the *nominal* edge of the element and this is independent of any misalignments.
 
-  if (do_drift) then
+  if (do_drift .and. orbit%state == alive$) then
     call track_a_drift (orbit, s_target - s_body, mat6, make_matrix, ele%orientation, include_ref_motion = .false.)
   endif
 
@@ -407,14 +411,13 @@ else
     pz = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
     if (pz <= 0) then
       orbit%state = lost_pz_aperture$
-      return
+    else
+      p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
+      p_vec = matmul(position%w, p_vec0)
+      orbit%vec(2:4:2) = p_vec(1:2)
+      orbit%vec(1:3:2) = position%r(1:2)
+      if (logic_option(.false., make_matrix)) call apply_offsets_to_matrix (p_vec0, p_vec, position%w, mat6)
     endif
-    p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
-    p_vec = matmul(position%w, p_vec0)
-    orbit%vec(2:4:2) = p_vec(1:2)
-    orbit%vec(1:3:2) = position%r(1:2)
-
-    if (logic_option(.false., make_matrix)) call apply_offsets_to_matrix (p_vec0, p_vec, position%w, mat6)
 
     if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
     if (present(spin_qrot)) spin_qrot = quat_mul(w_mat_to_quat(position%w), spin_qrot)
@@ -430,7 +433,7 @@ else
   ! When drifting the reference particle does not move! That is, the reference time is the time the 
   ! referece particle reaches the *nominal* edge of the element and this is independent of any misalignments.
 
-  if (do_drift) then
+  if (do_drift .and. orbit%state == alive$) then
     call track_a_drift (orbit, s_target-s_lab, mat6, make_matrix, +1, include_ref_motion = .false.)
   endif
 
