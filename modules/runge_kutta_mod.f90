@@ -674,7 +674,7 @@ endif
 
 err = .true.
 rel_dir = ele%orientation * orbit%direction
-dt_ds_ref = rel_dir / (beta0 * c_light)
+dt_ds_ref = ele%orientation / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
 e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
 

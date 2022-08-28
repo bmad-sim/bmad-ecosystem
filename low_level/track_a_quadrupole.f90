@@ -115,6 +115,10 @@ do i = 1, n_step
 
   orbit%vec(5) = orbit%vec(5) + low_energy_z_correction (orbit, ele, step_len, mat6, make_matrix)
 
+  if (orbit%direction == -1) then
+    orbit%vec(5) = orbit%vec(5) - 2.0_rp * c_light * orbit%beta * ele%value(delta_ref_time$)
+  endif
+
   if (i == n_step) then
     if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  param%particle, ele, orbit, magnetic$, r_step/2,   mat6, make_matrix)
     if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, param%particle, ele, orbit, electric$, step_len/2, mat6, make_matrix)
@@ -135,7 +139,7 @@ endif
 
 call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
-orbit%t = start_orb%t + time_direction() * (ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light))
+orbit%t = start_orb%t + time_direction() * (orbit%direction*ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light))
 
 !
 
