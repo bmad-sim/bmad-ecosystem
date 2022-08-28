@@ -2,8 +2,8 @@
 ! Subroutine offset_particle (ele, set, orbit, set_tilt, set_hvkicks, drift_to_edge, &
 !                                                           s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot)
 !
-! Routine to transform a particles's coordinates between laboratory and element coordinates
-! at the ends of the element. Additionally, this routine will:
+! Routine to transform a particles's coordinates between laboratory and element body coordinates.
+! Additionally, this routine can:
 !   a) Apply the half kicks due to multipole and kick attributes.
 !   b) drift to the actual misaligned edge of the element.
 !
@@ -14,7 +14,7 @@
 !      If coord%direction = -1 -> Assume the particle is at the downstream (+S) end.
 !
 ! set = unset$:
-!    Transforms from element to lab coords.
+!    Transforms from element body to lab coords.
 !    If s_pos is not present:
 !      If coord%direction = +1 -> Assume the particle is at the downstream (+S) end.
 !      If coord%direction = -1 -> Assume the particle is at the upstream (-S) end.
@@ -38,15 +38,14 @@
 !                       F -> Do not rotate
 !   set_hvkicks       -- Logical, optional: Default is True.
 !                       T -> Apply 1/2 any hkick or vkick.
-!   drift_to_edge     -- Logical, optional: Default is True.
-!                       T -> Particle will be propagated from where the particle is (at the
-!                              nominal edge of the element) and the true physical edge of the element.
-!                       F -> Do no propagate. Used by save_a_step routine.
+!   drift_to_edge     -- Logical, optional: Default is True if s_pos is absent and False if s_pos is present.
+!                       T -> Particle will be propagated from where the particle is to:
+!                            With set = set$: The upsteam body edge.
+!                            With set = unset$: The nominal (lab coords) downstream edge of the element.
+!                       F -> Do not propagate. 
 !   s_pos             -- Real(rp), optional: Longitudinal particle position:
-!                         If set = set$: Relative to upstream end (That is, in lab coords).
-!                         If set = unset$: Relative to entrance end (Thant is, in body coords).
-!                         If not present then, for orbit%direction = 1,  s_pos = 0 is assumed when set = T and 
-!                         s_pos = ele%value(l$) when set = F. And vice versa when orbit%direction = -1.
+!                         If set = set$: Relative to upstream end (in lab coords).
+!                         If set = unset$: Relative to entrance end (in body coords).
 !   set_spin          -- Logical, optional: Default if False.
 !                         Rotate spin coordinates? Also bmad_com%spin_tracking_on must be T to rotate.
 !   mat6(6,6)         -- Real(rp), optional: Transfer matrix before off setting.
@@ -57,6 +56,8 @@
 !                         If set = set$: In body coords.
 !                         If set = unset$: In lab coords.
 !     s_out           -- real(rp), optional: Longitudinal particle position. 
+!                         If set = set$: Relative to entrance end (in body coords).
+!                         If set = unset$: Relative to upstream end (in lab coords).
 !     mat6(6,6)       -- real(rp), optional: Transfer matrix transfer matrix after offsets applied.
 !     spin_qrot(0:3)  -- real(rp), optional: Spin rotation quaternion
 !-
@@ -75,9 +76,10 @@ type (floor_position_struct) position
 
 real(rp), optional :: s_pos, s_out, mat6(6,6), spin_qrot(0:3)
 real(rp) rel_p, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx, f, B_factor, ds_center
-real(rp) angle, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3), pz
-real(rp) beta_ref, charge_dir, dz, rel_tracking_charge, rtc, Ex, Ey, kx, ky, length
+real(rp) angle, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3), pz, s_target, s_lab, s_body
+real(rp) beta_ref, charge_dir, dz, rel_tracking_charge, rtc, Ex, Ey, kx, ky, length, s_pos0
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), ws(3,3), L_mis(3), p_vec0(3), p_vec(3), ref_tilt
+real(rp) L_half, ds
 
 integer particle, sign_z_vel
 integer n, ix_pole_max
@@ -86,41 +88,36 @@ logical, intent(in) :: set
 logical, optional, intent(in) :: set_tilt, set_spin
 logical, optional, intent(in) :: set_hvkicks, drift_to_edge
 logical, optional :: make_matrix
-logical set_hv, set_t, set_hv1, set_hv2, do_drift, set_spn
+logical set_hv, set_t, set_hv1, set_hv2, do_drift, set_spn, is_misaligned
 
 !
 
 length = ele%value(l$)
+L_half = 0.5_rp * length
 sign_z_vel = ele%orientation * orbit%direction
 
-if (set) then
-  ! ds_center is distance to the center of the element from the particle position
+! set:   s_pos is in lab coords
+! unset: s_pos is in body coords.
 
-  if (present(s_pos)) then
-    ds_center = ele%orientation * (length/2 - s_pos)   ! S_pos is in lab coords
-    if (present(s_out)) then
-      if (ele%orientation == 1) then;  s_out = s_pos
-      else;                            s_out = length - s_pos
-      endif
-    endif
-  else
-    ds_center = sign_z_vel * length / 2
-    if (present(s_out)) s_out = (1 - sign_z_vel) * length / 2
-  endif
-
+if (present(s_pos)) then
+  s_pos0 = s_pos
+elseif ((set .and. orbit%direction == 1) .or. (.not. set .and. sign_z_vel == -1)) then
+  s_pos0 = 0
 else
-  if (present(s_pos)) then
-    ds_center = length/2 - s_pos    ! s_pos is in body coords 
-    if (present(s_out)) then
-      if (ele%orientation == 1) then;  s_out = s_pos
-      else;                            s_out = length - s_pos
-      endif
-    endif
-  else
-    ds_center = -sign_z_vel * length / 2
-    if (present(s_out)) s_out = (1 + sign_z_vel) * length / 2
-  endif
+  s_pos0 = length
 endif
+
+! ds_center is distance to the center of the element from the particle position
+
+if (set) then
+  ds_center = L_half - s_pos0                       ! Lab coords: Nominal center - S_pos
+  s_target = (1 - sign_z_vel) * L_half              ! Position to drift to (body coords).
+else
+  ds_center = L_half - s_pos0                       ! Body coords: Body center - s_pos
+  s_target = (1 + orbit%direction) * L_half         ! Position to drift to (lab coords).
+endif
+
+!
 
 if (ele%key == patch$) return
 if (present(spin_qrot)) spin_qrot = [1, 0, 0, 0]
@@ -132,7 +129,7 @@ rel_p = (1 + orbit%vec(6))
 set_hv     = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t      = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
-do_drift   = logic_option (.true., drift_to_edge) .and. has_orientation_attributes(ele)
+do_drift   = logic_option (.not. present(s_pos), drift_to_edge) .and. has_orientation_attributes(ele)
 set_spn    = (logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on) .or. present(spin_qrot)
 
 rel_tracking_charge = rel_tracking_charge_to_mass (orbit, ele%ref_species)
@@ -153,6 +150,7 @@ else
 endif
 
 B_factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+is_misaligned = .false.
 
 !----------------------------------------------------------------
 ! Set...
@@ -162,72 +160,100 @@ if (set) then
   ! Set: Offset and pitch
 
   if (has_orientation_attributes(ele)) then
-
     x_off = ele%value(x_offset_tot$)
     y_off = ele%value(y_offset_tot$)
     z_off = ele%value(z_offset_tot$)
     xp    = ele%value(x_pitch_tot$)
     yp    = ele%value(y_pitch_tot$)
     ref_tilt = ele%value(ref_tilt_tot$)
+    is_misaligned = (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
+                                (ele%key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0)))
+  endif
 
-    if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
-                          (ele%key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0))) then
-            
-      position%r = [orbit%vec(1), orbit%vec(3), 0.0_rp]
-      call mat_make_unit (position%w)
+  if (is_misaligned) then
+    position%r = [orbit%vec(1), orbit%vec(3), 0.0_rp]
+    call mat_make_unit (position%w)
 
-      if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
-        position = bend_shift(position, ele%value(g$), ds_center, ref_tilt = ref_tilt)
+    if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
+      position = bend_shift(position, ele%value(g$), ele%orientation*ds_center, ref_tilt = ref_tilt)
 
-        call ele_misalignment_L_S_calc(ele, L_mis, ws)
-        ws = transpose(ws)
-        position%r = matmul(ws, position%r - L_mis)
-        position%w = matmul(ws, position%w)
+      call ele_misalignment_L_S_calc(ele, L_mis, ws)
+      ws = transpose(ws)
+      position%r = matmul(ws, position%r - L_mis)
+      position%w = matmul(ws, position%w)
 
-        if (ref_tilt == 0) then
-          position = bend_shift(position, ele%value(g$), -ds_center)
-        else
-          position = bend_shift(position, ele%value(g$), -ele%value(L$)/2, ref_tilt = ref_tilt)
-          ws = w_mat_for_tilt(-ref_tilt)
-          position%r = matmul(ws, position%r)
-          position%w = matmul(ws, position%w)
-          position = bend_shift(position, ele%value(g$), ele%value(L$)/2-ds_center)
-        endif        
-
-      ! Else not a bend or a bend with zero bending angle
-
-      else
-        call floor_angles_to_w_mat (xp, yp, 0.0_rp, w_mat_inv = ws)
-        position%r  = position%r - [x_off, y_off, z_off+ds_center]
+      if (ref_tilt /= 0) then
+        position = bend_shift(position, ele%value(g$), -L_half, ref_tilt = ref_tilt)
+        ws = w_mat_for_tilt(-ref_tilt)
         position%r = matmul(ws, position%r)
         position%w = matmul(ws, position%w)
-        position%r(3) = position%r(3) + ds_center
+        position = bend_shift(position, ele%value(g$), L_half)
+      endif        
+
+      if (do_drift) then
+        position = bend_shift(position, ele%value(g$), s_target-L_half)
+        position%r(3) = position%r(3) + s_target
+      else
+        if (ele%value(g$) == 0) then
+          ds = -ele%orientation*ds_center
+        else
+          ds = ele%value(rho$) * atan2(position%r(3)*ele%value(g$), 1.0_rp + position%r(1)*ele%value(g$))
+        endif
+        position = bend_shift(position, ele%value(g$), ds)
+        position%r(3) = position%r(3) + L_half + ds
       endif
 
-      pz = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
-      if (pz <= 0) then
-        orbit%state = lost_pz_aperture$
-        return
-      endif
-      p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
-      p_vec = matmul(position%w, p_vec0)
-      orbit%vec(2:4:2) = p_vec(1:2)
-      orbit%vec(1:3:2) = position%r(1:2)
+    ! Else not a bend or a bend with zero bending angle
 
-      if (logic_option(.false., make_matrix)) call apply_offsets_to_matrix (p_vec0, p_vec, position%w, mat6)
+    else
+      position%r  = position%r - [x_off, y_off, z_off+ele%orientation*ds_center]
+      call floor_angles_to_w_mat (xp, yp, 0.0_rp, w_mat_inv = ws)
+      position%r = matmul(ws, position%r)
+      position%w = matmul(ws, position%w)
+      position%r(3) = position%r(3) + L_half
+    endif
 
-      if (do_drift .and. position%r(3) /= 0) then
-        ! The reference particle does not move! That is, the reference time is the time the referece particle
-        ! reaches the *nominal* edge of the element and this is independent of any misalignments.
-        call track_a_drift (orbit, -sign_z_vel*position%r(3), mat6, make_matrix, include_ref_motion = .false.)
-      endif
-    
-      if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
-      if (present(spin_qrot)) spin_qrot = quat_mul(w_mat_to_quat(position%w), spin_qrot)
+    s_body = position%r(3)
 
-    endif    ! has nonzero offset or pitch
+    pz = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
+    if (pz <= 0) then
+      orbit%state = lost_pz_aperture$
+      return
+    endif
+    p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
+    p_vec = matmul(position%w, p_vec0)
+    orbit%vec(2:4:2) = p_vec(1:2)
+    orbit%vec(1:3:2) = position%r(1:2)
 
-  endif   ! has orientation attributes
+    if (logic_option(.false., make_matrix)) call apply_offsets_to_matrix (p_vec0, p_vec, position%w, mat6)
+
+    if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
+    if (present(spin_qrot)) spin_qrot = quat_mul(w_mat_to_quat(position%w), spin_qrot)
+  endif    ! has nonzero offset or pitch
+
+  if (.not. is_misaligned) then
+    select case (ele%orientation)
+    case (1);  s_body = s_pos0
+    case (-1); s_body = length - s_pos0
+    end select
+  endif
+
+  ! When drifting the reference particle does not move! That is, the reference time is the time the 
+  ! referece particle reaches the *nominal* edge of the element and this is independent of any misalignments.
+
+  if (do_drift) then
+    call track_a_drift (orbit, s_target - s_body, mat6, make_matrix, ele%orientation, include_ref_motion = .false.)
+  endif
+
+  !
+
+  if (present(s_out)) then
+    if (do_drift) then
+      s_out = s_target
+    else
+      s_out = s_body
+    endif
+  endif
 
   ! Set: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
   ! HV kicks must come after z_offset but before any tilts are applied.
@@ -236,9 +262,9 @@ if (set) then
   ! Note: Since this is applied before tilt_coords, kicks are independent of any tilt.
 
   if (set_hv1) then
-    orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(hkick$) / 2
-    orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(vkick$) / 2
-    if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
+    orbit%vec(2) = orbit%vec(2) + 0.5_rp * charge_dir * ele%value(hkick$)
+    orbit%vec(4) = orbit%vec(4) + 0.5_rp * charge_dir * ele%value(vkick$)
+    if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
   endif
 
   ! Set: Tilt
@@ -253,21 +279,21 @@ if (set) then
 
   if (set_hv2) then
     if (ele%key == elseparator$) then
-      rtc = abs(rel_tracking_charge) * sign(1, charge_of(orbit%species))
-      orbit%vec(2) = orbit%vec(2) + rtc * ele%value(hkick$) / 2
-      orbit%vec(4) = orbit%vec(4) + rtc * ele%value(vkick$) / 2
+      rtc = 0.5_rp * abs(rel_tracking_charge) * sign(1, charge_of(orbit%species))
+      orbit%vec(2) = orbit%vec(2) + rtc * ele%value(hkick$)
+      orbit%vec(4) = orbit%vec(4) + rtc * ele%value(vkick$)
       if (set_spn .and. ele%value(e_field$) /= 0) call rotate_spin_given_field (orbit, sign_z_vel, &
-                                      EL = [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * (ele%value(p0c$) / 2), qrot = spin_qrot)
+                                      EL = 0.5_rp * [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * ele%value(p0c$), qrot = spin_qrot)
     elseif (ele%key == hkicker$) then
-      orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [0.0_rp, -ele%value(kick$), 0.0_rp], qrot = spin_qrot)
+      orbit%vec(2) = orbit%vec(2) + 0.5_rp * charge_dir * ele%value(kick$)
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[0.0_rp, -ele%value(kick$), 0.0_rp], qrot = spin_qrot)
     elseif (ele%key == vkicker$) then
-      orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(kick$), 0.0_rp, 0.0_rp], qrot = spin_qrot)
+      orbit%vec(4) = orbit%vec(4) + 0.5_rp * charge_dir * ele%value(kick$)
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[ele%value(kick$), 0.0_rp, 0.0_rp], qrot = spin_qrot)
     else
-      orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(hkick$) / 2
-      orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(vkick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
+      orbit%vec(2) = orbit%vec(2) + 0.5_rp * charge_dir * ele%value(hkick$)
+      orbit%vec(4) = orbit%vec(4) + 0.5_rp * charge_dir * ele%value(vkick$)
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
     endif
   endif
 
@@ -280,21 +306,21 @@ else
 
   if (set_hv2) then
     if (ele%key == elseparator$) then
-      rtc = abs(rel_tracking_charge) * sign(1, charge_of(orbit%species))
-      orbit%vec(2) = orbit%vec(2) + rtc * ele%value(hkick$) / 2
-      orbit%vec(4) = orbit%vec(4) + rtc * ele%value(vkick$) / 2
+      rtc = 0.5_rp * abs(rel_tracking_charge) * sign(1, charge_of(orbit%species))
+      orbit%vec(2) = orbit%vec(2) + rtc * ele%value(hkick$)
+      orbit%vec(4) = orbit%vec(4) + rtc * ele%value(vkick$)
       if (set_spn .and. ele%value(e_field$) /= 0) call rotate_spin_given_field (orbit, sign_z_vel, &
-                                         EL = [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * (ele%value(p0c$) / 2), qrot = spin_qrot)
+                                         EL = 0.5_rp * [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * ele%value(p0c$), qrot = spin_qrot)
     elseif (ele%key == hkicker$) then
-      orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [0.0_rp, -ele%value(kick$), 0.0_rp], qrot = spin_qrot)
+      orbit%vec(2) = orbit%vec(2) + 0.5_rp * charge_dir * ele%value(kick$)
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[0.0_rp, -ele%value(kick$), 0.0_rp], qrot = spin_qrot)
     elseif (ele%key == vkicker$) then
-      orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(kick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(kick$), 0.0_rp, 0.0_rp], qrot = spin_qrot)
+      orbit%vec(4) = orbit%vec(4) + 0.5_rp * charge_dir * ele%value(kick$)
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[ele%value(kick$), 0.0_rp, 0.0_rp], qrot = spin_qrot)
     else
-      orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(hkick$) / 2
-      orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(vkick$) / 2
-      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
+      orbit%vec(2) = orbit%vec(2) + 0.5_rp * charge_dir * ele%value(hkick$)
+      orbit%vec(4) = orbit%vec(4) + 0.5_rp * charge_dir * ele%value(vkick$)
+      if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
     endif
   endif
 
@@ -311,80 +337,112 @@ else
   ! canonical momentum.
 
   if (set_hv1) then
-    orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(hkick$) / 2
-    orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(vkick$) / 2
-    if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
+    orbit%vec(2) = orbit%vec(2) + 0.5_rp * charge_dir * ele%value(hkick$)
+    orbit%vec(4) = orbit%vec(4) + 0.5_rp * charge_dir * ele%value(vkick$)
+    if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[ele%value(vkick$), -ele%value(hkick$), 0.0_rp], qrot = spin_qrot)
   endif
 
   ! Unset: Offset and pitch
 
   if (has_orientation_attributes(ele)) then
-
     x_off = ele%value(x_offset_tot$)
     y_off = ele%value(y_offset_tot$)
     z_off = ele%value(z_offset_tot$)
     xp    = ele%value(x_pitch_tot$)
     yp    = ele%value(y_pitch_tot$)
     ref_tilt = ele%value(ref_tilt_tot$)
+    is_misaligned = (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
+                                (ele%key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0)))
+  endif
 
-    if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
-                          (ele%key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0))) then
+  if (is_misaligned) then
+    position%r = [orbit%vec(1), orbit%vec(3), 0.0_rp]
+    call mat_make_unit (position%w)
 
-      position%r = [orbit%vec(1), orbit%vec(3), 0.0_rp]
-      call mat_make_unit (position%w)
+    if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
 
-      if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
+      position = bend_shift(position, ele%value(g$), ds_center)
 
-        if (ref_tilt == 0) then
-          position = bend_shift(position, ele%value(g$), ds_center)
-        else
-          position = bend_shift(position, ele%value(g$), ds_center-ele%value(L$)/2)
-          ws = w_mat_for_tilt(ref_tilt)
-          position%r = matmul(ws, position%r)
-          position%w = matmul(ws, position%w)
-          position = bend_shift(position, ele%value(g$), ele%value(L$)/2, ref_tilt = ref_tilt)
-        endif
-
-        call ele_misalignment_L_S_calc(ele, L_mis, ws)
-        position%r = matmul(ws, position%r) + L_mis
-        position%w = matmul(ws, position%w)
-
-        position = bend_shift(position, ele%value(g$), -ds_center, ref_tilt = ref_tilt)
-
-      ! Else not a bend or a bend with zero bending angle
-
-      else
-        position%r(3) = position%r(3) - ds_center
-        call floor_angles_to_w_mat (xp, yp, 0.0_rp, w_mat = ws)
+      if (ref_tilt /= 0) then
+        position = bend_shift(position, ele%value(g$), -L_half)
+        ws = w_mat_for_tilt(ref_tilt)
         position%r = matmul(ws, position%r)
         position%w = matmul(ws, position%w)
-        position%r  = position%r + [x_off, y_off, z_off+ds_center]
+        position = bend_shift(position, ele%value(g$), L_half, ref_tilt = ref_tilt)
       endif
 
-      pz = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
-      if (pz <= 0) then
-        orbit%state = lost_pz_aperture$
-        return
+      call ele_misalignment_L_S_calc(ele, L_mis, ws)
+      position%r = matmul(ws, position%r) + L_mis
+      position%w = matmul(ws, position%w)
+
+      ! Coordinates when drifting to the bend ends are the coordinates at the end. 
+      ! Coordinates when not drifting are the coordinates at the longitudinal position of the point.
+
+      if (do_drift) then
+        position = bend_shift(position, ele%value(g$), sign_z_vel*L_half, ref_tilt = ref_tilt)
+        position%r(3) = position%r(3) + (sign_z_vel+1.0_rp)*L_half
+      else
+        if (ele%value(g$) == 0) then
+          ds = -ds_center
+        else
+          ds = ele%value(rho$) * atan2(position%r(3)*ele%value(g$), 1.0_rp + position%r(1)*ele%value(g$))
+        endif
+        position = bend_shift(position, ele%value(g$), ds, ref_tilt = ref_tilt)
+        position%r(3) = position%r(3) + L_half + ds
       endif
-      p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
-      p_vec = matmul(position%w, p_vec0)
-      orbit%vec(2:4:2) = p_vec(1:2)
-      orbit%vec(1:3:2) = position%r(1:2)
 
-      if (logic_option(.false., make_matrix)) call apply_offsets_to_matrix (p_vec0, p_vec, position%w, mat6)
+    ! Else not a bend or a bend with zero bending angle
 
-      if (do_drift .and. position%r(3) /= 0) then
-        ! The reference particle does not move! That is, the reference time is the time the referece particle
-        ! reaches the *nominal* edge of the element and this is independent of any misalignments.
-        call track_a_drift (orbit, -sign_z_vel*position%r(3), mat6, make_matrix, include_ref_motion = .false.)
-      endif
-    
-      if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
-      if (present(spin_qrot)) spin_qrot = quat_mul(w_mat_to_quat(position%w), spin_qrot)
+    else
+      position%r(3) = position%r(3) - ds_center
+      call floor_angles_to_w_mat (xp, yp, 0.0_rp, w_mat = ws)
+      position%r = matmul(ws, position%r)
+      position%w = matmul(ws, position%w)
+      position%r  = position%r + [x_off, y_off, z_off+L_half]
+    endif
 
-    endif    ! has nonzero offset or pitch
+    if (ele%orientation == -1) position%r(3) = length - position%r(3)
+    s_lab = position%r(3)
 
-  endif   ! Has orientation attributes
+    pz = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
+    if (pz <= 0) then
+      orbit%state = lost_pz_aperture$
+      return
+    endif
+    p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
+    p_vec = matmul(position%w, p_vec0)
+    orbit%vec(2:4:2) = p_vec(1:2)
+    orbit%vec(1:3:2) = position%r(1:2)
+
+    if (logic_option(.false., make_matrix)) call apply_offsets_to_matrix (p_vec0, p_vec, position%w, mat6)
+
+    if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
+    if (present(spin_qrot)) spin_qrot = quat_mul(w_mat_to_quat(position%w), spin_qrot)
+  endif    ! has nonzero offset or pitch
+
+  if (.not. is_misaligned) then
+    select case (ele%orientation)
+    case (1);  s_lab = s_pos0
+    case (-1); s_lab = length - s_pos0
+    end select
+  endif
+
+  ! When drifting the reference particle does not move! That is, the reference time is the time the 
+  ! referece particle reaches the *nominal* edge of the element and this is independent of any misalignments.
+
+  if (do_drift) then
+    call track_a_drift (orbit, s_target-s_lab, mat6, make_matrix, +1, include_ref_motion = .false.)
+  endif
+
+  !
+
+  if (present(s_out)) then
+    if (do_drift) then
+      s_out = s_target
+    else
+      s_out = s_lab
+    endif
+  endif
 
 endif
 
