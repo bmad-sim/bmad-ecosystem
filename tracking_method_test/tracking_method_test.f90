@@ -250,6 +250,7 @@ character(*) :: instr
     case("RBEND4-Anti_O: Time_Runge_Kutta")            ; tolerance = 'ABS 1e-12'
     case("RBEND6-Anti_O: Symp_Lie_PTC")                ; tolerance = 'ABS 1E-13'
     case("WIGGLER_FLAT1-Anti_O: Runge_Kutta")          ; tolerance = 'ABS 2e-13'
+    case("WIGGLER_FLAT1-Anti_O: Time_Runge_Kutta")     ; tolerance = 'ABS 2e-13'
     case("LCAVITY1-Anti_OD: Runge_Kutta")              ; tolerance = 'ABS 2e-13'
 
     case("RFCAVITY1-Anti_D: Time_Runge_Kutta")         ; tolerance = 'ABS 1E-12'
@@ -264,7 +265,7 @@ character(*) :: instr
       if (index(instr, 'Runge_Kutta') /= 0) then
         tolerance = 'ABS 1e-13'
       else
-        tolerance = 'ABS 1e-14'
+        tolerance = 'ABS 2e-14'
       endif
   end select
 
