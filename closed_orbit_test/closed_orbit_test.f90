@@ -30,12 +30,14 @@ do n_dim = 4, 6
   endif
 
   call closed_orbit_calc(lat, orb_fwd, n_dim)
-  call closed_orbit_calc(lat, orb_back, n_dim, -1)
+  ! Finding the closed orbit with backwards propagation is problematical since z does not behave 
+  ! like it does with forward propagation.
+  !! call closed_orbit_calc(lat, orb_back, n_dim, -1)
   df = orb_fwd(n)%vec - orb_fwd(0)%vec;  if (n_dim /= 6) df(5) = 0
   db = orb_fwd(n)%vec - orb_fwd(0)%vec;  if (n_dim /= 6) db(5) = 0
 
   write (1, '(a, i0, a, 6es14.6, 4x, es10.2)') '"Fwd', n_dim, '"  ABS 1E-10', orb_fwd(0)%vec, maxval(abs(df))
-  write (1, '(a, i0, a, 6es14.6, 4x, es10.2)') '"Rev', n_dim, '"  ABS 1E-10', orb_back(0)%vec, maxval(abs(db))
+  !! write (1, '(a, i0, a, 6es14.6, 4x, es10.2)') '"Rev', n_dim, '"  ABS 1E-10', orb_back(0)%vec, maxval(abs(db))
 enddo
 
 !

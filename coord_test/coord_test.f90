@@ -24,7 +24,7 @@ character(200) :: lat_file = 'coord_test.bmad'
 
 ! 
 
-print *, 'N:', nargs
+nargs = command_argument_count()
 if (nargs > 0) then
   call get_command_argument(1, lat_file)
   print *, 'Using ', trim(lat_file)
@@ -32,6 +32,7 @@ if (nargs > 0) then
 endif
 
 call bmad_parser (lat_file, lat)
+bmad_com%spin_tracking_on = .true.
 
 open (1, file = 'output.now')
 
@@ -40,8 +41,9 @@ open (1, file = 'output.now')
 vec0 = lat%particle_start%vec
 diff_sum = 0
 
-do ie = 1, lat%n_ele_track-1
-  ele => lat%ele(ie)
+branch => lat%branch(2)
+do ie = 1, branch%n_ele_track-1
+  ele => branch%ele(ie)
   call init_coord (orb0, vec0, ele, upstream_end$)
   orb0%t = 0
 
@@ -55,11 +57,6 @@ do ie = 1, lat%n_ele_track-1
   call offset_track_static(orb0, ele,  1, -1, diff_sum)
   call offset_track_static(orb0, ele, -1, -1, diff_sum)
 enddo
-
-print *
-print '(a, 6f13.8, 4x, 2f16.8)', 'DIFF:', diff_sum(1:6), diff_sum(7)*c_light, diff_sum(8)
-
-stop
 
 !
 
@@ -136,23 +133,27 @@ ele%orientation = orient
 ele2 = ele; call zero_ele_offsets(ele2)
 name = trim(ele%name) // ':O:' // int_str(orient) // ':D:' // int_str(dir)
 
-print *
-print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // ':Drift-Start:', orb1%vec, orb1%t*c_light
+if (debug_mode) print *
+call write_orbit(trim(name) // ':Drift-Start', orb1)
 call offset_particle (ele, set$, orb1, s_out = s_out)
-print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // ':Drift-In:   ', orb1%vec, orb1%t*c_light, s_out
+call write_orbit(trim(name) // ':Drift-In:  ', orb1, s_out)
 call track1(orb1, ele2, lat%param, orb1)
-print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // ':Drift-Xfer: ', orb1%vec, orb1%t*c_light
+call write_orbit(trim(name) // ':Drift-Xfer ', orb1)
 call offset_particle (ele, unset$, orb1, s_out = s_out)
-print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // ':Drift-Out:  ', orb1%vec, orb1%t*c_light, s_out
+call write_orbit(trim(name) // ':Drift-Out  ', orb1, s_out)
+if (ele2%key == sbend$) then
+  ele2%value(ref_tilt$) = ele%value(ref_tilt$)
+  ele2%value(ref_tilt_tot$) = ele%value(ref_tilt_tot$)
+endif
 call track1(orb2, ele2, lat%param, orb2)
-print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // ':NoMis-Track:', orb2%vec, orb2%t*c_light
-print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // ':Drift-Diff: ', orb1%vec-orb2%vec, (orb1%t-orb2%t)*c_light
+if (debug_mode) print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // ':NoMis-Track:', orb2%vec, orb2%t*c_light
+if (debug_mode) print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // ':Drift-Diff: ', orb1%vec-orb2%vec, (orb1%t-orb2%t)*c_light
 
 diff_sum(1:6) = diff_sum(1:6) + abs(orb1%vec-orb2%vec)
 diff_sum(7) = diff_sum(7) + abs(orb1%t-orb2%t)
 
 
-end subroutine
+end subroutine offset_track_drift
 
 !-----------------------------------------------------------------------------
 ! contains
@@ -174,20 +175,44 @@ orb1%direction = dir
 ele%orientation = orient
 ele2 = ele; call zero_ele_offsets(ele2)
 name = trim(ele%name) // ':O:' // int_str(orient) // ':D:' // int_str(dir) // ':Static'
-s_pos = 0.3_rp
+s_pos = lat%particle_start%vec(5)
 
-print *
-print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // '-Start:', orb1%vec, orb1%t*c_light, s_pos
+if (debug_mode) print *
+call write_orbit(trim(name) // '-Start', orb1, s_pos)
 call offset_particle (ele, set$, orb1, drift_to_edge = .false., s_pos = s_pos, s_out = s_out)
-print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // '-In:   ', orb1%vec, orb1%t*c_light, s_out
+call write_orbit(trim(name) // '-In   ', orb1, s_out)
 call offset_particle (ele, unset$, orb1, drift_to_edge = .false., s_pos = s_out, s_out = s_out)
-print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // '-Out:  ', orb1%vec, orb1%t*c_light, s_out
-print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // '-Diff: ', orb1%vec-orb0%vec, (orb1%t-orb0%t)*c_light, s_out-s_pos
+call write_orbit(trim(name) // '-Out  ', orb1, s_out)
+if (debug_mode) print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // '-Diff: ', orb1%vec-orb0%vec, (orb1%t-orb0%t)*c_light, s_out-s_pos
 
 diff_sum(1:6) = diff_sum(1:6) + abs(orb1%vec-orb0%vec)
 diff_sum(7) = diff_sum(7) + abs(orb1%t-orb0%t)*c_light
 diff_sum(8) = diff_sum(8) + abs(s_out-s_pos)
 
-end subroutine
+end subroutine offset_track_static
+
+!-----------------------------------------------------------------------------
+! contains
+
+subroutine write_orbit (name, orbit, s_out)
+
+type (coord_struct) orbit
+real(rp), optional :: s_out
+character(*) name
+
+!
+
+if (present(s_out)) then
+  if (debug_mode) print '(a, 6f13.8, 4x, 2f13.8)', name, orbit%vec, orbit%t*c_light, s_out
+  write (1, '(a, t40, a, 6f13.8, 4x, 2f13.8)') quote(trim(name) // '-orb'), 'ABS 1e-8', orbit%vec, orbit%t*c_light, s_out
+else
+  if (debug_mode) print '(a, 6f13.8, 4x, 2f13.8)', name, orbit%vec, orbit%t*c_light
+  write (1, '(a, t40, a, 6f13.8, 4x, 2f13.8)') quote(trim(name) // '-orb'), 'ABS 1e-8', orbit%vec, orbit%t*c_light
+endif
+
+write (1, '(a, t40, a, 6f13.8, 4x, 2f13.8)') quote(trim(name) // '-spin'), 'ABS 1e-8', orbit%spin
+
+
+end subroutine write_orbit
 
 end program
