@@ -194,7 +194,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (debug_mode .and. valid_spin_tracking_method(ele, sprint$)) then
       ele%spin_tracking_method = sprint$
-      deallocate (ele%spin_taylor(0)%term)
+      if (associated(ele%spin_taylor(0)%term)) deallocate (ele%spin_taylor(0)%term)
       call track1 (start_orb, ele, branch%param, end_orb)
       out_str = trim(ele%name) // ': Sprint dSpin'
       isn=isn+1; write (line(isn), '(a, t50, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &

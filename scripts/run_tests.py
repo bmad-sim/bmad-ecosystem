@@ -20,17 +20,17 @@ normal_color = '\033[0m'
 
 #----------------------------------------------------------
 
-def print_all(str, terminate = False, color = False):
-  results.write(str + '\n')
+def print_all(string, terminate = False, color = False):
+  results.write(string + '\n')
   if color:
-    print(warning_color + str + normal_color)
+    print(warning_color + string + normal_color)
   else:
-    print(str)
+    print(string)
 
   if terminate: 
-    str2 = '     Flow Failure. Stopping here for this regression.'
-    results.write(str2 + '\n')
-    print(str2)
+    string2 = '     Flow Failure. Stopping here for this regression.'
+    results.write(string2 + '\n')
+    print(string2)
     global num_flow_failures
     num_flow_failures += 1
 
