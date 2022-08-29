@@ -1443,24 +1443,30 @@ else
 endif
 
 charge_live = sum(charge, mask = (bunch%particle%state == alive$))
+bunch_params%centroid%charge     = charge_live
 
 !
 
-if (charge_live == 0) then
+if (bunch_params%n_particle_live == 0) then
   error = .false.
   return
-else
-  ! Get s-position from first live particle
-  do i = 1, size(bunch%particle)
-    if (bunch%particle(i)%state /= alive$) cycle
-    bunch_params%s = bunch%particle(i)%s
-    exit
-  enddo
 endif
 
-bunch_params%centroid%charge     = charge_live
-bunch_params%centroid%s          = sum(bunch%particle%s * charge, mask = (bunch%particle%state == alive$))
-bunch_params%centroid%t          = sum(bunch%particle%t * charge, mask = (bunch%particle%state == alive$))
+if (charge_live == 0) then
+  charge = 1
+  charge_live = bunch_params%n_particle_live
+endif
+
+! Get s-position from first live particle
+do i = 1, size(bunch%particle)
+  if (bunch%particle(i)%state /= alive$) cycle
+  bunch_params%s = bunch%particle(i)%s
+  exit
+enddo
+
+bunch_params%centroid%s = sum(bunch%particle%s * charge, mask = (bunch%particle%state == alive$)) / charge_live
+bunch_params%centroid%t = sum(bunch%particle%t * charge, mask = (bunch%particle%state == alive$)) / charge_live
+
 if (species /= photon$) then
   call convert_pc_to ((1 + bunch_params%centroid%vec(6)) * bunch_params%centroid%p0c, &
                                                                  species, beta = bunch_params%centroid%beta)
