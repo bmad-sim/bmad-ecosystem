@@ -55,7 +55,11 @@ logical err
 !
 
 do i = 1, size(beam%bunch)
-  call track_bunch(lat, beam%bunch(i), ele1, ele2, err, centroid, direction, bunch_track(i))
+  if (present(bunch_track)) then
+    call track_bunch(lat, beam%bunch(i), ele1, ele2, err, centroid, direction, bunch_track(i))
+  else
+    call track_bunch(lat, beam%bunch(i), ele1, ele2, err, centroid, direction)
+  endif
   if (err) return
 enddo
 
