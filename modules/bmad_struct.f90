@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 281
+integer, parameter :: bmad_inc_version$ = 282
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1560,6 +1560,11 @@ integer, parameter :: val1$=19, val2$=20, val3$=21, val4$=22, val5$=23, &
           val6$=24, val7$=25, val8$=26, val9$=27, val10$=28, val11$=29, &
           val12$=30
 
+! Note: The following must not be varied without varying appropriate code:
+!   Range [beta_a0$, alpha_b0$] and [beta_a1$, alpha_b1$] hold all twiss.
+!   Range [eta_x0$, etap_y0$] and [eta_x1$, etap_y1$] hold all dispersion.
+!   Range [c11_mat0$, c22_mat0$] and [c11_mat1$, c22_mat1$] hold all C-matrix values
+    
 integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, alpha_b0$ = 5
 integer, parameter :: beta_a1$ = 6, alpha_a1$ = 7, beta_b1$ = 8, alpha_b1$ = 9
 integer, parameter :: dphi_a$ = 10, dphi_b$ = 11
@@ -1567,6 +1572,7 @@ integer, parameter :: eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15
 integer, parameter :: eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19
 integer, parameter :: c11_mat0$ = 20, c12_mat0$ = 21, c21_mat0$ = 22, c22_mat0$ = 23, mode_flip0$ = 24
 integer, parameter :: c11_mat1$ = 25, c12_mat1$ = 26, c21_mat1$ = 27, c22_mat1$ = 28, mode_flip1$ = 29
+
 integer, parameter :: x0$ = 30, px0$ = 31, y0$ = 32, py0$ = 33, z0$ = 34, pz0$ = 35
 integer, parameter :: x1$ = 36, px1$ = 37, y1$ = 38, py1$ = 39, z1$ = 40, pz1$ = 41
 integer, parameter :: phase_trombone_input$ = 42, phase_trombone$ = 43
@@ -2032,6 +2038,7 @@ type extra_parsing_info_struct
   logical :: radiation_fluctuations_on_set          = .false.
   logical :: conserve_taylor_maps_set               = .false.
   logical :: absolute_time_tracking_default_set     = .false.
+  logical :: absolute_time_ref_shift_set            = .false.
   logical :: convert_to_kinetic_momentum_set        = .false.
   logical :: aperture_limit_on_set                  = .false.
   logical :: sad_eps_scale_set                      = .false.
@@ -2112,6 +2119,7 @@ type bmad_common_struct
   logical :: radiation_fluctuations_on = .false.       ! Radiation fluctuations toggle.
   logical :: conserve_taylor_maps = .true.             ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
   logical :: absolute_time_tracking_default = .false.  ! Default for lat%absolute_time_tracking
+  logical :: absolute_time_ref_shift = .true.          ! Apply reference time shift when using absolute time tracking?
   logical :: convert_to_kinetic_momentum = .false.     ! Cancel kicks due to finite vector potential when doing symplectic tracking?
                                                        !   Set to True to test symp_lie_bmad against runge_kutta.
   logical :: aperture_limit_on = .true.                ! use apertures in tracking?

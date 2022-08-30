@@ -212,6 +212,7 @@ call write_if_logic_param_changed (bmad_com%radiation_damping_on,            bma
 call write_if_logic_param_changed (bmad_com%radiation_zero_average,          bmad_com_default%radiation_zero_average,           'bmad_com[radiation_zero_average]')
 call write_if_logic_param_changed (bmad_com%radiation_fluctuations_on,       bmad_com_default%radiation_fluctuations_on,        'bmad_com[radiation_fluctuations_on]')
 call write_if_logic_param_changed (bmad_com%conserve_taylor_maps,            bmad_com_default%conserve_taylor_maps,             'bmad_com[conserve_taylor_maps]')
+call write_if_logic_param_changed (bmad_com%absolute_time_ref_shift,         bmad_com_default%absolute_time_ref_shift,          'bmad_com[absolute_time_ref_shift]')
 call write_if_logic_param_changed (bmad_com%absolute_time_tracking_default,  bmad_com_default%absolute_time_tracking_default,   'bmad_com[absolute_time_tracking_default]')
 call write_if_logic_param_changed (bmad_com%convert_to_kinetic_momentum,     bmad_com_default%convert_to_kinetic_momentum,      'bmad_com[convert_to_kinetic_momentum]')
 call write_if_logic_param_changed (bmad_com%aperture_limit_on,               bmad_com_default%aperture_limit_on,                'bmad_com[aperture_limit_on]')
