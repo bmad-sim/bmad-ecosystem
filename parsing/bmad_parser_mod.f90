@@ -477,6 +477,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     if (associated(a_ptrs(1)%l, bmad_com%auto_bookkeeper)) a_ptrs(1)%l => logic  ! Auto_bookkeeper must not be set.
     call parser_get_logical (word, a_ptrs(1)%l, ele%name, delim, delim_found, err_flag)
     if (err_flag) return
+    if (associated(a_ptrs(1)%l, bmad_com%absolute_time_ref_shift))        bp_com%extra%absolute_time_ref_shift_set         = .true.
     if (associated(a_ptrs(1)%l, bmad_com%rf_phase_below_transition_ref))  bp_com%extra%rf_phase_below_transition_ref_set   = .true.
     if (associated(a_ptrs(1)%l, bmad_com%sr_wakes_on))                    bp_com%extra%sr_wakes_on_set                     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.

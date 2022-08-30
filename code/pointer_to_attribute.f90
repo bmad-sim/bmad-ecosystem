@@ -700,6 +700,7 @@ case ('Z_REF');                          a_ptr%r => ele%taylor(5)%ref
 case ('PZ_REF');                         a_ptr%r => ele%taylor(6)%ref
 case ('SYMPLECTIFY');                    a_ptr%l => ele%symplectify
 case ('ABSOLUTE_TIME_TRACKING');         a_ptr%l => branch%lat%absolute_time_tracking
+case ('ABSOLUTE_TIME_REF_SHIFT');        a_ptr%l => bmad_com%absolute_time_ref_shift
 case ('TAYLOR_MAP_INCLUDES_OFFSETS');    a_ptr%l => ele%taylor_map_includes_offsets
 case ('OFFSET_MOVES_APERTURE');          a_ptr%l => ele%offset_moves_aperture
 case ('FIELD_MASTER');                   a_ptr%l => ele%field_master

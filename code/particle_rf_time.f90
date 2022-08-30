@@ -57,7 +57,11 @@ if (ix_pass > 1) ref_ele => chain(1)%ele
 ! Note: e_gun uses absolute time tracking to get around the problem when orbit%beta = 0.
 
 if (absolute_time_tracking(ele)) then
-  time = orbit%t - ref_ele%value(ref_time_start$)
+  if (bmad_com%absolute_time_ref_shift) then
+    time = orbit%t - ref_ele%value(ref_time_start$)
+  else
+    time = orbit%t
+  endif
 
 else
   if (orbit%beta == 0) then

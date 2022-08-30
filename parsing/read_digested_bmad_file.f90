@@ -317,6 +317,7 @@ if (found_it) then
   if (extra%radiation_fluctuations_on_set)        bmad_com%radiation_fluctuations_on       = bmad_com_read%radiation_fluctuations_on
   if (extra%conserve_taylor_maps_set)             bmad_com%conserve_taylor_maps            = bmad_com_read%conserve_taylor_maps
   if (extra%absolute_time_tracking_default_set)   bmad_com%absolute_time_tracking_default  = bmad_com_read%absolute_time_tracking_default
+  if (extra%absolute_time_ref_shift_set)          bmad_com%absolute_time_ref_shift         = bmad_com_read%absolute_time_ref_shift
   if (extra%convert_to_kinetic_momentum_set)      bmad_com%convert_to_kinetic_momentum     = bmad_com_read%convert_to_kinetic_momentum
   if (extra%aperture_limit_on_set)                bmad_com%aperture_limit_on               = bmad_com_read%aperture_limit_on
   if (extra%sad_eps_scale_set)                    bmad_com%sad_eps_scale                   = bmad_com_read%sad_eps_scale
