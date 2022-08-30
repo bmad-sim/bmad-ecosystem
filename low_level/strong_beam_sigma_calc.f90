@@ -7,12 +7,12 @@
 ! Input:
 !   ele           -- ele_struct: Beambeam element.
 !   s_pos         -- real(rp): Longitudinal position.
-!   z_strong      -- real(rp): Position within strong beam. Positive z_strong is at the tail of the bunch
+!   z_strong      -- real(rp): Position within strong beam. Positive z_strong is at the tail of the bunch.
 !
 ! Output:
-!   sig_x, sig_y  -- real(rp): Strong beam sigmas.
-!   bbi_const
-!   x_center, y_center -- real(rp): Strong beam centroid
+!   sig_x, sig_y       -- real(rp): Strong beam sigmas.
+!   bbi_const          -- real(rp): BBI kick scale factor.
+!   x_center, y_center -- real(rp): Strong beam centroid.
 
 subroutine strong_beam_sigma_calc (ele, s_pos, z_strong, sig_x, sig_y, bbi_const, x_center, y_center)
 
