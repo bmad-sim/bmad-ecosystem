@@ -859,18 +859,21 @@ type tao_lat_sigma_struct
 end type
 
 type tao_dn_dpz_struct
-  real(rp) vec(3)       ! Spin n0 derivative wrt pz.
-  real(rp) partial(3,3) ! partial(i:) is spin n0 derivative wrt pz for i^th oscillation mode (1 => a-mode, etc.)
+  real(rp) vec(3)         ! Spin n0 derivative wrt pz.
+  real(rp) partial(3,3)   ! partial(i:) is spin n0 derivative wrt pz for i^th oscillation mode (1 => a-mode, etc.)
+  real(rp) partial2(3,3)  ! partial(i:) is spin n0 derivative wrt pz with i^th oscillation mode missing (1 => a-mode, etc.)
 end type
 
 type tao_spin_polarization_struct
   real(rp) :: tune = real_garbage$
   real(rp) :: pol_limit_st = real_garbage$             ! Polarization calculated using Sokolov-Ternov formula.
-  real(rp) :: pol_limit_dk = real_garbage$            ! Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
-  real(rp) :: pol_limit_dk_partial(3) = real_garbage$ ! Limit using only single mode to calc dn_dpz
+  real(rp) :: pol_limit_dk = real_garbage$             ! Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
+  real(rp) :: pol_limit_dk_partial(3) = real_garbage$  ! Limit using only single mode to calc dn_dpz
+  real(rp) :: pol_limit_dk_partial2(3) = real_garbage$ ! Limit using only single mode to calc dn_dpz
   real(rp) :: pol_rate_bks = real_garbage$             ! BKS Polarization rate (1/sec).
   real(rp) :: depol_rate = real_garbage$               ! Depolarization rate (1/sec).
   real(rp) :: depol_rate_partial(3) = real_garbage$    ! Depolarization rate (1/sec) using only single mode to calc dn_dpz.
+  real(rp) :: depol_rate_partial2(3) = real_garbage$   ! Depolarization rate (1/sec) using only two modes to calc dn_dpz.
   real(rp) :: integral_bn = real_garbage$              ! Integral of g^3 * b_hat * n_0
   real(rp) :: integral_bdn = real_garbage$             ! Integral of g^3 * b_hat * dn/ddelta
   real(rp) :: integral_1ns = real_garbage$             ! Integral of g^3 (1 - 2(n * s_hat)/9)
