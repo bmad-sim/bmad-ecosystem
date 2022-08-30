@@ -37,8 +37,8 @@ type (em_field_struct) field
 type (strong_beam_struct) sbb
 
 real(rp), optional :: mat6(6,6)
-real(rp) sig_x, sig_y, x_center, y_center
-real(rp) s_pos, s_pos_old, k0_x, k0_y, k_xx1, k_xy1, k_yx1, k_yy1, k_xx2, k_xy2, k_yx2, k_yy2, coef, del
+real(rp) sig_x, sig_y, x_center, y_center, s_lab, s_body
+real(rp) s_slice, s_slice_old, k0_x, k0_y, k_xx1, k_xy1, k_yx1, k_yy1, k_xx2, k_xy2, k_yx2, k_yy2, coef, del
 real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const, z, dx, dy
 real(rp), allocatable :: z_slice(:)
 real(rp) om(3), quat(0:3)
@@ -64,26 +64,33 @@ endif
 
 if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())
 
-call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+s_slice = 0    ! Begin at the IP
+call offset_particle (ele, set$, orbit, s_pos = s_slice, s_out = s_slice, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
 
 n_slice = max(1, nint(ele%value(n_slice$)))
 allocate(z_slice(n_slice))
 call bbi_slice_calc (ele, n_slice, z_slice)
 
-s_pos = 0    ! end at the ip
-
 do i = 1, n_slice
-  z = z_slice(i)   ! Positive z_slice is the tail of the strong beam.
-  s_pos_old = s_pos
-  s_pos = (orbit%vec(5) + z) / 2
+  z = z_slice(i)      ! Positive z_slice is the tail of the strong beam.
+  s_slice_old = s_slice   ! Where particle is (body frame).
+  s_slice = (orbit%vec(5) + z) / 2  ! Where particle needs to drift to.
 
-  del_s = s_pos - s_pos_old
-
-  call offset_particle(ele, unset$, orbit, drift_to_edge = .false., s_pos = s_pos_old, mat6 = mat6, make_matrix = make_matrix)
+  call offset_particle(ele, unset$, orbit, s_pos = s_slice_old, s_out = s_lab, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
+  del_s = s_slice - s_slice_old
   call solenoid_track_and_mat (ele, del_s, param, orbit, orbit, mat6, make_matrix)
-  call offset_particle(ele, set$,   orbit, drift_to_edge = .false., s_pos = s_pos, mat6 = mat6, make_matrix = make_matrix)
+  call offset_particle(ele, set$, orbit, s_pos = s_lab+del_s, s_out = s_body, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
+  ! The drifting above will be slightly inaccurate if there is a x_pitch or y_pitch so try again. 
+  ! Since drifting is linear, this should be fairly accurate. 
+  ! There will still be a small inaccuracy due trajectories not being straight in a solenoid field.
+  if (s_body /= s_slice) then
+    call offset_particle(ele, unset$, orbit, s_pos = s_body, s_out = s_lab, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
+    del_s = del_s * (s_slice - s_body) / (s_body - s_slice_old)
+    call solenoid_track_and_mat (ele, del_s, param, orbit, orbit, mat6, make_matrix)
+    call offset_particle(ele, set$, orbit, s_pos = s_lab+del_s, s_out = s_slice, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
+  endif
 
-  call strong_beam_sigma_calc (ele, s_pos, -z, sig_x, sig_y, bbi_const, x_center, y_center)
+  call strong_beam_sigma_calc (ele, s_slice, -z, sig_x, sig_y, bbi_const, x_center, y_center)
 
   dx = orbit%vec(1) - x_center
   dy = orbit%vec(3) - y_center
@@ -92,7 +99,7 @@ do i = 1, n_slice
 
   if (present(track)) then
     sbb = strong_beam_struct(i, x_center, y_center, sig_x, sig_y, dx, dy)
-    call save_a_step(track, ele, param, .true., orbit, s_pos, strong_beam = sbb)
+    call save_a_step(track, ele, param, .true., orbit, s_slice, strong_beam = sbb)
   endif
 
   ratio = sig_y / sig_x
@@ -103,7 +110,7 @@ do i = 1, n_slice
   orbit%vec(4) = orbit%vec(4) + k0_y * coef
 
   if (present(track)) then
-    call save_a_step(track, ele, param, .true., orbit, s_pos, strong_beam = sbb)
+    call save_a_step(track, ele, param, .true., orbit, s_slice, strong_beam = sbb)
   endif
 
   if (logic_option(.false., make_matrix)) then
@@ -123,16 +130,16 @@ do i = 1, n_slice
   endif
 
   if (bmad_com%spin_tracking_on) then
-    field%E = [ k0_x, k0_y, 0.0_rp] * orbit%p0c * orbit%beta / (2 * charge_of(orbit%species))
-    field%B = [-k0_y, k0_x, 0.0_rp] * orbit%p0c / (2 * c_light * charge_of(orbit%species))
+    field%E = [ k0_x, k0_y, 0.0_rp] * (coef * orbit%p0c * orbit%beta / (2 * charge_of(orbit%species)))
+    field%B = [k0_y, -k0_x, 0.0_rp] * (coef * orbit%p0c / (2 * c_light * charge_of(orbit%species)))
     om = spin_omega (field, orbit, +1)
     quat = omega_to_quat(om)
     orbit%spin = quat_rotate(quat, orbit%spin)
   endif
 enddo
 
-call offset_particle(ele, unset$, orbit, s_pos = s_pos, mat6 = mat6, make_matrix = make_matrix)
-call solenoid_track_and_mat (ele, -s_pos, param, orbit, orbit, mat6, make_matrix)
+call offset_particle(ele, unset$, orbit, s_pos = s_slice, s_out = s_lab, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
+call solenoid_track_and_mat (ele, -s_lab, param, orbit, orbit, mat6, make_matrix)
 
 if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())
 
