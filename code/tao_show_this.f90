@@ -142,7 +142,7 @@ real(rp) sig_mat(6,6), sig0_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), l_
 real(rp) pc, e_tot, value_min, value_here, pz1, phase
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, time1, ds, ref_vec(6), beta
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
-real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3)
+real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3), dn_partial2(3,3)
 real(rp), allocatable :: value(:)
 
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
@@ -4154,15 +4154,18 @@ case ('spin')
   ele_ref_name = ''
   ele_ref => null()
   flip = .false.
+  logic = .false.
 
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', '-all', &
-                                                  '-g_map', '-flip_n_axis'], .true., switch, err, ix)
+                                        '-g_map', '-flip_n_axis', '-new'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('')
       exit
+    case ('-new')
+      logic = .true.
     case ('-element')
       what_to_show = 'element'
       ele_ref_name = upcase(what2(1:ix))
@@ -4236,9 +4239,10 @@ case ('spin')
           nl=nl+1; lines(nl) = 'No bends or other radiation producing lattice elements detected!'
         else
           r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
-          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                 ', tao_branch%spin%pol_limit_st
-          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DK:                 ', tao_branch%spin%pol_limit_dk
-          nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Polarization Limits DK (a,b,c-modes):  ', tao_branch%spin%pol_limit_dk_partial
+          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                   ', tao_branch%spin%pol_limit_st
+          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DK:                   ', tao_branch%spin%pol_limit_dk
+          nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Polarization Limits DK (a,b,c-modes):    ', tao_branch%spin%pol_limit_dk_partial
+          nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Polarization Limits DK (bc,ac,ab-modes): ', tao_branch%spin%pol_limit_dk_partial2
 
           if (tao_branch%spin%pol_rate_bks == 0) then
             nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Polarization Time BKS (minutes, turns): plarization rate is zero!'
@@ -4275,11 +4279,33 @@ case ('spin')
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (c-mode) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
+          if (tao_branch%spin%depol_rate_partial2(1) == 0) then
+            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b&c modes) (minutes, turns): Depolarization rate is zero!'
+          else
+            x = 1 / tao_branch%spin%depol_rate_partial2(1)
+            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b&c modes) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
+          endif
+
+          if (tao_branch%spin%depol_rate_partial2(2) == 0) then
+            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&c modes) (minutes, turns): Depolarization rate is zero!'
+          else
+            x = 1 / tao_branch%spin%depol_rate_partial2(2)
+            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&c modes) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
+          endif
+
+          if (tao_branch%spin%depol_rate_partial2(3) == 0) then
+            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&b modes) (minutes, turns): Depolarization rate is zero!'
+          else
+            x = 1 / tao_branch%spin%depol_rate_partial2(3)
+            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&b modes) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
+          endif
+
           nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 * b_hat * n_0:         ', real_str(tao_branch%spin%integral_bn, 5)
           nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 * b_hat * dn/ddelta:   ', real_str(tao_branch%spin%integral_bdn, 5)
           nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 (1 - 2(n * s_hat)/9):  ', real_str(tao_branch%spin%integral_1ns, 5)
           nl=nl+1; write(lines(nl), '(a, a14)')            'Integral g^3 * 11 (dn/ddelta)^2 / 9:', real_str(tao_branch%spin%integral_dn2, 5)
         endif
+
       else
         nl=nl+1; lines(nl) = 'Polarization calc not valid.'
       endif
@@ -4319,7 +4345,7 @@ case ('spin')
             nl=nl+1; write(lines(nl), '(i8, f12.6, 4x, a)') ix, d_ptr%spin_map%map1%spin_q(ix,0), reals_to_string(d_ptr%spin_map%map1%spin_q(ix,1:), 11, 1, 6, 6)
           enddo
           if (d_ptr%spin_map%ix_ref == d_ptr%spin_map%ix_ele) then
-            dn_dpz = spin_dn_dpz_from_qmap(real(d_ptr%spin_map%map1%orb_mat, rp), real(d_ptr%spin_map%map1%spin_q, rp), dn_partial, err)
+            dn_dpz = spin_dn_dpz_from_qmap(real(d_ptr%spin_map%map1%orb_mat, rp), real(d_ptr%spin_map%map1%spin_q, rp), dn_partial, dn_partial2, err)
             nl=nl+1; lines(nl) = ''
             nl=nl+1; write(lines(nl), '(3x, a, 3es14.6)') 'dn/dpz:', dn_dpz
           endif
@@ -4392,7 +4418,7 @@ case ('spin')
         nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, a)') i, q_name(i), sm%map1%spin_q(i,0), reals_to_string(sm%map1%spin_q(i,1:), 11, 1, 6, 6)
       enddo
       if (ele_ref%ix_ele == ele%ix_ele) then
-        dn_dpz = spin_dn_dpz_from_qmap(sm%map1%orb_mat, sm%map1%spin_q, dn_partial, err)
+        dn_dpz = spin_dn_dpz_from_qmap(sm%map1%orb_mat, sm%map1%spin_q, dn_partial, dn_partial2, err)
         nl=nl+1; lines(nl) = ''
         nl=nl+1; write(lines(nl), '(3x, a, 3es14.6)') 'dn/dpz:', dn_dpz
       endif
