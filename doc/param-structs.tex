@@ -115,6 +115,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     conserve_taylor_maps = T            ! Enable bookkeeper to set
                                         ! ele%taylor_map_includes_offsets = F?
     absolute_time_tracking_default = F  ! Default for lat%absolute_time_tracking
+    absolute_time_ref_shift = T         ! Absolute time referenced to element ref time?
     aperture_limit_on = T               ! Use aperture limits in tracking.
     debug = F                           ! Used for code debugging.
   end type
@@ -139,6 +140,12 @@ tracking is used.
 To change between absolute and relative time tracking (\sref{s:rf.time}) after lattice file parsing,
 the \vn{absolute_time_tracking} component of a \vn{lat_struct} (\sref{s:abs.time}) can be
 appropriately set.
+%
+\item[\vn{absolute_time_ref_shift}] \Newline
+When absolute time tracking is used (\sref{s:rf.time}), if \vn{absolute_time_ref_shift} is True (the
+default), then the value of the time used to calculate RF phases and other time dependent parameters is
+shifted by the reference time of the lattice element under consideration. If set to False, no time
+shift is done.
 %
 \item[\vn{aperture_limit_on]}] \Newline
 Aperture limits may be set for elements in the lattice (\sref{s:limit}). Setting
