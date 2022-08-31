@@ -645,15 +645,6 @@ subroutine create_ramper (lord, contl, err)
   logical err
 end subroutine
 
-subroutine element_slice_iterator (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
-  import
-  implicit none
-  type (ele_struct) ele, sliced_ele
-  type (lat_param_struct) param
-  integer i_slice, n_slice_tot
-  real(rp), optional :: s_start, s_end
-end subroutine
-
 subroutine create_unique_ele_names (lat, key, suffix)
   import
   implicit none
@@ -830,6 +821,18 @@ subroutine ele_rad_int_cache_calc (ele)
   type (ele_struct) ele
 end subroutine
 
+subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, ref_in)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (lat_param_struct) param
+  type (coord_struct), optional :: ref_in
+  type (fibre), pointer :: ptc_fibre
+  integer, optional :: integ_order, steps
+  logical use_offsets
+  logical, optional :: for_layout
+end subroutine
+
 function ele_unique_name (ele, order) result (unique_name)
   import
   implicit none
@@ -846,6 +849,15 @@ function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed
   real(rp) abs_tol(:)
   logical set_old, has_changed
 end function
+
+subroutine element_slice_iterator (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
+  import
+  implicit none
+  type (ele_struct) ele, sliced_ele
+  type (lat_param_struct) param
+  integer i_slice, n_slice_tot
+  real(rp), optional :: s_start, s_end
+end subroutine
 
 function equivalent_taylor_attributes (ele_taylor, ele2) result (equiv)
   import
@@ -2533,14 +2545,14 @@ subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine track1_bunch_space_charge (bunch, ele, err, to_s_coords, bunch_track)
+subroutine track1_bunch_space_charge (bunch, ele, err, drift_to_same_s, bunch_track)
   import
   implicit none
   type (bunch_struct), target :: bunch
   type (ele_struct), target :: ele
   type (bunch_track_struct), optional :: bunch_track
   logical err
-  logical, optional :: to_s_coords
+  logical, optional :: drift_to_same_s
 end subroutine
 
 subroutine track1_linear (start_orb, ele, param, end_orb)
