@@ -46,8 +46,13 @@ dt_step = space_charge_com%dt_track_step  ! Init time step.
 dt_next = dt_step
 include_image = (ele%space_charge_method == cathode_fft_3d$) ! Include cathode image charge?
 
-! Don't track zero-length elements
+! Zero length elements are easy
+
 if (ele%value(l$) == 0) then
+  do i = 1, size(bunch%particle)
+    p => bunch%particle(i)
+    call track1(p, ele, ele%branch%param, p)
+  enddo
   if (logic_option(.true., to_s_coords)) call drift_to_s(bunch, ele%s, bunch)
   err = .false.
   return
