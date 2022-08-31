@@ -1,13 +1,15 @@
 !+
-! Subroutine track1_gun_space_charge (bunch, ele, err, to_s_coords, bunch_track)
+! Subroutine track1_gun_space_charge (bunch, ele, err, drift_to_same_s, bunch_track)
 !
-! Subroutine to track a bunch of particles through an e_gun.
+! Subroutine to track a bunch of particles in the presence of space charge.
+! This routine uses time based tracking and so is usable at low energy near a cathode.
 !
 ! Input:
-!   bunch         -- bunch_struct: Starting bunch position.
-!   ele           -- ele_struct: E_gun element to track through. Must be part of a lattice.
-!   to_s_coords   -- logical, optional: Default is True. If False leave bunch in time coords at end of tracking.
-!   bunch_track   -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
+!   bunch           -- bunch_struct: Starting bunch position.
+!   ele             -- ele_struct: E_gun element to track through. Must be part of a lattice.
+!   drift_to_same_s -- logical, optional: Default is True. If True, drift particles to all have the
+!                        same s-position.
+!   bunch_track     -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
 !                        Overwrite any existing track.
 !
 ! Output:
@@ -18,7 +20,7 @@
 !                        trajectory in an element is appended to the existing trajectory. 
 !-
 
-subroutine track1_bunch_space_charge (bunch, ele, err, to_s_coords, bunch_track)
+subroutine track1_bunch_space_charge (bunch, ele, err, drift_to_same_s, bunch_track)
 
 use space_charge_mod, dummy => track1_bunch_space_charge
 
@@ -32,7 +34,7 @@ type (coord_struct), pointer :: p
 
 integer i, n
 logical err, finished, include_image
-logical, optional :: to_s_coords
+logical, optional :: drift_to_same_s
 real(rp) :: dt_step, dt_next, t_now, t_end, beta, ds, s_save_last
 
 integer, parameter :: fixed_time_step$ = 1, adaptive_step$ = 2 ! Need this in bmad_struct
@@ -53,7 +55,7 @@ if (ele%value(l$) == 0) then
     p => bunch%particle(i)
     call track1(p, ele, ele%branch%param, p)
   enddo
-  if (logic_option(.true., to_s_coords)) call drift_to_s(bunch, ele%s, bunch)
+  if (logic_option(.true., drift_to_same_s)) call drift_to_s(bunch, ele%s, bunch)
   err = .false.
   return
 endif
@@ -124,7 +126,7 @@ do i= 1, size(bunch%particle)
 enddo
 
 ! Drift bunch to the end of element
-if (logic_option(.true., to_s_coords)) call drift_to_s(bunch, ele%s, bunch)
+if (logic_option(.true., drift_to_same_s)) call drift_to_s(bunch, ele%s, bunch)
 err = .false.
 
 end subroutine track1_bunch_space_charge
