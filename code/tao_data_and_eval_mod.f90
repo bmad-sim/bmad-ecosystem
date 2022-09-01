@@ -3064,9 +3064,11 @@ case ('spin_g_matrix.')
 
   call tao_spin_matrix_calc (datum, u, ele_ref, ele)
   valid_value = datum%spin_map%valid
-  call tao_set_invalid (datum, datum%why_invalid)
 
-  if (.not. valid_value) return
+  if (.not. valid_value) then
+    call tao_set_invalid (datum, datum%why_invalid)
+    return
+  endif
 
   select case (data_type)
   case ('spin_g_matrix.11');  datum_value = datum%spin_map%mat8(7,1)
