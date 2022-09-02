@@ -295,7 +295,7 @@ real(rp) s, ds
 
 ! Convert bunch to s-based coordinates
 
-do i = 1, size(bunch_out%particle)
+do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state /= alive$) cycle
   ds = s - p%s
@@ -342,7 +342,7 @@ real(rp) t, pz0, E_tot, dt, ds
 
 ! Convert bunch to s-based coordinates
 
-do i = 1, size(bunch_out%particle)
+do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state /= alive$) cycle
   pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
