@@ -355,10 +355,16 @@ $b$-mode Twiss parameters as calculated from the lattice is used.
 \index{x_pitch}\index{y_pitch}\index{tilt}
 The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes (\sref{s:offset}) are used to offset
 the strong beam. Note that in \mad the attributes used to offset the strong beam are called \vn{xma}
-and \vn{yma}. \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a crossing
-angle. \vn{x_pitch}, \vn{y_pitch} or some combination of the two should be set to the crossing angle
-of the strong beam with respect to the reference orbit of the weak beam. To curve the strong beam
-centroid to simulate crabbing, the following parameters can be used:
+and \vn{yma}. The \vn{x_pitch} and \vn{y_pitch} parameters orient the strong beam with respect to
+the laboratory coordinate system. This will be give the beam--beam interaction a crossing angle. The
+full crossing angle is the angle of the strong beam (set by \vn{x_pitch} and \vn{y_pitch}) with
+respect to the trajectory of the weak beam centroid. The weak beam centroid orbit will be the closed
+orbit if the lattice geometry is closed. If the lattice geometry is open, the weak beam centroid
+orbit is determined by the beginning centroid orbit of the weak beam (which can be program
+dependent) and details of the lattice between the beginning of the lattice and the \vn{beambeam}
+element.
+
+To curve the strong beam centroid to simulate crabbing, the following parameters can be used:
 \begin{example}
   crab_x1,    crab_x2,     crab_x3
   crab_x4,    crab_x5,     crab_tilt
