@@ -49,6 +49,7 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
   private liebraquaternion,pow_tpsaMAP,c_concat_quaternion_ray,matrix_to_quaternion_in_c_damap,iexp_ad
   private EQUALql_cmap,EQUALcmap_ql,EQUAL_complex_quaternion_c_quaternion,EQUAL_c_quaternion_complex_quaternion
   private NO,ND,ND2,NP,NDPT,NV,ndptb,rf
+  private c_concat_c_uni_ray,c_concat_c_uni_rays
   integer, target :: NP,NO,ND,ND2,NV,NDPT,ndptb,rf
   private nd_used
   integer nd_used
@@ -344,6 +345,9 @@ type(c_linear_map) q_phasor,qi_phasor
 
   INTERFACE OPERATOR (.o.) 
   !
+
+     module procedure c_concat_c_uni_ray    !# c__universal_taylor .o. c_ray  
+     module procedure c_concat_c_uni_rays    !# c__universal_taylor(:) .o. c_ray  
      module procedure c_concat_c_ray    !# c_taylor .o. c_ray  
      module procedure c_concat_map_ray  !# c_ray= c_damap .o. c_ray
      module procedure c_trxtaylor_da   !# c_taylor= c_taylor .o. c_damap
@@ -976,6 +980,8 @@ end subroutine c_get_indices
     !       scdadd%x(i)=s1%m%v(i)+s2%x(i)
     scdadd%AC(i)%om=s2%AC(i)%om
     scdadd%AC(i)%t=s2%AC(i)%t
+    scdadd%AC(i)%f=s2%AC(i)%f
+    scdadd%AC(i)%phase=s2%AC(i)%phase
     master=localmaster
 enddo
     !    endif
@@ -1097,6 +1103,8 @@ do i=1,daddsc%nac
     !       scdadd%x(i)=s1%m%v(i)+s2%x(i)
     daddsc%AC(i)%om=s2%AC(i)%om
     daddsc%AC(i)%t=s2%AC(i)%t
+    daddsc%AC(i)%f=s2%AC(i)%f
+    daddsc%AC(i)%phase=s2%AC(i)%phase
     master=localmaster
     !    endif
 enddo
@@ -21166,8 +21174,50 @@ end subroutine cholesky_dt
 
   END SUBROUTINE c_FILL_UNI
 
+ FUNCTION c_concat_c_uni_ray( S1, S2 )
+    implicit none
+    complex(dp) c_concat_c_uni_ray,c
+    TYPE (c_UNIVERSAL_TAYLOR), INTENT (IN) :: S1
+    TYPE (c_ray), INTENT (IN) ::  S2
+    integer i,j
 
 
+    c_concat_c_uni_ray=0.0_dp
+
+    do i=1,s1%n
+     c=1
+     do j=1,s1%nv
+      c=c*s2%x(j)**s1%J(i,j)
+     enddo
+     c_concat_c_uni_ray=c_concat_c_uni_ray+s1%c(i)*c
+    enddo
+
+ ! TYPE c_UNIVERSAL_TAYLOR
+ !    INTEGER, POINTER:: N,NV,nd2    !  Number of coeeficients and number of variables
+ !    complex(DP), POINTER,dimension(:)::C  ! Coefficients C(N)
+ !    INTEGER, POINTER,dimension(:,:)::J ! Exponents of each coefficients J(N,NV)
+ ! END TYPE c_UNIVERSAL_TAYLOR
+
+  END FUNCTION c_concat_c_uni_ray
+
+ 
+
+ FUNCTION c_concat_c_uni_rays( S1, S2 )
+    implicit none
+    TYPE (c_ray)  c_concat_c_uni_rays 
+    TYPE (c_UNIVERSAL_TAYLOR), INTENT (IN) :: S1(:)
+    TYPE (c_ray), INTENT (IN) ::  S2
+    integer i,j
+
+
+    c_concat_c_uni_rays%x=0.0_dp
+
+    do i=1,size(s1)
+     c_concat_c_uni_rays%x(i)=  S1(i).o.s2
+    enddo
+
+
+  END FUNCTION c_concat_c_uni_rays
 
   SUBROUTINE  c_REFILL_UNI(S1,S2)
     implicit none
@@ -21350,6 +21400,136 @@ sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
     write(iunit0,'(A)') '                                      '
 
   end subroutine c_printunitaylor_old
+
+subroutine d_field_for_demin(f,ut)
+implicit none
+type(c_vector_field),intent(inout):: f 
+complex(dp) v
+type(c_taylor) t 
+integer i,j,k,n(11),nv,nd2,Nu,i1
+integer, allocatable :: je(:),jf(:)
+type(c_vector_field) fs
+!type(universal_taylor), target :: Re, Im
+type(c_universal_taylor), target :: ut
+real(dp) prec
+complex(dp) zilch
+
+prec=1.d-7
+zilch=0.0_dp
+call alloc(fs)
+call alloc(t)
+ 
+
+!!! counting only 
+fs=f
+
+call c_get_indices(n,0)
+nv=n(4)
+nd2=n(3)
+
+ nu=0
+allocate(je(nv),jf(nv))
+je=0
+fs=f
+ 
+ nu=0
+ 
+
+do i=1,fs%n
+
+       j=1
+
+        do while(.true.)
+je=0
+          call  c_cycle(fs%v(i),j,v ,je); if(j==0) exit;
+!write(6,*) i,je
+!pause 123
+     k=d_mod_demin(i)
+    jf=je
+    jf(k)=jf(k)+1
+
+     v=-(-1)**k*v/n_cai/jf(k)
+     nu=nu+1
+
+!write(6,*) i
+!write(6,*) je
+!write(6,*) jf
+!pause 8
+   do i1=i+1,fs%n  !,-1
+     k=d_mod_demin(i1)
+       jf(k)=jf(k)-1
+       if(jf(k)>=0) CALL c_pok(fs%v(i1),jf,zilch)
+       jf(k)=jf(k)+1
+     enddo
+
+       enddo
+ 
+ enddo
+
+
+!write(6,*) Nu,"size of universal_taylor "
+!pause 111
+!!!!  doing 
+!call ALLOC(re,Nu,NV)
+!call ALLOC(im,Nu,NV)
+call ALLOC(ut,Nu,NV,nd2)
+fs=f
+ 
+ nu=0
+ 
+je=0
+do i=1,fs%n
+
+       j=1
+
+        do while(.true.)
+
+          call  c_cycle(fs%v(i),j,v ,je); if(j==0) exit;
+
+     k=d_mod_demin(i)
+    jf=je
+    jf(k)=jf(k)+1
+
+     v=-(-1)**k*v/n_cai/jf(k)
+     nu=nu+1
+     ut%c(nu)=v  
+
+     ut%J(nu,1:nv)=jf
+ 
+
+ 
+   do i1=i+1,fs%n  !,-1
+     k=d_mod_demin(i1)
+       jf(k)=jf(k)-1
+       if(jf(k)>=0) CALL c_pok(fs%v(i1),jf,zilch)
+       jf(k)=jf(k)+1
+     enddo
+       enddo
+ 
+ enddo
+
+
+!f=fs
+
+call kill(fs)
+call kill(t)
+
+deallocate(je,jf); 
+ 
+end subroutine d_field_for_demin
+
+  integer function d_mod_demin(i)
+  implicit none
+  integer i
+
+  d_mod_demin=mod(i,2) 
+  if(d_mod_demin==0) then
+    d_mod_demin=i-1
+  else
+   d_mod_demin=i+1
+  endif
+
+  end  function d_mod_demin
 
 
   ! End of Universal complex Taylor Routines

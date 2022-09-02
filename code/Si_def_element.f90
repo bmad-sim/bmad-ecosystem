@@ -2438,6 +2438,7 @@ else
      AN(I)=0.0_dp
      BN(I)=0.0_dp
     enddo
+if(associated(EL%d0_AN)) then
     DO I=1,n_old
      AN(I)= EL%d0_AN(I) 
      BN(I)= EL%d0_BN(I)
@@ -2449,7 +2450,7 @@ else
        EL%d0_AN(I) = AN(i)
        EL%d0_BN(I) = BN(I)
     ENDDO
-
+endif
 if(associated(EL%d_BN))  then
     DO I=1,EL%P%NMUL
      AN(I)=0.0_dp
@@ -2459,7 +2460,6 @@ if(associated(EL%d_BN))  then
      AN(I)= EL%d_AN(I) 
      BN(I)= EL%d_BN(I)
     enddo
-endif
     DEALLOCATE(EL%d_BN)
     DEALLOCATE(EL%d_AN)
     ALLOCATE(EL%d_AN(EL%P%NMUL),EL%d_BN(EL%P%NMUL))
@@ -2467,6 +2467,8 @@ endif
        EL%d_AN(I) = AN(i)
        EL%d_BN(I) = BN(I)
     ENDDO   
+endif
+
 !!!!!!!!!!    end of changes   !!!!!!!!!!!!!!
 
  
@@ -2631,6 +2633,8 @@ else
      AN(I)=0.0_dp
      BN(I)=0.0_dp
     enddo
+if(associated(EL%d0_AN)) then
+
     DO I=1,n_old
      AN(I)= EL%d0_AN(I) 
      BN(I)= EL%d0_BN(I)
@@ -2645,7 +2649,7 @@ else
        EL%d0_AN(I) = AN(i)
        EL%d0_BN(I) = BN(I)
     ENDDO
-
+endif
 if(associated(EL%d_BN))  then
     DO I=1,EL%P%NMUL
      AN(I)=0.0_dp
@@ -2655,7 +2659,6 @@ if(associated(EL%d_BN))  then
      AN(I)= EL%d_AN(I) 
      BN(I)= EL%d_BN(I)
     enddo
-endif
     CALL KILL(EL%D_AN);CALL KILL(EL%D_BN);
     DEALLOCATE(EL%d_BN)
     DEALLOCATE(EL%d_AN)
@@ -2667,6 +2670,7 @@ endif
        EL%d_AN(I) = AN(i)
        EL%d_BN(I) = BN(I)
     ENDDO   
+endif
 !!!!!!!!!!    end of changes   !!!!!!!!!!!!!!
 
 

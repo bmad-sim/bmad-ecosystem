@@ -150,7 +150,7 @@ CONTAINS
     TYPE(ELEMENT),POINTER :: EL
     TYPE(ELEMENTP),POINTER :: ELp
     REAL(DP) v,dv
-    integer(2) n
+    integer n
 
     EL=>C%PARENT_FIBRE%MAG
     ELP=>C%PARENT_FIBRE%MAGP
@@ -403,15 +403,16 @@ CONTAINS
     TYPE(INTERNAL_STATE) K
     real(dp) xt
     real(dp),pointer :: beta0
-    integer(2) n
+    integer  n
     if(xs%nac==0) return
     do n=1,xs%nac
       if(k%time) then
          beta0=>C%PARENT_FIBRE%beta0
-         xs%ac%t=c%DS_AC/beta0+xs%ac(n)%t
+!         xs%ac%t=c%DS_AC/beta0+xs%ac(n)%t   bug 2020.9.2
          xt = cos(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(1) + sin(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(2)
          XS%AC(n)%X(2) = -sin(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(1) + cos(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(2)
          XS%AC(n)%X(1) = xt
+         xs%ac(n)%t=c%DS_AC/beta0+xs%ac(n)%t 
       else
          xt = cos(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(1) + sin(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(2)
          XS%AC(n)%X(2) = -sin(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(1) + cos(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(2)
@@ -428,22 +429,23 @@ CONTAINS
     TYPE(INTERNAL_STATE) K
     TYPE(REAL_8) xt
     real(dp),pointer :: beta0
-    integer(2) n
+    integer  n
     if(xs%nac==0) return
     CALL ALLOC(XT)
     do n=1,xs%nac
-        if(k%time) then
-           beta0=>C%PARENT_FIBRE%beta0
-           xs%ac(n)%t=c%DS_AC/beta0+xs%ac(n)%t
-           xt = cos(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(1) + sin(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(2)
-           XS%AC(n)%X(2) = -sin(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(1) + cos(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(2)
-           XS%AC(n)%X(1) = xt
-        else
-           xt = cos(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(1) + sin(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(2)
-           XS%AC(n)%X(2) = -sin(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(1) + cos(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(2)
-           XS%AC(n)%X(1) = xt
-           xs%ac(n)%t=c%DS_AC+xs%ac(n)%t
-        endif
+      if(k%time) then
+         beta0=>C%PARENT_FIBRE%beta0
+!         xs%ac%t=c%DS_AC/beta0+xs%ac(n)%t   bug 2020.9.2
+         xt = cos(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(1) + sin(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(2)
+         XS%AC(n)%X(2) = -sin(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(1) + cos(XS%AC(n)%om * c%DS_AC/beta0) *XS%AC(n)%X(2)
+         XS%AC(n)%X(1) = xt
+         xs%ac(n)%t=c%DS_AC/beta0+xs%ac(n)%t 
+      else
+         xt = cos(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(1) + sin(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(2)
+         XS%AC(n)%X(2) = -sin(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(1) + cos(XS%AC(n)%om * c%DS_AC) *XS%AC(n)%X(2)
+         XS%AC(n)%X(1) = xt
+         xs%ac(n)%t=c%DS_AC+xs%ac(n)%t
+      endif
     enddo
     CALL KILL(XT)
 
