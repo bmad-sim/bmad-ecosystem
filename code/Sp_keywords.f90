@@ -2929,7 +2929,7 @@ subroutine against_the_method(m,n,met,nst,kind00,change)
 implicit none
 !type(element), target :: s2
 integer, intent(inout) :: met,nst
-integer  m,n,m0,n0
+integer  m,n,m0,n0,nt
 integer kind00
 logical change
 change=.false.
@@ -2942,6 +2942,8 @@ nst=n  !s2%p%nst
 if(m<=2) then
  if(n>limit_int0_new(1).and.n<=limit_int0_new(2)) then
  n=n/3
+ nt=n*faclim
+ if(nt>0) n=nt
  m=4
  change=.true.
 if(.not.check_excessive_cutting) then
@@ -2958,6 +2960,8 @@ endif
 if(m<=4) then
  if(n>limit_int0_new(2).and.n<=limit_int0_new(3)) then
  n=n/7
+ nt=n*faclim
+ if(nt>0) n=nt
  m=6
  change=.true.
 if(.not.check_excessive_cutting) then
@@ -2975,9 +2979,13 @@ if(n>limit_int0_new(3)) then
  change=.true.
  if(kind0==kindwiggler) then
   n=n/7
+  nt=n*faclim
+  if(nt>0) n=nt
   m=6
 else
  n=n/15
+ nt=n*faclim
+ if(nt>0) n=nt
  m=8
  endif
 if(.not.check_excessive_cutting) then
