@@ -4405,7 +4405,7 @@ type (expression_func_struct) func(0:20)
 
 integer, optional :: dflt_uni, dflt_eval_point
 integer, allocatable :: op(:)
-integer i_lev, i_op, i, ios, n, n_size, ix0, ix1, ix2, ix3, n_func
+integer i_lev, i_op, i, ios, n, n_size, ix0, ix1, ix2, ix3, ix4, n_func
 integer ix_word, i_delim, i2, ix, ix_word2
 
 real(rp), allocatable :: value(:)
@@ -4554,12 +4554,13 @@ parsing_loop: do
   ! Something like "3*[1,2]" or "3*.42" does not get split.
 
   do
-    if (delim /= '*' .or. phrase(1:1) == '[') exit
-
     ix0 = index(word, '::')
     ix1 = index(phrase, '[')
     ix2 = index(phrase, ']')
     ix3 = index(phrase, '|')
+    ix4 = index(word, '|')
+
+    if (delim /= '*' .or. (phrase(1:1) == '[' .and. ((ix0 == 0) .eqv. (ix4 == 0)))) exit
 
     ! If in "[...*...]" construct is wild
     wild = .false.
