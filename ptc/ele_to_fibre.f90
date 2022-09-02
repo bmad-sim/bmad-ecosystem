@@ -41,7 +41,7 @@ type (cartesian_map_term1_struct), pointer :: wt
 type (cartesian_map_struct), pointer :: cm
 type (cylindrical_map_struct), pointer :: cy
 type (fibre), pointer :: ptc_fibre
-type (keywords) ptc_key
+type (keywords) ptc_key, key2
 type (work) energy_work
 type (tree_element), pointer :: arbre(:)
 type (c_damap) ptc_c_damap
@@ -66,7 +66,7 @@ integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
 integer np, max_order, ix_pole_max, nn
 
-logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it
+logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
 logical, optional :: for_layout
 
 character(16) :: r_name = 'ele_to_fibre'
@@ -545,6 +545,21 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
 else
   allocate (pancake_field(0,0))  ! Needed since corresponding create_fibre_append dummy arg
                                  !  is an assumed shape array.
+endif
+
+! Check number of slices and integrator order.
+! Wigglers are special since they do not have a uniform field so ignore these.
+
+if (ptc_key%magnet /= 'wiggler') then
+  switch_to_drift_kick = .false.
+  key2 = ptc_key  ! Don't want to change ptc_key
+  call change_method_in_create_fibre(key2, 1, change)
+  if (change .and. ptc_com%print_step_warning) then
+    call out_io (s_warn$, r_name, 'Number of integration steps looks large for element: ' // ele%name, &
+              ' Present num_steps: ' // int_str(ptc_key%nstep) // ' at integrator order: ' // int_str(ptc_key%method), &
+              ' Suggested num_steps: ' // int_str(key2%nstep) // ' at integrator order: ' // int_str(key2%method), &
+              ' [Note: To turn off this message set ptc_com%print_step_warning = False.]')
+  endif
 endif
 
 !--------------------------------------------
