@@ -2159,6 +2159,7 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %old_integrator        = ', ptc_com%old_integrator
     nl=nl+1; write(lines(nl), lmt) '  %exact_model           = ', ptc_com%exact_model
     nl=nl+1; write(lines(nl), lmt) '  %exact_misalign        = ', ptc_com%exact_misalign
+    nl=nl+1; write(lines(nl), lmt) '  %print_info_messages   = ', ptc_com%exact_misalign
 
   ! Internal parameters are not of general interest.
   case ('-internal')
