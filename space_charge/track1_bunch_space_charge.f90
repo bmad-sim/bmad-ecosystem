@@ -51,11 +51,11 @@ include_image = (ele%space_charge_method == cathode_fft_3d$) ! Include cathode i
 ! Zero length elements are easy
 
 if (ele%value(l$) == 0) then
-  do i = 1, size(bunch%particle)
-    p => bunch%particle(i)
-    call track1(p, ele, ele%branch%param, p)
-  enddo
-  if (logic_option(.true., drift_to_same_s)) call drift_to_s(bunch, ele%s, bunch)
+  !do i = 1, size(bunch%particle)
+  !  p => bunch%particle(i)
+  !  call track1(p, ele, ele%branch%param, p)
+  !enddo
+  if (logic_option(.true., drift_to_same_s)) call drift_to_s(bunch, ele%s, branch)
   err = .false.
   return
 endif
@@ -65,7 +65,7 @@ if (bunch%t0 == real_garbage$) then
   bunch%t0 = minval(bunch%particle%t, bunch%particle%state==alive$ .or. bunch%particle%state==pre_born$) 
 endif
 t_now = bunch%t0
-call drift_to_t(bunch, bunch%t0, bunch)
+call drift_to_t(bunch, bunch%t0, branch)
 
 ! Convert to t-based coordinates
 do i = 1, size(bunch%particle) 
@@ -100,11 +100,13 @@ do
   t_now = t_now + dt_step
   dt_step = dt_next
 
-  if (bunch_track%pt(bunch_track%n_pt)%s >= s_save_last + bunch_track%ds_save) then
-    call save_a_bunch_step (bunch_track, ele, bunch)
-    s_save_last = bunch_track%pt(bunch_track%n_pt)%s
+  if (present(bunch_track)) then
+    if (bunch_track%pt(bunch_track%n_pt)%s >= s_save_last + bunch_track%ds_save) then
+      call save_a_bunch_step (bunch_track, ele, bunch)
+      s_save_last = bunch_track%pt(bunch_track%n_pt)%s
+    endif
   endif
-
+  
   if (finished) exit
 
   ! Check if center of the bunch is past end of the element
@@ -126,7 +128,7 @@ do i= 1, size(bunch%particle)
 enddo
 
 ! Drift bunch to the end of element
-if (logic_option(.true., drift_to_same_s)) call drift_to_s(bunch, ele%s, bunch)
+if (logic_option(.true., drift_to_same_s)) call drift_to_s(bunch, ele%s, branch)
 err = .false.
 
 end subroutine track1_bunch_space_charge

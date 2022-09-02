@@ -51,6 +51,7 @@ branch => pointer_to_branch(ele_in)
 n = branch%n_ele_track
 call init_ele (drift_ele, drift$, ix_ele = n + 1, branch = branch)
 drift_ele%value(l$) = 100
+drift_ele%name = 'end_drift'
 call ele_compute_ref_energy_and_time(branch%ele(n), drift_ele, branch%param, err)
 
 !$OMP parallel do default(shared) private(dt, orbit, ele_here)
