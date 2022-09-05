@@ -1,5 +1,7 @@
+[Note: When modifying, modify copy in bmad_dist/util/INSTALL. This will be copied to bmad_dist/INSTALL]
+
 BMAD DISTRIBUTION INSTALLATION INSTRUCTIONS
--------------
+-------------------------------------------
 
 For Distribution building instructions, please see the web documentation:
 	https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc
