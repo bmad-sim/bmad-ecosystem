@@ -212,6 +212,10 @@ case (crab_cavity$)
     return
   endif
 
+  if (ele%value(crab_x1$) /= 0 .or. ele%value(crab_x2$) /= 0) then
+    call out_io (s_warn$, r_name, 'CRAB_X1, CRAB_X2, etc. DO NOT HAVE A PTC EQUIVALENT!')
+  endif
+
   ptc_key%magnet = 'rfcavity'
   ptc_key%list%n_bessel = 0
   !!ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
@@ -310,7 +314,7 @@ case (marker$, detector$, fork$, photon_fork$, beginning_ele$, patch$, floor_shi
   ptc_key%magnet = 'marker'
   ptc_key%nstep = 1
 
-case (kicker$, hkicker$, vkicker$)
+case (kicker$, hkicker$, vkicker$, ac_kicker$)
   ptc_key%magnet = 'kicker'
 
 case (rfcavity$, lcavity$)

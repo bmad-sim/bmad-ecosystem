@@ -398,13 +398,13 @@ endif
 
 if (a_name(1:12) == 'FREQUENCIES(') then
   if (.not. associated(ele%ac_kick)) goto 9400
-  if (.not. allocated(ele%ac_kick%frequencies)) goto 9450
-  n = get_this_index(a_name, 12, err, 1, size(ele%ac_kick%frequencies)); if (err) goto 9460
+  if (.not. allocated(ele%ac_kick%frequency)) goto 9450
+  n = get_this_index(a_name, 12, err, 1, size(ele%ac_kick%frequency)); if (err) goto 9460
 
   select case (a_name)
-  case ('%FREQ'); a_ptr%r => ele%ac_kick%frequencies(n)%f
-  case ('%AMP');  a_ptr%r => ele%ac_kick%frequencies(n)%amp
-  case ('%PHI');  a_ptr%r => ele%ac_kick%frequencies(n)%phi
+  case ('%FREQ'); a_ptr%r => ele%ac_kick%frequency(n)%f
+  case ('%AMP');  a_ptr%r => ele%ac_kick%frequency(n)%amp
+  case ('%PHI');  a_ptr%r => ele%ac_kick%frequency(n)%phi
   case default;   goto 9470
   end select
 
@@ -877,7 +877,7 @@ return
 9460 continue
 if (do_print) call out_io (s_error$, r_name, &
         'ATTRIBUTE: ' // trim(attrib_name) // ' HAS INDEX OUT OF RANGE. VALID RANGE IS FROM 1 TO ', &
-                                                                      int_str(size(ele%ac_kick%frequencies)), &
+                                                                      int_str(size(ele%ac_kick%frequency)), &
         'FOR ELEMENT: ' // ele%name)
 return
 

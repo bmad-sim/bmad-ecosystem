@@ -1,5 +1,5 @@
 !+
-! Function ac_kicker_amp(ele, time) result (ac_amp)
+! Function ac_kicker_amp(ele, orbit) result (ac_amp)
 !
 ! Routine to calculate the amplitude of the field for an ac_kicker element
 !
@@ -24,7 +24,7 @@ type (ac_kicker_struct), pointer :: ac
 type (ele_struct), pointer :: ref_ele
 type (ele_pointer_struct), allocatable :: chain(:)
 
-real(rp) t, time, ac_amp, dt_ds0
+real(rp) t, ac_amp, dt_ds0
 integer i, ix_pass, n_links
 logical err_flag
 
@@ -34,12 +34,6 @@ character(*), parameter :: r_name = 'ac_kicker_amp'
 
 ref_ele => ele
 if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_lord (ref_ele, 1)
-
-if (is_true(ele%value(ref_time_offset$))) then
-  time = orbit%t - ref_ele%value(ref_time_start$)
-else
-  time = orbit%t
-endif
 
 ac_amp = 1
 if (ele%key /= ac_kicker$) return
@@ -53,15 +47,16 @@ else
 endif
 
 ac => lord%ac_kick
-t = time - ele%value(t_offset$)
 
-if (allocated(ac%frequencies)) then
+if (allocated(ac%frequency)) then
   ac_amp = 0
-  do i = 1, size(ac%frequencies)
-    ac_amp = ac_amp + ac%frequencies(i)%amp * cos(twopi*(ac%frequencies(i)%f * t + ac%frequencies(i)%phi))
+  do i = 1, size(ac%frequency)
+    t = particle_rf_time(orbit, ele, rf_clock_harmonic = ac%frequency(i)%rf_clock_harmonic)
+    ac_amp = ac_amp + ac%frequency(i)%amp * cos(twopi*(ac%frequency(i)%f * t + ac%frequency(i)%phi))
   enddo
 
 else
+  t = particle_rf_time(orbit, ele)
   ac_amp = knot_interpolate(ac%amp_vs_time%time, ac%amp_vs_time%amp, t, nint(ele%value(interpolation$)), err_flag)
   if (err_flag) then
     call out_io (s_fatal$, r_name, 'INTERPOLATION PROBLEM FOR AC_KICKER: ' // ele%name)

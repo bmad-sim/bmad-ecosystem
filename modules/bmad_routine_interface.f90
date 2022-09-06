@@ -1514,15 +1514,15 @@ function particle_is_moving_forward (orbit) result (is_moving_forward)
   logical is_moving_forward
 end function
 
-function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords) result (time)
+function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_clock_harmonic) result (time)
   import
   implicit none
   type (coord_struct) orbit
   type (ele_struct), target :: ele
   real(rp), optional :: s_rel
   real(rp) time
-  logical reference_active_edge
-  logical, optional :: time_coords
+  integer, optional :: rf_clock_harmonic
+  logical, optional :: reference_active_edge, time_coords
 end function
 
 function patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)
@@ -1824,6 +1824,14 @@ subroutine reverse_lat (lat_in, lat_rev, track_antiparticle)
   type (lat_struct), target :: lat_in, lat_rev
   logical, optional :: track_antiparticle
 end subroutine
+
+function rf_clock_setup (branch, n_rf_included, n_rf_excluded) result (ok)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  integer n_rf_included, n_rf_excluded
+  logical ok
+end function
 
 subroutine rf_coupler_kick (ele, param, particle_at, phase, orbit, mat6, make_matrix)
   import

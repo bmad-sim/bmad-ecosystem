@@ -754,11 +754,11 @@ if (attrib_word == 'FREQUENCIES') then
   if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3, delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
   n = size(table, 1)
-  allocate (ac%frequencies(n))
+  allocate (ac%frequency(n))
   do i = 1, n
-    ac%frequencies(i)%f    = table(i,1)
-    ac%frequencies(i)%amp  = table(i,2)
-    ac%frequencies(i)%phi  = table(i,3)
+    ac%frequency(i)%f    = table(i,1)
+    ac%frequency(i)%amp  = table(i,2)
+    ac%frequency(i)%phi  = table(i,3)
   enddo
   err_flag = .false.
   return

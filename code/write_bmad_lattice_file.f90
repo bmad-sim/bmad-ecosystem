@@ -425,11 +425,11 @@ do ib = 0, ubound(lat%branch, 1)
         line = trim(line) // '}'
 
       else
-        line = trim(line) // ', frequencies = {(' // re_str(ac%frequencies(1)%f) // &
-                  ', ' // re_str(ac%frequencies(1)%amp) // ', ' // re_str(ac%frequencies(1)%phi)  // ')'
-        do i = 2, size(ac%frequencies)
-          line = trim(line) // ', (' // re_str(ac%frequencies(i)%f) // &
-                  ', ' // re_str(ac%frequencies(i)%amp) // ', ' // re_str(ac%frequencies(i)%phi) // ')'
+        line = trim(line) // ', frequencies = {(' // re_str(ac%frequency(1)%f) // &
+                  ', ' // re_str(ac%frequency(1)%amp) // ', ' // re_str(ac%frequency(1)%phi)  // ')'
+        do i = 2, size(ac%frequency)
+          line = trim(line) // ', (' // re_str(ac%frequency(i)%f) // &
+                  ', ' // re_str(ac%frequency(i)%amp) // ', ' // re_str(ac%frequency(i)%phi) // ')'
         enddo
         line = trim(line) // '}'
       endif
@@ -759,7 +759,6 @@ do ib = 0, ubound(lat%branch, 1)
         this_ele%value(num_steps$) = 0
         this_ele%value(integrator_order$) = 0
         call attribute_bookkeeper (this_ele, .true.)
-        print '(3es20.12)', val, this_ele%value(ds_step$), abs(val - this_ele%value(ds_step$)) 
         if (attrib%name == 'DS_STEP' .and. abs(val - this_ele%value(ds_step$)) < 1e-6*val) cycle
         if (attrib%name == 'INTEGRATOR_ORDER' .and. val == this_ele%value(integrator_order$)) cycle        
       endif

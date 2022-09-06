@@ -1,5 +1,5 @@
 !+
-! Function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords) result (time)
+! Function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_clock_harmonic) result (time)
 !
 ! Routine to return the reference time used to calculate the phase of
 ! time-dependent EM fields.
@@ -11,19 +11,20 @@
 ! Also see set_particle_from_rf_time which is the inverse of this routine.
 !
 ! Input:
-!   orbit       -- Coord_struct: Particle coordinates
-!   ele         -- ele_struct: Element being tracked through.
+!   orbit             -- Coord_struct: Particle coordinates
+!   ele               -- ele_struct: Element being tracked through.
 !   reference_active_edge 
-!               -- logical: If True, and ele is a rfcavity or lcavity, use the active edge as the reference point.
-!   s_rel       -- real(rp), optional: Longitudinal position relative to the upstream edge of the element.
-!                   Needed for relative time tracking when the particle is inside the element. Default is 0.
-!   time_coords -- logical, optional: Default False. If True then orbit is using time based coordinates.
+!                     -- logical: If True, and ele is a rfcavity or lcavity, use the active edge as the reference point.
+!   s_rel             -- real(rp), optional: Longitudinal position relative to the upstream edge of the element.
+!                         Needed for relative time tracking when the particle is inside the element. Default is 0.
+!   time_coords       -- logical, optional: Default False. If True then orbit is using time based coordinates.
+!   rf_clock_harmonic -- integer: Used by ac_kicker elements in conjunction with the rf clock.
 !
 ! Ouput:
 !   time      -- Real(rp): Current time.
 !-
 
-function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords) result (time)
+function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_clock_harmonic) result (time)
 
 use equal_mod, dummy_except => particle_rf_time
 use attribute_mod, only: has_attribute
@@ -37,7 +38,8 @@ type (ele_pointer_struct), allocatable :: chain(:)
 
 real(rp) time, s_hard_offset, beta0
 real(rp), optional :: s_rel
-integer ix_pass, n_links
+integer, optional :: rf_clock_harmonic
+integer n, ix_pass, n_links, harmonic
 logical reference_active_edge, abs_time
 logical, optional :: time_coords
 
@@ -57,11 +59,22 @@ if (ix_pass > 1) ref_ele => chain(1)%ele
 ! Note: e_gun uses absolute time tracking to get around the problem when orbit%beta = 0.
 
 if (absolute_time_tracking(ele)) then
-  if (bmad_com%absolute_time_ref_shift) then
-    time = orbit%t - ref_ele%value(ref_time_start$)
+
+  if (bmad_private%rf_clock_period > 0) then
+    harmonic = integer_option (int(ele%value(rf_clock_harmonic$)), rf_clock_harmonic)
+    if (harmonic /= 0) then
+      n = int(time / bmad_private%rf_clock_period)
+      orbit%t = orbit%t - n * bmad_private%rf_clock_period
+      orbit%phase(1) = orbit%phase(1) + n
+      time = orbit%t + modulo(int(orbit%phase(1)), harmonic) * bmad_private%rf_clock_period
+    else
+      time = orbit%t + orbit%phase(1) * bmad_private%rf_clock_period
+    endif
   else
     time = orbit%t
   endif
+
+  if (bmad_com%absolute_time_ref_shift) time = time - ref_ele%value(ref_time_start$)
 
 else
   if (orbit%beta == 0) then
@@ -91,7 +104,7 @@ endif
 
 !
 
-if (reference_active_edge .and. (ele%key == rfcavity$ .or. ele%key == lcavity$)) then
+if (logic_option(.false., reference_active_edge) .and. (ele%key == rfcavity$ .or. ele%key == lcavity$)) then
   s_hard_offset = (ref_ele%value(l$) - ref_ele%value(l_active$)) / 2  
   beta0 = ele%value(p0c_start$) / ele%value(E_tot_start$)
   time = time - s_hard_offset / (c_light * beta0)

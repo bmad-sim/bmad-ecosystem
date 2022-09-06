@@ -502,12 +502,16 @@ real(rp), parameter :: vec0$(6) = 0
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
   real(rp) :: s = 0               ! Longitudinal position 
-  real(rp) :: t = 0               ! Absolute time (not relative to reference).
+  real(rp) :: t = 0               ! Absolute time (not relative to reference). If bmad_private%rf_clock_frequency is
+                                  ! set, %t will be the RF clock time in the range [0, 1/rf_clock_freq] 
   real(rp) :: spin(3) = 0         ! Spin.
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
-  real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y).
+  real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y). phase(1) is also used with 
+                                  !   RF-time tracking to record the number of RF cycles.
   real(rp) :: charge = 0          ! Macroparticle weight (in Coulombs).
-  real(rp) :: dt_ref = 0          ! Used in time tracking for computing z and by coherent photons = path_length/c_light.
+  real(rp) :: dt_ref = 0          ! Used in:
+                                  !   * time tracking for computing z.
+                                  !   * by coherent photons = path_length/c_light.
   real(rp) :: r = 0               ! For general use. Not used by Bmad. 
   real(rp) :: p0c = 0             ! For non-photons: Reference momentum.
                                   !     For photons: Photon momentum (not reference).
@@ -629,11 +633,12 @@ type ac_kicker_freq_struct
   real(rp) :: f = 0
   real(rp) :: amp = 0
   real(rp) :: phi = 0
+  integer :: rf_clock_harmonic = 0  ! When RF clock is used.
 end type
 
 type ac_kicker_struct
   type (ac_kicker_time_struct), allocatable :: amp_vs_time(:)
-  type (ac_kicker_freq_struct), allocatable :: frequencies(:)
+  type (ac_kicker_freq_struct), allocatable :: frequency(:)
 end type
 
 ! Cartesian field decomposition.
@@ -1621,7 +1626,7 @@ integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
 integer, parameter :: fb1$ = 21, polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: beta_a_strong$ = 21, beta_a_out$ = 21, e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
 integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, dt_max$ = 22
-integer, parameter :: beta_b_strong$ = 22, beta_b_out$ = 22, spin_y$ = 22, E2_center$ = 22, n_period$ = 22
+integer, parameter :: phi0_max$ = 22, beta_b_strong$ = 22, beta_b_out$ = 22, spin_y$ = 22, E2_center$ = 22, n_period$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
 integer, parameter :: fq1$ = 23, alpha_a_strong$ = 23, alpha_a_out$ = 23, cavity_type$ = 23, E2_probability$ = 23
 integer, parameter :: emit_fraction$ = 23
@@ -1634,8 +1639,8 @@ integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ =
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27
 integer, parameter :: x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27
 integer, parameter :: py_aperture_center$ = 27, x_dispersion_err$ = 27
-integer, parameter :: etap_y_out$ = 28, phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28
-integer, parameter :: y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28
+integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28
+integer, parameter :: y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, rf_clock_harmonic$ = 28
 integer, parameter :: upstream_coord_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29, z_aperture_center$ = 29
 integer, parameter :: cmat_11$ = 29, field_autoscale$ = 29, l_sagitta$ = 29, e_field_y$ = 29, x_dispersion_calib$ = 29
 integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord$ = 30, scale_field_to_one$ = 30
@@ -2127,6 +2132,15 @@ type bmad_common_struct
 end type
   
 type (bmad_common_struct), save, target :: bmad_com
+
+! Bmad global private structure
+! For communication between Bmad and Bmad based programs.
+
+type bmad_private_struct
+  real(rp) :: rf_clock_period = 0     ! The RF clock is used by the long_term_tracking program to avoid time round-off errors.
+end type
+
+type (bmad_private_struct), save, target :: bmad_private
 
 ! ptc_com common block.
 ! Setup in: set_ptc_com_pointers
