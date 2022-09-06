@@ -335,17 +335,17 @@ can be produced by setting \vn{ltt%map_ascii_output_file}.
 When tracking using maps or element-by-element with PTC there are a few points to keep in
 mind. First is that \vn{PTC} tracks through a lattice element step by step. This is true for both
 map creation and symplectic integration. This means that the setting of the element parameter
-\vn{integration_order}\footnote
+\vn{integrator_order}\footnote
   {
-Note: Valid settings for \vn{integration_order} are 2, 4, and 6
+Note: Valid settings for \vn{integrator_order} are 2, 4, and 6
   }
 or \vn{num_steps} (or \vn{ds_step}) for each element will affect the accuracy and speed of the
-computations. Bmad tries to choose reasonable default settings for the integration order and number
-of steps however the calculation is not perfect. To make sure that the integration order and number
+computations. Bmad tries to choose reasonable default settings for the integrator order and number
+of steps however the calculation is not perfect. To make sure that the integrator order and number
 of steps is set properly, vary both and choose values (which can be different for different
-elements) such that the number of steps and integration order is minimal (to minimize computation
+elements) such that the number of steps and integrator order is minimal (to minimize computation
 time) while at the same time is large enough so that results do not change significantly if the
-number of steps or is varied. Generally it is much better to use a large integration order and a
+number of steps or is varied. Generally it is much better to use a large integrator order and a
 small step size rather than vice versa with the proviso that for elements with a longitudinally
 varying field (think wigglers or undulators), the step size must be small compared to the typical
 longitudinal length scale over which the field is varying (this length scale is the pole period
@@ -610,6 +610,7 @@ Example:
   ltt%exclude_from_maps  = "beambeam::*"
   ltt%split_bends_for_stochastic_rad = False
   ltt%symplectic_map_tracking = False
+  ltt%use_rf_clock       = F
   ltt%dead_cutoff        = 0.99
   ltt%b_emittance        = 1e-9          ! Used with space charge calc.
   ltt%debug              = F
@@ -960,6 +961,10 @@ String switch which sets how particles are tracked when the \vn{simulation_mode}
 "BMAD"    ! Element-by-element tracking using Bmad. Default. Slow.
 \end{code}
 See sections \sref{s:map} and \sref{s:track.methods} for more details.
+%
+\item[ltt\%use_rf_clock] \Newline
+The \vn{ltt%use_rf_clock} is only relavent of absolute time tracking is being used. If set to False
+(the default),
 \end{description}
 
 %------------------------------------------------------------------
