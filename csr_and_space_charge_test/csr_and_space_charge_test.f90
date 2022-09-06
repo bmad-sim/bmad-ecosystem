@@ -86,7 +86,8 @@ space_charge_com%beam_chamber_height = 0.01
 bunch2 = bunch_init
 call track1_bunch(bunch2, ele, err, centroid)
 p2 => bunch2%particle(10)
-write (1, '(a, 6es16.8)') '"CSR-with-Shield" ABS 1e-14', p2%vec - p%vec
+write (1, '(a, 6es16.8)') '"CSR-with-Shield" ABS 1e-14', p2%vec(1:5) - p%vec(1:5)
+write (1, '(a, 6es16.8)') '"CSR-with-Shield" ABS 1e-13', p2%vec(6) - p%vec(6)
 
 !
 

@@ -224,7 +224,7 @@ write (1, '(a, es20.10)') '"Bmad:vec(1)" ABS  2E-16', end_orb1%vec(1)
 write (1, '(a, es20.10)') '"Bmad:vec(2)" ABS  2E-16', end_orb1%vec(2)
 write (1, '(a, es20.10)') '"Bmad:vec(3)" ABS  2E-16', end_orb1%vec(3)
 write (1, '(a, es20.10)') '"Bmad:vec(4)" ABS  2E-16', end_orb1%vec(4)
-write (1, '(a, es20.10)') '"Bmad:vec(5)" ABS  2E-16', end_orb1%vec(5)
+write (1, '(a, es20.10)') '"Bmad:vec(5)" ABS  4E-16', end_orb1%vec(5)
 write (1, '(a, es20.10)') '"Bmad:vec(6)" ABS  2E-16', end_orb1%vec(6)
 write (1, '(a, es20.10)') '"Bmad:orb%t " ABS  2E-16', end_orb1%t
 
