@@ -466,6 +466,8 @@ rhs = 1 + offset; F%f = rhs
 rhs = 2 + offset; F%amp = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 3 + offset; F%phi = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 4 + offset; F%rf_clock_harmonic = rhs
 
 end subroutine set_ac_kicker_freq_test_pattern
 
@@ -563,11 +565,11 @@ endif
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%frequencies)) deallocate (F%frequencies)
+  if (allocated(F%frequency)) deallocate (F%frequency)
 else
-  if (.not. allocated(F%frequencies)) allocate (F%frequencies(-1:1))
-  do jd1 = 1, size(F%frequencies,1); lb1 = lbound(F%frequencies,1) - 1
-    call set_ac_kicker_freq_test_pattern (F%frequencies(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%frequency)) allocate (F%frequency(-1:1))
+  do jd1 = 1, size(F%frequency,1); lb1 = lbound(F%frequency,1) - 1
+    call set_ac_kicker_freq_test_pattern (F%frequency(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 
@@ -7866,11 +7868,13 @@ rhs = 35 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 36 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 37 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
+rhs = 37 + offset; F%absolute_time_ref_shift = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 38 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+rhs = 38 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 39 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 39 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 40 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 
@@ -9301,6 +9305,10 @@ rhs = 11 + offset; F%ix_bunch = rhs
 rhs = 12 + offset; F%ix_turn = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 13 + offset; F%n_live = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 14 + offset; F%n_good = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 15 + offset; F%n_bad = rhs
 
 end subroutine set_bunch_test_pattern
 
@@ -9423,17 +9431,19 @@ enddo
 !! f_side.test_pat[real, 0, NOT]
 rhs = 12 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 13 + offset; F%charge_live = rhs
+rhs = 13 + offset; F%t = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 14 + offset; F%charge_tot = rhs
+rhs = 14 + offset; F%charge_live = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 15 + offset; F%charge_tot = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 15 + offset; F%n_particle_tot = rhs
+rhs = 16 + offset; F%n_particle_tot = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 16 + offset; F%n_particle_live = rhs
+rhs = 17 + offset; F%n_particle_live = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 17 + offset; F%n_particle_lost_in_ele = rhs
+rhs = 18 + offset; F%n_particle_lost_in_ele = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 18 + offset; F%twiss_valid = (modulo(rhs, 2) == 0)
+rhs = 19 + offset; F%twiss_valid = (modulo(rhs, 2) == 0)
 
 end subroutine set_bunch_params_test_pattern
 

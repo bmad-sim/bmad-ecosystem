@@ -591,11 +591,13 @@ public:
   Real f;
   Real amp;
   Real phi;
+  Int rf_clock_harmonic;
 
   CPP_ac_kicker_freq() :
     f(0.0),
     amp(0.0),
-    phi(0.0)
+    phi(0.0),
+    rf_clock_harmonic(0)
     {}
 
   ~CPP_ac_kicker_freq() {
@@ -617,11 +619,11 @@ class Opaque_ac_kicker_class {};  // Opaque class for pointers to corresponding 
 class CPP_ac_kicker {
 public:
   CPP_ac_kicker_time_ARRAY amp_vs_time;
-  CPP_ac_kicker_freq_ARRAY frequencies;
+  CPP_ac_kicker_freq_ARRAY frequency;
 
   CPP_ac_kicker() :
     amp_vs_time(CPP_ac_kicker_time_ARRAY(CPP_ac_kicker_time(), 0)),
-    frequencies(CPP_ac_kicker_freq_ARRAY(CPP_ac_kicker_freq(), 0))
+    frequency(CPP_ac_kicker_freq_ARRAY(CPP_ac_kicker_freq(), 0))
     {}
 
   ~CPP_ac_kicker() {
@@ -3107,6 +3109,7 @@ public:
   Bool radiation_fluctuations_on;
   Bool conserve_taylor_maps;
   Bool absolute_time_tracking_default;
+  Bool absolute_time_ref_shift;
   Bool convert_to_kinetic_momentum;
   Bool aperture_limit_on;
   Bool debug;
@@ -3148,6 +3151,7 @@ public:
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
     absolute_time_tracking_default(false),
+    absolute_time_ref_shift(true),
     convert_to_kinetic_momentum(false),
     aperture_limit_on(true),
     debug(false)
@@ -3701,6 +3705,8 @@ public:
   Int ix_bunch;
   Int ix_turn;
   Int n_live;
+  Int n_good;
+  Int n_bad;
 
   CPP_bunch() :
     particle(CPP_coord_ARRAY(CPP_coord(), 0)),
@@ -3713,7 +3719,9 @@ public:
     ix_ele(0),
     ix_bunch(0),
     ix_turn(0),
-    n_live(0)
+    n_live(0),
+    n_good(0),
+    n_bad(0)
     {}
 
   ~CPP_bunch() {
@@ -3746,6 +3754,7 @@ public:
   Real_ARRAY rel_max;
   Real_ARRAY rel_min;
   Real s;
+  Real t;
   Real charge_live;
   Real charge_tot;
   Int n_particle_tot;
@@ -3766,6 +3775,7 @@ public:
     rel_max(0.0, 6),
     rel_min(0.0, 6),
     s(-1),
+    t(-1),
     charge_live(0.0),
     charge_tot(0.0),
     n_particle_tot(0),

@@ -133,6 +133,7 @@ bool operator== (const CPP_ac_kicker_freq& x, const CPP_ac_kicker_freq& y) {
   is_eq = is_eq && (x.f == y.f);
   is_eq = is_eq && (x.amp == y.amp);
   is_eq = is_eq && (x.phi == y.phi);
+  is_eq = is_eq && (x.rf_clock_harmonic == y.rf_clock_harmonic);
   return is_eq;
 };
 
@@ -144,7 +145,7 @@ template bool is_all_equal (const CPP_ac_kicker_freq_MATRIX&, const CPP_ac_kicke
 bool operator== (const CPP_ac_kicker& x, const CPP_ac_kicker& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.amp_vs_time, y.amp_vs_time);
-  is_eq = is_eq && is_all_equal(x.frequencies, y.frequencies);
+  is_eq = is_eq && is_all_equal(x.frequency, y.frequency);
   return is_eq;
 };
 
@@ -1345,6 +1346,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
+  is_eq = is_eq && (x.absolute_time_ref_shift == y.absolute_time_ref_shift);
   is_eq = is_eq && (x.convert_to_kinetic_momentum == y.convert_to_kinetic_momentum);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
   is_eq = is_eq && (x.debug == y.debug);
@@ -1629,6 +1631,8 @@ bool operator== (const CPP_bunch& x, const CPP_bunch& y) {
   is_eq = is_eq && (x.ix_bunch == y.ix_bunch);
   is_eq = is_eq && (x.ix_turn == y.ix_turn);
   is_eq = is_eq && (x.n_live == y.n_live);
+  is_eq = is_eq && (x.n_good == y.n_good);
+  is_eq = is_eq && (x.n_bad == y.n_bad);
   return is_eq;
 };
 
@@ -1651,6 +1655,7 @@ bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
   is_eq = is_eq && is_all_equal(x.rel_max, y.rel_max);
   is_eq = is_eq && is_all_equal(x.rel_min, y.rel_min);
   is_eq = is_eq && (x.s == y.s);
+  is_eq = is_eq && (x.t == y.t);
   is_eq = is_eq && (x.charge_live == y.charge_live);
   is_eq = is_eq && (x.charge_tot == y.charge_tot);
   is_eq = is_eq && (x.n_particle_tot == y.n_particle_tot);

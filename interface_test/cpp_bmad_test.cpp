@@ -272,6 +272,9 @@ void set_CPP_ac_kicker_freq_test_pattern (CPP_ac_kicker_freq& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 3 + offset; C.phi = rhs;
 
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 4 + offset; C.rf_clock_harmonic = rhs;
+
 
 }
 
@@ -330,10 +333,10 @@ void set_CPP_ac_kicker_test_pattern (CPP_ac_kicker& C, int ix_patt) {
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.frequencies.resize(0);
+    C.frequency.resize(0);
   else {
-    C.frequencies.resize(3);
-    for (unsigned int i = 0; i < C.frequencies.size(); i++)  {set_CPP_ac_kicker_freq_test_pattern(C.frequencies[i], ix_patt+i+1);}
+    C.frequency.resize(3);
+    for (unsigned int i = 0; i < C.frequency.size(); i++)  {set_CPP_ac_kicker_freq_test_pattern(C.frequency[i], ix_patt+i+1);}
   }
 
 
@@ -5353,13 +5356,16 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 36 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 37 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+  rhs = 37 + offset; C.absolute_time_ref_shift = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 38 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+  rhs = 38 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 39 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 39 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 40 + offset; C.debug = (rhs % 2 == 0);
 
 
 }
@@ -6504,6 +6510,12 @@ void set_CPP_bunch_test_pattern (CPP_bunch& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 13 + offset; C.n_live = rhs;
 
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 14 + offset; C.n_good = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 15 + offset; C.n_bad = rhs;
+
 
 }
 
@@ -6589,22 +6601,25 @@ void set_CPP_bunch_params_test_pattern (CPP_bunch_params& C, int ix_patt) {
   rhs = 12 + offset; C.s = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 13 + offset; C.charge_live = rhs;
+  rhs = 13 + offset; C.t = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 14 + offset; C.charge_tot = rhs;
+  rhs = 14 + offset; C.charge_live = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 15 + offset; C.charge_tot = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 15 + offset; C.n_particle_tot = rhs;
+  rhs = 16 + offset; C.n_particle_tot = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 16 + offset; C.n_particle_live = rhs;
+  rhs = 17 + offset; C.n_particle_live = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 17 + offset; C.n_particle_lost_in_ele = rhs;
+  rhs = 18 + offset; C.n_particle_lost_in_ele = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 18 + offset; C.twiss_valid = (rhs % 2 == 0);
+  rhs = 19 + offset; C.twiss_valid = (rhs % 2 == 0);
 
 
 }

@@ -143,18 +143,19 @@ extern "C" void ac_kicker_time_to_c2 (CPP_ac_kicker_time& C, c_Real& z_amp, c_Re
 extern "C" void ac_kicker_freq_to_c (const Opaque_ac_kicker_freq_class*, CPP_ac_kicker_freq&);
 
 // c_side.to_f2_arg
-extern "C" void ac_kicker_freq_to_f2 (Opaque_ac_kicker_freq_class*, c_Real&, c_Real&, c_Real&);
+extern "C" void ac_kicker_freq_to_f2 (Opaque_ac_kicker_freq_class*, c_Real&, c_Real&, c_Real&,
+    c_Int&);
 
 extern "C" void ac_kicker_freq_to_f (const CPP_ac_kicker_freq& C, Opaque_ac_kicker_freq_class* F) {
 
   // c_side.to_f2_call
-  ac_kicker_freq_to_f2 (F, C.f, C.amp, C.phi);
+  ac_kicker_freq_to_f2 (F, C.f, C.amp, C.phi, C.rf_clock_harmonic);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void ac_kicker_freq_to_c2 (CPP_ac_kicker_freq& C, c_Real& z_f, c_Real& z_amp,
-    c_Real& z_phi) {
+    c_Real& z_phi, c_Int& z_rf_clock_harmonic) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.f = z_f;
@@ -162,6 +163,8 @@ extern "C" void ac_kicker_freq_to_c2 (CPP_ac_kicker_freq& C, c_Real& z_f, c_Real
   C.amp = z_amp;
   // c_side.to_c2_set[real, 0, NOT]
   C.phi = z_phi;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.rf_clock_harmonic = z_rf_clock_harmonic;
 }
 
 //--------------------------------------------------------------------
@@ -183,33 +186,33 @@ extern "C" void ac_kicker_to_f (const CPP_ac_kicker& C, Opaque_ac_kicker_class* 
     for (int i = 0; i < n1_amp_vs_time; i++) z_amp_vs_time[i] = &C.amp_vs_time[i];
   }
   // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_frequencies = C.frequencies.size();
-  const CPP_ac_kicker_freq** z_frequencies = NULL;
-  if (n1_frequencies != 0) {
-    z_frequencies = new const CPP_ac_kicker_freq*[n1_frequencies];
-    for (int i = 0; i < n1_frequencies; i++) z_frequencies[i] = &C.frequencies[i];
+  int n1_frequency = C.frequency.size();
+  const CPP_ac_kicker_freq** z_frequency = NULL;
+  if (n1_frequency != 0) {
+    z_frequency = new const CPP_ac_kicker_freq*[n1_frequency];
+    for (int i = 0; i < n1_frequency; i++) z_frequency[i] = &C.frequency[i];
   }
 
   // c_side.to_f2_call
-  ac_kicker_to_f2 (F, z_amp_vs_time, n1_amp_vs_time, z_frequencies, n1_frequencies);
+  ac_kicker_to_f2 (F, z_amp_vs_time, n1_amp_vs_time, z_frequency, n1_frequency);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_amp_vs_time;
   // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_frequencies;
+ delete[] z_frequency;
 }
 
 // c_side.to_c2_arg
 extern "C" void ac_kicker_to_c2 (CPP_ac_kicker& C, Opaque_ac_kicker_time_class** z_amp_vs_time,
-    Int n1_amp_vs_time, Opaque_ac_kicker_freq_class** z_frequencies, Int n1_frequencies) {
+    Int n1_amp_vs_time, Opaque_ac_kicker_freq_class** z_frequency, Int n1_frequency) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.amp_vs_time.resize(n1_amp_vs_time);
   for (int i = 0; i < n1_amp_vs_time; i++) ac_kicker_time_to_c(z_amp_vs_time[i], C.amp_vs_time[i]);
 
   // c_side.to_c2_set[type, 1, ALLOC]
-  C.frequencies.resize(n1_frequencies);
-  for (int i = 0; i < n1_frequencies; i++) ac_kicker_freq_to_c(z_frequencies[i], C.frequencies[i]);
+  C.frequency.resize(n1_frequency);
+  for (int i = 0; i < n1_frequency; i++) ac_kicker_freq_to_c(z_frequency[i], C.frequency[i]);
 
 }
 
@@ -3209,7 +3212,7 @@ extern "C" void bmad_common_to_f2 (Opaque_bmad_common_class*, c_Real&, c_RealArr
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&,
     c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_class* F) {
 
@@ -3225,7 +3228,7 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_c
       C.csr_and_space_charge_on, C.spin_tracking_on, C.backwards_time_tracking_on,
       C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on, C.radiation_zero_average,
       C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
-      C.convert_to_kinetic_momentum, C.aperture_limit_on, C.debug);
+      C.absolute_time_ref_shift, C.convert_to_kinetic_momentum, C.aperture_limit_on, C.debug);
 
 }
 
@@ -3245,8 +3248,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_backwards_time_tracking_on, c_Bool& z_spin_sokolov_ternov_flipping_on, c_Bool&
     z_radiation_damping_on, c_Bool& z_radiation_zero_average, c_Bool&
     z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
-    z_absolute_time_tracking_default, c_Bool& z_convert_to_kinetic_momentum, c_Bool&
-    z_aperture_limit_on, c_Bool& z_debug) {
+    z_absolute_time_tracking_default, c_Bool& z_absolute_time_ref_shift, c_Bool&
+    z_convert_to_kinetic_momentum, c_Bool& z_aperture_limit_on, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -3320,6 +3323,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.conserve_taylor_maps = z_conserve_taylor_maps;
   // c_side.to_c2_set[logical, 0, NOT]
   C.absolute_time_tracking_default = z_absolute_time_tracking_default;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.absolute_time_ref_shift = z_absolute_time_ref_shift;
   // c_side.to_c2_set[logical, 0, NOT]
   C.convert_to_kinetic_momentum = z_convert_to_kinetic_momentum;
   // c_side.to_c2_set[logical, 0, NOT]
@@ -4297,7 +4302,8 @@ extern "C" void bunch_to_c (const Opaque_bunch_class*, CPP_bunch&);
 
 // c_side.to_f2_arg
 extern "C" void bunch_to_f2 (Opaque_bunch_class*, const CPP_coord**, Int, c_IntArr, Int,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
+    c_Int&);
 
 extern "C" void bunch_to_f (const CPP_bunch& C, Opaque_bunch_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -4316,7 +4322,8 @@ extern "C" void bunch_to_f (const CPP_bunch& C, Opaque_bunch_class* F) {
 
   // c_side.to_f2_call
   bunch_to_f2 (F, z_particle, n1_particle, z_ix_z, n1_ix_z, C.charge_tot, C.charge_live,
-      C.z_center, C.t_center, C.t0, C.ix_ele, C.ix_bunch, C.ix_turn, C.n_live);
+      C.z_center, C.t_center, C.t0, C.ix_ele, C.ix_bunch, C.ix_turn, C.n_live, C.n_good,
+      C.n_bad);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_particle;
@@ -4326,7 +4333,7 @@ extern "C" void bunch_to_f (const CPP_bunch& C, Opaque_bunch_class* F) {
 extern "C" void bunch_to_c2 (CPP_bunch& C, Opaque_coord_class** z_particle, Int n1_particle,
     c_IntArr z_ix_z, Int n1_ix_z, c_Real& z_charge_tot, c_Real& z_charge_live, c_Real&
     z_z_center, c_Real& z_t_center, c_Real& z_t0, c_Int& z_ix_ele, c_Int& z_ix_bunch, c_Int&
-    z_ix_turn, c_Int& z_n_live) {
+    z_ix_turn, c_Int& z_n_live, c_Int& z_n_good, c_Int& z_n_bad) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.particle.resize(n1_particle);
@@ -4355,6 +4362,10 @@ extern "C" void bunch_to_c2 (CPP_bunch& C, Opaque_coord_class** z_particle, Int 
   C.ix_turn = z_ix_turn;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_live = z_n_live;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_good = z_n_good;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_bad = z_n_bad;
 }
 
 //--------------------------------------------------------------------
@@ -4366,8 +4377,8 @@ extern "C" void bunch_params_to_c (const Opaque_bunch_params_class*, CPP_bunch_p
 // c_side.to_f2_arg
 extern "C" void bunch_params_to_f2 (Opaque_bunch_params_class*, const CPP_coord&, const
     CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const
-    CPP_twiss&, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Int&,
-    c_Int&, c_Int&, c_Bool&);
+    CPP_twiss&, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&,
+    c_Int&, c_Int&, c_Int&, c_Bool&);
 
 extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Opaque_bunch_params_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
@@ -4375,7 +4386,7 @@ extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Opaque_bunch_param
 
   // c_side.to_f2_call
   bunch_params_to_f2 (F, C.centroid, C.x, C.y, C.z, C.a, C.b, C.c, &C.spin[0], z_sigma,
-      &C.rel_max[0], &C.rel_min[0], C.s, C.charge_live, C.charge_tot, C.n_particle_tot,
+      &C.rel_max[0], &C.rel_min[0], C.s, C.t, C.charge_live, C.charge_tot, C.n_particle_tot,
       C.n_particle_live, C.n_particle_lost_in_ele, C.twiss_valid);
 
 }
@@ -4385,8 +4396,8 @@ extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_coord_clas
     const Opaque_twiss_class* z_x, const Opaque_twiss_class* z_y, const Opaque_twiss_class*
     z_z, const Opaque_twiss_class* z_a, const Opaque_twiss_class* z_b, const
     Opaque_twiss_class* z_c, c_RealArr z_spin, c_RealArr z_sigma, c_RealArr z_rel_max,
-    c_RealArr z_rel_min, c_Real& z_s, c_Real& z_charge_live, c_Real& z_charge_tot, c_Int&
-    z_n_particle_tot, c_Int& z_n_particle_live, c_Int& z_n_particle_lost_in_ele, c_Bool&
+    c_RealArr z_rel_min, c_Real& z_s, c_Real& z_t, c_Real& z_charge_live, c_Real& z_charge_tot,
+    c_Int& z_n_particle_tot, c_Int& z_n_particle_live, c_Int& z_n_particle_lost_in_ele, c_Bool&
     z_twiss_valid) {
 
   // c_side.to_c2_set[type, 0, NOT]
@@ -4413,6 +4424,8 @@ extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_coord_clas
   C.rel_min << z_rel_min;
   // c_side.to_c2_set[real, 0, NOT]
   C.s = z_s;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.t = z_t;
   // c_side.to_c2_set[real, 0, NOT]
   C.charge_live = z_charge_live;
   // c_side.to_c2_set[real, 0, NOT]

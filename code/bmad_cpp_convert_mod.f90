@@ -1182,11 +1182,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine ac_kicker_freq_to_c2 (C, z_f, z_amp, z_phi) bind(c)
+  subroutine ac_kicker_freq_to_c2 (C, z_f, z_amp, z_phi, z_rf_clock_harmonic) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_f, z_amp, z_phi
+    integer(c_int) :: z_rf_clock_harmonic
   end subroutine
 end interface
 
@@ -1202,7 +1203,7 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call ac_kicker_freq_to_c2 (C, F%f, F%amp, F%phi)
+call ac_kicker_freq_to_c2 (C, F%f, F%amp, F%phi, F%rf_clock_harmonic)
 
 end subroutine ac_kicker_freq_to_c
 
@@ -1222,7 +1223,7 @@ end subroutine ac_kicker_freq_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine ac_kicker_freq_to_f2 (Fp, z_f, z_amp, z_phi) bind(c)
+subroutine ac_kicker_freq_to_f2 (Fp, z_f, z_amp, z_phi, z_rf_clock_harmonic) bind(c)
 
 
 implicit none
@@ -1232,6 +1233,7 @@ type(ac_kicker_freq_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_f, z_amp, z_phi
+integer(c_int) :: z_rf_clock_harmonic
 
 call c_f_pointer (Fp, F)
 
@@ -1241,6 +1243,8 @@ F%f = z_f
 F%amp = z_amp
 !! f_side.to_f2_trans[real, 0, NOT]
 F%phi = z_phi
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%rf_clock_harmonic = z_rf_clock_harmonic
 
 end subroutine ac_kicker_freq_to_f2
 
@@ -1265,13 +1269,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine ac_kicker_to_c2 (C, z_amp_vs_time, n1_amp_vs_time, z_frequencies, n1_frequencies) &
+  subroutine ac_kicker_to_c2 (C, z_amp_vs_time, n1_amp_vs_time, z_frequency, n1_frequency) &
       bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr) :: z_amp_vs_time(*), z_frequencies(*)
-    integer(c_int), value :: n1_amp_vs_time, n1_frequencies
+    type(c_ptr) :: z_amp_vs_time(*), z_frequency(*)
+    integer(c_int), value :: n1_amp_vs_time, n1_frequency
   end subroutine
 end interface
 
@@ -1282,8 +1286,8 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 type(c_ptr), allocatable :: z_amp_vs_time(:)
 integer(c_int) :: n1_amp_vs_time
-type(c_ptr), allocatable :: z_frequencies(:)
-integer(c_int) :: n1_frequencies
+type(c_ptr), allocatable :: z_frequency(:)
+integer(c_int) :: n1_frequency
 
 !
 
@@ -1299,17 +1303,17 @@ if (allocated(F%amp_vs_time)) then
   enddo
 endif
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_frequencies = 0
-if (allocated(F%frequencies)) then
-  n1_frequencies = size(F%frequencies); lb1 = lbound(F%frequencies, 1) - 1
-  allocate (z_frequencies(n1_frequencies))
-  do jd1 = 1, n1_frequencies
-    z_frequencies(jd1) = c_loc(F%frequencies(jd1+lb1))
+ n1_frequency = 0
+if (allocated(F%frequency)) then
+  n1_frequency = size(F%frequency); lb1 = lbound(F%frequency, 1) - 1
+  allocate (z_frequency(n1_frequency))
+  do jd1 = 1, n1_frequency
+    z_frequency(jd1) = c_loc(F%frequency(jd1+lb1))
   enddo
 endif
 
 !! f_side.to_c2_call
-call ac_kicker_to_c2 (C, z_amp_vs_time, n1_amp_vs_time, z_frequencies, n1_frequencies)
+call ac_kicker_to_c2 (C, z_amp_vs_time, n1_amp_vs_time, z_frequency, n1_frequency)
 
 end subroutine ac_kicker_to_c
 
@@ -1329,7 +1333,7 @@ end subroutine ac_kicker_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine ac_kicker_to_f2 (Fp, z_amp_vs_time, n1_amp_vs_time, z_frequencies, n1_frequencies) &
+subroutine ac_kicker_to_f2 (Fp, z_amp_vs_time, n1_amp_vs_time, z_frequency, n1_frequency) &
     bind(c)
 
 
@@ -1339,8 +1343,8 @@ type(c_ptr), value :: Fp
 type(ac_kicker_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr) :: z_amp_vs_time(*), z_frequencies(*)
-integer(c_int), value :: n1_amp_vs_time, n1_frequencies
+type(c_ptr) :: z_amp_vs_time(*), z_frequency(*)
+integer(c_int), value :: n1_amp_vs_time, n1_frequency
 
 call c_f_pointer (Fp, F)
 
@@ -1359,16 +1363,16 @@ else
 endif
 
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_frequencies == 0) then
-  if (allocated(F%frequencies)) deallocate(F%frequencies)
+if (n1_frequency == 0) then
+  if (allocated(F%frequency)) deallocate(F%frequency)
 else
-  if (allocated(F%frequencies)) then
-    if (n1_frequencies == 0 .or. any(shape(F%frequencies) /= [n1_frequencies])) deallocate(F%frequencies)
-    if (any(lbound(F%frequencies) /= 1)) deallocate(F%frequencies)
+  if (allocated(F%frequency)) then
+    if (n1_frequency == 0 .or. any(shape(F%frequency) /= [n1_frequency])) deallocate(F%frequency)
+    if (any(lbound(F%frequency) /= 1)) deallocate(F%frequency)
   endif
-  if (.not. allocated(F%frequencies)) allocate(F%frequencies(1:n1_frequencies+1-1))
-  do jd1 = 1, n1_frequencies
-    call ac_kicker_freq_to_f (z_frequencies(jd1), c_loc(F%frequencies(jd1+1-1)))
+  if (.not. allocated(F%frequency)) allocate(F%frequency(1:n1_frequency+1-1))
+  do jd1 = 1, n1_frequency
+    call ac_kicker_freq_to_f (z_frequency(jd1), c_loc(F%frequency(jd1+1-1)))
   enddo
 endif
 
@@ -8683,7 +8687,8 @@ interface
       z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
       z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, &
       z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-      z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) bind(c)
+      z_absolute_time_ref_shift, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -8693,7 +8698,7 @@ interface
     integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step
     logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, z_spin_tracking_on
     logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default
-    logical(c_bool) :: z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug
+    logical(c_bool) :: z_absolute_time_ref_shift, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug
   end subroutine
 end interface
 
@@ -8722,7 +8727,8 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     c_logic(F%spin_sokolov_ternov_flipping_on), c_logic(F%radiation_damping_on), &
     c_logic(F%radiation_zero_average), c_logic(F%radiation_fluctuations_on), &
     c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
-    c_logic(F%convert_to_kinetic_momentum), c_logic(F%aperture_limit_on), c_logic(F%debug))
+    c_logic(F%absolute_time_ref_shift), c_logic(F%convert_to_kinetic_momentum), &
+    c_logic(F%aperture_limit_on), c_logic(F%debug))
 
 end subroutine bmad_common_to_c
 
@@ -8752,8 +8758,8 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, &
     z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, &
     z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, &
-    z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, &
-    z_aperture_limit_on, z_debug) bind(c)
+    z_conserve_taylor_maps, z_absolute_time_tracking_default, z_absolute_time_ref_shift, &
+    z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) bind(c)
 
 
 implicit none
@@ -8768,7 +8774,7 @@ real(c_double) :: z_electric_dipole_moment, z_sad_eps_scale, z_sad_amp_max
 integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step
 logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, z_spin_tracking_on
 logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default
-logical(c_bool) :: z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug
+logical(c_bool) :: z_absolute_time_ref_shift, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug
 
 call c_f_pointer (Fp, F)
 
@@ -8844,6 +8850,8 @@ F%radiation_fluctuations_on = f_logic(z_radiation_fluctuations_on)
 F%conserve_taylor_maps = f_logic(z_conserve_taylor_maps)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%absolute_time_tracking_default = f_logic(z_absolute_time_tracking_default)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%absolute_time_ref_shift = f_logic(z_absolute_time_ref_shift)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%convert_to_kinetic_momentum = f_logic(z_convert_to_kinetic_momentum)
 !! f_side.to_f2_trans[logical, 0, NOT]
@@ -10617,14 +10625,14 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bunch_to_c2 (C, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge_tot, &
-      z_charge_live, z_z_center, z_t_center, z_t0, z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live) &
-      bind(c)
+      z_charge_live, z_z_center, z_t_center, z_t0, z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live, &
+      z_n_good, z_n_bad) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_particle(*)
     integer(c_int), value :: n1_particle, n1_ix_z
-    integer(c_int) :: z_ix_z(*), z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live
+    integer(c_int) :: z_ix_z(*), z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live, z_n_good, z_n_bad
     real(c_double) :: z_charge_tot, z_charge_live, z_z_center, z_t_center, z_t0
   end subroutine
 end interface
@@ -10659,7 +10667,8 @@ endif
 
 !! f_side.to_c2_call
 call bunch_to_c2 (C, z_particle, n1_particle, fvec2vec(F%ix_z, n1_ix_z), n1_ix_z, F%charge_tot, &
-    F%charge_live, F%z_center, F%t_center, F%t0, F%ix_ele, F%ix_bunch, F%ix_turn, F%n_live)
+    F%charge_live, F%z_center, F%t_center, F%t0, F%ix_ele, F%ix_bunch, F%ix_turn, F%n_live, &
+    F%n_good, F%n_bad)
 
 end subroutine bunch_to_c
 
@@ -10680,8 +10689,8 @@ end subroutine bunch_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine bunch_to_f2 (Fp, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge_tot, &
-    z_charge_live, z_z_center, z_t_center, z_t0, z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live) &
-    bind(c)
+    z_charge_live, z_z_center, z_t_center, z_t0, z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live, &
+    z_n_good, z_n_bad) bind(c)
 
 
 implicit none
@@ -10695,7 +10704,7 @@ integer(c_int), value :: n1_particle, n1_ix_z
 type(c_ptr), value :: z_ix_z
 integer(c_int), pointer :: f_ix_z(:)
 real(c_double) :: z_charge_tot, z_charge_live, z_z_center, z_t_center, z_t0
-integer(c_int) :: z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live
+integer(c_int) :: z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live, z_n_good, z_n_bad
 
 call c_f_pointer (Fp, F)
 
@@ -10744,6 +10753,10 @@ F%ix_bunch = z_ix_bunch
 F%ix_turn = z_ix_turn
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_live = z_n_live
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_good = z_n_good
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_bad = z_n_bad
 
 end subroutine bunch_to_f2
 
@@ -10769,13 +10782,14 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bunch_params_to_c2 (C, z_centroid, z_x, z_y, z_z, z_a, z_b, z_c, z_spin, z_sigma, &
-      z_rel_max, z_rel_min, z_s, z_charge_live, z_charge_tot, z_n_particle_tot, &
+      z_rel_max, z_rel_min, z_s, z_t, z_charge_live, z_charge_tot, z_n_particle_tot, &
       z_n_particle_live, z_n_particle_lost_in_ele, z_twiss_valid) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_centroid, z_x, z_y, z_z, z_a, z_b, z_c
-    real(c_double) :: z_spin(*), z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_charge_live, z_charge_tot
+    real(c_double) :: z_spin(*), z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_t, z_charge_live
+    real(c_double) :: z_charge_tot
     integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele
     logical(c_bool) :: z_twiss_valid
   end subroutine
@@ -10795,7 +10809,7 @@ call c_f_pointer (Fp, F)
 !! f_side.to_c2_call
 call bunch_params_to_c2 (C, c_loc(F%centroid), c_loc(F%x), c_loc(F%y), c_loc(F%z), c_loc(F%a), &
     c_loc(F%b), c_loc(F%c), fvec2vec(F%spin, 3), mat2vec(F%sigma, 6*6), fvec2vec(F%rel_max, 6), &
-    fvec2vec(F%rel_min, 6), F%s, F%charge_live, F%charge_tot, F%n_particle_tot, &
+    fvec2vec(F%rel_min, 6), F%s, F%t, F%charge_live, F%charge_tot, F%n_particle_tot, &
     F%n_particle_live, F%n_particle_lost_in_ele, c_logic(F%twiss_valid))
 
 end subroutine bunch_params_to_c
@@ -10817,7 +10831,7 @@ end subroutine bunch_params_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine bunch_params_to_f2 (Fp, z_centroid, z_x, z_y, z_z, z_a, z_b, z_c, z_spin, z_sigma, &
-    z_rel_max, z_rel_min, z_s, z_charge_live, z_charge_tot, z_n_particle_tot, &
+    z_rel_max, z_rel_min, z_s, z_t, z_charge_live, z_charge_tot, z_n_particle_tot, &
     z_n_particle_live, z_n_particle_lost_in_ele, z_twiss_valid) bind(c)
 
 
@@ -10828,7 +10842,8 @@ type(bunch_params_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(c_ptr), value :: z_centroid, z_x, z_y, z_z, z_a, z_b, z_c
-real(c_double) :: z_spin(*), z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_charge_live, z_charge_tot
+real(c_double) :: z_spin(*), z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_t, z_charge_live
+real(c_double) :: z_charge_tot
 integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele
 logical(c_bool) :: z_twiss_valid
 
@@ -10858,6 +10873,8 @@ F%rel_max = z_rel_max(1:6)
 F%rel_min = z_rel_min(1:6)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%s = z_s
+!! f_side.to_f2_trans[real, 0, NOT]
+F%t = z_t
 !! f_side.to_f2_trans[real, 0, NOT]
 F%charge_live = z_charge_live
 !! f_side.to_f2_trans[real, 0, NOT]
