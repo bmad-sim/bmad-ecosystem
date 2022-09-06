@@ -73,8 +73,8 @@ type ltt_params_struct
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: symplectic_map_tracking = .false.
-  logical :: split_bends_for_radiation = .false.   ! Old style. 
   logical :: split_bends_for_stochastic_rad = .false.
+  logical :: use_rf_clock = .false.
   logical :: debug = .false.
   logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
   !
@@ -83,6 +83,7 @@ type ltt_params_struct
   character(200) :: particle_output_file = ''      ! Replaced by phase_space_output_file
   integer :: averaging_window = 1                  ! No longer used
   integer :: mpi_runs_per_subprocess = 4           ! No longer used
+  logical :: split_bends_for_radiation = .false.   ! No longer used
 end type
 
 ! A section structure is either:
@@ -425,7 +426,7 @@ type (rad_int_ele_cache_struct), pointer :: ri
 
 real(rp) closed_orb(6), f_tol
 
-integer i, ix_branch, ib, n_slice, ie, ir, info
+integer i, n, ix_branch, ib, n_slice, ie, ir, info, n_rf_included, n_rf_excluded
 
 logical err, map_file_exists
 
@@ -448,6 +449,16 @@ if ((lttp%tracking_method == 'PTC' .or. lttp%tracking_method == 'MAP') .and. &
   call out_io(s_fatal$, r_name, 'Z PHASE SPACE COORDINATE HAS MAGNITUDE TOO LARGE FOR PTC TRACKING (PTC HAS AN', &
                                 'APERTURE LIMIT OF 1 METER). SOLUTION: SHIFT ALL RF PHI0 TO MAKE Z SMALLER.')
   stop
+endif
+
+! Setup RF clock if wanted.
+
+if (lttp%use_rf_clock) then
+  if (.not. rf_clock_setup(branch, n_rf_included, n_rf_excluded)) then
+    call out_io (s_fatal$, r_name, 'RF CLOCK SETUP FAILED! STOPPING HERE.')
+    stop
+  endif
+  call out_io(s_info$, r_name, 'RF clock setup done. ')
 endif
 
 !
@@ -650,6 +661,7 @@ call ltt_write_line('# bmad_com%radiation_damping_on      = ' // logic_str(bmad_
 call ltt_write_line('# bmad_com%radiation_fluctuations_on = ' // logic_str(bmad_com%radiation_fluctuations_on), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%spin_tracking_on          = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%sr_wakes_on               = ' // logic_str(bmad_com%sr_wakes_on), lttp, iu, print_this)
+call ltt_write_line('# ltt%use_rf_clock                   = ' // logic_str(lttp%use_rf_clock), lttp, iu, print_this)
 if (bmad_com%sr_wakes_on) then
   call ltt_write_line('# Number_of_wake_elements            = ' // int_str(size(ltt_com%ix_wake_ele)), lttp, iu, print_this)
 endif
@@ -1494,7 +1506,7 @@ else  ! beam is passed
   do ib = 1, size(beam%bunch)
     bunch => beam%bunch(ib)
     n = count(bunch%particle%state == alive$)
-    orb_b(ib)%t = sum(bunch%particle%t, bunch%particle%state == alive$) / n
+    orb_b(ib)%t = ltt_bunch_time_sum(bunch, lttp) / n
     do i = 1, 6
       orb_b(ib)%vec(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / n
     enddo
@@ -1567,7 +1579,12 @@ do i = 1, size(lttp%column)
     case ('py');          st%value = orb%vec(4)
     case ('z');           st%value = orb%vec(5)
     case ('pz');          st%value = orb%vec(6)
-    case ('time');        st%value = orb%t
+    case ('time');
+      if (lttp%use_rf_clock) then
+        st%value = orb%t + orb%phase(1)*bmad_private%rf_clock_period
+      else
+        st%value = orb%t
+      endif
     case ('sx');          st%value = orb%spin(1)
     case ('sy');          st%value = orb%spin(2)
     case ('sz');          st%value = orb%spin(3)
@@ -1675,7 +1692,7 @@ do i = 1, 3
   bd%spin_ave(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$) / bd%n_live
 enddo
 bd%p0c_ave = sum(bunch%particle%p0c, bunch%particle%state == alive$) / bd%n_live
-bd%time_ave = sum(bunch%particle%t, bunch%particle%state == alive$) / bd%n_live
+bd%time_ave = ltt_bunch_time_sum(bunch, lttp) / bd%n_live
 bd%orb_ave = orb_sum / bd%n_live
 
 !
@@ -2525,5 +2542,26 @@ print '(a, f8.2, 2a, 2x, i0, 2a)', 'dTime:', (time_now-ltt_com%time_start)/60, &
                                         ' Now: ', time_str, ltt_com%mpi_rank, ': ', trim(line)
 
 end subroutine ltt_print_mpi_info
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+function ltt_bunch_time_sum (bunch, lttp) result (time_sum)
+
+type (bunch_struct) bunch
+type (ltt_params_struct) lttp
+
+real(rp) time_sum
+
+!
+
+if (lttp%use_rf_clock) then
+  time_sum = sum(bunch%particle%t+bunch%particle%phase(1)*bmad_private%rf_clock_period, bunch%particle%state == alive$)
+else
+  time_sum = sum(bunch%particle%t, bunch%particle%state == alive$)
+endif
+
+end function ltt_bunch_time_sum
 
 end module
