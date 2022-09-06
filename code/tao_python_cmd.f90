@@ -2074,9 +2074,9 @@ case ('ele:ac_kicker')
 
   else
     nl=incr(nl); write (li(nl), '(a)') 'has#frequencies'
-    do i = 1, size(ac%frequencies)
+    do i = 1, size(ac%frequency)
       nl=incr(nl); write (li(nl), '(i0, 3(a, es22.14))') i, ';', &
-                      ac%frequencies(i)%f, ';', ac%frequencies(i)%amp, ';', ac%frequencies(i)%phi
+                      ac%frequency(i)%f, ';', ac%frequency(i)%amp, ';', ac%frequency(i)%phi
     enddo
   endif
 
