@@ -322,20 +322,9 @@ can be set for the regions in between the slice centers. The kicks are calculate
 Bassetti--Erskine complex error function formula\cite{b:talman}. Even though the strong beam can
 have a finite \vn{sig_z}, the length of the \vn{beambeam} element is zero. This is achieved by
 propagating a particle at the beginning and at the end of tracking so that the longitudinal starting
-point and ending points are at the \vn{beambeam} element. For example, with \vn{n_slice} = 2 the
-calculation would proceed as follows:
-\begin{example}
-  0. Start with the particle longitudinally at the \vn{beambeam} element.
-  1. Offsets, pitches and tilt are applied to convert from laboratory to element 
-       body coordinates (\sref{s:lab.body.transform}).
-  2. Propagate backwards to the center of the first slice.
-  3. Apply the beam--beam kick due to the first slice.
-  4. Propagate forwards to the center of the second slice.
-  5. Apply the beam--beam kick due to the second slice.
-  6. Propagate backwards to the body coordinate longitudinal center.
-  7. Offsets, pitches and tilt are applied to convert from element body to 
-       laboratory coordinates.
-\end{example}
+point and ending points are at the \vn{beambeam} element. Documentation of how a particle is tracked
+throug a \vn{beambeam} element is given in \sref{s:beambeam.std}.
+
 The \vn{ks} and \vn{bs_field} parameters are the normalized and unnormalized solenoid strengths
 (\sref{s:field.master}) related through \Eq{kqlbp}. If the beambeam element is superimposed on top
 of a solenoid, the beambeam element will inherit the solenoid field strength from the solenoid

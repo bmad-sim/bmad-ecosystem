@@ -151,6 +151,8 @@ is_eq = is_eq .and. (f1%f == f2%f)
 is_eq = is_eq .and. (f1%amp == f2%amp)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%phi == f2%phi)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%rf_clock_harmonic == f2%rf_clock_harmonic)
 
 end function eq_ac_kicker_freq
 
@@ -174,11 +176,11 @@ if (allocated(f1%amp_vs_time)) is_eq = all(shape(f1%amp_vs_time) == shape(f2%amp
 if (.not. is_eq) return
 if (allocated(f1%amp_vs_time)) is_eq = all(f1%amp_vs_time == f2%amp_vs_time)
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%frequencies) .eqv. allocated(f2%frequencies))
+is_eq = is_eq .and. (allocated(f1%frequency) .eqv. allocated(f2%frequency))
 if (.not. is_eq) return
-if (allocated(f1%frequencies)) is_eq = all(shape(f1%frequencies) == shape(f2%frequencies))
+if (allocated(f1%frequency)) is_eq = all(shape(f1%frequency) == shape(f2%frequency))
 if (.not. is_eq) return
-if (allocated(f1%frequencies)) is_eq = all(f1%frequencies == f2%frequencies)
+if (allocated(f1%frequency)) is_eq = all(f1%frequency == f2%frequency)
 
 end function eq_ac_kicker
 
@@ -2403,6 +2405,8 @@ is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tracking_default)
 !! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%absolute_time_ref_shift .eqv. f2%absolute_time_ref_shift)
+!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%convert_to_kinetic_momentum .eqv. f2%convert_to_kinetic_momentum)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
@@ -3020,6 +3024,10 @@ is_eq = is_eq .and. (f1%ix_bunch == f2%ix_bunch)
 is_eq = is_eq .and. (f1%ix_turn == f2%ix_turn)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_live == f2%n_live)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_good == f2%n_good)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_bad == f2%n_bad)
 
 end function eq_bunch
 
@@ -3060,6 +3068,8 @@ is_eq = is_eq .and. all(f1%rel_max == f2%rel_max)
 is_eq = is_eq .and. all(f1%rel_min == f2%rel_min)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%s == f2%s)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%t == f2%t)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%charge_live == f2%charge_live)
 !! f_side.equality_test[real, 0, NOT]

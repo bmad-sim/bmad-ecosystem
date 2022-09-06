@@ -357,7 +357,7 @@ if (associated(ele%ac_kick)) then
   ac => ele%ac_kick
   n1 = -1; n2 = -1
   if (allocated(ac%amp_vs_time)) n1 = size(ac%amp_vs_time)
-  if (allocated(ac%frequencies)) n2 = size(ac%frequencies)
+  if (allocated(ac%frequency)) n2 = size(ac%frequency)
   write (d_unit) n1, n2
 
   if (allocated(ac%amp_vs_time)) then
@@ -366,9 +366,9 @@ if (associated(ele%ac_kick)) then
     enddo
   endif
 
-  if (allocated(ac%frequencies)) then
-    do n = lbound(ac%frequencies, 1), ubound(ac%frequencies, 1)
-      write (d_unit) ac%frequencies(n)
+  if (allocated(ac%frequency)) then
+    do n = lbound(ac%frequency, 1), ubound(ac%frequency, 1)
+      write (d_unit) ac%frequency(n)
     enddo
   endif
 endif

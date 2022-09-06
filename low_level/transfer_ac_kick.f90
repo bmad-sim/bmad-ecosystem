@@ -34,14 +34,14 @@ if (associated(ac_in)) then
     if (allocated(ac_out%amp_vs_time)) deallocate(ac_out%amp_vs_time)
   endif
     
-  if (allocated(ac_in%frequencies)) then
-    n = size(ac_in%frequencies)
-    if (allocated(ac_out%frequencies)) then
-      if (size(ac_out%frequencies) /= n) deallocate(ac_out%frequencies)
+  if (allocated(ac_in%frequency)) then
+    n = size(ac_in%frequency)
+    if (allocated(ac_out%frequency)) then
+      if (size(ac_out%frequency) /= n) deallocate(ac_out%frequency)
     endif
-    if (.not. allocated(ac_out%frequencies)) allocate(ac_out%frequencies(n))
+    if (.not. allocated(ac_out%frequency)) allocate(ac_out%frequency(n))
   else
-    if (allocated(ac_out%frequencies)) deallocate(ac_out%frequencies)
+    if (allocated(ac_out%frequency)) deallocate(ac_out%frequency)
   endif
 
   ac_out = ac_in

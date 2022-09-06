@@ -396,14 +396,14 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ! ac_kicker needs to have the time variation defined.
 
     if (ele%key == ac_kicker$) then
-      if (.not. allocated(ele%ac_kick%amp_vs_time) .and. .not. allocated(ele%ac_kick%frequencies)) then
+      if (.not. allocated(ele%ac_kick%amp_vs_time) .and. .not. allocated(ele%ac_kick%frequency)) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'DOES NOT HAVE THE TIME DEPENDENCE (USING AMP_VS_TIME OR FREQUENCIES ATTRIBUTES) DEFINED.')
         err_flag = .true.
       endif
 
-      if (allocated(ele%ac_kick%amp_vs_time) .and. allocated(ele%ac_kick%frequencies)) then
+      if (allocated(ele%ac_kick%amp_vs_time) .and. allocated(ele%ac_kick%frequency)) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'HAS SET BOTH AMP_VS_TIME AND FREQUENCIES ATTRIBUTES SET.', &

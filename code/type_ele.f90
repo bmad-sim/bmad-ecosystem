@@ -637,13 +637,13 @@ if (associated(ele%ac_kick)) then
     enddo
   endif
 
-  if (allocated(ac%frequencies)) then
+  if (allocated(ac%frequency)) then
     nl=nl+1; li(nl) = 'AC_kicker frequency components'
     nl=nl+1; li(nl) = '     Indx          Freq     Amplitude           Phi    Harmonic_Num'    
-    do im = 1, size(ac%frequencies)
+    do im = 1, size(ac%frequency)
       n = branch%n_ele_track
-      nl=nl+1; write (li(nl), '(i9, 3es14.6, a16)') im, ac%frequencies(im)%f, ac%frequencies(im)%amp, &
-            ac%frequencies(im)%phi, real_to_string(ac%frequencies(im)%f * branch%ele(n)%ref_time, 16, 6, 6)
+      nl=nl+1; write (li(nl), '(i9, 3es14.6, a16)') im, ac%frequency(im)%f, ac%frequency(im)%amp, &
+            ac%frequency(im)%phi, real_to_string(ac%frequency(im)%f * branch%ele(n)%ref_time, 16, 6, 6)
     enddo
   endif
 endif
