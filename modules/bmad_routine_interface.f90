@@ -68,11 +68,12 @@ function absolute_time_tracking (ele) result (is_abs_time)
   logical is_abs_time
 end function
 
-function ac_kicker_amp(ele, orbit) result (ac_amp)
+function ac_kicker_amp(ele, orbit, true_time) result (ac_amp)
   import
   implicit none
   type (ele_struct), target :: ele
   type (coord_struct) orbit
+  real(rp), optional :: true_time
   real(rp) ac_amp
 end function
 

@@ -162,7 +162,6 @@ See \sref{s:list.ac.kicker} for a full list of element attributes along with a t
 Attributes specific to a \vn{ac_kicker} element are:
 \begin{example}
   t_offset        = <Real>              ! Time offset of field waveform.
-  ref_time_offset = <T/F>               ! Relative to the ref time? (Default: True).
   interpolation   = <switch>            ! spline (default) or linear.
   amp_vs_time = \{(<time1>, <Amp1>), (<time2>, <Amp2>), ...\}  ! Field amp vs Time.
   frequencies = \{(<freq1>, <Amp1>, <phi1>), 
@@ -183,11 +182,8 @@ where $B$ and $E$ are the applied magnetic and electric fields, and $B_0$ and $E
 as calculated as if the element where a \vn{kicker} ignoring the time dependence.
 \end{enumerate}
 
-If \vn{ref_time_offset} is set to \vn{True} (the default), $\delta t = t - t_0 - t_\REF$ where $t$
-is the time, $t_0$ is the value of the \vn{t_offset} attribute, and $t_\REF$ is the reference time
-at the entrance end of the element. If \vn{ref_time_offset} is set to \vn{False}, $\delta t = t -
-t_0$. Note: Unlike RF cavity elements, the time $t$ here is always the absolute time
-(\sref{s:rf.time}) and not the relative time.
+$\delta t = t_{eff} - t_0$ where $t_{eff}$ is the effective time as discussed in
+\sref{s:rf.time} and $t_0$ is the value of the \vn{t_offset} attribute.
 
 There are two ways to specify the dimensionless time variation $A(\delta t)$ of the field. One way
 is to specify points $(A, \delta t)$ using the \vn{amp_vs_time} attribute. Example:
@@ -2751,7 +2747,7 @@ The energy kick felt by a particle, assuming no phase slippage, is
 \begin{example}
   dE = q_{rel} * gradient_tot * L * cos(\(2\,\pi\) * (\(\phi_t\) + \(\phi_\REF\)))
 \end{example}
-where $q_{rel}$ is the charge of the particle relative to the charge of the reference particle.
+where \vn{q_rel} is the charge of the particle relative to the charge of the reference particle.
 \index{multipass}
 where the total gradient is
 \begin{example}
@@ -2759,7 +2755,7 @@ where the total gradient is
 \end{example}
 $\phi_t$ is the part of the phase due to when the particle arrives at the cavity and depends upon
 whether \vn{absolute time tracking} or \vn{relative time tracking} is being used as discussed in
-\sref{s:rf.time}.  The phase $\phi_\REF$ is
+\sref{s:rf.time}. The phase $\phi_\REF$ is
 \begin{example}
   \(\phi_\REF\) = phi0 + phi0_multipass + phi0_err + phi0_autoscale
   \label{lcav.phi}

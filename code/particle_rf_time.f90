@@ -18,7 +18,7 @@
 !   s_rel             -- real(rp), optional: Longitudinal position relative to the upstream edge of the element.
 !                         Needed for relative time tracking when the particle is inside the element. Default is 0.
 !   time_coords       -- logical, optional: Default False. If True then orbit is using time based coordinates.
-!   rf_clock_harmonic -- integer: Used by ac_kicker elements in conjunction with the rf clock.
+!   rf_clock_harmonic -- integer: Used in conjunction with the rf clock.
 !
 ! Ouput:
 !   time      -- Real(rp): Current time.
@@ -101,6 +101,10 @@ else
     time = time + (s_rel + ele%s_start - ref_ele%s_start) / (c_light * beta0)
   endif
 endif
+
+!
+
+if (ele%key == ac_kicker$) time = time - ele%value(t_offset$)
 
 !
 
