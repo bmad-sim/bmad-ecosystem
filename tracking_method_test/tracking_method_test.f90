@@ -98,6 +98,10 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == custom$) cycle
       if (j == mad$) cycle   ! Ignore MAD
       if (j == taylor$ .and. lat%particle_start%direction == -1) cycle
+      if ((j == symp_lie_ptc$ .or. j == taylor$) .and. ele%key == ac_kicker$) then
+        if (.not. allocated(ele%ac_kick%frequency)) cycle
+        if (size(ele%ac_kick%frequency) /= 1) cycle
+      endif
       if ((orb_dir_sign == -1 .or. ele_o_sign == -1) .and. (j == taylor$ .or. j == linear$)) cycle
       ele%tracking_method = j
 
