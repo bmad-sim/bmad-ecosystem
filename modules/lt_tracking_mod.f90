@@ -729,7 +729,11 @@ ix_branch = ltt_com%ix_branch
 ix_start = ele_start%ix_ele
 ix_stop  = ele_stop%ix_ele
 
-call init_coord (orb_init, ltt_com%beam_init%center, ele_start, downstream_end$, spin = ltt_com%beam_init%spin)
+if (ltt_com%beam_init%use_particle_start) then
+  call init_coord (orb_init, ltt_com%lat%particle_start, ele_start, downstream_end$)
+else
+  call init_coord (orb_init, ltt_com%beam_init%center, ele_start, downstream_end$, spin = ltt_com%beam_init%spin)
+endif
 
 if (lttp%add_closed_orbit_to_init_position) orb_init%vec = orb_init%vec + ltt_com%bmad_closed_orb(ix_start)%vec
 
@@ -856,7 +860,12 @@ call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 
 if (lttp%tracking_method == 'BMAD') call reallocate_coord (orb, lat)
-call init_coord (orbit, ltt_com%beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = ltt_com%beam_init%spin)
+
+if (ltt_com%beam_init%use_particle_start) then
+  call init_coord (orbit, ltt_com%lat%particle_start, ele_start, downstream_end$, lat%param%particle)
+else
+  call init_coord (orbit, ltt_com%beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = ltt_com%beam_init%spin)
+endif
 
 if (lttp%add_closed_orbit_to_init_position) then
   select case (lttp%tracking_method)
