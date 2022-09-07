@@ -3097,7 +3097,7 @@ case (sbend$)
 case (sextupole$)
   bn(3) = val(k2$) / 2
 
-case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
+case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, ac_kicker$)
 
 case (solenoid$)
 
@@ -3105,12 +3105,12 @@ case (sol_quad$)
   bn(2) = val(k1$)
 
 case (hkicker$, vkicker$)
-  if (ele%key == hkicker$) bn(1) = val(kick$) 
+  if (ele%key == hkicker$) bn(1) = val(kick$)   ! notice that kickers do not have kick scaled by the length
   if (ele%key == vkicker$) an(1) = val(kick$) 
   add_kick = .false.
 
 case (kicker$)
-  bn(1)  = val(hkick$) 
+  bn(1)  = val(hkick$)    ! notice that kicker does not have kick scaled by the length
   an(1) = val(vkick$) 
   add_kick = .false.
 
@@ -3150,14 +3150,23 @@ endif
 if (add_multipoles) then
   call multipole_ele_to_ab (ele, .false., ix_pole_max, an0, bn0)
 
-  if (leng /= 0) then
-    an0 = an0 / leng
-    bn0 = bn0 / leng
-  endif
+  select case (ele%key)
+  case (hkicker$, vkicker$, kicker$)
+  case default
+    if (leng /= 0) then
+      an0 = an0 / leng
+      bn0 = bn0 / leng
+    endif
+  end select
 
   n = n_pole_maxx+1
   an(1:n) = an(1:n) + an0(0:n-1)
   bn(1:n) = bn(1:n) + bn0(0:n-1)
+endif
+
+if (ele%key == ac_kicker$) then
+  an = 1e-9_rp * ele%value(p0c$) * an * ele%ac_kick%frequency(1)%amp
+  bn = 1e-9_rp * ele%value(p0c$) * bn * ele%ac_kick%frequency(1)%amp
 endif
 
 if (present(n_max)) then

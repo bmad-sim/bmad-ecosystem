@@ -205,6 +205,28 @@ if (ele2%field_calc == fieldmap$ .and. ele2%tracking_method /= bmad_standard$) k
 
 select case (key)
 
+!------------------------------
+case (ac_kicker$)
+  if (.not. allocated(ele%ac_kick%frequency)) then
+    call out_io (s_error$, r_name, 'AC_KICKER CANNOT BE TRANSLATED TO PTC IF THE ELEMENT USES (TIME, AMP)', &
+                                   'TO SPECIFY THE FIELD TIME DEPENDENCE: ' // ele%name)
+    return
+  endif
+
+  if (size(ele%ac_kick%frequency) > 1) then
+    call out_io (s_error$, r_name, 'AC_KICKER CANNOT BE TRANSLATED TO PTC IF MORE THAN FREQUENCY IS USED. ' // ele%name)
+    return
+  endif
+
+  ptc_key%magnet = 'rfcavity'
+  ptc_key%list%n_bessel = 0
+  ptc_key%list%permfringe = 0
+  ptc_key%list%cavity_totalpath = 0
+  ptc_key%list%freq0 = -ele%ac_kick%frequency(1)%f
+  ptc_key%list%delta_e = 0     ! For radiation calc.
+  ptc_key%list%lag = twopi * (val(phi0_multipass$) + ele%ac_kick%frequency(1)%phi + val(t_offset$)*ptc_key%list%freq0)
+
+!------------------------------
 case (crab_cavity$)
   if (val(rf_frequency$) == 0) then
     call out_io (s_fatal$, r_name, 'RF FREQUENCY IS ZERO FOR: ' // ele%name)
@@ -226,6 +248,7 @@ case (crab_cavity$)
   ptc_key%list%delta_e = 0     ! For radiation calc.
   ptc_key%list%lag = twopi * phi_tot
 
+!------------------------------
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
   if (val(hkick$) == 0 .and. val(vkick$) == 0) then
     ptc_key%magnet = 'drift'
@@ -233,10 +256,12 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
     ptc_key%magnet = 'quadrupole'
   endif
 
+!------------------------------
 case (quadrupole$) 
   ptc_key%magnet = 'quadrupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
+!------------------------------
 case (sad_mult$)
   if (val(l$) == 0) then
     ptc_key%magnet = 'multipole'  ! No Bz field if zero length.
@@ -265,6 +290,7 @@ case (sad_mult$)
           'NON-ZERO X OR Y_PITCH_MULT NOT IMPLEMENTED IN PTC FOR SAD_MULT ELEMENT: ' // ele%name)
   endif
 
+!------------------------------
 case (sbend$) 
   ! PTC does not consider a finite e1/e2 part of the fringe so must zero e1/e2 if needed.
   ix = nint(ele%value(fringe_type$))
@@ -292,31 +318,38 @@ case (sbend$)
     ptc_key%list%t2   = e2 - ele%value(angle$)/2
   endif
 
+!------------------------------
 case (sextupole$)
   ptc_key%magnet = 'sextupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
+!------------------------------
 case (octupole$)
   ptc_key%magnet = 'octupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
+!------------------------------
 case (solenoid$)
   ptc_key%magnet = 'solenoid'
   ptc_key%list%bsol = val(ks$)
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
+!------------------------------
 case (sol_quad$)
   ptc_key%magnet = 'solenoid'
   ptc_key%list%bsol = val(ks$)
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
+!------------------------------
 case (marker$, detector$, fork$, photon_fork$, beginning_ele$, patch$, floor_shift$, fiducial$, taylor$, match$)
   ptc_key%magnet = 'marker'
   ptc_key%nstep = 1
 
-case (kicker$, hkicker$, vkicker$, ac_kicker$)
+!------------------------------
+case (kicker$, hkicker$, vkicker$)
   ptc_key%magnet = 'kicker'
 
+!------------------------------
 case (rfcavity$, lcavity$)
   if (ele%value(rf_frequency$) == 0) then
     call out_io (s_fatal$, r_name, 'RF FREQUENCY IS ZERO FOR: ' // ele%name)
@@ -360,6 +393,7 @@ case (rfcavity$, lcavity$)
 
   ptc_key%list%delta_e = 0     ! For radiation calc.
 
+!------------------------------
 ! ptc elsep cannot do spin tracking so use general electrostatic element instead.
 case (elseparator$)
 !  ptc_key%magnet = 'elseparator'
@@ -376,24 +410,29 @@ case (elseparator$)
 !  endif
 !  ptc_key%list%volt = 1d-6 * ele%value(e_tot$) * sqrt(hk**2 + vk**2)
 
+!------------------------------
 case (ab_multipole$, multipole$)
   ptc_key%magnet = 'multipole'
 
+!------------------------------
 ! beambeam element in PTC is a special drift that must be setup after the integration 
 ! node array of the fibre is created.
 
 case (beambeam$)
   ptc_key%magnet = 'drift'
 
+!------------------------------
 case (wiggler$, undulator$)
   ptc_key%magnet = 'wiggler'
 
+!------------------------------
 case default
   call out_io (s_fatal$, r_name, 'CONVERSION TO PTC NOT IMPLEMENTED FOR ELEMENTS OF TYPE ' // trim(key_name(ele%key)), &
                                  'FOR ELEMENT: ' // trim(ele%name))
   if (global_com%exit_on_error) call err_exit
 end select
 
+!------------------------------
 ! Fringe
 
 if (key == sbend$ .and. ele%value(l$) /= 0) then

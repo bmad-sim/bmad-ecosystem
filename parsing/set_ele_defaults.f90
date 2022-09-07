@@ -48,7 +48,6 @@ case (ac_kicker$)
   endif
   ele%mat6_calc_method = tracking$
   ele%value(interpolation$) = spline$
-  ele%value(ref_time_offset$) = true$
 
 case (beambeam$)
   ele%value(charge$) = -1

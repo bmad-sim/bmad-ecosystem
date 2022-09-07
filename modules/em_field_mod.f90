@@ -1558,8 +1558,7 @@ end select
 ! Scale ac_kicker element field
 
 if (ele%key == ac_kicker$) then
-
-  a_amp = ac_kicker_amp (ele, orbit)
+  a_amp = ac_kicker_amp (ele, orbit, rf_time)
 
   field%E = a_amp * field%E
   field%B = a_amp * field%B
