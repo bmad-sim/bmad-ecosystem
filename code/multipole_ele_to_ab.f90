@@ -70,7 +70,7 @@ can_use_cache = (.not. bmad_com%auto_bookkeeper .and. allocated(ele%multipole_ca
 ! Note: slice_slave and super_slave elements have multipoles stored in their lords.
 
 cache => ele%multipole_cache
-if (can_use_cache .and. allocated(ele%multipole_cache)) then
+if (can_use_cache) then
   if (p_type == magnetic$ .and. cache%ix_pole_mag_max /= invalid$) then
     ix_pole_max = cache%ix_pole_mag_max
     if (ix_pole_max == invalid$ .and. (include_kck == no$ .or. cache%ix_kick_mag_max == invalid$)) then
@@ -467,10 +467,7 @@ integer p_type, ix_pole_max
 
 !
 
-if (.not. allocated(ele%multipole_cache)) then
-  allocate(ele%multipole_cache)
-  cache => ele%multipole_cache
-endif
+cache => ele%multipole_cache
 
 select case (p_type)
 case (magnetic$)
