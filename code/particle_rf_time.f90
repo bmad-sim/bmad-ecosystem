@@ -40,8 +40,8 @@ real(rp) time, s_hard_offset, beta0
 real(rp), optional :: s_rel
 integer, optional :: rf_clock_harmonic
 integer n, ix_pass, n_links, harmonic
-logical reference_active_edge, abs_time
-logical, optional :: time_coords
+logical abs_time
+logical, optional :: reference_active_edge, time_coords
 
 character(*), parameter :: r_name = 'particle_rf_time'
 
