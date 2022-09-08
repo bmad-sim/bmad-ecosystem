@@ -1099,7 +1099,7 @@ do i_turn = ix_start_turn+1, ix_end_turn
 
         prb = p%vec
         prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
-        call track_probe (prb, ltt_com%ptc_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
+        call track_probe (prb, ltt_com%ptc_state, fibre1 = ele_start%ptc_fibre)
 
         call convert_pc_to ((1 + prb%x(6)) * p%p0c, p%species, beta = beta_new)
         p%t = p%t + (p%vec(5) / p%beta - prb%x(5) / beta_new) / c_light + dref_time
