@@ -38,13 +38,16 @@ if (who == magnetic$ .or. who == all$) then
     if (logic_option(.false., zero)) then
       ele%a_pole = 0
       ele%b_pole = 0
+      ele%multipole_cache = multipole_cache_struct()
     endif
 
   ! If memory not allocated then allocate and zero.
   else
     allocate (ele%a_pole(0:n_pole_maxx), ele%b_pole(0:n_pole_maxx))
+    if (.not. allocated(ele%multipole_cache)) allocate(ele%multipole_cache)
     ele%a_pole = 0
     ele%b_pole = 0
+    ele%multipole_cache = multipole_cache_struct()
   endif
 endif
 
@@ -59,6 +62,7 @@ if (who == electric$ .or. who == all$) then
     if (logic_option(.false., zero)) then
       ele%a_pole_elec = 0
       ele%b_pole_elec = 0
+      ele%multipole_cache = multipole_cache_struct()
     endif
 
   ! If memory not allocated then allocate and zero.
@@ -66,6 +70,7 @@ if (who == electric$ .or. who == all$) then
     allocate (ele%a_pole_elec(0:n_pole_maxx), ele%b_pole_elec(0:n_pole_maxx))
     ele%a_pole_elec = 0
     ele%b_pole_elec = 0
+    ele%multipole_cache = multipole_cache_struct()
   endif
 endif
 
