@@ -394,6 +394,7 @@ if (attribute_index(slave, 'FIELD_MASTER') /= 0) slave%field_master = .true.
 
 if (associated(slave%a_pole)) deallocate(slave%a_pole, slave%b_pole)
 if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_elec)
+if (allocated(slave%multipole_cache)) deallocate(slave%multipole_cache)
 
 ! A match element with match_end$: Restore initial Twiss parameters (which
 ! are calculated in twiss_propagate1).
@@ -534,6 +535,7 @@ endif
 slave%field_calc = refer_to_lords$
 if (associated(slave%a_pole)) deallocate(slave%a_pole, slave%b_pole)
 if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_elec)
+if (allocated(slave%multipole_cache)) deallocate(slave%multipole_cache)
 
 ! Bookkeeping for EM_Field slave is mostly independent of the lords.
 

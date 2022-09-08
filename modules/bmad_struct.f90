@@ -891,12 +891,14 @@ end type
 ! In one simulation 25% of the time was spent constructing multipole arrays.
 
 type multipole_cache_struct
-  real(rp) a_pole_mag(0:n_pole_maxx), b_pole_mag(0:n_pole_maxx)
-  real(rp) a_kick_mag(0:3), b_kick_mag(0:3)     ! From non-multipole parameters like k1, k2, hkick, etc.
+  real(rp) :: a_pole_mag(0:n_pole_maxx) = real_garbage$, b_pole_mag(0:n_pole_maxx) = real_garbage$
+  ! From non-multipole parameters like k1, k2, hkick, etc.
+  real(rp) :: a_kick_mag(0:3) = real_garbage$, b_kick_mag(0:3) = real_garbage$
   integer :: ix_pole_mag_max = invalid$
   integer :: ix_kick_mag_max = invalid$
-  real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
-  real(rp) a_kick_elec(0:3), b_kick_elec(0:3)   ! From elseparator hkick and vkick.
+  real(rp) :: a_pole_elec(0:n_pole_maxx) = real_garbage$, b_pole_elec(0:n_pole_maxx) = real_garbage$
+  ! From elseparator hkick and vkick.
+  real(rp) :: a_kick_elec(0:3) = real_garbage$, b_kick_elec(0:3) = real_garbage$
   integer :: ix_pole_elec_max = invalid$
   integer :: ix_kick_elec_max = invalid$
 end type

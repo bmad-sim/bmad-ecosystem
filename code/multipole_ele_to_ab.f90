@@ -65,7 +65,7 @@ endif
 
 p_type = integer_option(magnetic$, pole_type)
 include_kck = integer_option(no$, include_kicks)
-can_use_cache = (.not. bmad_com%auto_bookkeeper)
+can_use_cache = (.not. bmad_com%auto_bookkeeper .and. allocated(ele%multipole_cache))
 
 ! Note: slice_slave and super_slave elements have multipoles stored in their lords.
 
