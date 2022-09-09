@@ -459,6 +459,8 @@ if (lttp%use_rf_clock) then
     stop
   endif
   call out_io(s_info$, r_name, 'RF clock setup done. ')
+  if (.not. lat%absolute_time_tracking) call out_io (s_warn$, r_name, 'Absolute time tracking not in use!!', &
+                                                                      'The RF clock will not be active!!')
 endif
 
 !
@@ -1743,6 +1745,7 @@ call mat_inverse (n_inv_mat, n_inv_mat)
 
 do ic = 1, core_max$
   if (lttp%core_emit_cutoff(ic) <= 0) exit
+  if (bd%params%a%emit == 0 .or. bd%params%b%emit == 0 .or. bd%params%c%emit == 0) exit
   call this_core_calc(bunch, bd, lttp%core_emit_cutoff(ic), n_inv_mat, bd%core_emit(ic,:))
 enddo
 
@@ -1777,7 +1780,7 @@ if (lttp%core_emit_combined_calc) then
 
   call core_bunch_construct(0, bunch, bd%orb_ave, n_inv_mat0, n_cut, core_bunch, bd%params)
 
-  call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
+  call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat);  if (error) return
   call mat_inverse (n_inv_mat, n_inv_mat)
   call core_bunch_construct(0, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch, b_params)
 
@@ -1798,7 +1801,7 @@ else
     call mat_inverse (n_inv_mat, n_inv_mat)
     call core_bunch_construct(i, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch)
 
-    call calc_bunch_params(core_bunch, b_params, error)
+    call calc_bunch_params(core_bunch, b_params, error);  if (error) return
     select case (i)
     case (1); core_emit(1) = f * b_params%a%emit
     case (2); core_emit(2) = f * b_params%b%emit
@@ -2063,7 +2066,7 @@ do i = 0, n_sec
     endif
     map => sec%map
   endif
-enddo    
+enddo
 
 close (1)
 
