@@ -57,7 +57,7 @@ type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
 real(rp) p0c_start
-integer tracking_method, stm
+integer n, tracking_method, stm
 
 character(*), parameter :: r_name = 'track1'
 
@@ -240,8 +240,16 @@ case default
   call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING_METHOD: \i0\ ', ele%tracking_method)
   if (global_com%exit_on_error) call err_exit
   return
-
 end select
+
+!-----------------------------------------------------------------------------------
+! RF clock correction
+
+if (bmad_private%rf_clock_period > 0) then
+  n = int(end_orb%t / bmad_private%rf_clock_period)
+  end_orb%t = end_orb%t - n * bmad_private%rf_clock_period
+  end_orb%phase(1) = end_orb%phase(1) + n
+endif
 
 ! Check
 
