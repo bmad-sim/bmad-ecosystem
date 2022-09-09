@@ -63,9 +63,6 @@ if (absolute_time_tracking(ele)) then
   if (bmad_private%rf_clock_period > 0) then
     harmonic = integer_option (int(ele%value(rf_clock_harmonic$)), rf_clock_harmonic)
     if (harmonic /= 0) then
-      n = int(time / bmad_private%rf_clock_period)
-      orbit%t = orbit%t - n * bmad_private%rf_clock_period
-      orbit%phase(1) = orbit%phase(1) + n
       time = orbit%t + modulo(int(orbit%phase(1)), harmonic) * bmad_private%rf_clock_period
     else
       time = orbit%t + orbit%phase(1) * bmad_private%rf_clock_period

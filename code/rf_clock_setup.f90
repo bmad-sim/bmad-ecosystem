@@ -61,6 +61,7 @@ character(*), parameter :: r_name = 'rf_clock_setup'
 ok = .false.
 bmad_private%rf_clock_period = 0
 allocate (rf_ele(100))
+n_rf = 0
 
 do ie = 1, branch%n_ele_track
   ele => branch%ele(ie)
@@ -116,21 +117,21 @@ n_rf_included = basket(ib0)%n_in_basket
 n_rf_excluded = n_rf - n_rf_included
 
 if (n_rf_excluded > 0) then
-  call out_io (s_warn$, r_name, 'Number of cavities not using RF clock due to incomensurate frequency:' // &
-                                                                                                int_str(n_rf_excluded))
+  call out_io (s_warn$, r_name, 'Number of cavities not using RF clock due to incomensurate frequency: ' // &
+                                                                                          int_str(n_rf_excluded))
 endif
 
 do irf = 1, n_rf
   ele => rf_ele(irf)%ele
   if (rf_ele(irf)%ix_basket == ib0) then
-    call out_io (s_info$, r_name, '  Cavity not using RF clock: ' // ele%name)
-  else
     if (ele%key == ac_kicker$ .and. allocated(ele%ac_kick%frequency)) then
       n = rf_ele(irf)%ix_freq
       ele%ac_kick%frequency(n)%rf_clock_harmonic = nint(ele%ac_kick%frequency(n)%f * bmad_private%rf_clock_period)
     else
       ele%value(rf_clock_harmonic$) = nint(ele%value(rf_frequency$)*bmad_private%rf_clock_period)
     endif
+  else
+    call out_io (s_warn$, r_name, '  Cavity not using RF clock: ' // ele%name)
   endif
 enddo
 
