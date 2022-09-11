@@ -885,20 +885,18 @@ Serafini\cite{b:rosenzweig} (R\&S) with
 and all other $b_n$ set to zero.
 
 The transport equations in R\&S were developed in the ultra-relativistic limit with $\beta = 1$.  To
-extend these equations, the transport through the cavity body (R\&S Eq.~(9)) has been modified to
-give the correct phase-space area at non ultra-relativistic energies:
+extend these equations to lower energies, the transport through the cavity body (R\&S Eq.~(9)) has
+been modified to give the correct phase-space area at non ultra-relativistic energies:
 \begin{equation}
   \begin{pmatrix}
     x \\ 
     x'
-  \end{pmatrix}_2 = 
+  \end{pmatrix}_2 = \sqrt{\frac{\beta_1}{\beta_2}} \, 
   \begin{pmatrix}
-    \cos(\alpha)  &  
-    \sqrt{\frac{8}{\eta(\Delta\phi)}} \, \frac{\beta_1 \, \gamma_1}{\gamma'} \, 
-                                                   \cos(\Delta\phi) \, \sin(\alpha) \\
-    -\sqrt{\frac{\eta(\Delta\phi)}{8}} \, 
-                     \frac{\gamma'}{\beta_2 \, \gamma_2 \, \cos(\Delta\phi)} \, \sin(\alpha) &
-    \frac{\beta_1 \, \gamma_1}{\beta_2 \, \gamma_2} \, \cos(\alpha)
+    \cos(\alpha)  &
+        \sqrt{\frac{8}{\eta(\Delta\phi)}} \, \frac{\, \gamma_1}{\gamma'} \, \cos(\Delta\phi) \, \sin(\alpha) \\
+    -\sqrt{\frac{\eta(\Delta\phi)}{8}} \, \frac{\gamma'}{\gamma_2 \, \cos(\Delta\phi)} \, \sin(\alpha) &
+        \frac{\gamma_1}{\gamma_2} \, \cos(\alpha)
   \end{pmatrix}
   \,
   \begin{pmatrix}
@@ -907,11 +905,12 @@ give the correct phase-space area at non ultra-relativistic energies:
   \end{pmatrix}_1
   \label{xxpc}
 \end{equation}
-The added factors of $\beta$ give the matrix the correct determinate of $\beta_1 \, \gamma_1 /
-\beta_2 \, \gamma_2$. {\em While the added factors of $\beta$ do correct the phase space area, the
-above equation can only be considered as a rough approximation for simulating particles when $\beta$
-is significantly different from 1. Indeed, the only accurate way to simulate such particles is by
-integrating through the actual field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}. 
+The added factor of $\sqrt{\beta_1/\beta_2}$ gives the matrix the correct determinate of $\beta_1 \,
+\gamma_1 / \beta_2 \, \gamma_2$. {\em While the added factor of $\sqrt{\beta_1/\beta_2}$ does
+correct the phase space area, the above equation can only be considered as a rough approximation for
+simulating particles when $\beta$ is significantly different from 1. Indeed, the only accurate way
+to simulate such particles is by integrating through the actual field [Cf.~Runge Kutta tracking
+(\sref{s:tkm})]}.
 
 The change in $z$ going through a cavity is calculated by first calculating the particle
 transit time $\Delta t$
