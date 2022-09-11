@@ -64,7 +64,7 @@ complex(rp) k_0
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
-integer np, max_order, ix_pole_max, nn
+integer np, max_order, ix_pole_max, nn, n_period
 
 logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
 logical, optional :: for_layout
@@ -268,7 +268,7 @@ case (sad_mult$)
   else
     ptc_key%magnet = 'solenoid'
     ptc_key%list%bsol = val(ks$)
-    ! PTC tracking uses Matrix-Kick where the Matrix step uses the solenoid component and the Kick step
+    ! PTC tracking uses matrix-kick where the "matrix" step uses the solenoid component and the Kick step
     ! uses the quadrupole (and higher order) components. SAD and Bmad combine the quadrupole component
     ! in the Matrix step. Thus PTC may need a smaller step size.
     if (.not. present(integ_order) .and. .not. present(steps)) then
@@ -282,6 +282,8 @@ case (sad_mult$)
         ptc_key%nstep = nint(ptc_key%nstep / 3.0)
         ptc_key%method = 4
       endif
+      switch_to_drift_kick = .false.
+      call change_method_in_create_fibre(ptc_key, 1, change)
     endif
   endif
 
@@ -593,14 +595,14 @@ endif
 ! Check number of slices and integrator order.
 ! Wigglers are special since they do not have a uniform field so ignore these.
 
-if (ptc_key%magnet /= 'wiggler') then
+if (ele%key /= wiggler$ .and. ele%key /= undulator$ .and. ele%key /= rfcavity$ .and. ele%key /= lcavity$) then
   switch_to_drift_kick = .false.
   key2 = ptc_key  ! Don't want to change ptc_key
   call change_method_in_create_fibre(key2, 1, change)
   if (change .and. ptc_com%print_step_warning) then
     call out_io (s_warn$, r_name, 'Number of integration steps looks large for element: ' // ele%name, &
-              ' Present num_steps: ' // int_str(ptc_key%nstep) // ' at integrator order: ' // int_str(ptc_key%method), &
-              ' Suggested num_steps: ' // int_str(key2%nstep) // ' at integrator order: ' // int_str(key2%method), &
+              ' Present num_steps: ' // int_str(ptc_key%nstep) // ' at integrator_order: ' // int_str(ptc_key%method), &
+              ' Suggested num_steps: ' // int_str(key2%nstep) // ' at integrator_order: ' // int_str(key2%method), &
               ' [Note: To turn off this message set ptc_com%print_step_warning = False.]')
   endif
 endif

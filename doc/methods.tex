@@ -282,12 +282,7 @@ Symplectic integration is like ordinary integration of a function f(x) but what 
 is a Taylor map. Truncating the map to 0\Th order gives the particle trajectory and truncating to
 1\St\ order gives the transfer matrix (Jacobian).  The order at which a Taylor series is truncated
 at is set by \vn{taylor_order} (see \sref{s:param}. Like ordinary integration there are various
-formulas that one can use to do symplectic integration. In \bmad (or more precisely in PTC
-(\sref{s:ptc.intro})) you can use one of 3 methods. This is set by \vn{integrator_order}.
-\vn{integrator_order} = n where $n$ is allowed by PTC to be 2, 4, or 6. With an integrator order of
-$n$ the error in an integration step scales as $dz^n$ where $dz$ is step size. The step size $dz$ is
-set by the length of the element and the value of \vn{ds_step}. Remember, as in ordinary
-integration, higher integrator order does not necessarily imply higher accuracy.
+formulas that one can use to do symplectic integration.
 
 \begin{description}
 
@@ -652,10 +647,7 @@ be used in place of \vn{ds_step} to specify the number of slices.  This is appli
 When tracking using maps or element-by-element with PTC there are a few points to keep in
 mind. First is that \vn{PTC} tracks through a lattice element step by step. This is true for both
 map creation and symplectic integration. This means that the setting of the element parameter
-\vn{integrator_order}\footnote
-  {
-Note: Valid settings for \vn{integrator_order} are 2, 4, and 6
-  }
+\vn{integrator_order} (\sref{s:ptc.integ})
 or \vn{num_steps} (or \vn{ds_step}) for each element will affect the accuracy and speed of the
 computations. Bmad tries to choose reasonable default settings for the integrator order and number
 of steps however the calculation is not perfect. To make sure that the integrator order and number
@@ -744,15 +736,16 @@ across some boundary.
 The \vn{integrator_order} element attribute is the order of the integration formula for
 \vn{Symp_Lie_PTC} and is used for constructing Taylor maps. Possible values are
 \begin{example}
-  integrator_order = 2 (default), 4, or 6
+  integrator_order = 2, 4, 6, or 8
 \end{example}
 Essentially, an integrator order of $n$ means that the error in an integration step scales as
-$dz^{n+1}$ where $dz$ is the slice thickness.  For a given number of steps a higher order will give
+$dz^{n+1}$ where $dz$ is the slice thickness. For a given number of steps a higher order will give
 more accurate results but a higher order integrator will take more time per step. It turns out that
 for wigglers, after adjusting \vn{ds_step} for a given accuracy, the order 2 integrator is the
 fastest. This is not surprising given the highly nonlinear nature of a wiggler. Note that
 \vn{symp_lie_bmad} always uses an order 2 integrator independent of the setting of
-\vn{integrator_order}.
+\vn{integrator_order}. The setting of \vn{8} is not implemented for all elements. If \vn{8} is set
+for a given element type that does not support it, a value of \vn{6} will be used instead.
 
 \index{exact_model}\index{exact_misalign}
 When tracking uses the \vn{PTC} library (\sref{s:ptc.intro}), there are two global parameters that
