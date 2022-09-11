@@ -1682,7 +1682,7 @@ integer, parameter :: ref_tilt_tot$ = 61
 integer, parameter :: multipass_ref_energy$ = 62
 ! Slot 63 is free for use
 integer, parameter :: ref_time_start$ = 64
-integer, parameter :: thickness$ = 65, integrator_order$ = 65   ! For Etiennes' PTC: 2, 4, or 6.
+integer, parameter :: thickness$ = 65, integrator_order$ = 65   ! For Etiennes' PTC: 2, 4, 6, or 8.
 integer, parameter :: num_steps$ = 66   ! Assumed unique by set_flags_for_changed_real_attribute
 integer, parameter :: ds_step$ = 67     ! Assumed unique by set_flags_for_changed_real_attribute
 integer, parameter :: csr_ds_step$ = 68
@@ -2154,7 +2154,7 @@ type ptc_common_struct
   logical, pointer :: exact_misalign    => null()  ! Points to PTC ALWAYS_EXACTMIS. Default True. Notice different names.
   real(rp), pointer :: vertical_kick    => null()  ! Points to PTC VERTICAL_KICK for 6D emittance calc. 0 => off, 1 => on (default).
   real(rp) :: cut_factor = 0.006                   ! Cut factor for PTC tracking
-  logical :: print_step_warning = .false.           ! Print warning if element uses too many steps.
+  logical :: print_step_warning = .true.           ! Print warning if element uses too many steps.
   ! Stuff that should not be set except by experts
   logical :: use_orientation_patches = .true.      ! offset, pitch, and tilt attributes are put in ptc patch?
   logical :: print_info_messages = .false.         ! Allow PTC to print informational messages (which can clutter the output)?
