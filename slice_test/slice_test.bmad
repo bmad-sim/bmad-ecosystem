@@ -39,7 +39,7 @@ branch1[beta_b]  = 12
 ! branch 2
 
 sol: solenoid, ks = 0.3, l = 1
-s: sextupole, k2 = 0.7, l = 1, ds_step = 0.01
+s: sextupole, k2 = 0.7, l = 1, num_steps = 6, integrator_order = 8
 b: sbend, angle = 0.3, l = 1, e1 = 0.1
 
 branch2: line = (sol, s, b)
