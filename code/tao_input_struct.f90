@@ -90,7 +90,7 @@ type tao_curve_input
   real(rp) :: z_color0 = invalid$, z_color1 = invalid$     ! Deprecated. Use c%z_color%...
   integer :: symbol_every = 1
   integer :: ix_universe = -1
-  integer :: n_turn = 10
+  integer :: n_turn = -1
   logical :: draw_line = .true.
   logical :: draw_symbols = .true.
   logical :: draw_symbol_index = .false.
