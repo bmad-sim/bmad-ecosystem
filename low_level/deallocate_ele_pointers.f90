@@ -60,6 +60,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%a_pole, ele%b_pole)
   nullify (ele%a_pole_elec, ele%b_pole_elec)
   forall (i = 1:size(ele%taylor)) ele%taylor(i)%term => null()
+  forall (i = 0:3) ele%spin_taylor(i)%term => null()
   return
 endif
 
@@ -109,6 +110,16 @@ if (associated (ele%taylor(1)%term)) then
   else
     do i = 1, size(ele%taylor)
       deallocate (ele%taylor(i)%term)
+    enddo
+  endif
+endif
+
+if (associated (ele%spin_taylor(0)%term)) then
+  if (ele%slave_status == slice_slave$ .and. ele%key == taylor$) then
+    forall (i = 0:3) ele%spin_taylor(i)%term => null()
+  else
+    do i = 0, 3
+      deallocate (ele%spin_taylor(i)%term)
     enddo
   endif
 endif
