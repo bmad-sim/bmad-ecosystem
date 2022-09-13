@@ -5154,11 +5154,12 @@ else
     stack%type = data_num$
     ! Error if datum associated with the expression is evaluated before the datum evaluated here.
     if (present(datum) .and. .not. err_flag) then
-      if (datum%ix_uni > 0 .and. datum%ix_data > 0) then  ! Only check if this is a user defined datum (not temp datum used for plotting).
+      ! Only check if this is a user defined datum (not temp datum used for plotting).
+      if (datum%ix_uni > 0 .and. datum%ix_data > 0 .and. d_array(1)%d%data_type(1:11) == 'expression:') then
         if (datum%ix_uni < d_array(1)%d%ix_uni .or. (datum%ix_uni == d_array(1)%d%ix_uni .and. datum%ix_data < d_array(1)%d%ix_data)) then
           err_flag = .true.
           if (print_err) call out_io (s_error$, r_name, 'THE EXPRESSION ASSOCIATED WITH DATUM: ' // tao_datum_name(datum), &
-                          'DEPENDS UPON A DATUM (' // trim(tao_datum_name(d_array(1)%d)) // ') WHICH IS EVALUATED AFTER ' // tao_datum_name(datum))
+                          'DEPENDS UPON AN EXPRESSION  DATUM (' // trim(tao_datum_name(d_array(1)%d)) // ') WHICH IS EVALUATED AFTER ' // tao_datum_name(datum))
           return
         endif
       endif
