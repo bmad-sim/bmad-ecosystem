@@ -4206,7 +4206,7 @@ case ('spin')
     end select
   enddo
 
-  if (.not. show_mat) show_q = .true.
+  show_q = (.not. show_mat)
 
   !
 
@@ -4382,14 +4382,14 @@ case ('spin')
       if (flip) sm%axis_input%n0 = -sm%axis_input%n0 
     endif
 
-    datum%ix_branch = ix_branch
-    call tao_spin_matrix_calc (datum, u, ele_ref, ele)
-    if (.not. sm%valid) then
-      nl=nl+1; lines(nl) = 'INVALID: ' // datum%why_invalid
-      return
-    endif
-
     if (show_mat) then
+      datum%ix_branch = ix_branch
+      call tao_spin_matrix_calc (datum, u, ele_ref, ele)
+      if (.not. sm%valid) then
+        nl=nl+1; lines(nl) = 'INVALID: ' // datum%why_invalid
+        return
+      endif
+
       if (all(sm%axis_input%n0 == 0) .and. ele_ref%ix_ele /= ele%ix_ele) then
         nl=nl+1; lines(nl) = 'NO SPIN AXIS COMPUTED.' 
         nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON FROM THE COMMAND LINE: "set bmad spin_tracking_on = T"'
@@ -4407,17 +4407,13 @@ case ('spin')
       enddo
     endif
 
-    call spin_mat_to_eigen (sm%map1%orb_mat, sm%map1%spin_q, eval, evec, n0, n_eigen, err)
-    if (err) return
-
-    if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
-
     if (show_q) then
+      call spin_concat_linear_maps(sm%map1, branch, ele_ref%ix_ele, ele%ix_ele, orbit = tao_branch%orbit)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order' 
-      nl=nl+1; write (lines(nl), '(14x, a, 7x, 6(2x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
+      nl=nl+1; write (lines(nl), '(15x, a, 7x, 6(4x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'
       do i = 0, 3
-        nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f12.6, 4x, a)') i, q_name(i), sm%map1%spin_q(i,0), reals_to_string(sm%map1%spin_q(i,1:), 11, 1, 6, 6)
+        nl=nl+1; write(lines(nl), '(i4, 2x, a, 2x, f14.8, 4x, a)') i, q_name(i), sm%map1%spin_q(i,0), reals_to_string(sm%map1%spin_q(i,1:), 13, 1, 8, 8)
       enddo
       if (ele_ref%ix_ele == ele%ix_ele) then
         dn_dpz = spin_dn_dpz_from_qmap(sm%map1%orb_mat, sm%map1%spin_q, dn_partial, dn_partial2, err)
@@ -4426,29 +4422,35 @@ case ('spin')
       endif
     endif
 
-    if (ele%ix_ele == ele_ref%ix_ele) then
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; lines(nl) = 'Eigen:'
-      nl=nl+1; lines(nl) = '     |Eval|     E_val            x           px          y           py          z           pz              Sx          Sy          Sz'
+    if (ele_ref%ix_ele == ele%ix_ele) then
+      call spin_mat_to_eigen (sm%map1%orb_mat, sm%map1%spin_q, eval, evec, n0, n_eigen, err)
+      if (err) return
+      if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
 
-      do i = 1, 6
-        nl=nl+1; write (lines(nl), '(a, 2f10.6,     4x, 6f12.6, 4x, 3es12.4)', iostat = ios) 're', abs(eval(i)), real(eval(i),rp), real(evec(i,:),rp), real(n_eigen(i,:),rp)
-        nl=nl+1; write (lines(nl), '(a, 10x, f10.6, 4x, 6f12.6, 4x, 3es12.4)', iostat = ios) 'im', aimag(eval(i)), aimag(evec(i,:)), aimag(n_eigen(i,:))
+      if (ele%ix_ele == ele_ref%ix_ele) then
         nl=nl+1; lines(nl) = ''
-      enddo
+        nl=nl+1; lines(nl) = 'Eigen:'
+        nl=nl+1; lines(nl) = '     |Eval|     E_val            x           px          y           py          z           pz              Sx          Sy          Sz'
 
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; lines(nl) = 'Resonance strengths:'
-      nl=nl+1; lines(nl) = '          Orb_Tune   |Q+/-Qs|min           Xi1          Xi2   '
+        do i = 1, 6
+          nl=nl+1; write (lines(nl), '(a, 2f10.6,     4x, 6f12.6, 4x, 3es12.4)', iostat = ios) 're', abs(eval(i)), real(eval(i),rp), real(evec(i,:),rp), real(n_eigen(i,:),rp)
+          nl=nl+1; write (lines(nl), '(a, 10x, f10.6, 4x, 6f12.6, 4x, 3es12.4)', iostat = ios) 'im', aimag(eval(i)), aimag(evec(i,:)), aimag(n_eigen(i,:))
+          nl=nl+1; lines(nl) = ''
+        enddo
 
-      do i = 1, 3
-        j = 2 * i - 1
-        q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
-        dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
-        call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat)
-        nl=nl+1; write (lines(nl), '(5x, a, 2f13.7, 8(4x, 2es13.5))') abc_name(i), q, dq, xi_quat 
-      enddo
-      nl=nl+1; lines(nl) = 'Note: "help show spin" will display information on this table.'
+        nl=nl+1; lines(nl) = ''
+        nl=nl+1; lines(nl) = 'Resonance strengths:'
+        nl=nl+1; lines(nl) = '          Orb_Tune   |Q+/-Qs|min           Xi1          Xi2   '
+
+        do i = 1, 3
+          j = 2 * i - 1
+          q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
+          dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
+          call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat)
+          nl=nl+1; write (lines(nl), '(5x, a, 2f13.7, 8(4x, 2es13.5))') abc_name(i), q, dq, xi_quat 
+        enddo
+        nl=nl+1; lines(nl) = 'Note: "help show spin" will display information on this table.'
+      endif
     endif
   endif
 

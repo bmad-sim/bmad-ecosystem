@@ -534,10 +534,20 @@ The \vn{ptc} command is used manipulating PTC layouts associated with Bmad
 lattices. Format:
 \begin{example}
   ptc init            ! Init associated PTC layout.
+  ptc reslice         !
 \end{example}
 
 \vskip 10pt 
-The \vn{ptc init} command must be run before running any other \vn{ptc} command is used.
+
+The \vn{ptc init} command initializes a PTC layout.
+
+The \vn{ptc reslice} command calculates good values for lattice element \vn{num_steps} and \vn{integrator_order}. This
+command does not adjust the following elements since the algorithm for the calculation can be problematical when the field
+is varying longitudinally within an element:
+\begin{example}
+  rfcavity, lcavity, crab_cavity
+  wiggler, undulator
+\end{example}
 
 Also see:
 \begin{example}
