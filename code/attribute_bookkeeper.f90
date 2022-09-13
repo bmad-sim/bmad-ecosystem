@@ -711,6 +711,8 @@ endif
 if (non_offset_changed .or. (offset_changed .and. ele%taylor_map_includes_offsets)) then
   if (associated(ele%taylor(1)%term)) then
     call kill_taylor(ele%taylor)
+  endif
+  if (associated(ele%spin_taylor(0)%term)) then
     call kill_taylor(ele%spin_taylor)
     ele%spin_q(0,0) = real_garbage$
   endif
