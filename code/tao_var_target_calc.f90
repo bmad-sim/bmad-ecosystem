@@ -26,6 +26,7 @@ integer i, j
 
 do j = 1, s%n_var_used
   var => s%var(j)
+  if (.not. var%exists) cycle
   var%correction_value = var%meas_value + (var%design_value - var%model_value)
 enddo
 
