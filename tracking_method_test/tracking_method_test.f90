@@ -87,6 +87,7 @@ do ib = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_max - 1
     ele => branch%ele(i)
     if (ele_o_sign == -1 .and. ele%key == e_gun$) cycle
+    if ((ele_o_sign == -1 .or. orb_dir_sign == -1) .and. ele%key == beambeam$) cycle
     if (ele%key == marker$ .and. ele%name == 'END') cycle
     ele%spin_tracking_method = tracking$
 
