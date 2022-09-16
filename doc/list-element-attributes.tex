@@ -84,23 +84,24 @@ field_overlaps                   & offset_moves_aperture            & tilt_tot [
  \label{s:list.beambeam}
  
  \begin{tabular}{llll} \toprule
-alias                            & crab_x2 [1/m]                    & offset_moves_aperture            & x1_limit [m]                     \\
-alpha_a_strong                   & crab_x3 [1/m$^2$]                & p0c [eV]                         & x2_limit [m]                     \\
-alpha_b_strong                   & crab_x4 [1/m$^3$]                & ptc_integration_type             & x_limit [m]                      \\
-aperture [m]                     & crab_x5 [1/m$^4$]                & ref_origin                       & x_offset [m]                     \\
-aperture_at                      & create_jumbo_slave               & reference                        & x_offset_tot [m]                 \\
-aperture_type                    & delta_ref_time [sec]             & sig_x [m]                        & x_pitch                          \\
-bbi_constant                     & descrip                          & sig_y [m]                        & x_pitch_tot                      \\
-beta_a_strong [m]                & e_tot [eV]                       & sig_z [m]                        & y1_limit [m]                     \\
-beta_b_strong [m]                & ele_origin                       & spin_tracking_method             & y2_limit [m]                     \\
-bs_field [T]                     & field_calc                       & superimpose                      & y_limit [m]                      \\
-charge                           & is_on                            & symplectify                      & y_offset [m]                     \\
-cmat_11                          & ks [1/m]                         & tilt [rad]                       & y_offset_tot [m]                 \\
-cmat_12                          & l [m]                            & tilt_tot [rad]                   & y_pitch                          \\
-cmat_21                          & mat6_calc_method                 & tracking_method                  & y_pitch_tot                      \\
-cmat_22                          & n_particle [???]                 & type                             & z_offset [m]                     \\
-crab_tilt [rad]                  & n_slice                          & wall                             & z_offset_tot [m]                 \\
-crab_x1                          & offset [m]                       & wrap_superimpose                 &                                  \\
+alias                            & crab_x3 [1/m$^2$]                & p0c [eV]                         & x1_limit [m]                     \\
+alpha_a_strong                   & crab_x4 [1/m$^3$]                & ptc_integration_type             & x2_limit [m]                     \\
+alpha_b_strong                   & crab_x5 [1/m$^4$]                & ref_origin                       & x_limit [m]                      \\
+aperture [m]                     & create_jumbo_slave               & reference                        & x_offset [m]                     \\
+aperture_at                      & delta_ref_time [sec]             & repetition_frequency [Hz]        & x_offset_tot [m]                 \\
+aperture_type                    & descrip                          & sig_x [m]                        & x_pitch                          \\
+bbi_constant                     & e_tot [eV]                       & sig_y [m]                        & x_pitch_tot                      \\
+beta_a_strong [m]                & e_tot_strong [eV]                & sig_z [m]                        & y1_limit [m]                     \\
+beta_b_strong [m]                & ele_origin                       & species_strong                   & y2_limit [m]                     \\
+bs_field [T]                     & field_calc                       & spin_tracking_method             & y_limit [m]                      \\
+charge                           & is_on                            & superimpose                      & y_offset [m]                     \\
+cmat_11                          & ks [1/m]                         & symplectify                      & y_offset_tot [m]                 \\
+cmat_12                          & l [m]                            & tilt [rad]                       & y_pitch                          \\
+cmat_21                          & mat6_calc_method                 & tilt_tot [rad]                   & y_pitch_tot                      \\
+cmat_22                          & n_particle [???]                 & tracking_method                  & z_crossing [???]                 \\
+crab_tilt [rad]                  & n_slice                          & type                             & z_offset [m]                     \\
+crab_x1                          & offset [m]                       & wall                             & z_offset_tot [m]                 \\
+crab_x2 [1/m]                    & offset_moves_aperture            & wrap_superimpose                 &                                  \\
  \bottomrule
  \end{tabular}
  \vfill

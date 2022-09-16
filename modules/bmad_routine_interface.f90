@@ -1515,12 +1515,12 @@ function particle_is_moving_forward (orbit) result (is_moving_forward)
   logical is_moving_forward
 end function
 
-function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_clock_harmonic) result (time)
+function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic) result (time)
   import
   implicit none
   type (coord_struct) orbit
   type (ele_struct), target :: ele
-  real(rp), optional :: s_rel
+  real(rp), optional :: s_rel, rf_freq
   real(rp) time
   integer, optional :: rf_clock_harmonic
   logical, optional :: reference_active_edge, time_coords
@@ -2248,11 +2248,11 @@ function stream_ele_end (physical_end, ele_orientation) result (stream_end)
   integer stream_end, ele_orientation, physical_end
 end function
 
-subroutine strong_beam_sigma_calc (ele, s_pos, z_strong, sig_x, sig_y, bbi_const, x_center, y_center)
+subroutine strong_beam_sigma_calc (ele, s_pos, sig_x, sig_y, bbi_const)
   import
   implicit none
   type (ele_struct) ele
-  real(rp) s_pos, z_strong, bbi_const, x_center, y_center, sig_x, sig_y
+  real(rp) s_pos, bbi_const, sig_x, sig_y
 end subroutine
 
 function strong_beam_strength (ele) result (strength)

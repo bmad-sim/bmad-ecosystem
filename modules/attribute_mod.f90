@@ -847,6 +847,11 @@ call init_attribute_name1 (beambeam$, crab_x3$,                     'CRAB_X3')
 call init_attribute_name1 (beambeam$, crab_x4$,                     'CRAB_X4')
 call init_attribute_name1 (beambeam$, crab_x5$,                     'CRAB_X5')
 call init_attribute_name1 (beambeam$, crab_tilt$,                   'CRAB_TILT')
+call init_attribute_name1 (beambeam$, z_crossing$,                  'Z_CROSSING')
+call init_attribute_name1 (beambeam$, repetition_frequency$,        'REPETITION_FREQUENCY')
+call init_attribute_name1 (beambeam$, rf_clock_harmonic$,           'rf_clock_harminic', private$)
+call init_attribute_name1 (beambeam$, species_strong$,              'SPECIES_STRONG')
+call init_attribute_name1 (beambeam$, e_tot_strong$,                'E_TOT_STRONG')
 
 call init_attribute_name1 (beginning_ele$, l$,                           'l', private$)
 call init_attribute_name1 (beginning_ele$, delta_ref_time$,              'delta_ref_time', private$)
@@ -1822,7 +1827,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
-      'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE')
+      'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE', 'SPECIES_STRONG')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
@@ -1960,7 +1965,7 @@ case ('DBRAGG_ANGLE_DE')
 
 case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E2_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT', 'E_TOT_OFFSET', 'E_TOT_START', &
       'P0C', 'P0C_START', 'PC', 'P0C_SET', 'E_TOT_SET', 'AUTOSCALE_AMP_ABS_TOL', 'DELTA_E_REF', 'SIG_E', 'SIG_E2', &
-      'PC_OUT_MIN', 'PC_OUT_MAX')
+      'PC_OUT_MIN', 'PC_OUT_MAX', 'E_TOT_STRONG')
   attrib_units = 'eV'
 
 case ('DELTA_REF_TIME', 'REF_TIME', 'T', 'T_OFFSET', 'DELTA_TIME', 'DT_MAX')
@@ -1975,11 +1980,10 @@ case ('E_FIELD', 'E_FIELD_X', 'E_FIELD_Y')
 case ('VOLTAGE', 'VOLTAGE_ERR')
   attrib_units = 'Volt'
 
-
 case ('GRADIENT', 'GRADIENT_ERR')
   attrib_units = 'eV/m'
 
-case ('LR_FREQ_SPREAD', 'RF_FREQUENCY')
+case ('LR_FREQ_SPREAD', 'RF_FREQUENCY', 'REPETITION_FREQUENCY')
   attrib_units = 'Hz'
 
 case ('BS_FIELD', 'B_FIELD', 'DB_FIELD', 'B_MAX')
@@ -2319,7 +2323,7 @@ case ('PHOTON_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, photon_type_name, lbound(photon_type_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == incoherent$)
 
-case ('PARTICLE', 'REF_SPECIES')
+case ('PARTICLE', 'REF_SPECIES', 'SPECIES_STRONG')
   attrib_val_name = species_name(ix_attrib_val)
   if (present(is_default)) then
     if (ele%key == photon_fork$) then

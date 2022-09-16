@@ -1,5 +1,5 @@
 !+
-! Function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_clock_harmonic) result (time)
+! Function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic) result (time)
 !
 ! Routine to return the reference time used to calculate the phase of
 ! time-dependent EM fields.
@@ -18,13 +18,14 @@
 !   s_rel             -- real(rp), optional: Longitudinal position relative to the upstream edge of the element.
 !                         Needed for relative time tracking when the particle is inside the element. Default is 0.
 !   time_coords       -- logical, optional: Default False. If True then orbit is using time based coordinates.
-!   rf_clock_harmonic -- integer: Used in conjunction with the rf clock.
+!   rf_freq           -- real(rp), optional: If present and non-zero, returned time will be in the range [-1/2*rf_freq, 1/2*rf_freq].
+!   rf_clock_harmonic -- integer: Used with the rf clock in cases where an element has multiple frequencies.
 !
 ! Ouput:
 !   time      -- Real(rp): Current time.
 !-
 
-function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_clock_harmonic) result (time)
+function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic) result (time)
 
 use equal_mod, dummy_except => particle_rf_time
 use attribute_mod, only: has_attribute
@@ -36,8 +37,8 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: ref_ele
 type (ele_pointer_struct), allocatable :: chain(:)
 
-real(rp) time, s_hard_offset, beta0
-real(rp), optional :: s_rel
+real(rp), optional :: s_rel, rf_freq
+real(rp) time, s_hard_offset, beta0, freq
 integer, optional :: rf_clock_harmonic
 integer n, ix_pass, n_links, harmonic
 logical abs_time
@@ -55,8 +56,10 @@ if (ix_pass > 1) ref_ele => chain(1)%ele
 
 ! With absolute time tracking the reference time is relative to the reference time of the element.
 ! This way the phase does not have to be adjusted when switching between absolute and relative time tracking.
+
 ! Note: With a multipass_slave, use the reference time of the pass element.
-! Note: e_gun uses absolute time tracking to get around the problem when orbit%beta = 0.
+! Note: An e_gun always uses absolute time tracking to get around the problem when orbit%beta = 0.
+! Note: beambeam element with repitition_rate = 0 always uses relative time tracking.
 
 if (absolute_time_tracking(ele)) then
 
@@ -110,6 +113,11 @@ if (logic_option(.false., reference_active_edge) .and. (ele%key == rfcavity$ .or
   beta0 = ele%value(p0c_start$) / ele%value(E_tot_start$)
   time = time - s_hard_offset / (c_light * beta0)
 endif
+
+!
+
+freq = real_option(0.0_rp, rf_freq)
+if (freq /= 0) time = modulo2(time, 0.5_rp/freq)
 
 end function particle_rf_time
 

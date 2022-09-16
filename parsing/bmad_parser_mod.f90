@@ -1910,6 +1910,15 @@ case ('SPECIES_OUT')
   endif
   ele%converter%species_out = ix
 
+case ('SPECIES_STRONG')
+  call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
+  ix = species_id(word)
+  if (ix == invalid$ .or. ix == ref_particle$ .or. ix == anti_ref_particle$) then
+    call parser_error ('INVALID SPECIES_STRONG: ' // word)
+    return
+  endif
+  ele%value(species_strong$) = ix
+
 case ('SPIN_TRACKING_METHOD')
   if (attrib_word == 'BMAD_STANDARD') then
     call parser_error ('SPIN_TRACKING_METHOD = BMAD_STANDARD NOW NO LONGER VALID.', &
