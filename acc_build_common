@@ -40,6 +40,30 @@ func_set_base_env () {
 
     # Check for Scientific Linux OS version
     [ "$(grep Scientific /etc/redhat-release &> /dev/null ; echo $?)" -eq 0 ] && export SL_RELEASE=1
+
+    # Added support for SHARED only library builds, as requested in RT#63875 
+    export SHARED_LIB_CONFIGURE_FLAGS="--enable-shared=no --enable-static=yes"
+
+    case "${ACC_ENABLE_SHARED}" in
+	"Y" | "y" | "1" )
+            export BUILD_SHARED=1
+            export SHARED_LIB_CONFIGURE_FLAGS="--enable-shared=yes --enable-static=yes"
+            ;;
+        *)
+            export BUILD_SHARED=0
+            ;;
+    esac
+
+    case "${ACC_ENABLE_SHARED_ONLY}" in
+	"Y" | "y" | "1" )
+            export BUILD_SHARED_ONLY=1
+	    export BUILD_SHARED=1
+            export SHARED_LIB_CONFIGURE_FLAGS="--enable-shared=yes --enable-static=no"
+            ;;
+        *)
+            export BUILD_SHARED_ONLY=0
+            ;;
+    esac
 }
 
 
@@ -130,6 +154,10 @@ func_set_openmp_flags () {
 
     case "${ACC_ENABLE_OPENMP}" in
 	"Y" | "y" | "1" )
+
+	    # Fix setting OpenMP configure flag 12-Sep-2022
+	    export BUILD_OPENMP=1
+
 	    if ( [[ "${CONDA_BUILD}" ]] ) ; then
                 export CFLAGS="${CFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
                 export FCFLAGS="${FFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
@@ -728,7 +756,10 @@ func_cleanup_variables () {
     unset ARGUMENTS
     unset DYLD_LIBRARY_PATH
     unset PACKAGE_VERSION
-
+    unset BUILD_SHARED
+    unset BUILD_SHARED_ONLY
+    unset BUILD_OPENMP
+    unset SHARED_LIB_CONFIGURE_FLAGS
     [ -e /tmp/ifort_version_tmp_${USER} ] && rm -f /tmp/ifort_version_tmp_${USER} || echo -e "\n"
 }
 
