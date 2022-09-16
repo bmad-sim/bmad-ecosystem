@@ -107,17 +107,17 @@ known as Truncated Power Series Algebra (TPSA). The core Differential Algebra (D
 PTC/FPP was developed by Martin Berz\cite{b:berz}. The PTC/FPP libraries are interfaced to \bmad so
 that calculations that involve both \bmad and PTC/FPP can be done in a fairly seamless manner.
 
-Basically, the FPP (``Fully Polymorphic Package'') part of the code handles Taylor map
+Basically, the FPP (``Fully Polymorphic Package'') part of the PTC/FPP code handles Taylor map
 manipulation. This is purely mathematical. FPP has no knowledge of accelerators, magnetic fields,
 particle tracking etc. PTC (``Polymorphic Tracking Code'') implements the physics and uses FPP to
 handle the Taylor map manipulation. Since the distinction between \vn{FPP} and \vn{PTC} is
-irrelevant to the non-programmer, ``PTC'' will be used to refer to the entire package.
+irrelevant to the non-programmer, ``PTC'' will be used to refer to the entire PTC/FPP package.
 
 PTC is used by \bmad when constructing Taylor maps and when the \vn{tracking_method}
 \sref{s:tkm}) is set to \vn{symp_lie_ptc}. All Taylor maps above first order are calculated
 via PTC. No exceptions.
 
-For more discussion of PTC see Chapter~\sref{c:ptc.use}.  For the programmer, also see
+For more discussion of PTC see Chapter~\sref{c:ptc.use}. For the programmer, also see
 Chapter~\sref{c:ptc.program}.
 
 For the purposes of this manual, PTC and FPP are generally considered one package and

@@ -295,7 +295,6 @@ Attributes specific to a \vn{beambeam} element are:
   alpha_a_strong = <Real>    ! Strong beam $a$-mode alpha Twiss parameter 
   beta_b_strong  = <Real>    ! Strong beam $b$-mode beta Twiss parameter
   alpha_b_strong = <Real>    ! Strong beam $b$-mode alpha Twiss parameter
-  repetition_frequency = <Real> 
   bbi_constant               ! See below. Dependent attribute (\sref{s:depend}).
   ks             = <Real>    ! Solenoid strength.
   bs_field       = <Real>    ! Solenoid field strength.
@@ -1102,20 +1101,20 @@ The attributes specific to an \vn{crab_cavity} are
 
 The Hamiltonian  $H_{\text{crab}}$ for a thin crab cavity is\cite{b:crab1}:
 \begin{equation}
-  H_{\text{crab}} = -\frac{q_{rel} \, V\, x}{c \, P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0)
+  H_{\text{crab}} = -q_{rel} \, V\, x \, \sin(k \, t + 2 \, \pi \, \phi_0)
 \end{equation}
 where $x$ and $z$ are particle coordinates, $q_{rel}$ is the charge relative to the reference
-particle, $V$ is the ``effective'' cavity voltage, $P_0$ is the reference energy, $\phi_0$ is a user settable
+particle, $V$ is the ``effective'' cavity voltage, $\phi_0$ is a user settable
 phase, and $k$ is the wave number
 \begin{equation}
   k = \frac{2 \, \pi \, f_{\text{rf}}}{c}
 \end{equation}
-Which give kicks 
+Which give kicks of
 \begin{align} 
-  \Delta p_x &= -\frac{\partial H_{\text{crab}}}{\partial x} = 
-    \frac{q_{rel} \, V}{c \, P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0) \CRNO 
-  \Delta p_z &= -\frac{\partial H_{\text{crab}}}{\partial z} = 
-    \frac{q_{rel} \, V \, \, k \, x}{c \, P_0} \, \cos(k \, z + 2 \, \pi \, \phi_0) 
+  \Delta p_x &= -\frac{1}{c \, P_0} \, \frac{\partial H_{\text{crab}}}{\partial x} = 
+    \frac{q_{rel} \, V}{c \, P_0} \, \sin(k \, t + 2 \, \pi \, \phi_0) \CRNO 
+  \Delta E &= -\frac{\partial H_{\text{crab}}}{\partial t} = 
+    q_{rel} \, V \, \, k \, x \, \cos(k \, t + 2 \, \pi \, \phi_0) 
 \end{align} 
 Note: The sign of $H_{\text{crab}}$ used by Authors in the literature is not standardized. \bmad
 uses the convention such that a particle with the charge of the reference particle and with $z$ and

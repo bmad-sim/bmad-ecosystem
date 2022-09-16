@@ -2302,7 +2302,7 @@ end function
 subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
   import
   implicit none
-  type (coord_struct) orbit
+  type (coord_struct), target :: orbit
   type (ele_struct), target :: ele
   type (lat_param_struct) param
   type (track_struct), optional :: track
