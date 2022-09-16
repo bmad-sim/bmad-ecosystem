@@ -75,7 +75,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ September 6, 2022}
+\date{David Sagan \\ September 15, 2022}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -617,6 +617,7 @@ Example:
   ltt%exclude_from_maps  = "beambeam::*"
   ltt%split_bends_for_stochastic_rad = False
   ltt%symplectic_map_tracking = False
+  ltt%set_beambeam_z_crossing = False
   ltt%use_rf_clock       = F
   ltt%dead_cutoff        = 0.99
   ltt%b_emittance        = 1e-9          ! Used with space charge calc.
@@ -998,6 +999,12 @@ Bmad to be commensurate with the frequencies of the time varying fields.\footnot
 If not all the frequencies are commensurate, Bmad will make a best choice and the fields that have
 frequencies that are not commensurate with the RF clock will use the standard clock instead.
   }
+%
+\item[ltt\%set_beambeam_z_crossing] \Newline
+If True (default is false), set the \vn{z_crossing} parameter of any \vn{beambeam} element in the
+lattice to the phase space $z$ value of the closed orbit? See the Bmad manual for a discussion of
+the \vn{z_crossing} parameter. Generally, \vn{ltt%set_beambeam_z_crossing} should be set True.
+
 \end{description}
 
 %------------------------------------------------------------------

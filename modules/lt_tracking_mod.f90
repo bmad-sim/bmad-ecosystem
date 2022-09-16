@@ -77,6 +77,8 @@ type ltt_params_struct
   logical :: use_rf_clock = .false.
   logical :: debug = .false.
   logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
+  logical :: set_beambeam_z_crossing = .false.
+
   !
   character(200) :: sigma_matrix_output_file = ''  ! No longer used
   character(200) :: master_output_file = ''        ! No longer used
@@ -499,6 +501,18 @@ if (lttp%tracking_method == 'PTC' .or. lttp%simulation_mode == 'CHECK') then
   if (bmad_com%spin_tracking_on) ltt_com%ptc_state = ltt_com%ptc_state + SPIN0
 endif
 
+if (lttp%set_beambeam_z_crossing) then
+  do ie = 1, branch%n_ele_track
+    ele => branch%ele(ie)
+    if (ele%key /= beambeam$) cycle
+    if (lttp%tracking_method == 'PTC') then
+      ele%value(z_crossing$) = ltt_com%bmad_closed_orb(ie)%vec(5) + (ltt_com%ptc_closed_orb(5) - ltt_com%bmad_closed_orb(0)%vec(5))
+    else
+      ele%value(z_crossing$) = ltt_com%bmad_closed_orb(ie)%vec(5)
+    endif
+  enddo
+endif
+
 ! If using ramping elements, setup the lattice using lttp%ramping_start_time
 
 if (lttp%ramping_on) then
@@ -675,6 +689,7 @@ call ltt_write_line('# ltt%ramping_on                     = ' // logic_str(lttp%
 call ltt_write_line('# ltt%ramp_update_each_particle      = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_start_time             = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
 call ltt_write_line('# ltt%random_seed                    = ' // int_str(lttp%random_seed), lttp, iu, print_this)
+call ltt_write_line('# ltt%set_beambeam_z_crossing        = ' // logic_str(lttp%set_beambeam_z_crossing), lttp, iu, print_this)
 if (lttp%random_seed == 0) then
   call ltt_write_line('# random_seed_actual                 = ' // int_str(ltt_com%random_seed_actual), lttp, iu, print_this)
 endif
