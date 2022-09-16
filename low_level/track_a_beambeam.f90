@@ -26,10 +26,11 @@
 subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
 
 use fringe_mod, except_dummy => track_a_beambeam
-
+use super_recipes_mod, only: super_zbrent
 implicit none
 
-type (coord_struct) :: orbit
+type (coord_struct), target :: orbit, orb_save
+type (coord_struct), pointer :: orb_ptr
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
@@ -37,19 +38,27 @@ type (em_field_struct) field
 type (strong_beam_struct) sbb
 
 real(rp), optional :: mat6(6,6)
-real(rp) sig_x, sig_y, x_center, y_center, s_lab, s_body, ff
-real(rp) s_slice, s_slice_old, k0_x, k0_y, k_xx1, k_xy1, k_yx1, k_yy1, k_xx2, k_xy2, k_yx2, k_yy2, coef, del
-real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const, z, dx, dy, dcoef
+real(rp) sig_x, sig_y, ff, ds_slice
+real(rp) k0_x, k0_y, k_xx1, k_xy1, k_yx1, k_yy1, k_xx2, k_xy2, k_yx2, k_yy2, coef, del, s0
+real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const, dx, dy, dcoef, z
 real(rp), allocatable :: z_slice(:)
-real(rp) om(3), quat(0:3)
+real(rp) om(3), quat(0:3), beta_strong, s_body_save
+real(rp), target :: slice_center(3), s_body, s_lab
+real(rp), pointer :: center_ptr(:), s_body_ptr, s_lab_ptr ! To get around ifort bug.
 
-integer i, n_slice
+integer i, n_slice, status
 
 logical, optional :: make_matrix
+logical final_calc, make_mat
 
 character(*), parameter :: r_name = 'track_a_beambeam'
 
 !
+
+center_ptr => slice_center
+s_body_ptr => s_body
+s_lab_ptr => s_lab
+orb_ptr => orbit
 
 if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
 
@@ -62,44 +71,48 @@ if (ele%value(sig_x$) == 0 .or. ele%value(sig_x$) == 0) then
   return
 endif
 
-if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())
+s_lab = 0    ! Begin at the IP
+if (present(track)) call save_a_step(track, ele, param, .false., orbit, s_lab, strong_beam = strong_beam_struct())
 
-s_slice = 0    ! Begin at the IP
-call offset_particle (ele, set$, orbit, s_pos = s_slice, s_out = s_slice, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
+if (ele%value(species_strong$) /= real_garbage$ .and. ele%value(e_tot_strong$) > 0) then
+  call convert_total_energy_to(ele%value(e_tot_strong$), nint(ele%value(species_strong$)), beta = beta_strong)
+else
+  beta_strong = ele%value(p0c$) / ele%value(E_tot$)
+endif
+s0 = abs(particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequency$)) * c_light * beta_strong)
+
+call offset_particle (ele, set$, orbit, s_pos = s_lab, s_out = s_body, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
 
 n_slice = max(1, nint(ele%value(n_slice$)))
 allocate(z_slice(n_slice))
 call bbi_slice_calc (ele, n_slice, z_slice)
 
 do i = 1, n_slice
-  z = z_slice(i)      ! Positive z_slice is the tail of the strong beam.
-  s_slice_old = s_slice   ! Where particle is (body frame).
-  s_slice = (orbit%vec(5) + z) / 2  ! Where particle needs to drift to.
+  z = z_slice(i)        ! Distance along strong beam axis. Positive z_slice is the tail of the strong beam.
+  slice_center = strong_beam_center(ele, z) ! with respect to 
 
-  call offset_particle(ele, unset$, orbit, s_pos = s_slice_old, s_out = s_lab, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
-  del_s = s_slice - s_slice_old
-  call solenoid_track_and_mat (ele, del_s, param, orbit, orbit, mat6, make_matrix)
-  call offset_particle(ele, set$, orbit, s_pos = s_lab+del_s, s_out = s_body, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
-  ! The drifting above will be slightly inaccurate if there is a x_pitch or y_pitch so try again. 
-  ! Since drifting is linear, this should be fairly accurate. 
-  ! There will still be a small inaccuracy due trajectories not being straight in a solenoid field.
-  if (s_body /= s_slice) then
-    call offset_particle(ele, unset$, orbit, s_pos = s_body, s_out = s_lab, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
-    del_s = del_s * (s_slice - s_body) / (s_body - s_slice_old)
-    call solenoid_track_and_mat (ele, del_s, param, orbit, orbit, mat6, make_matrix)
-    call offset_particle(ele, set$, orbit, s_pos = s_lab+del_s, s_out = s_slice, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
-  endif
+  final_calc = .false.; make_mat = .false.
+  s_body_save = s_body
+  orb_save = orbit
+  s_lab = super_zbrent(at_slice_func, -ele%value(sig_z$)-s0, ele%value(sig_z$)+s0, 1e-12_rp, 1e-12_rp, status)
 
-  call strong_beam_sigma_calc (ele, s_slice, -z, sig_x, sig_y, bbi_const, x_center, y_center)
+  final_calc = .true.; make_mat = logic_option(.false., make_matrix)
+  s_body = s_body_save
+  orbit = orb_save
+  ds_slice = at_slice_func(s_lab, status)
 
-  dx = orbit%vec(1) - x_center
-  dy = orbit%vec(3) - y_center
+  !
+
+  call strong_beam_sigma_calc (ele, s_lab, sig_x, sig_y, bbi_const)
+
+  dx = orbit%vec(1) - slice_center(1)
+  dy = orbit%vec(3) - slice_center(2)
   x_pos = dx / sig_x
   y_pos = dy / sig_y
 
   if (present(track)) then
-    sbb = strong_beam_struct(i, x_center, y_center, sig_x, sig_y, dx, dy)
-    call save_a_step(track, ele, param, .true., orbit, s_slice, strong_beam = sbb)
+    sbb = strong_beam_struct(i, slice_center(1), slice_center(2), sig_x, sig_y, dx, dy)
+    call save_a_step(track, ele, param, .true., orbit, s_body, strong_beam = sbb)
   endif
 
   ratio = sig_y / sig_x
@@ -110,7 +123,7 @@ do i = 1, n_slice
   orbit%vec(4) = orbit%vec(4) + k0_y * coef
 
   if (present(track)) then
-    call save_a_step(track, ele, param, .true., orbit, s_slice, strong_beam = sbb)
+    call save_a_step(track, ele, param, .true., orbit, s_body, strong_beam = sbb)
   endif
 
   if (logic_option(.false., make_matrix)) then
@@ -139,10 +152,60 @@ do i = 1, n_slice
   endif
 enddo
 
-call offset_particle(ele, unset$, orbit, s_pos = s_slice, s_out = s_lab, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
+call offset_particle(ele, unset$, orbit, s_pos = s_body, s_out = s_lab, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
 call solenoid_track_and_mat (ele, -s_lab, param, orbit, orbit, mat6, make_matrix)
 
 if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())
+
+!-------------------------------------------------------
+contains
+
+function at_slice_func(s_lab_target, status) result (ds_slice)
+
+real(rp), intent(in) :: s_lab_target
+real(rp) ds_slice
+real(rp) s_body_target, s_lab_slice, del_s, s_lab, s_beam_center_strong, s_weak
+integer status
+
+!
+
+call offset_particle(ele, unset$, orbit, s_pos = s_body, s_out = s_lab, set_spin = final_calc, mat6 = mat6, make_matrix = make_mat)
+del_s = s_lab_target - s_lab
+call solenoid_track_and_mat (ele, del_s, param, orbit, orbit, mat6, make_mat)
+call offset_particle(ele, set$, orbit, s_pos = s_lab_target, s_out = s_body, set_spin = final_calc, mat6 = mat6, make_matrix = make_mat)
+
+s_weak = -c_light * orbit%beta * particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequency$)) 
+s_beam_center_strong = (s_weak - ele%value(z_crossing$) - s_lab_target) * beta_strong / orbit%beta
+s_body_target = 0.5_rp * (s_beam_center_strong + slice_center(3) + s_body)
+ds_slice = s_body - s_body_target
+
+end function at_slice_func
+
+!-------------------------------------------------------
+! contains
+
+!+
+! Function strong_beam_center(ele, z) result (center)
+!
+!   z_strong      -- real(rp): Position of slice within strong beam. Positive z_strong is at the tail of the bunch.
+!   center(3)     -- real(rp): (x,y) position of slice in body coordinates.
+!-
+
+function strong_beam_center(ele, z) result (center)
+
+type (ele_struct) ele
+real(rp) r, z, z_strong, center(3)
+
+!
+
+z_strong = -z
+r = (((ele%value(crab_x5$) * z_strong + ele%value(crab_x4$)) * z_strong + ele%value(crab_x3$)) * z_strong + & 
+                                                              ele%value(crab_x2$)) * z_strong + ele%value(crab_x1$)
+
+center(1:2) = z_strong * sin(r) * [cos(ele%value(crab_tilt$)), sin(ele%value(crab_tilt$))]
+center(3) = -z_strong * cos(r)
+
+end function strong_beam_center
 
 end subroutine
 

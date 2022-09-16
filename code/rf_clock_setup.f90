@@ -126,9 +126,9 @@ do irf = 1, n_rf
   if (rf_ele(irf)%ix_basket == ib0) then
     if (ele%key == ac_kicker$ .and. allocated(ele%ac_kick%frequency)) then
       n = rf_ele(irf)%ix_freq
-      ele%ac_kick%frequency(n)%rf_clock_harmonic = nint(ele%ac_kick%frequency(n)%f * bmad_private%rf_clock_period)
+      ele%ac_kick%frequency(n)%rf_clock_harmonic = nint(rf_ele(irf)%rf_freq * bmad_private%rf_clock_period)
     else
-      ele%value(rf_clock_harmonic$) = nint(ele%value(rf_frequency$)*bmad_private%rf_clock_period)
+      ele%value(rf_clock_harmonic$) = nint(rf_ele(irf)%rf_freq * bmad_private%rf_clock_period)
     endif
   else
     call out_io (s_warn$, r_name, '  Cavity not using RF clock: ' // ele%name)
@@ -144,15 +144,22 @@ subroutine this_ele_setup (ele, rf_ele, n_rf)
 
 type (ele_struct), target :: ele
 type (rf_ele_info_struct), allocatable :: rf_ele(:), rf_temp(:)
+real(rp) rf_freq
 integer i, n_rf, n_new
 
 !
 
 if (ele%key == ac_kicker$ .and. allocated(ele%ac_kick%frequency)) then
   n_new = size(ele%ac_kick%frequency)
-else
-  if (.not. has_attribute(ele, 'RF_FREQUENCY')) return
+elseif (has_attribute(ele, 'REPETITION_FREQUENCY')) then
+  if (ele%value(repetition_frequency$) == 0) return
+  rf_freq = ele%value(repetition_frequency$)
   n_new = 1
+elseif (has_attribute(ele, 'RF_FREQUENCY')) then
+  rf_freq = ele%value(rf_frequency$)
+  n_new = 1
+else
+  return
 endif
 
 if (n_rf+n_new > size(rf_ele)) then
@@ -172,7 +179,7 @@ if (ele%key == ac_kicker$ .and. allocated(ele%ac_kick%frequency)) then
 else
   n_rf = n_rf + 1
   rf_ele(n_rf)%ele => ele
-  rf_ele(n_rf)%rf_freq = ele%value(rf_frequency$)
+  rf_ele(n_rf)%rf_freq = rf_freq
   ele%value(rf_clock_harmonic$) = 0
 endif
 

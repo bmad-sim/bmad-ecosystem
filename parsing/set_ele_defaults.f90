@@ -52,6 +52,7 @@ case (ac_kicker$)
 case (beambeam$)
   ele%value(charge$) = -1
   ele%value(n_slice$) = 1
+  ele%value(species_strong$) = real_garbage$
 
 case (beginning_ele$)
   ele%value(e_tot$) = -1

@@ -277,26 +277,31 @@ See \sref{s:list.beambeam} for a full list of element attributes along with a th
 \index{beta_a}\index{beta_b}\index{alpha_a}\index{alpha_b}
 Attributes specific to a \vn{beambeam} element are:
 \begin{example}
-  sig_x          = <Real>  ! Horizontal strong beam sigma at the center 
-  sig_y          = <Real>  ! Vertical strong beam sigma at the center
-  sig_z          = <Real>  ! Strong beam length
-  charge         = <Real>  ! Strong beam charge. Default = -1
-  n_particle     = <Real>  ! Number of particles in strong beam.
-  n_slice        = <Int>   ! Number of strong beam slices
-  crab_x1        = <Real>  ! Crabbing linear coefficient.
-  crab_x2        = <Real>  ! Crabbing quadratic coefficient.
-  crab_x3        = <Real>  ! Crabbing cubic coefficient.
-  crab_x4        = <Real>  ! Crabbing 4th order coefficient.
-  crab_x5        = <Real>  ! Crabbing 5th order coefficient.
-  crab_tilt      = <Real>  ! Crabbing tilt.
-  beta_a_strong  = <Real>  ! Strong beam $a$-mode beta Twiss parameter
-  alpha_a_strong = <Real>  ! Strong beam $a$-mode alpha Twiss parameter 
-  beta_b_strong  = <Real>  ! Strong beam $b$-mode beta Twiss parameter
-  alpha_b_strong = <Real>  ! Strong beam $b$-mode alpha Twiss parameter
-  bbi_constant             ! See below. Dependent attribute (\sref{s:depend}).
-  ks             = <Real>  ! Solenoid strength.
-  bs_field       = <Real>  ! Solenoid field strength.
-  field_master   = <T/F>   ! Is ks or bs_field value the master (\sref{s:field.master})?
+  sig_x          = <Real>    ! Horizontal strong beam sigma at the center 
+  sig_y          = <Real>    ! Vertical strong beam sigma at the center
+  sig_z          = <Real>    ! Strong beam length
+  charge         = <Real>    ! Strong beam charge. Default = -1
+  n_particle     = <Real>    ! Number of particles in strong beam.
+  n_slice        = <Int>     ! Number of strong beam slices
+  crab_x1        = <Real>    ! Crabbing linear coefficient.
+  crab_x2        = <Real>    ! Crabbing quadratic coefficient.
+  crab_x3        = <Real>    ! Crabbing cubic coefficient.
+  crab_x4        = <Real>    ! Crabbing 4th order coefficient.
+  crab_x5        = <Real>    ! Crabbing 5th order coefficient.
+  crab_tilt      = <Real>    ! Crabbing tilt.
+  species_strong = <Species> ! Strong beam species
+  E_tot_strong   = <Real>    ! Strong beam particle energy
+  beta_a_strong  = <Real>    ! Strong beam $a$-mode beta Twiss parameter
+  alpha_a_strong = <Real>    ! Strong beam $a$-mode alpha Twiss parameter 
+  beta_b_strong  = <Real>    ! Strong beam $b$-mode beta Twiss parameter
+  alpha_b_strong = <Real>    ! Strong beam $b$-mode alpha Twiss parameter
+  repetition_frequency = <Real> 
+  bbi_constant               ! See below. Dependent attribute (\sref{s:depend}).
+  ks             = <Real>    ! Solenoid strength.
+  bs_field       = <Real>    ! Solenoid field strength.
+  field_master   = <T/F>     ! Is ks or bs_field value the master (\sref{s:field.master})?
+  z_crossing     = <Real>    ! Weak particle phase space z when strong beam center reaches element.
+  repetition_frequency = <Real>  ! Strong beam repetition rate.
 \end{example}
 
 \index{n_part!in BeamBeam element}
@@ -319,7 +324,7 @@ Bassetti--Erskine complex error function formula\cite{b:talman}. Even though the
 have a finite \vn{sig_z}, the length of the \vn{beambeam} element is zero. This is achieved by
 propagating a particle at the beginning and at the end of tracking so that the longitudinal starting
 point and ending points are at the \vn{beambeam} element. Documentation of how a particle is tracked
-throug a \vn{beambeam} element is given in \sref{s:beambeam.std}.
+through a \vn{beambeam} element is given in \sref{s:beambeam.std}.
 
 The \vn{ks} and \vn{bs_field} parameters are the normalized and unnormalized solenoid strengths
 (\sref{s:field.master}) related through \Eq{kqlbp}. If the beambeam element is superimposed on top
@@ -339,8 +344,7 @@ $b$-mode Twiss parameters as calculated from the lattice is used.
 \index{x_offset}\index{y_offset}\index{z_offset}
 \index{x_pitch}\index{y_pitch}\index{tilt}
 The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes (\sref{s:offset}) are used to offset
-the strong beam. Note that in \mad the attributes used to offset the strong beam are called \vn{xma}
-and \vn{yma}. The \vn{x_pitch} and \vn{y_pitch} parameters orient the strong beam with respect to
+the strong beam. The \vn{x_pitch} and \vn{y_pitch} parameters orient the strong beam with respect to
 the laboratory coordinate system. This will be give the beam--beam interaction a crossing angle. The
 full crossing angle is the angle of the strong beam (set by \vn{x_pitch} and \vn{y_pitch}) with
 respect to the trajectory of the weak beam centroid. The weak beam centroid orbit will be the closed
@@ -377,12 +381,28 @@ beam--beam kick is approximately
   k_x &= -4\, \pi \, x \, C_{bbi} / \sigma_x \CRNO
   k_y &= -4\, \pi \, y \, C_{bbi} / \sigma_y 
 \end{align}
-
-The beam--beam tune shift is 
+and the linear beam--beam tune shift is 
 \begin{align}
   dQ_x &= C_{bbi} \, \beta_x / \sigma_x \CRNO
   dQ_y &= C_{bbi} \, \beta_y / \sigma_y \CRNO
 \end{align}
+
+The \vn{species_strong} and \vn{E_tot_strong} give the particle species and particle energy of the
+strong beam. This is only relevant if the velocity of the strong beam is not equal to the velocity
+of the weak beam.
+
+The \vn{z_crossing} parameter sets when in time the center of the strong beam is at the plane of the
+beambeam element. For example, if tracking is done with radiation damping on, the closed orbit will
+have a finite phase space $z$ value at the \vn{beambeam} element. To have the weak beam and strong beam
+centers cross the plane of the \vn{beambeam} element at the same time, the value of \vn{z_crossing} should
+be set to the value of the weak beam $z$.
+
+When with absolute time tracking (\sref{s:rf.time}) is in use, the \vn{repetition_frequency}
+parameter (along with the \vn{z_crossing} parameter) is used to calculate the time that the strong
+bunch crosses the plane of the \vn{beambeam} element. Generally, this frequency should be set equal
+to the fundamental RF frequency or some harmonic thereof. If this frequency is zero (the default),
+\bmad will assume that the repetition frequency is a harmonic of the reference particle oscillation
+time so that in this case a particle's phase space $z$ coordinate will be used.
 
 Example:
 \begin{example}

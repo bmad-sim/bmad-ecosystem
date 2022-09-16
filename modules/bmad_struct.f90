@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 282
+integer, parameter :: bmad_inc_version$ = 283
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -215,6 +215,9 @@ type photon_reflect_surface_struct
   logical :: initialized = .false.
   integer :: ix_surface = -1
 end type
+
+integer, parameter :: incoherent$ = 1, coherent$ = 2
+character(16), parameter :: photon_type_name(1:2) = ['Incoherent', 'Coherent  ']
 
 !-------------------------------------------------------------------------
 
@@ -1356,10 +1359,7 @@ contains
   !! final :: ele_finalizer
 end type
 
-! lat_param_struct should be called branch_param_struct [Present name is an historical artifact.]
-
-integer, parameter :: incoherent$ = 1, coherent$ = 2
-character(16), parameter :: photon_type_name(1:2) = ['Incoherent', 'Coherent  ']
+! The lat_param_struct should be called the branch_param_struct [Present name is a historical artifact.]
 
 type lat_param_struct
   real(rp) :: n_part = 0                       ! Particles/bunch (for BeamBeam elements).
@@ -1599,7 +1599,7 @@ integer, parameter :: radius$ = 3, focal_strength$ = 5
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2, inherit_from_fork$ = 2 ! Important: tilt$ = roll$
-integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3
+integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3, repetition_frequency$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4
@@ -1635,9 +1635,10 @@ integer, parameter :: emit_fraction$ = 23
 integer, parameter :: fq2$ = 24, phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24
 integer, parameter :: alpha_b_strong$ = 24, alpha_b_out$ = 24, is_mosaic$ = 24, px_aperture_width2$ = 24
 integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_aperture_center$ = 25
-integer, parameter :: eta_x_out$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25
+integer, parameter :: eta_x_out$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25, species_strong$ = 25
 integer, parameter :: eta_y_out$ = 26, bend_tilt$ = 26, mode$ = 26, velocity_distribution$ = 26, py_aperture_width2$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26
+integer, parameter :: E_tot_strong$ = 26
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27
 integer, parameter :: x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27
 integer, parameter :: py_aperture_center$ = 27, x_dispersion_err$ = 27
@@ -1650,7 +1651,7 @@ integer, parameter :: downstream_coord_dir$ = 30, pz_aperture_width2$ = 30, y_di
 integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
 integer, parameter :: l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31
 integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32
-integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33
+integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, z_crossing$ = 33
 integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  
 integer, parameter :: x_offset$ = 36
