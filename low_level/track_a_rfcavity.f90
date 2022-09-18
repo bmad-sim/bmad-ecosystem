@@ -26,7 +26,7 @@ type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) beta_ref, dt_ref, voltage, phase0, phase, dE, z, charge_dir, length
-real(rp) mc2, p0c, m2(2,2), t0, factor, pc, E, ff, new_pc, new_beta
+real(rp) mc2, p0c, m2(2,2), t0, factor, pc, E, ff, new_beta
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer i, n_slice, orientation
@@ -94,7 +94,7 @@ do i = 0, n_slice
     dE = factor * sin(phase)
     pc = (1 + orbit%vec(6)) * p0c 
     E = pc / orbit%beta
-    call convert_total_energy_to (E + dE, orbit%species, pc = new_pc, beta = new_beta)
+    call convert_total_energy_to (E + dE, orbit%species, beta = new_beta)
     ff = twopi * factor * ele%value(rf_frequency$) * cos(phase) / (p0c * new_beta * c_light)
 
     m2(2,1) = ff / orbit%beta

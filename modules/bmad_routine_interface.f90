@@ -3254,6 +3254,18 @@ subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, tr
   logical err_flag, finished, radiation_included
 end subroutine
 
+subroutine track_many_hook (finished, lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (coord_struct)  orbit(0:)
+  integer ix_start
+  integer ix_end
+  integer direction
+  integer, optional :: ix_branch, track_state
+  logical finished
+end subroutine
+
 subroutine track1_postprocess (start_orb, ele, param, end_orb)
   import
   implicit none
