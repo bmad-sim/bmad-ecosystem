@@ -1,5 +1,5 @@
 &building_wall_orientation
-  theta = .1318
+  theta = -0.26    ! .1318
 /
 
 
