@@ -49,7 +49,6 @@
 
 subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
 
-use bmad_struct
 use bmad_interface, except_dummy => track_many
 
 implicit none
@@ -62,9 +61,14 @@ integer ix_start, ix_end, direction, ix_br, n_ele_track, track_end_state
 integer, optional :: ix_branch, track_state
 
 logical :: debug = .false.
-logical err
+logical err, finished
 
 character(*), parameter :: r_name = 'track_many'
+
+! custom tracking?
+
+call track_many_hook (finished, lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
+if (finished) return
 
 ! init
 
