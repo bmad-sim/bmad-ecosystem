@@ -339,12 +339,14 @@ type tao_plot_page_struct
   real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
   real(rp) :: axis_number_text_scale = 0.9  ! Relative to text_height
   real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
-  real(rp) :: legend_text_scale      = 0.9  ! Relative to text_height
+  real(rp) :: legend_text_scale      = 0.9  ! Relative to text_height. For legends, plot_page, and lat_layout
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
   real(rp) :: curve_legend_line_len  = 30   ! Points
-  real(rp) :: curve_legend_text_offset = 6 ! Points
+  real(rp) :: curve_legend_text_offset = 6  ! Points
   real(rp) :: floor_plan_shape_scale = 1.0
+  real(rp) :: floor_plan_text_scale  = 1.0  ! Scale used = floor_plan_text_scale * legend_text_scale
   real(rp) :: lat_layout_shape_scale = 1.0
+  real(rp) :: lat_layout_text_scale  = 1.0  ! Scale used = lat_layout_text_scale * legend_text_scale
   integer :: n_curve_pts = 401              ! Default number of points for plotting a smooth curve.
   integer :: id_window = -1                 ! X window id number.
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?

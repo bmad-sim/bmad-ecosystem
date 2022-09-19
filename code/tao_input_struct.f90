@@ -202,7 +202,9 @@ type tao_plot_page_input
   real(rp) :: legend_text_scale      = 0.9  ! Relative to text_height
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
   real(rp) :: floor_plan_shape_scale = 1.0
+  real(rp) :: floor_plan_text_scale  = 1.0  ! Scale used = floor_plan_text_scale * legend_text_scale
   real(rp) :: lat_layout_shape_scale = 1.0
+  real(rp) :: lat_layout_text_scale  = 1.0  ! Scale used = lat_layout_text_scale * legend_text_scale
   real(rp) :: curve_legend_line_len  = 30   ! Points
   real(rp) :: curve_legend_text_offset = 6 ! Points
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
@@ -273,7 +275,9 @@ if (logic_option(.false., reverse)) then
   plot_page%axis_number_text_scale       = plot_input%axis_number_text_scale
   plot_page%axis_label_text_scale        = plot_input%axis_label_text_scale
   plot_page%floor_plan_shape_scale       = plot_input%floor_plan_shape_scale
+  plot_page%floor_plan_text_scale        = plot_input%floor_plan_text_scale
   plot_page%lat_layout_shape_scale       = plot_input%lat_layout_shape_scale
+  plot_page%lat_layout_text_scale        = plot_input%lat_layout_text_scale
   plot_page%legend_text_scale            = plot_input%legend_text_scale
   plot_page%key_table_text_scale         = plot_input%key_table_text_scale
   plot_page%curve_legend_line_len        = plot_input%curve_legend_line_len
@@ -296,7 +300,9 @@ plot_input%graph_title_text_scale       = plot_page%graph_title_text_scale
 plot_input%axis_number_text_scale       = plot_page%axis_number_text_scale
 plot_input%axis_label_text_scale        = plot_page%axis_label_text_scale
 plot_input%floor_plan_shape_scale       = plot_page%floor_plan_shape_scale
+plot_input%floor_plan_text_scale        = plot_page%floor_plan_text_scale
 plot_input%lat_layout_shape_scale       = plot_page%lat_layout_shape_scale
+plot_input%lat_layout_text_scale        = plot_page%lat_layout_text_scale
 plot_input%legend_text_scale            = plot_page%legend_text_scale
 plot_input%key_table_text_scale         = plot_page%key_table_text_scale
 plot_input%curve_legend_line_len        = plot_page%curve_legend_line_len

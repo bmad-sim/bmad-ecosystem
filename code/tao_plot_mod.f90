@@ -1140,7 +1140,7 @@ if (label_name /= '') then
   else
     justify = 'RC'
   endif
-  height = s%plot_page%text_height * s%plot_page%legend_text_scale
+  height = s%plot_page%text_height * s%plot_page%legend_text_scale * s%plot_page%floor_plan_text_scale
   call qp_draw_text (label_name, x_center+dx*abs(off2), y_center+dy*abs(off2), units = draw_units, &
                                height = height, justify = justify, ANGLE = theta)    
 endif
@@ -1507,7 +1507,7 @@ if (s%global%label_lattice_elements .and. label_name /= '') then
   call qp_from_inch_rel (0.0_rp, graph%y%label_offset, r_dum, y_off, 'DATA')
 
   if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
-  height = s%plot_page%text_height * s%plot_page%legend_text_scale
+  height = s%plot_page%text_height * s%plot_page%legend_text_scale * s%plot_page%lat_layout_text_scale
   call qp_draw_text (label_name, s_pos, graph%y%min-y_off, height = height, justify = 'LC', ANGLE = 90.0_rp)
 
 endif
