@@ -3854,17 +3854,17 @@ case ('plot')
   select case (what)
   case ('-floor_plan', '-lat_layout')
 
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'Element Shapes:'
-    nl=nl+1; lines(nl) = '                                                                                       Shape   Type    Shape  Multi  Line_'
-    nl=nl+1; lines(nl) = '                  Ele_Name                            Shape           Color             Size  Label     Draw  Shape  Width'
-    nl=nl+1; lines(nl) = '                  ------------------------------      ----------      -------           ----  -------  -----  -----  -----'
-
     if (what == '-floor_plan') then
       shapes => s%plot_page%floor_plan%ele_shape
     else
       shapes => s%plot_page%lat_layout%ele_shape
     endif
+
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'Element Shapes:'
+    nl=nl+1; lines(nl) = '                                                                                       Shape   Type    Shape  Multi  Line_'
+    nl=nl+1; lines(nl) = '                  Ele_Name                            Shape           Color             Size  Label     Draw  Shape  Width'
+    nl=nl+1; lines(nl) = '                  ------------------------------      ----------      -------           ----  -------  -----  -----  -----'
 
     do i = 1, size(shapes)
       shape => shapes(i)
@@ -3884,6 +3884,15 @@ case ('plot')
         nl=nl+1; write (lines(nl), '(5x, 2f10.5)') pattern%pt(j)%s, pattern%pt(j)%x
       enddo
     enddo
+
+
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'Shape label text size scales as:'
+    if (what == '-floor_plan') then
+      nl=nl+1; lines(nl) = '    plot_page%text_height * plot_page%legend_text_scale * plot_page%floor_plan_text_scale'
+    else
+      nl=nl+1; lines(nl) = '    plot_page%text_height * plot_page%legend_text_scale * plot_page%lat_layout_text_scale'
+    endif
 
     result_id = 'plot:floor_plan'
     return
@@ -3916,7 +3925,9 @@ case ('plot')
                                     '  %legend_text_scale             = ', s%plot_page%legend_text_scale, &
                                                                             '! For legends, plot_page, and lat_layout' 
     nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale        = ', s%plot_page%floor_plan_shape_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_text_scale         = ', s%plot_page%floor_plan_text_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale        = ', s%plot_page%lat_layout_shape_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_text_scale         = ', s%plot_page%lat_layout_text_scale 
     nl=nl+1; write(lines(nl), lmt)  '  %delete_overlapping_plots      = ', s%plot_page%delete_overlapping_plots
     nl=nl+1; write(lines(nl), lmt)  '  %draw_graph_title_suffix       = ', s%plot_page%draw_graph_title_suffix
     nl=nl+1; write(lines(nl), f3mt) '  %curve_legend_line_len         = ', s%plot_page%curve_legend_line_len

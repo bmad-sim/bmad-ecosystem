@@ -1997,7 +1997,9 @@ definitions and the initial placement of plots. The syntax of this namelist is:
     plot_page%legend_text_scale        = <real>   ! Rel to text_height. Def = 0.8
     plot_page%key_table_text_scale     = <real>   ! Rel to text_height. Def = 0.9
     plot_page%floor_plan_shape_scale   = <real>   ! Floor_plan shape size scaling.
+    plot_page%floor_plan_text_scale    = <real>   ! Floor_plan shape text scaling.
     plot_page%lat_layout_shape_scale   = <real>   ! Lat_layout shape size scaling.
+    plot_page%lat_layout_text_scale    = <real>   ! Lat_layout shape text scaling.
     plot_page%n_curve_pts              = <int>    ! Num points used to construct a 
                                                   !   smooth curve. Default = 401
     plot_page%box_plots                = <T/F>    ! For debugging. Default = F.
@@ -2112,6 +2114,12 @@ the suffix, set \vn{plot_page%draw_graph_title_suffix} to False.
 This parameter sets the overall scale for drawing shapes for a \vn{floor_plan} drawing
 (\sref{s:shapes}). The default value is 1.
 %
+\item[plot_page\%floor_plan_text_scale] \Newline
+Sets the font size of \vn{floor_plan} shape labels. The font size is the product
+\begin{example}
+  size = plot_page%text_scale * plot_page%legend_text_scale * plot_page%floor_plan_text_scale
+\end{example}
+%
 \item[plot_page\%graph_title_text_scale] \Newline
 This along with \vn{plot_page%text_height} sets the font size for the plot page title. See
 \vn{plot_page%text_height} for more details.
@@ -2124,12 +2132,20 @@ This along with \vn{plot_page%text_height} sets the font size for the plot page 
 This parameter sets the overall scale for drawing shapes for a \vn{lat_layout} drawing
 (\sref{s:shapes}). The default value is 1.
 %
+\item[plot_page\%lat_layout_text_scale] \Newline
+Sets the font size of \vn{lat_layout} shape labels. The font size is the product
+\begin{example}
+  size = plot_page%text_scale * plot_page%legend_text_scale * plot_page%lat_layout_text_scale
+\end{example}
+%
 \item[plot_page\%legend_text_scale] \Newline
-This along with \vn{plot_page%text_height} sets the font size for the plot page title. See
-\vn{plot_page%text_height} for more details.
+Sets the font size of the graph curve legend (\sref{s:curve.legend} relative to
+\vn{plot_page%text_height}. See \vn{plot_page%text_height} for more details.
+The setting of \vn{plot_page%legend_text_scale} also affects the size of \vn{lat_layout}
+and \vn{floor_plan} plots.
 %
 \item[plot_page\%main_title_text_scale] \Newline
-This along with \vn{plot_page%text_height} sets the font size for the plot page title. See
+Sets the font size of the the plot page title relative to the \vn{plot_page%text_height}. See
 \vn{plot_page%text_height} for more details.
 %
 \item[plot_page\%n_curve_pts] \Newline
