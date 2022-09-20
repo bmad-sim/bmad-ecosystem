@@ -176,7 +176,7 @@ enddo
 read (d_unit, err = 9030, end = 9030) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
 read (d_unit, err = 9030, end = 9030) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 read (d_unit, err = 9030, end = 9030) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
-read (d_unit, err = 9030, end = 9030) lat%input_taylor_order, lat%absolute_time_tracking, lat%photon_type
+read (d_unit, err = 9030, end = 9030) lat%input_taylor_order, lat%photon_type
 read (d_unit, err = 9070, end = 9070) n_branch, lat%pre_tracker, n_custom, n_print
 
 ! Different compilers (EG ifort and gfortran) will produce different binary formats. 
@@ -316,7 +316,7 @@ if (found_it) then
   if (extra%radiation_zero_average_set)           bmad_com%radiation_zero_average          = bmad_com_read%radiation_zero_average
   if (extra%radiation_fluctuations_on_set)        bmad_com%radiation_fluctuations_on       = bmad_com_read%radiation_fluctuations_on
   if (extra%conserve_taylor_maps_set)             bmad_com%conserve_taylor_maps            = bmad_com_read%conserve_taylor_maps
-  if (extra%absolute_time_tracking_default_set)   bmad_com%absolute_time_tracking_default  = bmad_com_read%absolute_time_tracking_default
+  if (extra%absolute_time_tracking_set)           bmad_com%absolute_time_tracking          = bmad_com_read%absolute_time_tracking
   if (extra%absolute_time_ref_shift_set)          bmad_com%absolute_time_ref_shift         = bmad_com_read%absolute_time_ref_shift
   if (extra%convert_to_kinetic_momentum_set)      bmad_com%convert_to_kinetic_momentum     = bmad_com_read%convert_to_kinetic_momentum
   if (extra%aperture_limit_on_set)                bmad_com%aperture_limit_on               = bmad_com_read%aperture_limit_on

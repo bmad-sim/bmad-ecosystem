@@ -982,7 +982,7 @@ call init_attribute_name1 (def_parameter$, n_part$,                       'N_PAR
 call init_attribute_name1 (def_parameter$, particle$,                     'PARTICLE')
 call init_attribute_name1 (def_parameter$, photon_type$,                  'PHOTON_TYPE')
 call init_attribute_name1 (def_parameter$, no_end_marker$,                'NO_END_MARKER')
-call init_attribute_name1 (def_parameter$, absolute_time_tracking$,       'ABSOLUTE_TIME_TRACKING')
+call init_attribute_name1 (def_parameter$, absolute_time_tracking$,       'ABSOLUTE_TIME_TRACKING')   ! Deprecated
 call init_attribute_name1 (def_parameter$, exact_model$,                  'PTC_EXACT_MODEL')    ! Deprecated
 call init_attribute_name1 (def_parameter$, exact_misalign$,               'PTC_EXACT_MISALIGN') ! Deprecated
 call init_attribute_name1 (def_parameter$, default_tracking_species$,     'DEFAULT_TRACKING_SPECIES')

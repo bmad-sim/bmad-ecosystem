@@ -144,7 +144,7 @@ case ('BMAD_COM')
   case ('RADIATION_ZERO_AVERAGE');          ptr_array(1)%l => bmad_com%radiation_zero_average
   case ('RADIATION_FLUCTUATIONS_ON');       ptr_array(1)%l => bmad_com%radiation_fluctuations_on
   case ('CONSERVE_TAYLOR_MAPS');            ptr_array(1)%l => bmad_com%conserve_taylor_maps
-  case ('ABSOLUTE_TIME_TRACKING_DEFAULT');  ptr_array(1)%l => bmad_com%absolute_time_tracking_default
+  case ('ABSOLUTE_TIME_TRACKING');          ptr_array(1)%l => bmad_com%absolute_time_tracking
   case ('ABSOLUTE_TIME_REF_SHIFT');         ptr_array(1)%l => bmad_com%absolute_time_ref_shift
   case ('CONVERT_TO_KINETIC_MOMENTUM');     ptr_array(1)%l => bmad_com%convert_to_kinetic_momentum
   case ('APERTURE_LIMIT_ON');               ptr_array(1)%l => bmad_com%aperture_limit_on

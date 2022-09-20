@@ -21,8 +21,10 @@ Unlike other elements, the kick given a particle going through an \vn{lcavity}, 
 possibly an \vn{em_field} element depends upon the time that the particle enters the element
 relative to some ``RF clock''. \bmad has two modes for calculating this time called ``\vn{relative
 time tracking}'' and ``\vn{absolute time tracking}''. The switch to set the type of tracking for a
-lattice is \vn{parameter[absolute_time_tracking]} (\sref{s:param}).
-
+lattice is \vn{bmad_com[absolute_time_tracking]} (\sref{s:bmad.common}).\footnote
+  {
+An old, deprecated notation for this switch is \vn{parameter[absolute_time_tracking]}.
+  }
 The phase of the RF, $\phi_\text{rf}$, is determined by
 \begin{equation}
   \phi_\text{rf} = \phi_\text{t} + \phi_\REF
@@ -104,8 +106,7 @@ $z$. It is perfectly possible to use absolute time tracking with code that uses 
 independent variable.
 
 One important point to always keep in mind is that any PTC based tracking (\sref{s:ptc.intro}) will
-always use relative time tracking independent of the setting of
-\vn{parameter[absolute_time_tracking]}.
+always use relative time tracking independent of the setting of \vn{bmad_com[absolute_time_tracking]}.
 
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------

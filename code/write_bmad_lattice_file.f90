@@ -167,7 +167,6 @@ endif
 
 if (lat%param%n_part /= 0)             write (iu, '(2a)') 'parameter[n_part]                 = ', re_str(lat%param%n_part)
 
-write (iu, '(a, l1)') 'parameter[absolute_time_tracking]    = ', lat%absolute_time_tracking
 ele => lat%ele(lat%n_ele_track)
 if (ele%name /= 'END' .or. ele%key /= marker$) then
   write (iu, '(a)') 'parameter[no_end_marker]          =  T'
@@ -213,7 +212,7 @@ call write_if_logic_param_changed (bmad_com%radiation_zero_average,          bma
 call write_if_logic_param_changed (bmad_com%radiation_fluctuations_on,       bmad_com_default%radiation_fluctuations_on,        'bmad_com[radiation_fluctuations_on]')
 call write_if_logic_param_changed (bmad_com%conserve_taylor_maps,            bmad_com_default%conserve_taylor_maps,             'bmad_com[conserve_taylor_maps]')
 call write_if_logic_param_changed (bmad_com%absolute_time_ref_shift,         bmad_com_default%absolute_time_ref_shift,          'bmad_com[absolute_time_ref_shift]')
-call write_if_logic_param_changed (bmad_com%absolute_time_tracking_default,  bmad_com_default%absolute_time_tracking_default,   'bmad_com[absolute_time_tracking_default]')
+call write_if_logic_param_changed (bmad_com%absolute_time_tracking,          bmad_com_default%absolute_time_tracking,           'bmad_com[absolute_time_tracking]')
 call write_if_logic_param_changed (bmad_com%convert_to_kinetic_momentum,     bmad_com_default%convert_to_kinetic_momentum,      'bmad_com[convert_to_kinetic_momentum]')
 call write_if_logic_param_changed (bmad_com%aperture_limit_on,               bmad_com_default%aperture_limit_on,                'bmad_com[aperture_limit_on]')
 

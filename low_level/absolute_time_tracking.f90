@@ -26,8 +26,7 @@ integer i
 
 !
 
-is_abs_time = bmad_com%absolute_time_tracking_default
-if (associated(ele%branch)) is_abs_time = ele%branch%lat%absolute_time_tracking
+is_abs_time = bmad_com%absolute_time_tracking
 if (ele%key == e_gun$) is_abs_time = .true.
 if (ele%key == beambeam$ .and. ele%value(repetition_frequency$) == 0) is_abs_time = .false.
 

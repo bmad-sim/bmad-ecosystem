@@ -489,7 +489,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     if (associated(a_ptrs(1)%l, bmad_com%radiation_zero_average))         bp_com%extra%radiation_zero_average_set          = .true.
     if (associated(a_ptrs(1)%l, bmad_com%radiation_fluctuations_on))      bp_com%extra%radiation_fluctuations_on_set       = .true.
     if (associated(a_ptrs(1)%l, bmad_com%conserve_taylor_maps))           bp_com%extra%conserve_taylor_maps_set            = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%absolute_time_tracking_default)) bp_com%extra%absolute_time_tracking_default_set  = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%absolute_time_tracking))         bp_com%extra%absolute_time_tracking_set          = .true.
     if (associated(a_ptrs(1)%l, bmad_com%convert_to_kinetic_momentum))    bp_com%extra%convert_to_kinetic_momentum_set     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%aperture_limit_on))              bp_com%extra%aperture_limit_on_set               = .true.
     if (associated(a_ptrs(1)%l, bmad_com%debug))                          bp_com%extra%debug_set                           = .true.
@@ -1732,7 +1732,7 @@ case ('APERTURE_TYPE')
   call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele, delim, delim_found); if (err_flag) return
 
 case ('ABSOLUTE_TIME_TRACKING')
-  call parser_get_logical (attrib_word, lat%absolute_time_tracking, ele%name, delim, delim_found, err_flag); if (err_flag) return
+  call parser_get_logical (attrib_word, bmad_com%absolute_time_tracking, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
 case ('CAVITY_TYPE')
   call get_switch (attrib_word, cavity_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return

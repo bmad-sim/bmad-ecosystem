@@ -23,7 +23,7 @@
 ! i_dim = 6 finds the closed orbit with energy variation. The RF needs to be
 ! turned on in this case. Additionally, to simulate cases where the RF frequency
 ! is not a multiple of the revolution harmonic (EG in a dispersion measurement), 
-! lat%absolute_time_tracking needs to be set to True and the phi0_fieldmap attributes 
+! bmad_com%absolute_time_tracking needs to be set to True and the phi0_fieldmap attributes 
 ! of the RF cavities should be adjusted using autoscale_phase_and_amp.
 !
 ! The closed orbit calculation stops when the following condition is satisfied:
@@ -364,7 +364,7 @@ do i_loop = 1, i_max
   if (n_dim == 6) then
     coc%a_vec(5) = modulo2 (coc%a_vec(5), coc%rf_wavelen / 2)   ! Keep z within 1/2 wavelength of original value
 
-    if (branch%lat%absolute_time_tracking) then
+    if (bmad_com%absolute_time_tracking) then
       dt = (end_orb%t - start_orb%t) - nint((end_orb%t - start_orb%t) * rf_freq) / rf_freq
       dorb(5) = -end_orb%beta * c_light * dt
     endif
@@ -621,7 +621,7 @@ call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branc
 status = 0
 del_orb = end_orb%vec - start_orb%vec
 
-if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
+if (n_dim == 6 .and. bmad_com%absolute_time_tracking) then
   dt = (end_orb%t - start_orb%t) - nint((end_orb%t - start_orb%t) * rf_freq) / rf_freq
   del_orb(5) = -end_orb%beta * c_light * dt
 endif
