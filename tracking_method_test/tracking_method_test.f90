@@ -133,7 +133,7 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (orb_dir_sign == -1 .and. .not. debug_mode) then
         start_orb%direction = -1
-        lat%absolute_time_tracking = .true.
+        bmad_com%absolute_time_tracking = .true.
       endif
 
       start_orb%species = default_tracking_species(branch%param)
