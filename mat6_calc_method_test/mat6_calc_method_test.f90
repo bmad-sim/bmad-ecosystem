@@ -48,7 +48,7 @@ endif
 
 bmad_com%spin_tracking_on = .true.
 call bmad_parser (lat_file, lat, make_mats6 = .false.)
-abs_time = lat%absolute_time_tracking
+abs_time = bmad_com%absolute_time_tracking
 
 if (custom_test) then
   print '(a, 6f12.6)', 'Init orb: ', lat%particle_start%vec
@@ -77,7 +77,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (i == branch%n_ele_track .and. ele%name == 'END') cycle
     ns = len_trim(ele%name) + 28
 
-    if (index(ele%name, 'ABS_TIME') /= 0) lat%absolute_time_tracking = .true.
+    if (index(ele%name, 'ABS_TIME') /= 0) bmad_com%absolute_time_tracking = .true.
 
     do j = 1, n_methods$
       if (.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == custom$ .or. j == mad$) cycle
@@ -93,7 +93,7 @@ do ib = 0, ubound(lat%branch, 1)
       endif
     enddo
 
-    if (index(ele%name, 'ABS_TIME') /= 0) lat%absolute_time_tracking = abs_time
+    if (index(ele%name, 'ABS_TIME') /= 0) bmad_com%absolute_time_tracking = abs_time
 
     do k = 1, 8  ! Output line index
       do j = 1, n_methods$

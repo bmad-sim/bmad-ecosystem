@@ -20,7 +20,7 @@ call reallocate_coord (orb1, lat%n_ele_max)
 call init_coord (orb1(0), lat%particle_start, lat%ele(0), downstream_end$)
 call track_all (lat, orb1)
 
-lat%absolute_time_tracking = .true.
+bmad_com%absolute_time_tracking = .true.
 !!call autoscale_phase_and_amp (lat%ele(2), lat%param, err_flag)
 call lattice_bookkeeper (lat)
 
