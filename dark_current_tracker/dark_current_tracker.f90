@@ -195,7 +195,7 @@ if (lat2_name /= '') then
 endif
 
 ! Check for absolute time tracking. If not, abort!
-if (.not. branch%lat%absolute_time_tracking ) then
+if (.not. bmad_com%absolute_time_tracking ) then
   call out_io (s_error$, r_name, 'absolute time tracking must be set to True.')
   stop
 endif

@@ -461,7 +461,7 @@ if (lttp%use_rf_clock) then
     stop
   endif
   call out_io(s_info$, r_name, 'RF clock setup done. ')
-  if (.not. lat%absolute_time_tracking) call out_io (s_warn$, r_name, 'Absolute time tracking not in use!!', &
+  if (.not. bmad_com%absolute_time_tracking) call out_io (s_warn$, r_name, 'Absolute time tracking not in use!!', &
                                                                       'The RF clock will not be active!!')
 endif
 
