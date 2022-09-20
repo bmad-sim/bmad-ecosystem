@@ -441,7 +441,7 @@ case ('bmad_com')
   nl=incr(nl); write (li(nl), lmt) 'radiation_damping_on;LOGIC;T;',              bmad_com%radiation_damping_on
   nl=incr(nl); write (li(nl), lmt) 'radiation_fluctuations_on;LOGIC;T;',         bmad_com%radiation_fluctuations_on
   nl=incr(nl); write (li(nl), lmt) 'conserve_taylor_maps;LOGIC;T;',              bmad_com%conserve_taylor_maps
-  nl=incr(nl); write (li(nl), lmt) 'absolute_time_tracking_default;LOGIC;T;',    bmad_com%absolute_time_tracking_default
+  nl=incr(nl); write (li(nl), lmt) 'absolute_time_tracking;LOGIC;T;',            bmad_com%absolute_time_tracking
   nl=incr(nl); write (li(nl), lmt) 'convert_to_kinetic_momentum;LOGIC;T;',       bmad_com%convert_to_kinetic_momentum
   nl=incr(nl); write (li(nl), lmt) 'aperture_limit_on;LOGIC;T;',                 bmad_com%aperture_limit_on
   nl=incr(nl); write (li(nl), lmt) 'debug;LOGIC;T;',                             bmad_com%debug
@@ -3845,7 +3845,7 @@ case ('em_field')
   orb%vec(1)  = parse_real(name1(1), err);  if (err) return
   orb%vec(3)  = parse_real(name1(2), err);  if (err) return
   z           = parse_real(name1(3), err);  if (err) return
-  if (ele%branch%lat%absolute_time_tracking) then
+  if (bmad_com%absolute_time_tracking) then
     orb%t = parse_real(name1(4), err);  if (err) return
   else
     orb%vec(5) = parse_real(name1(4), err);  if (err) return

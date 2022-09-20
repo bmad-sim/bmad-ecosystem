@@ -1884,7 +1884,7 @@ case ('field')
           return
         endif
 
-        if (ele%branch%lat%absolute_time_tracking) then
+        if (bmad_com%absolute_time_tracking) then
           orb%t = value(1)
         else
           orb%vec(5) = value(1)
@@ -2115,7 +2115,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %radiation_zero_average          = ', bmad_com%radiation_zero_average
     nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
     nl=nl+1; write(lines(nl), lmt) '  %conserve_taylor_maps            = ', bmad_com%conserve_taylor_maps
-    nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking_default  = ', bmad_com%absolute_time_tracking_default
+    nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking          = ', bmad_com%absolute_time_tracking
     nl=nl+1; write(lines(nl), lmt) '  %absolute_time_ref_shift         = ', bmad_com%absolute_time_ref_shift
     nl=nl+1; write(lines(nl), lmt) '  %convert_to_kinetic_momentum     = ', bmad_com%convert_to_kinetic_momentum
     nl=nl+1; write(lines(nl), lmt) '  %aperture_limit_on               = ', bmad_com%aperture_limit_on
@@ -5372,7 +5372,7 @@ case ('universe')
     nl=nl+1; write(lines(nl), rmt) 'Ending reference momentum:   ', branch%ele(nt)%value(p0c$)
   endif
 
-  nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking:      ', lat%absolute_time_tracking
+  nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking:      ', bmad_com%absolute_time_tracking
   nl=nl+1; write(lines(nl), amt) 'Geometry:                    ', geometry_name(branch%param%geometry)
   nl=nl+1; write(lines(nl), lmt) 'global%rf_on:                ', s%global%rf_on
   nl=nl+1; write(lines(nl), imt) 'Elements used in tracking: From 1 through ', nt
