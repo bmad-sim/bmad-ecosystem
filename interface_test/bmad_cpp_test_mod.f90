@@ -7866,7 +7866,7 @@ rhs = 34 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 35 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 36 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
+rhs = 36 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 37 + offset; F%absolute_time_ref_shift = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
@@ -9180,8 +9180,6 @@ endif
 rhs = 41 + offset; F%photon_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 42 + offset; F%creation_hash = rhs
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 43 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
 

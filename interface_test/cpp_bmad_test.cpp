@@ -5353,7 +5353,7 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 35 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 36 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 37 + offset; C.absolute_time_ref_shift = (rhs % 2 == 0);
@@ -6415,9 +6415,6 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
 
   // c_side.test_pat[integer, 0, NOT]
   rhs = 42 + offset; C.creation_hash = rhs;
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 43 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
 
 }

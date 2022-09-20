@@ -1345,7 +1345,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.radiation_zero_average == y.radiation_zero_average);
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
-  is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
+  is_eq = is_eq && (x.absolute_time_tracking == y.absolute_time_tracking);
   is_eq = is_eq && (x.absolute_time_ref_shift == y.absolute_time_ref_shift);
   is_eq = is_eq && (x.convert_to_kinetic_momentum == y.convert_to_kinetic_momentum);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
@@ -1609,7 +1609,6 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && is_all_equal(x.ic, y.ic);
   is_eq = is_eq && (x.photon_type == y.photon_type);
   is_eq = is_eq && (x.creation_hash == y.creation_hash);
-  is_eq = is_eq && (x.absolute_time_tracking == y.absolute_time_tracking);
   return is_eq;
 };
 

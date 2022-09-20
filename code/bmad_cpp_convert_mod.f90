@@ -8686,7 +8686,7 @@ interface
       z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, &
       z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
       z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, &
-      z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
+      z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking, &
       z_absolute_time_ref_shift, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) &
       bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
@@ -8697,7 +8697,7 @@ interface
     real(c_double) :: z_electric_dipole_moment, z_sad_eps_scale, z_sad_amp_max
     integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step
     logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, z_spin_tracking_on
-    logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default
+    logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking
     logical(c_bool) :: z_absolute_time_ref_shift, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug
   end subroutine
 end interface
@@ -8726,7 +8726,7 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     c_logic(F%spin_tracking_on), c_logic(F%backwards_time_tracking_on), &
     c_logic(F%spin_sokolov_ternov_flipping_on), c_logic(F%radiation_damping_on), &
     c_logic(F%radiation_zero_average), c_logic(F%radiation_fluctuations_on), &
-    c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
+    c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking), &
     c_logic(F%absolute_time_ref_shift), c_logic(F%convert_to_kinetic_momentum), &
     c_logic(F%aperture_limit_on), c_logic(F%debug))
 
@@ -8758,7 +8758,7 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, &
     z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, &
     z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, &
-    z_conserve_taylor_maps, z_absolute_time_tracking_default, z_absolute_time_ref_shift, &
+    z_conserve_taylor_maps, z_absolute_time_tracking, z_absolute_time_ref_shift, &
     z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) bind(c)
 
 
@@ -8773,7 +8773,7 @@ real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_mi
 real(c_double) :: z_electric_dipole_moment, z_sad_eps_scale, z_sad_amp_max
 integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step
 logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, z_spin_tracking_on
-logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default
+logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking
 logical(c_bool) :: z_absolute_time_ref_shift, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug
 
 call c_f_pointer (Fp, F)
@@ -8849,7 +8849,7 @@ F%radiation_fluctuations_on = f_logic(z_radiation_fluctuations_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%conserve_taylor_maps = f_logic(z_conserve_taylor_maps)
 !! f_side.to_f2_trans[logical, 0, NOT]
-F%absolute_time_tracking_default = f_logic(z_absolute_time_tracking_default)
+F%absolute_time_tracking = f_logic(z_absolute_time_tracking)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%absolute_time_ref_shift = f_logic(z_absolute_time_ref_shift)
 !! f_side.to_f2_trans[logical, 0, NOT]
@@ -10236,8 +10236,7 @@ interface
       z_param, n_param, z_lord_state, z_ele_init, z_ele, n1_ele, z_branch, n1_branch, &
       z_control, n1_control, z_particle_start, z_beam_init, z_pre_tracker, z_custom, n1_custom, &
       z_version, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_n_control_max, &
-      z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash, &
-      z_absolute_time_tracking) bind(c)
+      z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -10250,7 +10249,6 @@ interface
     real(c_double) :: z_custom(*)
     integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic(*)
     integer(c_int) :: z_photon_type, z_creation_hash
-    logical(c_bool) :: z_absolute_time_tracking
   end subroutine
 end interface
 
@@ -10368,7 +10366,7 @@ call lat_to_c2 (C, trim(F%use_name) // c_null_char, trim(F%lattice) // c_null_ch
     c_loc(F%particle_start), c_loc(F%beam_init), c_loc(F%pre_tracker), fvec2vec(F%custom, &
     n1_custom), n1_custom, F%version, F%n_ele_track, n_n_ele_track, F%n_ele_max, n_n_ele_max, &
     F%n_control_max, F%n_ic_max, F%input_taylor_order, fvec2vec(F%ic, n1_ic), n1_ic, &
-    F%photon_type, F%creation_hash, c_logic(F%absolute_time_tracking))
+    F%photon_type, F%creation_hash)
 
 end subroutine lat_to_c
 
@@ -10393,8 +10391,7 @@ subroutine lat_to_f2 (Fp, z_use_name, z_lattice, z_machine, z_input_file_name, z
     n_param, z_lord_state, z_ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control, &
     n1_control, z_particle_start, z_beam_init, z_pre_tracker, z_custom, n1_custom, z_version, &
     z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_n_control_max, z_n_ic_max, &
-    z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash, &
-    z_absolute_time_tracking) bind(c)
+    z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash) bind(c)
 
 
 implicit none
@@ -10415,7 +10412,6 @@ type(lat_param_struct), pointer :: f_param
 real(c_double), pointer :: f_custom(:)
 integer(c_int) :: z_version, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_photon_type, z_creation_hash
 integer(c_int), pointer :: f_n_ele_track, f_n_ele_max, f_ic(:)
-logical(c_bool) :: z_absolute_time_tracking
 
 call c_f_pointer (Fp, F)
 
@@ -10598,8 +10594,6 @@ endif
 F%photon_type = z_photon_type
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%creation_hash = z_creation_hash
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%absolute_time_tracking = f_logic(z_absolute_time_tracking)
 
 end subroutine lat_to_f2
 
