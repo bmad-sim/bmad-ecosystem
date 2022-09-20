@@ -57,7 +57,7 @@ endif
 
 set_rf_off = .false.
 bmad_com%auto_bookkeeper = .false.   ! Makes tracking faster
-bmad_com%absolute_time_tracking_default = .true.
+bmad_com%absolute_time_tracking = .true.
 dpz = real_garbage$
 
 read (1, nml = params)
@@ -91,7 +91,7 @@ if (set_rf_off) then
   call set_on_off (rfcavity$, lat, off$)
 endif
 
-if (.not. lat%absolute_time_tracking) then
+if (.not. bmad_com%absolute_time_tracking) then
   print *, 'Note: absolute time tracking is OFF!'
 endif
 
