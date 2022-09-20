@@ -73,7 +73,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
 \index{auto_bookkeeper}\index{csr_and_space_charge_on}
 \index{spin_tracking_on}\index{radiation_damping_on}\index{spin_sokolov_ternov_flipping_on}
 \index{radiation_fluctuations_on}\index{radiation_zero_average}\index{mp_threading_is_safe}
-\index{absolute_time_tracking_default}
+\index{absolute_time_tracking}
 \index{bmad_common_struct|hyperbf}
 \begin{example}
   type bmad_common_struct
@@ -114,7 +114,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     radiation_zero_average = F          ! Shift so that average radiation kick is zero?
     conserve_taylor_maps = T            ! Enable bookkeeper to set
                                         ! ele%taylor_map_includes_offsets = F?
-    absolute_time_tracking_default = F  ! Default for lat%absolute_time_tracking
+    absolute_time_tracking = F          ! Set absolute or relative time tracking.
     absolute_time_ref_shift = T         ! Absolute time referenced to element ref time?
     aperture_limit_on = T               ! Use aperture limits in tracking.
     debug = F                           ! Used for code debugging.
@@ -131,15 +131,16 @@ Absolute tolerance to use in adaptive tracking. This is used in \vn{runge-kutta}
 \item[\vn{abs_tol_tracking}] \Newline
 Absolute tolerance to use in tracking. Specifically, Tolerance to use when finding the closed orbit.
 %
-\item[\vn{absolute_time_tracking_default}] \Newline
-Default setting to be applied to a lattice if \vn{absolute_time_tracking} (\sref{s:param}) is not
-specified in a lattice file. Additionally, if an element that is not associated with a lattice is
-tracked, \vn{absolute_time_tracking_default} will be used to determine whether absolute time
-tracking is used.
-
-To change between absolute and relative time tracking (\sref{s:rf.time}) after lattice file parsing,
-the \vn{absolute_time_tracking} component of a \vn{lat_struct} (\sref{s:abs.time}) can be
-appropriately set.
+\item[\vn{absolute_time_tracking}] \Newline
+The \vn{absolute_time_tracking} switch\footnote
+  {
+An old, deprecated notation for this switch is \vn{parameter[absolute_time_tracking]}.
+  }
+sets whether the clock for the \vn{lcavity} and \vn{rfcavity} elements is tied to the reference
+particle or to uses the absolute time (\sref{s:rf.time}). A value of \vn{False} (the default)
+mandates relative time and a value of \vn{True} mandates absolute time. The exception is that for an
+\vn{e_gun} element (\sref{s:e.gun}), absolute time tracking is always used in order to be able to
+avoid problems with a zero reference momentum at the beginning of the element.
 %
 \item[\vn{absolute_time_ref_shift}] \Newline
 When absolute time tracking is used (\sref{s:rf.time}), if \vn{absolute_time_ref_shift} is True (the

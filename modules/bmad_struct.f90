@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 283
+integer, parameter :: bmad_inc_version$ = 284
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1508,7 +1508,6 @@ type lat_struct
   integer :: photon_type = incoherent$                ! Or coherent$. For X-ray simulations.
   integer :: creation_hash = 0                        ! Integer, set by bmad_parser, that will be different if 
                                                       !   any of the lattice files have been modified.
-  logical :: absolute_time_tracking = .false.         ! Use abs. time for RF phase? Call autoscale if toggled.
 end type
 
 character(2), parameter :: coord_name(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
@@ -2045,7 +2044,7 @@ type extra_parsing_info_struct
   logical :: radiation_zero_average_set             = .false.
   logical :: radiation_fluctuations_on_set          = .false.
   logical :: conserve_taylor_maps_set               = .false.
-  logical :: absolute_time_tracking_default_set     = .false.
+  logical :: absolute_time_tracking_set             = .false.
   logical :: absolute_time_ref_shift_set            = .false.
   logical :: convert_to_kinetic_momentum_set        = .false.
   logical :: aperture_limit_on_set                  = .false.
@@ -2126,7 +2125,7 @@ type bmad_common_struct
   logical :: radiation_zero_average = .false.          ! Shift damping to be zero on the zero orbit to get rid of sawtooth?
   logical :: radiation_fluctuations_on = .false.       ! Radiation fluctuations toggle.
   logical :: conserve_taylor_maps = .true.             ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
-  logical :: absolute_time_tracking_default = .false.  ! Default for lat%absolute_time_tracking
+  logical :: absolute_time_tracking = .false.          ! Absolute or relative time tracking?
   logical :: absolute_time_ref_shift = .true.          ! Apply reference time shift when using absolute time tracking?
   logical :: convert_to_kinetic_momentum = .false.     ! Cancel kicks due to finite vector potential when doing symplectic tracking?
                                                        !   Set to True to test symp_lie_bmad against runge_kutta.

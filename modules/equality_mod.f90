@@ -2403,7 +2403,7 @@ is_eq = is_eq .and. (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuation
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tracking_default)
+is_eq = is_eq .and. (f1%absolute_time_tracking .eqv. f2%absolute_time_tracking)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_ref_shift .eqv. f2%absolute_time_ref_shift)
 !! f_side.equality_test[logical, 0, NOT]
@@ -2976,8 +2976,6 @@ if (allocated(f1%ic)) is_eq = all(f1%ic == f2%ic)
 is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%creation_hash == f2%creation_hash)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%absolute_time_tracking .eqv. f2%absolute_time_tracking)
 
 end function eq_lat
 

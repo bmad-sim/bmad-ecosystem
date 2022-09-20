@@ -919,7 +919,6 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%b                       = in_lat%b
     lat%z                       = in_lat%z
     lat%photon_type             = in_lat%photon_type
-    lat%absolute_time_tracking  = in_lat%absolute_time_tracking
     lat%input_taylor_order      = in_lat%input_taylor_order
     if (allocated(in_lat%custom))   lat%custom   = in_lat%custom
     if (allocated(in_lat%constant)) lat%constant = in_lat%constant

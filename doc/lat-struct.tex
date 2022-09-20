@@ -36,7 +36,6 @@ type lat_struct
   integer, allocatable :: ic(:)           ! Index to %control(:)
   integer :: photon_type = incoherent$    ! Or coherent$. For X-ray simulations.
   integer :: creation_hash                ! Number to determine if lattice is different.
-  logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
 end type
 \end{verbatim}
 \caption{Definition of the \vn{lat_struct}.}

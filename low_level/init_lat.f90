@@ -51,7 +51,7 @@ lat%n_control_max = 0
 lat%n_ic_max = 0
 lat%input_taylor_order = 0
 lat%version = -1
-lat%absolute_time_tracking   = bmad_com%absolute_time_tracking_default
+
 call nametable_init(lat%nametable, 0)
 
 if (logic_option(.false., init_beginning_ele)) then

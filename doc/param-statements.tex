@@ -14,13 +14,12 @@ and \vn{ptc_com} (\sref{s:bmad.ptc.com}).
 
 
 \index{lattice}\index{geometry}\index{photon_type}\index{live_branch}
-\index{taylor_order}\index{e_tot}\index{p0c}\index{ran_seed}\index{absolute_time_tracking}
+\index{taylor_order}\index{e_tot}\index{p0c}\index{ran_seed}
 \index{n_part}\index{no_end_marker}
 \vn{Parameter} statements are used to set a number of global variables.  If multiple branches are
 present (\sref{s:branch.def}), these variables pertain to the \vn{root} branch. The variables that
 can be set by \vn{parameter} are
 \begin{example}
-  parameter[absolute_time_tracking]   = <Logical>   ! Absolute time used for RF clock?
   parameter[custom_attributeN]        = <string>    ! Defining custom attributes (\sref{s:cust.att}).
   parameter[default_tracking_species] = <Switch>    ! Default type of tracked particle. 
                                                     !    Default is ref_particle.
@@ -51,19 +50,10 @@ Examples
 
   \begin{description}
 %
-  \index{absolute_time_tracking}\index{lcavity}\index{rfcavity}
-  \item[{parameter[absolute_time_tracking]}] \Newline
-The \vn{absolute_time_tracking} switch sets whether the clock for the \vn{lcavity} and
-\vn{rfcavity} elements is tied to the reference particle or to uses the absolute time
-(\sref{s:rf.time}). A value of \vn{False} (the default) mandates relative time and a value
-of \vn{True} mandates absolute time. The exception is that for an \vn{e_gun} element
-(\sref{s:e.gun}), absolute time tracking is always used in order to be able to avoid
-problems with a zero reference momentum at the beginning of the element. 
-%
   \index{custom_attributeN}
   \item[{parameter[custom_attributeN]}] \Newline
-Here \vn{N} is an integer between 1 and 40.
-For more information on defining custom attributes, see \sref{s:cust.att}.
+Here \vn{N} is an integer between 1 and 40.  For more information on defining custom attributes, see
+\sref{s:cust.att}.
 %
   \index{machine}
 Name of the machine the lattice simulates. Example: "LHC".
