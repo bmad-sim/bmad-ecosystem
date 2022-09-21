@@ -112,7 +112,7 @@ end type
 type (closed_orb_com_struct), target :: coc
 type (closed_orb_com_struct), pointer :: cocp
 
-real(rp) del_co(6), t11_inv(6,6), i1_int, del_orb(6)
+real(rp) del_co(6), t11_inv(6,6), i1_int
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), start_orb_t1(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_eigen, min_max_eigen, z_original, betas(2)
 real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), this(5)
@@ -588,6 +588,7 @@ type (branch_struct), pointer :: branch
 real(rp), intent(in) :: a_try(:)
 real(rp), intent(out) :: y_fit(:)
 real(rp), intent(out) :: dy_da(:, :)
+real(rp) del_orb(6)
 
 integer status, i
 

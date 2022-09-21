@@ -26,7 +26,8 @@ type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) voltage, phase0, phase, t0, length, charge_dir, dt_ref, beta_ref
-real(rp) k_rf, dl, beta_old
+real(rp) k_rf, dl, beta_old, beta, pz_old, h, pc
+real(rp) mat_2(6,6), E_old, E_new
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer i, n_slice, orientation
@@ -55,6 +56,7 @@ voltage = e_accel_field(ele, voltage$, .true.) * charge_dir / (ele%value(p0c$) *
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 dt_ref = length / (c_light * beta_ref)
 k_rf = twopi * ele%value(rf_frequency$) / c_light
+h = mass_of(orbit%species)/ele%value(p0c$)
 
 ! Track through slices.
 ! Note: phi0_autoscale is not used here since bmad_standard tracking by design gives the correct energy change.
@@ -65,21 +67,43 @@ call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
 do i = 1, n_slice
 
   phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - &
-          (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+          (particle_rf_time ( orbit, ele, .false.) - rf_ref_time_offset(ele) ) * ele%value(rf_frequency$))
   if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
   phase = phase0
-
+  
   if (logic_option(.false., make_matrix)) then
-    mat6(2,:) = mat6(2,:) + voltage * k_rf * cos(phase) * mat6(5,:)
-    mat6(6,:) = mat6(6,:) + voltage * k_rf * (cos(phase) * mat6(1,:) - sin(phase) * k_rf * orbit%vec(1) * mat6(5,:))
+    beta = orbit%beta
+    mat_2 = mat6
+    mat_2(2,:) = mat6(2,:) + voltage*k_rf*cos(phase)*(mat6(5,:)/beta - &
+                 mat6(6,:)*orbit%vec(5)/beta**2 * h**2/(h**2+(1+orbit%vec(6))**2)**(3/2))
   endif
 
   orbit%vec(2) = orbit%vec(2) + voltage * sin(phase)
-  orbit%vec(6) = orbit%vec(6) + voltage * cos(phase) * k_rf * orbit%vec(1)
+  pz_old = orbit%vec(6)
   beta_old = orbit%beta
-  call convert_pc_to (orbit%p0c * (1 + orbit%vec(6)), orbit%species, beta =  orbit%beta)
-  orbit%vec(5) = orbit%vec(5) * beta_old / orbit%beta
 
+  !!! orbit%vec(6) = orbit%vec(6) + voltage * cos(phase) * k_rf * orbit%vec(1) / beta_old   !! Added "/ beta_old"
+  !!! call convert_pc_to ( orbit%p0c * (1 + orbit%vec(6)), orbit%species, beta =  orbit%beta)
+  E_old = orbit%p0c * (1.0_rp + orbit%vec(6)) / beta_old
+  E_new = E_old + voltage * cos(phase) * k_rf * orbit%vec(1) * orbit%p0c
+  call convert_total_energy_to (E_new, orbit%species, beta = orbit%beta, pc = pc)
+  orbit%vec(6) = (pc - orbit%p0c) / orbit%p0c
+  !!!
+
+  if (logic_option(.false., make_matrix)) then
+    beta = orbit%beta
+    mat_2(6,:) = E_new/pc * ( mat6(6,:)*beta_old + voltage*k_rf*(cos(phase)*mat6(1,:) - & 
+                 sin(phase)*k_rf*orbit%vec(1)*(mat6(5,:)/beta_old - &
+                 mat6(6,:)*orbit%vec(5)/beta_old**2 * h**2/(h**2+(1+pz_old)**2)**(3/2))))
+    
+    mat_2(5,:) = mat6(5,:)*beta/beta_old + orbit%vec(5)*(mat_2(6,:)/beta_old * h**2/(h**2+(1+orbit%vec(6))**2)**(3/2) - &
+                 mat6(6,:)*beta/beta_old**2 * h**2/(h**2+(1+pz_old)**2)**(3/2))
+    
+    mat6 = mat_2
+  endif
+  
+  orbit%vec(5) = orbit%vec(5) * orbit%beta / beta_old   !! Reversed betas
+  
   if (i == n_slice) exit
   call track_this_drift(orbit, dl, ele, phase, mat6, make_matrix)
 

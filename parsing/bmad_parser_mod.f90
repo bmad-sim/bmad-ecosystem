@@ -8360,8 +8360,9 @@ do
     else
       ix = attribute_index(ele, word)
       if (ix < 1 .or. ix > num_ele_attrib$) then
-        call parser_error ('BAD NAME FOR GRID_FIELD MASTER_PARAMETER', 'FOUND IN ELEMENT: ' // ele%name)
-        return
+        call parser_error ('UNKNOWN ELEMENT PARAMETER NAME FOR GRID_FIELD MASTER_PARAMETER: ' // word, &
+                           'THIS IS NOT A PARAMETER DEFINED FOR THIS TYPE OF ELEMENT: ' // key_name(ele%key), &
+                           'FOUND IN ELEMENT: ' // ele%name)
       endif
     endif
     g_field%master_parameter = ix
