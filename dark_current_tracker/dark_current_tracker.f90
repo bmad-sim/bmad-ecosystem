@@ -204,9 +204,7 @@ endif
 !Track through multiple elements
 
 !Import  BMAD-T style particles
-call import_time_distribution(dc_param%particle_file_name, &
-        start_particles)
-
+call import_time_distribution(dc_param%particle_file_name, start_particles)
 
 !Switch all elements to time_runge_kutta$ tracking
 do ele_id = 1, branch%n_ele_track
@@ -222,7 +220,6 @@ end do
 if (do_tally) then
   allocate(tally(branch%n_ele_track))
 endif
-
 
 !Monitor elements
 if (element_monitor_list /= '') then  

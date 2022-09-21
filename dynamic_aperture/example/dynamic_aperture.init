@@ -1,7 +1,8 @@
 &params
-  lat_file = 'chess_arc_pretzel_20150106.lat'
   dat_file = 'da.dat'
-  set_rf_off = T
+  ltt%lat_file = 'chess_arc_pretzel_20150106.lat'
+  ltt%rfcavity_on = F
+
   dpz = 0, 0.005, 0.01
   da_param%min_angle = 0    ! Degrees
   da_param%max_angle = 180   ! Degrees
