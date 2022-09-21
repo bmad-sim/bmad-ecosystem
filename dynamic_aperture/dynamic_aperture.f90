@@ -8,12 +8,17 @@
 program dynamic_aperture_program
 
 use da_program_mod
+
 !$ use omp_lib
 
 implicit none
 
 type (lat_struct), target :: lat
 type (aperture_param_struct) :: da_param
+
+type (ltt_params_struct), target :: ltt
+type (ltt_com_struct), target :: ltt_com
+
 type (aperture_point_struct), pointer :: da_point
 type (aperture_scan_struct), allocatable, target :: aperture_scan(:)
 type (aperture_scan_struct), pointer :: da
@@ -26,15 +31,23 @@ real(rp) dpz(20)
 real(rp) :: ramping_start_time = 0
 integer nargs, ios, i, j, n_dpz, nt
 
-logical :: ramping_on = .false.
-logical set_rf_off, err
+logical :: ramping_on = .false., set_rf_off = .false.
+logical err
 
-character(160) in_file, lat_file, dat_file, gnu_command
+character(160) :: in_file, lat_file = '', dat_file, gnu_command
 
-namelist / params / lat_file, bmad_com, set_rf_off, da_param, dpz, dat_file, &
-            ramping_start_time, ramping_on
+namelist / params / bmad_com, ltt, da_param, set_rf_off, dpz, dat_file, &
+            ramping_start_time, lat_file, ramping_on
 
-! Get parameters
+! Set inits
+
+bmad_com%auto_bookkeeper = .false.   ! Makes tracking faster
+bmad_com%absolute_time_tracking = .true.
+dpz = real_garbage$
+
+! Read parameters
+! Read the master input file again after bmad_parser is called so that bmad_com parameters
+! set in the file take precedence over bmad_com parameters set in the lattice file.
 
 in_file = 'dynamic_aperture.init'
 
@@ -55,20 +68,34 @@ if (ios /= 0) then
   stop
 endif
 
-set_rf_off = .false.
-bmad_com%auto_bookkeeper = .false.   ! Makes tracking faster
-bmad_com%absolute_time_tracking = .true.
-dpz = real_garbage$
+read (1, nml = params)
 
+ltt_params_global => ltt
+ltt_com_global => ltt_com
+if (ramping_on)              ltt%ramping_on = ramping_on                   ! Old style
+if (ramping_start_time /= 0) ltt%ramping_start_time = ramping_start_time   ! Old style
+if (lat_file /= '')          ltt%lat_file = lat_file                       ! Old style
+if (set_rf_off)              ltt%rfcavity_on = .false.                     ! Old style
+
+call bmad_parser (ltt%lat_file, ltt_com%lat)
+
+rewind(1)
 read (1, nml = params)
 
 close (1)
 
+if (ltt%ele_start /= '' .and. da_param%start_ele /= '') then
+  print *, 'SETTING BOTH LTT%ELE_START *AND* DA_PARAM%START_ELE NOT PERMITTED!'
+  stop
+endif
+
+if (ltt%ele_start /= '') da_param%start_ele = ltt%ele_start
+if (da_param%start_ele /= '') ltt%ele_start = da_param%start_ele
+
+!
+
 da_param%min_angle = da_param%min_angle * pi / 180
 da_param%max_angle = da_param%max_angle * pi / 180
-
-da_com%ramping_on = ramping_on
-da_com%ramping_start_time = ramping_start_time
 
 ! Print number of threads
 
@@ -77,19 +104,15 @@ nt = 0
 !$ print '(a, i0)', 'Note: Maximum number of OpenMP threads available: ', nt
 if (nt == 0) print '(a)', 'Note: Program has been compiled without OpenMP threading.'
 
+ltt%simulation_mode = 'SINGLE'
+call ltt_init_params(ltt, ltt_com)
+call ltt_init_tracking(ltt, ltt_com)
+branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
+
 ! Read in lattice
-
-call bmad_parser (lat_file, lat)
-
-call twiss_and_track(lat, closed_orb)
 
 n_dpz = count(dpz /= real_garbage$)
 print *, 'Note: Number of dpz points: ', n_dpz
-
-if (set_rf_off) then
-  print *, 'Note: RF being turned off for tracking.'
-  call set_on_off (rfcavity$, lat, off$)
-endif
 
 if (.not. bmad_com%absolute_time_tracking) then
   print *, 'Note: absolute time tracking is OFF!'
@@ -100,46 +123,48 @@ print *, 'Data file: ', trim(dat_file)
 write (gnu_command, '(a, i0, 3a)') 'plot for [IDX=1:', n_dpz, '] "', &
                   trim(dat_file), '" index (IDX-1) u 1:2 w lines title columnheader(1)'
 
-! Ramper setup
-
-if (ramping_on) then
-  call lat_ele_locator ('RAMPER::*', lat, eles, da_com%n_ramper_loc, err)
-  if (da_com%n_ramper_loc == 0) then
-    print '(2a)', 'Warning! NO RAMPER ELEMENTS FOUND IN LATTICE.'
-    stop
-  endif
-
-  do i = 1, da_com%n_ramper_loc
-    ele => eles(i)%ele
-    if (ele%control%var(1)%name /= 'TIME') then
-      print *, 'Note! This ramper does not use "time" as the control variable: ' // trim(ele%name)
-      print *, '      This ramper will not be directly varied in the simulation.'
-    endif
-    da_com%ramper(i) = lat_ele_loc_struct(ele%ix_branch, ele%ix_ele)
-  enddo
-endif
-
 ! Scan
 
 open (1, file = dat_file)
-write (1, '(2a)')        '# lat_file              = ', trim(lat_file)
-write (1, '(a, l1)')     '# set_rf_off            = ', set_rf_off
-write (1, '(a, f10.1)')  '# da_param%min_angle    =', da_param%min_angle
-write (1, '(a, f10.1)')  '# da_param%max_angle    =', da_param%max_angle
-write (1, '(a, es10.2)') '# da_param%rel_accuracy =', da_param%rel_accuracy
-write (1, '(a, es10.2)') '# da_param%abs_accuracy =', da_param%abs_accuracy
-write (1, '(a, f10.5)')  '# da_param%x_init       =', da_param%x_init
-write (1, '(a, f10.5)')  '# da_param%y_init       =', da_param%y_init
-write (1, '(a, i0)')     '# da_param%n_turn       = ', da_param%n_turn
-write (1, '(a, i0)')     '# da_param%n_angle      = ', da_param%n_angle
-write (1, '(a)')         '# gnuplot plotting command:'
-write (1, '(2a)')        '#   ', trim(gnu_command)
+write (1, '(2a)') '# master_input_file                  = ' // quote(ltt_com%master_input_file)
+write (1, '(2a)') '# ltt%lat_file                       = ' // quote(ltt%lat_file)
+write (1, '(2a)') '# ltt%tracking_method                = ' // quote(ltt%tracking_method)
+write (1, '(2a)') '# ltt%ele_start                      = ' // quote(ltt%ele_start)
+if (ltt%tracking_method == 'MAP' .or. ltt%simulation_mode == 'CHECK') then
+  write (1, '(2a)') '# ltt%map_order                      = ' // int_str(ltt%map_order)
+  write (1, '(2a)') '# ltt%exclude_from_maps              = ' // quote(ltt%exclude_from_maps)
+  write (1, '(2a)') '# ltt%symplectic_map_tracking        = ' // logic_str(ltt%symplectic_map_tracking)
+  write (1, '(2a)') '# Number_of_maps                     = ' // int_str(ltt_com%num_maps)
+endif
+write (1, '(2a)') '# ltt%split_bends_for_stochastic_rad = ' // logic_str(ltt%split_bends_for_stochastic_rad)
+write (1, '(2a)') '# ltt%use_rf_clock                   = ' // logic_str(ltt%use_rf_clock)
+write (1, '(2a)') '# ltt%ramping_on                     = ' // logic_str(ltt%ramping_on)
+write (1, '(2a)') '# ltt%ramp_update_each_particle      = ' // logic_str(ltt%ramp_update_each_particle)
+write (1, '(2a)') '# ltt%ramping_start_time             = ' // real_str(ltt%ramping_start_time, 6)
+write (1, '(2a)') '# ltt%set_beambeam_z_crossing        = ' // logic_str(ltt%set_beambeam_z_crossing)
+write (1, '(2a)') '# ltt%random_seed                    = ' // int_str(ltt%random_seed)
+if (ltt%random_seed == 0) then
+  write (1, '(2a)') '# random_seed_actual                 = ' // int_str(ltt_com%random_seed_actual)
+endif
+write (1, '(2a)') '# ltt%rfcavity_on                    = ' // logic_str(ltt%rfcavity_on)
+write (1, '(2a)') '# is_RF_on                           = ' // logic_str(rf_is_on(branch)) // '  #  M65 /= 0 ?'
+write (1, '(a, f10.1)')  '# da_param%min_angle      =', da_param%min_angle
+write (1, '(a, f10.1)')  '# da_param%max_angle      =', da_param%max_angle
+write (1, '(a, es10.2)') '# da_param%rel_accuracy   =', da_param%rel_accuracy
+write (1, '(a, es10.2)') '# da_param%abs_accuracy   =', da_param%abs_accuracy
+write (1, '(a, f10.5)')  '# da_param%x_init         =', da_param%x_init
+write (1, '(a, f10.5)')  '# da_param%y_init         =', da_param%y_init
+write (1, '(a, i0)')     '# da_param%n_turn         = ', da_param%n_turn
+write (1, '(a, i0)')     '# da_param%n_angle        = ', da_param%n_angle
+write (1, '(2a)')        '# bmad_com%radiation_damping_on      = ' // logic_str(bmad_com%radiation_damping_on)
+write (1, '(2a)')        '# bmad_com%radiation_fluctuations_on = ' // logic_str(bmad_com%radiation_fluctuations_on)
+write (1, '(2a)')        '## gnuplot plotting command:'
+write (1, '(2a)')        '##   ', trim(gnu_command)
 
-call dynamic_aperture_scan (aperture_scan, da_param, dpz(1:n_dpz), lat)
+call dynamic_aperture_scan (aperture_scan, da_param, dpz(1:n_dpz), ltt_com%tracking_lat)
 
 do i = 1, n_dpz
   da => aperture_scan(i)
-  branch => pointer_to_branch(pointer_to_ele(lat, da%ref_orb%ix_ele, da%ref_orb%ix_ele))
 
   write (1, *)
   write (1, *)

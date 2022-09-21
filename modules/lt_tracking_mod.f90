@@ -2,6 +2,7 @@
 ! Module lt_tracking_mod
 !
 ! Routines used by the long_term_tracking program.
+! Also the dynamic_aperture program.
 !-
 
 module lt_tracking_mod
@@ -117,6 +118,7 @@ type ltt_com_struct
   integer, allocatable :: ix_wake_ele(:)     ! List of element indexes where a wake is applied.
   integer :: ix_branch = 0                   ! Lattice branch being tracked.
   integer :: random_seed_actual = 0
+  integer :: num_maps = 0
   real(rp) :: ptc_closed_orb(6) = 0
   real(rp) :: time_start = 0
   logical :: wrote_phase_space_file_header = .false.
@@ -163,6 +165,7 @@ type (beam_init_struct) beam_init
 integer i, ix
 character(200) arg
 character(40) m_name
+character(*), parameter :: r_name = 'ltt_read_params'
 
 namelist / params / bmad_com, beam_init, ltt
 
@@ -206,7 +209,16 @@ close (1)
 
 ltt_com%beam_init = beam_init
 
-call upcase_string(ltt%simulation_mode)
+call bmad_parser (ltt%lat_file, ltt_com%lat)
+
+! Read the master input file again so that bmad_com parameters set in the file
+! take precedence over bmad_com parameters set in the lattice file.
+
+open (1, file = ltt_com%master_input_file, status = 'old', action = 'read')
+read (1, nml = params)  
+close (1)
+
+!
 
 if (ltt%split_bends_for_radiation) then
   print *, '"ltt%split_bends_for_radiation" has been renamed "ltt%split_bends_for_stochastic_rad".'
@@ -214,32 +226,6 @@ if (ltt%split_bends_for_radiation) then
   print *, 'Please change in the init file! Stopping here.'
   stop
 endif
-
-if (ltt%ramping_on) global_com%mp_threading_is_safe = .false.
-
-end subroutine ltt_read_params
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-
-subroutine ltt_init_params(ltt, ltt_com, path)
-
-type (ltt_params_struct), target :: ltt
-type (ltt_com_struct), target :: ltt_com
-type (beam_init_struct) beam_init
-type (lat_struct), pointer :: lat
-type (branch_struct), pointer :: branch
-type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_struct), pointer :: ele
-
-real(rp) dummy
-integer ir, i, n, n_loc
-character(*), optional :: path
-character(*), parameter :: r_name = 'ltt_init_params'
-logical err
-
-namelist / params / bmad_com, beam_init, ltt
 
 ! Master output file now no longer exists
 
@@ -278,7 +264,29 @@ if (ltt%particle_output_file /= '') then
   ltt%phase_space_output_file = ltt%particle_output_file
 endif
 
+end subroutine ltt_read_params
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_init_params(ltt, ltt_com)
+
+type (ltt_params_struct), target :: ltt
+type (ltt_com_struct), target :: ltt_com
+type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
+type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele
+
+real(rp) dummy
+integer ir, i, n, n_loc
+character(*), parameter :: r_name = 'ltt_init_params'
+logical err
+
 ! Lattice init
+
+if (ltt%ramping_on) global_com%mp_threading_is_safe = .false.
 
 lat => ltt_com%lat
 bmad_com%auto_bookkeeper = .false.
@@ -295,22 +303,11 @@ if (ltt_com%using_mpi) then
   call ptc_ran_seed_put (ir + ltt_com%mpi_rank)
 endif
 
-if (present(path)) then
-  call bmad_parser (trim(path) // '/' // ltt%lat_file, lat)
-else
-  call bmad_parser (ltt%lat_file, lat)
-endif
-
 if (.not. ltt%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
 
-! Read the master input file again so that bmad_com parameters set in the file
-! take precedence over bmad_com parameters set in the lattice file.
-
-open (1, file = ltt_com%master_input_file, status = 'old', action = 'read')
-read (1, nml = params)  
-close (1)
-
 ! Sanity checks
+
+call upcase_string(ltt%simulation_mode)
 
 select case (ltt%simulation_mode)
 case ('CHECK', 'SINGLE', 'BEAM', 'STAT')
@@ -543,6 +540,10 @@ if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
       enddo
     endif
   endif
+
+  do i = 0, ubound(ltt_com%sec, 1)
+    if (allocated(ltt_com%sec(i)%map)) ltt_com%num_maps = ltt_com%num_maps + 1
+  enddo
 endif
 
 end subroutine ltt_init_tracking
@@ -556,20 +557,11 @@ subroutine ltt_print_inital_info (lttp, ltt_com)
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (branch_struct), pointer :: branch
-integer i, nm, ix, iu, nb, ib
+integer i, ix, iu, nb, ib
 character(200) :: file_name
 character(2000) :: line1, line2
 
 ! Print some info.
-
-nm = 0
-if (allocated(ltt_com%sec)) then
-  do i = 0, ubound(ltt_com%sec, 1)
-    if (allocated(ltt_com%sec(i)%map)) nm = nm + 1
-  enddo
-endif
-
-!
 
 nb = max(1, ltt_com%beam_init%n_bunch)
 iu = lunget()
@@ -669,14 +661,10 @@ if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
   call ltt_write_line('# ltt%map_order                      = ' // int_str(lttp%map_order), lttp, iu, print_this)
   call ltt_write_line('# ltt%exclude_from_maps              = ' // quote(lttp%exclude_from_maps), lttp, iu, print_this)
   call ltt_write_line('# ltt%symplectic_map_tracking        = ' // logic_str(lttp%symplectic_map_tracking), lttp, iu, print_this)
-  call ltt_write_line('# Number_of_maps                     = ' // int_str(nm), lttp, iu, print_this)
+  call ltt_write_line('# Number_of_maps                     = ' // int_str(ltt_com%num_maps), lttp, iu, print_this)
 endif
 call ltt_write_line('# ltt%split_bends_for_stochastic_rad = ' // logic_str(lttp%split_bends_for_stochastic_rad), lttp, iu, print_this)
 call ltt_write_line('# ltt%core_emit_combined_calc        = ' // logic_str(lttp%core_emit_combined_calc), lttp, iu, print_this)
-call ltt_write_line('# bmad_com%radiation_damping_on      = ' // logic_str(bmad_com%radiation_damping_on), lttp, iu, print_this)
-call ltt_write_line('# bmad_com%radiation_fluctuations_on = ' // logic_str(bmad_com%radiation_fluctuations_on), lttp, iu, print_this)
-call ltt_write_line('# bmad_com%spin_tracking_on          = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, print_this)
-call ltt_write_line('# bmad_com%sr_wakes_on               = ' // logic_str(bmad_com%sr_wakes_on), lttp, iu, print_this)
 call ltt_write_line('# ltt%use_rf_clock                   = ' // logic_str(lttp%use_rf_clock), lttp, iu, print_this)
 if (bmad_com%sr_wakes_on) then
   call ltt_write_line('# Number_of_wake_elements            = ' // int_str(size(ltt_com%ix_wake_ele)), lttp, iu, print_this)
@@ -688,12 +676,17 @@ call ltt_write_line('# ltt%averages_output_every_n_turns  = ' // int_str(lttp%av
 call ltt_write_line('# ltt%ramping_on                     = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramp_update_each_particle      = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_start_time             = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
-call ltt_write_line('# ltt%random_seed                    = ' // int_str(lttp%random_seed), lttp, iu, print_this)
 call ltt_write_line('# ltt%set_beambeam_z_crossing        = ' // logic_str(lttp%set_beambeam_z_crossing), lttp, iu, print_this)
+call ltt_write_line('# ltt%random_seed                    = ' // int_str(lttp%random_seed), lttp, iu, print_this)
 if (lttp%random_seed == 0) then
   call ltt_write_line('# random_seed_actual                 = ' // int_str(ltt_com%random_seed_actual), lttp, iu, print_this)
 endif
-call ltt_write_line('# RF_on                              = ' // logic_str(rf_is_on(branch)) // '  #  M65 /= 0 ?', lttp, iu, print_this)
+call ltt_write_line('# ltt%rfcavity_on                    = ' // logic_str(lttp%rfcavity_on), lttp, iu, print_this)
+call ltt_write_line('# is_RF_on                           = ' // logic_str(rf_is_on(branch)) // '  #  M65 /= 0 ?', lttp, iu, print_this)
+call ltt_write_line('# bmad_com%radiation_damping_on      = ' // logic_str(bmad_com%radiation_damping_on), lttp, iu, print_this)
+call ltt_write_line('# bmad_com%radiation_fluctuations_on = ' // logic_str(bmad_com%radiation_fluctuations_on), lttp, iu, print_this)
+call ltt_write_line('# bmad_com%spin_tracking_on          = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, print_this)
+call ltt_write_line('# bmad_com%sr_wakes_on               = ' // logic_str(bmad_com%sr_wakes_on), lttp, iu, print_this)
 call ltt_write_line('#--------------------------------------', lttp, iu, print_this)
 
 end subroutine ltt_print_this_info
