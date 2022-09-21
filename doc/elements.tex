@@ -182,8 +182,8 @@ where $B$ and $E$ are the applied magnetic and electric fields, and $B_0$ and $E
 as calculated as if the element where a \vn{kicker} ignoring the time dependence.
 \end{enumerate}
 
-$\delta t = t_{eff} - t_0$ where $t_{eff}$ is the effective time as discussed in
-\sref{s:rf.time} and $t_0$ is the value of the \vn{t_offset} attribute.
+$\delta t = t_{eff} - t_0$ where $t_{eff}$ is the effective time as discussed in \sref{s:rf.time}
+and $t_0$ is the value of the \vn{t_offset} attribute.
 
 There are two ways to specify the dimensionless time variation $A(\delta t)$ of the field. One way
 is to specify points $(A, \delta t)$ using the \vn{amp_vs_time} attribute. Example:
@@ -233,6 +233,12 @@ Example:
 \begin{example}
   mk: ac_kicker, amp_vs_time = \{(-1.2e-6, 0.02), ... \} 
   mk[amp_vs_time(2)%amp] = 0.03  ! Change 2nd point amplitude.
+\end{example}
+
+When specifying the time dependent using a set of frequencies, it is generally advisible to use
+absolute time tracking (\sref{s:rf.time}). This can be done in the lattice file by setting
+\begin{example}
+  bmad_com[absolute_time_tracking] = T
 \end{example}
 
 Note: The calculated field will only obey Maxwell's equations in the limit that the time variation
