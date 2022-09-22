@@ -58,14 +58,17 @@ call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 ! Normal Bmad tracking?
 
 finished = .false.
-if (ltt_params_global%tracking_method == 'BMAD') return
+if (ltt_params_global%tracking_method == 'OLD' .or. ltt_com%track_bypass) return
 finished = .true.
 
 !
 
+branch => lat%branch(integer_option(0, ix_branch))
 orb = orbit(ele_start%ix_ele)
 
 select case (lttp%tracking_method)
+case ('BMAD')
+  call ltt_track_bmad_single (lttp, ltt_com, branch%ele(ix_start), branch%ele(ix_end), orb)
 
 case ('PTC')
   ele0 => ele_start
@@ -91,5 +94,13 @@ case default
   stop
 end select
 
+orbit(ix_end) = orb
+if (present(track_state)) then
+  if (orb%state == alive$) then
+    track_state = moving_forward$
+  else
+    track_state = ix_end
+  endif
+endif
 
 end subroutine track_many_hook

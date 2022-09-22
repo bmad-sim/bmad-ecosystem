@@ -144,12 +144,12 @@ do i = 1, num_slaves
   if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ixp:', i, ixp_slave(i)
 enddo
 
-! Calc stopping points.
+! Calculate the  stopping points.
 
 stop_here = .false.
 
 select case (lttp%averages_output_every_n_turns)
-case (-1)  ! Nothing to do
+case (-1); stop_here(lttp%n_turns) = .true.
 case (0);  stop_here(lttp%n_turns) = .true.
 case default
   do i = 1, lttp%n_turns/lttp%averages_output_every_n_turns + 1
@@ -160,7 +160,7 @@ case default
 end select
 
 select case (lttp%particle_output_every_n_turns)
-case (-1)  ! Nothing to do
+case (-1); stop_here(lttp%n_turns) = .true.
 case (0);  stop_here(lttp%n_turns) = .true.
 case default
   do i = 1, lttp%n_turns/lttp%particle_output_every_n_turns + 1
