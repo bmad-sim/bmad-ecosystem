@@ -45,7 +45,6 @@ SET (SRC_DIRS
 # SET (LINK_FLAGS "-fPIC")
 
 SET (SHARED_DEPS
-  bmad 
   sim_utils
   $ENV{ACC_BMAD_LINK_LIBS}
   X11
