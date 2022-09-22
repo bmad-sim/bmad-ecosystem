@@ -62,7 +62,7 @@ endif
 
 ! Drift bunch to the same time
 if (bunch%t0 == real_garbage$) then
-  bunch%t0 = minval(bunch%particle%t, bunch%particle%state==alive$ .or. bunch%particle%state==pre_born$) 
+  bunch%t0 = maxval(bunch%particle%t, bunch%particle%state==alive$ .or. bunch%particle%state==pre_born$) 
 endif
 t_now = bunch%t0
 call drift_to_t(bunch, bunch%t0, branch)
