@@ -94,7 +94,7 @@ do i = 1, n_slice
   final_calc = .false.; make_mat = .false.
   s_body_save = s_body
   orb_save = orbit
-  s_lab = super_zbrent(at_slice_func, -ele%value(sig_z$)-s0, ele%value(sig_z$)+s0, 1e-12_rp, 1e-12_rp, status)
+  s_lab = super_zbrent(at_slice_func, -abs(z)-s0, abs(z)+s0, 1e-12_rp, 1e-12_rp, status)
 
   final_calc = .true.; make_mat = logic_option(.false., make_matrix)
   s_body = s_body_save
