@@ -129,6 +129,7 @@ type ltt_com_struct
   integer :: mpi_run_index = 0                 ! Run index
   integer :: mpi_ix0_particle = 0              ! Index of first particle
   logical :: using_mpi = .false.
+  logical :: track_bypass = .false.            ! Used by DA program
   character(200) :: master_input_file = ''
   character(40) :: fmt = '(2i7, 6es16.8, 3x, 3f10.6, 4x, a)'
 end type
@@ -227,7 +228,7 @@ if (ltt%split_bends_for_radiation) then
   stop
 endif
 
-! Master output file now no longer exists
+! Flag the setting of parameters that have been deprecated
 
 if (ltt%master_output_file /= '') then
   call out_io (s_info$, r_name, &
@@ -320,7 +321,7 @@ end select
 
 if (ltt%simulation_mode /= 'CHECK') then
   select case (ltt%tracking_method)
-  case ('', 'MAP', 'PTC', 'BMAD')
+  case ('', 'MAP', 'PTC', 'BMAD', 'OLD')
   case default
     print '(a)', 'UNKNOWN LTT%TRACKING_METHOD: ' // ltt%tracking_method
     stop
@@ -371,7 +372,7 @@ endif
 ! Ramper setup
 
 if (ltt%ramping_on) then
-  if (ltt%tracking_method /= 'BMAD') THEN
+  if (ltt%tracking_method == 'PTC' .or. ltt%tracking_method == 'MAP') THEN
     print *, 'NOTE: ltt%tracking_method MUST BE SET TO "BMAD" IF LTT%RAMPING_ON IS SET TO TRUE.'
   endif
 

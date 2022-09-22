@@ -76,6 +76,7 @@ if (ramping_on)              ltt%ramping_on = ramping_on                   ! Old
 if (ramping_start_time /= 0) ltt%ramping_start_time = ramping_start_time   ! Old style
 if (lat_file /= '')          ltt%lat_file = lat_file                       ! Old style
 if (set_rf_off)              ltt%rfcavity_on = .false.                     ! Old style
+ltt%tracking_method = 'OLD'
 
 call bmad_parser (ltt%lat_file, ltt_com%lat)
 
@@ -105,8 +106,10 @@ nt = 0
 if (nt == 0) print '(a)', 'Note: Program has been compiled without OpenMP threading.'
 
 ltt%simulation_mode = 'SINGLE'
+ltt_com%track_bypass = .true.
 call ltt_init_params(ltt, ltt_com)
 call ltt_init_tracking(ltt, ltt_com)
+ltt_com%track_bypass = .false.
 branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
 
 ! Read in lattice
