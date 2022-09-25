@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_spin_polarization_calc (branch, tao_branch, excite_nullify)
+! Subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero)
 !
 ! Routine to calculate the spin equalibrium polarization in a ring along with the polarization rate and
 ! the depolarization rate due to emission of synchrotron radiation photons.
@@ -9,7 +9,7 @@
 ! Input:
 !   branch            -- branch_struct: Lattice branch to analyze.
 !   tao_branch        -- tao_lattice_branch_struct: Contains %orbit
-!   excite_nullify(3) -- character(*): See documentation on spin_concat_linear_maps.
+!   excite_zero(3)    -- character(*): See documentation on spin_concat_linear_maps.
 !
 ! Output:
 !   tao_branch    -- tao_lattice_branch_struct: Calculated is:
@@ -17,7 +17,7 @@
 !     %spin
 !-
 
-subroutine tao_spin_polarization_calc (branch, tao_branch, excite_nullify)
+subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero)
 
 use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
 use radiation_mod
@@ -45,7 +45,7 @@ integer ix1, ix2
 integer i, j, k, kk, n, p, ie
 
 logical valid_value, err
-character(*), optional :: excite_nullify(3)
+character(*), optional :: excite_zero(3)
 
 !
 
@@ -70,7 +70,7 @@ orbit => tao_branch%orbit
 if (.not. allocated(tao_branch%dn_dpz)) allocate (tao_branch%dn_dpz(0:branch%n_ele_track))
 tao_branch%spin_valid = .true.
 
-call spin_concat_linear_maps (err, q_1turn, branch, 0, branch%n_ele_track, q_ele, orbit, excite_nullify)
+call spin_concat_linear_maps (err, q_1turn, branch, 0, branch%n_ele_track, q_ele, orbit, excite_zero)
 if (err) return
 
 tao_branch%spin%tune = 2.0_rp * atan2(norm2(q_1turn%spin_q(1:3,0)), q_1turn%spin_q(0,0))

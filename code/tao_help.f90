@@ -168,6 +168,8 @@ do
   call substitute (line, "\`", '`')
   call substitute (line, "}''", '"')
   call substitute (line, "''", '"')
+  call substitute (line, "\bf", '')
+  call substitute (line, "\arrowbf", '')
   call substitute (line, "\$", '$', has_subbed)
   if (.not. has_subbed .and. .not. in_example) call substitute (line, "$")  ! Do not remove "$" if "\$" -> "$" has been done
   call substitute (line, "\protect")
@@ -215,6 +217,8 @@ do
 
   call substitute (line, "\{", "{")
   call substitute (line, "\}", "}")
+  call substitute (line, "\(", "")
+  call substitute (line, "\)", "")
 
   n = max(1, len_trim(line))
   if (line(n:n) == '!') line(n:n) =  ' '
