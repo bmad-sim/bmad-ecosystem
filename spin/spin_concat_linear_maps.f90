@@ -1,5 +1,5 @@
 !+
-! Subroutine spin_concat_linear_maps (map1, branch, n1, n2, q_ele, orbit, excite_nullify)
+! Subroutine spin_concat_linear_maps (map1, branch, n1, n2, q_ele, orbit, excite_zero)
 !
 ! Routine to concatenate element spin/orbit maps in the range branch%ele(n1+1:n2)
 ! This routine will wrap around the ends of the lattice so n2 may be less than n1.
@@ -9,18 +9,18 @@
 ! If not, a new map will be made for the element. If a map is made, orbit(:) will be 
 ! used as the reference orbit. If it is not present, ele%map_ref_orb_in will be used.
 !
-! The excite_nullify(:) argument is used to zero out linear ds_vec/dr_vec terms in the element's spin 
+! The excite_zero(:) argument is used to zero out linear ds_vec/dr_vec terms in the element's spin 
 ! transfer map where s_vec = spin vector and r_vec = orbital phase space vector. 
 ! This can be used to give insights into where spin matching is failing.
-! The excite_nullify(1) term is a list for nullifying of r_vec = x or px terms, excite_nullify(2)
-! is for r_vec = y or py terms, and excite_nullify(3) is for r_vec = z or pz terms.
+! The excite_zero(1) term is a list for nullifying of r_vec = x or px terms, excite_zero(2)
+! is for r_vec = y or py terms, and excite_zero(3) is for r_vec = z or pz terms.
 !
 ! Input:
 !   branch            -- branch_struct: Lattice branch.
 !   n1                -- integer: Starting element index. Start at element downstream end.
 !   n2                -- integer: Ending element index. End at element downstream end
 !   orbit(0:)         -- coord_struct, optional: Reference orbit used if maps must be created.
-!   excite_nullify(3) -- character(*), optional: Three lists of elements where ds_vec/dr_vec terms are zeroed.
+!   excite_zero(3)    -- character(*), optional: Three lists of elements where ds_vec/dr_vec terms are zeroed.
 !
 ! Output:
 !   err_flag          -- logical: Set True if there is an error. False otherwise.
@@ -28,7 +28,7 @@
 !   q_ele(:)          -- spin_orbit_map1_struct, optional: Individual spin/orbit maps.
 !-
 
-subroutine spin_concat_linear_maps (err_flag, map1, branch, n1, n2, map1_ele, orbit, excite_nullify)
+subroutine spin_concat_linear_maps (err_flag, map1, branch, n1, n2, map1_ele, orbit, excite_zero)
 
 use ptc_interface_mod, dummy => spin_concat_linear_maps
 
@@ -45,7 +45,7 @@ integer i, j, n_loc
 
 logical err_flag
 
-character(*), optional :: excite_nullify(3)
+character(*), optional :: excite_zero(3)
 
 ! Mark elements to be nullified
 
@@ -53,9 +53,9 @@ err_flag = .false.
 branch%ele%ixx = 0
 branch%lat%ele%ixx = 0   ! To take case of lord elements.
 
-if (present(excite_nullify)) then
+if (present(excite_zero)) then
   do i = 1, 3
-    call lat_ele_locator (excite_nullify(i), branch%lat, eles, n_loc, err_flag, .false., branch%ix_branch)
+    call lat_ele_locator (excite_zero(i), branch%lat, eles, n_loc, err_flag, .false., branch%ix_branch)
     if (err_flag) return
     do j = 1, n_loc
       call set_this_ele(eles(j)%ele, i)
