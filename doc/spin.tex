@@ -389,7 +389,7 @@ $\partial\bfn/\partial\delta$ around the ring. The calculation of $\partial\bfn/
 any point in the ring involves a sum of eigenvectors $\bfn_k$, $k = 1, \ldots, 6$ (\Eq{ndan}) with
 pairs of eigenvectors being associated with the three orbital modes of oscillation. Insight into the
 decoherence process can had by considering what $P_{dk}$ and $\tau_{dep}^{-1}$ would be if only
-one oscillation mode was being excited. This is done by calulating $\partial\bfn/\partial\delta$ with
+one oscillation mode was being excited. This is done by calculating $\partial\bfn/\partial\delta$ with
 \Eq{ndan} by using the two $\bfn_k$ for one particular mode and taking the other $\bfn_k$ to be zero.
 This is then used in \Eq{pdk85} and \Eq{tdep}.
 
@@ -529,9 +529,25 @@ is to reduce the dimensionality of phase space to five by removing the $z$ coord
 equations then can be used with the sums over $k$ ranging from 1 to 5. 
 
 It is sometimes informative to compute the contribution of ${\partial \bfn}/\partial \delta$ due to
-a single mode of oscillation. That is, to compute ${\partial \bfn}/\partial \delta$ with the sum in
-\Eq{ndan} restricted to be over the two corresponding eigen states that comprise the oscillation
-mode of interest. This information can help guide lattice design.
+just one or two modes of oscillation. That is, to compute ${\partial \bfn}/\partial \delta$ with the sum in
+\Eq{ndan} restricted to be over one or two corresponding eigen states that comprise the oscillation
+modes of interest. This information can help guide lattice design.
+
+Another way for analyzing where in the lattice contributions to $\partial\bfn/\partial\delta$ are
+coming from is to consider the spin transport maps for individual elements. These maps will be of
+the form given in \Eq{qqqr}. The contribution to $\partial\bfn/\partial\delta$ from an element is
+due to the non-zero terms in $\arrowbfq = (\bfq_1, \ldots, \bfq_6)$. If terms are selectively
+zeroed, and this significantly changes the polarization, this is a clue for designing a lattice. For
+example, if setting $\bfq_1$ and $\bfq_2$ to zero for a set of elements in a certain region of the
+machine leads to significantly greater polarizations, this indicates that the polarization is
+sensitive to horizontal excitation in this region. Similarly, zeroing elements in $\bfq_3$ and
+$\bfq_4$ is associated with vertical excitation and $\bfq_5$ and $\bfq_6$ is associated with
+longitudinal excitation. With the slim formalism (\sref{s:slim}), the $2\times6$ matrix
+$\bfG$ can be decomposed into three $2\times2$ sub-matrices:
+\begin{equation}
+  \bfG = \left( \bfG_x, \bfG_y, \bfG_z \right)
+\end{equation}
+Zeroing $\bfq_1$ and $\bfq_2$ is equivalent to zeroing $\bfG_x$, etc.
 
 %-----------------------------------------------------------------   
 \section{Single Resonance Model}
@@ -791,7 +807,7 @@ under the restriction of the aforementioned linearization. Moreover, a procedure
 spin-matching, for minimizing depolarization driven by the noise injected into synchro-betatron
 motion by synchrotron radiation, and which involves optimizing the layout of the ring, can be
 executed in a simple and elegant way via the SLIM formalism. The formalism can also give insights
-into proton spin dynamics in regimes where the linearization suffices.
+into proton spin dynamics in regimes where the linearization approximation suffices.
 
 The \vn{SLIM} formalism expresses spin components using two right-hand coordinate systems:
 \footnote{Different authors will use different conventions for the ordering of the axes
