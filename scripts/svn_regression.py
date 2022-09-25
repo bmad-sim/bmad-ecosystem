@@ -14,7 +14,7 @@ svn_repo = {
   'https://accserv.classe.cornell.edu/svn/packages/gnu_utilities_src' :    '51479',
   'https://accserv.classe.cornell.edu/svn/packages/gsl' :                  '53177',
   'https://accserv.classe.cornell.edu/svn/packages/hdf5' :                 '53179',
-  'https://accserv.classe.cornell.edu/svn/packages/lapack' :               '53178',
+  'https://accserv.classe.cornell.edu/svn/packages/lapack' :               '53213',
   'https://accserv.classe.cornell.edu/svn/packages/lapack95' :             '53051',
   'https://accserv.classe.cornell.edu/svn/packages/openmpi' :              '51988',
   'https://accserv.classe.cornell.edu/svn/packages/plplot' :               '53180',

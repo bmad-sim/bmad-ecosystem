@@ -121,7 +121,7 @@ enddo
 
 call bmad_parser ('small_line.bmad', lat)
 
-call spin_concat_linear_maps (map1, lat%branch(0), 0, 0)
+call spin_concat_linear_maps (err, map1, lat%branch(0), 0, 0)
 
 !---------------------------------
 
