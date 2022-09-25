@@ -14,7 +14,7 @@
 ! If the ignore_interior argument is True, "interior" delimitors will be ignored.
 ! An "interior" character is a character that is enclosed in brackets: "(...)", "{...}", 
 ! "[...]" or single or double quote marks. For example: 
-!     call word_read "(;)a;b", ";", word, ix_word, delim, delim_found, out_str, .true.)
+!     call word_read ("(;)a;b", ";", word, ix_word, delim, delim_found, out_str, .true.)
 ! Would result in:
 !     word = "(;)a"
 !     out_str = "b"
