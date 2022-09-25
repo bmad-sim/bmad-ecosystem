@@ -47,6 +47,7 @@
 \newcommand{\Newline}{\hfil \\}
 \newcommand{\sref}[1]{$\S$\ref{#1}}
 \newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\ltt}{\vn{long_term_tracking}\xspace}
 
 %---------------------------------------------------------------------------------
 
@@ -68,7 +69,7 @@
 
 \title{Dynamic_Aperture Program}
 \author{}
-\date{David Sagan \\ June 21, 2022}
+\date{David Sagan \\ September 24, 2022}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -271,7 +272,6 @@ file must contain a single namelist (\sref{s:namelist}) named \vn{params}.  Exam
   ltt%random_seed        = 0
   ltt%ptc_aperture       = 0.1, 0.1
   ltt%exclude_from_maps  = "beambeam::*"
-  ltt%split_bends_for_stochastic_rad = False
   ltt%symplectic_map_tracking = False
   ltt%set_beambeam_z_crossing = False
   ltt%use_rf_clock       = F
@@ -290,10 +290,11 @@ file must contain a single namelist (\sref{s:namelist}) named \vn{params}.  Exam
   da_param%abs_accuracy = 1e-5
 /
 \end{code}
+Note: The parameters beginning with ``\vn{ltt}'' are parameters that are common with the
+\ltt program. The parameters beginning with ``\vn{da_param}'' are parameters
+that are common with the dynamic aperture tracking in the Tao program
 
-The parameters beginning with ``\vn{ltt}'' are parameters 
-
-in the master input file are:
+The parameters in the master input file are:
 \begin{description}
 %
 \item[bmad_com\%...] \Newline
@@ -356,22 +357,219 @@ The default is to start at the beginning of the lattice. Notice that the trackin
 downstream end of the element so the first element tracked through is the element after the chosen
 one.
 %
-\item[lat_file] \Newline
-Name of the Bmad lattice file to use. This name is required.
+\item[ltt\%ele_start] \Newline
+Name or element index of the element to start the tracking. Examples:
+\begin{code}
+ele_start = "Q3##2"   ! 2nd element named Q3 in the lattice.
+ele_start = 37        ! 37th element in the lattice.
+\end{code}
+The default is to start at the beginning of the lattice. Notice that the tracking starts at the
+downstream end of the element so the first element tracked through is the element after the chosen
+one. Also see \vn{ltt%ele_stop}.
 %
-\item[ramping_on] \Newline
+\item[ltt\%exclude_from_maps] \Newline
+List of elements to exclude when constructing maps for \vn{SLICK} tracking. These elements will be
+individually tracking. The default value is \vn{"beambeam::*"} which excludes any \vn{beambeam}
+element. See the Bmad manual section on ``\vn{Matching to Lattice Element Names}'' for details on
+the format for such lists.
+%
+\item[ltt\%lat_file] \Newline
+Name of the Bmad lattice file to use. This name is required. Note: In an old, deprecated format this parameter
+was called \vn{lat_file}.
+%
+\item[ltt\%map_order] \Newline
+Map order. See Section~\sref{s:track.methods}. The default is what is set in the lattice
+file and if not set in the lattice file the default is 3. Note: \vn{ltt%map_order} is only used when
+generating a map.  When a map is read in from a file, the order of this map is independent of the
+current setting of \vn{ltt%map_order}.
+%
+\item[ltt\%ptc_aperture] \Newline
+The PTC code does not have apertures. This being the case, for \vn{ltt%tracking_method} set to
+\vn{"MAP"} or \vn{"PTC"}, \vn{ltt%ptc_aperture}, which is a 2-vector, defines \vn{x} and \vn{y}
+apertures. The default is 0.1~meter in both the horizontal and vertical. When used, the aperture is
+applied at the beginning/end of the lattice. PTC has an internal aperture of 1.0~meter. To be safe,
+the \ltt program will additionally impose a 0.9~meters aperture independent of the setting of
+\vn{ltt%ptc_aperture}.
+%
+\item[ltt\%ramping_on] \Newline
 If set to True, \vn{ramper} control elements will be use to modify the lattice during tracking
-(\sref{s:ramp}). Default is False.
+(\sref{s:ramp}). Default is False. Note: In an old, deprecated format this parameter
+was called \vn{ramping_on}.
 %
-\item[ramping_start_time] \Newline
+\item[ltt\%ramping_start_time] \Newline
 The starting (offset) time used to set \vn{ramper} elements. This enables simulations to start in the middle
 of a ramp cycle. Default is 0.
 %
-\item[set_rf_off] \Newline
-If set to \vn{True}, the voltage on all RF cavity elements will be turned off. Default is \vn{False}.
+\item[ltt\%random_seed] \Newline
+The random number seed used by the random number generator. If set to 0, the
+system clock will be used. That is, if set to 0, the output results will vary from run to run.
 %
+\item[ltt\%rfcavity_on] \Newline
+If set to \vn{False}, the voltage on all RF cavity elements will be turned off. Default is
+\vn{True}.  Note: In an old, deprecated format the corresponding parameter was called
+\vn{set_rf_off}.
+%
+\item[ltt\%set_beambeam_z_crossing] \Newline
+If True (default is false), set the \vn{z_crossing} parameter of any \vn{beambeam} element in the
+lattice to the phase space $z$ value of the closed orbit? See the Bmad manual for a discussion of
+the \vn{z_crossing} parameter. Generally, \vn{ltt%set_beambeam_z_crossing} should be set True.
+%
+\item[ltt\%symplectic_map_tracking]\Newline
+If False (the default), the maps used for tracking will be a set of truncated Taylor series
+polynomials. If True, the tracking maps will be derived from the Taylor map by partially inverting
+it forming an implicit symplectic map. The advantage of the symplectic map is that it is symplectic.
+The disadvantage is that, being an implicit map, the computation time will be longer.
+%
+\item[ltt\%use_rf_clock] \Newline
+The \vn{ltt%use_rf_clock} logical is only relavent if Bmad tracking is being used in conjunction with
+absolute time tracking and the discussion here assumes Bmad tracking with absolute time tracking.\footnote
+  {
+See the Bmad manual for a discussion of absolute versus relative time tracking.
+  }
+If \vn{ltt%use_rf_clock} is set to False (the default), the time used to calculate the phase of any
+varying fields is the absolute time which increases turn-by-turn. Over many turns this may lead to
+round-off error. For example, with a 10~GHz cavity, if the phase needs to be measured to one part in
+$10^5$, it will not be possible to run a simulation past 10~seconds since the double precision
+numbers used in the code have an accuracy of $10^{-16}$. 
+
+There are several possible ways to avoid this round-off problem. If all the frequencies of all the time
+varying fields are commensurate with the length of the lattice, relative time tracking can be used
+which uses the particle's $z$ phase space coordinate as the effective clock.\footnote
+  {
+Note: Absolute time tracking is not available with PTC. That is, any PTC based tracking is relative
+time tracking.
+  }
+If all frequencies are commensurate with each other, but are not commensurate with the lattice
+length, time patches (patch elements that shift the reference time) can be used with relative time
+tracking.  Finally, if all the frequencies are commensurate, the ``\vn{RF clock}'' can be used with
+absolute time tracking by setting \vn{ltt%use_rf_clock} to True. The RF clock is simply a clock whose
+time is reset periodically to be in the range $[0, t_{rf}]$ where $t_{rf}$ is a time period chosen by
+Bmad to be commensurate with the frequencies of the time varying fields.\footnote
+  {
+If not all the frequencies are commensurate, Bmad will make a best choice and the fields that have
+frequencies that are not commensurate with the RF clock will use the standard clock instead.
+  }
 \end{description}
 
+%------------------------------------------------------------------
+\Section{Tracking Methods}
+\label{s:track.methods}
+
+The setting of the
+parameter \vn{ltt%tracking_method} determines how particles are tracked. Possible settings are:
+\begin{code}
+"MAP"     ! Tracking using maps.
+"PTC"     ! Element-by-element tracking with PTC. Slow.
+"BMAD"    ! Element-by-element tracking using Bmad. Default. Slow.
+\end{code}
+
+which is used to determine if tracking is done using a map or not. If a map is used, the order of
+the map (the degree at which the Taylor series comprising the map are truncated) is given by
+\vn{ltt%map_order} parameter. A larger map order will mean better accuracy at the expense of more
+computation time. Tracking using a map will be extremely quick compared to element-by-element
+tracking. However, map tracking can be inaccurate if the map order is too small or the particle
+amplitude is too large.
+
+Only the \vn{BMAD} method is able to handle a machine that is being ramped (\sref{s:ramp}). That is,
+when \vn{ltt%ramping_on} set to True. The program will detect if there is a conflict and issue an error
+message and stop.
+
+%------------------------------------------------------------------
+\Section{Map Tracking}
+\label{s:map}
+
+The \ltt program uses the PTC/FPP library of \'Etienne Forest to handle Taylor maps which can be
+constructed to any arbitrary order. In particular, PTC is used for constructing the map(s) used for
+tracking when the \vn{ltt%tracking_method} parameter is set to "\vn{MAP}" (\sref{s:sim.params}). PTC
+tracking is also used when \vn{ltt%tracking_method} is set to "\vn{PTC}". In this case, tracking is
+done element-by-element using symplectic integration.
+
+Note: Using maps is not compatible when a machine is being ramped (\sref{s:ramp}).
+
+Sometimes it is convenient to exclude certain lattice elements from a map. For example, the
+beam-beam interaction is highly non-linear so excluding any \vn{beambeam} elements can improve map
+accuracy at larger amplitudes. Which elements are excluded is determined by the setting of
+\vn{ltt%exclude_from_maps} which is a list of what elements are to be excluded. Elements can be
+excluded for a number of reasons. When an element is excluded, multiple maps are created, one for
+each of the sections of the lattice where there are no excluded elements. In this case, tracking
+consists of using a map to track from one excluded element to the next followed by tracking through
+the excluded element.
+
+{\em Important!} Maps cannot model RF elements that have a frequency not commensurate with the
+one-turn frequency. The reason for this is that a map is just a function that maps the particle's
+starting phase space coordinates to the particle's ending coordinates independent of how many turns
+the particle has been tracked. But if an RF element has a frequency not commensurate with the
+one-turn frequency the kick given a particle going through the element will depend upon the turn
+index. Maps can be used to model a lattice with such RF elements, but in this case such elements
+must be excluded from be incorporated in any map by setting \vn{ltt%exclude_from_maps} appropriately.
+
+Depending upon how things are setup, a \vn{PTC} map can include radiation damping and fluctuations
+effects. \footnote
+  {
+Radiation fluctuations are included by actually using two maps to track a particle from one point to
+the next. One map represents the transport with damping and the second map represents the
+fluctuations. When a particle is tracked, the first map with damping is applied and then the second
+map is applied using six random numbers.
+  }
+Damping and excitation are controlled by two parameters that can be set in the master input file:
+\begin{code}
+bmad_com%radiation_damping_on
+bmad_com%radiation_fluctuations_on
+\end{code}
+
+Maps are saved to a file for use if the program is rerun. For linear maps, an ASCII file
+can be produced by setting \vn{ltt%map_ascii_output_file}.
+
+%------------------------------------------------------------------
+\Section{Tuning Map and PTC Tracking Parameters}
+\label{s:map.tuning}
+
+When tracking using maps or element-by-element with PTC there are a few points to keep in
+mind. First is that \vn{PTC} tracks through a lattice element step by step. This is true for both
+map creation and symplectic integration. This means that the setting of the element parameter
+\vn{integrator_order}\footnote
+  {
+Note: Valid settings for \vn{integrator_order} are 2, 4, and 6
+  }
+or \vn{num_steps} (or \vn{ds_step}) for each element will affect the accuracy and speed of the
+computations. Bmad tries to choose reasonable default settings for the integrator order and number
+of steps however the calculation is not perfect. To make sure that the integrator order and number
+of steps is set properly, vary both and choose values (which can be different for different
+elements) such that the number of steps and integrator order is minimal (to minimize computation
+time) while at the same time is large enough so that results do not change significantly if the
+number of steps or is varied. Generally it is much better to use a large integrator order and a
+small step size rather than vice versa with the proviso that for elements with a longitudinally
+varying field (think wigglers or undulators), the step size must be small compared to the typical
+longitudinal length scale over which the field is varying (this length scale is the pole period
+length with with wigglers and undulators).
+
+Another thing to keep in mind is that whether a map will give accurate results is dependent on a
+number of factors. One factor is the order of the map. Generally higher order is better but will
+take more computation time. When the lattice is tracked using a single map, the tracking is only
+valid when the tracked particles are far from any strong resonances. That is, if you are interested
+in tracking halo particles, you probably should not be using a single map.
+
+In terms of speed, using maps will be the fastest, using standard Bmad tracking will be much
+slower, and using PTC element-by-element tracking will be slowest.
+
+In terms of symplecticity, both the PTC tracking and map tracking will be symplectic.
+Bmad is not symplectic but the deviation from symplecticity is generally fairly small. If the
+radiation effects are large enough, the radiative stochastic noise will negate any non-symplectic
+effects and standard Bmad tracking can be used. A very rough rule of thumb is that if the damping times
+or the number of turns tracked are under 100,000 turns then Bmad standard tracking can be used.
+
+PTC element-by-element tracking cannot be done when using the MPI version of the \ltt program.
+
+%------------------------------------------------------------------
+\Section{Correcting the Orbit when Radiation is Present}
+
+In storage rings, When radiation damping is simulated, the orbit that is flat when there is no
+radiation will show a ``sawtooth" pattern'' in a plot of beam energy versus position. This will lead
+to a nonzero orbit. In an actual ring, the non-zero orbit will be compensated using steerings. Thus,
+to simulate the actual ring, compensating steerings should be added to the simulated lattice as
+well. How to do this is covered in the Bmad and Tao Cookbook available from the Bmad web site.
+
+%-----------------------------
 
 \begin{figure}[tb]
   \centering
