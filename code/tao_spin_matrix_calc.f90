@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_spin_matrix_calc (datum, u, ele_ref, ele_eval, excite_nullify)
+! Subroutine tao_spin_matrix_calc (datum, u, ele_ref, ele_eval, excite_zero)
 !
 ! Routine to calculate the spin g-matrix for a datum.
 !
@@ -8,13 +8,13 @@
 !   u                 -- tao_universe_struct: Tao universe used for evaluation.
 !   ele_ref           -- ele_struct: Reference lattice element for the datum
 !   ele_eval          -- ele_struct: Lattice element to evaluate at.
-!   excite_nullify(3) -- character(*): See documentation on spin_concat_linear_maps.
+!   excite_zero(3)    -- character(*): See documentation on spin_concat_linear_maps.
 !
 ! Output:
 !   datum%spin_map    -- tao_spin_map_struct, pointer: G-matrix, etc.
 !-
 
-subroutine tao_spin_matrix_calc (datum, u, ele_ref, ele_eval, excite_nullify)
+subroutine tao_spin_matrix_calc (datum, u, ele_ref, ele_eval, excite_zero)
 
 use tao_data_and_eval_mod, dummy => tao_spin_matrix_calc
 
@@ -37,7 +37,7 @@ real(rp) quat0_lnm_to_xyz(0:3), quat1_lnm_to_xyz(0:3)
 integer i, j, n, p
 logical err
 
-character(*), optional :: excite_nullify(3)
+character(*), optional :: excite_zero(3)
 
 ! Init
 
@@ -64,7 +64,7 @@ ix_ref = ele0%ix_ele
 ix_ele = ele1%ix_ele
 
 call spin_concat_linear_maps (err, spin_map%map1, branch, ix_ref, ix_ele, &
-                                      orbit = tao_branch%orbit, excite_nullify = excite_nullify)
+                                      orbit = tao_branch%orbit, excite_zero = excite_zero)
 if (err) return
 
 quat0 = spin_map%map1%spin_q(:, 0)
