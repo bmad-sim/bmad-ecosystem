@@ -167,7 +167,7 @@ character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_n
 character(40) replacement_for_blank, component
 character(60) nam, attrib_list(20), attrib
 character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
-character(200) header, str, attrib0, file_name, name
+character(200) header, str, attrib0, file_name, name, excite_nullify(3)
 character(200), allocatable :: alloc_lines(:)
 
 character(2), parameter :: q_name(0:3) = ['q0', 'qx', 'qy', 'qz']
@@ -4168,10 +4168,12 @@ case ('spin')
   ele_ref => null()
   flip = .false.
   logic = .false.
+  excite_nullify = ''
 
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', '-all', &
-                                        '-g_map', '-flip_n_axis', '-new'], .true., switch, err, ix)
+                            '-g_map', '-flip_n_axis', '-new', '-x_nullify', '-y_nullify', &
+                            '-z_nullify'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
@@ -4214,6 +4216,12 @@ case ('spin')
       nl=nl+1; lines(nl) = 'Note: "-q_map" now no longer needed or used.'
     case ('-g_map')
       show_mat = .true.
+    case ('-x_nullify')
+      call word_read(what2, '-', excite_nullify(1), ix, delim, delim_found, what2)
+    case ('-y_nullify')
+      call word_read(what2, '-', excite_nullify(2), ix, delim, delim_found, what2)
+    case ('-z_nullify')
+      call word_read(what2, '-', excite_nullify(3), ix, delim, delim_found, what2)
     end select
   enddo
 
@@ -4244,7 +4252,7 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(a, 3f12.8)') 'Beginning spin:', orb%spin
     else
-      call tao_spin_polarization_calc (branch, tao_branch)
+      call tao_spin_polarization_calc (branch, tao_branch, excite_nullify)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', tao_branch%spin%tune / twopi
       if (tao_branch%spin_valid) then
@@ -4395,7 +4403,7 @@ case ('spin')
 
     if (show_mat) then
       datum%ix_branch = ix_branch
-      call tao_spin_matrix_calc (datum, u, ele_ref, ele)
+      call tao_spin_matrix_calc (datum, u, ele_ref, ele, excite_nullify)
       if (.not. sm%valid) then
         nl=nl+1; lines(nl) = 'INVALID: ' // datum%why_invalid
         return
@@ -4419,7 +4427,10 @@ case ('spin')
     endif
 
     if (show_q) then
-      call spin_concat_linear_maps(sm%map1, branch, ele_ref%ix_ele, ele%ix_ele, orbit = tao_branch%orbit)
+      call spin_concat_linear_maps(err, sm%map1, branch, ele_ref%ix_ele, ele%ix_ele, &
+                                             orbit = tao_branch%orbit, excite_nullify = excite_nullify)
+      if (err) return
+
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Spin quaternion map - 1st order' 
       nl=nl+1; write (lines(nl), '(15x, a, 7x, 6(4x, a, 7x))') '0th order', 'dx  ', 'dpx', 'dy ', 'dpy', 'dz ', 'dpz'

@@ -3740,9 +3740,9 @@ case ('ele:wall3d')
 ! 
 ! Parameters
 ! ----------
-! expression
-! flags : default=-array_out
-!   If -array_out, the output will be available in the tao_c_interface_com%c_real.!
+! expression :
+! flags : default = -array_out
+!   If -array_out, the output will be available in the tao_c_interface_com%c_real.
 !
 ! Returns
 ! -------
