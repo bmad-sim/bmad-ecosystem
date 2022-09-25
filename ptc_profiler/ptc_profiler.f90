@@ -28,6 +28,8 @@ real(rp) stop_time, spin_diff_old, spin_diff_new
 integer ie, ii, i, k, n, p, is, ns, n_time_calc
 integer num_steps(20), integrator_order(3)
 
+logical err
+
 character(100) lat_file
 character(2), parameter :: q_name(0:3) = ['q0', 'qx', 'qy', 'qz']
 
@@ -67,7 +69,7 @@ do ie = 1, lat%n_ele_track
 
       ptc_com%old_integrator = 1   ! True
       call kill_taylor (ele%taylor);  call kill_taylor(ele%spin_taylor)
-      call spin_concat_linear_maps(old(is)%map, lat%branch(0), ie-1, ie, orbit = orbit)
+      call spin_concat_linear_maps(err, old(is)%map, lat%branch(0), ie-1, ie, orbit = orbit)
 
       old(is)%t_taylor = taylor_timer(ele, orbit(ie-1), stop_time, n_time_calc)
       old(is)%t_probe  = probe_timer(ele, orbit(ie-1), stop_time, n_time_calc)
@@ -75,7 +77,7 @@ do ie = 1, lat%n_ele_track
 
       ptc_com%old_integrator = -1  ! False
       call kill_taylor (ele%taylor);  call kill_taylor(ele%spin_taylor)
-      call spin_concat_linear_maps(new(is)%map, lat%branch(0), ie-1, ie, orbit = orbit)
+      call spin_concat_linear_maps(err, new(is)%map, lat%branch(0), ie-1, ie, orbit = orbit)
 
       new(is)%t_taylor = taylor_timer(ele, orbit(ie-1), stop_time, n_time_calc)
       new(is)%t_probe  = probe_timer(ele, orbit(ie-1), stop_time, n_time_calc)
