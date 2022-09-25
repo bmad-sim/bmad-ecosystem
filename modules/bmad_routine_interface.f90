@@ -2119,14 +2119,16 @@ subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6,
   logical, optional :: make_matrix
 end subroutine
 
-subroutine spin_concat_linear_maps (mat1, branch, n1, n2, mat1_ele, orbit)
+subroutine spin_concat_linear_maps (err_flag, mat1, branch, n1, n2, mat1_ele, orbit, excite_nullify)
   import
   implicit none
   type (spin_orbit_map1_struct) mat1
   type (spin_orbit_map1_struct), optional :: mat1_ele(:)
   type (branch_struct), target :: branch
   type (coord_struct), optional :: orbit(0:)
+  logical err_flag
   integer n1, n2
+  character(*), optional :: excite_nullify(3)
 end subroutine
 
 function spin_depolarization_rate (branch, match_info, rad_int_by_ele) result (depol_rate)
