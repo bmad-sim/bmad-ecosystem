@@ -643,15 +643,6 @@ The namelist parameters can be divided into three categories: Input files, outpu
 simulation parameters.
 
 %----------------------------------------------------
-\subsection{Input Files}
-
-The input files that can be specified in the \vn{params} namelist of the master input file are:
-\begin{description}
-\item[ltt\%lat_file] \Newline
-Name of the Bmad lattice file to use. This name is required.
-\end{description}
-
-%----------------------------------------------------
 \subsection{Output Files}
 \label{s:out.files}
 
@@ -868,7 +859,6 @@ If spin tracking is on (\vn{bmad_com%spin_tracking_on} = T), and if all three co
 Also: the values of \vn{beam_init%a_emit} and \vn{beam_init%b_emit} are used in the high energy
 space charge calculation (\sref{s:space.charge}). If set to zero (the default) or negative, the
 emittance as calculated via radiation integrals will be used. Note: A value of
-
 %
 \item[bmad_com\%...] \Newline
 The \vn{bmad_com} structure contains various parameters that affect tracking. For example, whether
@@ -906,6 +896,9 @@ individually tracking. The default value is \vn{"beambeam::*"} which excludes an
 element. See the Bmad manual section on ``\vn{Matching to Lattice Element Names}'' for details on
 the format for such lists.
 %
+\item[ltt\%lat_file] \Newline
+Name of the Bmad lattice file to use. This name is required.
+%
 \item[ltt\%map_order] \Newline
 Map order. See Section~\sref{s:track.methods}. The default is what is set in the lattice
 file and if not set in the lattice file the default is 3. Note: \vn{ltt%map_order} is only used when
@@ -941,6 +934,11 @@ system clock will be used. That is, if set to 0, the output results will vary fr
 %
 \item[ltt\%rfcavity_on] \Newline
 If set to \vn{False}, the voltage on all RF cavity elements will be turned off. Default is \vn{True}.
+%
+\item[ltt\%set_beambeam_z_crossing] \Newline
+If True (default is false), set the \vn{z_crossing} parameter of any \vn{beambeam} element in the
+lattice to the phase space $z$ value of the closed orbit? See the Bmad manual for a discussion of
+the \vn{z_crossing} parameter. Generally, \vn{ltt%set_beambeam_z_crossing} should be set True.
 %
 \item[ltt\%simulation_mode] \Newline
 Sets the simulation mode for the program. See Section~\sref{s:sim.modes} for more details.
@@ -999,12 +997,6 @@ Bmad to be commensurate with the frequencies of the time varying fields.\footnot
 If not all the frequencies are commensurate, Bmad will make a best choice and the fields that have
 frequencies that are not commensurate with the RF clock will use the standard clock instead.
   }
-%
-\item[ltt\%set_beambeam_z_crossing] \Newline
-If True (default is false), set the \vn{z_crossing} parameter of any \vn{beambeam} element in the
-lattice to the phase space $z$ value of the closed orbit? See the Bmad manual for a discussion of
-the \vn{z_crossing} parameter. Generally, \vn{ltt%set_beambeam_z_crossing} should be set True.
-
 \end{description}
 
 %------------------------------------------------------------------
