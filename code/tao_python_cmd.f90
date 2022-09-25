@@ -393,9 +393,6 @@ case ('beam_init')
 ! Command syntax:
 !   python bmad_com
 ! 
-! Parameters
-! ----------
-!
 ! Returns
 ! -------
 ! string_list 
@@ -1737,9 +1734,6 @@ case ('data_parameter')
 ! 
 ! Note: Use the "data_d2_create" and "datum_create" first to create datums.
 ! 
-! Parameters
-! ----------
-!
 ! Returns
 ! -------
 ! None
@@ -1994,9 +1988,6 @@ case ('datum_has_ele')
 ! Note: To save time, this command will not recalculate derivatives. 
 ! Use the "derivative" command beforehand to recalcuate if needed.
 ! 
-! Parameters
-! ----------
-!
 ! Returns
 ! -------
 ! string_list
@@ -3741,7 +3732,7 @@ case ('ele:wall3d')
 ! Parameters
 ! ----------
 ! expression :
-! flags : default = -array_out
+! flags : default=-array_out
 !   If -array_out, the output will be available in the tao_c_interface_com%c_real.
 !
 ! Returns
@@ -4282,9 +4273,6 @@ case ('floor_orbit')
 !   prompt_color
 !   prompt_string
 !
-! Parameters
-! ----------
-!
 ! Returns
 ! -------
 ! string_list
@@ -4356,9 +4344,6 @@ case ('global')
 ! -----
 ! Command syntax:
 !   python help
-!
-! Parameters
-! ----------
 !
 ! Returns
 ! -------
@@ -4901,9 +4886,6 @@ case ('matrix')
 ! Command syntax:
 !   python merit
 ! 
-! Parameters
-! ----------
-!
 ! Returns
 ! -------
 ! string_list
@@ -4980,9 +4962,6 @@ case ('orbit_at_s')
 ! Command syntax:
 !   python place_buffer
 ! 
-! Parameters
-! ----------
-!
 ! Returns
 ! -------
 ! None
@@ -5141,8 +5120,8 @@ case ('plot_lat_layout')
 !   python plot_list {r_or_g}
 !
 ! where "{r/g}" is:
-!   "r"      ! list regions
-!   "t"      ! list template plots
+!   "r"      ! list regions of the form ix;region_name;plot_name;visible;x1;x2;y1;y2
+!   "t"      ! list template plots of the form ix;name
 ! 
 ! Parameters
 ! ----------
@@ -5925,9 +5904,6 @@ case ('plot1')
 ! Command syntax:
 !   python ptc_com
 ! 
-! Parameters
-! ----------
-!
 ! Returns
 ! -------
 ! string_list 
@@ -6679,9 +6655,6 @@ case ('spin_resonance')
 ! Command syntax:
 !   python super_universe
 ! 
-! Parameters
-! ----------
-!
 ! Returns
 ! -------
 ! string_list
@@ -7028,9 +7001,6 @@ case ('var_create')
 !
 ! Output syntax:
 !   {v1_var name};{v1_var%v lower bound};{v1_var%v upper bound}
-!
-! Parameters
-! ----------
 !
 ! Returns
 ! -------
