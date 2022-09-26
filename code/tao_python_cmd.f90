@@ -5345,10 +5345,11 @@ case ('plot_histogram')
 !   python plot_plot_manage {plot_location}^^{plot_name}^^
 !                          {n_graph}^^{graph1_name}^^{graph2_name}^^{graphN_name}
 !
-! Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a 
-! spot where there is already a template.
-! Extra graph names can be included with ^^ connection. 
-! If {n_graph} is set to -1 then just delete the plot.
+! Where:
+!   {plot_location} is the location to place or delete a plot. Use "@Tnnn" syntax for the location.
+!   {plot_name} is the name of the plot. If deleting a plot this name is immaterial.
+!   {n_graph} is the number of associated graphs. If set to -1 then any existing plot is deleted.
+!   {graph1_name}, ... are the names of the graphs.
 ! 
 ! Parameters
 ! ----------
