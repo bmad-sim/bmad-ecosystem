@@ -1106,7 +1106,7 @@ type tao_super_universe_struct
   type (tao_mpi_struct) :: mpi = tao_mpi_struct()
   integer, allocatable :: key(:)
   type (tao_building_wall_struct) :: building_wall
-  type (tao_wave_struct) :: wave = tao_wave_struct()
+  type (tao_wave_struct) :: wave 
   integer :: n_var_used = 0
   integer :: n_v1_var_used = 0
   type (tao_cmd_history_struct) :: history(1000) = tao_cmd_history_struct() ! command history
