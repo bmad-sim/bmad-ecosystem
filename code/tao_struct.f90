@@ -60,7 +60,7 @@ end interface
 type tao_cmd_history_struct          ! Record the command history
   character(:), allocatable :: cmd   ! The command
   integer :: ix = 0                  ! Command index (1st command has ix = 1, etc.)
-  logical cmd_file                   ! Did command come from a command file
+  !! logical :: cmd_file = ''           ! Did command come from a command file
 end type
 
 !-----------------------------------------------------------------------
@@ -206,9 +206,9 @@ type tao_curve_struct
   real(rp), allocatable :: symb_size(:)  ! Symbol size. Used with symbol_size_scale. 
   integer, allocatable :: ix_symb(:)     ! Corresponding index in d1_data%d(:) array.
   real(rp) :: y_axis_scale_factor = 1    ! y-axis conversion from internal to plotting units.
-  type (qp_line_struct) line             ! Line attributes
-  type (qp_symbol_struct) symbol         ! Symbol attributes
-  type (tao_curve_orbit_struct) orbit    ! Used for E/B field plotting.
+  type (qp_line_struct) :: line = qp_line_struct()                    ! Line attributes
+  type (qp_symbol_struct) :: symbol = qp_symbol_struct()              ! Symbol attributes
+  type (tao_curve_orbit_struct) :: orbit = tao_curve_orbit_struct()   ! Used for E/B field plotting.
   integer :: ix_universe = -1            ! Universe where data is. -1 => use s%global%default_universe
   integer :: symbol_every = 1            ! Symbol every how many points.
   integer :: ix_branch = 0
@@ -255,19 +255,19 @@ type tao_graph_struct
   character(100) :: text_legend_out(10) = ''        ! Array for holding descriptive info.
   character(80) :: why_invalid = '???'              ! Informative string to print.
   type (tao_curve_struct), allocatable :: curve(:)
-  type (tao_plot_struct), pointer :: p ! pointer to parent plot
+  type (tao_plot_struct), pointer :: p => null() ! pointer to parent plot
   type (tao_floor_plan_struct) :: floor_plan = tao_floor_plan_struct()
-  type (qp_point_struct) text_legend_origin
-  type (qp_point_struct) curve_legend_origin
-  type (qp_axis_struct) x                           ! X-axis parameters.
-  type (qp_axis_struct) y                           ! Y-axis attributes.
-  type (qp_axis_struct) x2                          ! X2-axis attributes (Not currently used).
-  type (qp_axis_struct) y2                          ! Y2-axis attributes.
-  type (qp_rect_struct) margin                      ! Margin around the graph.
-  type (qp_rect_struct) scale_margin                ! Margin for scaling
+  type (qp_point_struct) :: text_legend_origin = qp_point_struct()
+  type (qp_point_struct) :: curve_legend_origin = qp_point_struct()
+  type (qp_axis_struct) :: x = qp_axis_struct()              ! X-axis parameters.
+  type (qp_axis_struct) :: y = qp_axis_struct()              ! Y-axis attributes.
+  type (qp_axis_struct) :: x2 = qp_axis_struct()             ! X2-axis attributes (Not currently used).
+  type (qp_axis_struct) :: y2 = qp_axis_struct()             ! Y2-axis attributes.
+  type (qp_rect_struct) :: margin = qp_rect_struct()         ! Margin around the graph.
+  type (qp_rect_struct) :: scale_margin = qp_rect_struct()   ! Margin for scaling
   real(rp) :: x_axis_scale_factor = 1               ! x-axis conversion from internal to plotting units.
   real(rp) :: symbol_size_scale = 0                 ! Symbol size scale factor for phase_space plots.
-  integer box(4)                                    ! Defines which box the plot is put in.
+  integer :: box(4) = 0                             ! Defines which box the plot is put in.
   integer :: ix_branch = 0                          ! Branch in lattice.
   integer :: ix_universe = -1                       ! Used for lat_layout plots.
   logical :: clip = .false.                         ! Clip plot at graph boundary.
@@ -324,16 +324,16 @@ end type
 ! plot page info.
 
 type tao_plot_page_struct
-  type (tao_title_struct) title             ! Title  at top of page.
-  type (tao_title_struct) subtitle          ! Subtitle below title at top of page.
-  type (qp_rect_struct) border              ! Border around plots edge of page.
-  type (tao_drawing_struct) :: floor_plan
-  type (tao_drawing_struct) :: lat_layout
+  type (tao_title_struct) :: title = tao_title_struct()          ! Title  at top of page.
+  type (tao_title_struct) :: subtitle = tao_title_struct()       ! Subtitle below title at top of page.
+  type (qp_rect_struct) :: border = qp_rect_struct()             ! Border around plots edge of page.
+  type (tao_drawing_struct) :: floor_plan = tao_drawing_struct(null())
+  type (tao_drawing_struct) :: lat_layout = tao_drawing_struct(null())
   type (tao_shape_pattern_struct), allocatable :: pattern(:)
   type (tao_plot_struct), allocatable :: template(:)  ! Templates for the plots.
   type (tao_plot_region_struct), allocatable :: region(:)
   character(8) :: plot_display_type = 'X'   ! 'X' or 'TK'
-  real(rp) size(2)                          ! width and height of plot window in pixels.
+  real(rp) :: size(2) = 0                   ! width and height of plot window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
   real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
   real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
@@ -1031,23 +1031,24 @@ type tao_wave_kick_pt_struct
 end type  
 
 type tao_wave_struct     ! Struct for wave analysis
-  character(40) data_type
-  real(rp) rms_rel_a, rms_rel_b, rms_rel_as, rms_rel_bs, rms_rel_ar, rms_rel_br
-  real(rp) rms_rel_k, rms_rel_ks, rms_rel_kr 
-  real(rp) rms_phi, rms_phi_s, rms_phi_r
-  real(rp) amp_ba_s, amp_ba_r, chi_a, chi_c, chi_ba
-  real(rp) amp_a(2), amp_b(2), amp_ba(2)
-  real(rp) coef_a(4), coef_b(4), coef_ba(4)
-  integer n_func   ! Number of functions used in the fit.
+  character(40) :: data_type = ''
+  real(rp) :: rms_rel_a = 0, rms_rel_b = 0, rms_rel_as = 0
+  real(rp) :: rms_rel_bs = 0, rms_rel_ar = 0, rms_rel_br = 0
+  real(rp) :: rms_rel_k = 0, rms_rel_ks = 0, rms_rel_kr = 0
+  real(rp) :: rms_phi = 0, rms_phi_s = 0, rms_phi_r = 0
+  real(rp) :: amp_ba_s = 0, amp_ba_r = 0, chi_a = 0, chi_c = 0, chi_ba = 0
+  real(rp) :: amp_a(2) = 0, amp_b(2) = 0, amp_ba(2) = 0
+  real(rp) :: coef_a(4) = 0, coef_b(4) = 0, coef_ba(4) = 0
+  integer :: n_func = 0   ! Number of functions used in the fit.
   integer :: ix_a1 = -1, ix_a2 = -1, ix_b1 = -1, ix_b2 = -1
-  integer i_a1, i_a2, i_b1, i_b2, n_a, n_b
-  integer i_curve_wrap_pt      ! Index of last point before wrap in curve array. 
+  integer :: i_a1 = 0, i_a2 = 0, i_b1 = 0, i_b2 = 0, n_a = 0, n_b = 0
+  integer :: i_curve_wrap_pt = 0      ! Index of last point before wrap in curve array. 
   integer, allocatable :: ix_data(:) ! Translates from plot point to datum index
-  integer n_kick
+  integer :: n_kick = 0
   type (tao_wave_kick_pt_struct), allocatable :: kick(:)
-  type (tao_graph_struct) :: base_graph   ! Graph before curves extended to 1.5 periods.
-  type (tao_plot_region_struct), pointer :: region    ! Where the wave plot is
-  type (tao_d1_data_struct), pointer :: d1_dat        ! D1 data for analysis
+  type (tao_graph_struct) :: base_graph                        ! Graph before curves extended to 1.5 periods.
+  type (tao_plot_region_struct), pointer :: region => null()   ! Where the wave plot is
+  type (tao_d1_data_struct), pointer :: d1_dat => null()       ! D1 data for analysis
 end type
 
 !-----------------------------------------------------------------------
@@ -1095,20 +1096,20 @@ end type
 ! Essentially this holds all the information known to the program.
 
 type tao_super_universe_struct
-  type (tao_global_struct) :: global                       ! User accessible global variables.
+  type (tao_global_struct) :: global = tao_global_struct() ! User accessible global variables.
   type (tao_init_struct) :: init = tao_init_struct()       ! Initialization parameters
   type (tao_common_struct) :: com                          ! Non-initialization common parameters
   type (tao_plot_page_struct) :: plot_page                 ! Defines the plot window.
   type (tao_v1_var_struct), allocatable :: v1_var(:)       ! The variable types
   type (tao_var_struct), allocatable :: var(:)             ! array of all variables.
   type (tao_universe_struct), allocatable :: u(:)          ! array of universes.
-  type (tao_mpi_struct) mpi
+  type (tao_mpi_struct) :: mpi = tao_mpi_struct()
   integer, allocatable :: key(:)
   type (tao_building_wall_struct) :: building_wall
-  type (tao_wave_struct) :: wave 
+  type (tao_wave_struct) :: wave = tao_wave_struct()
   integer :: n_var_used = 0
   integer :: n_v1_var_used = 0
-  type (tao_cmd_history_struct) :: history(1000) ! command history
+  type (tao_cmd_history_struct) :: history(1000) = tao_cmd_history_struct() ! command history
   logical :: initialized = .false.                 ! Does tao_init() need to be called?
 end type
 
