@@ -245,7 +245,7 @@ call match_word (cmd, [character(40) :: &
           'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'matrix', 'merit', 'orbit_at_s', &
           'place_buffer', 'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
-          'plot_plot_manage', 'plot_graph_manage', 'plot_curve_manage', &
+          'plot_template_manage', 'plot_graph_manage', 'plot_curve_manage', &
           'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'ptc_com', 'ring_general', 'shape_list', &
           'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', 'shape_set', &
           'show', 'species_to_int', 'species_to_str', 'spin_polarization', 'spin_resonance', 'super_universe', &
@@ -5336,29 +5336,29 @@ case ('plot_histogram')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
-!%% plot_plot_manage
+!%% plot_template_manage
 ! Template plot creation or destruction.
 !
 ! Notes
 ! -----
 ! Command syntax:
-!   python plot_plot_manage {plot_location}^^{plot_name}^^
-!                          {n_graph}^^{graph1_name}^^{graph2_name}^^{graphN_name}
+!   python plot_template_manage {template_location}^^{template_name}^^
+!                          {n_graph}^^{graph_names}
 !
 ! Where:
-!   {plot_location} is the location to place or delete a plot. Use "@Tnnn" syntax for the location.
-!   {plot_name} is the name of the plot. If deleting a plot this name is immaterial.
-!   {n_graph} is the number of associated graphs. If set to -1 then any existing plot is deleted.
-!   {graph1_name}, ... are the names of the graphs.
-! 
+!   {template_location} is the location to place or delete a template plot. Use "@Tnnn" syntax for the location.
+!   {template_name} is the name of the template plot. If deleting a plot this name is immaterial.
+!   {n_graph} is the number of associated graphs. If set to -1 then any existing template plot is deleted.
+!   {graph_names} are the names of the graphs.  graph_names should be in the form:
+!      graph1_name^^graph2_name^^...^^graphN_name
+!   for N=n_graph names
+!
 ! Parameters
 ! ----------
-! plot_location
-! plot_name
-! n_graph
-! graph1_name
-! graph2_name
-! graphN_name
+! template_location
+! template_name
+! n_graph : default=-1
+! graph_names : default=
 !
 ! Returns
 ! -------
@@ -5369,14 +5369,13 @@ case ('plot_histogram')
 ! Example: 1
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
 !  args:
-!    plot_location: @T1
-!    plot_name: beta
-!    n_graph: 1
-!    graph1_name: g1
-!    graph2_name: g2
-!    graphN_name: gN
+!    template_location: @T1
+!    template_name: beta
+!    n_graph: 2
+!    graph_names: g1^^g2
 
-case ('plot_plot_manage')
+
+case ('plot_template_manage')
 
   call split_this_line (line, name1, -1, err);         if (err) return
 

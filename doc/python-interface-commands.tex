@@ -1363,22 +1363,25 @@ Output plot histogram info.
 
 \end{verbatim}
 
-%% python plot_plot_manage ------------------------------------
-\subsection{python plot_plot_manage}
-\index{python!plot_plot_manage}
-\label{p:plot.plot.manage}
+%% python plot_template_manage ------------------------------------
+\subsection{python plot_template_manage}
+\index{python!plot_template_manage}
+\label{p:plot.template.manage}
 
 Template plot creation or destruction.
 
 \begin{example}
-   python plot_plot_manage \{plot_location\}^^\{plot_name\}^^
-                          \{n_graph\}^^\{graph1_name\}^^\{graph2_name\}^^\{graphN_name\}
+   python plot_template_manage \{template_location\}^^\{template_name\}^^
+                          \{n_graph\}^^\{graph_names\}
 \end{example}
 \begin{verbatim}
-Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a 
-spot where there is already a template.
-Extra graph names can be included with ^^ connection. 
-If {n_graph} is set to -1 then just delete the plot.
+Where:
+  {template_location} is the location to place or delete a template plot. Use "@Tnnn" syntax for the location.
+  {template_name} is the name of the template plot. If deleting a plot this name is immaterial.
+  {n_graph} is the number of associated graphs. If set to -1 then any existing template plot is deleted.
+  {graph_names} are the names of the graphs.  graph_names should be in the form:
+     graph1_name^^graph2_name^^...^^graphN_name
+  for N=n_graph names
 \end{verbatim}
 
 %% python plot_curve_manage ------------------------------------
