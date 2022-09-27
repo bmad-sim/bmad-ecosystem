@@ -181,8 +181,14 @@ get_filename_component(SHORT_DIRNAME ${CMAKE_SOURCE_DIR} NAME)
 #-------------------------------------------------------
 SET (ENABLE_SHARED $ENV{ACC_ENABLE_SHARED})
 
+# Added support for SHARED only library builds, as requested in RT#63875
+SET (ENABLE_SHARED_ONLY $ENV{ACC_ENABLE_SHARED_ONLY})
+IF (${ENABLE_SHARED_ONLY}) # Force setting ENABLE_SHARED
+  SET (ENABLE_SHARED "Y")
+ENDIF ()
+
 IF (${LIBNAME})
-  project(${LIBNAME})
+  PROJECT (${LIBNAME})
 ENDIF ()
 
 
@@ -660,10 +666,44 @@ set(DEPS)
 
 set(TARGETS)
 
-IF (LIBNAME)
-  add_library( ${LIBNAME} STATIC ${sources} )
-  LIST(APPEND TARGETS ${LIBNAME})
-  SET_TARGET_PROPERTIES(${LIBNAME} PROPERTIES OUTPUT_NAME ${LIBNAME})
+
+# Moved macOS Shared build specifics into a function to support SHARED only library builds, as requested in RT#63875
+FUNCTION (DARWIN_SHARED)
+  # This is a second refinement, may need cleanup.  Did Fix RT#47687.  -amd275 
+  IF ("${CMAKE_SYSTEM_NAME}" MATCHES "Darwin")
+    cmake_policy (SET CMP0042 NEW)
+    SET (MACOSX_RPATH TRUE)
+    SET (CMAKE_SKIP_RPATH FALSE)
+    SET (CMAKE_SKIP_INSTALL_RPATH FALSE)
+    SET (CMAKE_MACOSX_RPATH ON)
+    SET (CMAKE_INSTALL_RPATH ${RELEASE_OUTPUT_BASEDIR}/lib)
+    SET (INSTALL_NAME_DIR="${RELEASE_OUTPUT_BASEDIR}/lib")
+    IF (ENABLE_SHARED_ONLY) 
+      SET_TARGET_PROPERTIES (${LIBNAME} PROPERTIES INSTALL_RPATH ${RELEASE_OUTPUT_BASEDIR}/lib)
+      SET_TARGET_PROPERTIES (${LIBNAME} PROPERTIES MACOSX_RPATH ${RELEASE_OUTPUT_BASEDIR}/lib)
+    ELSE ()
+      SET_TARGET_PROPERTIES (${LIBNAME}-shared PROPERTIES INSTALL_RPATH ${RELEASE_OUTPUT_BASEDIR}/lib)
+      SET_TARGET_PROPERTIES (${LIBNAME}-shared PROPERTIES MACOSX_RPATH ${RELEASE_OUTPUT_BASEDIR}/lib)
+    ENDIF ()
+  ENDIF ()
+ENDFUNCTION ()
+
+
+# Added support for SHARED only library builds, as requested in RT#63875
+IF (ENABLE_SHARED_ONLY AND CREATE_SHARED)
+  IF (LIBNAME)
+    ADD_LIBRARY (${LIBNAME} SHARED ${sources})
+    LIST (APPEND TARGETS ${LIBNAME})
+    SET_TARGET_PROPERTIES (${LIBNAME} PROPERTIES OUTPUT_NAME ${LIBNAME})
+    TARGET_LINK_LIBRARIES (${LIBNAME} ${SHARED_DEPS} ${SHARED_LINK_LIBS})
+    DARWIN_SHARED ()
+  ENDIF ()
+ELSE ()
+  IF (LIBNAME)
+    ADD_LIBRARY (${LIBNAME} STATIC ${sources})
+    LIST (APPEND TARGETS ${LIBNAME})
+    SET_TARGET_PROPERTIES (${LIBNAME} PROPERTIES OUTPUT_NAME ${LIBNAME})
+  ENDIF ()
 ENDIF ()
 
 
@@ -689,28 +729,20 @@ ENDIF ()
 # 
 # Now works correctly with gmake -j values greater than 1
 #----------------------------------------------------------------
-IF (DEFINED ENABLE_SHARED)
+IF (ENABLE_SHARED)
 MESSAGE ("SHARED DEPS          : ${SHARED_DEPS}")
 MESSAGE ("SHARED LINKER FLAGS  : ${CMAKE_SHARED_LINKER_FLAGS}\n")
 ENDIF ()
-IF (ENABLE_SHARED AND CREATE_SHARED)
+IF (ENABLE_SHARED AND CREATE_SHARED AND NOT ENABLE_SHARED_ONLY)
   ADD_LIBRARY (${LIBNAME}-shared SHARED ${sources})
+
+  # Required when building both STATIC and SHARED Libraries are requested. 
   ADD_DEPENDENCIES (${LIBNAME}-shared ${LIBNAME}) 
+
   LIST (APPEND TARGETS ${LIBNAME}-shared)
   SET_TARGET_PROPERTIES (${LIBNAME}-shared PROPERTIES OUTPUT_NAME ${LIBNAME})
   TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${SHARED_DEPS} ${SHARED_LINK_LIBS})
-# This is a second refinement, may need cleanup.  Did Fix RT#47687.  -amd275 
-  IF ("${CMAKE_SYSTEM_NAME}" MATCHES "Darwin")
-    cmake_policy (SET CMP0042 NEW)
-    SET (MACOSX_RPATH TRUE)
-    SET (CMAKE_SKIP_RPATH FALSE)
-    SET (CMAKE_SKIP_INSTALL_RPATH FALSE)
-    SET (CMAKE_MACOSX_RPATH ON)
-    SET (CMAKE_INSTALL_RPATH ${RELEASE_OUTPUT_BASEDIR}/lib)
-    SET (INSTALL_NAME_DIR="${RELEASE_OUTPUT_BASEDIR}/lib")
-    SET_TARGET_PROPERTIES (${LIBNAME}-shared PROPERTIES INSTALL_RPATH ${RELEASE_OUTPUT_BASEDIR}/lib)
-    SET_TARGET_PROPERTIES (${LIBNAME}-shared PROPERTIES MACOSX_RPATH ${RELEASE_OUTPUT_BASEDIR}/lib)
-  ENDIF ()
+  DARWIN_SHARED ()
 ENDIF ()
 
 
@@ -764,29 +796,88 @@ foreach(exespec ${EXE_SPECS})
   # Only invoke add_library to tie in external dependencies a
   # single time for each unique target.
   #----------------------------------------------------------------
-  foreach(dep ${DEPS})
 
-    IF(${LIBNAME} MATCHES ${dep})
-    ELSE()
-      LIST(FIND TARGETS ${dep} DEP_SEEN)
-      IF(${DEP_SEEN} EQUAL -1)
-        IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
-          add_library(${dep} STATIC IMPORTED)
-          LIST(APPEND TARGETS ${dep})
-          set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
-        ELSEIF (EXISTS ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.a)
-          add_library(${dep} STATIC IMPORTED)
-          LIST(APPEND TARGETS ${dep})
-          set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.a)
-        ELSEIF (EXISTS ${RELEASE_DIR}/lib/lib${dep}.a)
-          add_library(${dep} STATIC IMPORTED)
-          LIST(APPEND TARGETS ${dep})
-          set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.a)
-        ENDIF ()
+
+  # Added support for SHARED only library builds, as requested in RT#63875
+  IF (ENABLE_SHARED AND CREATE_SHARED)
+
+    foreach(dep ${DEPS})
+
+      IF(${LIBNAME} MATCHES ${dep})
+      ELSE()
+	LIST(FIND TARGETS ${dep} DEP_SEEN)
+	IF(${DEP_SEEN} EQUAL -1)
+          IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.so)
+            add_library(${dep} SHARED IMPORTED)
+            LIST(APPEND TARGETS ${dep})
+            set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${OUTPUT_BASEDIR}/lib/lib${dep}.so)
+          ELSEIF (EXISTS ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.so)
+            add_library(${dep} SHARED IMPORTED)
+            LIST(APPEND TARGETS ${dep})
+            set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.so)
+          ELSEIF (EXISTS ${RELEASE_DIR}/lib/lib${dep}.so)
+            add_library(${dep} SHARED IMPORTED)
+            LIST(APPEND TARGETS ${dep})
+            set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.so)
+          ENDIF ()
+	ENDIF()
       ENDIF()
-    ENDIF()
 
-  endforeach(dep)
+    endforeach(dep)
+
+  ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND ENABLE_SHARED AND CREATE_SHARED)
+
+    foreach(dep ${DEPS})
+
+      IF(${LIBNAME} MATCHES ${dep})
+      ELSE()
+	LIST(FIND TARGETS ${dep} DEP_SEEN)
+	IF(${DEP_SEEN} EQUAL -1)
+          IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.dylib)
+            add_library(${dep} SHARED IMPORTED)
+            LIST(APPEND TARGETS ${dep})
+            set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${OUTPUT_BASEDIR}/lib/lib${dep}.dylib)
+          ELSEIF (EXISTS ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.dylib)
+            add_library(${dep} SHARED IMPORTED)
+            LIST(APPEND TARGETS ${dep})
+            set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.dylib)
+          ELSEIF (EXISTS ${RELEASE_DIR}/lib/lib${dep}.dylib)
+            add_library(${dep} SHARED IMPORTED)
+            LIST(APPEND TARGETS ${dep})
+            set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.dylib)
+          ENDIF ()
+	ENDIF()
+      ENDIF()
+
+    endforeach(dep)
+
+    ELSE()
+
+    foreach(dep ${DEPS})
+
+      IF(${LIBNAME} MATCHES ${dep})
+      ELSE()
+	LIST(FIND TARGETS ${dep} DEP_SEEN)
+	IF(${DEP_SEEN} EQUAL -1)
+          IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
+            add_library(${dep} STATIC IMPORTED)
+            LIST(APPEND TARGETS ${dep})
+            set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
+          ELSEIF (EXISTS ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.a)
+            add_library(${dep} STATIC IMPORTED)
+            LIST(APPEND TARGETS ${dep})
+            set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.a)
+          ELSEIF (EXISTS ${RELEASE_DIR}/lib/lib${dep}.a)
+            add_library(${dep} STATIC IMPORTED)
+            LIST(APPEND TARGETS ${dep})
+            set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.a)
+          ENDIF ()
+	ENDIF()
+      ENDIF()
+
+    endforeach(dep)
+
+  ENDIF()
 
   LINK_DIRECTORIES( ${LINK_DIRS} )
 
@@ -975,9 +1066,14 @@ foreach(exespec ${EXE_SPECS})
   SET (SHARED_FLAG "")
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     IF (FORTRAN_COMPILER MATCHES "ifort")
-      SET (STATIC_FLAG "-Wl,-Bstatic -fPIC")
-      SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
+      # Added support for SHARED only library builds, as requested in RT#63875
+      IF (ENABLE_SHARED)
+	SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
+      ELSE ()
+	SET (STATIC_FLAG "-Wl,-Bstatic -fPIC")
+      ENDIF ()
     ENDIF ()
+
     IF ("${ACC_ENABLE_OPENMP}" AND FORTRAN_COMPILER MATCHES "gfortran")
       SET (SHARED_FLAG "${SHARED_FLAG} -fopenmp")
       SET (SHARED_DEPS "${SHARED_DEPS} gomp")
