@@ -26,7 +26,7 @@ type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) voltage, phase0, phase, t0, length, charge_dir, dt_ref, beta_ref
-real(rp) k_rf, dl, beta_old, beta, pz_old, h, pc
+real(rp) k_rf, dl, beta_old, pz_old, h, pc
 real(rp) mat_2(6,6), E_old, E_new
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
@@ -70,34 +70,28 @@ do i = 1, n_slice
           (particle_rf_time ( orbit, ele, .false.) - rf_ref_time_offset(ele) ) * ele%value(rf_frequency$))
   if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
   phase = phase0
-  
-  if (logic_option(.false., make_matrix)) then
-    beta = orbit%beta
-    mat_2 = mat6
-    mat_2(2,:) = mat6(2,:) + voltage*k_rf*cos(phase)*(mat6(5,:)/beta - &
-                 mat6(6,:)*orbit%vec(5)/beta**2 * h**2/(h**2+(1+orbit%vec(6))**2)**(3/2))
-  endif
 
   orbit%vec(2) = orbit%vec(2) + voltage * sin(phase)
   pz_old = orbit%vec(6)
   beta_old = orbit%beta
 
-  !!! orbit%vec(6) = orbit%vec(6) + voltage * cos(phase) * k_rf * orbit%vec(1) / beta_old   !! Added "/ beta_old"
-  !!! call convert_pc_to ( orbit%p0c * (1 + orbit%vec(6)), orbit%species, beta =  orbit%beta)
   E_old = orbit%p0c * (1.0_rp + orbit%vec(6)) / beta_old
   E_new = E_old + voltage * cos(phase) * k_rf * orbit%vec(1) * orbit%p0c
   call convert_total_energy_to (E_new, orbit%species, beta = orbit%beta, pc = pc)
   orbit%vec(6) = (pc - orbit%p0c) / orbit%p0c
-  !!!
 
   if (logic_option(.false., make_matrix)) then
-    beta = orbit%beta
+    mat_2 = mat6
+
+    mat_2(2,:) = mat6(2,:) + voltage*k_rf*cos(phase)*(mat6(5,:)/beta_old - &
+                 mat6(6,:)*orbit%vec(5)/beta_old**2 * h**2/(h**2+(1+pz_old)**2)**(1.5))
+
     mat_2(6,:) = E_new/pc * ( mat6(6,:)*beta_old + voltage*k_rf*(cos(phase)*mat6(1,:) - & 
                  sin(phase)*k_rf*orbit%vec(1)*(mat6(5,:)/beta_old - &
-                 mat6(6,:)*orbit%vec(5)/beta_old**2 * h**2/(h**2+(1+pz_old)**2)**(3/2))))
+                 mat6(6,:)*orbit%vec(5)/beta_old**2 * h**2/(h**2+(1+pz_old)**2)**(1.5))))
     
-    mat_2(5,:) = mat6(5,:)*beta/beta_old + orbit%vec(5)*(mat_2(6,:)/beta_old * h**2/(h**2+(1+orbit%vec(6))**2)**(3/2) - &
-                 mat6(6,:)*beta/beta_old**2 * h**2/(h**2+(1+pz_old)**2)**(3/2))
+    mat_2(5,:) = mat6(5,:)*orbit%beta/beta_old + orbit%vec(5)*(mat_2(6,:)/beta_old * h**2/(h**2+(1+orbit%vec(6))**2)**(1.5) - &
+                 mat6(6,:)*orbit%beta/beta_old**2 * h**2/(h**2+(1+pz_old)**2)**(1.5))
     
     mat6 = mat_2
   endif
