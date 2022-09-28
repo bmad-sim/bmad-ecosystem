@@ -48,3 +48,5 @@ alias mat6off set universe * twiss_calc off
 
 x-a all s
 sc
+
+use var quad
