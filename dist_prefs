@@ -117,11 +117,29 @@ export ACC_ENABLE_GFORTRAN_OPTIMIZATION="Y"
 
 #-----------------------------------------------------------
 # If ACC_ENABLE_SHARED is set to "Y", shared versions of the
-# libraries will be created. Static library building will always
+# libraries will be created. Static library building will 
 # be done independent of the setting of ACC_ENABLE_SHARED and
 # Executables will always be built using the static libraries.
+#
+# ACC_ENABLE_SHARED_ONLY must set to "N" if
+# ACC_ENABLE_SHARED is set to "Y"
 #-----------------------------------------------------------
 export ACC_ENABLE_SHARED="N"
+
+
+#-----------------------------------------------------------
+# If ACC_ENABLE_SHARED_ONLY is set to "Y", shared versions 
+# of the libraries, are built without any static archive 
+# (*.a files) library dependancies.
+# Shared library building will only be done for a project 
+# with CREATE_SHARED set to TRUE in the CMakeLists.txt 
+# file, as well, the project's executables will be built 
+# without using the static libraries.
+#
+# ACC_ENABLE_SHARED must be set to "N", if 
+# ACC_ENABLE_SHARED_ONLY is set to "Y"
+#-----------------------------------------------------------
+export ACC_ENABLE_SHARED_ONLY="N"
 
 
 #-----------------------------------------------------------
