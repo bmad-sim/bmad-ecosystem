@@ -799,7 +799,7 @@ foreach(exespec ${EXE_SPECS})
 
 
   # Added support for SHARED only library builds, as requested in RT#63875
-  IF (ENABLE_SHARED AND CREATE_SHARED)
+  IF (ENABLE_SHARED_ONLY AND CREATE_SHARED)
 
     foreach(dep ${DEPS})
 
@@ -825,7 +825,7 @@ foreach(exespec ${EXE_SPECS})
 
     endforeach(dep)
 
-  ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND ENABLE_SHARED AND CREATE_SHARED)
+  ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND ENABLE_SHARED_ONLY AND CREATE_SHARED)
 
     foreach(dep ${DEPS})
 
@@ -1067,9 +1067,10 @@ foreach(exespec ${EXE_SPECS})
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     IF (FORTRAN_COMPILER MATCHES "ifort")
       # Added support for SHARED only library builds, as requested in RT#63875
-      IF (ENABLE_SHARED)
+      IF (ENABLE_SHARED_ONLY)
 	SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
       ELSE ()
+	SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
 	SET (STATIC_FLAG "-Wl,-Bstatic -fPIC")
       ENDIF ()
     ENDIF ()
