@@ -1005,9 +1005,13 @@ else
         s2_name(i2)%str = atom%name
       endif
 
-    case (unary_minus$, unary_plus$)
+    case (unary_minus$)
       if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2)%str = '(' // trim(s2_name(i2)%str) // ')'
       s2_name(i2)%str = '-' // s2_name(i2)%str
+ 
+    case (unary_plus$)
+      if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2)%str = '(' // trim(s2_name(i2)%str) // ')'
+      s2_name(i2)%str = '+' // s2_name(i2)%str
  
     case (ran$)
       i2 = i2 + 1
