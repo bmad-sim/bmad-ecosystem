@@ -22,7 +22,7 @@ integer ran_seed, i
 character(100) lat_file_name, input_file
 logical err_flag
 
-namelist / params / lat_file_name, beam_init, csr_param, bmad_com, ran_seed
+namelist / params / lat_file_name, beam_init, space_charge_com, bmad_com, ran_seed
 
 ! Get main input file name from the command line if specified.
 
@@ -35,7 +35,7 @@ input_file = 'csr.init'   ! Default
 if (command_argument_count() == 1) call get_command_argument (1, input_file)
 
 ! Open main file and read namelist.
-! Note: csr_param and bmad_com are global varibles
+! Note: space_charge_com and bmad_com are global varibles
 
 ran_seed = 0    ! Default
 

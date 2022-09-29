@@ -1,9 +1,0 @@
-
-
-vv
-vd
-use dat demerge.2
-use var p2
-olmdif
-run
-show var -bmad -good

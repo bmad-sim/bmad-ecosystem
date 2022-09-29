@@ -1,8 +1,0 @@
-&parameters
-  lat_file = "aa00a_ele.bmad.v2.lat"
-  tracking_method = 2
-  dims = 4
-  n_turns=100
-  vec_file = "init_vecs.dat"
-&end
-

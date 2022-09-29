@@ -59,7 +59,7 @@ rf_freq0 = branch%ele(ix_rf(1))%value(rf_frequency$)  ! Assume all cavities have
 ! See the Bmad manual discussion on relative verses absolute time tracking.
 ! With absolute time tracking, use auto phasing to set phi0_ref.
 
-lat%absolute_time_tracking = .true.
+bmad_com%absolute_time_tracking = .true.
 
 do n = 1, size(ix_rf)
   ix = ix_rf(n)
