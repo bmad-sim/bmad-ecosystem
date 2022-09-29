@@ -1,0 +1,35 @@
+! This lattice is discussed in the Bmad manual in Lattice Examples chapter.
+
+beginning[e_tot] = 8.955e3   ! Reference photon energy
+parameter[particle] = photon
+
+phi = 0
+err = 0
+r_rowland = 0.5  ! Rowland circle radius
+
+source: photon_init, sig_x = 5e-5, sig_y = 5e-5, spatial_distribution = uniform,
+        E_center_relative_to_ref = T, sig_E = 2, energy_distribution = gaussian,
+        velocity_distribution = spherical
+drift1: drift
+cryst: crystal, crystal_type = "Si(553)", b_param = -1, aperture = 0.050,
+ curvature = {spherical = (1+err) / (2 * r_rowland)}, aperture_type = elliptical
+drift2: drift
+det: detector, pixel = {ix_bounds = (-97, 97), iy_bounds = (-243, 243), dr = (172e-6, 172e-6)}
+daves_line: line = (source, drift1, cryst, drift2, det)
+use, daves_line
+
+!------------------
+
+expand_lattice ! Calculates the Bragg angles needed below.
+
+theta_in  = cryst[bragg_angle_in]  ! 78.2759 * pi / 180
+theta_out = cryst[bragg_angle_out] ! 78.2759 * pi / 180
+
+cryst[graze_angle_in]  = theta_in - phi/2
+cryst[graze_angle_out] = theta_out - phi/2
+
+drift1[L] = 2 * r_rowland * sin(theta_in-phi/2)
+drift2[L] = 2 * r_rowland * sin(theta_out-phi/2)
+
+beginning[theta_position] = theta_in + phi/2
+det[x_pitch] = pi/2 - theta_out + phi/2

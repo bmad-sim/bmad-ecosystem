@@ -1,0 +1,10 @@
+set(EXENAME lapack_examples)
+set (SRC_FILES 
+  lapack_examples/lapack_examples.f90
+)
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

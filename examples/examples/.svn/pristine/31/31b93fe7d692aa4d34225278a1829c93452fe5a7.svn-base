@@ -1,0 +1,90 @@
+!+ 
+! Program particle_track_example
+!
+! Example program to track a particle a number of turns through a lattice.
+!
+! Command line syntax:
+!   <path-to-bin-dir>/bin/particle_track_example <param-file-name>
+! Default:
+!   <param-file-name> = "particle_track.init"
+!
+! Output:
+!   track.dat
+!-
+
+program particle_track_example
+
+use bmad
+
+implicit none
+
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (coord_struct) start_orbit
+type (coord_struct), allocatable :: orbit(:)
+
+integer :: ran_seed = 0, n_turn = 1, ix_branch = 0
+integer it, track_state
+logical err_flag
+character(100) param_file, lat_file, dat_file
+
+namelist / params / lat_file, dat_file, n_turn, ix_branch, start_orbit, ran_seed, bmad_com
+
+!------------------------------------------
+! Get the input parameters
+
+param_file = 'particle_track.init'    ! Default parameter file name
+if (command_argument_count() > 1) then
+  call get_command_argument(1, param_file)
+endif
+
+open (1, file = param_file)
+read (1, nml = params)       ! Fortran namelist read
+close (1)
+
+call ran_seed_put(ran_seed)
+
+!------------------------------------------
+! Parse the lattice.
+! Also reread the input parameters in case bmad_com components are set in the lattice.
+! We want bmad_com components set in the param file to supercede.
+
+print *,"Using lattice: ", quote(lat_file)
+call bmad_parser (lat_file, lat)
+
+
+open (1, file = param_file)
+read (1, nml = params)       ! Fortran namelist read
+close (1)
+
+!------------------------------------------
+! Tracking init.
+
+branch => lat%branch(ix_branch) ! Lattice branch to track through
+
+call ran_seed_put (ran_seed)                               ! Ran used if radiation is on.
+call reallocate_coord(orbit, lat, ix_branch)               ! Allocate orbit(0:) array.
+call init_coord (orbit(0), start_orbit, branch%ele(0), downstream_end$)  ! Init orbit(0).
+
+!------------------------------------------
+! And track.
+
+open(1, file = dat_file)
+write (1, '(a, 6(12x,a), 4x, 3(11x,a))') '#  Ix', ' x', 'px', ' y', 'py', ' z', 'pz', 'Sx', 'Sy', 'Sz'
+
+write (1, '(i6, 6f14.8, 4x, 3f13.8)') 0, orbit(0)%vec, orbit(0)%spin
+
+do it = 1, n_turn
+  call track_all (lat, orbit, ix_branch, track_state, err_flag)   ! Track 1-turn.
+  orbit(0) = orbit(branch%n_ele_track)                            ! Set initial orbit = final.
+  if (track_state /= moving_forward$) then
+    print *, 'Particle lost on turn: ' // int_str(it) // ' At element: ' // int_str(track_state)
+    exit
+  endif
+  write (1, '(i6, 6f14.8, 4x, 3f13.8)') it, orbit(0)%vec, orbit(0)%spin
+enddo
+
+close(1)
+print *, "Written: ", trim(dat_file)
+
+end program

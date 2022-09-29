@@ -1,0 +1,98 @@
+
+
+parameter[lattice] = "CBETA full FFAG arc without entrance patches"
+BEGINNING[BETA_A]  = 5
+BEGINNING[ALPHA_A]=  1
+BEGINNING[BETA_B] = 5
+BEGINNING[ALPHA_B] = 1
+
+parameter[geometry] = open
+PARAMETER[particle] = electron
+
+!!beginning[theta_position] = (-40)*pi/180 + 1.8978957601635187e-02
+beginning[theta_position] = (-40)*pi/180 
+
+
+parameter[e_tot] = 6e6
+
+
+call, file = cell/cell.bmad
+!call, file = cell/cell.use_fields.bmad
+ 
+
+! FA without reverse merge or align patch
+call, file = fx.bmad
+call, file = ../tx/tx.bmad
+
+!call, file = fa.X.bmad
+!call, file = fa.field_overlaps_test.bmad
+
+
+!call, file = fa.overlays.bmad
+
+! BPMs, instruments
+call, file = fa.bpms.bmad
+!call, file = fa.instruments.bmad
+!call, file = ta.bpms.bmad
+
+
+!call, file = fa.correctors.bmad 
+
+! 
+! call, file = fb.mirror.bmad
+
+
+call, file = ../zx/zx.bmad
+
+
+
+!call, file = ../za/za.X.bmad
+!call, file = ../za/zb.X.bmad 
+!call, file = ../za/za.bpms.bmad
+
+!call, file = ../za/scott_za.bmad
+
+!call, file = ../za/za.correctors.bmad
+!call, file = ../za/za.overlays.bmad 
+
+!call, file = fa.apertures.bmad
+!O_FA.aperture[r0] = 32e-3
+
+
+!*[tracking_method] = symp_lie_ptc
+!*[mat6_calc_method] = symp_lie_ptc
+
+!*[tracking_method] = time_runge_kutta
+!*[mat6_calc_method] = tracking
+
+*[ds_step] = .01
+
+Mar.BEG: marker
+Mar.END: marker
+
+LA.ORBIT_SHIFT: MATCH, 
+  beta_a0  = 1, alpha_a0 = 0, beta_a1  = 1, alpha_a1 = 0,
+  beta_b0  = 1, alpha_b0 = 0, beta_b1  = 1, alpha_b1 = 0
+
+
+
+call, file = cell/beam_start1.bmad
+lat: line = (Mar.BEG,
+!!  fa.cell00,
+  FA.arc_cells,
+  TA_single,
+  ZA_single, 
+  ZB_single,
+  TB_single,
+  FB_single, 
+  Mar.END)
+
+
+
+
+
+
+use, lat
+
+
+!use, FA.Gir01test

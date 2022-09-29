@@ -1,0 +1,62 @@
+&TT_in
+lat_file = '/home/ehrlichm/CesrTA/lat/cta_2085mev_20081107.lat'
+nturns = 16384  !must be a power of 2.  imposed by call to the nr fft subroutine four1_cp
+nTTs = 3
+
+tt_params(1)%useSaveState = .false.
+tt_params(1)%orientation = 'h'
+tt_params(1)%kck_loc = 578
+tt_params(1)%bpm_loc = 770
+tt_params(1)%LPinertia = 32768   ! LP filter time constant is LPinertia*fastPeriod.  2^15 = 32768
+tt_params(1)%cyc_per_turn = 183  ! Number of times tune tracker cycles per CESR period.  Usually 183
+tt_params(1)%log_period = 1
+tt_params(1)%Ki = 0.5   ! integrator gain
+tt_params(1)%Kp = 50.0    ! proportional gain
+tt_params(1)%Kvco = 10.0   ! VCO gain.  Redundant, because total gain looks like Kvco*(Ki*x + Kp*y + Kd*z)
+tt_params(1)%modTfrac0 = 0.57100   ! guess of fractional tune.  used to compute w0 of modulator
+tt_params(1)%kickAmplitude = 2.0E-9
+tt_params(1)%mixmode = 'sin'
+!Parameters specific to D channel
+tt_params(1)%use_D_chan = .false.
+tt_params(1)%Kd = 0.0001     ! differential gain
+tt_params(1)%wls_N = 25   ! Number of data points for LS fit.  More DP makes smoother but increases delay
+tt_params(1)%wls_order = 1  ! Order of fit polynomial.  Higher order is more accurate but noisier
+
+tt_params(2)%useSaveState = .false.
+tt_params(2)%orientation = 'v'
+tt_params(2)%kck_loc = 578
+tt_params(2)%bpm_loc = 770
+tt_params(2)%LPinertia = 32768   ! LP filter time constant is LPinertia*fastPeriod.  2^15 = 32768
+tt_params(2)%cyc_per_turn = 183 ! Number of times tune tracker cycles per CESR period.  Usually 183
+tt_params(2)%log_period = 3
+tt_params(2)%Ki = 0.5   ! integrator gain
+tt_params(2)%Kp = 50.0    ! proportional gain
+tt_params(2)%Kvco = 10.0   ! VCO gain.  Redundant, because total gain looks like Kvco*(Ki*x + Kp*y + Kd*z)
+tt_params(2)%modTfrac0 = 0.62000   ! guess of fractional tune.  used to compute w0 of modulator
+tt_params(2)%kickAmplitude = 2.0E-9
+tt_params(2)%mixmode = 'sin'
+!Parameters specific to D channel
+tt_params(2)%use_D_chan = .false.
+tt_params(2)%Kd = 0.0010  ! differential gain
+tt_params(2)%wls_N = 25   ! Number of data points for LS fit.  More DP makes smoother but increases delay
+tt_params(2)%wls_order = 1  ! Order of fit polynomial.
+
+tt_params(3)%useSaveState = .false.
+tt_params(3)%orientation = 'z'
+tt_params(3)%kck_loc = 78
+tt_params(3)%bpm_loc = 692
+tt_params(3)%LPinertia = 32768   ! LP filter time constant is LPinertia*fastPeriod.  2^15 = 32768
+tt_params(3)%cyc_per_turn = 183
+tt_params(3)%log_period = 0
+tt_params(3)%Ki = 0.5   ! integrator gain
+tt_params(3)%Kp = 50.0    ! proportional gain
+tt_params(3)%Kvco = 10.0   ! VCO gain.  Redundant, because total gain looks like Kvco*(Ki*x + Kp*y + Kd*z)
+tt_params(3)%modTfrac0 = 0.07000   ! guess of fractional tune.  used to compute w0 of modulator
+tt_params(3)%kickAmplitude = 2.0E-6
+tt_params(3)%mixmode = 'sin'
+!Parameters specific to D channel
+tt_params(3)%use_D_chan = .false.
+tt_params(3)%Kd = 0.0     ! differential gain
+tt_params(3)%wls_N = 50   ! Number of data points for LS fit.  More DP makes smoother but increases delay
+tt_params(3)%wls_order = 2  ! Order of fit polynomial.
+/

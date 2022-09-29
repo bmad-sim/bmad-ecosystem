@@ -1,0 +1,83 @@
+&tao_plot_page
+  place(1) = 'r12',   'data_orbit'
+  place(2) = 'r22',   'data_orbit'
+  place(3) = 'layout' 'lat_layout'
+/
+
+&lat_layout_drawing
+  include_default_shapes = T
+  ele_shape(1) = "marker::det*", "x", "green", 0.15, "name", T, F
+/
+
+!------------------------------------
+
+&tao_template_plot
+  plot%name = 'data_orbit'  ! Name of template plot.
+  plot%x_axis_type = 's'    ! Graph x-axes are longitudinal s-coordinate.
+  plot%autoscale_gang_y = F ! So scale command scales the graphs separately.
+  plot%n_graph = 2          ! There are 2 associated graphs.
+/
+
+&tao_template_graph
+  graph_index = 1               ! First graph.
+  graph%name = 'x'              ! Graph name is "data_orbit.x"
+  graph%box = 1, 1, 1, 2        ! Graph is in lower half of the plot region.
+  graph%title = 'X Orbit [mm]'  ! Graph title
+  graph%y%label = 'X (mm)'      ! Graph y-axis label.
+
+  curve(1:3)%y_axis_scale_factor = 1e3, 1e3, 1e3  ! mm
+
+  curve(1)%name = 'lat'          ! 1st curve name is "data_orbit.x.lat"
+  curve(1)%data_source = 'lat'   ! Data is drawn from lattice calculations...
+  curve(1)%data_type = 'orbit.x' !   ... In particular, from the horizontal orbit.
+  curve(1)%draw_symbols = F      ! Do not draw any symbols.
+  curve(1)%draw_line = T         ! But do draw a orbit curve.
+  curve(1)%line%color = 'blue'
+
+  curve(2)%name = 'dat'          ! 2nd curve name is "data_orbit.x.dat"
+  curve(2)%data_source = 'data'  ! Data is drawn from a data block...
+  curve(2)%data_type = 'orbit.x' !   ... In particular, the "orbit.x" data block.
+  curve(2)%draw_symbols = T      ! Draw symbols at the data points.
+  curve(2)%draw_line = F         ! Do not draw lines between the data points.
+  curve(2)%symbol%height = 25
+
+  curve(3)%name = 'meas'         ! 3rd curve name is "data_orbit.x.meas"
+  curve(3)%data_source = 'data'  ! Data is drawn from a data block...
+  curve(3)%data_type = 'orbit.x' !   ... use the same data block as data_orbit.x.dat. 
+  curve(3)%component = 'meas'    ! But here use the "meas" component.
+  curve(3)%draw_symbols = T      ! Draw symbols at the data points.
+  curve(3)%draw_line = F         ! Do not draw lines between the data points.
+  curve(3)%symbol%height = 15
+/
+
+&tao_template_graph
+  graph_index = 2                ! Second graph.
+  graph%name = 'y'
+  graph%box = 1, 2, 1, 2
+  graph%title = 'Y Orbit [mm]'
+  graph%y%label = 'Y (mm)'
+
+  curve(1:3)%y_axis_scale_factor = 1e3, 1e3, 1e3  ! mm
+
+  curve(1)%name = 'lat'
+  curve(1)%data_source = 'lat'
+  curve(1)%data_type = 'orbit.y'
+  curve(1)%draw_symbols = F
+  curve(1)%draw_line = T
+  curve(1)%line%color = 'blue'
+
+  curve(2)%name = 'dat'
+  curve(2)%data_source = 'data'
+  curve(2)%data_type = 'orbit.y'
+  curve(2)%draw_symbols = T
+  curve(2)%draw_line = F
+  curve(2)%symbol%height = 25
+
+  curve(3)%name = 'meas'
+  curve(3)%component = 'meas'
+  curve(3)%data_source = 'data'
+  curve(3)%data_type = 'orbit.y'
+  curve(3)%draw_symbols = T
+  curve(3)%draw_line = F
+  curve(3)%symbol%height = 15
+/

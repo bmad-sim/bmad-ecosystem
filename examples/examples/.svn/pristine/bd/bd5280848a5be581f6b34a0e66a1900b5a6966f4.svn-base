@@ -1,0 +1,14 @@
+
+place floor orbit
+x-a all s
+sc
+vv
+vd
+use dat demerge.1[1]
+use var p1[1]
+vk
+set var p1[1]|key_bound = T
+
+olmdif
+run
+show var -bmad -good

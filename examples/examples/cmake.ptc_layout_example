@@ -1,0 +1,10 @@
+set(EXENAME ptc_layout_example)
+set (SRC_FILES 
+  ptc_layout_example/ptc_layout_example.f90
+)
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

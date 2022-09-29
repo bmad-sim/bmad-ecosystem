@@ -1,0 +1,22 @@
+BEGINNING[BETA_A]  = 20
+BEGINNING[ALPHA_A]=  -1
+BEGINNING[BETA_B] = 20
+BEGINNING[ALPHA_B] = -3
+
+PARAMETER[particle] = electron
+PARAMETER[geometry] = open
+parameter[absolute_time_tracking] = T
+
+
+parameter[e_tot] = 5e6
+
+call, file = sub_files/in.loop.bmad
+
+!lat: LINE = (in.loop)
+lat: LINE = (HTC_with_Loop)
+
+use, lat
+
+! Energy recovery
+expand_lattice
+!CAVITY7SIMPLE\2[phi0_multipass] = 0.5

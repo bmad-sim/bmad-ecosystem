@@ -1,0 +1,104 @@
+                          
+vv
+vd
+call SetMultiOrbit.tao
+call PhaseSet.tao
+sc floor -40 40
+sc top 0 3
+sc middle 0 0.5
+
+
+
+
+!scalF = +1.0000
+!scalD = +1.0137
+!dispD = -1.230e-3
+!
+! Bmad
+!e_tot(MeV)                     x(m)                  cpx(eV)                       Qx                       Qy                    t(ns)
+! 4.200000000000000E+07   -1.278639403947588E-02   -4.904230513293269E+06    3.686916019840126E-01    2.947293399402423E-01    1.484002620313360E+00
+! 7.800000000000000E+07   -1.311620727396178E-02   -4.904992343543442E+06    1.765187146197880E-01    1.274575805280361E-01    1.478715000288762E+00
+! 1.140000000000000E+08    1.484617690543927E-04   -2.409815245853078E+06    1.219831910195745E-01    6.850320609214343E-02    1.480681756533815E+00
+! 1.500000000000000E+08    2.295780438672984E-02    1.875616280181223E+06    9.955151821720666E-02    4.130854678415499E-02    1.487123629478020E+00
+! Scott     
+! +4.2000000000000000e+07 -1.2819736950224814e-02  -4.9046390635435395e+06  +3.6798748380918095e-01  +2.9401061610579710e-01  +1.4839915962893514e-09
+! +7.8000000000000000e+07 -1.3125434160415663e-02  -4.9002999691114668e+06  +1.7677136591659925e-01  +1.2712542072705341e-01  +1.4787065495273388e-09
+! +1.1400000000000000e+08 +4.7687022990272656e-05  -2.4237431079278844e+06  +1.2271664222433748e-01  +6.8555549596496831e-02  +1.4806549837774612e-09
+! +1.5000000000000000e+08 +2.2611792916924674e-02  +1.8145537558324933e+06  +9.9947636619208108e-02  +4.1990256951635038e-02  +1.4870186212155193e-09
+
+! Using Bmad numbers:
+set dat 1@fmatch.end[1]|meas =   -1.278639403947588E-02
+set dat 1@fmatch.end[2]|meas =   -4.904230513293269E+06 / 4.1996891E+07
+
+set dat 2@fmatch.end[1]|meas =   -1.311620727396178E-02  
+set dat 2@fmatch.end[2]|meas =   -4.904992343543442E+06  / 7.7998326E+07
+
+set dat 3@fmatch.end[1]|meas =   1.484617690543927E-04
+set dat 3@fmatch.end[2]|meas =   -2.409815245853078E+06/ 1.1399885E+08
+
+set dat 4@fmatch.end[1]|meas =  2.295780438672984E-02 
+set dat 4@fmatch.end[2]|meas =  1.875616280181223E+06  / 1.4999913E+08
+
+ 
+set dat 1@tune[1]|meas= 0.368 
+set dat 1@tune[2]|meas=  2.947293399402423E-01
+
+set dat 2@tune[1]|meas=     1.765187146197880E-01
+set dat 2@tune[2]|meas=   1.274575805280361E-01   
+
+set dat 3@tune[1]|meas=  1.219831910195745E-01
+set dat 3@tune[2]|meas=  6.850320609214343E-02
+
+set dat 4@tune[1]|meas=  9.955151821720666E-02
+set dat 4@tune[2]|meas=  0.042
+
+set dat 1@time.harmonic[1]|meas =  1.484002620313360E+00 * 1.3
+set dat 2@time.harmonic[1]|meas =  1.478715000288762E+00 * 1.3
+set dat 3@time.harmonic[1]|meas =  1.480681756533815E+00 * 1.3
+set dat 4@time.harmonic[1]|meas =  1.487123629478020E+00 * 1.3 
+ 
+
+set dat *@time.harmonic|weight = 1e3
+set dat *@fmatch|weight =  1e3
+set dat *@tune|weight   = 10
+set dat *@fit.trace|weight   = 10
+
+set data 1@fit.trace[1]|meas = 2.0*cos(twopi*0.368 )
+set data 1@fit.trace[2]|meas = 2.0*cos(twopi*2.947293399402423E-01 )
+set data 4@fit.trace[1]|meas = 2.0*cos(twopi*9.955151821720666E-02)
+set data 4@fit.trace[2]|meas = 2.0*cos(twopi* 0.042)
+
+
+ 
+
+!use dat *@fmatch
+
+!use dat 1@fmatch.end 
+!use dat 4@fmatch.end
+
+use dat *@fmatch.end 
+
+
+use dat 1@tune[1,2]
+use dat 4@tune[1,2]
+!use dat 1@fit.trace
+!use dat 2@fit.trace
+
+!use dat 1@time.harmonic[1]
+!use dat 4@time.harmonic[1]
+use dat *@time.harmonic[1]
+
+
+!set uni 2 off
+!set uni 3 off
+
+use var q[1,2,4]
+vk
+set var q[1,2,4]|key_bound = T
+
+
+!use var edge[1,2]
+!use var lengths
+ 
+!use var multipoles
+

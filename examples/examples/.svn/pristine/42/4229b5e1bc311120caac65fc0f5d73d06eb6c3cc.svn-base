@@ -1,0 +1,181 @@
+!---------------- CRMOD ------------
+!
+!
+!    ___                                                _         
+!   / (_)                                    |         | |     
+!  |      ,_          __   _  _  _    __   __|         | |  _    
+!  |     /  |  |   | /  \_/ |/ |/ |  /  \_/  |  |   |  |/  |/    
+!   \___/   |_/ \_/|/\__/   |  |  |_/\__/ \_/|_/ \_/|_/|__/|__/ 
+!                 /|                                                   
+!                 \|   
+! 
+
+
+CALL, FILE = ../cavity2/in.cavity2.bmad
+CALL, FILE = ../cavity2/in.cavity2_reverse.bmad
+
+
+in.crmod.prb_ctr = 10.924*0.0254
+in.crmod.cpl_ctr = 10.196*0.0254
+in.crmod.fm_prb_ctr = 0.286
+in.crmod.fm_cpl_ctr = 0.198
+
+!---Standard Elements
+
+IN.CRMOD.HOMABSORBER_AHALF: pipe, type = "HOMABSORBER", L = 12.8*0.0254 + in.crmod.prb_ctr - in.crmod.fm_prb_ctr,
+    wall = {
+	section = { s = 0,
+	  v(1) = {0, 0, 0.060198/2}},
+	section = { s = IN.CRMOD.HOMABSORBER_AHALF[L],
+	  v(1) = {0, 0, .106/2}}}
+! Subtract a mil to the drawing number to get the total right
+IN.CRMOD.HOMABSORBER_A: pipe, type = "HOMABSORBER", L = (12.130-0.001)*0.0254 + 2*(in.crmod.prb_ctr - in.crmod.fm_prb_ctr),  aperture = 0.106/2
+!    wall = {
+!	section = { s = 0,
+!	  v(1) = {0, 0, IN.CRMOD.HOMABSORBER_A[aperture]}},
+!	section = { s = IN.CRMOD.HOMABSORBER_A[L],
+!	  v(1) = {0, 0, IN.CRMOD.HOMABSORBER_A[aperture]}}}	
+
+IN.CRMOD.HOMABSORBER_B: pipe, type = "HOMABSORBER", L = 10.55*0.0254,   aperture = 0.078/2
+!    wall = {
+!	section = { s = 0,
+!	  v(1) = {0, 0, IN.CRMOD.HOMABSORBER_B[aperture]}},
+!	section = { s = IN.CRMOD.HOMABSORBER_B[L],
+!	  v(1) = {0, 0, IN.CRMOD.HOMABSORBER_B[aperture]}}}
+
+IN.CRMOD.Gat: PIPE, L = 2.953*0.0254, aperture = 0.060198/2,
+    wall = {
+	section = { s = 0,
+	  v(1) = {0, 0, IN.CRMOD.Gat[aperture]}},
+	section = { s = IN.CRMOD.Gat[L],
+	  v(1) = {0, 0, IN.CRMOD.Gat[aperture]}}}
+
+!---Markers
+IN.CRMOD.Mar.BEG: MARKER
+IN.CRMOD.Mar.END: MARKER
+
+IN.CRMOD.Pip01: PIPE, L = 5.318*0.0254, aperture = 0.060198/2,
+    wall = {
+	section = { s = 0,
+	  v(1) = {0, 0, IN.CRMOD.Pip01[aperture]}},
+	section = { s = IN.CRMOD.Pip01[L],
+	  v(1) = {0, 0, IN.CRMOD.Pip01[aperture]}}}
+
+IN.CRMOD.GAT01: in.crmod.gat
+
+IN.CRMOD.HOM01: IN.CRMOD.HOMABSORBER_AHALF
+
+in.crmod.rfc_pad: pipe, l = in.crmod.cpl_ctr - in.crmod.fm_cpl_ctr, aperture = .078/2
+!    wall = {
+!	section = { s = 0,
+!	  v(1) = {0, 0, IN.CRMOD.RFC_PAD[aperture]}},
+!	section = { s = IN.CRMOD.RFC_PAD[L],
+!	  v(1) = {0, 0, IN.CRMOD.RFC_PAD[aperture]}}}
+
+RA2CAV01: in.cavity2_reverse 
+RA2CAV01.PAD: in.crmod.rfc_pad
+
+IN.CRMOD.HOM02: IN.CRMOD.HOMABSORBER_B
+
+RA2CAV02.PAD: in.crmod.rfc_pad
+RA2CAV02: in.cavity2
+
+IN.CRMOD.HOM03: IN.CRMOD.HOMABSORBER_A
+
+
+RA2CAV03: in.cavity2_reverse 
+RA2CAV03.PAD: in.crmod.rfc_pad
+
+IN.CRMOD.HOM04: IN.CRMOD.HOMABSORBER_B
+
+RA2CAV04.PAD: in.crmod.rfc_pad
+RA2CAV04: in.cavity2
+
+IN.CRMOD.HOM05: IN.CRMOD.HOMABSORBER_A
+
+RA2CAV05.PAD: in.crmod.rfc_pad
+RA2CAV05: in.cavity2_reverse 
+
+IN.CRMOD.HOM06: IN.CRMOD.HOMABSORBER_B
+
+! Note: from drawing it would be 6.279, but look carefully, this is right
+IN.CRMOD.Tap01: PIPE, L = (6.279+0.020)*0.02540,
+    wall = {
+	section = { s = 0,
+	  v(1) = {0, 0, 0.078/2}},
+	section = { s = IN.CRMOD.Tap01[L],
+	  v(1) = {0, 0, 0.060198/2}}}
+
+IN.CRMOD.GAT02: in.crmod.gat
+
+IN.CRMOD.Mar.END_VESSEL: marker
+
+in.crmod.lfla = 6.35e-3
+
+IN.CRMOD.Tap02: PIPE, L = 6.289*0.0254 - in.crmod.lfla,
+    wall = {
+	section = { s = 0,
+	  v(1) = {0, 0, IN.CRMOD.Gat02[aperture]}},
+	section = { s = IN.CRMOD.Tap02[L],
+	  v(1) = {0, 0, 0.034798/2}}}
+
+IN.CRMOD.Fla02: PIPE, L = in.crmod.lfla,
+    wall = {
+	section = { s = 0,
+	  v(1) = {0, 0, 0.034798/2}},
+	section = { s = IN.CRMOD.Fla02[L],
+	  v(1) = {0, 0, 0.034798/2}}}
+
+ma2cor01: kicker, l=0.1, field_master=t, tracking_method=runge_kutta, mat6_calc_method=tracking,
+ superimpose, ref=in.crmod.mar.beg, offset=0.276
+
+IN.CRMOD: LINE = (IN.CRMOD.Mar.BEG, &
+
+	IN.CRMOD.Pip01,
+
+	IN.CRMOD.Gat01,
+
+	IN.CRMOD.HOM01,
+
+	RA2CAV01,
+	RA2CAV01.PAD,
+	
+	IN.CRMOD.HOM02,
+
+	RA2CAV02.PAD,
+	RA2CAV02,
+	
+	IN.CRMOD.HOM03,
+
+	RA2CAV03,
+	RA2CAV03.PAD,
+
+	IN.CRMOD.HOM04,
+
+	RA2CAV04.PAD,
+	RA2CAV04,
+
+	IN.CRMOD.HOM05,
+
+	RA2CAV05,
+	RA2CAV05.PAD,
+
+	IN.CRMOD.HOM06,
+
+	IN.CRMOD.Tap01,
+
+	IN.CRMOD.Gat02,
+
+	IN.CRMOD.Tap02,
+	
+	IN.CRMOD.Mar.END_VESSEL, 
+	
+	IN.CRMOD.Fla02, 
+
+	IN.CRMOD.Mar.END)
+
+
+
+
+
+!----------------------------------------------------------------------------						   

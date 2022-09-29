@@ -1,0 +1,23 @@
+parameter[particle] = electron
+
+ang = 5.0*raddeg
+lqf = 133e-3
+lqd = 122e-3
+lfd = 70e-3
+lbpm = 42e-3
+ldf = 120e-3
+
+pf : pipe, l=0.5*ldf+lqf+0.5*(lfd-lbpm)
+pd : pipe, l=0.5*ldf+lqd+0.5*(lfd-lbpm)
+pbpm : instrument, l=lbpm
+qf: quadrupole, fringe_type=full, l=lqf, superimpose, ref=pf, ele_origin=beginning, ref_origin=beginning, offset=0.5*ldf
+qd: quadrupole, fringe_type=full, l=lqd, superimpose, ref=pd, ele_origin=end, ref_origin=end, offset=-0.5*ldf
+r : patch, x_pitch=-0.5*ang
+
+QF[B1_GRADIENT] =  -1.05747186434186E+01
+QD[B1_GRADIENT] =   9.96154269712135E+00
+QD[X_OFFSET] =   3.13593965418592E-02
+
+cell: line=(pf,r,pbpm,r,pd)
+use, cell
+

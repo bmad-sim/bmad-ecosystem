@@ -1,0 +1,11 @@
+
+place middle multiphase4
+set curve multiphase4.phase.c1 ix_universe = 1
+set curve multiphase4.phase.c2 ix_universe = 1
+set curve multiphase4.phase.c3 ix_universe = 2
+set curve multiphase4.phase.c4 ix_universe = 2
+set curve multiphase4.phase.c5 ix_universe = 3
+set curve multiphase4.phase.c6 ix_universe = 3
+set curve multiphase4.phase.c7 ix_universe = 4
+set curve multiphase4.phase.c8 ix_universe = 4
+

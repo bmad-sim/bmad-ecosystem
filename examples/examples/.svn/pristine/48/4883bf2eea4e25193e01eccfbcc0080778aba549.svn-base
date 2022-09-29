@@ -1,0 +1,262 @@
+! c:\users\streun\opadat\sls-2\aa00a.opa
+
+parameter[particle] = ELECTRON
+parameter[e_tot] = 2.4 * 1e9
+ 
+! ------------------- table of elements -------------------
+ 
+!rfcav: rfcavity, voltage = -0.970 * 1e6 / 12, harmon = 480, l = 0.692  ! 500 MHz RF
+rfcav: rfcavity, voltage = -0.700 * 1e6 / 12, harmon = 96, l = 0.692    ! 100 MHz RF
+!hc3: rfcavity, voltage = -0.275 * 1e6, harmon = 1440, phi0 = 0.785-0.063, l=0.3  
+!                  ! 3rd harmonic cavity  !phi0 picked to maximize lengthening for given voltage
+!hc3: drift, l=0.3
+
+d0              : drift, l = 0.150000 
+d1              : drift, l = 0.100000 
+d2              : drift, l = 0.200000 
+dq              : drift, l = 0.410000 
+dc              : drift, l = 0.360000 
+dc1             : drift, l = 0.160000 
+dc2             : drift, l = 0.110000 
+dout            : drift, l = 1.000000 
+ds1             : drift, l = 0.150000 
+ds2             : drift, l = 0.100000 
+dm1             : drift, l = 0.200000 
+dm2             : drift, l = 0.100000 
+dl1             : drift, l = 0.250000 
+dl2             : drift, l = 0.200000 
+! dsend           : drift, l = 0.692000 
+dsend: rfcav
+dsmgp           : drift, l = 1.000000 
+dm              : drift, l = 2.972000 
+dl              : drift, l = 5.502000 
+dqs             : drift, l = 0.050000 
+de              : drift, l = 0.100000 
+doc             : drift, l = 0.050000 
+no_sal          : drift, l = 0.100000 
+no_sam          : drift, l = 0.100000 
+dcbmh           : drift, l = 0.040000 
+ 
+no_oxxm0        : marker
+no_oxxs0        : marker
+no_oxyl0        : marker
+no_ocxy0        : marker
+ 
+qf              : quad, l = 0.200000, k1 = 8.164720
+qf1             : quad, l = 0.150000, k1 = -7.166378
+qcs             : quad, l = 0.150000, k1 = 6.232550
+qds             : quad, l = 0.150000, k1 = -5.932987
+qcs1            : quad, l = 0.200000, k1 = 8.688097
+qs1             : quad, l = 0.150000, k1 = 0.929504
+qs2             : quad, l = 0.150000, k1 = -6.332662
+qs3             : quad, l = 0.200000, k1 = 6.813593
+qm1             : quad, l = 0.150000, k1 = 4.423894
+qm2             : quad, l = 0.200000, k1 = -6.938853
+qm3             : quad, l = 0.200000, k1 = 7.049031
+ql1             : quad, l = 0.100000, k1 = 2.276298
+ql2             : quad, l = 0.200000, k1 = 4.830692
+ql3             : quad, l = 0.200000, k1 = -7.656868
+ql4             : quad, l = 0.150000, k1 = 8.038224
+qnd             : quad, l = 0.150000, k1 = -6.840214
+qd              : quad, l = 0.150000, k1 = -6.899965
+qes             : quad, l = 0.150000, k1 = -6.171742
+qem1            : quad, l = 0.150000, k1 = -8.839136
+qel1            : quad, l = 0.150000, k1 = -9.296097
+ 
+b00             : sbend, l = 0.004657, angle = 0.003491, k1 = 0.000000, &
+                  e1 = 0.000000, e2 = 0.003491, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b00_inv         : b00, e1 = b00[e2], e2 = b00[e1]
+b01             : sbend, l = 0.005470, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.003491, e2 = 0.006981, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b01_inv         : b01, e1 = b01[e2], e2 = b01[e1]
+b02             : sbend, l = 0.007056, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.006981, e2 = 0.010472, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b02_inv         : b02, e1 = b02[e2], e2 = b02[e1]
+b03             : sbend, l = 0.008724, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.010472, e2 = 0.013963, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b03_inv         : b03, e1 = b03[e2], e2 = b03[e1]
+b04             : sbend, l = 0.010335, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.013963, e2 = 0.017453, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b04_inv         : b04, e1 = b04[e2], e2 = b04[e1]
+b05             : sbend, l = 0.011884, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.017453, e2 = 0.020944, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b05_inv         : b05, e1 = b05[e2], e2 = b05[e1]
+b06             : sbend, l = 0.013389, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.020944, e2 = 0.024435, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b06_inv         : b06, e1 = b06[e2], e2 = b06[e1]
+b07             : sbend, l = 0.014877, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.024435, e2 = 0.027925, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b07_inv         : b07, e1 = b07[e2], e2 = b07[e1]
+b08             : sbend, l = 0.016376, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.027925, e2 = 0.031416, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b08_inv         : b08, e1 = b08[e2], e2 = b08[e1]
+b09             : sbend, l = 0.017910, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.031416, e2 = 0.034907, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b09_inv         : b09, e1 = b09[e2], e2 = b09[e1]
+b10             : sbend, l = 0.019506, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.034907, e2 = 0.038397, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b10_inv         : b10, e1 = b10[e2], e2 = b10[e1]
+b11             : sbend, l = 0.021189, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.038397, e2 = 0.041888, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b11_inv         : b11, e1 = b11[e2], e2 = b11[e1]
+b12             : sbend, l = 0.022982, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.041888, e2 = 0.045379, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b12_inv         : b12, e1 = b12[e2], e2 = b12[e1]
+b13             : sbend, l = 0.024905, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.045379, e2 = 0.048869, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b13_inv         : b13, e1 = b13[e2], e2 = b13[e1]
+b14             : sbend, l = 0.026977, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.048869, e2 = 0.052360, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b14_inv         : b14, e1 = b14[e2], e2 = b14[e1]
+b15             : sbend, l = 0.029215, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.052360, e2 = 0.055851, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b15_inv         : b15, e1 = b15[e2], e2 = b15[e1]
+b16             : sbend, l = 0.031634, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.055851, e2 = 0.059341, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b16_inv         : b16, e1 = b16[e2], e2 = b16[e1]
+b17             : sbend, l = 0.034246, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.059341, e2 = 0.062832, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b17_inv         : b17, e1 = b17[e2], e2 = b17[e1]
+b18             : sbend, l = 0.037064, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.062832, e2 = 0.066323, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b18_inv         : b18, e1 = b18[e2], e2 = b18[e1]
+b19             : sbend, l = 0.040098, angle = 0.003491, k1 = 0.000000, &
+                  e1 = -0.066323, e2 = 0.069813, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+b19_inv         : b19, e1 = b19[e2], e2 = b19[e1]
+
+bcbmh           : sbend, l = 0.200000, angle = 0.032289, k1 = 0.000000, &
+                  e1 = 0.032289, e2 = 0.000000, hgap = 0.000000, &
+                  fint =0.0000, fringe_type = none
+bcbmh_inv       : bcbmh, e1 = bcbmh[e2], e2 = bcbmh[e1]
+ 
+sf              : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = 590.392154
+sfc             : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = 795.532068
+sfc1            : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = 296.825938
+sd1             : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = -589.626926
+sd2             : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = -806.435330
+sd3             : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = -808.237048
+sd4             : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = 0.000000
+sde             : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = -666.276494
+sd0             : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = -786.943294
+sal             : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = 0.000000
+sam             : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = -21.551662
+sas             : sextupole, l = 0.100000,  k2 = 0.0  ! k2 = 11.711564
+ 
+osbend          : marker
+onbend          : marker
+obm             : marker
+obm2            : marker
+ol3             : marker
+ 
+bahq            : sbend, l = 0.200000, angle = -0.013090, k1 = 5.450000, &
+                  k2 = 0, e1 = -0.006545, e2 = -0.006545, fint = 0.0000, &
+                  hgap = 0.000000, fringe_type = none
+bahq_inv        : bahq, e1 = bahq[e2], e2 = bahq[e1]
+
+ccbmh           : sbend, l = 0.200000, angle = 0.013963, k1 = -2.000000, &
+                  k2 = 0, e1 = 0.006981, e2 = 0.006981, fint = 0.0000, &
+                  hgap = 0.000000, fringe_type = none
+ccbmh_inv       : ccbmh, e1 = ccbmh[e2], e2 = ccbmh[e1]
+ 
+oyym0           : multipole, l=0.0, k3l = 0.0  ! k3l = 0.0000
+oyys0           : multipole, l=0.0, k3l = 0.0  ! k3l = 1376.5476
+oyyl0           : multipole, l=0.0, k3l = 0.0  ! k3l = 0.0000
+oxys0           : multipole, l=0.0, k3l = 0.0  ! k3l = 2164.0542
+oxym0           : multipole, l=0.0, k3l = 0.0  ! k3l = 2245.6018
+ocxx0           : multipole, l=0.0, k3l = 0.0  ! k3l = -162.0545
+
+! ------------------- table of segments -------------------
+ 
+cbmh             : line = (ccbmh, dcbmh, bcbmh)
+cbmh_inv         : line = (bcbmh_inv, dcbmh, ccbmh_inv)
+ds               : line = (dsend, dsmgp)
+oxys             : line = (doc, oxys0, doc)
+oxym             : line = (doc, oxym0, doc)
+oxxm             : line = (doc, no_oxxm0, doc)
+oyys             : line = (doc, oyys0, doc)
+oyym             : line = (doc, oyym0, doc)
+oyyl             : line = (doc, oyyl0, doc)
+oxyl             : line = (doc, no_oxyl0, doc)
+ocxx             : line = (doc, ocxx0, doc)
+ocxy             : line = (doc, no_ocxy0, doc)
+
+bh               : line = (b00, b01, b02, b03, b04, b05, b06, b07, b08, &
+                  b09, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19)
+bh_inv           : line = (b19_inv, b18_inv, b17_inv, b16_inv, b15_inv, b14_inv,
+                  b13_inv, b12_inv, b11_inv, b10_inv, b09_inv, b08_inv, b07_inv,
+                  b06_inv, b05_inv, b04_inv, b03_inv, b02_inv, b01_inv, b00_inv)
+
+scor             : line = (bh, d0, qd, dqs, sd0, d1, qf, dqs, sf, ocxx, &
+                  dqs, bahq)
+scor_inv         : line = (bahq_inv, dqs, ocxx, sf, dqs, qf, d1, sd0, dqs, qd, &
+                  d0, bh_inv)
+
+hc               : line = (scor, dqs, qf1, dq, sd1, dqs, cbmh, obm, cbmh_inv, &
+                  dqs, sd2, dc)
+hc_inv           : line = (dc, sd2, dqs, cbmh, obm, cbmh_inv, dqs, sd1, dq, qf1, &
+                  dqs, scor_inv)
+
+ts               : line = (qcs, dqs, sfc, dqs, bahq, dc, sd3, dqs, cbmh, &
+                  obm2, cbmh_inv, dqs, sd4, dqs, qds, dc1, qcs1, dqs, sfc1, &
+                  dqs, bahq, dc2, qes, dqs, sde, dqs, cbmh, oyys)
+ts_inv           : line = (oyys, cbmh_inv, dqs, sde, dqs, qes, dc2, bahq_inv, dqs, sfc1, &
+                  dqs, qcs1, dc1, qds, dqs, sd4, dqs, cbmh, obm2, cbmh_inv, dqs, sd3,
+                  dc, bahq_inv, dqs, sfc, dqs, qcs)
+
+ms               : line = (qs1, ds1, sas, dqs, qs2, ds2, oxys, qs3, ds)
+ms_inv           : line = (ds, qs3, oxys, ds2, qs2, dqs, sas, ds1, qs1)
+mm               : line = (qm1, dm1, sam, dqs, qm2, dm2, oxym, qm3, dm)
+mm_inv           : line = (dm, qm3, oxym, dm2, qm2, dqs, sam, dm1, qm1)
+ml               : line = (ql1, dl1, ql2, dl2, no_sal, oyyl, ol3, ql3, dl1, ql4, oxyl, dl)
+ml_inv           : line = (dl, oxyl, ql4, dl1, ql3, ol3, oyyl, no_sal, dl2, ql2, dl1, ql1)
+
+hs               : line = (osbend, hc, ts, ms)
+hs_inv           : line = (ms_inv, ts_inv, hc_inv, osbend)
+
+hm               : line = (osbend, hc, ts, mm)
+hm_inv           : line = (mm_inv, ts_inv, hc_inv, osbend)
+
+hl               : line = (osbend, hc, ts, ml)
+hl_inv           : line = (ml_inv, ts_inv, hc_inv, osbend)
+
+six              : line = (hl_inv, hs, hs_inv, hm)
+six_inv          : line = (hm_inv, hs, hs_inv, hl)
+
+per              : line = (six, six_inv)
+ring             : line = (per, per, per)
+
+!sbend[tracking_method] = symp_lie_ptc
+sbend[ds_step] = 0.005
+sextupole[num_steps] = 16
+*[e1] = 0.0
+*[e2] = 0.0
+
+parameter[taylor_order] = 3
+! parameter[ptc_exact_model] = .false.
+
+use, ring
+
+
+
+
+

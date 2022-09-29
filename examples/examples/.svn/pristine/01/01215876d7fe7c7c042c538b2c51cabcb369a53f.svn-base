@@ -1,0 +1,6 @@
+bmad_com[max_num_runge_kutta_step] = 1000000000
+GA1GHV01: E_GUN, L = 0.15, field_calc = fieldmap, autoscale_amplitude=f, autoscale_phase = F,
+ tracking_method = fixed_step_time_runge_kutta, ds_step=1e-5, field_autoscale=0.999999999434785902,
+	grid_field = call::in.gun_grid.bmad
+! Wall
+call, file = in.gun_wall.bmad

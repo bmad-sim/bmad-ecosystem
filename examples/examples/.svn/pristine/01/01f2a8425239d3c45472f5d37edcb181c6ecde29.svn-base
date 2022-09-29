@@ -1,0 +1,26 @@
+no_digested
+
+parameter[lattice] = "Cornell ERL Main Linac Cryomodule (MLC) for L0E"
+
+BEGINNING[BETA_A]  = 10
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 10
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[geometry] = open
+
+parameter[e_tot] = 6e6
+
+parameter[absolute_time_tracking] = T
+
+
+*[ds_step] = 1e-3
+
+
+call, file = la.demer.bmad
+
+
+lat: line = (md1dip01)
+use, lat
+

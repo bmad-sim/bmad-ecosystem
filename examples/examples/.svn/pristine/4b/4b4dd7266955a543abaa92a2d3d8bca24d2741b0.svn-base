@@ -1,0 +1,21 @@
+place floor r56_compaction
+sr56 s1.demer.mar.beg\4
+x-s all 75 87
+sc
+vv
+vd
+use dat cellmatch.4[1:6]
+use dat betas.4
+use var q4
+vk
+set var q4|key_bound = T
+
+alias clear set var q4[*]|model=0
+olmdif
+
+
+set var q4|low_lim = -5
+set var q4|high_lim = 5
+
+
+alias Write show -append s4.X.bmad var -good -bmad

@@ -1,0 +1,32 @@
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[geometry] = open
+
+
+parameter[e_tot]                    = 10e6
+parameter[particle]               = ELECTRON        
+
+b1: sbend, L=1
+b2: sbend, L=1
+
+b1[rho] = 1
+b2[rho] = -1
+
+d1: drift, L = 1
+
+p1: pipe, L = 1
+p1[y_offset] = .15
+
+b1[ref_tilt] = pi/4
+b1[y_offset] = 0.05
+b1[y_pitch] = 0.1
+
+
+b2[ref_tilt] =  -pi/2
+b2[roll] = pi
+
+
+lat: line = (d1, b1, p1, b2)
+
+use, lat
+

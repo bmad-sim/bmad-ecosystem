@@ -1,0 +1,11 @@
+set(EXENAME parallel_track_example)
+set (SRC_FILES 
+ parallel_track_example/parallel_track_example.f90
+)
+
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

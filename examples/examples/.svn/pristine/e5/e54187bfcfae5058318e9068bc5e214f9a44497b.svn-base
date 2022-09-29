@@ -1,0 +1,109 @@
+no_digested
+
+parameter[lattice] = "Cornell ERL Main Linac Cryomodule (MLC) for L0E"
+
+BEGINNING[BETA_A]  = 10
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 10
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[geometry] = open
+
+parameter[e_tot] = 6e6
+
+parameter[absolute_time_tracking] = T
+
+call, file = la.bmad
+
+call, file = la.X.bmad
+
+*[autoscale_amplitude] = T
+*[autoscale_phase] = T
+
+*[ds_step] = 1e-3
+
+LA.match0: match, match_end=T, match_end_orbit = F, beta_a1=10, beta_b1=10
+LA.match0[x1] = 0
+LA.match0[px1] = 0
+LA.match0[y1] = 0
+LA.match0[py1] = 0
+LA.match0[z1] = 0
+LA.match0[pz1] = 0
+
+LA.match1: match,  match_end=T, match_end_orbit = F, beta_a1=10, beta_b1=10
+LA.match2: LA.match1
+LA.match3: LA.match1
+LA.MATCH1[BETA_A1] =   8.80716371453499E+00
+LA.MATCH1[ALPHA_A1] =   6.24370240594586E-01
+LA.MATCH1[BETA_B1] =   8.80716371453499E+00
+LA.MATCH1[ALPHA_B1] =   6.24370240594587E-01
+
+LA.MATCH2[BETA_A1] =   8.68619396112747E+00
+LA.MATCH2[ALPHA_A1] =   6.95921384899845E-01
+LA.MATCH2[BETA_B1] =   8.68619396112747E+00
+LA.MATCH2[ALPHA_B1] =   6.95921384899845E-01
+
+
+Mar.BEG: marker
+Mar.END: marker
+RECIRCULATE: floor_shift, origin_ele = Mar.BEG
+lat: LINE = (Mar.BEG,
+  LA.match0, LA, recirculate,
+  LA.match1, LA)
+
+
+arc1.r56 =  1.2103E-01
+arc2.r56 =  -7.0007E-03
+arc3.r56 =  -2.8788E-01
+arc4.r56 =   -5.9279E-01
+
+t1: Taylor, {1: arc1.r56, 0 0 0 0 1 0}
+t2: Taylor, {1: arc2.r56, 0 0 0 0 1 0}
+t3: Taylor, {1: arc3.r56, 0 0 0 0 1 0}
+t4: Taylor, {1: arc4.r56, 0 0 0 0 1 0}
+
+len1: drift, L = 1
+len2: drift, L = 1
+len3: drift, L = 1
+len4: drift, L = 1
+
+delta1: group = {len1[L]:0.23061/360*deg}, var={deg}
+delta2: group = {len2[L]:0.23061/360*deg}, var={deg}
+delta3: group = {len3[L]:0.23061/360*deg}, var={deg}
+delta4: group = {len4[L]:0.23061/360*deg}, var={deg}
+
+arc1: line[multipass] = (len1, t1)
+arc2: line[multipass] = (len2, t2)
+arc3: line[multipass] = (len3, t3)
+arc4: line[multipass] = (len4, t4)
+
+d1: drift,  L = 1
+d2: drift,  L = 1
+d3: drift,  L = 1
+D1[L] =   9.71014623977332E-01
+D2[L] =   1.08493947844349E+00
+ 
+
+LEN1[L] =   1.07471890683160E+00
+LEN2[L] =   8.45389540670340E-01
+LEN3[L] =   1.07501843550299E+00
+LEN4[L] =   9.60198454301642E-01
+ 
+lat1: line = (LA)
+
+lat2: LINE = (Mar.BEG,
+  LA.match0, LA, arc1, ! pass 1
+  LA.match1, LA, arc2, ! pass 2
+  LA.match2, LA, arc3, ! pass 3
+  LA.match2, LA, arc4, ! pass 4
+  LA.match2, LA, arc3, ! pass 5
+  LA.match2, LA, arc2, ! pass 6
+  LA.match2, LA, arc1, ! pass 7
+  LA.match2, LA, ! pass 8
+   
+  Mar.END)
+
+lat3: LINE = (LASINGLE)
+
+use, lat3

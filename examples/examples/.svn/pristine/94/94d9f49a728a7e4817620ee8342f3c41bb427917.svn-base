@@ -1,0 +1,16 @@
+vv
+place top orbit
+x-s all 18 22
+x-s floor 15 21
+sc
+
+vd
+use dat o1
+use var floor1[1]
+olm
+run
+show var -bmad -good
+
+vk
+set var floor1[1]|key_bound = T
+set var floor1[1]|key_delta = 1e-3

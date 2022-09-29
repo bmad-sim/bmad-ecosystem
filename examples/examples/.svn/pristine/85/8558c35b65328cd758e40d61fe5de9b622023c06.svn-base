@@ -1,0 +1,12 @@
+! Lattice File: patch.bmad
+beginning[beta_a] = 10.   ! m  a-mode beta function
+beginning[beta_b] = 10.   ! m  b-mode beta function
+beginning[e_tot] = 10e6   ! eV
+parameter[geometry] = open  ! or closed
+
+b: sbend, L = 0.5, g = 1    ! g = 1 / bending_radius
+p: patch, z_offset = 1, x_pitch = pi/4
+q: quadrupole, L = 0.6, k1 = 0.23
+
+lat: line = (b, p, q)   ! List of lattice elements
+use, lat                ! Line used to construct the lattice

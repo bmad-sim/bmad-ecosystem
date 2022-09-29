@@ -1,0 +1,35 @@
+
+
+no_digested
+
+BEGINNING[BETA_A]  = 50
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 50
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[LATTICE_TYPE] = LINEAR_LATTICE
+
+parameter[e_tot] = 2*0.511e6
+
+
+call, file = in.solenoid.bmad
+
+d0: drift, L = 0.1
+
+
+!sol: SOLENOID, L = 0.60,  field_calc = grid, tracking_method = runge_kutta, 
+!	dc_field = {mode = { grid = call::in.solenoid_grid.bmad }}
+!
+!sol[bs_field] = 1
+
+in.sol01[bs_field] = 0.001
+in.sol02[bs_field] = 0.001
+
+
+lat: LINE = (d0, in.sol01)
+
+!lat: LINE = (d0)
+
+use, lat
+

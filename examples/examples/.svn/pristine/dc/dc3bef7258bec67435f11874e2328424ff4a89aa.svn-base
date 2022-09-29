@@ -1,0 +1,30 @@
+!+
+! This is a lattice for the Proton Storage Ring (PSR) at Los Alamos.
+! It is based on the paper:
+!   Alex Dragt,
+!   "Exact Numerical Calculation of Chromaticity in Small Rings"
+!   Particle Accelerators, 12, pp 205-18, (1982)
+!-
+
+
+parameter[E_tot] = 797e6 + m_proton
+parameter[particle] = proton
+parameter[geometry] = closed
+
+b36: sbend, l = 2.54948, angle = 36*raddeg
+qd: quadrupole, l = 0.5, b1_gradient = -2.68
+qf: quadrupole, l = 0.5, b1_gradient = 1.95
+sh: sextupole, l = 0.5
+sv: sextupole, l = 0.5
+
+d228: drift, l = 2.28646
+d148: drift, l = 1.48646
+d45: drift, l = 0.45
+d30: drift, l = 0.30
+
+p_no: line = (d228,          qd, d45, b36, d45, qf, d228)
+p_ts: line = (d228,          qd, d45, b36, d45, qf, d30, sh, d148)
+p_ls: line = (d148, sv, d30, qd, d45, b36, d45, qf, d228)
+psr: line = (p_no, p_ts, p_ls, 3*p_no, p_ts, p_ls, 2*p_no)
+
+use, psr

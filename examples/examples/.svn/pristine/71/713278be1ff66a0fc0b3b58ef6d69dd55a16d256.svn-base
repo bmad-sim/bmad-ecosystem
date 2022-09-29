@@ -1,0 +1,174 @@
+
+BEGINNING[BETA_A]  = 50
+BEGINNING[ALPHA_A]=  -10
+BEGINNING[BETA_B] = 50
+BEGINNING[ALPHA_B] = -10
+
+
+parameter[geometry] = open
+
+PARAMETER[particle] = electron
+
+
+beginning[theta_position] = (40)/2*pi/180  
+
+! Global starting positon
+!beginning[theta_position] = 0
+!beginning[x_position] = 12.61084
+!beginning[z_position] = 14.25386  
+
+
+parameter[e_tot] = 6e6
+
+parameter[absolute_time_tracking] = F
+
+call, file = ../erl.param.bmad
+
+! FFAG with reverse merge settings
+call, file = ../fx/cell/cell.bmad
+
+! Linac
+LA.fakecavity: lcavity, L=1, rf_frequency=global_rf_frequency, voltage = 70e6
+!LA: line[multipass] = (LA.fakecavity)
+call, file = ../la/la.bmad
+call, file = ../la/la.X.bmad
+
+call, file = ../fx/fx.bmad
+!call, file = ../fx/fa.X.bmad
+!call, file = ../fx/reverse_merge/settings.bmad
+!call, file = ../za/za.bmad
+!call, file = ../za/za.X.bmad
+
+call, file =sx.bmad
+
+! marker for matching
+FFAG.cellmatch: marker, superimpose, ref = fa.Pip04, ref_origin = end ! End of cell 2
+
+LA.match1: match, match_end = T
+LA.match1[beta_a1] = 12.5
+LA.match1[beta_b1] = 12.5
+LA.match1[alpha_a1] = -1
+LA.match1[alpha_b1] = -1
+LA.match2: LA.match1
+LA.match3: LA.match1
+LA.match4: LA.match1
+
+! Set to match natural dispersion at dump bend
+!LA.match1[eta_x1]  =  -0.00292087
+!LA.match1[etap_x1] = -0.02300406
+!LA.match2[eta_x1]  = -0.00157302
+!LA.match2[etap_x1] = -0.01238312     
+!LA.match3[eta_x1]  = -0.00107639 
+!LA.match3[etap_x1] = -0.00847181 
+!LA.match4[eta_x1]  =   -0.00081811  
+! LA.match4[etap_x1] = -0.00643824
+ 
+LA.match0: match, match_end=T, match_end_orbit = T, beta_a1=8.80745112  , beta_b1=8.80745112  , alpha_a1=.624, alpha_b1=.624
+LA.match0[x1] = 0
+LA.match0[px1] = 0
+LA.match0[y1] = 0
+LA.match0[py1] = 0
+LA.match0[z1] = 0
+LA.match0[pz1] = 0
+LA.match0a: LA.match0, match_end_orbit = T
+LA.match0b: LA.match0, match_end_orbit = T 
+LA.match0c: LA.match0, match_end_orbit = T
+LA.match0d: LA.match0, match_end_orbit = T
+LA.match0e: LA.match0, match_end_orbit = T
+
+! recirculate patches
+r0: patch
+RETURN1: patch
+RETURN2: patch
+RETURN3: patch
+RETURN4: patch
+
+
+Mar.BEG: marker
+Mar.END: marker
+recirculate: floor_shift, origin_ele = Mar.BEG
+recirculate2: floor_shift, origin_ele = LA.match1
+
+magic: match, beta_a1 = 1, beta_b1 = 1, match_end = T
+
+!ta
+!call, file = ../ta/ta.bmad
+!ta_dummy: drift, L = 5
+
+s3_dummy: pipe, L = 10
+s4_dummy: pipe, L = 10
+
+!my_FA: line = (FA.short)
+my_FA: line = (FA.Gir01) 
+!my_FA: line = (FA)
+
+lat: line = (Mar.BEG,
+!LA.match0a, 
+magic,
+LA, LA.match1, DU.part1,
+S1,   my_FA,
+RETURN1, recirculate, LA.match0b, LA, LA.match2, DU.part1,
+S2, my_FA, 
+RETURN2, recirculate, LA.match0c, LA, LA.match3, DU.part1,
+S3,  my_FA,   
+RETURN3, recirculate, LA.match0d, LA, LA.match4, DU.part1,
+S4, my_FA,  
+RETURN4, recirculate, LA.match0e, dummy_cavity, recirculate2, DU.part1,
+! DU,
+du.demerge_patch, dump_pipe,
+Mar.END)
+ 
+call, file = ../du/du.bmad
+ 
+dummy_cavity: LCAVITY, L = 1, voltage = -36e6*4
+
+
+dump_pipe: pipe, L= 0.5
+ 
+ 
+half_lat: line = (Mar.BEG, 
+LA.match0a, LA, LA.match1, DU.part1,
+S1.Demerge, S1.demerge_patch, S1.part1, S1.part2,   S1.Mar.Mid,  
+RETURN1, recirculate,  LA.match0b,  LA, DU.part1,
+S1.Demerge,  S2.demerge_patch, S2.Demerge, S2.part1, S2.Mar.Mid,  
+RETURN2, recirculate, LA.match0c,  LA, DU.part1,
+S1.Demerge, S2.demerge_patch,  S2.Demerge, S3.demerge_patch, S3.part1, S3.Mar.Mid,   
+RETURN3, recirculate, LA.match0d,  LA, DU.part1,
+S1.Demerge, S2.demerge_patch,  S2.Demerge, S4.demerge_patch, S4.part1,  S4.Mar.Mid,  
+! Dump 
+RETURN4, recirculate, LA.match0e, dummy_cavity, recirculate2, DU.part1, du.demerge_patch, dump_pipe,
+Mar.END)
+ 
+call, file = s1.acc.bmad
+call, file = s2.acc.bmad
+call, file = s3.acc.bmad
+call, file = s4.rec.bmad
+
+! S2
+O_S2.Pip03: overlay = {S2.Pip06, S2.Pip09}, L
+O_S2.Pip03[L]  = S2.Pip06[L]
+
+O_S2.Pip04: overlay = {S2.Pip07, S2.Pip08}, L
+O_S2.Pip04[L]  = S2.Pip07[L]
+
+! S3 
+O_S3.Pip02: overlay = {S3.Pip02, S3.Pip03}, L
+O_S3.Pip02[L] = S3.Pip02[L]
+
+O_S3.Pip03: overlay = {S3.Pip04, S3.Pip05}, L
+O_S3.Pip03[L] = S3.Pip04[L]
+
+O_S3.Pip04: overlay = {S3.Pip06, S3.Pip07}, L
+O_S3.Pip04[L] = S3.Pip06[L]
+
+! S4
+O_S4.Pip03: overlay = {S4.Pip04, S4.Pip05}, L
+O_S4.Pip03[L] = S4.Pip04[L]
+
+*[ds_step] = .01
+use,  lat
+!use,  half_lat
+  
+! TEMP for layout_table
+!quad::F*[x_offset] = 0  
+FA.Qua00[descrip] = ""

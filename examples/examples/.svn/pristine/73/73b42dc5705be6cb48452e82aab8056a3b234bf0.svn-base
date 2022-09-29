@@ -1,0 +1,8 @@
+! Lattice File: misalign.bmad
+beginning[beta_a] = 10.   ! m  a-mode beta function
+beginning[beta_b] = 10.   ! m  b-mode beta function
+beginning[e_tot] = 10e6   ! eV
+parameter[geometry] = open  ! or closed
+q: quadrupole, L = 1, x_offset = 0.1, x_pitch = 0.04
+lat: line = (q)   ! List of lattice elements
+use, lat          ! Line used to construct the lattice

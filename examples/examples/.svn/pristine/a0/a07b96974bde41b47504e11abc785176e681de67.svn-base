@@ -1,0 +1,20 @@
+!! tweaks to have nominal FFAG offsets
+!! Scott's making px of S4 zero !!
+!! A new patch is added for R1 after R1B8
+
+!! R1 (3 parts, W1floor -> W1 -> ConnectR1)
+
+!! W1floor (check reciculate in rx.lat.bmad)
+
+!! W1
+!! W2 (S2 zero orbit)
+R2.DEMERGE_PATCH[X_OFFSET] =   6.53367488626999E-03
+R2.DEMERGE_PATCH[X_PITCH] =   2.48293370086295E-01
+
+!! W3
+R3.DEMERGE_PATCH[X_OFFSET] =   6.54110909099362E-02
+R3.DEMERGE_PATCH[X_PITCH] =   1.22726928038457E-01
+
+!! W4
+R4.DEMERGE_PATCH[X_OFFSET] =   1.15324396659040E-01
+R4.DEMERGE_PATCH[X_PITCH] =   1.84321651736590E-01

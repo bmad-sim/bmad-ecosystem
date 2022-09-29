@@ -1,0 +1,19 @@
+place * none
+place r00 floor
+x-s all 10 15
+sc all 3 6
+
+alias p1 call Parallel1.tao
+alias p2 call Parallel2.tao
+alias p3 call Parallel3.tao
+alias p4 call Parallel4.tao
+
+alias k1 call K1.tao
+alias k2 call K2.tao
+alias k3 call K3.tao
+alias k4 call K4.tao
+
+alias q1 call Q1.tao
+alias q2 call Q2.tao
+alias q3 call Q3.tao
+alias q4 call Q4.tao

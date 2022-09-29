@@ -1,0 +1,11 @@
+
+
+! Energy recovery for pass 2
+! To be used after expand lattice when absolute_time_tracking = F
+
+RD1CAV06\2[phi0_multipass] = 0.5
+RD1CAV05\2[phi0_multipass] = 0.5
+RD1CAV04\2[phi0_multipass] = 0.5
+RD1CAV03\2[phi0_multipass] = 0.5
+RD1CAV02\2[phi0_multipass] = 0.5
+RD1CAV01\2[phi0_multipass] = 0.5

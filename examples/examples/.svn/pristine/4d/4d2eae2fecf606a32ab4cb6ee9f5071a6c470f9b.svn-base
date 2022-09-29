@@ -1,0 +1,15 @@
+place floor r56_compaction
+sr56 s1.demer.mar.beg\3
+x-s all 53 65
+sc
+vv
+vd
+!use dat cellmatch.3[1:6]
+use dat cellmatch.3[1:7]
+use dat betas.3
+use var q3
+vk
+set var q3|key_bound = T
+olmdif
+
+alias Write show -append s3.X.bmad var -good -bmad

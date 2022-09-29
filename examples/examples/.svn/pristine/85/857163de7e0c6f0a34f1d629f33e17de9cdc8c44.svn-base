@@ -1,0 +1,5 @@
+&params
+  bmad_lat = 'small_ring.bmad'
+  ix_ele = 1
+  ix_ele2 = 1
+/

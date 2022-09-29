@@ -1,0 +1,29 @@
+no_digested
+
+BEGINNING[BETA_A]  =  10  
+BEGINNING[ALPHA_A]=  0    
+BEGINNING[BETA_B] =   10
+BEGINNING[ALPHA_B] =   0
+BEGINNING[ETA_X] =  0
+BEGINNING[ETAP_X] =0
+
+PARAMETER[geometry] = open
+BEGINNING[E_TOT]  = 10e6
+
+pillbox_cav: lcavity, tracking_method = runge_kutta, gradient=10e6, mat6_calc_method = tracking, field_calc = fieldmap,
+aperture =	0.08826348295016159, rf_frequency = 1.3e9, L = 	0.1,
+ cylindrical_map = {
+        dz = 0.1 ,
+        m = 0,
+        harmonic = 1, 
+        e_coef_re = ( 1, 0), 
+        e_coef_im = ( 0, 0) } 
+
+d0: DRIFT, L = 2.0, aperture = 0.1 
+q0: quadrupole, L = 2.0, aperture = 0.1, b1_gradient= 1.0
+
+!call, file = "cavity_fundamental.dat"
+
+lat: line = (pillbox_cav)
+
+use, lat

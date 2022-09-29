@@ -1,0 +1,82 @@
+no_digested
+
+call, filename='original_e_ring.bmad'
+call, filename='original_p_ring.bmad'
+
+m_ipsole1:  line[multipass] = (ipsole)
+m_ipsole2:  line[multipass] = (ipsole)
+
+ m_whole8: line = (whole_ffb1,m11, m_ipsole1,m12, whole_ffb2,ccb, -bes, arc, 
+         strmtch, 20*strfodo, strmtch2, bes, ccb, whole_ffb1, m21,m_ipsole2,m22, 
+         whole_ffb2, ccbr, -bes, arcr, strmtch, 20*strfodo, strmtch2, bes, ccbr)
+
+p12 : patch, x_offset=-0.119928003399713, y_offset=0 , z_offset=-1.00359893461110, y_pitch=0, x_pitch=-6.0E-002,tilt=0
+p11 : patch, x_offset=-0.119928021632473, y_offset=0 , z_offset=1.00359893515824, y_pitch=0, x_pitch=6.0E-002,tilt=0
+
+p22 : patch, x_offset= 0.119928012958890, y_offset=0 , z_offset=-1.00359892012959, y_pitch=0, x_pitch=6.0E-002,tilt=0
+p21 : patch, x_offset= 0.119928012958890, y_offset=0 , z_offset=1.00359892012959, y_pitch=0, x_pitch=-6.0E-002,tilt=0
+
+!!! These are ptc patches: notice the -- in the beam line
+
+!p12 : marker
+!p11 : marker
+
+!p22 : marker
+!p21 : marker
+
+
+fff: fiducial, origin_ele= m12 
+
+ etienne_e_whole8: line = (whole_ffb1,m11, m_ipsole1,m12, whole_ffb2,ccb, -bes, arc, 
+         strmtch, 20*strfodo, strmtch2, bes, ccb, whole_ffb1, m21,m_ipsole2,m22, whole_ffb2,
+         ccbr, -bes, arcr, strmtch, 20*strfodo, strmtch2, bes, ccbr)
+
+
+etienne_p_whole8: line = (p_whole_ffb1,n21,--p21,m_ipsole2,--p22,n22,p_whole_ffb2, p_ccbr, -p_bes, p_arcr, -p_strmtch2, 
+       -10*p_strfodo, -p_strmtch, p_bes, p_ccbr,  &
+        p_whole_ffb1,n11,--p11,m_ipsole1,fff,--p12,n12,p_whole_ffb2, p_ccb, -p_bes, p_arc, -p_strmtch2, -10*p_strfodo, 
+      -p_strmtch, p_bes, p_ccb)
+
+!!! David setting a multipass reference energy
+
+ipsole[p0c]=5e9
+
+r_etienne_p_whole8 : line = (--etienne_p_whole8)
+
+r_etienne_p_whole8[p0c]= 60e9
+r_etienne_p_whole8[particle]= proton
+r_etienne_p_whole8[geometry]= closed
+r_etienne_p_whole8[default_tracking_species]= anti_ref_particle
+
+etienne_e_whole8[p0c]= 5e9
+etienne_e_whole8[geometry] = closed
+etienne_e_whole8[particle]= electron
+
+use,etienne_e_whole8, r_etienne_p_whole8
+
+
+ !etienne_e_whole8[x_position]=-62.4126965901929      
+ !etienne_e_whole8[z_position]=-89.0182687621765
+ !etienne_e_whole8[theta_position]=4.30879020478639
+
+
+
+end_file 
+
+!etienne_p_whole8[p0c]= 60e9
+!etienne_p_whole8[particle]= proton
+!etienne_p_whole8[lattice_type]= circular_lattice
+
+ir1[x_position] = -2
+ir1[p0c] = 1e10
+ir1[beta_a] = 3
+ir1[beta_b] = 4
+
+ir2[x_position] = 1
+ir2[p0c] = 1e10
+ir2[beta_a] = 3
+ir2[beta_b] = 4
+parameter[particle] = PROTON
+parameter[lattice_type] = circular_lattice
+parameter[p0c] = 60e9
+PARAMETER[ptc_exact_model]=true

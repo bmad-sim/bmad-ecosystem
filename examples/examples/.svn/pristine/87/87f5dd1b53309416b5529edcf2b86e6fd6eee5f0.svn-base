@@ -1,0 +1,20 @@
+call, file = cell.lat.bmad
+
+call, file = reverse_beam_start1.bmad
+
+reverse_lat: LINE = (-FF.arc_cell)
+
+! Reverse superimposes
+FF.Qua02[ele_origin] = end
+FF.Qua01[ele_origin] = beginning
+FF.Qua02[ref_origin] = end
+FF.Qua01[ref_origin] = beginning
+FF.Qua02[offset] = -FF.quad_padding
+FF.Qua01[offset] =  FF.quad_padding
+
+FF.Qua01[z_offset] = - FF.QF[z_offset]
+FF.Qua02[z_offset] = - FF.QD[z_offset]
+
+
+use, reverse_lat
+

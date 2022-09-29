@@ -1,0 +1,78 @@
+!field
+                                     
+FF.Qua01[grid_field] = call::../../../fields/CBETA_Halbach/CBETA_cell_QF_grid.bmad
+FF.Qua02[grid_field] = call::../../../fields/CBETA_Halbach/CBETA_cell_BD_grid.bmad
+FF.Qua01[B1_GRADIENT] =  -11.486399127832666   *  1.0000
+FF.Qua02[B1_GRADIENT] =     10.924408683499143  *  1.0137
+FF.Qua01[x_offset] = 0
+FF.Qua02[x_offset] =  -1.230e-3
+
+ 
+! Straight cell
+!FF.f = 0
+!FF.patch1[x_pitch] = FF.f * FF.angle/2
+!FF.patch2[x_pitch] = FF.f * FF.angle/2
+!FF.Pip01[L] = FF.pipe.L/2 + (1-FF.f)*FF.stretch
+!FF.Pip02[L] = FF.pipe.L/2 + (1-FF.f)*FF.stretch
+!FF.Qua01[offset] = -FF.quad_padding -(1-FF.f)*FF.stretch
+!FF.Qua02[offset] = FF.quad_padding +(1-FF.f)*FF.stretch
+!FF.Qua01[x_offset] = 0
+
+! Shift BD
+!FF.Qua02[grid_field] = call::../../../fields/CBETA_Halbach/CBETA_cell_BD_grid.bmad
+!FF.Qua02[B1_GRADIENT] =     10.924408683499143  *  1.0137
+!FF.Qua02[x_offset] = (1-FF.f) * -1*(0.028842519670316966  -1.230e-3)
+ 
+! Shift QD
+!FF.Qua02[grid_field] = call::../../../fields/CBETA_Halbach/CBETA_cell_QD_grid.bmad
+!FF.Qua02[B1_GRADIENT] =   10.019055351705155  *  1.0137
+!FF.Qua02[x_offset] = FF.f *  (0.028842519670316966  -1.230e-3)
+ 
+ 
+FF.Qua01[field_calc] = fieldmap
+FF.Qua02[field_calc] = fieldmap 
+ 
+FF.Qua01[tracking_method] = runge_kutta
+FF.Qua01[mat6_calc_method] = tracking 
+FF.Qua02[tracking_method] = runge_kutta
+FF.Qua02[mat6_calc_method] = tracking
+
+
+FF.Pip01[tracking_method] = runge_kutta
+FF.Blk01[tracking_method] = runge_kutta
+FF.Pip02[tracking_method] = runge_kutta
+
+FF.Pip01[mat6_calc_method]=tracking
+FF.Blk01[mat6_calc_method]=tracking
+FF.Pip02[mat6_calc_method]=tracking
+
+! Symplectify 
+!FF.Qua01[symplectify] = T
+!FF.Qua02[symplectify] = T
+!FF.Pip01[symplectify] = T
+!FF.Blk01[symplectify] = T
+!FF.Pip02[symplectify] = T
+
+ 
+FF.patch1[tracking_method] = runge_kutta
+FF.patch1[mat6_calc_method] = tracking 
+FF.patch2[tracking_method] = runge_kutta
+FF.patch2[mat6_calc_method] = tracking 
+ 
+
+
+FF.Qua01[field_overlaps] = {FF.Pip01, FF.Blk01, FF.Pip02, FF.Patch1, FF.Patch2}
+FF.Qua02[field_overlaps] = {FF.Pip01, FF.Blk01, FF.Pip02, FF.Patch1, FF.Patch2}
+
+FF.Qua03[grid_field] = FF.Qua01[grid_field]
+FF.Qua00[grid_field] = FF.Qua02[grid_field]
+FF.Qua03[field_calc] = fieldmap
+FF.Qua00[field_calc] = fieldmap
+FF.Qua03[B1_GRADIENT] =  FF.Qua01[B1_GRADIENT]
+FF.Qua00[B1_GRADIENT] =  FF.Qua02[B1_GRADIENT]
+FF.Qua03[x_offset] =  FF.Qua01[x_offset]
+FF.Qua00[x_offset] =  FF.Qua02[x_offset]
+ 
+! With dummies, overlap pipes periodically. 
+FF.Qua00[field_overlaps] = {FF.Pip01} !, FF.BLK01}
+FF.Qua03[field_overlaps] = {FF.Pip02} !, FF.BLK01}

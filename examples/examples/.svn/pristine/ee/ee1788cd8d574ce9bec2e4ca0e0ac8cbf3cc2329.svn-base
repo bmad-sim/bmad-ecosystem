@@ -1,0 +1,33 @@
+x-s floor 10 15
+sc
+!sc floor 4 8
+vv
+vd
+
+set dat floor.thetas[3]|meas = floor.thetas[1]|model
+set dat floor.z[3]|meas = floor.z[1]|model 
+
+
+set dat harmonic.part1[3]|meas = 0
+!set dat time.part1[3]|meas = time.part1[1]|model + (0+0.3) /4 /1.3e9 ! 
+
+! Try to make same length!!
+set dat time.part1[3]|meas = time.part1[1]|model + 0.0/3e8 - (-0.0574567)/4/3e8 !FFAG compensation
+set dat time.part1[3]|meas = 1.44718498E-08 ! Exact
+
+
+! For timing
+use dat floor.thetas[3]
+!use dat harmonic.part1[3]
+use dat time.part1[3]
+use dat floor.z[3]
+!use var parallel3[3,4,5]
+use var parallel3[2,3,5]
+
+
+olmdif
+run
+sho var -good -bmad
+
+
+

@@ -1,0 +1,12 @@
+This directory contains files used in the Bmad/Tao tutorial.
+
+The easiest way to access the tutorial is from Bmad web site:
+	  www.lepp.cornell.edu/bmad
+Click on either the "Bmad Manual" or "Tao Manual" link and there should be a link to download the tutorial.
+
+Lattice files are in the subdirectory:
+		lattice_files
+
+In case you are interested, the LaTeX source files to generate the tutorial PDF are in the directory:
+		doc
+But the pdf is posted on the web (see above) so the LaTeX source files will not be of general interest.

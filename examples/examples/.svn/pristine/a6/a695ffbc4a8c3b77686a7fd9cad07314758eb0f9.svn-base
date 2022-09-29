@@ -1,0 +1,24 @@
+
+x-s all 6 16
+sc
+plotoff
+vv
+vd
+use var recovery1[1:3]
+vk
+set var recovery1|key_bound = T
+
+use dat recovery[1:3]
+use dat time.total[1]
+
+
+!set dat time.total[1]|meas =  3.51247177E-08
+alias harmonic set dat time.total[1]|meas =  3.51247177E-08 + [[1]]/(1.3e9)
+harmonic -.25
+
+! To find out min path length
+!set dat time.total[1]|merit_type = max
+!set dat time.total[1]|meas = 0
+!
+
+ploton

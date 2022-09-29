@@ -1,0 +1,221 @@
+\newcommand{\Bf}[1]{{\bf #1}}
+\newcommand{\dsfrac}[2]{\frac{\displaystyle #1}{\displaystyle #2}}
+\newcommand{\calO}{{\cal O}}
+\newcommand{\calH}{{\cal H}}
+\newcommand{\Cal}[1]{{\cal #1}}
+\newcommand{\two}{}
+\newcommand{\bfsig}{\boldsymbol{\sigma}}
+\newcommand{\bfbeta}{\boldsymbol{\beta}}
+\newcommand{\bfphi}{\boldsymbol{\phi}}
+\newcommand{\bfeta}{\boldsymbol{\eta}}
+\newcommand{\sigb}{\sigma_\beta}
+\newcommand{\bfrbar}{\overline{\Bf r}}
+\newcommand{\BF}[1]{{\text{\bf #1}}}
+%%\newcommand{\BF}[1]{{\normalfont\textbf{#1}}}
+
+\newcommand{\re}{\operatorname{Re}}
+\newcommand{\im}{\operatorname{Im}}
+
+\newcommand{\bfa}{\Bf a}
+\newcommand{\bfg}{\Bf g}
+\newcommand{\bfk}{\Bf k}
+\newcommand{\bfq}{\Bf q}
+\newcommand{\bfr}{\Bf r}
+\newcommand{\bfx}{\Bf x}
+\newcommand{\bfz}{\Bf z}
+\newcommand{\bfA}{\Bf A}
+\newcommand{\bfB}{\Bf B}
+\newcommand{\bfC}{\Bf C}
+\newcommand{\bfE}{\Bf E}
+\newcommand{\bfG}{\Bf G}
+\newcommand{\bfH}{\Bf H}
+\newcommand{\bfI}{\Bf I}
+\newcommand{\bfL}{\Bf L}
+\newcommand{\bfM}{\Bf M}
+\newcommand{\bfO}{\Bf O}
+\newcommand{\bfQ}{\Bf Q}
+\newcommand{\bfK}{\Bf K}
+\newcommand{\bfP}{\Bf P}
+\newcommand{\bfR}{\Bf R}
+\newcommand{\bfS}{\Bf S}
+\newcommand{\bfV}{\Bf V}
+\newcommand{\bfT}{\Bf T}
+\newcommand{\bfU}{\Bf U}
+\newcommand{\bfW}{\Bf W}
+
+\newcommand{\vdot}[2]{\Bigl[ #1, \, #2 \Bigr]}
+\newcommand{\comma}{\> ,}
+\newcommand{\period}{\> .}
+\newcommand{\bfAbar}{\overline{\bfA}}
+\newcommand{\bfCbar}{\overline{\bfC}}
+\newcommand{\bfKbar}{\overline{\bfK}}
+\newcommand{\bfkbar}{\overline{\bfk}}
+\newcommand{\bfTbar}{\overline{\bfT}}
+\newcommand{\Hbar}{{\overline{H}}}
+\newcommand{\Kbar}{\overline{K}}
+\newcommand{\kbar}{\overline{k}}
+\newcommand{\Pbar}{\overline{P}}
+\newcommand{\gam}{\gamma}                                     
+\newcommand{\inv}{^{-1}}
+
+\newcommand{\tot}{{\text{tot}}}
+
+%%\newcommand{\dotproduct}{\mathbin{\scriptscriptstyle\stackrel{\bullet}{{}}}}
+\newcommand{\dotproduct}{\mathbin{\boldsymbol{\cdot}}}
+\newcommand{\cross}{\mathbin{\boldsymbol{\times}}}
+
+\newcommand{\what}{\widehat}
+\newcommand{\wt}{\widetilde}
+\newcommand{\bfhat}[1]{{\widehat{\bf  #1}}}
+\newcommand{\bftilde}[1]{{\widetilde{\bf #1}}}
+\newcommand{\xw}{{\widetilde x}}
+\newcommand{\yw}{{\widetilde y}}
+\newcommand{\rw}{{\widetilde r}}
+
+\newcommand{\tstyle}{\textstyle}
+\newcommand{\stilde}{{\widetilde s}}
+\newcommand{\tWl}{\widetilde{W}^{SR}_\parallel}
+\newcommand{\WlS}{W^{SR}_\parallel}
+\newcommand{\WtS}{W^{SR}_\perp}
+\newcommand{\WtL}{W^{LR}_\perp}
+
+\newcommand{\hyperbf}[1]{\textbf{\hyperpage{#1}}}
+\newcommand{\Hyperref}[2]{\index[routine]{#2}\hyperref[#1]{#2}}
+
+\newcommand{\om}{\omega}
+\newcommand{\qqquad}{\qquad \qquad}
+\newcommand{\ks}{\widetilde k_s}
+\newcommand{\kone}{\widetilde k_1}
+
+\newcommand{\hphphp}{\hphantom{\dfrac{k_x}{k_y}}}
+\newcommand{\Ce}{\text{C}}
+\newcommand{\Se}{\text{S}}
+\newcommand{\Ch}{\text{Ch}}
+\newcommand{\Sh}{\text{Sh}}
+
+\newcommand{\CR}{\\}
+\newcommand{\CRNO}{\nonumber \\}
+\newcommand{\dstyle}{\displaystyle}
+
+\newcommand{\fig}[1]{Fig.~\ref{#1}}
+\newcommand{\figs}[1]{Figs.~\ref{#1}}
+
+\newcommand{\pow}[1]{\cdot 10^{#1}}
+\newcommand{\tao}{{\sl Tao}\xspace}
+\newcommand{\bmad}{{\sl Bmad}\xspace}
+\newcommand{\mad}{{\sl MAD}\xspace}
+\newcommand{\quickplot}{{\sl Quick Plot}\xspace}
+\newcommand{\cpp}{$C$\hskip-0.3ex\protect\raisebox{0.2ex}{\scriptsize ++}\xspace}
+\newcommand{\CPP}{$C$\hskip-0.3ex{\protect\raisebox{.3ex}{\large {+}+}}\xspace}
+%%\newcommand{\CPP}{$C${\small ++}\xspace}
+
+\newcommand{\eq}[1]{{(\protect\ref{#1})}}
+\newcommand{\Eq}[1]{{Eq.~(\protect\ref{#1})}}
+\newcommand{\Eqs}[1]{{Eqs.~(\protect\ref{#1})}}
+
+\newcommand{\svn}{\vn{Subversion}\xspace}
+\newcommand{\sref}[1]{\S\ref{#1}}
+\newcommand{\Sref}[1]{Sec.~\sref{#1}}
+\newcommand{\extref}[1]{\S\ref*{#1}}   % No hyperlink. For external refs. \extref
+\newcommand{\cref}[1]{Chapter~\ref{#1}}
+
+\newcommand{\toffset}{\vskip 0.01in}
+\newcommand{\rot}[1]{\begin{rotate}{-45}#1\end{rotate}}
+
+\newcommand{\ave}[1]{\left\langle #1 \right\rangle}
+
+\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{{\usefont{T1}{lmss}{bx}{n} #1}\endgroup}
+
+%\newcommand\ttverb{
+%  \bgroup\let\do\@makeother\dospecials\catcode`{=1 \catcode`}=2 \DSAcode}
+%\newcommand*\DSAcode[1]{\texttt{#1}\egroup}
+
+\newcommand{\CRNEG}{\nonumber \\*[-1.5\jot]}
+\newcommand{\CRneg}{\nonumber \\*[-1\jot]}
+\newcommand{\Newline}{\hfil \\}
+
+\newcommand{\plus}{\; + \;}
+
+\newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\Nd}{$^{nd}$\xspace}
+\newcommand{\Rd}{$^{rd}$\xspace}
+\newcommand{\St}{$^{st}$\xspace}
+\newcommand{\B}{$\backslash$}
+
+\newlength{\dPar}
+\setlength{\dPar}{1.5ex}
+
+% Since a non-zero parskip is used, the alltt environment needs to be modified to keep
+% the white space before and after from being too large.
+
+% Note: Use \( ... \) for inline equations in example mode. 
+% Use \[ ... \] for display equations.
+%\sb{} and \sp{} need to be used for subscripts and superscripts instead of "_" and "^".
+
+\newenvironment{example}
+  {\vspace{-3.0ex} \begin{alltt}}
+  {\end{alltt} \vspace{-2.5ex}}
+
+\newenvironment{example2}
+  {\vspace{-2.5ex} \begin{alltt}}
+  {\end{alltt} \vspace{-2.0ex}}
+
+\newenvironment{Itemize}
+  {\begin{list}{$\bullet$}
+    {\addtolength{\topsep}{-1.5ex} 
+     \addtolength{\itemsep}{-1ex}
+    }
+  }
+  {\end{list} \vspace*{1ex}}
+
+\definecolor{light-gray}{gray}{0.95}
+\lstset{backgroundcolor=\color{light-gray}}
+\lstset{xleftmargin=0cm}
+\lstset{framexleftmargin=0.3em}
+
+\lstnewenvironment{Xcode}{}{}
+
+\definecolor{lightcyan}{rgb}{0.88, 1.0, 1.0}
+\newcounter{main}
+\setcounter{main}{1}
+\lstnewenvironment{code}[1][firstnumber=\themain,name=main]
+  {\lstset{ %language=haskell,
+           %columns=fullflexible,
+           columns=fixed,
+           basicstyle=\small\ttfamily,
+           %numbers=left,
+           numberstyle=\tiny\color{gray},
+           backgroundcolor=\color{lightcyan},
+           #1
+          }
+}
+{\setcounter{main}{\value{lstnumber}}}
+
+% \ExampleNum is for numbering "example" blocks using the same numbering counter
+% as the "equation" counter
+
+\newcommand{\ExampleNum}[1]{\hfill \refstepcounter{equation} \((\arabic{equation})\protect\label{#1}\)}
+
+% From pg 64 of The LaTex Companion.
+
+\newenvironment{ventry}[1]
+  {\begin{list}{}
+    {\renewcommand{\makelabel}[1]{\textsf{##1}\hfil}
+     \settowidth{\labelwidth}{\textsf{#1}}
+     \addtolength{\itemsep}{-1.5ex}
+     \addtolength{\topsep}{-1.0ex} 
+     \setlength{\leftmargin}{5em}
+    }
+  }
+  {\end{list}}
+
+\newcommand{\BAR}[1]{\overline{#1}}
+
+\newcommand{\DAG}{$^\dagger$}
+\newcommand{\DDAG}{$^\ddagger$}
+
+%Units in roman
+\newcommand{\unit}[1]{\,\ensuremath{\mathrm{#1}}}
+
+

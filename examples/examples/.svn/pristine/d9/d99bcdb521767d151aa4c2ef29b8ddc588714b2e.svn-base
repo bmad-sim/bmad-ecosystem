@@ -1,0 +1,43 @@
+vv
+vd
+place top floor
+place middle orbit
+x-s all 90 100
+sc
+x-s floor 8 18
+sc floor 12 16
+x-s top -2 3
+sc top -1 0
+
+
+use dat connect.4[1,2,4]  
+!use dat pathlength.4
+
+! Center midpoint
+!use dat floor.z[4]
+set dat floor.z[4]|meas = floor.z[1]|model
+!use dat floor.thetas[4]
+set dat floor.thetas[4]|meas = floor.thetas[1]|model
+
+
+use var connect.4[1,3:5]
+!set var connect.4[3]|low_lim = 1.6056791E-01
+ 
+!use var pathlength.4
+
+! or Pathlength
+!veto var connect.4
+!use dat time.total[4]
+!use var pathlength.4
+
+
+set dat time.total[4]|meas = time.total[1]|model + (1.5)/2 /1.3e9  - (0.0410875)/2/3e8  ! FFAG compensation
+! Exact
+set dat time.total[4]|meas = time.total[1]|model + (1.5)/2 /1.3e9  - (0.0410875)/2/3e8  -3.08999306512173E-03/2/3e8
+use dat time.total[4]
+
+
+
+vk
+set var connect.4|key_bound=T
+set var pathlength.4|key_bound=T

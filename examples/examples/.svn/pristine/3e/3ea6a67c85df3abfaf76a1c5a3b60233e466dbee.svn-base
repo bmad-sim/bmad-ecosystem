@@ -1,0 +1,68 @@
+
+BEGINNING[BETA_A]  = 40
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 40
+BEGINNING[ALPHA_B] = 0
+
+!parameter[geometry] = open
+!beam_start[x]  = 0 !   -0.0117339855
+!beam_start[px] = 0 !   -0.1107492265
+
+ 
+PARAMETER[particle] = electron
+
+!call, file = ../energy0.bmad
+call, file = beam_start1.bmad
+ 
+!parameter[ptc_exact_model]  = T
+
+parameter[absolute_time_tracking] = T
+
+ 
+Mar.BEG: marker
+Mar.END: marker
+
+! Bmad cell
+call, file = cell.bmad
+!call, file = cell_wall.bmad
+
+
+use, FF.arc_cell
+  
+   
+!call, file = cell.use_fields.bmad
+!parameter[live_branch] = F
+!parameter[geometry] = open
+!use, FF.arc_cell, FF.dummy1, FF.dummy2 
+  
+  
+  
+! Straight cell
+!FF.f = 0
+!FF.patch1[x_pitch] = FF.f * FF.angle/2
+!FF.patch2[x_pitch] = FF.f * FF.angle/2
+!FF.Pip01[L] = FF.pipe.L/2 + (1-FF.f)*FF.stretch
+!FF.Pip02[L] = FF.pipe.L/2 + (1-FF.f)*FF.stretch
+!FF.drift2[L] = FF.quad_padding + FF.Blk01[L]/2/cos(FF.angle/2) + (1-FF.f)*FF.stretch
+!FF.drift3[L] = FF.quad_padding + FF.Blk01[L]/2/cos(FF.angle/2)+ (1-FF.f)*FF.stretch
+!FF.QF[x_offset] = 0 
+!FF.QD[x_offset] = FF.f*FF.QD[X_OFFSET]   
+!FF.QF[z_offset] = 0
+!FF.QD[z_offset] = 0
+
+!use, FF.arc_cell_no_superimpose  
+
+
+
+
+!FF.BPM01: marker, superimpose, ref = FF.Blk01
+
+
+*[ds_step] = .01
+
+
+
+!*[tracking_method] = symp_lie_ptc
+!*[mat6_calc_method] = symp_lie_ptc
+!*[tracking_method] = symp_lie_bmad
+!*[mat6_calc_method] = symp_lie_bmad

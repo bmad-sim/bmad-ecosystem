@@ -1,0 +1,3 @@
+place r11 floor_plan
+set graph r11 floor_plan%orbit_scale = 2
+set graph r11 floor_plan%orbit_color = 'purple'

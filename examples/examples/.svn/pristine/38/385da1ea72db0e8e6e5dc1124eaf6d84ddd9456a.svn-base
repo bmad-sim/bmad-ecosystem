@@ -1,0 +1,38 @@
+
+
+no_digested
+
+BEGINNING[BETA_A]  = 50
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 50
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+parameter[geometry] = open
+
+
+parameter[p0c] = 0
+
+
+!call, file = in.gun.bmad
+
+d0: drift, L = 1.6
+
+call, file = in.gun.bmad
+
+!GA1GHV01: E_GUN, L = 0.15, field_calc = grid, tracking_method = time_runge_kutta, 
+!	field = {mode = { grid = call::in.gun_grid.bmad }},
+!
+!	voltage = 500e3
+
+
+GA1GHV01[voltage]=300e3
+
+
+
+m1:marker
+
+lat: LINE = (GA1GHV01, m1)
+
+use, lat
+

@@ -1,0 +1,227 @@
+!---------------- LA.CRMOD ------------
+LA.CRMOD.Gat01[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.GATEVALVE[aperture]}},
+	section = { s = LA.CRMOD.Gat01[L],
+	  v(1) = {0, 0, LA.CRMOD.GATEVALVE[aperture]}}}
+LA.CRMOD.Tap01[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.GATEVALVE[aperture]}},    ! Note: tapering wall
+	section = { s = LA.CRMOD.Tap01[L],
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}}}
+
+LA.CRMOD.HOM01[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}},
+	section = { s = LA.CRMOD.HOMABSORBER[L],
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}}}
+
+LA.CRMOD.Pip01[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip01[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+
+!Cavity #1
+LA.CRMOD.Pip02[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip02[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+LA.CRMOD.Pip03[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip03[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+
+LA.CRMOD.Pip04[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip04[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+LA.CRMOD.HOM02[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}},
+	section = { s = LA.CRMOD.HOMABSORBER[L],
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}}}
+LA.CRMOD.Pip05[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip05[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+
+!Cavity #2
+LA.CRMOD.Pip06[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip06[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+LA.CRMOD.Pip07[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip07[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+
+LA.CRMOD.Pip08[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip08[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+LA.CRMOD.HOM03[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}},
+	section = { s = LA.CRMOD.HOMABSORBER[L],
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}}}
+LA.CRMOD.Pip09[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip09[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+
+!Cavity #3
+LA.CRMOD.Pip10[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip10[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+LA.CRMOD.Pip11[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip11[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+
+
+LA.CRMOD.Pip12[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip12[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+
+LA.CRMOD.HOM04[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}},
+	section = { s = LA.CRMOD.HOMABSORBER[L],
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}}}
+LA.CRMOD.Pip13[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip13[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+
+!Cavity #4
+LA.CRMOD.Pip14[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip14[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+LA.CRMOD.Pip15[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip15[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+
+
+
+LA.CRMOD.Pip16[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip16[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+LA.CRMOD.HOM05[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}},
+	section = { s = LA.CRMOD.HOMABSORBER[L],
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}}}
+LA.CRMOD.Pip17[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip17[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+
+
+!Cavity #5
+LA.CRMOD.Pip18[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip18[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+LA.CRMOD.Pip19[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip19[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+LA.CRMOD.Pip20[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip20[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+
+LA.CRMOD.HOM06[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}},
+	section = { s = LA.CRMOD.HOMABSORBER[L],
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}}}
+LA.CRMOD.Pip21[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip21[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+
+
+!Cavity #6
+LA.CRMOD.Pip22[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip22[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+LA.CRMOD.Pip23[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}},
+	section = { s = LA.CRMOD.Pip23[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_NB[aperture]}}}
+
+LA.CRMOD.Pip24[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}},
+	section = { s = LA.CRMOD.Pip24[L],
+	  v(1) = {0, 0, LA.CRMOD.PIPE_CU[aperture]}}}
+LA.CRMOD.HOM07[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}},
+	section = { s = LA.CRMOD.HOMABSORBER[L],
+	  v(1) = {0, 0, LA.CRMOD.HOMABSORBER[aperture]}}}
+LA.CRMOD.Tap02[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.TAPER[aperture]}},
+	section = { s = LA.CRMOD.Tap02[L],
+	  v(1) = {0, 0, LA.CRMOD.TAPER[aperture]}}}
+LA.CRMOD.Pip25[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.CORRECTOR[aperture]}},
+	section = { s = LA.CRMOD.CORRECTOR[L],
+	  v(1) = {0, 0, LA.CRMOD.CORRECTOR[aperture]}}}
+LA.CRMOD.Pip26[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.BPM[aperture]}},
+	section = { s = LA.CRMOD.BPM[L],
+	  v(1) = {0, 0, LA.CRMOD.BPM[aperture]}}}
+LA.CRMOD.Pip27[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.QUADRUPOLE[aperture]}},
+	section = { s = LA.CRMOD.QUADRUPOLE[L],
+	  v(1) = {0, 0, LA.CRMOD.QUADRUPOLE[aperture]}}}
+
+LA.CRMOD.Gat02[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.Pip27[aperture]}},
+	section = { s = LA.CRMOD.GATEVALVE[L],
+	  v(1) = {0, 0, LA.CRMOD.GATEVALVE[aperture]}}}
+
+LA.CRMOD.FLX01[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.Gat02[aperture]}},       !Note: taper is here. Need to fix this element
+	section = { s = LA.CRMOD.FLX01[L],
+	  v(1) = {0, 0, LA.CRMOD.INTERMODULEFLEX[aperture]}}}
+
+
+!----------------------------------------------------------------------------						   

@@ -1,0 +1,28 @@
+place floor r56_compaction
+place top beta
+place middle eta
+sr56 s1.demer.mar.beg\1
+x-s all 10 22
+sc
+sc top 0 100
+sc middle -1 1
+!sc layout -40 40
+vv
+vd
+!use dat cellmatch.1[1:6]
+use dat cellmatch.1[1:7]
+use dat betas.1
+! Don't tune the FFAG quads!!
+use var q1[1:8]  
+
+set var *|key_bound=F
+set var q1|key_bound=T
+
+
+alias sb set dat betas.1[1,2]|meas = [[1]]
+
+olmdif
+
+
+! 
+alias Write show -append s1.X.bmad var -good -bmad

@@ -1,0 +1,58 @@
+!no_digested
+
+BEGINNING[BETA_A]  = 1
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 1
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[geometry] = open
+
+parameter[p0c] = 0
+
+parameter[absolute_time_tracking] = T
+
+!beginning[theta_position] = 15*pi/180
+
+
+call, file = in.bmad
+call, file = in.X.bmad
+call, file = a3/a3.bmad
+call, file = a3/a3.X.bmad
+call, file = merge/in.merge.bmad
+
+magic: match, match_end = T
+MAGIC[BETA_A1] =   1.41372596966258E+00
+MAGIC[ALPHA_A1] =   3.06916938531451E-01
+MAGIC[BETA_B1] =   1.21149171195480E+01
+MAGIC[ALPHA_B1] =   4.20450441543630E+00
+MAGIC[ETA_X1] =  -2.92404085150848E-03
+MAGIC[ETAP_X1] =   2.06433039932732E-03
+
+IN_with_MERGE_part1: LINE = (IN.Mar.BEG, 
+	    GA1GHV01,
+        IN.A1,
+        IN.CRMOD,
+	in.e_tot,
+        in.a3,
+	IN.MERGE.part1,
+	IN.Mar.END)
+	
+*[autoscale_amplitude] = T
+*[autoscale_phase] = T
+
+lat: line = (IN_with_MERGE_part1, in.merge.part2, magic)
+
+lat2: line = (GA1GHV01, in.A1, magic)
+
+
+mm: fork, to_line = in.mirror_merge
+
+lat3: line = (IN_before_MERGE, a3/a3.bmad, mm, in.merge.part1, in.merge.part2, magic)
+
+
+
+use, lat3
+
+
+

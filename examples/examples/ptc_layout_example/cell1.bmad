@@ -1,0 +1,126 @@
+! 67 MeV beam, reference 158.5 MeV
+parameter[e_tot] = 1.585e8
+beam_start[pz] = -0.5772971639985545
+
+!parameter[geometry] = open
+PARAMETER[particle] = electron
+
+beam_start[x]  =    -0.0103745568
+beam_start[px] =    -0.0224250871
+beam_start[pz] =     0.0000000000
+beginning[e_tot]  =   1.58500000E+08
+beginning[beta_a]  =     0.4764562758
+beginning[alpha_a] =    -0.9285855700
+beginning[beta_b]  =     0.6007830251
+beginning[alpha_b] =     1.1493920030
+beginning[eta_x]  =     0.0282579715
+beginning[etap_x] =     0.0871600339
+
+
+! CBETA FFAG Prototype Cell
+
+
+FF.Pip01a: PIPE
+FF.Pip01: PIPE
+FF.Pip02: PIPE
+
+FF.Qua: QUAD, fringe_type = full, field_master = T
+
+FF.Qua01: FF.Qua
+FF.Qua02: FF.Qua
+
+
+
+FF.patch01a: patch
+FF.patch01b: patch
+FF.patch02: patch
+
+O_FF_angle_deg: overlay = {FF.patch01a:0.5*pi/180, FF.patch01b:0.5*pi/180}, x_pitch
+O_FF_angle_deg[x_pitch] = -3.6
+
+
+FF.Mar.BEG: MARKER
+FF.Mar.END: MARKER
+FF.Qua01.Mar.MID: marker, superimpose, ref = FF.Qua01
+ 
+shift = 0.05
+FF.Pip01a[L] = shift
+FF.Pip01[L] = 0.05
+FF.Pip02[L] = 0.11 -shift
+
+
+FF.PIP01[L] =   5e-2
+FF.PIP02[L] =   7e-2
+
+
+
+! Apertures
+FF.Mar.BEG[aperture_type] = elliptical
+FF.Qua01[aperture_type] = elliptical
+FF.QUA01.MAR.MID[aperture_type] = elliptical
+FF.Qua02[aperture_type] = elliptical
+FF.Qua01[aperture_at] = both_ends
+FF.Qua02[aperture_at] = both_ends
+
+O_aperture: overlay = {
+  FF.Mar.BEG[x1_limit], FF.Mar.BEG[x2_limit],
+  FF.Mar.BEG[y1_limit], FF.Mar.BEG[y2_limit],
+  FF.Qua01[x1_limit], FF.Qua01[x2_limit],
+  FF.Qua01[y1_limit], FF.Qua01[y2_limit],
+  FF.Qua01.Mar.MID[x1_limit], FF.Qua01.Mar.MID[x2_limit],
+  FF.Qua01.Mar.MID[y1_limit], FF.Qua01.Mar.MID[y2_limit],
+  FF.Qua02[x1_limit], FF.Qua02[x2_limit],
+  FF.Qua02[y1_limit], FF.Qua02[y2_limit]}, var = {r0}
+O_aperture[r0] = 0
+
+
+! Fractional lengths of quads
+O_quad_length: overlay = {FF.Qua01[L]:f*L, FF.Qua02[L]:(1-f)*L}, var = {L, f}
+O_quad_length[f] = 0.5
+O_quad_length[L] = .22
+
+
+! solution
+O_FF_ANGLE_DEG[X_PITCH]=-4.5
+O_quad_length[L] = 5*abs(O_FF_ANGLE_DEG[X_PITCH]*pi/180) - .17 ! 5 m radius, 17cm drifts
+FF.QUA01[B1_GRADIENT] = 20.931
+FF.QUA02[B1_GRADIENT] = -20.32
+FF.QUA02[X_OFFSET]    = 0.025342
+O_QUAD_LENGTH[F]      = 0.51775
+
+
+FF.QUA01[L] = (5*4.5*pi/180 - .17 )*0.51775
+FF.QUA02[L] = (5*4.5*pi/180 - .17 )*(1-0.51775)
+FF.Patch01a[x_pitch] = -4.5*pi/180/2
+FF.Patch01b[x_pitch] = -4.5*pi/180/2
+
+O_aperture[r0] = 25e-3
+
+
+! Soft edges
+FF.QUA01[FQ1] =  2e-4
+FF.QUA02[FQ1] =  2e-4
+
+!- - - Lines        
+
+FF.arc_cell: line = (FF.Pip01a, FF.Qua01, FF.Pip01, FF.patch01a, FF.Qua02, FF.patch01b, FF.patch02,  FF.Pip02)
+FF.straight_cell: line = (FF.Pip01a, FF.Qua01, FF.Pip01, FF.Qua02, FF.Pip02)
+
+
+FFAG.CELL: LINE = (
+  FF.Mar.BEG,
+  FF.arc_cell,
+  FF.Mar.END)
+
+
+! periodic cell
+pcell: LINE = (FFAG.CELL)
+
+! 3 cells in a row
+lat: line = (3*pcell)
+
+
+*[ds_step] = .01
+
+use, pcell
+

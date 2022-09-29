@@ -1,0 +1,5 @@
+set graph r12 ix_universe = 1
+set graph r22 ix_universe = 2
+set global n_opti_loops = 10
+call set_meas.tao
+scale

@@ -1,0 +1,5 @@
+Main lattice file is:
+  COSY.bmad
+
+Run Tao to see a floor_plan drawing.
+Note: Tao uses lat.bmad which is COSY.bmad with some modifications.

@@ -1,0 +1,3 @@
+set var *|key_bound = F
+set var parallel2|key_bound=T
+sho key

@@ -1,0 +1,35 @@
+!no_digested
+
+BEGINNING[BETA_A]  = 1e4
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 1e4
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[geometry] = open
+
+parameter[p0c] = 0
+
+parameter[absolute_time_tracking] = T
+!*[autoscale_amplitude] = F
+!*[autoscale_phase] = T
+
+
+
+call, file = gun/in.gun.bmad
+
+call, file = a1.bmad
+
+GA1GHV01[voltage] = 300e3 !V
+gaghv01[autoscale_phase] = f
+
+ma1sla01[bs_field] = 0.025331      !T 
+ra1cav01[gradient] = 50e3*4.41
+ra1cav01[phi0] = -90.0/360.0
+ma1sla02[bs_field] = -0.01661     !T
+
+in.mar.beg: marker
+dummy: drift, L = 1
+a1_gun: line = (in.mar.beg, GA1GHV01, in.a1, dummy)
+
+use, a1_gun

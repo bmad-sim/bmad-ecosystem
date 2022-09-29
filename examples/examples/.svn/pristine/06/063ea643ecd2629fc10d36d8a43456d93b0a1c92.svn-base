@@ -1,0 +1,818 @@
+
+!--- TB cell 01
+
+
+
+
+!--- Pipes
+TB.Pip01: FF.Pip01
+TB.Pip02: FF.Pip02
+TB.Blk01: FF.Blk01
+
+!--- Quads
+MTBQUF01: FF.QF, superimpose, ref = TB.Pip01, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD01: FF.QD, superimpose, ref = TB.Pip02, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch01: FF.patch1
+TB.patch02: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell01: line = (
+ TB.Pip01, 
+ TB.patch01, 
+ TB.Blk01, 
+ TB.patch02, 
+ TB.Pip02)
+
+ 
+
+
+!--- TB cell 02
+
+
+
+
+!--- Pipes
+TB.Pip03: FF.Pip01
+TB.Pip04: FF.Pip02
+TB.Blk02: FF.Blk01
+
+!--- Quads
+MTBQUF02: FF.QF, superimpose, ref = TB.Pip03, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD02: FF.QD, superimpose, ref = TB.Pip04, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch03: FF.patch1
+TB.patch04: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell02: line = (
+ TB.Pip03, 
+ TB.patch03, 
+ TB.Blk02, 
+ TB.patch04, 
+ TB.Pip04)
+
+ 
+
+
+!--- TB cell 03
+
+
+
+
+!--- Pipes
+TB.Pip05: FF.Pip01
+TB.Pip06: FF.Pip02
+TB.Blk03: FF.Blk01
+
+!--- Quads
+MTBQUF03: FF.QF, superimpose, ref = TB.Pip05, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD03: FF.QD, superimpose, ref = TB.Pip06, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch05: FF.patch1
+TB.patch06: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell03: line = (
+ TB.Pip05, 
+ TB.patch05, 
+ TB.Blk03, 
+ TB.patch06, 
+ TB.Pip06)
+
+ 
+
+
+!--- TB cell 04
+
+
+
+
+!--- Pipes
+TB.Pip07: FF.Pip01
+TB.Pip08: FF.Pip02
+TB.Blk04: FF.Blk01
+
+!--- Quads
+MTBQUF04: FF.QF, superimpose, ref = TB.Pip07, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD04: FF.QD, superimpose, ref = TB.Pip08, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch07: FF.patch1
+TB.patch08: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell04: line = (
+ TB.Pip07, 
+ TB.patch07, 
+ TB.Blk04, 
+ TB.patch08, 
+ TB.Pip08)
+
+ 
+
+
+!--- TB cell 05
+
+
+
+
+!--- Pipes
+TB.Pip09: FF.Pip01
+TB.Pip10: FF.Pip02
+TB.Blk05: FF.Blk01
+
+!--- Quads
+MTBQUF05: FF.QF, superimpose, ref = TB.Pip09, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD05: FF.QD, superimpose, ref = TB.Pip10, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch09: FF.patch1
+TB.patch10: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell05: line = (
+ TB.Pip09, 
+ TB.patch09, 
+ TB.Blk05, 
+ TB.patch10, 
+ TB.Pip10)
+
+ 
+
+
+!--- TB cell 06
+
+
+
+
+!--- Pipes
+TB.Pip11: FF.Pip01
+TB.Pip12: FF.Pip02
+TB.Blk06: FF.Blk01
+
+!--- Quads
+MTBQUF06: FF.QF, superimpose, ref = TB.Pip11, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD06: FF.QD, superimpose, ref = TB.Pip12, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch11: FF.patch1
+TB.patch12: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell06: line = (
+ TB.Pip11, 
+ TB.patch11, 
+ TB.Blk06, 
+ TB.patch12, 
+ TB.Pip12)
+
+ 
+
+
+!--- TB cell 07
+
+
+
+
+!--- Pipes
+TB.Pip13: FF.Pip01
+TB.Pip14: FF.Pip02
+TB.Blk07: FF.Blk01
+
+!--- Quads
+MTBQUF07: FF.QF, superimpose, ref = TB.Pip13, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD07: FF.QD, superimpose, ref = TB.Pip14, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch13: FF.patch1
+TB.patch14: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell07: line = (
+ TB.Pip13, 
+ TB.patch13, 
+ TB.Blk07, 
+ TB.patch14, 
+ TB.Pip14)
+
+ 
+
+
+!--- TB cell 08
+
+
+
+
+!--- Pipes
+TB.Pip15: FF.Pip01
+TB.Pip16: FF.Pip02
+TB.Blk08: FF.Blk01
+
+!--- Quads
+MTBQUF08: FF.QF, superimpose, ref = TB.Pip15, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD08: FF.QD, superimpose, ref = TB.Pip16, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch15: FF.patch1
+TB.patch16: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell08: line = (
+ TB.Pip15, 
+ TB.patch15, 
+ TB.Blk08, 
+ TB.patch16, 
+ TB.Pip16)
+
+ 
+
+
+!--- TB cell 09
+
+
+
+
+!--- Pipes
+TB.Pip17: FF.Pip01
+TB.Pip18: FF.Pip02
+TB.Blk09: FF.Blk01
+
+!--- Quads
+MTBQUF09: FF.QF, superimpose, ref = TB.Pip17, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD09: FF.QD, superimpose, ref = TB.Pip18, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch17: FF.patch1
+TB.patch18: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell09: line = (
+ TB.Pip17, 
+ TB.patch17, 
+ TB.Blk09, 
+ TB.patch18, 
+ TB.Pip18)
+
+ 
+
+
+!--- TB cell 10
+
+
+
+
+!--- Pipes
+TB.Pip19: FF.Pip01
+TB.Pip20: FF.Pip02
+TB.Blk10: FF.Blk01
+
+!--- Quads
+MTBQUF10: FF.QF, superimpose, ref = TB.Pip19, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD10: FF.QD, superimpose, ref = TB.Pip20, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch19: FF.patch1
+TB.patch20: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell10: line = (
+ TB.Pip19, 
+ TB.patch19, 
+ TB.Blk10, 
+ TB.patch20, 
+ TB.Pip20)
+
+ 
+
+
+!--- TB cell 11
+
+
+
+
+!--- Pipes
+TB.Pip21: FF.Pip01
+TB.Pip22: FF.Pip02
+TB.Blk11: FF.Blk01
+
+!--- Quads
+MTBQUF11: FF.QF, superimpose, ref = TB.Pip21, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD11: FF.QD, superimpose, ref = TB.Pip22, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch21: FF.patch1
+TB.patch22: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell11: line = (
+ TB.Pip21, 
+ TB.patch21, 
+ TB.Blk11, 
+ TB.patch22, 
+ TB.Pip22)
+
+ 
+
+
+!--- TB cell 12
+
+
+
+
+!--- Pipes
+TB.Pip23: FF.Pip01
+TB.Pip24: FF.Pip02
+TB.Blk12: FF.Blk01
+
+!--- Quads
+MTBQUF12: FF.QF, superimpose, ref = TB.Pip23, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD12: FF.QD, superimpose, ref = TB.Pip24, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch23: FF.patch1
+TB.patch24: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell12: line = (
+ TB.Pip23, 
+ TB.patch23, 
+ TB.Blk12, 
+ TB.patch24, 
+ TB.Pip24)
+
+ 
+
+
+!--- TB cell 13
+
+
+
+
+!--- Pipes
+TB.Pip25: FF.Pip01
+TB.Pip26: FF.Pip02
+TB.Blk13: FF.Blk01
+
+!--- Quads
+MTBQUF13: FF.QF, superimpose, ref = TB.Pip25, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD13: FF.QD, superimpose, ref = TB.Pip26, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch25: FF.patch1
+TB.patch26: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell13: line = (
+ TB.Pip25, 
+ TB.patch25, 
+ TB.Blk13, 
+ TB.patch26, 
+ TB.Pip26)
+
+ 
+
+
+!--- TB cell 14
+
+
+
+
+!--- Pipes
+TB.Pip27: FF.Pip01
+TB.Pip28: FF.Pip02
+TB.Blk14: FF.Blk01
+
+!--- Quads
+MTBQUF14: FF.QF, superimpose, ref = TB.Pip27, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD14: FF.QD, superimpose, ref = TB.Pip28, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch27: FF.patch1
+TB.patch28: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell14: line = (
+ TB.Pip27, 
+ TB.patch27, 
+ TB.Blk14, 
+ TB.patch28, 
+ TB.Pip28)
+
+ 
+
+
+!--- TB cell 15
+
+
+
+
+!--- Pipes
+TB.Pip29: FF.Pip01
+TB.Pip30: FF.Pip02
+TB.Blk15: FF.Blk01
+
+!--- Quads
+MTBQUF15: FF.QF, superimpose, ref = TB.Pip29, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD15: FF.QD, superimpose, ref = TB.Pip30, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch29: FF.patch1
+TB.patch30: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell15: line = (
+ TB.Pip29, 
+ TB.patch29, 
+ TB.Blk15, 
+ TB.patch30, 
+ TB.Pip30)
+
+ 
+
+
+!--- TB cell 16
+
+
+
+
+!--- Pipes
+TB.Pip31: FF.Pip01
+TB.Pip32: FF.Pip02
+TB.Blk16: FF.Blk01
+
+!--- Quads
+MTBQUF16: FF.QF, superimpose, ref = TB.Pip31, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD16: FF.QD, superimpose, ref = TB.Pip32, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch31: FF.patch1
+TB.patch32: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell16: line = (
+ TB.Pip31, 
+ TB.patch31, 
+ TB.Blk16, 
+ TB.patch32, 
+ TB.Pip32)
+
+ 
+
+
+!--- TB cell 17
+
+
+
+
+!--- Pipes
+TB.Pip33: FF.Pip01
+TB.Pip34: FF.Pip02
+TB.Blk17: FF.Blk01
+
+!--- Quads
+MTBQUF17: FF.QF, superimpose, ref = TB.Pip33, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD17: FF.QD, superimpose, ref = TB.Pip34, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch33: FF.patch1
+TB.patch34: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell17: line = (
+ TB.Pip33, 
+ TB.patch33, 
+ TB.Blk17, 
+ TB.patch34, 
+ TB.Pip34)
+
+ 
+
+
+!--- TB cell 18
+
+
+
+
+!--- Pipes
+TB.Pip35: FF.Pip01
+TB.Pip36: FF.Pip02
+TB.Blk18: FF.Blk01
+
+!--- Quads
+MTBQUF18: FF.QF, superimpose, ref = TB.Pip35, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD18: FF.QD, superimpose, ref = TB.Pip36, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch35: FF.patch1
+TB.patch36: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell18: line = (
+ TB.Pip35, 
+ TB.patch35, 
+ TB.Blk18, 
+ TB.patch36, 
+ TB.Pip36)
+
+ 
+
+
+!--- TB cell 19
+
+
+
+
+!--- Pipes
+TB.Pip37: FF.Pip01
+TB.Pip38: FF.Pip02
+TB.Blk19: FF.Blk01
+
+!--- Quads
+MTBQUF19: FF.QF, superimpose, ref = TB.Pip37, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD19: FF.QD, superimpose, ref = TB.Pip38, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch37: FF.patch1
+TB.patch38: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell19: line = (
+ TB.Pip37, 
+ TB.patch37, 
+ TB.Blk19, 
+ TB.patch38, 
+ TB.Pip38)
+
+ 
+
+
+!--- TB cell 20
+
+
+
+
+!--- Pipes
+TB.Pip39: FF.Pip01
+TB.Pip40: FF.Pip02
+TB.Blk20: FF.Blk01
+
+!--- Quads
+MTBQUF20: FF.QF, superimpose, ref = TB.Pip39, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD20: FF.QD, superimpose, ref = TB.Pip40, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch39: FF.patch1
+TB.patch40: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell20: line = (
+ TB.Pip39, 
+ TB.patch39, 
+ TB.Blk20, 
+ TB.patch40, 
+ TB.Pip40)
+
+ 
+
+
+!--- TB cell 21
+
+
+
+
+!--- Pipes
+TB.Pip41: FF.Pip01
+TB.Pip42: FF.Pip02
+TB.Blk21: FF.Blk01
+
+!--- Quads
+MTBQUF21: FF.QF, superimpose, ref = TB.Pip41, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD21: FF.QD, superimpose, ref = TB.Pip42, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch41: FF.patch1
+TB.patch42: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell21: line = (
+ TB.Pip41, 
+ TB.patch41, 
+ TB.Blk21, 
+ TB.patch42, 
+ TB.Pip42)
+
+ 
+
+
+!--- TB cell 22
+
+
+
+
+!--- Pipes
+TB.Pip43: FF.Pip01
+TB.Pip44: FF.Pip02
+TB.Blk22: FF.Blk01
+
+!--- Quads
+MTBQUF22: FF.QF, superimpose, ref = TB.Pip43, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD22: FF.QD, superimpose, ref = TB.Pip44, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch43: FF.patch1
+TB.patch44: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell22: line = (
+ TB.Pip43, 
+ TB.patch43, 
+ TB.Blk22, 
+ TB.patch44, 
+ TB.Pip44)
+
+ 
+
+
+!--- TB cell 23
+
+
+
+
+!--- Pipes
+TB.Pip45: FF.Pip01
+TB.Pip46: FF.Pip02
+TB.Blk23: FF.Blk01
+
+!--- Quads
+MTBQUF23: FF.QF, superimpose, ref = TB.Pip45, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD23: FF.QD, superimpose, ref = TB.Pip46, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch45: FF.patch1
+TB.patch46: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell23: line = (
+ TB.Pip45, 
+ TB.patch45, 
+ TB.Blk23, 
+ TB.patch46, 
+ TB.Pip46)
+
+ 
+
+
+!--- TB cell 24
+
+
+
+
+!--- Pipes
+TB.Pip47: FF.Pip01
+TB.Pip48: FF.Pip02
+TB.Blk24: FF.Blk01
+
+!--- Quads
+MTBQUF24: FF.QF, superimpose, ref = TB.Pip47, ele_origin = end, ref_origin=end, offset = -FF.quad_padding
+MTBQUD24: FF.QD, superimpose, ref = TB.Pip48, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding
+
+
+!--- Patches
+
+TB.patch47: FF.patch1
+TB.patch48: FF.patch2
+
+
+! - - -  Lines 
+
+TB.cell24: line = (
+ TB.Pip47, 
+ TB.patch47, 
+ TB.Blk24, 
+ TB.patch48, 
+ TB.Pip48)
+
+ 
+
+!--- TB.transition_cells
+TB.transition_cells: line = (
+  TB.CELL01,
+  TB.CELL02,
+  TB.CELL03,
+  TB.CELL04,
+  TB.CELL05,
+  TB.CELL06,
+  TB.CELL07,
+  TB.CELL08,
+  TB.CELL09,
+  TB.CELL10,
+  TB.CELL11,
+  TB.CELL12,
+  TB.CELL13,
+  TB.CELL14,
+  TB.CELL15,
+  TB.CELL16,
+  TB.CELL17,
+  TB.CELL18,
+  TB.CELL19,
+  TB.CELL20,
+  TB.CELL21,
+  TB.CELL22,
+  TB.CELL23,
+  TB.CELL24)

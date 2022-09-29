@@ -1,0 +1,9 @@
+&ffag_analysis_params
+ lat_name = 'cell.lat.bmad'
+ ref_energy = 42e6, 78e6, 114e6, 150e6
+ beam_start_prefix = 'beam_start'
+ n_pass = 4
+
+ !abs_tol_tracking = 5e-9
+ !rel_tol_tracking = 5-9
+/

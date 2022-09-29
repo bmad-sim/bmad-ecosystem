@@ -1,0 +1,30 @@
+set (EXENAME coarray_example)
+set (SRC_FILES
+  coarray_example/coarray_example.f90
+)
+
+if ($ENV{DIST_BUILD})
+	if ("$ENV{DIST_F90_REQUEST}" MATCHES "ifort")
+    set (FFLAGS -coarray)
+    set (LINK_FLAGS -coarray)
+	else ()
+    set (FFLAGS -fcoarray='lib')
+    set (LINK_FLAGS -l???)
+	endif ()
+
+else ()
+	if ("$ENV{ACC_SET_F_COMPILER}" MATCHES "ifort")
+    set (FFLAGS -coarray)
+    set (LINK_FLAGS -coarray)
+	else ()
+    set (FFLAGS -fcoarray='lib')
+    set (LINK_FLAGS -l???)
+	endif ()
+endif ()
+
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

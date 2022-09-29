@@ -1,0 +1,31 @@
+!x-s floor 10 15
+!sc
+vv
+vd
+
+set dat floor.thetas[4]|meas = floor.thetas[1]|model
+set dat floor.z[4]|meas = floor.z[1]|model 
+set dat harmonic.part1[4]|meas = 0
+
+
+
+set dat time.part1[4]|meas = time.part1[1]|model + (1.5)/4 /1.3e9  - (0.0410875)/4/3e8  ! FFAG compensation
+
+ 
+! For timing
+use dat floor.thetas[4]
+!use dat harmonic.part1[4]
+use dat time.part1[4]
+use dat floor.z[4]
+use var parallel4[2,3,5]
+!use var parallel4[3:]
+
+
+
+olmdif
+run
+sho var -good -bmad
+
+
+
+

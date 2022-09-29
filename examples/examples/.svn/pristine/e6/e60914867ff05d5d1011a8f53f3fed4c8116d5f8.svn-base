@@ -1,0 +1,14 @@
+! Lattice File: superimpose2.bmad
+
+beginning[beta_a] = 10.   ! m  a-mode beta function
+beginning[beta_b] = 10.   ! m  b-mode beta function
+beginning[e_tot] = 10e6   ! eV   Or can set p0c
+parameter[geometry] = open      ! or closed
+
+Q: quad, l = 4
+D: drift, l = 12
+S: solenoid, l = 8, superimpose, ref = Q, ele_origin = beginning
+M: marker, superimpose, ref = S, offset = 1
+
+lat: line = (Q, D)
+use, lat

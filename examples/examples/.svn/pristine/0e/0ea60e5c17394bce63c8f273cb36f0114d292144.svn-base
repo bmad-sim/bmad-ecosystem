@@ -1,0 +1,6 @@
+
+call, file = cell.lat.bmad
+
+!call, file = ../energy2.bmad
+call, file = beam_start2.bmad
+

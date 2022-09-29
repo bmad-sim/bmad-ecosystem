@@ -1,0 +1,25 @@
+set (EXENAME ptc_spin_orbital_normal_form)
+
+FILE (GLOB SRC_FILES "ptc_spin_orbital_normal_form/*.f90")
+
+# Link libraries
+
+set (LINK_LIBS
+  bmad
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP
+  forest
+  ${PLOT_LINK_LIBS}
+  lapack95
+  lapack
+  fgsl
+  gsl
+  blas
+  gslcblas
+  hdf5hl_fortran
+  hdf5_hl
+  hdf5_fortran
+  hdf5
+)

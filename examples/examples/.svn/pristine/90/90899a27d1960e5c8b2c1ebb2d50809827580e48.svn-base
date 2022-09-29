@@ -1,0 +1,22 @@
+
+
+no_digested
+
+BEGINNING[BETA_A]  = 10
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 10
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[LATTICE_TYPE] = LINEAR_LATTICE
+parameter[absolute_time_tracking] = T
+
+
+parameter[e_tot] = 5e6
+
+call, file = a3_htc.bmad
+
+lat: LINE = (in.a3)
+
+use, lat
+

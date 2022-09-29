@@ -1,0 +1,1171 @@
+m_t Bmad branch:   0                                                                                                    
+           2  highest fringe 
+  1.000000000000000E+038  Maximum Length for Orbit 
+ T T ALWAYS_EXACTMIS,ALWAYS_EXACT_PATCHING 
+          11          22  SECTOR_NMUL,SECTOR_NMUL_MAX 
+  $$$$$$$$$$$$$$$$$ START OF LAYOUT $$$$$$$$$$$$$$$$$
+  $$$$$$$$$$$$$$$$$ INITIAL CHART $$$$$$$$$$$$$$$$$
+  0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000
+   1.00000000000000       0.000000000000000E+000  0.000000000000000E+000
+  0.000000000000000E+000   1.00000000000000       0.000000000000000E+000
+  0.000000000000000E+000  0.000000000000000E+000   1.00000000000000     
+  0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000
+   1.00000000000000       0.000000000000000E+000  0.000000000000000E+000
+  0.000000000000000E+000   1.00000000000000       0.000000000000000E+000
+  0.000000000000000E+000  0.000000000000000E+000   1.00000000000000     
+  $$$$$$$$$$$$$$$$$ END OF INITIAL CHART $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          30,
+ ELE0%NAME_VORNAME    = BEGINNING                                       ,
+ ELE0%L       =  0.000000000000000E+000,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      = 22*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   =  0.500000000000000     , 5*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     = 3*0.000000000000000E+000  ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 3*F, T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,           1, 2*0,           2,
+ MAGL0%KILL_SPIN       = 2*T
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = AFREE                                           ,
+ ELE0%L       =   2.74723354707055     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   2.73018521334918     ,   2.74723354707055     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        2747,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           1,
+ APLIST%R       = 2*10.0450000000000        ,
+ APLIST%X       =   10.0450000000000     ,
+ APLIST%Y       =   10.0450000000000     ,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QUAD1_SHORT                                     ,
+ ELE0%L       =   1.61366161322388     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, F, T, F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   1.61020251263471     ,   1.61366161322388     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        1614,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      =  0.000000000000000E+000,  1.295858506260398E-004,  0.000000000000000E+000,  0.127986025309669     ,
+   0.000000000000000E+000,   94.8044631923473     ,  0.000000000000000E+000,   124845.383627782     ,  0.000000000000000E+000,
+    38532525.8110440     , 3*0.000000000000000E+000  ,  -13155442435107.2     , 8*0.000000000000000E+000  ,
+ TP100%BE      =  0.000000000000000E+000,   26.1475737676210     ,  0.000000000000000E+000,   42.2353883521907     ,
+   0.000000000000000E+000,  -43515.2486052874     ,  0.000000000000000E+000,  -3433248.04976402     ,  0.000000000000000E+000,
+   -150777773498.615     ,  0.000000000000000E+000,  -1484215809017.99     ,  0.000000000000000E+000,  6.880296393561079E+015,
+  8*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           2,
+ APLIST%R       =  0.102000000000000     ,  5.000000000000000E-002,
+ APLIST%X       =  0.102000000000000     ,
+ APLIST%Y       =  5.000000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QFREE                                           ,
+ ELE0%L       =  0.496511265607347     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =  0.496410441096374     ,  0.496511265607347     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,         497,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QUAD1_LONG                                      ,
+ ELE0%L       =   3.22732322644775     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, F, T, F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   3.19970379698714     ,   3.22732322644775     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        3227,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      =  0.000000000000000E+000,  1.295858506260398E-004,  0.000000000000000E+000,  0.127986025309669     ,
+   0.000000000000000E+000,   94.8044631923473     ,  0.000000000000000E+000,   124845.383627782     ,  0.000000000000000E+000,
+    38532525.8110440     , 3*0.000000000000000E+000  ,  -13155442435107.2     , 8*0.000000000000000E+000  ,
+ TP100%BE      =  0.000000000000000E+000,   26.1475737676210     ,  0.000000000000000E+000,   42.2353883521907     ,
+   0.000000000000000E+000,  -43515.2486052874     ,  0.000000000000000E+000,  -3433248.04976402     ,  0.000000000000000E+000,
+   -150777773498.615     ,  0.000000000000000E+000,  -1484215809017.99     ,  0.000000000000000E+000,  6.880296393561079E+015,
+  8*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           2,
+ APLIST%R       =  0.102000000000000     ,  5.000000000000000E-002,
+ APLIST%X       =  0.102000000000000     ,
+ APLIST%Y       =  5.000000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = BFREE                                           ,
+ ELE0%L       =  0.598885823815781     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =  0.598708894879323     ,  0.598885823815781     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,         599,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = D_K1                                            ,
+ ELE0%L       =   1.27000000000000     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   1.26831327875483     ,   1.27000000000000     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        1270,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = GAPK12                                          ,
+ ELE0%L       =  0.590000000000000     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =  0.589830829771261     ,  0.590000000000000     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,         590,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = D_K2A                                           ,
+ ELE0%L       =  0.635000000000000     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =  0.634789096804004     ,  0.635000000000000     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,         635,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          33,
+ ELE0%NAME_VORNAME    = MARK_CENTERLINE                                 ,
+ ELE0%L       =  0.000000000000000E+000,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.000000000000000E+000, 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   =  0.500000000000000     , 5*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     = 3*0.000000000000000E+000  ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 3*F, T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2, 2*1,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &THIN30NAME
+ THIN30%THIN_H_FOC      =  0.000000000000000E+000,
+ THIN30%THIN_V_FOC      =  0.000000000000000E+000,
+ THIN30%THIN_H_ANGLE    =  0.000000000000000E+000,
+ THIN30%THIN_V_ANGLE    =  0.000000000000000E+000,
+ THIN30%HF      =  0.000000000000000E+000,
+ THIN30%VF      =  0.000000000000000E+000,
+ THIN30%LS      =   1.00000000000000     ,
+ THIN30%PATCH   = F,
+ THIN30%DX_DY_PITCHX_PITCHY     = 4*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = D_K2B                                           ,
+ ELE0%L       =  0.635000000000000     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =  0.634789096804004     ,  0.635000000000000     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,         635,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = GAPK23                                          ,
+ ELE0%L       =  0.590000000000000     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =  0.589830829771261     ,  0.590000000000000     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,         590,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = D_K3                                            ,
+ ELE0%L       =   1.27000000000000     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   1.26831327875483     ,   1.27000000000000     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        1270,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = CFREE                                           ,
+ ELE0%L       =  0.245121547070546     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =  0.245109414766639     ,  0.245121547070546     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,         245,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           1,
+ APLIST%R       = 2*4.500000000000000E-002  ,
+ APLIST%X       =  4.500000000000000E-002,
+ APLIST%Y       =  4.500000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QUAD_SHORT                                      ,
+ ELE0%L       =   1.61366161322388     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, F, T, F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   1.61020251263471     ,   1.61366161322388     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        1614,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      =  0.000000000000000E+000,  1.295858506260398E-004,  0.000000000000000E+000,  0.127986025309669     ,
+   0.000000000000000E+000,   94.8044631923473     ,  0.000000000000000E+000,   124845.383627782     ,  0.000000000000000E+000,
+    38532525.8110440     , 3*0.000000000000000E+000  ,  -13155442435107.2     , 8*0.000000000000000E+000  ,
+ TP100%BE      =  0.000000000000000E+000,   26.1475737676210     ,  0.000000000000000E+000,   42.2353883521907     ,
+   0.000000000000000E+000,  -43515.2486052874     ,  0.000000000000000E+000,  -3433248.04976402     ,  0.000000000000000E+000,
+   -150777773498.615     ,  0.000000000000000E+000,  -1484215809017.99     ,  0.000000000000000E+000,  6.880296393561079E+015,
+  8*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           2,
+ APLIST%R       =  4.500000000000000E-002,  5.000000000000000E-002,
+ APLIST%X       =  4.500000000000000E-002,
+ APLIST%Y       =  5.000000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QFREE                                           ,
+ ELE0%L       =  0.496511265607347     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =  0.496410441096374     ,  0.496511265607347     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,         497,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QUAD_LONG                                       ,
+ ELE0%L       =   3.22732322644775     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, F, T, F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   3.19970379698714     ,   3.22732322644775     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        3227,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      =  0.000000000000000E+000,  1.295858506260398E-004,  0.000000000000000E+000,  0.127986025309669     ,
+   0.000000000000000E+000,   94.8044631923473     ,  0.000000000000000E+000,   124845.383627782     ,  0.000000000000000E+000,
+    38532525.8110440     , 3*0.000000000000000E+000  ,  -13155442435107.2     , 8*0.000000000000000E+000  ,
+ TP100%BE      =  0.000000000000000E+000,   26.1475737676210     ,  0.000000000000000E+000,   42.2353883521907     ,
+   0.000000000000000E+000,  -43515.2486052874     ,  0.000000000000000E+000,  -3433248.04976402     ,  0.000000000000000E+000,
+   -150777773498.615     ,  0.000000000000000E+000,  -1484215809017.99     ,  0.000000000000000E+000,  6.880296393561079E+015,
+  8*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           2,
+ APLIST%R       =  5.000000000000000E-002,  4.500000000000000E-002,
+ APLIST%X       =  5.000000000000000E-002,
+ APLIST%Y       =  4.500000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = DFREE                                           ,
+ ELE0%L       =   5.83400737088633     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   5.67180675639270     ,   5.83400737088633     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        5834,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           1,
+ APLIST%R       = 2*4.500000000000000E-002  ,
+ APLIST%X       =  4.500000000000000E-002,
+ APLIST%Y       =  4.500000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QUAD_SHORT                                      ,
+ ELE0%L       =   1.61366161322388     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, F, T, F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   1.61020251263471     ,   1.61366161322388     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        1614,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      =  0.000000000000000E+000,  1.295858506260398E-004,  0.000000000000000E+000,  0.127986025309669     ,
+   0.000000000000000E+000,   94.8044631923473     ,  0.000000000000000E+000,   124845.383627782     ,  0.000000000000000E+000,
+    38532525.8110440     , 3*0.000000000000000E+000  ,  -13155442435107.2     , 8*0.000000000000000E+000  ,
+ TP100%BE      =  0.000000000000000E+000,   26.1475737676210     ,  0.000000000000000E+000,   42.2353883521907     ,
+   0.000000000000000E+000,  -43515.2486052874     ,  0.000000000000000E+000,  -3433248.04976402     ,  0.000000000000000E+000,
+   -150777773498.615     ,  0.000000000000000E+000,  -1484215809017.99     ,  0.000000000000000E+000,  6.880296393561079E+015,
+  8*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           2,
+ APLIST%R       =  4.500000000000000E-002,  5.000000000000000E-002,
+ APLIST%X       =  4.500000000000000E-002,
+ APLIST%Y       =  5.000000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QFREE                                           ,
+ ELE0%L       =  0.496511265607347     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =  0.496410441096374     ,  0.496511265607347     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,         497,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QUAD_LONG                                       ,
+ ELE0%L       =   3.22732322644775     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, F, T, F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   3.19970379698714     ,   3.22732322644775     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        3227,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      =  0.000000000000000E+000,  1.295858506260398E-004,  0.000000000000000E+000,  0.127986025309669     ,
+   0.000000000000000E+000,   94.8044631923473     ,  0.000000000000000E+000,   124845.383627782     ,  0.000000000000000E+000,
+    38532525.8110440     , 3*0.000000000000000E+000  ,  -13155442435107.2     , 8*0.000000000000000E+000  ,
+ TP100%BE      =  0.000000000000000E+000,   26.1475737676210     ,  0.000000000000000E+000,   42.2353883521907     ,
+   0.000000000000000E+000,  -43515.2486052874     ,  0.000000000000000E+000,  -3433248.04976402     ,  0.000000000000000E+000,
+   -150777773498.615     ,  0.000000000000000E+000,  -1484215809017.99     ,  0.000000000000000E+000,  6.880296393561079E+015,
+  8*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           2,
+ APLIST%R       =  5.000000000000000E-002,  4.500000000000000E-002,
+ APLIST%X       =  5.000000000000000E-002,
+ APLIST%Y       =  4.500000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = EFREE                                           ,
+ ELE0%L       =   5.83400737088633     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   5.67180675639271     ,   5.83400737088633     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        5834,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           1,
+ APLIST%R       = 2*4.500000000000000E-002  ,
+ APLIST%X       =  4.500000000000000E-002,
+ APLIST%Y       =  4.500000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QUAD_SHORT                                      ,
+ ELE0%L       =   1.61366161322388     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, F, T, F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   1.61020251263471     ,   1.61366161322388     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        1614,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      =  0.000000000000000E+000,  1.295858506260398E-004,  0.000000000000000E+000,  0.127986025309669     ,
+   0.000000000000000E+000,   94.8044631923473     ,  0.000000000000000E+000,   124845.383627782     ,  0.000000000000000E+000,
+    38532525.8110440     , 3*0.000000000000000E+000  ,  -13155442435107.2     , 8*0.000000000000000E+000  ,
+ TP100%BE      =  0.000000000000000E+000,   26.1475737676210     ,  0.000000000000000E+000,   42.2353883521907     ,
+   0.000000000000000E+000,  -43515.2486052874     ,  0.000000000000000E+000,  -3433248.04976402     ,  0.000000000000000E+000,
+   -150777773498.615     ,  0.000000000000000E+000,  -1484215809017.99     ,  0.000000000000000E+000,  6.880296393561079E+015,
+  8*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           2,
+ APLIST%R       =  4.500000000000000E-002,  5.000000000000000E-002,
+ APLIST%X       =  4.500000000000000E-002,
+ APLIST%Y       =  5.000000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QFREE                                           ,
+ ELE0%L       =  0.496511265607347     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =  0.496410441096374     ,  0.496511265607347     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,         497,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = QUAD_LONG                                       ,
+ ELE0%L       =   3.22732322644775     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, F, T, F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   3.19970379698714     ,   3.22732322644775     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        3227,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      =  0.000000000000000E+000,  1.295858506260398E-004,  0.000000000000000E+000,  0.127986025309669     ,
+   0.000000000000000E+000,   94.8044631923473     ,  0.000000000000000E+000,   124845.383627782     ,  0.000000000000000E+000,
+    38532525.8110440     , 3*0.000000000000000E+000  ,  -13155442435107.2     , 8*0.000000000000000E+000  ,
+ TP100%BE      =  0.000000000000000E+000,   26.1475737676210     ,  0.000000000000000E+000,   42.2353883521907     ,
+   0.000000000000000E+000,  -43515.2486052874     ,  0.000000000000000E+000,  -3433248.04976402     ,  0.000000000000000E+000,
+   -150777773498.615     ,  0.000000000000000E+000,  -1484215809017.99     ,  0.000000000000000E+000,  6.880296393561079E+015,
+  8*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           2,
+ APLIST%R       =  5.000000000000000E-002,  4.500000000000000E-002,
+ APLIST%X       =  5.000000000000000E-002,
+ APLIST%Y       =  4.500000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          40,
+ ELE0%NAME_VORNAME    = FFREE                                           ,
+ ELE0%L       =   3.08677382381578     ,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      =  0.140607424071991     , 21*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   = 6*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     =   3.06260269144380     ,   3.08677382381578     ,  0.140607424071991     ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 2*F, 2*T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,        3087,          22,           0,           2,
+ MAGL0%KILL_SPIN       = 2*F
+ /
+ &TP100NAME
+ TP100%DRIFTKICK       = F,
+ TP100%AE      = 22*0.000000000000000E+000  ,
+ TP100%BE      = 22*0.000000000000000E+000  
+ /
+  APERTURE 
+ &APERTURENAME
+ APLIST%KIND    =           2,
+ APLIST%R       = 2*4.500000000000000E-002  ,
+ APLIST%X       =  4.500000000000000E-002,
+ APLIST%Y       =  4.500000000000000E-002,
+ APLIST%DX      =  0.000000000000000E+000,
+ APLIST%DY      =  0.000000000000000E+000,
+ APLIST%ON      = F
+ /
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%KIND    =          30,
+ ELE0%NAME_VORNAME    = END                                             ,
+ ELE0%L       =  0.000000000000000E+000,
+ ELE0%B_SOL   =  0.000000000000000E+000,
+ ELE0%AN      = 22*0.000000000000000E+000  ,
+ ELE0%BN      = 22*0.000000000000000E+000  ,
+ ELE0%VOLT_FREQ_PHAS  = 3*0.000000000000000E+000  ,
+ ELE0%THIN    = F,
+ ELE0%FINT_HGAP_H1_H2_VA_VS   =  0.500000000000000     , 5*0.000000000000000E+000  ,
+ ELE0%SLOWAC_RECUT_EVEN_ELECTRIC_MIS  = F, T, 3*F,
+ ELE0%USEBF_SKIPPTCBF_DO1BF   = 6*F,
+ ELE0%FILEF   =                                                                                                                      
+    ,
+ ELE0%FILEB   =                                                                                                                      
+    
+ /
+ &FIBRENAME
+ FIB0%GAMMA0I_GAMBET_MASS_AG  =  3.412565845558907E-002,  1.165918347557125E-003,  0.105658374500000     ,  1.165920690000000E-003,
+ FIB0%CHARGE  =   1.00000000000000     ,
+ FIB0%DIR     =           1,
+ FIB0%PATCH   =           0
+ /
+ &MAGLNAME
+ MAGL0%LC_LD_B0_P0     = 3*0.000000000000000E+000  ,   3.09435300500000     ,
+ MAGL0%TILTD_EDGE      = 3*0.000000000000000E+000  ,
+ MAGL0%KIN_KEX_BENDFRINGE_EXACT        = 3*F, T,
+ MAGL0%METHOD_NST_NMUL_PERMFRINGE_HIGHEST      =           2,           1, 2*0,           2,
+ MAGL0%KILL_SPIN       = 2*T
+ /
+  NO APERTURE 
+  $$$$$$$$$$$$$$$$$ END OF FIBRE $$$$$$$$$$$$$$$$$
+ &ELENAME
+ ELE0%NAME_VORNAME='alldone','alldone',
+ /

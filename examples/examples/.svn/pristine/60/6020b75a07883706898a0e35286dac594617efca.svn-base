@@ -1,0 +1,200 @@
+&building_wall_orientation
+  theta = .1318
+/
+
+
+&building_wall_section
+  constraint = 'none'
+  point(1) =    41.855    -2.327
+  point(2) =    48.359    -2.753
+  point(3) =    54.036    -5.956
+  point(4) =    57.860   -12.449
+  point(5) =    57.990   -18.726
+  point(6) =    54.036   -25.706
+  point(7) =    48.363   -28.909
+  point(8) =    41.862   -29.335
+  point(9) =     8.031   -29.350
+  point(10) =     1.317   -28.910
+  point(11) =    -4.514   -25.553
+  point(12) =    -8.250   -18.970
+  point(13) =    -8.318   -12.945
+  point(14) =    -4.361    -5.957
+  point(15) =     0.836    -2.882
+  point(16) =     6.862    -2.487
+  point(17) =    41.855    -2.327
+/
+
+&building_wall_section
+  constraint = 'none'
+  point(1) =    42.113    -3.327
+  point(2) =    48.101    -3.719
+  point(3) =    53.329    -6.664
+  point(4) =    56.894   -12.708
+  point(5) =    57.024   -18.468
+  point(6) =    53.329   -24.999
+  point(7) =    48.104   -27.943
+  point(8) =    42.120   -28.335
+  point(9) =     7.773   -28.350
+  point(10) =     1.576   -27.944
+  point(11) =    -3.807   -24.846
+  point(12) =    -7.284   -18.712
+  point(13) =    -7.352   -13.204
+  point(14) =    -3.654    -6.664
+  point(15) =     1.095    -3.848
+  point(16) =     6.604    -3.487
+  point(17) =    42.113    -3.327
+/
+
+! Top right
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 64.2, 3.5
+  point(2) = 66.7, 3.5
+  point(3) = 66.7, -3.3
+  point(4) = 64.2, -3.3
+  point(5) = 64.2, 3.5
+/
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 64.2, -3.3
+  point(2) = 66.7, -3.3
+  point(3) = 66.7, -4.3
+  point(4) = 64.2, -4.3
+  point(5) = 64.2, -3.3
+/
+
+! Top2 right
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 64.2, -4.3
+  point(2) = 66.7, -4.3
+  point(3) = 66.7, -11.3
+  point(4) = 64.2, -11.3
+  point(5) = 64.2, -4.3
+/
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 64.2, -11.3
+  point(2) = 66.7, -11.3
+  point(3) = 66.7, -12.3
+  point(4) = 64.2, -12.3
+  point(5) = 64.2, -11.3
+/
+
+! Top3 right
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 64.2, -12.3
+  point(2) = 66.7, -12.3
+  point(3) = 66.7, -19.3
+  point(4) = 64.2, -19.3
+  point(5) = 64.2, -12.3
+/
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 64.2, -19.3
+  point(2) = 66.7, -19.3
+  point(3) = 66.7, -20.3
+  point(4) = 64.2, -20.3
+  point(5) = 64.2, -19.3
+/
+
+! Top4 right
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 65.2, -20.3
+  point(2) = 67.7, -20.3
+  point(3) = 67.7, -27.3
+  point(4) = 65.2, -27.3
+  point(5) = 65.2, -20.3
+/
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 65.2, -27.3
+  point(2) = 70.7, -27.3
+  point(3) = 70.7, -28.3
+  point(4) = 65.2, -28.3
+  point(5) = 65.2, -27.3
+/
+
+! Top5 right
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 68.2, -28.3
+  point(2) = 70.7, -28.3
+  point(3) = 70.7, -35.3
+  point(4) = 68.2, -35.3
+  point(5) = 68.2, -28.3
+/
+
+! Bottom
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 54.0, -35.3
+  point(2) = 54.0, -37.8
+  point(3) = 34.0  -37.8
+  point(4) = 34.0, -35.3
+  point(5) = 54.0, -35.3
+/
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 34.0, -35.3
+  point(2) = 34.0, -37.8
+  point(3) = 14.0  -37.8
+  point(4) = 14.0, -35.3
+  point(5) = 34.0, -35.3
+/
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 14.0, -35.3
+  point(2) = 14.0, -37.8
+  point(3) = -6.0  -37.8
+  point(4) = -6.0, -35.3
+  point(5) = 14.0, -35.3
+/
+
+! Left
+
+&building_wall_section
+constraint = "none"
+  point(1) =    -0.391   -35.285
+  point(2) =    -9.181   -30.220
+  point(3) =   -14.625   -20.679
+  point(4) =   -14.693   -11.237
+  point(5) =    -9.028    -1.290
+  point(6) =    -0.872     3.493
+/
+ 
+&building_wall_section
+constraint = "none"
+  point(1) =    -5.228   -35.285
+  point(2) =   -10.949   -31.988
+  point(3) =   -17.040   -21.326
+  point(4) =   -17.107   -10.590
+  point(5) =   -10.796     0.478
+  point(6) =    -5.644     3.493
+/
+
+! Top
+
+&building_wall_section
+  constraint = 'none'
+  point(1) = 67.7, 3.5
+  point(2) = 67.7, 6.0
+  point(3) = -6.0, 6.0
+  point(4) = -6.0, 3.5
+  point(5) = 67.7, 3.5
+/
+

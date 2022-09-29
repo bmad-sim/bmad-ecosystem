@@ -1,0 +1,75 @@
+!============ 
+!A1 section
+!============
+
+call, file = solenoid/in.solenoid.bmad
+
+
+
+!--- Solenoids
+MA1SLA01: IN.SOLENOID, superimpose, ref = IN.Mar.BEG, descrip = "MA1SLA01_field"
+MA1SLA02: IN.SOLENOID, superimpose, ref = IN.Mar.BEG, descrip = "MA1SLA02_field"
+
+!--- Buncher
+!Clipped wall (only the non-reentrant part)
+call, file = buncher/in.buncher.bmad
+
+ra1cav01: in.buncher
+
+
+!--- Correctors
+
+MA1COR01: KICKER, L = 0.047625, superimpose, ref = IN.Mar.BEG, field_master = T, mat6_calc_method = tracking, tracking_method=runge_kutta
+MA1COR02: KICKER, L = 0.117475, superimpose, ref = IN.Mar.BEG, field_master = T, mat6_calc_method = tracking, tracking_method=runge_kutta
+MA1COR03: KICKER, L = 0.117475, superimpose, ref = IN.Mar.BEG, field_master = T, mat6_calc_method = tracking, tracking_method=runge_kutta
+
+IA1SDR01: instrument, superimpose, ref = in.Mar.Beg
+IA1BPA01: instrument, superimpose, ref = in.Mar.Beg
+IA1BPB01: instrument, superimpose, ref = in.Mar.Beg
+
+!--- Markers
+IN.A1.Mar.BEG: MARKER
+IN.A1.Mar.END: MARKER
+
+Cathode_to_gunface = .194
+Buncher_half_width = .1
+in.gun_width = .15
+
+!--- Pipes
+! Note: Buncher center is at 0.744835 m relative to the cathode face
+IN.A1.Pip01: PIPE, L = 0.744835 - Buncher_half_width - in.gun_width
+! 1.273327 is entrance to cryomodule that starts fieldmap of first cavity at 1.8
+IN.A1.Pip02: PIPE, L = 1.273327 - 2*Buncher_half_width - in.gun_width - in.a1.pip01[l]
+
+IN.A1.Pip01[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, 0.02600}},
+	section = { s = IN.A1.Pip01[L],
+	  v(1) = {0, 0, 0.02375}}}
+
+IN.A1.Pip02[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, 0.02375}},
+	section = { s = IN.A1.Pip02[L],
+	  v(1) = {0, 0, 0.02375}}}
+
+!--- Offsets
+
+MA1SLA01[offset] = Cathode_to_gunface + .150
+MA1SLA02[offset] = Cathode_to_gunface + .966
+
+MA1COR01[offset] = .125
+MA1COR02[offset] = Cathode_to_gunface + .1692
+MA1COR03[offset] = Cathode_to_gunface + 1.015
+
+IA1BPA01[offset] = Cathode_to_gunface + .145
+IA1SDR01[offset] = Cathode_to_gunface + .728
+IA1BPB01[offset] = Cathode_to_gunface + .968
+
+!--- Lines
+
+IN.A1: LINE = (IN.A1.Mar.BEG, 
+  IN.A1.Pip01, 
+  ra1cav01,
+  IN.A1.Pip02, 
+  IN.A1.Mar.END)

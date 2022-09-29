@@ -1,0 +1,97 @@
+!----------------------------------------------------------------------
+! April 24, 2007
+
+parameter[e_tot]     =  100e6
+beginning[beta_a]    =  6
+beginning[alpha_a]   = -2.5
+beginning[beta_b]    =  6
+beginning[alpha_b]   = -1.5
+beginning[phi_a]     =  0
+beginning[phi_b]     =  0
+beginning[s]         =  0
+
+parameter[geometry] = open
+
+!----------------------------------------------------------------------
+
+cdtor	= pi/180
+crtod	= 180/pi
+
+!----------------------------------------------------------------------
+! BATES BEND
+
+fitbb: marker
+
+d14: drift, l=1.7320508
+d15: drift, l=0.8482062
+
+rhob	  = 0.5
+rhobb	  = 0.5
+
+angrev  = 30*cdtor
+angbb   = 180*cdtor
+lrev    = rhob*angrev
+lbb	  = rhobb*angbb
+
+face1a  = angrev/4
+face1b  = angrev/4
+face1c  = angrev/4
+face2   = angrev/4
+facebb1 = -14.48788372*cdtor
+facebb2 =  23.82663750*cdtor
+
+b11a: sbend, rho=rhob,  e1=-48.15467591*cdtor, hgap=0, fint=0
+b11b: sbend, l=lrev/10, angle=angrev/10
+b11c: sbend, rho=rhob,  e2=face1b, hgap=0, fint=0
+b11z: sbend, rho=rhob,  e1=face1b, hgap=0, fint=0
+b11y: sbend, rho=rhob,  e2=face1c, hgap=0, fint=0
+
+b12a: sbend, rho=rhob,  e1=face2, hgap=0, fint=0, ref_tilt=pi, h1=-2.7537
+b12b: sbend, l=lrev/10, angle=angrev/10,  ref_tilt=pi
+b12c: sbend, rho=rhob,  e2=face2, hgap=0, fint=0, ref_tilt=pi, h2=4
+b12z: sbend, rho=rhob,  e1=face2, hgap=0, fint=0, ref_tilt=pi, h1=4
+b12y: sbend, rho=rhob,  e2=face2, hgap=0, fint=0, ref_tilt=pi, h2=-2.7537
+
+bb1a: sbend, rho=rhobb, e1=facebb1, hgap=0, fint=0, h1=-4
+bb1b: sbend, l=lbb/60,  angle=angbb/60
+bb1c: sbend, rho=rhobb, e2=facebb1, hgap=0, fint=0, h2=-4
+
+b11first: line=(b11a, &
+		    b11b, b11b, b11b, b11b, b11b, &
+		    b11b, b11b, b11b, b11b, b11b, &
+		    b11c)
+b11last:  line=(b11z, &
+		    b11b, b11b, b11b, b11b, b11b, &
+		    b11b, b11b, b11b, b11b, b11b, &
+		    b11y)
+
+b12first: line=(b12a, &
+		    b12b, b12b, b12b, b12b, b12b, &
+		    b12b, b12b, b12b, b12b, b12b, &
+		    b12c)
+b12last:  line=(b12z, &
+		    b12b, b12b, b12b, b12b, b12b, &
+		    b12b, b12b, b12b, b12b, b12b, &
+		    b12y)
+
+bb1:      line=(bb1a, &
+		    bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, &
+		    bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, &
+		    bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, &
+		    bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, &
+		    fitbb, &
+		    bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, &
+		    bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, &
+		    bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, &
+		    bb1b, bb1b, bb1b, bb1b, bb1b, bb1b, &
+		    bb1c)
+
+bates1:    line=(b11first, d14, &
+                 b12first, d15, &
+                 bb1,      d15, &
+                 b12last,  d14, &
+                 b11last)
+
+!----------------------------------------------------------------------
+
+use, bates1
