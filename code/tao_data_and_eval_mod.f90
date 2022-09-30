@@ -55,7 +55,7 @@ character(*), optional :: dflt_component
 character(100) name, ele_name, component, offset_str
 character(*), parameter :: r_name = 'tao_evaluate_lat_or_beam_data'
 
-real(rp), allocatable :: values(:)
+real(rp), allocatable :: values(:), off_val(:)
 real(rp), optional :: dflt_s_offset
 real(rp) s_offset
 
@@ -237,13 +237,13 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
       ! Offset_str may be something like "L/2" where L is the element length.
       if (offset_str /= '') then
-        call tao_evaluate_expression(offset_str, 1, .false., values, err_flag, .true., &
+        call tao_evaluate_expression(offset_str, 1, .false., off_val, err_flag, .true., &
                                              dflt_source = 'ele', dflt_ele = this_ele, dflt_uni = iu)
         if (err_flag) then
           if (print_err) call out_io (s_error$, r_name, 'BAD S_OFFSET: ' // data_name)
           return
         endif
-        s_offset = values(1)
+        s_offset = off_val(1)
       endif
 
       datum%eval_point = integer_option(anchor_end$, dflt_eval_point)
@@ -4591,7 +4591,7 @@ parsing_loop: do
     if (.not. wild) exit
 
     word = word(:ix_word) // '*'
-    call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, delim_found, phrase)
+    call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, delim_found, phrase, .true.)
     word = trim(word) // trim(word2)       
     ix_word = len_trim(word)
   enddo
