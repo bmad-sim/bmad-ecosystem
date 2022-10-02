@@ -1124,6 +1124,8 @@ type bunch_params_struct
   integer :: n_particle_tot = 0          ! Total number of particles
   integer :: n_particle_live = 0         ! Number of non-lost particles
   integer :: n_particle_lost_in_ele = 0  ! Number lost in element (not calculated by Bmad)
+  integer :: ix_ele = -1                 ! Lattice element where params evaluated at.
+  integer :: location = not_set$         ! Location in element: upstream_end$, inside$, or downstream_end$
   logical :: twiss_valid = .false.       ! Is the data here valid? Note: IF there is no energy
                                          !   variation (RF off) twiss_valid may be true but in
                                          !   this case the z-twiss will not be valid.
