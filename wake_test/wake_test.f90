@@ -133,20 +133,20 @@ call init_bunch_distribution (lat%ele(0), lat%param, beam_init, 0, bunch_init)
 bunch = bunch_init
 
 call calc_bunch_params(bunch_init, bparams, err_flag)
-write (1, '(a, 6es16.8)') '"BP-Charge" REL 1E-8', bparams%charge_live, bparams%charge_tot
-write (1, '(a, 6es16.8)') '"BP-ST" REL 1E-8', bparams%s, bparams%t
-write (1, '(a, 6es16.8)') '"BP-Centroid" REL 1E-8', bparams%centroid%vec
-write (1, '(a, 6es16.8)') '"BP-Sig1" REL 1E-8', bparams%sigma(1,:)
-write (1, '(a, 6es16.8)') '"BP-Sig2" REL 1E-8', bparams%sigma(2,:)
-write (1, '(a, 6es16.8)') '"BP-Sig3" REL 1E-8', bparams%sigma(3,:)
-write (1, '(a, 6es16.8)') '"BP-Sig4" REL 1E-8', bparams%sigma(4,:)
-write (1, '(a, 6es16.8)') '"BP-Sig5" REL 1E-8', bparams%sigma(5,:)
-write (1, '(a, 6es16.8)') '"BP-Sig6" REL 1E-8', bparams%sigma(6,:)
-write (1, '(a, 6es16.8)') '"BP-Amode" REL 1E-8', bparams%a%beta, bparams%a%alpha, bparams%a%emit, bparams%a%norm_emit
-write (1, '(a, 6es16.8)') '"BP-Bmode" REL 1E-8', bparams%b%beta, bparams%b%alpha, bparams%b%emit, bparams%b%norm_emit
-write (1, '(a, 6es16.8)') '"BP-Xmode" REL 1E-8', bparams%x%beta, bparams%x%alpha, bparams%x%emit, bparams%x%norm_emit
-write (1, '(a, 6es16.8)') '"BP-Ymode" REL 1E-8', bparams%y%beta, bparams%y%alpha, bparams%y%emit, bparams%y%norm_emit
-write (1, '(a, 6es16.8)') '"BP-Zmode" REL 1E-8', bparams%z%beta, bparams%z%alpha, bparams%z%emit, bparams%z%norm_emit
+write (1, '(a, 6es16.8)') '"BP-Charge" ABS 1E-8', bparams%charge_live, bparams%charge_tot
+write (1, '(a, 6es16.8)') '"BP-ST" ABS 1E-8', bparams%s, bparams%t
+write (1, '(a, 6es16.8)') '"BP-Centroid" ABS 1E-8', bparams%centroid%vec
+write (1, '(a, 6es16.8)') '"BP-Sig1" ABS 1E-8', bparams%sigma(1,:)
+write (1, '(a, 6es16.8)') '"BP-Sig2" ABS 1E-8', bparams%sigma(2,:)
+write (1, '(a, 6es16.8)') '"BP-Sig3" ABS 1E-8', bparams%sigma(3,:)
+write (1, '(a, 6es16.8)') '"BP-Sig4" ABS 1E-8', bparams%sigma(4,:)
+write (1, '(a, 6es16.8)') '"BP-Sig5" ABS 1E-8', bparams%sigma(5,:)
+write (1, '(a, 6es16.8)') '"BP-Sig6" ABS 1E-8', bparams%sigma(6,:)
+write (1, '(a, 6es16.8)') '"BP-Amode" ABS 1E-8', bparams%a%beta, bparams%a%alpha, bparams%a%emit, bparams%a%norm_emit
+write (1, '(a, 6es16.8)') '"BP-Bmode" ABS 1E-8', bparams%b%beta, bparams%b%alpha, bparams%b%emit, bparams%b%norm_emit
+write (1, '(a, 6es16.8)') '"BP-Xmode" ABS 1E-8', bparams%x%beta, bparams%x%alpha, bparams%x%emit, bparams%x%norm_emit
+write (1, '(a, 6es16.8)') '"BP-Ymode" ABS 1E-8', bparams%y%beta, bparams%y%alpha, bparams%y%emit, bparams%y%norm_emit
+write (1, '(a, 6es16.8)') '"BP-Zmode" ABS 1E-8', bparams%z%beta, bparams%z%alpha, bparams%z%emit, bparams%z%norm_emit
 
 !
 
