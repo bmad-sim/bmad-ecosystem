@@ -1978,6 +1978,7 @@ type space_charge_common_struct                   ! Common block for space charg
   integer :: n_shield_images = 0                  ! Chamber wall shielding. 0 = no shielding.
   integer :: sc_min_in_bin = 10                   ! Minimum number of particles in a bin for sigmas to be valid.
   logical :: lsc_kick_transverse_dependence = .false.
+  logical :: debug = .false.
   character(200) :: diagnostic_output_file = ''   ! If non-blank write a diagnostic (EG wake) file
 end type
 
