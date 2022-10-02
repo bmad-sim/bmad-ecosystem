@@ -1398,7 +1398,7 @@ type (bunch_params_struct) bunch_params
 real(rp), optional :: n_mat(6,6)
 real(rp) eta, etap, gamma
 real(rp) :: sigma(6,6) = 0.0
-real(rp) :: charge_live, avg_energy
+real(rp) :: charge_live, average_pc
 real(rp), allocatable :: charge(:)
 
 integer i, j, species
@@ -1476,9 +1476,8 @@ if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
 ! average the energy
 
-avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%state == alive$))
-avg_energy = avg_energy * bunch%particle(1)%p0c / charge_live
-gamma = avg_energy / mass_of(species)
+average_pc = sum((1+bunch%particle%vec(6)) * bunch%particle%p0c * charge, mask = (bunch%particle%state == alive$)) / charge_live
+call convert_pc_to(average_pc, species, gamma=gamma)
 
 ! Rather arbitrary cutoff: If less than 12 particles, calculation of sigma matrix, etc is declared invalid
 
