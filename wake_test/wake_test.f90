@@ -10,6 +10,7 @@ type (coord_struct) :: orb0
 type (coord_struct) :: p1, p2
 type (beam_init_struct) :: beam_init
 type (bunch_struct) :: bunch, bunch_init, bunch0, bunch2
+type (bunch_params_struct) bparams
 
 real(rp) dz, z0
 
@@ -131,14 +132,32 @@ beam_init%sig_z = 5.99585e-3  ! 200 ps * cLight
 call init_bunch_distribution (lat%ele(0), lat%param, beam_init, 0, bunch_init)
 bunch = bunch_init
 
+call calc_bunch_params(bunch_init, bparams, err_flag)
+write (1, '(a, 6es16.8)') '"BP-Charge" REL 1E-8', bparams%charge_live, bparams%charge_tot
+write (1, '(a, 6es16.8)') '"BP-ST" REL 1E-8', bparams%s, bparams%t
+write (1, '(a, 6es16.8)') '"BP-Centroid" REL 1E-8', bparams%centroid%vec
+write (1, '(a, 6es16.8)') '"BP-Sig1" REL 1E-8', bparams%sigma(1,:)
+write (1, '(a, 6es16.8)') '"BP-Sig2" REL 1E-8', bparams%sigma(2,:)
+write (1, '(a, 6es16.8)') '"BP-Sig3" REL 1E-8', bparams%sigma(3,:)
+write (1, '(a, 6es16.8)') '"BP-Sig4" REL 1E-8', bparams%sigma(4,:)
+write (1, '(a, 6es16.8)') '"BP-Sig5" REL 1E-8', bparams%sigma(5,:)
+write (1, '(a, 6es16.8)') '"BP-Sig6" REL 1E-8', bparams%sigma(6,:)
+write (1, '(a, 6es16.8)') '"BP-Amode" REL 1E-8', bparams%a%beta, bparams%a%alpha, bparams%a%emit, bparams%a%norm_emit
+write (1, '(a, 6es16.8)') '"BP-Bmode" REL 1E-8', bparams%b%beta, bparams%b%alpha, bparams%b%emit, bparams%b%norm_emit
+write (1, '(a, 6es16.8)') '"BP-Xmode" REL 1E-8', bparams%x%beta, bparams%x%alpha, bparams%x%emit, bparams%x%norm_emit
+write (1, '(a, 6es16.8)') '"BP-Ymode" REL 1E-8', bparams%y%beta, bparams%y%alpha, bparams%y%emit, bparams%y%norm_emit
+write (1, '(a, 6es16.8)') '"BP-Zmode" REL 1E-8', bparams%z%beta, bparams%z%alpha, bparams%z%emit, bparams%z%norm_emit
+
+!
+
 call track1_bunch (bunch, ele, err_flag)
 
 bmad_com%sr_wakes_on = .false.
 bunch0 = bunch_init
 call track1_bunch (bunch0, ele, err_flag)
 
-write (1, '(a, 6es18.9)') '"SR-P20" REL 1E-8' , bunch%particle(20)%vec - bunch0%particle(20)%vec
-write (1, '(a, 6es18.9)') '"SR-P40" REL 1E-8' , bunch%particle(40)%vec - bunch0%particle(40)%vec
+write (1, '(a, 6es18.9)') '"SR-P20" REL 1E-8', bunch%particle(20)%vec - bunch0%particle(20)%vec
+write (1, '(a, 6es18.9)') '"SR-P40" REL 1E-8', bunch%particle(40)%vec - bunch0%particle(40)%vec
 
 ! Long range wake test
 
