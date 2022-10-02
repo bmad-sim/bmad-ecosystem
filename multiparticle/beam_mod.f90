@@ -8,7 +8,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track_beam (lat, beam, ele1, ele2, err, centroid, direction, bunch_track)
+! Subroutine track_beam (lat, beam, ele1, ele2, err, centroid, direction, bunch_tracks)
 !
 ! Subroutine to track a beam of particles from the end of
 ! ele1 Through to the end of ele2. Both must be in the same lattice branch.
@@ -25,19 +25,19 @@ contains
 !   centroid(0:)    -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
 !                        Hint: Calculate this before beam tracking by tracking a single particle.
 !   direction       -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
-!   bunch_track(:)  -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
+!   bunch_tracks(:) -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
 !                        Overwrite any existing track.
 !
 ! Output:
 !   beam            -- beam_struct: Beam at end of element ix2.
 !   err             -- logical: Set true if there is an error. 
 !                        EG: Too many particles lost for a CSR calc.
-!   bunch_track(:)  -- bunch_track_struct, optional: track information if the tracking method does 
+!   bunch_tracks(:) -- bunch_track_struct, optional: track information if the tracking method does 
 !                        tracking step-by-step. When tracking through multiple elements, the 
 !                        trajectory in an element is appended to the existing trajectory. 
 !-
 
-subroutine track_beam (lat, beam, ele1, ele2, err, centroid, direction, bunch_track)
+subroutine track_beam (lat, beam, ele1, ele2, err, centroid, direction, bunch_tracks)
 
 implicit none
 
@@ -45,7 +45,7 @@ type (lat_struct), target :: lat
 type (beam_struct) :: beam
 type (ele_struct), optional, target :: ele1, ele2
 type (coord_struct), optional :: centroid(0:)
-type (bunch_track_struct), optional :: bunch_track(:)
+type (bunch_track_struct), optional :: bunch_tracks(:)
 
 integer, optional :: direction
 integer i
@@ -55,8 +55,8 @@ logical err
 !
 
 do i = 1, size(beam%bunch)
-  if (present(bunch_track)) then
-    call track_bunch(lat, beam%bunch(i), ele1, ele2, err, centroid, direction, bunch_track(i))
+  if (present(bunch_tracks)) then
+    call track_bunch(lat, beam%bunch(i), ele1, ele2, err, centroid, direction, bunch_tracks(i))
   else
     call track_bunch(lat, beam%bunch(i), ele1, ele2, err, centroid, direction)
   endif
@@ -245,7 +245,7 @@ if (ele%space_charge_method == cathode_fft_3d$) then
   endif
 endif
 
-csr_sc_on = bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$)
+csr_sc_on = (bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$))
 
 if (csr_sc_on .and. ele%key /= match$) then
   if (ele%tracking_method == time_runge_kutta$ .or. ele%tracking_method == fixed_step_time_runge_kutta$) then

@@ -550,7 +550,7 @@ subroutine convert_particle_coordinates_t_to_s (particle, ele, s_body)
   import
   implicit none
   type (coord_struct), intent(inout), target :: particle
-  type (ele_struct) ele
+  type (ele_struct), optional :: ele
   real(rp), optional :: s_body
 end subroutine
 
@@ -1908,12 +1908,14 @@ subroutine s_calc (lat)
   type (lat_struct), target :: lat
 end subroutine
 
-subroutine save_a_bunch_step (bunch_track, ele, bunch)
+subroutine save_a_bunch_step (ele, bunch, bunch_track, s_body, is_time_coords)
   import
   implicit none
-  type (bunch_track_struct), target :: bunch_track
   type (ele_struct), target :: ele
   type (bunch_struct) bunch
+  type (bunch_track_struct), optional, target :: bunch_track
+  real(rp), optional :: s_body
+  logical, optional :: is_time_coords
 end subroutine
 
 subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time, strong_beam)
@@ -1928,6 +1930,18 @@ subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_fie
   real(rp), optional :: mat6(6,6), rf_time
   logical local_ref_frame
   logical, optional :: save_field, make_matrix
+end subroutine
+
+subroutine sbend_body_with_k1_map (ele, dg, k_1, param, n_step, orbit, mat6, make_matrix)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  type (coord_struct) orbit
+  integer n_step
+  real(rp) dg, k_1
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
 end subroutine
 
 subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords)
@@ -2030,26 +2044,6 @@ subroutine set_z_tune (branch, z_tune, ok)
   type (branch_struct), target :: branch
   real(rp) :: z_tune
   logical, optional :: ok
-end subroutine
-
-subroutine save_bunch_track (bunch, ele, s_travel)
-  import
-  implicit none
-  type (bunch_struct) bunch
-  type (ele_struct) ele
-  real(rp) s_travel
-end subroutine
-
-subroutine sbend_body_with_k1_map (ele, dg, k_1, param, n_step, orbit, mat6, make_matrix)
-  import
-  implicit none
-  type (ele_struct) ele
-  type (lat_param_struct) param
-  type (coord_struct) orbit
-  integer n_step
-  real(rp) dg, k_1
-  real(rp), optional :: mat6(6,6)
-  logical, optional :: make_matrix
 end subroutine
 
 subroutine set_on (key, lat, on_switch, orb)
