@@ -35,7 +35,9 @@ if (present(s_body)) s_body = vec(5)
 
 ! If vec(6) = 0 then leave %direction as is.
 
-edir = integer_option(1, ele%orientation)
+edir = 1
+if (present(ele)) edir = ele%orientation
+
 if (vec(6)*edir > 0) then
   particle%direction = 1
 elseif (vec(6)*edir < 0) then
