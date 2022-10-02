@@ -67,16 +67,16 @@ endif
 t_now = bunch%t0
 call drift_to_t(bunch, bunch%t0, branch)
 
+if (present(bunch_track)) then
+  call save_a_bunch_step (bunch_track, ele, bunch)
+  s_save_last = bunch_track%pt(bunch_track%n_pt)%s
+endif
+
 ! Convert to t-based coordinates
 do i = 1, size(bunch%particle) 
   p => bunch%particle(i)
   call convert_particle_coordinates_s_to_t(p, s_body_calc(p, branch%lat%ele(p%ix_ele)), branch%lat%ele(p%ix_ele)%orientation)
 enddo
-
-if (present(bunch_track)) then
-  call save_a_bunch_step (bunch_track, ele, bunch)
-  s_save_last = bunch_track%pt(bunch_track%n_pt)%s
-endif
 
 ! Estimate when middle of the bunch reaches end of the element
 finished = .false.
@@ -102,8 +102,16 @@ do
 
   if (present(bunch_track)) then
     if (bunch_track%pt(bunch_track%n_pt)%s >= s_save_last + bunch_track%ds_save) then
+      do i= 1, size(bunch%particle) 
+        p => bunch%particle(i)
+        call convert_particle_coordinates_t_to_s(p, branch%lat%ele(p%ix_ele))
+      enddo
       call save_a_bunch_step (bunch_track, ele, bunch)
       s_save_last = bunch_track%pt(bunch_track%n_pt)%s
+      do i = 1, size(bunch%particle) 
+        p => bunch%particle(i)
+        call convert_particle_coordinates_s_to_t(p, s_body_calc(p, branch%lat%ele(p%ix_ele)), branch%lat%ele(p%ix_ele)%orientation)
+      enddo
     endif
   endif
   

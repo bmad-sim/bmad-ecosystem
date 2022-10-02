@@ -292,7 +292,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   if (stop_time_limited) then
     dt_next = dt_next_save
-    if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light) then
+    if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light / 2) then
       call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, false_int$)
     endif
   endif

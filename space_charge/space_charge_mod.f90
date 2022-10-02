@@ -220,18 +220,18 @@ do
   ! If error is larger than tolerance, try again with a smaller step
   if (err_max <= 1.0) exit
   dt_step = safety * dt_step * (err_max**p_shrink)
+  bunch%n_bad = bunch%n_bad + 1
   bunch_full = bunch
   bunch_half = bunch
 enddo
 
+bunch%n_good = bunch%n_good + 1
 ! Adjust next step size
 ! Copied from Runge-Kutta
 if (err_max > err_con) then
   dt_next = safety * dt_step * (err_max**p_grow)
-  bunch%n_bad = bunch%n_bad + 1
 else
   dt_next = 5.0_rp * dt_step
-  bunch%n_good = bunch%n_good + 1
 endif
 
 bunch = bunch_half
