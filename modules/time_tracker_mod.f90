@@ -619,7 +619,6 @@ out_orb%dt_ref = in_orb%dt_ref + dt_now - dvec(10)
 pc = sqrt(out_orb%vec(2)**2 + out_orb%vec(4)**2 + out_orb%vec(6)**2)
 call convert_pc_to (pc, orb%species, beta = out_orb%beta)
 
-
 end subroutine transfer_this_orbit
 
 end subroutine rk_time_step1
