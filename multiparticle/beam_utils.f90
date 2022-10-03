@@ -1477,22 +1477,20 @@ bunch_params%centroid%t = sum(bunch%particle%t * charge, mask = (bunch%particle%
 
 if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
-
 ! Sigma matrix calc
 
 call calc_bunch_sigma_matrix_etc (bunch%particle, charge, bunch_params, is_time_coords)
 
-if (species /= photon$) then
-  call convert_pc_to ((1 + bunch_params%centroid%vec(6)) * bunch_params%centroid%p0c, species, beta = bunch_params%centroid%beta)
-endif
+if (species == photon$) return
+
+average_pc = (1+bunch_params%centroid%vec(6)) * bunch_params%centroid%p0c
+call convert_pc_to (average_pc, species, beta = bunch_params%centroid%beta)
 
 ! Rather arbitrary cutoff: If less than 12 particles, calculation of sigma matrix, etc is declared invalid
 
 if (bunch_params%n_particle_live < 12) return
 
-average_pc = (1+bunch_params%centroid%vec(6)) * bunch_params%centroid%p0c
 call convert_pc_to(average_pc, species, gamma=gamma)
-
 call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, gamma, bunch_params, error, print_err, n_mat)
 
 end subroutine calc_bunch_params
@@ -1825,7 +1823,7 @@ implicit none
 type (coord_struct) :: particle(:), p
 type (bunch_params_struct), target :: bunch_params
 
-real(rp) charge_live, vec(6)
+real(rp) charge_live, vec(6), p0c_avg
 real(rp) charge(:)
 real(rp) :: avg(6), sig_mat(6,6)
 
@@ -1843,6 +1841,9 @@ if (charge_live == 0) then
   return
 endif
 
+p0c_avg = sum(particle%p0c*charge, mask = (particle%state == alive$)) / charge_live
+bunch_params%centroid%p0c = p0c_avg
+
 avg = 0
 sig_mat = 0
 bunch_params%rel_max = -1e30_rp
@@ -1854,6 +1855,9 @@ do i = 1, size(particle)
     p = particle(i)
     call convert_particle_coordinates_t_to_s(p)
     vec = p%vec
+    vec(2) = vec(2) * p%p0c / p0c_avg
+    vec(4) = vec(4) * p%p0c / p0c_avg
+    vec(6) = (vec(6)*p%p0c + p%p0c - p0c_avg) / p0c_avg
   else
     vec = particle(i)%vec
   endif
