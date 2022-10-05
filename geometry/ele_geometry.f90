@@ -75,7 +75,7 @@ endif
 
 ! Custom geometry
 
-call ele_geometry_hook (floor0, ele, floor, finished, len_scale)
+call ele_geometry_hook (floor_start, ele, floor_end, finished, len_scale)
 if (finished) return
 
 ! Init.
