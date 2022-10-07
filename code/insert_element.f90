@@ -51,6 +51,7 @@ logical err_flag
 ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
 insert_ele_copy = insert_ele   ! In case insert_ele is an element in the lattice
+call upcase_string(insert_ele_copy%name)
 
 branch%n_ele_max = branch%n_ele_max + 1
 if (branch%n_ele_max > ubound(branch%ele, 1)) call allocate_lat_ele_array(lat, ix_branch = ix_br)
