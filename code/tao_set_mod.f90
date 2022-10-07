@@ -966,9 +966,8 @@ type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
 type (tao_beam_branch_struct), pointer :: bb
 
-real(rp) com_ds_step
-
-integer ix, iu, n_loc, ie, ix_branch
+real(rp) value
+integer ix, ib, iu, n_loc, ie, ix_branch
 
 logical, allocatable :: this_u(:)
 logical err, logic, always_reinit
@@ -981,7 +980,7 @@ character(*), parameter :: r_name = 'tao_set_beam_cmd'
 
 call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
 
-call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_step', &
+call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_save', &
                     'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
                     'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
                     'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', &
@@ -1011,8 +1010,11 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     bb%beam_at_start = beam
     u%calc%lattice = .true.
 
-  case ('comb_ds_step')
-    call tao_set_real_value (u%beam%comb_ds_step, switch, value_str, err)
+  case ('comb_ds_save')
+    call tao_set_real_value (value, switch, value_str, err)
+    do ib = 0, ubound(u%model%tao_branch, 1)
+      u%model%tao_branch(ib)%bunch_params_comb%ds_save = value
+    enddo
 
   case ('always_reinit')
     call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)
@@ -1143,7 +1145,7 @@ call downcase_string(who2)
 
 ! Special cases not associated with the beam_init structure
 
-call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_step', &
+call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_save', &
                     'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
                     'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
                     'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', &
@@ -1235,6 +1237,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
     exit
   endif
+
+  select case (who2)
+  case ('a_emit');        beam_init%a_norm_emit = 0
+  case ('b_emit');        beam_init%b_norm_emit = 0
+  case ('a_norm_emit');   beam_init%a_emit = 0
+  case ('b_norm_emit');   beam_init%b_emit = 0
+  end select
 
   bb%beam_init = beam_init
   bb%init_starting_distribution = .true.  ! Force reinit

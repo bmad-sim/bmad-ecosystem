@@ -282,7 +282,7 @@ case ('beam')
   what_to_show = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb_index'], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb'], .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
 
@@ -297,7 +297,7 @@ case ('beam')
       endif
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
-    case ('-lattice', '-comb_index')
+    case ('-lattice', '-comb')
       what_to_show = switch
 
     case default
@@ -315,9 +315,29 @@ case ('beam')
   branch => lat%branch(0)
   bb => u%model_branch(0)%beam
 
+  !
+
+  if (what_to_show == '-comb' .and. ele_name == '') then
+    if (.not. allocated(tao_branch%bunch_params_comb)) then
+      nl=nl+1; lines(nl) = 'Beam parameter comb not calculated (check comb_ds_save)' 
+      return
+    endif
+
+    nl=nl+1; lines(nl) = ' Index           S  N_Live  N_lost'
+    do i = 0, tao_branch%bunch_params_comb(1)%n_pt
+      bunch_p => tao_branch%bunch_params_comb(1)%pt(i)
+      nl=nl+1; write (lines(nl), '(i6, f12.3, 2i8)') i, bunch_p%s, bunch_p%n_particle_live, &
+                                                                 bunch_p%n_particle_tot-bunch_p%n_particle_live
+    enddo
+
+    return
+  endif
+
+  !
+
   if (ele_name == '') then
     ele => branch%ele(bb%ix_track_start)
-  elseif (what_to_show == '-comb_index') then
+  elseif (what_to_show == '-comb') then
     read (ele_name, *, iostat = ios) ix_s2
     if (ios /= 0) then
       nl=1; lines(1) = 'CANNOT DECODE COMB INDEX: ' // ele_name
@@ -383,7 +403,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt) 'saved_at          = ', quote(u%beam%saved_at)
     nl=nl+1; write(lines(nl), amt) 'dump_at           = ', quote(u%beam%dump_at)
     nl=nl+1; write(lines(nl), amt) 'dump_file         = ', quote(u%beam%dump_file)
-    nl=nl+1; write(lines(nl), rmt) 'comb_ds_step      = ', u%beam%comb_ds_step
+    nl=nl+1; write(lines(nl), rmt) 'comb_ds_save      = ', tao_branch%bunch_params_comb(1)%ds_save
     nl=nl+1; write(lines(nl), fmt) 'track_start       = ', quote(bb%track_start)
     nl=nl+1; write(lines(nl), fmt) 'track_end         = ', quote(bb%track_end)
 
@@ -510,7 +530,7 @@ case ('beam')
   ! have element index
 
   else
-    if (what_to_show == '-comb_index') then
+    if (what_to_show == '-comb') then
       if (.not. allocated(tao_branch%bunch_params_comb)) then
         nl=nl+1; lines(nl) = 'Beam parameter comb not calculated (check comb_ds_step)' 
         return
@@ -521,7 +541,7 @@ case ('beam')
         nl=nl+1; lines(nl) = 'Comb index out of range: [0, ' // int_str(n) // ']'
         return
       endif
-      bunch_p => tao_branch%bunch_params_comb(ix_s2)
+      bunch_p => tao_branch%bunch_params_comb(1)%pt(ix_s2)
       nl=nl+1; lines(nl) = 'Bunch parameters at comb index: ' // int_str(ix_s2)
 
     else

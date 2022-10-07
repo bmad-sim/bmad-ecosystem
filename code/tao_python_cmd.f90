@@ -4954,8 +4954,9 @@ case ('orbit_at_s')
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
 !%% place_buffer
-! Output place command buffer and reset the buffer.
+! Output the place command buffer and reset the buffer.
 ! The contents of the buffer are the place commands that the user has issued.
+! See the Tao manual for more details.
 !
 ! Notes
 ! -----
@@ -4985,8 +4986,7 @@ case ('place_buffer')
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
 !%% plot_curve
-! Output curve information for a plot
-!
+! Output curve information for a plot.
 !
 ! Notes
 ! -----

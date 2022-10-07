@@ -1952,7 +1952,7 @@ Shows a list of defined aliases. See the \vn{alias} command for more details.
 
 Command to show beam parameters. Syntax:
 \begin{example}
-  show beam \{-comb_index\} \{-universe <uni_index>\} \{-lattice\} \{<element_id>\}
+  show beam \{-comb\} \{-universe <uni_index>\} \{-lattice\} \{<element_id>\}
 \end{example}
 
 If both \vn{<element_id>} and \vn{-lattice} are absent, \vn{show beam} shows parameters
@@ -1967,9 +1967,10 @@ If \vn{-lattice} is present, \vn{show beam} will show the beam sigma matrix as c
 lattice at the position given by \vn{<element_id>} (\sref{s:lat.sig.init}). If an
 element is not specified, the beginning element (with index 0) will be used.
 
-If the \vn{-comb_index} is present, \vn{<element_id>} should be an integer which is the index
+If the \vn{-comb} is present, \vn{<element_id>} should be an integer which is the index
 of the comb of longitudinally equally spaced points where the beam parameters are evaluated at.
-Note: \vn{comb_ds_step} (\sref{s:tao.global.struct}) is used to set the spacing between points.
+Note: \vn{comb_ds_save} (\sref{s:tao.global.struct}) is used to set the spacing between points.
+If \vn{<element_id>} is not present, information about all the comb points is output.
 
 Note: To show individual particle positions, see the \vn{show particle} command
 (\sref{s:show.particle}).

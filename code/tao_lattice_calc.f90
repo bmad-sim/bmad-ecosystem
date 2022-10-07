@@ -138,10 +138,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         else
           tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
           tao_branch%bunch_params(:)%n_particle_live = 0
-          if (allocated(tao_branch%bunch_params_comb)) then
-            tao_branch%bunch_params_comb(:)%n_particle_lost_in_ele = 0
-            tao_branch%bunch_params_comb(:)%n_particle_live = 0
-          endif
         endif
       endif
 

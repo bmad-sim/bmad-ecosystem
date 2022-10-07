@@ -843,7 +843,7 @@ The \vn{bmad_com_struct} holds bmad global variables.
   type bmad_com_struct:
     real(rp) max_aperture_limit = 1e3    
     real(rp) d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
-    real(rp) default_ds_step    = 0.2_rp    ! Integration step size.
+    real(rp) default_ds_save    = 0.2_rp    ! Integration step size.
     real(rp) significant_length = 1e-10     ! meter
     real(rp) rel_tol_tracking = 1e-8
     real(rp) abs_tol_tracking = 1e-10
@@ -986,7 +986,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     dump_at                   = "<ele_list>"  ! Save beam info at these elements.
     track_start               = "<ele_id>"    ! Beam tracking start element.
     track_end                 = "<ele_id>"    ! Beam tracking end element.
-    comb_ds_step              = <real>        ! Step size for beam parameter evaluation.
+    comb_ds_save              = <real>        ! Step size for beam parameter evaluation.
     beam_init%position_file   = <string>      ! Beam position init file.
     beam_init%distribution_type(3) = "<type>" ! "ELLIPSE", "KV", "GRID", or 
                                               !   "RAN_GAUSS" (default).
@@ -1043,9 +1043,9 @@ Note that if the initial distribution is read in from a file, no random number g
 variations of the initial distribution will cause values calculated from the beam to ``jitter''. This
 can be especially problematical when doing an optimization as it may hinder finding the merit function minimum.
 %
-  \item[comb_ds_step] \Newline
+  \item[comb_ds_save] \Newline
 When tracking a beam, the beam parameters (like centroid, beam size matrix, etc) can be saved at 
-equally spaced points by setting \vn{comb_ds_step} to a positive number representing the
+equally spaced points by setting \vn{comb_ds_save} to a positive number representing the
 spacing between points. Default is -1 (no comb generated). Using a comb can give better detail 
 when plotting beam parameters as a function of $s$. Note: The actual spacing between points will
 be adjusted to give an integer number of points over the region of travel.
