@@ -895,11 +895,11 @@ end type
 ! tao_lattice_branch_equal_tao_lattice_branch must be modified as well.
 
 type tao_lattice_branch_struct
-  type (tao_lattice_struct), pointer :: tao_lat => null()       ! Parent tao_lat
-  type (tao_lat_sigma_struct), allocatable :: lat_sigma(:)      ! Sigma matrix derived from lattice (not beam).
-  type (tao_dn_dpz_struct), allocatable :: dn_dpz(:)            ! Spin invariant field
-  type (bunch_params_struct), allocatable :: bunch_params(:)    ! Per element
-  type (bunch_params_struct), allocatable :: bunch_params_comb(:) ! Evenly spaced per global%beam_track_ds_step step
+  type (tao_lattice_struct), pointer :: tao_lat => null()        ! Parent tao_lat
+  type (tao_lat_sigma_struct), allocatable :: lat_sigma(:)       ! Sigma matrix derived from lattice (not beam).
+  type (tao_dn_dpz_struct), allocatable :: dn_dpz(:)             ! Spin invariant field
+  type (bunch_params_struct), allocatable :: bunch_params(:)     ! Per element
+  type (bunch_track_struct), allocatable :: bunch_params_comb(:) ! Regularly spaced bunch_params matrix.
   type (coord_struct), allocatable :: orbit(:)
   type (tao_plot_cache_struct), allocatable :: plot_cache(:)  ! Plotting data cache
   type (tao_plot_cache_struct) :: plot_ref_cache              ! Plotting data cache
@@ -916,7 +916,6 @@ type tao_lattice_branch_struct
   integer :: cache_n_pts = 0
   integer ix_rad_int_cache                                    ! Radiation integrals cache index.
   integer :: n_hterms = 0                                     ! Number of distinct res driving terms to evaluate.
-  integer :: n_bunch_params_comb                              ! Number of %bunch_params_comb(:)
   logical has_open_match_element
   logical :: plot_cache_valid = .false.                       ! Valid plotting data cache?
   logical :: spin_valid = .false.
@@ -974,7 +973,6 @@ type tao_beam_uni_struct
   character(200) :: saved_at = ''
   character(200) :: dump_file = ''
   character(200) :: dump_at = ''
-  real(rp) :: comb_ds_step = -1                  ! Tracking step size to calculate %bunch_param_comb.
   logical :: track_beam_in_universe = .false.    ! Beam tracking enabled in this universe?
   logical :: always_reinit = .false.
 end type

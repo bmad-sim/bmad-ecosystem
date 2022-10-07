@@ -1603,11 +1603,11 @@ Also see \vn{r.$ij$}.
 
 Calculation of \vn{t.$ijklm\ldots$} and \vn{tt.$ijklm\ldots$} datums involve symplectic integration
 through lattice elements. One point to be kept in mind is that results will be dependent upon the
-integration step size through an element set by the \vn{ds_step} attribute of that element (see the
+integration step size through an element set by the \vn{ds_save} attribute of that element (see the
 \bmad manual for more details). When a smooth curve (\sref{s:template}) is plotted for \vn{t.$ijk$}
 and \vn{tt.$ijklm\ldots$} data types, and the longitudinal (\vn{"s"}) position is used for the
 x-axis, the integration step used in generating the points that define this curve will be decreased
-if the s-distance between points is smaller than the \vn{ds_step}.  In this case, discrepancies
+if the s-distance between points is smaller than the \vn{ds_save}.  In this case, discrepancies
 between the plot and datum values may be observed.
 
   %----------------------

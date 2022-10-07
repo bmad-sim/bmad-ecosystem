@@ -2070,7 +2070,8 @@ implicit none
 type (tao_lattice_struct), target :: tao_lat
 type (tao_curve_struct) curve
 type (tao_lattice_branch_struct), pointer :: tao_branch
-type (bunch_params_struct), pointer :: bunch_params0, bunch_params1, bunch_params_array(:)
+type (bunch_track_struct), pointer :: bunch_track
+type (bunch_params_struct), pointer :: bunch_params0, bunch_params1
 type (bunch_params_struct) :: bunch_params
 type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end, orbit_last, orbit
@@ -2239,16 +2240,19 @@ do ii = 1, size(curve%x_line)
     endif
  
     if (allocated(tao_branch%bunch_params_comb)) then
-      bunch_params_array => tao_branch%bunch_params_comb
-      np = tao_branch%n_bunch_params_comb
+      ix = max(1, curve%ix_bunch)
+      bunch_track => tao_branch%bunch_params_comb(ix)
+      np = bunch_track%n_pt
+      ix = bracket_index (s_now, bunch_track%pt(0:np)%s, 0)
+      bunch_params0 => bunch_track%pt(ix)
+      bunch_params1 => bunch_track%pt(min(ix,np))
     else
-      bunch_params_array => tao_branch%bunch_params
       np = n_ele_track
+      ix = bracket_index (s_now, tao_branch%bunch_params(0:np)%s, 0)
+      bunch_params0 => tao_branch%bunch_params(ix)
+      bunch_params1 => tao_branch%bunch_params(min(ix,np))
     endif
 
-    ix = bracket_index (s_now, bunch_params_array(0:np)%s, 0)
-    bunch_params0 => bunch_params_array(ix)
-    bunch_params1 => bunch_params_array(min(ix,np))
 
     if (bunch_params0%s == bunch_params1%s) then
       r_bunch = 0
