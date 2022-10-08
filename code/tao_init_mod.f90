@@ -351,6 +351,7 @@ type (ele_struct), pointer :: ele
 type (ele_pointer_struct), allocatable, target :: eles(:)
 type (branch_struct), pointer :: branch
 type (tao_beam_branch_struct), pointer :: bb
+type (tao_lattice_branch_struct), pointer :: tao_branch
 
 real(rp) comb_ds_save
 integer k, n_loc
@@ -376,7 +377,9 @@ bb%ix_track_start = ele%ix_ele
 bb%beam_init = beam_init
 bb%track_start = track_start
 
-u%model%tao_branch(ele%ix_branch)%bunch_params_comb%ds_save = comb_ds_save
+tao_branch => u%model%tao_branch(ele%ix_branch) 
+if (.not. allocated(tao_branch%bunch_params_comb)) allocate(tao_branch%bunch_params_comb(beam_init%n_bunch))
+tao_branch%bunch_params_comb%ds_save = comb_ds_save
 
 ! Tracking stop
 
