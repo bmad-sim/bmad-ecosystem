@@ -52,16 +52,6 @@ endif
 
 !
 
-if (tao_chrom_calc_needed(d_type, datum%data_source)) then
-  if (branch%param%geometry == open$) then
-    datum%why_invalid = 'CHROMATICITY DATUM NOT VALID FOR NON-CLOSED LATTICE!'
-    if (print_err) call out_io (s_error$, r_name, 'CHROMATICITY DATUM NOT VALID FOR NON-CLOSED LATTICE!')
-    return
-  endif  
-endif
-
-!
-
 if (datum%merit_type == '') then
   datum%why_invalid = 'MERIT_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum)
   if (print_err) call out_io (s_error$, r_name, 'MERIT_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum))
