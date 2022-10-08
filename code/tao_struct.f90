@@ -899,7 +899,7 @@ type tao_lattice_branch_struct
   type (tao_lat_sigma_struct), allocatable :: lat_sigma(:)       ! Sigma matrix derived from lattice (not beam).
   type (tao_dn_dpz_struct), allocatable :: dn_dpz(:)             ! Spin invariant field
   type (bunch_params_struct), allocatable :: bunch_params(:)     ! Per element
-  type (bunch_track_struct), allocatable :: bunch_params_comb(:) ! Regularly spaced bunch_params matrix.
+  type (bunch_track_struct), allocatable :: bunch_params_comb(:) ! A comb for each bunch in beam.
   type (coord_struct), allocatable :: orbit(:)
   type (tao_plot_cache_struct), allocatable :: plot_cache(:)  ! Plotting data cache
   type (tao_plot_cache_struct) :: plot_ref_cache              ! Plotting data cache
