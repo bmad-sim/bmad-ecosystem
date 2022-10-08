@@ -1209,7 +1209,7 @@ case ('data')
     nl=nl+1; write(lines(nl), lmt)    '%useit_plot        = ', d_ptr%useit_plot
     nl=nl+1; write(lines(nl), '(a, l1, 3x, a)')    '%useit_opt         = ', d_ptr%useit_opt, tao_optimization_status(d_ptr)
 
-    if (d_ptr%exists .and. d_ptr%why_invalid /= '') then
+    if (d_ptr%why_invalid /= '') then
       nl=nl+1; lines(nl) = 'Model value is invalid since: ' // d_ptr%why_invalid
     endif
 

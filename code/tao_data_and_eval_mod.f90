@@ -509,7 +509,7 @@ datum%why_invalid = ''
 
 if (.not. datum%exists) then
   datum_value = real_garbage$
-  call tao_set_invalid(datum, 'Datum does not exist.')
+  call tao_set_invalid(datum, 'Datum does not exist.', why_invalid)
   return
 endif
 
@@ -537,7 +537,7 @@ lat => tao_lat%lat
 
 if (head_data_type == 'null') then
   datum_value = 0
-  call tao_set_invalid (datum, 'Datum data_type is set to "null".')
+  call tao_set_invalid (datum, 'Datum data_type is set to "null".', why_invalid)
   valid_value = .false.
   return
 endif
@@ -964,7 +964,7 @@ case ('bunch_charge.')
   if (data_type == 'bunch_charge.live_relative') then
     charge = bunch_params(ele%ix_ele)%charge_tot
     if (charge == 0) then
-      call tao_set_invalid (datum, 'BUNCH HAS NO CHARGE FOR EVALUATING A DATUM OF TYPE "bunch_charge_live.percent')
+      call tao_set_invalid (datum, 'BUNCH HAS NO CHARGE FOR EVALUATING A DATUM OF TYPE "bunch_charge_live.percent', why_invalid)
       valid_value = .false.
       return
     endif
@@ -1079,11 +1079,11 @@ case ('chrom.')
 
   if (.not. allocated(tao_lat%low_E_lat%branch)) then
     if (branch%param%geometry == open$) then
-      call tao_set_invalid (datum, 'Cannot calc ' // trim(data_type) // ' with an open geometry.')
+      call tao_set_invalid (datum, 'Cannot calc ' // trim(data_type) // ' with an open geometry.', why_invalid)
     elseif (branch%param%unstable_factor == 0) then
-      call tao_set_invalid (datum, 'Chrom bookkeeping problem. Please contact DCS.')
+      call tao_set_invalid (datum, 'Chrom bookkeeping problem. Please contact DCS.', why_invalid)
     else
-      call tao_set_invalid (datum, 'Unstable lattice.')
+      call tao_set_invalid (datum, 'Unstable lattice.', why_invalid)
     endif
     return
   endif
@@ -1946,7 +1946,7 @@ case ('normal.')
 
   ! Do nothing it the map wasn't made
   if (.not. ptc_nf%valid_map) then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.  PTC one-turn map not calculated.')
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.  PTC one-turn map not calculated.', why_invalid)
     return
   endif
 
@@ -3478,7 +3478,7 @@ case ('wall.')
 
   if (.not. allocated(s%building_wall%section)) then
     valid_value = .false.
-    call tao_set_invalid (datum, 'No building wall sections defined.')
+    call tao_set_invalid (datum, 'No building wall sections defined.', why_invalid)
     return
   endif
 
@@ -3550,7 +3550,7 @@ case ('wall.')
 
   enddo
 
-  if (.not. valid_value) call tao_set_invalid (datum, 'No wall section found in the transverse plane of the evaluation point.')
+  if (.not. valid_value) call tao_set_invalid (datum, 'No wall section found in the transverse plane of the evaluation point.', why_invalid)
 
 !-----------
 
