@@ -39,21 +39,22 @@ is_valid = .false.
 d_type = datum%data_type
 
 if (datum%ele_name /= '') then
-  if (.not. check_ele_ok (datum%ele_name, datum%ix_ele, 'DATUM ELEMENT NOT FOUND: ' // datum%ele_name)) return
+  if (.not. check_this_ele_exists (datum%ele_name, datum%ix_ele, 'DATUM ELEMENT NOT FOUND: ' // datum%ele_name)) return
 endif
 
 if (datum%ele_ref_name /= '') then
-  if (.not. check_ele_ok (datum%ele_ref_name, datum%ix_ele_ref, 'DATUM ELEMENT REFERENCE NOT FOUND: ' // datum%ele_ref_name)) return
+  if (.not. check_this_ele_exists (datum%ele_ref_name, datum%ix_ele_ref, 'DATUM ELEMENT REFERENCE NOT FOUND: ' // datum%ele_ref_name)) return
 endif
 
 if (datum%ele_start_name /= '') then
-  if (.not. check_ele_ok (datum%ele_start_name, datum%ix_ele_start, 'DATUM ELEMENT START NOT FOUND: ' // datum%ele_start_name)) return
+  if (.not. check_this_ele_exists (datum%ele_start_name, datum%ix_ele_start, 'DATUM ELEMENT START NOT FOUND: ' // datum%ele_start_name)) return
 endif
 
 !
 
 if (tao_chrom_calc_needed(d_type, datum%data_source)) then
   if (branch%param%geometry == open$) then
+    datum%why_invalid = 'CHROMATICITY DATUM NOT VALID FOR NON-CLOSED LATTICE!'
     if (print_err) call out_io (s_error$, r_name, 'CHROMATICITY DATUM NOT VALID FOR NON-CLOSED LATTICE!')
     return
   endif  
@@ -62,16 +63,19 @@ endif
 !
 
 if (datum%merit_type == '') then
+  datum%why_invalid = 'MERIT_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum)
   if (print_err) call out_io (s_error$, r_name, 'MERIT_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum))
   return
 endif
 
 if (d_type == '') then
+  datum%why_invalid = 'DATA_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum)
   if (print_err) call out_io (s_error$, r_name, 'DATA_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum))
   return
 endif
 
 if (datum%data_source == '') then
+  datum%why_invalid = 'DATA_SOURCE NOT SET FOR DATUM: ' // tao_datum_name(datum)
   if (print_err) call out_io (s_error$, r_name, 'DATA_SOURCE NOT SET FOR DATUM: ' // tao_datum_name(datum))
   return
 endif
@@ -106,7 +110,7 @@ is_valid = .true.
 !-----------------------------------------------------------------------------------------------------
 contains
 
-function check_ele_ok(ele_name, ix_ele, err_str) result (is_ok)
+function check_this_ele_exists(ele_name, ix_ele, err_str) result (is_ok)
 
 character(*) ele_name, err_str
 integer ix_ele
@@ -117,6 +121,7 @@ logical is_ok
 is_ok = .false.
 
 if (ix_ele < 0) then
+  datum%why_invalid = err_str
   if (print_err) call out_io (s_error$, r_name, err_str, 'FOR DATUM: ' // tao_datum_name(datum))
   return
 endif
@@ -131,7 +136,7 @@ endif
 
 is_ok = .true.
 
-end function check_ele_ok
+end function check_this_ele_exists
 
 end function tao_data_sanity_check
 

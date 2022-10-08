@@ -477,7 +477,7 @@ case ('bmad_com')
 case ('branch1')
 
   u => point_to_uni(line, .true., err); if (err) return
-  ix_branch = parse_branch(line, .false., err); if (err) return
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
   branch => u%model%lat%branch(ix_branch)
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                               trim(branch%name)
@@ -530,7 +530,7 @@ case ('branch1')
 case ('bunch_params')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
@@ -619,7 +619,7 @@ case ('bunch_params')
 case ('bunch1')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
@@ -2051,7 +2051,7 @@ case ('derivative')
 case ('ele:ac_kicker')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%ac_kick)) return
@@ -2115,7 +2115,7 @@ case ('ele:ac_kicker')
 case ('ele:cartesian_map')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%cartesian_map)) then
@@ -2191,7 +2191,7 @@ case ('ele:cartesian_map')
 case ('ele:chamber_wall')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%wall3d)) then
@@ -2257,7 +2257,7 @@ case ('ele:chamber_wall')
 case ('ele:control_var')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%control)) then
@@ -2323,7 +2323,7 @@ case ('ele:control_var')
 case ('ele:cylindrical_map')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%cylindrical_map)) then
@@ -2398,7 +2398,7 @@ case ('ele:cylindrical_map')
 case ('ele:elec_multipoles')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on
@@ -2475,7 +2475,7 @@ case ('ele:elec_multipoles')
 case ('ele:floor')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
 
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
   if (ele%ix_ele == 0) then
@@ -2559,7 +2559,7 @@ case ('ele:floor')
 case ('ele:grid_field')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%grid_field)) then
@@ -2654,7 +2654,7 @@ case ('ele:grid_field')
 case ('ele:gen_attribs')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   do i = 1, num_ele_attrib$
@@ -2733,7 +2733,7 @@ case ('ele:gen_attribs')
 case ('ele:head')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
@@ -2827,7 +2827,7 @@ case ('ele:head')
 case ('ele:lord_slave')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   call tao_control_tree_list(ele, eles)
@@ -2891,7 +2891,7 @@ case ('ele:lord_slave')
 case ('ele:mat6')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   select case (tail_str)
@@ -2949,7 +2949,7 @@ case ('ele:mat6')
 case ('ele:methods')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
@@ -3038,7 +3038,7 @@ case ('ele:methods')
 case ('ele:multipoles')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;', ele%multipoles_on
@@ -3124,7 +3124,7 @@ case ('ele:multipoles')
 case ('ele:orbit')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
@@ -3176,7 +3176,7 @@ case ('ele:orbit')
 case ('ele:param')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
   orbit => tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele)
 
@@ -3249,7 +3249,7 @@ case ('ele:param')
 case ('ele:photon')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%photon)) then
@@ -3321,7 +3321,7 @@ case ('ele:photon')
 case ('ele:spin_taylor')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%spin_taylor(1)%term)) then
@@ -3374,7 +3374,7 @@ case ('ele:spin_taylor')
 case ('ele:taylor')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (attribute_name(ele, taylor_map_includes_offsets$) == 'TAYLOR_MAP_INCLUDES_OFFSETS') then
@@ -3438,7 +3438,7 @@ case ('ele:taylor')
 case ('ele:taylor_field')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%taylor_field)) then
@@ -3513,7 +3513,7 @@ case ('ele:taylor_field')
 case ('ele:twiss')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (ele%a%beta == 0) return
@@ -3570,7 +3570,7 @@ case ('ele:twiss')
 case ('ele:wake')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%wake)) then
@@ -3671,7 +3671,7 @@ case ('ele:wake')
 case ('ele:wall3d')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%wall3d)) then
@@ -3827,7 +3827,7 @@ case ('evaluate')
 case ('em_field')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   call init_coord (orb, ele = ele, element_end = downstream_end$)
@@ -4499,7 +4499,7 @@ case ('lat_calc_done')
 case ('lat_ele_list')
 
   u => point_to_uni(line, .true., err); if (err) return
-  ix_branch = parse_branch(line, .false., err); if (err) return
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
   branch => u%model%lat%branch(ix_branch)
 
   do i = 0, branch%n_ele_max
@@ -4677,7 +4677,7 @@ case ('lat_list')
   enddo
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, tail_str = all_who); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, tail_str = all_who); if (err) return
 
   if (all_who(1:5) == 'real:') then  ! Old style
     use_real_array_buffer = .true.
@@ -4857,7 +4857,7 @@ case ('lat_param_units')
 case ('matrix')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   call lat_ele_locator (tail_str, tao_lat%lat, eles, n_loc, err, ix_dflt_branch = ele%ix_branch)
@@ -4944,7 +4944,7 @@ case ('merit')
 case ('orbit_at_s')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err); if (err) return
   s_pos = parse_ele_with_s_offset(line, tao_lat, ele, err); if (err) return
   ix_branch = ele%ix_branch
 
@@ -5090,7 +5090,7 @@ case ('plot_curve')
 case ('plot_lat_layout')
 
   u => point_to_uni(line, .true., err); if (err) return
-  ix_branch = parse_branch(line, .false., err); if (err) return
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
   branch => u%model%lat%branch(ix_branch)
 
   do i = 1, branch%n_ele_track
@@ -5962,8 +5962,8 @@ case ('ptc_com')
 case ('ring_general')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err); if (err) return
-  ix_branch = parse_branch(line, .false., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err); if (err) return
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
   tao_branch => tao_lat%tao_branch(ix_branch)
   branch => tao_lat%lat%branch(ix_branch)
 
@@ -6541,8 +6541,8 @@ case ('species_to_str')
 case ('spin_polarization')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err); if (err) return
-  ix_branch = parse_branch(line, .false., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err); if (err) return
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
   tao_branch => tao_lat%tao_branch(ix_branch)
   branch => tao_lat%lat%branch(ix_branch)
 
@@ -6611,8 +6611,8 @@ case ('spin_polarization')
 case ('spin_resonance')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ix_branch = parse_branch(line, .false., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
   tao_branch => tao_lat%tao_branch(ix_branch)
   branch => tao_lat%lat%branch(ix_branch)
 
@@ -6712,7 +6712,7 @@ case ('super_universe')
 case ('twiss_at_s')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err); if (err) return
   s_pos = parse_ele_with_s_offset(line, tao_lat, ele, err); if (err) return
   ix_branch = ele%ix_branch
 
@@ -7498,9 +7498,10 @@ end subroutine re_allocate_lines
 !----------------------------------------------------------------------
 ! contains
 
-function point_to_tao_lat (line, err, which, tail_str) result (tao_lat)
+function point_to_tao_lat (line, u, err, which, tail_str) result (tao_lat)
 
 type (tao_lattice_struct), pointer :: tao_lat
+type (tao_universe_struct) u
 integer ix
 logical err
 character(*) line
@@ -7582,8 +7583,9 @@ end function point_to_ele
 !----------------------------------------------------------------------
 ! contains
 
-function parse_branch (line, has_separator, err) result (ix_branch)
+function parse_branch (line, u, has_separator, err) result (ix_branch)
 
+type (tao_universe_struct) u
 integer ix, ios, ix_branch
 logical has_separator, err
 character(*) line
@@ -8410,7 +8412,9 @@ endif
 call string_trim(line(ix+1:), line, ix)
 
 
-if (ele_name /= '') then
+if (ele_name == '') then
+  ele => tao_lat%lat%ele(0)
+else
   call lat_ele_locator (ele_name, tao_lat%lat, eles, n_loc, err)
 
   if (err) return
