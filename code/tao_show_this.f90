@@ -4250,8 +4250,10 @@ case ('spin')
   !
 
   if (.not. bmad_com%spin_tracking_on) then
-    call out_io (s_info$, r_name, 'Note: Turning on spin tracking (setting: bmad_com%spin_tracking_on = T)')
+    call out_io (s_info$, r_name, 'Note: Turning on spin tracking...')
     bmad_com%spin_tracking_on = .true.
+    s%u%calc%lattice = .true.
+    call tao_lattice_calc(ok)
   endif
 
   ! what_to_show = standard
