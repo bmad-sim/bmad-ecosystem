@@ -9888,7 +9888,8 @@ if (lord%control%type == expression$) then
   do is = 1, size(con_out%stack)
     select case (con_out%stack(is)%type)
     case (ran$, ran_gauss$)
-      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH A GROUP, OVERLAY, OR RAMPER', &
+      if (lord%key == ramper$) cycle
+      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH A GROUP, OR OVERLAY', &
                          'FOR ELEMENT: ' // lord%name)
       if (global_com%exit_on_error) call err_exit
       return
