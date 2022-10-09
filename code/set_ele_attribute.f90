@@ -65,7 +65,7 @@ if (ix == 0) then
   return
 endif
 
-a_name = string(1:ix-1)
+a_name = adjustl(string(1:ix-1))
 
 select case (a_name)
 case ('SLAVE', 'VAR', 'REF_BEGINNING', 'REF_CENTER', 'REF_END', 'ELE_BEGINNING', &
