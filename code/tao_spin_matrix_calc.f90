@@ -38,6 +38,7 @@ integer i, j, n, p
 logical err
 
 character(*), optional :: excite_zero(3)
+character(*), parameter :: r_name = 'tao_spin_matrix_calc'
 
 ! Init
 
