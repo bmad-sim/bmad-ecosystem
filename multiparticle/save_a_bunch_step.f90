@@ -46,7 +46,7 @@ endif
 
 if (bunch_track%n_pt < 0) then
   bunch_track%n_pt = -1
-  s_last = -1e-30  ! Something large and negative
+  s_last = -1e30  ! Something large and negative
 else
   s_last = bunch_track%pt(bunch_track%n_pt)%s
 endif
