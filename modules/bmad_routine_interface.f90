@@ -1908,6 +1908,16 @@ subroutine s_calc (lat)
   type (lat_struct), target :: lat
 end subroutine
 
+subroutine save_a_beam_step (ele, beam, bunch_tracks, s_body, is_time_coords)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (beam_struct) beam
+  type (bunch_track_struct), optional, target :: bunch_tracks(:)
+  real(rp), optional :: s_body
+  logical, optional :: is_time_coords
+end subroutine
+
 subroutine save_a_bunch_step (ele, bunch, bunch_track, s_body, is_time_coords)
   import
   implicit none
