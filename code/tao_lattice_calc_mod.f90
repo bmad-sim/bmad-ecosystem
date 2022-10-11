@@ -42,7 +42,6 @@ type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (ele_struct), pointer :: ele
-type (bunch_track_struct), pointer :: bunch_params_comb
 
 real(rp) sigma(6,6)
 real(rp), parameter :: vec0(6) = 0
@@ -439,7 +438,7 @@ if (bunch_params_comb(1)%ds_save == 0) then
   call out_io (s_error$, r_name, 'COMB_DS_SAVE MUST BE NON-ZERO. SETTING TO 0.01 METER.')
   bunch_params_comb(1)%ds_save = 0.01
 endif
-ds_save = bunch_params_comb(1)%ds_save
+ds_save = minval(bunch_params_comb(:)%ds_save)
 comb_calc_on = (ds_save >= 0)
 bunch_params_comb%n_pt = -1  ! Reset tracks
 
@@ -481,7 +480,9 @@ do
     beam = tao_model_ele(ie)%beam
 
   else
-    if (ie /= ie_start) then
+    if (ie == ie_start) then
+      call save_a_beam_step(ele, beam, bunch_params_comb, ele%value(l$))
+    else
       csr_sc_on = (bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$))
       if (csr_sc_on .or. .not. comb_calc_on) then
         call track_beam (lat, beam, branch%ele(ie-1), ele, err, centroid = tao_branch%orbit, bunch_tracks = bunch_params_comb)
@@ -763,6 +764,7 @@ model_branch => u%model_branch(ix_branch)
 bb => model_branch%beam
 branch => model%lat%branch(ix_branch)
 tao_branch => model%tao_branch(ix_branch)
+if (.not. allocated(tao_branch%bunch_params_comb)) allocate(tao_branch%bunch_params_comb(size(beam%bunch)))
 ie_start = bb%ix_track_start
 if (ie_start == not_set$) then
   call out_io (s_error$, r_name, 'BEAM STARTING POSITION NOT PROPERLY SET. NO TRACKING DONE.')
@@ -775,7 +777,6 @@ if (s%com%use_saved_beam_in_tracking) then
   init_ok = .true.
   beam = model_branch%ele(ie_start)%beam
   u%model_branch(ix_branch)%ele(ie_start)%beam = beam
-  call init_this_comb(tao_branch%bunch_params_comb)
   return
 endif
 
@@ -797,7 +798,6 @@ if (branch%ix_from_branch >= 0) then  ! Injecting from other branch
 
   beam = u%model_branch(ib0)%ele(ie0)%beam
   u%model_branch(ix_branch)%ele(ie_start)%beam = beam
-  call init_this_comb(tao_branch%bunch_params_comb)
 
   if (beam%bunch(1)%particle(1)%species /= u%model%lat%branch(ix_branch)%param%particle) return
   init_ok = .true.
@@ -845,19 +845,7 @@ else
 endif
 
 u%model_branch(ix_branch)%ele(ie_start)%beam = beam
-call init_this_comb(tao_branch%bunch_params_comb)
 init_ok = .true.
-
-!------------------------------------------------------------------------
-contains
-
-subroutine init_this_comb(bunch_params_comb)
-
-type (bunch_track_struct), allocatable :: bunch_params_comb(:) ! Regularly spaced bunch_params matrix.
-if (.not. allocated(bunch_params_comb)) allocate(bunch_params_comb(size(beam%bunch)))
-bunch_params_comb(:)%ds_save = -1
-
-end subroutine init_this_comb
 
 end subroutine tao_inject_beam
  
