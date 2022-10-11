@@ -1256,15 +1256,15 @@ Example:
     default_attribute = "vkick"     ! vertical kick attribute
     default_weight    = 1e3
     default_step      = 1e-5
-    ix_min_var        = 0
-    ix_max_var        = 99
     var(0:99)%ele_name  = "v00w", "v01w", "v02w", "    ", "v04w", ...
   /
 \end{example}
 
 A \vn{tao_var} block is needed for each variable array to be defined.  \vn{v1_var%name} is the name
 of the array to be used with \tao commands. The \vn{var(N)} array of variables has an index \vn{i}
-that runs from \vni{ix_min_var} to \vni{ix_max_var}. A lattice element name \vn{var(N)%ele_name} and
+that runs from \vn{ix_min_var} to \vn{ix_max_var}. If \vn{ix_min_var} and/or \vn{ix_max_var} is not present,
+\tao will choose the range based upon which elements in the array define a valid variable.
+A lattice element name \vn{var(N)%ele_name} and
 the element's attribute to vary \vn{var(N)%attribute} needs to specified. Not all elements need to
 \vn{exist} and the element names of non--existent elements should be undefined or set to a name with
 only spaces in it. For those variables where \vn{var(N)%attribute} is not specified in the namelist
