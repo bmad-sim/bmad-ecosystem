@@ -390,7 +390,8 @@ if (track_end == '') then
   if (branch%param%geometry == open$) then
     bb%ix_track_end = branch%n_ele_track
   else
-    bb%ix_track_end = max(0, bb%ix_track_start-1)
+    bb%ix_track_end = bb%ix_track_start - 1
+    if (bb%ix_track_end == -1) bb%ix_track_end = branch%n_ele_track
   endif
 
 else
