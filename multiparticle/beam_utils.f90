@@ -1448,7 +1448,7 @@ else
 endif
 
 charge_live = sum(charge, mask = (bunch%particle%state == alive$))
-bunch_params%centroid%charge     = charge_live
+bunch_params%centroid%charge = charge_live
 
 !
 
@@ -1466,7 +1466,6 @@ endif
 
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%state /= alive$) cycle
-  bunch_params%s = bunch%particle(i)%s
   bunch_params%ix_ele = bunch%particle(i)%ix_ele
   bunch_params%location = bunch%particle(i)%location
   exit
@@ -1474,6 +1473,8 @@ enddo
 
 bunch_params%centroid%s = sum(bunch%particle%s * charge, mask = (bunch%particle%state == alive$)) / charge_live
 bunch_params%centroid%t = sum(bunch%particle%t * charge, mask = (bunch%particle%state == alive$)) / charge_live
+bunch_params%s = bunch_params%centroid%s
+bunch_params%t = bunch_params%centroid%t
 
 if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
