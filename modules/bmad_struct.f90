@@ -1113,7 +1113,6 @@ type bunch_params_struct
   type (coord_struct) :: centroid = coord_struct()  ! Lab frame
   type (twiss_struct) :: x = twiss_struct(), y = twiss_struct(), z = twiss_struct() ! Projected Twiss parameters
   type (twiss_struct) :: a = twiss_struct(), b = twiss_struct(), c = twiss_struct() ! Normal mode twiss parameters
-  real(rp) :: spin(3) = 0                ! polarization
   real(rp) :: sigma(6,6) = 0             ! beam size matrix
   real(rp) :: rel_max(6) = 0             ! Max orbit relative to centroid
   real(rp) :: rel_min(6) = 0             ! Min orbit relative to_centroid
