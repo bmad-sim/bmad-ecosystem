@@ -537,7 +537,13 @@ case ('beam')
         return
       endif
 
-      n = ubound(tao_branch%bunch_params_comb, 1)
+      n = tao_branch%bunch_params_comb(1)%n_pt
+
+      if (n < 0 .and. tao_branch%bunch_params_comb(1)%ds_save < 0) then
+        nl=nl+1; lines(nl) = 'Comb not calculated since comb_ds_save not set positive.'
+        return
+      endif
+
       if (ix_s2 < 0 .or. ix_s2 > n) then
         nl=nl+1; lines(nl) = 'Comb index out of range: [0, ' // int_str(n) // ']'
         return
