@@ -5195,10 +5195,13 @@ void set_CPP_space_charge_common_test_pattern (CPP_space_charge_common& C, int i
   // c_side.test_pat[logical, 0, NOT]
   rhs = 14 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
 
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 15 + offset; C.debug = (rhs % 2 == 0);
+
   // c_side.test_pat[character, 0, NOT]
   C.diagnostic_output_file.resize(200);
   for (unsigned int i = 0; i < C.diagnostic_output_file.size(); i++)
-    {int rhs = 101 + i + 15 + offset; C.diagnostic_output_file[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 16 + offset; C.diagnostic_output_file[i] = 'a' + rhs % 26;}
 
 }
 
@@ -6582,41 +6585,44 @@ void set_CPP_bunch_params_test_pattern (CPP_bunch_params& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_twiss_test_pattern(C.c, ix_patt);
 
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.spin.size(); i++)
-    {int rhs = 101 + i + 8 + offset; C.spin[i] = rhs;}
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.sigma.size(); i++)  for (unsigned int j = 0; j < C.sigma[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 9 + offset; C.sigma[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 8 + offset; C.sigma[i][j] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.rel_max.size(); i++)
-    {int rhs = 101 + i + 10 + offset; C.rel_max[i] = rhs;}
+    {int rhs = 101 + i + 9 + offset; C.rel_max[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.rel_min.size(); i++)
-    {int rhs = 101 + i + 11 + offset; C.rel_min[i] = rhs;}
+    {int rhs = 101 + i + 10 + offset; C.rel_min[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.s = rhs;
+  rhs = 11 + offset; C.s = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 13 + offset; C.t = rhs;
+  rhs = 12 + offset; C.t = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 14 + offset; C.charge_live = rhs;
+  rhs = 13 + offset; C.charge_live = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 15 + offset; C.charge_tot = rhs;
+  rhs = 14 + offset; C.charge_tot = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 16 + offset; C.n_particle_tot = rhs;
+  rhs = 15 + offset; C.n_particle_tot = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 17 + offset; C.n_particle_live = rhs;
+  rhs = 16 + offset; C.n_particle_live = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 18 + offset; C.n_particle_lost_in_ele = rhs;
+  rhs = 17 + offset; C.n_particle_lost_in_ele = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 18 + offset; C.ix_ele = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 19 + offset; C.location = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 19 + offset; C.twiss_valid = (rhs % 2 == 0);
+  rhs = 20 + offset; C.twiss_valid = (rhs % 2 == 0);
 
 
 }

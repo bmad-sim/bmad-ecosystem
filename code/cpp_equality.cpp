@@ -1299,6 +1299,7 @@ bool operator== (const CPP_space_charge_common& x, const CPP_space_charge_common
   is_eq = is_eq && (x.n_shield_images == y.n_shield_images);
   is_eq = is_eq && (x.sc_min_in_bin == y.sc_min_in_bin);
   is_eq = is_eq && (x.lsc_kick_transverse_dependence == y.lsc_kick_transverse_dependence);
+  is_eq = is_eq && (x.debug == y.debug);
   is_eq = is_eq && (x.diagnostic_output_file == y.diagnostic_output_file);
   return is_eq;
 };
@@ -1649,7 +1650,6 @@ bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
   is_eq = is_eq && (x.a == y.a);
   is_eq = is_eq && (x.b == y.b);
   is_eq = is_eq && (x.c == y.c);
-  is_eq = is_eq && is_all_equal(x.spin, y.spin);
   is_eq = is_eq && is_all_equal(x.sigma, y.sigma);
   is_eq = is_eq && is_all_equal(x.rel_max, y.rel_max);
   is_eq = is_eq && is_all_equal(x.rel_min, y.rel_min);
@@ -1660,6 +1660,8 @@ bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
   is_eq = is_eq && (x.n_particle_tot == y.n_particle_tot);
   is_eq = is_eq && (x.n_particle_live == y.n_particle_live);
   is_eq = is_eq && (x.n_particle_lost_in_ele == y.n_particle_lost_in_ele);
+  is_eq = is_eq && (x.ix_ele == y.ix_ele);
+  is_eq = is_eq && (x.location == y.location);
   is_eq = is_eq && (x.twiss_valid == y.twiss_valid);
   return is_eq;
 };

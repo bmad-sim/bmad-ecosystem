@@ -8555,13 +8555,13 @@ interface
       z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, &
       z_sigma_cutoff, z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, &
       z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
-      z_lsc_kick_transverse_dependence, z_diagnostic_output_file) bind(c)
+      z_lsc_kick_transverse_dependence, z_debug, z_diagnostic_output_file) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_ds_track_step, z_dt_track_step, z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, z_sigma_cutoff
     integer(c_int) :: z_space_charge_mesh_size(*), z_csr3d_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
-    logical(c_bool) :: z_lsc_kick_transverse_dependence
+    logical(c_bool) :: z_lsc_kick_transverse_dependence, z_debug
     character(c_char) :: z_diagnostic_output_file(*)
   end subroutine
 end interface
@@ -8582,7 +8582,8 @@ call space_charge_common_to_c2 (C, F%ds_track_step, F%dt_track_step, F%cathode_s
     F%rel_tol_tracking, F%abs_tol_tracking, F%beam_chamber_height, F%sigma_cutoff, &
     fvec2vec(F%space_charge_mesh_size, 3), fvec2vec(F%csr3d_mesh_size, 3), F%n_bin, &
     F%particle_bin_span, F%n_shield_images, F%sc_min_in_bin, &
-    c_logic(F%lsc_kick_transverse_dependence), trim(F%diagnostic_output_file) // c_null_char)
+    c_logic(F%lsc_kick_transverse_dependence), c_logic(F%debug), trim(F%diagnostic_output_file) &
+    // c_null_char)
 
 end subroutine space_charge_common_to_c
 
@@ -8605,7 +8606,7 @@ end subroutine space_charge_common_to_c
 subroutine space_charge_common_to_f2 (Fp, z_ds_track_step, z_dt_track_step, &
     z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, &
     z_sigma_cutoff, z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, z_particle_bin_span, &
-    z_n_shield_images, z_sc_min_in_bin, z_lsc_kick_transverse_dependence, &
+    z_n_shield_images, z_sc_min_in_bin, z_lsc_kick_transverse_dependence, z_debug, &
     z_diagnostic_output_file) bind(c)
 
 
@@ -8617,7 +8618,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_ds_track_step, z_dt_track_step, z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, z_sigma_cutoff
 integer(c_int) :: z_space_charge_mesh_size(*), z_csr3d_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
-logical(c_bool) :: z_lsc_kick_transverse_dependence
+logical(c_bool) :: z_lsc_kick_transverse_dependence, z_debug
 character(c_char) :: z_diagnostic_output_file(*)
 
 call c_f_pointer (Fp, F)
@@ -8650,6 +8651,8 @@ F%n_shield_images = z_n_shield_images
 F%sc_min_in_bin = z_sc_min_in_bin
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%lsc_kick_transverse_dependence = f_logic(z_lsc_kick_transverse_dependence)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%debug = f_logic(z_debug)
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_diagnostic_output_file, F%diagnostic_output_file)
 
@@ -10775,16 +10778,15 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine bunch_params_to_c2 (C, z_centroid, z_x, z_y, z_z, z_a, z_b, z_c, z_spin, z_sigma, &
+  subroutine bunch_params_to_c2 (C, z_centroid, z_x, z_y, z_z, z_a, z_b, z_c, z_sigma, &
       z_rel_max, z_rel_min, z_s, z_t, z_charge_live, z_charge_tot, z_n_particle_tot, &
-      z_n_particle_live, z_n_particle_lost_in_ele, z_twiss_valid) bind(c)
+      z_n_particle_live, z_n_particle_lost_in_ele, z_ix_ele, z_location, z_twiss_valid) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_centroid, z_x, z_y, z_z, z_a, z_b, z_c
-    real(c_double) :: z_spin(*), z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_t, z_charge_live
-    real(c_double) :: z_charge_tot
-    integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele
+    real(c_double) :: z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_t, z_charge_live, z_charge_tot
+    integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele, z_ix_ele, z_location
     logical(c_bool) :: z_twiss_valid
   end subroutine
 end interface
@@ -10802,9 +10804,9 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call bunch_params_to_c2 (C, c_loc(F%centroid), c_loc(F%x), c_loc(F%y), c_loc(F%z), c_loc(F%a), &
-    c_loc(F%b), c_loc(F%c), fvec2vec(F%spin, 3), mat2vec(F%sigma, 6*6), fvec2vec(F%rel_max, 6), &
-    fvec2vec(F%rel_min, 6), F%s, F%t, F%charge_live, F%charge_tot, F%n_particle_tot, &
-    F%n_particle_live, F%n_particle_lost_in_ele, c_logic(F%twiss_valid))
+    c_loc(F%b), c_loc(F%c), mat2vec(F%sigma, 6*6), fvec2vec(F%rel_max, 6), fvec2vec(F%rel_min, &
+    6), F%s, F%t, F%charge_live, F%charge_tot, F%n_particle_tot, F%n_particle_live, &
+    F%n_particle_lost_in_ele, F%ix_ele, F%location, c_logic(F%twiss_valid))
 
 end subroutine bunch_params_to_c
 
@@ -10824,9 +10826,9 @@ end subroutine bunch_params_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine bunch_params_to_f2 (Fp, z_centroid, z_x, z_y, z_z, z_a, z_b, z_c, z_spin, z_sigma, &
+subroutine bunch_params_to_f2 (Fp, z_centroid, z_x, z_y, z_z, z_a, z_b, z_c, z_sigma, &
     z_rel_max, z_rel_min, z_s, z_t, z_charge_live, z_charge_tot, z_n_particle_tot, &
-    z_n_particle_live, z_n_particle_lost_in_ele, z_twiss_valid) bind(c)
+    z_n_particle_live, z_n_particle_lost_in_ele, z_ix_ele, z_location, z_twiss_valid) bind(c)
 
 
 implicit none
@@ -10836,9 +10838,8 @@ type(bunch_params_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(c_ptr), value :: z_centroid, z_x, z_y, z_z, z_a, z_b, z_c
-real(c_double) :: z_spin(*), z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_t, z_charge_live
-real(c_double) :: z_charge_tot
-integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele
+real(c_double) :: z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_t, z_charge_live, z_charge_tot
+integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele, z_ix_ele, z_location
 logical(c_bool) :: z_twiss_valid
 
 call c_f_pointer (Fp, F)
@@ -10857,8 +10858,6 @@ call twiss_to_f(z_a, c_loc(F%a))
 call twiss_to_f(z_b, c_loc(F%b))
 !! f_side.to_f2_trans[type, 0, NOT]
 call twiss_to_f(z_c, c_loc(F%c))
-!! f_side.to_f2_trans[real, 1, NOT]
-F%spin = z_spin(1:3)
 !! f_side.to_f2_trans[real, 2, NOT]
 call vec2mat(z_sigma, F%sigma)
 !! f_side.to_f2_trans[real, 1, NOT]
@@ -10879,6 +10878,10 @@ F%n_particle_tot = z_n_particle_tot
 F%n_particle_live = z_n_particle_live
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_particle_lost_in_ele = z_n_particle_lost_in_ele
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_ele = z_ix_ele
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%location = z_location
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%twiss_valid = f_logic(z_twiss_valid)
 

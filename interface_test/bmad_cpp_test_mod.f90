@@ -7704,9 +7704,11 @@ rhs = 12 + offset; F%n_shield_images = rhs
 rhs = 13 + offset; F%sc_min_in_bin = rhs
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 14 + offset; F%lsc_kick_transverse_dependence = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 15 + offset; F%debug = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%diagnostic_output_file)
-  F%diagnostic_output_file(jd1:jd1) = char(ichar("a") + modulo(100+15+offset+jd1, 26))
+  F%diagnostic_output_file(jd1:jd1) = char(ichar("a") + modulo(100+16+offset+jd1, 26))
 enddo
 
 end subroutine set_space_charge_common_test_pattern
@@ -9405,43 +9407,42 @@ call set_twiss_test_pattern (F%a, ix_patt)
 call set_twiss_test_pattern (F%b, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_twiss_test_pattern (F%c, ix_patt)
-!! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%spin,1); lb1 = lbound(F%spin,1) - 1
-  rhs = 100 + jd1 + 8 + offset
-  F%spin(jd1+lb1) = rhs
-enddo
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%sigma,1); lb1 = lbound(F%sigma,1) - 1
 do jd2 = 1, size(F%sigma,2); lb2 = lbound(F%sigma,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 9 + offset
+  rhs = 100 + jd1 + 10*jd2 + 8 + offset
   F%sigma(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%rel_max,1); lb1 = lbound(F%rel_max,1) - 1
-  rhs = 100 + jd1 + 10 + offset
+  rhs = 100 + jd1 + 9 + offset
   F%rel_max(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%rel_min,1); lb1 = lbound(F%rel_min,1) - 1
-  rhs = 100 + jd1 + 11 + offset
+  rhs = 100 + jd1 + 10 + offset
   F%rel_min(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 12 + offset; F%s = rhs
+rhs = 11 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 13 + offset; F%t = rhs
+rhs = 12 + offset; F%t = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 14 + offset; F%charge_live = rhs
+rhs = 13 + offset; F%charge_live = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 15 + offset; F%charge_tot = rhs
+rhs = 14 + offset; F%charge_tot = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 16 + offset; F%n_particle_tot = rhs
+rhs = 15 + offset; F%n_particle_tot = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 17 + offset; F%n_particle_live = rhs
+rhs = 16 + offset; F%n_particle_live = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 18 + offset; F%n_particle_lost_in_ele = rhs
+rhs = 17 + offset; F%n_particle_lost_in_ele = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 18 + offset; F%ix_ele = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 19 + offset; F%location = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 19 + offset; F%twiss_valid = (modulo(rhs, 2) == 0)
+rhs = 20 + offset; F%twiss_valid = (modulo(rhs, 2) == 0)
 
 end subroutine set_bunch_params_test_pattern
 

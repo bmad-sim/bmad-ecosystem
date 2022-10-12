@@ -3035,6 +3035,7 @@ public:
   Int n_shield_images;
   Int sc_min_in_bin;
   Bool lsc_kick_transverse_dependence;
+  Bool debug;
   string diagnostic_output_file;
 
   CPP_space_charge_common() :
@@ -3052,6 +3053,7 @@ public:
     n_shield_images(0),
     sc_min_in_bin(10),
     lsc_kick_transverse_dependence(false),
+    debug(false),
     diagnostic_output_file()
     {}
 
@@ -3747,7 +3749,6 @@ public:
   CPP_twiss a;
   CPP_twiss b;
   CPP_twiss c;
-  Real_ARRAY spin;
   Real_MATRIX sigma;
   Real_ARRAY rel_max;
   Real_ARRAY rel_min;
@@ -3758,6 +3759,8 @@ public:
   Int n_particle_tot;
   Int n_particle_live;
   Int n_particle_lost_in_ele;
+  Int ix_ele;
+  Int location;
   Bool twiss_valid;
 
   CPP_bunch_params() :
@@ -3768,7 +3771,6 @@ public:
     a(),
     b(),
     c(),
-    spin(0.0, 3),
     sigma(Real_ARRAY(0.0, 6), 6),
     rel_max(0.0, 6),
     rel_min(0.0, 6),
@@ -3779,6 +3781,8 @@ public:
     n_particle_tot(0),
     n_particle_live(0),
     n_particle_lost_in_ele(0),
+    ix_ele(-1),
+    location(Bmad::NOT_SET),
     twiss_valid(false)
     {}
 

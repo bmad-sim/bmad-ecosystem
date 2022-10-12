@@ -3148,7 +3148,7 @@ extern "C" void space_charge_common_to_c (const Opaque_space_charge_common_class
 // c_side.to_f2_arg
 extern "C" void space_charge_common_to_f2 (Opaque_space_charge_common_class*, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_IntArr, c_IntArr, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Bool&, c_Char);
+    c_Int&, c_Bool&, c_Bool&, c_Char);
 
 extern "C" void space_charge_common_to_f (const CPP_space_charge_common& C, Opaque_space_charge_common_class* F) {
 
@@ -3156,7 +3156,7 @@ extern "C" void space_charge_common_to_f (const CPP_space_charge_common& C, Opaq
   space_charge_common_to_f2 (F, C.ds_track_step, C.dt_track_step, C.cathode_strength_cutoff,
       C.rel_tol_tracking, C.abs_tol_tracking, C.beam_chamber_height, C.sigma_cutoff,
       &C.space_charge_mesh_size[0], &C.csr3d_mesh_size[0], C.n_bin, C.particle_bin_span,
-      C.n_shield_images, C.sc_min_in_bin, C.lsc_kick_transverse_dependence,
+      C.n_shield_images, C.sc_min_in_bin, C.lsc_kick_transverse_dependence, C.debug,
       C.diagnostic_output_file.c_str());
 
 }
@@ -3167,7 +3167,7 @@ extern "C" void space_charge_common_to_c2 (CPP_space_charge_common& C, c_Real& z
     c_Real& z_abs_tol_tracking, c_Real& z_beam_chamber_height, c_Real& z_sigma_cutoff, c_IntArr
     z_space_charge_mesh_size, c_IntArr z_csr3d_mesh_size, c_Int& z_n_bin, c_Int&
     z_particle_bin_span, c_Int& z_n_shield_images, c_Int& z_sc_min_in_bin, c_Bool&
-    z_lsc_kick_transverse_dependence, c_Char z_diagnostic_output_file) {
+    z_lsc_kick_transverse_dependence, c_Bool& z_debug, c_Char z_diagnostic_output_file) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ds_track_step = z_ds_track_step;
@@ -3197,6 +3197,8 @@ extern "C" void space_charge_common_to_c2 (CPP_space_charge_common& C, c_Real& z
   C.sc_min_in_bin = z_sc_min_in_bin;
   // c_side.to_c2_set[logical, 0, NOT]
   C.lsc_kick_transverse_dependence = z_lsc_kick_transverse_dependence;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.debug = z_debug;
   // c_side.to_c2_set[character, 0, NOT]
   C.diagnostic_output_file = z_diagnostic_output_file;
 }
@@ -4374,17 +4376,17 @@ extern "C" void bunch_params_to_c (const Opaque_bunch_params_class*, CPP_bunch_p
 // c_side.to_f2_arg
 extern "C" void bunch_params_to_f2 (Opaque_bunch_params_class*, const CPP_coord&, const
     CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const
-    CPP_twiss&, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Int&, c_Int&, c_Int&, c_Bool&);
+    CPP_twiss&, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&,
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&);
 
 extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Opaque_bunch_params_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_sigma[6*6]; matrix_to_vec(C.sigma, z_sigma);
 
   // c_side.to_f2_call
-  bunch_params_to_f2 (F, C.centroid, C.x, C.y, C.z, C.a, C.b, C.c, &C.spin[0], z_sigma,
-      &C.rel_max[0], &C.rel_min[0], C.s, C.t, C.charge_live, C.charge_tot, C.n_particle_tot,
-      C.n_particle_live, C.n_particle_lost_in_ele, C.twiss_valid);
+  bunch_params_to_f2 (F, C.centroid, C.x, C.y, C.z, C.a, C.b, C.c, z_sigma, &C.rel_max[0],
+      &C.rel_min[0], C.s, C.t, C.charge_live, C.charge_tot, C.n_particle_tot,
+      C.n_particle_live, C.n_particle_lost_in_ele, C.ix_ele, C.location, C.twiss_valid);
 
 }
 
@@ -4392,10 +4394,10 @@ extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Opaque_bunch_param
 extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_coord_class* z_centroid,
     const Opaque_twiss_class* z_x, const Opaque_twiss_class* z_y, const Opaque_twiss_class*
     z_z, const Opaque_twiss_class* z_a, const Opaque_twiss_class* z_b, const
-    Opaque_twiss_class* z_c, c_RealArr z_spin, c_RealArr z_sigma, c_RealArr z_rel_max,
-    c_RealArr z_rel_min, c_Real& z_s, c_Real& z_t, c_Real& z_charge_live, c_Real& z_charge_tot,
-    c_Int& z_n_particle_tot, c_Int& z_n_particle_live, c_Int& z_n_particle_lost_in_ele, c_Bool&
-    z_twiss_valid) {
+    Opaque_twiss_class* z_c, c_RealArr z_sigma, c_RealArr z_rel_max, c_RealArr z_rel_min,
+    c_Real& z_s, c_Real& z_t, c_Real& z_charge_live, c_Real& z_charge_tot, c_Int&
+    z_n_particle_tot, c_Int& z_n_particle_live, c_Int& z_n_particle_lost_in_ele, c_Int&
+    z_ix_ele, c_Int& z_location, c_Bool& z_twiss_valid) {
 
   // c_side.to_c2_set[type, 0, NOT]
   coord_to_c(z_centroid, C.centroid);
@@ -4411,8 +4413,6 @@ extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_coord_clas
   twiss_to_c(z_b, C.b);
   // c_side.to_c2_set[type, 0, NOT]
   twiss_to_c(z_c, C.c);
-  // c_side.to_c2_set[real, 1, NOT]
-  C.spin << z_spin;
   // c_side.to_c2_set[real, 2, NOT]
   C.sigma << z_sigma;
   // c_side.to_c2_set[real, 1, NOT]
@@ -4433,6 +4433,10 @@ extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_coord_clas
   C.n_particle_live = z_n_particle_live;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_particle_lost_in_ele = z_n_particle_lost_in_ele;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_ele = z_ix_ele;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.location = z_location;
   // c_side.to_c2_set[logical, 0, NOT]
   C.twiss_valid = z_twiss_valid;
 }
