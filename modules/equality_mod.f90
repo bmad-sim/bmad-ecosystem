@@ -2314,6 +2314,8 @@ is_eq = is_eq .and. (f1%n_shield_images == f2%n_shield_images)
 is_eq = is_eq .and. (f1%sc_min_in_bin == f2%sc_min_in_bin)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%lsc_kick_transverse_dependence .eqv. f2%lsc_kick_transverse_dependence)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%debug .eqv. f2%debug)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%diagnostic_output_file == f2%diagnostic_output_file)
 
@@ -3056,8 +3058,6 @@ is_eq = is_eq .and. (f1%a == f2%a)
 is_eq = is_eq .and. (f1%b == f2%b)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%c == f2%c)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%spin == f2%spin)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%sigma == f2%sigma)
 !! f_side.equality_test[real, 1, NOT]
@@ -3078,6 +3078,10 @@ is_eq = is_eq .and. (f1%n_particle_tot == f2%n_particle_tot)
 is_eq = is_eq .and. (f1%n_particle_live == f2%n_particle_live)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_particle_lost_in_ele == f2%n_particle_lost_in_ele)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%location == f2%location)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%twiss_valid .eqv. f2%twiss_valid)
 

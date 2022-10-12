@@ -1765,7 +1765,7 @@ end subroutine calc_emittances_and_twiss_from_sigma_matrix
 !
 ! Output:
 !   bunch_params -- bunch_param_struct: Structure holding average
-!     %spin(3)        -- (x,y,z) polarization.
+!     centroid%spin(3) -- (x,y,z) polarization.
 !-
 
 subroutine calc_spin_params (bunch, bunch_params)
@@ -1781,7 +1781,7 @@ integer i
 
 ! polarization vector
 
-bunch_params%spin = 0.0
+bunch_params%centroid%spin = 0.0
 charge_live = 0
 
 ave_vec = 0.0
@@ -1791,7 +1791,7 @@ do i = 1, size(bunch%particle)
   charge_live = charge_live + bunch%particle(i)%charge
 enddo
 
-bunch_params%spin = ave_vec / charge_live
+bunch_params%centroid%spin = ave_vec / charge_live
 
 end subroutine calc_spin_params
 
