@@ -578,7 +578,7 @@ case ('bunch_comb')
   comb1 => bunch_params_comb(ix_bunch)
 
   if (comb1%ds_save < 0) then
-    call invalid ('COMB DS_SAVE NOT POSITIVE.')
+    call invalid ('COMB_DS_SAVE NOT POSITIVE.')
     return
   endif
 
