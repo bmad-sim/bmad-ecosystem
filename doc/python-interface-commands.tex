@@ -64,6 +64,35 @@ Where:
   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 \end{verbatim}
 
+%% python bunch_comb ------------------------------------
+\subsection{python bunch_comb}
+\index{python!bunch_comb}
+\label{p:bunch.comb}
+
+Outputs bunch parameters at a comb point. 
+
+\begin{example}
+   python bunch_comb \{flag\} \{who\} \{ix_uni\}@\{ix_branch\} \{ix_bunch\}
+\end{example}
+\begin{verbatim}
+Where:
+  {flag} is optionally "-array_out".
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a branch index. Defaults to s%global%default_branch.
+  {ix_bunch} is the bunch index. Defaults to 1.
+  {who} is one of:
+    x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
+    x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, eta, etap,
+                                                                sigma, sigma_p, emit, norm_emit
+    sigma.IJ where I, J in range [1,6]
+    charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
+
+Note: If ix_uni or ix_branch is present, "@" must be present.
+
+Example:
+  python bunch_comb py 2@1 1
+\end{verbatim}
+
 %% python bunch_params ------------------------------------
 \subsection{python bunch_params}
 \index{python!bunch_params}

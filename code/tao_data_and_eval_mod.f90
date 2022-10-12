@@ -2958,7 +2958,7 @@ case ('spin.')
   case ('spin.x', 'spin.y', 'spin.z', 'spin.amp')
     do i = ix_start, ix_ele
       if (data_source == 'beam') then
-        vec3 = bunch_params(i)%spin
+        vec3 = bunch_params(i)%centroid%spin
       else
         vec3 = orbit(i)%spin
       endif
@@ -2973,7 +2973,7 @@ case ('spin.')
 
     if (ix_ref > -1) then
       if (data_source == 'beam') then
-        vec3 = bunch_params(ix_ref)%spin
+        vec3 = bunch_params(ix_ref)%centroid%spin
       else
         vec3 = orbit(ix_ref)%spin
       endif

@@ -404,6 +404,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt) 'dump_at           = ', quote(u%beam%dump_at)
     nl=nl+1; write(lines(nl), amt) 'dump_file         = ', quote(u%beam%dump_file)
     nl=nl+1; write(lines(nl), rmt) 'comb_ds_save      = ', tao_branch%bunch_params_comb(1)%ds_save
+    nl=nl+1; write(lines(nl), imt) 'comb index range:   ', 0, tao_branch%bunch_params_comb(1)%n_pt
     nl=nl+1; write(lines(nl), fmt) 'track_start       = ', quote(bb%track_start)
     nl=nl+1; write(lines(nl), fmt) 'track_end         = ', quote(bb%track_end)
 

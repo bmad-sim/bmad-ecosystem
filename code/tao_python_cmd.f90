@@ -102,6 +102,8 @@ type (coord_struct), pointer :: orbit
 type (coord_struct), target :: orb, orb_start, orb_end, orb_here
 type (bunch_params_struct), pointer :: bunch_params
 type (bunch_params_struct), pointer :: bunch_p
+type (bunch_track_struct), pointer :: bunch_params_comb(:)
+type (bunch_track_struct), pointer :: comb1
 type (ele_pointer_struct), allocatable :: eles(:), eles2(:)
 type (branch_struct), pointer :: branch
 type (tao_model_branch_struct), pointer :: model_branch
@@ -182,7 +184,7 @@ character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name, command
 character(40), allocatable :: str_arr(:)
 character(20), allocatable :: name_list(:)
-character(20) cmd, which, v_str, head
+character(20) cmd, which, v_str, head, tail
 character(20) switch, color, shape_shape
 character(1) :: mode(3) = ['a', 'b', 'c']
 character(*), parameter :: r_name = 'tao_python_cmd'
@@ -230,8 +232,8 @@ call string_trim(line(ix+1:), line, ix_line)
 !   x_axis_type (variable parameter)
 
 call match_word (cmd, [character(40) :: &
-          'beam', 'beam_init', 'branch1', 'bunch_params', 'bunch1', 'bmad_com', 'building_wall_list', &
-          'building_wall_graph', 'building_wall_point', 'building_wall_section', &
+          'beam', 'beam_init', 'branch1', 'bunch_comb', 'bunch_params', 'bunch1', 'bmad_com',&
+          'building_wall_list', 'building_wall_graph', 'building_wall_point', 'building_wall_section', &
           'constraints', 'da_params', 'da_aperture', &
           'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
           'data_d2', 'data_d2_array', 'data_set_design_value', 'data_parameter', &
@@ -495,6 +497,136 @@ case ('branch1')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% bunch_comb
+! Outputs bunch parameters at a comb point. 
+!
+! Notes
+! -----
+! Command syntax:
+!   python bunch_comb {flag} {who} {ix_uni}@{ix_branch} {ix_bunch}
+!
+! Where:
+!   {flag} is optionally "-array_out".
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ix_branch} is a branch index. Defaults to s%global%default_branch.
+!   {ix_bunch} is the bunch index. Defaults to 1.
+!   {who} is one of:
+!     x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
+!     x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, eta, etap,
+!                                                                 sigma, sigma_p, emit, norm_emit
+!     sigma.IJ where I, J in range [1,6]
+!     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
+!
+! Note: If ix_uni or ix_branch is present, "@" must be present.
+!
+! Example:
+!   python bunch_comb py 2@1 1
+!
+! Parameters
+! ----------
+! flags : default=-array_out
+!   If -array_out, the output will be available in the tao_c_interface_com%c_real.
+!
+! Returns
+! -------
+! string_list
+!   if '-array_out' not in flags
+! real_array
+!   if '-array_out' in flags
+!
+! Examples
+! --------
+!
+
+case ('bunch_comb')
+
+  use_real_array_buffer = .false.
+
+  if (index('-array_out', line(1:ix_line)) == 1) then
+    call string_trim(line(ix_line+1:), line, ix_line)
+    use_real_array_buffer = .true.
+  endif
+
+  u => s%u(s%global%default_universe)
+  ix_branch = s%global%default_branch
+  ix_bunch = 1
+
+  call string_trim (line, line, ix)
+  which = line(:ix)
+  call string_trim(line(ix+1:), line, ix)
+
+  if (ix > 0) then
+    if (index(line(1:ix), '@') /= 0) then
+      u => point_to_uni(line, .true., err); if (err) return
+      ix_branch = parse_branch(line, u, .false., err); if (err) return
+      call string_trim(line(ix+1:), line, ix)
+    endif
+  endif
+
+  branch => u%model%lat%branch(ix_branch)
+
+  if (.not. allocated(u%model%tao_branch(ix_branch)%bunch_params_comb)) then
+    call invalid ('COMB ARRAY NOT ALLOCATED. PROBABLY CAUSED BY NO BUNCH TRACKING.')
+    return
+  endif
+  bunch_params_comb => u%model%tao_branch(ix_branch)%bunch_params_comb
+
+  if (ix > 0) then
+    ix_bunch = parse_int(line, err, 1, size(bunch_params_comb), 1)
+  endif
+
+  comb1 => bunch_params_comb(ix_bunch)
+
+  if (comb1%ds_save < 0) then
+    call invalid ('COMB DS_SAVE NOT POSITIVE.')
+    return
+  endif
+
+  n = comb1%n_pt
+  if (n < 0) then
+    call invalid ('COMB POINTS NOT CALCULATED.')
+    return
+  endif
+
+  !
+
+  ix = index(which, '.')
+  if (ix == 0) then
+    head = which
+  else
+    head = which(1:ix)
+    tail = which(ix+1:)
+  endif
+
+  select case (head)
+  case ('x', 'px', 'y', 'py', 'z', 'pz')
+    call match_word(which, coord_name, ix, .true., .true.)
+    call real_array_out(comb1%pt%centroid%vec(ix), use_real_array_buffer, 0, n)
+
+  case ('spin.')
+    call match_word(tail, ['x', 'y', 'z'], ix, .true., .true.)
+    if (ix < 0) then
+      call invalid ('"WHO" NOT RECOGNIZED: ' // which)
+      return
+    endif
+    call real_array_out(comb1%pt%centroid%spin(ix), use_real_array_buffer, 0, n)
+
+  case ('x.', 'y.', 'z.', 'a.', 'b.', 'c.')
+  case ('sigma.')
+    i = parse_int(tail(1:1), err, 1, 6);   if (err) return
+    j = parse_int(tail(2:2), err, 1, 6);   if (err) return
+    call real_array_out (comb1%pt%sigma(i,j), use_real_array_buffer, 0, n)
+
+  case ('p0c');                     call real_array_out(comb1%pt%centroid%p0c, use_real_array_buffer, 0, n)
+  case ('beta');                    call real_array_out(comb1%pt%centroid%beta, use_real_array_buffer, 0, n)
+  case ('charge_live');             call real_array_out(comb1%pt%charge_live, use_real_array_buffer, 0, n)
+  case ('n_particle_live');         call real_array_out(1.0_rp*comb1%pt%n_particle_live, use_real_array_buffer, 0, n)
+  case ('n_particle_lost_in_ele');  call real_array_out(1.0_rp*comb1%pt%n_particle_lost_in_ele, use_real_array_buffer, 0, n)
+  case ('ix_ele');                  call real_array_out(1.0_rp*comb1%pt%ix_ele, use_real_array_buffer, 0, n)
+  end select
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% bunch_params
 ! Outputs bunch parameters at the exit end of a given lattice element.
 !
@@ -534,43 +666,8 @@ case ('bunch_params')
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
-  beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
 
-  call twiss_out(bunch_params%x, 'x', .true.)
-  call twiss_out(bunch_params%y, 'y', .true.)
-  call twiss_out(bunch_params%z, 'z', .true.)
-  call twiss_out(bunch_params%a, 'a', .true.)
-  call twiss_out(bunch_params%b, 'b', .true.)
-  call twiss_out(bunch_params%c, 'c', .true.)
-
-  ! Sigma matrix
-  do i = 1, 6
-    do j = 1,6
-      nl=incr(nl); write (li(nl), '(a, i0, i0, a, es22.14)') 'sigma_', i, j, ';REAL;F;', bunch_params%sigma(i,j)
-    enddo
-  enddo
-
-  ! Relative min, max, centroid
-  do i = 1, 6
-    nl=incr(nl); write (li(nl), '(a, i0, a, es22.14)') 'rel_min_', i, ';REAL;F;',      bunch_params%rel_min(i)
-    nl=incr(nl); write (li(nl), '(a, i0, a, es22.14)') 'rel_max_', i, ';REAL;F;',      bunch_params%rel_max(i)
-    nl=incr(nl); write (li(nl), '(a, i0, a, es22.14)') 'centroid_vec_', i, ';REAL;F;', bunch_params%centroid%vec(i)
-  enddo
-
-  nl=incr(nl); write (li(nl), rmt) 'centroid_t;REAL;F;',                       bunch_params%centroid%t
-  nl=incr(nl); write (li(nl), rmt) 'centroid_p0c;REAL;F;',                     bunch_params%centroid%p0c
-  nl=incr(nl); write (li(nl), rmt) 'centroid_beta;REAL;F;',                    bunch_params%centroid%beta
-  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                            bunch_params%centroid%ix_ele
-  nl=incr(nl); write (li(nl), imt) 'direction;INT;F;',                         bunch_params%centroid%direction
-  nl=incr(nl); write (li(nl), amt) 'species;SPECIES;F;',                       trim(species_name(bunch_params%centroid%species))
-  nl=incr(nl); write (li(nl), amt) 'location;ENUM;F;',                         trim(location_name(bunch_params%centroid%location))
-  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
-  nl=incr(nl); write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
-  nl=incr(nl); write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
-  nl=incr(nl); write (li(nl), imt) 'n_particle_live;INT;F;',                   bunch_params%n_particle_live
-  nl=incr(nl); write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
-  nl=incr(nl); write (li(nl), lmt) 'beam_saved;LOGIC;T;',                      allocated(beam%bunch)
-
+  call bunch_params_out(bunch_params)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -3771,17 +3868,7 @@ case ('evaluate')
     return
   endif
 
-  if (use_real_array_buffer) then
-    n_arr = size(value_arr)
-    call re_allocate_c_double(tao_c_interface_com%c_real, n_arr, .false.)
-    tao_c_interface_com%n_real = n_arr
-    tao_c_interface_com%c_real(1:n_arr) = value_arr(1:n_arr)
-  else
-    ! string_list
-    do i = 1, size(value_arr)
-      nl=incr(nl); write (li(nl), '(i0, a, es22.14)') i, ';', value_arr(i)
-    enddo
-  endif
+  call real_array_out (value_arr(1:n_arr), use_real_array_buffer)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -7647,10 +7734,10 @@ end function parse_real
 !----------------------------------------------------------------------
 ! contains
 
-function parse_int (line, err_flag, min_bound, max_bound) result (a_int)
+function parse_int (line, err_flag, min_bound, max_bound, dflt_val) result (a_int)
 
 integer a_int
-integer, optional :: min_bound, max_bound
+integer, optional :: min_bound, max_bound, dflt_val
 logical err, err_flag
 character(*) line
 
@@ -7658,7 +7745,8 @@ character(*) line
 
 err_flag = .true.
 
-a_int = string_to_int (line, int_garbage$, err)
+
+a_int = string_to_int (line, integer_option(int_garbage$, dflt_val), err)
 
 if (err .or. a_int == int_garbage$) then
   call invalid ('Bad int number')
@@ -7758,9 +7846,7 @@ case default
   return
 end select
 
-
-end subroutine
-
+end subroutine coord_out
 
 !----------------------------------------------------------------------
 ! contains
@@ -8432,5 +8518,78 @@ endif
 s_pos = s_pos + ele%s
 
 end function parse_ele_with_s_offset
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine bunch_params_out (bunch_params)
+
+type (bunch_params_struct) bunch_params
+
+!
+
+call twiss_out(bunch_params%x, 'x', .true.)
+call twiss_out(bunch_params%y, 'y', .true.)
+call twiss_out(bunch_params%z, 'z', .true.)
+call twiss_out(bunch_params%a, 'a', .true.)
+call twiss_out(bunch_params%b, 'b', .true.)
+call twiss_out(bunch_params%c, 'c', .true.)
+
+! Sigma matrix
+do i = 1, 6
+  do j = 1,6
+    nl=incr(nl); write (li(nl), '(a, i0, i0, a, es22.14)') 'sigma_', i, j, ';REAL;F;', bunch_params%sigma(i,j)
+  enddo
+enddo
+
+! Relative min, max, centroid
+do i = 1, 6
+  nl=incr(nl); write (li(nl), '(a, i0, a, es22.14)') 'rel_min_', i, ';REAL;F;',      bunch_params%rel_min(i)
+  nl=incr(nl); write (li(nl), '(a, i0, a, es22.14)') 'rel_max_', i, ';REAL;F;',      bunch_params%rel_max(i)
+  nl=incr(nl); write (li(nl), '(a, i0, a, es22.14)') 'centroid_vec_', i, ';REAL;F;', bunch_params%centroid%vec(i)
+enddo
+
+nl=incr(nl); write (li(nl), rmt) 'centroid_t;REAL;F;',                       bunch_params%centroid%t
+nl=incr(nl); write (li(nl), rmt) 'centroid_p0c;REAL;F;',                     bunch_params%centroid%p0c
+nl=incr(nl); write (li(nl), rmt) 'centroid_beta;REAL;F;',                    bunch_params%centroid%beta
+nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                            bunch_params%centroid%ix_ele
+nl=incr(nl); write (li(nl), imt) 'direction;INT;F;',                         bunch_params%centroid%direction
+nl=incr(nl); write (li(nl), amt) 'species;SPECIES;F;',                       trim(species_name(bunch_params%centroid%species))
+nl=incr(nl); write (li(nl), amt) 'location;ENUM;F;',                         trim(location_name(bunch_params%centroid%location))
+nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
+nl=incr(nl); write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
+nl=incr(nl); write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
+nl=incr(nl); write (li(nl), imt) 'n_particle_live;INT;F;',                   bunch_params%n_particle_live
+nl=incr(nl); write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
+
+end subroutine bunch_params_out
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine real_array_out(val_arr, use_buffer, ix0, ix1)
+
+real(rp) val_arr(:)
+integer, optional :: ix0, ix1
+integer i, j, n_arr
+logical use_buffer
+
+!
+
+n_arr = integer_option(size(val_arr), ix1) - integer_option(1, ix0) + 1
+
+if (use_buffer) then
+  call re_allocate_c_double(tao_c_interface_com%c_real, n_arr, .false.)
+  tao_c_interface_com%n_real = n_arr
+  tao_c_interface_com%c_real(1:n_arr) = val_arr(1:n_arr)
+
+else  ! string_list
+  do i = 1, n_arr
+    j = i + integer_option(1, ix0) - 1
+    nl=incr(nl); write (li(nl), '(i0, a, es22.14)') j, ';', val_arr(i)
+  enddo
+endif
+
+end subroutine real_array_out
 
 end subroutine tao_python_cmd
