@@ -945,7 +945,7 @@ if (logic_option(.false., make_matrix)) then
   kmat(4,6) = (-c2 * y + c3 * y**3) / rel_p
   kmat(5,2) = c1 / rel_p
   kmat(5,3) = (c2 * y - c3 * y**3) / rel_p
-  kmat(5,6) = (-c1 * px - 2 * c2 * y**2 + c3 * y**4/2) / rel_p**2 + c1
+  kmat(5,6) = -2*(c1 * px + c2 * y**2/2 - c3 * y**4/4) / (rel_p**2) ! Derivative of the orb%vec(5) line below
 
   if (tilt /= 0) call tilt_mat6 (kmat, tilt)
 
