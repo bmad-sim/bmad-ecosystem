@@ -125,6 +125,7 @@ type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: sec
 type (taylor_field_struct), pointer :: t_field
 type (taylor_field_plane1_struct), pointer :: t_term
+type (twiss_struct), pointer :: twiss_arr(:)
 type (em_taylor_term_struct), pointer :: em_tt
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
@@ -612,17 +613,47 @@ case ('bunch_comb')
     call real_array_out(comb1%pt%centroid%spin(ix), use_real_array_buffer, 0, n)
 
   case ('x.', 'y.', 'z.', 'a.', 'b.', 'c.')
+    select case (head)
+    case ('x.');  twiss_arr => comb1%pt%x
+    case ('y.');  twiss_arr => comb1%pt%y
+    case ('z.');  twiss_arr => comb1%pt%z
+    case ('a.');  twiss_arr => comb1%pt%a
+    case ('b.');  twiss_arr => comb1%pt%b
+    case ('c.');  twiss_arr => comb1%pt%c
+    end select
+
+    select case (tail)
+    case ('beta');      call real_array_out(twiss_arr%beta, use_real_array_buffer, 0, n)
+    case ('alpha');     call real_array_out(twiss_arr%alpha, use_real_array_buffer, 0, n)
+    case ('gamma');     call real_array_out(twiss_arr%gamma, use_real_array_buffer, 0, n)
+    case ('phi');       call real_array_out(twiss_arr%phi, use_real_array_buffer, 0, n)
+    case ('eta');       call real_array_out(twiss_arr%eta, use_real_array_buffer, 0, n)
+    case ('etap');      call real_array_out(twiss_arr%etap, use_real_array_buffer, 0, n)
+    case ('sigma');     call real_array_out(twiss_arr%sigma, use_real_array_buffer, 0, n)
+    case ('sigma_p');   call real_array_out(twiss_arr%sigma_p, use_real_array_buffer, 0, n)
+    case ('emit');      call real_array_out(twiss_arr%emit, use_real_array_buffer, 0, n)
+    case ('norm_emit'); call real_array_out(twiss_arr%norm_emit, use_real_array_buffer, 0, n)
+    case default
+      call invalid ('Bad {who}: ' // which)
+      return
+    end select
+
   case ('sigma.')
     i = parse_int(tail(1:1), err, 1, 6);   if (err) return
     j = parse_int(tail(2:2), err, 1, 6);   if (err) return
     call real_array_out (comb1%pt%sigma(i,j), use_real_array_buffer, 0, n)
 
+  case ('s');                       call real_array_out(comb1%pt%centroid%s, use_real_array_buffer, 0, n)
+  case ('t');                       call real_array_out(comb1%pt%centroid%t, use_real_array_buffer, 0, n)
   case ('p0c');                     call real_array_out(comb1%pt%centroid%p0c, use_real_array_buffer, 0, n)
   case ('beta');                    call real_array_out(comb1%pt%centroid%beta, use_real_array_buffer, 0, n)
   case ('charge_live');             call real_array_out(comb1%pt%charge_live, use_real_array_buffer, 0, n)
   case ('n_particle_live');         call real_array_out(1.0_rp*comb1%pt%n_particle_live, use_real_array_buffer, 0, n)
   case ('n_particle_lost_in_ele');  call real_array_out(1.0_rp*comb1%pt%n_particle_lost_in_ele, use_real_array_buffer, 0, n)
   case ('ix_ele');                  call real_array_out(1.0_rp*comb1%pt%ix_ele, use_real_array_buffer, 0, n)
+  case default
+    call invalid ('Bad {who}: ' // which)
+    return
   end select
 
 !------------------------------------------------------------------------------------------------

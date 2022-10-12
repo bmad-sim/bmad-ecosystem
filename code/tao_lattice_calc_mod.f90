@@ -497,7 +497,9 @@ do
           call element_slice_iterator(ele, branch%param, ix_slice, n_slice, slice_ele)
         endif
 
-        call track_beam (lat, beam, branch%ele(ie-1), ele, err, centroid = tao_branch%orbit, bunch_tracks = bunch_params_comb)
+        do i = 1, size(beam%bunch)
+          call track1_bunch (beam%bunch(i), slice_ele, err, tao_branch%orbit)
+        enddo
 
         if (ix_slice == n_slice) ix_slice = -1
       endif
