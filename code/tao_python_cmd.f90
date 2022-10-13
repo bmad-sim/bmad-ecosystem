@@ -701,6 +701,9 @@ case ('bunch_params')
 
   call bunch_params_out(bunch_params)
 
+  beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
+  nl=incr(nl); write (li(nl), lmt) 'beam_saved;LOGIC;T;', allocated(beam%bunch)
+
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
 !%% bunch1
