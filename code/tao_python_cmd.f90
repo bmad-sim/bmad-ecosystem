@@ -3920,7 +3920,7 @@ case ('evaluate')
     return
   endif
 
-  call real_array_out (value_arr(1:n_arr), use_real_array_buffer)
+  call real_array_out (value_arr, use_real_array_buffer)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
