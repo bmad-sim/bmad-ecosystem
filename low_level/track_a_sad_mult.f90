@@ -63,8 +63,6 @@ call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
 ! Setup ele2 which is used in offset_particle
 
 call transfer_ele(ele, ele2)
-ele2%value(x_pitch_tot$)  = ele%value(x_pitch_tot$)  + ele%value(x_pitch_mult$)
-ele2%value(y_pitch_tot$)  = ele%value(y_pitch_tot$)  + ele%value(y_pitch_mult$)
 ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
 ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
 
@@ -92,13 +90,6 @@ endif
 ks = rel_tracking_charge_to_mass(orbit, param%particle) * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
 
-if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then
-  kx = knl(0) * cos(tilt(0)) - ks * ele%value(x_pitch_mult$)
-  ky = knl(0) * sin(tilt(0)) + ks * ele%value(y_pitch_mult$)
-  knl(0) = norm2([kx, ky])
-  tilt(0) = atan2(ky, kx)
-endif
-
 orbit%vec(2) = orbit%vec(2) + ele%value(y_offset_mult$) * ks / 2
 orbit%vec(4) = orbit%vec(4) - ele%value(x_offset_mult$) * ks / 2
 
@@ -106,7 +97,7 @@ ele2%value(tilt_tot$) = tilt(1)
 tilt = tilt - tilt(1)
 
 call multipole_kt_to_ab (knl, knsl, tilt, a_pole, b_pole)
-knl(1) = 0 ! So multipole_kicks does not conflict with sol_quad calc. 
+knl(1) = 0 ! So multipole_kicks do not conflict with sol_quad calc. 
 
 call offset_particle (ele2, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 

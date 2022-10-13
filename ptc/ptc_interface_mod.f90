@@ -2757,7 +2757,7 @@ type (fibre), target :: dummy_fibre
 
 real(rp) dr(3), ang(3), exi(3,3), beta_start, beta_end
 real(rp) x(6), o_chord(3), o_arc(3), basis(3,3), orient(3,3), sagitta
-real(rp) r0(3), s_mat(3,3), s0_mat(3,3), r(3), b(3)
+real(rp) r0(3), s_mat(3,3), s0_mat(3,3), r(3), b(3), t, rot(2,2)
 
 logical use_offsets, for_layout, good_patch, addin
 
@@ -2853,6 +2853,13 @@ elseif (use_offsets) then
     endif
 
     dr = [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
+    if (ele%key == sad_mult$ .and. ele%value(l$) == 0) then
+      t = ele%value(tilt_tot$)
+      rot(1:2,1) = [cos(t), sin(t)]
+      rot(1:2,2) = [sin(t), cos(t)]
+      dr(1:2) = dr(1:2) + matmul(rot, [ele%value(x_offset_mult$), ele%value(y_offset_mult$)])
+    endif
+
     if (any(dr /= 0)) then
       o_chord = ptc_fibre%mag%p%f%o
       o_arc = o_chord + sagitta * ptc_fibre%mag%p%f%mid(1,1:3)

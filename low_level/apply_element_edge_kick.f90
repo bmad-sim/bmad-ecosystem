@@ -104,7 +104,7 @@ if (finished) return
 
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
 fringe_at = nint(track_ele%value(fringe_at$))
-if (hard_ele%key /= solenoid$ .and. hard_ele%key /= sol_quad$) then
+if (hard_ele%key /= solenoid$ .and. hard_ele%key /= sol_quad$ .and. hard_ele%key /= sad_mult$) then
   if (.not. at_this_ele_end(physical_end, fringe_at)) return
 endif
 track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(hard_ele%value(spin_fringe_on$)))
