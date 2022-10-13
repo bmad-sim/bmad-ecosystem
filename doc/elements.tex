@@ -4225,7 +4225,7 @@ See \sref{s:list.sad.mult} for a full list of element attributes along with a th
 \index{ks}\index{phi0}\index{rho}\index{voltage}\index{x_offset_mult}
 \index{y_offset_mult}\index{x_pitch_mult}\index{y_pitch_mult}
 \index{fringe_type}\index{kill_fringe}
-Attributes specific to an \vn{sextupole} element are:
+Attributes specific to an \vn{sad_mult} element are:
 \begin{example}
   bs_field        = <Real>    ! Solenoid field. SAD equivalent: BZ.
   ks              = <Real>    ! Solenoid strength. 
@@ -4234,8 +4234,6 @@ Attributes specific to an \vn{sextupole} element are:
   fq1, fq2        = <Real>    ! Quadrupole fringe integral. SAD equivalents: F1, F2.
   x_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DX.
   y_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DY.
-  x_pitch_mult    = <Real>    ! Mult component pitch. SAD equivalent: DPX or CHI1.
-  y_pitch_mult    = <Real>    ! Mult component pitch. SAD equivalent: DPY or CHI2.
   fringe_type     = <Switch>  ! Type of fringe. SAD equivalent: DISFRIN.
   fringe_at       = <Switch>  ! Where fringe is applied. SAD equivalent: FRINGE.
 \end{example}
@@ -4248,22 +4246,18 @@ Attributes specific to an \vn{sextupole} element are:
 %  rho             = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
 %  voltage         = <Real>    ! Cavity voltage. SAD equivalent: VOLT.
 
-One difference between SAD and \bmad is that SAD defines the solenoid
-field by what are essentially a set of marker elements so that the
-solenoid field at a SAD \vn{mult} element is not explicitly declared
-in the \vn{mult} element definition. \bmad, on the other hand,
-requires a \vn{sad_mult} element to explicitly declare the solenoid
-parameters.
+One difference between SAD and \bmad is that SAD defines the solenoid field by what are essentially
+a set of marker elements so that the solenoid field at a SAD \vn{mult} element is not explicitly
+declared in the \vn{mult} element definition. \bmad, on the other hand, requires a \vn{sad_mult}
+element to explicitly declare the solenoid parameters.
 
-Another difference between SAD and \bmad is that, within a solenoid,
-the reference trajectory is aligned with the solenoid axis (and not
-aligned with the axis of the elements within the solenoid region).
+Another difference between SAD and \bmad is that, within a solenoid, the reference trajectory is
+aligned with the solenoid axis (and not aligned with the axis of the elements within the solenoid
+region).
 
-The SAD \vn{mult} element uses normal \vn{Kn} and skew \vn{KSn}
-multipole components. The \bmad \vn{sad_mult} element used normal
-\vn{an} and skew \vn{bn} multipole components. As can be seen from the
-equations in \sref{s:mag.field}, there is a factor of $n!$ between the
-two representations.
+The SAD \vn{mult} element uses normal \vn{Kn} and skew \vn{KSn} multipole components. The \bmad
+\vn{sad_mult} element used normal \vn{an} and skew \vn{bn} multipole components. As can be seen from
+the equations in \sref{s:mag.field}, there is a factor of $n!$ between the two representations.
 
 The \vn{a0} or \vn{b0} multipole moments give a dipole kick (just like a \vn{kicker} element). The
 face angles \vn{e1} and \vn{e2} are used with the dipole kick in calculating fringe effects.
@@ -4272,16 +4266,19 @@ The \vn{fq1} and \vn{fq2} parameters are used to specify the quadrupolar ``soft'
 \sref{s:q.soft} for more details.
 
 The \vn{fringe_at} and \vn{fringe_type} settings determine if the fringe field is used in
-tracking. See Sec~\sref{s:fringe} for the translation between these two switches and the
-\vn{fringe} and \vn{disfrin} switches of SAD.
+tracking. See Sec~\sref{s:fringe} for the translation between these two switches and the \vn{fringe}
+and \vn{disfrin} switches of SAD.
 
-Unlike other elements, the \vn{ds_step} and \vn{num_steps} attributes (\sref{s:integ}) of a \vn{sad_mult}
-are dependent attributes (\sref{s:depend}) and are not directly settable. Rather these
-attributes are calculated using \vn{SAD}'s own algorithm for setting the step size. To
-vary the calculated step size for a single \vn{sad_mult} element, the attribute
-\vn{eps_step_scale} may be set.  To vary the step size for all \vn{sad_mult} elements, the
-global parameter \vn{bmad_com[sad_eps_scale]} (\sref{s:bmad.ptc.com}) may be set.
-The default values for these parameters are:
+The \vn{x_offset_mult} and \vn{y_offset_mult} orients the non-solenoid components of the field while
+leaving the solenoid component unshifted.
+
+Unlike other elements, the \vn{ds_step} and \vn{num_steps} attributes (\sref{s:integ}) of a
+\vn{sad_mult} are dependent attributes (\sref{s:depend}) and are not directly settable. Rather these
+attributes are calculated using \vn{SAD}'s own algorithm for setting the step size. To vary the
+calculated step size for a single \vn{sad_mult} element, the attribute \vn{eps_step_scale} may be
+set.  To vary the step size for all \vn{sad_mult} elements, the global parameter
+\vn{bmad_com[sad_eps_scale]} (\sref{s:bmad.ptc.com}) may be set.  The default values for these
+parameters are:
 \begin{example}
   eps_step_scale          = 1
   bmad_com[sad_eps_scale] = 5e-3
@@ -4292,8 +4289,8 @@ SAD conventions to be aware of when comparing SAD to Bmad:
 \item
 A SAD \vn{rotate} or \vn{chi3} rotation is opposite to a \bmad \vn{tilt}
 \item
-SAD element offsets (\vn{dx}, \vn{dy}, \vn{dz}) are with respect to the entrance end
-of the element as opposed to \bmad's convention of referencing to the element center.
+SAD element offsets (\vn{dx}, \vn{dy}, \vn{dz}) are with respect to the entrance end of the element
+as opposed to \bmad's convention of referencing to the element center.
 \item
   The \bmad \vn{sad_mult} element does not have any attributes corresponding to the following
 SAD \vn{mult} element attributes:

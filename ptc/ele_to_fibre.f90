@@ -287,11 +287,6 @@ case (sad_mult$)
     endif
   endif
 
-  if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then
-    call out_io (s_error$, r_name, &
-          'NON-ZERO X OR Y_PITCH_MULT NOT IMPLEMENTED IN PTC FOR SAD_MULT ELEMENT: ' // ele%name)
-  endif
-
 !------------------------------
 case (sbend$) 
   ! PTC does not consider a finite e1/e2 part of the fringe so must zero e1/e2 if needed.
@@ -828,19 +823,13 @@ if (key == sad_mult$) then
   dx =  ele%value(x_offset_mult$) * cos_t + ele%value(y_offset_mult$) * sin_t 
   dy = -ele%value(x_offset_mult$) * sin_t + ele%value(y_offset_mult$) * cos_t
 
-  if (ptc_fibre%mag%kind == kind5) then
+  if (ptc_fibre%mag%kind == kind5) then  ! Non-zero length.
     ptc_fibre%mag%s5%dx = dx
     ptc_fibre%mag%s5%dy = dy
 
     ptc_fibre%magp%s5%dx = dx
     ptc_fibre%magp%s5%dy = dy
- elseif (ptc_fibre%mag%kind == kind3) then
-    ptc_fibre%mag%k3%dx = dx
-    ptc_fibre%mag%k3%dy = dy
-
-    ptc_fibre%magp%k3%dx = dx
-    ptc_fibre%magp%k3%dy = dy
-  else
+ elseif (ptc_fibre%mag%kind /= kind3) then
     call out_io (s_fatal$, r_name, 'INTERNAL ERROR SETTING MULT OFFSET. PLEASE CONTACT DAVID SAGAN.')
   endif
 endif

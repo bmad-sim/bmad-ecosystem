@@ -330,17 +330,27 @@ endif
 
 !
 
-if (word == 'SPACE_CHARGE_ON') then
+select case (word)
+case ('SPACE_CHARGE_ON')
   call parser_error ('Note: "bmad_com[SPACE_CHARGE_ON]" has been renamed "bmad_com[HIGH_ENERGY_SPACE_CHARGE_ON]"', &
                      'Will run normally...', level = s_warn$)
   word = 'HIGH_ENERGY_SPACE_CHARGE_ON'
-endif
 
-if (word == 'COHERENT_SYNCH_RAD_ON') then
+case ('COHERENT_SYNCH_RAD_ON')
   call parser_error ('Note: "bmad_com[COHERENT_SYNCH_RAD_ON]" has been renamed "bmad_com[CSR_AND_SPACE_CHARGE_ON]"', &
                      'Will run normally...', level = s_warn$)
   word = 'CSR_AND_SPACE_CHARGE_ON'
-endif
+
+case ('X_PITCH_MULT')
+  call parser_error ('X_PITCH_MULT no longer supported (necessitated extremely complicated bookkeeping). Will use X_PITCH instead.', &
+                     'Will run normally...', level = s_warn$)
+  word = 'X_PITCH'
+
+case ('Y_PITCH_MULT')
+  call parser_error ('Y_PITCH_MULT no longer supported (necessitated extremely complicated bookkeeping). Will use Y_PITCH instead.', &
+                     'Will run normally...', level = s_warn$)
+  word = 'Y_PITCH'
+end select                    
 
 if (ele%key == sbend$ .or. ele%key == rbend$) then
   if (word == 'G_ERR')       word = 'DG'

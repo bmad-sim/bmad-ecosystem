@@ -1498,14 +1498,11 @@ call init_attribute_name1 (sad_mult$, fb2$,                    'FB2')
 call init_attribute_name1 (sad_mult$, bs_field$,               'BS_FIELD')
 call init_attribute_name1 (sad_mult$, x_offset_mult$,          'X_OFFSET_MULT')
 call init_attribute_name1 (sad_mult$, y_offset_mult$,          'Y_OFFSET_MULT')
-call init_attribute_name1 (sad_mult$, x_pitch_mult$,           'X_PITCH_MULT')
-call init_attribute_name1 (sad_mult$, y_pitch_mult$,           'Y_PITCH_MULT')
 call init_attribute_name1 (sad_mult$, e1$,                     'E1')    ! SAD: ae1
 call init_attribute_name1 (sad_mult$, e2$,                     'E2')    ! SAD: ae2
 ! sad_mult Attributes with no SAD equivalent
 call init_attribute_name1 (sad_mult$, rho$,                    'RHO')   
 call init_attribute_name1 (sad_mult$, ks$,                     'KS')
-call init_attribute_name1 (sad_mult$, sad_flag$,               'Sad_Flag', private$)
 ! Not implemented
 !call init_attribute_name1 (sad_mult$, g$,                      'G')  ! No SAD equiv
 !call init_attribute_name1 (sad_mult$, b_field$,                'B_FIELD')  ! No SAD equiv
@@ -1892,7 +1889,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
       'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_PZ', 'SIG_VX', 'SIG_VY', &
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', &
-      'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL', &
+      'X_PITCH', 'Y_PITCH', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
       'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1', 'PZ_APERTURE_CENTER', &
       'PX_APERTURE_WIDTH2', 'PX_APERTURE_CENTER', 'PY_APERTURE_WIDTH2', 'PY_APERTURE_CENTER', 'PZ_APERTURE_WIDTH2')
