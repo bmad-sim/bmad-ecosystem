@@ -490,7 +490,7 @@ do
       else
         if (ix_slice == -1) then
           ix_slice = 1
-          n_slice = max(1, nint(ele%value(l$) / ds_save))
+          n_slice = max(1, int(1.01_rp*ele%value(l$) / ds_save))
           call element_slice_iterator(ele, branch%param, ix_slice, n_slice, slice_ele)
         else
           ix_slice = ix_slice + 1

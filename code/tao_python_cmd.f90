@@ -558,9 +558,10 @@ case ('bunch_comb')
 
   if (ix > 0) then
     if (index(line(1:ix), '@') /= 0) then
-      u => point_to_uni(line, .true., err); if (err) return
-      ix_branch = parse_branch(line, u, .false., err); if (err) return
+      head = line(1:ix)
       call string_trim(line(ix+1:), line, ix)
+      u => point_to_uni(head, .true., err); if (err) return
+      ix_branch = parse_branch(head, u, .false., err); if (err) return
     endif
   endif
 
@@ -7712,6 +7713,8 @@ character(40) str
 !
 
 err = .false.
+ix_branch = s%global%default_branch
+if (line(1:1) == ' ') return
 
 if (has_separator) then
   ix = index(line, '>>')
@@ -7722,17 +7725,13 @@ if (has_separator) then
     return
   endif
 
-  if (ix == 1) then
-    ix_branch = s%global%default_branch
-  else
+  if (ix /= 1) then
     read (line(1:ix-1), *, iostat = ios) ix_branch
     if (ios /= 0) ix_branch = -999
   endif
   line = line(ix+2:)
 
-elseif (len_trim(line) == 0) then
-  ix_branch = s%global%default_branch
-else
+elseif (len_trim(line) /= 0) then
   read (line, *, iostat = ios) ix_branch
   if (ios /= 0) ix_branch = -999
 endif
