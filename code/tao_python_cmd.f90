@@ -516,6 +516,7 @@ case ('branch1')
 !     x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, eta, etap,
 !                                                                 sigma, sigma_p, emit, norm_emit
 !     sigma.IJ where I, J in range [1,6]
+!     rel_min.I, rel_max.I where I in range [1,6]
 !     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
 !
 !   If flags=-array_out, the output will be available in the tao_c_interface_com%c_real.
@@ -651,6 +652,14 @@ case ('bunch_comb')
     i = parse_int(tail(1:1), err, 1, 6);   if (err) return
     j = parse_int(tail(2:2), err, 1, 6);   if (err) return
     call real_array_out (comb1%pt%sigma(i,j), use_real_array_buffer, 0, n)
+
+  case ('rel_min.')
+    i = parse_int(tail(1:1), err, 1, 6);   if (err) return
+    call real_array_out (comb1%pt%rel_min(i), use_real_array_buffer, 0, n)
+
+  case ('rel_max.')
+    i = parse_int(tail(1:1), err, 1, 6);   if (err) return
+    call real_array_out (comb1%pt%rel_max(i), use_real_array_buffer, 0, n)
 
   case ('s');                       call real_array_out(comb1%pt%centroid%s, use_real_array_buffer, 0, n)
   case ('t');                       call real_array_out(comb1%pt%centroid%t, use_real_array_buffer, 0, n)
