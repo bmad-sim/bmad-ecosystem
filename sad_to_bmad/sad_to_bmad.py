@@ -177,8 +177,6 @@ ele_param_translate = {
     'dx': 'x_offset',
     'dy': 'y_offset',
     'dz': 'z_offset',
-    'mult:chi1': 'x_pitch_mult',
-    'mult:chi2': 'y_pitch_mult',
     'chi1': 'x_pitch',
     'chi2': 'y_pitch',
     'chi3': ['tilt', ' * -1'],
