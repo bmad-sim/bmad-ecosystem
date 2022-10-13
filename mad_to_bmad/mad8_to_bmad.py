@@ -21,7 +21,9 @@ class ele_struct:
     self.bmad_inherit_type = ''    # Is another element name or quadrupole, etc.
     self.bmad_base_type    = ''    # Is quadrupole, etc.
     self.at = '0'                  # Used if element is in a sequence
+    self.from_ref_ele = ''         # Used if element is in a sequence
     self.param = OrderedDict()
+    self.count = 0
 
 class seq_struct:
   def __init__(self, name = ''):
@@ -681,8 +683,8 @@ def parse_command(command, dlist):
         name = ele.name
       # element has modified parameters. Need to create a new element with a unique name with "__N" suffix.
       else:
-        common.ele_dict[dlist[0]] = common.ele_dict[dlist[0]] + 1
-        name = f'{dlist[0]}__{common.ele_dict[dlist[0]]}'
+        common.ele_dict[dlist[0]].count = common.ele_dict[dlist[0]].count + 1
+        name = f'{dlist[0]}__{common.ele_dict[dlist[0]].count}'
         ele = parse_element([name, ':']+dlist, True)
 
       offset = ele.at
