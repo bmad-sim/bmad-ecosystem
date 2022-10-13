@@ -504,7 +504,7 @@ case ('branch1')
 ! Notes
 ! -----
 ! Command syntax:
-!   python bunch_comb {flag} {who} {ix_uni}@{ix_branch} {ix_bunch}
+!   python bunch_comb {flags} {who} {ix_uni}@{ix_branch} {ix_bunch}
 !
 ! Where:
 !   {flag} is optionally "-array_out".
@@ -518,15 +518,20 @@ case ('branch1')
 !     sigma.IJ where I, J in range [1,6]
 !     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
 !
-! Note: If ix_uni or ix_branch is present, "@" must be present.
+!   If flags=-array_out, the output will be available in the tao_c_interface_com%c_real.
+!
+!   Note: If ix_uni or ix_branch is present, "@" must be present.
 !
 ! Example:
 !   python bunch_comb py 2@1 1
 !
 ! Parameters
 ! ----------
+! who
+! ix_uni : optional
+! ix_branch : optional
+! ix_bunch : default=1
 ! flags : default=-array_out
-!   If -array_out, the output will be available in the tao_c_interface_com%c_real.
 !
 ! Returns
 ! -------
@@ -537,7 +542,10 @@ case ('branch1')
 !
 ! Examples
 ! --------
-!
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
+!  args:
+!    who: x.beta
 
 case ('bunch_comb')
 

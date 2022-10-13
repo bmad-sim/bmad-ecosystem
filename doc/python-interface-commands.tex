@@ -72,7 +72,7 @@ Where:
 Outputs bunch parameters at a comb point. 
 
 \begin{example}
-   python bunch_comb \{flag\} \{who\} \{ix_uni\}@\{ix_branch\} \{ix_bunch\}
+   python bunch_comb \{flags\} \{who\} \{ix_uni\}@\{ix_branch\} \{ix_bunch\}
 \end{example}
 \begin{verbatim}
 Where:
@@ -87,7 +87,9 @@ Where:
     sigma.IJ where I, J in range [1,6]
     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
 
-Note: If ix_uni or ix_branch is present, "@" must be present.
+  If flags=-array_out, the output will be available in the tao_c_interface_com%c_real.
+
+  Note: If ix_uni or ix_branch is present, "@" must be present.
 
 Example:
   python bunch_comb py 2@1 1
