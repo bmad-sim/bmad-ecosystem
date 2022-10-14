@@ -738,6 +738,12 @@ function rms_value(val_arr, good_val, ave_val) result (rms_val)
   real(rp), optional :: ave_val
 end function
 
+function rot_2d (vec_in, angle) result (vec_out)
+  import
+  implicit none
+  real(rp) vec_in(2), angle, vec_out(2)
+end function
+
 subroutine run_timer(command, time)
   import
   implicit none
