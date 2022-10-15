@@ -101,6 +101,7 @@ type (strong_beam_struct), pointer :: sb
 type (c_taylor) ptc_ctaylor
 type (complex_taylor_struct) bmad_ctaylor
 type (rad_int_ele_cache_struct), pointer :: ri
+type (grid_field_pt1_struct), pointer :: g_pt
 
 type old_show_lat_column_struct
   character(80) :: name = ''
@@ -1852,18 +1853,19 @@ case ('field')
   orb%t = 0
   s_pos = 0
   show_all = .false.   ! Show derivatives?
+  what_to_show = 'standard'
   s_fmt = 'relative'
   n_count = 0          ! Counter for non-switch args. 
 
   do
-    call tao_next_switch (what2, [character(16):: '-derivatives', '-percent_len', '-absolute_s'], &
+    call tao_next_switch (what2, [character(16):: '-derivatives', '-grid_pt', '-percent_len', '-absolute_s'], &
                                                                        .true., switch, err, ix, .true.)
     if (err) return
     select case (switch)
     case ('');               exit
-    case ('-derivatives');   show_all = .true.
-    case ('-percent_len');   s_fmt = 'percent'
-    case ('-absolute_s');    s_fmt = 'absolute'
+    case ('-derivatives');                show_all = .true.
+    case ('-percent_len', '-absolute_s'); s_fmt = switch
+    case ('-grid_pt');                    what_to_show = switch 
     case default
       n_count = n_count + 1
 
@@ -1935,12 +1937,28 @@ case ('field')
 
   do i = 1, size(eles)
     ele => eles(i)%ele
-    call init_coord (orb, ele = ele, element_end = downstream_end$)
+
+    if (what_to_show == '-grid_pt') then
+      if (.not. associated (ele%grid_field)) then
+        call out_io (s_error$, r_name, 'NO GRID FIELD ASSOCIATED WITH ELEMENT: ' // ele%name)
+        return
+      endif
+      ix0 = nint(orb%vec(1))
+      ix1 = nint(orb%vec(3))
+      ix2 = nint(s_pos)
+      g_pt => ele%grid_field(1)%ptr%pt(ix0, ix1, ix2)
+      nl=nl+1; 
+      cycle
+    endif
+
+    !
+
+    call init_coord (orb, orb, ele, downstream_end$)
 
     select case (s_fmt)
-    case ('percent');   s_pos = s_pos * ele%value(l$)
-    case ('absolute');  s_pos = s_pos - ele%s_start
-    case ('relative');  s_pos = s_pos
+    case ('-percent_len');   s_pos = s_pos * ele%value(l$)
+    case ('-absolute_s');    s_pos = s_pos - ele%s_start
+    case ('relative');       s_pos = s_pos
     end select
 
     time1 = particle_rf_time(orb, ele, .true., s_pos)
