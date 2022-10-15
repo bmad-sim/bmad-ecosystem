@@ -1639,14 +1639,23 @@ case ('hist%width')
   call tao_set_real_value (this_curve%hist%width, component, value_str, err, dflt_uni = i_uni)  
   
 case ('orbit')
-  select case (component)
-  case ('orbit%x')
-    call tao_set_real_value (this_curve%orbit%x, component, value_str, err, dflt_uni = i_uni)
-  case ('orbit%y')
-    call tao_set_real_value (this_curve%orbit%y, component, value_str, err, dflt_uni = i_uni)
-  case ('orbit%t')
-    call tao_set_real_value (this_curve%orbit%t, component, value_str, err, dflt_uni = i_uni)
-  end select
+  call string_trim (value_str, value_str, ix)
+  call tao_set_real_value (this_curve%orbit%x, component, value_str(1:ix), err, dflt_uni = i_uni)
+  if (err) return
+  call string_trim (value_str(ix+1:), value_str, ix)
+  if (ix == 0) return
+  call tao_set_real_value (this_curve%orbit%y, component, value_str(1:ix), err, dflt_uni = i_uni)
+  if (err) return
+  call string_trim (value_str(ix+1:), value_str, ix)
+  if (ix == 0) return
+  call tao_set_real_value (this_curve%orbit%t, component, value_str(1:ix), err, dflt_uni = i_uni)
+
+case ('orbit%x')
+  call tao_set_real_value (this_curve%orbit%x, component, value_str, err, dflt_uni = i_uni)
+case ('orbit%y')
+  call tao_set_real_value (this_curve%orbit%y, component, value_str, err, dflt_uni = i_uni)
+case ('orbit%t')
+  call tao_set_real_value (this_curve%orbit%t, component, value_str, err, dflt_uni = i_uni)
 
 case ('y_axis_scale_factor')
   call tao_set_real_value (this_curve%y_axis_scale_factor, component, value_str, err, dflt_uni = i_uni)
