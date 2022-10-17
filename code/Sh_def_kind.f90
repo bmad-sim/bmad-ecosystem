@@ -1478,7 +1478,8 @@ CONTAINS !----------------------------------------------------------------------
        !       DO I=1,B%N
        !        IF(B%U(i)) CYCLE
        !         X=BEAM_IN_X(B,I)
-
+    x(1)=x(1)-el5%dx
+    x(3)=x(3)-el5%dy
        if(J==1) then
           if(EL5%P%DIR==1) THEN
              CALL EDGE(EL5%P,EL5%BN,EL5%H1,EL5%H2,EL5%FINT,EL5%HGAP,1,X,k)
@@ -1508,7 +1509,8 @@ CONTAINS !----------------------------------------------------------------------
              CALL EDGE(EL5%P,EL5%BN,EL5%H1,EL5%H2,EL5%FINT,EL5%HGAP,1,X,k)
           ENDIF
        ENDIF
-
+    x(1)=x(1)+el5%dx
+    x(3)=x(3)+el5%dy
     ELSEIF(PRESENT(EL7)) THEN
 
        if(J==1) then
@@ -1622,7 +1624,8 @@ CONTAINS !----------------------------------------------------------------------
        !       DO I=1,B%N
        !        IF(B%U(i)) CYCLE
        !         X=BEAM_IN_X(B,I)
-
+    x(1)=x(1)-el5%dx
+    x(3)=x(3)-el5%dy
        if(J==1) then
           if(EL5%P%DIR==1) THEN
              CALL EDGE(EL5%P,EL5%BN,EL5%H1,EL5%H2,EL5%FINT,EL5%HGAP,1,X,k)
@@ -1652,7 +1655,8 @@ CONTAINS !----------------------------------------------------------------------
              CALL EDGE(EL5%P,EL5%BN,EL5%H1,EL5%H2,EL5%FINT,EL5%HGAP,1,X,k)
           ENDIF
        ENDIF
-
+    x(1)=x(1)+el5%dx
+    x(3)=x(3)+el5%dy
     ELSEIF(PRESENT(EL7)) THEN
 
        if(J==1) then
@@ -21159,10 +21163,16 @@ call kill(vm,phi,z)
     ELSE
        bsol=0.0_dp
     ENDIF
-
-   ! call GETNEWB(el%an,el%bn,el%b_sol,EL%P%NMUL,B,X)
+ 
+   if(associated(el%s5)) then
+    x(1)=x(1)-el%s5%dx
+    x(3)=x(3)-el%s5%dy
     call GETNEWB(el%an,el%bn,bsol,EL%P%NMUL,B,X)
-
+    x(1)=x(1)+el%s5%dx
+    x(3)=x(3)+el%s5%dy
+   else
+    call GETNEWB(el%an,el%bn,bsol,EL%P%NMUL,B,X)
+   endif
   END SUBROUTINE get_BfieldR
 
   SUBROUTINE get_BfieldP(EL,B,X)
@@ -21181,8 +21191,16 @@ call kill(vm,phi,z)
     ENDIF
 
 !    call GETNEWB(el%an,el%bn,el%b_sol,EL%P%NMUL,B,X)
+ 
+   if(associated(el%s5)) then
+    x(1)=x(1)-el%s5%dx
+    x(3)=x(3)-el%s5%dy
     call GETNEWB(el%an,el%bn,bsol,EL%P%NMUL,B,X)
-
+    x(1)=x(1)+el%s5%dx
+    x(3)=x(3)+el%s5%dy
+   else
+    call GETNEWB(el%an,el%bn,bsol,EL%P%NMUL,B,X)
+   endif
        call kill(bsol)
 
   END SUBROUTINE get_BfieldP

@@ -55,7 +55,7 @@ module definition
   real(dp) :: global_e =0
   integer :: bmadparser = 0
   integer,parameter :: nacmax = 3
-  integer,parameter :: nacmode = 10
+!  integer,parameter :: nacmode = 10
   integer, parameter :: ndim2t=6+2*nacmax   ! maximum complex size
   integer :: start_stochastic_computation = 0
   logical :: tangent = .false.,force_rescale=.false.   ! force_rescale for vorname=HELICAL see fibre_work routine
@@ -330,14 +330,14 @@ END TYPE quaternion_8
   type rf_phasor
      real(dp) x(2)
      real(dp) om
-     real(dp) f(nacmode),phase(nacmode)
+!     real(dp) f(nacmode),phase(nacmode)
      real(dp) t
   end type rf_phasor
   !@3 ---------------------------------------------</br>
   type rf_phasor_8
      type(real_8)  x(2)  ! The two hands of the clock
      type(real_8) om     ! the omega of the modulation
-     real(dp) f(nacmode),phase(nacmode)
+ !    real(dp) f(nacmode),phase(nacmode)
      real(dp) t          ! the pseudo-time
   end type rf_phasor_8
   !@3 ---------------------------------------------</br>
