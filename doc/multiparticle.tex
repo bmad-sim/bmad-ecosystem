@@ -51,13 +51,13 @@ Consider the two dimensional phase space $(x, p_x)$.
 The transformation to action-angle coordinates,
 $(J, \phi)$, is
 \begin{align}
-  J &= \frac{1}{2}[\gamma x^2 + 2 \alpha x x' + \beta x'^2] \\
-  \tan\phi &= \frac{-\beta \, (x' + \alpha \, x)}{x}
+  J &= \frac{1}{2}[\gamma x^2 + 2 \alpha \, x \, p + \beta p^2] \\
+  \tan\phi &= \frac{-\beta \, (p + \alpha \, x)}{x}
 \end{align}
 The inverse is
 \begin{equation}
   \begin{pmatrix} 
-    x \\ x' 
+    x \\ p
   \end{pmatrix} 
   = \sqrt{2J} 
   \begin{pmatrix} 
@@ -80,15 +80,15 @@ where the emittance $\varepsilon$ is just the average of $J$ over the distributi
   \varepsilon = \langle J \rangle \equiv \int dJ \, d\phi \, J\rho(J,\phi).
   \label{eq:eps}
 \end{equation}
-The beam sizes $\sigma$ and $\sigma'$ are
+The beam sizes are:
 \begin{align}
-  \sigma  & = \sqrt{\langle x^2 \rangle} = \sqrt{\varepsilon\beta}  \\
-  \sigma' & = \sqrt{\langle x'^2 \rangle} = \sqrt{\varepsilon\gamma},
+  \sigma_{x}^2 & \equiv \langle x^2 \rangle = \varepsilon\beta  \\
+  \sigma_{p}^2 & \equiv \langle p^2 \rangle = \varepsilon\gamma,
   \label{eq:rms}
 \end{align}
 and the covariance is
 \begin{equation}
-  \langle xx' \rangle = -\varepsilon\alpha.
+  \langle x \, p \rangle = -\varepsilon\alpha.
   \label{eq:corr}
 \end{equation}
 
