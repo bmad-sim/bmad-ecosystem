@@ -797,13 +797,13 @@ if (ele%aperture_at /= no_aperture$ .and. (ele%value(x1_limit$) /= 0 .or. ele%va
   end select
 
   select case (ele%aperture_at)
-  case (both_ends$);      ap_pos = 0
+  case (both_ends$);      ap_pos =  0
   case (entrance_end$);   ap_pos = -1
-  case (exit_end$);       ap_pos = 1
+  case (exit_end$);       ap_pos =  1
   end select
 
-  ap_lim = [(ele%value(x1_limit$) + ele%value(x2_limit$)) / 2, (ele%value(y1_limit$) + ele%value(y2_limit$)) / 2]
-  ap_dxy = [(ele%value(x1_limit$) - ele%value(x2_limit$)) / 2, (ele%value(y1_limit$) - ele%value(y2_limit$)) / 2]
+  ap_lim = 0.5_rp * [ele%value(x1_limit$) + ele%value(x2_limit$), ele%value(y1_limit$) + ele%value(y2_limit$)]
+  ap_dxy = 0.5_rp * [ele%value(x1_limit$) - ele%value(x2_limit$), ele%value(y1_limit$) - ele%value(y2_limit$)]
   call assign_aperture (ptc_fibre, ap_type, ap_lim, ap_lim(1), ap_lim(2), ap_dxy(1), ap_dxy(2), pos = ap_pos)
 endif
 
@@ -811,8 +811,8 @@ endif
 ! Following the SAD convention: A zero length sad_mult has no fringe.
 
 if ((key == sad_mult$ .and. ele%value(l$) /= 0) .or. key == quadrupole$) then
-  ptc_fibre%mag%va  = -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$))
-  ptc_fibre%magp%va = -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$))
+  ptc_fibre%mag%va  = -sign(sqrt(24.0_rp * abs(ele%value(fq1$))), ele%value(fq1$))
+  ptc_fibre%magp%va = -sign(sqrt(24.0_rp * abs(ele%value(fq1$))), ele%value(fq1$))
   ptc_fibre%mag%vs  = ele%value(fq2$)
   ptc_fibre%magp%vs = ele%value(fq2$)
 endif

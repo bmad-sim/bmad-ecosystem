@@ -8452,7 +8452,7 @@ do
     end if
     ! Get as many field components as listed
     do i = 1, 6
-      call parse_complex_component(array(pt_counter)%field(i), delim, err_flag2)
+      call parse_complex_component(array(pt_counter)%field(i), array(pt_counter), delim, err_flag2)
       if (err_flag2) return
       if (delim == ')') exit
       if (delim /= ',') then
@@ -8567,14 +8567,17 @@ contains
 ! looks for (x, y) or x followed by , or ) 
 ! returns complex field_component and next delim, which should be , or )
 
-subroutine parse_complex_component(complex_component, delim, err_flag)
+subroutine parse_complex_component(complex_component, array_pt, delim, err_flag)
 
-character(1) delim
-character(40) word
+type (grid_pt_struct) array_pt
+
 real(rp) x, y
 complex(rp) complex_component
 integer ix_word
 logical delim_found, err_flag
+
+character(1) delim
+character(40) word
 
 !
 
@@ -8585,13 +8588,13 @@ err_flag = .true.
 call string_trim(bp_com%parse_line, bp_com%parse_line, ix_word)
 if (bp_com%parse_line(1:1) == '(') then
   bp_com%parse_line = bp_com%parse_line(2:)
-  call get_this_value(x, ',', delim, delim_found, err_flag); if (err_flag) return
-  call get_this_value(y, ')', delim, delim_found, err_flag); if (err_flag) return
+  call get_this_value(x, array_pt, ',', delim, delim_found, err_flag); if (err_flag) return
+  call get_this_value(y, array_pt, ')', delim, delim_found, err_flag); if (err_flag) return
   complex_component = cmplx(x, y, rp)
   call get_next_word (word, ix_word, ',)', delim, delim_found)
 
 else
-  call get_this_value(x, ',)', delim, delim_found, err_flag); if (err_flag) return
+  call get_this_value(x, array_pt, ',)', delim, delim_found, err_flag); if (err_flag) return
   complex_component = cmplx(x, 0.0_rp, rp)
 endif
 
@@ -8602,7 +8605,9 @@ end subroutine parse_complex_component
 !-----------------------------------------------------------
 ! contains 
 
-subroutine get_this_value (val, delim_list, delim, delim_found, err_flag)
+subroutine get_this_value (val, array_pt, delim_list, delim, delim_found, err_flag)
+
+type (grid_pt_struct) array_pt
 
 real(rp) val
 integer ix_word
@@ -8618,6 +8623,8 @@ call get_next_word (word, ix_word, delim_list, delim, delim_found)
 if (is_real(word, real_num = val)) return
 
 call parser_error ('BAD FIELD VALUE IN GRID_FIELD PT: ' // word, &
+                   'AT GRID POINT INDEX: ' // int_str(array_pt%ix(1)) // ', ' // int_str(array_pt%ix(2)) // &
+                                                                         ', ' // int_str(array_pt%ix(3)), &
                    '[NOTE: EXPRESSIONS FOR GRID_FIELD PT FIELD VALUES NOT IMPLEMENTED.]')
 err_flag = .true.
 

@@ -49,7 +49,7 @@ type (fringe_field_info_struct) fringe_info
 type (ele_struct), pointer :: hard_ele, lord
 
 real(rp), optional :: mat6(6,6), rf_time
-real(rp) f, fac, l_drift, ks4, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
+real(rp) f, fac, l_drift, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
 real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 complex(rp) xiy, c_vec
 
@@ -179,19 +179,29 @@ case (sbend$)
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity with changing
 ! ref energy. So use hard_ele%value(bs_field$).
 
-case (solenoid$, sol_quad$)
-  if (logic_option(.true., apply_sol_fringe)) then
-    ! To make reverse tracking the same as forward tracking, use a symmetrical orbital-spin-orbital kick scheme.
-    ks4 = at_sign * charge_of(orb%species) * hard_ele%value(bs_field$) * c_light / (4 * orb%p0c)
-    orb%vec(2) = orb%vec(2) + ks4 * orb%vec(3)
-    orb%vec(4) = orb%vec(4) - ks4 * orb%vec(1)
-    if (track_spn) then
-      f = at_sign * sign_z_vel * hard_ele%value(bs_field$) / 2
-      call rotate_spin_given_field (orb, sign_z_vel, -[orb%vec(1), orb%vec(3), 0.0_rp] * f)
-    endif
-    orb%vec(2) = orb%vec(2) + ks4 * orb%vec(3)
-    orb%vec(4) = orb%vec(4) - ks4 * orb%vec(1)
+case (sad_mult$)
+  if (hard_ele%value(l$) == 0) return
+  if (logic_option(.true., apply_sol_fringe)) call apply_this_sol_fringe(orb, hard_ele, at_sign, sign_z_vel, track_spn)
+
+  if (particle_at == first_track_edge$) then
+    call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
+    if (orb%state /= alive$) return
+    call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
+    call sad_mult_hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    if (orb%state /= alive$) return
+    call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+  else
+    call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call sad_mult_hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    if (orb%state /= alive$) return
+    call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
+    call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
+    if (orbit_too_large (orb, param)) return
   endif
+
+
+case (solenoid$, sol_quad$)
+  if (logic_option(.true., apply_sol_fringe)) call apply_this_sol_fringe(orb, hard_ele, at_sign, sign_z_vel, track_spn)
 
 case (lcavity$, rfcavity$, e_gun$)
 
@@ -302,5 +312,36 @@ if (hard_ele_field_calc == bmad_standard$) then
 endif
 
 end subroutine electric_longitudinal_fringe
+
+!--------------------------------------------------------------------------------
+! contains
+
+subroutine apply_this_sol_fringe(orb, hard_ele, at_sign, sign_z_vel, track_spn)
+
+type (coord_struct) orb
+type (ele_struct) hard_ele
+
+real(rp) ks4, f, xy_orb(2)
+integer at_sign, sign_z_vel
+logical track_spn
+
+! To make reverse tracking the same as forward tracking, use a symmetrical orbital-spin-orbital kick scheme.
+
+ks4 = at_sign * charge_of(orb%species) * hard_ele%value(bs_field$) * c_light / (4.0_rp * orb%p0c)
+xy_orb = [orb%vec(1), orb%vec(3)]
+if (hard_ele%key == sad_mult$) then
+  xy_orb = xy_orb + rot_2d ([ele%value(x_offset_mult$), ele%value(y_offset_mult$)], -ele%value(tilt$))
+endif
+
+orb%vec(2) = orb%vec(2) + ks4 * xy_orb(2)
+orb%vec(4) = orb%vec(4) - ks4 * xy_orb(1)
+if (track_spn) then
+  f = at_sign * sign_z_vel * hard_ele%value(bs_field$) / 2
+  call rotate_spin_given_field (orb, sign_z_vel, -[xy_orb(1), xy_orb(2), 0.0_rp] * f)
+endif
+orb%vec(2) = orb%vec(2) + ks4 * xy_orb(2)
+orb%vec(4) = orb%vec(4) - ks4 * xy_orb(1)
+
+end subroutine apply_this_sol_fringe
 
 end subroutine apply_element_edge_kick
