@@ -116,8 +116,8 @@ call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$
 
 if (do_offset) call offset_particle (ele, set$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 
-if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  param%particle, ele, end_orb, magnetic$, 1.0_rp/2,   mat6, calculate_mat6)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, end_orb, magnetic$, 1.0_rp/2,   mat6, calculate_mat6)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
 
 ! init
 
@@ -367,8 +367,8 @@ end select
 !----------------------------------------------------------------------------
 ! element offset
 
-if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  param%particle, ele, end_orb, magnetic$, 1.0_rp/2,        mat6, calculate_mat6)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, end_orb, magnetic$, 1.0_rp/2,        mat6, calculate_mat6)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
 
 if (do_offset) call offset_particle (ele, unset$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 
