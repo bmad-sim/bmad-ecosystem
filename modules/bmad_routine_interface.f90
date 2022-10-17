@@ -2102,12 +2102,12 @@ subroutine slice_lattice (lat, ele_list, error, do_bookkeeping)
   logical, optional :: do_bookkeeping
 end subroutine
 
-subroutine sol_quad_mat6_calc (ks, k1, s_len, ele, orbit, mat6, make_matrix)
+subroutine sol_quad_mat6_calc (ks, k1, tilt, s_len, ele, orbit, mat6, make_matrix)
   import
   implicit none
   type (ele_struct) ele
   type (coord_struct) orbit
-  real(rp) ks, k1, s_len
+  real(rp) ks, k1, tilt, s_len
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
 end subroutine

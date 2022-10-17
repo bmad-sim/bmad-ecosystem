@@ -264,14 +264,14 @@ end subroutine multipole1_kt_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_kicks (knl, tilt, ref_species, ele, orbit, pole_type, ref_orb_offset)
+! Subroutine multipole_kicks (knl, tilt, ele, orbit, pole_type, ref_orb_offset)
 !
 ! Subroutine to put in the kick due to a multipole.
+! Also see the ab_multipole_kicks routine.
 !
 ! Input:
 !   knl(0:)        -- real(rp): Multipole strengths.
 !   tilt(0:)       -- real(rp): Multipole tilts.
-!   ref_species    -- integer: Reference species.
 !   ele            -- ele_struct: Lattice element containing the multipoles.
 !   orbit          -- coord_struct: Particle position.
 !   pole_type      -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
@@ -283,14 +283,14 @@ end subroutine multipole1_kt_to_ab
 !   orbit -- coord_struct: Kicked particle.
 !-
 
-subroutine multipole_kicks (knl, tilt, ref_species, ele, orbit, pole_type, ref_orb_offset)
+subroutine multipole_kicks (knl, tilt, ele, orbit, pole_type, ref_orb_offset)
 
 type (coord_struct)  orbit
 type (ele_struct) ele
 
 real(rp) knl(0:), tilt(0:)
 
-integer ref_species, n
+integer n
 
 integer, optional :: pole_type
 logical, optional :: ref_orb_offset
@@ -299,7 +299,7 @@ logical, optional :: ref_orb_offset
 
 do n = 0, n_pole_maxx
   if (knl(n) == 0) cycle
-  call multipole_kick (knl(n), tilt(n), n, ref_species, ele%orientation, orbit, pole_type, ref_orb_offset)
+  call multipole_kick (knl(n), tilt(n), n, ele%ref_species, ele%orientation, orbit, pole_type, ref_orb_offset)
 enddo
 
 end subroutine multipole_kicks
@@ -308,16 +308,16 @@ end subroutine multipole_kicks
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kicks (an, bn, ix_pole_max, ref_species, ele, orbit, pole_type, scale, mat6, make_matrix)
+! Subroutine ab_multipole_kicks (an, bn, ix_pole_max, ele, orbit, pole_type, scale, mat6, make_matrix)
 !
 ! Routine to put in the kick due to ab_multipole components.
+! Also see the multipole_kicks routine.
 ! The kick will be corrected for the orientation of the element and the particle direction of travel.
 !
 ! Input:
 !   an(0:)         -- real(rp): Skew multipole strengths.
 !   bn(0:)         -- real(rp): Normal multipole tilts.
 !   ix_pole_max    -- integer: Maximum pole index.
-!   ref_species    -- integer: Reference species.
 !   ele            -- ele_struct: Lattice element containing the multipoles.
 !   orbit          -- coord_struct: Particle position.
 !   pole_type      -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
@@ -331,7 +331,7 @@ end subroutine multipole_kicks
 !   mat6(6,6)    -- Real(rp), optional: Transfer matrix transfer matrix including multipole.
 !-
 
-subroutine ab_multipole_kicks (an, bn, ix_pole_max, ref_species, ele, orbit, pole_type, scale, mat6, make_matrix)
+subroutine ab_multipole_kicks (an, bn, ix_pole_max, ele, orbit, pole_type, scale, mat6, make_matrix)
 
 type (coord_struct)  orbit, orb0
 type (ele_struct) ele
@@ -342,7 +342,7 @@ real(rp) E0, E1, mc2
 real(rp), optional :: scale, mat6(6,6)
 
 integer, optional :: pole_type
-integer ix_pole_max, ref_species, n
+integer ix_pole_max, n
 
 logical, optional :: make_matrix
 
@@ -355,10 +355,10 @@ orb0 = orbit
 
 do n = 0, ix_pole_max
   if (logic_option(.false., make_matrix)) then
-    call ab_multipole_kick (an(n), bn(n), n, ref_species, ele%orientation, orbit, kx, ky, dk, pole_type = pole_type, scale = scale)
+    call ab_multipole_kick (an(n), bn(n), n, ele%ref_species, ele%orientation, orbit, kx, ky, dk, pole_type = pole_type, scale = scale)
     dk_tot = dk_tot + dk
   else
-    call ab_multipole_kick (an(n), bn(n), n, ref_species, ele%orientation, orbit, kx, ky, pole_type = pole_type, scale = scale)
+    call ab_multipole_kick (an(n), bn(n), n, ele%ref_species, ele%orientation, orbit, kx, ky, pole_type = pole_type, scale = scale)
   endif
 
   kx_tot = kx_tot + kx

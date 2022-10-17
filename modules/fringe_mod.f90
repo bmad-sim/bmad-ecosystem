@@ -386,7 +386,7 @@ end subroutine second_order_bend_edge_kick
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine sad_mult_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
+! Subroutine sad_mult_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
 !
 ! Routine to track through the hard edge bend fringe field for a bend or sad_mult element.
 ! Only the bend field is taken into account here. Higher order multipolse must be handled elsewhere.
@@ -403,15 +403,13 @@ end subroutine second_order_bend_edge_kick
 !   orbit       -- coord_struct: Starting coordinates.
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix up to the fringe.
 !   make_matrix -- real(rp), optional: Propagate the transfer matrix? Default is False.
-!   g_bend      -- real(rp), optional: Bend bend strength. Used (and must be present) only with sad_mult.
-!   tilt        -- real(rp), optional: field rotation. Used (and must be present) only with sad_mult.
 !
 ! Output:
 !   orbit       -- coord_struct: Ending coordinates.
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
 !-
 
-subroutine sad_mult_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
+subroutine sad_mult_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
 
 implicit none
 
@@ -419,7 +417,7 @@ type (ele_struct) ele
 type (coord_struct) orbit
 type (lat_param_struct) param
 
-real(rp), optional :: mat6(6,6), g_bend, tilt
+real(rp), optional :: mat6(6,6)
 real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6), c_dir, t0, ppx2
 
 integer fringe_type, particle_at
@@ -438,9 +436,10 @@ if (.not. fringe_here(ele, orbit, particle_at)) return
 if (ele%key == sbend$) then
   g = ele%value(g$) + ele%value(dg$)
   t0 = 0
-else
-  g = g_bend
-  t0 = tilt
+else  ! sad_mult
+  if (.not. associated(ele%a_pole)) return
+  call multipole1_ab_to_kt(ele%a_pole(0), ele%b_pole(0), 0, g, t0)
+  g = g / ele%value(l$)
 endif
 
 !
@@ -455,7 +454,7 @@ endif
 
 ! Rotate
 
-if (t0 /= 0) call tilt_coords (t0, orbit%vec)
+if (t0 /= 0) call tilt_coords (t0, orbit%vec, mat6, make_matrix)
 
 px = orbit%vec(2)
 y = orbit%vec(3)
@@ -484,13 +483,12 @@ if (logic_option(.false., make_matrix)) then
   kmat(5,2) = -g * y2 * (1 - yg) * (rel_p**2 + 2 * px**2) * rel_p / (2 * p_zy**5)
   kmat(5,3) = -g * px * (y - 2 * y * yg) * rel_p / p_zy**3
   kmat(5,6) =  g * px * y2 * (1 - 2 * yg) * (2 * rel_p**2 + px**2) / (2 * p_zy**5)
-  call tilt_mat6(kmat, t0)
   mat6 = matmul(kmat, mat6)
 endif
 
 ! Rotate
 
-if (t0 /= 0) call tilt_coords (-t0, orbit%vec)
+if (t0 /= 0) call tilt_coords (-t0, orbit%vec, mat6, make_matrix)
 
 end subroutine sad_mult_hard_bend_edge_kick
 
@@ -510,14 +508,13 @@ end subroutine sad_mult_hard_bend_edge_kick
 !   orbit         -- coord_struct: Position before kick.
 !   mat6(6,6)     -- real(rp), optional: Transfer matrix up to the edge.
 !   make_matrix   -- real(rp), optional: Propagate the transfer matrix? Default is False.
-!   k1_sad        -- real(rp), optional: k1l for a sad_mult. Used by track_a_sad_mult routine.
 !
 ! Output:
 !   orbit         -- coord_struct: Position after kick.
 !   mat6(6,6)     -- real(rp), optional: Transfer matrix with edge kick added on.
 !-
 
-subroutine soft_quadrupole_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, k1_sad)
+subroutine soft_quadrupole_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
 
 implicit none
 
@@ -526,9 +523,9 @@ type (ele_struct), pointer :: m_ele
 type (coord_struct) orbit
 type (lat_param_struct) param
 
-real(rp), optional :: mat6(6,6), k1_sad
+real(rp), optional :: mat6(6,6)
 real(rp) k1_rel, x, y, px, py, charge_dir, kmat(6,6)
-real(rp) f1, f2, ef1, vec(4), rel_p, vx, vy
+real(rp) f1, f2, ef1, vec(4), rel_p, vx, vy, tilt1
 
 integer particle_at
 integer fringe_type
@@ -554,6 +551,8 @@ rel_p = 1 + orbit%vec(6)
 select case (ele%key)
 case (quadrupole$)
   k1_rel = charge_dir * ele%value(k1$) / rel_p
+  tilt1 = 0
+
 case (sad_mult$)
   ! Slice slaves and super slaves have their associated multipoles stored in the lord
   if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
@@ -561,8 +560,9 @@ case (sad_mult$)
   else
     m_ele => ele
   endif
-  ! Note: k1_sad already has charge_dir factored in.
-  k1_rel = k1_sad / rel_p
+  if (.not. associated(m_ele%a_pole)) return
+  call multipole1_ab_to_kt (m_ele%a_pole(1), m_ele%b_pole(1), 1, k1_rel, tilt1)
+  k1_rel = charge_dir * k1_rel / (m_ele%value(l$) * rel_p)
 end select
 
 f1 = k1_rel * ele%value(fq1$)
@@ -571,6 +571,8 @@ if (f1 == 0 .and. f2 == 0) return
 if (particle_at == second_track_edge$) f1 = -f1
 
 ! 
+
+call tilt_coords(tilt1, orbit%vec, mat6, make_matrix)
 
 ef1 = exp(f1)
 
@@ -612,13 +614,15 @@ if (logic_option(.false., make_matrix)) then
   mat6 = matmul(kmat, mat6)
 endif
 
+call tilt_coords(-tilt1, orbit%vec, mat6, make_matrix)
+
 end subroutine soft_quadrupole_edge_kick
 
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine hard_multipole_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, a_pole, b_pole)
+! Subroutine hard_multipole_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
 !
 ! Routine to track through the hard edge field of a multipole.
 ! The dipole component is ignored and only quadrupole and higher multipoles are included.
@@ -626,7 +630,7 @@ end subroutine soft_quadrupole_edge_kick
 ! This routine handles elements of type:
 !   sad_mult, sbend, quadrupole, sextupole
 !
-! For sad_mult elements, a_pole and b_pole ae used for the multipole values.
+! For sad_mult elements, ele%a_pole and ele%b_pole ae used for the multipole values.
 ! For the other elements, k1 or k2 is used and it is assumed that we are in the element
 ! frame of reference so tilt = 0.
 ! 
@@ -637,15 +641,13 @@ end subroutine soft_quadrupole_edge_kick
 !   orbit       -- coord_struct: Starting coordinates.
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix up to the fringe.
 !   make_matrix -- real(rp), optional: Propagate the transfer matrix? Default is False.
-!   a_pole(0:)  -- real(rp), optional: sad_mult skew components. Must be present for sad_mult.
-!   b_pole(0:)  -- real(rp), optional: sad_mult normal components. Must be present for sad_mult.
 !
 ! Output:
 !   orbit       -- coord_struct: Ending coordinates.
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
 !-
 
-subroutine hard_multipole_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, a_pole, b_pole)
+subroutine hard_multipole_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
 
 implicit none
 
@@ -654,7 +656,6 @@ type (lat_param_struct) param
 type (coord_struct) orbit
 
 real(rp), optional :: mat6(6,6)
-real(rp), optional ::  a_pole(0:), b_pole(0:)
 real(rp) rel_p, cn, x, y, px, py, denom, ddenom_dx, ddenom_dy, ddenom_dpz, kmat(6,6), ap, bp, charge_dir
 real(rp) fx, dfx_dx, dfx_dy, d2fx_dxx, d2fx_dxy, d2fx_dyy
 real(rp) fy, dfy_dx, dfy_dy, d2fy_dxx, d2fy_dxy, d2fy_dyy
@@ -690,8 +691,9 @@ if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mas
 
 select case (ele%key)
 case (sad_mult$)
-  do n = ubound(a_pole, 1), 0, -1
-    if (a_pole(n) /= 0 .or. b_pole(n) /= 0) exit
+  if (.not. associated(ele%a_pole)) return
+  do n = ubound(ele%a_pole, 1), 0, -1
+    if (ele%a_pole(n) /= 0 .or. ele%b_pole(n) /= 0) exit
   enddo
   n_max = n
 case (quadrupole$, sbend$)
@@ -735,9 +737,9 @@ do n = 1, n_max
 
   select case (ele%key)
   case (sad_mult$)
-    if (a_pole(n) == 0 .and. b_pole(n) == 0) cycle
-    ap = a_pole(n) / ele%value(l$)
-    bp = b_pole(n) / ele%value(l$)
+    if (ele%a_pole(n) == 0 .and. ele%b_pole(n) == 0) cycle
+    ap = ele%a_pole(n) / ele%value(l$)
+    bp = ele%b_pole(n) / ele%value(l$)
   case (quadrupole$, sbend$)
     ap = 0
     bp = ele%value(k1$)
@@ -826,7 +828,7 @@ end subroutine hard_multipole_edge_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix, k0l, t0)
+! Subroutine soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 !
 ! Subroutine to track through the ("linear") bend soft edge field of an sbend or sad_mult.
 !
@@ -838,9 +840,9 @@ end subroutine hard_multipole_edge_kick
 !   mat6(6,6)   -- real(rp), optional: Starting matrix 
 !   make_matrix -- real(rp), optional: Propagate the transfer matrix? Default is False.
 !   k0l         -- real(rp), optional: Used with sad_mult. 
-!                     If present, use this instead of ele%a/b_pole.
+!                     If present, use this instead of ele%a_pole/%b_pole.
 !   t0          -- real(rp), optional: Used with sad_mult. 
-!                     If present, use this instead of ele%a/b_pole.
+!                     If present, use this instead of ele%a_pole/%b_pole.
 !                     Must be present if k0l is.
 !
 ! Output:
@@ -848,7 +850,7 @@ end subroutine hard_multipole_edge_kick
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix after fringe field
 !-
 
-subroutine soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix, k0l, t0)
+subroutine soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 implicit none
 
@@ -856,7 +858,7 @@ type(coord_struct) :: orb
 type(ele_struct) :: ele
 type (lat_param_struct) param
 
-real(rp), optional :: mat6(6,6), k0l, t0
+real(rp), optional :: mat6(6,6)
 real(rp) :: kmat(6,6), tilt
 real(rp) :: f1, el_p, g, ct, c1, c2, c3, y, px, rel_p, sin_e
 real(rp) k0, sk0, c1_k, c2_k, c3_k, c1_sk, c2_sk, c3_sk 
@@ -883,7 +885,6 @@ element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 
 select case (ele%key)
 case (sbend$)
-
   if (element_end == entrance_end$) then
     sin_e = sin(ele%value(e1$))
     f1 = 12 * ele%value(fint$) * ele%value(hgap$) 
@@ -898,7 +899,6 @@ case (sbend$)
   tilt = 0
 
 case (sad_mult$)
-
   if (element_end == entrance_end$) then
     f1 = ele%value(fb1$)
   else
@@ -907,14 +907,8 @@ case (sad_mult$)
 
   if (f1 == 0) return
 
-  if (present(k0l)) then
-    g = k0l / ele%value(l$)
-    tilt = t0
-  else
-    g = sqrt(ele%b_pole(0)**2 + ele%a_pole(0)**2) / ele%value(l$)
-    tilt = -atan2(ele%a_pole(0), ele%b_pole(0))
-  endif
-
+  call multipole1_ab_to_kt(ele%a_pole(0), ele%b_pole(0), 0, g, tilt)
+  g = g / ele%value(l$)
 end select
 
 !
@@ -928,7 +922,7 @@ if (particle_at == second_track_edge$) then
   g = -g
 endif
 
-if (tilt /= 0) call tilt_coords(tilt, orb%vec)
+if (tilt /= 0) call tilt_coords(tilt, orb%vec, mat6, make_matrix)
 
 px = orb%vec(2) ! + sin_e ???
 y  = orb%vec(3)
@@ -947,8 +941,6 @@ if (logic_option(.false., make_matrix)) then
   kmat(5,3) = (c2 * y - c3 * y**3) / rel_p
   kmat(5,6) = -2*(c1 * px + c2 * y**2/2 - c3 * y**4/4) / (rel_p**2) ! Derivative of the orb%vec(5) line below
 
-  if (tilt /= 0) call tilt_mat6 (kmat, tilt)
-
   mat6(1,:) = mat6(1,:) + kmat(1,6) * mat6(6,:)
   mat6(4,:) = mat6(4,:) + kmat(4,3) * mat6(3,:) + kmat(4,6) * mat6(6,:)
   mat6(5,:) = mat6(5,:) + kmat(5,2) * mat6(2,:) + kmat(5,3) * mat6(3,:) + kmat(5,6) * mat6(6,:)
@@ -958,7 +950,7 @@ orb%vec(1) = orb%vec(1) + c1 * orb%vec(6)
 orb%vec(4) = orb%vec(4) + c2 * y - c3 * y**3
 orb%vec(5) = orb%vec(5) + (c1 * px + c2 * y**2/2 - c3 * y**4/4) / rel_p
 
-if (tilt /= 0) call tilt_coords (-tilt, orb%vec)
+if (tilt /= 0) call tilt_coords (-tilt, orb%vec, mat6, make_matrix)
 
 end subroutine soft_bend_edge_kick
 
