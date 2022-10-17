@@ -44,7 +44,7 @@ character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
 
-integer i, i0, j, i2, j2, n_universes, iu, ix, ib, ip, ios
+integer i, i0, j, i2, j2, n_universes, iu, ix, ib, ip, ios, ie
 integer iu_log, omp_n
 
 logical err_flag
@@ -333,7 +333,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (u%design_same_as_previous) cycle
 
   do ib = 0, ubound(u%model%lat%branch, 1)
-    if (u%model%lat%branch(ib)%param%geometry == closed$) then
+    branch => u%model%lat%branch(ib)
+    if (branch%param%geometry == closed$) then
       call calc_z_tune(u%model%lat%branch(ib))
       if (s%global%rf_on .and. do_print) then
         call out_io (s_info$, r_name, 'Note! Default now is for RFcavities is to be left on (used to be off).', &
@@ -344,6 +345,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         call set_on_off (rfcavity$, u%model%lat, off$, ix_branch = ib)
       endif
     endif
+    do ie = 1, branch%n_ele_max
+      ! Make sure cache is calculated with respect to particle orbit.
+      if (associated(branch%ele(ie)%rad_int_cache)) branch%ele(ie)%rad_int_cache%stale = .true.
+    enddo
   enddo
 enddo
 
