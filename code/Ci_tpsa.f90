@@ -141,7 +141,7 @@ logical :: do_damping=.false.,do_spin=.false.,use_radiation_inverse = .true.
 logical :: force_spin_input_normal=.false.
 private c_clean_linear_map
 private c_fill_uni_r,c_null_uni,c_fill_uni,c_refill_uni
-
+integer :: no_uni = 10000
 type(c_linear_map) q_phasor,qi_phasor
 
   INTERFACE abs_square
@@ -980,8 +980,8 @@ end subroutine c_get_indices
     !       scdadd%x(i)=s1%m%v(i)+s2%x(i)
     scdadd%AC(i)%om=s2%AC(i)%om
     scdadd%AC(i)%t=s2%AC(i)%t
-    scdadd%AC(i)%f=s2%AC(i)%f
-    scdadd%AC(i)%phase=s2%AC(i)%phase
+!    scdadd%AC(i)%f=s2%AC(i)%f
+!    scdadd%AC(i)%phase=s2%AC(i)%phase
     master=localmaster
 enddo
     !    endif
@@ -1103,8 +1103,8 @@ do i=1,daddsc%nac
     !       scdadd%x(i)=s1%m%v(i)+s2%x(i)
     daddsc%AC(i)%om=s2%AC(i)%om
     daddsc%AC(i)%t=s2%AC(i)%t
-    daddsc%AC(i)%f=s2%AC(i)%f
-    daddsc%AC(i)%phase=s2%AC(i)%phase
+!    daddsc%AC(i)%f=s2%AC(i)%f
+!    daddsc%AC(i)%phase=s2%AC(i)%phase
     master=localmaster
     !    endif
 enddo
@@ -2124,8 +2124,7 @@ enddo
     integer i
 
 
-    IF(.NOT.C_STABLE_DA) RETURN
-    
+!    
      s2%x=0.0_dp
      s2%x0=0.0_dp
      do i=1,size(s1)
@@ -2151,7 +2150,7 @@ enddo
     integer i
 
 
-    IF(.NOT.C_STABLE_DA) RETURN
+ 
     
      s2%x=0.0_dp
      do i=1,size(s1)
@@ -2161,7 +2160,8 @@ enddo
       s2%s1=0
       s2%s2=0
       s2%s3=0
-     s2%n=size(s1)           
+     s2%n=size(s1) 
+         
       s2%s1(1)=1
       s2%s2(2)=1
       s2%s3(3)=1
@@ -2175,8 +2175,7 @@ enddo
     complex(dp),INTENT(inOUT)::S1(:)
     integer i
 
-
-    IF(.NOT.C_STABLE_DA) RETURN
+ 
     
 
      do i=1,size(s1)
@@ -8887,8 +8886,8 @@ end subroutine c_bmad_reinit
     logical(lp), optional :: ptc  !spin,
     integer ndpt_ptc,i,i1,i2,i3,i4,i5,i6,noo,j
     if(use_quaternion) spin_def_tune=-1
- 
-   ip_mat=0; jp_mat=0; jt_mat=0;
+
+    ip_mat=0; jp_mat=0; jt_mat=0;
    
    do i=1,3
     ip_mat(i,2*i-1,2*i-1)=1
@@ -9071,8 +9070,7 @@ endif
     logical(lp), optional :: ptc  
     call c_init(NO1,NV1,np1,ndpt1,AC_rf,ptc)
      call init(NO,nd,np,ndpt) 
-
-c_%nd2t=>nd2t
+ c_%nd2t=>nd2t
 c_%nd2harm=>nd2harm
 c_%ndc2t=>ndc2t
 c_%no=>NO
@@ -21065,8 +21063,7 @@ end subroutine cholesky_dt
      integer k,i
     k=size(s2)
     do i=1,k
-    DEALLOCATE(S2(i)%N,S2(i)%NV,S2(i)%C,S2(i)%J)
-    NULLIFY(S2(i)%N,S2(i)%NV,S2(i)%C,S2(i)%J)    
+        call c_kill_uni(S2(i))
     enddo
 
   END SUBROUTINE c_kill_Unis
@@ -21086,10 +21083,12 @@ end subroutine cholesky_dt
   END SUBROUTINE c_null_uni
 
 
-  SUBROUTINE  c_ALLOC_U(S2,N,NV,nd2)
+  SUBROUTINE  c_ALLOC_U(S2,N,NV,nd2,order)
     implicit none
     type (C_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
     integer, intent(in):: N,NV,nd2
+    logical, optional :: order
+
     ALLOCATE(S2%N,S2%NV,S2%nd2)
     if(N==0) then
        allocate(S2%C(1),S2%J(1,NV));S2%C(1)=0.0_dp;S2%J(:,:)=0;
@@ -21099,13 +21098,17 @@ end subroutine cholesky_dt
     S2%N=N
     S2%NV=NV
     S2%nd2=nd2
+
+
+
   END SUBROUTINE c_ALLOC_U
 
-  SUBROUTINE  c_ALLOC_Us(S2,N,NV,nd2)
+  SUBROUTINE  c_ALLOC_Us(S2,N,NV,nd2,order)
     implicit none
     type (C_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2(:)
     integer, intent(in):: N,NV,nd2
      integer k,i
+    logical, optional :: order
     k=size(s2)
     do i=1,k
       ALLOCATE(S2(i)%N,S2(i)%NV,S2(i)%nd2)
@@ -21117,6 +21120,7 @@ end subroutine cholesky_dt
     S2(i)%N=N
     S2(i)%NV=NV
     S2(i)%nd2=nd2
+
     enddo
 
   END SUBROUTINE c_ALLOC_Us
@@ -21179,17 +21183,21 @@ end subroutine cholesky_dt
     complex(dp) c_concat_c_uni_ray,c
     TYPE (c_UNIVERSAL_TAYLOR), INTENT (IN) :: S1
     TYPE (c_ray), INTENT (IN) ::  S2
-    integer i,j
+    integer i,j,k
 
 
     c_concat_c_uni_ray=0.0_dp
 
     do i=1,s1%n
      c=1
+     k=0
      do j=1,s1%nv
+     k=k+s1%J(i,j)
       c=c*s2%x(j)**s1%J(i,j)
      enddo
-     c_concat_c_uni_ray=c_concat_c_uni_ray+s1%c(i)*c
+     if(k<=no_uni) then
+      c_concat_c_uni_ray=c_concat_c_uni_ray+s1%c(i)*c
+     endif
     enddo
 
  ! TYPE c_UNIVERSAL_TAYLOR
@@ -21411,14 +21419,21 @@ integer, allocatable :: je(:),jf(:)
 type(c_vector_field) fs
 !type(universal_taylor), target :: Re, Im
 type(c_universal_taylor), target :: ut
+type(c_universal_taylor) ut0
 real(dp) prec
 complex(dp) zilch
-
+integer, allocatable :: ord(:),pos(:)
+integer maxord,max,kmax
+ 
 prec=1.d-7
 zilch=0.0_dp
 call alloc(fs)
 call alloc(t)
  
+allocate(ord(no+1),pos(no+1))
+
+ord=0
+pos=0
 
 !!! counting only 
 fs=f
@@ -21434,6 +21449,7 @@ fs=f
  
  nu=0
  
+maxord=0
 
 do i=1,fs%n
 
@@ -21450,7 +21466,10 @@ je=0
 
      v=-(-1)**k*v/n_cai/jf(k)
      nu=nu+1
-
+  max=0
+  do kmax=1,nv
+   jf(kmax)=jf(kmax)+1
+  enddo
 !write(6,*) i
 !write(6,*) je
 !write(6,*) jf
@@ -21473,6 +21492,7 @@ je=0
 !call ALLOC(re,Nu,NV)
 !call ALLOC(im,Nu,NV)
 call ALLOC(ut,Nu,NV,nd2)
+call ALLOC(ut0,Nu,NV,nd2)
 fs=f
  
  nu=0
@@ -21492,12 +21512,17 @@ do i=1,fs%n
 
      v=-(-1)**k*v/n_cai/jf(k)
      nu=nu+1
-     ut%c(nu)=v  
+     ut0%c(nu)=v  
 
-     ut%J(nu,1:nv)=jf
+     ut0%J(nu,1:nv)=jf
  
+   max=0
+   do kmax=1,nv
+    max=max+jf(kmax)
+   enddo 
+    ord(max)=ord(max)+1
 
- 
+
    do i1=i+1,fs%n  !,-1
      k=d_mod_demin(i1)
        jf(k)=jf(k)-1
@@ -21507,14 +21532,52 @@ do i=1,fs%n
        enddo
  
  enddo
+do kmax=1,no+1
+ if(ord(kmax)/=0) then
+    pos(kmax)=1
+    exit
+ endif
+enddo
+ 
+write(6,*) "kmax ",kmax
 
+do i=kmax+1,no+1
+pos(i)=pos(i-1)+ord(i-1) 
+enddo
+write(6,*)ord
+write(6,*)pos
+write(6,*)
+ ord=0
+call print(ut0,6)
+pause 777
+ do i=1,ut0%n
+    max=0
+   do kmax=1,nv
+    max=max+ut0%J(i,kmax)
+   enddo 
+write(6,*)i,ut0%n
+write(6,*) max,pos(max),ord(max)
+   ut%J(pos(max)+ord(max),1:nv)=ut0%J(i,1:nv)
+   ut%C(pos(max)+ord(max))=ut0%c(i)
+   ord(max)=ord(max)+1
+ enddo
 
 !f=fs
 
+
+!  TYPE c_UNIVERSAL_TAYLOR
+!     INTEGER, POINTER:: N,NV,nd2    !  Number of coeeficients and number of variables
+!     complex(DP), POINTER,dimension(:)::C  ! Coefficients C(N)
+!     INTEGER, POINTER,dimension(:,:)::J ! Exponents of each coefficients J(N,NV)
+!      logical, POINTER:: order
+!  END TYPE c_UNIVERSAL_TAYLOR
+
+
+
 call kill(fs)
 call kill(t)
-
-deallocate(je,jf); 
+call kill(ut0)
+deallocate(je,jf,ord,pos); 
  
 end subroutine d_field_for_demin
 
