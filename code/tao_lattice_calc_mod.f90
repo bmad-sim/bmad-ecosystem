@@ -766,7 +766,6 @@ model_branch => u%model_branch(ix_branch)
 bb => model_branch%beam
 branch => model%lat%branch(ix_branch)
 tao_branch => model%tao_branch(ix_branch)
-if (.not. allocated(tao_branch%bunch_params_comb)) allocate(tao_branch%bunch_params_comb(size(beam%bunch)))
 ie_start = bb%ix_track_start
 if (ie_start == not_set$) then
   call out_io (s_error$, r_name, 'BEAM STARTING POSITION NOT PROPERLY SET. NO TRACKING DONE.')
@@ -779,6 +778,7 @@ if (s%com%use_saved_beam_in_tracking) then
   init_ok = .true.
   beam = model_branch%ele(ie_start)%beam
   u%model_branch(ix_branch)%ele(ie_start)%beam = beam
+  call allocate_this_comb(tao_branch%bunch_params_comb, size(beam%bunch))
   return
 endif
 
@@ -800,6 +800,7 @@ if (branch%ix_from_branch >= 0) then  ! Injecting from other branch
 
   beam = u%model_branch(ib0)%ele(ie0)%beam
   u%model_branch(ix_branch)%ele(ie_start)%beam = beam
+  call allocate_this_comb(tao_branch%bunch_params_comb, size(beam%bunch))
 
   if (beam%bunch(1)%particle(1)%species /= u%model%lat%branch(ix_branch)%param%particle) return
   init_ok = .true.
@@ -847,8 +848,25 @@ else
 endif
 
 u%model_branch(ix_branch)%ele(ie_start)%beam = beam
+call allocate_this_comb(tao_branch%bunch_params_comb, size(beam%bunch))
 init_ok = .true.
 
+!-----------------------------------------------------------
+contains
+
+subroutine allocate_this_comb(comb, n_bunch)
+
+type (bunch_track_struct), allocatable :: comb(:)
+integer n_bunch
+
+if (.not. allocated(comb)) allocate(comb(n_bunch))
+if (size(comb) /= n_bunch) then
+  deallocate (comb)
+  allocate(comb(n_bunch))
+endif
+
+end subroutine allocate_this_comb
+
 end subroutine tao_inject_beam
- 
+
 end module tao_lattice_calc_mod
