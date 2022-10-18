@@ -14,13 +14,18 @@ contains
 !
 ! Routine to write a beam file.
 !
+! A '.h5' suffix will be appended to the created file if hdf5$ format is used and file_name does not
+! already have a '.h5' or '.hdf5' suffix.
+!
 ! Input:
 !   file_name     -- character(*): Name of file.
 !   beam          -- beam_struct: Beam to write
 !   new_file      -- logical, optional: New file or append? Default = True.
 !   file_format   -- logical, optional: ascii$, or hdf5$ (default).
-!                      Note: binary$ format is deprecated so do not use unless necessary.
 !   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
+!
+! Output:
+!   file_name
 !-
 
 subroutine write_beam_file (file_name, beam, new_file, file_format, lat)
@@ -30,7 +35,7 @@ type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p
 type (lat_struct), optional :: lat
 
-integer j, iu, ib, ip, ix_ele
+integer j, iu, ib, ip, ix_ele, n, n0
 integer, optional :: file_format
 
 character(*) file_name
@@ -45,59 +50,41 @@ logical error, append
 iu = lunget()
 call fullfilename (file_name, full_name)
 
-if (integer_option(hdf5$, file_format) == binary$) then
-  if (logic_option(.true., new_file)) then
-    open (iu, file = full_name, form = 'unformatted')
-    write (iu) '!BIN::3'
-  else
-    open (iu, file = full_name, form = 'unformatted', access = 'append')
-  endif
+if (integer_option(hdf5$, file_format) == hdf5$) then
+  n = len_trim(full_name)
+  if (full_name(n-2:n) /= '.h5' .and. full_name(n-4:n) /= '.hdf5') full_name = trim(full_name) // '.h5'
 
-elseif (integer_option(hdf5$, file_format) == ascii$) then
-  if (logic_option(.true., new_file)) then
-    open (iu, file = full_name)
-    write (iu, '(a)') '!ASCII::3'
-  else
-    open (iu, file = full_name, access = 'append')
-  endif
-
-else
   append = .not. logic_option(.true., new_file)
-  call hdf5_write_beam(file_name, beam%bunch, append, error, lat)
+  call hdf5_write_beam(full_name, beam%bunch, append, error, lat)
   return
 endif
 
 !
 
-if (integer_option(hdf5$, file_format) == binary$) then
-  write (iu) 0, size(beam%bunch), size(beam%bunch(1)%particle)  ! 0 was ix_ele
-  do ib = 1, size(beam%bunch)
-    bunch => beam%bunch(ib)
-    write (iu) bunch%particle(1)%species, bunch%charge_tot, bunch%z_center, bunch%t_center, size(bunch%particle)
-    do ip = 1, size(bunch%particle)
-      p => bunch%particle(ip)
-      write (iu) p%vec, p%charge, p%state, p%spin, p%ix_ele, p%location
-    enddo
-  enddo
-elseif (integer_option(hdf5$, file_format) == ascii$) then
-  write (iu, *) beam%bunch(1)%particle(1)%ix_ele, '  ! ix_ele' 
-  write (iu, *) size(beam%bunch), '  ! n_bunch'
-  write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'
-  do ib = 1, size(beam%bunch)
-    bunch => beam%bunch(ib)
-    write (iu, *) 'BEGIN_BUNCH'
-    write (iu, *) '  ', trim(species_name(bunch%particle(1)%species))
-    write (iu, *) bunch%charge_tot, '  ! bunch_charge_tot'
-    write (iu, *) bunch%z_center,   '  ! z_center'
-    write (iu, *) bunch%t_center,   '  ! t_center'
-    do ip = 1, size(bunch%particle)
-      p => bunch%particle(ip)
-      write (iu, '(6es19.10, es14.5, i6, 3es19.10, i6, i3)') &
-            p%vec, p%charge, p%state, p%spin, p%ix_ele, p%location
-    enddo
-    write (iu, *) 'END_BUNCH'
-  enddo
+if (logic_option(.true., new_file)) then
+  open (iu, file = full_name)
+  write (iu, '(a)') '!ASCII::3'
+else
+  open (iu, file = full_name, access = 'append')
 endif
+
+write (iu, *) beam%bunch(1)%particle(1)%ix_ele, '  ! ix_ele' 
+write (iu, *) size(beam%bunch), '  ! n_bunch'
+write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'
+do ib = 1, size(beam%bunch)
+  bunch => beam%bunch(ib)
+  write (iu, *) 'BEGIN_BUNCH'
+  write (iu, *) '  ', trim(species_name(bunch%particle(1)%species))
+  write (iu, *) bunch%charge_tot, '  ! bunch_charge_tot'
+  write (iu, *) bunch%z_center,   '  ! z_center'
+  write (iu, *) bunch%t_center,   '  ! t_center'
+  do ip = 1, size(bunch%particle)
+    p => bunch%particle(ip)
+    write (iu, '(6es19.10, es14.5, i6, 3es19.10, i6, i3)') &
+          p%vec, p%charge, p%state, p%spin, p%ix_ele, p%location
+  enddo
+  write (iu, *) 'END_BUNCH'
+enddo
 
 close (iu)
 
@@ -114,6 +101,9 @@ end subroutine write_beam_file
 !     %n_bunch
 !     %n_particle
 !     %bunch_charge
+!
+! If the beam file has '.h5' or '.hdf5' suffix then the file is taken to be an HDF5 file.
+! Otherwise the file is assumed to be ASCII.
 !
 ! Input:
 !   file_name   -- character(*): Name of beam file.
