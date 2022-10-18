@@ -65,7 +65,7 @@ endif
 
 select case (method)
 case (bmad_standard$)
-  call track1_spin_bmad (start_orb, ele, param, end_orb, make_quaternion)
+  call track1_spin_bmad (start_orb, ele, param, end_orb)
 
 case (custom$)
   call track1_spin_custom (start_orb, ele, param, end_orb, err, make_quaternion)

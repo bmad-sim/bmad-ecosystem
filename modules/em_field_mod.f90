@@ -633,7 +633,11 @@ case (bmad_standard$)
     endif
 
     if (logic_option(.false., calc_potential)) then
-      field%A = (0.5_rp * field%b(3)) * [-y, x, 0.0_rp]      
+      if (ele%key == sad_mult$) then
+        field%A = (0.5_rp * field%b(3)) * [-y+ele%value(y_offset_mult$), x-ele%value(x_offset_mult$), 0.0_rp]      
+      else
+        field%A = (0.5_rp * field%b(3)) * [-y, x, 0.0_rp]      
+      endif
     endif
 
   !------------------
@@ -692,11 +696,6 @@ case (bmad_standard$)
         if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
         return
-      endif
-
-      if (ele%key == sad_mult$) then
-        local_orb%vec(1) = local_orb%vec(1) - ele%value(x_offset_mult$)
-        local_orb%vec(3) = local_orb%vec(3) - ele%value(y_offset_mult$)
       endif
 
       do i = 0, ix_pole_max

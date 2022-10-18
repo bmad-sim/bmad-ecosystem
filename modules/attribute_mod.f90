@@ -675,16 +675,18 @@ do i = 1, n_key$
   if (i == taylor$)            cycle
 
   call init_attribute_name1 (i, integrator_order$,     'INTEGRATOR_ORDER')
-  call init_attribute_name1 (i, num_steps$,            'NUM_STEPS', quasi_free$)
-  call init_attribute_name1 (i, ds_step$,              'DS_STEP')
   call init_attribute_name1 (i, field_calc$,           'FIELD_CALC')
   call init_attribute_name1 (i, csr_method$,           'CSR_METHOD')
   call init_attribute_name1 (i, csr_ds_step$,          'CSR_DS_STEP')
   call init_attribute_name1 (i, space_charge_method$,  'SPACE_CHARGE_METHOD')
   call init_attribute_name1 (i, multipass_ref_energy$, 'MULTIPASS_REF_ENERGY', dependent$)
-  call init_attribute_name1 (i, static_linear_map$,          'STATIC_LINEAR_MAP')
+  call init_attribute_name1 (i, static_linear_map$,    'STATIC_LINEAR_MAP')
 
   if (i == sad_mult$)          cycle
+
+  call init_attribute_name1 (i, num_steps$,            'NUM_STEPS', quasi_free$)
+  call init_attribute_name1 (i, ds_step$,              'DS_STEP')
+
   if (i == drift$)             cycle
 
   call init_attribute_name1 (i, field_overlaps$,       'FIELD_OVERLAPS')
@@ -1500,6 +1502,8 @@ call init_attribute_name1 (sad_mult$, x_offset_mult$,          'X_OFFSET_MULT')
 call init_attribute_name1 (sad_mult$, y_offset_mult$,          'Y_OFFSET_MULT')
 call init_attribute_name1 (sad_mult$, e1$,                     'E1')    ! SAD: ae1
 call init_attribute_name1 (sad_mult$, e2$,                     'E2')    ! SAD: ae2
+call init_attribute_name1 (sad_mult$, ds_step$,                'DS_STEP', dependent$)
+call init_attribute_name1 (sad_mult$, num_steps$,              'NUM_STEPS', dependent$)
 ! sad_mult Attributes with no SAD equivalent
 call init_attribute_name1 (sad_mult$, rho$,                    'RHO')   
 call init_attribute_name1 (sad_mult$, ks$,                     'KS')

@@ -330,7 +330,7 @@ logical track_spn
 ks4 = at_sign * charge_of(orb%species) * hard_ele%value(bs_field$) * c_light / (4.0_rp * orb%p0c)
 xy_orb = [orb%vec(1), orb%vec(3)]
 if (hard_ele%key == sad_mult$) then
-  xy_orb = xy_orb + rot_2d ([ele%value(x_offset_mult$), ele%value(y_offset_mult$)], -ele%value(tilt$))
+  xy_orb = xy_orb + rot_2d ([hard_ele%value(x_offset_mult$), hard_ele%value(y_offset_mult$)], -hard_ele%value(tilt$))
 endif
 
 orb%vec(2) = orb%vec(2) + ks4 * xy_orb(2)
