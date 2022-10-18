@@ -1,5 +1,5 @@
 !+
-! subroutine track1_spin_bmad (start_orb, ele, param, end_orb, make_quaternion)
+! subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
 !
 ! Bmad_standard particle spin tracking through a single element.
 !
@@ -17,7 +17,7 @@
 !     %spin(3)       -- Ending spin
 !-
 
-subroutine track1_spin_bmad (start_orb, ele, param, end_orb, make_quaternion)
+subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
 
 use em_field_mod, dummy => track1_spin_bmad
 
@@ -33,7 +33,6 @@ type (em_field_struct) field
 real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track, s_end_lab
 real(rp) voltage, k_rf, phase
 integer key
-logical, optional :: make_quaternion
 
 character(*), parameter :: r_name = 'track1_spin_bmad'
 
