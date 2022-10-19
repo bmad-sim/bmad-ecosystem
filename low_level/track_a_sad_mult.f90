@@ -62,9 +62,9 @@ call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole)
 ! If element has zero length then the SAD ignores f1 and f2.
 
 if (length == 0) then
-  call offset_particle (ele, set$, orbit, set_hvkicks = .false., set_tilt = .false., mat6 = mat6, make_matrix = make_matrix)
+  call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
   call ab_multipole_kicks (a_pole, b_pole, ix_pole_max, ele, orbit, magnetic$, 1.0_rp, mat6, make_matrix)
-  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_tilt = .false., mat6 = mat6, make_matrix = make_matrix)
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
   orbit%s = ele%s
   orbit%location = downstream_end$
