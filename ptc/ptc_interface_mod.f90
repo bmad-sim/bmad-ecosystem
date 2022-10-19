@@ -2853,12 +2853,6 @@ elseif (use_offsets) then
     endif
 
     dr = [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
-    if (ele%key == sad_mult$ .and. ele%value(l$) == 0) then
-      t = ele%value(tilt_tot$)
-      rot(1:2,1) = [cos(t), sin(t)]
-      rot(1:2,2) = [sin(t), cos(t)]
-      dr(1:2) = dr(1:2) + matmul(rot, [ele%value(x_offset_mult$), ele%value(y_offset_mult$)])
-    endif
 
     if (any(dr /= 0)) then
       o_chord = ptc_fibre%mag%p%f%o
@@ -2903,6 +2897,9 @@ elseif (use_offsets) then
 
   else ! Not a bend
     dr = [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
+    if (ele%key == sad_mult$ .and. ele%value(l$) == 0) &
+                              dr(1:2) = dr(1:2) + [ele%value(x_offset_mult$), ele%value(y_offset_mult$)]
+
     if (any(dr /= 0)) then
       o_chord = ptc_fibre%mag%p%f%o
       basis = ptc_fibre%mag%p%f%mid
