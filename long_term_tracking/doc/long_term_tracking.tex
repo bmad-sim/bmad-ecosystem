@@ -75,7 +75,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ September 15, 2022}
+\date{David Sagan \\ October 19, 2022}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -737,10 +737,16 @@ the beam is at the \vn{ltt%ele_start} position independent of where the lattice 
 ends.
 %
 \item[ltt\%beam_binary_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file
-that is created to hold the particle positions at the end of tracking. This is similar to
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file that
+is created to hold the particle positions at the end of tracking. This is similar to
 \vn{ltt%phase_space_output_file} but here the file will be a binary file that is portable to other
-programs and can also be used as input to the \ltt program.
+programs and can also be used as input to the \ltt program. The file suffix should be \vn{.h5} or
+\vn{.hdf5}. If neither of these suffixes are used the binary file name will have a \vn{.h5} suffix
+added. To translate to ASCII, use the \vn{beam_file_translate_format} program. Documentation is in
+any Bmad Distribution in the file:
+\begin{code}
+  util_programs/beam_file_translate_format/DOC
+\end{code}
 %
 \item[ltt\%column(:)] \Newline
 A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
@@ -856,9 +862,10 @@ This sets the initial beam distribution. See Section~\sref{s:init.pos}.
 If spin tracking is on (\vn{bmad_com%spin_tracking_on} = T), and if all three components of
 \vn{beam_init%spin} are zero, the closed orbit spin direction ($n_0$) is used.
 
-Also: the values of \vn{beam_init%a_emit} and \vn{beam_init%b_emit} are used in the high energy
-space charge calculation (\sref{s:space.charge}). If set to zero (the default) or negative, the
-emittance as calculated via radiation integrals will be used. Note: A value of
+Note: the values of \vn{beam_init%a_emit} and \vn{beam_init%b_emit} along with
+\vn{beam_init%bunch_charge} are used in the high energy space charge calculation
+(\sref{s:space.charge}). If the emittances set to zero (the default) or negative, the emittance as
+calculated via radiation integrals will be used.
 %
 \item[bmad_com\%...] \Newline
 The \vn{bmad_com} structure contains various parameters that affect tracking. For example, whether
