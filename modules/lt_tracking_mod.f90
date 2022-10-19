@@ -1302,27 +1302,46 @@ type (ltt_params_struct) lttp
 type (branch_struct) branch
 type (ltt_com_struct), target :: ltt_com
 type (normal_modes_struct) modes
-real(rp) n_particle
+real(rp) n_particle, gamma
 
 !
 
 if (.not. bmad_com%high_energy_space_charge_on) return
 
 if (lttp%tracking_method == 'MAP') then
-  print '(a)', 'NOTE: Space effects are not present when using a map tracking!'
+  print '(a)', 'WARNING! Space effects are not present when using a map tracking!'
   return
 endif
 
 if (.not. lttp%rfcavity_on) then
-  print '(a)', 'NOTE: RF is not on. Cannot calculate a longitudinal bunch length.'
+  print '(a)', 'WARNING! RF is not on. Cannot calculate a longitudinal bunch length.'
   print '(a)', '      Therefore no space charge kick will be applied.'
   return
 endif
 
+gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%ele(0)%ref_species)
 modes = ltt_com%modes
+
 if (ltt_com%beam_init%a_emit > 0) modes%a%emittance = ltt_com%beam_init%a_emit
-if (ltt_com%beam_init%b_emit > 0) modes%a%emittance = ltt_com%beam_init%b_emit
+if (ltt_com%beam_init%b_emit > 0) modes%b%emittance = ltt_com%beam_init%b_emit
+if (ltt_com%beam_init%a_norm_emit > 0) modes%a%emittance = ltt_com%beam_init%a_norm_emit / gamma
+if (ltt_com%beam_init%b_norm_emit > 0) modes%b%emittance = ltt_com%beam_init%b_norm_emit / gamma
+
+if (modes%a%emittance == 0 .or. modes%b%emittance == 0) then
+  print *, 'WARNING! No a-mode or b-mode emittance set in beam_init structrue. Cannot compute high energy space charge kick.'
+  print '(a)', '      Therefore no space charge kick will be applied.'
+  return
+endif
+
 n_particle = abs(ltt_com%beam_init%bunch_charge / (e_charge * charge_of(ltt_com%bmad_closed_orb(0)%species)))
+
+if (n_particle == 0) then
+  print *, 'WARNING! beam_init%bunch_charge not set. Cannot compute high energy space charge kick.'
+  print '(a)', '      Therefore no space charge kick will be applied.'
+  return
+endif
+  
+
 call setup_high_energy_space_charge_calc (.true., branch, n_particle, modes)
 
 end subroutine ltt_setup_high_energy_space_charge
