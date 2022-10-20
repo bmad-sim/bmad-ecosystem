@@ -2491,27 +2491,41 @@ case ('hom')
 
 case ('internal')
 
-  call tao_next_switch (what2, [character(16):: '-python_buffer', '-control'], .true., switch, err, ix_s2)
+  call tao_next_switch (what2, [character(16):: '-python', '-control'], .true., switch, err, ix_s2)
   select case (switch)
 
   ! Format: show -python_buffer
   ! This is useful for debugging the real and integer array passing which is used in the python interface.
-  case ('-python_buffer')
+  case ('-python')
 
     nl=nl+1; write (lines(nl), imt) 'N_real: ', tao_c_interface_com%n_real
+
+    do i = 1, min(tao_c_interface_com%n_real, 5)
+      nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
+    enddo
+
+    if (tao_c_interface_com%n_real > 10) then
+      nl=nl+1; lines(nl) = ' ... etc...'
+    endif
+
+    do i = max(tao_c_interface_com%n_real-5, 6), tao_c_interface_com%n_real
+      nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
+    enddo
+
+    !
+
+    nl=nl+1; lines(nl) = ''
     nl=nl+1; write (lines(nl), imt) 'N_int:  ', tao_c_interface_com%n_int
 
-    do i = 1, min(tao_c_interface_com%n_real, 3)
-      nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
-    enddo
-    do i = max(tao_c_interface_com%n_real-3, 4), tao_c_interface_com%n_real
-      nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
-    enddo
-
-    do i = 1, min(tao_c_interface_com%n_int, 3)
+    do i = 1, min(tao_c_interface_com%n_int, 5)
       nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_integer(i)
     enddo
-    do i = max(tao_c_interface_com%n_int-3, 4), tao_c_interface_com%n_int
+
+    if (tao_c_interface_com%n_int > 10) then
+      nl=nl+1; lines(nl) = ' ... etc...'
+    endif
+
+    do i = max(tao_c_interface_com%n_int-5, 6), tao_c_interface_com%n_int
       nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_integer(i)
     enddo
 
