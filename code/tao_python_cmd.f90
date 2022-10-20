@@ -6838,9 +6838,13 @@ case ('spin_invariant')
 
   !
 
-  if (use_real_array_buffer) call re_allocate_c_double(tao_c_interface_com%c_real, 3*branch%n_ele_track+3, .false.)
-  n = 0
+  if (use_real_array_buffer) then
+    n = 3*branch%n_ele_track+3
+    call re_allocate_c_double(tao_c_interface_com%c_real, n, .false.)
+    tao_c_interface_com%n_real = n
+  endif
 
+  n = 0
   do ie = 0, branch%n_ele_track
     if (ie /= 0) call track1(orb, branch%ele(ie), branch%param, orb)
     nl=incr(nl); write (li(nl), '(i0, 3(a, es22.14))') ie, (';', orb%spin(j), j = 1, 3)
@@ -6849,8 +6853,6 @@ case ('spin_invariant')
       n = n + 3
     endif
   enddo
-
-
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
