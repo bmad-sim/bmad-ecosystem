@@ -168,7 +168,7 @@ character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_n
 character(40) replacement_for_blank, component
 character(60) nam, attrib_list(20), attrib
 character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
-character(200) header, str, attrib0, file_name, name, excite_zero(3)
+character(200) header, str, attrib0, file_name, name, excite_zero(3), veto
 character(200), allocatable :: alloc_lines(:)
 
 character(2), parameter :: q_name(0:3) = ['q0', 'qx', 'qy', 'qz']
@@ -3253,12 +3253,13 @@ case ('lattice')
         if (ix2 - ix + 1 > 0) then
           line2(ix2-ix+1:) = name(1:ix-1)
         else
-          line2(1:) = name(1:ix-1)
+          line2 = name(1:ix-1)
         endif
+
         if (ix2 - n + ix > 0) then
           line3(ix2-n+ix:) = name(ix+1:)
         else
-          line3(1:) = name(ix+1:)
+          line3 = name(ix+1:)
         endif
       endif
 
@@ -4228,11 +4229,12 @@ case ('spin')
   flip = .false.
   logic = .false.
   excite_zero = ''
+  veto = ''
 
   do
-    call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', '-all', &
+    call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
                             '-g_map', '-flip_n_axis', '-new', '-x_zero', '-y_zero', &
-                            '-z_zero'], .true., switch, err, ix)
+                            '-z_zero', '-ignore_kinetic'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
@@ -4275,6 +4277,8 @@ case ('spin')
       nl=nl+1; lines(nl) = 'Note: "-q_map" now no longer needed or used.'
     case ('-g_map')
       show_mat = .true.
+    case ('-ignore_kinetic')
+      call word_read(what2, '-', veto, ix, delim, delim_found, what2)
     case ('-x_zero')
       call word_read(what2, '-', excite_zero(1), ix, delim, delim_found, what2)
     case ('-y_zero')
@@ -4311,7 +4315,7 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(a, 3f12.8)') 'Beginning spin:', orb%spin
     else
-      call tao_spin_polarization_calc (branch, tao_branch, excite_zero)
+      call tao_spin_polarization_calc (branch, tao_branch, excite_zero, veto)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', tao_branch%spin%tune / twopi
       if (tao_branch%spin_valid) then
