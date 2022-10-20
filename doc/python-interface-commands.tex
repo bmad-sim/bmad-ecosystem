@@ -5,6 +5,7 @@
 \index{python!beam}
 \label{p:beam}
 
+
 Output beam parameters that are not in the beam_init structure.
 
 \begin{example}
@@ -21,6 +22,7 @@ Note: To set beam_init parameters use the "set beam" command.
 \subsection{python beam_init}
 \index{python!beam_init}
 \label{p:beam.init}
+
 
 Output beam_init parameters.
 
@@ -39,6 +41,7 @@ Note: To set beam_init parameters use the "set beam_init" command
 \index{python!bmad_com}
 \label{p:bmad.com}
 
+
 Output bmad_com structure components.
 
 \begin{example}
@@ -52,6 +55,7 @@ Output bmad_com structure components.
 \subsection{python branch1}
 \index{python!branch1}
 \label{p:branch1}
+
 
 Output lattice branch information for a particular lattice branch.
 
@@ -69,6 +73,7 @@ Where:
 \index{python!bunch_comb}
 \label{p:bunch.comb}
 
+
 Outputs bunch parameters at a comb point. 
 
 \begin{example}
@@ -76,19 +81,18 @@ Outputs bunch parameters at a comb point.
 \end{example}
 \begin{verbatim}
 Where:
-  {flag} is optionally "-array_out".
+  {flags} are optional switches:
+      -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
   {ix_uni} is a universe index. Defaults to s%global%default_universe.
   {ix_branch} is a branch index. Defaults to s%global%default_branch.
   {ix_bunch} is the bunch index. Defaults to 1.
   {who} is one of:
-    x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
-    x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, eta, etap,
+      x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
+      x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, eta, etap,
                                                                 sigma, sigma_p, emit, norm_emit
     sigma.IJ where I, J in range [1,6]
     rel_min.I, rel_max.I where I in range [1,6]
     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
-
-  If flags=-array_out, the output will be available in the tao_c_interface_com%c_real.
 
   Note: If ix_uni or ix_branch is present, "@" must be present.
 
@@ -100,6 +104,7 @@ Example:
 \subsection{python bunch_params}
 \index{python!bunch_params}
 \label{p:bunch.params}
+
 
 Outputs bunch parameters at the exit end of a given lattice element.
 
@@ -119,6 +124,7 @@ Example:
 \subsection{python bunch1}
 \index{python!bunch1}
 \label{p:bunch1}
+
 
 Outputs Bunch parameters at the exit end of a given lattice element.
 
@@ -142,6 +148,7 @@ alive and any other value means the particle has been lost.
 \index{python!building_wall_list}
 \label{p:building.wall.list}
 
+
 Output List of building wall sections or section points
 
 \begin{example}
@@ -160,6 +167,7 @@ If {ix_section} is present, a list of section points is given.
 \index{python!building_wall_graph}
 \label{p:building.wall.graph}
 
+
 Output (x, y) points for drawing the building wall for a particular graph.
 
 \begin{example}
@@ -176,6 +184,7 @@ Note: The graph defines the coordinate system for the (x, y) points.
 \subsection{python building_wall_point}
 \index{python!building_wall_point}
 \label{p:building.wall.point}
+
 
 add or delete a building wall point
 
@@ -195,6 +204,7 @@ Where:
 \subsection{python building_wall_section}
 \index{python!building_wall_section}
 \label{p:building.wall.section}
+
 
 Add or delete a building wall section
 
@@ -217,6 +227,7 @@ Where:
 \subsection{python constraints}
 \index{python!constraints}
 \label{p:constraints}
+
 
 Output optimization data and variable parameters that contribute to the merit function.
 
@@ -257,6 +268,7 @@ Var constraints output is:
 \index{python!da_aperture}
 \label{p:da.aperture}
 
+
 Output dynamic aperture data
 
 \begin{example}
@@ -272,6 +284,7 @@ Where:
 \index{python!da_params}
 \label{p:da.params}
 
+
 Output dynamic aperture input parameters
 
 \begin{example}
@@ -286,6 +299,7 @@ Where:
 \subsection{python data}
 \index{python!data}
 \label{p:data}
+
 
 Output Individual datum parameters.
 
@@ -310,6 +324,7 @@ Example:
 \index{python!data_d_array}
 \label{p:data.d.array}
 
+
 Output list of datums for a given d1_data structure.
 
 \begin{example}
@@ -330,6 +345,7 @@ Example:
 \index{python!data_d1_array}
 \label{p:data.d1.array}
 
+
 Output list of d1 arrays for a given data_d2.
 
 \begin{example}
@@ -344,6 +360,7 @@ Output list of d1 arrays for a given data_d2.
 \subsection{python data_d2}
 \index{python!data_d2}
 \label{p:data.d2}
+
 
 Output information on a d2_datum.
 
@@ -361,6 +378,7 @@ Where:
 \index{python!data_d2_array}
 \label{p:data.d2.array}
 
+
 Output data d2 info for a given universe.
 
 \begin{example}
@@ -375,6 +393,7 @@ Example:
 \subsection{python data_d2_create}
 \index{python!data_d2_create}
 \label{p:data.d2.create}
+
 
 Create a d2 data structure along with associated d1 and data arrays.
 
@@ -411,6 +430,7 @@ Note: When setting multiple data parameters,
 \index{python!data_d2_destroy}
 \label{p:data.d2.destroy}
 
+
 Destroy a d2 data structure along with associated d1 and data arrays.
 
 \begin{example}
@@ -431,6 +451,7 @@ This destroys the orbit d2_data structure in universe 2.
 \index{python!data_parameter}
 \label{p:data.parameter}
 
+
 Output an array of values for a particular datum parameter for a given array of datums, 
 
 \begin{example}
@@ -446,6 +467,7 @@ Example:
 \subsection{python data_set_design_value}
 \index{python!data_set_design_value}
 \label{p:data.set.design.value}
+
 
 Set the design (and base \& model) values for all datums.
 
@@ -463,6 +485,7 @@ Note: Use the "data_d2_create" and "datum_create" first to create datums.
 \subsection{python datum_create}
 \index{python!datum_create}
 \label{p:datum.create}
+
 
 Create a datum.
 
@@ -487,6 +510,7 @@ Note: After creating all your datums, use the "data_set_design_value" routine to
 \index{python!datum_has_ele}
 \label{p:datum.has.ele}
 
+
 Output whether a datum type has an associated lattice element
 
 \begin{example}
@@ -500,6 +524,7 @@ Output whether a datum type has an associated lattice element
 \subsection{python derivative}
 \index{python!derivative}
 \label{p:derivative}
+
 
 Output optimization derivatives
 
@@ -515,6 +540,7 @@ Use the "derivative" command beforehand to recalcuate if needed.
 \subsection{python ele:ac_kicker}
 \index{python!ele:ac_kicker}
 \label{p:ele:ac.kicker}
+
 
 Output element ac_kicker parameters
 
@@ -535,6 +561,7 @@ This gives element number 7 in branch 1 of universe 3.
 \subsection{python ele:cartesian_map}
 \index{python!ele:cartesian_map}
 \label{p:ele:cartesian.map}
+
 
 Output element cartesian_map parameters
 
@@ -558,6 +585,7 @@ This gives element number 7 in branch 1 of universe 3.
 \index{python!ele:chamber_wall}
 \label{p:ele:chamber.wall}
 
+
 Output element beam chamber wall parameters
 
 \begin{example}
@@ -577,6 +605,7 @@ Where:
 \subsection{python ele:control_var}
 \index{python!ele:control_var}
 \label{p:ele:control.var}
+
 
 Output list of element control variables.
 Used for group, overlay and ramper type elements.
@@ -598,6 +627,7 @@ This gives element number 7 in branch 1 of universe 3.
 \subsection{python ele:cylindrical_map}
 \index{python!ele:cylindrical_map}
 \label{p:ele:cylindrical.map}
+
 
 Output element cylindrical_map
 
@@ -621,6 +651,7 @@ This gives map #2 of element number 7 in branch 1 of universe 3.
 \index{python!ele:elec_multipoles}
 \label{p:ele:elec.multipoles}
 
+
 Output element electric multipoles
 
 \begin{example}
@@ -640,6 +671,7 @@ This gives element number 7 in branch 1 of universe 3.
 \subsection{python ele:floor}
 \index{python!ele:floor}
 \label{p:ele:floor}
+
 
 Output element floor coordinates. The output gives two lines. "Reference" is
 without element misalignments and "Actual" is with misalignments.
@@ -667,6 +699,7 @@ This gives element number 7 in branch 1 of universe 3.
 \index{python!ele:grid_field}
 \label{p:ele:grid.field}
 
+
 Output element grid_field
 
 \begin{example}
@@ -689,6 +722,7 @@ This gives grid #2 of element number 7 in branch 1 of universe 3.
 \index{python!ele:gen_attribs}
 \label{p:ele:gen.attribs}
 
+
 Output element general attributes
 
 \begin{example}
@@ -709,6 +743,7 @@ This gives element number 7 in branch 1 of universe 3.
 \index{python!ele:head}
 \label{p:ele:head}
 
+
 Output "head" Element attributes
 
 \begin{example}
@@ -728,6 +763,7 @@ This gives element number 7 in branch 1 of universe 3.
 \subsection{python ele:lord_slave}
 \index{python!ele:lord_slave}
 \label{p:ele:lord.slave}
+
 
 Output the lord/slave tree of an element.
 
@@ -755,6 +791,7 @@ These "Slave" and "Lord" lines are the slaves and lords of the "Element" element
 \index{python!ele:mat6}
 \label{p:ele:mat6}
 
+
 Output element mat6
 
 \begin{example}
@@ -776,6 +813,7 @@ This gives element number 7 in branch 1 of universe 3.
 \index{python!ele:methods}
 \label{p:ele:methods}
 
+
 Output element methods
 
 \begin{example}
@@ -795,6 +833,7 @@ This gives element number 7 in branch 1 of universe 3.
 \subsection{python ele:multipoles}
 \index{python!ele:multipoles}
 \label{p:ele:multipoles}
+
 
 Output element multipoles
 
@@ -816,6 +855,7 @@ This gives element number 7 in branch 1 of universe 3.
 \index{python!ele:orbit}
 \label{p:ele:orbit}
 
+
 Output element orbit
 
 \begin{example}
@@ -835,6 +875,7 @@ This gives element number 7 in branch 1 of universe 3.
 \subsection{python ele:param}
 \index{python!ele:param}
 \label{p:ele:param}
+
 
 Output lattice element parameter
 
@@ -863,6 +904,7 @@ Also see: "python lat_list".
 \index{python!ele:photon}
 \label{p:ele:photon}
 
+
 Output element photon parameters
 
 \begin{example}
@@ -884,6 +926,7 @@ This gives element number 7 in branch 1 of universe 3.
 \index{python!ele:spin_taylor}
 \label{p:ele:spin.taylor}
 
+
 Output element spin_taylor parameters
 
 \begin{example}
@@ -904,6 +947,7 @@ This gives element number 7 in branch 1 of universe 3.
 \index{python!ele:taylor}
 \label{p:ele:taylor}
 
+
 Output element taylor map 
 
 \begin{example}
@@ -923,6 +967,7 @@ This gives element number 7 in branch 1 of universe 3.
 \subsection{python ele:taylor_field}
 \index{python!ele:taylor_field}
 \label{p:ele:taylor.field}
+
 
 Output element taylor_field 
 
@@ -946,6 +991,7 @@ This gives element number 7 in branch 1 of universe 3.
 \index{python!ele:twiss}
 \label{p:ele:twiss}
 
+
 Output element Twiss parameters
 
 \begin{example}
@@ -965,6 +1011,7 @@ This gives element number 7 in branch 1 of universe 3.
 \subsection{python ele:wake}
 \index{python!ele:wake}
 \label{p:ele:wake}
+
 
 Output element wake.
 
@@ -990,6 +1037,7 @@ This gives element number 7 in branch 1 of universe 3.
 \index{python!ele:wall3d}
 \label{p:ele:wall3d}
 
+
 Output element wall3d parameters.
 
 \begin{example}
@@ -1011,20 +1059,27 @@ This gives element number 7 in branch 1 of universe 3.
 \index{python!evaluate}
 \label{p:evaluate}
 
+
 Output the value of an expression. The result may be a vector.
 
 \begin{example}
    python evaluate \{flags\} \{expression\}
 \end{example}
 \begin{verbatim}
+Where:
+  Optional {flags} are:
+      -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
+  {expression} is expression to be evaluated.
+
 Example:
-  python evaluate data::cbar.11[1:10]|model
+  python evaluate 3+data::cbar.11[1:10]|model
 \end{verbatim}
 
 %% python em_field ------------------------------------
 \subsection{python em_field}
 \index{python!em_field}
 \label{p:em.field}
+
 
 Output EM field at a given point generated by a given element.
 
@@ -1044,6 +1099,7 @@ Where:
 \index{python!enum}
 \label{p:enum}
 
+
 Output list of possible values for enumerated numbers.
 
 \begin{example}
@@ -1059,6 +1115,7 @@ Example:
 \index{python!floor_plan}
 \label{p:floor.plan}
 
+
 Output (x,y) points and other information that can be used for drawing a floor_plan.
 
 \begin{example}
@@ -1073,6 +1130,7 @@ Output (x,y) points and other information that can be used for drawing a floor_p
 \index{python!floor_orbit}
 \label{p:floor.orbit}
 
+
 Output (x, y) coordinates for drawing the particle orbit on a floor plan.
 
 \begin{example}
@@ -1086,6 +1144,7 @@ Output (x, y) coordinates for drawing the particle orbit on a floor plan.
 \subsection{python global}
 \index{python!global}
 \label{p:global}
+
 
 Output global parameters.
 
@@ -1108,6 +1167,7 @@ Note: The follow is intentionally left out:
 \index{python!help}
 \label{p:help}
 
+
 Output list of "help xxx" topics
 
 \begin{example}
@@ -1121,6 +1181,7 @@ Output list of "help xxx" topics
 \subsection{python inum}
 \index{python!inum}
 \label{p:inum}
+
 
 Output list of possible values for an INUM parameter.
 For example, possible index numbers for the branches of a lattice.
@@ -1137,6 +1198,7 @@ For example, possible index numbers for the branches of a lattice.
 \index{python!lat_calc_done}
 \label{p:lat.calc.done}
 
+
 Output if a lattice recalculation has been proformed since the last 
   time "python lat_calc_done" was called.
 
@@ -1151,6 +1213,7 @@ Output if a lattice recalculation has been proformed since the last
 \subsection{python lat_ele_list}
 \index{python!lat_ele_list}
 \label{p:lat.ele.list}
+
 
 Output lattice element list.
 
@@ -1167,6 +1230,7 @@ Output lattice element list.
 \index{python!lat_branch_list}
 \label{p:lat.branch.list}
 
+
 Output lattice branch list
 
 \begin{example}
@@ -1181,6 +1245,7 @@ Output syntax:
 \subsection{python lat_list}
 \index{python!lat_list}
 \label{p:lat.list}
+
 
 Output list of parameters at ends of lattice elements
 
@@ -1235,6 +1300,7 @@ Also see: "python ele:param"
 \index{python!lat_param_units}
 \label{p:lat.param.units}
 
+
 Output units of a parameter associated with a lattice or lattice element.
 
 \begin{example}
@@ -1248,6 +1314,7 @@ Output units of a parameter associated with a lattice or lattice element.
 \subsection{python matrix}
 \index{python!matrix}
 \label{p:matrix}
+
 
 Output matrix value from the exit end of one element to the exit end of the other.
 
@@ -1270,6 +1337,7 @@ Example:
 \index{python!merit}
 \label{p:merit}
 
+
 Output merit value.
 
 \begin{example}
@@ -1283,6 +1351,7 @@ Output merit value.
 \subsection{python orbit_at_s}
 \index{python!orbit_at_s}
 \label{p:orbit.at.s}
+
 
 Output twiss at given s position.
 
@@ -1306,6 +1375,7 @@ Example:
 \index{python!place_buffer}
 \label{p:place.buffer}
 
+
 Output the place command buffer and reset the buffer.
 The contents of the buffer are the place commands that the user has issued.
 See the Tao manual for more details.
@@ -1322,6 +1392,7 @@ See the Tao manual for more details.
 \index{python!plot_curve}
 \label{p:plot.curve}
 
+
 Output curve information for a plot.
 
 \begin{example}
@@ -1335,6 +1406,7 @@ Output curve information for a plot.
 \subsection{python plot_lat_layout}
 \index{python!plot_lat_layout}
 \label{p:plot.lat.layout}
+
 
 Output plot Lat_layout info
 
@@ -1351,6 +1423,7 @@ Note: The returned list of element positions is not ordered in increasing
 \index{python!plot_list}
 \label{p:plot.list}
 
+
 Output list of plot templates or plot regions.
 
 \begin{example}
@@ -1366,6 +1439,7 @@ where "{r/g}" is:
 \subsection{python plot_graph}
 \index{python!plot_graph}
 \label{p:plot.graph}
+
 
 Output graph info.
 
@@ -1386,6 +1460,7 @@ where
 \index{python!plot_histogram}
 \label{p:plot.histogram}
 
+
 Output plot histogram info.
 
 \begin{example}
@@ -1399,6 +1474,7 @@ Output plot histogram info.
 \subsection{python plot_template_manage}
 \index{python!plot_template_manage}
 \label{p:plot.template.manage}
+
 
 Template plot creation or destruction.
 
@@ -1421,6 +1497,7 @@ Where:
 \index{python!plot_curve_manage}
 \label{p:plot.curve.manage}
 
+
 Template plot curve creation/destruction
 
 \begin{example}
@@ -1438,6 +1515,7 @@ must be one greater than the number of curves.
 \index{python!plot_graph_manage}
 \label{p:plot.graph.manage}
 
+
 Template plot graph creation/destruction
 
 \begin{example}
@@ -1454,6 +1532,7 @@ must be one greater than the number of graphs.
 \subsection{python plot_line}
 \index{python!plot_line}
 \label{p:plot.line}
+
 
 Output points used to construct the "line" associated with a plot curve.
 
@@ -1475,6 +1554,7 @@ Examples:
 \subsection{python plot_symbol}
 \index{python!plot_symbol}
 \label{p:plot.symbol}
+
 
 Output locations to draw symbols for a plot curve.
 
@@ -1499,6 +1579,7 @@ Examples:
 \index{python!plot_transfer}
 \label{p:plot.transfer}
 
+
 Output transfer plot parameters from the "from plot" to the "to plot" (or plots).
 
 \begin{example}
@@ -1516,6 +1597,7 @@ If {to_plot} is not present and {from_plot} is a template plot, the "to plots"
 \index{python!plot1}
 \label{p:plot1}
 
+
 Output info on a given plot.
 
 \begin{example}
@@ -1531,6 +1613,7 @@ Output syntax is parameter list form. See documentation at the beginning of this
 \index{python!ptc_com}
 \label{p:ptc.com}
 
+
 Output Ptc_com structure components.
 
 \begin{example}
@@ -1544,6 +1627,7 @@ Output Ptc_com structure components.
 \subsection{python ring_general}
 \index{python!ring_general}
 \label{p:ring.general}
+
 
 Output lattice branch with closed geometry info (emittances, etc.)
 
@@ -1564,6 +1648,7 @@ Example:
 \index{python!shape_list}
 \label{p:shape.list}
 
+
 Output lat_layout or floor_plan shapes list
 
 \begin{example}
@@ -1579,6 +1664,7 @@ Output lat_layout or floor_plan shapes list
 \subsection{python shape_manage}
 \index{python!shape_manage}
 \label{p:shape.manage}
+
 
 Element shape creation or destruction
 
@@ -1606,6 +1692,7 @@ This is important since an added shape is in a ill-defined state.
 \index{python!shape_pattern_list}
 \label{p:shape.pattern.list}
 
+
 Output list of shape patterns or shape pattern points
 
 \begin{example}
@@ -1620,6 +1707,7 @@ If {ix_pattern} is present, list points of given pattern.
 \subsection{python shape_pattern_manage}
 \index{python!shape_pattern_manage}
 \label{p:shape.pattern.manage}
+
 
 Add or remove shape pattern
 
@@ -1640,6 +1728,7 @@ Where:
 \index{python!shape_pattern_point_manage}
 \label{p:shape.pattern.point.manage}
 
+
 Add or remove shape pattern point
 
 \begin{example}
@@ -1657,6 +1746,7 @@ Where:
 \subsection{python shape_set}
 \index{python!shape_set}
 \label{p:shape.set}
+
 
 Set lat_layout or floor_plan shape parameters.
 
@@ -1676,6 +1766,7 @@ Set lat_layout or floor_plan shape parameters.
 \index{python!show}
 \label{p:show}
 
+
 Output the output from a show command.
 
 \begin{example}
@@ -1692,6 +1783,7 @@ Example:
 \index{python!species_to_int}
 \label{p:species.to.int}
 
+
 Convert species name to corresponding integer
 
 \begin{example}
@@ -1707,6 +1799,7 @@ Example:
 \index{python!species_to_str}
 \label{p:species.to.str}
 
+
 Convert species integer id to corresponding
 
 \begin{example}
@@ -1717,10 +1810,44 @@ Example:
   python species_to_str -1     ! Returns 'Electron'
 \end{verbatim}
 
+%% python spin_invariant ------------------------------------
+\subsection{python spin_invariant}
+\index{python!spin_invariant}
+\label{p:spin.invariant}
+
+
+Output closed orbit spin axes n0, l0, or m0 at the ends of all lattice elements in a branch.
+n0, l0, and m0 are solutions of the T-BMT equation.
+n0 is periodic while l0 and m0 are not. At the beginning of the branch, the orientation of the 
+l0 or m0 axes in the plane perpendicular to the n0 axis is chosen a bit arbitrarily.
+See the Bmad manual for more details.
+
+\begin{example}
+   python spin_invariant \{flags\} \{who\} \{ix_uni\}@\{ix_branch\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where:
+  {flags} are optional switches:
+      -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
+  {who} is one of: l0, n0, or m0
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a branch index. Defaults to s%global%default_branch.
+  {which} is one of:
+    model
+    base
+    design
+
+Example:
+  python spin_invariant 1@0|model
+
+Note: This command is under development. If you want to use please contact David Sagan.
+\end{verbatim}
+
 %% python spin_polarization ------------------------------------
 \subsection{python spin_polarization}
 \index{python!spin_polarization}
 \label{p:spin.polarization}
+
 
 Output spin polarization information
 
@@ -1728,10 +1855,14 @@ Output spin polarization information
    python spin_polarization \{ix_uni\}@\{ix_branch\}|\{which\}
 \end{example}
 \begin{verbatim}
-where {which} is one of:
-  model
-  base
-  design
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a branch index. Defaults to s%global%default_branch.
+  {which} is one of:
+    model
+    base
+    design
+
 Example:
   python spin_polarization 1@0|model
 
@@ -1742,6 +1873,7 @@ Note: This command is under development. If you want to use please contact David
 \subsection{python spin_resonance}
 \index{python!spin_resonance}
 \label{p:spin.resonance}
+
 
 Output spin resonance information
 
@@ -1761,6 +1893,7 @@ Where:
 \index{python!super_universe}
 \label{p:super.universe}
 
+
 Output super_Universe parameters.
 
 \begin{example}
@@ -1774,6 +1907,7 @@ Output super_Universe parameters.
 \subsection{python twiss_at_s}
 \index{python!twiss_at_s}
 \label{p:twiss.at.s}
+
 
 Output twiss parameters at given s position.
 
@@ -1794,6 +1928,7 @@ Where:
 \index{python!universe}
 \label{p:universe}
 
+
 Output universe info.
 
 \begin{example}
@@ -1808,6 +1943,7 @@ Use "python global" to get the number of universes.
 \index{python!var}
 \label{p:var}
 
+
 Output parameters of a given variable.
 
 \begin{example}
@@ -1821,6 +1957,7 @@ Output parameters of a given variable.
 \subsection{python var_create}
 \index{python!var_create}
 \label{p:var.create}
+
 
 Create a single variable
 
@@ -1840,6 +1977,7 @@ the "python var_v1_create" command.
 \index{python!var_general}
 \label{p:var.general}
 
+
 Output list of all variable v1 arrays
 
 \begin{example}
@@ -1854,6 +1992,7 @@ Output syntax:
 \subsection{python var_v_array}
 \index{python!var_v_array}
 \label{p:var.v.array}
+
 
 Output list of variables for a given data_v1.
 
@@ -1870,6 +2009,7 @@ Example:
 \index{python!var_v1_array}
 \label{p:var.v1.array}
 
+
 Output list of variables in a given variable v1 array
 
 \begin{example}
@@ -1883,6 +2023,7 @@ Output list of variables in a given variable v1 array
 \subsection{python var_v1_create}
 \index{python!var_v1_create}
 \label{p:var.v1.create}
+
 
 Create a v1 variable structure along with associated var array.
 
@@ -1914,6 +2055,7 @@ partially created variable and generating unwanted error messages.
 \index{python!var_v1_destroy}
 \label{p:var.v1.destroy}
 
+
 Destroy a v1 var structure along with associated var sub-array.
 
 \begin{example}
@@ -1928,13 +2070,14 @@ Destroy a v1 var structure along with associated var sub-array.
 \index{python!wave}
 \label{p:wave}
 
+
 Output Wave analysis info.
 
 \begin{example}
-   python wave \{what\}
+   python wave \{who\}
 \end{example}
 \begin{verbatim}
-Where {what} is one of:
+Where {who} is one of:
   params
   loc_header
   locations
