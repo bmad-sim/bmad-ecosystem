@@ -1520,6 +1520,9 @@ case ('data_d2')
 ! Command syntax:
 !   python data_d2_array {ix_uni}
 !
+! Where:
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!
 ! Example:
 !   python data_d2_array 1
 ! 

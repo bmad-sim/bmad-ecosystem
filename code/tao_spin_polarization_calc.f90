@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero)
+! Subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic)
 !
 ! Routine to calculate the spin equalibrium polarization in a ring along with the polarization rate and
 ! the depolarization rate due to emission of synchrotron radiation photons.
@@ -9,7 +9,8 @@
 ! Input:
 !   branch            -- branch_struct: Lattice branch to analyze.
 !   tao_branch        -- tao_lattice_branch_struct: Contains %orbit
-!   excite_zero(3)    -- character(*): See documentation on spin_concat_linear_maps.
+!   excite_zero(3)    -- character(*), optional: See documentation on spin_concat_linear_maps.
+!   ignore_kinetic    -- character(*), optional: List of elements to veto the kinetic polarization term.
 !
 ! Output:
 !   tao_branch    -- tao_lattice_branch_struct: Calculated is:
@@ -17,7 +18,7 @@
 !     %spin
 !-
 
-subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero)
+subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic)
 
 use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
 use radiation_mod
@@ -32,6 +33,7 @@ type (spin_orbit_map1_struct) :: q_1turn
 type (spin_orbit_map1_struct), pointer :: q1
 type (spin_orbit_map1_struct), target :: q_ele(branch%n_ele_track)
 type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) n0(3), dn_dpz(3), integral_bdn_partial(3), integral_bdn_partial2(3), partial(3,3), partial2(3,3)
 real(rp) integral_bn, integral_bdn, integral_1ns, integral_dn2, integral_dn2_partial(3), integral_dn2_partial2(3)
@@ -41,11 +43,11 @@ real(rp) g_tol, g2_tol, g3_tol
 real(rp), parameter :: f_limit = 8 / (5 * sqrt(3.0_rp))
 real(rp), parameter :: f_rate = 5 * sqrt(3.0_rp) * classical_radius_factor * h_bar_planck * c_light**2 / 8
 
-integer ix1, ix2
+integer ix1, ix2, n_loc
 integer i, j, k, kk, n, p, ie
 
 logical valid_value, err
-character(*), optional :: excite_zero(3)
+character(*), optional :: excite_zero(3), ignore_kinetic
 
 !
 
@@ -65,6 +67,15 @@ integral_dn2_partial2 = 0
 !
 
 call tao_spin_tracking_turn_on()
+
+branch%ele%logic = .true.  ! False => Ignore kinetic term
+if (present(ignore_kinetic)) then
+  call lat_ele_locator (ignore_kinetic, branch%lat, eles, n_loc, err, ix_dflt_branch = branch%ix_branch)
+  if (err) return
+  do i = 1, n_loc
+    call mark_logic_false(eles(i)%ele)
+  enddo
+endif
 
 orbit => tao_branch%orbit
 if (.not. allocated(tao_branch%dn_dpz)) allocate (tao_branch%dn_dpz(0:branch%n_ele_track))
@@ -105,14 +116,16 @@ do ie = 1, branch%n_ele_track
 
   if (int_g2 /= 0) then
     integral_bn   = integral_bn  + old_int_g3 * dot_product(old_b_vec, old_n0) + int_g3 * dot_product(b_vec, n0)
-    integral_bdn  = integral_bdn + old_int_g3 * dot_product(old_b_vec, old_dn_dpz) + int_g3 * dot_product(b_vec, dn_dpz)
+    if (ele%logic) integral_bdn = integral_bdn + &
+                                   old_int_g3 * dot_product(old_b_vec, old_dn_dpz) + int_g3 * dot_product(b_vec, dn_dpz)
+    
     integral_1ns  = integral_1ns + old_int_g3 * (1 - (2.0_rp/9.0_rp) * dot_product(old_n0, old_s_vec)**2) + &
                                    int_g3 * (1 - (2.0_rp/9.0_rp) * dot_product(n0, s_vec)**2)
     integral_dn2  = integral_dn2 + (11.0_rp/18.0_rp) * integ_dn2(old_int_g3, old_dn_dpz, int_g3, dn_dpz)
 
     do kk = 1, 3
-      integral_bdn_partial(kk)  = integral_bdn_partial(kk) + old_int_g3 * dot_product(old_b_vec, old_partial(kk,:)) + &
-                                                            int_g3 * dot_product(b_vec, partial(kk,:))
+      if (ele%logic) integral_bdn_partial(kk) = integral_bdn_partial(kk) + &
+                      old_int_g3 * dot_product(old_b_vec, old_partial(kk,:)) + int_g3 * dot_product(b_vec, partial(kk,:))
       integral_dn2_partial(kk)  = integral_dn2_partial(kk) + (11.0_rp/18.0_rp) * &
                                                       integ_dn2 (old_int_g3, old_partial(kk,:), int_g3, partial(kk,:))
       integral_bdn_partial2(kk) = integral_bdn_partial2(kk) + old_int_g3 * dot_product(old_b_vec, old_partial2(kk,:)) + &
@@ -151,7 +164,7 @@ else
   tao_branch%spin%pol_rate_bks          = f * integral_1ns
   tao_branch%spin%depol_rate            = f * integral_dn2
   tao_branch%spin%depol_rate_partial    = f * integral_dn2_partial
-  tao_branch%spin%depol_rate_partial2    = f * integral_dn2_partial2
+  tao_branch%spin%depol_rate_partial2   = f * integral_dn2_partial2
   tao_branch%spin%integral_bn           = integral_bn
   tao_branch%spin%integral_bdn          = integral_bdn
   tao_branch%spin%integral_1ns          = integral_1ns
@@ -162,11 +175,25 @@ endif
 contains
 
 function integ_dn2(old_g3int, old_dn, g3int, dn) result (integral)
-
 real(rp) old_g3int, g3int, old_dn(3), dn(3), integral
-
+!
 integral = (old_g3int + g3int) * dot_product(old_dn+dn, old_dn+dn) / 4
-
 end function integ_dn2
+
+!--------------------------------------
+! contains
+
+recursive subroutine mark_logic_false(ele)
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: slave
+integer ix
+!
+ele%logic = .false.
+do ix = 1, ele%n_slave
+  slave => pointer_to_slave(ele, ix)
+  call mark_logic_false(slave)
+enddo
+
+end subroutine mark_logic_false
 
 end subroutine tao_spin_polarization_calc
