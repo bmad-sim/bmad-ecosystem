@@ -2334,6 +2334,8 @@ case ('graph')
   nl=nl+1; write(lines(nl), rmt)  'x%tick_max                       = ', g%x%tick_max
   nl=nl+1; write(lines(nl), rmt)  'x%tick_min                       = ', g%x%tick_min
   nl=nl+1; write(lines(nl), rmt)  'x%dtick                          = ', g%x%dtick
+  nl=nl+1; write(lines(nl), rmt)  'x%eval_range_max                 = ', g%x%eval_max
+  nl=nl+1; write(lines(nl), rmt)  'x%eval_range_min                 = ', g%x%eval_min
 
   nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y                     = ', g%y2_mirrors_y
   nl=nl+1; write(lines(nl), amt)  'y%label                          = ', quote(g%y%label)

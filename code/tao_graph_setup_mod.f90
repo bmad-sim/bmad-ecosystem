@@ -27,6 +27,7 @@ character(*), parameter :: r_name = 'tao_graph_setup'
 
 !
 
+if (.not. graph%is_valid) return
 graph%text_legend_out = graph%text_legend
 
 if (graph%type == 'floor_plan') return  ! Nothing to do.
@@ -215,7 +216,7 @@ do i = 1, size(graph%curve)
   var0 = ele%control%var(1)%value
 
   do j = 1, n_curve_pts
-    var = graph%x%min + (j - 1) * (graph%x%max - graph%x%min) / n_curve_pts
+    var = graph%x%eval_min + (j - 1) * (graph%x%eval_max - graph%x%eval_min) / n_curve_pts
     ele%control%var(1)%value = var
     if (ele%control%type == expression$) then
       value = expression_stack_value(ctl%stack, err, err_str, ele%control%var, .false.)
@@ -1244,14 +1245,14 @@ select case (data_source)
 case ('expression')
 
   if (plot%x_axis_type == 'index') then
-    n_dat = nint(graph%x%max) - nint(graph%x%min) + 1
+    n_dat = nint(graph%x%eval_max) - nint(graph%x%eval_min) + 1
 
     call re_allocate (curve%ix_symb, n_dat)
     call re_allocate (curve%x_symb,  n_dat) ! allocate space for the data
     call re_allocate (curve%y_symb,  n_dat) ! allocate space for the data
 
     n_dat = 0
-    do i = nint(graph%x%min), nint(graph%x%max)
+    do i = nint(graph%x%eval_min), nint(graph%x%eval_max)
       write (dflt_index, '(i0)') i
       call tao_evaluate_expression  (curve%data_type(12:), 0, graph%draw_only_good_user_data_or_vars, value_arr, &
                    err, .false., scratch%info, scratch%stack, curve%component, curve%data_source, dflt_dat_or_var_index = dflt_index)
@@ -1278,15 +1279,15 @@ case ('expression')
       n_dat = n_dat + 1
       curve%y_symb(n_dat) = value_arr(i)
 
-      dx = (graph%x%max - graph%x%min) / 100.0_rp
+      dx = (graph%x%eval_max - graph%x%eval_min) / 100.0_rp
 
       select case (plot%x_axis_type)
       case ('s')
-        if (scratch%info(i)%s < graph%x%min - dx .or. scratch%info(i)%s > graph%x%max + dx) cycle
+        if (scratch%info(i)%s < graph%x%eval_min - dx .or. scratch%info(i)%s > graph%x%eval_max + dx) cycle
         curve%x_symb(n_dat) = scratch%info(i)%s
       case ('ele_index')
         if (.not. associated(scratch%info(i)%ele)) cycle
-        if (scratch%info(i)%ele%ix_ele < graph%x%min - dx .or. scratch%info(i)%ele%ix_ele > graph%x%max + dx) cycle
+        if (scratch%info(i)%ele%ix_ele < graph%x%eval_min - dx .or. scratch%info(i)%ele%ix_ele > graph%x%eval_max + dx) cycle
         curve%x_symb(n_dat) = scratch%info(i)%ele%ix_ele
       end select
     enddo
@@ -1358,7 +1359,7 @@ case ('plot_x_axis_var')
 
   j = 0
   do i = 1, n_curve_pts 
-    val = graph%x%min + (graph%x%max - graph%x%min) * (i - 1.0_rp) / (n_curve_pts - 1)
+    val = graph%x%eval_min + (graph%x%eval_max - graph%x%eval_min) * (i - 1.0_rp) / (n_curve_pts - 1)
     if (plot%x_axis_type == 'lat')then
       var_ptr = val
       call tao_set_flags_for_changed_attribute (u, name(1:ix1-1), scratch%eles(1)%ele, var_ptr)
@@ -1396,6 +1397,7 @@ case ('plot_x_axis_var')
 
   if (plot%x_axis_type == 'lat')then
     var_ptr = val0
+    call tao_set_flags_for_changed_attribute (u, name(1:ix1-1), scratch%eles(1)%ele, var_ptr)
     s%u(ix_uni)%calc%lattice = .true.
   else
     call tao_set_var_model_value (scratch%var_array(1)%v, val0)
