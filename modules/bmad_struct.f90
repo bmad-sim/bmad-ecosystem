@@ -770,6 +770,23 @@ type taylor_field_struct
   type (taylor_field_plane_struct), pointer :: ptr => null()
 end type
 
+! Generalized gradiants
+
+type gen_grad_m_struct
+  real(rp), allocatable :: c_coef(:)
+  real(rp), allocatable :: s_coef(:)
+end type  
+
+type gen_grad_struct
+  type (gen_grad_m_struct), allocatable :: m(:)
+  integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
+  integer :: field_type = magnetic$  ! or electric$
+  real(rp) :: dz = 0                 ! Point spacing.
+  real(rp) :: r0(3) = 0              ! field origin relative to ele_anchor_pt.
+  real(rp) :: field_scale = 1        ! Factor to scale the fields by
+  integer :: master_parameter = 0    ! Master parameter in ele%value(:) array to use for scaling the field.
+end type
+
 ! Local reference frame position with respect to the global (floor) coordinates
 
 real(rp), parameter :: r0_vec$(3) = 0
@@ -1293,6 +1310,7 @@ type ele_struct
   type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define E/M fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
   type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define E/M fields.
+  type (gen_grad_struct), pointer :: gen_grad(:) => null()               ! Used to define E/M fields.
   type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define E/M fields.
   ! The difference between map_ref_orb and time_ref_orb is that map_ref_orb is the reference orbit for the
   ! 1st order spin/orbit map which, in general, is non-zero while time_ref_orb follows the reference particle which is

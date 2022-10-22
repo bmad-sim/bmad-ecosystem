@@ -88,6 +88,7 @@ rel_p = 1 + orbit%vec(6)
 
 if (rel_p < 0) then
   orbit%state = lost_pz_aperture$
+  if (present(param)) param%unstable_factor = abs(rel_p) + 1e-6_rp
   return
 endif
 
