@@ -19,6 +19,7 @@ use tao_command_mod, dummy8 => tao_init
 use tao_set_mod, dummy9 => tao_init
 use tao_plot_mod, only: tao_draw_plots
 use tao_plot_window_mod, only: tao_destroy_plot_window
+use random_mod
 
 !$ use omp_lib
 
@@ -218,6 +219,13 @@ call tao_init_data (data_file)
 call tao_init_building_wall (building_wall_file)
 
 call tao_hook_init1 (init_tao_file)
+
+! Seed random number generator
+
+if (s%global%random_seed /= -1) call ran_seed_put (s%global%random_seed)
+if (s%global%random_engine /= '') call ran_engine (s%global%random_engine)
+call ran_gauss_converter (s%global%random_gauss_converter)
+if (s%global%random_sigma_cutoff > 0) call ran_gauss_converter (set_sigma_cut = s%global%random_sigma_cutoff)
 
 ! check variables
 ! check if vars are good
