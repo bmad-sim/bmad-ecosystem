@@ -19,6 +19,9 @@ integer(i4_b), private, parameter :: sobseq_maxbit = 30, sobseq_maxdim = 6
 
 ! common variables for random number generator.
 
+character(8), parameter :: ran_engine_name(2) = [character(8):: 'pseudo', 'quasi']
+character(8), parameter :: ran_gauss_converter_name(4) = [character(8):: '', '', 'quick', 'exact']
+
 integer, parameter :: pseudo_random$ = 1, quasi_random$ = 2
 integer, parameter :: quick_gaussian$ = 3, exact_gaussian$ = 4
 
@@ -279,6 +282,7 @@ end subroutine ran_gauss_vector
 !   set -- Character(*), optional: Set the random number engine. Possibilities are:
 !                'pseudo' -> Uses ran from Numerical Recipies (F90).
 !                'quasi'  -> Uses sobseq from Numerical Recipes.
+!                ''       -> Do nothing.
 !   get -- Character, optional: Get the current (before any set) random number engine. 
 !   ran_state -- random_state_struct, optional: Internal state.
 !                     See the ran_seed_put documentation for more details.
@@ -316,6 +320,7 @@ if (present(set)) then
   case ('quasi')
     r_state%engine = quasi_random$
     r_state%number_stored = .false.
+  case ('')
   case default
     call out_io (s_error$, r_name, 'BAD RANDOM NUMBER ENGINE NAME: ' // set)
   end select
@@ -349,14 +354,15 @@ end subroutine ran_engine
 ! Input:
 !   set -- Character(*), optional: Set the random number engine. Possibilities are:
 !             'exact'
-!             'quick'  (Old deprecated: 'limited')
+!             'quick'  ! Old deprecated: 'limited'
+!             ''       ! Do nothing
 !   set_sigma_cut -- Real(rp), optional: Sigma cutoff. Initially: sigma_cut = -1.
 !   ran_state -- random_state_struct, optional: Internal state.
 !                     See the ran_seed_put documentation for more details.
 !
 ! Output:
 !   get -- Character(*), optional: Get the current (before any set) gaussian converter.
-!   get_sigma_cut -- Real(rp), optional: Get the current (before andy set) sigma cutoff.
+!   get_sigma_cut -- Real(rp), optional: Get the current (before any set) sigma cutoff.
 !-
 
 subroutine ran_gauss_converter (set, set_sigma_cut, get, get_sigma_cut, ran_state)
@@ -398,6 +404,8 @@ if (present(set)) then
     r_state%gauss_converter = quick_gaussian$
   case ('exact')
     r_state%gauss_converter = exact_gaussian$
+  case ('')
+    ! Do nothing
   case default
     call out_io (s_error$, r_name, 'BAD RANDOM NUMBER GAUSS_CONVERTER NAME: ' // set)
   end select
