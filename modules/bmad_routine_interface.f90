@@ -345,13 +345,6 @@ function classical_radius (species) result (radius)
   real(rp) radius
 end function
 
-function congruent_lattice_elements (ele1, ele2) result (is_congruent)
-  import
-  implicit none
-  type (ele_struct) ele1, ele2
-  logical is_congruent
-end function
-
 function coords_body_to_rel_exit (body_position, ele, w_mat, calculate_angles) result(rel_exit)
   import
   implicit none
