@@ -21,7 +21,6 @@ contains
 
 subroutine tao_init_global (init_file)
 
-use random_mod
 use opti_de_mod, only: opti_de_param
 use input_mod
 
@@ -90,16 +89,10 @@ contains
 
 subroutine end_bookkeeping ()
 
-! Tao does its own bookkeeping
+! Not using auto bookkeeping will speed up calculations.
 
 bmad_com%auto_bookkeeper = .false.
 s%com%valid_plot_who(1:5) = ['model ', 'base  ', 'ref   ', 'design', 'meas  ']
-
-! Seed random number generator
-
-call ran_seed_put (s%global%random_seed)
-call ran_engine (s%global%random_engine)
-call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
 call set_this_logical_command_arg (s%init%disable_smooth_line_calc_arg, .false., s%global%disable_smooth_line_calc)
 call set_this_logical_command_arg (s%init%no_stopping_arg, .true., s%global%stop_on_error)

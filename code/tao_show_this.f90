@@ -2008,6 +2008,7 @@ case ('field')
 
 case ('global')
 
+  call ran_default_state (get_state = ran_state)
   what_to_show = 'global'
 
   do
@@ -2053,12 +2054,22 @@ case ('global')
     nl=nl+1; write(lines(nl), amt) '  %random_engine                 = ', quote(s%global%random_engine)
     nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter        = ', quote(s%global%random_gauss_converter)
     nl=nl+1; write(lines(nl), amt) '  %quiet                         = ', quote(s%global%quiet)
-    nl=nl+1; write(lines(nl), imt) '  %random_seed                   = ', s%global%random_seed
-    if (s%global%random_seed == 0) then
-      call ran_seed_get(ix)
-      nl=nl+1; write(lines(nl), imt) '   random_seed (generated)      = ', ix
+
+    nl=nl+1; write(lines(nl), amt) '  %random_engine (input)         = ', quote(s%global%random_engine)
+    if (s%global%random_engine == '') then
+      nl=nl+1; write(lines(nl), amt) '   random engine used            = ', quote(ran_engine_name(ran_state%engine))
     endif
+
+    nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter (input)= ', quote(s%global%random_gauss_converter)
+    if (s%global%random_gauss_converter == '') then
+      nl=nl+1; write(lines(nl), amt) '   random gauss converter used   = ', quote(ran_gauss_converter_name(ran_state%gauss_converter))
+    endif
+
+    nl=nl+1; write(lines(nl), imt) '  %random_seed (input)           = ', s%global%random_seed
+    nl=nl+1; write(lines(nl), imt) '     random seed used              = ', ran_state%seed
+
     nl=nl+1; write(lines(nl), rmt) '  %random_sigma_cutoff           = ', s%global%random_sigma_cutoff
+
     nl=nl+1; write(lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
     nl=nl+1; write(lines(nl), amt) '  %track_type                    = ', quote(s%global%track_type)
     nl=nl+1; write(lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
@@ -2106,7 +2117,6 @@ case ('global')
     call write_this_arg (nl, lines, '  -var_file', s%init%var_file_arg)
 
   case ('-ran_state')
-    call ran_default_state (get_state = ran_state)
     nl=nl+1; write(lines(nl), imt) '  %ix              = ', ran_state%ix
     nl=nl+1; write(lines(nl), imt) '  %iy              = ', ran_state%iy
     nl=nl+1; write(lines(nl), lmt) '  %number_stored   = ', ran_state%number_stored

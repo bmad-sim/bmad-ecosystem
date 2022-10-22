@@ -600,9 +600,9 @@ type tao_global_struct:
   n_opti_loops = 1                 ! number of optimization loops
   n_lat_layout_label_rows = 1      ! How many rows with a lat_layout
   datum_err_messages_max = 10      ! Max number of error messages per cycle.
-  phase_units = radians\$           ! Phase units on output.
+  phase_units = radians\$          ! Phase units on output.
   bunch_to_plot = 1                ! Which bunch to plot
-  random_seed = 0                  ! Use system clock by default
+  random_seed = -1                 ! Use system clock by default
   n_top10_merit = 10               ! Number of top constraints to print.
   random_engine = "pseudo"         ! Random number engine to use
   random_gauss_converter = "exact" ! Uniform to gauss conversion method
@@ -758,10 +758,13 @@ by \vn{global%random_sigma_cutoff}.
 See \vn{global%random_gauss_converter}.
 %
   \item{\vn{global%random_seed}} \Newline
-\vn{global%random_seed} sets the seed number for the pseudo-random number generator. A
-value of \vn{0} (the default) causes the seed number to be picked based upon the system
-clock. Use the \vn{show global} command to see what the seed number is.
-
+\vn{global%random_seed} sets the seed number for the pseudo-random number generator. A value of
+\vn{-1} (the default) means the seed number used is the number set in the lattice file. Any other
+number overrides the number set in the lattice file.  If the lattice file does not set the random
+number seed, a value of zero is used. A value of zero means that the the ``true'' random number seed
+used in generating random numbers is picked by \bmad based upon the system clock. Use the \vn{show
+global} command to see what the input and true random number seeds are.
+%
   \item{\vn{global%rf_on}} \Newline
 The rf cavities in circular lattices can be be toggled on or off using the \vn{global%rf_on}
 switch. The default is False. Notice that with the RF off, the beam energy will be independent of
@@ -1014,7 +1017,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     beam_init%sig_e_jitter    = <real>        ! bunch energy spread rms jitter (dE/E)
     beam_init%spin(3)         = <real>*3      ! (x, y, z) spin components.
     beam_init%init_spin       = <logical>     ! Initialize the spin (default: False)
-    beam_init%random_engine   = "pseudo"      ! random number engine to use
+    beam_init%random_engine   = ""            ! random number engine to use
     beam_init%random_gauss_converter = "exact" ! Uniform to gauss conversion method
     beam_init%random_sigma_cutoff = 4.0        ! Cut-off in sigmas.
     beam_init%use_t_coords    = <logical>     ! Use time coords (for e_guns)?
