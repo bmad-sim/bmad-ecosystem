@@ -422,7 +422,7 @@ type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, ele_start, ele_stop
-type (rad_int_ele_cache_struct), pointer :: ri
+type (rad_map_ele_struct), pointer :: ri
 
 real(rp) closed_orb(6), f_tol
 
@@ -469,10 +469,10 @@ if (lttp%split_bends_for_stochastic_rad) then
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
     if (ele%name /= 'Radiation_Point') cycle
-    if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
-    ri => ele%rad_int_cache
-    call tracking_rad_mat_setup(branch%ele(ie-1), 1e-4_rp, downstream_end$, ri%rm0)
-    call tracking_rad_mat_setup(branch%ele(ie+1), 1e-4_rp, upstream_end$,   ri%rm1)
+    if (.not. associated(ele%rad_map)) allocate (ele%rad_map)
+    ri => ele%rad_map
+    call tracking_rad_map_setup(branch%ele(ie-1), 1e-4_rp, downstream_end$, ri%rm0)
+    call tracking_rad_map_setup(branch%ele(ie+1), 1e-4_rp, upstream_end$,   ri%rm1)
 
     ! Combine matrices for quicker evaluation
     ri%rm1%stoc_mat = matmul(ri%rm0%stoc_mat, transpose(ri%rm0%stoc_mat)) + matmul(ri%rm1%stoc_mat, transpose(ri%rm1%stoc_mat))
@@ -1279,7 +1279,7 @@ r_damp  = logic_option(bmad_com%radiation_damping_on, rad_damp)
 r_fluct = logic_option(bmad_com%radiation_fluctuations_on, rad_fluct)
 if (.not. r_damp .and. .not. r_fluct) return
 
-rad_mat => ele%rad_int_cache%rm1
+rad_mat => ele%rad_map%rm1
 if (r_damp) then
   orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
   if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_mat%damp_vec
