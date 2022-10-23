@@ -355,7 +355,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
     do ie = 1, branch%n_ele_max
       ! Make sure cache is calculated with respect to particle orbit.
-      if (associated(branch%ele(ie)%rad_int_cache)) branch%ele(ie)%rad_int_cache%stale = .true.
+      if (associated(branch%ele(ie)%rad_map)) branch%ele(ie)%rad_map%stale = .true.
     enddo
   enddo
 enddo
