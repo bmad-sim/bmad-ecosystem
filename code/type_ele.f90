@@ -650,9 +650,9 @@ endif
 
 ! Radiation kick values
 
-if (logic_option(.false., type_rad_kick) .and. associated(ele%rad_int_cache)) then
-  rm0 => ele%rad_int_cache%rm0
-  rm1 => ele%rad_int_cache%rm1
+if (logic_option(.false., type_rad_kick) .and. associated(ele%rad_map)) then
+  rm0 => ele%rad_map%rm0
+  rm1 => ele%rad_map%rm1
 
   nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Matrices used for radiation stochastic and damping kicks:'

@@ -772,13 +772,13 @@ end type
 
 ! Generalized gradiants
 
-type gen_grad_m_struct
+type gen_grad_coef_struct
   real(rp), allocatable :: c_coef(:)
   real(rp), allocatable :: s_coef(:)
 end type  
 
 type gen_grad_struct
-  type (gen_grad_m_struct), allocatable :: m(:)
+  type (gen_grad_coef_struct), allocatable :: m(:)  ! Coefs for given m value.
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: field_type = magnetic$  ! or electric$
   real(rp) :: dz = 0                 ! Point spacing.
@@ -932,7 +932,7 @@ type rad_map_struct
   real(rp) :: stoc_mat(6,6) = 0        ! Stochastic variance or "kick" (Cholesky decomposed) matrix.
 end type
 
-type rad_int_ele_cache_struct
+type rad_map_ele_struct
   ! 6D emit. In this structure rm0%stoc_mat and rm1%stoc_mat are the kick matrices.
   type (rad_map_struct) rm0, rm1  ! Upstream half and downstream half matrices for an element.
   logical :: stale = .true.
@@ -1294,18 +1294,17 @@ type ele_struct
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC track corresponding to this ele.
   type (floor_position_struct) :: floor = floor_position_struct(r0_vec$, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
-                                                         ! Global coords reference position at downstream end.
   type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
-  type (mode3_struct), pointer :: mode3 => null()                     ! 6D normal mode structure.
+  type (mode3_struct), pointer :: mode3 => null()                        ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()
   type (multipole_cache_struct), allocatable :: multipole_cache
-  type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() ! Radiation integral calc cached values 
+  type (rad_map_ele_struct), pointer :: rad_map => null()                ! Radiation kick parameters
   ! Note: The reference orbits for spin and orbit Taylor maps are not necessarily the same
-  type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.
+  type (taylor_struct) :: taylor(6) = taylor_struct()                    ! Phase space Taylor map.
   real(rp) :: spin_taylor_ref_orb_in(6) = real_garbage$
-  type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()   ! Quaternion Spin Taylor map.
-  type (wake_struct), pointer :: wake => null()                ! Wakes
-  type (wall3d_struct), pointer :: wall3d(:) => null()         ! Chamber or capillary wall
+  type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()             ! Quaternion Spin Taylor map.
+  type (wake_struct), pointer :: wake => null()                          ! Wakes
+  type (wall3d_struct), pointer :: wall3d(:) => null()                   ! Chamber or capillary wall
   ! E/M field structs.
   type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define E/M fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
