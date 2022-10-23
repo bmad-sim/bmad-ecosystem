@@ -100,7 +100,7 @@ type (track_point_struct), pointer :: tp
 type (strong_beam_struct), pointer :: sb
 type (c_taylor) ptc_ctaylor
 type (complex_taylor_struct) bmad_ctaylor
-type (rad_int_ele_cache_struct), pointer :: ri
+type (rad_map_ele_struct), pointer :: ri
 type (grid_field_pt1_struct), pointer :: g_pt
 
 type old_show_lat_column_struct
@@ -1760,12 +1760,12 @@ case ('emittance')
   !
 
   if (what_to_show == '-xmatrix') then
-    if (.not. associated(ele%rad_int_cache)) then
+    if (.not. associated(ele%rad_map)) then
       nl=nl+1; lines(nl) = 'No radiation matrices associated with element.'
       return
     endif
 
-    ri => ele%rad_int_cache
+    ri => ele%rad_map
 
     nl=nl+1; write (lines(nl), '(10x, 30x, a, 64x, a)') 'Upstream half', 'Downstream half'
 

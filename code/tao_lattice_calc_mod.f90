@@ -366,6 +366,7 @@ subroutine tao_beam_track (u, tao_lat, ix_branch, beam, calc_ok)
 
 use wake_mod, only: zero_lr_wakes_in_lat
 use beam_utils, only: calc_bunch_params
+use radiation_mod, only: radiation_map_setup
 
 implicit none
 
@@ -385,6 +386,7 @@ type (tao_model_element_struct), pointer :: tao_model_ele(:)
 type (tao_model_branch_struct), pointer :: model_branch
 type (bunch_params_struct) :: bunch_params
 type (bunch_track_struct), pointer :: bunch_params_comb(:)
+type (rad_map_ele_struct) rad_map_save
 
 real(rp) sig(6,6), significant_length, s_slice_start, s_slice_end, s_travel
 real(rp) :: value1, value2, f, time, old_time, s_start, s_end, s_target, ds_save
@@ -397,7 +399,7 @@ integer, allocatable :: ix_ele(:)
 character(*), parameter :: r_name = "tao_beam_track"
 
 logical calc_ok, print_err, err, lost, new_beam_file, can_save
-logical comb_calc_on, csr_sc_on
+logical comb_calc_on, csr_sc_on, radiation_on
 
 ! Initialize 
 
@@ -409,6 +411,7 @@ branch => tao_lat%lat%branch(ix_branch)
 tao_branch => tao_lat%tao_branch(ix_branch)
 model_branch => u%model_branch(ix_branch)
 tao_model_ele => model_branch%ele
+radiation_on = (bmad_com%radiation_fluctuations_on .or. bmad_com%radiation_damping_on)
 
 lat => tao_lat%lat
 
@@ -420,8 +423,8 @@ new_beam_file = .true.
 
 ie_start = model_branch%beam%ix_track_start
 ie_end   = model_branch%beam%ix_track_end
-s_start = branch%ele(ie_start)%s
-s_end = branch%ele(ie_end)%s
+s_start  = branch%ele(ie_start)%s
+s_end    = branch%ele(ie_end)%s
 
 if (ie_start == not_set$ .or. ie_end == not_set$) then
   call out_io (s_error$, r_name, 'BEAM END POSITION NOT PROPERLY SET. NO TRACKING DONE.')
@@ -470,7 +473,7 @@ endif
 n_lost_old = 0
 ie = ie_start
 s_target = s_start
-ele => branch%ele(ie)
+ele => point_to_this_ele (branch%ele(ie), rad_map_save)
 ix_slice = -1  ! ix_slice will equal -1 if not tracking internally in a sliced element.
 
 do
@@ -485,6 +488,7 @@ do
     else
       csr_sc_on = (bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$))
       if (csr_sc_on .or. .not. comb_calc_on) then
+        if (radiation_on) call radiation_map_setup(ele, bunch_params%centroid)
         call track_beam (lat, beam, branch%ele(ie-1), ele, err, centroid = tao_branch%orbit, bunch_tracks = bunch_params_comb)
 
       else
@@ -497,8 +501,14 @@ do
           call element_slice_iterator(ele, branch%param, ix_slice, n_slice, slice_ele)
         endif
 
+        if (radiation_on) then
+          call calc_bunch_params(beam%bunch(s%global%bunch_to_plot), bunch_params, err)
+          call radiation_map_setup(slice_ele, bunch_params%centroid)
+        endif
+
         do i = 1, size(beam%bunch)
-          call track1_bunch (beam%bunch(i), slice_ele, err, tao_branch%orbit)
+          call track1_bunch (beam%bunch(i), slice_ele, err, tao_branch%orbit, bunch_track = bunch_params_comb(i))
+          if (associated(bunch_params_comb)) call save_a_bunch_step(slice_ele, beam%bunch(i), bunch_params_comb(i))
         enddo
 
         if (ix_slice == n_slice) ix_slice = -1
@@ -536,8 +546,7 @@ do
             i_array = [n_lost-n_lost_old, n_lost, n])
     else
       call out_io (s_blank$, r_name, &
-            '\i0\ particle(s) lost in universe \i0\ at element ' // trim(ele_loc_name(ele)) // &
-                                                                           ': ' // trim(ele%name) // &
+            '\i0\ particle(s) lost in universe \i0\ at element ' // trim(ele_loc_name(ele)) // ': ' // trim(ele%name) // &
             '  Total lost: \i0\  of \i0\ ', &
             i_array = [n_lost-n_lost_old, u%ix_uni, n_lost, n])
     endif
@@ -551,7 +560,7 @@ do
             'TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT ' // trim(ele_loc_name(ele)) // ': ' // trim(ele%name))
   endif
 
-  ! calc bunch params
+  ! Calc bunch params
 
   call calc_bunch_params (beam%bunch(s%global%bunch_to_plot), bunch_params, err, print_err)
   ! Only generate error message once per tracking
@@ -597,9 +606,11 @@ do
     if (ie > branch%n_ele_track) then
       ie = 1
     endif
-    ele => branch%ele(ie)
+    ele => point_to_this_ele (branch%ele(ie), rad_map_save, ele)
   endif
 enddo
+
+if (associated(ele%rad_map)) ele%rad_map = rad_map_save
 
 ! only post total lost if no extraction or extracting to a turned off lattice
 
@@ -612,6 +623,28 @@ if (n_lost /= 0) &
                                   i_array = [u%ix_uni, n_lost])
 
 tao_branch%track_state = ix_track
+
+!-----------------------------------------------------------------------
+contains
+
+function point_to_this_ele (target_ele, rad_map_save, old_ele) result (ptr_ele)
+
+type (ele_struct), target :: target_ele
+type (ele_struct), optional :: old_ele
+type (ele_struct), pointer :: ptr_ele
+type (rad_map_ele_struct) rad_map_save
+
+!
+
+ptr_ele => target_ele
+
+if (present(old_ele)) then
+  if (associated(old_ele%rad_map)) old_ele%rad_map = rad_map_save
+endif
+
+if (associated(target_ele%rad_map)) rad_map_save = target_ele%rad_map
+
+end function point_to_this_ele
 
 end subroutine tao_beam_track
 
