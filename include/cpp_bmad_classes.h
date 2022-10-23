@@ -226,10 +226,20 @@ typedef valarray<CPP_rad_map>          CPP_rad_map_ARRAY;
 typedef valarray<CPP_rad_map_ARRAY>    CPP_rad_map_MATRIX;
 typedef valarray<CPP_rad_map_MATRIX>   CPP_rad_map_TENSOR;
 
-class CPP_rad_int_ele_cache;
-typedef valarray<CPP_rad_int_ele_cache>          CPP_rad_int_ele_cache_ARRAY;
-typedef valarray<CPP_rad_int_ele_cache_ARRAY>    CPP_rad_int_ele_cache_MATRIX;
-typedef valarray<CPP_rad_int_ele_cache_MATRIX>   CPP_rad_int_ele_cache_TENSOR;
+class CPP_rad_map_ele;
+typedef valarray<CPP_rad_map_ele>          CPP_rad_map_ele_ARRAY;
+typedef valarray<CPP_rad_map_ele_ARRAY>    CPP_rad_map_ele_MATRIX;
+typedef valarray<CPP_rad_map_ele_MATRIX>   CPP_rad_map_ele_TENSOR;
+
+class CPP_gen_grad_coef;
+typedef valarray<CPP_gen_grad_coef>          CPP_gen_grad_coef_ARRAY;
+typedef valarray<CPP_gen_grad_coef_ARRAY>    CPP_gen_grad_coef_MATRIX;
+typedef valarray<CPP_gen_grad_coef_MATRIX>   CPP_gen_grad_coef_TENSOR;
+
+class CPP_gen_grad;
+typedef valarray<CPP_gen_grad>          CPP_gen_grad_ARRAY;
+typedef valarray<CPP_gen_grad_ARRAY>    CPP_gen_grad_MATRIX;
+typedef valarray<CPP_gen_grad_MATRIX>   CPP_gen_grad_TENSOR;
 
 class CPP_surface_grid_pt;
 typedef valarray<CPP_surface_grid_pt>          CPP_surface_grid_pt_ARRAY;
@@ -1850,31 +1860,93 @@ bool operator== (const CPP_rad_map&, const CPP_rad_map&);
 
 
 //--------------------------------------------------------------------
-// CPP_rad_int_ele_cache
+// CPP_rad_map_ele
 
-class Opaque_rad_int_ele_cache_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_rad_map_ele_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_rad_int_ele_cache {
+class CPP_rad_map_ele {
 public:
   CPP_rad_map rm0;
   CPP_rad_map rm1;
   Bool stale;
 
-  CPP_rad_int_ele_cache() :
+  CPP_rad_map_ele() :
     rm0(),
     rm1(),
     stale(true)
     {}
 
-  ~CPP_rad_int_ele_cache() {
+  ~CPP_rad_map_ele() {
   }
 
 };   // End Class
 
-extern "C" void rad_int_ele_cache_to_c (const Opaque_rad_int_ele_cache_class*, CPP_rad_int_ele_cache&);
-extern "C" void rad_int_ele_cache_to_f (const CPP_rad_int_ele_cache&, Opaque_rad_int_ele_cache_class*);
+extern "C" void rad_map_ele_to_c (const Opaque_rad_map_ele_class*, CPP_rad_map_ele&);
+extern "C" void rad_map_ele_to_f (const CPP_rad_map_ele&, Opaque_rad_map_ele_class*);
 
-bool operator== (const CPP_rad_int_ele_cache&, const CPP_rad_int_ele_cache&);
+bool operator== (const CPP_rad_map_ele&, const CPP_rad_map_ele&);
+
+
+//--------------------------------------------------------------------
+// CPP_gen_grad_coef
+
+class Opaque_gen_grad_coef_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_gen_grad_coef {
+public:
+  Real_ARRAY c_coef;
+  Real_ARRAY s_coef;
+
+  CPP_gen_grad_coef() :
+    c_coef(0.0, 0),
+    s_coef(0.0, 0)
+    {}
+
+  ~CPP_gen_grad_coef() {
+  }
+
+};   // End Class
+
+extern "C" void gen_grad_coef_to_c (const Opaque_gen_grad_coef_class*, CPP_gen_grad_coef&);
+extern "C" void gen_grad_coef_to_f (const CPP_gen_grad_coef&, Opaque_gen_grad_coef_class*);
+
+bool operator== (const CPP_gen_grad_coef&, const CPP_gen_grad_coef&);
+
+
+//--------------------------------------------------------------------
+// CPP_gen_grad
+
+class Opaque_gen_grad_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_gen_grad {
+public:
+  CPP_gen_grad_coef_ARRAY m;
+  Int ele_anchor_pt;
+  Int field_type;
+  Real dz;
+  Real_ARRAY r0;
+  Real field_scale;
+  Int master_parameter;
+
+  CPP_gen_grad() :
+    m(CPP_gen_grad_coef_ARRAY(CPP_gen_grad_coef(), 0)),
+    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
+    field_type(Bmad::MAGNETIC),
+    dz(0.0),
+    r0(0.0, 3),
+    field_scale(1),
+    master_parameter(0)
+    {}
+
+  ~CPP_gen_grad() {
+  }
+
+};   // End Class
+
+extern "C" void gen_grad_to_c (const Opaque_gen_grad_class*, CPP_gen_grad&);
+extern "C" void gen_grad_to_f (const CPP_gen_grad&, Opaque_gen_grad_class*);
+
+bool operator== (const CPP_gen_grad&, const CPP_gen_grad&);
 
 
 //--------------------------------------------------------------------
@@ -3300,7 +3372,7 @@ public:
   CPP_high_energy_space_charge* high_energy_space_charge;
   CPP_mode3* mode3;
   CPP_photon_element* photon;
-  CPP_rad_int_ele_cache* rad_int_cache;
+  CPP_rad_map_ele* rad_map;
   CPP_taylor_ARRAY taylor;
   Real_ARRAY spin_taylor_ref_orb_in;
   CPP_taylor_ARRAY spin_taylor;
@@ -3309,6 +3381,7 @@ public:
   CPP_cartesian_map_ARRAY cartesian_map;
   CPP_cylindrical_map_ARRAY cylindrical_map;
   CPP_grid_field_ARRAY grid_field;
+  CPP_gen_grad_ARRAY gen_grad;
   CPP_taylor_field_ARRAY taylor_field;
   CPP_coord map_ref_orb_in;
   CPP_coord map_ref_orb_out;
@@ -3409,7 +3482,7 @@ public:
     high_energy_space_charge(NULL),
     mode3(NULL),
     photon(NULL),
-    rad_int_cache(NULL),
+    rad_map(NULL),
     taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
     spin_taylor_ref_orb_in(Bmad::REAL_GARBAGE, 6),
     spin_taylor(CPP_taylor_ARRAY(CPP_taylor(), 4)),
@@ -3418,6 +3491,7 @@ public:
     cartesian_map(CPP_cartesian_map_ARRAY(CPP_cartesian_map(), 0)),
     cylindrical_map(CPP_cylindrical_map_ARRAY(CPP_cylindrical_map(), 0)),
     grid_field(CPP_grid_field_ARRAY(CPP_grid_field(), 0)),
+    gen_grad(CPP_gen_grad_ARRAY(CPP_gen_grad(), 0)),
     taylor_field(CPP_taylor_field_ARRAY(CPP_taylor_field(), 0)),
     map_ref_orb_in(),
     map_ref_orb_out(),
@@ -3489,7 +3563,7 @@ public:
     delete high_energy_space_charge;
     delete mode3;
     delete photon;
-    delete rad_int_cache;
+    delete rad_map;
     delete wake;
   }
 
