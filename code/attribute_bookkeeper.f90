@@ -718,9 +718,9 @@ if (non_offset_changed .or. (offset_changed .and. ele%taylor_map_includes_offset
   endif
 endif
 
-! Make stale ele%rad_int_cache if allocated
+! Make stale ele%rad_map if allocated
 
-if (associated(ele%rad_int_cache)) ele%rad_int_cache%stale = .true.  ! Forces recalc
+if (associated(ele%rad_map)) ele%rad_map%stale = .true.  ! Forces recalc
 
 if (allocated(ele%multipole_cache)) then
   ele%multipole_cache%ix_pole_mag_max = invalid$ ! Forces recalc

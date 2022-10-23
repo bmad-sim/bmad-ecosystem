@@ -2645,7 +2645,7 @@ subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, tr
   type (track_struct), optional :: track
 end subroutine
 
-subroutine tracking_rad_mat_setup (ele, tollerance, ref_edge, rad_map)
+subroutine tracking_rad_map_setup (ele, tollerance, ref_edge, rad_map)
   import
   implicit none
   type (ele_struct), target :: ele

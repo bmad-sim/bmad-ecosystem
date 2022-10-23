@@ -15,9 +15,9 @@
 !   rad_map     -- rad_map_struct: Structure holding the matrices.
 !-
 
-subroutine tracking_rad_mat_setup (ele, tollerance, ref_edge, rad_map)
+subroutine tracking_rad_map_setup (ele, tollerance, ref_edge, rad_map)
 
-use rad_6d_mod, dummy => tracking_rad_mat_setup
+use rad_6d_mod, dummy => tracking_rad_map_setup
 use f95_lapack, only: dpotrf_f95
 
 implicit none

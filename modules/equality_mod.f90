@@ -22,16 +22,17 @@ interface operator (==)
   module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
   module procedure eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field
   module procedure eq_floor_position, eq_high_energy_space_charge, eq_xy_disp, eq_twiss, eq_mode3
-  module procedure eq_bookkeeping_state, eq_rad_map, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid
-  module procedure eq_target_point, eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_pt
-  module procedure eq_pixel_detec, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
-  module procedure eq_control, eq_controller_var1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init
-  module procedure eq_grid_beam_init, eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker
-  module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_strong_beam
-  module procedure eq_track_point, eq_track, eq_synch_rad_common, eq_space_charge_common, eq_bmad_common
-  module procedure eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term
-  module procedure eq_complex_taylor, eq_branch, eq_lat, eq_bunch, eq_bunch_params
-  module procedure eq_beam, eq_aperture_point, eq_aperture_param, eq_aperture_scan
+  module procedure eq_bookkeeping_state, eq_rad_map, eq_rad_map_ele, eq_gen_grad_coef, eq_gen_grad
+  module procedure eq_surface_grid_pt, eq_surface_grid, eq_target_point, eq_surface_curvature, eq_photon_target
+  module procedure eq_photon_material, eq_pixel_pt, eq_pixel_detec, eq_photon_element, eq_wall3d_vertex
+  module procedure eq_wall3d_section, eq_wall3d, eq_control, eq_controller_var1, eq_controller
+  module procedure eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init, eq_lat_param
+  module procedure eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes
+  module procedure eq_em_field, eq_strong_beam, eq_track_point, eq_track, eq_synch_rad_common
+  module procedure eq_space_charge_common, eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele
+  module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat
+  module procedure eq_bunch, eq_bunch_params, eq_beam, eq_aperture_point, eq_aperture_param
+  module procedure eq_aperture_scan
 end interface
 
 contains
@@ -1255,11 +1256,11 @@ end function eq_rad_map
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_rad_int_ele_cache (f1, f2) result (is_eq)
+elemental function eq_rad_map_ele (f1, f2) result (is_eq)
 
 implicit none
 
-type(rad_int_ele_cache_struct), intent(in) :: f1, f2
+type(rad_map_ele_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -1272,7 +1273,69 @@ is_eq = is_eq .and. (f1%rm1 == f2%rm1)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%stale .eqv. f2%stale)
 
-end function eq_rad_int_ele_cache
+end function eq_rad_map_ele
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_gen_grad_coef (f1, f2) result (is_eq)
+
+implicit none
+
+type(gen_grad_coef_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%c_coef) .eqv. allocated(f2%c_coef))
+if (.not. is_eq) return
+if (allocated(f1%c_coef)) is_eq = all(shape(f1%c_coef) == shape(f2%c_coef))
+if (.not. is_eq) return
+if (allocated(f1%c_coef)) is_eq = all(f1%c_coef == f2%c_coef)
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%s_coef) .eqv. allocated(f2%s_coef))
+if (.not. is_eq) return
+if (allocated(f1%s_coef)) is_eq = all(shape(f1%s_coef) == shape(f2%s_coef))
+if (.not. is_eq) return
+if (allocated(f1%s_coef)) is_eq = all(f1%s_coef == f2%s_coef)
+
+end function eq_gen_grad_coef
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_gen_grad (f1, f2) result (is_eq)
+
+implicit none
+
+type(gen_grad_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%m) .eqv. allocated(f2%m))
+if (.not. is_eq) return
+if (allocated(f1%m)) is_eq = all(shape(f1%m) == shape(f2%m))
+if (.not. is_eq) return
+if (allocated(f1%m)) is_eq = all(f1%m == f2%m)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ele_anchor_pt == f2%ele_anchor_pt)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%field_type == f2%field_type)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dz == f2%dz)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%r0 == f2%r0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%field_scale == f2%field_scale)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%master_parameter == f2%master_parameter)
+
+end function eq_gen_grad
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -2580,9 +2643,9 @@ if (.not. is_eq) return
 if (associated(f1%photon)) is_eq = (f1%photon == f2%photon)
 !! f_side.equality_test[type, 0, PTR]
 
-is_eq = is_eq .and. (associated(f1%rad_int_cache) .eqv. associated(f2%rad_int_cache))
+is_eq = is_eq .and. (associated(f1%rad_map) .eqv. associated(f2%rad_map))
 if (.not. is_eq) return
-if (associated(f1%rad_int_cache)) is_eq = (f1%rad_int_cache == f2%rad_int_cache)
+if (associated(f1%rad_map)) is_eq = (f1%rad_map == f2%rad_map)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%taylor == f2%taylor)
 !! f_side.equality_test[real, 1, NOT]
@@ -2618,6 +2681,12 @@ if (.not. is_eq) return
 if (associated(f1%grid_field)) is_eq = all(shape(f1%grid_field) == shape(f2%grid_field))
 if (.not. is_eq) return
 if (associated(f1%grid_field)) is_eq = all(f1%grid_field == f2%grid_field)
+!! f_side.equality_test[type, 1, PTR]
+is_eq = is_eq .and. (associated(f1%gen_grad) .eqv. associated(f2%gen_grad))
+if (.not. is_eq) return
+if (associated(f1%gen_grad)) is_eq = all(shape(f1%gen_grad) == shape(f2%gen_grad))
+if (.not. is_eq) return
+if (associated(f1%gen_grad)) is_eq = all(f1%gen_grad == f2%gen_grad)
 !! f_side.equality_test[type, 1, PTR]
 is_eq = is_eq .and. (associated(f1%taylor_field) .eqv. associated(f2%taylor_field))
 if (.not. is_eq) return
