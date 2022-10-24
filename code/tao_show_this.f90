@@ -19,6 +19,7 @@ use tao_top10_mod, dummy => tao_show_this
 use tao_data_and_eval_mod, only: tao_evaluate_expression, tao_evaluate_a_datum
 use tao_c_interface_mod, only: tao_c_interface_com
 use tao_command_mod, only: tao_next_switch
+use tao_version_mod
 use location_encode_mod, only: location_encode
 use transfer_map_mod, only: transfer_map_from_s_to_s, mat6_from_s_to_s
 use opti_de_mod, only: opti_de_param
@@ -5924,25 +5925,28 @@ case ('variables')
 
 case ('version')
 
+  nl=nl+1; lines(nl) = 'SVN Version: ' // tao_svn_version
+  nl=nl+1; lines(nl) = 'SVN Dave: ' // tao_svn_date
+
+
   name = '$TAO_DIR/VERSION'
   call fullfilename (name, file_name)
 
   iu = lunget()
   open (iu, file = file_name, iostat = ios, status = 'old')
   if (ios /= 0) then
-    call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // name, &
-                                   'SEE THE BMAD MANUAL FOR MORE DETAILS.')
+    nl=nl+1; lines(nl) = 'Distribution Version: Cannot open distribution version file $TAO_DIR/VERSION'
     return
   endif
 
   read (iu, '(a)', iostat = ios) aname
   if (ios /= 0) then
-    call out_io (s_error$, r_name, 'CANNOT READ FILE: ' // name)
+    nl=nl+1; lines(nl) = 'Distribution Version: Cannot read distribution version file $TAO_DIR/VERSION'
     return
   endif
   close (iu)
 
-  nl=nl+1; lines(nl) = aname
+  nl=nl+1; lines(nl) = 'Distribution Version: ' // aname
 
 !----------------------------------------------------------------------
 ! wake_elements
