@@ -75,14 +75,14 @@ case (full$)
   call exact_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 case (basic_bend$, hard_edge_only$)
-  call second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+  call hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 case (sad_full$)
   if (particle_at == first_track_edge$) then
     call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
-    call second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
   else
-    call second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
     call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
   endif
 
@@ -200,25 +200,14 @@ endif
 
 v0 = orb%vec
 
-if (particle_at == first_track_edge$) then
-  orb%vec(1) = v0(1)
-  orb%vec(2) = v0(2) + ht_x * v0(1)
-  orb%vec(3) = v0(3)
-  orb%vec(4) = v0(4) + ht_y * v0(3)
-  if (logic_option(.false., make_matrix)) then
-    mat6(2,:) = mat6(2,:) + ht_x * mat6(1,:)
-    mat6(4,:) = mat6(4,:) + ht_y * mat6(3,:)
-  end if
-else
-  orb%vec(1) = v0(1)
-  orb%vec(2) = v0(2) + ht_x * v0(1)
-  orb%vec(3) = v0(3)
-  orb%vec(4) = v0(4) + ht_y * v0(3)
-  if (logic_option(.false., make_matrix)) then
-    mat6(2,:) = mat6(2,:) + ht_x * mat6(1,:)
-    mat6(4,:) = mat6(4,:) + ht_y * mat6(3,:)
-  end if
-endif
+orb%vec(1) = v0(1)
+orb%vec(2) = v0(2) + ht_x * v0(1)
+orb%vec(3) = v0(3)
+orb%vec(4) = v0(4) + ht_y * v0(3)
+if (logic_option(.false., make_matrix)) then
+  mat6(2,:) = mat6(2,:) + ht_x * mat6(1,:)
+  mat6(4,:) = mat6(4,:) + ht_y * mat6(3,:)
+end if
 
 end subroutine linear_bend_edge_kick
 
@@ -226,7 +215,7 @@ end subroutine linear_bend_edge_kick
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+! Subroutine hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 !
 ! Subroutine to track through the edge field of an sbend using a 2nd order map.
 ! Adapted from:
@@ -248,7 +237,7 @@ end subroutine linear_bend_edge_kick
 !   mat6       -- Real(rp), optional: Transfer matrix including the edge.
 !-
 
-subroutine second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+subroutine hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 implicit none
 
@@ -263,7 +252,7 @@ real(rp) dx, dpx, dy, dpy, dz
 integer particle_at, element_end, fringe_type
 
 logical, optional :: make_matrix
-character(24), parameter :: r_name = 'second_order_bend_edge_kick'
+character(24), parameter :: r_name = 'hard_bend_edge_kick'
 
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a dg.
@@ -380,7 +369,7 @@ if (logic_option(.false., make_matrix)) then
   mat6 = matmul (kmat, mat6)
 endif
 
-end subroutine second_order_bend_edge_kick
+end subroutine hard_bend_edge_kick
 
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
@@ -431,7 +420,8 @@ fringe_type = nint(ele%value(fringe_type$))
 if (fringe_type /= full$ .and. fringe_type /= hard_edge_only$) return
 if (.not. fringe_here(ele, orbit, particle_at)) return
 
-! extract params from ele
+! Extract params from ele.
+! Currently this routine is never called with sbend elements.
 
 if (ele%key == sbend$) then
   g = ele%value(g$) + ele%value(dg$)

@@ -43,6 +43,7 @@ type (wake_lr_mode_struct), allocatable :: lr_mode(:)
 type (cartesian_map_struct), pointer :: ct_map
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
+type (gen_grad_field_struct), pointer :: gg_field
 type (taylor_field_struct), pointer :: t_field
 type (all_pointer_struct) a_ptr
 type (branch_struct), pointer :: branch
@@ -274,6 +275,30 @@ if (a_name(1:16) == 'CYLINDRICAL_MAP(') then
   case ('%R0(2)');            a_ptr%r => cl_map%r0(2)
   case ('%R0(3)');            a_ptr%r => cl_map%r0(3)
   case ('%MASTER_PARAMETER'); a_ptr%i => cl_map%master_parameter
+  case default;           goto 9000
+  end select
+
+  err_flag = .false.
+  return
+
+endif
+
+!--------------------
+! gen_grad_field
+
+if (a_name(1:13) == 'GEN_GRAD_FIELD(') then
+  if (.not. associated(ele%gen_grad_field)) goto 9130
+  n_cc = get_this_index(a_name, 13, err, 1, size(ele%gen_grad_field))
+  if (err) goto 9140
+  gg_field => ele%gen_grad_field(n_cc)
+
+  select case (a_name)
+  case ('%FIELD_SCALE');      a_ptr%r => gg_field%field_scale
+  case ('%DZ');               a_ptr%r => gg_field%dz
+  case ('%R0(1)');            a_ptr%r => gg_field%r0(1)
+  case ('%R0(2)');            a_ptr%r => gg_field%r0(2)
+  case ('%R0(3)');            a_ptr%r => gg_field%r0(3)
+  case ('%MASTER_PARAMETER'); a_ptr%i => gg_field%master_parameter
   case default;           goto 9000
   end select
 

@@ -22,7 +22,7 @@ interface operator (==)
   module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
   module procedure eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field
   module procedure eq_floor_position, eq_high_energy_space_charge, eq_xy_disp, eq_twiss, eq_mode3
-  module procedure eq_bookkeeping_state, eq_rad_map, eq_rad_map_ele, eq_gen_grad_coef, eq_gen_grad
+  module procedure eq_bookkeeping_state, eq_rad_map, eq_rad_map_ele, eq_gen_grad_field_coef, eq_gen_grad_field
   module procedure eq_surface_grid_pt, eq_surface_grid, eq_target_point, eq_surface_curvature, eq_photon_target
   module procedure eq_photon_material, eq_pixel_pt, eq_pixel_detec, eq_photon_element, eq_wall3d_vertex
   module procedure eq_wall3d_section, eq_wall3d, eq_control, eq_controller_var1, eq_controller
@@ -1278,50 +1278,52 @@ end function eq_rad_map_ele
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_gen_grad_coef (f1, f2) result (is_eq)
+elemental function eq_gen_grad_field_coef (f1, f2) result (is_eq)
 
 implicit none
 
-type(gen_grad_coef_struct), intent(in) :: f1, f2
+type(gen_grad_field_coef_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = .true.
-!! f_side.equality_test[real, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%c_coef) .eqv. allocated(f2%c_coef))
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%m == f2%m)
+!! f_side.equality_test[real, 2, ALLOC]
+is_eq = is_eq .and. (allocated(f1%coef) .eqv. allocated(f2%coef))
 if (.not. is_eq) return
-if (allocated(f1%c_coef)) is_eq = all(shape(f1%c_coef) == shape(f2%c_coef))
+if (allocated(f1%coef)) is_eq = all(shape(f1%coef) == shape(f2%coef))
 if (.not. is_eq) return
-if (allocated(f1%c_coef)) is_eq = all(f1%c_coef == f2%c_coef)
-!! f_side.equality_test[real, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%s_coef) .eqv. allocated(f2%s_coef))
-if (.not. is_eq) return
-if (allocated(f1%s_coef)) is_eq = all(shape(f1%s_coef) == shape(f2%s_coef))
-if (.not. is_eq) return
-if (allocated(f1%s_coef)) is_eq = all(f1%s_coef == f2%s_coef)
+if (allocated(f1%coef)) is_eq = all(f1%coef == f2%coef)
 
-end function eq_gen_grad_coef
+end function eq_gen_grad_field_coef
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_gen_grad (f1, f2) result (is_eq)
+elemental function eq_gen_grad_field (f1, f2) result (is_eq)
 
 implicit none
 
-type(gen_grad_struct), intent(in) :: f1, f2
+type(gen_grad_field_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = .true.
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%m) .eqv. allocated(f2%m))
+is_eq = is_eq .and. (allocated(f1%c) .eqv. allocated(f2%c))
 if (.not. is_eq) return
-if (allocated(f1%m)) is_eq = all(shape(f1%m) == shape(f2%m))
+if (allocated(f1%c)) is_eq = all(shape(f1%c) == shape(f2%c))
 if (.not. is_eq) return
-if (allocated(f1%m)) is_eq = all(f1%m == f2%m)
+if (allocated(f1%c)) is_eq = all(f1%c == f2%c)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%s) .eqv. allocated(f2%s))
+if (.not. is_eq) return
+if (allocated(f1%s)) is_eq = all(shape(f1%s) == shape(f2%s))
+if (.not. is_eq) return
+if (allocated(f1%s)) is_eq = all(f1%s == f2%s)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ele_anchor_pt == f2%ele_anchor_pt)
 !! f_side.equality_test[integer, 0, NOT]
@@ -1334,8 +1336,10 @@ is_eq = is_eq .and. all(f1%r0 == f2%r0)
 is_eq = is_eq .and. (f1%field_scale == f2%field_scale)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%master_parameter == f2%master_parameter)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%curved_ref_frame .eqv. f2%curved_ref_frame)
 
-end function eq_gen_grad
+end function eq_gen_grad_field
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -2676,17 +2680,17 @@ if (associated(f1%cylindrical_map)) is_eq = all(shape(f1%cylindrical_map) == sha
 if (.not. is_eq) return
 if (associated(f1%cylindrical_map)) is_eq = all(f1%cylindrical_map == f2%cylindrical_map)
 !! f_side.equality_test[type, 1, PTR]
+is_eq = is_eq .and. (associated(f1%gen_grad_field) .eqv. associated(f2%gen_grad_field))
+if (.not. is_eq) return
+if (associated(f1%gen_grad_field)) is_eq = all(shape(f1%gen_grad_field) == shape(f2%gen_grad_field))
+if (.not. is_eq) return
+if (associated(f1%gen_grad_field)) is_eq = all(f1%gen_grad_field == f2%gen_grad_field)
+!! f_side.equality_test[type, 1, PTR]
 is_eq = is_eq .and. (associated(f1%grid_field) .eqv. associated(f2%grid_field))
 if (.not. is_eq) return
 if (associated(f1%grid_field)) is_eq = all(shape(f1%grid_field) == shape(f2%grid_field))
 if (.not. is_eq) return
 if (associated(f1%grid_field)) is_eq = all(f1%grid_field == f2%grid_field)
-!! f_side.equality_test[type, 1, PTR]
-is_eq = is_eq .and. (associated(f1%gen_grad) .eqv. associated(f2%gen_grad))
-if (.not. is_eq) return
-if (associated(f1%gen_grad)) is_eq = all(shape(f1%gen_grad) == shape(f2%gen_grad))
-if (.not. is_eq) return
-if (associated(f1%gen_grad)) is_eq = all(f1%gen_grad == f2%gen_grad)
 !! f_side.equality_test[type, 1, PTR]
 is_eq = is_eq .and. (associated(f1%taylor_field) .eqv. associated(f2%taylor_field))
 if (.not. is_eq) return

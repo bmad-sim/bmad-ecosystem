@@ -1,6 +1,3 @@
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
 !+
 ! Subroutine transfer_fieldmap (ele_in, ele_out, who)
 !
@@ -13,7 +10,8 @@
 !
 ! Input:
 !   ele_in -- Ele_struct: Input element.
-!   who    -- integer: Possibilities are: all$, cartesian_map$, cylindrical_map$, grid_field$, or taylor_field$
+!   who    -- integer: Possibilities are: all$, cartesian_map$, cylindrical_map$,
+!                 grid_field$, or taylor_field$
 !
 ! Output:
 !   ele_out -- Ele_struct: Output element.

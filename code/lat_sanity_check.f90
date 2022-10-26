@@ -41,6 +41,7 @@ type (floor_position_struct) floor0, floor
 type (control_struct), pointer :: ctl, ctl1, ctl2
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
+type (gen_grad_field_struct), pointer :: gg_field
 type (taylor_field_struct), pointer :: t_field
 type (ele_attribute_struct) info
 type (lord_slave_struct), allocatable, target :: bls(:)

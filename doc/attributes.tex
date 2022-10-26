@@ -3108,19 +3108,18 @@ Notice that with the old format it is not possible to specify the phase offset $
 \label{s:fringe}
 \index{fringe fields}
 
-Lattice elements can have fringe fields at the element edges. Whether \bmad tries to model
-the fringe fields using the models described below first depends upon what kind of
-tracking is done. Fringe effects are {\em not} applied when an element's
-\vn{tracking_method} is set to:
+Lattice elements can have fringe fields at the element edges. Whether \bmad tries to model the
+fringe fields using the models described below first depends upon what kind of tracking is
+done. Fringe effects are {\em not} applied when an element's \vn{tracking_method} is set to:
 \begin{example}
   custom
   linear
   mad
 \end{example}
-Additionally, no fringe effects will be used if the \vn{tracking_method} is 
-\vn{runge_kutta} or \vn{time_runge_kutta}, and the element's \vn{field_calc} (\sref{s:integ}) is
-not \vn{bmad_standard}. This is done since it is assumed, in this case, that the body of the field
-includes any fringe fields.
+Additionally, no fringe effects will be used if the \vn{tracking_method} is \vn{runge_kutta} or
+\vn{time_runge_kutta}, and the element's \vn{field_calc} (\sref{s:integ}) is not
+\vn{bmad_standard}. This is done since it is assumed that the body of the field includes the fringe
+regions.
 
 %-----------------------------------------------------------------
 \subsection{Turning On/Off Fringe Effects}
@@ -3152,13 +3151,13 @@ end of the element will affect the spin. The default setting of \vn{spin_fringe_
 
 %-----------------------------------------------------------------
 \subsection{Fringe Types}
-\label{s:fringe.trype}
+\label{s:fringe.type}
 
 \bmad and PTC have several fringe field models for the magnetic field. Which fringe
 model is used is set by two element attributes:
 \begin{example}
   fringe_type
-  ptc_fringe_geometry
+  ptc_fringe_geometry   ! Only used with bends and PTC tracking.
 \end{example}
 
 \index{fringe_type}

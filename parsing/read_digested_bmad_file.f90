@@ -465,6 +465,8 @@ type (photon_element_struct), pointer :: ph
 type (surface_grid_pt_struct), pointer :: s_pt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
+type (gen_grad_field_struct), pointer :: gg_field
+type (gen_grad_field_coef_struct), pointer :: ggcs
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (ac_kicker_struct), pointer :: ac
@@ -473,11 +475,11 @@ type (converter_distribution_struct), pointer :: c_dist
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
 
-integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
+integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_gen, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
 integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert, ix_c 
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
-integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns
+integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns, nc
 
 logical error, is_alloc_grid, is_alloc_pix, ac_kicker_alloc
 
@@ -488,7 +490,7 @@ error = .true.
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, &
         ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-        ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_grid, n_tay, n_cus, ix_convert
+        ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, n_tay, n_cus, ix_convert
 
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -645,12 +647,43 @@ if (n_cyl > 0) then
   enddo
 endif
 
+! Gen_grad_field
+
+if (n_gen > 0) then
+  allocate (ele%gen_grad_field(n_grid))
+
+  do i = 1, n_gen
+    gg_field => ele%gen_grad_field(i)
+
+    read (d_unit, err = 9120, end = 9120) gg_field%field_scale, gg_field%master_parameter, gg_field%curved_ref_frame, &
+            gg_field%ele_anchor_pt, gg_field%field_type, gg_field%dz, gg_field%r0, nc, ns, gg_field%lbound_ix_s, gg_field%ubound_ix_s
+    allocate (gg_field%c(nc), gg_field%s(ns))
+    n0 = gg_field%lbound_ix_s;  n1 = gg_field%ubound_ix_s
+
+    do j = 1, size(gg_field%c)
+      ggcs => gg_field%c(j)
+      read (d_unit, err = 9120, end = 9120) ggcs%m, ub(1)
+      allocate (ggcs%coef(0:ub(1), n0:n1))
+      do k = n0, n1
+        read (d_unit, err = 9120, end = 9120) ggcs%coef(:,k)
+      enddo
+    enddo
+
+    do j = 1, size(gg_field%s)
+      ggcs => gg_field%s(j)
+      read (d_unit, err = 9120, end = 9120) ggcs%m, ub(1)
+      allocate (ggcs%coef(0:ub(1), n0:n1))
+      do k = n0, n1
+        read (d_unit, err = 9120, end = 9120) ggcs%coef(:,k)
+      enddo
+    enddo
+  enddo
+endif
 
 ! Grid_field
 
 if (n_grid > 0) then
   allocate (ele%grid_field(n_grid))
-
 
   do i = 1, n_grid
     g_field => ele%grid_field(i)

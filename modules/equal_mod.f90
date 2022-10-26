@@ -211,6 +211,9 @@ call transfer_ac_kick (ele_in%ac_kick, ele_out%ac_kick)
 ele_out%cylindrical_map => ele_save%cylindrical_map ! Reinstate for transfer call 
 call transfer_fieldmap (ele_in, ele_out, cylindrical_map$)
 
+ele_out%gen_grad_field => ele_save%gen_grad_field ! Reinstate for transfer call 
+call transfer_fieldmap (ele_in, ele_out, gen_grad_field$)
+
 ele_out%grid_field => ele_save%grid_field ! Reinstate for transfer call 
 call transfer_fieldmap (ele_in, ele_out, grid_field$)
 

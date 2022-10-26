@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 284
+integer, parameter :: bmad_inc_version$ = 285
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -702,6 +702,27 @@ type cylindrical_map_struct
   type (cylindrical_map_term_struct), pointer :: ptr => null()
 end type
 
+! Generalized gradiants
+
+type gen_grad_field_coef_struct
+  integer :: m = 0
+  real(rp), allocatable :: coef(:,:)  ! (ix_derivative, ix_s_pt)
+end type  
+
+type gen_grad_field_struct
+  type (gen_grad_field_coef_struct), allocatable :: c(:)  ! Cos coefs.
+  type (gen_grad_field_coef_struct), allocatable :: s(:)  ! Sin coefs.
+  integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
+  integer :: field_type = magnetic$  ! or electric$
+  integer :: lbound_ix_s = 0
+  integer :: ubound_ix_s = 0
+  real(rp) :: dz = 0                 ! Point spacing.
+  real(rp) :: r0(3) = 0              ! field origin relative to ele_anchor_pt.
+  real(rp) :: field_scale = 1        ! Factor to scale the fields by
+  integer :: master_parameter = 0    ! Master parameter in ele%value(:) array to use for scaling the field.
+  logical :: curved_ref_frame = .false.
+end type
+
 ! Grid field
 
 type grid_field_pt1_struct
@@ -768,23 +789,6 @@ type taylor_field_struct
   logical :: curved_ref_frame = .false.
   logical :: canonical_tracking = .false.
   type (taylor_field_plane_struct), pointer :: ptr => null()
-end type
-
-! Generalized gradiants
-
-type gen_grad_coef_struct
-  real(rp), allocatable :: c_coef(:)
-  real(rp), allocatable :: s_coef(:)
-end type  
-
-type gen_grad_struct
-  type (gen_grad_coef_struct), allocatable :: m(:)  ! Coefs for given m value.
-  integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
-  integer :: field_type = magnetic$  ! or electric$
-  real(rp) :: dz = 0                 ! Point spacing.
-  real(rp) :: r0(3) = 0              ! field origin relative to ele_anchor_pt.
-  real(rp) :: field_scale = 1        ! Factor to scale the fields by
-  integer :: master_parameter = 0    ! Master parameter in ele%value(:) array to use for scaling the field.
 end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
@@ -1308,8 +1312,8 @@ type ele_struct
   ! E/M field structs.
   type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define E/M fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
+  type (gen_grad_field_struct), pointer :: gen_grad_field(:) => null()   ! Used to define E/M fields.
   type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define E/M fields.
-  type (gen_grad_struct), pointer :: gen_grad(:) => null()               ! Used to define E/M fields.
   type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define E/M fields.
   ! The difference between map_ref_orb and time_ref_orb is that map_ref_orb is the reference orbit for the
   ! 1st order spin/orbit map which, in general, is non-zero while time_ref_orb follows the reference particle which is
@@ -1546,9 +1550,9 @@ integer, parameter :: def_particle_start$ = 39, photon_fork$ = 40, fork$ = 41, m
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46, e_gun$ = 47, em_field$ = 48
 integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffraction_plate$ = 52
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
-integer, parameter :: ac_kicker$ = 58, lens$ = 59, beam_init$ = 60, crab_cavity$ = 61, ramper$ = 62
-integer, parameter :: def_ptc_com$ = 63, def_space_charge_com$ = 64
-integer, parameter :: n_key$ = 64
+integer, parameter :: ac_kicker$ = 58, lens$ = 59, def_space_charge_com$ = 60, crab_cavity$ = 61
+integer, parameter :: ramper$ = 62, def_ptc_com$ = 63
+integer, parameter :: n_key$ = 63
 
 ! A "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
@@ -1564,8 +1568,8 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
-    'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', 'Beam_Init         ', &
-    'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ', '!Space_Charge_Com ']
+    'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', '!Space_Charge_Com ', &
+    'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1778,6 +1782,7 @@ integer, parameter :: end_edge$  = 130
 integer, parameter :: s_position$ = 131
 integer, parameter :: ref_species$ = 132, particle$ = 132
 integer, parameter :: wrap_superimpose$ = 133
+integer, parameter :: gen_grad_field$ = 134
 
 integer, parameter :: a0$  = 140, a21$  = 161
 integer, parameter :: b0$  = 162, b21$  = 183
