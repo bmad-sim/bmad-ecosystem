@@ -2911,13 +2911,13 @@ subroutine type_twiss (ele, frequency_units, compact_format, lines, n_lines)
   logical, optional :: compact_format
 end subroutine
 
-subroutine unlink_fieldmap (cartesian_map, cylindrical_map, taylor_field, grid_field)
+subroutine unlink_fieldmap (cartesian_map, cylindrical_map, grid_field, taylor_field)
   import
   implicit none
   type (cartesian_map_struct), pointer, optional :: cartesian_map(:)
   type (cylindrical_map_struct), pointer, optional :: cylindrical_map(:)
-  type (taylor_field_struct), pointer, optional :: taylor_field(:)
   type (grid_field_struct), pointer, optional :: grid_field(:)
+  type (taylor_field_struct), pointer, optional :: taylor_field(:)
 end subroutine
 
 subroutine unlink_wall3d (wall3d)

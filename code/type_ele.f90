@@ -65,6 +65,7 @@ type (cylindrical_map_struct), pointer :: cl_map
 type (cylindrical_map_term1_struct), pointer :: cl_term
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
+type (gen_grad_field_struct), pointer :: gg_field
 type (taylor_field_struct), pointer :: t_field
 type (taylor_field_plane1_struct), pointer :: t_term
 type (wall3d_struct), pointer :: wall3d
@@ -483,6 +484,38 @@ if (associated(ele%cylindrical_map)) then
       if (size(cl_map%ptr%term) > nl2) then
         nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(cl_map%ptr%term), ')' 
       endif
+    enddo
+  endif
+endif
+
+! Gen_Grad_field
+
+if (associated(ele%gen_grad_field)) then
+  if (integer_option(no$, type_field) == no$) then
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Gen_Grad_field modes:', size(ele%gen_grad_field)
+  else
+    nl2 = 10; if (type_field == all$) nl2 = 999
+    nl=nl+1; li(nl) = ''
+    if (ele%field_calc == bmad_standard$) then
+      nl=nl+1; li(nl) = 'Gen_Grad_field: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
+    else
+      nl=nl+1; li(nl) = 'Gen_Grad_field:'
+    endif
+    do im = 1, size(ele%gen_grad_field)
+      gg_field => ele%gen_grad_field(im)
+      if (gg_field%master_parameter == 0) then
+        name = '<None>'
+      else
+        name = attribute_name(ele, gg_field%master_parameter)
+      endif
+
+      nl=nl+1; write (li(nl), '(2a)')         '    field_type:        ', em_field_type_name(gg_field%field_type)
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:       ', gg_field%field_scale
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:                ', gg_field%dz
+      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:                ', gg_field%r0
+      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter:  ', trim(name)
+      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:     ', anchor_pt_name(gg_field%ele_anchor_pt)
+      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame   ', gg_field%curved_ref_frame
     enddo
   endif
 endif

@@ -1,24 +1,18 @@
 \chapter{Fringe Fields}
 \label{s:fringe.std}
 
-The fringe field kick is divided into two pieces. 
-The first piece is called the \vn{hard edge} fringe kick and is the kick in the limit
-that the longitudinal extent of the fringe is zero. The second piece is the 
-\vn{soft edge} fringe kick which is the fringe kick with the fringe having a finite
-longitudinal extent minus the hard edge fringe kick. That is
+Generally, the fringe field kick is divided into two pieces.  The first piece is called the \vn{hard
+edge} fringe kick and is the kick in the limit that the longitudinal extent of the fringe is
+zero. The second piece is the \vn{soft edge} fringe kick which is the fringe kick with the fringe
+having a finite longitudinal extent minus the hard edge fringe kick. That is
 \begin{example}
-  fringe kick = hard fringe kick + soft fringe kick
+  Total fringe kick = hard fringe kick + soft fringe kick
 \end{example}
-The advantage of separating the fringe kick in this way is that the hard fringe can
-be used without having to know anything about the longitudinal extent of the fringe
-field. In many cases, this is a good enough approximation. 
+The advantage of separating the fringe kick in this way is that the hard fringe can be used without
+having to know anything about the longitudinal extent of the fringe field. In many cases, this is a
+good enough approximation.
 
-Currently, the only magnetic elements where a fringe kick is applied are:
-\begin{example}
-  sbend \& rbend
-  quadrupole
-  sad_mult
-\end{example}
+Discussion of the fringe parameters of an element are detailed in \Sec{s:fringe}.
 
 %---------------------------------------------------------------------------------
 \section{Dipole Soft Edge Fringe Map for Bends and Sad_Mult}
@@ -150,6 +144,61 @@ The transport for the exit fringe is
 \end{align}
 
 %---------------------------------------------------------------------------------
+\section{Sad\_Mult Dipole Hard Edge Fringe Map} 
+\label{s:sad.mult.bend.fringe}
+
+For \vn{sad_mult} elements, the hard dipole edge kick is adapted from SAD. The dipole normalized
+field $g = \sqrt{\text{a0}^2 + \text{b0}^2}$ is calculated from the \vn{a0} and \vn{b0}
+multipoles. Before the fringe kick is applied, the particle position is rotated in the $(x,y)$ plane
+so that the dipole kick is in the horizontal direction. The dipole edge kick is then given by
+\begin{align}
+  \Delta x &= g \, y^2 \, \left( 1 - f_{yg} \right) \, \frac{1 + p_z^2}{2 \, p_{zy}^3} \CRNO
+  \Delta p_y &= -g \, p_x \, y \, \frac{1 - 2f_{yg}}{p_{zy}} \\
+  \Delta z &= -g \, y^2 \, p_x \, (1 - f_{yg}) \frac{1 + p_z}{2 \, p_{zy}^3} \nonumber
+\end{align}
+where
+\begin{equation}
+  f_{yg} = \frac{y^2 \, g^2}{12}, \quad \text{and} \qquad
+  p_{zy} = \sqrt{(1+p_z)^2 - p_x^2}
+\end{equation}
+
+This is used in place of the dipole hard edge fringe kick given in \sref{s:fringe.bend.hard}.
+
+%---------------------------------------------------------------------------------
+\section{Linear Dipole Hard Edge Fringe Map}
+\label{s:lin.dip.fringe}
+
+The linear dipole hard edge fringe model is adapted from MAD\cite{b:mad} and only includes linear
+terms. The fringe transport is
+\begin{align}
+  \Delta p_x &= g_\tot \, \tan(e) \CRNO
+  \Delta p_y &= -g_\tot \, \tan \left( e - 
+    \frac{2 \, f_{int} \, h_{gap} \, g_\tot \, (1 + \sin^2(e))}{\cos(e)} \right)
+\end{align}
+where $g_\tot = g + dg$ is the actual field and $e$ is \vn{e1} if the particle is entering the
+dipole and \vn{e2} if the particle is exiting the dipole.
+
+%---------------------------------------------------------------------------------
+\section{Exact Dipole Hard Edge Fringe Map}
+\label{s:lin.dip.fringe}
+
+The exact dipole hard edge fringe is the exact transport in the wedge region of a dipole when there
+is a finite \vn{e1} or \vn{e2} as shown in \fig{f:sbend}. This model assumes that there are no
+higher order multipole fields. The transport is done in two stages. For a particle entering the
+dipole the propagation is
+\begin{enumerate}
+\item
+Drift (propagate in a straight line) the particle from the sector edge to the actual bend edge. The
+propagation may be forward or backwards depending upon on the geometry.
+%
+\item
+Propagate the particle as if it were in the dipole field from the actual bend edge to the sector
+edge.
+\end{enumerate}
+The body of the dipole is treated as a sector bend. At the exit end, the propagation through the
+wedge is the reverse of the above.
+
+%---------------------------------------------------------------------------------
 \section{Quadrupole Soft Edge Fringe Map}
 \label{s:q.soft}
 
@@ -196,7 +245,7 @@ See Sec.~\sref{s:fringe} for the relation between \vn{fq1} / \vn{fq2} and
 the corresponding \vn{f1} and \vn{f2} parameters of SAD.
 
 %---------------------------------------------------------------------------------
-\section{Magnetic Multipole Hard Edge Fringe}
+\section{Magnetic Multipole Hard Edge Fringe Map}
 
 The magnetic multipole hard edge fringe field is modeled using the method shown in
 Forest\cite{b:forest}. For the $m$\Th order multipole the Lee transform 
@@ -225,13 +274,12 @@ With this, the implicit multipole map is (Forest Eq.~(13.31))
 \end{align}
 
 %---------------------------------------------------------------------------------
-\section{Electrostatic Multipole Hard Edge Fringe}
+\section{Electrostatic Multipole Hard Edge Fringe Map}
 \label{s:spin.hard.fringe}
 
-The electric multipole hard edge fringe field, to lowest order, consists of just a
-longitudinal field. The integrated longitudinal field at constant $(x,y)$ for the $n$\Th
-order multipole is simply obtained by requiring that the curl of the field is zero.
-This gives:
+The electric multipole hard edge fringe field, to lowest order, consists of just a longitudinal
+field. The integrated longitudinal field at constant $(x,y)$ for the $n$\Th order multipole is
+simply obtained by requiring that the curl of the field is zero.  This gives:
 \begin{equation}
   \int E_s(x,y) \, ds = \phi_n(x,y)
 \end{equation}

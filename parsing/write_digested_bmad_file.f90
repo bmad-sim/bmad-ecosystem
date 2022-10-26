@@ -209,6 +209,8 @@ type (photon_element_struct), pointer :: ph
 type (surface_grid_pt_struct), pointer :: s_pt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
+type (gen_grad_field_struct), pointer :: gg_field
+type (gen_grad_field_coef_struct), pointer :: ggcs
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (ac_kicker_struct), pointer :: ac
@@ -218,7 +220,7 @@ type (converter_direction_out_struct), pointer :: c_dir
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
-integer i, j, k, n, nr, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_c, ix_branch
+integer i, j, k, n, nr, n_gen, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_c, ix_branch
 integer n_cus, ix_convert
 
 logical write_wake, mode3
@@ -228,11 +230,12 @@ logical write_wake, mode3
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
 ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; ix_st = -1
 mode3 = .false.; ix_wall3d = 0; ix_convert = 0; ix_c = 0
-n_cart = 0; n_grid = 0; n_cyl = 0; n_tay = 0; n_cus = 0
+n_cart = 0; n_gen = 0; n_grid = 0; n_cyl = 0; n_tay = 0; n_cus = 0
 
 if (associated(ele%mode3))             mode3 = .true.
 if (associated(ele%cartesian_map))     n_cart = size(ele%cartesian_map)
 if (associated(ele%cylindrical_map))   n_cyl = size(ele%cylindrical_map)
+if (associated(ele%gen_grad_field))    n_gen = size(ele%gen_grad_field)
 if (associated(ele%grid_field))        n_grid = size(ele%grid_field)
 if (associated(ele%taylor_field))      n_tay = size(ele%taylor_field)
 if (associated(ele%custom))            n_cus = size(ele%custom)
@@ -304,7 +307,7 @@ endif
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), &
           ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-          ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_grid, n_tay, n_cus, ix_convert
+          ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, n_tay, n_cus, ix_convert
 
 write (d_unit) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -452,6 +455,32 @@ do i = 1, n_cyl
       write (d_unit) cl_map%ptr%term(j)
     enddo
   endif
+enddo
+
+! Gen_grad_field
+
+do i = 1, n_gen
+  gg_field => ele%gen_grad_field(i)
+
+  write (d_unit) gg_field%field_scale, gg_field%master_parameter, gg_field%curved_ref_frame, &
+          gg_field%ele_anchor_pt, gg_field%field_type, gg_field%dz, gg_field%r0, size(gg_field%c), size(gg_field%s), &
+          gg_field%lbound_ix_s, gg_field%ubound_ix_s
+
+  do j = 1, size(gg_field%c)
+    ggcs => gg_field%c(j)
+    write (d_unit) ggcs%m, ubound(ggcs%coef,1)
+    do k = gg_field%lbound_ix_s, gg_field%ubound_ix_s
+      write (d_unit) ggcs%coef(:,k)
+    enddo
+  enddo
+
+  do j = 1, size(gg_field%s)
+    ggcs => gg_field%s(j)
+    write (d_unit) ggcs%m, ubound(ggcs%coef,1)
+    do k = gg_field%lbound_ix_s, gg_field%ubound_ix_s
+      write (d_unit) ggcs%coef(:,k)
+    enddo
+  enddo
 enddo
 
 ! Grid field

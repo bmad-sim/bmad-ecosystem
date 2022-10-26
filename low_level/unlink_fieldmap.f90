@@ -1,29 +1,29 @@
 !+
-! Subroutine unlink_fieldmap (cartesian_map, cylindrical_map, taylor_field, grid_field)
+! Subroutine unlink_fieldmap (cartesian_map, cylindrical_map, grid_field, taylor_field)
 !
 ! Subroutine to unlink the field components of an element.
 !
 ! Input:
 !   cartesian_map(:)   -- cartesian_map_struct, pointer, optional: cartesian_map component.
 !   cylindrical_map(:) -- cylindrical_map_struct, pointer, optional: cylindrical_map component.
-!   taylor_field(:)    -- taylor_field_struct, pointer, optional: taylor_field component.
 !   grid_field(:)      -- grid_field_struct, pointer, optional: grid_field component.
+!   taylor_field(:)    -- taylor_field_struct, pointer, optional: taylor_field component.
 !
 ! Output:
 !   cartesian_map(:)   -- cartesian_map_struct, pointer, optional: cartesian_map component.
 !   cylindrical_map(:) -- cylindrical_map_struct, pointer, optional: cylindrical_map component.
-!   taylor_field(:)    -- taylor_field_struct, pointer, optional: taylor_field component.
 !   grid_field(:)      -- grid_field_struct, pointer, optional: grid_field component.
+!   taylor_field(:)    -- taylor_field_struct, pointer, optional: taylor_field component.
 !-
 
-subroutine unlink_fieldmap (cartesian_map, cylindrical_map, taylor_field, grid_field)
+subroutine unlink_fieldmap (cartesian_map, cylindrical_map, grid_field, taylor_field)
 
 use bmad_struct
 
 type (cartesian_map_struct), pointer, optional :: cartesian_map(:)
 type (cylindrical_map_struct), pointer, optional :: cylindrical_map(:)
-type (taylor_field_struct), pointer, optional :: taylor_field(:)
 type (grid_field_struct), pointer, optional :: grid_field(:)
+type (taylor_field_struct), pointer, optional :: taylor_field(:)
 
 integer i
 

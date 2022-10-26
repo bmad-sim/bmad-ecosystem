@@ -47,6 +47,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%cartesian_map)
   nullify (ele%cylindrical_map)
   nullify (ele%taylor_field)
+  nullify (ele%gen_grad_field)
   nullify (ele%grid_field)
   nullify (ele%ptc_fibre)
   nullify (ele%mode3)
@@ -84,6 +85,8 @@ if (associated (ele%photon))                    deallocate (ele%photon)
 if (associated (ele%mode3))                     deallocate (ele%mode3)
 if (associated (ele%wake))                      deallocate (ele%wake)
 if (associated (ele%high_energy_space_charge))  deallocate (ele%high_energy_space_charge)
+if (associated (ele%gen_grad_field))            deallocate (ele%gen_grad_field)
+
 if (allocated (ele%multipole_cache))            deallocate (ele%multipole_cache)
 
 call unlink_wall3d (ele%wall3d)
