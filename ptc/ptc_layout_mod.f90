@@ -841,7 +841,7 @@ call kill(c_map)
 !! print *, (normal_form%atot%v(1).sub.n)
 !! call kill(c_map, as, a2, a1, a0)
 
-call print (normal_form%atot)
+!! call print (normal_form%atot)
 
 end subroutine ptc_map_to_normal_form
 
