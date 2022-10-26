@@ -1923,7 +1923,7 @@ case ('momentum_compaction_ptc.')
   expo = 0
   expo(6) = n 
 
-  datum_value = -real(ptc_nf%path_length .sub. expo) / branch%param%total_length
+  datum_value = real(ptc_nf%path_length .sub. expo) / branch%param%total_length
   valid_value = .true.
 
 !-----------
