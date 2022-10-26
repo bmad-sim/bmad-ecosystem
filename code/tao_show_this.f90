@@ -5003,11 +5003,11 @@ case ('taylor_map', 'matrix')
       nl=nl+1; write(lines(nl), '(t11, a, t29, a, 3(15x, a, 14x, a))') '|eValue|', 'eValue', 'x', 'px', 'y', 'py', 'z', 'pz'
 
       if (fmt == '') then
-        fmt2 = '(a, 8' // trim(fmt) // ')'
-        fmt3 = '(a, 16x, 8' // trim(fmt) // ')'
-      else
         fmt2 = '(a, 8es16.8)'
         fmt3 = '(a, 16x, 8es16.8)'
+      else
+        fmt2 = '(a, 8' // trim(fmt) // ')'
+        fmt3 = '(a, 16x, 8' // trim(fmt) // ')'
       endif
 
       do i = 1, 6
