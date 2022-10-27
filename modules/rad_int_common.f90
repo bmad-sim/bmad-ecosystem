@@ -5,7 +5,6 @@
 module rad_int_common               
 
 use ptc_interface_mod
-use em_field_mod
 use multipole_mod
 
 ! The "cache" is for saving values for g, etc through an element to speed

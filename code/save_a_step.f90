@@ -33,7 +33,7 @@
 
 subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time, strong_beam)
 
-use em_field_mod, dummy => save_a_step
+use bmad_routine_interface, dummy => save_a_step
 
 implicit none
 

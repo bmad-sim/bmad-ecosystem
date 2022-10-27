@@ -19,7 +19,7 @@
 
 subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
 
-use em_field_mod, dummy => track1_spin_bmad
+use bmad_routine_interface, dummy => track1_spin_bmad
 
 implicit none
 

@@ -36,7 +36,6 @@
 
 subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time, apply_sol_fringe)
 
-use em_field_mod, dummy => apply_element_edge_kick
 use fringe_mod, except_dummy => apply_element_edge_kick
 
 implicit none

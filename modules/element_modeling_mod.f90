@@ -13,7 +13,6 @@
 
 module element_modeling_mod
 
-use em_field_mod
 use changed_attribute_bookkeeper
 
 type wiggler_modeling_common_struct
