@@ -1,7 +1,6 @@
 module autoscale_mod
 
-use em_field_mod
-use changed_attribute_bookkeeper
+use bmad_interface
 use time_tracker_mod
 
 integer, private, save :: n_call ! Used for debugging.

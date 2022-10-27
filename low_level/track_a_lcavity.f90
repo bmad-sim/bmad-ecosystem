@@ -27,7 +27,6 @@
 subroutine track_a_lcavity (orbit, ele, param, mat6, make_matrix)
 
 use fringe_mod, except_dummy => track_a_lcavity
-use em_field_mod, only: em_field_calc
 
 implicit none
 

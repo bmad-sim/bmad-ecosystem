@@ -853,6 +853,21 @@ subroutine element_slice_iterator (ele, param, i_slice, n_slice_tot, sliced_ele,
   real(rp), optional :: s_start, s_end
 end subroutine
 
+recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
+             calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (lat_param_struct) param
+  type (coord_struct) :: orbit
+  type (em_field_struct) :: field
+  type (ele_pointer_struct), allocatable, optional :: used_eles(:)
+  real(rp) s_pos
+  real(rp), optional :: rf_time
+  logical :: local_ref_frame
+  logical, optional :: calc_dfield, calc_potential, err_flag, use_overlap, grid_allow_s_out_of_bounds, print_err
+end subroutine
+
 function equivalent_taylor_attributes (ele_taylor, ele2) result (equiv)
   import
   implicit none

@@ -1,6 +1,5 @@
 module symp_lie_mod
 
-use em_field_mod
 use random_mod
 use fringe_mod
 use multipole_mod
