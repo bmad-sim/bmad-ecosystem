@@ -571,51 +571,6 @@ template bool is_all_equal (const CPP_grid_field_MATRIX&, const CPP_grid_field_M
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_taylor_field_plane1& x, const CPP_taylor_field_plane1& y) {
-  bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.field, y.field);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_taylor_field_plane1_ARRAY&, const CPP_taylor_field_plane1_ARRAY&);
-template bool is_all_equal (const CPP_taylor_field_plane1_MATRIX&, const CPP_taylor_field_plane1_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_taylor_field_plane& x, const CPP_taylor_field_plane& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.file == y.file);
-  is_eq = is_eq && (x.n_link == y.n_link);
-  is_eq = is_eq && is_all_equal(x.plane, y.plane);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_taylor_field_plane_ARRAY&, const CPP_taylor_field_plane_ARRAY&);
-template bool is_all_equal (const CPP_taylor_field_plane_MATRIX&, const CPP_taylor_field_plane_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_taylor_field& x, const CPP_taylor_field& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
-  is_eq = is_eq && (x.field_type == y.field_type);
-  is_eq = is_eq && (x.dz == y.dz);
-  is_eq = is_eq && is_all_equal(x.r0, y.r0);
-  is_eq = is_eq && (x.field_scale == y.field_scale);
-  is_eq = is_eq && (x.master_parameter == y.master_parameter);
-  is_eq = is_eq && (x.curved_ref_frame == y.curved_ref_frame);
-  is_eq = is_eq && (x.canonical_tracking == y.canonical_tracking);
-  is_eq = is_eq && ((x.ptr == NULL) == (y.ptr == NULL));
-  if (!is_eq) return false;
-  if (x.ptr != NULL) is_eq = (*x.ptr == *y.ptr);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_taylor_field_ARRAY&, const CPP_taylor_field_ARRAY&);
-template bool is_all_equal (const CPP_taylor_field_MATRIX&, const CPP_taylor_field_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_floor_position& x, const CPP_floor_position& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.r, y.r);
@@ -761,6 +716,8 @@ bool operator== (const CPP_gen_grad_field& x, const CPP_gen_grad_field& y) {
   is_eq = is_eq && is_all_equal(x.s, y.s);
   is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
   is_eq = is_eq && (x.field_type == y.field_type);
+  is_eq = is_eq && (x.lbound_ix_s == y.lbound_ix_s);
+  is_eq = is_eq && (x.ubound_ix_s == y.ubound_ix_s);
   is_eq = is_eq && (x.dz == y.dz);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
   is_eq = is_eq && (x.field_scale == y.field_scale);
@@ -1485,7 +1442,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && is_all_equal(x.cylindrical_map, y.cylindrical_map);
   is_eq = is_eq && is_all_equal(x.gen_grad_field, y.gen_grad_field);
   is_eq = is_eq && is_all_equal(x.grid_field, y.grid_field);
-  is_eq = is_eq && is_all_equal(x.taylor_field, y.taylor_field);
   is_eq = is_eq && (x.map_ref_orb_in == y.map_ref_orb_in);
   is_eq = is_eq && (x.map_ref_orb_out == y.map_ref_orb_out);
   is_eq = is_eq && (x.time_ref_orb_in == y.time_ref_orb_in);

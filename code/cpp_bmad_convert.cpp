@@ -1346,126 +1346,6 @@ extern "C" void grid_field_to_c2 (CPP_grid_field& C, c_Int& z_geometry, c_Int& z
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_taylor_field_plane1
-
-extern "C" void taylor_field_plane1_to_c (const Opaque_taylor_field_plane1_class*, CPP_taylor_field_plane1&);
-
-// c_side.to_f2_arg
-extern "C" void taylor_field_plane1_to_f2 (Opaque_taylor_field_plane1_class*, const
-    CPP_em_taylor**);
-
-extern "C" void taylor_field_plane1_to_f (const CPP_taylor_field_plane1& C, Opaque_taylor_field_plane1_class* F) {
-  // c_side.to_f_setup[type, 1, NOT]
-  const CPP_em_taylor* z_field[3];
-  for (int i = 0; i < 3; i++) {z_field[i] = &C.field[i];}
-
-  // c_side.to_f2_call
-  taylor_field_plane1_to_f2 (F, z_field);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void taylor_field_plane1_to_c2 (CPP_taylor_field_plane1& C, const
-    Opaque_em_taylor_class** z_field) {
-
-  // c_side.to_c2_set[type, 1, NOT]
-  for (unsigned int i = 0; i < C.field.size(); i++) em_taylor_to_c(z_field[i], C.field[i]);
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_taylor_field_plane
-
-extern "C" void taylor_field_plane_to_c (const Opaque_taylor_field_plane_class*, CPP_taylor_field_plane&);
-
-// c_side.to_f2_arg
-extern "C" void taylor_field_plane_to_f2 (Opaque_taylor_field_plane_class*, c_Char, c_Int&,
-    const CPP_taylor_field_plane1**, Int);
-
-extern "C" void taylor_field_plane_to_f (const CPP_taylor_field_plane& C, Opaque_taylor_field_plane_class* F) {
-  // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_plane = C.plane.size();
-  const CPP_taylor_field_plane1** z_plane = NULL;
-  if (n1_plane != 0) {
-    z_plane = new const CPP_taylor_field_plane1*[n1_plane];
-    for (int i = 0; i < n1_plane; i++) z_plane[i] = &C.plane[i];
-  }
-
-  // c_side.to_f2_call
-  taylor_field_plane_to_f2 (F, C.file.c_str(), C.n_link, z_plane, n1_plane);
-
-  // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_plane;
-}
-
-// c_side.to_c2_arg
-extern "C" void taylor_field_plane_to_c2 (CPP_taylor_field_plane& C, c_Char z_file, c_Int&
-    z_n_link, Opaque_taylor_field_plane1_class** z_plane, Int n1_plane) {
-
-  // c_side.to_c2_set[character, 0, NOT]
-  C.file = z_file;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_link = z_n_link;
-  // c_side.to_c2_set[type, 1, ALLOC]
-  C.plane.resize(n1_plane);
-  for (int i = 0; i < n1_plane; i++) taylor_field_plane1_to_c(z_plane[i], C.plane[i]);
-
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_taylor_field
-
-extern "C" void taylor_field_to_c (const Opaque_taylor_field_class*, CPP_taylor_field&);
-
-// c_side.to_f2_arg
-extern "C" void taylor_field_to_f2 (Opaque_taylor_field_class*, c_Int&, c_Int&, c_Real&,
-    c_RealArr, c_Real&, c_Int&, c_Bool&, c_Bool&, const CPP_taylor_field_plane&, Int);
-
-extern "C" void taylor_field_to_f (const CPP_taylor_field& C, Opaque_taylor_field_class* F) {
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_ptr = 0; if (C.ptr != NULL) n_ptr = 1;
-
-  // c_side.to_f2_call
-  taylor_field_to_f2 (F, C.ele_anchor_pt, C.field_type, C.dz, &C.r0[0], C.field_scale,
-      C.master_parameter, C.curved_ref_frame, C.canonical_tracking, *C.ptr, n_ptr);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void taylor_field_to_c2 (CPP_taylor_field& C, c_Int& z_ele_anchor_pt, c_Int&
-    z_field_type, c_Real& z_dz, c_RealArr z_r0, c_Real& z_field_scale, c_Int&
-    z_master_parameter, c_Bool& z_curved_ref_frame, c_Bool& z_canonical_tracking,
-    Opaque_taylor_field_plane_class* z_ptr, Int n_ptr) {
-
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.ele_anchor_pt = z_ele_anchor_pt;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.field_type = z_field_type;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.dz = z_dz;
-  // c_side.to_c2_set[real, 1, NOT]
-  C.r0 << z_r0;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.field_scale = z_field_scale;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.master_parameter = z_master_parameter;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.curved_ref_frame = z_curved_ref_frame;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.canonical_tracking = z_canonical_tracking;
-  // c_side.to_c2_set[type, 0, PTR]
-  if (n_ptr == 0)
-    delete C.ptr;
-  else {
-    C.ptr = new CPP_taylor_field_plane;
-    taylor_field_plane_to_c(z_ptr, *C.ptr);
-  }
-
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
 // CPP_floor_position
 
 extern "C" void floor_position_to_c (const Opaque_floor_position_class*, CPP_floor_position&);
@@ -1805,7 +1685,7 @@ extern "C" void gen_grad_field_to_c (const Opaque_gen_grad_field_class*, CPP_gen
 // c_side.to_f2_arg
 extern "C" void gen_grad_field_to_f2 (Opaque_gen_grad_field_class*, const
     CPP_gen_grad_field_coef**, Int, const CPP_gen_grad_field_coef**, Int, c_Int&, c_Int&,
-    c_Real&, c_RealArr, c_Real&, c_Int&, c_Bool&);
+    c_Int&, c_Int&, c_Real&, c_RealArr, c_Real&, c_Int&, c_Bool&);
 
 extern "C" void gen_grad_field_to_f (const CPP_gen_grad_field& C, Opaque_gen_grad_field_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -1824,8 +1704,8 @@ extern "C" void gen_grad_field_to_f (const CPP_gen_grad_field& C, Opaque_gen_gra
   }
 
   // c_side.to_f2_call
-  gen_grad_field_to_f2 (F, z_c, n1_c, z_s, n1_s, C.ele_anchor_pt, C.field_type, C.dz, &C.r0[0],
-      C.field_scale, C.master_parameter, C.curved_ref_frame);
+  gen_grad_field_to_f2 (F, z_c, n1_c, z_s, n1_s, C.ele_anchor_pt, C.field_type, C.lbound_ix_s,
+      C.ubound_ix_s, C.dz, &C.r0[0], C.field_scale, C.master_parameter, C.curved_ref_frame);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_c;
@@ -1836,8 +1716,8 @@ extern "C" void gen_grad_field_to_f (const CPP_gen_grad_field& C, Opaque_gen_gra
 // c_side.to_c2_arg
 extern "C" void gen_grad_field_to_c2 (CPP_gen_grad_field& C, Opaque_gen_grad_field_coef_class**
     z_c, Int n1_c, Opaque_gen_grad_field_coef_class** z_s, Int n1_s, c_Int& z_ele_anchor_pt,
-    c_Int& z_field_type, c_Real& z_dz, c_RealArr z_r0, c_Real& z_field_scale, c_Int&
-    z_master_parameter, c_Bool& z_curved_ref_frame) {
+    c_Int& z_field_type, c_Int& z_lbound_ix_s, c_Int& z_ubound_ix_s, c_Real& z_dz, c_RealArr
+    z_r0, c_Real& z_field_scale, c_Int& z_master_parameter, c_Bool& z_curved_ref_frame) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.c.resize(n1_c);
@@ -1851,6 +1731,10 @@ extern "C" void gen_grad_field_to_c2 (CPP_gen_grad_field& C, Opaque_gen_grad_fie
   C.ele_anchor_pt = z_ele_anchor_pt;
   // c_side.to_c2_set[integer, 0, NOT]
   C.field_type = z_field_type;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.lbound_ix_s = z_lbound_ix_s;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ubound_ix_s = z_ubound_ix_s;
   // c_side.to_c2_set[real, 0, NOT]
   C.dz = z_dz;
   // c_side.to_c2_set[real, 1, NOT]
@@ -3592,14 +3476,14 @@ extern "C" void ele_to_f2 (Opaque_ele_class*, c_Char, c_Char, c_Char, c_Char, c_
     const CPP_mode3&, Int, const CPP_photon_element&, Int, const CPP_rad_map_ele&, Int, const
     CPP_taylor**, c_RealArr, const CPP_taylor**, const CPP_wake&, Int, const CPP_wall3d**, Int,
     const CPP_cartesian_map**, Int, const CPP_cylindrical_map**, Int, const
-    CPP_gen_grad_field**, Int, const CPP_grid_field**, Int, const CPP_taylor_field**, Int,
-    const CPP_coord&, const CPP_coord&, const CPP_coord&, const CPP_coord&, c_RealArr,
-    c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, c_RealArr,
-    Int, Int, Int, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
+    CPP_gen_grad_field**, Int, const CPP_grid_field**, Int, const CPP_coord&, const CPP_coord&,
+    const CPP_coord&, const CPP_coord&, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_RealArr,
+    c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, Int, c_RealArr, Int, c_RealArr,
+    Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, Int, Int, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
+    c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
   // c_side.to_f_setup[character, 0, PTR]
@@ -3664,13 +3548,6 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
     z_grid_field = new const CPP_grid_field*[n1_grid_field];
     for (int i = 0; i < n1_grid_field; i++) z_grid_field[i] = &C.grid_field[i];
   }
-  // c_side.to_f_setup[type, 1, PTR]
-  int n1_taylor_field = C.taylor_field.size();
-  const CPP_taylor_field** z_taylor_field = NULL;
-  if (n1_taylor_field != 0) {
-    z_taylor_field = new const CPP_taylor_field*[n1_taylor_field];
-    for (int i = 0; i < n1_taylor_field; i++) z_taylor_field[i] = &C.taylor_field[i];
-  }
   // c_side.to_f_setup[real, 2, NOT]
   Real z_spin_q[4*7]; matrix_to_vec(C.spin_q, z_spin_q);
   // c_side.to_f_setup[real, 2, NOT]
@@ -3726,18 +3603,17 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
       n_rad_map, z_taylor, &C.spin_taylor_ref_orb_in[0], z_spin_taylor, *C.wake, n_wake,
       z_wall3d, n1_wall3d, z_cartesian_map, n1_cartesian_map, z_cylindrical_map,
       n1_cylindrical_map, z_gen_grad_field, n1_gen_grad_field, z_grid_field, n1_grid_field,
-      z_taylor_field, n1_taylor_field, C.map_ref_orb_in, C.map_ref_orb_out, C.time_ref_orb_in,
-      C.time_ref_orb_out, &C.value[0], &C.old_value[0], z_spin_q, &C.vec0[0], z_mat6, z_c_mat,
-      C.gamma_c, C.s_start, C.s, C.ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole,
-      z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r,
-      n1_r, n2_r, n3_r, C.key, C.sub_key, C.ix_ele, C.ix_branch, C.lord_status, C.n_slave,
-      C.n_slave_field, C.ix1_slave, C.slave_status, C.n_lord, C.n_lord_field, C.ic1_lord,
-      C.ix_pointer, C.ixx, C.iyy, C.izz, C.mat6_calc_method, C.tracking_method,
-      C.spin_tracking_method, C.csr_method, C.space_charge_method, C.ptc_integration_type,
-      C.field_calc, C.aperture_at, C.aperture_type, C.ref_species, C.orientation,
-      C.symplectify, C.mode_flip, C.multipoles_on, C.scale_multipoles,
-      C.taylor_map_includes_offsets, C.field_master, C.is_on, C.logic, C.bmad_logic, C.select,
-      C.offset_moves_aperture);
+      C.map_ref_orb_in, C.map_ref_orb_out, C.time_ref_orb_in, C.time_ref_orb_out, &C.value[0],
+      &C.old_value[0], z_spin_q, &C.vec0[0], z_mat6, z_c_mat, C.gamma_c, C.s_start, C.s,
+      C.ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec,
+      z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, C.key,
+      C.sub_key, C.ix_ele, C.ix_branch, C.lord_status, C.n_slave, C.n_slave_field, C.ix1_slave,
+      C.slave_status, C.n_lord, C.n_lord_field, C.ic1_lord, C.ix_pointer, C.ixx, C.iyy, C.izz,
+      C.mat6_calc_method, C.tracking_method, C.spin_tracking_method, C.csr_method,
+      C.space_charge_method, C.ptc_integration_type, C.field_calc, C.aperture_at,
+      C.aperture_type, C.ref_species, C.orientation, C.symplectify, C.mode_flip,
+      C.multipoles_on, C.scale_multipoles, C.taylor_map_includes_offsets, C.field_master,
+      C.is_on, C.logic, C.bmad_logic, C.select, C.offset_moves_aperture);
 
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_wall3d;
@@ -3749,8 +3625,6 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
  delete[] z_gen_grad_field;
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_grid_field;
-  // c_side.to_f_cleanup[type, 1, PTR]
- delete[] z_taylor_field;
   // c_side.to_f_cleanup[real, 3, PTR]
   delete[] z_r;
 }
@@ -3770,17 +3644,16 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     Opaque_wall3d_class** z_wall3d, Int n1_wall3d, Opaque_cartesian_map_class**
     z_cartesian_map, Int n1_cartesian_map, Opaque_cylindrical_map_class** z_cylindrical_map,
     Int n1_cylindrical_map, Opaque_gen_grad_field_class** z_gen_grad_field, Int
-    n1_gen_grad_field, Opaque_grid_field_class** z_grid_field, Int n1_grid_field,
-    Opaque_taylor_field_class** z_taylor_field, Int n1_taylor_field, const Opaque_coord_class*
-    z_map_ref_orb_in, const Opaque_coord_class* z_map_ref_orb_out, const Opaque_coord_class*
-    z_time_ref_orb_in, const Opaque_coord_class* z_time_ref_orb_out, c_RealArr z_value,
-    c_RealArr z_old_value, c_RealArr z_spin_q, c_RealArr z_vec0, c_RealArr z_mat6, c_RealArr
-    z_c_mat, c_Real& z_gamma_c, c_Real& z_s_start, c_Real& z_s, c_Real& z_ref_time, c_RealArr
-    z_a_pole, Int n1_a_pole, c_RealArr z_b_pole, Int n1_b_pole, c_RealArr z_a_pole_elec, Int
-    n1_a_pole_elec, c_RealArr z_b_pole_elec, Int n1_b_pole_elec, c_RealArr z_custom, Int
-    n1_custom, c_RealArr z_r, Int n1_r, Int n2_r, Int n3_r, c_Int& z_key, c_Int& z_sub_key,
-    c_Int& z_ix_ele, c_Int& z_ix_branch, c_Int& z_lord_status, c_Int& z_n_slave, c_Int&
-    z_n_slave_field, c_Int& z_ix1_slave, c_Int& z_slave_status, c_Int& z_n_lord, c_Int&
+    n1_gen_grad_field, Opaque_grid_field_class** z_grid_field, Int n1_grid_field, const
+    Opaque_coord_class* z_map_ref_orb_in, const Opaque_coord_class* z_map_ref_orb_out, const
+    Opaque_coord_class* z_time_ref_orb_in, const Opaque_coord_class* z_time_ref_orb_out,
+    c_RealArr z_value, c_RealArr z_old_value, c_RealArr z_spin_q, c_RealArr z_vec0, c_RealArr
+    z_mat6, c_RealArr z_c_mat, c_Real& z_gamma_c, c_Real& z_s_start, c_Real& z_s, c_Real&
+    z_ref_time, c_RealArr z_a_pole, Int n1_a_pole, c_RealArr z_b_pole, Int n1_b_pole, c_RealArr
+    z_a_pole_elec, Int n1_a_pole_elec, c_RealArr z_b_pole_elec, Int n1_b_pole_elec, c_RealArr
+    z_custom, Int n1_custom, c_RealArr z_r, Int n1_r, Int n2_r, Int n3_r, c_Int& z_key, c_Int&
+    z_sub_key, c_Int& z_ix_ele, c_Int& z_ix_branch, c_Int& z_lord_status, c_Int& z_n_slave,
+    c_Int& z_n_slave_field, c_Int& z_ix1_slave, c_Int& z_slave_status, c_Int& z_n_lord, c_Int&
     z_n_lord_field, c_Int& z_ic1_lord, c_Int& z_ix_pointer, c_Int& z_ixx, c_Int& z_iyy, c_Int&
     z_izz, c_Int& z_mat6_calc_method, c_Int& z_tracking_method, c_Int& z_spin_tracking_method,
     c_Int& z_csr_method, c_Int& z_space_charge_method, c_Int& z_ptc_integration_type, c_Int&
@@ -3901,10 +3774,6 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
   // c_side.to_c2_set[type, 1, PTR]
   C.grid_field.resize(n1_grid_field);
   for (int i = 0; i < n1_grid_field; i++) grid_field_to_c(z_grid_field[i], C.grid_field[i]);
-
-  // c_side.to_c2_set[type, 1, PTR]
-  C.taylor_field.resize(n1_taylor_field);
-  for (int i = 0; i < n1_taylor_field; i++) taylor_field_to_c(z_taylor_field[i], C.taylor_field[i]);
 
   // c_side.to_c2_set[type, 0, NOT]
   coord_to_c(z_map_ref_orb_in, C.map_ref_orb_in);

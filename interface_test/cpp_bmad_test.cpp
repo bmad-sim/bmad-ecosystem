@@ -2189,200 +2189,6 @@ extern "C" void test_c_grid_field (Opaque_grid_field_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_taylor_field_plane1 (CPP_taylor_field_plane1&, bool&);
-
-void set_CPP_taylor_field_plane1_test_pattern (CPP_taylor_field_plane1& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[type, 1, NOT]
-  for (unsigned int i = 0; i < C.field.size(); i++)
-    {int rhs = 101 + i + 1 + offset; set_CPP_em_taylor_test_pattern(C.field[i], ix_patt+i+1);}
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_taylor_field_plane1 (Opaque_taylor_field_plane1_class* F, bool& c_ok) {
-
-  CPP_taylor_field_plane1 C, C2;
-
-  c_ok = true;
-
-  taylor_field_plane1_to_c (F, C);
-  set_CPP_taylor_field_plane1_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " taylor_field_plane1: C side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field_plane1: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_plane1_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_taylor_field_plane1 (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_taylor_field_plane1_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " taylor_field_plane1: F side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field_plane1: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_plane1_test_pattern (C2, 4);
-  taylor_field_plane1_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_taylor_field_plane (CPP_taylor_field_plane&, bool&);
-
-void set_CPP_taylor_field_plane_test_pattern (CPP_taylor_field_plane& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[character, 0, NOT]
-  C.file.resize(200);
-  for (unsigned int i = 0; i < C.file.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.n_link = rhs;
-
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.plane.resize(0);
-  else {
-    C.plane.resize(3);
-    for (unsigned int i = 0; i < C.plane.size(); i++)  {set_CPP_taylor_field_plane1_test_pattern(C.plane[i], ix_patt+i+1);}
-  }
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_taylor_field_plane (Opaque_taylor_field_plane_class* F, bool& c_ok) {
-
-  CPP_taylor_field_plane C, C2;
-
-  c_ok = true;
-
-  taylor_field_plane_to_c (F, C);
-  set_CPP_taylor_field_plane_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " taylor_field_plane: C side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field_plane: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_plane_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_taylor_field_plane (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_taylor_field_plane_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " taylor_field_plane: F side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field_plane: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_plane_test_pattern (C2, 4);
-  taylor_field_plane_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_taylor_field (CPP_taylor_field&, bool&);
-
-void set_CPP_taylor_field_test_pattern (CPP_taylor_field& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.ele_anchor_pt = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.field_type = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.dz = rhs;
-
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.r0.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.r0[i] = rhs;}
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.field_scale = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.master_parameter = rhs;
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 7 + offset; C.curved_ref_frame = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 8 + offset; C.canonical_tracking = (rhs % 2 == 0);
-
-  // c_side.test_pat[type, 0, PTR]
-  if (ix_patt < 3) 
-    C.ptr = NULL;
-  else {
-    C.ptr = new CPP_taylor_field_plane;
-    set_CPP_taylor_field_plane_test_pattern((*C.ptr), ix_patt);
-  }
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_taylor_field (Opaque_taylor_field_class* F, bool& c_ok) {
-
-  CPP_taylor_field C, C2;
-
-  c_ok = true;
-
-  taylor_field_to_c (F, C);
-  set_CPP_taylor_field_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " taylor_field: C side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_taylor_field (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_taylor_field_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " taylor_field: F side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_test_pattern (C2, 4);
-  taylor_field_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
 extern "C" void test2_f_floor_position (CPP_floor_position&, bool&);
 
 void set_CPP_floor_position_test_pattern (CPP_floor_position& C, int ix_patt) {
@@ -2997,20 +2803,26 @@ void set_CPP_gen_grad_field_test_pattern (CPP_gen_grad_field& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 6 + offset; C.field_type = rhs;
 
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 7 + offset; C.lbound_ix_s = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.ubound_ix_s = rhs;
+
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.dz = rhs;
+  rhs = 9 + offset; C.dz = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.r0.size(); i++)
-    {int rhs = 101 + i + 8 + offset; C.r0[i] = rhs;}
+    {int rhs = 101 + i + 10 + offset; C.r0[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.field_scale = rhs;
+  rhs = 11 + offset; C.field_scale = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 10 + offset; C.master_parameter = rhs;
+  rhs = 12 + offset; C.master_parameter = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.curved_ref_frame = (rhs % 2 == 0);
+  rhs = 13 + offset; C.curved_ref_frame = (rhs % 2 == 0);
 
 
 }
@@ -5929,14 +5741,6 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
     for (unsigned int i = 0; i < C.grid_field.size(); i++)  {set_CPP_grid_field_test_pattern(C.grid_field[i], ix_patt+i+1);}
   }
 
-  // c_side.test_pat[type, 1, PTR]
-  if (ix_patt < 3) 
-    C.taylor_field.resize(0);
-  else {
-    C.taylor_field.resize(3);
-    for (unsigned int i = 0; i < C.taylor_field.size(); i++)  {set_CPP_taylor_field_test_pattern(C.taylor_field[i], ix_patt+i+1);}
-  }
-
   // c_side.test_pat[type, 0, NOT]
   set_CPP_coord_test_pattern(C.map_ref_orb_in, ix_patt);
 
@@ -5952,36 +5756,36 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   // c_side.test_pat[real, 1, NOT]
   C.value[0] = 0;
   for (unsigned int i = 1; i < Bmad::NUM_ELE_ATTRIB+1; i++)
-    {int rhs = 100 + i + 47 + offset; C.value[i] = rhs;}
+    {int rhs = 100 + i + 45 + offset; C.value[i] = rhs;}
 
   // c_side.test_pat[real, 1, NOT]
   C.old_value[0] = 0;
   for (unsigned int i = 1; i < Bmad::NUM_ELE_ATTRIB+1; i++)
-    {int rhs = 100 + i + 48 + offset; C.old_value[i] = rhs;}
+    {int rhs = 100 + i + 46 + offset; C.old_value[i] = rhs;}
 
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.spin_q.size(); i++)  for (unsigned int j = 0; j < C.spin_q[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 49 + offset; C.spin_q[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 47 + offset; C.spin_q[i][j] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.vec0.size(); i++)
-    {int rhs = 101 + i + 50 + offset; C.vec0[i] = rhs;}
+    {int rhs = 101 + i + 48 + offset; C.vec0[i] = rhs;}
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.mat6.size(); i++)  for (unsigned int j = 0; j < C.mat6[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 51 + offset; C.mat6[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 49 + offset; C.mat6[i][j] = rhs;}
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.c_mat.size(); i++)  for (unsigned int j = 0; j < C.c_mat[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 52 + offset; C.c_mat[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 50 + offset; C.c_mat[i][j] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 53 + offset; C.gamma_c = rhs;
+  rhs = 51 + offset; C.gamma_c = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 54 + offset; C.s_start = rhs;
+  rhs = 52 + offset; C.s_start = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 55 + offset; C.s = rhs;
+  rhs = 53 + offset; C.s = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 56 + offset; C.ref_time = rhs;
+  rhs = 54 + offset; C.ref_time = rhs;
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -5989,7 +5793,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.a_pole.resize(3);
     for (unsigned int i = 0; i < C.a_pole.size(); i++)
-      {int rhs = 101 + i + 57 + offset; C.a_pole[i] = rhs;}  }
+      {int rhs = 101 + i + 55 + offset; C.a_pole[i] = rhs;}  }
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -5997,7 +5801,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.b_pole.resize(3);
     for (unsigned int i = 0; i < C.b_pole.size(); i++)
-      {int rhs = 101 + i + 59 + offset; C.b_pole[i] = rhs;}  }
+      {int rhs = 101 + i + 57 + offset; C.b_pole[i] = rhs;}  }
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -6005,7 +5809,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.a_pole_elec.resize(3);
     for (unsigned int i = 0; i < C.a_pole_elec.size(); i++)
-      {int rhs = 101 + i + 61 + offset; C.a_pole_elec[i] = rhs;}  }
+      {int rhs = 101 + i + 59 + offset; C.a_pole_elec[i] = rhs;}  }
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -6013,7 +5817,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.b_pole_elec.resize(3);
     for (unsigned int i = 0; i < C.b_pole_elec.size(); i++)
-      {int rhs = 101 + i + 63 + offset; C.b_pole_elec[i] = rhs;}  }
+      {int rhs = 101 + i + 61 + offset; C.b_pole_elec[i] = rhs;}  }
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -6021,7 +5825,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.custom.resize(3);
     for (unsigned int i = 0; i < C.custom.size(); i++)
-      {int rhs = 101 + i + 65 + offset; C.custom[i] = rhs;}  }
+      {int rhs = 101 + i + 63 + offset; C.custom[i] = rhs;}  }
 
   // c_side.test_pat[real, 3, PTR]
   if (ix_patt < 3) 
@@ -6033,125 +5837,125 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
       for (unsigned int j = 0; j < C.r[0].size(); j++) {
         C.r[i][j].resize(1);
         for (unsigned int k = 0; k < C.r[0][0].size(); k++) {
-          int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 67 + offset; C.r[i][j][k] = rhs;
+          int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 65 + offset; C.r[i][j][k] = rhs;
         }
       }
     }
   }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 71 + offset; C.key = rhs;
+  rhs = 69 + offset; C.key = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 72 + offset; C.sub_key = rhs;
+  rhs = 70 + offset; C.sub_key = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 73 + offset; C.ix_ele = rhs;
+  rhs = 71 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 74 + offset; C.ix_branch = rhs;
+  rhs = 72 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 75 + offset; C.lord_status = rhs;
+  rhs = 73 + offset; C.lord_status = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 76 + offset; C.n_slave = rhs;
+  rhs = 74 + offset; C.n_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 77 + offset; C.n_slave_field = rhs;
+  rhs = 75 + offset; C.n_slave_field = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 78 + offset; C.ix1_slave = rhs;
+  rhs = 76 + offset; C.ix1_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 79 + offset; C.slave_status = rhs;
+  rhs = 77 + offset; C.slave_status = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 80 + offset; C.n_lord = rhs;
+  rhs = 78 + offset; C.n_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 81 + offset; C.n_lord_field = rhs;
+  rhs = 79 + offset; C.n_lord_field = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 82 + offset; C.ic1_lord = rhs;
+  rhs = 80 + offset; C.ic1_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 83 + offset; C.ix_pointer = rhs;
+  rhs = 81 + offset; C.ix_pointer = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 84 + offset; C.ixx = rhs;
+  rhs = 82 + offset; C.ixx = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 85 + offset; C.iyy = rhs;
+  rhs = 83 + offset; C.iyy = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 86 + offset; C.izz = rhs;
+  rhs = 84 + offset; C.izz = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 87 + offset; C.mat6_calc_method = rhs;
+  rhs = 85 + offset; C.mat6_calc_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 88 + offset; C.tracking_method = rhs;
+  rhs = 86 + offset; C.tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 89 + offset; C.spin_tracking_method = rhs;
+  rhs = 87 + offset; C.spin_tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 90 + offset; C.csr_method = rhs;
+  rhs = 88 + offset; C.csr_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 91 + offset; C.space_charge_method = rhs;
+  rhs = 89 + offset; C.space_charge_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 92 + offset; C.ptc_integration_type = rhs;
+  rhs = 90 + offset; C.ptc_integration_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 93 + offset; C.field_calc = rhs;
+  rhs = 91 + offset; C.field_calc = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 94 + offset; C.aperture_at = rhs;
+  rhs = 92 + offset; C.aperture_at = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 95 + offset; C.aperture_type = rhs;
+  rhs = 93 + offset; C.aperture_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 96 + offset; C.ref_species = rhs;
+  rhs = 94 + offset; C.ref_species = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 97 + offset; C.orientation = rhs;
+  rhs = 95 + offset; C.orientation = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 98 + offset; C.symplectify = (rhs % 2 == 0);
+  rhs = 96 + offset; C.symplectify = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 99 + offset; C.mode_flip = (rhs % 2 == 0);
+  rhs = 97 + offset; C.mode_flip = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 100 + offset; C.multipoles_on = (rhs % 2 == 0);
+  rhs = 98 + offset; C.multipoles_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 101 + offset; C.scale_multipoles = (rhs % 2 == 0);
+  rhs = 99 + offset; C.scale_multipoles = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 102 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
+  rhs = 100 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 103 + offset; C.field_master = (rhs % 2 == 0);
+  rhs = 101 + offset; C.field_master = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 104 + offset; C.is_on = (rhs % 2 == 0);
+  rhs = 102 + offset; C.is_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 105 + offset; C.logic = (rhs % 2 == 0);
+  rhs = 103 + offset; C.logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 106 + offset; C.bmad_logic = (rhs % 2 == 0);
+  rhs = 104 + offset; C.bmad_logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 107 + offset; C.select = (rhs % 2 == 0);
+  rhs = 105 + offset; C.select = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 108 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
+  rhs = 106 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
 
 
 }

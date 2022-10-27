@@ -176,21 +176,6 @@ typedef valarray<CPP_grid_field>          CPP_grid_field_ARRAY;
 typedef valarray<CPP_grid_field_ARRAY>    CPP_grid_field_MATRIX;
 typedef valarray<CPP_grid_field_MATRIX>   CPP_grid_field_TENSOR;
 
-class CPP_taylor_field_plane1;
-typedef valarray<CPP_taylor_field_plane1>          CPP_taylor_field_plane1_ARRAY;
-typedef valarray<CPP_taylor_field_plane1_ARRAY>    CPP_taylor_field_plane1_MATRIX;
-typedef valarray<CPP_taylor_field_plane1_MATRIX>   CPP_taylor_field_plane1_TENSOR;
-
-class CPP_taylor_field_plane;
-typedef valarray<CPP_taylor_field_plane>          CPP_taylor_field_plane_ARRAY;
-typedef valarray<CPP_taylor_field_plane_ARRAY>    CPP_taylor_field_plane_MATRIX;
-typedef valarray<CPP_taylor_field_plane_MATRIX>   CPP_taylor_field_plane_TENSOR;
-
-class CPP_taylor_field;
-typedef valarray<CPP_taylor_field>          CPP_taylor_field_ARRAY;
-typedef valarray<CPP_taylor_field_ARRAY>    CPP_taylor_field_MATRIX;
-typedef valarray<CPP_taylor_field_MATRIX>   CPP_taylor_field_TENSOR;
-
 class CPP_floor_position;
 typedef valarray<CPP_floor_position>          CPP_floor_position_ARRAY;
 typedef valarray<CPP_floor_position_ARRAY>    CPP_floor_position_MATRIX;
@@ -1525,99 +1510,6 @@ bool operator== (const CPP_grid_field&, const CPP_grid_field&);
 
 
 //--------------------------------------------------------------------
-// CPP_taylor_field_plane1
-
-class Opaque_taylor_field_plane1_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_taylor_field_plane1 {
-public:
-  CPP_em_taylor_ARRAY field;
-
-  CPP_taylor_field_plane1() :
-    field(CPP_em_taylor_ARRAY(CPP_em_taylor(), 3))
-    {}
-
-  ~CPP_taylor_field_plane1() {
-  }
-
-};   // End Class
-
-extern "C" void taylor_field_plane1_to_c (const Opaque_taylor_field_plane1_class*, CPP_taylor_field_plane1&);
-extern "C" void taylor_field_plane1_to_f (const CPP_taylor_field_plane1&, Opaque_taylor_field_plane1_class*);
-
-bool operator== (const CPP_taylor_field_plane1&, const CPP_taylor_field_plane1&);
-
-
-//--------------------------------------------------------------------
-// CPP_taylor_field_plane
-
-class Opaque_taylor_field_plane_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_taylor_field_plane {
-public:
-  string file;
-  Int n_link;
-  CPP_taylor_field_plane1_ARRAY plane;
-
-  CPP_taylor_field_plane() :
-    file(),
-    n_link(1),
-    plane(CPP_taylor_field_plane1_ARRAY(CPP_taylor_field_plane1(), 0))
-    {}
-
-  ~CPP_taylor_field_plane() {
-  }
-
-};   // End Class
-
-extern "C" void taylor_field_plane_to_c (const Opaque_taylor_field_plane_class*, CPP_taylor_field_plane&);
-extern "C" void taylor_field_plane_to_f (const CPP_taylor_field_plane&, Opaque_taylor_field_plane_class*);
-
-bool operator== (const CPP_taylor_field_plane&, const CPP_taylor_field_plane&);
-
-
-//--------------------------------------------------------------------
-// CPP_taylor_field
-
-class Opaque_taylor_field_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_taylor_field {
-public:
-  Int ele_anchor_pt;
-  Int field_type;
-  Real dz;
-  Real_ARRAY r0;
-  Real field_scale;
-  Int master_parameter;
-  Bool curved_ref_frame;
-  Bool canonical_tracking;
-  CPP_taylor_field_plane* ptr;
-
-  CPP_taylor_field() :
-    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
-    field_type(Bmad::MAGNETIC),
-    dz(0.0),
-    r0(0.0, 3),
-    field_scale(1),
-    master_parameter(0),
-    curved_ref_frame(false),
-    canonical_tracking(false),
-    ptr(NULL)
-    {}
-
-  ~CPP_taylor_field() {
-    delete ptr;
-  }
-
-};   // End Class
-
-extern "C" void taylor_field_to_c (const Opaque_taylor_field_class*, CPP_taylor_field&);
-extern "C" void taylor_field_to_f (const CPP_taylor_field&, Opaque_taylor_field_class*);
-
-bool operator== (const CPP_taylor_field&, const CPP_taylor_field&);
-
-
-//--------------------------------------------------------------------
 // CPP_floor_position
 
 class Opaque_floor_position_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1924,6 +1816,8 @@ public:
   CPP_gen_grad_field_coef_ARRAY s;
   Int ele_anchor_pt;
   Int field_type;
+  Int lbound_ix_s;
+  Int ubound_ix_s;
   Real dz;
   Real_ARRAY r0;
   Real field_scale;
@@ -1935,6 +1829,8 @@ public:
     s(CPP_gen_grad_field_coef_ARRAY(CPP_gen_grad_field_coef(), 0)),
     ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
     field_type(Bmad::MAGNETIC),
+    lbound_ix_s(0),
+    ubound_ix_s(0),
     dz(0.0),
     r0(0.0, 3),
     field_scale(1),
@@ -3386,7 +3282,6 @@ public:
   CPP_cylindrical_map_ARRAY cylindrical_map;
   CPP_gen_grad_field_ARRAY gen_grad_field;
   CPP_grid_field_ARRAY grid_field;
-  CPP_taylor_field_ARRAY taylor_field;
   CPP_coord map_ref_orb_in;
   CPP_coord map_ref_orb_out;
   CPP_coord time_ref_orb_in;
@@ -3496,7 +3391,6 @@ public:
     cylindrical_map(CPP_cylindrical_map_ARRAY(CPP_cylindrical_map(), 0)),
     gen_grad_field(CPP_gen_grad_field_ARRAY(CPP_gen_grad_field(), 0)),
     grid_field(CPP_grid_field_ARRAY(CPP_grid_field(), 0)),
-    taylor_field(CPP_taylor_field_ARRAY(CPP_taylor_field(), 0)),
     map_ref_orb_in(),
     map_ref_orb_out(),
     time_ref_orb_in(),
