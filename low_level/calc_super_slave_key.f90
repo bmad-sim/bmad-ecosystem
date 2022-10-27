@@ -65,6 +65,29 @@ case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift
   return
 end select
 
+! sbend elements are problematical due to the different reference orbit so cannot superimpose them.
+
+if (key1 == sbend$ .or. key2 == sbend$) return
+
+! If there are misalignments then no superposition is possible
+
+if (lord1%value(x_offset$) /= 0 .or. lord1%value(y_offset$) /= 0 .or. lord1%value(tilt$) /= 0 .or. &
+    lord1%value(x_pitch$) /= 0 .or. lord1%value(y_pitch$) /= 0 .or. &
+    lord2%value(x_offset$) /= 0 .or. lord2%value(y_offset$) /= 0 .or. lord2%value(tilt$) /= 0 .or. &
+    lord2%value(x_pitch$) /= 0 .or. lord2%value(y_pitch$) /= 0) then
+  slave%key = em_field$
+  if (key1 == lcavity$ .or. key2 == lcavity$) then
+    slave%value(constant_ref_energy$) = false$
+  elseif (key1 == em_field$) then
+    slave%value(constant_ref_energy$) = lord1%value(constant_ref_energy$)
+  elseif (key2 == em_field$) then
+    slave%value(constant_ref_energy$) = lord2%value(constant_ref_energy$)
+  else
+    slave%value(constant_ref_energy$) = true$
+  endif
+  return
+endif
+
 ! Superimposing two of like kind...
 
 if (key1 == key2) then
@@ -89,10 +112,6 @@ if (key1 == key2) then
   end select
   return
 endif
-
-! sbend elements are problematical due to the different reference orbit so cannot superimpose them.
-
-if (key1 == sbend$ .or. key2 == sbend$) return
 
 ! If one element is a pipe then slave%key = key of other element.
 
