@@ -80,9 +80,12 @@ been \vn{S{\B}Q}.
 When \bmad sets the element class for elements created from superpositions, \bmad will set the class
 of the element to something other than an \vn{em_field} element (\sref{s:em.field}) if possible. If
 no other possibilities exist, \bmad will use \vn{em_field}. For example, a \vn{quadrupole}
-superimposed with a \vn{solenoid} will produce a \vn{sol_quad} element but a \vn{solenoid}
-superimposed with a \vn{rfcavity} element will produce an \vn{em_field} element since there is no
-other class of element that can simultaneously handle solenoid and RF fields.
+superimposed with a \vn{solenoid} will produce a \vn{sol_quad} \vn{super_slave} element but a
+\vn{solenoid} superimposed with a \vn{rfcavity} element will produce an \vn{em_field} element since
+there is no other class of element that can simultaneously handle solenoid and RF fields. An
+\vn{em_field} \vn{super_slave} element will also be created if any of the superimposing elements 
+have a non-zero orientation (\sref{s:offset}) since it is not, in general, possible to construct a slave
+element that properly mimics the effect of a non-zero orientation.
 
   \begin{figure}[tb]
   \centering 
@@ -318,9 +321,9 @@ The \vn{no_superposition} statement (\sref{s:no.sup}) can be used to turn off su
 \label{s:super.sub.line}
 
 Sometimes it is convenient to do simulations with only part of a lattice. The rule for how
-superpositions are handled in this case is illustrated in the following example. Consider
-a lattice file which defines a \vn{line} called \vn{full} which is defined by two sublines called
-\vn{sub1} and \vn{sub2}:
+superpositions are handled in this case is illustrated in the following example. Consider a lattice
+file which defines a \vn{line} called \vn{full} which is defined by two sublines called \vn{sub1}
+and \vn{sub2}:
 \begin{example}
   sub1: line = {..., ele1, ...}
   sub2: line = {...}
@@ -328,50 +331,44 @@ a lattice file which defines a \vn{line} called \vn{full} which is defined by tw
   m1: marker, superimpose, ref = ele1, offset = 3.7
   use, full
 \end{example}
-Now suppose you want to do a simulation using only the \vn{sub2} line. Rather than edit the
-original file, one way to do this would be to create a second file which
-overrides the used line:
+Now suppose you want to do a simulation using only the \vn{sub2} line. Rather than edit the original
+file, one way to do this would be to create a second file which overrides the used line:
 \begin{example}
   call, file = "full.bmad"
   use, sub2
 \end{example}
-where \vn{full.bmad} is the name of the original file. What happens to the superposition
-of \vn{m1} in this case? Since \vn{m1} uses a reference element, \vn{ele1}, that is not in
-\vn{sub1}, \bmad will ignore the superposition. Even though \bmad will ignore the superposition
-of \vn{m1} here, \bmad will check that \vn{ele1} has been defined. If \vn{ele1} has not been
-defined, \bmad will assume that there is a typographic error and issue an error message. 
+where \vn{full.bmad} is the name of the original file. What happens to the superposition of \vn{m1}
+in this case? Since \vn{m1} uses a reference element, \vn{ele1}, that is not in \vn{sub1}, \bmad
+will ignore the superposition. Even though \bmad will ignore the superposition of \vn{m1} here,
+\bmad will check that \vn{ele1} has been defined. If \vn{ele1} has not been defined, \bmad will
+assume that there is a typographic error and issue an error message.
 
-Notice that in this case it is important for the superposition to have an explicit
-reference element since without an explicit reference element the superposition is
-referenced to the beginning of the lattice. Thus, in the above example, if the
-superposition were written like:
+Notice that in this case it is important for the superposition to have an explicit reference element
+since without an explicit reference element the superposition is referenced to the beginning of the
+lattice. Thus, in the above example, if the superposition were written like:
 \begin{example}
   m1: marker, superimpose, offset = 11.3
 \end{example}
-then when the \vn{full} line is used, the superposition of \vn{m1} is referenced to the
-beginning of \vn{full} (which is the same as the beginning of \vn{sub1}) but when the
-\vn{sub2} line is used, the superposition of \vn{m1} is referenced to the beginning
-of \vn{sub2} which is not the same as the beginning of \vn{full}.
+then when the \vn{full} line is used, the superposition of \vn{m1} is referenced to the beginning of
+\vn{full} (which is the same as the beginning of \vn{sub1}) but when the \vn{sub2} line is used, the
+superposition of \vn{m1} is referenced to the beginning of \vn{sub2} which is not the same as the
+beginning of \vn{full}.
 
 %-----------------------------------------------------------------------------
 \subsection{Jumbo Super_Slaves}
 \label{s:jumbo.slave}
 
-The problem with the way \vn{super_slave} elements are created as
-discussed above is that edge effects will not be dealt with properly
-when elements with non-zero fields are misaligned. When this is
-important, especially at low energy, a possible remedy is to instruct
-\bmad to construct ``\vn{jumbo}'' super_slave elements. The general
-idea is to create one large \vn{super_slave} for any set of
-overlapping elements. Returning to the superposition example at the
-start of Section~\sref{s:super}, If the superposition of solenoid \vn{S}
-is modified to be
+The problem with the way \vn{super_slave} elements are created as discussed above is that edge
+effects will not be dealt with properly when elements with non-zero fields are misaligned. When this
+is important, especially at low energy, a possible remedy is to instruct \bmad to construct
+``\vn{jumbo}'' super_slave elements. The general idea is to create one large \vn{super_slave} for
+any set of overlapping elements. Returning to the superposition example at the start of
+Section~\sref{s:super}, If the superposition of solenoid \vn{S} is modified to be
 \begin{example}
   S: solenoid, l = 8, superimpose, ref = Q, ele_origin = beginning, 
                create_jumbo_slave = T
 \end{example}
-The result is shown in \fig{f:super.ex}C. The tracking part of the lattice
-will be
+The result is shown in \fig{f:super.ex}C. The tracking part of the lattice will be
 \begin{example}
         Element   Key         Length  Total     
   1)    Q{\B}S       Sol_quad     2        4
@@ -380,20 +377,18 @@ will be
   4)    D{\#}2       Drift        4       14
 \end{example}
 \index{lord_pad1}\index{lord_pad2}
-\vn{Q} and part of \vn{S} have been combined into a jumbo
-\vn{super_slave} named \vn{Q{\B}S}. Since the \vn{super_lord} elements
-of a jumbo \vn{super_slave} may not completely span the slave two
-attributes of each lord will be set to show the position of the lord
-within the slave. These two attributes are
+\vn{Q} and part of \vn{S} have been combined into a jumbo \vn{super_slave} named \vn{Q{\B}S}. Since
+the \vn{super_lord} elements of a jumbo \vn{super_slave} may not completely span the slave two
+attributes of each lord will be set to show the position of the lord within the slave. These two
+attributes are
 \begin{example}
   lord_pad1    ! offset at upstream end
   lord_pad2    ! offset at downstream end
 \end{example}
-\vn{lord_pad1} is the distance between the upstream edge of the jumbo
-\vn{super_slave} and a \vn{super_lord}. \vn{lord_pad2} is the distance 
-between the downstream edge of a \vn{super_lord} and the downstream edge
-of the jumbo \vn{super_slave}. With the present example, the lords have
-the following padding:
+\vn{lord_pad1} is the distance between the upstream edge of the jumbo \vn{super_slave} and a
+\vn{super_lord}. \vn{lord_pad2} is the distance between the downstream edge of a \vn{super_lord} and
+the downstream edge of the jumbo \vn{super_slave}. With the present example, the lords have the
+following padding:
 \begin{example}
           lord_pad1    lord_pad2
   Q            0            3
@@ -405,18 +400,16 @@ The following rule holds for all super lords with and without jumbo slaves:
 \end{example}
 
 One major drawback of jumbo \vn{super_slave} elements is that the \vn{tracking_method}
-(\sref{s:tkm}) will, by necessity, have to be \vn{runge_kutta}, or \vn{time_runge_kutta}
-and the \vn{mat6_calc_method} (\sref{s:xfer}) will be set to \vn{tracking}.
+(\sref{s:tkm}) will, by necessity, have to be \vn{runge_kutta}, or \vn{time_runge_kutta} and the
+\vn{mat6_calc_method} (\sref{s:xfer}) will be set to \vn{tracking}.
 
-Notice that the problem with edge effects for non-jumbo
-\vn{super_slave} elements only occurs when elements with nonzero
-fields are superimposed on top of one another. Thus, for example, one
-does not need to use jumbo elements when superimposing a \vn{marker}
-element.
+Notice that the problem with edge effects for non-jumbo \vn{super_slave} elements only occurs when
+elements with nonzero fields are superimposed on top of one another. Thus, for example, one does not
+need to use jumbo elements when superimposing a \vn{marker} element.
 
 \index{field_overlaps}
-Another possible way to handle overlapping fields is to use the \vn{field_overlaps}
-element attribute as discussed in \sref{s:overlap}.
+Another possible way to handle overlapping fields is to use the \vn{field_overlaps} element
+attribute as discussed in \sref{s:overlap}.
 
 %-----------------------------------------------------------------------------
 \subsection{Changing Element Lengths when there is Superposition}
