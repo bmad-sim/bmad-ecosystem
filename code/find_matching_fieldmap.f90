@@ -7,7 +7,7 @@
 ! Input:
 !   file_name     -- character(*): File name associated with field to match to.
 !   ele           -- ele_struct: Element holding the field to be matched.
-!   fm_type       -- integer: Type of fieldmap: cartesian_map$, cylindircal_map$, grid_field$, or taylor_field$
+!   fm_type       -- integer: Type of fieldmap: cartesian_map$, cylindircal_map$, or gen_grad_field$, grid_field$
 !   ignore_slaves -- logical, optional: If True, ignore any multipass slaves. Default is False.
 !
 ! Output:
@@ -57,16 +57,16 @@ do ib = 0, ele%ix_branch
         if (match_ele%cylindrical_map(ix_field)%ptr%file == file_name) return
       enddo
 
+    case (gen_grad_field$)
+      if (.not. associated(match_ele%gen_grad_field)) cycle
+      do ix_field = 1, size(match_ele%gen_grad_field)
+        if (match_ele%gen_grad_field(ix_field)%file == file_name) return
+      enddo
+
     case (grid_field$)
       if (.not. associated(match_ele%grid_field)) cycle
       do ix_field = 1, size(match_ele%grid_field)
         if (match_ele%grid_field(ix_field)%ptr%file == file_name) return
-      enddo
-  
-    case (taylor_field$)
-      if (.not. associated(match_ele%taylor_field)) cycle
-      do ix_field = 1, size(match_ele%taylor_field)
-        if (match_ele%taylor_field(ix_field)%ptr%file == file_name) return
       enddo
     end select  
 

@@ -160,42 +160,34 @@ or the pointers within the variable must be deallocated  with a call to
   call deallocate_ele_pointers (ele) ! And deallocate.
 \end{example}
 
-In the ``normal'' course of events, the pointers of an \vn{ele_struct}
-variable should not be pointing to the same memory locations as the
-pointers of any other \vn{ele_struct} variable. To make sure of this,
-the equal sign in the assignment \vn{ele1 = ele2} is overloaded by the
-routine \Hyperref{r:ele.equal.ele}{ele_equal_ele}.  The exception here
-are the ``Electro-magnetic field component'' pointers
-\vn{ele%wig_term}, \vn{ele%em_field%mode(:)%map}, and
-\vn{ele%em_field%mode(:)%grid}. Since these components potentially
-contain large arrays, and since the individual sub-components of these
-components are not likely to be individually modified, The field
-component pointers of \vn{ele1} and \vn{ele2} after the set \vn{ele1 =
-ele2} will point at the same memory locations.
+In the ``normal'' course of events, the pointers of an \vn{ele_struct} variable should not be
+pointing to the same memory locations as the pointers of any other \vn{ele_struct} variable. To make
+sure of this, the equal sign in the assignment \vn{ele1 = ele2} is overloaded by the routine
+\Hyperref{r:ele.equal.ele}{ele_equal_ele}.  The exception here are the ``Electro-magnetic field
+component'' pointers \vn{ele%wig_term}, \vn{ele%em_field%mode(:)%map}, and
+\vn{ele%em_field%mode(:)%grid}. Since these components potentially contain large arrays, and since
+the individual sub-components of these components are not likely to be individually modified, The
+field component pointers of \vn{ele1} and \vn{ele2} after the set \vn{ele1 = ele2} will point at the
+same memory locations.
 
-Note: The assignment \vn{ele1 = ele2} will not modify \vn{ele1%ix_ele} or
-\vn{ele1%ix_branch}. If \vn{ele1} is associated with a lattice then
-\vn{ele1%lat} will also be unaffected.
+Note: The assignment \vn{ele1 = ele2} will not modify \vn{ele1%ix_ele} or \vn{ele1%ix_branch}. If
+\vn{ele1} is associated with a lattice then \vn{ele1%lat} will also be unaffected.
 
 %--------------------------------------------------------------------------
 \section{Element Attribute Bookkeeping}
 \label{s:ele.book}
 \index{Element attribute bookkeeping}
 
-When a value of an attribute in an element changes, the values of
-other attributes may need to be changed (\sref{s:depend}). Furthermore,
-in a lattice, changes to one element may necessitate changes to
-attribute values in other elements. For example, changing the
-accelerating gradient in an \vn{lcavity} will change the reference
-energy throughout the lattice. 
+When a value of an attribute in an element changes, the values of other attributes may need to be
+changed (\sref{s:depend}). Furthermore, in a lattice, changes to one element may necessitate changes
+to attribute values in other elements. For example, changing the accelerating gradient in an
+\vn{lcavity} will change the reference energy throughout the lattice.
 
-The attribute bookkeeping for a lattice can be complicated and, if not
-done intelligently, can cause programs to be slow if attributes are
-continually being changed. In order to keep track what bookkeeping has
-been done, the \vn{ele%status} component is used by the appropriate
-bookkeeping routines for making sure the bookkeeping overhead is keep
-to a minimum. However, ``intelligent'' bookkeeping is only done if
-explicitly enabled in a program. See \sref{s:lat.bookkeeping} for more
+The attribute bookkeeping for a lattice can be complicated and, if not done intelligently, can cause
+programs to be slow if attributes are continually being changed. In order to keep track what
+bookkeeping has been done, the \vn{ele%status} component is used by the appropriate bookkeeping
+routines for making sure the bookkeeping overhead is keep to a minimum. However, ``intelligent''
+bookkeeping is only done if explicitly enabled in a program. See \sref{s:lat.bookkeeping} for more
 details.
 
 %--------------------------------------------------------------------------
@@ -206,15 +198,16 @@ details.
 \index{ele_struct!\%type}\index{ele_struct!\%name}
 The \vn{%name}, \vn{%type}, \vn{%alias}, and \vn{%descrip} components of the \vn{ele_struct} all
 have a direct correspondence with the \vn{name}, \vn{type}, \vn{alias}, and \vn{descrip} element
-attributes in an input lattice file (\sref{s:alias}). On input (\sref{s:lat.readin}), from a lattice
-file, \vn{name}, \vn{type}, and \vn{alias} attributes will be converted to to uppercase before being
-loaded into an \vn{ele_struct}. To save memory, since \vn{%descrip} is not frequently used,
-\vn{%descrip} is a pointer that is only allocated if \vn{descrip} is set for a given element.
+attributes in an input lattice file (\sref{s:alias}). On input (\sref{s:lat.readin}), The \vn{name}
+attribute is converted to uppercase before being loaded into an \vn{ele_struct}. The other three are
+not. To save memory, since \vn{%descrip} is not frequently used, \vn{%descrip} is a pointer that is
+only allocated if \vn{descrip} is set for a given element.
 
-When a lattice is constructed by \Hyperref{r:bmad.parser}{bmad_parser}, a ``nametable'' is constructed to enable the
-fast lookup of element names. Therefore, It is important that if element names are modified, that 
-the nametable is updated appropriately. This is done by calling \Hyperref{r:create.lat.ele.nametable}{create_lat_ele_nametable} after
-any element name modifications.
+When a lattice is constructed by \Hyperref{r:bmad.parser}{bmad_parser}, a ``nametable'' is
+constructed to enable the fast lookup of element names. Therefore, It is important that if element
+names are modified, that the nametable is updated appropriately. This is done by calling
+\Hyperref{r:create.lat.ele.nametable}{create_lat_ele_nametable} after any element name
+modifications.
 
 %--------------------------------------------------------------------------
 \section{Element Key}

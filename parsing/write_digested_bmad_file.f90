@@ -212,7 +212,6 @@ type (cartesian_map_struct), pointer :: ct_map
 type (gen_grad_field_struct), pointer :: gg_field
 type (gen_grad_field_coef_struct), pointer :: ggcs
 type (grid_field_struct), pointer :: g_field
-type (taylor_field_struct), pointer :: t_field
 type (ac_kicker_struct), pointer :: ac
 type (converter_distribution_struct), pointer :: c_dist
 type (converter_prob_pc_r_struct), pointer :: ppcr
@@ -220,7 +219,7 @@ type (converter_direction_out_struct), pointer :: c_dir
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
-integer i, j, k, n, nr, n_gen, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_c, ix_branch
+integer i, j, k, n, nr, n_gen, n_grid, n_cart, n_cyl, ix_ele, ix_c, ix_branch
 integer n_cus, ix_convert
 
 logical write_wake, mode3
@@ -230,14 +229,13 @@ logical write_wake, mode3
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
 ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; ix_st = -1
 mode3 = .false.; ix_wall3d = 0; ix_convert = 0; ix_c = 0
-n_cart = 0; n_gen = 0; n_grid = 0; n_cyl = 0; n_tay = 0; n_cus = 0
+n_cart = 0; n_gen = 0; n_grid = 0; n_cyl = 0; n_cus = 0
 
 if (associated(ele%mode3))             mode3 = .true.
 if (associated(ele%cartesian_map))     n_cart = size(ele%cartesian_map)
 if (associated(ele%cylindrical_map))   n_cyl = size(ele%cylindrical_map)
 if (associated(ele%gen_grad_field))    n_gen = size(ele%gen_grad_field)
 if (associated(ele%grid_field))        n_grid = size(ele%grid_field)
-if (associated(ele%taylor_field))      n_tay = size(ele%taylor_field)
 if (associated(ele%custom))            n_cus = size(ele%custom)
 if (associated(ele%converter))         ix_convert = 1
 if (associated(ele%r))                 ix_r = 1
@@ -307,7 +305,7 @@ endif
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), &
           ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-          ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, n_tay, n_cus, ix_convert
+          ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, -999, n_cus, ix_convert
 
 write (d_unit) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -508,40 +506,6 @@ do i = 1, n_grid
     do j = lbound(g_field%ptr%pt, 3), ubound(g_field%ptr%pt, 3)
       write (d_unit) g_field%ptr%pt(:, :, j)
     enddo
-  endif
-enddo
-
-! Taylor field
-! If the field is the same as the field of a previous element then just reference the prior element's field
-
-do i = 1, n_tay
-  t_field => ele%taylor_field(i)
-
-  if (t_field%ptr%file == '') then
-    call out_io (s_error$, r_name, 'TAYLOR_FIELD FILE REFERENCE IS BLANK!!??. PLEASE REPORT THIS.')
-    write (t_field%ptr%file, '(3i0)') ele%ix_branch, ele%ix_ele, i  ! Something unique
-  endif
-
-  write (d_unit) t_field%field_scale, t_field%master_parameter, t_field%curved_ref_frame, &
-          t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0, t_field%canonical_tracking
-
-  call find_matching_fieldmap (t_field%ptr%file, ele, taylor_field$, ele2, ix_ptr) 
-  if (ix_ptr > 0) then
-    write (d_unit) ele2%ix_ele, ele2%ix_branch, ix_ptr, &
-                lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
-  else
-    write (d_unit) -1, -1, -1, &
-                lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
-    write (d_unit) t_field%ptr%file
-    do j = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
-      do k = 1, 3
-        write (d_unit) size(t_field%ptr%plane(j)%field(k)%term)
-        do n = 1, size(t_field%ptr%plane(j)%field(k)%term)
-          write (d_unit) t_field%ptr%plane(j)%field(k)%term(n)
-        enddo
-      enddo
-    enddo
-
   endif
 enddo
 

@@ -150,11 +150,11 @@ There are three string labels associated with any element:
 \end{example}
 The \vn{type} and \vn{alias} attributes can be up to 40 characters in length and \vn{descrip} can be
 up to 200 characters. If the attribute string does not contain a blank, comma, or a semicolon, the
-quotation marks may be omitted.
+quotation marks may be omitted. Unlike the element name, these strings are not converted to upper case.
 
-\bmad routines do not use these labels directly. Rather these labels have a number of purposes. For
-example, a \bmad based program that is used as an online machine model could associate a label
-string with a machine database element to facilitate machine control.
+These labels have a number of purposes. For example, a \bmad based program that is used as an online
+machine model could associate a label string with a machine database element to facilitate machine
+control. Also these labels can be used with pattern matching when selecting elements (\sref{s:ele.match}).
 
 Example:
 \begin{example}

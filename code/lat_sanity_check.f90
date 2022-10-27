@@ -42,7 +42,6 @@ type (control_struct), pointer :: ctl, ctl1, ctl2
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
 type (gen_grad_field_struct), pointer :: gg_field
-type (taylor_field_struct), pointer :: t_field
 type (ele_attribute_struct) info
 type (lord_slave_struct), allocatable, target :: bls(:)
 type (lord_slave1_struct), pointer :: b
@@ -914,24 +913,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! taylor_field
-
-    if (associated(ele%taylor_field)) then
-      do iw = 1, size(ele%taylor_field)
-        t_field => ele%taylor_field(iw)
-        do j = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
-          do k = 1, 3
-            if (allocated(t_field%ptr%plane(j)%field(k)%term)) cycle
-            call out_io (s_fatal$, r_name, &
-                  'TAYLOR_FIELD IN ELEMENT: ' // ele%name, &
-                  'HAS NO TAYLOR TERMS FOR THE ' // trim(plane_name(k)) // ' FIELD COMPONENT OF PLANE WITH INDEX \i0\ ', &
-                  i_array = [j])
-            err_flag = .true.
-          enddo
-        enddo
-      enddo
-    endif
-
     ! match elements with match_end set should only appear in opens
 
     if (ele%key == match$) then
@@ -1124,17 +1105,17 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
+    if (s_stat == super_slave$ .and. associated(ele%gen_grad_field)) then
+      call out_io (s_fatal$, r_name, &
+                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                'HAS ASSOCIATED %GEN_GRAD_FIELD COMPONENT.', i_array = [i_t] )
+      err_flag = .true.
+    endif
+
     if (s_stat == super_slave$ .and. associated(ele%grid_field)) then
       call out_io (s_fatal$, r_name, &
                 'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
                 'HAS ASSOCIATED %GRID_FIELD COMPONENT.', i_array = [i_t] )
-      err_flag = .true.
-    endif
-
-    if (s_stat == super_slave$ .and. associated(ele%taylor_field)) then
-      call out_io (s_fatal$, r_name, &
-                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %TAYLOR_FIELD COMPONENT.', i_array = [i_t] )
       err_flag = .true.
     endif
 

@@ -80,7 +80,7 @@ endif
 
 if (ele%key == match$ .or. &
             (.not. associated(ele%cylindrical_map) .and. .not. associated(ele%cartesian_map) .and. &
-            .not. associated(ele%taylor_field) .and. .not. associated(ele%gen_grad_field) .and. &
+            .not. associated(ele%gen_grad_field) .and. &
             (ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%field_calc == helical_model$)) then
   call mat6_to_taylor (ele%vec0, ele%mat6, orb_tylr)
   call taylor_make_quaternion_unit (ele%spin_taylor)
@@ -88,7 +88,7 @@ if (ele%key == match$ .or. &
   return
 endif
 
-! Init. Note that the fibre must be made before any map manipulation in case ele contains a taylor_field.
+! Init. 
 
 call ptc_set_taylor_order_if_needed()
 
