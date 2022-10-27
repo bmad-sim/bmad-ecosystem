@@ -71,10 +71,10 @@ if (key1 == sbend$ .or. key2 == sbend$) return
 
 ! If there are misalignments then no superposition is possible
 
-if (lord1%value(x_offset$) /= 0 .or. lord1%value(y_offset$) /= 0 .or. lord1%value(tilt$) /= 0 .or. &
-    lord1%value(x_pitch$) /= 0 .or. lord1%value(y_pitch$) /= 0 .or. &
-    lord2%value(x_offset$) /= 0 .or. lord2%value(y_offset$) /= 0 .or. lord2%value(tilt$) /= 0 .or. &
-    lord2%value(x_pitch$) /= 0 .or. lord2%value(y_pitch$) /= 0) then
+if (lord1%value(x_offset$) /= 0 .or. lord1%value(y_offset$) /= 0 .or. lord1%value(z_offset$) /= 0 .or. &
+    lord1%value(tilt$) /= 0 .or. lord1%value(x_pitch$) /= 0 .or. lord1%value(y_pitch$) /= 0 .or. &
+    lord2%value(x_offset$) /= 0 .or. lord2%value(y_offset$) /= 0 .or. lord2%value(z_offset$) /= 0 .or. &
+    lord2%value(tilt$) /= 0 .or. lord2%value(x_pitch$) /= 0 .or. lord2%value(y_pitch$) /= 0) then
   slave%key = em_field$
   if (key1 == lcavity$ .or. key2 == lcavity$) then
     slave%value(constant_ref_energy$) = false$
