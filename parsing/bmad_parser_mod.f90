@@ -74,8 +74,8 @@ type (wall3d_vertex_struct), pointer :: v_ptr
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cartesian_map_term1_struct), allocatable :: ct_terms(:)
+type (gen_grad_field_struct), pointer :: gg_field
 type (grid_field_struct), pointer :: g_field
-type (taylor_field_struct), pointer :: t_field
 type (cartesian_map_struct), pointer :: ct_map
 type (ac_kicker_struct), pointer :: ac
 type (photon_element_struct), pointer :: ph
@@ -1433,43 +1433,42 @@ if (attrib_word == 'GRID_FIELD') then
 endif
 
 !-------------------------------
-! Taylor_field field
+! Gen_Grad_field field
 
-if (attrib_word == 'TAYLOR_FIELD') then
+if (attrib_word == 'GEN_GRAD_FIELD') then
 
-  if (.not. expect_this ('=', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "GEN_GRAD_FIELD"', ele, delim, delim_found)) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
 
-  ! "ele1[taylor_field] = ele2[taylor_field]" construct
+  ! "ele1[gen_grad_field] = ele2[gen_grad_field]" construct
 
   if (delim == '[') then
-    ele2 => parser_find_ele_for_attrib_transfer ('TAYLOR_FIELD', word)
+    ele2 => parser_find_ele_for_attrib_transfer ('GEN_GRAD_FIELD', word)
     if (err_flag) return
-    if (.not. associated(ele2%taylor_field)) then
-      call parser_error ('NO TAYLOR_FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+    if (.not. associated(ele2%gen_grad_field)) then
+      call parser_error ('NO GEN_GRAD_FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    call transfer_fieldmap(ele2, ele, taylor_field$)
+    call transfer_fieldmap(ele2, ele, gen_grad_field$)
     return
   endif
 
-  if (associated(ele%taylor_field)) then
-    i_ptr = size(ele%taylor_field) + 1
-    ele0%taylor_field => ele%taylor_field
-    allocate(ele%taylor_field(i_ptr))
+  if (associated(ele%gen_grad_field)) then
+    i_ptr = size(ele%gen_grad_field) + 1
+    ele0%gen_grad_field => ele%gen_grad_field
+    allocate(ele%gen_grad_field(i_ptr))
     do i = 1, i_ptr-1
-     ele%taylor_field(i) = ele0%taylor_field(i)
+     ele%gen_grad_field(i) = ele0%gen_grad_field(i)
     enddo
   else
-    allocate(ele%taylor_field(1))
+    allocate(ele%gen_grad_field(1))
     i_ptr = 1
   endif
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
-  allocate (ele%taylor_field(i_ptr)%ptr)
-  t_field => ele%taylor_field(i_ptr)
+  if (.not. expect_this ('{', .true., .true., 'AFTER "GEN_GRAD_FIELD"', ele, delim, delim_found)) return
+  gg_field => ele%gen_grad_field(i_ptr)
 
-  call parse_taylor_field(t_field, ele, lat, delim, delim_found, err_flag)
+  call parse_gen_grad_field(gg_field, ele, lat, delim, delim_found, err_flag)
 
   if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return
@@ -8636,9 +8635,9 @@ end subroutine parse_grid_field
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parse_taylor_field (grid, ele, lat, delim, delim_found, err_flag)
+! Subroutine parse_gen_grad_field (gg_field, ele, lat, delim, delim_found, err_flag)
 !
-! Subroutine to parse a "taylor_field = {}" construct
+! Subroutine to parse a "gen_grad_field = {}" construct
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is private to bmad_parser_mod.
@@ -8652,19 +8651,17 @@ end subroutine parse_grid_field
 !    . ) },
 !-
 
-subroutine parse_taylor_field (t_field, ele, lat, delim, delim_found, err_flag)
+subroutine parse_gen_grad_field (gg_field, ele, lat, delim, delim_found, err_flag)
 
 implicit none
 
-type (taylor_field_struct), pointer :: t_field
+type (gen_grad_field_struct), pointer :: gg_field
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: match_ele
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (em_taylor_term_struct), allocatable :: term(:)
 type (em_taylor_term_struct), pointer :: tm
-type (taylor_field_plane1_struct), allocatable :: plane(:)
-type (taylor_field_plane1_struct), pointer :: t_plane
 
 real(rp) coef
 
@@ -8683,7 +8680,6 @@ logical err_flag, delim_found
 
 name = 'xxx'
 err_flag = .true.
-t_field%ptr%file = bp_com%line2_file_name    ! In case there are no terms
 
 !
 
@@ -8695,15 +8691,15 @@ do
   select case (attrib_name)
 
   case ('FIELD_SCALE')
-    call parse_evaluate_value (ele%name, t_field%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
+    call parse_evaluate_value (ele%name, gg_field%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', t_field%r0, .true., delim, delim_found)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', gg_field%r0, .true., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
   case ('DZ')
-    call parse_evaluate_value (ele%name, t_field%dz, lat, delim, delim_found, err_flag, ',}', ele)
+    call parse_evaluate_value (ele%name, gg_field%dz, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('ELE_ANCHOR_PT', 'FIELD_TYPE', 'MASTER_PARAMETER')
     ! Expect "<component> = "
@@ -8729,13 +8725,13 @@ do
           return
         endif
       endif
-      t_field%master_parameter = ix
+      gg_field%master_parameter = ix
 
     case ('ELE_ANCHOR_PT')
-      call match_word(word2, anchor_pt_name(1:), t_field%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, anchor_pt_name(1:), gg_field%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
   
     case ('FIELD_TYPE')
-      call match_word(word2, em_field_type_name(1:2), t_field%field_type, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, em_field_type_name(1:2), gg_field%field_type, can_abbreviate = .false., matched_name = name)
   
     end select
 
@@ -8747,109 +8743,13 @@ do
       return        
     endif      
       
-  case ('CURVED_COORDS', 'CURVED_REF_FRAME')    ! 'curved_coords' is old style.
+  case ('CURVED_REF_FRAME')    ! 'curved_coords' is old style.
     if (.not. equal_sign_here(ele, delim)) return
     call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
-    t_field%curved_ref_frame = evaluate_logical (word2, ios)
+    gg_field%curved_ref_frame = evaluate_logical (word2, ios)
     if (ios /= 0 .or. ix_word == 0) then
-      call parser_error ('BAD TAYLOR_FIELD CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
+      call parser_error ('BAD GEN_GRAD_FIELD CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
     endif
-
-  case ('CANONICAL_TRACKING')
-    if (.not. equal_sign_here(ele, delim)) return
-    call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
-    T_field%canonical_tracking = evaluate_logical (word2, ios)
-    if (ios /= 0 .or. ix_word == 0) then
-      call parser_error ('BAD TAYLOR_FIELD CANONICAL_TRACKING SETTING ' // word2, 'FOR: ' // ele%name)
-    endif
-
-  case ('PLANE')
-
-    ! Expect "("
-    if (.not.  expect_this ('(', .true., .false., 'AFTER "PLANE" IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
-    call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag, 'BAD PLANE INDEX IN TAYLOR_FIELD')
-    if (.not.  expect_this (')={', .true., .false., 'AFTER "PLANE(IX" IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
-
-    if (allocated(t_field%ptr%plane)) then
-      if (ix /= ubound(t_field%ptr%plane, 1) + 1) then
-        call parser_error ('PLANE INDEX OUT OF ORDER IN TAYLOR_FIELD DEFININITION', 'FOR ELEMENT: ' // ele%name)
-        return
-      endif
-      call move_alloc(t_field%ptr%plane, plane)
-      lb = lbound(plane, 1)
-      allocate (t_field%ptr%plane(lb:ix))
-      t_field%ptr%plane(lb:ix-1) = plane
-      deallocate(plane)
-    else
-      ! Set %file to be the last called file:<line_number>. 
-      t_field%ptr%file = bp_com%line2_file_name
-      allocate(t_field%ptr%plane(ix:ix))
-    endif
-
-    t_plane => t_field%ptr%plane(ix)
-    allocate (t_plane%field(1)%term(0), t_plane%field(2)%term(0), t_plane%field(3)%term(0))
-
-    do
-      if (.not.  expect_this ('{', .false., .false., 'FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
-      call get_next_word (word, ix_word, ':{}=,()', delim, delim_found)
-      if (.not.  expect_this (':', .true., .false., 'FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
-      call match_word (word, ['BX', 'BY', 'BZ'], i_out, .true., .false.)
-      if (i_out < 1) then
-        call parser_error ('BAD "OUT" COMPONENT: ' // word, 'IN TERM FOR TAYLOR_FIELD IN ELEMENT: ' // ele%name)
-        return
-      endif
-
-      call parse_evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|', ele);  if (err_flag) return
-      delim2 = delim   ! Save
-      expn = 0
-
-      ! Need to check for "{x: 3.4 |}" case where there are no exponents.
-      if (delim2 == '|') then
-        call get_next_word (word, ix_word, '}', delim, delim_found)
-        ! If there are exponents then rewind the get_next_word call.
-        if (ix_word /= 0 .or. delim /= '}') then
-          bp_com%parse_line = trim(word) // delim // bp_com%parse_line
-          delim = delim2
-        endif
-      endif
-
-      ! Parse exponents
-
-      do j = 1, 100 
-        if (delim == '}') exit
-        call parser_get_integer (n, word, ix_word, delim, delim_found, err_flag, 'BAD EXPONENT');   if (err_flag) return
-        if (.not. expect_one_of ('} ', .true., ele%name, delim, delim_found)) return
-        if (delim2 == ',') then
-          select case (j)
-          case (2);      if( .not. expect_one_of ('}', .true., ele%name, delim, delim_found)) return
-          case default;  if (.not. expect_one_of (' ', .true., ele%name, delim, delim_found)) return
-          end select
-          expn(j) = n
-        else
-          ! Where, for example, n = 34, must separate into 3 and 4.
-          do
-            if (word(1:1) == '') exit
-            read (word(1:1), *) nn
-            if (nn < 1 .or. nn > 2) then
-              call parser_error ('BAD EXPONENT VALUE FOR TAYLOR ELEMENT IN TAYLOR_FIELD DEPFINITION IN: ' // ele%name)
-              return
-            endif
-            expn(nn) = expn(nn) + 1
-            word = word(2:)
-          enddo
-        endif
-      enddo
-
-      call add_em_taylor_term (t_plane%field(i_out), coef, expn)
-
-      if (.not. expect_one_of ('},', .false., ele%name, delim, delim_found)) return
-
-      if (delim == '}') then
-        if (.not. expect_one_of ('},', .false., ele%name, delim, delim_found)) return
-        exit
-      endif
-
-    enddo
 
   case default
     if (attrib_name == '') then
@@ -8872,17 +8772,7 @@ enddo
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 err_flag = .false.
 
-! Check if data has already been read in for another element.
-! If so, save space by pointing to the data.
-
-call find_matching_fieldmap(t_field%ptr%file, ele, taylor_field$, match_ele, im)
-if (im > 0) then
-  deallocate(t_field%ptr)
-  t_field%ptr => match_ele%taylor_field(im)%ptr
-  t_field%ptr%n_link = t_field%ptr%n_link + 1        
-endif
-
-end subroutine parse_taylor_field
+end subroutine parse_gen_grad_field
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

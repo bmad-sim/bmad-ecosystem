@@ -705,11 +705,13 @@ end type
 ! Generalized gradiants
 
 type gen_grad_field_coef_struct
-  integer :: m = 0
+  integer :: m = 0              ! Azimuthal index
+  integer :: n_deriv_in         ! Set to max deriv inputted.
   real(rp), allocatable :: coef(:,:)  ! (ix_derivative, ix_s_pt)
 end type  
 
 type gen_grad_field_struct
+  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
   type (gen_grad_field_coef_struct), allocatable :: c(:)  ! Cos coefs.
   type (gen_grad_field_coef_struct), allocatable :: s(:)  ! Sin coefs.
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
@@ -768,28 +770,6 @@ type em_taylor_struct
 end type
 
 ! Gfortran bug: "field(3) = em_taylor_struct()" not accepted.
-
-type taylor_field_plane1_struct
-  type (em_taylor_struct) :: field(3) = em_taylor_struct(0, null())    ! [Bx, By, Bz] or [Ex, Ey, Ez]
-end type
-
-type taylor_field_plane_struct
-  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
-  integer :: n_link = 1         ! For memory management of this structure
-  type (taylor_field_plane1_struct), allocatable :: plane(:)
-end type
-
-type taylor_field_struct
-  integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
-  integer :: field_type = magnetic$  ! or electric$
-  real(rp) :: dz = 0                 ! Plane spacing.
-  real(rp) :: r0(3) = 0              ! field origin relative to ele_anchor_pt.
-  real(rp) :: field_scale = 1        ! Factor to scale the fields by
-  integer :: master_parameter = 0    ! Master parameter in ele%value(:) array to use for scaling the field.
-  logical :: curved_ref_frame = .false.
-  logical :: canonical_tracking = .false.
-  type (taylor_field_plane_struct), pointer :: ptr => null()
-end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
 
@@ -1314,7 +1294,6 @@ type ele_struct
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
   type (gen_grad_field_struct), pointer :: gen_grad_field(:) => null()   ! Used to define E/M fields.
   type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define E/M fields.
-  type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define E/M fields.
   ! The difference between map_ref_orb and time_ref_orb is that map_ref_orb is the reference orbit for the
   ! 1st order spin/orbit map which, in general, is non-zero while time_ref_orb follows the reference particle which is
   ! generally the zero orbit (non-zero, for example, in the second slice of a sliced wiggler).
@@ -1773,7 +1752,7 @@ integer, parameter :: reference$       = 122
 integer, parameter :: cartesian_map$   = 123
 integer, parameter :: cylindrical_map$ = 124
 integer, parameter :: grid_field$      = 125
-integer, parameter :: taylor_field$    = 126
+integer, parameter :: gen_grad_field$    = 126
 integer, parameter :: create_jumbo_slave$ = 127
 
 integer, parameter :: accordion_edge$  = 128
@@ -1782,7 +1761,6 @@ integer, parameter :: end_edge$  = 130
 integer, parameter :: s_position$ = 131
 integer, parameter :: ref_species$ = 132, particle$ = 132
 integer, parameter :: wrap_superimpose$ = 133
-integer, parameter :: gen_grad_field$ = 134
 
 integer, parameter :: a0$  = 140, a21$  = 161
 integer, parameter :: b0$  = 162, b21$  = 183

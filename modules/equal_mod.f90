@@ -217,9 +217,6 @@ call transfer_fieldmap (ele_in, ele_out, gen_grad_field$)
 ele_out%grid_field => ele_save%grid_field ! Reinstate for transfer call 
 call transfer_fieldmap (ele_in, ele_out, grid_field$)
 
-ele_out%taylor_field => ele_save%taylor_field ! Reinstate for transfer call
-call transfer_fieldmap (ele_in, ele_out, taylor_field$)
-
 ! %rad_map
 
 if (associated(ele_in%rad_map)) then

@@ -468,14 +468,13 @@ type (cartesian_map_struct), pointer :: ct_map
 type (gen_grad_field_struct), pointer :: gg_field
 type (gen_grad_field_coef_struct), pointer :: ggcs
 type (grid_field_struct), pointer :: g_field
-type (taylor_field_struct), pointer :: t_field
 type (ac_kicker_struct), pointer :: ac
 type (wake_struct), pointer :: wake
 type (converter_distribution_struct), pointer :: c_dist
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
 
-integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_gen, n_grid, ix_ele, ix_branch, ix_wall3d
+integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_gen, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
 integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert, ix_c 
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
@@ -490,7 +489,7 @@ error = .true.
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, &
         ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-        ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, n_tay, n_cus, ix_convert
+        ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, idum, n_cus, ix_convert ! idum not used
 
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -702,38 +701,6 @@ if (n_grid > 0) then
       allocate (g_field%ptr%pt(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
       do j = lb(3), ub(3)
         read (d_unit, err = 9120, end = 9120) g_field%ptr%pt(:, :, j)
-      enddo
-    endif
-  enddo
-endif
-
-! Taylor_field
-
-if (n_tay > 0) then
-  allocate (ele%taylor_field(n_tay))
-
-
-  do i = 1, n_tay
-    t_field => ele%taylor_field(i)
-    read (d_unit, err = 9120, end = 9120) t_field%field_scale, t_field%master_parameter, t_field%curved_ref_frame, &
-           t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0, t_field%canonical_tracking
-    read (d_unit, err = 9120, end = 9120) ix_ele, ix_branch, ix_ptr, n0, n1
-
-    if (ix_ele > 0) then
-      ele%taylor_field(i)%ptr => lat%branch(ix_branch)%ele(ix_ele)%taylor_field(ix_ptr)%ptr
-      ele%taylor_field(i)%ptr%n_link = ele%taylor_field(i)%ptr%n_link + 1
-    else
-      allocate (ele%taylor_field(i)%ptr)
-      read (d_unit, err = 9120, end = 9120) t_field%ptr%file
-      allocate (t_field%ptr%plane(n0:n1))
-      do j = n0, n1
-        do k = 1, 3
-          read (d_unit, err = 9120, end = 9120) nt
-          allocate (t_field%ptr%plane(j)%field(k)%term(nt))
-          do n = 1, nt
-           read (d_unit, err = 9120, end = 9120) t_field%ptr%plane(j)%field(k)%term(n)
-          enddo
-        enddo
       enddo
     endif
   enddo

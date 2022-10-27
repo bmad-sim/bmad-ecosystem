@@ -46,6 +46,7 @@ recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, f
 
 use super_recipes_mod
 use em_field_mod, dummy => em_field_calc
+use expression_mod, only: cos$, sin$
 
 type (ele_struct), target :: ele, ele2
 type (ele_pointer_struct), allocatable, optional :: used_eles(:)
@@ -62,8 +63,6 @@ type (gen_grad_field_struct), pointer :: gg_field
 type (gen_grad_field_coef_struct), pointer :: ggcs
 type (grid_field_struct), pointer :: g_field, g_field_ptr
 type (grid_field_pt1_struct) g_pt
-type (taylor_field_struct), pointer :: t_field
-type (taylor_field_plane1_struct), pointer :: t_plane
 type (floor_position_struct) lab_position, global_position, lord_position
 type (spline_struct) spline
 type (branch_struct), pointer :: branch
@@ -776,7 +775,7 @@ case(fieldmap$)
   endif
 
   if (.not. associated(ele%cylindrical_map) .and. .not. associated(ele%cartesian_map) .and. &
-      .not. associated(ele%grid_field) .and. .not. associated(ele%taylor_field)) then
+                                                  .not. associated(ele%grid_field)) then
     call out_io (s_fatal$, r_name, 'No associated fieldmap (cartesican_map, grid_field, etc) FOR: ' // ele%name) 
     if (global_com%exit_on_error) call err_exit
     if (present(err_flag)) err_flag = .true.
@@ -1267,7 +1266,6 @@ case(fieldmap$)
 
     do i = 1, size(ele%gen_grad_field)
       gg_field => ele%gen_grad_field(i)
-      fld = 0
 
       call to_field_map_coords (ele, local_orb, s_body, gg_field%ele_anchor_pt, gg_field%r0, gg_field%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
       if (err) then
@@ -1288,12 +1286,12 @@ case(fieldmap$)
 
       do j = 1, size(gg_field%c)
         ggcs => gg_field%c(j)
-        !call gen_grad_em_field (gg_field, ggcs, iz0, cos$, field)
+        call gen_grad_add_em_field (gg_field, ggcs, iz0, [x,y,z], cos$, field)
       enddo
 
       do j = 1, size(gg_field%s)
         ggcs => gg_field%s(j)
-        !call gen_grad_em_field (gg_field, ggcs, iz0, sin$, field)
+        call gen_grad_add_em_field (gg_field, ggcs, iz0, [x,y,z], sin$, field)
       enddo
     enddo
   endif
@@ -1412,80 +1410,6 @@ case(fieldmap$)
       field%B = field%B + mode_field%B
 
     enddo
-  endif
-
-  !------------------------------------
-  ! Taylor field calc 
-
-  if (associated(ele%taylor_field)) then
-  
-    ! loop over taylor modes
-
-    do i = 1, size(ele%taylor_field)
-      t_field => ele%taylor_field(i)
-
-      fld = 0
-
-      call to_field_map_coords (ele, local_orb, s_body, t_field%ele_anchor_pt, t_field%r0, t_field%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
-      if (err) then
-        if (present(err_flag)) err_flag = .true.
-        return
-      endif
-
-      iz0 = lbound(t_field%ptr%plane, 1)
-      iz1 = ubound(t_field%ptr%plane, 1)
-      z_center = (iz0 + iz1) * t_field%dz / 2
-      if (abs(z - z_center) > (iz1 - iz0) * t_field%dz .and. &
-                        .not. logic_option(.false., grid_allow_s_out_of_bounds)) then
-        call out_io (s_error$, r_name, 'PARTICLE Z  \F10.3\ POSITION OUT OF BOUNDS.', &
-                                       'FOR TAYLOR_FIELD IN ELEMENT: ' // ele%name, r_array = [s_body])
-        return
-      endif
-
-      izp = floor(z / t_field%dz)
-      if (izp < iz0 - 1 .or. izp > iz1) cycle ! Outside of defined field region field is assumed zero.
-
-      ! Taylor upsteam of particle
-
-      if (izp == iz0 - 1) then
-        fld0 = 0
-        dfld0 = 0
-      else
-        call evaluate_em_taylor ([x, y], t_field%ptr%plane(izp)%field, fld0, dfld0)
-      endif
-
-      ! Taylor downstream of particle
-
-      if (izp == iz1) then
-        fld1 = 0
-        dfld1 = 0
-      else
-        call evaluate_em_taylor ([x, y], t_field%ptr%plane(izp+1)%field, fld1, dfld1)
-      endif
-
-      ! Interpolate
-
-      do j = 1, 3
-        spline = create_a_spline ([0.0_rp, fld0(j)], [t_field%dz, fld1(j)], dfld0(j,3), dfld1(j,3))
-        fld(j) = spline1 (spline, z - izp*t_field%dz)
-      enddo
-
-      !
-
-      fld = fld * t_field%field_scale * master_parameter_value(t_field%master_parameter, ele)
-      if (ele%key == sbend$ .and. .not. t_field%curved_ref_frame) call restore_curvilinear_field(fld)
-
-      select case (t_field%field_type)
-      case (electric$)
-        field%E = field%E + fld
-      case (magnetic$)
-        field%B = field%B + fld
-      case default
-        if (global_com%exit_on_error) call err_exit
-      end select
-
-    enddo
-
   endif
 
 ! Beginning_ele, for example, has no field
@@ -1667,5 +1591,30 @@ if (present(field_b)) then
 endif
 
 end subroutine restore_curvilinear_field
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine gen_grad_add_em_field (gg_field, ggcs, iz0, r_pos, cossin, field)
+
+type (gen_grad_field_struct) :: gg_field
+type (gen_grad_field_coef_struct) :: ggcs
+type (em_field_struct) field
+
+real(rp) r_pos(3), z_rel, theta, azi
+integer iz0, cossin
+
+!
+
+z_rel = r_pos(3) - iz0 * gg_field%dz
+theta = atan2(r_pos(2), r_pos(1))
+
+select case (cossin)
+case (cos$);  azi = cos(ggcs%m * theta)
+case (sin$);  azi = sin(ggcs%m * theta)
+end select
+
+end subroutine gen_grad_add_em_field
 
 end subroutine em_field_calc 

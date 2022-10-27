@@ -46,7 +46,6 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%converter)
   nullify (ele%cartesian_map)
   nullify (ele%cylindrical_map)
-  nullify (ele%taylor_field)
   nullify (ele%gen_grad_field)
   nullify (ele%grid_field)
   nullify (ele%ptc_fibre)
@@ -97,10 +96,6 @@ endif
 
 if (associated (ele%cylindrical_map)) then
   call unlink_fieldmap (cylindrical_map = ele%cylindrical_map)
-endif
-
-if (associated (ele%taylor_field)) then
-  call unlink_fieldmap (taylor_field = ele%taylor_field)
 endif
 
 if (associated (ele%grid_field)) then

@@ -4,8 +4,6 @@
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
 ! Note: You need to call set_ptc before using this routine.
-! Note: If ele contains a taylor_field, this routine may not be called in between calls to 
-!   FPP alloc and kill since the setting up of the PTC pancake uses FPP.
 !
 ! Input:
 !   ele              -- Ele_struct: Bmad element.
@@ -46,10 +44,6 @@ type (work) energy_work
 type (tree_element), pointer :: arbre(:)
 type (c_damap) ptc_c_damap
 type (real_8) ptc_re8(6)
-type (taylor_field_struct), pointer :: tf
-type (taylor_field_plane1_struct), pointer :: plane
-type (em_taylor_term_struct), pointer :: tm
-type(taylor), allocatable :: pancake_field(:,:)
 type (taylor) ptc_taylor
 
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, kl(0:n_pole_maxx), t(0:n_pole_maxx)
@@ -114,7 +108,7 @@ ele2 => pointer_to_field_ele(ele, 1, s_rel)
 n_map = 0
 if (associated(ele2%cylindrical_map)) n_map = n_map + 1
 if (associated(ele2%cartesian_map)) n_map = n_map + 1
-if (associated(ele2%taylor_field)) n_map = n_map + 1
+if (associated(ele2%gen_grad_field)) n_map = n_map + 1
 
 if (n_map > 1) then
   call out_io (s_fatal$, r_name, 'PTC TRACKING IS ONLY ABLE TO HANDLE A SINGLE FIELD MAP IN AN ELEMENT.', &
@@ -502,91 +496,6 @@ if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
   m_abell = maxval(ele%cylindrical_map%m)
 endif
 
-! taylor_field
-
-if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
-  tf => ele2%taylor_field(1)
-
-  np = size(tf%ptr%plane)
-
-  if (key == sbend$ .and. ele%value(g$) /= 0) then
-    ld = ele%value(l$)
-    hd = ele%value(g$)
-    lc = (np-1) * tf%dz   ! Integration length
-
-    if (tf%curved_ref_frame) then
-      hc = ele%value(g$) ! pancake curvature = ele curvature
-      angc = (ele%value(angle$) - (np-1) * tf%dz * ele%value(g$)) / 2
-      xc = tf%r0(1) * cos(ele%value(angle$)/2) - ele%value(rho$) * (1 - cos(angc))
-      dc = tf%r0(1) * sin(ele%value(angle$)/2) + ele%value(rho$) * sin(angc)
-    else
-      hc = 0.d0     ! pancake curvature
-      angc = ele%value(angle$) / 2
-      xc = tf%r0(1) + ele%value(rho$) * (1 - cos(ele%value(angle$)/2))
-      dc = (ele%value(l$) - (np-1) * tf%dz) / 2
-    endif
-
-  else
-    ld = ele%value(l$)
-    lc = (np-1) * tf%dz   ! Integration length
-
-    hd = 0
-    hc = 0                ! pancake curvature
-
-    angc = 0
-    xc = tf%r0(1)
-    dc = (ele%value(l$) - (np-1) * tf%dz) / 2
-  endif
-
-  if (mod(np, 2) == 0 .or. np < 5) then
-    call out_io (s_fatal$, r_name, 'NUMBER OF PLANES FOR A TAYLOR_FIELD MUST BE ODD AND AT LEAST 5 IF USED WITH PTC.', &
-                                   'TAYLOR_FIELD USED IN ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
-
-  if (tf%field_type /= magnetic$) then
-    call out_io (s_fatal$, r_name, 'FIELD TYPE MUST BE MAGNETIC FOR A TAYLOR_FIELD IF USED WITH PTC.', &
-                                   'TAYLOR_FIELD USED IN ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
-
-  n = len_trim(tf%ptr%file)
-  call set_pancake_constants(np, angc, xc, dc, tf%r0(2), hc, lc, hd, ld, .not. tf%canonical_tracking, tf%ptr%file(max(1,n-23):n))
-
-  max_order = 0
-  do i = lbound(tf%ptr%plane, 1), ubound(tf%ptr%plane, 1)
-    plane => tf%ptr%plane(i)
-    do j = 1, 3
-      do k = 1, size(plane%field(j)%term)
-        max_order = max(max_order, sum(plane%field(j)%term(k)%expn))
-      enddo
-    enddo
-  enddo
-
-  call init (max_order+1, 1, 0, 0)
-  call allocate_for_pancake (pancake_field)
-
-  do i = lbound(tf%ptr%plane, 1), ubound(tf%ptr%plane, 1)
-    ii = i + 1 - lbound(tf%ptr%plane, 1)
-    plane => tf%ptr%plane(i)
-    do j = 1, 3
-      do k = 1, size(plane%field(j)%term)
-        tm => plane%field(j)%term(k)
-        coef = tm%coef * tf%field_scale * 1d9 * master_parameter_value(tf%master_parameter, ele2) ! * c_light / ele2%value(p0c$)
-        pancake_field(j,ii)=pancake_field(j,ii)+(coef .mono. tm%expn)
-      enddo
-    enddo
-  enddo
-
-  ptc_key%magnet = 'INTERNALPANCAKE'
-
-else
-  allocate (pancake_field(0,0))  ! Needed since corresponding create_fibre_append dummy arg
-                                 !  is an assumed shape array.
-endif
-
 ! Check number of slices and integrator order.
 ! Wigglers are special since they do not have a uniform field so ignore these.
 
@@ -613,7 +522,7 @@ endif
 call set_ptc_quiet(12, set$, n)
 
 if (logic_option(.false., for_layout)) then
-  call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
+  call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION)   ! ptc routine
   ptc_fibre => m_u%end%end
 
   if (present (ref_in)) then
@@ -634,7 +543,7 @@ else
     call kill (bmadl)
     call set_up(bmadl)
   endif
-  call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
+  call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION)   ! ptc routine
 
   ptc_fibre => bmadl%end
 
@@ -672,11 +581,6 @@ if (ele%key == floor_shift$) Then
 endif
 
 !
-
-if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
-  call kill_for_pancake(pancake_field)
-  call init_all (ptc_private%base_state, ptc_private%taylor_order_saved, 0)
-endif
 
 call set_ptc_quiet(12, unset$, n)
 

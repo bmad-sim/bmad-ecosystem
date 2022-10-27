@@ -44,7 +44,6 @@ type (cartesian_map_struct), pointer :: ct_map
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
 type (gen_grad_field_struct), pointer :: gg_field
-type (taylor_field_struct), pointer :: t_field
 type (all_pointer_struct) a_ptr
 type (branch_struct), pointer :: branch
 type (lat_struct), pointer :: lat
@@ -331,30 +330,6 @@ if (a_name(1:11) == 'GRID_FIELD(') then
   case ('%DR(3)');                a_ptr%r => g_field%dr(3)
   case ('%MASTER_PARAMETER');     a_ptr%i => g_field%master_parameter
   case default;                   goto 9000
-  end select
-
-  err_flag = .false.
-  return
-
-endif
-
-!--------------------
-! taylor_field
-
-if (a_name(1:13) == 'TAYLOR_FIELD(') then
-  if (.not. associated(ele%taylor_field)) goto 9130
-  n_cc = get_this_index(a_name, 13, err, 1, size(ele%taylor_field))
-  if (err) goto 9140
-  t_field => ele%taylor_field(n_cc)
-
-  select case (a_name)
-  case ('%FIELD_SCALE');      a_ptr%r => t_field%field_scale
-  case ('%DZ');               a_ptr%r => t_field%dz
-  case ('%R0(1)');            a_ptr%r => t_field%r0(1)
-  case ('%R0(2)');            a_ptr%r => t_field%r0(2)
-  case ('%R0(3)');            a_ptr%r => t_field%r0(3)
-  case ('%MASTER_PARAMETER'); a_ptr%i => t_field%master_parameter
-  case default;           goto 9000
   end select
 
   err_flag = .false.

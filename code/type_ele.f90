@@ -66,8 +66,6 @@ type (cylindrical_map_term1_struct), pointer :: cl_term
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
 type (gen_grad_field_struct), pointer :: gg_field
-type (taylor_field_struct), pointer :: t_field
-type (taylor_field_plane1_struct), pointer :: t_term
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
@@ -616,43 +614,6 @@ if (associated(ele%grid_field)) then
     if (size(g_field%ptr%pt) > nl2) then
       nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(g_field%ptr%pt), ')' 
     endif
-  endif
-endif
-
-! Taylor_field
-
-if (associated(ele%taylor_field)) then
-  if (integer_option(no$, type_field) == no$) then
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Taylor_field modes:', size(ele%taylor_field)
-  else
-    nl2 = 10; if (type_field == all$) nl2 = 999
-    nl=nl+1; li(nl) = ''
-    if (ele%field_calc == bmad_standard$) then
-      nl=nl+1; li(nl) = 'Taylor_field: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
-    else
-      nl=nl+1; li(nl) = 'Taylor_field:'
-    endif
-    do im = 1, size(ele%taylor_field)
-      t_field => ele%taylor_field(im)
-      if (t_field%master_parameter == 0) then
-        name = '<None>'
-      else
-        name = attribute_name(ele, t_field%master_parameter)
-      endif
-
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Taylor_field mode #:', im
-      nl=nl+1; write (li(nl), '(2a)')         '    From file:         ', trim(t_field%ptr%file)
-      nl=nl+1; write (li(nl), '(2a)')         '    field_type:        ', em_field_type_name(t_field%field_type)
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:       ', t_field%field_scale
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:                ', t_field%dz
-      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:                ', t_field%r0
-      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter:  ', trim(name)
-      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:     ', anchor_pt_name(t_field%ele_anchor_pt)
-      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame   ', t_field%curved_ref_frame
-      nl=nl+1; write (li(nl), '(a, l1)')      '    canonical_tracking ', t_field%canonical_tracking
-      nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:            ', t_field%ptr%n_link
-      nl=nl+1; write (li(nl), '(a, i0)')      '    n_plane:           ', size(t_field%ptr%plane)
-    enddo
   endif
 endif
 
