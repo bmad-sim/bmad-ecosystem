@@ -19,7 +19,7 @@ function tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid, pri
 
 use tao_interface, except_dummy => tao_param_value_at_s
 use measurement_mod
-use em_field_mod
+use em_field_mod, only: em_field_derivatives
 
 implicit none
 
