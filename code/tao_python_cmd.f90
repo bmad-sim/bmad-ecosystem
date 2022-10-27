@@ -122,8 +122,7 @@ type (wake_sr_mode_struct), pointer :: wsr
 type (wake_lr_mode_struct), pointer :: lr_mode
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: sec
-type (taylor_field_struct), pointer :: t_field
-type (taylor_field_plane1_struct), pointer :: t_term
+type (gen_grad_field_struct), pointer :: gg_field
 type (twiss_struct), pointer :: twiss_arr(:)
 type (em_taylor_term_struct), pointer :: em_tt
 type (grid_field_struct), pointer :: g_field
@@ -242,7 +241,7 @@ call match_word (cmd, [character(40) :: &
           'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:grid_field', &
           'ele:gen_attribs', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
           'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', & 
-          'ele:taylor_field', 'ele:twiss', 'ele:wake', 'ele:wall3d', &
+          'ele:gen_grad_field', 'ele:twiss', 'ele:wake', 'ele:wall3d', &
           'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'matrix', 'merit', 'orbit_at_s', &
@@ -2956,8 +2955,8 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), imt) 'num#cartesian_map;INT;F;',    n
   n = 0; if (associated(ele%cylindrical_map)) n = size(ele%cylindrical_map)
   nl=incr(nl); write (li(nl), imt) 'num#cylindrical_map;INT;F;',  n
-  n = 0; if (associated(ele%taylor_field)) n = size(ele%taylor_field)
-  nl=incr(nl); write (li(nl), imt) 'num#taylor_field;INT;F;',     n
+  n = 0; if (associated(ele%gen_grad_field)) n = size(ele%gen_grad_field)
+  nl=incr(nl); write (li(nl), imt) 'num#gen_grad_field;INT;F;',     n
   n = 0; if (associated(ele%grid_field)) n = size(ele%grid_field)
   nl=incr(nl); write (li(nl), imt) 'num#grid_field;INT;F;',       n
   n = 0; if (associated(ele%wall3d)) n = size(ele%wall3d)
@@ -3592,23 +3591,23 @@ case ('ele:taylor')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
-!%% ele:taylor_field
+!%% ele:gen_grad_field
 !
-! Output element taylor_field 
+! Output element gen_grad_field 
 !
 ! Notes
 ! -----
 ! Command syntax:
-!   python ele:taylor_field {ele_id}|{which} {index} {who}
+!   python ele:gen_grad_field {ele_id}|{which} {index} {who}
 !
 ! Where: 
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
-!   {index} is the index number in the ele%taylor_field(:) array
+!   {index} is the index number in the ele%gen_grad_field(:) array
 !   {who} is one of: "base", or "terms".
 !
 ! Example:
-!   python ele:taylor_field 3@1>>7|model 2 base
+!   python ele:gen_grad_field 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
 ! Parameters
@@ -3632,44 +3631,34 @@ case ('ele:taylor')
 !   index: 1
 !   who: terms
 
-case ('ele:taylor_field')
+case ('ele:gen_grad_field')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
-  if (.not. associated(ele%taylor_field)) then
-    call invalid ('taylor_field not allocated')
+  if (.not. associated(ele%gen_grad_field)) then
+    call invalid ('gen_grad_field not allocated')
     return
   endif
-  ix = parse_int (tail_str, err, 1, size(ele%taylor_field));  if (err) return
-  t_field => ele%taylor_field(ix)
+  ix = parse_int (tail_str, err, 1, size(ele%gen_grad_field));  if (err) return
+  gg_field => ele%gen_grad_field(ix)
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(t_field%ptr%file)
-    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   t_field%field_scale
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', t_field%r0(i), i = 1, 3)
-    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            t_field%dz
-    name = attribute_name(ele, t_field%master_parameter)
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(gg_field%file)
+    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   gg_field%field_scale
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', gg_field%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            gg_field%dz
+    name = attribute_name(ele, gg_field%master_parameter)
     if (name(1:1) == '!') name = '<None>'
     nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(t_field%ele_anchor_pt))
-    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(t_field%field_type))
-    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             t_field%curved_ref_frame
-    nl=incr(nl); write (li(nl), lmt) 'canonical_tracking;LOGIC;T;',           t_field%canonical_tracking
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(gg_field%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(gg_field%field_type))
+    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             gg_field%curved_ref_frame
 
   case ('terms')
-    do i = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
-      t_term => t_field%ptr%plane(i)
-      do j = 1, 3
-        do k = 1, size(t_term%field(j)%term)
-          em_tt => t_term%field(j)%term(k)
-          nl=incr(nl); write (li(nl), '(2(i0, a), es22.14, 2(a, i0))') i, ';', j, ';', &
-                                                       em_tt%coef, ';', em_tt%expn(1), ';', em_tt%expn(2)
-        enddo
-      enddo
-    enddo
+    nl=incr(nl); li(nl) = '! Needs to be implemented!!'
   end select
 
 !------------------------------------------------------------------------------------------------
