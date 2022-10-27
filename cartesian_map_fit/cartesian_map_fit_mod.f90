@@ -1,6 +1,7 @@
 module cartesian_map_fit_mod
 
 use bmad
+use em_field_mod, only: to_field_map_coords
 
 type term_struct
   type (cartesian_map_term1_struct) cmt
