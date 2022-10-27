@@ -47,7 +47,6 @@ subroutine tao_python_cmd (input_str)
 
 use tao_interface, dummy => tao_python_cmd
 use location_encode_mod, only: location_encode
-use em_field_mod, only: em_field_calc
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use wall3d_mod, only: calc_wall_radius
 use tao_command_mod, only: tao_next_switch, tao_cmd_split
