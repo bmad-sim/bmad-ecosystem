@@ -1,6 +1,6 @@
 module astra_interface_mod
 
-use bmad_routine_interface
+use bmad_interface
 
 implicit none
 
