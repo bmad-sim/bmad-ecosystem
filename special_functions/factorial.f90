@@ -17,7 +17,7 @@ use output_mod, dummy => factorial
 
 implicit none
 
-real(rp) fact, lnn
+real(rp) fact
 real(rp), parameter :: f(0:30) = [ &
       1.000000000000D+00, 1.000000000000D+00, 2.000000000000D+00, 6.000000000000D+00, &
       2.400000000000D+01, 1.200000000000D+02, 7.200000000000D+02, 5.040000000000D+03, &
@@ -28,7 +28,7 @@ real(rp), parameter :: f(0:30) = [ &
       6.204484017332D+23, 1.551121004333D+25, 4.032914611266D+26, 1.088886945042D+28, &
       3.048883446117D+29, 8.841761993740D+30, 2.652528598122D+32]
 
-integer n, i
+integer n
 
 character(*), parameter :: r_name = 'factorial'
 

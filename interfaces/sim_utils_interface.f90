@@ -536,9 +536,17 @@ end subroutine
 
 function max_nonzero (lbnd, array1, array2) result (ix_max)
   import
+  implicit none
   integer lbnd, ix_max
   real(rp) array1(lbnd:)
   real(rp), optional :: array2(lbnd:)
+end function
+
+function n_choose_k(n, k) result (nck)
+  import
+  implicit none
+  real(rp) nck
+  integer n, k
 end function
 
 subroutine nametable_add (nametable, name, ix_name)
