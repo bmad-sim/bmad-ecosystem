@@ -1,0 +1,21 @@
+NOTE: GENERALIZED GRADIENT FIT IS IN DEVELOPMENT!!
+NOT FOR PUBLIC USE AT THIS TIME!!
+
+
+generalized_gradients_fit program documentation:
+------------------------------------------------
+
+This program varies generalized gradient coefficients to fit a field table.
+
+This documentation and source code is in the directory:
+  util_programs/generalized_gradients_fit
+
+
+%-----------------------------------------------------------------
+Input Files
+
+There are three input files. Example input files can be found at 
+  util_programs/generalized_gradients_fit/example
+
+
+
