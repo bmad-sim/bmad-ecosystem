@@ -944,7 +944,6 @@ case ('curve')
       nl=nl+1; write(lines(nl), amt)  'legend_text          = ', quote(c1%legend_text)
       nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name)
       nl=nl+1; write(lines(nl), amt)  'component            = ', quote(c1%component)
-      nl=nl+1; write(lines(nl), amt)  'why_invalid          = ', quote(c1%why_invalid)
       nl=nl+1; write(lines(nl), imt)  'ix_branch            = ', c1%ix_branch
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
@@ -983,6 +982,10 @@ case ('curve')
         nl=nl+1; write(lines(nl), rmt)  'hist%width              = ', c1%hist%width
         nl=nl+1; write(lines(nl), rmt)  'hist%center             = ', c1%hist%center
         nl=nl+1; write(lines(nl), imt)  'hist%number             = ', c1%hist%number
+      endif
+
+      if (.not. c1%valid) then
+        nl=nl+1; write(lines(nl), amt)  'Curve is not valid since: ', c1%why_invalid
       endif
     endif
 

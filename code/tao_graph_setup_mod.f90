@@ -1475,16 +1475,8 @@ case ('data')
 
   ! make sure %useit_plot up-to-date & count the number of data points
 
-  call tao_data_useit_plot_calc (curve, graph, d1_ptr%d, plot%x_axis_type == 's') 
+  call tao_data_useit_plot_calc (curve, graph, d1_ptr%d, plot%x_axis_type == 's', curve%why_invalid) 
   n_dat = count (d1_ptr%d%useit_plot)       
-
-  if (n_dat == 0) then
-    if (all(d1_ptr%d%s == real_garbage$)) then
-      call out_io (s_error$, r_name, &
-          'DATA DOES NOT HAVE A WELL DEFINED S-POSITION FOR PLOT CURVE: ' //  curve%data_type, &
-          'SOLUTION: PLOT BY DATUM INDEX INSTEAD OF S-POSITION.')
-    endif
-  endif
 
   ! resize the curve data arrays
 
@@ -2638,41 +2630,97 @@ end subroutine tao_calc_data_at_s_pts
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_data_useit_plot_calc (curve, graph, data)
+! Subroutine tao_data_useit_plot_calc (curve, graph, data, check_s_position, most_invalid)
 !
 ! Routine to set the data for plotting.
 !
 ! Input:
 !   graph             -- tao_graph_struct
 !   curve             -- tao_curve_struct
-!   check_s_position  -- logical, optional: If present and True then 
+!   check_s_position  -- logical: If present and True then 
 !                           veto data that does not have an s-position.
 ! Output:
-!   data     -- Tao_data_struct:
-!     %useit_plot -- True if good for plotting.
+!   data(:)           -- Tao_data_struct:
+!     %useit_plot         -- True if good for plotting.
+!   most_invalid      -- character(*): String documenting biggest invalid data problem. 
 !-
 
-subroutine tao_data_useit_plot_calc (curve, graph, data, check_s_position)
+subroutine tao_data_useit_plot_calc (curve, graph, data, check_s_position, most_invalid)
 
 implicit none
 
 type (tao_curve_struct) curve
 type (tao_graph_struct) graph
 type (tao_data_struct) data(:)
-logical, optional :: check_s_position
+integer id, n_bad_exists, n_bad_plot, n_bad_user, n_bad_meas, n_bad_ref, n_bad_model, n_bad_s
+logical check_s_position
+character(*) most_invalid
 
 !
 
-data%useit_plot = data%exists .and. data%good_plot .and. &
-                  (data%good_user .or. .not. graph%draw_only_good_user_data_or_vars)
+n_bad_exists = 0;  n_bad_plot = 0;  n_bad_user = 0;  n_bad_meas = 0;  
+n_bad_ref = 0;  n_bad_model = 0;  n_bad_s = 0
 
-if (index(curve%component, 'meas') /= 0)   data%useit_plot = data%useit_plot .and. data%good_meas
-if (index(curve%component, 'ref') /= 0)    data%useit_plot = data%useit_plot .and. data%good_ref
-if (index(curve%component, 'model') /= 0)  data%useit_plot = data%useit_plot .and. data%good_model
+do id = 1, size(data)
+  data(id)%useit_plot = data(id)%exists
+  if (is_bad(data(id)%useit_plot, n_bad_exists)) cycle
 
-if (logic_option(.false., check_s_position)) then
-  data%useit_plot = data%useit_plot .and. (data%s /= real_garbage$)
+  data(id)%useit_plot = data(id)%useit_plot .and. data(id)%good_plot
+  if (is_bad(data(id)%useit_plot, n_bad_plot)) cycle
+
+  if (graph%draw_only_good_user_data_or_vars) then
+    data(id)%useit_plot = data(id)%useit_plot .and. data(id)%good_user
+    if (is_bad(data(id)%useit_plot, n_bad_user)) cycle
+  endif
+
+  if (index(curve%component, 'meas') /= 0) then
+    data(id)%useit_plot = data(id)%useit_plot .and. data(id)%good_meas
+    if (is_bad(data(id)%useit_plot, n_bad_user)) cycle
+  endif
+
+  if (index(curve%component, 'ref') /= 0) then
+    data(id)%useit_plot = data(id)%useit_plot .and. data(id)%good_ref
+    if (is_bad(data(id)%useit_plot, n_bad_user)) cycle
+  endif
+
+  if (index(curve%component, 'model') /= 0) then
+    data(id)%useit_plot = data(id)%useit_plot .and. data(id)%good_model
+    if (is_bad(data(id)%useit_plot, n_bad_user)) cycle
+  endif
+
+  if (check_s_position) then
+    data(id)%useit_plot = data(id)%useit_plot .and. (data(id)%s /= real_garbage$)
+    if (is_bad(data(id)%useit_plot, n_bad_user)) cycle
+  endif
+enddo
+
+if (max(n_bad_exists,n_bad_plot, n_bad_user, n_bad_meas, n_bad_ref, n_bad_model, n_bad_s) < size(data)/2) then
+  most_invalid = ''
+elseif (n_bad_exists >= max(n_bad_plot, n_bad_user, n_bad_meas, n_bad_ref, n_bad_model, n_bad_s)) then
+  most_invalid = 'Biggest problem: Data does not exist.'
+elseif (n_bad_plot >= max(n_bad_user, n_bad_meas, n_bad_ref, n_bad_model, n_bad_s)) then
+  most_invalid = 'Biggest problem: Data ouside of plot range.'
+elseif (n_bad_user >= max(n_bad_meas, n_bad_ref, n_bad_model, n_bad_s)) then
+  most_invalid = 'Biggest problem: Data vetoed by user.'
+elseif (n_bad_meas >= max(n_bad_ref, n_bad_model, n_bad_s)) then
+  most_invalid = 'Biggest problem: Lack of valid meas data values'
+elseif (n_bad_ref >= max(n_bad_model, n_bad_s)) then
+  most_invalid = 'Biggest problem: Lack of valid ref data values.'
+elseif (n_bad_model >= n_bad_s) then
+  most_invalid = 'Biggest problem: Lack of valid model data values.'
+else
+  most_invalid = 'Data not having a well defined s-position. (plot by datum index instead?)'
 endif
+!-------------------------------------
+contains
+
+function is_bad(useit_plot, n_bad) result (bad)
+integer n_bad
+logical useit_plot, bad
+!
+bad = (.not. useit_plot)
+if (bad) n_bad = n_bad + 1
+end function
 
 end subroutine tao_data_useit_plot_calc
 
