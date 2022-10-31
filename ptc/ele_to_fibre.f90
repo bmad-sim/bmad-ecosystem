@@ -108,7 +108,7 @@ ele2 => pointer_to_field_ele(ele, 1, s_rel)
 n_map = 0
 if (associated(ele2%cylindrical_map)) n_map = n_map + 1
 if (associated(ele2%cartesian_map)) n_map = n_map + 1
-if (associated(ele2%gen_grad_field)) n_map = n_map + 1
+if (associated(ele2%gen_grad_map)) n_map = n_map + 1
 
 if (n_map > 1) then
   call out_io (s_fatal$, r_name, 'PTC TRACKING IS ONLY ABLE TO HANDLE A SINGLE FIELD MAP IN AN ELEMENT.', &

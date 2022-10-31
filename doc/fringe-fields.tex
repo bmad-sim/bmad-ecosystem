@@ -12,7 +12,7 @@ The advantage of separating the fringe kick in this way is that the hard fringe 
 having to know anything about the longitudinal extent of the fringe field. In many cases, this is a
 good enough approximation.
 
-Discussion of the fringe parameters of an element are detailed in \Sec{s:fringe}.
+Discussion of the fringe parameters of an element are detailed in \Sref{s:fringe}.
 
 %---------------------------------------------------------------------------------
 \section{Dipole Soft Edge Fringe Map for Bends and Sad_Mult}
@@ -289,3 +289,45 @@ equation.]
 The effect on the spin when tracking through the fringe field of a multipole field tends
 to be weak. As such, this hard edge model is sufficient.  and the spin is tracked using
 the T-BMT equation (\Eq{tbmt}).
+
+%---------------------------------------------------------------------------------
+\section{RF Fringe Fields}
+\label{s:rf.fringe}
+
+Assuming cylindrical symmetry, the radial and azimuthal fields near the axis 
+can be related to the longitudinal electric field via Maxwell's equations\cite{b:hartman}
+\begin{equation}
+  E_r = -\frac{r}{2} \, \frac{\partial E_z}{\partial z}, \qquad
+  B_\phi = \frac{r}{2 \, c} \, \frac{\partial E_z}{\partial t}
+\end{equation}
+Assuming the particle velocity is $c$, these equations can be combined with the force equation
+\begin{equation}
+  F_r = q \, \left( E_r - c \, B_\phi \right)
+\end{equation}
+to give\cite{b:rosenzweig}
+\begin{equation}
+  F_r = - \frac{q \, r}{2} \, \frac{d E_z}{dz}
+  \label{fqr2}
+\end{equation}
+where the total derivative is used here\footnote
+  {
+Hartman\cite{b:hartman} Eq~(16) is not valid for a forward propagating wave component of
+the field. Thus Hartman Eq~(17) is only valid for a backward propagating wave component. \Eq{fqr2},
+on the other hand, is valid for all wave components.
+  }.
+From \Eq{fqr2}, the fringe field kick in the horizontal plane at the entrance end, valid for both
+traveling wave and standing wave cavities, is (cf. Rosenzweig\cite{b:rosenzweig} Eq~(10))
+\begin{equation}
+  \Delta p_x = - \frac{q \, \what E_z}{2 \, c \, P_0} \, x
+  \label{pqe2c}
+\end{equation}
+with a similar equation in the vertical. Here $\what E_z$ is the longitudinal electric field just inside
+the fringe, and $P_0$ is the reference momentum. At the exit end, the kick is the negative of
+\Eq{pqe2c}. This fringe kick is built into \vn{xxpc}.
+
+The integrated fringe fields, needed to calculate the spin precession, are at the entrance end
+\begin{align}
+  \int E_r \, ds &= -\frac{r}{4} \, \what E_z \CRNO
+  \int B_\phi \, ds &= \frac{r}{4 \, c} \, \what E_z
+\end{align}
+The integrated fields at the exit end are obtained by negating the RHS of these equations.

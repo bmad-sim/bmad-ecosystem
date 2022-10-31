@@ -209,8 +209,8 @@ type (photon_element_struct), pointer :: ph
 type (surface_grid_pt_struct), pointer :: s_pt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
-type (gen_grad_field_struct), pointer :: gg_field
-type (gen_grad_field_coef_struct), pointer :: ggcs
+type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), pointer :: ggcoef
 type (grid_field_struct), pointer :: g_field
 type (ac_kicker_struct), pointer :: ac
 type (converter_distribution_struct), pointer :: c_dist
@@ -234,7 +234,7 @@ n_cart = 0; n_gen = 0; n_grid = 0; n_cyl = 0; n_cus = 0
 if (associated(ele%mode3))             mode3 = .true.
 if (associated(ele%cartesian_map))     n_cart = size(ele%cartesian_map)
 if (associated(ele%cylindrical_map))   n_cyl = size(ele%cylindrical_map)
-if (associated(ele%gen_grad_field))    n_gen = size(ele%gen_grad_field)
+if (associated(ele%gen_grad_map))    n_gen = size(ele%gen_grad_map)
 if (associated(ele%grid_field))        n_grid = size(ele%grid_field)
 if (associated(ele%custom))            n_cus = size(ele%custom)
 if (associated(ele%converter))         ix_convert = 1
@@ -458,25 +458,17 @@ enddo
 ! Gen_grad_field
 
 do i = 1, n_gen
-  gg_field => ele%gen_grad_field(i)
+  gg_map => ele%gen_grad_map(i)
 
-  write (d_unit) gg_field%field_scale, gg_field%master_parameter, gg_field%curved_ref_frame, &
-          gg_field%ele_anchor_pt, gg_field%field_type, gg_field%dz, gg_field%r0, size(gg_field%c), size(gg_field%s), &
-          gg_field%lbound_ix_s, gg_field%ubound_ix_s
+  write (d_unit) gg_map%field_scale, gg_map%master_parameter, gg_map%curved_ref_frame, &
+          gg_map%ele_anchor_pt, gg_map%field_type, gg_map%dz, gg_map%r0, size(gg_map%gg), &
+          gg_map%lbound_ix_s, gg_map%ubound_ix_s
 
-  do j = 1, size(gg_field%c)
-    ggcs => gg_field%c(j)
-    write (d_unit) ggcs%m, ubound(ggcs%coef,1)
-    do k = gg_field%lbound_ix_s, gg_field%ubound_ix_s
-      write (d_unit) ggcs%coef(:,k)
-    enddo
-  enddo
-
-  do j = 1, size(gg_field%s)
-    ggcs => gg_field%s(j)
-    write (d_unit) ggcs%m, ubound(ggcs%coef,1)
-    do k = gg_field%lbound_ix_s, gg_field%ubound_ix_s
-      write (d_unit) ggcs%coef(:,k)
+  do j = 1, size(gg_map%gg)
+    ggcoef => gg_map%gg(j)
+    write (d_unit) ggcoef%m, ggcoef%ix_deriv, ggcoef%sincos
+    do k = gg_map%lbound_ix_s, gg_map%ubound_ix_s
+      write (d_unit) ggcoef%coef(k)
     enddo
   enddo
 enddo

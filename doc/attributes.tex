@@ -2245,9 +2245,8 @@ Example:
 \label{s:cart.map}
 \index{cartesian_map}
 
-The \vn{cartesian_map} field map is only used for DC fields. Each term of a
-\vn{cartesian_map} is a solution of Laplace's equation in cartesian coordinates.
-as described in Sec.~\sref{s:cart.map.phys}. 
+The \vn{cartesian_map} is used to describe DC fields. Each term of a \vn{cartesian_map} is a solution
+of Laplace's equation in cartesian coordinates.  as described in Sec.~\sref{s:cart.map.phys}.
 
 The lattice file syntax for the \vn{cartesian_map} type is:
 \begin{example}
@@ -2260,8 +2259,7 @@ The lattice file syntax for the \vn{cartesian_map} type is:
     term = \{<A>, <k_x>, <k_y>, <k_z>, <x_0>, <y_0>, <phi_z>, <family>\}, 
     term = \{....\}  \}
 \end{example}
-The possible settings of \vn{<family>} are explained in Sec.~\sref{s:cart.map.phys}.
-Example:
+The possible settings of \vn{<family>} are explained in Sec.~\sref{s:cart.map.phys}. Example:
 \begin{example}
   q01: quadrupole, l = 0.6, field_calc = fieldmap,
         cartesian_map = \{
@@ -2269,15 +2267,14 @@ Example:
           term = \{...\}, ...    \}
 \end{example}
 
-See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
-other field map types. 
+See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with other field
+map types.
 
-To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of
-restrictions: 
+To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of restrictions:
   \begin{itemize}
   \item
-There can be only one \vn{cartesian_map} field map and there cannot be any other field
-maps of any kind.
+There can be only one \vn{cartesian_map} field map and there cannot be any other field maps of any
+kind.
   \item 
 \vn{cartesian_map} may not be used with a bend.
   \item
@@ -2291,9 +2288,9 @@ The transverse terms in \vn{r0} must be zero.
 \label{s:cylind.map}
 \index{ccylindrical map}
 
-The \vn{cylindrical_map} field map is used for both DC and AC fields. Each term of a
-\vn{cylindrical_map} is a solution of Laplace's equation in cylindrical coordinates.
-as described in Sec.~\sref{s:cylind.map.phys}. 
+The \vn{cylindrical_map} is used to describe both DC and AC fields. Each term of a
+\vn{cylindrical_map} is a solution of Laplace's equation in cylindrical coordinates.  as described
+in Sec.~\sref{s:cylind.map.phys}.
 
 The lattice file syntax for the \vn{cylindrical_map} type is:
 \begin{example}

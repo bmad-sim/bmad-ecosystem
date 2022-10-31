@@ -19,8 +19,8 @@ type rad_int_track_point_struct
   type (coord_struct) :: ref_orb_in = coord_struct()
   type (coord_struct) :: ref_orb_out = coord_struct()
   real(rp) :: g_x0 = 0, g_y0 = 0      ! Additional g factors for bends.
-  real(rp) :: dgx_dx = 0, dgx_dy = 0  ! bending strength gradiant
-  real(rp) :: dgy_dx = 0, dgy_dy = 0  ! bending strength gradiant
+  real(rp) :: dgx_dx = 0, dgx_dy = 0  ! bending strength gradient
+  real(rp) :: dgy_dx = 0, dgy_dy = 0  ! bending strength gradient
 end type
 
 ! Note: The points may not be evenly spaced.

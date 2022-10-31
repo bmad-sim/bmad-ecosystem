@@ -59,8 +59,8 @@ type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
 type (cylindrical_map_term1_struct), pointer :: cl_term
-type (gen_grad_field_struct), pointer :: gg_field
-type (gen_grad_field_coef_struct), pointer :: ggcs
+type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), pointer :: ggcoef
 type (grid_field_struct), pointer :: g_field, g_field_ptr
 type (grid_field_pt1_struct) g_pt
 type (floor_position_struct) lab_position, global_position, lord_position
@@ -1262,36 +1262,31 @@ case(fieldmap$)
   !------------------------------------
   ! Grid field calc 
 
-  if (associated(ele%gen_grad_field)) then
+  if (associated(ele%gen_grad_map)) then
 
-    do i = 1, size(ele%gen_grad_field)
-      gg_field => ele%gen_grad_field(i)
+    do i = 1, size(ele%gen_grad_map)
+      gg_map => ele%gen_grad_map(i)
 
-      call to_field_map_coords (ele, local_orb, s_body, gg_field%ele_anchor_pt, gg_field%r0, gg_field%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
+      call to_field_map_coords (ele, local_orb, s_body, gg_map%ele_anchor_pt, gg_map%r0, gg_map%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return
       endif
 
-      iz0 = floor(z / gg_field%dz)
+      iz0 = floor(z / gg_map%dz)
 
-      if (iz0 < gg_field%lbound_ix_s .or. iz0 >= gg_field%ubound_ix_s) then
+      if (iz0 < gg_map%lbound_ix_s .or. iz0 >= gg_map%ubound_ix_s) then
         if (.not. logic_option(.false., grid_allow_s_out_of_bounds)) then
           call out_io (s_error$, r_name, 'PARTICLE Z  \F10.3\ POSITION OUT OF BOUNDS.', &
-                                         'FOR GEN_GRAD_FIELD IN ELEMENT: ' // ele%name, r_array = [s_body])
+                                         'FOR GEN_GRAD_MAP IN ELEMENT: ' // ele%name, r_array = [s_body])
           return
         endif
         cycle 
       endif
 
-      do j = 1, size(gg_field%c)
-        ggcs => gg_field%c(j)
-        call gen_grad_add_em_field (gg_field, ggcs, iz0, [x,y,z], cos$, field)
-      enddo
-
-      do j = 1, size(gg_field%s)
-        ggcs => gg_field%s(j)
-        call gen_grad_add_em_field (gg_field, ggcs, iz0, [x,y,z], sin$, field)
+      do j = 1, size(gg_map%gg)
+        ggcoef => gg_map%gg(j)
+        call gen_grad_add_em_field (gg_map, ggcoef, iz0, [x,y,z], field)
       enddo
     enddo
   endif
@@ -1596,24 +1591,26 @@ end subroutine restore_curvilinear_field
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine gen_grad_add_em_field (gg_field, ggcs, iz0, r_pos, cossin, field)
+subroutine gen_grad_add_em_field (gg_map, ggcoef, iz0, r_pos, field)
 
-type (gen_grad_field_struct) :: gg_field
-type (gen_grad_field_coef_struct) :: ggcs
+type (gen_grad_map_struct) :: gg_map
+type (gen_grad1_struct) :: ggcoef
 type (em_field_struct) field
 
 real(rp) r_pos(3), z_rel, theta, azi
-integer iz0, cossin
+integer iz0
 
 !
 
-z_rel = r_pos(3) - iz0 * gg_field%dz
+z_rel = r_pos(3) - iz0 * gg_map%dz
 theta = atan2(r_pos(2), r_pos(1))
 
-select case (cossin)
-case (cos$);  azi = cos(ggcs%m * theta)
-case (sin$);  azi = sin(ggcs%m * theta)
+select case (ggcoef%sincos)
+case (cos$);  azi = cos(ggcoef%m * theta)
+case (sin$);  azi = sin(ggcoef%m * theta)
 end select
+
+
 
 end subroutine gen_grad_add_em_field
 

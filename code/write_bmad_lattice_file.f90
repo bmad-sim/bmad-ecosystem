@@ -67,7 +67,7 @@ type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
-type (gen_grad_field_struct), pointer :: gg_field
+type (gen_grad_map_struct), pointer :: gg_map
 type (grid_field_struct), pointer :: g_field
 type (em_taylor_term_struct), pointer :: t_term
 type (wall3d_section_struct), pointer :: section
@@ -596,31 +596,31 @@ do ib = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! gen_grad_field
+    ! gen_grad_map
 
-    if (associated(ele%gen_grad_field)) then
-      do im = 1, size(ele%gen_grad_field)
-        gg_field => ele%gen_grad_field(im)
+    if (associated(ele%gen_grad_map)) then
+      do im = 1, size(ele%gen_grad_map)
+        gg_map => ele%gen_grad_map(im)
 
         ! First find out out if an file has been written
-        call find_matching_fieldmap (gg_field%file, ele, gen_grad_field$, ele2, ix_ptr, ignore_slaves = .true.) 
+        call find_matching_fieldmap (gg_map%file, ele, gen_grad_map$, ele2, ix_ptr, ignore_slaves = .true.) 
 
         if (integer_option(binary$, output_form) == one_file$) then
-          line = trim(line) // ', gen_grad_field_map ='
+          line = trim(line) // ', gen_grad_map_map ='
           call write_lat_line (line, iu, .true.)
-          call write_this_gen_grad_field_map (ele, iu, line)
+          call write_this_gen_grad_map_map (ele, iu, line)
 
         elseif (ix_ptr > 0) then
-          call form_this_field_map_name(string, '.gen_grad_field', ele2, ix_ptr, ascii$)
-          write (line, '(3a)')  trim(line), ', gen_grad_field = call::', trim(string)
+          call form_this_field_map_name(string, '.gen_grad_map', ele2, ix_ptr, ascii$)
+          write (line, '(3a)')  trim(line), ', gen_grad_map = call::', trim(string)
 
         else
-          call form_this_field_map_name(string, '.gen_grad_field', ele, im, ascii$)
-          line = trim(line) // ', gen_grad_field = call::' // trim(string)
+          call form_this_field_map_name(string, '.gen_grad_map', ele, im, ascii$)
+          line = trim(line) // ', gen_grad_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
           iu2 = lunget()
           open (iu2, file = string)
-          call write_this_gen_grad_field_map (ele, iu2)
+          call write_this_gen_grad_map_map (ele, iu2)
           close (iu2)
         endif
       enddo
@@ -1769,7 +1769,7 @@ end subroutine write_this_grid_field_map
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_gen_grad_field_map (ele, iu9, line)
+subroutine write_this_gen_grad_map_map (ele, iu9, line)
 
 type (ele_struct) ele
 integer iu9
@@ -1778,16 +1778,16 @@ character(*), optional :: line
 !
 
 write (iu9, '(a)') '{'
-if (gg_field%master_parameter > 0) write (iu9, '(2x, 3a)') &
-                              'master_parameter   = ', trim(attribute_name(ele, gg_field%master_parameter)), ','
-write (iu9, '(2x, 3a)')       'field_scale        = ', re_str(gg_field%field_scale), ','
-write (iu9, '(2x, 3a)')       'ele_anchor_pt      = ', trim(anchor_pt_name(gg_field%ele_anchor_pt)), ','
-write (iu9, '(2x, 3a)')       'field_type         = ', trim(em_field_type_name(gg_field%field_type)), ','
-write (iu9, '(2x, 3a)')       'dz                 = ', re_str(gg_field%dz), ','
-write (iu9, '(2x, 4a)')       'r0                 = ', trim(array_re_str(gg_field%r0)), ','
-write (iu9, '(2x, a, l1, a)') 'curved_ref_frame   = ', gg_field%curved_ref_frame, ','
+if (gg_map%master_parameter > 0) write (iu9, '(2x, 3a)') &
+                              'master_parameter   = ', trim(attribute_name(ele, gg_map%master_parameter)), ','
+write (iu9, '(2x, 3a)')       'field_scale        = ', re_str(gg_map%field_scale), ','
+write (iu9, '(2x, 3a)')       'ele_anchor_pt      = ', trim(anchor_pt_name(gg_map%ele_anchor_pt)), ','
+write (iu9, '(2x, 3a)')       'field_type         = ', trim(em_field_type_name(gg_map%field_type)), ','
+write (iu9, '(2x, 3a)')       'dz                 = ', re_str(gg_map%dz), ','
+write (iu9, '(2x, 4a)')       'r0                 = ', trim(array_re_str(gg_map%r0)), ','
+write (iu9, '(2x, a, l1, a)') 'curved_ref_frame   = ', gg_map%curved_ref_frame, ','
 
-!!do ip = lbound(gg_field%ptr%plane, 1), ubound(gg_field%ptr%plane, 1)
+!!do ip = lbound(gg_map%ptr%plane, 1), ubound(gg_map%ptr%plane, 1)
 !!enddo
 
 ! present(line) = T when single file is being constructed
@@ -1798,6 +1798,6 @@ else
   write (iu9, '(a)') '}'
 endif
 
-end subroutine write_this_gen_grad_field_map
+end subroutine write_this_gen_grad_map_map
 
 end subroutine write_bmad_lattice_file
