@@ -247,6 +247,7 @@ end subroutine write_binary_field_table
 subroutine fit_field()
 
 type (var_info_struct), pointer :: vinfo
+real(rp), allocatable :: vec0(:)
 real(rp) merit, merit0, x, y
 integer ixz, ixz0, ixz1, iloop, iv0, im, id
 integer ix, iy, iz
@@ -304,17 +305,19 @@ enddo
 
 !
 
-allocate (var_vec(n_var))
+allocate (var_vec(n_var), vec0(n_var))
+vec0 = 0
 var_vec = 0
 
 do ixz = ixz0, ixz1
   call initial_lmdif
-  call merit_calc(ixz)
+  call merit_calc(vec0, ixz)
+  print '(i5, es14.6)', 0, merit
   merit0 = 2*merit
 
   do iloop = 1, n_cycles
     call suggest_lmdif (var_vec, merit_vec, lmdif_eps, n_cycles, at_end)
-    call merit_calc(ixz)
+    call merit_calc(var_vec, ixz)
     if (merit < 0.99*merit0) then
       print '(i5, es14.6)', iloop, merit
       merit0 = merit
@@ -322,6 +325,8 @@ do ixz = ixz0, ixz1
     if (at_end) exit
   enddo
 
+  print *
+  print *, 'Plane:', ixz
   print *, ' Ix    m  der  sym            Coef'
   do iv0 = 1, size(var_info)
     vinfo => var_info(iv0)
@@ -352,9 +357,10 @@ enddo
 !----------------------------------
 contains
 
-subroutine merit_calc(ixz)
+subroutine merit_calc(var_vec, ixz)
 
 type (var_info_struct) info
+real(rp) var_vec(:)
 real(rp) x, y, rho, theta, Bx, By, Bz, B_rho, B_theta, f, ff, p_rho
 integer ixz, ix, iy, iv0, iv, m, id, nn, n_merit, n3
 logical is_even
