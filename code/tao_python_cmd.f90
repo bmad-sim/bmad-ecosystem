@@ -122,7 +122,7 @@ type (wake_sr_mode_struct), pointer :: wsr
 type (wake_lr_mode_struct), pointer :: lr_mode
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: sec
-type (gen_grad_field_struct), pointer :: gg_field
+type (gen_grad_map_struct), pointer :: gg_map
 type (twiss_struct), pointer :: twiss_arr(:)
 type (em_taylor_term_struct), pointer :: em_tt
 type (grid_field_struct), pointer :: g_field
@@ -241,7 +241,7 @@ call match_word (cmd, [character(40) :: &
           'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:grid_field', &
           'ele:gen_attribs', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
           'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', & 
-          'ele:gen_grad_field', 'ele:twiss', 'ele:wake', 'ele:wall3d', &
+          'ele:gen_grad_map','ele:twiss', 'ele:wake', 'ele:wall3d', &
           'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'matrix', 'merit', 'orbit_at_s', &
@@ -2955,8 +2955,8 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), imt) 'num#cartesian_map;INT;F;',    n
   n = 0; if (associated(ele%cylindrical_map)) n = size(ele%cylindrical_map)
   nl=incr(nl); write (li(nl), imt) 'num#cylindrical_map;INT;F;',  n
-  n = 0; if (associated(ele%gen_grad_field)) n = size(ele%gen_grad_field)
-  nl=incr(nl); write (li(nl), imt) 'num#gen_grad_field;INT;F;',     n
+  n = 0; if (associated(ele%gen_grad_map)) n = size(ele%gen_grad_map)
+  nl=incr(nl); write (li(nl), imt) 'num#gen_grad_map;INT;F;',     n
   n = 0; if (associated(ele%grid_field)) n = size(ele%grid_field)
   nl=incr(nl); write (li(nl), imt) 'num#grid_field;INT;F;',       n
   n = 0; if (associated(ele%wall3d)) n = size(ele%wall3d)
@@ -3591,23 +3591,23 @@ case ('ele:taylor')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
-!%% ele:gen_grad_field
+!%% ele:gen_grad_map
 !
-! Output element gen_grad_field 
+! Output element gen_grad_map 
 !
 ! Notes
 ! -----
 ! Command syntax:
-!   python ele:gen_grad_field {ele_id}|{which} {index} {who}
+!   python ele:gen_grad_map {ele_id}|{which} {index} {who}
 !
 ! Where: 
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
-!   {index} is the index number in the ele%gen_grad_field(:) array
+!   {index} is the index number in the ele%gen_grad_map(:) array
 !   {who} is one of: "base", or "terms".
 !
 ! Example:
-!   python ele:gen_grad_field 3@1>>7|model 2 base
+!   python ele:gen_grad_map 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
 ! Parameters
@@ -3631,31 +3631,31 @@ case ('ele:taylor')
 !   index: 1
 !   who: terms
 
-case ('ele:gen_grad_field')
+case ('ele:gen_grad_map')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
-  if (.not. associated(ele%gen_grad_field)) then
-    call invalid ('gen_grad_field not allocated')
+  if (.not. associated(ele%gen_grad_map)) then
+    call invalid ('gen_grad_map not allocated')
     return
   endif
-  ix = parse_int (tail_str, err, 1, size(ele%gen_grad_field));  if (err) return
-  gg_field => ele%gen_grad_field(ix)
+  ix = parse_int (tail_str, err, 1, size(ele%gen_grad_map));  if (err) return
+  gg_map => ele%gen_grad_map(ix)
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(gg_field%file)
-    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   gg_field%field_scale
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', gg_field%r0(i), i = 1, 3)
-    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            gg_field%dz
-    name = attribute_name(ele, gg_field%master_parameter)
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(gg_map%file)
+    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   gg_map%field_scale
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', gg_map%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            gg_map%dz
+    name = attribute_name(ele, gg_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
     nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(gg_field%ele_anchor_pt))
-    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(gg_field%field_type))
-    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             gg_field%curved_ref_frame
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(gg_map%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(gg_map%field_type))
+    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             gg_map%curved_ref_frame
 
   case ('terms')
     nl=incr(nl); li(nl) = '! Needs to be implemented!!'

@@ -966,26 +966,26 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 \end{verbatim}
 
-%% python ele:taylor_field ------------------------------------
-\subsection{python ele:taylor_field}
-\index{python!ele:taylor_field}
-\label{p:ele:taylor.field}
+%% python ele:gen_grad_map ------------------------------------
+\subsection{python ele:gen_grad_map}
+\index{python!ele:gen_grad_map}
+\label{p:ele:gen.grad.map}
 
 
-Output element taylor_field 
+Output element gen_grad_map 
 
 \begin{example}
-   python ele:taylor_field \{ele_id\}|\{which\} \{index\} \{who\}
+   python ele:gen_grad_map \{ele_id\}|\{which\} \{index\} \{who\}
 \end{example}
 \begin{verbatim}
 Where: 
   {ele_id} is an element name or index.
   {which} is one of: "model", "base" or "design"
-  {index} is the index number in the ele%taylor_field(:) array
+  {index} is the index number in the ele%gen_grad_map(:) array
   {who} is one of: "base", or "terms".
 
 Example:
-  python ele:taylor_field 3@1>>7|model 2 base
+  python ele:gen_grad_map 3@1>>7|model 2 base
 This gives element number 7 in branch 1 of universe 3.
 \end{verbatim}
 
