@@ -20,6 +20,7 @@ set (EXE_SPECS
   cmake_files/cmake.compare_tracking_methods_text
   cmake_files/cmake.element_attributes
   cmake_files/cmake.f77_to_f90
+  cmake_files/cmake.generalized_gradient_fit
   cmake_files/cmake.lattice_cleaner
   cmake_files/cmake.photonic_surface_plot
   cmake_files/cmake.ptc_profiler
