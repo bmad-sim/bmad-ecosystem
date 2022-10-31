@@ -7,17 +7,18 @@
 program generalized_gradient_fit
 
 use gg_fit_mod
+implicit none
 
 integer :: n_header_lines = 0
 
-character(100) file_name, field_file
+character(100) file_name
 character(16) mode
 
-namelist /parameters / field_file, every_n_th_plane, n_deriv_max, m_cos, m_sin, n_cycles, &
+namelist /params / field_file, every_n_th_plane, n_deriv_max, m_cos, m_sin, n_cycles, &
               ix_z_min, ix_z_max, Bx_sym_x, Bx_sym_y, By_sym_x, By_sym_y, Bz_sym_x, Bz_sym_y, &
-              mode, lmdif_eps
+              mode, lmdif_eps, printit
 
-implicit none
+!
 
 file_name = 'gg_fit.init'
 if (command_argument_count() > 0) then
@@ -33,6 +34,7 @@ close (1)
 
 select case (mode)
 case ('binary')
+  call read_field_table(field_file)
   call write_binary_field_table(field_file)
 
 !
