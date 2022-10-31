@@ -80,7 +80,7 @@ endif
 
 if (ele%key == match$ .or. &
             (.not. associated(ele%cylindrical_map) .and. .not. associated(ele%cartesian_map) .and. &
-            .not. associated(ele%gen_grad_field) .and. &
+            .not. associated(ele%gen_grad_map) .and. &
             (ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%field_calc == helical_model$)) then
   call mat6_to_taylor (ele%vec0, ele%mat6, orb_tylr)
   call taylor_make_quaternion_unit (ele%spin_taylor)

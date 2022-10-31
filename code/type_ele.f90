@@ -65,7 +65,7 @@ type (cylindrical_map_struct), pointer :: cl_map
 type (cylindrical_map_term1_struct), pointer :: cl_term
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
-type (gen_grad_field_struct), pointer :: gg_field
+type (gen_grad_map_struct), pointer :: gg_map
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
@@ -488,9 +488,9 @@ endif
 
 ! Gen_Grad_field
 
-if (associated(ele%gen_grad_field)) then
+if (associated(ele%gen_grad_map)) then
   if (integer_option(no$, type_field) == no$) then
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Gen_Grad_field modes:', size(ele%gen_grad_field)
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Gen_Grad_field modes:', size(ele%gen_grad_map)
   else
     nl2 = 10; if (type_field == all$) nl2 = 999
     nl=nl+1; li(nl) = ''
@@ -499,21 +499,21 @@ if (associated(ele%gen_grad_field)) then
     else
       nl=nl+1; li(nl) = 'Gen_Grad_field:'
     endif
-    do im = 1, size(ele%gen_grad_field)
-      gg_field => ele%gen_grad_field(im)
-      if (gg_field%master_parameter == 0) then
+    do im = 1, size(ele%gen_grad_map)
+      gg_map => ele%gen_grad_map(im)
+      if (gg_map%master_parameter == 0) then
         name = '<None>'
       else
-        name = attribute_name(ele, gg_field%master_parameter)
+        name = attribute_name(ele, gg_map%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(2a)')         '    field_type:        ', em_field_type_name(gg_field%field_type)
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:       ', gg_field%field_scale
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:                ', gg_field%dz
-      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:                ', gg_field%r0
+      nl=nl+1; write (li(nl), '(2a)')         '    field_type:        ', em_field_type_name(gg_map%field_type)
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:       ', gg_map%field_scale
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:                ', gg_map%dz
+      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:                ', gg_map%r0
       nl=nl+1; write (li(nl), '(2a)')         '    master_parameter:  ', trim(name)
-      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:     ', anchor_pt_name(gg_field%ele_anchor_pt)
-      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame   ', gg_field%curved_ref_frame
+      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:     ', anchor_pt_name(gg_map%ele_anchor_pt)
+      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame   ', gg_map%curved_ref_frame
     enddo
   endif
 endif

@@ -702,18 +702,18 @@ type cylindrical_map_struct
   type (cylindrical_map_term_struct), pointer :: ptr => null()
 end type
 
-! Generalized gradiants
+! Generalized gradients
 
-type gen_grad_field_coef_struct
+type gen_grad1_struct
   integer :: m = 0              ! Azimuthal index
-  integer :: n_deriv_in         ! Set to max deriv inputted.
-  real(rp), allocatable :: coef(:,:)  ! (ix_derivative, ix_s_pt)
+  integer :: ix_deriv = -1      ! derivative index
+  integer :: sincos = 0         ! sin$ or cos$
+  real(rp), allocatable :: coef(:)  ! (ix_s_pt)
 end type  
 
-type gen_grad_field_struct
+type gen_grad_map_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
-  type (gen_grad_field_coef_struct), allocatable :: c(:)  ! Cos coefs.
-  type (gen_grad_field_coef_struct), allocatable :: s(:)  ! Sin coefs.
+  type (gen_grad1_struct), allocatable :: gg(:)
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: field_type = magnetic$  ! or electric$
   integer :: lbound_ix_s = 0
@@ -1292,7 +1292,7 @@ type ele_struct
   ! E/M field structs.
   type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define E/M fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
-  type (gen_grad_field_struct), pointer :: gen_grad_field(:) => null()   ! Used to define E/M fields.
+  type (gen_grad_map_struct), pointer :: gen_grad_map(:) => null()       ! Used to define E/M fields.
   type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define E/M fields.
   ! The difference between map_ref_orb and time_ref_orb is that map_ref_orb is the reference orbit for the
   ! 1st order spin/orbit map which, in general, is non-zero while time_ref_orb follows the reference particle which is
@@ -1752,7 +1752,7 @@ integer, parameter :: reference$       = 122
 integer, parameter :: cartesian_map$   = 123
 integer, parameter :: cylindrical_map$ = 124
 integer, parameter :: grid_field$      = 125
-integer, parameter :: gen_grad_field$    = 126
+integer, parameter :: gen_grad_map$    = 126
 integer, parameter :: create_jumbo_slave$ = 127
 
 integer, parameter :: accordion_edge$  = 128

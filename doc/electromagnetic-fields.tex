@@ -361,23 +361,28 @@ convert coefficients as needed.]
 
 Electric and magnetic fields can be parameterized as the sum over a number of functions
 with each function satisfying Maxwell's equations. These functions are also referred to as
-``maps'', ``modes'', or ``terms''. \bmad has two parameterizations:
+``maps'', ``modes'', or ``terms''. \bmad has three parameterizations:
 \begin{example}
-  Cartesian_Map      ! \sref{s:cart.map.phys}.
-  Cylindrical_Map    ! \sref{s:cylind.map.phys}
+  Cartesian Map              ! \sref{s:cart.map.phys}.
+  Cylindrical Map            ! \sref{s:cylind.map.phys}
+  Generalized Gradient Map   ! \sref{s:gen.grad.phys}
 \end{example}
-These parameterizations are two of the four \vn{field map} parameterizations that \bmad
+These parameterizations are three of the four \vn{field map} parameterizations that \bmad
 defines \sref{s:fieldmap}.
 
-The \vn{cartesian_map} decomposition involves a set of terms, each term a solution the
+The \vn{Cartesian map} decomposition involves a set of terms, each term a solution the
 Laplace equation solved using separation of variables in Cartesian coordinates. This
 decomposition can be used for DC but not AC fields. See \sref{s:cart.map.phys}.
-for more details. The syntax for specifying the \vn{cartesian_map} decomposition
+for more details. The syntax for specifying the \vn{Cartesian map} decomposition
 is discussed in \sref{s:cart.map}.
 
-The \vn{cylindrical_map} decomposition can be used for both DC and AC fields. See
-\sref{s:cylind.map.phys} for more details. The syntax for specifying the
-\vn{cylindrical_map} decomposition is discussed in \sref{s:cylind.map}.
+The \vn{cylindrical map} decomposition can be used for both DC and AC fields. See
+\sref{s:cylind.map.phys} for more details. The syntax for specifying the \vn{cylindrical map}
+decomposition is discussed in \sref{s:cylind.map}.
+
+The \vn{generalized gradient map} start with the cylindrical map decomposition but then express the
+field using coefficients derived from an expansion of the scalar potential in powers of the radius
+(\sref{s:gen.grad.phys}.
 
 %-----------------------------------------------------------------
 \section{Cartesian Map Field Decomposition}
@@ -514,33 +519,28 @@ the \vn{sq} \vn{family} of forms is:
 \end{alignat}
 
 
-The singular case where $k_x = k_y = k_z = 0$ is not allowed. If a
-uniform field is needed, a term with very small $k_x$, $k_y$, and
-$k_z$ can be used. Notice that since $k_y$ must be non-zero for the
-\vn{hyper-y} forms (remember, $k_y^2 = k_x^2 + k_z^2$ for these forms
-and not all $k$'s can be zero), and $k_z$ must be non-zero for the
-\vn{hyper-xy} forms, and $k_x$ must be nonzero for the \vn{hyper-x}
-forms. The magnetic field is always well defined even if one of the
-$k$'s is zero.
+The singular case where $k_x = k_y = k_z = 0$ is not allowed. If a uniform field is needed, a term
+with very small $k_x$, $k_y$, and $k_z$ can be used. Notice that since $k_y$ must be non-zero for
+the \vn{hyper-y} forms (remember, $k_y^2 = k_x^2 + k_z^2$ for these forms and not all $k$'s can be
+zero), and $k_z$ must be non-zero for the \vn{hyper-xy} forms, and $k_x$ must be nonzero for the
+\vn{hyper-x} forms. The magnetic field is always well defined even if one of the $k$'s is zero.
 
 %-----------------------------------------------------------------
 \section{Cylindrical Map Decomposition}
 \label{s:cylind.map.phys}
 \index{cylindrical map}
 
-Electric and magnetic fields can be parameterized as the sum over a number of functions
-with each function satisfying Maxwell's equations. These functions are also referred to as
-``maps'', ``modes'', or ``terms''. \bmad has two types. The ``\vn{cylindrical}''
-decomposition is explained here. The other type is the \vn{Cartesian} decomposition
-(\sref{s:cylind.map.phys}).
+Electric and magnetic fields can be parameterized as the sum over a number of functions with each
+function satisfying Maxwell's equations. These functions are also referred to as ``maps'',
+``modes'', or ``terms''. \bmad has two types. The ``\vn{cylindrical}'' decomposition is explained
+here. The other type is the \vn{Cartesian} decomposition (\sref{s:cylind.map.phys}).
 
-In a lattice file, a \vn{cylindrical} map is specified using the \vn{cylindrical_map}
-attribute as explained in Sec.~\sref{s:cylind.map}.
+In a lattice file, a \vn{cylindrical} map is specified using the \vn{cylindrical_map} attribute as
+explained in Sec.~\sref{s:cylind.map}.
 
-The \vn{cylindrical} decomposition takes one of two forms depending upon whether the
-fields are time varying or not. The DC decomposition is explained in
-Sec.~\sref{s:cylind.dc} while the RF decomposition is explained in
-Sec.~\sref{s:cylind.ac}. 
+The \vn{cylindrical} decomposition takes one of two forms depending upon whether the fields are time
+varying or not. The DC decomposition is explained in Sec.~\sref{s:cylind.dc} while the RF
+decomposition is explained in Sec.~\sref{s:cylind.ac}.
 
 %-----------------------------------------------------------------
 \subsection{DC Cylindrical Map Decomposition}
@@ -548,9 +548,15 @@ Sec.~\sref{s:cylind.ac}.
 
 The DC \vn{cylindrical} parametrization used by \bmad essentially follows Venturini et
 al.\cite{b:vent.map}. See Section~\sref{s:fieldmap} for details on the syntax used to cylindrical
-maps in \bmad. The electric and magnetic fields are both described by a scalar potential
+maps in \bmad. The electric and magnetic fields are both described by a scalar potential\footnote
+  {
+Notice the negative sign here and in \Eq{psps1k} compared to Venturini et al.\cite{b:vent.map}. This
+is to keep the definition of the electric scalar potential $\psi_E$ consistent with the normal
+definition.
+  }
 \begin{equation}
   \bfB = -\nabla \, \psi_B, \qquad \bfE = -\nabla \, \psi_E
+  \label{bpep}
 \end{equation}
 The scalar potentials both satisfy the Laplace equation $\nabla^2 \, \psi = 0$.
 The scalar potentials are decomposed as a sum of modes indexed by an integer $m$
@@ -559,8 +565,11 @@ The scalar potentials are decomposed as a sum of modes indexed by an integer $m$
 \end{equation}
 [Here and below, only equations for the magnetic field will be shown. The equations for the electric
 fields are similar.] The $\psi_{Bm}$ are decomposed in $z$ using a discrete Fourier
-sum.\footnote{Venturini uses a continuous Fourier transformation but \bmad uses a discrete
-transformation so that only a finite number of coefficients are needed.}
+sum.\footnote
+  {
+Venturini uses a continuous Fourier transformation but \bmad uses a discrete
+transformation so that only a finite number of coefficients are needed.
+  }
 Expressed in cylindrical coordinates the decomposition of $\psi_{Bm}$ is
 \begin{equation}
   \psi_{Bm} = \sum_{n=-N/2}^{N/2-1} \psi_{Bmn} =
@@ -610,10 +619,9 @@ And for $m \neq 0$:
     \nonumber
 \end{align}
 
-While technically $\psi_{Bm0}$ is not well defined due to the $1/k_n$ factor
-that is present, the field itself is well behaved. Mathematically,
-\Eq{psps1k} can be corrected if, for $n = 0$, the term $I_m(k_n \,
-\rho) / k_n$ is replaced by
+While technically $\psi_{Bm0}$ is not well defined due to the $1/k_n$ factor that is present, the
+field itself is well behaved. Mathematically, \Eq{psps1k} can be corrected if, for $n = 0$, the term
+$I_m(k_n \, \rho) / k_n$ is replaced by
 \begin{equation}
   \frac{I_m(k_0 \, \rho)}{k_0} \rightarrow 
   \begin{cases}
@@ -623,8 +631,7 @@ that is present, the field itself is well behaved. Mathematically,
   \end{cases}
 \end{equation}
 
-The magnetic vector potential for $m = 0$ is constructed such that
-only $A_\theta$ is non-zero
+The magnetic vector potential for $m = 0$ is constructed such that only $A_\theta$ is non-zero
 \begin{align}
   A_\rho &= 0 \CRNO
   A_\theta &= \re \left[ 
@@ -632,7 +639,6 @@ only $A_\theta$ is non-zero
   A_z    &= 0 \nonumber
 \end{align}
 For $m \ne 0$, the vector potential is chosen so that $A_\theta$ is zero.
-
 \begin{align}
   A_\rho &= \re \left[ 
     \sum_{n=-N/2}^{N/2-1} \frac{-i \, \rho}{2 \, m} \, e^{i \, k_n \, z} \, 
@@ -779,47 +785,89 @@ identity
 \end{equation}
 
 %-----------------------------------------------------------------
-\section{Field Modeling Using Taylor Maps}
-\label{s:taylor.field.phys}
-\index{taylor field modeling}
+\section{Generalized Gradient Map Field Modeling}
+\label{s:gen.grad.phys}
+\index{generalized gradient field modeling}
 
 \bmad has a number of \vn{field map} models that can be used to model electric or magnetic fields
-(\sref{s:fieldmap}). One model involves a set of Taylor maps. This model is restricted to modeling
-DC fields. In a lattice file, the \vn{Taylor} field model is specified using the \vn{taylor_field}
-attribute as explained in Sec.~\sref{s:taylor.field}.
+(\sref{s:fieldmap}). One model involves what are called \vn{generalized gradients}\cite{b:gen.grad}.
+This model is restricted to modeling DC magnetic or electric fields. In a lattice file, the
+generalized gradient field model is specified using the \vn{gen_grad_field} attribute as explained
+in Sec.~\sref{s:gen.grad.field}.
 
-The Taylor field model specifies the field using a set of Taylor maps. Each map defines the field in
-the transverse $(x, y)$ plane at constant longitudinal $z$: That is, each Taylor map is comprised of
-three Taylor series, one for each field component, and each Taylor series is a polynomial in $x$ and
-$y$:
+The electric and magnetic fields are both described by a scalar potential\footnote
+  {
+Notice the negative sign here and in \Eq{ppmpp} compared to Venturini et al.\cite{b:gen.grad}. This
+is to keep the definition of the electric scalar potential $\psi_E$ consistent with the normal
+definition.
+  }
 \begin{equation}
-  \Bf B = (B_x(x,y;i), B_y(x,y;i), B_z(x,y;i))
+  \bfB = -\nabla \, \psi_B, \qquad \bfE = -\nabla \, \psi_E
+  \label{bpep2}
 \end{equation}
-where the $B_x, B_y, B_z$ on the right hand side represent the tree Taylor series, $i$
-denotes the Taylor map at $z_i = i \cdot dz$ where $dz$ is the spacing between maps. The
-maps are restricted to be equally spaced to enable higher order integration schemes in PTC
-(See \vn{default_integ_order} in \sref{s:bmad.ptc.com}).  [Note: Each Taylor field model
-specifies either an electric or magnetic field. In this section, the symbol $B$ can refer
-to either magnetic or electric fields.]
-
-Interpolation of the field in \bmad is done using a cubic spline fit. Given a position
-$(x, y, z)$, the field $\Bf B$ and transverse field derivatives $\partial \Bf B / \partial
-\Bf r$, are evaluated at two positions $\Bf r_0 = (x, y, z_{i0})$ and $\Bf r_1 = (x, y,
-z_{i1})$ with $z_{i0}$ being the positions of the maps to either side of $z$.
-The longitudinal field derivatives are derived from the transverse ones using Maxwell's equations:
+The scalar potential is then decomposed into azimuthal components
 \begin{equation}
-  \frac{\partial B_x}{\partial z} = \frac{\partial B_z}{\partial x}, \qquad
-  \frac{\partial B_y}{\partial z} = \frac{\partial B_z}{\partial y}, \qquad
-  \frac{\partial B_z}{\partial z} = 
-    - \left( \frac{\partial B_x}{\partial x} + \frac{\partial B_y}{\partial y} \right)
+  \psi = \sum_{m = 1}^\infty \psi_{m,s} \, \sin(m \theta) + \sum_{m = 0}^\infty \psi_{m,s} \, \cos(m \theta)
 \end{equation}
+where the $\psi_{m,\alpha}$ ($\alpha = c,s$) are characterized by a using functions
+$C_{m,\alpha}(z)$ which are functions along the longitudinal $z$-axis.
+\begin{equation}
+  \psi_{m,\alpha} = \sum_{n = 0}^\infty \frac{-(-1)^n m!}{4^n \, n! \, (n+m)!} 
+  \, \rho^{2n+m} \, C_{m,\alpha}^{[2n]}(z) 
+  \label{ppmpp}
+\end{equation}
+The notation $[2n]$ indicates the $2n$ derivative of $C_{m,\alpha}(z) = C_{m,\alpha}^{[0]}(z)$.
 
-Once the field and longitudinal derivatives are known at $\Bf r_0$ and $\Bf r_1$, a
-standard cubic spline interpolation is done.
+From \Eq{ppmpp} the field is given by 
+\begin{align}
+  B_\rho   &= \sum_{m = 1}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m! \, (2n+m)}{4^n n! \, (n+m)!}
+    \rho^{2n+m-1} \left[ C^{[2n]}_{m,s}(z) \, \sin m\theta + C^{[2n]}_{m,c}(z) \, \cos m\theta \right] + \CRNO
+    & \hspace{25 em} \sum_{n = 1}^\infty \frac{(-1)^n \, 2n}{4^n n! \, n!} \rho^{2n-1} C^{[2n]}_{0,c}(z) \CRNO
+  B_\theta &= \sum_{m = 1}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m! \, m}{4^n \, n! \, (n+m)!}
+    \rho^{2n+m-1} \left[ C^{[2n]}_{m,s}(z) \, \cos m\theta - C^{[2n]}_{m,c}(z) \, \sin m\theta \right] \\
+  B_z      &= \sum_{m = 0}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m!}{4^n n! \, (n+m)!}
+    \rho^{2n+m} \left[ C^{[2n+1]}_{m,s}(z) \, \sin m\theta + C^{[2n+1]}_{m,c}(z) \, \cos m\theta \right] \nonumber
+\end{align}
+Notice that the multipole index $m$ is such that $m = 0$ is for solenoidal fields, $m = 1$ is for
+dipole fields, $m = 2$ is for quadrupolar fields, etc. Also, even though the scalar potential only
+involves even derivatives of $C_{m,\alpha}$, the field is dependent upon the odd derivatives as
+well.
 
-Note: If the Taylor field model uses curved coordinates, There will be inaccuracies in the
-computed field to the extent that Maxwell's equations have to be modified to take into
-account the coordinate curvature.
+The magnetic vector potential for $m = 0$ is constructed such that only $A_\theta$ is non-zero
+\begin{align}
+  A_\rho   &= 0 \CRNO
+  A_\theta &= \sum_{n=0}^\infty \frac{(-1)^n \, 2(n+1)}{4^{n+1} (n+1)! \, (n+1)!} \rho^{2n+1} \, C_{0,c}^{2n+1} \\
+  A_z      &= 0 \nonumber
+\end{align}
+For $m \ne 0$, the vector potential is chosen so that $A_\theta$ is zero.
+\begin{align}
+  A_\rho   &= \sum_{n=0}^\infty \frac{(-1)^{n+1} \, m! \, m}{4^n n! \, (n+m)!} \rho^{2n+m+1} \, 
+    \left[ C_{m,c}^{[2n]} \, \sin(m \theta) - C_{m,s}^{[2n]} \cos(m \theta) \right] \CRNO 
+  A_\theta &= 0 \\
+  A_z      &= \sum_{n=0}^\infty \frac{(-1)^n \, m! \, m}{4^n n! \, (n+m)!} \rho^{2n+m+1} \, 
+    \left[ C_{m,c}^{[2n+1]} \, \sin(m \theta) - C_{m,s}^{[2n+1]} \cos(m \theta) \right]
+  \nonumber
+\end{align}
+
+The functions $C_{m,\alpha}(z)$ are characterized by specifying $C_{m,\alpha}(z_i)$ and derivatives
+at equally spaced points $z_i$, up to some maximum derivative order $N$ chosen by the
+user. Interpolation is done by constructing an interpolating polynomial of order $2N+1$ for each
+interval $[z_i, z_{i+1}]$ which has the correct derivatives from $0$ to $N$ at points $z_i$ and
+$z_{i+1}$. The coefficients of the interpolating polynomial are easily calculated by inverting the
+appropriate matrix equation.
+
+The advantages of a generalized gradient map over a cylindrical or Cartesian map decomposition come
+from the fact that with generalized gradients the field at some point $(x,y,z)$ is only dependent
+upon the value of $C_{m,\alpha}(z)$ and derivatives at points $z_i$ and $z_{i+1}$ where $z$ is in
+the interval $[z_i, z_{i+1}]$. This is in contrast to the cylindrical or Cartesian map decomposition
+where the field at any point is dependent upon {\em all} of the terms that characterize the
+field. This ``\vn{locality}'' property of generalized gradients means that calculating coefficients
+is easier (the calculation of $C_{m,\alpha}(z)$ at $z_i$ can be done independent any other point)
+and it is easier to ensure that the field goes to zero at the longitudinal ends of the
+element. Additionally, the evaluation is faster since only coefficients to either side of the
+evaluation point contribute. The disadvantage of generalized gradients is that since the derivatives
+are truncated at some order $N$, the resulting field does not satisfy Maxwell's equations with the
+error scalling with radius to the order of truncation.
 
 %-----------------------------------------------------------------
 \section{RF fields}
@@ -874,45 +922,3 @@ has the correct symmetry:
   B_\phi(r, \phi, s, t) &= \frac{r}{c} \, G \, k \, \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \nonumber
   \label{egot3}
 \end{align}
-
-%---------------------------------------------------------------------------------
-\section{RF Fringe Fields}
-\label{s:rf.fringe}
-
-Assuming cylindrical symmetry, the radial and azimuthal fields near the axis 
-can be related to the longitudinal electric field via Maxwell's equations\cite{b:hartman}
-\begin{equation}
-  E_r = -\frac{r}{2} \, \frac{\partial E_z}{\partial z}, \qquad
-  B_\phi = \frac{r}{2 \, c} \, \frac{\partial E_z}{\partial t}
-\end{equation}
-Assuming the particle velocity is $c$, these equations can be combined with the force equation
-\begin{equation}
-  F_r = q \, \left( E_r - c \, B_\phi \right)
-\end{equation}
-to give\cite{b:rosenzweig}
-\begin{equation}
-  F_r = - \frac{q \, r}{2} \, \frac{d E_z}{dz}
-  \label{fqr2}
-\end{equation}
-where the total derivative is used here\footnote
-  {
-Hartman\cite{b:hartman} Eq~(16) is not valid for a forward propagating wave component of
-the field. Thus Hartman Eq~(17) is only valid for a backward propagating wave component. \Eq{fqr2},
-on the other hand, is valid for all wave components.
-  }.
-From \Eq{fqr2}, the fringe field kick in the horizontal plane at the entrance end, valid for both
-traveling wave and standing wave cavities, is (cf. Rosenzweig\cite{b:rosenzweig} Eq~(10))
-\begin{equation}
-  \Delta p_x = - \frac{q \, \what E_z}{2 \, c \, P_0} \, x
-  \label{pqe2c}
-\end{equation}
-with a similar equation in the vertical. Here $\what E_z$ is the longitudinal electric field just inside
-the fringe, and $P_0$ is the reference momentum. At the exit end, the kick is the negative of
-\Eq{pqe2c}. This fringe kick is built into \vn{xxpc}.
-
-The integrated fringe fields, needed to calculate the spin precession, are at the entrance end
-\begin{align}
-  \int E_r \, ds &= -\frac{r}{4} \, \what E_z \CRNO
-  \int B_\phi \, ds &= \frac{r}{4 \, c} \, \what E_z
-\end{align}
-The integrated fields at the exit end are obtained by negating the RHS of these equations.

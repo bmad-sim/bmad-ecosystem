@@ -74,7 +74,7 @@ type (wall3d_vertex_struct), pointer :: v_ptr
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cartesian_map_term1_struct), allocatable :: ct_terms(:)
-type (gen_grad_field_struct), pointer :: gg_field
+type (gen_grad_map_struct), pointer :: gg_map
 type (grid_field_struct), pointer :: g_field
 type (cartesian_map_struct), pointer :: ct_map
 type (ac_kicker_struct), pointer :: ac
@@ -1435,40 +1435,40 @@ endif
 !-------------------------------
 ! Gen_Grad_field field
 
-if (attrib_word == 'GEN_GRAD_FIELD') then
+if (attrib_word == 'GEN_GRAD_MAP') then
 
-  if (.not. expect_this ('=', .true., .true., 'AFTER "GEN_GRAD_FIELD"', ele, delim, delim_found)) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "GEN_GRAD_MAP"', ele, delim, delim_found)) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
 
-  ! "ele1[gen_grad_field] = ele2[gen_grad_field]" construct
+  ! "ele1[gen_grad_map] = ele2[gen_grad_map]" construct
 
   if (delim == '[') then
-    ele2 => parser_find_ele_for_attrib_transfer ('GEN_GRAD_FIELD', word)
+    ele2 => parser_find_ele_for_attrib_transfer ('GEN_GRAD_MAP', word)
     if (err_flag) return
-    if (.not. associated(ele2%gen_grad_field)) then
-      call parser_error ('NO GEN_GRAD_FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+    if (.not. associated(ele2%gen_grad_map)) then
+      call parser_error ('NO GEN_GRAD_MAP ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    call transfer_fieldmap(ele2, ele, gen_grad_field$)
+    call transfer_fieldmap(ele2, ele, gen_grad_map$)
     return
   endif
 
-  if (associated(ele%gen_grad_field)) then
-    i_ptr = size(ele%gen_grad_field) + 1
-    ele0%gen_grad_field => ele%gen_grad_field
-    allocate(ele%gen_grad_field(i_ptr))
+  if (associated(ele%gen_grad_map)) then
+    i_ptr = size(ele%gen_grad_map) + 1
+    ele0%gen_grad_map => ele%gen_grad_map
+    allocate(ele%gen_grad_map(i_ptr))
     do i = 1, i_ptr-1
-     ele%gen_grad_field(i) = ele0%gen_grad_field(i)
+     ele%gen_grad_map(i) = ele0%gen_grad_map(i)
     enddo
   else
-    allocate(ele%gen_grad_field(1))
+    allocate(ele%gen_grad_map(1))
     i_ptr = 1
   endif
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "GEN_GRAD_FIELD"', ele, delim, delim_found)) return
-  gg_field => ele%gen_grad_field(i_ptr)
+  if (.not. expect_this ('{', .true., .true., 'AFTER "GEN_GRAD_MAP"', ele, delim, delim_found)) return
+  gg_map => ele%gen_grad_map(i_ptr)
 
-  call parse_gen_grad_field(gg_field, ele, lat, delim, delim_found, err_flag)
+  call parse_gen_grad_map(gg_map, ele, lat, delim, delim_found, err_flag)
 
   if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return
@@ -8635,9 +8635,9 @@ end subroutine parse_grid_field
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parse_gen_grad_field (gg_field, ele, lat, delim, delim_found, err_flag)
+! Subroutine parse_gen_grad_map (gg_map, ele, lat, delim, delim_found, err_flag)
 !
-! Subroutine to parse a "gen_grad_field = {}" construct
+! Subroutine to parse a "gen_grad_map = {}" construct
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is private to bmad_parser_mod.
@@ -8651,11 +8651,11 @@ end subroutine parse_grid_field
 !    . ) },
 !-
 
-subroutine parse_gen_grad_field (gg_field, ele, lat, delim, delim_found, err_flag)
+subroutine parse_gen_grad_map (gg_map, ele, lat, delim, delim_found, err_flag)
 
 implicit none
 
-type (gen_grad_field_struct), pointer :: gg_field
+type (gen_grad_map_struct), pointer :: gg_map
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: match_ele
 type (lat_struct), target :: lat
@@ -8691,15 +8691,15 @@ do
   select case (attrib_name)
 
   case ('FIELD_SCALE')
-    call parse_evaluate_value (ele%name, gg_field%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
+    call parse_evaluate_value (ele%name, gg_map%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', gg_field%r0, .true., delim, delim_found)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', gg_map%r0, .true., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
   case ('DZ')
-    call parse_evaluate_value (ele%name, gg_field%dz, lat, delim, delim_found, err_flag, ',}', ele)
+    call parse_evaluate_value (ele%name, gg_map%dz, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('ELE_ANCHOR_PT', 'FIELD_TYPE', 'MASTER_PARAMETER')
     ! Expect "<component> = "
@@ -8725,13 +8725,13 @@ do
           return
         endif
       endif
-      gg_field%master_parameter = ix
+      gg_map%master_parameter = ix
 
     case ('ELE_ANCHOR_PT')
-      call match_word(word2, anchor_pt_name(1:), gg_field%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, anchor_pt_name(1:), gg_map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
   
     case ('FIELD_TYPE')
-      call match_word(word2, em_field_type_name(1:2), gg_field%field_type, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, em_field_type_name(1:2), gg_map%field_type, can_abbreviate = .false., matched_name = name)
   
     end select
 
@@ -8746,9 +8746,9 @@ do
   case ('CURVED_REF_FRAME')    ! 'curved_coords' is old style.
     if (.not. equal_sign_here(ele, delim)) return
     call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
-    gg_field%curved_ref_frame = evaluate_logical (word2, ios)
+    gg_map%curved_ref_frame = evaluate_logical (word2, ios)
     if (ios /= 0 .or. ix_word == 0) then
-      call parser_error ('BAD GEN_GRAD_FIELD CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
+      call parser_error ('BAD GEN_GRAD_MAP CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
     endif
 
   case default
@@ -8772,7 +8772,7 @@ enddo
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 err_flag = .false.
 
-end subroutine parse_gen_grad_field
+end subroutine parse_gen_grad_map
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
