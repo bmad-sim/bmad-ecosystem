@@ -216,15 +216,15 @@ typedef valarray<CPP_rad_map_ele>          CPP_rad_map_ele_ARRAY;
 typedef valarray<CPP_rad_map_ele_ARRAY>    CPP_rad_map_ele_MATRIX;
 typedef valarray<CPP_rad_map_ele_MATRIX>   CPP_rad_map_ele_TENSOR;
 
-class CPP_gen_grad_field_coef;
-typedef valarray<CPP_gen_grad_field_coef>          CPP_gen_grad_field_coef_ARRAY;
-typedef valarray<CPP_gen_grad_field_coef_ARRAY>    CPP_gen_grad_field_coef_MATRIX;
-typedef valarray<CPP_gen_grad_field_coef_MATRIX>   CPP_gen_grad_field_coef_TENSOR;
+class CPP_gen_grad1;
+typedef valarray<CPP_gen_grad1>          CPP_gen_grad1_ARRAY;
+typedef valarray<CPP_gen_grad1_ARRAY>    CPP_gen_grad1_MATRIX;
+typedef valarray<CPP_gen_grad1_MATRIX>   CPP_gen_grad1_TENSOR;
 
-class CPP_gen_grad_field;
-typedef valarray<CPP_gen_grad_field>          CPP_gen_grad_field_ARRAY;
-typedef valarray<CPP_gen_grad_field_ARRAY>    CPP_gen_grad_field_MATRIX;
-typedef valarray<CPP_gen_grad_field_MATRIX>   CPP_gen_grad_field_TENSOR;
+class CPP_gen_grad_map;
+typedef valarray<CPP_gen_grad_map>          CPP_gen_grad_map_ARRAY;
+typedef valarray<CPP_gen_grad_map_ARRAY>    CPP_gen_grad_map_MATRIX;
+typedef valarray<CPP_gen_grad_map_MATRIX>   CPP_gen_grad_map_TENSOR;
 
 class CPP_surface_grid_pt;
 typedef valarray<CPP_surface_grid_pt>          CPP_surface_grid_pt_ARRAY;
@@ -1780,40 +1780,44 @@ bool operator== (const CPP_rad_map_ele&, const CPP_rad_map_ele&);
 
 
 //--------------------------------------------------------------------
-// CPP_gen_grad_field_coef
+// CPP_gen_grad1
 
-class Opaque_gen_grad_field_coef_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_gen_grad1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_gen_grad_field_coef {
+class CPP_gen_grad1 {
 public:
   Int m;
-  Real_MATRIX coef;
+  Int ix_deriv;
+  Int sincos;
+  Real_ARRAY coef;
 
-  CPP_gen_grad_field_coef() :
+  CPP_gen_grad1() :
     m(0),
-    coef(Real_ARRAY(0.0, 0), 0)
+    ix_deriv(-1),
+    sincos(0),
+    coef(0.0, 0)
     {}
 
-  ~CPP_gen_grad_field_coef() {
+  ~CPP_gen_grad1() {
   }
 
 };   // End Class
 
-extern "C" void gen_grad_field_coef_to_c (const Opaque_gen_grad_field_coef_class*, CPP_gen_grad_field_coef&);
-extern "C" void gen_grad_field_coef_to_f (const CPP_gen_grad_field_coef&, Opaque_gen_grad_field_coef_class*);
+extern "C" void gen_grad1_to_c (const Opaque_gen_grad1_class*, CPP_gen_grad1&);
+extern "C" void gen_grad1_to_f (const CPP_gen_grad1&, Opaque_gen_grad1_class*);
 
-bool operator== (const CPP_gen_grad_field_coef&, const CPP_gen_grad_field_coef&);
+bool operator== (const CPP_gen_grad1&, const CPP_gen_grad1&);
 
 
 //--------------------------------------------------------------------
-// CPP_gen_grad_field
+// CPP_gen_grad_map
 
-class Opaque_gen_grad_field_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_gen_grad_map_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_gen_grad_field {
+class CPP_gen_grad_map {
 public:
-  CPP_gen_grad_field_coef_ARRAY c;
-  CPP_gen_grad_field_coef_ARRAY s;
+  string file;
+  CPP_gen_grad1_ARRAY gg;
   Int ele_anchor_pt;
   Int field_type;
   Int lbound_ix_s;
@@ -1824,9 +1828,9 @@ public:
   Int master_parameter;
   Bool curved_ref_frame;
 
-  CPP_gen_grad_field() :
-    c(CPP_gen_grad_field_coef_ARRAY(CPP_gen_grad_field_coef(), 0)),
-    s(CPP_gen_grad_field_coef_ARRAY(CPP_gen_grad_field_coef(), 0)),
+  CPP_gen_grad_map() :
+    file(),
+    gg(CPP_gen_grad1_ARRAY(CPP_gen_grad1(), 0)),
     ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
     field_type(Bmad::MAGNETIC),
     lbound_ix_s(0),
@@ -1838,15 +1842,15 @@ public:
     curved_ref_frame(false)
     {}
 
-  ~CPP_gen_grad_field() {
+  ~CPP_gen_grad_map() {
   }
 
 };   // End Class
 
-extern "C" void gen_grad_field_to_c (const Opaque_gen_grad_field_class*, CPP_gen_grad_field&);
-extern "C" void gen_grad_field_to_f (const CPP_gen_grad_field&, Opaque_gen_grad_field_class*);
+extern "C" void gen_grad_map_to_c (const Opaque_gen_grad_map_class*, CPP_gen_grad_map&);
+extern "C" void gen_grad_map_to_f (const CPP_gen_grad_map&, Opaque_gen_grad_map_class*);
 
-bool operator== (const CPP_gen_grad_field&, const CPP_gen_grad_field&);
+bool operator== (const CPP_gen_grad_map&, const CPP_gen_grad_map&);
 
 
 //--------------------------------------------------------------------
@@ -3280,7 +3284,7 @@ public:
   CPP_wall3d_ARRAY wall3d;
   CPP_cartesian_map_ARRAY cartesian_map;
   CPP_cylindrical_map_ARRAY cylindrical_map;
-  CPP_gen_grad_field_ARRAY gen_grad_field;
+  CPP_gen_grad_map_ARRAY gen_grad_map;
   CPP_grid_field_ARRAY grid_field;
   CPP_coord map_ref_orb_in;
   CPP_coord map_ref_orb_out;
@@ -3389,7 +3393,7 @@ public:
     wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0)),
     cartesian_map(CPP_cartesian_map_ARRAY(CPP_cartesian_map(), 0)),
     cylindrical_map(CPP_cylindrical_map_ARRAY(CPP_cylindrical_map(), 0)),
-    gen_grad_field(CPP_gen_grad_field_ARRAY(CPP_gen_grad_field(), 0)),
+    gen_grad_map(CPP_gen_grad_map_ARRAY(CPP_gen_grad_map(), 0)),
     grid_field(CPP_grid_field_ARRAY(CPP_grid_field(), 0)),
     map_ref_orb_in(),
     map_ref_orb_out(),

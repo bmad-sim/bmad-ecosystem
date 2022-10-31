@@ -698,22 +698,24 @@ template bool is_all_equal (const CPP_rad_map_ele_MATRIX&, const CPP_rad_map_ele
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_gen_grad_field_coef& x, const CPP_gen_grad_field_coef& y) {
+bool operator== (const CPP_gen_grad1& x, const CPP_gen_grad1& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.m == y.m);
+  is_eq = is_eq && (x.ix_deriv == y.ix_deriv);
+  is_eq = is_eq && (x.sincos == y.sincos);
   is_eq = is_eq && is_all_equal(x.coef, y.coef);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_gen_grad_field_coef_ARRAY&, const CPP_gen_grad_field_coef_ARRAY&);
-template bool is_all_equal (const CPP_gen_grad_field_coef_MATRIX&, const CPP_gen_grad_field_coef_MATRIX&);
+template bool is_all_equal (const CPP_gen_grad1_ARRAY&, const CPP_gen_grad1_ARRAY&);
+template bool is_all_equal (const CPP_gen_grad1_MATRIX&, const CPP_gen_grad1_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_gen_grad_field& x, const CPP_gen_grad_field& y) {
+bool operator== (const CPP_gen_grad_map& x, const CPP_gen_grad_map& y) {
   bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.c, y.c);
-  is_eq = is_eq && is_all_equal(x.s, y.s);
+  is_eq = is_eq && (x.file == y.file);
+  is_eq = is_eq && is_all_equal(x.gg, y.gg);
   is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
   is_eq = is_eq && (x.field_type == y.field_type);
   is_eq = is_eq && (x.lbound_ix_s == y.lbound_ix_s);
@@ -726,8 +728,8 @@ bool operator== (const CPP_gen_grad_field& x, const CPP_gen_grad_field& y) {
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_gen_grad_field_ARRAY&, const CPP_gen_grad_field_ARRAY&);
-template bool is_all_equal (const CPP_gen_grad_field_MATRIX&, const CPP_gen_grad_field_MATRIX&);
+template bool is_all_equal (const CPP_gen_grad_map_ARRAY&, const CPP_gen_grad_map_ARRAY&);
+template bool is_all_equal (const CPP_gen_grad_map_MATRIX&, const CPP_gen_grad_map_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -1440,7 +1442,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && is_all_equal(x.wall3d, y.wall3d);
   is_eq = is_eq && is_all_equal(x.cartesian_map, y.cartesian_map);
   is_eq = is_eq && is_all_equal(x.cylindrical_map, y.cylindrical_map);
-  is_eq = is_eq && is_all_equal(x.gen_grad_field, y.gen_grad_field);
+  is_eq = is_eq && is_all_equal(x.gen_grad_map, y.gen_grad_map);
   is_eq = is_eq && is_all_equal(x.grid_field, y.grid_field);
   is_eq = is_eq && (x.map_ref_orb_in == y.map_ref_orb_in);
   is_eq = is_eq && (x.map_ref_orb_out == y.map_ref_orb_out);

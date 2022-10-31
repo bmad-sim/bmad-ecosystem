@@ -4056,18 +4056,18 @@ end subroutine set_rad_map_ele_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_gen_grad_field_coef (ok)
+subroutine test1_f_gen_grad1 (ok)
 
 implicit none
 
-type(gen_grad_field_coef_struct), target :: f_gen_grad_field_coef, f2_gen_grad_field_coef
+type(gen_grad1_struct), target :: f_gen_grad1, f2_gen_grad1
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_gen_grad_field_coef (c_gen_grad_field_coef, c_ok) bind(c)
+  subroutine test_c_gen_grad1 (c_gen_grad1, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_gen_grad_field_coef
+    type(c_ptr), value :: c_gen_grad1
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -4075,58 +4075,58 @@ end interface
 !
 
 ok = .true.
-call set_gen_grad_field_coef_test_pattern (f2_gen_grad_field_coef, 1)
+call set_gen_grad1_test_pattern (f2_gen_grad1, 1)
 
-call test_c_gen_grad_field_coef(c_loc(f2_gen_grad_field_coef), c_ok)
+call test_c_gen_grad1(c_loc(f2_gen_grad1), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_gen_grad_field_coef_test_pattern (f_gen_grad_field_coef, 4)
-if (f_gen_grad_field_coef == f2_gen_grad_field_coef) then
-  print *, 'gen_grad_field_coef: C side convert C->F: Good'
+call set_gen_grad1_test_pattern (f_gen_grad1, 4)
+if (f_gen_grad1 == f2_gen_grad1) then
+  print *, 'gen_grad1: C side convert C->F: Good'
 else
-  print *, 'gen_grad_field_coef: C SIDE CONVERT C->F: FAILED!'
+  print *, 'gen_grad1: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_gen_grad_field_coef
+end subroutine test1_f_gen_grad1
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_gen_grad_field_coef (c_gen_grad_field_coef, c_ok) bind(c)
+subroutine test2_f_gen_grad1 (c_gen_grad1, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_gen_grad_field_coef
-type(gen_grad_field_coef_struct), target :: f_gen_grad_field_coef, f2_gen_grad_field_coef
+type(c_ptr), value ::  c_gen_grad1
+type(gen_grad1_struct), target :: f_gen_grad1, f2_gen_grad1
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call gen_grad_field_coef_to_f (c_gen_grad_field_coef, c_loc(f_gen_grad_field_coef))
+call gen_grad1_to_f (c_gen_grad1, c_loc(f_gen_grad1))
 
-call set_gen_grad_field_coef_test_pattern (f2_gen_grad_field_coef, 2)
-if (f_gen_grad_field_coef == f2_gen_grad_field_coef) then
-  print *, 'gen_grad_field_coef: F side convert C->F: Good'
+call set_gen_grad1_test_pattern (f2_gen_grad1, 2)
+if (f_gen_grad1 == f2_gen_grad1) then
+  print *, 'gen_grad1: F side convert C->F: Good'
 else
-  print *, 'gen_grad_field_coef: F SIDE CONVERT C->F: FAILED!'
+  print *, 'gen_grad1: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_gen_grad_field_coef_test_pattern (f2_gen_grad_field_coef, 3)
-call gen_grad_field_coef_to_c (c_loc(f2_gen_grad_field_coef), c_gen_grad_field_coef)
+call set_gen_grad1_test_pattern (f2_gen_grad1, 3)
+call gen_grad1_to_c (c_loc(f2_gen_grad1), c_gen_grad1)
 
-end subroutine test2_f_gen_grad_field_coef
+end subroutine test2_f_gen_grad1
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_gen_grad_field_coef_test_pattern (F, ix_patt)
+subroutine set_gen_grad1_test_pattern (F, ix_patt)
 
 implicit none
 
-type(gen_grad_field_coef_struct) F
+type(gen_grad1_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -4135,37 +4135,40 @@ offset = 100 * ix_patt
 
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 1 + offset; F%m = rhs
-!! f_side.test_pat[real, 2, ALLOC]
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 2 + offset; F%ix_deriv = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 3 + offset; F%sincos = rhs
+!! f_side.test_pat[real, 1, ALLOC]
 
 if (ix_patt < 3) then
   if (allocated(F%coef)) deallocate (F%coef)
 else
-  if (.not. allocated(F%coef)) allocate (F%coef(-1:1, 2))
+  if (.not. allocated(F%coef)) allocate (F%coef(-1:1))
   do jd1 = 1, size(F%coef,1); lb1 = lbound(F%coef,1) - 1
-  do jd2 = 1, size(F%coef,2); lb2 = lbound(F%coef,2) - 1
-    rhs = 100 + jd1 + 10*jd2 + 2 + offset
-    F%coef(jd1+lb1,jd2+lb2) = rhs
-  enddo; enddo
+    rhs = 100 + jd1 + 4 + offset
+    F%coef(jd1+lb1) = rhs
+  enddo
 endif
 
-end subroutine set_gen_grad_field_coef_test_pattern
+end subroutine set_gen_grad1_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_gen_grad_field (ok)
+subroutine test1_f_gen_grad_map (ok)
 
 implicit none
 
-type(gen_grad_field_struct), target :: f_gen_grad_field, f2_gen_grad_field
+type(gen_grad_map_struct), target :: f_gen_grad_map, f2_gen_grad_map
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_gen_grad_field (c_gen_grad_field, c_ok) bind(c)
+  subroutine test_c_gen_grad_map (c_gen_grad_map, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_gen_grad_field
+    type(c_ptr), value :: c_gen_grad_map
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -4173,107 +4176,101 @@ end interface
 !
 
 ok = .true.
-call set_gen_grad_field_test_pattern (f2_gen_grad_field, 1)
+call set_gen_grad_map_test_pattern (f2_gen_grad_map, 1)
 
-call test_c_gen_grad_field(c_loc(f2_gen_grad_field), c_ok)
+call test_c_gen_grad_map(c_loc(f2_gen_grad_map), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_gen_grad_field_test_pattern (f_gen_grad_field, 4)
-if (f_gen_grad_field == f2_gen_grad_field) then
-  print *, 'gen_grad_field: C side convert C->F: Good'
+call set_gen_grad_map_test_pattern (f_gen_grad_map, 4)
+if (f_gen_grad_map == f2_gen_grad_map) then
+  print *, 'gen_grad_map: C side convert C->F: Good'
 else
-  print *, 'gen_grad_field: C SIDE CONVERT C->F: FAILED!'
+  print *, 'gen_grad_map: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_gen_grad_field
+end subroutine test1_f_gen_grad_map
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_gen_grad_field (c_gen_grad_field, c_ok) bind(c)
+subroutine test2_f_gen_grad_map (c_gen_grad_map, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_gen_grad_field
-type(gen_grad_field_struct), target :: f_gen_grad_field, f2_gen_grad_field
+type(c_ptr), value ::  c_gen_grad_map
+type(gen_grad_map_struct), target :: f_gen_grad_map, f2_gen_grad_map
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call gen_grad_field_to_f (c_gen_grad_field, c_loc(f_gen_grad_field))
+call gen_grad_map_to_f (c_gen_grad_map, c_loc(f_gen_grad_map))
 
-call set_gen_grad_field_test_pattern (f2_gen_grad_field, 2)
-if (f_gen_grad_field == f2_gen_grad_field) then
-  print *, 'gen_grad_field: F side convert C->F: Good'
+call set_gen_grad_map_test_pattern (f2_gen_grad_map, 2)
+if (f_gen_grad_map == f2_gen_grad_map) then
+  print *, 'gen_grad_map: F side convert C->F: Good'
 else
-  print *, 'gen_grad_field: F SIDE CONVERT C->F: FAILED!'
+  print *, 'gen_grad_map: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_gen_grad_field_test_pattern (f2_gen_grad_field, 3)
-call gen_grad_field_to_c (c_loc(f2_gen_grad_field), c_gen_grad_field)
+call set_gen_grad_map_test_pattern (f2_gen_grad_map, 3)
+call gen_grad_map_to_c (c_loc(f2_gen_grad_map), c_gen_grad_map)
 
-end subroutine test2_f_gen_grad_field
+end subroutine test2_f_gen_grad_map
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_gen_grad_field_test_pattern (F, ix_patt)
+subroutine set_gen_grad_map_test_pattern (F, ix_patt)
 
 implicit none
 
-type(gen_grad_field_struct) F
+type(gen_grad_map_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%file)
+  F%file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%c)) deallocate (F%c)
+  if (allocated(F%gg)) deallocate (F%gg)
 else
-  if (.not. allocated(F%c)) allocate (F%c(-1:1))
-  do jd1 = 1, size(F%c,1); lb1 = lbound(F%c,1) - 1
-    call set_gen_grad_field_coef_test_pattern (F%c(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%s)) deallocate (F%s)
-else
-  if (.not. allocated(F%s)) allocate (F%s(-1:1))
-  do jd1 = 1, size(F%s,1); lb1 = lbound(F%s,1) - 1
-    call set_gen_grad_field_coef_test_pattern (F%s(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%gg)) allocate (F%gg(-1:1))
+  do jd1 = 1, size(F%gg,1); lb1 = lbound(F%gg,1) - 1
+    call set_gen_grad1_test_pattern (F%gg(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 5 + offset; F%ele_anchor_pt = rhs
+rhs = 4 + offset; F%ele_anchor_pt = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%field_type = rhs
+rhs = 5 + offset; F%field_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%lbound_ix_s = rhs
+rhs = 6 + offset; F%lbound_ix_s = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%ubound_ix_s = rhs
+rhs = 7 + offset; F%ubound_ix_s = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%dz = rhs
+rhs = 8 + offset; F%dz = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
-  rhs = 100 + jd1 + 10 + offset
+  rhs = 100 + jd1 + 9 + offset
   F%r0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%field_scale = rhs
+rhs = 10 + offset; F%field_scale = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%master_parameter = rhs
+rhs = 11 + offset; F%master_parameter = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 13 + offset; F%curved_ref_frame = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%curved_ref_frame = (modulo(rhs, 2) == 0)
 
-end subroutine set_gen_grad_field_test_pattern
+end subroutine set_gen_grad_map_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -8335,11 +8332,11 @@ endif
 !! f_side.test_pat[type, 1, PTR]
 
 if (ix_patt < 3) then
-  if (associated(F%gen_grad_field)) deallocate (F%gen_grad_field)
+  if (associated(F%gen_grad_map)) deallocate (F%gen_grad_map)
 else
-  if (.not. associated(F%gen_grad_field)) allocate (F%gen_grad_field(-1:1))
-  do jd1 = 1, size(F%gen_grad_field,1); lb1 = lbound(F%gen_grad_field,1) - 1
-    call set_gen_grad_field_test_pattern (F%gen_grad_field(jd1+lb1), ix_patt+jd1)
+  if (.not. associated(F%gen_grad_map)) allocate (F%gen_grad_map(-1:1))
+  do jd1 = 1, size(F%gen_grad_map,1); lb1 = lbound(F%gen_grad_map,1) - 1
+    call set_gen_grad_map_test_pattern (F%gen_grad_map(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 !! f_side.test_pat[type, 1, PTR]

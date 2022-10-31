@@ -377,7 +377,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine gen_grad_field_coef_to_f (C, Fp) bind(c)
+  subroutine gen_grad1_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -386,7 +386,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine gen_grad_field_to_f (C, Fp) bind(c)
+  subroutine gen_grad_map_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -4927,137 +4927,139 @@ end subroutine rad_map_ele_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine gen_grad_field_coef_to_c (Fp, C) bind(c)
+! Subroutine gen_grad1_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad gen_grad_field_coef_struct to a C++ CPP_gen_grad_field_coef structure
+! Routine to convert a Bmad gen_grad1_struct to a C++ CPP_gen_grad1 structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad gen_grad_field_coef_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad gen_grad1_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_gen_grad_field_coef struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_gen_grad1 struct.
 !-
 
-subroutine gen_grad_field_coef_to_c (Fp, C) bind(c)
+subroutine gen_grad1_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine gen_grad_field_coef_to_c2 (C, z_m, z_coef, n1_coef, n2_coef) bind(c)
+  subroutine gen_grad1_to_c2 (C, z_m, z_ix_deriv, z_sincos, z_coef, n1_coef) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int) :: z_m
+    integer(c_int) :: z_m, z_ix_deriv, z_sincos
     real(c_double) :: z_coef(*)
-    integer(c_int), value :: n1_coef, n2_coef
+    integer(c_int), value :: n1_coef
   end subroutine
 end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(gen_grad_field_coef_struct), pointer :: F
+type(gen_grad1_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 integer(c_int) :: n1_coef
-integer(c_int) :: n2_coef
 
 !
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_c_trans[real, 2, ALLOC]
+!! f_side.to_c_trans[real, 1, ALLOC]
+n1_coef = 0
 if (allocated(F%coef)) then
   n1_coef = size(F%coef, 1)
-  n2_coef = size(F%coef, 2)
-else
-  n1_coef = 0; n2_coef = 0
 endif
 
 !! f_side.to_c2_call
-call gen_grad_field_coef_to_c2 (C, F%m, mat2vec(F%coef, n1_coef*n2_coef), n1_coef, n2_coef)
+call gen_grad1_to_c2 (C, F%m, F%ix_deriv, F%sincos, fvec2vec(F%coef, n1_coef), n1_coef)
 
-end subroutine gen_grad_field_coef_to_c
+end subroutine gen_grad1_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine gen_grad_field_coef_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine gen_grad1_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_gen_grad_field_coef structure to a Bmad gen_grad_field_coef_struct structure.
-! This routine is called by gen_grad_field_coef_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_gen_grad1 structure to a Bmad gen_grad1_struct structure.
+! This routine is called by gen_grad1_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the gen_grad_field_coef_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the gen_grad1_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad gen_grad_field_coef_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad gen_grad1_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine gen_grad_field_coef_to_f2 (Fp, z_m, z_coef, n1_coef, n2_coef) bind(c)
+subroutine gen_grad1_to_f2 (Fp, z_m, z_ix_deriv, z_sincos, z_coef, n1_coef) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(gen_grad_field_coef_struct), pointer :: F
+type(gen_grad1_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_m
+integer(c_int) :: z_m, z_ix_deriv, z_sincos
 type(c_ptr), value :: z_coef
 real(c_double), pointer :: f_coef(:)
-integer(c_int), value :: n1_coef, n2_coef
+integer(c_int), value :: n1_coef
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%m = z_m
-!! f_side.to_f2_trans[real, 2, ALLOC]
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_deriv = z_ix_deriv
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%sincos = z_sincos
+!! f_side.to_f2_trans[real, 1, ALLOC]
 if (allocated(F%coef)) then
-  if (n1_coef == 0 .or. any(shape(F%coef) /= [n1_coef, n2_coef])) deallocate(F%coef)
+  if (n1_coef == 0 .or. any(shape(F%coef) /= [n1_coef])) deallocate(F%coef)
   if (any(lbound(F%coef) /= 1)) deallocate(F%coef)
 endif
 if (n1_coef /= 0) then
-  call c_f_pointer (z_coef, f_coef, [n1_coef*n2_coef])
-  if (.not. allocated(F%coef)) allocate(F%coef(n1_coef, n2_coef))
-  call vec2mat(f_coef, F%coef)
+  call c_f_pointer (z_coef, f_coef, [n1_coef])
+  if (.not. allocated(F%coef)) allocate(F%coef(n1_coef))
+  F%coef = f_coef(1:n1_coef)
 else
   if (allocated(F%coef)) deallocate(F%coef)
 endif
 
 
-end subroutine gen_grad_field_coef_to_f2
+end subroutine gen_grad1_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine gen_grad_field_to_c (Fp, C) bind(c)
+! Subroutine gen_grad_map_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad gen_grad_field_struct to a C++ CPP_gen_grad_field structure
+! Routine to convert a Bmad gen_grad_map_struct to a C++ CPP_gen_grad_map structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad gen_grad_field_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad gen_grad_map_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_gen_grad_field struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_gen_grad_map struct.
 !-
 
-subroutine gen_grad_field_to_c (Fp, C) bind(c)
+subroutine gen_grad_map_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine gen_grad_field_to_c2 (C, z_c, n1_c, z_s, n1_s, z_ele_anchor_pt, z_field_type, &
+  subroutine gen_grad_map_to_c2 (C, z_file, z_gg, n1_gg, z_ele_anchor_pt, z_field_type, &
       z_lbound_ix_s, z_ubound_ix_s, z_dz, z_r0, z_field_scale, z_master_parameter, &
       z_curved_ref_frame) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr) :: z_c(*), z_s(*)
-    integer(c_int), value :: n1_c, n1_s
+    character(c_char) :: z_file(*)
+    type(c_ptr) :: z_gg(*)
+    integer(c_int), value :: n1_gg
     integer(c_int) :: z_ele_anchor_pt, z_field_type, z_lbound_ix_s, z_ubound_ix_s, z_master_parameter
     real(c_double) :: z_dz, z_r0(*), z_field_scale
     logical(c_bool) :: z_curved_ref_frame
@@ -5066,61 +5068,50 @@ end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(gen_grad_field_struct), pointer :: F
+type(gen_grad_map_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-type(c_ptr), allocatable :: z_c(:)
-integer(c_int) :: n1_c
-type(c_ptr), allocatable :: z_s(:)
-integer(c_int) :: n1_s
+type(c_ptr), allocatable :: z_gg(:)
+integer(c_int) :: n1_gg
 
 !
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_c = 0
-if (allocated(F%c)) then
-  n1_c = size(F%c); lb1 = lbound(F%c, 1) - 1
-  allocate (z_c(n1_c))
-  do jd1 = 1, n1_c
-    z_c(jd1) = c_loc(F%c(jd1+lb1))
-  enddo
-endif
-!! f_side.to_c_trans[type, 1, ALLOC]
- n1_s = 0
-if (allocated(F%s)) then
-  n1_s = size(F%s); lb1 = lbound(F%s, 1) - 1
-  allocate (z_s(n1_s))
-  do jd1 = 1, n1_s
-    z_s(jd1) = c_loc(F%s(jd1+lb1))
+ n1_gg = 0
+if (allocated(F%gg)) then
+  n1_gg = size(F%gg); lb1 = lbound(F%gg, 1) - 1
+  allocate (z_gg(n1_gg))
+  do jd1 = 1, n1_gg
+    z_gg(jd1) = c_loc(F%gg(jd1+lb1))
   enddo
 endif
 
 !! f_side.to_c2_call
-call gen_grad_field_to_c2 (C, z_c, n1_c, z_s, n1_s, F%ele_anchor_pt, F%field_type, &
-    F%lbound_ix_s, F%ubound_ix_s, F%dz, fvec2vec(F%r0, 3), F%field_scale, F%master_parameter, &
-    c_logic(F%curved_ref_frame))
+call gen_grad_map_to_c2 (C, trim(F%file) // c_null_char, z_gg, n1_gg, F%ele_anchor_pt, &
+    F%field_type, F%lbound_ix_s, F%ubound_ix_s, F%dz, fvec2vec(F%r0, 3), F%field_scale, &
+    F%master_parameter, c_logic(F%curved_ref_frame))
 
-end subroutine gen_grad_field_to_c
+end subroutine gen_grad_map_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine gen_grad_field_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine gen_grad_map_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_gen_grad_field structure to a Bmad gen_grad_field_struct structure.
-! This routine is called by gen_grad_field_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_gen_grad_map structure to a Bmad gen_grad_map_struct structure.
+! This routine is called by gen_grad_map_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the gen_grad_field_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the gen_grad_map_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad gen_grad_field_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad gen_grad_map_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine gen_grad_field_to_f2 (Fp, z_c, n1_c, z_s, n1_s, z_ele_anchor_pt, z_field_type, &
+subroutine gen_grad_map_to_f2 (Fp, z_file, z_gg, n1_gg, z_ele_anchor_pt, z_field_type, &
     z_lbound_ix_s, z_ubound_ix_s, z_dz, z_r0, z_field_scale, z_master_parameter, &
     z_curved_ref_frame) bind(c)
 
@@ -5128,42 +5119,31 @@ subroutine gen_grad_field_to_f2 (Fp, z_c, n1_c, z_s, n1_s, z_ele_anchor_pt, z_fi
 implicit none
 
 type(c_ptr), value :: Fp
-type(gen_grad_field_struct), pointer :: F
+type(gen_grad_map_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr) :: z_c(*), z_s(*)
-integer(c_int), value :: n1_c, n1_s
+character(c_char) :: z_file(*)
+type(c_ptr) :: z_gg(*)
+integer(c_int), value :: n1_gg
 integer(c_int) :: z_ele_anchor_pt, z_field_type, z_lbound_ix_s, z_ubound_ix_s, z_master_parameter
 real(c_double) :: z_dz, z_r0(*), z_field_scale
 logical(c_bool) :: z_curved_ref_frame
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_file, F%file)
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_c == 0) then
-  if (allocated(F%c)) deallocate(F%c)
+if (n1_gg == 0) then
+  if (allocated(F%gg)) deallocate(F%gg)
 else
-  if (allocated(F%c)) then
-    if (n1_c == 0 .or. any(shape(F%c) /= [n1_c])) deallocate(F%c)
-    if (any(lbound(F%c) /= 1)) deallocate(F%c)
+  if (allocated(F%gg)) then
+    if (n1_gg == 0 .or. any(shape(F%gg) /= [n1_gg])) deallocate(F%gg)
+    if (any(lbound(F%gg) /= 1)) deallocate(F%gg)
   endif
-  if (.not. allocated(F%c)) allocate(F%c(1:n1_c+1-1))
-  do jd1 = 1, n1_c
-    call gen_grad_field_coef_to_f (z_c(jd1), c_loc(F%c(jd1+1-1)))
-  enddo
-endif
-
-!! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_s == 0) then
-  if (allocated(F%s)) deallocate(F%s)
-else
-  if (allocated(F%s)) then
-    if (n1_s == 0 .or. any(shape(F%s) /= [n1_s])) deallocate(F%s)
-    if (any(lbound(F%s) /= 1)) deallocate(F%s)
-  endif
-  if (.not. allocated(F%s)) allocate(F%s(1:n1_s+1-1))
-  do jd1 = 1, n1_s
-    call gen_grad_field_coef_to_f (z_s(jd1), c_loc(F%s(jd1+1-1)))
+  if (.not. allocated(F%gg)) allocate(F%gg(1:n1_gg+1-1))
+  do jd1 = 1, n1_gg
+    call gen_grad1_to_f (z_gg(jd1), c_loc(F%gg(jd1+1-1)))
   enddo
 endif
 
@@ -5186,7 +5166,7 @@ F%master_parameter = z_master_parameter
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%curved_ref_frame = f_logic(z_curved_ref_frame)
 
-end subroutine gen_grad_field_to_f2
+end subroutine gen_grad_map_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -9161,7 +9141,7 @@ interface
       z_floor, z_high_energy_space_charge, n_high_energy_space_charge, z_mode3, n_mode3, &
       z_photon, n_photon, z_rad_map, n_rad_map, z_taylor, z_spin_taylor_ref_orb_in, &
       z_spin_taylor, z_wake, n_wake, z_wall3d, n1_wall3d, z_cartesian_map, n1_cartesian_map, &
-      z_cylindrical_map, n1_cylindrical_map, z_gen_grad_field, n1_gen_grad_field, z_grid_field, &
+      z_cylindrical_map, n1_cylindrical_map, z_gen_grad_map, n1_gen_grad_map, z_grid_field, &
       n1_grid_field, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, &
       z_time_ref_orb_out, z_value, z_old_value, z_spin_q, z_vec0, z_mat6, z_c_mat, z_gamma_c, &
       z_s_start, z_s, z_ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, &
@@ -9178,12 +9158,12 @@ interface
     type(c_ptr), value :: C
     character(c_char) :: z_name(*), z_type(*), z_alias(*), z_component_name(*), z_descrip(*)
     integer(c_int), value :: n_descrip, n_ac_kick, n_control, n_high_energy_space_charge, n_mode3, n_photon, n_rad_map
-    integer(c_int), value :: n_wake, n1_wall3d, n1_cartesian_map, n1_cylindrical_map, n1_gen_grad_field, n1_grid_field, n1_a_pole
+    integer(c_int), value :: n_wake, n1_wall3d, n1_cartesian_map, n1_cylindrical_map, n1_gen_grad_map, n1_grid_field, n1_a_pole
     integer(c_int), value :: n1_b_pole, n1_a_pole_elec, n1_b_pole_elec, n1_custom, n1_r, n2_r, n3_r
     type(c_ptr), value :: z_a, z_b, z_z, z_x, z_y, z_ac_kick, z_bookkeeping_state
     type(c_ptr), value :: z_control, z_floor, z_high_energy_space_charge, z_mode3, z_photon, z_rad_map, z_wake
     type(c_ptr), value :: z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out
-    type(c_ptr) :: z_taylor(*), z_spin_taylor(*), z_wall3d(*), z_cartesian_map(*), z_cylindrical_map(*), z_gen_grad_field(*), z_grid_field(*)
+    type(c_ptr) :: z_taylor(*), z_spin_taylor(*), z_wall3d(*), z_cartesian_map(*), z_cylindrical_map(*), z_gen_grad_map(*), z_grid_field(*)
     real(c_double) :: z_spin_taylor_ref_orb_in(*), z_value(*), z_old_value(*), z_spin_q(*), z_vec0(*), z_mat6(*), z_c_mat(*)
     real(c_double) :: z_gamma_c, z_s_start, z_s, z_ref_time, z_a_pole(*), z_b_pole(*), z_a_pole_elec(*)
     real(c_double) :: z_b_pole_elec(*), z_custom(*), z_r(*)
@@ -9218,8 +9198,8 @@ type(c_ptr), allocatable :: z_cartesian_map(:)
 integer(c_int) :: n1_cartesian_map
 type(c_ptr), allocatable :: z_cylindrical_map(:)
 integer(c_int) :: n1_cylindrical_map
-type(c_ptr), allocatable :: z_gen_grad_field(:)
-integer(c_int) :: n1_gen_grad_field
+type(c_ptr), allocatable :: z_gen_grad_map(:)
+integer(c_int) :: n1_gen_grad_map
 type(c_ptr), allocatable :: z_grid_field(:)
 integer(c_int) :: n1_grid_field
 integer(c_int) :: n1_a_pole
@@ -9298,12 +9278,12 @@ if (associated(F%cylindrical_map)) then
   enddo
 endif
 !! f_side.to_c_trans[type, 1, PTR]
- n1_gen_grad_field = 0
-if (associated(F%gen_grad_field)) then
-  n1_gen_grad_field = size(F%gen_grad_field); lb1 = lbound(F%gen_grad_field, 1) - 1
-  allocate (z_gen_grad_field(n1_gen_grad_field))
-  do jd1 = 1, n1_gen_grad_field
-    z_gen_grad_field(jd1) = c_loc(F%gen_grad_field(jd1+lb1))
+ n1_gen_grad_map = 0
+if (associated(F%gen_grad_map)) then
+  n1_gen_grad_map = size(F%gen_grad_map); lb1 = lbound(F%gen_grad_map, 1) - 1
+  allocate (z_gen_grad_map(n1_gen_grad_map))
+  do jd1 = 1, n1_gen_grad_map
+    z_gen_grad_map(jd1) = c_loc(F%gen_grad_map(jd1+lb1))
   enddo
 endif
 !! f_side.to_c_trans[type, 1, PTR]
@@ -9358,7 +9338,7 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     c_loc(F%photon), n_photon, c_loc(F%rad_map), n_rad_map, z_taylor, &
     fvec2vec(F%spin_taylor_ref_orb_in, 6), z_spin_taylor, c_loc(F%wake), n_wake, z_wall3d, &
     n1_wall3d, z_cartesian_map, n1_cartesian_map, z_cylindrical_map, n1_cylindrical_map, &
-    z_gen_grad_field, n1_gen_grad_field, z_grid_field, n1_grid_field, c_loc(F%map_ref_orb_in), &
+    z_gen_grad_map, n1_gen_grad_map, z_grid_field, n1_grid_field, c_loc(F%map_ref_orb_in), &
     c_loc(F%map_ref_orb_out), c_loc(F%time_ref_orb_in), c_loc(F%time_ref_orb_out), &
     fvec2vec(F%value, num_ele_attrib$), fvec2vec(F%old_value, num_ele_attrib$), &
     mat2vec(F%spin_q, 4*7), fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), mat2vec(F%c_mat, 2*2), &
@@ -9399,7 +9379,7 @@ subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, 
     z_floor, z_high_energy_space_charge, n_high_energy_space_charge, z_mode3, n_mode3, &
     z_photon, n_photon, z_rad_map, n_rad_map, z_taylor, z_spin_taylor_ref_orb_in, &
     z_spin_taylor, z_wake, n_wake, z_wall3d, n1_wall3d, z_cartesian_map, n1_cartesian_map, &
-    z_cylindrical_map, n1_cylindrical_map, z_gen_grad_field, n1_gen_grad_field, z_grid_field, &
+    z_cylindrical_map, n1_cylindrical_map, z_gen_grad_map, n1_gen_grad_map, z_grid_field, &
     n1_grid_field, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, &
     z_value, z_old_value, z_spin_q, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_s_start, z_s, &
     z_ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, &
@@ -9422,7 +9402,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 character(c_char) :: z_name(*), z_type(*), z_alias(*), z_component_name(*), z_descrip(*)
 integer(c_int), pointer :: f_descrip
 integer(c_int), value :: n_descrip, n_ac_kick, n_control, n_high_energy_space_charge, n_mode3, n_photon, n_rad_map
-integer(c_int), value :: n_wake, n1_wall3d, n1_cartesian_map, n1_cylindrical_map, n1_gen_grad_field, n1_grid_field, n1_a_pole
+integer(c_int), value :: n_wake, n1_wall3d, n1_cartesian_map, n1_cylindrical_map, n1_gen_grad_map, n1_grid_field, n1_a_pole
 integer(c_int), value :: n1_b_pole, n1_a_pole_elec, n1_b_pole_elec, n1_custom, n1_r, n2_r, n3_r
 type(c_ptr), value :: z_a, z_b, z_z, z_x, z_y, z_ac_kick, z_bookkeeping_state
 type(c_ptr), value :: z_control, z_floor, z_high_energy_space_charge, z_mode3, z_photon, z_rad_map, z_wake
@@ -9434,7 +9414,7 @@ type(high_energy_space_charge_struct), pointer :: f_high_energy_space_charge
 type(mode3_struct), pointer :: f_mode3
 type(photon_element_struct), pointer :: f_photon
 type(rad_map_ele_struct), pointer :: f_rad_map
-type(c_ptr) :: z_taylor(*), z_spin_taylor(*), z_wall3d(*), z_cartesian_map(*), z_cylindrical_map(*), z_gen_grad_field(*), z_grid_field(*)
+type(c_ptr) :: z_taylor(*), z_spin_taylor(*), z_wall3d(*), z_cartesian_map(*), z_cylindrical_map(*), z_gen_grad_map(*), z_grid_field(*)
 real(c_double) :: z_spin_taylor_ref_orb_in(*), z_value(*), z_old_value(*), z_spin_q(*), z_vec0(*), z_mat6(*), z_c_mat(*)
 real(c_double) :: z_gamma_c, z_s_start, z_s, z_ref_time
 type(wake_struct), pointer :: f_wake
@@ -9587,16 +9567,16 @@ else
 endif
 
 !! f_side.to_f2_trans[type, 1, PTR]
-if (n1_gen_grad_field == 0) then
-  if (associated(F%gen_grad_field)) deallocate(F%gen_grad_field)
+if (n1_gen_grad_map == 0) then
+  if (associated(F%gen_grad_map)) deallocate(F%gen_grad_map)
 else
-  if (associated(F%gen_grad_field)) then
-    if (n1_gen_grad_field == 0 .or. any(shape(F%gen_grad_field) /= [n1_gen_grad_field])) deallocate(F%gen_grad_field)
-    if (any(lbound(F%gen_grad_field) /= 1)) deallocate(F%gen_grad_field)
+  if (associated(F%gen_grad_map)) then
+    if (n1_gen_grad_map == 0 .or. any(shape(F%gen_grad_map) /= [n1_gen_grad_map])) deallocate(F%gen_grad_map)
+    if (any(lbound(F%gen_grad_map) /= 1)) deallocate(F%gen_grad_map)
   endif
-  if (.not. associated(F%gen_grad_field)) allocate(F%gen_grad_field(1:n1_gen_grad_field+1-1))
-  do jd1 = 1, n1_gen_grad_field
-    call gen_grad_field_to_f (z_gen_grad_field(jd1), c_loc(F%gen_grad_field(jd1+1-1)))
+  if (.not. associated(F%gen_grad_map)) allocate(F%gen_grad_map(1:n1_gen_grad_map+1-1))
+  do jd1 = 1, n1_gen_grad_map
+    call gen_grad_map_to_f (z_gen_grad_map(jd1), c_loc(F%gen_grad_map(jd1+1-1)))
   enddo
 endif
 

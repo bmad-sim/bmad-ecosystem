@@ -2714,152 +2714,152 @@ extern "C" void test_c_rad_map_ele (Opaque_rad_map_ele_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_gen_grad_field_coef (CPP_gen_grad_field_coef&, bool&);
+extern "C" void test2_f_gen_grad1 (CPP_gen_grad1&, bool&);
 
-void set_CPP_gen_grad_field_coef_test_pattern (CPP_gen_grad_field_coef& C, int ix_patt) {
+void set_CPP_gen_grad1_test_pattern (CPP_gen_grad1& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[integer, 0, NOT]
   rhs = 1 + offset; C.m = rhs;
 
-  // c_side.test_pat[real, 2, ALLOC]
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.ix_deriv = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 3 + offset; C.sincos = rhs;
+
+  // c_side.test_pat[real, 1, ALLOC]
   if (ix_patt < 3) 
     C.coef.resize(0);
   else {
     C.coef.resize(3);
     for (unsigned int i = 0; i < C.coef.size(); i++)
-      C.coef[i].resize(2);
-    for (unsigned int i = 0; i < C.coef.size(); i++)  for (unsigned int j = 0; j < C.coef[0].size(); j++) 
-      {int rhs = 101 + i + 10*(j+1) + 2 + offset; C.coef[i][j] = rhs;}  }
+      {int rhs = 101 + i + 4 + offset; C.coef[i] = rhs;}  }
 
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_gen_grad_field_coef (Opaque_gen_grad_field_coef_class* F, bool& c_ok) {
+extern "C" void test_c_gen_grad1 (Opaque_gen_grad1_class* F, bool& c_ok) {
 
-  CPP_gen_grad_field_coef C, C2;
+  CPP_gen_grad1 C, C2;
 
   c_ok = true;
 
-  gen_grad_field_coef_to_c (F, C);
-  set_CPP_gen_grad_field_coef_test_pattern (C2, 1);
+  gen_grad1_to_c (F, C);
+  set_CPP_gen_grad1_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " gen_grad_field_coef: C side convert F->C: Good" << endl;
+    cout << " gen_grad1: C side convert F->C: Good" << endl;
   } else {
-    cout << " gen_grad_field_coef: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " gen_grad1: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_gen_grad_field_coef_test_pattern (C2, 2);
+  set_CPP_gen_grad1_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_gen_grad_field_coef (C2, c_ok2);
+  test2_f_gen_grad1 (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_gen_grad_field_coef_test_pattern (C, 3);
+  set_CPP_gen_grad1_test_pattern (C, 3);
   if (C == C2) {
-    cout << " gen_grad_field_coef: F side convert F->C: Good" << endl;
+    cout << " gen_grad1: F side convert F->C: Good" << endl;
   } else {
-    cout << " gen_grad_field_coef: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " gen_grad1: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_gen_grad_field_coef_test_pattern (C2, 4);
-  gen_grad_field_coef_to_f (C2, F);
+  set_CPP_gen_grad1_test_pattern (C2, 4);
+  gen_grad1_to_f (C2, F);
 
 }
 
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_gen_grad_field (CPP_gen_grad_field&, bool&);
+extern "C" void test2_f_gen_grad_map (CPP_gen_grad_map&, bool&);
 
-void set_CPP_gen_grad_field_test_pattern (CPP_gen_grad_field& C, int ix_patt) {
+void set_CPP_gen_grad_map_test_pattern (CPP_gen_grad_map& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
+  // c_side.test_pat[character, 0, NOT]
+  C.file.resize(200);
+  for (unsigned int i = 0; i < C.file.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.c.resize(0);
+    C.gg.resize(0);
   else {
-    C.c.resize(3);
-    for (unsigned int i = 0; i < C.c.size(); i++)  {set_CPP_gen_grad_field_coef_test_pattern(C.c[i], ix_patt+i+1);}
-  }
-
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.s.resize(0);
-  else {
-    C.s.resize(3);
-    for (unsigned int i = 0; i < C.s.size(); i++)  {set_CPP_gen_grad_field_coef_test_pattern(C.s[i], ix_patt+i+1);}
+    C.gg.resize(3);
+    for (unsigned int i = 0; i < C.gg.size(); i++)  {set_CPP_gen_grad1_test_pattern(C.gg[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 5 + offset; C.ele_anchor_pt = rhs;
+  rhs = 4 + offset; C.ele_anchor_pt = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.field_type = rhs;
+  rhs = 5 + offset; C.field_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 7 + offset; C.lbound_ix_s = rhs;
+  rhs = 6 + offset; C.lbound_ix_s = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.ubound_ix_s = rhs;
+  rhs = 7 + offset; C.ubound_ix_s = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.dz = rhs;
+  rhs = 8 + offset; C.dz = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.r0.size(); i++)
-    {int rhs = 101 + i + 10 + offset; C.r0[i] = rhs;}
+    {int rhs = 101 + i + 9 + offset; C.r0[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.field_scale = rhs;
+  rhs = 10 + offset; C.field_scale = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 12 + offset; C.master_parameter = rhs;
+  rhs = 11 + offset; C.master_parameter = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 13 + offset; C.curved_ref_frame = (rhs % 2 == 0);
+  rhs = 12 + offset; C.curved_ref_frame = (rhs % 2 == 0);
 
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_gen_grad_field (Opaque_gen_grad_field_class* F, bool& c_ok) {
+extern "C" void test_c_gen_grad_map (Opaque_gen_grad_map_class* F, bool& c_ok) {
 
-  CPP_gen_grad_field C, C2;
+  CPP_gen_grad_map C, C2;
 
   c_ok = true;
 
-  gen_grad_field_to_c (F, C);
-  set_CPP_gen_grad_field_test_pattern (C2, 1);
+  gen_grad_map_to_c (F, C);
+  set_CPP_gen_grad_map_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " gen_grad_field: C side convert F->C: Good" << endl;
+    cout << " gen_grad_map: C side convert F->C: Good" << endl;
   } else {
-    cout << " gen_grad_field: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " gen_grad_map: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_gen_grad_field_test_pattern (C2, 2);
+  set_CPP_gen_grad_map_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_gen_grad_field (C2, c_ok2);
+  test2_f_gen_grad_map (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_gen_grad_field_test_pattern (C, 3);
+  set_CPP_gen_grad_map_test_pattern (C, 3);
   if (C == C2) {
-    cout << " gen_grad_field: F side convert F->C: Good" << endl;
+    cout << " gen_grad_map: F side convert F->C: Good" << endl;
   } else {
-    cout << " gen_grad_field: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " gen_grad_map: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_gen_grad_field_test_pattern (C2, 4);
-  gen_grad_field_to_f (C2, F);
+  set_CPP_gen_grad_map_test_pattern (C2, 4);
+  gen_grad_map_to_f (C2, F);
 
 }
 
@@ -5727,10 +5727,10 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
 
   // c_side.test_pat[type, 1, PTR]
   if (ix_patt < 3) 
-    C.gen_grad_field.resize(0);
+    C.gen_grad_map.resize(0);
   else {
-    C.gen_grad_field.resize(3);
-    for (unsigned int i = 0; i < C.gen_grad_field.size(); i++)  {set_CPP_gen_grad_field_test_pattern(C.gen_grad_field[i], ix_patt+i+1);}
+    C.gen_grad_map.resize(3);
+    for (unsigned int i = 0; i < C.gen_grad_map.size(); i++)  {set_CPP_gen_grad_map_test_pattern(C.gen_grad_map[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[type, 1, PTR]
