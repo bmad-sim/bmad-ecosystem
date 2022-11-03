@@ -4136,19 +4136,18 @@ offset = 100 * ix_patt
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 1 + offset; F%m = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%ix_deriv = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 3 + offset; F%sincos = rhs
-!! f_side.test_pat[real, 1, ALLOC]
+rhs = 2 + offset; F%sincos = rhs
+!! f_side.test_pat[real, 2, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%coef)) deallocate (F%coef)
+  if (allocated(F%deriv)) deallocate (F%deriv)
 else
-  if (.not. allocated(F%coef)) allocate (F%coef(-1:1))
-  do jd1 = 1, size(F%coef,1); lb1 = lbound(F%coef,1) - 1
-    rhs = 100 + jd1 + 4 + offset
-    F%coef(jd1+lb1) = rhs
-  enddo
+  if (.not. allocated(F%deriv)) allocate (F%deriv(-1:1, 2))
+  do jd1 = 1, size(F%deriv,1); lb1 = lbound(F%deriv,1) - 1
+  do jd2 = 1, size(F%deriv,2); lb2 = lbound(F%deriv,2) - 1
+    rhs = 100 + jd1 + 10*jd2 + 3 + offset
+    F%deriv(jd1+lb1,jd2+lb2) = rhs
+  enddo; enddo
 endif
 
 end subroutine set_gen_grad1_test_pattern
@@ -4253,9 +4252,9 @@ rhs = 4 + offset; F%ele_anchor_pt = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 5 + offset; F%field_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%lbound_ix_s = rhs
+rhs = 6 + offset; F%iz0 = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%ubound_ix_s = rhs
+rhs = 7 + offset; F%iz1 = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 8 + offset; F%dz = rhs
 !! f_side.test_pat[real, 1, NOT]

@@ -701,9 +701,8 @@ template bool is_all_equal (const CPP_rad_map_ele_MATRIX&, const CPP_rad_map_ele
 bool operator== (const CPP_gen_grad1& x, const CPP_gen_grad1& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.m == y.m);
-  is_eq = is_eq && (x.ix_deriv == y.ix_deriv);
   is_eq = is_eq && (x.sincos == y.sincos);
-  is_eq = is_eq && is_all_equal(x.coef, y.coef);
+  is_eq = is_eq && is_all_equal(x.deriv, y.deriv);
   return is_eq;
 };
 
@@ -718,8 +717,8 @@ bool operator== (const CPP_gen_grad_map& x, const CPP_gen_grad_map& y) {
   is_eq = is_eq && is_all_equal(x.gg, y.gg);
   is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
   is_eq = is_eq && (x.field_type == y.field_type);
-  is_eq = is_eq && (x.lbound_ix_s == y.lbound_ix_s);
-  is_eq = is_eq && (x.ubound_ix_s == y.ubound_ix_s);
+  is_eq = is_eq && (x.iz0 == y.iz0);
+  is_eq = is_eq && (x.iz1 == y.iz1);
   is_eq = is_eq && (x.dz == y.dz);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
   is_eq = is_eq && (x.field_scale == y.field_scale);

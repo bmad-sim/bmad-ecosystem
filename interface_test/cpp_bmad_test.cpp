@@ -2724,18 +2724,17 @@ void set_CPP_gen_grad1_test_pattern (CPP_gen_grad1& C, int ix_patt) {
   rhs = 1 + offset; C.m = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.ix_deriv = rhs;
+  rhs = 2 + offset; C.sincos = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.sincos = rhs;
-
-  // c_side.test_pat[real, 1, ALLOC]
+  // c_side.test_pat[real, 2, ALLOC]
   if (ix_patt < 3) 
-    C.coef.resize(0);
+    C.deriv.resize(0);
   else {
-    C.coef.resize(3);
-    for (unsigned int i = 0; i < C.coef.size(); i++)
-      {int rhs = 101 + i + 4 + offset; C.coef[i] = rhs;}  }
+    C.deriv.resize(3);
+    for (unsigned int i = 0; i < C.deriv.size(); i++)
+      C.deriv[i].resize(2);
+    for (unsigned int i = 0; i < C.deriv.size(); i++)  for (unsigned int j = 0; j < C.deriv[0].size(); j++) 
+      {int rhs = 101 + i + 10*(j+1) + 3 + offset; C.deriv[i][j] = rhs;}  }
 
 
 }
@@ -2804,10 +2803,10 @@ void set_CPP_gen_grad_map_test_pattern (CPP_gen_grad_map& C, int ix_patt) {
   rhs = 5 + offset; C.field_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.lbound_ix_s = rhs;
+  rhs = 6 + offset; C.iz0 = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 7 + offset; C.ubound_ix_s = rhs;
+  rhs = 7 + offset; C.iz1 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
   rhs = 8 + offset; C.dz = rhs;

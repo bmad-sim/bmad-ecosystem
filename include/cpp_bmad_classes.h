@@ -1787,15 +1787,13 @@ class Opaque_gen_grad1_class {};  // Opaque class for pointers to corresponding 
 class CPP_gen_grad1 {
 public:
   Int m;
-  Int ix_deriv;
   Int sincos;
-  Real_ARRAY coef;
+  Real_MATRIX deriv;
 
   CPP_gen_grad1() :
     m(0),
-    ix_deriv(-1),
     sincos(0),
-    coef(0.0, 0)
+    deriv(Real_ARRAY(0.0, 0), 0)
     {}
 
   ~CPP_gen_grad1() {
@@ -1820,8 +1818,8 @@ public:
   CPP_gen_grad1_ARRAY gg;
   Int ele_anchor_pt;
   Int field_type;
-  Int lbound_ix_s;
-  Int ubound_ix_s;
+  Int iz0;
+  Int iz1;
   Real dz;
   Real_ARRAY r0;
   Real field_scale;
@@ -1833,8 +1831,8 @@ public:
     gg(CPP_gen_grad1_ARRAY(CPP_gen_grad1(), 0)),
     ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
     field_type(Bmad::MAGNETIC),
-    lbound_ix_s(0),
-    ubound_ix_s(0),
+    iz0(0),
+    iz1(0),
     dz(0.0),
     r0(0.0, 3),
     field_scale(1),

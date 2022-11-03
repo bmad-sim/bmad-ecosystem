@@ -4944,13 +4944,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine gen_grad1_to_c2 (C, z_m, z_ix_deriv, z_sincos, z_coef, n1_coef) bind(c)
+  subroutine gen_grad1_to_c2 (C, z_m, z_sincos, z_deriv, n1_deriv, n2_deriv) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int) :: z_m, z_ix_deriv, z_sincos
-    real(c_double) :: z_coef(*)
-    integer(c_int), value :: n1_coef
+    integer(c_int) :: z_m, z_sincos
+    real(c_double) :: z_deriv(*)
+    integer(c_int), value :: n1_deriv, n2_deriv
   end subroutine
 end interface
 
@@ -4959,20 +4959,24 @@ type(c_ptr), value :: C
 type(gen_grad1_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-integer(c_int) :: n1_coef
+integer(c_int) :: n1_deriv
+integer(c_int) :: n2_deriv
 
 !
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_c_trans[real, 1, ALLOC]
-n1_coef = 0
-if (allocated(F%coef)) then
-  n1_coef = size(F%coef, 1)
+!! f_side.to_c_trans[real, 2, ALLOC]
+if (allocated(F%deriv)) then
+  n1_deriv = size(F%deriv, 1)
+  n2_deriv = size(F%deriv, 2)
+else
+  n1_deriv = 0; n2_deriv = 0
 endif
 
 !! f_side.to_c2_call
-call gen_grad1_to_c2 (C, F%m, F%ix_deriv, F%sincos, fvec2vec(F%coef, n1_coef), n1_coef)
+call gen_grad1_to_c2 (C, F%m, F%sincos, mat2vec(F%deriv, n1_deriv*n2_deriv), n1_deriv, &
+    n2_deriv)
 
 end subroutine gen_grad1_to_c
 
@@ -4992,7 +4996,7 @@ end subroutine gen_grad1_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine gen_grad1_to_f2 (Fp, z_m, z_ix_deriv, z_sincos, z_coef, n1_coef) bind(c)
+subroutine gen_grad1_to_f2 (Fp, z_m, z_sincos, z_deriv, n1_deriv, n2_deriv) bind(c)
 
 
 implicit none
@@ -5001,30 +5005,28 @@ type(c_ptr), value :: Fp
 type(gen_grad1_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_m, z_ix_deriv, z_sincos
-type(c_ptr), value :: z_coef
-real(c_double), pointer :: f_coef(:)
-integer(c_int), value :: n1_coef
+integer(c_int) :: z_m, z_sincos
+type(c_ptr), value :: z_deriv
+real(c_double), pointer :: f_deriv(:)
+integer(c_int), value :: n1_deriv, n2_deriv
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%m = z_m
 !! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_deriv = z_ix_deriv
-!! f_side.to_f2_trans[integer, 0, NOT]
 F%sincos = z_sincos
-!! f_side.to_f2_trans[real, 1, ALLOC]
-if (allocated(F%coef)) then
-  if (n1_coef == 0 .or. any(shape(F%coef) /= [n1_coef])) deallocate(F%coef)
-  if (any(lbound(F%coef) /= 1)) deallocate(F%coef)
+!! f_side.to_f2_trans[real, 2, ALLOC]
+if (allocated(F%deriv)) then
+  if (n1_deriv == 0 .or. any(shape(F%deriv) /= [n1_deriv, n2_deriv])) deallocate(F%deriv)
+  if (any(lbound(F%deriv) /= 1)) deallocate(F%deriv)
 endif
-if (n1_coef /= 0) then
-  call c_f_pointer (z_coef, f_coef, [n1_coef])
-  if (.not. allocated(F%coef)) allocate(F%coef(n1_coef))
-  F%coef = f_coef(1:n1_coef)
+if (n1_deriv /= 0) then
+  call c_f_pointer (z_deriv, f_deriv, [n1_deriv*n2_deriv])
+  if (.not. allocated(F%deriv)) allocate(F%deriv(n1_deriv, n2_deriv))
+  call vec2mat(f_deriv, F%deriv)
 else
-  if (allocated(F%coef)) deallocate(F%coef)
+  if (allocated(F%deriv)) deallocate(F%deriv)
 endif
 
 
@@ -5051,16 +5053,15 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine gen_grad_map_to_c2 (C, z_file, z_gg, n1_gg, z_ele_anchor_pt, z_field_type, &
-      z_lbound_ix_s, z_ubound_ix_s, z_dz, z_r0, z_field_scale, z_master_parameter, &
-      z_curved_ref_frame) bind(c)
+  subroutine gen_grad_map_to_c2 (C, z_file, z_gg, n1_gg, z_ele_anchor_pt, z_field_type, z_iz0, &
+      z_iz1, z_dz, z_r0, z_field_scale, z_master_parameter, z_curved_ref_frame) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
     type(c_ptr) :: z_gg(*)
     integer(c_int), value :: n1_gg
-    integer(c_int) :: z_ele_anchor_pt, z_field_type, z_lbound_ix_s, z_ubound_ix_s, z_master_parameter
+    integer(c_int) :: z_ele_anchor_pt, z_field_type, z_iz0, z_iz1, z_master_parameter
     real(c_double) :: z_dz, z_r0(*), z_field_scale
     logical(c_bool) :: z_curved_ref_frame
   end subroutine
@@ -5090,8 +5091,8 @@ endif
 
 !! f_side.to_c2_call
 call gen_grad_map_to_c2 (C, trim(F%file) // c_null_char, z_gg, n1_gg, F%ele_anchor_pt, &
-    F%field_type, F%lbound_ix_s, F%ubound_ix_s, F%dz, fvec2vec(F%r0, 3), F%field_scale, &
-    F%master_parameter, c_logic(F%curved_ref_frame))
+    F%field_type, F%iz0, F%iz1, F%dz, fvec2vec(F%r0, 3), F%field_scale, F%master_parameter, &
+    c_logic(F%curved_ref_frame))
 
 end subroutine gen_grad_map_to_c
 
@@ -5111,9 +5112,8 @@ end subroutine gen_grad_map_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine gen_grad_map_to_f2 (Fp, z_file, z_gg, n1_gg, z_ele_anchor_pt, z_field_type, &
-    z_lbound_ix_s, z_ubound_ix_s, z_dz, z_r0, z_field_scale, z_master_parameter, &
-    z_curved_ref_frame) bind(c)
+subroutine gen_grad_map_to_f2 (Fp, z_file, z_gg, n1_gg, z_ele_anchor_pt, z_field_type, z_iz0, &
+    z_iz1, z_dz, z_r0, z_field_scale, z_master_parameter, z_curved_ref_frame) bind(c)
 
 
 implicit none
@@ -5125,7 +5125,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 character(c_char) :: z_file(*)
 type(c_ptr) :: z_gg(*)
 integer(c_int), value :: n1_gg
-integer(c_int) :: z_ele_anchor_pt, z_field_type, z_lbound_ix_s, z_ubound_ix_s, z_master_parameter
+integer(c_int) :: z_ele_anchor_pt, z_field_type, z_iz0, z_iz1, z_master_parameter
 real(c_double) :: z_dz, z_r0(*), z_field_scale
 logical(c_bool) :: z_curved_ref_frame
 
@@ -5152,9 +5152,9 @@ F%ele_anchor_pt = z_ele_anchor_pt
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%field_type = z_field_type
 !! f_side.to_f2_trans[integer, 0, NOT]
-F%lbound_ix_s = z_lbound_ix_s
+F%iz0 = z_iz0
 !! f_side.to_f2_trans[integer, 0, NOT]
-F%ubound_ix_s = z_ubound_ix_s
+F%iz1 = z_iz1
 !! f_side.to_f2_trans[real, 0, NOT]
 F%dz = z_dz
 !! f_side.to_f2_trans[real, 1, NOT]
