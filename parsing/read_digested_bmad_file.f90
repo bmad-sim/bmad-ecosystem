@@ -655,16 +655,16 @@ if (n_gen > 0) then
     gg_map => ele%gen_grad_map(i)
 
     read (d_unit, err = 9120, end = 9120) gg_map%field_scale, gg_map%master_parameter, gg_map%curved_ref_frame, &
-            gg_map%ele_anchor_pt, gg_map%field_type, gg_map%dz, gg_map%r0, ns, gg_map%lbound_ix_s, gg_map%ubound_ix_s
+                            gg_map%ele_anchor_pt, gg_map%field_type, gg_map%dz, gg_map%r0, ns, gg_map%iz0, gg_map%iz1
     allocate (gg_map%gg(ns))
-    n0 = gg_map%lbound_ix_s;  n1 = gg_map%ubound_ix_s
+    n0 = gg_map%iz0;  n1 = gg_map%iz1
 
     do j = 1, size(gg_map%gg)
       ggcoef => gg_map%gg(j)
-      read (d_unit, err = 9120, end = 9120) ggcoef%m, ggcoef%ix_deriv, ggcoef%sincos
-      allocate (ggcoef%coef(n0:n1))
+      read (d_unit, err = 9120, end = 9120) ggcoef%m, ggcoef%sincos, lb2
+      allocate (ggcoef%deriv(n0:n1, 0:lb2))
       do k = n0, n1
-        read (d_unit, err = 9120, end = 9120) ggcoef%coef(k)
+        read (d_unit, err = 9120, end = 9120) ggcoef%deriv(k,:)
       enddo
     enddo
   enddo

@@ -461,14 +461,13 @@ do i = 1, n_gen
   gg_map => ele%gen_grad_map(i)
 
   write (d_unit) gg_map%field_scale, gg_map%master_parameter, gg_map%curved_ref_frame, &
-          gg_map%ele_anchor_pt, gg_map%field_type, gg_map%dz, gg_map%r0, size(gg_map%gg), &
-          gg_map%lbound_ix_s, gg_map%ubound_ix_s
+          gg_map%ele_anchor_pt, gg_map%field_type, gg_map%dz, gg_map%r0, size(gg_map%gg), gg_map%iz0, gg_map%iz1
 
   do j = 1, size(gg_map%gg)
     ggcoef => gg_map%gg(j)
-    write (d_unit) ggcoef%m, ggcoef%ix_deriv, ggcoef%sincos
-    do k = gg_map%lbound_ix_s, gg_map%ubound_ix_s
-      write (d_unit) ggcoef%coef(k)
+    write (d_unit) ggcoef%m, ggcoef%sincos, ubound(ggcoef%deriv,2)
+    do k = gg_map%iz0, gg_map%iz1
+      write (d_unit) ggcoef%deriv(k,:)
     enddo
   enddo
 enddo
