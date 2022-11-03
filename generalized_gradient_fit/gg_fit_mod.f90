@@ -8,12 +8,21 @@ implicit none
 
 !
 
+type gg1_struct
+  integer :: sincos = -1    ! sin$ or cos$
+  integer :: m = -1         ! Azimuthal index
+  real(rp), allocatable :: deriv(:,:)
+end type
+
+type (gg1_struct), allocatable, target :: gg1(:)
+
 type var_info_struct
-  integer :: cossin = -1    ! sin$ or cos$
+  integer :: sincos = -1    ! sin$ or cos$
   integer :: m = -1         ! Azimuthal index
   integer :: id = -1        ! derivative index
   integer :: sym_score = 1  ! Symmetry score. 0 => do not use in fit.
   integer :: ix_var = -1    ! Index to var_vec(:) array.
+  integer :: ix_gg = -1     ! Index to gg1 array
 end type
 
 type (var_info_struct), allocatable, target :: var_info(:)
@@ -46,7 +55,7 @@ real(rp) merit
 
 logical printit
 
-character(100) :: field_file
+character(100) :: field_file , out_file = ''
 
 contains
 
@@ -249,7 +258,7 @@ subroutine fit_field()
 type (var_info_struct), pointer :: vinfo
 real(rp), allocatable :: vec0(:)
 real(rp) merit, merit0, x, y
-integer ixz, ixz0, ixz1, iloop, iv0, im, id
+integer ixz, ixz0, ixz1, iloop, iv0, im, id, n_gg
 integer ix, iy, iz
 
 logical at_end
@@ -274,7 +283,8 @@ if (ixz1 == -1) ixz1 = Nz_max
 
 !
 
-n_var0 = (count(m_cos /= -1) + count(m_sin /= -1)) * (n_deriv_max + 1)
+n_gg = (count(m_cos /= -1) + count(m_sin /= -1))
+n_var0 = n_gg * (n_deriv_max + 1)
 do im = 1, m_max
   if (m_cos(im) == 0) n_var0 = n_var0 - 1
   if (m_sin(im) == 0) then
@@ -284,21 +294,35 @@ do im = 1, m_max
 enddo
 
 allocate (var_info(n_var0))
+allocate (gg1(n_gg))
 
 iv0 = 0
 n_var = 0
+n_gg = 0
 
 do im = 1, m_max
   if (m_cos(im) /= -1) then
+    n_gg = n_gg + 1
+    gg1(n_gg)%sincos = cos$
+    gg1(n_gg)%m = m_cos(im)
+    allocate (gg1(n_gg)%deriv(ixz0:ixz1, 0:n_deriv_max))
+    gg1(n_gg)%deriv = 0
+
     do id = 0, n_deriv_max
       if (m_cos(im) == 0 .and. id == 0) cycle
-      var_info(iv0) = var_info_setup(cos$, m_cos(im), id, iv0, n_var)
+      var_info(iv0) = var_info_setup(cos$, m_cos(im), id, iv0, n_var, n_gg)
     enddo
   endif
 
   if (m_sin(im) /= -1) then
+    n_gg = n_gg + 1
+    gg1(n_gg)%sincos = sin$
+    gg1(n_gg)%m = m_sin(im)
+    allocate (gg1(n_gg)%deriv(ixz0:ixz1, 0:n_deriv_max))
+    gg1(n_gg)%deriv = 0
+
     do id = 0, n_deriv_max
-      var_info(iv0) = var_info_setup(sin$, m_sin(im), id, iv0, n_var)
+      var_info(iv0) = var_info_setup(sin$, m_sin(im), id, iv0, n_var, n_gg)
     enddo
   endif
 enddo
@@ -325,6 +349,12 @@ do ixz = ixz0, ixz1
     if (at_end) exit
   enddo
 
+  do iv0 = 1, size(var_info)
+    vinfo => var_info(iv0)
+    if (vinfo%ix_var < 1) cycle
+    gg1(vinfo%ix_gg)%deriv(ixz,vinfo%id) = var_vec(vinfo%ix_var)
+  enddo
+
   print *
   print *, 'Plane:', ixz
   print *, ' Ix    m  der  sym            Coef'
@@ -332,10 +362,10 @@ do ixz = ixz0, ixz1
     vinfo => var_info(iv0)
     if (vinfo%ix_var > 0) then
       print '(i4, 3i5, 2x, a, es16.6)', iv0, vinfo%m, vinfo%id, &
-                              vinfo%sym_score, cossin_name(vinfo%cossin), var_vec(vinfo%ix_var)
+                              vinfo%sym_score, sincos_name(vinfo%sincos), var_vec(vinfo%ix_var)
     else
       print '(i4, 3i5, 2x, a, es16.6)', iv0, vinfo%m, vinfo%id, &
-                              vinfo%sym_score, cossin_name(vinfo%cossin)
+                              vinfo%sym_score, sincos_name(vinfo%sincos)
     endif
   enddo
 
@@ -352,7 +382,6 @@ do ixz = ixz0, ixz1
     enddo
   endif
 enddo
-
 
 !----------------------------------
 contains
@@ -405,7 +434,7 @@ do iv0 = 1, size(var_info)
       ff = f * p_rho * var_vec(iv)
 
       if (is_even) then
-        if (info%cossin == sin$) then
+        if (info%sincos == sin$) then
           B_rho   = ff * (2*nn+m) * sin(m*theta)
           B_theta = ff * m * cos(m*theta)
         else
@@ -418,7 +447,7 @@ do iv0 = 1, size(var_info)
         By_fit(ix,iy) = By_fit(ix,iy) + By
 
       else
-        if (info%cossin == sin$) then
+        if (info%sincos == sin$) then
           Bz = ff * sin(m*theta)
         else
           Bz = ff * cos(m*theta)
@@ -440,20 +469,6 @@ merit = sum(sqrt(merit_vec*merit_vec)) / n3
 
 end subroutine merit_calc
 
-!----------------------------------
-! contains
-
-function cossin_name(cossin) result (name)
-integer cossin
-character(3) name
-!
-select case (cossin)
-case (sin$);  name = 'sin'
-case (cos$);  name = 'cos'
-case default; name = '???'
-end select
-end function cossin_name
-
 end subroutine fit_field
 
 !---------------------------------------------------------------------------
@@ -462,10 +477,31 @@ end subroutine fit_field
 !+
 !-
 
-function var_info_setup (cossin, m, id, iv0, n_var) result (var_info)
+function sincos_name(sincos) result (name)
+
+integer sincos
+character(3) name
+
+!
+
+select case (sincos)
+case (sin$);  name = 'sin'
+case (cos$);  name = 'cos'
+case default; name = '???'
+end select
+
+end function sincos_name
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+!-
+
+function var_info_setup (sincos, m, id, iv0, n_var, n_gg) result (var_info)
 
 type (var_info_struct) var_info
-integer cossin, m, id, iv0, n_var, sym_score
+integer sincos, m, id, iv0, n_var, n_gg, sym_score
 logical is_even
 
 !
@@ -477,21 +513,21 @@ if (sym_x == 0 .and. sym_y == 0) then
   sym_score = 1
 
 elseif (sym_x == 0) then
-  if (cossin == sin$) then
+  if (sincos == sin$) then
     sym_score = 1 - sym_y
   else
     sym_score = 1 + sym_y
   endif
 
 elseif (sym_y == 0) then
-  if (cossin == sin$) then
+  if (sincos == sin$) then
     sym_score = 1 - (-1)**m * sym_x
   else
     sym_score = 1 + (-1)**m * sym_x
   endif
 
 else  ! sym in both planes
-  if (cossin == sin$) then
+  if (sincos == sin$) then
     sym_score = 1 - sym_y - (-1)**m * sym_x + (-1)**m * sym_x * sym_y
   else
     sym_score = 1 + sym_y + (-1)**m * sym_x + (-1)**m * sym_x * sym_y
@@ -499,12 +535,48 @@ else  ! sym in both planes
 endif
 
 if (sym_score == 0) then 
-  var_info = var_info_struct(cossin, m, id, sym_score, -1)
+  var_info = var_info_struct(sincos, m, id, sym_score, -1, -1)
 else
   n_var = n_var + 1
-  var_info = var_info_struct(cossin, m, id, sym_score, n_var)
+  var_info = var_info_struct(sincos, m, id, sym_score, n_var, n_gg)
 endif
 
 end function var_info_setup
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+!-
+
+subroutine write_gg()
+
+type (gg1_struct), pointer :: gg
+integer ig, iz
+
+if (out_file == '') out_file = 'gg.dat'
+open (1, file = out_file, status = 'new')
+
+write (1, '(4(a, f8.4))') '# del_grid = [', del_grid(1), ',', del_grid(2), ',', del_grid(3), ']'
+write (1, '(4(a, f8.4))') '# r0_grid  = [', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), ']'
+
+do ig = 1, size(gg1)
+  gg => gg1(ig)
+  if (ig > 1) then
+    write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
+    write (1, *)
+  endif
+  write (1, '(a, i2)') '#  m    =', gg%m
+  write (1, '(a, i2)') '#  type =', sincos_name(gg%sincos)
+  write (1, '(a, i2)') '# Iz     z_pos   Derivs'
+
+  do iz = Nz_min, Nz_max
+    write (1, '(i4, f10.4, 99es20.12)') iz, iz*del_grid(3)+r0_grid(3), gg%deriv(iz,:)
+  enddo
+enddo
+
+close (1)
+
+end subroutine write_gg
 
 end module

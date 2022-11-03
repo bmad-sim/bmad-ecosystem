@@ -15,7 +15,7 @@ character(100) file_name
 character(16) mode
 
 namelist /params / field_file, every_n_th_plane, n_deriv_max, m_cos, m_sin, n_cycles, &
-              ix_z_min, ix_z_max, sym_x, sym_y, mode, lmdif_eps, printit
+              ix_z_min, ix_z_max, sym_x, sym_y, mode, lmdif_eps, printit, out_file
 
 !
 
@@ -41,6 +41,7 @@ case ('binary')
 case ('fit')
   call read_field_table(field_file)
   call fit_field()
+  call write_gg()
 
 !
 
