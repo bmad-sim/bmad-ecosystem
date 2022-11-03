@@ -39,7 +39,7 @@ type ele_struct
   type (cartesian_map_struct), pointer :: cartesian_map(:)     ! Used to define DC fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) ! Used to define DC fields
   type (ele_struct), pointer :: lord           ! Pointer to a slice lord.
-  type (taylor_field_struct), pointer :: taylor_field(:)       ! Used to define DC and AC fields.
+  type (gen_grad_map_struct), pointer :: gen_grad_map(:)       ! Used to define DC fields.
   type (grid_field_struct), pointer :: grid_field(:)           ! Used to define DC and AC fields.
   type (fibre), pointer :: ptc_fibre           ! PTC tracking.
   type (floor_position_struct) floor           ! Global floor position.

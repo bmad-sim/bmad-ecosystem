@@ -1457,11 +1457,14 @@ if (attrib_word == 'GEN_GRAD_MAP') then
     i_ptr = size(ele%gen_grad_map) + 1
     ele0%gen_grad_map => ele%gen_grad_map
     allocate(ele%gen_grad_map(i_ptr))
+    allocate(ele%gen_grad_map(i_ptr)%gg(0))
     do i = 1, i_ptr-1
-     ele%gen_grad_map(i) = ele0%gen_grad_map(i)
+      ele%gen_grad_map(i) = ele0%gen_grad_map(i)
     enddo
+    deallocate(ele0%gen_grad_map)
   else
     allocate(ele%gen_grad_map(1))
+    allocate(ele%gen_grad_map(1)%gg(0))
     i_ptr = 1
   endif
 
@@ -7938,7 +7941,7 @@ do
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', ct_map%r0, .true., delim, delim_found)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // 'GRID_FIELD', ct_map%r0, .true., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
 
@@ -8638,17 +8641,6 @@ end subroutine parse_grid_field
 ! Subroutine parse_gen_grad_map (gg_map, ele, lat, delim, delim_found, err_flag)
 !
 ! Subroutine to parse a "gen_grad_map = {}" construct
-!
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is private to bmad_parser_mod.
-! This must read in:
-! {type = ,
-!    dr = , 
-!    r0 = , 
-!    pt(i,j,k) = ( (ex_re, ex_im), .... (bz_re, bz_im) ) 
-!    .
-!    .
-!    . ) },
 !-
 
 subroutine parse_gen_grad_map (gg_map, ele, lat, delim, delim_found, err_flag)
@@ -8656,6 +8648,8 @@ subroutine parse_gen_grad_map (gg_map, ele, lat, delim, delim_found, err_flag)
 implicit none
 
 type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), allocatable :: gg(:)
+type (gen_grad1_struct), pointer :: gg1
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: match_ele
 type (lat_struct), target :: lat
@@ -8663,18 +8657,19 @@ type (branch_struct), pointer :: branch
 type (em_taylor_term_struct), allocatable :: term(:)
 type (em_taylor_term_struct), pointer :: tm
 
-real(rp) coef
+real(rp) coef, deriv(0:30)
 
 complex(rp), pointer :: c_ptr(:)
 
-integer i, j, expn(2), nn, n, i_term, ib, ie, im, ix, family, ios
-integer lb, i_out, ix_word
+integer i, j, nn, n, i_ib, ie, im, ix, ios, nder
+integer lb, i_out, ix_word, ixz
 
+character(500) line
 character(80) err_str
 character(40) word, word2, name, attrib_name
 character(1) delim, delim2
 
-logical err_flag, delim_found
+logical err_flag, delim_found, valid
 
 ! Init
 
@@ -8750,6 +8745,88 @@ do
     if (ios /= 0 .or. ix_word == 0) then
       call parser_error ('BAD GEN_GRAD_MAP CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
     endif
+
+  case ('{')
+    n = size(gg_map%gg)
+    call move_alloc(gg_map%gg, gg)
+    allocate (gg_map%gg(n+1))
+    gg_map%gg(1:n) = gg
+    deallocate(gg)
+    gg1 => gg_map%gg(n+1)
+
+    do
+      call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+      select case (attrib_name)
+
+      case ('M')
+        call parser_get_integer (gg1%m, word, ix_word, delim, delim_found, err_flag, 'BAD GEN_GRAD%GG%M CONSTRUCT', 'IN ELEMENT: ' // ele%name)
+
+      case ('TYPE')
+        call get_next_word (word, ix_word, ',}', delim, delim_found)
+        call match_word(word2, ['COS', 'SIN'], gg1%sincos, can_abbreviate = .false., matched_name = word)
+        select case (word)
+        case ('SIN');   gg1%sincos = sin$
+        case ('COS');   gg1%sincos = cos$
+        case default
+          call parser_error ('BAD GEN_GRAD%GG%TYPE = <SIN-OR-COS>" CONSTRUCT', 'FOUND IN ELEMENT: ' // ele%name)
+          return
+        end select
+
+      case ('DERIVS')
+        ixz = gg_map%iz0-1
+        do
+          call get_next_word(line, ix_word, ',}', delim, delim_found, .false.)
+          ix = index(line, ':')
+          if (ix == 0) then
+            call parser_error ('MISSING ":" IN DERIVS TABLE: ' // line, 'FOR ELEMENT: ' // ele%name)
+            return
+          endif
+          ixz = ixz + 1
+          valid = is_integer(line(:ix-1), n)
+          if (valid .and. n /= gg_map%iz0) then
+            call parser_error ('BEGINNING Z-INDEX IN DERIVS TABLE NOT EQUAL TO GG_MAP%IZ1', 'FOR ELEMENT: ' // ele%name)
+            return
+          endif
+          if (.not. valid .or. n /= ixz) then
+            call parser_error ('BAD Z-INDEX IN DERIVS TABLE: ' // line, 'FOR ELEMENT: ' // ele%name)
+            return
+          endif
+
+          nn = -1
+          do
+            call string_trim(line(ix+1:), line, ix)
+            if (line == '') exit
+            nn = nn + 1
+            read (line, *, iostat = ios) deriv(nn)
+            if (ios /= 0) then
+              call parser_error ('BAD DERIVATIVE NUMBER IN DERIVS TABLE: ' // line, 'FOR ELEMENT: ' // ele%name)
+              return
+            endif
+            call string_trim(line(ix+1:), line, ix)
+          enddo
+
+          if (ixz == gg_map%iz0) then
+            allocate(gg1%deriv(gg_map%iz0:gg_map%iz1, 0:nn))
+            nder = nn
+          else
+            if (nn /= nder) then
+              call parser_error ('NUMBER OF DERIVATIVES NOT CONSTANT IN DERIVS TABLE: ' // line, 'FOR ELEMENT: ' // ele%name)
+              return
+            endif
+          endif
+
+          gg1%deriv(ixz,:) = deriv(0:nn)
+          if (delim == '}') exit
+        enddo
+
+        if (ixz /= gg_map%iz1) then
+          call parser_error ('ENDING Z-INDEX IN DERIVS TABLE NOT EQUAL TO GG_MAP%IZ1', 'FOR ELEMENT: ' // ele%name)
+          return
+        endif
+      end select
+
+      if (delim == '}') exit
+    enddo
 
   case default
     if (attrib_name == '') then

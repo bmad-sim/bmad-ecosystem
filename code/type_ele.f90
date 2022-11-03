@@ -509,8 +509,9 @@ if (associated(ele%gen_grad_map)) then
 
       nl=nl+1; write (li(nl), '(2a)')         '    field_type:        ', em_field_type_name(gg_map%field_type)
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:       ', gg_map%field_scale
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:                ', gg_map%dz
       nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:                ', gg_map%r0
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:                ', gg_map%dz
+      nl=nl+1; write (li(nl), '(a, 2i5)')     '    iz0, iz1:          ', gg_map%iz0, gg_map%iz1
       nl=nl+1; write (li(nl), '(2a)')         '    master_parameter:  ', trim(name)
       nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:     ', anchor_pt_name(gg_map%ele_anchor_pt)
       nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame   ', gg_map%curved_ref_frame

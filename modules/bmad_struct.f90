@@ -705,10 +705,9 @@ end type
 ! Generalized gradients
 
 type gen_grad1_struct
-  integer :: m = 0              ! Azimuthal index
-  integer :: ix_deriv = -1      ! derivative index
-  integer :: sincos = 0         ! sin$ or cos$
-  real(rp), allocatable :: coef(:)  ! (ix_s_pt)
+  integer :: m = 0                      ! Azimuthal index
+  integer :: sincos = 0                 ! sin$ or cos$
+  real(rp), allocatable :: deriv(:,:)    ! (ix_z, ix_deriv)
 end type  
 
 type gen_grad_map_struct
@@ -716,8 +715,8 @@ type gen_grad_map_struct
   type (gen_grad1_struct), allocatable :: gg(:)
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: field_type = magnetic$  ! or electric$
-  integer :: lbound_ix_s = 0
-  integer :: ubound_ix_s = 0
+  integer :: iz0 = 0                 ! gg%coef(:) lower bound.
+  integer :: iz1 = 0                 ! gg%coef(:) upper bound.
   real(rp) :: dz = 0                 ! Point spacing.
   real(rp) :: r0(3) = 0              ! field origin relative to ele_anchor_pt.
   real(rp) :: field_scale = 1        ! Factor to scale the fields by
@@ -2238,6 +2237,40 @@ type pmd_header_struct
   character(:), allocatable :: latticeFile
   character(:), allocatable :: latticeName
 end type
+
+!-------------------------------------------------------------------------------------
+! Parameters for expression_mod
+
+! The numeric$ category is for numeric constants [EG: "1.3d-5"].
+! The constant$ category is for constants like pi.
+! The variable$ category includes symbolic constants defined in a lattice file, lattice parameters, etc.
+! The species$ category is for the species() function. 
+! The species_const$ category is for particle species ('He3', etc).
+
+integer, parameter :: end_stack$ = 0, plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
+integer, parameter :: l_parens$ = 5, r_parens$ = 6, power$ = 7
+integer, parameter :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
+integer, parameter :: sin$ = 11, cos$ = 12, tan$ = 13
+integer, parameter :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
+integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ = 23
+integer, parameter :: factorial$ = 24, int$ = 25, nint$ = 26, floor$ = 27, ceiling$ = 28
+integer, parameter :: numeric$ = 29, variable$ = 30
+integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_const$ = 35
+integer, parameter :: sinc$ = 36, constant$ = 37, comma$ = 38, rms$ = 39, average$ = 40, sum$ = 41, l_func_parens$ = 42
+integer, parameter :: arg_count$ = 43, antiparticle$ = 44, cot$ = 45, sec$ = 46, csc$ = 47, sign$ = 48
+integer, parameter :: sinh$ = 49, cosh$ = 50, tanh$ = 51, coth$ = 52, asinh$ = 53, acosh$ = 54, atanh$ = 55, acoth$ = 56
+
+! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
+! Note: "rms" and "average" are not implemented here but is used by Tao.
+
+character(20), parameter :: expression_op_name(56) = [character(20) :: '+', '-', '*', '/', &
+                                    '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
+                                    'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
+                                    'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
+                                    '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', &
+                                    'species', '?!+Species', 'sinc', '?!+Constant', ',', 'rms', 'average', 'sum', &
+                                    '(', '?!+Arg Count', 'antiparticle', 'cot', 'sec', 'csc', 'sign', &
+                                    'sinh', 'cosh', 'tanh', 'coth', 'asinh', 'acosh', 'atanh', 'acoth']
 
 contains
 

@@ -46,7 +46,6 @@ recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, f
 
 use super_recipes_mod
 use em_field_mod, dummy => em_field_calc
-use expression_mod, only: cos$, sin$
 
 type (ele_struct), target :: ele, ele2
 type (ele_pointer_struct), allocatable, optional :: used_eles(:)
@@ -60,7 +59,6 @@ type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
 type (cylindrical_map_term1_struct), pointer :: cl_term
 type (gen_grad_map_struct), pointer :: gg_map
-type (gen_grad1_struct), pointer :: ggcoef
 type (grid_field_struct), pointer :: g_field, g_field_ptr
 type (grid_field_pt1_struct) g_pt
 type (floor_position_struct) lab_position, global_position, lord_position
@@ -1273,21 +1271,7 @@ case(fieldmap$)
         return
       endif
 
-      iz0 = floor(z / gg_map%dz)
-
-      if (iz0 < gg_map%lbound_ix_s .or. iz0 >= gg_map%ubound_ix_s) then
-        if (.not. logic_option(.false., grid_allow_s_out_of_bounds)) then
-          call out_io (s_error$, r_name, 'PARTICLE Z  \F10.3\ POSITION OUT OF BOUNDS.', &
-                                         'FOR GEN_GRAD_MAP IN ELEMENT: ' // ele%name, r_array = [s_body])
-          return
-        endif
-        cycle 
-      endif
-
-      do j = 1, size(gg_map%gg)
-        ggcoef => gg_map%gg(j)
-        call gen_grad_add_em_field (gg_map, ggcoef, iz0, [x,y,z], field)
-      enddo
+      call gen_grad_add_em_field (ele, gg_map, [x,y,z], field)
     enddo
   endif
 
@@ -1591,26 +1575,108 @@ end subroutine restore_curvilinear_field
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine gen_grad_add_em_field (gg_map, ggcoef, iz0, r_pos, field)
+subroutine gen_grad_add_em_field (ele, gg_map, r_pos, field)
 
-type (gen_grad_map_struct) :: gg_map
-type (gen_grad1_struct) :: ggcoef
+type (ele_struct) ele
+type (gen_grad_map_struct), target :: gg_map
+type (gen_grad1_struct), pointer :: gg
 type (em_field_struct) field
 
-real(rp) r_pos(3), z_rel, theta, azi
-integer iz0
+real(rp) r_pos(3), z_rel, theta, rho, azi, cd, p_rho, ff, Fld(3), F_rho, F_theta
+real(rp), allocatable :: d0(:), d1(:)
+integer iz0, m, j, id, nd, ud, nn
+logical is_even
+
+!
+
+iz0 = floor(r_pos(3) / gg_map%dz)
+
+if (iz0 < gg_map%iz0 .or. iz0 >= gg_map%iz1) then
+  if (.not. logic_option(.false., grid_allow_s_out_of_bounds)) then
+    call out_io (s_error$, r_name, 'PARTICLE Z  \F10.3\ POSITION OUT OF BOUNDS.', &
+                                   'FOR GEN_GRAD_MAP IN ELEMENT: ' // ele%name, r_array = [s_body])
+  endif
+  return
+endif
 
 !
 
 z_rel = r_pos(3) - iz0 * gg_map%dz
 theta = atan2(r_pos(2), r_pos(1))
+rho = norm2(r_pos(1:2))
 
-select case (ggcoef%sincos)
-case (cos$);  azi = cos(ggcoef%m * theta)
-case (sin$);  azi = sin(ggcoef%m * theta)
-end select
+do j = 1, size(gg_map%gg)
+  gg => gg_map%gg(j)
+  m = gg%m
+  nd = ubound(gg%deriv,2)
+  call re_allocate2(d0, 0, nd, .false.)
+  call re_allocate2(d1, 0, nd, .false.)
+  d0 = gg%deriv(iz0,:)
+  d1 = gg%deriv(iz1,:)
+
+  select case (gg%sincos)
+  case (cos$);  azi = cos(gg%m * theta)
+  case (sin$);  azi = sin(gg%m * theta)
+  end select
+
+  ud = nd
+  do id = 0, nd
+    is_even = (modulo(id,2) == 0)
+    if (is_even) then
+      nn = id / 2
+    else
+      nn = (id - 1) / 2
+    endif
+
+    f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
+    cd = poly_eval(d0(0:ud), z_rel) + poly_eval(d1(0:ud), z_rel-gg_map%dz)
+
+    if (id+m-1 == 0) then  ! Covers case where rho = 0
+      p_rho = 1
+    else
+      p_rho = rho**(id+m-1)
+    endif
+
+    ff = f * p_rho * cd * gg_map%field_scale * master_parameter_value(gg_map%master_parameter, ele)
+
+    if (is_even) then
+      if (gg%sincos == sin$) then
+        F_rho   = ff * (2*nn+m) * sin(m*theta)
+        F_theta = ff * m * cos(m*theta)
+      else
+        F_rho   = ff * (2*nn+m) * cos(m*theta)
+        F_theta = -ff * m * sin(m*theta)
+      endif
+      Fld(1) = F_rho * cos(theta) - F_theta * sin(theta)
+      Fld(2) = F_rho * sin(theta) + F_theta * cos(theta)
+      if (gg_map%field_type == magnetic$) then
+        field%B(1:2) = field%B(1:2) + Fld(1:2)
+      else
+        field%E(1:2) = field%E(1:2) + Fld(1:2)
+      endif
+
+    else
+      if (gg%sincos == sin$) then
+        Fld(3) = ff * sin(m*theta)
+      else
+        Fld(3) = ff * cos(m*theta)
+      endif
+
+      if (gg_map%field_type == magnetic$) then
+        field%B(3) = field%B(3) + Fld(3)
+      else
+        field%E(3) = field%E(3) + Fld(3)
+      endif
+    endif
 
 
+    forall (j = 0:ud) d0(j) = j * d0(j)
+    forall (j = 0:ud) d1(j) = j * d1(j)
+    ud = ud - 1
+    d0(0:ud) = d0(1:ud+1)
+    d1(0:ud) = d1(1:ud+1)
+  enddo
+enddo
 
 end subroutine gen_grad_add_em_field
 

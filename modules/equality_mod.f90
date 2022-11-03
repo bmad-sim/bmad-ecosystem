@@ -1209,15 +1209,13 @@ is_eq = .true.
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%m == f2%m)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_deriv == f2%ix_deriv)
-!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%sincos == f2%sincos)
-!! f_side.equality_test[real, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%coef) .eqv. allocated(f2%coef))
+!! f_side.equality_test[real, 2, ALLOC]
+is_eq = is_eq .and. (allocated(f1%deriv) .eqv. allocated(f2%deriv))
 if (.not. is_eq) return
-if (allocated(f1%coef)) is_eq = all(shape(f1%coef) == shape(f2%coef))
+if (allocated(f1%deriv)) is_eq = all(shape(f1%deriv) == shape(f2%deriv))
 if (.not. is_eq) return
-if (allocated(f1%coef)) is_eq = all(f1%coef == f2%coef)
+if (allocated(f1%deriv)) is_eq = all(f1%deriv == f2%deriv)
 
 end function eq_gen_grad1
 
@@ -1247,9 +1245,9 @@ is_eq = is_eq .and. (f1%ele_anchor_pt == f2%ele_anchor_pt)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%field_type == f2%field_type)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%lbound_ix_s == f2%lbound_ix_s)
+is_eq = is_eq .and. (f1%iz0 == f2%iz0)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ubound_ix_s == f2%ubound_ix_s)
+is_eq = is_eq .and. (f1%iz1 == f2%iz1)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dz == f2%dz)
 !! f_side.equality_test[real, 1, NOT]
