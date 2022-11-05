@@ -33,7 +33,7 @@ integer :: n_grid_pts
 integer :: n_cycles
 integer :: every_n_th_plane
 integer :: n_deriv_max
-integer :: ix_z_min = -1, ix_z_max = -1    ! Compute range
+integer :: iz_min = int_garbage$, iz_max = int_garbage$    ! Compute range
 integer :: m_cos(m_max) = -1
 integer :: m_sin(m_max) = -1
 integer :: sym_x = 0, sym_y = 0
@@ -111,8 +111,6 @@ if (index(field_file, '.binary') /= 0) then
     valid_field(i,j,k) = .true.
   enddo
 
-  close (1)
-
 ! ASCII
 
 else
@@ -163,11 +161,11 @@ else
     valid_field(i,j,k) = .true.
   end do
 
-  close (1)
-
   del_grid = del_grid * length_scale
   r0_grid = r0_grid * length_scale
 endif
+
+close (1)
 
 !
 
@@ -187,6 +185,18 @@ if (n_grid_pts /= count(valid_field)) then
   enddo
   enddo
   enddo
+  stop
+endif
+
+!
+
+if (iz_min < Nz_min) then
+  print '(a)', 'ERROR: IZ_MIN (' // int_str(iz_min) // ') IS LESS THAN TABLE Z LOWER BOUND OF ' // int_str(Nz_min)
+  stop
+endif
+
+if (iz_max > Nz_max) then
+  print '(a)', 'ERROR: IZ_MAX (' // int_str(iz_max) // ') IS GREATER THAN TABLE Z LOWER BOUND OF ' // int_str(Nz_max)
   stop
 endif
 
@@ -275,11 +285,11 @@ allocate (Bx_fit(Nx_min:Nx_max, Ny_min:Ny_max), By_fit(Nx_min:Nx_max, Ny_min:Ny_
 
 !
 
-ixz0 = ix_z_min
-if (ixz0 == -1) ixz0 = Nz_min
+ixz0 = iz_min
+if (ixz0 == int_garbage$) ixz0 = Nz_min
 
-ixz1 = ix_z_max
-if (ixz1 == -1) ixz1 = Nz_max
+ixz1 = iz_max
+if (ixz1 == int_garbage$) ixz1 = Nz_max
 
 !
 
@@ -334,6 +344,10 @@ vec0 = 0
 var_vec = 0
 
 do ixz = ixz0, ixz1
+  print *, '===================================='
+  print *, 'Plane:', ixz
+  print *, 'Cycle    Merit'
+
   call initial_lmdif
   call merit_calc(vec0, ixz)
   print '(i5, es14.6)', 0, merit
@@ -355,8 +369,6 @@ do ixz = ixz0, ixz1
     gg1(vinfo%ix_gg)%deriv(ixz,vinfo%id) = var_vec(vinfo%ix_var)
   enddo
 
-  print *
-  print *, 'Plane:', ixz
   print *, ' Ix    m  der  sym            Coef'
   do iv0 = 1, size(var_info)
     vinfo => var_info(iv0)
@@ -553,9 +565,12 @@ subroutine write_gg()
 
 type (gg1_struct), pointer :: gg
 integer ig, iz
+character(40) fmt
 
-if (out_file == '') out_file = 'gg.dat'
-open (1, file = out_file, status = 'new')
+!
+
+if (out_file == '') out_file = 'gg'
+open (1, file = trim(out_file) // '.dat')
 
 write (1, '(4(a, f8.4))') '# del_grid = [', del_grid(1), ',', del_grid(2), ',', del_grid(3), ']'
 write (1, '(4(a, f8.4))') '# r0_grid  = [', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), ']'
@@ -566,14 +581,44 @@ do ig = 1, size(gg1)
     write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
     write (1, *)
   endif
-  write (1, '(a, i2)') '#  m    =', gg%m
-  write (1, '(a, i2)') '#  type =', sincos_name(gg%sincos)
+  write (1, '(a, i2)') '# m    =', gg%m
+  write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
   write (1, '(a, i2)') '# Iz     z_pos   Derivs'
 
-  do iz = Nz_min, Nz_max
+  do iz = iz_min, iz_max
     write (1, '(i4, f10.4, 99es20.12)') iz, iz*del_grid(3)+r0_grid(3), gg%deriv(iz,:)
   enddo
 enddo
+
+close (1)
+
+!
+
+open (1, file = trim(out_file) // '.bmad')
+
+write (1, '(a)')           'gen_grad_map = {'
+write (1, '(a, f10.6, a)') '  dz =', del_grid(3), ','
+
+do ig = 1, size(gg1)
+  gg => gg1(ig)
+  write (1, '(a)')        '  {'
+  write (1, '(a, i2, a)') '    m    =', gg%m, ','
+  write (1, '(3a)')       '    type = ', sincos_name(gg%sincos), ','
+  write (1, '(a, i2)')    '    derivs = {'
+
+  write (fmt, '(a, i0, a)') '(i8, a, ', size(gg%deriv,2), 'es20.12, a)' 
+  do iz = iz_min, iz_max-1
+    write (1, fmt) iz, ':', gg%deriv(iz,:), ','
+  enddo
+  write (1, fmt) iz_max, ':', gg%deriv(iz_max,:)
+  if (ig == size(gg1)) then
+    write (1, '(a)') '  }'
+  else
+    write (1, '(a)') '  },'
+  endif
+enddo
+
+write (1, '(a)') '}'
 
 close (1)
 
