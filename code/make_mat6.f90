@@ -70,6 +70,22 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele)
 
 mat6_calc_method = ele%mat6_calc_method
 if (.not. ele%is_on) mat6_calc_method = bmad_standard$
+if (mat6_calc_method == auto$) then
+  select case (ele%tracking_method)
+  case (bmad_standard$, linear$);   mat6_calc_method = bmad_standard$
+  case (custom$);                   mat6_calc_method = custom$
+  case (mad$);                      mat6_calc_method = mad$
+  case (symp_lie_bmad$);            mat6_calc_method = symp_lie_bmad$
+  case (symp_lie_ptc$);             mat6_calc_method = symp_lie_ptc$
+  case (taylor$);                   mat6_calc_method = taylor$
+  case (runge_kutta$, fixed_step_runge_kutta$, time_runge_kutta$, fixed_step_time_runge_kutta$)
+    mat6_calc_method = tracking$
+  case default
+    call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING_METHOD: \i0\ ', ele%tracking_method)
+    if (global_com%exit_on_error) call err_exit
+    return
+  end select
+endif
 
 ele%map_ref_orb_in = a_start_orb
 

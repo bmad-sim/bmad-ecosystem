@@ -36,8 +36,8 @@ in a field of strength $B$. Notice that $P_0$ is the local reference momentum at
 may not be the same as the reference energy at the beginning of the lattice if there are
 \vn{lcavity} elements (\sref{s:lcav}) present.
 
-The kicks $\Delta p_x$ and $\Delta p_y$ that a
-particle experiences going through a multipole field is
+The kicks $\Delta p_x$ and $\Delta p_y$ that a particle experiences going through a multipole field
+is
 \begin{alignat}{5}
   \Delta p_x & = \frac{-q \, L \, B_y}{P_0} \label{pqlbp1} \\
              & = -K_0 L \;-\; 
@@ -51,25 +51,24 @@ particle experiences going through a multipole field is
              && K_2 L \, xy && \plus 
              && \frac{1}{6} K_3L (3x^2 y - y^3) \plus \ldots \nonumber 
 \end{alignat}
-A positive $K_1L$ quadrupole component gives
-horizontal focusing and vertical defocusing. The general form is
+A positive $K_1L$ quadrupole component gives horizontal focusing and vertical defocusing. The
+general form is
 \begin{align}
   \Delta p_x &= \sum_{n = 0}^{\infty} \frac{K_n L}{n!} 
-             \sum_{m = 0}^{\lfloor \frac{n}{2} \rfloor}
+             \sum_{m = 0}^{2m \le n}
              \begin{pmatrix} n \cr 2m \end{pmatrix} \,
              (-1)^{m+1} \, x^{n-2m} \, y^{2m} \\
   \Delta p_y &= \sum_{n = 0}^{\infty} \frac{K_n L}{n!} 
-             \sum_{m = 0}^{\lfloor \frac{n-1}{2} \rfloor}
+             \sum_{m = 0}^{2m \le n-1}
              \begin{pmatrix} n \cr 2m+1 \end{pmatrix} \,
              (-1)^{m} \, x^{n-2m-1} \, y^{2m+1}
 \end{align}
-where $\lfloor\alpha\rfloor$ means round down to the integer equal to or less than $\alpha$ and 
-$\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient.
+where $\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient.
 
 \index{multipole!KnL, Tn|hyperbf}
-The above equations are for fields with a normal component only. If a given multipole field of order $n$
-has normal $B_n$ and skew $S_n$ components and is rotated in the $(x, y)$ plane by an angle $T_n$, the
-magnetic field at a point $(x,y)$ can be expressed in complex notation as
+The above equations are for fields with a normal component only. If a given multipole field of order
+$n$ has normal $B_n$ and skew $S_n$ components and is rotated in the $(x, y)$ plane by an angle
+$T_n$, the magnetic field at a point $(x,y)$ can be expressed in complex notation as
 \begin{equation}
   B_y(x,y) + i B_x(x,y) = 
     \frac{1}{n!} (B_n + i S_n) \, e^{-i(n+1)T_n} \, e^{i n \theta} \, r^n 
@@ -230,23 +229,25 @@ scalar potential for both the magnetic and electric fields.
 
 Solutions to Laplace's equation can be found in form
 \begin{equation}
-  \phi_{n}^r = \frac{-1}{1+n} \sum_{p = 0}^{\lfloor (n+1)/2 \rfloor} 
+  \phi_{n}^r = \frac{-1}{1+n} \sum_{p = 0}^{2p \le n+1} 
              \begin{pmatrix} n + 1 \cr 2 \, p \end{pmatrix} \,
              (-1)^{p} \, F_{n+1-2p}(\rw) \, \yw^{2p}
   \label{pspn1}
 \end{equation}
 and in the form
 \begin{equation}
-  \phi_{n}^i = \frac{-1}{1+n} \sum_{p = 0}^{\lfloor n/2 \rfloor} 
+  \phi_{n}^i = \frac{-1}{1+n} \sum_{p = 0}^{2p \le n}
              \begin{pmatrix} n + 1 \cr 2p +1 \end{pmatrix} \,
              (-1)^{p} \, F_{n-2p}(\rw) \, \yw^{2p+1}
   \label{pspn2}
 \end{equation}
-where $\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient, $n$ is the order
-number which can range from 0 to infinity, $\lfloor\alpha\rfloor$ means round down to the
-integer equal to or less than $\alpha$. [Notice that here $n$ is related to $m$ in
+where $\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient, and $n$ is the order
+number which can range from 0 to infinity.\footnote
+  { 
+Notice that here $n$ is related to $m$ in
 McMillian's paper by $m = n + 1$. Also note that the $\phi^r$ and $\phi^i$ here have a
-normalization factor that is different from McMillian.]
+normalization factor that is different from McMillian.
+  }
 
 In \Eq{pspn2} the $F_p(\rw)$ are related by
 \begin{equation}
@@ -812,11 +813,13 @@ The scalar potential is then decomposed into azimuthal components
 where the $\psi_{m,\alpha}$ ($\alpha = c,s$) are characterized by a using functions
 $C_{m,\alpha}(z)$ which are functions along the longitudinal $z$-axis.
 \begin{equation}
-  \psi_{m,\alpha} = \sum_{n = 0}^\infty \frac{-(-1)^n m!}{4^n \, n! \, (n+m)!} 
+  \psi_{m,\alpha} = \sum_{n = 0}^\infty \frac{(-1)^{n+1} m!}{4^n \, n! \, (n+m)!} 
   \, \rho^{2n+m} \, C_{m,\alpha}^{[2n]}(z) 
   \label{ppmpp}
 \end{equation}
 The notation $[2n]$ indicates the $2n$ derivative of $C_{m,\alpha}(z) = C_{m,\alpha}^{[0]}(z)$.
+
+\clearpage
 
 From \Eq{ppmpp} the field is given by 
 \begin{align}
@@ -868,6 +871,42 @@ element. Additionally, the evaluation is faster since only coefficients to eithe
 evaluation point contribute. The disadvantage of generalized gradients is that since the derivatives
 are truncated at some order $N$, the resulting field does not satisfy Maxwell's equations with the
 error scalling with radius to the order of truncation.
+
+It is sometimes convenient to express the fields in terms of Cartesian coordinates. For sine like
+even derivatives $C_{m,s}^{[2n]}$ the conversion is
+\begin{align}
+  \left( B_x, B_y \right) &= \left( \cos\theta \, B_\rho - \sin\theta \, B_\theta, \,
+    \sin\theta \, B_\rho + \cos\theta \, B_\theta \right) \CRNO
+  &= \frac{(-1)^n \, m!}{4^n n! \, (n+m)!} \, C_{m,s}^{[2n]} \, \Big[ (n+m) \, (x^2 + y^2)^n \,
+    \left( S_{xy}(m-1), \, C_{xy}(m-1) \right) \, + \\
+  &\hspace{13em}  n \, (x^2 + y^2)^{n-1} \, 
+    \left( S_{xy}(m+1), \, -C_{xy}(m+1) \right) \Big] \nonumber
+  \label{bbtb}
+\end{align}
+and for the sine like odd derivatives $C_{m,s}^{[2n+1]}$
+\begin{equation}
+  B_z = \frac{(-1)^n \, m!}{4^n n! \, (n+m)!}
+    (x^2 + y^2)^n \, C^{[2n+1]}_{m,s}(z) \, S_{xy}(m)
+\end{equation}
+where the last term in \Eq{bbtb} is only present for $n > 0$.
+\begin{align}
+  S_{xy}(m) &\equiv \rho^m \, \sin m\theta = 
+    \sum_{r=0}^{2r \le m-1} (-1)^r \begin{pmatrix} m \cr 2r+1 \end{pmatrix} \,
+    x^{m-2r-1} \, y^{2r+1} \CRNO
+  C_{xy}(m) &\equiv \rho^m \, \cos m\theta = 
+    \sum_{r=0}^{2r \le m} (-1)^r \begin{pmatrix} m \cr 2r \end{pmatrix} \,
+    x^{m-2r} \, y^{2r} 
+\end{align}
+The conversion for the cosine like derivatives is:
+\begin{align}
+  \left( B_x, B_y \right) &= 
+    \frac{(-1)^n \, m!}{4^n n! \, (n+m)!} \, C_{m,c}^{[2n]} \, \Big[ (n+m) \, (x^2 + y^2)^n \,
+    \left( C_{xy}(m-1), \, -S_{xy}(m-1) \right) \, + \CRNO
+  &\hspace{13em}  n \, (x^2 + y^2)^{n-1} \, 
+    \left( C_{xy}(m+1), \, S_{xy}(m+1) \right) \Big] \\
+  B_z &= \frac{(-1)^n \, m!}{4^n n! \, (n+m)!}
+    (x^2 + y^2)^n \, C^{[2n+1]}_{m,c}(z) \, C_{xy}(m) \nonumber
+\end{align}
 
 %-----------------------------------------------------------------
 \section{RF fields}

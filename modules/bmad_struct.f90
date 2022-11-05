@@ -61,7 +61,7 @@ end type
 integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2, runge_kutta$ = 3 
 integer, parameter :: linear$ = 4, tracking$ = 5, time_runge_kutta$ = 6
 integer, parameter :: fixed_step_runge_kutta$ = 9, symp_lie_bmad$ = 10
-integer, parameter :: sprint$ = 12, fixed_step_time_runge_kutta$ = 13, mad$ = 14
+integer, parameter :: Auto$ = 12, sprint$ = 12, fixed_step_time_runge_kutta$ = 13, mad$ = 14
 integer, parameter :: n_methods$ = 14
 
 character(28), parameter :: tracking_method_name(0:n_methods$) = [character(28) :: &
@@ -76,11 +76,10 @@ character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', &
       'Sprint          ', 'GARBAGE!        ', 'GARBAGE!        ']
 
-character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
-      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &
-      'Linear          ', 'Tracking        ', 'GARBAGE!        ', 'Custom          ', &
-      'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'GARBAGE!        ', &
-      'GARBAGE!        ', 'GARBAGE!        ', 'MAD             ']
+character(24), parameter :: mat6_calc_method_name(0:n_methods$) = [character(24):: 'GARBAGE!', &
+      'Bmad_Standard', 'Symp_Lie_PTC', 'GARBAGE!',  'Linear', 'Tracking', &
+      'GARBAGE!', 'Custom', 'Taylor', 'GARBAGE!', 'Symp_Lie_Bmad', &
+      'GARBAGE!', 'Auto', 'GARBAGE!', 'MAD']
 
 integer, parameter :: drift_kick$ = 1, matrix_kick$ = 2, ripken_kick$ = 3
 character(16), parameter :: ptc_integration_type_name(0:3) = [&
@@ -715,8 +714,8 @@ type gen_grad_map_struct
   type (gen_grad1_struct), allocatable :: gg(:)
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: field_type = magnetic$  ! or electric$
-  integer :: iz0 = 0                 ! gg%coef(:) lower bound.
-  integer :: iz1 = 0                 ! gg%coef(:) upper bound.
+  integer :: iz0 = int_garbage$      ! gg%coef(:) lower bound.
+  integer :: iz1 = int_garbage$      ! gg%coef(:) upper bound.
   real(rp) :: dz = 0                 ! Point spacing.
   real(rp) :: r0(3) = 0              ! field origin relative to ele_anchor_pt.
   real(rp) :: field_scale = 1        ! Factor to scale the fields by

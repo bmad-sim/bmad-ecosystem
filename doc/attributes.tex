@@ -2049,15 +2049,13 @@ are four types of field maps:
   cartesian_map       ! \sref{s:cart.map}
   cylindrical_map     ! \sref{s:cylind.map}
   grid_field          ! \sref{s:grid.field}
-  gen_grad_map        ! \sref{s:taylor.field}
+  gen_grad_map        ! \sref{s:gen.grad.map}
 \end{example}
 Essentially, \vn{cylindrical_map} and \vn{cartesian_map} define fields using a set of
 functions with user defined coefficients with the functions formulated to obey Maxwell's
 equations. The \vn{grid_field} type defines the field on a grid of points and
 interpolation is used to evaluate the field in between the points. Finally, the
-\vn{gen_grad_map} type defines a set of Taylor maps. Each map defines the field in the
-transverse $(x, y)$ plane at constant $z$. Interpolation is used to evaluate the field
-in between the planes.
+\vn{gen_grad_map} type defines a set of ``generalized gradients'' (\sref{s:gen.grad.phys}).
 
 The \vn{cylindrical_map} and \vn{grid_field} types can be used with both RF and DC fields.
 The other two types can only be used with DC fields. RF fields may only be used with the following
@@ -2408,7 +2406,8 @@ A \vn{grid_field} is grid of field points specified using the syntax:
     r0   = (...),                   ! Grid origin. Syntax is \vn{geometry} dependent.
     dr   = (...),                   ! Grid spacing. Syntax is \vn{geometry} dependent.
     ele_anchor_pt = <Position>      ! BEGINNING, CENTER, or END
-    pt(<Integer>, \dots) = ( \ldots ), ! Field points. Syntax is \vn{geometry} dependent.
+    \{ ... \},                      ! Field table. Syntax is \vn{geometry} dependent.
+    pt(<Integer>, \dots) = ( \ldots ), ! Field table point. Old style 
     \ldots \} \} \}
 \end{example}
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
@@ -2425,12 +2424,12 @@ For \vn{field_type} set to \vn{electric} or \vn{magnetic}, the field is DC. That
 For AC fields, the individual field components are complex.  the syntax for specifying a complex
 number is:
 \begin{example}
-  (<Re>, <Im>)
+  (<Re> <Im>)
 \end{example}
 Example:
 \begin{example}
-  pt(0, 0, -7) = ((0.34, -4.3), (2.37, 9.34), ...)  ! Complex field
-  pt(0, 0, -7) = (0.12, -0.33, ...)                 ! Imaginary components are zero
+  0 0 -7: (0.34 -4.3) (2.37 9.34) ...,    ! Complex field
+  0 0 -7: 0.12 -0.33 ...,                 ! Imaginary components are zero
 \end{example}
 
 The actual fields $\bfE$ and $\bfB$ are computed from the complex fields $\bfE_c$ and $\bfB_c$ via
@@ -2453,43 +2452,64 @@ element. For non \vn{rfcavity} elements the phase is
                                                   phi0_autoscale + phi0_fieldmap(j)]
 \end{example}
 
-The \vn{geometry} switch sets the type of the grid and must come before any \vn{pt} is given. The
+The \vn{geometry} switch sets the type of the grid and must come before the field table. The
 possible settings of \vn{geometry} are:
 \begin{example} 
   rotationally_symmetric_rz
   xyz
 \end{example}
 
-The \vn{rotationally_symmetric_rz} setting for \vn{geometry} is for fields
-that are rotationally symmetric around the $z$ axis. The format for
-this type of \vn{grid_field} is
+The \vn{rotationally_symmetric_rz} setting for \vn{geometry} is for fields that are rotationally
+symmetric around the $z$ axis. The format for this type of \vn{grid_field} is
 \begin{example}
   grid_field = \{ 
     geometry = rotationally_symmetric_rz,
-    r0   = (<x0>, <y0>, <z0>),  ! Grid origin 
-    dr   = (<dr>, <dz>),        ! Grid spacing
+    r0   = (<x0>, <y0>, <z0>),        ! Grid origin 
+    dr   = (<dr>, <dz>),              ! Grid spacing
+    \{                                ! Field table...
+    <ir> <iz>: <E_r> <E_phi> <E_z>,   ! For field_type = Electric
+    <ir> <iz>: <B_r> <B_phi> <B_z>,   ! For field_type = Magnetic
+    <ir> <iz>: <E_r> <E_phi> <E_z> <B_r> <B_phi> <B_z>,
+                                      ! For field_type = Mixed.
+    \ldots 
+    \} 
+\end{example}
+where \vn{<iz>} can be negative but \vn{<ir>} must be non-negative. Notice that commas are only used
+in the field table to demarcate between field points.
+
+There is an old style syntax for the field table that looks like:
+\begin{example}
     pt(<ir>, <iz>) = (<E_r>, <E_phi>, <E_z>) ! For field_type = Electric
     pt(<ir>, <iz>) = (<B_r>, <B_phi>, <B_z>) ! For field_type = Magnetic
     pt(<ir>, <iz>) = (<E_r>, <E_phi>, <E_z>, <B_r>, <B_phi>, <B_z>)
                                              ! For field_type = Mixed.
-    \ldots \} 
 \end{example}
-where \vn{<iz>} can be negative but \vn{<ir>} must be non-negative.  
+While the old style is accepted, parsing the old syntax is almost a factor of two slower. The only
+possible advantage to the old style is that expressions can be used for field values.
 
-The \vn{xyz} setting for \vn{geometry} can be used for all rectangular field grids. The
-format for this type of \vn{grid_field} is
+The \vn{xyz} setting for \vn{geometry} can be used for all rectangular field grids. The format for
+this type of \vn{grid_field} is
 \begin{example}
   grid_field = \{ 
     geometry = xyz,
     r0   = (<x0>, <y0>, <z0>),    ! Grid origin 
     dr   = (<dx>, <dy>, <dz>),    ! Grid spacing
-    pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>),  ! For field_type = Electric
-    pt(<ix>, <iy>, <iz>) = (<B_x>, <B_y>, <B_z>),  ! For field_type = Magnetic
-    pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>, <B_x>, <B_y>, <B_z>), 
+    <ix> <iy> <iz>: <E_x> <E_y> <E_z>,  ! For field_type = Electric
+    <ix> <iy> <iz>: <B_x> <B_y> <B_z>,  ! For field_type = Magnetic
+    <ix> <iy> <iz>: <E_x> <E_y> <E_z> <B_x> <B_y> <B_z>, 
                                                    ! For field_type = Mixed.
     \ldots \}
 \end{example}
 where \vn{<ix>}, \vn{<iy>}, and \vn{<iz>} can be negative.
+
+The old style syntax for the \vn{xyz} field table is:
+\begin{example}
+    pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>),  ! For field_type = Electric
+    pt(<ix>, <iy>, <iz>) = (<B_x>, <B_y>, <B_z>),  ! For field_type = Magnetic
+    pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>, <B_x>, <B_y>, <B_z>), 
+                                                   ! For field_type = Mixed.
+\end{example}
+
 
 [For clarity sake, the following discusses the \vn{xyz} case. Extension to other cases is straight
 forward.]  There is no restriction on the bounds of the indexes \vn{(ix, iy, iz)} of the \vn{pt(ix,
@@ -2521,8 +2541,9 @@ with the file \vn{apex_gun_grid.bmad} being:
     master_parameter = voltage,
     r0 = (0, 0),
     dr = (0.001, 0.001),
-    pt(0,0) = ( (0, 0), (0, 0), (1, 0),  (0, 0), (0, 0), (0, 0)),
-    pt(0,1) = ( (0, 0), (0, 0), (0.99, 0),  (0, 0), (0, 0), (0, 0)),
+    \{
+    0 0:  (0 0) (0 0) (1 0)     (0 0) (0 0) (0 0),
+    0 1:  (0 0) (0 0) (0.99 0)  (0 0) (0 0) (0 0),
     ... \}
 \end{example}
 
@@ -2552,8 +2573,8 @@ Grid fields may stored in \vn{HDF5} binary format which may then be called using
 
 %-----------------------------------------------------------------
 \subsection{Gen_Grad_Map Field Map}
-\label{s:taylor.field}
-\index{taylor field}
+\label{s:gen.grad.map}
+\index{gen_grad_map}
 
 The \vn{gen_grad_map} field map is only used for DC fields. A \vn{gen_grad_map} is comprised
 of a set of two dimensional Taylor maps.
