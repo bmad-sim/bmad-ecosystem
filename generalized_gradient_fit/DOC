@@ -5,19 +5,80 @@ NOT FOR PUBLIC USE AT THIS TIME!!
 generalized_gradients_fit program documentation:
 ------------------------------------------------
 
-This program varies generalized gradient coefficients to fit a field table.
+This program calculates generalized gradient (GG) coefficients starting from a field table.
+The field table may be for either magnetic or electric fields. The GG coefficients do not
+depend upon the type of field being used.
 
 This documentation and source code is in the directory:
   util_programs/generalized_gradients_fit
 
+The GG coefficents are calculated at equally spaced z-positions corresponding to z-planes of the
+field table. Note: Currently there is a restriction when using PTC with GG in that the number of
+z-positions must be odd. This restriction may be lifted in the future but for now it should be a
+simple matter, assuming that the field goes to zero at the ends, simply to remove the data for one
+endpoint z-position.
 
-%-----------------------------------------------------------------
-Input Files
 
-There are three input files. Example input files can be found at 
+Running the Program
+-------------------
+
+To run the program use the command:
+	generalized_gradients_fit <file_name>
+where <file_name> is the name of the parameter file (see below). 
+The default name if <file_name> is not given if "gg_fit.init".
+
+
+Input Files:
+------------
+
+There are two input files. A parameter file and a field table file.
+Example input files can be found at:
   util_programs/generalized_gradients_fit/example
+
+
+Field Table File
+----------------
+
+The field table must have 7 header lines that look like:
+
+0.01		        ! File length_scale in meters. EG: 0.01 => Positions are in cm.
+1e-4		        ! File field_scale in Tesla or V/m. EG: 1e-4 => Field in Gauss (if magnetic).
+0 13		        ! Nx_min, Nx_max x-axis min/max 
+0 13		        ! Ny_min, Ny_max y-axis min/max 
+0 1200	        ! Nz_min, Nz_max z-axis min/max 
+0.4  0.2  0.2   ! del_x,y,z  Spacing between grid points
+0    0    0     ! r0 (x,y,z) offset of the origin. Not used in calculation.
+
+The remaining lines have the format:
+	x-position    y-position  z-position   Field_x   Field_y   Field_z
+
+
+Parameter File:
+---------------
+
+The parameter file has the format:
+
+&params                 ! This line signals the beginning of the parameter list
+  field_file = 'w22-20_25_94.table.binary'  ! Field table file. .binary suffix => binary file.
+  every_n_th_plane = 1  ! If equal 2, skip every other z-plane, etc.
+  n_deriv_max = 4				! Max derivative order. Min order is zero.
+  m_cos = -1						! List of m-values for cosine like GG. -1 => no cosine GG.
+  m_sin =  1, 3					! List of m-values for sine like GG.
+  n_cycles = 10000		  ! Number of optimization cycles per z-plane.
+  iz_min = 3						! z-plane lower bound to start calc at. If not present, use field table lower bound.
+  iz_max = 13					  ! z-plane upper bound to stop calc at. If not present, use field table upper bound.
+  mode = 'fit'					! or 'binary' to create a binary field table file.
+  lmdif_eps = 1e-12			! Lmdif optimizer tollerance.
+  printit = F					  ! Print extra info for debugging program. Only useful for debugging.
+  sym_x = 1							! Possibilities are: -1, 0, 1. 
+  sym_y = -1						! Possibilities are: -1, 0, 1. 
+/                       ! Ending slash signals end of param list. Everything outside is ignored.
+
 
 
 
 To Do:
 	* div, curl check
+
+How to call .bmad file:
+	q1: quad, call::gg.bmad, ...
