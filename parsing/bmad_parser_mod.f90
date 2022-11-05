@@ -8332,6 +8332,7 @@ type (grid_pt_struct), allocatable :: array(:), array2(:)
 
 character(1) delim, delim2
 character(40) :: word, word2, name
+character(200) line
 
 integer ix_word, ix_word2, ix
 integer pt_counter, n, i, ib, ie, im, ix0, ix1, iy0, iy1, iz0, iz1
@@ -8346,10 +8347,10 @@ pt_counter = 0
 err_flag = .true.
 g_field%ptr%file = bp_com%line2_file_name    ! In case there are no terms
 
-do    
-
+do
   ! Read attriubute
   call get_next_word (word, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+  if (word == '' .and. delim == '{') word = '{'
 
   select case (word)
 
@@ -8467,7 +8468,7 @@ do
     select case (i)
     case (3)
       if (g_field%field_type == mixed$) then
-        call parser_error ('FIELD_GRID WITH FIELD_TYPE = MIXED IN ELEMENT: ' // ele%name, 'DOES NOT SPECIFY BOTH E AND B FIELDS.')
+        call parser_error ('FIELD_GRID WITH FIELD_TYPE = MIXED IN ELEMENT: ' // ele%name, 'MUST SPECIFY BOTH E AND B FIELDS.')
         return
       endif        
     case (6)
@@ -8482,7 +8483,43 @@ do
 
     ! Expect , or }
     if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
-  
+
+  case ('{')
+    ! Set %file to be the last called file:<line_number>.
+    g_field%ptr%file = bp_com%line2_file_name
+
+    do pt_counter = 1, 10000000
+      ! Reallocate temporary structure if needed
+      n = size(array)
+      if (pt_counter > n) then
+        call move_alloc(array, array2)
+        allocate(array(2*n))
+        array(1:n) = array2
+        deallocate(array2)
+      end if
+
+      ! Get indices
+
+      if (g_field%geometry == rotationally_symmetric_rz$) then
+        if (.not. parser_fast_integer_read(array(pt_counter)%ix(1:2), ele, ':', 'FIELD_GRID POINT TABLE')) return
+      else
+        if (.not. parser_fast_integer_read(array(pt_counter)%ix, ele, ':', 'FIELD_GRID POINT TABLE')) return
+      endif
+
+      ! Get as many field components as listed
+
+      if (g_field%field_type == mixed$) then
+        if (.not. parser_fast_complex_read(array(pt_counter)%field, ele, delim, 'FIELD_GRID POINT TABLE')) return
+      else
+        if (.not. parser_fast_complex_read(array(pt_counter)%field(1:3), ele, delim, 'FIELD_GRID POINT TABLE')) return
+      endif
+
+      if (delim == '}') exit
+    enddo
+
+    ! Expect , or }
+    if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
+
   case default
     if (word == '') then
       call parser_error ('MANGLED GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
@@ -8657,14 +8694,11 @@ type (branch_struct), pointer :: branch
 type (em_taylor_term_struct), allocatable :: term(:)
 type (em_taylor_term_struct), pointer :: tm
 
-real(rp) coef, deriv(0:30)
+real(rp) coef, deriv(0:50)
 
-complex(rp), pointer :: c_ptr(:)
+integer i, j, nn, n, i_ib, ie, im, ix, ios, nder, n_gg
+integer lb, i_out, ix_word, iz, ix_arr(1)
 
-integer i, j, nn, n, i_ib, ie, im, ix, ios, nder
-integer lb, i_out, ix_word, ixz
-
-character(500) line
 character(80) err_str
 character(40) word, word2, name, attrib_name
 character(1) delim, delim2
@@ -8675,6 +8709,7 @@ logical err_flag, delim_found, valid
 
 name = 'xxx'
 err_flag = .true.
+nder = -1
 
 !
 
@@ -8682,6 +8717,7 @@ do
 
   ! Read attriubute
   call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+  if (attrib_name == '' .and. delim == '{') attrib_name = '{'
 
   select case (attrib_name)
 
@@ -8747,12 +8783,12 @@ do
     endif
 
   case ('{')
-    n = size(gg_map%gg)
+    n_gg = size(gg_map%gg) + 1
     call move_alloc(gg_map%gg, gg)
-    allocate (gg_map%gg(n+1))
-    gg_map%gg(1:n) = gg
+    allocate (gg_map%gg(n_gg))
+    gg_map%gg(1:n_gg-1) = gg
     deallocate(gg)
-    gg1 => gg_map%gg(n+1)
+    gg1 => gg_map%gg(n_gg)
 
     do
       call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
@@ -8763,66 +8799,77 @@ do
 
       case ('TYPE')
         call get_next_word (word, ix_word, ',}', delim, delim_found)
-        call match_word(word2, ['COS', 'SIN'], gg1%sincos, can_abbreviate = .false., matched_name = word)
+        call match_word(word, ['COS', 'SIN'], gg1%sincos, can_abbreviate = .false., matched_name = word)
         select case (word)
         case ('SIN');   gg1%sincos = sin$
         case ('COS');   gg1%sincos = cos$
         case default
-          call parser_error ('BAD GEN_GRAD%GG%TYPE = <SIN-OR-COS>" CONSTRUCT', 'FOUND IN ELEMENT: ' // ele%name)
+          call parser_error ('BAD GEN_GRAD_MAP TYPE = <SIN-OR-COS>" CONSTRUCT', 'FOUND IN ELEMENT: ' // ele%name)
           return
         end select
 
       case ('DERIVS')
-        ixz = gg_map%iz0-1
+        if (.not. expect_this ('={', .true., .false., 'NO "={" AFTER "DERIVES" IN GEN_GRAD_MAP', ele, delim, delim_found)) return
+        iz = int_garbage$
+
         do
-          call get_next_word(line, ix_word, ',}', delim, delim_found, .false.)
-          ix = index(line, ':')
-          if (ix == 0) then
-            call parser_error ('MISSING ":" IN DERIVS TABLE: ' // line, 'FOR ELEMENT: ' // ele%name)
-            return
-          endif
-          ixz = ixz + 1
-          valid = is_integer(line(:ix-1), n)
-          if (valid .and. n /= gg_map%iz0) then
-            call parser_error ('BEGINNING Z-INDEX IN DERIVS TABLE NOT EQUAL TO GG_MAP%IZ1', 'FOR ELEMENT: ' // ele%name)
-            return
-          endif
-          if (.not. valid .or. n /= ixz) then
-            call parser_error ('BAD Z-INDEX IN DERIVS TABLE: ' // line, 'FOR ELEMENT: ' // ele%name)
-            return
-          endif
+          if (.not. parser_fast_integer_read(ix_arr, ele, ':', 'GEN_GRAD_MAP DERIVS INDEX')) return
 
-          nn = -1
-          do
-            call string_trim(line(ix+1:), line, ix)
-            if (line == '') exit
-            nn = nn + 1
-            read (line, *, iostat = ios) deriv(nn)
-            if (ios /= 0) then
-              call parser_error ('BAD DERIVATIVE NUMBER IN DERIVS TABLE: ' // line, 'FOR ELEMENT: ' // ele%name)
-              return
+          if (iz == int_garbage$) then
+            iz = ix_arr(1)
+
+            if (n_gg == 1) then
+              gg_map%iz0 = ix_arr(1)
+
+            else
+              if (gg_map%iz0 /= ix_arr(1)) then
+                call parser_error ('LOWER BOUND INDEX IN GEN_GRAD_MAP DERIVS TABLE IS DIFFERENT FROM LOWER BOUND INDEX IN PRIOR DERIVS TABLE', &
+                                   'FOR ELEMENT: ' // ele%name)
+                return
+              endif
+              allocate(gg1%deriv(gg_map%iz0:gg_map%iz1, 0:nder))
             endif
-            call string_trim(line(ix+1:), line, ix)
-          enddo
 
-          if (ixz == gg_map%iz0) then
-            allocate(gg1%deriv(gg_map%iz0:gg_map%iz1, 0:nn))
-            nder = nn
           else
-            if (nn /= nder) then
-              call parser_error ('NUMBER OF DERIVATIVES NOT CONSTANT IN DERIVS TABLE: ' // line, 'FOR ELEMENT: ' // ele%name)
+            iz = iz + 1
+            if (iz /= ix_arr(1)) then
+              call parser_error ('GEN_GRAD_MAP DERIVS TABLE INDEXES NOT IN CORRECT ORDER. EXPECTED: ' // int_str(iz) // ' BUT GOT: ' // int_str(ix_arr(1)), &
+                                 'FOR ELEMENT: ' // ele%name)
               return
             endif
+
+            if (gg_map%iz1 /= int_garbage$ .and. iz > gg_map%iz1) then
+              call parser_error ('UPPER BOUND INDEX IN GEN_GRAD_MAP DERIVS TABLE IS GREATER THAN UPPER BOUND INDEX IN PRIOR DERIVS TABLE', &
+                                 'FOR ELEMENT: ' // ele%name)
+              return
+            endif
+          endif          
+
+          if (nder == -1) then
+            if (.not. parser_fast_real_read (deriv, ele, delim, 'GEN_GRAD_MAP DERIVS TABLE', .false., nder)) return
+            nder = nder - 1   ! Since derivs are indexed from 0.
+          else
+            if (.not. parser_fast_real_read (deriv(0:nder), ele, delim, 'GEN_GRAD_MAP DERIVS TABLE')) return
           endif
 
-          gg1%deriv(ixz,:) = deriv(0:nn)
+          if (.not. allocated(gg1%deriv)) allocate (gg1%deriv(gg_map%iz0:gg_map%iz0+1000, 0:nder))
+          if (iz > ubound(gg1%deriv,1)) call re_allocate2d(gg1%deriv, ubound(gg1%deriv,1)+1000, nder, lb1 = gg_map%iz0, lb2 = 0)
+
+          gg1%deriv(iz,:) = deriv(0:nder)
           if (delim == '}') exit
         enddo
 
-        if (ixz /= gg_map%iz1) then
-          call parser_error ('ENDING Z-INDEX IN DERIVS TABLE NOT EQUAL TO GG_MAP%IZ1', 'FOR ELEMENT: ' // ele%name)
+        if (gg_map%iz1 == int_garbage$) then
+          gg_map%iz1 = iz
+          call re_allocate2d(gg1%deriv, gg_map%iz1, nder, lb1 = gg_map%iz0, lb2 = 0)
+        endif
+
+        if (iz /= gg_map%iz1) then
+          call parser_error ('ENDING IZ-INDEX IN GEN_GRAD_MAP DERIVS TABLE NOT IS DIFFERENT FROM PRIOR DERIVS TABLE', 'FOR ELEMENT: ' // ele%name)
           return
         endif
+
+        if (.not. expect_one_of ('},', .false., ele%name, delim, delim_found)) return
       end select
 
       if (delim == '}') exit
@@ -8844,7 +8891,7 @@ do
 
 enddo
 
-! Get final separator after grid construct.
+! Get final separator after gen_grad_map construct.
  
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 err_flag = .false.
@@ -9905,5 +9952,200 @@ else
 endif
 
 end subroutine parser_transfer_control_struct 
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function parser_fast_integer_read (int_vec, ele, delim_wanted, err_str)  result (is_ok)
+!-
+
+function parser_fast_integer_read (int_vec, ele, delim_wanted, err_str) result (is_ok)
+
+type (ele_struct) ele
+integer int_vec(:)
+integer i, n, ix_word
+logical is_ok, delim_found, err
+character(*) err_str
+character(40) word
+character(1) delim_wanted, delim
+
+!
+
+is_ok = .false.
+
+n = size(int_vec)
+do i = 1, n
+  call get_next_word (word, ix_word, delim_wanted // ' ', delim, delim_found, err_flag = err)
+  if (err) then
+    call parser_error ('ERROR IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+
+  if (.not. is_integer(word, int_vec(i))) then
+    call parser_error ('ERROR READING INTEGER IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+
+  if (i == n .and. delim == delim_wanted) then
+    is_ok = .true.
+    return
+  endif
+
+  if (delim == delim_wanted) then
+    call parser_error ('NOT ENOUGH INTEGERS FOR ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+enddo
+
+call parser_error ('EXPECTING DELIMITOR: ' // delim_wanted, &
+                   'AFTER READING ' // int_str(n) // ' INTEGERS IN ' // err_str, &
+                   'IN ELEMENT: ' // ele%name)
+
+end function parser_fast_integer_read 
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function parser_fast_complex_read (cmplx_vec, ele, delim, err_str)  result (is_ok)
+!-
+
+function parser_fast_complex_read (cmplx_vec, ele, delim, err_str) result (is_ok)
+
+type (ele_struct) ele
+complex(rp) cmplx_vec(:)
+real(rp) rval, ival
+integer i, n, ix, ios1, ios2, ix_word
+logical is_ok, delim_found, err, left_parens_here
+character(*) err_str
+character(40) word
+character(1) delim
+
+!
+
+is_ok = .false.
+call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+if (bp_com%parse_line(1:1) == '(') then
+  delim = '('
+  bp_com%parse_line = bp_com%parse_line(2:)
+endif
+
+n = size(cmplx_vec)
+do i = 1, n
+  left_parens_here = (delim == '(')
+  call get_next_word (word, ix_word, ' ,()}', delim, delim_found, err_flag = err)
+  if (err .or. (left_parens_here .and. delim /= ' ') .or. (.not. left_parens_here .and. delim == ')')) then
+    call parser_error ('ERROR IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+
+  read (word, *, iostat = ios1) rval
+
+  if (left_parens_here) then
+    call get_next_word (word, ix_word, ',()', delim, delim_found, err_flag = err)
+    read (word, *, iostat = ios2) ival
+    if (ios1 /= 0 .or. ios2 /= 0 .or. err .or. delim /= ')') then
+      call parser_error ('ERROR READING COMPLEX VALUE IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+      return
+    endif
+
+    cmplx_vec(i) = cmplx(rval, ival)
+
+    call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+    if (bp_com%parse_line(1:1) == ',' .or. bp_com%parse_line(1:1) == '}' .or. bp_com%parse_line(1:1) == '(') then
+      delim = bp_com%parse_line(1:1)
+      bp_com%parse_line = bp_com%parse_line(2:)
+    else
+      delim = ' '
+    endif
+
+  else
+    if (ios1 /= 0 .or. err .or. delim == ')') then
+      call parser_error ('ERROR READING VALUE IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+      return
+    endif
+    cmplx_vec(i) = rval
+  endif
+
+  if ((delim == ',' .or. delim == '}') .and. i == n) then
+    is_ok = .true.
+    return
+  endif
+
+  if (i == n .or. (delim == ',' .or. delim == '}')) then
+    call parser_error ('NOT ENOUGH VALUES FOR ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+enddo
+
+call parser_error ('EXPECTING DELIMITOR: "," or "}"', &
+                   'AFTER READING ' // int_str(n) // ' COMPLEXS IN ' // err_str, &
+                   'IN ELEMENT: ' // ele%name)
+
+end function parser_fast_complex_read 
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function parser_fast_real_read (real_vec, ele, delim, err_str, exact_size, n_real)  result (is_ok)
+!-
+
+function parser_fast_real_read (real_vec, ele, delim, err_str, exact_size, n_real) result (is_ok)
+
+type (ele_struct) ele
+real(rp) real_vec(:)
+real(rp) val
+
+integer, optional :: n_real
+integer i, n, ix, ios, ix_word
+
+logical is_ok, delim_found, err, exact
+logical, optional :: exact_size
+
+character(*) err_str
+character(40) word
+character(1) delim
+
+!
+
+is_ok = .false.
+call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+exact = logic_option(.true., exact_size)
+
+n = size(real_vec)
+do i = 1, n
+  call get_next_word (word, ix_word, ' ,}', delim, delim_found, err_flag = err)
+  if (err) then
+    call parser_error ('ERROR IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+
+  read (word, *, iostat = ios) val
+
+  if (ios /= 0 .or. err) then
+    call parser_error ('ERROR READING VALUE IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+  real_vec(i) = val
+
+  if ((delim == ',' .or. delim == '}') .and. (.not. exact .or. i == n)) then
+    is_ok = .true.
+    if (present(n_real)) n_real = i
+    return
+  endif
+
+  if ((exact .and. i == n) .or. (delim == ',' .or. delim == '}')) then
+    call parser_error ('NOT ENOUGH VALUES FOR ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+enddo
+
+call parser_error ('EXPECTING DELIMITOR: "," or "}"', &
+                   'AFTER READING ' // int_str(n) // ' REALS IN ' // err_str, &
+                   'IN ELEMENT: ' // ele%name)
+
+end function parser_fast_real_read 
 
 end module
