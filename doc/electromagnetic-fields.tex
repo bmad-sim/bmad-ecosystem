@@ -793,8 +793,8 @@ identity
 \bmad has a number of \vn{field map} models that can be used to model electric or magnetic fields
 (\sref{s:fieldmap}). One model involves what are called \vn{generalized gradients}\cite{b:gen.grad}.
 This model is restricted to modeling DC magnetic or electric fields. In a lattice file, the
-generalized gradient field model is specified using the \vn{gen_grad_field} attribute as explained
-in Sec.~\sref{s:gen.grad.field}.
+generalized gradient field model is specified using the \vn{gen_grad_map} attribute as explained
+in Sec.~\sref{s:gen.grad.map}.
 
 The electric and magnetic fields are both described by a scalar potential\footnote
   {
@@ -876,10 +876,10 @@ even derivatives $C_{m,s}^{[2n]}$ the conversion is
   \left( B_x, B_y \right) &= \left( \cos\theta \, B_\rho - \sin\theta \, B_\theta, \,
     \sin\theta \, B_\rho + \cos\theta \, B_\theta \right) \CRNO
   &= \frac{(-1)^n \, m!}{4^n n! \, (n+m)!} \, C_{m,s}^{[2n]} \, \Big[ (n+m) \, (x^2 + y^2)^n \,
-    \left( S_{xy}(m-1), \, C_{xy}(m-1) \right) \, + \\
+    \left( S_{xy}(m-1), \, C_{xy}(m-1) \right) \, + 
+    \label{bbtb} \\
   &\hspace{13em}  n \, (x^2 + y^2)^{n-1} \, 
     \left( S_{xy}(m+1), \, -C_{xy}(m+1) \right) \Big] \nonumber
-  \label{bbtb}
 \end{align}
 and for the sine like odd derivatives $C_{m,s}^{[2n+1]}$
 \begin{equation}

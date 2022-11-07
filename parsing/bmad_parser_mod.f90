@@ -8726,7 +8726,7 @@ do
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', gg_map%r0, .true., delim, delim_found)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GEN_GRAD_MAP R0', gg_map%r0, .true., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
   case ('DZ')
@@ -10119,6 +10119,10 @@ do i = 1, n
   call get_next_word (word, ix_word, ' ,}', delim, delim_found, err_flag = err)
   if (err) then
     call parser_error ('ERROR IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+  if (.not. delim_found) then
+    call parser_error ('ERROR IN ' // err_str, 'MISSING COMMA?', 'IN ELEMENT: ' // ele%name)
     return
   endif
 

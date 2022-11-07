@@ -35,6 +35,7 @@ if (attribute_index(ele, 'FRINGE_AT') /= 0)            ele%value(fringe_at$) = b
 if (attribute_index(ele, 'FRINGE_TYPE') /= 0)          ele%value(fringe_type$) = none$
 if (attribute_index(ele, 'SPIN_FRINGE_ON') /= 0)       ele%value(spin_fringe_on$) = true$
 if (attribute_index(ele, 'PTC_CANONICAL_COORDS') /= 0) ele%value(ptc_canonical_coords$) = true$
+if (attribute_index(ele, 'MAT6_CALC_METHOD') /= 0)     ele%mat6_calc_method = auto$
 ele%taylor_map_includes_offsets = .true.
 
 ! Other inits.
@@ -90,7 +91,6 @@ case (crystal$)
   endif
 
 case (custom$)  
-  ele%mat6_calc_method = custom$
   ele%tracking_method  = custom$
   ele%field_calc       = custom$
 
@@ -129,7 +129,6 @@ case (diffraction_plate$)
 
 case (e_gun$)
   ele%tracking_method = time_runge_kutta$
-  ele%mat6_calc_method = tracking$
   ele%value(field_autoscale$) = 1
   ele%value(fringe_at$) = exit_end$
   ele%value(fringe_type$) = full$
@@ -142,7 +141,6 @@ case (ecollimator$)
 
 case (em_field$)
   ele%tracking_method = runge_kutta$
-  ele%mat6_calc_method = tracking$
   ele%value(fringe_type$) = full$
   ele%value(field_autoscale$) = 1
   ele%value(constant_ref_energy$) = true$
