@@ -238,10 +238,10 @@ call match_word (cmd, [character(40) :: &
           'data_d2', 'data_d2_array', 'data_set_design_value', 'data_parameter', &
           'datum_create', 'datum_has_ele', 'derivative', &
           'ele:ac_kicker', 'ele:cartesian_map', 'ele:chamber_wall', 'ele:control_var', &
-          'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:grid_field', &
-          'ele:gen_attribs', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
+          'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:gen_attribs', 'ele:gen_grad_map', &
+          'ele:grid_field', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
           'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', & 
-          'ele:gen_grad_map','ele:twiss', 'ele:wake', 'ele:wall3d', &
+          'ele:twiss', 'ele:wake', 'ele:wall3d', &
           'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'matrix', 'merit', 'orbit_at_s', &
@@ -2700,6 +2700,158 @@ case ('ele:floor')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% ele:gen_attribs
+!
+! Output element general attributes
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:gen_attribs {ele_id}|{which}
+!
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!
+! Example:
+!   python ele:gen_attribs 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+! 
+! Parameters
+! ----------
+! ele_id
+! which : default=model
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+
+case ('ele:gen_attribs')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  do i = 1, num_ele_attrib$
+    attrib = attribute_info(ele, i)
+    a_name = attrib%name
+    if (a_name == null_name$) cycle
+    if (attrib%state == private$) cycle
+
+    free = attribute_free (ele, a_name, .false., why_not_free = why_not_free)
+    if (.not. free .and. why_not_free == field_master_dependent$) free = .true.
+    attrib_type = attribute_type(a_name)
+    if (which /= 'model') free = .false.
+
+    select case (attrib_type)
+    case (is_logical$)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, l1)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
+    case (is_integer$)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
+    case (is_real$)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, es22.14)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+      nl=incr(nl); write (li(nl), '(4a)') 'units#', trim(a_name), ';STR;F;', attrib%units
+    case (is_switch$)
+      name = switch_attrib_value_name (a_name, ele%value(i), ele)
+      nl=incr(nl); write (li(nl), '(2a, l1, 2a)') trim(a_name), ';ENUM;', free, ';', trim(name)
+    end select
+  enddo
+
+  if (attribute_name(ele, aperture_at$) == 'APERTURE_AT') then
+    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', trim(aperture_at_name(ele%aperture_at))
+    nl=incr(nl); write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
+  endif
+
+  if (attribute_name(ele, aperture_type$) == 'APERTURE_TYPE') then
+    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;', trim(aperture_type_name(ele%aperture_type))
+  endif
+
+  if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
+    nl=incr(nl); write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
+  endif
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!%% ele:gen_grad_map
+!
+! Output element gen_grad_map 
+!
+! Notes
+! -----
+! Command syntax:
+!   python ele:gen_grad_map {ele_id}|{which} {index} {who}
+!
+! Where: 
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {index} is the index number in the ele%gen_grad_map(:) array
+!   {who} is one of: "base", or "terms".
+!
+! Example:
+!   python ele:gen_grad_map 3@1>>7|model 2 base
+! This gives element number 7 in branch 1 of universe 3.
+! 
+! Parameters
+! ----------
+! ele_id
+! index
+! who
+! which : default=model
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
+!  args:
+!   ele_id: 1@0>>9
+!   which: model
+!   index: 1
+!   who: terms
+
+case ('ele:gen_grad_map')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  if (.not. associated(ele%gen_grad_map)) then
+    call invalid ('gen_grad_map not allocated')
+    return
+  endif
+  ix = parse_int (tail_str, err, 1, size(ele%gen_grad_map));  if (err) return
+  gg_map => ele%gen_grad_map(ix)
+
+  select case (tail_str)
+  case ('base')
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(gg_map%file)
+    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   gg_map%field_scale
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', gg_map%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            gg_map%dz
+    name = attribute_name(ele, gg_map%master_parameter)
+    if (name(1:1) == '!') name = '<None>'
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(gg_map%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(gg_map%field_type))
+    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             gg_map%curved_ref_frame
+
+  case ('terms')
+    nl=incr(nl); li(nl) = '! Needs to be implemented!!'
+  end select
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% ele:grid_field
 !
 ! Output element grid_field
@@ -2799,86 +2951,6 @@ case ('ele:grid_field')
       end select
     enddo; enddo; enddo
   end select
-
-!------------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------------
-!%% ele:gen_attribs
-!
-! Output element general attributes
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:gen_attribs {ele_id}|{which}
-!
-! Where: 
-!   {ele_id} is an element name or index.
-!   {which} is one of: "model", "base" or "design"
-!
-! Example:
-!   python ele:gen_attribs 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
-! 
-! Parameters
-! ----------
-! ele_id
-! which : default=model
-!
-! Returns
-! -------
-! string_list
-!
-! Examples
-! --------
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!   ele_id: 1@0>>1
-!   which: model
-
-case ('ele:gen_attribs')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  do i = 1, num_ele_attrib$
-    attrib = attribute_info(ele, i)
-    a_name = attrib%name
-    if (a_name == null_name$) cycle
-    if (attrib%state == private$) cycle
-
-    free = attribute_free (ele, a_name, .false., why_not_free = why_not_free)
-    if (.not. free .and. why_not_free == field_master_dependent$) free = .true.
-    attrib_type = attribute_type(a_name)
-    if (which /= 'model') free = .false.
-
-    select case (attrib_type)
-    case (is_logical$)
-      nl=incr(nl); write (li(nl), '(2a, l1, a, l1)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
-    case (is_integer$)
-      nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
-    case (is_real$)
-      nl=incr(nl); write (li(nl), '(2a, l1, a, es22.14)') trim(a_name), ';REAL;', free, ';', ele%value(i)
-      nl=incr(nl); write (li(nl), '(4a)') 'units#', trim(a_name), ';STR;F;', attrib%units
-    case (is_switch$)
-      name = switch_attrib_value_name (a_name, ele%value(i), ele)
-      nl=incr(nl); write (li(nl), '(2a, l1, 2a)') trim(a_name), ';ENUM;', free, ';', trim(name)
-    end select
-  enddo
-
-  if (attribute_name(ele, aperture_at$) == 'APERTURE_AT') then
-    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', trim(aperture_at_name(ele%aperture_at))
-    nl=incr(nl); write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
-  endif
-
-  if (attribute_name(ele, aperture_type$) == 'APERTURE_TYPE') then
-    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;', trim(aperture_type_name(ele%aperture_type))
-  endif
-
-  if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
-    nl=incr(nl); write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
-  endif
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -3588,78 +3660,6 @@ case ('ele:taylor')
       nl=incr(nl); write (li(nl), '(2(i0, a), es22.14, 6(a, i0))') i, ';', j, ';', tt%coef, (';', tt%expn(k), k = 1, 6)
     enddo
   enddo
-
-!------------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------------
-!%% ele:gen_grad_map
-!
-! Output element gen_grad_map 
-!
-! Notes
-! -----
-! Command syntax:
-!   python ele:gen_grad_map {ele_id}|{which} {index} {who}
-!
-! Where: 
-!   {ele_id} is an element name or index.
-!   {which} is one of: "model", "base" or "design"
-!   {index} is the index number in the ele%gen_grad_map(:) array
-!   {who} is one of: "base", or "terms".
-!
-! Example:
-!   python ele:gen_grad_map 3@1>>7|model 2 base
-! This gives element number 7 in branch 1 of universe 3.
-! 
-! Parameters
-! ----------
-! ele_id
-! index
-! who
-! which : default=model
-!
-! Returns
-! -------
-! string_list
-!
-! Examples
-! --------
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_em_field
-!  args:
-!   ele_id: 1@0>>9
-!   which: model
-!   index: 1
-!   who: terms
-
-case ('ele:gen_grad_map')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
-
-  if (.not. associated(ele%gen_grad_map)) then
-    call invalid ('gen_grad_map not allocated')
-    return
-  endif
-  ix = parse_int (tail_str, err, 1, size(ele%gen_grad_map));  if (err) return
-  gg_map => ele%gen_grad_map(ix)
-
-  select case (tail_str)
-  case ('base')
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(gg_map%file)
-    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   gg_map%field_scale
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', gg_map%r0(i), i = 1, 3)
-    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            gg_map%dz
-    name = attribute_name(ele, gg_map%master_parameter)
-    if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(gg_map%ele_anchor_pt))
-    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(gg_map%field_type))
-    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             gg_map%curved_ref_frame
-
-  case ('terms')
-    nl=incr(nl); li(nl) = '! Needs to be implemented!!'
-  end select
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
