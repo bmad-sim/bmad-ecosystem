@@ -6,6 +6,6 @@
 !-
 
 module tao_version_mod
-character(*), parameter :: tao_svn_version = "53490"
-character(*), parameter :: tao_svn_date = "2022-11-06 20:12:44"
+character(*), parameter :: tao_svn_version = "53495"
+character(*), parameter :: tao_svn_date = "2022-11-07 12:24:08"
 end module

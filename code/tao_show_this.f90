@@ -4293,13 +4293,13 @@ case ('spin')
     case ('-g_map')
       show_mat = .true.
     case ('-ignore_kinetic')
-      call word_read(what2, '-', veto, ix, delim, delim_found, what2)
+      call word_read(what2, ' ', veto, ix, delim, delim_found, what2)
     case ('-x_zero')
-      call word_read(what2, '-', excite_zero(1), ix, delim, delim_found, what2)
+      call word_read(what2, ' ', excite_zero(1), ix, delim, delim_found, what2)
     case ('-y_zero')
-      call word_read(what2, '-', excite_zero(2), ix, delim, delim_found, what2)
+      call word_read(what2, ' ', excite_zero(2), ix, delim, delim_found, what2)
     case ('-z_zero')
-      call word_read(what2, '-', excite_zero(3), ix, delim, delim_found, what2)
+      call word_read(what2, ' ', excite_zero(3), ix, delim, delim_found, what2)
     end select
   enddo
 
