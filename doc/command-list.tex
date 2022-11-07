@@ -609,9 +609,9 @@ List of possible \vn{<what_to_print>} choices:
   data_d2, data_d2_array, data_set_design_value, data_parameter,
   datum_create, datum_has_ele, derivative, ele:ac_kicker, ele:cartesian_map,
   ele:chamber_wall, ele:control_var, ele:cylindrical_map, ele:elec_multipoles,
-  ele:floor, ele:grid_field, ele:gen_attribs, ele:head, ele:lord_slave, ele:mat6,
-  ele:methods, ele:multipoles, ele:orbit, ele:param, ele:photon, ele:spin_taylor,
-  ele:taylor, ele:taylor_field, ele:twiss, ele:wake, ele:wall3d, em_field, enum,
+  ele:floor, ele:gen_grad_map, ele:grid_field, ele:gen_attribs, ele:head, ele:lord_slave, 
+  ele:mat6, ele:methods, ele:multipoles, ele:orbit, ele:param, ele:photon, 
+  ele:spin_taylor, ele:taylor, ele:twiss, ele:wake, ele:wall3d, em_field, enum,
   evaluate, floor_plan, floor_orbit, global, help, inum, lat_branch_list,
   lat_calc_done, lat_ele_list, lat_list, lat_param_units, matrix, merit, orbit_at_s,
   place_buffer, plot_curve, plot_graph, plot_histogram, plot_lat_layout, plot_line,
@@ -3834,8 +3834,8 @@ Lattice elements may have associated field descriptions. There are four types as
 \begin{example}
   cartesian_map
   cylindrical_map
+  gen_grad_map
   grid_field
-  taylor_field
 \end{example}
 Since the data associated with these may be largish, there is the option of storing the data is
 separate secondary lattice files. This is done by setting \vn{format} to either \vn{ascii} or

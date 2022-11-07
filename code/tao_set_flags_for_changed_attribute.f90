@@ -22,11 +22,9 @@ implicit none
 type (tao_universe_struct), target :: u
 type (ele_struct), pointer, optional :: ele_ptr
 type (lat_struct), pointer :: lat
-type (branch_struct), pointer :: branch
-type (ele_pointer_struct), allocatable :: eles(:) 
 
 real(rp), pointer, optional :: val_ptr
-integer ib, ie, n_loc
+integer ib, ie, n_loc, ix_branch
 logical err
 
 character(*) ele_name
@@ -45,10 +43,13 @@ endif
 
 if (present(ele_ptr)) then
   if (associated(ele_ptr)) then
+    ix_branch = ele_ptr%ix_branch
+
     if (ele_ptr%key == ramper$) then
       call apply_all_rampers(lat, err)
     else
-      if (ele_ptr%ix_ele == 0) u%model_branch(0)%beam%init_starting_distribution = .true.
+      if (ele_ptr%ix_ele <= u%model_branch(ix_branch)%beam%ix_track_start) &
+                               u%model_branch(ix_branch)%beam%init_starting_distribution = .true.
       if (present(val_ptr)) call set_flags_for_changed_attribute (ele_ptr, val_ptr)
     endif
   endif
