@@ -5,6 +5,9 @@
 !
 ! Note: You need to call set_ptc before using this routine.
 !
+! Note: If ele contains a gen_grad_map, this routine may not be called in between calls to 
+!   FPP alloc and kill since the setting up of the PTC pancake uses FPP.
+!
 ! Input:
 !   ele              -- Ele_struct: Bmad element.
 !   param            -- lat_param_struct: 
@@ -38,12 +41,17 @@ type (ele_struct), pointer :: field_ele, ele2
 type (cartesian_map_term1_struct), pointer :: wt
 type (cartesian_map_struct), pointer :: cm
 type (cylindrical_map_struct), pointer :: cy
+type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), pointer :: gg
+type (em_taylor_struct), target :: em_taylor(3)
+type (em_taylor_term_struct), pointer :: tm
 type (fibre), pointer :: ptc_fibre
 type (keywords) ptc_key, key2
 type (work) energy_work
 type (tree_element), pointer :: arbre(:)
 type (c_damap) ptc_c_damap
 type (real_8) ptc_re8(6)
+type(taylor), allocatable :: pancake_field(:,:)
 type (taylor) ptc_taylor
 
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, kl(0:n_pole_maxx), t(0:n_pole_maxx)
@@ -484,7 +492,7 @@ endif
 
 call ele_to_ptc_magnetic_an_bn (ele, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
-! cylindrical field
+! Cylindrical_map
 
 if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
   PUT_A_ABELL = 1
@@ -495,6 +503,92 @@ if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
   enddo
   m_abell = maxval(ele%cylindrical_map%m)
 endif
+
+! Gen_grad_map
+
+if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
+  gg_map => ele2%gen_grad_map(1)
+  np = gg_map%iz1 - gg_map%iz0 + 1
+
+  if (key == sbend$ .and. ele%value(g$) /= 0) then
+    ld = ele%value(l$)
+    hd = ele%value(g$)
+    lc = (np-1) * gg_map%dz   ! Integration length
+
+    if (gg_map%curved_ref_frame) then
+      hc = ele%value(g$) ! pancake curvature = ele curvature
+      angc = (ele%value(angle$) - (np-1) * gg_map%dz * ele%value(g$)) / 2
+      xc = gg_map%r0(1) * cos(ele%value(angle$)/2) - ele%value(rho$) * (1 - cos(angc))
+      dc = gg_map%r0(1) * sin(ele%value(angle$)/2) + ele%value(rho$) * sin(angc)
+    else
+      hc = 0.d0     ! pancake curvature
+      angc = ele%value(angle$) / 2
+      xc = gg_map%r0(1) + ele%value(rho$) * (1 - cos(ele%value(angle$)/2))
+      dc = (ele%value(l$) - (np-1) * gg_map%dz) / 2
+    endif
+
+  else
+    ld = ele%value(l$)
+    lc = (np-1) * gg_map%dz   ! Integration length
+
+    hd = 0
+    hc = 0                ! pancake curvature
+
+    angc = 0
+    xc = gg_map%r0(1)
+    dc = (ele%value(l$) - (np-1) * gg_map%dz) / 2
+  endif
+
+  if (mod(np, 2) == 0 .or. np < 5) then
+    call out_io (s_fatal$, r_name, 'NUMBER OF PLANES FOR A TAYLOR_FIELD MUST BE ODD AND AT LEAST 5 IF USED WITH PTC.', &
+                                   'TAYLOR_FIELD USED IN ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+  if (gg_map%field_type /= magnetic$) then
+    call out_io (s_fatal$, r_name, 'FIELD TYPE MUST BE MAGNETIC FOR A TAYLOR_FIELD IF USED WITH PTC.', &
+                                   'TAYLOR_FIELD USED IN ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+  n = len_trim(gg_map%file)
+  ! Note: True => Not canonical tracking.
+  call set_pancake_constants(np, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., gg_map%file(max(1,n-23):n))
+
+  max_order = 0
+  do i = gg_map%iz0, gg_map%iz1
+    call gen_grad_to_em_taylor(gg_map, i, em_taylor)
+    do j = 1, 3
+      do k = 1, size(em_taylor(j)%term)
+        max_order = max(max_order, sum(em_taylor(j)%term(k)%expn))
+      enddo
+    enddo
+  enddo
+
+  call init (max_order+1, 1, 0, 0)
+  call allocate_for_pancake (pancake_field)
+
+  do i = gg_map%iz0, gg_map%iz1
+    ii = i + 1 - gg_map%iz0
+    call gen_grad_to_em_taylor(gg_map, i, em_taylor)
+    do j = 1, 3
+      do k = 1, size(em_taylor(j)%term)
+        tm => em_taylor(j)%term(k)
+        coef = tm%coef * 1d9 * master_parameter_value(gg_map%master_parameter, ele2) ! * c_light / ele2%value(p0c$)
+        pancake_field(j,ii)=pancake_field(j,ii)+(coef .mono. tm%expn)
+      enddo
+    enddo
+  enddo
+
+  ptc_key%magnet = 'INTERNALPANCAKE'
+
+else
+  ! This needed since corresponding create_fibre_append dummy arg is an assumed shape array.
+  allocate (pancake_field(0,0))  
+endif
+
 
 ! Check number of slices and integrator order.
 ! Wigglers are special since they do not have a uniform field so ignore these.

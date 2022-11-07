@@ -936,6 +936,14 @@ function gamma_ref(ele) result (gamma)
   real(rp) gamma
 end function
 
+subroutine gen_grad_to_em_taylor (gen_grad, iz, em_taylor)
+  import
+  implicit none
+  type (gen_grad_map_struct), target :: gen_grad
+  type (em_taylor_struct), target :: em_taylor(3)
+  integer iz
+end subroutine
+
 subroutine get_slave_list (lord, slaves, n_slave)
   import
   implicit none

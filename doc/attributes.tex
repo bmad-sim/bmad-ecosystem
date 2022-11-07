@@ -2407,7 +2407,7 @@ A \vn{grid_field} is grid of field points specified using the syntax:
     dr   = (...),                   ! Grid spacing. Syntax is \vn{geometry} dependent.
     ele_anchor_pt = <Position>      ! BEGINNING, CENTER, or END
     \{ ... \},                      ! Field table. Syntax is \vn{geometry} dependent.
-    pt(<Integer>, \dots) = ( \ldots ), ! Field table point. Old style 
+    pt(<Integer>, \dots) = ( \ldots ), ! Field table point. Old style.
     \ldots \} \} \}
 \end{example}
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
@@ -2572,34 +2572,38 @@ Grid fields may stored in \vn{HDF5} binary format which may then be called using
 \end{example}
 
 %-----------------------------------------------------------------
-\subsection{Gen_Grad_Map Field Map}
+\subsection{Gen_Grad_Map}
 \label{s:gen.grad.map}
 \index{gen_grad_map}
 
-The \vn{gen_grad_map} field map is only used for DC fields. A \vn{gen_grad_map} is comprised
-of a set of two dimensional Taylor maps.
+The \vn{gen_grad_map} characterises DC magnetic or electric fields using ``generalized gradients''
+(GG) as described by Venturini and Dragt\cite{b:gen.grad}. Formulas for the GG
+are given is \Sec{s:gen.grad.phys}.
 
-The syntax for describing a \vn{gen_grad_map} is:
+An element can store an set of GGs. For example, a GG for the magnetic fiels and a GG for the
+electric fields. The syntax for describing a single GG is:
 \begin{example}
   gen_grad_map = \{
     field_type       = <String>,    ! Type of field: Default = magnetic.
     field_scale      = <Real>,      ! Scale factor for the E & B fields.
     master_parameter = <Name>,      ! Master scaling parameter for E & B fields.
-    curved_ref_frame   = <Logical>, ! Use curved coords with bends?
+    curved_ref_frame = <Logical>,   ! Use curved coords with bends?
     ele_anchor_pt    = <Real>,      ! Anchor position: Beginning (default), Center, or End.
     r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
     dz               = <Real>,             ! Distance between sampled field points.
-    \{
+    \{ ... \}                       ! Gen grad derivative values.
 \end{example}
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
 other field map types.
 
-Each \vn{plane(<i>)} component specifies a Taylor map at constant z
-(\sref{s:taylor.field.phys}). The index \vn{<i>} for the different planes must be in
-consecutive order. The plane with <i> = 0 corresponds to the $z = 0$ origin. There is no
-restriction for the starting \vn{<i>} index of the first plane. That is, there does not
-have to be a plane with index \vn{<i>} = 0 (in this case, the origin needs to be outside
-of the element).
+
+
+
+Each \vn{\{...\}} component specifies a Taylor map at constant z (\sref{s:taylor.field.phys}). The
+index \vn{<i>} for the different planes must be in consecutive order. The plane with <i> = 0
+corresponds to the $z = 0$ origin. There is no restriction for the starting \vn{<i>} index of the
+first plane. That is, there does not have to be a plane with index \vn{<i>} = 0 (in this case, the
+origin needs to be outside of the element).
 
 The individual Taylor series terms follow the same syntax as the Taylor terms in a
 \vn{taylor} element (\sref{s:taylor}):
