@@ -548,7 +548,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', cartesian_map ='
           call write_lat_line (line, iu, .true.)
-          call write_this_cartesian_map (ele, iu, line)
+          call write_this_cartesian_map (ct_map, ele, iu, line)
 
         elseif (ix_ptr > 0) then  ! A file has been created so refer to that
 
@@ -561,7 +561,7 @@ do ib = 0, ubound(lat%branch, 1)
           string = trim(path) // '/' // trim(string)
           iu2 = lunget()
           open (iu2, file = string)
-          call write_this_cartesian_map (ele, iu2)
+          call write_this_cartesian_map (ct_map, ele, iu2)
           close (iu2)
         endif
       enddo
@@ -578,7 +578,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', cylindrical_map ='
           call write_lat_line (line, iu, .true.)
-          call write_this_cylindrical_map (ele, iu, line)
+          call write_this_cylindrical_map (cl_map, ele, iu, line)
 
         elseif (ix_ptr > 0) then
           call form_this_field_map_name(string, '.cylindrical_map', ele2, ix_ptr, ascii$)
@@ -590,7 +590,7 @@ do ib = 0, ubound(lat%branch, 1)
           string = trim(path) // '/' // trim(string)
           iu2 = lunget()
           open (iu2, file = string)
-          call write_this_cylindrical_map (ele, iu2)
+          call write_this_cylindrical_map (cl_map, ele, iu2)
           close (iu2)
         endif
       enddo
@@ -608,7 +608,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', gen_grad_map_map ='
           call write_lat_line (line, iu, .true.)
-          call write_this_gen_grad_map_map (ele, iu, line)
+          call write_this_gen_grad_map_map (gg_map, ele, iu, line)
 
         elseif (ix_ptr > 0) then
           call form_this_field_map_name(string, '.gen_grad_map', ele2, ix_ptr, ascii$)
@@ -620,7 +620,7 @@ do ib = 0, ubound(lat%branch, 1)
           string = trim(path) // '/' // trim(string)
           iu2 = lunget()
           open (iu2, file = string)
-          call write_this_gen_grad_map_map (ele, iu2)
+          call write_this_gen_grad_map_map (gg_map, ele, iu2)
           close (iu2)
         endif
       enddo
@@ -638,7 +638,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', grid_field_map ='
           call write_lat_line (line, iu, .true.)
-          call write_this_grid_field_map (ele, iu, line)
+          call write_this_grid_field_map (g_field, ele, iu, line)
 
         elseif (ix_ptr > 0) then
           call form_this_field_map_name(string, '.grid_field', ele2, ix_ptr, output_form)
@@ -654,7 +654,7 @@ do ib = 0, ubound(lat%branch, 1)
           else
             iu2 = lunget()
             open (iu2, file = string)
-            call write_this_grid_field_map (ele, iu2)
+            call write_this_grid_field_map (g_field, ele, iu2)
             close (iu2)
           endif
         endif
@@ -1605,8 +1605,9 @@ end subroutine write_map_coef
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_cartesian_map (ele, iu9, line)
+subroutine write_this_cartesian_map (ct_map, ele, iu9, line)
 
+type (cartesian_map_struct) :: ct_map
 type (ele_struct) ele
 integer j, iu9
 character(*), optional :: line
@@ -1653,8 +1654,9 @@ end subroutine write_this_cartesian_map
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_cylindrical_map (ele, iu9, line)
+subroutine write_this_cylindrical_map (cl_map, ele, iu9, line)
 
+type (cylindrical_map_struct) :: cl_map
 type (ele_struct) ele
 integer iu9
 character(*), optional :: line
@@ -1691,8 +1693,9 @@ end subroutine write_this_cylindrical_map
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_grid_field_map (ele, iu9, line)
+subroutine write_this_grid_field_map (g_field, ele, iu9, line)
 
+type (grid_field_struct) :: g_field
 type (ele_struct) ele
 integer iu9
 character(*), optional :: line
@@ -1769,11 +1772,14 @@ end subroutine write_this_grid_field_map
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_gen_grad_map_map (ele, iu9, line)
+subroutine write_this_gen_grad_map_map (gg_map, ele, iu9, line)
 
+type (gen_grad_map_struct), target :: gg_map
+type (gen_grad1_struct), pointer :: gg
 type (ele_struct) ele
-integer iu9
+integer iu9, ig, iz, n, id
 character(*), optional :: line
+character(40) fmt
 
 !
 
@@ -1787,8 +1793,26 @@ write (iu9, '(2x, 3a)')       'dz                 = ', re_str(gg_map%dz), ','
 write (iu9, '(2x, 4a)')       'r0                 = ', trim(array_re_str(gg_map%r0)), ','
 write (iu9, '(2x, a, l1, a)') 'curved_ref_frame   = ', gg_map%curved_ref_frame, ','
 
-!!do ip = lbound(gg_map%ptr%plane, 1), ubound(gg_map%ptr%plane, 1)
-!!enddo
+do ig = 1, size(gg_map%gg)
+  gg => gg_map%gg(ig)
+  write (iu9, '(2x, a)') '{'
+  write (iu9, '(4x, a, i0)') 'm = ', gg%m
+  write (iu9, '(4x, 2a)')    'type = ', expression_op_name(gg%sincos)
+  write (iu9, '(4x, a)')     'derivs = {'
+
+
+  n = ubound(gg%deriv,2)
+  write (fmt, '(a, i0, a)') '(i8, a, ', n, 'es20.12, a)' 
+  do iz = gg_map%iz0, gg_map%iz1
+    write (1, fmt) iz, ':', gg%deriv(iz,:), ','
+  enddo
+  write (1, fmt) gg_map%iz1, ':', gg%deriv(gg_map%iz1,:)
+  if (ig == size(gg_map%gg)) then
+    write (1, '(a)') '  }'
+  else
+    write (1, '(a)') '  },'
+  endif
+enddo
 
 ! present(line) = T when single file is being constructed
 

@@ -1843,7 +1843,7 @@ if (charge_live == 0) then
 endif
 
 p0c_avg = sum(particle%p0c*charge, mask = (particle%state == alive$)) / charge_live
-bunch_params%centroid%p0c = p0c_avg
+!! bunch_params%centroid%p0c = p0c_avg  !! Round-off error is problematic with track1 code.
 
 avg = 0
 sig_mat = 0
