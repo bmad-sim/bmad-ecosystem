@@ -70,9 +70,28 @@ The parameter file has the format:
   mode = 'fit'					! or 'binary' to create a binary field table file.
   lmdif_eps = 1e-12			! Lmdif optimizer tollerance.
   printit = F					  ! Print extra info for debugging program. Only useful for debugging.
-  sym_x = 1							! Possibilities are: -1, 0, 1. 
-  sym_y = -1						! Possibilities are: -1, 0, 1. 
+  sym_x = 1							! X-axis symmetry. Possibilities are: -1, 0 (default), 1.
+  sym_y = -1						! Y-axis symmetry. Possibilities are: -1, 0 (default), 1. 
 /                       ! Ending slash signals end of param list. Everything outside is ignored.
+
+The sym_x and sym_y parameters set the symmetry of the field at constant z with respect to the
+x-axis and the y-axis. This is used when the field table only contains one quadrent or one half of
+the the field region in the (x,y) plane. Using a reduced region for a table is a way of reducing the
+table file size. If the table covers the full field region, sym_x and sym_y should be set to 0 which
+will prevent the program from trying to use symmetry in the calculation. sym_x = 1 means there is
+mirror symmetry with respect to the x-z plane and -1 means there is anti-symmetry with respect to
+the x-z plane. Similarly for sym_y with respect to the y-z plane. Example: A quadrupole magnet has
+mirror anti-symmetry with respect to both the x-z and y-z planes and a skew quadrupole magnet has
+mirror symmetry with respect to both planes.
+
+
+How the program works:
+----------------------
+
+The GG's are calculated z-plane by z-plane with a nonlinear fit being done in each z-plane using only the field
+values in that plane. 
+
+
 
 
 
