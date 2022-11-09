@@ -15,7 +15,8 @@ character(100) file_name
 character(16) mode
 
 namelist /params / field_file, every_n_th_plane, n_deriv_max, m_cos, m_sin, n_cycles, &
-              iz_min, iz_max, sym_x, sym_y, mode, lmdif_eps, printit, out_file
+              iz_min, iz_max, sym_x, sym_y, mode, lmdif_eps, printit, out_file, &
+              n_planes_fit, n_deriv_extra
 
 !
 
@@ -29,21 +30,27 @@ open (1, file = file_name, status = 'old')
 read (1, nml = params)
 close (1)
 
+if (modulo(n_planes_fit, 2) == 0) then
+  print *, 'N_PLANES_FIT MUST TO AN ODD NUMBER.'
+  stop
+endif
+
+!
+
 call read_field_table(field_file)
 
 !
 
 select case (mode)
+case ('ascii')
+  call write_ascii_field_table(field_file)
+
 case ('binary')
   call write_binary_field_table(field_file)
-
-!
 
 case ('fit')
   call fit_field()
   call write_gg()
-
-!
 
 case default
   print *, 'I do not understand this mode: ', trim(mode)
