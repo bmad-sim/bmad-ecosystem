@@ -627,10 +627,11 @@ subroutine pointer_to_locations(string, array, num, ix_min, ix_max, names, exact
   character(*), optional :: names(:)
 end subroutine
 
-function poly_eval(poly, x) result (y)
+function poly_eval(poly, x, diff_coef) result (y)
   import
   implicit none
   real(rp) poly(0:), x, y
+  logical, optional :: diff_coef
 end function
 
 function probability_funct(x) result (prob)
