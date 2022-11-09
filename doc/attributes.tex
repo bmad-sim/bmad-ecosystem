@@ -2577,11 +2577,11 @@ Grid fields may stored in \vn{HDF5} binary format which may then be called using
 \index{gen_grad_map}
 
 The \vn{gen_grad_map} characterises DC magnetic or electric fields using ``generalized gradients''
-(GG) as described by Venturini and Dragt\cite{b:gen.grad}. Formulas for the GG
-are given is \Sref{s:gen.grad.phys}.
+(GG) as described by Venturini and Dragt\cite{b:gen.grad}. Formulas for the GG are given in
+\Sref{s:gen.grad.phys}.
 
-An element can store an set of GGs. For example, a GG for the magnetic fiels and a GG for the
-electric fields. The syntax for describing a single GG is:
+An element can store an set of GGs. For example, a GG for the magnetic field and a GG for the
+electric field. The syntax for describing a single GG is:
 \begin{example}
   gen_grad_map = \{
     field_type       = <String>,    ! Type of field: Default = magnetic.
@@ -2591,21 +2591,36 @@ electric fields. The syntax for describing a single GG is:
     ele_anchor_pt    = <Real>,      ! Anchor position: Beginning (default), Center, or End.
     r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
     dz               = <Real>,             ! Distance between sampled field points.
-    \{ ... \}                       ! Gen grad derivative values.
+    curve = \{                      ! Generalized gradient curve
+      m = <Int>,                    ! Azimuthal m value
+      type = <Sin-or-Cos>           ! Type of curve: sin or cos.
+      derivs = \{
+        <iz0>: <d0> <d1> <d2> ...,
+        <iz1>: ...,
+        ...
+      \}
+    \},
+    curve = \{
+      ...
+    \}
+  \}
 \end{example}
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
-other field map types.
+other field map types. In general there will be multiple \vn{curve} instances. 
+A given \vn{curve} instance specifies one generalized gradient with a given azimuthal \vn{m}
+value and a given \vn{sin} or \vn{cos} type. Each \vn{curve} is characterized by the \vn{derivs}
+table which gives the value of the curve and its derivatives at a set of equally spaced points.
+
 
 
 To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of
 restrictions: 
   \begin{itemize}
   \item
-There can be only one \vn{gen_grad_map} field map and there cannot be any other field
-maps of any kind.
+There can be only one \vn{gen_grad_map} and there cannot be any other field maps of any kind.
   \item 
-The number of planes must be odd. If you want to be able to track with PTC to the center of the
-element, the number of planes must be of the form $4 \, n + 1$ where $n$ is an integer.
+The number of z-points must be odd. If you want to be able to track with PTC to the center of the
+element, the number of z-points must be of the form $4 \, n + 1$ where $n$ is an integer.
   \item
 Only magnetic fields may be used.
   \item
@@ -2618,7 +2633,7 @@ so there is no good way to cut an element at an arbitrary position.]
 In a bend with \vn{curved_ref_frame} = False, The setting of \vn{ele_anchor_pt} must be
 \vn{center}.
   \end{itemize}
-If the edges of the \vn{gen_grad_map}, which are defined by the first and last planes, is different
+If the edges of the \vn{gen_grad_map}, which are defined by the first and last z-points, is different
 than the edges of the element, \bmad and PTC will do tracking differently. With \bmad, the tracking
 will start at one edge of the element and will end at the other end. That is, \bmad will ignore the
 field outside of the element (but this can be modified using field overlap (\sref{s:overlap})). PTC,
@@ -2626,18 +2641,6 @@ on the other hand, will start at an element end and then track from the element 
 first plane like in a drift. It will then track to the ending plane and finally track backwards from
 the ending plane to the ending element edge line in a drift. That is, PTC does not ignore the field
 outside of the element.
-
-When using PTC based tracking (\sref{c:methods}), the \vn{canonical_tracking} parameter can be used
-to select whether the transverse phase space coordinates used in tracking is the canonical $(x, p_x,
-y, p_y)$ (\sref{s:phase.space}) coordinates or the non-canonical $(x, x', y, y')$ coordinates. The
-default is \vn{False}. The difference comes at the edges of element if the field is not zero. With
-canonical coordinates, there is a kick at the edge while with the non-canonical there is not. What
-is best depends upon the problem. For example, with a solenoid magnet where the field is constant
-right up to the edge, canonical tracking will be needed since the edge kick is significant. However,
-the edge kick is not well defined (that is, certain assumptions are built into the edge kick
-calculation. For example, with a solenoid, cylindrical symmetry is generally assumed). Thus for some
-arbitrary field, the assumptions used by PTC may by incorrect for the problem at hand. Thus in many
-cases, especially for single pass machines, the non-canonical tracking is a better choice.
 
 Example:
 \begin{example}

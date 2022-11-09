@@ -773,7 +773,7 @@ case(fieldmap$)
   endif
 
   if (.not. associated(ele%cylindrical_map) .and. .not. associated(ele%cartesian_map) .and. &
-                                                  .not. associated(ele%grid_field)) then
+      .not. associated(ele%gen_grad_map) .and. .not. associated(ele%grid_field)) then
     call out_io (s_fatal$, r_name, 'No associated fieldmap (cartesican_map, grid_field, etc) FOR: ' // ele%name) 
     if (global_com%exit_on_error) call err_exit
     if (present(err_flag)) err_flag = .true.
@@ -1258,7 +1258,7 @@ case(fieldmap$)
   endif
 
   !------------------------------------
-  ! Grid field calc 
+  ! Gen grid map calc 
 
   if (associated(ele%gen_grad_map)) then
 
@@ -1582,14 +1582,16 @@ type (gen_grad_map_struct), target :: gg_map
 type (gen_grad1_struct), pointer :: gg
 type (em_field_struct) field
 
-real(rp) r_pos(3), z_rel, theta, rho, azi, cd, p_rho, ff, Fld(3), F_rho, F_theta
+real(rp) r_pos(3), z_rel, theta, rho, cd, p_rho, ff, Fld(3), F_rho, F_theta, f0, f1
 real(rp), allocatable :: d0(:), d1(:)
-integer iz0, m, j, id, nd, ud, nn
+integer iz0, m, j, id, nd, nn
 logical is_even
 
 !
 
 iz0 = floor(r_pos(3) / gg_map%dz)
+if (iz0 < gg_map%iz0) iz0 = iz0 + 1 ! Allow one dz width out-of-bounds.
+if (iz0 >= gg_map%iz1) iz0 = iz0 - 1 ! Allow one dz width out-of-bounds.
 
 if (iz0 < gg_map%iz0 .or. iz0 >= gg_map%iz1) then
   if (.not. logic_option(.false., grid_allow_s_out_of_bounds)) then
@@ -1602,6 +1604,9 @@ endif
 !
 
 z_rel = r_pos(3) - iz0 * gg_map%dz
+f1 = z_rel / gg_map%dz
+f0 = 1.0_rp - f1
+
 theta = atan2(r_pos(2), r_pos(1))
 rho = norm2(r_pos(1:2))
 
@@ -1612,15 +1617,12 @@ do j = 1, size(gg_map%gg)
   call re_allocate2(d0, 0, nd, .false.)
   call re_allocate2(d1, 0, nd, .false.)
   d0 = gg%deriv(iz0,:)
-  d1 = gg%deriv(iz1,:)
+  d1 = gg%deriv(iz0+1,:)
 
-  select case (gg%sincos)
-  case (cos$);  azi = cos(gg%m * theta)
-  case (sin$);  azi = sin(gg%m * theta)
-  end select
-
-  ud = nd
   do id = 0, nd
+    cd = f0*poly_eval(d0(id:), z_rel, diff_coef=.true.) + f1*poly_eval(d1(id:), z_rel-gg_map%dz, diff_coef=.true.)
+    if (cd == 0) cycle
+
     is_even = (modulo(id,2) == 0)
     if (is_even) then
       nn = id / 2
@@ -1629,9 +1631,8 @@ do j = 1, size(gg_map%gg)
     endif
 
     f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
-    cd = poly_eval(d0(0:ud), z_rel) + poly_eval(d1(0:ud), z_rel-gg_map%dz)
 
-    if (id+m-1 == 0) then  ! Covers case where rho = 0
+    if (id+m-1 <= 0) then  ! Covers case where rho = 0
       p_rho = 1
     else
       p_rho = rho**(id+m-1)
@@ -1668,13 +1669,6 @@ do j = 1, size(gg_map%gg)
         field%E(3) = field%E(3) + Fld(3)
       endif
     endif
-
-
-    forall (j = 0:ud) d0(j) = j * d0(j)
-    forall (j = 0:ud) d1(j) = j * d1(j)
-    ud = ud - 1
-    d0(0:ud) = d0(1:ud+1)
-    d1(0:ud) = d1(1:ud+1)
   enddo
 enddo
 

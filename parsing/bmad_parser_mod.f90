@@ -8782,7 +8782,8 @@ do
       call parser_error ('BAD GEN_GRAD_MAP CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
     endif
 
-  case ('{')
+  case ('CURVE')
+    if (.not. expect_this('={', .true., .false., 'NO "={" AFTER "CURVE" IN GEN_GRAD_MAP', ele, delim, delim_found)) return   
     n_gg = size(gg_map%gg) + 1
     call move_alloc(gg_map%gg, gg)
     allocate (gg_map%gg(n_gg))
@@ -8797,7 +8798,7 @@ do
       case ('M')
         call parser_get_integer (gg1%m, word, ix_word, delim, delim_found, err_flag, 'BAD GEN_GRAD%GG%M CONSTRUCT', 'IN ELEMENT: ' // ele%name)
 
-      case ('TYPE')
+      case ('KIND')
         call get_next_word (word, ix_word, ',}', delim, delim_found)
         call match_word(word, ['COS', 'SIN'], gg1%sincos, can_abbreviate = .false., matched_name = word)
         select case (word)
@@ -8874,6 +8875,8 @@ do
 
       if (delim == '}') exit
     enddo
+
+    if (.not. expect_one_of (',} ', .false., ele%name, delim, delim_found)) return
 
   case default
     if (attrib_name == '') then

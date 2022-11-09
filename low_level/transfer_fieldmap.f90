@@ -104,6 +104,36 @@ if (who == all$ .or. who == cylindrical_map$) then
   endif
 endif
 
+! Gen_grad
+
+if (who == all$ .or. who == gen_grad_map$) then
+  if (associated(ele_in%gen_grad_map) .and. associated(ele_out%gen_grad_map)) then
+    if (size(ele_in%gen_grad_map) /= size(ele_out%gen_grad_map)) then
+      call unlink_fieldmap (gen_grad_map = ele_out%gen_grad_map)
+      nm = size(ele_in%gen_grad_map)
+      allocate (ele_out%gen_grad_map(nm))
+      do i = 1, nm
+        ele_out%gen_grad_map(i) = ele_in%gen_grad_map(i)
+      enddo
+
+    else
+      do i = 1, size(ele_in%gen_grad_map)
+        ele_out%gen_grad_map(i) = ele_in%gen_grad_map(i)
+      enddo
+    endif
+
+  elseif (associated(ele_in%gen_grad_map) .and. .not. associated(ele_out%gen_grad_map)) then
+    nm = size(ele_in%gen_grad_map)
+    allocate (ele_out%gen_grad_map(nm))
+    do i = 1, nm
+      ele_out%gen_grad_map(i) = ele_in%gen_grad_map(i)
+    enddo
+
+  elseif (.not. associated(ele_in%gen_grad_map) .and. associated(ele_out%gen_grad_map)) then
+    call unlink_fieldmap (gen_grad_map = ele_out%gen_grad_map)
+  endif
+endif
+
 ! Grid_field
 
 if (who == all$ .or. who == grid_field$) then

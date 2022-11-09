@@ -558,13 +558,8 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
   call set_pancake_constants(np, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., gg_map%file(max(1,n-23):n))
 
   max_order = 0
-  do i = gg_map%iz0, gg_map%iz1
-    call gen_grad_to_em_taylor(gg_map, i, em_taylor)
-    do j = 1, 3
-      do k = 1, size(em_taylor(j)%term)
-        max_order = max(max_order, sum(em_taylor(j)%term(k)%expn))
-      enddo
-    enddo
+  do i = 1, size(gg_map%gg)
+    max_order = max(max_order, gg_map%gg(i)%m+ubound(gg_map%gg(i)%deriv,2))
   enddo
 
   call init (max_order+1, 1, 0, 0)
@@ -572,11 +567,11 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
 
   do i = gg_map%iz0, gg_map%iz1
     ii = i + 1 - gg_map%iz0
-    call gen_grad_to_em_taylor(gg_map, i, em_taylor)
+    call gen_grad_to_em_taylor(ele2, gg_map, i, em_taylor)
     do j = 1, 3
       do k = 1, size(em_taylor(j)%term)
         tm => em_taylor(j)%term(k)
-        coef = tm%coef * 1d9 * master_parameter_value(gg_map%master_parameter, ele2) ! * c_light / ele2%value(p0c$)
+        coef = tm%coef * 1d9 ! * c_light / ele2%value(p0c$)
         pancake_field(j,ii)=pancake_field(j,ii)+(coef .mono. tm%expn)
       enddo
     enddo
