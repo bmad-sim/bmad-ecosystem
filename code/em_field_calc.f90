@@ -47,6 +47,8 @@ recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, f
 use super_recipes_mod
 use em_field_mod, dummy => em_field_calc
 
+implicit none
+
 type (ele_struct), target :: ele, ele2
 type (ele_pointer_struct), allocatable, optional :: used_eles(:)
 type (ele_pointer_struct), allocatable :: used_list(:)
