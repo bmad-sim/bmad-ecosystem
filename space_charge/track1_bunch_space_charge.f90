@@ -35,7 +35,7 @@ type (coord_struct), pointer :: p
 integer i, n
 logical err, finished, include_image
 logical, optional :: drift_to_same_s
-real(rp) :: dt_step, dt_next, t_now, t_end, beta, ds
+real(rp) :: dt_step, dt_next, t_now, beta, ds
 
 integer, parameter :: fixed_time_step$ = 1, adaptive_step$ = 2 ! Need this in bmad_struct
 
@@ -62,18 +62,18 @@ endif
 
 ! Drift bunch to the same time
 if (bunch%t0 == real_garbage$) then
-  bunch%t0 = maxval(bunch%particle%t, bunch%particle%state==alive$ .or. bunch%particle%state==pre_born$) 
+  bunch%t0 = maxval(bunch%particle%t, bunch%particle%state==alive$) 
 endif
-t_now = bunch%t0
 call drift_to_t(bunch, bunch%t0, branch)
-
-call save_a_bunch_step (ele, bunch, bunch_track)
+t_now = minval(bunch%particle%t, bunch%particle%state==alive$ .or. bunch%particle%state==pre_born$)
 
 ! Convert to t-based coordinates
 do i = 1, size(bunch%particle) 
   p => bunch%particle(i)
   call convert_particle_coordinates_s_to_t(p, s_body_calc(p, branch%lat%ele(p%ix_ele)), branch%lat%ele(p%ix_ele)%orientation)
 enddo
+
+call save_a_bunch_step (ele, bunch, bunch_track, is_time_coords = .true.)
 
 ! Estimate when middle of the bunch reaches end of the element
 
