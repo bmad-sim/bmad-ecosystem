@@ -237,6 +237,7 @@ call write_if_int_param_changed  (space_charge_com%particle_bin_span,          s
 call write_if_int_param_changed  (space_charge_com%n_shield_images,            space_charge_com_default%n_shield_images,            'space_charge_com[n_shield_images]')
 call write_if_int_param_changed  (space_charge_com%sc_min_in_bin,              space_charge_com_default%sc_min_in_bin,              'space_charge_com[sc_min_in_bin]')
 call write_if_logic_param_changed (space_charge_com%lsc_kick_transverse_dependence, space_charge_com_default%lsc_kick_transverse_dependence, 'space_charge_com[lsc_kick_transverse_dependence]')
+call write_if_logic_param_changed (space_charge_com%debug,                          space_charge_com_default%debug,                          'space_charge_com[debug]')
 
 if (space_charge_com%diagnostic_output_file /= '') write (iu, '(2a)') 'space_charge_com[diagnostic_output_file] = ', quote(space_charge_com%diagnostic_output_file)
 

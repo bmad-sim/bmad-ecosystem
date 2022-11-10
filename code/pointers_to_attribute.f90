@@ -190,6 +190,7 @@ case ('SPACE_CHARGE_COM')
   case ('N_SHIELD_IMAGES');                 ptr_array(1)%i => space_charge_com%n_shield_images
   case ('SC_MIN_IN_BIN');                   ptr_array(1)%i => space_charge_com%sc_min_in_bin
   case ('LSC_KICK_TRANSVERSE_DEPENDENCE');  ptr_array(1)%l => space_charge_com%lsc_kick_transverse_dependence
+  case ('DEBUG');                           ptr_array(1)%l => space_charge_com%debug
 
   case default
     if (do_print) call out_io (s_error$, r_name, &

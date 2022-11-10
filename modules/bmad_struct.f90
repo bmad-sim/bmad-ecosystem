@@ -2068,6 +2068,7 @@ type extra_parsing_info_struct
   logical :: n_shield_images_set                    = .false.
   logical :: sc_min_in_bin_set                      = .false.
   logical :: lsc_kick_transverse_dependence_set     = .false.
+  logical :: sc_debug_set                           = .false.
   logical :: diagnostic_output_file_set             = .false.
   ! Used with ptc_com
   logical :: old_integrator_set                     = .false.
