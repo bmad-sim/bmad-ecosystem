@@ -1858,6 +1858,7 @@ do i = 1, size(particle)
     vec = p%vec
     vec(2) = vec(2) * p%p0c / p0c_avg
     vec(4) = vec(4) * p%p0c / p0c_avg
+    vec(5) = p%s
     vec(6) = (vec(6)*p%p0c + p%p0c - p0c_avg) / p0c_avg
   else
     vec = particle(i)%vec
