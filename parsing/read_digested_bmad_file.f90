@@ -340,6 +340,7 @@ if (found_it) then
   if (extra%n_shield_images_set)                  space_charge_com%n_shield_images                  = space_charge_com_read%n_shield_images
   if (extra%sc_min_in_bin_set)                    space_charge_com%sc_min_in_bin                    = space_charge_com_read%sc_min_in_bin
   if (extra%lsc_kick_transverse_dependence_set)   space_charge_com%lsc_kick_transverse_dependence   = space_charge_com_read%lsc_kick_transverse_dependence
+  if (extra%debug_set)                            space_charge_com%debug                            = space_charge_com_read%debug
   if (extra%diagnostic_output_file_set)           space_charge_com%diagnostic_output_file           = space_charge_com_read%diagnostic_output_file
 
   if (extra%use_orientation_patches_set)          ptc_com%use_orientation_patches                   = ptc_com_read%use_orientation_patches
