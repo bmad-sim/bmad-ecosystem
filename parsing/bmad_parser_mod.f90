@@ -8695,10 +8695,10 @@ type (branch_struct), pointer :: branch
 type (em_taylor_term_struct), allocatable :: term(:)
 type (em_taylor_term_struct), pointer :: tm
 
-real(rp) coef, deriv(0:50)
+real(rp) coef, deriv(0:50), z(1)
 
 integer i, j, nn, n, i_ib, ie, im, ix, ios, nder, n_gg
-integer lb, i_out, ix_word, iz, ix_arr(1)
+integer lb, i_out, ix_word, iz, iz_here
 
 character(80) err_str
 character(40) word, word2, name, attrib_name
@@ -8815,16 +8815,17 @@ do
         iz = int_garbage$
 
         do
-          if (.not. parser_fast_integer_read(ix_arr, ele, ':', 'GEN_GRAD_MAP DERIVS INDEX')) return
+          if (.not. parser_fast_real_read(z, ele, ':', delim, 'GEN_GRAD_MAP DERIVS Z-POSITION')) return
+          iz_here = nint(z(1)/gg_map%dz)
 
           if (iz == int_garbage$) then
-            iz = ix_arr(1)
+            iz = iz_here
 
             if (n_gg == 1) then
-              gg_map%iz0 = ix_arr(1)
+              gg_map%iz0 = iz_here
 
             else
-              if (gg_map%iz0 /= ix_arr(1)) then
+              if (gg_map%iz0 /= iz_here) then
                 call parser_error ('LOWER BOUND INDEX IN GEN_GRAD_MAP DERIVS TABLE IS DIFFERENT FROM LOWER BOUND INDEX IN PRIOR DERIVS TABLE', &
                                    'FOR ELEMENT: ' // ele%name)
                 return
@@ -8834,8 +8835,8 @@ do
 
           else
             iz = iz + 1
-            if (iz /= ix_arr(1)) then
-              call parser_error ('GEN_GRAD_MAP DERIVS TABLE INDEXES NOT IN CORRECT ORDER. EXPECTED: ' // int_str(iz) // ' BUT GOT: ' // int_str(ix_arr(1)), &
+            if (iz /= iz_here) then
+              call parser_error ('GEN_GRAD_MAP DERIVS TABLE INDEXES NOT IN CORRECT ORDER. EXPECTED: ' // int_str(iz) // ' BUT GOT: ' // int_str(iz_here), &
                                  'FOR ELEMENT: ' // ele%name)
               return
             endif
@@ -8848,10 +8849,10 @@ do
           endif          
 
           if (nder == -1) then
-            if (.not. parser_fast_real_read (deriv, ele, delim, 'GEN_GRAD_MAP DERIVS TABLE', .false., nder)) return
+            if (.not. parser_fast_real_read (deriv, ele, ',}', delim, 'GEN_GRAD_MAP DERIVS TABLE', .false., nder)) return
             nder = nder - 1   ! Since derivs are indexed from 0.
           else
-            if (.not. parser_fast_real_read (deriv(0:nder), ele, delim, 'GEN_GRAD_MAP DERIVS TABLE')) return
+            if (.not. parser_fast_real_read (deriv(0:nder), ele, ',}', delim, 'GEN_GRAD_MAP DERIVS TABLE')) return
           endif
 
           if (.not. allocated(gg1%deriv)) allocate (gg1%deriv(gg_map%iz0:gg_map%iz0+1000, 0:nder))
@@ -10013,6 +10014,22 @@ end function parser_fast_integer_read
 !-----------------------------------------------------------------------------------------------
 !+
 ! Function parser_fast_complex_read (cmplx_vec, ele, delim, err_str)  result (is_ok)
+!
+! Routine to read an array of complex numbers. 
+!
+! This routine assumes that the array values are pure numbers in the form "<re>" or "(<re> <im>)" 
+! where <re> and <im> are real numbers (not expressions) and there are no commas except possibly 
+! at the end of the array. 
+!
+! Input:
+!   ele             -- ele_struct: Lattice element associated with the array. Used for error messages.
+!   err_str         -- character(*): String used when printing error messages identifying where in
+!                         the lattice file the error is occuring.
+!
+! Output:
+!   cmplx_vec(:)    -- complex(rp): Complex vector.
+!   delim           -- character(1): Delimitor at end of array. Must be "," or "}"
+!   is_ok           -- logical: True if everything OK. False otherwise.
 !-
 
 function parser_fast_complex_read (cmplx_vec, ele, delim, err_str) result (is_ok)
@@ -10093,10 +10110,28 @@ end function parser_fast_complex_read
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Function parser_fast_real_read (real_vec, ele, delim, err_str, exact_size, n_real)  result (is_ok)
+! Function parser_fast_real_read (real_vec, ele, end_delims, delim, err_str, exact_size, n_real)  result (is_ok)
+!
+! Routine to read an array of real numbers. 
+!
+! This routine assumes that the array values are pure numbers in the form "<re1> <re2> ...," 
+! where <re1>, <re2>, etc. are real numbers (not expressions) and there are no commas except possibly, 
+! at the end of the array.
+!
+! Input:
+!   ele             -- ele_struct: Lattice element associated with the array. Used for error messages.
+!   end_delims      -- character(*): List of possible ending delimitors.
+!   err_str         -- character(*): String used when printing error messages identifying where in
+!                         the lattice file the error is occuring.
+!   exact_size      -- logical, optional: If True, 
+!
+! Output:
+!   cmplx_vec(:)    -- complex(rp): Complex vector.
+!   delim           -- character(1): Delimitor at end of array.
+!   is_ok           -- logical: True if everything OK. False otherwise.
 !-
 
-function parser_fast_real_read (real_vec, ele, delim, err_str, exact_size, n_real) result (is_ok)
+function parser_fast_real_read (real_vec, ele, end_delims, delim, err_str, exact_size, n_real) result (is_ok)
 
 type (ele_struct) ele
 real(rp) real_vec(:)
@@ -10108,7 +10143,7 @@ integer i, n, ix, ios, ix_word
 logical is_ok, delim_found, err, exact
 logical, optional :: exact_size
 
-character(*) err_str
+character(*) err_str, end_delims
 character(40) word
 character(1) delim
 
@@ -10120,13 +10155,13 @@ exact = logic_option(.true., exact_size)
 
 n = size(real_vec)
 do i = 1, n
-  call get_next_word (word, ix_word, ' ,}', delim, delim_found, err_flag = err)
+  call get_next_word (word, ix_word, ' ' // end_delims, delim, delim_found, err_flag = err)
   if (err) then
     call parser_error ('ERROR IN ' // err_str, 'IN ELEMENT: ' // ele%name)
     return
   endif
   if (.not. delim_found) then
-    call parser_error ('ERROR IN ' // err_str, 'MISSING COMMA?', 'IN ELEMENT: ' // ele%name)
+    call parser_error ('ERROR IN ' // err_str, 'MISSING END DELIMITOR', 'IN ELEMENT: ' // ele%name)
     return
   endif
 
@@ -10138,19 +10173,19 @@ do i = 1, n
   endif
   real_vec(i) = val
 
-  if ((delim == ',' .or. delim == '}') .and. (.not. exact .or. i == n)) then
+  if (delim /= ' ' .and. (.not. exact .or. i == n)) then
     is_ok = .true.
     if (present(n_real)) n_real = i
     return
   endif
 
-  if ((exact .and. i == n) .or. (delim == ',' .or. delim == '}')) then
+  if ((exact .and. i == n) .or. delim /= ' ') then
     call parser_error ('NOT ENOUGH VALUES FOR ' // err_str, 'IN ELEMENT: ' // ele%name)
     return
   endif
 enddo
 
-call parser_error ('EXPECTING DELIMITOR: "," or "}"', &
+call parser_error ('EXPECTING DELIMITOR TO BE ONE OF: ' // end_delims, &
                    'AFTER READING ' // int_str(n) // ' REALS IN ' // err_str, &
                    'IN ELEMENT: ' // ele%name)
 
