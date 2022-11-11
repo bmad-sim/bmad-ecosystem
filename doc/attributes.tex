@@ -2595,8 +2595,8 @@ electric field. The syntax for describing a single GG is:
       m = <Int>,                    ! Azimuthal m value
       type = <Sin-or-Cos>           ! Type of curve: sin or cos.
       derivs = \{
-        <iz0>: <d0> <d1> <d2> ...,
-        <iz1>: ...,
+        <z0>: <d0> <d1> <d2> ... <dN>,
+        <z1>: ...,
         ...
       \}
     \},
@@ -2605,13 +2605,18 @@ electric field. The syntax for describing a single GG is:
     \}
   \}
 \end{example}
-See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
-other field map types. In general there will be multiple \vn{curve} instances. 
-A given \vn{curve} instance specifies one generalized gradient with a given azimuthal \vn{m}
-value and a given \vn{sin} or \vn{cos} type. Each \vn{curve} is characterized by the \vn{derivs}
-table which gives the value of the curve and its derivatives at a set of equally spaced points.
-
-
+See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with other field
+map types. In general there will be multiple \vn{curve} instances.  A given \vn{curve} instance
+specifies one generalized gradient with a given azimuthal \vn{m} value and a \vn{type} which
+specifies if the generalized gradient is \vn{sin}-like or \vn{cos}-like. Each \vn{curve} has a table
+of derivatives given uder the \vn{derivs} component. Each row in the derivative table starts with
+the z-position of the derivatives \vn{<z0>}, \vn{<z1>}, \vn{z2}, ... etc. The z-positions must be in
+increasing order and be multiples of \vn{dz} with no gaps (that is, \vn{<z1>} = \vn{<z0>} + \vn{dz},
+etc.). Each line in the \vn{derivs} table specifies the derivatives \vn{<d0>}, \vn{<d1>}, etc. at
+the given z-position where \vn{<d0>} is the zeroth derivative (the value of the generalized gradient
+itself), \vn{<d1>} is the first derivative, etc. All derivative rows must have the same number of
+derivatives.  All curves must specify the same z-positions but different curves may have differing
+number of derimatives.
 
 To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of
 restrictions: 

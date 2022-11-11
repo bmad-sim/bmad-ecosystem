@@ -189,11 +189,12 @@ end subroutine emit_6d
 
 subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode)
 
+type (ele_struct), allocatable :: eles_save(:)
 type (ele_struct), target :: ele1, ele2
+type (ele_struct), pointer :: ele1_track, ele2_track, ele3
 type (rad_map_struct) rmap
 type (normal_modes_struct) mode
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele1_track, ele2_track, ele3
 type (bmad_common_struct) bmad_com_save
 type (rad_map_struct), allocatable :: rm1(:)
 type (coord_struct), allocatable :: closed_orb(:)
@@ -209,6 +210,9 @@ call find_element_ends(ele1, ele3, ele1_track)
 call find_element_ends(ele2, ele3, ele2_track)
 
 branch => ele1_track%branch
+allocate (eles_save(0:ubound(branch%ele,1)))
+call transfer_eles(branch%ele, eles_save)
+
 allocate (rm1(branch%n_ele_track))
 
 bmad_com_save = bmad_com
@@ -223,10 +227,10 @@ else
 endif
 
 bmad_com = bmad_com_save
-if (err_flag) return
+if (err_flag) goto 9000  ! Restore and return
 
 call lat_make_mat6 (ele1_track%branch%lat, -1, closed_orb, branch%ix_branch, err_flag)
-if (err_flag) return
+if (err_flag) goto 9000  ! Restore and return
 
 ! Calculate element-by-element damping and stochastic mats.
 
@@ -266,6 +270,9 @@ do
 enddo
 
 if (length /= 0) mode%pz_average = mode%pz_average / length
+
+9000 continue
+call transfer_eles(eles_save, branch%ele)
 
 end subroutine rad_damp_and_stoc_mats
 
