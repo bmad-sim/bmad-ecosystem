@@ -743,23 +743,24 @@ close (1)
 
 !
 
-open (1, file = trim(out_file) // '.bmad')
+open (1, file = trim(out_file) // '.bmad', recl = 500)
 
-write (1, '(a)')           'gen_grad_map = {'
-write (1, '(a, f10.6, a)') '  dz =', del_grid(3), ','
+write (1, '(a)')           '  gen_grad_map = {'
+write (1, '(a, f10.6, a)') '    dz =', del_grid(3), ','
 
 do ig = 1, size(gg1)
   gg => gg1(ig)
-  write (1, '(a)')        '  curve = {'
-  write (1, '(a, i2, a)') '    m    =', gg%m, ','
-  write (1, '(3a)')       '    kind = ', sincos_name(gg%sincos), ','
-  write (1, '(a, i2)')    '    derivs = {'
+  write (1, '(a)')        '    curve = {'
+  write (1, '(a, i2, a)') '      m    =', gg%m, ','
+  write (1, '(3a)')       '      kind = ', sincos_name(gg%sincos), ','
+  write (1, '(a, i2)')    '      derivs = {'
 
   write (fmt, '(a, i0, a)') '(f13.4, a, ', size(gg%deriv,2), 'es20.12, a)' 
   do iz = iz_min, iz_max-1
     write (1, fmt) iz*del_grid(3), ':', gg%deriv(iz,:), ','
   enddo
   write (1, fmt) iz_max*del_grid(3), ':', gg%deriv(iz_max,:)
+  write (1, '(a)') '      }'
   if (ig == size(gg1)) then
     write (1, '(a)') '    }'
   else
