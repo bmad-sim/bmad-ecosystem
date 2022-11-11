@@ -16,7 +16,7 @@ character(16) mode
 
 namelist /params / field_file, every_n_th_plane, n_deriv_max, m_cos, m_sin, n_cycles, &
               iz_min, iz_max, sym_x, sym_y, mode, lmdif_eps, printit, out_file, &
-              n_planes_fit, n_deriv_extra
+              n_planes_add, n_deriv_extra, optimizer
 
 !
 
@@ -29,11 +29,6 @@ print *, 'Input file: ', trim(file_name)
 open (1, file = file_name, status = 'old')
 read (1, nml = params)
 close (1)
-
-if (modulo(n_planes_fit, 2) == 0) then
-  print *, 'N_PLANES_FIT MUST TO AN ODD NUMBER.'
-  stop
-endif
 
 !
 

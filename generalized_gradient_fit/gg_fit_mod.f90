@@ -3,6 +3,7 @@ module gg_fit_mod
 use lmdif_mod
 use bmad_struct
 use expression_mod, only: sin$, cos$
+use super_recipes_mod
 
 implicit none
 
@@ -11,7 +12,9 @@ implicit none
 type gg1_struct
   integer :: sincos = -1    ! sin$ or cos$
   integer :: m = -1         ! Azimuthal index
-  real(rp), allocatable :: deriv(:,:)
+  integer :: sym_score = 1  ! Symmetry score. 0 => do not use in fit.
+  real(rp), allocatable :: deriv(:,:)    ! (iz, deriv)
+  integer, allocatable :: ix_var(:)      ! Index to var_vec(:) array.
 end type
 
 type (gg1_struct), allocatable, target :: gg1(:)
@@ -23,22 +26,11 @@ end type
 
 type (fit_info_struct), allocatable, target :: fit(:)
 
-type var_info_struct
-  integer :: sincos = -1    ! sin$ or cos$
-  integer :: m = -1         ! Azimuthal index
-  integer :: id = -1        ! derivative index
-  integer :: sym_score = 1  ! Symmetry score. 0 => do not use in fit.
-  integer :: ix_var = -1    ! Index to var_vec(:) array.
-  integer :: ix_gg = -1     ! Index to gg1 array
-end type
-
-type (var_info_struct), allocatable, target :: var_info(:)
-
 integer, parameter :: m_max = 10
 integer :: Nx_min, Nx_max, Ny_min, Ny_max, Nz_min, Nz_max
 integer :: n_grid_pts
 integer :: n_cycles
-integer :: every_n_th_plane, n_planes_fit = 1, n_deriv_extra = 0
+integer :: every_n_th_plane, n_planes_add = 0, n_deriv_extra = 0
 integer :: n_deriv_max
 integer :: iz_min = int_garbage$, iz_max = int_garbage$    ! Compute range
 integer :: m_cos(m_max) = -1
@@ -49,6 +41,7 @@ integer n_var0, n_var, n_merit
 real(rp), allocatable :: Bx_dat(:,:,:), By_dat(:,:,:), Bz_dat(:,:,:)
 real(rp), allocatable :: Bx_fit(:,:), By_fit(:,:), Bz_fit(:,:)
 real(rp), allocatable :: Bx_diff(:,:), By_diff(:,:), Bz_diff(:,:)
+real(rp), allocatable :: dBx_dvar(:,:), dBy_dvar(:,:), dBz_dvar(:,:)
 
 ! del_grid is the difference between (x,y,z) points in the units of the grid file.
 ! length_scale is table file (x,y,z) units in meters. length_scale = table_units/meters
@@ -57,11 +50,12 @@ real(rp), allocatable :: Bx_diff(:,:), By_diff(:,:), Bz_diff(:,:)
 real(rp) :: del_grid(3), r0_grid(3), field_scale, length_scale, r_max
 real(rp) :: lmdif_eps = 1d-12
 
-real(rp), allocatable :: var_vec(:), merit_vec(:)
+real(rp), allocatable :: var_vec(:), merit_vec(:), dB_dvar_vec(:,:)
 real(rp) merit
 
 logical printit
 
+character(10) :: optimizer = 'lmdif'
 character(100) :: field_file , out_file = ''
 
 contains
@@ -119,7 +113,6 @@ if (index(field_file, '.binary') /= 0) then
 ! ASCII
 
 else
-
   open (1, file = field_file, status = 'OLD', action = 'READ')
   read (1, '(a)', iostat = ios1) line
   read (line, *, iostat = ios2) length_scale
@@ -326,18 +319,18 @@ end subroutine write_ascii_field_table
 
 subroutine fit_field()
 
-type (var_info_struct), pointer :: vinfo
-real(rp), allocatable :: vec0(:)
-real(rp) merit, merit0, x, y, v
-integer iloop, iv0, im, id, n_gg, n
-integer ix, iy, iz
+type (super_mrqmin_storage_struct) storage
+type (gg1_struct), pointer :: gg
+
+real(rp), allocatable :: vec0(:), weight(:), merit0_vec(:)
+real(rp) merit0, x, y, v, chisq, a_lambda
+
+integer iloop, im, id, n_gg, n, ig
+integer ix, iy, iz, status, iz0, iz1
 
 logical at_end
 
 !
-
-n_merit = 3 * (Nx_max-Nx_min+1) * (Ny_max-Ny_min+1)
-allocate (merit_vec(n_merit))
 
 allocate (Bx_diff(Nx_min:Nx_max, Ny_min:Ny_max), By_diff(Nx_min:Nx_max, Ny_min:Ny_max), &
                                                             Bz_diff(Nx_min:Nx_max, Ny_min:Ny_max))
@@ -356,36 +349,42 @@ do im = 1, m_max
   endif
 enddo
 
-allocate (var_info(n_var0))
+n_merit = 3 * (Nx_max-Nx_min+1) * (Ny_max-Ny_min+1) * (2*n_planes_add+1)
+allocate (merit_vec(n_merit), merit0_vec(n_merit), dB_dvar_vec(n_merit, n_var0))
+allocate (dBx_dvar(Nx_min:Nx_max, Ny_min:Ny_max), dBy_dvar(Nx_min:Nx_max, Ny_min:Ny_max))
+allocate (dBz_dvar(Nx_min:Nx_max, Ny_min:Ny_max))
 allocate (gg1(n_gg))
 
-iv0 = 0
 n_var = 0
 n_gg = 0
 
 do im = 1, m_max
   if (m_cos(im) /= -1) then
     n_gg = n_gg + 1
-    gg1(n_gg)%sincos = cos$
-    gg1(n_gg)%m = m_cos(im)
-    allocate (gg1(n_gg)%deriv(iz_min:iz_max, 0:n_deriv_max))
-    gg1(n_gg)%deriv = 0
-
+    gg => gg1(n_gg)
+    gg%sincos = cos$
+    gg%m = m_cos(im)
+    allocate (gg%deriv(iz_min:iz_max, 0:n_deriv_max), gg%ix_var(0:n_deriv_max))
+    gg%deriv = 0; gg%ix_var = -1
+    gg%sym_score = sym_score_calc (gg%sincos, gg%m)
     do id = 0, n_deriv_max
-      if (m_cos(im) == 0 .and. id == 0) cycle
-      var_info(iv0) = var_info_setup(cos$, m_cos(im), id, iv0, n_var, n_gg)
+      if (gg%m == 0 .and. id == 0) cycle
+      n_var = n_var + 1
+      gg%ix_var(id) = n_var
     enddo
   endif
 
   if (m_sin(im) /= -1) then
     n_gg = n_gg + 1
-    gg1(n_gg)%sincos = sin$
-    gg1(n_gg)%m = m_sin(im)
-    allocate (gg1(n_gg)%deriv(iz_min:iz_max, 0:n_deriv_max))
-    gg1(n_gg)%deriv = 0
-
+    gg => gg1(n_gg)
+    gg%sincos = sin$
+    gg%m = m_sin(im)
+    allocate (gg%deriv(iz_min:iz_max, 0:n_deriv_max), gg%ix_var(0:n_deriv_max))
+    gg%deriv = 0; gg%ix_var = -1
+    gg%sym_score = sym_score_calc (gg%sincos, gg%m)
     do id = 0, n_deriv_max
-      var_info(iv0) = var_info_setup(sin$, m_sin(im), id, iv0, n_var, n_gg)
+      n_var = n_var + 1
+      gg%ix_var(id) = n_var
     enddo
   endif
 enddo
@@ -393,7 +392,7 @@ enddo
 !
 
 allocate (fit(iz_min:iz_max))
-allocate (var_vec(n_var), vec0(n_var))
+allocate (var_vec(n_var), vec0(n_var), weight(n_merit))
 vec0 = 0
 var_vec = 0
 
@@ -402,43 +401,74 @@ do iz = iz_min, iz_max
   print *, 'Plane:', iz
   print *, 'Cycle   Merit (rms)'
 
+  iz0 = max(Nz_min, iz-n_planes_add)
+  iz1 = min(Nz_max, iz+n_planes_add)
+
   call initial_lmdif
   var_vec = vec0
-  call merit_calc(vec0, iz)
+  call merit_calc(vec0, iz, .true.)
+  merit0_vec = merit_vec
   print '(i5, es14.6)', 0, merit
   merit0 = merit
   fit(iz)%rms0 = merit0 
 
-  do iloop = 1, n_cycles
-    call suggest_lmdif (var_vec, merit_vec, lmdif_eps, n_cycles, at_end)
-    call merit_calc(var_vec, iz)
-    if (merit < 0.99*merit0) then
-      print '(i5, es14.6)', iloop, merit
-      merit0 = merit
-    endif
-    if (at_end) exit
-  enddo
+  ! 
+
+  select case (optimizer)
+  case ('lmdif')
+    do iloop = 1, n_cycles
+      call suggest_lmdif (var_vec, merit_vec, lmdif_eps, n_cycles, at_end)
+      call merit_calc(var_vec, iz, .false.)
+      if (merit < 0.99*merit0) then
+        print '(i5, es14.6)', iloop, merit
+        merit0 = merit
+      endif
+      if (at_end) exit
+    enddo
+
+  case ('lm')
+    a_lambda = -1
+    weight = 1
+    do iloop = 1, n_cycles
+      call super_mrqmin (merit0_vec, weight, var_vec, chisq, mrqmin_func, storage, a_lambda, status)
+      if (merit < 0.99*merit0) then
+        print '(i5, es14.6, es12.3)', iloop, merit, a_lambda
+        merit0 = merit
+      endif
+      if (a_lambda > 1e20_rp) exit
+    enddo
+
+  case default
+    print *, 'Unknown optimizer: ' // optimizer
+    print *, 'Possibilities are "lmdif", "lm"'
+    stop
+  end select
+
+  !
 
   fit(iz)%rms_fit = merit
 
-  do iv0 = 1, size(var_info)
-    vinfo => var_info(iv0)
-    if (vinfo%ix_var < 1) cycle
-    gg1(vinfo%ix_gg)%deriv(iz,vinfo%id) = var_vec(vinfo%ix_var)
+  do ig = 1, size(gg1)
+    gg => gg1(ig)
+    do id = 0, n_deriv_max
+      if (gg%ix_var(id) < 1) cycle
+      gg%deriv(iz,id) = var_vec(gg%ix_var(id))
+    enddo
   enddo
 
   print *, ' Ix    m   nd  sym             Coef    Coef*rmax^(nd+m-1)/nd!'
-  do iv0 = 1, size(var_info)
-    vinfo => var_info(iv0)
-    if (vinfo%ix_var > 0) then
-      v = var_vec(vinfo%ix_var)
-      n = vinfo%id
-      print '(i4, 3i5, 2x, a, es16.6, es12.2)', iv0, vinfo%m, n, &
-                    vinfo%sym_score, sincos_name(vinfo%sincos), v, v*r_max**(vinfo%m+n-1)/factorial(n)
-    else
-      print '(i4, 3i5, 2x, a, es16.6)', iv0, vinfo%m, n, &
-                              vinfo%sym_score, sincos_name(vinfo%sincos)
-    endif
+
+  do ig = 1, size(gg1)
+    gg => gg1(ig)
+    do id = 0, n_deriv_max
+      if (gg%ix_var(id) > 0) then
+        v = gg%deriv(iz,id)
+        print '(i4, 3i5, 2x, a, es16.6, es12.2)', gg%ix_var(id), gg%m, id, &
+                      gg%sym_score, sincos_name(gg%sincos), v, v*r_max**(gg%m+id-1)/factorial(id)
+      else
+        print '(i4, 3i5, 2x, a, es16.6)', gg%ix_var(id), gg%m, id, gg%sym_score, sincos_name(gg%sincos)
+      endif
+    enddo
   enddo
 
   if (printit) then
@@ -455,91 +485,151 @@ do iz = iz_min, iz_max
   endif
 enddo
 
-!----------------------------------
+!-------------------------------------------------------------------
 contains
 
-subroutine merit_calc(var_vec, iz)
+subroutine merit_calc(var_vec, iz, dB_calc, b_fit_vec)
 
-type (var_info_struct) info
+type (gg1_struct), pointer :: gg
+
 real(rp) var_vec(:)
-real(rp) x, y, rho, theta, Bx, By, Bz, B_rho, B_theta, f, ff, p_rho
-integer iz, ix, iy, iv0, iv, m, id, nn, n_merit, n3
-logical is_even
+real(rp), optional :: b_fit_vec(:)
+real(rp) x, y, rho, theta, Bx, By, Bz, B_rho, B_theta, f, ff, p_rho, coef
+
+integer i, iz, ix, iy, iv, m, id, nn, izz, ig, n0, n3, ix_merit
+logical :: dB_calc, is_even
 
 !
 
-Bx_fit = 0
-By_fit = 0
-Bz_fit = 0
+ix_merit = 0
 
-do iv0 = 1, size(var_info)
-  info = var_info(iv0)
-  iv = info%ix_var
-  if (iv < 1) cycle
-  if (var_vec(iv) == 0) cycle
+do izz = iz0, iz1
 
-  id = info%id
-  m = info%m
-  is_even = (modulo(id,2) == 0)
+  n3 = size(Bx_fit)
+  n0 = ix_merit * n3
 
-  if (is_even) then
-    nn = id / 2
-  else
-    nn = (id - 1) / 2
-  endif
+  Bx_fit = 0
+  By_fit = 0
+  Bz_fit = 0
 
-  f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
+  do ig = 1, size(gg1)
+    gg => gg1(ig)
+    do id = 0, n_deriv_max
+      iv = gg%ix_var(id)
+      if (iv < 1) cycle
 
-  do ix = Nx_min, Nx_max
-    x = ix * del_grid(1)
-    do iy = Ny_min, Ny_max
-      y = iy * del_grid(2)
-      rho = sqrt(x*x + y*y)
-      theta = atan2(y,x)
+      dBx_dvar = 0
+      dBy_dvar = 0
+      dBz_dvar = 0
 
-      if (id+m-1 == 0) then  ! Covers case where rho = 0
-        p_rho = 1
-      else
-        p_rho = rho**(id+m-1)
-      endif
-
-      ff = f * p_rho * var_vec(iv)
+      m = gg%m
+      is_even = (modulo(id,2) == 0)
 
       if (is_even) then
-        if (info%sincos == sin$) then
-          B_rho   = ff * (2*nn+m) * sin(m*theta)
-          B_theta = ff * m * cos(m*theta)
-        else
-          B_rho   = ff * (2*nn+m) * cos(m*theta)
-          B_theta = -ff * m * sin(m*theta)
-        endif
-        Bx = B_rho * cos(theta) - B_theta * sin(theta)
-        By = B_rho * sin(theta) + B_theta * cos(theta)
-        Bx_fit(ix,iy) = Bx_fit(ix,iy) + Bx
-        By_fit(ix,iy) = By_fit(ix,iy) + By
-
+        nn = id / 2
       else
-        if (info%sincos == sin$) then
-          Bz = ff * sin(m*theta)
-        else
-          Bz = ff * cos(m*theta)
-        endif
-        Bz_fit(ix,iy) = Bz_fit(ix,iy) + Bz
+        nn = (id - 1) / 2
       endif
 
-    enddo
-  enddo
-enddo
+      coef = poly_eval(var_vec(iv:iv+n_deriv_max-id), (izz-iz)*del_grid(3), .true.)
 
-n_merit = size(merit_vec)
-n3 = n_merit/3
-merit_vec(1:n3)        = reshape(Bx_dat(:,:,iz)-Bx_fit, [n3])
-merit_vec(n3+1:2*n3)   = reshape(By_dat(:,:,iz)-By_fit, [n3])
-merit_vec(2*n3+1:)     = reshape(Bz_dat(:,:,iz)-Bz_fit, [n3])
+      f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
 
-merit = norm2(merit_vec) / n3
+      do ix = Nx_min, Nx_max
+        x = ix * del_grid(1)
+        do iy = Ny_min, Ny_max
+          y = iy * del_grid(2)
+          rho = sqrt(x*x + y*y)
+          theta = atan2(y,x)
+
+          if (id+m-1 == 0) then  ! Covers case where rho = 0
+            p_rho = 1
+          else
+            p_rho = rho**(id+m-1)
+          endif
+
+          ff = f * p_rho 
+
+          if (is_even) then
+            if (gg%sincos == sin$) then
+              B_rho   = ff * (2*nn+m) * sin(m*theta)
+              B_theta = ff * m * cos(m*theta)
+            else
+              B_rho   = ff * (2*nn+m) * cos(m*theta)
+              B_theta = -ff * m * sin(m*theta)
+            endif
+
+            Bx = B_rho * cos(theta) - B_theta * sin(theta)
+            By = B_rho * sin(theta) + B_theta * cos(theta)
+
+            Bx_fit(ix,iy) = Bx_fit(ix,iy) + Bx * coef
+            By_fit(ix,iy) = By_fit(ix,iy) + By * coef
+
+            if (dB_calc) then
+              dBx_dvar(ix,iy) = Bx
+              dBy_dvar(ix,iy) = By
+            endif
+
+          else
+            if (gg%sincos == sin$) then
+              Bz = ff * sin(m*theta)
+            else
+              Bz = ff * cos(m*theta)
+            endif
+
+            Bz_fit(ix,iy) = Bz_fit(ix,iy) + Bz * coef
+            if (dB_calc) then
+              dBz_dvar(ix,iy) = Bz
+            endif
+          endif
+        enddo   ! ix = Nx_min, Nx_max
+      enddo   ! iy = Ny_min, Ny_max
+
+      if (dB_calc) then
+        dB_dvar_vec(n0+1:n0+n3, iv)        = reshape(dBx_dvar(:,:), [n3])
+        dB_dvar_vec(n0+n3+1:n0+2*n3, iv)   = reshape(dBy_dvar(:,:), [n3])
+        dB_dvar_vec(n0+2*n3+1:n0+3*n3, iv) = reshape(dBz_dvar(:,:), [n3])
+      endif
+
+    enddo   ! id = 0, n_deriv_max
+  enddo   ! ig = 1, size(gg1)
+
+  !
+
+  merit_vec(n0+1:n0+n3)        = reshape(Bx_dat(:,:,izz)-Bx_fit, [n3])
+  merit_vec(n0+n3+1:n0+2*n3)   = reshape(By_dat(:,:,izz)-By_fit, [n3])
+  merit_vec(n0+2*n3+1:n0+3*n3) = reshape(Bz_dat(:,:,izz)-Bz_fit, [n3])
+
+  if (present(b_fit_vec)) then
+    b_fit_vec(n0+1:n0+n3)        = reshape(Bx_fit, [n3])
+    b_fit_vec(n0+n3+1:n0+2*n3)   = reshape(By_fit, [n3])
+    b_fit_vec(n0+2*n3+1:n0+3*n3) = reshape(Bz_fit, [n3])
+  endif
+
+  ix_merit = ix_merit + 3
+
+enddo   ! izz = iz0, iz1
+
+merit = 3 * norm2(merit_vec) / (n3 * ix_merit)
 
 end subroutine merit_calc
+
+!---------------------------------------------------------------------------
+! contains
+
+subroutine mrqmin_func (var, yfit, dy_dvar, status)
+
+real(rp), intent(in) :: var(:)
+real(rp), intent(out) :: yfit(:)
+real(rp), intent(out) :: dy_dvar(:,:)
+integer status
+
+!
+
+call merit_calc(var, iz, .false., yfit)
+dy_dvar = dB_dvar_vec
+
+end subroutine mrqmin_func
 
 end subroutine fit_field
 
@@ -570,16 +660,11 @@ end function sincos_name
 !+
 !-
 
-function var_info_setup (sincos, m, id, iv0, n_var, n_gg) result (var_info)
+function sym_score_calc (sincos, m) result (sym_score)
 
-type (var_info_struct) var_info
-integer sincos, m, id, iv0, n_var, n_gg, sym_score
-logical is_even
+integer sincos, m, sym_score
 
 !
-
-is_even = (modulo(id,2) == 0)
-iv0 = iv0 + 1
 
 if (sym_x == 0 .and. sym_y == 0) then
   sym_score = 1
@@ -606,14 +691,7 @@ else  ! sym in both planes
   endif
 endif
 
-if (sym_score == 0) then 
-  var_info = var_info_struct(sincos, m, id, sym_score, -1, -1)
-else
-  n_var = n_var + 1
-  var_info = var_info_struct(sincos, m, id, sym_score, n_var, n_gg)
-endif
-
-end function var_info_setup
+end function sym_score_calc
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -677,19 +755,19 @@ do ig = 1, size(gg1)
   write (1, '(3a)')       '    kind = ', sincos_name(gg%sincos), ','
   write (1, '(a, i2)')    '    derivs = {'
 
-  write (fmt, '(a, i0, a)') '(i8, a, ', size(gg%deriv,2), 'es20.12, a)' 
+  write (fmt, '(a, i0, a)') '(f13.4, a, ', size(gg%deriv,2), 'es20.12, a)' 
   do iz = iz_min, iz_max-1
-    write (1, fmt) iz, ':', gg%deriv(iz,:), ','
+    write (1, fmt) iz*del_grid(3), ':', gg%deriv(iz,:), ','
   enddo
-  write (1, fmt) iz_max, ':', gg%deriv(iz_max,:)
+  write (1, fmt) iz_max*del_grid(3), ':', gg%deriv(iz_max,:)
   if (ig == size(gg1)) then
-    write (1, '(a)') '  }'
+    write (1, '(a)') '    }'
   else
-    write (1, '(a)') '  },'
+    write (1, '(a)') '    },'
   endif
 enddo
 
-write (1, '(a)') '}'
+write (1, '(a)') '  }'
 
 close (1)
 
