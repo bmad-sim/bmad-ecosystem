@@ -697,6 +697,50 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 \end{verbatim}
 
+%% python ele:gen_attribs ------------------------------------
+\subsection{python ele:gen_attribs}
+\index{python!ele:gen_attribs}
+\label{p:ele:gen.attribs}
+
+
+Output element general attributes
+
+\begin{example}
+   python ele:gen_attribs \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  python ele:gen_attribs 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% python ele:gen_grad_map ------------------------------------
+\subsection{python ele:gen_grad_map}
+\index{python!ele:gen_grad_map}
+\label{p:ele:gen.grad.map}
+
+
+Output element gen_grad_map 
+
+\begin{example}
+   python ele:gen_grad_map \{ele_id\}|\{which\} \{index\} \{who\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%gen_grad_map(:) array
+  {who} is one of: "base", or "terms".
+
+Example:
+  python ele:gen_grad_map 3@1>>7|model 2 base
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
 %% python ele:grid_field ------------------------------------
 \subsection{python ele:grid_field}
 \index{python!ele:grid_field}
@@ -718,27 +762,6 @@ Where:
 Example:
   python ele:grid_field 3@1>>7|model 2 base
 This gives grid #2 of element number 7 in branch 1 of universe 3.
-\end{verbatim}
-
-%% python ele:gen_attribs ------------------------------------
-\subsection{python ele:gen_attribs}
-\index{python!ele:gen_attribs}
-\label{p:ele:gen.attribs}
-
-
-Output element general attributes
-
-\begin{example}
-   python ele:gen_attribs \{ele_id\}|\{which\}
-\end{example}
-\begin{verbatim}
-Where: 
-  {ele_id} is an element name or index.
-  {which} is one of: "model", "base" or "design"
-
-Example:
-  python ele:gen_attribs 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
 \end{verbatim}
 
 %% python ele:head ------------------------------------
@@ -963,29 +986,6 @@ Where:
 
 Example:
   python ele:taylor 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
-\end{verbatim}
-
-%% python ele:gen_grad_map ------------------------------------
-\subsection{python ele:gen_grad_map}
-\index{python!ele:gen_grad_map}
-\label{p:ele:gen.grad.map}
-
-
-Output element gen_grad_map 
-
-\begin{example}
-   python ele:gen_grad_map \{ele_id\}|\{which\} \{index\} \{who\}
-\end{example}
-\begin{verbatim}
-Where: 
-  {ele_id} is an element name or index.
-  {which} is one of: "model", "base" or "design"
-  {index} is the index number in the ele%gen_grad_map(:) array
-  {who} is one of: "base", or "terms".
-
-Example:
-  python ele:gen_grad_map 3@1>>7|model 2 base
 This gives element number 7 in branch 1 of universe 3.
 \end{verbatim}
 
