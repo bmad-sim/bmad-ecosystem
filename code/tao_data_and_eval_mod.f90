@@ -981,12 +981,12 @@ case ('bunch_charge.')
 case ('bunch_max.', 'bunch_min.')
   if (data_source /= 'beam') goto 9000  ! Set error message and return
   select case (data_type(11:))
-  case ('x'); i=1
-  case ('px');i=2
-  case ('y'); i=3
-  case ('py');i=4
-  case ('z'); i=5
-  case ('pz');i=6
+  case ('x');  i = 1
+  case ('px'); i = 2
+  case ('y');  i = 3
+  case ('py'); i = 4
+  case ('z');  i = 5
+  case ('pz'); i = 6
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
     return

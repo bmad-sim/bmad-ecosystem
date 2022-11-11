@@ -1799,7 +1799,7 @@ to the global coordinate system is
 \begin{figure}
   \centering
   \includegraphics[width=5in]{dynamic-aperture-rays.pdf}
-  \caption{
+  \caption[Dynamic aperture plot.]{
 The calculation of a dynamic aperture curve in the $x$-$y$ plane at a given initial $p_z$ value
 involves calculating aperture curve points (blue dots) along a set of ``rays'' (dashed lines) having
 a common origin point ($\cal O$) which is taken to be the reference orbit. The line segments between
@@ -3599,17 +3599,12 @@ For a \vn{"histogram"} type graph, \vn{curve%data_type} determines what coordina
 the x-axis.  Valid \vn{curve%data_type} values are:
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \begin{example}
-  "x"
-  "px"
-  "y"
-  "py"
-  "z"
-  "pz"
-  "intensity"       -- Photon total intensity 
-  "intensity_x"     -- Photon intensity along x-axis 
-  "intensity_y"     -- Photon intensity along y-axis
-  "phase_x"         -- Photon phase along x-axis
-  "phase_y"         -- Photon phase along y-axis
+  "x", "px", "y", "py","z", "pz"   -- Phase space coordinates
+  "intensity"                      -- Photon total intensity 
+  "intensity_x"                    -- Photon intensity along x-axis 
+  "intensity_y"                    -- Photon intensity along y-axis
+  "phase_x"                        -- Photon phase along x-axis
+  "phase_y"                        -- Photon phase along y-axis
 \end{example}
 In this example above, the $x$-axis of the plot will correspond to the $z$ phase space coordinate.
 
@@ -3778,7 +3773,11 @@ is plotted along the x-axis and \vn{curve%data_type} determines what phase space
 plotted along the y-axis. Phase space coordinates are one of:
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \begin{example}
-  "x",  "px",  "y",  "py",  "z",  "pz",
+  "x",  "px",  "y",  "py",  "z",  "pz",           ! Phase space coordinates
+  "time",                                         ! Particle time
+  "bunch_index",                                  ! Index of bunch particle is in.
+  "energy",                                       ! Total particle energy
+  "Ja", "Jb"                                      ! Action coordinate in action-angle coords.
   "intensity",  "intensity_x",  "intensity_y"     ! Photon intensity
   "phase_x", "phase_y"                            ! Photon coherent phase
 \end{example}

@@ -494,12 +494,6 @@ do k = 1, size(graph%curve)
   curve => graph%curve(k)
   u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 
-  ! find phase space axes to plot
-
-  err = .false.
-  call tao_phase_space_axis (curve%data_type_x, ix1_ax, err = err); if (err) return
-  call tao_phase_space_axis (curve%data_type,   ix2_ax, err = err); if (err) return
-
   ! fill the curve data arrays
 
   if (allocated (curve%ix_symb) .and. curve%data_source /= 'multi_turn_orbit' .and. &
@@ -554,12 +548,12 @@ do k = 1, size(graph%curve)
       if (curve%ix_bunch /= 0 .and. curve%ix_bunch /= ib) cycle
       p => beam%bunch(ib)%particle
       m = count(beam%bunch(ib)%particle%state == alive$)
-      call tao_phase_space_axis (curve%data_type_x, ix1_ax, p, scratch%axis1, ele)
-      call tao_phase_space_axis (curve%data_type,   ix2_ax, p, scratch%axis2, ele)
+      call tao_particle_data_value (curve%data_type_x, p, scratch%axis1, err, ele, ib); if (err) return
+      call tao_particle_data_value (curve%data_type,   p, scratch%axis2, err, ele, ib); if (err) return
       curve%x_symb(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       curve%y_symb(n+1:n+m) = pack(scratch%axis2, mask = (p%state == alive$))
       if (curve%z_color%is_on) then
-        call tao_phase_space_axis (curve%z_color%data_type, ix3_ax, p, scratch%axis3, ele)
+        call tao_particle_data_value (curve%z_color%data_type, p, scratch%axis3, err, ele, ib); if (err) return
         curve%z_symb(n+1:n+m) = pack(scratch%axis3, mask = (p%state == alive$))
       endif
       if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
@@ -596,6 +590,11 @@ do k = 1, size(graph%curve)
     sigma_mat(4,4) = emit_b
     sigma_mat = matmul (matmul (mat4, sigma_mat), transpose(mat4))
 
+    ! find phase space axes to plot
+
+    ix1_ax = tao_phase_space_axis_index (curve%data_type_x, err); if (err) return
+    ix2_ax = tao_phase_space_axis_index (curve%data_type, err); if (err) return
+
     if (ix1_ax > 4 .or. ix2_ax > 4) then
       call out_io (s_warn$, r_name, &
         'Z OR PZ PHASE SPACE PLOTTING NOT YET IMPLEMENTED FOR "twiss" DATA_SOURCE.')
@@ -620,7 +619,7 @@ do k = 1, size(graph%curve)
       phi = 0.5 *atan2((rx**2+ry**2) * sin(2*theta_xy), &
                               (rx**2-ry**2) * cos(2*theta_xy)) - theta_xy
       write (graph%text_legend_out(n+3), '(a, f10.4)') 'Theta_tilt (rad):', phi
-  endif
+    endif
 
     n = 2 * n_curve_pts
     call re_allocate (curve%x_line, n)
@@ -914,11 +913,6 @@ do k = 1, size(graph%curve)
   curve => graph%curve(k)
   u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 
-  ! find phase space axes to plot
-
-  err = .false.
-  call tao_phase_space_axis (curve%data_type, ix1_ax, err = err); if (err) return
-
   ! fill the data array
 
   if (allocated (curve%ix_symb)) deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
@@ -948,7 +942,7 @@ do k = 1, size(graph%curve)
     do ib = 1, size(beam%bunch)
       p => beam%bunch(ib)%particle
       m = count(p%state == alive$)
-      call tao_phase_space_axis (curve%data_type, ix1_ax, p, scratch%axis1, ele)
+      call tao_particle_data_value (curve%data_type, p, scratch%axis1, err, ele, ib)
       data(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       if (curve%hist%weight_by_charge) weight(n+1:n+m) = pack(p%charge, mask = (p%state == alive$))
       n = n + m
@@ -1016,71 +1010,132 @@ end subroutine tao_graph_histogram_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
+!+
+! Function tao_phase_space_axis_index (data_type, err) result (ix_axis)
+!
+! Routine to calculate the phase space axis index for a given data type.
+!
+! Input:
+!   data_type   -- character(*): Type of data.
+!   err         -- logical: Set True if there is an error.
+!
+! Output:
+!   ix_axis     -- integer: Axis index.
+!-
 
-subroutine tao_phase_space_axis (data_type, ix_axis, p, axis, ele, err)
+function tao_phase_space_axis_index (data_type, err) result (ix_axis)
 
 implicit none
 
-type (coord_struct), optional, target :: p(:)
-type (coord_struct) :: p1
-type (ele_struct), optional :: ele
+integer ix_axis
 
-real(rp), allocatable, optional :: axis(:)
-
-integer ix_axis, i
-
-logical, optional :: err
+logical :: err
 
 character(*) data_type
-character(16) :: r_name = 'phase_space_axis'
+character(*), parameter :: r_name = 'tao_phase_space_axis_index'
 
 !
 
-if (present(p)) call re_allocate (axis, size(p))
+err = .false.
 
 select case (data_type)
-case ('x');   ix_axis = 1; if (present(p)) axis = p%vec(1)
-case ('px');  ix_axis = 2; if (present(p)) axis = p%vec(2)
-case ('y');   ix_axis = 3; if (present(p)) axis = p%vec(3)
-case ('py');  ix_axis = 4; if (present(p)) axis = p%vec(4)
-case ('z');   ix_axis = 5; if (present(p)) axis = p%vec(5)
-case ('pz');  ix_axis = 6; if (present(p)) axis = p%vec(6)
-case ('intensity_x'); ix_axis =  7; if (present(p)) axis = p%field(1)**2
-case ('intensity_y'); ix_axis =  8; if (present(p)) axis = p%field(2)**2
-case ('phase_x');     ix_axis =  9; if (present(p)) axis = p%phase(1)
-case ('phase_y');     ix_axis = 10; if (present(p)) axis = p%phase(2)
-case ('t', 'time');   ix_axis = 14; if (present(p)) axis = p%t
+case ('x');   ix_axis = 1
+case ('px');  ix_axis = 2
+case ('y');   ix_axis = 3
+case ('py');  ix_axis = 4
+case ('z');   ix_axis = 5
+case ('pz');  ix_axis = 6
+
+case default
+  call out_io (s_warn$, r_name, 'BAD PHASE_SPACE DATA_TYPE: ' // data_type, &
+                                'SHOULD BE ONE OF "x", "px", "y", "py", "z", OR "pz".')
+  err = .true.
+end select
+
+end function tao_phase_space_axis_index
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_particle_data_value (data_type, p, value, err, ele, ix_bunch)
+!
+! Routine to calculate the value array of a data_type for an array of particles.
+!
+! Input:
+!   data_type   -- character(*): Type of data.
+!   p(:)        -- coord_struct, Array of particles containing the data.
+!   ele         -- ele_struct: Needed for "Ja" evaluation.
+!   ix_bunch    -- integer: Bunch index.
+!
+! Output:
+!   value(:)    -- real(rp): Array of values.
+!   err         -- logical: Set True if there is an error. False otherwise.
+!-
+
+subroutine tao_particle_data_value (data_type, p, value, err, ele, ix_bunch)
+
+implicit none
+
+type (coord_struct), target :: p(:)
+type (coord_struct) :: p1
+type (ele_struct) :: ele
+
+real(rp), allocatable :: value(:)
+
+integer ix_bunch
+integer i
+
+logical :: err
+
+character(*) data_type
+character(*), parameter :: r_name = 'tao_particle_data_value'
+
+!
+
+err = .false.
+call re_allocate (value, size(p))
+
+select case (data_type)
+case ('x');   value = p%vec(1)
+case ('px');  value = p%vec(2)
+case ('y');   value = p%vec(3)
+case ('py');  value = p%vec(4)
+case ('z');   value = p%vec(5)
+case ('pz');  value = p%vec(6)
+case ('intensity_x'); value = p%field(1)**2
+case ('intensity_y'); value = p%field(2)**2
+case ('phase_x');     value = p%phase(1)
+case ('phase_y');     value = p%phase(2)
+case ('t', 'time');   value = p%t
+case ('bunch_index');    value = ix_bunch
 
 case ('intensity')
-  ix_axis = 11
-  if (present(p)) then
-    p%charge = p%field(1)**2 + p%field(2)**2
-    axis = p%charge
-  endif
+  value = p%field(1)**2 + p%field(2)**2
   
 case ('Ja')
-  ix_axis = 12
-  if (present(p) .and. present(ele)) then
-    do i=1, size(p)
-      call convert_coords('LAB', p(i), ele, 'ACTION-ANGLE', p1)
-      axis(i) = p1%vec(1)
-    enddo
-  endif
+  do i=1, size(p)
+    call convert_coords('LAB', p(i), ele, 'ACTION-ANGLE', p1)
+    value(i) = p1%vec(1)
+  enddo
+
+case ('Jb')
+  do i=1, size(p)
+    call convert_coords('LAB', p(i), ele, 'ACTION-ANGLE', p1)
+    value(i) = p1%vec(3)
+  enddo
 
 case ('energy')
-  ix_axis = 13
-  if (present(p)) then
-    do i=1, size(p)
-      call convert_pc_to((1 + p(i)%vec(6)) * p(i)%p0c, p(i)%species, e_tot =  axis(i))
-    enddo
-  endif
+  do i=1, size(p)
+    call convert_pc_to((1 + p(i)%vec(6)) * p(i)%p0c, p(i)%species, e_tot =  value(i))
+  enddo
   
 case default
   call out_io (s_warn$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)
-  if (present(err)) err = .true.
+  err = .true.
 end select
 
-end subroutine tao_phase_space_axis
+end subroutine tao_particle_data_value
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
