@@ -1,16 +1,30 @@
-NOTE: GENERALIZED GRADIENT FIT IS IN DEVELOPMENT!!
-NOT FOR PUBLIC USE AT THIS TIME!!
-
-
-generalized_gradients_fit program documentation:
+Generalized_Gradients_Fit Program Documentation:
 ------------------------------------------------
 
 This program calculates generalized gradient (GG) coefficients starting from a field table.
-The field table may be for either magnetic or electric fields. The GG coefficients do not
-depend upon the type of field being used.
+The field table may be for either magnetic or electric fields. Note: The GG coefficients do not
+depend upon the type (magnetic or electric) of field being used.
 
 This documentation and source code is in the directory:
   util_programs/generalized_gradients_fit
+
+The program will create as output a file in Bmad standard lattice format with the GG derivative
+information.
+
+
+=================================================================================================
+Running the Program
+-------------------
+
+To run the program use the command:
+	generalized_gradients_fit <file_name>
+where <file_name> is the name of the parameter file (see below). 
+The default name, if <file_name> is not given, is "gg_fit.init".
+
+
+=================================================================================================
+How the Program Works:
+----------------------
 
 The GG coefficents are calculated at equally spaced z-positions corresponding to z-planes of the
 field table. Note: Currently there is a restriction when using PTC with GG in that the number of
@@ -18,16 +32,17 @@ z-positions must be odd. This restriction may be lifted in the future but for no
 simple matter, assuming that the field goes to zero at the ends, simply to remove the data for one
 endpoint z-position.
 
+At each z-plane, where the derivatives are calculated (called the "base plane"), the derivatives are
+calculated only using the field at the base plane and the fields at neighboring planes to either
+side (set by the n_planes_add parameter as discussed below). Adding extra planes to the analysis
+smooths the calculated values at the expense of increased computation time. It is also important to
+note that the calculation of the GG curve derivatives at a non-base plane is done assuming that the
+GG curve is well approximated by a polynomial with coefficients given by the derivatives at the base
+plane. This approximation becomes less accurate as more planes are used in the analysis so, past some
+limit, using more planes makes the calculation less accurate.
 
-Running the Program
--------------------
 
-To run the program use the command:
-	generalized_gradients_fit <file_name>
-where <file_name> is the name of the parameter file (see below). 
-The default name if <file_name> is not given if "gg_fit.init".
-
-
+=================================================================================================
 Input Files:
 ------------
 
@@ -36,6 +51,7 @@ Example input files can be found at:
   util_programs/generalized_gradients_fit/example
 
 
+=================================================================================================
 Field Table File
 ----------------
 
@@ -43,16 +59,16 @@ The field table must have 7 header lines that look like:
 
 0.01		        ! File length_scale in meters. EG: 0.01 => Positions are in cm.
 1e-4		        ! File field_scale in Tesla or V/m. EG: 1e-4 => Field in Gauss (if magnetic).
-0 13		        ! Nx_min, Nx_max x-axis min/max 
-0 13		        ! Ny_min, Ny_max y-axis min/max 
-0 1200	        ! Nz_min, Nz_max z-axis min/max 
 0.4  0.2  0.2   ! del_x,y,z  Spacing between grid points
 0    0    0     ! r0 (x,y,z) offset of the origin. Not used in calculation.
 
 The remaining lines have the format:
 	x-position    y-position  z-position   Field_x   Field_y   Field_z
 
+The x, y and z-positions must be multiples of del_x, del_y, an del_z respectively.
 
+
+=================================================================================================
 Parameter File:
 ---------------
 
@@ -60,21 +76,52 @@ The parameter file has the format:
 
 &params                 ! This line signals the beginning of the parameter list
   field_file = 'w22-20_25_94.table.binary'  ! Field table file. .binary suffix => binary file.
+	out_file = 'gg'       ! Output file prefix. Output files will have ".dat" and ".bmad" suffixes.
   every_n_th_plane = 1  ! If equal 2, skip every other z-plane, etc.
   n_deriv_max = 4				! Max derivative order. Min order is zero.
   m_cos = -1						! List of m-values for cosine like GG. -1 => no cosine GG.
-  m_sin =  1, 3					! List of m-values for sine like GG.
-  n_cycles = 10000		  ! Number of optimization cycles per z-plane.
-  iz_min = 3						! z-plane lower bound to start calc at. If not present, use field table lower bound.
-  iz_max = 13					  ! z-plane upper bound to stop calc at. If not present, use field table upper bound.
+  m_sin =  1, 3, 5			! List of m-values for sine like GG.
+  z_min = 3					  	! z-plane lower bound to start calc at. If not present, use field table lower bound.
+  z_max = 13					  ! z-plane upper bound to stop calc at. If not present, use field table upper bound.
   mode = 'fit'					! or 'binary' to create a binary field table file.
-  lmdif_eps = 1e-12			! Lmdif optimizer tollerance.
+	optimizer = 'lmdif'   ! Optimizer to use. Alternative is 'lm'.
+	n_planes_add = 0      ! Extra planes to use for the analysis
   printit = F					  ! Print extra info for debugging program. Only useful for debugging.
   sym_x = 1							! X-axis symmetry. Possibilities are: -1, 0 (default), 1.
   sym_y = -1						! Y-axis symmetry. Possibilities are: -1, 0 (default), 1. 
 /                       ! Ending slash signals end of param list. Everything outside is ignored.
 
-The sym_x and sym_y parameters set the symmetry of the field at constant z with respect to the
+every_n_th_plane: This parameter can be used to reduce the number of z-planes being analyzed. A
+setting of "1" means analyze all z-planes, "2" means skip every other z-plane, etc. Use this parameter
+if you want to reduce the amount of data being outputted.
+
+n_deriv_max: For any given z-position, this parameter sets the maximum derivitive order. The minimum
+derivitive order is zero so the number of derivatives will be n_deriv_max+1.
+
+m_cos, m_sin: Lists of cosine and sine azimuthal harmonics to analyse. A list of "-1" means there
+are no harmonics of this type. In the above example, no cosine harmonics are used and harmonics
+of order 1, 3, and 5 are used.
+
+z_min, z_max: Range of z-planes to analyze. In units of meters. If not present of z_min is lower then
+the table lower bound, the beginning of the range will be the table lower bound. A similar logic holds
+for z_max.
+
+mode: Run mode. Can be "binary" in which case there is no analysis and a binary table is created
+with a ".binary" suffix. This binary table can be used for the field_file in which case reading in the
+table will be faster (it is not clear that with the present speed of computers that this ability to
+create binary files is useful). The other mode is "fit" in which case the standard GG analysis is done.
+
+optimizer: There are two optimizers that can be used: "lm" and "lmdif". Both are variants of the
+Levenburg-Marquardt algorithm. 
+
+n_planes_add: The parameter sets the number of z-planes added to either side of the base z-plane to
+be used in the analysis of the derivatives at any given base z-plane (see "How the Progam Works"
+section). For example, for n_planes_add = 2, two planes would be added to either side of the base
+plane making the total number of planes used in the analysis equal to five. Near the ends of the
+table, the number of z-planes used will be reduced. Thus, for n_planes_add = 2, a base z-plane
+at the end of the table will only use three planes in the analysis.
+
+sym_x and sym_y: These parameters set the symmetry of the field at constant z with respect to the
 x-axis and the y-axis. This is used when the field table only contains one quadrent or one half of
 the the field region in the (x,y) plane. Using a reduced region for a table is a way of reducing the
 table file size. If the table covers the full field region, sym_x and sym_y should be set to 0 which
@@ -85,19 +132,39 @@ mirror anti-symmetry with respect to both the x-z and y-z planes and a skew quad
 mirror symmetry with respect to both planes.
 
 
-How the program works:
-----------------------
+=================================================================================================
+Output:
+-------
 
-The GG's are calculated z-plane by z-plane with a nonlinear fit being done in each z-plane using only the field
-values in that plane. 
+There are three output files. 
 
+One output file is meant to be used for plotting. The name of this file is given by the out_file
+parameter with a ".plot" suffix attached. There are multiple data sets in the table, one for each GG
+curve of the derivatives versus z-position. With Gnuplot, individual data sets can be graphed using
+the "index" parameter.
 
+Another output file gives information on how accurate the fit is as well as information on how
+significant the derivative values are. The name of this file is given by the out_file parameter with
+a ".info" suffix attached. The data blocks in this file might look like:
 
+# m    = 3
+# type = sin
+# Iz     z_pos    Init_RMS    RMS/RMS0      Deriv * r_max^(m+d-1) * (d+m) * m! / ((d/2)! * (d/2+m)!)
+  10    0.0200   7.4287E-02   3.0602E-03  3.07486025E-01  1.07290432E+00 -2.07656736E-01 -2.59055645E-01 
+  11    0.0220   7.7958E-02   3.6619E-03  3.32020880E-01  9.37495727E-01 -3.12597302E-01 -2.10447354E-01 
+  12    0.0240   8.1523E-02   4.1232E-03  3.52985405E-01  7.64678462E-01 -3.94031086E-01 -7.38811389E-02 
 
+The "Init_RMS" column gives the inital RMS of field data used in the calculation for a particular
+base plane.  
 
+The "RMS/RMS0" gives the final rms of the residual of the fit minus the data divided by the initial
+RMS. A value small compared to one indicates a good fit.
 
-To Do:
-	* div, curl check
+The final columns show the significance of a the derivatives. The field due to a finite given
+derivative scales roughly as r^(m+d-1) (plus some other factors) where "r" is the radius and "d" is
+the derivative index. So at the outer edges of the table, the contribution of the derivative will
+be a maximum and this is what is given in the table. Only the relative numbers are import. For example,
+in the above table, the first derivatives (d = 1) contribute more than the other three derivatives. 
 
-How to call .bmad file:
-	q1: quad, call::gg.bmad, ...
+The final output file has the derivative values in bmad lattice format. The name of this file is given by the
+out_file parameter with a ".bmad" suffix attached.
