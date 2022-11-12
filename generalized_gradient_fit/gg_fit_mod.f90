@@ -29,8 +29,8 @@ type (fit_info_struct), allocatable, target :: fit(:)
 integer, parameter :: m_max = 10
 integer :: Nx_min, Nx_max, Ny_min, Ny_max, Nz_min, Nz_max
 integer :: n_grid_pts
-integer :: n_cycles
-integer :: every_n_th_plane, n_planes_add = 0, n_deriv_extra = 0
+integer :: n_cycles = 100000
+integer :: every_n_th_plane = 1, n_planes_add = 0, n_deriv_keep = -1
 integer :: n_deriv_max
 integer :: iz_min = int_garbage$, iz_max = int_garbage$    ! Compute range
 integer :: m_cos(m_max) = -1
@@ -48,6 +48,7 @@ real(rp), allocatable :: dBx_dvar(:,:), dBy_dvar(:,:), dBz_dvar(:,:)
 ! field_scale is the field table field in Tesla or V/m.
 
 real(rp) :: del_grid(3), r0_grid(3), field_scale, length_scale, r_max
+real(rp) :: z_min = real_garbage$, z_max = real_garbage$
 real(rp) :: lmdif_eps = 1d-12
 
 real(rp), allocatable :: var_vec(:), merit_vec(:), dB_dvar_vec(:,:)
@@ -56,7 +57,7 @@ real(rp) merit
 logical printit
 
 character(10) :: optimizer = 'lmdif'
-character(100) :: field_file , out_file = ''
+character(100) :: field_file, out_file = ''
 
 contains
 
@@ -114,6 +115,7 @@ if (index(field_file, '.binary') /= 0) then
 
 else
   open (1, file = field_file, status = 'OLD', action = 'READ')
+
   read (1, '(a)', iostat = ios1) line
   read (line, *, iostat = ios2) length_scale
   if (ios1 /= 0 .or. ios2 /= 0) call read_err('length_scale', line)
@@ -121,23 +123,35 @@ else
   read (line, *, iostat = ios2) field_scale
   if (ios1 /= 0 .or. ios2 /= 0) call read_err('field_scale', line)
   read (1, '(a)', iostat = ios1) line
-  read (line, *, iostat = ios2) Nx_min, Nx_max
-  if (ios1 /= 0 .or. ios2 /= 0) call read_err('Nx_min, Nx_max', line)
-  read (1, '(a)', iostat = ios1) line
-  read (line, *, iostat = ios2) Ny_min, Ny_max
-  if (ios1 /= 0 .or. ios2 /= 0) call read_err('Ny_min, Ny_max', line)
-  read (1, '(a)', iostat = ios1) line
-  read (line, *, iostat = ios2) Nz_min, Nz_max
-  if (ios1 /= 0 .or. ios2 /= 0) call read_err('Nz_min, Nz_max', line)
-  read (1, '(a)', iostat = ios1) line
   read (line, *, iostat = ios2) del_grid
   if (ios1 /= 0 .or. ios2 /= 0) call read_err('del_grid', line)
   read (1, '(a)', iostat = ios1) line
   read (line, *, iostat = ios2) r0_grid
   if (ios1 /= 0 .or. ios2 /= 0) call read_err('r0_grid', line)
 
+  Nx_min = 100000; Nx_max = -100000
+  Ny_min = 100000; Ny_max = -100000
+  Nz_min = 100000; Nz_max = -100000
+
+  do
+    read (1, '(a)', iostat = ios1) line
+    if (line(1:1) == '!' .or. line == '') cycle
+    read (line, *, iostat = ios2) xx, yy, zz, Bx, By, Bz
+    if (ios1 < 0) exit
+    if (ios1 /= 0 .or. ios2 /= 0) call read_err('xx, yy, zz, Bx, By, Bz', line)
+    Nx_min = min(Nx_min, nint (xx/del_grid(1))); Nx_max = max(Nx_max, nint (xx/del_grid(1)))
+    Ny_min = min(Ny_min, nint (yy/del_grid(2))); Ny_max = max(Ny_max, nint (yy/del_grid(2)))
+    Nz_min = min(Nz_min, nint (zz/del_grid(3))); Nz_max = max(Nz_max, nint (zz/del_grid(3)))
+  enddo
+
   allocate (Bx_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
   allocate (Bz_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), valid_field(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+
+  rewind (1)
+  read (1, '(a)', iostat = ios1) line
+  read (1, '(a)', iostat = ios1) line
+  read (1, '(a)', iostat = ios1) line
+  read (1, '(a)', iostat = ios1) line
 
   do
     read (1, '(a)', iostat = ios1) line
@@ -149,10 +163,6 @@ else
     j = nint (yy/del_grid(2))
     k = nint (zz/del_grid(3))
 
-    if (i < Nx_min .or. i > Nx_max .or. j < Ny_min .or. j > Ny_max .or. k < Nz_min .or. k > Nz_max) then
-      print *, 'COMPUTED INDEX OUT OF RANGE FOR LINE: ', trim(line)
-      stop
-    endif
     Bx_dat(i,j,k) = Bx * field_scale
     By_dat(i,j,k) = By * field_scale
     Bz_dat(i,j,k) = Bz * field_scale
@@ -167,10 +177,16 @@ endif
 
 close (1)
 
+print '(a, f12.4)', 'Length scale:', length_scale
+print '(a, es11.3)', 'Field scale:', field_scale
+print '(a, 2(f10.5, a, i5, a, 4x))', 'x table range (meters, index):', Nx_min*del_grid(1), ' (', Nx_min, ')', Nx_max*del_grid(1), ' (', Nx_max, ')'
+print '(a, 2(f10.5, a, i5, a, 4x))', 'y table range (meters, index)):', Ny_min*del_grid(2), ' (', Ny_min, ')', Ny_max*del_grid(2), ' (', Ny_max, ')'
+print '(a, 2(f10.5, a, i5, a, 4x))', 'z table range (meters, index)):', Nz_min*del_grid(3), ' (', Nz_min, ')', Nz_max*del_grid(3), ' (', Nz_max, ')'
+
 n_grid_pts = (Nx_max-Nx_min+1) * (Ny_max-Ny_min+1) * (Nz_max-Nz_min+1)
 
 print *, 'Field table read: ', trim(field_file)
-print *, '  Number of grid field points:       ', n_grid_pts
+print *, 'Number of grid field points:       ', n_grid_pts
 
 if (n_grid_pts /= count(valid_field)) then
   print *, 'Number points missing in table: ', n_grid_pts - count(valid_field)
@@ -188,16 +204,16 @@ endif
 
 !
 
-if (iz_min == int_garbage$) iz_min = Nz_min
-if (iz_min < Nz_min) then
-  print '(a)', 'ERROR: IZ_MIN (' // int_str(iz_min) // ') IS LESS THAN TABLE Z LOWER BOUND OF ' // int_str(Nz_min)
-  stop
+if (z_min == real_garbage$) then
+  iz_min = Nz_min
+else
+  iz_min = max(Nz_min, nint(z_min/del_grid(3)))
 endif
 
-if (iz_max == int_garbage$) iz_max = Nz_max
-if (iz_max > Nz_max) then
-  print '(a)', 'ERROR: IZ_MAX (' // int_str(iz_max) // ') IS GREATER THAN TABLE Z LOWER BOUND OF ' // int_str(Nz_max)
-  stop
+if (z_max == real_garbage$) then
+  iz_max = Nz_max
+else
+  iz_max = min(Nz_max, nint(z_max/del_grid(3)))
 endif
 
 r_max = norm2([max(abs(Nx_min), abs(Nx_max)) * del_grid(1), max(abs(Ny_min), abs(Ny_max)) * del_grid(2)])
@@ -396,9 +412,9 @@ allocate (var_vec(n_var), vec0(n_var), weight(n_merit))
 vec0 = 0
 var_vec = 0
 
-do iz = iz_min, iz_max
+do iz = iz_min, iz_max, every_n_th_plane
   print *, '===================================='
-  print *, 'Plane:', iz
+  print '(a, f10.4, a, i0, a)', ' Plane:', iz*del_grid(3), ' (', iz, ')'
   print *, 'Cycle   Merit (rms)'
 
   iz0 = max(Nz_min, iz-n_planes_add)
@@ -456,7 +472,7 @@ do iz = iz_min, iz_max
     enddo
   enddo
 
-  print *, ' Ix    m   nd  sym             Coef    Coef*rmax^(nd+m-1)/nd!'
+  print '(a)', '  Ix    m   nd  sym             Deriv       Deriv*r_max^(m+d-1)*(d+m)*m!/((d/2)!*(d/2+m)!)'
 
   do ig = 1, size(gg1)
     gg => gg1(ig)
@@ -464,7 +480,8 @@ do iz = iz_min, iz_max
       if (gg%ix_var(id) > 0) then
         v = gg%deriv(iz,id)
         print '(i4, 3i5, 2x, a, es16.6, es12.2)', gg%ix_var(id), gg%m, id, &
-                      gg%sym_score, sincos_name(gg%sincos), v, v*r_max**(gg%m+id-1)/factorial(id)
+                      gg%sym_score, sincos_name(gg%sincos), v, &
+                      v * r_max**(gg%m+id-1) * (id+gg%m) * factorial(gg%m) / (factorial(id/2) * factorial(id/2+gg%m))
       else
         print '(i4, 3i5, 2x, a, es16.6)', gg%ix_var(id), gg%m, id, gg%sym_score, sincos_name(gg%sincos)
       endif
@@ -702,13 +719,16 @@ end function sym_score_calc
 subroutine write_gg()
 
 type (gg1_struct), pointer :: gg
-integer ig, iz, n, nmax
+integer ig, iz, m, n, nmax
 character(40) fmt
 
 !
 
 if (out_file == '') out_file = 'gg'
-open (1, file = trim(out_file) // '.dat')
+
+!--------------------------
+
+open (1, file = trim(out_file) // '.plot')
 
 write (1, '(4(a, f8.4))')  '# del_grid = [', del_grid(1), ',', del_grid(2), ',', del_grid(3), ']'
 write (1, '(4(a, f8.4))')  '# r0_grid  = [', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), ']'
@@ -722,26 +742,46 @@ do ig = 1, size(gg1)
   endif
   write (1, '(a, i2)') '# m    =', gg%m
   write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
-  write (1, '(a, i2)') '# Iz     z_pos    Init_RMS      Derivs'
+  write (1, '(a, i2)') '# Iz     z_pos    Derivs'
 
   do iz = iz_min, iz_max
-    write (1, '(i4, f10.4, es13.4, 99es16.8)') iz, iz*del_grid(3)+r0_grid(3), fit(iz)%rms0, gg%deriv(iz,:)
+    write (1, '(i4, f10.4, 99es16.8)') iz, iz*del_grid(3)+r0_grid(3), fit(iz)%rms0, gg%deriv(iz,:)
   enddo
+enddo
 
-  write (1, '(a)'), '#' 
-  write (1, '(a, i2)') '# Iz     z_pos    RMS/RMS0      Deriv*r_max^(m+n-1)/factorial(n)'
+close (1)
+
+!--------------------------
+
+open (1, file = trim(out_file) // '.info')
+
+write (1, '(4(a, f8.4))')  '# del_grid = [', del_grid(1), ',', del_grid(2), ',', del_grid(3), ']'
+write (1, '(4(a, f8.4))')  '# r0_grid  = [', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), ']'
+write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
+
+do ig = 1, size(gg1)
+  gg => gg1(ig)
+  m = gg%m
+  if (ig > 1) then
+    write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
+    write (1, *)
+  endif
+  write (1, '(a, i2)') '# m    =', gg%m
+  write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
+  write (1, '(a, i2)') '# Iz     z_pos    Init_RMS     RMS/RMS0     Deriv * r_max^(m+d-1) * (d+m) * m! / ((d/2)! * (d/2+m)!)'
 
   nmax = ubound(gg%deriv,2)
   do iz = iz_min, iz_max
-    write (1, '(i4, f10.4, es13.4, 99es16.8)') iz, iz*del_grid(3)+r0_grid(3), fit(iz)%rms_fit/fit(iz)%rms0, &
-                  (gg%deriv(iz,n) * r_max**(max(0,gg%m+n-1)) / factorial(n), n = 0, nmax)
+    write (1, '(i4, f10.4, 2es13.4, 99es16.8)') iz, iz*del_grid(3)+r0_grid(3), &
+                  fit(iz)%rms0, fit(iz)%rms_fit/fit(iz)%rms0, &
+                  (gg%deriv(iz,n) * r_max**(max(0,m+n-1)) * (n+m) * factorial(m) / (factorial(n/2) * factorial(n/2+m)), n = 0, nmax)
   enddo
 
 enddo
 
 close (1)
 
-!
+!--------------------------
 
 open (1, file = trim(out_file) // '.bmad', recl = 500)
 

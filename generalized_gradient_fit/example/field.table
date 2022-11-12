@@ -1,8 +1,5 @@
   1.000000E-02  ! length_scale in meters
   1.000000E-04  ! field_scale in Tesla or V/m
-       0      13  ! Nx_min, Nx_max
-       0      13  ! Ny_min, Ny_max
-     900    1050  ! Nz_min, Nz_max
   0.400000  0.200000  0.200000  ! del_grid
   0.000000  0.000000  0.000000  ! r0_grid
       0.0000      0.0000    180.0000  -8.75490625092E-13   1.02445481986E+02   2.97281438290E-11
