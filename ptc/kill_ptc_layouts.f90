@@ -17,11 +17,14 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 
-integer ib, il
+integer ib, il, llp
 
 !
 
 if (.not. allocated(lat%branch)) return
+
+llp = lielib_print(12)
+lielib_print(12) = 0  ! No info printing
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -38,6 +41,8 @@ do ib = 0, ubound(lat%branch, 1)
     deallocate(branch%ptc%m_u_layout)
   endif
 enddo
+
+lielib_print(12) = llp
 
 end subroutine kill_ptc_layouts
 
