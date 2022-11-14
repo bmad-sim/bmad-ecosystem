@@ -468,7 +468,7 @@ endif
 if (lttp%split_bends_for_stochastic_rad) then
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
-    if (ele%name /= 'Radiation_Point') cycle
+    if (ele%name /= 'RADIATION_POINT') cycle
     if (.not. associated(ele%rad_map)) allocate (ele%rad_map)
     ri => ele%rad_map
     call tracking_rad_map_setup(branch%ele(ie-1), 1e-4_rp, downstream_end$, ri%rm0)
@@ -2352,7 +2352,7 @@ branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
 
 if (lttp%split_bends_for_stochastic_rad) then
   call init_ele(marker, marker$)
-  marker%name = 'Radiation_Point'
+  marker%name = 'RADIATION_POINT'
   marker%ix_pointer = not_in_map$
 
   i = 0
@@ -2451,7 +2451,7 @@ ele => ele_start
 
 do
   ele => pointer_to_next_ele(ele)
-  if (ele%name == 'Radiation_Point') then
+  if (ele%name == 'RADIATION_POINT') then
     call ltt_track1_radiation_center(orbit, ele, .false., rad_fluct)
   else
     call track1 (orbit, ele, ele%branch%param, orbit, err_flag = err_flag)
@@ -2491,7 +2491,7 @@ if (lttp%split_bends_for_stochastic_rad) then
 
   do
     ele => pointer_to_next_ele(ele)
-    if (ele%name == 'Radiation_Point') then
+    if (ele%name == 'RADIATION_POINT') then
       do i = 1, size(bunch%particle)
         call ltt_track1_radiation_center(bunch%particle(i), ele, .false., rad_fluct)
       enddo
@@ -2540,7 +2540,7 @@ do i = 1, ubound(ltt_com%sec, 1)
     call ptc_track_map_with_radiation (orbit, sec%map, rad_damp = bmad_com%radiation_damping_on, rad_fluct = map_fluct_on)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
     ele => branch%ele(sec%map%ix_ele_end)
-  elseif (sec%ele%name == 'Radiation_Point') then
+  elseif (sec%ele%name == 'RADIATION_POINT') then
     call ltt_track1_radiation_center(orbit, sec%ele, .false., pt_fluct_on)
     ele => sec%ele
   else  ! EG: beambeam

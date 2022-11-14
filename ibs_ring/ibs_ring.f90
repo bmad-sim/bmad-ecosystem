@@ -138,7 +138,7 @@ call twiss_and_track(lat,orb,status)
 
 ix_cache = -1
 call radiation_integrals(lat, orb, mode, ix_cache)
-if( allocated(orb) ) deallocate(orb)  ! no longer needed
+
 
 if( ptc_calc ) then
   call ptc_emit_calc(lat%ele(0), mode, sigma_mat, ptc_co)
@@ -385,6 +385,7 @@ close(rateslun)
 close(int_rateslun)
 close(scalinglun)
 
+!-----------------------------------------------------------
 contains
   subroutine set_t6_eta(t6)
     real(rp) t6(6,6), W(6,6)
@@ -400,7 +401,10 @@ contains
     W(5,4) = -ibs_sim_params%eta_set
 
     t6 = matmul(t6,W)
-  end subroutine
+  end subroutine set_t6_eta
+
+!-----------------------------------------------------------
+! contains
 
   subroutine load_parameters_file()
     !-Set bogus values for namelist parameters, so we can check that they were
@@ -456,7 +460,8 @@ contains
     if( clog_to_use .lt. -90 ) call param_bomb('clog_to_use')
     if( eqb_method == '' ) call param_bomb('eqb_method')
     if( any(initial_blow_up .lt. 0) ) call param_bomb('initial_blow_up')
-  end subroutine
+  end subroutine load_parameters_file
+
 end program ibs_ring
 
 subroutine param_bomb(parameter)
