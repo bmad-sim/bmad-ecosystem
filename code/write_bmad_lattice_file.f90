@@ -620,7 +620,7 @@ do ib = 0, ubound(lat%branch, 1)
           line = trim(line) // ', gen_grad_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
           iu2 = lunget()
-          open (iu2, file = string)
+          open (iu2, file = string, recl = 500)
           call write_this_gen_grad_map_map (gg_map, ele, iu2)
           close (iu2)
         endif
@@ -1796,22 +1796,25 @@ write (iu9, '(2x, a, l1, a)') 'curved_ref_frame   = ', gg_map%curved_ref_frame, 
 
 do ig = 1, size(gg_map%gg)
   gg => gg_map%gg(ig)
-  write (iu9, '(2x, a)') '{'
-  write (iu9, '(4x, a, i0)') 'm = ', gg%m
-  write (iu9, '(4x, 2a)')    'type = ', expression_op_name(gg%sincos)
-  write (iu9, '(4x, a)')     'derivs = {'
+  write (iu9, '(2x, a)') 'curve = {'
+  write (iu9, '(4x, a, i0, a)') 'm = ', gg%m, ','
+  write (iu9, '(4x, 3a)')       'type = ', trim(expression_op_name(gg%sincos)), ','
+  write (iu9, '(4x, a)')        'derivs = {'
 
 
-  n = ubound(gg%deriv,2)
-  write (fmt, '(a, i0, a)') '(i8, a, ', n, 'es20.12, a)' 
-  do iz = gg_map%iz0, gg_map%iz1
-    write (1, fmt) iz, ':', gg%deriv(iz,:), ','
+  n = ubound(gg%deriv,2) + 1
+  write (fmt, '(a, i0, a)') '(f13.5, a, ', n, 'es20.12, a)' 
+  print *, fmt
+  do iz = gg_map%iz0, gg_map%iz1-1
+    write (iu9, fmt) iz*gg_map%dz, ':', gg%deriv(iz,:), ','
   enddo
-  write (1, fmt) gg_map%iz1, ':', gg%deriv(gg_map%iz1,:)
+  write (iu9, fmt) gg_map%iz1*gg_map%dz, ':', gg%deriv(gg_map%iz1,:)
+
+  write (iu9, '(a)')   '    }'
   if (ig == size(gg_map%gg)) then
-    write (1, '(a)') '  }'
+    write (iu9, '(a)') '  }'
   else
-    write (1, '(a)') '  },'
+    write (iu9, '(a)') '  },'
   endif
 enddo
 
