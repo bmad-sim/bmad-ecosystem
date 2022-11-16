@@ -53,7 +53,7 @@ case (ab_multipole$)
 
 case (ac_kicker$)
   select case (mat6_calc_method)
-  case (auto$, tracking$, custom$)
+  case (auto$, bmad_standard$, symp_lie_ptc$, tracking$, custom$)
     is_valid = .true.
   end select
 

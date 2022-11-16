@@ -8711,6 +8711,7 @@ logical err_flag, delim_found, valid
 name = 'xxx'
 err_flag = .true.
 nder = -1
+gg_map%file = bp_com%line2_file_name
 
 !
 
