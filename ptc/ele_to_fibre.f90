@@ -31,6 +31,7 @@ subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps,
 
 use ptc_interface_mod, dummy => ele_to_fibre
 use madx_ptc_module, pi_dum => pi, pi2_dum => twopi
+use dabnew_pancake
 
 implicit none
 
@@ -51,7 +52,6 @@ type (work) energy_work
 type (tree_element), pointer :: arbre(:)
 type (c_damap) ptc_c_damap
 type (real_8) ptc_re8(6)
-type(taylor), allocatable :: pancake_field(:,:)
 type (taylor) ptc_taylor
 
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, kl(0:n_pole_maxx), t(0:n_pole_maxx)
@@ -66,7 +66,8 @@ complex(rp) k_0
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
-integer np, max_order, ix_pole_max, nn, n_period
+integer np, max_order, ix_pole_max, nn, n_period, icoef
+integer, allocatable :: pancake_field(:,:)
 
 logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
 logical, optional :: for_layout
@@ -562,8 +563,17 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
     max_order = max(max_order, gg_map%gg(i)%m+ubound(gg_map%gg(i)%deriv,2))
   enddo
 
-  call init (max_order+1, 1, 0, 0)
-  call allocate_for_pancake (pancake_field)
+  call init_pancake (max_order+1, 2)
+  allocate(pancake_field(3,np))
+  pancake_field = 0
+  icoef = 0
+  call daall0_pancake(icoef)
+
+  do i = 1, 3
+    do j = 1, np
+      call daall0_pancake(pancake_field(i,j))
+    enddo
+  enddo
 
   do i = gg_map%iz0, gg_map%iz1
     ii = i + 1 - gg_map%iz0
@@ -572,12 +582,15 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
       do k = 1, size(em_taylor(j)%term)
         tm => em_taylor(j)%term(k)
         coef = tm%coef * 1d9 ! * c_light / ele2%value(p0c$)
-        pancake_field(j,ii)=pancake_field(j,ii)+(coef .mono. tm%expn)
+        call dacon_pancake(icoef, 0.0_rp)
+        call dapok_pancake(icoef, tm%expn, coef)
+        call daadd_pancake(pancake_field(j,ii), icoef, pancake_field(j,ii))
       enddo
+      !! call dapri_pancake(pancake_field(j,ii), 6)  ! Taylor print
     enddo
   enddo
 
-  ptc_key%magnet = 'INTERNALPANCAKE'
+  ptc_key%magnet = 'PANCAKEBMAD'
 
 else
   ! This needed since corresponding create_fibre_append dummy arg is an assumed shape array.
@@ -611,7 +624,7 @@ endif
 call set_ptc_quiet(12, set$, n)
 
 if (logic_option(.false., for_layout)) then
-  call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION)   ! ptc routine
+  call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION, bri = pancake_field)   ! ptc routine
   ptc_fibre => m_u%end%end
 
   if (present (ref_in)) then
@@ -632,7 +645,7 @@ else
     call kill (bmadl)
     call set_up(bmadl)
   endif
-  call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION)   ! ptc routine
+  call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION, bri = pancake_field)   ! ptc routine
 
   ptc_fibre => bmadl%end
 
@@ -836,7 +849,8 @@ ptc_fibre = energy_work
 ! FieldMap cartesian_map element. 
 ! Include all wiggler elements even planar_model with field_calc = bmad_standard$
 
-if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. key == wiggler$ .or. key == undulator$) then
+if (.not. associated(ele2%gen_grad_map) .and. ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. &
+                key == wiggler$ .or. key == undulator$)) then
 
   
   is_planar_wiggler = ((key == wiggler$ .or. key == undulator$) .and. ele2%field_calc == planar_model$) 

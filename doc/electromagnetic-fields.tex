@@ -817,36 +817,40 @@ $C_{m,\alpha}(z)$ which are functions along the longitudinal $z$-axis.
   \, \rho^{2n+m} \, C_{m,\alpha}^{[2n]}(z) 
   \label{ppmpp}
 \end{equation}
-The notation $[2n]$ indicates the $2n$ derivative of $C_{m,\alpha}(z) = C_{m,\alpha}^{[0]}(z)$.
+The notation $[2n]$ indicates the $2n$\Th derivative of $C_{m,\alpha}(z)$.
 
-From \Eq{ppmpp} the field is given by 
+From \Eq{ppmpp} the field is given by
 \begin{align}
-  B_\rho   &= \sum_{m = 1}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m! \, (2n+m)}{4^n n! \, (n+m)!}
+  B_\rho   &= \sum_{m = 1}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m! \, (2n+m)}{4^n \, n! \, (n+m)!}
     \rho^{2n+m-1} \left[ C^{[2n]}_{m,s}(z) \, \sin m\theta + C^{[2n]}_{m,c}(z) \, \cos m\theta \right] + \CRNO
-    & \hspace{25 em} \sum_{n = 1}^\infty \frac{(-1)^n \, 2n}{4^n n! \, n!} \rho^{2n-1} C^{[2n]}_{0,c}(z) \CRNO
+    & \hspace{25 em} \sum_{n = 1}^\infty \frac{(-1)^n \, 2n}{4^n n! \, n!} \rho^{2n-1} \, C^{[2n]}_{0,c}(z) \CRNO
   B_\theta &= \sum_{m = 1}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m! \, m}{4^n \, n! \, (n+m)!}
     \rho^{2n+m-1} \left[ C^{[2n]}_{m,s}(z) \, \cos m\theta - C^{[2n]}_{m,c}(z) \, \sin m\theta \right] \\
-  B_z      &= \sum_{m = 0}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m!}{4^n n! \, (n+m)!}
+  B_z      &= \sum_{m = 0}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m!}{4^n \, n! \, (n+m)!}
     \rho^{2n+m} \left[ C^{[2n+1]}_{m,s}(z) \, \sin m\theta + C^{[2n+1]}_{m,c}(z) \, \cos m\theta \right] \nonumber
 \end{align}
-Notice that the multipole index $m$ is such that $m = 0$ is for solenoidal fields, $m = 1$ is for
-dipole fields, $m = 2$ is for quadrupolar fields, etc. Also, even though the scalar potential only
-involves even derivatives of $C_{m,\alpha}$, the field is dependent upon the odd derivatives as
-well.
+Even though the scalar potential only involves even derivatives of $C_{m,\alpha}$, the field is
+dependent upon the odd derivatives as well. The multipole index $m$ is such that $m = 0$ is for
+solenoidal fields, $m = 1$ is for dipole fields, $m = 2$ is for quadrupolar fields, etc. The
+\vn{sin}--like generalized gradients represent normal (non-skew) fields and the \vn{cos}--like one
+represent skew fields.
 
 The magnetic vector potential for $m = 0$ is constructed such that only $A_\theta$ is non-zero
 \begin{align}
   A_\rho   &= 0 \CRNO
-  A_\theta &= \sum_{n=0}^\infty \frac{(-1)^n \, 2(n+1)}{4^{n+1} (n+1)! \, (n+1)!} \rho^{2n+1} \, C_{0,c}^{2n+1} \\
+  A_\theta &= \sum_{n=1}^\infty 
+    \frac{(-1)^{n+1} \, 2n}{4^n \, n! \, n!} \rho^{2n-1} \, C_{0,c}^{[2n-1]} \\
   A_z      &= 0 \nonumber
 \end{align}
 For $m \ne 0$, the vector potential is chosen so that $A_\theta$ is zero.
 \begin{align}
-  A_\rho   &= \sum_{n=0}^\infty \frac{(-1)^{n+1} \, m! \, m}{4^n n! \, (n+m)!} \rho^{2n+m+1} \, 
-    \left[ C_{m,c}^{[2n]} \, \sin(m \theta) - C_{m,s}^{[2n]} \cos(m \theta) \right] \CRNO 
+  A_\rho   &= \sum_{m = 1}^{\infty} \sum_{n=0}^\infty 
+    \frac{(-1)^{n} \, (m-1)!}{4^n \, n! \, (n+m)!} \rho^{2n+m+1} \, 
+    \left[ C_{m,s}^{[2n+1]} \cos(m \theta) - C_{m,c}^{[2n+1]} \, \sin(m \theta) \right] \CRNO 
   A_\theta &= 0 \\
-  A_z      &= \sum_{n=0}^\infty \frac{(-1)^n \, m! \, m}{4^n n! \, (n+m)!} \rho^{2n+m+1} \, 
-    \left[ C_{m,c}^{[2n+1]} \, \sin(m \theta) - C_{m,s}^{[2n+1]} \cos(m \theta) \right]
+  A_z      &= \sum_{m = 1}^{\infty} \sum_{n=0}^\infty 
+    \frac{(-1)^n \, (m-1)! \, (2n+m)}{4^n \, n! \, (n+m)!} \rho^{2n+m} \, 
+    \left[ -C_{m,s}^{[2n]} \cos(m \theta) + C_{m,c}^{[2n]} \, \sin(m \theta) \right]
   \nonumber
 \end{align}
 
@@ -863,12 +867,12 @@ upon the value of $C_{m,\alpha}(z)$ and derivatives at points $z_i$ and $z_{i+1}
 the interval $[z_i, z_{i+1}]$. This is in contrast to the cylindrical or Cartesian map decomposition
 where the field at any point is dependent upon {\em all} of the terms that characterize the
 field. This ``\vn{locality}'' property of generalized gradients means that calculating coefficients
-is easier (the calculation of $C_{m,\alpha}(z)$ at $z_i$ can be done independent any other point)
-and it is easier to ensure that the field goes to zero at the longitudinal ends of the
-element. Additionally, the evaluation is faster since only coefficients to either side of the
-evaluation point contribute. The disadvantage of generalized gradients is that since the derivatives
-are truncated at some order $N$, the resulting field does not satisfy Maxwell's equations with the
-error scalling with radius to the order of truncation.
+is easier (the calculation of $C_{m,\alpha}(z)$ at $z_i$ can be done using only the field near $z_i$
+independent of other regions) and it is easier to ensure that the field goes to zero at the
+longitudinal ends of the element. Additionally, the evaluation is faster since only coefficients to
+either side of the evaluation point contribute. The disadvantage of generalized gradients is that
+since the derivatives are truncated at some order $N$, the resulting field does not satisfy
+Maxwell's equations with the error scalling with radius to the order of truncation.
 
 It is sometimes convenient to express the fields in terms of Cartesian coordinates. For sine like
 even derivatives $C_{m,s}^{[2n]}$ the conversion is

@@ -389,7 +389,6 @@ ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1e-8_rp, fibre1 = ptc_fibre) 
 
 ptc_state = ptc_state + ENVELOPE0
-call init_all(ptc_state, 1, 0)
 
 call alloc (id)
 call alloc (xs)
@@ -431,8 +430,6 @@ sigma_mat = cc_norm%s_ij0
 call kill (id)
 call kill (xs)
 call kill (cc_norm)
-
-call init_all (ptc_private%base_state, ptc_private%taylor_order_ptc, 0)
 
 end subroutine ptc_emit_calc 
 
@@ -500,12 +497,12 @@ ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1e-8_rp, fibre1 = ptc_fibre) 
 
 ptc_state = ptc_state + ENVELOPE0
-!! call init_all(ptc_state, 1, 0)
 
 call alloc (id, U_1, as, a0, a1, a2)
 call alloc (xs)
 call alloc (cc_norm)
 call alloc (isf)
+
 
 id=1
 xs0=closed_orb%vec
@@ -515,7 +512,15 @@ id=xs
 call GET_loss(ptc_layout, energy_loss, dp_loss)
 norm_mode%e_loss = energy_loss * 1e9_rp
 
-call c_normal(id, cc_norm)
+
+if (ptc_state%nocavity) then
+  call c_bmad_reinit(5+ndpt_bmad)
+else
+  call c_bmad_reinit(0)
+endif
+
+
+call c_normal(id, cc_norm, dospin = ptc_state%spin)
 call c_full_canonise(cc_norm%atot, U_1, as, a0, a1, a2)
 
 isf = 2   ! isf = (0,1,0)
@@ -697,7 +702,7 @@ end subroutine ptc_closed_orbit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_one_turn_map_at_ele (ele, orb0, map, ptc_state, pz, order, rf_on)
+! Subroutine ptc_one_turn_map_at_ele (ele, orb0, map, ptc_state, pz, rf_on)
 !
 ! Routine to calculate the PTC one turn map for a ring.
 !
@@ -706,7 +711,6 @@ end subroutine ptc_closed_orbit_calc
 !   map     -- probe_8: Will be allocated.
 !   pz      -- real(rp), optional: momentum deviation of closed orbit. 
 !                                  Default = 0
-!   order   -- integer, optional: Order of the map. If not given then default order is used.
 !   rf_on   -- integer, optional: RF state for calculation. yes$, no$, or maybe$ (default)
 !                   maybe$ means that RF state in branch is used.
 !
@@ -718,7 +722,7 @@ end subroutine ptc_closed_orbit_calc
 !   ptc_state   -- internal_state: PTC state used for tracking.
 !-
 
-subroutine ptc_one_turn_map_at_ele (ele, orb0, map, ptc_state, pz, order, rf_on)
+subroutine ptc_one_turn_map_at_ele (ele, orb0, map, ptc_state, pz, rf_on)
 
 use madx_ptc_module
 
@@ -732,8 +736,7 @@ type (probe) p0
 real(rp), optional :: pz
 real(dp) orb0(6)
 
-integer :: map_order
-integer, optional :: order, rf_on
+integer, optional :: rf_on
 
 logical rf_on_state, spin_on
 
@@ -759,11 +762,8 @@ end select
 
 if (spin_on) ptc_state = ptc_state + spin0
 
-! The call to init is needed since otherwiase FPP is not properly setup and a 
-! call to something like c_normal will then bomb.
 
-map_order = integer_option(ptc_private%taylor_order_ptc, order)
-call init_all (ptc_state, map_order, 0) ! The third argument is the number of parametric variables
+call init_all (ptc_state, ptc_private%taylor_order_ptc, 0) ! The third argument is the number of parametric variables
 
 ! Find closed orbit
 
@@ -894,7 +894,6 @@ else
   state = ptc_private%base_state + nocavity0
 endif
 
-!! call init_all (state, ptc_private%taylor_order_ptc, 0) 
 call alloc(map8)
 call alloc(da_map)
 call alloc(normal)
@@ -930,8 +929,6 @@ call kill(map8)
 call kill(da_map)
 call kill(normal)
 
-!! call init_all (ptc_private%base_state, ptc_private%taylor_order_ptc, 0)
-
 end subroutine normal_form_taylors
 
 !-----------------------------------------------------------------------------
@@ -956,13 +953,11 @@ type (real_8) :: map8(6)
 type (c_normal_form) :: complex_normal_form
 type(c_vector_field) :: fvecfield
 type (internal_state) :: state
-integer :: i, order_for_normal_form
+integer :: i
 integer, optional :: order
 logical :: rf_on, c_verbose_save
 
 !
-
-order_for_normal_form = integer_option(1, order)
 
 if (rf_on) then
   state = ptc_private%base_state - nocavity0
@@ -970,11 +965,11 @@ else
   state = ptc_private%base_state + nocavity0
 endif
 
-! Set PTC state
-!no longer needed: use_complex_in_ptc=my_true
+!
+
 c_verbose_save = c_verbose
 c_verbose = .false.
-!! call init_all (state, ptc_private%taylor_order_ptc, 0)
+
 call alloc(map8)
 call alloc(da)
 call alloc(cda)
@@ -990,7 +985,8 @@ cda = da
 ! Complex normal form in phasor basis
 ! See: fpp-ptc-read-only/build_book_example_g95/the_fpp_on_line_glossary/complex_normal.htm
 ! M = A o N o A_inverse.
-call c_normal(cda, complex_normal_form, dospin=my_false, no_used=order_for_normal_form)
+
+call c_normal(cda, complex_normal_form, dospin=my_false, no_used=integer_option(1, order))
 
 if (present(F) .or. present(L)) then
   cda = complex_normal_form%N
@@ -1035,7 +1031,6 @@ call kill(complex_normal_form)
 ! Reset PTC state
 use_complex_in_ptc=my_false
 c_verbose = c_verbose_save
-!! call init_all (ptc_private%base_state, ptc_private%taylor_order_ptc, 0)
 
 end subroutine normal_form_complex_taylors
 
@@ -1092,7 +1087,6 @@ endif
 
 c_verbose_save = c_verbose
 c_verbose = .false.
-!! call init_all (state, ptc_private%taylor_order_ptc, 0) 
 
 call alloc(vb)
 call alloc(F)

@@ -47,7 +47,6 @@ case (ac_kicker$)
     if (associated(ele%ac_kick)) deallocate(ele%ac_kick)
     allocate (ele%ac_kick)
   endif
-  ele%mat6_calc_method = tracking$
   ele%value(interpolation$) = spline$
 
 case (beambeam$)

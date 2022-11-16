@@ -41,10 +41,10 @@ initialize a beam. The parameters of this structure, shown with their default va
     logical renorm_center = T          ! Renormalize centroid?
     logical renorm_sigma = T           ! Renormalize sigma?
     real(rp) spin(3) = 0, 0, 0         ! Spin (x, y, z)
-    real a_norm_emit = 0               ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real b_norm_emit = 0               ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real a_emit = 0                    ! a-mode emittance (= \(\gamma\,\epsilon\))
-    real b_emit = 0                    ! b-mode emittance (= \(\gamma\,\epsilon\))
+    real a_norm_emit = 0               ! a-mode normalized emittance (= \(\gamma\,\epsilon_{unnorm}\))
+    real b_norm_emit = 0               ! b-mode normalized emittance (= \(\gamma\,\epsilon_{unnorm}\))
+    real a_emit = 0                    ! a-mode unnormalized emittance (= \(\epsilon_{norm}/\gamma\))
+    real b_emit = 0                    ! b-mode unnormalized emittance (= \(\epsilon_{norm}/\gamma\))
     real dpz_dz = 0                    ! Correlation of pz with longitudinal position.
     real dt_bunch = 0                  ! Time between bunches.
     real sig_z = 0                     ! Z sigma in m.
