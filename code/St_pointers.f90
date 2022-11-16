@@ -1987,111 +1987,7 @@ write(6,*) x_ref
 
     !      call compute_twiss(my_ering,my_estate,filename,1,del,1,integrated,name,my_false,my_true)
 
-       case('FITTUNESCAN','SEARCHAPERTUREX=Y')
-          read(mf,*) epsf
-          read(mf,*) ntune
-          read(mf,*) tune(1:2)
-          read(mf,*) dtune(1:2),targ_RES(3:4)
-          if(com=='SEARCHAPERTUREX=Y') then
-             READ(MF,*) r_in,del_in,dx,DLAM,fixp
-             READ(MF,*) POS,NTURN,ITE,FILENAME,name
-             call context(name)
-             if(name(1:11)/='NONAMEGIVEN') then
-                posr=pos
-                call move_to( my_ering,p,name,posR,POS)
-                if(pos==0) then
-                   write(6,*) name, " not found "
-                   stop
-                endif
-             endif
-             call kanalnummer(mfr,filename)
-          endif
-
-
-
-
-          do i2=0,ntune(2)
-             do i1=0,ntune(1)
-
-                if(ntune(1)/=0) then
-                   targ_tune(1)=tune(1)+((dtune(1)-tune(1))*i1)/(ntune(1))
-                else
-                   targ_tune(1)=tune(1)
-                endif
-                if(ntune(2)/=0) then
-                   targ_tune(2)=tune(2)+((dtune(2)-tune(2))*i2)/(ntune(2))
-                else
-                   targ_tune(2)=tune(2)
-                endif
-                if(abs(targ_RES(3))>999) then
-                   call lattice_fit_TUNE_gmap(my_ering,my_estate,epsf,pol_,NPOL,targ_tune,NP)
-                else
-                   targ_RES(1:2)=targ_tune(1:2)
-                   call lattice_fit_tune_CHROM_gmap(my_ering,my_estate,EPSF,pol_,NPOL,targ_RES,NP)
-                endif
-                if(com=='SEARCHAPERTUREX=Y') then
-                   ! write(mfr,*) targ_tune(1:2)
-                   CALL dyn_aperalex(my_ering,r_in,del_in,dx,dlam,pos,nturn,ite,my_estate,MFR,targ_tune,fixp)
-                endif
-             enddo
-          enddo
-          if(com=='SEARCHAPERTUREX=Y') close(mfr)
-
-       case('ALEXFITTUNESCAN','ALEXSEARCHAPERTUREX=Y')
-          read(mf,*) epsf
-          read(mf,*) ntune
-          read(mf,*) tune(1:2)
-          read(mf,*) dtune(1:2),targ_RES(3:4)
-          if(com=='ALEXSEARCHAPERTUREX=Y') then
-             READ(MF,*) r_in,del_in,dx,DLAM,fixp
-             READ(MF,*) POS,NTURN,ITE,FILENAME,name
-             call context(name)
-             if(name(1:11)/='NONAMEGIVEN') then
-                posr=pos
-                call move_to( my_ering,p,name,posR,POS)
-                if(pos==0) then
-                   write(6,*) name, " not found "
-                   stop
-                endif
-             endif
-             call kanalnummer(mfr,filename)
-          endif
-
-          sc=1.d0
-
-
-          do i2=0,ntune(2)
-             do i1=0,ntune(1)
-
-                if(ntune(1)/=0) then
-                   targ_tune(1)=tune(1)+((dtune(1)-tune(1))*i1)/(ntune(1))
-                else
-                   targ_tune(1)=tune(1)
-                endif
-                if(ntune(2)/=0) then
-                   targ_tune(2)=tune(2)+((dtune(2)-tune(2))*i2)/(ntune(2))
-                else
-                   targ_tune(2)=tune(2)
-                endif
-                targ_tune_alex(1)=22.0_dp+targ_tune(1)
-                targ_tune_alex(2)=20.0_dp+targ_tune(2)
-
-                if(abs(targ_RES(3))>999) then
-
-                   CALL special_alex_main_ring_auto(my_ering,3,targ_tune_alex,sc,epsf)
-                   call lattice_fit_TUNE_gmap(my_ering,my_estate,epsf,pol_,NPOL,targ_tune,NP)
-                else
-                   CALL special_alex_main_ring_auto(my_ering,3,targ_tune_alex,sc,epsf)
-                   targ_RES(1:2)=targ_tune(1:2)
-                   call lattice_fit_tune_CHROM_gmap(my_ering,my_estate,EPSF,pol_,NPOL,targ_RES,NP)
-                endif
-                if(com=='ALEXSEARCHAPERTUREX=Y') then
-                   ! write(mfr,*) targ_tune(1:2)
-                   CALL dyn_aperalex(my_ering,r_in,del_in,dx,dlam,pos,nturn,ite,my_estate,MFR,targ_tune,fixp)
-                endif
-             enddo
-          enddo
-          if(com=='ALEXSEARCHAPERTUREX=Y') close(mfr)
+  
 
        case('FITTUNE')
           read(mf,*) epsf
@@ -2169,10 +2065,12 @@ write(6,*) x_ref
           read(mf,*) epsf
           read(mf,*) targ_chrom
           call lattice_fit_CHROM_gmap(my_ering,my_estate,EPSF,pol_,NPOL,targ_chrom,NP)
-       case('FITTUNECHROMATICITY')
+       case('FITTUNECHROMATICITYNEW','FITTUNECHROMATICITY')
           read(mf,*) epsf
           read(mf,*) targ_RES
-          call lattice_fit_tune_CHROM_gmap(my_ering,my_estate,EPSF,pol_,NPOL,targ_RES,NP)
+          call lattice_fit_tune_CHROM_gmap_new(my_ering,my_estate,EPSF,pol_,NPOL,targ_RES,NP)
+
+
        case('GETCHROMATICITY')
           call lattice_GET_CHROM(my_ering,my_estate,CHROM)
        case('OPENTUNEFILE')
@@ -3478,7 +3376,8 @@ enddo
  
 endif
 
-if(present(em)) em=normal%emittance
+if(present(em))  em(1:3)=normal%emittance(1:3)
+ 
 if(present(tune)) tune=normal%tune(1:3)
 if(present(damping)) damping=normal%damping(1:3)
 if(present(sij)) then

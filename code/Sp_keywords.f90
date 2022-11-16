@@ -46,7 +46,7 @@ module madx_keywords
 contains
 
 
-  subroutine create_fibre_append(append,mylat,key,EXCEPTION,magnet_only,br)  
+  subroutine create_fibre_append(append,mylat,key,EXCEPTION,magnet_only,br,bri)  
     implicit none
 
 !    type(mad_universe), target, intent(inout)  :: m_u
@@ -57,6 +57,7 @@ contains
     logical(lp) doneit,append
     type(fibre), pointer :: current
     type (taylor),optional, INTENT(INout):: br(:,:)
+    integer,optional, INTENT(INout):: bri(:,:)
 
     if(append) then
      call append_empty(mylat)
@@ -72,7 +73,7 @@ contains
         call append_empty(mylat)
      endif
     endif
-     call  create_fibre(mylat%end,key,EXCEPTION,magnet_only,br)
+     call  create_fibre(mylat%end,key,EXCEPTION,magnet_only,br,bri)
      
     if(.not.append) then
      mylat%closed=my_true
@@ -95,6 +96,7 @@ contains
    kind00=0
    if(ptc_key%magnet=='wiggler') kind00=kindwiggler
    if(ptc_key%magnet=='INTERNALPANCAKE') kind00=kindpa
+   if(ptc_key%magnet=='PANCAKEBMAD    ') kind00=kindpa
    if(ptc_key%magnet=='wiggler') then 
      limit_int0_new=limit_int0_new*nterm
        call against_the_method(ptc_key%method,ptc_key%nstep,met,nst,kind00,change)
@@ -112,7 +114,7 @@ contains
   endif
   end subroutine change_method_in_create_fibre
 
-  subroutine create_fibre(el,key,EXCEPTION,magnet_only,br)
+  subroutine create_fibre(el,key,EXCEPTION,magnet_only,br,bri)
     implicit none
     integer ipause, mypause,i
     type(fibre), target, intent(inout)::el
@@ -128,6 +130,7 @@ contains
     INTEGER FIBRE_DIR0,IL
     real(dp) e1_true,norm
     type (taylor),optional, INTENT(INout):: br(:,:)
+    integer,optional, INTENT(INout):: bri(:,:)
 
     IL=15
 
@@ -331,7 +334,9 @@ contains
     CASE("INTERNALPANCAKE")
        if(sixtrack_compatible) stop 13
        BLANK=pancake(KEY%LIST%NAME,br=br)
-
+    CASE("PANCAKEBMAD")
+       if(sixtrack_compatible) stop 13
+       BLANK=pancake_bmad(KEY%LIST%NAME,br=bri)
     CASE DEFAULT
        WRITE(6,*) " "
        WRITE(6,*) " THE MAGNET"
