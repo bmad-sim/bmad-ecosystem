@@ -113,7 +113,7 @@ call bmad_parser ('figure_8.bmad', lat)
 call lat_to_ptc_layout (lat)
 
 bmad_com%spin_tracking_on = .true.
-call ptc_one_turn_map_at_ele (lat%ele(2), orbit%vec, prb, ptc_state, order = 2)
+call ptc_one_turn_map_at_ele (lat%ele(2), orbit%vec, prb, ptc_state)
 
 orb_taylor = prb%x
 spin_taylor = prb%q%x
@@ -135,8 +135,8 @@ do i = 1, 2
   j = ixd(i)
   call sort_taylor_terms(spin_taylor(ixd(i)), tlr)
   do k = 1, size(tlr%term)
-    write (1, '(a, i0, a, i0, a, f20.12, 6i3)') '"SpinMap-', ixd(i), '-', k, '" ABS 1E-7', &
-                                                                           tlr%term(k)%coef, tlr%term(k)%expn
+    write (1, '(a, i0, a, i0, a, 2x, a, 6i3)') '"SpinMap-', ixd(i), '-', k, '" ABS 1E-7', &
+                                                real_str(tlr%term(k)%coef,14), tlr%term(k)%expn
   enddo
 enddo
 
