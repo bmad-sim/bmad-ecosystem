@@ -50,6 +50,195 @@ module S_fitting_new
   
 contains
 
+  subroutine lattice_fit_tune_CHROM_gmap_new(R,my_state,EPSF,POLY,NPOLY,TARG,NP)
+    IMPLICIT NONE
+    TYPE(layout),target, intent(inout):: R
+    TYPE(POL_BLOCK), intent(inout),dimension(:)::POLY
+    INTEGER, intent(in):: NPOLY,NP
+    real(dp) , intent(IN),dimension(:)::TARG
+    real(dp) CLOSED(6)
+    TYPE(INTERNAL_STATE), intent(IN):: my_STATE
+    TYPE(INTERNAL_STATE) STATE
+    INTEGER I,SCRATCHFILE, MF
+    TYPE(c_TAYLOR), allocatable:: EQ(:)
+    TYPE(c_NORMAL_FORM) NORM
+    integer :: neq=4, no=3,nt,j,it
+    type(c_damap) id,id0
+    type(gmap) g
+    TYPE(c_TAYLOR)phase(2)
+    TYPE(c_TAYLOR)t
+    type(probe) xs0
+    type(probe_8) xs
+    type(c_UNIVERSAL_TAYLOR) eqc(4)
+    real(dp) epsf,epsr,epsnow,tune(2),CHROM(2),gam(2),tu(2)
+    !    EPSF=.0001
+    epsr=abs(epsf)
+
+    allocate(eq(neq))
+
+    nt=neq+np
+    STATE=((((my_state+nocavity0)+delta0)+only_4d0)-RADIATION0)
+
+    CALL INIT(STATE,no,NP)
+
+    SET_TPSAFIT=.FALSE.
+
+    DO I=1,NPOLY
+       R=POLY(i)
+    ENDDO
+    CLOSED(:)=0.0_dp
+    it=0
+100 continue
+    it=it+1
+
+
+call find_orbit_x(r,closed(1:6),state,1.e-8_dp,fibre1=1)   ! find closed orbit_x
+
+  !  CALL FIND_ORBIT(R,CLOSED,1,STATE,1e-5_dp)
+    write(6,*) "closed orbit ", CHECK_STABLE
+    write(6,*) CLOSED
+
+ 
+    CALL INIT(STATE,no,NP)   !,BERZ)
+    CALL ALLOC(NORM)
+    CALL ALLOC(EQ)
+    call alloc(id,id0)
+    call alloc(xs)
+    call alloc(phase)
+
+    id=1
+    xs0=closed
+    xs=xs0+id
+    call propagate(r,xs,+state, fibre1=1)  
+    id=xs
+    call c_normal(id,norm,phase=phase)
+
+
+    gam(1)=(norm%a_t%v(2).sub.'1')**2+(norm%a_t%v(2).sub.'01')**2
+    gam(2)=(norm%a_t%v(4).sub.'001')**2+(norm%a_t%v(4).sub.'0001')**2
+    write(6,*) "  Gamma= ",GAM
+ 
+
+    write(6,*) " tunes ",NORM%TUNE(1), NORM%TUNE(2), CHECK_STABLE
+ 
+    tune(1)=(phase(1)).SUB.'0000'
+    tune(2)=(phase(2)).SUB.'0000'
+    CHROM(1)=(phase(1)).SUB.'00001'
+    CHROM(2)=(phase(2)).SUB.'00001'
+    tu=0
+    if(tune(1)<0) tu(1)=1
+    if(tune(2)<0) tu(2)=1
+    write(6,*) "          tunes in fitting",tune+tu
+    write(6,*) " chromaticities in fitting",CHROM
+
+    eq(1)=       ((phase(1)).par.'00000')-targ(1)+tu(1)
+    eq(2)=       ((phase(2)).par.'00000')-targ(2)+tu(2)
+    eq(3)=       ((phase(1)).par.'00001')-targ(3)
+    eq(4)=       ((phase(2)).par.'00001')-targ(4)
+    epsnow=abs(eq(1))+abs(eq(2))+abs(eq(3))+abs(eq(4))
+     write(6,*) " epsnow ",c_%nv,epsnow
+    do i=1,neq
+       eqc(i)=(eq(i)<=c_%npara)
+    enddo
+! call print(eq)
+!call print(eqc)
+!pause 123
+
+
+     CALL kill(NORM)
+    CALL kill(EQ)
+    call kill(id)
+    call kill(xs)
+    call kill(phase)
+ !NP=np1
+ !NO=no1
+ !ND=nv1  ! nv1 is just nd if map used 
+ !ND2=2*nd !!!!  total dimension of phase space
+ !nv=nd2+np !!!!  total number of Taylor variables
+ call c_init(1,1,np1=nt-2) 
+ !call print(eqc)
+
+ 
+id%n=nt
+id0%n=nt
+!    nt=neq+np
+ call alloc(id,id0)
+    do i=np+1,nt
+       id%v(i)=eqc(i-np)
+    enddo
+    call alloc(t)
+    do i=1,np
+       id%v(i)=1.0_dp.cmono.i
+       do j=np+1,nt
+          t=id%v(j).d.i
+          id%v(i)=id%v(i)+(1.0_dp.cmono.j)*t
+       enddo
+    enddo
+!do i=1,nt
+!write(6,*) i,neq
+!call print(id%v(i))
+!enddo
+
+do i=1,nt
+ tpsafit(i)=-id%v(i)
+ id%v(i)=(id%v(i).cut.2)+tpsafit(i)
+!write(6,*) tpsafit(i)
+id0%V(i)=tpsafit(i)
+enddo
+
+!call print(id)
+
+!pause 77
+
+
+    CALL KILL(t)
+
+  id=id**(-1)
+   
+!call print(id)
+
+id=id.o.id0
+ 
+!pause 444
+
+ 
+
+call kill(eqc)
+
+
+
+
+
+    do i=1,nt
+     tpsafit(i)=id%v(i)
+!write(6,*) i, tpsafit(i)
+     enddo
+call kill(id,id0)
+!pause 124
+
+    SET_TPSAFIT=.true.
+
+    DO I=1,NPOLY
+       R=POLY(i)
+    ENDDO
+    SET_TPSAFIT=.false.
+
+    CALL ELP_TO_EL(R)
+
+    !    write(6,*) " more "
+    !    read(5,*) more
+    if(it>=max_fit_iter) goto 101
+    if(epsnow<=epsr) goto 102
+    GOTO 100
+
+101 continue
+    write(6,*) " warning did not converge "
+
+102 continue
+    CALL KILL_PARA(R)
+ 
+  end subroutine lattice_fit_tune_CHROM_gmap_new
+
   subroutine lattice_fit_TUNE_gmap_rad(R,my_state,EPSF,POLY,NPOLY,TARG,NP)
     IMPLICIT NONE
     TYPE(layout), target,intent(inout):: R
@@ -189,6 +378,9 @@ contains
     deallocate(eq)
 
   end subroutine lattice_fit_TUNE_gmap_rad
+
+
+
  !!! my_default default0 (my units)
 subroutine find_time_patch(kekb,my_default,emax,bmadpatch,wipeout,kf,kb)
 ! time patch for SAD

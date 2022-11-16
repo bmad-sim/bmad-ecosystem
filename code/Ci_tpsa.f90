@@ -140,7 +140,7 @@ integer mf_,n1_,n2_
 logical :: do_damping=.false.,do_spin=.false.,use_radiation_inverse = .true.
 logical :: force_spin_input_normal=.false.
 private c_clean_linear_map
-private c_fill_uni_r,c_null_uni,c_fill_uni,c_refill_uni
+private c_fill_uni_r,c_null_uni,c_fill_uni,c_refill_uni,c_equal_UNI
 integer :: no_uni = 10000
 type(c_linear_map) q_phasor,qi_phasor
 
@@ -244,6 +244,7 @@ type(c_linear_map) q_phasor,qi_phasor
      MODULE PROCEDURE c_null_uni
      MODULE PROCEDURE c_fill_uni  ! new sagan
      MODULE PROCEDURE c_refill_uni
+     MODULE PROCEDURE c_equal_UNI  !  s1=s2
   end  INTERFACE
 
   INTERFACE OPERATOR (+)
@@ -8886,6 +8887,11 @@ end subroutine c_bmad_reinit
     logical(lp), optional :: ptc  !spin,
     integer ndpt_ptc,i,i1,i2,i3,i4,i5,i6,noo,j
     if(use_quaternion) spin_def_tune=-1
+ !NP=np1
+ !NO=no1
+ !ND=nv1  ! nv1 is just nd if map used 
+ !ND2=2*nd !!!!  total dimension of phase space
+ !nv=nd2+np !!!!  total number of Taylor variables
 
     ip_mat=0; jp_mat=0; jt_mat=0;
    
@@ -9011,6 +9017,7 @@ c_%NDPT=>NDPT
 c_%ND=>ND
 c_%ND2=>ND2
 c_%ndptb=>ndptb
+c_%nv=>nv   ! 2022.11.11
 !c_%ndpt=>ndpt
 
 c_%pos_of_delta=>pos_of_delta
@@ -9078,6 +9085,7 @@ c_%NDPT=>NDPT
 c_%ND=>ND
 c_%ND2=>ND2
 c_%ndptb=>ndptb
+c_%nv=>nv
 !c_%ndpt=>ndpt
 
     ind_spin(1,1)=1+6;ind_spin(1,2)=2+6;ind_spin(1,3)=3+6;
@@ -9492,7 +9500,9 @@ endif
      if(c_similarity) then   
     call c_check_rad(s2%e_ij,rad1)
  
-   
+   f2i=0
+   f2it=0  !  2022.11.13
+
   !  if(rad1.and.nd2==6) then
     if(rad1) then
    !  write(6,*) " stochastic "
@@ -9546,7 +9556,9 @@ endif
      if(c_similarity) then   
     call c_check_rad(s2%e_ij,rad1)
  
-   
+   f2i=0
+   f2it=0
+
   !  if(rad1.and.nd2==6) then
     if(rad1) then
   !   write(6,*) " stochastic "
@@ -21052,8 +21064,8 @@ end subroutine cholesky_dt
     implicit none
     type (c_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
 
-    DEALLOCATE(S2%N,S2%NV,S2%C,S2%J)
-    NULLIFY(S2%N,S2%NV,S2%C,S2%J)
+    DEALLOCATE(S2%N,S2%Nd2,S2%NV,S2%C,S2%J)
+    NULLIFY(S2%N,S2%Nd2,S2%NV,S2%C,S2%J)
 
   END SUBROUTINE  c_kill_uni
 
@@ -21226,6 +21238,26 @@ end subroutine cholesky_dt
 
 
   END FUNCTION c_concat_c_uni_rays
+
+  SUBROUTINE  c_equal_UNI(S1,S2)
+    implicit none
+    type (c_UNIVERSAL_TAYLOR),INTENT(IN)::S2
+    type (c_UNIVERSAL_TAYLOR), intent(inOUT):: s1
+
+    IF(.not.ASSOCIATED(S1%N)) THEN
+      call alloc(S1,s2%n,s2%NV,s2%nd2)
+    else
+      call kill(S1)
+      call alloc(S1,s2%n,s2%NV,s2%nd2)
+    endif
+    S1%n=S2%n
+    S1%nv=S2%nv
+    S1%nd2=S2%nd2
+    S1%c=S2%c
+    S1%j=S2%j
+
+  end SUBROUTINE  c_equal_UNI
+
 
   SUBROUTINE  c_REFILL_UNI(S1,S2)
     implicit none
@@ -21409,9 +21441,10 @@ sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
 
   end subroutine c_printunitaylor_old
 
-subroutine d_field_for_demin(f,ut)
+subroutine d_field_for_demin(f,ut,norm)
 implicit none
 type(c_vector_field),intent(inout):: f 
+type(c_normal_form), optional :: norm
 complex(dp) v
 type(c_taylor) t 
 integer i,j,k,n(11),nv,nd2,Nu,i1
@@ -21422,18 +21455,24 @@ type(c_universal_taylor), target :: ut
 type(c_universal_taylor) ut0
 real(dp) prec
 complex(dp) zilch
-integer, allocatable :: ord(:),pos(:)
+integer, allocatable :: ord(:)
 integer maxord,max,kmax
+type(c_universal_taylor), allocatable :: u(:)
+logical normal,keep,tune, reorder
+normal=.false.
+tune=.false.
+reorder=.true.
+if(present(norm)) normal=.true.
  
 prec=1.d-7
 zilch=0.0_dp
 call alloc(fs)
 call alloc(t)
  
-allocate(ord(no+1),pos(no+1))
+allocate(ord(0:no+1))
 
 ord=0
-pos=0
+ 
 
 !!! counting only 
 fs=f
@@ -21442,7 +21481,7 @@ call c_get_indices(n,0)
 nv=n(4)
 nd2=n(3)
 
- nu=0
+
 allocate(je(nv),jf(nv))
 je=0
 fs=f
@@ -21465,11 +21504,18 @@ je=0
     jf(k)=jf(k)+1
 
      v=-(-1)**k*v/n_cai/jf(k)
-     nu=nu+1
-  max=0
-  do kmax=1,nv
-   jf(kmax)=jf(kmax)+1
-  enddo
+  if(normal) then
+    call check_re(norm,jf,keep,tune)  
+    if(.not.keep) v=0   
+  endif
+
+
+
+ if(abs(v)>0)       nu=nu+1
+
+
+!write(6,*) v
+!pause 555
 !write(6,*) i
 !write(6,*) je
 !write(6,*) jf
@@ -21482,7 +21528,8 @@ je=0
      enddo
 
        enddo
- 
+
+
  enddo
 
 
@@ -21491,8 +21538,9 @@ je=0
 !!!!  doing 
 !call ALLOC(re,Nu,NV)
 !call ALLOC(im,Nu,NV)
-call ALLOC(ut,Nu,NV,nd2)
 call ALLOC(ut0,Nu,NV,nd2)
+
+
 fs=f
  
  nu=0
@@ -21511,18 +21559,28 @@ do i=1,fs%n
     jf(k)=jf(k)+1
 
      v=-(-1)**k*v/n_cai/jf(k)
-     nu=nu+1
+
+  if(normal) then
+    call check_re(norm,jf,keep,tune)
+     if(tune)  v=real(v)
+    if(.not.keep) v=0    
+  endif
+
+if(abs(v)>0)     then
+    nu=nu+1
      ut0%c(nu)=v  
 
      ut0%J(nu,1:nv)=jf
+ endif
+
+if(reorder) then
+  max=0
+  do kmax=1,nv
+   max=jf(kmax)+max
+  enddo
  
-   max=0
-   do kmax=1,nv
-    max=max+jf(kmax)
-   enddo 
-    ord(max)=ord(max)+1
-
-
+ord(max)=ord(max)+1
+endif
    do i1=i+1,fs%n  !,-1
      k=d_mod_demin(i1)
        jf(k)=jf(k)-1
@@ -21532,36 +21590,50 @@ do i=1,fs%n
        enddo
  
  enddo
-do kmax=1,no+1
- if(ord(kmax)/=0) then
-    pos(kmax)=1
-    exit
- endif
-enddo
+! write(6,*) "nu ",nu
+!pause 112
+
+call ALLOC(ut,Nu,NV,nd2)
+
+if(reorder) then
+!pause 777
+  allocate(u(0:no+1))
+do i=0,no+1
+ k=ord(i)
+ if(k==0) k=1
  
-write(6,*) "kmax ",kmax
-
-do i=kmax+1,no+1
-pos(i)=pos(i-1)+ord(i-1) 
+ call  ALLOC(u(i),k,NV,nd2)
+! write(6,*) i,u(i)%n
+ u(i)%n=0
 enddo
-write(6,*)ord
-write(6,*)pos
-write(6,*)
- ord=0
-call print(ut0,6)
-pause 777
- do i=1,ut0%n
-    max=0
-   do kmax=1,nv
-    max=max+ut0%J(i,kmax)
-   enddo 
-write(6,*)i,ut0%n
-write(6,*) max,pos(max),ord(max)
-   ut%J(pos(max)+ord(max),1:nv)=ut0%J(i,1:nv)
-   ut%C(pos(max)+ord(max))=ut0%c(i)
-   ord(max)=ord(max)+1
- enddo
 
+ !sum(ut%j(i,:))
+
+ !call print(ut0,6)
+
+!pause 111
+do nu=1,ut0%n
+  i=sum(ut0%j(nu,1:nv))
+ 
+  u(i)%n=u(i)%n+1
+  u(i)%j(u(i)%n,1:nv)=ut0%j(nu,1:nv)
+  u(i)%c(u(i)%n)=ut0%c(nu)
+enddo
+
+ut%n=0
+do nu=0,no+1
+  do i=1,u(nu)%n
+   if(abs(u(nu)%c(i))/=0) then
+    ut%n=ut%n+1
+    ut%j(ut%n,1:nv)= u(nu)%j(i,1:nv) 
+    ut%c(ut%n)=u(nu)%c(i)
+   endif
+ enddo
+enddo
+
+endif
+ 
+ut=ut0
 !f=fs
 
 
@@ -21573,13 +21645,84 @@ write(6,*) max,pos(max),ord(max)
 !  END TYPE c_UNIVERSAL_TAYLOR
 
 
-
+call kill(u)
 call kill(fs)
 call kill(t)
 call kill(ut0)
-deallocate(je,jf,ord,pos); 
- 
+deallocate(je,jf,ord); 
+if(reorder) deallocate(u);
+
 end subroutine d_field_for_demin
+
+  subroutine c_uni_reorder(ut)
+  implicit none
+  type(c_UNIVERSAL_TAYLOR) ut
+  type(c_universal_taylor), allocatable :: u(:)
+  integer, allocatable :: ord(:)
+   integer i,k,nu,max,kmax
+
+
+allocate(ord(0:no+1))
+
+ord=0
+
+
+ do i=1,ut%n
+  max=0
+  do kmax=1,nv
+   max=ut%J(i,kmax)+max
+  enddo
+ 
+ ord(max)=ord(max)+1
+ enddo
+
+!write(6,*)  ord
+
+ 
+
+ 
+  allocate(u(0:no+1))
+do i=0,no+1
+ k=ord(i)
+ if(k==0) k=1
+ 
+ call  ALLOC(u(i),k,NV,nd2)
+! write(6,*) i,u(i)%n
+ u(i)%n=0
+enddo
+
+ !sum(ut%j(i,:))
+
+ !call print(ut0,6)
+
+!pause 111
+do nu=1,ut%n
+  i=sum(ut%j(nu,1:nv))
+ 
+  u(i)%n=u(i)%n+1
+  u(i)%j(u(i)%n,1:nv)=ut%j(nu,1:nv)
+  u(i)%c(u(i)%n)=ut%c(nu)
+enddo
+
+ut%n=0
+ut%c=0
+ut%j=0
+do nu=0,no+1
+  do i=1,u(nu)%n
+   if(abs(u(nu)%c(i))/=0) then
+    ut%n=ut%n+1
+    ut%j(ut%n,1:nv)= u(nu)%j(i,1:nv) 
+    ut%c(ut%n)=u(nu)%c(i)
+   endif
+ enddo
+enddo
+
+
+call kill(u)
+   deallocate(ord,u)
+
+  end subroutine c_uni_reorder
+
 
   integer function d_mod_demin(i)
   implicit none
@@ -21594,6 +21737,64 @@ end subroutine d_field_for_demin
 
   end  function d_mod_demin
 
+
+
+ subroutine check_re(norm,je,keep,tune)
+ implicit none
+ type(c_normal_form) norm
+ logical keep,tune
+ integer i,j,ir,it,ndt, je(:)
+ integer, allocatable :: me(:) 
+ keep=.false.
+ tune=.false.
+
+ ndt= ND2/2
+ allocate(me(ndt) )
+
+ me=0
+ir=0
+  do i=1,ndt  
+   me(i)=je(2*i-1)-je(2*i)
+   ir=iabs(me(i))+ir
+ enddo
+ 
+ 
+
+ if(ir==0) then
+ keep=.true.
+ tune=.true.
+ deallocate(me)
+ return
+endif
+
+do j=1,norm%nres
+ 
+ir=0
+ do i=1,ndt  
+   ir=ir+iabs(me(i)-norm%m(i,j))
+ enddo
+ 
+ if(ir==0) then
+  keep=.true.
+  deallocate(me)
+  return
+ endif
+
+ir=0
+ do i=1,ndt  
+   ir=ir+iabs(me(i)+norm%m(i,j))
+ enddo
+ 
+ if(ir==0) then
+   keep=.true.
+   deallocate(me)
+   return
+ endif
+enddo
+
+
+deallocate(me)
+ end subroutine check_re
 
   ! End of Universal complex Taylor Routines
 

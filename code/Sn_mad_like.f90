@@ -3880,6 +3880,226 @@ endif
   END FUNCTION pancake_tilt
   ! linked
 
+
+ FUNCTION  pancake_bmad(NAME,br)
+ use dabnew_pancake
+    implicit none
+    type (EL_LIST) pancake_bmad
+    CHARACTER(*),optional, INTENT(IN):: NAME
+    integer, INTENT(INOUT):: br(:,:)
+    real(dp) L,ANGLE,ds,a
+    integer mf,nst,I,ORDER,ii,k
+!    LOGICAL(LP) REPEAT
+     integer B(nbe),ba(nbe),bf(nbe),bn(nbe)   !,it  !,ax(2),ay(2)
+
+
+
+    a=0.0_dp
+   ! file_fitted=file
+
+    pancake_bmad=0
+!    if(present(file)) then
+
+ 
+    ds=LC/nstc
+    ii=0
+!    if(present(no)) order=no
+ 
+
+
+ 
+
+    CALL alloc_pancake(B)
+    CALL alloc_pancake(Bf)
+    CALL alloc_pancake(Ba)
+    CALL alloc_pancake(Bn)
+!    call alloc_pancake(it) 
+
+do i=1,3
+ call dacon_pancake(bf(i),0.0_dp)
+ call dacon_pancake(ba(i),0.0_dp)
+enddo
+!bf(1)=0.0_dp;bf(2)=0.0_dp;bf(3)=0.0_dp;
+!ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
+
+
+!    IF(REPEAT.AND.NST==0) NST=NSTD
+
+   ALLOCATE(t_em(NSTc))  
+ 
+ii=ii+1
+
+do i=1,3
+ call dacop_pancake(br(i,ii),bf(i))
+enddo
+!bf(1)=br(1,ii)
+!bf(2)=br(2,ii)
+!bf(3)=br(3,ii)
+
+do i=1,3
+ call dacdi_pancake(bf(i),BRHO,Bf(i))
+enddo
+!          Bf(1)=Bf(1)/BRHO
+!          Bf(2)=Bf(2)/BRHO
+!          Bf(3)=Bf(3)/BRHO
+ 
+ii=ii+1
+do i=1,3
+ call dacop_pancake(br(i,ii),ba(i))
+enddo
+!ba(1)=br(1,ii)
+!ba(2)=br(2,ii)
+!ba(3)=br(3,ii)
+ 
+do i=1,3
+ call dacdi_pancake(ba(i),BRHO,Ba(i))
+enddo
+!          Ba(1)=Ba(1)/BRHO
+!          Ba(2)=Ba(2)/BRHO
+!          Ba(3)=Ba(3)/BRHO
+
+    DO I=3,NSTc 
+
+
+ 
+ii=ii+1
+do k=1,3
+ call dacop_pancake(br(k,ii),b(k))
+enddo
+!b(1)=br(1,ii)
+!b(2)=br(2,ii)
+!b(3)=br(3,ii)
+ 
+do k=1,3
+ call dacdi_pancake(b(k),BRHO,B(k))
+enddo
+ 
+!          B(1)=B(1)/BRHO
+!          B(2)=B(2)/BRHO
+!          B(3)=B(3)/BRHO
+
+         if(i==3) then
+do k=1,3
+ call dacop_pancake(bf(k),bn(k))
+enddo
+!          Bn(1)=Bf(1)
+!          Bn(2)=Bf(2)
+!          Bn(3)=Bf(3)
+
+ 
+          CALL SET_TREE_G_pancake(t_em(1),Bn)
+         elseif(i==nstc) then
+do k=1,3
+ call dacop_pancake(b(k),bn(k))
+enddo
+!          Bn(1)=B(1)
+!          Bn(2)=B(2)
+!          Bn(3)=B(3)
+   
+          CALL SET_TREE_G_pancake(t_em(i),Bn)
+         endif
+do k=1,3
+ call dacop_pancake(ba(k),bn(k))
+enddo
+!          Bn(1)=Ba(1)
+!          Bn(2)=Ba(2)
+!          Bn(3)=Ba(3)
+  
+          CALL SET_TREE_G_pancake(t_em(i-1),Bn)
+ 
+do k=1,3
+ call dacop_pancake(ba(k),bf(k))
+enddo
+!          Bf(1)=Ba(1)
+!          Bf(2)=Ba(2)
+!          Bf(3)=Ba(3)  
+     
+do k=1,3
+ call dacop_pancake(b(k),ba(k))
+enddo  
+!          Ba(1)=B(1)
+!          Ba(2)=B(2)
+!          Ba(3)=B(3)
+ 
+
+    enddo
+    call kill_pancake(B)
+    call kill_pancake(Bf)
+    call kill_pancake(Ba)
+    call kill_pancake(Bn)
+ !   call kill_pancake(it) 
+
+
+  !  else
+ !    NST=size(t_em)
+ !  endif
+    ANGLE=LD*HD
+
+
+    !    IF(ANG/=zero.AND.R/=zero) THEN
+    if(hc/=0.0_dp) then
+       pancake_bmad%LC=2.0_dp*SIN(ANGLE/2.0_dp)/hD
+    else
+       pancake_bmad%LC=LD
+    endif
+    pancake_bmad%B0=hD                     !COS(ANG/two)/R
+    pancake_bmad%LD=LD
+    pancake_bmad%L=lc
+
+    IF(LEN(NAME)>nlp) THEN
+       !w_p=0
+       !w_p%nc=2
+       !w_p%fc='((1X,a72,/),(1x,a72))'
+       !w_p%c(1)=name
+       write(6,'(a17,1x,a16)') ' IS TRUNCATED TO ', NAME(1:16)
+       ! call ! WRITE_I
+       pancake_bmad%NAME=NAME(1:nlp)
+    ELSE
+       pancake_bmad%NAME=NAME
+    ENDIF
+    
+    IF(NSTc<3.OR.MOD(NSTc,2)/=1) THEN
+       WRITE(6,*) "NUMBER OF SLICES IN 'pancake'  MUST BE ODD AND >= 3 ",NSTc
+       STOP 101
+    ENDIF
+    pancake_bmad%nst=(NSTc-1)/2
+    pancake_bmad%KIND=KINDPA
+ 
+  END FUNCTION pancake_bmad
+
+
+ ! FOR FAST B FIELD IN PACKAGE OF PTC
+
+  SUBROUTINE SET_TREE_G_pancake(T,MA)
+ use dabnew_pancake
+    IMPLICIT NONE
+    TYPE(TREE_ELEMENT), INTENT(INOUT) :: T
+    integer, INTENT(INOUT) :: MA(:)
+    INTEGER N,NP
+    integer, ALLOCATABLE :: M(:)
+
+    NP=SIZE(MA)
+
+    ALLOCATE(M(NP))
+  !  CALL ALLOC(M,NP)
+    call alloc_pancake(M)
+
+ 
+    CALL  mtree_pancake(MA,NP,M,NP)
+    CALL ppushGETN_pancake(M,NP,N)
+
+
+    CALL ALLOC_TREE(T,N,NP)
+    T%no=c_%no
+
+    CALL ppushstore_pancake(M,NP,T%CC,T%JL,T%JV)
+
+    call kill_pancake(M)
+   ! CALL KILL(M,NP)
+    deallocate(M)
+  END SUBROUTINE SET_TREE_G_pancake
+  ! linked
+
 subroutine allocate_for_pancake(br)
 implicit none
 type(taylor), allocatable :: br(:,:)

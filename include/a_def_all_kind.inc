@@ -399,7 +399,18 @@ TYPE ENGEP
    type(my_1D_taylor), POINTER :: F => null()
 END  TYPE ENGEP
 
+!TYPE gen_grad_field_coeff
+!  integer,pointer :: m => null()
+! real(dp),  POINTER :: coef(:,:)=> null()
+!end TYPE gen_grad_field_coeff
 
+!TYPE gen_grad_field 
+! type(gen_grad_field_coeff), pointer :: c(:)=> null()
+! type(gen_grad_field_coeff), pointer :: s(:)=> null()
+! integer,pointer :: field_type => null()
+! integer,pointer :: ubound => null()
+! logical, pointer :: curved_ref_frame => null()
+! end TYPE gen_grad_field 
 
 ! GENERAL PANCAKE
 
@@ -408,7 +419,8 @@ TYPE PANCAKE
    real(dp),  POINTER ::L => null()
    type(tree_element),  POINTER :: B(:) => null()
    REAL(DP), POINTER :: SCALE=> null(),angc=> null(),dc=> null(),hc=> null(),xc => null(),vc => null()
-   logical,pointer :: xprime=> null()
+   logical,pointer :: xprime => null()
+!   type(gen_grad_field_coeff),pointer :: gf => null()
 END  TYPE PANCAKE
 
 TYPE PANCAKEP
@@ -418,6 +430,7 @@ TYPE PANCAKEP
    TYPE(REAL_8), POINTER :: SCALE => null()
    real(dp),pointer :: angc=> null(),dc=> null(),hc=> null(),xc => null(),vc => null()
    logical,pointer :: xprime=> null()
+!   type(gen_grad_field_coeff),pointer :: gf => null()
 END  TYPE PANCAKEP
 
 
