@@ -144,12 +144,17 @@ called "plot_data".  For each x-position and y-positions pair a file will be cre
 Output:
 -------
 
-There are three output files. 
+There are four types of output files. 
 
-One output file is meant to be used for plotting. The name of this file is given by the out_file
-parameter with a ".plot" suffix attached. There are multiple data sets in the table, one for each GG
-curve of the derivatives versus z-position. With Gnuplot, individual data sets can be graphed using
-the "index" parameter.
+One output file is meant to be used for plotting derivative values. The name of this file is given
+by the out_file parameter with a ".plot" suffix attached. There are multiple data sets in the table,
+one for each GG curve of the derivatives versus z-position. With Gnuplot, individual data sets can
+be graphed using the "index" parameter. 
+
+Other files that can be used for plotting are put in the plot_data directory. Each one of these
+files have a table of fit and input data field versus z-position at a fixed (x,y) position. The
+(x,y) positions used to generate these files is given by the x_pos_plot and y_pos_plot parameters.
+See above for more details.
 
 Another output file gives information on how accurate the fit is as well as information on how
 significant the derivative values are. The name of this file is given by the out_file parameter with
@@ -174,5 +179,9 @@ the derivative index. So at the outer edges of the table, the contribution of th
 be a maximum and this is what is given in the table. Only the relative numbers are import. For example,
 in the above table, the first derivatives (d = 1) contribute more than the other three derivatives. 
 
-The final output file has the derivative values in bmad lattice format. The name of this file is given by the
-out_file parameter with a ".bmad" suffix attached.
+The final output file has the derivative values in bmad lattice format. The name of this file is
+given by the out_file parameter with a ".bmad" suffix attached. This file may be called from another
+lattice file. For example, if the output file is called gg.bmad the following will call the file:
+	q1: quadrupole, l = 0.6, call::gg.bmad
+
+	
