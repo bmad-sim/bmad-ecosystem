@@ -819,8 +819,9 @@ close (1)
 
 open (1, file = trim(out_file) // '.bmad', recl = 500)
 
-write (1, '(a)')           '  gen_grad_map = {'
-write (1, '(a, f10.6, a)') '    dz =', del_grid(3), ','
+write (1, '(a)')              '  field_calc = fieldmap,'
+write (1, '(a)')              '  gen_grad_map = {'
+write (1, '(a, f10.6, a)')    '    dz =', del_grid(3), ','
 write (1, '(3(a, f12.8), a)') '    r0 = (', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), '),'
 
 do ig = 1, size(gg1)
