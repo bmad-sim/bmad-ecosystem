@@ -650,7 +650,7 @@ endif
 ! Gen_grad_field
 
 if (n_gen > 0) then
-  allocate (ele%gen_grad_map(n_grid))
+  allocate (ele%gen_grad_map(n_gen))
 
   do i = 1, n_gen
     gg_map => ele%gen_grad_map(i)
