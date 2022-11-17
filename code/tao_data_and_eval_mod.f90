@@ -3105,7 +3105,7 @@ case ('spin_res.')
 
   call spin_mat_to_eigen (datum%spin_map%map1%orb_mat, datum%spin_map%map1%spin_q, eval, evec, n0, n_eigen, err)
   if (err) then
-    call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE ONE_TURN_MAP_CALC IS NOT SET TO TRUE.', why_invalid)
+    call tao_set_invalid (datum, 'ERROR CONVERTING SPIN/ORBIT 1-TURN MATRIX TO EIGEN VALUES.', why_invalid)
     return
   endif
 
