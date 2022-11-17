@@ -1,5 +1,5 @@
 !+                                
-! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, ref_in)
+! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
@@ -9,25 +9,26 @@
 !   FPP alloc and kill since the setting up of the PTC pancake uses FPP.
 !
 ! Input:
-!   ele              -- Ele_struct: Bmad element.
-!   param            -- lat_param_struct: 
-!   use_offsets      -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
-!   integ_order      -- Integer, optional: Order for the 
-!                         sympletic integrator. Possibilities are: 2, 4, or 6
-!                         Overrides ele%value(integrator_order$).
-!                         default = 2 (if not set with set_ptc).
-!   steps            -- Integer, optional: Number of integration steps.
-!                         Overrides ele%value(ds_step$).
-!   for_layout       -- Logical, optional: If True then fibre will be put in the PTC layout.
-!                         Default is False.
-!   ref_in           -- coord_struct, optional: Particle to be tracked. ref_particle$, electron$, etc.
-!                         This argument should only be present when the fibre is not to be put in a layout.
+!   ele             -- Ele_struct: Bmad element.
+!   param           -- lat_param_struct: 
+!   use_offsets     -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
+!   integ_order     -- Integer, optional: Order for the 
+!                        sympletic integrator. Possibilities are: 2, 4, or 6
+!                        Overrides ele%value(integrator_order$).
+!                        default = 2 (if not set with set_ptc).
+!   steps           -- Integer, optional: Number of integration steps.
+!                        Overrides ele%value(ds_step$).
+!   for_layout      -- Logical, optional: If True then fibre will be put in the PTC layout.
+!                        Default is False.
+!   ref_in          -- coord_struct, optional: Particle to be tracked. ref_particle$, electron$, etc.
+!                        This argument should only be present when the fibre is not to be put in a layout.
 !
 ! Output:
-!   ptc_fibre -- Fibre: PTC fibre element.
+!   err_flag        -- logical: Set True if setup OK. False otherwise.
+!   ptc_fibre       -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, ref_in)
+subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
 
 use ptc_interface_mod, dummy => ele_to_fibre
 use madx_ptc_module, pi_dum => pi, pi2_dum => twopi
@@ -56,7 +57,7 @@ type (taylor) ptc_taylor
 
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, kl(0:n_pole_maxx), t(0:n_pole_maxx)
 real(rp) dx, dy, cos_t, sin_t, coef, coef_e, coef_b, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
-real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset
+real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset, ff
 real(rp), pointer :: val(:)
 real(rp), target :: value0(num_ele_attrib$)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
@@ -69,13 +70,14 @@ integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos
 integer np, max_order, ix_pole_max, nn, n_period, icoef
 integer, allocatable :: pancake_field(:,:)
 
-logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
+logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
 logical, optional :: for_layout
 
 character(16) :: r_name = 'ele_to_fibre'
 
 !
 
+err_flag = .true.
 val => ele%value
 key = ele%key
 
@@ -899,10 +901,11 @@ if (.not. associated(ele2%gen_grad_map) .and. ((associated(ele2%cartesian_map) .
   ptc_fibre%mag%wi%w%form(1:n_term)  = 3*(cm%ptr%term%family - 1) + cm%ptr%term%form
 
   if (ele%is_on) then
+    ff = c_light * cm%field_scale * charge_of(ele2%ref_species) / ele%value(p0c$)
+    if (has_attribute(ele2, 'POLARITY')) ff = ff * ele2%value(polarity$)
     do i = 1, size(ptc_fibre%mag%wi%w%a(1:n_term))
       wt => cm%ptr%term(i)
-      ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * &
-                                    charge_of(ele2%ref_species) * wt%coef / ele%value(p0c$)
+      ptc_fibre%mag%wi%w%a(i) = ff * wt%coef
     enddo
   else
     ptc_fibre%mag%wi%w%a(1:n_term) = 0
@@ -1060,6 +1063,8 @@ endif
 
 ! Customization if wanted
 
-call ele_to_fibre_hook (ele, ptc_fibre, param)
+err_flag = .false.
+
+call ele_to_fibre_hook (ele, ptc_fibre, param, use_offsets, err_flag)
 
 end subroutine ele_to_fibre

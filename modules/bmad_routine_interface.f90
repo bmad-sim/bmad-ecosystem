@@ -815,7 +815,7 @@ subroutine ele_rad_int_cache_calc (ele)
   type (ele_struct) ele
 end subroutine
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, ref_in)
+subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -823,7 +823,7 @@ subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps,
   type (coord_struct), optional :: ref_in
   type (fibre), pointer :: ptc_fibre
   integer, optional :: integ_order, steps
-  logical use_offsets
+  logical use_offsets, err_flag
   logical, optional :: for_layout
 end subroutine
 
@@ -3194,12 +3194,13 @@ recursive subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame,
   logical, optional :: calc_dfield, calc_potential, use_overlap
 end subroutine
 
-subroutine ele_to_fibre_hook (ele, ptc_fibre, param)
+subroutine ele_to_fibre_hook (ele, ptc_fibre, param, use_offsets, err_flag)
   import
   implicit none
   type (ele_struct) ele
   type (fibre) ptc_fibre
   type (lat_param_struct) param
+  logical use_offsets, err_flag
 end subroutine
 
 subroutine sprint_spin_taylor_map (ele, start_orbit)

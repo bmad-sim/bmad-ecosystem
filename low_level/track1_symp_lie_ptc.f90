@@ -37,6 +37,7 @@ type (internal_state) state, state0
 
 real(dp) re(6)
 integer i, stm
+logical err_flag
 
 character(20) :: r_name = 'track1_symp_lie_ptc'
 
@@ -58,7 +59,11 @@ re = start_orb%vec
 start2_orb = start_orb   ! Save initial state
 end_orb = start_orb
 
-call ele_to_fibre (ele, ptc_fibre, param, .true., ref_in = start_orb)
+call ele_to_fibre (ele, ptc_fibre, param, .true., err_flag, ref_in = start_orb)
+if (err_flag) then
+  end_orb%state = lost$
+  return
+endif
 
 !
 

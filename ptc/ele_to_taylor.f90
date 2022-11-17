@@ -94,7 +94,8 @@ call ptc_set_taylor_order_if_needed()
 
 use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_offsets)
 
-call ele_to_fibre (ele, ptc_fibre, param, use_offsets, ref_in = orb0)
+call ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, ref_in = orb0)
+if (err_flag) return
 
 call alloc(ptc_cdamap)
 call alloc(ptc_probe8)
