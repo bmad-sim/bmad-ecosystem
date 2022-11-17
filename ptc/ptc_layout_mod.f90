@@ -86,7 +86,7 @@ type (ele_struct), pointer :: ele
 type (ele_pointer_struct), allocatable :: chain_ele(:)
 
 integer n, ib, ie, ix_pass, ix_pass0, n_links
-logical doneit, ele_inserted_in_layout
+logical err_flag, doneit, ele_inserted_in_layout
 
 ! Transfer elements.
 
@@ -115,7 +115,7 @@ do ie = 0, branch%n_ele_track
     ele_inserted_in_layout = .false.
   endif
 
-  call ele_to_fibre (ele, ele%ptc_fibre, branch%param, .true., for_layout = .true.)
+  call ele_to_fibre (ele, ele%ptc_fibre, branch%param, .true., err_flag, for_layout = .true.)
 
   ele_inserted_in_layout = .true.
   ix_pass0 = ix_pass

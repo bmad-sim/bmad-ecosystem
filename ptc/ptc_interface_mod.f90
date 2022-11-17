@@ -2127,6 +2127,7 @@ type (fibre), pointer :: fib
 
 real(rp) beta0, beta1, tilt
 real(8) x_dp(6)
+logical err_flag
 
 ! Match elements are not implemented in PTC so just use the matrix.
 
@@ -2153,7 +2154,7 @@ call ptc_set_taylor_order_if_needed()
 ! and create map corresponding to ele%taylor.
 
 param%particle = positron$  ! Actually this does not matter to the calculation
-call ele_to_fibre (ele, fib, param, use_offsets = .true.)
+call ele_to_fibre (ele, fib, param, .true., err_flag)
 
 ! Init
 
@@ -2447,6 +2448,7 @@ type (fibre), pointer :: ptc_fibre
 type (coord_struct), optional :: ref_in
 
 real(rp) beta0, beta1, m2_rel
+logical err_flag
 
 ! If the element is a taylor then just concat since this is faster.
 
@@ -2469,7 +2471,7 @@ ptc_tlr = bmad_taylor
 
 ! track the map
 
-call ele_to_fibre (ele, ptc_fibre, param, .true., ref_in = ref_in)
+call ele_to_fibre (ele, ptc_fibre, param, .true., err_flag, ref_in = ref_in)
 call track_probe_x (ptc_tlr, ptc_private%base_state, fibre1 = bmadl%start)
 
 ! transfer ptc map back to bmad map
