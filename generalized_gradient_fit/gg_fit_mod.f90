@@ -19,6 +19,8 @@ end type
 
 type (gg1_struct), allocatable, target :: gg1(:)
 
+!
+
 type fit_info_struct
   real(rp) :: rms0 = 0      ! Initial field rms
   real(rp) :: rms_fit = 0   ! Field_fit - Field_data rms
@@ -26,7 +28,23 @@ end type
 
 type (fit_info_struct), allocatable, target :: fit(:)
 
-integer, parameter :: m_max = 10
+!
+
+type B_fit_struct
+  real(rp) dat(3)
+  real(rp) fit(3)
+end type
+
+type plot1_struct
+  integer ix, iy
+  type (B_fit_struct), allocatable :: B(:)
+end type
+
+type (plot1_struct), allocatable, target :: plot_arr(:)
+
+!
+
+integer, parameter :: m_max = 30
 integer :: Nx_min, Nx_max, Ny_min, Ny_max, Nz_min, Nz_max
 integer :: n_grid_pts
 integer :: n_cycles = 100000
@@ -37,6 +55,8 @@ integer :: m_cos(m_max) = -1
 integer :: m_sin(m_max) = -1
 integer :: sym_x = 0, sym_y = 0
 integer n_var0, n_var, n_merit
+
+real(rp) :: x_pos_plot(50) = real_garbage$, y_pos_plot(50) = real_garbage$
 
 real(rp), allocatable :: Bx_dat(:,:,:), By_dat(:,:,:), Bz_dat(:,:,:)
 real(rp), allocatable :: Bx_fit(:,:), By_fit(:,:), Bz_fit(:,:)
@@ -144,6 +164,11 @@ else
     Nz_min = min(Nz_min, nint (zz/del_grid(3))); Nz_max = max(Nz_max, nint (zz/del_grid(3)))
   enddo
 
+  print '(a, 2(f10.5, a, i5, a, 4x))', 'Original Z table range (meters, index):', Nz_min*del_grid(3), ' (', Nz_min, ')', Nz_max*del_grid(3), ' (', Nz_max, ')'
+
+  if (z_min /= real_garbage$) Nz_min = max(Nz_min, nint(z_min/(length_scale*del_grid(3))) - n_planes_add)
+  if (z_max /= real_garbage$) Nz_max = min(Nz_max, nint(z_max/(length_scale*del_grid(3))) + n_planes_add)
+
   allocate (Bx_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
   allocate (Bz_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), valid_field(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
 
@@ -162,6 +187,7 @@ else
     i = nint (xx/del_grid(1))
     j = nint (yy/del_grid(2))
     k = nint (zz/del_grid(3))
+    if (k < Nz_min .or. k > Nz_max) cycle
 
     Bx_dat(i,j,k) = Bx * field_scale
     By_dat(i,j,k) = By * field_scale
@@ -179,9 +205,9 @@ close (1)
 
 print '(a, f12.4)', 'Length scale:', length_scale
 print '(a, es11.3)', 'Field scale:', field_scale
-print '(a, 2(f10.5, a, i5, a, 4x))', 'x table range (meters, index):', Nx_min*del_grid(1), ' (', Nx_min, ')', Nx_max*del_grid(1), ' (', Nx_max, ')'
-print '(a, 2(f10.5, a, i5, a, 4x))', 'y table range (meters, index)):', Ny_min*del_grid(2), ' (', Ny_min, ')', Ny_max*del_grid(2), ' (', Ny_max, ')'
-print '(a, 2(f10.5, a, i5, a, 4x))', 'z table range (meters, index)):', Nz_min*del_grid(3), ' (', Nz_min, ')', Nz_max*del_grid(3), ' (', Nz_max, ')'
+print '(a, 2(f10.5, a, i5, a, 4x))', 'X table range (meters, index):', Nx_min*del_grid(1), ' (', Nx_min, ')', Nx_max*del_grid(1), ' (', Nx_max, ')'
+print '(a, 2(f10.5, a, i5, a, 4x))', 'Y table range (meters, index):', Ny_min*del_grid(2), ' (', Ny_min, ')', Ny_max*del_grid(2), ' (', Ny_max, ')'
+print '(a, 2(f10.5, a, i5, a, 4x))', 'Z table range (meters, index):', Nz_min*del_grid(3), ' (', Nz_min, ')', Nz_max*del_grid(3), ' (', Nz_max, ')'
 
 n_grid_pts = (Nx_max-Nx_min+1) * (Ny_max-Ny_min+1) * (Nz_max-Nz_min+1)
 
@@ -307,9 +333,6 @@ write (fmt, '(a,i0,a)') '(3f12.', 6+n, ', 3es20.11)'
 
 write (1, '(es14.6, a)') length_scale, '  ! length_scale in meters'
 write (1, '(es14.6, a)') field_scale,  '  ! field_scale in Tesla or V/m'
-write (1, '(2i8, a)') Nx_min, Nx_max,  '  ! Nx_min, Nx_max'
-write (1, '(2i8, a)') Ny_min, Ny_max,  '  ! Ny_min, Ny_max'
-write (1, '(2i8, a)') iz_min, iz_max,  '  ! Nz_min, Nz_max'
 write (1, '(3f10.6, a)') del_grid/length_scale, '  ! del_grid'
 write (1, '(3f10.6, a)') r0_grid/length_scale,  '  ! r0_grid'
 
@@ -341,7 +364,7 @@ type (gg1_struct), pointer :: gg
 real(rp), allocatable :: vec0(:), weight(:), merit0_vec(:)
 real(rp) merit0, x, y, v, chisq, a_lambda
 
-integer iloop, im, id, n_gg, n, ig
+integer iloop, im, id, n_gg, n, ig, nx, ny
 integer ix, iy, iz, status, iz0, iz1
 
 logical at_end
@@ -355,9 +378,24 @@ allocate (Bx_fit(Nx_min:Nx_max, Ny_min:Ny_max), By_fit(Nx_min:Nx_max, Ny_min:Ny_
 
 !
 
+nx = count(x_pos_plot /= real_garbage$)
+ny = count(y_pos_plot /= real_garbage$)
+allocate (plot_arr(nx*ny))
+n = 0
+do ix = 1, nx
+do iy = 1, ny
+  n = n + 1
+  allocate (plot_arr(n)%B(iz_min:iz_max))
+  plot_arr(n)%ix = nint(x_pos_plot(ix) / del_grid(1))
+  plot_arr(n)%iy = nint(y_pos_plot(iy) / del_grid(2))
+enddo
+enddo
+
+!
+
 n_gg = (count(m_cos /= -1) + count(m_sin /= -1))
 n_var0 = n_gg * (n_deriv_max + 1)
-do im = 1, m_max
+do im = 1, size(m_cos)
   if (m_cos(im) == 0) n_var0 = n_var0 - 1
   if (m_sin(im) == 0) then
     print *, 'M = 0 sin coefficients do not contribute to the field. Please remove m_sin set.'
@@ -374,7 +412,7 @@ allocate (gg1(n_gg))
 n_var = 0
 n_gg = 0
 
-do im = 1, m_max
+do im = 1, size(m_cos)
   if (m_cos(im) /= -1) then
     n_gg = n_gg + 1
     gg => gg1(n_gg)
@@ -488,18 +526,12 @@ do iz = iz_min, iz_max, every_n_th_plane
     enddo
   enddo
 
-  if (printit) then
-    do ix = Nx_min, Nx_max
-      x = ix * del_grid(1)
-      do iy = Ny_min, Ny_max
-        y = iy * del_grid(2)
-        print '(2i4, 2f8.4, 3(4x, 2f8.4))', ix, iy, x, y, &
-                      Bx_dat(ix,iy,iz), Bx_fit(ix,iy), &
-                      By_dat(ix,iy,iz), By_fit(ix,iy), &
-                      Bz_dat(ix,iy,iz), Bz_fit(ix,iy)
-      enddo
-    enddo
-  endif
+  do n = 1, size(plot_arr)
+    ix = plot_arr(n)%ix
+    iy = plot_arr(n)%iy
+    plot_arr(n)%B(iz)%dat = [Bx_dat(ix,iy,iz), By_dat(ix,iy,iz), Bz_dat(ix,iy,iz)]
+    plot_arr(n)%B(iz)%fit = [Bx_fit(ix,iy), By_fit(ix,iy), Bz_fit(ix,iy)]
+  enddo
 enddo
 
 !-------------------------------------------------------------------
@@ -719,6 +751,8 @@ end function sym_score_calc
 subroutine write_gg()
 
 type (gg1_struct), pointer :: gg
+type (plot1_struct), pointer :: p
+
 integer ig, iz, m, n, nmax
 character(40) fmt
 
@@ -787,6 +821,7 @@ open (1, file = trim(out_file) // '.bmad', recl = 500)
 
 write (1, '(a)')           '  gen_grad_map = {'
 write (1, '(a, f10.6, a)') '    dz =', del_grid(3), ','
+write (1, '(3(a, f12.8), a)') '    r0 = (', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), '),'
 
 do ig = 1, size(gg1)
   gg => gg1(ig)
@@ -811,6 +846,25 @@ enddo
 write (1, '(a)') '  }'
 
 close (1)
+
+!
+
+call execute_command_line ('mkdir -p plot_data')
+do n = 1, size(plot_arr)
+  p => plot_arr(n)
+  open (1, file = 'plot_data/' // trim(out_file) // '.' // int_str(p%ix) // '.' // int_str(p%iy) // '.dat', recl = 300)
+
+  write (1, '(a, i0)')    '# ix = ', p%ix
+  write (1, '(a, f12.6)') '# x  =', p%ix * del_grid(1)
+  write (1, '(a, i0)')    '# iy = ', p%iy
+  write (1, '(a, f12.6)') '# y  =', p%iy * del_grid(2)
+  write (1, '(a)') '#  (1)        (2)            (3)           (4)            (5)                 (6)           (7)            (8)                  (9)           (10)           (11)'
+  write (1, '(a)') '#   Iz         Z            Bx_fit        By_fit         Bz_fit              Bx_dat        By_dat         Bz_dat            Bx_fit-Bx_dat  By_fit-By_dat  Bz_fit-Bz_dat'
+  do iz = lbound(p%b,1), ubound(p%b,1)
+    write (1, '(i5, f12.6, 3(5x, 3es15.7))') iz, del_grid(3)*iz, p%B(iz)%fit, p%B(iz)%dat, p%B(iz)%fit-p%B(iz)%dat
+  enddo
+  close (1)
+enddo
 
 end subroutine write_gg
 

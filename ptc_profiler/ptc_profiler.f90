@@ -196,6 +196,7 @@ type (fibre), pointer :: ptc_fibre
 
 real(rp) stop_time, t_fibre, this_t
 integer n_time_calc, ic
+logical err_flag
 
 !
 
@@ -203,7 +204,7 @@ call run_timer ('START')
 ic = 0
 
 do
-  call ele_to_fibre (ele, ptc_fibre, ele%branch%param, .false., ref_in = orb0)
+  call ele_to_fibre (ele, ptc_fibre, ele%branch%param, .false., err_flag, ref_in = orb0)
   ic = ic + 1
   call run_timer ('READ', this_t)
   if (this_t > stop_time) exit
