@@ -3035,13 +3035,13 @@ s_max = branch%ele(n)%s
 
 len_tot = s_max - s_min
 
-if (graph%x%min /= graph%x%max) then
+if (graph%x%eval_min /= graph%x%eval_max) then
   if (branch%param%geometry == closed$) then
-    s_min = min(branch%ele(n)%s, max(graph%x%min, s_min-len_tot))
-    s_max = min(s_max, max(graph%x%max, branch%ele(0)%s-len_tot))
+    s_min = min(branch%ele(n)%s, max(graph%x%eval_min, s_min-len_tot))
+    s_max = min(s_max, max(graph%x%eval_max, branch%ele(0)%s-len_tot))
   else
-    s_min = min(branch%ele(n)%s, max(graph%x%min, s_min))
-    s_max = min(s_max, max(graph%x%max, branch%ele(0)%s))
+    s_min = min(branch%ele(n)%s, max(graph%x%eval_min, s_min))
+    s_max = min(s_max, max(graph%x%eval_max, branch%ele(0)%s))
   endif
 endif
 
