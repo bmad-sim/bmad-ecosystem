@@ -155,7 +155,7 @@ type (beam_init_struct) beam_init
 type (tao_beam_branch_struct), pointer :: bb
 type (branch_struct), pointer :: branch
 
-real(rp) comb_ds_save
+real(rp) comb_ds_save, comb_max_ds_save
 
 integer i, k, iu, ios, ib, n_uni, ib0, ie0
 integer n, iostat, ix_universe
@@ -173,7 +173,7 @@ logical err, always_reinit
 namelist / tao_beam_init / ix_universe, beam_init, always_reinit, &
             beam0_file, beam_init_file_name, beam_position0_file, &
             beam_track_start, beam_track_end, beam_saved_at, beam_dump_at, beam_dump_file, &
-            track_start, track_end, saved_at, dump_at, dump_file, comb_ds_save
+            track_start, track_end, saved_at, dump_at, dump_file, comb_ds_save, comb_max_ds_save
 
 !-----------------------------------------------------------------------
 ! Init Beams
@@ -248,6 +248,7 @@ do
   track_start = ''
   track_end = ''
   comb_ds_save = -1
+  comb_max_ds_save = -1
 
   ! Read beam parameters
 
@@ -313,7 +314,7 @@ do
   if (ix_universe == -1) then
     do i = lbound(s%u, 1), ubound(s%u, 1)
       s%u(i)%beam = tao_beam_uni_struct(saved_at, dump_file, dump_at, .true., always_reinit)
-      call tao_init_beam_in_universe(s%u(i), beam_init, track_start, track_end, comb_ds_save)
+      call tao_init_beam_in_universe(s%u(i), beam_init, track_start, track_end, comb_ds_save, comb_max_ds_save)
     enddo
   else
     if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
@@ -321,7 +322,7 @@ do
       return
     endif
     s%u(ix_universe)%beam = tao_beam_uni_struct(saved_at, dump_file, dump_at, .true., always_reinit)
-    call tao_init_beam_in_universe(s%u(ix_universe), beam_init, track_start, track_end, comb_ds_save)
+    call tao_init_beam_in_universe(s%u(ix_universe), beam_init, track_start, track_end, comb_ds_save, comb_max_ds_save)
   endif
 
 enddo
@@ -336,7 +337,7 @@ end subroutine tao_init_beams
 
 ! Initialize the beams. Determine which element to track beam to
 
-subroutine tao_init_beam_in_universe (u, beam_init, track_start, track_end, comb_ds_save)
+subroutine tao_init_beam_in_universe (u, beam_init, track_start, track_end, comb_ds_save, comb_max_ds_save)
 
 type (tao_universe_struct), target :: u
 type (beam_init_struct) beam_init
@@ -346,7 +347,7 @@ type (branch_struct), pointer :: branch
 type (tao_beam_branch_struct), pointer :: bb
 type (tao_lattice_branch_struct), pointer :: tao_branch
 
-real(rp) comb_ds_save
+real(rp) comb_ds_save, comb_max_ds_save
 integer k, n_loc
 
 logical always_reinit, err
@@ -373,6 +374,7 @@ bb%track_start = track_start
 tao_branch => u%model%tao_branch(ele%ix_branch) 
 if (.not. allocated(tao_branch%bunch_params_comb)) allocate(tao_branch%bunch_params_comb(beam_init%n_bunch))
 tao_branch%bunch_params_comb%ds_save = comb_ds_save
+tao_branch%bunch_params_comb%max_ds_save = comb_max_ds_save
 
 ! Tracking stop
 
