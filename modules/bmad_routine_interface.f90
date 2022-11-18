@@ -1712,6 +1712,11 @@ subroutine ptc_read_flat_file (flat_file, err_flag, lat, create_end_marker, from
   logical, optional :: create_end_marker, from_mad
 end subroutine
 
+subroutine ptc_set_rf_state_for_c_normal (nocavity)
+  implicit none
+  logical nocavity
+end subroutine
+
 subroutine ptc_spin_matching_calc (branch, match_info)
   import
   implicit none

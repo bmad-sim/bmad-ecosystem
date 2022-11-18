@@ -405,6 +405,8 @@ norm_mode%e_loss = energy_loss * 1e9_rp
 lielib_print(16) = 0    ! Do not print eigenvalue info.
 epsc = EPS_EIGENVALUES_OFF_UNIT_CIRCLE
 EPS_EIGENVALUES_OFF_UNIT_CIRCLE = max(1d-1, epsc)  ! Set larger since rad damping is on.
+
+call ptc_set_rf_state_for_c_normal(ptc_state%nocavity)
 call c_normal(id, cc_norm)
 lielib_print(16) = 1
 EPS_EIGENVALUES_OFF_UNIT_CIRCLE = epsc
@@ -512,14 +514,7 @@ id=xs
 call GET_loss(ptc_layout, energy_loss, dp_loss)
 norm_mode%e_loss = energy_loss * 1e9_rp
 
-
-if (ptc_state%nocavity) then
-  call c_bmad_reinit(5+ndpt_bmad)
-else
-  call c_bmad_reinit(0)
-endif
-
-
+call ptc_set_rf_state_for_c_normal(ptc_state%nocavity)
 call c_normal(id, cc_norm, dospin = ptc_state%spin)
 call c_full_canonise(cc_norm%atot, U_1, as, a0, a1, a2)
 
@@ -762,9 +757,6 @@ end select
 
 if (spin_on) ptc_state = ptc_state + spin0
 
-
-call init_all (ptc_state, ptc_private%taylor_order_ptc, 0) ! The third argument is the number of parametric variables
-
 ! Find closed orbit
 
 orb0 = 0
@@ -790,13 +782,14 @@ end subroutine ptc_one_turn_map_at_ele
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_map_to_normal_form (one_turn_map, normal_form, phase_map, spin_tune)
+! Subroutine ptc_map_to_normal_form (one_turn_map, ptc_nocavity, normal_form, phase_map, spin_tune)
 !
 ! Routine to do normal form analysis on a map.
 ! Note: All output quantities must be allocated prior to calling this routine.
 !
 ! Input:
 !   one_turn_map    -- probe_8: One turn map.
+!   ptc_nocavity    -- logical: PTC nocavity parameter setting when map was made.
 !
 ! Output:
 !   normal_form     -- c_normal_form: Normal form decomposition.
@@ -804,7 +797,7 @@ end subroutine ptc_one_turn_map_at_ele
 !   spin_tune       -- c_taylor, optional: Spin tune Taylor map.
 !-
 
-subroutine ptc_map_to_normal_form (one_turn_map, normal_form, phase_map, spin_tune)
+subroutine ptc_map_to_normal_form (one_turn_map, ptc_nocavity, normal_form, phase_map, spin_tune)
 
 use pointer_lattice
 
@@ -815,6 +808,9 @@ type (c_normal_form) normal_form
 type (c_taylor) phase_map(3)
 type (c_taylor), optional :: spin_tune
 type (c_damap) c_map
+
+logical ptc_nocavity
+
 !! type (c_damap) as, a2, a1, a0
 !! integer n(6)
 
@@ -822,7 +818,10 @@ type (c_damap) c_map
 
 call alloc(c_map)
 c_map = one_turn_map
+
+call ptc_set_rf_state_for_c_normal(ptc_nocavity)
 call c_normal (c_map, normal_form, dospin = bmad_com%spin_tracking_on, phase = phase_map, nu_spin = spin_tune)
+
 call kill(c_map)
 
 
@@ -986,6 +985,7 @@ cda = da
 ! See: fpp-ptc-read-only/build_book_example_g95/the_fpp_on_line_glossary/complex_normal.htm
 ! M = A o N o A_inverse.
 
+call ptc_set_rf_state_for_c_normal(state%nocavity)
 call c_normal(cda, complex_normal_form, dospin=my_false, no_used=integer_option(1, order))
 
 if (present(F) .or. present(L)) then
@@ -1102,6 +1102,7 @@ call alloc(acs1_a)
 
 cda = one_turn_map
 
+call ptc_set_rf_state_for_c_normal(state%nocavity)
 call c_normal(cda, complex_normal_form, dospin=my_false)  !, no_used=1) 
 call c_fast_canonise(complex_normal_form%a_t,acs1_a)
 
