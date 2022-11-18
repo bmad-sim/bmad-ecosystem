@@ -123,6 +123,7 @@ type (wake_lr_mode_struct), pointer :: lr_mode
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: sec
 type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), pointer :: gg
 type (twiss_struct), pointer :: twiss_arr(:)
 type (em_taylor_term_struct), pointer :: em_tt
 type (grid_field_struct), pointer :: g_field
@@ -2516,18 +2517,19 @@ case ('ele:cylindrical_map')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(cy_map%ptr%file)
-    nl=incr(nl); write (li(nl), imt) 'm;INT;T;',                              cy_map%m
-    nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       cy_map%harmonic
-    nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 cy_map%phi0_fieldmap
-    nl=incr(nl); write (li(nl), rmt) 'theta0_azimuth;REAL;T;',                cy_map%theta0_azimuth
-    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   cy_map%field_scale
-    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            cy_map%dz
+    nl=incr(nl); write (li(nl), amt)  'file;FILE;T;',                          trim(cy_map%ptr%file)
+    nl=incr(nl); write (li(nl), imt)  'm;INT;T;',                              cy_map%m
+    nl=incr(nl); write (li(nl), imt)  'harmonic;INT;T;',                       cy_map%harmonic
+    nl=incr(nl); write (li(nl), rmt)  'phi0_fieldmap;REAL;T;',                 cy_map%phi0_fieldmap
+    nl=incr(nl); write (li(nl), rmt)  'theta0_azimuth;REAL;T;',                cy_map%theta0_azimuth
+    nl=incr(nl); write (li(nl), rmt)  'field_scale;REAL;T;',                   cy_map%field_scale
+    nl=incr(nl); write (li(nl), rmt)  'dz;REAL;T;',                            cy_map%dz
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', cy_map%r0(i), i = 1, 3)
     name = attribute_name(ele, cy_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(cy_map%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt)  'master_parameter;ELE_PARAM;T;',         trim(name)
+    nl=incr(nl); write (li(nl), amt)  'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(cy_map%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), imt)  'number_of_terms;INT;F;',                size(cy_map%ptr%term)
 
   case ('terms')
     do i = 1, size(cy_map%ptr%term)
@@ -2793,7 +2795,7 @@ case ('ele:gen_attribs')
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
 !   {index} is the index number in the ele%gen_grad_map(:) array
-!   {who} is one of: "base", or "terms".
+!   {who} is one of: "base", or "derivs".
 !
 ! Example:
 !   python ele:gen_grad_map 3@1>>7|model 2 base
@@ -2818,7 +2820,7 @@ case ('ele:gen_attribs')
 !   ele_id: 1@0>>9
 !   which: model
 !   index: 1
-!   who: terms
+!   who: derivs
 
 case ('ele:gen_grad_map')
 
@@ -2835,19 +2837,29 @@ case ('ele:gen_grad_map')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(gg_map%file)
-    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   gg_map%field_scale
+    nl=incr(nl); write (li(nl), amt)  'file;FILE;T;',                          trim(gg_map%file)
+    nl=incr(nl); write (li(nl), rmt)  'field_scale;REAL;T;',                   gg_map%field_scale
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', gg_map%r0(i), i = 1, 3)
-    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            gg_map%dz
+    nl=incr(nl); write (li(nl), rmt)  'dz;REAL;T;',                            gg_map%dz
     name = attribute_name(ele, gg_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
     nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(gg_map%ele_anchor_pt))
     nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(gg_map%field_type))
     nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             gg_map%curved_ref_frame
+    nl=incr(nl); write (li(nl), imt) 'iz0;INT;F;',                            gg_map%iz0
+    nl=incr(nl); write (li(nl), imt) 'iz1;INT;F;',                            gg_map%iz1
+    nl=incr(nl); write (li(nl), imt) 'size_of_gg;INT;F;',                     size(gg_map%gg)
 
-  case ('terms')
-    nl=incr(nl); li(nl) = '! Needs to be implemented!!'
+  case ('derivs')
+    do i = 1, size(gg_map%gg)
+      gg => gg_map%gg(i)
+      do j = gg_map%iz0, gg_map%iz1
+        do k = 0, ubound(gg%deriv,2)
+          nl=incr(nl); write (li(nl), '(3(i0,a), es22.14)') i, ';', j, ';', k, ';', gg%deriv(j,k)
+        enddo
+      enddo
+    enddo
   end select
 
 !------------------------------------------------------------------------------------------------
