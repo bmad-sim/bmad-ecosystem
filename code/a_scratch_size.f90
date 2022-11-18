@@ -177,6 +177,7 @@ module precision_constants
   REAL(dp),TARGET   :: absolute_aperture=1.0_dp, t_aperture =1.d6
   integer,TARGET :: wherelost=0
   logical(lp),TARGET :: stable_da =.true.
+  logical(lp),TARGET :: stable_da_pancake =.true.
   logical(lp),TARGET :: check_da =.true.
   logical(lp),TARGET :: printframe =.true.
   logical(lp),TARGET :: sixtrack_compatible =.false.
@@ -332,7 +333,8 @@ module precision_constants
      logical(lp),pointer :: ALWAYS_EXACT_PATCHING => null()  !=.TRUE. patching done correctly
      ! used to output horror messages
      logical(lp),pointer :: stable_da => null() !=.true.  interrupts DA if check_da is true
-     logical(lp),pointer :: check_da  => null() !=.true.
+     logical(lp),pointer  :: STABLE_DA_pancake => null() !=.TRUE. particle status 
+    logical(lp),pointer :: check_da  => null() !=.true.
      logical(lp),pointer :: OLD_IMPLEMENTATION_OF_SIXTRACK => null()  !=.true.
      real(dp),pointer :: phase0  => null()! default phase in cavity
      logical(lp), pointer :: global_verbose => null()

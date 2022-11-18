@@ -3683,7 +3683,6 @@ CONTAINS
     TYPE(TAYLOR) B(nbe),ba(nbe),bf(nbe),bn(nbe),it  !,ax(2),ay(2)
 
 
-
     a=0.0_dp
    ! file_fitted=file
 
@@ -3892,6 +3891,7 @@ endif
 !    LOGICAL(LP) REPEAT
      integer B(nbe),ba(nbe),bf(nbe),bn(nbe)   !,it  !,ax(2),ay(2)
 
+     b=0;ba=0;bf=0;bn=0;
 
 
     a=0.0_dp

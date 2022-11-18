@@ -75,6 +75,7 @@ end subroutine dapri_pancake
   subroutine init_pancake(no,nv)
   implicit none
   integer no,nv
+   c_%stable_da_pancake=.true.
    call daini(no,nv,0)
 
   end subroutine init_pancake
@@ -144,7 +145,7 @@ end subroutine dapri_pancake
     !frs if(eps.le.zero) eps=c_1d_38
     !      if(EPS.le.zero) eps=c_1d_90
     !frs epsmac=c_1d_7
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -468,7 +469,7 @@ end subroutine dapri_pancake
     logical(lp) incnda
     integer ind,ndanum,no,nv,ic,ipause,mypauses
     character(10) c,ccc
-!    if((.not.C_%STABLE_DA)) then
+!    if((.not.C_%STABLE_DA_pancake)) then
 !       if(c_%watch_user) then
 !          write(6,*) "big problem in dabnew ", sqrt(crash)
 !       endif
@@ -569,7 +570,7 @@ end subroutine dapri_pancake
     integer i,ind,l,ndanum,no,nv,ipause,mypauses
     integer,dimension(:)::ic
     character(10) c,ccc
-!    if((.not.C_%STABLE_DA)) then
+!    if((.not.C_%STABLE_DA_pancake)) then
 !       if(c_%watch_user) then
 !          write(6,*) "big problem in dabnew ", sqrt(crash)
 !       endif
@@ -672,7 +673,7 @@ end subroutine dapri_pancake
     logical(lp) incnda
     integer ic,ind,ndanum,no,nv,ipause,mypauses
     character(10) c,ccc
-!    if((.not.C_%STABLE_DA)) then
+!    if((.not.C_%STABLE_DA_pancake)) then
 !       if(c_%watch_user) then
 !          write(6,*) "big problem in dabnew ", sqrt(crash)
 !       endif
@@ -774,7 +775,7 @@ end subroutine dapri_pancake
     ccc='         '
     no=nomax
     nv=nvmax
-!    if((.not.C_%STABLE_DA)) then
+!    if((.not.C_%STABLE_DA_pancake)) then
 !       if(c_%watch_user) then
 !          write(6,*) "big problem in dabnew ", sqrt(crash)
 !       endif
@@ -873,7 +874,7 @@ end subroutine dapri_pancake
     integer i,l,ipause,mypauses
     integer,dimension(:)::idal
     !
-!    if((.not.C_%STABLE_DA)) then
+!    if((.not.C_%STABLE_DA_pancake)) then
 !       if(c_%watch_user) then
 !          write(6,*) "big problem in dabnew ", sqrt(crash)
 !       endif
@@ -883,7 +884,7 @@ end subroutine dapri_pancake
        if(idal(i).le.nomax+2.or.idal(i).gt.nda_dab) then
           write(line,'(a38,i8,1x,i8)') 'ERROR IN ROUTINE DADAL, IDAL(I),NDA = ',idal(i),nda_dab
 !          ipause=mypauses(13,line)
-          C_%STABLE_DA = .false.
+          C_%STABLE_DA_pancake = .false.
           l = 1
           return
           call dadeb !(31,'ERR DADAL ',1)
@@ -915,7 +916,7 @@ end subroutine dapri_pancake
     !
     integer idal,ipause,mypauses
     !
-!    if((.not.C_%STABLE_DA)) then
+!    if((.not.C_%STABLE_DA_pancake)) then
 !       if(c_%watch_user) then
 !          write(6,*) "big problem in dabnew ", sqrt(crash)
 !       endif
@@ -924,7 +925,7 @@ end subroutine dapri_pancake
     if(idal.le.nomax+2.or.idal.gt.nda_dab) then
        write(line,'(a35,i8,1x,i8)') 'ERROR IN ROUTINE DADAL, IDAL,NDA = ',idal,nda_dab
        !ipause=mypauses(14,line)
-       C_%STABLE_DA = .false.
+       C_%STABLE_DA_pancake = .false.
        idal = 0
        return
        call dadeb !(31,'ERR DADAL ',1)
@@ -973,14 +974,14 @@ end subroutine dapri_pancake
     integer i,ibase,ic1,ic2,illa,ilma,ina,inoa,inva,ipoa,ipause,mypauses
     real(dp) ckon
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
        return
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1044,14 +1045,14 @@ end subroutine dapri_pancake
     integer illa,ilma,ina,inoa,inva,ipoa
     real(dp) ckon
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
        return
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1083,7 +1084,7 @@ end subroutine dapri_pancake
     !
     integer not,ipause,mypauses
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1153,7 +1154,7 @@ end subroutine dapri_pancake
     integer,dimension(lnv)::jj
     real(dp) cjj
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1164,7 +1165,7 @@ end subroutine dapri_pancake
        jj(i)=jv(i)
     enddo
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1282,7 +1283,7 @@ end subroutine dapri_pancake
     integer,dimension(lnv)::jj
     real(dp) cjj
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1294,7 +1295,7 @@ end subroutine dapri_pancake
     enddo
     !
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1442,14 +1443,14 @@ end subroutine dapri_pancake
     !
     integer i,illc,ilmc,inc,inoc,invc,ipoc
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
        return
     endif
     call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1481,7 +1482,7 @@ end subroutine dapri_pancake
     !
     integer ia,ib,illa,ina,inb,ipoa,ipob
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1523,7 +1524,7 @@ end subroutine dapri_pancake
     integer idaadd,inb,inc,ipoc
     integer ipob
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1555,7 +1556,7 @@ end subroutine dapri_pancake
       subroutine datrunc(ina,io,inb)
     implicit none
     integer ina,io,inb,nt,ipoca,ipocb,i
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1591,7 +1592,7 @@ end subroutine dapri_pancake
     integer inc,ipoc,inb
     integer ipob
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1633,7 +1634,7 @@ end subroutine dapri_pancake
     integer ina,inb,inc,incc,ipoc,ipoa,ipob,i
     real(dp) ccipoa,ccipob
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1690,7 +1691,7 @@ end subroutine dapri_pancake
     integer,dimension(0:lno)::ipno,noff
     real(dp) ccia,ccipoa,ccipob
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1714,7 +1715,7 @@ end subroutine dapri_pancake
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
     call dainf(inb,inob,invb,ipob,ilmb,illb)
     call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1801,7 +1802,7 @@ end subroutine dapri_pancake
     integer idadiv,inb,ina,inc,ipoc,ipoa,ipob,i
     real(dp) ck,ck1
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1843,7 +1844,7 @@ end subroutine dapri_pancake
     !
     !     CASE OF FIRST ORDER ONLY
     !     ************************
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1894,7 +1895,7 @@ end subroutine dapri_pancake
     integer,dimension(0:lno)::ipno,noff
     real(dp) ccia,ccipoa
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -1913,7 +1914,7 @@ end subroutine dapri_pancake
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
     call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2007,7 +2008,7 @@ end subroutine dapri_pancake
     integer,parameter,dimension(lnv)::jjx=0
     real(dp) ckon,const
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2037,7 +2038,7 @@ end subroutine dapri_pancake
     integer,parameter,dimension(lnv)::jjx=0
     real(dp) ckon,const
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2071,7 +2072,7 @@ end subroutine dapri_pancake
     integer i,ina,inb,ipoa,ipob
     real(dp) ckon
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2105,7 +2106,7 @@ end subroutine dapri_pancake
     integer ipoa,i,ina,inc,incc,ipoc
     real(dp) ckon
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2151,7 +2152,7 @@ end subroutine dapri_pancake
          ipob,ipause,mypauses
     real(dp) ckon
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2168,7 +2169,7 @@ end subroutine dapri_pancake
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
     call dainf(inb,inob,invb,ipob,ilmb,illb)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2213,7 +2214,7 @@ end subroutine dapri_pancake
     integer i,ina,inb,ipoa,ipob,ipause,mypauses
     real(dp) ckon
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2221,7 +2222,7 @@ end subroutine dapri_pancake
     endif
     if(ckon==zero) then
        if(check_da) then
-          C_%STABLE_DA=.false.
+          C_%STABLE_DA_pancake=.false.
           messagelost='constant part zero in dacdi'
           return
        else
@@ -2256,7 +2257,7 @@ end subroutine dapri_pancake
     integer i,idadic,ina,inc,ipoa,ipoc
     real(dp) ckon,ck
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2264,7 +2265,7 @@ end subroutine dapri_pancake
     endif
     ipoa = idapo(ina)
     if(cc(ipoa)==zero) then
-       if(check_da) C_%STABLE_DA=.false.
+       if(check_da) C_%STABLE_DA_pancake=.false.
        messagelost='constant part zero in dadic'
        return
     endif
@@ -2311,7 +2312,7 @@ end subroutine dapri_pancake
     integer idacma,ina,inb,inc,ipoc,ipob,ipoa,i
     real(dp) bfac
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2352,7 +2353,7 @@ end subroutine dapri_pancake
     !
     integer  ipob,ipoa,i
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2400,7 +2401,7 @@ end subroutine dapri_pancake
          ipause,mypauses
     real(dp) afac,bfac,ccc,copf
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2421,7 +2422,7 @@ end subroutine dapri_pancake
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
     call dainf(inb,inob,invb,ipob,ilmb,illb)
     call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2573,7 +2574,7 @@ end subroutine dapri_pancake
     integer ina,inc,incc
     character(4) cf
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2612,7 +2613,7 @@ end subroutine dapri_pancake
     data abcs /'abcdefghijklmnopqrstuvwxyz'/
     data abcc /'ABCDEFGHIJKLMNOPQRSTUVWXYZ'/
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2670,7 +2671,7 @@ end subroutine dapri_pancake
        if(a0.eq.0) then
           if(check_da) then
              messagelost="a0.eq.0 for INV in dafun"
-             C_%STABLE_DA=.false.
+             C_%STABLE_DA_pancake=.false.
              C_%check_stable=.false.
              call dadal1(iscr)
              call dadal1(inon)
@@ -2694,7 +2695,7 @@ end subroutine dapri_pancake
        if(a0.le.0) then
           if(check_da) then
              messagelost="a0.le.0 for SQRT in dafun"
-             C_%STABLE_DA=.false.
+             C_%STABLE_DA_pancake=.false.
              C_%check_stable=.false.
              call dadal1(iscr)
              call dadal1(inon)
@@ -2720,7 +2721,7 @@ end subroutine dapri_pancake
        if(a0>hyperbolic_aperture) then
           if(check_da) then
              messagelost="a0>hyperbolic_aperture for EXP in dafun"
-             C_%STABLE_DA=.false.
+             C_%STABLE_DA_pancake=.false.
              C_%check_stable=.false.
              call dadal1(iscr)
              call dadal1(inon)
@@ -2745,7 +2746,7 @@ end subroutine dapri_pancake
        if(a0.le.0) then
           if(check_da) then
              messagelost="a0.le.0 for LOG in dafun"
-             C_%STABLE_DA=.false.
+             C_%STABLE_DA_pancake=.false.
              C_%check_stable=.false.
              call dadal1(iscr)
              call dadal1(inon)
@@ -2792,7 +2793,7 @@ end subroutine dapri_pancake
        if(a0>hyperbolic_aperture) then
           if(check_da) then
              messagelost="a0>hyperbolic_aperture for SINH in dafun"
-             C_%STABLE_DA=.false.
+             C_%STABLE_DA_pancake=.false.
              C_%check_stable=.false.
              call dadal1(iscr)
              call dadal1(inon)
@@ -2817,7 +2818,7 @@ end subroutine dapri_pancake
        if(a0>hyperbolic_aperture) then
           if(check_da) then
              messagelost="a0>hyperbolic_aperture for COSH in dafun"
-             C_%STABLE_DA=.false.
+             C_%STABLE_DA_pancake=.false.
              C_%check_stable=.false.
              call dadal1(iscr)
              call dadal1(inon)
@@ -2879,14 +2880,14 @@ end subroutine dapri_pancake
     integer i,illa,ilma,ina,inoa,inva,ipoa
     real(dp) anorm
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
        return
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2915,7 +2916,7 @@ end subroutine dapri_pancake
     integer i,ia,ib,ic,ij,illc,ilmc,inoc,invc,ipoc
     integer,dimension(lnv)::monx
     integer,dimension(:)::ma,mb,mc
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2924,7 +2925,7 @@ end subroutine dapri_pancake
     !
     if(ma(1).eq.mc(1).or.mb(1).eq.mc(1)) then
        call dainf(mc(1),inoc,invc,ipoc,ilmc,illc)
-       if((.not.C_%STABLE_DA)) then
+       if((.not.C_%STABLE_DA_pancake)) then
           if(c_%watch_user) then
              write(6,*) "big problem in dabnew ", sqrt(crash)
           endif
@@ -2966,7 +2967,7 @@ end subroutine dapri_pancake
     integer,dimension(lnv)::icc  !johan 2008 March
     integer,dimension(:)::ma,mb,mc
     real(dp) ccf
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -2984,7 +2985,7 @@ end subroutine dapri_pancake
     call dainf(iia,inoa,inva,ipoa,ilma,illa)
     call dainf(iib,inob,invb,ipob,ilmb,illb)
     call dainf(iic,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3067,7 +3068,7 @@ end subroutine dapri_pancake
     integer,dimension(0:lno)::jv
     integer,dimension(:)::mb,mc
     real(dp) apek,bbijj,chkjj
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3081,7 +3082,7 @@ end subroutine dapri_pancake
     iic = mc(1)
     call dainf(iib,inob,invb,ipob,ilmb,illb)
     call dainf(iic,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3274,7 +3275,7 @@ end subroutine dapri_pancake
     integer i,ic,iv,jc,jl,jv,mf
     integer,dimension(:)::mc
     character(20) line
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3363,7 +3364,7 @@ end subroutine dapri_pancake
     real(dp),dimension(lno+1)::xm
     real(dp),dimension(lno)::xt
     real(dp),dimension(:)::xf,xi
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3392,7 +3393,7 @@ end subroutine dapri_pancake
     enddo
     do i=1,nvmax
        if(abs(xf(i))>da_absolute_aperture.and.check_da) then
-          C_%STABLE_DA=.false.
+          C_%STABLE_DA_pancake=.false.
           write(6,*) "unstable in ppush ",i,xf(i)
        endif
     enddo
@@ -3413,7 +3414,7 @@ end subroutine dapri_pancake
     real(dp),dimension(:)::xi
     real(dp),dimension(lno)::xt
     real(dp),dimension(lno+1)::xm
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3437,7 +3438,7 @@ end subroutine dapri_pancake
        xf = xf + cc(idapo(mc)+i) * xx
     enddo
     if(abs(xf)>da_absolute_aperture.and.check_da) then
-       C_%STABLE_DA=.false.
+       C_%STABLE_DA_pancake=.false.
        write(6,*) "unstable in ppush1 ", xf
        write(6,*) xi(1:nvmax)
     endif
@@ -3456,7 +3457,7 @@ end subroutine dapri_pancake
     integer,dimension(lnv)::jj,ml
     integer,dimension(:)::ma,mb
     real(dp),dimension(lnv)::x
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3468,7 +3469,7 @@ end subroutine dapri_pancake
     enddo
     if(ma(1).eq.mb(1)) then
        call dainf(mb(1),inob,invb,ipob,ilmb,illb)
-       if((.not.C_%STABLE_DA)) then
+       if((.not.C_%STABLE_DA_pancake)) then
           if(c_%watch_user) then
              write(6,*) "big problem in dabnew ", sqrt(crash)
           endif
@@ -3513,7 +3514,7 @@ end subroutine dapri_pancake
     integer,dimension(:)::ma,mb
     real(dp),dimension(lnv,lnv)::aa,ai
     real(dp) amjj,amsjj,prod
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3522,7 +3523,7 @@ end subroutine dapri_pancake
     !
     call dainf(ma(1),inoa,inva,ipoa,ilma,illa)
     call dainf(mb(1),inob,invb,ipob,ilmb,illb)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3584,7 +3585,7 @@ end subroutine dapri_pancake
     !
     if(ier.eq.132) then
        if(check_da) then
-          C_%STABLE_DA=.false.
+          C_%STABLE_DA_pancake=.false.
           C_%check_stable=.false.
           messagelost='ERROR IN ROUTINE DAINV, ier=132 in matinv'
           write(6,*) messagelost
@@ -3610,7 +3611,7 @@ end subroutine dapri_pancake
           if(abs(prod).gt.c_100*epsmac) then
              write(6,*) " abs(prod) > c_100*epsmac in dainvt",abs(prod), c_100*epsmac
              if(check_da) then
-                C_%STABLE_DA=.false.
+                C_%STABLE_DA_pancake=.false.
                 messagelost='ERROR IN ROUTINE DAINV, abs(prod).gt.c_100*epsmac '
                 call dadal(ml,ia)
                 call dadal(ms,ia)
@@ -3694,7 +3695,7 @@ end subroutine dapri_pancake
     integer,dimension(:)::ma,mb,jx
     real(dp),dimension(lnv)::x
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3705,7 +3706,7 @@ end subroutine dapri_pancake
     enddo
     if(ma(1).eq.mb(1)) then
        call dainf(mb(1),inob,invb,ipob,ilmb,illb)
-       if((.not.C_%STABLE_DA)) then
+       if((.not.C_%STABLE_DA_pancake)) then
           if(c_%watch_user) then
              write(6,*) "big problem in dabnew ", sqrt(crash)
           endif
@@ -3748,14 +3749,14 @@ end subroutine dapri_pancake
     integer,dimension(lnv)::jj,mn,mi,me
     integer,dimension(:)::ma,mb,jind
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
        return
     endif
     call dainf(ma(1),inoa,inva,ipoa,ilma,illa)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3812,7 +3813,7 @@ end subroutine dapri_pancake
     !
     integer idif,illc,ilmc,ina,inc,incc,inoc,invc,ipoc
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3820,7 +3821,7 @@ end subroutine dapri_pancake
     endif
     if(ina.eq.inc) then
        call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-       if((.not.C_%STABLE_DA)) then
+       if((.not.C_%STABLE_DA_pancake)) then
           if(c_%watch_user) then
              write(6,*) "big problem in dabnew ", sqrt(crash)
           endif
@@ -3850,7 +3851,7 @@ end subroutine dapri_pancake
     integer,dimension(lnv)::jd
     real(dp) rr,x,xdivi
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3858,7 +3859,7 @@ end subroutine dapri_pancake
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
     call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3952,7 +3953,7 @@ end subroutine dapri_pancake
     integer illc,ilmc,ina,inc,incc,inoc,invc,ipoc
     complex(dp),external::fun
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -3960,7 +3961,7 @@ end subroutine dapri_pancake
     endif
     if(ina.eq.inc) then
        call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-       if((.not.C_%STABLE_DA)) then
+       if((.not.C_%STABLE_DA_pancake)) then
           if(c_%watch_user) then
              write(6,*) "big problem in dabnew ", sqrt(crash)
           endif
@@ -4002,7 +4003,7 @@ end subroutine dapri_pancake
        end function fun
     end interface
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4010,7 +4011,7 @@ end subroutine dapri_pancake
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
     call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4082,7 +4083,7 @@ end subroutine dapri_pancake
     integer illc,ilmc,ina,inc,incc,inoc,invc,ipoc
     real(dp),external::fun
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4090,7 +4091,7 @@ end subroutine dapri_pancake
     endif
     if(ina.eq.inc) then
        call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-       if((.not.C_%STABLE_DA)) then
+       if((.not.C_%STABLE_DA_pancake)) then
           if(c_%watch_user) then
              write(6,*) "big problem in dabnew ", sqrt(crash)
           endif
@@ -4119,7 +4120,7 @@ end subroutine dapri_pancake
     integer illc,ilmc,ina,inc,incc,inoc,invc,ipoc
     complex(dp),external::fun
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4127,7 +4128,7 @@ end subroutine dapri_pancake
     endif
     if(ina.eq.inc) then
        call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-       if((.not.C_%STABLE_DA)) then
+       if((.not.C_%STABLE_DA_pancake)) then
           if(c_%watch_user) then
              write(6,*) "big problem in dabnew ", sqrt(crash)
           endif
@@ -4169,7 +4170,7 @@ end subroutine dapri_pancake
        end function fun
     end interface
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4177,7 +4178,7 @@ end subroutine dapri_pancake
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
     call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4262,7 +4263,7 @@ end subroutine dapri_pancake
        end function fun
     end interface
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4270,7 +4271,7 @@ end subroutine dapri_pancake
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
     call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4351,7 +4352,7 @@ end subroutine dapri_pancake
     integer i,ii,iii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,k
     integer,dimension(lnv)::j
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4359,7 +4360,7 @@ end subroutine dapri_pancake
     endif
     if(ina.lt.1.or.ina.gt.nda_dab) then
        print*,'ERROR IN DAPRI, INA = ',ina
-       C_%STABLE_DA=.false.
+       C_%STABLE_DA_pancake=.false.
     endif
     !
     inoa = idano(ina)
@@ -4434,7 +4435,7 @@ end subroutine dapri_pancake
     some=.false.
     !
     if(iunit.eq.0) return
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4442,7 +4443,7 @@ end subroutine dapri_pancake
     endif
     if(ina.lt.1.or.ina.gt.nda_dab) then
        write(line,'(a22,i8)') 'ERROR IN DAPRI, INA = ',ina
-       C_%STABLE_DA=.false.
+       C_%STABLE_DA_pancake=.false.
     endif
     !
     inoa = idano(ina)
@@ -4530,7 +4531,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
          ik,inc,k
     integer,dimension(lnv)::j,jd
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4539,7 +4540,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     inb=0
     if(ina.lt.1.or.ina.gt.nda_dab) then
        write(line,'(a22,i8)') 'ERROR IN dashift, INA = ',ina
-       C_%STABLE_DA=.false.
+       C_%STABLE_DA_pancake=.false.
     endif
     !
     inoa = idano(ina)
@@ -4640,7 +4641,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     integer,dimension(lnv)::j
     real(dp) c
     character(10) c10
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4648,7 +4649,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     endif
     !
     if(ina.lt.1.or.ina.gt.nda_dab) then
-       C_%STABLE_DA=.false.
+       C_%STABLE_DA_pancake=.false.
        print*,'ERROR IN DAREA, INA = ',ina
        !        X = SQRT(-ONE)
        !        PRINT*,X
@@ -4748,7 +4749,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     real(dp) c
     character(10) c10,k10
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -4756,7 +4757,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     endif
     if(ina.lt.1.or.ina.gt.nda_dab) then
        write(line,'(a22,i8)') 'ERROR IN darea77, INA = ',ina
-       C_%STABLE_DA=.false.
+       C_%STABLE_DA_pancake=.false.
     endif
     !
     inoa = idano(ina)
@@ -4826,7 +4827,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     !
     !etienne
     !    if(check_da) then
-    C_%STABLE_DA=.false.
+    C_%STABLE_DA_pancake=.false.
     return
     !    endif
     !READ(*,*) I
@@ -4974,14 +4975,14 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     integer i,ia,illa,ilma,ino1,inoi,inv1,invi,ipoa,ipause,mypauses
     integer,dimension(:)::iaa
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", "big problem in dabnew ", sqrt(crash)
        endif
        return
     endif
     call dainf(iaa(1),ino1,inv1,ipoa,ilma,illa)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", "big problem in dabnew ", sqrt(crash)
        endif
@@ -4990,7 +4991,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     !
     do i=2,ia
        call dainf(iaa(i),inoi,invi,ipoa,ilma,illa)
-       if((.not.C_%STABLE_DA)) then
+       if((.not.C_%STABLE_DA_pancake)) then
           if(c_%watch_user) then
              write(6,*) "big problem in dabnew ", sqrt(crash)
           endif
@@ -5084,7 +5085,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
          ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj,ipause,mypauses
     real(dp) x,xdivi
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -5092,7 +5093,7 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
     call dainf(inc,inoc,invc,ipoc,ilmc,illc)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
@@ -5239,14 +5240,14 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero 
     integer i,illa,ilma,ina,inoa,inva,ipoa,ipause,mypauses
     real(dp) cm,xran
     !
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
        return
     endif
     call dainf(ina,inoa,inva,ipoa,ilma,illa)
-    if((.not.C_%STABLE_DA)) then
+    if((.not.C_%STABLE_DA_pancake)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
