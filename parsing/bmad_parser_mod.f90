@@ -454,19 +454,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     if (associated(a_ptrs(1)%r, space_charge_com%abs_tol_tracking))        bp_com%extra%sc_abs_tol_tracking_set         = .true.
     if (associated(a_ptrs(1)%r, space_charge_com%beam_chamber_height))     bp_com%extra%beam_chamber_height_set         = .true.
     if (associated(a_ptrs(1)%r, space_charge_com%sigma_cutoff))            bp_com%extra%sigma_cutoff_set                = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%n_bin))                   bp_com%extra%n_bin_set                       = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%particle_bin_span))       bp_com%extra%particle_bin_span_set           = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%n_shield_images))         bp_com%extra%n_shield_images_set             = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%sc_min_in_bin))           bp_com%extra%sc_min_in_bin_set               = .true.
-    if (associated(a_ptrs(1)%l, space_charge_com%lsc_kick_transverse_dependence)) bp_com%extra%lsc_kick_transverse_dependence_set = .true.
-    if (associated(a_ptrs(1)%l, space_charge_com%debug))                   bp_com%extra%sc_debug_set                    = .true.
 
-    if (associated(a_ptrs(1)%i, ptc_com%max_fringe_order))                 bp_com%extra%max_fringe_order_set            = .true.
-    if (associated(a_ptrs(1)%i, ptc_com%old_integrator))                   bp_com%extra%old_integrator_set              = .true.
-    if (associated(a_ptrs(1)%l, ptc_com%use_orientation_patches))          bp_com%extra%use_orientation_patches_set     = .true.
-    if (associated(a_ptrs(1)%l, ptc_com%print_info_messages))              bp_com%extra%print_info_messages_set         = .true.
-    if (associated(a_ptrs(1)%l, ptc_com%exact_model))                      bp_com%extra%exact_model_set                 = .true.
-    if (associated(a_ptrs(1)%l, ptc_com%exact_misalign))                   bp_com%extra%exact_misalign_set              = .true.
     if (associated(a_ptrs(1)%r, ptc_com%vertical_kick))                    bp_com%extra%vertical_kick_set               = .true.
     if (associated(a_ptrs(1)%r, ptc_com%cut_factor))                       bp_com%extra%cut_factor_set                  = .true.
 
@@ -483,6 +471,14 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     if (associated(a_ptrs(1)%i, bmad_com%runge_kutta_order))              bp_com%extra%runge_kutta_order_set               = .true.
     if (associated(a_ptrs(1)%i, bmad_com%sad_n_div_max))                  bp_com%extra%sad_n_div_max_set                   = .true.
     if (associated(a_ptrs(1)%i, bmad_com%max_num_runge_kutta_step))       bp_com%extra%max_num_runge_kutta_step_set        = .true.
+
+    if (associated(a_ptrs(1)%i, space_charge_com%n_bin))                   bp_com%extra%n_bin_set                       = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%particle_bin_span))       bp_com%extra%particle_bin_span_set           = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%n_shield_images))         bp_com%extra%n_shield_images_set             = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%sc_min_in_bin))           bp_com%extra%sc_min_in_bin_set               = .true.
+
+    if (associated(a_ptrs(1)%i, ptc_com%max_fringe_order))                 bp_com%extra%max_fringe_order_set            = .true.
+    if (associated(a_ptrs(1)%i, ptc_com%old_integrator))                   bp_com%extra%old_integrator_set              = .true.
 
   elseif (associated(a_ptrs(1)%l)) then
     if (associated(a_ptrs(1)%l, bmad_com%auto_bookkeeper)) a_ptrs(1)%l => logic  ! Auto_bookkeeper must not be set.
@@ -504,6 +500,14 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     if (associated(a_ptrs(1)%l, bmad_com%convert_to_kinetic_momentum))    bp_com%extra%convert_to_kinetic_momentum_set     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%aperture_limit_on))              bp_com%extra%aperture_limit_on_set               = .true.
     if (associated(a_ptrs(1)%l, bmad_com%debug))                          bp_com%extra%debug_set                           = .true.
+
+    if (associated(a_ptrs(1)%l, space_charge_com%lsc_kick_transverse_dependence)) bp_com%extra%lsc_kick_transverse_dependence_set = .true.
+    if (associated(a_ptrs(1)%l, space_charge_com%debug))                   bp_com%extra%sc_debug_set                    = .true.
+
+    if (associated(a_ptrs(1)%l, ptc_com%use_orientation_patches))          bp_com%extra%use_orientation_patches_set     = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%print_info_messages))              bp_com%extra%print_info_messages_set         = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%exact_model))                      bp_com%extra%exact_model_set                 = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%exact_misalign))                   bp_com%extra%exact_misalign_set              = .true.
 
   else
     call parser_error ('BOOKKEEPING ERROR. PLEASE CONTACT A BMAD MAINTAINER!')
