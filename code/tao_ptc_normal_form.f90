@@ -69,7 +69,8 @@ call alloc(c_tay)
 
 ptc_nf%valid_map = .true.
 
-call ptc_map_to_normal_form (ptc_nf%one_turn_map, ptc_nf%normal_form, ptc_nf%phase, ptc_nf%spin_tune)
+call ptc_map_to_normal_form (ptc_nf%one_turn_map, ptc_nf%state%nocavity, &
+                                      ptc_nf%normal_form, ptc_nf%phase, ptc_nf%spin_tune)
 
 mm = mass_of(branch%param%particle) / branch%ele(0)%value(p0c$)
 beta0 = branch%ele(0)%value(p0c$) / branch%ele(0)%value(E_tot$)
