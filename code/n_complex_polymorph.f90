@@ -982,6 +982,7 @@ contains
     c_%real_warning => real_warning
     c_%check_da => check_da
     c_%stable_da => stable_da
+    c_%stable_da_pancake => stable_da_pancake
     ! c_%stable_da => CHECK_STABLE
     c_%no => no
     c_%nv => nv
