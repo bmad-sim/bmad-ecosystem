@@ -1971,10 +1971,12 @@ If \vn{-lattice} is present, \vn{show beam} will show the beam sigma matrix as c
 lattice at the position given by \vn{<element_id>} (\sref{s:lat.sig.init}). If an
 element is not specified, the beginning element (with index 0) will be used.
 
-If the \vn{-comb} is present, \vn{<element_id>} should be an integer which is the index
-of the comb of longitudinally equally spaced points where the beam parameters are evaluated at.
-Note: \vn{comb_ds_save} (\sref{s:tao.global.struct}) is used to set the spacing between points.
-If \vn{<element_id>} is not present, information about all the comb points is output.
+If the \vn{-comb} is present, \vn{<element_id>} should be an integer which is the index of the comb
+of longitudinally equally spaced points where the beam parameters are evaluated at.  Note:
+\vn{comb_ds_save} (\sref{s:tao.global.struct}) is used to set the spacing between points.  If
+\vn{<element_id>} is not present, information about all the comb points is output. Also see the
+\vn{write bunch_comb} (\sref{s:write.bunch.comb}) and \vn{python bunch_comb} (\sref{p:bunch.comb})
+commands.
 
 Note: To show individual particle positions, see the \vn{show particle} command
 (\sref{s:show.particle}).
@@ -3713,6 +3715,7 @@ Format:
   write beam ...                  ! \sref{s:write.beam}
   write blender ...               ! \sref{s:write.blender}
   write bmad ...                  ! \sref{s:write.bmad}
+  write bunch_comb ...            ! \sref{s:write.bunch.comb}
   write covariance_matrix ...     ! \sref{s:write.covar.matrix}
   write curve ...                 ! \sref{s:write.curve}
   write derivative_matrix ...     ! \sref{s:write.deriv.matrix}
@@ -3846,6 +3849,56 @@ HDF5. The other three field description types are always stored using ASCII file
 
 \begin{example}
   write bmad -format one lat.bmad  ! Single lattice file lat.bmad created.
+\end{example}
+
+%% write bunch_comb --------------------------------------------------------------
+
+\subsection{write bunch_comb}
+\label{s:write.bunch.comb}
+
+The \vn{write bunch_comb} command writes to a file bunch parameters (bunch sigma matrix, etc.) at
+the ``comb'' points where these aggragrate bunch parameters are saved (\sref{s:beam.init}). Also see
+the \vn{show beam -comb} (\sref{s:show.beam} and \vn{python bunch_comb} (\sref{p:bunch.comb})
+commands. Syntax:
+\begin{example}
+    write bunch_comb \{-branch <ix_branch> \} \{-centroid\} \{-ix_bunch <ix_bunch>\} 
+                        \{-min_max\} \{-sigma\} \{-universe <ix_uni>\} \{file_name\}  
+\end{example}
+
+There are three file types described below. For all types the file will contain a table. The rows of
+the table correspond to different comb points. The columns of the table correspond to varias bunch
+parameters calculated at the comb points.
+\begin{description}
+\item[-centroid] \Newline
+The table generated when the \vn{-centroid} switch is present has columns showing phase space and
+spin centroid values averaged over the bunch. Additionally, the sigmas for the six phase space
+variables are given along with emittances for the three normal modes.
+%
+\item[-min_max] \Newline
+The table generated when the \vn{-min_max} switch is present has columns showing the minimum and
+maximum values for the six phase space coordinates of all the particles of the bunch.
+% 
+\item[-sigma] \Newline 
+The table generated when the \vn{-sigma} switch is present has columns giving values of the bunch
+beam size sigma matrix.
+\end{description}
+If no file type switch is given, \vn{-sigma} is the default.
+
+The \vn{file_name} option gives the name of the output file. If not present, the default name is
+``\vn{bunch_comb.XXX}'' where ``\vn{.XXX} is suffix that is set dependent upon the type of output
+file. ``\vn{.centroid}'' for the centroid table, etc.
+
+The \vn{-branch} switch specifies which branch to use the comb from. The default is the default
+branch.
+
+The \vn{-ix_bunch} switch specifies which bunch comb to use (if there are multiple bunches in a beam).
+
+The \vn{-universe} switch specifies which universe to look in for the comb. The default is the
+current default universe.
+
+Examples:
+\begin{example}
+  write bunch_c -uni 2 -cent  ! Centroid type table for universe 2
 \end{example}
 
 %% write covariance_matrix --------------------------------------------------------------
@@ -3982,7 +4035,7 @@ Syntax:
 
 The \vn{write matrix} command writes transport matrices to a file for a particular lattice branch
 determined by the \vn{-universe} and \vn{-branch} switches. The default is the current viewed
-universe and lattice branch 0.
+universe and default lattice branch.
 
 If \vn{<file_name>} is not present, the default file name to write to is \vn{matrix.dat}.
 
@@ -4060,8 +4113,8 @@ If \vn{-all} is not present, only one main flat file is generated. In this case,
 present, the flat file generated will be of the ``old'' syntax. Generally there is no reason to
 generate old style flat files. When generating a single flat file (no \vn{-all} switch present), the
 flat file will contain the information for a single lattice branch. The lattice branch used can be
-specified by the \vn{-branch} switch. The default, if \vn{-branch} is not present, is to use lattice
-branch \# 0. The \vn{-old} switch will generate an ``old style'' version.
+specified by the \vn{-branch} switch. The default, if \vn{-branch} is not present, is to use default
+branch. The \vn{-old} switch will generate an ``old style'' version.
 
 In all cases, the \vn{write ptc} command can only be used after a \vn{ptc init} command has been
 used to setup PTC.

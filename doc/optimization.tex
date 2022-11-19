@@ -184,11 +184,11 @@ and the RMS is evaluated assuming linear variation between points.
 \bottomrule
 \end{tabular}
 }
-  \caption{
-The expression
-used to combine the values of \vn{model}, \vn{base}, \vn{design}, \vn{meas}, and \vn{ref} into one
-``composite'' value is determined by the settings of \vn{opt_with_ref} and \vn{opt_with_base} global
-parameters. These expressions are the same as Table~\ref{t:delta.v}.
+  \caption[Expression used to combine the values of \vn{model}, \vn{base}, \vn{design}, \vn{meas}, and
+\vn{ref} into one ``composite'' value.]{
+The expression used to combine the values of \vn{model}, \vn{base}, \vn{design}, \vn{meas}, and
+\vn{ref} into one ``composite'' value is determined by the settings of \vn{opt_with_ref} and
+\vn{opt_with_base} global parameters. These expressions are the same as Table~\ref{t:delta.v}.
   }
 \label{t:delta.d}
 \end{table}
@@ -281,10 +281,10 @@ variable value goes past a limit.  The default is \vn{True}.
 \bottomrule
 \end{tabular}
 }
-  \caption{
+  \caption[The formulas for evaluating $\delta V$ used in the Merit function.]{
 When \vn{merit_type} is set to \vn{"target"}, the formula for evaluating $\delta V$ is determined by
-the settings of \vn{opt_with_ref} and \vn{opt_with_base} global parameters. These expressions are
-the same as Table~\ref{t:delta.d}.
+the settings of \vn{opt_with_ref} and \vn{opt_with_base} global parameters as shown in the
+table. These expressions are the same as Table~\ref{t:delta.d}.
   }
 \label{t:delta.v}
 \end{table}

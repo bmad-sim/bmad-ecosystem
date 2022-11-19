@@ -505,6 +505,7 @@ case ('branch1')
 !%% bunch_comb
 !
 ! Outputs bunch parameters at a comb point. 
+! Also see the "write bunch_comb" and "show bunch -comb" commands.
 !
 ! Notes
 ! -----
