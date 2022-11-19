@@ -40,6 +40,9 @@ type (tao_data_struct), pointer :: dat
 type (tao_data_struct), target :: datum
 type (tao_v1_var_struct), pointer :: v1
 type (tao_spin_map_struct), pointer :: sm
+type (bunch_track_struct), pointer :: bunch_params_comb(:)
+type (bunch_track_struct), pointer :: comb1
+type (bunch_params_struct), pointer :: bpt
 
 real(rp) scale, mat6(6,6)
 real(rp), allocatable :: values(:)
@@ -54,10 +57,10 @@ character(200) file_name0, file_name, what2
 character(200) :: word(12)
 character(*), parameter :: r_name = 'tao_write_cmd'
 
-integer i, j, k, m, n, ie, id, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
+integer i, j, k, m, n, ie, ic, id, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word, ix_w2, file_format
 integer n_type, n_ref, n_start, n_ele, n_merit, n_meas, n_weight, n_good, n_bunch, n_eval, n_s
-integer i_min, i_max, n_len, len_d_type, ix_branch
+integer i_min, i_max, n_len, len_d_type, ix_branch, ix_bunch
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append, write_floor
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
@@ -75,7 +78,7 @@ if (err) return
 call match_word (action, [character(20):: &
               'hard', 'gif', 'ps', 'variable', 'bmad', 'derivative_matrix', 'digested', &
               'curve', 'mad', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', 'elegant', &
-              'mad8', 'madx', 'pdf', 'pdf-l', 'opal', '3d_model', 'gif-l', &
+              'mad8', 'madx', 'pdf', 'pdf-l', 'opal', '3d_model', 'gif-l', 'bunch_comb', &
               'ptc', 'sad', 'spin_mat8', 'blender', 'namelist', 'xsif', 'matrix'], &
               ix, .true., matched_name = action)
 
@@ -251,6 +254,134 @@ case ('bmad')
     if (err) return
     call out_io (s_info$, r_name, 'Written: ' // file_name)
   enddo
+
+!---------------------------------------------------
+case ('bunch_comb')
+
+  file_name = ''
+  switch = '-sigma'
+  i_uni = -1
+  b_name = ''
+  ix_bunch = 1
+
+  do 
+    ix_word = ix_word + 1
+    call tao_next_switch (word(ix_word), [character(16):: '-sigma', '-min_max', &
+             '-universe', '-centroid', '-ix_bunch', '-branch'], .true., switch, err, ix)
+
+    if (err) return
+
+    select case (switch)
+    case ('')
+      exit
+    case ('-sigma', '-min_max', '-centroid')
+      which = switch
+    case ('-universe')
+      ix_word = ix_word + 1
+      if (.not. is_integer(word(ix_word), i_uni)) then
+        call out_io (s_error$, r_name, 'BAD UNIVERSE INDEX: ' // word(ix_word))
+        return
+      endif
+    case ('ix_bunch')
+      ix_word = ix_word + 1
+      if (.not. is_integer(word(ix_word), ix_bunch)) then
+        call out_io (s_error$, r_name, 'BAD BUNCH INDEX: ' // word(ix_word))
+        return
+      endif
+
+    case ('-branch')
+      ix_word = ix_word + 1
+      b_name = word(ix_word)
+    case default
+      if (file_name /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name = switch
+    end select
+  enddo
+
+  u => tao_pointer_to_universe(i_uni)
+  if (.not. associated(u)) then
+    call out_io (s_error$, r_name, 'BAD UNIVERSE INDEX: ' // word(i_uni))
+    return
+  endif
+
+  branch => pointer_to_branch(b_name, u%model%lat, blank_branch = s%global%default_branch)
+  if (.not. associated(branch)) then
+    call out_io (s_error$, r_name, 'BAD LATTICE BRANCH NAME OR INDEX: ' // b_name)
+    return
+  endif
+
+  if (.not. allocated(u%model%tao_branch(branch%ix_branch)%bunch_params_comb)) then
+    call out_io (s_error$, r_name, 'COMB ARRAY NOT ALLOCATED. PROBABLY CAUSED BY NO BUNCH TRACKING.')
+    return
+  endif
+  bunch_params_comb => u%model%tao_branch(ix_branch)%bunch_params_comb
+
+  if (ix_bunch > size(bunch_params_comb)) then
+    call out_io (s_error$, r_name, 'IX_BUNCH INDEX OUT OF RANGE.')
+    return
+  endif
+  comb1 => bunch_params_comb(ix_bunch)
+
+
+  if (file_name == '') file_name = 'bunch_comb.' // which(2:)
+  open (iu, file = file_name, recl = 500)
+
+  select case (which)
+  case ('-sigma')
+    write (iu, '(a3, a7, 2a12, 2x, 21a14)') '# 1', '2', '3', '4', '5', '6', '7', '8', '9', '10', &
+                    '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25'
+
+    write (iu, '(a4, a7, 2a12, 2x, 21a14)') '# Ix', 'N-Live', 'S-Pos', 'Time', &
+      '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
+      '<y.y>', '<y.py>', '<y.z>', '<y.pz>', '<py.py>', '<py.z>', '<py.pz>', '<z.z>', '<z.pz>', '<pz.pz>'
+
+    do ic = 0, comb1%n_pt
+      bpt => comb1%pt(ic)
+      write (iu, '(i4, i7, f12.6, es14.6, 2x, 21es14.6)') ic, bpt%n_particle_live, bpt%centroid%s, bpt%centroid%t, &
+                            ((bpt%sigma(i,j), j = i,6), i = 1,6)
+    enddo
+
+  case ('-centroid')
+    write (iu, '(a3, a7, 2a12, 4a14, 2x, 7a14, 2x, 6a14, 2x, 3a14, 2x, 3a14)') '# 1', '2', '3', '4', &
+                    '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', &
+                    '20', '21', '22', '23', '24', '25', '26', '27'
+
+    write (iu, '(a4, a7, 2a12, a16, a12, 2a14, 2x, 7a14, 2x, 6a14, 2x, 3a14, 3x, 3a14)') '# Ix', &
+                   'N-Live', 'S-Pos', 'Time', &
+                   'Polarization', '<Sx>', '<Sy>', '<Sz>', &
+                   '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>', &
+                   'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz', &
+                   'Emit_a', 'Emit_b', 'Emit_c', 'Norm_Emit_a', 'Norm_Emit_b', 'Norm_Emit_c'
+
+    do ic = 0, comb1%n_pt
+      bpt => comb1%pt(ic)
+      write (iu, '(i4, i7, f12.6, es14.6, 4f14.9, 2x, 7es14.6, 2x, 6es14.6, 2(2x, 3es14.6))') ic, &
+              bpt%n_particle_live, bpt%centroid%s, bpt%centroid%t, &
+              norm2(bpt%centroid%spin), bpt%centroid%spin, bpt%centroid%vec, bpt%centroid%p0c, &
+              bpt%a%sigma, bpt%a%sigma_p, bpt%b%sigma, bpt%b%sigma_p, bpt%c%sigma, bpt%c%sigma_p, &
+              bpt%a%emit, bpt%b%emit, bpt%c%emit, bpt%a%norm_emit, bpt%b%norm_emit, bpt%c%norm_emit
+    enddo
+
+  case ('-min_max')
+    write (iu, '(a3, a7, 2a12, 6(2x, 2a14))') '# 1', '2', '3', '4', '5', '6', '7', '8', '9', '10', &
+                    '11', '12', '13', '14', '15', '16'
+
+    write (iu, '(a4, a7, 2a12, 6(2x, 2a14))') '# Ix', 'N-Live', 'S-Pos', 'Time', &
+                  'x_min', 'x_max', 'px_min', 'px_max', 'y_min', 'y_max', &
+                  'py_min', 'py_max', 'z_min', 'z_max', 'pz_min', 'pz_max'
+
+    do ic = 0, comb1%n_pt
+      bpt => comb1%pt(ic)
+      write (iu, '(i4, i7, f12.6, es14.6, 6(2x, 2es14.6))') ic, bpt%n_particle_live, bpt%centroid%s, bpt%centroid%t, &
+                            (bpt%rel_min(i), bpt%rel_max(i), i = 1,6)
+    enddo
+  end select
+
+  call out_io (s_info$, r_name, 'Written: ' // file_name)
+  close (iu)
 
 !---------------------------------------------------
 case ('covariance_matrix')
@@ -530,7 +661,7 @@ case ('matrix')
     return
   endif
 
-  branch => pointer_to_branch(b_name, u%model%lat, blank_is_branch0 = .true.)
+  branch => pointer_to_branch(b_name, u%model%lat, blank_branch = s%global%default_branch)
   if (.not. associated(branch)) then
     call out_io (s_error$, r_name, 'BAD LATTICE BRANCH NAME OR INDEX: ' // b_name)
     return
@@ -538,7 +669,6 @@ case ('matrix')
 
   if (file_name == '') file_name = 'matrix.dat'
   open (iu, file = file_name)
-
 
   call mat_make_unit(mat6)
 
@@ -936,7 +1066,7 @@ case ('ptc')
     case ('-old', '-all')
       which = switch
     case ('-branch')
-      branch => pointer_to_branch (what2(1:ix_w2), u%model%lat)
+      branch => pointer_to_branch (what2(1:ix_w2), u%model%lat, blank_branch = s%global%default_branch)
       if (.not. associated(branch)) then
         call out_io (s_fatal$, r_name, 'Bad branch name or index: ' // what2(:ix_w2))
         return

@@ -75,6 +75,7 @@ Where:
 
 
 Outputs bunch parameters at a comb point. 
+Also see the "write bunch_comb" and "show bunch -comb" commands.
 
 \begin{example}
    python bunch_comb \{flags\} \{who\} \{ix_uni\}@\{ix_branch\} \{ix_bunch\}
@@ -734,7 +735,7 @@ Where:
   {ele_id} is an element name or index.
   {which} is one of: "model", "base" or "design"
   {index} is the index number in the ele%gen_grad_map(:) array
-  {who} is one of: "base", or "terms".
+  {who} is one of: "base", or "derivs".
 
 Example:
   python ele:gen_grad_map 3@1>>7|model 2 base
