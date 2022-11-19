@@ -1009,7 +1009,7 @@ type(work) w_bks
 !     MODULE PROCEDURE step_symp_x_PANCAkEr
 !  END INTERFACE
 
-  INTERFACE feval
+  INTERFACE FEVAL_pancake
      MODULE PROCEDURE FEVAL_pancaker
      MODULE PROCEDURE FEVAL_pancakeP
   END INTERFACE
@@ -17697,11 +17697,15 @@ call  kill(del,pz,h)
        be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
        CALL fxc(f,x,k,be,EL%p,el%hc)
     endif
-        if(k%TIME) then
-          F(6)=f(6)+(k%TOTALPATH-1)/EL%P%BETA0
-            else
-          F(6)=f(6)+(k%TOTALPATH-1)
-        endif
+ 
+
+ !       if(k%TIME) then
+ !         F(6)=f(6)+(k%TOTALPATH-1.0_dp)/EL%P%BETA0
+ !           else
+ !         F(6)=f(6)+(k%TOTALPATH-1.0_dp)
+ !       endif
+ 
+
   END subroutine feval_PANCAkEr
 
   subroutine feval_PANCAkEP(POS,X,k,f,EL)
@@ -17737,11 +17741,11 @@ call  kill(del,pz,h)
        be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
        CALL fxc(f,x,k,be,EL%p,el%hc)
     endif
-        if(k%TIME) then
-          F(6)=f(6)+(k%TOTALPATH-1)/EL%P%BETA0
-            else
-          F(6)=f(6)+(k%TOTALPATH-1)
-        endif
+  !      if(k%TIME) then
+  !        F(6)=f(6)+(k%TOTALPATH-1.0_dp)/EL%P%BETA0
+  !          else
+  !        F(6)=f(6)+(k%TOTALPATH-1.0_dp)
+  !      endif
     CALL KILL(B); call kill(be)
 
   END subroutine feval_PANCAkEP
@@ -17826,7 +17830,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
 
-    call feval(tI,y,k,f,gr)
+    call feval_pancake(tI,y,k,f,gr)
     do  j=1,ne
        a(j)=h*f(j)
     enddo
@@ -17835,7 +17839,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     enddo
 
     tt=tI+GR%p%dir
-    call feval(tt,yt,k,f,gr)
+    call feval_pancake(tt,yt,k,f,gr)
     do  j=1,ne
        b(j)=h*f(j)
     enddo
@@ -17845,7 +17849,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
 
 
     tt=tI+GR%p%dir
-    call feval(tt,yt,k,f,gr)
+    call feval_pancake(tt,yt,k,f,gr)
     do  j=1,ne
        c(j)=h*f(j)
     enddo
@@ -17854,7 +17858,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     enddo
 
     tt=tI+2*GR%p%dir
-    call feval(tt,yt,k,f,gr)
+    call feval_pancake(tt,yt,k,f,gr)
     do  j=1,ne
        d(j)=h*f(j)
     enddo
@@ -17894,7 +17898,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     call alloc(d,ne)
 
 
-    call feval(tI,y,k,f,gr)
+    call feval_pancake(tI,y,k,f,gr)
     do  j=1,ne
        a(j)=h*f(j)
     enddo
@@ -17903,7 +17907,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     enddo
 
     tt=tI+GR%p%dir
-    call feval(tt,yt,k,f,gr)
+    call feval_pancake(tt,yt,k,f,gr)
     do  j=1,ne
        b(j)=h*f(j)
     enddo
@@ -17913,7 +17917,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
 
 
     tt=tI+GR%p%dir
-    call feval(tt,yt,k,f,gr)
+    call feval_pancake(tt,yt,k,f,gr)
     do  j=1,ne
        c(j)=h*f(j)
     enddo
@@ -17922,7 +17926,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     enddo
 
     tt=tI+2*GR%p%dir
-    call feval(tt,yt,k,f,gr)
+    call feval_pancake(tt,yt,k,f,gr)
     do  j=1,ne
        d(j)=h*f(j)
     enddo
