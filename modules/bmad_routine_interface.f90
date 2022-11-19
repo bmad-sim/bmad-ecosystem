@@ -14,7 +14,7 @@ use bmad_struct
 !
 ! This routine is an overloaded name for:
 !   pointer_to_branch_given_ele (ele) result (branch_ptr))
-!   pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_is_branch0) result (branch_ptr)
+!   pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_branch) result (branch_ptr)
 !
 ! The lattice branch *associated* with a given element is not necessarily the
 ! branch where the element is *located*. For example, all lords live in branch #0.
@@ -26,13 +26,12 @@ use bmad_struct
 ! which can happen, for example, with overlay elements.
 !
 ! Input:
-!   ele                  -- Ele_struct: Element contained in the branch.
-!   branch_name          -- Character(*): May be a branch name or a branch index.
-!   lat                  -- Lat_struct: Lattice to search.
+!   ele                  -- ele_struct: Element contained in the branch.
+!   branch_name          -- character(*): May be a branch name or a branch index.
+!   lat                  -- lat_struct: Lattice to search.
 !   parameter_is_branch0 -- logical, optional: If True, 'PARAMETER' is taken to be
 !                             an alternative name for branch(0). Default is False.
-!   blank_is_branch0     -- logical, optional: If True, branch_name = '' is taken to be
-!                             an alternative name for branch(0). Default is False.
+!   blank_branch         -- integer, optional: Branch index if branch_name = ''. Default is blank is an error.
 !
 ! Output:
 !   branch_ptr  -- branch_struct, pointer: Pointer to the branch.
@@ -40,12 +39,13 @@ use bmad_struct
 !-
 
 interface pointer_to_branch
-  function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_is_branch0) result (branch_ptr)
+  function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_branch) result (branch_ptr)
     import
     implicit none
     type (branch_struct), pointer :: branch_ptr
     type (lat_struct), target :: lat
-    logical, optional :: parameter_is_branch0, blank_is_branch0
+    integer, optional :: blank_branch
+    logical, optional :: parameter_is_branch0
     character(*) branch_name
   end function
 
