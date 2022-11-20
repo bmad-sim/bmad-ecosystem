@@ -161,11 +161,12 @@ if (full_name(max(1,n-4):n) == '.hdf5' .or. full_name(max(1,n-2):n) == '.h5') th
     do i = 1, size(beam%bunch)
       p => beam%bunch(i)%particle
       if (size(p) < beam_init%n_particle) then
-        call out_io (s_error$, r_name, &
-                'NUMBER OF PARTICLES ' // int_str(size(p)) // 'DEFINED IN BEAM FILE: ' // full_name, &
-                'LESS THAN NUMBER OF PARTICLES WANTED WHICH IS SET BY BEAM_INIT%N_PARTICLE: ' // int_str(np))
-        cycle
+        call out_io (s_warn$, r_name, &
+                'Number of particles ' // int_str(size(p)) // ' defined in beam file: ' // full_name, &
+                'less than number of particles wanted which is set by beam_init%n_particle: ' // int_str(np))
       endif
+
+      np = min(size(p), np)
       call move_alloc (beam%bunch(i)%particle, p_temp)
       allocate (beam%bunch(i)%particle(np))
       beam%bunch(i)%particle = p_temp(1:np)
