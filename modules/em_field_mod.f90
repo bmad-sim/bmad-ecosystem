@@ -589,7 +589,7 @@ end function field_interpolate_3d
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine em_field_derivatives (ele, param, z_pos, orbit, local_ref_frame, dfield, rf_time)
+! Subroutine em_field_derivatives (ele, param, z_pos, orbit, local_ref_frame, dfield, grid_allow_s_out_of_bounds, rf_time)
 !
 ! Routine to calculate field derivatives.
 ! In theory this should be handled by em_filed_calc. In practice, em_field_calc is currently incomplete.
@@ -605,13 +605,16 @@ end function field_interpolate_3d
 !     %vec(1), %vec(3)  -- Transverse coords. These are the only components used in the calculation.
 !   local_ref_frame     -- Logical, If True then take the input coordinates and output fields 
 !                                   as being with respect to the frame of referene of the element (ignore misalignments). 
-!   rf_time         -- real(rp), optional: RF clock time. If not present then the time will be calculated using the standard algorithm.
+!   grid_allow_s_out_of_bounds 
+!                    -- logical, optional: For grids, allow s-coordinate to be grossly out of bounds 
+!                         and return zero instead of an error? Default: False. Used internally for overlapping fields.
+!   rf_time          -- real(rp), optional: RF clock time. If not present then the time will be calculated using the standard algorithm.
 !
 ! Output:
 !   dfield       -- em_field_struct: E and B field derivatives. dfield%E and dfield%B are not touched.
 !-
 
-subroutine em_field_derivatives (ele, param, z_pos, orbit, local_ref_frame, dfield, rf_time)
+subroutine em_field_derivatives (ele, param, z_pos, orbit, local_ref_frame, dfield, grid_allow_s_out_of_bounds, rf_time)
 
 type (ele_struct), target :: ele
 type (lat_param_struct) param
@@ -621,6 +624,7 @@ type (coord_struct) :: orbit, orb
 real(rp), optional :: rf_time
 real(rp) z_pos, s0, s1, del
 logical local_ref_frame
+logical, optional :: grid_allow_s_out_of_bounds
 
 !
 
@@ -628,9 +632,12 @@ orb = orbit
 del = bmad_com%d_orb(1)
 
 orb%vec(1) = orbit%vec(1) - del
-call em_field_calc (ele, param, z_pos, orb, .true., f0, rf_time = rf_time)
+call em_field_calc (ele, param, z_pos, orb, .true., f0, &
+                            grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
+
 orb%vec(1) = orbit%vec(1) + del
-call em_field_calc (ele, param, z_pos, orb, .true., f1, rf_time = rf_time)
+call em_field_calc (ele, param, z_pos, orb, .true., f1, &
+                            grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
 
 dfield%dB(:,1) = (f1%B - f0%B) / (2 * del)
 dfield%dE(:,1) = (f1%E - f0%E) / (2 * del)
@@ -641,9 +648,12 @@ orb = orbit
 del = bmad_com%d_orb(3)
 
 orb%vec(3) = orbit%vec(3) - del
-call em_field_calc (ele, param, z_pos, orb, .true., f0, rf_time = rf_time)
+call em_field_calc (ele, param, z_pos, orb, .true., f0, &
+                            grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
+
 orb%vec(3) = orbit%vec(3) + del
-call em_field_calc (ele, param, z_pos, orb, .true., f1, rf_time = rf_time)
+call em_field_calc (ele, param, z_pos, orb, .true., f1, &
+                            grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
 
 dfield%dB(:,2) = (f1%B - f0%B) / (2 * del)
 dfield%dE(:,2) = (f1%E - f0%E) / (2 * del)
@@ -657,8 +667,11 @@ s0 = max(0.0_rp, z_pos-del)
 s1 = min(ele%value(l$), z_pos+del)
 if (s1 == s0) return  ! Cannot calc if zero length
 
-call em_field_calc (ele, param, s0, orbit, .true., f0, rf_time = rf_time)
-call em_field_calc (ele, param, s1, orbit, .true., f1, rf_time = rf_time)
+call em_field_calc (ele, param, s0, orbit, .true., f0, &
+                            grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
+
+call em_field_calc (ele, param, s1, orbit, .true., f1, &
+                            grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
 
 dfield%dB(:,3) = (f1%B - f0%B) / (s1 - s0)
 dfield%dE(:,3) = (f1%E - f0%E) / (s1 - s0)
