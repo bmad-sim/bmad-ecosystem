@@ -33,12 +33,12 @@ module da_arrays_pancake
 
   integer nda_dab
   integer :: ndamaxi=0
-  real(dp),TARGET :: total_da_size = 1.D10  !c_300
+  real(dp),TARGET :: total_da_size = 1.D38  ! Was 1.D10  !c_300
   integer nst0,nomax,nvmax,nmmax,nocut,lfi
   real(dp) facint(0:lno)
   integer nhole
    !integer,TARGET :: lda_used =150 
- integer,TARGET :: lda_used =150
+ integer,TARGET :: lda_used =10000 ! Was 150
 
 contains
 
