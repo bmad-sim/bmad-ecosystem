@@ -752,9 +752,11 @@ do j = 1, slave%n_lord
   ! n_major_lords counts how many major lords there are.
 
   if (n_major_lords == 0) then
-    slave%mat6_calc_method = lord%mat6_calc_method
-    slave%tracking_method  = lord%tracking_method
+    slave%mat6_calc_method            = lord%mat6_calc_method
+    slave%tracking_method             = lord%tracking_method
     slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
+    slave%csr_method                  = lord%csr_method
+    slave%space_charge_method         = lord%space_charge_method
   endif
 
   if (has_attribute (lord, 'FRINGE_TYPE')) then
@@ -799,6 +801,9 @@ do j = 1, slave%n_lord
           err_flag = .true.
         endif
       endif
+
+      if (slave%csr_method == off$) slave%csr_method = lord%csr_method
+      if (slave%space_charge_method == off$) slave%space_charge_method = lord%space_charge_method
 
       if (slave%taylor_map_includes_offsets .neqv. lord%taylor_map_includes_offsets) then
         call out_io(s_abort$, r_name, &
@@ -1373,6 +1378,8 @@ slave%symplectify                 = lord%symplectify
 slave%multipoles_on               = lord%multipoles_on
 slave%scale_multipoles            = lord%scale_multipoles
 slave%is_on                       = lord%is_on
+slave%csr_method                  = lord%csr_method
+slave%space_charge_method         = lord%space_charge_method
 
 if (slave%tracking_method == bmad_standard$ .and. slave%key == em_field$) slave%tracking_method = runge_kutta$
 if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave%mat6_calc_method = tracking$
