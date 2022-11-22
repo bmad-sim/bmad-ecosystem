@@ -1369,7 +1369,7 @@ do
 
   ! Does this element wrap around?
 
-  if (branch%param%geometry == closed$ .and. x2 < x1 .and. ele%value(l$) > 0) then
+  if (x2 < x1 .and. ele%value(l$) > 0) then
     if (x1 > graph%x%min .and. x1 < graph%x%max) then
       call draw_shape_for_lat_layout (label_name, x1, x1 + ele%value(l$), y1, y2, min(graph%x%max, x1+ele%value(l$)/2), ele_shape)
     endif
