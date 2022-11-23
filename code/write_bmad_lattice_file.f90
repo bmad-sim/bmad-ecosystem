@@ -293,6 +293,7 @@ else
   if (lat%particle_start%vec(4) /= 0) write (iu, '(2a)') 'particle_start[py] = ', re_str(lat%particle_start%vec(4))
   if (lat%particle_start%vec(5) /= 0) write (iu, '(2a)') 'particle_start[z]  = ', re_str(lat%particle_start%vec(5))
   if (lat%particle_start%vec(6) /= 0) write (iu, '(2a)') 'particle_start[pz] = ', re_str(lat%particle_start%vec(6))
+  if (lat%particle_start%t /= 0)      write (iu, '(2a)') 'particle_start[t]  = ', re_str(lat%particle_start%t)
 
   if (lat%particle_start%spin(1) /= 0) write (iu, '(2a)') 'particle_start[spin_x] = ', re_str(lat%particle_start%spin(1))
   if (lat%particle_start%spin(2) /= 0) write (iu, '(2a)') 'particle_start[spin_y] = ', re_str(lat%particle_start%spin(2))

@@ -406,8 +406,8 @@ enddo ! Branch loop
 
 ! Correct particle_start info
 
-call init_coord (lat%particle_start, lat%particle_start, lat%ele(0), downstream_end$, &
-                                                            E_photon = lat%particle_start%p0c, shift_vec6 = .false.)
+!call init_coord (lat%particle_start, lat%particle_start, lat%ele(0), downstream_end$, &
+!                                                            E_photon = lat%particle_start%p0c, shift_vec6 = .false.)
 
 ! Put the appropriate energy values in the lord elements...
 
