@@ -163,7 +163,8 @@ if (full_name(max(1,n-4):n) == '.hdf5' .or. full_name(max(1,n-2):n) == '.h5') th
       if (size(p) < beam_init%n_particle) then
         call out_io (s_warn$, r_name, &
                 'Number of particles ' // int_str(size(p)) // ' defined in beam file: ' // full_name, &
-                'less than number of particles wanted which is set by beam_init%n_particle: ' // int_str(np))
+                'less than number of particles wanted which is set by beam_init%n_particle: ' // int_str(np), &
+                'The setting of beam_init%n_particle will be ignored.')
       endif
 
       np = min(size(p), np)

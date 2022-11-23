@@ -94,15 +94,16 @@ if (error_flag) return
 call check_if_s_in_bounds (branch, real_option(branch%param%total_length, s2), error_flag, ss2)
 if (error_flag) return
 
+ix_ele = element_at_s (branch, ss1, .true.)
+
 if (unit_start_this) then
   call taylor_make_unit (t_map)
   if (present(ref_orb_in)) t_map%ref = ref_orb_in%vec
 endif
 
 if (present(ref_orb_in)) then
-  orb = ref_orb_in
+  call init_coord(orb, ref_orb_in, branch%ele(ix_ele), inside$)
 else
-  ix_ele = element_at_s (branch, s1, .true.)
   v6 = 0
   call init_coord(orb, v6, branch%ele(ix_ele), inside$)
 endif
