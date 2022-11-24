@@ -8,8 +8,9 @@
   implicit none
     private
   public alloc_pancake,init_pancake,kill_pancake,ppushGETN_pancake,mtree_pancake
-  public ppushstore_pancake,dacon_pancake,dacop_pancake,dacdi_pancake
-  public daall0_pancake,dapok_pancake,daadd_pancake,dapri_pancake
+  public ppushstore_pancake,dacon_pancake,dacop_pancake,dacdi_pancake,damul_pancake,davar_pancake
+  public daall0_pancake,dapok_pancake,daadd_pancake,dadal1_pancake,dacmu_pancake
+  public dapri_pancake,dapri77_pancake,darea_pancake,darea77_pancake
  !   public ldamax, lstmax,leamax,liamax
   private daallno1,daall,damult,dasqrt,dacmut,dacma,DALINt,dafunt,dacctt
   private dainvt,dapint,dadert,dacfuRt,dacfuIt,dacfut
@@ -36,7 +37,41 @@ implicit none
 integer ina,iunit
      call dapri(ina,iunit)
 end subroutine dapri_pancake
+   
+ subroutine dapri77_pancake(ina,iunit)
+    implicit none
+  integer ina,iunit
 
+   call dapri77(ina,iunit)
+
+ end subroutine dapri77_pancake
+
+    subroutine darea77_pancake(ina,iunit)
+    implicit none
+     integer ina,iunit
+      call darea77(ina,iunit)
+    end subroutine darea77_pancake 
+
+    subroutine darea_pancake(ina,iunit)
+    implicit none
+     integer ina,iunit
+      call darea(ina,iunit)
+    end subroutine darea_pancake 
+
+
+  subroutine dacmu_pancake(ina,ckon,inb)
+    implicit none
+    integer ina,inb
+    real(dp) ckon
+     call dacmu(ina,ckon,inb)
+
+    end subroutine dacmu_pancake
+
+    subroutine damul_pancake(ina,inb,inc)
+    implicit none
+    integer ina,inb,inc 
+     call damul(ina,inb,inc)
+    end subroutine damul_pancake
 
     subroutine daadd_pancake(ina,inb,inc)
     implicit none
@@ -51,6 +86,16 @@ end subroutine dapri_pancake
     call dapok(ina,jv,cjj)
   end subroutine dapok_pancake
 
+    subroutine davar_pancake(ina,ckon,i)
+    implicit none
+    integer i,ina 
+    real(dp) ckon
+
+    call davar(ina,ckon,i)
+
+    end subroutine davar_pancake
+
+
   subroutine alloc_pancake(ic) 
   integer ic(:),i
     do i=1,size(ic)
@@ -64,6 +109,14 @@ end subroutine dapri_pancake
      call daall0(ic ) 
      
   end subroutine daall0_pancake
+
+  subroutine dadal1_pancake(ic) 
+  integer ic 
+ 
+     call dadal1(ic ) 
+     
+  end subroutine dadal1_pancake
+
 
   subroutine kill_pancake(ic) 
   integer ic(:),i
@@ -4420,6 +4473,7 @@ end subroutine dapri_pancake
     !
     return
       end subroutine dapri
+
     subroutine dapri77(ina,iunit)
     implicit none
     !     ***************************
