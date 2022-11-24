@@ -1155,32 +1155,6 @@ end subroutine set_ptc_verbose
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine write_ptc_flat_file_lattice (file_name, branch)
-!
-! Routine to create a PTC flat file lattice from a Bmad branch.
-!
-! Input:
-!   file_name     -- character(*): Flat file name.
-!   branch        -- branch_struct: Branch containing a layout.
-!-
-
-subroutine write_ptc_flat_file_lattice (file_name, branch)
-
-use pointer_lattice
-
-type (branch_struct) branch
-character(*) file_name
-
-!
-
-call print_complex_single_structure (branch%ptc%m_t_layout, file_name)
-
-end subroutine write_ptc_flat_file_lattice
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
 ! Subroutine update_ele_from_fibre (ele)
 !
 ! Routine to update a bmad lattice element when the associated PTC fibre has been modified.

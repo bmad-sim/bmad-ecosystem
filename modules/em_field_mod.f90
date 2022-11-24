@@ -678,4 +678,79 @@ dfield%dE(:,3) = (f1%E - f0%E) / (s1 - s0)
 
 end subroutine em_field_derivatives
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Fuction gen_grad_field (deriv, m, sincos, rho, theta) result (field)
+!
+! Routine to calculate the field from a generalized gradient.
+!
+! Input:
+!   deriv(0:)     -- real(rp): Array of derivatives.
+!   m             -- integer: Azimuthal order.
+!   sincos        -- integer: sin$ or cos$
+!   rho, theta    -- real(rp): Particle transverse position in cylindrical coords.
+!
+! Output:
+!   field(3)      -- real(rp): Field.
+!-
+
+function gen_grad_field (deriv, m, sincos, rho, theta) result (field)
+
+real(rp) deriv(0:), field(3), rho, theta
+real(rp) cd, f, ff, F_rho, F_theta, p_rho
+
+integer m, sincos 
+integer id, nn
+logical is_even
+
+!
+
+field = 0
+
+do id = 0, ubound(deriv,1)
+  cd = deriv(id)
+  if (cd == 0) cycle
+
+  is_even = (modulo(id,2) == 0)
+  if (is_even) then
+    nn = id / 2
+  else
+    nn = (id - 1) / 2
+  endif
+
+  f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
+
+  if (id+m-1 <= 0) then  ! Covers case where rho = 0
+    p_rho = 1
+  else
+    p_rho = rho**(id+m-1)
+  endif
+
+  ff = f * p_rho * cd
+
+  if (is_even) then
+    if (sincos == sin$) then
+      F_rho   = ff * (2*nn+m) * sin(m*theta)
+      F_theta = ff * m * cos(m*theta)
+    else
+      F_rho   = ff * (2*nn+m) * cos(m*theta)
+      F_theta = -ff * m * sin(m*theta)
+    endif
+    field(1) = field(1) + F_rho * cos(theta) - F_theta * sin(theta)
+    field(2) = field(2) + F_rho * sin(theta) + F_theta * cos(theta)
+
+  else
+    if (sincos == sin$) then
+      field(3) = field(3) + ff * sin(m*theta)
+    else
+      field(3) = field(3) + ff * cos(m*theta)
+    endif
+  endif
+
+enddo
+
+end function
+
 end module

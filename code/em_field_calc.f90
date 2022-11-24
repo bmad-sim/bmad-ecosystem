@@ -1584,10 +1584,9 @@ type (gen_grad_map_struct), target :: gg_map
 type (gen_grad1_struct), pointer :: gg
 type (em_field_struct) field
 
-real(rp) r_pos(3), z_rel, theta, rho, cd, p_rho, ff, Fld(3), F_rho, F_theta, f0, f1
-real(rp), allocatable :: d0(:), d1(:)
-integer iz0, m, j, id, nd, nn
-logical is_even
+real(rp) r_pos(3), z_rel, theta, rho, f0, f1
+real(rp), allocatable :: d0(:), d1(:), der(:)
+integer iz0, j, id, nd
 
 !
 
@@ -1614,64 +1613,25 @@ rho = norm2(r_pos(1:2))
 
 do j = 1, size(gg_map%gg)
   gg => gg_map%gg(j)
-  m = gg%m
   nd = ubound(gg%deriv,2)
+
   call re_allocate2(d0, 0, nd, .false.)
   call re_allocate2(d1, 0, nd, .false.)
+  call re_allocate2(der, 0, nd, .false.)
+
   d0 = gg%deriv(iz0,:)
   d1 = gg%deriv(iz0+1,:)
 
   do id = 0, nd
-    cd = f0*poly_eval(d0(id:), z_rel, diff_coef=.true.) + f1*poly_eval(d1(id:), z_rel-gg_map%dz, diff_coef=.true.)
-    if (cd == 0) cycle
-
-    is_even = (modulo(id,2) == 0)
-    if (is_even) then
-      nn = id / 2
-    else
-      nn = (id - 1) / 2
-    endif
-
-    f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
-
-    if (id+m-1 <= 0) then  ! Covers case where rho = 0
-      p_rho = 1
-    else
-      p_rho = rho**(id+m-1)
-    endif
-
-    ff = f * p_rho * cd * gg_map%field_scale * master_parameter_value(gg_map%master_parameter, ele)
-
-    if (is_even) then
-      if (gg%sincos == sin$) then
-        F_rho   = ff * (2*nn+m) * sin(m*theta)
-        F_theta = ff * m * cos(m*theta)
-      else
-        F_rho   = ff * (2*nn+m) * cos(m*theta)
-        F_theta = -ff * m * sin(m*theta)
-      endif
-      Fld(1) = F_rho * cos(theta) - F_theta * sin(theta)
-      Fld(2) = F_rho * sin(theta) + F_theta * cos(theta)
-      if (gg_map%field_type == magnetic$) then
-        field%B(1:2) = field%B(1:2) + Fld(1:2)
-      else
-        field%E(1:2) = field%E(1:2) + Fld(1:2)
-      endif
-
-    else
-      if (gg%sincos == sin$) then
-        Fld(3) = ff * sin(m*theta)
-      else
-        Fld(3) = ff * cos(m*theta)
-      endif
-
-      if (gg_map%field_type == magnetic$) then
-        field%B(3) = field%B(3) + Fld(3)
-      else
-        field%E(3) = field%E(3) + Fld(3)
-      endif
-    endif
+    der(id) = f0*poly_eval(d0(id:), z_rel, diff_coef=.true.) + f1*poly_eval(d1(id:), z_rel-gg_map%dz, diff_coef=.true.)
   enddo
+
+  if (gg_map%field_type == magnetic$) then
+    field%B = field%B + gen_grad_field (der, gg%m, gg%sincos, rho, theta) * (gg_map%field_scale * master_parameter_value(gg_map%master_parameter, ele))
+  else
+    field%E = field%E + gen_grad_field (der, gg%m, gg%sincos, rho, theta) * (gg_map%field_scale * master_parameter_value(gg_map%master_parameter, ele))
+  endif
+
 enddo
 
 end subroutine gen_grad_add_em_field
