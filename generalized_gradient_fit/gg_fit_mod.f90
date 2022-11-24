@@ -1,7 +1,7 @@
 module gg_fit_mod
 
 use lmdif_mod
-use bmad_struct
+use em_field_mod
 use expression_mod, only: sin$, cos$
 use super_recipes_mod
 
@@ -45,7 +45,7 @@ type (plot1_struct), allocatable, target :: plot_arr(:)
 !
 
 integer, parameter :: m_max = 30
-integer :: Nx_min, Nx_max, Ny_min, Ny_max, Nz_min, Nz_max
+integer :: Nx_min, Nx_max, Ny_min, Ny_max, Nz_min = int_garbage$, Nz_max = int_garbage$
 integer :: n_grid_pts
 integer :: n_cycles = 100000
 integer :: every_n_th_plane = 1, n_planes_add = 0, n_deriv_keep = -1
@@ -64,10 +64,11 @@ real(rp), allocatable :: Bx_diff(:,:), By_diff(:,:), Bz_diff(:,:)
 real(rp), allocatable :: dBx_dvar(:,:), dBy_dvar(:,:), dBz_dvar(:,:)
 
 ! del_grid is the difference between (x,y,z) points in the units of the grid file.
+! del_meters is the difference between (x,y,z) points in the units of meters.
 ! length_scale is table file (x,y,z) units in meters. length_scale = table_units/meters
 ! field_scale is the field table field in Tesla or V/m.
 
-real(rp) :: del_grid(3), r0_grid(3), field_scale, length_scale, r_max
+real(rp) :: del_grid(3), del_meters(3), r0_grid(3), r0_meters(3), field_scale, length_scale, r_max
 real(rp) :: z_min = real_garbage$, z_max = real_garbage$
 real(rp) :: lmdif_eps = 1d-12
 
@@ -98,6 +99,9 @@ subroutine read_field_table (field_file)
 
 implicit none
 
+type (lat_struct), target :: lat
+type (grid_field_struct), pointer :: gf
+
 real(rp) xx, yy, zz, Bx, By, Bz
 
 integer ios, ios1, ios2
@@ -108,10 +112,51 @@ logical, allocatable :: valid_field(:,:,:)
 character(*) :: field_file
 character(200) line
 
+! Lattice
+
+if (index(field_file, '.bmad')) then
+
+  nullify(gf)
+
+  call bmad_parser (field_file, lat)
+  do i = 1, lat%n_ele_max
+    if (.not. associated(lat%ele(i)%grid_field)) cycle
+    gf => lat%ele(i)%grid_field(1)
+    print '(a)', 'Field table from lattice element: ' // trim(lat%ele(i)%name)
+    exit
+  enddo
+
+  if (.not. associated(gf)) then
+    print '(a)', 'CANNOT FIND LATTICE ELEMENT WITH FIELD TABLE!'
+    stop
+  endif
+
+  length_scale = 1.0_rp
+  field_scale = 1.0_rp
+  Nx_min = lbound(gf%ptr%pt, 1); Nx_max = ubound(gf%ptr%pt, 1)
+  Ny_min = lbound(gf%ptr%pt, 2); Ny_max = ubound(gf%ptr%pt, 2)
+  Nz_min = lbound(gf%ptr%pt, 3); Nz_max = ubound(gf%ptr%pt, 3)
+  del_grid = gf%dr
+  r0_grid = gf%r0
+
+  allocate (Bx_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+  allocate (Bz_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), valid_field(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+  valid_field = .true.
+
+  if (gf%field_type == magnetic$) then
+    Bx_dat = gf%ptr%pt%B(1)
+    By_dat = gf%ptr%pt%B(2)
+    Bz_dat = gf%ptr%pt%B(3)
+  else
+    Bx_dat = gf%ptr%pt%E(1)
+    By_dat = gf%ptr%pt%E(2)
+    Bz_dat = gf%ptr%pt%E(3)
+  endif
+
 ! Binary
 ! Notice that the binary table stores lengths in meters and fields in Tesla independent of length_scale and field_scale.
 
-if (index(field_file, '.binary') /= 0) then
+elseif (index(field_file, '.binary') /= 0) then
 
   open (1, file = field_file, form = 'unformatted', status = 'OLD', action = 'READ')
   read (1) length_scale, field_scale
@@ -130,6 +175,8 @@ if (index(field_file, '.binary') /= 0) then
     if (ios /= 0) exit
     valid_field(i,j,k) = .true.
   enddo
+
+  close (1)
 
 ! ASCII
 
@@ -195,13 +242,13 @@ else
     valid_field(i,j,k) = .true.
   end do
 
-  del_grid = del_grid * length_scale
-  r0_grid = r0_grid * length_scale
+  del_meters = del_grid * length_scale
+  r0_meters = r0_grid * length_scale
+
+  close (1)
 endif
 
 !
-
-close (1)
 
 print '(a, f12.4)', 'Length scale:', length_scale
 print '(a, es11.3)', 'Field scale:', field_scale
@@ -265,22 +312,25 @@ end subroutine read_field_table
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine write_binary_field_table (field_file)
+! Subroutine write_binary_field_table (out_file)
 ! 
 ! Routine to write in a field table. Units are: Tesla (or V/m) independent of field_scale value.
 !
 ! Input:
-!   field_file    -- character(*): Name of file
+!   out_file    -- character(*): Name of file
 !-
 
-subroutine write_binary_field_table (field_file)
+subroutine write_binary_field_table (out_file)
 
 integer ix, iy, iz
-character(*) field_file
+character(*) out_file
+character(200) ofile
 
 ! Write binary table
 
-open (1, file = trim(field_file) // '.binary', form = 'unformatted')
+ofile = out_file
+if (index(ofile, '.binary') == 0) ofile = trim(ofile) // 'binary'
+open (1, file = ofile, form = 'unformatted')
 
 write (1) length_scale, field_scale
 write (1) Nx_min, Nx_max
@@ -299,54 +349,53 @@ enddo
 
 close (1)
 
+print '(2a)', 'Binary field table file written: ', trim(ofile)
+
 end subroutine write_binary_field_table
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine write_ascii_field_table (field_file)
+! Subroutine write_ascii_field_table (out_file)
 ! 
 ! Routine to write a subset in z of the field table. 
 !
 ! Input:
-!   field_file    -- character(*): Name of file.
+!   out_file    -- character(*): Name of file.
 !-
 
-subroutine write_ascii_field_table (field_file)
+subroutine write_ascii_field_table (out_file)
 
 integer ix, iy, iz, n
-character(*) field_file
+character(*) out_file
 character(40) fmt
 
 ! Write ascii table
 
-ix = index(field_file, '.binary')
-if (ix == 0) then
-  open (1, file = trim(field_file) // '.partial')
-else
-  open (1, file = field_file(:ix-1) // '.partial')
-endif
+open (1, file = trim(out_file))
 
 n = nint(log10(length_scale))
 write (fmt, '(a,i0,a)') '(3f12.', 6+n, ', 3es20.11)'
 
 write (1, '(es14.6, a)') length_scale, '  ! length_scale in meters'
 write (1, '(es14.6, a)') field_scale,  '  ! field_scale in Tesla or V/m'
-write (1, '(3f10.6, a)') del_grid/length_scale, '  ! del_grid'
-write (1, '(3f10.6, a)') r0_grid/length_scale,  '  ! r0_grid'
+write (1, '(3f10.6, a)') del_grid,     '  ! del_grid'
+write (1, '(3f10.6, a)') r0_grid,      '  ! r0_grid'
 
 
 do ix = Nx_min, Nx_max
 do iy = Ny_min, Ny_max
 do iz = iz_min, iz_max
-  write (1, fmt) ix*del_grid(1)/length_scale, iy*del_grid(2)/length_scale, iz*del_grid(3)/length_scale, &
+  write (1, fmt) ix*del_grid(1), iy*del_grid(2), iz*del_grid(3), &
               Bx_dat(ix,iy,iz)/field_scale, By_dat(ix,iy,iz)/field_scale, Bz_dat(ix,iy,iz)/field_scale
 enddo
 enddo
 enddo
 
 close (1)
+
+print '(2a)', 'ASCII field table file written: ', trim(out_file)
 
 end subroutine write_ascii_field_table
 
@@ -386,8 +435,8 @@ do ix = 1, nx
 do iy = 1, ny
   n = n + 1
   allocate (plot_arr(n)%B(iz_min:iz_max))
-  plot_arr(n)%ix = nint(x_pos_plot(ix) / del_grid(1))
-  plot_arr(n)%iy = nint(y_pos_plot(iy) / del_grid(2))
+  plot_arr(n)%ix = nint(x_pos_plot(ix) / del_meters(1))
+  plot_arr(n)%iy = nint(y_pos_plot(iy) / del_meters(2))
 enddo
 enddo
 
@@ -452,7 +501,7 @@ var_vec = 0
 
 do iz = iz_min, iz_max, every_n_th_plane
   print *, '===================================='
-  print '(a, f10.4, a, i0, a)', ' Plane:', iz*del_grid(3), ' (', iz, ')'
+  print '(a, f10.4, a, i0, a)', ' Plane:', iz*del_meters(3), ' (', iz, ')'
   print *, 'Cycle   Merit (rms)'
 
   iz0 = max(Nz_min, iz-n_planes_add)
@@ -580,14 +629,14 @@ do izz = iz0, iz1
         nn = (id - 1) / 2
       endif
 
-      coef = poly_eval(var_vec(iv:iv+n_deriv_max-id), (izz-iz)*del_grid(3), .true.)
+      coef = poly_eval(var_vec(iv:iv+n_deriv_max-id), (izz-iz)*del_meters(3), .true.)
 
       f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
 
       do ix = Nx_min, Nx_max
-        x = ix * del_grid(1)
+        x = ix * del_meters(1)
         do iy = Ny_min, Ny_max
-          y = iy * del_grid(2)
+          y = iy * del_meters(2)
           rho = sqrt(x*x + y*y)
           theta = atan2(y,x)
 
@@ -764,8 +813,8 @@ if (out_file == '') out_file = 'gg'
 
 open (1, file = trim(out_file) // '.plot')
 
-write (1, '(4(a, f8.4))')  '# del_grid = [', del_grid(1), ',', del_grid(2), ',', del_grid(3), ']'
-write (1, '(4(a, f8.4))')  '# r0_grid  = [', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), ']'
+write (1, '(4(a, f8.4))')  '# del = [', del_meters(1), ',', del_meters(2), ',', del_meters(3), ']'
+write (1, '(4(a, f8.4))')  '# r0  = [', r0_meters(1), ',', r0_meters(2), ',', r0_meters(3), ']'
 write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
 
 do ig = 1, size(gg1)
@@ -779,7 +828,7 @@ do ig = 1, size(gg1)
   write (1, '(a, i2)') '# Iz     z_pos    Derivs'
 
   do iz = iz_min, iz_max
-    write (1, '(i4, f10.4, 99es16.8)') iz, iz*del_grid(3)+r0_grid(3), fit(iz)%rms0, gg%deriv(iz,:)
+    write (1, '(i4, f10.4, 99es16.8)') iz, iz*del_meters(3)+r0_meters(3), fit(iz)%rms0, gg%deriv(iz,:)
   enddo
 enddo
 
@@ -789,8 +838,8 @@ close (1)
 
 open (1, file = trim(out_file) // '.info')
 
-write (1, '(4(a, f8.4))')  '# del_grid = [', del_grid(1), ',', del_grid(2), ',', del_grid(3), ']'
-write (1, '(4(a, f8.4))')  '# r0_grid  = [', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), ']'
+write (1, '(4(a, f8.4))')  '# del = [', del_meters(1), ',', del_meters(2), ',', del_meters(3), ']'
+write (1, '(4(a, f8.4))')  '# r0  = [', r0_meters(1), ',', r0_meters(2), ',', r0_meters(3), ']'
 write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
 
 do ig = 1, size(gg1)
@@ -806,7 +855,7 @@ do ig = 1, size(gg1)
 
   nmax = ubound(gg%deriv,2)
   do iz = iz_min, iz_max
-    write (1, '(i4, f10.4, 2es13.4, 99es16.8)') iz, iz*del_grid(3)+r0_grid(3), &
+    write (1, '(i4, f10.4, 2es13.4, 99es16.8)') iz, iz*del_meters(3)+r0_grid(3), &
                   fit(iz)%rms0, fit(iz)%rms_fit/fit(iz)%rms0, &
                   (gg%deriv(iz,n) * r_max**(max(0,m+n-1)) * (n+m) * factorial(m) / (factorial(n/2) * factorial(n/2+m)), n = 0, nmax)
   enddo
@@ -821,7 +870,7 @@ open (1, file = trim(out_file) // '.bmad', recl = 500)
 
 write (1, '(a)')              '  field_calc = fieldmap,'
 write (1, '(a)')              '  gen_grad_map = {'
-write (1, '(a, f10.6, a)')    '    dz =', del_grid(3), ','
+write (1, '(a, f10.6, a)')    '    dz =', del_meters(3), ','
 write (1, '(3(a, f12.8), a)') '    r0 = (', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), '),'
 
 do ig = 1, size(gg1)
@@ -833,9 +882,9 @@ do ig = 1, size(gg1)
 
   write (fmt, '(a, i0, a)') '(f13.4, a, ', size(gg%deriv,2), 'es20.12, a)' 
   do iz = iz_min, iz_max-1
-    write (1, fmt) iz*del_grid(3), ':', gg%deriv(iz,:), ','
+    write (1, fmt) iz*del_meters(3), ':', gg%deriv(iz,:), ','
   enddo
-  write (1, fmt) iz_max*del_grid(3), ':', gg%deriv(iz_max,:)
+  write (1, fmt) iz_max*del_meters(3), ':', gg%deriv(iz_max,:)
   write (1, '(a)') '      }'
   if (ig == size(gg1)) then
     write (1, '(a)') '    }'
@@ -856,17 +905,89 @@ do n = 1, size(plot_arr)
   open (1, file = 'plot_data/' // trim(out_file) // '.' // int_str(p%ix) // '.' // int_str(p%iy) // '.dat', recl = 300)
 
   write (1, '(a, i0)')    '# ix = ', p%ix
-  write (1, '(a, f12.6)') '# x  =', p%ix * del_grid(1)
+  write (1, '(a, f12.6)') '# x  =', p%ix * del_meters(1)
   write (1, '(a, i0)')    '# iy = ', p%iy
-  write (1, '(a, f12.6)') '# y  =', p%iy * del_grid(2)
+  write (1, '(a, f12.6)') '# y  =', p%iy * del_meters(2)
   write (1, '(a)') '#  (1)        (2)            (3)           (4)            (5)                 (6)           (7)            (8)                  (9)           (10)           (11)'
   write (1, '(a)') '#   Iz         Z            Bx_fit        By_fit         Bz_fit              Bx_dat        By_dat         Bz_dat            Bx_fit-Bx_dat  By_fit-By_dat  Bz_fit-Bz_dat'
   do iz = lbound(p%b,1), ubound(p%b,1)
-    write (1, '(i5, f12.6, 3(5x, 3es15.7))') iz, del_grid(3)*iz, p%B(iz)%fit, p%B(iz)%dat, p%B(iz)%fit-p%B(iz)%dat
+    write (1, '(i5, f12.6, 3(5x, 3es15.7))') iz, del_meters(3)*iz, p%B(iz)%fit, p%B(iz)%dat, p%B(iz)%fit-p%B(iz)%dat
   enddo
   close (1)
 enddo
 
 end subroutine write_gg
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+!-
+
+subroutine read_gg()
+
+type (lat_struct), target :: lat
+type (gen_grad_map_struct), pointer :: gg
+
+real(rp) field(3), theta, rho, xy(2)
+integer i, ix, iy, iz, ig
+
+!
+
+call bmad_parser (field_file, lat)
+
+nullify(gg)
+
+do i = 1, lat%n_ele_max
+  if (.not. associated(lat%ele(i)%gen_grad_map)) cycle
+  gg => lat%ele(i)%gen_grad_map(1)
+  print '(a)', 'Generalized gradient map from lattice element: ' // trim(lat%ele(i)%name)
+  exit
+enddo
+
+if (.not. associated(gg)) then
+  print '(a)', 'CANNOT FIND LATTICE ELEMENT WITH GENERALIZED GRANDIENT MAP.'
+  stop
+endif
+
+del_grid(3) = gg%dz / length_scale
+del_meters = del_grid * length_scale
+
+r0_grid = r0_grid * length_scale
+
+if (Nz_min == int_garbage$) Nz_min = gg%iz0
+if (Nz_min < gg%iz0) Nz_min = gg%iz0
+
+if (Nz_max == int_garbage$) Nz_max = gg%iz1
+if (Nz_max > gg%iz1) Nz_max = gg%iz1
+
+iz_min = Nz_min
+iz_max = Nz_max
+
+allocate (Bx_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+allocate (Bz_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+
+Bx_dat = 0; By_dat = 0; Bz_dat = 0
+
+do ix = Nx_min, Nx_max
+do iy = Ny_min, Ny_max
+do iz = Nz_min, Nz_max
+  
+  xy = [ix * del_grid(1), iy * del_grid(2)]
+  rho = norm2(xy)
+  theta = atan2(xy(2), xy(1))
+
+  do ig = 1, size(gg%gg)
+    field = gen_grad_field (gg%gg(ig)%deriv(iz,:), gg%gg(ig)%m, gg%gg(ig)%sincos, rho, theta)
+    Bx_dat(ix,iy,iz) = Bx_dat(ix,iy,iz) + field(1)
+    By_dat(ix,iy,iz) = By_dat(ix,iy,iz) + field(2)
+    Bz_dat(ix,iy,iz) = Bz_dat(ix,iy,iz) + field(3)
+  enddo
+
+enddo
+enddo
+enddo
+
+end subroutine read_gg
 
 end module

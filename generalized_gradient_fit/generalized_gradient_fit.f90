@@ -16,7 +16,8 @@ character(16) mode
 
 namelist /params / field_file, every_n_th_plane, n_deriv_max, m_cos, m_sin, n_cycles, &
               z_min, z_max, sym_x, sym_y, mode, lmdif_eps, printit, out_file, &
-              n_planes_add, n_deriv_keep, optimizer, x_pos_plot, y_pos_plot
+              n_planes_add, n_deriv_keep, optimizer, x_pos_plot, y_pos_plot, &
+              Nx_min, Nx_max, Ny_min, Ny_max, Nz_min, Nz_max, del_grid, r0_grid, field_scale, length_scale
 
 !
 
@@ -32,20 +33,24 @@ close (1)
 
 !
 
-call read_field_table(field_file)
-
-!
-
 select case (mode)
 case ('ascii')
-  call write_ascii_field_table(field_file)
+  call read_field_table(field_file)
+  call write_ascii_field_table(out_file)
 
 case ('binary')
-  call write_binary_field_table(field_file)
+  call read_field_table(field_file)
+  call write_binary_field_table(out_file)
 
 case ('fit')
+  call read_field_table(field_file)
   call fit_field()
   call write_gg()
+
+case ('output_table')
+  call read_gg()
+  call write_ascii_field_table(out_file)
+
 
 case default
   print *, 'I do not understand this mode: ', trim(mode)
