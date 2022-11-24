@@ -66,10 +66,7 @@ old_style = (index(line, 'high') == 0)
 
 call set_ptc_quiet(11, set$, n)
 
-if (old_style) then
-  call read_and_append_virgin_general (M_u, flat_file(1))
-
-elseif (size(flat_file) == 1) then
+if (size(flat_file) == 1) then
   call read_lattice_append(M_u, flat_file(1))
 
 else  ! New style, two files
