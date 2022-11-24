@@ -2288,19 +2288,6 @@ write(6,*) x_ref
           call read_lattice_append(M_U,filename)
           WRITE(6,*) M_U%END%N, M_U%END%END%POS
 
-       case('READFLATFILE')
-
-          READ(MF,*) FILENAME
-          CALL  READ_AND_APPEND_VIRGIN_general(M_U,filename)
-
-          WRITE(6,*) M_U%END%N, M_U%END%END%POS
-
-       case('PRINTFLATFILE')
-
-          READ(MF,*) FILENAME
-          CALL  print_COMPLEX_SINGLE_STRUCTURE(my_ering,filename,lmax0=lmax)
-
-          WRITE(6,*) M_U%END%N, M_U%END%END%POS
        case('SKIPMARKER','SKIPMARKERS')
         print_marker=my_false
        case('INCLUDEMARKER','INCLUDEMARKERS')
