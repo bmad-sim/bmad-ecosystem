@@ -114,7 +114,7 @@ character(200) line
 
 ! Lattice
 
-if (index(field_file, '.bmad')) then
+if (index(field_file, '.bmad') /= 0) then
 
   nullify(gf)
 
