@@ -17,7 +17,7 @@ use tao_top10_mod, only: tao_var_write
 use quick_plot, only: qp_open_page, qp_base_library, qp_close_page
 use blender_interface_mod, only: write_blender_lat_layout
 use madx_ptc_module, only: m_u, m_t, print_universe_pointed, &
-                           print_complex_single_structure, print_new_flat, print_universe
+                           print_new_flat, print_universe
 use beam_file_io, only: write_beam_file
 use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout
 
@@ -1088,10 +1088,6 @@ case ('ptc')
   endif
 
   select case (which)
-  case ('-old')
-    call print_complex_single_structure (branch%ptc%m_t_layout, file_name)
-    call out_io (s_info$, r_name, 'Written: ' // file_name)
-
   case ('-new')
     call print_new_flat (branch%ptc%m_t_layout, file_name)
     call out_io (s_info$, r_name, 'Written: ' // file_name)
