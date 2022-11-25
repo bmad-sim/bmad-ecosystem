@@ -856,6 +856,9 @@ if (bb%beam_init%use_particle_start .and. any(bb%beam_init%center /= u%model%lat
 endif
 
 ele0 => branch%ele(bb%ix_track_start)
+if (.not. bb%init_starting_distribution) then ! Needed since bb%beam_at_start may not be allocated yet.
+  if (ele0%value(p0c$) /= bb%beam_at_start%bunch(1)%particle(1)%p0c) bb%init_starting_distribution = .true.
+endif
 
 if (bb%init_starting_distribution .or. u%beam%always_reinit) then
   call init_beam_distribution (ele0, branch%param, bb%beam_init, beam, err, tao_branch%modes_ri)
