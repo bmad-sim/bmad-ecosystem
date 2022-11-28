@@ -1758,7 +1758,7 @@ if (bd%sig1(3) /= 0) bd%kurt(2) = orb4_sum(3) / (bd%n_live * bd%sig1(3)**4) - 3.
 if (bd%sig1(5) /= 0) bd%skew(3) = orb3_sum(5) / (bd%n_live * bd%sig1(5)**3)
 if (bd%sig1(5) /= 0) bd%kurt(3) = orb4_sum(5) / (bd%n_live * bd%sig1(5)**4) - 3.0_rp
 
-call calc_emittances_and_twiss_from_sigma_matrix (bd%sig_mat, 0.0_rp, bd%params, error, n_mat = n_inv_mat)
+call calc_emittances_and_twiss_from_sigma_matrix (bd%sig_mat, bd%params, error, n_mat = n_inv_mat)
 
 ! Calc core emit
 
