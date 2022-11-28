@@ -23,7 +23,7 @@ call mat_make_unit(mat0)
 
 orbit = orbit0
 mat6 = mat0
-call hard_bend_edge_kick(ele, lat%param, first_track_edge$, orbit, mat6, .true.)
+call hwang_bend_edge_kick(ele, lat%param, first_track_edge$, orbit, mat6, .true.)
 
 write (1, '(a, 6es14.6)') '"Up-Orb" ABS 1E-12', orbit%vec - orbit0%vec
 do i = 1, 6
@@ -34,7 +34,7 @@ write (1, '(a, es12.4)') '"Up-Symp-Err" ABS 1e-10', mat_symp_error(mat6)
 write (1, '(a)')
 orbit = orbit0
 mat6 = mat0
-call hard_bend_edge_kick(ele, lat%param, second_track_edge$, orbit, mat6, .true.)
+call hwang_bend_edge_kick(ele, lat%param, second_track_edge$, orbit, mat6, .true.)
 
 write (1, '(a, 6es14.6)') '"Dn-Orb" ABS 1E-12', orbit%vec - orbit0%vec
 do i = 1, 6
