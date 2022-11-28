@@ -58,7 +58,6 @@ character(*), parameter :: r_name = 'bend_edge_kick'
 if (.not. fringe_here(ele, orb, particle_at)) return
 
 ! Higher order fringes. 
-! Remember: In a bend, these fringes are turned on/off by ele%value(higher_order_fringe_type$)
 
 if (logic_option(.false., track_spin)) ave_orb = orb
 
@@ -75,19 +74,19 @@ case (full$)
   call exact_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 case (basic_bend$, hard_edge_only$)
-  call hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+  call hwang_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 case (sad_full$)
   if (particle_at == first_track_edge$) then
-    call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
-    call hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call sad_soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call hwang_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
   else
-    call hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
-    call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call hwang_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call sad_soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
   endif
 
 case (soft_edge_only$)
-  call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+  call sad_soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 case (linear_edge$)
   call linear_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
@@ -215,7 +214,7 @@ end subroutine linear_bend_edge_kick
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+! Subroutine hwang_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 !
 ! Subroutine to track through the edge field of an sbend using a 2nd order map.
 ! Adapted from:
@@ -237,7 +236,7 @@ end subroutine linear_bend_edge_kick
 !   mat6       -- Real(rp), optional: Transfer matrix including the edge.
 !-
 
-subroutine hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+subroutine hwang_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 implicit none
 
@@ -252,7 +251,7 @@ real(rp) dx, dpx, dy, dpy, dz
 integer particle_at, element_end, fringe_type
 
 logical, optional :: make_matrix
-character(24), parameter :: r_name = 'hard_bend_edge_kick'
+character(*), parameter :: r_name = 'hwang_bend_edge_kick'
 
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a dg.
@@ -292,9 +291,9 @@ if (particle_at == first_track_edge$) then
   dpx = (gt * g_tot * (1 + 2 * tan_e**2) * v(3)**2 / 2 + gt2 * (v(1) * v(2) - v(3) * v(4)) + k1_tane * (v(1)**2 - v(3)**2)) * e_factor
   dy  = gt2 * v(1) * v(3) * e_factor
   dpy = (fg_factor * v(3) - gt2 * v(1) * v(4) - (g_tot + gt2) * v(2) * v(3) - 2 * k1_tane * v(1) * v(3)) * e_factor
-  dz = e_factor**2 * 0.5_rp * (v(3)**2 * fg_factor + v(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + &
-            0.5_rp * v(1)*v(3)**2 * (-4.0_rp * k1_tane + gt * gs2) + 2.0_rp * (v(1)**2*v(2) - v(1)*v(3)*v(4)) * gt2 + &
-            v(2)*v(3)**2 * (g_tot + gt2))
+  dz = e_factor**2 * 0.5_rp * (v(3)**2 * fg_factor &
+            + v(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * v(1)*v(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
+            + (v(1)**2*v(2) - 2.0_rp * v(1)*v(3)*v(4)) * gt2 - v(2)*v(3)**2 * gs2)
 
   orb%vec(1) = v(1) + dx
   orb%vec(2) = v(2) + dpx + gt * v(1)
@@ -325,9 +324,9 @@ else
   dpx = (gt2 * (v(3) * v(4) - v(1) * v(2)) + k1_tane * (v(1)**2 - v(3)**2) - gt * gt2 * (v(1)**2 + v(3)**2) / 2) * e_factor
   dy  = -gt2 * v(1) * v(3) * e_factor
   dpy = (fg_factor * v(3) + gt2 * v(1) * v(4) + (g_tot + gt2) * v(2) * v(3) + (gt * gs2 - 2 * k1_tane) * v(1) * v(3)) * e_factor
-  dz = e_factor**2 * 0.5_rp * (v(3)**2 * fg_factor + v(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + &
-            0.5_rp * v(1)*v(3)**2 * (-4.0_rp * k1_tane + gt * gs2) - 2.0_rp * (v(1)**2*v(2) - v(1)*v(3)*v(4)) * gt2 + &
-            v(2)*v(3)**2 * (g_tot + gt2))
+  dz = e_factor**2 * 0.5_rp * (v(3)**2 * fg_factor &
+            + v(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * v(1)*v(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
+            - (v(1)**2*v(2) - 2.0_rp * v(1)*v(3)*v(4)) * gt2 + v(2)*v(3)**2 * gs2)
 
   orb%vec(1) = v(1) + dx
   orb%vec(2) = v(2) + dpx + gt * v(1)
@@ -369,7 +368,7 @@ if (logic_option(.false., make_matrix)) then
   mat6 = matmul (kmat, mat6)
 endif
 
-end subroutine hard_bend_edge_kick
+end subroutine hwang_bend_edge_kick
 
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
@@ -490,6 +489,7 @@ end subroutine sad_mult_hard_bend_edge_kick
 !
 ! Routine to add the SAD "linear" soft edge (for finite f1 or f2).
 ! This routine assumes that the particle orbit has been rotated to the element reference frame.
+! This routine is called with sad_mult and quadrupole elements.
 !
 ! Input:
 !   ele           -- ele_struct: Element being tracked through
@@ -524,12 +524,7 @@ logical, optional :: make_matrix
 
 !
 
-if (ele%key == sbend$) then
- fringe_type = nint(ele%value(higher_order_fringe_type$))
-else
- fringe_type = nint(ele%value(fringe_type$))
-endif
-
+fringe_type = nint(ele%value(fringe_type$))
 if (fringe_type /= soft_edge_only$ .and. fringe_type /= full$) return
 if (.not. fringe_here(ele, orbit, particle_at)) return
 
@@ -537,6 +532,8 @@ charge_dir = ele%orientation * orbit%direction
 if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param%particle)
 
 rel_p = 1 + orbit%vec(6)
+
+!
 
 select case (ele%key)
 case (quadrupole$)
@@ -553,7 +550,12 @@ case (sad_mult$)
   if (.not. associated(m_ele%a_pole)) return
   call multipole1_ab_to_kt (m_ele%a_pole(1), m_ele%b_pole(1), 1, k1_rel, tilt1)
   k1_rel = charge_dir * k1_rel / (m_ele%value(l$) * rel_p)
+
+case default
+  return
 end select
+
+!
 
 f1 = k1_rel * ele%value(fq1$)
 f2 = k1_rel * ele%value(fq2$)
@@ -660,12 +662,7 @@ logical, optional :: make_matrix
 
 ! Fringe here?
 
-if (ele%key == sbend$) then
-  fringe_type = nint(ele%value(higher_order_fringe_type$))
-else
-  fringe_type = nint(ele%value(fringe_type$))
-endif
-
+fringe_type = nint(ele%value(fringe_type$))
 select case (fringe_type)
 case (hard_edge_only$, full$)
 case default
@@ -818,7 +815,7 @@ end subroutine hard_multipole_edge_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+! Subroutine sad_soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 !
 ! Subroutine to track through the ("linear") bend soft edge field of an sbend or sad_mult.
 !
@@ -840,7 +837,7 @@ end subroutine hard_multipole_edge_kick
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix after fringe field
 !-
 
-subroutine soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+subroutine sad_soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 implicit none
 
@@ -857,7 +854,7 @@ integer :: particle_at, c_dir, element_end, fringe_type
 
 logical, optional :: make_matrix
 
-character(*), parameter :: r_name = 'soft_bend_edge_kick'
+character(*), parameter :: r_name = 'sad_soft_bend_edge_kick'
 
 !
 
@@ -942,7 +939,7 @@ orb%vec(5) = orb%vec(5) + (c1 * px + c2 * y**2/2 - c3 * y**4/4) / rel_p
 
 if (tilt /= 0) call tilt_coords (-tilt, orb%vec, mat6, make_matrix)
 
-end subroutine soft_bend_edge_kick
+end subroutine sad_soft_bend_edge_kick
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -973,7 +970,7 @@ implicit none
 real(rp) :: X(6)
 real(rp) :: a, beta0, g_tot
 real(rp) :: Xn(6),pz,pzs,pt,b1
-character(20) :: r_name = 'ptc_wedger'
+character(*), parameter :: r_name = 'ptc_wedger'
 real(rp), optional :: mat6(6,6)
 
 real(rp) dpz_dx2, dpz_dx4, dpz_dx5, dpt_dx4, dpt_dx5, fac, radix
@@ -1336,7 +1333,7 @@ implicit none
 real(rp) :: x(6)
 real(rp) :: x1,pz,pt
 real(rp) :: a, beta0
-character(20) :: r_name = 'ptc_rot_xz'
+character(*), parameter :: r_name = 'ptc_rot_xz'
 real(rp), optional :: mat6(6,6)
 real(rp) dpz_dx2, dpz_dx4, dpz_dx5, dpt_dx2, dpt_dx4, dpt_dx5, arg
 
@@ -1428,7 +1425,7 @@ integer :: particle_at
 
 logical err_flag
 logical, optional :: make_matrix
-character(20) :: r_name = 'exact_bend_edge_kick'
+character(*), parameter :: r_name = 'exact_bend_edge_kick'
 
 ! Get reference beta0
 

@@ -37,14 +37,14 @@ endif
 
 !
 
-if (beam_init%a_norm_emit /= 0) then
-  ele%a%emit = beam_init%a_norm_emit * mass_of(species) / ele%value(e_tot$)
+if (beam_init%a_norm_emit /= 0  .and. ele%value(p0c$) /= 0) then
+  ele%a%emit = beam_init%a_norm_emit * mass_of(species) / ele%value(p0c$)
 else
   ele%a%emit = beam_init%a_emit
 endif
 
-if (beam_init%b_norm_emit /= 0) then
-  ele%b%emit = beam_init%b_norm_emit * mass_of(species) / ele%value(e_tot$)
+if (beam_init%b_norm_emit /= 0 .and. ele%value(p0c$) /= 0) then
+  ele%b%emit = beam_init%b_norm_emit * mass_of(species) / ele%value(p0c$)
 else
   ele%b%emit = beam_init%b_emit 
 endif

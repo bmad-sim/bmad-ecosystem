@@ -1416,7 +1416,6 @@ call init_attribute_name1 (sbend$, rho$,                            'RHO', quasi
 call init_attribute_name1 (sbend$, l_chord$,                        'L_CHORD', quasi_free$)
 call init_attribute_name1 (sbend$, l_sagitta$,                      'L_SAGITTA', dependent$)
 call init_attribute_name1 (sbend$, ptc_fringe_geometry$,            'PTC_FRINGE_GEOMETRY')
-call init_attribute_name1 (sbend$, higher_order_fringe_type$,       'HIGHER_ORDER_FRINGE_TYPE')
 call init_attribute_name1 (sbend$, b_field$,                        'B_FIELD', quasi_free$)
 call init_attribute_name1 (sbend$, db_field$,                       'DB_FIELD', quasi_free$)
 call init_attribute_name1 (sbend$, b1_gradient$,                    'B1_GRADIENT', quasi_free$)
@@ -1822,7 +1821,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &
-      'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
+      'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
@@ -2271,12 +2270,6 @@ case ('GRID_FIELD^GEOMETRY')      ! This is for the Tao "python" command
 case ('GRID^TYPE')      ! This is for the Tao "python" command
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, surface_grid_type_name, lbound(surface_grid_type_name, 1))  
   if (present(is_default)) is_default = .false.
-
-case ('HIGHER_ORDER_FRINGE_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, higher_order_fringe_type_name, lbound(higher_order_fringe_type_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib_val == none$)
-  endif
 
 case ('INTERPOLATION')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, interpolation_name, lbound(interpolation_name, 1))

@@ -485,19 +485,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ! check fringe type
 
-    if (ele%key == sbend$ .or. ele%key == rbend$) then
-      select case (nint(ele%value(higher_order_fringe_type$)))
-      case (none$, soft_edge_only$, hard_edge_only$, full$)
-      case default
-        call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS AN SBEND OR RBEND', &
-                      'HAS INVALID HIGHER_ORDER_FRINGE_TYPE ATTRIBUTE: ' // &
-                          higher_order_fringe_type_name(nint(ele%value(higher_order_fringe_type$))))
-        err_flag = .true.
-      end select
-    endif
-
     if (has_attribute(ele, 'FRINGE_TYPE')) then
       if (.not. valid_fringe_type(ele, nint(ele%value(fringe_type$)))) then
         call out_io (s_fatal$, r_name, &

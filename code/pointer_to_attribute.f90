@@ -727,7 +727,6 @@ case ('FRINGE_TYPE');                    a_ptr%r => ele%value(fringe_type$)
 case ('GEOMETRY');                       a_ptr%r => ele%value(geometry$)
 case ('LIVE_BRANCH');                    a_ptr%r => ele%value(live_branch$)
 case ('FRINGE_AT');                      a_ptr%r => ele%value(fringe_at$)
-case ('HIGHER_ORDER_FRINGE_TYPE');       a_ptr%r => ele%value(higher_order_fringe_type$)
 case ('MAT6_CALC_METHOD');               a_ptr%i => ele%mat6_calc_method
 case ('MODE');                           a_ptr%r => ele%value(mode$)
 case ('ORIGIN_ELE_REF_PT');              a_ptr%r => ele%value(origin_ele_ref_pt$)
