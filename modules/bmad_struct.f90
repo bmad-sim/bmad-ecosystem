@@ -150,8 +150,6 @@ character(16), parameter :: fringe_type_name(0:7) = [character(16):: 'Garbage!',
                                    'None', 'Soft_Edge_Only', 'Hard_edge_only', 'Full', &
                                    'SAD_Full', 'Linear_Edge', 'Basic_Bend']
 
-character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_name(0:4)
-
 integer, parameter :: standing_wave$ = 1, traveling_wave$ = 2, ptc_standard$ = 3
 character(16), parameter :: cavity_type_name(0:3) = ['Garbage!      ', 'Standing_Wave ', 'Traveling_Wave', 'PTC_Standard  ']
 
@@ -1074,8 +1072,8 @@ type beam_init_struct
   character(16) :: random_gauss_converter = 'exact'  
                                             ! Or 'quick'. Uniform to gauss conversion method.
   real(rp) :: random_sigma_cutoff = -1      ! Cut-off in sigmas.
-  real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * gamma)
-  real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * gamma)
+  real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * beta * gamma)
+  real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * beta * gamma)
   real(rp) :: a_emit = 0                     ! a-mode emittance
   real(rp) :: b_emit = 0                     ! b-mode emittance
   real(rp) :: dPz_dz = 0                     ! Correlation of Pz with long position.
@@ -1613,7 +1611,7 @@ integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltag
 integer, parameter :: eps_step_scale$ = 9, voltage_err$ = 9, bragg_angle$ = 9, k1y$ = 9, n_particle$ = 9
 integer, parameter :: fringe_type$ = 10, dbragg_angle_de$ = 10
 integer, parameter :: fringe_at$ = 11, gang$ = 11, darwin_width_sigma$ = 11
-integer, parameter :: higher_order_fringe_type$ = 12, darwin_width_pi$ = 12
+integer, parameter :: darwin_width_pi$ = 12
 integer, parameter :: spin_fringe_on$ = 13, pendellosung_period_sigma$ = 13
 integer, parameter :: sig_x$ = 14, exact_multipoles$ = 14, pendellosung_period_pi$ = 14
 integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15

@@ -475,7 +475,7 @@ endif
 
 if (b_init%a_norm_emit < 0) then
   if (present(modes)) then
-    b_init%a_norm_emit = modes%a%emittance * ele%value(E_tot$) / mass_of(species)
+    b_init%a_norm_emit = modes%a%emittance * ele%value(p0c$) / mass_of(species)
   else
     call out_io (s_warn$, r_name, &
                     'a_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
@@ -486,7 +486,7 @@ endif
 
 if (b_init%b_norm_emit < 0) then
   if (present(modes)) then
-    b_init%b_norm_emit = modes%b%emittance * ele%value(E_tot$) / mass_of(species)
+    b_init%b_norm_emit = modes%b%emittance * ele%value(p0c$) / mass_of(species)
   else
     call out_io (s_warn$, r_name, &
                     'b_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
@@ -1401,7 +1401,7 @@ type (bunch_struct) :: bunch
 type (bunch_params_struct) bunch_params
 
 real(rp), optional :: n_mat(6,6)
-real(rp) eta, etap, gamma
+real(rp) eta, etap
 real(rp) :: sigma(6,6) = 0.0
 real(rp) :: charge_live, average_pc
 real(rp), allocatable :: charge(:)
@@ -1491,8 +1491,7 @@ call convert_pc_to (average_pc, species, beta = bunch_params%centroid%beta)
 
 if (bunch_params%n_particle_live < 12) return
 
-call convert_pc_to(average_pc, species, gamma=gamma)
-call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, gamma, bunch_params, error, print_err, n_mat)
+call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, bunch_params, error, print_err, n_mat)
 
 end subroutine calc_bunch_params
 
@@ -1500,15 +1499,13 @@ end subroutine calc_bunch_params
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine calc_emittances_and_twiss_from_sigma_matrix(sigma_mat, gamma, bunch_params, error, print_err, n_mat)
+! Subroutine calc_emittances_and_twiss_from_sigma_matrix(sigma_mat, bunch_params, error, print_err, n_mat)
 !
 ! Routine to calc emittances and Twiss function from a beam sigma matrix.
 ! See: Andy Wolski "Alternative approach to general coupled linear optics".
 !
 ! Input:
 !   sigma_mat(6,6)  -- real(rp): Sigma matrix.
-!   gamma           -- real(rp): Relativistic gamma factor (Energy/mass). 
-!                        Just used to calculate the normalized emittances.
 !   print_err       -- logical, optional: If present and False then suppress 
 !                        "no eigen-system found" messages.
 !
@@ -1519,13 +1516,13 @@ end subroutine calc_bunch_params
 !                       from action-angle coords to lab coords (Wolski Eq 51.).
 !-
 
-subroutine calc_emittances_and_twiss_from_sigma_matrix (sigma_mat, gamma, bunch_params, error, print_err, n_mat)
+subroutine calc_emittances_and_twiss_from_sigma_matrix (sigma_mat, bunch_params, error, print_err, n_mat)
 
 implicit none
 
 type (bunch_params_struct) bunch_params
 
-real(rp) sigma_mat(6,6), sigma_s(6,6), avg_energy, n_real(6,6), gamma
+real(rp) sigma_mat(6,6), sigma_s(6,6), avg_energy, n_real(6,6), f_emit
 real(rp), optional :: n_mat(6,6)
 
 complex(rp) :: eigen_val(6) = 0.0, eigen_vec(6,6)
@@ -1548,6 +1545,8 @@ bunch_params%b = twiss_struct()
 bunch_params%c = twiss_struct()
 
 ! X, Y, & Z Projected Parameters
+
+f_emit = bunch_params%centroid%p0c * (1.0_rp + bunch_params%centroid%vec(6)) / mass_of(bunch_params%centroid%species)
 
 call projected_twiss_calc ('X', bunch_params%x, sigma_mat(1,1), sigma_mat(2,2), sigma_mat(1,2), sigma_mat(1,6), sigma_mat(2,6))
 call projected_twiss_calc ('Y', bunch_params%y, sigma_mat(3,3), sigma_mat(4,4), sigma_mat(3,4), sigma_mat(3,6), sigma_mat(4,6))
@@ -1582,9 +1581,9 @@ bunch_params%a%emit = aimag(eigen_val(1))
 bunch_params%b%emit = aimag(eigen_val(3))
 if (dim == 6) bunch_params%c%emit = aimag(eigen_val(5))
 
-bunch_params%a%norm_emit = bunch_params%a%emit * gamma
-bunch_params%b%norm_emit = bunch_params%b%emit * gamma
-if (dim == 6) bunch_params%c%norm_emit = bunch_params%c%emit * gamma
+bunch_params%a%norm_emit = bunch_params%a%emit * f_emit
+bunch_params%b%norm_emit = bunch_params%b%emit * f_emit
+if (dim == 6) bunch_params%c%norm_emit = bunch_params%c%emit * f_emit
 
 ! Now find normal-mode sigma matrix and twiss parameters
 ! Wolski: N = E.Q from Eq. 44 and Eq. 14
@@ -1685,7 +1684,7 @@ twiss%sigma_p = sqrt(max(0.0_rp, px2))       ! Roundoff may give negative argume
 emit = sqrt(max(0.0_rp, x2*px2 - x_px**2))   ! Roundoff may give negative argument.
 
 twiss%emit      = emit
-twiss%norm_emit = gamma * emit
+twiss%norm_emit = f_emit * emit
 
 if (emit /= 0) then
   twiss%alpha = -x_px / emit

@@ -188,9 +188,9 @@ case (sad_mult$)
     call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
     call sad_mult_hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
     if (orb%state /= alive$) return
-    call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call sad_soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
   else
-    call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call sad_soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
     call sad_mult_hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
     if (orb%state /= alive$) return
     call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)

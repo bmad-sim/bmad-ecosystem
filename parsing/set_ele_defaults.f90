@@ -250,7 +250,6 @@ case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
   ele%value(hgapx$) = real_garbage$
   ele%value(fringe_type$) = basic_bend$
-  ele%value(higher_order_fringe_type$) = none$
   ele%value(ptc_fringe_geometry$) = x_invariant$
   ele%value(exact_multipoles$) = off$
   ele%value(ptc_field_geometry$) = sector$

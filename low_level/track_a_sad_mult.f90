@@ -91,7 +91,7 @@ if (orbit_too_large (orbit, param)) return
 call soft_quadrupole_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
 call sad_mult_hard_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
 if (orbit%state /= alive$) return
-call soft_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
+call sad_soft_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
 
 ! Body
 
@@ -123,7 +123,7 @@ enddo
 
 ! Exit edge kicks
 
-call soft_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
+call sad_soft_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
 call sad_mult_hard_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
 if (orbit%state /= alive$) return
 call soft_quadrupole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)

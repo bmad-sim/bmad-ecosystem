@@ -331,6 +331,12 @@ endif
 !
 
 select case (word)
+case ('HIGHER_ORDER_FRINGE_TYPE')
+  call parser_error ('Note: HIGHER_ORDER_FRINGE_TYPE is now no longer used and will be ignored.', &
+                     'Remove reference to this parameter to avoid this warning.', level = s_warn$)
+  call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag, ele, delim, delim_found)
+  return
+
 case ('SPACE_CHARGE_ON')
   call parser_error ('Note: "bmad_com[SPACE_CHARGE_ON]" has been renamed "bmad_com[HIGH_ENERGY_SPACE_CHARGE_ON]"', &
                      'Will run normally...', level = s_warn$)
@@ -1818,10 +1824,6 @@ case ('GEOMETRY')
 
 case ('HIGH_ENERGY_SPACE_CHARGE_ON')
   call get_logical_real (attrib_word, ele%value(high_energy_space_charge_on$), err_flag); if (err_flag) return
-
-case ('HIGHER_ORDER_FRINGE_TYPE')
-  call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(higher_order_fringe_type$) = ix
 
 case ('INTERPOLATION')
   call get_switch (attrib_word, interpolation_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return

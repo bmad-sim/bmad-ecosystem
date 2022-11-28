@@ -3122,7 +3122,7 @@ done. Fringe effects are {\em not} applied when an element's \vn{tracking_method
   mad
 \end{example}
 Additionally, no fringe effects will be used if the \vn{tracking_method} is \vn{runge_kutta} or
-\vn{time_runge_kutta}, and the element's \vn{field_calc} (\sref{s:integ}) is not
+\vn{time_runge_kutta}, and the element's \vn{field_calc} (\sref{s:integ}) is {\em not}
 \vn{bmad_standard}. This is done since it is assumed that the body of the field includes the fringe
 regions.
 
@@ -3236,9 +3236,9 @@ Example:
   b1: rbend, angle = pi/4, g = 0.3, fringe_type = full
 \end{example}
 
-In a bend element, the \vn{fringe_type} setting only pertains to the dipole fringe.  For higher
-order multipole fields in a bend, the \vn{higher_order_fringe_type} selects the fringe
-type. Possible settings are the same as for the non-bend \vn{fringe_type} elements
+In a bend element, the \vn{fringe_type} setting only pertains to the dipole fringe. For higher order
+multipole fields in a bend, the \vn{higher_order_fringe_type} selects the fringe type. Possible
+settings are the same as for the non-bend \vn{fringe_type} elements
 \begin{example}
   none              ! Default 
   soft_edge_only

@@ -15,17 +15,18 @@ good enough approximation.
 Discussion of the fringe parameters of an element are detailed in \Sref{s:fringe}.
 
 %---------------------------------------------------------------------------------
-\section{Dipole Soft Edge Fringe Map for Bends and Sad_Mult}
+\section{SAD Dipole Soft Edge Fringe Map}
 \label{s:fringe.bend.soft}
 
-The dipole soft edge fringe model is adapted from SAD\cite{b:sad}. For \vn{sbend} and \vn{rbend}
+The dipole soft edge fringe model is adapted from SAD\cite{b:sad}. This model is only used for
+\vn{sbend}, \vn{rbend}, and \vn{sad_mult} elements. For \vn{sbend} and \vn{rbend}
 elements, the fringe map is defined in terms of the field integrals $F_{H1}$ for the entrance end
 and $F_{H2}$ for the exit end given by (see \Eq{fsbbb})
 \begin{equation}
   F_{H1} \equiv F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
   {2 \, B_{y0}^2}
 \end{equation}
-With a similar equation for $F_{H2}$.  
+With a similar equation for $F_{H2}$.
 
 For a \vn{sad_mult} element the corresponding parameters are \vn{fb1} and \vn{fb2}. the conversion between
 the bend and \vn{sad_mult} parameters is
@@ -58,26 +59,28 @@ from the equation
   g_\tot = \sqrt{a_0^2 + b_0^2}
 \end{equation}
 
-It might seem strange that $c_3$ diverges to infinity as $F_H$ goes to zero since naively one would
-expect the soft edge kick to vanish in the hard edge limit where the fringe has no longitudinal
-extent. However, in the hard edge limit, the field does not obey Maxwell's equations. The limiting
-map, as $F_H$ goes to zero, has fields that diverge to infinity and this explains why the full
-(hard + soft) limiting map is not the same as the hard edge map at the limit of zero longitudinal
-extent.
-
 For the exit face, the appropriate equations can be derived using the substitution
 \begin{align}
   F_{H1} &\rightarrow F_{H2} \CRNO
   g_\tot &\rightarrow -g_\tot
 \end{align}
 
+The SAD dipole soft edge map is ``incomplete'' and for a realistic fringe map this map must be
+combined with a ``hard edge'' map (\sref{s:fringe}).
+
+It might seem strange that $c_3$ diverges to infinity as $F_H$ goes to zero since naively one would
+expect the soft edge kick to vanish in the hard edge limit where the fringe has no longitudinal
+extent. However, in the hard edge limit, the field does not obey Maxwell's equations. The limiting
+map, as $F_H$ goes to zero, has fields that diverge to infinity and this explains why the full (hard
++ soft) limiting map is not the same as the hard edge map at the limit of zero longitudinal extent.
+
 %---------------------------------------------------------------------------------
-\section{Dipole Hard Edge Fringe Map}
+\section{Bend Second Order Fringe Map}
 \label{s:fringe.bend.hard}
 
 The bend fringe kick is a combination of the equations developed by Hwang and Lee\cite{b:hwang}
-modified to include quadrupole terms as given in Section~5.3.1 of Iselin\cite{b:madphysics}. The
-Lie map generator $\Omega_M$ given by Hwang and Lee Eqs.~(35) and (36) is used under the conditions
+modified to include quadrupole terms as given in Section~5.3.1 of Iselin\cite{b:madphysics}. The Lie
+map generator $\Omega_M$ given by Hwang and Lee in Eqs.~(35) and (36) is used under the conditions
 that
 \begin{equation}
   K_{0h} = K_{1h} = K_{2h} = K_{3h} = K_{4h} = K_{5h} = K_{6h} = 0
@@ -93,7 +96,7 @@ The generator used by \bmad for the entrance fringe is:
   & \qquad + \frac{x^3 \, [4 \, K_1 \, \tan (e_1) - g_\tot^2 \, \tan^3 (e_1)]}{12 \, (1 + p_z)}
   + \frac{x \, y^2 \, [-4 \, K_1 \, \tan (e_1) + g_\tot^2 \, \tan (e_1) \, \sec^2 (e_1)]}{4 \, (1 + p_z)} \\
   &\qquad + \frac{(x^2 \, p_x - 2 \, x \, y \, p_y) \, g_\tot \, \tan^2 (e_1)}{2 \, (1 + p_z)}
-  - \frac{y^2 \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{2 \, (1 + p_z)} \nonumber
+  - \frac{y^2 \, p_x \, g_\tot \, \sec^2 (e_1)}{2 \, (1 + p_z)} \nonumber
 \end{align}
 where $g_\tot$ is the total bending strength (design + error) and $K_1$ is the quadrupole moment of the bend.
 The generator for the exit fringe is
@@ -102,8 +105,8 @@ The generator for the exit fringe is
   + \frac{y^2 \, g_\tot^2 \, \sec^3 (e_2) \, [1 + \sin^2 (e_2)] \, f_{int} \,  h_{gap}}{2 \, (1 + p_z)} \CRNO
   &\qquad + \frac{x^3 \, [4 \, K_1 \, \tan (e_2) - g_\tot^2 \, \tan^3 (e_2)]}{12 \, (1 + p_z)}
   + \frac{x \, y^2 \, [-4 \, K_1 \, \tan (e_2) + g_\tot^2 \, \tan (e_2) \, \sec^2 (e_2)]}{4 \, (1+p_z)} \\
-  &\qquad + \frac{(-x^2 \, p_x + 2 \, x \, y \, p_y) \, g_\tot \tan^2 (e_2)}{2 \, (1 + p_z)}
-  + \frac{y^2 \, p_x \, g_\tot \, [1 + \tan^2 (e_2)]}{2 \, (1 + p_z)} \nonumber
+  &\qquad - \frac{(x^2 \, p_x - 2 \, x \, y \, p_y) \, g_\tot \tan^2 (e_2)}{2 \, (1 + p_z)}
+  + \frac{y^2 \, p_x \, g_\tot \, \sec^2 (e_2)}{2 \, (1 + p_z)} \nonumber
 \end{align}
 
 The map $\cal M$ is obtained from the equation $\Cal M = \exp[\colon\Omega_M\colon]$. To second order in the
