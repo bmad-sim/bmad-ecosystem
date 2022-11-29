@@ -2853,7 +2853,7 @@ do iu = 1, ubound(s%u, 1)
       u%calc%dynamic_aperture = .true.
       u%calc%lattice = .true.
     elseif (what == 'off') then
-      u%calc%lattice = .false.
+      u%calc%dynamic_aperture = .false.
     else
       call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> dynamic_aperture_calc on/off"')
       return
