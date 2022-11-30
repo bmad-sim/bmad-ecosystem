@@ -103,6 +103,7 @@ normal field table to GG, a parameter file will look like:
   mode = "fit"           ! or "binary" to create a binary field table file.
   optimizer = "lmdif"    ! Optimizer to use. Alternative is "lm".
   n_planes_add = 0       ! Extra planes to use for the analysis
+	core_weight = 1        ! Merit function weight on "core" (points with (x,y) near (0,0)) field table points.
   sym_x = 1              ! X-axis symmetry. Possibilities are: -1, 0 (default), 1.
   sym_y = -1             ! Y-axis symmetry. Possibilities are: -1, 0 (default), 1.
   x_pos_plot = 0, 0.02, 0.05  ! x-positions (in meters) to create a plotting file.
@@ -142,7 +143,9 @@ The other mode is "fit" in which case the standard GG analysis is done.
 A third mode is "output_table" to convert GG to a field table. See below.
 
 optimizer: There are two optimizers that can be used: "lm" and "lmdif". Both are variants of the
-Levenburg-Marquardt algorithm. 
+Levenburg-Marquardt algorithm. The fitting algorithm minimizes a merit function which is
+	Merit = Sum: weight * (field_from_table - field_from_GG_coefs)^2
+See the "core_weight" parameter documentation.
 
 n_planes_add: The parameter sets the number of z-planes added to either side of the base z-plane to
 be used in the analysis of the derivatives at any given base z-plane (see "How the Progam Works"
@@ -150,6 +153,13 @@ section). For example, for n_planes_add = 2, two planes would be added to either
 plane making the total number of planes used in the analysis equal to five. Near the ends of the
 table, the number of z-planes used will be reduced. Thus, for n_planes_add = 2, a base z-plane
 at the end of the table will only use three planes in the analysis.
+
+core_weight: Weight used by the optimizer for "core" points (field table points whose transverse
+(x,y) position is near (0,0)). Default is 1.0 which gives an equal weight for all points. A higher
+weight means that the field fit to core points will be better at the expense of points farther
+away. Specifically, the weight for a point at (x,y) is
+	weight(x,y) = core_weight * rmax^2 / (rmax^2 + r^2 * (core_weight - 1))
+where r^2 = x^2 + y^2 and rmax is the maximum r over all points.
 
 sym_x and sym_y: These parameters set the symmetry of the field at constant z with respect to the
 x-axis and the y-axis. This is used when the field table only contains one quadrent or one half of

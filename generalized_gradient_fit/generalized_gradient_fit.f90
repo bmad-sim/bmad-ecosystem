@@ -16,7 +16,7 @@ character(16) mode
 
 namelist /params / field_file, every_n_th_plane, n_deriv_max, m_cos, m_sin, n_cycles, &
               z_min, z_max, sym_x, sym_y, mode, lmdif_eps, printit, out_file, &
-              n_planes_add, n_deriv_keep, optimizer, x_pos_plot, y_pos_plot, &
+              n_planes_add, n_deriv_keep, optimizer, x_pos_plot, y_pos_plot, core_weight, &
               Nx_min, Nx_max, Ny_min, Ny_max, Nz_min, Nz_max, del_grid, r0_grid, field_scale, length_scale
 
 !
