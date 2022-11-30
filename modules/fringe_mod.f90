@@ -282,7 +282,7 @@ gt = g_tot * tan_e
 gt2 = g_tot * tan_e**2
 gs2 = g_tot * sec_e**2
 k1_tane = k1 * tan_e * c_dir
-fg_factor = fint_gap * gs2 * g_tot * sec_e * (1 + sin_e**2)
+fg_factor = 2 * fint_gap * gs2 * g_tot * sec_e * (1 + sin_e**2)
 
 v = orb%vec
 

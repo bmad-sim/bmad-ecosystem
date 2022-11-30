@@ -18,10 +18,11 @@ Discussion of the fringe parameters of an element are detailed in \Sref{s:fringe
 \section{SAD Dipole Soft Edge Fringe Map}
 \label{s:fringe.bend.soft}
 
-The dipole soft edge fringe model is adapted from SAD\cite{b:sad}. This model is only used for
-\vn{sbend}, \vn{rbend}, and \vn{sad_mult} elements. For \vn{sbend} and \vn{rbend}
-elements, the fringe map is defined in terms of the field integrals $F_{H1}$ for the entrance end
-and $F_{H2}$ for the exit end given by (see \Eq{fsbbb})
+The SAD dipole soft edge fringe model is adapted from the SAD program\cite{b:sad}. This model is
+only used for \vn{sbend}, \vn{rbend}, and \vn{sad_mult} elements only. For \vn{sbend} and \vn{rbend}
+elements, the fringe map is defined in terms of the \vn{fint}, \vn{fintx}, \vn{hgap}, and \vn{hgapx}
+parameters. The field integrals $F_{H1}$ for the entrance end and $F_{H2}$ for the exit end given by
+(see \Eq{fsbbb})
 \begin{equation}
   F_{H1} \equiv F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
   {2 \, B_{y0}^2}
@@ -65,8 +66,8 @@ For the exit face, the appropriate equations can be derived using the substituti
   g_\tot &\rightarrow -g_\tot
 \end{align}
 
-The SAD dipole soft edge map is ``incomplete'' and for a realistic fringe map this map must be
-combined with a ``hard edge'' map (\sref{s:fringe}).
+The SAD dipole soft edge map is ``incomplete'' and for a realistic fringe map the SAD dipole soft
+edge fring map must be combined with a ``hard edge'' map (\sref{s:fringe}).
 
 It might seem strange that $c_3$ diverges to infinity as $F_H$ goes to zero since naively one would
 expect the soft edge kick to vanish in the hard edge limit where the fringe has no longitudinal
@@ -83,16 +84,17 @@ modified to include quadrupole terms as given in Section~5.3.1 of Iselin\cite{b:
 map generator $\Omega_M$ given by Hwang and Lee in Eqs.~(35) and (36) is used under the conditions
 that
 \begin{equation}
-  K_{0h} = K_{1h} = K_{2h} = K_{3h} = K_{4h} = K_{5h} = K_{6h} = 0
+  K_{0h} = K_{1h} = K_{3h} = K_{4h} = K_{5h} = K_{6h} = 0
 \end{equation}
+
 Here the subscript ``\vn{h}'' has been added so as to not confuse these parameters with the magnetic
 multipole coefficients $K_1$, $K_2$, etc. Note: Hwang and Lee do not present an equation for the
-change in $z$ in their paper.
+change in the longitudinal phase space $z$ coordinate in their paper.
 
 The generator used by \bmad for the entrance fringe is:
 \begin{align}
   \Omega_{M1} &= \frac{(x^2 - y^2) \, g_\tot \, \tan (e_1)}{2} 
-  + \frac{y^2 \, g_\tot^2 \, \sec^3 (e_1) \, [1 + \sin^2 (e_1)] \, f_{int} \,  h_{gap}}{2 \, (1 + p_z)} \CRNO
+  + \frac{y^2 \, g_\tot^2 \, \sec^3 (e_1) \, [1 + \sin^2 (e_1)] \, f_{int} \,  h_{gap}}{(1 + p_z)} \CRNO
   & \qquad + \frac{x^3 \, [4 \, K_1 \, \tan (e_1) - g_\tot^2 \, \tan^3 (e_1)]}{12 \, (1 + p_z)}
   + \frac{x \, y^2 \, [-4 \, K_1 \, \tan (e_1) + g_\tot^2 \, \tan (e_1) \, \sec^2 (e_1)]}{4 \, (1 + p_z)} \\
   &\qquad + \frac{(x^2 \, p_x - 2 \, x \, y \, p_y) \, g_\tot \, \tan^2 (e_1)}{2 \, (1 + p_z)}
@@ -102,7 +104,7 @@ where $g_\tot$ is the total bending strength (design + error) and $K_1$ is the q
 The generator for the exit fringe is
 \begin{align}
   \Omega_{M2} &= \frac{(x^2 - y^2) \, g_\tot \, \tan (e_2)}{2} 
-  + \frac{y^2 \, g_\tot^2 \, \sec^3 (e_2) \, [1 + \sin^2 (e_2)] \, f_{int} \,  h_{gap}}{2 \, (1 + p_z)} \CRNO
+  + \frac{y^2 \, g_\tot^2 \, \sec^3 (e_2) \, [1 + \sin^2 (e_2)] \, f_{int} \,  h_{gap}}{(1 + p_z)} \CRNO
   &\qquad + \frac{x^3 \, [4 \, K_1 \, \tan (e_2) - g_\tot^2 \, \tan^3 (e_2)]}{12 \, (1 + p_z)}
   + \frac{x \, y^2 \, [-4 \, K_1 \, \tan (e_2) + g_\tot^2 \, \tan (e_2) \, \sec^2 (e_2)]}{4 \, (1+p_z)} \\
   &\qquad - \frac{(x^2 \, p_x - 2 \, x \, y \, p_y) \, g_\tot \tan^2 (e_2)}{2 \, (1 + p_z)}
@@ -123,7 +125,7 @@ The transport for the entrance fringe is then
     + \frac{(x \, p_x - y \, p_y) \, g_\tot \, \tan^2 (e_1)}{1 + p_z} \CRNO
   \Delta y &= \frac{x \, y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} \\
   \Delta p_y &= y \left[ -g_\tot \, \tan (e_1)
-    + \frac{g^2_\tot \, [1 + \sin^2 (e_1)] \, \sec^3 (e_1)}{1 + p_z} \, f_{int} \,  h_{gap} \right] \CRNO
+    + \frac{2 \, g^2_\tot \, [1 + \sin^2 (e_1)] \, \sec^3 (e_1)}{1 + p_z} \, f_{int} \,  h_{gap} \right] \CRNO
     &\qquad\qquad - \frac{(x \, p_y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} 
     - \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{1 + p_z} 
     - \frac{2 \, x \, y \, K_1 \tan (e_1)}{(1 + p_z)} \CRNO
@@ -138,7 +140,7 @@ The transport for the exit fringe is
     + \frac{(-x \, p_x + y \, p_y) \, g_\tot \, \tan^2 (e_2)}{1 + p_z} \CRNO
   \Delta y &= -\frac{x \, y \, g_\tot \, \tan^2 (e_2)}{1 + p_z} \\
   \Delta p_y &= y \left[ -g_\tot \, \tan (e_2)
-    + \frac{g^2_\tot \, [1 + \sin^2 (e_2)] \, \sec^3 (e_2)}{1 + p_z} \, f_{int} \,  h_{gap} \right]
+    + \frac{2\, g^2_\tot \, [1 + \sin^2 (e_2)] \, \sec^3 (e_2)}{1 + p_z} \, f_{int} \,  h_{gap} \right]
     + \frac{x \, y \, g^2_\tot \, \sec^2 (e_2) \, \tan (e_2)}{1 + p_z} \CRNO
     &\qquad\qquad + \frac{(x \, p_y \, g_\tot \, \tan^2 (e_2)}{1 + p_z} 
     + \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_2)]}{1 + p_z} 
