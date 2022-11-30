@@ -115,7 +115,7 @@ MODULE S_DEF_KIND
   !  private DRIFT_pancaker,DRIFT_pancakep,KICKPATH_pancaker,KICKPATH_pancakep
   ! using x and x'
   private fxr,fxp,fx,fxr_canonical,fxp_canonical,fxc,step_symp_p_PANCAkEr,step_symp_p_PANCAkEp,step_symp_p_PANCAkE
-  PRIVATE feval       !,rk4_m
+!  PRIVATE feval       !,rk4_m
   !  FOR CAV_TRAV
   PRIVATE A_TRANSR,A_TRANSP,A_TRANSL
   PRIVATE feval_CAVr,feval_CAVP,feval_CAV
@@ -28305,7 +28305,7 @@ SUBROUTINE RAD_SPIN_qua_PROBEP(c,p,k,ds)
      f=> c%parent_fibre
  !    before=.true.
      CALL alloc(B);CALL alloc(XP);CALL alloc(XPA);CALL alloc(ed);
-     CALL alloc(OM);CALL alloc(B2);CALL alloc(DLDS);CALL alloc(ed);
+     CALL alloc(OM);CALL alloc(B2);CALL alloc(DLDS); 
 
     CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B)
     if((k%radiation.or.k%envelope)) then
@@ -28327,7 +28327,7 @@ SUBROUTINE RAD_SPIN_qua_PROBEP(c,p,k,ds)
 
     endif
      CALL KILL(B);CALL KILL(XP);CALL KILL(XPA);CALL KILL(ed);
-     CALL KILL(OM);CALL KILL(B2);CALL KILL(DLDS);CALL KILL(ed);
+     CALL KILL(OM);CALL KILL(B2);CALL KILL(DLDS); 
 
  end SUBROUTINE RAD_SPIN_qua_PROBEP
 

@@ -370,12 +370,12 @@ endif
 !          my_estate=>my_default
           ! Orbit stuff
 
-       case('UPDATETWISS','UPDATETWISSFORORBIT')
-           call update_twiss_for_orbit
-       case('USEORBITUNITS')
-          MY_ERING%t%ORBIT_LATTICE%ORBIT_USE_ORBIT_UNITS=.true.
-       case('DONOTUSEORBITUNITS')
-          MY_ERING%t%ORBIT_LATTICE%ORBIT_USE_ORBIT_UNITS=.false.
+!       case('UPDATETWISS','UPDATETWISSFORORBIT')
+!           call update_twiss_for_orbit
+!       case('USEORBITUNITS')
+!          MY_ERING%t%ORBIT_LATTICE%ORBIT_USE_ORBIT_UNITS=.true.
+!       case('DONOTUSEORBITUNITS')
+!          MY_ERING%t%ORBIT_LATTICE%ORBIT_USE_ORBIT_UNITS=.false.
       case('FORCERESTORALLMAGNETS')
           CALL force_restore_ANBN(my_ering)
       case('RESTORALLMAGNETS')
@@ -401,128 +401,126 @@ endif
          write(6,*) " New ORBIT_OMEGA = ",MY_ERING%t%ORBIT_LATTICE%ORBIT_OMEGA
         endif
         endif 
-      case('SETORBITMARKER')
-         READ(MF,*) i1
-         allocate(orbitname(i1))
-          do i1=1,size(orbitname)
-           READ(MF,*) name
-           call context(name)
-           orbitname(i1)=name
-          enddo
+ !     case('SETORBITMARKER')
+ !        READ(MF,*) i1
+ !        allocate(orbitname(i1))
+ !         do i1=1,size(orbitname)
+ !          READ(MF,*) name
+ !          call context(name)
+ !          orbitname(i1)=name
+ !         enddo
        case('USER1')
          call my_user_routine1
        case('SPINTWISSCAS')
            read(mf,*) no,noca   !  order and general canonise
          call SMALL_CODE_TWISS(my_ering,no,noca)
-       case('SETORBITPHASORTIME','ORBITTIME')
-          read(mf,*) xsmt
-          xsm0t=xsmt
-          x_orbit_sync=0.0_dp
-          x_orbit_sync(6)=xsmt
-          ptc_node_old=-1
-          first_particle=my_false       
-       case('MAKEORBITMARKER')
-            extra_node=1
-            if(associated(my_ering%t)) then
-             if(associated(my_ering%t%ORBIT_LATTICE)) then
-             write(6,*) "The orbit nodes have been already created "
-             write(6,*) '"MAKE ORBIT MARKER" will not work!' 
-             write(6,*) 'If running orbit put this command in the special ' 
-             write(6,*) ' PTC script called pre_orbit_set.txt ' 
-             write(6,*) ' Execution now interrupted ' 
-               stop
-             endif   
-            endif    
-       case('TIMEINUNITS','TIMEINSECONDS')
-       
-          read(mf,*) xsmt
-!          write(6,*) " Using ",unit_time," seconds"
-          xsmt=xsmt*clight  !*unit_time
-          xsm0t=xsmt
-          x_orbit_sync=0.0_dp
-          x_orbit_sync(6)=xsmt
-          ptc_node_old=-1
-          first_particle=my_false
-       case('INITIALTIMEINMYUNITS','TIMEINMYUNITS','READFROMFILEINITIALTIME')
-         INQUIRE (FILE = INITIAL_setting, EXIST = exists)
-          if(exists) then
-             write(6,*) "file ", INITIAL_setting(1:len_trim(FINAL_setting)), &
-                  " exists, interrupt execution if you do not want to overwrite!"
-            call kanalnummer(i1,INITIAL_setting)
-   !         read(i1,*) xsm%ac%t,unit_time,n_used_patch,include_patch
-            read(i1,*) xsmt,n_used_patch,include_patch
-            read(i1,*) nc
-            if(nc/=0) then
-                 allocate(tc(nc))
-                  do i2=1,nc
-                   read(i1,*) tc(i2) 
-                  enddo
-                 call set_all_tc_for_restarting(my_ering,tc,nc)
-                 deallocate(tc)
-            endif
-            close(i1)
-            if(include_patch) then
-              call kanalnummer(i1,"time_patch.dat")
-               read(i1,*) n_patch
-               if(associated(my_ering%T%ORBIT_LATTICE%dt)) deallocate(my_ering%T%ORBIT_LATTICE%dt)
-               allocate(my_ering%T%ORBIT_LATTICE%dt(n_patch))
-                do i2=1,n_patch
-                 read(i1,*) i3,my_ering%T%ORBIT_LATTICE%dt(i2)
-                enddo
-              close(i1)
-!looking for element just before the cavity
-   do i2=1,size(my_ering%T%ORBIT_LATTICE%ORBIT_NODES)
-     T=>my_ering%T%ORBIT_LATTICE%ORBIT_NODES(i2)%NODE
-  
-    DO I1=1,my_ering%T%ORBIT_LATTICE%ORBIT_NODES(i2)%dpos
- 
-
-       if(t%parent_fibre%mag%kind==kind4) then
-        my_ering%T%ORBIT_LATTICE%tp=>t%previous
-        inode=i2
-        goto 2222
-       endif
-
-       T=>T%NEXT
-    ENDDO
-   enddo
-2222   write(6,*) "ptc mode # ",inode,"element ", my_ering%T%ORBIT_LATTICE%tp%parent_fibre%mag%name
-  
-
-
-
-            endif
-           else
-         read(mf,*) xsmt,n_used_patch,include_patch
+  !     case('SETORBITPHASORTIME','ORBITTIME')
+  !        read(mf,*) xsmt
+  !        xsm0t=xsmt
+  !        x_orbit_sync=0.0_dp
+  !        x_orbit_sync(6)=xsmt
+  !        ptc_node_old=-1
+  !        first_particle=my_false       
+  !     case('MAKEORBITMARKER')
+  !          extra_node=1
+  !          if(associated(my_ering%t)) then
+  !           if(associated(my_ering%t%ORBIT_LATTICE)) then
+  !           write(6,*) "The orbit nodes have been already created "
+  !           write(6,*) '"MAKE ORBIT MARKER" will not work!' 
+  !           write(6,*) 'If running orbit put this command in the special ' 
+  !           write(6,*) ' PTC script called pre_orbit_set.txt ' 
+  !           write(6,*) ' Execution now interrupted ' 
+  !             stop
+  !           endif   
+  !          endif    
+  !     case('TIMEINUNITS','TIMEINSECONDS')
+  !     
+  !        read(mf,*) xsmt
+! !         write(6,*) " Using ",unit_time," seconds"
+  !        xsmt=xsmt*clight  !*unit_time
+  !        xsm0t=xsmt
+  !        x_orbit_sync=0.0_dp
+  !        x_orbit_sync(6)=xsmt
+  !        ptc_node_old=-1
+  !        first_particle=my_false
+  !      case('INITIALTIMEINMYUNITS','TIMEINMYUNITS','READFROMFILEINITIALTIME')
+  !        INQUIRE (FILE = INITIAL_setting, EXIST = exists)
+  !         if(exists) then
+  !            write(6,*) "file ", INITIAL_setting(1:len_trim(FINAL_setting)), &
+  !                " exists, interrupt execution if you do not want to overwrite!"
+  !          call kanalnummer(i1,INITIAL_setting)
+  !          read(i1,*) xsmt,n_used_patch,include_patch
+  !          read(i1,*) nc
+  !          if(nc/=0) then
+  !               allocate(tc(nc))
+  !                do i2=1,nc
+  !                 read(i1,*) tc(i2) 
+  !                enddo
+  !               call set_all_tc_for_restarting(my_ering,tc,nc)
+  !               deallocate(tc)
+  !          endif
+  !          close(i1)
+  !          if(include_patch) then
+  !            call kanalnummer(i1,"time_patch.dat")
+  !             read(i1,*) n_patch
+  !             if(associated(my_ering%T%ORBIT_LATTICE%dt)) deallocate(my_ering%T%ORBIT_LATTICE%dt)
+  !             allocate(my_ering%T%ORBIT_LATTICE%dt(n_patch))
+  !              do i2=1,n_patch
+  !               read(i1,*) i3,my_ering%T%ORBIT_LATTICE%dt(i2)
+  !              enddo
+  !            close(i1)
+  !   !looking for element just before the cavity
+  ! do i2=1,size(my_ering%T%ORBIT_LATTICE%ORBIT_NODES)
+  !   T=>my_ering%T%ORBIT_LATTICE%ORBIT_NODES(i2)%NODE
+  !
+  !  DO I1=1,my_ering%T%ORBIT_LATTICE%ORBIT_NODES(i2)%dpos
+  !
+  !
+  !     if(t%parent_fibre%mag%kind==kind4) then
+  !      my_ering%T%ORBIT_LATTICE%tp=>t%previous
+  !      inode=i2
+  !      goto 2222
+  !     endif
+  !
+  !     T=>T%NEXT
+  !  ENDDO
+  ! enddo
+!2222   write(6,*) "ptc mode # ",inode,"element ", my_ering%T%ORBIT_LATTICE%tp%parent_fibre%mag%name
+!  
+!
+!
+!
+!            endif
+!           else
+!         read(mf,*) xsmt,n_used_patch,include_patch
 !             read(mf,*) xsm%ac%t,unit_time,n_used_patch,include_patch
-          endif
- !         write(6,*) " Using ",unit_time," seconds"
-          xsmt=xsmt*clight 
-          xsm0t=xsmt
-          x_orbit_sync=0.0_dp
-          x_orbit_sync(6)=xsmt
-          ptc_node_old=-1
-          first_particle=my_false
-          write(6,*) "x_orbit_sync(6) = " , x_orbit_sync(6)
+!          endif
+!          xsmt=xsmt*clight 
+!          xsm0t=xsmt
+!          x_orbit_sync=0.0_dp
+!          x_orbit_sync(6)=xsmt
+!          ptc_node_old=-1
+!          first_particle=my_false
+!          write(6,*) "x_orbit_sync(6) = " , x_orbit_sync(6)
           
-       case('FINALTIMEINMYUNITS')
-      ! INQUIRE (FILE = FINAL_setting, EXIST = exists)
-      !    if(exists) then
-            call kanalnummer(i1,FINAL_setting)
-             write(i1,*) x_orbit_sync(6)/clight,n_used_patch,include_patch
-             write(6,*) "x_orbit_sync(6) = " , x_orbit_sync(6)
-             write(6,*) "t_fin = " , x_orbit_sync(6)/clight
-             
-             call find_all_tc_for_restarting(my_ering,tc,nc)
-             write(i1,*) nc
-             do i2=1,nc
-                write(i1,*) tc(i2)
-             enddo
-             deallocate(tc)
-            close(i1)
-      !    endif              
-
-      
+!       case('FINALTIMEINMYUNITS')
+!      ! INQUIRE (FILE = FINAL_setting, EXIST = exists)
+!      !    if(exists) then
+!            call kanalnummer(i1,FINAL_setting)
+!             write(i1,*) x_orbit_sync(6)/clight,n_used_patch,include_patch
+!             write(6,*) "x_orbit_sync(6) = " , x_orbit_sync(6)
+!             write(6,*) "t_fin = " , x_orbit_sync(6)/clight
+!             
+!             call find_all_tc_for_restarting(my_ering,tc,nc)
+!             write(i1,*) nc
+!             do i2=1,nc
+!                write(i1,*) tc(i2)
+!             enddo
+!             deallocate(tc)
+!            close(i1)
+!      !    endif              
+!
+!      
        case('SETORBITACCELERATION')
           accelerate=my_true          
        case('SETORBITNOACCELERATION')
@@ -533,10 +531,10 @@ endif
           RAMP=my_false          
  !      case('SETORBITTIMEUNIT')
  !           read(mf,*) unit_time
-       case('SETORBITSTATE')
-          my_ORBIT_LATTICE%state=my_estate
-       case('PUTORBITSTATE','USEORBITSTATE')
-          my_estate=my_ORBIT_LATTICE%state
+!       case('SETORBITSTATE')
+!          my_ORBIT_LATTICE%state=my_estate
+!       case('PUTORBITSTATE','USEORBITSTATE')
+!          my_estate=my_ORBIT_LATTICE%state
        case('NULLIFYACCELERATION')
         nullify(acc)
         nullify(ACCFIRST)
@@ -553,11 +551,11 @@ endif
           enddo
            paccthen%mag%c4%acc%next=>paccfirst
            paccfirst%mag%c4%acc%previous=>paccthen
-       case('ENERGIZEORBITLATTICEATTIME')
-        read(mf,*) xa
-        call energize_ORBIT_lattice(xa)
-      case('ENERGIZEORBITLATTICE')
-        call energize_ORBIT_lattice
+!       case('ENERGIZEORBITLATTICEATTIME')
+!        read(mf,*) xa
+!        call energize_ORBIT_lattice(xa)
+ !     case('ENERGIZEORBITLATTICE')
+ !       call energize_ORBIT_lattice
        case('SETALLRAMP')
         call set_all_ramp(my_ering)
         
@@ -571,64 +569,70 @@ endif
        case('CLOSEHERD')
           CLOSE(MF_HERD)
           MF_HERD=0
-       case('PRINTPTCNODES','PRINTORBITNODES')
-          call kanalnummer(ii)
-          open(unit=ii,file=def_orbit_node)
-
-          tL=>my_ORBIT_LATTICE%ORBIT_NODES(1)%NODE
-          write(ii,*) " Number of PTC Nodes  from 0 to ",my_ORBIT_LATTICE%ORBIT_N_NODE-1
-
-          do j=1,my_ORBIT_LATTICE%ORBIT_N_NODE
-             write(ii,*) "****************************************************"
-             write(ii,*) " Node Number ",j-1
-             write(ii,*) " Number of PTC Integration Nodes",my_ORBIT_LATTICE%ORBIT_NODES(j)%dpos
-             DO I1=1,my_ORBIT_LATTICE%ORBIT_NODES(j)%dpos
-                write(ii,*) tL%S(1),tL%parent_fibre%mag%name,' ',tL%parent_fibre%pos,tL%cas
-                TL=>TL%NEXT
-             ENDDO
-          enddo
-          close(ii)
-
-       case('SETORBITFORACCELERATION')
-       !   CALL ptc_synchronous_set(-1)
-       case('READORBITINTERMEDIATEDATA')
-       !   CALL ptc_synchronous_set(-2)
-       case('PRINTORBITINTERMEDIATEDATA')
-       !   CALL ptc_synchronous_after(-2)
-       case('FILEFORORBITINITIALSETTINGS')  ! ACCELERATION FILE
-          READ(MF,*) initial_setting
-          write(6,*) initial_setting
-
-          !         INQUIRE (FILE = initial_setting, EXIST = exists)
-          !        if(exists) then
-          !         write(6,*) "file ", initial_setting(1:len_trim(def_orbit_node)), &
-          !         " exists, interrupt execution if you do not want to overwrite!"
-          !        endif
-       case('FILEFORORBITFINALSETTINGS')  ! ACCELERATION FILE
-          READ(MF,*) final_setting
-          write(6,*) final_setting
-          !          INQUIRE (FILE = final_setting, EXIST = exists)
-          !         if(exists) then
-          !          write(6,*) "file ", final_setting(1:len_trim(def_orbit_node)), &
-          !          " exists, interrupt execution if you do not want to overwrite!"
-          !         endif
-       case('PTCNODEFILE','PTCNODE')  ! ACCELERATION FILE
-          READ(MF,*) def_orbit_node
-          write(6,*) def_orbit_node
-          !        INQUIRE (FILE = def_orbit_node, EXIST = exists)
-          !       if(exists) then
-          !        write(6,*) "file ", def_orbit_node(1:len_trim(def_orbit_node)), &
-          !        " exists, interrupt execution if you do not want to overwrite!"
-          !    write(6,*) " you have 2 seconds to do so "
-          !    CALL DATE_AND_TIME(values=temps)
-          !    i1=temps(7)
-          if(i1>=58) i1=i1-58
-          !    do while(.true.)
-          !     CALL DATE_AND_TIME(values=temps)
-          !     if(temps(7)>i1+2) exit
-          !    enddo
-          !          endif
-          ! end Orbit stuff
+!       case('PRINTPTCNODES','PRINTORBITNODES')
+!          call kanalnummer(ii)
+!          open(unit=ii,file=def_orbit_node)
+!
+!
+!
+!
+!
+!
+!
+!          tL=>my_ORBIT_LATTICE%ORBIT_NODES(1)%NODE
+!          write(ii,*) " Number of PTC Nodes  from 0 to ",my_ORBIT_LATTICE%ORBIT_N_NODE-1
+!
+!          do j=1,my_ORBIT_LATTICE%ORBIT_N_NODE
+!             write(ii,*) "****************************************************"
+!             write(ii,*) " Node Number ",j-1
+!             write(ii,*) " Number of PTC Integration Nodes",my_ORBIT_LATTICE%ORBIT_NODES(j)%dpos
+!             DO I1=1,my_ORBIT_LATTICE%ORBIT_NODES(j)%dpos
+!                write(ii,*) tL%S(1),tL%parent_fibre%mag%name,' ',tL%parent_fibre%pos,tL%cas
+!                TL=>TL%NEXT
+!             ENDDO
+!          enddo
+!          close(ii)
+!
+!       case('SETORBITFORACCELERATION')
+!       !   CALL ptc_synchronous_set(-1)
+!       case('READORBITINTERMEDIATEDATA')
+!       !   CALL ptc_synchronous_set(-2)
+!       case('PRINTORBITINTERMEDIATEDATA')
+!       !   CALL ptc_synchronous_after(-2)
+!       case('FILEFORORBITINITIALSETTINGS')  ! ACCELERATION FILE
+!          READ(MF,*) initial_setting
+!          write(6,*) initial_setting
+!
+!          !         INQUIRE (FILE = initial_setting, EXIST = exists)
+!          !        if(exists) then
+!          !         write(6,*) "file ", initial_setting(1:len_trim(def_orbit_node)), &
+!          !         " exists, interrupt execution if you do not want to overwrite!"
+!          !        endif
+!       case('FILEFORORBITFINALSETTINGS')  ! ACCELERATION FILE
+!          READ(MF,*) final_setting
+!          write(6,*) final_setting
+!          !          INQUIRE (FILE = final_setting, EXIST = exists)
+!          !         if(exists) then
+!          !          write(6,*) "file ", final_setting(1:len_trim(def_orbit_node)), &
+!          !          " exists, interrupt execution if you do not want to overwrite!"
+!          !         endif
+!       case('PTCNODEFILE','PTCNODE')  ! ACCELERATION FILE
+!          READ(MF,*) def_orbit_node
+!          write(6,*) def_orbit_node
+!          !        INQUIRE (FILE = def_orbit_node, EXIST = exists)
+!          !       if(exists) then
+!          !        write(6,*) "file ", def_orbit_node(1:len_trim(def_orbit_node)), &
+!          !        " exists, interrupt execution if you do not want to overwrite!"
+!          !    write(6,*) " you have 2 seconds to do so "
+!          !    CALL DATE_AND_TIME(values=temps)
+!          !    i1=temps(7)
+!          if(i1>=58) i1=i1-58
+!          !    do while(.true.)
+!          !     CALL DATE_AND_TIME(values=temps)
+!          !     if(temps(7)>i1+2) exit
+!          !    enddo
+!          !          endif
+!          ! end Orbit stuff
        case('RECORDLOSTPARTICLEINORBIT')  !
           wherelost=1
        case('RECORDLOSTPARTICLE')  ! 1= orbit , 2 thin lens PTC
