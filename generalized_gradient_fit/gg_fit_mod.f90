@@ -69,7 +69,7 @@ real(rp), allocatable :: dBx_dvar(:,:), dBy_dvar(:,:), dBz_dvar(:,:)
 ! field_scale is the field table field in Tesla or V/m.
 
 real(rp) :: del_grid(3), del_meters(3), r0_grid(3), r0_meters(3), field_scale, length_scale, r_max
-real(rp) :: z_min = real_garbage$, z_max = real_garbage$
+real(rp) :: z_min = real_garbage$, z_max = real_garbage$, core_weight = 1
 real(rp) :: lmdif_eps = 1d-12
 
 real(rp), allocatable :: var_vec(:), merit_vec(:), dB_dvar_vec(:,:)
@@ -280,13 +280,13 @@ endif
 if (z_min == real_garbage$) then
   iz_min = Nz_min
 else
-  iz_min = max(Nz_min, nint(z_min/del_grid(3)))
+  iz_min = max(Nz_min, nint(z_min/del_meters(3)))
 endif
 
 if (z_max == real_garbage$) then
   iz_max = Nz_max
 else
-  iz_max = min(Nz_max, nint(z_max/del_grid(3)))
+  iz_max = min(Nz_max, nint(z_max/del_meters(3)))
 endif
 
 r_max = norm2([max(abs(Nx_min), abs(Nx_max)) * del_grid(1), max(abs(Ny_min), abs(Ny_max)) * del_grid(2)])
@@ -410,10 +410,10 @@ subroutine fit_field()
 type (super_mrqmin_storage_struct) storage
 type (gg1_struct), pointer :: gg
 
-real(rp), allocatable :: vec0(:), weight(:), merit0_vec(:)
-real(rp) merit0, x, y, v, chisq, a_lambda
+real(rp), allocatable :: vec0(:), weight(:), zero_vec(:), xy(:,:)
+real(rp) merit0, x, y, v, chisq, a_lambda, r2, r2_max
 
-integer iloop, im, id, n_gg, n, ig, nx, ny
+integer i, iloop, im, id, n_gg, n, ig, nx, ny, n3
 integer ix, iy, iz, status, iz0, iz1
 
 logical at_end
@@ -421,9 +421,9 @@ logical at_end
 !
 
 allocate (Bx_diff(Nx_min:Nx_max, Ny_min:Ny_max), By_diff(Nx_min:Nx_max, Ny_min:Ny_max), &
-                                                            Bz_diff(Nx_min:Nx_max, Ny_min:Ny_max))
+                                                 Bz_diff(Nx_min:Nx_max, Ny_min:Ny_max))
 allocate (Bx_fit(Nx_min:Nx_max, Ny_min:Ny_max), By_fit(Nx_min:Nx_max, Ny_min:Ny_max), &
-                                                            Bz_fit(Nx_min:Nx_max, Ny_min:Ny_max))
+                                                Bz_fit(Nx_min:Nx_max, Ny_min:Ny_max))
 
 !
 
@@ -453,13 +453,14 @@ do im = 1, size(m_cos)
 enddo
 
 n_merit = 3 * (Nx_max-Nx_min+1) * (Ny_max-Ny_min+1) * (2*n_planes_add+1)
-allocate (merit_vec(n_merit), merit0_vec(n_merit), dB_dvar_vec(n_merit, n_var0))
+allocate (merit_vec(n_merit), dB_dvar_vec(n_merit, n_var0), zero_vec(n_merit))
 allocate (dBx_dvar(Nx_min:Nx_max, Ny_min:Ny_max), dBy_dvar(Nx_min:Nx_max, Ny_min:Ny_max))
 allocate (dBz_dvar(Nx_min:Nx_max, Ny_min:Ny_max))
-allocate (gg1(n_gg))
+allocate (gg1(n_gg), xy(Nx_min:Nx_max, Ny_min:Ny_max))
 
 n_var = 0
 n_gg = 0
+zero_vec = 0
 
 do im = 1, size(m_cos)
   if (m_cos(im) /= -1) then
@@ -499,6 +500,23 @@ allocate (var_vec(n_var), vec0(n_var), weight(n_merit))
 vec0 = 0
 var_vec = 0
 
+r2_max = (max(abs(Nx_min), Nx_max) * del_meters(1))**2 + (max(abs(Ny_min), Ny_max) * del_meters(2))**2
+do ix = Nx_min, Nx_max
+do iy = Ny_min, Ny_max
+  r2 = (ix*del_meters(1))**2 + (iy*del_meters(2))**2
+  xy(ix,iy) = core_weight * r2_max / (r2_max + r2 * (core_weight - 1))
+enddo
+enddo
+
+n3 = size(Bx_fit)
+
+do iz = -n_planes_add, n_planes_add
+do i = 0, 2
+  n = (3*(iz+n_planes_add) + i) * n3
+  weight(n+1:n+n3) = reshape(xy, [n3])
+enddo
+enddo
+
 do iz = iz_min, iz_max, every_n_th_plane
   print *, '===================================='
   print '(a, f10.4, a, i0, a)', ' Plane:', iz*del_meters(3), ' (', iz, ')'
@@ -509,8 +527,7 @@ do iz = iz_min, iz_max, every_n_th_plane
 
   call initial_lmdif
   var_vec = vec0
-  call merit_calc(vec0, iz, .true.)
-  merit0_vec = merit_vec
+  merit = merit_calc(vec0, iz, merit_vec)
   print '(i5, es14.6)', 0, merit
   merit0 = merit
   fit(iz)%rms0 = merit0 
@@ -520,8 +537,9 @@ do iz = iz_min, iz_max, every_n_th_plane
   select case (optimizer)
   case ('lmdif')
     do iloop = 1, n_cycles
-      call suggest_lmdif (var_vec, merit_vec, lmdif_eps, n_cycles, at_end)
-      call merit_calc(var_vec, iz, .false.)
+      merit_vec = merit_vec*weight
+      call suggest_lmdif (var_vec, merit_vec*weight, lmdif_eps, n_cycles, at_end)
+      merit = merit_calc(var_vec, iz, merit_vec)
       if (merit < 0.99*merit0) then
         print '(i5, es14.6)', iloop, merit
         merit0 = merit
@@ -531,9 +549,8 @@ do iz = iz_min, iz_max, every_n_th_plane
 
   case ('lm')
     a_lambda = -1
-    weight = 1
     do iloop = 1, n_cycles
-      call super_mrqmin (merit0_vec, weight, var_vec, chisq, mrqmin_func, storage, a_lambda, status)
+      call super_mrqmin (zero_vec, weight, var_vec, chisq, mrqmin_func, storage, a_lambda, status)
       if (merit < 0.99*merit0) then
         print '(i5, es14.6, es12.3)', iloop, merit, a_lambda
         merit0 = merit
@@ -586,24 +603,24 @@ enddo
 !-------------------------------------------------------------------
 contains
 
-subroutine merit_calc(var_vec, iz, dB_calc, b_fit_vec)
+function merit_calc(var_vec, iz, merit_vec, dB_dvar_vec) result (merit)
 
 type (gg1_struct), pointer :: gg
 
-real(rp) var_vec(:)
-real(rp), optional :: b_fit_vec(:)
+real(rp) var_vec(:), merit_vec(:), merit
+real(rp), optional :: dB_dvar_vec(:,:)
 real(rp) x, y, rho, theta, Bx, By, Bz, B_rho, B_theta, f, ff, p_rho, coef
 
 integer i, iz, ix, iy, iv, m, id, nn, izz, ig, n0, n3, ix_merit
-logical :: dB_calc, is_even
+logical :: is_even
 
 !
 
 ix_merit = 0
+n3 = size(Bx_fit)
 
 do izz = iz0, iz1
 
-  n3 = size(Bx_fit)
   n0 = ix_merit * n3
 
   Bx_fit = 0
@@ -663,7 +680,7 @@ do izz = iz0, iz1
             Bx_fit(ix,iy) = Bx_fit(ix,iy) + Bx * coef
             By_fit(ix,iy) = By_fit(ix,iy) + By * coef
 
-            if (dB_calc) then
+            if (present(dB_dvar_vec)) then
               dBx_dvar(ix,iy) = Bx
               dBy_dvar(ix,iy) = By
             endif
@@ -676,14 +693,14 @@ do izz = iz0, iz1
             endif
 
             Bz_fit(ix,iy) = Bz_fit(ix,iy) + Bz * coef
-            if (dB_calc) then
+            if (present(dB_dvar_vec)) then
               dBz_dvar(ix,iy) = Bz
             endif
           endif
         enddo   ! ix = Nx_min, Nx_max
       enddo   ! iy = Ny_min, Ny_max
 
-      if (dB_calc) then
+      if (present(dB_dvar_vec)) then
         dB_dvar_vec(n0+1:n0+n3, iv)        = reshape(dBx_dvar(:,:), [n3])
         dB_dvar_vec(n0+n3+1:n0+2*n3, iv)   = reshape(dBy_dvar(:,:), [n3])
         dB_dvar_vec(n0+2*n3+1:n0+3*n3, iv) = reshape(dBz_dvar(:,:), [n3])
@@ -694,23 +711,16 @@ do izz = iz0, iz1
 
   !
 
-  merit_vec(n0+1:n0+n3)        = reshape(Bx_dat(:,:,izz)-Bx_fit, [n3])
-  merit_vec(n0+n3+1:n0+2*n3)   = reshape(By_dat(:,:,izz)-By_fit, [n3])
-  merit_vec(n0+2*n3+1:n0+3*n3) = reshape(Bz_dat(:,:,izz)-Bz_fit, [n3])
-
-  if (present(b_fit_vec)) then
-    b_fit_vec(n0+1:n0+n3)        = reshape(Bx_fit, [n3])
-    b_fit_vec(n0+n3+1:n0+2*n3)   = reshape(By_fit, [n3])
-    b_fit_vec(n0+2*n3+1:n0+3*n3) = reshape(Bz_fit, [n3])
-  endif
+  merit_vec(n0+1:n0+n3)        = reshape(Bx_fit-Bx_dat(:,:,izz), [n3])
+  merit_vec(n0+n3+1:n0+2*n3)   = reshape(By_fit-By_dat(:,:,izz), [n3])
+  merit_vec(n0+2*n3+1:n0+3*n3) = reshape(Bz_fit-Bz_dat(:,:,izz), [n3])
 
   ix_merit = ix_merit + 3
-
 enddo   ! izz = iz0, iz1
 
 merit = 3 * norm2(merit_vec) / (n3 * ix_merit)
 
-end subroutine merit_calc
+end function merit_calc
 
 !---------------------------------------------------------------------------
 ! contains
@@ -724,8 +734,7 @@ integer status
 
 !
 
-call merit_calc(var, iz, .false., yfit)
-dy_dvar = dB_dvar_vec
+merit = merit_calc(var, iz, yfit, dy_dvar)
 
 end subroutine mrqmin_func
 
