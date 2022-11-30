@@ -533,8 +533,8 @@ contains
        E(3)=0.0_dp
 
 
-       B(1)= E(2)*beta*1.e9_dp/clight
-       B(2)=-E(1)*beta*1.e9_dp/clight
+       B(1)= E(2)*beta
+       B(2)=-E(1)*beta
        B(3)=0.0_dp
 
 
@@ -567,8 +567,8 @@ contains
        E(3)=0.0_dp
 
 
-       B(1)= E(2)*beta*1.e9_dp/clight
-       B(2)=-E(1)*beta*1.e9_dp/clight
+       B(1)= E(2)*beta
+       B(2)=-E(1)*beta
        B(3)=0.0_dp
 
      call kill(beta,ff)
