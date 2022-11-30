@@ -439,7 +439,7 @@ contains
   logical, intent(in) ::  exact,time
   real(dp), intent(in) :: beta0
   real(dp) d(3),lh
-  real(dp) kick(3) 
+  real(dp) kicks(3) 
   type(internal_state) k
   integer i
   Beam=> c%bb
@@ -449,21 +449,21 @@ contains
    lh=(Beam%s(Beam%n)-Beam%s(1))/2
    d(3)=-lh
        CALL TRANS(d,p%X,BETA0,exact,TIME)
-       call BBKICKn(Beam,P,1,kick)
-       call RAD_SPIN_bb_PROBE(c,p,k,kick)
+       call BBKICKn(Beam,P,1,kicks)
+       call RAD_SPIN_bb_PROBE(c,p,k,kicks)
      do i=2,Beam%n
        d(3)=(Beam%s(i)-Beam%s(i-1))    !/2
 
        CALL TRANS(d,p%X,BETA0,exact,TIME)
-       call BBKICKn(Beam,P,i,kick)
-       call RAD_SPIN_bb_PROBE(c,p,k,kick)
+       call BBKICKn(Beam,P,i,kicks)
+       call RAD_SPIN_bb_PROBE(c,p,k,kicks)
 
      enddo
    d(3)=-lh
        CALL TRANS(d,p%X,BETA0,exact,TIME)
   else
-       call BBKICKn(Beam,P,1,kick)
-       call RAD_SPIN_bb_PROBE(c,p,k,kick)
+       call BBKICKn(Beam,P,1,kicks)
+       call RAD_SPIN_bb_PROBE(c,p,k,kicks)
 
   endif
   end subroutine BBKICKR
@@ -475,35 +475,35 @@ contains
   logical, intent(in) ::  exact,time
   real(dp), intent(in) :: beta0
   real(dp) d(3),lh,dh
-  type(real_8)  kick(3)
+  type(real_8)  kicks(3)
   type(internal_state) k
   integer i
   Beam=> c%bb
-  call alloc(kick)
+  call alloc(kicks)
   if(Beam%n>1) then
   d=0
    lh=(Beam%s(Beam%n)-Beam%s(1))/2
    d(3)=-lh
        CALL TRANS(d,p%X,BETA0,exact,TIME)
-       call BBKICKn(Beam,P,1,kick)
-       call RAD_SPIN_bb_PROBE(c,p,k,kick)
+       call BBKICKn(Beam,P,1,kicks)
+       call RAD_SPIN_bb_PROBE(c,p,k,kicks)
 
      do i=2,Beam%n
        d(3)=(Beam%s(i)-Beam%s(i-1))  !/2
 
        CALL TRANS(d,p%X,BETA0,exact,TIME)
-       call BBKICKn(Beam,P,i,kick)
-       call RAD_SPIN_bb_PROBE(c,p,k,kick)
+       call BBKICKn(Beam,P,i,kicks)
+       call RAD_SPIN_bb_PROBE(c,p,k,kicks)
 
      enddo
    d(3)=-lh
        CALL TRANS(d,p%X,BETA0,exact,TIME)
   else
-       call BBKICKn(Beam,P,1,kick)
-       call RAD_SPIN_bb_PROBE(c,p,k,kick)
+       call BBKICKn(Beam,P,1,kicks)
+       call RAD_SPIN_bb_PROBE(c,p,k,kicks)
 
   endif
-  call kill(kick)
+  call kill(kicks)
   end subroutine BBKICKP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
