@@ -528,8 +528,8 @@ contains
     ff=1.0_dp+beta**2
 
  !!!  
-       E(1)=kick(1)*p0c/ff/EL%P%CHARGE 
-       E(2)=kick(2)*p0c/ff/EL%P%CHARGE  
+       E(1)=kick(1)/ff/EL%P%CHARGE 
+       E(2)=kick(2)/ff/EL%P%CHARGE  
        E(3)=0.0_dp
 
 
@@ -562,8 +562,8 @@ contains
     ff=1.0_dp+beta**2
 
  !!!  
-       E(1)=kick(1)*p0c/ff/EL%P%CHARGE 
-       E(2)=kick(2)*p0c/ff/EL%P%CHARGE  
+       E(1)=kick(1)/ff/EL%P%CHARGE 
+       E(2)=kick(2)/ff/EL%P%CHARGE  
        E(3)=0.0_dp
 
 
