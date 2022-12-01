@@ -75,7 +75,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ October 19, 2022}
+\date{David Sagan \\ December 1, 2022}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -643,7 +643,7 @@ The namelist parameters can be divided into three categories: Input files, outpu
 simulation parameters.
 
 %----------------------------------------------------
-\subsection{Output Files}
+\subsection{Output File Parameters}
 \label{s:out.files}
 
 Parameters in the master input file that affect the output are:
@@ -687,7 +687,8 @@ Time                          -- Time from start
 Polarization                  -- Spin polarization
 <Sx>, <Sy>, <Sz>              -- Average spin components
 <x>, <px>, <y>, 
-      <py>, <z>, <pz>         -- Beam centroid.
+      <py>, <z>, <pz>         -- Beam phase space centroid.
+<pc>                          -- Average momentum (eV).
 <p0c>                         -- Reference momentum
 Sig_x, Sig_px, Sig_y, 
       Sig_py, Sig_z, Sig_pz   -- Phase space sigmas
@@ -772,10 +773,12 @@ used. In the above example, the second column's expression is the \vn{voltage} o
 named \vn{rf0} in the lattice (see the Bmad manual for lists of element parameters). Other
 parameters are:
 \begin{code}
-n_turn    -- Turn number
-time      -- Time at the N\Th turn averaged over the beam.
+n_turn      -- Turn number
+time        -- Time.
 x, px, y, py, z, pz
-          -- Particle phase space averaged over the beam.
+            -- Particle phase space averaged over the beam.
+pc, e_tot   -- Particle momentum and total energy
+sx, sy, sz  -- Spin vector
 \end{code}
 Thus the third column in the above example is the averaged particle phase with respect to the zero
 crossing phase of the first element named \vn{rf0} in the lattice. [Note that $z$ is always evaluated
@@ -1311,7 +1314,7 @@ Phys pp 17–21, (2006).
 
 \bibitem{b:wolski}
 A. Wolski, "Alternate approach to general coupled linear optics",
-Phys.\ Rev.\ Special Topics, Accel \& Beams, \bf{9}, 024001 (2006).
+Phys.\ Rev.\ Special Topics, Accel \& Beams, {\bf 9}, 024001 (2006).
 
 \bibitem{b:gulliford}
 Colwyn Gulliford, Adam Bartnik, Ivan Bazarov, Bruce Dunham, and Luca Cultrera,

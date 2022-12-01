@@ -575,10 +575,10 @@ do ib = 0, nb
 
   call ltt_print_this_info(iu, .false.)
 
-  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 7a14, 2x, 6a14)') '##', '1', '2', '3', '4', '5', '6', '7', &
-                  '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'
-  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 7a14, 2x, 6a14)') '##', 'Turn', 'N_live', 'Time', 'Polarization', &
-                   '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>', &
+  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 8a14, 2x, 6a14)') '##', '1', '2', '3', '4', '5', '6', '7', &
+                  '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'
+  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 8a14, 2x, 6a14)') '##', 'Turn', 'N_live', 'Time', 'Polarization', &
+                   '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<pc>', '<p0c>', &
                    'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz'
 
   close(iu)
@@ -1624,6 +1624,8 @@ do i = 1, size(lttp%column)
       else
         st%value = orb%t
       endif
+    case ('p0c');         st%value = (1.0_rp + orb%vec(6)) * orb%p0c
+    case ('e_tot');       st%value = (1.0_rp + orb%vec(6)) * orb%p0c / mass_of(orb%species)
     case ('sx');          st%value = orb%spin(1)
     case ('sy');          st%value = orb%spin(2)
     case ('sz');          st%value = orb%spin(3)
@@ -1978,13 +1980,14 @@ do ib = 1, nb
 
   !
 
-  write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 7es14.6, 2x, 6es14.6)') ix_turn, nint(bd%n_live), &
-          bd%time_ave, norm2(bd%spin_ave), bd%spin_ave, bd%orb_ave, bd%p0c_ave, bd%sig1
+  write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 8es14.6, 2x, 6es14.6)') ix_turn, nint(bd%n_live), &
+                             bd%time_ave, norm2(bd%spin_ave), bd%spin_ave, &
+                             bd%orb_ave, (1.0_rp+bd%orb_ave(6))*bd%p0c_ave, bd%p0c_ave, bd%sig1
 
   write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)') ix_turn, nint(bd%n_live), bd%time_ave, (bd%sigma(k), k = 1, 21)
 
   write (line, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 3es14.6, 2x, 3es14.6)') ix_turn, nint(bd%n_live), &
-          bd%time_ave, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%kurt, bd%skew
+                             bd%time_ave, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%kurt, bd%skew
 
   do i = 1, core_max$
     if (lttp%core_emit_cutoff(i) <= 0) exit
