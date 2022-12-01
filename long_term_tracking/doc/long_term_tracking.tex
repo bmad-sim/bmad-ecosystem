@@ -833,11 +833,12 @@ In this example, output will happen every 1000 turns. For ``averages'' files the
 parameter is \vn{averages_output_every_n_turns}.
 %
 \item[ltt\%phase_space_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the ASCII file or files that are
-created to hold the particle positions. A file is created every \vn{ltt%particle_output_every_n_turns}
-turns. See Section~\sref{s:part.out} for more details. If \vn{ltt%phase_space_output_file} is blank, no
-particle output file is created. See also \vn{ltt%beam_binary_output_file} which will produce a
-portable binary file. Also see \vn{ltt%action_angle_output_file}.
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"} or \vn{"SINGLE"}. The name of the ASCII file
+or files that are created to hold the particle positions. A file is created every
+\vn{ltt%particle_output_every_n_turns} turns. See Section~\sref{s:part.out} for more details. If
+\vn{ltt%phase_space_output_file} is blank, no particle output file is created. See also
+\vn{ltt%beam_binary_output_file} which will produce a portable binary file. Also see
+\vn{ltt%action_angle_output_file}.
 %
 \item[ltt\%print_on_dead_loss] \Newline
 After each turn, the number of particles that are still living (have not hit an aperture) are

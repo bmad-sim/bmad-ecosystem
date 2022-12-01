@@ -131,7 +131,7 @@ type ltt_com_struct
   logical :: using_mpi = .false.
   logical :: track_bypass = .false.            ! Used by DA program
   character(200) :: master_input_file = ''
-  character(40) :: fmt = '(2i7, 6es16.8, 3x, 3f10.6, 4x, a)'
+  character(40) :: ps_fmt = '(2i7, 8es16.8, 3x, 3f10.6, 4x, a)'
 end type
 
 integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
@@ -890,10 +890,10 @@ endif
 
 iu_part = lunget()
 if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
-open (iu_part, file = lttp%phase_space_output_file, recl = 200)
+open (iu_part, file = lttp%phase_space_output_file, recl = 300)
 call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
-write (iu_part, '(a)') '## Turn ix_ele |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z  | Element'
-write (iu_part, ltt_com%fmt) 0, ele_start%ix_ele, orbit%vec, orbit%spin, trim(ele_start%name)
+write (iu_part, '(a)') '## Turn ix_ele |            x              px               y              py               z              pz              pc             p0c  |    spin_x    spin_y    spin_z  | Element'
+write (iu_part, ltt_com%ps_fmt) 0, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele_start%name)
 
 if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, 0, orbit = orbit)
 
@@ -916,7 +916,7 @@ do i_turn = 1, lttp%n_turns
                                                      orbit_too_large(orbit) .or. prb%u) orbit%state = lost$
 
       if (lttp%particle_output_every_n_turns < 1) then
-        write (iu_part, ltt_com%fmt) i_turn, ele1%ix_ele, orbit%vec, orbit%spin, trim(ele1%name)
+        write (iu_part, ltt_com%ps_fmt) i_turn, ele1%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele1%name)
       endif
 
       if (orbit%state == lost$) exit
@@ -936,7 +936,7 @@ do i_turn = 1, lttp%n_turns
 
   if (lttp%particle_output_every_n_turns > 0) then
     if (modulo(i_turn, lttp%particle_output_every_n_turns) == 0) then
-      write (iu_part, ltt_com%fmt) i_turn, ele_start%ix_ele, orbit%vec, orbit%spin, trim(ele_start%name)
+      write (iu_part, ltt_com%ps_fmt) i_turn, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele_start%name)
     endif
   endif
 
@@ -2461,7 +2461,7 @@ do
   endif
 
   if (present(iu_part) .and. lttp%particle_output_every_n_turns < 1) then
-    write (iu_part, ltt_com%fmt) i_turn, ele%ix_ele, orbit%vec, orbit%spin, trim(ele%name)
+    write (iu_part, ltt_com%ps_fmt) i_turn, ele%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele%name)
   endif
 
   if (ele%ix_ele == ele_stop%ix_ele) exit
@@ -2552,7 +2552,7 @@ do i = 1, ubound(ltt_com%sec, 1)
   endif
 
   if (present(iu_part) .and. lttp%particle_output_every_n_turns < 1) then
-    write (iu_part, ltt_com%fmt) i_turn, ele%ix_ele, orbit%vec, orbit%spin, trim(ele%name)
+    write (iu_part, ltt_com%ps_fmt) i_turn, ele%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele%name)
   endif
 
   if (orbit%state /= alive$) return
