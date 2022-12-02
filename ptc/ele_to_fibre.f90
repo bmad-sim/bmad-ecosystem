@@ -592,6 +592,8 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
     enddo
   enddo
 
+  call dadal1_pancake(icoef)
+
   ptc_key%magnet = 'PANCAKEBMAD'
 
 else
@@ -679,6 +681,15 @@ else
 endif
 
 !----------------------------------------------
+
+if (ptc_key%magnet == 'PANCAKEBMAD') then
+  do i = 1, 3
+    do j = 1, np
+      call dadal1_pancake(pancake_field(i,j))
+    enddo
+  enddo
+endif
+
 
 if (ele%key == floor_shift$) Then
   ptc_fibre%patch%track = .false.
