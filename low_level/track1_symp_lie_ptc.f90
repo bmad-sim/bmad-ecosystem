@@ -20,7 +20,7 @@ subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb, track)
 use ptc_interface_mod, except_dummy => track1_symp_lie_ptc
 use ptc_spin, only: probe, assignment(=), operator(+), SPIN0, TOTALPATH0, &
                                               track_probe, track_probe_x, CONVERSION_XPRIME_IN_ABELL
-use s_tracking, only: alloc_fibre, integration_node
+use s_tracking, only: alloc_fibre, integration_node, check_stable
 use mad_like, only: fibre, kill
 
 implicit none
@@ -79,6 +79,7 @@ if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)
     do while (.not. associated(ptc_track, ptc_fibre%t2))
       call track_probe (ptc_probe, STATE, node1 = ptc_track, node2 = ptc_track%next)
       call save_this_step(track, ptc_probe, ele)
+      if (.not. check_stable) exit
       ptc_track => ptc_track%next
     enddo
 
@@ -117,6 +118,8 @@ else
                           start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 endif
 
+if (.not. check_stable) end_orb%state = lost$
+
 CONVERSION_XPRIME_IN_ABELL = .true. ! Reset to normal.
 
 !---------------------------------------------------------------------
@@ -141,6 +144,7 @@ orbit = start2_orb
 orbit%vec = ptc_probe%x
 orbit%s = ptc_track%s(1) + ele%s_start
 orbit%spin = quat_rotate(ptc_probe%q%x, start2_orb%spin)
+if (.not. check_stable) orbit%state = lost$
 call save_a_step (track, ele, param, .false., orbit, ptc_track%s(1))
 
 end subroutine save_this_step
