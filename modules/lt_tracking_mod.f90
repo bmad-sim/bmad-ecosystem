@@ -138,11 +138,7 @@ integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
 
 type ltt_bunch_data_struct
   real(rp) :: n_live = 0        ! Number alive. Use real to avoid roundoff error.
-  real(rp) :: orb_ave(6) = 0    ! Orbit average
-  real(rp) :: spin_ave(3) = 0   ! Spin
-  real(rp) :: p0c_ave = 0
-  real(rp) :: time_ave = 0
-  real(rp) :: sig1(6) = 0, sigma(27) = 0, sig_mat(6,6) = 0
+  real(rp) :: sig1(6) = 0, sigma_vec(27) = 0
   real(rp) :: kurt(3) = 0, skew(3) = 0
   real(rp) :: core_emit(core_max$,3) = 0
   type (bunch_params_struct) :: params = bunch_params_struct()
@@ -570,7 +566,7 @@ if (lttp%averages_output_file == '') return
 
 do ib = 0, nb
   if (ib == 0 .and. nb == 1) cycle  ! ib = zero is for all bunch averages if there is more than one bunch
-  call ltt_data_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
   open (iu, file = file_name, recl = 400)
 
   call ltt_print_this_info(iu, .false.)
@@ -585,7 +581,7 @@ do ib = 0, nb
 
   !
 
-  call ltt_data_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
   open (iu, file = file_name, recl = 400)
 
   call ltt_print_this_info(iu, .false.)
@@ -601,7 +597,7 @@ do ib = 0, nb
 
   !
 
-  call ltt_data_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
   open (iu, file = file_name, recl = 2000)
 
   call ltt_print_this_info(iu, .false.)
@@ -1430,9 +1426,9 @@ else
   open (iu, file = file_name, recl = 300)
   call ltt_write_params_header(lttp, ltt_com, iu, ltt_com%n_particle, size(beam%bunch))
   if (who == 'phase_space') then
-    write (iu, '(a)')  '##     Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
+    write (iu, '(a)')  '##     Ix     Turn |           x              px               y              py               z              pz              pc             p0c   |     spin_x    spin_y    spin_z    State'
   else
-    write (iu, '(a)')  '##     Ix     Turn |          Jx         Angle_x              Jy         Angle_y              Jz         Angle_z   |     spin_x    spin_y    spin_z    State'
+    write (iu, '(a)')  '##     Ix     Turn |          Ja         Angle_a              Jb         Angle_b              Jc         Angle_c   |     spin_x    spin_y    spin_z    State'
   endif
   wrote_header = .true.
 endif
@@ -1449,7 +1445,7 @@ do ip = 1, size(bunch%particle)
   ix = ip + ltt_com%mpi_ix0_particle
   if (lttp%only_live_particles_out .and. p%state /= alive$) cycle
   if (who == 'phase_space') then
-    write (iu, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
+    write (iu, '(i9, i9, 8es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, (1.0_rp+p%vec(6))*p%p0c, p%p0c, p%spin, trim(coord_state_name(p%state))
   else
     jvec = matmul(n_inv_mat, p%vec-b_params%centroid%vec)
     jamp = 0.5_rp * [jvec(1)**2 + jvec(2)**2, jvec(3)**2 + jvec(4)**2, jvec(5)**2 + jvec(6)**2]
@@ -1713,10 +1709,12 @@ logical error
 
 !
 
-orb_sum = 0;  orb2_sum = 0;  orb3_sum = 0;  orb4_sum = 0
 bd = ltt_bunch_data_struct()
-bd%n_live = count(bunch%particle%state == alive$)
+call calc_bunch_params(bunch, bd%params, error, .true., n_inv_mat)
+bd%n_live = bd%params%n_particle_live
 if (bd%n_live == 0) return
+
+orb_sum = 0;  orb2_sum = 0;  orb3_sum = 0;  orb4_sum = 0
 
 do i = 1, 6
   orb_sum(i)  = orb_sum(i)  + sum(bunch%particle%vec(i), bunch%particle%state == alive$)
@@ -1729,12 +1727,7 @@ do i = 1, 6
   orb4_sum(i) = orb4_sum(i) + sum((bunch%particle%vec(i)-ave)**4, bunch%particle%state == alive$) 
 enddo
 
-do i = 1, 3
-  bd%spin_ave(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$) / bd%n_live
-enddo
-bd%p0c_ave = sum(bunch%particle%p0c, bunch%particle%state == alive$) / bd%n_live
-bd%time_ave = ltt_bunch_time_sum(bunch, lttp) / bd%n_live
-bd%orb_ave = orb_sum / bd%n_live
+bd%params%t = ltt_bunch_time_sum(bunch, lttp) / bd%n_live
 
 !
 
@@ -1745,11 +1738,11 @@ do j = i, 6
   ! Test if the value of sigma(i,j) is significant. If not set to zero. 
   ! This is to avoid problems due to round-off errors. 
   ! One notible case is at the beginning of tracking if a mode has zero emittance.
-  bd%sigma(k) = orb2_sum(i,j) / bd%n_live - orb_sum(i) * orb_sum(j) / bd%n_live**2
-  if (abs(bd%sigma(k)) < 1e-15_rp * abs(orb_sum(i)*orb_sum(j)) / bd%n_live) bd%sigma(k) = 0
-  bd%sig_mat(i,j) = bd%sigma(k)
-  bd%sig_mat(j,i) = bd%sigma(k)
-  if (i == j) bd%sig1(i) = sqrt(max(0.0_rp, bd%sigma(k)))
+  bd%sigma_vec(k) = orb2_sum(i,j) / bd%n_live - orb_sum(i) * orb_sum(j) / bd%n_live**2
+  if (abs(bd%sigma_vec(k)) < 1e-15_rp * abs(orb_sum(i)*orb_sum(j)) / bd%n_live) bd%sigma_vec(k) = 0
+  bd%params%sigma(i,j) = bd%sigma_vec(k)
+  bd%params%sigma(j,i) = bd%sigma_vec(k)
+  if (i == j) bd%sig1(i) = sqrt(max(0.0_rp, bd%sigma_vec(k)))
 enddo
 enddo
 
@@ -1759,8 +1752,6 @@ if (bd%sig1(3) /= 0) bd%skew(2) = orb3_sum(3) / (bd%n_live * bd%sig1(3)**3)
 if (bd%sig1(3) /= 0) bd%kurt(2) = orb4_sum(3) / (bd%n_live * bd%sig1(3)**4) - 3.0_rp
 if (bd%sig1(5) /= 0) bd%skew(3) = orb3_sum(5) / (bd%n_live * bd%sig1(5)**3)
 if (bd%sig1(5) /= 0) bd%kurt(3) = orb4_sum(5) / (bd%n_live * bd%sig1(5)**4) - 3.0_rp
-
-call calc_emittances_and_twiss_from_sigma_matrix (bd%sig_mat, bd%params, error, n_mat = n_inv_mat)
 
 ! Calc core emit
 
@@ -1808,7 +1799,7 @@ if (lttp%core_emit_combined_calc) then
   sig_cut = -log(inverse(beam_fraction, cutoff, 1e-12_rp, 1.0_rp, 1e-8_rp))
   f = cutoff / (1 - (1 + sig_cut + sig_cut**2/2 + sig_cut**3/6) * exp(-sig_cut))
 
-  call core_bunch_construct(0, bunch, bd%orb_ave, n_inv_mat0, n_cut, core_bunch, bd%params)
+  call core_bunch_construct(0, bunch, bd%params%centroid%vec, n_inv_mat0, n_cut, core_bunch, bd%params)
 
   call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat);  if (error) return
   call mat_inverse (n_inv_mat, n_inv_mat)
@@ -1824,7 +1815,7 @@ else
   f =  cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
 
   do i = 1, 3
-    call core_bunch_construct(i, bunch, bd%orb_ave, n_inv_mat0, n_cut, core_bunch)
+    call core_bunch_construct(i, bunch, bd%params%centroid%vec, n_inv_mat0, n_cut, core_bunch)
 
     call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
 
@@ -1908,7 +1899,7 @@ end subroutine ltt_calc_bunch_data
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_data_file_name (template_name, suffix, ix_bunch, n_bunch, file_name)
+subroutine ltt_averages_file_name (template_name, suffix, ix_bunch, n_bunch, file_name)
 
 character(*) template_name, suffix, file_name
 integer ix_bunch, n_bunch   ! Index of bunch and number of bunches
@@ -1936,7 +1927,7 @@ else
     file_name = file_name(1:ix-1) // trim(suffix) // file_name(ix+1:) 
 endif
 
-end subroutine ltt_data_file_name
+end subroutine ltt_averages_file_name
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -1971,23 +1962,23 @@ do ib = 1, nb
 
   call ltt_calc_bunch_data(lttp, bunch, bd)
 
-  call ltt_data_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
   iu1 = lunget(); open (iu1, file = file_name, recl = 400, access = 'append')
-  call ltt_data_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
   iu2 = lunget(); open (iu2, file = file_name, recl = 400, access = 'append')
-  call ltt_data_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
   iu3 = lunget(); open (iu3, file = file_name, recl = 2000, access = 'append')
 
   !
 
   write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 8es14.6, 2x, 6es14.6)') ix_turn, nint(bd%n_live), &
-                             bd%time_ave, norm2(bd%spin_ave), bd%spin_ave, &
-                             bd%orb_ave, (1.0_rp+bd%orb_ave(6))*bd%p0c_ave, bd%p0c_ave, bd%sig1
+                   bd%params%t, norm2(bd%params%centroid%spin), bd%params%centroid%spin, bd%params%centroid%vec, &
+                   (1.0_rp+bd%params%centroid%vec(6))*bd%params%centroid%p0c, bd%params%centroid%p0c, bd%sig1
 
-  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)') ix_turn, nint(bd%n_live), bd%time_ave, (bd%sigma(k), k = 1, 21)
+  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)') ix_turn, nint(bd%n_live), bd%params%t, (bd%sigma_vec(k), k = 1, 21)
 
   write (line, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 3es14.6, 2x, 3es14.6)') ix_turn, nint(bd%n_live), &
-                             bd%time_ave, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%kurt, bd%skew
+                             bd%params%t, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%kurt, bd%skew
 
   do i = 1, core_max$
     if (lttp%core_emit_cutoff(i) <= 0) exit
