@@ -1487,9 +1487,9 @@ if (species == photon$) return
 average_pc = (1+bunch_params%centroid%vec(6)) * bunch_params%centroid%p0c
 call convert_pc_to (average_pc, species, beta = bunch_params%centroid%beta)
 
-! Rather arbitrary cutoff: If less than 12 particles, calculation of sigma matrix, etc is declared invalid
+! Rather arbitrary cutoff: If less than 6 particles, calculation of sigma matrix, etc is declared invalid
 
-if (bunch_params%n_particle_live < 12) return
+if (bunch_params%n_particle_live < 6) return
 
 call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, bunch_params, error, print_err, n_mat)
 
