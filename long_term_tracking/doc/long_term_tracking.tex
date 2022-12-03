@@ -48,6 +48,7 @@
 \newcommand{\ltt}{\vn{long_term_tracking}\xspace}
 \newcommand{\Newline}{\hfil \\}
 \newcommand{\sref}[1]{$\S$\ref{#1}}
+\newcommand{\Sref}[1]{Sec.~\sref{#1}}
 \newcommand{\Th}{$^{th}$\xspace}
 \newcommand{\norm}{\text{norm}}
 \newcommand{\unnorm}{\text{unnorm}}
@@ -75,7 +76,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ December 1, 2022}
+\date{David Sagan \\ December 3, 2022}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -229,8 +230,7 @@ The name of the data file is set by the \vn{ltt%phase_space_output_file} paramet
 turns. If this parameter is zero or negative, the position will be outputted at every element.
 %
 \item["BEAM"] \Newline
-In this mode a particle beam is tracked for \vn{ltt%n_turns} turns. The output data file(s) format is
-described in Section~\sref{s:part.out}.
+In this mode a particle beam is tracked for \vn{ltt%n_turns} turns.
 %
 \item["STAT"] \Newline
 In this mode statistics about the lattice are calculated. No long term tracking is done.
@@ -584,25 +584,6 @@ Example:
   ltt%ramp_update_each_particle = True
   ltt%ramping_start_time = 0
 
-  ! Output parameters
-  ltt%phase_space_output_file = ""
-  ltt%action_angle_output_file = ""
-  ltt%beam_binary_output_file = "beam.dat"
-  ltt%averages_output_file = "average.dat"
-  ltt%custom_output_file = ""
-  ltt%averages_output_every_n_turns = 200
-  ltt%particle_output_every_n_turns = 200
-  ltt%only_live_particles_out = T
-  ltt%core_emit_cutoff   = 0.2, 0.5
-  ltt%core_emit_combined_calc = T
-  ltt%print_on_dead_loss = -1
-  ltt%map_file_prefix = "ltt"
-  ltt%map_ascii_output_file = ""
-
-  ltt%column(1) = "n_turn", "N_turn", "i7"
-  ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
-  ltt%column(3) = "rf0##1[phi0] + z/rf0##1[rf_wavelength]", "dPhi", "f12.8"
-
   ! Simulation parameters
   ltt%simulation_mode    = "BEAM"
   ltt%tracking_method    = "BMAD"
@@ -636,153 +617,30 @@ Example:
   beam_init%b_emit = 1e-8
   beam_init%sig_z = 1e-4
   beam_init%sig_pz = 1e-4
+
+  ! Output parameters
+  ltt%phase_space_output_file = ""
+  ltt%action_angle_output_file = ""
+  ltt%beam_binary_output_file = "beam.dat"
+  ltt%averages_output_file = "average.dat"
+  ltt%custom_output_file = ""
+  ltt%averages_output_every_n_turns = 200
+  ltt%particle_output_every_n_turns = 200
+  ltt%only_live_particles_out = T
+  ltt%core_emit_cutoff   = 0.2, 0.5
+  ltt%core_emit_combined_calc = T
+  ltt%print_on_dead_loss = -1
+  ltt%map_file_prefix = "ltt"
+  ltt%map_ascii_output_file = ""
+
+  ltt%column(1) = "n_turn", "N_turn", "i7"
+  ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
+  ltt%column(3) = "rf0##1[phi0] + z/rf0##1[rf_wavelength]", "dPhi", "f12.8"
 /
 \end{code}
 
 The namelist parameters can be divided into three categories: Input files, output parameters, and
 simulation parameters.
-
-%----------------------------------------------------
-\subsection{Output File Parameters}
-\label{s:out.files}
-
-Parameters in the master input file that affect the output are:
-\begin{description}
-%
-\item[ltt\%action_angle_output_file] \Newline
-The name of the ASCII file (or files) that are created to hold the particle positions in action-angle
-coordinates. Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. See \Sref{s:beam.part.dat} 
-for more details. If \vn{ltt%action_angle_output_file} is blank, no particle
-output file is created. See also the parameter \vn{ltt%beam_binary_output_file} which will produce a
-portable binary file. Also see \vn{ltt%phase_space_output_file}.
-%
-\item[ltt\%averages_output_every_n_turns] \Newline
-Sets the number of turns between data rows of data files specified by:
-\begin{code}
-ltt%averages_output_file
-ltt%custom_output_file
-\end{code}
-If set to -1 (the default), the output will only happen at the last turn. If set to 0, output will
-happen on the beginning turn (turn 0) and the last turn. Example:
-\begin{code}
-ltt%averages_output_every_n_turns = 1000
-\end{code}
-In this example, output will happen every 1000 turns. For particle phase space output, use the \vn{particle_output_every_n_turns} parameter.
-%
-\item[ltt\%averages_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. There are three data files generated here.
-%
-\item[ltt\%beam_binary_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file that
-is created to hold the particle positions at the end of tracking. This is similar to
-\vn{ltt%phase_space_output_file} but here the file will be a binary file that is portable to other
-programs and can also be used as input to the \ltt program. The file suffix should be \vn{.h5} or
-\vn{.hdf5}. If neither of these suffixes are used the binary file name will have a \vn{.h5} suffix
-added. To translate to ASCII, use the \vn{beam_file_translate_format} program. Documentation is in
-any Bmad Distribution in the file:
-\begin{code}
-  util_programs/beam_file_translate_format/DOC
-\end{code}
-%
-\item[ltt\%column(:)] \Newline
-A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
-$N$ is set by \vn{ltt%averages_output_every_n_turns}. The name of the file is set by
-\vn{ltt%custom_output_file}.
-
-Columns in the custom file are specified by setting \vn{ltt%column(<i>)}. The general syntax is:
-\begin{code}
-ltt%column(<i>) = "<expression>", "<header-name>",  "<format>"
-\end{code}
-where \vn{<i>} is the column index, \vn{<expression>} is an arithmetical expression that determines
-the values displayed in the column, \vn{<header-name>} is a descriptive string used in constructing
-the header line (first line) in the file, and \vn{<format>} is the format specifier used when
-converting the value of an expression into a string. Example:
-\begin{code}
-ltt%column(1) = "n_turn", "N_turn", "i7"
-ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
-ltt%column(3) = "rf0##1[phi0] + z/rf0##1[rf_wavelength]", "dPhi", "es12.8"
-\end{code}
-Here three columns are specified. Parameters that are used in a column's \vn{<expression>} can be
-element attributes or beam quantities. Using element attributes can be helpful when ramping is
-used. In the above example, the second column's expression is the \vn{voltage} of the first element
-named \vn{rf0} in the lattice (see the Bmad manual for lists of element parameters). Other
-parameters are:
-\begin{code}
-n_turn      -- Turn number
-time        -- Time.
-x, px, y, py, z, pz
-            -- Particle phase space averaged over the beam.
-pc, p0c     -- Particle momentum and reference momentum
-sx, sy, sz  -- Spin vector
-\end{code}
-Thus the third column in the above example is the averaged particle phase with respect to the zero
-crossing phase of the first element named \vn{rf0} in the lattice. [Note that $z$ is always evaluated
-at the start of the turn and not at the position of the RF cavity.]
-%
-\item[ltt\%map_ascii_output_file] \Newline
-For linear maps, An ASCII file of the maps can be produced by setting this parameter.
-%
-\item[ltt\%map_file_prefix] \Newline
-Prefix, including possible directory specification, for creating files in which maps are saved. Map
-files are used to quickly retrieve maps previously computed in prior running of the program. The
-default prefix is \vn{"ltt"}.  The general form of a map file name is
-\begin{code}
-<map_file_prefix>.<hash>.map
-\end{code}
-where \vn{<hash>} is a hash string that represents input parameters (like the order of the map) used
-to compute the map(s). This hash string is used so that map(s) constructed with one set of
-parameters are not used if the parameters are changed.
-%
-\item[ltt\%core_emit_combined_calc] \Newline
-Determines how core emittances are calculated. See \sref{s:core} for more details. The default value
-is \vn{True}.
-%
-\item[ltt\%core_emit_cutoff] \Newline
-The \vn{ltt%core_emit_cutoff} parameter is an array of values used to calculate the ``core''
-emittances (\sref{s:core}). Up to 40 values can be given. If a value is non-positive, that value and
-any value after that are ignored. The default first value is 0.5 and the reset default to
-negative. The value of \vn{ltt%core_emit_cutoff} must be
-less than or equal to one. Using a value near zero may lead to invalid results if the number of
-particle to be retained is too small since there will be statistical fluctuations of order
-$1/\sqrt{N_c}$ where $N_c$ is the number of particles in the core. The core emittance will be in the
-\vn{.emit} output data file (see \vn{ltt%averages_output_file}).
-%
-\item[ltt\%custom_output_file] \Newline
-A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
-$N$ is set by \vn{ltt%averages_output_every_n_turns}. The columns of the file are set by the
-\vn{ltt%column(:)} parameters.
-%
-\item[ltt\%only_live_particles_out] \Newline
-If this parameter is True (the default), the \vn{ltt%particles_output_file} file will not record
-dead particles. If set to False, all particles will be recorded. Note: The last column of this file
-indicates if the particle is alive or dead.
-%
-\item[ltt\%particle_output_every_n_turns] \Newline
-Sets the number of turns between particle position data files. If set to -1 (the default), a file
-will only be generated at the last turn. If set to 0, a file will be generated at the beginning turn
-(turn 0) and at the last turn. Example:
-\begin{code}
-ltt%particle_output_every_n_turns = 1000
-\end{code}
-In this example, output will happen every 1000 turns. For ``averages'' files the corresponding
-parameter is \vn{averages_output_every_n_turns}.
-%
-\item[ltt\%phase_space_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"} or \vn{"SINGLE"}. The name of the ASCII file
-or files that are created to hold the particle positions. A file is created every
-\vn{ltt%particle_output_every_n_turns} turns. See Section~\sref{s:part.out} for more details. If
-\vn{ltt%phase_space_output_file} is blank, no particle output file is created. See also
-\vn{ltt%beam_binary_output_file} which will produce a portable binary file. Also see
-\vn{ltt%action_angle_output_file}.
-%
-\item[ltt\%print_on_dead_loss] \Newline
-After each turn, the number of particles that are still living (have not hit an aperture) are
-counted and if the percentage of particles that have died, counting from the last time a message was
-printed, is larger than \vn{ltt%print_on_dead_loss}, a message is printed. For example, if
-\vn{ltt%print_on_dead_loss} is set to 0.01, every time the beam loses 1\% of the particles a message is printed.
-Default is -1 which will cause a message printed every turn where there is particle loss.
-%
-\end{description}
 
 %----------------------------------------------------
 \subsection{Simulation Parameters}
@@ -943,6 +801,105 @@ Bmad to be commensurate with the frequencies of the time varying fields.\footnot
 If not all the frequencies are commensurate, Bmad will make a best choice and the fields that have
 frequencies that are not commensurate with the RF clock will use the standard clock instead.
   }
+\end{description}
+
+%----------------------------------------------------
+\subsection{Output File Parameters}
+\label{s:out.files}
+
+Parameters in the master input file that affect the output are:
+\begin{description}
+%
+\item[ltt\%action_angle_output_file] \Newline
+The name of the ASCII file (or files) that are created to hold the particle positions in
+action-angle coordinates. Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. If
+\vn{ltt%action_angle_output_file} is blank, no particle output file is created. See
+\Sref{s:beam.part.dat} for more details.
+%
+\item[ltt\%averages_output_file] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. 
+The \vn{ltt%averages_output_file} parameter sets the prefix used for the file names for the
+\vn{averages}, \vn{sigma} and \vn{emittance} data files (\sref{s:beam.ave.dat}).
+%
+\item[ltt\%averages_output_every_n_turns] \Newline
+Sets the number of turns between data rows of data files specified by:
+\begin{code}
+ltt%averages_output_file  \sref{s:beam.ave.dat}
+ltt%custom_output_file    \sref{s:beam.cust.dat}
+\end{code}
+For particle phase space output, use the \vn{particle_output_every_n_turns} parameter.
+%
+\item[ltt\%beam_binary_output_file] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file that
+is created to hold the particle positions at the end of tracking. This is similar to
+\vn{ltt%phase_space_output_file} but here the file will be a binary file that is portable to other
+programs and can also be used as input to the \ltt program. The file suffix should be \vn{.h5} or
+\vn{.hdf5}. If neither of these suffixes are used the binary file name will have an \vn{.h5} suffix
+added. To translate to ASCII, use the \vn{beam_file_translate_format} program. Documentation is in
+any Bmad Distribution in the file:
+\begin{code}
+  util_programs/beam_file_translate_format/DOC
+\end{code}
+%
+\item[ltt\%column(:)] \Newline
+The \vn{ltt%column(:)} parameters are used to specify the columns of a custom data file
+(\sref{s:beam.cust.dat}).
+%
+\item[ltt\%core_emit_combined_calc] \Newline
+Determines how core emittances are calculated. See \Sref{s:core} for more details. The default value
+is \vn{True}.
+%
+\item[ltt\%core_emit_cutoff] \Newline
+The \vn{ltt%core_emit_cutoff} parameter is an array of values used to calculate the ``core''
+emittances (\sref{s:core}). Up to 40 values can be given. If a value is non-positive, that value and
+any value after that are ignored. The default first value is 0.5 and the reset default to
+negative. The value of \vn{ltt%core_emit_cutoff} must be
+less than or equal to one. Using a value near zero may lead to invalid results if the number of
+particle to be retained is too small since there will be statistical fluctuations of order
+$1/\sqrt{N_c}$ where $N_c$ is the number of particles in the core. The core emittance will be in the
+\vn{.emit} output data file (see \vn{ltt%averages_output_file}).
+%
+\item[ltt\%custom_output_file] \Newline
+A custom output file can be created that records beam and lattice parameters (\sref{s:beam.cust.dat}).
+The columns of the file are set by the \vn{ltt%column(:)} parameters.
+%
+\item[ltt\%map_ascii_output_file] \Newline
+For linear maps, An ASCII file of the maps can be produced by setting this parameter.
+%
+\item[ltt\%map_file_prefix] \Newline
+Prefix, including possible directory specification, for creating files in which maps are saved. Map
+files are used to quickly retrieve maps previously computed in prior running of the program. The
+default prefix is \vn{"ltt"}.  The general form of a map file name is
+\begin{code}
+<map_file_prefix>.<hash>.map
+\end{code}
+where \vn{<hash>} is a hash string that represents input parameters (like the order of the map) used
+to compute the map(s). This hash string is used so that map(s) constructed with one set of
+parameters are not used if the parameters are changed.
+%
+\item[ltt\%only_live_particles_out] \Newline
+If this parameter is True (the default), the \vn{ltt%particles_output_file} file will not record
+dead particles. If set to False, all particles will be recorded. Note: The last column of this file
+indicates if the particle is alive or dead.
+%
+\item[ltt\%particle_output_every_n_turns] \Newline
+Sets the number of turns between particle position data files. If set to -1 (the default), a file
+will only be generated at the last turn. If set to 0, a file will be generated at the beginning turn
+(turn 0) and at the last turn.
+%
+\item[ltt\%phase_space_output_file] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"} or \vn{"SINGLE"}. The name of the ASCII file
+or files that are created to hold the particle positions. A file is created every
+\vn{ltt%particle_output_every_n_turns} turns. See Section~\sref{s:beam.part.dat} for more
+details. If \vn{ltt%phase_space_output_file} is blank, no particle output file is created.
+%
+\item[ltt\%print_on_dead_loss] \Newline
+After each turn, the number of particles that are still living (have not hit an aperture) are
+counted and if the percentage of particles that have died, counting from the last time a message was
+printed, is larger than \vn{ltt%print_on_dead_loss}, a message is printed. For example, if
+\vn{ltt%print_on_dead_loss} is set to 0.01, every time the beam loses 1\% of the particles a message is printed.
+Default is -1 which will cause a message printed every turn where there is particle loss.
+%
 \end{description}
 
 %------------------------------------------------------------------
@@ -1181,7 +1138,7 @@ turns. However, if \vn{ltt%particle_output_every_n_turns} is set to 0, particle 
 only at the start and end of the tracking. If \vn{ltt%particle_output_every_n_turns} is set to -1,
 particle data is only recorded at the end of tracking.
 
-The name of the files are derived from (\sref{s:out.files}):
+The name of the files are derived from the parameters (\sref{s:out.files}):
 \begin{code}
 ltt%phase_space_output_file   -- phase space file name
 ltt%action_angle_output_file  -- action angle file name
@@ -1219,11 +1176,20 @@ state                   -- Particle state (alive, etc.)
 \subsection{Beam Averages Data Output}
 \label{s:beam.ave.dat}
 
-The reason to generate multiple data files is to avoid a file with extremely long lines.  the names
-of the three files will be generated by appending the suffixes ``\vn{.ave}'', ``\vn{.sigma}'', and
-``\vn{.emit}'' to the name. If the \vn{ltt%averages_output_file} string contains a hash ``\vn{\#}''
-character, rather than appending the suffixes, the suffixes, minus the beginning dot character, will
-be substituted for the hash mark.
+If \vn{ltt%averages_output_file} is not blank, three data files will be produced.\footnote
+  {
+The reason to generate multiple data files is to avoid a file with extremely long lines.  
+  }
+The names of the three files will be generated by appending the suffixes ``\vn{.ave}'',
+``\vn{.sigma}'', and ``\vn{.emit}'' to the name. If the \vn{ltt%averages_output_file} string
+contains a hash ``\vn{\#}'' character, rather than appending the suffixes, the suffixes, minus the
+beginning dot character, will be substituted for the hash mark.
+
+Each line in a file represents beam parameters at the end of a turn and a new line is added every
+\vn{ltt%averages_output_every_n_turns} number of turns. Data is always recorded when the beam is at
+the \vn{ltt%ele_start} position independent of where the lattice begins and ends. If set to -1 (the
+default), the output will only happen at the last turn. If set to 0, output will happen on the
+beginning turn (turn 0) and the last turn.
 
 The \vn{averages} file with the \vn{.ave} suffix will contain the following columns:
 \begin{code}
@@ -1277,10 +1243,49 @@ Skewness $\kappa_3$ is defined by
 \end{equation}
 And kurtosis $\kappa_4$ is covered in Section~\ref{s:kurtosis}.
 
-Each line in the file represents the averages at the end of a turn and a new line is added every
-\vn{ltt%averages_output_every_n_turns} number of turns. If \vn{ltt%averages_output_file} is blank,
-no averages file is produced. Data is always recorded when the beam is at the \vn{ltt%ele_start}
-position independent of where the lattice begins and ends.
+%------------------------------------------------------------------
+\subsection{Beam Custom Data Output}
+\label{s:beam.cust.dat}
+
+A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
+$N$ is set by \vn{ltt%averages_output_every_n_turns}. The columns of the file are set by the
+\vn{ltt%column(:)} parameters.
+
+Each line in a file represents beam parameters at the end of a turn and a new line is added every
+\vn{ltt%averages_output_every_n_turns} number of turns. Data is always recorded when the beam is at
+the \vn{ltt%ele_start} position independent of where the lattice begins and ends. If set to -1 (the
+default), the output will only happen at the last turn. If set to 0, output will happen on the
+beginning turn (turn 0) and the last turn.
+
+Columns in the custom file are specified by setting \vn{ltt%column(<i>)}. The general syntax is:
+\begin{code}
+ltt%column(<i>) = "<expression>", "<header-name>",  "<format>"
+\end{code}
+where \vn{<i>} is the column index, \vn{<expression>} is an arithmetical expression that determines
+the values displayed in the column, \vn{<header-name>} is a descriptive string used in constructing
+the header line (first line) in the file, and \vn{<format>} is the format specifier used when
+converting the value of an expression into a string. Example:
+\begin{code}
+ltt%column(1) = "n_turn", "N_turn", "i7"
+ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
+ltt%column(3) = "rf0##1[phi0] + z/rf0##1[rf_wavelength]", "dPhi", "es12.8"
+\end{code}
+Here three columns are specified. Parameters that are used in a column's \vn{<expression>} can be
+element attributes or beam quantities. Using element attributes can be helpful when ramping is
+used. In the above example, the second column's expression is the \vn{voltage} of the first element
+named \vn{rf0} in the lattice (see the Bmad manual for lists of element parameters). Other
+parameters are:
+\begin{code}
+n_turn      -- Turn number
+time        -- Time.
+x, px, y, py, z, pz
+            -- Particle phase space averaged over the beam.
+pc, p0c     -- Particle momentum and reference momentum
+sx, sy, sz  -- Spin vector
+\end{code}
+Thus the third column in the above example is the averaged particle phase with respect to the zero
+crossing phase of the first element named \vn{rf0} in the lattice. [Note that $z$ is always evaluated
+at the start of the turn and not at the position of the RF cavity.]
 
 %------------------------------------------------------------------
 \Section{Spin Tracking Damping Time and Polarization Analysis}
