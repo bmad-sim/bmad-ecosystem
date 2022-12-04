@@ -66,7 +66,28 @@ g2: rfcavity, l = g1[l], voltage = g1[voltage], rf_frequency = g1[rf_frequency],
 g2[grid_field] = g1[grid_field]
 g2[autoscale_phase] = F
 
-ll: line = (q1, q2, q3, q4, m1, m2, g1, g2)
+gg: quadrupole, l = 0.4, k1 = 0,
+  gen_grad_map = {
+    dz = 0.1,
+    r0 = (0, 0, 0),
+    ele_anchor_pt = beginning,
+    field_scale = 2e0,
+    curve = {
+      kind = sin,
+      m = 2,
+      derivs = {
+        0.0: 1 0.1,
+        0.1: 2 0.2,
+        0.2: 3 0.3,
+        0.3: 4 0.4,
+        0.4: 5 0.5
+      }
+    }
+  },
+  field_calc = fieldmap, tracking_method = runge_kutta
+
+
+ll: line = (q1, q2, q3, q4, m1, m2, g1, g2, gg)
 use, ll
 
 
