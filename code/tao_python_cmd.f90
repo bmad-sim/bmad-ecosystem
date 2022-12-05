@@ -4781,7 +4781,7 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !     orbit.t, orbit.beta,
 !     orbit.state,     ! Note: state is an integer. alive$ = 1, anything else is lost.
 !     orbit.energy, orbit.pc,
-!     ele.name, ele.ix_ele, ele.ix_branch
+!     ele.name, ele.key, ele.ix_ele, ele.ix_branch
 !     ele.a.beta, ele.a.alpha, ele.a.eta, ele.a.etap, ele.a.gamma, ele.a.phi,
 !     ele.b.beta, ele.b.alpha, ele.b.eta, ele.b.etap, ele.b.gamma, ele.b.phi,
 !     ele.x.eta, ele.x.etap,
@@ -4941,6 +4941,9 @@ case ('lat_list')
         values(1:4) = [ele%c_mat(1,1), ele%c_mat(1,2), ele%c_mat(2,1), ele%c_mat(2,2)]
       case ('ele.name')
         nl=incr(nl); li(nl) = ele%name
+        cycle
+      case ('ele.key')
+        nl=incr(nl); li(nl) = key_name(ele%key)
         cycle
       case default
         values(1) = ele_param_value(name1(i), ele, orbit, data_type, err)
