@@ -4816,7 +4816,7 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 ! Returns
 ! -------
 ! string_list
-!   if ('-array_out' not in flags) or (who in ['ele.name'])
+!   if ('-array_out' not in flags) or (who in ['ele.name', 'ele.key'])
 ! integer_array
 !    if '-array_out' in flags and who in ['orbit.state', 'ele.ix_ele']
 ! real_array
