@@ -1,4 +1,6 @@
 #! /usr/bin/python
+####PARSE OPERA FIELD MAP ####
+####TABLE TO BMAD FIELD MAP FORMAT####
 
 # Parse opera field map table to bmad field map format.
 # Developed by: Henry Lovelace III
@@ -11,14 +13,15 @@ import matplotlib.pyplot as plt
 #########################################################################
 
 def main( argv ):
-  #target_dir =  os.getcwd()  
   opera_file = sys.argv[1]
-  #opera_file = os.getcwd(opera_file)
   o_f = open(opera_file,'r')
   bmad_parse = os.path.join(os.getcwd(),'bmad_parse_'+opera_file)
   b_p=open(bmad_parse,'w')
 
 #########################################################################
+#Gauss (1e-4)or Tesla (1)
+  units = 1e-4
+
 #ITERATOR AND POINTS
   i=8
   x=0
@@ -30,12 +33,6 @@ def main( argv ):
   nodes=o_f.readlines()
   tot_nodes=nodes[0].split()
   all_nodes=int(tot_nodes[0])*int(tot_nodes[1])*int(tot_nodes[2])
-#  with open(opera_file) as inf:
-#   for line in inf:
-#     parts = line.split()
-#     if len(parts) > 1:
-#      test=np.array(parts[1])
-#      print(parts)
 
 ###Set increment for points for file###
   if 'M' in nodes[1]:increment_x = 1.0
@@ -121,25 +118,21 @@ def main( argv ):
   dr_y_set = dr_y_set*increment_y
   dr_z_set = dr_z_set*increment_z
   b_p.write('dr=('+str(dr_x_set)+', '+str(dr_y_set)+', '+str(dr_z_set)+'), \n')
-#end of stupid iterator
+#end of stupid iteration
 ################################################################################
   for x in range (int(tot_nodes[0])):
    for y in range (int(tot_nodes[1])):
     for z in range (int(tot_nodes[2])):       
      B_fields=nodes[i].split()
-     magnet_fields_Bx = float(B_fields[3])*1E-4
-     magnet_fields_By = float(B_fields[4])*1E-4
-     magnet_fields_Bz = float(B_fields[5])*1E-4
+     magnet_fields_Bx = float(B_fields[3])*units
+     magnet_fields_By = float(B_fields[4])*units
+     magnet_fields_Bz = float(B_fields[5])*units
      
      if i==int(all_nodes+7):
       b_p.write('pt( '+str(x)+', '+str(y)+', '+str(z)+') = ('+str(magnet_fields_Bx)+', '+str(magnet_fields_By)+', '+str(magnet_fields_Bz)+')}\n')  
       break         
      else:
       b_p.write('pt( '+str(x)+', '+str(y)+', '+str(z)+') = ('+str(magnet_fields_Bx)+', '+str(magnet_fields_By)+', '+str(magnet_fields_Bz)+'),\n')
-      #if dif != 0:
-       #print(dif)
-      #dif = np.abs(float(B_fields[2])-test)
-      #test = float(B_fields[2])
       i=i+1
 
 
