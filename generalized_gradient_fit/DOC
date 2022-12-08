@@ -145,7 +145,8 @@ A third mode is "output_table" to convert GG to a field table. See below.
 optimizer: There are two optimizers that can be used: "lm" and "lmdif". Both are variants of the
 Levenburg-Marquardt algorithm. The fitting algorithm minimizes a merit function which is
 	Merit = Sum: weight * (field_from_table - field_from_GG_coefs)^2
-See the "core_weight" parameter documentation.
+It is expected that the two optimizers should give the same results. And "lm" should be faster than
+"lmdif". So the only reason for using "lmdif" is for testing purposes.
 
 n_planes_add: The parameter sets the number of z-planes added to either side of the base z-plane to
 be used in the analysis of the derivatives at any given base z-plane (see "How the Progam Works"
@@ -180,44 +181,56 @@ called "plot_data".  For each x-position and y-positions pair a file will be cre
 Output:
 -------
 
-With mode = "fit", There are four types of output files. 
+With mode = "fit", There are multiple output files.
 
-One output file is meant to be used for plotting derivative values. The name of this file is given
-by the out_file parameter with a ".plot" suffix attached. There are multiple data sets in the table,
-one for each GG curve of the derivatives versus z-position. With Gnuplot, individual data sets can
-be graphed using the "index" parameter. 
+.deriv file: One output file is meant to be used for plotting derivative values. The name of this
+file is given by the out_file parameter with a ".deriv" suffix attached. There are multiple data
+sets in the table, one for each GG curve of the derivatives versus z-position. With Gnuplot,
+individual data sets can be graphed using the Gnuplot "index" parameter.
 
-Other files that can be used for plotting are put in the plot_data directory. Each one of these
-files have a table of fit and input data field versus z-position at a fixed (x,y) position. The
-(x,y) positions used to generate these files is given by the x_pos_plot and y_pos_plot parameters.
-See above for more details.
+This .deriv file also has a column labeled "Init_RMS" with the inital RMS of the field data used in
+the calculation for a particular base plane. and a column labeled "RMS/RMS0" giving the final rms of
+the residual of the fit minus the data divided by the initial RMS. A value small compared to one
+indicates a good fit.
 
-Another output file gives information on how accurate the fit is as well as information on how
-significant the derivative values are. The name of this file is given by the out_file parameter with
-a ".info" suffix attached. The data blocks in this file might look like:
+.deriv_at_rmax file: Another output file gives information on how significant the derivative values
+are. The name of this file is given by the out_file parameter with a ".deriv_at_rmax" suffix
+attached. The data blocks in this file might look like:
 
 # m    = 3
 # type = sin
-# Iz     z_pos    Init_RMS    RMS/RMS0      Deriv * r_max^(m+d-1) * (d+m) * m! / ((d/2)! * (d/2+m)!)
-  10    0.0200   7.4287E-02   3.0602E-03  3.07486025E-01  1.07290432E+00 -2.07656736E-01 -2.59055645E-01 
-  11    0.0220   7.7958E-02   3.6619E-03  3.32020880E-01  9.37495727E-01 -3.12597302E-01 -2.10447354E-01 
-  12    0.0240   8.1523E-02   4.1232E-03  3.52985405E-01  7.64678462E-01 -3.94031086E-01 -7.38811389E-02 
+# Iz     z_pos    Deriv * r_max^(m+d-1) * (d+m) * m! / ((d/2)! * (d/2+m)!)
+  10    0.0200   3.07486025E-01  1.07290432E+00 -2.07656736E-01 -2.59055645E-01 
+  11    0.0220   3.32020880E-01  9.37495727E-01 -3.12597302E-01 -2.10447354E-01 
+  12    0.0240   3.52985405E-01  7.64678462E-01 -3.94031086E-01 -7.38811389E-02 
 
-The "Init_RMS" column gives the inital RMS of field data used in the calculation for a particular
-base plane.  
-
-The "RMS/RMS0" gives the final rms of the residual of the fit minus the data divided by the initial
-RMS. A value small compared to one indicates a good fit.
-
-The final columns show the significance of a the derivatives. The field due to a finite given
+Column three and above show the significance of a the derivatives. The field due to a finite given
 derivative scales roughly as r^(m+d-1) (plus some other factors) where "r" is the radius and "d" is
 the derivative index. So at the outer edges of the table, the contribution of the derivative will
 be a maximum and this is what is given in the table. Only the relative numbers are import. For example,
 in the above table, the first derivatives (d = 1) contribute more than the other three derivatives. 
 
-The final output file has the derivative values in bmad lattice format. The name of this file is
-given by the out_file parameter with a ".bmad" suffix attached. This file may be called from another
-lattice file. For example, if the output file is called gg.bmad the following will call the file:
+.left_deriv_diff and .right_deriv_diff files: From the derivative fit at a given z-plane, the value
+of a GG and its derivatives can be computed from extrapolation at any other z-plane. If everything
+is perfect and the derivatives higher than n_derivative_max are negligible, derivatives extrapolated
+to a given z-plane should be equal to the derivatives calculated at that z-plane. The
+.left_deriv_diff file gives the difference between the derivatives at a z-plane minus the
+derivatives calculated by extrapolation from the neighbor z-plane with index one less than the
+z-plane under consideration.  Similarly, the .righ_deriv_diff file gives the difference between the
+derivatives at a z-plane minus the derivatives calculated by extrapolation from the neighbor z-plane
+with index one greater than the z-plane under consideration. To the extent that values in these
+files are non-zero, this gives an indication of the goodness of how well the GG decomposition is
+fitting the field.
+
+plot_data files: Other files that can be used for plotting are put in the plot_data directory. Each
+one of these files have a table of fit and input data field versus z-position at a fixed (x,y)
+position. The (x,y) positions used to generate these files is given by the x_pos_plot and y_pos_plot
+parameters.  See above for more details.
+
+.bmad lattice file: The final output file has the derivative values in bmad lattice format. The name
+of this file is given by the out_file parameter with a ".bmad" suffix attached. This file may be
+called from another lattice file. For example, if the output file is called gg.bmad the following
+will call the file:
   q1: quadrupole, l = 0.6, call::gg.bmad
 
 

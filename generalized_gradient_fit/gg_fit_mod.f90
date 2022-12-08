@@ -289,7 +289,7 @@ else
   iz_max = min(Nz_max, nint(z_max/del_meters(3)))
 endif
 
-r_max = norm2([max(abs(Nx_min), abs(Nx_max)) * del_grid(1), max(abs(Ny_min), abs(Ny_max)) * del_grid(2)])
+r_max = norm2([max(abs(Nx_min), abs(Nx_max)) * del_meters(1), max(abs(Ny_min), abs(Ny_max)) * del_meters(2)])
 print *, 'r_max radius: ', r_max
 
 !--------------------------------------
@@ -576,9 +576,8 @@ do iz = iz_min, iz_max, every_n_th_plane
     enddo
   enddo
 
-  print '(a)', '  Ix    m   nd  sym             Deriv       Deriv*r_max^(m+d-1)*(d+m)*m!/((d/2)!*(d/2+m)!)'
-
   do ig = 1, size(gg1)
+    print '(a)', '  Ix    m   nd  sym             Deriv       Deriv*r_max^(m+d-1)*(d+m)*m!/((d/2)!*(d/2+m)!)'
     gg => gg1(ig)
     do id = 0, n_deriv_max
       if (gg%ix_var(id) > 0) then
@@ -811,6 +810,7 @@ subroutine write_gg()
 type (gg1_struct), pointer :: gg
 type (plot1_struct), pointer :: p
 
+real(rp), allocatable :: dderiv(:)
 integer ig, iz, m, n, nmax
 character(40) fmt
 
@@ -820,7 +820,7 @@ if (out_file == '') out_file = 'gg'
 
 !--------------------------
 
-open (1, file = trim(out_file) // '.plot')
+open (1, file = trim(out_file) // '.deriv')
 
 write (1, '(4(a, f8.4))')  '# del = [', del_meters(1), ',', del_meters(2), ',', del_meters(3), ']'
 write (1, '(4(a, f8.4))')  '# r0  = [', r0_meters(1), ',', r0_meters(2), ',', r0_meters(3), ']'
@@ -834,10 +834,12 @@ do ig = 1, size(gg1)
   endif
   write (1, '(a, i2)') '# m    =', gg%m
   write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
+  write (1, '(a, i2)') '# Iz     z_pos    Init_RMS     RMS/RMS0   Derivs...'
   write (1, '(a, i2)') '# Iz     z_pos    Derivs'
 
   do iz = iz_min, iz_max
-    write (1, '(i4, f10.4, 99es16.8)') iz, iz*del_meters(3)+r0_meters(3), fit(iz)%rms0, gg%deriv(iz,:)
+    write (1, '(i4, f10.4, 2es13.4, 99es16.8)') iz, iz*del_meters(3)+r0_meters(3), &
+                      fit(iz)%rms0, fit(iz)%rms_fit/fit(iz)%rms0, fit(iz)%rms0, gg%deriv(iz,:)
   enddo
 enddo
 
@@ -845,7 +847,7 @@ close (1)
 
 !--------------------------
 
-open (1, file = trim(out_file) // '.info')
+open (1, file = trim(out_file) // '.deriv_at_rmax')
 
 write (1, '(4(a, f8.4))')  '# del = [', del_meters(1), ',', del_meters(2), ',', del_meters(3), ']'
 write (1, '(4(a, f8.4))')  '# r0  = [', r0_meters(1), ',', r0_meters(2), ',', r0_meters(3), ']'
@@ -854,21 +856,88 @@ write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
 do ig = 1, size(gg1)
   gg => gg1(ig)
   m = gg%m
+  nmax = ubound(gg%deriv,2)
+  call re_allocate2 (dderiv, 0, nmax)
+
   if (ig > 1) then
     write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
     write (1, *)
   endif
   write (1, '(a, i2)') '# m    =', gg%m
   write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
-  write (1, '(a, i2)') '# Iz     z_pos    Init_RMS     RMS/RMS0     Deriv * r_max^(m+d-1) * (d+m) * m! / ((d/2)! * (d/2+m)!)'
+  write (1, '(a, i2)') '# Iz     z_pos   Deriv * r_max^(m+d-1) * (d+m) * m! / ((d/2)! * (d/2+m)!)'
 
-  nmax = ubound(gg%deriv,2)
   do iz = iz_min, iz_max
-    write (1, '(i4, f10.4, 2es13.4, 99es16.8)') iz, iz*del_meters(3)+r0_grid(3), &
-                  fit(iz)%rms0, fit(iz)%rms_fit/fit(iz)%rms0, &
+    write (1, '(i4, f10.4, 99es16.8)') iz, iz*del_meters(3)+r0_grid(3), &
                   (gg%deriv(iz,n) * r_max**(max(0,m+n-1)) * (n+m) * factorial(m) / (factorial(n/2) * factorial(n/2+m)), n = 0, nmax)
   enddo
 
+enddo
+
+close (1)
+
+!--------------------------
+
+open (1, file = trim(out_file) // '.left_deriv_diff')
+
+write (1, '(4(a, f8.4))')  '# del = [', del_meters(1), ',', del_meters(2), ',', del_meters(3), ']'
+write (1, '(4(a, f8.4))')  '# r0  = [', r0_meters(1), ',', r0_meters(2), ',', r0_meters(3), ']'
+write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
+
+do ig = 1, size(gg1)
+  gg => gg1(ig)
+  m = gg%m
+  nmax = ubound(gg%deriv,2)
+  call re_allocate2 (dderiv, 0, nmax)
+
+  if (ig > 1) then
+    write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
+    write (1, *)
+  endif
+  write (1, '(a, i2)') '# m    =', gg%m
+  write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
+  write (1, '(a, i2)') '# Iz     z_pos   Deriv - left_extrapolated_deriv'
+
+  do iz = iz_min+1, iz_max
+    do n = 0, nmax
+      dderiv(n) = gg%deriv(iz,n) - poly_eval(gg1(ig)%deriv(iz-1,n:), del_meters(3), .true.)
+    enddo
+
+    write (1, '(i4, f10.4, 99es16.8)') iz, iz*del_meters(3)+r0_grid(3), dderiv
+  enddo
+enddo
+
+close (1)
+
+!--------------------------
+
+open (1, file = trim(out_file) // '.right_deriv_diff')
+
+write (1, '(4(a, f8.4))')  '# del = [', del_meters(1), ',', del_meters(2), ',', del_meters(3), ']'
+write (1, '(4(a, f8.4))')  '# r0  = [', r0_meters(1), ',', r0_meters(2), ',', r0_meters(3), ']'
+write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
+
+do ig = 1, size(gg1)
+  gg => gg1(ig)
+  m = gg%m
+  nmax = ubound(gg%deriv,2)
+  call re_allocate2 (dderiv, 0, nmax)
+
+  if (ig > 1) then
+    write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
+    write (1, *)
+  endif
+  write (1, '(a, i2)') '# m    =', gg%m
+  write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
+  write (1, '(a, i2)') '# Iz     z_pos   Deriv - right_extrapolated_deriv'
+
+  do iz = iz_min, iz_max-1
+    do n = 0, nmax
+      dderiv(n) = gg%deriv(iz,n) - poly_eval(gg1(ig)%deriv(iz+1,n:), -del_meters(3), .true.)
+    enddo
+
+    write (1, '(i4, f10.4, 99es16.8)') iz, iz*del_meters(3)+r0_grid(3), dderiv
+  enddo
 enddo
 
 close (1)
