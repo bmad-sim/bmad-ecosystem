@@ -77,7 +77,7 @@ real(rp) merit
 
 logical printit
 
-character(10) :: optimizer = 'lmdif'
+character(10) :: optimizer = 'lm'
 character(100) :: field_file, out_file = ''
 
 contains
@@ -112,7 +112,7 @@ logical, allocatable :: valid_field(:,:,:)
 character(*) :: field_file
 character(200) line
 
-! Lattice
+! Lattice grid_field
 
 if (index(field_file, '.bmad') /= 0) then
 
@@ -962,7 +962,7 @@ endif
 del_grid(3) = gg%dz / length_scale
 del_meters = del_grid * length_scale
 
-r0_grid = r0_grid * length_scale
+r0_meters = r0_grid * length_scale
 
 if (Nz_min == int_garbage$) Nz_min = gg%iz0
 if (Nz_min < gg%iz0) Nz_min = gg%iz0
@@ -982,7 +982,7 @@ do ix = Nx_min, Nx_max
 do iy = Ny_min, Ny_max
 do iz = Nz_min, Nz_max
   
-  xy = [ix * del_grid(1), iy * del_grid(2)]
+  xy = [ix * del_meters(1), iy * del_meters(2)]
   rho = norm2(xy)
   theta = atan2(xy(2), xy(1))
 
