@@ -101,7 +101,7 @@ normal field table to GG, a parameter file will look like:
   z_min = 3              ! z-plane lower bound to start calc at. If not present, use field table lower bound.
   z_max = 13             ! z-plane upper bound to stop calc at. If not present, use field table upper bound.
   mode = "fit"           ! or "binary" to create a binary field table file.
-  optimizer = "lmdif"    ! Optimizer to use. Alternative is "lm".
+  optimizer = "lm"       ! Optimizer to use. Alternative is "lmdif".
   n_planes_add = 0       ! Extra planes to use for the analysis
 	core_weight = 1        ! Merit function weight on "core" (points with (x,y) near (0,0)) field table points.
   sym_x = 1              ! X-axis symmetry. Possibilities are: -1, 0 (default), 1.
@@ -238,7 +238,7 @@ of different GG parameterizations. An example parameter file to convert GG to a 
   r0_grid = 0, 0, 0        ! r0 (x,y,z) offset of the origin. Not used in calculation.
   Nx_min = -5              ! X-coordinate lower bound.
   Nx_max = 5               ! X-coordinate upper bound.
-  Ny_min = -3              ! Y-coordinate lower bound.
+  Ny_min = 0               ! Y-coordinate lower bound.
   Ny_max = 3               ! Y-coordinate upper bound.
   Nz_min = -200            ! Z-coordinate lower bound.
   Nz_max =  200            ! Z-coordinate upper bound.
