@@ -49,7 +49,12 @@ character(*), parameter :: r_name = 'particle_rf_time'
 !
 
 ref_ele => ele
-if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_lord (ref_ele, 1)
+if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+  do n = 1, ele%n_lord
+    ref_ele => pointer_to_lord (ele, n)
+    if (ref_ele%key /= pipe$) exit    
+  enddo
+endif
 
 call multipass_chain(ref_ele, ix_pass, n_links, chain)
 if (ix_pass > 1) ref_ele => chain(1)%ele
