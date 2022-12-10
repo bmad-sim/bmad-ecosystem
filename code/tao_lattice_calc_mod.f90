@@ -661,7 +661,7 @@ type (coord_struct), pointer :: p(:)
 
 real(rp) charge_tot
 integer n_bunch, particle
-logical no_beam, all_lost
+logical no_beam
 character(*), parameter :: r_name = "tao_no_beam_left"
 
 !
@@ -670,13 +670,16 @@ no_beam = .false.
 
 n_bunch = s%global%bunch_to_plot
 p =>beam%bunch(n_bunch)%particle(:)
-all_lost = .not. any(p%state == alive$ .or. p%state == pre_born$)
+no_beam = .not. any(p%state == alive$ .or. p%state == pre_born$)
 
-if (particle == photon$) then
-  if (sum(p%field(1)**2) + sum(p%field(2)**2) == 0 .or. all_lost) no_beam = .true.
-else
-  if (sum(p%charge) == 0 .or. all_lost) no_beam = .true.
-endif
+! Note: Previously having no charge or field triggered no beam left. 
+! It was decided that this case was acceptible.
+
+!if (particle == photon$) then
+!  if (sum(p%field(1)**2) + sum(p%field(2)**2) == 0 .or. no_beam) no_beam = .true.
+!else
+!  if (sum(p%charge) == 0 .or. no_beam) no_beam = .true.
+!endif
 
 end function tao_no_beam_left
 
@@ -785,6 +788,7 @@ type (tao_beam_branch_struct), pointer :: bb
 
 real(rp) v(6)
 integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib0, ie0, ie_start
+integer default, species
 
 character(*), parameter :: r_name = "tao_inject_beam"
 character(100) line
@@ -872,7 +876,8 @@ if (bb%init_starting_distribution .or. u%beam%always_reinit) then
   endif
 
   if (tao_no_beam_left(beam, branch%param%particle)) then
-    call out_io (s_warn$, r_name, "NOT ENOUGH PARTICLES OR NO CHARGE/INTENSITY FOR BEAM INITIALIZATION IN BRANCH " // int_str(ix_branch))
+    call out_io (s_warn$, r_name, 'NOT ENOUGH PARTICLES FOR BEAM INITIALIZATION IN BRANCH ' // int_str(ix_branch), &
+                                  'NO BEAM TRACKING WILL BE DONE.')
     return
   endif
 
@@ -886,6 +891,14 @@ endif
 u%model_branch(ix_branch)%ele(ie_start)%beam = beam
 call allocate_this_comb(tao_branch%bunch_params_comb, size(beam%bunch))
 init_ok = .true.
+
+species = beam%bunch(1)%particle(1)%species
+default = default_tracking_species(branch%param)
+if (species /= default) then
+  call out_io (s_warn$, r_name, 'Tracking particles of type: ' // species_name(species), &
+               'in lattice branch with default tracking species: ' // species_name(default), &
+               'if you really want this set "parameter[default_tracking_species]" in the lattice file to avoid this message.')
+endif
 
 !-----------------------------------------------------------
 contains
