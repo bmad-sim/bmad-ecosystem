@@ -2729,7 +2729,10 @@ case ('lattice')
       what_to_show = 'energy'
 
     case ('-floor_coords')
-      what_to_show = 'floor_coords'
+      select case (what_to_show)
+      case ('orbit', 'orbit:spin');   what_to_show = 'floor_orbit'
+      case default;                   what_to_show = 'floor_coords'
+      end select
 
     case ('-lords')
       print_lords = yes$
@@ -2754,11 +2757,11 @@ case ('lattice')
       print_tail_lines = .false.
 
     case ('-orbit')
-      if (what_to_show == 'spin') then
-        what_to_show = 'orbit:spin'
-      else
-        what_to_show = 'orbit'
-      endif
+      select case (what_to_show)
+      case ('spin');          what_to_show = 'orbit:spin'
+      case ('floor_coords');  what_to_show = 'floor_orbit'
+      case default;           what_to_show = 'orbit'
+      end select
 
     case ('-python')
       called_from_python_cmd = .true.
@@ -2890,6 +2893,20 @@ case ('lattice')
     col(10)  = setup_lat_column('ele::#[theta_position]', 'f12.5',    'Theta', .false., 1.0_rp)
     col(11)  = setup_lat_column('ele::#[phi_position]',   'f12.5',    'Phi',   .false., 1.0_rp)
     col(12)  = setup_lat_column('ele::#[psi_position]',   'f12.5',    'Psi',   .false., 1.0_rp)
+
+  case ('floor_orbit')
+    col( 1)  = setup_lat_column('#',                         'i7',       '', .false., 1.0_rp)
+    col( 2)  = setup_lat_column('x',                         '2x',       '', .false., 1.0_rp)
+    col( 3)  = setup_lat_column('ele::#[name]',              'a0',       '', .false., 1.0_rp)
+    col( 4)  = setup_lat_column('ele::#[key]',               'a17',      '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',                 'f12.5',    '', .false., 1.0_rp)
+    col( 6)  = setup_lat_column('ele::#[l]',                 'f10.5',    '', .false., 1.0_rp)
+    col( 7)  = setup_lat_column('ele::#[floor_orbit.x]',     'f12.5',    'X_Orb',     .false., 1.0_rp)
+    col( 8)  = setup_lat_column('ele::#[floor_orbit.y]',     'f12.5',    'Y_Orb',     .false., 1.0_rp)
+    col( 9)  = setup_lat_column('ele::#[floor_orbit.z]',     'f12.5',    'Z_Orb',     .false., 1.0_rp)
+    col(10)  = setup_lat_column('ele::#[floor_orbit.theta]', 'f12.5',    'Theta_Orb', .false., 1.0_rp)
+    col(11)  = setup_lat_column('ele::#[floor_orbit.phi]',   'f12.5',    'Phi_Orb',   .false., 1.0_rp)
+    col(12)  = setup_lat_column('ele::#[floor_orbit.psi]',   'f12.5',    'Psi_Orb',   .false., 1.0_rp)
 
   case ('orbit')
     col( 1)  = setup_lat_column('#',                      'i7',       '', .false., 1.0_rp)
