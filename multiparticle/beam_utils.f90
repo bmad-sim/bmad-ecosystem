@@ -1872,14 +1872,14 @@ do i = 1, size(particle)
 enddo
 
 avg = avg / charge_live
+sig_mat = sig_mat / charge_live
+
 bunch_params%rel_max = bunch_params%rel_max - avg
 bunch_params%rel_min = bunch_params%rel_min - avg
-
 bunch_params%centroid%vec = avg
 
-
 forall (j2 = 1:6)
-  bunch_params%sigma(:,j2) = sig_mat(:,j2) / charge_live - avg(:)*avg(j2)
+  bunch_params%sigma(:,j2) = sig_mat(:,j2) - avg(:)*avg(j2)
 end forall
 
 end subroutine calc_bunch_sigma_matrix_etc
