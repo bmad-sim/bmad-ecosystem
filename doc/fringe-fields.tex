@@ -1,7 +1,7 @@
 \chapter{Fringe Fields}
 \label{s:fringe.std}
 
-Generally, the fringe field kick is divided into two pieces.  The first piece is called the \vn{hard
+It can be convient to divide the fringe field kick into two pieces. The first piece is called the \vn{hard
 edge} fringe kick and is the kick in the limit that the longitudinal extent of the fringe is
 zero. The second piece is the \vn{soft edge} fringe kick which is the fringe kick with the fringe
 having a finite longitudinal extent minus the hard edge fringe kick. That is
@@ -15,67 +15,6 @@ good enough approximation.
 Discussion of the fringe parameters of an element are detailed in \Sref{s:fringe}.
 
 %---------------------------------------------------------------------------------
-\section{SAD Dipole Soft Edge Fringe Map}
-\label{s:fringe.bend.soft}
-
-The SAD dipole soft edge fringe model is adapted from the SAD program\cite{b:sad}. This model is
-only used for \vn{sbend}, \vn{rbend}, and \vn{sad_mult} elements only. For \vn{sbend} and \vn{rbend}
-elements, the fringe map is defined in terms of the \vn{fint}, \vn{fintx}, \vn{hgap}, and \vn{hgapx}
-parameters. The field integrals $F_{H1}$ for the entrance end and $F_{H2}$ for the exit end given by
-(see \Eq{fsbbb})
-\begin{equation}
-  F_{H1} \equiv F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
-  {2 \, B_{y0}^2}
-\end{equation}
-With a similar equation for $F_{H2}$.
-
-For a \vn{sad_mult} element the corresponding parameters are \vn{fb1} and \vn{fb2}. the conversion between
-the bend and \vn{sad_mult} parameters is
-\begin{equation}
-  \text{fb1} = 12 \, F_{H1}, \qquad \text{fb2} = 12 \, F_{H2}
-\end{equation}
-
-The soft edge map is
-\begin{align}
-  x_2 &=  x_1 + c_1 \, p_z \CRNO
-  p_{y2} &= p_{y1} + c_2 \, y_1 - c_3 \, y_1^3 \\
-  z_2 &= z_1 + \frac{1}{1 + p_{z1}} \, \left( 
-    c_1 \, p_{x1} + \frac{1}{2} \, c_2 \, y_1^2 -\frac{1}{4} \, c_3 \, y_1^4 \right)
-    \nonumber
-\end{align}
-For the entrance face:
-\begin{align}
-  c_1 = \frac{g_\tot \, \text{fb1}^2}{24 \, (1 + p_z)} &= \frac{6 \, g_\tot \, F_{H1}^2}{1 + p_z}, \qquad 
-  c_2 = \frac{g_\tot^2 \, \text{fb1}}{6 \, (1 + p_z)} = \frac{2 \, g_\tot^2 \, F_{H1}}{1 + p_z}, \CRNO
-  &c_3 = \frac{2 \, g_\tot^2}{3 \, \text{fb1} \, (1 + p_z)} = \frac{g_\tot^2}{18 \, F_{H1} \, (1 + p_z)}
-\end{align}
-For a bend, \vn{g_\tot} is the total bending strength
-\begin{equation}
-  g_\tot = \text{g} + \text{dg}
-\end{equation}
-\vn{g} being the reference bend strength and \vn{dg} being bend the difference between the actual
-and reference bend strengths (\sref{s:bend}). For a \vn{sad_mult} element \vn{g_tot} is calculated
-from the equation
-\begin{equation}
-  g_\tot = \sqrt{a_0^2 + b_0^2}
-\end{equation}
-
-For the exit face, the appropriate equations can be derived using the substitution
-\begin{align}
-  F_{H1} &\rightarrow F_{H2} \CRNO
-  g_\tot &\rightarrow -g_\tot
-\end{align}
-
-The SAD dipole soft edge map is ``incomplete'' and for a realistic fringe map the SAD dipole soft
-edge fring map must be combined with a ``hard edge'' map (\sref{s:fringe}).
-
-It might seem strange that $c_3$ diverges to infinity as $F_H$ goes to zero since naively one would
-expect the soft edge kick to vanish in the hard edge limit where the fringe has no longitudinal
-extent. However, in the hard edge limit, the field does not obey Maxwell's equations. The limiting
-map, as $F_H$ goes to zero, has fields that diverge to infinity and this explains why the full (hard
-+ soft) limiting map is not the same as the hard edge map at the limit of zero longitudinal extent.
-
-%---------------------------------------------------------------------------------
 \section{Bend Second Order Fringe Map}
 \label{s:fringe.bend.hard}
 
@@ -86,7 +25,6 @@ that
 \begin{equation}
   K_{0h} = K_{1h} = K_{3h} = K_{4h} = K_{5h} = K_{6h} = 0
 \end{equation}
-
 Here the subscript ``\vn{h}'' has been added so as to not confuse these parameters with the magnetic
 multipole coefficients $K_1$, $K_2$, etc. Note: Hwang and Lee do not present an equation for the
 change in the longitudinal phase space $z$ coordinate in their paper.
@@ -149,6 +87,67 @@ The transport for the exit fringe is
 \end{align}
 
 %---------------------------------------------------------------------------------
+\section{SAD Dipole Soft Edge Fringe Map}
+\label{s:fringe.bend.soft}
+
+The SAD dipole soft edge fringe model is adapted from the SAD program\cite{b:sad}. This model is
+only used for \vn{sbend}, \vn{rbend}, and \vn{sad_mult} elements. For \vn{sbend} and \vn{rbend}
+elements, the fringe map is defined in terms of the \vn{fint} and \vn{hgap} for the entrance end and
+\vn{fintx} and \vn{hgapx} at the exit end (\sref{s:bend}). The field integral $F_{H1}$ for the
+entrance end given is given by (see \Eq{fsbbb})
+\begin{equation}
+  F_{H1} \equiv F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
+  {2 \, B_{y0}^2}
+\end{equation}
+With a similar equation for $F_{H2}$ for the exit end.
+
+For a \vn{sad_mult} element the corresponding parameters are \vn{fb1} and \vn{fb2}. the conversion between
+the bend and \vn{sad_mult} parameters is
+\begin{equation}
+  \text{fb1} = 12 \, F_{H1}, \qquad \text{fb2} = 12 \, F_{H2}
+\end{equation}
+
+The map itself is
+\begin{align}
+  x_2 &=  x_1 + c_1 \, p_z \CRNO
+  p_{y2} &= p_{y1} + c_2 \, y_1 - c_3 \, y_1^3 \\
+  z_2 &= z_1 + \frac{1}{1 + p_{z1}} \, \left( 
+    c_1 \, p_{x1} + \frac{1}{2} \, c_2 \, y_1^2 -\frac{1}{4} \, c_3 \, y_1^4 \right)
+    \nonumber
+\end{align}
+For the entrance face the map parameters are:
+\begin{align}
+  c_1 = \frac{g_\tot \, \text{fb1}^2}{24 \, (1 + p_z)} &= \frac{6 \, g_\tot \, F_{H1}^2}{1 + p_z}, \qquad 
+  c_2 = \frac{g_\tot^2 \, \text{fb1}}{6 \, (1 + p_z)} = \frac{2 \, g_\tot^2 \, F_{H1}}{1 + p_z}, \CRNO
+  &c_3 = \frac{2 \, g_\tot^2}{3 \, \text{fb1} \, (1 + p_z)} = \frac{g_\tot^2}{18 \, F_{H1} \, (1 + p_z)}
+\end{align}
+And for the exit face, the appropriate equations can be derived using the substitution
+\begin{align}
+  F_{H1} &\rightarrow F_{H2} \CRNO
+  g_\tot &\rightarrow -g_\tot
+\end{align}
+
+In the above equations, for a bend, \vn{g_\tot} is the total bending strength
+\begin{equation}
+  g_\tot = \text{g} + \text{dg}
+\end{equation}
+\vn{g} being the reference bend strength and \vn{dg} being bend the difference between the actual
+and reference bend strengths (\sref{s:bend}). For a \vn{sad_mult} element \vn{g_tot} is calculated
+from the equation
+\begin{equation}
+  g_\tot = \sqrt{a_0^2 + b_0^2}
+\end{equation}
+
+The SAD dipole soft edge map is ``incomplete'' and for a realistic fringe map the SAD dipole soft
+edge fring map must be combined with a ``hard edge'' map (\sref{s:fringe}).
+
+It might seem strange that $c_3$ diverges to infinity as $F_H$ goes to zero since naively one would
+expect the soft edge kick to vanish in the hard edge limit where the fringe has no longitudinal
+extent. However, in the hard edge limit, the field does not obey Maxwell's equations. The limiting
+map, as $F_H$ goes to zero, has fields that diverge to infinity and this explains why the full (hard
++ soft) limiting map is not the same as the hard edge map at the limit of zero longitudinal extent.
+
+%---------------------------------------------------------------------------------
 \section{Sad\_Mult Dipole Hard Edge Fringe Map} 
 \label{s:sad.mult.bend.fringe}
 
@@ -207,7 +206,8 @@ wedge is the reverse of the above.
 \section{Quadrupole Soft Edge Fringe Map}
 \label{s:q.soft}
 
-The quadrupole soft edge fringe model is adapted from SAD\cite{b:sad}. The fringe map is:
+The quadrupole soft edge fringe model is adapted from SAD\cite{b:sad}. This fringe is only used with
+\vn{sad_mult} and \vn{quadrupole} elements. The fringe map is:
 \begin{align}
   x_2 &= x_1 \, e^{g_1} + g_2 \, p_{x1} \CRNO
   p_{x2} &= p_{x1} e^{-g_1} \CRNO

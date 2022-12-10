@@ -3113,7 +3113,7 @@ Notice that with the old format it is not possible to specify the phase offset $
 \label{s:fringe}
 \index{fringe fields}
 
-Lattice elements can have fringe fields at the element edges. Whether \bmad tries to model the
+Some lattice elements can have fringe fields at the element edges. Whether \bmad tries to model the
 fringe fields using the models described below first depends upon what kind of tracking is
 done. Fringe effects are {\em not} applied when an element's \vn{tracking_method} is set to:
 \begin{example}
@@ -3123,8 +3123,8 @@ done. Fringe effects are {\em not} applied when an element's \vn{tracking_method
 \end{example}
 Additionally, no fringe effects will be used if the \vn{tracking_method} is \vn{runge_kutta} or
 \vn{time_runge_kutta}, and the element's \vn{field_calc} (\sref{s:integ}) is {\em not}
-\vn{bmad_standard}. This is done since it is assumed that the body of the field includes the fringe
-regions.
+\vn{bmad_standard}. This is done since, for non-\vn{bmad_standard} field calculations, it is assumed
+that the field profile includes the fringe regions.
 
 %-----------------------------------------------------------------
 \subsection{Turning On/Off Fringe Effects}
@@ -3144,9 +3144,8 @@ is no fringe at a particular boundary, the setting of attributes like \vn{fringe
 are ignored.
 
 \index{spin_fringe_on}
-When a particle's spin is being tracked through the fringe field at an element's edge, the
-\vn{spin_fringe_on} logical attribute of the element determines how the tracking is handled.
-Example:
+When a particle's spin is being tracked, the \vn{spin_fringe_on} logical attribute of the element
+determines how the tracking is handled.  Example:
 \begin{example}
   q: quad, spin_fringe_on = T, fringe_at = exit_end
 \end{example}
@@ -3158,8 +3157,8 @@ end of the element will affect the spin. The default setting of \vn{spin_fringe_
 \subsection{Fringe Types}
 \label{s:fringe.type}
 
-\bmad and PTC have several fringe field models for the magnetic field. Which fringe
-model is used is set by two element attributes:
+\bmad and PTC have several fringe field models for static magnetic fields. Which fringe model is
+used is set by two element attributes:
 \begin{example}
   fringe_type
   ptc_fringe_geometry   ! Only used with bends and PTC tracking.
@@ -3168,15 +3167,17 @@ model is used is set by two element attributes:
 \index{fringe_type}
 For elements that have a multipole type fringe field (dipole, quadrupole, etc., as opposed to
 solenoid or RF fringes), the \vn{fringe_type} switch is used to select how a fringe field is
-simulated.  For everything except for \vn{rbend} and \vn{sbend} elements, \vn{fringe_type} may be
-set to one of:
+simulated.  The possible settings of \vn{fringe_type} are:
 \begin{example}
-  none              ! Default 
+  none              ! Default for non-bend elements.
   soft_edge_only
   hard_edge_only
   full
+  linear_edge       ! Sbend, rbend only.
+  basic_bend        ! Sbend, rbend only. Default.
+  sad_full          ! Sbend, rbend, sad_mult only.
 \end{example}
-The \vn{none} setting ignores any fringe fields.  The fringe field kick is divided into two pieces.
+The \vn{none} setting ignores any fringe fields. Some fringe fields can be divided into two pieces.
 The first piece is called the \vn{hard edge} fringe kick and is the kick in the limit that the
 longitudinal extent of the fringe is zero. The second piece is the \vn{soft edge} fringe kick which
 is the fringe kick with the fringe having a finite longitudinal extent minus the hard edge fringe
@@ -3190,23 +3191,16 @@ enough approximation. Note that using the soft fringe without the hard fringe is
 can be useful in understanding how the soft edge component affects tracking. See~\sref{s:fringe.std}
 for details.
 
-For \vn{rbend} and \vn{sbend} elements, the possible \vn{fringe_type}
-settings are:
+For bend elements the following fringe maps are used:
 \begin{example}
-  none
-  soft_edge_only      !          SAD equivalent: fringe = 1, disfrin = 1
-  hard_edge_only      !          SAD equivalent: fringe = 0, disfrin = 0
-  full
-  linear_edge
-  basic_bend          ! Default. SAD equivalent: fringe = 0, disfrin = 1
-  sad_full            !          SAD equivalent: fringe = 1, disfrin = 0
-\end{example}
-The \vn{basic_bend} setting, which is the default, is essentially the basic vertical focusing effect
-that is present when there is a finite \vn{e1} or \vn{e2} face angle. With \vn{bmad_standard}
-tracking, \vn{basic_bend} also includes second order terms (\sref{s:fringe.bend.hard}). The
-\vn{linear_edge} setting ignores these second order terms.  In some cases, for instance in a
-chicane, \vn{basic_bend} is not good enough. With \vn{fringe_type} set to \vn{full}, higher order
-effects are taken into account.
+  \etcz
+
+The \vn{basic_bend} setting for bend elements, which is the default, is essentially the basic
+vertical focusing effect that is present when there is a finite \vn{e1} or \vn{e2} face angle. With
+\vn{bmad_standard} tracking, \vn{basic_bend} also includes second order terms
+(\sref{s:fringe.bend.hard}). The \vn{linear_edge} setting ignores these second order terms.  In some
+cases, for instance in a chicane, \vn{basic_bend} is not good enough. With \vn{fringe_type} set to
+\vn{full}, higher order effects are taken into account.
 
 PTC does not have a \vn{linear_edge} fringe model.
 With PTC tracking, \vn{basic_bend} tracking is used if \vn{linear_edge} is chosen.
@@ -3228,22 +3222,12 @@ book\cite{b:forest} for more details. Which setting of \vn{ptc_fringe_geometry} 
 depends upon how the dipole under consideration is constructed. The two settings of
 \vn{ptc_fringe_geometry} represent two points of a continuum of possible fringe field geometries.
 
-Additionally, when using PTC tracking (\sref{s:ptc.intro}), the \vn{ptc_com[max_fringe_order]}
+When using PTC tracking (\sref{s:ptc.intro}), the \vn{ptc_com[max_fringe_order]}
 (\sref{s:param}) determines the maximum order of the calculated fringe fields.
 
 Example:
 \begin{example}
   b1: rbend, angle = pi/4, g = 0.3, fringe_type = full
-\end{example}
-
-In a bend element, the \vn{fringe_type} setting only pertains to the dipole fringe. For higher order
-multipole fields in a bend, the \vn{higher_order_fringe_type} selects the fringe type. Possible
-settings are the same as for the non-bend \vn{fringe_type} elements
-\begin{example}
-  none              ! Default 
-  soft_edge_only
-  hard_edge_only
-  full
 \end{example}
 
 \index{sad}\index{sbend}\index{rbend}
@@ -3252,6 +3236,19 @@ the fringe field tracking used in the SAD program\cite{b:sad}.  The \vn{soft_edg
 uses the linear part of the fringe, \vn{hard_edge_only} ignores the linear part of the fringe, and
 \vn{sad_full} uses the full fringe.  For an \vn{sbend} or \vn{rbend} element, these SAD fringe
 fields are in addition to the fringe fields that occurs with a finite \vn{e1} or \vn{e2} face angle.
+
+Equivalent settings of SAD \vn{fringe} and \vn{disfrin} for \vn{sbend} and \vn{rbend} elements:
+\begin{center}
+\tt
+\begin{tabular}{l|ll}
+  fringe_type & fringe & disfrin \\ \midrule
+  soft_edge_only    &  1 & 1 \\
+  hard_edge_only    &  0 & 0 \\
+  basic_bend        &  0 & 1 \\
+  sad_full          &  1 & 0 \\
+  \bottomrule
+\end{tabular}
+\end{center}
 
 For \vn{quadrupole} and \vn{sad_mult} elements, the translation between the \vn{fringe_at}
 and \vn{fringe_type} settings and the \vn{fringe} and \vn{disfrin} switches of SAD is:
