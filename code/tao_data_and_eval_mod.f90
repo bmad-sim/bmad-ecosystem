@@ -6010,18 +6010,8 @@ else
   vec = bunch_params%centroid%vec
 endif
 
-select case (datum%data_type)
-case ('floor_orbit.x', 'floor_orbit.y', 'floor_orbit.z')
-  position%r = [vec(1), vec(3), orbit%s - ele%s_start]
-  position = coords_local_curvilinear_to_floor (position, ele, .false., relative_to_upstream = .true.)
-case ('floor_orbit.theta', 'floor_orbit.phi', 'floor_orbit.psi')
-  position = orbit_to_local_curvilinear(orbit, ele)
-  position = coords_local_curvilinear_to_floor (position, ele, .false., calculate_angles = .true.)
-case default
-  call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" IS NOT VALID', why_invalid, .true.)
-  value = 0
-  return
-end select
+position = orbit_to_local_curvilinear(orbit, ele, orbit%direction)
+position = coords_local_curvilinear_to_floor (position, ele, .false.)
 
 !
 
@@ -6032,6 +6022,10 @@ case ('floor_orbit.z');   value = position%r(3)
 case ('floor_orbit.theta');   value = position%theta
 case ('floor_orbit.phi');     value = position%phi
 case ('floor_orbit.psi');     value = position%psi
+case default
+  call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" IS NOT VALID', why_invalid, .true.)
+  value = 0
+  return
 end select
 
 valid_value = .true.
