@@ -358,12 +358,15 @@ case ('floor_actual')
   end select
 
 case ('floor_orbit')
-  floor%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
+  floor = orbit_to_local_curvilinear(orbit, ele, orbit%direction)
   floor = coords_local_curvilinear_to_floor (floor, ele, .false.)
   select case (d_type)
   case ('floor_orbit.x');          value = floor%r(1)
   case ('floor_orbit.y');          value = floor%r(2)
   case ('floor_orbit.z');          value = floor%r(3)
+  case ('floor_orbit.theta');      value = floor%theta
+  case ('floor_orbit.phi');        value = floor%phi
+  case ('floor_orbit.psi');        value = floor%psi
   case default
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)

@@ -2605,7 +2605,7 @@ there should be no blank characters in the list.
 %
 \item[-floor_coords] \Newline
 If present, the \vn{-floor_coords} switch will print the global floor (laboratory) coordinates for
-each element.
+each element. If used with the \vn{-orbit} option, the orbit in floor coordinates will be shown.
 %
 \item[-lords] \Newline
 If present, the \vn{-lords} switch will print a list of lord elements only. Also see the
@@ -2641,7 +2641,8 @@ The \vn{-no_tail_lines} just suppress the header lines at the bottom of the tabl
 The \vn{-orbit} switch will show the particle's phase space orbit which is the closed orbit if the
 lattice has a closed geometry and is the orbit beginning from the specified starting position for
 lattices with an open geometry. Use \vn{set particle_start} to vary the starting position in this
-case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed.
+case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed. If used
+with the \vn{-floor_coords} option, the orbit in floor coordinates will be shown.
 %
 \item[-python] \Newline
 The \vn{-python} switch gives a comma delimited table as output. This switch is used with the
