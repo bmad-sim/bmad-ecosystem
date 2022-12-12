@@ -16,8 +16,6 @@
 !                              False returns local_position angles (%theta, %phi, %psi) = 0.
 !   relative_to_upstream  -- logical, optional: Default is False. If True, local_position%r(3) is relative to the 
 !                              upstream end which will not be the entrance end if ele%orientation = -1.
-!                              For patch elements (which always have ele%orientation = 1), if relative_to_upstream = T, 
-!                              local_position%r(1:2) transverse coords will be taken wrt the upstream coords 
 !
 ! Output:
 !   w_mat(3,3)            -- real(rp), optional: W matrix at z, to transform vectors. 
@@ -54,42 +52,46 @@ endif
 ! Deal with ele misalignments if needed
 
 p = floor_position_struct(local_position%r, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
-if (logic_option(.false., relative_to_upstream) .and. ele1%orientation == -1 .and. ele1%key /= patch$) p%r(3) = ele%value(l$) - p%r(3) 
+
+! patch
 
 if (ele1%key == patch$) then
-  if (.not. logic_option(.false., relative_to_upstream)) p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit: 
   call mat_make_unit(S_mat)
 
-elseif (logic_option(.false., in_body_frame)) then  ! General geometry with possible misalignments
-  p = coords_body_to_local(p, ele1, w_mat = S_mat)
-  if (ele1%key == sbend$) then
-    ds = ele1%value(L$)-p%r(3)
-    p%r(3) = 0
-    p = bend_shift (p, ele%value(g$), ds, sm2, ele1%value(ref_tilt_tot$))
-  else
-    p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit: 
-  endif
- 
-elseif (ele1%key == sbend$) then  ! Curved geometry, no misalignments. Get relative to ele's exit end.
-  z = p%r(3)
-  p%r(3) = 0
-  p = bend_shift(p, ele1%value(g$), ele1%value(L$) - z, w_mat = S_mat, ref_tilt = ele1%value(ref_tilt_tot$))
-
-else   ! Element has Cartesian geometry, and misalignments are to be ignored. 
-  p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit: 
-  call mat_make_unit(S_mat)
-endif 
-
-! Get global floor coordinates
-
-if (ele1%key == patch$) then
-  if (logic_option(.false., relative_to_upstream)) then
+  if (logic_option(.false., relative_to_upstream) .or. &
+        (nint(ele%value(ref_coords$)) == entrance_end$ .eqv. ele%orientation == 1)) then
+    p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit.
     floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
   else
+    p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit.
     floor0 = ele%floor
   endif
 
+! Not a patch
+
 else
+  if (logic_option(.false., relative_to_upstream) .and. ele1%orientation == -1) p%r(3) = ele%value(l$) - p%r(3)
+
+  if (logic_option(.false., in_body_frame)) then  ! General geometry with possible misalignments
+    p = coords_body_to_local(p, ele1, w_mat = S_mat)
+    if (ele1%key == sbend$) then
+      ds = ele1%value(L$)-p%r(3)
+      p%r(3) = 0
+      p = bend_shift (p, ele%value(g$), ds, sm2, ele1%value(ref_tilt_tot$))
+    else
+      p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit.
+    endif
+   
+  elseif (ele1%key == sbend$) then  ! Curved geometry, no misalignments. Get relative to ele's exit end.
+    z = p%r(3)
+    p%r(3) = 0
+    p = bend_shift(p, ele1%value(g$), ele1%value(L$) - z, w_mat = S_mat, ref_tilt = ele1%value(ref_tilt_tot$))
+
+  else   ! Element has Cartesian geometry and misalignments are to be ignored. 
+    p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit.
+    call mat_make_unit(S_mat)
+  endif 
+
   floor0 = ele1%floor
   ! If orient = -1 then floor0 (which by definition is always the downstream coords) is entrance end coords.
   ! But calc here is wrt exit end coords. So have to shift floor0 to exit end coords.
@@ -97,6 +99,8 @@ else
     call ele_geometry(floor0, ele, floor0, -1.0_rp)
   endif
 endif
+
+! Set global floor coordinates
 
 global_position%r = matmul(floor0%w, p%r) + floor0%r
 global_position%w = matmul(matmul(floor0%w, p%w), local_position%w)

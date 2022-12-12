@@ -1487,12 +1487,13 @@ function orbit_to_floor_phase_space (orbit, ele) result (floor_phase_space)
   real(rp) floor_phase_space(6)
 end function
 
-function orbit_to_local_curvilinear (orbit, ele) result (local_position)
+function orbit_to_local_curvilinear (orbit, ele, z_direction) result (local_position)
   import
   implicit none
   type (coord_struct) orbit
   type (ele_struct) ele
   type (floor_position_struct) local_position
+  integer, optional :: z_direction
 end function
 
 function orbit_too_large (orbit, param, check_momentum) result (is_too_large)
