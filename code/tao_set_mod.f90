@@ -2985,6 +2985,7 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
     return
   endif
 
+  n_set = 0
   do i = 1, size(eles)
     call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err)
     if (err) return
@@ -2992,10 +2993,17 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
       call out_io (s_error$, r_name, 'STRANGE ERROR: PLEASE CONTACT HELP.')
       return
     endif
-    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err)
 
+    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err, .false.)
+    if (.not. err) n_set = n_set + 1
     call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), eles(i)%ele%name, eles(i)%ele, a_ptr%r)
   enddo
+
+  if (n_set == 0) then
+    call out_io (s_error$, r_name, 'NOTHING SET. EG:')
+    i = size(eles)
+    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err, .false.)
+  endif
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
@@ -3071,11 +3079,15 @@ do i = 1, size(eles)
   if (.not. err) n_set = n_set + 1
 enddo
 
-! If there is a true error then generate an error message
-
 if (n_set == 0) then
-  u => s%u(eles(1)%id)
-  call set_ele_attribute (eles(1)%ele, trim(attribute) // '=' // trim(val_str),  err, .true., lord_set)
+  if (lord_set) then
+    call out_io (s_error$, r_name, &
+          'NOTHING SET. REMEMBER: "-lord_no_set" USAGE WILL PREVENT LORD ELEMENT ATTRIBUTES FROM BEING SET.')
+  else
+    call out_io (s_error$, r_name, 'NOTHING SET. EG:')
+    u => s%u(eles(1)%id)
+    call set_ele_attribute (eles(1)%ele, trim(attribute) // '=' // trim(val_str),  err, .true., lord_set)
+  endif
   return
 endif
 
