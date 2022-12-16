@@ -378,14 +378,14 @@ function coords_floor_to_relative (floor0, global_position, calculate_angles, is
   logical, optional :: calculate_angles, is_delta_position
 end function coords_floor_to_relative
 
-function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, relative_to_upstream) result(local_position)
+function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, relative_to) result(local_position)
   import
   implicit none
   type (floor_position_struct) :: global_position, local_position
   type (ele_struct)   :: ele
   real(rp), optional :: w_mat(3,3)
   integer :: status
-  logical, optional :: relative_to_upstream
+  integer, optional :: relative_to
 end function coords_floor_to_local_curvilinear
 
 function coords_floor_to_curvilinear (floor_coords, ele0, ele1, status, w_mat) result (local_coords)
@@ -408,7 +408,7 @@ function coords_local_curvilinear_to_element (local_position, ele, w_mat, calcul
 end function
 
 function coords_local_curvilinear_to_floor (local_position, ele, in_body_frame, &
-                                        w_mat, calculate_angles, relative_to_upstream) result (global_position)
+                                                w_mat, calculate_angles, relative_to) result (global_position)
   import
   implicit none
   type (floor_position_struct) :: local_position, global_position
@@ -416,7 +416,7 @@ function coords_local_curvilinear_to_floor (local_position, ele, in_body_frame, 
   real(rp), optional :: w_mat(3,3)
   logical, optional :: in_body_frame
   logical, optional :: calculate_angles
-  logical, optional :: relative_to_upstream
+  integer, optional :: relative_to
 end function coords_local_curvilinear_to_floor
 
 function coords_curvilinear_to_floor (xys, branch, err_flag) result (global)
@@ -1487,13 +1487,13 @@ function orbit_to_floor_phase_space (orbit, ele) result (floor_phase_space)
   real(rp) floor_phase_space(6)
 end function
 
-function orbit_to_local_curvilinear (orbit, ele, z_direction) result (local_position)
+function orbit_to_local_curvilinear (orbit, ele, z_direction, relative_to) result (local_position)
   import
   implicit none
   type (coord_struct) orbit
   type (ele_struct) ele
   type (floor_position_struct) local_position
-  integer, optional :: z_direction
+  integer, optional :: z_direction, relative_to
 end function
 
 function orbit_too_large (orbit, param, check_momentum) result (is_too_large)

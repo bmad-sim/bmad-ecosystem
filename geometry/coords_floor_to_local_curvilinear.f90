@@ -1,5 +1,5 @@
 !+
-! Function coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat, relative_to_upstream) result(local_position)
+! Function coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat, relative_to) result(local_position)
 !
 ! Given a position in global coordinates, return local curvilinear (laboratory) coordinates defined by ele.
 !
@@ -10,12 +10,10 @@
 ! the global_position is associated with.
 !
 ! Input:
-!   global_position     -- floor_position_struct: %r = [X, Y, Z] position in global coordinates
-!   ele                 -- ele_struct: element to find local coordinates of.
-!   relative_to_upstream  -- logical, optional: Default is False. If True, local_position%r(3) is relative to the 
-!                              upstream end which will not be the entrance end if ele%orientation = -1.
-!                              For patch elements (which always have ele%orientation = 1), if relative_to_upstream = T, 
-!                              local_position%r(1:2) transverse coords will be taken wrt the upstream coords 
+!   global_position -- floor_position_struct: %r = [X, Y, Z] position in global coordinates
+!   ele             -- ele_struct: element to find local coordinates of.
+!   relative_to     -- integer, optional: Default is not_set$. If upstream_end$, local_position is relative to the 
+!                          upstream end which will not be the entrance end if ele%orientation = -1.
 !                            
 ! Output:
 !   local_position  -- floor_position_struct: %r = [x, y, z] position in local curvilinear coordinates
@@ -29,7 +27,7 @@
 !                                  v_local = transpose(w_mat).v_global
 !-  
 
-function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, relative_to_upstream) result(local_position)
+function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, relative_to) result(local_position)
 
 use bmad_interface, dummy => coords_floor_to_local_curvilinear
 
@@ -41,7 +39,7 @@ type (floor_position_struct) :: floor0, floor1
 real(rp), optional :: w_mat(3,3)
 real(rp) x, y, z, g, dd, tilt, ds, dz0, dz1, wm(3,3), ref_tilt
 integer :: status
-logical, optional :: relative_to_upstream
+integer, optional :: relative_to
 
 ! In all cases remember that ele%floor is the downstream floor coords independent of ele%orientation
 ! sbend case.
@@ -60,7 +58,7 @@ if (ele%key == sbend$) then
     if (present(w_mat)) w_mat = ele%floor%w
   endif
 
-  if (.not. (logic_option(.false., relative_to_upstream) .and. ele%orientation == -1)) then
+  if (.not. (integer_option(not_set$, relative_to) == upstream_end$ .and. ele%orientation == -1)) then
     local_position%r(3) = local_position%r(3) + ele%value(l$)
   endif
 
@@ -70,14 +68,14 @@ if (ele%key == sbend$) then
 
 elseif (ele%key == patch$) then
   if (ele%orientation == 1) then 
-    if (logic_option(.false., relative_to_upstream)) then
+    if (integer_option(not_set$, relative_to) == upstream_end$) then
       floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
     else
       floor0 = ele%floor
     endif
 
   else
-    if (logic_option(.false., relative_to_upstream)) then
+    if (integer_option(not_set$, relative_to) == upstream_end$) then
       floor0 = ele%floor
     else
       floor0 = ele%branch%ele(ele%ix_ele+1)%floor        ! Get floor0 from next element
