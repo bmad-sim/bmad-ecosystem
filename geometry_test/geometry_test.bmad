@@ -13,14 +13,16 @@ particle_start[z]  = 0.5
 particle_start[pz] = 0.6
 
 q: quadrupole, l = 2, tilt = -1, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
-p: patch, z_offset = 2, x_pitch = pi
+p1: patch, z_offset = 1, x_offset = 0.1, x_pitch = 0.01
+p2: patch, z_offset = 1, x_offset = 0.1, x_pitch = 0.01, ref_coords = entrance_end
+pr: patch, z_offset = 2, x_pitch = pi, x_offset = 0.1
 
 b1: sbend, l = 2, angle = 0.2, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
 b2: sbend, l = 2, angle = 0.0, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
 b3: sbend, l = 2, angle = 0.2, roll = 0.1, ref_tilt =  0, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
 b4: sbend, l = 2, angle = 0.0, roll = 0.1, ref_tilt =  0, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
 
-p_line: line = (q, b1, b2, b3, b4, p, --q, --b1, --b2, --b3, --b4)
+p_line: line = (q, b1, b2, b3, b4, p1, p2, pr, --p1, --p2, --q, --b1, --b2, --b3, --b4)
 
 !
 
