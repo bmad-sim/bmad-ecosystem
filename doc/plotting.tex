@@ -68,6 +68,16 @@ sometimes convenient to start \tao without the plotting window. In this case, th
 can be used on the startup command line. In a \tao initialization file, display of the plot window can be set
 using the \vn{global%plot_on} parameter set in the \vn{tao_params} namelist (\sref{s:globals}).
 
+In some cases, the screen resolution reported to \tao can be off. This has happened with some high
+resolution displays where the reported resolution is 96 dpi when in fact the actual resolution is
+much larger. In such a case, the size of the plot window created by \tao will be off. This can be
+corrected by setting \vn{plot_page%size} appropriately but this in turn can create font size
+problems. To avoid this problem, the environmental variable \vn{ACC_DPI_RESOLUTION} can be set to
+the correct resolution before running \tao. The shell command line would be something like
+\begin{example}
+  > export ACC_DPI_RESOLUTION=168
+\end{example}
+
 The \vn{plot page} has a border within which \vn{regions} (\sref{s:region.def}) are defined. The area withing
 the plot page border is called the \vn{plot area}
 

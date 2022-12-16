@@ -358,8 +358,13 @@ case ('floor_actual')
   end select
 
 case ('floor_orbit')
-  floor = orbit_to_local_curvilinear(orbit, ele, orbit%direction)
-  floor = coords_local_curvilinear_to_floor (floor, ele, .false.)
+  if (orbit%location == downstream_end$) then
+    floor = orbit_to_local_curvilinear(orbit, ele, relative_to = orbit%location)
+    floor = coords_local_curvilinear_to_floor (floor, ele, .false., relative_to = orbit%location)
+  else
+    floor = orbit_to_local_curvilinear(orbit, ele, orbit%direction)
+    floor = coords_local_curvilinear_to_floor (floor, ele, .false.)
+  endif
   select case (d_type)
   case ('floor_orbit.x');          value = floor%r(1)
   case ('floor_orbit.y');          value = floor%r(2)
