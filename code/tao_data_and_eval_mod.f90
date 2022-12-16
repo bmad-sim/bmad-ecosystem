@@ -6010,8 +6010,8 @@ else
   vec = bunch_params%centroid%vec
 endif
 
-position = orbit_to_local_curvilinear(orbit, ele, orbit%direction)
-position = coords_local_curvilinear_to_floor (position, ele, .false.)
+position = orbit_to_local_curvilinear(orbit, ele, relative_to = downstream_end$)
+position = coords_local_curvilinear_to_floor (position, ele, .false., relative_to = downstream_end$)
 
 !
 

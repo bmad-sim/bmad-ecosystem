@@ -80,7 +80,9 @@ Graphics User Interface (GUI) (\sref{s:gui.plot}).
 %
 \item[-geometry <width>x<height>] \Newline
 Overrides the plot window geometry. \vn{<width>} and \vn{<height>} are in Points. This is equivalent
-to setting \vn{plot_page%size} in the \vn{tao_plot_page} namelist \sref{s:init.plot}.
+to setting \vn{plot_page%size} in the \vn{tao_plot_page} namelist \sref{s:init.plot}. Also then
+environmental variable \vn{ACC_DPI_RESOLUTION} (\sref{s:plot.page.def}) can be used to vary the
+window size.
 %
 \item[-hook_init_file] \Newline
 Specifies an input file for customized versions of Tao. Default file
@@ -2174,7 +2176,8 @@ set this variable in your login file to avoid having to setup a \tao init file t
 %
 \item[plot_page\%size] \Newline
 The \vn{plot_page%size} parameter sets the horizontal and vertical size of the plot window in
-\vn{points} (\sref{s:qp.units}).
+\vn{points} (\sref{s:qp.units}). Also then environmental variable \vn{ACC_DPI_RESOLUTION}
+(\sref{s:plot.page.def}) can be used to vary the window size.
 %
 \item[plot_page\%subtitle] \Newline
 Subtitle text of the plot. See the description for \vn{plot_page%title}. The defaults here are the

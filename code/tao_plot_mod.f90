@@ -821,7 +821,7 @@ if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
                                                        .true., .true., orb_start, orb_here)
       f_orb%r(1:2) = graph%floor_plan%orbit_scale * orb_here%vec(1:3:2)
       f_orb%r(3) = s_here
-      f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false., relative_to_upstream = .true.)
+      f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false., relative_to = upstream_end$)
       call tao_floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
     enddo
     call qp_draw_polyline(dx_orbit(0:n), dy_orbit(0:n))
@@ -854,7 +854,7 @@ if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
                                                  .true., .true., orb_start, orb_here)
       floor%r(1:2) = graph%floor_plan%orbit_scale * orb_here%vec(1:3:2)
       floor%r(3) = s_here
-      floor1 = coords_local_curvilinear_to_floor (floor, ele, .false., relative_to_upstream = .true.)
+      floor1 = coords_local_curvilinear_to_floor (floor, ele, .false., relative_to = upstream_end$)
       call tao_floor_to_screen_coords (graph, floor1, f_orb)
       dx_orbit(ic) = f_orb%r(1)
       dy_orbit(ic) = f_orb%r(2)
