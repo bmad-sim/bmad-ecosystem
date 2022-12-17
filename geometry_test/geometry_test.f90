@@ -38,13 +38,6 @@ open (1, file = 'output.now')
 
 !
 
-orbit%s = 2.001
-orbit%vec = [0.01_rp, 0.01_rp, 0.02_rp, 0.2_rp, 0.03_rp, 2.0_rp]
-floor_ps = orbit_to_floor_phase_space (orbit, lat%ele(2))
-write (1, '(a, 3f15.11, 4x, 3f15.11)') '"floor_phase_space1" ABS 1E-12', floor_ps(1:5:2), floor_ps(2:6:2)
-
-!
-
 local0 = floor_position_struct(lat%particle_start%vec(1:5:2), w_unit$, lat%particle_start%vec(2), &
                                                      lat%particle_start%vec(4), lat%particle_start%vec(6))
 call floor_angles_to_w_mat (local0%theta, local0%phi, local0%psi, local0%w)
@@ -55,25 +48,25 @@ branch => lat%branch(0)
 
 do i = 1, lat%n_ele_max
   ele => branch%ele(i)
-  body = coords_local_curvilinear_to_element (local0, ele, w1_mat, .true.)
+  body = coords_local_curvilinear_to_body (local0, ele, w1_mat, .true.)
   local = coords_body_to_local(body, ele, w2_mat, .true.)
   dw = w2_mat - w1_mat
   dw1 = local%w - local%w
   write (1, '(4a, 3f13.8, 2x, 3f13.8, 2x, 2f13.8)') '"loc-body-loc', o_name(ele%orientation), trim(ele%name), &
-                                '" ABS 1E-12', local%r-local0%r, local%theta-local0%theta, local%phi-local0%phi, &
-                                local%psi-local0%psi, maxval(abs(dw)), maxval(abs(dw1))
+                                '" ABS 1E-12', local%r-local0%r, amod(local%theta-local0%theta), amod(local%phi-local0%phi), &
+                                amod(local%psi-local0%psi), maxval(abs(dw)), maxval(abs(dw1))
 enddo
 print *
 
 do i = 1, lat%n_ele_max
   ele => branch%ele(i)
   floor = coords_local_curvilinear_to_floor (local0, ele, .false., w1_mat, calculate_angles = .true.)
-  local = coords_floor_to_local_curvilinear (floor, ele, status, w2_mat, upstream_end$)
+  local = coords_floor_to_local_curvilinear (floor, ele, status, w2_mat)
   dw = w2_mat - w1_mat
   dw1 = local%w - local%w
   write (1, '(4a, 3f13.8, 2x, 3f13.8, 2x, 2f13.8)') '"loc-global-loc', o_name(ele%orientation), trim(ele%name), &
-                                '" ABS 1E-12', local%r-local0%r, local%theta-local0%theta, local%phi-local0%phi, &
-                                local%psi-local0%psi, maxval(abs(dw)), maxval(abs(dw1))
+                                '" ABS 1E-12', local%r-local0%r, amod(local%theta-local0%theta), amod(local%phi-local0%phi), &
+                                amod(local%psi-local0%psi), maxval(abs(dw)), maxval(abs(dw1))
 enddo
 print *
 
@@ -81,15 +74,24 @@ print *
 do i = 1, lat%n_ele_max
   ele => branch%ele(i)
   floor = coords_local_curvilinear_to_floor (local0, ele, .true., w1_mat, calculate_angles = .true.)
-  local = coords_floor_to_local_curvilinear (floor, ele, status, w2_mat, upstream_end$)
-  local = coords_local_curvilinear_to_element (local, ele, w3_mat, .true.)
+  local = coords_floor_to_local_curvilinear (floor, ele, status, w2_mat)
+  local = coords_local_curvilinear_to_body (local, ele, w3_mat, .true.)
   dw = matmul(w2_mat, w3_mat) - w1_mat
   dw1 = local%w - local%w
   write (1, '(4a, 3f13.8, 2x, 3f13.8, 2x, 2f13.8)') '"body-global-body', o_name(ele%orientation), trim(ele%name), &
-                                '" ABS 1E-12', local%r-local0%r, local%theta-local0%theta, local%phi-local0%phi, &
-                                local%psi-local0%psi, maxval(abs(dw)), maxval(abs(dw1))
+                                '" ABS 1E-12', local%r-local0%r, amod(local%theta-local0%theta), amod(local%phi-local0%phi), &
+                                amod(local%psi-local0%psi), maxval(abs(dw)), maxval(abs(dw1))
 enddo
 print *
+
+if (print_extra) stop
+
+!
+
+orbit%s = 2.001
+orbit%vec = [0.01_rp, 0.01_rp, 0.02_rp, 0.2_rp, 0.03_rp, 2.0_rp]
+floor_ps = orbit_to_floor_phase_space (orbit, lat%ele(2))
+write (1, '(a, 3f15.11, 4x, 3f15.11)') '"floor_phase_space1" ABS 1E-12', floor_ps(1:5:2), floor_ps(2:6:2)
 
 !
 
@@ -104,10 +106,10 @@ do i = 1, lat%n_ele_max
 
   floor = coords_local_curvilinear_to_floor(local0, ele, .true., calculate_angles = .true.)
   write (1, '(4a, 3f13.8, 2x, 3f13.8)') '"curvi-to-floor-up-T', o_name(ele%orientation), trim(ele%name), '" ABS 0 ', &
-                                        floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi
+                                        floor%r-f0%r, amod(floor%theta-f0%theta), amod(floor%phi-f0%phi), amod(floor%psi-f0%psi)
   floor = coords_local_curvilinear_to_floor(local0, ele, .false., calculate_angles = .true.)
   write (1, '(4a, 3f13.8, 2x, 3f13.8)') '"curvi-to-floor-up-F', o_name(ele%orientation), trim(ele%name), '" ABS 0 ', &
-                                        floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi
+                                        floor%r-f0%r, amod(floor%theta-f0%theta), amod(floor%phi-f0%phi), amod(floor%psi-f0%psi)
 
   if (ele%orientation == 1) then
     f0 = ele%floor
@@ -120,7 +122,7 @@ do i = 1, lat%n_ele_max
 
   floor = coords_local_curvilinear_to_floor(local, ele, .true., calculate_angles = .true.)
   write (1, '(4a, 3f13.8, 2x, 3f13.8)') '"curvi-to-floor-dn-T', o_name(ele%orientation), trim(ele%name), '" ABS 0 ', &
-                                              floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi
+                                              floor%r-f0%r, amod(floor%theta-f0%theta), amod(floor%phi-f0%phi), amod(floor%psi-f0%psi)
 enddo
 
 !
@@ -166,5 +168,13 @@ enddo
 !
 
 close (1)
+
+!---------------------------
+contains
+
+function amod(angle) result (mod_angle)
+real(rp) angle, mod_angle
+mod_angle = modulo2(angle, pi)
+end function amod
 
 end program
