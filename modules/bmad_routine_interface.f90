@@ -398,7 +398,7 @@ function coords_floor_to_curvilinear (floor_coords, ele0, ele1, status, w_mat) r
   real(rp), optional :: w_mat(3,3)
 end function coords_floor_to_curvilinear
 
-function coords_local_curvilinear_to_element (local_position, ele, w_mat, calculate_angles) result (body_position)
+function coords_local_curvilinear_to_body (local_position, ele, w_mat, calculate_angles) result (body_position)
   import
   implicit none
   type (floor_position_struct) :: local_position, body_position, p, floor0
