@@ -1,5 +1,5 @@
 !+
-! Function coords_local_curvilinear_to_element (local_position, ele, w_mat, calculate_angles) result (body_position)
+! Function coords_local_curvilinear_to_body (local_position, ele, w_mat, calculate_angles) result (body_position)
 !
 ! Returns body frame coords relative to the exit end.
 !
@@ -15,13 +15,13 @@
 !   body_position   -- floor_position_struct: Element coordinates relative to exit of the element.
 !     %r(3)               [x, y, s] position with s = Position from entrance end of element.
 !   w_mat(3,3)      -- real(rp), optional: W matrix at to transform vectors. 
-!                                  v_local     = w_mat . v_ele_frame
-!                                  v_ele_frame = transpose(w_mat) . v_local
+!                                  v_local  = w_mat . v_body
+!                                  v_body   = transpose(w_mat) . v_local
 !-
 
-function coords_local_curvilinear_to_element (local_position, ele, w_mat, calculate_angles) result(body_position)
+function coords_local_curvilinear_to_body (local_position, ele, w_mat, calculate_angles) result(body_position)
 
-use bmad_interface, dummy => coords_local_curvilinear_to_element
+use bmad_interface, dummy => coords_local_curvilinear_to_body
 
 implicit none
 
@@ -36,7 +36,11 @@ logical, optional :: calculate_angles
 body_position = local_position
 s = body_position%r(3)
 
-if (ele%key == sbend$) then
+select case (ele%key)
+case (patch$)
+  if (present(w_mat)) call mat_make_unit(w_mat)
+
+case (sbend$)
   ! Get coords relative to center
   g = ele%value(g$)
   ref_tilt = ele%value(ref_tilt_tot$)
@@ -73,7 +77,7 @@ if (ele%key == sbend$) then
 
   if (present(w_mat)) w_mat = transpose(Sb)
 
-else
+case default
   ! Add offsets
   body_position%r = body_position%r - [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
 
@@ -91,7 +95,7 @@ else
   endif
   
   if (present(w_mat)) w_mat = transpose(S_mis)
-endif
+end select
 
 ! If angles are not needed, just return zeros; 
 if (logic_option(.true., calculate_angles)) then
@@ -102,4 +106,4 @@ else
   body_position%psi = 0
 endif 
 
-end function coords_local_curvilinear_to_element
+end function coords_local_curvilinear_to_body

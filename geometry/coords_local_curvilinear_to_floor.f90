@@ -14,8 +14,9 @@
 !   calculate_angles  -- logical, optional: calculate angles for global_position 
 !                          Default: True.
 !                          False returns local_position angles (%theta, %phi, %psi) = 0.
-!   relative_to       -- integer, optional: Default is not_set$. If upstream_end$, the local_position is 
-!                          relative to the upstream end which will not be the entrance end if ele%orientation = -1.
+!   relative_to       -- integer, optional: not_set$ (default), upstream_end$, or downstream_end$. Force which end is used
+!                         for z = 0. If upstream_end$, local_position%r(3) is relative to the 
+!                         upstream end which will not be the entrance end if ele%orientation = -1.
 !
 ! Output:
 !   w_mat(3,3)        -- real(rp), optional: W matrix at z, to transform vectors. 
@@ -62,18 +63,21 @@ rel_to = integer_option(not_set$, relative_to)
 if (ele1%key == patch$) then
   call mat_make_unit(S_mat)
   if (rel_to == not_set$) then
-    if (nint(ele%value(ref_coords$)) == entrance_end$ .eqv. ele%orientation == 1) then
-      rel_to = upstream_end$
-    else
+    if (ele%orientation == 1 .eqv. nint(ele%value(ref_coords$)) == exit_end$) then
       rel_to = downstream_end$
+    else
+      rel_to = upstream_end$
     endif
   endif
 
   if (rel_to == upstream_end$) then
     floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
   else
-    p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit.
     floor0 = ele%floor
+  endif
+
+  if (ele%orientation == 1 .eqv. rel_to == downstream_end$) then
+    p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's effective entrance end.
   endif
 
 ! Not a patch
