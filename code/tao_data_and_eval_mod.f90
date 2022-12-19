@@ -2064,7 +2064,7 @@ case ('orbit.')
 
   select case (data_type)
 
-  case ('orbit.e_tot')
+  case ('orbit.e_tot', 'orbit.kinetic')
     if (ix_ref > -1) then
       if (data_source == 'beam') then
         orb => bunch_params(ix_ref)%centroid
@@ -2086,6 +2086,8 @@ case ('orbit.')
     enddo
 
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
+    if (data_type == 'orbit.kinetic') datum_value = datum_value - mass_of(orb%species)
 
   case ('orbit.x')
     if (data_source == 'beam') then
@@ -4422,7 +4424,7 @@ character(40) saved_prefix
 character(*), parameter :: r_name = "tao_evaluate_expression"
 
 logical delim_found, do_combine, use_good_user
-logical err_flag, err, wild, printit, found
+logical err_flag, err, wild, printit, found, species_here
 logical, optional :: print_err
 
 ! Don't destroy the input expression
@@ -4631,60 +4633,60 @@ parsing_loop: do
       n_func = n_func + 1
       func(n_func) = expression_func_struct(word2, 1, 0)
       select case (word2)
-      case ('cot');             call pushit (op, i_op, cot$)
-      case ('csc');             call pushit (op, i_op, csc$)
-      case ('sec');             call pushit (op, i_op, sec$)
-      case ('sin');             call pushit (op, i_op, sin$)
-      case ('sinc');            call pushit (op, i_op, sinc$)
-      case ('cos');             call pushit (op, i_op, cos$)
-      case ('tan');             call pushit (op, i_op, tan$)
-      case ('asin');            call pushit (op, i_op, asin$)
-      case ('acos');            call pushit (op, i_op, acos$)
-      case ('atan');            call pushit (op, i_op, atan$)
+      case ('cot');             call push_op_stack (op, i_op, cot$)
+      case ('csc');             call push_op_stack (op, i_op, csc$)
+      case ('sec');             call push_op_stack (op, i_op, sec$)
+      case ('sin');             call push_op_stack (op, i_op, sin$)
+      case ('sinc');            call push_op_stack (op, i_op, sinc$)
+      case ('cos');             call push_op_stack (op, i_op, cos$)
+      case ('tan');             call push_op_stack (op, i_op, tan$)
+      case ('asin');            call push_op_stack (op, i_op, asin$)
+      case ('acos');            call push_op_stack (op, i_op, acos$)
+      case ('atan');            call push_op_stack (op, i_op, atan$)
       case ('atan2')
-        call pushit (op, i_op, atan2$)
+        call push_op_stack (op, i_op, atan2$)
         func(n_func)%n_arg_target = 2
-      case ('sinh');            call pushit (op, i_op, sinh$)
-      case ('cosh');            call pushit (op, i_op, cosh$)
-      case ('tanh');            call pushit (op, i_op, tanh$)
-      case ('coth');            call pushit (op, i_op, coth$)
-      case ('asinh');           call pushit (op, i_op, asinh$)
-      case ('acosh');           call pushit (op, i_op, acosh$)
-      case ('atanh');           call pushit (op, i_op, atanh$)
-      case ('acoth');           call pushit (op, i_op, acoth$)
-      case ('abs');             call pushit (op, i_op, abs$)
-      case ('rms');             call pushit (op, i_op, rms$)
-      case ('average', 'mean'); call pushit (op, i_op, average$)
-      case ('sum');             call pushit (op, i_op, sum$)
-      case ('sqrt');            call pushit (op, i_op, sqrt$)
-      case ('log');             call pushit (op, i_op, log$)
-      case ('exp');             call pushit (op, i_op, exp$)
-      case ('factorial');       call pushit (op, i_op, factorial$)
+      case ('sinh');            call push_op_stack (op, i_op, sinh$)
+      case ('cosh');            call push_op_stack (op, i_op, cosh$)
+      case ('tanh');            call push_op_stack (op, i_op, tanh$)
+      case ('coth');            call push_op_stack (op, i_op, coth$)
+      case ('asinh');           call push_op_stack (op, i_op, asinh$)
+      case ('acosh');           call push_op_stack (op, i_op, acosh$)
+      case ('atanh');           call push_op_stack (op, i_op, atanh$)
+      case ('acoth');           call push_op_stack (op, i_op, acoth$)
+      case ('abs');             call push_op_stack (op, i_op, abs$)
+      case ('rms');             call push_op_stack (op, i_op, rms$)
+      case ('average', 'mean'); call push_op_stack (op, i_op, average$)
+      case ('sum');             call push_op_stack (op, i_op, sum$)
+      case ('sqrt');            call push_op_stack (op, i_op, sqrt$)
+      case ('log');             call push_op_stack (op, i_op, log$)
+      case ('exp');             call push_op_stack (op, i_op, exp$)
+      case ('factorial');       call push_op_stack (op, i_op, factorial$)
       case ('ran')         
-        call pushit (op, i_op, ran$)
+        call push_op_stack (op, i_op, ran$)
         func(n_func)%n_arg_target = 0
       case ('ran_gauss')
-        call pushit (op, i_op, ran_gauss$)
+        call push_op_stack (op, i_op, ran_gauss$)
         func(n_func)%n_arg_target = -1      ! 0 or 1 args
-      case ('int');             call pushit (op, i_op, int$)
-      case ('sign');            call pushit (op, i_op, sign$)
-      case ('nint');            call pushit (op, i_op, nint$)
-      case ('floor');           call pushit (op, i_op, floor$)
-      case ('ceiling');         call pushit (op, i_op, ceiling$)
-      case ('mass_of');         call pushit (op, i_op, mass_of$)
-      case ('charge_of');       call pushit (op, i_op, charge_of$)
-      case ('anomalous_moment_of'); call pushit (op, i_op, anomalous_moment_of$)
-      case ('species');         call pushit (op, i_op, species$)
-      case ('antiparticle');    call pushit (op, i_op, antiparticle$)
+      case ('int');             call push_op_stack (op, i_op, int$)
+      case ('sign');            call push_op_stack (op, i_op, sign$)
+      case ('nint');            call push_op_stack (op, i_op, nint$)
+      case ('floor');           call push_op_stack (op, i_op, floor$)
+      case ('ceiling');         call push_op_stack (op, i_op, ceiling$)
+      case ('mass_of');         call push_op_stack (op, i_op, mass_of$)
+      case ('charge_of');       call push_op_stack (op, i_op, charge_of$)
+      case ('anomalous_moment_of'); call push_op_stack (op, i_op, anomalous_moment_of$)
+      case ('species');         call push_op_stack (op, i_op, species$)
+      case ('antiparticle');    call push_op_stack (op, i_op, antiparticle$)
       case default
         call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS (BAD FUNCTION NAME?) BEFORE "(": ', 'IN EXPRESSION: ' // expression)
         return
       end select
 
-      call pushit (op, i_op, l_func_parens$)
+      call push_op_stack (op, i_op, l_func_parens$)
 
     else
-      call pushit (op, i_op, l_parens$)
+      call push_op_stack (op, i_op, l_parens$)
     endif
 
     cycle parsing_loop
@@ -4692,13 +4694,13 @@ parsing_loop: do
   ! for a unary "-"
 
   elseif (delim == '-' .and. ix_word == 0) then
-    call pushit (op, i_op, unary_minus$)
+    call push_op_stack (op, i_op, unary_minus$)
     cycle parsing_loop
 
   ! for a unary "+"
 
   elseif (delim == '+' .and. ix_word == 0) then
-    call pushit (op, i_op, unary_plus$)
+    call push_op_stack (op, i_op, unary_plus$)
     cycle parsing_loop
 
   ! for a ")" delim
@@ -4710,23 +4712,36 @@ parsing_loop: do
                                                     'IN EXPRESSION: ' // expression)
         return
       endif
+
     else
-      call pushit2 (stk, i_lev, numeric$)
-      call tao_param_value_routine (word, use_good_user, saved_prefix, stk(i_lev), err, printit, &
-             dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
-             dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
-      if (err) then
-        if (printit) call out_io (s_error$, r_name, &
-                        'ERROR IN EVALUATING EXPRESSION: ' // expression, &
-                        'CANNOT EVALUATE: ' // word)
-        return
+      species_here = .false.
+      if (i_op > 1) then
+        select case(op(i_op-1))   ! op(i_op) will be l_func_parens$
+        case (mass_of$, charge_of$, anomalous_moment_of$, antiparticle$, species$);  species_here = .true.
+        end select
+      endif
+
+      if (species_here) then
+        call push_stack (stk, i_lev, species_const$)
+        stk(i_lev)%name = word
+      else
+        call push_stack (stk, i_lev, numeric$)
+        call tao_param_value_routine (word, use_good_user, saved_prefix, stk(i_lev), err, printit, &
+               dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
+               dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
+        if (err) then
+          if (printit) call out_io (s_error$, r_name, &
+                          'ERROR IN EVALUATING EXPRESSION: ' // expression, &
+                          'CANNOT EVALUATE: ' // word)
+          return
+        endif
       endif
     endif
 
     do
       do i = i_op, 1, -1       ! release pending ops
         if (op(i) == l_parens$ .or. op(i) == l_func_parens$) exit            ! break do loop
-        call pushit2 (stk, i_lev, op(i))
+        call push_stack (stk, i_lev, op(i))
       enddo
 
       if (i == 0) then
@@ -4744,7 +4759,7 @@ parsing_loop: do
                             'IN EXPRESSION: ' // expression)
             return
           endif
-          call pushit2 (stk, i_lev, arg_count$)
+          call push_stack (stk, i_lev, arg_count$)
           call re_allocate (stk(i_lev)%value, 1)
           stk(i_lev)%value(1) = func(n_func)%n_arg_count
 
@@ -4782,7 +4797,7 @@ parsing_loop: do
       call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING IN EXPRESSION: ' // expression)
       return
     endif
-    call pushit2 (stk, i_lev, numeric$)
+    call push_stack (stk, i_lev, numeric$)
     call tao_param_value_routine (word, use_good_user, saved_prefix, stk(i_lev), err, printit, &
             dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
             dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
@@ -4851,7 +4866,7 @@ parsing_loop: do
       cycle parsing_loop
     endif
 
-    call pushit2 (stk, i_lev, op(i))
+    call push_stack (stk, i_lev, op(i))
   enddo
 
   ! put the pending operation on the OP stack
@@ -4863,7 +4878,7 @@ parsing_loop: do
     if (printit) call out_io (s_error$, r_name, 'COMMA AT END OF EXPRESSION IS OUT OF place: ' // expression, &
                                    '(NEEDS "[...]" BRACKETS IF AN ARRAY.)')
     return
-  case default; call pushit (op, i_op, i_delim)
+  case default; call push_op_stack (op, i_op, i_delim)
   end select
 
 enddo parsing_loop
@@ -4904,32 +4919,34 @@ if (present(stack)) then
 endif
 
 !-------------------------------------------------------------------------
+! The op_stack is for operators and functions.
+
 contains
 
-subroutine pushit (int_stack, i_lev, this_type)
+subroutine push_op_stack (op_stack, i_lev, this_type)
 
-integer, allocatable :: int_stack(:)
+integer, allocatable :: op_stack(:)
 integer i_lev, this_type
 
-character(*), parameter :: r_name = "pushit"
+character(*), parameter :: r_name = "push_op_stack"
 
 !
 
 i_lev = i_lev + 1
-if (i_lev > size(int_stack)) call re_allocate(int_stack, 2*i_lev)
-int_stack(i_lev) = this_type
+if (i_lev > size(op_stack)) call re_allocate(op_stack, 2*i_lev)
+op_stack(i_lev) = this_type
 
-end subroutine pushit
+end subroutine push_op_stack
 
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine pushit2 (stack, i_lev, this_type)
+subroutine push_stack (stack, i_lev, this_type)
 
 type (tao_eval_stack1_struct), allocatable :: stack(:), tmp_stk(:)
 integer i_lev, this_type
 
-character(*), parameter :: r_name = "pushit2"
+character(*), parameter :: r_name = "push_stack"
 
 !
 
@@ -4945,7 +4962,7 @@ stack(i_lev)%type = this_type
 stack(i_lev)%name = expression_op_name(this_type)
 stack(i_lev)%scale = 1
 
-end subroutine pushit2
+end subroutine push_stack
                        
 end subroutine tao_evaluate_expression
 
@@ -5425,7 +5442,7 @@ type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp), allocatable :: value(:)
 
-integer n_size_in
+integer n_size_in, species
 integer i, i2, j, n, ns, ni, n_size
 
 logical err_flag, use_good_user, print_err, info_allocated
@@ -5502,9 +5519,14 @@ do i = 1, size(stack)
   case (arg_count$)
     cycle
 
-  case (numeric$) 
+  case (numeric$)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)
+
+  case (species_const$) 
+    i2 = i2 + 1
+    stk2(i2)%name = stack(i)%name
+    call re_allocate(stk2(i2)%value, 1)
 
   case (lat_num$, ele_num$)
     !!! This needs to be fixed to include default stuff
@@ -5731,6 +5753,19 @@ do i = 1, size(stack)
 
   case (ceiling$)
     stk2(i2)%value = ceiling(stk2(i2)%value)
+
+  case (mass_of$, charge_of$, anomalous_moment_of$)
+    species = species_id(stk2(i2)%name)
+    if (species == invalid$) then
+      if (print_err) call out_io (s_error$, r_name, 'Not a valid species name: ' // stk2(i2)%name)
+      err_flag = .true.
+      return
+    endif
+    select case (stack(i)%type)
+    case (mass_of$);              stk2(i2)%value = mass_of(species)
+    case (charge_of$);            stk2(i2)%value = charge_of(species)
+    case (anomalous_moment_of$);  stk2(i2)%value = anomalous_moment_of(species)
+    end select
 
   case default
     call out_io (s_warn$, r_name, 'INTERNAL ERROR')

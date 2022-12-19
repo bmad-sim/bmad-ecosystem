@@ -1167,6 +1167,12 @@ Notice that this is different from the \vn{E_tot} attribute of a lattice element
 is the reference energy at that element.
 
   %----------------------
+  \item[orbit.kinetic] \Newline \hlabel{orbit.kinetic}
+The \vn{orbit.kinetic} data type gives the kinetic energy of a tracked particle (with
+\vn{data_source} = \vn{lat}) or the average energy of a beam (with \vn{data_source} =
+\vn{beam}).
+
+  %----------------------
   \item[orbit.x, .y, .z, .px, .py, .pz] \Newline \hlabel{orbit.x}
 Orbit position and momenta.
 
@@ -1884,16 +1890,17 @@ See the previous section for a description of the data types.
   \pref{normal.type}      & normal.<type>.$i$.<monomial>        & Normal form map component                 & lat         & No  \\ \hline
   \pref{normal.h}         & normal.h.<monomial>                 & Normal form driving term                  & lat         & No  \\ \hline
   \pref{null}             & null                                & Data without model evaluation             & lat, beam   & No  \\ \hline
-  \pref{orbit.e.tot}      & orbit.e_tot                         & Beam energy (eV)                          & lat, beam   & Yes \\ \hline
-  \pref{orbit.x}          & \begin{tabular}{@{}l}
-                              orbit.x, .y, .z \\
-                              \hspace{3em} .px, .py, .pz
-                            \end{tabular}                       & Phase space orbit                         & lat, beam   & Yes \\ \hline 
   \pref{orbit.amp}        & orbit.amp_a, .amp_b                 & Orbit amplitude                           & lat         & Yes \\ \hline 
   \pref{orbit.norm.amp}   & \begin{tabular}{@{}l}
                               orbit.norm_amp_a, \\
                               \hspace{2em} .norm_amp_b       
                             \end{tabular}                       & Energy normalized amplitude               & lat         & Yes \\ \hline 
+  \pref{orbit.e.tot}      & orbit.e_tot                         & Total energy (eV)                         & lat, beam   & Yes \\ \hline
+  \pref{orbit.kinetic}    & orbit.kinetic                       & Kinetic energy (eV)                       & lat, beam   & Yes \\ \hline
+  \pref{orbit.x}          & \begin{tabular}{@{}l}
+                              orbit.x, .y, .z \\
+                              \hspace{3em} .px, .py, .pz
+                            \end{tabular}                       & Phase space orbit                         & lat, beam   & Yes \\ \hline 
   \pref{periodic.tt}      & \begin{tabular}{@{}l}
                               periodic.tt.$ijklm\ldots$ \\
                               \hspace{4em} $1 \le i,j,k,\ldots \le 6$   

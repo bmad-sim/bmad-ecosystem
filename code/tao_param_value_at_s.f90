@@ -426,12 +426,14 @@ case ('orbit')
   case ('orbit.amp_b');       value = amp_b
   case ('orbit.norm_amp_a');  value = amp_na
   case ('orbit.norm_amp_b');  value = amp_nb
-  case ('orbit.e_tot')
+  case ('orbit.e_tot', 'orbit.kinetic')
     if (orbit%beta == 0) then
       value = mass_of(branch%param%particle)
     else
       value = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
     endif
+    if (d_type == 'orbit.kinetic') value = value - mass_of(orbit%species)
+
   case default
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)

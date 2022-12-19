@@ -2313,6 +2313,24 @@ if (all(s%plot_page%template%name /= 'lat_layout')) then
 endif
 
 !---------------
+! kinetic energy
+
+if (all(s%plot_page%template%name /= 'kinetic')) then
+  call default_plot_init (np, plt, default_plot_g1c1)
+  plt%name                 = 'kinetic'
+  plt%description          = 'Kinetic Energy'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Kinetic Energy'
+  grph%y%label       = 'K [eV]'
+
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'orbit.kinetic'
+endif
+
+!---------------
 ! Orbit plot
 
 if (all(s%plot_page%template%name /= 'orbit')) then
