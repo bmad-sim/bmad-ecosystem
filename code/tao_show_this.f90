@@ -4035,7 +4035,7 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
-    nl=nl+1; lines(nl) = '   Plot                                    Description        '
+    nl=nl+1; lines(nl) = '   Plot Name                               Description        '
     nl=nl+1; lines(nl) = '   ----------------------------            -------------------'
     do i = 1, size(s%plot_page%template)
       p => s%plot_page%template(i)

@@ -94,9 +94,9 @@ type tao_expression_info_struct
 end type
 
 type tao_eval_stack1_struct
-  integer :: type = 0
+  integer :: type = 0                 
   character(60) :: name = ''
-  real(rp) :: scale = 1    ! Scale factor for ping data 
+  real(rp) :: scale = 1               ! Scale factor for ping data
   real(rp), allocatable :: value(:)
   type (tao_expression_info_struct), allocatable :: info(:)
   type (tao_real_pointer_struct), allocatable :: value_ptr(:)  ! Used to point to data, lattice parameters, etc
