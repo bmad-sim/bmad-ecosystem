@@ -3309,7 +3309,7 @@ subroutine track1_preprocess (start_orb, ele, param, err_flag, finished, radiati
   implicit none
   type (coord_struct) :: start_orb
   type (coord_struct) :: end_orb
-  type (ele_struct) :: ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) :: param
   type (track_struct), optional :: track
   logical err_flag, finished, radiation_included

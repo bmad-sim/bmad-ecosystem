@@ -36,7 +36,7 @@ use bmad, except_dummy => track1_preprocess
 implicit none
 
 type (coord_struct) :: start_orb
-type (ele_struct) :: ele
+type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
