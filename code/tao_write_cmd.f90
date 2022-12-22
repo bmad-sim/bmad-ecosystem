@@ -79,7 +79,7 @@ call match_word (action, [character(20):: &
               'hard', 'gif', 'ps', 'variable', 'bmad', 'derivative_matrix', 'digested', &
               'curve', 'mad', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', 'elegant', &
               'mad8', 'madx', 'pdf', 'pdf-l', 'opal', '3d_model', 'gif-l', 'bunch_comb', &
-              'ptc', 'sad', 'spin_mat8', 'blender', 'namelist', 'xsif', 'matrix'], &
+              'ptc', 'sad', 'spin_mat8', 'blender', 'namelist', 'xsif', 'matrix', 'tao'], &
               ix, .true., matched_name = action)
 
 if (ix == 0) then
@@ -1162,6 +1162,41 @@ case ('spin_mat8')
   enddo
 
   call out_io (s_info$, r_name, 'Written: ' // file_name)
+
+!---------------------------------------------------
+! tao
+
+case ('tao')
+
+  file_name = ''
+
+  do 
+    call tao_next_switch (what2, [character(16):: '-XXX'], .true., switch, err, ix_w2)
+    if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+    case ('-XXX')
+
+    case default
+      if (file_name /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name = switch
+    end select
+  enddo
+
+  if (file_name == '') file_name = 'tao_new.init'
+  call fullfilename (file_name, file_name)
+  open (iu, file = file_name)
+
+  ! tao_start namelist
+
+  write (iu, '(a)') '!----------------------------------------------------------'
+  write (iu, '(a)') ''
+  write (iu, '(a)') '&tao_start'
+
 
 !---------------------------------------------------
 ! variable
