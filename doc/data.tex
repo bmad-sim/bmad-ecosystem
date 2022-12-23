@@ -1521,10 +1521,10 @@ to be the same as the initial coordinates and, in this case, $\bfD$, will be a r
 a rotation angle equal to the spin tune.
 
   %----------------------
-  \item[spin_res.a1, .a2, .b1, .b2, .c1, .c2] \Newline \hlabel{spin.res}
-Spin resonance values. \vn{.a1}, \vn{.a2} are the resonance values for the $a$-mode, etc. The \vn{show
-spin -ele ...} command will print the values. If not present, the evaluation element for the datum
-is the beginning element of the lattice branch.
+  \item[spin_res.a.sum, .a.diff, .b.sum, .b.diff, .c.sum, .c.diff] \Newline \hlabel{spin.res}
+Spin resonance values. \vn{.a.sum}, \vn{.a.diff} are the sum and difference resonance values for the
+$a$-mode, etc. The \vn{show spin -ele ...} command will print the values. If not present, the
+evaluation element for the datum is the beginning element of the lattice branch.
 
   %----------------------
   \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{spin.tune.ptc}
@@ -1963,8 +1963,9 @@ See the previous section for a description of the data types.
                               \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
                             \end{tabular}                       & Spin G-matrix components                  & lat        & No  \\ \hline
   \pref{spin.res}         & \begin{tabular}{@{}l}
-                              spin_res.a1, .a2, \\
-                              \hspace{10pt} .b1, .b2, .c1, .c2
+                              spin_res.a.sum, .a.diff, \\
+                              \hspace{10pt} .b.sum, .b.diff, \\
+                              \hspace{10pt} .c.sum, .c.diff
                             \end{tabular}                       & Spin resonance strengths                  & lat        & No  \\ \hline
   \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
                               spin_tune_ptc.$N$, \\

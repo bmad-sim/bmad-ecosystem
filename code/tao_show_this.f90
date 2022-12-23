@@ -143,7 +143,7 @@ real(rp) sig_mat(6,6), sig0_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), l_
 real(rp) pc, e_tot, value_min, value_here, pz1, phase
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, time1, ds, ref_vec(6), beta
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
-real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3), dn_partial2(3,3)
+real(rp) pz2, qs, q, x, xi_sum, xi_diff, dn_dpz(3), dn_partial(3,3), dn_partial2(3,3)
 real(rp), allocatable :: value(:)
 
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
@@ -4558,14 +4558,14 @@ case ('spin')
 
         nl=nl+1; lines(nl) = ''
         nl=nl+1; lines(nl) = 'Resonance strengths:'
-        nl=nl+1; lines(nl) = '          Orb_Tune   |Q+/-Qs|min           Xi1          Xi2   '
+        nl=nl+1; lines(nl) = '          Orb_Tune       frac(Q+Qs)       Xi_sum       frac(Q-Qs)     Xi_diff'
 
         do i = 1, 3
           j = 2 * i - 1
           q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
-          dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
-          call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat)
-          nl=nl+1; write (lines(nl), '(5x, a, 2f13.7, 8(4x, 2es13.5))') abc_name(i), q, dq, xi_quat 
+          call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_sum, xi_diff)
+          nl=nl+1; write (lines(nl), '(5x, a, f13.7, 2(f17.7, es13.5))') abc_name(i), &
+                      q, modulo2(q+qs, 0.5_rp), xi_sum, modulo2(q-qs, 0.5_rp), xi_diff
         enddo
         nl=nl+1; lines(nl) = 'Note: "help show spin" will display information on this table.'
       endif
