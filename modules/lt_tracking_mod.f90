@@ -915,7 +915,7 @@ do i_turn = 1, lttp%n_turns
         write (iu_part, ltt_com%ps_fmt) i_turn, ele1%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele1%name)
       endif
 
-      if (orbit%state == lost$) exit
+      if (orbit%state /= alive$) exit
       if (ele1%ix_ele == ele_start%ix_ele) exit
       ele0 => ele1
     enddo
@@ -1712,8 +1712,10 @@ logical error
 bd = ltt_bunch_data_struct()
 call calc_bunch_params(bunch, bd%params, error, .true., n_inv_mat)
 bd%n_live = bd%params%n_particle_live
-if (bd%n_live == 0) return
-
+if (bd%n_live == 0) then
+  bd = ltt_bunch_data_struct()  ! Erase any garbage from calc_bunch_params
+  return
+endif
 orb_sum = 0;  orb2_sum = 0;  orb3_sum = 0;  orb4_sum = 0
 
 do i = 1, 6
