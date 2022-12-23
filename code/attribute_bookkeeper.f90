@@ -257,96 +257,108 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
   ! Set ds_step and/or num_steps if not already set.
 
   if (val(ds_step$) == 0 .and. val(num_steps$) == 0) then
-    select case (ele%key)
-
-    case (drift$, pipe$, ecollimator$, rcollimator$, instrument$, monitor$)
-      val(num_steps$) = 1
-      val(ds_step$) = val(l$)
-
-    case (wiggler$, undulator$) 
-      if (val(l_period$) /= 0) val(ds_step$) = val(l_period$) / 20
-
-    case (sbend$, quadrupole$, sextupole$)
-      if (val(l$) /= 0) then
-        call multipole_ele_to_kt (ele, .false., ix, knl, tilt, magnetic$, include_kicks$)
-        knl = abs(knl)
-        bend_factor = knl(0) / val(l$)
-        radius0 = ele%value(r0_mag$)
-        if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
-
-        select case (ele%key)
-        case (sbend$)
-          bend_factor = bend_factor + max(abs(val(g$)), abs(val(g$) + val(dg$)))
-          quad_factor = knl(1) + knl(2) * radius0 + ele%value(l$) * bend_factor**2
-        case (quadrupole$)
-          ! The factor of 50 here is empirical based upon simulations with the canonical
-          ! CESR bmad_L9a18A000-_MOVEREC lattice.
-          quad_factor = 50 * (knl(1) + val(l$) * bend_factor**2)
-        case (sextupole$)
-          quad_factor = knl(2) * radius0 + val(l$) * bend_factor**2
-        end select
-
-        if (associated(ele%a_pole_elec)) then
-          radius0 = ele%value(r0_elec$)
-          if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
-          call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole, electric$)
-          bend_factor = bend_factor + (abs(a_pole(0)) + abs(b_pole(0))) / ele%value(p0c$)
-          quad_factor = quad_factor + (abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))) / ele%value(p0c$)
-        endif
-
-        ! check_bend is a PTC routine
-        ix = nint(val(integrator_order$))
-        if (ix /= 2 .and. ix /= 4 .and. ix /= 6) val(integrator_order$) = 0  ! Reset if current value is not valid
-        call check_bend (val(l$), quad_factor, bend_factor, dz_dl_max_err, step_info, ixm)
-        if (val(integrator_order$) == 0) then
-          ! Since num_steps is used by Bmad routines, do not use order 6 which can give two few steps for Bmad.
-          ixm = min(ixm, 4)
-          val(integrator_order$) = ixm
-        else
-          ixm = val(integrator_order$)
-        endif
-        val(num_steps$) = max(nint(step_info(ixm+1)), 1)
-        val(ds_step$) = abs(val(l$)) / val(num_steps$)
+    if (ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$ .and. associated(ele%gen_grad_map)) then
+      n = size(ele%gen_grad_map(1)%gg(1)%deriv, 1)
+      if (nint(val(integrator_order$)) /= 6) val(integrator_order$) = 4.0_rp
+      if (nint(val(integrator_order$)) == 4) then
+        val(num_steps$) = nint((n-1)/4.0_rp)
+      else 
+        val(num_steps$) = nint((n-1)/7.0_rp)
       endif
 
-    case (ac_kicker$, kicker$, hkicker$, vkicker$)
-      if (val(l$) /= 0) then
-        if (ele%key == ac_kicker$ .or. ele%key == kicker$) then
-          kick_magnitude = sqrt(val(hkick$)**2 + val(vkick$)**2) / val(l$)
-        else
-          kick_magnitude = val(kick$) / val(l$)
-        endif
+      val(ds_step$) = val(l$) / val(num_steps$)
 
-        ix = nint(val(integrator_order$))
-        if (ix /= 2 .and. ix /= 4 .and. ix /= 6) val(integrator_order$) = 0  ! Reset if current value is not valid
-        call check_bend (val(l$), 0.0_rp, kick_magnitude, dz_dl_max_err, step_info, ixm)
-        if (val(integrator_order$) == 0) then
-          val(integrator_order$) = ixm
-        else
-          ixm = val(integrator_order$)
-        endif
-        val(num_steps$) = max(nint(step_info(ixm+1)), 1)
-        val(ds_step$) = abs(val(l$)) / val(num_steps$)
-      endif
-
-    case (lcavity$, rfcavity$, crab_cavity$)
-      if (val(l$) /= 0) then
-        val(num_steps$) = 10
-        val(ds_step$) = abs(val(l$)) / val(num_steps$)
-      endif
-    end select
-  endif
-
-  if (val(ds_step$) <= 0) then
-    if (val(num_steps$) <= 0 .or. abs(val(l$)) == 0) then
-      val(ds_step$) = bmad_com%default_ds_step
     else
-      val(ds_step$) = abs(val(l$)) / val(num_steps$)
-    endif
-  endif
-   
-  val(num_steps$) = max(1, nint(abs(val(l$) / val(ds_step$))))
+      select case (ele%key)
+      case (drift$, pipe$, ecollimator$, rcollimator$, instrument$, monitor$)
+        val(num_steps$) = 1
+        val(ds_step$) = val(l$)
 
+      case (wiggler$, undulator$) 
+        if (val(l_period$) /= 0) val(ds_step$) = val(l_period$) / 20
+
+      case (sbend$, quadrupole$, sextupole$)
+        if (val(l$) /= 0) then
+          call multipole_ele_to_kt (ele, .false., ix, knl, tilt, magnetic$, include_kicks$)
+          knl = abs(knl)
+          bend_factor = knl(0) / val(l$)
+          radius0 = ele%value(r0_mag$)
+          if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
+
+         select case (ele%key)
+         case (sbend$)
+           bend_factor = bend_factor + max(abs(val(g$)), abs(val(g$) + val(dg$)))
+           quad_factor = knl(1) + knl(2) * radius0 + ele%value(l$) * bend_factor**2
+         case (quadrupole$)
+           ! The factor of 50 here is empirical based upon simulations with the canonical
+           ! CESR bmad_L9a18A000-_MOVEREC lattice.
+           quad_factor = 50 * (knl(1) + val(l$) * bend_factor**2)
+         case (sextupole$)
+           quad_factor = knl(2) * radius0 + val(l$) * bend_factor**2
+         end select
+
+         if (associated(ele%a_pole_elec)) then
+           radius0 = ele%value(r0_elec$)
+           if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
+           call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole, electric$)
+           bend_factor = bend_factor + (abs(a_pole(0)) + abs(b_pole(0))) / ele%value(p0c$)
+           quad_factor = quad_factor + (abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))) / ele%value(p0c$)
+         endif
+
+          ! check_bend is a PTC routine
+          ix = nint(val(integrator_order$))
+          if (ix /= 2 .and. ix /= 4 .and. ix /= 6) val(integrator_order$) = 0  ! Reset if current value is not valid
+         call check_bend (val(l$), quad_factor, bend_factor, dz_dl_max_err, step_info, ixm)
+          if (val(integrator_order$) == 0) then
+            ! Since num_steps is used by Bmad routines, do not use order 6 which can give two few steps for Bmad.
+            ixm = min(ixm, 4)
+            val(integrator_order$) = ixm
+          else
+            ixm = val(integrator_order$)
+          endif
+          val(num_steps$) = max(nint(step_info(ixm+1)), 1)
+          val(ds_step$) = abs(val(l$)) / val(num_steps$)
+        endif
+
+      case (ac_kicker$, kicker$, hkicker$, vkicker$)
+        if (val(l$) /= 0) then
+          if (ele%key == ac_kicker$ .or. ele%key == kicker$) then
+            kick_magnitude = sqrt(val(hkick$)**2 + val(vkick$)**2) / val(l$)
+          else
+            kick_magnitude = val(kick$) / val(l$)
+          endif
+
+          ix = nint(val(integrator_order$))
+          if (ix /= 2 .and. ix /= 4 .and. ix /= 6) val(integrator_order$) = 0  ! Reset if current value is not valid
+          call check_bend (val(l$), 0.0_rp, kick_magnitude, dz_dl_max_err, step_info, ixm)
+          if (val(integrator_order$) == 0) then
+            val(integrator_order$) = ixm
+          else
+            ixm = val(integrator_order$)
+          endif
+          val(num_steps$) = max(nint(step_info(ixm+1)), 1)
+          val(ds_step$) = abs(val(l$)) / val(num_steps$)
+        endif
+
+      case (lcavity$, rfcavity$, crab_cavity$)
+        if (val(l$) /= 0) then
+          val(num_steps$) = 10
+          val(ds_step$) = abs(val(l$)) / val(num_steps$)
+        endif
+      end select
+    endif
+
+    if (val(ds_step$) <= 0) then
+      if (val(num_steps$) <= 0 .or. abs(val(l$)) == 0) then
+        val(ds_step$) = bmad_com%default_ds_step
+      else
+        val(ds_step$) = abs(val(l$)) / val(num_steps$)
+      endif
+    endif
+
+    val(num_steps$) = max(1, nint(abs(val(l$) / val(ds_step$))))
+
+  endif
 endif
 
 !----------------------------------
