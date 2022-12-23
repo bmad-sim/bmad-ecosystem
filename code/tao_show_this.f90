@@ -4558,14 +4558,14 @@ case ('spin')
 
         nl=nl+1; lines(nl) = ''
         nl=nl+1; lines(nl) = 'Resonance strengths:'
-        nl=nl+1; lines(nl) = '          Orb_Tune       frac(Q+Qs)       Xi_sum       frac(Q-Qs)     Xi_diff'
+        nl=nl+1; lines(nl) = '     Orb_Tune         frac(Qs+Q)    Xi_sum          frac(Qs-Q)   Xi_diff'
 
         do i = 1, 3
           j = 2 * i - 1
           q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
           call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_sum, xi_diff)
-          nl=nl+1; write (lines(nl), '(5x, a, f13.7, 2(f17.7, es13.5))') abc_name(i), &
-                      q, modulo2(q+qs, 0.5_rp), xi_sum, modulo2(q-qs, 0.5_rp), xi_diff
+          nl=nl+1; write (lines(nl), '(a, f13.7, 2(f17.7, es13.5))') abc_name(i), &
+                      q, modulo2(qs+q, 0.5_rp), xi_sum, modulo2(qs-q, 0.5_rp), xi_diff
         enddo
         nl=nl+1; lines(nl) = 'Note: "help show spin" will display information on this table.'
       endif
