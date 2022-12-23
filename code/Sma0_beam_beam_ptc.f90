@@ -515,13 +515,13 @@ contains
     REAL(DP),INTENT(INOUT) :: B(3),E(3),KICK(3)
     REAL(DP),INTENT(INOUT) :: X(6)
 
-    REAL(DP) beta0,beta,ff,p0c
+    REAL(DP) beta0,beta,ff !,p0c
     INTEGER I
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
  
     beta0=el%PARENT_FIBRE%beta0
-    p0c=el%parent_fibre%mag%p%p0c
+  !  p0c=el%parent_fibre%mag%p%p0c
  
 
     beta=root(1.0_dp+2.0_dp*x(5)/beta0+x(5)**2)/(1.0_dp/BETA0 + x(5))  ! replaced
@@ -547,7 +547,7 @@ contains
     type(real_8),INTENT(INOUT) :: B(3),E(3),KICK(3)
     type(real_8),INTENT(INOUT) :: X(6)
 
-    REAL(DP) beta0,p0c
+    REAL(DP) beta0 !,p0c
     type(real_8) beta,ff
     INTEGER I
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
@@ -555,7 +555,7 @@ contains
      call alloc(beta,ff)
  
     beta0=el%PARENT_FIBRE%beta0
-    p0c=el%parent_fibre%mag%p%p0c
+ !   p0c=el%parent_fibre%mag%p%p0c
  
 
       beta=sqrt(1.0_dp+2.0_dp*x(5)/beta0+x(5)**2)/(1.0_dp/BETA0 + x(5))  ! replaced
