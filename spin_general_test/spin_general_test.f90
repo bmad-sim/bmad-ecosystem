@@ -12,7 +12,7 @@ type (coord_struct) orb0, orb_start, orb_end, orb1, orb2
 type (spin_orbit_map1_struct) map1, inv_map1
 
 real(rp) spin_a(3), spin_b(3), spin0(3), dr(6), a_quat(0:3), n_vec(3)
-real(rp) mat6(6,6), smap(0:3,0:6), n0(3), q0(0:3), q1(0:3), t, q, xi_quat(2)
+real(rp) mat6(6,6), smap(0:3,0:6), n0(3), q0(0:3), q1(0:3), t, q, xi_sum, xi_diff
 
 complex(rp) orb_eval(6), orb_evec(6,6), spin_evec(6,3)
 integer i, j, nargs
@@ -113,8 +113,8 @@ enddo
 do i = 1, 3
   j = 2 * i - 1
   q = atan2(aimag(orb_eval(j)), real(orb_eval(j),rp)) / twopi
-  call spin_quat_resonance_strengths(orb_evec(j,:), smap, xi_quat)
-  write (1, '(a, i0, a, 3es14.6)') '"Spin-Res-', i, '" ABS 1E-9', q, xi_quat
+  call spin_quat_resonance_strengths(orb_evec(j,:), smap, xi_sum, xi_diff)
+  write (1, '(a, i0, a, 3es14.6)') '"Spin-Res-', i, '" ABS 1E-9', q, xi_sum, xi_diff
 enddo
 
 !---------------------------------
