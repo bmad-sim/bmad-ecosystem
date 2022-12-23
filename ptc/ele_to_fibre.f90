@@ -559,6 +559,7 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
   n = max(0, len_trim(gg_map%file)-24)
   ! Note: True => Not canonical tracking.
   call set_pancake_constants(np, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., gg_map%file(n+1:n+24))
+  ptc_key%method = 4  ! Or 6.
 
   max_order = 0
   do i = 1, size(gg_map%gg)

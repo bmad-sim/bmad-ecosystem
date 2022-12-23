@@ -3163,25 +3163,35 @@ used is set by two element attributes:
   fringe_type
   ptc_fringe_geometry   ! Only used with bends and PTC tracking.
 \end{example}
-
 \index{fringe_type}
-For elements that have a multipole type fringe field (dipole, quadrupole, etc., as opposed to
-solenoid or RF fringes), the \vn{fringe_type} switch is used to select how a fringe field is
+The \vn{fringe_type} switch is used to select how a fringe field is
 simulated.  The possible settings of \vn{fringe_type} are:
 \begin{example}
-  none              ! Default for non-bend elements.
+  none              ! No fringe effect. 
   soft_edge_only
   hard_edge_only
   full
   linear_edge       ! Sbend, rbend only.
-  basic_bend        ! Sbend, rbend only. Default.
+  basic_bend        ! Sbend, rbend only. 
   sad_full          ! Sbend, rbend, sad_mult only.
 \end{example}
-The \vn{none} setting ignores any fringe fields. Some fringe fields can be divided into two pieces.
-The first piece is called the \vn{hard edge} fringe kick and is the kick in the limit that the
-longitudinal extent of the fringe is zero. The second piece is the \vn{soft edge} fringe kick which
-is the fringe kick with the fringe having a finite longitudinal extent minus the hard edge fringe
-kick. That is
+Default settings for \vn{fringe_type} are
+\begin{center}
+\tt
+\begin{tabular}{ll}
+  Element Type        & Default fringe_type  \\ \midrule
+  e_gun               & full                 \\
+  lcavity, rfcavity   & full                 \\
+  sbend, rbend        & basic_bend           \\
+  All Others          & none                 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+Some fringe fields can be divided into two pieces.  The first piece is called the \vn{hard edge}
+fringe kick and is the kick in the limit that the longitudinal extent of the fringe is zero. The
+second piece is the \vn{soft edge} fringe kick which is the fringe kick with the fringe having a
+finite longitudinal extent minus the hard edge fringe kick. That is
 \begin{example}
   fringe kick = hard fringe kick + soft fringe kick
 \end{example}
@@ -3192,8 +3202,20 @@ can be useful in understanding how the soft edge component affects tracking. See
 for details.
 
 For bend elements the following fringe maps are used:
-\begin{example}
-  \etcz
+\begin{center}
+\tt
+\begin{tabular}{ll}
+  fringe_type     & Fringe model    \\ \midrule
+  none            & No fringe       \\
+  soft_edge_only  & SAD dipole soft edge (\sref{s:fringe.bend.soft}) \\
+  hard_edge_only  & Bend Second Order (\sref{s:fringe.bend.hard}) with \vn{fint} and \vn{hgap} ignored. \\
+  full            & Exact bend \\
+  linear_edge     & Linear dipole hard edge (\sref{s:lin.dip.fringe}) \\
+  basic_bend      & Bend Second Order (\sref{s:fringe.bend.hard})     \\
+  sad_full        &  \\
+  \bottomrule
+\end{tabular}
+\end{center}
 
 The \vn{basic_bend} setting for bend elements, which is the default, is essentially the basic
 vertical focusing effect that is present when there is a finite \vn{e1} or \vn{e2} face angle. With
@@ -3240,12 +3262,12 @@ fields are in addition to the fringe fields that occurs with a finite \vn{e1} or
 Equivalent settings of SAD \vn{fringe} and \vn{disfrin} for \vn{sbend} and \vn{rbend} elements:
 \begin{center}
 \tt
-\begin{tabular}{l|ll}
-  fringe_type & fringe & disfrin \\ \midrule
-  soft_edge_only    &  1 & 1 \\
-  hard_edge_only    &  0 & 0 \\
-  basic_bend        &  0 & 1 \\
-  sad_full          &  1 & 0 \\
+\begin{tabular}{lll}
+  fringe_type       & fringe & disfrin \\ \midrule
+  soft_edge_only    &  1     & 1       \\
+  hard_edge_only    &  0     & 0       \\
+  basic_bend        &  0     & 1       \\
+  sad_full          &  1     & 0       \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3254,16 +3276,15 @@ For \vn{quadrupole} and \vn{sad_mult} elements, the translation between the \vn{
 and \vn{fringe_type} settings and the \vn{fringe} and \vn{disfrin} switches of SAD is:
 \begin{center}
 \tt
-\begin{tabular}{ll|llll} 
-              &                      & \multicolumn{4}{c}{fringe_at:} \\
-              &                      & no_end     & entrance_end & exit_end   & both_ends$^*$ \\ \midrule
-\multirow{4}{*}{fringe_type:} 
-              & none                 & [0, $\ne 0$] & [0, $\ne 0$]   & [0, $\ne 0$] & [0, $\ne 0$] \\
-              & soft_edge_only       & [0, $\ne 0$] & [1, $\ne 0$]   & [2, $\ne 0$] & [3, $\ne 0$] \\
-              & hard_edge_only$^*$   & [0, $\ne 0$] & No SAD Equiv   & No SAD Equiv & [0, $= 0$]   \\
-              & full                 & [0, $\ne 0$] & [1, $= 0$]     & [2, $= 0$]   & [3, $= 0$]   \\ 
+\begin{tabular}{lllll} 
+                       & \multicolumn{4}{c}{fringe_at:}                               \\
+  fringe_type          & no_end       & entrance_end   & exit_end     & both_ends$^*$ \\ \midrule
+  none                 & [0, $\ne 0$] & [0, $\ne 0$]   & [0, $\ne 0$] & [0, $\ne 0$]  \\
+  soft_edge_only       & [0, $\ne 0$] & [1, $\ne 0$]   & [2, $\ne 0$] & [3, $\ne 0$]  \\
+  hard_edge_only$^*$   & [0, $\ne 0$] & No SAD Equiv   & No SAD Equiv & [0, $= 0$]    \\
+  full                 & [0, $\ne 0$] & [1, $= 0$]     & [2, $= 0$]   & [3, $= 0$]    \\ 
   \bottomrule
-\multicolumn{2}{l}{$^*$Default value.} & \multicolumn{4}{l}{\textbf{[fringe, disfrin]}} \\
+  $^*$Default value.   & \multicolumn{4}{l}{\textbf{[fringe, disfrin]}} \\
 \end{tabular}
 \end{center}
 Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}]. The \vn{soft_edge_only} fringe
@@ -3286,9 +3307,10 @@ For programmers who deal with PTC directly: The translation between \vn{ptc_frin
 
 \begin{center}
 \begin{tabular}{lll} \toprule 
-{\em ptc_fringe_geometry} & {\em bendfringe} \\ \midrule
-  x_invariant             & True  \\
-  multipole_symmetry      & False \\ \bottomrule
+  ptc_fringe_geometry     & bendfringe \\ \midrule
+  x_invariant             & True       \\
+  multipole_symmetry      & False      \\ 
+  \bottomrule
 \end{tabular}
 \end{center}
 

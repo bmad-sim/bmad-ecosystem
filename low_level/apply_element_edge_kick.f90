@@ -172,6 +172,13 @@ case (quadrupole$)
     call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
   endif
 
+case (sextupole$)
+  if (particle_at == first_track_edge$) then
+    call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
+  else
+    call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
+  endif
+
 case (sbend$)
   call bend_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix, track_spn)
 

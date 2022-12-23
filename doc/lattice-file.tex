@@ -1055,9 +1055,10 @@ The \vn{mass_of}, \vn{charge_of}, and \vn{anomalous_moment_of} functions give th
   chg2 = charge_of(He++)           ! Same as previous line
   chg3 = charge_of(species(He++))  ! Same as previous line
 \end{example}
-The \vn{species} function is needed in the definition of \vn{my_particle} so that \bmad knows that
-the string ``He++'' represents a type of particle. Inside functions like \vn{mass_of}, the use of
-\vn{species} is optional since, in this case, \bmad can correctly parse the argument.
+The \vn{species} function is needed in the definition of \vn{my_particle} in the above example so
+that \bmad knows that the string ``He++'' represents a type of particle. Inside functions like
+\vn{mass_of}, the use of \vn{species} is optional since, in this case, \bmad can correctly parse the
+argument.
 
 %-----------------------------------------------------------------------------
 \section{Statement Order}

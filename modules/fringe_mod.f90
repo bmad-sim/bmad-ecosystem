@@ -21,6 +21,7 @@ contains
 ! Subroutine bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix, track_spin)
 !
 ! Subroutine to track through the edge field of an sbend.
+! This routine is called by apply_element_edge_kick only.
 !
 ! Input:
 !   ele         -- ele_struct: SBend element.
@@ -664,7 +665,9 @@ logical, optional :: make_matrix
 
 fringe_type = nint(ele%value(fringe_type$))
 select case (fringe_type)
-case (hard_edge_only$, full$)
+case (hard_edge_only$)
+  if (ele%key == sbend$) return  ! Uses hwang_bend_edge which has k1 hard edge.
+case (full$)
 case default
   return
 end select
