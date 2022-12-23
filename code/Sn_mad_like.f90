@@ -51,7 +51,7 @@ module Mad_like
   type(tree_element), allocatable :: t_em(:) !,t_ax(:),t_ay(:)
 
   real(dp), private ::  angc=0,xc=0,dc=0,hc=0,LC=0,HD=0,LD=0,vc=0
-  integer, private :: nstc
+  integer, private :: nstc,metc
   logical ::   xprime_pancake = .true.,xprime_abell=.true.
    character(vp) , private :: filec
   logical(lp) :: set_ap=my_false
@@ -2948,9 +2948,11 @@ CONTAINS
        CALL SETFAMILY(S2)  !,NTOT=ntot,ntot_rad=ntot_rad,NTOT_REV=ntot_REV,ntot_rad_REV=ntot_rad_REV,ND2=6)
     else
         if(s2%kind==kindpa) then
+       S2%P%METHOD=metc
+
        CALL SETFAMILY(S2,t=t_em)  !,T_ax=T_ax,T_ay=T_ay)
 
-       S2%P%METHOD=4
+      ! S2%P%METHOD=metc
        s2%pa%angc=angc
        s2%pa%xc=xc
        s2%pa%dc=dc
@@ -3638,7 +3640,7 @@ CONTAINS
    subroutine set_pancake_constants(nst0,angc0,xc0,dc0,vc0,hc0,LC0,hd0,ld0,xprime0,filec0)
    implicit none
    real(dp) angc0,xc0,dc0,hc0,LC0,hd0,ld0,vc0
-   integer nst0
+   integer nst0,met0
    character(vp) filec0
    logical xprime0
    angc=angc0
@@ -3670,6 +3672,11 @@ CONTAINS
    end subroutine set_abell_constants 
   
   ! linked
+  subroutine set_metc_for_pancake(m)
+    implicit none
+    integer m
+    metc=m
+  end subroutine set_metc_for_pancake   
 
  FUNCTION  pancake_tilt(NAME,file,T,br)
     implicit none
@@ -3694,14 +3701,14 @@ if(present(file)) then
      filec=file
     else
      filec=file(1:vp)
-     write(6,*) "warning: pancake name too long for length storage ", vp
+  !  write(6,*) "warning: pancake name too long for length storage ", vp
     endif
 
 
     call kanalnummer(mf)
     open(unit=mf,file=file)
     read(mf,*) LD,hD  !,REPEAT   ! L and Hc are geometric
-    read(mf,*) nstc, ORDER 
+    read(mf,*) nstc, metc, ORDER 
     read(mf,*) LC,hc
     read(mf,*) dc,vc,xc
     read(mf,*) angc
@@ -3863,11 +3870,16 @@ endif
        pancake_tilt%NAME=NAME
     ENDIF
     
+
+if(metc==4.or.metc==2) then
+    pancake_tilt%nst=(NSTc-1)/2
     IF(NSTc<3.OR.MOD(NSTc,2)/=1) THEN
        WRITE(6,*) "NUMBER OF SLICES IN 'pancake'  MUST BE ODD AND >= 3 ",NSTc
        STOP 101
     ENDIF
-    pancake_tilt%nst=(NSTc-1)/2
+else
+    pancake_tilt%nst=(NSTc-1)/7
+endif
     pancake_tilt%KIND=KINDPA
     IF(PRESENT(t)) then
        IF(T%NATURAL) THEN
@@ -4060,9 +4072,20 @@ enddo
     
     IF(NSTc<3.OR.MOD(NSTc,2)/=1) THEN
        WRITE(6,*) "NUMBER OF SLICES IN 'pancake'  MUST BE ODD AND >= 3 ",NSTc
-       STOP 101
+       STOP 102
     ENDIF
+  
+if(metc==4.or.metc==2) then
     pancake_bmad%nst=(NSTc-1)/2
+    IF(NSTc<3.OR.MOD(NSTc,2)/=1) THEN
+       WRITE(6,*) "NUMBER OF SLICES IN 'pancake'  MUST BE ODD AND >= 3 ",NSTc
+       STOP 102
+    ENDIF
+else
+    pancake_bmad%nst=(NSTc-1)/7
+endif
+
+ 
     pancake_bmad%KIND=KINDPA
  
   END FUNCTION pancake_bmad
@@ -4081,7 +4104,7 @@ enddo
     NP=SIZE(MA)
 
     ALLOCATE(M(NP))
-    M = 0
+    m=0
   !  CALL ALLOC(M,NP)
     call alloc_pancake(M)
 

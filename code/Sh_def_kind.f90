@@ -1017,10 +1017,17 @@ type(work) w_bks
 
 
 
-  INTERFACE RK4_M
+  INTERFACE rk4_pancake   !RK4_M
      MODULE PROCEDURE rk4_pancaker
      MODULE PROCEDURE rk4_pancakeP
   END INTERFACE
+
+
+  INTERFACE rk6_pancake    
+     MODULE PROCEDURE rk6_pancaker
+  !   MODULE PROCEDURE rk4_pancakeP
+  END INTERFACE
+
 
   INTERFACE rks_pancake
      MODULE PROCEDURE rks_pancaker
@@ -17269,9 +17276,17 @@ call  kill(del,pz,h)
     IMPLICIT NONE
     TYPE(PANCAKE), INTENT(INOUT)::EL
     TYPE(TREE_ELEMENT), INTENT(IN)::T(:) !,T_ax(:) ,T_ay(:)  ! DATA PASSED HERE SPECIAL
-    INTEGER I
+    INTEGER I,n 
+    if(el%p%method==4.or.el%p%method==2) then
+      n=2*el%p%NST+1
+    else
+      n=7*el%p%NST+1
+    endif
 
-    ALLOCATE(EL%B(2*el%p%NST+1))
+!write(6,*)"POINTERS_PANCAKER", el%p%NST,el%p%method,n
+
+     ALLOCATE(EL%B(n))
+
     !    ALLOCATE(EL%Ax(el%p%NST))
     !    ALLOCATE(EL%Ay(el%p%NST))
     ALLOCATE(  EL%SCALE,el%angc,el%dc,el%hc ,el%xc,el%vc,el%xprime)
@@ -17280,7 +17295,7 @@ call  kill(del,pz,h)
     !    ALLOCATE(  EL%ANG_IN(3) )
     !    ALLOCATE(  EL%ANG_OUT(3) )
 
-    DO I=1,2*el%p%NST+1
+    DO I=1,n
        CALL ALLOC_TREE(EL%B(I),T(I)%N,3)
        !       CALL ALLOC_TREE(EL%Ax(I),T_ax(I)%N,2)
        !       CALL ALLOC_TREE(EL%Ay(I),T_ay(I)%N,2)
@@ -17309,15 +17324,19 @@ call  kill(del,pz,h)
     IMPLICIT NONE
     TYPE(PANCAKEP), INTENT(INOUT)::EL
     TYPE(TREE_ELEMENT), INTENT(IN)::T(:) !,t_ax(:),t_ay(:) ! DATA PASSED HERE SPECIAL
-    INTEGER I
+    INTEGER I,n
 
+    if(el%p%method==4.or.el%p%method==2) then
+      n=2*el%p%NST+1
+    else
+      n=7*el%p%NST+1
+    endif
+     ALLOCATE(EL%B(n))
 
-
-    ALLOCATE(EL%B(2*el%p%NST+1))
 
     ALLOCATE(  EL%SCALE,el%angc,el%dc,el%hc,el%xc,el%vc,el%xprime )
     call alloc(EL%SCALE)
-    DO I=1,2*el%p%NST+1
+    DO I=1,n
        CALL ALLOC_TREE(EL%B(I),T(I)%N,3)
        EL%B(I)%CC=T(I)%CC
        EL%B(I)%JL=T(I)%JL
@@ -17877,6 +17896,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     return
   end  subroutine rk4_pancaker
 
+
   subroutine rk4_pancakeP(ti,h,GR,y,k)
     IMPLICIT none
 
@@ -17955,6 +17975,150 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
 
 
 
+  subroutine rk6_pancaker(ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    real(dp), INTENT(INOUT)::  y(ne)
+    real(dp)  yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),p(ne)
+    type (pancake) ,INTENT(INOUT)::  GR
+    integer j
+    real(dp), intent(inout) :: h
+    integer, intent(inout) :: ti
+    INTEGER TT
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    real(dp) butcher(8,8)
+ 
+
+!write(6,*) "pancake  in",ti
+    call feval_pancake(tI,y,k,f,gr)
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+
+butcher(1,1)=1.0_dp/9.0_dp
+
+    do  j=1,ne
+       yt(j)=y(j)+a(j)*butcher(1,1)
+    enddo
+
+    tt=ti+GR%p%dir
+
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+
+butcher(2,1)=1.0_dp/24.0_dp
+butcher(2,2)=3.0_dp/24.0_dp
+
+    do   j=1,ne
+       yt(j)=y(j) + (butcher(2,1)*a(j) + butcher(2,2)*b(j)) 
+    enddo
+
+
+
+    tt=tt+GR%p%dir
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+butcher(3,1)=1.0_dp/6
+butcher(3,2)=-3.0_dp/6
+butcher(3,3)=4.0_dp/6
+
+    do  j=1,ne
+       yt(j)=y(j)+(butcher(3,1)*a(j)+butcher(3,2)*b(j)+butcher(3,3)*c(j)) 
+    enddo
+    tt=tt+GR%p%dir
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+butcher(4,1)=-5.0_dp/8
+butcher(4,2)=27.0_dp/8
+butcher(4,3)=-24.0_dp/8
+butcher(4,4)=6.0_dp/8
+
+    do  j=1,ne
+       yt(j)=y(j) + (butcher(4,1)*a(j) + butcher(4,2)*b(j) +butcher(4,3)*c(j) + butcher(4,4)*d(j)) 
+    enddo
+    tt=tt+GR%p%dir
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       e(j)=h*f(j)
+    enddo
+butcher(5,1)=221.0_dp/9
+butcher(5,2)=-981.0_dp/9
+butcher(5,3)=867.0_dp/9
+butcher(5,4)=-102.0_dp/9
+butcher(5,5)=1.0_dp/9
+
+    do  j=1,ne
+       yt(j)=y(j) + (butcher(5,1)*a(j) +butcher(5,2)*b(j) + butcher(5,3)*c(j)+butcher(5,4)*d(j) + butcher(5,5)*e(j)) 
+    enddo
+
+    tt=tt+GR%p%dir
+    call feval_pancake(tt,yt,k,f,gr)
+    do   j=1,ne
+       g(j)=h*f(j)
+    enddo
+
+butcher(6,1)=-183.0_dp/48
+butcher(6,2)=678.0_dp/48
+butcher(6,3)=-472.0_dp/48
+butcher(6,4)=-66.0_dp/48
+butcher(6,5)=80.0_dp/48
+butcher(6,6)=3.0_dp/48
+
+    do  j=1,ne
+       yt(j) = y(j)+(butcher(6,1)*a(j)+butcher(6,2)*b(j)+butcher(6,3)*c(j)+butcher(6,4)*d(j)+butcher(6,5)*e(j) + butcher(6,6)*g(j)) 
+    enddo
+    tt=tt+GR%p%dir
+
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       o(j)=h*f(j)
+    enddo
+butcher(7,1)=716.0_dp/82
+butcher(7,2)=-2079.0_dp/82
+butcher(7,3)=1002.0_dp/82
+butcher(7,4)=834.0_dp/82
+butcher(7,5)=-454.0_dp/82
+butcher(7,6)=-9.0_dp/82
+butcher(7,7)=72.0_dp/82
+    do  j=1,ne
+       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j)+butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
+    enddo
+    tt=tI+7*GR%p%dir
+!write(6,*) "pancake out",tt,size(gr%b)
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       p(j)=h*f(j)
+    enddo
+butcher(8,1)=41.0_dp/840
+butcher(8,2)=216.0_dp/840
+butcher(8,3)=27.0_dp/840
+butcher(8,4)=272.0_dp/840
+butcher(8,5)=27.0_dp/840
+butcher(8,6)=216.0_dp/840
+butcher(8,7)=41.0_dp/840
+butcher(8,8)=0
+    do  j=1,ne
+       y(j) = y(j)+(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j)) 
+    enddo
+    tI=tt
+
+ 
+    if(k%TIME) then
+       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%beta0/GR%P%nst
+    else
+       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%nst
+    endif
+
+    return
+  end  subroutine rk6_pancaker
 
 
 
@@ -18219,7 +18383,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     INTEGER IS
     real(dp) h
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    if(.not.check_stable) return
     H=el%L/el%p%NST
 
     SELECT CASE(EL%P%METHOD)
@@ -18236,10 +18400,20 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     CASE(4)
        IF(EL%P%DIR==1) THEN
           IS=-1+2*POS    ! POS=3 BEGINNING
-          call rk4_m(IS,h,el,X,k)
+          call rk4_pancake(IS,h,el,X,k)
        else
           IS=2*el%p%NST+3-2*pos
-          call rk4_m(IS,h,el,X,k)
+          call rk4_pancake(IS,h,el,X,k)
+       ENDIF
+
+    CASE(6)
+       IF(EL%P%DIR==1) THEN
+          IS=-6+7*POS    ! POS=3 BEGINNING
+!write(6,*) "sss",size(el%b)
+          call rk6_pancake(IS,h,el,X,k)
+       else
+          IS=7*el%p%NST+8-7*pos
+          call rk6_pancake(IS,h,el,X,k)
        ENDIF
 
     CASE DEFAULT
@@ -18261,6 +18435,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     INTEGER IS
     TYPE(REAL_8) ti,h
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    if(.not.check_stable) return
 
     CALL ALLOC(TI,H)
 
@@ -18281,10 +18456,10 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
        IF(EL%P%DIR==1) THEN
           IS=-1+2*POS    ! POS=3 BEGINNING
 
-          call rk4_m(IS,h,el,X,k)
+          call rk4_pancake(IS,h,el,X,k)
        else
           IS=2*el%p%NST+3-2*pos
-          call rk4_m(IS,h,el,X,k)
+          call rk4_pancake(IS,h,el,X,k)
        ENDIF
 
     CASE DEFAULT
@@ -18341,7 +18516,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
        call ADJUST_PANCAKE(EL,X,k,1)
           IS=1
           DO I=1,el%p%NST
-              call rk4_m(IS,h,el,X,k)
+              call rk4_pancake(IS,h,el,X,k)
              ! IF(PRESENT(MID)) CALL XMID(MID,X,I)
           ENDDO
        call ADJUST_PANCAKE(EL,X,k,2)
@@ -18349,7 +18524,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
        call ADJUST_PANCAKE(EL,X,k,2)
           IS=2*el%p%NST+1
           DO I=1,el%p%NST
-              call rk4_m(IS,h,el,X,k)
+              call rk4_pancake(IS,h,el,X,k)
              ! IF(PRESENT(MID)) CALL XMID(MID,X,I)
           ENDDO
        call ADJUST_PANCAKE(EL,X,k,1)
@@ -18413,7 +18588,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
        call ADJUST_PANCAKE(EL,X,k,1)
           IS=1
           DO I=1,el%p%NST
-            call rk4_m(IS,h,el,X,k)
+            call rk4_pancake(IS,h,el,X,k)
 
           ENDDO
        call ADJUST_PANCAKE(EL,X,k,2)
@@ -18421,7 +18596,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
        call ADJUST_PANCAKE(EL,X,k,2)
           IS=2*el%p%NST+1
           DO I=1,el%p%NST
-           call rk4_m(IS,h,el,X,k)
+           call rk4_pancake(IS,h,el,X,k)
 
           ENDDO
        call ADJUST_PANCAKE(EL,X,k,1)

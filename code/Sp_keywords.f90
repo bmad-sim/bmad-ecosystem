@@ -12,7 +12,7 @@ module madx_keywords
   type(tree_element), private, allocatable :: t_e(:),t_ax(:),t_ay(:)
   real(dp), private :: a_(3),ent_(3,3), b_(3),exi_(3,3),angcsp,xcsp,dcsp,hcsp,vcsp
   integer, private :: metwig,nstwig 
-  logical :: tpsa_pancake=.false.
+  logical :: tpsa_pancake=.true.
   logical :: old_name_vorname = .false.
   logical :: readingmaps = .true.
   type keywords
@@ -58,7 +58,7 @@ contains
     type(fibre), pointer :: current
     type (taylor),optional, INTENT(INout):: br(:,:)
     integer,optional, INTENT(INout):: bri(:,:)
-
+    call set_metc_for_pancake(key%method)
     if(append) then
      call append_empty(mylat)
     else
@@ -424,22 +424,26 @@ contains
     character(*) filename
     real(dp) brho,cl
     type(real_8) b(8)
+    type(taylor) bt(8)
 
     call kanalnummer(mf)
     open(unit=mf,file=filename) !,recl=200)
- 
-    nst=2*el%p%nst+1
-
+    if(el%p%method==4.or.el%p%method==2) then
+     nst=2*el%p%nst+1
+    else
+     nst=7*el%p%nst+1
+    endif
     cl=(clight/1e8_dp)
     BRHO=el%p%p0c*10.0_dp/cl
 
 
     call init(EL%B(1)%no,2)
     CALL ALLOC(B)
+    CALL ALLOC(Bt)
 
 !    write(mf,*) nst,el%p%ld,el%p%b0,EL%B(1)%no,my_false
     write(mf,*)  el%p%ld,el%p%b0
-    write(mf,*) nst,EL%B(1)%no
+    write(mf,*) nst,el%p%method,EL%B(1)%no
     write(mf,*) el%p%lc,EL%hc
     write(mf,*) el%dc,el%vc,el%xc  
     write(mf,*) el%angc
@@ -468,12 +472,13 @@ contains
        CALL trackg(EL%B(i),B)
        write(mf,*) i
        do j=1,3
-          b(j)=b(j)*brho
-          call print(b(j),mf)
+          bt(j)=b(j)*brho
+          call print(bt(j),mf)
        enddo
 
     enddo
     CALL kill(B)
+    CALL kill(Bt)
    close(mf)
 
   end subroutine print_pancake_field
@@ -491,7 +496,11 @@ contains
     call kanalnummer(mf)
     open(unit=mf,file=filename) !,recl=200)
  
-    nst=2*el%p%nst+1
+    if(el%p%method==4.or.el%p%method==2) then
+     nst=2*el%p%nst+1
+    else
+     nst=7*el%p%nst+1
+    endif
 
     cl=(clight/1e8_dp)
     BRHO=el%p%p0c*10.0_dp/cl
@@ -505,7 +514,7 @@ contains
 
 !    write(mf,*) nst,el%p%ld,el%p%b0,EL%B(1)%no,my_false
     write(mf,*)  el%p%ld,el%p%b0
-    write(mf,*) nst,EL%B(1)%no
+    write(mf,*) nst,el%p%method,EL%B(1)%no
     write(mf,*) el%p%lc,EL%hc
     write(mf,*) el%dc,el%vc,el%xc  
     write(mf,*) el%angc
@@ -556,10 +565,10 @@ contains
 
 
 
-  subroutine read_pancake_new(el,filename,t_em)
+  subroutine read_pancake_new(el,filename,t_em,met)
     implicit none
     type(ELEMENT), pointer :: el
-    integer mf,nstc,ORDER,I,ii
+    integer mf,nstc,ORDER,I,ii,met
     real(dp)  L,hc,cl,BRHO,ld,xc,dc,vc,hd,lc,angc,ANGLE,ds,a
     logical(lp) REPEAT
     character(*) filename
@@ -582,7 +591,7 @@ contains
 
  
     read(mf,*) LD,hD  !,REPEAT   ! L and Hc are geometric
-    read(mf,*) nstc, ORDER 
+    read(mf,*) nstc,met, ORDER 
     read(mf,*) LC,hc
     read(mf,*) dc,vc,xc
     read(mf,*) angc
@@ -726,11 +735,11 @@ ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
 
 
 
-  subroutine read_pancake_new_integer(el,filename,t_em)
+  subroutine read_pancake_new_integer(el,filename,t_em,met)
     use dabnew_pancake
     implicit none
     type(ELEMENT), pointer :: el
-    integer mf,nstc,ORDER,I,ii,k
+    integer mf,nstc,ORDER,I,ii,k,met
     real(dp)  L,hc,cl,BRHO,ld,xc,dc,vc,hd,lc,angc,ANGLE,ds,a,brhoi
     logical(lp) REPEAT
     character(*) filename
@@ -753,7 +762,7 @@ ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
 
  
     read(mf,*) LD,hD  !,REPEAT   ! L and Hc are geometric
-    read(mf,*) nstc, ORDER 
+    read(mf,*) nstc,met, ORDER 
     read(mf,*) LC,hc
     read(mf,*) dc,vc,xc
     read(mf,*) angc
@@ -853,7 +862,7 @@ brhoi=1.0_dp/brho
           CALL SET_TREE_G_pancake(t_em(1),Bn)
          elseif(i==nstc) then
      do k=1,3
-     call dacmu_pancake(B(k),brhoi,bn(k))
+     call dacop_pancake(B(k),bn(k))
     enddo
       !    Bn(1)=B(1)
       !    Bn(2)=B(2)
@@ -1785,12 +1794,12 @@ endif
   !    read(mf,'(a)') line
   !   line=line(1:len_trim(line))
        if(tpsa_pancake) then
-             call read_pancake_new(s2,s2%vorname,t_e)
+             call read_pancake_new(s2,s2%vorname,t_e,S2%P%METHOD)
        else
-             call read_pancake_new_integer(s2,s2%vorname,t_e)
+             call read_pancake_new_integer(s2,s2%vorname,t_e,S2%P%METHOD)
        endif
        CALL SETFAMILY(S2,t=T_E)
-       S2%P%METHOD=4
+   !    S2%P%METHOD=4
        s2%pa%angc=angcsp
        s2%pa%xc=xcsp
        s2%pa%dc=dcsp
