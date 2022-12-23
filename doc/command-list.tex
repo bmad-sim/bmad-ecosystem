@@ -2951,13 +2951,19 @@ To see the linear spin-orbit resonance strengths, use the \vn{-ele} switch with 
 \vn{<ref_ele_name>} being blank or the same as \vn{<ele_name>}. The spin-orbit resonance strength
 table has three rows for the three orbital modes $a$, $b$, and $c$. The columns of the table are:
 \begin{Itemize}
-  \item Col 1: Orbital tune.
-  \item Col 2: Minimum of (|Q_orb-Qs|, |Q_orb+Qs|). That is, the minimum of the tune separation between the 
-     "sum" and "difference" resonances. The resonance calculation will only be accurate near resonance.
-  \item Cols 3\&4: The normalized resonance strengths. For computations use the largest value.
+  \item Col 1: Name of mode
+  \item Col 2: Orbital tune.
+  \item Col 3: Q_spin + Q_mode + N where N is an integer that minimizes this expression. 
+The sum resonance occures when this is zero. 
+  \item Col 4: Sum resonance strength. This number is only accurate if the value
+of column 3 is small compared to one.
+  \item Col 5: Q_spin - Q_mode + N where N is an integer that minimizes this expression. 
+The difference resonance occures when this is zero. 
+  \item Col 6: Difference resonance strength. This number is only accurate if the value
+of column 5 is small compared to one.
 \end{Itemize}
 \vskip -1.0ex
-See the Bmad manual section on the linear spin/orbit resonance analysis for more details.  The
+See the Bmad manual section on the linear spin/orbit resonance analysis for more details. The
 \vn{python spin_resonance} command can be used to extract resonance values when using running \tao
 with a script.
 

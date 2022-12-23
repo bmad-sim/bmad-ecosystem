@@ -6961,9 +6961,9 @@ case ('spin_polarization')
 !
 ! Returns
 ! -------
-! q_spin                        -- Spin tune
-! dq_a_min, dq_b_min, dq_c_min  -- Minimum tune separation between a,b,c mode tunes and spin tune.
-! xi_res_a, xi_res_b, xi_res_c  -- The linear spin/orbit "sum" and "difference" resonance strengths for a,b,c modes.
+! spin_tune                   -- Spin tune
+! dq_X_sum, dq_X_diff         -- Tune sum Q_spin+Q_mode and tune difference Q_spin-Q_mode for modes X = a, b, and c.
+! xi_res_X_sum, xi_res_X_diff -- The linear spin/orbit sum and difference resonance strengths for X = a, b, and c modes.
 !
 ! Examples
 ! --------
@@ -7007,8 +7007,8 @@ case ('spin_resonance')
     j = 2 * i - 1
     q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
     call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_sum, xi_diff)
-    nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), '_sum;REAL;F;', re_str(modulo2(q+qs, 0.5_rp), 6)
-    nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), '_diff;REAL;F;', re_str(modulo2(q-qs, 0.5_rp), 6)
+    nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), '_sum;REAL;F;', re_str(modulo2(qs+q, 0.5_rp), 6)
+    nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), '_diff;REAL;F;', re_str(modulo2(qs-q, 0.5_rp), 6)
     nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), '_sum;REAL;F;', re_str(xi_sum, 6)
     nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), '_diff;REAL;F;', re_str(xi_diff, 6)
   enddo
