@@ -200,7 +200,7 @@ ele_param_translate = {
 # Stuff to ignore or stuff that must be handled specially.
 
 ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay',
-                  'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
+                  'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 'detr', 'sigmaz', 'sige', 'emitz', 
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
                   'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np', 'ddp', 
                   'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng', 'ax', 'ay', 'dx1', 'dx2', 'dy1', 'dy2',
@@ -1219,8 +1219,8 @@ parameter[custom_attribute5] = "patch::sad_fshift"
 # Write variable definitions
 
 if patch_for_fshift != 'MAYBE' and patch_for_fshift != 'TRUE' and patch_for_fshift != 'FALSE':
-  print (f'Possible settings for patch_for_fshift are: "MAYBE", "TRUE", or "FALSE".')
-  print (f'I suspect you are using an old version of of the sad_to_bmad.params file.')
+  print ('Possible settings for patch_for_fshift are: "MAYBE", "TRUE", or "FALSE".')
+  print ('I suspect you are using an old version of of the sad_to_bmad.params file.')
   sys.exit()
 
 if patch_for_fshift == 'MAYBE':

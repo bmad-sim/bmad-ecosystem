@@ -132,15 +132,16 @@ z_min, z_max: Range of z-planes to analyze. In units of meters. If not present o
 the table lower bound, the beginning of the range will be the table lower bound. A similar logic holds
 for z_max.
 
-mode: Run mode. Can be "binary" in which case there is no analysis and a binary table is created
+mode: 
+	mode = "binary": In binary mode there is no analysis and a binary table is created
 with a ".binary" suffix. This binary table can be used for the field_file in which case reading in the
 table will be faster (it is not clear that with the present speed of computers that this ability to
 create binary files is useful). Note: If z_min or z_max is set, the created file will only contain
 data within these bounds plus n_planes_add to either side. 
 
-The other mode is "fit" in which case the standard GG analysis is done.
+	mode = "fit": In the fit mode the standard GG analysis is done.
 
-A third mode is "output_table" to convert GG to a field table. See below.
+	mode = "output_table": This mode is used to convert GGs to a field table. See below.
 
 optimizer: There are two optimizers that can be used: "lm" and "lmdif". Both are variants of the
 Levenburg-Marquardt algorithm. The fitting algorithm minimizes a merit function which is
