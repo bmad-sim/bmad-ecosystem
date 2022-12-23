@@ -936,7 +936,16 @@ function gamma_ref(ele) result (gamma)
   real(rp) gamma
 end function
 
-subroutine gen_grad_to_em_taylor (ele, gen_grad, iz, em_taylor)
+subroutine gen_grad_at_s_to_em_taylor (ele, gen_grad, s_pos, em_taylor)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (gen_grad_map_struct), target :: gen_grad
+  type (em_taylor_struct), target :: em_taylor(3)
+  real(rp) s_pos
+end subroutine
+
+subroutine gen_grad1_to_em_taylor (ele, gen_grad, iz, em_taylor)
   import
   implicit none
   type (ele_struct) ele

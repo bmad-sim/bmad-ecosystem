@@ -1,18 +1,20 @@
 !+
-! Subroutine gen_grad_to_em_taylor (ele, gen_grad, iz, em_taylor)
+! Subroutine gen_grad_at_s_to_em_taylor (ele, gen_grad, s_pos, em_taylor)
 !
-! Routine to take a gen_grad coefs at a given z-position and return the equivalent Taylo field map.
+! Routine to return the equivalent Taylor field map at a point s_pos
 !
 ! Input:
 !   ele           -- ele: Element containing the map.
 !   gen_grad      -- gen_grad_map_struct: Gen_grad map.
-!   iz            -- integer: z-plane index to evaluate.
-!   em_taylor(3)  -- em_taylor_struct: Map for (Bx, By, Bz) or (Ex, Ey, Ez) field.
+!   s_pos         -- real(rp): Position to evaluate em_taylor at.
+!
+! Output:
+!   em_taylor(3)  -- em_taylor_struct: Map for (Bx, By, Bz) or (Ex, Ey, Ez) fields.
 !-
 
-subroutine gen_grad_to_em_taylor (ele, gen_grad, iz, em_taylor)
+subroutine gen_grad_at_s_to_em_taylor (ele, gen_grad, s_pos, em_taylor)
 
-use bmad_interface, dummy => gen_grad_to_em_taylor
+use bmad_interface, dummy => gen_grad_at_s_to_em_taylor
 
 implicit none
 
@@ -26,7 +28,7 @@ type (em_taylor_struct), target :: em_taylor(3)
 type (gen_grad1_struct), pointer :: gg
 type (em_taylor_coef_struct) em_coef(3)
 
-real(rp) coef, scale
+real(rp) s_pos, coef, scale
 real(rp), allocatable ::xy_plus(:), xy_zero(:), xy_minus(:)
 
 integer iz

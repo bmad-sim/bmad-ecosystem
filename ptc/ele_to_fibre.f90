@@ -580,7 +580,7 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
 
   do i = gg_map%iz0, gg_map%iz1
     ii = i + 1 - gg_map%iz0
-    call gen_grad_to_em_taylor(ele2, gg_map, i, em_taylor)
+    call gen_grad1_to_em_taylor(ele2, gg_map, i, em_taylor)
     do j = 1, 3
       do k = 1, size(em_taylor(j)%term)
         tm => em_taylor(j)%term(k)
