@@ -476,7 +476,7 @@ type (twiss_struct), pointer :: z0, z1, z2
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
-real(rp) gamma, one_pz, xi_quat(2), w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
+real(rp) gamma, one_pz, xi_sum, xi_diff, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
 real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi, amp_a, amp_b
@@ -3117,11 +3117,11 @@ case ('spin_res.')
     return
   endif
 
-  call spin_quat_resonance_strengths(evec(2*j-1,:), datum%spin_map%map1%spin_q, xi_quat)
+  call spin_quat_resonance_strengths(evec(2*j-1,:), datum%spin_map%map1%spin_q, xi_sum, xi_diff)
 
-  select case (data_type(11:11))
-  case ('1');  datum_value = xi_quat(1)
-  case ('2');  datum_value = xi_quat(2)
+  select case (data_type(11:))
+  case ('.sum');   datum_value = xi_sum
+  case ('.diff');  datum_value = xi_diff
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
     return

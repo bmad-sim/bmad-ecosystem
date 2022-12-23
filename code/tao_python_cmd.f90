@@ -158,7 +158,7 @@ real(rp) mat6(6,6), vec0(6), array(7)
 real(rp), allocatable :: real_arr(:), value_arr(:)
 
 type (tao_spin_map_struct), pointer :: sm
-real(rp) n0(3), l0(3), m0(3), qs, q, dq, xi_quat(2)
+real(rp) n0(3), l0(3), m0(3), qs, q, xi_sum, xi_diff
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
 
 integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, md, ct, nl2, n, ix, ix2, iu_write, data_type
@@ -7006,10 +7006,11 @@ case ('spin_resonance')
   do i = 1, 3
     j = 2 * i - 1
     q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
-    dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
-    nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), ';REAL;F;', re_str(dq, 6)
-    call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat)
-    nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), ';REAL_ARR;F;', re_str(xi_quat(1), 6), ';', re_str(xi_quat(2), 6) 
+    call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_sum, xi_diff)
+    nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), '_sum;REAL;F;', re_str(modulo2(q+qs, 0.5_rp), 6)
+    nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), '_diff;REAL;F;', re_str(modulo2(q-qs, 0.5_rp), 6)
+    nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), '_sum;REAL;F;', re_str(xi_sum, 6)
+    nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), '_diff;REAL;F;', re_str(xi_diff, 6)
   enddo
 
 !------------------------------------------------------------------------------------------------
