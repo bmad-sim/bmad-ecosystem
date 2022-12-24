@@ -347,18 +347,17 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
         endif
       end select
     endif
-
-    if (val(ds_step$) <= 0) then
-      if (val(num_steps$) <= 0 .or. abs(val(l$)) == 0) then
-        val(ds_step$) = bmad_com%default_ds_step
-      else
-        val(ds_step$) = abs(val(l$)) / val(num_steps$)
-      endif
-    endif
-
-    val(num_steps$) = max(1, nint(abs(val(l$) / val(ds_step$))))
-
   endif
+
+  if (val(ds_step$) <= 0) then
+    if (val(num_steps$) <= 0 .or. abs(val(l$)) == 0) then
+      val(ds_step$) = bmad_com%default_ds_step
+    else
+      val(ds_step$) = abs(val(l$)) / val(num_steps$)
+    endif
+  endif
+
+  val(num_steps$) = max(1, nint(abs(val(l$) / val(ds_step$))))
 endif
 
 !----------------------------------
