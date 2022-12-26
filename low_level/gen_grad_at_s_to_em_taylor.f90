@@ -28,13 +28,43 @@ type (em_taylor_struct), target :: em_taylor(3)
 type (gen_grad1_struct), pointer :: gg
 type (em_taylor_coef_struct) em_coef(3)
 
-real(rp) s_pos, coef, scale
+real(rp) s_pos, s0, coef, scale, z_rel, s_here, f0, f1
 real(rp), allocatable ::xy_plus(:), xy_zero(:), xy_minus(:)
+real(rp), allocatable :: d0(:), d1(:), der(:)
 
-integer iz
-integer i, j, k, d, n, m, io, ix, m_max, iord, it
+integer iz0, nd
+integer i, j, k, d, n, m, io, ix, m_max, iord, it, ig
 
 logical is_even
+character(*), parameter :: r_name = 'gen_grad_at_s_to_em_taylor'
+
+! Find where to interpolate
+
+select case (gen_grad%ele_anchor_pt)
+case (anchor_beginning$); s0 = 0
+case (anchor_center$);    s0 = ele%value(l$) / 2
+case (anchor_end$);       s0 = ele%value(l$)
+end select
+
+s_here = s_pos - s0 - gen_grad%r0(3)
+
+iz0 = floor(s_here / gen_grad%dz)
+if (iz0 < gen_grad%iz0) iz0 = iz0 + 1 ! Allow one dz width out-of-bounds.
+if (iz0 >= gen_grad%iz1) iz0 = iz0 - 1 ! Allow one dz width out-of-bounds.
+
+if (iz0 < gen_grad%iz0 .or. iz0 >= gen_grad%iz1) then
+  !if (.not. logic_option(.false., grid_allow_s_out_of_bounds)) then
+    call out_io (s_error$, r_name, 'PARTICLE Z  \F10.3\ POSITION OUT OF BOUNDS.', &
+                                   'FOR GEN_GRAD_MAP IN ELEMENT: ' // ele%name, r_array = [s_pos])
+  !endif
+  return
+endif
+
+!
+
+z_rel = s_here - iz0 * gen_grad%dz
+f1 = z_rel / gen_grad%dz
+f0 = 1.0_rp - f1
 
 ! Find largest order
 
@@ -53,9 +83,11 @@ em_coef(1)%c = 0; em_coef(2)%c = 0; em_coef(3)%c = 0
 
 !
 
-do i = 1, size(gen_grad%gg)
-  gg => gen_grad%gg(i)
+do ig = 1, size(gen_grad%gg)
+  gg => gen_grad%gg(ig)
+  nd = ubound(gg%deriv,2)
   m = gg%m
+  is_even = .false.
 
   do j = 0, m/2
     xy_plus(m-2*j) = (-1)**j * n_choose_k(m+1, 2*j+1)  ! S_xy(m+1) coefs
@@ -81,10 +113,16 @@ do i = 1, size(gen_grad%gg)
     xy_minus(m-2*j-1) = (-1)**j * n_choose_k(m-1, 2*j)  ! C_xy(m-1) coefs
   enddo
 
-  is_even = .false.
-  do d = 0, ubound(gg%deriv,2)
+  call re_allocate2(d0, 0, nd, .false.)
+  call re_allocate2(d1, 0, nd, .false.)
+  call re_allocate2(der, 0, nd, .false.)
+
+  d0 = gg%deriv(iz0,:)
+  d1 = gg%deriv(iz0+1,:)
+
+  do d = 0, nd
     is_even = (.not. is_even)
-    coef = gg%deriv(iz,d)
+    coef = f0*poly_eval(d0(d:), z_rel, diff_coef=.true.) + f1*poly_eval(d1(d:), z_rel-gen_grad%dz, diff_coef=.true.)
     if (coef == 0) cycle
 
     if (is_even) then

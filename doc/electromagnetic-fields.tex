@@ -270,10 +270,10 @@ are finite. With this condition, all the $F_p$ can be constructed:
          \xw^4 - \frac{2}{5} \xw^5 + \frac{3}{10} \xw^6 - \ldots \CRNO
   &\text{Etc...} \nonumber
 \end{align}
-In terms of implementing these functions on a computer, the exact $\rw$-dependent functions are
-problematical due to round off error near $\xw = 0$. For example, Evaluating $F_4(\rw)$ at $\xw =
-10^{-4}$ results in a complete loss of accuracy (no significant digits!) when using double precision
-numbers. In practice, \bmad uses a Pad\'e approximant for $\xw$ small enough and then switches to the
+Evaluating these functions near $\xw = 0$ using the exact $\rw$-dependent functions can be
+problematical due to round off error. For example, Evaluating $F_4(\rw)$ at $\xw = 10^{-4}$ results
+in a complete loss of accuracy (no significant digits!) when using double precision numbers. In
+practice, \bmad uses a Pad\'e approximant for $\xw$ small enough and then switches to the
 $\rw$-dependent formulas for $\xw$ away from zero.
 
 For magnetic fields, the ``real'' $\phi_n^r$ solutions will correspond to skew fields and the

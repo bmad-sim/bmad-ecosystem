@@ -32,7 +32,7 @@ implicit none
 type (coord_struct) orbit
 type (lat_param_struct), optional :: param
 
-real(rp) rel_p
+real(rp) rel_p, f_unstable
 
 logical, optional :: check_momentum
 logical is_too_large
@@ -92,8 +92,9 @@ if (rel_p < 0) then
   return
 endif
 
-if (orbit%vec(2)**2 + orbit%vec(4)**2 > rel_p**2) then
-  if (present(param)) param%unstable_factor = sqrt(orbit%vec(2)**2 + orbit%vec(4)**2 - rel_p**2)
+f_unstable = orbit%vec(2)**2 + orbit%vec(4)**2 - rel_p**2 + 1e-30_rp
+if (f_unstable > 0) then
+  if (present(param)) param%unstable_factor = sqrt(f_unstable)
 
   if (abs(orbit%vec(2)) > abs(orbit%vec(4))) then
     if (orbit%vec(2) > 0) then

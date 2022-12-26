@@ -57,17 +57,18 @@ type (taylor) ptc_taylor
 
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, kl(0:n_pole_maxx), t(0:n_pole_maxx)
 real(rp) dx, dy, cos_t, sin_t, coef, coef_e, coef_b, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
-real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset, ff
+real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset, ff, z0, z, dz_step
 real(rp), pointer :: val(:)
 real(rp), target :: value0(num_ele_attrib$)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) ld, hd, lc, hc, angc, xc, dc
+real(rp), parameter :: dz_pan7(0:6) = [0.0_rp, 1.0_rp/9.0_rp, 1.0_rp/6.0_rp, 1.0_rp/3.0_rp, 1.0_rp/2.0_rp, 2.0_rp/3.0_rp, 5.0_rp/6.0_rp]
 
 complex(rp) k_0
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
-integer np, max_order, ix_pole_max, nn, n_period, icoef
+integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan
 integer, allocatable :: pancake_field(:,:)
 
 logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
@@ -96,18 +97,18 @@ if (.not. ele%is_on) then
     val(ref_tilt_tot$) = val(ref_tilt_tot$)
 
   case (lcavity$, rfcavity$)
-    val(voltage$) = 0
+    val(voltage$)  = 0
     val(gradient$) = 0
 
   case (taylor$)
-    key = drift$
+    key     = drift$
     val(l$) = 0
 
   case default
-    key = drift$
-    val     = 0
-    val(l$) = ele%value(l$)
-    val(ds_step$) = val(l$)
+    key             = drift$
+    val             = 0
+    val(l$)         = ele%value(l$)
+    val(ds_step$)   = val(l$)
     val(num_steps$) = 1
   end select
 endif
@@ -510,43 +511,47 @@ endif
 ! Gen_grad_map
 
 if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
+
+  if (nint(ele2%value(integrator_order$)) /= 6) ele2%value(integrator_order$) = 4
+  ptc_key%method = nint(ele2%value(integrator_order$))
+
   gg_map => ele2%gen_grad_map(1)
-  np = gg_map%iz1 - gg_map%iz0 + 1
+  if (nint(ele2%value(integrator_order$)) == 4) then
+    n_step = max(nint(ele%value(l$) / (4.0_rp*ele2%value(ds_step$))), 1)
+    n_pan = n_step * 4 + 1
+  else
+    n_step = max(nint(ele%value(l$) / (7.0_rp*ele2%value(ds_step$))), 1)
+    n_pan = n_step * 7 + 1
+    dz_step = ele%value(l$) / n_step
+  endif
 
   if (key == sbend$ .and. ele%value(g$) /= 0) then
     ld = ele%value(l$)
     hd = ele%value(g$)
-    lc = (np-1) * gg_map%dz   ! Integration length
+    lc = ele%value(l$)   ! Integration length
 
     if (gg_map%curved_ref_frame) then
       hc = ele%value(g$) ! pancake curvature = ele curvature
-      angc = (ele%value(angle$) - (np-1) * gg_map%dz * ele%value(g$)) / 2
+      angc = (ele%value(angle$) - (n_pan-1) * ele2%value(ds_step$) * ele%value(g$)) / 2
       xc = gg_map%r0(1) * cos(ele%value(angle$)/2) - ele%value(rho$) * (1 - cos(angc))
       dc = gg_map%r0(1) * sin(ele%value(angle$)/2) + ele%value(rho$) * sin(angc)
     else
       hc = 0.d0     ! pancake curvature
       angc = ele%value(angle$) / 2
       xc = gg_map%r0(1) + ele%value(rho$) * (1 - cos(ele%value(angle$)/2))
-      dc = (ele%value(l$) - (np-1) * gg_map%dz) / 2
+      dc = (ele%value(l$) - (n_pan-1) * ele2%value(ds_step$)) / 2
     endif
 
   else
     ld = ele%value(l$)
-    lc = (np-1) * gg_map%dz   ! Integration length
+    lc = ele%value(l$)
 
     hd = 0
     hc = 0                ! pancake curvature
 
     angc = 0
     xc = gg_map%r0(1)
-    dc = (ele%value(l$) - (np-1) * gg_map%dz) / 2
-  endif
-
-  if (mod(np, 2) == 0 .or. np < 5) then
-    call out_io (s_fatal$, r_name, 'NUMBER OF PLANES FOR A TAYLOR_FIELD MUST BE ODD AND AT LEAST 5 IF USED WITH PTC.', &
-                                   'TAYLOR_FIELD USED IN ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
+    dc = 0
   endif
 
   if (gg_map%field_type /= magnetic$) then
@@ -558,8 +563,7 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
 
   n = max(0, len_trim(gg_map%file)-24)
   ! Note: True => Not canonical tracking.
-  call set_pancake_constants(np, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., gg_map%file(n+1:n+24))
-  ptc_key%method = 4  ! Or 6.
+  call set_pancake_constants(n_pan, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., gg_map%file(n+1:n+24))
 
   max_order = 0
   do i = 1, size(gg_map%gg)
@@ -567,29 +571,37 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
   enddo
 
   call init_pancake (max_order+1, 2)
-  allocate(pancake_field(3,np))
+  allocate(pancake_field(3,n_pan))
   pancake_field = 0
   icoef = 0
   call daall0_pancake(icoef)
 
   do i = 1, 3
-    do j = 1, np
+    do j = 1, n_pan
       call daall0_pancake(pancake_field(i,j))
     enddo
   enddo
 
-  do i = gg_map%iz0, gg_map%iz1
-    ii = i + 1 - gg_map%iz0
-    call gen_grad1_to_em_taylor(ele2, gg_map, i, em_taylor)
+  z0 = ele%s_start - ele2%s_start
+
+  do i = 0, n_pan-1
+    if (nint(ele2%value(integrator_order$)) == 4) then
+      z = z0 + i * ele%value(l$) / (n_pan - 1)
+    else
+      k = i / 7
+      z = z0 + (k + dz_pan7(i-7*k)) * dz_step
+    endif
+    call gen_grad_at_s_to_em_taylor(ele2, gg_map, z, em_taylor)
+
     do j = 1, 3
       do k = 1, size(em_taylor(j)%term)
         tm => em_taylor(j)%term(k)
         coef = tm%coef * 1d9 ! * c_light / ele2%value(p0c$)
         call dacon_pancake(icoef, 0.0_rp)
         call dapok_pancake(icoef, tm%expn, coef)
-        call daadd_pancake(pancake_field(j,ii), icoef, pancake_field(j,ii))
+        call daadd_pancake(pancake_field(j,i+1), icoef, pancake_field(j,i+1))
       enddo
-      !! call dapri_pancake(pancake_field(j,ii), 6)  ! Taylor print
+      !! call dapri_pancake(pancake_field(j,i+1), 6)  ! Taylor print
     enddo
   enddo
 
@@ -685,7 +697,7 @@ endif
 
 if (ptc_key%magnet == 'PANCAKEBMAD') then
   do i = 1, 3
-    do j = 1, np
+    do j = 1, n_pan
       call dadal1_pancake(pancake_field(i,j))
     enddo
   enddo
