@@ -1631,7 +1631,6 @@ do j = 1, size(gg_map%gg)
   else
     field%E = field%E + gen_grad_field (der, gg%m, gg%sincos, rho, theta) * (gg_map%field_scale * master_parameter_value(gg_map%master_parameter, ele))
   endif
-
 enddo
 
 end subroutine gen_grad_add_em_field

@@ -259,7 +259,7 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
   if (val(ds_step$) == 0 .and. val(num_steps$) == 0) then
     if (ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$ .and. associated(ele%gen_grad_map)) then
       n = size(ele%gen_grad_map(1)%gg(1)%deriv, 1)
-      if (nint(val(integrator_order$)) /= 6) val(integrator_order$) = 4.0_rp
+      if (nint(val(integrator_order$)) /= 6) val(integrator_order$) = 4
       if (nint(val(integrator_order$)) == 4) then
         val(num_steps$) = nint((n-1)/4.0_rp)
       else 
