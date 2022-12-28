@@ -95,8 +95,9 @@ MODULE S_DEF_KIND
   PRIVATE copyABELL_el_elp,copyABELL_elp_el,copyABELL_el_el
   PRIVATE POINTERS_ABELLR,POINTERS_ABELLp
   PRIVATE ZEROr_PANCAKE,ZEROP_PANCAKE
-  PRIVATE rk4_pancaker,rk4_pancakeP
+  PRIVATE rk4_pancaker,rk4_pancakeP,rk6_pancaker,rk6_pancakep
   PRIVATE FEVAL_pancaker,FEVAL_pancakeP,rks_pancaker,rks_pancakep,rks_pancake
+  private feval_PANCAkE_prober,rk4_pancake_prober
   PRIVATE INTPANCAKER,INTPANCAKEP
 
   private ADJUST_TIME_CAV4R,ADJUST_TIME_CAV4p,INTE_CAV4R,INTE_CAV4p
@@ -1014,7 +1015,14 @@ type(work) w_bks
      MODULE PROCEDURE FEVAL_pancakeP
   END INTERFACE
 
+  INTERFACE feval_PANCAkE_probe
+     MODULE PROCEDURE feval_PANCAkE_prober
+  end INTERFACE feval_PANCAkE_probe
 
+
+  INTERFACE rk4_pancake_probe
+     MODULE PROCEDURE rk4_pancake_prober
+  end INTERFACE rk4_pancake_probe
 
 
   INTERFACE rk4_pancake   !RK4_M
@@ -1025,7 +1033,7 @@ type(work) w_bks
 
   INTERFACE rk6_pancake    
      MODULE PROCEDURE rk6_pancaker
-  !   MODULE PROCEDURE rk4_pancakeP
+     MODULE PROCEDURE rk6_pancakeP
   END INTERFACE
 
 
@@ -17975,6 +17983,142 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
 
 
 
+  subroutine rk6_pancakep(ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(real_8), INTENT(INOUT)::  y(ne)
+    type(real_8)  yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),p(ne)
+    type (pancakep) ,INTENT(INOUT)::  GR
+    integer j
+    type(real_8), intent(inout) :: h
+    integer, intent(inout) :: ti
+    INTEGER TT
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
+    call alloc(yt,ne)
+    call alloc(f,ne)
+    call alloc(a,ne)
+    call alloc(b,ne)
+    call alloc(c,ne)
+    call alloc(d,ne)
+    call alloc(e,ne)
+    call alloc(g,ne)
+    call alloc(o,ne)
+    call alloc(p,ne)
+
+
+!write(6,*) "pancake  in",ti
+    call feval_pancake(tI,y,k,f,gr)
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+
+
+    do  j=1,ne
+       yt(j)=y(j)+a(j)*butcher(1,1)
+    enddo
+
+    tt=ti+GR%p%dir
+
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+
+
+
+    do   j=1,ne
+       yt(j)=y(j) + (butcher(2,1)*a(j) + butcher(2,2)*b(j)) 
+    enddo
+
+
+
+    tt=tt+GR%p%dir
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+
+
+    do  j=1,ne
+       yt(j)=y(j)+(butcher(3,1)*a(j)+butcher(3,2)*b(j)+butcher(3,3)*c(j)) 
+    enddo
+    tt=tt+GR%p%dir
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+
+
+    do  j=1,ne
+       yt(j)=y(j) + (butcher(4,1)*a(j) + butcher(4,2)*b(j) +butcher(4,3)*c(j) + butcher(4,4)*d(j)) 
+    enddo
+    tt=tt+GR%p%dir
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       e(j)=h*f(j)
+    enddo
+
+    do  j=1,ne
+       yt(j)=y(j) + (butcher(5,1)*a(j) +butcher(5,2)*b(j) + butcher(5,3)*c(j)+butcher(5,4)*d(j) + butcher(5,5)*e(j)) 
+    enddo
+
+    tt=tt+GR%p%dir
+    call feval_pancake(tt,yt,k,f,gr)
+    do   j=1,ne
+       g(j)=h*f(j)
+    enddo
+
+    do  j=1,ne
+       yt(j) = y(j)+(butcher(6,1)*a(j)+butcher(6,2)*b(j)+butcher(6,3)*c(j)+butcher(6,4)*d(j)+butcher(6,5)*e(j) + butcher(6,6)*g(j)) 
+    enddo
+    tt=tt+GR%p%dir
+
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       o(j)=h*f(j)
+    enddo
+
+    do  j=1,ne
+       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j)+butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
+    enddo
+    tt=tI+7*GR%p%dir
+!write(6,*) "pancake out",tt,size(gr%b)
+    call feval_pancake(tt,yt,k,f,gr)
+    do  j=1,ne
+       p(j)=h*f(j)
+    enddo
+
+    do  j=1,ne
+       y(j) = y(j)+(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j)) 
+    enddo
+    tI=tt
+
+ 
+    if(k%TIME) then
+       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%beta0/GR%P%nst
+    else
+       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%nst
+    endif
+
+
+    call kill(yt,ne)
+    call kill(f,ne)
+    call kill(a,ne)
+    call kill(b,ne)
+    call kill(c,ne)
+    call kill(d,ne)
+    call kill(e,ne)
+    call kill(g,ne)
+    call kill(o,ne)
+    call kill(p,ne)
+    return
+  end  subroutine rk6_pancakep
+
+
+
   subroutine rk6_pancaker(ti,h,GR,y,k)
     IMPLICIT none
 
@@ -17988,7 +18132,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     integer, intent(inout) :: ti
     INTEGER TT
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    real(dp) butcher(8,8)
+
  
 
 !write(6,*) "pancake  in",ti
@@ -17997,7 +18141,6 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
        a(j)=h*f(j)
     enddo
 
-butcher(1,1)=1.0_dp/9.0_dp
 
     do  j=1,ne
        yt(j)=y(j)+a(j)*butcher(1,1)
@@ -18010,8 +18153,7 @@ butcher(1,1)=1.0_dp/9.0_dp
        b(j)=h*f(j)
     enddo
 
-butcher(2,1)=1.0_dp/24.0_dp
-butcher(2,2)=3.0_dp/24.0_dp
+
 
     do   j=1,ne
        yt(j)=y(j) + (butcher(2,1)*a(j) + butcher(2,2)*b(j)) 
@@ -18024,9 +18166,7 @@ butcher(2,2)=3.0_dp/24.0_dp
     do  j=1,ne
        c(j)=h*f(j)
     enddo
-butcher(3,1)=1.0_dp/6
-butcher(3,2)=-3.0_dp/6
-butcher(3,3)=4.0_dp/6
+
 
     do  j=1,ne
        yt(j)=y(j)+(butcher(3,1)*a(j)+butcher(3,2)*b(j)+butcher(3,3)*c(j)) 
@@ -18036,10 +18176,7 @@ butcher(3,3)=4.0_dp/6
     do  j=1,ne
        d(j)=h*f(j)
     enddo
-butcher(4,1)=-5.0_dp/8
-butcher(4,2)=27.0_dp/8
-butcher(4,3)=-24.0_dp/8
-butcher(4,4)=6.0_dp/8
+
 
     do  j=1,ne
        yt(j)=y(j) + (butcher(4,1)*a(j) + butcher(4,2)*b(j) +butcher(4,3)*c(j) + butcher(4,4)*d(j)) 
@@ -18049,11 +18186,6 @@ butcher(4,4)=6.0_dp/8
     do  j=1,ne
        e(j)=h*f(j)
     enddo
-butcher(5,1)=221.0_dp/9
-butcher(5,2)=-981.0_dp/9
-butcher(5,3)=867.0_dp/9
-butcher(5,4)=-102.0_dp/9
-butcher(5,5)=1.0_dp/9
 
     do  j=1,ne
        yt(j)=y(j) + (butcher(5,1)*a(j) +butcher(5,2)*b(j) + butcher(5,3)*c(j)+butcher(5,4)*d(j) + butcher(5,5)*e(j)) 
@@ -18065,13 +18197,6 @@ butcher(5,5)=1.0_dp/9
        g(j)=h*f(j)
     enddo
 
-butcher(6,1)=-183.0_dp/48
-butcher(6,2)=678.0_dp/48
-butcher(6,3)=-472.0_dp/48
-butcher(6,4)=-66.0_dp/48
-butcher(6,5)=80.0_dp/48
-butcher(6,6)=3.0_dp/48
-
     do  j=1,ne
        yt(j) = y(j)+(butcher(6,1)*a(j)+butcher(6,2)*b(j)+butcher(6,3)*c(j)+butcher(6,4)*d(j)+butcher(6,5)*e(j) + butcher(6,6)*g(j)) 
     enddo
@@ -18081,13 +18206,7 @@ butcher(6,6)=3.0_dp/48
     do  j=1,ne
        o(j)=h*f(j)
     enddo
-butcher(7,1)=716.0_dp/82
-butcher(7,2)=-2079.0_dp/82
-butcher(7,3)=1002.0_dp/82
-butcher(7,4)=834.0_dp/82
-butcher(7,5)=-454.0_dp/82
-butcher(7,6)=-9.0_dp/82
-butcher(7,7)=72.0_dp/82
+
     do  j=1,ne
        yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j)+butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
     enddo
@@ -18097,14 +18216,7 @@ butcher(7,7)=72.0_dp/82
     do  j=1,ne
        p(j)=h*f(j)
     enddo
-butcher(8,1)=41.0_dp/840
-butcher(8,2)=216.0_dp/840
-butcher(8,3)=27.0_dp/840
-butcher(8,4)=272.0_dp/840
-butcher(8,5)=27.0_dp/840
-butcher(8,6)=216.0_dp/840
-butcher(8,7)=41.0_dp/840
-butcher(8,8)=0
+
     do  j=1,ne
        y(j) = y(j)+(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j)) 
     enddo
@@ -18461,6 +18573,17 @@ butcher(8,8)=0
           IS=2*el%p%NST+3-2*pos
           call rk4_pancake(IS,h,el,X,k)
        ENDIF
+
+    CASE(6)
+       IF(EL%P%DIR==1) THEN
+          IS=-6+7*POS    ! POS=3 BEGINNING
+!write(6,*) "sss",size(el%b)
+          call rk6_pancake(IS,h,el,X,k)
+       else
+          IS=7*el%p%NST+8-7*pos
+          call rk6_pancake(IS,h,el,X,k)
+       ENDIF
+
 
     CASE DEFAULT
        !w_p=0
@@ -25282,6 +25405,301 @@ enddo
 
     return
   end  subroutine rk6_teapot_probep
+
+
+
+!!!!!!!!!!!!  kindpa
+
+!kindpa
+
+  SUBROUTINE INTE_PANCAKE_prober(EL,p,k,POS)
+    IMPLICIT NONE
+    type(probe),INTENT(INOUT):: p
+    real(dp)  X(6)
+    TYPE(PANCAKE),INTENT(INOUT):: EL
+    integer, intent(in) :: POS
+    INTEGER IS
+    real(dp) h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(quaternion) qy
+
+    if(.not.check_stable) return
+
+
+
+    qy=p%q
+    x=p%x
+ 
+
+    SELECT CASE(EL%P%METHOD)
+
+
+
+    CASE(4)
+       IF(EL%P%DIR==1) THEN
+          IS=-1+2*POS    ! POS=3 BEGINNING
+          call rk4_pancake(IS,h,el,X,k)
+       else
+          IS=2*el%p%NST+3-2*pos
+          call rk4_pancake(IS,h,el,X,k)
+       ENDIF
+
+    CASE(6)
+       IF(EL%P%DIR==1) THEN
+          IS=-6+7*POS    ! POS=3 BEGINNING
+!write(6,*) "sss",size(el%b)
+          call rk6_pancake(IS,h,el,X,k)
+       else
+          IS=7*el%p%NST+8-7*pos
+          call rk6_pancake(IS,h,el,X,k)
+       ENDIF
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+
+  END SUBROUTINE INTE_PANCAKE_prober
+
+
+ 
+  subroutine rk4_pancake_prober(ti,p,k,ct,h)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe), INTENT(INOUT)::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    real(dp)   y(ne)
+    real(dp)  yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne)
+    type(quaternion)qa,qb,qyt,qy,qc,qd,q
+    integer j
+    real(dp), intent(inout) :: h
+    integer, intent(inout) :: ti
+    INTEGER TT
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(pancake),pointer :: gr
+
+    gr=>ct%parent_fibre%mag%pa
+    qy=p%q
+    y=p%x
+ 
+    call feval_pancake_probe(tI,y,qy,k,f,q,ct)
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+   if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+
+    tt=tI+GR%p%dir
+    call feval_pancake_probe(tt,yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qb%x(j)/2.0_dp
+     enddo
+    endif
+
+    do   j=1,ne
+       yt(j)=y(j) + b(j)/2.0_dp
+    enddo
+
+
+    tt=tI+GR%p%dir
+    call feval_pancake_probe(tt,yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+     enddo
+      do  j=0,3
+       qyt%x(j)=qy%x(j)+qc%x(j) 
+     enddo
+    endif
+
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+
+    tt=tI+2*GR%p%dir
+    call feval_pancake_probe(tt,yt,qyt,k,f,q,ct)
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+     enddo
+    endif
+
+
+    do  j=1,ne
+       p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
+    enddo
+
+    if(k%spin) then
+
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
+     enddo
+    endif
+ 
+
+    tI=ti+2*GR%p%dir
+
+    if(k%TIME) then
+       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%beta0/GR%P%nst
+    else
+       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%nst
+    endif
+
+    return
+  end  subroutine rk4_pancake_prober
+
+
+
+ 
+  subroutine feval_PANCAkE_prober(POS,X,qi,k,f,q,c)
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    real(dp), INTENT(INout) :: x(6)
+    real(dp), INTENT(INOUT) :: F(6)
+    integer, INTENT(IN) :: pos
+    type(quaternion) , INTENT(INOUT) :: q,qi
+    TYPE(PANCAKE),  pointer :: EL
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    real(dp) B(3),be(nbe)
+ 
+    el=>c%parent_fibre%mag%pa
+
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
+
+    CALL trackg(EL%B(POS),Be)
+    if(el%xprime) then
+       b(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+       b(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+       b(3)=EL%SCALE*el%p%charge*be(3)
+
+       CALL fx(f,x,k,b,EL%p,el%hc)
+    else
+       be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
+       be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+       be(3)=EL%SCALE*el%p%charge*be(3)
+       be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+       be(5)=EL%SCALE*el%p%charge*be(5)
+       be(6)=EL%SCALE*el%p%charge*be(6)
+       be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+       be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+       CALL fxc(f,x,k,be,EL%p,el%hc)
+    endif
+ 
+!    
+    if(k%radiation.or.k%spin) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f)
+ 
+    if(k%spin) then
+     q%x(0)=0.0_dp
+     q=q*qi
+    endif
+ 
+
+  END subroutine feval_PANCAkE_prober
+
+ subroutine feval_CAV_bmad_proberrrrrrrrrrr(z0,x,qi,k,f,q,c)    !(Z0,X,k,f,D)   ! MODELLED BASED ON DRIFT
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    real(dp), INTENT(INout) :: x(6)
+    real(dp), INTENT(INOUT) :: F(6)
+    type(quaternion) , INTENT(INOUT) :: q,qi
+    real(dp),INTENT(INOUT):: Z0
+    TYPE(CAV4) ,pointer  :: D
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    REAL(DP) A(3),AD(3),PZ
+
+    d=>c%parent_fibre%mag%c4
+
+    a=0
+    ad=0
+    CALL Abmad_TRANS(D,Z0,X,k,A,AD)
+
+    X(2)=X(2)-A(1)
+    X(4)=X(4)-A(2)
+
+    IF(D%P%EXACT) THEN
+       if(k%TIME) then
+          PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
+       else
+          PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
+       endif
+    ELSE
+       if(k%TIME) then
+          PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
+          F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
+       else
+          F(1)=X(2)/(1.0_dp+X(5))
+          F(3)=X(4)/(1.0_dp+X(5))
+          F(2)=F(1)*AD(1)
+          F(4)=F(3)*AD(1)
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
+       endif
+    ENDIF
+
+    X(2)=X(2)+A(1)
+    X(4)=X(4)+A(2)
+!  
+!    
+if(k%radiation.or.k%spin) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f)
+ 
+if(k%spin) then
+ q%x(0)=0.0_dp
+ q=q*qi
+endif
+
+  END subroutine feval_CAV_bmad_proberrrrrrrrrrr
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!    CAV4 PROBE     !!!!!!!!!!!!!!!!!!!!!!!!!!! 
 !
