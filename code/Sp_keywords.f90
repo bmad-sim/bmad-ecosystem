@@ -97,6 +97,7 @@ contains
    if(ptc_key%magnet=='wiggler') kind00=kindwiggler
    if(ptc_key%magnet=='INTERNALPANCAKE') kind00=kindpa
    if(ptc_key%magnet=='PANCAKEBMAD    ') kind00=kindpa
+   if(ptc_key%magnet=='PANCAKEBMADZERO') kind00=kindpa
    if(ptc_key%magnet=='wiggler') then 
      limit_int0_new=limit_int0_new*nterm
        call against_the_method(ptc_key%method,ptc_key%nstep,met,nst,kind00,change)
@@ -337,6 +338,9 @@ contains
     CASE("PANCAKEBMAD")
        if(sixtrack_compatible) stop 13
        BLANK=pancake_bmad(KEY%LIST%NAME,br=bri)
+    CASE("PANCAKEBMADZERO")
+       if(sixtrack_compatible) stop 13
+       BLANK=pancake_bmad_empty(KEY%LIST%NAME)
     CASE DEFAULT
        WRITE(6,*) " "
        WRITE(6,*) " THE MAGNET"

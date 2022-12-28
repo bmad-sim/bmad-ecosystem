@@ -4069,11 +4069,7 @@ enddo
     ELSE
        pancake_bmad%NAME=NAME
     ENDIF
-    
-    IF(NSTc<3.OR.MOD(NSTc,2)/=1) THEN
-       WRITE(6,*) "NUMBER OF SLICES IN 'pancake'  MUST BE ODD AND >= 3 ",NSTc
-       STOP 102
-    ENDIF
+
   
 if(metc==4.or.metc==2) then
     pancake_bmad%nst=(NSTc-1)/2
@@ -4090,6 +4086,197 @@ endif
  
   END FUNCTION pancake_bmad
 
+
+ FUNCTION  pancake_bmad_empty(NAME)
+ use dabnew_pancake
+    implicit none
+    type (EL_LIST) pancake_bmad_empty
+    CHARACTER(*),optional, INTENT(IN):: NAME
+    real(dp) L,ANGLE,ds,a
+    integer mf,nst,I,ORDER,ii,k,is
+!    LOGICAL(LP) REPEAT
+     integer B(nbe),ba(nbe),bf(nbe),bn(nbe)   !,it  !,ax(2),ay(2)
+
+     b=0;ba=0;bf=0;bn=0;
+
+
+    a=0.0_dp
+   ! file_fitted=file
+
+    pancake_bmad_empty=0
+!    if(present(file)) then
+
+ 
+    ds=LC/nstc
+    ii=0
+!    if(present(no)) order=no
+ 
+
+   call init_pancake(1,2)
+ 
+
+    CALL alloc_pancake(B)
+    CALL alloc_pancake(Bf)
+    CALL alloc_pancake(Ba)
+    CALL alloc_pancake(Bn)
+!    call alloc_pancake(it) 
+
+do i=1,3
+ call dacon_pancake(bf(i),0.0_dp)
+ call dacon_pancake(ba(i),0.0_dp)
+enddo
+!bf(1)=0.0_dp;bf(2)=0.0_dp;bf(3)=0.0_dp;
+!ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
+
+
+!    IF(REPEAT.AND.NST==0) NST=NSTD
+
+   ALLOCATE(t_em(NSTc))  
+ 
+ii=ii+1
+
+!do i=1,3
+! call dacop_pancake(br(i,ii),bf(i))
+!enddo
+ 
+
+do i=1,3
+ call dacdi_pancake(bf(i),BRHO,Bf(i))
+enddo
+!          Bf(1)=Bf(1)/BRHO
+!          Bf(2)=Bf(2)/BRHO
+!          Bf(3)=Bf(3)/BRHO
+ 
+ii=ii+1
+!do i=1,3
+! call dacop_pancake(br(i,ii),ba(i))
+!enddo
+!ba(1)=br(1,ii)
+!ba(2)=br(2,ii)
+!ba(3)=br(3,ii)
+ 
+do i=1,3
+ call dacdi_pancake(ba(i),BRHO,Ba(i))
+enddo
+!          Ba(1)=Ba(1)/BRHO
+!          Ba(2)=Ba(2)/BRHO
+!          Ba(3)=Ba(3)/BRHO
+
+DO Is=3,NSTc 
+
+
+ 
+ii=ii+1
+!do k=1,3
+! call dacop_pancake(br(k,ii),b(k))
+!enddo
+!b(1)=br(1,ii)
+!b(2)=br(2,ii)
+!b(3)=br(3,ii)
+ 
+do k=1,3
+ call dacdi_pancake(b(k),BRHO,B(k))
+enddo
+ 
+!          B(1)=B(1)/BRHO
+!          B(2)=B(2)/BRHO
+!          B(3)=B(3)/BRHO
+
+         if(is==3) then
+do k=1,3
+ call dacop_pancake(bf(k),bn(k))
+enddo
+!          Bn(1)=Bf(1)
+!          Bn(2)=Bf(2)
+!          Bn(3)=Bf(3)
+
+ 
+          CALL SET_TREE_G_pancake(t_em(1),Bn)
+         elseif(is==nstc) then
+do k=1,3
+ call dacop_pancake(b(k),bn(k))
+enddo
+!          Bn(1)=B(1)
+!          Bn(2)=B(2)
+!          Bn(3)=B(3)
+   
+          CALL SET_TREE_G_pancake(t_em(is),Bn)
+         endif
+do k=1,3
+ call dacop_pancake(ba(k),bn(k))
+enddo
+!          Bn(1)=Ba(1)
+!          Bn(2)=Ba(2)
+!          Bn(3)=Ba(3)
+  
+          CALL SET_TREE_G_pancake(t_em(is-1),Bn)
+ 
+do k=1,3
+ call dacop_pancake(ba(k),bf(k))
+enddo
+!          Bf(1)=Ba(1)
+!          Bf(2)=Ba(2)
+!          Bf(3)=Ba(3)  
+     
+do k=1,3
+ call dacop_pancake(b(k),ba(k))
+enddo  
+!          Ba(1)=B(1)
+!          Ba(2)=B(2)
+!          Ba(3)=B(3)
+ 
+
+    enddo
+    call kill_pancake(B)
+    call kill_pancake(Bf)
+    call kill_pancake(Ba)
+    call kill_pancake(Bn)
+ !   call kill_pancake(it) 
+
+
+  !  else
+ !    NST=size(t_em)
+ !  endif
+    ANGLE=LD*HD
+
+
+    !    IF(ANG/=zero.AND.R/=zero) THEN
+    if(hc/=0.0_dp) then
+       pancake_bmad_empty%LC=2.0_dp*SIN(ANGLE/2.0_dp)/hD
+    else
+       pancake_bmad_empty%LC=LD
+    endif
+    pancake_bmad_empty%B0=hD                     !COS(ANG/two)/R
+    pancake_bmad_empty%LD=LD
+    pancake_bmad_empty%L=lc
+
+    IF(LEN(NAME)>nlp) THEN
+       !w_p=0
+       !w_p%nc=2
+       !w_p%fc='((1X,a72,/),(1x,a72))'
+       !w_p%c(1)=name
+       write(6,'(a17,1x,a16)') ' IS TRUNCATED TO ', NAME(1:16)
+       ! call ! WRITE_I
+       pancake_bmad_empty%NAME=NAME(1:nlp)
+    ELSE
+       pancake_bmad_empty%NAME=NAME
+    ENDIF
+
+  
+if(metc==4.or.metc==2) then
+    pancake_bmad_empty%nst=(NSTc-1)/2
+    IF(NSTc<3.OR.MOD(NSTc,2)/=1) THEN
+       WRITE(6,*) "NUMBER OF SLICES IN 'pancake'  MUST BE ODD AND >= 3 ",NSTc
+       STOP 102
+    ENDIF
+else
+    pancake_bmad_empty%nst=(NSTc-1)/7
+endif
+
+ 
+    pancake_bmad_empty%KIND=KINDPA
+ 
+  END FUNCTION pancake_bmad_empty
 
  ! FOR FAST B FIELD IN PACKAGE OF PTC
 
