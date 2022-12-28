@@ -68,7 +68,7 @@ complex(rp) k_0
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
-integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan
+integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(8)
 integer, allocatable :: pancake_field(:,:)
 
 logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
@@ -570,44 +570,7 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
     max_order = max(max_order, gg_map%gg(i)%m+ubound(gg_map%gg(i)%deriv,2))
   enddo
 
-  call init_pancake (max_order+1, 2)
-  allocate(pancake_field(3,n_pan))
-  pancake_field = 0
-  icoef = 0
-  call daall0_pancake(icoef)
-
-  do i = 1, 3
-    do j = 1, n_pan
-      call daall0_pancake(pancake_field(i,j))
-    enddo
-  enddo
-
-  z0 = ele%s_start - ele2%s_start
-
-  do i = 0, n_pan-1
-    if (nint(ele2%value(integrator_order$)) == 4) then
-      z = z0 + i * ele%value(l$) / (n_pan - 1)
-    else
-      k = i / 7
-      z = z0 + (k + dz_pan7(i-7*k)) * dz_step
-    endif
-    call gen_grad_at_s_to_em_taylor(ele2, gg_map, z, em_taylor)
-
-    do j = 1, 3
-      do k = 1, size(em_taylor(j)%term)
-        tm => em_taylor(j)%term(k)
-        coef = tm%coef * 1d9 ! * c_light / ele2%value(p0c$)
-        call dacon_pancake(icoef, 0.0_rp)
-        call dapok_pancake(icoef, tm%expn, coef)
-        call daadd_pancake(pancake_field(j,i+1), icoef, pancake_field(j,i+1))
-      enddo
-      !! call dapri_pancake(pancake_field(j,i+1), 6)  ! Taylor print
-    enddo
-  enddo
-
-  call dadal1_pancake(icoef)
-
-  ptc_key%magnet = 'PANCAKEBMAD'
+  ptc_key%magnet = 'PANCAKEBMADZERO'
 
 else
   ! This needed since corresponding create_fibre_append dummy arg is an assumed shape array.
@@ -695,12 +658,47 @@ endif
 
 !----------------------------------------------
 
-if (ptc_key%magnet == 'PANCAKEBMAD') then
-  do i = 1, 3
-    do j = 1, n_pan
-      call dadal1_pancake(pancake_field(i,j))
-    enddo
+if (ptc_key%magnet == 'PANCAKEBMADZERO') then
+  call init_pancake (max_order+1, 2)
+
+  call alloc_pancake(field)
+  call daall0_pancake(icoef)
+
+  do j = 1, n_pan
+    call kill(ptc_fibre%mag%pa%b(j))
+    call kill(ptc_fibre%magp%pa%b(j))
   enddo
+
+  z0 = ele%s_start - ele2%s_start
+
+  do i = 0, n_pan-1
+    if (nint(ele2%value(integrator_order$)) == 4) then
+      z = z0 + i * ele%value(l$) / (n_pan - 1)
+    else
+      k = i / 7
+      z = z0 + (k + dz_pan7(i-7*k)) * dz_step
+    endif
+
+    call gen_grad_at_s_to_em_taylor(ele2, gg_map, z, em_taylor)
+
+    do j = 1, 3
+      call dacon_pancake(field(j), 0.0_rp)
+      do k = 1, size(em_taylor(j)%term)
+        tm => em_taylor(j)%term(k)
+        coef = tm%coef * c_light / ele2%value(p0c$)
+        call dacon_pancake(icoef, 0.0_rp)
+        call dapok_pancake(icoef, tm%expn, coef)
+        call daadd_pancake(field(j), icoef, field(j))
+      enddo
+      !! call dapri_pancake(field(j), 6)  ! Taylor print
+    enddo
+
+    call set_tree_g_pancake(ptc_fibre%mag%pa%b(i+1), field)
+    call set_tree_g_pancake(ptc_fibre%magp%pa%b(i+1), field)
+  enddo
+
+  call kill_pancake(field)
+  call dadal1_pancake(icoef)
 endif
 
 
