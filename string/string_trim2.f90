@@ -1,6 +1,5 @@
 !+
-! Subroutine string_trim2 (in_str, delimitors, out_str,
-!                                      ix_word, delim, ix_next)
+! Subroutine string_trim2 (in_str, delimitors, out_str, ix_word, delim, ix_next)
 !
 ! Subroutine to trim a string of leading delimitors and also to return the
 ! length of the first word.
