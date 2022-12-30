@@ -8883,6 +8883,7 @@ do
       end select
 
       if (delim == '}') exit
+      if (.not. expect_one_of (',}', .true., ele%name, delim, delim_found)) return
     enddo
 
     if (.not. expect_one_of (',} ', .false., ele%name, delim, delim_found)) return

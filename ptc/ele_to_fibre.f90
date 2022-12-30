@@ -74,7 +74,8 @@ integer, allocatable :: pancake_field(:,:)
 logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
 logical, optional :: for_layout
 
-character(16) :: r_name = 'ele_to_fibre'
+character(24) pancake_name
+character(*), parameter :: r_name = 'ele_to_fibre'
 
 !
 
@@ -515,7 +516,6 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
   if (nint(ele2%value(integrator_order$)) /= 6) ele2%value(integrator_order$) = 4
   ptc_key%method = nint(ele2%value(integrator_order$))
 
-  gg_map => ele2%gen_grad_map(1)
   if (nint(ele2%value(integrator_order$)) == 4) then
     n_step = max(nint(ele%value(l$) / (4.0_rp*ele2%value(ds_step$))), 1)
     n_pan = n_step * 4 + 1
@@ -524,6 +524,8 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
     n_pan = n_step * 7 + 1
     dz_step = ele%value(l$) / n_step
   endif
+
+  gg_map => ele2%gen_grad_map(1)
 
   if (key == sbend$ .and. ele%value(g$) /= 0) then
     ld = ele%value(l$)
@@ -561,9 +563,13 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
     return
   endif
 
-  n = max(0, len_trim(gg_map%file)-24)
+  n = max(len_trim(gg_map%file)-24, str_last_in_set(gg_map%file, '/'))
+  m = min(n+24, len(gg_map%file))
+  pancake_name = gg_map%file(n+1:m)
+  call str_substitute(pancake_name, ':', '-')  ! Make valid file name
+
   ! Note: True => Not canonical tracking.
-  call set_pancake_constants(n_pan, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., gg_map%file(n+1:n+24))
+  call set_pancake_constants(n_pan, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., pancake_name)
 
   max_order = 0
   do i = 1, size(gg_map%gg)

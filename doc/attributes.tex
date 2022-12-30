@@ -2605,6 +2605,19 @@ electric field. The syntax for describing a single GG is:
     \}
   \}
 \end{example}
+
+Example:
+\begin{example}
+  t1: sbend, k1 = 2, gen_grad_map = \{
+    field_type = electric,   ele_anchor_pt = end, 
+    dz = 1.2,                r0 = (0, 0, 2.0),
+    field_scale = 1.3,       curved_ref_frame = False,
+    master_parameter = k1,
+
+    ...  \}, field_calc = fieldmap, integrator_order = 6, num_steps = 70, 
+  tracking_method = taylor, mat6_calc_method = taylor
+\end{example}
+
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with other field
 map types. In general there will be multiple \vn{curve} instances.  A given \vn{curve} instance
 specifies one generalized gradient with a given azimuthal \vn{m} value and a \vn{type} which
@@ -2618,45 +2631,24 @@ itself), \vn{<d1>} is the first derivative, etc. All derivative rows must have t
 derivatives.  All curves must specify the same z-positions but different curves may have differing
 number of derimatives.
 
+Like \vn{grid_field}s, the edges of a \vn{gen_grad_map}, can be defined to be outside of the edges
+of the element. These areas will be ignored while tracking unless field overlap is defined
+(\sref{s:overlap})).
+
 To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of
 restrictions: 
   \begin{itemize}
   \item
 There can be only one \vn{gen_grad_map} and there cannot be any other field maps of any kind.
-  \item 
-The number of z-points must be odd. If you want to be able to track with PTC to the center of the
-element, the number of z-points must be of the form $4 \, n + 1$ where $n$ is an integer.
   \item
 Only magnetic fields may be used.
-  \item
-The plane locations must be symmetric with respect to the center of the element. That is,
-the first plane and the last plane must be equidistant from the element center.
-  \item
-The element may not be superimposed upon (\sref{s:super}). [PTC tracks from plane to plane
-so there is no good way to cut an element at an arbitrary position.]
   \item
 In a bend with \vn{curved_ref_frame} = False, The setting of \vn{ele_anchor_pt} must be
 \vn{center}.
   \end{itemize}
-If the edges of the \vn{gen_grad_map}, which are defined by the first and last z-points, is different
-than the edges of the element, \bmad and PTC will do tracking differently. With \bmad, the tracking
-will start at one edge of the element and will end at the other end. That is, \bmad will ignore the
-field outside of the element (but this can be modified using field overlap (\sref{s:overlap})). PTC,
-on the other hand, will start at an element end and then track from the element end backwards to the
-first plane like in a drift. It will then track to the ending plane and finally track backwards from
-the ending plane to the ending element edge line in a drift. That is, PTC does not ignore the field
-outside of the element.
 
-Example:
-\begin{example}
-  t1: sbend, k1 = 2, gen_grad_map = \{
-    field_type = electric,   ele_anchor_pt = end, 
-    dz = 1.2,                r0 = (0, 0, 2.0),
-    field_scale = 1.3,       curved_ref_frame = False,
-    master_parameter = k1,
-
-    ...  \}, field_calc = fieldmap
-\end{example}
+The \vn{integrator_order} for PTC dependent tracking can be either set to 4 or 6 with 4 being the
+default\vn{s:ptc.integ}.
 
 %-----------------------------------------------------------------
 \section{RF Couplers}

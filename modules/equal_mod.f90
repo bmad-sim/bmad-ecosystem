@@ -563,62 +563,6 @@ enddo
 lat_out%ele_init = lat_in%ele_init
 nullify(lat_out%ele_init%branch)
 
-! Handle lat%control array
-
-if (allocated (lat_in%control)) then
-  n = size(lat_in%control)
-  if (.not. allocated(lat_out%control)) allocate(lat_out%control(n))
-  if (size(lat_in%control) /= size(lat_out%control)) then
-    deallocate (lat_out%control)
-    allocate (lat_out%control(n))
-  endif
-
-  do i = 1, size(lat_in%control)
-    c_in => lat_in%control(i); c_out => lat_out%control(i)
-    if (allocated(c_in%stack)) then
-      n = size(c_in%stack)
-      if (.not. allocated(c_out%stack)) allocate(c_out%stack(n))
-      if (size(c_out%stack) /= size(c_in%stack)) then
-        deallocate (c_out%stack)
-        allocate (c_out%stack(n))
-      endif
-
-    else
-      if (allocated(c_out%stack)) deallocate(c_out%stack)
-    endif
-  enddo
-
-  lat_out%control = lat_in%control
-else
-  if (allocated(lat_out%control)) deallocate (lat_out%control)
-endif
-
-! handle lat%constant array
-
-if (allocated(lat_in%constant)) then
-  lat_out%constant = lat_in%constant
-else
-  if (allocated(lat_out%constant)) deallocate (lat_out%constant)
-endif
-
-! handle lat%ic array
-
-if (allocated(lat_in%ic)) then
-  call re_allocate(lat_out%ic, size(lat_in%ic))
-  lat_out%ic = lat_in%ic
-else
-  if (allocated(lat_out%ic)) deallocate (lat_out%ic)
-endif
-
-! handle lat%custom array
-
-if (allocated(lat_in%custom)) then
-  call re_allocate(lat_out%custom, size(lat_in%custom))
-  lat_out%custom = lat_in%custom
-else
-  if (allocated(lat_out%custom)) deallocate (lat_out%custom)
-endif
-
 ! non-pointer transfer
 
 call transfer_lat_parameters (lat_in, lat_out)
