@@ -107,10 +107,6 @@ enddo
 
 ! Correct control information
 
-call reallocate_control(lat_rev, size(lat_temp%control))
-lat_rev%control = lat_temp%control
-lat_rev%ic = lat_temp%ic
-
 do i = 1, lat_rev%n_control_max
   con => lat_rev%control(i)
   if (con%slave%ix_ele <= lat_rev%n_ele_track .and. con%slave%ix_ele /= 0) con%slave%ix_ele = lat_rev%n_ele_track+1-con%slave%ix_ele

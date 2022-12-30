@@ -1504,8 +1504,8 @@ type lat_struct
   integer :: input_taylor_order = 0                   ! As set in the input file
   integer, allocatable :: ic(:)                       ! Index to %control(:) from slaves.
   integer :: photon_type = incoherent$                ! Or coherent$. For X-ray simulations.
-  integer :: creation_hash = 0                        ! Integer, set by bmad_parser, that will be different if 
-                                                      !   any of the lattice files have been modified.
+  integer :: creation_hash = 0                        ! Set by bmad_parser. creation_hash will vary if 
+                                                      !   any of the lattice files are modified.
 end type
 
 character(2), parameter :: coord_name(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
