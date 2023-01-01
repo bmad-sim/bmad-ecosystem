@@ -537,8 +537,9 @@ if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_el
 if (allocated(slave%multipole_cache)) deallocate(slave%multipole_cache)
 
 ! Bookkeeping for EM_Field slave is mostly independent of the lords.
+! Exception: If only one lord then treat em_field slave same as other slaves.
 
-if (slave%key == em_field$) then
+if (slave%key == em_field$ .and. slave%n_lord > 1) then
   value = slave%value
   slave%value = 0
   slave%value(l$)                     = value(l$)
