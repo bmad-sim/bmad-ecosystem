@@ -83,7 +83,7 @@ if (ele%key == match$ .or. &
             .not. associated(ele%gen_grad_map) .and. &
             (ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%field_calc == helical_model$)) then
   call mat6_to_taylor (ele%vec0, ele%mat6, orb_tylr)
-  call taylor_make_quaternion_unit (ele%spin_taylor)
+  call taylor_make_quaternion_unit (spin_tylr)
   if (.not. present(spin_taylor)) ele%spin_taylor_ref_orb_in = 0
   return
 endif
