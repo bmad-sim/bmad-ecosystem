@@ -1033,7 +1033,7 @@ type(work) w_bks
 
   INTERFACE rk6_pancake_probe
      MODULE PROCEDURE rk6_pancake_prober
-!     MODULE PROCEDURE rk6_pancake_probep
+     MODULE PROCEDURE rk6_pancake_probep
   end INTERFACE rk6_pancake_probe
 
   INTERFACE rk4_pancake   !RK4_M
@@ -25564,10 +25564,10 @@ enddo
        IF(EL%P%DIR==1) THEN
           IS=-6+7*POS    ! POS=3 BEGINNING
 !write(6,*) "sss",size(el%b)
-     !     call rk6_pancake_probe(IS,p,k,ct,h)
+          call rk6_pancake_probe(IS,p,k,ct,h)
        else
           IS=7*el%p%NST+8-7*pos
-      !   call rk6_pancake_probe(IS,p,k,ct,h)
+         call rk6_pancake_probe(IS,p,k,ct,h)
        ENDIF
 
     CASE DEFAULT
@@ -25718,7 +25718,7 @@ enddo
     INTEGER TT
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     type(pancakep),pointer :: gr
-    real(dp) e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6)
+    real(dp) e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6),e_ije(6,6),e_ijg(6,6),e_ijo(6,6),e_ijp(6,6)
     real(dp) de_ij(6,6),hr,denf,cr
 
  
@@ -26055,7 +26055,265 @@ enddo
        p%x(j)  = p%x(j) +(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*pt(j)) 
     enddo
 
+    tI=tt
 
+    if(k%TIME) then
+       p%x(6) =p%x(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%beta0/GR%P%nst
+    else
+       p%x(6)=p%x(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%nst
+    endif
+
+    return
+  end  subroutine rk6_pancake_prober
+
+
+
+  subroutine rk6_pancake_probep(ti,p,k,ct,h)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe_8), intent(inout) :: p
+    type(real_8)  y(ne)
+    type(real_8) yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),pt(ne)
+    type(pancakep),pointer::  GR
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    integer j
+    type(real_8), intent(inout) :: h
+    integer, intent(inout) :: ti
+    INTEGER TT
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(quaternion_8) qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp,q
+    real(dp) e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6),e_ije(6,6),e_ijg(6,6),e_ijo(6,6),e_ijp(6,6)
+    real(dp) de_ij(6,6),hr,denf,cr
+
+ 
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j),c(j),d(j),e(j),g(j),o(j))
+     call alloc(pt(j))
+    enddo
+
+    call alloc(qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp)
+
+   call alloc(q)
+!eeeeeeeeeee
+    gr=>ct%parent_fibre%magp%pa
+    qy=p%q
+    y=p%x
+    hr=h
+   cr=0.5_dp
+               
+    call feval_pancake_probe(tI,y,qy,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+  if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/9.0_dp
+     enddo
+    endif
+
+    do  j=1,ne
+       yt(j)=y(j)+a(j)*butcher(1,1)
+    enddo
+     if(k%envelope)  then
+      e_ija =hr*de_ij  
+    endif
+
+
+    tt=ti+GR%p%dir
+
+    call feval_pancake_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+  do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j) + 3.0_dp*qb%x(j))/24.0_dp
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijb =hr*de_ij  
+      p%e_ij=p%e_ij+e_ijb
+    endif
+
+
+    do   j=1,ne
+       yt(j)=y(j) + (butcher(2,1)*a(j) + butcher(2,2)*b(j)) 
+    enddo
+
+
+
+    tt=tt+GR%p%dir
+    call feval_pancake_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j)-3.0_dp*qb%x(j)+4.0_dp*qc%x(j))/6.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+     if(k%envelope)  then
+      e_ijc =hr*de_ij  
+    endif
+
+    do  j=1,ne
+       yt(j)=y(j)+(butcher(3,1)*a(j)+butcher(3,2)*b(j)+butcher(3,3)*c(j)) 
+    enddo
+
+
+    tt=tt+GR%p%dir
+    call feval_pancake_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(-5.0_dp*qa%x(j) + 27.0_dp*qb%x(j) - 24.0_dp*qc%x(j) + 6.0_dp*qd%x(j))/8.0_dp
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijd =hr*de_ij  
+    endif
+    do  j=1,ne
+       yt(j)=y(j) + (butcher(4,1)*a(j) + butcher(4,2)*b(j) +butcher(4,3)*c(j) + butcher(4,4)*d(j)) 
+    enddo
+
+    tt=tt+GR%p%dir
+    call feval_pancake_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+    do  j=1,ne
+       e(j)=h*f(j)
+    enddo
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    if(k%spin) then
+     do  j=0,3
+       qe%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(221.0_dp*qa%x(j)-981.0_dp*qb%x(j) + 867.0_dp*qc%x(j)- 102.0_dp*qd%x(j) + qe%x(j))/9.0_dp
+     enddo
+    endif
+     if(k%envelope)  then
+      e_ije =hr*de_ij  
+    endif
+    do  j=1,ne
+       yt(j)=y(j) + (butcher(5,1)*a(j) +butcher(5,2)*b(j) + butcher(5,3)*c(j)+butcher(5,4)*d(j) + butcher(5,5)*e(j)) 
+    enddo
+
+    tt=tt+GR%p%dir
+    call feval_pancake_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+    do   j=1,ne
+       g(j)=h*f(j)
+    enddo
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    if(k%spin) then
+     do  j=0,3
+       qg%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(-183.0_dp*qa%x(j)+678.0_dp*qb%x(j)-472.0_dp*qc%x(j) &
+              -66.0_dp*qd%x(j)+80.0_dp*qe%x(j)+3.0_dp*qg%x(j))/48.0_dp
+     enddo
+    endif
+     if(k%envelope)  then
+      e_ijg =hr*de_ij  
+    endif
+    do  j=1,ne
+       yt(j) = y(j)+(butcher(6,1)*a(j)+butcher(6,2)*b(j)+butcher(6,3)*c(j)+butcher(6,4)*d(j)+butcher(6,5)*e(j) + butcher(6,6)*g(j)) 
+    enddo
+    tt=tt+GR%p%dir
+
+    call feval_pancake_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+    do  j=1,ne
+       o(j)=h*f(j)
+    enddo
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+   if(k%spin) then
+     do  j=0,3
+       qo%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(716.0_dp*qa%x(j)-2079.0_dp*qb%x(j)+1002.0_dp*qc%x(j)+834.0_dp*qd%x(j) &
+        -454.0_dp*qe%x(j)-9.0_dp*qg%x(j)+72.0_dp*qo%x(j))/82.0_dp
+     enddo
+     endif
+     if(k%envelope)  then
+      e_ijo =hr*de_ij  
+    endif
+    do  j=1,ne
+       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j)+butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
+    enddo
+    tt=tI+7*GR%p%dir
+ 
+    call feval_pancake_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+    do  j=1,ne
+       pt(j)=h*f(j)
+    enddo
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    if(k%spin) then
+     do  j=0,3
+       qp%x(j)=h*q%x(j)
+     enddo
+    endif
+     if(k%envelope)  then
+      e_ijp =hr*de_ij  
+    endif
+ 
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j) = p%q%x(j)+(41.0_dp*qa%x(j)+216.0_dp*qc%x(j)+27.0_dp*qd%x(j) &
+                   +272.0_dp*qe%x(j)+27.0_dp*qg%x(j)+216.0_dp*qo%x(j)+41.0_dp*qp%x(j))/840.0_dp
+    enddo
+    endif
+
+    do  j=1,ne
+       p%x(j)  = p%x(j) +(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*pt(j)) 
+    enddo
+
+    if(k%envelope)  then
+      p%e_ij=p%e_ij+(41.0_dp*e_ija+216.0_dp*e_ijc+27.0_dp*e_ijd+272.0_dp*e_ije & 
+             +27.0_dp*e_ijg+216.0_dp*e_ijo+41.0_dp*e_ijp)/840.0_dp
+    endif
 
 
     tI=tt
@@ -26067,9 +26325,17 @@ enddo
        p%x(6)=p%x(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%nst
     endif
 
-    return
-  end  subroutine rk6_pancake_prober
 
+    do j=1,ne
+     call kill(y(j),yt(j),f(j),a(j),b(j),c(j),d(j),e(j),g(j),o(j))
+     call kill(pt(j))
+    enddo
+
+    call kill(qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp)
+    call kill(q)
+
+    return
+  end  subroutine rk6_pancake_probep
 
 
 
