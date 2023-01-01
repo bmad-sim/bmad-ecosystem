@@ -41,7 +41,6 @@ module ptc_spin
   REAL(DP) :: bran_init=pi  
   logical :: locate_with_no_cavity = .false.,full_way=.true.
   integer  :: item_min=3,mfdebug
-  integer , target :: old_integrator =1
 
 
 
@@ -458,7 +457,7 @@ endif
     REAL(DP) OM(3),CO(3),SI(3),B2,XP(2),E(3),B(3)
     REAL(DP) ST,dlds,norm,stheta
     type(quaternion) dq,mulq
-    LOGICAL(LP),intent(in) :: BEFORE
+    LOGICAL,intent(in) :: BEFORE
     type(internal_state) k
     INTEGER I
 
@@ -470,7 +469,7 @@ endif
     !    if(EL%kind>=kind11.and.EL%kind<=kind14) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
     !    if(EL%kind>=kind18.and.EL%kind<=kind19) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
 
-    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B)
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B,before=before)
     if((k%radiation.or.k%envelope.or.k%stochastic).AND.BEFORE) then
        !if(el%p%radiation.AND.BEFORE) then
        !       call radiate_2(c,DS,FAC,P%X,b2,dlds,XP,before,k,POS)
@@ -561,7 +560,7 @@ endif
     TYPE(REAL_8) ST,dlds,norm,stheta
     type(quaternion_8) dq
     type(quaternion) dq0
-    LOGICAL(LP),intent(in) :: BEFORE
+    LOGICAL,intent(in) :: BEFORE
     type(internal_state) k
     INTEGER I
     if(.not.((k%radiation.or.k%envelope).or.k%SPIN)) return
@@ -582,7 +581,7 @@ endif
 
 
     IF(K%PARA_IN ) KNOB=.TRUE.
-    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B)
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B,before=before)
     if((k%radiation.or.k%envelope).AND.BEFORE) then
        !if(el%p%radiation.AND.BEFORE) then
        call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,POS,E,B)
@@ -1678,10 +1677,10 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     else
       SELECT CASE(C%parent_fibre%mag%KIND)
 CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND19, &
-      KIND21,KIND22,KINDPA,KINDabell,kindsuperdrift)
-        call TRACK_NODE_FLAG_probe_R(C,XS,K)
-       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER)
-         call TRACK_NODE_FLAG_probe_quaR(C,XS,K)
+      KIND21,KIND22,KINDabell,kindsuperdrift)
+         call TRACK_NODE_FLAG_probe_R(C,XS,K)
+       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER,KINDPA)
+          call TRACK_NODE_FLAG_probe_quaR(C,XS,K)
        CASE DEFAULT
           WRITE(6,*) "NOT IMPLEMENTED in old_integrator bifurcation",C%parent_fibre%mag%KIND
           stop 999
@@ -1704,9 +1703,9 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
     else
       SELECT CASE(C%parent_fibre%magp%KIND)
 CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND19, &
-      KIND21,KIND22,KINDPA,KINDabell,kindsuperdrift)
+      KIND21,KIND22,KINDabell,kindsuperdrift)
         call TRACK_NODE_FLAG_probe_p(C,XS,K)
-       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER)
+       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER,KINDPA)
 
           if(compute_stoch_kick) then
            start_stochastic_computation=0
