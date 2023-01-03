@@ -78,7 +78,7 @@ real(rp) merit
 logical printit
 
 character(10) :: optimizer = 'lm'
-character(12) :: ele_anchor_pt = 'center'
+character(12) :: ele_anchor_pt = 'beginning'
 character(100) :: field_file, out_file = ''
 
 contains
@@ -992,6 +992,7 @@ open (1, file = b_file, recl = 500)
 
 write (1, '(a)')              '  field_calc = fieldmap,'
 write (1, '(a)')              '  gen_grad_map = {'
+write (1, '(a)')              '    field_scale = 1.0,'
 write (1, '(3a)')             '    ele_anchor_pt = ', trim(ele_anchor_pt), ','
 write (1, '(a, f10.6, a)')    '    dz =', del_meters(3), ','
 write (1, '(3(a, f12.8), a)') '    r0 = (', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), '),'

@@ -101,7 +101,7 @@ normal field table to GG, a parameter file will look like:
 	core_weight = 1          ! Merit function weight on "core" (points with (x,y) near (0,0)) field table points.
   sym_x = 1                ! X-axis symmetry. Possibilities are: -1, 0 (default), 1.
   sym_y = -1               ! Y-axis symmetry. Possibilities are: -1, 0 (default), 1.
-	ele_anchor_pt = "Center" ! or "beginning" or "end". Used to construct lattice file.
+	ele_anchor_pt = "beginning" ! or "center" or "end". Used to construct lattice file.
   x_pos_plot = 0, 0.02, 0.05  ! x-positions (in meters) to create a plotting file.
   y_pos_plot = 0, 0.01, 0.02  ! y-positions (in meters) to create a plotting file.
 /                        ! Ending slash signals end of param list. Everything outside is ignored.
@@ -115,7 +115,7 @@ out_file: Prefix used for naming output file(s).
 
 ele_anchor_pt: Anchor point of the map. See the Bmad manual for more details. Not used in any
 calculation and just used when constructing the compatible Bmad lattice file with the GG
-derivatives.
+derivatives. Default is "beginning"
 
 every_n_th_plane: This parameter can be used to reduce the number of z-planes being analyzed. A
 setting of "1" means analyze all z-planes, "2" means skip every other z-plane, etc. Use this parameter
