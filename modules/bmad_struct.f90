@@ -712,8 +712,8 @@ type gen_grad_map_struct
   type (gen_grad1_struct), allocatable :: gg(:)
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: field_type = magnetic$  ! or electric$
-  integer :: iz0 = int_garbage$      ! gg%coef(:) lower bound.
-  integer :: iz1 = int_garbage$      ! gg%coef(:) upper bound.
+  integer :: iz0 = int_garbage$      ! gg%deriv(:) lower bound.
+  integer :: iz1 = int_garbage$      ! gg%deriv(:) upper bound.
   real(rp) :: dz = 0                 ! Point spacing.
   real(rp) :: r0(3) = 0              ! field origin relative to ele_anchor_pt.
   real(rp) :: field_scale = 1        ! Factor to scale the fields by

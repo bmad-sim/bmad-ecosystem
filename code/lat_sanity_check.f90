@@ -42,6 +42,7 @@ type (control_struct), pointer :: ctl, ctl1, ctl2
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
 type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), pointer :: gg
 type (ele_attribute_struct) info
 type (lord_slave_struct), allocatable, target :: bls(:)
 type (lord_slave1_struct), pointer :: b
@@ -839,6 +840,32 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
             err_flag = .true.
           end select
         endif
+      enddo
+    endif
+
+    ! Gen_grad_map
+
+    if (associated(ele%gen_grad_map)) then
+      do iw = 1, size(ele%gen_grad_map)
+        gg_map => ele%gen_grad_map(iw)
+
+        do ix = 1, size(gg_map%gg)
+          gg => gg_map%gg(ix)
+          if (lbound(gg%deriv,1) /= gg_map%iz0) then
+            call out_io (s_fatal$, r_name, &
+                  'GEN_GRAD_MAP IN ELEMENT: ' // ele%name, &
+                  'HAS BAD DERIVATIVE TABLE LOWER BOUND: ' // int_str(lbound(gg%deriv,1)), &
+                  'SHOULD BE: ' // int_str(gg_map%iz0))
+            err_flag = .true.
+          endif
+          if (ubound(gg%deriv,1) /= gg_map%iz1) then
+            call out_io (s_fatal$, r_name, &
+                  'GEN_GRAD_MAP IN ELEMENT: ' // ele%name, &
+                  'HAS BAD DERIVATIVE TABLE UPPER BOUND: ' // int_str(ubound(gg%deriv,1)), &
+                  'SHOULD BE: ' // int_str(gg_map%iz1))
+            err_flag = .true.
+          endif
+        enddo
       enddo
     endif
 

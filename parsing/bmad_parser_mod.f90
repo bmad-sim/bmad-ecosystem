@@ -8716,7 +8716,6 @@ logical err_flag, delim_found, valid
 
 name = 'xxx'
 err_flag = .true.
-nder = -1
 gg_map%file = bp_com%line2_file_name
 
 !
@@ -8818,8 +8817,10 @@ do
         end select
 
       case ('DERIVS')
-        if (.not. expect_this ('={', .true., .false., 'NO "={" AFTER "DERIVES" IN GEN_GRAD_MAP', ele, delim, delim_found)) return
         iz = int_garbage$
+        nder = -1
+
+        if (.not. expect_this ('={', .true., .false., 'NO "={" AFTER "DERIVES" IN GEN_GRAD_MAP', ele, delim, delim_found)) return
 
         do
           if (.not. parser_fast_real_read(z, ele, ':', delim, 'GEN_GRAD_MAP DERIVS Z-POSITION')) return
@@ -8837,7 +8838,6 @@ do
                                    'FOR ELEMENT: ' // ele%name)
                 return
               endif
-              allocate(gg1%deriv(gg_map%iz0:gg_map%iz1, 0:nder))
             endif
 
           else
@@ -8869,10 +8869,8 @@ do
           if (delim == '}') exit
         enddo
 
-        if (gg_map%iz1 == int_garbage$) then
-          gg_map%iz1 = iz
-          call re_allocate2d(gg1%deriv, gg_map%iz1, nder, lb1 = gg_map%iz0, lb2 = 0)
-        endif
+        if (gg_map%iz1 == int_garbage$) gg_map%iz1 = iz
+        call re_allocate2d(gg1%deriv, gg_map%iz1, nder, lb1 = gg_map%iz0, lb2 = 0)
 
         if (iz /= gg_map%iz1) then
           call parser_error ('ENDING IZ-INDEX IN GEN_GRAD_MAP DERIVS TABLE NOT IS DIFFERENT FROM PRIOR DERIVS TABLE', 'FOR ELEMENT: ' // ele%name)
