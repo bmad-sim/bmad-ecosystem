@@ -48,8 +48,8 @@ integer, parameter :: m_max = 30
 integer :: Nx_min, Nx_max, Ny_min, Ny_max, Nz_min = int_garbage$, Nz_max = int_garbage$
 integer :: n_grid_pts
 integer :: n_cycles = 100000
-integer :: every_n_th_plane = 1, n_planes_add = 0, n_deriv_keep = -1
-integer :: n_deriv_max
+integer :: every_n_th_plane = 1, n_planes_add = 0
+integer :: n_deriv_max = -1
 integer :: iz_min = int_garbage$, iz_max = int_garbage$    ! Compute range
 integer :: m_cos(m_max) = -1
 integer :: m_sin(m_max) = -1
@@ -78,6 +78,7 @@ real(rp) merit
 logical printit
 
 character(10) :: optimizer = 'lm'
+character(12) :: ele_anchor_pt = 'center'
 character(100) :: field_file, out_file = ''
 
 contains
@@ -803,9 +804,10 @@ end function sym_score_calc
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Write all files except Bmad lattice file
 !-
 
-subroutine write_gg()
+subroutine write_gg_info()
 
 type (gg1_struct), pointer :: gg
 type (plot1_struct), pointer :: p
@@ -944,39 +946,6 @@ close (1)
 
 !--------------------------
 
-open (1, file = trim(out_file) // '.bmad', recl = 500)
-
-write (1, '(a)')              '  field_calc = fieldmap,'
-write (1, '(a)')              '  gen_grad_map = {'
-write (1, '(a, f10.6, a)')    '    dz =', del_meters(3), ','
-write (1, '(3(a, f12.8), a)') '    r0 = (', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), '),'
-
-do ig = 1, size(gg1)
-  gg => gg1(ig)
-  write (1, '(a)')        '    curve = {'
-  write (1, '(a, i2, a)') '      m    =', gg%m, ','
-  write (1, '(3a)')       '      kind = ', sincos_name(gg%sincos), ','
-  write (1, '(a, i2)')    '      derivs = {'
-
-  write (fmt, '(a, i0, a)') '(f13.4, a, ', size(gg%deriv,2), 'es20.12, a)' 
-  do iz = iz_min, iz_max-1
-    write (1, fmt) iz*del_meters(3), ':', gg%deriv(iz,:), ','
-  enddo
-  write (1, fmt) iz_max*del_meters(3), ':', gg%deriv(iz_max,:)
-  write (1, '(a)') '      }'
-  if (ig == size(gg1)) then
-    write (1, '(a)') '    }'
-  else
-    write (1, '(a)') '    },'
-  endif
-enddo
-
-write (1, '(a)') '  }'
-
-close (1)
-
-!
-
 call execute_command_line ('mkdir -p plot_data')
 do n = 1, size(plot_arr)
   p => plot_arr(n)
@@ -994,7 +963,7 @@ do n = 1, size(plot_arr)
   close (1)
 enddo
 
-end subroutine write_gg
+end subroutine write_gg_info
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1002,13 +971,74 @@ end subroutine write_gg
 !+
 !-
 
-subroutine read_gg()
+subroutine write_gg_bmad()
+
+type (gg1_struct), pointer :: gg
+type (plot1_struct), pointer :: p
+
+real(rp), allocatable :: dderiv(:)
+integer ig, iz, m, n, nmax
+character(40) fmt
+character(200) b_file
+
+!
+
+if (out_file == '') out_file = 'gg'
+
+!--------------------------
+
+b_file = trim(out_file) // '.bmad'
+open (1, file = b_file, recl = 500)
+
+write (1, '(a)')              '  field_calc = fieldmap,'
+write (1, '(a)')              '  gen_grad_map = {'
+write (1, '(3a)')             '    ele_anchor_pt = ', trim(ele_anchor_pt), ','
+write (1, '(a, f10.6, a)')    '    dz =', del_meters(3), ','
+write (1, '(3(a, f12.8), a)') '    r0 = (', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), '),'
+
+do ig = 1, size(gg1)
+  gg => gg1(ig)
+  write (1, '(a)')        '    curve = {'
+  write (1, '(a, i0, a)') '      m    = ', gg%m, ','
+  write (1, '(3a)')       '      kind = ', sincos_name(gg%sincos), ','
+  write (1, '(a, i2)')    '      derivs = {'
+
+  write (fmt, '(a, i0, a)') '(f15.4, a, ', size(gg%deriv,2), 'es20.12, a)' 
+  do iz = iz_min, iz_max-1
+    write (1, fmt) iz*del_meters(3), ':', gg%deriv(iz,:), ','
+  enddo
+  write (1, fmt) iz_max*del_meters(3), ':', gg%deriv(iz_max,:)
+  write (1, '(a)') '      }'
+  if (ig == size(gg1)) then
+    write (1, '(a)') '    }'
+  else
+    write (1, '(a)') '    },'
+  endif
+enddo
+
+write (1, '(a)') '  }'
+
+close (1)
+
+print *, 'Wrote Bmad lattice file: ', trim(b_file)
+
+end subroutine write_gg_bmad
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+!-
+
+subroutine read_gg(setup_field_table)
 
 type (lat_struct), target :: lat
-type (gen_grad_map_struct), pointer :: gg
+type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), pointer :: gg
 
 real(rp) field(3), theta, rho, xy(2)
-integer i, ix, iy, iz, ig
+integer i, n, ix, iy, iz, ig
+logical setup_field_table
 
 !
 
@@ -1018,53 +1048,81 @@ nullify(gg)
 
 do i = 1, lat%n_ele_max
   if (.not. associated(lat%ele(i)%gen_grad_map)) cycle
-  gg => lat%ele(i)%gen_grad_map(1)
+  gg_map => lat%ele(i)%gen_grad_map(1)
   print '(a)', 'Generalized gradient map from lattice element: ' // trim(lat%ele(i)%name)
   exit
 enddo
 
-if (.not. associated(gg)) then
+if (.not. associated(gg_map)) then
   print '(a)', 'CANNOT FIND LATTICE ELEMENT WITH GENERALIZED GRANDIENT MAP.'
   stop
 endif
 
-del_grid(3) = gg%dz / length_scale
-del_meters = del_grid * length_scale
+!
 
-r0_meters = r0_grid * length_scale
+if (setup_field_table) then
+  del_grid(3) = gg_map%dz / length_scale
+  del_meters = del_grid * length_scale
+  r0_meters = gg_map%r0
 
-if (Nz_min == int_garbage$) Nz_min = gg%iz0
-if (Nz_min < gg%iz0) Nz_min = gg%iz0
+  if (Nz_min == int_garbage$) Nz_min = gg_map%iz0
+  if (Nz_min < gg_map%iz0) Nz_min = gg_map%iz0
 
-if (Nz_max == int_garbage$) Nz_max = gg%iz1
-if (Nz_max > gg%iz1) Nz_max = gg%iz1
+  if (Nz_max == int_garbage$) Nz_max = gg_map%iz1
+  if (Nz_max > gg_map%iz1) Nz_max = gg_map%iz1
 
-iz_min = Nz_min
-iz_max = Nz_max
+  iz_min = Nz_min
+  iz_max = Nz_max
 
-allocate (Bx_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
-allocate (Bz_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+  allocate (Bx_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+  allocate (Bz_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
 
-Bx_dat = 0; By_dat = 0; Bz_dat = 0
+  Bx_dat = 0; By_dat = 0; Bz_dat = 0
 
-do ix = Nx_min, Nx_max
-do iy = Ny_min, Ny_max
-do iz = Nz_min, Nz_max
-  
-  xy = [ix * del_meters(1), iy * del_meters(2)]
-  rho = norm2(xy)
-  theta = atan2(xy(2), xy(1))
+  do ix = Nx_min, Nx_max
+  do iy = Ny_min, Ny_max
+  do iz = Nz_min, Nz_max
+    
+    xy = [ix * del_meters(1), iy * del_meters(2)]
+    rho = norm2(xy)
+    theta = atan2(xy(2), xy(1))
 
-  do ig = 1, size(gg%gg)
-    field = gen_grad_field (gg%gg(ig)%deriv(iz,:), gg%gg(ig)%m, gg%gg(ig)%sincos, rho, theta)
-    Bx_dat(ix,iy,iz) = Bx_dat(ix,iy,iz) + field(1)
-    By_dat(ix,iy,iz) = By_dat(ix,iy,iz) + field(2)
-    Bz_dat(ix,iy,iz) = Bz_dat(ix,iy,iz) + field(3)
+    do ig = 1, size(gg_map%gg)
+      field = gen_grad_field (gg_map%gg(ig)%deriv(iz,:), gg_map%gg(ig)%m, gg_map%gg(ig)%sincos, rho, theta)
+      Bx_dat(ix,iy,iz) = Bx_dat(ix,iy,iz) + field(1)
+      By_dat(ix,iy,iz) = By_dat(ix,iy,iz) + field(2)
+      Bz_dat(ix,iy,iz) = Bz_dat(ix,iy,iz) + field(3)
+    enddo
+
+  enddo
+  enddo
   enddo
 
-enddo
-enddo
-enddo
+! Setup local GG gg1 structure
+
+else
+  del_grid = [0.0_rp, 0.0_rp, gg_map%dz]
+  del_meters = del_grid
+  r0_meters = gg_map%r0
+
+  ele_anchor_pt = anchor_pt_name(gg_map%ele_anchor_pt)
+
+  iz_min = gg_map%iz0
+  if (z_min /= real_garbage$) iz_min = nint(z_min/gg_map%dz)
+
+  iz_max = gg_map%iz1
+  if (z_max /= real_garbage$) iz_max = nint(z_max/gg_map%dz)
+
+  allocate(gg1(size(gg_map%gg)))
+  do ig = 1, size(gg_map%gg)
+    gg => gg_map%gg(ig)
+    gg1(ig)%sincos = gg%sincos
+    gg1(ig)%m      = gg%m
+    n = max(ubound(gg%deriv,2), n_deriv_max)
+    allocate(gg1(ig)%deriv(iz_min:iz_max, 0:n))
+    gg1(ig)%deriv = gg%deriv(iz_min:iz_max, 0:n)
+  enddo
+endif
 
 end subroutine read_gg
 
