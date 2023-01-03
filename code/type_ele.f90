@@ -66,6 +66,7 @@ type (cylindrical_map_term1_struct), pointer :: cl_term
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
 type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), pointer :: gg
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
@@ -80,7 +81,7 @@ type (rad_map_struct), pointer :: rm0, rm1
 
 integer, optional, intent(in) :: type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
-integer ia, im, i1, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
+integer ia, im, i1, ig, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
 integer id1, id2, id3
 
@@ -507,14 +508,26 @@ if (associated(ele%gen_grad_map)) then
         name = attribute_name(ele, gg_map%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(2a)')         '    field_type:        ', em_field_type_name(gg_map%field_type)
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:       ', gg_map%field_scale
-      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:                ', gg_map%r0
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:                ', gg_map%dz
-      nl=nl+1; write (li(nl), '(a, 2i5)')     '    iz0, iz1:          ', gg_map%iz0, gg_map%iz1
-      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter:  ', trim(name)
-      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:     ', anchor_pt_name(gg_map%ele_anchor_pt)
-      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame   ', gg_map%curved_ref_frame
+      nl=nl+1; write (li(nl), '(2a)')         '  field_type:        ', em_field_type_name(gg_map%field_type)
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '  field_scale:       ', gg_map%field_scale
+      nl=nl+1; write (li(nl), '(a, 3es16.8)') '  r0:                ', gg_map%r0
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '  dz:                ', gg_map%dz
+      nl=nl+1; write (li(nl), '(a, 2i5)')     '  iz0, iz1:          ', gg_map%iz0, gg_map%iz1
+      nl=nl+1; write (li(nl), '(2a)')         '  master_parameter:  ', trim(name)
+      nl=nl+1; write (li(nl), '(2a)')         '  ele_anchor_pt:     ', anchor_pt_name(gg_map%ele_anchor_pt)
+      nl=nl+1; write (li(nl), '(a, l1)')      '  curved_ref_frame   ', gg_map%curved_ref_frame
+      do ig = 1, size(gg_map%gg)
+        gg => gg_map%gg(ig)
+        nl=nl+1; write (li(nl), '(4x, i0, a, i0, 2x, a)') ig, ': Curve m = ', gg%m, expression_op_name(gg%sincos)
+        nl=nl+1; write (li(nl), '(9x, a)') 'Z  Derivs....'
+        do n = lbound(gg%deriv,1), ubound(gg%deriv,1)
+          if (n - lbound(gg%deriv,1) > 10) then
+            nl=nl+1; li(nl) = '      ... etc. ...'
+            exit
+          endif
+          nl=nl+1; write(li(nl), '(i10, f10.6, 99es14.6)') n, n*gg_map%dz, gg%deriv(n,:)
+        enddo
+      enddo
     enddo
   endif
 endif
