@@ -260,13 +260,13 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
     if (ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$ .and. associated(ele%gen_grad_map)) then
       n = 0
       do ig = 1, size(ele%gen_grad_map(1)%gg)
-        n = max(n, ubound(ele%gen_grad_map(1)%gg(ig)%deriv, 2))
+        n = max(n, ubound(ele%gen_grad_map(1)%gg(ig)%deriv, 1))
       enddo
       if (nint(val(integrator_order$)) /= 6) val(integrator_order$) = 4
       if (nint(val(integrator_order$)) == 4) then
-        val(num_steps$) = nint((n-1)/4.0_rp)
+        val(num_steps$) = max(1, nint((n-1)/4.0_rp))
       else 
-        val(num_steps$) = nint((n-1)/7.0_rp)
+        val(num_steps$) = max(1, nint((n-1)/7.0_rp))
       endif
 
       val(ds_step$) = val(l$) / val(num_steps$)
