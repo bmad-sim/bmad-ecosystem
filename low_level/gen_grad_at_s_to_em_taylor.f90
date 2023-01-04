@@ -28,9 +28,9 @@ type (em_taylor_struct), target :: em_taylor(3)
 type (gen_grad1_struct), pointer :: gg
 type (em_taylor_coef_struct) em_coef(3)
 
-real(rp) s_pos, s0, coef, scale, z_rel, s_here, f0, f1
+real(rp) s_pos, s0, coef, scale, z_rel, s_here
 real(rp), allocatable ::xy_plus(:), xy_zero(:), xy_minus(:)
-real(rp), allocatable :: d0(:), d1(:), der(:)
+real(rp), allocatable :: der(:), spline(:)
 
 integer iz0, nd
 integer i, j, k, d, n, m, io, ix, m_max, iord, it, ig
@@ -63,8 +63,6 @@ endif
 !
 
 z_rel = s_here - iz0 * gen_grad%dz
-f1 = z_rel / gen_grad%dz
-f0 = 1.0_rp - f1
 
 ! Find largest order
 
@@ -113,16 +111,12 @@ do ig = 1, size(gen_grad%gg)
     xy_minus(m-2*j-1) = (-1)**j * n_choose_k(m-1, 2*j)  ! C_xy(m-1) coefs
   enddo
 
-  call re_allocate2(d0, 0, nd, .false.)
-  call re_allocate2(d1, 0, nd, .false.)
   call re_allocate2(der, 0, nd, .false.)
-
-  d0 = gg%deriv(iz0,:)
-  d1 = gg%deriv(iz0+1,:)
+  call n_spline_create(gg%deriv(iz0,:), gg%deriv(iz0+1,:), gen_grad%dz, spline)
 
   do d = 0, nd
     is_even = (.not. is_even)
-    coef = f0*poly_eval(d0(d:), z_rel, diff_coef=.true.) + f1*poly_eval(d1(d:), z_rel-gen_grad%dz, diff_coef=.true.)
+    coef = poly_eval(spline(d:), z_rel, diff_coef=.true.)
     if (coef == 0) cycle
 
     if (is_even) then
