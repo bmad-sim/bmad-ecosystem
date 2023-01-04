@@ -549,6 +549,14 @@ function n_choose_k(n, k) result (nck)
   integer n, k
 end function
 
+subroutine n_spline_create (deriv0, deriv1, x1, n_spline)
+  import
+  implicit none
+  real(rp) deriv0(0:), deriv1(0:)
+  real(rp) x1
+  real(rp), allocatable :: n_spline(:)
+end subroutine
+
 subroutine nametable_add (nametable, name, ix_name)
   import
   implicit none
