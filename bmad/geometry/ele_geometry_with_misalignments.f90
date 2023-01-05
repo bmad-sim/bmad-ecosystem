@@ -51,7 +51,7 @@ case (crystal$, mirror$, multilayer_mirror$)
   ! Misalignments are referenced to beginning of element
   floor = coords_relative_to_floor (ele0%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
                                       ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$))
-  call ele_geometry (floor, ele, floor)
+  call ele_geometry (floor, ele, floor, len_scale)
 
 case (girder$)
   floor = coords_relative_to_floor (ele%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &

@@ -80,7 +80,9 @@ Graphics User Interface (GUI) (\sref{s:gui.plot}).
 %
 \item[-geometry <width>x<height>] \Newline
 Overrides the plot window geometry. \vn{<width>} and \vn{<height>} are in Points. This is equivalent
-to setting \vn{plot_page%size} in the \vn{tao_plot_page} namelist \sref{s:init.plot}.
+to setting \vn{plot_page%size} in the \vn{tao_plot_page} namelist \sref{s:init.plot}. Also then
+environmental variable \vn{ACC_DPI_RESOLUTION} (\sref{s:plot.page.def}) can be used to vary the
+window size.
 %
 \item[-hook_init_file] \Newline
 Specifies an input file for customized versions of Tao. Default file
@@ -600,9 +602,9 @@ type tao_global_struct:
   n_opti_loops = 1                 ! number of optimization loops
   n_lat_layout_label_rows = 1      ! How many rows with a lat_layout
   datum_err_messages_max = 10      ! Max number of error messages per cycle.
-  phase_units = radians\$           ! Phase units on output.
+  phase_units = radians\$          ! Phase units on output.
   bunch_to_plot = 1                ! Which bunch to plot
-  random_seed = 0                  ! Use system clock by default
+  random_seed = -1                 ! Use system clock by default
   n_top10_merit = 10               ! Number of top constraints to print.
   random_engine = "pseudo"         ! Random number engine to use
   random_gauss_converter = "exact" ! Uniform to gauss conversion method
@@ -758,10 +760,13 @@ by \vn{global%random_sigma_cutoff}.
 See \vn{global%random_gauss_converter}.
 %
   \item{\vn{global%random_seed}} \Newline
-\vn{global%random_seed} sets the seed number for the pseudo-random number generator. A
-value of \vn{0} (the default) causes the seed number to be picked based upon the system
-clock. Use the \vn{show global} command to see what the seed number is.
-
+\vn{global%random_seed} sets the seed number for the pseudo-random number generator. A value of
+\vn{-1} (the default) means the seed number used is the number set in the lattice file. Any other
+number overrides the number set in the lattice file.  If the lattice file does not set the random
+number seed, a value of zero is used. A value of zero means that the the ``true'' random number seed
+used in generating random numbers is picked by \bmad based upon the system clock. Use the \vn{show
+global} command to see what the input and true random number seeds are.
+%
   \item{\vn{global%rf_on}} \Newline
 The rf cavities in circular lattices can be be toggled on or off using the \vn{global%rf_on}
 switch. The default is False. Notice that with the RF off, the beam energy will be independent of
@@ -843,7 +848,7 @@ The \vn{bmad_com_struct} holds bmad global variables.
   type bmad_com_struct:
     real(rp) max_aperture_limit = 1e3    
     real(rp) d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
-    real(rp) default_ds_step    = 0.2_rp    ! Integration step size.
+    real(rp) default_ds_save    = 0.2_rp    ! Integration step size.
     real(rp) significant_length = 1e-10     ! meter
     real(rp) rel_tol_tracking = 1e-8
     real(rp) abs_tol_tracking = 1e-10
@@ -986,7 +991,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     dump_at                   = "<ele_list>"  ! Save beam info at these elements.
     track_start               = "<ele_id>"    ! Beam tracking start element.
     track_end                 = "<ele_id>"    ! Beam tracking end element.
-    comb_ds_step              = <real>        ! Step size for beam parameter evaluation.
+    comb_ds_save              = <real>        ! Step size for beam parameter evaluation.
     beam_init%position_file   = <string>      ! Beam position init file.
     beam_init%distribution_type(3) = "<type>" ! "ELLIPSE", "KV", "GRID", or 
                                               !   "RAN_GAUSS" (default).
@@ -1014,7 +1019,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     beam_init%sig_e_jitter    = <real>        ! bunch energy spread rms jitter (dE/E)
     beam_init%spin(3)         = <real>*3      ! (x, y, z) spin components.
     beam_init%init_spin       = <logical>     ! Initialize the spin (default: False)
-    beam_init%random_engine   = "pseudo"      ! random number engine to use
+    beam_init%random_engine   = ""            ! random number engine to use
     beam_init%random_gauss_converter = "exact" ! Uniform to gauss conversion method
     beam_init%random_sigma_cutoff = 4.0        ! Cut-off in sigmas.
     beam_init%use_t_coords    = <logical>     ! Use time coords (for e_guns)?
@@ -1043,9 +1048,9 @@ Note that if the initial distribution is read in from a file, no random number g
 variations of the initial distribution will cause values calculated from the beam to ``jitter''. This
 can be especially problematical when doing an optimization as it may hinder finding the merit function minimum.
 %
-  \item[comb_ds_step] \Newline
+  \item[comb_ds_save] \Newline
 When tracking a beam, the beam parameters (like centroid, beam size matrix, etc) can be saved at 
-equally spaced points by setting \vn{comb_ds_step} to a positive number representing the
+equally spaced points by setting \vn{comb_ds_save} to a positive number representing the
 spacing between points. Default is -1 (no comb generated). Using a comb can give better detail 
 when plotting beam parameters as a function of $s$. Note: The actual spacing between points will
 be adjusted to give an integer number of points over the region of travel.
@@ -1256,15 +1261,15 @@ Example:
     default_attribute = "vkick"     ! vertical kick attribute
     default_weight    = 1e3
     default_step      = 1e-5
-    ix_min_var        = 0
-    ix_max_var        = 99
     var(0:99)%ele_name  = "v00w", "v01w", "v02w", "    ", "v04w", ...
   /
 \end{example}
 
 A \vn{tao_var} block is needed for each variable array to be defined.  \vn{v1_var%name} is the name
 of the array to be used with \tao commands. The \vn{var(N)} array of variables has an index \vn{i}
-that runs from \vni{ix_min_var} to \vni{ix_max_var}. A lattice element name \vn{var(N)%ele_name} and
+that runs from \vn{ix_min_var} to \vn{ix_max_var}. If \vn{ix_min_var} and/or \vn{ix_max_var} is not present,
+\tao will choose the range based upon which elements in the array define a valid variable.
+A lattice element name \vn{var(N)%ele_name} and
 the element's attribute to vary \vn{var(N)%attribute} needs to specified. Not all elements need to
 \vn{exist} and the element names of non--existent elements should be undefined or set to a name with
 only spaces in it. For those variables where \vn{var(N)%attribute} is not specified in the namelist
@@ -1796,7 +1801,7 @@ to the global coordinate system is
 \begin{figure}
   \centering
   \includegraphics[width=5in]{dynamic-aperture-rays.pdf}
-  \caption{
+  \caption[Dynamic aperture plot.]{
 The calculation of a dynamic aperture curve in the $x$-$y$ plane at a given initial $p_z$ value
 involves calculating aperture curve points (blue dots) along a set of ``rays'' (dashed lines) having
 a common origin point ($\cal O$) which is taken to be the reference orbit. The line segments between
@@ -2171,7 +2176,8 @@ set this variable in your login file to avoid having to setup a \tao init file t
 %
 \item[plot_page\%size] \Newline
 The \vn{plot_page%size} parameter sets the horizontal and vertical size of the plot window in
-\vn{points} (\sref{s:qp.units}).
+\vn{points} (\sref{s:qp.units}). Also then environmental variable \vn{ACC_DPI_RESOLUTION}
+(\sref{s:plot.page.def}) can be used to vary the window size.
 %
 \item[plot_page\%subtitle] \Newline
 Subtitle text of the plot. See the description for \vn{plot_page%title}. The defaults here are the
@@ -2867,6 +2873,7 @@ that holds these curves will be called the ``\vn{source}'' plot. Example:
    curve(1)%data_type = "alpha.a"
    curve(2)%data_source = "lat"
    curve(2)%data_type = "expression: sqrt(beta.b)"
+  /
 \end{example}
 This defines a source plot called \vn{src} with two curves which will be used in the parametric plot. 
 
@@ -3595,17 +3602,12 @@ For a \vn{"histogram"} type graph, \vn{curve%data_type} determines what coordina
 the x-axis.  Valid \vn{curve%data_type} values are:
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \begin{example}
-  "x"
-  "px"
-  "y"
-  "py"
-  "z"
-  "pz"
-  "intensity"       -- Photon total intensity 
-  "intensity_x"     -- Photon intensity along x-axis 
-  "intensity_y"     -- Photon intensity along y-axis
-  "phase_x"         -- Photon phase along x-axis
-  "phase_y"         -- Photon phase along y-axis
+  "x", "px", "y", "py","z", "pz"   -- Phase space coordinates
+  "intensity"                      -- Photon total intensity 
+  "intensity_x"                    -- Photon intensity along x-axis 
+  "intensity_y"                    -- Photon intensity along y-axis
+  "phase_x"                        -- Photon phase along x-axis
+  "phase_y"                        -- Photon phase along y-axis
 \end{example}
 In this example above, the $x$-axis of the plot will correspond to the $z$ phase space coordinate.
 
@@ -3774,7 +3776,11 @@ is plotted along the x-axis and \vn{curve%data_type} determines what phase space
 plotted along the y-axis. Phase space coordinates are one of:
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \begin{example}
-  "x",  "px",  "y",  "py",  "z",  "pz",
+  "x",  "px",  "y",  "py",  "z",  "pz",           ! Phase space coordinates
+  "time",                                         ! Particle time
+  "bunch_index",                                  ! Index of bunch particle is in.
+  "energy",                                       ! Total particle energy
+  "Ja", "Jb"                                      ! Action coordinate in action-angle coords.
   "intensity",  "intensity_x",  "intensity_y"     ! Photon intensity
   "phase_x", "phase_y"                            ! Photon coherent phase
 \end{example}

@@ -90,6 +90,8 @@ if (branch%param%geometry == closed$) then
   call track_probe(p8_a, ptc_state, fibre1 = ptc_fibre)
 
   cdamap = p8_a
+
+  call ptc_set_rf_state_for_c_normal(ptc_state%nocavity)
   call c_normal(cdamap, cc_norm, dospin = .true.)
 
   cc_norm%n = cc_norm%atot**(-1) * cdamap * cc_norm%atot

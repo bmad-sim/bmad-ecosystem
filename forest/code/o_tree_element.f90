@@ -47,6 +47,7 @@ module tree_element_MODULE
   integer, private, parameter :: nfac=20
   real(dp), private :: fac(0:nfac)
   integer :: nbe=8
+ 
   integer :: n_rf=0  !number of modulation clocks in the simulation
   integer :: modulationtype=0 ! 0 is the full blown and internal anf externa field, 1 is simple one on external field only without cos(theta)
   
@@ -868,8 +869,8 @@ CONTAINS
     ENDDO
     P8%om=P%om
     P8%t=P%t
-    P8%f=P%f
-    P8%phase=P%phase
+!    P8%f=P%f
+!    P8%phase=P%phase
 
   END subroutine EQUAL_RF8_RF8
 
@@ -884,8 +885,8 @@ CONTAINS
     ENDDO
     P8%om=P%om
     P8%t=P%t
-    P8%f=P%f
-    P8%phase=P%phase
+   ! P8%f=P%f
+   ! P8%phase=P%phase
   END subroutine EQUAL_RF8_RF
 
   subroutine EQUAL_RF_RF8(P,P8)
@@ -899,8 +900,8 @@ CONTAINS
     ENDDO
     P%om=P8%om
     P%t=P8%t
-    P%f=P8%f
-    P%phase=P8%phase
+!    P%f=P8%f
+!    P%phase=P8%phase
   END subroutine EQUAL_RF_RF8
 
 
@@ -1275,10 +1276,10 @@ CONTAINS
     do i=1,2
        call print(s%x(i),mfi)
     enddo
-    write(mfi,*) ' Harmonic amplitude and phase '
-    do i=1,size(s%f)
-       write(mfi,*) s%f(i),s%phase(i)
-    enddo
+ !   write(mfi,*) ' Harmonic amplitude and phase '
+  !  do i=1,size(s%f)
+ !      write(mfi,*) s%f(i),s%phase(i)
+ !   enddo
 
   END subroutine print_rf_phasor_8
 
@@ -1296,10 +1297,10 @@ CONTAINS
     do i=1,2
         write(mfi,*)s%x(i),mfi 
     enddo
-    write(mfi,*) ' Harmonic amplitude and phase '
-    do i=1,size(s%f)
-       write(mfi,*) s%f(i),s%phase(i)
-    enddo
+!    write(mfi,*) ' Harmonic amplitude and phase '
+!    do i=1,size(s%f)
+!       write(mfi,*) s%f(i),s%phase(i)
+!    enddo
   END subroutine print_rf_phasor
 
   subroutine print_spinor_8(S,MF)
@@ -1442,9 +1443,9 @@ CONTAINS
        CALL alloc(R%X(I))
     ENDDO
     CALL alloc(R%om)
-    r%f=0
-    r%phase=0
-    r%f(1)=1
+  !  r%f=0
+ !   r%phase=0
+!    r%f(1)=1
 !    CALL alloc(R%t)
 
   END    subroutine ALLOC_rf_phasor_8
@@ -1517,8 +1518,8 @@ end subroutine alloc_probes_8
     ENDDO
     CALL KILL(R%om)
 !    CALL KILL(R%t)
-    r%f=0
-    r%phase=0
+!    r%f=0
+!    r%phase=0
   END    subroutine kill_rf_phasor_8
 
 

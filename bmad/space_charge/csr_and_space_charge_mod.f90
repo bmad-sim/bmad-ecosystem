@@ -144,7 +144,7 @@ type (floor_position_struct) floor
 
 real(rp), optional :: s_start, s_end
 real(rp) s0_step, vec0(6), vec(6), theta_chord, theta0, theta1, L
-real(rp) e_tot, f1, x, z, ds_step
+real(rp) e_tot, f1, x, z, ds_step, s_save_last
 
 integer i, j, n, ie, ns, nb, n_step, n_live, i_step
 integer :: iu_wake
@@ -282,6 +282,8 @@ csr%actual_track_step = csr%ds_track_step * (csr%eleinfo(ele%ix_ele)%L_chord / e
 auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
 bmad_com%auto_bookkeeper = .false.   ! make things go faster
 
+call save_a_bunch_step (ele, bunch, bunch_track, s_start)
+
 !----------------------------------------------------------------------------------------
 ! Loop over the tracking steps
 ! runt is the element that is tracked through at each step.
@@ -351,7 +353,7 @@ do i_step = 0, n_step
 
   call csr_and_sc_apply_kicks (ele, csr, bunch%particle)
 
-  call save_bunch_track (bunch, ele, s0_step)
+  call save_a_bunch_step (ele, bunch, bunch_track, s0_step)
 
   ! Record wake to file?
 
@@ -364,7 +366,7 @@ do i_step = 0, n_step
     endif
     write (iu_wake, '(a)') '!#-----------------------------'
     write (iu_wake, '(a, i4, f12.6)') '! Step index:', i_step
-    write (iu_wake, '(a, f12.6)') '! S-position:', ele%s_start + s0_step
+    write (iu_wake, '(a, f12.6)') '! S-position:', s0_step
     write (iu_wake, '(a)') '!         Z   Charge/Meter    CSR_Kick/m       I_CSR/m      S_Source' 
     if (allocated(csr%kick1)) then
       ds_step = csr%kick_factor * csr%actual_track_step
@@ -1638,6 +1640,8 @@ endif
 ! Loop over the tracking steps
 ! runt is the element that is tracked through at each step.
 
+call save_a_bunch_step (ele, bunch, bunch_track, s_start)
+
 do i_step = 0, n_step
 
   ! track through the runt
@@ -1695,8 +1699,8 @@ do i_step = 0, n_step
     ! Set beta
     call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = p%beta)
   enddo
-  
-  call save_bunch_track (bunch, ele, s0_step)
+
+  call save_a_bunch_step (ele, bunch, bunch_track, s0_step+s_start)
 
 enddo
 
@@ -1704,14 +1708,5 @@ bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
 err = .false.
 
 end subroutine track1_bunch_csr3d
-
-
-
-
-
-
-
-
-
 
 end module

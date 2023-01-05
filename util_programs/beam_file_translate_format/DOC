@@ -15,6 +15,5 @@ where
 And <out_format> is one of:
   ascii			! ASCII file format
   hdf5      ! HDF5 format
-  binary    ! Deprecated. Superceeded by HDF5. Please avoid using this.
 
 

@@ -36,7 +36,11 @@ logical, optional :: calculate_angles
 local_position = body_position
 L2 = ele%value(L$) / 2
 
-if (ele%key == sbend$) then
+select case (ele%key)
+case (patch$)
+  if (present(w_mat)) call mat_make_unit(w_mat)
+
+case (sbend$)
   g = ele%value(g$)
   s0 = body_position%r(3)
   ref_tilt = ele%value(ref_tilt_tot$)
@@ -74,7 +78,7 @@ if (ele%key == sbend$) then
 
   if (present(w_mat)) w_mat = Sb
 
-else
+case default
   if (ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0 .or. ele%value(tilt_tot$) /= 0) then
     ! need to rotate element frame to align with local frame. 
     call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), S_mis)
@@ -91,7 +95,7 @@ else
   local_position%r = local_position%r + [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
   
   if (present(w_mat)) w_mat = S_mis
-endif
+end select
 
 ! If angles are not needed, just return zeros; 
 if (logic_option(.true., calculate_angles)) then

@@ -21,7 +21,7 @@
 
 subroutine g_bending_strength_from_em_field (ele, param, s_rel, orbit, local_ref_frame, g, dg)
 
-use em_field_mod, dummy => g_bending_strength_from_em_field
+use bmad_routine_interface, dummy => g_bending_strength_from_em_field
 
 implicit none
 

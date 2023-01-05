@@ -142,7 +142,7 @@ case (multipole$, ab_multipole$)
   call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilt)
 
   if (ix_pole_max > -1) then
-    call multipole_kicks (knl, tilt, param%particle, ele, end_orb, ref_orb_offset = (ele%key == multipole$))
+    call multipole_kicks (knl, tilt, ele, end_orb, ref_orb_offset = (ele%key == multipole$))
 
     if (logic_option(.false., make_matrix)) then
       call multipole_kick_mat (knl, tilt, param%particle, ele, end_orb, 1.0_rp, ele%mat6)

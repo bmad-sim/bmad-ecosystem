@@ -172,9 +172,10 @@ do jg = 1, size(plot%graph)
 
   ! May need to x_scale after calling tao_graph_setup if scaling uses data.
 
-  call tao_x_scale_graph (graph, graph%x%min, graph%x%max, include_wall = .true.)
+  call tao_x_scale_graph (graph, graph%x%eval_min, graph%x%eval_max, include_wall = .true.)
   call tao_graph_setup (plot, graph)
-  call tao_x_scale_graph (graph, graph%x%min, graph%x%max, include_wall = .true.)
+  if (.not. graph%is_valid) cycle
+  call tao_x_scale_graph (graph, graph%x%eval_min, graph%x%eval_max, include_wall = .true.)
 
   ! Scale the y-axis and determine if any points are out-of-bounds.
 

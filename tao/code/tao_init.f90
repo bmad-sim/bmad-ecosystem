@@ -19,6 +19,7 @@ use tao_command_mod, dummy8 => tao_init
 use tao_set_mod, dummy9 => tao_init
 use tao_plot_mod, only: tao_draw_plots
 use tao_plot_window_mod, only: tao_destroy_plot_window
+use random_mod
 
 !$ use omp_lib
 
@@ -44,7 +45,7 @@ character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
 
-integer i, i0, j, i2, j2, n_universes, iu, ix, ib, ip, ios
+integer i, i0, j, i2, j2, n_universes, iu, ix, ib, ip, ios, ie
 integer iu_log, omp_n
 
 logical err_flag
@@ -219,6 +220,13 @@ call tao_init_building_wall (building_wall_file)
 
 call tao_hook_init1 (init_tao_file)
 
+! Seed random number generator
+
+if (s%global%random_seed /= -1) call ran_seed_put (s%global%random_seed)
+if (s%global%random_engine /= '') call ran_engine (s%global%random_engine)
+call ran_gauss_converter (s%global%random_gauss_converter)
+if (s%global%random_sigma_cutoff > 0) call ran_gauss_converter (set_sigma_cut = s%global%random_sigma_cutoff)
+
 ! check variables
 ! check if vars are good
 
@@ -333,7 +341,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (u%design_same_as_previous) cycle
 
   do ib = 0, ubound(u%model%lat%branch, 1)
-    if (u%model%lat%branch(ib)%param%geometry == closed$) then
+    branch => u%model%lat%branch(ib)
+    if (branch%param%geometry == closed$) then
       call calc_z_tune(u%model%lat%branch(ib))
       if (s%global%rf_on .and. do_print) then
         call out_io (s_info$, r_name, 'Note! Default now is for RFcavities is to be left on (used to be off).', &
@@ -344,6 +353,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         call set_on_off (rfcavity$, u%model%lat, off$, ix_branch = ib)
       endif
     endif
+    do ie = 1, branch%n_ele_max
+      ! Make sure cache is calculated with respect to particle orbit.
+      if (associated(branch%ele(ie)%rad_map)) branch%ele(ie)%rad_map%stale = .true.
+    enddo
   enddo
 enddo
 

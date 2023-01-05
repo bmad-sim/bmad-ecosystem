@@ -21,7 +21,6 @@ contains
 
 subroutine tao_init_global (init_file)
 
-use random_mod
 use opti_de_mod, only: opti_de_param
 use input_mod
 
@@ -90,16 +89,10 @@ contains
 
 subroutine end_bookkeeping ()
 
-! Tao does its own bookkeeping
+! Not using auto bookkeeping will speed up calculations.
 
 bmad_com%auto_bookkeeper = .false.
 s%com%valid_plot_who(1:5) = ['model ', 'base  ', 'ref   ', 'design', 'meas  ']
-
-! Seed random number generator
-
-call ran_seed_put (s%global%random_seed)
-call ran_engine (s%global%random_engine)
-call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
 call set_this_logical_command_arg (s%init%disable_smooth_line_calc_arg, .false., s%global%disable_smooth_line_calc)
 call set_this_logical_command_arg (s%init%no_stopping_arg, .true., s%global%stop_on_error)
@@ -162,7 +155,7 @@ type (beam_init_struct) beam_init
 type (tao_beam_branch_struct), pointer :: bb
 type (branch_struct), pointer :: branch
 
-real(rp) comb_ds_step
+real(rp) comb_ds_save, comb_max_ds_save
 
 integer i, k, iu, ios, ib, n_uni, ib0, ie0
 integer n, iostat, ix_universe
@@ -180,7 +173,7 @@ logical err, always_reinit
 namelist / tao_beam_init / ix_universe, beam_init, always_reinit, &
             beam0_file, beam_init_file_name, beam_position0_file, &
             beam_track_start, beam_track_end, beam_saved_at, beam_dump_at, beam_dump_file, &
-            track_start, track_end, saved_at, dump_at, dump_file, comb_ds_step
+            track_start, track_end, saved_at, dump_at, dump_file, comb_ds_save, comb_max_ds_save
 
 !-----------------------------------------------------------------------
 ! Init Beams
@@ -254,7 +247,8 @@ do
   dump_file = ''
   track_start = ''
   track_end = ''
-  comb_ds_step = -1
+  comb_ds_save = -1
+  comb_max_ds_save = -1
 
   ! Read beam parameters
 
@@ -319,16 +313,16 @@ do
   call out_io (s_blank$, r_name, 'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
   if (ix_universe == -1) then
     do i = lbound(s%u, 1), ubound(s%u, 1)
-      s%u(i)%beam = tao_beam_uni_struct(saved_at, dump_file, dump_at, comb_ds_step, .true., always_reinit)
-      call tao_init_beam_in_universe(s%u(i), beam_init, track_start, track_end)
+      s%u(i)%beam = tao_beam_uni_struct(saved_at, dump_file, dump_at, .true., always_reinit)
+      call tao_init_beam_in_universe(s%u(i), beam_init, track_start, track_end, comb_ds_save, comb_max_ds_save)
     enddo
   else
     if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
       call out_io (s_error$, r_name, 'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
       return
     endif
-    s%u(ix_universe)%beam = tao_beam_uni_struct(saved_at, dump_file, dump_at, comb_ds_step, .true., always_reinit)
-    call tao_init_beam_in_universe(s%u(ix_universe), beam_init, track_start, track_end)
+    s%u(ix_universe)%beam = tao_beam_uni_struct(saved_at, dump_file, dump_at, .true., always_reinit)
+    call tao_init_beam_in_universe(s%u(ix_universe), beam_init, track_start, track_end, comb_ds_save, comb_max_ds_save)
   endif
 
 enddo
@@ -343,7 +337,7 @@ end subroutine tao_init_beams
 
 ! Initialize the beams. Determine which element to track beam to
 
-subroutine tao_init_beam_in_universe (u, beam_init, track_start, track_end)
+subroutine tao_init_beam_in_universe (u, beam_init, track_start, track_end, comb_ds_save, comb_max_ds_save)
 
 type (tao_universe_struct), target :: u
 type (beam_init_struct) beam_init
@@ -351,7 +345,9 @@ type (ele_struct), pointer :: ele
 type (ele_pointer_struct), allocatable, target :: eles(:)
 type (branch_struct), pointer :: branch
 type (tao_beam_branch_struct), pointer :: bb
+type (tao_lattice_branch_struct), pointer :: tao_branch
 
+real(rp) comb_ds_save, comb_max_ds_save
 integer k, n_loc
 
 logical always_reinit, err
@@ -375,6 +371,11 @@ bb%ix_track_start = ele%ix_ele
 bb%beam_init = beam_init
 bb%track_start = track_start
 
+tao_branch => u%model%tao_branch(ele%ix_branch) 
+if (.not. allocated(tao_branch%bunch_params_comb)) allocate(tao_branch%bunch_params_comb(beam_init%n_bunch))
+tao_branch%bunch_params_comb%ds_save = comb_ds_save
+tao_branch%bunch_params_comb%max_ds_save = comb_max_ds_save
+
 ! Tracking stop
 
 bb%track_end = track_end
@@ -384,7 +385,8 @@ if (track_end == '') then
   if (branch%param%geometry == open$) then
     bb%ix_track_end = branch%n_ele_track
   else
-    bb%ix_track_end = max(0, bb%ix_track_start-1)
+    bb%ix_track_end = bb%ix_track_start - 1
+    if (bb%ix_track_end == -1) bb%ix_track_end = branch%n_ele_track
   endif
 
 else

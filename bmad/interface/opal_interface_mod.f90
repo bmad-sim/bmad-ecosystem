@@ -1,6 +1,5 @@
 module opal_interface_mod
 
-use em_field_mod
 use write_lat_file_mod
 
 private write_opal_line

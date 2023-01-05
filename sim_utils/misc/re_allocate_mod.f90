@@ -95,8 +95,8 @@ end interface
 !   a_ptr(:)      -- all_pointer_struct: array of all_pointer_structs.
 !   cmpl(:)       -- complex(rp), Allocatable: Complex array.
 !   logic(:)      -- logical, allocatable: Logical array.
-!   n_min         -- Integer: Desired lower bound.
-!   n_max         -- Integer: Desired upper bound.
+!   n_min         -- integer: Desired lower bound.
+!   n_max         -- integer: Desired upper bound.
 !   exact         -- logical, optional: If present and False then the size of 
 !                      the output array is permitted to be larger than n. 
 !                      Default is True.
@@ -106,7 +106,7 @@ end interface
 ! Output:
 !   str(:)        -- character(*), allocatable: Allocated array. 
 !   var_str(:)    -- var_length_string_struct, allocatable: Allocated array.
-!   inte(:)       -- Integer, allocatable: Allocated array. 
+!   inte(:)       -- integer, allocatable: Allocated array. 
 !   re(:)         -- real(rp), Allocatable: Allocated array. 
 !   a_ptr(:)      -- all_pointer_struct: Real pointer array.
 !   cmpl(:)       -- complex(rp), Allocatable: Allocated Array.
@@ -136,30 +136,31 @@ end interface
 ! Note: using exact = False can increase computation speed by
 ! preventing unneccessary deallocations/reallocations.
 !
-! Note: re_allocate2s is an overloaded name for:
-!   Subroutine re_allocate_string2d (str2, n1, n2, exact, init_val)
-!   Subroutine re_allocate_var_string2d (var_str2, n1, n2, exact, init_val)
-!   Subroutine re_allocate_integer2d (inte2, n1, n2, exact, init_val)
-!   Subroutine re_allocate_real2d (re2, n1, n2, exact, init_val)
-!   Subroutine re_allocate_logical2d (logic2, n1, n2, exact, init_val)
+! Note: re_allocate2d is an overloaded name for:
+!   Subroutine re_allocate_string2d (str2, n1, n2, exact, init_val, lb1, lb2)
+!   Subroutine re_allocate_var_string2d (var_str2, n1, n2, exact, init_val, lb1, lb2)
+!   Subroutine re_allocate_integer2d (inte2, n1, n2, exact, init_val, lb1, lb2)
+!   Subroutine re_allocate_real2d (re2, n1, n2, exact, init_val, lb1, lb2)
+!   Subroutine re_allocate_logical2d (logic2, n1, n2, exact, init_val, lb1, lb2)
 !
 ! Input:
 !   str2(:,:)       -- character(*), allocatable: String array.
 !   var_str2(:,:)   -- var_length_string_struct, allocatable: Variable length string structure.
-!   inte2(:,:)      -- Integer, allocatable: Integer array.
+!   inte2(:,:)      -- integer, allocatable: Integer array.
 !   re2(:,:)        -- real(rp), allocatable: Real array.
 !   logic2(:,:)     -- logical, allocatable: Logical array.
-!   n1, n2          -- Integer: Minimum size needed for 2-dimensional arrays.
+!   n1, n2          -- integer: Minimum size needed for 2-dimensional arrays.
 !   exact           -- logical, optional: If present and False then the size of 
 !                        the output array is permitted to be larger than n. 
 !                        Default is True.
 !   init_val        -- optional: If present, init created array space to this value.
 !                        If init_val is not present, no init will be done.
+!   lb1, lb2        -- integer, optional: Array lower bounds. If not present, lower bounds are 1.
 !
 ! Output:
 !   str2(:,:)       -- character(*), allocatable: Allocated array.
 !   var_str2(:,:)   -- var_length_string_struct, allocatable: Allocated array.
-!   inte2(:,:)      -- Integer, allocatable: Allocated array.
+!   inte2(:,:)      -- integer, allocatable: Allocated array.
 !   re2(:,:)        -- real(rp), allocatable: Allocated array.
 !   logic2(:,:)     -- logical, allocatable: Allocated array. 
 !-
@@ -196,11 +197,11 @@ end interface
 ! Input:
 !   str(:)      -- Character(*), pointer: String array.
 !   var_str(:)  -- var_length_string_struct, pointer: Variable length string structure.
-!   inte(:)     -- Integer, pointer: Integer array.
-!   re(:)       -- Real(rp), Pointer: Real array.
-!   logic(:)    -- Logical, pointer: Logical array.
-!   n           -- Integer: Minimum size needed.
-!   exact       -- Logical, optional: If present and False then the size of 
+!   inte(:)     -- integer, pointer: Integer array.
+!   re(:)       -- real(rp), Pointer: Real array.
+!   logic(:)    -- logical, pointer: Logical array.
+!   n           -- integer: Minimum size needed.
+!   exact       -- logical, optional: If present and False then the size of 
 !                    the output array is permitted to be larger than n. 
 !                    Default is True.
 !   init_val    -- optional: If present, init created array space to this value.
@@ -209,9 +210,9 @@ end interface
 ! Output:
 !   str(:)      -- Character(*), pointer: Associated array with size(str) >= n.
 !   var_str(:)  -- var_length_string_struct, pointer: Associated array with size(inte) >= n.
-!   inte(:)     -- Integer, pointer: Associated array with size(inte) >= n.
-!   re(:)       -- Real(rp), Pointer: Associated array with size(re) >= n.
-!   logic(:)    -- Logical, pointer: Associated array with size(logic) >= n.
+!   inte(:)     -- integer, pointer: Associated array with size(inte) >= n.
+!   re(:)       -- real(rp), Pointer: Associated array with size(re) >= n.
+!   logic(:)    -- logical, pointer: Associated array with size(logic) >= n.
 !-
 
 interface re_associate
@@ -237,8 +238,8 @@ contains
 !
 ! Input:
 !   str(:) -- Character(*), allocatable: String array.
-!   n      -- Integer: Size wanted.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   n      -- integer: Size wanted.
+!   exact  -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
@@ -391,14 +392,14 @@ end subroutine re_allocate_var_string1
 ! array will be lost if n is less than the original size of the array
 !
 ! Input:
-!   inte(:) -- Integer, allocatable: Integer array.
-!   n      -- Integer: Size wanted.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   inte(:) -- integer, allocatable: Integer array.
+!   n      -- integer: Size wanted.
+!   exact  -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
 ! Output:
-!   inte(:) -- Integer, allocatable: Allocated array with size(inte) >= n.
+!   inte(:) -- integer, allocatable: Allocated array with size(inte) >= n.
 !-
 
 subroutine re_allocate_integer (inte, n, exact, init_val)
@@ -445,8 +446,8 @@ end subroutine re_allocate_integer
 !
 ! Input:
 !   cmpl(:)  -- Complex(rp), Allocatable: Complex array.
-!   n      -- Integer: Size wanted.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   n      -- integer: Size wanted.
+!   exact  -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
@@ -497,14 +498,14 @@ end subroutine re_allocate_complex
 ! array will be lost if n is less than the original size of the array
 !
 ! Input:
-!   re(:)  -- Real(rp), Allocatable: Real array.
-!   n      -- Integer: Size wanted.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   re(:)  -- real(rp), Allocatable: Real array.
+!   n      -- integer: Size wanted.
+!   exact  -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
 ! Output:
-!   re(:)  -- Real(rp), Allocatable: Allocated array with size(re) >= n.
+!   re(:)  -- real(rp), Allocatable: Allocated array with size(re) >= n.
 !-
 
 subroutine re_allocate_real (re, n, exact, init_val)
@@ -551,8 +552,8 @@ end subroutine re_allocate_real
 !
 ! Input:
 !   a_ptr(:)  -- All_pointer_struct, Allocatable: All_pointer array.
-!   n         -- Integer: Size wanted.
-!   exact     -- Logical, optional: If present and False then the size of 
+!   n         -- integer: Size wanted.
+!   exact     -- logical, optional: If present and False then the size of 
 !                  the output array is permitted to be larger than n. 
 !                  Default is True.
 !
@@ -603,14 +604,14 @@ end subroutine re_allocate_all_pointer
 ! array will be lost if n is less than the size of the array
 !
 ! Input:
-!   logic(:) -- Logical, allocatable: Logical array.
-!   n      -- Logical: Size wanted.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   logic(:) -- logical, allocatable: Logical array.
+!   n      -- logical: Size wanted.
+!   exact  -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
 ! Output:
-!   logic(:) -- Logical, allocatable: Allocated array with size(logic) >= n.
+!   logic(:) -- logical, allocatable: Allocated array with size(logic) >= n.
 !-
 
 subroutine re_allocate_logical (logic, n, exact, init_val)
@@ -659,9 +660,9 @@ end subroutine re_allocate_logical
 !
 ! Input:
 !   str(:) -- Character(*), allocatable: String array.
-!   n1     -- Integer: Desired lower bound.
-!   n2     -- Integer: Desired upper bound.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   n1     -- integer: Desired lower bound.
+!   n2     -- integer: Desired upper bound.
+!   exact  -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
@@ -766,15 +767,15 @@ end subroutine re_allocate2_var_string
 ! array will be lost if [n1, n2] is less than the original size of the array
 !
 ! Input:
-!   inte(:) -- Integer, allocatable: Integer array.
-!   n1     -- Integer: Desired lower bound.
-!   n2     -- Integer: Desired upper bound.
-!   exact   -- Logical, optional: If present and False then the size of 
+!   inte(:) -- integer, allocatable: Integer array.
+!   n1     -- integer: Desired lower bound.
+!   n2     -- integer: Desired upper bound.
+!   exact   -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
-!   inte(:) -- Integer, allocatable: Allocated array with 
+!   inte(:) -- integer, allocatable: Allocated array with 
 !                bounds spanning at least [n1, n2]
 !-
 
@@ -822,9 +823,9 @@ end subroutine re_allocate2_integer
 !
 ! Input:
 !   cmpl(:)  -- Complex(rp), Allocatable: Complex array.
-!   n1     -- Integer: Desired lower bound.
-!   n2     -- Integer: Desired upper bound.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   n1     -- integer: Desired lower bound.
+!   n2     -- integer: Desired upper bound.
+!   exact  -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
@@ -876,15 +877,15 @@ end subroutine re_allocate2_complex
 ! array will be lost if [n1, n2] is less than the original size of the array
 !
 ! Input:
-!   re(:)  -- Real(rp), Allocatable: Real array.
-!   n1     -- Integer: Desired lower bound.
-!   n2     -- Integer: Desired upper bound.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   re(:)  -- real(rp), Allocatable: Real array.
+!   n1     -- integer: Desired lower bound.
+!   n2     -- integer: Desired upper bound.
+!   exact  -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
-!   re(:)  -- Real(rp), Allocatable: Allocated array with 
+!   re(:)  -- real(rp), Allocatable: Allocated array with 
 !                bounds spanning at least [n1, n2]
 !-
 
@@ -932,9 +933,9 @@ end subroutine re_allocate2_real
 !
 ! Input:
 !   a_ptr(:) -- All_pointer_struct, allocatable: Real array.
-!   n1       -- Integer: Desired lower bound.
-!   n2       -- Integer: Desired upper bound.
-!   exact    -- Logical, optional: If present and False then the size of 
+!   n1       -- integer: Desired lower bound.
+!   n2       -- integer: Desired upper bound.
+!   exact    -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
@@ -984,15 +985,15 @@ end subroutine re_allocate2_all_pointer
 ! array will be lost if [n1, n2] is less than the size of the array
 !
 ! Input:
-!   logic(:) -- Logical, allocatable: Logical array.
-!   n1     -- Integer: Desired lower bound.
-!   n2     -- Integer: Desired upper bound.
-!   exact    -- Logical, optional: If present and False then the size of 
+!   logic(:) -- logical, allocatable: Logical array.
+!   n1     -- integer: Desired lower bound.
+!   n2     -- integer: Desired upper bound.
+!   exact    -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
-!   logic(:) -- Logical, allocatable: Allocated array with 
+!   logic(:) -- logical, allocatable: Allocated array with 
 !                 bounds spanning at least [n1, n2]
 !-
 
@@ -1031,7 +1032,7 @@ end subroutine  re_allocate2_logical
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_string2d (str2, n1, n2, exact, init_val)
+! Subroutine re_allocate_string2d (str2, n1, n2, exact, init_val, lb1, lb2)
 !
 ! Routine to reallocate an array of strings.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -1040,8 +1041,8 @@ end subroutine  re_allocate2_logical
 !
 ! Input:
 !   str2(:,:) -- Character(*), allocatable: String array.
-!   n1, n2    -- Integer: Size wanted.
-!   exact     -- Logical, optional: If present and False then the size of 
+!   n1, n2    -- integer: Size wanted.
+!   exact     -- logical, optional: If present and False then the size of 
 !                  the output array is permitted to be larger than [n1, n2]. 
 !                  Default is True.
 !
@@ -1050,11 +1051,12 @@ end subroutine  re_allocate2_logical
 !                  bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_string2d (str2, n1, n2, exact, init_val)
+subroutine re_allocate_string2d (str2, n1, n2, exact, init_val, lb1, lb2)
 
 implicit none
 
-integer n1, n2, n1_old, n2_old, n1_save, n2_save
+integer n1, n2, n1_old, n2_old, n1_save, n2_save, l1, l2
+integer, optional :: lb1, lb2
 character(*), allocatable :: str2(:,:)
 character(len(str2)), allocatable :: temp_str2(:,:)
 character(*), optional :: init_val
@@ -1063,18 +1065,21 @@ logical, optional :: exact
 
 !
 
+l1 = integer_option(1, lb1)
+l2 = integer_option(1, lb2)
+
 if (allocated(str2)) then
   n1_old = ubound(str2, 1); n2_old = ubound(str2, 2)
   if (n1 == n1_old .and. n2 == n2_old) return
   if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
   call move_alloc(str2, temp_str2)
-  allocate (str2(n1,n2))
+  allocate (str2(l1:n1, l2:n2))
   if (present(init_val)) str2 = init_val
   n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
-  str2(1:n1_save,1:n2_save) = temp_str2(1:n1_save,1:n2_save)
+  str2(l1:n1_save,l2:n2_save) = temp_str2(l1:n1_save,l2:n2_save)
   deallocate (temp_str2)  
 else
-  allocate (str2(n1,n2))
+  allocate (str2(l1:n1, l2:n2))
   if (present(init_val)) str2 = init_val
 endif
 
@@ -1084,7 +1089,7 @@ end subroutine re_allocate_string2d
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_var_string2d (var_str2, n1, n2, exact, init_val)
+! Subroutine re_allocate_var_string2d (var_str2, n1, n2, exact, init_val, lb1, lb2)
 !
 ! Routine to reallocate an array of var_strings.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -1103,11 +1108,12 @@ end subroutine re_allocate_string2d
 !                      bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_var_string2d (var_str2, n1, n2, exact, init_val)
+subroutine re_allocate_var_string2d (var_str2, n1, n2, exact, init_val, lb1, lb2)
 
 implicit none
 
-integer n1, n2, n1_old, n2_old, n1_save, n2_save
+integer n1, n2, n1_old, n2_old, n1_save, n2_save, l1, l2
+integer, optional :: lb1, lb2
 type(var_length_string_struct), allocatable :: var_str2(:,:)
 type(var_length_string_struct), allocatable :: temp_var_str2(:,:)
 type(var_length_string_struct), optional :: init_val
@@ -1116,18 +1122,21 @@ logical, optional :: exact
 
 !
 
+l1 = integer_option(1, lb1)
+l2 = integer_option(1, lb2)
+
 if (allocated(var_str2)) then
   n1_old = ubound(var_str2, 1); n2_old = ubound(var_str2, 2)
   if (n1 == n1_old .and. n2 == n2_old) return
   if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
   call move_alloc(var_str2, temp_var_str2)
-  allocate (var_str2(n1,n2))
+  allocate (var_str2(l1:n1, l2:n2))
   if (present(init_val)) var_str2 = init_val
   n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
-  var_str2(1:n1_save,1:n2_save) = temp_var_str2(1:n1_save,1:n2_save)
+  var_str2(l1:n1_save,l2:n2_save) = temp_var_str2(l1:n1_save,l2:n2_save)
   deallocate (temp_var_str2)  
 else
-  allocate (var_str2(n1,n2))
+  allocate (var_str2(l1:n1, l2:n2))
   if (present(init_val)) var_str2 = init_val
 endif
 
@@ -1137,7 +1146,7 @@ end subroutine re_allocate_var_string2d
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_integer2d (inte2, n1, n2, exact, init_val)
+! Subroutine re_allocate_integer2d (inte2, n1, n2, exact, init_val, lb1, lb2)
 !
 ! Routine to reallocate an array of integers.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -1145,18 +1154,18 @@ end subroutine re_allocate_var_string2d
 ! array will be lost if [n1, n2] is less than the original size of the array
 !
 ! Input:
-!   inte2(:,:) -- Integer, allocatable: Integer array.
-!   n1, n2     -- Integer: Size wanted.
-!   exact      -- Logical, optional: If present and False then the size of 
+!   inte2(:,:) -- integer, allocatable: Integer array.
+!   n1, n2     -- integer: Size wanted.
+!   exact      -- logical, optional: If present and False then the size of 
 !                   the output array is permitted to be larger than [n1, n2]. 
 !                   Default is True.
 !
 ! Output:
-!   inte2(:,:) -- Integer, allocatable: Allocated array with 
+!   inte2(:,:) -- integer, allocatable: Allocated array with 
 !                   bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_integer2d (inte2, n1, n2, exact, init_val)
+subroutine re_allocate_integer2d (inte2, n1, n2, exact, init_val, lb1, lb2)
 
 implicit none
 
@@ -1164,24 +1173,28 @@ integer, allocatable :: inte2(:,:), temp_inte2(:,:)
 integer, optional :: init_val
 
 integer, intent(in) :: n1, n2
-integer n1_save, n2_save, n1_old, n2_old
+integer, optional :: lb1, lb2
+integer n1_save, n2_save, l1, l2, n1_old, n2_old
 
 logical, optional :: exact
 
 !
+
+l1 = integer_option(1, lb1)
+l2 = integer_option(1, lb2)
 
 if (allocated(inte2)) then
   n1_old = ubound(inte2, 1); n2_old = ubound(inte2, 2)
   if (n1 == n1_old .and. n2 == n2_old) return
   if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
   call move_alloc(inte2, temp_inte2)
-  allocate (inte2(n1,n2))
+  allocate (inte2(l1:n1, l2:n2))
   if (present(init_val)) inte2 = init_val
   n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
-  inte2(1:n1_save,1:n2_save) = temp_inte2(1:n1_save,1:n2_save)
+  inte2(l1:n1_save,l2:n2_save) = temp_inte2(l1:n1_save,l2:n2_save)
   deallocate (temp_inte2)  
 else
-  allocate (inte2(n1,n2))
+  allocate (inte2(l1:n1, l2:n2))
   if (present(init_val)) inte2 = init_val
 endif
 
@@ -1191,7 +1204,7 @@ end subroutine re_allocate_integer2d
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_real2d (re2, n1, n2, exact, init_val)
+! Subroutine re_allocate_real2d (re2, n1, n2, exact, init_val, lb1, lb2)
 !
 ! Routine to reallocate an array of reals.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -1199,18 +1212,18 @@ end subroutine re_allocate_integer2d
 ! array will be lost if [n1, n2] is less than the original size of the array
 !
 ! Input:
-!   re2(:,:) -- Real(rp), Allocatable: Real array.
-!   n1, n2   -- Integer: Size wanted.
-!   exact    -- Logical, optional: If present and False then the size of 
+!   re2(:,:) -- real(rp), Allocatable: Real array.
+!   n1, n2   -- integer: Size wanted.
+!   exact    -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
-!   re2(:,:) -- Real(rp), Allocatable: Allocated array with 
+!   re2(:,:) -- real(rp), Allocatable: Allocated array with 
 !                 bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_real2d (re2, n1, n2, exact, init_val)
+subroutine re_allocate_real2d (re2, n1, n2, exact, init_val, lb1, lb2)
 
 implicit none
 
@@ -1218,11 +1231,15 @@ real(rp), allocatable :: re2(:,:), temp_re2(:,:)
 real(rp), optional :: init_val
 
 integer, intent(in) :: n1, n2
-integer n1_save, n2_save, n1_old, n2_old
+integer, optional :: lb1, lb2
+integer n1_save, n2_save, l1, l2, n1_old, n2_old
 
 logical, optional :: exact
 
 !
+
+l1 = integer_option(1, lb1)
+l2 = integer_option(1, lb2)
 
 if (allocated(re2)) then
   n1_old = ubound(re2, 1); n2_old = ubound(re2, 2)
@@ -1230,14 +1247,14 @@ if (allocated(re2)) then
   if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
   n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
   allocate (temp_re2(n1_save,n2_save))
-  temp_re2 = re2(1:n1_save,1:n2_save)
+  temp_re2 = re2(l1:n1_save,l2:n2_save)
   deallocate (re2)
-  allocate (re2(n1,n2))
+  allocate (re2(l1:n1, l2:n2))
   if (present(init_val)) re2 = init_val
-  re2(1:n1_save,1:n2_save) = temp_re2
+  re2(l1:n1_save,l2:n2_save) = temp_re2
   deallocate (temp_re2)  
 else
-  allocate (re2(n1,n2))
+  allocate (re2(l1:n1, l2:n2))
   if (present(init_val)) re2 = init_val
 endif
 
@@ -1247,7 +1264,7 @@ end subroutine re_allocate_real2d
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_logical2d (logic2, n1, n2, exact, init_val)
+! Subroutine re_allocate_logical2d (logic2, n1, n2, exact, init_val, lb1, lb2)
 !
 ! Routine to reallocate a logical array.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -1255,18 +1272,18 @@ end subroutine re_allocate_real2d
 ! array will be lost if [n1, n2] is less than the size of the array
 !
 ! Input:
-!   logic2(:,:) -- Logical, allocatable: Logical array.
-!   n1, n2      -- Integer: Size wanted.
-!   exact       -- Logical, optional: If present and False then the size of 
+!   logic2(:,:) -- logical, allocatable: Logical array.
+!   n1, n2      -- integer: Size wanted.
+!   exact       -- logical, optional: If present and False then the size of 
 !                    the output array is permitted to be larger than [n1, n2]. 
 !                    Default is True.
 !
 ! Output:
-!   logic2(:,:) -- Logical, allocatable: Allocated array with 
+!   logic2(:,:) -- logical, allocatable: Allocated array with 
 !                    bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_logical2d (logic2, n1, n2, exact, init_val)
+subroutine re_allocate_logical2d (logic2, n1, n2, exact, init_val, lb1, lb2)
 
 implicit none
 
@@ -1274,24 +1291,28 @@ logical, allocatable :: logic2(:,:), temp_logic2(:,:)
 logical, optional :: init_val
 
 integer, intent(in) :: n1, n2
-integer n1_save, n2_save, n1_old, n2_old
+integer, optional :: lb1, lb2
+integer n1_save, n2_save, l1, l2, n1_old, n2_old
 
 logical, optional :: exact
 
 !
+
+l1 = integer_option(1, lb1)
+l2 = integer_option(1, lb2)
 
 if (allocated(logic2)) then
   n1_old = ubound(logic2, 1); n2_old = ubound(logic2, 2)
   if (n1 == n1_old .and. n2 == n2_old) return
   if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
   call move_alloc(logic2, temp_logic2)
-  allocate (logic2(n1,n2))
+  allocate (logic2(l1:n1, l2:n2))
   if (present(init_val)) logic2 = init_val
   n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
-  logic2(1:n1_save,1:n2_save) = temp_logic2(1:n1_save,1:n2_save)
+  logic2(l1:n1_save,l2:n2_save) = temp_logic2(l1:n1_save,l2:n2_save)
   deallocate (temp_logic2)  
 else
-  allocate (logic2(n1,n2))
+  allocate (logic2(l1:n1, l2:n2))
   if (present(init_val)) logic2 = init_val
 endif
 
@@ -1310,8 +1331,8 @@ end subroutine re_allocate_logical2d
 !
 ! Input:
 !   str(:) -- Character(*), pointer: String array.
-!   n      -- Integer: Size wanted.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   n      -- integer: Size wanted.
+!   exact  -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
@@ -1415,14 +1436,14 @@ end subroutine re_associate_var_string
 ! array will be lost if n is less than the original size of the array
 !
 ! Input:
-!   inte(:) -- Integer, pointer: Integer array.
-!   n       -- Integer: Size wanted.
-!   exact   -- Logical, optional: If present and False then the size of 
+!   inte(:) -- integer, pointer: Integer array.
+!   n       -- integer: Size wanted.
+!   exact   -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
 ! Output:
-!   inte(:) -- Integer, pointer: Allocated array with size(inte) >= n.
+!   inte(:) -- integer, pointer: Allocated array with size(inte) >= n.
 !-
 
 subroutine re_associate_integer (inte, n, exact, init_val)
@@ -1468,14 +1489,14 @@ end subroutine re_associate_integer
 ! array will be lost if n is less than the original size of the array
 !
 ! Input:
-!   re(:)  -- Real(rp), Pointer: Real array.
-!   n      -- Integer: Size wanted.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   re(:)  -- real(rp), Pointer: Real array.
+!   n      -- integer: Size wanted.
+!   exact  -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
 ! Output:
-!   re(:)  -- Real(rp), Pointer: Allocated array with size(re) >= n.
+!   re(:)  -- real(rp), Pointer: Allocated array with size(re) >= n.
 !-
 
 subroutine re_associate_real (re, n, exact, init_val)
@@ -1521,14 +1542,14 @@ end subroutine re_associate_real
 ! array will be lost if n is less than the size of the array
 !
 ! Input:
-!   logic(:) -- Logical, pointer: Logical array.
-!   n        -- Logical: Size wanted.
-!   exact    -- Logical, optional: If present and False then the size of 
+!   logic(:) -- logical, pointer: Logical array.
+!   n        -- logical: Size wanted.
+!   exact    -- logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
 ! Output:
-!   logic(:) -- Logical, pointer: Allocated array with size(logic) >= n.
+!   logic(:) -- logical, pointer: Allocated array with size(logic) >= n.
 !-
 
 subroutine re_associate_logical (logic, n, exact, init_val)

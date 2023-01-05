@@ -204,6 +204,7 @@ SUBROUTINE check_if_lost_ring(lat,start_s,vec_start,vec_end,nturns, track_state)
       IF(track_state .ne. moving_forward$) THEN
         !particle was lost
         vec_end = orb(track_state)
+        vec_end%state = lost$
         EXIT
       ELSE
         IF(ABS(orb(lat%n_ele_track)%vec(5)) .gt. half_period) THEN

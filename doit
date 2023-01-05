@@ -12,16 +12,23 @@ rm -rf   tao
 rm -rf   util
 rm -rf   util_programs
 
-cp -r ~/bmad_dist/bmad  bmad
-cp -r ~/bmad_dist/bsim  bsim
-cp -r ~/bmad_dist/build_system  build_system
-cp -r ~/bmad_dist/cpp_bmad_interface  cpp_bmad_interface
-cp -r ~/bmad_dist/examples  examples
-cp -r ~/bmad_dist/forest  forest
-cp -r ~/bmad_dist/lux  lux
-cp -r ~/bmad_dist/mad_tpsa  mad_tpsa
-cp -r ~/bmad_dist/regression_tests  regression_tests
-cp -r ~/bmad_dist/sim_utils  sim_utils
-cp -r ~/bmad_dist/tao  tao
-cp -r ~/bmad_dist/util  util
-cp -r ~/bmad_dist/util_programs  util_programs
+svn co https://accserv.classe.cornell.edu/svn/trunk/src/bmad 
+svn co https://accserv.classe.cornell.edu/svn/trunk/src/bsim
+svn co https://accserv.classe.cornell.edu/svn/trunk/src/cpp_bmad_interface 
+svn co https://accserv.classe.cornell.edu/svn/trunk/src/examples 
+svn co https://accserv.classe.cornell.edu/svn/trunk/src/lux 
+svn co https://accserv.classe.cornell.edu/svn/trunk/src/mad_tpsa 
+svn co https://accserv.classe.cornell.edu/svn/trunk/src/regression_tests 
+svn co https://accserv.classe.cornell.edu/svn/trunk/src/sim_utils 
+svn co https://accserv.classe.cornell.edu/svn/trunk/src/tao 
+svn co https://accserv.classe.cornell.edu/svn/trunk/src/util_programs 
+svn co https://accserv.classe.cornell.edu/svn/trunk/util 
+svn co https://accserv.classe.cornell.edu/svn/trunk/build_system 
+svn co https://accserv.classe.cornell.edu/svn/packages/forest 
+
+rm -rf */.svn
+cd util
+rm DELETE_release  build_config.py  build_flags_config  build_mgmt.py  build_supervisor 
+rm  builder  dist_prefs_for_windows.diff  dist_test_debug  dist_test_production  mk_mpi 
+rm  mkd_mpi  purge_releases  raw_list  rotate_release  svn_upgrade  tag_release 
+cd ..

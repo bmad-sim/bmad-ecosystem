@@ -19,11 +19,11 @@ use tao_top10_mod, dummy => tao_show_this
 use tao_data_and_eval_mod, only: tao_evaluate_expression, tao_evaluate_a_datum
 use tao_c_interface_mod, only: tao_c_interface_com
 use tao_command_mod, only: tao_next_switch
+use tao_version_mod
 use location_encode_mod, only: location_encode
 use transfer_map_mod, only: transfer_map_from_s_to_s, mat6_from_s_to_s
 use opti_de_mod, only: opti_de_param
 use wall3d_mod, only: calc_wall_radius
-use em_field_mod, only: em_field_calc
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use ptc_spin, only: c_linear_map, assignment(=)
 use pointer_lattice, only: operator(.sub.), operator(**), operator(*), alloc, kill, print, ci_phasor, assignment(=)
@@ -100,7 +100,8 @@ type (track_point_struct), pointer :: tp
 type (strong_beam_struct), pointer :: sb
 type (c_taylor) ptc_ctaylor
 type (complex_taylor_struct) bmad_ctaylor
-type (rad_int_ele_cache_struct), pointer :: ri
+type (rad_map_ele_struct), pointer :: ri
+type (grid_field_pt1_struct), pointer :: g_pt
 
 type old_show_lat_column_struct
   character(80) :: name = ''
@@ -142,7 +143,7 @@ real(rp) sig_mat(6,6), sig0_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), l_
 real(rp) pc, e_tot, value_min, value_here, pz1, phase
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, time1, ds, ref_vec(6), beta
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
-real(rp) pz2, qs, q, dq, x, xi_quat(2), xi_mat8(2), dn_dpz(3), dn_partial(3,3), dn_partial2(3,3)
+real(rp) pz2, qs, q, x, xi_sum, xi_diff, dn_dpz(3), dn_partial(3,3), dn_partial2(3,3)
 real(rp), allocatable :: value(:)
 
 complex(rp) eval(6), evec(6,6), n_eigen(6,3)
@@ -167,7 +168,7 @@ character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_n
 character(40) replacement_for_blank, component
 character(60) nam, attrib_list(20), attrib
 character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
-character(200) header, str, attrib0, file_name, name, excite_zero(3)
+character(200) header, str, attrib0, file_name, name, excite_zero(3), veto
 character(200), allocatable :: alloc_lines(:)
 
 character(2), parameter :: q_name(0:3) = ['q0', 'qx', 'qy', 'qz']
@@ -282,7 +283,7 @@ case ('beam')
   what_to_show = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb_index'], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb'], .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
 
@@ -297,7 +298,7 @@ case ('beam')
       endif
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
-    case ('-lattice', '-comb_index')
+    case ('-lattice', '-comb')
       what_to_show = switch
 
     case default
@@ -315,9 +316,29 @@ case ('beam')
   branch => lat%branch(0)
   bb => u%model_branch(0)%beam
 
+  !
+
+  if (what_to_show == '-comb' .and. ele_name == '') then
+    if (.not. allocated(tao_branch%bunch_params_comb)) then
+      nl=nl+1; lines(nl) = 'Beam parameter comb not calculated (check comb_ds_save)' 
+      return
+    endif
+
+    nl=nl+1; lines(nl) = ' Index           S  N_Live  N_lost'
+    do i = 0, tao_branch%bunch_params_comb(1)%n_pt
+      bunch_p => tao_branch%bunch_params_comb(1)%pt(i)
+      nl=nl+1; write (lines(nl), '(i6, f12.3, 2i8)') i, bunch_p%s, bunch_p%n_particle_live, &
+                                                                 bunch_p%n_particle_tot-bunch_p%n_particle_live
+    enddo
+
+    return
+  endif
+
+  !
+
   if (ele_name == '') then
     ele => branch%ele(bb%ix_track_start)
-  elseif (what_to_show == '-comb_index') then
+  elseif (what_to_show == '-comb') then
     read (ele_name, *, iostat = ios) ix_s2
     if (ios /= 0) then
       nl=1; lines(1) = 'CANNOT DECODE COMB INDEX: ' // ele_name
@@ -383,7 +404,9 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt) 'saved_at          = ', quote(u%beam%saved_at)
     nl=nl+1; write(lines(nl), amt) 'dump_at           = ', quote(u%beam%dump_at)
     nl=nl+1; write(lines(nl), amt) 'dump_file         = ', quote(u%beam%dump_file)
-    nl=nl+1; write(lines(nl), rmt) 'comb_ds_step      = ', u%beam%comb_ds_step
+    nl=nl+1; write(lines(nl), rmt) 'comb_ds_save      = ', tao_branch%bunch_params_comb(1)%ds_save
+    nl=nl+1; write(lines(nl), rmt) 'comb_max_ds_save  = ', tao_branch%bunch_params_comb(1)%max_ds_save
+    nl=nl+1; write(lines(nl), imt) 'comb index range:   ', 0, tao_branch%bunch_params_comb(1)%n_pt
     nl=nl+1; write(lines(nl), fmt) 'track_start       = ', quote(bb%track_start)
     nl=nl+1; write(lines(nl), fmt) 'track_end         = ', quote(bb%track_end)
 
@@ -510,18 +533,24 @@ case ('beam')
   ! have element index
 
   else
-    if (what_to_show == '-comb_index') then
+    if (what_to_show == '-comb') then
       if (.not. allocated(tao_branch%bunch_params_comb)) then
         nl=nl+1; lines(nl) = 'Beam parameter comb not calculated (check comb_ds_step)' 
         return
       endif
 
-      n = ubound(tao_branch%bunch_params_comb, 1)
+      n = tao_branch%bunch_params_comb(1)%n_pt
+
+      if (n < 0 .and. tao_branch%bunch_params_comb(1)%ds_save < 0) then
+        nl=nl+1; lines(nl) = 'Comb not calculated since comb_ds_save not set positive.'
+        return
+      endif
+
       if (ix_s2 < 0 .or. ix_s2 > n) then
         nl=nl+1; lines(nl) = 'Comb index out of range: [0, ' // int_str(n) // ']'
         return
       endif
-      bunch_p => tao_branch%bunch_params_comb(ix_s2)
+      bunch_p => tao_branch%bunch_params_comb(1)%pt(ix_s2)
       nl=nl+1; lines(nl) = 'Bunch parameters at comb index: ' // int_str(ix_s2)
 
     else
@@ -916,7 +945,6 @@ case ('curve')
       nl=nl+1; write(lines(nl), amt)  'legend_text          = ', quote(c1%legend_text)
       nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name)
       nl=nl+1; write(lines(nl), amt)  'component            = ', quote(c1%component)
-      nl=nl+1; write(lines(nl), amt)  'why_invalid          = ', quote(c1%why_invalid)
       nl=nl+1; write(lines(nl), imt)  'ix_branch            = ', c1%ix_branch
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
@@ -955,6 +983,10 @@ case ('curve')
         nl=nl+1; write(lines(nl), rmt)  'hist%width              = ', c1%hist%width
         nl=nl+1; write(lines(nl), rmt)  'hist%center             = ', c1%hist%center
         nl=nl+1; write(lines(nl), imt)  'hist%number             = ', c1%hist%number
+      endif
+
+      if (.not. c1%valid) then
+        nl=nl+1; write(lines(nl), amt)  'Curve is not valid since: ', c1%why_invalid
       endif
     endif
 
@@ -1189,7 +1221,7 @@ case ('data')
     nl=nl+1; write(lines(nl), lmt)    '%useit_plot        = ', d_ptr%useit_plot
     nl=nl+1; write(lines(nl), '(a, l1, 3x, a)')    '%useit_opt         = ', d_ptr%useit_opt, tao_optimization_status(d_ptr)
 
-    if (d_ptr%exists .and. d_ptr%why_invalid /= '') then
+    if (d_ptr%why_invalid /= '') then
       nl=nl+1; lines(nl) = 'Model value is invalid since: ' // d_ptr%why_invalid
     endif
 
@@ -1732,12 +1764,12 @@ case ('emittance')
   !
 
   if (what_to_show == '-xmatrix') then
-    if (.not. associated(ele%rad_int_cache)) then
+    if (.not. associated(ele%rad_map)) then
       nl=nl+1; lines(nl) = 'No radiation matrices associated with element.'
       return
     endif
 
-    ri => ele%rad_int_cache
+    ri => ele%rad_map
 
     nl=nl+1; write (lines(nl), '(10x, 30x, a, 64x, a)') 'Upstream half', 'Downstream half'
 
@@ -1825,18 +1857,19 @@ case ('field')
   orb%t = 0
   s_pos = 0
   show_all = .false.   ! Show derivatives?
+  what_to_show = 'standard'
   s_fmt = 'relative'
   n_count = 0          ! Counter for non-switch args. 
 
   do
-    call tao_next_switch (what2, [character(16):: '-derivatives', '-percent_len', '-absolute_s'], &
+    call tao_next_switch (what2, [character(16):: '-derivatives', '-grid_pt', '-percent_len', '-absolute_s'], &
                                                                        .true., switch, err, ix, .true.)
     if (err) return
     select case (switch)
     case ('');               exit
-    case ('-derivatives');   show_all = .true.
-    case ('-percent_len');   s_fmt = 'percent'
-    case ('-absolute_s');    s_fmt = 'absolute'
+    case ('-derivatives');                show_all = .true.
+    case ('-percent_len', '-absolute_s'); s_fmt = switch
+    case ('-grid_pt');                    what_to_show = switch 
     case default
       n_count = n_count + 1
 
@@ -1908,12 +1941,28 @@ case ('field')
 
   do i = 1, size(eles)
     ele => eles(i)%ele
-    call init_coord (orb, ele = ele, element_end = downstream_end$)
+
+    if (what_to_show == '-grid_pt') then
+      if (.not. associated (ele%grid_field)) then
+        call out_io (s_error$, r_name, 'NO GRID FIELD ASSOCIATED WITH ELEMENT: ' // ele%name)
+        return
+      endif
+      ix0 = nint(orb%vec(1))
+      ix1 = nint(orb%vec(3))
+      ix2 = nint(s_pos)
+      g_pt => ele%grid_field(1)%ptr%pt(ix0, ix1, ix2)
+      nl=nl+1; 
+      cycle
+    endif
+
+    !
+
+    call init_coord (orb, orb, ele, downstream_end$)
 
     select case (s_fmt)
-    case ('percent');   s_pos = s_pos * ele%value(l$)
-    case ('absolute');  s_pos = s_pos - ele%s_start
-    case ('relative');  s_pos = s_pos
+    case ('-percent_len');   s_pos = s_pos * ele%value(l$)
+    case ('-absolute_s');    s_pos = s_pos - ele%s_start
+    case ('relative');       s_pos = s_pos
     end select
 
     time1 = particle_rf_time(orb, ele, .true., s_pos)
@@ -1963,6 +2012,7 @@ case ('field')
 
 case ('global')
 
+  call ran_default_state (get_state = ran_state)
   what_to_show = 'global'
 
   do
@@ -2008,12 +2058,22 @@ case ('global')
     nl=nl+1; write(lines(nl), amt) '  %random_engine                 = ', quote(s%global%random_engine)
     nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter        = ', quote(s%global%random_gauss_converter)
     nl=nl+1; write(lines(nl), amt) '  %quiet                         = ', quote(s%global%quiet)
-    nl=nl+1; write(lines(nl), imt) '  %random_seed                   = ', s%global%random_seed
-    if (s%global%random_seed == 0) then
-      call ran_seed_get(ix)
-      nl=nl+1; write(lines(nl), imt) '   random_seed (generated)      = ', ix
+
+    nl=nl+1; write(lines(nl), amt) '  %random_engine (input)         = ', quote(s%global%random_engine)
+    if (s%global%random_engine == '') then
+      nl=nl+1; write(lines(nl), amt) '   random engine used            = ', quote(ran_engine_name(ran_state%engine))
     endif
+
+    nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter (input)= ', quote(s%global%random_gauss_converter)
+    if (s%global%random_gauss_converter == '') then
+      nl=nl+1; write(lines(nl), amt) '   random gauss converter used   = ', quote(ran_gauss_converter_name(ran_state%gauss_converter))
+    endif
+
+    nl=nl+1; write(lines(nl), imt) '  %random_seed (input)           = ', s%global%random_seed
+    nl=nl+1; write(lines(nl), imt) '     random seed used              = ', ran_state%seed
+
     nl=nl+1; write(lines(nl), rmt) '  %random_sigma_cutoff           = ', s%global%random_sigma_cutoff
+
     nl=nl+1; write(lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
     nl=nl+1; write(lines(nl), amt) '  %track_type                    = ', quote(s%global%track_type)
     nl=nl+1; write(lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
@@ -2061,7 +2121,6 @@ case ('global')
     call write_this_arg (nl, lines, '  -var_file', s%init%var_file_arg)
 
   case ('-ran_state')
-    call ran_default_state (get_state = ran_state)
     nl=nl+1; write(lines(nl), imt) '  %ix              = ', ran_state%ix
     nl=nl+1; write(lines(nl), imt) '  %iy              = ', ran_state%iy
     nl=nl+1; write(lines(nl), lmt) '  %number_stored   = ', ran_state%number_stored
@@ -2289,6 +2348,8 @@ case ('graph')
   nl=nl+1; write(lines(nl), rmt)  'x%tick_max                       = ', g%x%tick_max
   nl=nl+1; write(lines(nl), rmt)  'x%tick_min                       = ', g%x%tick_min
   nl=nl+1; write(lines(nl), rmt)  'x%dtick                          = ', g%x%dtick
+  nl=nl+1; write(lines(nl), rmt)  'x%eval_range_max                 = ', g%x%eval_max
+  nl=nl+1; write(lines(nl), rmt)  'x%eval_range_min                 = ', g%x%eval_min
 
   nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y                     = ', g%y2_mirrors_y
   nl=nl+1; write(lines(nl), amt)  'y%label                          = ', quote(g%y%label)
@@ -2446,27 +2507,41 @@ case ('hom')
 
 case ('internal')
 
-  call tao_next_switch (what2, [character(16):: '-python_buffer', '-control'], .true., switch, err, ix_s2)
+  call tao_next_switch (what2, [character(16):: '-python', '-control'], .true., switch, err, ix_s2)
   select case (switch)
 
   ! Format: show -python_buffer
   ! This is useful for debugging the real and integer array passing which is used in the python interface.
-  case ('-python_buffer')
+  case ('-python')
 
     nl=nl+1; write (lines(nl), imt) 'N_real: ', tao_c_interface_com%n_real
+
+    do i = 1, min(tao_c_interface_com%n_real, 5)
+      nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
+    enddo
+
+    if (tao_c_interface_com%n_real > 10) then
+      nl=nl+1; lines(nl) = ' ... etc...'
+    endif
+
+    do i = max(tao_c_interface_com%n_real-5, 6), tao_c_interface_com%n_real
+      nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
+    enddo
+
+    !
+
+    nl=nl+1; lines(nl) = ''
     nl=nl+1; write (lines(nl), imt) 'N_int:  ', tao_c_interface_com%n_int
 
-    do i = 1, min(tao_c_interface_com%n_real, 3)
-      nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
-    enddo
-    do i = max(tao_c_interface_com%n_real-3, 4), tao_c_interface_com%n_real
-      nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
-    enddo
-
-    do i = 1, min(tao_c_interface_com%n_int, 3)
+    do i = 1, min(tao_c_interface_com%n_int, 5)
       nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_integer(i)
     enddo
-    do i = max(tao_c_interface_com%n_int-3, 4), tao_c_interface_com%n_int
+
+    if (tao_c_interface_com%n_int > 10) then
+      nl=nl+1; lines(nl) = ' ... etc...'
+    endif
+
+    do i = max(tao_c_interface_com%n_int-5, 6), tao_c_interface_com%n_int
       nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_integer(i)
     enddo
 
@@ -2654,7 +2729,10 @@ case ('lattice')
       what_to_show = 'energy'
 
     case ('-floor_coords')
-      what_to_show = 'floor_coords'
+      select case (what_to_show)
+      case ('orbit', 'orbit:spin');   what_to_show = 'floor_orbit'
+      case default;                   what_to_show = 'floor_coords'
+      end select
 
     case ('-lords')
       print_lords = yes$
@@ -2679,11 +2757,11 @@ case ('lattice')
       print_tail_lines = .false.
 
     case ('-orbit')
-      if (what_to_show == 'spin') then
-        what_to_show = 'orbit:spin'
-      else
-        what_to_show = 'orbit'
-      endif
+      select case (what_to_show)
+      case ('spin');          what_to_show = 'orbit:spin'
+      case ('floor_coords');  what_to_show = 'floor_orbit'
+      case default;           what_to_show = 'orbit'
+      end select
 
     case ('-python')
       called_from_python_cmd = .true.
@@ -2816,12 +2894,26 @@ case ('lattice')
     col(11)  = setup_lat_column('ele::#[phi_position]',   'f12.5',    'Phi',   .false., 1.0_rp)
     col(12)  = setup_lat_column('ele::#[psi_position]',   'f12.5',    'Psi',   .false., 1.0_rp)
 
+  case ('floor_orbit')
+    col( 1)  = setup_lat_column('#',                         'i7',       '', .false., 1.0_rp)
+    col( 2)  = setup_lat_column('x',                         '2x',       '', .false., 1.0_rp)
+    col( 3)  = setup_lat_column('ele::#[name]',              'a0',       '', .false., 1.0_rp)
+    col( 4)  = setup_lat_column('ele::#[key]',               'a17',      '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',                 'f12.5',    '', .false., 1.0_rp)
+    col( 6)  = setup_lat_column('ele::#[l]',                 'f10.5',    '', .false., 1.0_rp)
+    col( 7)  = setup_lat_column('ele::#[floor_orbit.x]',     'f12.5',    'X_Orb',     .false., 1.0_rp)
+    col( 8)  = setup_lat_column('ele::#[floor_orbit.y]',     'f12.5',    'Y_Orb',     .false., 1.0_rp)
+    col( 9)  = setup_lat_column('ele::#[floor_orbit.z]',     'f12.5',    'Z_Orb',     .false., 1.0_rp)
+    col(10)  = setup_lat_column('ele::#[floor_orbit.theta]', 'f12.5',    'Theta_Orb', .false., 1.0_rp)
+    col(11)  = setup_lat_column('ele::#[floor_orbit.phi]',   'f12.5',    'Phi_Orb',   .false., 1.0_rp)
+    col(12)  = setup_lat_column('ele::#[floor_orbit.psi]',   'f12.5',    'Psi_Orb',   .false., 1.0_rp)
+
   case ('orbit')
     col( 1)  = setup_lat_column('#',                      'i7',       '', .false., 1.0_rp)
     col( 2)  = setup_lat_column('x',                      '2x',       '', .false., 1.0_rp)
     col( 3)  = setup_lat_column('ele::#[name]',           'a0',       '', .false., 1.0_rp)
     col( 4)  = setup_lat_column('ele::#[key]',            'a17',      '', .false., 1.0_rp)
-    col( 5)  = setup_lat_column('ele::#[s]',              'f10.3',    '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',              'f13.6',    '', .false., 1.0_rp)
     col( 6)  = setup_lat_column('ele::#[orbit_x]',        'es14.6',   '', .false., 1.0_rp)
     col( 7)  = setup_lat_column('ele::#[orbit_px]',       'es14.6',   '', .false., 1.0_rp)
     col( 8)  = setup_lat_column('ele::#[orbit_y]',        'es14.6',   '', .false., 1.0_rp)
@@ -2834,7 +2926,7 @@ case ('lattice')
     col( 2)  = setup_lat_column('x',                      '2x',       '', .false., 1.0_rp)
     col( 3)  = setup_lat_column('ele::#[name]',           'a0',       '', .false., 1.0_rp)
     col( 4)  = setup_lat_column('ele::#[key]',            'a17',      '', .false., 1.0_rp)
-    col( 5)  = setup_lat_column('ele::#[s]',              'f10.3',    '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',              'f13.6',    '', .false., 1.0_rp)
     col( 6)  = setup_lat_column('ele::#[orbit_x]',        'es14.6',   '', .false., 1.0_rp)
     col( 7)  = setup_lat_column('ele::#[orbit_px]',       'es14.6',   '', .false., 1.0_rp)
     col( 8)  = setup_lat_column('ele::#[orbit_y]',        'es14.6',   '', .false., 1.0_rp)
@@ -2850,7 +2942,7 @@ case ('lattice')
     col( 2)  = setup_lat_column('x',                        '2x',       '', .false., 1.0_rp)
     col( 3)  = setup_lat_column('ele::#[name]',             'a0',       '', .false., 1.0_rp)
     col( 4)  = setup_lat_column('ele::#[key]',              'a17',      '', .false., 1.0_rp)
-    col( 5)  = setup_lat_column('ele::#[s]',                'f10.3',    '', .false., 1.0_rp)
+    col( 5)  = setup_lat_column('ele::#[s]',                'f13.6',    '', .false., 1.0_rp)
     col( 6)  = setup_lat_column('ele::#[spin_x]',           'es14.6',   '', .false., 1.0_rp)
     col( 7)  = setup_lat_column('ele::#[spin_y]',           'es14.6',   '', .false., 1.0_rp)
     col( 8)  = setup_lat_column('ele::#[spin_z]',           'es14.6',   '', .false., 1.0_rp)
@@ -3194,12 +3286,13 @@ case ('lattice')
         if (ix2 - ix + 1 > 0) then
           line2(ix2-ix+1:) = name(1:ix-1)
         else
-          line2(1:) = name(1:ix-1)
+          line2 = name(1:ix-1)
         endif
+
         if (ix2 - n + ix > 0) then
           line3(ix2-n+ix:) = name(ix+1:)
         else
-          line3(1:) = name(ix+1:)
+          line3 = name(ix+1:)
         endif
       endif
 
@@ -3942,7 +4035,7 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
-    nl=nl+1; lines(nl) = '   Plot                                    Description        '
+    nl=nl+1; lines(nl) = '   Plot Name                               Description        '
     nl=nl+1; lines(nl) = '   ----------------------------            -------------------'
     do i = 1, size(s%plot_page%template)
       p => s%plot_page%template(i)
@@ -4169,11 +4262,12 @@ case ('spin')
   flip = .false.
   logic = .false.
   excite_zero = ''
+  veto = ''
 
   do
-    call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', '-all', &
+    call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
                             '-g_map', '-flip_n_axis', '-new', '-x_zero', '-y_zero', &
-                            '-z_zero'], .true., switch, err, ix)
+                            '-z_zero', '-ignore_kinetic'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
@@ -4216,12 +4310,14 @@ case ('spin')
       nl=nl+1; lines(nl) = 'Note: "-q_map" now no longer needed or used.'
     case ('-g_map')
       show_mat = .true.
+    case ('-ignore_kinetic')
+      call word_read(what2, ' ', veto, ix, delim, delim_found, what2)
     case ('-x_zero')
-      call word_read(what2, '-', excite_zero(1), ix, delim, delim_found, what2)
+      call word_read(what2, ' ', excite_zero(1), ix, delim, delim_found, what2)
     case ('-y_zero')
-      call word_read(what2, '-', excite_zero(2), ix, delim, delim_found, what2)
+      call word_read(what2, ' ', excite_zero(2), ix, delim, delim_found, what2)
     case ('-z_zero')
-      call word_read(what2, '-', excite_zero(3), ix, delim, delim_found, what2)
+      call word_read(what2, ' ', excite_zero(3), ix, delim, delim_found, what2)
     end select
   enddo
 
@@ -4230,8 +4326,8 @@ case ('spin')
   !
 
   if (.not. bmad_com%spin_tracking_on) then
-    call out_io (s_info$, r_name, 'Note: Turning on spin tracking (setting: bmad_com%spin_tracking_on = T)')
-    bmad_com%spin_tracking_on = .true.
+    call tao_spin_tracking_turn_on
+    call tao_lattice_calc(ok)
   endif
 
   ! what_to_show = standard
@@ -4252,7 +4348,7 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(a, 3f12.8)') 'Beginning spin:', orb%spin
     else
-      call tao_spin_polarization_calc (branch, tao_branch, excite_zero)
+      call tao_spin_polarization_calc (branch, tao_branch, excite_zero, veto)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', tao_branch%spin%tune / twopi
       if (tao_branch%spin_valid) then
@@ -4462,14 +4558,14 @@ case ('spin')
 
         nl=nl+1; lines(nl) = ''
         nl=nl+1; lines(nl) = 'Resonance strengths:'
-        nl=nl+1; lines(nl) = '          Orb_Tune   |Q+/-Qs|min           Xi1          Xi2   '
+        nl=nl+1; lines(nl) = '     Orb_Tune         frac(Qs+Q)    Xi_sum          frac(Qs-Q)   Xi_diff'
 
         do i = 1, 3
           j = 2 * i - 1
           q = atan2(aimag(eval(j)), real(eval(j),rp)) / twopi
-          dq = min(abs(modulo2(q-qs, 0.5_rp)), abs(modulo2(q+qs, 0.5_rp)))
-          call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_quat)
-          nl=nl+1; write (lines(nl), '(5x, a, 2f13.7, 8(4x, 2es13.5))') abc_name(i), q, dq, xi_quat 
+          call spin_quat_resonance_strengths(evec(j,:), sm%map1%spin_q, xi_sum, xi_diff)
+          nl=nl+1; write (lines(nl), '(a, f13.7, 2(f17.7, es13.5))') abc_name(i), &
+                      q, modulo2(qs+q, 0.5_rp), xi_sum, modulo2(qs-q, 0.5_rp), xi_diff
         enddo
         nl=nl+1; lines(nl) = 'Note: "help show spin" will display information on this table.'
       endif
@@ -4927,11 +5023,11 @@ case ('taylor_map', 'matrix')
       nl=nl+1; write(lines(nl), '(t11, a, t29, a, 3(15x, a, 14x, a))') '|eValue|', 'eValue', 'x', 'px', 'y', 'py', 'z', 'pz'
 
       if (fmt == '') then
-        fmt2 = '(a, 8' // trim(fmt) // ')'
-        fmt3 = '(a, 16x, 8' // trim(fmt) // ')'
-      else
         fmt2 = '(a, 8es16.8)'
         fmt3 = '(a, 16x, 8es16.8)'
+      else
+        fmt2 = '(a, 8' // trim(fmt) // ')'
+        fmt3 = '(a, 16x, 8' // trim(fmt) // ')'
       endif
 
       do i = 1, 6
@@ -5849,25 +5945,28 @@ case ('variables')
 
 case ('version')
 
+  nl=nl+1; lines(nl) = 'SVN Version: ' // tao_svn_version
+  nl=nl+1; lines(nl) = 'SVN Dave: ' // tao_svn_date
+
+
   name = '$TAO_DIR/VERSION'
   call fullfilename (name, file_name)
 
   iu = lunget()
   open (iu, file = file_name, iostat = ios, status = 'old')
   if (ios /= 0) then
-    call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // name, &
-                                   'SEE THE BMAD MANUAL FOR MORE DETAILS.')
+    nl=nl+1; lines(nl) = 'Distribution Version: Cannot open distribution version file $TAO_DIR/VERSION'
     return
   endif
 
   read (iu, '(a)', iostat = ios) aname
   if (ios /= 0) then
-    call out_io (s_error$, r_name, 'CANNOT READ FILE: ' // name)
+    nl=nl+1; lines(nl) = 'Distribution Version: Cannot read distribution version file $TAO_DIR/VERSION'
     return
   endif
   close (iu)
 
-  nl=nl+1; lines(nl) = aname
+  nl=nl+1; lines(nl) = 'Distribution Version: ' // aname
 
 !----------------------------------------------------------------------
 ! wake_elements

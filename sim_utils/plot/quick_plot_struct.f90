@@ -59,21 +59,22 @@ type qp_axis_struct
   real(rp) :: min = 0, max = 10          ! Axis min/max in data units.
   real(rp) :: tick_min = 0               ! Min tick location along axis in data units.
   real(rp) :: tick_max = 10              ! Max tick location along axis in data units.
+  real(rp) :: eval_min = 0, eval_max = 0 ! For general use. Not set by quick_plot.
   real(rp) :: dtick = 2                  ! Distance between ticks. In data units. Ticks will be drawn between %min and %max.
-  real(rp) :: number_offset = 0.05       ! offset from axis line in inches.
-  real(rp) :: label_offset = 0.05        ! offset from numbers in inches.
-  real(rp) :: major_tick_len = 0.10      ! in inches.
-  real(rp) :: minor_tick_len = 0.06      ! in inches.
+  real(rp) :: number_offset = 0.05       ! Offset from axis line in inches.
+  real(rp) :: label_offset = 0.05        ! Offset from numbers in inches.
+  real(rp) :: major_tick_len = 0.10      ! In inches.
+  real(rp) :: minor_tick_len = 0.06      ! In inches.
   character(16) :: label_color = 'black' ! Color of the label.
   integer :: major_div = 5               ! Actual numbrer of major divisions
   integer :: major_div_nominal = 5       ! Nominal value.
   integer :: minor_div = 0               ! 0 = auto choose.
-  integer :: minor_div_max = 5           ! max number for auto choose.
+  integer :: minor_div_max = 5           ! Max number for auto choose.
   integer :: places = 0                  ! Number of places after the decimal point to print.
-  character(16) :: type = 'LINEAR'       ! or 'LOG', or 'CUSTOM'
-  character(16) :: bounds = 'GENERAL'    ! or 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
-  integer :: tick_side = +1              ! +1 = draw on the side inside the graph, 0 = both (longer tick), -1 = outside.
-  integer :: number_side = -1            ! +1 = draw to the side inside the graph, -1 = outside.
+  character(16) :: type = 'LINEAR'       ! Or 'LOG', or 'CUSTOM'
+  character(16) :: bounds = 'GENERAL'    ! Or 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
+  integer :: tick_side = +1              ! +1 = Draw on the side inside the graph, 0 = both (longer tick), -1 = outside.
+  integer :: number_side = -1            ! +1 = Draw to the side inside the graph, -1 = outside.
   logical :: draw_label = .true.
   logical :: draw_numbers  = .true.
 end type

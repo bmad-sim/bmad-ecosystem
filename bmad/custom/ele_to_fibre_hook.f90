@@ -1,18 +1,20 @@
 !+
-! Subroutine ele_to_fibre_hook (ele, ptc_fibre, param)
+! Subroutine ele_to_fibre_hook (ele, ptc_fibre, param, use_offsets, err_flag)
 !
 ! Routine that can be customized for creating a PTC fibre from a Bmad element.
 ! This routine is always called by ele_to_fibre.
 !
 ! Input:
-!   ele         -- Ele_struct: Bmad element.
-!   param       -- lat_param_struct: 
+!   ele             -- Ele_struct: Bmad element.
+!   param           -- lat_param_struct: 
+!   use_offsets     -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
 !
 ! Output:
-!   ptc_fibre -- Fibre: PTC fibre element.
+!   err_flag        -- logical: Set True if setup OK. False otherwise.
+!   ptc_fibre       -- Fibre: PTC fibre element.
 !-
 
-subroutine ele_to_fibre_hook (ele, ptc_fibre, param)
+subroutine ele_to_fibre_hook (ele, ptc_fibre, param, use_offsets, err_flag)
 
 use bmad, except_dummy => ele_to_fibre_hook
 use s_family, only: work, suntao, assignment(=)  ! PTC
@@ -22,6 +24,8 @@ implicit none
 type (ele_struct) ele
 type (fibre) ptc_fibre
 type (lat_param_struct) param
+
+logical use_offsets, err_flag
 
 character(*), parameter :: r_name = 'ele_to_fibre_hook'
 

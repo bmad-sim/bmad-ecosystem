@@ -55,7 +55,7 @@ character(*), optional :: dflt_component
 character(100) name, ele_name, component, offset_str
 character(*), parameter :: r_name = 'tao_evaluate_lat_or_beam_data'
 
-real(rp), allocatable :: values(:)
+real(rp), allocatable :: values(:), off_val(:)
 real(rp), optional :: dflt_s_offset
 real(rp) s_offset
 
@@ -237,13 +237,13 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
       ! Offset_str may be something like "L/2" where L is the element length.
       if (offset_str /= '') then
-        call tao_evaluate_expression(offset_str, 1, .false., values, err_flag, .true., &
+        call tao_evaluate_expression(offset_str, 1, .false., off_val, err_flag, .true., &
                                              dflt_source = 'ele', dflt_ele = this_ele, dflt_uni = iu)
         if (err_flag) then
           if (print_err) call out_io (s_error$, r_name, 'BAD S_OFFSET: ' // data_name)
           return
         endif
-        s_offset = values(1)
+        s_offset = off_val(1)
       endif
 
       datum%eval_point = integer_option(anchor_end$, dflt_eval_point)
@@ -476,7 +476,7 @@ type (twiss_struct), pointer :: z0, z1, z2
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
-real(rp) gamma, one_pz, xi_quat(2), w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
+real(rp) gamma, one_pz, xi_sum, xi_diff, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
 real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi, amp_a, amp_b
@@ -509,7 +509,7 @@ datum%why_invalid = ''
 
 if (.not. datum%exists) then
   datum_value = real_garbage$
-  call tao_set_invalid(datum, 'Datum does not exist.')
+  call tao_set_invalid(datum, 'Datum does not exist.', why_invalid)
   return
 endif
 
@@ -537,7 +537,7 @@ lat => tao_lat%lat
 
 if (head_data_type == 'null') then
   datum_value = 0
-  call tao_set_invalid (datum, 'Datum data_type is set to "null".')
+  call tao_set_invalid (datum, 'Datum data_type is set to "null".', why_invalid)
   valid_value = .false.
   return
 endif
@@ -964,7 +964,7 @@ case ('bunch_charge.')
   if (data_type == 'bunch_charge.live_relative') then
     charge = bunch_params(ele%ix_ele)%charge_tot
     if (charge == 0) then
-      call tao_set_invalid (datum, 'BUNCH HAS NO CHARGE FOR EVALUATING A DATUM OF TYPE "bunch_charge_live.percent')
+      call tao_set_invalid (datum, 'BUNCH HAS NO CHARGE FOR EVALUATING A DATUM OF TYPE "bunch_charge_live.percent', why_invalid)
       valid_value = .false.
       return
     endif
@@ -981,12 +981,12 @@ case ('bunch_charge.')
 case ('bunch_max.', 'bunch_min.')
   if (data_source /= 'beam') goto 9000  ! Set error message and return
   select case (data_type(11:))
-  case ('x'); i=1
-  case ('px');i=2
-  case ('y'); i=3
-  case ('py');i=4
-  case ('z'); i=5
-  case ('pz');i=6
+  case ('x');  i = 1
+  case ('px'); i = 2
+  case ('y');  i = 3
+  case ('py'); i = 4
+  case ('z');  i = 5
+  case ('pz'); i = 6
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
     return
@@ -1079,11 +1079,11 @@ case ('chrom.')
 
   if (.not. allocated(tao_lat%low_E_lat%branch)) then
     if (branch%param%geometry == open$) then
-      call tao_set_invalid (datum, 'Cannot calc ' // trim(data_type) // ' with an open geometry.')
+      call tao_set_invalid (datum, 'Cannot calc ' // trim(data_type) // ' with an open geometry.', why_invalid)
     elseif (branch%param%unstable_factor == 0) then
-      call tao_set_invalid (datum, 'Chrom bookkeeping problem. Please contact DCS.')
+      call tao_set_invalid (datum, 'Chrom bookkeeping problem. Please contact DCS.', why_invalid)
     else
-      call tao_set_invalid (datum, 'Unstable lattice.')
+      call tao_set_invalid (datum, 'Unstable lattice.', why_invalid)
     endif
     return
   endif
@@ -1923,7 +1923,7 @@ case ('momentum_compaction_ptc.')
   expo = 0
   expo(6) = n 
 
-  datum_value = -real(ptc_nf%path_length .sub. expo) / branch%param%total_length
+  datum_value = real(ptc_nf%path_length .sub. expo) / branch%param%total_length
   valid_value = .true.
 
 !-----------
@@ -1946,7 +1946,7 @@ case ('normal.')
 
   ! Do nothing it the map wasn't made
   if (.not. ptc_nf%valid_map) then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.  PTC one-turn map not calculated.')
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.  PTC one-turn map not calculated.', why_invalid)
     return
   endif
 
@@ -2064,7 +2064,7 @@ case ('orbit.')
 
   select case (data_type)
 
-  case ('orbit.e_tot')
+  case ('orbit.e_tot', 'orbit.kinetic')
     if (ix_ref > -1) then
       if (data_source == 'beam') then
         orb => bunch_params(ix_ref)%centroid
@@ -2086,6 +2086,8 @@ case ('orbit.')
     enddo
 
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
+    if (data_type == 'orbit.kinetic') datum_value = datum_value - mass_of(orb%species)
 
   case ('orbit.x')
     if (data_source == 'beam') then
@@ -2958,7 +2960,7 @@ case ('spin.')
   case ('spin.x', 'spin.y', 'spin.z', 'spin.amp')
     do i = ix_start, ix_ele
       if (data_source == 'beam') then
-        vec3 = bunch_params(i)%spin
+        vec3 = bunch_params(i)%centroid%spin
       else
         vec3 = orbit(i)%spin
       endif
@@ -2973,7 +2975,7 @@ case ('spin.')
 
     if (ix_ref > -1) then
       if (data_source == 'beam') then
-        vec3 = bunch_params(ix_ref)%spin
+        vec3 = bunch_params(ix_ref)%centroid%spin
       else
         vec3 = orbit(ix_ref)%spin
       endif
@@ -3105,7 +3107,7 @@ case ('spin_res.')
 
   call spin_mat_to_eigen (datum%spin_map%map1%orb_mat, datum%spin_map%map1%spin_q, eval, evec, n0, n_eigen, err)
   if (err) then
-    call tao_set_invalid (datum, 'MAP IS NOT BEING CALCULATED SINCE ONE_TURN_MAP_CALC IS NOT SET TO TRUE.', why_invalid)
+    call tao_set_invalid (datum, 'ERROR CONVERTING SPIN/ORBIT 1-TURN MATRIX TO EIGEN VALUES.', why_invalid)
     return
   endif
 
@@ -3115,11 +3117,11 @@ case ('spin_res.')
     return
   endif
 
-  call spin_quat_resonance_strengths(evec(2*j-1,:), datum%spin_map%map1%spin_q, xi_quat)
+  call spin_quat_resonance_strengths(evec(2*j-1,:), datum%spin_map%map1%spin_q, xi_sum, xi_diff)
 
-  select case (data_type(11:11))
-  case ('1');  datum_value = xi_quat(1)
-  case ('2');  datum_value = xi_quat(2)
+  select case (data_type(11:))
+  case ('.sum');   datum_value = xi_sum
+  case ('.diff');  datum_value = xi_diff
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
     return
@@ -3478,7 +3480,7 @@ case ('wall.')
 
   if (.not. allocated(s%building_wall%section)) then
     valid_value = .false.
-    call tao_set_invalid (datum, 'No building wall sections defined.')
+    call tao_set_invalid (datum, 'No building wall sections defined.', why_invalid)
     return
   endif
 
@@ -3550,7 +3552,7 @@ case ('wall.')
 
   enddo
 
-  if (.not. valid_value) call tao_set_invalid (datum, 'No wall section found in the transverse plane of the evaluation point.')
+  if (.not. valid_value) call tao_set_invalid (datum, 'No wall section found in the transverse plane of the evaluation point.', why_invalid)
 
 !-----------
 
@@ -4422,7 +4424,7 @@ character(40) saved_prefix
 character(*), parameter :: r_name = "tao_evaluate_expression"
 
 logical delim_found, do_combine, use_good_user
-logical err_flag, err, wild, printit, found
+logical err_flag, err, wild, printit, found, species_here
 logical, optional :: print_err
 
 ! Don't destroy the input expression
@@ -4591,7 +4593,7 @@ parsing_loop: do
     if (.not. wild) exit
 
     word = word(:ix_word) // '*'
-    call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, delim_found, phrase)
+    call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, delim_found, phrase, .true.)
     word = trim(word) // trim(word2)       
     ix_word = len_trim(word)
   enddo
@@ -4631,60 +4633,60 @@ parsing_loop: do
       n_func = n_func + 1
       func(n_func) = expression_func_struct(word2, 1, 0)
       select case (word2)
-      case ('cot');             call pushit (op, i_op, cot$)
-      case ('csc');             call pushit (op, i_op, csc$)
-      case ('sec');             call pushit (op, i_op, sec$)
-      case ('sin');             call pushit (op, i_op, sin$)
-      case ('sinc');            call pushit (op, i_op, sinc$)
-      case ('cos');             call pushit (op, i_op, cos$)
-      case ('tan');             call pushit (op, i_op, tan$)
-      case ('asin');            call pushit (op, i_op, asin$)
-      case ('acos');            call pushit (op, i_op, acos$)
-      case ('atan');            call pushit (op, i_op, atan$)
+      case ('cot');             call push_op_stack (op, i_op, cot$)
+      case ('csc');             call push_op_stack (op, i_op, csc$)
+      case ('sec');             call push_op_stack (op, i_op, sec$)
+      case ('sin');             call push_op_stack (op, i_op, sin$)
+      case ('sinc');            call push_op_stack (op, i_op, sinc$)
+      case ('cos');             call push_op_stack (op, i_op, cos$)
+      case ('tan');             call push_op_stack (op, i_op, tan$)
+      case ('asin');            call push_op_stack (op, i_op, asin$)
+      case ('acos');            call push_op_stack (op, i_op, acos$)
+      case ('atan');            call push_op_stack (op, i_op, atan$)
       case ('atan2')
-        call pushit (op, i_op, atan2$)
+        call push_op_stack (op, i_op, atan2$)
         func(n_func)%n_arg_target = 2
-      case ('sinh');            call pushit (op, i_op, sinh$)
-      case ('cosh');            call pushit (op, i_op, cosh$)
-      case ('tanh');            call pushit (op, i_op, tanh$)
-      case ('coth');            call pushit (op, i_op, coth$)
-      case ('asinh');           call pushit (op, i_op, asinh$)
-      case ('acosh');           call pushit (op, i_op, acosh$)
-      case ('atanh');           call pushit (op, i_op, atanh$)
-      case ('acoth');           call pushit (op, i_op, acoth$)
-      case ('abs');             call pushit (op, i_op, abs$)
-      case ('rms');             call pushit (op, i_op, rms$)
-      case ('average', 'mean'); call pushit (op, i_op, average$)
-      case ('sum');             call pushit (op, i_op, sum$)
-      case ('sqrt');            call pushit (op, i_op, sqrt$)
-      case ('log');             call pushit (op, i_op, log$)
-      case ('exp');             call pushit (op, i_op, exp$)
-      case ('factorial');       call pushit (op, i_op, factorial$)
+      case ('sinh');            call push_op_stack (op, i_op, sinh$)
+      case ('cosh');            call push_op_stack (op, i_op, cosh$)
+      case ('tanh');            call push_op_stack (op, i_op, tanh$)
+      case ('coth');            call push_op_stack (op, i_op, coth$)
+      case ('asinh');           call push_op_stack (op, i_op, asinh$)
+      case ('acosh');           call push_op_stack (op, i_op, acosh$)
+      case ('atanh');           call push_op_stack (op, i_op, atanh$)
+      case ('acoth');           call push_op_stack (op, i_op, acoth$)
+      case ('abs');             call push_op_stack (op, i_op, abs$)
+      case ('rms');             call push_op_stack (op, i_op, rms$)
+      case ('average', 'mean'); call push_op_stack (op, i_op, average$)
+      case ('sum');             call push_op_stack (op, i_op, sum$)
+      case ('sqrt');            call push_op_stack (op, i_op, sqrt$)
+      case ('log');             call push_op_stack (op, i_op, log$)
+      case ('exp');             call push_op_stack (op, i_op, exp$)
+      case ('factorial');       call push_op_stack (op, i_op, factorial$)
       case ('ran')         
-        call pushit (op, i_op, ran$)
+        call push_op_stack (op, i_op, ran$)
         func(n_func)%n_arg_target = 0
       case ('ran_gauss')
-        call pushit (op, i_op, ran_gauss$)
+        call push_op_stack (op, i_op, ran_gauss$)
         func(n_func)%n_arg_target = -1      ! 0 or 1 args
-      case ('int');             call pushit (op, i_op, int$)
-      case ('sign');            call pushit (op, i_op, sign$)
-      case ('nint');            call pushit (op, i_op, nint$)
-      case ('floor');           call pushit (op, i_op, floor$)
-      case ('ceiling');         call pushit (op, i_op, ceiling$)
-      case ('mass_of');         call pushit (op, i_op, mass_of$)
-      case ('charge_of');       call pushit (op, i_op, charge_of$)
-      case ('anomalous_moment_of'); call pushit (op, i_op, anomalous_moment_of$)
-      case ('species');         call pushit (op, i_op, species$)
-      case ('antiparticle');    call pushit (op, i_op, antiparticle$)
+      case ('int');             call push_op_stack (op, i_op, int$)
+      case ('sign');            call push_op_stack (op, i_op, sign$)
+      case ('nint');            call push_op_stack (op, i_op, nint$)
+      case ('floor');           call push_op_stack (op, i_op, floor$)
+      case ('ceiling');         call push_op_stack (op, i_op, ceiling$)
+      case ('mass_of');         call push_op_stack (op, i_op, mass_of$)
+      case ('charge_of');       call push_op_stack (op, i_op, charge_of$)
+      case ('anomalous_moment_of'); call push_op_stack (op, i_op, anomalous_moment_of$)
+      case ('species');         call push_op_stack (op, i_op, species$)
+      case ('antiparticle');    call push_op_stack (op, i_op, antiparticle$)
       case default
         call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS (BAD FUNCTION NAME?) BEFORE "(": ', 'IN EXPRESSION: ' // expression)
         return
       end select
 
-      call pushit (op, i_op, l_func_parens$)
+      call push_op_stack (op, i_op, l_func_parens$)
 
     else
-      call pushit (op, i_op, l_parens$)
+      call push_op_stack (op, i_op, l_parens$)
     endif
 
     cycle parsing_loop
@@ -4692,13 +4694,13 @@ parsing_loop: do
   ! for a unary "-"
 
   elseif (delim == '-' .and. ix_word == 0) then
-    call pushit (op, i_op, unary_minus$)
+    call push_op_stack (op, i_op, unary_minus$)
     cycle parsing_loop
 
   ! for a unary "+"
 
   elseif (delim == '+' .and. ix_word == 0) then
-    call pushit (op, i_op, unary_plus$)
+    call push_op_stack (op, i_op, unary_plus$)
     cycle parsing_loop
 
   ! for a ")" delim
@@ -4710,23 +4712,36 @@ parsing_loop: do
                                                     'IN EXPRESSION: ' // expression)
         return
       endif
+
     else
-      call pushit2 (stk, i_lev, numeric$)
-      call tao_param_value_routine (word, use_good_user, saved_prefix, stk(i_lev), err, printit, &
-             dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
-             dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
-      if (err) then
-        if (printit) call out_io (s_error$, r_name, &
-                        'ERROR IN EVALUATING EXPRESSION: ' // expression, &
-                        'CANNOT EVALUATE: ' // word)
-        return
+      species_here = .false.
+      if (i_op > 1) then
+        select case(op(i_op-1))   ! op(i_op) will be l_func_parens$
+        case (mass_of$, charge_of$, anomalous_moment_of$, antiparticle$, species$);  species_here = .true.
+        end select
+      endif
+
+      if (species_here) then
+        call push_stack (stk, i_lev, species_const$)
+        stk(i_lev)%name = word
+      else
+        call push_stack (stk, i_lev, numeric$)
+        call tao_param_value_routine (word, use_good_user, saved_prefix, stk(i_lev), err, printit, &
+               dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
+               dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
+        if (err) then
+          if (printit) call out_io (s_error$, r_name, &
+                          'ERROR IN EVALUATING EXPRESSION: ' // expression, &
+                          'CANNOT EVALUATE: ' // word)
+          return
+        endif
       endif
     endif
 
     do
       do i = i_op, 1, -1       ! release pending ops
         if (op(i) == l_parens$ .or. op(i) == l_func_parens$) exit            ! break do loop
-        call pushit2 (stk, i_lev, op(i))
+        call push_stack (stk, i_lev, op(i))
       enddo
 
       if (i == 0) then
@@ -4744,7 +4759,7 @@ parsing_loop: do
                             'IN EXPRESSION: ' // expression)
             return
           endif
-          call pushit2 (stk, i_lev, arg_count$)
+          call push_stack (stk, i_lev, arg_count$)
           call re_allocate (stk(i_lev)%value, 1)
           stk(i_lev)%value(1) = func(n_func)%n_arg_count
 
@@ -4782,7 +4797,7 @@ parsing_loop: do
       call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING IN EXPRESSION: ' // expression)
       return
     endif
-    call pushit2 (stk, i_lev, numeric$)
+    call push_stack (stk, i_lev, numeric$)
     call tao_param_value_routine (word, use_good_user, saved_prefix, stk(i_lev), err, printit, &
             dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
             dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
@@ -4851,7 +4866,7 @@ parsing_loop: do
       cycle parsing_loop
     endif
 
-    call pushit2 (stk, i_lev, op(i))
+    call push_stack (stk, i_lev, op(i))
   enddo
 
   ! put the pending operation on the OP stack
@@ -4863,7 +4878,7 @@ parsing_loop: do
     if (printit) call out_io (s_error$, r_name, 'COMMA AT END OF EXPRESSION IS OUT OF place: ' // expression, &
                                    '(NEEDS "[...]" BRACKETS IF AN ARRAY.)')
     return
-  case default; call pushit (op, i_op, i_delim)
+  case default; call push_op_stack (op, i_op, i_delim)
   end select
 
 enddo parsing_loop
@@ -4904,32 +4919,34 @@ if (present(stack)) then
 endif
 
 !-------------------------------------------------------------------------
+! The op_stack is for operators and functions.
+
 contains
 
-subroutine pushit (int_stack, i_lev, this_type)
+subroutine push_op_stack (op_stack, i_lev, this_type)
 
-integer, allocatable :: int_stack(:)
+integer, allocatable :: op_stack(:)
 integer i_lev, this_type
 
-character(*), parameter :: r_name = "pushit"
+character(*), parameter :: r_name = "push_op_stack"
 
 !
 
 i_lev = i_lev + 1
-if (i_lev > size(int_stack)) call re_allocate(int_stack, 2*i_lev)
-int_stack(i_lev) = this_type
+if (i_lev > size(op_stack)) call re_allocate(op_stack, 2*i_lev)
+op_stack(i_lev) = this_type
 
-end subroutine pushit
+end subroutine push_op_stack
 
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine pushit2 (stack, i_lev, this_type)
+subroutine push_stack (stack, i_lev, this_type)
 
 type (tao_eval_stack1_struct), allocatable :: stack(:), tmp_stk(:)
 integer i_lev, this_type
 
-character(*), parameter :: r_name = "pushit2"
+character(*), parameter :: r_name = "push_stack"
 
 !
 
@@ -4945,7 +4962,7 @@ stack(i_lev)%type = this_type
 stack(i_lev)%name = expression_op_name(this_type)
 stack(i_lev)%scale = 1
 
-end subroutine pushit2
+end subroutine push_stack
                        
 end subroutine tao_evaluate_expression
 
@@ -5305,7 +5322,7 @@ character(40) d_type
 
 !
 
-compute_floor = (data_type(1:5) == 'floor')
+compute_floor = (data_type(1:min(5,len(data_type))) == 'floor')
 branch => pointer_to_branch(ele)
 orbit => tao_lat%tao_branch(ele%ix_branch)%orbit
 
@@ -5339,7 +5356,7 @@ end select
 if (d_type(1:2) == 'r.') then
   orb_at_s = orbit(ix_ref)
   call mat6_from_s_to_s (branch%lat, ele_at_s%mat6, ele_at_s%vec0, s_eval_ref, s_eval, &
-                                                       orbit(ele_at_s%ix_ele), orb2, branch%ix_branch, .true.)
+                                                       orbit(ele%ix_ele), orb2, branch%ix_branch, .true.)
   value = tao_param_value_at_s (data_type, ele_at_s, orb_at_s, err)
   if (err) then
     err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
@@ -5425,7 +5442,7 @@ type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp), allocatable :: value(:)
 
-integer n_size_in
+integer n_size_in, species
 integer i, i2, j, n, ns, ni, n_size
 
 logical err_flag, use_good_user, print_err, info_allocated
@@ -5502,9 +5519,14 @@ do i = 1, size(stack)
   case (arg_count$)
     cycle
 
-  case (numeric$) 
+  case (numeric$)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)
+
+  case (species_const$) 
+    i2 = i2 + 1
+    stk2(i2)%name = stack(i)%name
+    call re_allocate(stk2(i2)%value, 1)
 
   case (lat_num$, ele_num$)
     !!! This needs to be fixed to include default stuff
@@ -5731,6 +5753,19 @@ do i = 1, size(stack)
 
   case (ceiling$)
     stk2(i2)%value = ceiling(stk2(i2)%value)
+
+  case (mass_of$, charge_of$, anomalous_moment_of$)
+    species = species_id(stk2(i2)%name)
+    if (species == invalid$) then
+      if (print_err) call out_io (s_error$, r_name, 'Not a valid species name: ' // stk2(i2)%name)
+      err_flag = .true.
+      return
+    endif
+    select case (stack(i)%type)
+    case (mass_of$);              stk2(i2)%value = mass_of(species)
+    case (charge_of$);            stk2(i2)%value = charge_of(species)
+    case (anomalous_moment_of$);  stk2(i2)%value = anomalous_moment_of(species)
+    end select
 
   case default
     call out_io (s_warn$, r_name, 'INTERNAL ERROR')
@@ -6010,18 +6045,8 @@ else
   vec = bunch_params%centroid%vec
 endif
 
-select case (datum%data_type)
-case ('floor_orbit.x', 'floor_orbit.y', 'floor_orbit.z')
-  position%r = [vec(1), vec(3), orbit%s - ele%s_start]
-  position = coords_local_curvilinear_to_floor (position, ele, .false., relative_to_upstream = .true.)
-case ('floor_orbit.theta', 'floor_orbit.phi', 'floor_orbit.psi')
-  position = orbit_to_local_curvilinear(orbit, ele)
-  position = coords_local_curvilinear_to_floor (position, ele, .false., calculate_angles = .true.)
-case default
-  call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" IS NOT VALID', why_invalid, .true.)
-  value = 0
-  return
-end select
+position = orbit_to_local_curvilinear(orbit, ele, relative_to = downstream_end$)
+position = coords_local_curvilinear_to_floor (position, ele, .false., relative_to = downstream_end$)
 
 !
 
@@ -6032,6 +6057,10 @@ case ('floor_orbit.z');   value = position%r(3)
 case ('floor_orbit.theta');   value = position%theta
 case ('floor_orbit.phi');     value = position%phi
 case ('floor_orbit.psi');     value = position%psi
+case default
+  call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" IS NOT VALID', why_invalid, .true.)
+  value = 0
+  return
 end select
 
 valid_value = .true.

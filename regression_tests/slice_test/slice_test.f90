@@ -2,7 +2,6 @@ program slice_test
 
 use bmad
 use transfer_map_mod
-use em_field_mod
 
 implicit none
 

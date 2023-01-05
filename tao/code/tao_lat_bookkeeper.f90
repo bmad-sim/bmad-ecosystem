@@ -30,10 +30,11 @@ character(*), parameter :: r_name = "tao_lat_bookkeeper"
 
 call lattice_bookkeeper (tao_lat%lat, err_flag)
 
-if (err_flag) then
+if (err_flag .and. s%com%optimizer_running) then
   do i = 1, size(u%data)
     if (u%data(i)%data_type == 'unstable.lattice') return
   enddo
+
   call out_io (s_error$, r_name, 'CANNOT DO LATTICE BOOKKEEPING.', &
                                  'ADD AN "unstable.lattice" DATUM TO DRIVE THE LATTICE TOWARDS STABILITY.')
 endif

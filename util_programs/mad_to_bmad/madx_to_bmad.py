@@ -340,8 +340,8 @@ def parameter_dictionary(word_lst):
 def bmad_expression(line, target_param):
   global const_trans, ele_param_factor
 
-  # Remove {, and } chars for something like "kn := {a, b, c}"
-  line = line.replace('{', '').replace('}', '')
+  # Remove {, and } chars for something like "kn := {a, b, c}". Also remove leading and ending quote marks
+  line = line.replace('{', '').replace('}', '').strip('"\'')
 
   #
 
@@ -714,9 +714,9 @@ def parse_command(command, dlist):
   if common.in_match or common.in_track: return
 
   # The MADX parser takes a somewhat cavilier attitude towards commas and sometimes they can be omitted.
-  # Examples: "call file" instead of  "call, file" and "q: quadrupole l = 7" instead of "q: quadrupole, l = 7
+  # Examples: "call file" instead of  "call, file" and "q: quadrupole l = 7" instead of "q: quadrupole, l = 7".
   # So put the comma back in to make things uniform for easier parsing.
-  # But do not do this with arithmetical expressions and quoted strings
+  # But do not do this with arithmetical expressions and quoted strings.
 
   if common.debug: print (str(dlist))
 

@@ -59,21 +59,27 @@ enddo
 ! is it a variable change?
 
 do i = 1, 4
-  if (index(set_char(i), char) /= 0) then
-    ix_key = index(set_char(i), char)
-    this_factor = delta_factor(i)
-    ix = ix_key + 10*s%com%ix_key_bank
-    if (ix > size(s%key)) then
-      call out_io (s_error$, r_name, 'KEY NOT BOUND TO VARIABLE.')
-      return
-    endif
-    ix_var = s%key(ix)
-    if (ix_var == 0) cycle
-    value = s%var(ix_var)%model_value + this_factor * s%var(ix_var)%key_delta
-    call tao_set_var_model_value (s%var(ix_var), value)
-    this_merit = tao_merit ()
+  if (index(set_char(i), char) == 0) cycle
+
+  ix_key = index(set_char(i), char)
+  this_factor = delta_factor(i)
+  ix = ix_key + 10*s%com%ix_key_bank
+  if (ix > size(s%key)) then
+    call out_io (s_error$, r_name, 'KEY NOT BOUND TO VARIABLE.')
     return
   endif
+
+  ix_var = s%key(ix)
+  if (ix_var == 0) cycle
+  if (ix_var == -1) then
+    call out_io (s_error$, r_name, 'KEY NOT BOUND TO A VARIABLE THAT EXISTS.')
+    return
+  endif
+
+  value = s%var(ix_var)%model_value + this_factor * s%var(ix_var)%key_delta
+  call tao_set_var_model_value (s%var(ix_var), value)
+  this_merit = tao_merit ()
+  return
 enddo
 
 

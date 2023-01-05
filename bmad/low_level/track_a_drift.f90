@@ -29,7 +29,7 @@ type (ele_struct) ele
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
-real(rp) matd(6,6), e_tot_ref, e_particle, rel_len
+real(rp) matd(6,6), e_tot_ref, e_particle, rel_len, dt
 real(rp) length, len_eff, rel_pc, dz, px, py, ps, delta, pxy2, mc2, beta_ref
 
 integer, optional :: ele_orientation
@@ -72,7 +72,9 @@ if (orb%beta > 0) then
   else
     dz = -len_eff /ps
   endif
-  orb%t = orb%t + rel_z_vel * len_eff / (orb%beta * ps * c_light)
+
+  dt = rel_z_vel * len_eff / (orb%beta * ps * c_light)
+  orb%t = orb%t + dt
 
 else
   if (logic_option(.true., include_ref_motion)) then

@@ -5,6 +5,7 @@
 ! 
 ! Input:
 !   n                  -- integer, optional: Upper bound lat%ele(0:) array is initialized to.
+!                           Default is 10.
 !   init_beginning_ele -- logical, optional: Init lat%ele(0)? Default is False.
 !
 ! Output:

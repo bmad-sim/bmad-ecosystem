@@ -57,10 +57,6 @@ else
   ptc_state = ptc_private%base_state + NOCAVITY0 + SPIN0
 endif
 
-! Need to call init otherwise FPP is not properly setup and c_normal can bomb.
-
-!!! call init (ptc_state, ptc_private%taylor_order_ptc, 0)
-
 !
 
 if (allocated(match_info)) then
@@ -100,6 +96,8 @@ if (branch%param%geometry == closed$) then
   call track_probe(p8_a, ptc_state, fibre1 = ptc_fibre)
 
   cdamap = p8_a
+
+  call ptc_set_rf_state_for_c_normal(ptc_state%nocavity)
   call c_normal(cdamap, cc_norm, dospin = .true.)
 
   cc_norm%n = cc_norm%atot**(-1) * cdamap * cc_norm%atot

@@ -84,10 +84,7 @@ end subroutine re_allocate_c_double
 !+ 
 ! Function tao_c_init_tao (c_str) bind(c) result (err)
 !
-! Function to initialize Tao.
-!
-! Modules needed:
-!   use tao_c_interface_mod
+! Function, which can be called from C, to initialize Tao.
 !
 ! Input:
 !   c_str(*) -- character(c_char): Tao startup string.
@@ -119,9 +116,6 @@ end function tao_c_init_tao
 !
 ! Function to send a command to Tao from C. 
 !
-! Modules needed:
-!   use tao_c_interface_mod
-!
 ! Input:
 !   c_str(*) -- character(c_char): Tao command string   
 !
@@ -151,9 +145,6 @@ end function tao_c_command
 !
 ! Function to access string buffer out_io_buffer%n_lines number of lines from C.
 !
-! Modules needed:
-!   use tao_c_interface_mod
-!
 ! Output:
 !   n_lines -- integer(c_int): C access to out_io_buffer%n_lines
 !-
@@ -174,9 +165,6 @@ end function tao_c_out_io_buffer_num_lines
 ! Function tao_c_real_array_size() bind(c) result (n_size)
 !
 ! Function to access tao_c_interface_com%n_real number of items in the real array from C.
-!
-! Modules needed:
-!   use tao_c_interface_mod
 !
 ! Output:
 !   n_size -- integer(c_int): C access to tao_c_interface_com%n_real.
@@ -199,9 +187,6 @@ end function tao_c_real_array_size
 !
 ! Function to access tao_c_interface_com%n_int number of items in the integer array from C.
 !
-! Modules needed:
-!   use tao_c_interface_mod
-!
 ! Output:
 !   n_size -- integer(c_int): C access to out_int_array%n_size
 !-
@@ -222,9 +207,6 @@ end function tao_c_integer_array_size
 ! Function tao_c_out_io_buffer_get_line(n) bind(c) result (c_string_ptr)
 !
 ! Function to access string buffer out_io_buffer%line(n) from C.
-!
-! Modules needed:
-!   use tao_c_interface_mod
 !
 ! Input:
 !   n            -- integer(c_int): line number of out_io_buffer%lines      
@@ -254,9 +236,6 @@ end function tao_c_out_io_buffer_get_line
 !
 ! Function to get the buffered real array from C.
 !
-! Modules needed:
-!   use tao_c_interface_mod
-!
 ! Output:
 !   array_ptr -- type(c_ptr): C pointer to the real array.
 !-
@@ -278,9 +257,6 @@ end function tao_c_get_real_array
 ! Function tao_c_get_integer_array() bind(c) result (array_ptr)
 !
 ! Function to get the buffered integer array from C.
-!
-! Modules needed:
-!   use tao_c_interface_mod
 !
 ! Output:
 !   array_ptr -- type(c_ptr): C pointer to the real array.

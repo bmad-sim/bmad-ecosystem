@@ -1,6 +1,5 @@
 module time_tracker_mod
 
-use em_field_mod
 use element_at_s_mod
 
 type time_runge_kutta_common_struct
@@ -292,7 +291,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   if (stop_time_limited) then
     dt_next = dt_next_save
-    if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light) then
+    if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light / 2) then
       call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, false_int$)
     endif
   endif
@@ -618,7 +617,6 @@ out_orb%dt_ref = in_orb%dt_ref + dt_now - dvec(10)
 
 pc = sqrt(out_orb%vec(2)**2 + out_orb%vec(4)**2 + out_orb%vec(6)**2)
 call convert_pc_to (pc, orb%species, beta = out_orb%beta)
-
 
 end subroutine transfer_this_orbit
 

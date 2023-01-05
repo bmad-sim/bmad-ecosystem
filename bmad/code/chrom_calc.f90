@@ -26,7 +26,7 @@
 subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
                        pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)
 
-use bookkeeper_mod, except_dummy => chrom_calc
+use bmad_interface, except_dummy => chrom_calc
 
 implicit none
 

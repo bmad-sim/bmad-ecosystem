@@ -2,7 +2,7 @@
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine sol_quad_mat6_calc (ks, k1, length, ele, orbit, mat6, make_matrix)
+! Subroutine sol_quad_mat6_calc (ks, k1, tilt, length, ele, orbit, mat6, make_matrix)
 !
 ! Subroutine to calculate the transfer matrix for a combination 
 ! solenoid/quadrupole element (without a tilt).
@@ -10,6 +10,7 @@
 ! Input:
 !   ks          -- real(rp): Solenoid strength.
 !   k1          -- real(rp): Quadrupole strength.
+!   tilt        -- real(rp): quadrupole tilt.
 !   length      -- real(rp): Sol_quad length.
 !   ele         -- ele_struct: Sol_quad element.
 !   orbit       -- coord_struct: Orbit at beginning of the sol_quad.
@@ -21,7 +22,7 @@
 !   mat6(6,6)   -- real(rp): Transfer matrix includeing the sol_quad.
 !-
 
-subroutine sol_quad_mat6_calc (ks_in, k1_in, length, ele, orbit, mat6, make_matrix)
+subroutine sol_quad_mat6_calc (ks_in, k1_in, tilt, length, ele, orbit, mat6, make_matrix)
 
 use equal_mod, dummy => sol_quad_mat6_calc
 
@@ -33,7 +34,7 @@ type (ele_struct) ele
 real(rp) ks, k1, length
 real(rp), optional :: mat6(6,6)
 
-real(rp) ks2, s, c, snh, csh, rel_p, ks_in, k1_in, orb(6)
+real(rp) ks2, s, c, snh, csh, rel_p, ks_in, k1_in, tilt, orb(6)
 real(rp) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
 real(rp) df, dalpha2, dalpha, dbeta2, dbeta, darg, kmat(6,6)
 real(rp) dC, dCsh, dS, dSnh, dq, dr, da, db, k1_2
@@ -51,6 +52,8 @@ logical, optional :: make_matrix
 
 ! Calculation is done in (x, x', y, y') coordinates and then converted
 ! to (x, p_x, y, p_y) coordinates.
+
+call tilt_coords (tilt, orbit%vec, mat6, make_matrix)
 
 rel_p = 1 + orbit%vec(6)
 
@@ -352,6 +355,8 @@ if (logic_option(.false., make_matrix)) then
 
   mat6 = matmul(kmat, mat6)
 endif
+
+call tilt_coords (-tilt, orbit%vec, mat6, make_matrix)
 
 end subroutine sol_quad_mat6_calc
 

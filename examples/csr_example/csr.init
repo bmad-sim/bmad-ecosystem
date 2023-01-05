@@ -3,8 +3,8 @@
 ! Use "getf" to view the structure definitions of these global structures.
 
 &params
-	ran_seed = 123456        ! 0 => Use system clock to init ran number generator.
-	bmad_com%coherent_synch_rad_on = T
+  ran_seed = 123456        ! 0 => Use system clock to init ran number generator.
+  bmad_com%csr_and_space_charge_on = T
   lat_file_name = 'lat.bmad'
   beam_init%a_norm_emit   = 4e-12
   beam_init%b_norm_emit   = 4e-12
@@ -16,10 +16,7 @@
   beam_init%n_bunch       = 1
   space_charge_com%ds_track_step = 0.1
   space_charge_com%n_bin = 400
-  space_charge_com%lcsr_component_on = F    ! Coherent synch radiation on/off?
-  space_charge_com%lsc_component_on = F     ! Longitudinal space charge component
-  space_charge_com%tsc_component_on = F     ! Transverse space charge component
   space_charge_com%beam_chamber_height = 0.02
   space_charge_com%n_shield_images = 0
-	space_charge_com%particle_bin_span = 8
+  space_charge_com%particle_bin_span = 8
 /

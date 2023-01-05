@@ -2189,200 +2189,6 @@ extern "C" void test_c_grid_field (Opaque_grid_field_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_taylor_field_plane1 (CPP_taylor_field_plane1&, bool&);
-
-void set_CPP_taylor_field_plane1_test_pattern (CPP_taylor_field_plane1& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[type, 1, NOT]
-  for (unsigned int i = 0; i < C.field.size(); i++)
-    {int rhs = 101 + i + 1 + offset; set_CPP_em_taylor_test_pattern(C.field[i], ix_patt+i+1);}
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_taylor_field_plane1 (Opaque_taylor_field_plane1_class* F, bool& c_ok) {
-
-  CPP_taylor_field_plane1 C, C2;
-
-  c_ok = true;
-
-  taylor_field_plane1_to_c (F, C);
-  set_CPP_taylor_field_plane1_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " taylor_field_plane1: C side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field_plane1: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_plane1_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_taylor_field_plane1 (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_taylor_field_plane1_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " taylor_field_plane1: F side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field_plane1: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_plane1_test_pattern (C2, 4);
-  taylor_field_plane1_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_taylor_field_plane (CPP_taylor_field_plane&, bool&);
-
-void set_CPP_taylor_field_plane_test_pattern (CPP_taylor_field_plane& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[character, 0, NOT]
-  C.file.resize(200);
-  for (unsigned int i = 0; i < C.file.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.n_link = rhs;
-
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.plane.resize(0);
-  else {
-    C.plane.resize(3);
-    for (unsigned int i = 0; i < C.plane.size(); i++)  {set_CPP_taylor_field_plane1_test_pattern(C.plane[i], ix_patt+i+1);}
-  }
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_taylor_field_plane (Opaque_taylor_field_plane_class* F, bool& c_ok) {
-
-  CPP_taylor_field_plane C, C2;
-
-  c_ok = true;
-
-  taylor_field_plane_to_c (F, C);
-  set_CPP_taylor_field_plane_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " taylor_field_plane: C side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field_plane: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_plane_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_taylor_field_plane (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_taylor_field_plane_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " taylor_field_plane: F side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field_plane: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_plane_test_pattern (C2, 4);
-  taylor_field_plane_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_taylor_field (CPP_taylor_field&, bool&);
-
-void set_CPP_taylor_field_test_pattern (CPP_taylor_field& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.ele_anchor_pt = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.field_type = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.dz = rhs;
-
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.r0.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.r0[i] = rhs;}
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.field_scale = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.master_parameter = rhs;
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 7 + offset; C.curved_ref_frame = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 8 + offset; C.canonical_tracking = (rhs % 2 == 0);
-
-  // c_side.test_pat[type, 0, PTR]
-  if (ix_patt < 3) 
-    C.ptr = NULL;
-  else {
-    C.ptr = new CPP_taylor_field_plane;
-    set_CPP_taylor_field_plane_test_pattern((*C.ptr), ix_patt);
-  }
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_taylor_field (Opaque_taylor_field_class* F, bool& c_ok) {
-
-  CPP_taylor_field C, C2;
-
-  c_ok = true;
-
-  taylor_field_to_c (F, C);
-  set_CPP_taylor_field_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " taylor_field: C side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_taylor_field (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_taylor_field_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " taylor_field: F side convert F->C: Good" << endl;
-  } else {
-    cout << " taylor_field: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_taylor_field_test_pattern (C2, 4);
-  taylor_field_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
 extern "C" void test2_f_floor_position (CPP_floor_position&, bool&);
 
 void set_CPP_floor_position_test_pattern (CPP_floor_position& C, int ix_patt) {
@@ -2851,9 +2657,9 @@ extern "C" void test_c_rad_map (Opaque_rad_map_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_rad_int_ele_cache (CPP_rad_int_ele_cache&, bool&);
+extern "C" void test2_f_rad_map_ele (CPP_rad_map_ele&, bool&);
 
-void set_CPP_rad_int_ele_cache_test_pattern (CPP_rad_int_ele_cache& C, int ix_patt) {
+void set_CPP_rad_map_ele_test_pattern (CPP_rad_map_ele& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -2871,37 +2677,188 @@ void set_CPP_rad_int_ele_cache_test_pattern (CPP_rad_int_ele_cache& C, int ix_pa
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_rad_int_ele_cache (Opaque_rad_int_ele_cache_class* F, bool& c_ok) {
+extern "C" void test_c_rad_map_ele (Opaque_rad_map_ele_class* F, bool& c_ok) {
 
-  CPP_rad_int_ele_cache C, C2;
+  CPP_rad_map_ele C, C2;
 
   c_ok = true;
 
-  rad_int_ele_cache_to_c (F, C);
-  set_CPP_rad_int_ele_cache_test_pattern (C2, 1);
+  rad_map_ele_to_c (F, C);
+  set_CPP_rad_map_ele_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " rad_int_ele_cache: C side convert F->C: Good" << endl;
+    cout << " rad_map_ele: C side convert F->C: Good" << endl;
   } else {
-    cout << " rad_int_ele_cache: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " rad_map_ele: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_rad_int_ele_cache_test_pattern (C2, 2);
+  set_CPP_rad_map_ele_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_rad_int_ele_cache (C2, c_ok2);
+  test2_f_rad_map_ele (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_rad_int_ele_cache_test_pattern (C, 3);
+  set_CPP_rad_map_ele_test_pattern (C, 3);
   if (C == C2) {
-    cout << " rad_int_ele_cache: F side convert F->C: Good" << endl;
+    cout << " rad_map_ele: F side convert F->C: Good" << endl;
   } else {
-    cout << " rad_int_ele_cache: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " rad_map_ele: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_rad_int_ele_cache_test_pattern (C2, 4);
-  rad_int_ele_cache_to_f (C2, F);
+  set_CPP_rad_map_ele_test_pattern (C2, 4);
+  rad_map_ele_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_gen_grad1 (CPP_gen_grad1&, bool&);
+
+void set_CPP_gen_grad1_test_pattern (CPP_gen_grad1& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.m = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.sincos = rhs;
+
+  // c_side.test_pat[real, 2, ALLOC]
+  if (ix_patt < 3) 
+    C.deriv.resize(0);
+  else {
+    C.deriv.resize(3);
+    for (unsigned int i = 0; i < C.deriv.size(); i++)
+      C.deriv[i].resize(2);
+    for (unsigned int i = 0; i < C.deriv.size(); i++)  for (unsigned int j = 0; j < C.deriv[0].size(); j++) 
+      {int rhs = 101 + i + 10*(j+1) + 3 + offset; C.deriv[i][j] = rhs;}  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_gen_grad1 (Opaque_gen_grad1_class* F, bool& c_ok) {
+
+  CPP_gen_grad1 C, C2;
+
+  c_ok = true;
+
+  gen_grad1_to_c (F, C);
+  set_CPP_gen_grad1_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " gen_grad1: C side convert F->C: Good" << endl;
+  } else {
+    cout << " gen_grad1: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_gen_grad1_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_gen_grad1 (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_gen_grad1_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " gen_grad1: F side convert F->C: Good" << endl;
+  } else {
+    cout << " gen_grad1: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_gen_grad1_test_pattern (C2, 4);
+  gen_grad1_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_gen_grad_map (CPP_gen_grad_map&, bool&);
+
+void set_CPP_gen_grad_map_test_pattern (CPP_gen_grad_map& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.file.resize(200);
+  for (unsigned int i = 0; i < C.file.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.gg.resize(0);
+  else {
+    C.gg.resize(3);
+    for (unsigned int i = 0; i < C.gg.size(); i++)  {set_CPP_gen_grad1_test_pattern(C.gg[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 4 + offset; C.ele_anchor_pt = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 5 + offset; C.field_type = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 6 + offset; C.iz0 = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 7 + offset; C.iz1 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 8 + offset; C.dz = rhs;
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.r0.size(); i++)
+    {int rhs = 101 + i + 9 + offset; C.r0[i] = rhs;}
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.field_scale = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 11 + offset; C.master_parameter = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 12 + offset; C.curved_ref_frame = (rhs % 2 == 0);
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_gen_grad_map (Opaque_gen_grad_map_class* F, bool& c_ok) {
+
+  CPP_gen_grad_map C, C2;
+
+  c_ok = true;
+
+  gen_grad_map_to_c (F, C);
+  set_CPP_gen_grad_map_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " gen_grad_map: C side convert F->C: Good" << endl;
+  } else {
+    cout << " gen_grad_map: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_gen_grad_map_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_gen_grad_map (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_gen_grad_map_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " gen_grad_map: F side convert F->C: Good" << endl;
+  } else {
+    cout << " gen_grad_map: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_gen_grad_map_test_pattern (C2, 4);
+  gen_grad_map_to_f (C2, F);
 
 }
 
@@ -5195,10 +5152,13 @@ void set_CPP_space_charge_common_test_pattern (CPP_space_charge_common& C, int i
   // c_side.test_pat[logical, 0, NOT]
   rhs = 14 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
 
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 15 + offset; C.debug = (rhs % 2 == 0);
+
   // c_side.test_pat[character, 0, NOT]
   C.diagnostic_output_file.resize(200);
   for (unsigned int i = 0; i < C.diagnostic_output_file.size(); i++)
-    {int rhs = 101 + i + 15 + offset; C.diagnostic_output_file[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 16 + offset; C.diagnostic_output_file[i] = 'a' + rhs % 26;}
 
 }
 
@@ -5717,10 +5677,10 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
 
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
-    C.rad_int_cache = NULL;
+    C.rad_map = NULL;
   else {
-    C.rad_int_cache = new CPP_rad_int_ele_cache;
-    set_CPP_rad_int_ele_cache_test_pattern((*C.rad_int_cache), ix_patt);
+    C.rad_map = new CPP_rad_map_ele;
+    set_CPP_rad_map_ele_test_pattern((*C.rad_map), ix_patt);
   }
 
   // c_side.test_pat[type, 1, NOT]
@@ -5766,18 +5726,18 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
 
   // c_side.test_pat[type, 1, PTR]
   if (ix_patt < 3) 
-    C.grid_field.resize(0);
+    C.gen_grad_map.resize(0);
   else {
-    C.grid_field.resize(3);
-    for (unsigned int i = 0; i < C.grid_field.size(); i++)  {set_CPP_grid_field_test_pattern(C.grid_field[i], ix_patt+i+1);}
+    C.gen_grad_map.resize(3);
+    for (unsigned int i = 0; i < C.gen_grad_map.size(); i++)  {set_CPP_gen_grad_map_test_pattern(C.gen_grad_map[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[type, 1, PTR]
   if (ix_patt < 3) 
-    C.taylor_field.resize(0);
+    C.grid_field.resize(0);
   else {
-    C.taylor_field.resize(3);
-    for (unsigned int i = 0; i < C.taylor_field.size(); i++)  {set_CPP_taylor_field_test_pattern(C.taylor_field[i], ix_patt+i+1);}
+    C.grid_field.resize(3);
+    for (unsigned int i = 0; i < C.grid_field.size(); i++)  {set_CPP_grid_field_test_pattern(C.grid_field[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[type, 0, NOT]
@@ -6582,41 +6542,44 @@ void set_CPP_bunch_params_test_pattern (CPP_bunch_params& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_twiss_test_pattern(C.c, ix_patt);
 
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.spin.size(); i++)
-    {int rhs = 101 + i + 8 + offset; C.spin[i] = rhs;}
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.sigma.size(); i++)  for (unsigned int j = 0; j < C.sigma[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 9 + offset; C.sigma[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 8 + offset; C.sigma[i][j] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.rel_max.size(); i++)
-    {int rhs = 101 + i + 10 + offset; C.rel_max[i] = rhs;}
+    {int rhs = 101 + i + 9 + offset; C.rel_max[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.rel_min.size(); i++)
-    {int rhs = 101 + i + 11 + offset; C.rel_min[i] = rhs;}
+    {int rhs = 101 + i + 10 + offset; C.rel_min[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.s = rhs;
+  rhs = 11 + offset; C.s = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 13 + offset; C.t = rhs;
+  rhs = 12 + offset; C.t = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 14 + offset; C.charge_live = rhs;
+  rhs = 13 + offset; C.charge_live = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 15 + offset; C.charge_tot = rhs;
+  rhs = 14 + offset; C.charge_tot = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 16 + offset; C.n_particle_tot = rhs;
+  rhs = 15 + offset; C.n_particle_tot = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 17 + offset; C.n_particle_live = rhs;
+  rhs = 16 + offset; C.n_particle_live = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 18 + offset; C.n_particle_lost_in_ele = rhs;
+  rhs = 17 + offset; C.n_particle_lost_in_ele = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 18 + offset; C.ix_ele = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 19 + offset; C.location = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 19 + offset; C.twiss_valid = (rhs % 2 == 0);
+  rhs = 20 + offset; C.twiss_valid = (rhs % 2 == 0);
 
 
 }

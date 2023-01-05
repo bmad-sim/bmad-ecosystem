@@ -22,9 +22,8 @@
 ! interior characters. For example, with "(abc]def", all characters after the "(" are interior characters.
 !
 ! Input:
-!   in_str          -- character(*): String constant to be parsed.
-!   delim_list      -- character(*): String constant containing delimiters to be used
-!                        by the program.
+!   in_str          -- character(*): String to be parsed.
+!   delim_list      -- character(*): String containing word boundary delimiters.
 !   ignore_interior -- logical, optional: See above. Default is False.
 !
 ! Output:

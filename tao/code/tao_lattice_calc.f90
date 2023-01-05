@@ -33,6 +33,7 @@ type (beam_struct) beam
 type (tao_plot_struct), pointer :: plot
 type (tao_curve_struct), pointer :: curve
 type (tao_curve_array_struct), allocatable :: crv(:), crv_temp(:)
+type (lat_struct) lat_save
 
 real(rp) pz0, dvec(6)
 integer iuni, i, j, k, nc, ib, ix, iy, n_max, iu, it, id, n_turn
@@ -138,10 +139,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         else
           tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
           tao_branch%bunch_params(:)%n_particle_live = 0
-          if (allocated(tao_branch%bunch_params_comb)) then
-            tao_branch%bunch_params_comb(:)%n_particle_lost_in_ele = 0
-            tao_branch%bunch_params_comb(:)%n_particle_live = 0
-          endif
         endif
       endif
 
@@ -281,8 +278,10 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     ! Dynamic aperture calc. Only for rings
 
     if (u%calc%dynamic_aperture) then
+      lat_save = tao_lat%lat  ! Save since DA calc varies pz
       da => u%dynamic_aperture
       call dynamic_aperture_scan(da%scan, da%param, da%pz, tao_lat%lat, print_timing = (.not. s%com%optimizer_running))
+      tao_lat%lat = lat_save  ! Save since DA calc varies pz
     endif
   endif  ! if (u%calc%lattice)
 

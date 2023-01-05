@@ -41,7 +41,8 @@ type (floor_position_struct) floor0, floor
 type (control_struct), pointer :: ctl, ctl1, ctl2
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
-type (taylor_field_struct), pointer :: t_field
+type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), pointer :: gg
 type (ele_attribute_struct) info
 type (lord_slave_struct), allocatable, target :: bls(:)
 type (lord_slave1_struct), pointer :: b
@@ -485,19 +486,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ! check fringe type
 
-    if (ele%key == sbend$ .or. ele%key == rbend$) then
-      select case (nint(ele%value(higher_order_fringe_type$)))
-      case (none$, soft_edge_only$, hard_edge_only$, full$)
-      case default
-        call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS AN SBEND OR RBEND', &
-                      'HAS INVALID HIGHER_ORDER_FRINGE_TYPE ATTRIBUTE: ' // &
-                          higher_order_fringe_type_name(nint(ele%value(higher_order_fringe_type$))))
-        err_flag = .true.
-      end select
-    endif
-
     if (has_attribute(ele, 'FRINGE_TYPE')) then
       if (.not. valid_fringe_type(ele, nint(ele%value(fringe_type$)))) then
         call out_io (s_fatal$, r_name, &
@@ -855,6 +843,32 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
+    ! Gen_grad_map
+
+    if (associated(ele%gen_grad_map)) then
+      do iw = 1, size(ele%gen_grad_map)
+        gg_map => ele%gen_grad_map(iw)
+
+        do ix = 1, size(gg_map%gg)
+          gg => gg_map%gg(ix)
+          if (lbound(gg%deriv,1) /= gg_map%iz0) then
+            call out_io (s_fatal$, r_name, &
+                  'GEN_GRAD_MAP IN ELEMENT: ' // ele%name, &
+                  'HAS BAD DERIVATIVE TABLE LOWER BOUND: ' // int_str(lbound(gg%deriv,1)), &
+                  'SHOULD BE: ' // int_str(gg_map%iz0))
+            err_flag = .true.
+          endif
+          if (ubound(gg%deriv,1) /= gg_map%iz1) then
+            call out_io (s_fatal$, r_name, &
+                  'GEN_GRAD_MAP IN ELEMENT: ' // ele%name, &
+                  'HAS BAD DERIVATIVE TABLE UPPER BOUND: ' // int_str(ubound(gg%deriv,1)), &
+                  'SHOULD BE: ' // int_str(gg_map%iz1))
+            err_flag = .true.
+          endif
+        enddo
+      enddo
+    endif
+
     ! Grid_field field
 
     if (associated(ele%grid_field)) then
@@ -910,24 +924,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                 'HAS GEOMETRY = "XYZ" BUT DR(3) IS 0.')
           err_flag = .true.
         endif
-      enddo
-    endif
-
-    ! taylor_field
-
-    if (associated(ele%taylor_field)) then
-      do iw = 1, size(ele%taylor_field)
-        t_field => ele%taylor_field(iw)
-        do j = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
-          do k = 1, 3
-            if (allocated(t_field%ptr%plane(j)%field(k)%term)) cycle
-            call out_io (s_fatal$, r_name, &
-                  'TAYLOR_FIELD IN ELEMENT: ' // ele%name, &
-                  'HAS NO TAYLOR TERMS FOR THE ' // trim(plane_name(k)) // ' FIELD COMPONENT OF PLANE WITH INDEX \i0\ ', &
-                  i_array = [j])
-            err_flag = .true.
-          enddo
-        enddo
       enddo
     endif
 
@@ -1123,17 +1119,17 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
+    if (s_stat == super_slave$ .and. associated(ele%gen_grad_map)) then
+      call out_io (s_fatal$, r_name, &
+                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                'HAS ASSOCIATED %GEN_GRAD_MAP COMPONENT.', i_array = [i_t] )
+      err_flag = .true.
+    endif
+
     if (s_stat == super_slave$ .and. associated(ele%grid_field)) then
       call out_io (s_fatal$, r_name, &
                 'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
                 'HAS ASSOCIATED %GRID_FIELD COMPONENT.', i_array = [i_t] )
-      err_flag = .true.
-    endif
-
-    if (s_stat == super_slave$ .and. associated(ele%taylor_field)) then
-      call out_io (s_fatal$, r_name, &
-                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %TAYLOR_FIELD COMPONENT.', i_array = [i_t] )
       err_flag = .true.
     endif
 

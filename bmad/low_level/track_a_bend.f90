@@ -52,6 +52,7 @@ call init_fringe_info (fringe_info, ele)
 if (fringe_info%has_fringe) then
   fringe_info%particle_at = first_track_edge$
   call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
+  if (orbit_too_large(orbit, param)) return
 endif
 
 ! Set some parameters

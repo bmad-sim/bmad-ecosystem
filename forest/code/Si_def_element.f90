@@ -1461,6 +1461,7 @@ CONTAINS
        !       IF(EL%P%NMUL==0) CALL ZERO_ANBN(EL,1)
        !       EL%mu%AN=>EL%AN
        !       EL%mu%BN=>EL%BN
+   !     write(6,*) "set family ", el%p%nst,el%p%method
        CALL POINTERS_pancake(EL%pa,T) !,angc,xc,dc,h) !,t_ax,t_ay)
     CASE(KINDabell)
        if(.not.ASSOCIATED(EL%ab)) THEN

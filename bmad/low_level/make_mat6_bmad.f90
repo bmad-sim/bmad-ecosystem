@@ -67,10 +67,10 @@ select case (key)
 case (ab_multipole$, crab_cavity$, sad_mult$, beambeam$, sbend$, patch$, quadrupole$, drift$, &
       rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$, &
       elseparator$, rfcavity$, lcavity$, match$, multipole$, octupole$, sextupole$, &
-      sol_quad$, solenoid$, taylor$, wiggler$, undulator$)
+      sol_quad$, solenoid$, taylor$, wiggler$, undulator$, ac_kicker$)
   tm = ele%tracking_method
   field_ele => pointer_to_field_ele(ele, 1)
-  if (key /= wiggler$ .or. field_ele%field_calc /= fieldmap$)   ele%tracking_method = bmad_standard$
+  !!if (key /= wiggler$ .or. field_ele%field_calc /= fieldmap$)   ele%tracking_method = bmad_standard$
   call track1 (start_orb, ele, param, end_orb, make_map1 = .true.)
   ele%tracking_method = tm
 

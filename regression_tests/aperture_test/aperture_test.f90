@@ -36,15 +36,15 @@ open (1, file = 'output.now')
 !
 
 call bmad_parser (lat_file, lat)
-ele => lat%ele(2)
-start_orb = lat%particle_start
 
+ele => lat%ele(2)
+call init_coord (start_orb, lat%particle_start, ele, upstream_end$)
 ele%tracking_method = runge_kutta$
-call track1(start_orb, lat%ele(2), lat%param, end_orb)
+call track1(start_orb, ele, lat%param, end_orb)
 write (1, '(a, 6f10.6, i4)') '"RK"   ABS 0', end_orb%vec, end_orb%state
 
 ele%tracking_method = time_runge_kutta$
-call track1(start_orb, lat%ele(2), lat%param, end_orb)
+call track1(start_orb, ele, lat%param, end_orb)
 write (1, '(a, 6f10.6, i4)') '"TRK"  ABS 0', end_orb%vec, end_orb%state
 
 do i = 3, lat%n_ele_track-1  ! Do not include END marker element.

@@ -51,7 +51,7 @@ endif
 call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
 if (ix_pole_max > -1) then
   amp = ac_kicker_amp(ele, end_orb)
-  call ab_multipole_kicks (an, bn, ix_pole_max, param%particle, ele, end_orb, magnetic$, amp)
+  call ab_multipole_kicks (an, bn, ix_pole_max, ele, end_orb, magnetic$, amp)
 endif
 
 !

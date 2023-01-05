@@ -23,12 +23,10 @@
 !   the downstream end is the entrance end of the element.
 !
 ! Note: There are no element coordinates associated with a patch element so this routine will do nothing in this case.
+! Note: x/y_offset_mult are included in sad_mult offsets.
 !
 ! Input:
 !   ele               -- Ele_struct: Element
-!     %value(x_offset$)   -- Horizontal offset of element.
-!     %value(x_pitch$)    -- Horizontal pitch of element.
-!     %value(tilt$)       -- tilt of element.
 !   set               -- Logical: 
 !                       T (= set$)   -> Translate from lab coords to the local element coords.
 !                       F (= unset$) -> Translate back from element to lab coords.
@@ -170,6 +168,12 @@ if (set) then
     xp    = ele%value(x_pitch_tot$)
     yp    = ele%value(y_pitch_tot$)
     ref_tilt = ele%value(ref_tilt_tot$)
+
+    if (ele%key == sad_mult$) then
+      x_off = x_off + ele%value(x_offset_mult$)
+      y_off = y_off + ele%value(y_offset_mult$)
+    endif
+
     is_misaligned = (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
                                 (ele%key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0)))
   endif
@@ -355,6 +359,12 @@ else
     xp    = ele%value(x_pitch_tot$)
     yp    = ele%value(y_pitch_tot$)
     ref_tilt = ele%value(ref_tilt_tot$)
+
+    if (ele%key == sad_mult$) then
+      x_off = x_off + ele%value(x_offset_mult$)
+      y_off = y_off + ele%value(y_offset_mult$)
+    endif
+
     is_misaligned = (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
                                 (ele%key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0)))
   endif

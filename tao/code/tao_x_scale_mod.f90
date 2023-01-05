@@ -225,7 +225,6 @@ if (present(gang)) then
 endif
 
 if (do_gang .and. valid) then
-
   if (x_min == x_max) then
     this_min = 1e30; this_max = -1e30
     n = 0; major_div_nominal = 0
@@ -247,13 +246,15 @@ if (do_gang .and. valid) then
       p1 = real(sum(plot%graph(:)%x%major_div)) / size(plot%graph)
       p2 = p1
     endif
+
     do i = 1, size(plot%graph)
       graph => plot%graph(i)
       if (graph%type == 'key_table') cycle
       call qp_calc_axis_params (this_min, this_max, p1, p2, graph%x)
+      graph%x%eval_min = this_min
+      graph%x%eval_max = this_max
     enddo
   endif
-
 endif
 
 end subroutine tao_x_scale_plot
@@ -298,6 +299,8 @@ if (x_max /= x_min) then
   endif
   graph%x%min = x_min
   graph%x%max = x_max
+  graph%x%eval_min = x_min
+  graph%x%eval_max = x_max
   call qp_calc_axis_params (x_min, x_max, p1, p2, graph%x)
   return
 endif
@@ -379,7 +382,10 @@ else if (graph%p%x_axis_type == 's') then
   curve_here = .true.
 
 else if (graph%p%x_axis_type == 'var' .or. graph%p%x_axis_type == 'lat') then
-  call out_io (s_error$, r_name, 'CANNOT AUTO X-SCALE A PLOT WITH X_AXIS_TYPE OF: ' // graph%p%x_axis_type)
+  call out_io (s_error$, r_name, 'CANNOT AUTO X-SCALE A PLOT WITH X_AXIS_TYPE OF: ' // graph%p%x_axis_type, &
+                                 'YOU, THE USER, MUST SET THIS.')
+  graph%is_valid = .false.
+  graph%why_invalid = 'CANNOT AUTO X-SCALE A PLOT WITH X_AXIS_TYPE OF: ' // graph%p%x_axis_type
   return
 
 else
@@ -420,6 +426,9 @@ else
   p1 = graph%x%major_div
   p2 = p1
 endif
+
+graph%x%eval_min = this_min
+graph%x%eval_max = this_max
 
 call qp_calc_axis_params (this_min, this_max, p1, p2, graph%x)
 

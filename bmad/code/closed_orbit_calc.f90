@@ -92,6 +92,7 @@ type (branch_struct), pointer :: branch
 type (coord_struct), allocatable, target ::  closed_orb(:), co_saved(:)
 type (coord_struct), pointer :: start_orb, end_orb
 type (coord_struct), pointer :: c_orb(:), s_orb, e_orb
+type (coord_struct) original_start_orb
 type (bmad_common_struct) bmad_com_saved
 type (super_mrqmin_storage_struct) storage
 
@@ -176,6 +177,7 @@ s_orb => start_orb    ! Used to get around ifort bug
 e_orb => end_orb      ! Used to get around ifort bug
 
 call init_coord (start_orb, start_orb, ele_start, start_end$, start_orb%species, dir)
+original_start_orb = start_orb
 
 !----------------------------------------------------------------------
 ! Further init
@@ -315,7 +317,7 @@ do i_loop = 1, i_max
       ! can be found.
       if (printit) call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
                                                   'TRACKING BRANCH: ' // branch_name(branch))
-      call end_cleanup(branch)
+      call end_cleanup(branch, .true.)
       return
     end select
   endif
@@ -334,7 +336,7 @@ do i_loop = 1, i_max
     call co_func(coc%a_vec, dvec, dy_da, status)
     if (status /= 0) then
       if (printit) call out_io (s_error$, r_name, 'CANNOT FIND STABLE ORBIT.', 'TRACKING BRANCH: ' // branch_name(branch))
-      call end_cleanup(branch)
+      call end_cleanup(branch, .true.)
       return
     endif
     call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
@@ -352,7 +354,7 @@ do i_loop = 1, i_max
 
   if (status < 0) then  
     if (printit) call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!', 'TRACKING BRANCH: ' // branch_name(branch))
-    call end_cleanup(branch)
+    call end_cleanup(branch, .true.)
     return
   endif
 
@@ -416,11 +418,7 @@ do i_loop = 1, i_max
     ! Else try a step by inverting the 1-turn matrix.
     else
       invert_step_tried = .true.
-      call make_t11_inv (err)
-      if (err) then
-        call end_cleanup(branch)
-        return
-      endif
+      call make_t11_inv (err); if (err) return
 
       del_co(1:n_dim) = matmul(t11_inv(1:n_dim,1:n_dim), dorb(1:n_dim)) 
 
@@ -500,6 +498,12 @@ do i_loop = 1, i_max
 
 enddo
 
+if (i_loop == i_max + 1) then
+  if (printit) call out_io (s_error$, r_name, 'CLOSED ORBIT CANNOT BE FOUND FOR BRANCH: ' // branch_name(branch))
+  call end_cleanup(branch)
+  return
+endif
+
 ! Calc invarient spin axis.
 
 if (bmad_com_saved%spin_tracking_on) then
@@ -524,15 +528,20 @@ if (present(err_flag)) err_flag = .false.
 
 contains
 
-subroutine end_cleanup(branch)
+subroutine end_cleanup(branch, reset_orb)
 
 type (branch_struct) branch
+logical, optional :: reset_orb
+
+!
 
 bmad_com = bmad_com_saved  ! Restore
 
 if (n_dim == 4 .or. n_dim == 5) then
   call set_on_off (rfcavity$, branch%lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
 endif
+
+if (logic_option(.false., reset_orb)) closed_orb(0) = original_start_orb
 
 end subroutine
 
@@ -557,7 +566,7 @@ if (track_state /= moving_forward$) then
   return
 endif
 
-call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
+call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err, .false.); if (err) return
 max_eigen = max_z_eigen(coc%t1)
 
 end subroutine max_eigen_calc
@@ -646,7 +655,7 @@ end subroutine co_func
 !------------------------------------------------------------------------------
 ! contains
 
-subroutine this_t1_calc (branch, dir, make_mat6, t1, betas, start_orb_t1, err)
+subroutine this_t1_calc (branch, dir, make_mat6, t1, betas, start_orb_t1, err, cleanup_on_err)
 
 type (branch_struct) branch
 type (coord_struct) start_saved, end_saved
@@ -655,6 +664,7 @@ type (ele_struct) ele0
 real(rp) t1(6,6), delta, betas(2), growth_rate, start_orb_t1(6)
 integer dir, i, track_state, stat
 logical make_mat6, err, stable
+logical, optional :: cleanup_on_err
 
 !
 
@@ -680,7 +690,7 @@ else
     if (track_state /= moving_forward$) then 
       call out_io (s_error$, r_name, 'PARTICLE LOST TRACKING BACKWARDS. [POSSIBLE CAUSE: WRONG PARTICLE SPECIES.]', &
                                      'USING BRANCH: ' // branch_name(branch))
-      call end_cleanup(branch)
+      if (logic_option(.true., cleanup_on_err)) call end_cleanup(branch, .true.)
       err = .true.
       return
     endif 
@@ -721,6 +731,7 @@ call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok2)
 
 if (.not. ok1 .or. .not. ok2) then 
   if (printit) call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
+  call end_cleanup(branch, .true.)
   return
 endif
 

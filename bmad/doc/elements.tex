@@ -498,7 +498,8 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   l_arc              = <Real>   ! Arc length. For \vn{rbend}s only. 
   l_chord            = <Real>   ! Chord length. See \sref{s:l}.
   l_sagitta                     ! Sagittal length. Dependent param (\sref{s:depend}).
-  ptc_field_geometry = <Switch> ! See below.
+  ptc_field_geometry  = <Switch> ! See below.
+  ptc_fringe_geometry = <Switch> ! \Sref{s:fringe.type}
   rho                = <Real>   ! Design bend radius. Settable dependent param (\sref{s:depend}).
   roll               = <Real>   ! See \ref{s:offset}.
   field_master       = <T/F>    ! See \ref{s:field.master}.
@@ -608,27 +609,30 @@ doing exact modeling.
 The field integrals for the entrance pole face is given by the product of the \vn{fint} and
 \vn{hgap} parameters with \vn{hgap} being the half gap between poles at the entrance face
 \begin{equation}
-  F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
+  F_{H1} \equiv F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
   {2 \, B_{y0}^2}
   \label{fsbbb}
 \end{equation}
-For the exit pole face there is a similar equation using \vn{fintx} and \vn{hgapx}. In the above
-equation $B_{y0}$ is the field in the interior of the dipole. If \vn{fint} or \vn{fintx} is given
-without a value then a value of 0.5 is used. If \vn{fint} or \vn{fintx} is not present, the default
-value of 0 is used. Note: \mad does not have the \vn{fintx} and \vn{hgapx} attributes. \mad just
-assumes that the values are the same for the entrance and exit faces. For compatibility with \mad,
-if \vn{fint} is given but \vn{fintx} is not, then \vn{fintx} is set equal to \vn{fint}. Similarly,
-\vn{hgapx} will be set to \vn{hgap} if \vn{hgapx} is not given. Note that this setting of \vn{fintx}
-or \vn{hgapx} using the value of \vn{fint} or \vn{hgap} will only be done before lattice expansion
-(\sref{s:expand}).
+For the exit pole face there is a similar equation using \vn{fintx} and \vn{hgapx} which defines
+$F_{H2}$. In the above equation $B_{y0}$ is the field in the interior of the dipole. The values of
+\vn{fint}, \vn{fintx}, \vn{hgap}, and \vn{hgapx} are never used in isolation when tracking. Only
+the values for $F_{H1}$ and $F_{H2}$ matter.
+
+If \vn{fint} or \vn{fintx} is given without a value then a value of 0.5 is used. If \vn{fint} or
+\vn{fintx} is not present, the default value of 0 is used. Note: \mad does not have the \vn{fintx}
+and \vn{hgapx} attributes. \mad just assumes that the values are the same for the entrance and exit
+faces. For compatibility with \mad, if \vn{fint} is given but \vn{fintx} is not, then \vn{fintx} is
+set equal to \vn{fint}. Similarly, \vn{hgapx} will be set to \vn{hgap} if \vn{hgapx} is not
+given. Note that this setting of \vn{fintx} or \vn{hgapx} using the value of \vn{fint} or \vn{hgap}
+will only be done before lattice expansion (\sref{s:expand}).
 
 Note: To have an effect, both \vn{fint} and \vn{hgap} (or \vn{fintx} and \vn{hgapx}) must be non-zero.
 
 Note: The SAD program uses \vn{fb1+f1} for the entrance fringe and \vn{fb2+f1} for the exit
 fringe. The correspondence between the two is
 \begin{example2}
-  fint  * hgap  = (fb1 + f1) / 12
-  fintx * hgapx = (fb2 + f1) / 12
+  \(F_{H1}\) = fint  * hgap  = (fb1 + f1) / 12
+  \(F_{H2}\) = fintx * hgapx = (fb2 + f1) / 12
 \end{example2}
 
 \index{Enge function}
@@ -760,9 +764,10 @@ Example bend specification:
   b03w: sbend, l = 0.6, k1 = 0.003, fint  ! gives fint = fintx = 0.5
 \end{example}
 
-\vn{ptc_field_geometry} determines what coordinates PTC uses within a bend for calculating fields.
-This only affects tracking if PTC is being used and if \vn{ptc_com[exact_model]} is set to
-True (\sref{s:bmad.ptc.com}). Possible values for \vn{ptc_field_geometry} are:
+\vn{ptc_field_geometry} determines what reference coordinates PTC uses within a bend for calculating
+higher order fields. This only affects tracking if PTC is being used and if
+\vn{ptc_com[exact_model]} is set to True (\sref{s:bmad.ptc.com}). Possible values for
+\vn{ptc_field_geometry} are:
 \begin{example}
   sector      ! Default
   straight
@@ -1100,7 +1105,7 @@ The attributes specific to an \vn{crab_cavity} are
   gradient        = <Real>    ! Accelerating gradient (V/m).
   phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                               !   respect to the RF. phi0 = 0 is on crest.
-  phi0_multipass  = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
+  phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{s:multipass}).
   rf_frequency    = <Real>    ! RF frequency (Hz).
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
 \end{example}
@@ -2752,7 +2757,7 @@ The attributes specific to an \vn{lcavity} are
   gradient_err    = <Real>    ! Accelerating gradient error (V/m).
   phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                               !   respect to the RF. phi0 = 0 is on crest.
-  phi0_multipass  = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
+  phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{s:multipass}).
   phi0_err        = <Real>    ! Phase error (rad/2\(\pi\))
   e_loss          = <Real>    ! Loss parameter for short range wakefields (V/Coul).
   rf_frequency    = <Real>    ! RF frequency (Hz).
@@ -4225,7 +4230,7 @@ See \sref{s:list.sad.mult} for a full list of element attributes along with a th
 \index{ks}\index{phi0}\index{rho}\index{voltage}\index{x_offset_mult}
 \index{y_offset_mult}\index{x_pitch_mult}\index{y_pitch_mult}
 \index{fringe_type}\index{kill_fringe}
-Attributes specific to an \vn{sextupole} element are:
+Attributes specific to an \vn{sad_mult} element are:
 \begin{example}
   bs_field        = <Real>    ! Solenoid field. SAD equivalent: BZ.
   ks              = <Real>    ! Solenoid strength. 
@@ -4234,8 +4239,6 @@ Attributes specific to an \vn{sextupole} element are:
   fq1, fq2        = <Real>    ! Quadrupole fringe integral. SAD equivalents: F1, F2.
   x_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DX.
   y_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DY.
-  x_pitch_mult    = <Real>    ! Mult component pitch. SAD equivalent: DPX or CHI1.
-  y_pitch_mult    = <Real>    ! Mult component pitch. SAD equivalent: DPY or CHI2.
   fringe_type     = <Switch>  ! Type of fringe. SAD equivalent: DISFRIN.
   fringe_at       = <Switch>  ! Where fringe is applied. SAD equivalent: FRINGE.
 \end{example}
@@ -4248,22 +4251,18 @@ Attributes specific to an \vn{sextupole} element are:
 %  rho             = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
 %  voltage         = <Real>    ! Cavity voltage. SAD equivalent: VOLT.
 
-One difference between SAD and \bmad is that SAD defines the solenoid
-field by what are essentially a set of marker elements so that the
-solenoid field at a SAD \vn{mult} element is not explicitly declared
-in the \vn{mult} element definition. \bmad, on the other hand,
-requires a \vn{sad_mult} element to explicitly declare the solenoid
-parameters.
+One difference between SAD and \bmad is that SAD defines the solenoid field by what are essentially
+a set of marker elements so that the solenoid field at a SAD \vn{mult} element is not explicitly
+declared in the \vn{mult} element definition. \bmad, on the other hand, requires a \vn{sad_mult}
+element to explicitly declare the solenoid parameters.
 
-Another difference between SAD and \bmad is that, within a solenoid,
-the reference trajectory is aligned with the solenoid axis (and not
-aligned with the axis of the elements within the solenoid region).
+Another difference between SAD and \bmad is that, within a solenoid, the reference trajectory is
+aligned with the solenoid axis (and not aligned with the axis of the elements within the solenoid
+region).
 
-The SAD \vn{mult} element uses normal \vn{Kn} and skew \vn{KSn}
-multipole components. The \bmad \vn{sad_mult} element used normal
-\vn{an} and skew \vn{bn} multipole components. As can be seen from the
-equations in \sref{s:mag.field}, there is a factor of $n!$ between the
-two representations.
+The SAD \vn{mult} element uses normal \vn{Kn} and skew \vn{KSn} multipole components. The \bmad
+\vn{sad_mult} element used normal \vn{an} and skew \vn{bn} multipole components. As can be seen from
+the equations in \sref{s:mag.field}, there is a factor of $n!$ between the two representations.
 
 The \vn{a0} or \vn{b0} multipole moments give a dipole kick (just like a \vn{kicker} element). The
 face angles \vn{e1} and \vn{e2} are used with the dipole kick in calculating fringe effects.
@@ -4272,16 +4271,19 @@ The \vn{fq1} and \vn{fq2} parameters are used to specify the quadrupolar ``soft'
 \sref{s:q.soft} for more details.
 
 The \vn{fringe_at} and \vn{fringe_type} settings determine if the fringe field is used in
-tracking. See Sec~\sref{s:fringe} for the translation between these two switches and the
-\vn{fringe} and \vn{disfrin} switches of SAD.
+tracking. See Sec~\sref{s:fringe} for the translation between these two switches and the \vn{fringe}
+and \vn{disfrin} switches of SAD.
 
-Unlike other elements, the \vn{ds_step} and \vn{num_steps} attributes (\sref{s:integ}) of a \vn{sad_mult}
-are dependent attributes (\sref{s:depend}) and are not directly settable. Rather these
-attributes are calculated using \vn{SAD}'s own algorithm for setting the step size. To
-vary the calculated step size for a single \vn{sad_mult} element, the attribute
-\vn{eps_step_scale} may be set.  To vary the step size for all \vn{sad_mult} elements, the
-global parameter \vn{bmad_com[sad_eps_scale]} (\sref{s:bmad.ptc.com}) may be set.
-The default values for these parameters are:
+The \vn{x_offset_mult} and \vn{y_offset_mult} orients the non-solenoid components of the field while
+leaving the solenoid component unshifted.
+
+Unlike other elements, the \vn{ds_step} and \vn{num_steps} attributes (\sref{s:integ}) of a
+\vn{sad_mult} are dependent attributes (\sref{s:depend}) and are not directly settable. Rather these
+attributes are calculated using \vn{SAD}'s own algorithm for setting the step size. To vary the
+calculated step size for a single \vn{sad_mult} element, the attribute \vn{eps_step_scale} may be
+set.  To vary the step size for all \vn{sad_mult} elements, the global parameter
+\vn{bmad_com[sad_eps_scale]} (\sref{s:bmad.ptc.com}) may be set.  The default values for these
+parameters are:
 \begin{example}
   eps_step_scale          = 1
   bmad_com[sad_eps_scale] = 5e-3
@@ -4292,16 +4294,18 @@ SAD conventions to be aware of when comparing SAD to Bmad:
 \item
 A SAD \vn{rotate} or \vn{chi3} rotation is opposite to a \bmad \vn{tilt}
 \item
-SAD element offsets (\vn{dx}, \vn{dy}, \vn{dz}) are with respect to the entrance end
-of the element as opposed to \bmad's convention of referencing to the element center.
+SAD element offsets (\vn{dx}, \vn{dy}, \vn{dz}) are with respect to the entrance end of the element
+as opposed to \bmad's convention of referencing to the element center.
 \item
   The \bmad \vn{sad_mult} element does not have any attributes corresponding to the following
 SAD \vn{mult} element attributes:
+\vspace{1.0ex}
 \begin{example}
   angle, harmon, freq, phi, dphi, volt, dvolt
 \end{example}
+\vspace{1.0ex}
 That is, \vn{sad_mult} elements cannot be used to simulate RF cavities or bends (but a \vn{sad_mult}
-can be used to simulate a kicker type element where the reference orbit is not bent).
+can be used to simulate a kicker type element).
 \end{itemize}
 
 Example:

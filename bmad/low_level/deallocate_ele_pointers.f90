@@ -46,12 +46,12 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%converter)
   nullify (ele%cartesian_map)
   nullify (ele%cylindrical_map)
-  nullify (ele%taylor_field)
+  nullify (ele%gen_grad_map)
   nullify (ele%grid_field)
   nullify (ele%ptc_fibre)
   nullify (ele%mode3)
   nullify (ele%photon)
-  nullify (ele%rad_int_cache)
+  nullify (ele%rad_map)
   nullify (ele%high_energy_space_charge)
   nullify (ele%wake)
   nullify (ele%wall3d)
@@ -77,13 +77,15 @@ endif
 if (associated (ele%descrip))                   deallocate (ele%descrip)
 if (associated (ele%control))                   deallocate (ele%control)
 if (associated (ele%converter))                 deallocate (ele%converter)
-if (associated (ele%rad_int_cache))             deallocate (ele%rad_int_cache)
+if (associated (ele%rad_map))                   deallocate (ele%rad_map)
 if (associated (ele%r))                         deallocate (ele%r)
 if (associated (ele%custom))                    deallocate (ele%custom)
 if (associated (ele%photon))                    deallocate (ele%photon)
 if (associated (ele%mode3))                     deallocate (ele%mode3)
 if (associated (ele%wake))                      deallocate (ele%wake)
 if (associated (ele%high_energy_space_charge))  deallocate (ele%high_energy_space_charge)
+if (associated (ele%gen_grad_map))            deallocate (ele%gen_grad_map)
+
 if (allocated (ele%multipole_cache))            deallocate (ele%multipole_cache)
 
 call unlink_wall3d (ele%wall3d)
@@ -94,10 +96,6 @@ endif
 
 if (associated (ele%cylindrical_map)) then
   call unlink_fieldmap (cylindrical_map = ele%cylindrical_map)
-endif
-
-if (associated (ele%taylor_field)) then
-  call unlink_fieldmap (taylor_field = ele%taylor_field)
 endif
 
 if (associated (ele%grid_field)) then

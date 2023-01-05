@@ -597,26 +597,30 @@ Interface} chapter (\sref{c:python}).
 Documentation on interfacing Python scripts to \tao's python command is given in the \vn{Tao Python
 Command} section (\sref{s:python.python}).
 
+Note to programmers: For debugging, the \vn{show internal -python} command will show the \vn{c_real}
+and \vn{c_integer} arrays.
+
 List of possible \vn{<what_to_print>} choices:
 \begin{example}
-  beam, beam_init, branch1, bunch_params, bunch1, bmad_com, building_wall_list
-  building_wall_graph, building_wall_point, building_wall_section constraints,
-  da_params, da_aperture data, data_d2_create, data_d2_destroy, data_d_array,
-  data_d1_array data_d2, data_d2_array, data_set_design_value, data_parameter
+  beam, beam_init, branch1, bunch_comb, bunch_params, bunch1, bmad_com, 
+  building_wall_list, building_wall_graph, building_wall_point, 
+  building_wall_section, constraints, da_params, da_aperture, data, 
+  data_d2_create, data_d2_destroy, data_d_array, data_d1_array,
+  data_d2, data_d2_array, data_set_design_value, data_parameter,
   datum_create, datum_has_ele, derivative, ele:ac_kicker, ele:cartesian_map,
   ele:chamber_wall, ele:control_var, ele:cylindrical_map, ele:elec_multipoles,
-  ele:floor, ele:grid_field, ele:gen_attribs, ele:head, ele:lord_slave, ele:mat6,
-  ele:methods, ele:multipoles, ele:orbit, ele:param, ele:photon, ele:spin_taylor,
-  ele:taylor, ele:taylor_field, ele:twiss, ele:wake, ele:wall3d, em_field, enum,
-  evaluate, floor_plan, floor_orbit, global, help, inum lat_branch_list,
-  lat_calc_done, lat_ele_list, lat_list, lat_param_units matrix, merit, orbit_at_s
-  place_buffer, plot_curve, plot_graph, plot_histogram, plot_lat_layout, plot_line
-  plot_plot_manage, plot_graph_manage, plot_curve_manage plot_list, plot_symbol,
-  plot_transfer, plot1, ptc_com, ring_general, shape_list shape_manage,
-  shape_pattern_list, shape_pattern_manage, shape_pattern_point_manage, shape_set
-  show, species_to_int, species_to_str, spin_polarization, spin_resonance,
-  super_universe twiss_at_s, universe var_v1_create, var_v1_destroy, var_create,
-  var_general, var_v1_array, var_v_array, var wave
+  ele:floor, ele:gen_grad_map, ele:grid_field, ele:gen_attribs, ele:head, ele:lord_slave, 
+  ele:mat6, ele:methods, ele:multipoles, ele:orbit, ele:param, ele:photon, 
+  ele:spin_taylor, ele:taylor, ele:twiss, ele:wake, ele:wall3d, em_field, enum,
+  evaluate, floor_plan, floor_orbit, global, help, inum, lat_branch_list,
+  lat_calc_done, lat_ele_list, lat_list, lat_param_units, matrix, merit, orbit_at_s,
+  place_buffer, plot_curve, plot_graph, plot_histogram, plot_lat_layout, plot_line,
+  plot_plot_manage, plot_graph_manage, plot_curve_manage, plot_list, plot_symbol,
+  plot_transfer, plot1, ptc_com, ring_general, shape_list, shape_manage,
+  shape_pattern_list, shape_pattern_manage, shape_pattern_point_manage, shape_set,
+  show, species_to_int, species_to_str, spin_invariant, spin_polarization, 
+  spin_resonance, super_universe, twiss_at_s, universe, var_v1_create, var_v1_destroy, 
+  var_create, var_general, var_v1_array, var_v_array, var, wave
 \end{example}
 
 %% quit --------------------------------------------------------------
@@ -1952,7 +1956,7 @@ Shows a list of defined aliases. See the \vn{alias} command for more details.
 
 Command to show beam parameters. Syntax:
 \begin{example}
-  show beam \{-comb_index\} \{-universe <uni_index>\} \{-lattice\} \{<element_id>\}
+  show beam \{-comb\} \{-universe <uni_index>\} \{-lattice\} \{<element_id>\}
 \end{example}
 
 If both \vn{<element_id>} and \vn{-lattice} are absent, \vn{show beam} shows parameters
@@ -1967,9 +1971,12 @@ If \vn{-lattice} is present, \vn{show beam} will show the beam sigma matrix as c
 lattice at the position given by \vn{<element_id>} (\sref{s:lat.sig.init}). If an
 element is not specified, the beginning element (with index 0) will be used.
 
-If the \vn{-comb_index} is present, \vn{<element_id>} should be an integer which is the index
-of the comb of longitudinally equally spaced points where the beam parameters are evaluated at.
-Note: \vn{comb_ds_step} (\sref{s:tao.global.struct}) is used to set the spacing between points.
+If the \vn{-comb} is present, \vn{<element_id>} should be an integer which is the index of the comb
+of longitudinally equally spaced points where the beam parameters are evaluated at.  Note:
+\vn{comb_ds_save} (\sref{s:tao.global.struct}) is used to set the spacing between points.  If
+\vn{<element_id>} is not present, information about all the comb points is output. Also see the
+\vn{write bunch_comb} (\sref{s:write.bunch.comb}) and \vn{python bunch_comb} (\sref{p:bunch.comb})
+commands.
 
 Note: To show individual particle positions, see the \vn{show particle} command
 (\sref{s:show.particle}).
@@ -2598,7 +2605,7 @@ there should be no blank characters in the list.
 %
 \item[-floor_coords] \Newline
 If present, the \vn{-floor_coords} switch will print the global floor (laboratory) coordinates for
-each element.
+each element. If used with the \vn{-orbit} option, the orbit in floor coordinates will be shown.
 %
 \item[-lords] \Newline
 If present, the \vn{-lords} switch will print a list of lord elements only. Also see the
@@ -2634,7 +2641,8 @@ The \vn{-no_tail_lines} just suppress the header lines at the bottom of the tabl
 The \vn{-orbit} switch will show the particle's phase space orbit which is the closed orbit if the
 lattice has a closed geometry and is the orbit beginning from the specified starting position for
 lattices with an open geometry. Use \vn{set particle_start} to vary the starting position in this
-case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed.
+case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed. If used
+with the \vn{-floor_coords} option, the orbit in floor coordinates will be shown.
 %
 \item[-python] \Newline
 The \vn{-python} switch gives a comma delimited table as output. This switch is used with the
@@ -2910,8 +2918,9 @@ chapter on \vn{Synchrotron Radiation}).
 
 Syntax:
 \begin{example}
-  show spin \{-element \{<ref_ele_name>\} <ele_name>\} \{-g_map\}
+  show spin \{-element \{<ref_ele_name>\} <ele_name>\} \{-flip_n_axis\} \{-g_map\}
                   \{-n_axis <nx>, <ny>, <nz>\} \{-l_axis <lx>, <ly>, <lz>\}
+                  \{-ignore_kinetic <ele_list>\}
                   \{-x_zero <ele_list>\} \{-y_zero <ele_list>\} \{-z_zero <ele_list>\}
 \end{example}
 
@@ -2942,15 +2951,23 @@ To see the linear spin-orbit resonance strengths, use the \vn{-ele} switch with 
 \vn{<ref_ele_name>} being blank or the same as \vn{<ele_name>}. The spin-orbit resonance strength
 table has three rows for the three orbital modes $a$, $b$, and $c$. The columns of the table are:
 \begin{Itemize}
-  \item Col 1: Orbital tune.
-  \item Col 2: Minimum of (|Q_orb-Qs|, |Q_orb+Qs|). That is, the minimum of the tune separation between the 
-     "sum" and "difference" resonances. The resonance calculation will only be accurate near resonance.
-  \item Cols 3\&4: The normalized resonance strengths. For computations use the largest value.
+  \item Col 1: Name of mode
+  \item Col 2: Orbital tune.
+  \item Col 3: Q_spin + Q_mode + N where N is an integer that minimizes this expression. 
+The sum resonance occures when this is zero. 
+  \item Col 4: Sum resonance strength. This number is only accurate if the value
+of column 3 is small compared to one.
+  \item Col 5: Q_spin - Q_mode + N where N is an integer that minimizes this expression. 
+The difference resonance occures when this is zero. 
+  \item Col 6: Difference resonance strength. This number is only accurate if the value
+of column 5 is small compared to one.
 \end{Itemize}
 \vskip -1.0ex
-See the Bmad manual section on the linear spin/orbit resonance analysis for more details.  The
+See the Bmad manual section on the linear spin/orbit resonance analysis for more details. The
 \vn{python spin_resonance} command can be used to extract resonance values when using running \tao
 with a script.
+
+The \vn{-flip_n_axis} switch, if present, will flip the direction of the displayed $n$-axis. 
 
 The \vn{-x_zero}, \vn{-y_zero}, and \vn{-z_zero} options are for testing if supressing
 certain terms in the linear part of the spin transport map for a set of elements selected by the
@@ -2962,15 +2979,22 @@ the spin transport map of the chosen lattice elements. Similarly, \vn{-y_zero} a
 (\sref{s:ele.list.format}), without any embedded blanks, is used for the \vn{<ele_list>} list of
 elements to apply to.
 
+The \vn{-ignore_kinetic} option can be used such that the kinetic term in the Derbenev-Kondratenko
+polarization formula coming from lattice elements specified by \vn{<lat_list>} are not used in
+evaluating the polarization. Element list format (\sref{s:ele.list.format}), without any embedded
+blanks, is used for the \vn{<ele_list>} list of elements to apply to.
+
 
 Example:
 \begin{example}
   show spin
   show spin -ele Q1-1 Q1 -n 0,1,0 -l 1,0,0  ! G-matrix for Q1
   show spin -ele S1      ! 1-turn analysis at downstream end of S1 
-  show spin -ele 4 7     ! G-matrix from end of element 4 to end of element 7
+  show spin -ele 4 7 -g  ! G-matrix from end of element 4 to end of element 7
   show spin -x_zer s1:s2 ! Zero \(\bfq_1\) and \(\bfq_2\) components for all lattice elements
                          ! between elements s1 and s2.
+  show spin -ign B0\%    ! Ignore the kinetic term for all elements whose name has three 
+                         !   characters and starts with "B0".
 \end{example}
 
 %% show string --------------------------------------------------------------
@@ -3698,6 +3722,7 @@ Format:
   write beam ...                  ! \sref{s:write.beam}
   write blender ...               ! \sref{s:write.blender}
   write bmad ...                  ! \sref{s:write.bmad}
+  write bunch_comb ...            ! \sref{s:write.bunch.comb}
   write covariance_matrix ...     ! \sref{s:write.covar.matrix}
   write curve ...                 ! \sref{s:write.curve}
   write derivative_matrix ...     ! \sref{s:write.deriv.matrix}
@@ -3820,8 +3845,8 @@ Lattice elements may have associated field descriptions. There are four types as
 \begin{example}
   cartesian_map
   cylindrical_map
+  gen_grad_map
   grid_field
-  taylor_field
 \end{example}
 Since the data associated with these may be largish, there is the option of storing the data is
 separate secondary lattice files. This is done by setting \vn{format} to either \vn{ascii} or
@@ -3831,6 +3856,56 @@ HDF5. The other three field description types are always stored using ASCII file
 
 \begin{example}
   write bmad -format one lat.bmad  ! Single lattice file lat.bmad created.
+\end{example}
+
+%% write bunch_comb --------------------------------------------------------------
+
+\subsection{write bunch_comb}
+\label{s:write.bunch.comb}
+
+The \vn{write bunch_comb} command writes to a file bunch parameters (bunch sigma matrix, etc.) at
+the ``comb'' points where these aggragrate bunch parameters are saved (\sref{s:beam.init}). Also see
+the \vn{show beam -comb} (\sref{s:show.beam} and \vn{python bunch_comb} (\sref{p:bunch.comb})
+commands. Syntax:
+\begin{example}
+    write bunch_comb \{-branch <ix_branch> \} \{-centroid\} \{-ix_bunch <ix_bunch>\} 
+                        \{-min_max\} \{-sigma\} \{-universe <ix_uni>\} \{file_name\}  
+\end{example}
+
+There are three file types described below. For all types the file will contain a table. The rows of
+the table correspond to different comb points. The columns of the table correspond to varias bunch
+parameters calculated at the comb points.
+\begin{description}
+\item[-centroid] \Newline
+The table generated when the \vn{-centroid} switch is present has columns showing phase space and
+spin centroid values averaged over the bunch. Additionally, the sigmas for the six phase space
+variables are given along with emittances for the three normal modes.
+%
+\item[-min_max] \Newline
+The table generated when the \vn{-min_max} switch is present has columns showing the minimum and
+maximum values for the six phase space coordinates of all the particles of the bunch.
+% 
+\item[-sigma] \Newline 
+The table generated when the \vn{-sigma} switch is present has columns giving values of the bunch
+beam size sigma matrix.
+\end{description}
+If no file type switch is given, \vn{-sigma} is the default.
+
+The \vn{file_name} option gives the name of the output file. If not present, the default name is
+``\vn{bunch_comb.XXX}'' where ``\vn{.XXX} is suffix that is set dependent upon the type of output
+file. ``\vn{.centroid}'' for the centroid table, etc.
+
+The \vn{-branch} switch specifies which branch to use the comb from. The default is the default
+branch.
+
+The \vn{-ix_bunch} switch specifies which bunch comb to use (if there are multiple bunches in a beam).
+
+The \vn{-universe} switch specifies which universe to look in for the comb. The default is the
+current default universe.
+
+Examples:
+\begin{example}
+  write bunch_c -uni 2 -cent  ! Centroid type table for universe 2
 \end{example}
 
 %% write covariance_matrix --------------------------------------------------------------
@@ -3967,7 +4042,7 @@ Syntax:
 
 The \vn{write matrix} command writes transport matrices to a file for a particular lattice branch
 determined by the \vn{-universe} and \vn{-branch} switches. The default is the current viewed
-universe and lattice branch 0.
+universe and default lattice branch.
 
 If \vn{<file_name>} is not present, the default file name to write to is \vn{matrix.dat}.
 
@@ -4045,8 +4120,8 @@ If \vn{-all} is not present, only one main flat file is generated. In this case,
 present, the flat file generated will be of the ``old'' syntax. Generally there is no reason to
 generate old style flat files. When generating a single flat file (no \vn{-all} switch present), the
 flat file will contain the information for a single lattice branch. The lattice branch used can be
-specified by the \vn{-branch} switch. The default, if \vn{-branch} is not present, is to use lattice
-branch \# 0. The \vn{-old} switch will generate an ``old style'' version.
+specified by the \vn{-branch} switch. The default, if \vn{-branch} is not present, is to use default
+branch. The \vn{-old} switch will generate an ``old style'' version.
 
 In all cases, the \vn{write ptc} command can only be used after a \vn{ptc init} command has been
 used to setup PTC.

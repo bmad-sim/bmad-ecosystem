@@ -65,8 +65,8 @@ type (cylindrical_map_struct), pointer :: cl_map
 type (cylindrical_map_term1_struct), pointer :: cl_term
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
-type (taylor_field_struct), pointer :: t_field
-type (taylor_field_plane1_struct), pointer :: t_term
+type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), pointer :: gg
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
@@ -81,7 +81,7 @@ type (rad_map_struct), pointer :: rm0, rm1
 
 integer, optional, intent(in) :: type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
-integer ia, im, i1, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
+integer ia, im, i1, ig, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
 integer id1, id2, id3
 
@@ -487,6 +487,51 @@ if (associated(ele%cylindrical_map)) then
   endif
 endif
 
+! Gen_Grad_field
+
+if (associated(ele%gen_grad_map)) then
+  if (integer_option(no$, type_field) == no$) then
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Gen_Grad_field modes:', size(ele%gen_grad_map)
+  else
+    nl2 = 10; if (type_field == all$) nl2 = 999
+    nl=nl+1; li(nl) = ''
+    if (ele%field_calc == bmad_standard$) then
+      nl=nl+1; li(nl) = 'Gen_Grad_field: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
+    else
+      nl=nl+1; li(nl) = 'Gen_Grad_field:'
+    endif
+    do im = 1, size(ele%gen_grad_map)
+      gg_map => ele%gen_grad_map(im)
+      if (gg_map%master_parameter == 0) then
+        name = '<None>'
+      else
+        name = attribute_name(ele, gg_map%master_parameter)
+      endif
+
+      nl=nl+1; write (li(nl), '(2a)')         '  field_type:        ', em_field_type_name(gg_map%field_type)
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '  field_scale:       ', gg_map%field_scale
+      nl=nl+1; write (li(nl), '(a, 3es16.8)') '  r0:                ', gg_map%r0
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '  dz:                ', gg_map%dz
+      nl=nl+1; write (li(nl), '(a, 2i5)')     '  iz0, iz1:          ', gg_map%iz0, gg_map%iz1
+      nl=nl+1; write (li(nl), '(2a)')         '  master_parameter:  ', trim(name)
+      nl=nl+1; write (li(nl), '(2a)')         '  ele_anchor_pt:     ', anchor_pt_name(gg_map%ele_anchor_pt)
+      nl=nl+1; write (li(nl), '(a, l1)')      '  curved_ref_frame   ', gg_map%curved_ref_frame
+      do ig = 1, size(gg_map%gg)
+        gg => gg_map%gg(ig)
+        nl=nl+1; write (li(nl), '(4x, i0, a, i0, 2x, a)') ig, ': Curve m = ', gg%m, expression_op_name(gg%sincos)
+        nl=nl+1; write (li(nl), '(9x, a)') 'Z  Derivs....'
+        do n = lbound(gg%deriv,1), ubound(gg%deriv,1)
+          if (n - lbound(gg%deriv,1) > 10) then
+            nl=nl+1; li(nl) = '      ... etc. ...'
+            exit
+          endif
+          nl=nl+1; write(li(nl), '(i10, f10.6, 99es14.6)') n, n*gg_map%dz, gg%deriv(n,:)
+        enddo
+      enddo
+    enddo
+  endif
+endif
+
 ! Grid_field
 
 if (associated(ele%grid_field)) then
@@ -586,43 +631,6 @@ if (associated(ele%grid_field)) then
   endif
 endif
 
-! Taylor_field
-
-if (associated(ele%taylor_field)) then
-  if (integer_option(no$, type_field) == no$) then
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Taylor_field modes:', size(ele%taylor_field)
-  else
-    nl2 = 10; if (type_field == all$) nl2 = 999
-    nl=nl+1; li(nl) = ''
-    if (ele%field_calc == bmad_standard$) then
-      nl=nl+1; li(nl) = 'Taylor_field: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
-    else
-      nl=nl+1; li(nl) = 'Taylor_field:'
-    endif
-    do im = 1, size(ele%taylor_field)
-      t_field => ele%taylor_field(im)
-      if (t_field%master_parameter == 0) then
-        name = '<None>'
-      else
-        name = attribute_name(ele, t_field%master_parameter)
-      endif
-
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Taylor_field mode #:', im
-      nl=nl+1; write (li(nl), '(2a)')         '    From file:         ', trim(t_field%ptr%file)
-      nl=nl+1; write (li(nl), '(2a)')         '    field_type:        ', em_field_type_name(t_field%field_type)
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:       ', t_field%field_scale
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:                ', t_field%dz
-      nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:                ', t_field%r0
-      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter:  ', trim(name)
-      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:     ', anchor_pt_name(t_field%ele_anchor_pt)
-      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame   ', t_field%curved_ref_frame
-      nl=nl+1; write (li(nl), '(a, l1)')      '    canonical_tracking ', t_field%canonical_tracking
-      nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:            ', t_field%ptr%n_link
-      nl=nl+1; write (li(nl), '(a, i0)')      '    n_plane:           ', size(t_field%ptr%plane)
-    enddo
-  endif
-endif
-
 ! ac_kick
 
 if (associated(ele%ac_kick)) then
@@ -650,9 +658,9 @@ endif
 
 ! Radiation kick values
 
-if (logic_option(.false., type_rad_kick) .and. associated(ele%rad_int_cache)) then
-  rm0 => ele%rad_int_cache%rm0
-  rm1 => ele%rad_int_cache%rm1
+if (logic_option(.false., type_rad_kick) .and. associated(ele%rad_map)) then
+  rm0 => ele%rad_map%rm0
+  rm1 => ele%rad_map%rm1
 
   nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Matrices used for radiation stochastic and damping kicks:'
@@ -1380,9 +1388,9 @@ character(*) attrib_name
 character(40) a_name, a2_name
 logical is_2nd_col_attrib
 
-character(41), parameter :: att_name(80) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+character(41), parameter :: att_name(81) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
-                'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
+                'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'KICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
                 'KS', 'K1', 'K2', 'G', 'DG', 'H1', 'E1', 'FINT', 'HGAP', &
                 'L_CHORD', 'PTC_FIELD_GEOMETRY', 'AUTOSCALE_AMPLITUDE', 'FIELD_AUTOSCALE', 'COUPLER_AT', &
                 'VOLTAGE', 'PHI0', 'N_CELL', 'X_GAIN_ERR', 'X_GAIN_CALIB', 'X_OFFSET_CALIB', &
@@ -1394,9 +1402,9 @@ character(41), parameter :: att_name(80) = [character(40):: 'X_PITCH', 'Y_PITCH'
                 'MATCH_END_ORBIT_INPUT', 'C11_MAT0', 'C12_MAT0', 'C21_MAT0', 'C22_MAT0', 'PHASE_TROMBONE_INPUT', &
                 'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG']
 
-character(41), parameter :: att2_name(80) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+character(41), parameter :: att2_name(81) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
-                'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
+                'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'BL_KICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'H2', 'E2', 'FINTX', 'HGAPX', &
                 'L_SAGITTA', 'PTC_FRINGE_GEOMETRY', 'AUTOSCALE_PHASE', 'PHI0_AUTOSCALE', 'COUPLER_STRENGTH', &
                 'GRADIENT', 'PHI0_MULTIPASS', 'CAVITY_TYPE', 'Y_GAIN_ERR', 'Y_GAIN_CALIB', 'Y_OFFSET_CALIB', &

@@ -74,8 +74,8 @@ type (wall3d_vertex_struct), pointer :: v_ptr
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cartesian_map_term1_struct), allocatable :: ct_terms(:)
+type (gen_grad_map_struct), pointer :: gg_map
 type (grid_field_struct), pointer :: g_field
-type (taylor_field_struct), pointer :: t_field
 type (cartesian_map_struct), pointer :: ct_map
 type (ac_kicker_struct), pointer :: ac
 type (photon_element_struct), pointer :: ph
@@ -330,17 +330,33 @@ endif
 
 !
 
-if (word == 'SPACE_CHARGE_ON') then
+select case (word)
+case ('HIGHER_ORDER_FRINGE_TYPE')
+  call parser_error ('Note: HIGHER_ORDER_FRINGE_TYPE is now no longer used and will be ignored.', &
+                     'Remove reference to this parameter to avoid this warning.', level = s_warn$)
+  call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag, ele, delim, delim_found)
+  return
+
+case ('SPACE_CHARGE_ON')
   call parser_error ('Note: "bmad_com[SPACE_CHARGE_ON]" has been renamed "bmad_com[HIGH_ENERGY_SPACE_CHARGE_ON]"', &
                      'Will run normally...', level = s_warn$)
   word = 'HIGH_ENERGY_SPACE_CHARGE_ON'
-endif
 
-if (word == 'COHERENT_SYNCH_RAD_ON') then
+case ('COHERENT_SYNCH_RAD_ON')
   call parser_error ('Note: "bmad_com[COHERENT_SYNCH_RAD_ON]" has been renamed "bmad_com[CSR_AND_SPACE_CHARGE_ON]"', &
                      'Will run normally...', level = s_warn$)
   word = 'CSR_AND_SPACE_CHARGE_ON'
-endif
+
+case ('X_PITCH_MULT')
+  call parser_error ('X_PITCH_MULT no longer supported (necessitated extremely complicated bookkeeping). Will use X_PITCH instead.', &
+                     'Will run normally...', level = s_warn$)
+  word = 'X_PITCH'
+
+case ('Y_PITCH_MULT')
+  call parser_error ('Y_PITCH_MULT no longer supported (necessitated extremely complicated bookkeeping). Will use Y_PITCH instead.', &
+                     'Will run normally...', level = s_warn$)
+  word = 'Y_PITCH'
+end select                    
 
 if (ele%key == sbend$ .or. ele%key == rbend$) then
   if (word == 'G_ERR')       word = 'DG'
@@ -444,18 +460,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     if (associated(a_ptrs(1)%r, space_charge_com%abs_tol_tracking))        bp_com%extra%sc_abs_tol_tracking_set         = .true.
     if (associated(a_ptrs(1)%r, space_charge_com%beam_chamber_height))     bp_com%extra%beam_chamber_height_set         = .true.
     if (associated(a_ptrs(1)%r, space_charge_com%sigma_cutoff))            bp_com%extra%sigma_cutoff_set                = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%n_bin))                   bp_com%extra%n_bin_set                       = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%particle_bin_span))       bp_com%extra%particle_bin_span_set           = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%n_shield_images))         bp_com%extra%n_shield_images_set             = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%sc_min_in_bin))           bp_com%extra%sc_min_in_bin_set               = .true.
-    if (associated(a_ptrs(1)%l, space_charge_com%lsc_kick_transverse_dependence)) bp_com%extra%lsc_kick_transverse_dependence_set = .true.
 
-    if (associated(a_ptrs(1)%i, ptc_com%max_fringe_order))                 bp_com%extra%max_fringe_order_set            = .true.
-    if (associated(a_ptrs(1)%i, ptc_com%old_integrator))                   bp_com%extra%old_integrator_set              = .true.
-    if (associated(a_ptrs(1)%l, ptc_com%use_orientation_patches))          bp_com%extra%use_orientation_patches_set     = .true.
-    if (associated(a_ptrs(1)%l, ptc_com%print_info_messages))              bp_com%extra%print_info_messages_set         = .true.
-    if (associated(a_ptrs(1)%l, ptc_com%exact_model))                      bp_com%extra%exact_model_set                 = .true.
-    if (associated(a_ptrs(1)%l, ptc_com%exact_misalign))                   bp_com%extra%exact_misalign_set              = .true.
     if (associated(a_ptrs(1)%r, ptc_com%vertical_kick))                    bp_com%extra%vertical_kick_set               = .true.
     if (associated(a_ptrs(1)%r, ptc_com%cut_factor))                       bp_com%extra%cut_factor_set                  = .true.
 
@@ -463,7 +468,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
     if (err_flag) return
     if (associated(a_ptrs(1)%i, lat%particle_start%direction) .and. nint(value) /= -1 .and. nint(value) /= 1) then
-      call parser_error ('VALUE OF BEAM_SART[DIRECTION] MUST BE -1 OR 1.')
+      call parser_error ('VALUE OF PARTICLE_START[DIRECTION] MUST BE -1 OR 1.')
       return
     endif
     a_ptrs(1)%i = nint(value)
@@ -472,6 +477,14 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     if (associated(a_ptrs(1)%i, bmad_com%runge_kutta_order))              bp_com%extra%runge_kutta_order_set               = .true.
     if (associated(a_ptrs(1)%i, bmad_com%sad_n_div_max))                  bp_com%extra%sad_n_div_max_set                   = .true.
     if (associated(a_ptrs(1)%i, bmad_com%max_num_runge_kutta_step))       bp_com%extra%max_num_runge_kutta_step_set        = .true.
+
+    if (associated(a_ptrs(1)%i, space_charge_com%n_bin))                   bp_com%extra%n_bin_set                       = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%particle_bin_span))       bp_com%extra%particle_bin_span_set           = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%n_shield_images))         bp_com%extra%n_shield_images_set             = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%sc_min_in_bin))           bp_com%extra%sc_min_in_bin_set               = .true.
+
+    if (associated(a_ptrs(1)%i, ptc_com%max_fringe_order))                 bp_com%extra%max_fringe_order_set            = .true.
+    if (associated(a_ptrs(1)%i, ptc_com%old_integrator))                   bp_com%extra%old_integrator_set              = .true.
 
   elseif (associated(a_ptrs(1)%l)) then
     if (associated(a_ptrs(1)%l, bmad_com%auto_bookkeeper)) a_ptrs(1)%l => logic  ! Auto_bookkeeper must not be set.
@@ -493,6 +506,14 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     if (associated(a_ptrs(1)%l, bmad_com%convert_to_kinetic_momentum))    bp_com%extra%convert_to_kinetic_momentum_set     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%aperture_limit_on))              bp_com%extra%aperture_limit_on_set               = .true.
     if (associated(a_ptrs(1)%l, bmad_com%debug))                          bp_com%extra%debug_set                           = .true.
+
+    if (associated(a_ptrs(1)%l, space_charge_com%lsc_kick_transverse_dependence)) bp_com%extra%lsc_kick_transverse_dependence_set = .true.
+    if (associated(a_ptrs(1)%l, space_charge_com%debug))                   bp_com%extra%sc_debug_set                    = .true.
+
+    if (associated(a_ptrs(1)%l, ptc_com%use_orientation_patches))          bp_com%extra%use_orientation_patches_set     = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%print_info_messages))              bp_com%extra%print_info_messages_set         = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%exact_model))                      bp_com%extra%exact_model_set                 = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%exact_misalign))                   bp_com%extra%exact_misalign_set              = .true.
 
   else
     call parser_error ('BOOKKEEPING ERROR. PLEASE CONTACT A BMAD MAINTAINER!')
@@ -1423,43 +1444,45 @@ if (attrib_word == 'GRID_FIELD') then
 endif
 
 !-------------------------------
-! Taylor_field field
+! Gen_Grad_field field
 
-if (attrib_word == 'TAYLOR_FIELD') then
+if (attrib_word == 'GEN_GRAD_MAP') then
 
-  if (.not. expect_this ('=', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "GEN_GRAD_MAP"', ele, delim, delim_found)) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
 
-  ! "ele1[taylor_field] = ele2[taylor_field]" construct
+  ! "ele1[gen_grad_map] = ele2[gen_grad_map]" construct
 
   if (delim == '[') then
-    ele2 => parser_find_ele_for_attrib_transfer ('TAYLOR_FIELD', word)
+    ele2 => parser_find_ele_for_attrib_transfer ('GEN_GRAD_MAP', word)
     if (err_flag) return
-    if (.not. associated(ele2%taylor_field)) then
-      call parser_error ('NO TAYLOR_FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+    if (.not. associated(ele2%gen_grad_map)) then
+      call parser_error ('NO GEN_GRAD_MAP ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    call transfer_fieldmap(ele2, ele, taylor_field$)
+    call transfer_fieldmap(ele2, ele, gen_grad_map$)
     return
   endif
 
-  if (associated(ele%taylor_field)) then
-    i_ptr = size(ele%taylor_field) + 1
-    ele0%taylor_field => ele%taylor_field
-    allocate(ele%taylor_field(i_ptr))
+  if (associated(ele%gen_grad_map)) then
+    i_ptr = size(ele%gen_grad_map) + 1
+    ele0%gen_grad_map => ele%gen_grad_map
+    allocate(ele%gen_grad_map(i_ptr))
+    allocate(ele%gen_grad_map(i_ptr)%gg(0))
     do i = 1, i_ptr-1
-     ele%taylor_field(i) = ele0%taylor_field(i)
+      ele%gen_grad_map(i) = ele0%gen_grad_map(i)
     enddo
+    deallocate(ele0%gen_grad_map)
   else
-    allocate(ele%taylor_field(1))
+    allocate(ele%gen_grad_map(1))
+    allocate(ele%gen_grad_map(1)%gg(0))
     i_ptr = 1
   endif
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
-  allocate (ele%taylor_field(i_ptr)%ptr)
-  t_field => ele%taylor_field(i_ptr)
+  if (.not. expect_this ('{', .true., .true., 'AFTER "GEN_GRAD_MAP"', ele, delim, delim_found)) return
+  gg_map => ele%gen_grad_map(i_ptr)
 
-  call parse_taylor_field(t_field, ele, lat, delim, delim_found, err_flag)
+  call parse_gen_grad_map(gg_map, ele, lat, delim, delim_found, err_flag)
 
   if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return
@@ -1801,10 +1824,6 @@ case ('GEOMETRY')
 
 case ('HIGH_ENERGY_SPACE_CHARGE_ON')
   call get_logical_real (attrib_word, ele%value(high_energy_space_charge_on$), err_flag); if (err_flag) return
-
-case ('HIGHER_ORDER_FRINGE_TYPE')
-  call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(higher_order_fringe_type$) = ix
 
 case ('INTERPOLATION')
   call get_switch (attrib_word, interpolation_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -7929,7 +7948,7 @@ do
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', ct_map%r0, .true., delim, delim_found)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // 'GRID_FIELD', ct_map%r0, .true., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
 
@@ -8320,6 +8339,7 @@ type (grid_pt_struct), allocatable :: array(:), array2(:)
 
 character(1) delim, delim2
 character(40) :: word, word2, name
+character(200) line
 
 integer ix_word, ix_word2, ix
 integer pt_counter, n, i, ib, ie, im, ix0, ix1, iy0, iy1, iz0, iz1
@@ -8334,10 +8354,10 @@ pt_counter = 0
 err_flag = .true.
 g_field%ptr%file = bp_com%line2_file_name    ! In case there are no terms
 
-do    
-
+do
   ! Read attriubute
   call get_next_word (word, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+  if (word == '' .and. delim == '{') word = '{'
 
   select case (word)
 
@@ -8442,7 +8462,7 @@ do
     end if
     ! Get as many field components as listed
     do i = 1, 6
-      call parse_complex_component(array(pt_counter)%field(i), delim, err_flag2)
+      call parse_complex_component(array(pt_counter)%field(i), array(pt_counter), delim, err_flag2)
       if (err_flag2) return
       if (delim == ')') exit
       if (delim /= ',') then
@@ -8455,7 +8475,7 @@ do
     select case (i)
     case (3)
       if (g_field%field_type == mixed$) then
-        call parser_error ('FIELD_GRID WITH FIELD_TYPE = MIXED IN ELEMENT: ' // ele%name, 'DOES NOT SPECIFY BOTH E AND B FIELDS.')
+        call parser_error ('FIELD_GRID WITH FIELD_TYPE = MIXED IN ELEMENT: ' // ele%name, 'MUST SPECIFY BOTH E AND B FIELDS.')
         return
       endif        
     case (6)
@@ -8470,7 +8490,43 @@ do
 
     ! Expect , or }
     if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
-  
+
+  case ('{')
+    ! Set %file to be the last called file:<line_number>.
+    g_field%ptr%file = bp_com%line2_file_name
+
+    do pt_counter = 1, 10000000
+      ! Reallocate temporary structure if needed
+      n = size(array)
+      if (pt_counter > n) then
+        call move_alloc(array, array2)
+        allocate(array(2*n))
+        array(1:n) = array2
+        deallocate(array2)
+      end if
+
+      ! Get indices
+
+      if (g_field%geometry == rotationally_symmetric_rz$) then
+        if (.not. parser_fast_integer_read(array(pt_counter)%ix(1:2), ele, ':', 'FIELD_GRID POINT TABLE')) return
+      else
+        if (.not. parser_fast_integer_read(array(pt_counter)%ix, ele, ':', 'FIELD_GRID POINT TABLE')) return
+      endif
+
+      ! Get as many field components as listed
+
+      if (g_field%field_type == mixed$) then
+        if (.not. parser_fast_complex_read(array(pt_counter)%field, ele, delim, 'FIELD_GRID POINT TABLE')) return
+      else
+        if (.not. parser_fast_complex_read(array(pt_counter)%field(1:3), ele, delim, 'FIELD_GRID POINT TABLE')) return
+      endif
+
+      if (delim == '}') exit
+    enddo
+
+    ! Expect , or }
+    if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
+
   case default
     if (word == '') then
       call parser_error ('MANGLED GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
@@ -8557,14 +8613,17 @@ contains
 ! looks for (x, y) or x followed by , or ) 
 ! returns complex field_component and next delim, which should be , or )
 
-subroutine parse_complex_component(complex_component, delim, err_flag)
+subroutine parse_complex_component(complex_component, array_pt, delim, err_flag)
 
-character(1) delim
-character(40) word
+type (grid_pt_struct) array_pt
+
 real(rp) x, y
 complex(rp) complex_component
 integer ix_word
 logical delim_found, err_flag
+
+character(1) delim
+character(40) word
 
 !
 
@@ -8575,13 +8634,13 @@ err_flag = .true.
 call string_trim(bp_com%parse_line, bp_com%parse_line, ix_word)
 if (bp_com%parse_line(1:1) == '(') then
   bp_com%parse_line = bp_com%parse_line(2:)
-  call get_this_value(x, ',', delim, delim_found, err_flag); if (err_flag) return
-  call get_this_value(y, ')', delim, delim_found, err_flag); if (err_flag) return
+  call get_this_value(x, array_pt, ',', delim, delim_found, err_flag); if (err_flag) return
+  call get_this_value(y, array_pt, ')', delim, delim_found, err_flag); if (err_flag) return
   complex_component = cmplx(x, y, rp)
   call get_next_word (word, ix_word, ',)', delim, delim_found)
 
 else
-  call get_this_value(x, ',)', delim, delim_found, err_flag); if (err_flag) return
+  call get_this_value(x, array_pt, ',)', delim, delim_found, err_flag); if (err_flag) return
   complex_component = cmplx(x, 0.0_rp, rp)
 endif
 
@@ -8592,7 +8651,9 @@ end subroutine parse_complex_component
 !-----------------------------------------------------------
 ! contains 
 
-subroutine get_this_value (val, delim_list, delim, delim_found, err_flag)
+subroutine get_this_value (val, array_pt, delim_list, delim, delim_found, err_flag)
+
+type (grid_pt_struct) array_pt
 
 real(rp) val
 integer ix_word
@@ -8608,6 +8669,8 @@ call get_next_word (word, ix_word, delim_list, delim, delim_found)
 if (is_real(word, real_num = val)) return
 
 call parser_error ('BAD FIELD VALUE IN GRID_FIELD PT: ' // word, &
+                   'AT GRID POINT INDEX: ' // int_str(array_pt%ix(1)) // ', ' // int_str(array_pt%ix(2)) // &
+                                                                         ', ' // int_str(array_pt%ix(3)), &
                    '[NOTE: EXPRESSIONS FOR GRID_FIELD PT FIELD VALUES NOT IMPLEMENTED.]')
 err_flag = .true.
 
@@ -8619,54 +8682,41 @@ end subroutine parse_grid_field
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parse_taylor_field (grid, ele, lat, delim, delim_found, err_flag)
+! Subroutine parse_gen_grad_map (gg_map, ele, lat, delim, delim_found, err_flag)
 !
-! Subroutine to parse a "taylor_field = {}" construct
-!
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is private to bmad_parser_mod.
-! This must read in:
-! {type = ,
-!    dr = , 
-!    r0 = , 
-!    pt(i,j,k) = ( (ex_re, ex_im), .... (bz_re, bz_im) ) 
-!    .
-!    .
-!    . ) },
+! Subroutine to parse a "gen_grad_map = {}" construct
 !-
 
-subroutine parse_taylor_field (t_field, ele, lat, delim, delim_found, err_flag)
+subroutine parse_gen_grad_map (gg_map, ele, lat, delim, delim_found, err_flag)
 
 implicit none
 
-type (taylor_field_struct), pointer :: t_field
+type (gen_grad_map_struct), pointer :: gg_map
+type (gen_grad1_struct), allocatable :: gg(:)
+type (gen_grad1_struct), pointer :: gg1
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: match_ele
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (em_taylor_term_struct), allocatable :: term(:)
 type (em_taylor_term_struct), pointer :: tm
-type (taylor_field_plane1_struct), allocatable :: plane(:)
-type (taylor_field_plane1_struct), pointer :: t_plane
 
-real(rp) coef
+real(rp) coef, deriv(0:50), z(1)
 
-complex(rp), pointer :: c_ptr(:)
-
-integer i, j, expn(2), nn, n, i_term, ib, ie, im, ix, family, ios
-integer lb, i_out, ix_word
+integer i, j, nn, n, i_ib, ie, im, ix, ios, nder, n_gg
+integer lb, i_out, ix_word, iz, iz_here
 
 character(80) err_str
 character(40) word, word2, name, attrib_name
 character(1) delim, delim2
 
-logical err_flag, delim_found
+logical err_flag, delim_found, valid
 
 ! Init
 
 name = 'xxx'
 err_flag = .true.
-t_field%ptr%file = bp_com%line2_file_name    ! In case there are no terms
+gg_map%file = bp_com%line2_file_name
 
 !
 
@@ -8674,19 +8724,20 @@ do
 
   ! Read attriubute
   call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+  if (attrib_name == '' .and. delim == '{') attrib_name = '{'
 
   select case (attrib_name)
 
   case ('FIELD_SCALE')
-    call parse_evaluate_value (ele%name, t_field%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
+    call parse_evaluate_value (ele%name, gg_map%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', t_field%r0, .true., delim, delim_found)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GEN_GRAD_MAP R0', gg_map%r0, .true., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
   case ('DZ')
-    call parse_evaluate_value (ele%name, t_field%dz, lat, delim, delim_found, err_flag, ',}', ele)
+    call parse_evaluate_value (ele%name, gg_map%dz, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('ELE_ANCHOR_PT', 'FIELD_TYPE', 'MASTER_PARAMETER')
     ! Expect "<component> = "
@@ -8712,13 +8763,13 @@ do
           return
         endif
       endif
-      t_field%master_parameter = ix
+      gg_map%master_parameter = ix
 
     case ('ELE_ANCHOR_PT')
-      call match_word(word2, anchor_pt_name(1:), t_field%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, anchor_pt_name(1:), gg_map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
   
     case ('FIELD_TYPE')
-      call match_word(word2, em_field_type_name(1:2), t_field%field_type, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, em_field_type_name(1:2), gg_map%field_type, can_abbreviate = .false., matched_name = name)
   
     end select
 
@@ -8730,109 +8781,110 @@ do
       return        
     endif      
       
-  case ('CURVED_COORDS', 'CURVED_REF_FRAME')    ! 'curved_coords' is old style.
+  case ('CURVED_REF_FRAME')    ! 'curved_coords' is old style.
     if (.not. equal_sign_here(ele, delim)) return
     call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
-    t_field%curved_ref_frame = evaluate_logical (word2, ios)
+    gg_map%curved_ref_frame = evaluate_logical (word2, ios)
     if (ios /= 0 .or. ix_word == 0) then
-      call parser_error ('BAD TAYLOR_FIELD CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
+      call parser_error ('BAD GEN_GRAD_MAP CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
     endif
 
-  case ('CANONICAL_TRACKING')
-    if (.not. equal_sign_here(ele, delim)) return
-    call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
-    T_field%canonical_tracking = evaluate_logical (word2, ios)
-    if (ios /= 0 .or. ix_word == 0) then
-      call parser_error ('BAD TAYLOR_FIELD CANONICAL_TRACKING SETTING ' // word2, 'FOR: ' // ele%name)
-    endif
-
-  case ('PLANE')
-
-    ! Expect "("
-    if (.not.  expect_this ('(', .true., .false., 'AFTER "PLANE" IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
-    call parser_get_integer (ix, word, ix_word, delim, delim_found, err_flag, 'BAD PLANE INDEX IN TAYLOR_FIELD')
-    if (.not.  expect_this (')={', .true., .false., 'AFTER "PLANE(IX" IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
-
-    if (allocated(t_field%ptr%plane)) then
-      if (ix /= ubound(t_field%ptr%plane, 1) + 1) then
-        call parser_error ('PLANE INDEX OUT OF ORDER IN TAYLOR_FIELD DEFININITION', 'FOR ELEMENT: ' // ele%name)
-        return
-      endif
-      call move_alloc(t_field%ptr%plane, plane)
-      lb = lbound(plane, 1)
-      allocate (t_field%ptr%plane(lb:ix))
-      t_field%ptr%plane(lb:ix-1) = plane
-      deallocate(plane)
-    else
-      ! Set %file to be the last called file:<line_number>. 
-      t_field%ptr%file = bp_com%line2_file_name
-      allocate(t_field%ptr%plane(ix:ix))
-    endif
-
-    t_plane => t_field%ptr%plane(ix)
-    allocate (t_plane%field(1)%term(0), t_plane%field(2)%term(0), t_plane%field(3)%term(0))
+  case ('CURVE')
+    if (.not. expect_this('={', .true., .false., 'NO "={" AFTER "CURVE" IN GEN_GRAD_MAP', ele, delim, delim_found)) return   
+    n_gg = size(gg_map%gg) + 1
+    call move_alloc(gg_map%gg, gg)
+    allocate (gg_map%gg(n_gg))
+    gg_map%gg(1:n_gg-1) = gg
+    deallocate(gg)
+    gg1 => gg_map%gg(n_gg)
 
     do
-      if (.not.  expect_this ('{', .false., .false., 'FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
-      call get_next_word (word, ix_word, ':{}=,()', delim, delim_found)
-      if (.not.  expect_this (':', .true., .false., 'FOR PLANE TAYLOR TERM IN TAYLOR_FIELD DEFINITION', ele, delim, delim_found)) return
-      call match_word (word, ['BX', 'BY', 'BZ'], i_out, .true., .false.)
-      if (i_out < 1) then
-        call parser_error ('BAD "OUT" COMPONENT: ' // word, 'IN TERM FOR TAYLOR_FIELD IN ELEMENT: ' // ele%name)
-        return
-      endif
+      call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+      select case (attrib_name)
 
-      call parse_evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|', ele);  if (err_flag) return
-      delim2 = delim   ! Save
-      expn = 0
+      case ('M')
+        call parser_get_integer (gg1%m, word, ix_word, delim, delim_found, err_flag, 'BAD GEN_GRAD%GG%M CONSTRUCT', 'IN ELEMENT: ' // ele%name)
 
-      ! Need to check for "{x: 3.4 |}" case where there are no exponents.
-      if (delim2 == '|') then
-        call get_next_word (word, ix_word, '}', delim, delim_found)
-        ! If there are exponents then rewind the get_next_word call.
-        if (ix_word /= 0 .or. delim /= '}') then
-          bp_com%parse_line = trim(word) // delim // bp_com%parse_line
-          delim = delim2
-        endif
-      endif
+      case ('KIND')
+        call get_next_word (word, ix_word, ',}', delim, delim_found)
+        call match_word(word, ['COS', 'SIN'], gg1%sincos, can_abbreviate = .false., matched_name = word)
+        select case (word)
+        case ('SIN');   gg1%sincos = sin$
+        case ('COS');   gg1%sincos = cos$
+        case default
+          call parser_error ('BAD GEN_GRAD_MAP TYPE = <SIN-OR-COS>" CONSTRUCT', 'FOUND IN ELEMENT: ' // ele%name)
+          return
+        end select
 
-      ! Parse exponents
+      case ('DERIVS')
+        iz = int_garbage$
+        nder = -1
 
-      do j = 1, 100 
-        if (delim == '}') exit
-        call parser_get_integer (n, word, ix_word, delim, delim_found, err_flag, 'BAD EXPONENT');   if (err_flag) return
-        if (.not. expect_one_of ('} ', .true., ele%name, delim, delim_found)) return
-        if (delim2 == ',') then
-          select case (j)
-          case (2);      if( .not. expect_one_of ('}', .true., ele%name, delim, delim_found)) return
-          case default;  if (.not. expect_one_of (' ', .true., ele%name, delim, delim_found)) return
-          end select
-          expn(j) = n
-        else
-          ! Where, for example, n = 34, must separate into 3 and 4.
-          do
-            if (word(1:1) == '') exit
-            read (word(1:1), *) nn
-            if (nn < 1 .or. nn > 2) then
-              call parser_error ('BAD EXPONENT VALUE FOR TAYLOR ELEMENT IN TAYLOR_FIELD DEPFINITION IN: ' // ele%name)
+        if (.not. expect_this ('={', .true., .false., 'NO "={" AFTER "DERIVES" IN GEN_GRAD_MAP', ele, delim, delim_found)) return
+
+        do
+          if (.not. parser_fast_real_read(z, ele, ':', delim, 'GEN_GRAD_MAP DERIVS Z-POSITION')) return
+          iz_here = nint(z(1)/gg_map%dz)
+
+          if (iz == int_garbage$) then
+            iz = iz_here
+
+            if (n_gg == 1) then
+              gg_map%iz0 = iz_here
+
+            else
+              if (gg_map%iz0 /= iz_here) then
+                call parser_error ('LOWER BOUND INDEX IN GEN_GRAD_MAP DERIVS TABLE IS DIFFERENT FROM LOWER BOUND INDEX IN PRIOR DERIVS TABLE', &
+                                   'FOR ELEMENT: ' // ele%name)
+                return
+              endif
+            endif
+
+          else
+            iz = iz + 1
+            if (iz /= iz_here) then
+              call parser_error ('GEN_GRAD_MAP DERIVS TABLE INDEXES NOT IN CORRECT ORDER. EXPECTED: ' // int_str(iz) // ' BUT GOT: ' // int_str(iz_here), &
+                                 'FOR ELEMENT: ' // ele%name)
               return
             endif
-            expn(nn) = expn(nn) + 1
-            word = word(2:)
-          enddo
+
+            if (gg_map%iz1 /= int_garbage$ .and. iz > gg_map%iz1) then
+              call parser_error ('UPPER BOUND INDEX IN GEN_GRAD_MAP DERIVS TABLE IS GREATER THAN UPPER BOUND INDEX IN PRIOR DERIVS TABLE', &
+                                 'FOR ELEMENT: ' // ele%name)
+              return
+            endif
+          endif          
+
+          if (nder == -1) then
+            if (.not. parser_fast_real_read (deriv, ele, ',}', delim, 'GEN_GRAD_MAP DERIVS TABLE', .false., nder)) return
+            nder = nder - 1   ! Since derivs are indexed from 0.
+          else
+            if (.not. parser_fast_real_read (deriv(0:nder), ele, ',}', delim, 'GEN_GRAD_MAP DERIVS TABLE')) return
+          endif
+
+          if (.not. allocated(gg1%deriv)) allocate (gg1%deriv(gg_map%iz0:gg_map%iz0+1000, 0:nder))
+          if (iz > ubound(gg1%deriv,1)) call re_allocate2d(gg1%deriv, ubound(gg1%deriv,1)+1000, nder, lb1 = gg_map%iz0, lb2 = 0)
+
+          gg1%deriv(iz,:) = deriv(0:nder)
+          if (delim == '}') exit
+        enddo
+
+        if (gg_map%iz1 == int_garbage$) gg_map%iz1 = iz
+        call re_allocate2d(gg1%deriv, gg_map%iz1, nder, lb1 = gg_map%iz0, lb2 = 0)
+
+        if (iz /= gg_map%iz1) then
+          call parser_error ('ENDING IZ-INDEX IN GEN_GRAD_MAP DERIVS TABLE NOT IS DIFFERENT FROM PRIOR DERIVS TABLE', 'FOR ELEMENT: ' // ele%name)
+          return
         endif
-      enddo
 
-      call add_em_taylor_term (t_plane%field(i_out), coef, expn)
-
-      if (.not. expect_one_of ('},', .false., ele%name, delim, delim_found)) return
-
-      if (delim == '}') then
         if (.not. expect_one_of ('},', .false., ele%name, delim, delim_found)) return
-        exit
-      endif
+      end select
 
+      if (delim == '}') exit
+      if (.not. expect_one_of (',}', .true., ele%name, delim, delim_found)) return
     enddo
+
+    if (.not. expect_one_of (',} ', .false., ele%name, delim, delim_found)) return
 
   case default
     if (attrib_name == '') then
@@ -8850,22 +8902,12 @@ do
 
 enddo
 
-! Get final separator after grid construct.
+! Get final separator after gen_grad_map construct.
  
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 err_flag = .false.
 
-! Check if data has already been read in for another element.
-! If so, save space by pointing to the data.
-
-call find_matching_fieldmap(t_field%ptr%file, ele, taylor_field$, match_ele, im)
-if (im > 0) then
-  deallocate(t_field%ptr)
-  t_field%ptr => match_ele%taylor_field(im)%ptr
-  t_field%ptr%n_link = t_field%ptr%n_link + 1        
-endif
-
-end subroutine parse_taylor_field
+end subroutine parse_gen_grad_map
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -9888,7 +9930,8 @@ if (lord%control%type == expression$) then
   do is = 1, size(con_out%stack)
     select case (con_out%stack(is)%type)
     case (ran$, ran_gauss$)
-      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH A GROUP, OVERLAY, OR RAMPER', &
+      if (lord%key == ramper$) cycle
+      call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH A GROUP, OR OVERLAY', &
                          'FOR ELEMENT: ' // lord%name)
       if (global_com%exit_on_error) call err_exit
       return
@@ -9920,5 +9963,238 @@ else
 endif
 
 end subroutine parser_transfer_control_struct 
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function parser_fast_integer_read (int_vec, ele, delim_wanted, err_str)  result (is_ok)
+!-
+
+function parser_fast_integer_read (int_vec, ele, delim_wanted, err_str) result (is_ok)
+
+type (ele_struct) ele
+integer int_vec(:)
+integer i, n, ix_word
+logical is_ok, delim_found, err
+character(*) err_str
+character(40) word
+character(1) delim_wanted, delim
+
+!
+
+is_ok = .false.
+
+n = size(int_vec)
+do i = 1, n
+  call get_next_word (word, ix_word, delim_wanted // ' ', delim, delim_found, err_flag = err)
+  if (err) then
+    call parser_error ('ERROR IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+
+  if (.not. is_integer(word, int_vec(i))) then
+    call parser_error ('ERROR READING INTEGER IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+
+  if (i == n .and. delim == delim_wanted) then
+    is_ok = .true.
+    return
+  endif
+
+  if (delim == delim_wanted) then
+    call parser_error ('NOT ENOUGH INTEGERS FOR ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+enddo
+
+call parser_error ('EXPECTING DELIMITOR: ' // delim_wanted, &
+                   'AFTER READING ' // int_str(n) // ' INTEGERS IN ' // err_str, &
+                   'IN ELEMENT: ' // ele%name)
+
+end function parser_fast_integer_read 
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function parser_fast_complex_read (cmplx_vec, ele, delim, err_str)  result (is_ok)
+!
+! Routine to read an array of complex numbers. 
+!
+! This routine assumes that the array values are pure numbers in the form "<re>" or "(<re> <im>)" 
+! where <re> and <im> are real numbers (not expressions) and there are no commas except possibly 
+! at the end of the array. 
+!
+! Input:
+!   ele             -- ele_struct: Lattice element associated with the array. Used for error messages.
+!   err_str         -- character(*): String used when printing error messages identifying where in
+!                         the lattice file the error is occuring.
+!
+! Output:
+!   cmplx_vec(:)    -- complex(rp): Complex vector.
+!   delim           -- character(1): Delimitor at end of array. Must be "," or "}"
+!   is_ok           -- logical: True if everything OK. False otherwise.
+!-
+
+function parser_fast_complex_read (cmplx_vec, ele, delim, err_str) result (is_ok)
+
+type (ele_struct) ele
+complex(rp) cmplx_vec(:)
+real(rp) rval, ival
+integer i, n, ix, ios1, ios2, ix_word
+logical is_ok, delim_found, err, left_parens_here
+character(*) err_str
+character(40) word
+character(1) delim
+
+!
+
+is_ok = .false.
+call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+if (bp_com%parse_line(1:1) == '(') then
+  delim = '('
+  bp_com%parse_line = bp_com%parse_line(2:)
+endif
+
+n = size(cmplx_vec)
+do i = 1, n
+  left_parens_here = (delim == '(')
+  call get_next_word (word, ix_word, ' ,()}', delim, delim_found, err_flag = err)
+  if (err .or. (left_parens_here .and. delim /= ' ') .or. (.not. left_parens_here .and. delim == ')')) then
+    call parser_error ('ERROR IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+
+  read (word, *, iostat = ios1) rval
+
+  if (left_parens_here) then
+    call get_next_word (word, ix_word, ',()', delim, delim_found, err_flag = err)
+    read (word, *, iostat = ios2) ival
+    if (ios1 /= 0 .or. ios2 /= 0 .or. err .or. delim /= ')') then
+      call parser_error ('ERROR READING COMPLEX VALUE IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+      return
+    endif
+
+    cmplx_vec(i) = cmplx(rval, ival)
+
+    call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+    if (bp_com%parse_line(1:1) == ',' .or. bp_com%parse_line(1:1) == '}' .or. bp_com%parse_line(1:1) == '(') then
+      delim = bp_com%parse_line(1:1)
+      bp_com%parse_line = bp_com%parse_line(2:)
+    else
+      delim = ' '
+    endif
+
+  else
+    if (ios1 /= 0 .or. err .or. delim == ')') then
+      call parser_error ('ERROR READING VALUE IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+      return
+    endif
+    cmplx_vec(i) = rval
+  endif
+
+  if ((delim == ',' .or. delim == '}') .and. i == n) then
+    is_ok = .true.
+    return
+  endif
+
+  if (i == n .or. (delim == ',' .or. delim == '}')) then
+    call parser_error ('NOT ENOUGH VALUES FOR ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+enddo
+
+call parser_error ('EXPECTING DELIMITOR: "," or "}"', &
+                   'AFTER READING ' // int_str(n) // ' COMPLEXS IN ' // err_str, &
+                   'IN ELEMENT: ' // ele%name)
+
+end function parser_fast_complex_read 
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function parser_fast_real_read (real_vec, ele, end_delims, delim, err_str, exact_size, n_real)  result (is_ok)
+!
+! Routine to read an array of real numbers. 
+!
+! This routine assumes that the array values are pure numbers in the form "<re1> <re2> ...," 
+! where <re1>, <re2>, etc. are real numbers (not expressions) and there are no commas except possibly, 
+! at the end of the array.
+!
+! Input:
+!   ele             -- ele_struct: Lattice element associated with the array. Used for error messages.
+!   end_delims      -- character(*): List of possible ending delimitors.
+!   err_str         -- character(*): String used when printing error messages identifying where in
+!                         the lattice file the error is occuring.
+!   exact_size      -- logical, optional: If True, 
+!
+! Output:
+!   cmplx_vec(:)    -- complex(rp): Complex vector.
+!   delim           -- character(1): Delimitor at end of array.
+!   is_ok           -- logical: True if everything OK. False otherwise.
+!-
+
+function parser_fast_real_read (real_vec, ele, end_delims, delim, err_str, exact_size, n_real) result (is_ok)
+
+type (ele_struct) ele
+real(rp) real_vec(:)
+real(rp) val
+
+integer, optional :: n_real
+integer i, n, ix, ios, ix_word
+
+logical is_ok, delim_found, err, exact
+logical, optional :: exact_size
+
+character(*) err_str, end_delims
+character(40) word
+character(1) delim
+
+!
+
+is_ok = .false.
+call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+exact = logic_option(.true., exact_size)
+
+n = size(real_vec)
+do i = 1, n
+  call get_next_word (word, ix_word, ' ' // end_delims, delim, delim_found, err_flag = err)
+  if (err) then
+    call parser_error ('ERROR IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+  if (.not. delim_found) then
+    call parser_error ('ERROR IN ' // err_str, 'MISSING END DELIMITOR', 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+
+  read (word, *, iostat = ios) val
+
+  if (ios /= 0 .or. err) then
+    call parser_error ('ERROR READING VALUE IN ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+  real_vec(i) = val
+
+  if (delim /= ' ' .and. (.not. exact .or. i == n)) then
+    is_ok = .true.
+    if (present(n_real)) n_real = i
+    return
+  endif
+
+  if ((exact .and. i == n) .or. delim /= ' ') then
+    call parser_error ('NOT ENOUGH VALUES FOR ' // err_str, 'IN ELEMENT: ' // ele%name)
+    return
+  endif
+enddo
+
+call parser_error ('EXPECTING DELIMITOR TO BE ONE OF: ' // end_delims, &
+                   'AFTER READING ' // int_str(n) // ' REALS IN ' // err_str, &
+                   'IN ELEMENT: ' // ele%name)
+
+end function parser_fast_real_read 
 
 end module

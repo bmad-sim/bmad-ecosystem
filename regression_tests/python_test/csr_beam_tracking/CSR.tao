@@ -23,6 +23,8 @@ set space_charge_com%diagnostic_output_file  = "wake.txt"
 set ele * csr_method = 1_dim
 set ele * space_charge_method = off
 
+set bmad_com csr_and_space_charge_on = T
+
 beamon
 place r00 zphase
 szpz Mar.END

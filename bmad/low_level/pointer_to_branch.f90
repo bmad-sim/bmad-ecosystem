@@ -2,26 +2,25 @@
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_is_branch0) result (branch_ptr)
+! Function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_branch) result (branch_ptr)
 !
 ! Function to point to the named lattice branch.
 ! This routine is overloaded by the routine: pointer_to_branch.
 ! See pointer_to_branch for more details.
 ! 
 ! Input:
-!   branch_name -- Character(*): May be a branch name or a branch index.
-!   lat         -- Lat_struct: Lattice to search.
+!   branch_name          -- character(*): May be a branch name or a branch index.
+!   lat                  -- lat_struct: Lattice to search.
 !   parameter_is_branch0 -- logical, optional: If True, 'PARAMETER' is taken to be an alternative
 !                             name for branch(0). Default is False. Used by Bmad parser.
-!   blank_is_branch0     -- logical, optional: If True, a blank branch_name is associated with branch 0.
-!                             Default is False.
+!   blank_branch         -- integer, optional: Branch index if branch_name = ''. Default is blank is an error.
 !
 ! Output:
 !   branch_ptr  -- branch_struct, pointer: Pointer to the nameed branch.
 !                   Nullified if there is no such branch.
 !-
 
-function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_is_branch0) result (branch_ptr)
+function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0, blank_branch) result (branch_ptr)
 
 use bmad_struct
 
@@ -31,7 +30,8 @@ type (branch_struct), pointer :: branch_ptr
 type (lat_struct), target :: lat
 
 integer ib, ios
-logical, optional :: parameter_is_branch0, blank_is_branch0
+integer, optional :: blank_branch
+logical, optional :: parameter_is_branch0
 
 character(*) branch_name
 character(40) b_name
@@ -41,8 +41,7 @@ character(*), parameter :: r_name = 'pointer_to_branch_given_name'
 
 call str_upcase (b_name, branch_name)
 
-if (logic_option(.false., parameter_is_branch0) .and. b_name == 'PARAMETER' .or. &
-    logic_option(.false., blank_is_branch0) .and. b_name == '') then
+if (logic_option(.false., parameter_is_branch0) .and. b_name == 'PARAMETER') then
   branch_ptr => lat%branch(0)
   return
 endif
@@ -51,28 +50,29 @@ endif
 
 nullify(branch_ptr)
 
+if (b_name == '') then
+  if (.not. present(blank_branch)) return
+  if (blank_branch < 0 .or. blank_branch > ubound(lat%branch, 1)) return
+  branch_ptr => lat%branch(blank_branch)
+  return
+endif
+
 ! Is index.
 
-if (is_integer(trim(b_name))) then
-  read (b_name, *, iostat = ios) ib
-  if (ib < 0 .or. ib > ubound(lat%branch, 1)) then
-    !! call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: ' // b_name)
-    return
-  endif
+if (is_integer(trim(b_name), ib)) then
+  if (ib < 0 .or. ib > ubound(lat%branch, 1)) return
   branch_ptr => lat%branch(ib)
+  return
+endif
 
 ! Is name.
 
-else
-  do ib = lbound(lat%branch, 1), ubound(lat%branch, 1)
-    if (lat%branch(ib)%name == b_name) then
-      branch_ptr => lat%branch(ib)
-      return
-    endif
-  enddo
-  !! call out_io (s_error$, r_name, 'BRANCH NAME NOT FOUND: ' // branch_name)
-  return
-endif
+do ib = lbound(lat%branch, 1), ubound(lat%branch, 1)
+  if (lat%branch(ib)%name == b_name) then
+    branch_ptr => lat%branch(ib)
+    return
+  endif
+enddo
 
 end function pointer_to_branch_given_name
 

@@ -17,7 +17,7 @@
 
 subroutine display_size_and_resolution (ix_screen, x_size, y_size, x_res, y_res)
 
-use precision_def
+use sim_utils, dummy => display_size_and_resolution
 
 implicit none
 
@@ -30,10 +30,27 @@ interface
 end interface
 
 real(rp) x_size, y_size, x_res, y_res
-integer ix_screen
+real(rp) :: dpi
+integer ix_screen, s, l, ios
+character(*), parameter :: r_name = 'display_size_and_resolution'
 
 !
 
 call display_size_and_res(ix_screen, x_size, y_size, x_res, y_res)
+
+call get_environment_variable('ACC_DPI_RESOLUTION', length=l, status=s)
+if (s == 0) then
+  block
+    character(l) :: dpi_str
+    call get_environment_variable('ACC_DPI_RESOLUTION', value=dpi_str)
+    read (dpi_str, *, iostat = ios) dpi
+    if (ios == 0) then
+      x_res = dpi / 25.4_rp
+      y_res = dpi / 25.4_rp
+    else
+      call out_io (s_error$, r_name, 'ACC_DPI_RESOLUTION ENVIRONMENT VARIABLE IS NOT A REAL NUMBER: ' // dpi_str)
+    endif
+  end block
+end if
 
 end subroutine

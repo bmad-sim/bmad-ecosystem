@@ -1312,10 +1312,12 @@ logical, optional :: set_error_flag
 integer i, j, stat_b(24), stat, ierr
 character(200) name
 
+!
+
+if (present(parse_lat) .and. .not. bp_com%error_flag) parse_lat = lat0
+
 ! Calculate the creation hash which can be used by programs to verify that the lattice has not been changed since
 ! the last time the lattice was read in.
-
-if (present(parse_lat)) parse_lat = lat0
 
 lat%creation_hash = djb_hash(int_str(bmad_inc_version$))
 do i = 1, bp_com%num_lat_files

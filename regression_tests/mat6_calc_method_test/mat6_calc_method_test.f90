@@ -81,6 +81,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     do j = 1, n_methods$
       if (.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == custom$ .or. j == mad$) cycle
+      if (j == auto$) cycle
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
       ele%mat6_calc_method = j
       call init_coord (start_orb, lat%particle_start, ele, upstream_end$, branch%param%particle)
@@ -99,6 +100,7 @@ do ib = 0, ubound(lat%branch, 1)
       do j = 1, n_methods$
         ! if (j == mad$ .and. custom_test) cycle
         if (j == fixed_step_runge_kutta$ .or. j == fixed_step_time_runge_kutta$) cycle
+        if (j == auto$) cycle
         if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == custom$ .or. j == mad$) cycle
         ele2 => eles(j)
         if (k < 7) then

@@ -187,9 +187,10 @@ regions and it would be potentially disruptive if a user tired to place plots (w
 inadvertently happen when running command files). To avoid this, with \vn{-external_plotting} set,
 the \vn{place} command will not do any placement but rather save the \vn{place} arguments (which is
 the name of a template plot and a region name) to a buffer which then can be read out by the
-external code \vn{python place_buffer} command. The external code may then decide how to
+external code using the \vn{python place_buffer} command. The external code may then decide how to
 proceed. The external code is able to bypass the buffering and perform placements by using
-\vn{place} with the \vn{-no_buffer} switch (\sref{s:place}).
+\vn{place} with the \vn{-no_buffer} switch (\sref{s:place}). Notice: \tao never processes place
+command information put in the buffer. It is up to the external code to decide on a course of action.
 
 Normally when \tao is not displaying the plot page when the \vn{-noplot} option is used, \tao will,
 to save time, not calculate the points needed for plotting curves. The exception is if

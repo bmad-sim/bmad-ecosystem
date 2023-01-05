@@ -156,7 +156,7 @@ module precision_constants
   real(dp),parameter::c_0_7=0.7e0_dp,c_1_2d_5=1.2e-5_dp,c_1d7=1e7_dp
   real(dp),parameter:: suntao=1.6021766208e-19_dp/299792458.0_dp/9.10938356e-31_dp
   ! Constant Symplectic integrator schemes
-  real(dp) YOSK(0:4), YOSD(4)    ! FIRST 6TH ORDER OF YOSHIDA
+  real(dp) YOSK(0:4), YOSD(4),  butcher(8,8)    ! FIRST 6TH ORDER OF YOSHIDA
   real(dp) wyosh(0:7),wyoshid(0:15),wyoshik(15)    ! FIRST 8TH ORDER OF YOSHIDA
   real(dp) ck8(11),bk8(11),ak8(11,11)
   real(dp),parameter::AAA=-0.25992104989487316476721060727823e0_dp  ! fourth order integrator
@@ -177,6 +177,7 @@ module precision_constants
   REAL(dp),TARGET   :: absolute_aperture=1.0_dp, t_aperture =1.d6
   integer,TARGET :: wherelost=0
   logical(lp),TARGET :: stable_da =.true.
+  logical(lp),TARGET :: stable_da_pancake =.true.
   logical(lp),TARGET :: check_da =.true.
   logical(lp),TARGET :: printframe =.true.
   logical(lp),TARGET :: sixtrack_compatible =.false.
@@ -242,6 +243,8 @@ module precision_constants
   !  lielib_print(15)=1  print info during flat file reading and printing
   !  lielib_print(16)=1  print eigenvalues in c_linear_a 
   !  lielib_print(17)=1  print magnets with excessive cutting
+  integer , target :: old_integrator =1  ! before making spin high order
+
   INTERFACE read
      MODULE PROCEDURE read_d
      MODULE PROCEDURE read_int
@@ -332,7 +335,8 @@ module precision_constants
      logical(lp),pointer :: ALWAYS_EXACT_PATCHING => null()  !=.TRUE. patching done correctly
      ! used to output horror messages
      logical(lp),pointer :: stable_da => null() !=.true.  interrupts DA if check_da is true
-     logical(lp),pointer :: check_da  => null() !=.true.
+     logical(lp),pointer  :: STABLE_DA_pancake => null() !=.TRUE. particle status 
+    logical(lp),pointer :: check_da  => null() !=.true.
      logical(lp),pointer :: OLD_IMPLEMENTATION_OF_SIXTRACK => null()  !=.true.
      real(dp),pointer :: phase0  => null()! default phase in cavity
      logical(lp), pointer :: global_verbose => null()
@@ -433,6 +437,44 @@ contains
     do i=3,0,-1
        YOSK(i+1)=YOSK(I)
     enddo
+!!!  rk6 in pancake
+butcher(1,1)=1.0_dp/9.0_dp
+butcher(2,1)=1.0_dp/24.0_dp
+butcher(2,2)=3.0_dp/24.0_dp
+butcher(3,1)=1.0_dp/6
+butcher(3,2)=-3.0_dp/6
+butcher(3,3)=4.0_dp/6
+butcher(4,1)=-5.0_dp/8
+butcher(4,2)=27.0_dp/8
+butcher(4,3)=-24.0_dp/8
+butcher(4,4)=6.0_dp/8
+butcher(5,1)=221.0_dp/9
+butcher(5,2)=-981.0_dp/9
+butcher(5,3)=867.0_dp/9
+butcher(5,4)=-102.0_dp/9
+butcher(5,5)=1.0_dp/9
+butcher(6,1)=-183.0_dp/48
+butcher(6,2)=678.0_dp/48
+butcher(6,3)=-472.0_dp/48
+butcher(6,4)=-66.0_dp/48
+butcher(6,5)=80.0_dp/48
+butcher(6,6)=3.0_dp/48
+butcher(7,1)=716.0_dp/82
+butcher(7,2)=-2079.0_dp/82
+butcher(7,3)=1002.0_dp/82
+butcher(7,4)=834.0_dp/82
+butcher(7,5)=-454.0_dp/82
+butcher(7,6)=-9.0_dp/82
+butcher(7,7)=72.0_dp/82
+butcher(8,1)=41.0_dp/840
+butcher(8,2)=216.0_dp/840
+butcher(8,3)=27.0_dp/840
+butcher(8,4)=272.0_dp/840
+butcher(8,5)=27.0_dp/840
+butcher(8,6)=216.0_dp/840
+butcher(8,7)=41.0_dp/840
+butcher(8,8)=0
+
 !wyosh(1,1)= -0.161582374150097E1_dp   
 !wyosh(1,2)= -0.244699182370524E1_dp   
 !wyosh(1,3)= -0.716989419708120E-2_dp  

@@ -6,10 +6,11 @@
 \section{Overview}
 \label{s:var.overview}
 
-\vn{Variables} can be defined in the \tao initialization files (\sref{s:init.var}) that can also be
-used to vary \vn{model} lattice parameters. A given \tao variable may control a single attribute of
-one element in one or more universes. The main reason to define variables is to enable optimizations
-(\sref{c:opti}). Another reason is that block variables can be plotted for visual inspection.
+\tao defines objects called \vn{variables} whose main purpose is to enable optimizations
+(\sref{c:opti}). Essentially, a variable acts as as a controller for a lattice parameter. For
+example, a variable may control the \vn{k1} quadrupole strength of a particular lattice element.
+Another use for variables is that a block of variables can be plotted for visual inspection.
+\vn{Variables} can be defined in the \tao initialization files (\sref{s:init.var}).
 
 %-------------------------------------------------------------------------------
 \begin{figure}
@@ -60,10 +61,11 @@ denote ``all''. Thus:
 \section{Anatomy of a Variable}
 \label{s:var.anatomy}
 
-A given variable may control a single attribute of one element in a \vn{model} lattice of a single
-universe or it can be configured to simultaneously control an element attribute across multiple
-universes. Any one variable cannot control more than one attribute of one element. However, a
-variable may control an overlay or group element which, in turn, can control numerous elements.
+A given variable may control a single parameter of one element (or \vn{particle_start}) in a
+\vn{model} lattice of a single universe or it can be configured to simultaneously control an element
+attribute across multiple universes. Any one variable cannot control more than one attribute of one
+element. However, a variable may control an overlay or group element which, in turn, can control
+numerous elements.
 
 Each individual variable has a number of values associated with it: The list of components that can
 be set or refereed to are:

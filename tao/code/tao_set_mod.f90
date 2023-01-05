@@ -966,9 +966,8 @@ type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
 type (tao_beam_branch_struct), pointer :: bb
 
-real(rp) com_ds_step
-
-integer ix, iu, n_loc, ie, ix_branch
+real(rp) value
+integer ix, ib, iu, n_loc, ie, ix_branch
 
 logical, allocatable :: this_u(:)
 logical err, logic, always_reinit
@@ -981,7 +980,7 @@ character(*), parameter :: r_name = 'tao_set_beam_cmd'
 
 call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
 
-call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_step', &
+call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_save', 'comb_max_ds_save', &
                     'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
                     'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
                     'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', &
@@ -1011,8 +1010,17 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     bb%beam_at_start = beam
     u%calc%lattice = .true.
 
-  case ('comb_ds_step')
-    call tao_set_real_value (u%beam%comb_ds_step, switch, value_str, err)
+  case ('comb_ds_save')
+    call tao_set_real_value (value, switch, value_str, err)
+    do ib = 0, ubound(u%model%tao_branch, 1)
+      u%model%tao_branch(ib)%bunch_params_comb%ds_save = value
+    enddo
+
+  case ('comb_max_ds_save')
+    call tao_set_real_value (value, switch, value_str, err)
+    do ib = 0, ubound(u%model%tao_branch, 1)
+      u%model%tao_branch(ib)%bunch_params_comb%max_ds_save = value
+    enddo
 
   case ('always_reinit')
     call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)
@@ -1143,7 +1151,7 @@ call downcase_string(who2)
 
 ! Special cases not associated with the beam_init structure
 
-call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_step', &
+call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_save', &
                     'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
                     'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
                     'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', &
@@ -1235,6 +1243,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
     exit
   endif
+
+  select case (who2)
+  case ('a_emit');        beam_init%a_norm_emit = 0
+  case ('b_emit');        beam_init%b_norm_emit = 0
+  case ('a_norm_emit');   beam_init%a_emit = 0
+  case ('b_norm_emit');   beam_init%b_emit = 0
+  end select
 
   bb%beam_init = beam_init
   bb%init_starting_distribution = .true.  ! Force reinit
@@ -1630,14 +1645,23 @@ case ('hist%width')
   call tao_set_real_value (this_curve%hist%width, component, value_str, err, dflt_uni = i_uni)  
   
 case ('orbit')
-  select case (component)
-  case ('orbit%x')
-    call tao_set_real_value (this_curve%orbit%x, component, value_str, err, dflt_uni = i_uni)
-  case ('orbit%y')
-    call tao_set_real_value (this_curve%orbit%y, component, value_str, err, dflt_uni = i_uni)
-  case ('orbit%t')
-    call tao_set_real_value (this_curve%orbit%t, component, value_str, err, dflt_uni = i_uni)
-  end select
+  call string_trim (value_str, value_str, ix)
+  call tao_set_real_value (this_curve%orbit%x, component, value_str(1:ix), err, dflt_uni = i_uni)
+  if (err) return
+  call string_trim (value_str(ix+1:), value_str, ix)
+  if (ix == 0) return
+  call tao_set_real_value (this_curve%orbit%y, component, value_str(1:ix), err, dflt_uni = i_uni)
+  if (err) return
+  call string_trim (value_str(ix+1:), value_str, ix)
+  if (ix == 0) return
+  call tao_set_real_value (this_curve%orbit%t, component, value_str(1:ix), err, dflt_uni = i_uni)
+
+case ('orbit%x')
+  call tao_set_real_value (this_curve%orbit%x, component, value_str, err, dflt_uni = i_uni)
+case ('orbit%y')
+  call tao_set_real_value (this_curve%orbit%y, component, value_str, err, dflt_uni = i_uni)
+case ('orbit%t')
+  call tao_set_real_value (this_curve%orbit%t, component, value_str, err, dflt_uni = i_uni)
 
 case ('y_axis_scale_factor')
   call tao_set_real_value (this_curve%y_axis_scale_factor, component, value_str, err, dflt_uni = i_uni)
@@ -2829,7 +2853,7 @@ do iu = 1, ubound(s%u, 1)
       u%calc%dynamic_aperture = .true.
       u%calc%lattice = .true.
     elseif (what == 'off') then
-      u%calc%lattice = .false.
+      u%calc%dynamic_aperture = .false.
     else
       call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> dynamic_aperture_calc on/off"')
       return
@@ -2961,6 +2985,7 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
     return
   endif
 
+  n_set = 0
   do i = 1, size(eles)
     call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err)
     if (err) return
@@ -2968,10 +2993,17 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
       call out_io (s_error$, r_name, 'STRANGE ERROR: PLEASE CONTACT HELP.')
       return
     endif
-    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err)
 
+    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err, .false.)
+    if (.not. err) n_set = n_set + 1
     call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), eles(i)%ele%name, eles(i)%ele, a_ptr%r)
   enddo
+
+  if (n_set == 0) then
+    call out_io (s_error$, r_name, 'NOTHING SET. EG:')
+    i = size(eles)
+    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err, .false.)
+  endif
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
@@ -3047,11 +3079,15 @@ do i = 1, size(eles)
   if (.not. err) n_set = n_set + 1
 enddo
 
-! If there is a true error then generate an error message
-
 if (n_set == 0) then
-  u => s%u(eles(1)%id)
-  call set_ele_attribute (eles(1)%ele, trim(attribute) // '=' // trim(val_str),  err, .true., lord_set)
+  if (lord_set) then
+    call out_io (s_error$, r_name, &
+          'NOTHING SET. REMEMBER: "-lord_no_set" USAGE WILL PREVENT LORD ELEMENT ATTRIBUTES FROM BEING SET.')
+  else
+    call out_io (s_error$, r_name, 'NOTHING SET. EG:')
+    u => s%u(eles(1)%id)
+    call set_ele_attribute (eles(1)%ele, trim(attribute) // '=' // trim(val_str),  err, .true., lord_set)
+  endif
   return
 endif
 

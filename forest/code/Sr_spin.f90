@@ -3,9 +3,9 @@
 !   H = 1 + h x / RHO_0
 !
 module ptc_spin
-  !use orbit_ptc
+  use madx_keywords
   !use beam_beam_ptc
-  use orbit_ptc
+ ! use orbit_ptc
   implicit none
   public
 !  PRIVATE get_fieldR,get_fieldp !,get_field
@@ -17,8 +17,7 @@ module ptc_spin
   PRIVATE TRACK_FRINGE_spinR,TRACK_FRINGE_spinP,TRACK_FRINGE_spin
   PRIVATE TRACK_NODE_LAYOUT_FLAG_pr_s12_R,TRACK_NODE_LAYOUT_FLAG_pr_s12_P
 
-  private rot_spin_xr,rot_spin_xp,rot_spin_zr,rot_spin_zp  !,rot_spin_z,rot_spin_x,
-  private rot_spin_yr,rot_spin_yp   !,rot_spin_y 
+
   private PATCH_SPINR,PATCH_SPINP,PATCH_SPIN,superdrift_SPINR,superdrift_SPINp
   private MIS_SPINR,MIS_SPINP,MIS_SPIN,furman_step
   private DTILT_SPINR,DTILT_SPINP,DTILT_SPIN
@@ -42,7 +41,6 @@ module ptc_spin
   REAL(DP) :: bran_init=pi  
   logical :: locate_with_no_cavity = .false.,full_way=.true.
   integer  :: item_min=3,mfdebug
-  integer , target :: old_integrator =1
 
 
 
@@ -158,21 +156,6 @@ module ptc_spin
   END INTERFACE
 
 
-  INTERFACE rot_spin_x
-     MODULE PROCEDURE rot_spin_xr
-     MODULE PROCEDURE rot_spin_xp
-  END INTERFACE
-
-  INTERFACE rot_spin_y
-     MODULE PROCEDURE rot_spin_yr
-     MODULE PROCEDURE rot_spin_yp
-  END INTERFACE
-
-  INTERFACE rot_spin_z
-     MODULE PROCEDURE rot_spin_zr
-     MODULE PROCEDURE rot_spin_zp
-  END INTERFACE
-
 
 
   INTERFACE TRACK_FRINGE_spin_multipole
@@ -209,188 +192,6 @@ module ptc_spin
 
 
 contains
-
-  subroutine rot_spin_yr(P,ang)
-    implicit none
-    TYPE(PROBE),INTENT(INOUT) ::  P
-    REAL(DP), INTENT(IN) :: ang
-    REAL(DP) co,si,st
-    INTEGER I
-    type(quaternion) dq
-    if(p%use_q) then
-     dq%x(0)=COS(ang/2)
-     dq%x(2)=sin(ang/2)
-     dq%x(1)=0
-     dq%x(3)=0
-     p%q=dq*p%q
-    else
-    CO =COS(ang)
-    SI =sin(ang)
-
-    DO I=ISPIN0R,ISPIN1R
-       ST=  CO *P%S(I)%X(1)+SI *P%S(I)%X(3)
-       P%S(I)%X(3)=CO *P%S(I)%X(3)-SI *P%S(I)%X(1)
-       P%S(I)%X(1)=ST
-    ENDDO
-    endif
-  END subroutine rot_spin_yr
-
-  subroutine rot_spin_Xr(P,ang)
-    implicit none
-    TYPE(PROBE),INTENT(INOUT) ::  P
-    REAL(DP), INTENT(IN) :: ang
-    REAL(DP) co,si,st
-    INTEGER I
-    type(quaternion) dq
-
-    if(p%use_q) then
-
-     dq%x(0)=COS(ang/2)
-     dq%x(1)=-sin(ang/2)
-     dq%x(2)=0
-     dq%x(3)=0
-     p%q=dq*p%q
-
-    else
-    CO =COS(ang)
-    SI =sin(ang)
-
-    DO I=ISPIN0R,ISPIN1R
-       ST=  CO *P%S(I)%X(2)+SI *P%S(I)%X(3)
-       P%S(I)%X(3)=CO *P%S(I)%X(3)-SI *P%S(I)%X(2)
-       P%S(I)%X(2)=ST
-    ENDDO
-   endif
-  END subroutine rot_spin_Xr
-
-  subroutine rot_spin_zr(P,ang)
-    implicit none
-    TYPE(PROBE),INTENT(INOUT) ::  P
-    REAL(DP), INTENT(IN) :: ang
-    REAL(DP) co,si,st
-    INTEGER I
-    type(quaternion) dq
-
-    if(p%use_q) then
-  
-     dq%x(0)=COS(ang/2)
-     dq%x(3)=-sin(ang/2)
-     dq%x(1)=0
-     dq%x(2)=0
-     p%q=dq*p%q
-    else
-    CO =COS(ang)
-    SI =sin(ang)
-
-    DO I=ISPIN0R,ISPIN1R
-       ST=  CO *P%S(I)%X(1)+SI *P%S(I)%X(2)
-       P%S(I)%X(2)=CO *P%S(I)%X(2)-SI *P%S(I)%X(1)
-       P%S(I)%X(1)=ST
-    ENDDO
-    endif
-
-  END subroutine rot_spin_zr
-
-
-  subroutine rot_spin_yp(P,ang)
-    implicit none
-    type(PROBE_8),INTENT(INOUT) ::  P
-    REAL(DP), INTENT(IN) :: ang
-    REAL(DP) co,si
-    type(real_8) st
-    !type(real_8) co,si,st
-    INTEGER I
-    type(quaternion_8) dq
-    if(p%use_q) then
-     call alloc(dq)
-     dq%x(0)=COS(ang/2)
-     dq%x(2)=sin(ang/2)
-     dq%x(1)=0.0_dp
-     dq%x(3)=0.0_dp
-     p%q=dq*p%q
-     call kill(dq)
-    else
-    call alloc(st)
-
-    CO =COS(ang)
-    SI =sin(ang)
-
-    DO I=ISPIN0r,ISPIN1r
-       ST=  CO *P%S(I)%X(1)+SI *P%S(I)%X(3)
-       P%S(I)%X(3)=CO *P%S(I)%X(3)-SI *P%S(I)%X(1)
-       P%S(I)%X(1)=ST
-    ENDDO
-
-    call kill(st)
-    endif
-  END subroutine rot_spin_yp
-
-  subroutine rot_spin_xp(P,ang)
-    implicit none
-    type(PROBE_8),INTENT(INOUT) :: P
-    REAL(DP), INTENT(IN) :: ang
-    REAL(DP) co,si
-    type(real_8) st
-    INTEGER I
-    type(quaternion_8) dq
-
-    if(p%use_q) then
-     call alloc(dq)
-     dq%x(0)=COS(ang/2)
-     dq%x(1)=-sin(ang/2)
-     dq%x(2)=0.0_dp
-     dq%x(3)=0.0_dp
-     p%q=dq*p%q
-     call kill(dq)
-    else
-    call alloc(st)
-
-    CO =COS(ang)
-    SI =sin(ang)
-
-    DO I=ISPIN0R,ISPIN1R
-       ST=  CO *P%S(I)%X(2)+SI *P%S(I)%X(3)
-       P%S(I)%X(3)=CO *P%S(I)%X(3)-SI *P%S(I)%X(2)
-       P%S(I)%X(2)=ST
-    ENDDO
-
-    call kill(st)
-    endif
-  END subroutine rot_spin_xp
-
-  subroutine rot_spin_zp(P,ang)
-    implicit none
-    type(PROBE_8),INTENT(INOUT) ::  P
-    REAL(DP), INTENT(IN) :: ang
-    REAL(DP) co,si
-    type(real_8) st
-    INTEGER I
-
-    type(quaternion_8) dq
-
-    if(p%use_q) then
-     call alloc(dq)
-     dq%x(0)=COS(ang/2)
-     dq%x(3)=-sin(ang/2)
-     dq%x(1)=0.0_dp
-     dq%x(2)=0.0_dp
-     p%q=dq*p%q
-     call kill(dq)
-    else
-    call alloc(st)
-
-    CO =COS(ang)
-    SI =sin(ang)
-
-    DO I=ISPIN0R,ISPIN1R
-       ST=  CO *P%S(I)%X(1)+SI *P%S(I)%X(2)
-       P%S(I)%X(2)=CO *P%S(I)%X(2)-SI *P%S(I)%X(1)
-       P%S(I)%X(1)=ST
-    ENDDO
-
-    call kill(st)
-    endif
-  END subroutine rot_spin_zp
 
 
 
@@ -656,7 +457,7 @@ endif
     REAL(DP) OM(3),CO(3),SI(3),B2,XP(2),E(3),B(3)
     REAL(DP) ST,dlds,norm,stheta
     type(quaternion) dq,mulq
-    LOGICAL(LP),intent(in) :: BEFORE
+    LOGICAL,intent(in) :: BEFORE
     type(internal_state) k
     INTEGER I
 
@@ -668,7 +469,7 @@ endif
     !    if(EL%kind>=kind11.and.EL%kind<=kind14) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
     !    if(EL%kind>=kind18.and.EL%kind<=kind19) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
 
-    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B)
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B,before=before)
     if((k%radiation.or.k%envelope.or.k%stochastic).AND.BEFORE) then
        !if(el%p%radiation.AND.BEFORE) then
        !       call radiate_2(c,DS,FAC,P%X,b2,dlds,XP,before,k,POS)
@@ -759,7 +560,7 @@ endif
     TYPE(REAL_8) ST,dlds,norm,stheta
     type(quaternion_8) dq
     type(quaternion) dq0
-    LOGICAL(LP),intent(in) :: BEFORE
+    LOGICAL,intent(in) :: BEFORE
     type(internal_state) k
     INTEGER I
     if(.not.((k%radiation.or.k%envelope).or.k%SPIN)) return
@@ -780,7 +581,7 @@ endif
 
 
     IF(K%PARA_IN ) KNOB=.TRUE.
-    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B)
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B,before=before)
     if((k%radiation.or.k%envelope).AND.BEFORE) then
        !if(el%p%radiation.AND.BEFORE) then
        call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,POS,E,B)
@@ -1651,7 +1452,7 @@ endif
     if(c%cas==0) then
        if(useptc) then
 
-        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+        CALL TRACK_NODE_SINGLE_qua(C,XS,K)  !,CHARGE
 
        elseif(doonemap) then
  
@@ -1667,14 +1468,14 @@ endif
        endif
     elseIF(c%cas==case1.and.useptc) then
        CALL TRACK_FRINGE_spin(C,XS,K)
-       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+       CALL TRACK_NODE_SINGLE_qua(C,XS,K)  !,CHARGE
     elseIF(c%cas==case2.and.useptc) then
-       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+       CALL TRACK_NODE_SINGLE_qua(C,XS,K)  !,CHARGE
        CALL TRACK_FRINGE_spin(C,XS,K)
     else
        IF(c%cas==caseP1) THEN
 
-          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE_qua(C,XS,K)  !,CHARGE
           if(k%spin) then
             CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
    if(xs%use_q.and.assume_c_quaternion_normalised) xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
@@ -1688,7 +1489,7 @@ endif
    if(xs%use_q.and.assume_c_quaternion_normalised) xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
 
            endif
-          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE_qua(C,XS,K)  !,CHARGE
      ENDIF
 
     endif
@@ -1785,7 +1586,7 @@ endif
     if(c%cas==0) then
        if(useptc) then
 
-        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+        CALL TRACK_NODE_SINGLE_qua(C,XS,K)  !,CHARGE
 
        elseif(doonemap) then
 
@@ -1804,18 +1605,18 @@ endif
     elseIF(c%cas==case1.and.useptc) then
 if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        CALL TRACK_FRINGE_spin(C,XS,K)
-       CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
 if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     elseIF(c%cas==case2.and.useptc) then
 if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
-         CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+         CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
          CALL TRACK_FRINGE_spin(C,XS,K)
        !        CALL  (C,XS,K)
 if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
     else
        IF(c%cas==caseP1) THEN
-          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
           if(k%spin) then
 
                  CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
@@ -1840,7 +1641,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
            xs%q%x(3)=xs%q%x(3)*ds
         endif
            endif
-          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
      ENDIF
 
 
@@ -1876,10 +1677,10 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     else
       SELECT CASE(C%parent_fibre%mag%KIND)
 CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND19, &
-      KIND21,KIND22,KINDPA,KINDabell,kindsuperdrift)
-        call TRACK_NODE_FLAG_probe_R(C,XS,K)
-       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER)
-         call TRACK_NODE_FLAG_probe_quaR(C,XS,K)
+      KIND21,KIND22,KINDabell,kindsuperdrift)
+         call TRACK_NODE_FLAG_probe_R(C,XS,K)
+       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER,KINDPA)
+          call TRACK_NODE_FLAG_probe_quaR(C,XS,K)
        CASE DEFAULT
           WRITE(6,*) "NOT IMPLEMENTED in old_integrator bifurcation",C%parent_fibre%mag%KIND
           stop 999
@@ -1902,9 +1703,9 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
     else
       SELECT CASE(C%parent_fibre%magp%KIND)
 CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND19, &
-      KIND21,KIND22,KINDPA,KINDabell,kindsuperdrift)
+      KIND21,KIND22,KINDabell,kindsuperdrift)
         call TRACK_NODE_FLAG_probe_p(C,XS,K)
-       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER)
+       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER,KINDPA)
 
           if(compute_stoch_kick) then
            start_stochastic_computation=0
@@ -1990,7 +1791,7 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
        ds=c%parent_fibre%MAG%L/c%parent_fibre%MAG%p%nst
        fac=0.5_dp
         call PUSH_SPIN(c,ds,FAC,XS,my_true,k,C%POS_IN_FIBRE-2)   ! -3 before....
-        CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
  !       call PUSH_SPIN(c,ds,FAC,XS,my_false,k,C%POS_IN_FIBRE-2)
         call PUSH_SPIN(c,ds,FAC,XS,my_false,k,C%POS_IN_FIBRE-1)
        elseif(doonemap) then
@@ -2007,14 +1808,14 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
        endif
     elseIF(c%cas==case1.and.useptc) then
        CALL TRACK_FRINGE_spin(C,XS,K)
-       CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
     elseIF(c%cas==case2.and.useptc) then
-       CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
        CALL TRACK_FRINGE_spin(C,XS,K)
     else
        IF(c%cas==caseP1) THEN
 
-          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
           if(k%spin) then
             CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
    if(xs%use_q.and.assume_c_quaternion_normalised) xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
@@ -2029,7 +1830,7 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
 
            endif
 !x=XS%X
-          CALL TRACK_NODE_SINGLE(C,XS%X,K) 
+          CALL TRACK_NODE_SINGLE(C,XS,K) 
 !XS%X=x
      ENDIF
 
@@ -2053,18 +1854,18 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
 
 
 
-        CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
 
 
     elseIF(c%cas==case1) then
-       CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
     elseIF(c%cas==case2) then
-       CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
     else
        IF(c%cas==caseP1) THEN
-          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
        ELSEif(c%cas==caseP2) THEN
-          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
 
      ENDIF
 
@@ -2156,7 +1957,7 @@ endif ! full_way
         if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,K)
         call PUSH_SPIN(c,ds,FAC,XS,my_true,k,C%POS_IN_FIBRE-2)    ! -3 before
          if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
-        CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
          if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
   !      call PUSH_SPIN(c,ds,FAC,XS,my_false,k,C%POS_IN_FIBRE-2)
         call PUSH_SPIN(c,ds,FAC,XS,my_false,k,C%POS_IN_FIBRE-1)
@@ -2178,18 +1979,18 @@ endif ! full_way
     elseIF(c%cas==case1.and.useptc) then
 if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        CALL TRACK_FRINGE_spin(C,XS,K)
-       CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
 if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     elseIF(c%cas==case2.and.useptc) then
 if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
-         CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+         CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
          CALL TRACK_FRINGE_spin(C,XS,K)
        !        CALL  (C,XS,K)
 if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
     else
        IF(c%cas==caseP1) THEN
-          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
           if(k%spin) then
 
                  CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
@@ -2214,7 +2015,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
            xs%q%x(3)=xs%q%x(3)*ds
         endif
            endif
-          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
      ENDIF
 
 
@@ -2238,14 +2039,14 @@ else
 
 
     if(c%cas==0) then
-        CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
     elseIF(c%cas==case1.or.c%cas==case2) then
-       CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
     else
        IF(c%cas==caseP1) THEN
-          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
        ELSEif(c%cas==caseP2) THEN
-          CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
      ENDIF
 
 
@@ -2916,20 +2717,20 @@ endif
     real(dp) da
     if(C%PATCH%track) then
     IF(ENTERING) THEN
-       da=C%PATCH%A_ANG(1)+((C%PATCH%A_X1-1)/2)*pi
+       da=C%PATCH%A_ANG(1)+((C%PATCH%A_X1-1.0_dp)/2)*pi   ! using real 2011.11.27
        call rot_spin_x(P,da)
        call rot_spin_y(P,C%PATCH%A_ANG(2)) ! 2016_5_9
        call rot_spin_z(P,C%PATCH%A_ANG(3))
-       da=((C%PATCH%A_X2-1)/2)*pi
+       da=((C%PATCH%A_X2-1.0_dp)/2)*pi
        call rot_spin_x(P,da)
     ELSE
-       da=C%PATCH%B_ANG(1)+((C%PATCH%B_X2-1)/2)*pi
+       da=C%PATCH%B_ANG(1)+((C%PATCH%B_X2-1.0_dp)/2)*pi
        call rot_spin_x(P,da)
        ! error etienne
        !      call rot_spin_y(P,C%PATCH%A_ANG(2))
        call rot_spin_y(P,C%PATCH%b_ANG(2)) ! 2016_5_9
        call rot_spin_z(P,C%PATCH%b_ANG(3))
-       da=((C%PATCH%B_X2-1)/2)*pi
+       da=((C%PATCH%B_X2-1.0_dp)/2)*pi
        call rot_spin_x(P,da)
     ENDIF
     endif
@@ -2947,20 +2748,20 @@ endif
 
     if(C%PATCH%track) then
     IF(ENTERING) THEN
-       da=C%PATCH%A_ANG(1)+((C%PATCH%A_X1-1)/2)*pi
+       da=C%PATCH%A_ANG(1)+((C%PATCH%A_X1-1.0_dp)/2)*pi
        call rot_spin_x(P,da)
        call rot_spin_y(P,C%PATCH%A_ANG(2)) ! 2016_5_9
        call rot_spin_z(P,C%PATCH%A_ANG(3))
-       da=((C%PATCH%A_X2-1)/2)*pi
+       da=((C%PATCH%A_X2-1.0_dp)/2)*pi
        call rot_spin_x(P,da)
     ELSE
-       da=C%PATCH%B_ANG(1)+((C%PATCH%B_X2-1)/2)*pi
+       da=C%PATCH%B_ANG(1)+((C%PATCH%B_X2-1.0_dp)/2)*pi
        call rot_spin_x(P,da)
        ! error etienne
        !      call rot_spin_y(P,C%PATCH%A_ANG(2))
        call rot_spin_y(P,C%PATCH%b_ANG(2))  
        call rot_spin_z(P,C%PATCH%b_ANG(3))
-       da=((C%PATCH%B_X2-1)/2)*pi
+       da=((C%PATCH%B_X2-1.0_dp)/2)*pi
        call rot_spin_x(P,da)
     ENDIF
     endif

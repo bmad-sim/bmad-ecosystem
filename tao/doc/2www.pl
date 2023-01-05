@@ -45,4 +45,4 @@ close (F_OUT);
 
 `mv basic_tao.html /nfs/classe/www/html/bmad/`;
 `cp tao.pdf /nfs/classe/www/html/bmad/tao-manual-$rev.pdf`;
-
+`python3 generate_tex_for_python_commands.py`

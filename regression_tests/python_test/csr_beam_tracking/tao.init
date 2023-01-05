@@ -33,6 +33,7 @@
   !beam_init%random_engine = 'pseudo'
   ix_universe = 1
   beam_saved_at =  "MARKER::*, BEGINNING, END"
+  comb_ds_save = 0.01
   beam_init%a_norm_emit = 1.0e-6  ! normalized emit = emit * gamma
   beam_init%b_norm_emit = 1.0e-6  ! normalized emit = emit * gamma
   beam_init%dPz_dz = 0.0

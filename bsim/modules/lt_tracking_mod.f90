@@ -131,18 +131,14 @@ type ltt_com_struct
   logical :: using_mpi = .false.
   logical :: track_bypass = .false.            ! Used by DA program
   character(200) :: master_input_file = ''
-  character(40) :: fmt = '(2i7, 6es16.8, 3x, 3f10.6, 4x, a)'
+  character(40) :: ps_fmt = '(2i7, 8es16.8, 3x, 3f10.6, 4x, a)'
 end type
 
 integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
 
 type ltt_bunch_data_struct
   real(rp) :: n_live = 0        ! Number alive. Use real to avoid roundoff error.
-  real(rp) :: orb_ave(6) = 0    ! Orbit average
-  real(rp) :: spin_ave(3) = 0   ! Spin
-  real(rp) :: p0c_ave = 0
-  real(rp) :: time_ave = 0
-  real(rp) :: sig1(6) = 0, sigma(27) = 0, sig_mat(6,6) = 0
+  real(rp) :: sig1(6) = 0, sigma_vec(27) = 0
   real(rp) :: kurt(3) = 0, skew(3) = 0
   real(rp) :: core_emit(core_max$,3) = 0
   type (bunch_params_struct) :: params = bunch_params_struct()
@@ -422,7 +418,7 @@ type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, ele_start, ele_stop
-type (rad_int_ele_cache_struct), pointer :: ri
+type (rad_map_ele_struct), pointer :: ri
 
 real(rp) closed_orb(6), f_tol
 
@@ -468,11 +464,11 @@ endif
 if (lttp%split_bends_for_stochastic_rad) then
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
-    if (ele%name /= 'Radiation_Point') cycle
-    if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
-    ri => ele%rad_int_cache
-    call tracking_rad_mat_setup(branch%ele(ie-1), 1e-4_rp, downstream_end$, ri%rm0)
-    call tracking_rad_mat_setup(branch%ele(ie+1), 1e-4_rp, upstream_end$,   ri%rm1)
+    if (ele%name /= 'RADIATION_POINT') cycle
+    if (.not. associated(ele%rad_map)) allocate (ele%rad_map)
+    ri => ele%rad_map
+    call tracking_rad_map_setup(branch%ele(ie-1), 1e-4_rp, downstream_end$, ri%rm0)
+    call tracking_rad_map_setup(branch%ele(ie+1), 1e-4_rp, upstream_end$,   ri%rm1)
 
     ! Combine matrices for quicker evaluation
     ri%rm1%stoc_mat = matmul(ri%rm0%stoc_mat, transpose(ri%rm0%stoc_mat)) + matmul(ri%rm1%stoc_mat, transpose(ri%rm1%stoc_mat))
@@ -570,22 +566,22 @@ if (lttp%averages_output_file == '') return
 
 do ib = 0, nb
   if (ib == 0 .and. nb == 1) cycle  ! ib = zero is for all bunch averages if there is more than one bunch
-  call ltt_data_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
   open (iu, file = file_name, recl = 400)
 
   call ltt_print_this_info(iu, .false.)
 
-  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 7a14, 2x, 6a14)') '##', '1', '2', '3', '4', '5', '6', '7', &
-                  '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'
-  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 7a14, 2x, 6a14)') '##', 'Turn', 'N_live', 'Time', 'Polarization', &
-                   '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>', &
+  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 8a14, 2x, 6a14)') '##', '1', '2', '3', '4', '5', '6', '7', &
+                  '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'
+  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 8a14, 2x, 6a14)') '##', 'Turn', 'N_live', 'Time', 'Polarization', &
+                   '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<pc>', '<p0c>', &
                    'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz'
 
   close(iu)
 
   !
 
-  call ltt_data_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
   open (iu, file = file_name, recl = 400)
 
   call ltt_print_this_info(iu, .false.)
@@ -601,7 +597,7 @@ do ib = 0, nb
 
   !
 
-  call ltt_data_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
   open (iu, file = file_name, recl = 2000)
 
   call ltt_print_this_info(iu, .false.)
@@ -890,10 +886,10 @@ endif
 
 iu_part = lunget()
 if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
-open (iu_part, file = lttp%phase_space_output_file, recl = 200)
+open (iu_part, file = lttp%phase_space_output_file, recl = 300)
 call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
-write (iu_part, '(a)') '## Turn ix_ele |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z  | Element'
-write (iu_part, ltt_com%fmt) 0, ele_start%ix_ele, orbit%vec, orbit%spin, trim(ele_start%name)
+write (iu_part, '(a)') '## Turn ix_ele |            x              px               y              py               z              pz              pc             p0c  |    spin_x    spin_y    spin_z  | Element'
+write (iu_part, ltt_com%ps_fmt) 0, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele_start%name)
 
 if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, 0, orbit = orbit)
 
@@ -916,10 +912,10 @@ do i_turn = 1, lttp%n_turns
                                                      orbit_too_large(orbit) .or. prb%u) orbit%state = lost$
 
       if (lttp%particle_output_every_n_turns < 1) then
-        write (iu_part, ltt_com%fmt) i_turn, ele1%ix_ele, orbit%vec, orbit%spin, trim(ele1%name)
+        write (iu_part, ltt_com%ps_fmt) i_turn, ele1%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele1%name)
       endif
 
-      if (orbit%state == lost$) exit
+      if (orbit%state /= alive$) exit
       if (ele1%ix_ele == ele_start%ix_ele) exit
       ele0 => ele1
     enddo
@@ -936,7 +932,7 @@ do i_turn = 1, lttp%n_turns
 
   if (lttp%particle_output_every_n_turns > 0) then
     if (modulo(i_turn, lttp%particle_output_every_n_turns) == 0) then
-      write (iu_part, ltt_com%fmt) i_turn, ele_start%ix_ele, orbit%vec, orbit%spin, trim(ele_start%name)
+      write (iu_part, ltt_com%ps_fmt) i_turn, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele_start%name)
     endif
   endif
 
@@ -1279,7 +1275,7 @@ r_damp  = logic_option(bmad_com%radiation_damping_on, rad_damp)
 r_fluct = logic_option(bmad_com%radiation_fluctuations_on, rad_fluct)
 if (.not. r_damp .and. .not. r_fluct) return
 
-rad_mat => ele%rad_int_cache%rm1
+rad_mat => ele%rad_map%rm1
 if (r_damp) then
   orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
   if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_mat%damp_vec
@@ -1302,27 +1298,46 @@ type (ltt_params_struct) lttp
 type (branch_struct) branch
 type (ltt_com_struct), target :: ltt_com
 type (normal_modes_struct) modes
-real(rp) n_particle
+real(rp) n_particle, gamma
 
 !
 
 if (.not. bmad_com%high_energy_space_charge_on) return
 
 if (lttp%tracking_method == 'MAP') then
-  print '(a)', 'NOTE: Space effects are not present when using a map tracking!'
+  print '(a)', 'WARNING! Space effects are not present when using a map tracking!'
   return
 endif
 
 if (.not. lttp%rfcavity_on) then
-  print '(a)', 'NOTE: RF is not on. Cannot calculate a longitudinal bunch length.'
+  print '(a)', 'WARNING! RF is not on. Cannot calculate a longitudinal bunch length.'
   print '(a)', '      Therefore no space charge kick will be applied.'
   return
 endif
 
+gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%ele(0)%ref_species)
 modes = ltt_com%modes
+
 if (ltt_com%beam_init%a_emit > 0) modes%a%emittance = ltt_com%beam_init%a_emit
-if (ltt_com%beam_init%b_emit > 0) modes%a%emittance = ltt_com%beam_init%b_emit
+if (ltt_com%beam_init%b_emit > 0) modes%b%emittance = ltt_com%beam_init%b_emit
+if (ltt_com%beam_init%a_norm_emit > 0) modes%a%emittance = ltt_com%beam_init%a_norm_emit / gamma
+if (ltt_com%beam_init%b_norm_emit > 0) modes%b%emittance = ltt_com%beam_init%b_norm_emit / gamma
+
+if (modes%a%emittance == 0 .or. modes%b%emittance == 0) then
+  print *, 'WARNING! No a-mode or b-mode emittance set in beam_init structrue. Cannot compute high energy space charge kick.'
+  print '(a)', '      Therefore no space charge kick will be applied.'
+  return
+endif
+
 n_particle = abs(ltt_com%beam_init%bunch_charge / (e_charge * charge_of(ltt_com%bmad_closed_orb(0)%species)))
+
+if (n_particle == 0) then
+  print *, 'WARNING! beam_init%bunch_charge not set. Cannot compute high energy space charge kick.'
+  print '(a)', '      Therefore no space charge kick will be applied.'
+  return
+endif
+  
+
 call setup_high_energy_space_charge_calc (.true., branch, n_particle, modes)
 
 end subroutine ltt_setup_high_energy_space_charge
@@ -1411,9 +1426,9 @@ else
   open (iu, file = file_name, recl = 300)
   call ltt_write_params_header(lttp, ltt_com, iu, ltt_com%n_particle, size(beam%bunch))
   if (who == 'phase_space') then
-    write (iu, '(a)')  '##     Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
+    write (iu, '(a)')  '##     Ix     Turn |           x              px               y              py               z              pz              pc             p0c   |     spin_x    spin_y    spin_z    State'
   else
-    write (iu, '(a)')  '##     Ix     Turn |          Jx         Angle_x              Jy         Angle_y              Jz         Angle_z   |     spin_x    spin_y    spin_z    State'
+    write (iu, '(a)')  '##     Ix     Turn |          Ja         Angle_a              Jb         Angle_b              Jc         Angle_c   |     spin_x    spin_y    spin_z    State'
   endif
   wrote_header = .true.
 endif
@@ -1430,7 +1445,7 @@ do ip = 1, size(bunch%particle)
   ix = ip + ltt_com%mpi_ix0_particle
   if (lttp%only_live_particles_out .and. p%state /= alive$) cycle
   if (who == 'phase_space') then
-    write (iu, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
+    write (iu, '(i9, i9, 8es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, (1.0_rp+p%vec(6))*p%p0c, p%p0c, p%spin, trim(coord_state_name(p%state))
   else
     jvec = matmul(n_inv_mat, p%vec-b_params%centroid%vec)
     jamp = 0.5_rp * [jvec(1)**2 + jvec(2)**2, jvec(3)**2 + jvec(4)**2, jvec(5)**2 + jvec(6)**2]
@@ -1605,6 +1620,8 @@ do i = 1, size(lttp%column)
       else
         st%value = orb%t
       endif
+    case ('p0c');         st%value = (1.0_rp + orb%vec(6)) * orb%p0c
+    case ('e_tot');       st%value = (1.0_rp + orb%vec(6)) * orb%p0c / mass_of(orb%species)
     case ('sx');          st%value = orb%spin(1)
     case ('sy');          st%value = orb%spin(2)
     case ('sz');          st%value = orb%spin(3)
@@ -1692,10 +1709,14 @@ logical error
 
 !
 
-orb_sum = 0;  orb2_sum = 0;  orb3_sum = 0;  orb4_sum = 0
 bd = ltt_bunch_data_struct()
-bd%n_live = count(bunch%particle%state == alive$)
-if (bd%n_live == 0) return
+call calc_bunch_params(bunch, bd%params, error, .true., n_inv_mat)
+bd%n_live = bd%params%n_particle_live
+if (bd%n_live == 0) then
+  bd = ltt_bunch_data_struct()  ! Erase any garbage from calc_bunch_params
+  return
+endif
+orb_sum = 0;  orb2_sum = 0;  orb3_sum = 0;  orb4_sum = 0
 
 do i = 1, 6
   orb_sum(i)  = orb_sum(i)  + sum(bunch%particle%vec(i), bunch%particle%state == alive$)
@@ -1708,12 +1729,7 @@ do i = 1, 6
   orb4_sum(i) = orb4_sum(i) + sum((bunch%particle%vec(i)-ave)**4, bunch%particle%state == alive$) 
 enddo
 
-do i = 1, 3
-  bd%spin_ave(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$) / bd%n_live
-enddo
-bd%p0c_ave = sum(bunch%particle%p0c, bunch%particle%state == alive$) / bd%n_live
-bd%time_ave = ltt_bunch_time_sum(bunch, lttp) / bd%n_live
-bd%orb_ave = orb_sum / bd%n_live
+bd%params%t = ltt_bunch_time_sum(bunch, lttp) / bd%n_live
 
 !
 
@@ -1724,11 +1740,11 @@ do j = i, 6
   ! Test if the value of sigma(i,j) is significant. If not set to zero. 
   ! This is to avoid problems due to round-off errors. 
   ! One notible case is at the beginning of tracking if a mode has zero emittance.
-  bd%sigma(k) = orb2_sum(i,j) / bd%n_live - orb_sum(i) * orb_sum(j) / bd%n_live**2
-  if (abs(bd%sigma(k)) < 1e-15_rp * abs(orb_sum(i)*orb_sum(j)) / bd%n_live) bd%sigma(k) = 0
-  bd%sig_mat(i,j) = bd%sigma(k)
-  bd%sig_mat(j,i) = bd%sigma(k)
-  if (i == j) bd%sig1(i) = sqrt(max(0.0_rp, bd%sigma(k)))
+  bd%sigma_vec(k) = orb2_sum(i,j) / bd%n_live - orb_sum(i) * orb_sum(j) / bd%n_live**2
+  if (abs(bd%sigma_vec(k)) < 1e-15_rp * abs(orb_sum(i)*orb_sum(j)) / bd%n_live) bd%sigma_vec(k) = 0
+  bd%params%sigma(i,j) = bd%sigma_vec(k)
+  bd%params%sigma(j,i) = bd%sigma_vec(k)
+  if (i == j) bd%sig1(i) = sqrt(max(0.0_rp, bd%sigma_vec(k)))
 enddo
 enddo
 
@@ -1738,8 +1754,6 @@ if (bd%sig1(3) /= 0) bd%skew(2) = orb3_sum(3) / (bd%n_live * bd%sig1(3)**3)
 if (bd%sig1(3) /= 0) bd%kurt(2) = orb4_sum(3) / (bd%n_live * bd%sig1(3)**4) - 3.0_rp
 if (bd%sig1(5) /= 0) bd%skew(3) = orb3_sum(5) / (bd%n_live * bd%sig1(5)**3)
 if (bd%sig1(5) /= 0) bd%kurt(3) = orb4_sum(5) / (bd%n_live * bd%sig1(5)**4) - 3.0_rp
-
-call calc_emittances_and_twiss_from_sigma_matrix (bd%sig_mat, 0.0_rp, bd%params, error, n_mat = n_inv_mat)
 
 ! Calc core emit
 
@@ -1787,7 +1801,7 @@ if (lttp%core_emit_combined_calc) then
   sig_cut = -log(inverse(beam_fraction, cutoff, 1e-12_rp, 1.0_rp, 1e-8_rp))
   f = cutoff / (1 - (1 + sig_cut + sig_cut**2/2 + sig_cut**3/6) * exp(-sig_cut))
 
-  call core_bunch_construct(0, bunch, bd%orb_ave, n_inv_mat0, n_cut, core_bunch, bd%params)
+  call core_bunch_construct(0, bunch, bd%params%centroid%vec, n_inv_mat0, n_cut, core_bunch, bd%params)
 
   call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat);  if (error) return
   call mat_inverse (n_inv_mat, n_inv_mat)
@@ -1803,7 +1817,7 @@ else
   f =  cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
 
   do i = 1, 3
-    call core_bunch_construct(i, bunch, bd%orb_ave, n_inv_mat0, n_cut, core_bunch)
+    call core_bunch_construct(i, bunch, bd%params%centroid%vec, n_inv_mat0, n_cut, core_bunch)
 
     call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
 
@@ -1887,7 +1901,7 @@ end subroutine ltt_calc_bunch_data
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_data_file_name (template_name, suffix, ix_bunch, n_bunch, file_name)
+subroutine ltt_averages_file_name (template_name, suffix, ix_bunch, n_bunch, file_name)
 
 character(*) template_name, suffix, file_name
 integer ix_bunch, n_bunch   ! Index of bunch and number of bunches
@@ -1915,7 +1929,7 @@ else
     file_name = file_name(1:ix-1) // trim(suffix) // file_name(ix+1:) 
 endif
 
-end subroutine ltt_data_file_name
+end subroutine ltt_averages_file_name
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -1950,22 +1964,23 @@ do ib = 1, nb
 
   call ltt_calc_bunch_data(lttp, bunch, bd)
 
-  call ltt_data_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
   iu1 = lunget(); open (iu1, file = file_name, recl = 400, access = 'append')
-  call ltt_data_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
   iu2 = lunget(); open (iu2, file = file_name, recl = 400, access = 'append')
-  call ltt_data_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
+  call ltt_averages_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
   iu3 = lunget(); open (iu3, file = file_name, recl = 2000, access = 'append')
 
   !
 
-  write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 7es14.6, 2x, 6es14.6)') ix_turn, nint(bd%n_live), &
-          bd%time_ave, norm2(bd%spin_ave), bd%spin_ave, bd%orb_ave, bd%p0c_ave, bd%sig1
+  write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 8es14.6, 2x, 6es14.6)') ix_turn, nint(bd%n_live), &
+                   bd%params%t, norm2(bd%params%centroid%spin), bd%params%centroid%spin, bd%params%centroid%vec, &
+                   (1.0_rp+bd%params%centroid%vec(6))*bd%params%centroid%p0c, bd%params%centroid%p0c, bd%sig1
 
-  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)') ix_turn, nint(bd%n_live), bd%time_ave, (bd%sigma(k), k = 1, 21)
+  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)') ix_turn, nint(bd%n_live), bd%params%t, (bd%sigma_vec(k), k = 1, 21)
 
   write (line, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 3es14.6, 2x, 3es14.6)') ix_turn, nint(bd%n_live), &
-          bd%time_ave, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%kurt, bd%skew
+                             bd%params%t, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%kurt, bd%skew
 
   do i = 1, core_max$
     if (lttp%core_emit_cutoff(i) <= 0) exit
@@ -2333,7 +2348,7 @@ branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
 
 if (lttp%split_bends_for_stochastic_rad) then
   call init_ele(marker, marker$)
-  marker%name = 'Radiation_Point'
+  marker%name = 'RADIATION_POINT'
   marker%ix_pointer = not_in_map$
 
   i = 0
@@ -2432,14 +2447,14 @@ ele => ele_start
 
 do
   ele => pointer_to_next_ele(ele)
-  if (ele%name == 'Radiation_Point') then
+  if (ele%name == 'RADIATION_POINT') then
     call ltt_track1_radiation_center(orbit, ele, .false., rad_fluct)
   else
     call track1 (orbit, ele, ele%branch%param, orbit, err_flag = err_flag)
   endif
 
   if (present(iu_part) .and. lttp%particle_output_every_n_turns < 1) then
-    write (iu_part, ltt_com%fmt) i_turn, ele%ix_ele, orbit%vec, orbit%spin, trim(ele%name)
+    write (iu_part, ltt_com%ps_fmt) i_turn, ele%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele%name)
   endif
 
   if (ele%ix_ele == ele_stop%ix_ele) exit
@@ -2472,7 +2487,7 @@ if (lttp%split_bends_for_stochastic_rad) then
 
   do
     ele => pointer_to_next_ele(ele)
-    if (ele%name == 'Radiation_Point') then
+    if (ele%name == 'RADIATION_POINT') then
       do i = 1, size(bunch%particle)
         call ltt_track1_radiation_center(bunch%particle(i), ele, .false., rad_fluct)
       enddo
@@ -2521,7 +2536,7 @@ do i = 1, ubound(ltt_com%sec, 1)
     call ptc_track_map_with_radiation (orbit, sec%map, rad_damp = bmad_com%radiation_damping_on, rad_fluct = map_fluct_on)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
     ele => branch%ele(sec%map%ix_ele_end)
-  elseif (sec%ele%name == 'Radiation_Point') then
+  elseif (sec%ele%name == 'RADIATION_POINT') then
     call ltt_track1_radiation_center(orbit, sec%ele, .false., pt_fluct_on)
     ele => sec%ele
   else  ! EG: beambeam
@@ -2530,7 +2545,7 @@ do i = 1, ubound(ltt_com%sec, 1)
   endif
 
   if (present(iu_part) .and. lttp%particle_output_every_n_turns < 1) then
-    write (iu_part, ltt_com%fmt) i_turn, ele%ix_ele, orbit%vec, orbit%spin, trim(ele%name)
+    write (iu_part, ltt_com%ps_fmt) i_turn, ele%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele%name)
   endif
 
   if (orbit%state /= alive$) return

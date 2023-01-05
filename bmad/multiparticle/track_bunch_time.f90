@@ -45,7 +45,7 @@ character(*), parameter :: r_name = 'track_bunch_time'
 
 !
 
-significant_time = bmad_com%significant_length / (10 * c_light)
+significant_time = bmad_com%significant_length / c_light
 branch => pointer_to_branch(ele_in)
 
 n = branch%n_ele_track
@@ -54,7 +54,7 @@ drift_ele%value(l$) = 100
 drift_ele%name = 'end_drift'
 call ele_compute_ref_energy_and_time(branch%ele(n), drift_ele, branch%param, err)
 
-!$OMP parallel do default(shared) private(dt, orbit, ele_here)
+!$OMP parallel do default(shared) private(dt, orbit, ele_here, err)
 
 do i = 1, size(bunch%particle)
   if (present(dt_step)) then;  dt = dt_step(i)

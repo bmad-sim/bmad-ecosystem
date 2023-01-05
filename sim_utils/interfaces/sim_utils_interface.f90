@@ -536,10 +536,26 @@ end subroutine
 
 function max_nonzero (lbnd, array1, array2) result (ix_max)
   import
+  implicit none
   integer lbnd, ix_max
   real(rp) array1(lbnd:)
   real(rp), optional :: array2(lbnd:)
 end function
+
+function n_choose_k(n, k) result (nck)
+  import
+  implicit none
+  real(rp) nck
+  integer n, k
+end function
+
+subroutine n_spline_create (deriv0, deriv1, x1, n_spline)
+  import
+  implicit none
+  real(rp) deriv0(0:), deriv1(0:)
+  real(rp) x1
+  real(rp), allocatable :: n_spline(:)
+end subroutine
 
 subroutine nametable_add (nametable, name, ix_name)
   import
@@ -619,10 +635,11 @@ subroutine pointer_to_locations(string, array, num, ix_min, ix_max, names, exact
   character(*), optional :: names(:)
 end subroutine
 
-function poly_eval(poly, x) result (y)
+function poly_eval(poly, x, diff_coef) result (y)
   import
   implicit none
   real(rp) poly(0:), x, y
+  logical, optional :: diff_coef
 end function
 
 function probability_funct(x) result (prob)
@@ -736,6 +753,12 @@ function rms_value(val_arr, good_val, ave_val) result (rms_val)
   real(rp) val_arr(:), rms_val
   logical, optional :: good_val(:)
   real(rp), optional :: ave_val
+end function
+
+function rot_2d (vec_in, angle) result (vec_out)
+  import
+  implicit none
+  real(rp) vec_in(2), angle, vec_out(2)
 end function
 
 subroutine run_timer(command, time)

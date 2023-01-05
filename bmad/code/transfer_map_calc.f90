@@ -94,7 +94,7 @@ endif
 if (i1 == i2 .and. (lat%param%geometry == open$ .or. .not. logic_option (.false., one_turn))) return
 
 if (present(ref_orb)) then
-  orb0 = ref_orb
+  call init_coord (orb0, ref_orb, branch%ele(i1), downstream_end$)
 else
   orb0 = coord_struct()
   orb0%species = branch%param%particle
@@ -165,7 +165,7 @@ integer i, k
 if (logic_option(.false., concat_if_possible) .and. associated(ele%taylor(1)%term)) then
   call concat_ele_taylor (map, ele, map)
 else
-  call taylor_propagate1 (map, ele, branch%param, ref_orb)
+  call taylor_propagate1 (map, ele, branch%param, orb0)
 endif
 
 ! Check for overflow

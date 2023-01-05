@@ -1,6 +1,3 @@
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
 !+
 ! Subroutine transfer_fieldmap (ele_in, ele_out, who)
 !
@@ -9,11 +6,10 @@
 !     ele_out%cartesian_map    => ele_in%cartesian_map
 !     ele_out%cylindrical_map  => ele_in%cylindrical_map
 !     ele_out%grid_field       => ele_in%grid_field
-!     ele_out%taylor_field     => ele_in%taylor_field
 !
 ! Input:
 !   ele_in -- Ele_struct: Input element.
-!   who    -- integer: Possibilities are: all$, cartesian_map$, cylindrical_map$, grid_field$, or taylor_field$
+!   who    -- integer: Possibilities are: all$, cartesian_map$, cylindrical_map$, or grid_field$
 !
 ! Output:
 !   ele_out -- Ele_struct: Output element.
@@ -108,6 +104,36 @@ if (who == all$ .or. who == cylindrical_map$) then
   endif
 endif
 
+! Gen_grad
+
+if (who == all$ .or. who == gen_grad_map$) then
+  if (associated(ele_in%gen_grad_map) .and. associated(ele_out%gen_grad_map)) then
+    if (size(ele_in%gen_grad_map) /= size(ele_out%gen_grad_map)) then
+      call unlink_fieldmap (gen_grad_map = ele_out%gen_grad_map)
+      nm = size(ele_in%gen_grad_map)
+      allocate (ele_out%gen_grad_map(nm))
+      do i = 1, nm
+        ele_out%gen_grad_map(i) = ele_in%gen_grad_map(i)
+      enddo
+
+    else
+      do i = 1, size(ele_in%gen_grad_map)
+        ele_out%gen_grad_map(i) = ele_in%gen_grad_map(i)
+      enddo
+    endif
+
+  elseif (associated(ele_in%gen_grad_map) .and. .not. associated(ele_out%gen_grad_map)) then
+    nm = size(ele_in%gen_grad_map)
+    allocate (ele_out%gen_grad_map(nm))
+    do i = 1, nm
+      ele_out%gen_grad_map(i) = ele_in%gen_grad_map(i)
+    enddo
+
+  elseif (.not. associated(ele_in%gen_grad_map) .and. associated(ele_out%gen_grad_map)) then
+    call unlink_fieldmap (gen_grad_map = ele_out%gen_grad_map)
+  endif
+endif
+
 ! Grid_field
 
 if (who == all$ .or. who == grid_field$) then
@@ -144,45 +170,6 @@ if (who == all$ .or. who == grid_field$) then
 
   elseif (.not. associated(ele_in%grid_field) .and. associated(ele_out%grid_field)) then
     call unlink_fieldmap (grid_field = ele_out%grid_field)
-  endif
-endif
-
-! Taylor_field
-
-if (who == all$ .or. who == taylor_field$) then
-  if (associated(ele_in%taylor_field) .and. associated(ele_out%taylor_field)) then
-    if (size(ele_in%taylor_field) /= size(ele_out%taylor_field)) then
-      call unlink_fieldmap (taylor_field = ele_out%taylor_field)
-      nm = size(ele_in%taylor_field)
-      allocate (ele_out%taylor_field(nm))
-      do i = 1, nm
-        ele_out%taylor_field(i) = ele_in%taylor_field(i)
-        ele_out%taylor_field(i)%ptr%n_link = ele_out%taylor_field(i)%ptr%n_link + 1
-      enddo
-
-    else
-      do i = 1, size(ele_in%taylor_field)
-        if (associated(ele_out%taylor_field(i)%ptr, ele_in%taylor_field(i)%ptr)) then
-          ele_out%taylor_field(i) = ele_in%taylor_field(i)
-        else
-          ele_out%taylor_field(i)%ptr%n_link = ele_out%taylor_field(i)%ptr%n_link - 1
-          if (ele_out%taylor_field(i)%ptr%n_link == 0) deallocate (ele_out%taylor_field(i)%ptr)
-          ele_out%taylor_field(i) = ele_in%taylor_field(i)
-          ele_out%taylor_field(i)%ptr%n_link = ele_out%taylor_field(i)%ptr%n_link + 1
-        endif
-      enddo
-    endif
-
-  elseif (associated(ele_in%taylor_field) .and. .not. associated(ele_out%taylor_field)) then
-    nm = size(ele_in%taylor_field)
-    allocate (ele_out%taylor_field(nm))
-    do i = 1, nm
-      ele_out%taylor_field(i) = ele_in%taylor_field(i)
-      ele_out%taylor_field(i)%ptr%n_link = ele_in%taylor_field(i)%ptr%n_link + 1
-    enddo
-
-  elseif (.not. associated(ele_in%taylor_field) .and. associated(ele_out%taylor_field)) then
-    call unlink_fieldmap (taylor_field = ele_out%taylor_field)
   endif
 endif
 

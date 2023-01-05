@@ -19,7 +19,7 @@ function tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid, pri
 
 use tao_interface, except_dummy => tao_param_value_at_s
 use measurement_mod
-use em_field_mod
+use em_field_mod, only: em_field_derivatives
 
 implicit none
 
@@ -358,12 +358,20 @@ case ('floor_actual')
   end select
 
 case ('floor_orbit')
-  floor%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
-  floor = coords_local_curvilinear_to_floor (floor, ele, .false.)
+  if (orbit%location == downstream_end$) then
+    floor = orbit_to_local_curvilinear(orbit, ele, relative_to = orbit%location)
+    floor = coords_local_curvilinear_to_floor (floor, ele, .false., relative_to = orbit%location)
+  else
+    floor = orbit_to_local_curvilinear(orbit, ele, orbit%direction)
+    floor = coords_local_curvilinear_to_floor (floor, ele, .false.)
+  endif
   select case (d_type)
   case ('floor_orbit.x');          value = floor%r(1)
   case ('floor_orbit.y');          value = floor%r(2)
   case ('floor_orbit.z');          value = floor%r(3)
+  case ('floor_orbit.theta');      value = floor%theta
+  case ('floor_orbit.phi');        value = floor%phi
+  case ('floor_orbit.psi');        value = floor%psi
   case default
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
@@ -418,12 +426,14 @@ case ('orbit')
   case ('orbit.amp_b');       value = amp_b
   case ('orbit.norm_amp_a');  value = amp_na
   case ('orbit.norm_amp_b');  value = amp_nb
-  case ('orbit.e_tot')
+  case ('orbit.e_tot', 'orbit.kinetic')
     if (orbit%beta == 0) then
       value = mass_of(branch%param%particle)
     else
       value = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
     endif
+    if (d_type == 'orbit.kinetic') value = value - mass_of(orbit%species)
+
   case default
     err_flag = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)

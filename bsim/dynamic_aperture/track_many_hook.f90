@@ -81,7 +81,7 @@ case ('PTC')
     orb%spin = quat_rotate(prb%q%x, orb%spin)
     if (abs(orb%vec(1)) > lttp%ptc_aperture(1) .or. abs(orb%vec(3)) > lttp%ptc_aperture(2) .or. &
                                                    orbit_too_large(orb) .or. prb%u) orb%state = lost$
-    if (orb%state == lost$) exit
+    if (orb%state /= alive$) exit
     if (ele1%ix_ele == ele_start%ix_ele) exit
     ele0 => ele1
   enddo

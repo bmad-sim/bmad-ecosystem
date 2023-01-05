@@ -1,8 +1,0 @@
-{
-  master_parameter  = K1,
-  field_scale       = 2,
-  r0                = (0, 0, 0.1),
-  ele_anchor_pt     = Center,
-  field_type        = Electric,
-  term = {3, 3, 4, 5, 0.2, 0.1, 2, X} &
-}

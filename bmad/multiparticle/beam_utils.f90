@@ -58,6 +58,8 @@ bunch%particle%direction = integer_option(1, direction)
 if (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, branch%param)
 thread_safe = (ele%tracking_method /= symp_lie_ptc$ .and. global_com%mp_threading_is_safe)
 
+call save_a_bunch_step (ele, bunch, bunch_track, 0.0_rp)
+
 !------------------------------------------------
 ! Without wakefields just track through.
 
@@ -144,6 +146,7 @@ enddo
 !$OMP end parallel do
 
 bunch%charge_live = sum (bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
+call save_a_bunch_step (ele, bunch, bunch_track, ele%value(l$))
 
 end subroutine track1_bunch_hom
 
@@ -472,7 +475,7 @@ endif
 
 if (b_init%a_norm_emit < 0) then
   if (present(modes)) then
-    b_init%a_norm_emit = modes%a%emittance * ele%value(E_tot$) / mass_of(species)
+    b_init%a_norm_emit = modes%a%emittance * ele%value(p0c$) / mass_of(species)
   else
     call out_io (s_warn$, r_name, &
                     'a_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
@@ -483,7 +486,7 @@ endif
 
 if (b_init%b_norm_emit < 0) then
   if (present(modes)) then
-    b_init%b_norm_emit = modes%b%emittance * ele%value(E_tot$) / mass_of(species)
+    b_init%b_norm_emit = modes%b%emittance * ele%value(p0c$) / mass_of(species)
   else
     call out_io (s_warn$, r_name, &
                     'b_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
@@ -1298,24 +1301,26 @@ end subroutine init_spin_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err)
+! subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err, is_time_coords)
 !
 ! Finds all bunch parameters for a slice through the beam distribution.
 !
 ! Input:
-!   bunch        -- Bunch_struct
-!   plane        -- Integer: plane to slice through (x$, px$, & etc...)
-!   slice_center -- Real(rp): Center to take slice about
-!   slice_spread -- Real(rp): hard-wall spread in slice about center
-!   print_err -- Logical, optional: If present and False then suppress 
-!                  "no eigen-system found" messages.
+!   bunch           -- Bunch_struct
+!   plane           -- Integer: plane to slice through (x$, px$, & etc...)
+!   slice_center    -- Real(rp): Center to take slice about
+!   slice_spread    -- Real(rp): hard-wall spread in slice about center
+!   print_err       -- Logical, optional: If present and False then suppress 
+!                       "no eigen-system found" messages.
+!   is_time_coords  -- logical, optional: Default is False. If True, input bunch is using time coordinates in which
+!                       case there will be a conversion to s-coords before bunch_params are computed.
 !
 ! Output     
 !   params -- bunch_params_struct:
 !   err    -- Logical: Set True if there is an error.
 !-
 
-subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err)
+subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err, is_time_coords)
 
 implicit none
 
@@ -1328,7 +1333,7 @@ real(rp) slice_center, slice_spread
 integer plane
 integer i, n_part
 
-logical, optional :: print_err
+logical, optional :: print_err, is_time_coords
 logical err
 
 !
@@ -1356,7 +1361,7 @@ do i = 1, size(bunch%particle)
   n_part = n_part + 1
 enddo
 
-call calc_bunch_params (sliced_bunch, bunch_params, err, print_err)
+call calc_bunch_params (sliced_bunch, bunch_params, err, print_err, is_time_coords = is_time_coords)
 
 end subroutine calc_bunch_params_slice
 
@@ -1364,7 +1369,7 @@ end subroutine calc_bunch_params_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_params (bunch, bunch_params, error, print_err)
+! Subroutine calc_bunch_params (bunch, bunch_params, error, print_err, n_mat, is_time_coords)
 !
 ! Finds all bunch parameters defined in bunch_params_struct, both normal-mode
 ! and projected. Projected parameters are found purely from the geometrical
@@ -1388,7 +1393,7 @@ end subroutine calc_bunch_params_slice
 !                       from action-angle coords to lab coords (Wolski Eq 51.).
 !-
 
-subroutine calc_bunch_params (bunch, bunch_params, error, print_err, n_mat)
+subroutine calc_bunch_params (bunch, bunch_params, error, print_err, n_mat, is_time_coords)
 
 implicit none
 
@@ -1396,14 +1401,14 @@ type (bunch_struct) :: bunch
 type (bunch_params_struct) bunch_params
 
 real(rp), optional :: n_mat(6,6)
-real(rp) eta, etap, gamma
+real(rp) eta, etap
 real(rp) :: sigma(6,6) = 0.0
-real(rp) :: charge_live, avg_energy
+real(rp) :: charge_live, average_pc
 real(rp), allocatable :: charge(:)
 
 integer i, j, species
 
-logical, optional :: print_err
+logical, optional :: print_err, is_time_coords
 logical error
 
 character(*), parameter :: r_name = "calc_bunch_params"
@@ -1443,7 +1448,7 @@ else
 endif
 
 charge_live = sum(charge, mask = (bunch%particle%state == alive$))
-bunch_params%centroid%charge     = charge_live
+bunch_params%centroid%charge = charge_live
 
 !
 
@@ -1458,36 +1463,35 @@ if (charge_live == 0) then
 endif
 
 ! Get s-position from first live particle
+
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%state /= alive$) cycle
-  bunch_params%s = bunch%particle(i)%s
+  bunch_params%ix_ele = bunch%particle(i)%ix_ele
+  bunch_params%location = bunch%particle(i)%location
   exit
 enddo
 
 bunch_params%centroid%s = sum(bunch%particle%s * charge, mask = (bunch%particle%state == alive$)) / charge_live
 bunch_params%centroid%t = sum(bunch%particle%t * charge, mask = (bunch%particle%state == alive$)) / charge_live
-
-if (species /= photon$) then
-  call convert_pc_to ((1 + bunch_params%centroid%vec(6)) * bunch_params%centroid%p0c, &
-                                                                 species, beta = bunch_params%centroid%beta)
-endif
+bunch_params%s = bunch_params%centroid%s
+bunch_params%t = bunch_params%centroid%t
 
 if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
-! average the energy
-
-avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%state == alive$))
-avg_energy = avg_energy * bunch%particle(1)%p0c / charge_live
-gamma = avg_energy / mass_of(species)
-
-! Rather arbitrary cutoff: If less than 12 particles, calculation of sigma matrix, etc is declared invalid
-
-if (bunch_params%n_particle_live < 12) return
-
 ! Sigma matrix calc
 
-call calc_bunch_sigma_matrix (bunch%particle, charge, bunch_params)
-call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, gamma, bunch_params, error, print_err, n_mat)
+call calc_bunch_sigma_matrix_etc (bunch%particle, charge, bunch_params, is_time_coords)
+
+if (species == photon$) return
+
+average_pc = (1+bunch_params%centroid%vec(6)) * bunch_params%centroid%p0c
+call convert_pc_to (average_pc, species, beta = bunch_params%centroid%beta)
+
+! Rather arbitrary cutoff: If less than 6 particles, calculation of sigma matrix, etc is declared invalid
+
+if (bunch_params%n_particle_live < 6) return
+
+call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, bunch_params, error, print_err, n_mat)
 
 end subroutine calc_bunch_params
 
@@ -1495,15 +1499,13 @@ end subroutine calc_bunch_params
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine calc_emittances_and_twiss_from_sigma_matrix(sigma_mat, gamma, bunch_params, error, print_err, n_mat)
+! Subroutine calc_emittances_and_twiss_from_sigma_matrix(sigma_mat, bunch_params, error, print_err, n_mat)
 !
 ! Routine to calc emittances and Twiss function from a beam sigma matrix.
 ! See: Andy Wolski "Alternative approach to general coupled linear optics".
 !
 ! Input:
 !   sigma_mat(6,6)  -- real(rp): Sigma matrix.
-!   gamma           -- real(rp): Relativistic gamma factor (Energy/mass). 
-!                        Just used to calculate the normalized emittances.
 !   print_err       -- logical, optional: If present and False then suppress 
 !                        "no eigen-system found" messages.
 !
@@ -1514,13 +1516,13 @@ end subroutine calc_bunch_params
 !                       from action-angle coords to lab coords (Wolski Eq 51.).
 !-
 
-subroutine calc_emittances_and_twiss_from_sigma_matrix (sigma_mat, gamma, bunch_params, error, print_err, n_mat)
+subroutine calc_emittances_and_twiss_from_sigma_matrix (sigma_mat, bunch_params, error, print_err, n_mat)
 
 implicit none
 
 type (bunch_params_struct) bunch_params
 
-real(rp) sigma_mat(6,6), sigma_s(6,6), avg_energy, n_real(6,6), gamma
+real(rp) sigma_mat(6,6), sigma_s(6,6), avg_energy, n_real(6,6), f_emit
 real(rp), optional :: n_mat(6,6)
 
 complex(rp) :: eigen_val(6) = 0.0, eigen_vec(6,6)
@@ -1543,6 +1545,8 @@ bunch_params%b = twiss_struct()
 bunch_params%c = twiss_struct()
 
 ! X, Y, & Z Projected Parameters
+
+f_emit = bunch_params%centroid%p0c * (1.0_rp + bunch_params%centroid%vec(6)) / mass_of(bunch_params%centroid%species)
 
 call projected_twiss_calc ('X', bunch_params%x, sigma_mat(1,1), sigma_mat(2,2), sigma_mat(1,2), sigma_mat(1,6), sigma_mat(2,6))
 call projected_twiss_calc ('Y', bunch_params%y, sigma_mat(3,3), sigma_mat(4,4), sigma_mat(3,4), sigma_mat(3,6), sigma_mat(4,6))
@@ -1577,9 +1581,9 @@ bunch_params%a%emit = aimag(eigen_val(1))
 bunch_params%b%emit = aimag(eigen_val(3))
 if (dim == 6) bunch_params%c%emit = aimag(eigen_val(5))
 
-bunch_params%a%norm_emit = bunch_params%a%emit * gamma
-bunch_params%b%norm_emit = bunch_params%b%emit * gamma
-if (dim == 6) bunch_params%c%norm_emit = bunch_params%c%emit * gamma
+bunch_params%a%norm_emit = bunch_params%a%emit * f_emit
+bunch_params%b%norm_emit = bunch_params%b%emit * f_emit
+if (dim == 6) bunch_params%c%norm_emit = bunch_params%c%emit * f_emit
 
 ! Now find normal-mode sigma matrix and twiss parameters
 ! Wolski: N = E.Q from Eq. 44 and Eq. 14
@@ -1680,7 +1684,7 @@ twiss%sigma_p = sqrt(max(0.0_rp, px2))       ! Roundoff may give negative argume
 emit = sqrt(max(0.0_rp, x2*px2 - x_px**2))   ! Roundoff may give negative argument.
 
 twiss%emit      = emit
-twiss%norm_emit = gamma * emit
+twiss%norm_emit = f_emit * emit
 
 if (emit /= 0) then
   twiss%alpha = -x_px / emit
@@ -1760,7 +1764,7 @@ end subroutine calc_emittances_and_twiss_from_sigma_matrix
 !
 ! Output:
 !   bunch_params -- bunch_param_struct: Structure holding average
-!     %spin(3)        -- (x,y,z) polarization.
+!     centroid%spin(3) -- (x,y,z) polarization.
 !-
 
 subroutine calc_spin_params (bunch, bunch_params)
@@ -1776,7 +1780,7 @@ integer i
 
 ! polarization vector
 
-bunch_params%spin = 0.0
+bunch_params%centroid%spin = 0.0
 charge_live = 0
 
 ave_vec = 0.0
@@ -1786,7 +1790,7 @@ do i = 1, size(bunch%particle)
   charge_live = charge_live + bunch%particle(i)%charge
 enddo
 
-bunch_params%spin = ave_vec / charge_live
+bunch_params%centroid%spin = ave_vec / charge_live
 
 end subroutine calc_spin_params
 
@@ -1794,7 +1798,7 @@ end subroutine calc_spin_params
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_sigma_matrix (particle, charge, bunch_params)
+! Subroutine calc_bunch_sigma_matrix_etc (particle, charge, bunch_params, is_time_coords)
 !
 ! Routine to find the sigma matrix elements of a particle distribution.
 ! 
@@ -1806,22 +1810,25 @@ end subroutine calc_spin_params
 !   bunch_params -- bunch_params_struct: Bunch parameters.
 !     %sigma(6,6)   
 !     %centroid%vec(6)
+!     %centroid%p0c
+!     %centroid
 !     %rel_max(6)
 !     %rel_min(6)
 !-
 
-subroutine calc_bunch_sigma_matrix (particle, charge, bunch_params)
+subroutine calc_bunch_sigma_matrix_etc (particle, charge, bunch_params, is_time_coords)
 
 implicit none
 
-type (coord_struct) :: particle(:)
+type (coord_struct) :: particle(:), p
 type (bunch_params_struct), target :: bunch_params
 
-real(rp) charge_live
+real(rp) charge_live, vec(6), p0c_avg
 real(rp) charge(:)
-real(rp), pointer :: avg(:), sigma(:,:)
+real(rp) :: avg(6), sig_mat(6,6)
 
-integer i
+integer i, j2
+logical, optional :: is_time_coords
 
 character(*), parameter :: r_name = 'calc_bunch_sigma_matrix'
 
@@ -1834,60 +1841,48 @@ if (charge_live == 0) then
   return
 endif
 
-avg => bunch_params%centroid%vec
-sigma => bunch_params%sigma
+p0c_avg = sum(particle%p0c*charge, mask = (particle%state == alive$)) / charge_live
+!! bunch_params%centroid%p0c = p0c_avg  !! Round-off error is problematic with track1 code.
 
-do i = 1, 6
-  avg(i) = sum(particle(:)%vec(i) * charge, mask = (particle(:)%state == alive$)) / charge_live
-  bunch_params%rel_max(i) = maxval(particle(:)%vec(i), mask = (particle(:)%state == alive$)) - avg(i)
-  bunch_params%rel_min(i) = minval(particle(:)%vec(i), mask = (particle(:)%state == alive$)) - avg(i)
+avg = 0
+sig_mat = 0
+bunch_params%rel_max = -1e30_rp
+bunch_params%rel_min =  1e30_rp
+
+do i = 1, size(particle)
+  if (particle(i)%state /= alive$) cycle
+  if (logic_option(.false., is_time_coords)) then
+    p = particle(i)
+    call convert_particle_coordinates_t_to_s(p)
+    vec = p%vec
+    vec(2) = vec(2) * p%p0c / p0c_avg
+    vec(4) = vec(4) * p%p0c / p0c_avg
+    vec(5) = p%s
+    vec(6) = (vec(6)*p%p0c + p%p0c - p0c_avg) / p0c_avg
+  else
+    vec = particle(i)%vec
+  endif
+
+  avg = avg + vec * charge(i)
+  forall (j2 = 1:6)
+    sig_mat(:,j2) = sig_mat(:,j2) + vec(:)*vec(j2)*charge(i)
+  end forall
+  bunch_params%rel_max = max(bunch_params%rel_max, vec)
+  bunch_params%rel_min = min(bunch_params%rel_min, vec)
 enddo
 
-sigma(1,1) = exp_calc (particle, charge, 1, 1, avg)
-sigma(1,2) = exp_calc (particle, charge, 1, 2, avg);  sigma(2,1) = sigma(1,2)
-sigma(1,3) = exp_calc (particle, charge, 1, 3, avg);  sigma(3,1) = sigma(1,3)
-sigma(1,4) = exp_calc (particle, charge, 1, 4, avg);  sigma(4,1) = sigma(1,4)
-sigma(1,5) = exp_calc (particle, charge, 1, 5, avg);  sigma(5,1) = sigma(1,5)
-sigma(1,6) = exp_calc (particle, charge, 1, 6, avg);  sigma(6,1) = sigma(1,6)
-sigma(2,2) = exp_calc (particle, charge, 2, 2, avg)
-sigma(2,3) = exp_calc (particle, charge, 2, 3, avg);  sigma(3,2) = sigma(2,3)
-sigma(2,4) = exp_calc (particle, charge, 2, 4, avg);  sigma(4,2) = sigma(2,4)
-sigma(2,5) = exp_calc (particle, charge, 2, 5, avg);  sigma(5,2) = sigma(2,5)
-sigma(2,6) = exp_calc (particle, charge, 2, 6, avg);  sigma(6,2) = sigma(2,6)
-sigma(3,3) = exp_calc (particle, charge, 3, 3, avg)
-sigma(3,4) = exp_calc (particle, charge, 3, 4, avg);  sigma(4,3) = sigma(3,4)
-sigma(3,5) = exp_calc (particle, charge, 3, 5, avg);  sigma(5,3) = sigma(3,5)
-sigma(3,6) = exp_calc (particle, charge, 3, 6, avg);  sigma(6,3) = sigma(3,6)
-sigma(4,4) = exp_calc (particle, charge, 4, 4, avg)
-sigma(4,5) = exp_calc (particle, charge, 4, 5, avg);  sigma(5,4) = sigma(4,5)
-sigma(4,6) = exp_calc (particle, charge, 4, 6, avg);  sigma(6,4) = sigma(4,6)
-sigma(5,5) = exp_calc (particle, charge, 5, 5, avg)
-sigma(5,6) = exp_calc (particle, charge, 5, 6, avg);  sigma(6,5) = sigma(5,6)
-sigma(6,6) = exp_calc (particle, charge, 6, 6, avg)
+avg = avg / charge_live
+sig_mat = sig_mat / charge_live
 
-!----------------------------------------------------------------------
-contains
+bunch_params%rel_max = bunch_params%rel_max - avg
+bunch_params%rel_min = bunch_params%rel_min - avg
+bunch_params%centroid%vec = avg
 
-function exp_calc (particle, charge, ix1, ix2, avg) result (this_sigma)
+forall (j2 = 1:6)
+  bunch_params%sigma(:,j2) = sig_mat(:,j2) - avg(:)*avg(j2)
+end forall
 
-implicit none
-
-type (coord_struct) particle(:)
-real(rp) charge(:), avg(:)
-real(rp) this_sigma
-
-integer ix1, ix2
-
-!
-                                    
-this_sigma = sum((particle(:)%vec(ix1) - avg(ix1)) * (particle(:)%vec(ix2) - avg(ix2)) * charge(:), &
-                               mask = (particle%state == alive$))
-
-this_sigma = this_sigma / charge_live
-
-end function exp_calc
-
-end subroutine calc_bunch_sigma_matrix 
+end subroutine calc_bunch_sigma_matrix_etc
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------

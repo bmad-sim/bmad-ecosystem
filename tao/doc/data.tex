@@ -1045,7 +1045,7 @@ reference nor evaluation element is given then the total number of lost particle
   \item[norm_apparent_emit.x, .y] \Newline \hlabel{norm.app.emit}
 Apparent emittance normalized with the standard gamma factor:
 \begin{equation}
-  \text{emit}_{\text{norm}} = \gamma \cdot \text{emit}
+  \text{emit}_{\text{norm}} = \beta \, \gamma \cdot \text{emit}
 \end{equation}
 See the \vn{apparent_emit.x, .y} data type for more details.
 
@@ -1053,14 +1053,14 @@ See the \vn{apparent_emit.x, .y} data type for more details.
   \item[norm_emit.a, .b, .c] \Newline \hlabel{norm.emit.a}
 Normal mode emittance normalized with the standard gamma factor:
 \begin{equation}
-  \epsilon_{norm} = \gamma \cdot \epsilon
+  \epsilon_{norm} = \beta \, \gamma \cdot \epsilon
 \end{equation}
 
   %----------------------
   \item[norm_emit.x, .y, .z] \Newline \hlabel{norm.emit.x}
 Projected emittance normalized with the standard gamma factor:
 \begin{equation}
-  \epsilon_{norm} = \gamma \cdot \epsilon
+  \epsilon_{norm} = \beta \, \gamma \cdot \epsilon
 \end{equation}
 
   %----------------------
@@ -1165,6 +1165,12 @@ The \vn{orbit.e_tot} data type gives the total energy of a tracked particle (wit
 
 Notice that this is different from the \vn{E_tot} attribute of a lattice element which
 is the reference energy at that element.
+
+  %----------------------
+  \item[orbit.kinetic] \Newline \hlabel{orbit.kinetic}
+The \vn{orbit.kinetic} data type gives the kinetic energy of a tracked particle (with
+\vn{data_source} = \vn{lat}) or the average energy of a beam (with \vn{data_source} =
+\vn{beam}).
 
   %----------------------
   \item[orbit.x, .y, .z, .px, .py, .pz] \Newline \hlabel{orbit.x}
@@ -1515,10 +1521,10 @@ to be the same as the initial coordinates and, in this case, $\bfD$, will be a r
 a rotation angle equal to the spin tune.
 
   %----------------------
-  \item[spin_res.a1, .a2, .b1, .b2, .c1, .c2] \Newline \hlabel{spin.res}
-Spin resonance values. \vn{.a1}, \vn{.a2} are the resonance values for the $a$-mode, etc. The \vn{show
-spin -ele ...} command will print the values. If not present, the evaluation element for the datum
-is the beginning element of the lattice branch.
+  \item[spin_res.a.sum, .a.diff, .b.sum, .b.diff, .c.sum, .c.diff] \Newline \hlabel{spin.res}
+Spin resonance values. \vn{.a.sum}, \vn{.a.diff} are the sum and difference resonance values for the
+$a$-mode, etc. The \vn{show spin -ele ...} command will print the values. If not present, the
+evaluation element for the datum is the beginning element of the lattice branch.
 
   %----------------------
   \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{spin.tune.ptc}
@@ -1603,11 +1609,11 @@ Also see \vn{r.$ij$}.
 
 Calculation of \vn{t.$ijklm\ldots$} and \vn{tt.$ijklm\ldots$} datums involve symplectic integration
 through lattice elements. One point to be kept in mind is that results will be dependent upon the
-integration step size through an element set by the \vn{ds_step} attribute of that element (see the
+integration step size through an element set by the \vn{ds_save} attribute of that element (see the
 \bmad manual for more details). When a smooth curve (\sref{s:template}) is plotted for \vn{t.$ijk$}
 and \vn{tt.$ijklm\ldots$} data types, and the longitudinal (\vn{"s"}) position is used for the
 x-axis, the integration step used in generating the points that define this curve will be decreased
-if the s-distance between points is smaller than the \vn{ds_step}.  In this case, discrepancies
+if the s-distance between points is smaller than the \vn{ds_save}.  In this case, discrepancies
 between the plot and datum values may be observed.
 
   %----------------------
@@ -1884,16 +1890,17 @@ See the previous section for a description of the data types.
   \pref{normal.type}      & normal.<type>.$i$.<monomial>        & Normal form map component                 & lat         & No  \\ \hline
   \pref{normal.h}         & normal.h.<monomial>                 & Normal form driving term                  & lat         & No  \\ \hline
   \pref{null}             & null                                & Data without model evaluation             & lat, beam   & No  \\ \hline
-  \pref{orbit.e.tot}      & orbit.e_tot                         & Beam energy (eV)                          & lat, beam   & Yes \\ \hline
-  \pref{orbit.x}          & \begin{tabular}{@{}l}
-                              orbit.x, .y, .z \\
-                              \hspace{3em} .px, .py, .pz
-                            \end{tabular}                       & Phase space orbit                         & lat, beam   & Yes \\ \hline 
   \pref{orbit.amp}        & orbit.amp_a, .amp_b                 & Orbit amplitude                           & lat         & Yes \\ \hline 
   \pref{orbit.norm.amp}   & \begin{tabular}{@{}l}
                               orbit.norm_amp_a, \\
                               \hspace{2em} .norm_amp_b       
                             \end{tabular}                       & Energy normalized amplitude               & lat         & Yes \\ \hline 
+  \pref{orbit.e.tot}      & orbit.e_tot                         & Total energy (eV)                         & lat, beam   & Yes \\ \hline
+  \pref{orbit.kinetic}    & orbit.kinetic                       & Kinetic energy (eV)                       & lat, beam   & Yes \\ \hline
+  \pref{orbit.x}          & \begin{tabular}{@{}l}
+                              orbit.x, .y, .z \\
+                              \hspace{3em} .px, .py, .pz
+                            \end{tabular}                       & Phase space orbit                         & lat, beam   & Yes \\ \hline 
   \pref{periodic.tt}      & \begin{tabular}{@{}l}
                               periodic.tt.$ijklm\ldots$ \\
                               \hspace{4em} $1 \le i,j,k,\ldots \le 6$   
@@ -1956,8 +1963,9 @@ See the previous section for a description of the data types.
                               \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
                             \end{tabular}                       & Spin G-matrix components                  & lat        & No  \\ \hline
   \pref{spin.res}         & \begin{tabular}{@{}l}
-                              spin_res.a1, .a2, \\
-                              \hspace{10pt} .b1, .b2, .c1, .c2
+                              spin_res.a.sum, .a.diff, \\
+                              \hspace{10pt} .b.sum, .b.diff, \\
+                              \hspace{10pt} .c.sum, .c.diff
                             \end{tabular}                       & Spin resonance strengths                  & lat        & No  \\ \hline
   \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
                               spin_tune_ptc.$N$, \\

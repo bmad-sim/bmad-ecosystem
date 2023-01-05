@@ -68,7 +68,7 @@ call track_all (lat, centroid)
 ! and track
 
 call init_beam_distribution (lat%ele(0), lat%param, beam_init, beam)
-call track_beam (lat, beam, err = err_flag)
+call track_beam (lat, beam, err = err_flag, centroid = centroid)
 
 ! write results for first particle
 

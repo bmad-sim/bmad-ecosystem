@@ -675,16 +675,18 @@ do i = 1, n_key$
   if (i == taylor$)            cycle
 
   call init_attribute_name1 (i, integrator_order$,     'INTEGRATOR_ORDER')
-  call init_attribute_name1 (i, num_steps$,            'NUM_STEPS', quasi_free$)
-  call init_attribute_name1 (i, ds_step$,              'DS_STEP')
   call init_attribute_name1 (i, field_calc$,           'FIELD_CALC')
   call init_attribute_name1 (i, csr_method$,           'CSR_METHOD')
   call init_attribute_name1 (i, csr_ds_step$,          'CSR_DS_STEP')
   call init_attribute_name1 (i, space_charge_method$,  'SPACE_CHARGE_METHOD')
   call init_attribute_name1 (i, multipass_ref_energy$, 'MULTIPASS_REF_ENERGY', dependent$)
-  call init_attribute_name1 (i, static_linear_map$,          'STATIC_LINEAR_MAP')
+  call init_attribute_name1 (i, static_linear_map$,    'STATIC_LINEAR_MAP')
 
   if (i == sad_mult$)          cycle
+
+  call init_attribute_name1 (i, num_steps$,            'NUM_STEPS', quasi_free$)
+  call init_attribute_name1 (i, ds_step$,              'DS_STEP')
+
   if (i == drift$)             cycle
 
   call init_attribute_name1 (i, field_overlaps$,       'FIELD_OVERLAPS')
@@ -1028,8 +1030,8 @@ call init_attribute_name1 (e_gun$, gradient$,                       'GRADIENT')
 call init_attribute_name1 (e_gun$, gradient_err$,                   'GRADIENT_ERR')
 call init_attribute_name1 (e_gun$, cartesian_map$,                  'CARTESIAN_MAP')
 call init_attribute_name1 (e_gun$, cylindrical_map$,                'CYLINDRICAL_MAP')
+call init_attribute_name1 (e_gun$, gen_grad_map$,                 'GEN_GRAD_MAP')
 call init_attribute_name1 (e_gun$, grid_field$,                     'GRID_FIELD')
-call init_attribute_name1 (e_gun$, taylor_field$,                   'TAYLOR_FIELD')
 call init_attribute_name1 (e_gun$, rf_frequency$,                   'RF_FREQUENCY')
 call init_attribute_name1 (e_gun$, rf_clock_harmonic$,              'rf_clock_harminic', private$)
 call init_attribute_name1 (e_gun$, phi0$,                           'PHI0')
@@ -1065,14 +1067,14 @@ call init_attribute_name1 (elseparator$, r0_elec$,                  'R0_ELEC')
 call init_attribute_name1 (elseparator$, field_master$,             'FIELD_MASTER')
 call init_attribute_name1 (elseparator$, cartesian_map$,            'CARTESIAN_MAP')
 call init_attribute_name1 (elseparator$, cylindrical_map$,          'CYLINDRICAL_MAP')
+call init_attribute_name1 (elseparator$, gen_grad_map$,               'GEN_GRAD_MAP')
 call init_attribute_name1 (elseparator$, grid_field$,               'GRID_FIELD')
-call init_attribute_name1 (elseparator$, taylor_field$,             'TAYLOR_FIELD')
 call init_attribute_name1 (elseparator$, ptc_canonical_coords$,     'PTC_CANONICAL_COORDS')
 
 call init_attribute_name1 (em_field$, cartesian_map$,               'CARTESIAN_MAP')
 call init_attribute_name1 (em_field$, cylindrical_map$,             'CYLINDRICAL_MAP')
+call init_attribute_name1 (em_field$, gen_grad_map$,                  'GEN_GRAD_MAP')
 call init_attribute_name1 (em_field$, grid_field$,                  'GRID_FIELD')
-call init_attribute_name1 (em_field$, taylor_field$,                'TAYLOR_FIELD')
 call init_attribute_name1 (em_field$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (em_field$, rf_frequency$,                'RF_FREQUENCY')
 call init_attribute_name1 (em_field$, rf_clock_harmonic$,           'rf_clock_harminic', private$)
@@ -1158,8 +1160,8 @@ call init_attribute_name1 (lcavity$, voltage_err$,                  'VOLTAGE_ERR
 call init_attribute_name1 (lcavity$, phi0_err$,                     'PHI0_ERR')
 call init_attribute_name1 (lcavity$, cartesian_map$,                'CARTESIAN_MAP')
 call init_attribute_name1 (lcavity$, cylindrical_map$,              'CYLINDRICAL_MAP')
+call init_attribute_name1 (lcavity$, gen_grad_map$,                   'GEN_GRAD_MAP')
 call init_attribute_name1 (lcavity$, grid_field$,                   'GRID_FIELD')
-call init_attribute_name1 (lcavity$, taylor_field$,                 'TAYLOR_FIELD')
 call init_attribute_name1 (lcavity$, phi0_autoscale$,               'PHI0_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (lcavity$, n_cell$,                       'N_CELL')
 call init_attribute_name1 (lcavity$, l_active$,                     'L_ACTIVE', dependent$)
@@ -1233,8 +1235,8 @@ call init_attribute_name1 (hkicker$, field_master$,                 'FIELD_MASTE
 call init_attribute_name1 (hkicker$, bl_kick$,                      'BL_KICK', quasi_free$)
 call init_attribute_name1 (hkicker$, cartesian_map$,                'CARTESIAN_MAP')
 call init_attribute_name1 (hkicker$, cylindrical_map$,              'CYLINDRICAL_MAP')
+call init_attribute_name1 (hkicker$, gen_grad_map$,                   'GEN_GRAD_MAP')
 call init_attribute_name1 (hkicker$, grid_field$,                   'GRID_FIELD')
-call init_attribute_name1 (hkicker$, taylor_field$,                 'TAYLOR_FIELD')
 call init_attribute_name1 (hkicker$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
 
 attrib_array(vkicker$, :) = attrib_array(hkicker$, :)
@@ -1246,8 +1248,8 @@ call init_attribute_name1 (kicker$, r0_elec$,                       'R0_ELEC')
 call init_attribute_name1 (kicker$, field_master$,                  'FIELD_MASTER')
 call init_attribute_name1 (kicker$, cartesian_map$,                 'CARTESIAN_MAP')
 call init_attribute_name1 (kicker$, cylindrical_map$,               'CYLINDRICAL_MAP')
+call init_attribute_name1 (kicker$, gen_grad_map$,                    'GEN_GRAD_MAP')
 call init_attribute_name1 (kicker$, grid_field$,                    'GRID_FIELD')
-call init_attribute_name1 (kicker$, taylor_field$,                  'TAYLOR_FIELD')
 call init_attribute_name1 (kicker$, ptc_canonical_coords$,          'PTC_CANONICAL_COORDS')
 
 call init_attribute_name1 (ac_kicker$, interpolation$,                 'INTERPOLATION')
@@ -1256,8 +1258,8 @@ call init_attribute_name1 (ac_kicker$, r0_elec$,                       'R0_ELEC'
 call init_attribute_name1 (ac_kicker$, field_master$,                  'FIELD_MASTER')
 call init_attribute_name1 (ac_kicker$, cartesian_map$,                 'CARTESIAN_MAP')
 call init_attribute_name1 (ac_kicker$, cylindrical_map$,               'CYLINDRICAL_MAP')
+call init_attribute_name1 (ac_kicker$, gen_grad_map$,                    'GEN_GRAD_MAP')
 call init_attribute_name1 (ac_kicker$, grid_field$,                    'GRID_FIELD')
-call init_attribute_name1 (ac_kicker$, taylor_field$,                  'TAYLOR_FIELD')
 call init_attribute_name1 (ac_kicker$, amp_vs_time$,                   'AMP_VS_TIME')
 call init_attribute_name1 (ac_kicker$, frequencies$,                   'FREQUENCIES')
 call init_attribute_name1 (ac_kicker$, t_offset$,                      'T_OFFSET')
@@ -1303,8 +1305,8 @@ call init_attribute_name1 (quadrupole$, r0_elec$,                   'R0_ELEC')
 call init_attribute_name1 (quadrupole$, field_master$,              'FIELD_MASTER')
 call init_attribute_name1 (quadrupole$, cartesian_map$,             'CARTESIAN_MAP')
 call init_attribute_name1 (quadrupole$, cylindrical_map$,           'CYLINDRICAL_MAP')
+call init_attribute_name1 (quadrupole$, gen_grad_map$,                'GEN_GRAD_MAP')
 call init_attribute_name1 (quadrupole$, grid_field$,                'GRID_FIELD')
-call init_attribute_name1 (quadrupole$, taylor_field$,              'TAYLOR_FIELD')
 call init_attribute_name1 (quadrupole$, ptc_canonical_coords$,      'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (quadrupole$, fq1$,                       'FQ1')
 call init_attribute_name1 (quadrupole$, fq2$,                       'FQ2')
@@ -1316,8 +1318,8 @@ call init_attribute_name1 (sextupole$, r0_elec$,                    'R0_ELEC')
 call init_attribute_name1 (sextupole$, field_master$,               'FIELD_MASTER')
 call init_attribute_name1 (sextupole$, cartesian_map$,              'CARTESIAN_MAP')
 call init_attribute_name1 (sextupole$, cylindrical_map$,            'CYLINDRICAL_MAP')
+call init_attribute_name1 (sextupole$, gen_grad_map$,                 'GEN_GRAD_MAP')
 call init_attribute_name1 (sextupole$, grid_field$,                 'GRID_FIELD')
-call init_attribute_name1 (sextupole$, taylor_field$,               'TAYLOR_FIELD')
 call init_attribute_name1 (sextupole$, ptc_canonical_coords$,       'PTC_CANONICAL_COORDS')
 
 call init_attribute_name1 (octupole$, k3$,                          'K3', quasi_free$)
@@ -1327,8 +1329,8 @@ call init_attribute_name1 (octupole$, r0_elec$,                     'R0_ELEC')
 call init_attribute_name1 (octupole$, field_master$,                'FIELD_MASTER')
 call init_attribute_name1 (octupole$, cartesian_map$,               'CARTESIAN_MAP')
 call init_attribute_name1 (octupole$, cylindrical_map$,             'CYLINDRICAL_MAP')
+call init_attribute_name1 (octupole$, gen_grad_map$,                  'GEN_GRAD_MAP')
 call init_attribute_name1 (octupole$, grid_field$,                  'GRID_FIELD')
-call init_attribute_name1 (octupole$, taylor_field$,                'TAYLOR_FIELD')
 call init_attribute_name1 (octupole$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 
 call init_attribute_name1 (patch$, l$,                              'L', quasi_free$)
@@ -1352,8 +1354,8 @@ call init_attribute_name1 (crab_cavity$, phi0_multipass$,           'PHI0_MULTIP
 call init_attribute_name1 (crab_cavity$, harmon$,                   'HARMON')
 call init_attribute_name1 (crab_cavity$, cartesian_map$,            'CARTESIAN_MAP')
 call init_attribute_name1 (crab_cavity$, cylindrical_map$,          'CYLINDRICAL_MAP')
+call init_attribute_name1 (crab_cavity$, gen_grad_map$,               'GEN_GRAD_MAP')
 call init_attribute_name1 (crab_cavity$, grid_field$,               'GRID_FIELD')
-call init_attribute_name1 (crab_cavity$, taylor_field$,             'TAYLOR_FIELD')
 call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT', dependent$)
 call init_attribute_name1 (crab_cavity$, rf_frequency$,             'RF_FREQUENCY')
 call init_attribute_name1 (crab_cavity$, rf_wavelength$,            'RF_WAVELENGTH', dependent$)
@@ -1383,8 +1385,8 @@ call init_attribute_name1 (rfcavity$, coupler_phase$,               'COUPLER_PHA
 call init_attribute_name1 (rfcavity$, coupler_at$,                  'COUPLER_AT')
 call init_attribute_name1 (rfcavity$, cartesian_map$,               'CARTESIAN_MAP')
 call init_attribute_name1 (rfcavity$, cylindrical_map$,             'CYLINDRICAL_MAP')
+call init_attribute_name1 (rfcavity$, gen_grad_map$,                  'GEN_GRAD_MAP')
 call init_attribute_name1 (rfcavity$, grid_field$,                  'GRID_FIELD')
-call init_attribute_name1 (rfcavity$, taylor_field$,                'TAYLOR_FIELD')
 call init_attribute_name1 (rfcavity$, n_cell$,                      'N_CELL')
 call init_attribute_name1 (rfcavity$, phi0_max$,                    'phi0_max', private$)
 call init_attribute_name1 (rfcavity$, phi0_err$,                    'phi0_err', private$)
@@ -1414,7 +1416,6 @@ call init_attribute_name1 (sbend$, rho$,                            'RHO', quasi
 call init_attribute_name1 (sbend$, l_chord$,                        'L_CHORD', quasi_free$)
 call init_attribute_name1 (sbend$, l_sagitta$,                      'L_SAGITTA', dependent$)
 call init_attribute_name1 (sbend$, ptc_fringe_geometry$,            'PTC_FRINGE_GEOMETRY')
-call init_attribute_name1 (sbend$, higher_order_fringe_type$,       'HIGHER_ORDER_FRINGE_TYPE')
 call init_attribute_name1 (sbend$, b_field$,                        'B_FIELD', quasi_free$)
 call init_attribute_name1 (sbend$, db_field$,                       'DB_FIELD', quasi_free$)
 call init_attribute_name1 (sbend$, b1_gradient$,                    'B1_GRADIENT', quasi_free$)
@@ -1424,8 +1425,8 @@ call init_attribute_name1 (sbend$, r0_elec$,                        'R0_ELEC')
 call init_attribute_name1 (sbend$, field_master$,                   'FIELD_MASTER')
 call init_attribute_name1 (sbend$, cartesian_map$,                  'CARTESIAN_MAP')
 call init_attribute_name1 (sbend$, cylindrical_map$,                'CYLINDRICAL_MAP')
+call init_attribute_name1 (sbend$, gen_grad_map$,                     'GEN_GRAD_MAP')
 call init_attribute_name1 (sbend$, grid_field$,                     'GRID_FIELD')
-call init_attribute_name1 (sbend$, taylor_field$,                   'TAYLOR_FIELD')
 call init_attribute_name1 (sbend$, ptc_canonical_coords$,           'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (sbend$, exact_multipoles$,               'EXACT_MULTIPOLES')
 call init_attribute_name1 (sbend$, ptc_field_geometry$,             'PTC_FIELD_GEOMETRY')
@@ -1439,8 +1440,8 @@ call init_attribute_name1 (solenoid$, r0_elec$,                     'R0_ELEC')
 call init_attribute_name1 (solenoid$, field_master$,                'FIELD_MASTER')
 call init_attribute_name1 (solenoid$, cartesian_map$,               'CARTESIAN_MAP')
 call init_attribute_name1 (solenoid$, cylindrical_map$,             'CYLINDRICAL_MAP')
+call init_attribute_name1 (solenoid$, gen_grad_map$,                  'GEN_GRAD_MAP')
 call init_attribute_name1 (solenoid$, grid_field$,                  'GRID_FIELD')
-call init_attribute_name1 (solenoid$, taylor_field$,                'TAYLOR_FIELD')
 call init_attribute_name1 (solenoid$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (solenoid$, l_soft_edge$,                 'L_SOFT_EDGE')
 call init_attribute_name1 (solenoid$, r_solenoid$,                  'R_SOLENOID')
@@ -1459,8 +1460,8 @@ call init_attribute_name1 (sol_quad$, r0_elec$,                     'R0_ELEC')
 call init_attribute_name1 (sol_quad$, field_master$,                'FIELD_MASTER')
 call init_attribute_name1 (sol_quad$, cartesian_map$,               'CARTESIAN_MAP')
 call init_attribute_name1 (sol_quad$, cylindrical_map$,             'CYLINDRICAL_MAP')
+call init_attribute_name1 (sol_quad$, gen_grad_map$,                  'GEN_GRAD_MAP')
 call init_attribute_name1 (sol_quad$, grid_field$,                  'GRID_FIELD')
-call init_attribute_name1 (sol_quad$, taylor_field$,                'TAYLOR_FIELD')
 call init_attribute_name1 (sol_quad$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 
 attrib_array(multipole$, k0l$:k21l$)%name = ['K0L ', &
@@ -1498,14 +1499,13 @@ call init_attribute_name1 (sad_mult$, fb2$,                    'FB2')
 call init_attribute_name1 (sad_mult$, bs_field$,               'BS_FIELD')
 call init_attribute_name1 (sad_mult$, x_offset_mult$,          'X_OFFSET_MULT')
 call init_attribute_name1 (sad_mult$, y_offset_mult$,          'Y_OFFSET_MULT')
-call init_attribute_name1 (sad_mult$, x_pitch_mult$,           'X_PITCH_MULT')
-call init_attribute_name1 (sad_mult$, y_pitch_mult$,           'Y_PITCH_MULT')
 call init_attribute_name1 (sad_mult$, e1$,                     'E1')    ! SAD: ae1
 call init_attribute_name1 (sad_mult$, e2$,                     'E2')    ! SAD: ae2
+call init_attribute_name1 (sad_mult$, ds_step$,                'DS_STEP', dependent$)
+call init_attribute_name1 (sad_mult$, num_steps$,              'NUM_STEPS', dependent$)
 ! sad_mult Attributes with no SAD equivalent
 call init_attribute_name1 (sad_mult$, rho$,                    'RHO')   
 call init_attribute_name1 (sad_mult$, ks$,                     'KS')
-call init_attribute_name1 (sad_mult$, sad_flag$,               'Sad_Flag', private$)
 ! Not implemented
 !call init_attribute_name1 (sad_mult$, g$,                      'G')  ! No SAD equiv
 !call init_attribute_name1 (sad_mult$, b_field$,                'B_FIELD')  ! No SAD equiv
@@ -1566,8 +1566,8 @@ call init_attribute_name1 (wiggler$, r0_elec$,                      'R0_ELEC')
 call init_attribute_name1 (wiggler$, field_master$,                 'FIELD_MASTER')
 call init_attribute_name1 (wiggler$, cartesian_map$,                'CARTESIAN_MAP')
 call init_attribute_name1 (wiggler$, cylindrical_map$,              'CYLINDRICAL_MAP')
+call init_attribute_name1 (wiggler$, gen_grad_map$,                   'GEN_GRAD_MAP')
 call init_attribute_name1 (wiggler$, grid_field$,                   'GRID_FIELD')
-call init_attribute_name1 (wiggler$, taylor_field$,                 'TAYLOR_FIELD')
 call init_attribute_name1 (wiggler$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (wiggler$, osc_amplitude$,                'OSC_AMPLITUDE')
 
@@ -1821,7 +1821,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &
-      'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
+      'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
@@ -1835,8 +1835,8 @@ case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PH
      'MACHINE', 'START_EDGE')
   attrib_type = is_string$
 
-case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GRID_FIELD', 'REF_ORBIT', &
-      'SUPERIMPOSE', 'H_MISALIGN', 'DISPLACEMENT', 'SEGMENTED', 'PIXEL', 'TAYLOR_FIELD', 'TERM', &
+case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GEN_GRAD_MAP', 'GRID_FIELD', 'REF_ORBIT', &
+      'SUPERIMPOSE', 'H_MISALIGN', 'DISPLACEMENT', 'SEGMENTED', 'PIXEL', 'TERM', &
       'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', 'X_KNOT', 'SR_WAKE', 'LR_WAKE')
   attrib_type = is_struct$
 
@@ -1892,7 +1892,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
       'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_PZ', 'SIG_VX', 'SIG_VY', &
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', &
-      'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL', &
+      'X_PITCH', 'Y_PITCH', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
       'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1', 'PZ_APERTURE_CENTER', &
       'PX_APERTURE_WIDTH2', 'PX_APERTURE_CENTER', 'PY_APERTURE_WIDTH2', 'PY_APERTURE_CENTER', 'PZ_APERTURE_WIDTH2')
@@ -2270,12 +2270,6 @@ case ('GRID_FIELD^GEOMETRY')      ! This is for the Tao "python" command
 case ('GRID^TYPE')      ! This is for the Tao "python" command
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, surface_grid_type_name, lbound(surface_grid_type_name, 1))  
   if (present(is_default)) is_default = .false.
-
-case ('HIGHER_ORDER_FRINGE_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, higher_order_fringe_type_name, lbound(higher_order_fringe_type_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib_val == none$)
-  endif
 
 case ('INTERPOLATION')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, interpolation_name, lbound(interpolation_name, 1))
