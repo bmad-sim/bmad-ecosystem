@@ -36,6 +36,7 @@ elseif (nargs > 1) then
 endif
 
 call bmad_parser (lat_file, lat)
+call ran_seed_put(123456)
 
 open (1, file = 'output.now')
 
