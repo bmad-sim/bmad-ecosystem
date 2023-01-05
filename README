@@ -8,12 +8,12 @@ has the "correct" output.
 
 The main "regression_tests" directory contains a file called "TESTS.LIST".  In this file is a list
 of subdirectories of "regression_tests". These subdirectories are called the "regression"
-subdirectories.
+subdirectories. 
 
 When the regression test script is run, each regression subdirectory is visited in turn. In each
 regression subdirectory, the appropriate program is run. The name of the program is assumed to be
 the same as the name of the regression subdirectory. However, if the regression subdirectory has a
-file name 'run.py', this script is run instead of any program. If 'run.py' is executed, the
+file name "run.py", this script is run instead of any program. If 'run.py' is executed, the
 directory where the regression test script is looking for executable program files is passed as the
 first (and only) argument to run.py.
 
@@ -23,6 +23,11 @@ successful if the numbers in two files are the same within the tolerances given 
 file. See the "Constructing a new test" section for details on the syntax of these files.
 
 The results of the regression test is stored in a file named "regression.results".
+
+For each regression subdirectory there is a maximum allowable number of tests that can be
+failed. This number is set in TESTS.LIST and the default is zero. If the number of tests failed for
+any regression subdirectory is greater than the maximum allowable for that subdirectory, the
+run_test.py script will exit at the end with a non-zero exit code indicating regression failure.
 
 ------------------------------------------------- 
 Running the Tests:
@@ -57,7 +62,10 @@ Constructing a new test:
 
 2) Add a line to the "regression_tests/TESTS.LIST" file. Each line in this file is a subdirectory
 name indicating the subdirectory containing the test code. Note: Lines starting with an exclamation
-mark "!"  are printed to the terminal but are otherwise ignored.
+mark "!"  are printed to the terminal but are otherwise ignored. After the subdirectory name, an
+optional number indicates the maximum number of tests that can be failed without triggering an error
+exit code at the end of all the tests (see above). For example, the number "4" would indicate that
+it is acceptable if the number of tests failed was four or less.
 
 3) If needed: In this subdirectory put your testing program code and any input files needed for
 running the program. Additionally, a file "output.correct" needs to be present containing the

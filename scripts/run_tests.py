@@ -14,13 +14,16 @@ num_tests = 0
 num_failures = 0
 num_flow_failures = 0
 num_programs = 0
+pass_all_tests = True
 
 warning_color = '\033[91m\033[1m'   # Red + Bold
 normal_color = '\033[0m'
 
 #----------------------------------------------------------
 
-def print_all(string, terminate = False, color = False):
+def print_all(string, terminate = False, color = False, failing = False):
+  if failing: pass_all_tests = False
+
   results.write(string + '\n')
   if color:
     print(warning_color + string + normal_color)
@@ -95,7 +98,7 @@ for test_dir in test_dir_list:
   # Is this a note:
 
   if test_dir[:5] == 'NOTE:':
-    print_all ('Note in TESTS.LIST file: ' + test_dir, False, True)
+    print_all ('Note in TESTS.LIST file: ' + test_dir, False, True, False)
     continue
 
   #-----------------------------------------------------------
@@ -106,12 +109,15 @@ for test_dir in test_dir_list:
   num_local_tests = 0
   num_local_failures = 0
 
-  if len(dir_split) > 1:
-    print_all ('\nExtra stuff on line in "TESTS.LIST": ' + dir_split, True, True)
+  if len(dir_split) > 2:
+    print_all ('\nExtra stuff on line in "TESTS.LIST": ' + dir_split, True, True, True)
     continue
 
+  max_fail = 0
+  if len(dir_split) == 2: max_fail = int(dir_split[1])
+
   if not os.path.exists(dir_split[0]):
-    print_all ('\nNon-existant subdirectory given in "TESTS.LIST": ' + dir_split[0], True, True)
+    print_all ('\nNon-existant subdirectory given in "TESTS.LIST": ' + dir_split[0], True, True, True)
     continue
 
   os.chdir(dir_split[0])
@@ -138,7 +144,7 @@ for test_dir in test_dir_list:
     print_all ('     Running program: ' + program)
   
     if not os.path.isfile(program):
-      print_all ('     !!! Program does not exist!', True, True)
+      print_all ('     !!! Program does not exist!', True, True, True)
       os.chdir('..')
       continue
 
@@ -147,12 +153,12 @@ for test_dir in test_dir_list:
   # Look for output
 
   if not os.path.isfile('output.now'):
-    print_all ('     !!! Program failed to create "output.now" file', True, True)
+    print_all ('     !!! Program failed to create "output.now" file', True, True, True)
     os.chdir('..')
     continue
 
   if not os.path.isfile('output.correct'):
-    print_all ('     !!! No "output.correct" file', True, True)
+    print_all ('     !!! No "output.correct" file', True, True, True)
     os.chdir('..')
     continue
 
@@ -181,9 +187,9 @@ for test_dir in test_dir_list:
     if len(now_line) == 0 or len(correct_line) == 0: 
       print_all ('')
       if len(now_line) != 0:
-        print_all ('     Confusion! End of "output.correct" reached before End of "output.now"', True, True)
+        print_all ('     Confusion! End of "output.correct" reached before End of "output.now"', True, True, True)
       if len(correct_line) != 0:
-        print_all ('     Confusion! End of "output.now" reached before End of "output.correct"', True, True)
+        print_all ('     Confusion! End of "output.now" reached before End of "output.correct"', True, True, True)
       break
 
     now_line = now_line.strip()
@@ -193,16 +199,16 @@ for test_dir in test_dir_list:
     correct_split = correct_line.split('"', 2)
     
     if now_split[0] != '' or len(now_split) != 3:
-      print_all ('     Cannot parse line from "output.now": ' + now_line, True, True)
+      print_all ('     Cannot parse line from "output.now": ' + now_line, True, True, True)
       break
 
     if correct_split[0] != '' or len(correct_split) != 3:
-      print_all ('     Cannot parse line from "output.correct": ' + correct_line, True, True)
+      print_all ('     Cannot parse line from "output.correct": ' + correct_line, True, True, True)
       break
 
     if now_split[1] != correct_split[1]:
-      print_all ('     Identification string for a line in "output.now":    ' + now_split[1], color = True)
-      print_all ('     Does not match corresponding ID in "output.correct": ' + correct_split[1], True, True)
+      print_all ('     Identification string for a line in "output.now":    ' + now_split[1], False, True, True)
+      print_all ('     Does not match corresponding ID in "output.correct": ' + correct_split[1], True, True, True)
 
     now_end = now_split[2].strip().split()
 
@@ -216,14 +222,14 @@ for test_dir in test_dir_list:
       correct2_split = correct_split[2].split('"')[1:]
 
       if len(now2_split) < 2:
-        print_all ('     Bad line line "output.now": ' + now_line, True, True)
+        print_all ('     Bad line line "output.now": ' + now_line, True, True, True)
         break
 
       now2_split.pop(0)    # Get rid of STR item.
 
       if len(now2_split) != len(correct2_split):
-        print_all ('     Number of components in "output.now" line: ' + now_line, color = True)
-        print_all ('     Does not match number in "output.correct:  ' + correct_line, True, True)
+        print_all ('     Number of components in "output.now" line: ' + now_line, False, True, True)
+        print_all ('     Does not match number in "output.correct:  ' + correct_line, True, True, True)
         break
 
       for ix, (now1, correct1) in enumerate(list(zip(now2_split, correct2_split))):
@@ -246,15 +252,15 @@ for test_dir in test_dir_list:
       correct2_split = correct_split[2].strip().split()[2:]   # [2:] -> Throw away EG: "ABS 2E-7"
       
       if len(now2_split) < 3:
-        print_all ('     Bad line line "output.now": ' + now_line, True, color = True)
+        print_all ('     Bad line in "output.now": ' + now_line, True, True, True)
         break
 
       tol_type = now2_split.pop(0)           # Pop REL or ABS item.
       tol_val  = float(now2_split.pop(0))    # Pop tollerance
 
       if len(now2_split) != len(correct2_split):
-        print_all ('     Number of components in "output.now" line: ' + now_line, color = True)
-        print_all ('     Does not match number in "output.correct:  ' + correct_line, True, color = True)
+        print_all ('     Number of components in "output.now" line: ' + now_line, False, True, True)
+        print_all ('     Does not match number in "output.correct:  ' + correct_line, True, True, True)
         break
 
       bad_at = -1
@@ -302,15 +308,20 @@ for test_dir in test_dir_list:
     # Error test
 
     else:
-      print_all ('     Bad data ID string in "output.now" file: ' + now_line, color = True)
-      print_all ('     Should be one of: STR, REL, or ABS.', True, True)
+      print_all ('     Bad data ID string in "output.now" file: ' + now_line, False, True, True)
+      print_all ('     Should be one of: STR, REL, or ABS.', True, True, True)
       break
 
   #------------------
 
   print_all ('     Number of tests:        ' + str(num_local_tests))
-  print_all ('     Number of failed tests: ' + str(num_local_failures), color = (num_local_failures != 0))
+  print_all ('     Number of failed tests: ' + str(num_local_failures), False, color = (num_local_failures != 0))
   print_all ('     Duration of test (sec): ' + str(time.time() - time0_test))
+  if num_local_failures > max_fail: 
+    print_all ('     Final grade: FAILED!', False, True, True)
+  else:
+    print_all ('     Final grade: Passed.')
+
 
   num_tests += num_local_tests
   num_failures += num_local_failures
@@ -320,11 +331,18 @@ for test_dir in test_dir_list:
 #------------------------------------------------------------
 
 
-print_all ('\n')
 print_all ('Total number of tests:           ' + str(num_tests))
 print_all ('Total number of failed tests:    ' + str(num_failures), color = (num_failures != 0))
 print_all ('Number of Program flow failures: ' + str(num_flow_failures), color = (num_flow_failures != 0))
 print_all ('Duration of all tests (sec): %5.2f' % (time.time() - time0))
 
+print('Results file: regression.results')
+
+if pass_all_tests:
+  print_all ('\nBottom line: The code PASSES regression testing.')
+else:
+  print_all ('\nBottom line: The code FAILS regression testing.', color = True)
+  ## raise SystemExit()
+
 results.close()
-print('\nResults file: regression.results\n')
+
