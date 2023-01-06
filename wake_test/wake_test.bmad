@@ -5,6 +5,8 @@ parameter[geometry] = open
 
 beginning[beta_a] = 10
 beginning[beta_b] = 10
+beginning[alpha_a] = 1
+beginning[alpha_b] = -1
 
 particle_start[z] = -0.001
 

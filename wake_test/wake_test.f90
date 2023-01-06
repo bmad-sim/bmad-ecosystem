@@ -123,8 +123,8 @@ enddo
 
 beam_init%n_particle = 100
 beam_init%random_engine = 'quasi'
-beam_init%a_norm_emit = 1e-12
-beam_init%b_norm_emit = 1e-12
+beam_init%a_norm_emit = 3e-9
+beam_init%b_norm_emit = 1e-9
 beam_init%dPz_dz = 0.0
 beam_init%bunch_charge = 1 !100.0e-12
 beam_init%sig_pz = 1e-12
