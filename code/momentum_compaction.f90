@@ -8,7 +8,7 @@
 !
 ! Note:
 !   slip_factor      = mom_comp - 1 / gamma^2
-!   gamma_transition = sqrt(mom_comp)
+!   gamma_transition = 1 / sqrt(mom_comp)
 !
 ! Input:
 !   branch      -- branch_struct, optional: Lattice branch to calculate on.

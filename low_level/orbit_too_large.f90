@@ -82,7 +82,8 @@ if (orbit%species == photon$) then
   return
 endif
 
-! Charged particle momentum
+! Charged particle momentum.
+! A particle starting at the beginning of an e_gun may have rel_p = 0. 
 
 rel_p = 1 + orbit%vec(6)
 
@@ -92,7 +93,7 @@ if (rel_p < 0) then
   return
 endif
 
-f_unstable = orbit%vec(2)**2 + orbit%vec(4)**2 - rel_p**2 + 1e-30_rp
+f_unstable = orbit%vec(2)**2 + orbit%vec(4)**2 - rel_p**2
 if (f_unstable > 0) then
   if (present(param)) param%unstable_factor = sqrt(f_unstable)
 
