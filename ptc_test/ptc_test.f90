@@ -336,8 +336,10 @@ do j = 1, num_ele_attrib$
   call set_flags_for_changed_attribute(ele, ele%value(j))
 enddo
 
-call multipole_init(ele, all$)
-ele%b_pole(4) = ele%b_pole(3) + 1
+if (has_attribute(ele, 'A0') .or. ele%key == multipole$) then
+  call multipole_init(ele, all$)
+  ele%b_pole(4) = ele%b_pole(3) + 1
+endif
 
 call attribute_bookkeeper (ele, .true.)
 
