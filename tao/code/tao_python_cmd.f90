@@ -2857,7 +2857,8 @@ case ('ele:gen_grad_map')
       gg => gg_map%gg(i)
       do j = gg_map%iz0, gg_map%iz1
         do k = 0, ubound(gg%deriv,2)
-          nl=incr(nl); write (li(nl), '(3(i0,a), es22.14)') i, ';', j, ';', k, ';', gg%deriv(j,k)
+          nl=incr(nl); write (li(nl), '(3(i0,a), es22.14, a, es22.14)') i, ';', j, ';', k, ';', &
+                              j*gg_map%dz, ';', gg%deriv(j,k)
         enddo
       enddo
     enddo

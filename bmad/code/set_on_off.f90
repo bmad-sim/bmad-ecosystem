@@ -6,7 +6,7 @@
 ! lat_make_mat6 will be called to remake lat%ele()%mat6.
 !
 ! This routine can also be used to turn on/off a specific attribute in a set of elements using the
-! ix_attrib and saved_values arguments. For example, to turn on/off the K2 component of all bends. 
+! attribute and saved_values arguments. For example, to turn on/off the K2 component of all bends. 
 ! For real and integer attributes, switch = off$ means to set to zero.
 ! For real and integer attributes, switch = on$ and switch = restore_state$ have the same meaning 
 ! and the value that is set is optained from the saved_values argument (which must be present.)
@@ -27,7 +27,7 @@
 !                        calculating %mat6. Default is false.
 !   ix_branch       -- integer, optional: If present then only set for 
 !                        this lattice branch.
-!   saved_values(:) -- real(rp), allocatable, optional: Saved values of the component.
+!   saved_values(:) -- real(rp), allocatable, optional: Element-by element saved values of the component.
 !                       Must be present if needed (EG if switch = restore_state$, etc.).
 !   attribute       -- character(*), optional: Attribute to turn on/off. Eg: 'K2', 'MULTIPOLE_ON', etc.
 !                       Default is 'IS_ON'. Must be upper case.
@@ -80,7 +80,8 @@ case (restore_state$, off_and_save$, save_state$)
   endif
 end select
 
-!  
+! Do not set super_slave elements since the appropriate setting can only be done in the lords.
+! For example, setting a multipole parameter in a super_slave is a no-no.
 
 do ib = 0, ubound(lat%branch, 1)
 
@@ -95,6 +96,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ele => branch%ele(i)
     if (ele%key /= key) cycle
+    if (ele%slave_status == super_slave$) cycle
 
     n_set = n_set + 1
 
@@ -170,6 +172,8 @@ if ((switch == on$ .and. (associated(a_ptr%r) .or. associated(a_ptr%i))) .or. &
     return
   endif
 endif
+
+call lattice_bookkeeper(lat)
 
 !-------------------------------------------------------------------------
 contains

@@ -29,6 +29,6 @@ svn co https://accserv.classe.cornell.edu/svn/packages/forest
 rm -rf */.svn
 cd util
 rm DELETE_release  build_config.py  build_flags_config  build_mgmt.py  build_supervisor 
-rm  builder  dist_prefs_for_windows.diff  dist_test_debug  dist_test_production  mk_mpi 
-rm  mkd_mpi  purge_releases  raw_list  rotate_release  svn_upgrade  tag_release 
+rm builder  dist_prefs_for_windows.diff  dist_test_debug  dist_test_production  mk_mpi 
+rm mkd_mpi  purge_releases  raw_list  rotate_release  svn_upgrade  tag_release 
 cd ..

@@ -856,7 +856,8 @@ For $m \ne 0$, the vector potential is chosen so that $A_\theta$ is zero.
 
 The functions $C_{m,\alpha}(z)$ are characterized by specifying $C_{m,\alpha}(z_i)$ and derivatives
 at equally spaced points $z_i$, up to some maximum derivative order $N$ chosen by the
-user. Interpolation is done by constructing an interpolating polynomial of order $2N+1$ for each
+user. Interpolation is done by constructing an interpolating polynomial (``non-smoothing spline'')
+of order $2N+1$ for each
 interval $[z_i, z_{i+1}]$ which has the correct derivatives from $0$ to $N$ at points $z_i$ and
 $z_{i+1}$. The coefficients of the interpolating polynomial are easily calculated by inverting the
 appropriate matrix equation.

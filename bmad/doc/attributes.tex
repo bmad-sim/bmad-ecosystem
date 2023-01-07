@@ -2576,7 +2576,7 @@ Grid fields may stored in \vn{HDF5} binary format which may then be called using
 \label{s:gen.grad.map}
 \index{gen_grad_map}
 
-The \vn{gen_grad_map} characterises DC magnetic or electric fields using ``generalized gradients''
+The \vn{gen_grad_map} characterizes DC magnetic or electric fields using ``generalized gradients''
 (GG) as described by Venturini and Dragt\cite{b:gen.grad}. Formulas for the GG are given in
 \Sref{s:gen.grad.phys}.
 
@@ -2630,7 +2630,7 @@ the given z-position where \vn{<d0>} is the zeroth derivative (the value of the 
 itself), \vn{<d1>} is the first derivative, etc. For a given \vn{curve} instance, all derivative
 rows must have the same number of derivatives. Different \vn{curves} can have differing number of
 derivatives. All curves must specify the same z-positions but different curves may have differing
-number of derimatives.
+number of derivatives.
 
 Like \vn{grid_field}s, the edges of a \vn{gen_grad_map}, can be defined to be outside of the edges
 of the element. These areas will be ignored while tracking unless field overlap is defined
@@ -3122,17 +3122,17 @@ that the field profile includes the fringe regions.
 \label{s:fringe.at}
 
 \index{fringe_at}
-Whether fringe fields are ignored or not is determined by the setting of the \vn{fringe_at} element
-parameter. The possible settings are
+For elements that have a fringe, whether fringe fields are ignored or not is determined by the
+setting of the \vn{fringe_at} element parameter. The possible settings are
 \begin{example}
   no_end         
   both_ends             ! Default
   entrance_end
   exit_end
 \end{example}
-This is particularly useful in vetoing the fringe effect in the interior of split elements. If there
-is no fringe at a particular boundary, the setting of attributes like \vn{fringe_type} (see below)
-are ignored.
+This is particularly useful in vetoing the fringe effect in the interior of split elements. The
+setting of attributes like \vn{fringe_type} (see below) are ignored for boundaries where the fringe
+has been turned off.
 
 \index{spin_fringe_on}
 When a particle's spin is being tracked, the \vn{spin_fringe_on} logical attribute of the element
@@ -3142,7 +3142,8 @@ determines how the tracking is handled.  Example:
 \end{example}
 Here, there is no fringe effect at the entrance of the element and the fringe at the exit
 end of the element will affect the spin. The default setting of \vn{spin_fringe_on} is
-\vn{True}.
+\vn{True}. The \vn{spin_fringe_on} attribute is useful for examining how much fringe fields affect
+spin precession. 
 
 %-----------------------------------------------------------------
 \subsection{Fringe Types}
@@ -3152,7 +3153,7 @@ end of the element will affect the spin. The default setting of \vn{spin_fringe_
 used is set by two element attributes:
 \begin{example}
   fringe_type
-  ptc_fringe_geometry   ! Only used with bends and PTC tracking.
+  ptc_fringe_geometry   ! Only used with bends and PTC dependent tracking.
 \end{example}
 \index{fringe_type}
 The \vn{fringe_type} switch is used to select how a fringe field is

@@ -25,10 +25,11 @@ character(200) :: lat_file = 'coord_test.bmad'
 ! 
 
 nargs = command_argument_count()
-if (nargs > 0) then
+debug_mode = (nargs > 0)
+
+if (debug_mode) then
   call get_command_argument(1, lat_file)
   print *, 'Using ', trim(lat_file)
-  debug_mode = .true.
 endif
 
 call bmad_parser (lat_file, lat)
