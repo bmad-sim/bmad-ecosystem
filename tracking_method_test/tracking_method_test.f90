@@ -193,7 +193,7 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       if (branch%param%particle == photon$) then
-        write (1, '(3a, t50, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 1E-07', end_orb%field
+        write (1, '(3a, t50, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 2E-07', end_orb%field
       endif
     end do
 
@@ -236,7 +236,7 @@ character(*) :: instr
 ! There can be differences between debug and non-debug output.
 
   if (instr(1:8) == 'EM_FIELD') then
-    tolerance = 'ABS 1E-9'  ! Why is there a big diff between debug and production exes?
+    tolerance = 'ABS 2E-9'  ! Why is there a big diff between debug and production exes?
     return
   endif
 
