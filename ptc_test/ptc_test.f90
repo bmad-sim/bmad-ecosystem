@@ -359,6 +359,7 @@ character(*) str
 do j = 1, num_ele_attrib$
   attrib = attribute_info(ele, j)
   if (attrib%name == null_name$) cycle
+  if (attrib%state == private$) cycle
   call check_if_value_different (str, ele, j, ele%value(j), ele2%value(j))
 enddo
 

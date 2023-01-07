@@ -319,9 +319,9 @@ for test_dir in test_dir_list:
   print_all ('     Number of failed tests: ' + str(num_local_failures), False, color = (num_local_failures != 0))
   print_all ('     Duration of test (sec): ' + str(time.time() - time0_test))
   if num_local_failures > max_fail: 
-    print_all ('     Final grade: FAILED!', False, True, True)
+    print_all ('     Grade for tests in this subdirectory: FAILED!', False, True, True)
   else:
-    print_all ('     Final grade: Passed.')
+    print_all ('     Grade for tests in this subdirectory: Passed.')
 
 
   num_tests += num_local_tests
@@ -340,9 +340,9 @@ print_all ('Duration of all tests (sec): %5.2f' % (time.time() - time0))
 print('Results file: regression.results')
 
 if pass_all_tests:
-  print_all ('\nBottom line: The code PASSES regression testing.')
+  print_all ('\nBottom line for all tests: The code PASSES regression testing.')
 else:
-  print_all ('\nBottom line: The code FAILS regression testing.', color = True)
+  print_all ('\nBottom line for all tests: The code FAILS regression testing.', color = True)
   ## raise SystemExit()
 
 results.close()
