@@ -24,10 +24,13 @@ file. See the "Constructing a new test" section for details on the syntax of the
 
 The results of the regression test is stored in a file named "regression.results".
 
-For each regression subdirectory there is a maximum allowable number of tests that can be
-failed. This number is set in TESTS.LIST and the default is zero. If the number of tests failed for
-any regression subdirectory is greater than the maximum allowable for that subdirectory, the
-run_test.py script will exit at the end with a non-zero exit code indicating regression failure.
+For the purposes of assigning an overall "passing" or "failing" grade to the regression tests when
+the run_test.py script is run within a job script, for each regression subdirectory there is a
+maximum allowable number of tests that can be failed. This number is set in TESTS.LIST and the
+default is zero. If the number of tests failed for any regression subdirectory is greater than the
+maximum allowable for that subdirectory, the run_test.py script will exit at the end with a non-zero
+exit code indicating overall regression failure. Setting a non-zero maximum failure number should
+only be done as a temparary measure to allow job scripts to run smoothly.
 
 ------------------------------------------------- 
 Running the Tests:

@@ -22,6 +22,7 @@ normal_color = '\033[0m'
 #----------------------------------------------------------
 
 def print_all(string, terminate = False, color = False, failing = False):
+  global pass_all_tests
   if failing: pass_all_tests = False
 
   results.write(string + '\n')
