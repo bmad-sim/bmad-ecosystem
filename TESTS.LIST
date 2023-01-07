@@ -25,7 +25,7 @@ parse_test
 particle_species_test
 patch_test
 photon_test
-ptc_test
+ptc_test  1
 NOTE: SKIPPING REVERSE_TEST!
 ! reverse_test
 radiation_test
