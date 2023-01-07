@@ -30,7 +30,9 @@ maximum allowable number of tests that can be failed. This number is set in TEST
 default is zero. If the number of tests failed for any regression subdirectory is greater than the
 maximum allowable for that subdirectory, the run_test.py script will exit at the end with a non-zero
 exit code indicating overall regression failure. Setting a non-zero maximum failure number should
-only be done as a temparary measure to allow job scripts to run smoothly.
+only be done as a temparary measure to allow job scripts to run smoothly. Note: If run_test.py is
+run with the -test option, it is assumed that the testing is not done within a script an the maximum
+allowable failures is take to be zero since the pass/fail grade does not matter in this case.
 
 ------------------------------------------------- 
 Running the Tests:
