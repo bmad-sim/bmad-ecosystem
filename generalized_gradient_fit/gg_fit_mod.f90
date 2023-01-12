@@ -69,7 +69,7 @@ real(rp), allocatable :: dBx_dvar(:,:), dBy_dvar(:,:), dBz_dvar(:,:)
 ! field_scale is the field table field in Tesla or V/m.
 
 real(rp) :: del_grid(3), del_meters(3), r0_grid(3), r0_meters(3), field_scale, length_scale, r_max
-real(rp) :: z_min = real_garbage$, z_max = real_garbage$, core_weight = 1
+real(rp) :: z_min = real_garbage$, z_max = real_garbage$, core_weight = 1, outer_plane_weight = 1
 real(rp) :: lmdif_eps = 1d-12
 
 real(rp), allocatable :: var_vec(:), merit_vec(:), dB_dvar_vec(:,:)
@@ -412,7 +412,7 @@ type (super_mrqmin_storage_struct) storage
 type (gg1_struct), pointer :: gg
 
 real(rp), allocatable :: vec0(:), weight(:), zero_vec(:), xy(:,:)
-real(rp) merit0, x, y, v, chisq, a_lambda, r2, r2_max
+real(rp) merit0, x, y, v, chisq, a_lambda, r2, r2_max, p_wgt
 
 integer i, iloop, im, id, n_gg, n, ig, nx, ny, n3
 integer ix, iy, iz, status, iz0, iz1
@@ -512,9 +512,12 @@ enddo
 n3 = size(Bx_fit)
 
 do iz = -n_planes_add, n_planes_add
+p_wgt = 1
+if (n_planes_add /= 0) p_wgt = 1.0_rp + abs(iz) * (outer_plane_weight - 1.0_rp) / n_planes_add
+
 do i = 0, 2
   n = (3*(iz+n_planes_add) + i) * n3
-  weight(n+1:n+n3) = reshape(xy, [n3])
+  weight(n+1:n+n3) = reshape(p_wgt*xy, [n3])
 enddo
 enddo
 
