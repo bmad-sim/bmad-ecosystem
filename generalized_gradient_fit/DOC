@@ -2,14 +2,15 @@ Generalized_Gradients_Fit Program Documentation:
 ------------------------------------------------
 
 The main purpose of this program is to calculate generalized gradient (GG) coefficients starting
-from a field table for use in Bmad lattice files. The field table may be for either magnetic or
+from a field table for use in a Bmad lattice file. The field table may be for either magnetic or
 electric fields. Note: The GG coefficients do not depend upon the type (magnetic or electric) of
-field being used.
+field being used. The distinction between electric and magnetic is done in the lattice file.
 
 This program can also be used to manipulate field tables and GG coefficient tables.
 
-This documentation and source code is in the directory:
+This documentation file and source code is in the directory:
   util_programs/generalized_gradients_fit
+
 
 =================================================================================================
 Running the Program
@@ -19,21 +20,6 @@ To run the program use the command:
   generalized_gradients_fit <file_name>
 where <file_name> is the name of the parameter file (see below). 
 The default name, if <file_name> is not given, is "gg_fit.init".
-
-
-=================================================================================================
-How the Program Works:
-----------------------
-
-The GG coefficents are calculated at equally spaced z-positions corresponding to z-planes of the
-field table. At each z-plane, where the derivatives are calculated (called the "base plane"), the
-derivatives are calculated only using the field at the base plane and the fields at neighboring
-planes to either side (set by the n_planes_add parameter as discussed below). Adding extra planes to
-the analysis smooths the calculated values at the expense of increased computation time. It is also
-important to note that the calculation of the GG curve derivatives at a non-base plane is done
-assuming that the GG curve is well approximated by a polynomial with coefficients given by the
-derivatives at the base plane. This approximation becomes less accurate as more planes are used in
-the analysis so, past some limit, using more planes makes the calculation less accurate.
 
 
 =================================================================================================
@@ -83,8 +69,9 @@ tables besides the first will be ignored.
 Parameter File:
 ---------------
 
-See the last section of this file for documentation on conversion from GG to field table. For the
-normal field table to GG, a parameter file will look like:
+See the "GG to Field Table" section of this file for documentation on how to convert from GG
+coefficients to a field table file. For all other modes which convert field table to GG, the
+parameter file will look like:
 
 &params                    ! This line signals the beginning of the parameter list
   field_file = "w22-20_25_94.table.binary"  ! Field table file. .binary suffix => binary file.
@@ -99,6 +86,7 @@ normal field table to GG, a parameter file will look like:
   optimizer = "lm"         ! Optimizer to use. Alternative is "lmdif".
   n_planes_add = 0         ! Extra planes to use for the analysis
 	core_weight = 1          ! Merit function weight on "core" (points with (x,y) near (0,0)) field table points.
+	outer_plane_weight = 1   ! Merit function weight for the "outer" z-planes. Default is 1 (uniform weighting).
   sym_x = 1                ! X-axis symmetry. Possibilities are: -1, 0 (default), 1.
   sym_y = -1               ! Y-axis symmetry. Possibilities are: -1, 0 (default), 1.
 	ele_anchor_pt = "beginning" ! or "center" or "end". Used to construct lattice file.
@@ -132,27 +120,26 @@ z_min, z_max: Range of z-planes to analyze. In units of meters. If not present o
 the table lower bound, the beginning of the range will be the table lower bound. A similar logic holds
 for z_max.
 
-mode: See next section
+mode: See the Modes section
 
 optimizer: There are two optimizers that can be used: "lm" and "lmdif". Both are variants of the
-Levenburg-Marquardt algorithm. The fitting algorithm minimizes a merit function which is
-	Merit = Sum: weight * (field_from_table - field_from_GG_coefs)^2
-It is expected that the two optimizers should give the same results. And "lm" should be faster than
-"lmdif". So the only reason for using "lmdif" is for testing purposes.
+Levenburg-Marquardt algorithm. It is expected that the two optimizers should give the same results. 
+And "lm" should be faster than "lmdif". So the only reason for using "lmdif" is for testing purposes.
+See the "How the GG Calculation Works" section below for documentation on the optimizer merit function.
 
 n_planes_add: The parameter sets the number of z-planes added to either side of the base z-plane to
-be used in the analysis of the derivatives at any given base z-plane (see "How the Progam Works"
-section). For example, for n_planes_add = 2, two planes would be added to either side of the base
-plane making the total number of planes used in the analysis equal to five. Near the ends of the
-table, the number of z-planes used will be reduced. Thus, for n_planes_add = 2, a base z-plane
-at the end of the table will only use three planes in the analysis.
+be used in the analysis of the derivatives at any given base z-plane (see "How the GG Calculation
+Works" section). For example, for n_planes_add = 2, two planes would be added to either side of the
+base plane making the total number of planes used in the analysis equal to five.
 
-core_weight: Weight used by the optimizer for "core" points (field table points whose transverse
-(x,y) position is near (0,0)). Default is 1.0 which gives an equal weight for all points. A higher
-weight means that the field fit to core points will be better at the expense of points farther
-away. Specifically, the weight for a point at (x,y) is
-	weight(x,y) = core_weight * rmax^2 / (rmax^2 + r^2 * (core_weight - 1))
-where r^2 = x^2 + y^2 and rmax is the maximum r over all points.
+core_weight: Merit function weight for "core" points (field table points whose transverse (x,y)
+position is near (0,0)). Default is 1.0 which gives an equal weight for all points of a given
+z-plane. See the "How the GG Calculation Works" section below for documentation on the optimizer
+merit function.
+
+outer_plane_weight: Merit function weight for z-planes away from the base z-plane when n_planes_add
+is non-zero. See the "How the GG Calculation Works" section below for documentation on the optimizer
+merit function.
 
 sym_x and sym_y: These parameters set the symmetry of the field at constant z with respect to the
 x-axis and the y-axis. This is used when the field table only contains one quadrent or one half of
@@ -170,8 +157,65 @@ called "plot_data".  For each x-position and y-positions pair a file will be cre
 
 
 =================================================================================================
-modes
------
+How the GG Calculation Works:
+-----------------------------
+
+The GG coefficents are calculated at equally spaced z-positions corresponding to z-planes of the
+field table. GG coeficients are calculated by verying the coefficients to achieve the minimum of a
+"merit function". This fitting is done z-plane by z-plane. That is, the coefficients of a given
+z-plane are calculated independently of the coefficients of any other z-plane and all coefficients
+of a given z-plane are calculated simultaneously. For a given z-plane, The merit function is
+	Merit = Sum over field points: weight * (field_from_table - field_calculated_from_GG_coefs)^2
+
+The z-plane at which the GG coefficients are being calculated is called the "base plane". The merit
+function is calculated by a sum over those field points that lie in a z-plane that is within
+n_planes_add of the base plane. For example, for n_planes_add = 2, two planes would be added to
+either side of the base plane making the total number of planes used in the analysis equal to
+five. Near the ends of the table, the number of z-planes used will be reduced. Thus, for
+n_planes_add = 2, a base z-plane at the end of the table will only use three planes in the analysis.
+
+To calculate the field at a non-base plane, the GG coefficients of the base plane are extrapolated
+to the non-base plane. For each GG specified by the m_cos and m_sin parameters, the extrapolating
+polynomial is
+	GG(dz) = GG(0) + dz * GG'(0) + dz^2 * GG''(0) / 2! + ...
+where GG(dz) is the generalized gradient at a distance dz away from the base plane, GG' is the first
+derivative, etc.  The order of the polynomial is given by n_deriv_max.
+
+Adding extra planes to the analysis smooths the calculated values. The approximation that the GG
+curve is well fit by a polynomial with coefficients given by the derivatives at the base
+plane becomes less accurate as more planes are used in the analysis. Therefore, past some limit,
+using more planes will make the calculation less accurate.
+
+The weight for a given field point is determined by the setting of the core_weight and
+outer_plane_weight parameters. The weight is a product of two factors:
+	weight(x,y,dz) = w_core(x,y) * w_plane(dz)
+where (x,y,dz) are the coordinates of the field point with respect to the base plane.
+
+The w_core(x,y) factor is computed from:
+	w_core(x,y) = core_weight * rmax^2 / (rmax^2 + r^2 * (core_weight - 1))
+where r^2 = x^2 + y^2 and rmax is the maximum r over all points. A setting of core_weight of 1 (the
+default) means that w_core is a constant. A setting of w_core greater than 1 means that the core
+points (points with low r) will have higher weight at the expense of points farther away. A better
+core fit is generally what is wanted since particles of a beam will spend most of their time near
+the core.
+
+The w_plane(dz) factor is computed from:
+	w_plane(dz) = 1 + (outer_plane_weight - 1) * |dz| / dz_max
+where dz_max is the maximum dz at the ends of the fit region. If n_planes_add = 0 (in which case
+dz_max is zero and the above equation is singular), the above equation is ignored and a value of 1
+is used for w_plane. A setting of outer_plane_weight of 1 (the default) means that w_plane is a
+constant. To weight the planes nearer to the base plane more than the outer planes, choose a value
+less than 1 but still non-negative.
+
+Note: In theory, the merit function fitting does not require that the field table be a rectangular
+grid of equally spaced points. In fact, a set of randomly spaced field points would work. The
+generalized_gradient fit program, however, is not presently configured to handle non-rectangular
+grids.
+
+
+=================================================================================================
+Operation Modes
+---------------
 
 	mode = "ascii": In this mode a field table is read in and an ASCII field table is written.
 If z_min or z_max is set, the created file will only contain data within these bounds plus
@@ -190,6 +234,7 @@ data within these bounds plus n_planes_add to either side.
 	mode = "truncate_gg": In this mode, GG derivatives are read in from a Bmad lattice file and a
 Bmad compatable output file is created with the number of derivatives truncated (if n_deriv_max is set
 non-negative) and/or the z-extent limited (if Nz_min and/or Nz_max are set).
+
 
 =================================================================================================
 Output:
@@ -249,7 +294,7 @@ will call the file:
 
 
 =================================================================================================
-GG to field table
+GG to Field Table
 -----------------
 
 Converting an existing GG to a field table can be useful, for example, in comparing the accuracy
