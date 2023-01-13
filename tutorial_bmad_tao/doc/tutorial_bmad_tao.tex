@@ -6,7 +6,7 @@
 %   pdflatex tutorial_bmad_tao
 %
 % IMPORTANT: This file uses .aux files from the Bmad and Tao manuals so pdflatex these manuals beforehand.
-%            Note: It is assumed that the bmad, tao, and examples directories are all on the same level (as they are in a Distribution).
+%            Note: It is assumed that the bmad, tao, and examples directories are all on the same level.
 %-----------------------------------------
 
 %\documentclass{article}
@@ -196,18 +196,15 @@ encountered.
 If you have a local \bmad Guru, check with you Guru to see if there is a \tao executable that you
 can use which will save you the trouble of installing one.
 
-Installation instructions are at:
-\begin{display}
-  \url{https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc}
-\end{display}
+Installation instructions are posted on the \bmad web site.
 There are two possible routes. One possibility is to use \vn{Conda-forge} (a Python
-package manager) to download a \tao executable. The other is to compile a \bmad Distribution
-(\sref{s:dist}). Instructions for both are given on the web page at the above URL.
+package manager) to download a \tao executable. The other is to compile a \bmad Release from GitHub
+(\sref{s:dist}).
 
 Even if you do use \vn{Conda}, you should also download (but you do not need to compile) a
-Distribution (\sref{s:dist}) since a Distribution contains many useful lattice examples.
+Release (\sref{s:dist}) since a Release contains many useful lattice examples.
 
-If you compile a \vn{Distribution}, (or are using a Release) a useful check that everything is setup
+If you compile a \vn{Release}, a useful check that everything is setup
 is the \vn{accinfo} command which shows the environment variables that have been setup by the
 compile scripts.
 \begin{code}
@@ -227,22 +224,22 @@ ACC_BUILD_SYSTEM=/Users/dcs16/Bmad/bmad_dist_2020_0712-0/build_system
 ACC_PLOT_DISPLAY_TYPE=X
 ... etc...
 \end{code}
-One common mistake, if you have multiple Distributions on your system, is having the environment
-variables pointing to a Distribution other than the one you want to use. The \vn{accinfo} command
+One common mistake, if you have multiple Releases on your system, is having the environment
+variables pointing to a Release other than the one you want to use. The \vn{accinfo} command
 is a quick way to tell if there is a problem.
 
 %------------------------------------------------------------------------------
-\subsection{Distributions and Releases}
+\subsection{Releases}
 \label{s:dist}
 
-A \vn{Distribution} is a set of files, including \bmad and \tao source files, which are used to
-build the \bmad, the \tao program, and various other simulation programs. A \vn{Release} is like a
-\vn{Distribution} except that it is created on the Linux computer system at CLASSE (Cornell's
+A (GitHub) \vn{Release} is a set of files, including \bmad and \tao source files, which are used to
+build the \bmad, the \tao program, and various other simulation programs. A \vn{CLASSE Release} is like a
+GitHub \vn{Release} except that it is created on the Linux computer system at CLASSE (Cornell's
 Laboratory for Accelerator-based Sciences and Education). More information can be obtained from the
 \bmad web site. For the purpose of this tutorial, it is assumed that you are dealing with a
-\vn{Distribution}.
+GitHub \vn{Release}.
 
-The directories in a Distribution are:
+The directories in a Release are:
 \begin{lstlisting}[mathescape]
 INSTALL             fftw                lattice            regression_tests
 PGPLOT              fgsl                lux                sim_utils
@@ -257,11 +254,6 @@ For an explanation of what directories contain what, see:
 \begin{display}
   \url{https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc#DistDirs}
 \end{display}
-
-%------------------------------------------------------------------------------
-\subsection{Installation of a Distribution}
-\label{s:install.dist}
-
 
 \newpage
 
@@ -297,7 +289,7 @@ page.
 \subsection{Bmad Directories}
 \label{s:bmad.dir}
 
-A quick introduction to the most important directories in a \vn{Distribution} or a \vn{Release}:
+A quick introduction to the most important directories in a \vn{Release}:
 \begin{description}
 %
 \vspace{-0.4 ex}
@@ -323,7 +315,7 @@ The \vn{examples} directory holds example programs.
 %
 \vspace{-0.4 ex}
 \item[production] \Newline
-The \vn{production} directory is created when the code in a \vn{Distribution} or \vn{Release} is
+The \vn{production} directory is created when the code in a \vn{Release} is
 compiled. It contains various libraries, modules, and other files. In particular, the
 \vn{production/bin} directory contains executable files for \tao and other \bmad based simulation
 programs. Note: Many directories will themselves contain a \vn{production} directory. For example,
@@ -355,7 +347,7 @@ converting between \bmad lattice files to other formats (MAD, SAD, etc.).
 \label{s:programs}
 
 Below is a partial list of simulation and helper programs that are based upon \bmad. All of these
-programs are included in any \vn{Distribution} or \vn{Release}. The program executable will be in
+programs are included in any \vn{Release}. The program executable will be in
 the \vn{production/bin} directory (\sref{s:bmad.dir}).
 
 Documentation for some of the program can be found at:
@@ -468,7 +460,7 @@ To run, \tao needs as input a \bmad lattice file that describes the machine to b
 Lattice files used in this tutorial are available for download from the web. Go to the \bmad web
 site (\sref{s:resources}), Follow a link to either the \bmad or \tao manual page, and there should
 be a further link to example lattice files. Alternatively, the lattice files are available in any
-\vn{Distribution} or \vn{Release} (\sref{s:orientation}) in the directory:
+\vn{Release} (\sref{s:orientation}) in the directory:
 \begin{code}
 bmad-doc/tutorial_bmad_tao/lattice_files
 \end{code}
@@ -563,7 +555,7 @@ configuring plotting and setting optimization parameters. These initialization f
 in the \vn{Tao Initialization} chapter of the \tao manual.
 
 Besides the initialization files supplied for this tutorial, example \tao initialization files can
-be found in a \vn{Distribution} or \vn{Release} in the directory:
+be found in a \vn{Release} in the directory:
 \begin{code}
 bmad-doc/tao_examples
 \end{code}
@@ -4738,7 +4730,7 @@ Parse \vn{python} command output into a \vn{Python} structure for easy access.
 Run \tao as a subprocess of \vn{Python}
 \end{itemize}
 
-\vn{PyTao} is separate from the \bmad \vn{Distribution} (\sref{s:dist}) which contains the \bmad and
+\vn{PyTao} is separate from the \bmad \vn{Release} (\sref{s:dist}) which contains the \bmad and
 \tao source files. The PyTao source is in a GitHub repository at
 \begin{display}
   \url{\detokenize{github.com/bmad-sim/pytao}}

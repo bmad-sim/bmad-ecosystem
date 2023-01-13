@@ -1,7 +1,7 @@
 ! Lattice File: geometry.bmad
 
 parameter[p0c] = 1e9
-parameter[geometry] = closed
+parameter[geometry] = open
 
 d: drift, l = 2
 q1: quad, l = 0.5, k1 = 3, hkick = 0.001, superimpose
