@@ -1144,7 +1144,7 @@ endif
           else
             call ADJUST_LIKE_ABELL(EL%wi,p%x,k,1)
           endif
-          CALL ADJUST_WI(EL%WI,p%x,k,T%CAS) 
+      !    CALL ADJUST_WI(EL%WI,p%x,k,T%CAS) 
           ENDIF
 
   ! ONLY DOES SOMETHING IF J==2
@@ -1405,7 +1405,7 @@ endif
           else
             call ADJUST_LIKE_ABELL(EL%wi,p%x,k,1)
           endif
-          CALL ADJUST_WI(EL%WI,p%x,k,T%CAS) 
+     !     CALL ADJUST_WI(EL%WI,p%x,k,T%CAS) 
           ENDIF
 
        case(KINDPA)
@@ -1685,7 +1685,7 @@ endif
           else
             call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
           endif
-          CALL ADJUST_WI(EL%WI,X,k,T%CAS) 
+    !      CALL ADJUST_WI(EL%WI,X,k,T%CAS) 
           ENDIF
 
   ! ONLY DOES SOMETHING IF J==2
@@ -1930,7 +1930,7 @@ endif
           else
             call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
           endif
-          CALL ADJUST_WI(EL%WI,X,k,T%CAS) 
+ !         CALL ADJUST_WI(EL%WI,X,k,T%CAS) 
           ENDIF
 
        case(KINDPA)
@@ -2202,7 +2202,7 @@ endif
           else
             call ADJUST_LIKE_ABELL(EL%wi,p%x,k,1)
           endif
-          CALL ADJUST_WI(EL%WI,p%x,k,T%CAS) 
+   !      CALL ADJUST_WI(EL%WI,p%x,k,T%CAS) 
           ENDIF
 
   ! ONLY DOES SOMETHING IF J==2
@@ -2448,7 +2448,7 @@ endif
           else
             call ADJUST_LIKE_ABELL(EL%wi,p%x,k,1)
           endif
-          CALL ADJUST_WI(EL%WI,p%x,k,T%CAS) 
+   !       CALL ADJUST_WI(EL%WI,p%x,k,T%CAS) 
           ENDIF
 
        case(KINDPA)
