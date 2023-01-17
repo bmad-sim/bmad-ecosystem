@@ -320,7 +320,7 @@ for test_dir in test_dir_list:
   print_all ('     Duration of test (sec): ' + str(time.time() - time0_test))
   print_all ('     Maximum allowed failed tests: ' + str(max_fail))
   if num_local_failures > max_fail: 
-    print_all ('     Grade for tests in this subdirectory: FAILED!)', False, True, True)
+    print_all ('     Grade for tests in this subdirectory: FAILED!', False, True, True)
   else:
     print_all ('     Grade for tests in this subdirectory: Passed.')
 
