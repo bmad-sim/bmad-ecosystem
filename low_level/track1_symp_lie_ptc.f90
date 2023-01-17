@@ -33,7 +33,7 @@ type (lat_param_struct) :: param
 type (fibre), pointer :: ptc_fibre
 type (probe) ptc_probe
 type (integration_node), pointer :: ptc_track
-type (internal_state) state, state0
+type (internal_state) state
 
 real(dp) re(6)
 integer i, stm
@@ -44,12 +44,7 @@ character(20) :: r_name = 'track1_symp_lie_ptc'
 ! call the PTC routines to track through the fibre.
 
 CONVERSION_XPRIME_IN_ABELL = (.not. bmad_com%convert_to_kinetic_momentum) ! Only affects cylindrical map eles
-
-STATE0 = ptc_private%base_state
-if (ptc_private%use_totalpath) STATE0 = STATE0 + TOTALPATH0
-
-STATE = STATE0
-if (bmad_com%spin_tracking_on) STATE = STATE0 + SPIN0
+state = ptc_private%base_state
 
 re = start_orb%vec
 
@@ -69,6 +64,8 @@ endif
 
 stm = ele%spin_tracking_method
 if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$) .or. present(track)) then
+  if (bmad_com%spin_tracking_on) state = state + spin0
+
   ptc_probe = re
   ptc_probe%q%x = [1, 0, 0, 0]
 
@@ -77,25 +74,25 @@ if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)
     call save_this_step(track, ptc_probe, ele)
 
     do while (.not. associated(ptc_track, ptc_fibre%t2))
-      call track_probe (ptc_probe, STATE, node1 = ptc_track, node2 = ptc_track%next)
+      call track_probe (ptc_probe, state, node1 = ptc_track, node2 = ptc_track%next)
       call save_this_step(track, ptc_probe, ele)
       if (.not. check_stable) exit
       ptc_track => ptc_track%next
     enddo
 
-    call track_probe (ptc_probe, STATE, node1 = ptc_track, node2 = ptc_track%next)
+    call track_probe (ptc_probe, state, node1 = ptc_track, node2 = ptc_track%next)
     call save_this_step(track, ptc_probe, ele)
 
   else
-    call track_probe (ptc_probe, STATE, fibre1 = ptc_fibre)
+    call track_probe (ptc_probe, state, fibre1 = ptc_fibre)
   endif
 
   end_orb%spin = quat_rotate(ptc_probe%q%x, start2_orb%spin)
   re = ptc_probe%x
 
 else
-  ! Orignally used track (ptc_fibre, re, STATE) but this will not track taylor elements correctly.
-  call track_probe_x (re, STATE0, fibre1 = ptc_fibre)
+  ! Orignally used track (ptc_fibre, re, state) but this will not track taylor elements correctly.
+  call track_probe_x (re, state, fibre1 = ptc_fibre)
 endif
 
 !-----------------------------
@@ -111,7 +108,7 @@ endif
 end_orb%s = ele%s
 end_orb%p0c = ele%value(p0c$)
 
-if (ptc_private%use_totalpath) then
+if (state%totalpath == 1) then
   end_orb%t = start2_orb%t + start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 else
   end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + &

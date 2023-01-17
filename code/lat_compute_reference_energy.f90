@@ -755,11 +755,13 @@ subroutine track_this_ele (orb_start, orb_end, ref_time_start, is_inside, error)
 type (coord_struct) orb_start, orb_end
 type (ele_struct), pointer :: lord
 real(rp) ref_time_start
-logical error, is_inside
+logical error, is_inside, totalpath_saved
 
-!
+! With use_totalpath = False (the standard setting) and with ptc tracking, orb_end%t is calculated
+! using ele%ref_time. But this is what we want to calculate here.
 
 error = .true.
+call set_ptc_base_state('TOTALPATH', .true., totalpath_saved)
 
 call zero_errors_in_ele (ele, changed)
 call init_coord (orb_start, ele%time_ref_orb_in, ele, upstream_end$, shift_vec6 = .false.)
@@ -791,6 +793,7 @@ endif
 
 ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
+call set_ptc_base_state('TOTALPATH', totalpath_saved)
 error = .false.
 
 end subroutine track_this_ele
@@ -873,14 +876,11 @@ case (rfcavity$)
   endif
 end select
 
-! For speed, use symp_lie_bmad tracking if the taylor map does not exist or if the taylor
+! For speed, use symp_lie_ptc tracking if the taylor map does not exist or if the taylor
 ! map is not valid for the element with kicks and offsets removed.
 
 changed = has_changed
-if (ele%tracking_method == taylor$) then
-  if (.not. associated (ele%taylor(1)%term) .or. (changed .and. ele%taylor_map_includes_offsets)) &
-                                                       ele%tracking_method = symp_lie_bmad$
-endif
+if (ele%tracking_method == taylor$ .and. .not. associated (ele%taylor(1)%term)) ele%tracking_method = symp_lie_ptc$
 
 end subroutine zero_errors_in_ele
 
@@ -916,6 +916,7 @@ end subroutine restore_errors_in_ele
 subroutine calc_time_ref_orb_out (orb_end)
 
 type (coord_struct) orb_end
+type (ele_struct), pointer :: lord
 
 !
 

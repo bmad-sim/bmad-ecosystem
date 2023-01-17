@@ -1204,6 +1204,11 @@ if (name(1:1) /= '!') call update_this_real (ele%value(integrator_order$), real(
 
 ! Multipole
 
+a_pole = 0
+b_pole = 0
+a_pole_elec = 0
+b_pole_elec = 0
+
 if (associated(fib%mag%an)) then
   nmul = size(fib%mag%an)
   a_pole(0:nmul-1) = fib%mag%an
@@ -1238,19 +1243,19 @@ select case (ele%key)
 case (octupole$)
   call update_this_real (ele%value(k3$), knl(3))
   call update_this_real (ele%value(tilt$), tn(3))
-  knl(3) = 0
-  tn(3) = 0
+  a_pole(3) = 0
+  b_pole(3) = 0
 
 case (quadrupole$)
   call update_this_real (ele%value(k1$), knl(1))
   call update_this_real (ele%value(tilt$), tn(1))
-  knl(1) = 0
-  tn(1) = 0
+  a_pole(1) = 0
+  b_pole(1) = 0
 
 case (hkicker$)
   call update_this_real (ele%value(kick$), knl(1))
-  knl(1) = 0
-  tn(1) = 0
+  a_pole(1) = 0
+  b_pole(1) = 0
 
 case (lcavity$, rfcavity$)
   call update_this_real (ele%value(rf_frequency$), fib%mag%freq)
@@ -1270,6 +1275,8 @@ case (lcavity$, rfcavity$)
 case (multipole$)
   ele%a_pole = knl
   ele%b_pole = tn
+  a_pole = 0
+  b_pole = 0
 
 case (sbend$)
   call update_this_real (ele%value(g$), fib%mag%p%b0)
@@ -1290,8 +1297,8 @@ case (sbend$)
 case (sextupole$)
   call update_this_real (ele%value(k2$), knl(2))
   call update_this_real (ele%value(tilt$), tn(2))
-  knl(2) = 0
-  tn(2) = 0
+  a_pole(2) = 0
+  b_pole(2) = 0
 
 case (solenoid$)
   call update_this_real (ele%value(ks$), fib%mag%b_sol)
@@ -1300,11 +1307,10 @@ case (sol_quad$)
   call update_this_real (ele%value(ks$), fib%mag%b_sol)
   call update_this_real (ele%value(k1$), knl(1))
   call update_this_real (ele%value(tilt$), tn(1))
-  knl(1) = 0
-  tn(1) = 0
+  a_pole(1) = 0
+  b_pole(1) = 0
 
 case (wiggler$, undulator$)
-
 
 case default
 end select

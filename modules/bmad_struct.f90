@@ -2177,7 +2177,6 @@ type ptc_private_struct
   real(rp) :: e_tot_set = 0
   integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set. See above.
   integer :: taylor_order_saved = 3     ! Default to use at startup.
-  logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
   logical :: init_ptc_needed = .true.
   logical :: init_spin_needed = .true.
 end type

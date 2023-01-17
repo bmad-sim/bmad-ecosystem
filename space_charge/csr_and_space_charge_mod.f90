@@ -1407,7 +1407,7 @@ if (ele%space_charge_method == fft_3d$) then
 
   call deposit_particles (csr%position(1:n)%r(1), csr%position(1:n)%r(2), csr%position(1:n)%r(3), csr%mesh3d, qa=csr%position(1:n)%charge)
   ! OLD ROUTINE: call space_charge_freespace(csr%mesh3d)
-   call space_charge_3d(csr%mesh3d)
+  call space_charge_3d(csr%mesh3d)
    
   do i = 1, size(particle)
     p => particle(i)
@@ -1422,10 +1422,6 @@ if (ele%space_charge_method == fft_3d$) then
     ! Set beta
     call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = p%beta)
   enddo
-
- 
-  
-  
 endif
 
 end subroutine csr_and_sc_apply_kicks

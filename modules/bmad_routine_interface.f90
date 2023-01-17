@@ -1119,7 +1119,7 @@ subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err,
   import
   implicit none
   character(*) loc_str
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   type (ele_pointer_struct), allocatable :: eles(:)
   integer n_loc
   logical, optional :: above_ubound_is_err, err, order_by_index
@@ -2071,6 +2071,13 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavit
   integer, optional :: integ_order, particle, n_step, taylor_order
   real(rp), optional :: e_tot
   logical, optional :: no_cavity, force_init
+end subroutine
+
+subroutine set_ptc_base_state (component, set_val, old_val)
+  implicit none
+  character(*) component
+  logical set_val
+  logical, optional :: old_val
 end subroutine
 
 subroutine set_status_flags (bookkeeping_state, stat)

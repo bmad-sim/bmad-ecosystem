@@ -424,8 +424,8 @@ where
 \begin{example}
   branch   ! Optional branch name or index.
   class    ! Optional element class name ("quadrupole", "sbend", etc.)
-  ele1     ! Starting element of the range.
-  ele2     ! Ending element of the range. 
+  ele1     ! Starting element of the range which includes ele1.
+  ele2     ! Ending element of the range which includes ele2. 
 \end{example}
 For example:
 \begin{example}
@@ -436,6 +436,9 @@ For example:
   sbend::q1:q5     ! All sbend elements between q1 and q5 including q1 and q5 if they. 
                    ! are sbends. Notice that q1 and q5 do not have to be sbends
 \end{example}
+if the element index of \vn{ele1} is greater than \vn{ele2} then the range wraps around the end of
+the lattice. For example, if branch0 has 360 tracking elements (\sref{s:lord.slave}), the range
+\vn{321:72} is equivalent to \vn{372:360, 0:72}.
 
 With a comma delimited list of names, a tilde prefix can be used to remove elements from the list.
 Adding and subtracting elements is done left to right. For example:
