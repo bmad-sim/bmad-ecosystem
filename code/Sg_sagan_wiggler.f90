@@ -24,24 +24,35 @@ module sagan_WIGGLER
   PRIVATE ADJUST_WIR,ADJUSTP_WI,get_z_wiR,get_z_wiP,kick_integral_r,kick_integral_p
   private ADJUST_like_abellr,ADJUST_like_abellp
   integer :: wiggler_sagan=6
-   logical(lp) :: xprime_sagan=.false.,get_out=.false.
+   logical(lp) :: xprime_sagan=.false.,get_in=.false.
 integer, parameter :: hyper_y_family_y = 1, hyper_xy_family_y = 2, hyper_x_family_y = 3
 integer, parameter :: hyper_y_family_x = 4, hyper_xy_family_x = 5, hyper_x_family_x = 6
 integer, parameter :: hyper_y_family_qu = 7, hyper_xy_family_qu = 8, hyper_x_family_qu = 9
-integer, parameter :: hyper_y_family_sq = 10, hyper_xy_family_sq = 11, hyper_x_family_sq = 12
+integer, parameter :: hyper_y_family_sq = 10, hyper_xy_family_sq = 11, hyper_x_family_sq = 12 
 private conv_to_xprsagan,conv_to_xppsagan,conv_to_pxrsagan,conv_to_pxpsagan
 private gen_conv_to_pxp,gen_conv_to_pxr,gen_conv_to_xpp,gen_conv_to_xpr
 private conv_to_xpr,conv_to_xpp,conv_to_pxr
 private conv_to_pxp, conv_to_pxpabell ,conv_to_xprabell,conv_to_xppabell,conv_to_pxrabell
-private B_E_FIELDR,B_E_FIELDP
+private B_E_FIELDR,B_E_FIELDP,adjust_px_exir,adjust_px_exip,adjust_px_entr,adjust_px_entp
 private fx_newr,fx_newp
 integer :: put_a_abell = 1
+logical :: Lu_wiggler_px_continous=.false.
 
   integer :: limit_sag(2) =(/4,18/) 
  
   INTERFACE conv_to_xp
      MODULE PROCEDURE conv_to_xprsagan
      MODULE PROCEDURE conv_to_xppsagan
+  END INTERFACE
+
+  INTERFACE adjust_px_exi
+     MODULE PROCEDURE adjust_px_exir
+     MODULE PROCEDURE adjust_px_exip
+  END INTERFACE
+
+  INTERFACE adjust_px_ent
+     MODULE PROCEDURE adjust_px_entr
+     MODULE PROCEDURE adjust_px_entp
   END INTERFACE
 
   INTERFACE conv_to_px
@@ -1784,7 +1795,7 @@ ENDIF
           DPZ=(X(2)**2+X(4)**2)/PZ/PZ0/(PZ+PZ0)   ! = (one/PZ-one/PZ0)
           X(1)=X(1)+L*X(2)*DPZ
           X(3)=X(3)+L*X(4)*DPZ
-          X(6)=X(6)+L*(1.0_dp/EL%P%BETA0+X(5))/PZ +k%TOTALPATH*L/EL%P%BETA0
+          X(6)=X(6)+L*(1.0_dp/EL%P%BETA0+X(5))/PZ -(1.0_dp-k%TOTALPATH)*L/EL%P%BETA0
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/EL%P%BETA0+x(5)**2)   ! WRONG NOT SYMPLECTIC 2015.8.11
           X(6)=X(6)-((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/EL%P%BETA0+x(5))*L/pz
        else
@@ -1793,7 +1804,7 @@ ENDIF
           DPZ=(X(2)**2+X(4)**2)/PZ/PZ0/(PZ+PZ0)   ! = (one/PZ-one/PZ0)
           X(1)=X(1)+L*X(2)*DPZ
           X(3)=X(3)+L*X(4)*DPZ
-          X(6)=X(6)+L*(1.0_dp+X(5))/PZ +k%TOTALPATH*L 
+          X(6)=X(6)+L*(1.0_dp+X(5))/PZ -(1.0_dp-k%TOTALPATH)*L 
           PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           X(6)=X(6)-(L/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))
        endif
@@ -1823,7 +1834,7 @@ ENDIF
           DPZ=(X(2)**2+X(4)**2)/PZ/PZ0/(PZ+PZ0)   ! = (one/PZ-one/PZ0)
           X(1)=X(1)+L*X(2)*DPZ
           X(3)=X(3)+L*X(4)*DPZ
-          X(6)=X(6)+L*(1.0_dp/EL%P%BETA0+X(5))/PZ +k%TOTALPATH*L/EL%P%BETA0
+          X(6)=X(6)+L*(1.0_dp/EL%P%BETA0+X(5))/PZ -(1.0_dp-k%TOTALPATH)*L/EL%P%BETA0
           PZ=SQRT(1.0_dp+2.0_dp*X(5)/EL%P%BETA0+x(5)**2)   ! WRONG NOT SYMPLECTIC 2015.8.11
           X(6)=X(6)-((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/EL%P%BETA0+x(5))*L/pz
        else
@@ -1832,7 +1843,7 @@ ENDIF
           DPZ=(X(2)**2+X(4)**2)/PZ/PZ0/(PZ+PZ0)   ! = (one/PZ-one/PZ0)
           X(1)=X(1)+L*X(2)*DPZ
           X(3)=X(3)+L*X(4)*DPZ
-          X(6)=X(6)+L*(1.0_dp+X(5))/PZ +k%TOTALPATH*L 
+          X(6)=X(6)+L*(1.0_dp+X(5))/PZ -(1.0_dp-k%TOTALPATH)*L 
           PZ=SQRT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           X(6)=X(6)-(L/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))
        endif
@@ -2027,7 +2038,7 @@ ENDIF
     INTEGER I
     A=0.0_dp
     B=0.0_dp
- 
+ !  Lu Yao bug
     DO I=1,el%w%n  !SIZE(EL%W%A)
        if (EL%W%FORM(I) == hyper_y_family_y) THEN
           A =  -EL%W%A(I)*EL%W%K(3,i)*sinx_x(EL%W%K(1,i)*(X(1)+EL%W%X0(i)))*(X(1)+EL%W%X0(i))  &
@@ -3735,7 +3746,8 @@ subroutine feval_saganp(Z,X,k,f,EL)   !electric teapot s
     real(dp) z
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
-     if(.not.el%xprime.or.get_out) return
+  !   if(.not.el%xprime.or.get_out) then 
+     if(el%xprime.or.get_in) then 
 
      IF(J==1) then
         z=0
@@ -3752,7 +3764,24 @@ subroutine feval_saganp(Z,X,k,f,EL)   !electric teapot s
           call conv_to_xp(el,x,k,z)
       ENDIF
     endif
-
+   endif
+    if(Lu_wiggler_px_continous) then
+     IF(J==1) then
+        z=0
+      IF(EL%P%DIR==1) THEN
+             call adjust_px_ent(EL,X,z)
+      ELSE
+             call adjust_px_exi(EL,X,z)
+      ENDIF
+    else
+        z=el%l
+      IF(EL%P%DIR==1) THEN
+          call adjust_px_exi(EL,X,z)
+      ELSE
+          call adjust_px_ent(EL,X,z)
+      ENDIF
+    endif
+    endif
   END SUBROUTINE ADJUST_like_abellr
 
   SUBROUTINE ADJUST_like_abellp(EL,X,k,J)
@@ -3763,10 +3792,11 @@ subroutine feval_saganp(Z,X,k,f,EL)   !electric teapot s
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     type(real_8)   z
     call ALLOC(z)
-     if(.not.el%xprime.or.get_out) return
+!     if(.not.el%xprime.or.get_out) then 
+     if(el%xprime.or.get_in) then 
 
      IF(J==1) then
-        z=0.0_dp
+        z=0
       IF(EL%P%DIR==1) THEN
         call conv_to_xp(el,x,k,z)
       ELSE
@@ -3780,10 +3810,88 @@ subroutine feval_saganp(Z,X,k,f,EL)   !electric teapot s
           call conv_to_xp(el,x,k,z)
       ENDIF
     endif
+   endif
+    if(Lu_wiggler_px_continous) then
+     IF(J==1) then
+        z=0
+      IF(EL%P%DIR==1) THEN
+             call adjust_px_ent(EL,X,z)
+      ELSE
+             call adjust_px_exi(EL,X,z)
+      ENDIF
+    else
+        z=el%l
+      IF(EL%P%DIR==1) THEN
+          call adjust_px_exi(EL,X,z)
+      ELSE
+          call adjust_px_ent(EL,X,z)
+      ENDIF
+    endif
+    endif
+   
     call kill(z)
   END SUBROUTINE ADJUST_like_abellp
 
+!!!!!   converting for Mr. Lu at entrance of wiggler
+  SUBROUTINE adjust_px_entr(EL,X,z)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6)
+    TYPE(sagan),INTENT(INOUT):: EL
+    real(dp)  z,a,ap 
+ 
+       CALL  COMPX(EL,Z,X,A,ap)
+       X(2)=X(2)+A
+       X(4)=X(4)+AP      
+       CALL  COMPy(EL,Z,X,A,ap)
+       X(2)=X(2)+AP
+       X(4)=X(4)+A 
+  end SUBROUTINE adjust_px_entr
 
+  SUBROUTINE adjust_px_entp(EL,X,z)
+    IMPLICIT NONE
+    type(real_8),INTENT(INOUT):: X(6)
+    TYPE(saganp),INTENT(INOUT):: EL
+    type(real_8)  z,a,ap 
+ 
+       CALL  COMPX(EL,Z,X,A,ap)
+       X(2)=X(2)+A
+       X(4)=X(4)+AP      
+       CALL  COMPy(EL,Z,X,A,ap)
+       X(2)=X(2)+AP
+       X(4)=X(4)+A 
+
+  end SUBROUTINE adjust_px_entp
+
+  SUBROUTINE adjust_px_exir(EL,X,z)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6)
+    TYPE(sagan),INTENT(INOUT):: EL
+    real(dp)  z,a,ap 
+ 
+       CALL  COMPX(EL,Z,X,A,ap)
+       X(2)=X(2)-A
+       X(4)=X(4)-AP      
+       CALL  COMPy(EL,Z,X,A,ap)
+       X(2)=X(2)-AP
+       X(4)=X(4)-A 
+  end SUBROUTINE adjust_px_exir
+
+  SUBROUTINE adjust_px_exip(EL,X,z)
+    IMPLICIT NONE
+    type(real_8),INTENT(INOUT):: X(6)
+    TYPE(saganp),INTENT(INOUT):: EL
+    type(real_8)  z,a,ap 
+ 
+       CALL  COMPX(EL,Z,X,A,ap)
+       X(2)=X(2)-A
+       X(4)=X(4)-AP      
+       CALL  COMPy(EL,Z,X,A,ap)
+       X(2)=X(2)-AP
+       X(4)=X(4)-A 
+
+  end SUBROUTINE adjust_px_exip
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   SUBROUTINE conv_to_xprsagan(EL,X,k,z)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
@@ -4715,3 +4823,4 @@ endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!
 end module sagan_WIGGLER
+

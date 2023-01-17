@@ -1111,6 +1111,7 @@ CONTAINS
        ALLOCATE(EL%C4%A);EL%C4%A=0.0_dp;
        ALLOCATE(EL%C4%R);EL%C4%R=1.0_dp;
        ALLOCATE(EL%C4%always_on);EL%C4%always_on=my_false;
+       ALLOCATE(EL%C4%xprime);EL%C4%xprime=my_false;
        ALLOCATE(EL%C4%PH(N_CAV4_F));EL%C4%PH=0.0_dp;
        ALLOCATE(EL%C4%t);EL%C4%t=0.0_dp;
 
@@ -1604,6 +1605,7 @@ CONTAINS
        ALLOCATE(EL%C4%A);CALL ALLOC(EL%C4%A);EL%C4%A=0.0_dp;
        ALLOCATE(EL%C4%R);CALL ALLOC(EL%C4%R);EL%C4%R=1.0_dp;
        ALLOCATE(EL%C4%always_on);EL%C4%always_on=my_false;
+       ALLOCATE(EL%C4%xprime);EL%C4%xprime=my_false;
        ALLOCATE(EL%C4%PH(N_CAV4_F));CALL ALLOC(EL%C4%PH,N_CAV4_F);
        ALLOCATE(EL%C4%t);EL%C4%t=0.0_dp;
     CASE(KIND21)
@@ -3614,6 +3616,7 @@ nullify(EL%filef,el%fileb);
        ELP%C4%R=EL%C4%R
        ELP%C4%A=EL%C4%A
        ELP%C4%Always_on=EL%C4%Always_on
+       EL%C4%xprime=EL%C4%xprime
     ENDIF
 
     IF(EL%KIND==kindsuperdrift) THEN         !
@@ -4011,6 +4014,7 @@ nullify(EL%filef,el%fileb);
        ELP%C4%R=EL%C4%R
        ELP%C4%A=EL%C4%A
        ELP%C4%Always_on=EL%C4%Always_on
+       EL%C4%xprime=EL%C4%xprime
     ENDIF
 
     IF(EL%KIND==kindsuperdrift) THEN         !
@@ -4422,6 +4426,7 @@ nullify(EL%filef,el%fileb);
        ELP%C4%R=EL%C4%R
        ELP%C4%A=EL%C4%A
        ELP%C4%Always_on=EL%C4%Always_on
+       EL%C4%xprime=EL%C4%xprime
     ENDIF
 
 

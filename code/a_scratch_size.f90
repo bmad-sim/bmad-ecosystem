@@ -19,7 +19,7 @@
 ! FITNESS FOR A PARTICULAR PURPOSE.
 
 
-module precision_constants 
+module precision_constants  
   implicit none
   public
   integer,parameter  :: newscheme_max =200 

@@ -1120,6 +1120,9 @@ brhoi=1.0_dp/brho
        el%mag%c4%PHASE0=0.0_dp
        el%mag%c4%always_on=my_true
        el%magp%c4%always_on=my_true
+       el%mag%c4%xprime=my_false
+       el%magp%c4%xprime=my_false
+ 
        IF(PRESENT(FREQ)) THEN
           el%mag%FREQ=FREQ
           el%magP%FREQ=FREQ
@@ -2521,6 +2524,7 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  cav0%phase0=F%c4%phase0
  cav0%t=F%c4%t
  cav0%always_on=F%c4%always_on
+ cav0%xprime=F%c4%xprime
  cav0%f(1:F%c4%NF)=F%c4%f
  cav0%PH(1:F%c4%NF)=F%c4%PH
  cav0%A=F%c4%A
@@ -2543,6 +2547,7 @@ CALL SETFAMILY(f)
  F%c4%phase0=cav0%phase0
  F%c4%t=cav0%t
  F%c4%always_on=cav0%always_on
+ F%c4%xprime=cav0%xprime
  F%c4%f=cav0%f(1:F%c4%NF)
 
  
