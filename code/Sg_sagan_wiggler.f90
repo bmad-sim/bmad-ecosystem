@@ -21,7 +21,7 @@ module sagan_WIGGLER
   PRIVATE ZERO_Wr,ZERO_Wp,POINTERS_WP,e_potentialr,e_potentialp
   PRIVATE copy_W_WP,copy_WP_W,copy_W_W,INT_SAGANR,INT_SAGANP
   !  PRIVATE SET_R,SET_P,SET_W
-  PRIVATE ADJUST_WIR,ADJUSTP_WI,get_z_wiR,get_z_wiP,kick_integral_r,kick_integral_p
+  PRIVATE ADJUST_WIR,ADJUST_WIP,get_z_wiR,get_z_wiP,kick_integral_r,kick_integral_p
   private ADJUST_like_abellr,ADJUST_like_abellp
   integer :: wiggler_sagan=6
    logical(lp) :: xprime_sagan=.false.,get_in=.false.
@@ -208,7 +208,7 @@ logical :: Lu_wiggler_px_continous=.false.
 
   INTERFACE ADJUST_WI
      MODULE PROCEDURE ADJUST_WIR
-     MODULE PROCEDURE ADJUSTP_WI
+     MODULE PROCEDURE ADJUST_WIP
   END INTERFACE
 
   INTERFACE kick_integral
@@ -256,51 +256,63 @@ logical :: Lu_wiggler_px_continous=.false.
 
 contains
 
-  SUBROUTINE ADJUST_WIR(EL,X,k,J)
+  SUBROUTINE ADJUST_WIR(EL,X,k) !,J)
     IMPLICIT NONE
     real(dp), INTENT(INOUT) :: X(6)
     TYPE(sagan),INTENT(INOUT):: EL
     TYPE(INTERNAL_STATE),OPTIONAL :: K    
 
-    INTEGER, INTENT(IN) :: J
+   ! INTEGER, INTENT(IN) :: J
 
 
-    IF(J==1.and.el%p%dir==-1) then
-
-     X(1)=X(1)-EL%INTERNAL(1)
-     X(2)=X(2)-EL%INTERNAL(2)
-     X(3)=X(3)-EL%INTERNAL(3)
-     X(4)=X(4)-EL%INTERNAL(4)
-     X(5)=X(5)-EL%INTERNAL(5)
-     if(K%time) then
-       X(6)=X(6)-EL%INTERNAL(6)/el%p%beta0
-      else
-       X(6)=X(6)-EL%INTERNAL(6)
-     endif
-    elseIF(J==2.and.el%p%dir==1) then
+  !  IF(J==1.and.el%p%dir==-1) then
 
      X(1)=X(1)-EL%INTERNAL(1)
      X(2)=X(2)-EL%INTERNAL(2)
      X(3)=X(3)-EL%INTERNAL(3)
      X(4)=X(4)-EL%INTERNAL(4)
      X(5)=X(5)-EL%INTERNAL(5)
+ !    if(K%time) then
+ !      X(6)=X(6)-EL%INTERNAL(6)/el%p%beta0
+ !     else
+ !      X(6)=X(6)-EL%INTERNAL(6)
+ !    endif
+  !  elseIF(J==2.and.el%p%dir==1) then
+
+   !  X(1)=X(1)-EL%INTERNAL(1)
+   !  X(2)=X(2)-EL%INTERNAL(2)
+   !  X(3)=X(3)-EL%INTERNAL(3)
+   !  X(4)=X(4)-EL%INTERNAL(4)
+!     X(5)=X(5)-EL%INTERNAL(5)
      if(K%time) then
        X(6)=X(6)-EL%INTERNAL(6)/el%p%beta0
       else
        X(6)=X(6)-EL%INTERNAL(6)
      endif
-    endif
+ !   endif
   END SUBROUTINE ADJUST_WIR
 
-  SUBROUTINE ADJUSTP_WI(EL,X,k,J)
+  SUBROUTINE ADJUST_WIp(EL,X,k) !,J)
     IMPLICIT NONE
     TYPE(REAL_8), INTENT(INOUT) :: X(6)
     TYPE(saganP),INTENT(INOUT):: EL
     TYPE(INTERNAL_STATE),OPTIONAL :: K
 
-    INTEGER, INTENT(IN) :: J
+   ! INTEGER, INTENT(IN) :: J
 
-    IF(J==1.and.el%p%dir==-1) then
+ !  IF(J==1.and.el%p%dir==-1) then
+
+!     X(1)=X(1)-EL%INTERNAL(1)
+!     X(2)=X(2)-EL%INTERNAL(2)
+!     X(3)=X(3)-EL%INTERNAL(3)
+!     X(4)=X(4)-EL%INTERNAL(4)
+!     X(5)=X(5)-EL%INTERNAL(5)
+!     if(K%time) then
+!       X(6)=X(6)-EL%INTERNAL(6)/el%p%beta0
+!      else
+!       X(6)=X(6)-EL%INTERNAL(6)
+!     endif
+!    elseIF(J==2.and.el%p%dir==1) then
 
      X(1)=X(1)-EL%INTERNAL(1)
      X(2)=X(2)-EL%INTERNAL(2)
@@ -312,22 +324,10 @@ contains
       else
        X(6)=X(6)-EL%INTERNAL(6)
      endif
-    elseIF(J==2.and.el%p%dir==1) then
-
-     X(1)=X(1)-EL%INTERNAL(1)
-     X(2)=X(2)-EL%INTERNAL(2)
-     X(3)=X(3)-EL%INTERNAL(3)
-     X(4)=X(4)-EL%INTERNAL(4)
-     X(5)=X(5)-EL%INTERNAL(5)
-     if(K%time) then
-       X(6)=X(6)-EL%INTERNAL(6)/el%p%beta0
-      else
-       X(6)=X(6)-EL%INTERNAL(6)
-     endif
-    endif
+  !  endif
 
 
-  END SUBROUTINE ADJUSTP_WI
+  END SUBROUTINE ADJUST_WIP
 
 
 subroutine kick_integral_r(el,v,kx,ky,symp)
@@ -631,7 +631,7 @@ end subroutine kick_integral_p
 
    call ADJUST_LIKE_ABELL(EL,X,k,EXI)
 
-    call ADJUST_WI(EL,X,k,2)
+  !  call ADJUST_WI(EL,X,k,2)
 
   END SUBROUTINE INTR
 
@@ -833,7 +833,7 @@ end subroutine kick_integral_p
 
     call ADJUST_LIKE_ABELL(EL,X,k,EXI)
 
-    call ADJUST_WI(EL,X,k,2)
+ !   call ADJUST_WI(EL,X,k,2)
 
   END SUBROUTINE INTP
 
@@ -1796,8 +1796,8 @@ ENDIF
           X(1)=X(1)+L*X(2)*DPZ
           X(3)=X(3)+L*X(4)*DPZ
           X(6)=X(6)+L*(1.0_dp/EL%P%BETA0+X(5))/PZ -(1.0_dp-k%TOTALPATH)*L/EL%P%BETA0
-          PZ=ROOT(1.0_dp+2.0_dp*X(5)/EL%P%BETA0+x(5)**2)   ! WRONG NOT SYMPLECTIC 2015.8.11
-          X(6)=X(6)-((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/EL%P%BETA0+x(5))*L/pz
+!          PZ=ROOT(1.0_dp+2.0_dp*X(5)/EL%P%BETA0+x(5)**2)   ! WRONG NOT SYMPLECTIC 2015.8.11
+          X(6)=X(6)-((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz0**2)*(1.0_dp/EL%P%BETA0+x(5))*L/pz0
        else
           PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           PZ0=1.0_dp+X(5)
@@ -1835,8 +1835,8 @@ ENDIF
           X(1)=X(1)+L*X(2)*DPZ
           X(3)=X(3)+L*X(4)*DPZ
           X(6)=X(6)+L*(1.0_dp/EL%P%BETA0+X(5))/PZ -(1.0_dp-k%TOTALPATH)*L/EL%P%BETA0
-          PZ=SQRT(1.0_dp+2.0_dp*X(5)/EL%P%BETA0+x(5)**2)   ! WRONG NOT SYMPLECTIC 2015.8.11
-          X(6)=X(6)-((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/EL%P%BETA0+x(5))*L/pz
+!          PZ=SQRT(1.0_dp+2.0_dp*X(5)/EL%P%BETA0+x(5)**2)   ! WRONG NOT SYMPLECTIC 2015.8.11
+          X(6)=X(6)-((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz0**2)*(1.0_dp/EL%P%BETA0+x(5))*L/pz0
        else
           PZ=sqrt((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           PZ0=1.0_dp+X(5)
@@ -3746,6 +3746,7 @@ subroutine feval_saganp(Z,X,k,f,EL)   !electric teapot s
     real(dp) z
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
+    if(el%p%dir==-1.and.j==1)  call  ADJUST_WI(EL,X,k)  !,J)
   !   if(.not.el%xprime.or.get_out) then 
      if(el%xprime.or.get_in) then 
 
@@ -3782,6 +3783,10 @@ subroutine feval_saganp(Z,X,k,f,EL)   !electric teapot s
       ENDIF
     endif
     endif
+
+    if(el%p%dir==1.and.j==2)  call  ADJUST_WI(EL,X,k)  !,J)
+
+ 
   END SUBROUTINE ADJUST_like_abellr
 
   SUBROUTINE ADJUST_like_abellp(EL,X,k,J)
@@ -3792,6 +3797,9 @@ subroutine feval_saganp(Z,X,k,f,EL)   !electric teapot s
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     type(real_8)   z
     call ALLOC(z)
+
+    if(el%p%dir==-1.and.j==1)  call  ADJUST_WI(EL,X,k)  !,J)
+
 !     if(.not.el%xprime.or.get_out) then 
      if(el%xprime.or.get_in) then 
 
@@ -3828,7 +3836,8 @@ subroutine feval_saganp(Z,X,k,f,EL)   !electric teapot s
       ENDIF
     endif
     endif
-   
+       if(el%p%dir==1.and.j==2)  call  ADJUST_WI(EL,X,k)  !,J)
+
     call kill(z)
   END SUBROUTINE ADJUST_like_abellp
 
