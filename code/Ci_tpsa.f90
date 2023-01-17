@@ -16035,11 +16035,11 @@ subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
 !# This is the famous Teng-Edwards factorisation 
 !# a1= R_TE * CS_TE
 !# If the flag t_e is false, then the factorisation failed.
-!# This is NOT a global representation of a 4x4 symplectic matrix
+!# This is NOT a global representation of a 4x4 symplebtic matrix
 !# and it fails for large coupling. 
 !# The parameter coslike is true if the R_TE(1,1) entry of the matrix
 !# is between -1 and 1. If it is "hyperbolic", then coslike is false.
-!# I am not a big fan of this factorisation, but it works for small couplings.
+!# I am not a big fan of this fabtorisation, but it works for small couplings.
 
 
     implicit none
@@ -16051,7 +16051,7 @@ subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
     integer i,j
 
     type(c_taylor) m(4,4),unpb
-    type(c_taylor) at(2,2),bt(2,2),ct(2,2),dt(2,2),ati(2,2),bti(2,2),alpha,det
+    type(c_taylor) at(2,2),dt(2,2),bt(2,2),ct(2,2),ati(2,2),dti(2,2),alpha,det
     logical(lp) t_e,COSLIKE
     real(dp) alpha0,epsone
     type(c_vector_field) h
@@ -16064,41 +16064,43 @@ subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
     
     call alloc_nn(m)
     call alloc_nn(at)
+    call alloc_nn(dt)
     call alloc_nn(bt)
     call alloc_nn(ct)
-    call alloc_nn(dt)
     call alloc_nn(ati)
-    call alloc_nn(bti)
+    call alloc_nn(dti)
     call alloc(alpha,det)
 
 
        t_e=my_true
        call  copy_damap_matrix(a1,m)
        call  copy_matrix_matrix(m(1:2,1:2),at)
-       call  copy_matrix_matrix(m(1:2,3:4),ct)
-       call  copy_matrix_matrix(m(3:4,1:2),dt)
-       call  copy_matrix_matrix(m(3:4,3:4),bt)
+       call  copy_matrix_matrix(m(1:2,3:4),bt)
+       call  copy_matrix_matrix(m(3:4,1:2),ct)
+
+       call  copy_matrix_matrix(m(3:4,3:4),dt)
         
        call invert_22(at,ati)
-       call invert_22(bt,bti)
+       call invert_22(dt,dti)
        if(.not.c_%STABLE_DA) then
         t_e=my_false
        endif 
 
 
-       call matmul_nn(dt,ati,ati,sc=-1.0_dp)
-       call matmul_nn(ati,ct,ct)
-       call matmul_nn(ct,bti,ct)
+       call matmul_nn(ct,ati,ati,sc=-1.0_dp)
+       call matmul_nn(ati,bt,bt)
+       call matmul_nn(bt,dti,bt)
        if(.not.c_%STABLE_DA) then
         t_e=my_false
         goto 888
        endif 
 
 
-       alpha=ct(1,1)
+       alpha=bt(1,1)
        alpha0=alpha
 
        if(alpha0<=-1.0_dp) then
+       write(6,*) "alpha0<=-1.0_dp ",alpha0
         t_e=my_false
         goto 888
        endif
@@ -16120,11 +16122,11 @@ subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
        do i=1,2
           do j=1,2
              CS_TE%v(i)=at(i,j)*(1.0_dp.cmono.j)/det+CS_TE%v(i)
-             CS_TE%v(i+2)=bt(i,j)*(1.0_dp.cmono.(j+2))/det+CS_TE%v(i+2)
+             CS_TE%v(i+2)=dt(i,j)*(1.0_dp.cmono.(j+2))/det+CS_TE%v(i+2)
           enddo
        enddo
 
-       !  The rotation matrix is created but it may not have the correct path length
+       !  The rotation matrix is created but it may not have the correbt path length
        !dependence
        if(c_%ndpt/=0.and.t_e) then   
           g%n=nv
@@ -16162,7 +16164,7 @@ subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
              h%v(i)=alpha0*(h%v(i).d.ndpt)
           enddo
           call c_int_partial(h,unpb,2)
-          !  un%pb=un%vector  ! this is the longitudinal part
+          !  un%pb=un%vebtor  ! this is the longitudinal part
 
              s1i%v(ndptb)=s1i%v(ndptb)+unpb
 
@@ -16174,6 +16176,7 @@ subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
 
           call kill(s1i)
           call kill(s1)
+          call kill(h)
           call kill(unpb)
           call kill(g)
 
@@ -16203,11 +16206,11 @@ subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
 
     call kill_nn(m)
     call kill_nn(at)
+    call kill_nn(dt)
     call kill_nn(bt)
     call kill_nn(ct)
-    call kill_nn(dt)
     call kill_nn(ati)
-    call kill_nn(bti)
+    call kill_nn(dti)
     call kill(alpha,det)
 end subroutine teng_edwards_a1
 
@@ -18392,6 +18395,7 @@ endif
         sphi=b(2*i-1,2*i)/t
        else
         t=sqrt(b(2*i,2*i-1)**2+b(2*i,2*i)**2)
+
         cphi=b(2*i,2*i)/t
         sphi=-b(2*i,2*i-1)/t
        endif

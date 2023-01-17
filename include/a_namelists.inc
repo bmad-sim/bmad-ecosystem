@@ -59,6 +59,7 @@ namelist / ELEname / ELE0
    integer N_BESSEL,NF,CAVITY_TOTALPATH
    real(dp) phase0,t
    logical always_on
+   logical xprime
    real(dp) F(harm_max)
    real(dp) PH(harm_max)   
    real(dp) A,R

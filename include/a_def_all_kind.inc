@@ -122,6 +122,7 @@ TYPE CAV4
    INTEGER , POINTER :: NF => null()
    integer, POINTER :: N_BESSEL => null(),CAVITY_TOTALPATH => null()     ! Cavity information
    logical, pointer :: always_on => null()
+   logical,pointer :: xprime => null()
    type(acceleration), pointer :: ACC => null()
    real(dp),   POINTER:: H1 => null(),H2 => null()  
 END  TYPE CAV4
@@ -139,6 +140,7 @@ TYPE CAV4P
    INTEGER , POINTER :: NF => null()
    integer, POINTER :: N_BESSEL => null(),CAVITY_TOTALPATH => null()  ! Cavity information
    logical, pointer :: always_on => null()
+   logical,pointer :: xprime => null()
    type(acceleration), pointer :: ACC => null()
    TYPE(REAL_8),   POINTER:: H1 => null(),H2 => null()  
 END  TYPE CAV4P

@@ -581,7 +581,7 @@ endif
 
 
     IF(K%PARA_IN ) KNOB=.TRUE.
-    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B,before=before)
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k,E,B,before=before )
     if((k%radiation.or.k%envelope).AND.BEFORE) then
        !if(el%p%radiation.AND.BEFORE) then
        call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,POS,E,B)
