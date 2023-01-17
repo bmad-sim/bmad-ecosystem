@@ -944,10 +944,7 @@ if (.not. associated(ele2%gen_grad_map) .and. ((associated(ele2%cartesian_map) .
 
   if (ptc_private%base_state%totalpath == 0) then
     z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
-    z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - 2*ele%value(l$)
     ptc_fibre%mag%wi%internal(6) = z_patch
-  else
-    ptc_fibre%mag%wi%internal(6) = -ele%value(l$)
   endif
 
   call copy (ptc_fibre%mag, ptc_fibre%magp)
