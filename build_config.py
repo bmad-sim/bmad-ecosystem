@@ -160,7 +160,6 @@ release_build_list = [
                 '/trunk/src/examples',
                 '/trunk/src/analyzer',
                 '/CESR/CESR_progs/xbus_book',
-                '/CESR/CESR_progs/CBSM/xBSM/XbsmAnalysis',
                 '/CESR/CESR_progs/newin',
                 '/CESR/CESR_progs/DB_utils',
                 '/CESR/CESR_progs/chfeed',
