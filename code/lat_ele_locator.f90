@@ -31,6 +31,9 @@
 !               %descrip field is matched to instead of the element name.
 !   ele1     -- Starting element of the range.
 !   ele2     -- Ending element of the range. 
+! The range includes ele1 and ele2.
+! If ele2%ix_ele < ele1%ix_ele, the range wraps around the ends of the lattice. That is, the range is
+!   [ele1%ix_ele, branch%n_ele_track] + [0, ele2%ix_ele]
 ! Note: ele1 and ele2 must be in the same branch. Branch 0 is the default.
 ! If ele1 or ele2 is a super_lord, the elements in the range are determined by the position of the super_slave elements.
 ! For example, if loc_str is "Q1:Q1" and Q1 is *not* a super_lord, the eles list will simply be Q1.
@@ -105,10 +108,11 @@ use bmad_interface, dummy => lat_ele_locator
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_pointer_struct), allocatable, target :: eles2(:)
 type (ele_struct), pointer :: ele_start, ele_end
+type (branch_struct), pointer :: branch
 
 character(*) loc_str
 character(200) str
@@ -286,7 +290,6 @@ do
   ! Exception: Something like "1:100" where integers are used is interpreted as elements 1 through 100.
 
   ele_end => eles2(1)%ele
-
   if (.not. names_are_integers) then
     ele_start => find_this_end(ele_start, entrance_end$, err2); if (err2) return
     ele_end => find_this_end(ele_end, exit_end$, err2);  if (err2) return
@@ -296,44 +299,42 @@ do
     call out_io (s_error$, r_name, 'ELEMENTS NOT OF THE SAME BRANCH IN RANGE: ' // loc_str)
     return
   endif
-  ib = ele_start%ix_branch
+  branch => lat%branch(ele_end%ix_branch)
+  ib = branch%ix_branch
 
-  if (key > 0) then
-    n_loc2 = 0
-    do i = ele_start%ix_ele, ele_end%ix_ele
-      if (lat%branch(ib)%ele(i)%key == key .or. lat%branch(ib)%ele(i)%sub_key == key) n_loc2 = n_loc2 + 1
+  call re_allocate_eles(eles2, branch%n_ele_track, .false.)
+  n_loc2 = 0
+  if (ele_start%ix_ele > ele_end%ix_ele) then
+    do i = ele_end%ix_ele, branch%n_ele_track
+      if (key > 0 .and. branch%ele(i)%key /= key .and. branch%ele(i)%sub_key /= key) cycle
+      n_loc2 = n_loc2 + 1; eles2(n_loc2)%ele => branch%ele(i)
     enddo
+
+    do i = 0, ele_start%ix_ele
+      if (key > 0 .and. branch%ele(i)%key /= key .and. branch%ele(i)%sub_key /= key) cycle
+      n_loc2 = n_loc2 + 1; eles2(n_loc2)%ele => branch%ele(i)
+    enddo
+
   else
-    n_loc2 = (ele_end%ix_ele - ele_start%ix_ele) + 1
+    do i = ele_start%ix_ele, ele_end%ix_ele
+      if (key > 0 .and. branch%ele(i)%key /= key .and. branch%ele(i)%sub_key /= key) cycle
+      n_loc2 = n_loc2 + 1; eles2(n_loc2)%ele => branch%ele(i)
+    enddo
   endif
 
-  if (negate .or. intersection) then
-    call re_allocate_eles(eles2, n_loc2, .false.)
-    n_loc2 = 0
-    do i = ele_start%ix_ele, ele_end%ix_ele
-      if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key .and. lat%branch(ib)%ele(i)%sub_key /= key) cycle
-      n_loc2 = n_loc2 + 1
-      eles2(n_loc2)%ele => lat%branch(ib)%ele(i)
-      eles2(n_loc2)%loc = lat_ele_loc_struct(i, ib)
-    enddo
-    if (negate) then
-      call negate_eles(eles, n_loc, eles2(1:n_loc2))
-    else
-      call intersection_eles(eles, n_loc, eles2(1:n_loc2))
-      intersection = .false.
-    endif
+  if (negate) then
+    call negate_eles(eles, n_loc, eles2(1:n_loc2))
+
+  elseif (intersection) then
+    call intersection_eles(eles, n_loc, eles2(1:n_loc2))
+    intersection = .false.
 
   else
     call re_allocate_eles(eles, n_loc+n_loc2, .true.)
-
-    n_loc2 = 0
-    do i = ele_start%ix_ele, ele_end%ix_ele
-      if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key .and. lat%branch(ib)%ele(i)%sub_key /= key) cycle
-      n_loc2 = n_loc2 + 1
-      eles(n_loc+n_loc2)%ele => lat%branch(ib)%ele(i)
-      eles(n_loc+n_loc2)%loc = lat_ele_loc_struct(i, ib)
+    do i = 1, n_loc2
+      eles(n_loc+i)%ele => eles2(i)%ele
+      eles(n_loc+i)%loc = lat_ele_loc_struct(eles2(i)%ele%ix_ele, ib)
     enddo
-
     n_loc = n_loc + n_loc2
   endif
 

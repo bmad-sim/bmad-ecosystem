@@ -664,7 +664,7 @@ $\theta$ and $\rho$ are expanded in a Taylor series in $x$ and $y$.
 For RF fields, the \vn{cylindrical} mode parametrization used by \bmad essentially
 follows Abell\cite{b:rf.abell}. The electric field is the real part of the complex field
 \begin{equation}
-  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, \exp[{-2\, \pi \, i \, (f_j \, t + \phi_{0j})}]
+  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, \exp[{-2 \pi i \, (f_j \, t + \phi_{0j})}]
   \label{eseei}
 \end{equation}
 where $M$ is the number of modes. Each mode satisfies the vector Helmholtz
@@ -673,7 +673,7 @@ equation
   \nabla^2 \bfE_j + k_{tj}^2 \, \bfE_j = 0
   \label{bke}
 \end{equation}
-where $k_{tj} = 2 \, \pi \, f/c$ with $f_j$ being the mode frequency.
+where $k_{tj} = 2 \, \pi \, f_j/c$ with $f_j$ being the mode frequency.
 
 The individual modes vary azimuthally as $\cos(m \, \theta - \theta_0)$ where $m$ is a non-negative
 integer.  [in this and in subsequent equations, the mode index $j$ has been dropped.]  For the $m =
@@ -712,19 +712,19 @@ where $J_m$ is a Bessel function of the first kind.
 The $e_0$ coefficients can be obtained given knowledge of the field at some radius $R$ via
 \begin{align}
   e_0(n) &= \frac{1}{\wt I_0(\kappa_n, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
-    e^{-2 \, \pi \, i \, n \, p / N} \, E_{z}(R, p \, dz)
+    e^{-2 \pi i n p / N} \, E_{z}(R, p \, dz)
 \end{align}
 
 The non-accelerating $m = 0$ mode has an electric field in the form
 \begin{align}
   E_\rho(\bfr) &= E_z(\bfr) = 0 \CRNO
-  E_\theta(\bfr) &= \sum_{n=-N/2}^{N/2-1}e^{i \, k_n \, z} \, 
+  E_\theta(\bfr) &= \sum_{n=-N/2}^{N/2-1}e^{i k_n z} \, 
     b_0(n) \, \wt I_1(\kappa_n, \rho)
 \end{align}
 where the $b_0$ coefficients can be obtained given knowledge of the field at some radius $R$ via
 \begin{equation}
   b_0(n) = \frac{1}{\wt I_1(\kappa_n, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
-    e^{-2 \, \pi \, i \, n \, p / N} \, E_{\theta}(R, p \, dz)
+    e^{-2 \pi i \, n \, p / N} \, E_{\theta}(R, p \, dz)
 \end{equation}
 
 For positive $m$, the electric field is in the form
@@ -833,7 +833,10 @@ Even though the scalar potential only involves even derivatives of $C_{m,\alpha}
 dependent upon the odd derivatives as well. The multipole index $m$ is such that $m = 0$ is for
 solenoidal fields, $m = 1$ is for dipole fields, $m = 2$ is for quadrupolar fields, etc. The
 \vn{sin}--like generalized gradients represent normal (non-skew) fields and the \vn{cos}--like one
-represent skew fields.
+represent skew fields. The on-axis fields at $x=y=0$ are given by:
+\begin{equation}
+  (B_x, B_y, B_z) = (C_{1,c}, C_{1,s}, -C^{[1]}_{0,c})
+\end{equation}
 
 The magnetic vector potential for $m = 0$ is constructed such that only $A_\theta$ is non-zero
 \begin{align}

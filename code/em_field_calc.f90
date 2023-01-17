@@ -436,7 +436,7 @@ case (bmad_standard$)
       E_r_coef   =          gradient * k_wave * sin(k_wave*s_eff) * cos(omega * time + phase)
       B_phi_coef =         -gradient * k_wave * cos(k_wave*s_eff) * sin(omega * time + phase) / c_light 
     else
-      call out_io (s_error$, r_name, 'LONGITUDINAL_MODE PARAMETER IS NO 0 NOR 1 FOR ELEMENT: ' // ele%name)
+      call out_io (s_error$, r_name, 'LONGITUDINAL_MODE PARAMETER IS NOT 0 NOR 1 FOR ELEMENT: ' // ele%name)
       return
     endif
 
