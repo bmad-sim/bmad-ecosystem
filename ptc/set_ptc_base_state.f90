@@ -27,8 +27,9 @@ logical, optional :: old_val
 select case (component)
 case ('TOTALPATH')
   if (present(old_val)) old_val = (ptc_private%base_state%totalpath == 1)
-  if (set_val == .false.) then; ptc_private%base_state%totalpath = 0
-  else;                         ptc_private%base_state%totalpath = 1
+
+  if (set_val) then; ptc_private%base_state%totalpath = 1
+  else;              ptc_private%base_state%totalpath = 0
   endif
 
 case("TIME");       call set_it(ptc_private%base_state%time)
