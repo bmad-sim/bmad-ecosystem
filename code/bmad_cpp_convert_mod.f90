@@ -656,15 +656,6 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine synch_rad_common_to_f (C, Fp) bind(c)
-    import c_ptr
-    type(c_ptr), value :: C, Fp
-  end subroutine
-end interface
-
-!--------------------------------------------------------------------------
-
-interface 
   subroutine space_charge_common_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -4944,11 +4935,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine gen_grad1_to_c2 (C, z_m, z_sincos, z_deriv, n1_deriv, n2_deriv) bind(c)
+  subroutine gen_grad1_to_c2 (C, z_m, z_sincos, z_n_deriv_max, z_deriv, n1_deriv, n2_deriv) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int) :: z_m, z_sincos
+    integer(c_int) :: z_m, z_sincos, z_n_deriv_max
     real(c_double) :: z_deriv(*)
     integer(c_int), value :: n1_deriv, n2_deriv
   end subroutine
@@ -4975,8 +4967,8 @@ else
 endif
 
 !! f_side.to_c2_call
-call gen_grad1_to_c2 (C, F%m, F%sincos, mat2vec(F%deriv, n1_deriv*n2_deriv), n1_deriv, &
-    n2_deriv)
+call gen_grad1_to_c2 (C, F%m, F%sincos, F%n_deriv_max, mat2vec(F%deriv, n1_deriv*n2_deriv), &
+    n1_deriv, n2_deriv)
 
 end subroutine gen_grad1_to_c
 
@@ -4996,7 +4988,8 @@ end subroutine gen_grad1_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine gen_grad1_to_f2 (Fp, z_m, z_sincos, z_deriv, n1_deriv, n2_deriv) bind(c)
+subroutine gen_grad1_to_f2 (Fp, z_m, z_sincos, z_n_deriv_max, z_deriv, n1_deriv, n2_deriv) &
+    bind(c)
 
 
 implicit none
@@ -5005,7 +4998,7 @@ type(c_ptr), value :: Fp
 type(gen_grad1_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_m, z_sincos
+integer(c_int) :: z_m, z_sincos, z_n_deriv_max
 type(c_ptr), value :: z_deriv
 real(c_double), pointer :: f_deriv(:)
 integer(c_int), value :: n1_deriv, n2_deriv
@@ -5016,6 +5009,8 @@ call c_f_pointer (Fp, F)
 F%m = z_m
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%sincos = z_sincos
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_deriv_max = z_n_deriv_max
 !! f_side.to_f2_trans[real, 2, ALLOC]
 if (allocated(F%deriv)) then
   if (n1_deriv == 0 .or. any(shape(F%deriv) /= [n1_deriv, n2_deriv])) deallocate(F%deriv)
@@ -8362,93 +8357,6 @@ F%n_bad = z_n_bad
 F%n_ok = z_n_ok
 
 end subroutine track_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine synch_rad_common_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad synch_rad_common_struct to a C++ CPP_synch_rad_common structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad synch_rad_common_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_synch_rad_common struct.
-!-
-
-subroutine synch_rad_common_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine synch_rad_common_to_c2 (C, z_scale, z_i2, z_i3, z_i5a, z_i5b) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    real(c_double) :: z_scale, z_i2, z_i3, z_i5a, z_i5b
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(synch_rad_common_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-
-!
-
-call c_f_pointer (Fp, F)
-
-
-!! f_side.to_c2_call
-call synch_rad_common_to_c2 (C, F%scale, F%i2, F%i3, F%i5a, F%i5b)
-
-end subroutine synch_rad_common_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine synch_rad_common_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_synch_rad_common structure to a Bmad synch_rad_common_struct structure.
-! This routine is called by synch_rad_common_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the synch_rad_common_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad synch_rad_common_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine synch_rad_common_to_f2 (Fp, z_scale, z_i2, z_i3, z_i5a, z_i5b) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(synch_rad_common_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_scale, z_i2, z_i3, z_i5a, z_i5b
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[real, 0, NOT]
-F%scale = z_scale
-!! f_side.to_f2_trans[real, 0, NOT]
-F%i2 = z_i2
-!! f_side.to_f2_trans[real, 0, NOT]
-F%i3 = z_i3
-!! f_side.to_f2_trans[real, 0, NOT]
-F%i5a = z_i5a
-!! f_side.to_f2_trans[real, 0, NOT]
-F%i5b = z_i5b
-
-end subroutine synch_rad_common_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

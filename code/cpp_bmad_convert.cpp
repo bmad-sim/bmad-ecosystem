@@ -1643,7 +1643,8 @@ extern "C" void rad_map_ele_to_c2 (CPP_rad_map_ele& C, const Opaque_rad_map_clas
 extern "C" void gen_grad1_to_c (const Opaque_gen_grad1_class*, CPP_gen_grad1&);
 
 // c_side.to_f2_arg
-extern "C" void gen_grad1_to_f2 (Opaque_gen_grad1_class*, c_Int&, c_Int&, c_RealArr, Int, Int);
+extern "C" void gen_grad1_to_f2 (Opaque_gen_grad1_class*, c_Int&, c_Int&, c_Int&, c_RealArr,
+    Int, Int);
 
 extern "C" void gen_grad1_to_f (const CPP_gen_grad1& C, Opaque_gen_grad1_class* F) {
   // c_side.to_f_setup[real, 2, ALLOC]
@@ -1656,20 +1657,22 @@ extern "C" void gen_grad1_to_f (const CPP_gen_grad1& C, Opaque_gen_grad1_class* 
   }
 
   // c_side.to_f2_call
-  gen_grad1_to_f2 (F, C.m, C.sincos, z_deriv, n1_deriv, n2_deriv);
+  gen_grad1_to_f2 (F, C.m, C.sincos, C.n_deriv_max, z_deriv, n1_deriv, n2_deriv);
 
   // c_side.to_f_cleanup[real, 2, ALLOC]
   delete[] z_deriv;
 }
 
 // c_side.to_c2_arg
-extern "C" void gen_grad1_to_c2 (CPP_gen_grad1& C, c_Int& z_m, c_Int& z_sincos, c_RealArr
-    z_deriv, Int n1_deriv, Int n2_deriv) {
+extern "C" void gen_grad1_to_c2 (CPP_gen_grad1& C, c_Int& z_m, c_Int& z_sincos, c_Int&
+    z_n_deriv_max, c_RealArr z_deriv, Int n1_deriv, Int n2_deriv) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.m = z_m;
   // c_side.to_c2_set[integer, 0, NOT]
   C.sincos = z_sincos;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_deriv_max = z_n_deriv_max;
   // c_side.to_c2_set[real, 2, ALLOC]
   C.deriv.resize(n1_deriv);
   for (int i = 0; i < n1_deriv; i++) C.deriv[i].resize(n2_deriv);
@@ -3084,39 +3087,6 @@ extern "C" void track_to_c2 (CPP_track& C, Opaque_track_point_class** z_pt, Int 
   C.n_bad = z_n_bad;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_ok = z_n_ok;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_synch_rad_common
-
-extern "C" void synch_rad_common_to_c (const Opaque_synch_rad_common_class*, CPP_synch_rad_common&);
-
-// c_side.to_f2_arg
-extern "C" void synch_rad_common_to_f2 (Opaque_synch_rad_common_class*, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&);
-
-extern "C" void synch_rad_common_to_f (const CPP_synch_rad_common& C, Opaque_synch_rad_common_class* F) {
-
-  // c_side.to_f2_call
-  synch_rad_common_to_f2 (F, C.scale, C.i2, C.i3, C.i5a, C.i5b);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void synch_rad_common_to_c2 (CPP_synch_rad_common& C, c_Real& z_scale, c_Real& z_i2,
-    c_Real& z_i3, c_Real& z_i5a, c_Real& z_i5b) {
-
-  // c_side.to_c2_set[real, 0, NOT]
-  C.scale = z_scale;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.i2 = z_i2;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.i3 = z_i3;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.i5a = z_i5a;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.i5b = z_i5b;
 }
 
 //--------------------------------------------------------------------

@@ -90,7 +90,6 @@ struct_list = [
     'strong_beam_struct',
     'track_point_struct',
     'track_struct',
-    'synch_rad_common_struct',
     'space_charge_common_struct',
     'bmad_common_struct',
     'rad_int1_struct',

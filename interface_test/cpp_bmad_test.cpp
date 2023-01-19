@@ -2726,6 +2726,9 @@ void set_CPP_gen_grad1_test_pattern (CPP_gen_grad1& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 2 + offset; C.sincos = rhs;
 
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 3 + offset; C.n_deriv_max = rhs;
+
   // c_side.test_pat[real, 2, ALLOC]
   if (ix_patt < 3) 
     C.deriv.resize(0);
@@ -2734,7 +2737,7 @@ void set_CPP_gen_grad1_test_pattern (CPP_gen_grad1& C, int ix_patt) {
     for (unsigned int i = 0; i < C.deriv.size(); i++)
       C.deriv[i].resize(2);
     for (unsigned int i = 0; i < C.deriv.size(); i++)  for (unsigned int j = 0; j < C.deriv[0].size(); j++) 
-      {int rhs = 101 + i + 10*(j+1) + 3 + offset; C.deriv[i][j] = rhs;}  }
+      {int rhs = 101 + i + 10*(j+1) + 4 + offset; C.deriv[i][j] = rhs;}  }
 
 
 }
@@ -5035,69 +5038,6 @@ extern "C" void test_c_track (Opaque_track_class* F, bool& c_ok) {
 
   set_CPP_track_test_pattern (C2, 4);
   track_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_synch_rad_common (CPP_synch_rad_common&, bool&);
-
-void set_CPP_synch_rad_common_test_pattern (CPP_synch_rad_common& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.scale = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.i2 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.i3 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.i5a = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.i5b = rhs;
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_synch_rad_common (Opaque_synch_rad_common_class* F, bool& c_ok) {
-
-  CPP_synch_rad_common C, C2;
-
-  c_ok = true;
-
-  synch_rad_common_to_c (F, C);
-  set_CPP_synch_rad_common_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " synch_rad_common: C side convert F->C: Good" << endl;
-  } else {
-    cout << " synch_rad_common: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_synch_rad_common_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_synch_rad_common (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_synch_rad_common_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " synch_rad_common: F side convert F->C: Good" << endl;
-  } else {
-    cout << " synch_rad_common: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_synch_rad_common_test_pattern (C2, 4);
-  synch_rad_common_to_f (C2, F);
 
 }
 

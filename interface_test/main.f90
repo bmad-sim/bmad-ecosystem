@@ -79,7 +79,6 @@ call test1_f_em_field(ok); if (.not. ok) all_ok = .false.
 call test1_f_strong_beam(ok); if (.not. ok) all_ok = .false.
 call test1_f_track_point(ok); if (.not. ok) all_ok = .false.
 call test1_f_track(ok); if (.not. ok) all_ok = .false.
-call test1_f_synch_rad_common(ok); if (.not. ok) all_ok = .false.
 call test1_f_space_charge_common(ok); if (.not. ok) all_ok = .false.
 call test1_f_bmad_common(ok); if (.not. ok) all_ok = .false.
 call test1_f_rad_int1(ok); if (.not. ok) all_ok = .false.

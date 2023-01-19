@@ -702,6 +702,7 @@ bool operator== (const CPP_gen_grad1& x, const CPP_gen_grad1& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.m == y.m);
   is_eq = is_eq && (x.sincos == y.sincos);
+  is_eq = is_eq && (x.n_deriv_max == y.n_deriv_max);
   is_eq = is_eq && is_all_equal(x.deriv, y.deriv);
   return is_eq;
 };
@@ -1254,21 +1255,6 @@ bool operator== (const CPP_track& x, const CPP_track& y) {
 
 template bool is_all_equal (const CPP_track_ARRAY&, const CPP_track_ARRAY&);
 template bool is_all_equal (const CPP_track_MATRIX&, const CPP_track_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_synch_rad_common& x, const CPP_synch_rad_common& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.scale == y.scale);
-  is_eq = is_eq && (x.i2 == y.i2);
-  is_eq = is_eq && (x.i3 == y.i3);
-  is_eq = is_eq && (x.i5a == y.i5a);
-  is_eq = is_eq && (x.i5b == y.i5b);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_synch_rad_common_ARRAY&, const CPP_synch_rad_common_ARRAY&);
-template bool is_all_equal (const CPP_synch_rad_common_MATRIX&, const CPP_synch_rad_common_MATRIX&);
 
 //--------------------------------------------------------------
 

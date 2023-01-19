@@ -4137,6 +4137,8 @@ offset = 100 * ix_patt
 rhs = 1 + offset; F%m = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 2 + offset; F%sincos = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 3 + offset; F%n_deriv_max = rhs
 !! f_side.test_pat[real, 2, ALLOC]
 
 if (ix_patt < 3) then
@@ -4145,7 +4147,7 @@ else
   if (.not. allocated(F%deriv)) allocate (F%deriv(-1:1, 2))
   do jd1 = 1, size(F%deriv,1); lb1 = lbound(F%deriv,1) - 1
   do jd2 = 1, size(F%deriv,2); lb2 = lbound(F%deriv,2) - 1
-    rhs = 100 + jd1 + 10*jd2 + 3 + offset
+    rhs = 100 + jd1 + 10*jd2 + 4 + offset
     F%deriv(jd1+lb1,jd2+lb2) = rhs
   enddo; enddo
 endif
@@ -7413,100 +7415,6 @@ rhs = 5 + offset; F%n_bad = rhs
 rhs = 6 + offset; F%n_ok = rhs
 
 end subroutine set_track_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test1_f_synch_rad_common (ok)
-
-implicit none
-
-type(synch_rad_common_struct), target :: f_synch_rad_common, f2_synch_rad_common
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_synch_rad_common (c_synch_rad_common, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_synch_rad_common
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_synch_rad_common_test_pattern (f2_synch_rad_common, 1)
-
-call test_c_synch_rad_common(c_loc(f2_synch_rad_common), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_synch_rad_common_test_pattern (f_synch_rad_common, 4)
-if (f_synch_rad_common == f2_synch_rad_common) then
-  print *, 'synch_rad_common: C side convert C->F: Good'
-else
-  print *, 'synch_rad_common: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_synch_rad_common
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_synch_rad_common (c_synch_rad_common, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_synch_rad_common
-type(synch_rad_common_struct), target :: f_synch_rad_common, f2_synch_rad_common
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call synch_rad_common_to_f (c_synch_rad_common, c_loc(f_synch_rad_common))
-
-call set_synch_rad_common_test_pattern (f2_synch_rad_common, 2)
-if (f_synch_rad_common == f2_synch_rad_common) then
-  print *, 'synch_rad_common: F side convert C->F: Good'
-else
-  print *, 'synch_rad_common: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_synch_rad_common_test_pattern (f2_synch_rad_common, 3)
-call synch_rad_common_to_c (c_loc(f2_synch_rad_common), c_synch_rad_common)
-
-end subroutine test2_f_synch_rad_common
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_synch_rad_common_test_pattern (F, ix_patt)
-
-implicit none
-
-type(synch_rad_common_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%scale = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%i2 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%i3 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%i5a = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%i5b = rhs
-
-end subroutine set_synch_rad_common_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------

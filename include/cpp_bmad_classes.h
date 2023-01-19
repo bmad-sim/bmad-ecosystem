@@ -371,11 +371,6 @@ typedef valarray<CPP_track>          CPP_track_ARRAY;
 typedef valarray<CPP_track_ARRAY>    CPP_track_MATRIX;
 typedef valarray<CPP_track_MATRIX>   CPP_track_TENSOR;
 
-class CPP_synch_rad_common;
-typedef valarray<CPP_synch_rad_common>          CPP_synch_rad_common_ARRAY;
-typedef valarray<CPP_synch_rad_common_ARRAY>    CPP_synch_rad_common_MATRIX;
-typedef valarray<CPP_synch_rad_common_MATRIX>   CPP_synch_rad_common_TENSOR;
-
 class CPP_space_charge_common;
 typedef valarray<CPP_space_charge_common>          CPP_space_charge_common_ARRAY;
 typedef valarray<CPP_space_charge_common_ARRAY>    CPP_space_charge_common_MATRIX;
@@ -1788,11 +1783,13 @@ class CPP_gen_grad1 {
 public:
   Int m;
   Int sincos;
+  Int n_deriv_max;
   Real_MATRIX deriv;
 
   CPP_gen_grad1() :
     m(0),
     sincos(0),
+    n_deriv_max(-1),
     deriv(Real_ARRAY(0.0, 0), 0)
     {}
 
@@ -2954,38 +2951,6 @@ extern "C" void track_to_c (const Opaque_track_class*, CPP_track&);
 extern "C" void track_to_f (const CPP_track&, Opaque_track_class*);
 
 bool operator== (const CPP_track&, const CPP_track&);
-
-
-//--------------------------------------------------------------------
-// CPP_synch_rad_common
-
-class Opaque_synch_rad_common_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_synch_rad_common {
-public:
-  Real scale;
-  Real i2;
-  Real i3;
-  Real i5a;
-  Real i5b;
-
-  CPP_synch_rad_common() :
-    scale(1.0),
-    i2(0.0),
-    i3(0.0),
-    i5a(0.0),
-    i5b(0.0)
-    {}
-
-  ~CPP_synch_rad_common() {
-  }
-
-};   // End Class
-
-extern "C" void synch_rad_common_to_c (const Opaque_synch_rad_common_class*, CPP_synch_rad_common&);
-extern "C" void synch_rad_common_to_f (const CPP_synch_rad_common&, Opaque_synch_rad_common_class*);
-
-bool operator== (const CPP_synch_rad_common&, const CPP_synch_rad_common&);
 
 
 //--------------------------------------------------------------------
