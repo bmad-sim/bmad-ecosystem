@@ -2152,6 +2152,7 @@ case ('global')
     nl=nl+1; write(lines(nl), rmt) '  %init_ds_adaptive_tracking       = ', bmad_com%init_ds_adaptive_tracking
     nl=nl+1; write(lines(nl), rmt) '  %min_ds_adaptive_tracking        = ', bmad_com%min_ds_adaptive_tracking
     nl=nl+1; write(lines(nl), rmt) '  %electric_dipole_moment          = ', bmad_com%electric_dipole_moment
+    nl=nl+1; write(lines(nl), rmt) '  %synch_rad_scale                 = ', bmad_com%synch_rad_scale
     nl=nl+1; write(lines(nl), rmt) '  %sad_eps_scale                   = ', bmad_com%sad_eps_scale
     nl=nl+1; write(lines(nl), rmt) '  %sad_amp_max                     = ', bmad_com%sad_amp_max
 
