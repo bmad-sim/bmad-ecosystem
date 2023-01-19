@@ -22,8 +22,7 @@
 !   x1            -- real(rp): Location where deriv1 derivatives have been evaluated.
 !
 ! Output:
-!   n_spline(0:)  -- real(rp), allocatable: Derivative vector from order 0 to order 2*n+1 of
-!                     the interpolation spline.
+!   n_spline(0:)  -- real(rp), Derivative vector from order 0 to order 2*n+1 of the interpolation spline.
 !-
 
 subroutine n_spline_create (deriv0, deriv1, x1, n_spline)
@@ -34,14 +33,14 @@ implicit none
 
 real(rp) deriv0(0:), deriv1(0:)
 real(rp) x1
-real(rp), allocatable :: n_spline(:), mat(:,:), v(:), x1p(:)
+real(rp) :: n_spline(0:)
+real(rp), allocatable :: mat(:,:), v(:), x1p(:)
 
 integer n, j, k
 
 ! 
 
 n = ubound(deriv0,1)
-call re_allocate2(n_spline, 0, 2*n+1)
 allocate(mat(0:n,0:n), v(0:n), x1p(0:2*n+1))
 
 x1p(0) = 1
