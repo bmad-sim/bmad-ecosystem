@@ -49,7 +49,7 @@ integer :: Nx_min, Nx_max, Ny_min, Ny_max, Nz_min = int_garbage$, Nz_max = int_g
 integer :: n_grid_pts
 integer :: n_cycles = 100000
 integer :: every_n_th_plane = 1, n_planes_add = 0
-integer :: n_deriv_max = -1
+integer :: n_deriv_max = -1, n_deriv_extra = 0, n_deriv_tot
 integer :: iz_min = int_garbage$, iz_max = int_garbage$    ! Compute range
 integer :: m_cos(m_max) = -1
 integer :: m_sin(m_max) = -1
@@ -443,8 +443,9 @@ enddo
 
 !
 
+n_deriv_tot = n_deriv_max + n_deriv_extra
 n_gg = (count(m_cos /= -1) + count(m_sin /= -1))
-n_var0 = n_gg * (n_deriv_max + 1)
+n_var0 = n_gg * (n_deriv_tot + 1)
 do im = 1, size(m_cos)
   if (m_cos(im) == 0) n_var0 = n_var0 - 1
   if (m_sin(im) == 0) then
@@ -469,10 +470,10 @@ do im = 1, size(m_cos)
     gg => gg1(n_gg)
     gg%sincos = cos$
     gg%m = m_cos(im)
-    allocate (gg%deriv(iz_min:iz_max, 0:n_deriv_max), gg%ix_var(0:n_deriv_max))
+    allocate (gg%deriv(iz_min:iz_max, 0:n_deriv_tot), gg%ix_var(0:n_deriv_tot))
     gg%deriv = 0; gg%ix_var = -1
     gg%sym_score = sym_score_calc (gg%sincos, gg%m)
-    do id = 0, n_deriv_max
+    do id = 0, n_deriv_tot
       if (gg%m == 0 .and. id == 0) cycle
       n_var = n_var + 1
       gg%ix_var(id) = n_var
@@ -484,10 +485,10 @@ do im = 1, size(m_cos)
     gg => gg1(n_gg)
     gg%sincos = sin$
     gg%m = m_sin(im)
-    allocate (gg%deriv(iz_min:iz_max, 0:n_deriv_max), gg%ix_var(0:n_deriv_max))
+    allocate (gg%deriv(iz_min:iz_max, 0:n_deriv_tot), gg%ix_var(0:n_deriv_tot))
     gg%deriv = 0; gg%ix_var = -1
     gg%sym_score = sym_score_calc (gg%sincos, gg%m)
-    do id = 0, n_deriv_max
+    do id = 0, n_deriv_tot
       n_var = n_var + 1
       gg%ix_var(id) = n_var
     enddo
@@ -574,7 +575,7 @@ do iz = iz_min, iz_max, every_n_th_plane
 
   do ig = 1, size(gg1)
     gg => gg1(ig)
-    do id = 0, n_deriv_max
+    do id = 0, n_deriv_tot
       if (gg%ix_var(id) < 1) cycle
       gg%deriv(iz,id) = var_vec(gg%ix_var(id))
     enddo
@@ -583,7 +584,7 @@ do iz = iz_min, iz_max, every_n_th_plane
   do ig = 1, size(gg1)
     print '(a)', '  Ix    m   nd  sym             Deriv       Deriv*r_max^(m+d-1)*(d+m)*m!/((d/2)!*(d/2+m)!)'
     gg => gg1(ig)
-    do id = 0, n_deriv_max
+    do id = 0, n_deriv_tot
       if (gg%ix_var(id) > 0) then
         v = gg%deriv(iz,id)
         print '(i4, 3i5, 2x, a, es16.6, es12.2)', gg%ix_var(id), gg%m, id, &
@@ -632,7 +633,7 @@ do izz = iz0, iz1
 
   do ig = 1, size(gg1)
     gg => gg1(ig)
-    do id = 0, n_deriv_max
+    do id = 0, n_deriv_tot
       iv = gg%ix_var(id)
       if (iv < 1) cycle
 
@@ -649,7 +650,7 @@ do izz = iz0, iz1
         nn = (id - 1) / 2
       endif
 
-      coef = poly_eval(var_vec(iv:iv+n_deriv_max-id), (izz-iz)*del_meters(3), .true.)
+      coef = poly_eval(var_vec(iv:iv+n_deriv_tot-id), (izz-iz)*del_meters(3), .true.)
 
       f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
 
@@ -709,7 +710,7 @@ do izz = iz0, iz1
         dB_dvar_vec(n0+2*n3+1:n0+3*n3, iv) = reshape(dBz_dvar(:,:), [n3])
       endif
 
-    enddo   ! id = 0, n_deriv_max
+    enddo   ! id = 0, n_deriv_tot
   enddo   ! ig = 1, size(gg1)
 
   !
@@ -816,7 +817,7 @@ type (gg1_struct), pointer :: gg
 type (plot1_struct), pointer :: p
 
 real(rp), allocatable :: dderiv(:)
-integer ig, iz, m, n, nmax
+integer ig, iz, m, n
 character(40) fmt
 
 !
@@ -861,8 +862,7 @@ write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
 do ig = 1, size(gg1)
   gg => gg1(ig)
   m = gg%m
-  nmax = ubound(gg%deriv,2)
-  call re_allocate2 (dderiv, 0, nmax)
+  call re_allocate2 (dderiv, 0, n_deriv_max)
 
   if (ig > 1) then
     write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
@@ -874,7 +874,7 @@ do ig = 1, size(gg1)
 
   do iz = iz_min, iz_max
     write (1, '(i4, f10.4, 99es16.8)') iz, iz*del_meters(3)+r0_grid(3), &
-                  (gg%deriv(iz,n) * r_max**(max(0,m+n-1)) * (n+m) * factorial(m) / (factorial(n/2) * factorial(n/2+m)), n = 0, nmax)
+                  (gg%deriv(iz,n) * r_max**(max(0,m+n-1)) * (n+m) * factorial(m) / (factorial(n/2) * factorial(n/2+m)), n = 0, n_deriv_max)
   enddo
 
 enddo
@@ -892,8 +892,7 @@ write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
 do ig = 1, size(gg1)
   gg => gg1(ig)
   m = gg%m
-  nmax = ubound(gg%deriv,2)
-  call re_allocate2 (dderiv, 0, nmax)
+  call re_allocate2 (dderiv, 0, n_deriv_max)
 
   if (ig > 1) then
     write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
@@ -904,7 +903,7 @@ do ig = 1, size(gg1)
   write (1, '(a, i2)') '# Iz     z_pos   Deriv - left_extrapolated_deriv'
 
   do iz = iz_min+1, iz_max
-    do n = 0, nmax
+    do n = 0, n_deriv_max
       dderiv(n) = gg%deriv(iz,n) - poly_eval(gg1(ig)%deriv(iz-1,n:), del_meters(3), .true.)
     enddo
 
@@ -925,8 +924,7 @@ write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
 do ig = 1, size(gg1)
   gg => gg1(ig)
   m = gg%m
-  nmax = ubound(gg%deriv,2)
-  call re_allocate2 (dderiv, 0, nmax)
+  call re_allocate2 (dderiv, 0, n_deriv_max)
 
   if (ig > 1) then
     write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
@@ -937,7 +935,7 @@ do ig = 1, size(gg1)
   write (1, '(a, i2)') '# Iz     z_pos   Deriv - right_extrapolated_deriv'
 
   do iz = iz_min, iz_max-1
-    do n = 0, nmax
+    do n = 0, n_deriv_max
       dderiv(n) = gg%deriv(iz,n) - poly_eval(gg1(ig)%deriv(iz+1,n:), -del_meters(3), .true.)
     enddo
 
@@ -980,7 +978,7 @@ type (gg1_struct), pointer :: gg
 type (plot1_struct), pointer :: p
 
 real(rp), allocatable :: dderiv(:)
-integer ig, iz, m, n, nmax
+integer ig, iz, m, n
 character(40) fmt
 character(200) b_file
 
